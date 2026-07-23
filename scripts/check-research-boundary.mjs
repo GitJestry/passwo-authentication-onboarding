@@ -1,5 +1,5 @@
 import { spawnSync } from 'node:child_process';
-import { readFile, readdir } from 'node:fs/promises';
+import { readdir, readFile } from 'node:fs/promises';
 import { extname, join, relative, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -31,8 +31,8 @@ const gitignore = await read('.gitignore');
 if (!gitignore.includes('research/private/**')) {
   violations.push('.gitignore must exclude research/private/**.');
 }
-if (!gitignore.includes('!research/private/README.md')) {
-  violations.push('.gitignore must keep research/private/README.md trackable.');
+if (gitignore.includes('!research/private/README.md')) {
+  violations.push('.gitignore must not make research/private/README.md trackable.');
 }
 
 const tracked = spawnSync('git', ['ls-files', 'research/private'], {
@@ -40,10 +40,7 @@ const tracked = spawnSync('git', ['ls-files', 'research/private'], {
   encoding: 'utf8',
 });
 if (tracked.status === 0) {
-  const trackedPrivateFiles = tracked.stdout
-    .split('\n')
-    .filter(Boolean)
-    .filter((path) => path !== 'research/private/README.md');
+  const trackedPrivateFiles = tracked.stdout.split('\n').filter(Boolean);
   if (trackedPrivateFiles.length > 0) {
     violations.push(`Private research files are tracked: ${trackedPrivateFiles.join(', ')}`);
   }
@@ -83,11 +80,7 @@ for (const scannedRoot of scannedRoots) {
   }
 }
 
-for (const requiredPath of [
-  'docs/research/DATA-CONTRACT.md',
-  'docs/research/STUDY-RUNTIME.md',
-  'research/private/README.md',
-]) {
+for (const requiredPath of ['docs/research/DATA-CONTRACT.md', 'docs/research/STUDY-RUNTIME.md']) {
   try {
     await read(requiredPath);
   } catch {

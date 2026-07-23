@@ -27,7 +27,9 @@ export function App() {
       >
         <div className={styles.browserContent}>
           <header className={styles.productHeader}>
-            <div className={styles.brandMark} aria-hidden="true">P</div>
+            <div className={styles.brandMark} aria-hidden="true">
+              P
+            </div>
             <div>
               <strong>PassWo</strong>
               <span>Supportive Authentication Onboarding</span>
@@ -39,8 +41,8 @@ export function App() {
               <p className={styles.status}>Foundation bereit</p>
               <h2>Mechaniken zuerst. Inhalte danach.</h2>
               <p>
-                Die App-Shell verbindet bereits Workspace, Designsystem und Content-Manifest,
-                ohne einen unfertigen Studienablauf vorzutäuschen.
+                Die App-Shell verbindet bereits Workspace, Designsystem und Content-Manifest, ohne
+                einen unfertigen Studienablauf vorzutäuschen.
               </p>
               <dl className={styles.metrics}>
                 <div>
@@ -59,7 +61,10 @@ export function App() {
             </section>
 
             <aside className={styles.passwoCard} aria-label="PassWo Platzhalter">
-              <div className={styles.keyHead} aria-hidden="true"><span /><b>•‿•</b></div>
+              <div className={styles.keyHead} aria-hidden="true">
+                <span />
+                <b>•‿•</b>
+              </div>
               <div className={styles.keyBody} aria-hidden="true" />
               <div className={styles.speech}>
                 <strong>Als Nächstes:</strong>

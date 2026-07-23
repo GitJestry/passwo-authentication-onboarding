@@ -1,5 +1,5 @@
-import { createActor } from 'xstate';
 import { describe, expect, it } from 'vitest';
+import { createActor } from 'xstate';
 import { getCurrentMissionStep, missionMachine } from './mission-machine.js';
 
 describe('missionMachine', () => {
@@ -9,9 +9,7 @@ describe('missionMachine', () => {
     actor.send({
       type: 'START',
       missionId: 'S00-intro',
-      steps: [
-        { id: 'arrival', animationSequenceId: 'passwo-arrival', narrationId: 's00.arrival' },
-      ],
+      steps: [{ id: 'arrival', animationSequenceId: 'passwo-arrival', narrationId: 's00.arrival' }],
     });
 
     expect(actor.getSnapshot().matches({ active: 'animating' })).toBe(true);

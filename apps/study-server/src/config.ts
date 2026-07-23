@@ -1,6 +1,6 @@
 import { homedir } from 'node:os';
 import { resolve } from 'node:path';
-import { assignmentModeSchema, type AssignmentMode } from '@passwo/contracts';
+import { type AssignmentMode, assignmentModeSchema } from '@passwo/contracts';
 import { z } from 'zod';
 
 const environmentSchema = z.object({

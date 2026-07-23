@@ -5,7 +5,9 @@
   gap: 28px;
   padding: 48px clamp(18px, 5vw, 72px) 72px;
 }
-.intro { width: min(100%, 1180px); }
+.intro {
+  width: min(100%, 1180px);
+}
 .intro h1 {
   margin: 0;
   color: var(--passwo-navy-950);
@@ -40,9 +42,18 @@
   padding-bottom: 22px;
   border-bottom: 1px solid #dce6ea;
 }
-.productHeader > div:last-child { display: grid; gap: 2px; }
-.productHeader strong { color: var(--passwo-navy-950); font-size: 1.1rem; }
-.productHeader span { color: var(--color-ink-muted); font-size: 0.86rem; }
+.productHeader > div:last-child {
+  display: grid;
+  gap: 2px;
+}
+.productHeader strong {
+  color: var(--passwo-navy-950);
+  font-size: 1.1rem;
+}
+.productHeader span {
+  color: var(--color-ink-muted);
+  font-size: 0.86rem;
+}
 .brandMark {
   display: grid;
   width: 42px;
@@ -82,9 +93,22 @@
   gap: 12px;
   margin: 30px 0 0;
 }
-.metrics div { padding: 17px; border: 1px solid #d6e5e9; border-radius: 16px; background: #f7fbfb; }
-.metrics dt { color: var(--passwo-navy-950); font-weight: 800; }
-.metrics dd { margin: 7px 0 0; color: var(--color-ink-muted); font-size: 0.84rem; line-height: 1.45; }
+.metrics div {
+  padding: 17px;
+  border: 1px solid #d6e5e9;
+  border-radius: 16px;
+  background: #f7fbfb;
+}
+.metrics dt {
+  color: var(--passwo-navy-950);
+  font-weight: 800;
+}
+.metrics dd {
+  margin: 7px 0 0;
+  color: var(--color-ink-muted);
+  font-size: 0.84rem;
+  line-height: 1.45;
+}
 .passwoCard {
   position: relative;
   display: grid;
@@ -115,7 +139,11 @@
   border-radius: 999px;
   background: #eef9fa;
 }
-.keyHead b { margin-top: 24px; font-size: 1.8rem; letter-spacing: 0.08em; }
+.keyHead b {
+  margin-top: 24px;
+  font-size: 1.8rem;
+  letter-spacing: 0.08em;
+}
 .keyBody {
   width: 86px;
   height: 150px;
@@ -139,8 +167,12 @@
   background: rgb(255 255 255 / 94%);
   box-shadow: 0 10px 26px rgb(8 43 82 / 10%);
 }
-.speech strong { color: var(--passwo-teal-700); }
-.speech span { line-height: 1.45; }
+.speech strong {
+  color: var(--passwo-teal-700);
+}
+.speech span {
+  line-height: 1.45;
+}
 .browserFooter {
   padding-top: 18px;
   border-top: 1px solid #dce6ea;
@@ -148,10 +180,18 @@
   font-size: 0.85rem;
 }
 @media (max-width: 900px) {
-  .heroGrid { grid-template-columns: 1fr; }
-  .passwoCard { min-height: 300px; }
+  .heroGrid {
+    grid-template-columns: 1fr;
+  }
+  .passwoCard {
+    min-height: 300px;
+  }
 }
 @media (max-width: 700px) {
-  .page { padding: 28px 14px 42px; }
-  .metrics { grid-template-columns: 1fr; }
+  .page {
+    padding: 28px 14px 42px;
+  }
+  .metrics {
+    grid-template-columns: 1fr;
+  }
 }

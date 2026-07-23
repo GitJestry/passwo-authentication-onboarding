@@ -1,7 +1,13 @@
 @import "@passwo/ui/styles.css";
 
-* { box-sizing: border-box; }
-html { min-width: 320px; min-height: 100%; background: #eef7f8; }
+* {
+  box-sizing: border-box;
+}
+html {
+  min-width: 320px;
+  min-height: 100%;
+  background: #eef7f8;
+}
 body {
   min-width: 320px;
   min-height: 100vh;
@@ -14,5 +20,9 @@ body {
 button,
 input,
 textarea,
-select { font: inherit; }
-code { font-family: ui-monospace, "SFMono-Regular", Consolas, monospace; }
+select {
+  font: inherit;
+}
+code {
+  font-family: ui-monospace, "SFMono-Regular", Consolas, monospace;
+}

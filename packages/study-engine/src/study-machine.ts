@@ -95,10 +95,7 @@ export const studyMachine = setup({
       initial: 'routing',
       states: {
         routing: {
-          always: [
-            { guard: 'isSupportive', target: 'supportive' },
-            { target: 'reference' },
-          ],
+          always: [{ guard: 'isSupportive', target: 'supportive' }, { target: 'reference' }],
         },
         supportive: {
           on: {

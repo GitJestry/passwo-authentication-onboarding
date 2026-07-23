@@ -27,7 +27,6 @@ study-data/
 
 # Confidential thesis sources: keep local, never commit
 research/private/**
-!research/private/README.md
 
 # Snapshot distribution metadata
 SNAPSHOT-MANIFEST.sha256

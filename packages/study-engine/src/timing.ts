@@ -85,13 +85,7 @@ export class StudyTimerController {
   }
 
   async technicalAbort(scope: TimingScope, reasonCode: string): Promise<void> {
-    await this.#write(
-      scope,
-      'technical-abort',
-      this.#clock.monotonicNow(),
-      null,
-      reasonCode,
-    );
+    await this.#write(scope, 'technical-abort', this.#clock.monotonicNow(), null, reasonCode);
   }
 
   async #write(

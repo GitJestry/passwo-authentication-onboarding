@@ -64,19 +64,5 @@
     "formatter": {
       "enabled": true
     }
-  },
-  "overrides": [
-    {
-      "includes": [
-        "packages/ui/src/browser-shell/BrowserShell.tsx"
-      ],
-      "linter": {
-        "rules": {
-          "a11y": {
-            "useAriaPropsSupportedByRole": "off"
-          }
-        }
-      }
-    }
-  ]
+  }
 }

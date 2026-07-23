@@ -27,16 +27,24 @@
   background: #b9c8cf;
 }
 
-.windowControls span:first-child { background: #d57c72; }
-.windowControls span:nth-child(2) { background: #d5ad5c; }
-.windowControls span:last-child { background: #6ca67a; }
+.windowControls span:first-child {
+  background: #d57c72;
+}
+.windowControls span:nth-child(2) {
+  background: #d5ad5c;
+}
+.windowControls span:last-child {
+  background: #6ca67a;
+}
 
 .tabs {
   display: flex;
   min-height: 46px;
+  margin: 0;
   gap: 6px;
   overflow-x: auto;
   padding: 0 14px;
+  list-style: none;
 }
 
 .tab,
@@ -55,8 +63,12 @@
 }
 
 button.tab,
-button.activeTab { cursor: pointer; }
-.tab { background: rgb(255 255 255 / 28%); }
+button.activeTab {
+  cursor: pointer;
+}
+.tab {
+  background: rgb(255 255 255 / 28%);
+}
 .activeTab {
   border-color: var(--passwo-border);
   border-bottom-color: var(--passwo-surface);
@@ -112,20 +124,47 @@ button.activeTab { cursor: pointer; }
   white-space: nowrap;
 }
 
-.viewport { position: relative; min-height: 525px; background: var(--passwo-surface); }
+.viewport {
+  position: relative;
+  min-height: 525px;
+  background: var(--passwo-surface);
+}
 .content,
-.dimmedContent { min-height: inherit; }
-.dimmedContent { filter: saturate(0.7); }
-.dimLayer { position: absolute; inset: 0; background: rgb(5 26 50 / 72%); }
-.overlay { position: absolute; inset: 0; display: grid; place-items: center; padding: 32px; }
+.dimmedContent {
+  min-height: inherit;
+}
+.dimmedContent {
+  filter: saturate(0.7);
+}
+.dimLayer {
+  position: absolute;
+  inset: 0;
+  background: rgb(5 26 50 / 72%);
+}
+.overlay {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: 32px;
+}
 
 @media (max-width: 760px) {
-  .window { min-height: 560px; border-radius: 16px; }
+  .window {
+    min-height: 560px;
+    border-radius: 16px;
+  }
   .navigationGlyphs,
-  .utilityGlyphs { display: none; }
-  .addressRow { grid-template-columns: minmax(0, 1fr); }
+  .utilityGlyphs {
+    display: none;
+  }
+  .addressRow {
+    grid-template-columns: minmax(0, 1fr);
+  }
   .tab,
-  .activeTab { min-width: 150px; }
+  .activeTab {
+    min-width: 150px;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {

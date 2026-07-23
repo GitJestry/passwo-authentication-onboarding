@@ -28,6 +28,33 @@ export function BrowserShell({
   ariaLabel = 'Fiktive Browseranwendung',
   onTabSelect,
 }: BrowserShellProps) {
+  const tabItems = tabs.map((tab) => {
+    const selected = tab.id === activeTabId;
+    const marker = tab.status === 'complete' ? '✓' : tab.status === 'attention' ? '!' : '';
+    return onTabSelect ? (
+      <button
+        key={tab.id}
+        type="button"
+        role="tab"
+        aria-selected={selected}
+        className={selected ? styles.activeTab : styles.tab}
+        onClick={() => onTabSelect(tab.id)}
+      >
+        <span>{tab.label}</span>
+        {marker ? <span className={styles.tabMarker}>{marker}</span> : null}
+      </button>
+    ) : (
+      <li
+        key={tab.id}
+        aria-current={selected ? 'page' : undefined}
+        className={selected ? styles.activeTab : styles.tab}
+      >
+        <span>{tab.label}</span>
+        {marker ? <span className={styles.tabMarker}>{marker}</span> : null}
+      </li>
+    );
+  });
+
   return (
     <section className={styles.window} aria-label={ariaLabel}>
       <header className={styles.chrome}>
@@ -36,45 +63,26 @@ export function BrowserShell({
           <span />
           <span />
         </div>
-        <div
-          className={styles.tabs}
-          role={onTabSelect ? 'tablist' : undefined}
-          aria-label="Fiktive Konten"
-        >
-          {tabs.map((tab) => {
-            const selected = tab.id === activeTabId;
-            const marker = tab.status === 'complete' ? '✓' : tab.status === 'attention' ? '!' : '';
-            return onTabSelect ? (
-              <button
-                key={tab.id}
-                type="button"
-                role="tab"
-                aria-selected={selected}
-                className={selected ? styles.activeTab : styles.tab}
-                onClick={() => onTabSelect(tab.id)}
-              >
-                <span>{tab.label}</span>
-                {marker ? <span className={styles.tabMarker}>{marker}</span> : null}
-              </button>
-            ) : (
-              <div
-                key={tab.id}
-                aria-current={selected ? 'page' : undefined}
-                className={selected ? styles.activeTab : styles.tab}
-              >
-                <span>{tab.label}</span>
-                {marker ? <span className={styles.tabMarker}>{marker}</span> : null}
-              </div>
-            );
-          })}
-        </div>
+        {onTabSelect ? (
+          <div className={styles.tabs} role="tablist" aria-label="Fiktive Konten">
+            {tabItems}
+          </div>
+        ) : (
+          <ul className={styles.tabs} aria-label="Fiktive Konten">
+            {tabItems}
+          </ul>
+        )}
         <div className={styles.addressRow}>
-          <span className={styles.navigationGlyphs} aria-hidden="true">‹ › ↻</span>
-          <div className={styles.address} aria-label="Fiktive Adresse">
+          <span className={styles.navigationGlyphs} aria-hidden="true">
+            ‹ › ↻
+          </span>
+          <output className={styles.address} aria-label="Fiktive Adresse">
             <span aria-hidden="true">▣</span>
             {address}
-          </div>
-          <span className={styles.utilityGlyphs} aria-hidden="true">☆ ⋮</span>
+          </output>
+          <span className={styles.utilityGlyphs} aria-hidden="true">
+            ☆ ⋮
+          </span>
         </div>
       </header>
       <div className={styles.viewport}>

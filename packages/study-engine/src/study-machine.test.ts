@@ -1,5 +1,5 @@
-import { createActor } from 'xstate';
 import { describe, expect, it } from 'vitest';
+import { createActor } from 'xstate';
 import { studyMachine } from './study-machine.js';
 
 describe('studyMachine', () => {
