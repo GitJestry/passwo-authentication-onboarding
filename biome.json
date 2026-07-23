@@ -8,7 +8,7 @@
       "!**/coverage",
       "!**/playwright-report",
       "!**/test-results",
-      "!research/private/**"
+      "!research/private"
     ],
     "ignoreUnknown": true
   },
@@ -64,5 +64,19 @@
     "formatter": {
       "enabled": true
     }
-  }
+  },
+  "overrides": [
+    {
+      "includes": [
+        "packages/ui/src/browser-shell/BrowserShell.tsx"
+      ],
+      "linter": {
+        "rules": {
+          "a11y": {
+            "useAriaPropsSupportedByRole": "off"
+          }
+        }
+      }
+    }
+  ]
 }

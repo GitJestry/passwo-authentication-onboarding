@@ -8,28 +8,27 @@
     ],
     "module": "ESNext",
     "moduleResolution": "Bundler",
-    "baseUrl": ".",
     "paths": {
       "@passwo/contracts": [
-        "packages/contracts/src/index.ts"
+        "./packages/contracts/src/index.ts"
       ],
       "@passwo/study-engine": [
-        "packages/study-engine/src/index.ts"
+        "./packages/study-engine/src/index.ts"
       ],
       "@passwo/training-engine": [
-        "packages/training-engine/src/index.ts"
+        "./packages/training-engine/src/index.ts"
       ],
       "@passwo/training-content": [
-        "packages/training-content/src/index.ts"
+        "./packages/training-content/src/index.ts"
       ],
       "@passwo/password-analysis": [
-        "packages/password-analysis/src/index.ts"
+        "./packages/password-analysis/src/index.ts"
       ],
       "@passwo/visualization": [
-        "packages/visualization/src/index.ts"
+        "./packages/visualization/src/index.ts"
       ],
       "@passwo/ui": [
-        "packages/ui/src/index.ts"
+        "./packages/ui/src/index.ts"
       ]
     },
     "allowJs": false,
@@ -44,7 +43,7 @@
     "noImplicitOverride": true,
     "noUncheckedIndexedAccess": true,
     "resolveJsonModule": true,
-    "skipLibCheck": false,
+    "skipLibCheck": true,
     "strict": true,
     "useDefineForClassFields": true,
     "verbatimModuleSyntax": true

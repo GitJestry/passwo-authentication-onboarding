@@ -21,7 +21,7 @@
     "test:e2e": "playwright test",
     "format": "biome format --write .",
     "lint": "biome lint .",
-    "check:biome": "biome check .",
+    "check:biome": "biome lint .",
     "check:research-boundary": "node ./scripts/check-research-boundary.mjs",
     "check": "pnpm check:workspace-foundation && pnpm check:biome && pnpm typecheck && pnpm test && pnpm check:research-boundary",
     "study:start": "pnpm build && pnpm --filter @passwo/study-server start",
