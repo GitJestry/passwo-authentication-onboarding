@@ -1,0 +1,48 @@
+:root {
+  color-scheme: light;
+
+  --color-ink: #17324d;
+  --color-ink-strong: #082b52;
+  --color-ink-muted: #536d7e;
+  --color-accent: #138c93;
+  --color-accent-strong: #0d747b;
+  --color-accent-soft: #dff5f5;
+  --color-positive: #3f8c60;
+  --color-warning: #b27a14;
+  --color-danger: #b84c4c;
+  --color-surface-canvas: #eef7f8;
+  --color-surface-primary: #ffffff;
+  --color-surface-muted: #f7fbfc;
+  --color-surface-chrome-start: #eef3f6;
+  --color-surface-chrome-end: #e6edf1;
+  --color-border: #cad9e0;
+  --color-border-soft: #dce6ea;
+  --color-focus: #7a4b00;
+  --color-overlay: rgb(5 26 50 / 72%);
+  --color-control-close: #d57c72;
+  --color-control-minimize: #d5ad5c;
+  --color-control-expand: #6ca67a;
+
+  --radius-small: 12px;
+  --radius-medium: 16px;
+  --radius-large: 24px;
+  --radius-round: 999px;
+  --shadow-window: 0 28px 80px rgb(8 43 82 / 16%);
+  --shadow-card: 0 18px 30px rgb(8 43 82 / 16%);
+
+  --motion-instant: 1ms;
+  --motion-fast: 140ms;
+  --motion-standard: 260ms;
+
+  --passwo-navy-950: var(--color-ink-strong);
+  --passwo-navy-800: #164b78;
+  --passwo-teal-700: var(--color-accent-strong);
+  --passwo-teal-500: #2cabb0;
+  --passwo-teal-100: var(--color-accent-soft);
+  --passwo-surface: var(--color-surface-primary);
+  --passwo-surface-muted: var(--color-surface-muted);
+  --passwo-border: var(--color-border);
+  --passwo-text: var(--color-ink);
+  --passwo-focus: var(--color-focus);
+  --passwo-shadow: var(--shadow-window);
+}

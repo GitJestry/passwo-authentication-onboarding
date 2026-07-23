@@ -1,0 +1,18 @@
+@import "@passwo/ui/styles.css";
+
+* { box-sizing: border-box; }
+html { min-width: 320px; min-height: 100%; background: #eef7f8; }
+body {
+  min-width: 320px;
+  min-height: 100vh;
+  margin: 0;
+  color: var(--passwo-text);
+  background:
+    radial-gradient(circle at 12% 12%, rgb(255 255 255 / 92%) 0 12%, transparent 36%),
+    linear-gradient(145deg, #f7fbfc 0%, #eaf5f6 52%, #f8fafb 100%);
+}
+button,
+input,
+textarea,
+select { font: inherit; }
+code { font-family: ui-monospace, "SFMono-Regular", Consolas, monospace; }

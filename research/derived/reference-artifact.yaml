@@ -1,0 +1,27 @@
+status: not-frozen
+studyConfigId: main-study-v1
+artifact:
+  provider: SecAware.NRW
+  module: Passwörter & Authentifizierung
+  url: TODO
+  accessDate: TODO
+  visibleVersion: TODO
+  language: de
+  deliveryFormat: website
+  completionPath: TODO
+  embeddedChecks: TODO
+  immediateFeedback: TODO
+characterization:
+  estimatedLength: TODO
+  mediaFormat: TODO
+  navigationStructure: TODO
+  interactionTypes: TODO
+  feedbackMechanisms: TODO
+  exampleUse: TODO
+  scenarioPractice: TODO
+  visualDensity: TODO
+  autonomyWording: TODO
+freeze:
+  commit: TODO
+  researcher: TODO
+  notes: []

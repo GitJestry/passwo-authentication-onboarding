@@ -1,0 +1,33 @@
+# Dependencies and generated output
+node_modules/
+.pnpm-store/
+dist/
+build/
+coverage/
+playwright-report/
+test-results/
+*.tsbuildinfo
+*.log
+
+# Local environment and study data
+.env
+.env.*
+!.env.example
+.passwo-study/
+study-data/
+*.sqlite
+*.sqlite-shm
+*.sqlite-wal
+
+# macOS / editors
+.DS_Store
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.json
+
+# Confidential thesis sources: keep local, never commit
+research/private/**
+!research/private/README.md
+
+# Snapshot distribution metadata
+SNAPSHOT-MANIFEST.sha256

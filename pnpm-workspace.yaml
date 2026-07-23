@@ -1,0 +1,15 @@
+packages:
+  - apps/*
+  - packages/*
+
+engineStrict: true
+saveExact: true
+strictPeerDependencies: true
+autoInstallPeers: false
+preferWorkspacePackages: true
+linkWorkspacePackages: true
+sharedWorkspaceLockfile: true
+
+allowBuilds:
+  better-sqlite3: true
+  esbuild: true

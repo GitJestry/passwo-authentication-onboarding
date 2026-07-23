@@ -1,0 +1,40 @@
+{
+  "name": "passwo-authentication-onboarding",
+  "version": "0.1.2",
+  "private": true,
+  "description": "Research-grade foundation for the PassWo supportive authentication onboarding and local between-subjects study runtime.",
+  "type": "module",
+  "packageManager": "pnpm@11.15.1",
+  "engines": {
+    "node": "24.18.0",
+    "pnpm": "11.15.1"
+  },
+  "scripts": {
+    "preinstall": "node ./scripts/verify-toolchain.mjs && node ./scripts/check-workspace-foundation.mjs",
+    "dev": "pnpm --parallel --stream --filter @passwo/study-web --filter @passwo/study-server dev",
+    "dev:web": "pnpm --filter @passwo/study-web dev",
+    "dev:server": "pnpm --filter @passwo/study-server dev",
+    "build": "pnpm typecheck && pnpm --filter @passwo/study-server build && pnpm --filter @passwo/study-web build",
+    "typecheck": "tsc -p tsconfig.json --noEmit && pnpm -r --if-present run typecheck",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:e2e": "playwright test",
+    "format": "biome format --write .",
+    "lint": "biome lint .",
+    "check:biome": "biome check .",
+    "check:research-boundary": "node ./scripts/check-research-boundary.mjs",
+    "check": "pnpm check:workspace-foundation && pnpm check:biome && pnpm typecheck && pnpm test && pnpm check:research-boundary",
+    "study:start": "pnpm build && pnpm --filter @passwo/study-server start",
+    "clean": "node ./scripts/clean.mjs",
+    "check:workspace-foundation": "node ./scripts/check-workspace-foundation.mjs"
+  },
+  "devDependencies": {
+    "@axe-core/playwright": "^4.10.0",
+    "@biomejs/biome": "^2.5.0",
+    "@playwright/test": "^1.61.0",
+    "@types/node": "^24.0.0",
+    "tsx": "^4.23.0",
+    "typescript": "~6.0.0",
+    "vitest": "^4.1.0"
+  }
+}
