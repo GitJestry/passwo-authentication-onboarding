@@ -1,7 +1,11 @@
 import type { PlaceholderInstrumentId, StudyCondition } from '@passwo/contracts';
 import { describe, expect, it } from 'vitest';
 import { createActor } from 'xstate';
-import { createStudyMachine, type StudyRuntimePorts } from './study-machine.js';
+import {
+  type ArtifactLifecycleInput,
+  createStudyMachine,
+  type StudyRuntimePorts,
+} from './study-machine.js';
 
 function runtimePorts(condition: StudyCondition): StudyRuntimePorts {
   return {
@@ -15,6 +19,7 @@ function runtimePorts(condition: StudyCondition): StudyRuntimePorts {
     startArtifact: async () => {},
     endArtifact: async () => 325,
     recordArtifactVisibility: async (_sessionId: string, _visible: boolean) => {},
+    retryArtifactTiming: async (_sessionId: string) => null,
     markIncompleteReload: (_sessionId: string) => {},
     observeArtifactLifecycle: (_input) => () => {},
     completeSession: async () => {},
@@ -35,6 +40,11 @@ async function waitForState(
       }
     });
   });
+}
+
+function requiredLifecycleInput(input: ArtifactLifecycleInput | null): ArtifactLifecycleInput {
+  if (input === null) throw new Error('Artifact lifecycle observer was not started');
+  return input;
 }
 
 describe('studyMachine', () => {
@@ -93,5 +103,99 @@ describe('studyMachine', () => {
 
     actor.send({ type: 'RETRY_PRE' });
     await waitForState(actor, () => actor.getSnapshot().matches('nameEntry'));
+  });
+
+  it('retries a failed artifact start through the timing queue', async () => {
+    let startAttempts = 0;
+    let retryCalls = 0;
+    const ports = runtimePorts('supportive');
+    const actor = createActor(
+      createStudyMachine({
+        ...ports,
+        startArtifact: async () => {
+          startAttempts += 1;
+          throw new Error('artifact-start-write-failed');
+        },
+        retryArtifactTiming: async () => {
+          retryCalls += 1;
+          return null;
+        },
+      }),
+    );
+    actor.start();
+    actor.send({ type: 'ACCEPT_CONSENT' });
+    await waitForState(actor, () => actor.getSnapshot().matches('preQuestionnaire'));
+    actor.send({ type: 'SUBMIT_PRE' });
+    await waitForState(actor, () => actor.getSnapshot().matches('nameEntry'));
+    actor.send({ type: 'DISPLAY_NAME_ENTERED', displayName: 'Alex' });
+    await waitForState(actor, () =>
+      actor.getSnapshot().matches({ artifactLifecycle: 'startError' }),
+    );
+
+    actor.send({ type: 'RETRY_ARTIFACT_START' });
+    await waitForState(actor, () =>
+      actor.getSnapshot().matches({ artifactLifecycle: { artifact: 'supportive' } }),
+    );
+
+    expect(startAttempts).toBe(1);
+    expect(retryCalls).toBe(1);
+  });
+
+  it('blocks completion on a failed visibility write and retries it before ending once', async () => {
+    let lifecycleInput: ArtifactLifecycleInput | null = null;
+    let visibilityAttempts = 0;
+    let endCalls = 0;
+    let retryCalls = 0;
+    const ports = runtimePorts('supportive');
+    const actor = createActor(
+      createStudyMachine({
+        ...ports,
+        recordArtifactVisibility: async () => {
+          visibilityAttempts += 1;
+          throw new Error('visibility-write-failed');
+        },
+        retryArtifactTiming: async () => {
+          retryCalls += 1;
+          return null;
+        },
+        endArtifact: async () => {
+          endCalls += 1;
+          return 325;
+        },
+        observeArtifactLifecycle: (input) => {
+          lifecycleInput = input;
+          return () => {};
+        },
+      }),
+    );
+    actor.start();
+    actor.send({ type: 'ACCEPT_CONSENT' });
+    await waitForState(actor, () => actor.getSnapshot().matches('preQuestionnaire'));
+    actor.send({ type: 'SUBMIT_PRE' });
+    await waitForState(actor, () => actor.getSnapshot().matches('nameEntry'));
+    actor.send({ type: 'DISPLAY_NAME_ENTERED', displayName: 'Alex' });
+    await waitForState(actor, () =>
+      actor.getSnapshot().matches({ artifactLifecycle: { artifact: 'supportive' } }),
+    );
+
+    const lifecycle = requiredLifecycleInput(lifecycleInput);
+    lifecycle.onVisibilityChange(false);
+    actor.send({ type: 'ARTIFACT_COMPLETED' });
+    await waitForState(actor, () => actor.getSnapshot().matches({ artifactLifecycle: 'endError' }));
+
+    expect(actor.getSnapshot().context.artifactTimingErrorKind).toBe('visibility');
+    expect(actor.getSnapshot().context.pendingArtifactTimingWrites).toBe(1);
+    expect(actor.getSnapshot().context.artifactCompletionRequested).toBe(true);
+    expect(actor.getSnapshot().context.researchErrorCode).toBe('visibility-write-failed');
+    expect(visibilityAttempts).toBe(1);
+    expect(endCalls).toBe(0);
+
+    actor.send({ type: 'RETRY_ARTIFACT_END' });
+    await waitForState(actor, () => actor.getSnapshot().matches('postQuestionnaire'));
+
+    expect(retryCalls).toBe(1);
+    expect(endCalls).toBe(1);
+    expect(actor.getSnapshot().context.pendingArtifactTimingWrites).toBe(0);
+    expect(actor.getSnapshot().context.artifactTimingErrorKind).toBeNull();
   });
 });

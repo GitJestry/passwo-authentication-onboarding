@@ -86,6 +86,34 @@ async function failFirstPreWrite(page: Page): Promise<void> {
   });
 }
 
+async function failFirstVisibilityWrite(page: Page): Promise<() => void> {
+  let failed = false;
+  let releaseFailure = () => {};
+  const failureGate = new Promise<void>((resolve) => {
+    releaseFailure = resolve;
+  });
+  await page.route('**/api/study/sessions/*/timing', async (route) => {
+    const body: unknown = route.request().postDataJSON();
+    const isVisibilityWrite =
+      typeof body === 'object' &&
+      body !== null &&
+      'eventType' in body &&
+      body.eventType === 'visibility-hidden';
+
+    if (!failed && isVisibilityWrite) {
+      failed = true;
+      await failureGate;
+      await route.fulfill({
+        status: 503,
+        json: { errorCode: 'visibility-write-failed' },
+      });
+      return;
+    }
+    await route.continue();
+  });
+  return releaseFailure;
+}
+
 async function acceptConsent(page: Page) {
   await page.goto('/');
   await page.getByLabel('Ich bestätige die Einwilligung').check();
@@ -159,6 +187,48 @@ test('forced-supportive records diagnostic visibility only while the artifact is
   await expect
     .poll(() => timingEventTypes(requests.bodies))
     .toEqual(['start', 'visibility-hidden', 'visibility-visible', 'end']);
+});
+
+test('failed visibility blocks completion and retries the same timing payload', async ({
+  page,
+}) => {
+  await startStudyServer('forced-supportive');
+  const requests = captureResearchRequests(page);
+  const releaseVisibilityFailure = await failFirstVisibilityWrite(page);
+  await acceptConsent(page);
+  await submitPlaceholder(page);
+  await page.getByLabel('Anzeigename').fill('Timing Retry');
+  await page.getByRole('button', { name: 'Zum Artefakt' }).click();
+  await expect(page.getByRole('heading', { name: 'Hallo Timing Retry' })).toBeVisible();
+
+  await dispatchVisibilityChange(page, 'hidden');
+  await page.getByRole('button', { name: 'Artefakt-Platzhalter abschließen' }).click();
+  releaseVisibilityFailure();
+  await expect(page.getByRole('heading', { name: 'Speichern nicht möglich' })).toBeVisible();
+  await expect(page.getByText('Fehlercode: visibility-write-failed')).toBeVisible();
+
+  await page.getByRole('button', { name: 'Erneut versuchen' }).click();
+  await expect(page.getByRole('heading', { name: 'Fragebogen nach dem Artefakt' })).toBeVisible();
+  await expect
+    .poll(() => timingEventTypes(requests.bodies))
+    .toEqual(['start', 'visibility-hidden', 'visibility-hidden', 'end']);
+
+  const timingBodies = requests.bodies.flatMap((body) => {
+    const value: unknown = JSON.parse(body);
+    if (
+      typeof value === 'object' &&
+      value !== null &&
+      'eventType' in value &&
+      typeof value.eventType === 'string'
+    ) {
+      return [value];
+    }
+    return [];
+  });
+  expect(timingBodies[1]).toEqual(timingBodies[2]);
+  expect(timingBodies.map((body) => ('sequence' in body ? body.sequence : null))).toEqual([
+    0, 1, 1, 2,
+  ]);
 });
 
 test('forced-reference opens the placeholder separately and completes', async ({ page }) => {

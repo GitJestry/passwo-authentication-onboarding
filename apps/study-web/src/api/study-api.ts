@@ -48,11 +48,7 @@ async function postJson(url: string, body: unknown): Promise<unknown> {
   return responseBody;
 }
 
-export interface StudyClientApi extends StudyRuntimePorts {
-  markIncompleteReload(sessionId: string): void;
-}
-
-export function createStudyApi(): StudyClientApi {
+export function createStudyApi(): StudyRuntimePorts {
   const createRequest = createSessionRequestSchema.parse({
     requestId: globalThis.crypto.randomUUID(),
     consentAccepted: true,
@@ -98,6 +94,12 @@ export function createStudyApi(): StudyClientApi {
     recordArtifactVisibility: async (sessionId: string, visible: boolean) => {
       timingSessionId = sessionId;
       await timer.markVisibility(artifactScope, visible);
+    },
+
+    retryArtifactTiming: async (sessionId: string) => {
+      timingSessionId = sessionId;
+      const event = await timer.retryFailed();
+      return event.eventType === 'end' ? event.elapsedMs : null;
     },
 
     observeArtifactLifecycle: ({ condition, onVisibilityChange, onReload }) => {
