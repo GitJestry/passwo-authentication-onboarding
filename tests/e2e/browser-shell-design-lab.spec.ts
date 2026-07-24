@@ -351,6 +351,7 @@ test('S02 CampusID reveals authored services in order and completes after all pr
 
   await learnSpace.press('Enter');
   await expect(page.getByText('CampusID wird geprüft …', { exact: true })).toBeVisible();
+  await expect(page.getByRole('progressbar')).toHaveAttribute('value', '1');
   await expect(
     page.getByText('Kurszugänge, Vorlesungsunterlagen, Abgaben', { exact: true }),
   ).toBeVisible();
@@ -360,6 +361,7 @@ test('S02 CampusID reveals authored services in order and completes after all pr
   await expect(
     page.getByText('Anmeldungen, Termine, Ergebnisübersichten', { exact: true }),
   ).toBeVisible();
+  await expect(page.getByRole('progressbar')).toHaveAttribute('value', '2');
   await expect(completion).toHaveCount(0);
 
   await cloudNotes.click();

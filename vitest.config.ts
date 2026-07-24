@@ -19,7 +19,11 @@ export default defineConfig({
   },
   test: {
     environment: 'node',
-    include: ['packages/**/*.test.ts', 'apps/study-server/**/*.test.ts'],
+    include: [
+      'packages/**/*.test.ts',
+      'apps/study-server/**/*.test.ts',
+      'apps/study-web/src/features/training/segments/S02/**/*.test.ts',
+    ],
     passWithNoTests: false,
     restoreMocks: true,
   },

@@ -1,14 +1,7 @@
-import { getS02CampusIdAnimation, s02CampusIdContent } from '@passwo/training-content';
-import type { AnimationPlayerPort } from '@passwo/training-engine';
+import { s02CampusIdContent } from '@passwo/training-content';
 import { BrowserShell, type BrowserShellSnapshot } from '@passwo/ui';
-import {
-  type AccountServiceSceneEvent,
-  createAccountServiceScene,
-  transitionAccountServiceScene,
-} from '@passwo/visualization';
 import { type RefObject, useEffect, useRef, useState } from 'react';
 import {
-  createInitialNetworkPresentation,
   NetworkMotionAdapter,
   type NetworkPresentationSnapshot,
 } from '../../../../adapters/network/NetworkMotionAdapter.js';
@@ -16,6 +9,10 @@ import {
   ReactFlowNetwork,
   ReactFlowNetworkAdapter,
 } from '../../../../adapters/network/ReactFlowNetworkAdapter.js';
+import {
+  S02CampusIdController,
+  type S02CampusIdControllerSnapshot,
+} from './S02CampusIdController.js';
 import styles from './S02CampusIdTraining.module.css';
 
 const definition = s02CampusIdContent.scene;
@@ -56,23 +53,22 @@ function PassWoNetworkGuide({
   );
 }
 
+interface S02CampusIdRuntime {
+  readonly controller: S02CampusIdController;
+  readonly renderer: ReactFlowNetworkAdapter;
+}
+
 export function S02CampusIdTraining() {
-  const initialScene = createAccountServiceScene(definition);
-  const [scene, setScene] = useState(initialScene);
-  const sceneRef = useRef(initialScene);
-  const [presentation, setPresentation] = useState(() =>
-    createInitialNetworkPresentation(definition.account.id),
-  );
-  const [renderer] = useState(() => new ReactFlowNetworkAdapter(initialScene.network));
-  const animationPlayerRef = useRef<AnimationPlayerPort | null>(null);
-  const dispatchRef = useRef<(event: AccountServiceSceneEvent) => void>(() => undefined);
   const characterRef = useRef<HTMLDivElement | null>(null);
   const networkHostRef = useRef<HTMLDivElement | null>(null);
+  const [runtime, setRuntime] = useState<S02CampusIdRuntime | null>(null);
+  const [snapshot, setSnapshot] = useState<S02CampusIdControllerSnapshot | null>(null);
 
   useEffect(() => {
+    let controller: S02CampusIdController | null = null;
     const animationPlayer = new NetworkMotionAdapter({
       initialNodeId: definition.account.id,
-      applySnapshot: setPresentation,
+      applySnapshot: (presentation) => controller?.updatePresentation(presentation),
       getCharacterElement: () => characterRef.current,
       getNodeElement: (nodeId) =>
         networkHostRef.current?.querySelector<HTMLElement>(
@@ -80,42 +76,25 @@ export function S02CampusIdTraining() {
         ) ?? null,
       prefersReducedMotion,
     });
-    animationPlayerRef.current = animationPlayer;
+    controller = new S02CampusIdController({
+      animationPlayer,
+    });
+    const renderer = new ReactFlowNetworkAdapter(controller.getSnapshot().scene.network);
+    controller.attachRenderer(renderer);
+    const unsubscribe = controller.subscribe(setSnapshot);
+    setRuntime({ controller, renderer });
+    setSnapshot(controller.getSnapshot());
 
     return () => {
-      if (animationPlayerRef.current === animationPlayer) animationPlayerRef.current = null;
-      void animationPlayer.cancel();
+      unsubscribe();
+      void controller?.dispose();
     };
   }, []);
 
-  function dispatchSceneEvent(event: AccountServiceSceneEvent): void {
-    const transition = transitionAccountServiceScene(definition, sceneRef.current, event);
-    if (transition.snapshot !== sceneRef.current) {
-      sceneRef.current = transition.snapshot;
-      setScene(transition.snapshot);
-      renderer.render(transition.snapshot.network);
-    }
+  if (runtime === null || snapshot === null) return null;
 
-    for (const effect of transition.effects) {
-      if (effect.type === 'focus-node') {
-        renderer.focusNode(effect.nodeId);
-        continue;
-      }
-
-      const animation = getS02CampusIdAnimation(effect.animationId);
-      const animationPlayer = animationPlayerRef.current;
-      if (animation === undefined || animationPlayer === null) continue;
-
-      void animationPlayer.play(animation).then(() => {
-        if (animationPlayerRef.current !== animationPlayer) return;
-        dispatchRef.current({
-          type: 'animation-settled',
-          animationId: effect.animationId,
-        });
-      });
-    }
-  }
-  dispatchRef.current = dispatchSceneEvent;
+  const { controller, renderer } = runtime;
+  const { scene, presentation } = snapshot;
 
   const activePreview = s02CampusIdContent.scene.services.find(
     ({ id }) => id === scene.activePreviewServiceId,
@@ -158,12 +137,7 @@ export function S02CampusIdTraining() {
               <ReactFlowNetwork
                 adapter={renderer}
                 presentation={presentation}
-                onNodeSelect={(nodeId) =>
-                  dispatchSceneEvent({
-                    type: 'node-selected',
-                    nodeId,
-                  })
-                }
+                onNodeSelect={(nodeId) => controller.selectNode(nodeId)}
               />
               <PassWoNetworkGuide presentation={presentation} characterRef={characterRef} />
             </div>
