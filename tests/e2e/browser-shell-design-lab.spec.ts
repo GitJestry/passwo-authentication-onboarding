@@ -1,7 +1,17 @@
 import AxeBuilder from '@axe-core/playwright';
 import { expect, type Page, test } from '@playwright/test';
 
-const scenes = ['normal', 'dimmed', 'passwo-overlay', 's00', 's02-campus-id'] as const;
+const scenes = [
+  'normal',
+  'dimmed',
+  'passwo-overlay',
+  's00',
+  's02-campus-id',
+  's06-identical',
+  's06-similar',
+  's06-unique',
+  's06-hypothetical',
+] as const;
 const viewports = [
   { width: 1440, height: 900 },
   { width: 1280, height: 720 },
@@ -388,6 +398,95 @@ test('S02 CampusID reduced motion reaches the same logical end state', async ({ 
   await expect(page.getByRole('button', { name: /^CampusID\./ })).toHaveAccessibleName(
     /Status: Verstanden/,
   );
+});
+
+const s06Expectations = [
+  {
+    scene: 's06-identical',
+    result: '⚠ Gleiches Passwort: Der Zugang zum Zielkonto ist in dieser Szene betroffen.',
+    edgeStatus: 'direct',
+  },
+  {
+    scene: 's06-similar',
+    result: '≈ Ähnliche Struktur: Der Zugang zum Zielkonto ist in dieser Szene betroffen.',
+    edgeStatus: 'similar',
+  },
+  {
+    scene: 's06-unique',
+    result: 'Dieser Angriffsweg ist blockiert',
+    edgeStatus: 'blocked',
+  },
+  {
+    scene: 's06-hypothetical',
+    result: 'Dieses direkte Ergebnis gehört nur zum hypothetischen Gegenbeispiel',
+    edgeStatus: 'hypothetical',
+  },
+] as const;
+
+for (const expected of s06Expectations) {
+  test(`${expected.scene} applies its authored result deterministically`, async ({ page }) => {
+    await page.goto(`/design-lab/${expected.scene}`);
+
+    await expect(
+      page.getByText('Deterministische Testszene — keine echte Passwortbewertung'),
+    ).toBeVisible();
+    await page.getByRole('button', { name: 'Vergleich starten' }).click();
+    await expect(page.getByText(expected.result, { exact: false }).first()).toBeVisible();
+    await expect(page.locator(`.react-flow__edge.edge-status-${expected.edgeStatus}`)).toHaveCount(
+      1,
+    );
+  });
+}
+
+test('S06 similar exposes structure and a dashed orange path without relying on color alone', async ({
+  page,
+}) => {
+  await page.goto('/design-lab/s06-similar');
+  await page.getByRole('button', { name: 'Vergleich starten' }).click();
+
+  await expect(page.getByText('Gemeinsamer Kern', { exact: true })).toBeVisible();
+  await expect(page.getByText('Ähnlicher Aufbau', { exact: true })).toBeVisible();
+  const edgePath = page.locator('.react-flow__edge.edge-status-similar .react-flow__edge-path');
+  await expect(edgePath).toHaveCSS('stroke-dasharray', '9px, 7px');
+});
+
+test('S06 unique stops the line at the shield and limits its claim to this path', async ({
+  page,
+}) => {
+  await page.goto('/design-lab/s06-unique');
+  await page.getByRole('button', { name: 'Vergleich starten' }).click();
+
+  await expect(
+    page.getByText('Dieser Angriffsweg ist blockiert', { exact: true }).first(),
+  ).toBeVisible();
+  await expect(page.getByText('Die Aussage gilt nur für diesen dargestellten Weg.')).toBeVisible();
+  await expect(page.locator('.react-flow__edge.edge-status-blocked')).toHaveCount(1);
+  await expect(page.locator('.react-flow__edge.edge-status-direct')).toHaveCount(0);
+});
+
+test('S06 hypothetical keeps the non-real marker visible before and after comparison', async ({
+  page,
+}) => {
+  await page.goto('/design-lab/s06-hypothetical');
+  const marker = page.getByText('Hypothetisches Beispiel — nicht deine Auswahl', {
+    exact: false,
+  });
+
+  await expect(marker.first()).toBeVisible();
+  await page.getByRole('button', { name: 'Vergleich starten' }).click();
+  await expect(marker.first()).toBeVisible();
+  await expect(page.getByText('nicht zu einer realen Auswahl', { exact: false })).toBeVisible();
+});
+
+test('S06 reduced motion reaches the same authored unique end state', async ({ page }) => {
+  await page.emulateMedia({ reducedMotion: 'reduce' });
+  await page.goto('/design-lab/s06-unique');
+  await page.getByRole('button', { name: 'Vergleich starten' }).click();
+
+  await expect(
+    page.getByText('Dieser Angriffsweg ist blockiert', { exact: true }).first(),
+  ).toBeVisible();
+  await expect(page.locator('.react-flow__edge.edge-status-blocked')).toHaveCount(1);
 });
 
 for (const scene of scenes) {

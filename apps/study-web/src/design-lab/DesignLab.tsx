@@ -7,9 +7,20 @@ import {
 import { useState } from 'react';
 import { S00Training } from '../features/training/S00Training.js';
 import { S02CampusIdTraining } from '../features/training/segments/S02/S02CampusIdTraining.js';
+import { S06ConsequenceTraining } from '../features/training/segments/S06/S06ConsequenceTraining.js';
 import styles from './DesignLab.module.css';
 
-const scenarioIds = ['normal', 'dimmed', 'passwo-overlay', 's00', 's02-campus-id'] as const;
+const scenarioIds = [
+  'normal',
+  'dimmed',
+  'passwo-overlay',
+  's00',
+  's02-campus-id',
+  's06-identical',
+  's06-similar',
+  's06-unique',
+  's06-hypothetical',
+] as const;
 type DesignLabScenarioId = (typeof scenarioIds)[number];
 
 interface DesignLabScenario {
@@ -131,6 +142,30 @@ const scenarios: Record<DesignLabScenarioId, DesignLabScenario> = {
   's02-campus-id': {
     label: 'S02 CampusID',
     description: 'CampusID und drei authored verbundene Dienste als React-Flow-Adapter.',
+    dimmed: false,
+    showPassWoOverlay: false,
+  },
+  's06-identical': {
+    label: 'S06 Gleich',
+    description: 'Vorgegebenes Ergebnis: gleiches Passwort und direkter Angriffsweg.',
+    dimmed: false,
+    showPassWoOverlay: false,
+  },
+  's06-similar': {
+    label: 'S06 Ähnlich',
+    description: 'Vorgegebenes Ergebnis: ähnliche Struktur und betroffener Zugang.',
+    dimmed: false,
+    showPassWoOverlay: false,
+  },
+  's06-unique': {
+    label: 'S06 Einzigartig',
+    description: 'Vorgegebenes Ergebnis: Der dargestellte Angriffsweg ist blockiert.',
+    dimmed: false,
+    showPassWoOverlay: false,
+  },
+  's06-hypothetical': {
+    label: 'S06 Hypothetisch',
+    description: 'Dauerhaft als nicht reale Auswahl markiertes Gegenbeispiel.',
     dimmed: false,
     showPassWoOverlay: false,
   },
@@ -324,6 +359,22 @@ export function DesignLab({ pathname = window.location.pathname }: { readonly pa
       <main className={styles.labPage}>
         <DesignLabIntroduction scenarioId={scenarioId} scenario={scenario} />
         <S02CampusIdTraining />
+      </main>
+    );
+  }
+
+  const s06Fixture = {
+    's06-identical': 'identical',
+    's06-similar': 'similar',
+    's06-unique': 'unique',
+    's06-hypothetical': 'hypothetical',
+  } as const;
+  if (scenarioId in s06Fixture) {
+    const fixtureId = s06Fixture[scenarioId as keyof typeof s06Fixture];
+    return (
+      <main className={styles.labPage}>
+        <DesignLabIntroduction scenarioId={scenarioId} scenario={scenario} />
+        <S06ConsequenceTraining fixtureId={fixtureId} />
       </main>
     );
   }

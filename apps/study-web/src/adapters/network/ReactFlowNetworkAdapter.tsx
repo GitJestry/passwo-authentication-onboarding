@@ -1,4 +1,9 @@
-import type { NetworkRendererPort, NetworkSceneSnapshot, SceneNode } from '@passwo/visualization';
+import type {
+  NetworkRendererPort,
+  NetworkSceneSnapshot,
+  SceneEdgeStatus,
+  SceneNode,
+} from '@passwo/visualization';
 import {
   Background,
   BackgroundVariant,
@@ -82,16 +87,29 @@ interface SceneNodeData extends Record<string, unknown> {
 type SceneFlowNode = Node<SceneNodeData, 'scene-node'>;
 
 function statusLabel(node: SceneNode): string {
-  if (node.status === 'understood') {
-    return node.kind === 'account' ? 'Verstanden' : 'Vorschau geöffnet';
-  }
-  if (node.kind === 'account') return node.selectable ? 'Geschlossen' : 'Geöffnet';
-  return 'Noch nicht geöffnet';
+  const labels: Record<SceneNode['status'], string> = {
+    neutral: node.kind === 'account' ? (node.selectable ? 'Geschlossen' : 'Bereit') : 'Neutral',
+    understood: node.kind === 'account' ? 'Verstanden' : 'Vorschau geöffnet',
+    retrievable: 'Abrufbar',
+    'not-remembered': 'Nicht erinnert',
+    exposed: 'Passwort bekannt',
+    affected: 'Zugang betroffen',
+    protected: 'Angriffsweg blockiert',
+    hypothetical: 'Hypothetisch — nicht real',
+  };
+  return labels[node.status];
+}
+
+function nodeBadge(node: SceneNode): string {
+  if (node.kind === 'shield') return '🛡';
+  if (node.kind === 'annotation') return node.status === 'hypothetical' ? '◇' : '≈';
+  if (node.status === 'understood') return '✓';
+  if (node.status === 'affected') return '!';
+  return node.kind === 'account' ? 'ID' : '↗';
 }
 
 function SceneNodeCard({ data }: NodeProps<SceneFlowNode>) {
   const { sceneNode, visible, highlighted, onSelect } = data;
-  const understood = sceneNode.status === 'understood';
   return (
     <div
       className={styles.nodeFrame}
@@ -114,7 +132,7 @@ function SceneNodeCard({ data }: NodeProps<SceneFlowNode>) {
         onClick={() => onSelect(sceneNode.id)}
       >
         <span className={styles.nodeBadge} aria-hidden="true">
-          {understood ? '✓' : sceneNode.kind === 'account' ? 'ID' : '↗'}
+          {nodeBadge(sceneNode)}
         </span>
         <span className={styles.nodeCopy}>
           <strong>{sceneNode.label}</strong>
@@ -138,6 +156,15 @@ const nodeTypes = {
 
 const sceneWidth = 720;
 const sceneHeight = 320;
+
+const edgeClassByStatus: Record<SceneEdgeStatus, string> = {
+  neutral: styles.edgeNeutral ?? '',
+  checking: styles.edgeChecking ?? '',
+  direct: styles.edgeDirect ?? '',
+  similar: styles.edgeSimilar ?? '',
+  blocked: styles.edgeBlocked ?? '',
+  hypothetical: styles.edgeHypothetical ?? '',
+};
 
 function toReactFlowElements(
   snapshot: NetworkSceneSnapshot,
@@ -174,7 +201,8 @@ function toReactFlowElements(
       focusable: false,
       selectable: false,
       animated: false,
-      className: styles.edge ?? '',
+      className: `${styles.edge} ${edgeClassByStatus[edge.status]} edge-status-${edge.status}`,
+      data: { status: edge.status },
       ariaLabel: edge.label ?? `${edge.sourceId} mit ${edge.targetId} verbunden`,
     })),
   };

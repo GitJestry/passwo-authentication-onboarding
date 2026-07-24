@@ -23,6 +23,7 @@ export interface NetworkPresentationSnapshot {
 
 export interface NetworkMotionAdapterOptions {
   readonly initialNodeId: string;
+  readonly initialRevealedNodeIds?: readonly string[];
   readonly applySnapshot: (snapshot: NetworkPresentationSnapshot) => void;
   readonly getCharacterElement: () => HTMLElement | null;
   readonly getNodeElement: (nodeId: string) => HTMLElement | null;
@@ -31,13 +32,14 @@ export interface NetworkMotionAdapterOptions {
 
 export function createInitialNetworkPresentation(
   initialNodeId: string,
+  initialRevealedNodeIds: readonly string[] = [initialNodeId],
 ): NetworkPresentationSnapshot {
   return {
     character: {
       placement: 'bottom-left',
       pose: 'dock',
     },
-    revealedNodeIds: [initialNodeId],
+    revealedNodeIds: [...new Set(initialRevealedNodeIds)],
     highlightedNodeId: null,
     announcedMessageId: null,
   };
@@ -65,12 +67,13 @@ export class NetworkMotionAdapter implements AnimationPlayerPort {
 
   constructor({
     initialNodeId,
+    initialRevealedNodeIds,
     applySnapshot,
     getCharacterElement,
     getNodeElement,
     prefersReducedMotion,
   }: NetworkMotionAdapterOptions) {
-    this.#snapshot = createInitialNetworkPresentation(initialNodeId);
+    this.#snapshot = createInitialNetworkPresentation(initialNodeId, initialRevealedNodeIds);
     this.#applySnapshot = applySnapshot;
     this.#getCharacterElement = getCharacterElement;
     this.#getNodeElement = getNodeElement;

@@ -1,12 +1,33 @@
 import { describe, expect, it } from 'vitest';
 import {
+  type AuthoredPasswordComparisonResult,
   artifactTimingEventSchema,
   createSessionRequestSchema,
   persistedSessionRecordSchema,
   placeholderResponseRequestSchema,
 } from './index.js';
 
+const authoredComparisonFixture = {
+  source: 'authored-fixture',
+  fixtureId: 's06-similar',
+  sourceAccountId: 'campus-board',
+  targetAccountId: 'campus-mail',
+  outcome: 'similar',
+  context: 'actual-selection',
+  cues: ['shared-core', 'similar-construction'],
+} as const satisfies AuthoredPasswordComparisonResult;
+
 describe('research-safe contracts', () => {
+  it('models S06 outcomes as authored fixtures rather than heuristic output', () => {
+    expect(authoredComparisonFixture).toEqual(
+      expect.objectContaining({
+        source: 'authored-fixture',
+        outcome: 'similar',
+        context: 'actual-selection',
+      }),
+    );
+  });
+
   it('rejects additional fields during session creation', () => {
     const result = createSessionRequestSchema.safeParse({
       requestId: 'f5d74d44-f700-4dc7-ac00-5e251a8890c3',

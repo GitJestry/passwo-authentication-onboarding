@@ -64,6 +64,23 @@
   border-color: var(--color-positive);
 }
 
+.nodeFrame[data-status="exposed"] .nodeButton,
+.nodeFrame[data-status="affected"] .nodeButton {
+  border-color: #b42318;
+  background: #fff1f0;
+}
+
+.nodeFrame[data-status="protected"] .nodeButton {
+  border-color: var(--color-positive);
+  background: var(--color-positive-soft);
+}
+
+.nodeFrame[data-status="hypothetical"] .nodeButton {
+  border-style: dashed;
+  border-color: #65558f;
+  background: #f5f2ff;
+}
+
 .nodeBadge {
   display: grid;
   width: var(--size-control-medium);
@@ -80,6 +97,24 @@
 .nodeFrame[data-status="understood"] .nodeBadge {
   border-color: var(--color-positive);
   background: var(--color-positive-soft);
+}
+
+.nodeFrame[data-status="exposed"] .nodeBadge,
+.nodeFrame[data-status="affected"] .nodeBadge {
+  border-color: #b42318;
+  color: #7a271a;
+  background: #fee4e2;
+}
+
+.nodeFrame[data-status="protected"] .nodeBadge {
+  border-color: var(--color-positive);
+  background: var(--color-positive-soft);
+}
+
+.nodeFrame[data-status="hypothetical"] .nodeBadge {
+  border-color: #65558f;
+  color: #493971;
+  background: #ebe5ff;
 }
 
 .nodeCopy {
@@ -113,9 +148,38 @@
   pointer-events: none;
 }
 
-.edge :global(.react-flow__edge-path) {
-  stroke: var(--color-positive);
+.edgeNeutral :global(.react-flow__edge-path) {
+  stroke: var(--color-ink-muted);
   stroke-width: var(--border-width-medium);
+}
+
+.edgeChecking :global(.react-flow__edge-path) {
+  stroke: var(--color-accent-strong);
+  stroke-width: var(--border-width-medium);
+  stroke-dasharray: 5 5;
+}
+
+.edgeDirect :global(.react-flow__edge-path) {
+  stroke: #b42318;
+  stroke-width: 4px;
+}
+
+.edgeSimilar :global(.react-flow__edge-path) {
+  stroke: #c65f00;
+  stroke-width: 4px;
+  stroke-dasharray: 9 7;
+}
+
+.edgeBlocked :global(.react-flow__edge-path) {
+  stroke: var(--color-positive);
+  stroke-width: 4px;
+  stroke-dasharray: 2 8;
+}
+
+.edgeHypothetical :global(.react-flow__edge-path) {
+  stroke: #65558f;
+  stroke-width: 4px;
+  stroke-dasharray: 10 6 2 6;
 }
 
 :global(.react-flow__edge-text) {
@@ -127,6 +191,30 @@
 :global(.react-flow__edge-textbg) {
   fill: var(--color-positive-soft);
   fill-opacity: 1;
+}
+
+.edgeDirect :global(.react-flow__edge-text) {
+  fill: #7a271a;
+}
+
+.edgeDirect :global(.react-flow__edge-textbg) {
+  fill: #fee4e2;
+}
+
+.edgeSimilar :global(.react-flow__edge-text) {
+  fill: #7a3b00;
+}
+
+.edgeSimilar :global(.react-flow__edge-textbg) {
+  fill: #ffead5;
+}
+
+.edgeHypothetical :global(.react-flow__edge-text) {
+  fill: #493971;
+}
+
+.edgeHypothetical :global(.react-flow__edge-textbg) {
+  fill: #ebe5ff;
 }
 
 :global(.react-flow__attribution) {
