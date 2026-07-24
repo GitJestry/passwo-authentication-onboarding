@@ -6,7 +6,7 @@
 html {
   min-width: 320px;
   min-height: 100%;
-  background: #eef7f8;
+  background: var(--color-surface-canvas);
 }
 body {
   min-width: 320px;
@@ -14,8 +14,17 @@ body {
   margin: 0;
   color: var(--passwo-text);
   background:
-    radial-gradient(circle at 12% 12%, rgb(255 255 255 / 92%) 0 12%, transparent 36%),
-    linear-gradient(145deg, #f7fbfc 0%, #eaf5f6 52%, #f8fafb 100%);
+    radial-gradient(
+      circle at 12% 12%,
+      color-mix(in srgb, var(--color-surface-primary) 92%, transparent) 0 12%,
+      transparent 36%
+    ),
+    linear-gradient(
+      145deg,
+      var(--color-surface-muted) 0%,
+      var(--color-surface-canvas) 52%,
+      var(--color-surface-primary) 100%
+    );
 }
 button,
 input,

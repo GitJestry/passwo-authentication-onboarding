@@ -7,21 +7,53 @@
   --color-accent: #138c93;
   --color-accent-strong: #0d747b;
   --color-accent-soft: #dff5f5;
-  --color-positive: #3f8c60;
+  --color-positive: #2f7650;
+  --color-positive-soft: #dcefe3;
   --color-warning: #b27a14;
+  --color-warning-soft: #fff1cf;
   --color-danger: #b84c4c;
   --color-surface-canvas: #eef7f8;
   --color-surface-primary: #ffffff;
   --color-surface-muted: #f7fbfc;
+  --color-surface-elevated: #ffffff;
+  --color-surface-inverse: #082b52;
   --color-surface-chrome-start: #eef3f6;
   --color-surface-chrome-end: #e6edf1;
+  --color-surface-tab-idle: rgb(255 255 255 / 42%);
+  --color-surface-tab-hover: rgb(255 255 255 / 76%);
+  --color-surface-address: #f9fbfc;
   --color-border: #cad9e0;
   --color-border-soft: #dce6ea;
   --color-focus: #7a4b00;
   --color-overlay: rgb(5 26 50 / 72%);
-  --color-control-close: #d57c72;
-  --color-control-minimize: #d5ad5c;
-  --color-control-expand: #6ca67a;
+  --color-control-neutral: #b8c7ce;
+  --color-control-neutral-border: rgb(8 43 82 / 14%);
+  --color-on-inverse: #ffffff;
+  --color-on-inverse-muted: #d9ebef;
+
+  --font-family-sans: ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --font-size-x-small: 0.75rem;
+  --font-size-small: 0.875rem;
+  --font-size-body: 1rem;
+  --font-size-heading-small: 1.125rem;
+  --font-size-heading-medium: clamp(1.7rem, 3vw, 2.55rem);
+  --font-weight-medium: 550;
+  --font-weight-semibold: 650;
+  --font-weight-bold: 720;
+  --font-weight-heavy: 800;
+  --line-height-tight: 1.15;
+  --line-height-body: 1.55;
+  --letter-spacing-wide: 0.1em;
+
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-5: 1.25rem;
+  --space-6: 1.5rem;
+  --space-7: 2rem;
+  --space-8: 2.5rem;
+  --space-9: 3rem;
 
   --radius-small: 12px;
   --radius-medium: 16px;
@@ -29,10 +61,31 @@
   --radius-round: 999px;
   --shadow-window: 0 28px 80px rgb(8 43 82 / 16%);
   --shadow-card: 0 18px 30px rgb(8 43 82 / 16%);
+  --shadow-focus: 0 0 0 4px rgb(122 75 0 / 20%);
 
   --motion-instant: 1ms;
   --motion-fast: 140ms;
   --motion-standard: 260ms;
+  --motion-slow: 520ms;
+  --motion-ease-out: cubic-bezier(0.2, 0.75, 0.2, 1);
+
+  --border-width-thin: 1px;
+  --border-width-medium: 2px;
+  --border-width-focus: 3px;
+  --size-control-medium: 2.25rem;
+  --size-control-large: 2.875rem;
+  --size-window-control: 0.7rem;
+  --size-status-marker: 1.35rem;
+  --size-browser-tab-min: 9.75rem;
+  --size-browser-tab-min-compact: 8.5rem;
+  --size-browser-shell-max: 77.5rem;
+  --size-browser-shell-min-height: 34rem;
+  --size-browser-shell-max-height: 45rem;
+
+  --z-dim: 10;
+  --z-passwo: 20;
+  --z-speech: 30;
+  --z-controls: 40;
 
   --passwo-navy-950: var(--color-ink-strong);
   --passwo-navy-800: #164b78;
