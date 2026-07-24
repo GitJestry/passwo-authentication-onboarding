@@ -1,4 +1,4 @@
-import { type KeyboardEvent, type ReactNode, useId, useRef } from 'react';
+import { type KeyboardEvent, type ReactNode, useId, useRef, useState } from 'react';
 import styles from './BrowserShell.module.css';
 
 export interface BrowserTabModel {
@@ -42,7 +42,9 @@ export function BrowserShell({
   const dimmed = snapshot.dimmed ?? false;
   const panelId = `${idPrefix}-tabpanel`;
   const selectedTabIndex = snapshot.tabs.findIndex((tab) => tab.id === snapshot.activeTabId);
-  const tabStopIndex = selectedTabIndex >= 0 ? selectedTabIndex : 0;
+  const [focusedTabId, setFocusedTabId] = useState(
+    () => snapshot.tabs[selectedTabIndex]?.id ?? snapshot.tabs[0]?.id,
+  );
   const tabStates = snapshot.tabs.map((tab, index) => {
     const enabled = tab.enabled === true && onTabSelect !== undefined;
     const disabledReason =
@@ -60,44 +62,66 @@ export function BrowserShell({
       reasonId: `${idPrefix}-tab-reason-${index}`,
     };
   });
-  const enabledTabStates = tabStates.filter(({ enabled }) => enabled);
-  const labelledByTabId = tabStates[tabStopIndex]?.tabId;
+  const tabStopIndex = tabStates.findIndex(({ tab }) => tab.id === focusedTabId);
+  const resolvedTabStopIndex = tabStopIndex >= 0 ? tabStopIndex : 0;
+  const labelledByTabId = tabStates[selectedTabIndex >= 0 ? selectedTabIndex : 0]?.tabId;
 
   function selectTab(tabId: string): void {
-    const tabState = enabledTabStates.find(({ tab }) => tab.id === tabId);
+    const tabState = tabStates.find(({ tab, enabled }) => tab.id === tabId && enabled);
     if (tabState === undefined) return;
 
+    setFocusedTabId(tabState.tab.id);
     onTabSelect?.(tabState.tab.id);
     tabElements.current.get(tabState.tab.id)?.focus();
   }
 
-  function handleTabKeyDown(event: KeyboardEvent<HTMLButtonElement>, tabId: string): void {
-    if (enabledTabStates.length === 0) return;
+  function focusTab(tabId: string): void {
+    setFocusedTabId(tabId);
+    tabElements.current.get(tabId)?.focus();
+  }
 
-    const currentIndex = enabledTabStates.findIndex(({ tab }) => tab.id === tabId);
+  function handleTabKeyDown(
+    event: KeyboardEvent<HTMLButtonElement>,
+    tabId: string,
+    enabled: boolean,
+  ): void {
+    if (!enabled && (event.key === 'Enter' || event.key === ' ')) {
+      event.preventDefault();
+      return;
+    }
+
+    if (tabStates.length === 0) return;
+
+    const currentIndex = tabStates.findIndex(({ tab }) => tab.id === tabId);
     let targetIndex: number | undefined;
 
     switch (event.key) {
       case 'ArrowLeft':
-        targetIndex = currentIndex <= 0 ? enabledTabStates.length - 1 : currentIndex - 1;
+        targetIndex = currentIndex <= 0 ? tabStates.length - 1 : currentIndex - 1;
         break;
       case 'ArrowRight':
         targetIndex =
-          currentIndex < 0 || currentIndex === enabledTabStates.length - 1 ? 0 : currentIndex + 1;
+          currentIndex < 0 || currentIndex === tabStates.length - 1 ? 0 : currentIndex + 1;
         break;
       case 'Home':
         targetIndex = 0;
         break;
       case 'End':
-        targetIndex = enabledTabStates.length - 1;
+        targetIndex = tabStates.length - 1;
         break;
       default:
         return;
     }
 
     event.preventDefault();
-    const targetTab = enabledTabStates[targetIndex];
-    if (targetTab !== undefined) selectTab(targetTab.tab.id);
+    const targetTab = tabStates[targetIndex];
+    if (targetTab === undefined) return;
+
+    if (targetTab.enabled) {
+      selectTab(targetTab.tab.id);
+    } else {
+      focusTab(targetTab.tab.id);
+    }
   }
 
   const tabItems = tabStates.map(({ tab, index, enabled, tabId, reasonId }) => {
@@ -127,10 +151,10 @@ export function BrowserShell({
         aria-controls={panelId}
         aria-disabled={enabled ? undefined : true}
         aria-describedby={enabled ? undefined : reasonId}
-        tabIndex={index === tabStopIndex ? 0 : -1}
+        tabIndex={index === resolvedTabStopIndex ? 0 : -1}
         className={selected ? styles.activeTab : styles.tab}
         onClick={() => selectTab(tab.id)}
-        onKeyDown={(event) => handleTabKeyDown(event, tab.id)}
+        onKeyDown={(event) => handleTabKeyDown(event, tab.id, enabled)}
       >
         <span>{tab.label}</span>
         {status ? (

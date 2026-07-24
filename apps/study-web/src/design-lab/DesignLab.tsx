@@ -30,7 +30,6 @@ interface FictionalPageSnapshot {
 }
 
 interface DesignLabTabScene {
-  readonly id: 'overview' | 'preparation';
   readonly snapshot: BrowserShellSnapshot;
   readonly page: FictionalPageSnapshot;
 }
@@ -53,7 +52,6 @@ const reflectionTab: BrowserTabModel = {
 };
 
 const overviewTabScene: DesignLabTabScene = {
-  id: 'overview',
   snapshot: {
     tabs: [overviewTab, preparationTab, reflectionTab],
     activeTabId: 'overview',
@@ -78,7 +76,6 @@ const overviewTabScene: DesignLabTabScene = {
 };
 
 const preparationTabScene: DesignLabTabScene = {
-  id: 'preparation',
   snapshot: {
     tabs: [{ ...overviewTab, status: 'complete' }, preparationTab, reflectionTab],
     activeTabId: 'preparation',
@@ -261,7 +258,7 @@ export function DesignLab({ pathname = window.location.pathname }: { readonly pa
     : undefined;
 
   function selectTab(tabId: string): void {
-    const nextTabScene = tabScenes.find(({ id }) => id === tabId);
+    const nextTabScene = tabScenes.find(({ snapshot }) => snapshot.activeTabId === tabId);
     if (nextTabScene !== undefined) setActiveTabScene(nextTabScene);
   }
 

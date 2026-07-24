@@ -57,10 +57,19 @@ test('tabs support roving focus with ArrowLeft, ArrowRight, Home, and End', asyn
 
   await preparationTab.focus();
   await page.keyboard.press('ArrowRight');
+  await expect(reflectionTab).toBeFocused();
+  await expect(reflectionTab).toHaveAttribute('aria-selected', 'false');
+  await expect(reflectionTab).toHaveAttribute('tabindex', '0');
+  await expect(preparationTab).toHaveAttribute('tabindex', '-1');
+  await expect(preparationTab).toHaveAttribute('aria-selected', 'true');
+
+  await page.keyboard.press('ArrowRight');
   await expect(overviewTab).toBeFocused();
   await expect(overviewTab).toHaveAttribute('aria-selected', 'true');
-  await expect(overviewTab).toHaveAttribute('tabindex', '0');
-  await expect(preparationTab).toHaveAttribute('tabindex', '-1');
+
+  await page.keyboard.press('ArrowLeft');
+  await expect(reflectionTab).toBeFocused();
+  await expect(reflectionTab).toHaveAttribute('aria-selected', 'false');
 
   await page.keyboard.press('ArrowLeft');
   await expect(preparationTab).toBeFocused();
@@ -71,8 +80,11 @@ test('tabs support roving focus with ArrowLeft, ArrowRight, Home, and End', asyn
   await expect(overviewTab).toHaveAttribute('aria-selected', 'true');
 
   await page.keyboard.press('End');
-  await expect(preparationTab).toBeFocused();
-  await expect(preparationTab).toHaveAttribute('aria-selected', 'true');
+  await expect(reflectionTab).toBeFocused();
+  await expect(reflectionTab).toHaveAttribute('aria-selected', 'false');
+  await expect(reflectionTab).toHaveAttribute('tabindex', '0');
+  await expect(overviewTab).toHaveAttribute('tabindex', '-1');
+  await expect(preparationTab).toHaveAttribute('tabindex', '-1');
 });
 
 test('tabs and the active panel expose matching ARIA relationships', async ({ page }) => {
@@ -104,7 +116,9 @@ test('tabs and the active panel expose matching ARIA relationships', async ({ pa
   await expect(overviewTab).toHaveAttribute('aria-selected', 'true');
 });
 
-test('a disabled tab keeps its reason visible and cannot be activated', async ({ page }) => {
+test('a focused disabled tab keeps its reason visible and cannot be activated', async ({
+  page,
+}) => {
   await page.goto('/design-lab/normal');
 
   const preparationTab = page.getByRole('tab', { name: 'Vorbereitung' });
@@ -121,6 +135,18 @@ test('a disabled tab keeps its reason visible and cannot be activated', async ({
   expect(reasonId).not.toBeNull();
   if (reasonId === null) return;
   await expect(page.locator(`[id="${reasonId}"]`)).toBeVisible();
+
+  await preparationTab.focus();
+  await page.keyboard.press('ArrowRight');
+  await expect(reflectionTab).toBeFocused();
+
+  await page.keyboard.press('Enter');
+  await expect(reflectionTab).toHaveAttribute('aria-selected', 'false');
+  await expect(preparationTab).toHaveAttribute('aria-selected', 'true');
+
+  await page.keyboard.press('Space');
+  await expect(reflectionTab).toHaveAttribute('aria-selected', 'false');
+  await expect(preparationTab).toHaveAttribute('aria-selected', 'true');
 
   await reflectionTab.click({ force: true });
   await expect(reflectionTab).toHaveAttribute('aria-selected', 'false');
