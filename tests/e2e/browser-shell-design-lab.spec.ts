@@ -256,7 +256,29 @@ test('S00 shows the safety boundary after the PassWo sequence and requires its a
   await expect(continueButton).toBeDisabled();
   await acknowledgement.check();
   await expect(continueButton).toBeEnabled();
-  await expect(page.getByRole('button', { name: 'PassWo-Hilfe öffnen' })).toBeEnabled();
+  await expect(page.getByRole('button', { name: 'PassWo-Hilfe schließen' })).toBeEnabled();
+});
+
+test('S00 keeps the PassWo guide visibility and expanded state synchronized', async ({ page }) => {
+  await page.goto('/design-lab/s00');
+
+  const greeting = page.getByRole('heading', { name: 'Willkommen im Training' });
+  await expect(greeting).toBeVisible();
+
+  const closeGuide = page.getByRole('button', { name: 'PassWo-Hilfe schließen' });
+  await expect(closeGuide).toHaveAttribute('aria-expanded', 'true');
+  await closeGuide.click();
+
+  await expect(greeting).toHaveCount(0);
+  const openGuide = page.getByRole('button', { name: 'PassWo-Hilfe öffnen' });
+  await expect(openGuide).toHaveAttribute('aria-expanded', 'false');
+  await openGuide.click();
+
+  await expect(greeting).toBeVisible();
+  await expect(page.getByRole('button', { name: 'PassWo-Hilfe schließen' })).toHaveAttribute(
+    'aria-expanded',
+    'true',
+  );
 });
 
 test('S00 reduced motion and an adapter failure both reach the actionable end state', async ({

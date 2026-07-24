@@ -74,14 +74,12 @@ function PassWoGuide({
   placement,
   pose,
   guideOpen,
-  speechVisible,
   characterRef,
   onToggle,
 }: {
   readonly placement: S00SceneSnapshot['character']['placement'];
   readonly pose: S00SceneSnapshot['character']['pose'];
   readonly guideOpen: boolean;
-  readonly speechVisible: boolean;
   readonly characterRef: RefObject<HTMLButtonElement | null>;
   readonly onToggle: () => void;
 }) {
@@ -93,8 +91,8 @@ function PassWoGuide({
         className={styles.passWoButton}
         type="button"
         disabled={!docked}
-        aria-expanded={docked ? guideOpen : undefined}
-        aria-controls={speechVisible ? 's00-passwo-speech' : undefined}
+        aria-expanded={guideOpen}
+        aria-controls={guideOpen ? 's00-passwo-speech' : undefined}
         aria-label={
           guideOpen ? s00Content.narration.closeGuideLabel : s00Content.narration.openGuideLabel
         }
@@ -141,7 +139,6 @@ export function S00Training({
 }: S00TrainingProps) {
   const [scene, setScene] = useState<S00SceneSnapshot>(createInitialS00SceneSnapshot);
   const [missionSnapshot, setMissionSnapshot] = useState<MissionSnapshot | null>(null);
-  const [guideOpen, setGuideOpen] = useState(false);
   const controllerRef = useRef<MissionController | null>(null);
   const characterRef = useRef<HTMLButtonElement | null>(null);
   const pageRef = useRef<HTMLDivElement | null>(null);
@@ -182,7 +179,7 @@ export function S00Training({
       ? false
       : canContinueMission(missionSnapshot.context) && awaitingDecision;
   const safetyVisible = hasRevealedTarget(scene, s00Content.safety.targetId);
-  const speechVisible = scene.announcedMessageId === 's00.greeting' || guideOpen;
+  const guideOpen = scene.announcedMessageId === 's00.greeting';
   const animationError = missionSnapshot?.context.lastAnimationError ?? null;
   const snapshot: BrowserShellSnapshot = {
     ...browserSnapshot,
@@ -200,12 +197,17 @@ export function S00Training({
               placement={scene.character.placement}
               pose={scene.character.pose}
               guideOpen={guideOpen}
-              speechVisible={speechVisible}
               characterRef={characterRef}
-              onToggle={() => setGuideOpen((isOpen) => !isOpen)}
+              onToggle={() =>
+                setScene((currentScene) => ({
+                  ...currentScene,
+                  announcedMessageId:
+                    currentScene.announcedMessageId === 's00.greeting' ? null : 's00.greeting',
+                }))
+              }
             />
           ),
-          ...(speechVisible ? { speech: <PassWoSpeech displayName={displayName} /> } : {}),
+          ...(guideOpen ? { speech: <PassWoSpeech displayName={displayName} /> } : {}),
           controls: (
             <div className={styles.controls}>
               {animationError !== null ? (
