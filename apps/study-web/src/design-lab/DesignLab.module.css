@@ -128,14 +128,14 @@
   max-width: var(--size-browser-shell-max);
   min-height: calc(100% - var(--size-control-large) - var(--space-7));
   margin: 0 auto;
-  grid-template-columns: minmax(0, 1.25fr) minmax(18rem, 0.75fr);
+  grid-template-columns: minmax(0, 1.25fr) minmax(var(--size-content-narrow), 0.75fr);
   align-items: center;
   gap: clamp(var(--space-7), 5vw, var(--space-9));
   padding: clamp(var(--space-6), 5vh, var(--space-9)) clamp(var(--space-6), 6vw, var(--space-9));
 }
 
 .sceneCopy {
-  max-width: 42rem;
+  max-width: var(--size-copy-measure);
 }
 
 .eyebrow,
@@ -154,7 +154,7 @@
   margin: 0;
   color: var(--color-ink-strong);
   line-height: var(--line-height-tight);
-  letter-spacing: -0.025em;
+  letter-spacing: var(--letter-spacing-tight);
 }
 
 .sceneCopy h2 {
@@ -171,7 +171,7 @@
 
 .progress {
   display: grid;
-  max-width: 18rem;
+  max-width: var(--size-content-narrow);
   margin-top: var(--space-6);
   grid-template-columns: repeat(3, 1fr);
   gap: var(--space-2);
@@ -237,7 +237,7 @@
   bottom: clamp(var(--space-5), 4vw, var(--space-8));
   left: clamp(var(--space-5), 4vw, var(--space-8));
   display: grid;
-  width: clamp(8.25rem, 14vw, 10.5rem);
+  width: var(--size-illustration-medium);
   justify-items: center;
 }
 
@@ -261,7 +261,7 @@
   aspect-ratio: 1;
   place-items: center;
   border: var(--border-width-medium) solid var(--color-on-inverse);
-  border-radius: 46% 54% 48% 52%;
+  border-radius: var(--radius-round);
   color: var(--color-on-inverse);
   background: var(--color-accent-strong);
   box-shadow: var(--shadow-card);
@@ -293,7 +293,7 @@
   position: absolute;
   top: clamp(var(--space-5), 4vw, var(--space-8));
   right: clamp(var(--space-5), 4vw, var(--space-8));
-  width: min(31rem, calc(100% - var(--space-9)));
+  width: min(var(--size-overlay-content-max), calc(100% - var(--space-9)));
   padding: var(--space-6);
   border: var(--border-width-medium) solid var(--color-accent-strong);
   border-radius: var(--radius-medium);
@@ -364,7 +364,7 @@
 @keyframes passwo-arrive {
   from {
     opacity: 0;
-    transform: translate3d(-1.5rem, 1rem, 0);
+    transform: translate3d(calc(-1 * var(--space-6)), var(--space-4), 0);
   }
 
   to {
@@ -397,10 +397,6 @@
 
   .sceneBody {
     grid-template-columns: minmax(0, 1fr);
-  }
-
-  .passWo {
-    width: 7.5rem;
   }
 
   .speechCard {

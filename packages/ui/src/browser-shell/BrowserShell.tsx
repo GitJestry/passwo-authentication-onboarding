@@ -1,4 +1,4 @@
-import type { ReactNode } from 'react';
+import { type KeyboardEvent, type ReactNode, useId, useRef } from 'react';
 import styles from './BrowserShell.module.css';
 
 export interface BrowserTabModel {
@@ -37,33 +37,100 @@ export function BrowserShell({
   ariaLabel = 'Fiktive Browseranwendung',
   onTabSelect,
 }: BrowserShellProps) {
+  const idPrefix = useId().replaceAll(':', '');
+  const tabElements = useRef(new Map<string, HTMLButtonElement>());
   const dimmed = snapshot.dimmed ?? false;
-  const tabItems = snapshot.tabs.map((tab) => {
-    const selected = tab.id === snapshot.activeTabId;
+  const panelId = `${idPrefix}-tabpanel`;
+  const selectedTabIndex = snapshot.tabs.findIndex((tab) => tab.id === snapshot.activeTabId);
+  const tabStopIndex = selectedTabIndex >= 0 ? selectedTabIndex : 0;
+  const tabStates = snapshot.tabs.map((tab, index) => {
     const enabled = tab.enabled === true && onTabSelect !== undefined;
-    const status =
-      tab.status === 'complete'
-        ? { label: 'Abgeschlossen', marker: '✓', style: styles.completeMarker }
-        : tab.status === 'attention'
-          ? { label: 'Hinweis', marker: '!', style: styles.attentionMarker }
-          : null;
     const disabledReason =
       tab.disabledReason ??
       (tab.enabled === true
         ? 'Für diese Ansicht ist keine Tab-Auswahl verfügbar.'
         : 'Dieser Tab ist in der aktuellen Szene nicht freigegeben.');
 
+    return {
+      tab,
+      index,
+      enabled,
+      disabledReason,
+      tabId: `${idPrefix}-tab-${index}`,
+      reasonId: `${idPrefix}-tab-reason-${index}`,
+    };
+  });
+  const enabledTabStates = tabStates.filter(({ enabled }) => enabled);
+  const labelledByTabId = tabStates[tabStopIndex]?.tabId;
+
+  function selectTab(tabId: string): void {
+    const tabState = enabledTabStates.find(({ tab }) => tab.id === tabId);
+    if (tabState === undefined) return;
+
+    onTabSelect?.(tabState.tab.id);
+    tabElements.current.get(tabState.tab.id)?.focus();
+  }
+
+  function handleTabKeyDown(event: KeyboardEvent<HTMLButtonElement>, tabId: string): void {
+    if (enabledTabStates.length === 0) return;
+
+    const currentIndex = enabledTabStates.findIndex(({ tab }) => tab.id === tabId);
+    let targetIndex: number | undefined;
+
+    switch (event.key) {
+      case 'ArrowLeft':
+        targetIndex = currentIndex <= 0 ? enabledTabStates.length - 1 : currentIndex - 1;
+        break;
+      case 'ArrowRight':
+        targetIndex =
+          currentIndex < 0 || currentIndex === enabledTabStates.length - 1 ? 0 : currentIndex + 1;
+        break;
+      case 'Home':
+        targetIndex = 0;
+        break;
+      case 'End':
+        targetIndex = enabledTabStates.length - 1;
+        break;
+      default:
+        return;
+    }
+
+    event.preventDefault();
+    const targetTab = enabledTabStates[targetIndex];
+    if (targetTab !== undefined) selectTab(targetTab.tab.id);
+  }
+
+  const tabItems = tabStates.map(({ tab, index, enabled, tabId, reasonId }) => {
+    const selected = index === selectedTabIndex;
+    const status =
+      tab.status === 'complete'
+        ? { label: 'Abgeschlossen', marker: '✓', style: styles.completeMarker }
+        : tab.status === 'attention'
+          ? { label: 'Hinweis', marker: '!', style: styles.attentionMarker }
+          : null;
+
     return (
       <button
         key={tab.id}
+        id={tabId}
+        ref={(element) => {
+          if (element === null) {
+            tabElements.current.delete(tab.id);
+          } else {
+            tabElements.current.set(tab.id, element);
+          }
+        }}
         type="button"
         role="tab"
         aria-selected={selected}
-        aria-label={enabled ? tab.label : `${tab.label}. ${disabledReason}`}
-        disabled={!enabled}
-        title={enabled ? undefined : disabledReason}
+        aria-label={tab.label}
+        aria-controls={panelId}
+        aria-disabled={enabled ? undefined : true}
+        aria-describedby={enabled ? undefined : reasonId}
+        tabIndex={index === tabStopIndex ? 0 : -1}
         className={selected ? styles.activeTab : styles.tab}
-        onClick={enabled ? () => onTabSelect(tab.id) : undefined}
+        onClick={() => selectTab(tab.id)}
+        onKeyDown={(event) => handleTabKeyDown(event, tab.id)}
       >
         <span>{tab.label}</span>
         {status ? (
@@ -94,6 +161,17 @@ export function BrowserShell({
           </div>
           <span className={styles.utilityArea}>Lernbühne</span>
         </div>
+        {tabStates.some(({ enabled }) => !enabled) ? (
+          <div className={styles.disabledReasons}>
+            {tabStates.map(({ tab, enabled, disabledReason, reasonId }) =>
+              enabled ? null : (
+                <p key={tab.id} id={reasonId}>
+                  <strong>{tab.label}:</strong> {disabledReason}
+                </p>
+              ),
+            )}
+          </div>
+        ) : null}
         <div className={styles.addressRow}>
           <span className={styles.addressLabel}>Fiktive Adresse</span>
           <output className={styles.address} aria-label="Fiktive Adresse">
@@ -105,9 +183,13 @@ export function BrowserShell({
       </header>
       <div className={styles.viewport}>
         <div
+          id={panelId}
+          role="tabpanel"
+          aria-labelledby={labelledByTabId}
           className={dimmed ? styles.dimmedContent : styles.content}
           aria-hidden={dimmed || undefined}
           inert={dimmed || undefined}
+          tabIndex={dimmed ? -1 : 0}
         >
           {children}
         </div>

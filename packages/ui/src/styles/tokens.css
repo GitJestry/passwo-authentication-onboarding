@@ -43,6 +43,7 @@
   --font-weight-heavy: 800;
   --line-height-tight: 1.15;
   --line-height-body: 1.55;
+  --letter-spacing-tight: -0.025em;
   --letter-spacing-wide: 0.1em;
 
   --space-1: 0.25rem;
@@ -81,6 +82,10 @@
   --size-browser-shell-max: 77.5rem;
   --size-browser-shell-min-height: 34rem;
   --size-browser-shell-max-height: 45rem;
+  --size-content-narrow: 18rem;
+  --size-copy-measure: 42rem;
+  --size-illustration-medium: clamp(7.5rem, 14vw, 10.5rem);
+  --size-overlay-content-max: 31rem;
 
   --z-dim: 10;
   --z-passwo: 20;

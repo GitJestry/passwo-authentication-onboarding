@@ -13,59 +13,115 @@ type DesignLabScenarioId = (typeof scenarioIds)[number];
 interface DesignLabScenario {
   readonly label: string;
   readonly description: string;
-  readonly snapshot: BrowserShellSnapshot;
+  readonly dimmed: boolean;
+  readonly showPassWoOverlay: boolean;
 }
 
-const tabs: readonly BrowserTabModel[] = [
-  {
-    id: 'overview',
-    label: 'Übersicht',
-    status: 'complete',
-    enabled: true,
+interface FictionalPageSnapshot {
+  readonly eyebrow: string;
+  readonly title: string;
+  readonly description: string;
+  readonly taskLabel: string;
+  readonly taskTitle: string;
+  readonly taskItems: readonly string[];
+  readonly progressCurrent: number;
+  readonly progressTotal: number;
+  readonly progressStatus: string;
+}
+
+interface DesignLabTabScene {
+  readonly id: 'overview' | 'preparation';
+  readonly snapshot: BrowserShellSnapshot;
+  readonly page: FictionalPageSnapshot;
+}
+
+const overviewTab: BrowserTabModel = {
+  id: 'overview',
+  label: 'Übersicht',
+  enabled: true,
+};
+const preparationTab: BrowserTabModel = {
+  id: 'preparation',
+  label: 'Vorbereitung',
+  enabled: true,
+};
+const reflectionTab: BrowserTabModel = {
+  id: 'reflection',
+  label: 'Reflexion',
+  status: 'attention',
+  disabledReason: 'In diesem Design-Lab-Snapshot nicht freigegeben.',
+};
+
+const overviewTabScene: DesignLabTabScene = {
+  id: 'overview',
+  snapshot: {
+    tabs: [overviewTab, preparationTab, reflectionTab],
+    activeTabId: 'overview',
+    address: 'campus.example/uebersicht',
   },
-  {
-    id: 'preparation',
-    label: 'Vorbereitung',
-    enabled: true,
+  page: {
+    eyebrow: 'Übersicht',
+    title: 'Übungsrahmen im Überblick',
+    description:
+      'Diese fiktive Übersicht zeigt die Bestandteile der späteren Übung. Sie fragt weder nach einem Konto noch nach einem realen Passwort.',
+    taskLabel: 'Vorschau',
+    taskTitle: 'Darstellung und Bedienung',
+    taskItems: [
+      'Die Seitentabs wechseln vollständige Vorschauen.',
+      'Die Adresse ist reine Darstellung.',
+      'Es werden keine Eingabewerte gespeichert.',
+    ],
+    progressCurrent: 1,
+    progressTotal: 3,
+    progressStatus: 'Erster von drei Schritten',
   },
-  {
-    id: 'reflection',
-    label: 'Reflexion',
-    status: 'attention',
-    disabledReason: 'In diesem Design-Lab-Snapshot nicht freigegeben.',
+};
+
+const preparationTabScene: DesignLabTabScene = {
+  id: 'preparation',
+  snapshot: {
+    tabs: [{ ...overviewTab, status: 'complete' }, preparationTab, reflectionTab],
+    activeTabId: 'preparation',
+    address: 'campus.example/vorbereitung',
   },
-];
+  page: {
+    eyebrow: 'Vorbereitung',
+    title: 'Eine Anmeldung in Ruhe vorbereiten',
+    description:
+      'Diese fiktive Seite zeigt nur den visuellen Rahmen des späteren Trainings. Sie fragt weder nach einem Konto noch nach einem realen Passwort.',
+    taskLabel: 'Aktueller Schritt',
+    taskTitle: 'Übungsrahmen kennenlernen',
+    taskItems: [
+      'Die Adresse ist reine Darstellung.',
+      'Nur freigegebene Tabs reagieren.',
+      'Es werden keine Eingabewerte gespeichert.',
+    ],
+    progressCurrent: 1,
+    progressTotal: 3,
+    progressStatus: 'Erster von drei Schritten',
+  },
+};
+
+const tabScenes: readonly DesignLabTabScene[] = [overviewTabScene, preparationTabScene];
 
 const scenarios: Record<DesignLabScenarioId, DesignLabScenario> = {
   normal: {
     label: 'Normal',
     description: 'Browserbühne ohne Dimming oder zusätzliche Layer.',
-    snapshot: {
-      tabs,
-      activeTabId: 'preparation',
-      address: 'campus.example/vorbereitung',
-      dimmed: false,
-    },
+    dimmed: false,
+    showPassWoOverlay: false,
   },
   dimmed: {
     label: 'Abgedunkelt',
     description: 'Seiteninhalt ist inaktiv und die Dimming-Schicht vollständig sichtbar.',
-    snapshot: {
-      tabs,
-      activeTabId: 'preparation',
-      address: 'campus.example/vorbereitung',
-      dimmed: true,
-    },
+    dimmed: true,
+    showPassWoOverlay: false,
   },
   'passwo-overlay': {
     label: 'PassWo-Overlay',
     description: 'Dimming, PassWo-Platzhalter, Sprechschritt und Steuerung als feste Layer.',
-    snapshot: {
-      tabs,
-      activeTabId: 'preparation',
-      address: 'campus.example/vorbereitung',
-      dimmed: true,
-    },
+    dimmed: true,
+    showPassWoOverlay: true,
   },
 };
 
@@ -74,7 +130,7 @@ function resolveScenario(pathname: string): DesignLabScenarioId {
   return scenarioIds.find((scenarioId) => scenarioId === pathSegment) ?? 'normal';
 }
 
-function FictionalPageScene() {
+function FictionalPageScene({ page }: { readonly page: FictionalPageSnapshot }) {
   return (
     <article className={styles.scene} aria-labelledby="fictional-page-title">
       <header className={styles.sceneHeader}>
@@ -88,19 +144,16 @@ function FictionalPageScene() {
       </header>
       <div className={styles.sceneBody}>
         <section className={styles.sceneCopy}>
-          <p className={styles.eyebrow}>Vorbereitung</p>
-          <h2 id="fictional-page-title">Eine Anmeldung in Ruhe vorbereiten</h2>
-          <p>
-            Diese fiktive Seite zeigt nur den visuellen Rahmen des späteren Trainings. Sie fragt
-            weder nach einem Konto noch nach einem realen Passwort.
-          </p>
+          <p className={styles.eyebrow}>{page.eyebrow}</p>
+          <h2 id="fictional-page-title">{page.title}</h2>
+          <p>{page.description}</p>
           <div
             className={styles.progress}
             role="progressbar"
-            aria-label="Schritt 1 von 3"
+            aria-label={`Schritt ${page.progressCurrent} von ${page.progressTotal}`}
             aria-valuemin={1}
-            aria-valuemax={3}
-            aria-valuenow={1}
+            aria-valuemax={page.progressTotal}
+            aria-valuenow={page.progressCurrent}
           >
             <span aria-hidden="true" />
             <span aria-hidden="true" />
@@ -108,16 +161,18 @@ function FictionalPageScene() {
           </div>
         </section>
         <aside className={styles.taskCard} aria-labelledby="task-card-title">
-          <p className={styles.cardLabel}>Aktueller Schritt</p>
-          <h3 id="task-card-title">Übungsrahmen kennenlernen</h3>
+          <p className={styles.cardLabel}>{page.taskLabel}</p>
+          <h3 id="task-card-title">{page.taskTitle}</h3>
           <ul>
-            <li>Die Adresse ist reine Darstellung.</li>
-            <li>Nur freigegebene Tabs reagieren.</li>
-            <li>Es werden keine Eingabewerte gespeichert.</li>
+            {page.taskItems.map((item) => (
+              <li key={item}>{item}</li>
+            ))}
           </ul>
           <span className={styles.cardStatus}>
-            <span aria-hidden="true">1 / 3</span>
-            <span>Erster von drei Schritten</span>
+            <span aria-hidden="true">
+              {page.progressCurrent} / {page.progressTotal}
+            </span>
+            <span>{page.progressStatus}</span>
           </span>
         </aside>
       </div>
@@ -186,25 +241,29 @@ function createOverlayLayers(
 export function DesignLab({ pathname = window.location.pathname }: { readonly pathname?: string }) {
   const scenarioId = resolveScenario(pathname);
   const scenario = scenarios[scenarioId];
-  const [activeTabId, setActiveTabId] = useState(scenario.snapshot.activeTabId);
+  const [activeTabScene, setActiveTabScene] = useState(preparationTabScene);
   const [replayCount, setReplayCount] = useState(0);
   const [replayMessage, setReplayMessage] = useState('');
   const snapshot: BrowserShellSnapshot = {
-    ...scenario.snapshot,
-    activeTabId,
+    ...activeTabScene.snapshot,
+    dimmed: scenario.dimmed,
   };
-  const layers =
-    scenarioId === 'passwo-overlay'
-      ? createOverlayLayers(
-          replayCount,
-          () => {
-            const nextReplayCount = replayCount + 1;
-            setReplayCount(nextReplayCount);
-            setReplayMessage(`Animation ${nextReplayCount} wird wiederholt.`);
-          },
-          replayMessage,
-        )
-      : undefined;
+  const layers = scenario.showPassWoOverlay
+    ? createOverlayLayers(
+        replayCount,
+        () => {
+          const nextReplayCount = replayCount + 1;
+          setReplayCount(nextReplayCount);
+          setReplayMessage(`Animation ${nextReplayCount} wird wiederholt.`);
+        },
+        replayMessage,
+      )
+    : undefined;
+
+  function selectTab(tabId: string): void {
+    const nextTabScene = tabScenes.find(({ id }) => id === tabId);
+    if (nextTabScene !== undefined) setActiveTabScene(nextTabScene);
+  }
 
   return (
     <main className={styles.labPage}>
@@ -231,10 +290,10 @@ export function DesignLab({ pathname = window.location.pathname }: { readonly pa
       <BrowserShell
         snapshot={snapshot}
         ariaLabel={`Fiktive Browseranwendung, Szene ${scenario.label}`}
-        onTabSelect={setActiveTabId}
+        onTabSelect={selectTab}
         {...(layers === undefined ? {} : { layers })}
       >
-        <FictionalPageScene />
+        <FictionalPageScene page={activeTabScene.page} />
       </BrowserShell>
     </main>
   );

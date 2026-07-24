@@ -44,31 +44,123 @@ for (const viewport of viewports) {
   });
 }
 
-test('tabs and address are controlled by the selected snapshot', async ({ page }) => {
+test('tabs support roving focus with ArrowLeft, ArrowRight, Home, and End', async ({ page }) => {
   await page.goto('/design-lab/normal');
 
   const overviewTab = page.getByRole('tab', { name: 'Übersicht' });
   const preparationTab = page.getByRole('tab', { name: 'Vorbereitung' });
-  const reflectionTab = page.getByRole('tab', {
-    name: /Reflexion.*nicht freigegeben/,
+  const reflectionTab = page.getByRole('tab', { name: 'Reflexion' });
+
+  await expect(preparationTab).toHaveAttribute('tabindex', '0');
+  await expect(overviewTab).toHaveAttribute('tabindex', '-1');
+  await expect(reflectionTab).toHaveAttribute('tabindex', '-1');
+
+  await preparationTab.focus();
+  await page.keyboard.press('ArrowRight');
+  await expect(overviewTab).toBeFocused();
+  await expect(overviewTab).toHaveAttribute('aria-selected', 'true');
+  await expect(overviewTab).toHaveAttribute('tabindex', '0');
+  await expect(preparationTab).toHaveAttribute('tabindex', '-1');
+
+  await page.keyboard.press('ArrowLeft');
+  await expect(preparationTab).toBeFocused();
+  await expect(preparationTab).toHaveAttribute('aria-selected', 'true');
+
+  await page.keyboard.press('Home');
+  await expect(overviewTab).toBeFocused();
+  await expect(overviewTab).toHaveAttribute('aria-selected', 'true');
+
+  await page.keyboard.press('End');
+  await expect(preparationTab).toBeFocused();
+  await expect(preparationTab).toHaveAttribute('aria-selected', 'true');
+});
+
+test('tabs and the active panel expose matching ARIA relationships', async ({ page }) => {
+  await page.goto('/design-lab/normal');
+
+  const tabs = page.getByRole('tab');
+  const preparationTab = page.getByRole('tab', { name: 'Vorbereitung' });
+  const overviewTab = page.getByRole('tab', { name: 'Übersicht' });
+  const panel = page.getByRole('tabpanel');
+  const panelId = await panel.getAttribute('id');
+  const preparationTabId = await preparationTab.getAttribute('id');
+
+  expect(panelId).not.toBeNull();
+  expect(preparationTabId).not.toBeNull();
+  if (panelId === null || preparationTabId === null) return;
+
+  await expect(tabs).toHaveCount(3);
+  for (const tab of await tabs.all()) {
+    await expect(tab).toHaveAttribute('aria-controls', panelId);
+  }
+  await expect(panel).toHaveAttribute('aria-labelledby', preparationTabId);
+
+  await overviewTab.click();
+  const overviewTabId = await overviewTab.getAttribute('id');
+  expect(overviewTabId).not.toBeNull();
+  if (overviewTabId === null) return;
+
+  await expect(panel).toHaveAttribute('aria-labelledby', overviewTabId);
+  await expect(overviewTab).toHaveAttribute('aria-selected', 'true');
+});
+
+test('a disabled tab keeps its reason visible and cannot be activated', async ({ page }) => {
+  await page.goto('/design-lab/normal');
+
+  const preparationTab = page.getByRole('tab', { name: 'Vorbereitung' });
+  const reflectionTab = page.getByRole('tab', { name: 'Reflexion' });
+  const disabledReason = page.getByText('In diesem Design-Lab-Snapshot nicht freigegeben.', {
+    exact: false,
   });
 
-  await expect(page.getByLabel('Fiktive Adresse')).toHaveText('campus.example/vorbereitung');
+  await expect(reflectionTab).toHaveAttribute('aria-disabled', 'true');
+  await expect(reflectionTab).not.toHaveAttribute('disabled', '');
+  await expect(disabledReason).toBeVisible();
+
+  const reasonId = await reflectionTab.getAttribute('aria-describedby');
+  expect(reasonId).not.toBeNull();
+  if (reasonId === null) return;
+  await expect(page.locator(`[id="${reasonId}"]`)).toBeVisible();
+
+  await reflectionTab.click({ force: true });
+  await expect(reflectionTab).toHaveAttribute('aria-selected', 'false');
   await expect(preparationTab).toHaveAttribute('aria-selected', 'true');
-  await expect(overviewTab).toHaveAttribute('aria-selected', 'false');
-  await expect(reflectionTab).toBeDisabled();
+  await expect(page.getByLabel('Fiktive Adresse')).toHaveText('campus.example/vorbereitung');
+  await expect(
+    page.getByRole('heading', { name: 'Eine Anmeldung in Ruhe vorbereiten' }),
+  ).toBeVisible();
+});
 
-  await page.keyboard.press('Tab');
-  await page.keyboard.press('Tab');
-  await page.keyboard.press('Tab');
-  await page.keyboard.press('Tab');
-  await expect(overviewTab).toBeFocused();
-  await expect(overviewTab).toHaveCSS('outline-style', 'solid');
-  await expect(overviewTab).toHaveCSS('outline-width', '3px');
+test('every selectable tab renders a coherent complete snapshot', async ({ page }) => {
+  await page.goto('/design-lab/normal');
 
-  await page.keyboard.press('Enter');
-  await expect(overviewTab).toHaveAttribute('aria-selected', 'true');
-  await expect(preparationTab).toHaveAttribute('aria-selected', 'false');
+  const overviewTab = page.getByRole('tab', { name: 'Übersicht' });
+  const completeMarker = overviewTab.getByRole('img', { name: 'Abgeschlossen' });
+  const expectedSnapshots = [
+    {
+      tab: overviewTab,
+      address: 'campus.example/uebersicht',
+      heading: 'Übungsrahmen im Überblick',
+      taskTitle: 'Darstellung und Bedienung',
+      overviewComplete: false,
+    },
+    {
+      tab: page.getByRole('tab', { name: 'Vorbereitung' }),
+      address: 'campus.example/vorbereitung',
+      heading: 'Eine Anmeldung in Ruhe vorbereiten',
+      taskTitle: 'Übungsrahmen kennenlernen',
+      overviewComplete: true,
+    },
+  ] as const;
+
+  for (const expected of expectedSnapshots) {
+    await expected.tab.click();
+    await expect(expected.tab).toHaveAttribute('aria-selected', 'true');
+    await expect(page.getByLabel('Fiktive Adresse')).toHaveText(expected.address);
+    await expect(page.getByRole('heading', { name: expected.heading })).toBeVisible();
+    await expect(page.getByRole('heading', { name: expected.taskTitle })).toBeVisible();
+    await expect(completeMarker).toHaveCount(expected.overviewComplete ? 1 : 0);
+  }
 });
 
 test('overlay layers remain above the dimmed inactive page', async ({ page }) => {
