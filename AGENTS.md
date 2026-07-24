@@ -46,7 +46,26 @@ Bei Unsicherheit stoppe die Implementierung und dokumentiere die offene Forschun
 - Neue Kernabhängigkeiten oder Änderungen an Persistenz, Randomisierung oder Timing benötigen
   ein ADR.
 
-## 4. Code- und Qualitätsregeln
+## 4. Code Economy and Architecture Discipline
+
+- Suche vor neuen Dateien, Typen, Helpern, Services oder Abstraktionen nach vorhandener
+  äquivalenter Funktionalität.
+- Erweitere kohärente bestehende Module statt paralleler Implementierungen oder zweiter
+  Wahrheitsquellen.
+- Keine spekulativen Abstraktionen für mögliche spätere Anforderungen.
+- Keine reinen Durchreicheschichten, Einmal-Wrapper oder Interfaces ohne aktuelle
+  architektonische Funktion.
+- Workflow-, Validierungs-, Mapping- und Persistenzlogik darf nicht mehrfach implementiert
+  werden.
+- React-Komponenten und Adapter enthalten keine duplizierte Domain- oder Orchestrierungslogik.
+- Ein neuer Abstraktionslayer schützt eine konkrete Boundary, sichert eine zulässige
+  Dependency-Richtung oder entfernt nachweisbare aktuelle Duplikation.
+- Bevorzuge die kleinste kohärente Änderung, die alle Akzeptanzkriterien erfüllt.
+- Entferne keine sinnvolle Trennung allein zur Reduktion der Dateizahl.
+- Reviews prüfen insbesondere parallele Modelle, doppelte Zustände, überlappende Services,
+  unnötige Indirektion und übergroße Module.
+
+## 5. Code- und Qualitätsregeln
 
 - TypeScript strict; kein `any`, keine unkontrollierten Type Assertions und keine
   Non-null-Assertions ohne begründete Adaptergrenze.
@@ -60,7 +79,7 @@ Bei Unsicherheit stoppe die Implementierung und dokumentiere die offene Forschun
 - Farbe ist nie der einzige Bedeutungsträger; Tastatur, Fokus und `prefers-reduced-motion`
   müssen berücksichtigt werden.
 
-## 5. Arbeitsweise für Codex
+## 6. Arbeitsweise für Codex
 
 Vor Änderungen:
 
