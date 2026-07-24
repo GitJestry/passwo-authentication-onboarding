@@ -154,49 +154,6 @@
   background: var(--color-positive);
 }
 
-.passWo {
-  position: absolute;
-  z-index: 5;
-  display: grid;
-  width: 4.5rem;
-  justify-items: center;
-  pointer-events: none;
-}
-
-.passWo[data-placement="bottom-left"] {
-  bottom: var(--space-3);
-  left: var(--space-3);
-}
-
-.passWo[data-placement="focused-node"] {
-  top: 8.7rem;
-  left: 16rem;
-}
-
-.passWoFace {
-  display: grid;
-  width: 3.2rem;
-  aspect-ratio: 1;
-  place-items: center;
-  border: var(--border-width-medium) solid var(--color-on-inverse);
-  border-radius: var(--radius-round);
-  color: var(--color-on-inverse);
-  background: var(--color-accent-strong);
-  box-shadow: var(--shadow-card);
-  font-size: var(--font-size-x-small);
-  font-weight: var(--font-weight-heavy);
-}
-
-.passWoLabel {
-  margin-top: calc(-1 * var(--space-2));
-  padding: var(--space-2);
-  border-radius: var(--radius-round);
-  color: var(--color-on-inverse);
-  background: var(--color-surface-inverse);
-  font-size: var(--font-size-x-small);
-  font-weight: var(--font-weight-bold);
-}
-
 .screenReaderOnly {
   position: absolute;
   width: 1px;
@@ -224,11 +181,5 @@
     min-height: 25rem;
     border-right: 0;
     border-bottom: var(--border-width-thin) solid var(--color-border-soft);
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .passWo {
-    transition: none;
   }
 }

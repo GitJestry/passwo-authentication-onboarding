@@ -77,6 +77,8 @@ const artifactBoundsSchema = z.object({
   endedAt: z.number().nullable(),
 });
 
+export const staleArtifactSessionAfterMs = 30 * 60 * 1000;
+
 const sessionSelection = `
   SELECT
     session_id AS sessionId,
@@ -142,6 +144,7 @@ export class StudyRepository {
   }
 
   createSession(request: CreateSessionRequest): CreateSessionResponse {
+    this.recoverStaleArtifactSessions();
     const create = this.#database.transaction(() => {
       const existing = this.#findSessionByRequestId(request.requestId);
       if (existing !== null) {
@@ -228,6 +231,7 @@ export class StudyRepository {
   }
 
   savePlaceholder(sessionId: string, request: PlaceholderResponseRequest): void {
+    this.recoverStaleArtifactSessions();
     const status = this.#completionStatus(sessionId);
     if (this.#hasResponse(sessionId, request.instrumentId)) return;
     if (status !== 'in-progress') {
@@ -258,6 +262,7 @@ export class StudyRepository {
   }
 
   recordTiming(sessionId: string, event: ArtifactTimingEvent): TimingWriteResponse {
+    this.recoverStaleArtifactSessions();
     const record = this.#database.transaction(() => {
       const existingSequence = timingIdentitySchema.nullable().parse(
         this.#database
@@ -353,6 +358,7 @@ export class StudyRepository {
   }
 
   markIncompleteReload(sessionId: string): string {
+    this.recoverStaleArtifactSessions();
     const markIncomplete = this.#database.transaction(() => {
       const status = this.#completionStatus(sessionId);
       if (
@@ -377,6 +383,7 @@ export class StudyRepository {
   }
 
   completeSession(sessionId: string): string {
+    this.recoverStaleArtifactSessions();
     const complete = this.#database.transaction(() => {
       const status = this.#completionStatus(sessionId);
       if (status === 'completed') return status;
@@ -404,8 +411,50 @@ export class StudyRepository {
   }
 
   findSession(sessionId: string): PersistedSessionRecord | null {
+    this.recoverStaleArtifactSessions();
     const row = this.#database.prepare(`${sessionSelection} WHERE session_id = ?`).get(sessionId);
     return row === undefined ? null : toPersistedSession(row);
+  }
+
+  getSessionStatus(sessionId: string): string {
+    this.recoverStaleArtifactSessions();
+    return this.#completionStatus(sessionId);
+  }
+
+  recoverStaleArtifactSessions(): number {
+    const now = Date.parse(this.#nowIso());
+    if (!Number.isFinite(now)) {
+      throw new StudyRepositoryError('invalid-server-clock', 500);
+    }
+    const cutoffIso = new Date(now - staleArtifactSessionAfterMs).toISOString();
+    const result = this.#database
+      .prepare(
+        `UPDATE study_sessions
+         SET completion_status = 'incomplete-reload',
+             technical_error_code = 'artifact-stale-recovery'
+         WHERE completion_status = 'in-progress'
+           AND EXISTS (
+             SELECT 1
+             FROM timing_events AS started
+             WHERE started.session_id = study_sessions.session_id
+               AND started.phase = 'artifact'
+               AND started.event_type = 'start'
+           )
+           AND NOT EXISTS (
+             SELECT 1
+             FROM timing_events AS ended
+             WHERE ended.session_id = study_sessions.session_id
+               AND ended.phase = 'artifact'
+               AND ended.event_type = 'end'
+           )
+           AND (
+             SELECT MAX(activity.server_received_at_iso)
+             FROM timing_events AS activity
+             WHERE activity.session_id = study_sessions.session_id
+           ) <= ?`,
+      )
+      .run(cutoffIso);
+    return result.changes;
   }
 
   #findSessionByRequestId(requestId: string): PersistedSessionRecord | null {

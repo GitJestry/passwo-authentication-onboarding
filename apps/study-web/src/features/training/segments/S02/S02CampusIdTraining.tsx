@@ -1,10 +1,12 @@
 import { s02CampusIdContent } from '@passwo/training-content';
 import { BrowserShell, type BrowserShellSnapshot } from '@passwo/ui';
-import { type RefObject, useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import {
-  NetworkMotionAdapter,
-  type NetworkPresentationSnapshot,
-} from '../../../../adapters/network/NetworkMotionAdapter.js';
+  PassWoCharacterRenderer,
+  PassWoNetworkCharacter,
+  toCharacterRendererState,
+} from '../../../../adapters/character/PassWoCharacterAdapter.js';
+import { NetworkMotionAdapter } from '../../../../adapters/network/NetworkMotionAdapter.js';
 import {
   ReactFlowNetwork,
   ReactFlowNetworkAdapter,
@@ -27,32 +29,6 @@ function prefersReducedMotion(): boolean {
   return window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 }
 
-function PassWoNetworkGuide({
-  presentation,
-  characterRef,
-}: {
-  readonly presentation: NetworkPresentationSnapshot;
-  readonly characterRef: RefObject<HTMLDivElement | null>;
-}) {
-  return (
-    <div
-      ref={characterRef}
-      className={styles.passWo}
-      data-placement={presentation.character.placement}
-      data-pose={presentation.character.pose}
-      role="img"
-      aria-label={`PassWo bei CampusID, Pose ${presentation.character.pose}`}
-    >
-      <span className={styles.passWoFace} aria-hidden="true">
-        PW
-      </span>
-      <span className={styles.passWoLabel} aria-hidden="true">
-        PassWo
-      </span>
-    </div>
-  );
-}
-
 interface S02CampusIdRuntime {
   readonly controller: S02CampusIdController;
   readonly renderer: ReactFlowNetworkAdapter;
@@ -61,6 +37,7 @@ interface S02CampusIdRuntime {
 export function S02CampusIdTraining() {
   const characterRef = useRef<HTMLDivElement | null>(null);
   const networkHostRef = useRef<HTMLDivElement | null>(null);
+  const [characterRenderer] = useState(() => new PassWoCharacterRenderer());
   const [runtime, setRuntime] = useState<S02CampusIdRuntime | null>(null);
   const [snapshot, setSnapshot] = useState<S02CampusIdControllerSnapshot | null>(null);
 
@@ -90,6 +67,13 @@ export function S02CampusIdTraining() {
       void controller?.dispose();
     };
   }, []);
+
+  const pendingPresentation = snapshot?.presentation ?? null;
+  useEffect(() => {
+    if (pendingPresentation !== null) {
+      characterRenderer.render(toCharacterRendererState(pendingPresentation.character));
+    }
+  }, [characterRenderer, pendingPresentation]);
 
   if (runtime === null || snapshot === null) return null;
 
@@ -139,7 +123,7 @@ export function S02CampusIdTraining() {
                 presentation={presentation}
                 onNodeSelect={(nodeId) => controller.selectNode(nodeId)}
               />
-              <PassWoNetworkGuide presentation={presentation} characterRef={characterRef} />
+              <PassWoNetworkCharacter renderer={characterRenderer} characterRef={characterRef} />
             </div>
 
             <aside className={styles.sidebar} aria-label="CampusID-Erklärung und Vorschau">

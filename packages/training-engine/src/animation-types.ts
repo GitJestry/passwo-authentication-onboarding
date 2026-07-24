@@ -1,5 +1,16 @@
 import type { PassWoPlacement, PassWoPose } from '@passwo/contracts';
 
+export interface CharacterRendererState {
+  readonly pose: PassWoPose;
+  readonly placement: PassWoPlacement;
+  readonly visible: boolean;
+  readonly movementTarget: string | null;
+}
+
+export interface CharacterRendererPort {
+  render(state: CharacterRendererState): void;
+}
+
 export type AnimationStep =
   | {
       readonly type: 'move-character';

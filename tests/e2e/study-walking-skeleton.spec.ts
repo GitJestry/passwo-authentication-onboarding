@@ -25,15 +25,18 @@ async function startStudyServer(assignmentMode: ForcedAssignmentMode): Promise<v
 function captureResearchRequests(page: Page) {
   const bodies: string[] = [];
   const paths: string[] = [];
+  const sessionIds = new Set<string>();
   page.on('request', (request) => {
     const path = new URL(request.url()).pathname;
     if (!path.startsWith('/api/study/')) return;
 
     paths.push(path);
+    const sessionId = path.match(/^\/api\/study\/sessions\/([^/]+)\//u)?.[1];
+    if (sessionId !== undefined) sessionIds.add(sessionId);
     const body = request.postData();
     if (body !== null) bodies.push(body);
   });
-  return { bodies, paths };
+  return { bodies, paths, sessionIds };
 }
 
 function timingEventTypes(bodies: readonly string[]): string[] {
@@ -276,6 +279,18 @@ test('reload during the artifact marks the session incomplete and starts fresh',
   await expect
     .poll(() => requests.paths.filter((path) => path.endsWith('/incomplete-reload')).length)
     .toBe(1);
+  const sessionId = [...requests.sessionIds].at(0);
+  expect(sessionId).toBeDefined();
+  await expect
+    .poll(async () => {
+      if (studyServer === null || sessionId === undefined) return null;
+      const response = await studyServer.inject({
+        method: 'GET',
+        url: `/api/study/sessions/${sessionId}/status`,
+      });
+      return response.json<{ completionStatus: string }>().completionStatus;
+    })
+    .toBe('incomplete-reload');
 });
 
 test('reload after the artifact end does not mark the session incomplete', async ({ page }) => {

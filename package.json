@@ -25,6 +25,7 @@
     "check:research-boundary": "node ./scripts/check-research-boundary.mjs",
     "check": "pnpm check:workspace-foundation && pnpm check:biome && pnpm typecheck && pnpm test && pnpm check:research-boundary",
     "study:start": "pnpm build && pnpm --filter @passwo/study-server start",
+    "study:export": "tsx ./scripts/export-study.ts",
     "clean": "node ./scripts/clean.mjs",
     "check:workspace-foundation": "node ./scripts/check-workspace-foundation.mjs"
   },

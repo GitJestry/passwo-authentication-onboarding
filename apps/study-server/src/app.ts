@@ -55,8 +55,13 @@ export function buildStudyServer({
     logger: false,
     trustProxy: false,
   });
+  const staleRecoveryInterval = setInterval(() => {
+    repository.recoverStaleArtifactSessions();
+  }, 60_000);
+  staleRecoveryInterval.unref();
 
   server.addHook('onClose', async () => {
+    clearInterval(staleRecoveryInterval);
     database.close();
   });
 
@@ -99,6 +104,15 @@ export function buildStudyServer({
       const body = placeholderResponseRequestSchema.parse(request.body);
       repository.savePlaceholder(sessionId, body);
       return reply.send(saveResponseResponseSchema.parse({ saved: true }));
+    },
+  );
+
+  server.get<{ Params: { sessionId: string } }>(
+    '/api/study/sessions/:sessionId/status',
+    async (request, reply) => {
+      const { sessionId } = sessionParamsSchema.parse(request.params);
+      const completionStatus = repository.getSessionStatus(sessionId);
+      return reply.send(sessionStatusResponseSchema.parse({ completionStatus }));
     },
   );
 

@@ -1,4 +1,4 @@
-import { mkdtempSync, rmSync } from 'node:fs';
+import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import type { AssignmentMode } from '@passwo/contracts';
@@ -8,6 +8,7 @@ import { afterEach, describe, expect, it } from 'vitest';
 import { buildStudyServer } from './app.js';
 import { loadStudyServerConfig } from './config.js';
 import type { StudyRandomSource } from './random-source.js';
+import { registerStudyWeb } from './static-web.js';
 
 const servers: FastifyInstance[] = [];
 const temporaryDirectories: string[] = [];
@@ -375,6 +376,11 @@ describe('study server walking skeleton', () => {
     expect(rejectedVisibility.json()).toEqual({ errorCode: 'visibility-timing-not-supported' });
     expect(firstReload.json()).toEqual({ completionStatus: 'incomplete-reload' });
     expect(repeatedReload.json()).toEqual({ completionStatus: 'incomplete-reload' });
+    const persistedReload = await referenceServer.inject({
+      method: 'GET',
+      url: `/api/study/sessions/${referenceSession.sessionId}/status`,
+    });
+    expect(persistedReload.json()).toEqual({ completionStatus: 'incomplete-reload' });
 
     const completedArtifactServer = createServer('forced-supportive');
     const completedArtifactSession = await createSession(completedArtifactServer);
@@ -423,6 +429,92 @@ describe('study server walking skeleton', () => {
     });
 
     expect(reloadAfterEnd.json()).toEqual({ completionStatus: 'in-progress' });
+  });
+
+  it('recovers stale active artifacts without overwriting completed artifact boundaries', async () => {
+    let nowIso = '2026-07-24T12:00:00.000Z';
+    const server = buildStudyServer({
+      version: '0.1.2',
+      assignmentMode: 'forced-supportive',
+      databasePath: ':memory:',
+      randomSource: deterministicRandomSource(),
+      nowIso: () => nowIso,
+    });
+    servers.push(server);
+    const session = await createSession(server);
+    await server.inject({
+      method: 'POST',
+      url: `/api/study/sessions/${session.sessionId}/responses`,
+      payload: {
+        instrumentId: 'pre-placeholder',
+        itemId: 'placeholder-complete',
+        value: true,
+      },
+    });
+    await server.inject({
+      method: 'POST',
+      url: `/api/study/sessions/${session.sessionId}/timing`,
+      payload: {
+        sequence: 0,
+        phase: 'artifact',
+        sectionId: null,
+        segmentId: null,
+        eventType: 'start',
+        clientMonotonicMs: 100,
+        clientWallClockIso: nowIso,
+        elapsedMs: null,
+        reasonCode: null,
+      },
+    });
+
+    nowIso = '2026-07-24T12:31:00.000Z';
+    const recovered = await server.inject({
+      method: 'GET',
+      url: `/api/study/sessions/${session.sessionId}/status`,
+    });
+
+    expect(recovered.json()).toEqual({ completionStatus: 'incomplete-reload' });
+    const repeatedRecovery = await server.inject({
+      method: 'GET',
+      url: `/api/study/sessions/${session.sessionId}/status`,
+    });
+    expect(repeatedRecovery.json()).toEqual({ completionStatus: 'incomplete-reload' });
+  });
+
+  it('serves the built app for known client routes without swallowing API or asset paths', async () => {
+    const temporaryDirectory = mkdtempSync(join(tmpdir(), 'passwo-static-web-test-'));
+    temporaryDirectories.push(temporaryDirectory);
+    const webBuildDirectory = join(temporaryDirectory, 'web');
+    mkdirSync(join(webBuildDirectory, 'assets'), { recursive: true });
+    writeFileSync(join(webBuildDirectory, 'index.html'), '<!doctype html><title>PassWo</title>');
+    writeFileSync(join(webBuildDirectory, 'assets', 'app.js'), 'window.passwo = true;');
+    const server = createServer('forced-supportive');
+    await registerStudyWeb(server, { webBuildDirectory });
+
+    for (const url of [
+      '/',
+      '/index.html',
+      '/design-lab/s00',
+      '/design-lab/s02',
+      '/design-lab/s06',
+    ]) {
+      const response = await server.inject({ method: 'GET', url });
+      expect(response.statusCode).toBe(200);
+      expect(response.headers['content-type']).toContain('text/html');
+      expect(response.body).toContain('<title>PassWo</title>');
+    }
+
+    const asset = await server.inject({ method: 'GET', url: '/assets/app.js' });
+    const missingAsset = await server.inject({ method: 'GET', url: '/assets/missing.js' });
+    const missingApi = await server.inject({ method: 'GET', url: '/api/study/export' });
+    const unknownPath = await server.inject({ method: 'GET', url: '/unknown-path' });
+    const unknownDesignLab = await server.inject({ method: 'GET', url: '/design-lab/unknown' });
+
+    expect(asset.body).toBe('window.passwo = true;');
+    expect(missingAsset.statusCode).toBe(404);
+    expect(missingApi.statusCode).toBe(404);
+    expect(unknownPath.statusCode).toBe(404);
+    expect(unknownDesignLab.statusCode).toBe(404);
   });
 
   it('creates the three-table research schema without participant input columns', async () => {

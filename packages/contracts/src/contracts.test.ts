@@ -5,6 +5,7 @@ import {
   createSessionRequestSchema,
   persistedSessionRecordSchema,
   placeholderResponseRequestSchema,
+  researchExportManifestSchema,
 } from './index.js';
 
 const authoredComparisonFixture = {
@@ -88,6 +89,35 @@ describe('research-safe contracts', () => {
     expect(artifactTimingEventSchema.safeParse(visibilityEvent).success).toBe(true);
     expect(
       artifactTimingEventSchema.safeParse({ ...visibilityEvent, eventType: 'pause' }).success,
+    ).toBe(false);
+  });
+
+  it('keeps researcher exports inside the approved data boundary', () => {
+    const manifest = researchExportManifestSchema.safeParse({
+      schemaVersion: 'research-export-v1',
+      exportedAtIso: '2026-07-24T12:00:00.000Z',
+      versions: {
+        study: ['walking-skeleton-v1'],
+        content: ['artifact-placeholder-v1'],
+        questionnaire: ['questionnaire-placeholder-v1'],
+        consent: ['consent-placeholder-v1'],
+        referenceArtifact: ['reference-placeholder-v1'],
+      },
+      sessionCounts: [{ condition: 'supportive', completionStatus: 'completed', count: 1 }],
+      files: [
+        {
+          fileName: 'sessions.csv',
+          sha256: 'f'.repeat(64),
+        },
+      ],
+    });
+
+    expect(manifest.success).toBe(true);
+    expect(
+      researchExportManifestSchema.safeParse({
+        ...manifest.data,
+        requestBody: 'never exported',
+      }).success,
     ).toBe(false);
   });
 });

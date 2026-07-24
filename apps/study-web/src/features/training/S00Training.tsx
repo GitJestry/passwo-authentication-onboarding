@@ -6,7 +6,7 @@ import {
   type MissionSnapshot,
 } from '@passwo/training-engine';
 import { BrowserShell, type BrowserShellSnapshot } from '@passwo/ui';
-import { type RefObject, useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { BrowserSegmentTimingAdapter } from '../../adapters/animation/BrowserSegmentTimingAdapter.js';
 import { MotionAnimationAdapter } from '../../adapters/animation/MotionAnimationAdapter.js';
 import {
@@ -14,6 +14,12 @@ import {
   hasRevealedTarget,
   type S00SceneSnapshot,
 } from '../../adapters/animation/s00-scene.js';
+import {
+  characterObscuresStage,
+  PassWoCharacterRenderer,
+  PassWoGuideCharacter,
+  toCharacterRendererState,
+} from '../../adapters/character/PassWoCharacterAdapter.js';
 import styles from './S00Training.module.css';
 
 const mission: MissionDefinition = {
@@ -70,46 +76,6 @@ function S00Page({ safetyVisible }: { readonly safetyVisible: boolean }) {
   );
 }
 
-function PassWoGuide({
-  placement,
-  pose,
-  guideOpen,
-  characterRef,
-  onToggle,
-}: {
-  readonly placement: S00SceneSnapshot['character']['placement'];
-  readonly pose: S00SceneSnapshot['character']['pose'];
-  readonly guideOpen: boolean;
-  readonly characterRef: RefObject<HTMLButtonElement | null>;
-  readonly onToggle: () => void;
-}) {
-  const docked = placement === 'bottom-left';
-  return (
-    <div className={styles.passWo} data-placement={placement} data-pose={pose}>
-      <button
-        ref={characterRef}
-        className={styles.passWoButton}
-        type="button"
-        disabled={!docked}
-        aria-expanded={guideOpen}
-        aria-controls={guideOpen ? 's00-passwo-speech' : undefined}
-        aria-label={
-          guideOpen ? s00Content.narration.closeGuideLabel : s00Content.narration.openGuideLabel
-        }
-        onClick={onToggle}
-      >
-        <span className={styles.passWoHalo} aria-hidden="true" />
-        <span className={styles.passWoFace} aria-hidden="true">
-          PW
-        </span>
-        <span className={styles.passWoBody} aria-hidden="true">
-          <strong>{s00Content.narration.guideName}</strong>
-        </span>
-      </button>
-    </div>
-  );
-}
-
 function PassWoSpeech({ displayName }: { readonly displayName: string }) {
   return (
     <section
@@ -139,6 +105,12 @@ export function S00Training({
 }: S00TrainingProps) {
   const [scene, setScene] = useState<S00SceneSnapshot>(createInitialS00SceneSnapshot);
   const [missionSnapshot, setMissionSnapshot] = useState<MissionSnapshot | null>(null);
+  const [characterRenderer] = useState(
+    () =>
+      new PassWoCharacterRenderer(
+        toCharacterRendererState(createInitialS00SceneSnapshot().character),
+      ),
+  );
   const controllerRef = useRef<MissionController | null>(null);
   const characterRef = useRef<HTMLButtonElement | null>(null);
   const pageRef = useRef<HTMLDivElement | null>(null);
@@ -172,6 +144,11 @@ export function S00Training({
     };
   }, [forceAnimationFailure]);
 
+  const characterState = toCharacterRendererState(scene.character);
+  useEffect(() => {
+    characterRenderer.render(characterState);
+  }, [characterRenderer, characterState]);
+
   const awaitingDecision = missionSnapshot?.matches({ active: 'awaitingDecision' }) ?? false;
   const safetyAcknowledged = missionSnapshot?.context.safetyAcknowledged ?? false;
   const canContinue =
@@ -183,7 +160,7 @@ export function S00Training({
   const animationError = missionSnapshot?.context.lastAnimationError ?? null;
   const snapshot: BrowserShellSnapshot = {
     ...browserSnapshot,
-    dimmed: scene.character.placement !== 'bottom-left',
+    dimmed: characterObscuresStage(characterState),
   };
 
   return (
@@ -193,11 +170,14 @@ export function S00Training({
         ariaLabel={s00Content.browser.ariaLabel}
         layers={{
           passWo: (
-            <PassWoGuide
-              placement={scene.character.placement}
-              pose={scene.character.pose}
+            <PassWoGuideCharacter
+              renderer={characterRenderer}
               guideOpen={guideOpen}
               characterRef={characterRef}
+              controlsId="s00-passwo-speech"
+              guideName={s00Content.narration.guideName}
+              openLabel={s00Content.narration.openGuideLabel}
+              closeLabel={s00Content.narration.closeGuideLabel}
               onToggle={() =>
                 setScene((currentScene) => ({
                   ...currentScene,

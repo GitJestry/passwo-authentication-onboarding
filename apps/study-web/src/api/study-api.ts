@@ -139,6 +139,7 @@ export function createStudyApi(): StudyRuntimePorts {
 
     markIncompleteReload: (sessionId: string) => {
       const url = `/api/study/sessions/${sessionId}/incomplete-reload`;
+      if (typeof navigator !== 'undefined' && navigator.sendBeacon(url)) return;
       void fetch(url, { method: 'POST', keepalive: true }).catch(() => undefined);
     },
   };
