@@ -62,4 +62,35 @@ describe('StudyTimerController', () => {
 
     expect(events.slice(1)).toEqual([events[1], events[1]]);
   });
+
+  it('emits diagnostic visibility events without changing the active duration', async () => {
+    let now = 100;
+    const events: TimingEvent[] = [];
+    const clock: ClockPort = {
+      monotonicNow: () => now,
+      wallClockIso: () => '2026-07-23T12:00:00.000Z',
+    };
+    const sink: TimingSink = {
+      record: async (event) => {
+        events.push(event);
+      },
+    };
+    const timer = new StudyTimerController(clock, sink);
+    const scope = { phase: 'artifact' as const };
+
+    await timer.start(scope);
+    now = 200;
+    await timer.markVisibility(scope, false);
+    now = 300;
+    await timer.markVisibility(scope, true);
+    now = 500;
+    await expect(timer.end(scope)).resolves.toBe(400);
+
+    expect(events.map(({ sequence, eventType }) => ({ sequence, eventType }))).toEqual([
+      { sequence: 0, eventType: 'start' },
+      { sequence: 1, eventType: 'visibility-hidden' },
+      { sequence: 2, eventType: 'visibility-visible' },
+      { sequence: 3, eventType: 'end' },
+    ]);
+  });
 });

@@ -27,6 +27,7 @@ interface ActiveScope {
 
 interface PendingTimingWrite {
   readonly event: TimingEvent;
+  completion: Promise<void> | null;
 }
 
 export const browserClock: ClockPort = {
@@ -44,6 +45,7 @@ export class StudyTimerController {
   readonly #active = new Map<string, ActiveScope>();
   readonly #pendingStarts = new Map<string, PendingTimingWrite>();
   readonly #pendingEnds = new Map<string, PendingTimingWrite>();
+  readonly #pendingVisibility = new Map<string, PendingTimingWrite>();
   #nextSequence = 0;
 
   constructor(clock: ClockPort, sink: TimingSink) {
@@ -97,15 +99,19 @@ export class StudyTimerController {
     visible: boolean,
     reasonCode: string | null = null,
   ): Promise<void> {
-    await this.#commit(
-      this.#createPendingWrite(
-        scope,
-        visible ? 'visibility-visible' : 'visibility-hidden',
-        this.#clock.monotonicNow(),
-        null,
-        reasonCode,
-      ),
-    );
+    const key = scopeKey(scope);
+    const eventType = visible ? 'visibility-visible' : 'visibility-hidden';
+    const pending =
+      this.#pendingVisibility.get(key) ??
+      this.#createPendingWrite(scope, eventType, this.#clock.monotonicNow(), null, reasonCode);
+    this.#pendingVisibility.set(key, pending);
+
+    if (pending.event.eventType !== eventType || pending.event.reasonCode !== reasonCode) {
+      await this.#commitVisibility(key, pending);
+      return this.markVisibility(scope, visible, reasonCode);
+    }
+
+    await this.#commitVisibility(key, pending);
   }
 
   async technicalAbort(scope: TimingScope, reasonCode: string): Promise<void> {
@@ -139,7 +145,25 @@ export class StudyTimerController {
       reasonCode,
     };
 
-    return { event };
+    return { event, completion: null };
+  }
+
+  async #commitVisibility(key: string, pending: PendingTimingWrite): Promise<void> {
+    if (pending.completion !== null) {
+      return pending.completion;
+    }
+
+    const completion = this.#commit(pending);
+    pending.completion = completion;
+    try {
+      await completion;
+      if (this.#pendingVisibility.get(key) === pending) {
+        this.#pendingVisibility.delete(key);
+      }
+    } catch (error) {
+      pending.completion = null;
+      throw error;
+    }
   }
 
   async #commit(pending: PendingTimingWrite): Promise<void> {

@@ -117,22 +117,9 @@ describe('study server walking skeleton', () => {
     expect(conditions.filter((condition) => condition === 'reference')).toHaveLength(2);
   });
 
-  it('persists only bounded responses and idempotent artifact timing with total time', async () => {
+  it('enforces persisted study prerequisites and completes a valid run idempotently', async () => {
     const server = createServer('forced-supportive');
     const session = await createSession(server);
-
-    for (const instrumentId of ['pre-placeholder', 'post-placeholder', 'guardrail-placeholder']) {
-      const response = await server.inject({
-        method: 'POST',
-        url: `/api/study/sessions/${session.sessionId}/responses`,
-        payload: {
-          instrumentId,
-          itemId: 'placeholder-complete',
-          value: true,
-        },
-      });
-      expect(response.statusCode).toBe(200);
-    }
 
     const startEvent = {
       sequence: 0,
@@ -145,6 +132,17 @@ describe('study server walking skeleton', () => {
       elapsedMs: null,
       reasonCode: null,
     };
+    const pre = await server.inject({
+      method: 'POST',
+      url: `/api/study/sessions/${session.sessionId}/responses`,
+      payload: {
+        instrumentId: 'pre-placeholder',
+        itemId: 'placeholder-complete',
+        value: true,
+      },
+    });
+    expect(pre.statusCode).toBe(200);
+
     const start = await server.inject({
       method: 'POST',
       url: `/api/study/sessions/${session.sessionId}/timing`,
@@ -154,6 +152,29 @@ describe('study server walking skeleton', () => {
       method: 'POST',
       url: `/api/study/sessions/${session.sessionId}/timing`,
       payload: startEvent,
+    });
+    const prematurePost = await server.inject({
+      method: 'POST',
+      url: `/api/study/sessions/${session.sessionId}/responses`,
+      payload: {
+        instrumentId: 'post-placeholder',
+        itemId: 'placeholder-complete',
+        value: true,
+      },
+    });
+    const prematureGuardrail = await server.inject({
+      method: 'POST',
+      url: `/api/study/sessions/${session.sessionId}/responses`,
+      payload: {
+        instrumentId: 'guardrail-placeholder',
+        itemId: 'placeholder-complete',
+        value: true,
+      },
+    });
+    const incompleteCompletion = await server.inject({
+      method: 'POST',
+      url: `/api/study/sessions/${session.sessionId}/complete`,
+      payload: { debriefAcknowledged: true },
     });
     const endEvent = {
       ...startEvent,
@@ -172,36 +193,7 @@ describe('study server walking skeleton', () => {
       url: `/api/study/sessions/${session.sessionId}/timing`,
       payload: endEvent,
     });
-
-    expect(start.json()).toEqual({ recorded: true, artifactWallClockMs: null });
-    expect(repeatedStart.json()).toEqual({ recorded: false, artifactWallClockMs: null });
-    expect(end.json()).toEqual({ recorded: true, artifactWallClockMs: 750 });
-    expect(repeatedEnd.json()).toEqual({
-      recorded: false,
-      artifactWallClockMs: 750,
-    });
-
-    const completion = await server.inject({
-      method: 'POST',
-      url: `/api/study/sessions/${session.sessionId}/complete`,
-      payload: { debriefAcknowledged: true },
-    });
-    expect(completion.json()).toEqual({ completionStatus: 'completed' });
-  });
-
-  it('marks an artifact reload incomplete without resuming the session', async () => {
-    const server = createServer('forced-reference');
-    const session = await createSession(server);
-
-    const first = await server.inject({
-      method: 'POST',
-      url: `/api/study/sessions/${session.sessionId}/incomplete-reload`,
-    });
-    const repeated = await server.inject({
-      method: 'POST',
-      url: `/api/study/sessions/${session.sessionId}/incomplete-reload`,
-    });
-    const rejectedWrite = await server.inject({
+    const post = await server.inject({
       method: 'POST',
       url: `/api/study/sessions/${session.sessionId}/responses`,
       payload: {
@@ -210,10 +202,227 @@ describe('study server walking skeleton', () => {
         value: true,
       },
     });
+    const repeatedPost = await server.inject({
+      method: 'POST',
+      url: `/api/study/sessions/${session.sessionId}/responses`,
+      payload: {
+        instrumentId: 'post-placeholder',
+        itemId: 'placeholder-complete',
+        value: true,
+      },
+    });
+    const guardrail = await server.inject({
+      method: 'POST',
+      url: `/api/study/sessions/${session.sessionId}/responses`,
+      payload: {
+        instrumentId: 'guardrail-placeholder',
+        itemId: 'placeholder-complete',
+        value: true,
+      },
+    });
 
-    expect(first.json()).toEqual({ completionStatus: 'incomplete-reload' });
-    expect(repeated.json()).toEqual({ completionStatus: 'incomplete-reload' });
-    expect(rejectedWrite.statusCode).toBe(409);
+    expect(start.json()).toEqual({ recorded: true, artifactWallClockMs: null });
+    expect(repeatedStart.json()).toEqual({ recorded: false, artifactWallClockMs: null });
+    expect(prematurePost.statusCode).toBe(409);
+    expect(prematurePost.json()).toEqual({ errorCode: 'artifact-end-required' });
+    expect(prematureGuardrail.statusCode).toBe(409);
+    expect(prematureGuardrail.json()).toEqual({ errorCode: 'post-response-required' });
+    expect(incompleteCompletion.statusCode).toBe(409);
+    expect(incompleteCompletion.json()).toEqual({ errorCode: 'artifact-end-required' });
+    expect(end.json()).toEqual({ recorded: true, artifactWallClockMs: 750 });
+    expect(repeatedEnd.json()).toEqual({
+      recorded: false,
+      artifactWallClockMs: 750,
+    });
+    expect(post.statusCode).toBe(200);
+    expect(repeatedPost.statusCode).toBe(200);
+    expect(guardrail.statusCode).toBe(200);
+
+    const completion = await server.inject({
+      method: 'POST',
+      url: `/api/study/sessions/${session.sessionId}/complete`,
+      payload: { debriefAcknowledged: true },
+    });
+    const repeatedCompletion = await server.inject({
+      method: 'POST',
+      url: `/api/study/sessions/${session.sessionId}/complete`,
+      payload: { debriefAcknowledged: true },
+    });
+    expect(completion.json()).toEqual({ completionStatus: 'completed' });
+    expect(repeatedCompletion.json()).toEqual({ completionStatus: 'completed' });
+  });
+
+  it('persists supportive visibility events with ordered idempotent timing writes', async () => {
+    const server = createServer('forced-supportive');
+    const session = await createSession(server);
+
+    const pre = await server.inject({
+      method: 'POST',
+      url: `/api/study/sessions/${session.sessionId}/responses`,
+      payload: {
+        instrumentId: 'pre-placeholder',
+        itemId: 'placeholder-complete',
+        value: true,
+      },
+    });
+    expect(pre.statusCode).toBe(200);
+    const start = await server.inject({
+      method: 'POST',
+      url: `/api/study/sessions/${session.sessionId}/timing`,
+      payload: {
+        sequence: 0,
+        phase: 'artifact',
+        sectionId: null,
+        segmentId: null,
+        eventType: 'start',
+        clientMonotonicMs: 100,
+        clientWallClockIso: '2026-07-24T12:00:00.000Z',
+        elapsedMs: null,
+        reasonCode: null,
+      },
+    });
+    const hiddenEvent = {
+      sequence: 1,
+      phase: 'artifact',
+      sectionId: null,
+      segmentId: null,
+      eventType: 'visibility-hidden',
+      clientMonotonicMs: 200,
+      clientWallClockIso: '2026-07-24T12:00:00.000Z',
+      elapsedMs: null,
+      reasonCode: null,
+    };
+    const hidden = await server.inject({
+      method: 'POST',
+      url: `/api/study/sessions/${session.sessionId}/timing`,
+      payload: hiddenEvent,
+    });
+    const repeatedHidden = await server.inject({
+      method: 'POST',
+      url: `/api/study/sessions/${session.sessionId}/timing`,
+      payload: hiddenEvent,
+    });
+    const visible = await server.inject({
+      method: 'POST',
+      url: `/api/study/sessions/${session.sessionId}/timing`,
+      payload: {
+        ...hiddenEvent,
+        sequence: 2,
+        eventType: 'visibility-visible',
+        clientMonotonicMs: 300,
+      },
+    });
+
+    expect(start.json()).toEqual({ recorded: true, artifactWallClockMs: null });
+    expect(hidden.json()).toEqual({ recorded: true, artifactWallClockMs: null });
+    expect(repeatedHidden.json()).toEqual({ recorded: false, artifactWallClockMs: null });
+    expect(visible.json()).toEqual({ recorded: true, artifactWallClockMs: null });
+  });
+
+  it('rejects reference visibility timing and marks only active artifacts incomplete', async () => {
+    const referenceServer = createServer('forced-reference');
+    const referenceSession = await createSession(referenceServer);
+    const pre = await referenceServer.inject({
+      method: 'POST',
+      url: `/api/study/sessions/${referenceSession.sessionId}/responses`,
+      payload: {
+        instrumentId: 'pre-placeholder',
+        itemId: 'placeholder-complete',
+        value: true,
+      },
+    });
+    expect(pre.statusCode).toBe(200);
+    await referenceServer.inject({
+      method: 'POST',
+      url: `/api/study/sessions/${referenceSession.sessionId}/timing`,
+      payload: {
+        sequence: 0,
+        phase: 'artifact',
+        sectionId: null,
+        segmentId: null,
+        eventType: 'start',
+        clientMonotonicMs: 100,
+        clientWallClockIso: '2026-07-24T12:00:00.000Z',
+        elapsedMs: null,
+        reasonCode: null,
+      },
+    });
+    const rejectedVisibility = await referenceServer.inject({
+      method: 'POST',
+      url: `/api/study/sessions/${referenceSession.sessionId}/timing`,
+      payload: {
+        sequence: 1,
+        phase: 'artifact',
+        sectionId: null,
+        segmentId: null,
+        eventType: 'visibility-hidden',
+        clientMonotonicMs: 200,
+        clientWallClockIso: '2026-07-24T12:00:00.000Z',
+        elapsedMs: null,
+        reasonCode: null,
+      },
+    });
+    const firstReload = await referenceServer.inject({
+      method: 'POST',
+      url: `/api/study/sessions/${referenceSession.sessionId}/incomplete-reload`,
+    });
+    const repeatedReload = await referenceServer.inject({
+      method: 'POST',
+      url: `/api/study/sessions/${referenceSession.sessionId}/incomplete-reload`,
+    });
+
+    expect(rejectedVisibility.statusCode).toBe(409);
+    expect(rejectedVisibility.json()).toEqual({ errorCode: 'visibility-timing-not-supported' });
+    expect(firstReload.json()).toEqual({ completionStatus: 'incomplete-reload' });
+    expect(repeatedReload.json()).toEqual({ completionStatus: 'incomplete-reload' });
+
+    const completedArtifactServer = createServer('forced-supportive');
+    const completedArtifactSession = await createSession(completedArtifactServer);
+    await completedArtifactServer.inject({
+      method: 'POST',
+      url: `/api/study/sessions/${completedArtifactSession.sessionId}/responses`,
+      payload: {
+        instrumentId: 'pre-placeholder',
+        itemId: 'placeholder-complete',
+        value: true,
+      },
+    });
+    await completedArtifactServer.inject({
+      method: 'POST',
+      url: `/api/study/sessions/${completedArtifactSession.sessionId}/timing`,
+      payload: {
+        sequence: 0,
+        phase: 'artifact',
+        sectionId: null,
+        segmentId: null,
+        eventType: 'start',
+        clientMonotonicMs: 100,
+        clientWallClockIso: '2026-07-24T12:00:00.000Z',
+        elapsedMs: null,
+        reasonCode: null,
+      },
+    });
+    await completedArtifactServer.inject({
+      method: 'POST',
+      url: `/api/study/sessions/${completedArtifactSession.sessionId}/timing`,
+      payload: {
+        sequence: 1,
+        phase: 'artifact',
+        sectionId: null,
+        segmentId: null,
+        eventType: 'end',
+        clientMonotonicMs: 200,
+        clientWallClockIso: '2026-07-24T12:00:00.000Z',
+        elapsedMs: 100,
+        reasonCode: null,
+      },
+    });
+    const reloadAfterEnd = await completedArtifactServer.inject({
+      method: 'POST',
+      url: `/api/study/sessions/${completedArtifactSession.sessionId}/incomplete-reload`,
+    });
+
+    expect(reloadAfterEnd.json()).toEqual({ completionStatus: 'in-progress' });
   });
 
   it('creates the three-table research schema without participant input columns', async () => {

@@ -62,6 +62,20 @@ export const artifactTimingEventSchema = z.discriminatedUnion('eventType', [
       elapsedMs: z.number().finite().nonnegative(),
     })
     .strict(),
+  z
+    .object({
+      ...artifactTimingBaseShape,
+      eventType: z.literal('visibility-hidden'),
+      elapsedMs: z.null(),
+    })
+    .strict(),
+  z
+    .object({
+      ...artifactTimingBaseShape,
+      eventType: z.literal('visibility-visible'),
+      elapsedMs: z.null(),
+    })
+    .strict(),
 ]);
 export type ArtifactTimingEvent = z.infer<typeof artifactTimingEventSchema>;
 

@@ -1,6 +1,6 @@
 import { createStudyMachine } from '@passwo/study-engine';
 import { useMachine } from '@xstate/react';
-import { type FormEvent, type ReactNode, useEffect, useMemo, useState } from 'react';
+import { type FormEvent, type ReactNode, useMemo, useState } from 'react';
 import { createStudyApi } from '../../api/study-api.js';
 import styles from './StudyFlow.module.css';
 
@@ -191,30 +191,6 @@ export function StudyFlow() {
   const [snapshot, send] = useMachine(machine);
   const { context } = snapshot;
 
-  const artifactInProgress =
-    snapshot.matches('startingArtifact') ||
-    snapshot.matches('artifactStartError') ||
-    snapshot.matches('artifact') ||
-    snapshot.matches('endingArtifact') ||
-    snapshot.matches('artifactEndError');
-
-  useEffect(() => {
-    if (!artifactInProgress || context.sessionId === null) return;
-    const sessionId = context.sessionId;
-    let reloadMarked = false;
-    const markReload = () => {
-      if (reloadMarked) return;
-      reloadMarked = true;
-      api.markIncompleteReload(sessionId);
-    };
-    window.addEventListener('beforeunload', markReload);
-    window.addEventListener('pagehide', markReload);
-    return () => {
-      window.removeEventListener('beforeunload', markReload);
-      window.removeEventListener('pagehide', markReload);
-    };
-  }, [api, artifactInProgress, context.sessionId]);
-
   let content: ReactNode;
   let step = 'Studienstart';
 
@@ -251,7 +227,7 @@ export function StudyFlow() {
       <NameEntry onSubmit={(displayName) => send({ type: 'DISPLAY_NAME_ENTERED', displayName })} />
     );
     step = 'Personalisierung';
-  } else if (snapshot.matches('artifactStartError')) {
+  } else if (snapshot.matches({ artifactLifecycle: 'startError' })) {
     content = (
       <ResearchDataError
         errorCode={context.researchErrorCode}
@@ -259,7 +235,7 @@ export function StudyFlow() {
       />
     );
     step = 'Artefakt';
-  } else if (snapshot.matches({ artifact: 'supportive' })) {
+  } else if (snapshot.matches({ artifactLifecycle: { artifact: 'supportive' } })) {
     content = (
       <SupportiveArtifact
         displayName={context.displayName ?? ''}
@@ -267,10 +243,10 @@ export function StudyFlow() {
       />
     );
     step = 'Artefakt';
-  } else if (snapshot.matches({ artifact: 'reference' })) {
+  } else if (snapshot.matches({ artifactLifecycle: { artifact: 'reference' } })) {
     content = <ReferenceArtifact onComplete={() => send({ type: 'ARTIFACT_COMPLETED' })} />;
     step = 'Artefakt';
-  } else if (snapshot.matches('artifactEndError')) {
+  } else if (snapshot.matches({ artifactLifecycle: 'endError' })) {
     content = (
       <ResearchDataError
         errorCode={context.researchErrorCode}

@@ -51,8 +51,8 @@ describe('research-safe contracts', () => {
     ).toBe(false);
   });
 
-  it('restricts artifact timing to condition-comparable boundaries', () => {
-    const result = artifactTimingEventSchema.safeParse({
+  it('allows only bounded artifact and diagnostic visibility events', () => {
+    const visibilityEvent = {
       sequence: 0,
       phase: 'artifact',
       sectionId: null,
@@ -62,8 +62,11 @@ describe('research-safe contracts', () => {
       clientWallClockIso: '2026-07-24T12:00:00.000Z',
       elapsedMs: null,
       reasonCode: null,
-    });
+    };
 
-    expect(result.success).toBe(false);
+    expect(artifactTimingEventSchema.safeParse(visibilityEvent).success).toBe(true);
+    expect(
+      artifactTimingEventSchema.safeParse({ ...visibilityEvent, eventType: 'pause' }).success,
+    ).toBe(false);
   });
 });

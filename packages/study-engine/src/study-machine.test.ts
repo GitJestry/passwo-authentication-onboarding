@@ -14,6 +14,9 @@ function runtimePorts(condition: StudyCondition): StudyRuntimePorts {
     savePlaceholder: async (_sessionId: string, _instrumentId: PlaceholderInstrumentId) => {},
     startArtifact: async () => {},
     endArtifact: async () => 325,
+    recordArtifactVisibility: async (_sessionId: string, _visible: boolean) => {},
+    markIncompleteReload: (_sessionId: string) => {},
+    observeArtifactLifecycle: (_input) => () => {},
     completeSession: async () => {},
   };
 }
@@ -46,13 +49,17 @@ describe('studyMachine', () => {
       actor.send({ type: 'SUBMIT_PRE' });
       await waitForState(actor, () => actor.getSnapshot().matches('nameEntry'));
       actor.send({ type: 'DISPLAY_NAME_ENTERED', displayName: '  Alex  ' });
-      await waitForState(actor, () => actor.getSnapshot().matches({ artifact: condition }));
+      await waitForState(actor, () =>
+        actor.getSnapshot().matches({ artifactLifecycle: { artifact: condition } }),
+      );
 
       expect(actor.getSnapshot().context.displayName).toBe('Alex');
+      expect(actor.getSnapshot().hasTag('artifactActive')).toBe(true);
 
       actor.send({ type: 'ARTIFACT_COMPLETED' });
       expect(actor.getSnapshot().context.displayName).toBeNull();
       await waitForState(actor, () => actor.getSnapshot().matches('postQuestionnaire'));
+      expect(actor.getSnapshot().hasTag('artifactActive')).toBe(false);
       actor.send({ type: 'SUBMIT_POST' });
       await waitForState(actor, () => actor.getSnapshot().matches('guardrails'));
       actor.send({ type: 'SUBMIT_GUARDRAILS' });

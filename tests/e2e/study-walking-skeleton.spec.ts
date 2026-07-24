@@ -36,6 +36,34 @@ function captureResearchRequests(page: Page) {
   return { bodies, paths };
 }
 
+function timingEventTypes(bodies: readonly string[]): string[] {
+  return bodies.flatMap((body) => {
+    const value: unknown = JSON.parse(body);
+    if (
+      typeof value === 'object' &&
+      value !== null &&
+      'eventType' in value &&
+      typeof value.eventType === 'string'
+    ) {
+      return [value.eventType];
+    }
+    return [];
+  });
+}
+
+async function dispatchVisibilityChange(
+  page: Page,
+  visibilityState: 'hidden' | 'visible',
+): Promise<void> {
+  await page.evaluate((nextVisibilityState) => {
+    Object.defineProperty(document, 'visibilityState', {
+      configurable: true,
+      value: nextVisibilityState,
+    });
+    document.dispatchEvent(new Event('visibilitychange'));
+  }, visibilityState);
+}
+
 async function failFirstPreWrite(page: Page): Promise<void> {
   let failed = false;
   await page.route('**/api/study/sessions/*/responses', async (route) => {
@@ -105,6 +133,34 @@ test('forced-supportive completes and visibly blocks a failed research write', a
   ).toEqual([]);
 });
 
+test('forced-supportive records diagnostic visibility only while the artifact is active', async ({
+  page,
+}) => {
+  await startStudyServer('forced-supportive');
+  const requests = captureResearchRequests(page);
+  await acceptConsent(page);
+  await submitPlaceholder(page);
+  await page.getByLabel('Anzeigename').fill('Nur flüchtig');
+  await page.getByRole('button', { name: 'Zum Artefakt' }).click();
+  await expect(page.getByRole('heading', { name: 'Hallo Nur flüchtig' })).toBeVisible();
+
+  await dispatchVisibilityChange(page, 'hidden');
+  await expect
+    .poll(() => timingEventTypes(requests.bodies))
+    .toEqual(['start', 'visibility-hidden']);
+  await dispatchVisibilityChange(page, 'visible');
+  await expect
+    .poll(() => timingEventTypes(requests.bodies))
+    .toEqual(['start', 'visibility-hidden', 'visibility-visible']);
+
+  await page.getByRole('button', { name: 'Artefakt-Platzhalter abschließen' }).click();
+  await expect(page.getByRole('heading', { name: 'Fragebogen nach dem Artefakt' })).toBeVisible();
+  await dispatchVisibilityChange(page, 'hidden');
+  await expect
+    .poll(() => timingEventTypes(requests.bodies))
+    .toEqual(['start', 'visibility-hidden', 'visibility-visible', 'end']);
+});
+
 test('forced-reference opens the placeholder separately and completes', async ({ page }) => {
   await startStudyServer('forced-reference');
   const requests = captureResearchRequests(page);
@@ -114,6 +170,8 @@ test('forced-reference opens the placeholder separately and completes', async ({
   await page.getByRole('button', { name: 'Zum Artefakt' }).click();
 
   await expect(page.getByRole('heading', { name: 'Referenz-Platzhalter' })).toBeVisible();
+  await dispatchVisibilityChange(page, 'hidden');
+  await expect.poll(() => timingEventTypes(requests.bodies)).toEqual(['start']);
   const popupPromise = page.waitForEvent('popup');
   await page.getByRole('link', { name: 'Referenz-Platzhalter in neuem Tab öffnen' }).click();
   const popup = await popupPromise;
@@ -140,6 +198,23 @@ test('reload during the artifact marks the session incomplete and starts fresh',
   await expect(page.getByRole('heading', { name: 'Willkommen zur Studie' })).toBeVisible();
   await expect(page.getByText('Nicht fortsetzen')).toHaveCount(0);
   await expect
-    .poll(() => requests.paths.some((path) => path.endsWith('/incomplete-reload')))
-    .toBe(true);
+    .poll(() => requests.paths.filter((path) => path.endsWith('/incomplete-reload')).length)
+    .toBe(1);
+});
+
+test('reload after the artifact end does not mark the session incomplete', async ({ page }) => {
+  await startStudyServer('forced-supportive');
+  const requests = captureResearchRequests(page);
+  await acceptConsent(page);
+  await submitPlaceholder(page);
+  await page.getByLabel('Anzeigename').fill('Ende vor Reload');
+  await page.getByRole('button', { name: 'Zum Artefakt' }).click();
+  await expect(page.getByRole('heading', { name: 'Hallo Ende vor Reload' })).toBeVisible();
+  await page.getByRole('button', { name: 'Artefakt-Platzhalter abschließen' }).click();
+  await expect(page.getByRole('heading', { name: 'Fragebogen nach dem Artefakt' })).toBeVisible();
+
+  await page.reload();
+
+  await expect(page.getByRole('heading', { name: 'Willkommen zur Studie' })).toBeVisible();
+  expect(requests.paths.filter((path) => path.endsWith('/incomplete-reload'))).toHaveLength(0);
 });

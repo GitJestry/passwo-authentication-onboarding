@@ -4,14 +4,24 @@ import type {
   PlaceholderInstrumentId,
   StudyCondition,
 } from '@passwo/contracts';
-import { assign, fromPromise, setup } from 'xstate';
+import { assign, fromCallback, fromPromise, setup } from 'xstate';
 
 export interface StudyRuntimePorts {
   createSession(): Promise<CreateSessionResponse>;
   savePlaceholder(sessionId: string, instrumentId: PlaceholderInstrumentId): Promise<void>;
   startArtifact(sessionId: string): Promise<void>;
   endArtifact(sessionId: string): Promise<number>;
+  recordArtifactVisibility(sessionId: string, visible: boolean): Promise<void>;
+  markIncompleteReload(sessionId: string): void;
+  observeArtifactLifecycle(input: ArtifactLifecycleInput): () => void;
   completeSession(sessionId: string): Promise<void>;
+}
+
+export interface ArtifactLifecycleInput {
+  readonly sessionId: string;
+  readonly condition: StudyCondition;
+  onVisibilityChange(visible: boolean): void;
+  onReload(): void;
 }
 
 export interface StudyContext {
@@ -40,6 +50,8 @@ export type StudyEvent =
   | { readonly type: 'RETRY_POST' }
   | { readonly type: 'RETRY_GUARDRAILS' }
   | { readonly type: 'RETRY_COMPLETION' }
+  | { readonly type: 'ARTIFACT_VISIBILITY_CHANGED'; readonly visible: boolean }
+  | { readonly type: 'ARTIFACT_RELOAD' }
   | { readonly type: 'TECHNICAL_ABORT'; readonly errorCode: string }
   | { readonly type: 'RESET' };
 
@@ -59,6 +71,13 @@ function requiredSessionId(context: StudyContext): string {
     throw new Error('missing-session');
   }
   return context.sessionId;
+}
+
+function requiredCondition(context: StudyContext): StudyCondition {
+  if (context.condition === null) {
+    throw new Error('missing-condition');
+  }
+  return context.condition;
 }
 
 function errorCode(error: unknown): string {
@@ -85,6 +104,21 @@ export function createStudyMachine(ports: StudyRuntimePorts) {
       endArtifact: fromPromise(async ({ input }: { input: { sessionId: string } }) =>
         ports.endArtifact(input.sessionId),
       ),
+      observeArtifactLifecycle: fromCallback(
+        ({
+          input,
+          sendBack,
+        }: {
+          input: { sessionId: string; condition: StudyCondition };
+          sendBack: (event: StudyEvent) => void;
+        }) =>
+          ports.observeArtifactLifecycle({
+            ...input,
+            onVisibilityChange: (visible) =>
+              sendBack({ type: 'ARTIFACT_VISIBILITY_CHANGED', visible }),
+            onReload: () => sendBack({ type: 'ARTIFACT_RELOAD' }),
+          }),
+      ),
       savePost: fromPromise(async ({ input }: { input: { sessionId: string } }) =>
         ports.savePlaceholder(input.sessionId, 'post-placeholder'),
       ),
@@ -106,6 +140,15 @@ export function createStudyMachine(ports: StudyRuntimePorts) {
       }),
       clearDisplayName: assign({ displayName: () => null }),
       clearResearchError: assign({ researchErrorCode: () => null }),
+      recordArtifactVisibility: ({ context, event }) => {
+        if (event.type !== 'ARTIFACT_VISIBILITY_CHANGED') return;
+        void ports
+          .recordArtifactVisibility(requiredSessionId(context), event.visible)
+          .catch(() => undefined);
+      },
+      markIncompleteReload: ({ context }) => {
+        ports.markIncompleteReload(requiredSessionId(context));
+      },
       storeFatalError: assign({
         fatalErrorCode: ({ event }) =>
           event.type === 'TECHNICAL_ABORT' ? event.errorCode : 'unknown',
@@ -177,82 +220,98 @@ export function createStudyMachine(ports: StudyRuntimePorts) {
       nameEntry: {
         on: {
           DISPLAY_NAME_ENTERED: {
-            target: 'startingArtifact',
+            target: 'artifactLifecycle',
             actions: 'storeDisplayName',
           },
         },
       },
-      startingArtifact: {
+      artifactLifecycle: {
+        tags: ['artifactActive'],
+        initial: 'starting',
         invoke: {
-          id: 'startArtifact',
-          src: 'startArtifact',
-          input: ({ context }) => ({ sessionId: requiredSessionId(context) }),
-          onDone: { target: 'artifact' },
-          onError: {
-            target: 'artifactStartError',
-            actions: assign({
-              researchErrorCode: ({ event }) => errorCode(event.error),
-            }),
-          },
+          id: 'observeArtifactLifecycle',
+          src: 'observeArtifactLifecycle',
+          input: ({ context }) => ({
+            sessionId: requiredSessionId(context),
+            condition: requiredCondition(context),
+          }),
         },
-      },
-      artifactStartError: {
         on: {
-          RETRY_ARTIFACT_START: {
-            target: 'startingArtifact',
-            actions: 'clearResearchError',
+          ARTIFACT_RELOAD: { actions: 'markIncompleteReload' },
+          ARTIFACT_VISIBILITY_CHANGED: {
+            guard: 'isSupportive',
+            actions: 'recordArtifactVisibility',
           },
         },
-      },
-      artifact: {
-        initial: 'routing',
         states: {
-          routing: {
-            always: [{ guard: 'isSupportive', target: 'supportive' }, { target: 'reference' }],
-          },
-          supportive: {
-            on: {
-              ARTIFACT_COMPLETED: {
-                target: '#study.endingArtifact',
-                actions: 'clearDisplayName',
+          starting: {
+            invoke: {
+              id: 'startArtifact',
+              src: 'startArtifact',
+              input: ({ context }) => ({ sessionId: requiredSessionId(context) }),
+              onDone: { target: 'artifact' },
+              onError: {
+                target: 'startError',
+                actions: assign({
+                  researchErrorCode: ({ event }) => errorCode(event.error),
+                }),
               },
             },
           },
-          reference: {
+          startError: {
             on: {
-              ARTIFACT_COMPLETED: {
-                target: '#study.endingArtifact',
-                actions: 'clearDisplayName',
+              RETRY_ARTIFACT_START: { target: 'starting', actions: 'clearResearchError' },
+            },
+          },
+          artifact: {
+            initial: 'routing',
+            states: {
+              routing: {
+                always: [{ guard: 'isSupportive', target: 'supportive' }, { target: 'reference' }],
+              },
+              supportive: {
+                on: {
+                  ARTIFACT_COMPLETED: {
+                    target: '#artifact-ending',
+                    actions: 'clearDisplayName',
+                  },
+                },
+              },
+              reference: {
+                on: {
+                  ARTIFACT_COMPLETED: {
+                    target: '#artifact-ending',
+                    actions: 'clearDisplayName',
+                  },
+                },
               },
             },
           },
-        },
-      },
-      endingArtifact: {
-        invoke: {
-          id: 'endArtifact',
-          src: 'endArtifact',
-          input: ({ context }) => ({ sessionId: requiredSessionId(context) }),
-          onDone: {
-            target: 'postQuestionnaire',
-            actions: assign({
-              artifactWallClockMs: ({ event }) => event.output,
-              researchErrorCode: () => null,
-            }),
+          ending: {
+            id: 'artifact-ending',
+            invoke: {
+              id: 'endArtifact',
+              src: 'endArtifact',
+              input: ({ context }) => ({ sessionId: requiredSessionId(context) }),
+              onDone: {
+                target: '#study.postQuestionnaire',
+                actions: assign({
+                  artifactWallClockMs: ({ event }) => event.output,
+                  researchErrorCode: () => null,
+                }),
+              },
+              onError: {
+                target: 'endError',
+                actions: assign({
+                  researchErrorCode: ({ event }) => errorCode(event.error),
+                }),
+              },
+            },
           },
-          onError: {
-            target: 'artifactEndError',
-            actions: assign({
-              researchErrorCode: ({ event }) => errorCode(event.error),
-            }),
-          },
-        },
-      },
-      artifactEndError: {
-        on: {
-          RETRY_ARTIFACT_END: {
-            target: 'endingArtifact',
-            actions: 'clearResearchError',
+          endError: {
+            on: {
+              RETRY_ARTIFACT_END: { target: 'ending', actions: 'clearResearchError' },
+            },
           },
         },
       },

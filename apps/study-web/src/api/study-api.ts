@@ -95,6 +95,37 @@ export function createStudyApi(): StudyClientApi {
       return timer.end(artifactScope);
     },
 
+    recordArtifactVisibility: async (sessionId: string, visible: boolean) => {
+      timingSessionId = sessionId;
+      await timer.markVisibility(artifactScope, visible);
+    },
+
+    observeArtifactLifecycle: ({ condition, onVisibilityChange, onReload }) => {
+      let reloadMarked = false;
+      const markReload = () => {
+        if (reloadMarked) return;
+        reloadMarked = true;
+        onReload();
+      };
+      const reportVisibility = () => {
+        onVisibilityChange(document.visibilityState === 'visible');
+      };
+
+      window.addEventListener('beforeunload', markReload);
+      window.addEventListener('pagehide', markReload);
+      if (condition === 'supportive') {
+        document.addEventListener('visibilitychange', reportVisibility);
+      }
+
+      return () => {
+        window.removeEventListener('beforeunload', markReload);
+        window.removeEventListener('pagehide', markReload);
+        if (condition === 'supportive') {
+          document.removeEventListener('visibilitychange', reportVisibility);
+        }
+      };
+    },
+
     completeSession: async (sessionId: string) => {
       const request = completeSessionRequestSchema.parse({
         debriefAcknowledged: true,
@@ -106,7 +137,7 @@ export function createStudyApi(): StudyClientApi {
 
     markIncompleteReload: (sessionId: string) => {
       const url = `/api/study/sessions/${sessionId}/incomplete-reload`;
-      void fetch(url, { method: 'POST', keepalive: true });
+      void fetch(url, { method: 'POST', keepalive: true }).catch(() => undefined);
     },
   };
 }

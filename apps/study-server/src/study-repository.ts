@@ -4,6 +4,7 @@ import {
   type CreateSessionRequest,
   type CreateSessionResponse,
   type PersistedSessionRecord,
+  type PlaceholderInstrumentId,
   type PlaceholderResponseRequest,
   persistedSessionRecordSchema,
   type StudyCondition,
@@ -65,6 +66,7 @@ const assignmentSlotSchema = z.object({
 
 const countSchema = z.object({ count: z.number().int().nonnegative() });
 const statusSchema = z.object({ completionStatus: z.string() });
+const conditionSchema = z.object({ condition: studyConditionSchema });
 const timingIdentitySchema = z.object({
   phase: z.string(),
   eventType: z.string(),
@@ -226,7 +228,13 @@ export class StudyRepository {
   }
 
   savePlaceholder(sessionId: string, request: PlaceholderResponseRequest): void {
-    this.#requireInProgress(sessionId);
+    const status = this.#completionStatus(sessionId);
+    if (this.#hasResponse(sessionId, request.instrumentId)) return;
+    if (status !== 'in-progress') {
+      throw new StudyRepositoryError('session-not-in-progress', 409);
+    }
+
+    this.#requirePlaceholderPrerequisites(sessionId, request.instrumentId);
     this.#database
       .prepare(
         `INSERT INTO responses (
@@ -251,8 +259,6 @@ export class StudyRepository {
 
   recordTiming(sessionId: string, event: ArtifactTimingEvent): TimingWriteResponse {
     const record = this.#database.transaction(() => {
-      this.#requireInProgress(sessionId);
-
       const existingSequence = timingIdentitySchema.nullable().parse(
         this.#database
           .prepare(
@@ -275,20 +281,23 @@ export class StudyRepository {
         };
       }
 
-      const existingBoundary = countSchema.parse(
-        this.#database
-          .prepare(
-            `SELECT COUNT(*) AS count
-             FROM timing_events
-             WHERE session_id = ? AND phase = 'artifact' AND event_type = ?`,
-          )
-          .get(sessionId, event.eventType),
-      );
-      if (existingBoundary.count > 0) {
-        return {
-          recorded: false,
-          artifactWallClockMs: this.#artifactWallClockMs(sessionId),
-        };
+      this.#requireInProgress(sessionId);
+
+      if (event.eventType === 'start') {
+        this.#requirePreCompleted(sessionId);
+      }
+      if (event.eventType === 'end') {
+        this.#requireArtifactStarted(sessionId);
+      }
+      if (event.eventType === 'visibility-hidden' || event.eventType === 'visibility-visible') {
+        this.#requireSupportiveArtifactActive(sessionId);
+      }
+
+      if (event.eventType === 'start' || event.eventType === 'end') {
+        const existingBoundary = this.#artifactBoundaryCount(sessionId, event.eventType);
+        if (existingBoundary > 0) {
+          throw new StudyRepositoryError(`artifact-${event.eventType}-already-recorded`, 409);
+        }
       }
 
       const maximum = timingMaximumSchema.parse(
@@ -302,21 +311,6 @@ export class StudyRepository {
       );
       if (event.sequence !== maximum.maximum + 1) {
         throw new StudyRepositoryError('timing-sequence-conflict', 409);
-      }
-
-      if (event.eventType === 'end') {
-        const startCount = countSchema.parse(
-          this.#database
-            .prepare(
-              `SELECT COUNT(*) AS count
-               FROM timing_events
-               WHERE session_id = ? AND phase = 'artifact' AND event_type = 'start'`,
-            )
-            .get(sessionId),
-        );
-        if (startCount.count !== 1) {
-          throw new StudyRepositoryError('artifact-start-missing', 409);
-        }
       }
 
       this.#database
@@ -359,19 +353,27 @@ export class StudyRepository {
   }
 
   markIncompleteReload(sessionId: string): string {
-    const status = this.#completionStatus(sessionId);
-    if (status === 'in-progress') {
-      this.#database
-        .prepare(
-          `UPDATE study_sessions
-           SET completion_status = 'incomplete-reload',
-               technical_error_code = 'artifact-reload'
-           WHERE session_id = ? AND completion_status = 'in-progress'`,
-        )
-        .run(sessionId);
-      return 'incomplete-reload';
-    }
-    return status;
+    const markIncomplete = this.#database.transaction(() => {
+      const status = this.#completionStatus(sessionId);
+      if (
+        status === 'in-progress' &&
+        this.#artifactBoundaryCount(sessionId, 'start') === 1 &&
+        this.#artifactBoundaryCount(sessionId, 'end') === 0
+      ) {
+        this.#database
+          .prepare(
+            `UPDATE study_sessions
+             SET completion_status = 'incomplete-reload',
+                 technical_error_code = 'artifact-reload'
+             WHERE session_id = ? AND completion_status = 'in-progress'`,
+          )
+          .run(sessionId);
+        return 'incomplete-reload';
+      }
+      return status;
+    });
+
+    return markIncomplete();
   }
 
   completeSession(sessionId: string): string {
@@ -382,28 +384,11 @@ export class StudyRepository {
         throw new StudyRepositoryError('session-not-in-progress', 409);
       }
 
-      const responseCount = countSchema.parse(
-        this.#database
-          .prepare(
-            `SELECT COUNT(DISTINCT instrument_id) AS count
-             FROM responses
-             WHERE session_id = ?`,
-          )
-          .get(sessionId),
-      );
-      const timingCount = countSchema.parse(
-        this.#database
-          .prepare(
-            `SELECT COUNT(*) AS count
-             FROM timing_events
-             WHERE session_id = ? AND phase = 'artifact'
-               AND event_type IN ('start', 'end')`,
-          )
-          .get(sessionId),
-      );
-      if (responseCount.count !== 3 || timingCount.count !== 2) {
-        throw new StudyRepositoryError('study-data-incomplete', 409);
-      }
+      this.#requirePreCompleted(sessionId);
+      this.#requireArtifactStarted(sessionId);
+      this.#requireArtifactEnded(sessionId);
+      this.#requirePostCompleted(sessionId);
+      this.#requireGuardrailsCompleted(sessionId);
 
       this.#database
         .prepare(
@@ -528,6 +513,91 @@ export class StudyRepository {
     if (this.#completionStatus(sessionId) !== 'in-progress') {
       throw new StudyRepositoryError('session-not-in-progress', 409);
     }
+  }
+
+  #hasResponse(sessionId: string, instrumentId: PlaceholderInstrumentId): boolean {
+    const responseCount = countSchema.parse(
+      this.#database
+        .prepare(
+          `SELECT COUNT(*) AS count
+           FROM responses
+           WHERE session_id = ? AND instrument_id = ? AND item_id = 'placeholder-complete'`,
+        )
+        .get(sessionId, instrumentId),
+    );
+    return responseCount.count === 1;
+  }
+
+  #requirePlaceholderPrerequisites(sessionId: string, instrumentId: PlaceholderInstrumentId): void {
+    if (instrumentId === 'pre-placeholder') {
+      if (this.#artifactBoundaryCount(sessionId, 'start') > 0) {
+        throw new StudyRepositoryError('pre-response-not-available', 409);
+      }
+      return;
+    }
+    if (instrumentId === 'post-placeholder') {
+      this.#requirePreCompleted(sessionId);
+      this.#requireArtifactEnded(sessionId);
+      return;
+    }
+    this.#requirePostCompleted(sessionId);
+  }
+
+  #requirePreCompleted(sessionId: string): void {
+    if (!this.#hasResponse(sessionId, 'pre-placeholder')) {
+      throw new StudyRepositoryError('pre-response-required', 409);
+    }
+  }
+
+  #requirePostCompleted(sessionId: string): void {
+    if (!this.#hasResponse(sessionId, 'post-placeholder')) {
+      throw new StudyRepositoryError('post-response-required', 409);
+    }
+  }
+
+  #requireGuardrailsCompleted(sessionId: string): void {
+    if (!this.#hasResponse(sessionId, 'guardrail-placeholder')) {
+      throw new StudyRepositoryError('guardrail-response-required', 409);
+    }
+  }
+
+  #requireArtifactStarted(sessionId: string): void {
+    if (this.#artifactBoundaryCount(sessionId, 'start') !== 1) {
+      throw new StudyRepositoryError('artifact-start-required', 409);
+    }
+  }
+
+  #requireArtifactEnded(sessionId: string): void {
+    if (this.#artifactBoundaryCount(sessionId, 'end') !== 1) {
+      throw new StudyRepositoryError('artifact-end-required', 409);
+    }
+  }
+
+  #requireSupportiveArtifactActive(sessionId: string): void {
+    const condition = conditionSchema.parse(
+      this.#database
+        .prepare(`SELECT condition FROM study_sessions WHERE session_id = ?`)
+        .get(sessionId),
+    ).condition;
+    if (condition !== 'supportive') {
+      throw new StudyRepositoryError('visibility-timing-not-supported', 409);
+    }
+    this.#requireArtifactStarted(sessionId);
+    if (this.#artifactBoundaryCount(sessionId, 'end') > 0) {
+      throw new StudyRepositoryError('artifact-not-active', 409);
+    }
+  }
+
+  #artifactBoundaryCount(sessionId: string, eventType: 'start' | 'end'): number {
+    return countSchema.parse(
+      this.#database
+        .prepare(
+          `SELECT COUNT(*) AS count
+           FROM timing_events
+           WHERE session_id = ? AND phase = 'artifact' AND event_type = ?`,
+        )
+        .get(sessionId, eventType),
+    ).count;
   }
 
   #artifactWallClockMs(sessionId: string): number | null {
