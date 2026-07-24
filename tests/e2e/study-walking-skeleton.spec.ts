@@ -137,6 +137,13 @@ async function finishAfterArtifact(page: Page) {
   await expect(page.getByText('Gesamtzeit im Artefakt:')).toBeVisible();
 }
 
+async function completeS00(page: Page): Promise<void> {
+  await expect(page.getByRole('heading', { name: 'Willkommen im Training' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Hinweis für die Übung' })).toBeVisible();
+  await page.getByLabel('Ich verwende nur ausgedachte Passwörter.').check();
+  await page.getByRole('button', { name: 'Weiter' }).click();
+}
+
 test('forced-supportive completes and visibly blocks a failed research write', async ({ page }) => {
   await startStudyServer('forced-supportive');
   const requests = captureResearchRequests(page);
@@ -150,8 +157,7 @@ test('forced-supportive completes and visibly blocks a failed research write', a
 
   await page.getByLabel('Anzeigename').fill('Browsername Nur Lokal');
   await page.getByRole('button', { name: 'Zum Artefakt' }).click();
-  await expect(page.getByRole('heading', { name: 'Hallo Browsername Nur Lokal' })).toBeVisible();
-  await page.getByRole('button', { name: 'Artefakt-Platzhalter abschließen' }).click();
+  await completeS00(page);
   await finishAfterArtifact(page);
 
   expect(requests.bodies.join('\n')).not.toContain('Browsername Nur Lokal');
@@ -170,7 +176,7 @@ test('forced-supportive records diagnostic visibility only while the artifact is
   await submitPlaceholder(page);
   await page.getByLabel('Anzeigename').fill('Nur flüchtig');
   await page.getByRole('button', { name: 'Zum Artefakt' }).click();
-  await expect(page.getByRole('heading', { name: 'Hallo Nur flüchtig' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Willkommen im Training' })).toBeVisible();
 
   await dispatchVisibilityChange(page, 'hidden');
   await expect
@@ -181,7 +187,7 @@ test('forced-supportive records diagnostic visibility only while the artifact is
     .poll(() => timingEventTypes(requests.bodies))
     .toEqual(['start', 'visibility-hidden', 'visibility-visible']);
 
-  await page.getByRole('button', { name: 'Artefakt-Platzhalter abschließen' }).click();
+  await completeS00(page);
   await expect(page.getByRole('heading', { name: 'Fragebogen nach dem Artefakt' })).toBeVisible();
   await dispatchVisibilityChange(page, 'hidden');
   await expect
@@ -199,10 +205,10 @@ test('failed visibility blocks completion and retries the same timing payload', 
   await submitPlaceholder(page);
   await page.getByLabel('Anzeigename').fill('Timing Retry');
   await page.getByRole('button', { name: 'Zum Artefakt' }).click();
-  await expect(page.getByRole('heading', { name: 'Hallo Timing Retry' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Willkommen im Training' })).toBeVisible();
 
   await dispatchVisibilityChange(page, 'hidden');
-  await page.getByRole('button', { name: 'Artefakt-Platzhalter abschließen' }).click();
+  await completeS00(page);
   releaseVisibilityFailure();
   await expect(page.getByRole('heading', { name: 'Speichern nicht möglich' })).toBeVisible();
   await expect(page.getByText('Fehlercode: visibility-write-failed')).toBeVisible();
@@ -261,7 +267,7 @@ test('reload during the artifact marks the session incomplete and starts fresh',
   await submitPlaceholder(page);
   await page.getByLabel('Anzeigename').fill('Nicht fortsetzen');
   await page.getByRole('button', { name: 'Zum Artefakt' }).click();
-  await expect(page.getByRole('heading', { name: 'Hallo Nicht fortsetzen' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Willkommen im Training' })).toBeVisible();
 
   await page.reload();
 
@@ -279,8 +285,7 @@ test('reload after the artifact end does not mark the session incomplete', async
   await submitPlaceholder(page);
   await page.getByLabel('Anzeigename').fill('Ende vor Reload');
   await page.getByRole('button', { name: 'Zum Artefakt' }).click();
-  await expect(page.getByRole('heading', { name: 'Hallo Ende vor Reload' })).toBeVisible();
-  await page.getByRole('button', { name: 'Artefakt-Platzhalter abschließen' }).click();
+  await completeS00(page);
   await expect(page.getByRole('heading', { name: 'Fragebogen nach dem Artefakt' })).toBeVisible();
 
   await page.reload();

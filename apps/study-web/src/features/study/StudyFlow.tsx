@@ -2,6 +2,7 @@ import { createStudyMachine } from '@passwo/study-engine';
 import { useMachine } from '@xstate/react';
 import { type FormEvent, type ReactNode, useMemo, useState } from 'react';
 import { createStudyApi } from '../../api/study-api.js';
+import { S00Training } from '../training/S00Training.js';
 import styles from './StudyFlow.module.css';
 
 function Consent({ onAccept }: { readonly onAccept: () => void }) {
@@ -124,21 +125,7 @@ function SupportiveArtifact({
   readonly displayName: string;
   readonly onComplete: () => void;
 }) {
-  return (
-    <section aria-labelledby="artifact-title">
-      <p className={styles.eyebrow}>Artefakt</p>
-      <h1 id="artifact-title">Hallo {displayName}</h1>
-      <div className={styles.artifact}>
-        <p>
-          Hier steht später das supportive Training. Dieser Durchlauf enthält bewusst keine
-          Passwortanalyse und keine Trainingsinhalte.
-        </p>
-        <button className={styles.button} type="button" onClick={onComplete}>
-          Artefakt-Platzhalter abschließen
-        </button>
-      </div>
-    </section>
-  );
+  return <S00Training displayName={displayName} onComplete={onComplete} />;
 }
 
 function ReferenceArtifact({ onComplete }: { readonly onComplete: () => void }) {

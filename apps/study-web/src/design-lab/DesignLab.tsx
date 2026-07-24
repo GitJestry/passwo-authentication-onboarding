@@ -5,9 +5,10 @@ import {
   type BrowserTabModel,
 } from '@passwo/ui';
 import { useState } from 'react';
+import { S00Training } from '../features/training/S00Training.js';
 import styles from './DesignLab.module.css';
 
-const scenarioIds = ['normal', 'dimmed', 'passwo-overlay'] as const;
+const scenarioIds = ['normal', 'dimmed', 'passwo-overlay', 's00'] as const;
 type DesignLabScenarioId = (typeof scenarioIds)[number];
 
 interface DesignLabScenario {
@@ -119,6 +120,12 @@ const scenarios: Record<DesignLabScenarioId, DesignLabScenario> = {
     description: 'Dimming, PassWo-Platzhalter, Sprechschritt und Steuerung als feste Layer.',
     dimmed: true,
     showPassWoOverlay: true,
+  },
+  s00: {
+    label: 'S00',
+    description: 'Deterministische Vorschau des ersten Trainingssegments.',
+    dimmed: false,
+    showPassWoOverlay: false,
   },
 };
 
@@ -256,6 +263,40 @@ export function DesignLab({ pathname = window.location.pathname }: { readonly pa
         replayMessage,
       )
     : undefined;
+
+  if (scenarioId === 's00') {
+    const forceAnimationFailure =
+      new URLSearchParams(window.location.search).get('animation') === 'fail';
+    return (
+      <main className={styles.labPage}>
+        <header className={styles.labHeader}>
+          <div>
+            <p className={styles.labEyebrow}>Deterministische Vorschau</p>
+            <h1>BrowserShell Design Lab</h1>
+          </div>
+          <nav aria-label="Design-Lab-Szenen">
+            {scenarioIds.map((id) => (
+              <a
+                key={id}
+                href={`/design-lab/${id}`}
+                aria-current={id === scenarioId ? 'page' : undefined}
+              >
+                {scenarios[id].label}
+              </a>
+            ))}
+          </nav>
+        </header>
+        <p className={styles.scenarioDescription}>
+          <strong>{scenario.label}:</strong> {scenario.description}
+        </p>
+        <S00Training
+          displayName="Vorschau"
+          onComplete={() => undefined}
+          forceAnimationFailure={forceAnimationFailure}
+        />
+      </main>
+    );
+  }
 
   function selectTab(tabId: string): void {
     const nextTabScene = tabScenes.find(({ snapshot }) => snapshot.activeTabId === tabId);

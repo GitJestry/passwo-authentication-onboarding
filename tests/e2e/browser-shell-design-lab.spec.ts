@@ -1,7 +1,7 @@
 import AxeBuilder from '@axe-core/playwright';
 import { expect, type Page, test } from '@playwright/test';
 
-const scenes = ['normal', 'dimmed', 'passwo-overlay'] as const;
+const scenes = ['normal', 'dimmed', 'passwo-overlay', 's00'] as const;
 const viewports = [
   { width: 1440, height: 900 },
   { width: 1280, height: 720 },
@@ -239,6 +239,42 @@ test('reduced motion preserves the passwo overlay information state', async ({ p
     'animation-name',
     'none',
   );
+});
+
+test('S00 shows the safety boundary after the PassWo sequence and requires its acknowledgement', async ({
+  page,
+}) => {
+  await page.goto('/design-lab/s00');
+
+  await expect(page.getByRole('heading', { name: 'Willkommen im Training' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Hinweis für die Übung' })).toBeVisible();
+  await expect(page.locator('input[type="password"]')).toHaveCount(0);
+
+  const acknowledgement = page.getByLabel('Ich verwende nur ausgedachte Passwörter.');
+  const continueButton = page.getByRole('button', { name: 'Weiter' });
+  await expect(acknowledgement).toBeEnabled();
+  await expect(continueButton).toBeDisabled();
+  await acknowledgement.check();
+  await expect(continueButton).toBeEnabled();
+  await expect(page.getByRole('button', { name: 'PassWo-Hilfe öffnen' })).toBeEnabled();
+});
+
+test('S00 reduced motion and an adapter failure both reach the actionable end state', async ({
+  page,
+}) => {
+  await page.emulateMedia({ reducedMotion: 'reduce' });
+  await page.goto('/design-lab/s00');
+  await expect(page.getByRole('heading', { name: 'Hinweis für die Übung' })).toBeVisible();
+  await expect(page.getByLabel('Ich verwende nur ausgedachte Passwörter.')).toBeEnabled();
+
+  await page.emulateMedia({ reducedMotion: 'no-preference' });
+  await page.goto('/design-lab/s00?animation=fail');
+  await expect(
+    page.getByText('Die Animation wurde beendet. Du kannst den Hinweis bestätigen und fortfahren.'),
+  ).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Hinweis für die Übung' })).toBeVisible();
+  await page.getByLabel('Ich verwende nur ausgedachte Passwörter.').check();
+  await expect(page.getByRole('button', { name: 'Weiter' })).toBeEnabled();
 });
 
 for (const scene of scenes) {
