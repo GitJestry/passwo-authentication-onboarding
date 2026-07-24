@@ -1,23 +1,141 @@
 import type { AuthoredPasswordComparisonResult, TrainingSectionId } from '@passwo/contracts';
 
 export type S06ConsequenceFixtureId = 'identical' | 'similar' | 'unique' | 'hypothetical';
+export type S06ConsequenceResultKey = 'equal' | 'similar' | 'unique' | 'hypothetical';
+export type S06ConsequenceEmphasis = 'danger' | 'warning' | 'positive' | 'info';
+export type S06ConsequenceContentPhase = 'ready' | 'comparing' | 'complete';
+
+export interface S06ConsequenceExplanation {
+  readonly body: string;
+  readonly listItems: readonly string[];
+}
+
+export interface S06ConsequenceSemanticContent {
+  readonly emphasis: S06ConsequenceEmphasis;
+  readonly symbol: string;
+  readonly label: string;
+}
+
+export interface S06ConsequenceResultContent {
+  readonly key: S06ConsequenceResultKey;
+  readonly scenarioLabel: string;
+  readonly comparisonTitle: string;
+  readonly targetLabel: string;
+  readonly hypotheticalNotice: string | null;
+  readonly explanations: Readonly<Record<S06ConsequenceContentPhase, S06ConsequenceExplanation>>;
+  readonly semantic: S06ConsequenceSemanticContent;
+}
 
 export interface S06ConsequenceFixture {
   readonly id: S06ConsequenceFixtureId;
   readonly routeId: string;
-  readonly label: string;
-  readonly targetLabel: string;
+  readonly resultKey: S06ConsequenceResultKey;
   readonly analysis: AuthoredPasswordComparisonResult;
   readonly animationId: string;
 }
 
-export const S06_CONSEQUENCE_CONTENT_VERSION = '1.0.0';
+export const S06_CONSEQUENCE_CONTENT_VERSION = '1.1.0';
 
 const commonAnalysis = {
   source: 'authored-fixture',
   sourceAccountId: 'campus-board',
   targetAccountId: 'target-account',
 } as const;
+
+const results: Record<S06ConsequenceResultKey, S06ConsequenceResultContent> = {
+  equal: {
+    key: 'equal',
+    scenarioLabel: 'Szenario: Gleich',
+    comparisonTitle: 'Vergleich mit CampusID',
+    targetLabel: 'CampusID',
+    hypotheticalNotice: null,
+    explanations: {
+      ready: { body: 'Der Vergleich ist bereit.', listItems: [] },
+      comparing: {
+        body: 'Passwörter werden anhand des vorgegebenen Ergebnisses verglichen …',
+        listItems: [],
+      },
+      complete: {
+        body: '⚠ Gleiches Passwort: Der Zugang zum Zielkonto ist in dieser Szene betroffen.',
+        listItems: [],
+      },
+    },
+    semantic: {
+      emphasis: 'danger',
+      symbol: '⚠',
+      label: 'Direkter Weg · gleiches Passwort',
+    },
+  },
+  similar: {
+    key: 'similar',
+    scenarioLabel: 'Szenario: Ähnlich',
+    comparisonTitle: 'Vergleich mit CampusMail',
+    targetLabel: 'CampusMail',
+    hypotheticalNotice: null,
+    explanations: {
+      ready: { body: 'Der Vergleich ist bereit.', listItems: [] },
+      comparing: {
+        body: 'Passwörter werden anhand des vorgegebenen Ergebnisses verglichen …',
+        listItems: [],
+      },
+      complete: {
+        body: '≈ Ähnliche Struktur: Der Zugang zum Zielkonto ist in dieser Szene betroffen.',
+        listItems: ['Gemeinsamer Kern', 'Ähnlicher Aufbau'],
+      },
+    },
+    semantic: {
+      emphasis: 'warning',
+      symbol: '≈',
+      label: 'Ähnliche Struktur · gestrichelter Weg',
+    },
+  },
+  unique: {
+    key: 'unique',
+    scenarioLabel: 'Szenario: Einzigartig',
+    comparisonTitle: 'Vergleich mit CampusMail',
+    targetLabel: 'CampusMail',
+    hypotheticalNotice: null,
+    explanations: {
+      ready: { body: 'Der Vergleich ist bereit.', listItems: [] },
+      comparing: {
+        body: 'Passwörter werden anhand des vorgegebenen Ergebnisses verglichen …',
+        listItems: [],
+      },
+      complete: {
+        body: 'Dieser Angriffsweg ist blockiert. Die Aussage gilt nur für diesen dargestellten Weg.',
+        listItems: [],
+      },
+    },
+    semantic: {
+      emphasis: 'positive',
+      symbol: '🛡',
+      label: 'Blockierter Weg · Schutzschild',
+    },
+  },
+  hypothetical: {
+    key: 'hypothetical',
+    scenarioLabel: 'Szenario: Hypothetisch',
+    comparisonTitle: 'Vergleich mit CampusID',
+    targetLabel: 'CampusID',
+    hypotheticalNotice: 'Hypothetisches Beispiel — nicht deine Auswahl',
+    explanations: {
+      ready: { body: 'Der Vergleich ist bereit.', listItems: [] },
+      comparing: {
+        body: 'Passwörter werden anhand des vorgegebenen Ergebnisses verglichen …',
+        listItems: [],
+      },
+      complete: {
+        body: 'Dieses direkte Ergebnis gehört nur zum hypothetischen Gegenbeispiel und nicht zu einer realen Auswahl.',
+        listItems: [],
+      },
+    },
+    semantic: {
+      emphasis: 'info',
+      symbol: '◇',
+      label: 'Hypothetischer Weg · nicht reale Auswahl',
+    },
+  },
+};
 
 export const s06ConsequenceContent = {
   version: S06_CONSEQUENCE_CONTENT_VERSION,
@@ -44,10 +162,10 @@ export const s06ConsequenceContent = {
     eyebrow: 'Einzigartigkeit und Ausbreitung',
     title: 'Wohin kann ein bekanntes Passwort führen?',
     instruction: 'Vergleiche das bekannte CampusBoard-Passwort mit dem ausgewählten Zielkonto.',
-    fixtureNotice: 'Deterministische Testszene — keine echte Passwortbewertung',
+    fixtureNotice: 'Vorgegebenes Beispiel — keine echte Passwortbewertung',
     start: 'Vergleich starten',
     replay: 'Vergleich wiederholen',
-    comparing: 'Passwörter werden anhand des vorgegebenen Ergebnisses verglichen …',
+    continue: 'Weiter',
   },
   scene: {
     sourceAccount: {
@@ -88,8 +206,7 @@ export const s06ConsequenceContent = {
     {
       id: 'identical',
       routeId: 's06-identical',
-      label: 'Gleich',
-      targetLabel: 'CampusID',
+      resultKey: 'equal',
       analysis: {
         ...commonAnalysis,
         fixtureId: 's06-identical',
@@ -102,8 +219,7 @@ export const s06ConsequenceContent = {
     {
       id: 'similar',
       routeId: 's06-similar',
-      label: 'Ähnlich',
-      targetLabel: 'CampusMail',
+      resultKey: 'similar',
       analysis: {
         ...commonAnalysis,
         fixtureId: 's06-similar',
@@ -116,8 +232,7 @@ export const s06ConsequenceContent = {
     {
       id: 'unique',
       routeId: 's06-unique',
-      label: 'Einzigartig',
-      targetLabel: 'CampusMail',
+      resultKey: 'unique',
       analysis: {
         ...commonAnalysis,
         fixtureId: 's06-unique',
@@ -130,8 +245,7 @@ export const s06ConsequenceContent = {
     {
       id: 'hypothetical',
       routeId: 's06-hypothetical',
-      label: 'Hypothetisch',
-      targetLabel: 'CampusID',
+      resultKey: 'hypothetical',
       analysis: {
         ...commonAnalysis,
         fixtureId: 's06-hypothetical',
@@ -142,6 +256,7 @@ export const s06ConsequenceContent = {
       animationId: 's06-compare-hypothetical',
     },
   ] as const satisfies readonly S06ConsequenceFixture[],
+  results,
   animations: [
     {
       id: 's06-compare-identical',
@@ -173,6 +288,12 @@ export function getS06ConsequenceFixture(
     s06ConsequenceContent.fixtures.find(({ id }) => id === fixtureId) ??
     s06ConsequenceContent.fixtures[0]
   );
+}
+
+export function getS06ConsequenceResultContent(
+  resultKey: S06ConsequenceResultKey,
+): S06ConsequenceResultContent {
+  return s06ConsequenceContent.results[resultKey];
 }
 
 export function getS06ConsequenceAnimation(animationId: string) {

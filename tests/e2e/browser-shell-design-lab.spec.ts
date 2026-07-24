@@ -428,7 +428,7 @@ for (const expected of s06Expectations) {
     await page.goto(`/design-lab/${expected.scene}`);
 
     await expect(
-      page.getByText('Deterministische Testszene — keine echte Passwortbewertung'),
+      page.getByText('Vorgegebenes Beispiel — keine echte Passwortbewertung'),
     ).toBeVisible();
     await page.getByRole('button', { name: 'Vergleich starten' }).click();
     await expect(page.getByText(expected.result, { exact: false }).first()).toBeVisible();
@@ -459,7 +459,11 @@ test('S06 unique stops the line at the shield and limits its claim to this path'
   await expect(
     page.getByText('Dieser Angriffsweg ist blockiert', { exact: true }).first(),
   ).toBeVisible();
-  await expect(page.getByText('Die Aussage gilt nur für diesen dargestellten Weg.')).toBeVisible();
+  await expect(
+    page.getByText(
+      'Dieser Angriffsweg ist blockiert. Die Aussage gilt nur für diesen dargestellten Weg.',
+    ),
+  ).toBeVisible();
   await expect(page.locator('.react-flow__edge.edge-status-blocked')).toHaveCount(1);
   await expect(page.locator('.react-flow__edge.edge-status-direct')).toHaveCount(0);
 });
@@ -487,6 +491,18 @@ test('S06 reduced motion reaches the same authored unique end state', async ({ p
     page.getByText('Dieser Angriffsweg ist blockiert', { exact: true }).first(),
   ).toBeVisible();
   await expect(page.locator('.react-flow__edge.edge-status-blocked')).toHaveCount(1);
+});
+
+test('S06 exposes replay and continue after completion with a textual semantic status', async ({
+  page,
+}) => {
+  await page.goto('/design-lab/s06-similar');
+  await page.getByRole('button', { name: 'Vergleich starten' }).click();
+
+  await expect(page.getByText('Ähnliche Struktur · gestrichelter Weg')).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Vergleich wiederholen' })).toBeEnabled();
+  await expect(page.getByRole('button', { name: 'Weiter' })).toBeEnabled();
+  await expect(page.locator('[data-emphasis="warning"]')).toHaveCSS('border-style', 'dashed');
 });
 
 for (const scene of scenes) {

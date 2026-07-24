@@ -11,6 +11,11 @@ import {
   type DOMKeyframesDefinition,
 } from 'motion';
 
+export type NetworkPresentationEmphasis = Extract<
+  AnimationStep,
+  { readonly type: 'highlight' }
+>['emphasis'];
+
 export interface NetworkPresentationSnapshot {
   readonly character: {
     readonly placement: PassWoPlacement;
@@ -18,6 +23,7 @@ export interface NetworkPresentationSnapshot {
   };
   readonly revealedNodeIds: readonly string[];
   readonly highlightedNodeId: string | null;
+  readonly emphasis?: NetworkPresentationEmphasis | null;
   readonly announcedMessageId: string | null;
 }
 
@@ -41,6 +47,7 @@ export function createInitialNetworkPresentation(
     },
     revealedNodeIds: [...new Set(initialRevealedNodeIds)],
     highlightedNodeId: null,
+    emphasis: null,
     announcedMessageId: null,
   };
 }
@@ -146,7 +153,11 @@ export class NetworkMotionAdapter implements AnimationPlayerPort {
         return;
       }
       case 'highlight': {
-        this.#setSnapshot({ ...this.#snapshot, highlightedNodeId: step.targetId });
+        this.#setSnapshot({
+          ...this.#snapshot,
+          highlightedNodeId: step.targetId,
+          emphasis: step.emphasis,
+        });
         await nextFrame();
         const node = this.#getNodeElement(step.targetId);
         if (node === null) throw new Error(`missing-network-node:${step.targetId}`);
@@ -196,6 +207,8 @@ export class NetworkMotionAdapter implements AnimationPlayerPort {
           ...this.#snapshot,
           revealedNodeIds: [...new Set([...this.#snapshot.revealedNodeIds, step.targetId])],
         };
+      } else if (step.type === 'highlight') {
+        this.#snapshot = { ...this.#snapshot, emphasis: step.emphasis };
       } else if (step.type === 'announce') {
         this.#snapshot = { ...this.#snapshot, announcedMessageId: step.messageId };
       }

@@ -1,17 +1,18 @@
 import {
-  getS06ConsequenceFixture,
+  type S06ConsequenceExplanation,
   type S06ConsequenceFixtureId,
   s06ConsequenceContent,
 } from '@passwo/training-content';
 import { BrowserShell, type BrowserShellSnapshot } from '@passwo/ui';
 import { useEffect, useRef, useState } from 'react';
+import { BrowserSegmentTimingAdapter } from '../../../../adapters/animation/BrowserSegmentTimingAdapter.js';
 import { NetworkMotionAdapter } from '../../../../adapters/network/NetworkMotionAdapter.js';
 import {
   ReactFlowNetwork,
   ReactFlowNetworkAdapter,
 } from '../../../../adapters/network/ReactFlowNetworkAdapter.js';
 import {
-  createS06ConsequenceDefinition,
+  getS06InitialNetworkPresentation,
   S06ConsequenceController,
   type S06ConsequenceControllerSnapshot,
 } from './S06ConsequenceController.js';
@@ -32,43 +33,18 @@ interface Runtime {
   readonly renderer: ReactFlowNetworkAdapter;
 }
 
-function ResultExplanation({ snapshot }: { readonly snapshot: S06ConsequenceControllerSnapshot }) {
-  const { analysis } = snapshot.scene;
-  if (snapshot.scene.phase === 'ready') {
-    return (
-      <p>Das Ergebnis ist als Fixture vorgegeben und wird erst durch das Scene-Event sichtbar.</p>
-    );
-  }
-  if (snapshot.scene.phase === 'comparing') {
-    return <p>{s06ConsequenceContent.page.comparing}</p>;
-  }
-  if (analysis.context === 'hypothetical-example') {
-    return (
-      <p>
-        Dieses direkte Ergebnis gehört nur zum hypothetischen Gegenbeispiel und nicht zu einer
-        realen Auswahl.
-      </p>
-    );
-  }
-  if (analysis.outcome === 'identical') {
-    return <p>⚠ Gleiches Passwort: Der Zugang zum Zielkonto ist in dieser Szene betroffen.</p>;
-  }
-  if (analysis.outcome === 'similar') {
-    return (
-      <>
-        <p>≈ Ähnliche Struktur: Der Zugang zum Zielkonto ist in dieser Szene betroffen.</p>
-        <ul aria-label="Sichtbare gemeinsame Struktur">
-          <li>Gemeinsamer Kern</li>
-          <li>Ähnlicher Aufbau</li>
-        </ul>
-      </>
-    );
-  }
+function ResultExplanation({ content }: { readonly content: S06ConsequenceExplanation }) {
   return (
-    <p>
-      <strong>{s06ConsequenceContent.scene.labels.blocked}</strong>. Die Aussage gilt nur für diesen
-      dargestellten Weg.
-    </p>
+    <>
+      <p>{content.body}</p>
+      {content.listItems.length === 0 ? null : (
+        <ul>
+          {content.listItems.map((item) => (
+            <li key={item}>{item}</li>
+          ))}
+        </ul>
+      )}
+    </>
   );
 }
 
@@ -77,25 +53,16 @@ export function S06ConsequenceTraining({
 }: {
   readonly fixtureId: S06ConsequenceFixtureId;
 }) {
-  const fixture = getS06ConsequenceFixture(fixtureId);
   const networkHostRef = useRef<HTMLDivElement | null>(null);
   const [runtime, setRuntime] = useState<Runtime | null>(null);
   const [snapshot, setSnapshot] = useState<S06ConsequenceControllerSnapshot | null>(null);
 
   useEffect(() => {
     let controller: S06ConsequenceController | null = null;
-    const definition = createS06ConsequenceDefinition(fixtureId);
-    const initialNodeIds =
-      definition.analysis.context === 'hypothetical-example'
-        ? [
-            definition.analysis.sourceAccountId,
-            definition.analysis.targetAccountId,
-            `${definition.id}-hypothetical`,
-          ]
-        : [definition.analysis.sourceAccountId, definition.analysis.targetAccountId];
+    const initialPresentation = getS06InitialNetworkPresentation(fixtureId);
     const animationPlayer = new NetworkMotionAdapter({
-      initialNodeId: definition.analysis.sourceAccountId,
-      initialRevealedNodeIds: initialNodeIds,
+      initialNodeId: initialPresentation.initialNodeId,
+      initialRevealedNodeIds: initialPresentation.initialRevealedNodeIds,
       applySnapshot: (presentation) => controller?.updatePresentation(presentation),
       getCharacterElement: () => null,
       getNodeElement: (nodeId) =>
@@ -104,7 +71,11 @@ export function S06ConsequenceTraining({
         ) ?? null,
       prefersReducedMotion,
     });
-    controller = new S06ConsequenceController({ fixtureId, animationPlayer });
+    controller = new S06ConsequenceController({
+      fixtureId,
+      animationPlayer,
+      timingPort: new BrowserSegmentTimingAdapter(),
+    });
     const renderer = new ReactFlowNetworkAdapter(controller.getSnapshot().scene.network);
     controller.attachRenderer(renderer);
     const unsubscribe = controller.subscribe(setSnapshot);
@@ -118,8 +89,6 @@ export function S06ConsequenceTraining({
   }, [fixtureId]);
 
   if (runtime === null || snapshot === null) return null;
-
-  const hypothetical = fixture.analysis.context === 'hypothetical-example';
 
   return (
     <section className={styles.training} aria-label={s06ConsequenceContent.trainingAriaLabel}>
@@ -138,11 +107,11 @@ export function S06ConsequenceTraining({
             <span className={styles.fixtureNotice}>{s06ConsequenceContent.page.fixtureNotice}</span>
           </header>
 
-          {hypothetical ? (
+          {snapshot.participant.hypotheticalNotice === null ? null : (
             <p className={styles.hypotheticalBanner} role="status">
-              ◇ {s06ConsequenceContent.scene.labels.hypothetical}
+              ◇ {snapshot.participant.hypotheticalNotice}
             </p>
-          ) : null}
+          )}
 
           <div className={styles.workspace}>
             <div ref={networkHostRef} className={styles.networkPanel}>
@@ -153,16 +122,43 @@ export function S06ConsequenceTraining({
               />
             </div>
             <aside className={styles.sidebar} aria-labelledby="s06-result-title">
-              <p className={styles.cardLabel}>Szenario: {fixture.label}</p>
-              <h2 id="s06-result-title">Vergleich mit {fixture.targetLabel}</h2>
-              <ResultExplanation snapshot={snapshot} />
-              <button
-                type="button"
-                disabled={snapshot.scene.phase !== 'ready'}
-                onClick={() => runtime.controller.startComparison()}
-              >
-                {s06ConsequenceContent.page.start}
-              </button>
+              <p className={styles.cardLabel}>{snapshot.participant.scenarioLabel}</p>
+              <h2 id="s06-result-title">{snapshot.participant.comparisonTitle}</h2>
+              <ResultExplanation content={snapshot.participant.explanation} />
+              {snapshot.participant.semantic === null ? null : (
+                <p
+                  className={styles.semanticStatus}
+                  data-emphasis={snapshot.participant.semantic.emphasis}
+                  role="status"
+                >
+                  <span aria-hidden="true">{snapshot.participant.semantic.symbol}</span>
+                  <span>{snapshot.participant.semantic.label}</span>
+                </p>
+              )}
+              <div className={styles.buttonRow}>
+                <button
+                  type="button"
+                  disabled={!snapshot.controls.canStart}
+                  onClick={() => runtime.controller.startComparison()}
+                >
+                  {s06ConsequenceContent.page.start}
+                </button>
+                <button
+                  type="button"
+                  className={styles.secondaryButton}
+                  disabled={!snapshot.controls.canReplay}
+                  onClick={() => runtime.controller.replayComparison()}
+                >
+                  {s06ConsequenceContent.page.replay}
+                </button>
+                <button
+                  type="button"
+                  disabled={!snapshot.controls.canContinue}
+                  onClick={() => void runtime.controller.continue()}
+                >
+                  {s06ConsequenceContent.page.continue}
+                </button>
+              </div>
             </aside>
           </div>
         </article>
