@@ -6,9 +6,10 @@ import {
 } from '@passwo/ui';
 import { useState } from 'react';
 import { S00Training } from '../features/training/S00Training.js';
+import { S02CampusIdTraining } from '../features/training/segments/S02/S02CampusIdTraining.js';
 import styles from './DesignLab.module.css';
 
-const scenarioIds = ['normal', 'dimmed', 'passwo-overlay', 's00'] as const;
+const scenarioIds = ['normal', 'dimmed', 'passwo-overlay', 's00', 's02-campus-id'] as const;
 type DesignLabScenarioId = (typeof scenarioIds)[number];
 
 interface DesignLabScenario {
@@ -127,11 +128,50 @@ const scenarios: Record<DesignLabScenarioId, DesignLabScenario> = {
     dimmed: false,
     showPassWoOverlay: false,
   },
+  's02-campus-id': {
+    label: 'S02 CampusID',
+    description: 'CampusID und drei authored verbundene Dienste als React-Flow-Adapter.',
+    dimmed: false,
+    showPassWoOverlay: false,
+  },
 };
 
 function resolveScenario(pathname: string): DesignLabScenarioId {
   const pathSegment = pathname.replace(/\/+$/, '').split('/').at(-1);
   return scenarioIds.find((scenarioId) => scenarioId === pathSegment) ?? 'normal';
+}
+
+function DesignLabIntroduction({
+  scenarioId,
+  scenario,
+}: {
+  readonly scenarioId: DesignLabScenarioId;
+  readonly scenario: DesignLabScenario;
+}) {
+  return (
+    <>
+      <header className={styles.labHeader}>
+        <div>
+          <p className={styles.labEyebrow}>Deterministische Vorschau</p>
+          <h1>BrowserShell Design Lab</h1>
+        </div>
+        <nav aria-label="Design-Lab-Szenen">
+          {scenarioIds.map((id) => (
+            <a
+              key={id}
+              href={`/design-lab/${id}`}
+              aria-current={id === scenarioId ? 'page' : undefined}
+            >
+              {scenarios[id].label}
+            </a>
+          ))}
+        </nav>
+      </header>
+      <p className={styles.scenarioDescription}>
+        <strong>{scenario.label}:</strong> {scenario.description}
+      </p>
+    </>
+  );
 }
 
 function FictionalPageScene({ page }: { readonly page: FictionalPageSnapshot }) {
@@ -269,31 +309,21 @@ export function DesignLab({ pathname = window.location.pathname }: { readonly pa
       new URLSearchParams(window.location.search).get('animation') === 'fail';
     return (
       <main className={styles.labPage}>
-        <header className={styles.labHeader}>
-          <div>
-            <p className={styles.labEyebrow}>Deterministische Vorschau</p>
-            <h1>BrowserShell Design Lab</h1>
-          </div>
-          <nav aria-label="Design-Lab-Szenen">
-            {scenarioIds.map((id) => (
-              <a
-                key={id}
-                href={`/design-lab/${id}`}
-                aria-current={id === scenarioId ? 'page' : undefined}
-              >
-                {scenarios[id].label}
-              </a>
-            ))}
-          </nav>
-        </header>
-        <p className={styles.scenarioDescription}>
-          <strong>{scenario.label}:</strong> {scenario.description}
-        </p>
+        <DesignLabIntroduction scenarioId={scenarioId} scenario={scenario} />
         <S00Training
           displayName="Vorschau"
           onComplete={() => undefined}
           forceAnimationFailure={forceAnimationFailure}
         />
+      </main>
+    );
+  }
+
+  if (scenarioId === 's02-campus-id') {
+    return (
+      <main className={styles.labPage}>
+        <DesignLabIntroduction scenarioId={scenarioId} scenario={scenario} />
+        <S02CampusIdTraining />
       </main>
     );
   }
@@ -305,26 +335,7 @@ export function DesignLab({ pathname = window.location.pathname }: { readonly pa
 
   return (
     <main className={styles.labPage}>
-      <header className={styles.labHeader}>
-        <div>
-          <p className={styles.labEyebrow}>Deterministische Vorschau</p>
-          <h1>BrowserShell Design Lab</h1>
-        </div>
-        <nav aria-label="Design-Lab-Szenen">
-          {scenarioIds.map((id) => (
-            <a
-              key={id}
-              href={`/design-lab/${id}`}
-              aria-current={id === scenarioId ? 'page' : undefined}
-            >
-              {scenarios[id].label}
-            </a>
-          ))}
-        </nav>
-      </header>
-      <p className={styles.scenarioDescription}>
-        <strong>{scenario.label}:</strong> {scenario.description}
-      </p>
+      <DesignLabIntroduction scenarioId={scenarioId} scenario={scenario} />
       <BrowserShell
         snapshot={snapshot}
         ariaLabel={`Fiktive Browseranwendung, Szene ${scenario.label}`}

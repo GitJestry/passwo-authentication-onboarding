@@ -1,0 +1,150 @@
+.network {
+  position: absolute;
+  inset: 0;
+  min-width: 0;
+  background:
+    linear-gradient(
+      90deg,
+      transparent 0 49.9%,
+      var(--color-border-soft) 50% 50.1%,
+      transparent 50.2%
+    ),
+    var(--color-surface-muted);
+}
+
+.nodeFrame {
+  width: 14.5rem;
+  transition:
+    opacity var(--motion-standard) var(--motion-ease-out),
+    transform var(--motion-standard) var(--motion-ease-out);
+}
+
+.nodeFrame[data-visible="false"] {
+  visibility: hidden;
+  opacity: 0;
+}
+
+.nodeButton {
+  display: grid;
+  width: 100%;
+  min-height: 5.8rem;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-3);
+  border: var(--border-width-medium) solid var(--color-border);
+  border-radius: var(--radius-medium);
+  color: var(--color-ink);
+  background: var(--color-surface-elevated);
+  box-shadow: 0 8px 20px rgb(8 43 82 / 12%);
+  text-align: left;
+}
+
+.nodeButton:not(:disabled) {
+  cursor: pointer;
+}
+
+.nodeButton:disabled {
+  cursor: default;
+}
+
+.nodeButton:focus-visible {
+  outline: var(--border-width-focus) solid var(--color-focus);
+  outline-offset: var(--space-1);
+  box-shadow: var(--shadow-focus);
+}
+
+.nodeFrame[data-highlighted="true"] .nodeButton {
+  border-style: double;
+  border-color: var(--color-positive);
+}
+
+.nodeFrame[data-status="understood"] .nodeButton {
+  border-style: solid;
+  border-color: var(--color-positive);
+}
+
+.nodeBadge {
+  display: grid;
+  width: var(--size-control-medium);
+  height: var(--size-control-medium);
+  place-items: center;
+  border: var(--border-width-thin) solid var(--color-accent-strong);
+  border-radius: var(--radius-round);
+  color: var(--color-ink-strong);
+  background: var(--color-accent-soft);
+  font-size: var(--font-size-x-small);
+  font-weight: var(--font-weight-heavy);
+}
+
+.nodeFrame[data-status="understood"] .nodeBadge {
+  border-color: var(--color-positive);
+  background: var(--color-positive-soft);
+}
+
+.nodeCopy {
+  display: grid;
+  min-width: 0;
+  gap: var(--space-1);
+}
+
+.nodeCopy strong {
+  color: var(--color-ink-strong);
+  font-size: var(--font-size-body);
+}
+
+.nodeCopy small {
+  color: var(--color-ink-muted);
+  font-size: var(--font-size-x-small);
+  font-weight: var(--font-weight-bold);
+}
+
+.nodeCopy > span {
+  color: var(--color-accent-strong);
+  font-size: var(--font-size-x-small);
+  font-weight: var(--font-weight-semibold);
+}
+
+.handle {
+  width: var(--space-2);
+  height: var(--space-2);
+  border: var(--border-width-thin) solid var(--color-surface-primary);
+  background: var(--color-positive);
+  pointer-events: none;
+}
+
+.edge :global(.react-flow__edge-path) {
+  stroke: var(--color-positive);
+  stroke-width: var(--border-width-medium);
+}
+
+:global(.react-flow__edge-text) {
+  fill: var(--color-ink-strong);
+  font-size: var(--font-size-x-small);
+  font-weight: var(--font-weight-bold);
+}
+
+:global(.react-flow__edge-textbg) {
+  fill: var(--color-positive-soft);
+  fill-opacity: 1;
+}
+
+:global(.react-flow__attribution) {
+  font-size: 0.55rem;
+  opacity: 0.72;
+}
+
+.screenReaderOnly {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .nodeFrame {
+    transition: none;
+  }
+}

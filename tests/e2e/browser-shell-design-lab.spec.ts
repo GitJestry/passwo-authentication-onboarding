@@ -1,7 +1,7 @@
 import AxeBuilder from '@axe-core/playwright';
 import { expect, type Page, test } from '@playwright/test';
 
-const scenes = ['normal', 'dimmed', 'passwo-overlay', 's00'] as const;
+const scenes = ['normal', 'dimmed', 'passwo-overlay', 's00', 's02-campus-id'] as const;
 const viewports = [
   { width: 1440, height: 900 },
   { width: 1280, height: 720 },
@@ -297,6 +297,95 @@ test('S00 reduced motion and an adapter failure both reach the actionable end st
   await expect(page.getByRole('heading', { name: 'Hinweis für die Übung' })).toBeVisible();
   await page.getByLabel('Ich verwende nur ausgedachte Passwörter.').check();
   await expect(page.getByRole('button', { name: 'Weiter' })).toBeEnabled();
+});
+
+test('S02 CampusID reveals authored services in order and completes after all previews', async ({
+  page,
+}) => {
+  await page.goto('/design-lab/s02-campus-id');
+
+  const campusId = page.getByRole('button', { name: /^CampusID\./ });
+  const learnSpace = page.getByRole('button', { name: /^LearnSpace\./ });
+  const examPortal = page.getByRole('button', { name: /^Prüfungsportal\./ });
+  const cloudNotes = page.getByRole('button', { name: /^Cloud Notes\./ });
+  const completion = page.getByText('CampusID verstanden', { exact: true });
+
+  await expect(campusId).toBeVisible();
+  await expect(learnSpace).toHaveCount(0);
+  await expect(completion).toHaveCount(0);
+
+  await page.evaluate(() => {
+    const revealOrder: string[] = [];
+    Reflect.set(window, '__s02RevealOrder', revealOrder);
+    const observer = new MutationObserver(() => {
+      for (const serviceId of ['learnspace', 'exam-portal', 'cloud-notes']) {
+        const button = document.querySelector<HTMLElement>(
+          `[data-scene-node-button="${serviceId}"]`,
+        );
+        if (
+          button !== null &&
+          getComputedStyle(button).visibility !== 'hidden' &&
+          !revealOrder.includes(serviceId)
+        ) {
+          revealOrder.push(serviceId);
+        }
+      }
+    });
+    observer.observe(document.body, {
+      attributes: true,
+      childList: true,
+      subtree: true,
+    });
+  });
+
+  await campusId.click();
+  await expect(learnSpace).toBeVisible();
+  await expect(examPortal).toBeVisible();
+  await expect(cloudNotes).toBeVisible();
+  expect(await page.evaluate(() => Reflect.get(window, '__s02RevealOrder'))).toEqual([
+    'learnspace',
+    'exam-portal',
+    'cloud-notes',
+  ]);
+  await expect(learnSpace).toBeFocused();
+
+  await learnSpace.press('Enter');
+  await expect(page.getByText('CampusID wird geprüft …', { exact: true })).toBeVisible();
+  await expect(
+    page.getByText('Kurszugänge, Vorlesungsunterlagen, Abgaben', { exact: true }),
+  ).toBeVisible();
+  await expect(completion).toHaveCount(0);
+
+  await examPortal.click();
+  await expect(
+    page.getByText('Anmeldungen, Termine, Ergebnisübersichten', { exact: true }),
+  ).toBeVisible();
+  await expect(completion).toHaveCount(0);
+
+  await cloudNotes.click();
+  await expect(
+    page.getByText('Notizen, Entwürfe, Arbeitsdateien, Projektmaterial', { exact: true }),
+  ).toBeVisible();
+  await expect(completion).toBeVisible();
+  await expect(page.getByLabel('3 von 3 Vorschauen geöffnet')).toHaveAttribute('value', '3');
+  await expect(campusId).toHaveAccessibleName(/Status: Verstanden/);
+  await expect(page.getByText('Mit CampusID geöffnet', { exact: true })).toHaveCount(3);
+});
+
+test('S02 CampusID reduced motion reaches the same logical end state', async ({ page }) => {
+  await page.emulateMedia({ reducedMotion: 'reduce' });
+  await page.goto('/design-lab/s02-campus-id');
+
+  await page.getByRole('button', { name: /^CampusID\./ }).click();
+  for (const serviceName of ['LearnSpace', 'Prüfungsportal', 'Cloud Notes']) {
+    await page.getByRole('button', { name: new RegExp(`^${serviceName}\\.`) }).click();
+  }
+
+  await expect(page.getByText('CampusID verstanden', { exact: true })).toBeVisible();
+  await expect(page.getByLabel('3 von 3 Vorschauen geöffnet')).toHaveAttribute('value', '3');
+  await expect(page.getByRole('button', { name: /^CampusID\./ })).toHaveAccessibleName(
+    /Status: Verstanden/,
+  );
 });
 
 for (const scene of scenes) {

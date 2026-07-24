@@ -1,6 +1,6 @@
 import type { TrainingSegmentDefinition } from '@passwo/contracts';
 
-export const TRAINING_CONTENT_VERSION = '0.2.0-s00';
+export const TRAINING_CONTENT_VERSION = '0.3.0-s02-campus-id';
 
 export const trainingSegments = [
   {
