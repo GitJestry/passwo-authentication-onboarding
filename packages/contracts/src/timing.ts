@@ -36,3 +36,39 @@ export const timingEventSchema = z
   })
   .strict();
 export type TimingEvent = z.infer<typeof timingEventSchema>;
+
+const artifactTimingBaseShape = {
+  sequence: z.number().int().nonnegative(),
+  phase: z.literal('artifact'),
+  sectionId: z.null(),
+  segmentId: z.null(),
+  clientMonotonicMs: z.number().finite().nonnegative(),
+  clientWallClockIso: z.iso.datetime(),
+  reasonCode: z.null(),
+};
+
+export const artifactTimingEventSchema = z.discriminatedUnion('eventType', [
+  z
+    .object({
+      ...artifactTimingBaseShape,
+      eventType: z.literal('start'),
+      elapsedMs: z.null(),
+    })
+    .strict(),
+  z
+    .object({
+      ...artifactTimingBaseShape,
+      eventType: z.literal('end'),
+      elapsedMs: z.number().finite().nonnegative(),
+    })
+    .strict(),
+]);
+export type ArtifactTimingEvent = z.infer<typeof artifactTimingEventSchema>;
+
+export const timingWriteResponseSchema = z
+  .object({
+    recorded: z.boolean(),
+    artifactWallClockMs: z.number().finite().nullable(),
+  })
+  .strict();
+export type TimingWriteResponse = z.infer<typeof timingWriteResponseSchema>;

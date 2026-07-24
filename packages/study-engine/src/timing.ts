@@ -25,6 +25,10 @@ interface ActiveScope {
   readonly startedAtMs: number;
 }
 
+interface PendingTimingWrite {
+  readonly event: TimingEvent;
+}
+
 export const browserClock: ClockPort = {
   monotonicNow: () => globalThis.performance.now(),
   wallClockIso: () => new Date().toISOString(),
@@ -38,6 +42,8 @@ export class StudyTimerController {
   readonly #clock: ClockPort;
   readonly #sink: TimingSink;
   readonly #active = new Map<string, ActiveScope>();
+  readonly #pendingStarts = new Map<string, PendingTimingWrite>();
+  readonly #pendingEnds = new Map<string, PendingTimingWrite>();
   #nextSequence = 0;
 
   constructor(clock: ClockPort, sink: TimingSink) {
@@ -51,9 +57,14 @@ export class StudyTimerController {
       throw new Error(`Timing scope already active: ${key}`);
     }
 
-    const startedAtMs = this.#clock.monotonicNow();
-    await this.#write(scope, 'start', startedAtMs, null, null);
-    this.#active.set(key, { startedAtMs });
+    const pending =
+      this.#pendingStarts.get(key) ??
+      this.#createPendingWrite(scope, 'start', this.#clock.monotonicNow(), null, null);
+    this.#pendingStarts.set(key, pending);
+
+    await this.#commit(pending);
+    this.#active.set(key, { startedAtMs: pending.event.clientMonotonicMs });
+    this.#pendingStarts.delete(key);
   }
 
   async end(scope: TimingScope): Promise<number> {
@@ -64,10 +75,21 @@ export class StudyTimerController {
     }
 
     const endedAtMs = this.#clock.monotonicNow();
-    const elapsedMs = Math.max(0, endedAtMs - active.startedAtMs);
-    await this.#write(scope, 'end', endedAtMs, elapsedMs, null);
+    const pending =
+      this.#pendingEnds.get(key) ??
+      this.#createPendingWrite(
+        scope,
+        'end',
+        endedAtMs,
+        Math.max(0, endedAtMs - active.startedAtMs),
+        null,
+      );
+    this.#pendingEnds.set(key, pending);
+
+    await this.#commit(pending);
     this.#active.delete(key);
-    return elapsedMs;
+    this.#pendingEnds.delete(key);
+    return pending.event.elapsedMs ?? 0;
   }
 
   async markVisibility(
@@ -75,26 +97,36 @@ export class StudyTimerController {
     visible: boolean,
     reasonCode: string | null = null,
   ): Promise<void> {
-    await this.#write(
-      scope,
-      visible ? 'visibility-visible' : 'visibility-hidden',
-      this.#clock.monotonicNow(),
-      null,
-      reasonCode,
+    await this.#commit(
+      this.#createPendingWrite(
+        scope,
+        visible ? 'visibility-visible' : 'visibility-hidden',
+        this.#clock.monotonicNow(),
+        null,
+        reasonCode,
+      ),
     );
   }
 
   async technicalAbort(scope: TimingScope, reasonCode: string): Promise<void> {
-    await this.#write(scope, 'technical-abort', this.#clock.monotonicNow(), null, reasonCode);
+    await this.#commit(
+      this.#createPendingWrite(
+        scope,
+        'technical-abort',
+        this.#clock.monotonicNow(),
+        null,
+        reasonCode,
+      ),
+    );
   }
 
-  async #write(
+  #createPendingWrite(
     scope: TimingScope,
     eventType: TimingEventType,
     clientMonotonicMs: number,
     elapsedMs: number | null,
     reasonCode: string | null,
-  ): Promise<void> {
+  ): PendingTimingWrite {
     const event: TimingEvent = {
       sequence: this.#nextSequence,
       phase: scope.phase,
@@ -107,7 +139,11 @@ export class StudyTimerController {
       reasonCode,
     };
 
-    await this.#sink.record(event);
+    return { event };
+  }
+
+  async #commit(pending: PendingTimingWrite): Promise<void> {
+    await this.#sink.record(pending.event);
     this.#nextSequence += 1;
   }
 }

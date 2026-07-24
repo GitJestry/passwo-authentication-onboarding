@@ -1,29 +1,90 @@
+import type { PlaceholderInstrumentId, StudyCondition } from '@passwo/contracts';
 import { describe, expect, it } from 'vitest';
 import { createActor } from 'xstate';
-import { studyMachine } from './study-machine.js';
+import { createStudyMachine, type StudyRuntimePorts } from './study-machine.js';
 
-describe('studyMachine', () => {
-  it('routes by server-assigned condition and removes the display name after the artifact', () => {
-    const actor = createActor(studyMachine);
-    actor.start();
-
-    actor.send({ type: 'ACCEPT_CONSENT' });
-    actor.send({
-      type: 'SESSION_CREATED',
+function runtimePorts(condition: StudyCondition): StudyRuntimePorts {
+  return {
+    createSession: async () => ({
       sessionId: 'a185bbd8-2088-47d2-b45a-924c8d8778ea',
       participantCode: 'PW-AB12CD34',
-      condition: 'supportive',
-      assignmentMode: 'forced-supportive',
+      condition,
+      assignmentMode: condition === 'supportive' ? 'forced-supportive' : 'forced-reference',
+    }),
+    savePlaceholder: async (_sessionId: string, _instrumentId: PlaceholderInstrumentId) => {},
+    startArtifact: async () => {},
+    endArtifact: async () => 325,
+    completeSession: async () => {},
+  };
+}
+
+async function waitForState(
+  actor: ReturnType<typeof createActor<ReturnType<typeof createStudyMachine>>>,
+  predicate: () => boolean,
+): Promise<void> {
+  if (predicate()) return;
+
+  await new Promise<void>((resolve) => {
+    const subscription = actor.subscribe(() => {
+      if (predicate()) {
+        subscription.unsubscribe();
+        resolve();
+      }
     });
-    actor.send({ type: 'PRE_COMPLETED' });
-    actor.send({ type: 'DISPLAY_NAME_ENTERED', displayName: '  Alex  ' });
+  });
+}
 
-    expect(actor.getSnapshot().matches({ artifact: 'supportive' })).toBe(true);
-    expect(actor.getSnapshot().context.displayName).toBe('Alex');
+describe('studyMachine', () => {
+  it.each(['supportive', 'reference'] as const)(
+    'runs the complete %s path from server assignment',
+    async (condition) => {
+      const actor = createActor(createStudyMachine(runtimePorts(condition)));
+      actor.start();
 
-    actor.send({ type: 'ARTIFACT_COMPLETED' });
+      actor.send({ type: 'ACCEPT_CONSENT' });
+      await waitForState(actor, () => actor.getSnapshot().matches('preQuestionnaire'));
+      actor.send({ type: 'SUBMIT_PRE' });
+      await waitForState(actor, () => actor.getSnapshot().matches('nameEntry'));
+      actor.send({ type: 'DISPLAY_NAME_ENTERED', displayName: '  Alex  ' });
+      await waitForState(actor, () => actor.getSnapshot().matches({ artifact: condition }));
 
-    expect(actor.getSnapshot().matches('postQuestionnaire')).toBe(true);
-    expect(actor.getSnapshot().context.displayName).toBeNull();
+      expect(actor.getSnapshot().context.displayName).toBe('Alex');
+
+      actor.send({ type: 'ARTIFACT_COMPLETED' });
+      expect(actor.getSnapshot().context.displayName).toBeNull();
+      await waitForState(actor, () => actor.getSnapshot().matches('postQuestionnaire'));
+      actor.send({ type: 'SUBMIT_POST' });
+      await waitForState(actor, () => actor.getSnapshot().matches('guardrails'));
+      actor.send({ type: 'SUBMIT_GUARDRAILS' });
+      await waitForState(actor, () => actor.getSnapshot().matches('debrief'));
+      actor.send({ type: 'DEBRIEF_ACKNOWLEDGED' });
+      await waitForState(actor, () => actor.getSnapshot().matches('complete'));
+
+      expect(actor.getSnapshot().context.artifactWallClockMs).toBe(325);
+    },
+  );
+
+  it('keeps a failed research write on a visible retry state', async () => {
+    let attempts = 0;
+    const ports = runtimePorts('supportive');
+    const actor = createActor(
+      createStudyMachine({
+        ...ports,
+        savePlaceholder: async () => {
+          attempts += 1;
+          if (attempts === 1) throw new Error('research-data-write-failed');
+        },
+      }),
+    );
+    actor.start();
+    actor.send({ type: 'ACCEPT_CONSENT' });
+    await waitForState(actor, () => actor.getSnapshot().matches('preQuestionnaire'));
+    actor.send({ type: 'SUBMIT_PRE' });
+    await waitForState(actor, () => actor.getSnapshot().matches({ preQuestionnaire: 'error' }));
+
+    expect(actor.getSnapshot().context.researchErrorCode).toBe('research-data-write-failed');
+
+    actor.send({ type: 'RETRY_PRE' });
+    await waitForState(actor, () => actor.getSnapshot().matches('nameEntry'));
   });
 });

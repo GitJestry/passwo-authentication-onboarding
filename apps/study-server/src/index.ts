@@ -1,9 +1,14 @@
+import { resolve } from 'node:path';
 import { buildStudyServer } from './app.js';
 import { loadStudyServerConfig } from './config.js';
 import { registerStudyWeb } from './static-web.js';
 
 const config = loadStudyServerConfig();
-const server = buildStudyServer({ version: '0.1.2' });
+const server = buildStudyServer({
+  version: '0.1.2',
+  assignmentMode: config.assignmentMode,
+  databasePath: resolve(config.dataDirectory, 'study.sqlite'),
+});
 
 try {
   await registerStudyWeb(server);

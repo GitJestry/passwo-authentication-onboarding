@@ -34,4 +34,32 @@ describe('StudyTimerController', () => {
     ]);
     expect(events[1]?.elapsedMs).toBe(325);
   });
+
+  it('retries an ambiguous end write with the same timing event', async () => {
+    let now = 100;
+    let endAttempts = 0;
+    const events: TimingEvent[] = [];
+    const clock: ClockPort = {
+      monotonicNow: () => now,
+      wallClockIso: () => '2026-07-23T12:00:00.000Z',
+    };
+    const sink: TimingSink = {
+      record: async (event) => {
+        events.push(event);
+        if (event.eventType === 'end' && endAttempts++ === 0) {
+          throw new Error('response lost');
+        }
+      },
+    };
+    const timer = new StudyTimerController(clock, sink);
+    const scope = { phase: 'artifact' as const };
+
+    await timer.start(scope);
+    now = 425;
+    await expect(timer.end(scope)).rejects.toThrow('response lost');
+    now = 900;
+    await expect(timer.end(scope)).resolves.toBe(325);
+
+    expect(events.slice(1)).toEqual([events[1], events[1]]);
+  });
 });
