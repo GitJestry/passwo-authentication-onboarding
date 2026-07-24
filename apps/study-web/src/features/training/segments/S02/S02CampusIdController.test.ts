@@ -1,5 +1,6 @@
 import { readFile } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
+import * as trainingContent from '@passwo/training-content';
 import type {
   AnimationPlayerPort,
   AnimationResult,
@@ -61,6 +62,59 @@ describe('S02CampusIdController', () => {
     expect(controller.getSnapshot().scene.openedServiceIds).toEqual(['learnspace']);
     expect(controller.getSnapshot().scene.activePreviewServiceId).toBe('learnspace');
     expect(controller.getSnapshot().scene.phase).toBe('exploring');
+  });
+
+  it('reveals the authored unlock scene and continues when the unlock animation is missing', async () => {
+    const getAnimation = trainingContent.getS02CampusIdAnimation;
+    vi.spyOn(trainingContent, 'getS02CampusIdAnimation').mockImplementation((animationId) =>
+      animationId === 's02-unlock-campus-id' ? undefined : getAnimation(animationId),
+    );
+    const { controller, play } = createController([{ status: 'finished' }]);
+
+    await unlockCampusId(controller);
+
+    expect(play).not.toHaveBeenCalled();
+    expect(controller.getSnapshot().scene.phase).toBe('exploring');
+    expect(controller.getSnapshot().presentation.revealedNodeIds).toEqual([
+      'campus-id',
+      'learnspace',
+      'exam-portal',
+      'cloud-notes',
+    ]);
+
+    controller.selectNode('learnspace');
+    await flushMicrotasks();
+
+    expect(play).toHaveBeenCalledTimes(1);
+    expect(controller.getSnapshot().scene.openedServiceIds).toEqual(['learnspace']);
+  });
+
+  it('reveals the authored unlock scene exactly once when the unlock animation fails', async () => {
+    const { controller, play } = createController([
+      { status: 'failed', reasonCode: 'network-motion-adapter-failed' },
+      { status: 'finished' },
+    ]);
+    const recoveredSnapshots: string[] = [];
+    controller.subscribe(({ scene }) => {
+      if (scene.phase === 'exploring') recoveredSnapshots.push(scene.phase);
+    });
+
+    await unlockCampusId(controller);
+
+    expect(play).toHaveBeenCalledTimes(1);
+    expect(recoveredSnapshots).toEqual(['exploring']);
+    expect(controller.getSnapshot().presentation.revealedNodeIds).toEqual([
+      'campus-id',
+      'learnspace',
+      'exam-portal',
+      'cloud-notes',
+    ]);
+
+    controller.selectNode('learnspace');
+    await flushMicrotasks();
+
+    expect(play).toHaveBeenCalledTimes(2);
+    expect(controller.getSnapshot().scene.openedServiceIds).toEqual(['learnspace']);
   });
 
   it('does not open a service or mark the account understood when an animation is cancelled', async () => {

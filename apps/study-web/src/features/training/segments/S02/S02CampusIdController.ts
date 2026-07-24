@@ -57,6 +57,17 @@ function createInitialPresentation(): NetworkPresentationSnapshot {
   };
 }
 
+function revealSceneNodes(
+  presentation: NetworkPresentationSnapshot,
+  scene: AccountServiceSceneSnapshot,
+): NetworkPresentationSnapshot {
+  const revealedNodeIds = new Set(presentation.revealedNodeIds);
+  for (const node of scene.network.nodes) revealedNodeIds.add(node.id);
+
+  if (revealedNodeIds.size === presentation.revealedNodeIds.length) return presentation;
+  return { ...presentation, revealedNodeIds: [...revealedNodeIds] };
+}
+
 export class S02CampusIdController {
   readonly #animationPlayer: AnimationPlayerPort;
   #renderer: NetworkRendererPort | null = null;
@@ -116,14 +127,20 @@ export class S02CampusIdController {
     this.#pendingAnimation = null;
 
     if (event.type === 'animation-finished' || event.type === 'animation-recovered') {
-      this.#applySceneEvent({ type: 'animation-settled', animationId: event.animationId });
+      this.#applySceneEvent(
+        { type: 'animation-settled', animationId: event.animationId },
+        event.type === 'animation-recovered' && event.animationId === definition.unlockAnimationId,
+      );
     }
   }
 
-  #applySceneEvent(event: AccountServiceSceneEvent): void {
+  #applySceneEvent(event: AccountServiceSceneEvent, revealSettledSceneNodes = false): void {
     const transition = transitionAccountServiceScene(definition, this.#snapshot.scene, event);
     if (transition.snapshot !== this.#snapshot.scene) {
-      this.#snapshot = { ...this.#snapshot, scene: transition.snapshot };
+      const presentation = revealSettledSceneNodes
+        ? revealSceneNodes(this.#snapshot.presentation, transition.snapshot)
+        : this.#snapshot.presentation;
+      this.#snapshot = { scene: transition.snapshot, presentation };
       this.#renderer?.render(transition.snapshot.network);
       this.#emit();
     }
@@ -185,7 +202,7 @@ export class S02CampusIdController {
   }
 
   #recoverAnimation(pendingAnimation: PendingAnimation, reasonCode: string): void {
-    // Renderer adapters restore the authored end state before reporting a failure.
+    // A missing sequence has no adapter end state, so the controller restores the scene itself.
     this.#send({
       type: 'animation-recovered',
       animationId: pendingAnimation.animationId,
