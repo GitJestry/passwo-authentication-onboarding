@@ -3,14 +3,16 @@
 Die Reihenfolge reduziert das größte Projektrisiko: erst Studien- und Interaktionsgrundlagen
 validieren, dann Inhalt skalieren. Nicht alle 18 Segmente gleichzeitig bauen.
 
-## M0 — Foundation und Scope Freeze
+M0 bis M3 sind abgeschlossen. M4 ist der nächste Meilenstein.
+
+## M0 — Foundation und Scope Freeze (abgeschlossen)
 
 **Ergebnis:** Repository, ADRs, private Quellen, Segmentindex, Datengrenze, Studienfluss.
 
 **Gate:** Supervisor bestätigt Inhaltsumfang, gespeicherte Variablen, Randomisierung und
 Referenzbedingung.
 
-## M1 — Technischer Walking Skeleton
+## M1 — Technischer Walking Skeleton (abgeschlossen)
 
 Minimaler vollständiger Pfad:
 
@@ -23,7 +25,7 @@ SQLite-Persistenz, Fehlerzustand und Export.
 **Gate:** In der Datenbank stehen ausschließlich erlaubte Felder. Ein Reload während des
 Trainings markiert den Durchlauf als unvollständig; Trainingszustand wird nicht rekonstruiert.
 
-## M2 — Visual Platform Vertical Slice
+## M2 — Visual Platform Vertical Slice (abgeschlossen)
 
 - BrowserShell mit fiktiven Tabs und neutraler macOS-Anmutung.
 - PassWo-Renderer mit Platzhalterpose, Flugbewegung, Dock und Sprechblase.
@@ -33,7 +35,7 @@ Trainings markiert den Durchlauf als unvollständig; Trainingszustand wird nicht
 
 **Gate:** Reduced Motion, Tastatur und feste Screenshot-Viewports funktionieren.
 
-## M3 — Knotennetzwerk Vertical Slice
+## M3 — Knotennetzwerk Vertical Slice (abgeschlossen)
 
 - Authored Layout und React-Flow-Adapter.
 - Ein vollständiger Durchlauf aus S02 „Konten verstehen“.
@@ -43,7 +45,7 @@ Trainings markiert den Durchlauf als unvollständig; Trainingszustand wird nicht
 **Gate:** Netzwerkzustände werden nur durch Domänenereignisse verändert; keine React-Flow-Typen
 lecken in Content oder Engine.
 
-## M4 — Passwortmodul S00–S11
+## M4 — Passwortmodul S00–S11 (nächster Meilenstein)
 
 - Passwortanalyse als reine, simulationsspezifische Heuristik.
 - Abrufbarkeit, Leak, drei Angriffswege, Ähnlichkeit, Diagnose, Wortmethode und Skalierungsbrücke.

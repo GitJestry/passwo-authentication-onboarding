@@ -23,7 +23,7 @@ export async function registerStudyWeb(
   if (!existsSync(webBuildDirectory)) {
     server.get('/', async () => ({
       message: 'Study web build not found. Run pnpm build before pnpm study:start.',
-      status: 'foundation-only',
+      status: 'web-build-missing',
     }));
     return;
   }

@@ -1,70 +1,41 @@
-# PassWo Authentication Onboarding — Foundation v0.1.2
+# PassWo Authentication Onboarding
 
-Dieses Repository ist die installierbare technische und methodische Ausgangsbasis für das
-webbasierte **Supportive Authentication Onboarding** und die gekoppelte Between-Subjects-Studie.
-Es ist bewusst noch **kein implementiertes Training und keine produktionsbereite Studie**. Der
-Snapshot stellt Workspace, Toolchain, Modulgrenzen, Datenschutzregeln, App-Shells und testbare
-Domänengrundlagen bereit, damit Codex mit kleinen vertikalen Aufträgen weiterarbeiten kann.
+Dieses pnpm-Monorepo enthält das webbasierte **Supportive Authentication Onboarding** und die
+lokale Runtime für die gekoppelte Between-Subjects-Studie. Nach M3 sind der technische
+Studienpfad, die visuelle Trainingsplattform und die ersten Knotennetzwerk-Slices implementiert.
+Die finalen Forschungsinstrumente und die vollständigen Trainingssegmente folgen in späteren
+Meilensteinen.
 
-## Was dieser Snapshot enthält
+## Stand nach M3
 
-- pnpm-Monorepo mit vollständigen Root- und Package-Manifesten;
-- React/Vite-App-Shell und lokaler Fastify-Server mit neutralem Health-Endpunkt;
-- Shared Contracts, Study Engine, Mission Controller, Timer, Content-Manifest,
-  Visualisierungsmodell und UI-Grundlage;
-- Biome, TypeScript, Vitest und Playwright-Konfiguration;
-- automatischen Research-Boundary-Check;
-- ADRs für Stack, Datengrenze, Statecharts, Timing, Randomisierung, Referenzbedingung und
-  Renderer-Adapter;
-- private Forschungsquellen unter `research/private/`; der gesamte Ordner ist von Git ausgeschlossen
-  und wird nicht getrackt.
+- **M1 – Study Runtime:** serverseitige Sitzungsanlage und verdeckte Blockzuweisung, getrennte
+  Study- und Training-Statecharts, SQLite-Persistenz erlaubter Forschungsdaten, Timing,
+  Reload-/Lease-Behandlung sowie CSV-/JSON-Export mit Manifest und Prüfsummen.
+- **M2 – Visual Platform:** BrowserShell, PassWo-Adapter, Mission-/Animations-Handshake,
+  Reduced Motion und der vollständige S00-Slice.
+- **M3 – Knotennetzwerk:** frameworkfreie Szenenmodelle mit React-Flow-Adapter, ein
+  S02-CampusID-Durchlauf und die geprüften S06-Konsequenzszenen.
+- **Als Nächstes – M4:** das bereits angebundene Package `@passwo/password-analysis` wird für
+  die rein lokale, simulationsspezifische Passwortanalyse umgesetzt.
 
-Der Snapshot enthält absichtlich **kein `pnpm-lock.yaml`**. Prompt 1 installiert die bereits
-festgelegten Abhängigkeiten, erzeugt den Lockfile und behebt nur reale Tooling-Kompatibilitäten.
+`apps/study-web` enthält die React-/Vite-Oberfläche und Browseradapter. `apps/study-server`
+stellt die lokale Fastify-API, SQLite-Persistenz, Zuweisung und den gebündelten Web-Build bereit.
+Frameworkfreie Contracts, Engines, Inhalte, Visualisierungsmodelle und UI-Bausteine liegen unter
+`packages/`.
 
-## Sauberer Import in Git
+## Lokal installieren und starten
 
-Dieser Snapshot enthält absichtlich **kein `.git/`-Verzeichnis**. Er muss als neue Arbeitskopie
-initialisiert oder vollständig in ein vorhandenes Repository kopiert werden. Die ZIP-Datei niemals
-über einen älteren Snapshot mit fremder Git-Historie entpacken.
-
-```bash
-unzip passwo-authentication-onboarding-foundation-v0.1.2-clean.zip
-cd passwo-authentication-onboarding
-
-node scripts/check-workspace-foundation.mjs
-git init
-git add .
-git status --short
-git commit -m "Initialize PassWo foundation v0.1.2"
-```
-
-Vor dem Commit müssen alle App- und Package-Manifeste als hinzugefügt erscheinen. Keine Datei unter
-`research/private/` darf erscheinen oder getrackt werden. Erst nach diesem vollständigen Initialcommit
-sollte ein Remote verbunden oder Codex auf den Branch angesetzt werden.
-
-## Voraussetzungen auf macOS
-
-- Node.js `24.18.0`;
-- Corepack;
-- pnpm `11.15.1`;
-- VS Code optional, aber vorgesehen.
+Benötigt werden Node.js `24.18.0`, Corepack und pnpm `11.15.1`.
 
 ```bash
 nvm install
 nvm use
 corepack enable
 corepack prepare pnpm@11.15.1 --activate
-node scripts/check-workspace-foundation.mjs
 pnpm install
-pnpm check
-pnpm build
 ```
 
-Der Preinstall-Check bricht bewusst ab, wenn eine andere Node- oder pnpm-Version verwendet wird.
-Damit bleibt der erste Lockfile reproduzierbar.
-
-## Lokale Foundation starten
+Für die getrennten Entwicklungsserver:
 
 ```bash
 pnpm dev
@@ -73,81 +44,64 @@ pnpm dev
 - Web-App: `http://127.0.0.1:5173`
 - API: `http://127.0.0.1:4174/api/health`
 
-Der aktuell sichtbare Screen ist nur ein Foundation-Smoke-Test. Er legt keine Session an und
-speichert keine Daten.
+Den gebündelten lokalen Studienbetrieb startet `pnpm study:start`. Der Befehl baut Client und
+Server; Fastify liefert anschließend Web-App und API unter `http://127.0.0.1:4174` aus.
 
-Ein lokaler gebündelter Stand wird so gestartet:
-
-```bash
-pnpm study:start
-```
-
-Fastify liefert dann den Vite-Build aus. Die eigentliche Studienpersistenz und der Export werden
-erst im Walking Skeleton aus Prompt 2 umgesetzt.
-
-Für Playwright einmalig:
+Die Hauptstudie verwendet standardmäßig `permuted-block`. Nur für Pretests dürfen die Bedingungen
+erzwungen werden:
 
 ```bash
-pnpm exec playwright install chromium
-pnpm test:e2e
-```
-
-## Arbeitsreihenfolge
-
-1. `AGENTS.md` und `docs/ai/TASK-ROUTING.md` lesen.
-2. Prompt 1 aus `docs/ai/FIRST-PROMPTS.md` ausführen und den Lockfile committen.
-3. Erst danach den vollständigen Study Walking Skeleton aus Prompt 2 bauen.
-4. BrowserShell, PassWo und Animations-Handshake als vertikalen Schnitt umsetzen.
-5. Knotennetzwerk und Passwortanalyse erst nach diesen Abnahmetoren erweitern.
-
-## Wichtige Befehle
-
-```bash
-pnpm check                      # Biome, TypeScript, Unit-Tests, Research Boundary
-pnpm build                      # Packages typprüfen, Server und Vite-Client bauen
-pnpm test                       # Unit-/Contract-Tests
-pnpm test:e2e                   # Foundation-Smoke-Test mit axe
-pnpm check:research-boundary    # Datengrenzen und private Quellen prüfen
-pnpm clean                      # erzeugte dist-Verzeichnisse entfernen
-```
-
-## Bedingungen für spätere Pretests und Hauptstudie
-
-```bash
-# Hauptstudie
-STUDY_ASSIGNMENT_MODE=permuted-block pnpm study:start
-
-# Ausschließlich für Pretests
 STUDY_ASSIGNMENT_MODE=forced-supportive pnpm study:start
 STUDY_ASSIGNMENT_MODE=forced-reference pnpm study:start
 ```
 
-Die Environment-Variable wird bereits validiert, aber die eigentliche Zuweisungslogik entsteht
-erst in Prompt 2. Der Client darf die Condition zu keinem Zeitpunkt wählen.
+## Study Runtime und Export
 
-## Snapshot-Integrität
+Der Runtime-Pfad führt von Einwilligung und serverseitiger Session über Pre-Platzhalter,
+flüchtigen Anzeigenamen und zugewiesenes Artefakt zu Post-/Guardrail-Platzhaltern, Debrief und
+Abschluss. Anzeigenamen und Trainingsinputs bleiben im Browser-Arbeitsspeicher. Standardmäßig
+liegt die Datenbank unter `~/.passwo-study/study.sqlite`; ein anderer lokaler Datenordner kann über
+`STUDY_DATA_DIR` gesetzt werden.
 
-Das Archiv enthält `SNAPSHOT-MANIFEST.sha256`. Nach dem Entpacken kann der lokale Stand
-mit folgendem Befehl geprüft werden:
+Ein Export benötigt ein leeres oder neues Zielverzeichnis:
 
 ```bash
-shasum -a 256 -c SNAPSHOT-MANIFEST.sha256
+pnpm study:export -- --output ./study-export
+pnpm study:export -- --database /pfad/study.sqlite --output ./study-export
 ```
 
-Die Manifestdatei ist Distributionsmetadatum und wird deshalb nicht in Git aufgenommen.
+Er erzeugt Sessions, Timing und Antworten als CSV und JSON sowie ein Manifest mit Versionen,
+Zählungen und SHA-256-Prüfsummen.
 
-## Vertrauliche Quellen
+## Design Lab
 
-`research/private/` enthält lokale Exposés, Trainingsskripte, Translation Foci und Designreferenzen.
-Der gesamte Ordner ist durch `.gitignore` ausgeschlossen und wird nicht getrackt. Prüfe nach
-`git init`:
+`/design-lab` stellt deterministische, vom Studienablauf isolierte Szenen für Entwicklung,
+Barrierefreiheitsprüfungen und visuelle Regression bereit. Dazu gehören BrowserShell- und
+PassWo-Zustände sowie die S00-, S02-CampusID- und S06-Fixtures. Das Design Lab speichert keine
+Forschungsdaten und ersetzt keine vollständige Segmentnavigation.
+
+## Qualitätschecks
 
 ```bash
-git add .
-git status --short
-git check-ignore -v research/private/training-script.pdf
+pnpm check                    # Biome, TypeScript, Unit-/Contract-Tests, Research Boundary
+pnpm build                    # Server und Vite-Client bauen
+pnpm test:e2e                 # Study Runtime, Design Lab und Barrierefreiheit
+pnpm check:research-boundary  # Datengrenzen und private Quellen prüfen
+```
+
+Vor dem ersten E2E-Lauf wird Chromium einmalig mit
+`pnpm exec playwright install chromium` installiert.
+
+## Vertrauliche Forschungsquellen
+
+`research/private/` ist vollständig von Git ausgeschlossen und darf weder verändert noch
+übertragen werden. Normale Entwicklungsaufgaben verwenden die abgeleiteten Unterlagen unter
+`research/derived/` und `docs/`; private Rohquellen werden nur für ausdrücklich benannte
+Inhaltsaufgaben geöffnet.
+
+```bash
 git ls-files research/private
 ```
 
-`git ls-files research/private` muss leer bleiben. Für normale Agentenarbeit werden die kompakten
-Ableitungen unter `research/derived/` und `docs/` genutzt.
+Der Befehl muss ohne Ausgabe bleiben. Keine pauschalen Bereinigungsbefehle wie `git clean -X`
+verwenden, weil sie ignorierte private Quellen löschen könnten.

@@ -30,16 +30,21 @@ flowchart LR
 
 ```text
 apps/
-  study-web/       React-Anwendung, Routes, Adapter und Studienoberfläche
-  study-server/    lokales API, Randomisierung, SQLite und Export
+  study-web/       Routes, Teilnehmer-/Forschendenoberflächen und konkrete Browseradapter;
+                   keine SQL- oder Randomisierungslogik
+  study-server/    lokales API, verdeckte Zuweisung, SQLite und Export; keine Anzeigenamen
+                   oder Trainingsinputs
 packages/
   contracts/       erlaubte API- und Domänenschemas
-  study-engine/    Studienzustandsautomat und Zeitmessung
-  training-engine/ Missionszustandsautomat und Animation-Ports
-  training-content/versionierte Segmentmanifeste und Texte
-  password-analysis/ simulationsspezifische Analyse-Ports
-  visualization/   frameworkfreie Szenenmodelle und Layoutdaten
-  ui/              Design Tokens und wiederverwendbare Komponenten
+  study-engine/    reine Ablauf- und Timerlogik ohne React, Fetch oder Speicherung
+  training-engine/ Missionszustandsautomat und deklaratives Animationsprotokoll
+  training-content/versionierte Segmentdaten, Teilnehmertexte, Szenenreferenzen und
+                   Traceability; Änderungen benötigen fachliche Prüfung
+  password-analysis/ reine, deterministische Heuristiken für fiktive Simulationen;
+                   kein Produktions-Passwortmeter und keine absolute Bewertung
+  visualization/   frameworkfreie Knoten-, Kanten-, Status- und Layoutmodelle
+  ui/              Design Tokens, BrowserShell, Bedienelemente, Sprechblase und
+                   PassWo-Platzhalter; keine Trainingslogik oder Forschungsdatenspeicherung
 ```
 
 ## Dependency Rules

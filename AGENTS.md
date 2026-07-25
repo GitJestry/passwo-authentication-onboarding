@@ -11,7 +11,24 @@ aber keine lockereren Regeln ergänzen.
 4. Relevante Fach- und Forschungsdokumente aus `docs/` und `research/derived/`.
 5. Rohquellen aus `research/private/` nur bei expliziten Inhaltsaufgaben.
 
-Lies nicht pauschal alle Rohquellen. Nutze `docs/ai/TASK-ROUTING.md`.
+Wähle danach nur die zum Auftrag passenden Quellen:
+
+- Toolchain, Workspace und Build: `README.md` und ADR 0001.
+- Study Runtime, Persistenz und Export: `docs/research/STUDY-RUNTIME.md`,
+  `docs/research/DATA-CONTRACT.md` und die einschlägigen ADRs 0002–0005 und 0008.
+- Timing, Zuweisung oder Referenzbedingung: das gleichnamige Dokument unter `docs/research/`
+  sowie ADR 0004, 0005 beziehungsweise 0006.
+- BrowserShell, PassWo, Animation oder Knotennetzwerk: das einschlägige Dokument unter
+  `docs/design/` sowie ADR 0003 und 0007.
+- Teilnehmertexte und Segmente: `research/derived/segment-index.md` und die
+  `packages/training-content/AGENTS.md`; private Skriptseiten nur für das ausdrücklich benannte
+  Segment.
+- Passwortanalyse: `packages/password-analysis/AGENTS.md` und
+  `docs/research/RESEARCH-GUARDRAILS.md`; private S05-/S06-Seiten nur bei explizitem Auftrag.
+- Fragebogen und Guardrails: `docs/research/DATA-CONTRACT.md`,
+  `docs/research/RESEARCH-GUARDRAILS.md` und nur die ausdrücklich benannte Instrumentenquelle.
+
+Lies private Rohquellen nie pauschal.
 
 ## 2. Nicht verhandelbare Forschungs- und Datenschutzgrenzen
 
@@ -29,6 +46,15 @@ Lies nicht pauschal alle Rohquellen. Nutze `docs/ai/TASK-ROUTING.md`.
 - Behaupte nie, ein Konto oder Passwort sei absolut „sicher“.
 
 Bei Unsicherheit stoppe die Implementierung und dokumentiere die offene Forschungsentscheidung.
+
+Stoppe außerdem, wenn ein Auftrag:
+
+- neue persistierte Felder verlangt;
+- die Condition clientseitig steuerbar machen würde;
+- echte Passwörter, Konten oder Sicherheitsvorfälle voraussetzt;
+- aus der Simulation eine Produktions-Passwortbewertung ableitet;
+- ohne ADR einen Kern-Renderer oder eine State-Library einführt;
+- Teilnehmertext ohne benannte Inhaltsquelle verändert.
 
 ## 3. Architekturregeln
 
