@@ -105,7 +105,7 @@ describe('study server walking skeleton', () => {
     const response = await server.inject({
       method: 'POST',
       url: '/api/study/sessions',
-      payload: { ...createSessionBody(1), contentVersion: 'client-selected-v1' },
+      payload: { ...createSessionBody(1), contentVersion: SUPPORTIVE_ARTIFACT_VERSION },
     });
 
     expect(response.statusCode).toBe(400);

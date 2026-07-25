@@ -113,7 +113,7 @@ describe('research-safe contracts', () => {
       exportedAtIso: '2026-07-24T12:00:00.000Z',
       versions: {
         study: ['walking-skeleton-v1'],
-        content: ['content-fixture-v1'],
+        content: [SUPPORTIVE_ARTIFACT_VERSION],
         questionnaire: ['questionnaire-placeholder-v1'],
         guardrail: ['guardrail-placeholder-v1'],
         consent: ['consent-placeholder-v1'],
