@@ -322,11 +322,13 @@ export class StudyRepository {
           this.#nowIso(),
         );
 
-      if (event.eventType === 'start') {
-        this.#activateArtifactLease(sessionId, this.#nowIso());
-      }
-      if (event.eventType === 'end') {
-        this.#closeArtifactLease(sessionId, this.#nowIso());
+      if (event.sectionId === null && event.segmentId === null) {
+        if (event.eventType === 'start') {
+          this.#activateArtifactLease(sessionId, this.#nowIso());
+        }
+        if (event.eventType === 'end') {
+          this.#closeArtifactLease(sessionId, this.#nowIso());
+        }
       }
 
       return {

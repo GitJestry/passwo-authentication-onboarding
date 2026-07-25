@@ -74,6 +74,63 @@ async function createSession(server: FastifyInstance, identity = 1) {
   }>();
 }
 
+async function recordSupportiveS00ThroughEnd(server: FastifyInstance) {
+  const session = await createSession(server);
+  await server.inject({
+    method: 'POST',
+    url: `/api/study/sessions/${session.sessionId}/responses`,
+    payload: {
+      instrumentId: 'pre-placeholder',
+      itemId: 'placeholder-complete',
+      value: true,
+    },
+  });
+  const timingEvents = [
+    {
+      sequence: 0,
+      phase: 'artifact',
+      sectionId: null,
+      segmentId: null,
+      eventType: 'start',
+      clientMonotonicMs: 100,
+      clientWallClockIso: '2026-07-24T12:00:00.000Z',
+      elapsedMs: null,
+      reasonCode: null,
+    },
+    {
+      sequence: 1,
+      phase: 'artifact',
+      sectionId: 'passwords',
+      segmentId: 'S00',
+      eventType: 'start',
+      clientMonotonicMs: 125,
+      clientWallClockIso: '2026-07-24T12:00:00.000Z',
+      elapsedMs: null,
+      reasonCode: null,
+    },
+    {
+      sequence: 2,
+      phase: 'artifact',
+      sectionId: 'passwords',
+      segmentId: 'S00',
+      eventType: 'end',
+      clientMonotonicMs: 425,
+      clientWallClockIso: '2026-07-24T12:00:00.000Z',
+      elapsedMs: 300,
+      reasonCode: null,
+    },
+  ] as const;
+  for (const event of timingEvents) {
+    const response = await server.inject({
+      method: 'POST',
+      url: `/api/study/sessions/${session.sessionId}/timing`,
+      payload: event,
+    });
+    expect(response.statusCode).toBe(200);
+  }
+  return session;
+}
+
 describe('study server walking skeleton', () => {
   it('exposes only a non-identifying health response', async () => {
     const server = createServer('permuted-block');
@@ -558,6 +615,67 @@ describe('study server walking skeleton', () => {
     expect(rejectedReferenceSegment.json()).toEqual({
       errorCode: 'segment-timing-not-supported',
     });
+  });
+
+  it('keeps the artifact lease active after supportive S00 end', async () => {
+    const server = createServer('forced-supportive');
+    const session = await recordSupportiveS00ThroughEnd(server);
+
+    const heartbeat = await server.inject({
+      method: 'POST',
+      url: `/api/study/sessions/${session.sessionId}/artifact-lease/heartbeat`,
+      payload: {},
+    });
+
+    expect(heartbeat.statusCode).toBe(200);
+    expect(heartbeat.json()).toEqual({ active: true });
+  });
+
+  it('marks reload after supportive S00 end incomplete', async () => {
+    const server = createServer('forced-supportive');
+    const session = await recordSupportiveS00ThroughEnd(server);
+
+    const reload = await server.inject({
+      method: 'POST',
+      url: `/api/study/sessions/${session.sessionId}/incomplete-reload`,
+    });
+    const status = await server.inject({
+      method: 'GET',
+      url: `/api/study/sessions/${session.sessionId}/status`,
+    });
+
+    expect(reload.json()).toEqual({ completionStatus: 'incomplete-reload' });
+    expect(status.json()).toEqual({ completionStatus: 'incomplete-reload' });
+  });
+
+  it('closes the artifact lease only after the global artifact end', async () => {
+    const server = createServer('forced-supportive');
+    const session = await recordSupportiveS00ThroughEnd(server);
+
+    const artifactEnd = await server.inject({
+      method: 'POST',
+      url: `/api/study/sessions/${session.sessionId}/timing`,
+      payload: {
+        sequence: 3,
+        phase: 'artifact',
+        sectionId: null,
+        segmentId: null,
+        eventType: 'end',
+        clientMonotonicMs: 600,
+        clientWallClockIso: '2026-07-24T12:00:00.000Z',
+        elapsedMs: 500,
+        reasonCode: null,
+      },
+    });
+    const heartbeat = await server.inject({
+      method: 'POST',
+      url: `/api/study/sessions/${session.sessionId}/artifact-lease/heartbeat`,
+      payload: {},
+    });
+
+    expect(artifactEnd.json()).toEqual({ recorded: true, artifactWallClockMs: 500 });
+    expect(heartbeat.statusCode).toBe(409);
+    expect(heartbeat.json()).toEqual({ errorCode: 'artifact-lease-not-active' });
   });
 
   it('rejects reference visibility timing and marks only active artifacts incomplete', async () => {
