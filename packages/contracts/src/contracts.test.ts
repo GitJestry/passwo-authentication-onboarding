@@ -117,7 +117,7 @@ describe('research-safe contracts', () => {
         questionnaire: ['questionnaire-placeholder-v1'],
         guardrail: ['guardrail-placeholder-v1'],
         consent: ['consent-placeholder-v1'],
-        referenceArtifact: ['reference-fixture-v1'],
+        referenceArtifact: [REFERENCE_PLACEHOLDER_ARTIFACT_VERSION],
       },
       sessionCounts: [{ condition: 'supportive', completionStatus: 'completed', count: 1 }],
       files: [
