@@ -262,6 +262,7 @@ export class StudyRepository {
         }
         if (event.eventType === 'end') {
           this.#requireArtifactStarted(sessionId);
+          this.#requireSupportiveSegmentsCompleted(sessionId);
         }
         if (event.eventType === 'visibility-hidden' || event.eventType === 'visibility-visible') {
           this.#requireSupportiveArtifactActive(sessionId);
@@ -637,6 +638,30 @@ export class StudyRepository {
   #requireArtifactEnded(sessionId: string): void {
     if (this.#artifactBoundaryCount(sessionId, 'end') !== 1) {
       throw new StudyRepositoryError('artifact-end-required', 409);
+    }
+  }
+
+  #requireSupportiveSegmentsCompleted(sessionId: string): void {
+    const condition = conditionSchema.parse(
+      this.#database
+        .prepare(`SELECT condition FROM study_sessions WHERE session_id = ?`)
+        .get(sessionId),
+    ).condition;
+    if (condition !== 'supportive') return;
+
+    const s00Starts = this.#segmentBoundaryCount(sessionId, 'start', 'S00');
+    const s00Ends = this.#segmentBoundaryCount(sessionId, 'end', 'S00');
+    const s01Starts = this.#segmentBoundaryCount(sessionId, 'start', 'S01');
+    const s01Ends = this.#segmentBoundaryCount(sessionId, 'end', 'S01');
+    if (
+      s00Starts !== 1 ||
+      s00Ends !== 1 ||
+      s01Starts !== 1 ||
+      s01Ends !== 1 ||
+      this.#segmentBoundaryCount(sessionId, 'start') !==
+        this.#segmentBoundaryCount(sessionId, 'end')
+    ) {
+      throw new StudyRepositoryError('supportive-segments-incomplete', 409);
     }
   }
 

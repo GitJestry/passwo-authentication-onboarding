@@ -101,8 +101,8 @@ async function savePreAndStartArtifact(server: FastifyInstance, sessionId: strin
   });
 }
 
-async function recordSupportiveS00ThroughEnd(server: FastifyInstance) {
-  const session = await createSession(server);
+async function recordSupportiveS00ThroughEnd(server: FastifyInstance, identity = 1) {
+  const session = await createSession(server, identity);
   await savePreAndStartArtifact(server, session.sessionId);
   const timingEvents = [
     {
@@ -139,8 +139,8 @@ async function recordSupportiveS00ThroughEnd(server: FastifyInstance) {
   return session;
 }
 
-async function recordSupportiveS00S01ThroughEnd(server: FastifyInstance) {
-  const session = await recordSupportiveS00ThroughEnd(server);
+async function recordSupportiveS00S01ThroughEnd(server: FastifyInstance, identity = 1) {
+  const session = await recordSupportiveS00ThroughEnd(server, identity);
   const timingEvents = [
     {
       sequence: 3,
@@ -285,7 +285,7 @@ describe('study server walking skeleton', () => {
   });
 
   it('enforces persisted study prerequisites and completes a valid run idempotently', async () => {
-    const server = createServer('forced-supportive');
+    const server = createServer('forced-reference');
     const session = await createSession(server);
 
     const startEvent = {
@@ -651,6 +651,152 @@ describe('study server walking skeleton', () => {
     expect(heartbeatAfterS01.json()).toEqual({ active: true });
   });
 
+  it('requires completed supportive S00 and S01 segments before ending the artifact', async () => {
+    const supportiveServer = createServer('forced-supportive');
+
+    const withoutSegments = await createSession(supportiveServer, 11);
+    await savePreAndStartArtifact(supportiveServer, withoutSegments.sessionId);
+    const endWithoutSegments = await supportiveServer.inject({
+      method: 'POST',
+      url: `/api/study/sessions/${withoutSegments.sessionId}/timing`,
+      payload: {
+        sequence: 1,
+        phase: 'artifact',
+        sectionId: null,
+        segmentId: null,
+        eventType: 'end',
+        clientMonotonicMs: 900,
+        clientWallClockIso: '2026-07-24T12:00:00.000Z',
+        elapsedMs: 800,
+        reasonCode: null,
+      },
+    });
+    const heartbeatAfterRejectedEnd = await supportiveServer.inject({
+      method: 'POST',
+      url: `/api/study/sessions/${withoutSegments.sessionId}/artifact-lease/heartbeat`,
+      payload: {},
+    });
+    const statusAfterRejectedEnd = await supportiveServer.inject({
+      method: 'GET',
+      url: `/api/study/sessions/${withoutSegments.sessionId}/status`,
+    });
+
+    expect(endWithoutSegments.statusCode).toBe(409);
+    expect(endWithoutSegments.json()).toEqual({ errorCode: 'supportive-segments-incomplete' });
+    expect(heartbeatAfterRejectedEnd.json()).toEqual({ active: true });
+    expect(statusAfterRejectedEnd.json()).toEqual({ completionStatus: 'in-progress' });
+
+    const afterS00 = await recordSupportiveS00ThroughEnd(supportiveServer, 12);
+    const endAfterS00 = await supportiveServer.inject({
+      method: 'POST',
+      url: `/api/study/sessions/${afterS00.sessionId}/timing`,
+      payload: {
+        sequence: 3,
+        phase: 'artifact',
+        sectionId: null,
+        segmentId: null,
+        eventType: 'end',
+        clientMonotonicMs: 900,
+        clientWallClockIso: '2026-07-24T12:00:00.000Z',
+        elapsedMs: 800,
+        reasonCode: null,
+      },
+    });
+
+    expect(endAfterS00.statusCode).toBe(409);
+    expect(endAfterS00.json()).toEqual({ errorCode: 'supportive-segments-incomplete' });
+
+    const duringS01 = await recordSupportiveS00ThroughEnd(supportiveServer, 13);
+    const s01Start = await supportiveServer.inject({
+      method: 'POST',
+      url: `/api/study/sessions/${duringS01.sessionId}/timing`,
+      payload: {
+        sequence: 3,
+        phase: 'artifact',
+        sectionId: 'passwords',
+        segmentId: 'S01',
+        eventType: 'start',
+        clientMonotonicMs: 500,
+        clientWallClockIso: '2026-07-24T12:00:00.000Z',
+        elapsedMs: null,
+        reasonCode: null,
+      },
+    });
+    const endDuringS01 = await supportiveServer.inject({
+      method: 'POST',
+      url: `/api/study/sessions/${duringS01.sessionId}/timing`,
+      payload: {
+        sequence: 4,
+        phase: 'artifact',
+        sectionId: null,
+        segmentId: null,
+        eventType: 'end',
+        clientMonotonicMs: 900,
+        clientWallClockIso: '2026-07-24T12:00:00.000Z',
+        elapsedMs: 800,
+        reasonCode: null,
+      },
+    });
+
+    expect(s01Start.statusCode).toBe(200);
+    expect(endDuringS01.statusCode).toBe(409);
+    expect(endDuringS01.json()).toEqual({ errorCode: 'supportive-segments-incomplete' });
+
+    const completedSegments = await recordSupportiveS00S01ThroughEnd(supportiveServer, 14);
+    const artifactEnd = {
+      sequence: 5,
+      phase: 'artifact',
+      sectionId: null,
+      segmentId: null,
+      eventType: 'end',
+      clientMonotonicMs: 900,
+      clientWallClockIso: '2026-07-24T12:00:00.000Z',
+      elapsedMs: 800,
+      reasonCode: null,
+    } as const;
+    const acceptedEnd = await supportiveServer.inject({
+      method: 'POST',
+      url: `/api/study/sessions/${completedSegments.sessionId}/timing`,
+      payload: artifactEnd,
+    });
+    const repeatedEnd = await supportiveServer.inject({
+      method: 'POST',
+      url: `/api/study/sessions/${completedSegments.sessionId}/timing`,
+      payload: artifactEnd,
+    });
+    const heartbeatAfterAcceptedEnd = await supportiveServer.inject({
+      method: 'POST',
+      url: `/api/study/sessions/${completedSegments.sessionId}/artifact-lease/heartbeat`,
+      payload: {},
+    });
+
+    expect(acceptedEnd.json()).toEqual({ recorded: true, artifactWallClockMs: 800 });
+    expect(repeatedEnd.json()).toEqual({ recorded: false, artifactWallClockMs: 800 });
+    expect(heartbeatAfterAcceptedEnd.statusCode).toBe(409);
+    expect(heartbeatAfterAcceptedEnd.json()).toEqual({ errorCode: 'artifact-lease-not-active' });
+
+    const referenceServer = createServer('forced-reference');
+    const referenceSession = await createSession(referenceServer, 15);
+    await savePreAndStartArtifact(referenceServer, referenceSession.sessionId);
+    const referenceEnd = await referenceServer.inject({
+      method: 'POST',
+      url: `/api/study/sessions/${referenceSession.sessionId}/timing`,
+      payload: {
+        sequence: 1,
+        phase: 'artifact',
+        sectionId: null,
+        segmentId: null,
+        eventType: 'end',
+        clientMonotonicMs: 900,
+        clientWallClockIso: '2026-07-24T12:00:00.000Z',
+        elapsedMs: 800,
+        reasonCode: null,
+      },
+    });
+
+    expect(referenceEnd.json()).toEqual({ recorded: true, artifactWallClockMs: 800 });
+  });
+
   it('marks reload after supportive S00 end or S01 end incomplete', async () => {
     const server = createServer('forced-supportive');
     const s00Session = await recordSupportiveS00ThroughEnd(server);
@@ -766,7 +912,7 @@ describe('study server walking skeleton', () => {
     });
     expect(persistedReload.json()).toEqual({ completionStatus: 'incomplete-reload' });
 
-    const completedArtifactServer = createServer('forced-supportive');
+    const completedArtifactServer = createServer('forced-reference');
     const completedArtifactSession = await createSession(completedArtifactServer);
     await completedArtifactServer.inject({
       method: 'POST',

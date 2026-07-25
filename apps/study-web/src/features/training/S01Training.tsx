@@ -5,7 +5,7 @@ import {
   type PasswordModuleSnapshot,
 } from '@passwo/training-engine';
 import { BrowserShell, type BrowserShellSnapshot } from '@passwo/ui';
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import styles from './S01Training.module.css';
 
 function isConfigured(snapshot: PasswordModuleSnapshot): boolean {
@@ -36,15 +36,20 @@ export function S01Training({
   const [revealedAccountIds, setRevealedAccountIds] = useState<ReadonlySet<string>>(
     () => new Set(),
   );
+  const completionStatusRef = useRef<HTMLHeadingElement>(null);
+  const configured = isConfigured(snapshot);
   const account =
     s01Content.browser.accounts.find(({ id }) => id === snapshot.context.activeAccountId) ??
     s01Content.browser.accounts[0];
+
+  useEffect(() => {
+    if (configured) completionStatusRef.current?.focus();
+  }, [configured]);
 
   if (account === undefined) return null;
 
   const configuredCount = getConfiguredAccountCount(snapshot.context);
   const editing = snapshot.matches({ s01: 'editing' });
-  const configured = isConfigured(snapshot);
   const localTimingFailure = isLocalTimingFailure(snapshot);
   const initialTimingPending = snapshot.matches({ s01: 'starting' });
   const interactionBlocked =
@@ -168,10 +173,15 @@ export function S01Training({
                 ) : null}
               </form>
               {configured ? (
-                <p className={styles.accountComplete} role="status">
+                <h2
+                  ref={completionStatusRef}
+                  className={styles.accountComplete}
+                  tabIndex={-1}
+                  aria-live="polite"
+                >
                   <span aria-hidden="true">✓</span>
                   {s01Content.completion.accountStatus}
-                </p>
+                </h2>
               ) : null}
             </section>
             <aside className={styles.progressCard} aria-label={s01Content.progress.label}>

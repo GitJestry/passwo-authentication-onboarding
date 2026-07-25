@@ -129,6 +129,36 @@ describe('research export', () => {
       payload: {
         sequence: 3,
         phase: 'artifact',
+        sectionId: 'passwords',
+        segmentId: 'S01',
+        eventType: 'start',
+        clientMonotonicMs: 650,
+        clientWallClockIso: '2026-07-24T12:00:00.000Z',
+        elapsedMs: null,
+        reasonCode: null,
+      },
+    });
+    await server.inject({
+      method: 'POST',
+      url: `/api/study/sessions/${completedSessionId}/timing`,
+      payload: {
+        sequence: 4,
+        phase: 'artifact',
+        sectionId: 'passwords',
+        segmentId: 'S01',
+        eventType: 'end',
+        clientMonotonicMs: 800,
+        clientWallClockIso: '2026-07-24T12:00:00.000Z',
+        elapsedMs: 150,
+        reasonCode: null,
+      },
+    });
+    await server.inject({
+      method: 'POST',
+      url: `/api/study/sessions/${completedSessionId}/timing`,
+      payload: {
+        sequence: 5,
+        phase: 'artifact',
         sectionId: null,
         segmentId: null,
         eventType: 'end',
