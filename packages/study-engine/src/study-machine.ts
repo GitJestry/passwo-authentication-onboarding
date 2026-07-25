@@ -50,6 +50,7 @@ export type StudyEvent =
   | { readonly type: 'RETRY_SESSION' }
   | { readonly type: 'RETRY_PRE' }
   | { readonly type: 'RETRY_ARTIFACT_START' }
+  | { readonly type: 'RETRY_ARTIFACT_VISIBILITY' }
   | { readonly type: 'RETRY_ARTIFACT_END' }
   | { readonly type: 'RETRY_POST' }
   | { readonly type: 'RETRY_GUARDRAILS' }
@@ -182,6 +183,16 @@ export function createStudyMachine(ports: StudyRuntimePorts) {
             }),
         );
       },
+      retryArtifactVisibility: ({ context, self }) => {
+        void ports.retryArtifactTiming(requiredSessionId(context)).then(
+          () => self.send({ type: 'ARTIFACT_TIMING_WRITE_SUCCEEDED' }),
+          (error: unknown) =>
+            self.send({
+              type: 'ARTIFACT_TIMING_WRITE_FAILED',
+              errorCode: errorCode(error),
+            }),
+        );
+      },
       markIncompleteReload: ({ context }) => {
         ports.markIncompleteReload(requiredSessionId(context));
       },
@@ -200,6 +211,12 @@ export function createStudyMachine(ports: StudyRuntimePorts) {
       clearArtifactTimingError: assign({
         artifactTimingErrorKind: () => null,
         researchErrorCode: () => null,
+      }),
+      clearVisibilityTimingError: assign({
+        artifactTimingErrorKind: ({ context }) =>
+          context.artifactTimingErrorKind === 'visibility' ? null : context.artifactTimingErrorKind,
+        researchErrorCode: ({ context }) =>
+          context.artifactTimingErrorKind === 'visibility' ? null : context.researchErrorCode,
       }),
       storeFatalError: assign({
         fatalErrorCode: ({ event }) =>
@@ -295,11 +312,14 @@ export function createStudyMachine(ports: StudyRuntimePorts) {
             actions: ['incrementPendingArtifactTimingWrites', 'recordArtifactVisibility'],
           },
           ARTIFACT_TIMING_WRITE_SUCCEEDED: {
-            actions: 'decrementPendingArtifactTimingWrites',
+            actions: ['decrementPendingArtifactTimingWrites', 'clearVisibilityTimingError'],
           },
           ARTIFACT_TIMING_WRITE_FAILED: {
-            target: '.endError',
             actions: 'storeVisibilityTimingError',
+          },
+          RETRY_ARTIFACT_VISIBILITY: {
+            guard: 'visibilityTimingFailed',
+            actions: 'retryArtifactVisibility',
           },
         },
         states: {
@@ -387,34 +407,10 @@ export function createStudyMachine(ports: StudyRuntimePorts) {
           },
           endError: {
             on: {
-              RETRY_ARTIFACT_END: [
-                {
-                  guard: 'visibilityTimingFailed',
-                  target: 'retryingVisibilityTiming',
-                  actions: 'clearResearchError',
-                },
-                {
-                  guard: 'endTimingFailed',
-                  target: 'retryingEndTiming',
-                  actions: 'clearResearchError',
-                },
-              ],
-            },
-          },
-          retryingVisibilityTiming: {
-            invoke: {
-              id: 'retryArtifactVisibilityTiming',
-              src: 'retryArtifactTiming',
-              input: ({ context }) => ({ sessionId: requiredSessionId(context) }),
-              onDone: {
-                target: 'artifact',
-                actions: ['decrementPendingArtifactTimingWrites', 'clearArtifactTimingError'],
-              },
-              onError: {
-                target: 'endError',
-                actions: assign({
-                  researchErrorCode: ({ event }) => errorCode(event.error),
-                }),
+              RETRY_ARTIFACT_END: {
+                guard: 'endTimingFailed',
+                target: 'retryingEndTiming',
+                actions: 'clearResearchError',
               },
             },
           },

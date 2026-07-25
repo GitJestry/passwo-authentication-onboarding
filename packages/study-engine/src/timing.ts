@@ -24,6 +24,7 @@ export interface TimingScope {
 interface ScopeLifecycle {
   readonly startedAtMs: number;
   status: 'starting' | 'active' | 'ending' | 'ended';
+  startWrite: Promise<void> | null;
 }
 
 interface WriteAttempt {
@@ -37,6 +38,7 @@ interface QueuedTimingWrite {
   readonly onPersisted: () => void;
   attempt: WriteAttempt;
   status: 'queued' | 'writing' | 'failed';
+  error: unknown | null;
 }
 
 export const browserClock: ClockPort = {
@@ -69,6 +71,7 @@ export class StudyTimerController {
   readonly #queue: QueuedTimingWrite[] = [];
   #nextSequence = 0;
   #processing = false;
+  #activeSegmentScopeKey: string | null = null;
 
   constructor(clock: ClockPort, sink: TimingSink) {
     this.#clock = clock;
@@ -77,21 +80,41 @@ export class StudyTimerController {
 
   async start(scope: TimingScope): Promise<void> {
     const key = scopeKey(scope);
-    if (this.#scopeLifecycles.has(key)) {
+    const existingLifecycle = this.#scopeLifecycles.get(key);
+    if (existingLifecycle?.status === 'starting' && existingLifecycle.startWrite !== null) {
+      await existingLifecycle.startWrite;
+      return;
+    }
+    if (existingLifecycle?.status === 'starting' && this.#isFailedWrite(scope, 'start')) {
+      throw this.#failedWriteError(scope, 'start');
+    }
+    if (existingLifecycle?.status === 'active' && scope.segmentId !== undefined) {
+      return;
+    }
+    if (existingLifecycle !== undefined) {
       throw new Error(`Timing scope already started: ${key}`);
+    }
+    if (scope.segmentId !== undefined && this.#activeSegmentScopeKey !== null) {
+      throw new Error(`Timing segment already active: ${this.#activeSegmentScopeKey}`);
     }
 
     const startedAtMs = this.#clock.monotonicNow();
-    const lifecycle: ScopeLifecycle = { startedAtMs, status: 'starting' };
+    const lifecycle: ScopeLifecycle = { startedAtMs, status: 'starting', startWrite: null };
     this.#scopeLifecycles.set(key, lifecycle);
-    await this.#enqueue(scope, 'start', startedAtMs, null, null, () => {
+    if (scope.segmentId !== undefined) this.#activeSegmentScopeKey = key;
+    const startWrite = this.#enqueue(scope, 'start', startedAtMs, null, null, () => {
       lifecycle.status = 'active';
     });
+    lifecycle.startWrite = startWrite;
+    await startWrite;
   }
 
   async end(scope: TimingScope): Promise<number> {
     const key = scopeKey(scope);
     const lifecycle = this.#scopeLifecycles.get(key);
+    if (lifecycle?.status === 'ending' && this.#isFailedWrite(scope, 'end')) {
+      throw this.#failedWriteError(scope, 'end');
+    }
     if (lifecycle?.status !== 'active') {
       throw new Error(`Timing scope is not active: ${key}`);
     }
@@ -101,6 +124,7 @@ export class StudyTimerController {
     lifecycle.status = 'ending';
     await this.#enqueue(scope, 'end', endedAtMs, elapsedMs, null, () => {
       lifecycle.status = 'ended';
+      if (scope.segmentId !== undefined) this.#activeSegmentScopeKey = null;
     });
     return elapsedMs;
   }
@@ -136,6 +160,7 @@ export class StudyTimerController {
     }
 
     failed.attempt = createWriteAttempt();
+    failed.error = null;
     failed.status = 'queued';
     const retry = failed.attempt.promise;
     void this.#drain(true);
@@ -169,10 +194,30 @@ export class StudyTimerController {
       onPersisted,
       attempt: createWriteAttempt(),
       status: 'queued',
+      error: null,
     };
     this.#queue.push(queued);
     void this.#drain();
     await queued.attempt.promise;
+  }
+
+  #isFailedWrite(scope: TimingScope, eventType: TimingEventType): boolean {
+    const failed = this.#queue[0];
+    return (
+      failed?.status === 'failed' &&
+      failed.event.eventType === eventType &&
+      failed.event.phase === scope.phase &&
+      failed.event.sectionId === (scope.sectionId ?? null) &&
+      failed.event.segmentId === (scope.segmentId ?? null)
+    );
+  }
+
+  #failedWriteError(scope: TimingScope, eventType: TimingEventType): unknown {
+    const failed = this.#queue[0];
+    if (failed !== undefined && this.#isFailedWrite(scope, eventType) && failed.error !== null) {
+      return failed.error;
+    }
+    return new Error(`Timing write failed: ${scopeKey(scope)}:${eventType}`);
   }
 
   async #drain(pauseAfterFirstSuccess = false): Promise<void> {
@@ -188,6 +233,7 @@ export class StudyTimerController {
         await this.#sink.record(current.event);
       } catch (error) {
         current.status = 'failed';
+        current.error = error;
         current.attempt.reject(error);
         this.#processing = false;
         return;

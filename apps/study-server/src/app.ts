@@ -1,7 +1,6 @@
 import {
   type AssignmentMode,
   artifactLeaseResponseSchema,
-  artifactTimingEventSchema,
   completeSessionRequestSchema,
   createSessionRequestSchema,
   createSessionResponseSchema,
@@ -10,6 +9,7 @@ import {
   SUPPORTIVE_ARTIFACT_VERSION,
   saveResponseResponseSchema,
   sessionStatusResponseSchema,
+  studyTimingEventSchema,
   timingWriteResponseSchema,
 } from '@passwo/contracts';
 import Fastify, { type FastifyInstance } from 'fastify';
@@ -141,7 +141,7 @@ export function buildStudyServer({
     '/api/study/sessions/:sessionId/timing',
     async (request, reply) => {
       const { sessionId } = sessionParamsSchema.parse(request.params);
-      const body = artifactTimingEventSchema.parse(request.body);
+      const body = studyTimingEventSchema.parse(request.body);
       return reply.send(timingWriteResponseSchema.parse(repository.recordTiming(sessionId, body)));
     },
   );

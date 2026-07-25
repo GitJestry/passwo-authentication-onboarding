@@ -90,6 +90,97 @@ describe('StudyTimerController', () => {
     expect(events.slice(1)).toEqual([events[1], events[1]]);
   });
 
+  it('keeps artifact and segment boundaries on one sequence and rejects concurrent segments', async () => {
+    let now = 100;
+    const events: TimingEvent[] = [];
+    const sink: TimingSink = {
+      record: async (event) => {
+        events.push(event);
+      },
+    };
+    const timer = new StudyTimerController(
+      testClock(() => now),
+      sink,
+    );
+    const artifact = { phase: 'artifact' as const };
+    const s00 = {
+      phase: 'artifact' as const,
+      sectionId: 'passwords' as const,
+      segmentId: 'S00' as const,
+    };
+
+    await timer.start(artifact);
+    now = 125;
+    await timer.start(s00);
+    await expect(
+      timer.start({
+        phase: 'artifact',
+        sectionId: 'passwords',
+        segmentId: 'S01',
+      }),
+    ).rejects.toThrow('Timing segment already active');
+    now = 425;
+    await expect(timer.end(s00)).resolves.toBe(300);
+    now = 600;
+    await timer.markVisibility(artifact, false);
+    now = 800;
+    await expect(timer.end(artifact)).resolves.toBe(700);
+
+    expect(
+      events.map(({ sequence, segmentId, eventType }) => ({ sequence, segmentId, eventType })),
+    ).toEqual([
+      { sequence: 0, segmentId: null, eventType: 'start' },
+      { sequence: 1, segmentId: 'S00', eventType: 'start' },
+      { sequence: 2, segmentId: 'S00', eventType: 'end' },
+      { sequence: 3, segmentId: null, eventType: 'visibility-hidden' },
+      { sequence: 4, segmentId: null, eventType: 'end' },
+    ]);
+  });
+
+  it('retries a failed segment start without creating another event', async () => {
+    let now = 100;
+    let segmentStartAttempts = 0;
+    const events: TimingEvent[] = [];
+    const sink: TimingSink = {
+      record: async (event) => {
+        events.push(event);
+        if (
+          event.segmentId === 'S00' &&
+          event.eventType === 'start' &&
+          segmentStartAttempts++ === 0
+        ) {
+          throw new Error('segment-start-write-failed');
+        }
+      },
+    };
+    const timer = new StudyTimerController(
+      testClock(() => now),
+      sink,
+    );
+    const s00 = {
+      phase: 'artifact' as const,
+      sectionId: 'passwords' as const,
+      segmentId: 'S00' as const,
+    };
+
+    await timer.start({ phase: 'artifact' });
+    now = 150;
+    await expect(timer.start(s00)).rejects.toThrow('segment-start-write-failed');
+    now = 500;
+    await expect(timer.start(s00)).rejects.toThrow('segment-start-write-failed');
+    await expect(timer.retryFailed()).resolves.toMatchObject({
+      sequence: 1,
+      elapsedMs: null,
+    });
+
+    const segmentStarts = events.filter(
+      (event) => event.segmentId === 'S00' && event.eventType === 'start',
+    );
+    expect(segmentStarts).toHaveLength(2);
+    expect(segmentStarts[0]).toEqual(segmentStarts[1]);
+    expect(segmentStarts[0]).toMatchObject({ sequence: 1, elapsedMs: null });
+  });
+
   it('serializes simultaneous visibility and end writes and makes end wait', async () => {
     let now = 100;
     const visibilityGate = deferred();

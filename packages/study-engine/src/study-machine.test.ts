@@ -141,7 +141,7 @@ describe('studyMachine', () => {
     expect(retryCalls).toBe(1);
   });
 
-  it('blocks completion on a failed visibility write and retries it before ending once', async () => {
+  it('keeps the supportive segment mounted while a failed visibility write is retried', async () => {
     let lifecycleInput: ArtifactLifecycleInput | null = null;
     let visibilityAttempts = 0;
     let endCalls = 0;
@@ -181,8 +181,14 @@ describe('studyMachine', () => {
     const lifecycle = requiredLifecycleInput(lifecycleInput);
     lifecycle.onVisibilityChange(false);
     actor.send({ type: 'ARTIFACT_COMPLETED' });
-    await waitForState(actor, () => actor.getSnapshot().matches({ artifactLifecycle: 'endError' }));
+    await waitForState(
+      actor,
+      () => actor.getSnapshot().context.artifactTimingErrorKind === 'visibility',
+    );
 
+    expect(actor.getSnapshot().matches({ artifactLifecycle: { artifact: 'supportive' } })).toBe(
+      true,
+    );
     expect(actor.getSnapshot().context.artifactTimingErrorKind).toBe('visibility');
     expect(actor.getSnapshot().context.pendingArtifactTimingWrites).toBe(1);
     expect(actor.getSnapshot().context.artifactCompletionRequested).toBe(true);
@@ -190,7 +196,7 @@ describe('studyMachine', () => {
     expect(visibilityAttempts).toBe(1);
     expect(endCalls).toBe(0);
 
-    actor.send({ type: 'RETRY_ARTIFACT_END' });
+    actor.send({ type: 'RETRY_ARTIFACT_VISIBILITY' });
     await waitForState(actor, () => actor.getSnapshot().matches('postQuestionnaire'));
 
     expect(retryCalls).toBe(1);

@@ -79,6 +79,40 @@ export const artifactTimingEventSchema = z.discriminatedUnion('eventType', [
 ]);
 export type ArtifactTimingEvent = z.infer<typeof artifactTimingEventSchema>;
 
+const supportiveSegmentTimingBaseShape = {
+  sequence: z.number().int().nonnegative(),
+  phase: z.literal('artifact'),
+  sectionId: z.literal('passwords'),
+  segmentId: z.literal('S00'),
+  clientMonotonicMs: z.number().finite().nonnegative(),
+  clientWallClockIso: z.iso.datetime(),
+  reasonCode: z.null(),
+};
+
+export const supportiveSegmentTimingEventSchema = z.discriminatedUnion('eventType', [
+  z
+    .object({
+      ...supportiveSegmentTimingBaseShape,
+      eventType: z.literal('start'),
+      elapsedMs: z.null(),
+    })
+    .strict(),
+  z
+    .object({
+      ...supportiveSegmentTimingBaseShape,
+      eventType: z.literal('end'),
+      elapsedMs: z.number().finite().nonnegative(),
+    })
+    .strict(),
+]);
+export type SupportiveSegmentTimingEvent = z.infer<typeof supportiveSegmentTimingEventSchema>;
+
+export const studyTimingEventSchema = z.union([
+  artifactTimingEventSchema,
+  supportiveSegmentTimingEventSchema,
+]);
+export type StudyTimingEvent = z.infer<typeof studyTimingEventSchema>;
+
 export const timingWriteResponseSchema = z
   .object({
     recorded: z.boolean(),

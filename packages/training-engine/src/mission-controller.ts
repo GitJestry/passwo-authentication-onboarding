@@ -15,6 +15,8 @@ export interface SegmentTimingEvent {
 
 export interface SegmentTimingPort {
   record(event: SegmentTimingEvent): Promise<void>;
+  retry?(): Promise<void>;
+  readonly blocksMissionTiming?: boolean;
 }
 
 export interface MissionControllerOptions {
@@ -33,6 +35,7 @@ export class MissionController {
   #mission: MissionDefinition | null = null;
   #disposed = false;
   #completionNotified = false;
+  #timingStatus: 'not-started' | 'start-failed' | 'active' | 'end-failed' | 'ended' = 'not-started';
 
   constructor({ animationPlayer, timingPort, onComplete }: MissionControllerOptions) {
     this.#animationPlayer = animationPlayer;
@@ -50,14 +53,48 @@ export class MissionController {
     return () => subscription.unsubscribe();
   }
 
-  start(mission: MissionDefinition): void {
+  async start(mission: MissionDefinition): Promise<void> {
     if (this.#mission !== null) {
       throw new Error('Mission controller has already started a mission.');
     }
 
     this.#mission = mission;
+    if (!this.#blocksMissionTiming()) {
+      this.#timingStatus = 'active';
+      this.#startMission();
+      void this.#recordTiming('segment-start').catch(() => undefined);
+      return;
+    }
+    try {
+      await this.#recordTiming('segment-start');
+    } catch (error) {
+      this.#timingStatus = 'start-failed';
+      throw error;
+    }
+    this.#timingStatus = 'active';
+    this.#startMission();
+  }
+
+  async retryTiming(): Promise<void> {
+    if (this.#timingStatus === 'start-failed') {
+      await this.#retryTimingWrite('segment-start');
+      this.#timingStatus = 'active';
+      this.#startMission();
+      return;
+    }
+    if (this.#timingStatus === 'end-failed') {
+      await this.#retryTimingWrite('segment-end');
+      this.#timingStatus = 'ended';
+      this.#notifyComplete();
+      return;
+    }
+    throw new Error('No failed segment timing write to retry.');
+  }
+
+  #startMission(): void {
+    const mission = this.#mission;
+    if (mission === null || this.#disposed) return;
     this.#actor.send({ type: 'START', mission });
-    void this.#recordTiming('segment-start');
     void this.#playCurrentStep();
   }
 
@@ -79,9 +116,20 @@ export class MissionController {
     this.#actor.send({ type: 'CONTINUE' });
     if (this.#actor.getSnapshot().status === 'done') {
       if (this.#completionNotified) return;
-      this.#completionNotified = true;
-      await this.#recordTiming('segment-end');
-      if (!this.#disposed) this.#onComplete();
+      if (!this.#blocksMissionTiming()) {
+        this.#timingStatus = 'ended';
+        void this.#recordTiming('segment-end').catch(() => undefined);
+        this.#notifyComplete();
+        return;
+      }
+      try {
+        await this.#recordTiming('segment-end');
+      } catch (error) {
+        this.#timingStatus = 'end-failed';
+        throw error;
+      }
+      this.#timingStatus = 'ended';
+      this.#notifyComplete();
       return;
     }
 
@@ -120,15 +168,28 @@ export class MissionController {
   async #recordTiming(eventType: SegmentTimingEvent['eventType']): Promise<void> {
     const mission = this.#mission;
     if (mission === null || this.#timingPort === undefined) return;
+    await this.#timingPort.record({
+      eventType,
+      segmentId: mission.segmentId,
+      sectionId: mission.sectionId,
+    });
+  }
 
-    try {
-      await this.#timingPort.record({
-        eventType,
-        segmentId: mission.segmentId,
-        sectionId: mission.sectionId,
-      });
-    } catch {
-      // Segment diagnostics must never block the participant-facing mission.
+  async #retryTimingWrite(eventType: SegmentTimingEvent['eventType']): Promise<void> {
+    if (this.#timingPort?.retry !== undefined) {
+      await this.#timingPort.retry();
+      return;
     }
+    await this.#recordTiming(eventType);
+  }
+
+  #notifyComplete(): void {
+    if (this.#completionNotified || this.#disposed) return;
+    this.#completionNotified = true;
+    this.#onComplete();
+  }
+
+  #blocksMissionTiming(): boolean {
+    return this.#timingPort?.blocksMissionTiming === true;
   }
 }

@@ -395,6 +395,171 @@ describe('study server walking skeleton', () => {
     expect(visible.json()).toEqual({ recorded: true, artifactWallClockMs: null });
   });
 
+  it('persists only serial supportive S00 segment boundaries in the shared timing sequence', async () => {
+    const supportiveServer = createServer('forced-supportive');
+    const supportiveSession = await createSession(supportiveServer);
+    await supportiveServer.inject({
+      method: 'POST',
+      url: `/api/study/sessions/${supportiveSession.sessionId}/responses`,
+      payload: {
+        instrumentId: 'pre-placeholder',
+        itemId: 'placeholder-complete',
+        value: true,
+      },
+    });
+    await supportiveServer.inject({
+      method: 'POST',
+      url: `/api/study/sessions/${supportiveSession.sessionId}/timing`,
+      payload: {
+        sequence: 0,
+        phase: 'artifact',
+        sectionId: null,
+        segmentId: null,
+        eventType: 'start',
+        clientMonotonicMs: 100,
+        clientWallClockIso: '2026-07-24T12:00:00.000Z',
+        elapsedMs: null,
+        reasonCode: null,
+      },
+    });
+    const segmentStart = {
+      sequence: 1,
+      phase: 'artifact',
+      sectionId: 'passwords',
+      segmentId: 'S00',
+      eventType: 'start',
+      clientMonotonicMs: 125,
+      clientWallClockIso: '2026-07-24T12:00:00.000Z',
+      elapsedMs: null,
+      reasonCode: null,
+    };
+    const start = await supportiveServer.inject({
+      method: 'POST',
+      url: `/api/study/sessions/${supportiveSession.sessionId}/timing`,
+      payload: segmentStart,
+    });
+    const repeatedStart = await supportiveServer.inject({
+      method: 'POST',
+      url: `/api/study/sessions/${supportiveSession.sessionId}/timing`,
+      payload: segmentStart,
+    });
+    const concurrentStart = await supportiveServer.inject({
+      method: 'POST',
+      url: `/api/study/sessions/${supportiveSession.sessionId}/timing`,
+      payload: { ...segmentStart, sequence: 2, clientMonotonicMs: 150 },
+    });
+    const segmentEnd = {
+      ...segmentStart,
+      sequence: 2,
+      eventType: 'end',
+      clientMonotonicMs: 425,
+      elapsedMs: 300,
+    };
+    const end = await supportiveServer.inject({
+      method: 'POST',
+      url: `/api/study/sessions/${supportiveSession.sessionId}/timing`,
+      payload: segmentEnd,
+    });
+    const repeatedEnd = await supportiveServer.inject({
+      method: 'POST',
+      url: `/api/study/sessions/${supportiveSession.sessionId}/timing`,
+      payload: segmentEnd,
+    });
+    const artifactEnd = await supportiveServer.inject({
+      method: 'POST',
+      url: `/api/study/sessions/${supportiveSession.sessionId}/timing`,
+      payload: {
+        sequence: 3,
+        phase: 'artifact',
+        sectionId: null,
+        segmentId: null,
+        eventType: 'end',
+        clientMonotonicMs: 600,
+        clientWallClockIso: '2026-07-24T12:00:00.000Z',
+        elapsedMs: 500,
+        reasonCode: null,
+      },
+    });
+
+    expect(start.json()).toEqual({ recorded: true, artifactWallClockMs: null });
+    expect(repeatedStart.json()).toEqual({ recorded: false, artifactWallClockMs: null });
+    expect(concurrentStart.statusCode).toBe(409);
+    expect(concurrentStart.json()).toEqual({ errorCode: 'segment-already-active' });
+    expect(end.json()).toEqual({ recorded: true, artifactWallClockMs: null });
+    expect(repeatedEnd.json()).toEqual({ recorded: false, artifactWallClockMs: null });
+    expect(artifactEnd.json()).toEqual({ recorded: true, artifactWallClockMs: 500 });
+
+    const unorderedSession = await createSession(supportiveServer, 3);
+    await supportiveServer.inject({
+      method: 'POST',
+      url: `/api/study/sessions/${unorderedSession.sessionId}/responses`,
+      payload: {
+        instrumentId: 'pre-placeholder',
+        itemId: 'placeholder-complete',
+        value: true,
+      },
+    });
+    await supportiveServer.inject({
+      method: 'POST',
+      url: `/api/study/sessions/${unorderedSession.sessionId}/timing`,
+      payload: {
+        sequence: 0,
+        phase: 'artifact',
+        sectionId: null,
+        segmentId: null,
+        eventType: 'start',
+        clientMonotonicMs: 100,
+        clientWallClockIso: '2026-07-24T12:00:00.000Z',
+        elapsedMs: null,
+        reasonCode: null,
+      },
+    });
+    const rejectedUnorderedEnd = await supportiveServer.inject({
+      method: 'POST',
+      url: `/api/study/sessions/${unorderedSession.sessionId}/timing`,
+      payload: { ...segmentEnd, sequence: 1 },
+    });
+    expect(rejectedUnorderedEnd.statusCode).toBe(409);
+    expect(rejectedUnorderedEnd.json()).toEqual({ errorCode: 'segment-start-required' });
+
+    const referenceServer = createServer('forced-reference');
+    const referenceSession = await createSession(referenceServer, 2);
+    await referenceServer.inject({
+      method: 'POST',
+      url: `/api/study/sessions/${referenceSession.sessionId}/responses`,
+      payload: {
+        instrumentId: 'pre-placeholder',
+        itemId: 'placeholder-complete',
+        value: true,
+      },
+    });
+    await referenceServer.inject({
+      method: 'POST',
+      url: `/api/study/sessions/${referenceSession.sessionId}/timing`,
+      payload: {
+        sequence: 0,
+        phase: 'artifact',
+        sectionId: null,
+        segmentId: null,
+        eventType: 'start',
+        clientMonotonicMs: 100,
+        clientWallClockIso: '2026-07-24T12:00:00.000Z',
+        elapsedMs: null,
+        reasonCode: null,
+      },
+    });
+    const rejectedReferenceSegment = await referenceServer.inject({
+      method: 'POST',
+      url: `/api/study/sessions/${referenceSession.sessionId}/timing`,
+      payload: segmentStart,
+    });
+
+    expect(rejectedReferenceSegment.statusCode).toBe(409);
+    expect(rejectedReferenceSegment.json()).toEqual({
+      errorCode: 'segment-timing-not-supported',
+    });
+  });
+
   it('rejects reference visibility timing and marks only active artifacts incomplete', async () => {
     const referenceServer = createServer('forced-reference');
     const referenceSession = await createSession(referenceServer);

@@ -4,10 +4,10 @@ import {
   MissionController,
   type MissionDefinition,
   type MissionSnapshot,
+  type SegmentTimingPort,
 } from '@passwo/training-engine';
 import { BrowserShell, type BrowserShellSnapshot } from '@passwo/ui';
 import { useEffect, useRef, useState } from 'react';
-import { BrowserSegmentTimingAdapter } from '../../adapters/animation/BrowserSegmentTimingAdapter.js';
 import { MotionAnimationAdapter } from '../../adapters/animation/MotionAnimationAdapter.js';
 import {
   createInitialS00SceneSnapshot,
@@ -95,16 +95,23 @@ function PassWoSpeech({ displayName }: { readonly displayName: string }) {
 export interface S00TrainingProps {
   readonly displayName: string;
   readonly onComplete: () => void;
+  readonly timingPort?: SegmentTimingPort;
+  readonly externalTimingError?: string | null;
+  readonly onRetryExternalTiming?: () => void;
   readonly forceAnimationFailure?: boolean;
 }
 
 export function S00Training({
   displayName,
   onComplete,
+  timingPort,
+  externalTimingError = null,
+  onRetryExternalTiming,
   forceAnimationFailure = false,
 }: S00TrainingProps) {
   const [scene, setScene] = useState<S00SceneSnapshot>(createInitialS00SceneSnapshot);
   const [missionSnapshot, setMissionSnapshot] = useState<MissionSnapshot | null>(null);
+  const [timingError, setTimingError] = useState<string | null>(null);
   const [characterRenderer] = useState(
     () =>
       new PassWoCharacterRenderer(
@@ -129,20 +136,25 @@ export function S00Training({
     });
     const controller = new MissionController({
       animationPlayer,
-      timingPort: new BrowserSegmentTimingAdapter(),
+      ...(timingPort === undefined ? {} : { timingPort }),
       onComplete: () => onCompleteRef.current(),
     });
     const unsubscribe = controller.subscribe(setMissionSnapshot);
     controllerRef.current = controller;
     setMissionSnapshot(controller.getSnapshot());
-    controller.start(mission);
+    let disposed = false;
+    void controller.start(mission).catch((error: unknown) => {
+      if (!disposed)
+        setTimingError(error instanceof Error ? error.message : 'research-data-write-failed');
+    });
 
     return () => {
+      disposed = true;
       unsubscribe();
       controllerRef.current = null;
       void controller.dispose();
     };
-  }, [forceAnimationFailure]);
+  }, [forceAnimationFailure, timingPort]);
 
   const characterState = toCharacterRendererState(scene.character);
   useEffect(() => {
@@ -162,6 +174,31 @@ export function S00Training({
     ...browserSnapshot,
     dimmed: characterObscuresStage(characterState),
   };
+  const activeTimingError = timingError ?? externalTimingError;
+
+  function retryTiming(): void {
+    if (timingError === null) {
+      onRetryExternalTiming?.();
+      return;
+    }
+    const controller = controllerRef.current;
+    if (controller === null) return;
+    void controller.retryTiming().then(
+      () => setTimingError(null),
+      (error: unknown) =>
+        setTimingError(error instanceof Error ? error.message : 'research-data-write-failed'),
+    );
+  }
+
+  function continueMission(): void {
+    const controller = controllerRef.current;
+    if (controller === null) return;
+    void controller
+      .continue()
+      .catch((error: unknown) =>
+        setTimingError(error instanceof Error ? error.message : 'research-data-write-failed'),
+      );
+  }
 
   return (
     <section className={styles.training} aria-label={s00Content.trainingAriaLabel}>
@@ -190,46 +227,63 @@ export function S00Training({
           ...(guideOpen ? { speech: <PassWoSpeech displayName={displayName} /> } : {}),
           controls: (
             <div className={styles.controls}>
-              {animationError !== null ? (
-                <p className={styles.animationError} role="status">
-                  {s00Content.controls.animationError}
-                </p>
-              ) : null}
-              <label className={styles.acknowledgement}>
-                <input
-                  type="checkbox"
-                  checked={safetyAcknowledged}
-                  disabled={!awaitingDecision || !safetyVisible}
-                  onChange={(event) =>
-                    controllerRef.current?.setSafetyAcknowledged(event.currentTarget.checked)
-                  }
-                />
-                <span>{s00Content.safety.acknowledgement}</span>
-              </label>
-              <div className={styles.buttonRow}>
-                <button
-                  type="button"
-                  className={styles.secondaryButton}
-                  disabled={!awaitingDecision}
-                  onClick={() => controllerRef.current?.replay()}
-                >
-                  {s00Content.controls.replay}
-                </button>
-                <button
-                  type="button"
-                  className={styles.primaryButton}
-                  disabled={!canContinue}
-                  aria-describedby={canContinue ? undefined : 's00-continue-reason'}
-                  onClick={() => void controllerRef.current?.continue()}
-                >
-                  {s00Content.controls.continue}
-                </button>
-              </div>
-              {!canContinue ? (
-                <p id="s00-continue-reason" className={styles.continueReason}>
-                  {s00Content.controls.continueReason}
-                </p>
-              ) : null}
+              {activeTimingError === null ? (
+                <>
+                  {animationError !== null ? (
+                    <p className={styles.animationError} role="status">
+                      {s00Content.controls.animationError}
+                    </p>
+                  ) : null}
+                  <label className={styles.acknowledgement}>
+                    <input
+                      type="checkbox"
+                      checked={safetyAcknowledged}
+                      disabled={!awaitingDecision || !safetyVisible}
+                      onChange={(event) =>
+                        controllerRef.current?.setSafetyAcknowledged(event.currentTarget.checked)
+                      }
+                    />
+                    <span>{s00Content.safety.acknowledgement}</span>
+                  </label>
+                  <div className={styles.buttonRow}>
+                    <button
+                      type="button"
+                      className={styles.secondaryButton}
+                      disabled={!awaitingDecision}
+                      onClick={() => controllerRef.current?.replay()}
+                    >
+                      {s00Content.controls.replay}
+                    </button>
+                    <button
+                      type="button"
+                      className={styles.primaryButton}
+                      disabled={!canContinue}
+                      aria-describedby={canContinue ? undefined : 's00-continue-reason'}
+                      onClick={continueMission}
+                    >
+                      {s00Content.controls.continue}
+                    </button>
+                  </div>
+                  {!canContinue ? (
+                    <p id="s00-continue-reason" className={styles.continueReason}>
+                      {s00Content.controls.continueReason}
+                    </p>
+                  ) : null}
+                </>
+              ) : (
+                <>
+                  <p className={styles.animationError} role="alert">
+                    Das Speichern des Zeitereignisses ist fehlgeschlagen. Der nächste Schritt bleibt
+                    gesperrt.
+                  </p>
+                  <p className={styles.continueReason}>Fehlercode: {activeTimingError}</p>
+                  <div className={styles.buttonRow}>
+                    <button type="button" className={styles.primaryButton} onClick={retryTiming}>
+                      Erneut versuchen
+                    </button>
+                  </div>
+                </>
+              )}
             </div>
           ),
         }}

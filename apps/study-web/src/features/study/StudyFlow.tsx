@@ -1,6 +1,7 @@
 import { createStudyMachine } from '@passwo/study-engine';
 import { useMachine } from '@xstate/react';
 import { type FormEvent, type ReactNode, useMemo, useState } from 'react';
+import { BrowserSegmentTimingAdapter } from '../../adapters/animation/BrowserSegmentTimingAdapter.js';
 import { createStudyApi } from '../../api/study-api.js';
 import { S00Training } from '../training/S00Training.js';
 import styles from './StudyFlow.module.css';
@@ -121,11 +122,25 @@ function NameEntry({ onSubmit }: { readonly onSubmit: (displayName: string) => v
 function SupportiveArtifact({
   displayName,
   onComplete,
+  timingPort,
+  timingError,
+  onRetryTiming,
 }: {
   readonly displayName: string;
   readonly onComplete: () => void;
+  readonly timingPort: BrowserSegmentTimingAdapter;
+  readonly timingError: string | null;
+  readonly onRetryTiming: () => void;
 }) {
-  return <S00Training displayName={displayName} onComplete={onComplete} />;
+  return (
+    <S00Training
+      displayName={displayName}
+      onComplete={onComplete}
+      timingPort={timingPort}
+      externalTimingError={timingError}
+      onRetryExternalTiming={onRetryTiming}
+    />
+  );
 }
 
 function ReferenceArtifact({ onComplete }: { readonly onComplete: () => void }) {
@@ -177,6 +192,10 @@ export function StudyFlow() {
   const machine = useMemo(() => createStudyMachine(api), [api]);
   const [snapshot, send] = useMachine(machine);
   const { context } = snapshot;
+  const segmentTimingPort = useMemo(() => {
+    if (context.sessionId === null || context.condition !== 'supportive') return null;
+    return new BrowserSegmentTimingAdapter(api.createSegmentTimingPort(context.sessionId));
+  }, [api, context.condition, context.sessionId]);
 
   let content: ReactNode;
   let step = 'Studienstart';
@@ -223,10 +242,18 @@ export function StudyFlow() {
     );
     step = 'Artefakt';
   } else if (snapshot.matches({ artifactLifecycle: { artifact: 'supportive' } })) {
+    if (segmentTimingPort === null) {
+      throw new Error('missing-segment-timing-port');
+    }
     content = (
       <SupportiveArtifact
         displayName={context.displayName ?? ''}
         onComplete={() => send({ type: 'ARTIFACT_COMPLETED' })}
+        timingPort={segmentTimingPort}
+        timingError={
+          context.artifactTimingErrorKind === 'visibility' ? context.researchErrorCode : null
+        }
+        onRetryTiming={() => send({ type: 'RETRY_ARTIFACT_VISIBILITY' })}
       />
     );
     step = 'Artefakt';

@@ -99,6 +99,36 @@ describe('research export', () => {
       payload: {
         sequence: 1,
         phase: 'artifact',
+        sectionId: 'passwords',
+        segmentId: 'S00',
+        eventType: 'start',
+        clientMonotonicMs: 200,
+        clientWallClockIso: '2026-07-24T12:00:00.000Z',
+        elapsedMs: null,
+        reasonCode: null,
+      },
+    });
+    await server.inject({
+      method: 'POST',
+      url: `/api/study/sessions/${completedSessionId}/timing`,
+      payload: {
+        sequence: 2,
+        phase: 'artifact',
+        sectionId: 'passwords',
+        segmentId: 'S00',
+        eventType: 'end',
+        clientMonotonicMs: 600,
+        clientWallClockIso: '2026-07-24T12:00:00.000Z',
+        elapsedMs: 400,
+        reasonCode: null,
+      },
+    });
+    await server.inject({
+      method: 'POST',
+      url: `/api/study/sessions/${completedSessionId}/timing`,
+      payload: {
+        sequence: 3,
+        phase: 'artifact',
         sectionId: null,
         segmentId: null,
         eventType: 'end',
@@ -163,8 +193,30 @@ describe('research export', () => {
     expect(second.manifest).toEqual(first.manifest);
     expect(sessions).toHaveLength(3);
     expect(responses).toHaveLength(4);
+    expect(timing).toContainEqual(
+      expect.objectContaining({
+        sessionId: completedSessionId,
+        sequence: 1,
+        phase: 'artifact',
+        sectionId: 'passwords',
+        segmentId: 'S00',
+        eventType: 'start',
+        elapsedMs: null,
+      }),
+    );
+    expect(timing).toContainEqual(
+      expect.objectContaining({
+        sessionId: completedSessionId,
+        sequence: 2,
+        phase: 'artifact',
+        sectionId: 'passwords',
+        segmentId: 'S00',
+        eventType: 'end',
+        elapsedMs: 400,
+      }),
+    );
     expect(JSON.stringify({ sessions, timing, responses })).not.toMatch(
-      /display.?name|password|training.?input|request.?body|user.?agent|ip.?address|heartbeat/iu,
+      /display.?name|password.?value|password.?input|password.?part|training.?input|request.?body|user.?agent|ip.?address|heartbeat/iu,
     );
     expect(readFileSync(join(firstOutputDirectory, 'sessions.csv'), 'utf8')).toMatch(
       /^sessionId,participantCode,condition,assignmentMode,studyVersion,contentVersion/u,

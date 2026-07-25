@@ -10,6 +10,7 @@ import {
   REFERENCE_PLACEHOLDER_ARTIFACT_VERSION,
   researchExportManifestSchema,
   SUPPORTIVE_ARTIFACT_VERSION,
+  studyTimingEventSchema,
 } from './index.js';
 
 const authoredComparisonFixture = {
@@ -105,6 +106,36 @@ describe('research-safe contracts', () => {
     expect(
       artifactTimingEventSchema.safeParse({ ...visibilityEvent, eventType: 'pause' }).success,
     ).toBe(false);
+  });
+
+  it('allows only the approved supportive S00 segment boundaries', () => {
+    const segmentStart = {
+      sequence: 1,
+      phase: 'artifact',
+      sectionId: 'passwords',
+      segmentId: 'S00',
+      eventType: 'start',
+      clientMonotonicMs: 125,
+      clientWallClockIso: '2026-07-24T12:00:00.000Z',
+      elapsedMs: null,
+      reasonCode: null,
+    };
+
+    expect(studyTimingEventSchema.safeParse(segmentStart).success).toBe(true);
+    expect(
+      studyTimingEventSchema.safeParse({
+        ...segmentStart,
+        eventType: 'end',
+        elapsedMs: 225,
+      }).success,
+    ).toBe(true);
+    expect(studyTimingEventSchema.safeParse({ ...segmentStart, segmentId: 'S01' }).success).toBe(
+      false,
+    );
+    expect(studyTimingEventSchema.safeParse({ ...segmentStart, sectionId: 'mfa' }).success).toBe(
+      false,
+    );
+    expect(studyTimingEventSchema.safeParse({ ...segmentStart, elapsedMs: 0 }).success).toBe(false);
   });
 
   it('keeps researcher exports inside the approved data boundary', () => {

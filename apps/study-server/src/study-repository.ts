@@ -1,5 +1,4 @@
 import {
-  type ArtifactTimingEvent,
   type AssignmentMode,
   type CreateSessionRequest,
   type CreateSessionResponse,
@@ -7,6 +6,7 @@ import {
   type PlaceholderInstrumentId,
   type PlaceholderResponseRequest,
   type StudyCondition,
+  type StudyTimingEvent,
   studyConditionSchema,
   type TimingWriteResponse,
 } from '@passwo/contracts';
@@ -51,6 +51,8 @@ const statusSchema = z.object({ completionStatus: z.string() });
 const conditionSchema = z.object({ condition: studyConditionSchema });
 const timingIdentitySchema = z.object({
   phase: z.string(),
+  sectionId: z.string().nullable(),
+  segmentId: z.string().nullable(),
   eventType: z.string(),
 });
 const timingMaximumSchema = z.object({ maximum: z.number().int() });
@@ -100,6 +102,7 @@ export class StudyRepository {
     this.#versions = options.versions;
     this.#random = options.random;
     this.#nowIso = options.nowIso ?? (() => new Date().toISOString());
+    this.#ensureArtifactBoundaryIndex();
   }
 
   createSession(request: CreateSessionRequest): CreateSessionResponse {
@@ -220,13 +223,17 @@ export class StudyRepository {
       );
   }
 
-  recordTiming(sessionId: string, event: ArtifactTimingEvent): TimingWriteResponse {
+  recordTiming(sessionId: string, event: StudyTimingEvent): TimingWriteResponse {
     this.recoverStaleArtifactSessions();
     const record = this.#database.transaction(() => {
       const existingSequence = timingIdentitySchema.nullable().parse(
         this.#database
           .prepare(
-            `SELECT phase, event_type AS eventType
+            `SELECT
+              phase,
+              section_id AS sectionId,
+              segment_id AS segmentId,
+              event_type AS eventType
                FROM timing_events
                WHERE session_id = ? AND sequence = ?`,
           )
@@ -235,6 +242,8 @@ export class StudyRepository {
       if (existingSequence !== null) {
         if (
           existingSequence.phase !== event.phase ||
+          existingSequence.sectionId !== event.sectionId ||
+          existingSequence.segmentId !== event.segmentId ||
           existingSequence.eventType !== event.eventType
         ) {
           throw new StudyRepositoryError('timing-sequence-conflict', 409);
@@ -247,21 +256,27 @@ export class StudyRepository {
 
       this.#requireInProgress(sessionId);
 
-      if (event.eventType === 'start') {
-        this.#requirePreCompleted(sessionId);
-      }
-      if (event.eventType === 'end') {
-        this.#requireArtifactStarted(sessionId);
-      }
-      if (event.eventType === 'visibility-hidden' || event.eventType === 'visibility-visible') {
-        this.#requireSupportiveArtifactActive(sessionId);
-      }
-
-      if (event.eventType === 'start' || event.eventType === 'end') {
-        const existingBoundary = this.#artifactBoundaryCount(sessionId, event.eventType);
-        if (existingBoundary > 0) {
-          throw new StudyRepositoryError(`artifact-${event.eventType}-already-recorded`, 409);
+      if (event.segmentId === null) {
+        if (event.eventType === 'start') {
+          this.#requirePreCompleted(sessionId);
         }
+        if (event.eventType === 'end') {
+          this.#requireArtifactStarted(sessionId);
+        }
+        if (event.eventType === 'visibility-hidden' || event.eventType === 'visibility-visible') {
+          this.#requireSupportiveArtifactActive(sessionId);
+        }
+
+        if (event.eventType === 'start' || event.eventType === 'end') {
+          const existingBoundary = this.#artifactBoundaryCount(sessionId, event.eventType);
+          if (existingBoundary > 0) {
+            throw new StudyRepositoryError(`artifact-${event.eventType}-already-recorded`, 409);
+          }
+        }
+      } else if (event.eventType === 'start') {
+        this.#requireSegmentStart(sessionId);
+      } else {
+        this.#requireSegmentEnd(sessionId);
       }
 
       const maximum = timingMaximumSchema.parse(
@@ -623,14 +638,17 @@ export class StudyRepository {
     }
   }
 
-  #requireSupportiveArtifactActive(sessionId: string): void {
+  #requireSupportiveArtifactActive(
+    sessionId: string,
+    unsupportedErrorCode = 'visibility-timing-not-supported',
+  ): void {
     const condition = conditionSchema.parse(
       this.#database
         .prepare(`SELECT condition FROM study_sessions WHERE session_id = ?`)
         .get(sessionId),
     ).condition;
     if (condition !== 'supportive') {
-      throw new StudyRepositoryError('visibility-timing-not-supported', 409);
+      throw new StudyRepositoryError(unsupportedErrorCode, 409);
     }
     this.#requireArtifactStarted(sessionId);
     if (this.#artifactBoundaryCount(sessionId, 'end') > 0) {
@@ -644,7 +662,11 @@ export class StudyRepository {
         .prepare(
           `SELECT COUNT(*) AS count
            FROM timing_events
-           WHERE session_id = ? AND phase = 'artifact' AND event_type = ?`,
+           WHERE session_id = ?
+             AND phase = 'artifact'
+             AND section_id IS NULL
+             AND segment_id IS NULL
+             AND event_type = ?`,
         )
         .get(sessionId, eventType),
     ).count;
@@ -694,11 +716,66 @@ export class StudyRepository {
             MAX(CASE WHEN event_type = 'start' THEN client_monotonic_ms END) AS startedAt,
             MAX(CASE WHEN event_type = 'end' THEN client_monotonic_ms END) AS endedAt
            FROM timing_events
-           WHERE session_id = ? AND phase = 'artifact'`,
+           WHERE session_id = ?
+             AND phase = 'artifact'
+             AND section_id IS NULL
+             AND segment_id IS NULL`,
         )
         .get(sessionId),
     );
     if (bounds.startedAt === null || bounds.endedAt === null) return null;
     return bounds.endedAt - bounds.startedAt;
+  }
+
+  #requireSegmentStart(sessionId: string): void {
+    this.#requireSupportiveArtifactActive(sessionId, 'segment-timing-not-supported');
+    const starts = this.#segmentBoundaryCount(sessionId, 'start');
+    const ends = this.#segmentBoundaryCount(sessionId, 'end');
+    if (starts > ends) {
+      throw new StudyRepositoryError('segment-already-active', 409);
+    }
+    if (starts > 0) {
+      throw new StudyRepositoryError('segment-start-already-recorded', 409);
+    }
+  }
+
+  #requireSegmentEnd(sessionId: string): void {
+    this.#requireSupportiveArtifactActive(sessionId, 'segment-timing-not-supported');
+    const starts = this.#segmentBoundaryCount(sessionId, 'start');
+    const ends = this.#segmentBoundaryCount(sessionId, 'end');
+    if (starts !== 1 || starts <= ends) {
+      throw new StudyRepositoryError('segment-start-required', 409);
+    }
+    if (ends > 0) {
+      throw new StudyRepositoryError('segment-end-already-recorded', 409);
+    }
+  }
+
+  #segmentBoundaryCount(sessionId: string, eventType: 'start' | 'end'): number {
+    return countSchema.parse(
+      this.#database
+        .prepare(
+          `SELECT COUNT(*) AS count
+           FROM timing_events
+           WHERE session_id = ?
+             AND phase = 'artifact'
+             AND section_id IS NOT NULL
+             AND segment_id IS NOT NULL
+             AND event_type = ?`,
+        )
+        .get(sessionId, eventType),
+    ).count;
+  }
+
+  #ensureArtifactBoundaryIndex(): void {
+    this.#database.exec(`
+      DROP INDEX IF EXISTS unique_artifact_boundary;
+      CREATE UNIQUE INDEX unique_artifact_boundary
+      ON timing_events(session_id, phase, event_type)
+      WHERE phase = 'artifact'
+        AND section_id IS NULL
+        AND segment_id IS NULL
+        AND event_type IN ('start', 'end');
+    `);
   }
 }

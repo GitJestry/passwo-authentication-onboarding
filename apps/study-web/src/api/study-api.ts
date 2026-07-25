@@ -1,6 +1,5 @@
 import {
   artifactLeaseResponseSchema,
-  artifactTimingEventSchema,
   completeSessionRequestSchema,
   createSessionRequestSchema,
   createSessionResponseSchema,
@@ -8,6 +7,7 @@ import {
   placeholderResponseRequestSchema,
   saveResponseResponseSchema,
   sessionStatusResponseSchema,
+  studyTimingEventSchema,
   type TimingEvent,
   timingWriteResponseSchema,
 } from '@passwo/contracts';
@@ -17,9 +17,14 @@ import {
   StudyTimerController,
   type TimingSink,
 } from '@passwo/study-engine';
+import type { SegmentTimingEvent, SegmentTimingPort } from '@passwo/training-engine';
 
 const artifactScope = { phase: 'artifact' as const };
 export const artifactHeartbeatIntervalMs = 60_000;
+
+export interface StudyApi extends StudyRuntimePorts {
+  createSegmentTimingPort(sessionId: string): SegmentTimingPort;
+}
 
 function apiErrorCode(value: unknown): string {
   if (
@@ -50,17 +55,24 @@ async function postJson(url: string, body: unknown): Promise<unknown> {
   return responseBody;
 }
 
-export function createStudyApi(): StudyRuntimePorts {
+export function createStudyApi(): StudyApi {
   const createRequest = createSessionRequestSchema.parse({
     requestId: globalThis.crypto.randomUUID(),
     consentAccepted: true,
   });
   let timingSessionId: string | null = null;
 
+  function selectTimingSession(sessionId: string): void {
+    if (timingSessionId !== null && timingSessionId !== sessionId) {
+      throw new Error('timing-session-mismatch');
+    }
+    timingSessionId = sessionId;
+  }
+
   const timingSink: TimingSink = {
     record: async (event: TimingEvent) => {
       if (timingSessionId === null) throw new Error('missing-session');
-      const safeEvent = artifactTimingEventSchema.parse(event);
+      const safeEvent = studyTimingEventSchema.parse(event);
       timingWriteResponseSchema.parse(
         await postJson(`/api/study/sessions/${timingSessionId}/timing`, safeEvent),
       );
@@ -68,7 +80,30 @@ export function createStudyApi(): StudyRuntimePorts {
   };
   const timer = new StudyTimerController(browserClock, timingSink);
 
+  function createSegmentTimingPort(sessionId: string): SegmentTimingPort {
+    selectTimingSession(sessionId);
+    return {
+      retry: async () => {
+        await timer.retryFailed();
+      },
+      record: async (event: SegmentTimingEvent) => {
+        selectTimingSession(sessionId);
+        const scope = {
+          phase: 'artifact' as const,
+          sectionId: event.sectionId,
+          segmentId: event.segmentId,
+        };
+        if (event.eventType === 'segment-start') {
+          await timer.start(scope);
+          return;
+        }
+        await timer.end(scope);
+      },
+    };
+  }
+
   return {
+    createSegmentTimingPort,
     createSession: async () =>
       createSessionResponseSchema.parse(await postJson('/api/study/sessions', createRequest)),
 
@@ -84,7 +119,7 @@ export function createStudyApi(): StudyRuntimePorts {
     },
 
     startArtifact: async (sessionId: string) => {
-      timingSessionId = sessionId;
+      selectTimingSession(sessionId);
       artifactLeaseResponseSchema.parse(
         await postJson(`/api/study/sessions/${sessionId}/artifact-lease`, {}),
       );
@@ -92,17 +127,17 @@ export function createStudyApi(): StudyRuntimePorts {
     },
 
     endArtifact: async (sessionId: string) => {
-      timingSessionId = sessionId;
+      selectTimingSession(sessionId);
       return timer.end(artifactScope);
     },
 
     recordArtifactVisibility: async (sessionId: string, visible: boolean) => {
-      timingSessionId = sessionId;
+      selectTimingSession(sessionId);
       await timer.markVisibility(artifactScope, visible);
     },
 
     retryArtifactTiming: async (sessionId: string) => {
-      timingSessionId = sessionId;
+      selectTimingSession(sessionId);
       const event = await timer.retryFailed();
       return event.eventType === 'end' ? event.elapsedMs : null;
     },
