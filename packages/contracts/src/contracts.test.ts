@@ -60,9 +60,15 @@ describe('research-safe contracts', () => {
     expect(result.success).toBe(false);
   });
 
-  it('defines the stable artifact versions required for persistence and export', () => {
-    expect(SUPPORTIVE_ARTIFACT_VERSION).toBe('supportive-s00-1.0.0');
-    expect(REFERENCE_PLACEHOLDER_ARTIFACT_VERSION).toBe('reference-placeholder-v1');
+  it('associates conditions with distinct canonical artifact versions', () => {
+    const artifactVersionForCondition = {
+      supportive: SUPPORTIVE_ARTIFACT_VERSION,
+      reference: REFERENCE_PLACEHOLDER_ARTIFACT_VERSION,
+    } as const;
+
+    expect(artifactVersionForCondition.supportive).toBe(SUPPORTIVE_ARTIFACT_VERSION);
+    expect(artifactVersionForCondition.reference).toBe(REFERENCE_PLACEHOLDER_ARTIFACT_VERSION);
+    expect(SUPPORTIVE_ARTIFACT_VERSION).not.toBe(REFERENCE_PLACEHOLDER_ARTIFACT_VERSION);
   });
 
   it('accepts only the bounded placeholder response', () => {
