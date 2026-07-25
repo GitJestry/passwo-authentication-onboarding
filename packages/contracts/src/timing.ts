@@ -83,7 +83,7 @@ const supportiveSegmentTimingBaseShape = {
   sequence: z.number().int().nonnegative(),
   phase: z.literal('artifact'),
   sectionId: z.literal('passwords'),
-  segmentId: z.literal('S00'),
+  segmentId: z.enum(['S00', 'S01']),
   clientMonotonicMs: z.number().finite().nonnegative(),
   clientWallClockIso: z.iso.datetime(),
   reasonCode: z.null(),

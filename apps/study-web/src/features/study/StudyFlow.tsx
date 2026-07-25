@@ -3,7 +3,7 @@ import { useMachine } from '@xstate/react';
 import { type FormEvent, type ReactNode, useMemo, useState } from 'react';
 import { BrowserSegmentTimingAdapter } from '../../adapters/animation/BrowserSegmentTimingAdapter.js';
 import { createStudyApi } from '../../api/study-api.js';
-import { S00Training } from '../training/S00Training.js';
+import { PasswordModuleTraining } from '../training/PasswordModuleTraining.js';
 import styles from './StudyFlow.module.css';
 
 function Consent({ onAccept }: { readonly onAccept: () => void }) {
@@ -133,7 +133,7 @@ function SupportiveArtifact({
   readonly onRetryTiming: () => void;
 }) {
   return (
-    <S00Training
+    <PasswordModuleTraining
       displayName={displayName}
       onComplete={onComplete}
       timingPort={timingPort}

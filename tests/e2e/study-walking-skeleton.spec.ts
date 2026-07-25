@@ -197,6 +197,32 @@ async function failFirstS00TimingWrite(page: Page, eventType: 'start' | 'end'): 
   });
 }
 
+async function failFirstS01TimingWrite(page: Page, eventType: 'start' | 'end'): Promise<void> {
+  let failed = false;
+  await page.route('**/api/study/sessions/*/timing', async (route) => {
+    const body: unknown = route.request().postDataJSON();
+    const isS01Boundary =
+      typeof body === 'object' &&
+      body !== null &&
+      'eventType' in body &&
+      body.eventType === eventType &&
+      'sectionId' in body &&
+      body.sectionId === 'passwords' &&
+      'segmentId' in body &&
+      body.segmentId === 'S01';
+
+    if (!failed && isS01Boundary) {
+      failed = true;
+      await route.fulfill({
+        status: 503,
+        json: { errorCode: `s01-segment-${eventType}-write-failed` },
+      });
+      return;
+    }
+    await route.continue();
+  });
+}
+
 async function acceptConsent(page: Page) {
   await page.goto('/');
   await page.getByLabel('Ich bestätige die Einwilligung').check();
@@ -227,6 +253,28 @@ async function completeS00(page: Page): Promise<void> {
   await page.getByRole('button', { name: 'Weiter' }).click();
 }
 
+async function configureS01(page: Page): Promise<void> {
+  await expect(page.getByRole('heading', { name: 'CampusID' })).toBeVisible();
+  await page.getByRole('tab', { name: 'CampusBoard Archiv' }).click();
+  await page.getByLabel('Fiktives Passwort').fill('board !?');
+  await page.getByRole('tab', { name: 'CampusMail' }).click();
+  await page.getByLabel('Fiktives Passwort').fill('mail !?');
+  await page.getByRole('tab', { name: 'CampusID' }).click();
+  await page.getByLabel('Fiktives Passwort').fill('id !?');
+  await page.getByRole('button', { name: 'Konten einrichten' }).click();
+  await expect(page.getByText('Die drei Konten sind eingerichtet.')).toBeVisible();
+}
+
+async function completeS01(page: Page): Promise<void> {
+  await configureS01(page);
+  await page.getByRole('button', { name: 'Weiter' }).click();
+}
+
+async function completePasswordModule(page: Page): Promise<void> {
+  await completeS00(page);
+  await completeS01(page);
+}
+
 test('forced-supportive completes and visibly blocks a failed research write', async ({ page }) => {
   await startStudyServer('forced-supportive');
   const requests = captureResearchRequests(page);
@@ -240,7 +288,7 @@ test('forced-supportive completes and visibly blocks a failed research write', a
 
   await page.getByLabel('Anzeigename').fill('Browsername Nur Lokal');
   await page.getByRole('button', { name: 'Zum Artefakt' }).click();
-  await completeS00(page);
+  await completePasswordModule(page);
   await finishAfterArtifact(page);
 
   expect(requests.bodies.join('\n')).not.toContain('Browsername Nur Lokal');
@@ -260,10 +308,118 @@ test('forced-supportive completes and visibly blocks a failed research write', a
       elapsedMs: expect.any(Number),
     }),
   ]);
+  expect(timingEvents(requests.bodies).filter(({ segmentId }) => segmentId === 'S01')).toEqual([
+    expect.objectContaining({
+      phase: 'artifact',
+      sectionId: 'passwords',
+      segmentId: 'S01',
+      eventType: 'start',
+      elapsedMs: null,
+    }),
+    expect.objectContaining({
+      phase: 'artifact',
+      sectionId: 'passwords',
+      segmentId: 'S01',
+      eventType: 'end',
+      elapsedMs: expect.any(Number),
+    }),
+  ]);
   const results = await new AxeBuilder({ page }).analyze();
   expect(
     results.violations.filter(({ impact }) => impact === 'serious' || impact === 'critical'),
   ).toEqual([]);
+});
+
+test('supportive S00 to S01 keeps fictitious values local and supports keyboard tabs', async ({
+  page,
+}) => {
+  await startStudyServer('forced-supportive');
+  const requests = captureResearchRequests(page);
+  const archiveValue = '  archiv !?  ';
+  await acceptConsent(page);
+  await submitPlaceholder(page);
+  await page.getByLabel('Anzeigename').fill('Nur lokal');
+  await page.getByRole('button', { name: 'Zum Artefakt' }).click();
+  await completeS00(page);
+
+  const passwordField = page.getByLabel('Fiktives Passwort');
+  await expect(page.getByText('0/3 Konten ausgefüllt')).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Konten einrichten' })).toBeDisabled();
+  await page.getByRole('tab', { name: 'CampusID' }).focus();
+  await page.getByRole('tab', { name: 'CampusID' }).press('End');
+  await expect(page.getByRole('heading', { name: 'CampusBoard Archiv' })).toBeVisible();
+  await passwordField.fill(archiveValue);
+  await page.getByRole('button', { name: 'Passwort für CampusBoard Archiv anzeigen' }).click();
+  await expect(passwordField).toHaveAttribute('type', 'text');
+  await expect(passwordField).toHaveValue(archiveValue);
+  await page.getByRole('button', { name: 'Passwort für CampusBoard Archiv verbergen' }).click();
+  await page.getByRole('tab', { name: 'CampusBoard Archiv' }).press('Home');
+  await expect(page.getByRole('heading', { name: 'CampusID' })).toBeVisible();
+  await passwordField.fill('id !?');
+  await page.getByRole('tab', { name: 'CampusID' }).press('ArrowRight');
+  await expect(page.getByRole('heading', { name: 'CampusMail' })).toBeVisible();
+  await passwordField.fill('mail !?');
+  await expect(page.getByText('3/3 Konten ausgefüllt')).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Konten einrichten' })).toBeEnabled();
+  await page.getByRole('tab', { name: 'CampusMail' }).press('End');
+  await expect(passwordField).toHaveValue(archiveValue);
+  await page.getByRole('button', { name: 'Konten einrichten' }).click();
+  await expect(page.getByRole('img', { name: 'Abgeschlossen' })).toHaveCount(3);
+  await expect(passwordField).toBeDisabled();
+  await expect(page.getByText('Die drei Konten sind eingerichtet.')).toBeVisible();
+  await page.getByRole('button', { name: 'Weiter' }).click();
+  await finishAfterArtifact(page);
+
+  expect(requests.bodies.join('\n')).not.toContain(archiveValue);
+  expect(requests.bodies.join('\n')).not.toContain('mail !?');
+  expect(requests.bodies.join('\n')).not.toContain('id !?');
+});
+
+test('retries failed S01 start and end timing writes with the same payload', async ({ page }) => {
+  await startStudyServer('forced-supportive');
+  const requests = captureResearchRequests(page);
+  await failFirstS01TimingWrite(page, 'start');
+  await acceptConsent(page);
+  await submitPlaceholder(page);
+  await page.getByLabel('Anzeigename').fill('S01 Timing Retry');
+  await page.getByRole('button', { name: 'Zum Artefakt' }).click();
+  await completeS00(page);
+
+  await expect(page.getByText('Fehlercode: s01-segment-start-write-failed')).toBeVisible();
+  await page.getByRole('button', { name: 'Erneut versuchen' }).click();
+  await configureS01(page);
+  await page.getByRole('button', { name: 'Weiter' }).click();
+  await finishAfterArtifact(page);
+
+  const segmentStarts = timingEvents(requests.bodies).filter(
+    ({ segmentId, eventType }) => segmentId === 'S01' && eventType === 'start',
+  );
+  expect(segmentStarts).toHaveLength(2);
+  expect(segmentStarts[0]).toEqual(segmentStarts[1]);
+});
+
+test('retries a failed S01 end before ending the artifact', async ({ page }) => {
+  await startStudyServer('forced-supportive');
+  const requests = captureResearchRequests(page);
+  await failFirstS01TimingWrite(page, 'end');
+  await acceptConsent(page);
+  await submitPlaceholder(page);
+  await page.getByLabel('Anzeigename').fill('S01 End Retry');
+  await page.getByRole('button', { name: 'Zum Artefakt' }).click();
+  await completeS00(page);
+  await configureS01(page);
+  await page.getByRole('button', { name: 'Weiter' }).click();
+
+  await expect(page.getByText('Fehlercode: s01-segment-end-write-failed')).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Fragebogen nach dem Artefakt' })).toHaveCount(0);
+  await page.getByRole('button', { name: 'Erneut versuchen' }).click();
+  await finishAfterArtifact(page);
+
+  const segmentEnds = timingEvents(requests.bodies).filter(
+    ({ segmentId, eventType }) => segmentId === 'S01' && eventType === 'end',
+  );
+  expect(segmentEnds).toHaveLength(2);
+  expect(segmentEnds[0]).toEqual(segmentEnds[1]);
 });
 
 test('forced-supportive records diagnostic visibility only while the artifact is active', async ({
@@ -290,12 +446,21 @@ test('forced-supportive records diagnostic visibility only while the artifact is
     .poll(() => requests.paths.filter((path) => path.endsWith('/artifact-lease/heartbeat')).length)
     .toBe(1);
 
-  await completeS00(page);
+  await completePasswordModule(page);
   await expect(page.getByRole('heading', { name: 'Fragebogen nach dem Artefakt' })).toBeVisible();
   await dispatchVisibilityChange(page, 'hidden');
   await expect
     .poll(() => timingEventTypes(requests.bodies))
-    .toEqual(['start', 'start', 'visibility-hidden', 'visibility-visible', 'end', 'end']);
+    .toEqual([
+      'start',
+      'start',
+      'visibility-hidden',
+      'visibility-visible',
+      'end',
+      'start',
+      'end',
+      'end',
+    ]);
   expect(
     timingEvents(requests.bodies).map(({ sequence, sectionId, segmentId, eventType }) => ({
       sequence,
@@ -309,7 +474,9 @@ test('forced-supportive records diagnostic visibility only while the artifact is
     { sequence: 2, sectionId: null, segmentId: null, eventType: 'visibility-hidden' },
     { sequence: 3, sectionId: null, segmentId: null, eventType: 'visibility-visible' },
     { sequence: 4, sectionId: 'passwords', segmentId: 'S00', eventType: 'end' },
-    { sequence: 5, sectionId: null, segmentId: null, eventType: 'end' },
+    { sequence: 5, sectionId: 'passwords', segmentId: 'S01', eventType: 'start' },
+    { sequence: 6, sectionId: 'passwords', segmentId: 'S01', eventType: 'end' },
+    { sequence: 7, sectionId: null, segmentId: null, eventType: 'end' },
   ]);
 });
 
@@ -334,10 +501,20 @@ test('failed visibility blocks completion and retries the same timing payload', 
   await expect(page.getByText('Fehlercode: visibility-write-failed')).toBeVisible();
 
   await page.getByRole('button', { name: 'Erneut versuchen' }).click();
+  await completeS01(page);
   await expect(page.getByRole('heading', { name: 'Fragebogen nach dem Artefakt' })).toBeVisible();
   await expect
     .poll(() => timingEventTypes(requests.bodies))
-    .toEqual(['start', 'start', 'visibility-hidden', 'visibility-hidden', 'end', 'end']);
+    .toEqual([
+      'start',
+      'start',
+      'visibility-hidden',
+      'visibility-hidden',
+      'end',
+      'start',
+      'end',
+      'end',
+    ]);
 
   const timingBodies = requests.bodies.flatMap((body) => {
     const value: unknown = JSON.parse(body);
@@ -353,7 +530,7 @@ test('failed visibility blocks completion and retries the same timing payload', 
   });
   expect(timingBodies[2]).toEqual(timingBodies[3]);
   expect(timingBodies.map((body) => ('sequence' in body ? body.sequence : null))).toEqual([
-    0, 1, 2, 2, 3, 4,
+    0, 1, 2, 2, 3, 4, 5, 6,
   ]);
 });
 
@@ -371,7 +548,7 @@ test('retries a failed S00 segment start before beginning the mission', async ({
   ).toBeVisible();
   await expect(page.getByText('Fehlercode: segment-start-write-failed')).toBeVisible();
   await page.getByRole('button', { name: 'Erneut versuchen' }).click();
-  await completeS00(page);
+  await completePasswordModule(page);
   await finishAfterArtifact(page);
 
   const segmentStarts = timingEvents(requests.bodies).filter(
@@ -396,6 +573,7 @@ test('retries a failed S00 segment end before leaving the segment', async ({ pag
   ).toBeVisible();
   await expect(page.getByRole('heading', { name: 'Fragebogen nach dem Artefakt' })).toHaveCount(0);
   await page.getByRole('button', { name: 'Erneut versuchen' }).click();
+  await completeS01(page);
   await finishAfterArtifact(page);
 
   const segmentEnds = timingEvents(requests.bodies).filter(
@@ -497,7 +675,7 @@ test('reload after the artifact end does not mark the session incomplete', async
   await submitPlaceholder(page);
   await page.getByLabel('Anzeigename').fill('Ende vor Reload');
   await page.getByRole('button', { name: 'Zum Artefakt' }).click();
-  await completeS00(page);
+  await completePasswordModule(page);
   await expect(page.getByRole('heading', { name: 'Fragebogen nach dem Artefakt' })).toBeVisible();
 
   await page.reload();

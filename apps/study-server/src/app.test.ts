@@ -74,19 +74,20 @@ async function createSession(server: FastifyInstance, identity = 1) {
   }>();
 }
 
-async function recordSupportiveS00ThroughEnd(server: FastifyInstance) {
-  const session = await createSession(server);
+async function savePreAndStartArtifact(server: FastifyInstance, sessionId: string) {
   await server.inject({
     method: 'POST',
-    url: `/api/study/sessions/${session.sessionId}/responses`,
+    url: `/api/study/sessions/${sessionId}/responses`,
     payload: {
       instrumentId: 'pre-placeholder',
       itemId: 'placeholder-complete',
       value: true,
     },
   });
-  const timingEvents = [
-    {
+  await server.inject({
+    method: 'POST',
+    url: `/api/study/sessions/${sessionId}/timing`,
+    payload: {
       sequence: 0,
       phase: 'artifact',
       sectionId: null,
@@ -97,6 +98,13 @@ async function recordSupportiveS00ThroughEnd(server: FastifyInstance) {
       elapsedMs: null,
       reasonCode: null,
     },
+  });
+}
+
+async function recordSupportiveS00ThroughEnd(server: FastifyInstance) {
+  const session = await createSession(server);
+  await savePreAndStartArtifact(server, session.sessionId);
+  const timingEvents = [
     {
       sequence: 1,
       phase: 'artifact',
@@ -117,6 +125,43 @@ async function recordSupportiveS00ThroughEnd(server: FastifyInstance) {
       clientMonotonicMs: 425,
       clientWallClockIso: '2026-07-24T12:00:00.000Z',
       elapsedMs: 300,
+      reasonCode: null,
+    },
+  ] as const;
+  for (const event of timingEvents) {
+    const response = await server.inject({
+      method: 'POST',
+      url: `/api/study/sessions/${session.sessionId}/timing`,
+      payload: event,
+    });
+    expect(response.statusCode).toBe(200);
+  }
+  return session;
+}
+
+async function recordSupportiveS00S01ThroughEnd(server: FastifyInstance) {
+  const session = await recordSupportiveS00ThroughEnd(server);
+  const timingEvents = [
+    {
+      sequence: 3,
+      phase: 'artifact',
+      sectionId: 'passwords',
+      segmentId: 'S01',
+      eventType: 'start',
+      clientMonotonicMs: 500,
+      clientWallClockIso: '2026-07-24T12:00:00.000Z',
+      elapsedMs: null,
+      reasonCode: null,
+    },
+    {
+      sequence: 4,
+      phase: 'artifact',
+      sectionId: 'passwords',
+      segmentId: 'S01',
+      eventType: 'end',
+      clientMonotonicMs: 700,
+      clientWallClockIso: '2026-07-24T12:00:00.000Z',
+      elapsedMs: 200,
       reasonCode: null,
     },
   ] as const;
@@ -452,34 +497,11 @@ describe('study server walking skeleton', () => {
     expect(visible.json()).toEqual({ recorded: true, artifactWallClockMs: null });
   });
 
-  it('persists only serial supportive S00 segment boundaries in the shared timing sequence', async () => {
+  it('persists only the serial supportive S00 to S01 boundaries in the shared timing sequence', async () => {
     const supportiveServer = createServer('forced-supportive');
     const supportiveSession = await createSession(supportiveServer);
-    await supportiveServer.inject({
-      method: 'POST',
-      url: `/api/study/sessions/${supportiveSession.sessionId}/responses`,
-      payload: {
-        instrumentId: 'pre-placeholder',
-        itemId: 'placeholder-complete',
-        value: true,
-      },
-    });
-    await supportiveServer.inject({
-      method: 'POST',
-      url: `/api/study/sessions/${supportiveSession.sessionId}/timing`,
-      payload: {
-        sequence: 0,
-        phase: 'artifact',
-        sectionId: null,
-        segmentId: null,
-        eventType: 'start',
-        clientMonotonicMs: 100,
-        clientWallClockIso: '2026-07-24T12:00:00.000Z',
-        elapsedMs: null,
-        reasonCode: null,
-      },
-    });
-    const segmentStart = {
+    await savePreAndStartArtifact(supportiveServer, supportiveSession.sessionId);
+    const s00Start = {
       sequence: 1,
       phase: 'artifact',
       sectionId: 'passwords',
@@ -490,125 +512,117 @@ describe('study server walking skeleton', () => {
       elapsedMs: null,
       reasonCode: null,
     };
-    const start = await supportiveServer.inject({
-      method: 'POST',
-      url: `/api/study/sessions/${supportiveSession.sessionId}/timing`,
-      payload: segmentStart,
-    });
-    const repeatedStart = await supportiveServer.inject({
-      method: 'POST',
-      url: `/api/study/sessions/${supportiveSession.sessionId}/timing`,
-      payload: segmentStart,
-    });
-    const concurrentStart = await supportiveServer.inject({
-      method: 'POST',
-      url: `/api/study/sessions/${supportiveSession.sessionId}/timing`,
-      payload: { ...segmentStart, sequence: 2, clientMonotonicMs: 150 },
-    });
-    const segmentEnd = {
-      ...segmentStart,
+    const s00End = {
+      ...s00Start,
       sequence: 2,
       eventType: 'end',
       clientMonotonicMs: 425,
       elapsedMs: 300,
     };
+    const s01Start = {
+      ...s00Start,
+      sequence: 3,
+      segmentId: 'S01',
+      clientMonotonicMs: 500,
+    };
+    const s01End = {
+      ...s01Start,
+      sequence: 4,
+      eventType: 'end',
+      clientMonotonicMs: 700,
+      elapsedMs: 200,
+    };
+
+    const start = await supportiveServer.inject({
+      method: 'POST',
+      url: `/api/study/sessions/${supportiveSession.sessionId}/timing`,
+      payload: s00Start,
+    });
+    const repeatedStart = await supportiveServer.inject({
+      method: 'POST',
+      url: `/api/study/sessions/${supportiveSession.sessionId}/timing`,
+      payload: s00Start,
+    });
+    const prematureS01Start = await supportiveServer.inject({
+      method: 'POST',
+      url: `/api/study/sessions/${supportiveSession.sessionId}/timing`,
+      payload: { ...s01Start, sequence: 2, clientMonotonicMs: 150 },
+    });
     const end = await supportiveServer.inject({
       method: 'POST',
       url: `/api/study/sessions/${supportiveSession.sessionId}/timing`,
-      payload: segmentEnd,
+      payload: s00End,
     });
-    const repeatedEnd = await supportiveServer.inject({
+    const rejectedSecondS00Start = await supportiveServer.inject({
       method: 'POST',
       url: `/api/study/sessions/${supportiveSession.sessionId}/timing`,
-      payload: segmentEnd,
+      payload: { ...s00Start, sequence: 3, clientMonotonicMs: 450 },
+    });
+    const s01StartResponse = await supportiveServer.inject({
+      method: 'POST',
+      url: `/api/study/sessions/${supportiveSession.sessionId}/timing`,
+      payload: s01Start,
+    });
+    const s01EndResponse = await supportiveServer.inject({
+      method: 'POST',
+      url: `/api/study/sessions/${supportiveSession.sessionId}/timing`,
+      payload: s01End,
+    });
+    const repeatedS01End = await supportiveServer.inject({
+      method: 'POST',
+      url: `/api/study/sessions/${supportiveSession.sessionId}/timing`,
+      payload: s01End,
+    });
+    const rejectedSecondS01Start = await supportiveServer.inject({
+      method: 'POST',
+      url: `/api/study/sessions/${supportiveSession.sessionId}/timing`,
+      payload: { ...s01Start, sequence: 5, clientMonotonicMs: 750 },
     });
     const artifactEnd = await supportiveServer.inject({
       method: 'POST',
       url: `/api/study/sessions/${supportiveSession.sessionId}/timing`,
       payload: {
-        sequence: 3,
+        sequence: 5,
         phase: 'artifact',
         sectionId: null,
         segmentId: null,
         eventType: 'end',
-        clientMonotonicMs: 600,
+        clientMonotonicMs: 900,
         clientWallClockIso: '2026-07-24T12:00:00.000Z',
-        elapsedMs: 500,
+        elapsedMs: 800,
         reasonCode: null,
       },
     });
 
     expect(start.json()).toEqual({ recorded: true, artifactWallClockMs: null });
     expect(repeatedStart.json()).toEqual({ recorded: false, artifactWallClockMs: null });
-    expect(concurrentStart.statusCode).toBe(409);
-    expect(concurrentStart.json()).toEqual({ errorCode: 'segment-already-active' });
+    expect(prematureS01Start.statusCode).toBe(409);
+    expect(prematureS01Start.json()).toEqual({ errorCode: 'segment-already-active' });
     expect(end.json()).toEqual({ recorded: true, artifactWallClockMs: null });
-    expect(repeatedEnd.json()).toEqual({ recorded: false, artifactWallClockMs: null });
-    expect(artifactEnd.json()).toEqual({ recorded: true, artifactWallClockMs: 500 });
+    expect(rejectedSecondS00Start.json()).toEqual({ errorCode: 'segment-start-already-recorded' });
+    expect(s01StartResponse.json()).toEqual({ recorded: true, artifactWallClockMs: null });
+    expect(s01EndResponse.json()).toEqual({ recorded: true, artifactWallClockMs: null });
+    expect(repeatedS01End.json()).toEqual({ recorded: false, artifactWallClockMs: null });
+    expect(rejectedSecondS01Start.json()).toEqual({ errorCode: 'segment-start-already-recorded' });
+    expect(artifactEnd.json()).toEqual({ recorded: true, artifactWallClockMs: 800 });
 
     const unorderedSession = await createSession(supportiveServer, 3);
-    await supportiveServer.inject({
-      method: 'POST',
-      url: `/api/study/sessions/${unorderedSession.sessionId}/responses`,
-      payload: {
-        instrumentId: 'pre-placeholder',
-        itemId: 'placeholder-complete',
-        value: true,
-      },
-    });
-    await supportiveServer.inject({
-      method: 'POST',
-      url: `/api/study/sessions/${unorderedSession.sessionId}/timing`,
-      payload: {
-        sequence: 0,
-        phase: 'artifact',
-        sectionId: null,
-        segmentId: null,
-        eventType: 'start',
-        clientMonotonicMs: 100,
-        clientWallClockIso: '2026-07-24T12:00:00.000Z',
-        elapsedMs: null,
-        reasonCode: null,
-      },
-    });
+    await savePreAndStartArtifact(supportiveServer, unorderedSession.sessionId);
     const rejectedUnorderedEnd = await supportiveServer.inject({
       method: 'POST',
       url: `/api/study/sessions/${unorderedSession.sessionId}/timing`,
-      payload: { ...segmentEnd, sequence: 1 },
+      payload: { ...s01End, sequence: 1 },
     });
     expect(rejectedUnorderedEnd.statusCode).toBe(409);
     expect(rejectedUnorderedEnd.json()).toEqual({ errorCode: 'segment-start-required' });
 
     const referenceServer = createServer('forced-reference');
     const referenceSession = await createSession(referenceServer, 2);
-    await referenceServer.inject({
-      method: 'POST',
-      url: `/api/study/sessions/${referenceSession.sessionId}/responses`,
-      payload: {
-        instrumentId: 'pre-placeholder',
-        itemId: 'placeholder-complete',
-        value: true,
-      },
-    });
-    await referenceServer.inject({
-      method: 'POST',
-      url: `/api/study/sessions/${referenceSession.sessionId}/timing`,
-      payload: {
-        sequence: 0,
-        phase: 'artifact',
-        sectionId: null,
-        segmentId: null,
-        eventType: 'start',
-        clientMonotonicMs: 100,
-        clientWallClockIso: '2026-07-24T12:00:00.000Z',
-        elapsedMs: null,
-        reasonCode: null,
-      },
-    });
+    await savePreAndStartArtifact(referenceServer, referenceSession.sessionId);
     const rejectedReferenceSegment = await referenceServer.inject({
       method: 'POST',
       url: `/api/study/sessions/${referenceSession.sessionId}/timing`,
-      payload: segmentStart,
+      payload: { ...s01Start, sequence: 1 },
     });
 
     expect(rejectedReferenceSegment.statusCode).toBe(409);
@@ -617,53 +631,65 @@ describe('study server walking skeleton', () => {
     });
   });
 
-  it('keeps the artifact lease active after supportive S00 end', async () => {
+  it('keeps the artifact lease active after supportive S00 end and S01 end', async () => {
     const server = createServer('forced-supportive');
-    const session = await recordSupportiveS00ThroughEnd(server);
+    const s00Session = await recordSupportiveS00ThroughEnd(server);
+    const s01Session = await recordSupportiveS00S01ThroughEnd(server);
 
-    const heartbeat = await server.inject({
+    const heartbeatAfterS00 = await server.inject({
       method: 'POST',
-      url: `/api/study/sessions/${session.sessionId}/artifact-lease/heartbeat`,
+      url: `/api/study/sessions/${s00Session.sessionId}/artifact-lease/heartbeat`,
+      payload: {},
+    });
+    const heartbeatAfterS01 = await server.inject({
+      method: 'POST',
+      url: `/api/study/sessions/${s01Session.sessionId}/artifact-lease/heartbeat`,
       payload: {},
     });
 
-    expect(heartbeat.statusCode).toBe(200);
-    expect(heartbeat.json()).toEqual({ active: true });
+    expect(heartbeatAfterS00.json()).toEqual({ active: true });
+    expect(heartbeatAfterS01.json()).toEqual({ active: true });
   });
 
-  it('marks reload after supportive S00 end incomplete', async () => {
+  it('marks reload after supportive S00 end or S01 end incomplete', async () => {
     const server = createServer('forced-supportive');
-    const session = await recordSupportiveS00ThroughEnd(server);
+    const s00Session = await recordSupportiveS00ThroughEnd(server);
+    const s01Session = await recordSupportiveS00S01ThroughEnd(server);
 
-    const reload = await server.inject({
+    const reloadAfterS00 = await server.inject({
       method: 'POST',
-      url: `/api/study/sessions/${session.sessionId}/incomplete-reload`,
+      url: `/api/study/sessions/${s00Session.sessionId}/incomplete-reload`,
     });
-    const status = await server.inject({
+    const reloadAfterS01 = await server.inject({
+      method: 'POST',
+      url: `/api/study/sessions/${s01Session.sessionId}/incomplete-reload`,
+    });
+    const s01Status = await server.inject({
       method: 'GET',
-      url: `/api/study/sessions/${session.sessionId}/status`,
+      url: `/api/study/sessions/${s01Session.sessionId}/status`,
     });
 
-    expect(reload.json()).toEqual({ completionStatus: 'incomplete-reload' });
-    expect(status.json()).toEqual({ completionStatus: 'incomplete-reload' });
+    expect(reloadAfterS00.json()).toEqual({ completionStatus: 'incomplete-reload' });
+    expect(reloadAfterS01.json()).toEqual({ completionStatus: 'incomplete-reload' });
+    expect(s01Status.json()).toEqual({ completionStatus: 'incomplete-reload' });
   });
 
   it('closes the artifact lease only after the global artifact end', async () => {
     const server = createServer('forced-supportive');
-    const session = await recordSupportiveS00ThroughEnd(server);
+    const session = await recordSupportiveS00S01ThroughEnd(server);
 
     const artifactEnd = await server.inject({
       method: 'POST',
       url: `/api/study/sessions/${session.sessionId}/timing`,
       payload: {
-        sequence: 3,
+        sequence: 5,
         phase: 'artifact',
         sectionId: null,
         segmentId: null,
         eventType: 'end',
-        clientMonotonicMs: 600,
+        clientMonotonicMs: 900,
         clientWallClockIso: '2026-07-24T12:00:00.000Z',
-        elapsedMs: 500,
+        elapsedMs: 800,
         reasonCode: null,
       },
     });
@@ -673,7 +699,7 @@ describe('study server walking skeleton', () => {
       payload: {},
     });
 
-    expect(artifactEnd.json()).toEqual({ recorded: true, artifactWallClockMs: 500 });
+    expect(artifactEnd.json()).toEqual({ recorded: true, artifactWallClockMs: 800 });
     expect(heartbeat.statusCode).toBe(409);
     expect(heartbeat.json()).toEqual({ errorCode: 'artifact-lease-not-active' });
   });

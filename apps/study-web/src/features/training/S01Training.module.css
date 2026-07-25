@@ -1,0 +1,273 @@
+.training {
+  width: 100%;
+}
+
+.page {
+  min-height: 100%;
+  color: var(--color-ink);
+  background:
+    radial-gradient(circle at 86% 12%, var(--color-accent-soft) 0 12%, transparent 35%),
+    var(--color-surface-muted);
+}
+
+.pageHeader {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-4) clamp(var(--space-5), 4vw, var(--space-8));
+  border-bottom: var(--border-width-thin) solid var(--color-border-soft);
+  background: var(--color-surface-primary);
+}
+
+.identityMark {
+  display: grid;
+  width: var(--size-control-medium);
+  height: var(--size-control-medium);
+  place-items: center;
+  border-radius: var(--radius-small);
+  color: var(--color-on-inverse);
+  background: var(--color-accent-strong);
+  font-size: var(--font-size-x-small);
+  font-weight: var(--font-weight-heavy);
+  letter-spacing: var(--letter-spacing-wide);
+  text-transform: uppercase;
+}
+
+.identityName {
+  color: var(--color-ink-strong);
+  font-weight: var(--font-weight-heavy);
+}
+
+.fictionalBadge {
+  margin-left: auto;
+  padding: var(--space-2) var(--space-3);
+  border: var(--border-width-thin) solid var(--color-border);
+  border-radius: var(--radius-round);
+  color: var(--color-ink-muted);
+  background: var(--color-surface-muted);
+  font-size: var(--font-size-x-small);
+  font-weight: var(--font-weight-semibold);
+}
+
+.pageBody {
+  display: grid;
+  grid-template-columns: minmax(0, 1.25fr) minmax(16rem, 0.75fr);
+  align-items: start;
+  gap: clamp(var(--space-6), 5vw, var(--space-9));
+  padding: clamp(var(--space-6), 6vh, var(--space-9)) clamp(var(--space-6), 6vw, var(--space-9));
+}
+
+.setupPanel,
+.progressCard,
+.guideCard,
+.timingError {
+  padding: clamp(var(--space-5), 3vw, var(--space-7));
+  border: var(--border-width-thin) solid var(--color-border);
+  border-radius: var(--radius-medium);
+  background: var(--color-surface-elevated);
+  box-shadow: var(--shadow-card);
+}
+
+.eyebrow,
+.progressLabel,
+.guideName {
+  margin: 0 0 var(--space-2);
+  color: var(--color-accent-strong);
+  font-size: var(--font-size-x-small);
+  font-weight: var(--font-weight-heavy);
+  letter-spacing: var(--letter-spacing-wide);
+  text-transform: uppercase;
+}
+
+.setupPanel h1 {
+  margin: 0;
+  color: var(--color-ink-strong);
+  font-size: var(--font-size-heading-medium);
+  line-height: var(--line-height-tight);
+}
+
+.accountDetails {
+  display: grid;
+  margin: var(--space-6) 0;
+  gap: var(--space-4);
+}
+
+.accountDetails div {
+  display: grid;
+  gap: var(--space-1);
+}
+
+.accountDetails dt {
+  color: var(--color-ink-muted);
+  font-size: var(--font-size-x-small);
+  font-weight: var(--font-weight-bold);
+}
+
+.accountDetails dd {
+  margin: 0;
+  color: var(--color-ink-strong);
+  line-height: var(--line-height-body);
+}
+
+.passwordForm {
+  display: grid;
+  gap: var(--space-3);
+}
+
+.passwordLabel {
+  display: grid;
+  gap: var(--space-2);
+  color: var(--color-ink-strong);
+  font-size: var(--font-size-small);
+  font-weight: var(--font-weight-bold);
+}
+
+.passwordLabel input {
+  min-height: var(--size-control-large);
+  padding: var(--space-3) var(--space-4);
+  border: var(--border-width-thin) solid var(--color-border);
+  border-radius: var(--radius-small);
+  color: var(--color-ink-strong);
+  background: var(--color-surface-primary);
+  font: inherit;
+}
+
+.passwordLabel input:disabled {
+  color: var(--color-ink-muted);
+  background: var(--color-surface-muted);
+}
+
+.revealButton,
+.primaryButton {
+  min-height: var(--size-control-large);
+  padding: var(--space-3) var(--space-4);
+  border: var(--border-width-medium) solid var(--color-surface-inverse);
+  border-radius: var(--radius-small);
+  font: inherit;
+  font-weight: var(--font-weight-heavy);
+}
+
+.revealButton {
+  justify-self: start;
+  color: var(--color-ink-strong);
+  background: var(--color-surface-elevated);
+}
+
+.primaryButton {
+  color: var(--color-on-inverse);
+  background: var(--color-surface-inverse);
+}
+
+.revealButton:not(:disabled),
+.primaryButton:not(:disabled) {
+  cursor: pointer;
+}
+
+.revealButton:disabled,
+.primaryButton:disabled {
+  cursor: not-allowed;
+  opacity: 0.58;
+}
+
+.passwordLabel input:focus-visible,
+.revealButton:focus-visible,
+.primaryButton:focus-visible {
+  outline: var(--border-width-focus) solid var(--color-focus);
+  outline-offset: var(--space-1);
+  box-shadow: var(--shadow-focus);
+}
+
+.buttonRow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.helpText,
+.timingStatus {
+  margin: 0;
+  color: var(--color-ink-muted);
+  font-size: var(--font-size-x-small);
+  line-height: var(--line-height-body);
+}
+
+.accountComplete {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin: var(--space-5) 0 0;
+  color: var(--color-positive);
+  font-weight: var(--font-weight-bold);
+}
+
+.accountComplete span {
+  display: grid;
+  width: var(--size-status-marker);
+  height: var(--size-status-marker);
+  place-items: center;
+  border-radius: var(--radius-round);
+  color: var(--color-ink-strong);
+  background: var(--color-positive-soft);
+}
+
+.progressCard {
+  display: grid;
+  gap: var(--space-4);
+}
+
+.progressValue {
+  color: var(--color-ink-strong);
+  font-size: var(--font-size-heading-small);
+}
+
+.progressTrack {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--space-2);
+}
+
+.progressTrack span {
+  height: var(--space-2);
+  border-radius: var(--radius-round);
+  background: var(--color-border);
+}
+
+.progressTrack span[data-filled="true"] {
+  background: var(--color-accent-strong);
+}
+
+.guideCard,
+.timingError {
+  display: grid;
+  gap: var(--space-4);
+  margin: 0 clamp(var(--space-6), 6vw, var(--space-9)) var(--space-7);
+}
+
+.guideCard > p:not(.guideName),
+.timingError p {
+  margin: 0;
+  color: var(--color-ink-strong);
+  line-height: var(--line-height-body);
+}
+
+.timingError {
+  border-left: var(--border-width-medium) solid var(--color-warning);
+  background: var(--color-warning-soft);
+}
+
+.timingStatus {
+  margin: 0 clamp(var(--space-6), 6vw, var(--space-9)) var(--space-5);
+}
+
+@media (max-width: 760px) {
+  .pageBody {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .guideCard,
+  .timingError,
+  .timingStatus {
+    margin-inline: var(--space-4);
+  }
+}

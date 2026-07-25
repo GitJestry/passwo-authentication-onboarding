@@ -108,18 +108,48 @@ describe('research-safe contracts', () => {
     ).toBe(false);
   });
 
-  it('allows only the approved supportive S00 segment boundaries', () => {
-    const segmentStart = {
+  function supportiveSegmentStart(segmentId: 'S00' | 'S01') {
+    return {
       sequence: 1,
       phase: 'artifact',
       sectionId: 'passwords',
-      segmentId: 'S00',
+      segmentId,
       eventType: 'start',
       clientMonotonicMs: 125,
       clientWallClockIso: '2026-07-24T12:00:00.000Z',
       elapsedMs: null,
       reasonCode: null,
     };
+  }
+
+  it('accepts S01 start', () => {
+    expect(studyTimingEventSchema.safeParse(supportiveSegmentStart('S01')).success).toBe(true);
+  });
+
+  it('accepts S01 end', () => {
+    expect(
+      studyTimingEventSchema.safeParse({
+        ...supportiveSegmentStart('S01'),
+        eventType: 'end',
+        elapsedMs: 225,
+      }).success,
+    ).toBe(true);
+  });
+
+  it('rejects unknown supportive segment IDs', () => {
+    const segmentStart = supportiveSegmentStart('S00');
+
+    expect(studyTimingEventSchema.safeParse({ ...segmentStart, segmentId: 'S02' }).success).toBe(
+      false,
+    );
+    expect(
+      studyTimingEventSchema.safeParse({ ...segmentStart, segmentId: 'unexpected-segment' })
+        .success,
+    ).toBe(false);
+  });
+
+  it('keeps S00 timing validation and the passwords section boundary', () => {
+    const segmentStart = supportiveSegmentStart('S00');
 
     expect(studyTimingEventSchema.safeParse(segmentStart).success).toBe(true);
     expect(
@@ -129,9 +159,6 @@ describe('research-safe contracts', () => {
         elapsedMs: 225,
       }).success,
     ).toBe(true);
-    expect(studyTimingEventSchema.safeParse({ ...segmentStart, segmentId: 'S01' }).success).toBe(
-      false,
-    );
     expect(studyTimingEventSchema.safeParse({ ...segmentStart, sectionId: 'mfa' }).success).toBe(
       false,
     );

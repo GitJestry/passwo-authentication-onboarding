@@ -274,9 +274,9 @@ export class StudyRepository {
           }
         }
       } else if (event.eventType === 'start') {
-        this.#requireSegmentStart(sessionId);
+        this.#requireSegmentStart(sessionId, event.segmentId);
       } else {
-        this.#requireSegmentEnd(sessionId);
+        this.#requireSegmentEnd(sessionId, event.segmentId);
       }
 
       const maximum = timingMaximumSchema.parse(
@@ -729,31 +729,54 @@ export class StudyRepository {
     return bounds.endedAt - bounds.startedAt;
   }
 
-  #requireSegmentStart(sessionId: string): void {
+  #requireSegmentStart(sessionId: string, segmentId: 'S00' | 'S01'): void {
     this.#requireSupportiveArtifactActive(sessionId, 'segment-timing-not-supported');
     const starts = this.#segmentBoundaryCount(sessionId, 'start');
     const ends = this.#segmentBoundaryCount(sessionId, 'end');
     if (starts > ends) {
       throw new StudyRepositoryError('segment-already-active', 409);
     }
-    if (starts > 0) {
+
+    if (segmentId === 'S00' && starts > 0) {
       throw new StudyRepositoryError('segment-start-already-recorded', 409);
+    }
+    if (segmentId === 'S01') {
+      const s00Starts = this.#segmentBoundaryCount(sessionId, 'start', 'S00');
+      const s00Ends = this.#segmentBoundaryCount(sessionId, 'end', 'S00');
+      if (s00Starts !== 1 || s00Ends !== 1) {
+        throw new StudyRepositoryError('segment-start-required', 409);
+      }
+      if (starts > 1) {
+        throw new StudyRepositoryError('segment-start-already-recorded', 409);
+      }
     }
   }
 
-  #requireSegmentEnd(sessionId: string): void {
+  #requireSegmentEnd(sessionId: string, segmentId: 'S00' | 'S01'): void {
     this.#requireSupportiveArtifactActive(sessionId, 'segment-timing-not-supported');
     const starts = this.#segmentBoundaryCount(sessionId, 'start');
     const ends = this.#segmentBoundaryCount(sessionId, 'end');
-    if (starts !== 1 || starts <= ends) {
+    const segmentStarts = this.#segmentBoundaryCount(sessionId, 'start', segmentId);
+    const segmentEnds = this.#segmentBoundaryCount(sessionId, 'end', segmentId);
+    if (segmentStarts === 0 || starts !== ends + 1) {
       throw new StudyRepositoryError('segment-start-required', 409);
     }
-    if (ends > 0) {
+    if (segmentEnds > 0) {
       throw new StudyRepositoryError('segment-end-already-recorded', 409);
+    }
+    if (
+      (segmentId === 'S00' && (starts !== 1 || ends !== 0)) ||
+      (segmentId === 'S01' && (starts !== 2 || ends !== 1))
+    ) {
+      throw new StudyRepositoryError('segment-start-required', 409);
     }
   }
 
-  #segmentBoundaryCount(sessionId: string, eventType: 'start' | 'end'): number {
+  #segmentBoundaryCount(
+    sessionId: string,
+    eventType: 'start' | 'end',
+    segmentId?: 'S00' | 'S01',
+  ): number {
     return countSchema.parse(
       this.#database
         .prepare(
@@ -763,9 +786,10 @@ export class StudyRepository {
              AND phase = 'artifact'
              AND section_id IS NOT NULL
              AND segment_id IS NOT NULL
-             AND event_type = ?`,
+             AND event_type = ?
+             AND (? IS NULL OR segment_id = ?)`,
         )
-        .get(sessionId, eventType),
+        .get(sessionId, eventType, segmentId ?? null, segmentId ?? null),
     ).count;
   }
 
