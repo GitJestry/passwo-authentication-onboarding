@@ -77,10 +77,7 @@ function instrumentVersion(request: PlaceholderResponseRequest, versions: StudyV
     : versions.questionnaire;
 }
 
-function artifactVersionForCondition(
-  condition: StudyCondition,
-  versions: StudyVersions,
-): string {
+function artifactVersionForCondition(condition: StudyCondition, versions: StudyVersions): string {
   return condition === 'supportive' ? versions.supportiveArtifact : versions.referenceArtifact;
 }
 
@@ -168,8 +165,7 @@ export class StudyRepository {
           questionnaireVersion: this.#versions.questionnaire,
           guardrailVersion: this.#versions.guardrail,
           consentVersion: this.#versions.consent,
-          referenceArtifactVersion:
-            assignment.condition === 'reference' ? artifactVersion : null,
+          referenceArtifactVersion: assignment.condition === 'reference' ? artifactVersion : null,
           createdAtIso,
         });
 

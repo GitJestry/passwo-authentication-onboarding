@@ -1,7 +1,6 @@
 import type { TrainingSegmentDefinition } from '@passwo/contracts';
-import { S00_CONTENT_VERSION } from './s00.js';
 
-export const SUPPORTIVE_ARTIFACT_VERSION = `supportive-s00-${S00_CONTENT_VERSION}`;
+export { SUPPORTIVE_ARTIFACT_VERSION } from '@passwo/contracts';
 
 export const trainingSegments = [
   {

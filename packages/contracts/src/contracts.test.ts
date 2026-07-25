@@ -7,7 +7,9 @@ import {
   designLabScenarioForPath,
   persistedSessionRecordSchema,
   placeholderResponseRequestSchema,
+  REFERENCE_PLACEHOLDER_ARTIFACT_VERSION,
   researchExportManifestSchema,
+  SUPPORTIVE_ARTIFACT_VERSION,
 } from './index.js';
 
 const authoredComparisonFixture = {
@@ -56,6 +58,11 @@ describe('research-safe contracts', () => {
     });
 
     expect(result.success).toBe(false);
+  });
+
+  it('defines the stable artifact versions required for persistence and export', () => {
+    expect(SUPPORTIVE_ARTIFACT_VERSION).toBe('supportive-s00-1.0.0');
+    expect(REFERENCE_PLACEHOLDER_ARTIFACT_VERSION).toBe('reference-placeholder-v1');
   });
 
   it('accepts only the bounded placeholder response', () => {

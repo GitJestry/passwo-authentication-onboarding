@@ -2,13 +2,13 @@ import { createHash } from 'node:crypto';
 import { mkdtempSync, readFileSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { SUPPORTIVE_ARTIFACT_VERSION } from '@passwo/training-content';
+import {
+  REFERENCE_PLACEHOLDER_ARTIFACT_VERSION,
+  SUPPORTIVE_ARTIFACT_VERSION,
+} from '@passwo/contracts';
 import type { FastifyInstance } from 'fastify';
 import { afterEach, describe, expect, it } from 'vitest';
-import {
-  buildStudyServer,
-  REFERENCE_PLACEHOLDER_ARTIFACT_VERSION,
-} from './app.js';
+import { buildStudyServer } from './app.js';
 import { exportResearchData } from './research-export.js';
 
 const temporaryDirectories: string[] = [];
@@ -190,8 +190,11 @@ describe('research export', () => {
       }),
     );
     expect(manifest.versions.content).toEqual(
-      [...new Set(sessions.map(({ contentVersion }: { contentVersion: string }) => contentVersion))]
-        .sort(),
+      [
+        ...new Set(
+          sessions.map(({ contentVersion }: { contentVersion: string }) => contentVersion),
+        ),
+      ].sort(),
     );
     expect(manifest.versions.referenceArtifact).toEqual(
       [

@@ -1,5 +1,8 @@
 import { z } from 'zod';
 
+export const SUPPORTIVE_ARTIFACT_VERSION = 'supportive-s00-1.0.0';
+export const REFERENCE_PLACEHOLDER_ARTIFACT_VERSION = 'reference-placeholder-v1';
+
 export const segmentIds = [
   'S00',
   'S01',

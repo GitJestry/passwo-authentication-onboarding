@@ -1,15 +1,15 @@
 import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import type { AssignmentMode } from '@passwo/contracts';
-import { SUPPORTIVE_ARTIFACT_VERSION } from '@passwo/training-content';
+import {
+  type AssignmentMode,
+  REFERENCE_PLACEHOLDER_ARTIFACT_VERSION,
+  SUPPORTIVE_ARTIFACT_VERSION,
+} from '@passwo/contracts';
 import Database from 'better-sqlite3';
 import type { FastifyInstance } from 'fastify';
 import { afterEach, describe, expect, it } from 'vitest';
-import {
-  buildStudyServer,
-  REFERENCE_PLACEHOLDER_ARTIFACT_VERSION,
-} from './app.js';
+import { buildStudyServer } from './app.js';
 import { loadStudyServerConfig } from './config.js';
 import type { StudyRandomSource } from './random-source.js';
 import { registerStudyWeb } from './static-web.js';
@@ -36,12 +36,16 @@ function deterministicRandomSource(): StudyRandomSource {
   };
 }
 
-function createServer(assignmentMode: AssignmentMode, databasePath = ':memory:'): FastifyInstance {
+function createServer(
+  assignmentMode: AssignmentMode,
+  databasePath = ':memory:',
+  randomSource = deterministicRandomSource(),
+): FastifyInstance {
   const server = buildStudyServer({
     version: '0.1.2',
     assignmentMode,
     databasePath,
-    randomSource: deterministicRandomSource(),
+    randomSource,
     nowIso: () => '2026-07-24T12:00:00.000Z',
   });
   servers.push(server);
@@ -112,13 +116,17 @@ describe('study server walking skeleton', () => {
     const temporaryDirectory = mkdtempSync(join(tmpdir(), 'passwo-artifact-version-test-'));
     temporaryDirectories.push(temporaryDirectory);
     const databasePath = join(temporaryDirectory, 'study.sqlite');
-    const supportiveServer = createServer('forced-supportive', databasePath);
-    await createSession(supportiveServer, 1);
+    const randomSource = deterministicRandomSource();
+    const supportiveServer = createServer('forced-supportive', databasePath, randomSource);
+    const supportiveSession = await createSession(supportiveServer, 1);
     await supportiveServer.close();
     servers.splice(servers.indexOf(supportiveServer), 1);
 
-    const referenceServer = createServer('forced-reference', databasePath);
-    await createSession(referenceServer, 2);
+    const referenceServer = createServer('forced-reference', databasePath, randomSource);
+    const referenceSession = await createSession(referenceServer, 2);
+
+    expect(referenceSession.sessionId).not.toBe(supportiveSession.sessionId);
+    expect(referenceSession.participantCode).not.toBe(supportiveSession.participantCode);
 
     const database = new Database(databasePath, { readonly: true });
     const rows = database

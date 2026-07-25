@@ -6,11 +6,12 @@ import {
   createSessionRequestSchema,
   createSessionResponseSchema,
   placeholderResponseRequestSchema,
+  REFERENCE_PLACEHOLDER_ARTIFACT_VERSION,
+  SUPPORTIVE_ARTIFACT_VERSION,
   saveResponseResponseSchema,
   sessionStatusResponseSchema,
   timingWriteResponseSchema,
 } from '@passwo/contracts';
-import { SUPPORTIVE_ARTIFACT_VERSION } from '@passwo/training-content';
 import Fastify, { type FastifyInstance } from 'fastify';
 import { z } from 'zod';
 import { openStudyDatabase } from './database.js';
@@ -18,8 +19,6 @@ import { cryptoStudyRandomSource, type StudyRandomSource } from './random-source
 import { StudyRepository, StudyRepositoryError, type StudyVersions } from './study-repository.js';
 
 const sessionParamsSchema = z.object({ sessionId: z.uuid() });
-
-export const REFERENCE_PLACEHOLDER_ARTIFACT_VERSION = 'reference-placeholder-v1';
 
 export const walkingSkeletonVersions: StudyVersions = {
   study: 'walking-skeleton-v1',
