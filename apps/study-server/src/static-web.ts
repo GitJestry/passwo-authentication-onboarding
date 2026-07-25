@@ -1,24 +1,12 @@
 import { existsSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import fastifyStatic from '@fastify/static';
+import { designLabPaths } from '@passwo/contracts';
 import type { FastifyInstance, FastifyReply, FastifyRequest } from 'fastify';
 
 const defaultWebBuildDirectory = fileURLToPath(new URL('../../study-web/dist/', import.meta.url));
 
-const designLabRoutes = new Set([
-  '/design-lab',
-  '/design-lab/normal',
-  '/design-lab/dimmed',
-  '/design-lab/passwo-overlay',
-  '/design-lab/s00',
-  '/design-lab/s02',
-  '/design-lab/s02-campus-id',
-  '/design-lab/s06',
-  '/design-lab/s06-identical',
-  '/design-lab/s06-similar',
-  '/design-lab/s06-unique',
-  '/design-lab/s06-hypothetical',
-]);
+const designLabRoutes = new Set(designLabPaths);
 
 function sendDesignLabApp(request: FastifyRequest, reply: FastifyReply) {
   const requestUrl = request.raw.url;

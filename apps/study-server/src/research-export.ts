@@ -14,6 +14,7 @@ import {
 } from '@passwo/contracts';
 import Database from 'better-sqlite3';
 import { z } from 'zod';
+import { mapSessionRow, sessionRowSelection } from './session-row.js';
 
 const exportFileNames = [
   'sessions.csv',
@@ -23,24 +24,6 @@ const exportFileNames = [
   'timing.json',
   'responses.json',
 ] as const;
-
-const databaseSessionRowSchema = z.object({
-  sessionId: z.string(),
-  participantCode: z.string(),
-  condition: z.string(),
-  assignmentMode: z.string(),
-  studyVersion: z.string(),
-  contentVersion: z.string(),
-  questionnaireVersion: z.string(),
-  guardrailVersion: z.string(),
-  consentVersion: z.string(),
-  referenceArtifactVersion: z.string().nullable(),
-  consentAccepted: z.number().int(),
-  completionStatus: z.string(),
-  technicalErrorCode: z.string().nullable(),
-  createdAtIso: z.string(),
-  completedAtIso: z.string().nullable(),
-});
 
 const databaseResponseRowSchema = z.object({
   sessionId: z.string(),
@@ -65,14 +48,6 @@ export interface ResearchExportOptions {
   readonly databasePath: string;
   readonly outputDirectory: string;
   readonly exportedAtIso?: string;
-}
-
-function toSessionRecord(row: unknown): ResearchExportSessionRecord {
-  const parsed = databaseSessionRowSchema.parse(row);
-  return researchExportSessionRecordSchema.parse({
-    ...parsed,
-    consentAccepted: parsed.consentAccepted === 1,
-  });
 }
 
 function toResponseRecord(row: unknown): ResearchExportResponseRecord {
@@ -144,28 +119,9 @@ export function exportResearchData({
   const database = new Database(databasePath, { readonly: true });
   try {
     const sessions = database
-      .prepare(
-        `SELECT
-          session_id AS sessionId,
-          participant_code AS participantCode,
-          condition,
-          assignment_mode AS assignmentMode,
-          study_version AS studyVersion,
-          content_version AS contentVersion,
-          questionnaire_version AS questionnaireVersion,
-          guardrail_version AS guardrailVersion,
-          consent_version AS consentVersion,
-          reference_artifact_version AS referenceArtifactVersion,
-          consent_accepted AS consentAccepted,
-          completion_status AS completionStatus,
-          technical_error_code AS technicalErrorCode,
-          created_at_iso AS createdAtIso,
-          completed_at_iso AS completedAtIso
-         FROM study_sessions
-         ORDER BY session_id`,
-      )
+      .prepare(`${sessionRowSelection} ORDER BY session_id`)
       .all()
-      .map(toSessionRecord);
+      .map((row) => researchExportSessionRecordSchema.parse(mapSessionRow(row)));
     const timing = database
       .prepare(
         `SELECT
@@ -302,6 +258,7 @@ export function exportResearchData({
         study: sortedVersions(sessions.map((session) => session.studyVersion)),
         content: sortedVersions(sessions.map((session) => session.contentVersion)),
         questionnaire: sortedVersions(sessions.map((session) => session.questionnaireVersion)),
+        guardrail: sortedVersions(sessions.map((session) => session.guardrailVersion)),
         consent: sortedVersions(sessions.map((session) => session.consentVersion)),
         referenceArtifact: sortedVersions(
           sessions.map((session) => session.referenceArtifactVersion),

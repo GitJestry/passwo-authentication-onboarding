@@ -3,6 +3,8 @@ import {
   type AuthoredPasswordComparisonResult,
   artifactTimingEventSchema,
   createSessionRequestSchema,
+  designLabPaths,
+  designLabScenarioForPath,
   persistedSessionRecordSchema,
   placeholderResponseRequestSchema,
   researchExportManifestSchema,
@@ -100,6 +102,7 @@ describe('research-safe contracts', () => {
         study: ['walking-skeleton-v1'],
         content: ['artifact-placeholder-v1'],
         questionnaire: ['questionnaire-placeholder-v1'],
+        guardrail: ['guardrail-placeholder-v1'],
         consent: ['consent-placeholder-v1'],
         referenceArtifact: ['reference-placeholder-v1'],
       },
@@ -119,5 +122,13 @@ describe('research-safe contracts', () => {
         requestBody: 'never exported',
       }).success,
     ).toBe(false);
+  });
+
+  it('defines the same explicit Design-Lab paths for server and client use', () => {
+    expect(designLabPaths).toContain('/design-lab/s02-campus-id');
+    expect(designLabScenarioForPath('/design-lab')).toBe('normal');
+    expect(designLabScenarioForPath('/design-lab/s06-similar')).toBe('s06-similar');
+    expect(designLabScenarioForPath('/design-lab/s02')).toBeNull();
+    expect(designLabScenarioForPath('/design-lab/unknown')).toBeNull();
   });
 });

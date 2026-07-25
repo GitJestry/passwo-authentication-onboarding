@@ -1,4 +1,9 @@
 import {
+  type DesignLabScenarioId,
+  designLabPathForScenario,
+  designLabScenarioIds,
+} from '@passwo/contracts';
+import {
   BrowserShell,
   type BrowserShellLayers,
   type BrowserShellSnapshot,
@@ -9,19 +14,6 @@ import { S00Training } from '../features/training/S00Training.js';
 import { S02CampusIdTraining } from '../features/training/segments/S02/S02CampusIdTraining.js';
 import { S06ConsequenceTraining } from '../features/training/segments/S06/S06ConsequenceTraining.js';
 import styles from './DesignLab.module.css';
-
-const scenarioIds = [
-  'normal',
-  'dimmed',
-  'passwo-overlay',
-  's00',
-  's02-campus-id',
-  's06-identical',
-  's06-similar',
-  's06-unique',
-  's06-hypothetical',
-] as const;
-type DesignLabScenarioId = (typeof scenarioIds)[number];
 
 interface DesignLabScenario {
   readonly label: string;
@@ -171,11 +163,6 @@ const scenarios: Record<DesignLabScenarioId, DesignLabScenario> = {
   },
 };
 
-function resolveScenario(pathname: string): DesignLabScenarioId {
-  const pathSegment = pathname.replace(/\/+$/, '').split('/').at(-1);
-  return scenarioIds.find((scenarioId) => scenarioId === pathSegment) ?? 'normal';
-}
-
 function DesignLabIntroduction({
   scenarioId,
   scenario,
@@ -191,10 +178,10 @@ function DesignLabIntroduction({
           <h1>BrowserShell Design Lab</h1>
         </div>
         <nav aria-label="Design-Lab-Szenen">
-          {scenarioIds.map((id) => (
+          {designLabScenarioIds.map((id) => (
             <a
               key={id}
-              href={`/design-lab/${id}`}
+              href={designLabPathForScenario(id)}
               aria-current={id === scenarioId ? 'page' : undefined}
             >
               {scenarios[id].label}
@@ -317,8 +304,7 @@ function createOverlayLayers(
   };
 }
 
-export function DesignLab({ pathname = window.location.pathname }: { readonly pathname?: string }) {
-  const scenarioId = resolveScenario(pathname);
+export function DesignLab({ scenarioId }: { readonly scenarioId: DesignLabScenarioId }) {
   const scenario = scenarios[scenarioId];
   const [activeTabScene, setActiveTabScene] = useState(preparationTabScene);
   const [replayCount, setReplayCount] = useState(0);

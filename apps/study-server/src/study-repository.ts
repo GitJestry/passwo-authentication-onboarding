@@ -6,7 +6,6 @@ import {
   type PersistedSessionRecord,
   type PlaceholderInstrumentId,
   type PlaceholderResponseRequest,
-  persistedSessionRecordSchema,
   type StudyCondition,
   studyConditionSchema,
   type TimingWriteResponse,
@@ -14,6 +13,7 @@ import {
 import type Database from 'better-sqlite3';
 import { z } from 'zod';
 import type { StudyRandomSource } from './random-source.js';
+import { mapSessionRow, sessionRowSelection } from './session-row.js';
 
 export interface StudyVersions {
   readonly study: string;
@@ -40,24 +40,6 @@ interface Assignment {
   readonly slotIndex: number | null;
 }
 
-const sessionRowSchema = z.object({
-  sessionId: z.string(),
-  participantCode: z.string(),
-  condition: z.string(),
-  assignmentMode: z.string(),
-  studyVersion: z.string(),
-  contentVersion: z.string(),
-  questionnaireVersion: z.string(),
-  guardrailVersion: z.string(),
-  consentVersion: z.string(),
-  referenceArtifactVersion: z.string().nullable(),
-  consentAccepted: z.number().int(),
-  completionStatus: z.string(),
-  technicalErrorCode: z.string().nullable(),
-  createdAtIso: z.string(),
-  completedAtIso: z.string().nullable(),
-});
-
 const assignmentSlotSchema = z.object({
   blockNumber: z.number().int(),
   slotIndex: z.number().int(),
@@ -76,36 +58,9 @@ const artifactBoundsSchema = z.object({
   startedAt: z.number().nullable(),
   endedAt: z.number().nullable(),
 });
+const sessionIdRowSchema = z.object({ sessionId: z.string() });
 
-export const staleArtifactSessionAfterMs = 30 * 60 * 1000;
-
-const sessionSelection = `
-  SELECT
-    session_id AS sessionId,
-    participant_code AS participantCode,
-    condition,
-    assignment_mode AS assignmentMode,
-    study_version AS studyVersion,
-    content_version AS contentVersion,
-    questionnaire_version AS questionnaireVersion,
-    guardrail_version AS guardrailVersion,
-    consent_version AS consentVersion,
-    reference_artifact_version AS referenceArtifactVersion,
-    consent_accepted AS consentAccepted,
-    completion_status AS completionStatus,
-    technical_error_code AS technicalErrorCode,
-    created_at_iso AS createdAtIso,
-    completed_at_iso AS completedAtIso
-  FROM study_sessions
-`;
-
-function toPersistedSession(row: unknown): PersistedSessionRecord {
-  const parsed = sessionRowSchema.parse(row);
-  return persistedSessionRecordSchema.parse({
-    ...parsed,
-    consentAccepted: parsed.consentAccepted === 1,
-  });
-}
+export const artifactLeaseExpiresAfterMs = 5 * 60 * 1000;
 
 function toCreateResponse(session: PersistedSessionRecord): CreateSessionResponse {
   return {
@@ -348,6 +303,13 @@ export class StudyRepository {
           this.#nowIso(),
         );
 
+      if (event.eventType === 'start') {
+        this.#activateArtifactLease(sessionId, this.#nowIso());
+      }
+      if (event.eventType === 'end') {
+        this.#closeArtifactLease(sessionId, this.#nowIso());
+      }
+
       return {
         recorded: true,
         artifactWallClockMs: this.#artifactWallClockMs(sessionId),
@@ -357,15 +319,44 @@ export class StudyRepository {
     return record();
   }
 
+  acquireArtifactLease(sessionId: string): void {
+    this.recoverStaleArtifactSessions();
+    const acquire = this.#database.transaction(() => {
+      this.#requireInProgress(sessionId);
+      this.#requirePreCompleted(sessionId);
+      if (this.#artifactBoundaryCount(sessionId, 'end') > 0) {
+        throw new StudyRepositoryError('artifact-not-active', 409);
+      }
+      this.#activateArtifactLease(sessionId, this.#nowIso());
+    });
+
+    acquire();
+  }
+
+  heartbeatArtifactLease(sessionId: string): void {
+    this.recoverStaleArtifactSessions();
+    const heartbeat = this.#database.transaction(() => {
+      this.#requireInProgress(sessionId);
+      const result = this.#database
+        .prepare(
+          `UPDATE artifact_leases
+           SET last_heartbeat_at_iso = ?
+           WHERE session_id = ? AND closed_at_iso IS NULL`,
+        )
+        .run(this.#nowIso(), sessionId);
+      if (result.changes === 0) {
+        throw new StudyRepositoryError('artifact-lease-not-active', 409);
+      }
+    });
+
+    heartbeat();
+  }
+
   markIncompleteReload(sessionId: string): string {
     this.recoverStaleArtifactSessions();
     const markIncomplete = this.#database.transaction(() => {
       const status = this.#completionStatus(sessionId);
-      if (
-        status === 'in-progress' &&
-        this.#artifactBoundaryCount(sessionId, 'start') === 1 &&
-        this.#artifactBoundaryCount(sessionId, 'end') === 0
-      ) {
+      if (status === 'in-progress' && this.#hasActiveArtifactLease(sessionId)) {
         this.#database
           .prepare(
             `UPDATE study_sessions
@@ -374,6 +365,7 @@ export class StudyRepository {
              WHERE session_id = ? AND completion_status = 'in-progress'`,
           )
           .run(sessionId);
+        this.#closeArtifactLease(sessionId, this.#nowIso());
         return 'incomplete-reload';
       }
       return status;
@@ -404,6 +396,7 @@ export class StudyRepository {
            WHERE session_id = ?`,
         )
         .run(this.#nowIso(), sessionId);
+      this.#closeArtifactLease(sessionId, this.#nowIso());
       return 'completed';
     });
 
@@ -412,8 +405,10 @@ export class StudyRepository {
 
   findSession(sessionId: string): PersistedSessionRecord | null {
     this.recoverStaleArtifactSessions();
-    const row = this.#database.prepare(`${sessionSelection} WHERE session_id = ?`).get(sessionId);
-    return row === undefined ? null : toPersistedSession(row);
+    const row = this.#database
+      .prepare(`${sessionRowSelection} WHERE session_id = ?`)
+      .get(sessionId);
+    return row === undefined ? null : mapSessionRow(row);
   }
 
   getSessionStatus(sessionId: string): string {
@@ -426,42 +421,44 @@ export class StudyRepository {
     if (!Number.isFinite(now)) {
       throw new StudyRepositoryError('invalid-server-clock', 500);
     }
-    const cutoffIso = new Date(now - staleArtifactSessionAfterMs).toISOString();
-    const result = this.#database
-      .prepare(
-        `UPDATE study_sessions
-         SET completion_status = 'incomplete-reload',
-             technical_error_code = 'artifact-stale-recovery'
-         WHERE completion_status = 'in-progress'
-           AND EXISTS (
-             SELECT 1
-             FROM timing_events AS started
-             WHERE started.session_id = study_sessions.session_id
-               AND started.phase = 'artifact'
-               AND started.event_type = 'start'
-           )
-           AND NOT EXISTS (
-             SELECT 1
-             FROM timing_events AS ended
-             WHERE ended.session_id = study_sessions.session_id
-               AND ended.phase = 'artifact'
-               AND ended.event_type = 'end'
-           )
-           AND (
-             SELECT MAX(activity.server_received_at_iso)
-             FROM timing_events AS activity
-             WHERE activity.session_id = study_sessions.session_id
-           ) <= ?`,
-      )
-      .run(cutoffIso);
-    return result.changes;
+    const cutoffIso = new Date(now - artifactLeaseExpiresAfterMs).toISOString();
+    const recover = this.#database.transaction(() => {
+      const staleSessionIds = this.#database
+        .prepare(
+          `SELECT lease.session_id AS sessionId
+           FROM artifact_leases AS lease
+           JOIN study_sessions AS session ON session.session_id = lease.session_id
+           WHERE session.completion_status = 'in-progress'
+             AND lease.closed_at_iso IS NULL
+             AND lease.last_heartbeat_at_iso <= ?`,
+        )
+        .all(cutoffIso)
+        .map((row) => sessionIdRowSchema.parse(row).sessionId);
+      let recovered = 0;
+      for (const sessionId of staleSessionIds) {
+        const result = this.#database
+          .prepare(
+            `UPDATE study_sessions
+             SET completion_status = 'incomplete-reload',
+                 technical_error_code = 'artifact-stale-recovery'
+             WHERE session_id = ? AND completion_status = 'in-progress'`,
+          )
+          .run(sessionId);
+        if (result.changes === 0) continue;
+        this.#closeArtifactLease(sessionId, this.#nowIso());
+        recovered += 1;
+      }
+      return recovered;
+    });
+
+    return recover();
   }
 
   #findSessionByRequestId(requestId: string): PersistedSessionRecord | null {
     const row = this.#database
-      .prepare(`${sessionSelection} WHERE create_request_id = ?`)
+      .prepare(`${sessionRowSelection} WHERE create_request_id = ?`)
       .get(requestId);
-    return row === undefined ? null : toPersistedSession(row);
+    return row === undefined ? null : mapSessionRow(row);
   }
 
   #nextAssignment(): Assignment {
@@ -647,6 +644,42 @@ export class StudyRepository {
         )
         .get(sessionId, eventType),
     ).count;
+  }
+
+  #hasActiveArtifactLease(sessionId: string): boolean {
+    return (
+      countSchema.parse(
+        this.#database
+          .prepare(
+            `SELECT COUNT(*) AS count
+           FROM artifact_leases
+           WHERE session_id = ? AND closed_at_iso IS NULL`,
+          )
+          .get(sessionId),
+      ).count === 1
+    );
+  }
+
+  #activateArtifactLease(sessionId: string, heartbeatAtIso: string): void {
+    this.#database
+      .prepare(
+        `INSERT INTO artifact_leases (session_id, last_heartbeat_at_iso, closed_at_iso)
+         VALUES (?, ?, NULL)
+         ON CONFLICT(session_id) DO UPDATE SET
+           last_heartbeat_at_iso = excluded.last_heartbeat_at_iso,
+           closed_at_iso = NULL`,
+      )
+      .run(sessionId, heartbeatAtIso);
+  }
+
+  #closeArtifactLease(sessionId: string, closedAtIso: string): void {
+    this.#database
+      .prepare(
+        `UPDATE artifact_leases
+         SET closed_at_iso = ?
+         WHERE session_id = ? AND closed_at_iso IS NULL`,
+      )
+      .run(closedAtIso, sessionId);
   }
 
   #artifactWallClockMs(sessionId: string): number | null {

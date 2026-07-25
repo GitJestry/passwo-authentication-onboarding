@@ -88,3 +88,6 @@ export const sessionStatusResponseSchema = z
   .object({ completionStatus: completionStatusSchema })
   .strict();
 export type SessionStatusResponse = z.infer<typeof sessionStatusResponseSchema>;
+
+export const artifactLeaseResponseSchema = z.object({ active: z.literal(true) }).strict();
+export type ArtifactLeaseResponse = z.infer<typeof artifactLeaseResponseSchema>;

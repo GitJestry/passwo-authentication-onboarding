@@ -89,6 +89,28 @@ async function failFirstPreWrite(page: Page): Promise<void> {
   });
 }
 
+async function failFirstArtifactStartWrite(page: Page): Promise<void> {
+  let failed = false;
+  await page.route('**/api/study/sessions/*/timing', async (route) => {
+    const body: unknown = route.request().postDataJSON();
+    const isArtifactStart =
+      typeof body === 'object' &&
+      body !== null &&
+      'eventType' in body &&
+      body.eventType === 'start';
+
+    if (!failed && isArtifactStart) {
+      failed = true;
+      await route.fulfill({
+        status: 503,
+        json: { errorCode: 'research-data-write-failed' },
+      });
+      return;
+    }
+    await route.continue();
+  });
+}
+
 async function failFirstVisibilityWrite(page: Page): Promise<() => void> {
   let failed = false;
   let releaseFailure = () => {};
@@ -189,6 +211,9 @@ test('forced-supportive records diagnostic visibility only while the artifact is
   await expect
     .poll(() => timingEventTypes(requests.bodies))
     .toEqual(['start', 'visibility-hidden', 'visibility-visible']);
+  await expect
+    .poll(() => requests.paths.filter((path) => path.endsWith('/artifact-lease/heartbeat')).length)
+    .toBe(1);
 
   await completeS00(page);
   await expect(page.getByRole('heading', { name: 'Fragebogen nach dem Artefakt' })).toBeVisible();
@@ -276,6 +301,38 @@ test('reload during the artifact marks the session incomplete and starts fresh',
 
   await expect(page.getByRole('heading', { name: 'Willkommen zur Studie' })).toBeVisible();
   await expect(page.getByText('Nicht fortsetzen')).toHaveCount(0);
+  await expect
+    .poll(() => requests.paths.filter((path) => path.endsWith('/incomplete-reload')).length)
+    .toBe(1);
+  const sessionId = [...requests.sessionIds].at(0);
+  expect(sessionId).toBeDefined();
+  await expect
+    .poll(async () => {
+      if (studyServer === null || sessionId === undefined) return null;
+      const response = await studyServer.inject({
+        method: 'GET',
+        url: `/api/study/sessions/${sessionId}/status`,
+      });
+      return response.json<{ completionStatus: string }>().completionStatus;
+    })
+    .toBe('incomplete-reload');
+});
+
+test('reload after a failed artifact start still marks the leased session incomplete', async ({
+  page,
+}) => {
+  await startStudyServer('forced-supportive');
+  const requests = captureResearchRequests(page);
+  await failFirstArtifactStartWrite(page);
+  await acceptConsent(page);
+  await submitPlaceholder(page);
+  await page.getByLabel('Anzeigename').fill('Startfehler');
+  await page.getByRole('button', { name: 'Zum Artefakt' }).click();
+  await expect(page.getByRole('heading', { name: 'Speichern nicht möglich' })).toBeVisible();
+
+  await page.reload();
+
+  await expect(page.getByRole('heading', { name: 'Willkommen zur Studie' })).toBeVisible();
   await expect
     .poll(() => requests.paths.filter((path) => path.endsWith('/incomplete-reload')).length)
     .toBe(1);

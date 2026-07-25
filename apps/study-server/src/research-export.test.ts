@@ -76,6 +76,12 @@ describe('research export', () => {
 
     const incompleteSessionId = await createSession(server, 1);
     await savePreAndStartArtifact(server, incompleteSessionId);
+    const heartbeat = await server.inject({
+      method: 'POST',
+      url: `/api/study/sessions/${incompleteSessionId}/artifact-lease/heartbeat`,
+      payload: {},
+    });
+    expect(heartbeat.json()).toEqual({ active: true });
     await server.inject({
       method: 'POST',
       url: `/api/study/sessions/${incompleteSessionId}/incomplete-reload`,
@@ -124,6 +130,7 @@ describe('research export', () => {
     const second = exportResearchData({ ...exportOptions, outputDirectory: secondOutputDirectory });
     const manifest = JSON.parse(readFileSync(join(firstOutputDirectory, 'manifest.json'), 'utf8'));
     const sessions = JSON.parse(readFileSync(join(firstOutputDirectory, 'sessions.json'), 'utf8'));
+    const timing = JSON.parse(readFileSync(join(firstOutputDirectory, 'timing.json'), 'utf8'));
     const responses = JSON.parse(
       readFileSync(join(firstOutputDirectory, 'responses.json'), 'utf8'),
     );
@@ -141,8 +148,8 @@ describe('research export', () => {
     expect(second.manifest).toEqual(first.manifest);
     expect(sessions).toHaveLength(2);
     expect(responses).toHaveLength(4);
-    expect(JSON.stringify({ sessions, responses })).not.toMatch(
-      /display.?name|password|training.?input|request.?body|user.?agent|ip.?address/iu,
+    expect(JSON.stringify({ sessions, timing, responses })).not.toMatch(
+      /display.?name|password|training.?input|request.?body|user.?agent|ip.?address|heartbeat/iu,
     );
     expect(readFileSync(join(firstOutputDirectory, 'sessions.csv'), 'utf8')).toMatch(
       /^sessionId,participantCode,condition,assignmentMode,studyVersion,contentVersion/u,
@@ -157,6 +164,7 @@ describe('research export', () => {
       study: ['walking-skeleton-v1'],
       content: ['artifact-placeholder-v1'],
       questionnaire: ['questionnaire-placeholder-v1'],
+      guardrail: ['guardrail-placeholder-v1'],
       consent: ['consent-placeholder-v1'],
       referenceArtifact: [],
     });

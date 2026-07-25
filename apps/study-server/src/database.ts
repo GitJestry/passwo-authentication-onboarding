@@ -59,6 +59,16 @@ const schema = `
   ON timing_events(session_id, phase, event_type)
   WHERE phase = 'artifact' AND event_type IN ('start', 'end');
 
+  CREATE TABLE IF NOT EXISTS artifact_leases (
+    session_id TEXT PRIMARY KEY REFERENCES study_sessions(session_id),
+    last_heartbeat_at_iso TEXT NOT NULL,
+    closed_at_iso TEXT
+  );
+
+  CREATE INDEX IF NOT EXISTS active_artifact_leases
+  ON artifact_leases(last_heartbeat_at_iso)
+  WHERE closed_at_iso IS NULL;
+
   CREATE TABLE IF NOT EXISTS responses (
     session_id TEXT NOT NULL REFERENCES study_sessions(session_id),
     instrument_id TEXT NOT NULL,

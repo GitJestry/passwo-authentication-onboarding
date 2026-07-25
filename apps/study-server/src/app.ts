@@ -1,5 +1,6 @@
 import {
   type AssignmentMode,
+  artifactLeaseResponseSchema,
   artifactTimingEventSchema,
   completeSessionRequestSchema,
   createSessionRequestSchema,
@@ -113,6 +114,24 @@ export function buildStudyServer({
       const { sessionId } = sessionParamsSchema.parse(request.params);
       const completionStatus = repository.getSessionStatus(sessionId);
       return reply.send(sessionStatusResponseSchema.parse({ completionStatus }));
+    },
+  );
+
+  server.post<{ Params: { sessionId: string } }>(
+    '/api/study/sessions/:sessionId/artifact-lease',
+    async (request, reply) => {
+      const { sessionId } = sessionParamsSchema.parse(request.params);
+      repository.acquireArtifactLease(sessionId);
+      return reply.send(artifactLeaseResponseSchema.parse({ active: true }));
+    },
+  );
+
+  server.post<{ Params: { sessionId: string } }>(
+    '/api/study/sessions/:sessionId/artifact-lease/heartbeat',
+    async (request, reply) => {
+      const { sessionId } = sessionParamsSchema.parse(request.params);
+      repository.heartbeatArtifactLease(sessionId);
+      return reply.send(artifactLeaseResponseSchema.parse({ active: true }));
     },
   );
 

@@ -249,8 +249,19 @@ describe('study server walking skeleton', () => {
       url: `/api/study/sessions/${session.sessionId}/complete`,
       payload: { debriefAcknowledged: true },
     });
+    const reloadAfterCompletion = await server.inject({
+      method: 'POST',
+      url: `/api/study/sessions/${session.sessionId}/incomplete-reload`,
+    });
+    const heartbeatAfterCompletion = await server.inject({
+      method: 'POST',
+      url: `/api/study/sessions/${session.sessionId}/artifact-lease/heartbeat`,
+      payload: {},
+    });
     expect(completion.json()).toEqual({ completionStatus: 'completed' });
     expect(repeatedCompletion.json()).toEqual({ completionStatus: 'completed' });
+    expect(reloadAfterCompletion.json()).toEqual({ completionStatus: 'completed' });
+    expect(heartbeatAfterCompletion.statusCode).toBe(409);
   });
 
   it('persists supportive visibility events with ordered idempotent timing writes', async () => {
@@ -429,9 +440,82 @@ describe('study server walking skeleton', () => {
     });
 
     expect(reloadAfterEnd.json()).toEqual({ completionStatus: 'in-progress' });
+    const heartbeatAfterEnd = await completedArtifactServer.inject({
+      method: 'POST',
+      url: `/api/study/sessions/${completedArtifactSession.sessionId}/artifact-lease/heartbeat`,
+      payload: {},
+    });
+    expect(heartbeatAfterEnd.statusCode).toBe(409);
+    expect(heartbeatAfterEnd.json()).toEqual({ errorCode: 'artifact-lease-not-active' });
   });
 
-  it('recovers stale active artifacts without overwriting completed artifact boundaries', async () => {
+  it('marks leased artifacts incomplete on reload without requiring an artifact start event', async () => {
+    const server = createServer('forced-supportive');
+    const startingSession = await createSession(server);
+    const startErrorSession = await createSession(server, 2);
+
+    for (const session of [startingSession, startErrorSession]) {
+      const pre = await server.inject({
+        method: 'POST',
+        url: `/api/study/sessions/${session.sessionId}/responses`,
+        payload: {
+          instrumentId: 'pre-placeholder',
+          itemId: 'placeholder-complete',
+          value: true,
+        },
+      });
+      expect(pre.statusCode).toBe(200);
+      const lease = await server.inject({
+        method: 'POST',
+        url: `/api/study/sessions/${session.sessionId}/artifact-lease`,
+        payload: {},
+      });
+      expect(lease.json()).toEqual({ active: true });
+    }
+
+    const failedStart = await server.inject({
+      method: 'POST',
+      url: `/api/study/sessions/${startErrorSession.sessionId}/timing`,
+      payload: {
+        sequence: 1,
+        phase: 'artifact',
+        sectionId: null,
+        segmentId: null,
+        eventType: 'start',
+        clientMonotonicMs: 100,
+        clientWallClockIso: '2026-07-24T12:00:00.000Z',
+        elapsedMs: null,
+        reasonCode: null,
+      },
+    });
+    expect(failedStart.statusCode).toBe(409);
+    expect(failedStart.json()).toEqual({ errorCode: 'timing-sequence-conflict' });
+
+    const duringStarting = await server.inject({
+      method: 'POST',
+      url: `/api/study/sessions/${startingSession.sessionId}/incomplete-reload`,
+    });
+    const afterStartError = await server.inject({
+      method: 'POST',
+      url: `/api/study/sessions/${startErrorSession.sessionId}/incomplete-reload`,
+    });
+    const repeatedReload = await server.inject({
+      method: 'POST',
+      url: `/api/study/sessions/${startingSession.sessionId}/incomplete-reload`,
+    });
+    const heartbeatAfterReload = await server.inject({
+      method: 'POST',
+      url: `/api/study/sessions/${startingSession.sessionId}/artifact-lease/heartbeat`,
+      payload: {},
+    });
+
+    expect(duringStarting.json()).toEqual({ completionStatus: 'incomplete-reload' });
+    expect(afterStartError.json()).toEqual({ completionStatus: 'incomplete-reload' });
+    expect(repeatedReload.json()).toEqual({ completionStatus: 'incomplete-reload' });
+    expect(heartbeatAfterReload.statusCode).toBe(409);
+  });
+
+  it('expires only inactive leases and keeps a heartbeating artifact active beyond 30 minutes', async () => {
     let nowIso = '2026-07-24T12:00:00.000Z';
     const server = buildStudyServer({
       version: '0.1.2',
@@ -451,23 +535,30 @@ describe('study server walking skeleton', () => {
         value: true,
       },
     });
-    await server.inject({
+    const lease = await server.inject({
       method: 'POST',
-      url: `/api/study/sessions/${session.sessionId}/timing`,
-      payload: {
-        sequence: 0,
-        phase: 'artifact',
-        sectionId: null,
-        segmentId: null,
-        eventType: 'start',
-        clientMonotonicMs: 100,
-        clientWallClockIso: nowIso,
-        elapsedMs: null,
-        reasonCode: null,
-      },
+      url: `/api/study/sessions/${session.sessionId}/artifact-lease`,
+      payload: {},
     });
+    expect(lease.json()).toEqual({ active: true });
 
-    nowIso = '2026-07-24T12:31:00.000Z';
+    for (let minute = 1; minute <= 31; minute += 1) {
+      nowIso = new Date(Date.parse('2026-07-24T12:00:00.000Z') + minute * 60_000).toISOString();
+      const heartbeat = await server.inject({
+        method: 'POST',
+        url: `/api/study/sessions/${session.sessionId}/artifact-lease/heartbeat`,
+        payload: {},
+      });
+      expect(heartbeat.json()).toEqual({ active: true });
+    }
+
+    const active = await server.inject({
+      method: 'GET',
+      url: `/api/study/sessions/${session.sessionId}/status`,
+    });
+    expect(active.json()).toEqual({ completionStatus: 'in-progress' });
+
+    nowIso = '2026-07-24T12:37:00.000Z';
     const recovered = await server.inject({
       method: 'GET',
       url: `/api/study/sessions/${session.sessionId}/status`,
@@ -495,8 +586,8 @@ describe('study server walking skeleton', () => {
       '/',
       '/index.html',
       '/design-lab/s00',
-      '/design-lab/s02',
-      '/design-lab/s06',
+      '/design-lab/s02-campus-id',
+      '/design-lab/s06-similar',
     ]) {
       const response = await server.inject({ method: 'GET', url });
       expect(response.statusCode).toBe(200);
@@ -509,15 +600,19 @@ describe('study server walking skeleton', () => {
     const missingApi = await server.inject({ method: 'GET', url: '/api/study/export' });
     const unknownPath = await server.inject({ method: 'GET', url: '/unknown-path' });
     const unknownDesignLab = await server.inject({ method: 'GET', url: '/design-lab/unknown' });
+    const removedS02Alias = await server.inject({ method: 'GET', url: '/design-lab/s02' });
+    const removedS06Alias = await server.inject({ method: 'GET', url: '/design-lab/s06' });
 
     expect(asset.body).toBe('window.passwo = true;');
     expect(missingAsset.statusCode).toBe(404);
     expect(missingApi.statusCode).toBe(404);
     expect(unknownPath.statusCode).toBe(404);
     expect(unknownDesignLab.statusCode).toBe(404);
+    expect(removedS02Alias.statusCode).toBe(404);
+    expect(removedS06Alias.statusCode).toBe(404);
   });
 
-  it('creates the three-table research schema without participant input columns', async () => {
+  it('keeps operational leases outside the research tables and participant input columns', async () => {
     const temporaryDirectory = mkdtempSync(join(tmpdir(), 'passwo-study-test-'));
     temporaryDirectories.push(temporaryDirectory);
     const databasePath = join(temporaryDirectory, 'study.sqlite');
@@ -536,6 +631,7 @@ describe('study server walking skeleton', () => {
     database.close();
 
     expect(tables).toEqual([
+      { name: 'artifact_leases' },
       { name: 'assignment_slots' },
       { name: 'responses' },
       { name: 'study_sessions' },

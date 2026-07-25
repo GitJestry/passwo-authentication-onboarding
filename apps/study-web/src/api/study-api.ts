@@ -1,4 +1,5 @@
 import {
+  artifactLeaseResponseSchema,
   artifactTimingEventSchema,
   completeSessionRequestSchema,
   createSessionRequestSchema,
@@ -18,6 +19,7 @@ import {
 } from '@passwo/study-engine';
 
 const artifactScope = { phase: 'artifact' as const };
+export const artifactHeartbeatIntervalMs = 60_000;
 
 function apiErrorCode(value: unknown): string {
   if (
@@ -83,6 +85,9 @@ export function createStudyApi(): StudyRuntimePorts {
 
     startArtifact: async (sessionId: string) => {
       timingSessionId = sessionId;
+      artifactLeaseResponseSchema.parse(
+        await postJson(`/api/study/sessions/${sessionId}/artifact-lease`, {}),
+      );
       await timer.start(artifactScope);
     },
 
@@ -102,29 +107,34 @@ export function createStudyApi(): StudyRuntimePorts {
       return event.eventType === 'end' ? event.elapsedMs : null;
     },
 
-    observeArtifactLifecycle: ({ condition, onVisibilityChange, onReload }) => {
+    observeArtifactLifecycle: ({ sessionId, condition, onVisibilityChange, onReload }) => {
       let reloadMarked = false;
       const markReload = () => {
         if (reloadMarked) return;
         reloadMarked = true;
         onReload();
       };
+      const heartbeat = () => {
+        void postJson(`/api/study/sessions/${sessionId}/artifact-lease/heartbeat`, {})
+          .then((response) => artifactLeaseResponseSchema.parse(response))
+          .catch(() => undefined);
+      };
       const reportVisibility = () => {
-        onVisibilityChange(document.visibilityState === 'visible');
+        const visible = document.visibilityState === 'visible';
+        if (visible) heartbeat();
+        if (condition === 'supportive') onVisibilityChange(visible);
       };
 
       window.addEventListener('beforeunload', markReload);
       window.addEventListener('pagehide', markReload);
-      if (condition === 'supportive') {
-        document.addEventListener('visibilitychange', reportVisibility);
-      }
+      document.addEventListener('visibilitychange', reportVisibility);
+      const heartbeatInterval = window.setInterval(heartbeat, artifactHeartbeatIntervalMs);
 
       return () => {
         window.removeEventListener('beforeunload', markReload);
         window.removeEventListener('pagehide', markReload);
-        if (condition === 'supportive') {
-          document.removeEventListener('visibilitychange', reportVisibility);
-        }
+        document.removeEventListener('visibilitychange', reportVisibility);
+        window.clearInterval(heartbeatInterval);
       };
     },
 

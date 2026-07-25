@@ -54,6 +54,7 @@ export const researchExportManifestSchema = z
         study: z.array(versionIdSchema),
         content: z.array(versionIdSchema),
         questionnaire: z.array(versionIdSchema),
+        guardrail: z.array(versionIdSchema),
         consent: z.array(versionIdSchema),
         referenceArtifact: z.array(versionIdSchema),
       })
