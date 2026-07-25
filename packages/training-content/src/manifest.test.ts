@@ -1,9 +1,10 @@
 import { describe, expect, it } from 'vitest';
-import { TRAINING_CONTENT_VERSION, trainingSegments } from './manifest.js';
+import { SUPPORTIVE_ARTIFACT_VERSION, trainingSegments } from './manifest.js';
+import { S00_CONTENT_VERSION } from './s00.js';
 
 describe('training segment manifest', () => {
   it('contains the complete and ordered S00-S17 foundation', () => {
-    expect(TRAINING_CONTENT_VERSION).toBe('0.4.1-s06-review-fixes');
+    expect(SUPPORTIVE_ARTIFACT_VERSION).toBe(`supportive-s00-${S00_CONTENT_VERSION}`);
     expect(trainingSegments).toHaveLength(18);
     expect(trainingSegments.map(({ id }) => id)).toEqual(
       Array.from({ length: 18 }, (_, index) => `S${index.toString().padStart(2, '0')}`),

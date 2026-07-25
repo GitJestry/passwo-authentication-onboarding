@@ -10,6 +10,7 @@ import {
   sessionStatusResponseSchema,
   timingWriteResponseSchema,
 } from '@passwo/contracts';
+import { SUPPORTIVE_ARTIFACT_VERSION } from '@passwo/training-content';
 import Fastify, { type FastifyInstance } from 'fastify';
 import { z } from 'zod';
 import { openStudyDatabase } from './database.js';
@@ -18,13 +19,15 @@ import { StudyRepository, StudyRepositoryError, type StudyVersions } from './stu
 
 const sessionParamsSchema = z.object({ sessionId: z.uuid() });
 
+export const REFERENCE_PLACEHOLDER_ARTIFACT_VERSION = 'reference-placeholder-v1';
+
 export const walkingSkeletonVersions: StudyVersions = {
   study: 'walking-skeleton-v1',
-  content: 'artifact-placeholder-v1',
+  supportiveArtifact: SUPPORTIVE_ARTIFACT_VERSION,
   questionnaire: 'questionnaire-placeholder-v1',
   guardrail: 'guardrail-placeholder-v1',
   consent: 'consent-placeholder-v1',
-  referenceArtifact: 'reference-placeholder-v1',
+  referenceArtifact: REFERENCE_PLACEHOLDER_ARTIFACT_VERSION,
 };
 
 export interface StudyServerBuildOptions {

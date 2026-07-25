@@ -100,11 +100,11 @@ describe('research-safe contracts', () => {
       exportedAtIso: '2026-07-24T12:00:00.000Z',
       versions: {
         study: ['walking-skeleton-v1'],
-        content: ['artifact-placeholder-v1'],
+        content: ['content-fixture-v1'],
         questionnaire: ['questionnaire-placeholder-v1'],
         guardrail: ['guardrail-placeholder-v1'],
         consent: ['consent-placeholder-v1'],
-        referenceArtifact: ['reference-placeholder-v1'],
+        referenceArtifact: ['reference-fixture-v1'],
       },
       sessionCounts: [{ condition: 'supportive', completionStatus: 'completed', count: 1 }],
       files: [

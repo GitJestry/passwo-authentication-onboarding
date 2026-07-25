@@ -2,9 +2,13 @@ import { createHash } from 'node:crypto';
 import { mkdtempSync, readFileSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
+import { SUPPORTIVE_ARTIFACT_VERSION } from '@passwo/training-content';
 import type { FastifyInstance } from 'fastify';
 import { afterEach, describe, expect, it } from 'vitest';
-import { buildStudyServer } from './app.js';
+import {
+  buildStudyServer,
+  REFERENCE_PLACEHOLDER_ARTIFACT_VERSION,
+} from './app.js';
 import { exportResearchData } from './research-export.js';
 
 const temporaryDirectories: string[] = [];
@@ -120,6 +124,17 @@ describe('research export', () => {
     await server.close();
     servers.splice(servers.indexOf(server), 1);
 
+    const referenceServer = buildStudyServer({
+      version: '0.1.2',
+      assignmentMode: 'forced-reference',
+      databasePath,
+      nowIso: () => '2026-07-24T12:00:00.000Z',
+    });
+    servers.push(referenceServer);
+    await createSession(referenceServer, 3);
+    await referenceServer.close();
+    servers.splice(servers.indexOf(referenceServer), 1);
+
     const firstOutputDirectory = join(temporaryDirectory, 'first-export');
     const secondOutputDirectory = join(temporaryDirectory, 'second-export');
     const exportOptions = {
@@ -146,7 +161,7 @@ describe('research export', () => {
     ]);
     expect(first.manifest).toEqual(manifest);
     expect(second.manifest).toEqual(first.manifest);
-    expect(sessions).toHaveLength(2);
+    expect(sessions).toHaveLength(3);
     expect(responses).toHaveLength(4);
     expect(JSON.stringify({ sessions, timing, responses })).not.toMatch(
       /display.?name|password|training.?input|request.?body|user.?agent|ip.?address|heartbeat/iu,
@@ -160,13 +175,43 @@ describe('research export', () => {
       expect(file.sha256).toBe(sha256(content));
       expect(readFileSync(join(secondOutputDirectory, file.fileName), 'utf8')).toBe(content);
     }
+    expect(sessions).toContainEqual(
+      expect.objectContaining({
+        condition: 'supportive',
+        contentVersion: SUPPORTIVE_ARTIFACT_VERSION,
+        referenceArtifactVersion: null,
+      }),
+    );
+    expect(sessions).toContainEqual(
+      expect.objectContaining({
+        condition: 'reference',
+        contentVersion: REFERENCE_PLACEHOLDER_ARTIFACT_VERSION,
+        referenceArtifactVersion: REFERENCE_PLACEHOLDER_ARTIFACT_VERSION,
+      }),
+    );
+    expect(manifest.versions.content).toEqual(
+      [...new Set(sessions.map(({ contentVersion }: { contentVersion: string }) => contentVersion))]
+        .sort(),
+    );
+    expect(manifest.versions.referenceArtifact).toEqual(
+      [
+        ...new Set(
+          sessions
+            .map(
+              ({ referenceArtifactVersion }: { referenceArtifactVersion: string | null }) =>
+                referenceArtifactVersion,
+            )
+            .filter((version: string | null): version is string => version !== null),
+        ),
+      ].sort(),
+    );
     expect(manifest.versions).toEqual({
       study: ['walking-skeleton-v1'],
-      content: ['artifact-placeholder-v1'],
+      content: [REFERENCE_PLACEHOLDER_ARTIFACT_VERSION, SUPPORTIVE_ARTIFACT_VERSION].sort(),
       questionnaire: ['questionnaire-placeholder-v1'],
       guardrail: ['guardrail-placeholder-v1'],
       consent: ['consent-placeholder-v1'],
-      referenceArtifact: [],
+      referenceArtifact: [REFERENCE_PLACEHOLDER_ARTIFACT_VERSION],
     });
     expect(manifest.sessionCounts).toContainEqual({
       condition: 'supportive',

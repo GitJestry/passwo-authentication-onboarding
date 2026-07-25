@@ -16,7 +16,8 @@ Domänengrundlagen bereit, damit Codex mit kleinen vertikalen Aufträgen weitera
 - automatischen Research-Boundary-Check;
 - ADRs für Stack, Datengrenze, Statecharts, Timing, Randomisierung, Referenzbedingung und
   Renderer-Adapter;
-- private Forschungsquellen unter `research/private/`, standardmäßig von Git ausgeschlossen.
+- private Forschungsquellen unter `research/private/`; der gesamte Ordner ist von Git ausgeschlossen
+  und wird nicht getrackt.
 
 Der Snapshot enthält absichtlich **kein `pnpm-lock.yaml`**. Prompt 1 installiert die bereits
 festgelegten Abhängigkeiten, erzeugt den Lockfile und behebt nur reale Tooling-Kompatibilitäten.
@@ -38,9 +39,9 @@ git status --short
 git commit -m "Initialize PassWo foundation v0.1.2"
 ```
 
-Vor dem Commit müssen alle App- und Package-Manifeste als hinzugefügt erscheinen. Dateien unter
-`research/private/` dürfen mit Ausnahme der README nicht erscheinen. Erst nach diesem vollständigen
-Initialcommit sollte ein Remote verbunden oder Codex auf den Branch angesetzt werden.
+Vor dem Commit müssen alle App- und Package-Manifeste als hinzugefügt erscheinen. Keine Datei unter
+`research/private/` darf erscheinen oder getrackt werden. Erst nach diesem vollständigen Initialcommit
+sollte ein Remote verbunden oder Codex auf den Branch angesetzt werden.
 
 ## Voraussetzungen auf macOS
 
@@ -137,14 +138,16 @@ Die Manifestdatei ist Distributionsmetadatum und wird deshalb nicht in Git aufge
 
 ## Vertrauliche Quellen
 
-`research/private/` enthält Exposé, Trainingsskript, Translation Foci und Designreferenzen. Bis
-auf die dortige README ist der Ordner durch `.gitignore` ausgeschlossen. Prüfe nach `git init`:
+`research/private/` enthält lokale Exposés, Trainingsskripte, Translation Foci und Designreferenzen.
+Der gesamte Ordner ist durch `.gitignore` ausgeschlossen und wird nicht getrackt. Prüfe nach
+`git init`:
 
 ```bash
 git add .
 git status --short
 git check-ignore -v research/private/training-script.pdf
+git ls-files research/private
 ```
 
-Die PDF-, TeX- und PNG-Dateien dürfen nicht als zu committen erscheinen. Für normale
-Agentenarbeit werden die kompakten Ableitungen unter `research/derived/` und `docs/` genutzt.
+`git ls-files research/private` muss leer bleiben. Für normale Agentenarbeit werden die kompakten
+Ableitungen unter `research/derived/` und `docs/` genutzt.

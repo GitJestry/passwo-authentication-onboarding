@@ -17,7 +17,7 @@ import { mapSessionRow, sessionRowSelection } from './session-row.js';
 
 export interface StudyVersions {
   readonly study: string;
-  readonly content: string;
+  readonly supportiveArtifact: string;
   readonly questionnaire: string;
   readonly guardrail: string;
   readonly consent: string;
@@ -77,6 +77,13 @@ function instrumentVersion(request: PlaceholderResponseRequest, versions: StudyV
     : versions.questionnaire;
 }
 
+function artifactVersionForCondition(
+  condition: StudyCondition,
+  versions: StudyVersions,
+): string {
+  return condition === 'supportive' ? versions.supportiveArtifact : versions.referenceArtifact;
+}
+
 export class StudyRepository {
   readonly #database: Database.Database;
   readonly #assignmentMode: AssignmentMode;
@@ -110,6 +117,7 @@ export class StudyRepository {
       const assignment = this.#nextAssignment();
       const participantCode = this.#newParticipantCode();
       const createdAtIso = this.#nowIso();
+      const artifactVersion = artifactVersionForCondition(assignment.condition, this.#versions);
 
       this.#database
         .prepare(
@@ -156,12 +164,12 @@ export class StudyRepository {
           condition: assignment.condition,
           assignmentMode: this.#assignmentMode,
           studyVersion: this.#versions.study,
-          contentVersion: this.#versions.content,
+          contentVersion: artifactVersion,
           questionnaireVersion: this.#versions.questionnaire,
           guardrailVersion: this.#versions.guardrail,
           consentVersion: this.#versions.consent,
           referenceArtifactVersion:
-            assignment.condition === 'reference' ? this.#versions.referenceArtifact : null,
+            assignment.condition === 'reference' ? artifactVersion : null,
           createdAtIso,
         });
 

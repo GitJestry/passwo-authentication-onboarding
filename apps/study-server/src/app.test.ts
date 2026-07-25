@@ -2,10 +2,14 @@ import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import type { AssignmentMode } from '@passwo/contracts';
+import { SUPPORTIVE_ARTIFACT_VERSION } from '@passwo/training-content';
 import Database from 'better-sqlite3';
 import type { FastifyInstance } from 'fastify';
 import { afterEach, describe, expect, it } from 'vitest';
-import { buildStudyServer } from './app.js';
+import {
+  buildStudyServer,
+  REFERENCE_PLACEHOLDER_ARTIFACT_VERSION,
+} from './app.js';
 import { loadStudyServerConfig } from './config.js';
 import type { StudyRandomSource } from './random-source.js';
 import { registerStudyWeb } from './static-web.js';
@@ -89,6 +93,58 @@ describe('study server walking skeleton', () => {
     const session = await createSession(server);
 
     expect(session).toMatchObject({ assignmentMode: mode, condition });
+  });
+
+  it('rejects a client-supplied content version during session creation', async () => {
+    const server = createServer('forced-supportive');
+
+    const response = await server.inject({
+      method: 'POST',
+      url: '/api/study/sessions',
+      payload: { ...createSessionBody(1), contentVersion: 'client-selected-v1' },
+    });
+
+    expect(response.statusCode).toBe(400);
+    expect(response.json()).toEqual({ errorCode: 'invalid-research-data' });
+  });
+
+  it('persists the artifact version resolved from the assigned condition', async () => {
+    const temporaryDirectory = mkdtempSync(join(tmpdir(), 'passwo-artifact-version-test-'));
+    temporaryDirectories.push(temporaryDirectory);
+    const databasePath = join(temporaryDirectory, 'study.sqlite');
+    const supportiveServer = createServer('forced-supportive', databasePath);
+    await createSession(supportiveServer, 1);
+    await supportiveServer.close();
+    servers.splice(servers.indexOf(supportiveServer), 1);
+
+    const referenceServer = createServer('forced-reference', databasePath);
+    await createSession(referenceServer, 2);
+
+    const database = new Database(databasePath, { readonly: true });
+    const rows = database
+      .prepare(
+        `SELECT
+          condition,
+          content_version AS contentVersion,
+          reference_artifact_version AS referenceArtifactVersion
+         FROM study_sessions
+         ORDER BY condition`,
+      )
+      .all();
+    database.close();
+
+    expect(rows).toEqual([
+      {
+        condition: 'reference',
+        contentVersion: REFERENCE_PLACEHOLDER_ARTIFACT_VERSION,
+        referenceArtifactVersion: REFERENCE_PLACEHOLDER_ARTIFACT_VERSION,
+      },
+      {
+        condition: 'supportive',
+        contentVersion: SUPPORTIVE_ARTIFACT_VERSION,
+        referenceArtifactVersion: null,
+      },
+    ]);
   });
 
   it('loads forced modes only from the server environment', () => {
