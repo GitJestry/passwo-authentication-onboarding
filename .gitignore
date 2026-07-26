@@ -25,5 +25,5 @@ study-data/
 !.vscode/extensions.json
 !.vscode/settings.json
 
-# Confidential thesis sources: keep local, never commit
+# Confidential thesis sources and frozen reference artifacts: keep local, never commit
 research/private/**

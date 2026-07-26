@@ -5,7 +5,7 @@ import {
   createSessionRequestSchema,
   createSessionResponseSchema,
   placeholderResponseRequestSchema,
-  REFERENCE_PLACEHOLDER_ARTIFACT_VERSION,
+  REFERENCE_ARTIFACT_VERSION,
   SUPPORTIVE_ARTIFACT_VERSION,
   saveResponseResponseSchema,
   sessionStatusResponseSchema,
@@ -14,8 +14,10 @@ import {
 } from '@passwo/contracts';
 import Fastify, { type FastifyInstance } from 'fastify';
 import { z } from 'zod';
+import { resolveReferenceArtifactDirectory } from './config.js';
 import { openStudyDatabase } from './database.js';
 import { cryptoStudyRandomSource, type StudyRandomSource } from './random-source.js';
+import { isReferenceArtifactAvailable, registerReferenceArtifact } from './static-web.js';
 import { StudyRepository, StudyRepositoryError, type StudyVersions } from './study-repository.js';
 
 const sessionParamsSchema = z.object({ sessionId: z.uuid() });
@@ -26,7 +28,7 @@ export const walkingSkeletonVersions: StudyVersions = {
   questionnaire: 'questionnaire-placeholder-v1',
   guardrail: 'guardrail-placeholder-v1',
   consent: 'consent-placeholder-v1',
-  referenceArtifact: REFERENCE_PLACEHOLDER_ARTIFACT_VERSION,
+  referenceArtifact: REFERENCE_ARTIFACT_VERSION,
 };
 
 export interface StudyServerBuildOptions {
@@ -34,6 +36,7 @@ export interface StudyServerBuildOptions {
   readonly assignmentMode?: AssignmentMode;
   readonly databasePath?: string;
   readonly randomSource?: StudyRandomSource;
+  readonly referenceArtifactDirectory?: string;
   readonly nowIso?: () => string;
   readonly versions?: StudyVersions;
 }
@@ -43,6 +46,7 @@ export function buildStudyServer({
   assignmentMode = 'permuted-block',
   databasePath = ':memory:',
   randomSource = cryptoStudyRandomSource,
+  referenceArtifactDirectory = resolveReferenceArtifactDirectory(),
   nowIso,
   versions = walkingSkeletonVersions,
 }: StudyServerBuildOptions): FastifyInstance {
@@ -58,6 +62,12 @@ export function buildStudyServer({
     logger: false,
     trustProxy: false,
   });
+  const referenceArtifactAvailable =
+    referenceArtifactDirectory !== undefined &&
+    isReferenceArtifactAvailable(referenceArtifactDirectory);
+  if (referenceArtifactDirectory !== undefined) {
+    registerReferenceArtifact(server, referenceArtifactDirectory);
+  }
   const staleRecoveryInterval = setInterval(() => {
     repository.recoverStaleArtifactSessions();
   }, 60_000);
@@ -95,6 +105,9 @@ export function buildStudyServer({
   }));
 
   server.post('/api/study/sessions', async (request, reply) => {
+    if (assignmentMode !== 'forced-supportive' && !referenceArtifactAvailable) {
+      return reply.status(503).send({ errorCode: 'reference-artifact-unavailable' });
+    }
     const body = createSessionRequestSchema.parse(request.body);
     const session = createSessionResponseSchema.parse(repository.createSession(body));
     return reply.status(201).send(session);

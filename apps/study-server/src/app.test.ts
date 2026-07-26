@@ -1,9 +1,12 @@
 import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
+import { fileURLToPath } from 'node:url';
 import {
   type AssignmentMode,
-  REFERENCE_PLACEHOLDER_ARTIFACT_VERSION,
+  REFERENCE_ARTIFACT_ENTRY_POINT,
+  REFERENCE_ARTIFACT_ROUTE_PREFIX,
+  REFERENCE_ARTIFACT_VERSION,
   SUPPORTIVE_ARTIFACT_VERSION,
 } from '@passwo/contracts';
 import Database from 'better-sqlite3';
@@ -16,6 +19,9 @@ import { registerStudyWeb } from './static-web.js';
 
 const servers: FastifyInstance[] = [];
 const temporaryDirectories: string[] = [];
+const referenceArtifactFixtureDirectory = fileURLToPath(
+  new URL('./test-fixtures/reference-artifact/', import.meta.url),
+);
 
 afterEach(async () => {
   await Promise.all(servers.splice(0).map((server) => server.close()));
@@ -40,12 +46,14 @@ function createServer(
   assignmentMode: AssignmentMode,
   databasePath = ':memory:',
   randomSource = deterministicRandomSource(),
+  referenceArtifactDirectory = referenceArtifactFixtureDirectory,
 ): FastifyInstance {
   const server = buildStudyServer({
     version: '0.1.2',
     assignmentMode,
     databasePath,
     randomSource,
+    referenceArtifactDirectory,
     nowIso: () => '2026-07-24T12:00:00.000Z',
   });
   servers.push(server);
@@ -283,8 +291,8 @@ describe('study server walking skeleton', () => {
     expect(rows).toEqual([
       {
         condition: 'reference',
-        contentVersion: REFERENCE_PLACEHOLDER_ARTIFACT_VERSION,
-        referenceArtifactVersion: REFERENCE_PLACEHOLDER_ARTIFACT_VERSION,
+        contentVersion: REFERENCE_ARTIFACT_VERSION,
+        referenceArtifactVersion: REFERENCE_ARTIFACT_VERSION,
       },
       {
         condition: 'supportive',
@@ -297,11 +305,74 @@ describe('study server walking skeleton', () => {
   it('loads forced modes only from the server environment', () => {
     expect(
       loadStudyServerConfig({
+        REFERENCE_ARTIFACT_DIR: '/tmp/reference-fixture',
         STUDY_ASSIGNMENT_MODE: 'forced-reference',
         STUDY_DATA_DIR: '/tmp/passwo-study-test',
         STUDY_PORT: '4174',
-      }).assignmentMode,
-    ).toBe('forced-reference');
+      }),
+    ).toMatchObject({
+      assignmentMode: 'forced-reference',
+      referenceArtifactDirectory: '/tmp/reference-fixture',
+    });
+  });
+
+  it('blocks a reference study when its configured artifact is missing', async () => {
+    const temporaryDirectory = mkdtempSync(join(tmpdir(), 'passwo-missing-reference-test-'));
+    temporaryDirectories.push(temporaryDirectory);
+    const missingArtifactDirectory = join(temporaryDirectory, 'missing');
+    const server = createServer(
+      'forced-reference',
+      ':memory:',
+      deterministicRandomSource(),
+      missingArtifactDirectory,
+    );
+
+    const session = await server.inject({
+      method: 'POST',
+      url: '/api/study/sessions',
+      payload: createSessionBody(1),
+    });
+    const artifact = await server.inject({
+      method: 'GET',
+      url: `${REFERENCE_ARTIFACT_ROUTE_PREFIX}${REFERENCE_ARTIFACT_ENTRY_POINT}`,
+    });
+
+    expect(session.statusCode).toBe(503);
+    expect(session.json()).toEqual({ errorCode: 'reference-artifact-unavailable' });
+    expect(artifact.statusCode).toBe(503);
+    expect(artifact.json()).toEqual({ errorCode: 'reference-artifact-unavailable' });
+  });
+
+  it('serves only fixture files from the configured reference route', async () => {
+    const server = createServer('forced-reference');
+    const entryUrl = `${REFERENCE_ARTIFACT_ROUTE_PREFIX}${REFERENCE_ARTIFACT_ENTRY_POINT}`;
+
+    const entry = await server.inject({ method: 'GET', url: entryUrl });
+    const head = await server.inject({ method: 'HEAD', url: entryUrl });
+    const directory = await server.inject({
+      method: 'GET',
+      url: REFERENCE_ARTIFACT_ROUTE_PREFIX,
+    });
+    const missing = await server.inject({
+      method: 'GET',
+      url: `${REFERENCE_ARTIFACT_ROUTE_PREFIX}missing.html`,
+    });
+    const post = await server.inject({ method: 'POST', url: entryUrl });
+    const traversal = await server.inject({
+      method: 'GET',
+      url: `${REFERENCE_ARTIFACT_ROUTE_PREFIX}%2e%2e/%2e%2e/package.json`,
+    });
+
+    expect(entry.statusCode).toBe(200);
+    expect(entry.body).toContain('Referenz-Test-Fixture');
+    expect(entry.headers['content-security-policy']).toContain("connect-src 'self'");
+    expect(head.statusCode).toBe(200);
+    expect(head.body).toBe('');
+    expect([403, 404]).toContain(directory.statusCode);
+    expect(missing.statusCode).toBe(404);
+    expect(post.statusCode).toBe(404);
+    expect(traversal.statusCode).not.toBe(200);
+    expect(traversal.body).not.toContain('"name": "passwo-authentication-onboarding"');
   });
 
   it('creates a session idempotently and balances a permuted block', async () => {

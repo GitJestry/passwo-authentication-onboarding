@@ -3,6 +3,7 @@ import { useMachine } from '@xstate/react';
 import { type ReactNode, useMemo, useState } from 'react';
 import { BrowserSegmentTimingAdapter } from '../../adapters/animation/BrowserSegmentTimingAdapter.js';
 import { createStudyApi } from '../../api/study-api.js';
+import { ReferenceArtifact } from '../reference/ReferenceArtifact.js';
 import { PasswordModuleTraining } from '../training/PasswordModuleTraining.js';
 import styles from './StudyFlow.module.css';
 
@@ -99,29 +100,6 @@ function SupportiveArtifact({
       externalTimingError={timingError}
       onRetryExternalTiming={onRetryTiming}
     />
-  );
-}
-
-function ReferenceArtifact({ onComplete }: { readonly onComplete: () => void }) {
-  return (
-    <section className={styles.referenceArtifact} aria-labelledby="artifact-title">
-      <div>
-        <p className={styles.eyebrow}>Externes Lernangebot</p>
-        <h1 id="artifact-title">Referenzmaterial öffnen</h1>
-      </div>
-      <p>
-        Das Referenzmaterial wird in einem separaten Tab geöffnet. Kehre anschließend hierher zurück
-        und bestätige den Abschluss.
-      </p>
-      <div className={styles.referenceActions}>
-        <a className={styles.externalLink} href="about:blank" target="_blank" rel="noreferrer">
-          Referenzmaterial in neuem Tab öffnen
-        </a>
-        <button className={styles.button} type="button" onClick={onComplete}>
-          Rückkehr bestätigen
-        </button>
-      </div>
-    </section>
   );
 }
 

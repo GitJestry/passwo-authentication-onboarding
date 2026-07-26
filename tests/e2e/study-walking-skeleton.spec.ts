@@ -1,3 +1,4 @@
+import { fileURLToPath } from 'node:url';
 import AxeBuilder from '@axe-core/playwright';
 import { expect, type Page, test } from '@playwright/test';
 import { buildStudyServer } from '../../apps/study-server/src/app.js';
@@ -19,6 +20,9 @@ const forbiddenVisibleRuntimeTexts = [
 ] as const;
 
 let studyServer: ReturnType<typeof buildStudyServer> | null = null;
+const referenceArtifactFixtureDirectory = fileURLToPath(
+  new URL('../../apps/study-server/src/test-fixtures/reference-artifact/', import.meta.url),
+);
 
 test.afterEach(async () => {
   if (studyServer !== null) {
@@ -32,6 +36,7 @@ async function startStudyServer(assignmentMode: ForcedAssignmentMode): Promise<v
     version: '0.1.2-e2e',
     assignmentMode,
     databasePath: ':memory:',
+    referenceArtifactDirectory: referenceArtifactFixtureDirectory,
   });
   await studyServer.listen({ host: '127.0.0.1', port: 4174 });
 }
@@ -803,26 +808,46 @@ test('retries a failed S00 segment end before leaving the segment', async ({ pag
   expect(segmentEnds[0]).toEqual(segmentEnds[1]);
 });
 
-test('forced-reference opens the placeholder separately and completes', async ({ page }) => {
+test('forced-reference opens the local artifact separately before completion is available', async ({
+  page,
+}) => {
   await page.setViewportSize({ width: 1440, height: 900 });
   await startStudyServer('forced-reference');
   const requests = captureResearchRequests(page);
   await acceptConsent(page);
   await submitPlaceholder(page);
 
-  await expect(page.getByRole('heading', { name: 'Referenzmaterial öffnen' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'SecAware.NRW' })).toBeVisible();
+  await expect(page.getByText('Passwörter & Authentifizierung', { exact: true })).toBeVisible();
   await expect(page.locator('main[data-artifact-surface]')).toBeVisible();
   await expect(page.locator('main[data-study-surface]')).toHaveCount(0);
   await expect(page.getByLabel('Wie soll PassWo dich ansprechen?')).toHaveCount(0);
+  await expect(page.getByRole('button', { name: 'Abschluss bestätigen' })).toHaveCount(0);
+  await expect(page.locator('iframe')).toHaveCount(0);
+  const trainingLink = page.getByRole('link', { name: 'Training öffnen' });
+  await expect(trainingLink).toHaveAttribute(
+    'href',
+    '/reference/secaware/passwords-authentication/scormdriver/indexAPI.html?StandAlone=true',
+  );
+  await expect(trainingLink).toHaveAttribute('rel', 'noopener');
   await expectNoForbiddenVisibleRuntimeText(page);
   await expectNoHighImpactAxeFindings(page);
   await dispatchVisibilityChange(page, 'hidden');
   await expect.poll(() => timingEventTypes(requests.bodies)).toEqual(['start']);
   const popupPromise = page.waitForEvent('popup');
-  await page.getByRole('link', { name: 'Referenzmaterial in neuem Tab öffnen' }).click();
+  await trainingLink.click();
   const popup = await popupPromise;
+  await expect(popup.getByRole('heading', { name: 'Referenz-Test-Fixture' })).toBeVisible();
+  expect(await popup.evaluate(() => window.opener === null)).toBe(true);
   await popup.close();
-  await page.getByRole('button', { name: 'Rückkehr bestätigen' }).click();
+  await expect(page.getByRole('heading', { name: 'Fragebogen nach dem Artefakt' })).toHaveCount(0);
+  await page.getByRole('button', { name: 'Abschluss bestätigen' }).click();
+  await expect.poll(() => timingEventTypes(requests.bodies)).toEqual(['start', 'end']);
+  expect(
+    timingEvents(requests.bodies).every(
+      ({ sectionId, segmentId }) => sectionId === null && segmentId === null,
+    ),
+  ).toBe(true);
   await finishAfterArtifact(page);
 });
 

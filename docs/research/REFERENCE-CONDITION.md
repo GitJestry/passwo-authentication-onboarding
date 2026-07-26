@@ -1,8 +1,11 @@
 # Reference Condition: SecAware.NRW
 
-## Reproduzierbarkeitsakte
+## Eingefrorener lokaler Stand
 
-Vor der Hauptstudie werden in `research/derived/reference-artifact.yaml` eingefroren:
+Für die Referenzbedingung ist der am 2026-07-26 lokal bereitgestellte Snapshot eingefroren. Seine
+sichtbare Kennzeichnung lautet `V10 (03.07.2026)`. Daraus folgt keine Aussage, dass dieser Stand
+die neueste Veröffentlichung ist. Die vollständige Reproduzierbarkeitsakte steht in
+`research/derived/reference-artifact.yaml` und enthält:
 
 - exakte URL und Zugriffspfad;
 - Zugriffsdatum;
@@ -15,15 +18,21 @@ Vor der Hauptstudie werden in `research/derived/reference-artifact.yaml` eingefr
 
 ## Integrationsregel
 
-Das externe Artefakt wird nicht umgeschrieben, gespiegelt oder in einen Iframe gezwungen. Der
-Studienwrapper verändert nur Zugangsanweisung, Timingstart, Rückkehrbestätigung und die gemeinsame
-Nachbefragung.
+Der private Snapshot bleibt unverändert unter `research/private` und wird ausschließlich vom
+lokalen Study Server unter `/reference/secaware/passwords-authentication/` ausgeliefert. Der
+SCORM-Einstieg läuft über den im Snapshot enthaltenen Treiber mit `StandAlone=true`. Der
+Studienwrapper bettet den Inhalt nicht ein und verändert nur Zugangsanweisung, Timingstart,
+Rückkehrbestätigung und die gemeinsame Nachbefragung. Ein im Snapshot beobachteter, für die
+Ausführung nicht notwendiger Articulate-Metrikaufruf wird durch die Content-Security-Policy der
+lokalen Route blockiert.
 
 ## Abschlusskriterium
 
-Ein eindeutiger, vorab dokumentierter Endpunkt muss für alle Teilnehmenden gelten. Falls die
-Plattform kein robustes Completion-Signal an den Wrapper liefert, bestätigt die Person nach
-Rückkehr den Abschluss. Die Studienleitung dokumentiert Abbrüche oder technische Abweichungen.
+Das Training muss mindestens einmal über den lokalen Link geöffnet worden sein. Danach bestätigt
+die Person nach der Rückkehr den Abschluss im Studienwrapper. Der Wrapper übernimmt kein
+Completion-Signal, keinen Quizstatus und keine sonstigen Daten aus dem fremden DOM. Das Schließen
+des Training-Tabs beendet das Artefakt nicht automatisch. Die Studienleitung dokumentiert
+Abbrüche oder technische Abweichungen.
 
 ## Vergleichsgrenzen
 
@@ -36,6 +45,8 @@ Rückkehr den Abschluss. Die Studienleitung dokumentiert Abbrüche oder technisc
 
 ## Offline-/Ausfallplan
 
-Vor jeder Session wird Erreichbarkeit geprüft. Bei einem Ausfall wird die Studie pausiert; es gibt
-keinen inhaltlich veränderten Ersatzpfad. Ein lokaler Screenshot oder eine Kopie des Moduls darf
-nur mit geklärter Erlaubnis als dokumentarische Evidenz dienen, nicht automatisch als Ersatz.
+Vor einer Reference Study prüft `pnpm study:start` Quellpfad, Einstiegspunkt, Snapshot-ID,
+Referenzversion und deterministischen Dateimanifesthash. Fehlt der private Snapshot oder stimmt er
+nicht mit dem Freeze überein, startet der Studienbetrieb nicht. Die Runtime blockiert zusätzlich
+die Erstellung einer Reference Session mit einem technischen Fehler. Es gibt keinen inhaltlich
+veränderten Ersatzpfad.

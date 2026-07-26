@@ -2,10 +2,8 @@ import { createHash } from 'node:crypto';
 import { mkdtempSync, readFileSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import {
-  REFERENCE_PLACEHOLDER_ARTIFACT_VERSION,
-  SUPPORTIVE_ARTIFACT_VERSION,
-} from '@passwo/contracts';
+import { fileURLToPath } from 'node:url';
+import { REFERENCE_ARTIFACT_VERSION, SUPPORTIVE_ARTIFACT_VERSION } from '@passwo/contracts';
 import type { FastifyInstance } from 'fastify';
 import { afterEach, describe, expect, it } from 'vitest';
 import { buildStudyServer } from './app.js';
@@ -13,6 +11,9 @@ import { exportResearchData } from './research-export.js';
 
 const temporaryDirectories: string[] = [];
 const servers: FastifyInstance[] = [];
+const referenceArtifactFixtureDirectory = fileURLToPath(
+  new URL('./test-fixtures/reference-artifact/', import.meta.url),
+);
 
 afterEach(async () => {
   await Promise.all(servers.splice(0).map((server) => server.close()));
@@ -219,6 +220,7 @@ describe('research export', () => {
       assignmentMode: 'forced-reference',
       databasePath,
       nowIso: () => '2026-07-24T12:00:00.000Z',
+      referenceArtifactDirectory: referenceArtifactFixtureDirectory,
     });
     servers.push(referenceServer);
     await createSession(referenceServer, 3);
@@ -306,8 +308,8 @@ describe('research export', () => {
     expect(sessions).toContainEqual(
       expect.objectContaining({
         condition: 'reference',
-        contentVersion: REFERENCE_PLACEHOLDER_ARTIFACT_VERSION,
-        referenceArtifactVersion: REFERENCE_PLACEHOLDER_ARTIFACT_VERSION,
+        contentVersion: REFERENCE_ARTIFACT_VERSION,
+        referenceArtifactVersion: REFERENCE_ARTIFACT_VERSION,
       }),
     );
     expect(manifest.versions.content).toEqual(
@@ -331,11 +333,11 @@ describe('research export', () => {
     );
     expect(manifest.versions).toEqual({
       study: ['walking-skeleton-v1'],
-      content: [REFERENCE_PLACEHOLDER_ARTIFACT_VERSION, SUPPORTIVE_ARTIFACT_VERSION].sort(),
+      content: [REFERENCE_ARTIFACT_VERSION, SUPPORTIVE_ARTIFACT_VERSION].sort(),
       questionnaire: ['questionnaire-placeholder-v1'],
       guardrail: ['guardrail-placeholder-v1'],
       consent: ['consent-placeholder-v1'],
-      referenceArtifact: [REFERENCE_PLACEHOLDER_ARTIFACT_VERSION],
+      referenceArtifact: [REFERENCE_ARTIFACT_VERSION],
     });
     expect(manifest.sessionCounts).toContainEqual({
       condition: 'supportive',

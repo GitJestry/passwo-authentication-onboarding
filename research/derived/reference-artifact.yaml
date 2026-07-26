@@ -1,27 +1,48 @@
-status: not-frozen
+status: frozen-local
 studyConfigId: main-study-v1
+snapshotId: secaware-passwords-authentication-2026-07-26
+artifactVersion: secaware-passwords-authentication-2026-07-26
+sourcePath: research/private/reference/secaware/passwords-authentication/2026-07-26/source
 artifact:
   provider: SecAware.NRW
   module: Passwörter & Authentifizierung
-  url: TODO
-  accessDate: TODO
-  visibleVersion: TODO
+  originalUrl: unknown
+  providerUrl: https://secaware.nrw/
+  accessDate: 2026-07-26
+  downloadDate: unknown
+  visibleVersion: V10 (03.07.2026)
   language: de
-  deliveryFormat: website
-  completionPath: TODO
-  embeddedChecks: TODO
-  immediateFeedback: TODO
+  entryPoint: scormdriver/indexAPI.html
+  runtimeUrl: /reference/secaware/passwords-authentication/scormdriver/indexAPI.html?StandAlone=true
+  deliveryFormat: SCORM 1.2 package served unchanged over local HTTP in StandAlone mode
+  completionPath: manual wrapper confirmation after the training was opened at least once
+  embeddedChecks: "visible module quiz: Quiz: Passwörter & Authentifizierung // BE SecAware!"
+  immediateFeedback: unknown
 characterization:
-  estimatedLength: TODO
-  mediaFormat: TODO
-  navigationStructure: TODO
-  interactionTypes: TODO
-  feedbackMechanisms: TODO
-  exampleUse: TODO
-  scenarioPractice: TODO
-  visualDensity: TODO
-  autonomyWording: TODO
+  estimatedLength: unknown
+  mediaFormat: website with locally bundled video, image, subtitle, font, HTML, CSS, and JavaScript assets
+  navigationStructure: course overview with topic lessons, a module quiz, and an Abschluss item
+  interactionTypes: navigation links, media controls, and quiz interactions
+  feedbackMechanisms: unknown
+  exampleUse: unknown
+  scenarioPractice: unknown
+  visualDensity: unknown
+  autonomyWording: unknown
+integrity:
+  algorithm: SHA-256 over sorted lines "<file-sha256>  <POSIX-relative-path>\\n"
+  fileCount: 1423
+  manifestSha256: dd8aa807f5d57c3550fdd148ed706fc069dee9b0f5de3566704de67ee1a515f3
+knownExternalDependencies:
+  - url: https://metrics.articulate.com/v1/import
+    purpose: optional Articulate import metrics request observed during local launch
+    runtimeRequirement: false
+    deliveryPolicy: blocked by the local reference route Content-Security-Policy
 freeze:
-  commit: TODO
-  researcher: TODO
-  notes: []
+  researcher: unknown
+  notes:
+    - No claim is made that this snapshot is the latest SecAware.NRW release.
+    - The exact download URL and download date are not present in the supplied snapshot.
+    - The provider homepage URL and visible version are taken from the locally rendered snapshot.
+    - All 1417 files declared by imsmanifest.xml were present after URL decoding.
+    - The SCORM content requires its bundled driver; the unchanged driver supports local execution with StandAlone=true.
+    - The wrapper does not inspect SecAware DOM, quiz state, completion state, or browser-tab state.

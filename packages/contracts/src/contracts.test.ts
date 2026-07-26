@@ -7,7 +7,10 @@ import {
   designLabScenarioForPath,
   persistedSessionRecordSchema,
   placeholderResponseRequestSchema,
-  REFERENCE_PLACEHOLDER_ARTIFACT_VERSION,
+  REFERENCE_ARTIFACT_ENTRY_POINT,
+  REFERENCE_ARTIFACT_ROUTE_PREFIX,
+  REFERENCE_ARTIFACT_URL,
+  REFERENCE_ARTIFACT_VERSION,
   researchExportManifestSchema,
   SUPPORTIVE_ARTIFACT_SEGMENT_IDS,
   SUPPORTIVE_ARTIFACT_VERSION,
@@ -65,12 +68,20 @@ describe('research-safe contracts', () => {
   it('associates conditions with distinct canonical artifact versions', () => {
     const artifactVersionForCondition = {
       supportive: SUPPORTIVE_ARTIFACT_VERSION,
-      reference: REFERENCE_PLACEHOLDER_ARTIFACT_VERSION,
+      reference: REFERENCE_ARTIFACT_VERSION,
     } as const;
 
     expect(artifactVersionForCondition.supportive).toBe(SUPPORTIVE_ARTIFACT_VERSION);
-    expect(artifactVersionForCondition.reference).toBe(REFERENCE_PLACEHOLDER_ARTIFACT_VERSION);
-    expect(SUPPORTIVE_ARTIFACT_VERSION).not.toBe(REFERENCE_PLACEHOLDER_ARTIFACT_VERSION);
+    expect(artifactVersionForCondition.reference).toBe(REFERENCE_ARTIFACT_VERSION);
+    expect(SUPPORTIVE_ARTIFACT_VERSION).not.toBe(REFERENCE_ARTIFACT_VERSION);
+  });
+
+  it('defines one canonical local reference entry URL', () => {
+    expect(REFERENCE_ARTIFACT_VERSION).toBe('secaware-passwords-authentication-2026-07-26');
+    expect(REFERENCE_ARTIFACT_URL).toBe(
+      `${REFERENCE_ARTIFACT_ROUTE_PREFIX}${REFERENCE_ARTIFACT_ENTRY_POINT}?StandAlone=true`,
+    );
+    expect(REFERENCE_ARTIFACT_URL).not.toMatch(/^https?:\/\//u);
   });
 
   it('accepts only the bounded placeholder response', () => {
@@ -178,7 +189,7 @@ describe('research-safe contracts', () => {
         questionnaire: ['questionnaire-placeholder-v1'],
         guardrail: ['guardrail-placeholder-v1'],
         consent: ['consent-placeholder-v1'],
-        referenceArtifact: [REFERENCE_PLACEHOLDER_ARTIFACT_VERSION],
+        referenceArtifact: [REFERENCE_ARTIFACT_VERSION],
       },
       sessionCounts: [{ condition: 'supportive', completionStatus: 'completed', count: 1 }],
       files: [

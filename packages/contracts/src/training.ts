@@ -1,7 +1,13 @@
 import { z } from 'zod';
 
 export const SUPPORTIVE_ARTIFACT_VERSION = 'supportive-s00-s02-1.0.0';
-export const REFERENCE_PLACEHOLDER_ARTIFACT_VERSION = 'reference-placeholder-v1';
+export const REFERENCE_ARTIFACT_VERSION = 'secaware-passwords-authentication-2026-07-26';
+export const REFERENCE_ARTIFACT_SNAPSHOT_ID = 'secaware-passwords-authentication-2026-07-26';
+export const REFERENCE_ARTIFACT_ROUTE_PREFIX =
+  '/reference/secaware/passwords-authentication/' as const;
+export const REFERENCE_ARTIFACT_ENTRY_POINT = 'scormdriver/indexAPI.html' as const;
+export const REFERENCE_ARTIFACT_URL =
+  `${REFERENCE_ARTIFACT_ROUTE_PREFIX}${REFERENCE_ARTIFACT_ENTRY_POINT}?StandAlone=true` as const;
 
 export const SUPPORTIVE_ARTIFACT_SEGMENT_IDS = ['S00', 'S01', 'S02'] as const;
 export type SupportiveArtifactSegmentId = (typeof SUPPORTIVE_ARTIFACT_SEGMENT_IDS)[number];
