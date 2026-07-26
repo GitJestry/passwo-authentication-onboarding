@@ -1,6 +1,6 @@
 # ADR 0001 — Technologie-Stack
 
-- **Status:** Accepted
+- **Status:** Accepted; Deploymententscheidung teilweise durch ADR 0009 abgelöst
 - **Datum:** 2026-07-23
 
 ## Entscheidung
@@ -25,6 +25,8 @@ SQLite halten den Studienbetrieb lokal und auditierbar.
 ## Konsequenzen
 
 - Ein Vite-Build wird im Studienmodus statisch durch Fastify ausgeliefert.
+- ADR 0009 ersetzt den früher möglichen eigenständigen Browser-Produktionspfad durch die
+  Desktop-App als einzigen produktiven Studienstart.
 - Keine Cloud-Datenbank und keine externen Analytics.
 - React Flow und Motion dürfen nur über Adaptergrenzen in die Domäne gelangen.
 - Abhängigkeitsupdates erfolgen bewusst und werden vor dem Study Freeze gestoppt.

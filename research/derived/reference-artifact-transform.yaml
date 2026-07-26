@@ -1,5 +1,5 @@
 schemaVersion: 1
-artifactVersion: secaware-passwords-authentication-v9-study-adapted-2026-07-26-r1
+artifactVersion: secaware-passwords-authentication-v9-study-adapted-2026-07-26-r2
 sourceVersion: V9 (27.03.2026)
 courseId: CwynTB5JDjzJgtE8M2SKmgtgC6sM4C4h
 selection:
@@ -60,28 +60,39 @@ externalTargets:
     - contentId: clcyos0ul00ck356oh84f07po
       blockId: clcyqrhi30b8i1v5j20xtcln1
       lessonId: cCLcBEovpLj72dCgZ6HsfeQV4xIR2_Lv
-      urls:
-        - https://www.bsi.bund.de/SharedDocs/Downloads/DE/BSI/Checklisten/sichere_passwoerter_faktenblatt.pdf?__blob=publicationFile&v=1
-        - https://www.bsi.bund.de/DE/Themen/Verbraucherinnen-und-Verbraucher/Informationen-und-Empfehlungen/Cyber-Sicherheitsempfehlungen/Accountschutz/Sichere-Passwoerter-erstellen/Umgang-mit-Passwoertern/umgang-mit-passwoertern_node.html
-        - https://norbert-pohlmann.com/glossar-cyber-sicherheit/angriffsvektor/
-        - https://www.verbraucherzentrale.de/wissen/digitale-welt/datenschutz/starke-passwoerter-so-gehts-11672
-        - https://www.sicher-im-netz.de/dsin-passwortkarte
-        - "https://polizei.nrw/artikel/mach-dein-passwort-stark#:~:text=Zahlenreihen%20wie%201234567%20oder%20111111,leicht%2C%20Ihre%20Zugangsdaten%20zu%20hacken."
-        - "https://polizei.nrw/artikel/mach-dein-passwort-stark#:~:text=Zahlenreihen%20wie%201234567%20oder%20111111,leicht%2C%20Ihre%20Zugangsdaten%20zu%20hacken"
+      links:
+        - id: passwords-bsi-checklist
+          url: https://www.bsi.bund.de/SharedDocs/Downloads/DE/BSI/Checklisten/sichere_passwoerter_faktenblatt.pdf?__blob=publicationFile&v=1
+        - id: passwords-bsi-guidance
+          url: https://www.bsi.bund.de/DE/Themen/Verbraucherinnen-und-Verbraucher/Informationen-und-Empfehlungen/Cyber-Sicherheitsempfehlungen/Accountschutz/Sichere-Passwoerter-erstellen/Umgang-mit-Passwoertern/umgang-mit-passwoertern_node.html
+        - id: passwords-attack-vector
+          url: https://norbert-pohlmann.com/glossar-cyber-sicherheit/angriffsvektor/
+        - id: passwords-consumer-advice
+          url: https://www.verbraucherzentrale.de/wissen/digitale-welt/datenschutz/starke-passwoerter-so-gehts-11672
+        - id: passwords-password-card
+          url: https://www.sicher-im-netz.de/dsin-passwortkarte
+        - id: passwords-police-advice
+          url: "https://polizei.nrw/artikel/mach-dein-passwort-stark#:~:text=Zahlenreihen%20wie%201234567%20oder%20111111,leicht%2C%20Ihre%20Zugangsdaten%20zu%20hacken."
     - contentId: clcyos0ul00ck356oh84f07po
       blockId: cld0gdi350ki21v5j6401hdol
       lessonId: 8s5ZF8ravaGthNGdmPcOMPOpdjLwXR-O
-      urls:
-        - https://www.bsi.bund.de/DE/Themen/Verbraucherinnen-und-Verbraucher/Informationen-und-Empfehlungen/Cyber-Sicherheitsempfehlungen/Accountschutz/Projekt-Accountschutz/browser-passwortmanager.html
-        - https://www.bsi.bund.de/SharedDocs/Videos/DE/BSI/VerbraucherInnen/passwort-manager-statement.html
-        - https://aware7.com/de/blog/passwort-manager-sicherheit-kaspersky-erstellt-schwache-passwoerter/
+      links:
+        - id: password-manager-bsi-overview
+          url: https://www.bsi.bund.de/DE/Themen/Verbraucherinnen-und-Verbraucher/Informationen-und-Empfehlungen/Cyber-Sicherheitsempfehlungen/Accountschutz/Projekt-Accountschutz/browser-passwortmanager.html
+        - id: password-manager-bsi-video
+          url: https://www.bsi.bund.de/SharedDocs/Videos/DE/BSI/VerbraucherInnen/passwort-manager-statement.html
+        - id: password-manager-aware7
+          url: https://aware7.com/de/blog/passwort-manager-sicherheit-kaspersky-erstellt-schwache-passwoerter/
     - contentId: clcyos0ul00ck356oh84f07po
       blockId: cld8niho705ji1s5hbsxu7jff
       lessonId: zbxeD7QUdMnDlBWKvVsxMy5G8ghjnDRt
-      urls:
-        - https://www.bsi.bund.de/DE/Themen/Verbraucherinnen-und-Verbraucher/Informationen-und-Empfehlungen/Wie-geht-Internet/Zwei-Faktor-Authentisierung-Datensicherheit/zwei-faktor-authentisierung-datensicherheit_node.html
-        - https://www.bsi.bund.de/DE/Themen/Verbraucherinnen-und-Verbraucher/Informationen-und-Empfehlungen/Cyber-Sicherheitsempfehlungen/Accountschutz/Zwei-Faktor-Authentisierung/Bewertung-2FA-Verfahren/bewertung-2fa-verfahren_node.html
-        - https://www.verbraucherzentrale.de/wissen/digitale-welt/datenschutz/zweifaktorauthentisierung-so-schuetzen-sie-ihre-accounts-85173
+      links:
+        - id: mfa-bsi-basics
+          url: https://www.bsi.bund.de/DE/Themen/Verbraucherinnen-und-Verbraucher/Informationen-und-Empfehlungen/Wie-geht-Internet/Zwei-Faktor-Authentisierung-Datensicherheit/zwei-faktor-authentisierung-datensicherheit_node.html
+        - id: mfa-bsi-methods
+          url: https://www.bsi.bund.de/DE/Themen/Verbraucherinnen-und-Verbraucher/Informationen-und-Empfehlungen/Cyber-Sicherheitsempfehlungen/Accountschutz/Zwei-Faktor-Authentisierung/Bewertung-2FA-Verfahren/bewertung-2fa-verfahren_node.html
+        - id: mfa-consumer-advice
+          url: https://www.verbraucherzentrale.de/wissen/digitale-welt/datenschutz/zweifaktorauthentisierung-so-schuetzen-sie-ihre-accounts-85173
   providerIframes:
     - contentId: cm8o8275j00az2a6ublgjmz8q
       lessonId: cCLcBEovpLj72dCgZ6HsfeQV4xIR2_Lv
@@ -151,8 +162,12 @@ transformations:
     reason: Provider telemetry is not required for local instruction and must not collect runtime context.
   - id: course-external-targets-localize
     targetId: externalTargets
-    operation: remove-navigation-and-localize-media
-    reason: The local study path must preserve visible lesson text while preventing external loads, navigation, and popups.
+    operation: preserve-frozen-supplement-links-and-localize-other-media
+    reason: Only the twelve frozen supplement targets may remain; all other external dataset loads are localized or removed.
+  - id: course-supplement-navigation-bridge
+    targetId: supplementaryLinks
+    operation: remove-empty-anchors-and-post-canonical-link-id
+    reason: The desktop viewer needs a data-minimal link-ID signal while the SecAware iframe itself remains navigation-blocked.
   - id: quiz-labelSet-remove
     targetId: removedQuizLabelKeys
     operation: remove-explicit-keys
@@ -178,5 +193,13 @@ completionBridge:
   payloadFields:
     - type
     - snapshotId
+  snapshotId: secaware-passwords-authentication-2026-07-26
+  targetOrigin: same-origin
+supplementBridge:
+  messageType: passwo:reference-open-supplement
+  payloadFields:
+    - type
+    - snapshotId
+    - linkId
   snapshotId: secaware-passwords-authentication-2026-07-26
   targetOrigin: same-origin

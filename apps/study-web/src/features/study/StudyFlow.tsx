@@ -1,6 +1,6 @@
 import { createStudyMachine } from '@passwo/study-engine';
 import { useMachine } from '@xstate/react';
-import { type ReactNode, useMemo, useState } from 'react';
+import { type ReactNode, useCallback, useMemo, useState } from 'react';
 import { BrowserSegmentTimingAdapter } from '../../adapters/animation/BrowserSegmentTimingAdapter.js';
 import { createStudyApi } from '../../api/study-api.js';
 import { ReferenceArtifact } from '../reference/ReferenceArtifact.js';
@@ -131,6 +131,7 @@ export function StudyFlow() {
   const machine = useMemo(() => createStudyMachine(api), [api]);
   const [snapshot, send] = useMachine(machine);
   const { context } = snapshot;
+  const completeArtifact = useCallback(() => send({ type: 'ARTIFACT_COMPLETED' }), [send]);
   const segmentTimingPort = useMemo(() => {
     if (context.sessionId === null || context.condition !== 'supportive') return null;
     return new BrowserSegmentTimingAdapter(api.createSegmentTimingPort(context.sessionId));
@@ -181,7 +182,7 @@ export function StudyFlow() {
     }
     content = (
       <SupportiveArtifact
-        onComplete={() => send({ type: 'ARTIFACT_COMPLETED' })}
+        onComplete={completeArtifact}
         timingPort={segmentTimingPort}
         timingError={
           context.artifactTimingErrorKind === 'visibility' ? context.researchErrorCode : null
@@ -191,7 +192,7 @@ export function StudyFlow() {
     );
     step = 'Artefakt';
   } else if (snapshot.matches({ artifactLifecycle: { artifact: 'reference' } })) {
-    content = <ReferenceArtifact onComplete={() => send({ type: 'ARTIFACT_COMPLETED' })} />;
+    content = <ReferenceArtifact onComplete={completeArtifact} />;
     step = 'Artefakt';
   } else if (snapshot.matches({ artifactLifecycle: 'endError' })) {
     content = (

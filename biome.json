@@ -5,6 +5,8 @@
       "**",
       "!**/node_modules",
       "!**/dist",
+      "!**/out",
+      "!**/.forge-package",
       "!**/coverage",
       "!**/playwright-report",
       "!**/test-results",

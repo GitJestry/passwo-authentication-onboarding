@@ -35,6 +35,10 @@ Trainings markiert den Durchlauf als unvollständig; Trainingszustand wird nicht
 
 **Gate:** Reduced Motion, Tastatur und feste Screenshot-Viewports funktionieren.
 
+BrowserShell ist dabei ausschließlich die simulierte Trainingsoberfläche; `/design-lab` bleibt
+ein interner QA-Pfad. Beide verwenden die einmalig implementierten Quellen des kanonischen
+Renderers und bilden keine eigene Auslieferungsplattform.
+
 ## M3 — Knotennetzwerk Vertical Slice (abgeschlossen)
 
 - Authored Layout und React-Flow-Adapter.
@@ -67,7 +71,7 @@ Passwörter dargestellt.
 
 - Finale Pre-/Post-Fragebögen und Guardrail-Rubrik versionieren.
 - SecAware-Version, Zugriffspfad, Datum und Abschlusskriterium einfrieren.
-- Referenzlauncher und Rückkehrbestätigung testen.
+- Eingebettetes Referenzartefakt, automatischen Abschluss und isolierten Zusatzviewer testen.
 - Vollständiger Datenexport mit Codebook.
 
 **Gate:** Beide Bedingungen haben dieselbe neutrale Einführung, Timingregel und Nachbefragung.

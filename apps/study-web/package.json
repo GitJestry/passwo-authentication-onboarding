@@ -6,7 +6,6 @@
   "scripts": {
     "build": "vite build",
     "dev": "vite --host 127.0.0.1 --port 5173 --strictPort",
-    "preview": "vite preview --host 127.0.0.1 --port 5173 --strictPort",
     "typecheck": "tsc -p tsconfig.json --noEmit"
   },
   "dependencies": {

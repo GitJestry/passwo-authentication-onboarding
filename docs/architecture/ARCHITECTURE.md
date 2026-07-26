@@ -11,8 +11,8 @@
 
 ```mermaid
 flowchart LR
-  P[Teilnehmende] --> W[Study Web App]
-  R[Forschende] --> W
+  P[Teilnehmende] --> D[Authentication Onboarding.app]
+  D --> W[Study Web App — Electron-Renderer]
   W --> O[Study Orchestrator]
   O --> T[Supportive Training]
   O --> X[Reference Artifact Launcher]
@@ -20,16 +20,20 @@ flowchart LR
   M --> A[Animation Adapter]
   M --> N[Network Adapter]
   M --> C[PassWo Adapter]
-  W --> API[Local Study API]
-  API --> DB[(SQLite)]
-  API --> E[CSV/JSON Export]
-  X --> S[SecAware.NRW im separaten Tab]
+  W -->|relative HTTP-Aufrufe| API[Lokale Fastify Study API]
+  API -->|einzige Persistenzgrenze| DB[(SQLite)]
+  R[Forschende] --> E[CSV/JSON Export-CLI]
+  E --> DB
+  X --> S[Lokaler SecAware-Study-Build]
+  X --> V[Isolierter Zusatzviewer]
 ```
 
 ## Monorepo-Schnitt
 
 ```text
 apps/
+  study-desktop/   Electron-Hülle, lokaler Runtime-Lifecycle und isolierter Zusatzviewer;
+                   keine Forschungs- oder Trainingslogik
   study-web/       Routes, Teilnehmer-/Forschendenoberflächen und konkrete Browseradapter;
                    keine SQL- oder Randomisierungslogik
   study-server/    lokales API, verdeckte Zuweisung, SQLite und Export; keine Anzeigenamen
@@ -51,6 +55,9 @@ packages/
 
 ```mermaid
 flowchart TD
+  Desktop -->|lädt Build| Web
+  Desktop -->|startet Runtime| Server
+  Desktop --> Contracts
   Web --> StudyEngine
   Web --> TrainingEngine
   Web --> Content
@@ -87,7 +94,6 @@ flowchart TD
 | `CharacterRendererPort` | PassWo-Pose und Platzierung | PNG/CSS + Motion | Rive/SVG-Layer |
 | `NetworkRendererPort` | Kontennetz visualisieren | React Flow | eigenes SVG/Canvas |
 | `StudyRepositoryPort` | erlaubte Studiendaten schreiben | Fastify HTTP | In-Memory-Testadapter |
-| `ReferenceLauncherPort` | externe Bedingung öffnen | neuer Browser-Tab | betreuter Kioskmodus |
 | `TimingSink` | Zeitereignisse persistieren | Study API | In-Memory-Testadapter |
 
 Adaptertypen dürfen nicht in Content- oder Engine-Schemas erscheinen.
@@ -104,7 +110,14 @@ Adaptertypen dürfen nicht in Content- oder Engine-Schemas erscheinen.
 
 ## Deployment für die Studie
 
-- Ein lokaler Node-Prozess bindet standardmäßig nur an `127.0.0.1`.
+- Teilnehmende starten ausschließlich die lokale arm64-`Authentication Onboarding.app`.
+- Electron startet die vorhandene Study Runtime intern auf `127.0.0.1` mit dynamischem Port.
 - Fastify liefert den Vite-Build und die API aus derselben Origin aus.
-- SQLite liegt außerhalb des Repositories in einem lokalen Verzeichnis mit restriktiven Rechten.
+- SQLite bleibt unverändert unter `~/.passwo-study/study.sqlite`.
+- Es gibt keinen eigenständigen Browser-Deploymentpfad. Vite und Chromium dienen nur als interne
+  Testharnesses; das Design Lab ist ein interner QA-Pfad.
+- Electron-Sondercode bleibt auf Fenster-/App-Lifecycle, Sandbox/Berechtigungen, schmale
+  typisierte Preload-/IPC-Ports, den isolierten Zusatzviewer und natives Packaging begrenzt.
+- Renderer-, Statechart-, API-, Persistenz- und Trainingssysteme werden jeweils einmal in
+  `apps/study-web`, `apps/study-server` oder den bestehenden Packages implementiert.
 - Keine CDN-Schriften, externen Skripte, Telemetrie oder Service Worker.

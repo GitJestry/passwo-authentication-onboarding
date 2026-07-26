@@ -2,7 +2,7 @@ status: frozen-local-study-adapted
 studyConfigId: main-study-v1
 snapshotId: secaware-passwords-authentication-2026-07-26
 sourceArtifactVersion: V9 (27.03.2026)
-artifactVersion: secaware-passwords-authentication-v9-study-adapted-2026-07-26-r1
+artifactVersion: secaware-passwords-authentication-v9-study-adapted-2026-07-26-r2
 sourcePath: research/private/reference/secaware/passwords-authentication/2026-07-26/source
 studyBuildPath: research/private/reference/secaware/passwords-authentication/2026-07-26/study-build
 transformationPath: research/derived/reference-artifact-transform.yaml
@@ -18,7 +18,7 @@ artifact:
   entryPoint: scormdriver/indexAPI.html
   runtimeUrl: /reference/secaware/passwords-authentication/scormdriver/indexAPI.html?StandAlone=true
   deliveryFormat: deterministically adapted SCORM 1.2 package served over same-origin local HTTP
-  completionPath: verified SetReachedEnd bridge followed by the study-owned Weiter action
+  completionPath: verified SetReachedEnd bridge with immediate transition into the common post-flow
   embeddedChecks: none in the adapted participant path
   immediateFeedback: retained only inside the three instructional lessons
 characterization:
@@ -38,14 +38,21 @@ integrity:
   sourceFileCount: 146
   sourceManifestSha256: 4eee807687cad07e9856decd711a45a79076caf2ef9b9b6d6dae0401d23f821b
   studyBuildFileCount: 146
-  studyBuildManifestSha256: 7205338f2a115ed2ac5f8747122d3e838fc87a84389d19ae221418a649897b5f
-  transformationConfigSha256: 9d4de1e44174e37010a362401fb7e812f0452f4b0e5ea1cdb6be96cec98e9f2f
+  studyBuildManifestSha256: 612588188d47a7a782c7b17c7e52f584205428e50e4982d3b58a24b67ae3b3f8
+  transformationConfigSha256: f80dde80fb958d2e11899356eb7143379ee90c48fdee88774667b62f229788c4
 completionBridge:
   messageType: passwo:reference-completed
   payloadFields:
     - type
     - snapshotId
   acceptedByWrapperOnlyFrom: same-origin configured iframe window
+supplementBridge:
+  messageType: passwo:reference-open-supplement
+  payloadFields:
+    - type
+    - snapshotId
+    - linkId
+  acceptedByWrapperOnlyFrom: same-origin configured iframe window with a canonical link ID
 knownExternalDependencies:
   - url: https://metrics.articulate.com/v1/import
     purpose: optional Articulate import metrics request present in the source runtime

@@ -14,7 +14,7 @@ import {
   Position,
   ReactFlow,
 } from '@xyflow/react';
-import { useEffect, useMemo, useRef, useSyncExternalStore } from 'react';
+import { useEffect, useLayoutEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react';
 import '@xyflow/react/dist/style.css';
 import type { NetworkPresentationSnapshot } from './NetworkMotionAdapter.js';
 import styles from './ReactFlowNetworkAdapter.module.css';
@@ -237,6 +237,7 @@ export function ReactFlowNetwork({
   interactionDisabled = false,
 }: ReactFlowNetworkProps) {
   const containerRef = useRef<HTMLElement | null>(null);
+  const [canvasReady, setCanvasReady] = useState(false);
   const rendererState = useSyncExternalStore(
     adapter.subscribe,
     adapter.getSnapshot,
@@ -247,6 +248,19 @@ export function ReactFlowNetwork({
       toReactFlowElements(rendererState.snapshot, presentation, onNodeSelect, interactionDisabled),
     [interactionDisabled, onNodeSelect, presentation, rendererState.snapshot],
   );
+
+  useLayoutEffect(() => {
+    const container = containerRef.current;
+    if (container === null) return;
+    const updateReadiness = () => {
+      const ready = container.clientWidth > 0 && container.clientHeight > 0;
+      setCanvasReady((current) => (current === ready ? current : ready));
+    };
+    const observer = new ResizeObserver(updateReadiness);
+    observer.observe(container);
+    updateReadiness();
+    return () => observer.disconnect();
+  }, []);
 
   useEffect(
     () =>
@@ -260,29 +274,31 @@ export function ReactFlowNetwork({
 
   return (
     <section ref={containerRef} className={styles.network} aria-label={ariaLabel}>
-      <ReactFlow<SceneFlowNode, Edge>
-        nodes={[...elements.nodes]}
-        edges={[...elements.edges]}
-        nodeTypes={nodeTypes}
-        defaultViewport={{ x: 0, y: 0, zoom: 1 }}
-        minZoom={1}
-        maxZoom={1}
-        nodesDraggable={false}
-        nodesConnectable={false}
-        nodesFocusable={false}
-        edgesFocusable={false}
-        elementsSelectable={false}
-        panOnDrag={false}
-        panOnScroll={false}
-        zoomOnScroll={false}
-        zoomOnPinch={false}
-        zoomOnDoubleClick={false}
-        preventScrolling={false}
-        colorMode="light"
-        aria-label={canvasAriaLabel}
-      >
-        <Background variant={BackgroundVariant.Dots} gap={24} size={1} />
-      </ReactFlow>
+      {canvasReady ? (
+        <ReactFlow<SceneFlowNode, Edge>
+          nodes={[...elements.nodes]}
+          edges={[...elements.edges]}
+          nodeTypes={nodeTypes}
+          defaultViewport={{ x: 0, y: 0, zoom: 1 }}
+          minZoom={1}
+          maxZoom={1}
+          nodesDraggable={false}
+          nodesConnectable={false}
+          nodesFocusable={false}
+          edgesFocusable={false}
+          elementsSelectable={false}
+          panOnDrag={false}
+          panOnScroll={false}
+          zoomOnScroll={false}
+          zoomOnPinch={false}
+          zoomOnDoubleClick={false}
+          preventScrolling={false}
+          colorMode="light"
+          aria-label={canvasAriaLabel}
+        >
+          <Background variant={BackgroundVariant.Dots} gap={24} size={1} />
+        </ReactFlow>
+      ) : null}
       <p className={styles.screenReaderOnly} aria-live="polite" aria-atomic="true">
         {rendererState.announcement}
       </p>

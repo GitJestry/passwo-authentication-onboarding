@@ -33,9 +33,11 @@ Lektionen bleiben unverändert. Lediglich der navigationsbezogene Titel im letzt
 Telemetrie wird deaktiviert und ihr externer Fetch-Endpunkt entfernt. Die Abschlussanforderung
 wird auf 100 Prozent der drei Lektionen gesetzt.
 
-Die explizit eingefrorenen Quiz-labelSet-Schlüssel werden vollständig entfernt. Supplementäre
-Linktexte der drei Lektionen bleiben wortgleich sichtbar, besitzen im Study Build jedoch weder
-`href` noch `target`. Externe Thumbnail- und Darstellungsmetadaten werden auf bereits im Snapshot
+Die explizit eingefrorenen Quiz-labelSet-Schlüssel werden vollständig entfernt. Die Texte und
+Ziele der zwölf sichtbaren supplementären Links der drei Lektionen bleiben wortgleich erhalten.
+Jeder Link erhält eine kanonische ID; vier leere Duplikat-Anker werden entfernt. Eine
+Capture-Bridge unterbindet die Navigation im iframe und sendet nur Typ, Snapshot-ID und Link-ID
+an den Studienwrapper. Externe Thumbnail- und Darstellungsmetadaten werden auf bereits im Snapshot
 enthaltene lokale Assets umgeschrieben. Die drei nicht-instruktionalen 2-Pixel-Provider-iframes
 werden auf das im Snapshot enthaltene lokale `scormdriver/blank.html` begrenzt. Alle Ziele und
 Content-IDs sind im Transformationsmanifest dokumentiert; eine unbekannte externe Referenz bricht
@@ -45,19 +47,26 @@ den Build ab.
 
 Der lokale Study Server liefert ausschließlich den generierten Build unter
 `/reference/secaware/passwords-authentication/` aus. Der Studienwrapper zeigt den SCORM-Einstieg
-same-origin und viewportfüllend in einem iframe im bestehenden Browserfenster. Das iframe erlaubt
-nur Scripts und Same-Origin-Zugriff; Popups, Top-Level-Navigation, Downloads und Formübertragungen
-bleiben gesperrt. Es gibt keinen separaten Tab, keine manuelle Rückkehrbestätigung und keinen
-zusätzlichen Trainingsheader.
+same-origin und viewportfüllend in einem iframe im App-Fenster. Das iframe erlaubt nur Scripts und
+Same-Origin-Zugriff; Popups, Top-Level-Navigation, Downloads und Formübertragungen bleiben
+gesperrt. Es gibt keinen separaten Tab, keine manuelle Rückkehrbestätigung und keinen zusätzlichen
+Trainingsheader.
+
+Der Wrapper akzeptiert Zusatznavigation ausschließlich von seiner konfigurierten
+iframe-Window-Referenz, von derselben Origin, mit exakter Schlüsselmenge sowie eingefrorenem Typ,
+Snapshot-ID und Link-ID. In der Desktop-App öffnet die ID ihre kanonische HTTP(S)-URL in einem
+nicht persistenten, sandboxed Viewer. Dessen 56-Pixel-Leiste bietet jederzeit „Zurück zum
+Training“. Der Viewer wird beim Zurückkehren zerstört; Kurszustand, Operational Lease und globale
+Artefaktzeit bleiben erhalten. Im Browser-Entwicklungsmodus erscheint nur ein technischer Hinweis.
 
 Der generierte SCORM-Treiber umschließt den tatsächlichen erfolgreichen Aufruf von
 `SetReachedEnd`. Höchstens einmal sendet er an `window.top` die Nachricht
 `{ type: "passwo:reference-completed", snapshotId:
 "secaware-passwords-authentication-2026-07-26" }` mit der eigenen Origin als Ziel. Der Wrapper
 akzeptiert sie nur von seiner konfigurierten iframe-Window-Referenz, von derselben Origin und mit
-exakt diesem Nachrichtentyp und dieser Snapshot-ID. Erst dann erscheint die study-eigene
-Abschlussleiste. Die dortige Aktion beendet das globale Artifact-Timing und wechselt in den
-gemeinsamen Post-Fragebogen.
+exakt diesem Nachrichtentyp, dieser Snapshot-ID und dieser Schlüsselmenge. Das erste gültige
+Signal beendet unmittelbar das globale Artifact-Timing und wechselt in den gemeinsamen
+Post-Fragebogen; weitere Signale bleiben ohne Wirkung.
 
 Weder Quizantworten noch SCORM-Interaktionen, Lernfortschritt oder persönliche Daten werden
 gelesen, gespeichert oder exportiert. Für diese Bedingung entstehen weiterhin keine
@@ -74,8 +83,10 @@ Segment-Timingevents.
 
 ## Offline-/Ausfallplan
 
-Vor einer Reference Study baut `pnpm study:start` das private Studienartefakt neu und prüft danach
-Originalhash, Transformationskonfiguration, Course- und Lesson-IDs, entfernte Lektionen,
-Buildhash, kanonische Version und Completion-Bridge. Fehlt der private Snapshot oder stimmt eine
-Integritätsangabe nicht, startet der Studienbetrieb nicht. Allgemeine öffentliche Checks und ein
-explizit `forced-supportive` gestarteter Lauf benötigen die privaten Dateien nicht.
+Vor einer Reference Study bauen `pnpm dev` beziehungsweise `pnpm desktop:package` das private
+Studienartefakt neu und prüfen danach Originalhash, Transformationskonfiguration, Course- und
+Lesson-IDs, entfernte Lektionen, Buildhash, kanonische Version, zwölf Zusatz-IDs sowie
+Completion-Bridge. `pnpm test:reference-artifact` startet die gebaute Runtime direkt als
+Integrationstest. Fehlt der private Snapshot oder stimmt eine Integritätsangabe nicht, startet
+der produktive Studienbetrieb nicht. Allgemeine öffentliche Checks und ein explizit
+`forced-supportive` gestarteter Lauf benötigen die privaten Dateien nicht.

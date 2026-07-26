@@ -2,6 +2,12 @@ import { createHash } from 'node:crypto';
 import { cp, readdir, readFile, rm, writeFile } from 'node:fs/promises';
 import { relative, resolve, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import {
+  adaptSupplementaryNavigation,
+  referenceSupplementLinks,
+  supplementaryLinkTransforms,
+  verifySupplementaryNavigation,
+} from './reference-supplements.mjs';
 
 const repositoryRoot = fileURLToPath(new URL('..', import.meta.url));
 const sourceDirectory = resolve(
@@ -21,6 +27,7 @@ const expectedSourceManifestSha256 =
 const expectedCourseId = 'CwynTB5JDjzJgtE8M2SKmgtgC6sM4C4h';
 const expectedSourceVersion = 'V9 (27.03.2026)';
 const completionMessageType = 'passwo:reference-completed';
+const openSupplementMessageType = 'passwo:reference-open-supplement';
 const snapshotId = 'secaware-passwords-authentication-2026-07-26';
 const retainedLessonIds = [
   'qcxfbmtfmCPSe2IT04vnCXlpAHjuFDds',
@@ -78,75 +85,6 @@ const quizLabelKeys = [
   'quizTimerRemaining',
   'quizTimerShow',
 ];
-const supplementaryLinkTransforms = [
-  {
-    lessonId: 'cCLcBEovpLj72dCgZ6HsfeQV4xIR2_Lv',
-    blockId: 'clcyqrhi30b8i1v5j20xtcln1',
-    contentId: 'clcyos0ul00ck356oh84f07po',
-    urls: [
-      [
-        'https://www.bsi.bund.de/SharedDocs/Downloads/DE/BSI/Checklisten/sichere_passwoerter_faktenblatt.pdf?__blob=publicationFile&v=1',
-        2,
-      ],
-      [
-        'https://www.bsi.bund.de/DE/Themen/Verbraucherinnen-und-Verbraucher/Informationen-und-Empfehlungen/Cyber-Sicherheitsempfehlungen/Accountschutz/Sichere-Passwoerter-erstellen/Umgang-mit-Passwoertern/umgang-mit-passwoertern_node.html',
-        2,
-      ],
-      ['https://norbert-pohlmann.com/glossar-cyber-sicherheit/angriffsvektor/', 1],
-      [
-        'https://www.verbraucherzentrale.de/wissen/digitale-welt/datenschutz/starke-passwoerter-so-gehts-11672',
-        1,
-      ],
-      ['https://www.sicher-im-netz.de/dsin-passwortkarte', 2],
-      [
-        'https://polizei.nrw/artikel/mach-dein-passwort-stark#:~:text=Zahlenreihen%20wie%201234567%20oder%20111111,leicht%2C%20Ihre%20Zugangsdaten%20zu%20hacken.',
-        1,
-      ],
-      [
-        'https://polizei.nrw/artikel/mach-dein-passwort-stark#:~:text=Zahlenreihen%20wie%201234567%20oder%20111111,leicht%2C%20Ihre%20Zugangsdaten%20zu%20hacken',
-        1,
-      ],
-    ],
-  },
-  {
-    lessonId: '8s5ZF8ravaGthNGdmPcOMPOpdjLwXR-O',
-    blockId: 'cld0gdi350ki21v5j6401hdol',
-    contentId: 'clcyos0ul00ck356oh84f07po',
-    urls: [
-      [
-        'https://www.bsi.bund.de/DE/Themen/Verbraucherinnen-und-Verbraucher/Informationen-und-Empfehlungen/Cyber-Sicherheitsempfehlungen/Accountschutz/Projekt-Accountschutz/browser-passwortmanager.html',
-        1,
-      ],
-      [
-        'https://www.bsi.bund.de/SharedDocs/Videos/DE/BSI/VerbraucherInnen/passwort-manager-statement.html',
-        1,
-      ],
-      [
-        'https://aware7.com/de/blog/passwort-manager-sicherheit-kaspersky-erstellt-schwache-passwoerter/',
-        1,
-      ],
-    ],
-  },
-  {
-    lessonId: 'zbxeD7QUdMnDlBWKvVsxMy5G8ghjnDRt',
-    blockId: 'cld8niho705ji1s5hbsxu7jff',
-    contentId: 'clcyos0ul00ck356oh84f07po',
-    urls: [
-      [
-        'https://www.bsi.bund.de/DE/Themen/Verbraucherinnen-und-Verbraucher/Informationen-und-Empfehlungen/Wie-geht-Internet/Zwei-Faktor-Authentisierung-Datensicherheit/zwei-faktor-authentisierung-datensicherheit_node.html',
-        1,
-      ],
-      [
-        'https://www.bsi.bund.de/DE/Themen/Verbraucherinnen-und-Verbraucher/Informationen-und-Empfehlungen/Cyber-Sicherheitsempfehlungen/Accountschutz/Zwei-Faktor-Authentisierung/Bewertung-2FA-Verfahren/bewertung-2fa-verfahren_node.html',
-        1,
-      ],
-      [
-        'https://www.verbraucherzentrale.de/wissen/digitale-welt/datenschutz/zweifaktorauthentisierung-so-schuetzen-sie-ihre-accounts-85173',
-        1,
-      ],
-    ],
-  },
-];
 const externalEmbedTransforms = [
   {
     lessonId: 'cCLcBEovpLj72dCgZ6HsfeQV4xIR2_Lv',
@@ -197,12 +135,24 @@ const telemetryFetchSource = `    return fetch('https://metrics.articulate.com/v
     });`;
 const telemetryFetchBuild = '    return Promise.resolve();';
 const driverScriptTag = '  <script language="JavaScript1.2" src="scormdriver.js"></script>';
+const courseBodyClose = '  </body>';
 const completionBridge = `${driverScriptTag}
   <script type="text/javascript">
     // passwo-reference-completion-bridge:start
     (function installReferenceCompletionBridge() {
       var originalSetReachedEnd = window.SetReachedEnd;
       var completionReported = false;
+
+      window.PasswoOpenReferenceSupplement = function openReferenceSupplement(linkId) {
+        window.top.postMessage(
+          {
+            type: '${openSupplementMessageType}',
+            snapshotId: '${snapshotId}',
+            linkId: linkId
+          },
+          window.location.origin
+        );
+      };
 
       window.SetReachedEnd = function reportReachedEndOnce() {
         var result = originalSetReachedEnd.apply(window, arguments);
@@ -218,6 +168,27 @@ const completionBridge = `${driverScriptTag}
     })();
     // passwo-reference-completion-bridge:end
   </script>`;
+const supplementBridge = `  <script type="text/javascript">
+    // passwo-reference-supplement-bridge:start
+    document.addEventListener('click', function openReferenceSupplement(event) {
+      var element = event.target instanceof Element
+        ? event.target.closest('a[href]')
+        : null;
+      if (!element) return;
+      var supplementLinksByUrl = Object.freeze(${JSON.stringify(
+        Object.fromEntries(referenceSupplementLinks.map(({ id, url }) => [url, id])),
+      )});
+      var href = element.getAttribute('href');
+      var linkId = href ? supplementLinksByUrl[href] : null;
+      if (!linkId) return;
+      event.preventDefault();
+      if (typeof window.parent.PasswoOpenReferenceSupplement === 'function') {
+        window.parent.PasswoOpenReferenceSupplement(linkId);
+      }
+    }, true);
+    // passwo-reference-supplement-bridge:end
+  </script>
+${courseBodyClose}`;
 
 function fail(message) {
   throw new Error(`Reference artifact build failed: ${message}`);
@@ -338,31 +309,6 @@ function requireStringProperty(value, key, expected, description) {
 function replaceFrozenProperty(value, key, expected, replacement, description) {
   requireStringProperty(value, key, expected, description);
   value[key] = replacement;
-}
-
-function removeSupplementaryNavigation(course) {
-  for (const transform of supplementaryLinkTransforms) {
-    const lesson = objectById(course.lessons, transform.lessonId, 'supplementary lesson');
-    const block = objectById(lesson, transform.blockId, 'supplementary block');
-    const content = objectById(block, transform.contentId, 'supplementary content');
-    if (typeof content.description !== 'string') {
-      fail(`supplementary content ${transform.contentId} has no description.`);
-    }
-    let description = content.description;
-    let expectedTargetCount = 0;
-    for (const [url, expectedCount] of transform.urls) {
-      const href = `href="${url}"`;
-      if (description.split(href).length - 1 !== expectedCount) {
-        fail(`supplementary URL ${url} does not match its frozen occurrence count.`);
-      }
-      description = description.replaceAll(href, '');
-      expectedTargetCount += expectedCount;
-    }
-    if (description.split('target="_blank"').length - 1 !== expectedTargetCount) {
-      fail(`supplementary content ${transform.contentId} has unexpected popup targets.`);
-    }
-    content.description = description.replaceAll('target="_blank"', '');
-  }
 }
 
 function localizeExternalCourseMetadata(course) {
@@ -495,9 +441,10 @@ function removeQuizLabels(dataset) {
   }
 }
 
-function assertNoExternalDatasetTarget(dataset) {
+function assertNoExternalDatasetTarget(dataset, allowedDescriptions) {
   function visit(value, path = 'dataset') {
     if (typeof value === 'string' && /https?:\/\//iu.test(value)) {
+      if (allowedDescriptions.has(value)) return;
       fail(`external URL remains at ${path}.`);
     }
     if (typeof value !== 'object' || value === null) return;
@@ -552,10 +499,11 @@ function adaptCourseDataset(sourceDataset) {
   }
   course.lmsOptions.enableTelemetryCollection = false;
   findFinalContinueBlock(course).title = 'Training abschließen';
-  removeSupplementaryNavigation(course);
+  adaptSupplementaryNavigation(course);
   localizeExternalCourseMetadata(course);
   removeQuizLabels(adaptedDataset);
-  assertNoExternalDatasetTarget(adaptedDataset);
+  const allowedDescriptions = verifySupplementaryNavigation(course);
+  assertNoExternalDatasetTarget(adaptedDataset, allowedDescriptions);
 
   return adaptedDataset;
 }
@@ -636,6 +584,12 @@ adaptedCourseHtml = replaceExactlyOnce(
   telemetryFetchSource,
   telemetryFetchBuild,
   'the external telemetry fetch',
+);
+adaptedCourseHtml = replaceExactlyOnce(
+  adaptedCourseHtml,
+  courseBodyClose,
+  supplementBridge,
+  'the course body closing tag',
 );
 
 const sourceDriverHtml = await readFile(resolve(sourceDirectory, driverPath), 'utf8');

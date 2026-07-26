@@ -10,9 +10,9 @@
 | Timing | Phase, Segment-ID, Start/Ende, monotone Dauer | erlaubt |
 | Instruments | Pre, Post, Mechanism Recognition, Szenarioantworten | erlaubt |
 | Completion | complete, incomplete, technical failure | erlaubt |
-| Ephemeral personalization | Anzeigename/Kürzel | verboten |
-| Training input | fiktive Passwörter und Loginversuche | verboten |
-| Training diagnosis | Findings, Ähnlichkeit, Abrufbarkeit, Auswahlpfade | verboten |
+| Ephemeral personalization | Anzeigename/Kürzel | nur flüchtiger Electron-Renderer; Persistenz verboten |
+| Training input | fiktive Passwörter und Loginversuche | nur flüchtiger Electron-Renderer; Persistenz verboten |
+| Training diagnosis | Findings, Ähnlichkeit, Abrufbarkeit, Auswahlpfade | nur flüchtiger Electron-Renderer; Persistenz verboten |
 | Sensitive real-world data | reale Konten, Passwörter, Tokens, Vorfälle | nie erheben |
 | Passive metadata | IP, User-Agent, Request-Bodies | nicht persistieren |
 
@@ -44,6 +44,8 @@ Anwendung und getrennt von den Studiendaten.
 - Verzeichnisrecht `0700`, Datei möglichst `0600`.
 - Kein automatischer Cloud-Sync-Pfad.
 - Exporte werden in ein explizites lokales Zielverzeichnis geschrieben.
+- Browser Storage, IndexedDB und Service Worker sind auch innerhalb des Electron-Renderers keine
+  zulässige Persistenz.
 
 ## Export
 

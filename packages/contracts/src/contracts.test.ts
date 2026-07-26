@@ -9,9 +9,13 @@ import {
   placeholderResponseRequestSchema,
   REFERENCE_ARTIFACT_COMPLETION_MESSAGE_TYPE,
   REFERENCE_ARTIFACT_ENTRY_POINT,
+  REFERENCE_ARTIFACT_OPEN_SUPPLEMENT_MESSAGE_TYPE,
   REFERENCE_ARTIFACT_ROUTE_PREFIX,
   REFERENCE_ARTIFACT_URL,
   REFERENCE_ARTIFACT_VERSION,
+  referenceSupplementLinkForId,
+  referenceSupplementLinkIdSchema,
+  referenceSupplementLinks,
   researchExportManifestSchema,
   SUPPORTIVE_ARTIFACT_SEGMENT_IDS,
   SUPPORTIVE_ARTIFACT_VERSION,
@@ -79,13 +83,28 @@ describe('research-safe contracts', () => {
 
   it('defines one canonical local reference entry URL', () => {
     expect(REFERENCE_ARTIFACT_VERSION).toBe(
-      'secaware-passwords-authentication-v9-study-adapted-2026-07-26-r1',
+      'secaware-passwords-authentication-v9-study-adapted-2026-07-26-r2',
     );
     expect(REFERENCE_ARTIFACT_URL).toBe(
       `${REFERENCE_ARTIFACT_ROUTE_PREFIX}${REFERENCE_ARTIFACT_ENTRY_POINT}?StandAlone=true`,
     );
     expect(REFERENCE_ARTIFACT_URL).not.toMatch(/^https?:\/\//u);
     expect(REFERENCE_ARTIFACT_COMPLETION_MESSAGE_TYPE).toBe('passwo:reference-completed');
+    expect(REFERENCE_ARTIFACT_OPEN_SUPPLEMENT_MESSAGE_TYPE).toBe(
+      'passwo:reference-open-supplement',
+    );
+  });
+
+  it('exposes exactly the frozen reference supplement registry', () => {
+    expect(referenceSupplementLinks).toHaveLength(12);
+    expect(new Set(referenceSupplementLinks.map(({ id }) => id)).size).toBe(12);
+    expect(referenceSupplementLinks.every(({ url }) => new URL(url).protocol === 'https:')).toBe(
+      true,
+    );
+
+    const firstLinkId = referenceSupplementLinkIdSchema.parse('passwords-bsi-checklist');
+    expect(referenceSupplementLinkForId(firstLinkId).url).toContain('sichere_passwoerter');
+    expect(referenceSupplementLinkIdSchema.safeParse('not-frozen').success).toBe(false);
   });
 
   it('accepts only the bounded placeholder response', () => {

@@ -14,7 +14,6 @@ import {
 } from '@passwo/contracts';
 import Fastify, { type FastifyInstance } from 'fastify';
 import { z } from 'zod';
-import { resolveReferenceArtifactDirectory } from './config.js';
 import { openStudyDatabase } from './database.js';
 import { cryptoStudyRandomSource, type StudyRandomSource } from './random-source.js';
 import { isReferenceArtifactAvailable, registerReferenceArtifact } from './static-web.js';
@@ -46,7 +45,7 @@ export function buildStudyServer({
   assignmentMode = 'permuted-block',
   databasePath = ':memory:',
   randomSource = cryptoStudyRandomSource,
-  referenceArtifactDirectory = resolveReferenceArtifactDirectory(),
+  referenceArtifactDirectory,
   nowIso,
   versions = walkingSkeletonVersions,
 }: StudyServerBuildOptions): FastifyInstance {

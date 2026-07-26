@@ -1,0 +1,35 @@
+{
+  "name": "@passwo/study-desktop",
+  "version": "0.1.2",
+  "private": true,
+  "productName": "Authentication Onboarding",
+  "type": "module",
+  "main": "dist/main.js",
+  "files": [
+    "dist",
+    "forge.config.mjs"
+  ],
+  "config": {
+    "forge": "./forge.config.mjs"
+  },
+  "scripts": {
+    "build": "tsup",
+    "package": "node ../../scripts/run-desktop-package.mjs",
+    "start": "electron-forge start",
+    "test": "node ../../scripts/test-desktop.mjs",
+    "typecheck": "tsc -p tsconfig.json --noEmit"
+  },
+  "dependencies": {
+    "better-sqlite3": "^13.0.0"
+  },
+  "devDependencies": {
+    "@electron-forge/cli": "7.11.2",
+    "@passwo/contracts": "workspace:*",
+    "@passwo/study-server": "workspace:*",
+    "@types/better-sqlite3": "^7.6.0",
+    "@types/node": "^24.0.0",
+    "electron": "43.2.0",
+    "tsup": "^8.5.0",
+    "typescript": "~6.0.0"
+  }
+}

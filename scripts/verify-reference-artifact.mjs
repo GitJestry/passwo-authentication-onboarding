@@ -4,6 +4,11 @@ import { existsSync } from 'node:fs';
 import { readdir, readFile } from 'node:fs/promises';
 import { relative, resolve, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import {
+  adaptSupplementaryNavigation,
+  referenceSupplementLinks,
+  verifySupplementaryNavigation,
+} from './reference-supplements.mjs';
 
 const repositoryRoot = fileURLToPath(new URL('..', import.meta.url));
 const expectedSourcePath =
@@ -12,19 +17,20 @@ const expectedBuildPath =
   'research/private/reference/secaware/passwords-authentication/2026-07-26/study-build';
 const expectedTransformationPath = 'research/derived/reference-artifact-transform.yaml';
 const expectedSnapshotId = 'secaware-passwords-authentication-2026-07-26';
-const expectedReferenceVersion = 'secaware-passwords-authentication-v9-study-adapted-2026-07-26-r1';
+const expectedReferenceVersion = 'secaware-passwords-authentication-v9-study-adapted-2026-07-26-r2';
 const expectedSourceVersion = 'V9 (27.03.2026)';
 const expectedEntryPoint = 'scormdriver/indexAPI.html';
 const expectedCourseId = 'CwynTB5JDjzJgtE8M2SKmgtgC6sM4C4h';
 const expectedCompletionMessageType = 'passwo:reference-completed';
+const expectedOpenSupplementMessageType = 'passwo:reference-open-supplement';
 const expectedSourceFileCount = 146;
 const expectedSourceManifestSha256 =
   '4eee807687cad07e9856decd711a45a79076caf2ef9b9b6d6dae0401d23f821b';
 const expectedBuildFileCount = 146;
 const expectedBuildManifestSha256 =
-  '7205338f2a115ed2ac5f8747122d3e838fc87a84389d19ae221418a649897b5f';
+  '612588188d47a7a782c7b17c7e52f584205428e50e4982d3b58a24b67ae3b3f8';
 const expectedTransformationConfigSha256 =
-  '9d4de1e44174e37010a362401fb7e812f0452f4b0e5ea1cdb6be96cec98e9f2f';
+  'f80dde80fb958d2e11899356eb7143379ee90c48fdee88774667b62f229788c4';
 const coursePath = 'scormcontent/index.html';
 const driverPath = 'scormdriver/indexAPI.html';
 const finalContinueBlockId = 'cld8nihms01nn1tdj5q8tcthv';
@@ -123,6 +129,7 @@ const expectedTransformationIds = [
   'course-description-neutralize',
   'course-telemetry-disable',
   'course-external-targets-localize',
+  'course-supplement-navigation-bridge',
   'quiz-labelSet-remove',
   'runtime-popup-apis-disable',
   'block-cld8nihms01nn1tdj5q8tcthv-completion-navigation',
@@ -239,21 +246,6 @@ function finalContinueNavigation(course, description) {
   return block.items[0];
 }
 
-const supplementaryUrls = [
-  'https://www.bsi.bund.de/SharedDocs/Downloads/DE/BSI/Checklisten/sichere_passwoerter_faktenblatt.pdf?__blob=publicationFile&v=1',
-  'https://www.bsi.bund.de/DE/Themen/Verbraucherinnen-und-Verbraucher/Informationen-und-Empfehlungen/Cyber-Sicherheitsempfehlungen/Accountschutz/Sichere-Passwoerter-erstellen/Umgang-mit-Passwoertern/umgang-mit-passwoertern_node.html',
-  'https://norbert-pohlmann.com/glossar-cyber-sicherheit/angriffsvektor/',
-  'https://www.verbraucherzentrale.de/wissen/digitale-welt/datenschutz/starke-passwoerter-so-gehts-11672',
-  'https://www.sicher-im-netz.de/dsin-passwortkarte',
-  'https://polizei.nrw/artikel/mach-dein-passwort-stark#:~:text=Zahlenreihen%20wie%201234567%20oder%20111111,leicht%2C%20Ihre%20Zugangsdaten%20zu%20hacken.',
-  'https://polizei.nrw/artikel/mach-dein-passwort-stark#:~:text=Zahlenreihen%20wie%201234567%20oder%20111111,leicht%2C%20Ihre%20Zugangsdaten%20zu%20hacken',
-  'https://www.bsi.bund.de/DE/Themen/Verbraucherinnen-und-Verbraucher/Informationen-und-Empfehlungen/Cyber-Sicherheitsempfehlungen/Accountschutz/Projekt-Accountschutz/browser-passwortmanager.html',
-  'https://www.bsi.bund.de/SharedDocs/Videos/DE/BSI/VerbraucherInnen/passwort-manager-statement.html',
-  'https://aware7.com/de/blog/passwort-manager-sicherheit-kaspersky-erstellt-schwache-passwoerter/',
-  'https://www.bsi.bund.de/DE/Themen/Verbraucherinnen-und-Verbraucher/Informationen-und-Empfehlungen/Wie-geht-Internet/Zwei-Faktor-Authentisierung-Datensicherheit/zwei-faktor-authentisierung-datensicherheit_node.html',
-  'https://www.bsi.bund.de/DE/Themen/Verbraucherinnen-und-Verbraucher/Informationen-und-Empfehlungen/Cyber-Sicherheitsempfehlungen/Accountschutz/Zwei-Faktor-Authentisierung/Bewertung-2FA-Verfahren/bewertung-2fa-verfahren_node.html',
-  'https://www.verbraucherzentrale.de/wissen/digitale-welt/datenschutz/zweifaktorauthentisierung-so-schuetzen-sie-ihre-accounts-85173',
-];
 const externalValueReplacements = new Map([
   [
     'https://articulateusercontent.com/assets/rise/assets/themes/classic/cover-image/30_wfh.jpg',
@@ -303,11 +295,7 @@ const externalValueReplacements = new Map([
 
 function transformExpectedExternalValues(value) {
   if (typeof value === 'string') {
-    let transformed = externalValueReplacements.get(value) ?? value;
-    for (const url of supplementaryUrls) {
-      transformed = transformed.replaceAll(`href="${url}"`, '');
-    }
-    return transformed.replaceAll('target="_blank"', '');
+    return externalValueReplacements.get(value) ?? value;
   }
   if (Array.isArray(value)) return value.map(transformExpectedExternalValues);
   if (typeof value !== 'object' || value === null) return value;
@@ -328,6 +316,7 @@ function expectedAdaptedDataset(sourceDataset) {
   }
   course.lmsOptions.enableTelemetryCollection = false;
   finalContinueNavigation(course, 'source clone').title = 'Training abschließen';
+  adaptSupplementaryNavigation(course);
   for (const key of quizLabelKeys) {
     if (!(key in expected.labelSet.labels)) {
       fail(`source clone is missing quiz label ${key}.`);
@@ -338,9 +327,10 @@ function expectedAdaptedDataset(sourceDataset) {
   return expected;
 }
 
-function verifyNoExternalDatasetTargets(dataset) {
+function verifyNoExternalDatasetTargets(dataset, allowedDescriptions) {
   function visit(value, path = 'dataset') {
     if (typeof value === 'string' && /https?:\/\//iu.test(value)) {
+      if (allowedDescriptions.has(value)) return;
       fail(`generated dataset retains external URL at ${path}.`);
     }
     if (typeof value !== 'object' || value === null) return;
@@ -457,11 +447,7 @@ async function verify() {
   const metadataPath = resolve(repositoryRoot, 'research/derived/reference-artifact.yaml');
   const transformationPath = resolve(repositoryRoot, expectedTransformationPath);
   const contractPath = resolve(repositoryRoot, 'packages/contracts/src/training.ts');
-  const configuredBuildDirectory = process.env.REFERENCE_ARTIFACT_DIR?.trim();
 
-  if (configuredBuildDirectory && resolve(configuredBuildDirectory) !== buildDirectory) {
-    fail('REFERENCE_ARTIFACT_DIR does not point to the verified canonical study build.');
-  }
   for (const [path, description] of [
     [sourceDirectory, 'private source directory'],
     [buildDirectory, 'generated study build directory'],
@@ -527,6 +513,7 @@ async function verify() {
     expectedReferenceVersion,
     expectedSnapshotId,
     expectedCompletionMessageType,
+    expectedOpenSupplementMessageType,
   ]) {
     if (!contracts.includes(`'${value}'`)) {
       fail(`the canonical contract is missing ${value}.`);
@@ -559,9 +546,12 @@ async function verify() {
       fail(`the transformation configuration omits quiz label ${key}.`);
     }
   }
-  for (const url of supplementaryUrls) {
-    if (!transformations.includes(url)) {
-      fail(`the transformation configuration omits supplementary URL ${url}.`);
+  if (!transformations.includes(`messageType: ${expectedOpenSupplementMessageType}`)) {
+    fail('the transformation configuration omits the supplement message type.');
+  }
+  for (const { id, url } of referenceSupplementLinks) {
+    if (!transformations.includes(`id: ${id}`) || !transformations.includes(url)) {
+      fail(`the transformation configuration omits supplementary link ${id}.`);
     }
   }
 
@@ -582,7 +572,8 @@ async function verify() {
   const sourceLessonsById = lessonMap(sourceCourse, 'original snapshot');
   const buildLessonsById = lessonMap(buildCourse, 'generated study build');
   verifyQuizLabels(sourceDataset, buildDataset);
-  verifyNoExternalDatasetTargets(buildDataset);
+  const allowedSupplementDescriptions = verifySupplementaryNavigation(buildCourse);
+  verifyNoExternalDatasetTargets(buildDataset, allowedSupplementDescriptions);
 
   if (
     typeof sourceCourse.description !== 'string' ||
@@ -640,6 +631,18 @@ async function verify() {
   ) {
     fail('the generated three-lesson completion requirement is not exactly 100 percent.');
   }
+  if (
+    occurrenceCount(buildCourseHtml, 'passwo-reference-supplement-bridge:start') !== 1 ||
+    occurrenceCount(buildCourseHtml, 'passwo-reference-supplement-bridge:end') !== 1 ||
+    occurrenceCount(buildCourseHtml, 'PasswoOpenReferenceSupplement') !== 2
+  ) {
+    fail('the generated course does not contain the data-minimal supplement link bridge.');
+  }
+  for (const { id, url } of referenceSupplementLinks) {
+    if (!buildCourseHtml.includes(`${JSON.stringify(url)}:${JSON.stringify(id)}`)) {
+      fail(`the generated course bridge omits supplementary link ${id}.`);
+    }
+  }
 
   if (sourceDriverHtml.includes('passwo-reference-completion-bridge')) {
     fail('the original SCORM driver contains the generated completion bridge.');
@@ -648,7 +651,8 @@ async function verify() {
     occurrenceCount(buildDriverHtml, 'passwo-reference-completion-bridge:start') !== 1 ||
     occurrenceCount(buildDriverHtml, 'passwo-reference-completion-bridge:end') !== 1 ||
     occurrenceCount(buildDriverHtml, expectedCompletionMessageType) !== 1 ||
-    occurrenceCount(buildDriverHtml, expectedSnapshotId) !== 1 ||
+    occurrenceCount(buildDriverHtml, expectedOpenSupplementMessageType) !== 1 ||
+    occurrenceCount(buildDriverHtml, expectedSnapshotId) !== 2 ||
     !buildDriverHtml.includes('originalSetReachedEnd.apply(window, arguments)') ||
     !buildDriverHtml.includes(
       `{ type: '${expectedCompletionMessageType}', snapshotId: '${expectedSnapshotId}' }`,

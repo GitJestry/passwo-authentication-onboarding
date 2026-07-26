@@ -5,6 +5,9 @@
 Die BrowserShell erzeugt einen realitätsnahen Kontext und visuelle Kontinuität. Sie simuliert nur
 die für das Training benötigten Tabs und Seitenzustände.
 
+Sie ist eine simulierte Trainingsoberfläche im kanonischen Electron-Renderer und keine
+Auslieferungsplattform oder eigenständige Browseranwendung.
+
 Sie ist die primäre Oberfläche des supportive Artefakts und füllt dessen verfügbare Artifact
 Surface horizontal und vertikal. Eine zusätzliche Studienkarte oder ein Studienheader umschließt
 sie nicht.

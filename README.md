@@ -1,7 +1,7 @@
 # PassWo Authentication Onboarding
 
-Dieses pnpm-Monorepo enthält das webbasierte **Supportive Authentication Onboarding** und die
-lokale Runtime für die gekoppelte Between-Subjects-Studie. Nach M3 sind der technische
+Dieses pnpm-Monorepo enthält das **Supportive Authentication Onboarding** und die lokale Runtime
+für die gekoppelte Between-Subjects-Studie. Nach M3 sind der technische
 Studienpfad, die visuelle Trainingsplattform und die ersten Knotennetzwerk-Slices implementiert.
 Die finalen Forschungsinstrumente und die vollständigen Trainingssegmente folgen in späteren
 Meilensteinen.
@@ -18,8 +18,10 @@ Meilensteinen.
 - **Als Nächstes – M4:** das bereits angebundene Package `@passwo/password-analysis` wird für
   die rein lokale, simulationsspezifische Passwortanalyse umgesetzt.
 
-`apps/study-web` enthält die React-/Vite-Oberfläche und Browseradapter. `apps/study-server`
-stellt die lokale Fastify-API, SQLite-Persistenz, Zuweisung und den gebündelten Web-Build bereit.
+`apps/study-desktop` verpackt die Anwendung für Apple Silicon ohne Adresszeile und startet die
+vorhandene Runtime intern. `apps/study-web` ist der einzige React-/Vite-Renderer.
+`apps/study-server` ist die einzige Fastify-/SQLite-Implementierung für API, Persistenz,
+Zuweisung, Timing und Export. Electron kopiert keine dieser fachlichen Systeme.
 Frameworkfreie Contracts, Engines, Inhalte, Visualisierungsmodelle und UI-Bausteine liegen unter
 `packages/`.
 
@@ -35,33 +37,45 @@ corepack prepare pnpm@11.15.1 --activate
 pnpm install
 ```
 
-Für die getrennten Entwicklungsserver:
+Der kanonische Desktop-Entwicklungsstart ist:
 
 ```bash
 pnpm dev
 ```
 
-- Web-App: `http://127.0.0.1:5173`
-- API: `http://127.0.0.1:4174/api/health`
+Er baut und prüft das Referenzartefakt, erstellt Server-, Renderer- und Electron-Bundles und
+startet die Desktop-App. Ein eigenständiger Browser-Produktionsstart wird nicht unterstützt.
+Vite/Chromium bleiben ausschließlich interne E2E- und visuelle Testwerkzeuge und verwenden
+denselben Renderer-Quellcode.
 
-Den gebündelten lokalen Studienbetrieb startet `pnpm study:start`. Der Befehl baut Client und
-Server; Fastify liefert anschließend Web-App und API unter `http://127.0.0.1:4174` aus.
+Die lokale arm64-App wird gebaut mit:
+
+```bash
+pnpm desktop:package
+```
+
+Das Ergebnis liegt unter `apps/study-desktop/out/Authentication Onboarding-darwin-arm64/`.
+Teilnehmende starten ausschließlich `Authentication Onboarding.app`. Die App benötigt weder einen
+separaten Browser noch einen zuvor gestarteten Server und verwendet weiterhin
+`~/.passwo-study/study.sqlite`. Signierung und Notarisierung sind nicht Bestandteil dieses lokalen
+Builds.
 
 Die Hauptstudie verwendet standardmäßig `permuted-block`. Nur für Pretests dürfen die Bedingungen
 erzwungen werden:
 
 ```bash
-STUDY_ASSIGNMENT_MODE=forced-supportive pnpm study:start
-STUDY_ASSIGNMENT_MODE=forced-reference pnpm study:start
+STUDY_ASSIGNMENT_MODE=forced-supportive pnpm dev
+STUDY_ASSIGNMENT_MODE=forced-reference pnpm dev
 ```
 
 ## Study Runtime und Export
 
 Der Runtime-Pfad führt von Einwilligung und serverseitiger Session über Pre-Platzhalter,
 flüchtigen Anzeigenamen und zugewiesenes Artefakt zu Post-/Guardrail-Platzhaltern, Debrief und
-Abschluss. Anzeigenamen und Trainingsinputs bleiben im Browser-Arbeitsspeicher. Standardmäßig
-liegt die Datenbank unter `~/.passwo-study/study.sqlite`; ein anderer lokaler Datenordner kann über
-`STUDY_DATA_DIR` gesetzt werden.
+Abschluss. Anzeigenamen und Trainingsinputs bleiben ausschließlich im flüchtigen Arbeitsspeicher
+des Electron-Renderers. Standardmäßig liegt die Datenbank unter
+`~/.passwo-study/study.sqlite`; ein anderer lokaler Datenordner kann über `STUDY_DATA_DIR`
+gesetzt werden.
 
 Ein Export benötigt ein leeres oder neues Zielverzeichnis:
 
@@ -75,17 +89,21 @@ Zählungen und SHA-256-Prüfsummen.
 
 ## Design Lab
 
-`/design-lab` stellt deterministische, vom Studienablauf isolierte Szenen für Entwicklung,
-Barrierefreiheitsprüfungen und visuelle Regression bereit. Dazu gehören BrowserShell- und
-PassWo-Zustände sowie die S00-, S02-CampusID- und S06-Fixtures. Das Design Lab speichert keine
-Forschungsdaten und ersetzt keine vollständige Segmentnavigation.
+`/design-lab` ist ein interner QA-Pfad für deterministische, vom Studienablauf isolierte Szenen,
+Barrierefreiheitsprüfungen und visuelle Regression. Dazu gehören BrowserShell- und
+PassWo-Zustände sowie die S00-, S02-CampusID- und S06-Fixtures. Das Design Lab ist kein
+Auslieferungspfad, speichert keine Forschungsdaten und ersetzt keine vollständige
+Segmentnavigation.
 
 ## Qualitätschecks
 
 ```bash
 pnpm check                    # Biome, TypeScript, Unit-/Contract-Tests, Research Boundary
-pnpm build                    # Server und Vite-Client bauen
+pnpm build                    # Server, kanonischen Renderer und Electron-Hülle bauen
 pnpm test:e2e                 # Study Runtime, Design Lab und Barrierefreiheit
+pnpm test:reference-artifact  # echter SecAware-Kursweg und automatischer Post-Übergang
+pnpm test:desktop             # Electron-/SQLite-Smoke-Test
+pnpm desktop:package          # lokale arm64-.app
 pnpm check:research-boundary  # Datengrenzen und private Quellen prüfen
 ```
 

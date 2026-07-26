@@ -3,10 +3,14 @@
   "version": "0.1.2",
   "private": true,
   "type": "module",
+  "exports": {
+    "./runtime": {
+      "types": "./src/runtime.ts",
+      "import": "./dist/runtime.js"
+    }
+  },
   "scripts": {
     "build": "tsup",
-    "dev": "tsx watch src/index.ts",
-    "start": "node dist/index.js",
     "typecheck": "tsc -p tsconfig.json --noEmit"
   },
   "dependencies": {
@@ -19,7 +23,6 @@
   "devDependencies": {
     "@types/better-sqlite3": "^7.6.0",
     "@types/node": "^24.0.0",
-    "tsx": "^4.23.0",
     "typescript": "~6.0.0",
     "tsup": "^8.5.0"
   }

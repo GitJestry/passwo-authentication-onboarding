@@ -3,6 +3,8 @@ node_modules/
 .pnpm-store/
 dist/
 build/
+out/
+.forge-package/
 coverage/
 playwright-report/
 test-results/

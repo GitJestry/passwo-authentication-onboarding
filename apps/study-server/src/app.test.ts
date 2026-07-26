@@ -13,8 +13,8 @@ import Database from 'better-sqlite3';
 import type { FastifyInstance } from 'fastify';
 import { afterEach, describe, expect, it } from 'vitest';
 import { buildStudyServer } from './app.js';
-import { loadStudyServerConfig, resolveReferenceArtifactDirectory } from './config.js';
 import type { StudyRandomSource } from './random-source.js';
+import { resolveStudyDatabasePath } from './runtime.js';
 import { registerStudyWeb } from './static-web.js';
 
 const servers: FastifyInstance[] = [];
@@ -41,6 +41,17 @@ function deterministicRandomSource(): StudyRandomSource {
     randomIndex: () => 0,
   };
 }
+
+describe('Study Runtime paths', () => {
+  it('keeps the canonical database below the user home directory', () => {
+    expect(resolveStudyDatabasePath({}, '/Users/participant')).toBe(
+      '/Users/participant/.passwo-study/study.sqlite',
+    );
+    expect(
+      resolveStudyDatabasePath({ STUDY_DATA_DIR: '/tmp/passwo-study-test' }, '/Users/participant'),
+    ).toBe('/tmp/passwo-study-test/study.sqlite');
+  });
+});
 
 function createServer(
   assignmentMode: AssignmentMode,
@@ -300,26 +311,6 @@ describe('study server walking skeleton', () => {
         referenceArtifactVersion: null,
       },
     ]);
-  });
-
-  it('loads forced modes only from the server environment', () => {
-    expect(
-      loadStudyServerConfig({
-        REFERENCE_ARTIFACT_DIR: '/tmp/reference-fixture',
-        STUDY_ASSIGNMENT_MODE: 'forced-reference',
-        STUDY_DATA_DIR: '/tmp/passwo-study-test',
-        STUDY_PORT: '4174',
-      }),
-    ).toMatchObject({
-      assignmentMode: 'forced-reference',
-      referenceArtifactDirectory: '/tmp/reference-fixture',
-    });
-  });
-
-  it('resolves the generated study build as the default artifact directory', () => {
-    expect(resolveReferenceArtifactDirectory({})).toMatch(
-      /research\/private\/reference\/secaware\/passwords-authentication\/2026-07-26\/study-build\/?$/u,
-    );
   });
 
   it('blocks a reference study when its configured artifact is missing', async () => {

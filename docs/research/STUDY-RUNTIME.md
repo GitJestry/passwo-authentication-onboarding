@@ -26,11 +26,15 @@ als erfolgreich zu markieren.
 
 ## Zustandsgrenzen
 
-- `displayName` existiert ausschließlich im Browserkontext und wird nie an die API gesendet.
-- Fiktive Passwörter und deren Analysen existieren nur in der Training Runtime im Arbeitsspeicher.
+- `displayName` existiert ausschließlich im flüchtigen Electron-Rendererkontext und wird nie an
+  die API gesendet.
+- Fiktive Passwörter und deren Analysen existieren nur in der Training Runtime im flüchtigen
+  Renderer-Arbeitsspeicher.
 - Condition, pseudonymer Code, Versionen, Antworten, Timing und Abschlussstatus liegen serverseitig.
 - Reload während eines Artefakts verwirft temporären Zustand und führt zu einem dokumentierten
   unvollständigen technischen Status.
+- Browser Storage, IndexedDB und Service Worker werden auch im Electron-Renderer nicht für
+  Teilnehmer- oder Trainingszustand verwendet.
 
 ## Researcher-Konfiguration
 

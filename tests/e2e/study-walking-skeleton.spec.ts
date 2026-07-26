@@ -1,6 +1,6 @@
 import { fileURLToPath } from 'node:url';
 import AxeBuilder from '@axe-core/playwright';
-import { expect, type Page, test } from '@playwright/test';
+import { expect, type Frame, type Page, test } from '@playwright/test';
 import { buildStudyServer } from '../../apps/study-server/src/app.js';
 
 type ForcedAssignmentMode = 'forced-supportive' | 'forced-reference';
@@ -28,6 +28,8 @@ let studyServer: ReturnType<typeof buildStudyServer> | null = null;
 const referenceArtifactFixtureDirectory = fileURLToPath(
   new URL('../../apps/study-server/src/test-fixtures/reference-artifact/', import.meta.url),
 );
+
+test.use({ contextOptions: { reducedMotion: 'reduce' } });
 
 test.afterEach(async () => {
   if (studyServer !== null) {
@@ -309,6 +311,21 @@ async function submitPlaceholder(page: Page, buttonName = 'Antwort speichern') {
   await page.getByRole('button', { name: buttonName }).click();
 }
 
+async function waitForReferenceContentFrame(page: Page): Promise<Frame> {
+  await expect
+    .poll(() =>
+      page
+        .frames()
+        .some((frame) => frame.url().includes('/reference/secaware/passwords-authentication/')),
+    )
+    .toBe(true);
+  const contentFrame = page
+    .frames()
+    .find((frame) => frame.url().includes('/reference/secaware/passwords-authentication/'));
+  if (contentFrame === undefined) throw new Error('reference-content-frame-missing');
+  return contentFrame;
+}
+
 async function enterSupportiveTraining(page: Page, displayName: string): Promise<void> {
   await expect(page.locator('main[data-artifact-surface]')).toBeVisible();
   await expect(page.locator('main[data-study-surface]')).toHaveCount(0);
@@ -365,7 +382,6 @@ async function completeS01(page: Page): Promise<void> {
 }
 
 async function completeS02(page: Page): Promise<void> {
-  await page.emulateMedia({ reducedMotion: 'reduce' });
   await expect(page.getByRole('heading', { name: 'Was hängt an deinen Konten?' })).toBeVisible();
   const accounts = [
     {
@@ -845,11 +861,7 @@ test('forced-reference embeds the local artifact and accepts only its valid comp
   expect(artifactBox).not.toBeNull();
   expect(iframeBox).toEqual(artifactBox);
 
-  const contentFrame = page
-    .frames()
-    .find((frame) => frame.url().includes('/reference/secaware/passwords-authentication/'));
-  expect(contentFrame).toBeDefined();
-  if (contentFrame === undefined) throw new Error('reference-content-frame-missing');
+  const contentFrame = await waitForReferenceContentFrame(page);
   await expect(
     contentFrame.getByRole('heading', { name: 'Passwörter & Authentifizierung' }),
   ).toBeVisible();
@@ -913,43 +925,144 @@ test('forced-reference embeds the local artifact and accepts only its valid comp
   await expect(page.getByRole('button', { name: 'Weiter' })).toHaveCount(0);
   await expect(page.getByRole('heading', { name: 'Fragebogen nach dem Artefakt' })).toHaveCount(0);
 
-  await contentFrame.evaluate(() =>
-    window.parent.postMessage(
+  await contentFrame.evaluate(() => {
+    for (const data of [
       {
-        type: 'passwo:reference-completed',
-        snapshotId: 'secaware-passwords-authentication-2026-07-26',
+        type: 'passwo:reference-open-supplement',
+        snapshotId: 'wrong-snapshot',
+        linkId: 'passwords-bsi-checklist',
       },
-      window.location.origin,
-    ),
-  );
-  const completionBar = page.locator('[aria-live="polite"]').filter({
-    hasText: 'Training abgeschlossen',
+      {
+        type: 'passwo:reference-open-supplement',
+        snapshotId: 'secaware-passwords-authentication-2026-07-26',
+        linkId: 'unknown-link',
+      },
+      {
+        type: 'passwo:reference-open-supplement',
+        snapshotId: 'secaware-passwords-authentication-2026-07-26',
+        linkId: 'passwords-bsi-checklist',
+        url: 'https://invalid.example/',
+      },
+    ]) {
+      window.parent.postMessage(data, window.location.origin);
+    }
   });
-  await expect(completionBar).toBeVisible();
-  await expect(completionBar).toHaveText('Training abgeschlossenWeiter');
-  await expect(page.getByRole('button', { name: 'Weiter' })).toHaveCount(1);
+  await expect(page.getByRole('alert')).toHaveCount(0);
+  await page.evaluate(() => {
+    window.postMessage(
+      {
+        type: 'passwo:reference-open-supplement',
+        snapshotId: 'secaware-passwords-authentication-2026-07-26',
+        linkId: 'passwords-bsi-checklist',
+      },
+      window.location.origin,
+    );
+  });
+  await expect(page.getByRole('alert')).toHaveCount(0);
+  await page.evaluate(() => {
+    const testWindow = window as typeof window & {
+      __openedReferenceSupplementId?: string;
+      __referenceSupplementClosed?: boolean;
+    };
+    Object.defineProperty(window, 'passwoDesktop', {
+      configurable: true,
+      value: {
+        openReferenceSupplement: async (linkId: string) => {
+          testWindow.__openedReferenceSupplementId = linkId;
+          return true;
+        },
+        closeReferenceSupplement: async () => {
+          testWindow.__referenceSupplementClosed = true;
+        },
+      },
+    });
+  });
   await contentFrame.evaluate(() =>
     window.parent.postMessage(
       {
-        type: 'passwo:reference-completed',
+        type: 'passwo:reference-open-supplement',
         snapshotId: 'secaware-passwords-authentication-2026-07-26',
+        linkId: 'passwords-bsi-checklist',
       },
       window.location.origin,
     ),
   );
-  await expect(completionBar).toHaveCount(1);
-  await expect(page.getByRole('button', { name: 'Weiter' })).toHaveCount(1);
-  await expect.poll(() => timingEventTypes(requests.bodies)).toEqual(['start']);
-  await expectNoHighImpactAxeFindings(page);
+  await expect(page.getByText('Zusatzinformationen', { exact: true })).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Zurück zum Training' })).toBeVisible();
+  expect(
+    await page.evaluate(
+      () =>
+        (
+          window as typeof window & {
+            __openedReferenceSupplementId?: string;
+          }
+        ).__openedReferenceSupplementId,
+    ),
+  ).toBe('passwords-bsi-checklist');
+  await page.getByRole('button', { name: 'Zurück zum Training' }).click();
+  await expect(page.getByText('Zusatzinformationen', { exact: true })).toHaveCount(0);
+  expect(
+    await page.evaluate(
+      () =>
+        (
+          window as typeof window & {
+            __referenceSupplementClosed?: boolean;
+          }
+        ).__referenceSupplementClosed,
+    ),
+  ).toBe(true);
 
-  await page.getByRole('button', { name: 'Weiter' }).click();
+  await contentFrame.evaluate(() => {
+    const completion = {
+      type: 'passwo:reference-completed',
+      snapshotId: 'secaware-passwords-authentication-2026-07-26',
+    };
+    window.parent.postMessage(completion, window.location.origin);
+    window.parent.postMessage(completion, window.location.origin);
+  });
+  await expect(page.getByRole('heading', { name: 'Fragebogen nach dem Artefakt' })).toBeVisible();
+  await expect(page.getByText('Training abgeschlossen')).toHaveCount(0);
+  await expect(page.getByRole('button', { name: 'Weiter' })).toHaveCount(0);
   await expect.poll(() => timingEventTypes(requests.bodies)).toEqual(['start', 'end']);
+  expect(
+    timingEvents(requests.bodies).filter(
+      ({ eventType, phase }) => eventType === 'end' && phase === 'artifact',
+    ),
+  ).toHaveLength(1);
   expect(
     timingEvents(requests.bodies).every(
       ({ sectionId, segmentId }) => sectionId === null && segmentId === null,
     ),
   ).toBe(true);
+  await expectNoHighImpactAxeFindings(page);
+
   await finishAfterArtifact(page);
+});
+
+test('forced-reference shows a technical supplement notice without the desktop bridge', async ({
+  page,
+}) => {
+  await startStudyServer('forced-reference');
+  await acceptConsent(page);
+  await submitPlaceholder(page);
+  const contentFrame = await waitForReferenceContentFrame(page);
+
+  await contentFrame.evaluate(() =>
+    window.parent.postMessage(
+      {
+        type: 'passwo:reference-open-supplement',
+        snapshotId: 'secaware-passwords-authentication-2026-07-26',
+        linkId: 'passwords-bsi-checklist',
+      },
+      window.location.origin,
+    ),
+  );
+  await expect(page.getByRole('alert')).toHaveText(
+    'Zusatzinformationen sind nur in der Desktop-App verfügbar.Zurück zum Training',
+  );
+  expect(page.context().pages()).toEqual([page]);
+  await page.getByRole('button', { name: 'Zurück zum Training' }).click();
+  await expect(page.getByRole('alert')).toHaveCount(0);
 });
 
 test('forced-reference offers a neutral retry after an iframe load error', async ({ page }) => {
