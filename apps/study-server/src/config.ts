@@ -6,7 +6,7 @@ import { z } from 'zod';
 
 const defaultReferenceArtifactDirectory = fileURLToPath(
   new URL(
-    '../../../research/private/reference/secaware/passwords-authentication/2026-07-26/source/',
+    '../../../research/private/reference/secaware/passwords-authentication/2026-07-26/study-build/',
     import.meta.url,
   ),
 );

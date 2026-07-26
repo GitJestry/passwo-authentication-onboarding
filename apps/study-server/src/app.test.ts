@@ -13,7 +13,7 @@ import Database from 'better-sqlite3';
 import type { FastifyInstance } from 'fastify';
 import { afterEach, describe, expect, it } from 'vitest';
 import { buildStudyServer } from './app.js';
-import { loadStudyServerConfig } from './config.js';
+import { loadStudyServerConfig, resolveReferenceArtifactDirectory } from './config.js';
 import type { StudyRandomSource } from './random-source.js';
 import { registerStudyWeb } from './static-web.js';
 
@@ -316,6 +316,12 @@ describe('study server walking skeleton', () => {
     });
   });
 
+  it('resolves the generated study build as the default artifact directory', () => {
+    expect(resolveReferenceArtifactDirectory({})).toMatch(
+      /research\/private\/reference\/secaware\/passwords-authentication\/2026-07-26\/study-build\/?$/u,
+    );
+  });
+
   it('blocks a reference study when its configured artifact is missing', async () => {
     const temporaryDirectory = mkdtempSync(join(tmpdir(), 'passwo-missing-reference-test-'));
     temporaryDirectories.push(temporaryDirectory);
@@ -364,8 +370,9 @@ describe('study server walking skeleton', () => {
     });
 
     expect(entry.statusCode).toBe(200);
-    expect(entry.body).toContain('Referenz-Test-Fixture');
+    expect(entry.body).toContain('Passwörter &amp; Authentifizierung');
     expect(entry.headers['content-security-policy']).toContain("connect-src 'self'");
+    expect(entry.headers['content-security-policy']).toContain("frame-ancestors 'self'");
     expect(head.statusCode).toBe(200);
     expect(head.body).toBe('');
     expect([403, 404]).toContain(directory.statusCode);

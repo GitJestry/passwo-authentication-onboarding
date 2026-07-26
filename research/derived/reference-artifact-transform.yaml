@@ -1,0 +1,52 @@
+schemaVersion: 1
+artifactVersion: secaware-passwords-authentication-v9-study-adapted-2026-07-26-r1
+sourceVersion: V9 (27.03.2026)
+courseId: CwynTB5JDjzJgtE8M2SKmgtgC6sM4C4h
+selection:
+  retainedLessonIds:
+    - qcxfbmtfmCPSe2IT04vnCXlpAHjuFDds
+    - cCLcBEovpLj72dCgZ6HsfeQV4xIR2_Lv
+    - 8s5ZF8ravaGthNGdmPcOMPOpdjLwXR-O
+    - zbxeD7QUdMnDlBWKvVsxMy5G8ghjnDRt
+  removedLessonIds:
+    - Ti_fsrlLUHNndcM9En6vVDUgA9f5i3Wx
+    - 7rcfm_gAfAzVzRVVTR_iWnlKKBnZpaHM
+    - HH7SqnNUTjwy5QdPUzFsX-aWNvrIcwkF
+transformations:
+  - id: lesson-Ti_fsrlLUHNndcM9En6vVDUgA9f5i3Wx-remove
+    targetId: Ti_fsrlLUHNndcM9En6vVDUgA9f5i3Wx
+    operation: remove-from-course-lessons
+    reason: The common study post-questionnaire and understanding guardrail replace the provider quiz.
+  - id: lesson-7rcfm_gAfAzVzRVVTR_iWnlKKBnZpaHM-remove
+    targetId: 7rcfm_gAfAzVzRVVTR_iWnlKKBnZpaHM
+    operation: remove-from-course-lessons
+    reason: Publication metadata is outside the instructional three-lesson study path.
+  - id: lesson-HH7SqnNUTjwy5QdPUzFsX-aWNvrIcwkF-remove
+    targetId: HH7SqnNUTjwy5QdPUzFsX-aWNvrIcwkF
+    operation: remove-from-course-lessons
+    reason: Provider usage and version notes are outside the instructional study path.
+  - id: course-description-neutralize
+    targetId: course.description
+    operation: set-empty-string
+    reason: The source description contains provider, version, and obsolete navigation metadata.
+  - id: course-telemetry-disable
+    targetId: course.lmsOptions.enableTelemetryCollection
+    operation: set-false
+    reason: Provider telemetry is not required for local instruction and must not collect runtime context.
+  - id: block-cld8nihms01nn1tdj5q8tcthv-completion-navigation
+    targetId: cld8nihms01nn1tdj5q8tcthv
+    operation: set-navigation-title-to-Training-abschließen
+    reason: The final Continue block must complete the retained path instead of navigating to the removed quiz.
+  - id: runtime-completion-percentage
+    targetId: completionPercentage
+    operation: set-100
+    reason: All three retained instructional lessons must be complete before course completion is reported.
+  - id: driver-completion-bridge
+    targetId: scormdriver/indexAPI.html
+    operation: wrap-SetReachedEnd-and-post-once
+    reason: The study wrapper needs one data-minimal signal tied to actual successful SCORM completion.
+completionBridge:
+  messageType: passwo:reference-completed
+  payloadFields:
+    - type
+  targetOrigin: same-origin

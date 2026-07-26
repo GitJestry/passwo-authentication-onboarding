@@ -21,6 +21,7 @@ const referenceArtifactCsp = [
   "script-src 'self' 'unsafe-inline' 'unsafe-eval' blob:",
   "style-src 'self' 'unsafe-inline'",
   "worker-src 'self' blob:",
+  "frame-ancestors 'self'",
 ].join('; ');
 
 function sendDesignLabApp(request: FastifyRequest, reply: FastifyReply, webBuildDirectory: string) {

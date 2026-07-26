@@ -25,7 +25,7 @@
     "check:research-boundary": "node ./scripts/check-research-boundary.mjs",
     "check:reference-artifact": "node ./scripts/verify-reference-artifact.mjs",
     "check": "pnpm check:biome && pnpm typecheck && pnpm test && pnpm check:research-boundary",
-    "study:start": "node ./scripts/verify-reference-artifact.mjs --if-reference-study && pnpm build && pnpm --filter @passwo/study-server start",
+    "study:start": "node ./scripts/build-reference-artifact.mjs --if-reference-study && node ./scripts/verify-reference-artifact.mjs --if-reference-study && pnpm build && pnpm --filter @passwo/study-server start",
     "study:export": "tsx ./scripts/export-study.ts",
     "clean": "node ./scripts/clean.mjs"
   },

@@ -7,6 +7,7 @@ import {
   designLabScenarioForPath,
   persistedSessionRecordSchema,
   placeholderResponseRequestSchema,
+  REFERENCE_ARTIFACT_COMPLETION_MESSAGE_TYPE,
   REFERENCE_ARTIFACT_ENTRY_POINT,
   REFERENCE_ARTIFACT_ROUTE_PREFIX,
   REFERENCE_ARTIFACT_URL,
@@ -77,11 +78,14 @@ describe('research-safe contracts', () => {
   });
 
   it('defines one canonical local reference entry URL', () => {
-    expect(REFERENCE_ARTIFACT_VERSION).toBe('secaware-passwords-authentication-2026-07-26');
+    expect(REFERENCE_ARTIFACT_VERSION).toBe(
+      'secaware-passwords-authentication-v9-study-adapted-2026-07-26-r1',
+    );
     expect(REFERENCE_ARTIFACT_URL).toBe(
       `${REFERENCE_ARTIFACT_ROUTE_PREFIX}${REFERENCE_ARTIFACT_ENTRY_POINT}?StandAlone=true`,
     );
     expect(REFERENCE_ARTIFACT_URL).not.toMatch(/^https?:\/\//u);
+    expect(REFERENCE_ARTIFACT_COMPLETION_MESSAGE_TYPE).toBe('passwo:reference-completed');
   });
 
   it('accepts only the bounded placeholder response', () => {

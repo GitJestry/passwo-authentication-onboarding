@@ -17,6 +17,11 @@ const forbiddenVisibleRuntimeTexts = [
   'Post-Platzhalter',
   'Guardrail-Platzhalter',
   'Platzhalterantwort bestätigen',
+  'Referenztraining',
+  'Referenz-Training',
+  'Referenzartefakt',
+  'Vergleichsbedingung',
+  'Kontrollgruppe',
 ] as const;
 
 let studyServer: ReturnType<typeof buildStudyServer> | null = null;
@@ -808,7 +813,7 @@ test('retries a failed S00 segment end before leaving the segment', async ({ pag
   expect(segmentEnds[0]).toEqual(segmentEnds[1]);
 });
 
-test('forced-reference opens the local artifact separately before completion is available', async ({
+test('forced-reference embeds the local artifact and accepts only its valid completion', async ({
   page,
 }) => {
   await page.setViewportSize({ width: 1440, height: 900 });
@@ -817,31 +822,83 @@ test('forced-reference opens the local artifact separately before completion is 
   await acceptConsent(page);
   await submitPlaceholder(page);
 
-  await expect(page.getByRole('heading', { name: 'SecAware.NRW' })).toBeVisible();
-  await expect(page.getByText('Passwörter & Authentifizierung', { exact: true })).toBeVisible();
   await expect(page.locator('main[data-artifact-surface]')).toBeVisible();
   await expect(page.locator('main[data-study-surface]')).toHaveCount(0);
   await expect(page.getByLabel('Wie soll PassWo dich ansprechen?')).toHaveCount(0);
-  await expect(page.getByRole('button', { name: 'Abschluss bestätigen' })).toHaveCount(0);
-  await expect(page.locator('iframe')).toHaveCount(0);
-  const trainingLink = page.getByRole('link', { name: 'Training öffnen' });
-  await expect(trainingLink).toHaveAttribute(
-    'href',
+  await expect(page.getByRole('button', { name: 'Weiter' })).toHaveCount(0);
+  await expect(page.locator('[target="_blank"]')).toHaveCount(0);
+  await expect(page.getByRole('link')).toHaveCount(0);
+  expect(page.context().pages()).toEqual([page]);
+
+  const courseIframe = page.getByTitle('Passwörter & Authentifizierung');
+  await expect(courseIframe).toHaveCount(1);
+  await expect(courseIframe).toHaveAttribute(
+    'src',
     '/reference/secaware/passwords-authentication/scormdriver/indexAPI.html?StandAlone=true',
   );
-  await expect(trainingLink).toHaveAttribute('rel', 'noopener');
+  const artifactBox = await page.locator('main[data-artifact-surface]').boundingBox();
+  const iframeBox = await courseIframe.boundingBox();
+  expect(artifactBox).not.toBeNull();
+  expect(iframeBox).toEqual(artifactBox);
+
+  const contentFrame = page
+    .frames()
+    .find((frame) => frame.url().includes('/reference/secaware/passwords-authentication/'));
+  expect(contentFrame).toBeDefined();
+  if (contentFrame === undefined) throw new Error('reference-content-frame-missing');
+  await expect(
+    contentFrame.getByRole('heading', { name: 'Passwörter & Authentifizierung' }),
+  ).toBeVisible();
+  expect(await contentFrame.locator('body').innerText()).not.toMatch(/Referenz/iu);
   await expectNoForbiddenVisibleRuntimeText(page);
   await expectNoHighImpactAxeFindings(page);
   await dispatchVisibilityChange(page, 'hidden');
   await expect.poll(() => timingEventTypes(requests.bodies)).toEqual(['start']);
-  const popupPromise = page.waitForEvent('popup');
-  await trainingLink.click();
-  const popup = await popupPromise;
-  await expect(popup.getByRole('heading', { name: 'Referenz-Test-Fixture' })).toBeVisible();
-  expect(await popup.evaluate(() => window.opener === null)).toBe(true);
-  await popup.close();
+
+  await page.evaluate((messageType) => {
+    const iframe = document.querySelector('iframe');
+    if (!(iframe instanceof HTMLIFrameElement)) throw new Error('reference-iframe-missing');
+    window.dispatchEvent(
+      new MessageEvent('message', {
+        data: { type: messageType },
+        origin: 'https://invalid.example',
+        source: iframe.contentWindow,
+      }),
+    );
+  }, 'passwo:reference-completed');
+  await contentFrame.evaluate(() =>
+    window.parent.postMessage({ type: 'passwo:wrong-message' }, window.location.origin),
+  );
+  await page.evaluate(() =>
+    window.postMessage({ type: 'passwo:reference-completed' }, window.location.origin),
+  );
+  await contentFrame.evaluate(() =>
+    window.parent.postMessage(
+      { type: 'passwo:reference-completed', interaction: 'not-allowed' },
+      window.location.origin,
+    ),
+  );
+  await expect(page.getByRole('button', { name: 'Weiter' })).toHaveCount(0);
   await expect(page.getByRole('heading', { name: 'Fragebogen nach dem Artefakt' })).toHaveCount(0);
-  await page.getByRole('button', { name: 'Abschluss bestätigen' }).click();
+
+  await contentFrame.evaluate(() =>
+    window.parent.postMessage({ type: 'passwo:reference-completed' }, window.location.origin),
+  );
+  const completionBar = page.locator('[aria-live="polite"]').filter({
+    hasText: 'Training abgeschlossen',
+  });
+  await expect(completionBar).toBeVisible();
+  await expect(completionBar).toHaveText('Training abgeschlossenWeiter');
+  await expect(page.getByRole('button', { name: 'Weiter' })).toHaveCount(1);
+  await contentFrame.evaluate(() =>
+    window.parent.postMessage({ type: 'passwo:reference-completed' }, window.location.origin),
+  );
+  await expect(completionBar).toHaveCount(1);
+  await expect(page.getByRole('button', { name: 'Weiter' })).toHaveCount(1);
+  await expect.poll(() => timingEventTypes(requests.bodies)).toEqual(['start']);
+  await expectNoHighImpactAxeFindings(page);
+
+  await page.getByRole('button', { name: 'Weiter' }).click();
   await expect.poll(() => timingEventTypes(requests.bodies)).toEqual(['start', 'end']);
   expect(
     timingEvents(requests.bodies).every(
@@ -849,6 +906,35 @@ test('forced-reference opens the local artifact separately before completion is 
     ),
   ).toBe(true);
   await finishAfterArtifact(page);
+});
+
+test('forced-reference offers a neutral retry after an iframe load error', async ({ page }) => {
+  await startStudyServer('forced-reference');
+  await acceptConsent(page);
+  await page.route(
+    '**/reference/secaware/passwords-authentication/scormdriver/indexAPI.html?StandAlone=true',
+    async (route) => {
+      await route.fulfill({
+        status: 503,
+        json: { errorCode: 'reference-artifact-unavailable' },
+      });
+    },
+    { times: 1 },
+  );
+  await submitPlaceholder(page);
+
+  const courseIframe = page.getByTitle('Passwörter & Authentifizierung');
+  await expect(courseIframe).toBeVisible();
+  const originalIframe = await courseIframe.elementHandle();
+
+  await expect(page.getByRole('alert')).toHaveText(
+    'Training konnte nicht geladen werden.Erneut versuchen',
+  );
+  await expect(page.getByRole('button', { name: 'Weiter' })).toHaveCount(0);
+  await page.getByRole('button', { name: 'Erneut versuchen' }).click();
+  await expect(courseIframe).toBeVisible();
+  expect(await originalIframe?.evaluate((element) => element.isConnected)).toBe(false);
+  await expect(page.getByRole('alert')).toHaveCount(0);
 });
 
 test('reload during the artifact marks the session incomplete and starts fresh', async ({
