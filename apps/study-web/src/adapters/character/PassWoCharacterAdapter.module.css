@@ -73,6 +73,13 @@
   letter-spacing: var(--letter-spacing-wide);
 }
 
+.guideFace img,
+.networkGuideFace img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
 .guideBody {
   z-index: 1;
   display: grid;

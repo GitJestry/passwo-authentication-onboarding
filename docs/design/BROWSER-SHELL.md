@@ -5,6 +5,10 @@
 Die BrowserShell erzeugt einen realitätsnahen Kontext und visuelle Kontinuität. Sie simuliert nur
 die für das Training benötigten Tabs und Seitenzustände.
 
+Sie ist die primäre Oberfläche des supportive Artefakts und füllt dessen verfügbare Artifact
+Surface horizontal und vertikal. Eine zusätzliche Studienkarte oder ein Studienheader umschließt
+sie nicht.
+
 ## Nicht-Ziele
 
 - kein Nachbau von Safari, Chrome oder campusID;
@@ -20,8 +24,7 @@ BrowserShell
   ChromeBar
     WindowControls (neutral)
     Tabs
-    FictionalAddressBar
-    UtilityArea
+    AddressBar (neutral, read-only)
   PageViewport
     Scene
     OptionalDimLayer
@@ -32,6 +35,10 @@ BrowserShell
 
 Die Layer-Reihenfolge ist fest, damit PassWo, Sprechblase und Fokuszustände nicht durch
 Seiteninhalte abgeschnitten werden.
+
+Der Chrome bleibt kompakt: Fensterkontrollen, Tabs und eine neutrale Adresszeile geben
+Orientierung, ohne erklärende Meta-Labels einzublenden. Gründe für nicht verfügbare Tabs werden
+über `aria-describedby` bereitgestellt, sind aber kein dauerhaft sichtbarer Chromeblock.
 
 ## Fiktive Identität
 
@@ -47,3 +54,5 @@ Seiteninhalte abgeschnitten werden.
 - Browserrahmen beeinflusst keine Studienzeit oder Navigation außerhalb des Artefakts.
 - Der Browser kann abgedunkelt werden, ohne Fokus oder Lesbarkeit der aktiven PassWo-Schicht zu
   verlieren.
+- Die Inhaltsfläche erhält den überwiegenden Teil der Höhe; bei `1440 × 900` und `1280 × 720`
+  bleiben Hauptaktionen innerhalb des Viewports erreichbar.

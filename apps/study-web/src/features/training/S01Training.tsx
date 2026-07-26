@@ -101,7 +101,6 @@ export function S01Training({
               cr
             </span>
             <span className={styles.identityName}>{s01Content.browser.identityName}</span>
-            <span className={styles.fictionalBadge}>{s01Content.browser.fictionalBadge}</span>
           </header>
           <div className={styles.pageBody}>
             <section className={styles.setupPanel} aria-labelledby="s01-page-title">

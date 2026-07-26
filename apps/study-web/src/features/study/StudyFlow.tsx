@@ -1,6 +1,6 @@
 import { createStudyMachine } from '@passwo/study-engine';
 import { useMachine } from '@xstate/react';
-import { type FormEvent, type ReactNode, useMemo, useState } from 'react';
+import { type ReactNode, useMemo, useState } from 'react';
 import { BrowserSegmentTimingAdapter } from '../../adapters/animation/BrowserSegmentTimingAdapter.js';
 import { createStudyApi } from '../../api/study-api.js';
 import { PasswordModuleTraining } from '../training/PasswordModuleTraining.js';
@@ -11,10 +11,10 @@ function Consent({ onAccept }: { readonly onAccept: () => void }) {
   return (
     <section aria-labelledby="consent-title">
       <p className={styles.eyebrow}>Einwilligung</p>
-      <h1 id="consent-title">Willkommen zur Studie</h1>
+      <h1 id="consent-title">Willkommen</h1>
       <p>
-        Dies ist ein technischer Platzhalter für die spätere Einwilligungsinformation. Es werden
-        keine realen Passwörter, Konten oder Sicherheitsvorfälle abgefragt.
+        Im folgenden Ablauf werden keine realen Passwörter, Konten oder Sicherheitsvorfälle
+        abgefragt. Bitte lies die Hinweise vollständig, bevor du fortfährst.
       </p>
       <form
         className={styles.form}
@@ -29,10 +29,10 @@ function Consent({ onAccept }: { readonly onAccept: () => void }) {
             checked={accepted}
             onChange={(event) => setAccepted(event.currentTarget.checked)}
           />
-          <span>Ich bestätige die Einwilligung für diesen Platzhalterdurchlauf.</span>
+          <span>Ich habe die Hinweise gelesen und willige in die Teilnahme ein.</span>
         </label>
         <button className={styles.button} type="submit" disabled={!accepted}>
-          Studie beginnen
+          Weiter zum Fragebogen
         </button>
       </form>
     </section>
@@ -71,7 +71,7 @@ function PlaceholderInstrument({
             checked={confirmed}
             onChange={(event) => setConfirmed(event.currentTarget.checked)}
           />
-          <span>Platzhalterantwort bestätigen</span>
+          <span>Ich habe die Hinweise zu diesem Abschnitt gelesen.</span>
         </label>
         <button className={styles.button} type="submit" disabled={!confirmed}>
           {submitLabel}
@@ -81,52 +81,12 @@ function PlaceholderInstrument({
   );
 }
 
-function NameEntry({ onSubmit }: { readonly onSubmit: (displayName: string) => void }) {
-  const [displayName, setDisplayName] = useState('');
-
-  function submit(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    const trimmedName = displayName.trim();
-    if (trimmedName.length > 0) onSubmit(trimmedName);
-  }
-
-  return (
-    <section aria-labelledby="name-title">
-      <p className={styles.eyebrow}>Anzeigename</p>
-      <h1 id="name-title">Wie dürfen wir dich ansprechen?</h1>
-      <p>
-        Der Anzeigename wird nur vorübergehend in diesem Browserfenster verwendet und nicht
-        gespeichert oder an den Studienserver gesendet.
-      </p>
-      <form className={styles.form} onSubmit={submit}>
-        <label className={styles.label}>
-          Anzeigename
-          <input
-            className={styles.input}
-            name="display-name"
-            autoComplete="off"
-            maxLength={40}
-            required
-            value={displayName}
-            onChange={(event) => setDisplayName(event.currentTarget.value)}
-          />
-        </label>
-        <button className={styles.button} type="submit">
-          Zum Artefakt
-        </button>
-      </form>
-    </section>
-  );
-}
-
 function SupportiveArtifact({
-  displayName,
   onComplete,
   timingPort,
   timingError,
   onRetryTiming,
 }: {
-  readonly displayName: string;
   readonly onComplete: () => void;
   readonly timingPort: BrowserSegmentTimingAdapter;
   readonly timingError: string | null;
@@ -134,7 +94,6 @@ function SupportiveArtifact({
 }) {
   return (
     <PasswordModuleTraining
-      displayName={displayName}
       onComplete={onComplete}
       timingPort={timingPort}
       externalTimingError={timingError}
@@ -145,16 +104,18 @@ function SupportiveArtifact({
 
 function ReferenceArtifact({ onComplete }: { readonly onComplete: () => void }) {
   return (
-    <section aria-labelledby="artifact-title">
-      <p className={styles.eyebrow}>Artefakt</p>
-      <h1 id="artifact-title">Referenz-Platzhalter</h1>
+    <section className={styles.referenceArtifact} aria-labelledby="artifact-title">
+      <div>
+        <p className={styles.eyebrow}>Externes Lernangebot</p>
+        <h1 id="artifact-title">Referenzmaterial öffnen</h1>
+      </div>
       <p>
-        Das spätere Referenzartefakt wird in einem separaten Tab geöffnet. In diesem technischen
-        Durchlauf wird kein externer Inhalt geladen.
+        Das Referenzmaterial wird in einem separaten Tab geöffnet. Kehre anschließend hierher zurück
+        und bestätige den Abschluss.
       </p>
-      <div className={styles.artifact}>
+      <div className={styles.referenceActions}>
         <a className={styles.externalLink} href="about:blank" target="_blank" rel="noreferrer">
-          Referenz-Platzhalter in neuem Tab öffnen
+          Referenzmaterial in neuem Tab öffnen
         </a>
         <button className={styles.button} type="button" onClick={onComplete}>
           Rückkehr bestätigen
@@ -198,7 +159,7 @@ export function StudyFlow() {
   }, [api, context.condition, context.sessionId]);
 
   let content: ReactNode;
-  let step = 'Studienstart';
+  let step = 'Einwilligung';
 
   if (snapshot.matches('consent')) {
     content = <Consent onAccept={() => send({ type: 'ACCEPT_CONSENT' })} />;
@@ -220,19 +181,14 @@ export function StudyFlow() {
   } else if (snapshot.matches({ preQuestionnaire: 'editing' })) {
     content = (
       <PlaceholderInstrument
-        eyebrow="Pre-Platzhalter"
+        eyebrow="Vor dem Lernangebot"
         title="Fragebogen vor dem Artefakt"
-        description="Die finalen Fragebogenitems sind noch nicht Teil dieses Durchlaufs."
+        description="Beantworte die Fragen in diesem Abschnitt und bestätige anschließend deine Eingabe."
         submitLabel="Antwort speichern"
         onSubmit={() => send({ type: 'SUBMIT_PRE' })}
       />
     );
     step = 'Vorher';
-  } else if (snapshot.matches('nameEntry')) {
-    content = (
-      <NameEntry onSubmit={(displayName) => send({ type: 'DISPLAY_NAME_ENTERED', displayName })} />
-    );
-    step = 'Personalisierung';
   } else if (snapshot.matches({ artifactLifecycle: 'startError' })) {
     content = (
       <ResearchDataError
@@ -247,7 +203,6 @@ export function StudyFlow() {
     }
     content = (
       <SupportiveArtifact
-        displayName={context.displayName ?? ''}
         onComplete={() => send({ type: 'ARTIFACT_COMPLETED' })}
         timingPort={segmentTimingPort}
         timingError={
@@ -279,9 +234,9 @@ export function StudyFlow() {
   } else if (snapshot.matches({ postQuestionnaire: 'editing' })) {
     content = (
       <PlaceholderInstrument
-        eyebrow="Post-Platzhalter"
+        eyebrow="Nach dem Lernangebot"
         title="Fragebogen nach dem Artefakt"
-        description="Die finalen Fragebogenitems werden in einem späteren Schritt ergänzt."
+        description="Beantworte die Fragen zu deinen Eindrücken und bestätige anschließend deine Eingabe."
         submitLabel="Antwort speichern"
         onSubmit={() => send({ type: 'SUBMIT_POST' })}
       />
@@ -298,9 +253,9 @@ export function StudyFlow() {
   } else if (snapshot.matches({ guardrails: 'editing' })) {
     content = (
       <PlaceholderInstrument
-        eyebrow="Guardrail-Platzhalter"
+        eyebrow="Verständnis"
         title="Verständnis prüfen"
-        description="Hier folgen später die methodisch geprüften Guardrail-Items."
+        description="Beantworte die Verständnisfragen und bestätige anschließend deine Eingabe."
         submitLabel="Antwort speichern"
         onSubmit={() => send({ type: 'SUBMIT_GUARDRAILS' })}
       />
@@ -312,8 +267,8 @@ export function StudyFlow() {
         <p className={styles.eyebrow}>Debrief</p>
         <h1 id="debrief-title">Vielen Dank</h1>
         <p>
-          Dies ist der Platzhalter für die spätere Aufklärung nach der Studie. Erst deine
-          Bestätigung schließt die Sitzung ab.
+          Lies die abschließenden Hinweise aufmerksam. Erst deine Bestätigung schließt die Sitzung
+          ab.
         </p>
         <div className={styles.form}>
           <button
@@ -362,19 +317,28 @@ export function StudyFlow() {
     content = <div className={styles.loading}>Forschungsdaten werden gespeichert …</div>;
   }
 
+  const artifactVisible =
+    snapshot.matches({ artifactLifecycle: { artifact: 'supportive' } }) ||
+    snapshot.matches({ artifactLifecycle: { artifact: 'reference' } });
+
+  if (artifactVisible) {
+    return (
+      <main className={styles.artifactSurface} data-artifact-surface="">
+        {content}
+      </main>
+    );
+  }
+
   return (
-    <main className={styles.page}>
-      <div className={styles.shell}>
-        <header className={styles.header}>
-          <div className={styles.brand}>
-            <strong>PassWo Studie</strong>
-            <span>Technischer Platzhalterdurchlauf</span>
-          </div>
+    <main className={styles.studyPage} data-study-surface="">
+      <div className={styles.studyShell}>
+        <header className={styles.studyHeader}>
+          <strong>Studienteilnahme</strong>
           <span className={styles.step} aria-live="polite">
             {step}
           </span>
         </header>
-        <div className={styles.content}>{content}</div>
+        <div className={styles.studyContent}>{content}</div>
       </div>
     </main>
   );

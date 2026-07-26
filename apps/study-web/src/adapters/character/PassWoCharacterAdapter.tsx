@@ -9,6 +9,33 @@ const hiddenCharacterState: CharacterRendererState = {
   movementTarget: null,
 };
 
+export const passWoPoseAssetRegistry = {
+  neutral: null,
+  wave: null,
+  explain: null,
+  point: null,
+  caution: null,
+  idea: null,
+  dock: null,
+  flight: null,
+} satisfies Readonly<Record<CharacterRendererState['pose'], string | null>>;
+
+function PoseFace({
+  className,
+  pose,
+}: {
+  readonly className: string | undefined;
+  readonly pose: CharacterRendererState['pose'];
+}) {
+  const assetSource = passWoPoseAssetRegistry[pose];
+
+  return (
+    <span className={className} aria-hidden="true" data-runtime-asset={assetSource !== null}>
+      {assetSource === null ? 'PW' : <img src={assetSource} alt="" />}
+    </span>
+  );
+}
+
 export function toCharacterRendererState(
   character: Pick<CharacterRendererState, 'pose' | 'placement'>,
   movementTarget: string | null = null,
@@ -99,9 +126,7 @@ export function PassWoGuideCharacter({
         onClick={onToggle}
       >
         <span className={styles.guideHalo} aria-hidden="true" />
-        <span className={styles.guideFace} aria-hidden="true">
-          PW
-        </span>
+        <PoseFace className={styles.guideFace} pose={state.pose} />
         <span className={styles.guideBody} aria-hidden="true">
           <strong>{guideName}</strong>
         </span>
@@ -126,9 +151,7 @@ export function PassWoNetworkCharacter({ renderer, characterRef }: PassWoNetwork
       role="img"
       aria-label={`PassWo bei CampusID, Pose ${state.pose}`}
     >
-      <span className={styles.networkGuideFace} aria-hidden="true">
-        PW
-      </span>
+      <PoseFace className={styles.networkGuideFace} pose={state.pose} />
       <span className={styles.networkGuideLabel} aria-hidden="true">
         PassWo
       </span>

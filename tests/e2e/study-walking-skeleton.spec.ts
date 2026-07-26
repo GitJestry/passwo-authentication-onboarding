@@ -4,6 +4,20 @@ import { buildStudyServer } from '../../apps/study-server/src/app.js';
 
 type ForcedAssignmentMode = 'forced-supportive' | 'forced-reference';
 
+const forbiddenVisibleRuntimeTexts = [
+  'PassWo Studie',
+  'Technischer Platzhalterdurchlauf',
+  'Studienstart',
+  'Fiktive Adresse',
+  'Nur Vorschau',
+  'Fiktive Übungsseite',
+  'Lernbühne',
+  'Pre-Platzhalter',
+  'Post-Platzhalter',
+  'Guardrail-Platzhalter',
+  'Platzhalterantwort bestätigen',
+] as const;
+
 let studyServer: ReturnType<typeof buildStudyServer> | null = null;
 
 test.afterEach(async () => {
@@ -97,6 +111,28 @@ async function dispatchVisibilityChange(
     });
     document.dispatchEvent(new Event('visibilitychange'));
   }, visibilityState);
+}
+
+async function expectNoForbiddenVisibleRuntimeText(page: Page): Promise<void> {
+  const visibleText = await page.locator('body').innerText();
+  for (const forbiddenText of forbiddenVisibleRuntimeTexts) {
+    expect(visibleText).not.toContain(forbiddenText);
+  }
+}
+
+async function expectNoHorizontalScroll(page: Page): Promise<void> {
+  const overflow = await page.evaluate(() => ({
+    body: document.body.scrollWidth - document.body.clientWidth,
+    document: document.documentElement.scrollWidth - document.documentElement.clientWidth,
+  }));
+  expect(overflow).toEqual({ body: 0, document: 0 });
+}
+
+async function expectNoHighImpactAxeFindings(page: Page): Promise<void> {
+  const results = await new AxeBuilder({ page }).analyze();
+  expect(
+    results.violations.filter(({ impact }) => impact === 'serious' || impact === 'critical'),
+  ).toEqual([]);
 }
 
 async function failFirstPreWrite(page: Page): Promise<void> {
@@ -251,22 +287,44 @@ async function failFirstS02TimingWrite(page: Page, eventType: 'start' | 'end'): 
 
 async function acceptConsent(page: Page) {
   await page.goto('/');
-  await page.getByLabel('Ich bestätige die Einwilligung').check();
-  await page.getByRole('button', { name: 'Studie beginnen' }).click();
+  await expect(page.locator('main[data-study-surface]')).toBeVisible();
+  await expectNoForbiddenVisibleRuntimeText(page);
+  await page.getByLabel('Ich habe die Hinweise gelesen und willige').check();
+  await page.getByRole('button', { name: 'Weiter zum Fragebogen' }).click();
   await expect(page.getByRole('heading', { name: 'Fragebogen vor dem Artefakt' })).toBeVisible();
 }
 
 async function submitPlaceholder(page: Page, buttonName = 'Antwort speichern') {
-  await page.getByLabel('Platzhalterantwort bestätigen').check();
+  await page.getByLabel('Ich habe die Hinweise zu diesem Abschnitt gelesen.').check();
   await page.getByRole('button', { name: buttonName }).click();
+}
+
+async function enterSupportiveTraining(page: Page, displayName: string): Promise<void> {
+  await expect(page.locator('main[data-artifact-surface]')).toBeVisible();
+  await expect(page.locator('main[data-study-surface]')).toHaveCount(0);
+  await expect(
+    page.getByRole('heading', { name: 'Passwörter & Authentifizierung Training' }),
+  ).toBeVisible();
+  await expectNoForbiddenVisibleRuntimeText(page);
+  await expectNoHorizontalScroll(page);
+  await page.getByLabel('Wie soll PassWo dich ansprechen?').fill(displayName);
+  await page.getByRole('button', { name: 'Training starten' }).click();
 }
 
 async function finishAfterArtifact(page: Page) {
   await expect(page.getByRole('heading', { name: 'Fragebogen nach dem Artefakt' })).toBeVisible();
+  await expect(page.locator('main[data-study-surface]')).toBeVisible();
+  await expect(page.locator('main[data-artifact-surface]')).toHaveCount(0);
+  await expect(page.getByText('PassWo', { exact: true })).toHaveCount(0);
+  await expectNoForbiddenVisibleRuntimeText(page);
   await submitPlaceholder(page);
   await expect(page.getByRole('heading', { name: 'Verständnis prüfen' })).toBeVisible();
+  await expect(page.locator('main[data-study-surface]')).toBeVisible();
+  await expect(page.getByText('PassWo', { exact: true })).toHaveCount(0);
   await submitPlaceholder(page);
   await expect(page.getByRole('heading', { name: 'Vielen Dank' })).toBeVisible();
+  await expect(page.locator('main[data-study-surface]')).toBeVisible();
+  await expect(page.getByText('PassWo', { exact: true })).toHaveCount(0);
   await page.getByRole('button', { name: 'Debrief bestätigen' }).click();
   await expect(page.getByRole('heading', { name: 'Sitzung abgeschlossen' })).toBeVisible();
   await expect(page.getByText('Gesamtzeit im Artefakt:')).toBeVisible();
@@ -335,6 +393,7 @@ async function completePasswordModule(page: Page): Promise<void> {
 }
 
 test('forced-supportive completes and visibly blocks a failed research write', async ({ page }) => {
+  await page.setViewportSize({ width: 1280, height: 720 });
   await startStudyServer('forced-supportive');
   const requests = captureResearchRequests(page);
   await failFirstPreWrite(page);
@@ -345,12 +404,17 @@ test('forced-supportive completes and visibly blocks a failed research write', a
   await expect(page.getByText('Der nächste Studienteil bleibt gesperrt')).toBeVisible();
   await page.getByRole('button', { name: 'Erneut versuchen' }).click();
 
-  await page.getByLabel('Anzeigename').fill('Browsername Nur Lokal');
-  await page.getByRole('button', { name: 'Zum Artefakt' }).click();
+  await expect(
+    page.getByRole('heading', { name: 'Passwörter & Authentifizierung Training' }),
+  ).toBeVisible();
+  await expectNoHighImpactAxeFindings(page);
+  await enterSupportiveTraining(page, 'Browsername Nur Lokal');
   await completePasswordModule(page);
   await finishAfterArtifact(page);
 
   expect(requests.bodies.join('\n')).not.toContain('Browsername Nur Lokal');
+  expect(page.url()).not.toContain('Browsername');
+  expect(requests.paths.join('\n')).not.toContain('Browsername');
   expect(timingEvents(requests.bodies).filter(({ segmentId }) => segmentId === 'S00')).toEqual([
     expect.objectContaining({
       phase: 'artifact',
@@ -399,10 +463,7 @@ test('forced-supportive completes and visibly blocks a failed research write', a
       elapsedMs: expect.any(Number),
     }),
   ]);
-  const results = await new AxeBuilder({ page }).analyze();
-  expect(
-    results.violations.filter(({ impact }) => impact === 'serious' || impact === 'critical'),
-  ).toEqual([]);
+  await expectNoHighImpactAxeFindings(page);
 });
 
 test('supportive S00 to S01 keeps fictitious values local and supports keyboard tabs', async ({
@@ -413,8 +474,7 @@ test('supportive S00 to S01 keeps fictitious values local and supports keyboard 
   const archiveValue = '  archiv !?  ';
   await acceptConsent(page);
   await submitPlaceholder(page);
-  await page.getByLabel('Anzeigename').fill('Nur lokal');
-  await page.getByRole('button', { name: 'Zum Artefakt' }).click();
+  await enterSupportiveTraining(page, 'Nur lokal');
   await completeS00(page);
 
   const passwordField = page.getByLabel('Fiktives Passwort');
@@ -490,8 +550,7 @@ test('retries failed S01 start and end timing writes with the same payload', asy
   await failFirstS01TimingWrite(page, 'start');
   await acceptConsent(page);
   await submitPlaceholder(page);
-  await page.getByLabel('Anzeigename').fill('S01 Timing Retry');
-  await page.getByRole('button', { name: 'Zum Artefakt' }).click();
+  await enterSupportiveTraining(page, 'S01 Timing Retry');
   await completeS00(page);
 
   await expect(page.getByText('Fehlercode: s01-segment-start-write-failed')).toBeVisible();
@@ -514,8 +573,7 @@ test('retries a failed S01 end before ending the artifact', async ({ page }) => 
   await failFirstS01TimingWrite(page, 'end');
   await acceptConsent(page);
   await submitPlaceholder(page);
-  await page.getByLabel('Anzeigename').fill('S01 End Retry');
-  await page.getByRole('button', { name: 'Zum Artefakt' }).click();
+  await enterSupportiveTraining(page, 'S01 End Retry');
   await completeS00(page);
   await configureS01(page);
   await page.getByRole('button', { name: 'Weiter' }).click();
@@ -539,8 +597,7 @@ test('retries failed S02 start and end writes with the same payload', async ({ p
   await failFirstS02TimingWrite(page, 'start');
   await acceptConsent(page);
   await submitPlaceholder(page);
-  await page.getByLabel('Anzeigename').fill('S02 Timing Retry');
-  await page.getByRole('button', { name: 'Zum Artefakt' }).click();
+  await enterSupportiveTraining(page, 'S02 Timing Retry');
   await completeS00(page);
   await completeS01(page);
 
@@ -563,8 +620,7 @@ test('blocks completion while S02 end fails and retries the same end payload', a
   await failFirstS02TimingWrite(page, 'end');
   await acceptConsent(page);
   await submitPlaceholder(page);
-  await page.getByLabel('Anzeigename').fill('S02 End Retry');
-  await page.getByRole('button', { name: 'Zum Artefakt' }).click();
+  await enterSupportiveTraining(page, 'S02 End Retry');
   await completeS00(page);
   await completeS01(page);
   await completeS02(page);
@@ -588,8 +644,8 @@ test('forced-supportive records diagnostic visibility only while the artifact is
   const requests = captureResearchRequests(page);
   await acceptConsent(page);
   await submitPlaceholder(page);
-  await page.getByLabel('Anzeigename').fill('Nur flüchtig');
-  await page.getByRole('button', { name: 'Zum Artefakt' }).click();
+  await expect.poll(() => timingEventTypes(requests.bodies)).toEqual(['start']);
+  await enterSupportiveTraining(page, 'Nur flüchtig');
   await expect(page.getByRole('heading', { name: 'Willkommen im Training' })).toBeVisible();
   await expect.poll(() => timingEventTypes(requests.bodies)).toEqual(['start', 'start']);
 
@@ -651,8 +707,7 @@ test('failed visibility blocks completion and retries the same timing payload', 
   const releaseVisibilityFailure = await failFirstVisibilityWrite(page);
   await acceptConsent(page);
   await submitPlaceholder(page);
-  await page.getByLabel('Anzeigename').fill('Timing Retry');
-  await page.getByRole('button', { name: 'Zum Artefakt' }).click();
+  await enterSupportiveTraining(page, 'Timing Retry');
   await expect(page.getByRole('heading', { name: 'Willkommen im Training' })).toBeVisible();
 
   await dispatchVisibilityChange(page, 'hidden');
@@ -706,8 +761,7 @@ test('retries a failed S00 segment start before beginning the mission', async ({
   await failFirstS00TimingWrite(page, 'start');
   await acceptConsent(page);
   await submitPlaceholder(page);
-  await page.getByLabel('Anzeigename').fill('S00 Start Retry');
-  await page.getByRole('button', { name: 'Zum Artefakt' }).click();
+  await enterSupportiveTraining(page, 'S00 Start Retry');
 
   await expect(
     page.getByText('Das Speichern des Zeitereignisses ist fehlgeschlagen.'),
@@ -730,8 +784,7 @@ test('retries a failed S00 segment end before leaving the segment', async ({ pag
   await failFirstS00TimingWrite(page, 'end');
   await acceptConsent(page);
   await submitPlaceholder(page);
-  await page.getByLabel('Anzeigename').fill('S00 End Retry');
-  await page.getByRole('button', { name: 'Zum Artefakt' }).click();
+  await enterSupportiveTraining(page, 'S00 End Retry');
   await completeS00(page);
 
   await expect(
@@ -751,24 +804,26 @@ test('retries a failed S00 segment end before leaving the segment', async ({ pag
 });
 
 test('forced-reference opens the placeholder separately and completes', async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 900 });
   await startStudyServer('forced-reference');
   const requests = captureResearchRequests(page);
   await acceptConsent(page);
   await submitPlaceholder(page);
-  await page.getByLabel('Anzeigename').fill('Flüchtiger Name');
-  await page.getByRole('button', { name: 'Zum Artefakt' }).click();
 
-  await expect(page.getByRole('heading', { name: 'Referenz-Platzhalter' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Referenzmaterial öffnen' })).toBeVisible();
+  await expect(page.locator('main[data-artifact-surface]')).toBeVisible();
+  await expect(page.locator('main[data-study-surface]')).toHaveCount(0);
+  await expect(page.getByLabel('Wie soll PassWo dich ansprechen?')).toHaveCount(0);
+  await expectNoForbiddenVisibleRuntimeText(page);
+  await expectNoHighImpactAxeFindings(page);
   await dispatchVisibilityChange(page, 'hidden');
   await expect.poll(() => timingEventTypes(requests.bodies)).toEqual(['start']);
   const popupPromise = page.waitForEvent('popup');
-  await page.getByRole('link', { name: 'Referenz-Platzhalter in neuem Tab öffnen' }).click();
+  await page.getByRole('link', { name: 'Referenzmaterial in neuem Tab öffnen' }).click();
   const popup = await popupPromise;
   await popup.close();
   await page.getByRole('button', { name: 'Rückkehr bestätigen' }).click();
   await finishAfterArtifact(page);
-
-  expect(requests.bodies.join('\n')).not.toContain('Flüchtiger Name');
 });
 
 test('reload during the artifact marks the session incomplete and starts fresh', async ({
@@ -778,13 +833,12 @@ test('reload during the artifact marks the session incomplete and starts fresh',
   const requests = captureResearchRequests(page);
   await acceptConsent(page);
   await submitPlaceholder(page);
-  await page.getByLabel('Anzeigename').fill('Nicht fortsetzen');
-  await page.getByRole('button', { name: 'Zum Artefakt' }).click();
+  await enterSupportiveTraining(page, 'Nicht fortsetzen');
   await expect(page.getByRole('heading', { name: 'Willkommen im Training' })).toBeVisible();
 
   await page.reload();
 
-  await expect(page.getByRole('heading', { name: 'Willkommen zur Studie' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Willkommen', exact: true })).toBeVisible();
   await expect(page.getByText('Nicht fortsetzen')).toHaveCount(0);
   await expect
     .poll(() => requests.paths.filter((path) => path.endsWith('/incomplete-reload')).length)
@@ -811,13 +865,11 @@ test('reload after a failed artifact start still marks the leased session incomp
   await failFirstArtifactStartWrite(page);
   await acceptConsent(page);
   await submitPlaceholder(page);
-  await page.getByLabel('Anzeigename').fill('Startfehler');
-  await page.getByRole('button', { name: 'Zum Artefakt' }).click();
   await expect(page.getByRole('heading', { name: 'Speichern nicht möglich' })).toBeVisible();
 
   await page.reload();
 
-  await expect(page.getByRole('heading', { name: 'Willkommen zur Studie' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Willkommen', exact: true })).toBeVisible();
   await expect
     .poll(() => requests.paths.filter((path) => path.endsWith('/incomplete-reload')).length)
     .toBe(1);
@@ -840,13 +892,12 @@ test('reload after the artifact end does not mark the session incomplete', async
   const requests = captureResearchRequests(page);
   await acceptConsent(page);
   await submitPlaceholder(page);
-  await page.getByLabel('Anzeigename').fill('Ende vor Reload');
-  await page.getByRole('button', { name: 'Zum Artefakt' }).click();
+  await enterSupportiveTraining(page, 'Ende vor Reload');
   await completePasswordModule(page);
   await expect(page.getByRole('heading', { name: 'Fragebogen nach dem Artefakt' })).toBeVisible();
 
   await page.reload();
 
-  await expect(page.getByRole('heading', { name: 'Willkommen zur Studie' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Willkommen', exact: true })).toBeVisible();
   expect(requests.paths.filter((path) => path.endsWith('/incomplete-reload'))).toHaveLength(0);
 });

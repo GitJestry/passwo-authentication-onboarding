@@ -52,7 +52,6 @@ function S00Page({ safetyVisible }: { readonly safetyVisible: boolean }) {
           cr
         </span>
         <span className={styles.identityName}>{s00Content.browser.page.identityName}</span>
-        <span className={styles.fictionalBadge}>{s00Content.browser.page.fictionalBadge}</span>
       </header>
       <div className={styles.pageBody}>
         <section className={styles.pageCopy}>

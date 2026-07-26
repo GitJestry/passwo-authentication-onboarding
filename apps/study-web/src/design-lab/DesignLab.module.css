@@ -1,11 +1,12 @@
 .labPage {
   display: flex;
   width: 100%;
-  min-height: 100dvh;
+  height: 100dvh;
+  min-height: 34rem;
   align-items: center;
   flex-direction: column;
   gap: var(--space-3);
-  overflow-x: clip;
+  overflow: hidden;
   padding: var(--space-4) clamp(var(--space-4), 3vw, var(--space-8));
 }
 

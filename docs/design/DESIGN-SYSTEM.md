@@ -33,6 +33,14 @@ Mindestziel: `1280 × 720` CSS-Pixel.
 - PassWo darf zentrale Interaktionen nicht verdecken.
 - Dialoge besitzen eine feste Fokusreihenfolge und keinen horizontalen Scroll.
 
+Die neutrale Study Shell wird ausschließlich für Einwilligung, Instrumente, Guardrails, Debrief
+und technische Fehler verwendet. Supportive und Reference Artefakte liegen auf einer eigenen,
+viewportfüllenden Artifact Surface ohne Studienheader, äußere Karte oder Studienbranding. Nach
+Artefaktende wechselt die Oberfläche zurück zur Study Shell.
+
+Die BrowserShell nutzt die Artifact Surface vollständig. Ihr kompakter Chrome dient nur der
+Orientierung; Inhalts- und Interaktionsfläche haben Vorrang.
+
 ## Typografie
 
 Nur lokale Systemschriften. Keine Webfont-CDNs. Eine robuste System-Sans-Stack sorgt für kurze

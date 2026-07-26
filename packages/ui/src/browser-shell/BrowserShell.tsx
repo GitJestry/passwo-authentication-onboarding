@@ -183,10 +183,9 @@ export function BrowserShell({
           <div className={styles.tabs} role="tablist" aria-label="Fiktive Seitentabs">
             {tabItems}
           </div>
-          <span className={styles.utilityArea}>Lernbühne</span>
         </div>
         {tabStates.some(({ enabled }) => !enabled) ? (
-          <div className={styles.disabledReasons}>
+          <div className={styles.disabledReasons} aria-live="polite">
             {tabStates.map(({ tab, enabled, disabledReason, reasonId }) =>
               enabled ? null : (
                 <p key={tab.id} id={reasonId}>
@@ -197,12 +196,10 @@ export function BrowserShell({
           </div>
         ) : null}
         <div className={styles.addressRow}>
-          <span className={styles.addressLabel}>Fiktive Adresse</span>
-          <output className={styles.address} aria-label="Fiktive Adresse">
+          <output className={styles.address} aria-label="Adresszeile">
             <span className={styles.addressIndicator} aria-hidden="true" />
             <span className={styles.addressText}>{snapshot.address}</span>
           </output>
-          <span className={styles.previewNotice}>Nur Vorschau</span>
         </div>
       </header>
       <div className={styles.viewport}>

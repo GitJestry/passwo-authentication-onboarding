@@ -30,7 +30,6 @@ export interface StudyContext {
   readonly participantCode: string | null;
   readonly condition: StudyCondition | null;
   readonly assignmentMode: AssignmentMode | null;
-  readonly displayName: string | null;
   readonly artifactWallClockMs: number | null;
   readonly pendingArtifactTimingWrites: number;
   readonly artifactCompletionRequested: boolean;
@@ -42,7 +41,6 @@ export interface StudyContext {
 export type StudyEvent =
   | { readonly type: 'ACCEPT_CONSENT' }
   | { readonly type: 'SUBMIT_PRE' }
-  | { readonly type: 'DISPLAY_NAME_ENTERED'; readonly displayName: string }
   | { readonly type: 'ARTIFACT_COMPLETED' }
   | { readonly type: 'SUBMIT_POST' }
   | { readonly type: 'SUBMIT_GUARDRAILS' }
@@ -70,7 +68,6 @@ const initialContext: StudyContext = {
   participantCode: null,
   condition: null,
   assignmentMode: null,
-  displayName: null,
   artifactWallClockMs: null,
   pendingArtifactTimingWrites: 0,
   artifactCompletionRequested: false,
@@ -155,12 +152,6 @@ export function createStudyMachine(ports: StudyRuntimePorts) {
       endTimingFailed: ({ context }) => context.artifactTimingErrorKind === 'end',
     },
     actions: {
-      storeDisplayName: assign({
-        displayName: ({ event }) =>
-          event.type === 'DISPLAY_NAME_ENTERED' ? event.displayName.trim() : null,
-        researchErrorCode: () => null,
-      }),
-      clearDisplayName: assign({ displayName: () => null }),
       clearResearchError: assign({ researchErrorCode: () => null }),
       requestArtifactCompletion: assign({
         artifactCompletionRequested: () => true,
@@ -221,7 +212,6 @@ export function createStudyMachine(ports: StudyRuntimePorts) {
       storeFatalError: assign({
         fatalErrorCode: ({ event }) =>
           event.type === 'TECHNICAL_ABORT' ? event.errorCode : 'unknown',
-        displayName: () => null,
       }),
       resetContext: assign(() => initialContext),
     },
@@ -272,7 +262,7 @@ export function createStudyMachine(ports: StudyRuntimePorts) {
               id: 'savePre',
               src: 'savePre',
               input: ({ context }) => ({ sessionId: requiredSessionId(context) }),
-              onDone: { target: '#study.nameEntry' },
+              onDone: { target: '#study.artifactLifecycle' },
               onError: {
                 target: 'error',
                 actions: assign({
@@ -283,14 +273,6 @@ export function createStudyMachine(ports: StudyRuntimePorts) {
           },
           error: {
             on: { RETRY_PRE: { target: 'saving', actions: 'clearResearchError' } },
-          },
-        },
-      },
-      nameEntry: {
-        on: {
-          DISPLAY_NAME_ENTERED: {
-            target: 'artifactLifecycle',
-            actions: 'storeDisplayName',
           },
         },
       },
@@ -387,7 +369,6 @@ export function createStudyMachine(ports: StudyRuntimePorts) {
           },
           ending: {
             id: 'artifact-ending',
-            entry: 'clearDisplayName',
             invoke: {
               id: 'endArtifact',
               src: 'endArtifact',

@@ -47,8 +47,12 @@ und UI-Elemente in einem Bild und werden deshalb nicht direkt als Runtime-Sprite
 Phase 1:
 
 - CSS/PNG-Platzhalter und Motion;
-- Posenregister und Renderer-Port stabilisieren;
+- zentrales Posenregister im Character-Adapter und Renderer-Port stabilisieren;
 - notwendige Einzelposen als transparente Exporte erstellen.
+
+Das Posenregister enthält für jede semantische Pose genau einen optionalen Runtime-Assetpfad.
+Solange kein freigegebener transparenter Einzelexport vorhanden ist, bleibt der bestehende
+`PW`-Platzhalter sichtbar. Zusammengesetzte Designboards werden nicht als Sprite eingebunden.
 
 Phase 2 nur bei Bedarf:
 
@@ -56,6 +60,12 @@ Phase 2 nur bei Bedarf:
   sollen.
 
 Kein Rive-Einstieg, bevor die benötigten Layer-Assets und Animationsanforderungen feststehen.
+
+## Verbleibendes Asset-Risiko
+
+Für die Runtime liegen noch keine freigegebenen transparenten Einzelassets der Posen vor. Der
+Adapter kann sie über das zentrale Register aufnehmen; visuell bleibt bis zur Asset-Lieferung der
+semantisch angebundene Textplatzhalter bestehen.
 
 ## Inhaltliche Regeln
 

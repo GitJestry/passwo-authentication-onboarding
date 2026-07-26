@@ -57,17 +57,14 @@ describe('studyMachine', () => {
       actor.send({ type: 'ACCEPT_CONSENT' });
       await waitForState(actor, () => actor.getSnapshot().matches('preQuestionnaire'));
       actor.send({ type: 'SUBMIT_PRE' });
-      await waitForState(actor, () => actor.getSnapshot().matches('nameEntry'));
-      actor.send({ type: 'DISPLAY_NAME_ENTERED', displayName: '  Alex  ' });
       await waitForState(actor, () =>
         actor.getSnapshot().matches({ artifactLifecycle: { artifact: condition } }),
       );
 
-      expect(actor.getSnapshot().context.displayName).toBe('Alex');
+      expect(actor.getSnapshot().context).not.toHaveProperty('displayName');
       expect(actor.getSnapshot().hasTag('artifactActive')).toBe(true);
 
       actor.send({ type: 'ARTIFACT_COMPLETED' });
-      expect(actor.getSnapshot().context.displayName).toBeNull();
       await waitForState(actor, () => actor.getSnapshot().matches('postQuestionnaire'));
       expect(actor.getSnapshot().hasTag('artifactActive')).toBe(false);
       actor.send({ type: 'SUBMIT_POST' });
@@ -102,7 +99,9 @@ describe('studyMachine', () => {
     expect(actor.getSnapshot().context.researchErrorCode).toBe('research-data-write-failed');
 
     actor.send({ type: 'RETRY_PRE' });
-    await waitForState(actor, () => actor.getSnapshot().matches('nameEntry'));
+    await waitForState(actor, () =>
+      actor.getSnapshot().matches({ artifactLifecycle: { artifact: 'supportive' } }),
+    );
   });
 
   it('retries a failed artifact start through the timing queue', async () => {
@@ -126,8 +125,6 @@ describe('studyMachine', () => {
     actor.send({ type: 'ACCEPT_CONSENT' });
     await waitForState(actor, () => actor.getSnapshot().matches('preQuestionnaire'));
     actor.send({ type: 'SUBMIT_PRE' });
-    await waitForState(actor, () => actor.getSnapshot().matches('nameEntry'));
-    actor.send({ type: 'DISPLAY_NAME_ENTERED', displayName: 'Alex' });
     await waitForState(actor, () =>
       actor.getSnapshot().matches({ artifactLifecycle: 'startError' }),
     );
@@ -172,8 +169,6 @@ describe('studyMachine', () => {
     actor.send({ type: 'ACCEPT_CONSENT' });
     await waitForState(actor, () => actor.getSnapshot().matches('preQuestionnaire'));
     actor.send({ type: 'SUBMIT_PRE' });
-    await waitForState(actor, () => actor.getSnapshot().matches('nameEntry'));
-    actor.send({ type: 'DISPLAY_NAME_ENTERED', displayName: 'Alex' });
     await waitForState(actor, () =>
       actor.getSnapshot().matches({ artifactLifecycle: { artifact: 'supportive' } }),
     );

@@ -5,6 +5,7 @@ import {
   type SegmentTimingPort,
 } from '@passwo/training-engine';
 import { useEffect, useRef, useState } from 'react';
+import styles from './PasswordModuleTraining.module.css';
 import { S00Training } from './S00Training.js';
 import { S01Training } from './S01Training.js';
 import {
@@ -13,7 +14,6 @@ import {
 } from './segments/S02/S02AccountExplorationTraining.js';
 
 export interface PasswordModuleTrainingProps {
-  readonly displayName: string;
   readonly onComplete: () => void;
   readonly timingPort?: SegmentTimingPort;
   readonly externalTimingError?: string | null;
@@ -21,7 +21,6 @@ export interface PasswordModuleTrainingProps {
 }
 
 export function PasswordModuleTraining({
-  displayName,
   onComplete,
   timingPort,
   externalTimingError = null,
@@ -49,10 +48,52 @@ export function PasswordModuleTraining({
     };
   }, [timingPort]);
 
-  if (snapshot === null || snapshot.matches('s00')) {
+  if (snapshot === null) {
+    return <div className={styles.loading}>Training wird vorbereitet …</div>;
+  }
+
+  const controller = controllerRef.current;
+  if (controller === null) return null;
+
+  if (snapshot.matches('entry')) {
+    return (
+      <section className={styles.entry} aria-labelledby="training-entry-title">
+        <div className={styles.entryContent}>
+          <p className={styles.eyebrow}>PassWo Training</p>
+          <h1 id="training-entry-title">Passwörter &amp; Authentifizierung Training</h1>
+          <p className={styles.introduction}>
+            Bevor es losgeht: Wie soll PassWo dich im Training ansprechen? Die Angabe bleibt
+            flüchtig in diesem Trainingsmodul und wird nicht gespeichert oder gesendet.
+          </p>
+          <form
+            className={styles.entryForm}
+            onSubmit={(event) => {
+              event.preventDefault();
+              const value = new FormData(event.currentTarget).get('training-display-name');
+              if (typeof value === 'string') controller.enterDisplayName(value);
+            }}
+          >
+            <label className={styles.entryLabel}>
+              Wie soll PassWo dich ansprechen?
+              <input
+                name="training-display-name"
+                type="text"
+                autoComplete="off"
+                maxLength={40}
+                required
+              />
+            </label>
+            <button type="submit">Training starten</button>
+          </form>
+        </div>
+      </section>
+    );
+  }
+
+  if (snapshot.matches('s00')) {
     return (
       <S00Training
-        displayName={displayName}
+        displayName={snapshot.context.displayName ?? ''}
         onComplete={() => controllerRef.current?.completeS00()}
         {...(timingPort === undefined ? {} : { timingPort })}
         externalTimingError={externalTimingError}
@@ -62,9 +103,6 @@ export function PasswordModuleTraining({
   }
 
   if (snapshot.matches('complete') || snapshot.matches('discarded')) return null;
-
-  const controller = controllerRef.current;
-  if (controller === null) return null;
 
   if (snapshot.matches('s01')) {
     return (

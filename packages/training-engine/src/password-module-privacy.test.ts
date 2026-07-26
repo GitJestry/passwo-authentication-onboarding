@@ -27,23 +27,30 @@ function flushMicrotasks(): Promise<void> {
 }
 
 describe('password module privacy boundary', () => {
-  it('keeps a fictitious training value out of the StudyMachine context', async () => {
+  it('keeps display name and fictitious values out of the StudyMachine context', async () => {
     const studyActor = createActor(createStudyMachine(studyRuntimePorts()));
     studyActor.start();
     const controller = new PasswordModuleController({
       accountIds: ['campus-id', 'campus-mail', 'campus-board-archive'],
       onComplete: () => undefined,
     });
+    const displayName = '  Browsername Nur Lokal  ';
     const trainingValue = '  only-in-password-module !?  ';
 
+    controller.enterDisplayName(displayName);
     controller.completeS00();
     await flushMicrotasks();
     controller.setPasswordValue('campus-id', trainingValue);
 
+    expect(controller.getSnapshot().context.displayName).toBe('Browsername Nur Lokal');
     expect(controller.getSnapshot().context.passwordValues['campus-id']).toBe(trainingValue);
+    expect(JSON.stringify(studyActor.getSnapshot().context)).not.toContain(displayName.trim());
     expect(JSON.stringify(studyActor.getSnapshot().context)).not.toContain(trainingValue);
+    expect(studyActor.getSnapshot().context).not.toHaveProperty('displayName');
     expect(studyActor.getSnapshot().context).not.toHaveProperty('passwordValues');
 
     controller.dispose();
+    expect(controller.getSnapshot().context.displayName).toBeNull();
+    expect(controller.getSnapshot().context.passwordValues['campus-id']).toBe('');
   });
 });

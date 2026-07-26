@@ -206,7 +206,6 @@ function FictionalPageScene({ page }: { readonly page: FictionalPageSnapshot }) 
           </span>
           <span>Campusraum</span>
         </div>
-        <span className={styles.fictionalBadge}>Fiktive Übungsseite</span>
       </header>
       <div className={styles.sceneBody}>
         <section className={styles.sceneCopy}>

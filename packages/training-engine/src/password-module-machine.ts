@@ -2,6 +2,7 @@ import { assign, setup } from 'xstate';
 
 export interface PasswordModuleContext {
   readonly accountIds: readonly string[];
+  readonly displayName: string | null;
   readonly activeAccountId: string | null;
   readonly passwordValues: Readonly<Record<string, string>>;
   readonly s02ContentCompleted: boolean;
@@ -13,6 +14,7 @@ export interface PasswordModuleInput {
 }
 
 export type PasswordModuleEvent =
+  | { readonly type: 'DISPLAY_NAME_ENTERED'; readonly displayName: string }
   | { readonly type: 'S00_COMPLETED' }
   | { readonly type: 'S01_START_RECORDED' }
   | { readonly type: 'S01_START_FAILED'; readonly errorCode: string }
@@ -50,11 +52,17 @@ export const passwordModuleMachine = setup({
     input: {} as PasswordModuleInput,
   },
   guards: {
+    hasDisplayName: ({ event }) =>
+      event.type === 'DISPLAY_NAME_ENTERED' && event.displayName.trim().length > 0,
     hasAllPasswordValues: ({ context }) =>
       context.accountIds.every((accountId) => (context.passwordValues[accountId] ?? '').length > 0),
     hasCompletedS02Content: ({ context }) => context.s02ContentCompleted,
   },
   actions: {
+    storeDisplayName: assign({
+      displayName: ({ event }) =>
+        event.type === 'DISPLAY_NAME_ENTERED' ? event.displayName.trim() : null,
+    }),
     clearTimingError: assign({ timingErrorCode: () => null }),
     storeTimingError: assign({
       timingErrorCode: ({ event }) =>
@@ -74,25 +82,39 @@ export const passwordModuleMachine = setup({
         return { ...context.passwordValues, [event.accountId]: event.value };
       },
     }),
-    discardPasswordValues: assign({
+    discardTransientTrainingData: assign({
+      displayName: () => null,
+      activeAccountId: () => null,
       passwordValues: ({ context }) => emptyPasswordValues(context.accountIds),
+      s02ContentCompleted: () => false,
+      timingErrorCode: () => null,
     }),
     markS02ContentCompleted: assign({ s02ContentCompleted: () => true }),
   },
 }).createMachine({
   id: 'passwordModule',
-  initial: 's00',
+  initial: 'entry',
   context: ({ input }) => ({
     accountIds: [...input.accountIds],
+    displayName: null,
     activeAccountId: input.accountIds[0] ?? null,
     passwordValues: emptyPasswordValues(input.accountIds),
     s02ContentCompleted: false,
     timingErrorCode: null,
   }),
   on: {
-    DISCARD: { target: '.discarded', actions: 'discardPasswordValues' },
+    DISCARD: { target: '.discarded', actions: 'discardTransientTrainingData' },
   },
   states: {
+    entry: {
+      on: {
+        DISPLAY_NAME_ENTERED: {
+          guard: 'hasDisplayName',
+          target: 's00',
+          actions: 'storeDisplayName',
+        },
+      },
+    },
     s00: {
       on: { S00_COMPLETED: { target: 's01.starting', actions: 'clearTimingError' } },
     },
@@ -169,7 +191,7 @@ export const passwordModuleMachine = setup({
         },
       },
     },
-    complete: { type: 'final', entry: 'discardPasswordValues' },
+    complete: { type: 'final', entry: 'discardTransientTrainingData' },
     discarded: { type: 'final' },
   },
 });

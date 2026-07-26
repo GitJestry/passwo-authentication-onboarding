@@ -7,20 +7,27 @@ function createModuleActor() {
     input: { accountIds: ['campus-id', 'campus-mail', 'campus-board-archive'] },
   });
   actor.start();
+  actor.send({ type: 'DISPLAY_NAME_ENTERED', displayName: 'Alex' });
   actor.send({ type: 'S00_COMPLETED' });
   actor.send({ type: 'S01_START_RECORDED' });
   return actor;
 }
 
 describe('passwordModuleMachine', () => {
-  it('requires S00 to complete before S01 can be entered', () => {
+  it('requires a non-empty local display name before S00 can begin', () => {
     const actor = createActor(passwordModuleMachine, {
       input: { accountIds: ['campus-id', 'campus-mail', 'campus-board-archive'] },
     });
     actor.start();
 
-    actor.send({ type: 'S01_START_RECORDED' });
+    actor.send({ type: 'DISPLAY_NAME_ENTERED', displayName: '   ' });
+    expect(actor.getSnapshot().matches('entry')).toBe(true);
 
+    actor.send({ type: 'DISPLAY_NAME_ENTERED', displayName: '  Alex  ' });
+    expect(actor.getSnapshot().matches('s00')).toBe(true);
+    expect(actor.getSnapshot().context.displayName).toBe('Alex');
+
+    actor.send({ type: 'S01_START_RECORDED' });
     expect(actor.getSnapshot().matches('s00')).toBe(true);
   });
 
@@ -44,6 +51,9 @@ describe('passwordModuleMachine', () => {
     actor.send({ type: 'S02_END_RECORDED' });
 
     expect(actor.getSnapshot().matches('complete')).toBe(true);
+    expect(actor.getSnapshot().context.displayName).toBeNull();
+    expect(actor.getSnapshot().context.activeAccountId).toBeNull();
+    expect(actor.getSnapshot().context.s02ContentCompleted).toBe(false);
     expect(actor.getSnapshot().context.passwordValues).toEqual({
       'campus-id': '',
       'campus-mail': '',
@@ -75,6 +85,7 @@ describe('passwordModuleMachine', () => {
 
     actor.send({ type: 'RETRY_S02_END' });
     actor.send({ type: 'S02_END_RECORDED' });
+    expect(actor.getSnapshot().context.displayName).toBeNull();
     expect(actor.getSnapshot().context.passwordValues).toEqual({
       'campus-id': '',
       'campus-mail': '',

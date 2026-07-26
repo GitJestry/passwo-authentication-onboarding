@@ -29,6 +29,8 @@ describe('PasswordModuleController', () => {
       },
     });
 
+    controller.enterDisplayName('  Alex  ');
+    expect(controller.getSnapshot().context.displayName).toBe('Alex');
     controller.completeS00();
     await flushMicrotasks();
     configureAllAccounts(controller);
@@ -50,6 +52,7 @@ describe('PasswordModuleController', () => {
       { eventType: 'segment-end', segmentId: 'S02', sectionId: 'passwords' },
     ]);
     expect(controller.getSnapshot().matches('complete')).toBe(true);
+    expect(controller.getSnapshot().context.displayName).toBeNull();
     expect(completions).toBe(1);
   });
 
@@ -81,6 +84,7 @@ describe('PasswordModuleController', () => {
       onComplete: () => undefined,
     });
 
+    controller.enterDisplayName('Alex');
     controller.completeS00();
     await flushMicrotasks();
     expect(controller.getSnapshot().matches({ s01: 'startFailed' })).toBe(true);

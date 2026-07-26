@@ -1,5 +1,5 @@
 import AxeBuilder from '@axe-core/playwright';
-import { expect, type Page, test } from '@playwright/test';
+import { expect, type Locator, type Page, test } from '@playwright/test';
 
 const scenes = [
   'normal',
@@ -41,6 +41,21 @@ async function expectShellInsideViewport(page: Page): Promise<void> {
   expect(shellBox.y + shellBox.height).toBeLessThanOrEqual(viewport.height);
 }
 
+async function expectControlInsideViewport(page: Page, control: Locator): Promise<void> {
+  await expect(control).toBeVisible();
+  const viewport = page.viewportSize();
+  const controlBox = await control.boundingBox();
+
+  expect(viewport).not.toBeNull();
+  expect(controlBox).not.toBeNull();
+  if (viewport === null || controlBox === null) return;
+
+  expect(controlBox.x).toBeGreaterThanOrEqual(0);
+  expect(controlBox.y).toBeGreaterThanOrEqual(0);
+  expect(controlBox.x + controlBox.width).toBeLessThanOrEqual(viewport.width);
+  expect(controlBox.y + controlBox.height).toBeLessThanOrEqual(viewport.height);
+}
+
 for (const viewport of viewports) {
   test(`all design-lab scenes fit ${viewport.width}x${viewport.height}`, async ({ page }) => {
     await page.setViewportSize(viewport);
@@ -50,6 +65,12 @@ for (const viewport of viewports) {
       await expect(page.getByRole('heading', { name: 'BrowserShell Design Lab' })).toBeVisible();
       await expectShellInsideViewport(page);
       await expectNoHorizontalScroll(page);
+      if (scene === 's00') {
+        await expectControlInsideViewport(page, page.getByRole('button', { name: 'Weiter' }));
+      }
+      if (scene === 's02-campus-id') {
+        await expectControlInsideViewport(page, page.getByRole('button', { name: /^CampusID\./ }));
+      }
     }
   });
 }
@@ -126,25 +147,41 @@ test('tabs and the active panel expose matching ARIA relationships', async ({ pa
   await expect(overviewTab).toHaveAttribute('aria-selected', 'true');
 });
 
-test('a focused disabled tab keeps its reason visible and cannot be activated', async ({
+test('a focused disabled tab keeps its reason accessible and cannot be activated', async ({
   page,
 }) => {
   await page.goto('/design-lab/normal');
 
   const preparationTab = page.getByRole('tab', { name: 'Vorbereitung' });
   const reflectionTab = page.getByRole('tab', { name: 'Reflexion' });
-  const disabledReason = page.getByText('In diesem Design-Lab-Snapshot nicht freigegeben.', {
-    exact: false,
-  });
 
   await expect(reflectionTab).toHaveAttribute('aria-disabled', 'true');
   await expect(reflectionTab).not.toHaveAttribute('disabled', '');
-  await expect(disabledReason).toBeVisible();
+  await expect(reflectionTab).toHaveAccessibleDescription(
+    /In diesem Design-Lab-Snapshot nicht freigegeben\./,
+  );
 
   const reasonId = await reflectionTab.getAttribute('aria-describedby');
   expect(reasonId).not.toBeNull();
   if (reasonId === null) return;
-  await expect(page.locator(`[id="${reasonId}"]`)).toBeVisible();
+  const hiddenReasonPresentation = await page.locator(`[id="${reasonId}"]`).evaluate((element) => {
+    const container = element.parentElement;
+    if (container === null) return null;
+    const box = container.getBoundingClientRect();
+    const style = getComputedStyle(container);
+    return {
+      width: box.width,
+      height: box.height,
+      overflow: style.overflow,
+      clipPath: style.clipPath,
+    };
+  });
+  expect(hiddenReasonPresentation).toEqual({
+    width: 1,
+    height: 1,
+    overflow: 'hidden',
+    clipPath: 'inset(50%)',
+  });
 
   await preparationTab.focus();
   await page.keyboard.press('ArrowRight');
@@ -161,7 +198,7 @@ test('a focused disabled tab keeps its reason visible and cannot be activated', 
   await reflectionTab.click({ force: true });
   await expect(reflectionTab).toHaveAttribute('aria-selected', 'false');
   await expect(preparationTab).toHaveAttribute('aria-selected', 'true');
-  await expect(page.getByLabel('Fiktive Adresse')).toHaveText('campus.example/vorbereitung');
+  await expect(page.getByLabel('Adresszeile')).toHaveText('campus.example/vorbereitung');
   await expect(
     page.getByRole('heading', { name: 'Eine Anmeldung in Ruhe vorbereiten' }),
   ).toBeVisible();
@@ -192,7 +229,7 @@ test('every selectable tab renders a coherent complete snapshot', async ({ page 
   for (const expected of expectedSnapshots) {
     await expected.tab.click();
     await expect(expected.tab).toHaveAttribute('aria-selected', 'true');
-    await expect(page.getByLabel('Fiktive Adresse')).toHaveText(expected.address);
+    await expect(page.getByLabel('Adresszeile')).toHaveText(expected.address);
     await expect(page.getByRole('heading', { name: expected.heading })).toBeVisible();
     await expect(page.getByRole('heading', { name: expected.taskTitle })).toBeVisible();
     await expect(completeMarker).toHaveCount(expected.overviewComplete ? 1 : 0);
