@@ -372,7 +372,14 @@ describe('study server walking skeleton', () => {
     expect(entry.statusCode).toBe(200);
     expect(entry.body).toContain('Passwörter &amp; Authentifizierung');
     expect(entry.headers['content-security-policy']).toContain("connect-src 'self'");
+    expect(entry.headers['content-security-policy']).toContain("frame-src 'self'");
     expect(entry.headers['content-security-policy']).toContain("frame-ancestors 'self'");
+    expect(entry.headers['content-security-policy']).toContain("object-src 'none'");
+    expect(entry.headers['content-security-policy']).toContain("form-action 'none'");
+    expect(entry.headers['content-security-policy']).toContain("base-uri 'none'");
+    expect(entry.headers['content-security-policy']).not.toMatch(
+      /(?:connect|frame|media|script)-src[^;]*https?:/u,
+    );
     expect(head.statusCode).toBe(200);
     expect(head.body).toBe('');
     expect([403, 404]).toContain(directory.statusCode);

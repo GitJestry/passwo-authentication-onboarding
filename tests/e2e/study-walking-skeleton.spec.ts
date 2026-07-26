@@ -836,6 +836,10 @@ test('forced-reference embeds the local artifact and accepts only its valid comp
     'src',
     '/reference/secaware/passwords-authentication/scormdriver/indexAPI.html?StandAlone=true',
   );
+  await expect(courseIframe).toHaveAttribute('sandbox', 'allow-scripts allow-same-origin');
+  await expect(courseIframe).toHaveAttribute('referrerpolicy', 'no-referrer');
+  const sandbox = (await courseIframe.getAttribute('sandbox'))?.split(/\s+/u) ?? [];
+  expect(sandbox).toEqual(['allow-scripts', 'allow-same-origin']);
   const artifactBox = await page.locator('main[data-artifact-surface]').boundingBox();
   const iframeBox = await courseIframe.boundingBox();
   expect(artifactBox).not.toBeNull();
@@ -855,26 +859,54 @@ test('forced-reference embeds the local artifact and accepts only its valid comp
   await dispatchVisibilityChange(page, 'hidden');
   await expect.poll(() => timingEventTypes(requests.bodies)).toEqual(['start']);
 
-  await page.evaluate((messageType) => {
-    const iframe = document.querySelector('iframe');
-    if (!(iframe instanceof HTMLIFrameElement)) throw new Error('reference-iframe-missing');
-    window.dispatchEvent(
-      new MessageEvent('message', {
-        data: { type: messageType },
-        origin: 'https://invalid.example',
-        source: iframe.contentWindow,
-      }),
-    );
-  }, 'passwo:reference-completed');
-  await contentFrame.evaluate(() =>
-    window.parent.postMessage({ type: 'passwo:wrong-message' }, window.location.origin),
-  );
-  await page.evaluate(() =>
-    window.postMessage({ type: 'passwo:reference-completed' }, window.location.origin),
+  await page.evaluate(
+    ({ messageType, snapshotId }) => {
+      const iframe = document.querySelector('iframe');
+      if (!(iframe instanceof HTMLIFrameElement)) throw new Error('reference-iframe-missing');
+      window.dispatchEvent(
+        new MessageEvent('message', {
+          data: { type: messageType, snapshotId },
+          origin: 'https://invalid.example',
+          source: iframe.contentWindow,
+        }),
+      );
+    },
+    {
+      messageType: 'passwo:reference-completed',
+      snapshotId: 'secaware-passwords-authentication-2026-07-26',
+    },
   );
   await contentFrame.evaluate(() =>
     window.parent.postMessage(
-      { type: 'passwo:reference-completed', interaction: 'not-allowed' },
+      {
+        type: 'passwo:wrong-message',
+        snapshotId: 'secaware-passwords-authentication-2026-07-26',
+      },
+      window.location.origin,
+    ),
+  );
+  await page.evaluate(() =>
+    window.postMessage(
+      {
+        type: 'passwo:reference-completed',
+        snapshotId: 'secaware-passwords-authentication-2026-07-26',
+      },
+      window.location.origin,
+    ),
+  );
+  await contentFrame.evaluate(() =>
+    window.parent.postMessage(
+      { type: 'passwo:reference-completed', snapshotId: 'wrong-snapshot' },
+      window.location.origin,
+    ),
+  );
+  await contentFrame.evaluate(() =>
+    window.parent.postMessage(
+      {
+        type: 'passwo:reference-completed',
+        snapshotId: 'secaware-passwords-authentication-2026-07-26',
+        interaction: 'not-allowed',
+      },
       window.location.origin,
     ),
   );
@@ -882,7 +914,13 @@ test('forced-reference embeds the local artifact and accepts only its valid comp
   await expect(page.getByRole('heading', { name: 'Fragebogen nach dem Artefakt' })).toHaveCount(0);
 
   await contentFrame.evaluate(() =>
-    window.parent.postMessage({ type: 'passwo:reference-completed' }, window.location.origin),
+    window.parent.postMessage(
+      {
+        type: 'passwo:reference-completed',
+        snapshotId: 'secaware-passwords-authentication-2026-07-26',
+      },
+      window.location.origin,
+    ),
   );
   const completionBar = page.locator('[aria-live="polite"]').filter({
     hasText: 'Training abgeschlossen',
@@ -891,7 +929,13 @@ test('forced-reference embeds the local artifact and accepts only its valid comp
   await expect(completionBar).toHaveText('Training abgeschlossenWeiter');
   await expect(page.getByRole('button', { name: 'Weiter' })).toHaveCount(1);
   await contentFrame.evaluate(() =>
-    window.parent.postMessage({ type: 'passwo:reference-completed' }, window.location.origin),
+    window.parent.postMessage(
+      {
+        type: 'passwo:reference-completed',
+        snapshotId: 'secaware-passwords-authentication-2026-07-26',
+      },
+      window.location.origin,
+    ),
   );
   await expect(completionBar).toHaveCount(1);
   await expect(page.getByRole('button', { name: 'Weiter' })).toHaveCount(1);

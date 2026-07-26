@@ -12,6 +12,122 @@ selection:
     - Ti_fsrlLUHNndcM9En6vVDUgA9f5i3Wx
     - 7rcfm_gAfAzVzRVVTR_iWnlKKBnZpaHM
     - HH7SqnNUTjwy5QdPUzFsX-aWNvrIcwkF
+removedQuizLabelKeys:
+  - a11yQuizFailed
+  - a11yQuizFeedback
+  - a11yQuizPassed
+  - a11yQuizReviewCorrectlyChecked
+  - a11yQuizReviewCorrectlySelected
+  - a11yQuizReviewCorrectlyUnchecked
+  - a11yQuizReviewCorrectlyUnselected
+  - a11yQuizReviewIncorrectlyChecked
+  - a11yQuizReviewIncorrectlySelected
+  - a11yQuizReviewIncorrectlyUnchecked
+  - a11yQuizReviewIncorrectlyUnselected
+  - coverQuizPercentOrHigher
+  - coverQuizScoreOf
+  - progressPieQuizFailed
+  - progressSummaryQuizRequirement
+  - progressSummaryViewQuiz
+  - quizAcceptableResponses
+  - quizAnswerPlaceholder
+  - quizContinue
+  - quizCorrect
+  - quizIncorrect
+  - quizNext
+  - quizPassing
+  - quizQuestion
+  - quizRequireAnswer
+  - quizRequirePassingScore
+  - quizRestart
+  - quizResults
+  - quizScore
+  - quizStart
+  - quizSubmit
+  - quizTakeAgain
+  - quizTimerElapsed
+  - quizTimerExpired
+  - quizTimerExpiredAction
+  - quizTimerExpiredMessage
+  - quizTimerHide
+  - quizTimerLimit
+  - quizTimerMinute
+  - quizTimerMinutePlural
+  - quizTimerRemaining
+  - quizTimerShow
+externalTargets:
+  supplementaryLinks:
+    - contentId: clcyos0ul00ck356oh84f07po
+      blockId: clcyqrhi30b8i1v5j20xtcln1
+      lessonId: cCLcBEovpLj72dCgZ6HsfeQV4xIR2_Lv
+      urls:
+        - https://www.bsi.bund.de/SharedDocs/Downloads/DE/BSI/Checklisten/sichere_passwoerter_faktenblatt.pdf?__blob=publicationFile&v=1
+        - https://www.bsi.bund.de/DE/Themen/Verbraucherinnen-und-Verbraucher/Informationen-und-Empfehlungen/Cyber-Sicherheitsempfehlungen/Accountschutz/Sichere-Passwoerter-erstellen/Umgang-mit-Passwoertern/umgang-mit-passwoertern_node.html
+        - https://norbert-pohlmann.com/glossar-cyber-sicherheit/angriffsvektor/
+        - https://www.verbraucherzentrale.de/wissen/digitale-welt/datenschutz/starke-passwoerter-so-gehts-11672
+        - https://www.sicher-im-netz.de/dsin-passwortkarte
+        - "https://polizei.nrw/artikel/mach-dein-passwort-stark#:~:text=Zahlenreihen%20wie%201234567%20oder%20111111,leicht%2C%20Ihre%20Zugangsdaten%20zu%20hacken."
+        - "https://polizei.nrw/artikel/mach-dein-passwort-stark#:~:text=Zahlenreihen%20wie%201234567%20oder%20111111,leicht%2C%20Ihre%20Zugangsdaten%20zu%20hacken"
+    - contentId: clcyos0ul00ck356oh84f07po
+      blockId: cld0gdi350ki21v5j6401hdol
+      lessonId: 8s5ZF8ravaGthNGdmPcOMPOpdjLwXR-O
+      urls:
+        - https://www.bsi.bund.de/DE/Themen/Verbraucherinnen-und-Verbraucher/Informationen-und-Empfehlungen/Cyber-Sicherheitsempfehlungen/Accountschutz/Projekt-Accountschutz/browser-passwortmanager.html
+        - https://www.bsi.bund.de/SharedDocs/Videos/DE/BSI/VerbraucherInnen/passwort-manager-statement.html
+        - https://aware7.com/de/blog/passwort-manager-sicherheit-kaspersky-erstellt-schwache-passwoerter/
+    - contentId: clcyos0ul00ck356oh84f07po
+      blockId: cld8niho705ji1s5hbsxu7jff
+      lessonId: zbxeD7QUdMnDlBWKvVsxMy5G8ghjnDRt
+      urls:
+        - https://www.bsi.bund.de/DE/Themen/Verbraucherinnen-und-Verbraucher/Informationen-und-Empfehlungen/Wie-geht-Internet/Zwei-Faktor-Authentisierung-Datensicherheit/zwei-faktor-authentisierung-datensicherheit_node.html
+        - https://www.bsi.bund.de/DE/Themen/Verbraucherinnen-und-Verbraucher/Informationen-und-Empfehlungen/Cyber-Sicherheitsempfehlungen/Accountschutz/Zwei-Faktor-Authentisierung/Bewertung-2FA-Verfahren/bewertung-2fa-verfahren_node.html
+        - https://www.verbraucherzentrale.de/wissen/digitale-welt/datenschutz/zweifaktorauthentisierung-so-schuetzen-sie-ihre-accounts-85173
+  providerIframes:
+    - contentId: cm8o8275j00az2a6ublgjmz8q
+      lessonId: cCLcBEovpLj72dCgZ6HsfeQV4xIR2_Lv
+      url: https://secaware.nrw/logo/logo_de_gesamt_starkepasswoerter_V9.php
+      localTarget: ../scormdriver/blank.html
+    - contentId: cm7j2wr1v00892a6uolt7vec8
+      lessonId: 8s5ZF8ravaGthNGdmPcOMPOpdjLwXR-O
+      url: https://secaware.nrw/logo/logo_de_passwort-manager_V9.php
+      localTarget: ../scormdriver/blank.html
+    - contentId: cm8o8bz0800oi2a6u78q2r37x
+      lessonId: zbxeD7QUdMnDlBWKvVsxMy5G8ghjnDRt
+      url: https://secaware.nrw/logo/logo_de_multi-faktor-authentifizierung_V9.php
+      localTarget: ../scormdriver/blank.html
+  localMediaReplacements:
+    - contentId: CwynTB5JDjzJgtE8M2SKmgtgC6sM4C4h
+      urls:
+        - https://articulateusercontent.com/assets/rise/assets/themes/classic/cover-image/30_wfh.jpg
+        - https://articulateusercontent.com/assets/rise/assets/themes/example-header-image.jpg
+      localTarget: aBcORCWLh3hZzWVI.png
+    - contentId: cl9mkalwr001i356t4lq0u4ws
+      url: https://images.articulate.com/f:jpg,b:fff,w:100,h:100,s:cover/rise/courses/CwynTB5JDjzJgtE8M2SKmgtgC6sM4C4h/transcoded-0QgQSLhGeaRWzUUg-250326_SA_StarkePasswoerter_V07_Feedback_TN_Cedli.0000000.jpg
+      localTarget: 250326_SA_StarkePasswoerte.jpg
+    - contentId: cld0feqcp001l356onxv7kbnk
+      url: https://images.articulate.com/f:jpg,b:fff,w:100,h:100,s:cover/rise/courses/CwynTB5JDjzJgtE8M2SKmgtgC6sM4C4h/transcoded-U6z91YLK6DVraSXF-230620_SA_PasswortManager_V08_TN_Wolf.0000000.jpg
+      localTarget: 230620_SA_PasswortManager_.jpg
+    - contentId: cld0fdtcu001a356oud0f81wr
+      url: https://images.articulate.com/f:jpg,b:fff,w:100,h:100,s:cover/rise/courses/CwynTB5JDjzJgtE8M2SKmgtgC6sM4C4h/transcoded-et_3bXG99WN2_H44-230623_SA_MultiFaktorAuthentifizierung_V04_TN_Cedli.0000000.jpg
+      localTarget: 230623_SA_MultiFaktorAuthe.jpg
+    - contentId: clckaak5r0070356olkqo180k
+      url: https://articulateusercontent.com/assets/rise/assets/block-defaults/mountains_thumb.jpg
+      localTarget: Oh4LFn/mountains.jpg
+    - contentId: clcyos0ul00ck356oh84f07po
+      urls:
+        - https://articulateusercontent.com/assets/rise/assets/block-defaults/paraglide.jpg
+        - https://articulateusercontent.com/assets/rise/assets/block-defaults/paraglide_thumb.jpg
+      localTarget: Oh4LFn/mountains.jpg
+  runtimeTargets:
+    - contentId: sendTelemetry
+      url: https://metrics.articulate.com/v1/import
+      operation: remove-fetch
+    - contentId: bundled-story-bootstrapper
+      url: https://ipc.articulate.com/slw/360/en/streamingvideolocalplayback
+      operation: replace-with-about-blank
+    - contentId: bundled-runtime-popup-targets
+      target: target="_blank"
+      operation: replace-with-empty-target
 transformations:
   - id: lesson-Ti_fsrlLUHNndcM9En6vVDUgA9f5i3Wx-remove
     targetId: Ti_fsrlLUHNndcM9En6vVDUgA9f5i3Wx
@@ -33,6 +149,18 @@ transformations:
     targetId: course.lmsOptions.enableTelemetryCollection
     operation: set-false
     reason: Provider telemetry is not required for local instruction and must not collect runtime context.
+  - id: course-external-targets-localize
+    targetId: externalTargets
+    operation: remove-navigation-and-localize-media
+    reason: The local study path must preserve visible lesson text while preventing external loads, navigation, and popups.
+  - id: quiz-labelSet-remove
+    targetId: removedQuizLabelKeys
+    operation: remove-explicit-keys
+    reason: Labels for the removed provider quiz must not reach the Study Runtime.
+  - id: runtime-popup-apis-disable
+    targetId: frozen-window-open-call-sites
+    operation: replace-with-null-return
+    reason: Generic bundled popup APIs are not required by the retained local lesson path.
   - id: block-cld8nihms01nn1tdj5q8tcthv-completion-navigation
     targetId: cld8nihms01nn1tdj5q8tcthv
     operation: set-navigation-title-to-Training-abschließen
@@ -49,4 +177,6 @@ completionBridge:
   messageType: passwo:reference-completed
   payloadFields:
     - type
+    - snapshotId
+  snapshotId: secaware-passwords-authentication-2026-07-26
   targetOrigin: same-origin

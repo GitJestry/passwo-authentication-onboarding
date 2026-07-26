@@ -21,6 +21,7 @@ const expectedSourceManifestSha256 =
 const expectedCourseId = 'CwynTB5JDjzJgtE8M2SKmgtgC6sM4C4h';
 const expectedSourceVersion = 'V9 (27.03.2026)';
 const completionMessageType = 'passwo:reference-completed';
+const snapshotId = 'secaware-passwords-authentication-2026-07-26';
 const retainedLessonIds = [
   'qcxfbmtfmCPSe2IT04vnCXlpAHjuFDds',
   'cCLcBEovpLj72dCgZ6HsfeQV4xIR2_Lv',
@@ -33,11 +34,168 @@ const removedLessonIds = [
   'HH7SqnNUTjwy5QdPUzFsX-aWNvrIcwkF',
 ];
 const finalContinueBlockId = 'cld8nihms01nn1tdj5q8tcthv';
+const quizLabelKeys = [
+  'a11yQuizFailed',
+  'a11yQuizFeedback',
+  'a11yQuizPassed',
+  'a11yQuizReviewCorrectlyChecked',
+  'a11yQuizReviewCorrectlySelected',
+  'a11yQuizReviewCorrectlyUnchecked',
+  'a11yQuizReviewCorrectlyUnselected',
+  'a11yQuizReviewIncorrectlyChecked',
+  'a11yQuizReviewIncorrectlySelected',
+  'a11yQuizReviewIncorrectlyUnchecked',
+  'a11yQuizReviewIncorrectlyUnselected',
+  'coverQuizPercentOrHigher',
+  'coverQuizScoreOf',
+  'progressPieQuizFailed',
+  'progressSummaryQuizRequirement',
+  'progressSummaryViewQuiz',
+  'quizAcceptableResponses',
+  'quizAnswerPlaceholder',
+  'quizContinue',
+  'quizCorrect',
+  'quizIncorrect',
+  'quizNext',
+  'quizPassing',
+  'quizQuestion',
+  'quizRequireAnswer',
+  'quizRequirePassingScore',
+  'quizRestart',
+  'quizResults',
+  'quizScore',
+  'quizStart',
+  'quizSubmit',
+  'quizTakeAgain',
+  'quizTimerElapsed',
+  'quizTimerExpired',
+  'quizTimerExpiredAction',
+  'quizTimerExpiredMessage',
+  'quizTimerHide',
+  'quizTimerLimit',
+  'quizTimerMinute',
+  'quizTimerMinutePlural',
+  'quizTimerRemaining',
+  'quizTimerShow',
+];
+const supplementaryLinkTransforms = [
+  {
+    lessonId: 'cCLcBEovpLj72dCgZ6HsfeQV4xIR2_Lv',
+    blockId: 'clcyqrhi30b8i1v5j20xtcln1',
+    contentId: 'clcyos0ul00ck356oh84f07po',
+    urls: [
+      [
+        'https://www.bsi.bund.de/SharedDocs/Downloads/DE/BSI/Checklisten/sichere_passwoerter_faktenblatt.pdf?__blob=publicationFile&v=1',
+        2,
+      ],
+      [
+        'https://www.bsi.bund.de/DE/Themen/Verbraucherinnen-und-Verbraucher/Informationen-und-Empfehlungen/Cyber-Sicherheitsempfehlungen/Accountschutz/Sichere-Passwoerter-erstellen/Umgang-mit-Passwoertern/umgang-mit-passwoertern_node.html',
+        2,
+      ],
+      ['https://norbert-pohlmann.com/glossar-cyber-sicherheit/angriffsvektor/', 1],
+      [
+        'https://www.verbraucherzentrale.de/wissen/digitale-welt/datenschutz/starke-passwoerter-so-gehts-11672',
+        1,
+      ],
+      ['https://www.sicher-im-netz.de/dsin-passwortkarte', 2],
+      [
+        'https://polizei.nrw/artikel/mach-dein-passwort-stark#:~:text=Zahlenreihen%20wie%201234567%20oder%20111111,leicht%2C%20Ihre%20Zugangsdaten%20zu%20hacken.',
+        1,
+      ],
+      [
+        'https://polizei.nrw/artikel/mach-dein-passwort-stark#:~:text=Zahlenreihen%20wie%201234567%20oder%20111111,leicht%2C%20Ihre%20Zugangsdaten%20zu%20hacken',
+        1,
+      ],
+    ],
+  },
+  {
+    lessonId: '8s5ZF8ravaGthNGdmPcOMPOpdjLwXR-O',
+    blockId: 'cld0gdi350ki21v5j6401hdol',
+    contentId: 'clcyos0ul00ck356oh84f07po',
+    urls: [
+      [
+        'https://www.bsi.bund.de/DE/Themen/Verbraucherinnen-und-Verbraucher/Informationen-und-Empfehlungen/Cyber-Sicherheitsempfehlungen/Accountschutz/Projekt-Accountschutz/browser-passwortmanager.html',
+        1,
+      ],
+      [
+        'https://www.bsi.bund.de/SharedDocs/Videos/DE/BSI/VerbraucherInnen/passwort-manager-statement.html',
+        1,
+      ],
+      [
+        'https://aware7.com/de/blog/passwort-manager-sicherheit-kaspersky-erstellt-schwache-passwoerter/',
+        1,
+      ],
+    ],
+  },
+  {
+    lessonId: 'zbxeD7QUdMnDlBWKvVsxMy5G8ghjnDRt',
+    blockId: 'cld8niho705ji1s5hbsxu7jff',
+    contentId: 'clcyos0ul00ck356oh84f07po',
+    urls: [
+      [
+        'https://www.bsi.bund.de/DE/Themen/Verbraucherinnen-und-Verbraucher/Informationen-und-Empfehlungen/Wie-geht-Internet/Zwei-Faktor-Authentisierung-Datensicherheit/zwei-faktor-authentisierung-datensicherheit_node.html',
+        1,
+      ],
+      [
+        'https://www.bsi.bund.de/DE/Themen/Verbraucherinnen-und-Verbraucher/Informationen-und-Empfehlungen/Cyber-Sicherheitsempfehlungen/Accountschutz/Zwei-Faktor-Authentisierung/Bewertung-2FA-Verfahren/bewertung-2fa-verfahren_node.html',
+        1,
+      ],
+      [
+        'https://www.verbraucherzentrale.de/wissen/digitale-welt/datenschutz/zweifaktorauthentisierung-so-schuetzen-sie-ihre-accounts-85173',
+        1,
+      ],
+    ],
+  },
+];
+const externalEmbedTransforms = [
+  {
+    lessonId: 'cCLcBEovpLj72dCgZ6HsfeQV4xIR2_Lv',
+    blockId: 'cm8o8275j00ay2a6u9y2hldid',
+    contentId: 'cm8o8275j00az2a6ublgjmz8q',
+    url: 'https://secaware.nrw/logo/logo_de_gesamt_starkepasswoerter_V9.php',
+  },
+  {
+    lessonId: '8s5ZF8ravaGthNGdmPcOMPOpdjLwXR-O',
+    blockId: 'cm8px5ecl00ae07epepgrcuzr',
+    contentId: 'cm7j2wr1v00892a6uolt7vec8',
+    url: 'https://secaware.nrw/logo/logo_de_passwort-manager_V9.php',
+  },
+  {
+    lessonId: 'zbxeD7QUdMnDlBWKvVsxMy5G8ghjnDRt',
+    blockId: 'cm8o8bz0800oh2a6uxr0a39fk',
+    contentId: 'cm8o8bz0800oi2a6u78q2r37x',
+    url: 'https://secaware.nrw/logo/logo_de_multi-faktor-authentifizierung_V9.php',
+  },
+];
+const blockedWindowOpenFiles = [
+  'scormcontent/assets/U4w9PDNngJxwB5_j/html5/lib/scripts/bootstrapper.min.js',
+  'scormcontent/assets/U4w9PDNngJxwB5_j/html5/lib/scripts/slides.min.js',
+  'scormcontent/assets/U4w9PDNngJxwB5_j/lms/scormdriver.js',
+  'scormcontent/assets/VRuCzkjdJavVemQT/html5/lib/scripts/bootstrapper.min.js',
+  'scormcontent/assets/VRuCzkjdJavVemQT/html5/lib/scripts/slides.min.js',
+  'scormcontent/lib/mondrian/360a8061.js',
+  'scormcontent/lib/rise/4a460832.js',
+  'scormdriver/scormdriver.js',
+];
+const targetBlankFiles = ['scormcontent/lib/rise/4a460832.js', 'scormcontent/lib/rise/d9b9ec3d.js'];
+const externalRuntimeHrefFiles = [
+  'scormcontent/assets/U4w9PDNngJxwB5_j/html5/lib/scripts/bootstrapper.min.js',
+  'scormcontent/assets/VRuCzkjdJavVemQT/html5/lib/scripts/bootstrapper.min.js',
+];
+const externalRuntimeHref = 'https://ipc.articulate.com/slw/360/en/streamingvideolocalplayback';
 
 const datasetPattern =
   /async function __fetchCourse\(\) \{\s*return Promise\.resolve\(deserialize\("([A-Za-z0-9+/=]+)"\)\)\s*\}/u;
 const completionPercentageSource = 'var completionPercentage = 80;';
 const completionPercentageBuild = 'var completionPercentage = 100;';
+const telemetryFetchSource = `    return fetch('https://metrics.articulate.com/v1/import', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({batch: [telemetryData]})
+    });`;
+const telemetryFetchBuild = '    return Promise.resolve();';
 const driverScriptTag = '  <script language="JavaScript1.2" src="scormdriver.js"></script>';
 const completionBridge = `${driverScriptTag}
   <script type="text/javascript">
@@ -50,7 +208,10 @@ const completionBridge = `${driverScriptTag}
         var result = originalSetReachedEnd.apply(window, arguments);
         if (!completionReported && result !== false) {
           completionReported = true;
-          window.top.postMessage({ type: '${completionMessageType}' }, window.location.origin);
+          window.top.postMessage(
+            { type: '${completionMessageType}', snapshotId: '${snapshotId}' },
+            window.location.origin
+          );
         }
         return result;
       };
@@ -154,6 +315,197 @@ function requireLessonMap(course) {
   return lessonsById;
 }
 
+function objectById(root, id, description) {
+  const matches = [];
+  function visit(value) {
+    if (typeof value !== 'object' || value === null) return;
+    if (!Array.isArray(value) && value.id === id) matches.push(value);
+    for (const child of Array.isArray(value) ? value : Object.values(value)) visit(child);
+  }
+  visit(root);
+  if (matches.length !== 1) {
+    fail(`${description} ${id} was found ${matches.length} times instead of exactly once.`);
+  }
+  return matches[0];
+}
+
+function requireStringProperty(value, key, expected, description) {
+  if (typeof value !== 'object' || value === null || value[key] !== expected) {
+    fail(`${description} does not match the frozen snapshot.`);
+  }
+}
+
+function replaceFrozenProperty(value, key, expected, replacement, description) {
+  requireStringProperty(value, key, expected, description);
+  value[key] = replacement;
+}
+
+function removeSupplementaryNavigation(course) {
+  for (const transform of supplementaryLinkTransforms) {
+    const lesson = objectById(course.lessons, transform.lessonId, 'supplementary lesson');
+    const block = objectById(lesson, transform.blockId, 'supplementary block');
+    const content = objectById(block, transform.contentId, 'supplementary content');
+    if (typeof content.description !== 'string') {
+      fail(`supplementary content ${transform.contentId} has no description.`);
+    }
+    let description = content.description;
+    let expectedTargetCount = 0;
+    for (const [url, expectedCount] of transform.urls) {
+      const href = `href="${url}"`;
+      if (description.split(href).length - 1 !== expectedCount) {
+        fail(`supplementary URL ${url} does not match its frozen occurrence count.`);
+      }
+      description = description.replaceAll(href, '');
+      expectedTargetCount += expectedCount;
+    }
+    if (description.split('target="_blank"').length - 1 !== expectedTargetCount) {
+      fail(`supplementary content ${transform.contentId} has unexpected popup targets.`);
+    }
+    content.description = description.replaceAll('target="_blank"', '');
+  }
+}
+
+function localizeExternalCourseMetadata(course) {
+  replaceFrozenProperty(
+    course.coverImage?.media?.image,
+    'src',
+    'https://articulateusercontent.com/assets/rise/assets/themes/classic/cover-image/30_wfh.jpg',
+    'aBcORCWLh3hZzWVI.png',
+    'course cover image source',
+  );
+  replaceFrozenProperty(
+    course.theme,
+    'coverImageDefault',
+    'https://articulateusercontent.com/assets/rise/assets/themes/classic/cover-image/30_wfh.jpg',
+    'aBcORCWLh3hZzWVI.png',
+    'theme default cover image',
+  );
+  replaceFrozenProperty(
+    course.theme,
+    'navigationOverlayImage',
+    'https://articulateusercontent.com/assets/rise/assets/themes/example-header-image.jpg',
+    'aBcORCWLh3hZzWVI.png',
+    'theme navigation overlay image',
+  );
+
+  for (const [contentId, thumbnail, poster] of [
+    [
+      'cl9mkalwr001i356t4lq0u4ws',
+      'https://images.articulate.com/f:jpg,b:fff,w:100,h:100,s:cover/rise/courses/CwynTB5JDjzJgtE8M2SKmgtgC6sM4C4h/transcoded-0QgQSLhGeaRWzUUg-250326_SA_StarkePasswoerter_V07_Feedback_TN_Cedli.0000000.jpg',
+      '250326_SA_StarkePasswoerte.jpg',
+    ],
+    [
+      'cld0feqcp001l356onxv7kbnk',
+      'https://images.articulate.com/f:jpg,b:fff,w:100,h:100,s:cover/rise/courses/CwynTB5JDjzJgtE8M2SKmgtgC6sM4C4h/transcoded-U6z91YLK6DVraSXF-230620_SA_PasswortManager_V08_TN_Wolf.0000000.jpg',
+      '230620_SA_PasswortManager_.jpg',
+    ],
+    [
+      'cld0fdtcu001a356oud0f81wr',
+      'https://images.articulate.com/f:jpg,b:fff,w:100,h:100,s:cover/rise/courses/CwynTB5JDjzJgtE8M2SKmgtgC6sM4C4h/transcoded-et_3bXG99WN2_H44-230623_SA_MultiFaktorAuthentifizierung_V04_TN_Cedli.0000000.jpg',
+      '230623_SA_MultiFaktorAuthe.jpg',
+    ],
+  ]) {
+    const content = objectById(course.lessons, contentId, 'video content');
+    replaceFrozenProperty(
+      content.media?.video,
+      'thumbnail',
+      thumbnail,
+      poster,
+      `video thumbnail ${contentId}`,
+    );
+  }
+
+  const mountainsBlock = objectById(
+    course.lessons,
+    'clckaak5r0070356olkqo180k',
+    'password card block',
+  );
+  for (const cardId of [
+    'cl9mjq539000a356twc7xh41f',
+    'cl9mjq539000b356tm1wnkr8f',
+    'cl9mjq539000c356tg1h4sbyz',
+    'cl9mjqbyd000g356tkvnj5p92',
+    'cl9mjqdil000i356tw4atzcqq',
+  ]) {
+    const card = objectById(mountainsBlock, cardId, 'password card');
+    for (const side of ['front', 'back']) {
+      replaceFrozenProperty(
+        card[side]?.media?.image,
+        'thumbnail',
+        'https://articulateusercontent.com/assets/rise/assets/block-defaults/mountains_thumb.jpg',
+        'Oh4LFn/mountains.jpg',
+        `password card thumbnail ${cardId}.${side}`,
+      );
+    }
+  }
+
+  for (const { lessonId, blockId, contentId, url } of externalEmbedTransforms) {
+    const lesson = objectById(course.lessons, lessonId, 'provider-marker lesson');
+    const block = objectById(lesson, blockId, 'provider-marker block');
+    const content = objectById(block, contentId, 'provider-marker content');
+    const source = `<iframe src="${url}" height="2px"></iframe>`;
+    const local = '<iframe src="../scormdriver/blank.html" height="2px"></iframe>';
+    replaceFrozenProperty(
+      content.media?.embed,
+      'src',
+      source,
+      local,
+      `provider-marker source ${contentId}`,
+    );
+    replaceFrozenProperty(
+      content.media?.embed,
+      'originalUrl',
+      source,
+      local,
+      `provider-marker original URL ${contentId}`,
+    );
+  }
+
+  for (const { lessonId, blockId, contentId } of supplementaryLinkTransforms) {
+    const lesson = objectById(course.lessons, lessonId, 'supplementary lesson');
+    const block = objectById(lesson, blockId, 'supplementary block');
+    const content = objectById(block, contentId, 'supplementary content');
+    replaceFrozenProperty(
+      content.media?.tmp?.image,
+      'src',
+      'https://articulateusercontent.com/assets/rise/assets/block-defaults/paraglide.jpg',
+      'Oh4LFn/mountains.jpg',
+      `supplementary fallback image ${blockId}`,
+    );
+    replaceFrozenProperty(
+      content.media?.tmp?.image,
+      'thumbnail',
+      'https://articulateusercontent.com/assets/rise/assets/block-defaults/paraglide_thumb.jpg',
+      'Oh4LFn/mountains.jpg',
+      `supplementary fallback thumbnail ${blockId}`,
+    );
+  }
+}
+
+function removeQuizLabels(dataset) {
+  const labels = dataset.labelSet?.labels;
+  if (typeof labels !== 'object' || labels === null || Array.isArray(labels)) {
+    fail('the decoded dataset has no labelSet labels object.');
+  }
+  for (const key of quizLabelKeys) {
+    if (!(key in labels) || typeof labels[key] !== 'string') {
+      fail(`expected quiz labelSet key ${key} is missing from the frozen snapshot.`);
+    }
+    delete labels[key];
+  }
+}
+
+function assertNoExternalDatasetTarget(dataset) {
+  function visit(value, path = 'dataset') {
+    if (typeof value === 'string' && /https?:\/\//iu.test(value)) {
+      fail(`external URL remains at ${path}.`);
+    }
+    if (typeof value !== 'object' || value === null) return;
+    for (const [key, child] of Object.entries(value)) visit(child, `${path}.${key}`);
+  }
+  visit(dataset);
+}
+
 function findFinalContinueBlock(course) {
   const mfaLesson = course.lessons.find(
     (lesson) => lesson.id === 'zbxeD7QUdMnDlBWKvVsxMy5G8ghjnDRt',
@@ -200,6 +552,10 @@ function adaptCourseDataset(sourceDataset) {
   }
   course.lmsOptions.enableTelemetryCollection = false;
   findFinalContinueBlock(course).title = 'Training abschließen';
+  removeSupplementaryNavigation(course);
+  localizeExternalCourseMetadata(course);
+  removeQuizLabels(adaptedDataset);
+  assertNoExternalDatasetTarget(adaptedDataset);
 
   return adaptedDataset;
 }
@@ -215,6 +571,38 @@ async function assertFrozenSource() {
     );
   }
   return sourceManifest;
+}
+
+async function blockRuntimePopupApis() {
+  for (const relativePath of blockedWindowOpenFiles) {
+    const path = resolve(buildDirectory, relativePath);
+    const source = await readFile(path, 'utf8');
+    const topWindowCount = source.split('window.top.window.open(').length - 1;
+    const directWindowCount = source.split('window.open(').length - 1 - topWindowCount;
+    if (topWindowCount + directWindowCount === 0) {
+      fail(`expected popup API is missing from ${relativePath}.`);
+    }
+    const blocked = source
+      .replaceAll('window.top.window.open(', '(() => null)(')
+      .replaceAll('window.open(', '(() => null)(');
+    await writeFile(path, blocked, 'utf8');
+  }
+  for (const relativePath of targetBlankFiles) {
+    const path = resolve(buildDirectory, relativePath);
+    const source = await readFile(path, 'utf8');
+    if (source.split('target="_blank"').length - 1 !== 1) {
+      fail(`expected popup target is not unique in ${relativePath}.`);
+    }
+    await writeFile(path, source.replace('target="_blank"', 'target=""'), 'utf8');
+  }
+  for (const relativePath of externalRuntimeHrefFiles) {
+    const path = resolve(buildDirectory, relativePath);
+    const source = await readFile(path, 'utf8');
+    if (source.split(externalRuntimeHref).length - 1 !== 1) {
+      fail(`expected external runtime href is not unique in ${relativePath}.`);
+    }
+    await writeFile(path, source.replace(externalRuntimeHref, 'about:blank'), 'utf8');
+  }
 }
 
 if (
@@ -243,6 +631,12 @@ adaptedCourseHtml = replaceExactlyOnce(
   completionPercentageBuild,
   'the completion percentage',
 );
+adaptedCourseHtml = replaceExactlyOnce(
+  adaptedCourseHtml,
+  telemetryFetchSource,
+  telemetryFetchBuild,
+  'the external telemetry fetch',
+);
 
 const sourceDriverHtml = await readFile(resolve(sourceDirectory, driverPath), 'utf8');
 const adaptedDriverHtml = replaceExactlyOnce(
@@ -258,6 +652,7 @@ await Promise.all([
   writeFile(resolve(buildDirectory, coursePath), adaptedCourseHtml, 'utf8'),
   writeFile(resolve(buildDirectory, driverPath), adaptedDriverHtml, 'utf8'),
 ]);
+await blockRuntimePopupApis();
 
 const [sourceManifestAfter, buildManifest] = await Promise.all([
   manifestHash(sourceDirectory),

@@ -15,13 +15,16 @@ const designLabRoutes = new Set(designLabPaths);
 const referenceArtifactCsp = [
   "default-src 'self' data: blob:",
   "connect-src 'self'",
-  "frame-src 'self' data: blob:",
+  "frame-src 'self'",
   "img-src 'self' data: blob:",
   "media-src 'self' data: blob:",
   "script-src 'self' 'unsafe-inline' 'unsafe-eval' blob:",
   "style-src 'self' 'unsafe-inline'",
   "worker-src 'self' blob:",
   "frame-ancestors 'self'",
+  "object-src 'none'",
+  "form-action 'none'",
+  "base-uri 'none'",
 ].join('; ');
 
 function sendDesignLabApp(request: FastifyRequest, reply: FastifyReply, webBuildDirectory: string) {

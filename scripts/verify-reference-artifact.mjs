@@ -22,12 +22,70 @@ const expectedSourceManifestSha256 =
   '4eee807687cad07e9856decd711a45a79076caf2ef9b9b6d6dae0401d23f821b';
 const expectedBuildFileCount = 146;
 const expectedBuildManifestSha256 =
-  '4a90b1e2a88db27a42863ba9cdcb9dd716653fdcaf7f999a458e8af62a4ac24c';
+  '7205338f2a115ed2ac5f8747122d3e838fc87a84389d19ae221418a649897b5f';
 const expectedTransformationConfigSha256 =
-  '6109e071bf143c680407d39220c608fa98fa07af67222994a265ad8ab69f6992';
+  '9d4de1e44174e37010a362401fb7e812f0452f4b0e5ea1cdb6be96cec98e9f2f';
 const coursePath = 'scormcontent/index.html';
 const driverPath = 'scormdriver/indexAPI.html';
 const finalContinueBlockId = 'cld8nihms01nn1tdj5q8tcthv';
+const quizLabelKeys = [
+  'a11yQuizFailed',
+  'a11yQuizFeedback',
+  'a11yQuizPassed',
+  'a11yQuizReviewCorrectlyChecked',
+  'a11yQuizReviewCorrectlySelected',
+  'a11yQuizReviewCorrectlyUnchecked',
+  'a11yQuizReviewCorrectlyUnselected',
+  'a11yQuizReviewIncorrectlyChecked',
+  'a11yQuizReviewIncorrectlySelected',
+  'a11yQuizReviewIncorrectlyUnchecked',
+  'a11yQuizReviewIncorrectlyUnselected',
+  'coverQuizPercentOrHigher',
+  'coverQuizScoreOf',
+  'progressPieQuizFailed',
+  'progressSummaryQuizRequirement',
+  'progressSummaryViewQuiz',
+  'quizAcceptableResponses',
+  'quizAnswerPlaceholder',
+  'quizContinue',
+  'quizCorrect',
+  'quizIncorrect',
+  'quizNext',
+  'quizPassing',
+  'quizQuestion',
+  'quizRequireAnswer',
+  'quizRequirePassingScore',
+  'quizRestart',
+  'quizResults',
+  'quizScore',
+  'quizStart',
+  'quizSubmit',
+  'quizTakeAgain',
+  'quizTimerElapsed',
+  'quizTimerExpired',
+  'quizTimerExpiredAction',
+  'quizTimerExpiredMessage',
+  'quizTimerHide',
+  'quizTimerLimit',
+  'quizTimerMinute',
+  'quizTimerMinutePlural',
+  'quizTimerRemaining',
+  'quizTimerShow',
+];
+const blockedWindowOpenFiles = new Set([
+  'scormcontent/assets/U4w9PDNngJxwB5_j/html5/lib/scripts/bootstrapper.min.js',
+  'scormcontent/assets/U4w9PDNngJxwB5_j/html5/lib/scripts/slides.min.js',
+  'scormcontent/assets/U4w9PDNngJxwB5_j/lms/scormdriver.js',
+  'scormcontent/assets/VRuCzkjdJavVemQT/html5/lib/scripts/bootstrapper.min.js',
+  'scormcontent/assets/VRuCzkjdJavVemQT/html5/lib/scripts/slides.min.js',
+  'scormcontent/lib/mondrian/360a8061.js',
+  'scormcontent/lib/rise/4a460832.js',
+  'scormdriver/scormdriver.js',
+]);
+const hardenedNavigationFiles = new Set([
+  ...blockedWindowOpenFiles,
+  'scormcontent/lib/rise/d9b9ec3d.js',
+]);
 const retainedLessons = [
   {
     id: 'qcxfbmtfmCPSe2IT04vnCXlpAHjuFDds',
@@ -64,6 +122,9 @@ const expectedTransformationIds = [
   'lesson-HH7SqnNUTjwy5QdPUzFsX-aWNvrIcwkF-remove',
   'course-description-neutralize',
   'course-telemetry-disable',
+  'course-external-targets-localize',
+  'quiz-labelSet-remove',
+  'runtime-popup-apis-disable',
   'block-cld8nihms01nn1tdj5q8tcthv-completion-navigation',
   'runtime-completion-percentage',
   'driver-completion-bridge',
@@ -178,6 +239,84 @@ function finalContinueNavigation(course, description) {
   return block.items[0];
 }
 
+const supplementaryUrls = [
+  'https://www.bsi.bund.de/SharedDocs/Downloads/DE/BSI/Checklisten/sichere_passwoerter_faktenblatt.pdf?__blob=publicationFile&v=1',
+  'https://www.bsi.bund.de/DE/Themen/Verbraucherinnen-und-Verbraucher/Informationen-und-Empfehlungen/Cyber-Sicherheitsempfehlungen/Accountschutz/Sichere-Passwoerter-erstellen/Umgang-mit-Passwoertern/umgang-mit-passwoertern_node.html',
+  'https://norbert-pohlmann.com/glossar-cyber-sicherheit/angriffsvektor/',
+  'https://www.verbraucherzentrale.de/wissen/digitale-welt/datenschutz/starke-passwoerter-so-gehts-11672',
+  'https://www.sicher-im-netz.de/dsin-passwortkarte',
+  'https://polizei.nrw/artikel/mach-dein-passwort-stark#:~:text=Zahlenreihen%20wie%201234567%20oder%20111111,leicht%2C%20Ihre%20Zugangsdaten%20zu%20hacken.',
+  'https://polizei.nrw/artikel/mach-dein-passwort-stark#:~:text=Zahlenreihen%20wie%201234567%20oder%20111111,leicht%2C%20Ihre%20Zugangsdaten%20zu%20hacken',
+  'https://www.bsi.bund.de/DE/Themen/Verbraucherinnen-und-Verbraucher/Informationen-und-Empfehlungen/Cyber-Sicherheitsempfehlungen/Accountschutz/Projekt-Accountschutz/browser-passwortmanager.html',
+  'https://www.bsi.bund.de/SharedDocs/Videos/DE/BSI/VerbraucherInnen/passwort-manager-statement.html',
+  'https://aware7.com/de/blog/passwort-manager-sicherheit-kaspersky-erstellt-schwache-passwoerter/',
+  'https://www.bsi.bund.de/DE/Themen/Verbraucherinnen-und-Verbraucher/Informationen-und-Empfehlungen/Wie-geht-Internet/Zwei-Faktor-Authentisierung-Datensicherheit/zwei-faktor-authentisierung-datensicherheit_node.html',
+  'https://www.bsi.bund.de/DE/Themen/Verbraucherinnen-und-Verbraucher/Informationen-und-Empfehlungen/Cyber-Sicherheitsempfehlungen/Accountschutz/Zwei-Faktor-Authentisierung/Bewertung-2FA-Verfahren/bewertung-2fa-verfahren_node.html',
+  'https://www.verbraucherzentrale.de/wissen/digitale-welt/datenschutz/zweifaktorauthentisierung-so-schuetzen-sie-ihre-accounts-85173',
+];
+const externalValueReplacements = new Map([
+  [
+    'https://articulateusercontent.com/assets/rise/assets/themes/classic/cover-image/30_wfh.jpg',
+    'aBcORCWLh3hZzWVI.png',
+  ],
+  [
+    'https://articulateusercontent.com/assets/rise/assets/themes/example-header-image.jpg',
+    'aBcORCWLh3hZzWVI.png',
+  ],
+  [
+    'https://images.articulate.com/f:jpg,b:fff,w:100,h:100,s:cover/rise/courses/CwynTB5JDjzJgtE8M2SKmgtgC6sM4C4h/transcoded-0QgQSLhGeaRWzUUg-250326_SA_StarkePasswoerter_V07_Feedback_TN_Cedli.0000000.jpg',
+    '250326_SA_StarkePasswoerte.jpg',
+  ],
+  [
+    'https://images.articulate.com/f:jpg,b:fff,w:100,h:100,s:cover/rise/courses/CwynTB5JDjzJgtE8M2SKmgtgC6sM4C4h/transcoded-U6z91YLK6DVraSXF-230620_SA_PasswortManager_V08_TN_Wolf.0000000.jpg',
+    '230620_SA_PasswortManager_.jpg',
+  ],
+  [
+    'https://images.articulate.com/f:jpg,b:fff,w:100,h:100,s:cover/rise/courses/CwynTB5JDjzJgtE8M2SKmgtgC6sM4C4h/transcoded-et_3bXG99WN2_H44-230623_SA_MultiFaktorAuthentifizierung_V04_TN_Cedli.0000000.jpg',
+    '230623_SA_MultiFaktorAuthe.jpg',
+  ],
+  [
+    'https://articulateusercontent.com/assets/rise/assets/block-defaults/mountains_thumb.jpg',
+    'Oh4LFn/mountains.jpg',
+  ],
+  [
+    'https://articulateusercontent.com/assets/rise/assets/block-defaults/paraglide.jpg',
+    'Oh4LFn/mountains.jpg',
+  ],
+  [
+    'https://articulateusercontent.com/assets/rise/assets/block-defaults/paraglide_thumb.jpg',
+    'Oh4LFn/mountains.jpg',
+  ],
+  [
+    '<iframe src="https://secaware.nrw/logo/logo_de_gesamt_starkepasswoerter_V9.php" height="2px"></iframe>',
+    '<iframe src="../scormdriver/blank.html" height="2px"></iframe>',
+  ],
+  [
+    '<iframe src="https://secaware.nrw/logo/logo_de_passwort-manager_V9.php" height="2px"></iframe>',
+    '<iframe src="../scormdriver/blank.html" height="2px"></iframe>',
+  ],
+  [
+    '<iframe src="https://secaware.nrw/logo/logo_de_multi-faktor-authentifizierung_V9.php" height="2px"></iframe>',
+    '<iframe src="../scormdriver/blank.html" height="2px"></iframe>',
+  ],
+]);
+
+function transformExpectedExternalValues(value) {
+  if (typeof value === 'string') {
+    let transformed = externalValueReplacements.get(value) ?? value;
+    for (const url of supplementaryUrls) {
+      transformed = transformed.replaceAll(`href="${url}"`, '');
+    }
+    return transformed.replaceAll('target="_blank"', '');
+  }
+  if (Array.isArray(value)) return value.map(transformExpectedExternalValues);
+  if (typeof value !== 'object' || value === null) return value;
+  for (const [key, child] of Object.entries(value)) {
+    value[key] = transformExpectedExternalValues(child);
+  }
+  return value;
+}
+
 function expectedAdaptedDataset(sourceDataset) {
   const expected = structuredClone(sourceDataset);
   const course = requireCourse(expected, 'source clone');
@@ -189,7 +328,47 @@ function expectedAdaptedDataset(sourceDataset) {
   }
   course.lmsOptions.enableTelemetryCollection = false;
   finalContinueNavigation(course, 'source clone').title = 'Training abschließen';
+  for (const key of quizLabelKeys) {
+    if (!(key in expected.labelSet.labels)) {
+      fail(`source clone is missing quiz label ${key}.`);
+    }
+    delete expected.labelSet.labels[key];
+  }
+  transformExpectedExternalValues(expected);
   return expected;
+}
+
+function verifyNoExternalDatasetTargets(dataset) {
+  function visit(value, path = 'dataset') {
+    if (typeof value === 'string' && /https?:\/\//iu.test(value)) {
+      fail(`generated dataset retains external URL at ${path}.`);
+    }
+    if (typeof value !== 'object' || value === null) return;
+    for (const [key, child] of Object.entries(value)) visit(child, `${path}.${key}`);
+  }
+  visit(dataset);
+}
+
+function verifyQuizLabels(sourceDataset, buildDataset) {
+  const sourceLabels = sourceDataset.labelSet?.labels;
+  const buildLabels = buildDataset.labelSet?.labels;
+  if (
+    typeof sourceLabels !== 'object' ||
+    sourceLabels === null ||
+    typeof buildLabels !== 'object' ||
+    buildLabels === null
+  ) {
+    fail('source or generated dataset has no labelSet labels.');
+  }
+  for (const key of quizLabelKeys) {
+    if (!(key in sourceLabels)) fail(`frozen source is missing quiz label ${key}.`);
+    if (key in buildLabels) fail(`generated dataset retains quiz label ${key}.`);
+  }
+  for (const [key, value] of Object.entries(buildLabels)) {
+    if (/quiz/iu.test(key) || (typeof value === 'string' && /quiz/iu.test(value))) {
+      fail(`generated dataset retains quiz-related label ${key}.`);
+    }
+  }
 }
 
 async function verifyManifestFiles(sourceDirectory) {
@@ -220,7 +399,13 @@ async function verifyUnchangedCopiedFiles(sourceDirectory, buildDirectory) {
   }
   for (const relativePath of sourcePaths) {
     const posixPath = relativePath.split(sep).join('/');
-    if (posixPath === coursePath || posixPath === driverPath) continue;
+    if (
+      posixPath === coursePath ||
+      posixPath === driverPath ||
+      hardenedNavigationFiles.has(posixPath)
+    ) {
+      continue;
+    }
     const [sourceFile, buildFile] = await Promise.all([
       readFile(resolve(sourceDirectory, relativePath)),
       readFile(resolve(buildDirectory, relativePath)),
@@ -228,6 +413,33 @@ async function verifyUnchangedCopiedFiles(sourceDirectory, buildDirectory) {
     if (!sourceFile.equals(buildFile)) {
       fail(`generated file ${posixPath} changed outside the two declared HTML targets.`);
     }
+  }
+}
+
+async function verifyRuntimeNavigationBlocked(buildDirectory) {
+  for (const file of await filesBelow(buildDirectory)) {
+    const content = await readFile(file, 'utf8').catch(() => null);
+    if (content === null) continue;
+    const relativePath = relative(buildDirectory, file).split(sep).join('/');
+    if (/window\.top\.window\.open\(|(?:^|[^\w.-])window\.open\(/u.test(content)) {
+      fail(`generated runtime retains window.open in ${relativePath}.`);
+    }
+    if (/target\s*=\s*["']_blank/iu.test(content)) {
+      fail(`generated runtime retains a popup target in ${relativePath}.`);
+    }
+    if (/(?:href|src)\s*=\s*["']https?:\/\//iu.test(content)) {
+      fail(`generated runtime retains an external href or src in ${relativePath}.`);
+    }
+    if (/<form\b[^>]*\baction\s*=\s*["']https?:\/\//iu.test(content)) {
+      fail(`generated runtime retains an external form target in ${relativePath}.`);
+    }
+  }
+  const courseHtml = await readFile(resolve(buildDirectory, coursePath), 'utf8');
+  if (
+    courseHtml.includes('https://metrics.articulate.com/v1/import') ||
+    /fetch\(\s*["']https?:\/\//iu.test(courseHtml)
+  ) {
+    fail('generated runtime retains an external fetch target.');
   }
 }
 
@@ -342,9 +554,20 @@ async function verify() {
   if (occurrenceCount(transformations, '    reason: ') !== expectedTransformationIds.length) {
     fail('each declared transformation must have exactly one reason.');
   }
+  for (const key of quizLabelKeys) {
+    if (!transformations.includes(`  - ${key}`)) {
+      fail(`the transformation configuration omits quiz label ${key}.`);
+    }
+  }
+  for (const url of supplementaryUrls) {
+    if (!transformations.includes(url)) {
+      fail(`the transformation configuration omits supplementary URL ${url}.`);
+    }
+  }
 
   await verifyManifestFiles(sourceDirectory);
   await verifyUnchangedCopiedFiles(sourceDirectory, buildDirectory);
+  await verifyRuntimeNavigationBlocked(buildDirectory);
 
   const [sourceCourseHtml, buildCourseHtml, sourceDriverHtml, buildDriverHtml] = await Promise.all([
     readFile(resolve(sourceDirectory, coursePath), 'utf8'),
@@ -358,6 +581,8 @@ async function verify() {
   const buildCourse = requireCourse(buildDataset, 'generated study build');
   const sourceLessonsById = lessonMap(sourceCourse, 'original snapshot');
   const buildLessonsById = lessonMap(buildCourse, 'generated study build');
+  verifyQuizLabels(sourceDataset, buildDataset);
+  verifyNoExternalDatasetTargets(buildDataset);
 
   if (
     typeof sourceCourse.description !== 'string' ||
@@ -423,9 +648,10 @@ async function verify() {
     occurrenceCount(buildDriverHtml, 'passwo-reference-completion-bridge:start') !== 1 ||
     occurrenceCount(buildDriverHtml, 'passwo-reference-completion-bridge:end') !== 1 ||
     occurrenceCount(buildDriverHtml, expectedCompletionMessageType) !== 1 ||
+    occurrenceCount(buildDriverHtml, expectedSnapshotId) !== 1 ||
     !buildDriverHtml.includes('originalSetReachedEnd.apply(window, arguments)') ||
     !buildDriverHtml.includes(
-      `window.top.postMessage({ type: '${expectedCompletionMessageType}' }, window.location.origin)`,
+      `{ type: '${expectedCompletionMessageType}', snapshotId: '${expectedSnapshotId}' }`,
     )
   ) {
     fail('the generated driver does not contain the one-shot data-minimal completion bridge.');

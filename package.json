@@ -19,6 +19,7 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "test:e2e": "playwright test",
+    "test:reference-artifact": "pnpm build && node ./scripts/test-reference-completion.mjs",
     "format": "biome format --write .",
     "lint": "biome lint .",
     "check:biome": "biome check .",

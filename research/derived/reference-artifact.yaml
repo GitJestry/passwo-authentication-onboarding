@@ -38,18 +38,19 @@ integrity:
   sourceFileCount: 146
   sourceManifestSha256: 4eee807687cad07e9856decd711a45a79076caf2ef9b9b6d6dae0401d23f821b
   studyBuildFileCount: 146
-  studyBuildManifestSha256: 4a90b1e2a88db27a42863ba9cdcb9dd716653fdcaf7f999a458e8af62a4ac24c
-  transformationConfigSha256: 6109e071bf143c680407d39220c608fa98fa07af67222994a265ad8ab69f6992
+  studyBuildManifestSha256: 7205338f2a115ed2ac5f8747122d3e838fc87a84389d19ae221418a649897b5f
+  transformationConfigSha256: 9d4de1e44174e37010a362401fb7e812f0452f4b0e5ea1cdb6be96cec98e9f2f
 completionBridge:
   messageType: passwo:reference-completed
   payloadFields:
     - type
+    - snapshotId
   acceptedByWrapperOnlyFrom: same-origin configured iframe window
 knownExternalDependencies:
   - url: https://metrics.articulate.com/v1/import
     purpose: optional Articulate import metrics request present in the source runtime
     runtimeRequirement: false
-    deliveryPolicy: disabled in adapted course metadata and blocked by local route Content-Security-Policy
+    deliveryPolicy: removed from the adapted runtime and blocked by local route Content-Security-Policy
 freeze:
   researcher: unknown
   notes:

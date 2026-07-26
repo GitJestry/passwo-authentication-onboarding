@@ -30,22 +30,34 @@ Der SecAware-Quiz, die Veröffentlichungshinweise und die Nutzungshinweise werde
 Kursdatensatz entfernt. Unterrichtsaussagen, Videos, Übungen und Zusammenfassungen der drei
 Lektionen bleiben unverändert. Lediglich der navigationsbezogene Titel im letzten Continue-Block
 `cld8nihms01nn1tdj5q8tcthv` lautet `Training abschließen`. Die Kursbeschreibung wird geleert,
-Telemetrie wird deaktiviert und die Abschlussanforderung wird auf 100 Prozent der drei Lektionen
-gesetzt.
+Telemetrie wird deaktiviert und ihr externer Fetch-Endpunkt entfernt. Die Abschlussanforderung
+wird auf 100 Prozent der drei Lektionen gesetzt.
+
+Die explizit eingefrorenen Quiz-labelSet-Schlüssel werden vollständig entfernt. Supplementäre
+Linktexte der drei Lektionen bleiben wortgleich sichtbar, besitzen im Study Build jedoch weder
+`href` noch `target`. Externe Thumbnail- und Darstellungsmetadaten werden auf bereits im Snapshot
+enthaltene lokale Assets umgeschrieben. Die drei nicht-instruktionalen 2-Pixel-Provider-iframes
+werden auf das im Snapshot enthaltene lokale `scormdriver/blank.html` begrenzt. Alle Ziele und
+Content-IDs sind im Transformationsmanifest dokumentiert; eine unbekannte externe Referenz bricht
+den Build ab.
 
 ## Integration und Abschluss
 
 Der lokale Study Server liefert ausschließlich den generierten Build unter
 `/reference/secaware/passwords-authentication/` aus. Der Studienwrapper zeigt den SCORM-Einstieg
-same-origin und viewportfüllend in einem iframe im bestehenden Browserfenster. Es gibt keinen
-separaten Tab, keine manuelle Rückkehrbestätigung und keinen zusätzlichen Trainingsheader.
+same-origin und viewportfüllend in einem iframe im bestehenden Browserfenster. Das iframe erlaubt
+nur Scripts und Same-Origin-Zugriff; Popups, Top-Level-Navigation, Downloads und Formübertragungen
+bleiben gesperrt. Es gibt keinen separaten Tab, keine manuelle Rückkehrbestätigung und keinen
+zusätzlichen Trainingsheader.
 
 Der generierte SCORM-Treiber umschließt den tatsächlichen erfolgreichen Aufruf von
 `SetReachedEnd`. Höchstens einmal sendet er an `window.top` die Nachricht
-`{ type: "passwo:reference-completed" }` mit der eigenen Origin als Ziel. Der Wrapper akzeptiert
-sie nur von seiner konfigurierten iframe-Window-Referenz, von derselben Origin und mit exakt diesem
-Nachrichtentyp. Erst dann erscheint die study-eigene Abschlussleiste. Die dortige Aktion beendet
-das globale Artifact-Timing und wechselt in den gemeinsamen Post-Fragebogen.
+`{ type: "passwo:reference-completed", snapshotId:
+"secaware-passwords-authentication-2026-07-26" }` mit der eigenen Origin als Ziel. Der Wrapper
+akzeptiert sie nur von seiner konfigurierten iframe-Window-Referenz, von derselben Origin und mit
+exakt diesem Nachrichtentyp und dieser Snapshot-ID. Erst dann erscheint die study-eigene
+Abschlussleiste. Die dortige Aktion beendet das globale Artifact-Timing und wechselt in den
+gemeinsamen Post-Fragebogen.
 
 Weder Quizantworten noch SCORM-Interaktionen, Lernfortschritt oder persönliche Daten werden
 gelesen, gespeichert oder exportiert. Für diese Bedingung entstehen weiterhin keine

@@ -1,6 +1,6 @@
 # ADR 0006 — Grenze des Referenzartefakts
 
-- **Status:** Accepted
+- **Status:** Superseded by ADR 0008
 - **Datum:** 2026-07-23
 
 ## Entscheidung

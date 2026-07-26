@@ -1,5 +1,6 @@
 import {
   REFERENCE_ARTIFACT_COMPLETION_MESSAGE_TYPE,
+  REFERENCE_ARTIFACT_SNAPSHOT_ID,
   REFERENCE_ARTIFACT_URL,
 } from '@passwo/contracts';
 import { useEffect, useRef, useState } from 'react';
@@ -12,11 +13,13 @@ function isCompletionMessage(event: MessageEvent<unknown>, expectedSource: Windo
     typeof event.data !== 'object' ||
     event.data === null ||
     !('type' in event.data) ||
-    event.data.type !== REFERENCE_ARTIFACT_COMPLETION_MESSAGE_TYPE
+    event.data.type !== REFERENCE_ARTIFACT_COMPLETION_MESSAGE_TYPE ||
+    !('snapshotId' in event.data) ||
+    event.data.snapshotId !== REFERENCE_ARTIFACT_SNAPSHOT_ID
   ) {
     return false;
   }
-  return Object.keys(event.data).length === 1;
+  return Object.keys(event.data).length === 2;
 }
 
 export function ReferenceArtifact({ onComplete }: { readonly onComplete: () => void }) {
@@ -64,6 +67,8 @@ export function ReferenceArtifact({ onComplete }: { readonly onComplete: () => v
         className={styles.frame}
         src={REFERENCE_ARTIFACT_URL}
         title="Passwörter & Authentifizierung"
+        sandbox="allow-scripts allow-same-origin"
+        referrerPolicy="no-referrer"
         onLoad={(event) => {
           const contentType = event.currentTarget.contentDocument?.contentType;
           setLoadFailed(contentType !== undefined && contentType !== 'text/html');
