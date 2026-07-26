@@ -81,6 +81,7 @@ interface SceneNodeData extends Record<string, unknown> {
   readonly sceneNode: SceneNode;
   readonly visible: boolean;
   readonly highlighted: boolean;
+  readonly interactionDisabled: boolean;
   readonly onSelect: (nodeId: string) => void;
 }
 
@@ -88,7 +89,12 @@ type SceneFlowNode = Node<SceneNodeData, 'scene-node'>;
 
 function statusLabel(node: SceneNode): string {
   const labels: Record<SceneNode['status'], string> = {
-    neutral: node.kind === 'account' ? (node.selectable ? 'Geschlossen' : 'Bereit') : 'Neutral',
+    neutral:
+      node.kind === 'account'
+        ? 'Noch nicht abgeschlossen'
+        : node.kind === 'service' || node.kind === 'function' || node.kind === 'content'
+          ? 'Noch nicht angesehen'
+          : 'Neutral',
     understood: node.kind === 'account' ? 'Verstanden' : 'Vorschau geöffnet',
     retrievable: 'Abrufbar',
     'not-remembered': 'Nicht erinnert',
@@ -105,11 +111,14 @@ function nodeBadge(node: SceneNode): string {
   if (node.kind === 'annotation') return node.status === 'hypothetical' ? '◇' : '≈';
   if (node.status === 'understood') return '✓';
   if (node.status === 'affected') return '!';
-  return node.kind === 'account' ? 'ID' : '↗';
+  if (node.kind === 'account') return 'ID';
+  if (node.kind === 'function') return 'F';
+  if (node.kind === 'content') return 'D';
+  return '↗';
 }
 
 function SceneNodeCard({ data }: NodeProps<SceneFlowNode>) {
-  const { sceneNode, visible, highlighted, onSelect } = data;
+  const { sceneNode, visible, highlighted, interactionDisabled, onSelect } = data;
   return (
     <div
       className={styles.nodeFrame}
@@ -127,7 +136,7 @@ function SceneNodeCard({ data }: NodeProps<SceneFlowNode>) {
         type="button"
         className={styles.nodeButton}
         data-scene-node-button={sceneNode.id}
-        disabled={!sceneNode.selectable || !visible}
+        disabled={interactionDisabled || !sceneNode.selectable || !visible}
         aria-label={`${sceneNode.label}. Status: ${statusLabel(sceneNode)}. ${sceneNode.description}`}
         onClick={() => onSelect(sceneNode.id)}
       >
@@ -170,6 +179,7 @@ function toReactFlowElements(
   snapshot: NetworkSceneSnapshot,
   presentation: NetworkPresentationSnapshot,
   onNodeSelect: (nodeId: string) => void,
+  interactionDisabled: boolean,
 ): { readonly nodes: readonly SceneFlowNode[]; readonly edges: readonly Edge[] } {
   const revealed = new Set(presentation.revealedNodeIds);
   return {
@@ -184,6 +194,7 @@ function toReactFlowElements(
         sceneNode: node,
         visible: revealed.has(node.id),
         highlighted: presentation.highlightedNodeId === node.id,
+        interactionDisabled,
         onSelect: onNodeSelect,
       },
       draggable: false,
@@ -212,9 +223,19 @@ export interface ReactFlowNetworkProps {
   readonly adapter: ReactFlowNetworkAdapter;
   readonly presentation: NetworkPresentationSnapshot;
   readonly onNodeSelect: (nodeId: string) => void;
+  readonly ariaLabel?: string;
+  readonly canvasAriaLabel?: string;
+  readonly interactionDisabled?: boolean;
 }
 
-export function ReactFlowNetwork({ adapter, presentation, onNodeSelect }: ReactFlowNetworkProps) {
+export function ReactFlowNetwork({
+  adapter,
+  presentation,
+  onNodeSelect,
+  ariaLabel = 'Knotennetz',
+  canvasAriaLabel = 'Deterministisch angeordnetes Knotennetz',
+  interactionDisabled = false,
+}: ReactFlowNetworkProps) {
   const containerRef = useRef<HTMLElement | null>(null);
   const rendererState = useSyncExternalStore(
     adapter.subscribe,
@@ -222,8 +243,9 @@ export function ReactFlowNetwork({ adapter, presentation, onNodeSelect }: ReactF
     adapter.getSnapshot,
   );
   const elements = useMemo(
-    () => toReactFlowElements(rendererState.snapshot, presentation, onNodeSelect),
-    [onNodeSelect, presentation, rendererState.snapshot],
+    () =>
+      toReactFlowElements(rendererState.snapshot, presentation, onNodeSelect, interactionDisabled),
+    [interactionDisabled, onNodeSelect, presentation, rendererState.snapshot],
   );
 
   useEffect(
@@ -237,7 +259,7 @@ export function ReactFlowNetwork({ adapter, presentation, onNodeSelect }: ReactF
   );
 
   return (
-    <section ref={containerRef} className={styles.network} aria-label="CampusID-Knotennetz">
+    <section ref={containerRef} className={styles.network} aria-label={ariaLabel}>
       <ReactFlow<SceneFlowNode, Edge>
         nodes={[...elements.nodes]}
         edges={[...elements.edges]}
@@ -257,7 +279,7 @@ export function ReactFlowNetwork({ adapter, presentation, onNodeSelect }: ReactF
         zoomOnDoubleClick={false}
         preventScrolling={false}
         colorMode="light"
-        aria-label="Deterministisch angeordnetes CampusID-Knotennetz"
+        aria-label={canvasAriaLabel}
       >
         <Background variant={BackgroundVariant.Dots} gap={24} size={1} />
       </ReactFlow>

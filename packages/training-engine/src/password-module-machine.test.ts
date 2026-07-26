@@ -24,7 +24,7 @@ describe('passwordModuleMachine', () => {
     expect(actor.getSnapshot().matches('s00')).toBe(true);
   });
 
-  it('moves from S00 through S01 to module complete', () => {
+  it('moves from S00 through S01 and S02 to module complete', () => {
     const actor = createModuleActor();
 
     expect(actor.getSnapshot().matches({ s01: 'editing' })).toBe(true);
@@ -35,7 +35,46 @@ describe('passwordModuleMachine', () => {
     actor.send({ type: 'CONTINUE' });
     actor.send({ type: 'S01_END_RECORDED' });
 
+    expect(actor.getSnapshot().matches({ s02: 'starting' })).toBe(true);
+    actor.send({ type: 'S02_START_RECORDED' });
+    actor.send({ type: 'CONTINUE' });
+    expect(actor.getSnapshot().matches({ s02: 'active' })).toBe(true);
+    actor.send({ type: 'S02_CONTENT_COMPLETED' });
+    actor.send({ type: 'CONTINUE' });
+    actor.send({ type: 'S02_END_RECORDED' });
+
     expect(actor.getSnapshot().matches('complete')).toBe(true);
+    expect(actor.getSnapshot().context.passwordValues).toEqual({
+      'campus-id': '',
+      'campus-mail': '',
+      'campus-board-archive': '',
+    });
+  });
+
+  it('keeps all password values exact throughout S02 and discards them only after S02 end', () => {
+    const actor = createModuleActor();
+    const values = {
+      'campus-id': '  id !?  ',
+      'campus-mail': '  mail #  ',
+      'campus-board-archive': '  board $  ',
+    } as const;
+    for (const [accountId, value] of Object.entries(values)) {
+      actor.send({ type: 'SET_PASSWORD_VALUE', accountId, value });
+    }
+    actor.send({ type: 'CONFIGURE_ACCOUNTS' });
+    actor.send({ type: 'CONTINUE' });
+    actor.send({ type: 'S01_END_RECORDED' });
+
+    expect(actor.getSnapshot().context.passwordValues).toEqual(values);
+    actor.send({ type: 'S02_START_RECORDED' });
+    actor.send({ type: 'S02_CONTENT_COMPLETED' });
+    actor.send({ type: 'CONTINUE' });
+    actor.send({ type: 'S02_END_FAILED', errorCode: 'write-failed' });
+    expect(actor.getSnapshot().matches({ s02: 'endFailed' })).toBe(true);
+    expect(actor.getSnapshot().context.passwordValues).toEqual(values);
+
+    actor.send({ type: 'RETRY_S02_END' });
+    actor.send({ type: 'S02_END_RECORDED' });
     expect(actor.getSnapshot().context.passwordValues).toEqual({
       'campus-id': '',
       'campus-mail': '',

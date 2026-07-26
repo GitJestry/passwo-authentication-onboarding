@@ -1,5 +1,9 @@
 import { z } from 'zod';
-import { segmentIdSchema, trainingSectionIdSchema } from './training.js';
+import {
+  SUPPORTIVE_ARTIFACT_SEGMENT_IDS,
+  segmentIdSchema,
+  trainingSectionIdSchema,
+} from './training.js';
 
 export const studyPhaseSchema = z.enum([
   'consent',
@@ -83,7 +87,7 @@ const supportiveSegmentTimingBaseShape = {
   sequence: z.number().int().nonnegative(),
   phase: z.literal('artifact'),
   sectionId: z.literal('passwords'),
-  segmentId: z.enum(['S00', 'S01']),
+  segmentId: z.enum(SUPPORTIVE_ARTIFACT_SEGMENT_IDS),
   clientMonotonicMs: z.number().finite().nonnegative(),
   clientWallClockIso: z.iso.datetime(),
   reasonCode: z.null(),

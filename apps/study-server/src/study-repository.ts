@@ -7,6 +7,8 @@ import {
   type PlaceholderResponseRequest,
   type StudyCondition,
   type StudyTimingEvent,
+  SUPPORTIVE_ARTIFACT_SEGMENT_IDS,
+  type SupportiveArtifactSegmentId,
   studyConditionSchema,
   type TimingWriteResponse,
 } from '@passwo/contracts';
@@ -649,17 +651,15 @@ export class StudyRepository {
     ).condition;
     if (condition !== 'supportive') return;
 
-    const s00Starts = this.#segmentBoundaryCount(sessionId, 'start', 'S00');
-    const s00Ends = this.#segmentBoundaryCount(sessionId, 'end', 'S00');
-    const s01Starts = this.#segmentBoundaryCount(sessionId, 'start', 'S01');
-    const s01Ends = this.#segmentBoundaryCount(sessionId, 'end', 'S01');
+    const everySegmentCompleted = SUPPORTIVE_ARTIFACT_SEGMENT_IDS.every(
+      (segmentId) =>
+        this.#segmentBoundaryCount(sessionId, 'start', segmentId) === 1 &&
+        this.#segmentBoundaryCount(sessionId, 'end', segmentId) === 1,
+    );
     if (
-      s00Starts !== 1 ||
-      s00Ends !== 1 ||
-      s01Starts !== 1 ||
-      s01Ends !== 1 ||
-      this.#segmentBoundaryCount(sessionId, 'start') !==
-        this.#segmentBoundaryCount(sessionId, 'end')
+      !everySegmentCompleted ||
+      this.#segmentBoundaryCount(sessionId, 'start') !== SUPPORTIVE_ARTIFACT_SEGMENT_IDS.length ||
+      this.#segmentBoundaryCount(sessionId, 'end') !== SUPPORTIVE_ARTIFACT_SEGMENT_IDS.length
     ) {
       throw new StudyRepositoryError('supportive-segments-incomplete', 409);
     }
@@ -754,7 +754,7 @@ export class StudyRepository {
     return bounds.endedAt - bounds.startedAt;
   }
 
-  #requireSegmentStart(sessionId: string, segmentId: 'S00' | 'S01'): void {
+  #requireSegmentStart(sessionId: string, segmentId: SupportiveArtifactSegmentId): void {
     this.#requireSupportiveArtifactActive(sessionId, 'segment-timing-not-supported');
     const starts = this.#segmentBoundaryCount(sessionId, 'start');
     const ends = this.#segmentBoundaryCount(sessionId, 'end');
@@ -762,22 +762,16 @@ export class StudyRepository {
       throw new StudyRepositoryError('segment-already-active', 409);
     }
 
-    if (segmentId === 'S00' && starts > 0) {
+    if (this.#segmentBoundaryCount(sessionId, 'start', segmentId) > 0) {
       throw new StudyRepositoryError('segment-start-already-recorded', 409);
     }
-    if (segmentId === 'S01') {
-      const s00Starts = this.#segmentBoundaryCount(sessionId, 'start', 'S00');
-      const s00Ends = this.#segmentBoundaryCount(sessionId, 'end', 'S00');
-      if (s00Starts !== 1 || s00Ends !== 1) {
-        throw new StudyRepositoryError('segment-start-required', 409);
-      }
-      if (starts > 1) {
-        throw new StudyRepositoryError('segment-start-already-recorded', 409);
-      }
+    const segmentIndex = SUPPORTIVE_ARTIFACT_SEGMENT_IDS.indexOf(segmentId);
+    if (starts !== segmentIndex || ends !== segmentIndex) {
+      throw new StudyRepositoryError('segment-start-required', 409);
     }
   }
 
-  #requireSegmentEnd(sessionId: string, segmentId: 'S00' | 'S01'): void {
+  #requireSegmentEnd(sessionId: string, segmentId: SupportiveArtifactSegmentId): void {
     this.#requireSupportiveArtifactActive(sessionId, 'segment-timing-not-supported');
     const starts = this.#segmentBoundaryCount(sessionId, 'start');
     const ends = this.#segmentBoundaryCount(sessionId, 'end');
@@ -789,10 +783,8 @@ export class StudyRepository {
     if (segmentEnds > 0) {
       throw new StudyRepositoryError('segment-end-already-recorded', 409);
     }
-    if (
-      (segmentId === 'S00' && (starts !== 1 || ends !== 0)) ||
-      (segmentId === 'S01' && (starts !== 2 || ends !== 1))
-    ) {
+    const segmentIndex = SUPPORTIVE_ARTIFACT_SEGMENT_IDS.indexOf(segmentId);
+    if (starts !== segmentIndex + 1 || ends !== segmentIndex) {
       throw new StudyRepositoryError('segment-start-required', 409);
     }
   }
@@ -800,7 +792,7 @@ export class StudyRepository {
   #segmentBoundaryCount(
     sessionId: string,
     eventType: 'start' | 'end',
-    segmentId?: 'S00' | 'S01',
+    segmentId?: SupportiveArtifactSegmentId,
   ): number {
     return countSchema.parse(
       this.#database

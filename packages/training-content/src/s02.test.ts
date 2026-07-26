@@ -1,54 +1,79 @@
 import { describe, expect, it } from 'vitest';
-import { S02_CAMPUS_ID_CONTENT_VERSION, type S02AnimationStep, s02CampusIdContent } from './s02.js';
+import { S02_CONTENT_VERSION, type S02AnimationStep, s02Content } from './s02.js';
 
-describe('S02 CampusID content', () => {
-  it('traces the versioned slice to the named script pages', () => {
-    expect(s02CampusIdContent.version).toBe(S02_CAMPUS_ID_CONTENT_VERSION);
-    expect(s02CampusIdContent.source).toEqual({
+describe('complete S02 content', () => {
+  it('traces the new version to all named script pages', () => {
+    expect(s02Content.version).toBe(S02_CONTENT_VERSION);
+    expect(s02Content.source).toEqual({
       document: 'research/private/training-script.pdf',
-      internalPages: [4, 5],
+      internalPages: [4, 5, 6, 7],
     });
-    expect(s02CampusIdContent.segment).toEqual({
-      id: 'S02',
-      sectionId: 'passwords',
-      slice: 'campus-id',
-    });
+    expect(s02Content.segment).toEqual({ id: 'S02', sectionId: 'passwords' });
   });
 
-  it('authores the three services in deterministic reveal order and positions', () => {
-    expect(s02CampusIdContent.scene.services.map(({ id, position }) => ({ id, position }))).toEqual(
-      [
-        { id: 'learnspace', position: { x: 0.59, y: 0.04 } },
-        { id: 'exam-portal', position: { x: 0.59, y: 0.38 } },
-        { id: 'cloud-notes', position: { x: 0.59, y: 0.72 } },
-      ],
-    );
-
-    const unlock = s02CampusIdContent.animations.find(
-      ({ id }) => id === s02CampusIdContent.scene.unlockAnimationId,
-    );
-    const reveals =
-      unlock?.steps.filter(
-        (step): step is Extract<S02AnimationStep, { readonly type: 'reveal' }> =>
-          step.type === 'reveal',
-      ) ?? [];
-    expect(reveals.map(({ targetId }) => targetId)).toEqual([
-      'learnspace',
-      'exam-portal',
-      'cloud-notes',
+  it('authors all three accounts and their required detail semantics', () => {
+    expect(
+      s02Content.scene.accounts.map(({ id, detailKind, edgeKind, details }) => ({
+        id,
+        detailKind,
+        edgeKind,
+        details: details.map(({ label }) => label),
+      })),
+    ).toEqual([
+      {
+        id: 'campus-id',
+        detailKind: 'service',
+        edgeKind: 'dependency',
+        details: ['LearnSpace', 'Prüfungsportal', 'Cloud Notes'],
+      },
+      {
+        id: 'campus-mail',
+        detailKind: 'function',
+        edgeKind: 'association',
+        details: [
+          'Benachrichtigungen',
+          'Bestätigungen',
+          'Zurücksetzungslinks',
+          'Kommunikation in deinem Namen',
+        ],
+      },
+      {
+        id: 'campus-board-archive',
+        detailKind: 'content',
+        edgeKind: null,
+        details: ['Alte Ankündigungen', 'Projektfragen', 'Archivierte Diskussionen'],
+      },
     ]);
-    expect(unlock?.reducedMotion).toEqual({
-      strategy: 'instant-end-state',
-      maxDurationMs: 0,
-    });
   });
 
-  it('uses the previews and completion marker from internal page 5', () => {
-    expect(s02CampusIdContent.scene.services.map(({ preview }) => preview)).toEqual([
-      'Kurszugänge, Vorlesungsunterlagen, Abgaben',
-      'Anmeldungen, Termine, Ergebnisübersichten',
-      'Notizen, Entwürfe, Arbeitsdateien, Projektmaterial',
-    ]);
-    expect(s02CampusIdContent.page.completion).toBe('CampusID verstanden');
+  it('uses the account- and item-specific CampusMail and CampusBoard explanations', () => {
+    expect(s02Content.narration.messages['s02.campus-mail.notifications']).toContain(
+      'Nachrichten, die im Studienalltag relevant sein können',
+    );
+    expect(s02Content.narration.messages['s02.campus-mail.reset-links']).toContain(
+      'Passwörter zurücksetzen',
+    );
+    expect(s02Content.narration.messages['s02.campus-board.old-announcements']).toBe(
+      'CampusBoard enthält hier ältere Ankündigungen und Informationen.',
+    );
+    expect(s02Content.narration.messages['s02.campus-board.archived-discussions']).toContain(
+      'keine weiteren Campusdienste',
+    );
+  });
+
+  it('gives every account an authored unlock sequence with the same reduced-motion end plan', () => {
+    for (const account of s02Content.scene.accounts) {
+      const unlock = s02Content.animations.find(({ id }) => id === account.unlockAnimationId);
+      const reveals =
+        unlock?.steps.filter(
+          (step): step is Extract<S02AnimationStep, { readonly type: 'reveal' }> =>
+            step.type === 'reveal',
+        ) ?? [];
+      expect(reveals.map(({ targetId }) => targetId)).toEqual(account.details.map(({ id }) => id));
+      expect(unlock?.reducedMotion).toEqual({
+        strategy: 'instant-end-state',
+        maxDurationMs: 0,
+      });
+    }
   });
 });

@@ -7,6 +7,10 @@ import {
 import { useEffect, useRef, useState } from 'react';
 import { S00Training } from './S00Training.js';
 import { S01Training } from './S01Training.js';
+import {
+  S02AccountExplorationTraining,
+  type S02TimingState,
+} from './segments/S02/S02AccountExplorationTraining.js';
 
 export interface PasswordModuleTrainingProps {
   readonly displayName: string;
@@ -62,12 +66,40 @@ export function PasswordModuleTraining({
   const controller = controllerRef.current;
   if (controller === null) return null;
 
+  if (snapshot.matches('s01')) {
+    return (
+      <S01Training
+        controller={controller}
+        snapshot={snapshot}
+        externalTimingError={externalTimingError}
+        {...(onRetryExternalTiming === undefined ? {} : { onRetryExternalTiming })}
+      />
+    );
+  }
+
+  const timingState: S02TimingState = snapshot.matches({ s02: 'starting' })
+    ? 'starting'
+    : snapshot.matches({ s02: 'startFailed' })
+      ? 'startFailed'
+      : snapshot.matches({ s02: 'ending' })
+        ? 'ending'
+        : snapshot.matches({ s02: 'endFailed' })
+          ? 'endFailed'
+          : 'active';
   return (
-    <S01Training
-      controller={controller}
-      snapshot={snapshot}
+    <S02AccountExplorationTraining
+      timingState={timingState}
+      timingErrorCode={snapshot.context.timingErrorCode}
       externalTimingError={externalTimingError}
-      {...(onRetryExternalTiming === undefined ? {} : { onRetryExternalTiming })}
+      onAllAccountsUnderstood={() => controller.completeS02Content()}
+      onContinue={() => controller.continue()}
+      onRetryTiming={() => {
+        if (externalTimingError !== null) {
+          onRetryExternalTiming?.();
+        } else {
+          controller.retryTiming();
+        }
+      }}
     />
   );
 }

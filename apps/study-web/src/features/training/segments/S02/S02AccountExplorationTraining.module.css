@@ -3,6 +3,7 @@
 }
 
 .page {
+  position: relative;
   display: flex;
   height: 100%;
   min-height: 100%;
@@ -17,7 +18,7 @@
   align-items: center;
   justify-content: space-between;
   gap: var(--space-5);
-  padding: var(--space-4) clamp(var(--space-5), 4vw, var(--space-8));
+  padding: var(--space-3) clamp(var(--space-5), 4vw, var(--space-8));
   border-bottom: var(--border-width-thin) solid var(--color-border-soft);
   background: var(--color-surface-primary);
 }
@@ -34,9 +35,10 @@
 }
 
 .pageInstruction {
-  margin: var(--space-2) 0 0;
+  max-width: 64ch;
+  margin: var(--space-1) 0 0;
   color: var(--color-ink-muted);
-  font-size: var(--font-size-small);
+  font-size: var(--font-size-x-small);
 }
 
 .eyebrow,
@@ -51,15 +53,13 @@
 
 .progressBlock {
   display: grid;
-  min-width: 12rem;
-  grid-template-columns: auto 1fr;
-  align-items: baseline;
-  gap: 0 var(--space-2);
+  min-width: 16rem;
+  gap: var(--space-1);
 }
 
 .progressBlock strong {
   color: var(--color-ink-strong);
-  font-size: var(--font-size-heading-small);
+  font-size: var(--font-size-small);
 }
 
 .progressBlock span {
@@ -71,8 +71,6 @@
 .progressBlock progress {
   width: 100%;
   height: var(--space-2);
-  grid-column: 1 / -1;
-  margin-top: var(--space-2);
   accent-color: var(--color-positive);
 }
 
@@ -80,7 +78,7 @@
   display: grid;
   min-height: 0;
   flex: 1;
-  grid-template-columns: minmax(0, 1fr) minmax(16rem, 21rem);
+  grid-template-columns: minmax(0, 1fr) minmax(17rem, 20rem);
 }
 
 .networkPanel {
@@ -96,15 +94,15 @@
   display: flex;
   min-width: 0;
   flex-direction: column;
-  gap: var(--space-4);
+  gap: var(--space-3);
   overflow-y: auto;
-  padding: var(--space-4);
+  padding: var(--space-3);
   background: var(--color-surface-primary);
 }
 
 .narration,
 .preview {
-  padding: var(--space-4);
+  padding: var(--space-3);
   border: var(--border-width-thin) solid var(--color-border);
   border-radius: var(--radius-medium);
   background: var(--color-surface-elevated);
@@ -115,7 +113,7 @@
 }
 
 .preview {
-  min-height: 9rem;
+  min-height: 7.5rem;
 }
 
 .sidebar h2 {
@@ -126,32 +124,100 @@
 .preview > p:last-child {
   margin: var(--space-2) 0 0;
   color: var(--color-ink-muted);
-  font-size: var(--font-size-small);
+  font-size: var(--font-size-x-small);
   line-height: var(--line-height-body);
 }
 
-.completion {
+.localStatus,
+.completion p {
   display: flex;
   align-items: center;
   gap: var(--space-2);
   margin: 0;
-  padding: var(--space-3);
-  border: var(--border-width-medium) solid var(--color-positive);
-  border-radius: var(--radius-small);
   color: var(--color-ink-strong);
-  background: var(--color-positive-soft);
-  font-size: var(--font-size-small);
+  font-size: var(--font-size-x-small);
   font-weight: var(--font-weight-heavy);
 }
 
-.completion span {
+.localStatus span,
+.completion p span {
   display: grid;
   width: var(--size-status-marker);
   height: var(--size-status-marker);
+  flex: 0 0 auto;
   place-items: center;
+  border: var(--border-width-thin) solid var(--color-positive);
   border-radius: var(--radius-round);
+  background: var(--color-positive-soft);
+}
+
+.completion {
+  display: grid;
+  gap: var(--space-3);
+  padding: var(--space-3);
+  border: var(--border-width-medium) solid var(--color-positive);
+  border-radius: var(--radius-small);
+  background: var(--color-positive-soft);
+}
+
+.completion button,
+.timingError button {
+  min-height: var(--size-control-large);
+  padding: var(--space-3) var(--space-4);
+  border: var(--border-width-medium) solid var(--color-surface-inverse);
+  border-radius: var(--radius-small);
   color: var(--color-on-inverse);
-  background: var(--color-positive);
+  background: var(--color-surface-inverse);
+  font: inherit;
+  font-weight: var(--font-weight-heavy);
+}
+
+.completion button:not(:disabled),
+.timingError button {
+  cursor: pointer;
+}
+
+.completion button:disabled {
+  cursor: not-allowed;
+  opacity: 0.58;
+}
+
+.completion button:focus-visible,
+.timingError button:focus-visible {
+  outline: var(--border-width-focus) solid var(--color-focus);
+  outline-offset: var(--space-1);
+  box-shadow: var(--shadow-focus);
+}
+
+.timingStatus {
+  position: absolute;
+  z-index: 5;
+  right: var(--space-4);
+  bottom: var(--space-4);
+  margin: 0;
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-small);
+  color: var(--color-ink-muted);
+  background: var(--color-surface-elevated);
+  font-size: var(--font-size-x-small);
+  box-shadow: var(--shadow-card);
+}
+
+.timingError {
+  position: absolute;
+  z-index: 6;
+  inset: auto var(--space-4) var(--space-4);
+  display: grid;
+  gap: var(--space-3);
+  padding: var(--space-4);
+  border: var(--border-width-medium) solid var(--color-warning);
+  border-radius: var(--radius-medium);
+  background: var(--color-warning-soft);
+  box-shadow: var(--shadow-card);
+}
+
+.timingError p {
+  margin: 0;
 }
 
 .screenReaderOnly {

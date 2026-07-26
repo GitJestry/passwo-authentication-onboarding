@@ -6,6 +6,10 @@ const s01TimingScope = {
   segmentId: 'S01',
   sectionId: 'passwords',
 } as const;
+const s02TimingScope = {
+  segmentId: 'S02',
+  sectionId: 'passwords',
+} as const;
 
 function timingErrorCode(error: unknown): string {
   return error instanceof Error && error.message.length > 0
@@ -67,21 +71,43 @@ export class PasswordModuleController {
   }
 
   continue(): void {
-    if (!this.#actor.getSnapshot().matches({ s01: 'configured' })) return;
-    this.#actor.send({ type: 'CONTINUE' });
-    void this.#recordS01End();
+    const snapshot = this.#actor.getSnapshot();
+    if (snapshot.matches({ s01: 'configured' })) {
+      this.#actor.send({ type: 'CONTINUE' });
+      void this.#recordS01End();
+      return;
+    }
+    if (snapshot.matches({ s02: 'active' }) && snapshot.context.s02ContentCompleted) {
+      this.#actor.send({ type: 'CONTINUE' });
+      void this.#recordS02End();
+    }
+  }
+
+  completeS02Content(): void {
+    if (!this.#actor.getSnapshot().matches({ s02: 'active' })) return;
+    this.#actor.send({ type: 'S02_CONTENT_COMPLETED' });
   }
 
   retryTiming(): void {
     const snapshot = this.#actor.getSnapshot();
     if (snapshot.matches({ s01: 'startFailed' })) {
       this.#actor.send({ type: 'RETRY_S01_START' });
-      void this.#retryS01Timing('segment-start');
+      void this.#retrySegmentTiming('S01', 'segment-start');
       return;
     }
     if (snapshot.matches({ s01: 'endFailed' })) {
       this.#actor.send({ type: 'RETRY_S01_END' });
-      void this.#retryS01Timing('segment-end');
+      void this.#retrySegmentTiming('S01', 'segment-end');
+      return;
+    }
+    if (snapshot.matches({ s02: 'startFailed' })) {
+      this.#actor.send({ type: 'RETRY_S02_START' });
+      void this.#retrySegmentTiming('S02', 'segment-start');
+      return;
+    }
+    if (snapshot.matches({ s02: 'endFailed' })) {
+      this.#actor.send({ type: 'RETRY_S02_END' });
+      void this.#retrySegmentTiming('S02', 'segment-end');
     }
   }
 
@@ -110,7 +136,7 @@ export class PasswordModuleController {
       await this.#recordTiming('segment-end');
       if (this.#disposed) return;
       this.#actor.send({ type: 'S01_END_RECORDED' });
-      this.#notifyComplete();
+      void this.#recordS02Start();
     } catch (error) {
       if (!this.#disposed) {
         this.#actor.send({ type: 'S01_END_FAILED', errorCode: timingErrorCode(error) });
@@ -118,32 +144,76 @@ export class PasswordModuleController {
     }
   }
 
-  async #retryS01Timing(eventType: SegmentTimingEvent['eventType']): Promise<void> {
+  async #recordS02Start(): Promise<void> {
+    try {
+      await this.#recordTiming('segment-start', s02TimingScope);
+      if (!this.#disposed) this.#actor.send({ type: 'S02_START_RECORDED' });
+    } catch (error) {
+      if (!this.#disposed) {
+        this.#actor.send({ type: 'S02_START_FAILED', errorCode: timingErrorCode(error) });
+      }
+    }
+  }
+
+  async #recordS02End(): Promise<void> {
+    try {
+      await this.#recordTiming('segment-end', s02TimingScope);
+      if (this.#disposed) return;
+      this.#actor.send({ type: 'S02_END_RECORDED' });
+      this.#notifyComplete();
+    } catch (error) {
+      if (!this.#disposed) {
+        this.#actor.send({ type: 'S02_END_FAILED', errorCode: timingErrorCode(error) });
+      }
+    }
+  }
+
+  async #retrySegmentTiming(
+    segmentId: 'S01' | 'S02',
+    eventType: SegmentTimingEvent['eventType'],
+  ): Promise<void> {
     try {
       if (this.#timingPort?.retry !== undefined) {
         await this.#timingPort.retry();
       } else {
-        await this.#recordTiming(eventType);
+        await this.#recordTiming(eventType, segmentId === 'S01' ? s01TimingScope : s02TimingScope);
       }
       if (this.#disposed) return;
       if (eventType === 'segment-start') {
-        this.#actor.send({ type: 'S01_START_RECORDED' });
+        this.#actor.send({
+          type: segmentId === 'S01' ? 'S01_START_RECORDED' : 'S02_START_RECORDED',
+        });
         return;
       }
-      this.#actor.send({ type: 'S01_END_RECORDED' });
+      if (segmentId === 'S01') {
+        this.#actor.send({ type: 'S01_END_RECORDED' });
+        void this.#recordS02Start();
+        return;
+      }
+      this.#actor.send({ type: 'S02_END_RECORDED' });
       this.#notifyComplete();
     } catch (error) {
       if (this.#disposed) return;
       this.#actor.send({
-        type: eventType === 'segment-start' ? 'S01_START_FAILED' : 'S01_END_FAILED',
+        type:
+          segmentId === 'S01'
+            ? eventType === 'segment-start'
+              ? 'S01_START_FAILED'
+              : 'S01_END_FAILED'
+            : eventType === 'segment-start'
+              ? 'S02_START_FAILED'
+              : 'S02_END_FAILED',
         errorCode: timingErrorCode(error),
       });
     }
   }
 
-  async #recordTiming(eventType: SegmentTimingEvent['eventType']): Promise<void> {
+  async #recordTiming(
+    eventType: SegmentTimingEvent['eventType'],
+    scope: Pick<SegmentTimingEvent, 'segmentId' | 'sectionId'> = s01TimingScope,
+  ): Promise<void> {
     if (this.#timingPort === undefined) return;
-    await this.#timingPort.record({ eventType, ...s01TimingScope });
+    await this.#timingPort.record({ eventType, ...scope });
   }
 
   #notifyComplete(): void {

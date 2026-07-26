@@ -10,10 +10,12 @@ Visibility- und Abort-Ereignisse. Der Server speichert sie idempotent und berech
 Dauern aus den Ereignissen.
 
 Für das supportive Artefakt werden diagnostische Segmentgrenzen in derselben Sequenzquelle wie
-Artefakt- und Visibility-Ereignisse geführt. S00 verwendet `phase=artifact`,
-`sectionId=passwords` und `segmentId=S00`: der Start hat keine Dauer, das Ende enthält die aus
-der monotonen Uhr berechnete Segmentdauer. Segmentgrenzen sind für Referenzsitzungen nicht
-zulässig; pro Sitzung darf nur ein Segment aktiv sein.
+Artefakt- und Visibility-Ereignisse geführt. Die kanonische implementierte Reihenfolge ist
+S00 → S01 → S02. Alle drei verwenden `phase=artifact`, `sectionId=passwords` und ihre jeweilige
+`segmentId`: der Start hat keine Dauer, das Ende enthält die aus der monotonen Uhr berechnete
+Segmentdauer. Segmentgrenzen sind für Referenzsitzungen nicht zulässig; pro Sitzung darf nur ein
+Segment aktiv sein. Ein Segmentstart ist erst nach dem erfolgreichen Ende des vorherigen Segments
+zulässig.
 
 ## Konsequenzen
 
@@ -22,5 +24,6 @@ zulässig; pro Sitzung darf nur ein Segment aktiv sein.
 - Wall-clock Zeit dient der Auditierbarkeit, nicht der Dauermessung.
 - Ein fehlgeschriebenes Segment-start verhindert den Segmentbeginn. Ein fehlgeschriebenes
   Segment-end verhindert den Übergang aus dem Segment, bis dieselbe sequenzierte Übertragung
-  wiederholt wurde. Animationsfehler bleiben davon unabhängig und nicht blockierend.
+  wiederholt wurde. Segment-end beendet die Artifact-Lease nicht. Animationsfehler bleiben davon
+  unabhängig und nicht blockierend.
 - Die bestehende `timing_events`-Tabelle exportiert Segmentereignisse ohne zusätzliche Felder.

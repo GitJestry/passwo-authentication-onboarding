@@ -9,6 +9,7 @@ import {
   placeholderResponseRequestSchema,
   REFERENCE_PLACEHOLDER_ARTIFACT_VERSION,
   researchExportManifestSchema,
+  SUPPORTIVE_ARTIFACT_SEGMENT_IDS,
   SUPPORTIVE_ARTIFACT_VERSION,
   studyTimingEventSchema,
 } from './index.js';
@@ -108,7 +109,7 @@ describe('research-safe contracts', () => {
     ).toBe(false);
   });
 
-  function supportiveSegmentStart(segmentId: 'S00' | 'S01') {
+  function supportiveSegmentStart(segmentId: (typeof SUPPORTIVE_ARTIFACT_SEGMENT_IDS)[number]) {
     return {
       sequence: 1,
       phase: 'artifact',
@@ -122,8 +123,10 @@ describe('research-safe contracts', () => {
     };
   }
 
-  it('accepts S01 start', () => {
+  it('defines and accepts the canonical implemented supportive segment order', () => {
+    expect(SUPPORTIVE_ARTIFACT_SEGMENT_IDS).toEqual(['S00', 'S01', 'S02']);
     expect(studyTimingEventSchema.safeParse(supportiveSegmentStart('S01')).success).toBe(true);
+    expect(studyTimingEventSchema.safeParse(supportiveSegmentStart('S02')).success).toBe(true);
   });
 
   it('accepts S01 end', () => {
@@ -139,7 +142,7 @@ describe('research-safe contracts', () => {
   it('rejects unknown supportive segment IDs', () => {
     const segmentStart = supportiveSegmentStart('S00');
 
-    expect(studyTimingEventSchema.safeParse({ ...segmentStart, segmentId: 'S02' }).success).toBe(
+    expect(studyTimingEventSchema.safeParse({ ...segmentStart, segmentId: 'S03' }).success).toBe(
       false,
     );
     expect(

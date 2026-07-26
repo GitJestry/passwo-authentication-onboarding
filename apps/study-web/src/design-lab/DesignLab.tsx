@@ -11,7 +11,7 @@ import {
 } from '@passwo/ui';
 import { useState } from 'react';
 import { S00Training } from '../features/training/S00Training.js';
-import { S02CampusIdTraining } from '../features/training/segments/S02/S02CampusIdTraining.js';
+import { S02AccountExplorationTraining } from '../features/training/segments/S02/S02AccountExplorationTraining.js';
 import { S06ConsequenceTraining } from '../features/training/segments/S06/S06ConsequenceTraining.js';
 import styles from './DesignLab.module.css';
 
@@ -132,8 +132,8 @@ const scenarios: Record<DesignLabScenarioId, DesignLabScenario> = {
     showPassWoOverlay: false,
   },
   's02-campus-id': {
-    label: 'S02 CampusID',
-    description: 'CampusID und drei authored verbundene Dienste als React-Flow-Adapter.',
+    label: 'S02 Konten',
+    description: 'Vollständige Kontenerkundung mit drei Konten und ihrem freien Fortschritt.',
     dimmed: false,
     showPassWoOverlay: false,
   },
@@ -344,7 +344,7 @@ export function DesignLab({ scenarioId }: { readonly scenarioId: DesignLabScenar
     return (
       <main className={styles.labPage}>
         <DesignLabIntroduction scenarioId={scenarioId} scenario={scenario} />
-        <S02CampusIdTraining />
+        <S02AccountExplorationTraining />
       </main>
     );
   }

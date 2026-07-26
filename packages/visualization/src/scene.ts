@@ -1,4 +1,10 @@
-export type SceneNodeKind = 'account' | 'service' | 'function' | 'shield' | 'annotation';
+export type SceneNodeKind =
+  | 'account'
+  | 'service'
+  | 'function'
+  | 'content'
+  | 'shield'
+  | 'annotation';
 
 export type SceneNodeStatus =
   | 'neutral'
@@ -12,6 +18,7 @@ export type SceneNodeStatus =
 
 export type SceneEdgeKind =
   | 'dependency'
+  | 'association'
   | 'check'
   | 'identical-reuse'
   | 'similar-pattern'

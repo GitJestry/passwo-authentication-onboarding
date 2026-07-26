@@ -4,6 +4,7 @@ export interface PasswordModuleContext {
   readonly accountIds: readonly string[];
   readonly activeAccountId: string | null;
   readonly passwordValues: Readonly<Record<string, string>>;
+  readonly s02ContentCompleted: boolean;
   readonly timingErrorCode: string | null;
 }
 
@@ -27,6 +28,13 @@ export type PasswordModuleEvent =
   | { readonly type: 'S01_END_RECORDED' }
   | { readonly type: 'S01_END_FAILED'; readonly errorCode: string }
   | { readonly type: 'RETRY_S01_END' }
+  | { readonly type: 'S02_START_RECORDED' }
+  | { readonly type: 'S02_START_FAILED'; readonly errorCode: string }
+  | { readonly type: 'RETRY_S02_START' }
+  | { readonly type: 'S02_CONTENT_COMPLETED' }
+  | { readonly type: 'S02_END_RECORDED' }
+  | { readonly type: 'S02_END_FAILED'; readonly errorCode: string }
+  | { readonly type: 'RETRY_S02_END' }
   | { readonly type: 'DISCARD' };
 
 function emptyPasswordValues(accountIds: readonly string[]): Record<string, string> {
@@ -44,12 +52,16 @@ export const passwordModuleMachine = setup({
   guards: {
     hasAllPasswordValues: ({ context }) =>
       context.accountIds.every((accountId) => (context.passwordValues[accountId] ?? '').length > 0),
+    hasCompletedS02Content: ({ context }) => context.s02ContentCompleted,
   },
   actions: {
     clearTimingError: assign({ timingErrorCode: () => null }),
     storeTimingError: assign({
       timingErrorCode: ({ event }) =>
-        event.type === 'S01_START_FAILED' || event.type === 'S01_END_FAILED'
+        event.type === 'S01_START_FAILED' ||
+        event.type === 'S01_END_FAILED' ||
+        event.type === 'S02_START_FAILED' ||
+        event.type === 'S02_END_FAILED'
           ? event.errorCode
           : null,
     }),
@@ -65,6 +77,7 @@ export const passwordModuleMachine = setup({
     discardPasswordValues: assign({
       passwordValues: ({ context }) => emptyPasswordValues(context.accountIds),
     }),
+    markS02ContentCompleted: assign({ s02ContentCompleted: () => true }),
   },
 }).createMachine({
   id: 'passwordModule',
@@ -73,6 +86,7 @@ export const passwordModuleMachine = setup({
     accountIds: [...input.accountIds],
     activeAccountId: input.accountIds[0] ?? null,
     passwordValues: emptyPasswordValues(input.accountIds),
+    s02ContentCompleted: false,
     timingErrorCode: null,
   }),
   on: {
@@ -110,7 +124,7 @@ export const passwordModuleMachine = setup({
         ending: {
           on: {
             SELECT_ACCOUNT: { actions: 'selectAccount' },
-            S01_END_RECORDED: { target: '#passwordModule.complete' },
+            S01_END_RECORDED: { target: '#passwordModule.s02.starting' },
             S01_END_FAILED: { target: 'endFailed', actions: 'storeTimingError' },
           },
         },
@@ -119,6 +133,39 @@ export const passwordModuleMachine = setup({
             SELECT_ACCOUNT: { actions: 'selectAccount' },
             RETRY_S01_END: { target: 'ending', actions: 'clearTimingError' },
           },
+        },
+      },
+    },
+    s02: {
+      initial: 'starting',
+      states: {
+        starting: {
+          on: {
+            S02_START_RECORDED: { target: 'active', actions: 'clearTimingError' },
+            S02_START_FAILED: { target: 'startFailed', actions: 'storeTimingError' },
+          },
+        },
+        startFailed: {
+          on: { RETRY_S02_START: { target: 'starting', actions: 'clearTimingError' } },
+        },
+        active: {
+          on: {
+            S02_CONTENT_COMPLETED: { actions: 'markS02ContentCompleted' },
+            CONTINUE: {
+              guard: 'hasCompletedS02Content',
+              target: 'ending',
+              actions: 'clearTimingError',
+            },
+          },
+        },
+        ending: {
+          on: {
+            S02_END_RECORDED: { target: '#passwordModule.complete' },
+            S02_END_FAILED: { target: 'endFailed', actions: 'storeTimingError' },
+          },
+        },
+        endFailed: {
+          on: { RETRY_S02_END: { target: 'ending', actions: 'clearTimingError' } },
         },
       },
     },

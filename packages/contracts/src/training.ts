@@ -1,7 +1,10 @@
 import { z } from 'zod';
 
-export const SUPPORTIVE_ARTIFACT_VERSION = 'supportive-s00-s01-1.0.0';
+export const SUPPORTIVE_ARTIFACT_VERSION = 'supportive-s00-s02-1.0.0';
 export const REFERENCE_PLACEHOLDER_ARTIFACT_VERSION = 'reference-placeholder-v1';
+
+export const SUPPORTIVE_ARTIFACT_SEGMENT_IDS = ['S00', 'S01', 'S02'] as const;
+export type SupportiveArtifactSegmentId = (typeof SUPPORTIVE_ARTIFACT_SEGMENT_IDS)[number];
 
 export const segmentIds = [
   'S00',

@@ -223,6 +223,32 @@ async function failFirstS01TimingWrite(page: Page, eventType: 'start' | 'end'): 
   });
 }
 
+async function failFirstS02TimingWrite(page: Page, eventType: 'start' | 'end'): Promise<void> {
+  let failed = false;
+  await page.route('**/api/study/sessions/*/timing', async (route) => {
+    const body: unknown = route.request().postDataJSON();
+    const isS02Boundary =
+      typeof body === 'object' &&
+      body !== null &&
+      'eventType' in body &&
+      body.eventType === eventType &&
+      'sectionId' in body &&
+      body.sectionId === 'passwords' &&
+      'segmentId' in body &&
+      body.segmentId === 'S02';
+
+    if (!failed && isS02Boundary) {
+      failed = true;
+      await route.fulfill({
+        status: 503,
+        json: { errorCode: `s02-segment-${eventType}-write-failed` },
+      });
+      return;
+    }
+    await route.continue();
+  });
+}
+
 async function acceptConsent(page: Page) {
   await page.goto('/');
   await page.getByLabel('Ich bestätige die Einwilligung').check();
@@ -270,9 +296,42 @@ async function completeS01(page: Page): Promise<void> {
   await page.getByRole('button', { name: 'Weiter' }).click();
 }
 
+async function completeS02(page: Page): Promise<void> {
+  await page.emulateMedia({ reducedMotion: 'reduce' });
+  await expect(page.getByRole('heading', { name: 'Was hängt an deinen Konten?' })).toBeVisible();
+  const accounts = [
+    {
+      name: 'CampusMail',
+      details: [
+        'Benachrichtigungen',
+        'Bestätigungen',
+        'Zurücksetzungslinks',
+        'Kommunikation in deinem Namen',
+      ],
+    },
+    {
+      name: 'CampusBoard Archiv',
+      details: ['Alte Ankündigungen', 'Projektfragen', 'Archivierte Diskussionen'],
+    },
+    {
+      name: 'CampusID',
+      details: ['LearnSpace', 'Prüfungsportal', 'Cloud Notes'],
+    },
+  ] as const;
+  for (const account of accounts) {
+    await page.getByRole('button', { name: new RegExp(`^${account.name}\\.`) }).click();
+    for (const detail of account.details) {
+      await page.getByRole('button', { name: new RegExp(`^${detail}\\.`) }).click();
+    }
+  }
+  await expect(page.getByText('Konten verstehen: 3/3 angesehen')).toBeVisible();
+  await page.getByRole('button', { name: 'Weiter' }).click();
+}
+
 async function completePasswordModule(page: Page): Promise<void> {
   await completeS00(page);
   await completeS01(page);
+  await completeS02(page);
 }
 
 test('forced-supportive completes and visibly blocks a failed research write', async ({ page }) => {
@@ -320,6 +379,22 @@ test('forced-supportive completes and visibly blocks a failed research write', a
       phase: 'artifact',
       sectionId: 'passwords',
       segmentId: 'S01',
+      eventType: 'end',
+      elapsedMs: expect.any(Number),
+    }),
+  ]);
+  expect(timingEvents(requests.bodies).filter(({ segmentId }) => segmentId === 'S02')).toEqual([
+    expect.objectContaining({
+      phase: 'artifact',
+      sectionId: 'passwords',
+      segmentId: 'S02',
+      eventType: 'start',
+      elapsedMs: null,
+    }),
+    expect.objectContaining({
+      phase: 'artifact',
+      sectionId: 'passwords',
+      segmentId: 'S02',
       eventType: 'end',
       elapsedMs: expect.any(Number),
     }),
@@ -397,6 +472,11 @@ test('supportive S00 to S01 keeps fictitious values local and supports keyboard 
   await page.keyboard.press('Tab');
   await expect(page.getByRole('button', { name: 'Weiter' })).toBeFocused();
   await page.keyboard.press('Enter');
+  await expect(page.getByRole('heading', { name: 'Was hängt an deinen Konten?' })).toBeVisible();
+  expect(await page.locator('body').innerText()).not.toContain(archiveValue);
+  expect(await page.locator('body').innerText()).not.toContain('mail !?');
+  expect(await page.locator('body').innerText()).not.toContain('id !?');
+  await completeS02(page);
   await finishAfterArtifact(page);
 
   expect(requests.bodies.join('\n')).not.toContain(archiveValue);
@@ -418,6 +498,7 @@ test('retries failed S01 start and end timing writes with the same payload', asy
   await page.getByRole('button', { name: 'Erneut versuchen' }).click();
   await configureS01(page);
   await page.getByRole('button', { name: 'Weiter' }).click();
+  await completeS02(page);
   await finishAfterArtifact(page);
 
   const segmentStarts = timingEvents(requests.bodies).filter(
@@ -442,10 +523,59 @@ test('retries a failed S01 end before ending the artifact', async ({ page }) => 
   await expect(page.getByText('Fehlercode: s01-segment-end-write-failed')).toBeVisible();
   await expect(page.getByRole('heading', { name: 'Fragebogen nach dem Artefakt' })).toHaveCount(0);
   await page.getByRole('button', { name: 'Erneut versuchen' }).click();
+  await completeS02(page);
   await finishAfterArtifact(page);
 
   const segmentEnds = timingEvents(requests.bodies).filter(
     ({ segmentId, eventType }) => segmentId === 'S01' && eventType === 'end',
+  );
+  expect(segmentEnds).toHaveLength(2);
+  expect(segmentEnds[0]).toEqual(segmentEnds[1]);
+});
+
+test('retries failed S02 start and end writes with the same payload', async ({ page }) => {
+  await startStudyServer('forced-supportive');
+  const requests = captureResearchRequests(page);
+  await failFirstS02TimingWrite(page, 'start');
+  await acceptConsent(page);
+  await submitPlaceholder(page);
+  await page.getByLabel('Anzeigename').fill('S02 Timing Retry');
+  await page.getByRole('button', { name: 'Zum Artefakt' }).click();
+  await completeS00(page);
+  await completeS01(page);
+
+  await expect(page.getByText('Fehlercode: s02-segment-start-write-failed')).toBeVisible();
+  await expect(page.getByRole('button', { name: /^CampusID\./ })).toBeDisabled();
+  await page.getByRole('button', { name: 'Erneut versuchen' }).click();
+  await completeS02(page);
+  await finishAfterArtifact(page);
+
+  const segmentStarts = timingEvents(requests.bodies).filter(
+    ({ segmentId, eventType }) => segmentId === 'S02' && eventType === 'start',
+  );
+  expect(segmentStarts).toHaveLength(2);
+  expect(segmentStarts[0]).toEqual(segmentStarts[1]);
+});
+
+test('blocks completion while S02 end fails and retries the same end payload', async ({ page }) => {
+  await startStudyServer('forced-supportive');
+  const requests = captureResearchRequests(page);
+  await failFirstS02TimingWrite(page, 'end');
+  await acceptConsent(page);
+  await submitPlaceholder(page);
+  await page.getByLabel('Anzeigename').fill('S02 End Retry');
+  await page.getByRole('button', { name: 'Zum Artefakt' }).click();
+  await completeS00(page);
+  await completeS01(page);
+  await completeS02(page);
+
+  await expect(page.getByText('Fehlercode: s02-segment-end-write-failed')).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Fragebogen nach dem Artefakt' })).toHaveCount(0);
+  await page.getByRole('button', { name: 'Erneut versuchen' }).click();
+  await finishAfterArtifact(page);
+
+  const segmentEnds = timingEvents(requests.bodies).filter(
+    ({ segmentId, eventType }) => segmentId === 'S02' && eventType === 'end',
   );
   expect(segmentEnds).toHaveLength(2);
   expect(segmentEnds[0]).toEqual(segmentEnds[1]);
@@ -488,6 +618,8 @@ test('forced-supportive records diagnostic visibility only while the artifact is
       'end',
       'start',
       'end',
+      'start',
+      'end',
       'end',
     ]);
   expect(
@@ -505,7 +637,9 @@ test('forced-supportive records diagnostic visibility only while the artifact is
     { sequence: 4, sectionId: 'passwords', segmentId: 'S00', eventType: 'end' },
     { sequence: 5, sectionId: 'passwords', segmentId: 'S01', eventType: 'start' },
     { sequence: 6, sectionId: 'passwords', segmentId: 'S01', eventType: 'end' },
-    { sequence: 7, sectionId: null, segmentId: null, eventType: 'end' },
+    { sequence: 7, sectionId: 'passwords', segmentId: 'S02', eventType: 'start' },
+    { sequence: 8, sectionId: 'passwords', segmentId: 'S02', eventType: 'end' },
+    { sequence: 9, sectionId: null, segmentId: null, eventType: 'end' },
   ]);
 });
 
@@ -531,6 +665,7 @@ test('failed visibility blocks completion and retries the same timing payload', 
 
   await page.getByRole('button', { name: 'Erneut versuchen' }).click();
   await completeS01(page);
+  await completeS02(page);
   await expect(page.getByRole('heading', { name: 'Fragebogen nach dem Artefakt' })).toBeVisible();
   await expect
     .poll(() => timingEventTypes(requests.bodies))
@@ -539,6 +674,8 @@ test('failed visibility blocks completion and retries the same timing payload', 
       'start',
       'visibility-hidden',
       'visibility-hidden',
+      'end',
+      'start',
       'end',
       'start',
       'end',
@@ -559,7 +696,7 @@ test('failed visibility blocks completion and retries the same timing payload', 
   });
   expect(timingBodies[2]).toEqual(timingBodies[3]);
   expect(timingBodies.map((body) => ('sequence' in body ? body.sequence : null))).toEqual([
-    0, 1, 2, 2, 3, 4, 5, 6,
+    0, 1, 2, 2, 3, 4, 5, 6, 7, 8,
   ]);
 });
 
@@ -603,6 +740,7 @@ test('retries a failed S00 segment end before leaving the segment', async ({ pag
   await expect(page.getByRole('heading', { name: 'Fragebogen nach dem Artefakt' })).toHaveCount(0);
   await page.getByRole('button', { name: 'Erneut versuchen' }).click();
   await completeS01(page);
+  await completeS02(page);
   await finishAfterArtifact(page);
 
   const segmentEnds = timingEvents(requests.bodies).filter(

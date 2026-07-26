@@ -309,95 +309,105 @@ test('S00 reduced motion and an adapter failure both reach the actionable end st
   await expect(page.getByRole('button', { name: 'Weiter' })).toBeEnabled();
 });
 
-test('S02 CampusID reveals authored services in order and completes after all previews', async ({
+test('S02 shows all accounts, keeps free-order partial progress, and restores an account', async ({
   page,
 }) => {
   await page.goto('/design-lab/s02-campus-id');
 
   const campusId = page.getByRole('button', { name: /^CampusID\./ });
-  const learnSpace = page.getByRole('button', { name: /^LearnSpace\./ });
-  const examPortal = page.getByRole('button', { name: /^Prüfungsportal\./ });
-  const cloudNotes = page.getByRole('button', { name: /^Cloud Notes\./ });
-  const completion = page.getByText('CampusID verstanden', { exact: true });
+  const campusMail = page.getByRole('button', { name: /^CampusMail\./ });
+  const campusBoard = page.getByRole('button', { name: /^CampusBoard Archiv\./ });
 
   await expect(campusId).toBeVisible();
-  await expect(learnSpace).toHaveCount(0);
-  await expect(completion).toHaveCount(0);
+  await expect(campusMail).toBeVisible();
+  await expect(campusBoard).toBeVisible();
+  await expect(page.getByRole('button', { name: /^LearnSpace\./ })).toHaveCount(0);
+  await expect(page.getByText('Konten verstehen: 0/3 angesehen')).toBeVisible();
 
-  await page.evaluate(() => {
-    const revealOrder: string[] = [];
-    Reflect.set(window, '__s02RevealOrder', revealOrder);
-    const observer = new MutationObserver(() => {
-      for (const serviceId of ['learnspace', 'exam-portal', 'cloud-notes']) {
-        const button = document.querySelector<HTMLElement>(
-          `[data-scene-node-button="${serviceId}"]`,
-        );
-        if (
-          button !== null &&
-          getComputedStyle(button).visibility !== 'hidden' &&
-          !revealOrder.includes(serviceId)
-        ) {
-          revealOrder.push(serviceId);
-        }
-      }
-    });
-    observer.observe(document.body, {
-      attributes: true,
-      childList: true,
-      subtree: true,
-    });
-  });
+  await campusMail.press('Enter');
+  await expect(page.getByRole('button', { name: /^Benachrichtigungen\./ })).toBeFocused();
+  await page.getByRole('button', { name: /^Benachrichtigungen\./ }).press('Enter');
+  await expect(page.getByText('Neue Kursnachricht, Terminänderung, Systemhinweis')).toBeVisible();
+  await page.getByRole('button', { name: /^Bestätigungen\./ }).click();
+  await expect(page.getByText('CampusMail: 2/4 Details angesehen').first()).toBeVisible();
 
   await campusId.click();
-  await expect(learnSpace).toBeVisible();
-  await expect(examPortal).toBeVisible();
-  await expect(cloudNotes).toBeVisible();
-  expect(await page.evaluate(() => Reflect.get(window, '__s02RevealOrder'))).toEqual([
-    'learnspace',
-    'exam-portal',
-    'cloud-notes',
-  ]);
-  await expect(learnSpace).toBeFocused();
-
-  await learnSpace.press('Enter');
-  await expect(page.getByText('CampusID wird geprüft …', { exact: true })).toBeVisible();
-  await expect(page.getByRole('progressbar')).toHaveAttribute('value', '1');
-  await expect(
-    page.getByText('Kurszugänge, Vorlesungsunterlagen, Abgaben', { exact: true }),
-  ).toBeVisible();
-  await expect(completion).toHaveCount(0);
-
-  await examPortal.click();
-  await expect(
-    page.getByText('Anmeldungen, Termine, Ergebnisübersichten', { exact: true }),
-  ).toBeVisible();
-  await expect(page.getByRole('progressbar')).toHaveAttribute('value', '2');
-  await expect(completion).toHaveCount(0);
-
-  await cloudNotes.click();
-  await expect(
-    page.getByText('Notizen, Entwürfe, Arbeitsdateien, Projektmaterial', { exact: true }),
-  ).toBeVisible();
-  await expect(completion).toBeVisible();
-  await expect(page.getByLabel('3 von 3 Vorschauen geöffnet')).toHaveAttribute('value', '3');
-  await expect(campusId).toHaveAccessibleName(/Status: Verstanden/);
-  await expect(page.getByText('Mit CampusID geöffnet', { exact: true })).toHaveCount(3);
+  await page.getByRole('button', { name: /^LearnSpace\./ }).click();
+  await expect(page.getByText('CampusID: 1/3 Details angesehen').first()).toBeVisible();
+  await campusMail.click();
+  await expect(page.getByText('CampusMail: 2/4 Details angesehen').first()).toBeVisible();
+  await expect(page.getByText('Bestätigung für Anmeldung oder Änderung')).toBeVisible();
 });
 
-test('S02 CampusID reduced motion reaches the same logical end state', async ({ page }) => {
+test('S02 completes CampusID 3/3, CampusMail 4/4, and CampusBoard 3/3 without Board edges', async ({
+  page,
+}) => {
   await page.emulateMedia({ reducedMotion: 'reduce' });
   await page.goto('/design-lab/s02-campus-id');
 
-  await page.getByRole('button', { name: /^CampusID\./ }).click();
-  for (const serviceName of ['LearnSpace', 'Prüfungsportal', 'Cloud Notes']) {
-    await page.getByRole('button', { name: new RegExp(`^${serviceName}\\.`) }).click();
+  const accounts = [
+    {
+      name: 'CampusID',
+      detailNames: ['LearnSpace', 'Prüfungsportal', 'Cloud Notes'],
+      localStatus: 'CampusID: 3/3 Details angesehen',
+    },
+    {
+      name: 'CampusMail',
+      detailNames: [
+        'Benachrichtigungen',
+        'Bestätigungen',
+        'Zurücksetzungslinks',
+        'Kommunikation in deinem Namen',
+      ],
+      localStatus: 'CampusMail: 4/4 Details angesehen',
+    },
+    {
+      name: 'CampusBoard Archiv',
+      detailNames: ['Alte Ankündigungen', 'Projektfragen', 'Archivierte Diskussionen'],
+      localStatus: 'CampusBoard Archiv: 3/3 Details angesehen',
+    },
+  ] as const;
+
+  await expect(page.getByRole('button', { name: 'Weiter' })).toHaveCount(0);
+  for (const account of accounts) {
+    const accountButton = page.getByRole('button', {
+      name: new RegExp(`^${account.name.replace(' ', '\\s')}\\.`),
+    });
+    await accountButton.click();
+    for (const detailName of account.detailNames) {
+      await page
+        .getByRole('button', { name: new RegExp(`^${detailName.replace(' ', '\\s')}\\.`) })
+        .click();
+    }
+    await expect(page.getByText(account.localStatus).first()).toBeVisible();
+    await expect(accountButton).toHaveAccessibleName(/Status: Verstanden/);
+    if (account.name === 'CampusMail') {
+      await expect(
+        page.getByText(
+          'CampusMail ist die Brücke zu persönlichen Informationen, Zurücksetzungen und Kommunikation in deinem Namen.',
+        ),
+      ).toBeVisible();
+    }
+    if (account.name === 'CampusBoard Archiv') {
+      await expect(page.locator('.react-flow__edge')).toHaveCount(0);
+    }
   }
 
-  await expect(page.getByText('CampusID verstanden', { exact: true })).toBeVisible();
-  await expect(page.getByLabel('3 von 3 Vorschauen geöffnet')).toHaveAttribute('value', '3');
-  await expect(page.getByRole('button', { name: /^CampusID\./ })).toHaveAccessibleName(
-    /Status: Verstanden/,
-  );
+  await expect(page.getByText('Konten verstehen: 3/3 angesehen')).toBeVisible();
+  await expect(page.getByText('Alle drei Konten verstanden')).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Weiter' })).toBeEnabled();
+  await expect(
+    page
+      .getByText(
+        'CampusBoard öffnet hier keine weiteren Campusdienste und wird für typische Informationssammlung genutzt.',
+        { exact: false },
+      )
+      .first(),
+  ).toBeVisible();
+  const results = await new AxeBuilder({ page }).analyze();
+  expect(
+    results.violations.filter(({ impact }) => impact === 'serious' || impact === 'critical'),
+  ).toEqual([]);
 });
 
 const s06Expectations = [
