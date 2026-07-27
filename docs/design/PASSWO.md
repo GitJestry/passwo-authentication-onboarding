@@ -23,10 +23,15 @@ Ein Renderer übersetzt diese IDs in PNG-, SVG- oder Rive-Assets.
 
 ## Platzierungen
 
-- `center-stage`: Einführung oder zentraler Wendepunkt;
-- `dock-bottom-left`: dauerhaft verfügbare Hilfe und Taskstatus;
-- `near-target`: kurze Erklärung direkt an Knoten/Element;
-- `offstage-right`: Start-/Endpunkt einer Flugbewegung.
+Die Runtime verwendet ausschließlich die IDs von `PassWoPlacement`:
+
+- `center`: Einführung oder zentraler Wendepunkt;
+- `bottom-left`: dauerhaft verfügbare Hilfe und Taskstatus;
+- `focused-node`: kurze Erklärung direkt an Knoten oder Element;
+- `offscreen-right`: Start- oder Endpunkt einer Flugbewegung.
+
+`offscreen-left` und `bottom-right` bleiben für passende künftige Szenen reservierte
+Placement-IDs; neue Bezeichnungen außerhalb des Contracts werden nicht eingeführt.
 
 ## Sprechprotokoll
 

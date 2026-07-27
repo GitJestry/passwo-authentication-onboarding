@@ -6,7 +6,7 @@ Zusätzlich zur globalen `AGENTS.md` gilt:
 - Anzeigename und Trainingsinputs bleiben flüchtig; keine Browser-Persistenz.
 - React-Komponenten rendern Statechart-/Scene-Snapshots und enthalten keinen versteckten Ablauf.
 - Im Web-Client werden externe Inhalte nicht eingebettet. Ausschließlich der deterministisch
-  generierte lokale SecAware-Study-Build darf gemäß ADR 0008 same-origin und sandboxed
+  generierte lokale SecAware-Study-Build darf gemäß `ADR 0008-Reference` same-origin und sandboxed
   eingebettet werden. Die zwölf eingefrorenen Zusatz-IDs dürfen gemäß ADR 0009 ausschließlich in
   einem isolierten Desktop-`WebContentsView` außerhalb des Web-Clients geöffnet werden.
 - Das SecAware-iframe darf keine Popups, Top-Level-Navigation, Downloads oder Formübertragungen

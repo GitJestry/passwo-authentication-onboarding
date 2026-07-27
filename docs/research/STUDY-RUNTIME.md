@@ -11,9 +11,9 @@ Sie ist methodisch getrennt von der Training Runtime und kennt keine fiktiven Pa
 Consent
 → Session serverseitig anlegen und Condition verdeckt zuweisen
 → Pre-Fragebogen
-→ flüchtigen Anzeigenamen erfassen
+→ nur in der supportive Bedingung flüchtigen Anzeigenamen erfassen
 → supportive oder reference Artefakt
-→ Anzeigenamen löschen
+→ nach dem supportive Artefakt Anzeigenamen löschen
 → Post-Fragebogen
 → Understanding Guardrails
 → Debrief
@@ -26,8 +26,8 @@ als erfolgreich zu markieren.
 
 ## Zustandsgrenzen
 
-- `displayName` existiert ausschließlich im flüchtigen Electron-Rendererkontext und wird nie an
-  die API gesendet.
+- `displayName` existiert nur in der supportive Bedingung und ausschließlich im flüchtigen
+  Electron-Rendererkontext; es wird nie an die API gesendet.
 - Fiktive Passwörter und deren Analysen existieren nur in der Training Runtime im flüchtigen
   Renderer-Arbeitsspeicher.
 - Condition, pseudonymer Code, Versionen, Antworten, Timing und Abschlussstatus liegen serverseitig.

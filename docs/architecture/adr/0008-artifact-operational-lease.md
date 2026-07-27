@@ -2,6 +2,7 @@
 
 - **Status:** Accepted
 - **Datum:** 2026-07-25
+- **Citation label:** `ADR 0008-Lease`
 
 ## Entscheidung
 

@@ -49,7 +49,7 @@ Renderers und bilden keine eigene Auslieferungsplattform.
 **Gate:** Netzwerkzustände werden nur durch Domänenereignisse verändert; keine React-Flow-Typen
 lecken in Content oder Engine.
 
-## M4 — Passwortmodul S00–S11 (nächster Meilenstein)
+## M4 — Verbleibendes Passwortmodul S03–S11 (nächster Meilenstein)
 
 - Passwortanalyse als reine, simulationsspezifische Heuristik.
 - Abrufbarkeit, Leak, drei Angriffswege, Ähnlichkeit, Diagnose, Wortmethode und Skalierungsbrücke.

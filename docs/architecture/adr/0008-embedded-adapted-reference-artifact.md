@@ -2,6 +2,7 @@
 
 - **Status:** Accepted
 - **Datum:** 2026-07-26
+- **Citation label:** `ADR 0008-Reference`
 - **Ersetzt:** ADR 0006 für die Study Runtime
 - **Ergänzt durch:** ADR 0009 für Desktop Runtime und Zusatznavigation
 

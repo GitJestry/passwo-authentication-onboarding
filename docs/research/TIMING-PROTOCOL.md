@@ -38,8 +38,9 @@ Doppelübermittlung durch `UNIQUE(session_id, sequence)`.
 - Timer werden durch Statechart-Transitions gestartet und beendet.
 - Eine sichtbare Stoppuhr ist nicht vorgesehen.
 - Animationen und Dialoge dürfen den Timer nicht selbst steuern.
-- Im Referenzpfad ist der Studien-Tab während der externen Bearbeitung erwartungsgemäß verborgen;
-  diese Zeit wird nicht als Inaktivität abgezogen.
+- Im Referenzpfad läuft der Study Build same-origin in einem sandboxed iframe. Ein isolierter
+  Desktop-Viewer kann nur eingefrorene Zusatzlinks öffnen; weder iframe noch Viewer verändern die
+  globale Artefaktzeit oder erzeugen Referenz-Segmentzeiten.
 - Im PassWo-Pfad werden verborgene Intervalle diagnostisch markiert, aber die primäre Wall-Clock
   läuft weiter.
 

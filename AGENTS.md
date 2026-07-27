@@ -15,9 +15,10 @@ Wähle danach nur die zum Auftrag passenden Quellen:
 
 - Toolchain, Workspace und Build: `README.md` und ADR 0001.
 - Study Runtime, Persistenz und Export: `docs/research/STUDY-RUNTIME.md`,
-  `docs/research/DATA-CONTRACT.md` und die einschlägigen ADRs 0002–0005 und 0008.
+  `docs/research/DATA-CONTRACT.md`, die einschlägigen ADRs 0002–0005 sowie die beiden
+  Entscheidungen `ADR 0008-Lease` und `ADR 0008-Reference` aus dem ADR-Index.
 - Timing, Zuweisung oder Referenzbedingung: das gleichnamige Dokument unter `docs/research/`
-  sowie ADR 0004, 0005 beziehungsweise 0008.
+  sowie ADR 0004, 0005 beziehungsweise `ADR 0008-Reference` aus dem ADR-Index.
 - BrowserShell, PassWo, Animation oder Knotennetzwerk: das einschlägige Dokument unter
   `docs/design/` sowie ADR 0003 und 0007.
 - Teilnehmertexte und Segmente: `research/derived/segment-index.md` und die
@@ -69,7 +70,7 @@ Stoppe außerdem, wenn ein Auftrag:
 - `packages/*-engine` darf React nicht importieren.
 - Der Server darf ausschließlich `@passwo/contracts` aus dem gemeinsamen Domain-Layer
   importieren; niemals Trainingsinhalte oder Passwortanalyse.
-- Ausschließlich der eingefrorene lokale SecAware-Snapshot darf gemäß ADR 0008 als
+- Ausschließlich der eingefrorene lokale SecAware-Snapshot darf gemäß `ADR 0008-Reference` als
   deterministisch adaptierter Build in die Study Runtime eingebettet werden. Andere externe
   Inhalte bleiben von dieser Ausnahme unberührt.
 - Neue Kernabhängigkeiten oder Änderungen an Persistenz, Randomisierung oder Timing benötigen

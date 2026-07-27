@@ -18,13 +18,16 @@
 
 ## Datenbankschema
 
-Drei fachliche Tabellen reichen für den Start:
+Drei exportierbare fachliche Tabellen reichen für den Start:
 
 - `study_sessions` — Identität, Zuweisung, Versionen und Status;
 - `timing_events` — idempotente Zeitereignisse;
 - `responses` — versionierte Instrument-/Itemantworten.
 
 `assignment_slots` verwaltet nur die verdeckte Blockzuweisung.
+`artifact_leases` enthält ausschließlich operative Heartbeat- und Schließzeitpunkte zur
+Reload-Erkennung. Diese Betriebsmetadaten sind weder Forschungstiming noch Bestandteil der
+Sessions-, Timing- oder Responses-Exporte.
 
 ## Antwortformat
 

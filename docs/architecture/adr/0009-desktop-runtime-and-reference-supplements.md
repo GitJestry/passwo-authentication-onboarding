@@ -2,7 +2,7 @@
 
 - **Status:** Accepted
 - **Datum:** 2026-07-26
-- **Ergänzt:** ADR 0008 (eingebettetes, studienadaptiertes Referenzartefakt)
+- **Ergänzt:** `ADR 0008-Reference` (eingebettetes, studienadaptiertes Referenzartefakt)
 
 ## Kontext
 

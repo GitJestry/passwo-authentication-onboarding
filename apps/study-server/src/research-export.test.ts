@@ -8,6 +8,7 @@ import type { FastifyInstance } from 'fastify';
 import { afterEach, describe, expect, it } from 'vitest';
 import { buildStudyServer } from './app.js';
 import { exportResearchData } from './research-export.js';
+import { createSession, savePreAndStartArtifact } from './test-support.js';
 
 const temporaryDirectories: string[] = [];
 const servers: FastifyInstance[] = [];
@@ -26,46 +27,6 @@ function sha256(content: string): string {
   return createHash('sha256').update(content, 'utf8').digest('hex');
 }
 
-async function createSession(server: FastifyInstance, identity: number): Promise<string> {
-  const response = await server.inject({
-    method: 'POST',
-    url: '/api/study/sessions',
-    payload: {
-      requestId: `10000000-0000-4000-8000-${identity.toString().padStart(12, '0')}`,
-      consentAccepted: true,
-    },
-  });
-  expect(response.statusCode).toBe(201);
-  return response.json<{ sessionId: string }>().sessionId;
-}
-
-async function savePreAndStartArtifact(server: FastifyInstance, sessionId: string): Promise<void> {
-  await server.inject({
-    method: 'POST',
-    url: `/api/study/sessions/${sessionId}/responses`,
-    payload: {
-      instrumentId: 'pre-placeholder',
-      itemId: 'placeholder-complete',
-      value: true,
-    },
-  });
-  await server.inject({
-    method: 'POST',
-    url: `/api/study/sessions/${sessionId}/timing`,
-    payload: {
-      sequence: 0,
-      phase: 'artifact',
-      sectionId: null,
-      segmentId: null,
-      eventType: 'start',
-      clientMonotonicMs: 100,
-      clientWallClockIso: '2026-07-24T12:00:00.000Z',
-      elapsedMs: null,
-      reasonCode: null,
-    },
-  });
-}
-
 describe('research export', () => {
   it('writes deterministic CSV and JSON tables with manifest hashes inside the data contract', async () => {
     const temporaryDirectory = mkdtempSync(join(tmpdir(), 'passwo-research-export-test-'));
@@ -79,7 +40,7 @@ describe('research export', () => {
     });
     servers.push(server);
 
-    const incompleteSessionId = await createSession(server, 1);
+    const { sessionId: incompleteSessionId } = await createSession(server, 1);
     await savePreAndStartArtifact(server, incompleteSessionId);
     const heartbeat = await server.inject({
       method: 'POST',
@@ -92,7 +53,7 @@ describe('research export', () => {
       url: `/api/study/sessions/${incompleteSessionId}/incomplete-reload`,
     });
 
-    const completedSessionId = await createSession(server, 2);
+    const { sessionId: completedSessionId } = await createSession(server, 2);
     await savePreAndStartArtifact(server, completedSessionId);
     await server.inject({
       method: 'POST',

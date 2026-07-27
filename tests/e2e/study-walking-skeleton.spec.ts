@@ -233,11 +233,15 @@ async function failFirstVisibilityWrite(page: Page): Promise<() => void> {
   return releaseFailure;
 }
 
-async function failFirstS00TimingWrite(page: Page, eventType: 'start' | 'end'): Promise<void> {
+async function failFirstSegmentTimingWrite(
+  page: Page,
+  segmentId: 'S00' | 'S01' | 'S02',
+  eventType: 'start' | 'end',
+): Promise<void> {
   let failed = false;
   await page.route('**/api/study/sessions/*/timing', async (route) => {
     const body: unknown = route.request().postDataJSON();
-    const isS00Boundary =
+    const isSegmentBoundary =
       typeof body === 'object' &&
       body !== null &&
       'eventType' in body &&
@@ -245,65 +249,18 @@ async function failFirstS00TimingWrite(page: Page, eventType: 'start' | 'end'): 
       'sectionId' in body &&
       body.sectionId === 'passwords' &&
       'segmentId' in body &&
-      body.segmentId === 'S00';
+      body.segmentId === segmentId;
 
-    if (!failed && isS00Boundary) {
+    if (!failed && isSegmentBoundary) {
       failed = true;
       await route.fulfill({
         status: 503,
-        json: { errorCode: `segment-${eventType}-write-failed` },
-      });
-      return;
-    }
-    await route.continue();
-  });
-}
-
-async function failFirstS01TimingWrite(page: Page, eventType: 'start' | 'end'): Promise<void> {
-  let failed = false;
-  await page.route('**/api/study/sessions/*/timing', async (route) => {
-    const body: unknown = route.request().postDataJSON();
-    const isS01Boundary =
-      typeof body === 'object' &&
-      body !== null &&
-      'eventType' in body &&
-      body.eventType === eventType &&
-      'sectionId' in body &&
-      body.sectionId === 'passwords' &&
-      'segmentId' in body &&
-      body.segmentId === 'S01';
-
-    if (!failed && isS01Boundary) {
-      failed = true;
-      await route.fulfill({
-        status: 503,
-        json: { errorCode: `s01-segment-${eventType}-write-failed` },
-      });
-      return;
-    }
-    await route.continue();
-  });
-}
-
-async function failFirstS02TimingWrite(page: Page, eventType: 'start' | 'end'): Promise<void> {
-  let failed = false;
-  await page.route('**/api/study/sessions/*/timing', async (route) => {
-    const body: unknown = route.request().postDataJSON();
-    const isS02Boundary =
-      typeof body === 'object' &&
-      body !== null &&
-      'eventType' in body &&
-      body.eventType === eventType &&
-      'sectionId' in body &&
-      body.sectionId === 'passwords' &&
-      'segmentId' in body &&
-      body.segmentId === 'S02';
-
-    if (!failed && isS02Boundary) {
-      failed = true;
-      await route.fulfill({
-        status: 503,
-        json: { errorCode: `s02-segment-${eventType}-write-failed` },
+        json: {
+          errorCode:
+            segmentId === 'S00'
+              ? `segment-${eventType}-write-failed`
+              : `${segmentId.toLowerCase()}-segment-${eventType}-write-failed`,
+        },
       });
       return;
     }
@@ -623,7 +580,7 @@ test('supportive S00 to S01 keeps fictitious values local and supports keyboard 
 test('retries failed S01 start and end timing writes with the same payload', async ({ page }) => {
   await startStudyServer('forced-supportive');
   const requests = captureResearchRequests(page);
-  await failFirstS01TimingWrite(page, 'start');
+  await failFirstSegmentTimingWrite(page, 'S01', 'start');
   await acceptConsent(page);
   await submitPlaceholder(page);
   await enterSupportiveTraining(page, 'S01 Timing Retry');
@@ -646,7 +603,7 @@ test('retries failed S01 start and end timing writes with the same payload', asy
 test('retries a failed S01 end before ending the artifact', async ({ page }) => {
   await startStudyServer('forced-supportive');
   const requests = captureResearchRequests(page);
-  await failFirstS01TimingWrite(page, 'end');
+  await failFirstSegmentTimingWrite(page, 'S01', 'end');
   await acceptConsent(page);
   await submitPlaceholder(page);
   await enterSupportiveTraining(page, 'S01 End Retry');
@@ -670,7 +627,7 @@ test('retries a failed S01 end before ending the artifact', async ({ page }) => 
 test('retries failed S02 start and end writes with the same payload', async ({ page }) => {
   await startStudyServer('forced-supportive');
   const requests = captureResearchRequests(page);
-  await failFirstS02TimingWrite(page, 'start');
+  await failFirstSegmentTimingWrite(page, 'S02', 'start');
   await acceptConsent(page);
   await submitPlaceholder(page);
   await enterSupportiveTraining(page, 'S02 Timing Retry');
@@ -693,7 +650,7 @@ test('retries failed S02 start and end writes with the same payload', async ({ p
 test('blocks completion while S02 end fails and retries the same end payload', async ({ page }) => {
   await startStudyServer('forced-supportive');
   const requests = captureResearchRequests(page);
-  await failFirstS02TimingWrite(page, 'end');
+  await failFirstSegmentTimingWrite(page, 'S02', 'end');
   await acceptConsent(page);
   await submitPlaceholder(page);
   await enterSupportiveTraining(page, 'S02 End Retry');
@@ -834,7 +791,7 @@ test('failed visibility blocks completion and retries the same timing payload', 
 test('retries a failed S00 segment start before beginning the mission', async ({ page }) => {
   await startStudyServer('forced-supportive');
   const requests = captureResearchRequests(page);
-  await failFirstS00TimingWrite(page, 'start');
+  await failFirstSegmentTimingWrite(page, 'S00', 'start');
   await acceptConsent(page);
   await submitPlaceholder(page);
   await enterSupportiveTraining(page, 'S00 Start Retry');
@@ -857,7 +814,7 @@ test('retries a failed S00 segment start before beginning the mission', async ({
 test('retries a failed S00 segment end before leaving the segment', async ({ page }) => {
   await startStudyServer('forced-supportive');
   const requests = captureResearchRequests(page);
-  await failFirstS00TimingWrite(page, 'end');
+  await failFirstSegmentTimingWrite(page, 'S00', 'end');
   await acceptConsent(page);
   await submitPlaceholder(page);
   await enterSupportiveTraining(page, 'S00 End Retry');
