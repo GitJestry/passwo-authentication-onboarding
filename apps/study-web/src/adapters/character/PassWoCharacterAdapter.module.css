@@ -1,144 +1,119 @@
-.studyGuide {
+.questDock {
   position: absolute;
-  width: var(--size-illustration-medium);
+  right: clamp(var(--space-3), 2vw, var(--space-6));
+  bottom: clamp(var(--space-3), 2vw, var(--space-6));
+  z-index: 1;
+  display: grid;
+  width: min(18.5rem, calc(100vw - var(--space-6)));
+  justify-items: end;
+  gap: var(--space-3);
 }
 
-.studyGuide[data-visible="false"],
-.networkGuide[data-visible="false"] {
-  visibility: hidden;
+.questDock[data-placement="bottom-left"] {
+  right: auto;
+  left: clamp(var(--space-3), 2vw, var(--space-6));
+  justify-items: start;
 }
 
-.studyGuideButton {
+.questCard {
   display: grid;
   width: 100%;
-  justify-items: center;
+  min-height: 4.8rem;
+  grid-template-columns: 4rem minmax(0, 1fr) auto;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-2) var(--space-2) var(--space-3);
+  border: var(--border-width-thin) solid var(--color-border-soft);
+  border-radius: var(--radius-medium);
+  background: var(--color-surface-primary);
+  box-shadow: var(--shadow-float);
+  transform: scale(1);
+  transform-origin: bottom right;
+  transition: transform var(--motion-fast) ease;
+}
+
+.questDock:hover .questCard,
+.questDock:focus-within .questCard {
+  transform: scale(1.035);
+}
+
+.questDock[data-placement="bottom-left"] .questCard {
+  transform-origin: bottom left;
+}
+
+.questImage {
+  width: 4rem;
+  height: 4rem;
+  object-fit: contain;
+  object-position: center bottom;
+}
+
+.questStatus {
+  display: grid;
+  min-width: 0;
+  gap: var(--space-1);
+}
+
+.questStatus strong {
+  color: var(--color-ink-strong);
+  font-size: var(--font-size-small);
+}
+
+.questStatus span {
+  color: var(--color-ink-muted);
+  font-size: var(--font-size-x-small);
+  font-weight: var(--font-weight-semibold);
+}
+
+.helpButton {
+  display: grid;
+  width: var(--size-control-medium);
+  height: var(--size-control-medium);
+  place-items: center;
   padding: 0;
-  border: 0;
-  color: inherit;
-  background: transparent;
-}
-
-.studyGuide[data-placement="offscreen-right"] {
-  right: calc(-1 * var(--size-illustration-medium));
-  bottom: clamp(var(--space-5), 4vw, var(--space-8));
-}
-
-.studyGuide[data-placement="center"] {
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-}
-
-.studyGuide[data-placement="bottom-left"] {
-  bottom: clamp(var(--space-5), 4vw, var(--space-8));
-  left: clamp(var(--space-5), 4vw, var(--space-8));
-}
-
-.studyGuideButton:disabled {
-  cursor: default;
-}
-
-.studyGuideButton:not(:disabled) {
+  border: var(--border-width-thin) solid var(--color-border);
+  border-radius: var(--radius-round);
+  color: var(--color-ink-strong);
+  background: var(--color-surface-muted);
+  font: inherit;
+  font-weight: var(--font-weight-heavy);
   cursor: pointer;
 }
 
-.studyGuideButton:focus-visible {
+.helpButton:focus-visible {
   outline: var(--border-width-focus) solid var(--color-focus);
   outline-offset: var(--space-1);
   box-shadow: var(--shadow-focus);
 }
 
-.guideHalo {
-  position: absolute;
-  width: 88%;
-  aspect-ratio: 1;
-  border-radius: var(--radius-round);
-  background: color-mix(in srgb, var(--color-accent) 24%, transparent);
-  filter: blur(var(--space-3));
-}
-
-.guideFace {
-  z-index: 1;
-  display: grid;
-  width: 58%;
-  aspect-ratio: 1;
-  place-items: center;
-  border: var(--border-width-medium) solid var(--color-on-inverse);
-  border-radius: var(--radius-round);
-  color: var(--color-on-inverse);
-  background: var(--color-accent-strong);
-  box-shadow: var(--shadow-card);
-  font-size: var(--font-size-small);
-  font-weight: var(--font-weight-heavy);
-  letter-spacing: var(--letter-spacing-wide);
-}
-
-.guideFace img,
-.networkGuideFace img {
-  width: 100%;
-  height: 100%;
-  object-fit: contain;
-}
-
-.guideBody {
-  z-index: 1;
-  display: grid;
-  width: 100%;
-  justify-items: center;
-  gap: var(--space-1);
-  margin-top: calc(-1 * var(--space-2));
-  padding: var(--space-4) var(--space-3) var(--space-3);
+.questHelp {
+  width: min(22rem, 100%);
+  padding: var(--space-4);
+  border: var(--border-width-thin) solid var(--color-border-soft);
   border-radius: var(--radius-medium);
-  color: var(--color-on-inverse);
-  background: var(--color-surface-inverse);
-  box-shadow: var(--shadow-card);
+  color: var(--color-ink-strong);
+  background: var(--color-surface-primary);
+  box-shadow: var(--shadow-float);
 }
 
-.networkGuide {
-  position: absolute;
-  z-index: 5;
-  display: grid;
-  width: 4.5rem;
-  justify-items: center;
-  pointer-events: none;
+.questHelp h2,
+.questHelp p {
+  margin: 0;
 }
 
-.networkGuide[data-placement="bottom-left"] {
-  bottom: var(--space-3);
-  left: var(--space-3);
+.questHelp h2 {
+  font-size: var(--font-size-small);
 }
 
-.networkGuide[data-placement="focused-node"] {
-  top: 8.7rem;
-  left: 16rem;
-}
-
-.networkGuideFace {
-  display: grid;
-  width: 3.2rem;
-  aspect-ratio: 1;
-  place-items: center;
-  border: var(--border-width-medium) solid var(--color-on-inverse);
-  border-radius: var(--radius-round);
-  color: var(--color-on-inverse);
-  background: var(--color-accent-strong);
-  box-shadow: var(--shadow-card);
+.questHelp p {
+  margin-top: var(--space-2);
+  color: var(--color-ink-muted);
   font-size: var(--font-size-x-small);
-  font-weight: var(--font-weight-heavy);
-}
-
-.networkGuideLabel {
-  margin-top: calc(-1 * var(--space-2));
-  padding: var(--space-2);
-  border-radius: var(--radius-round);
-  color: var(--color-on-inverse);
-  background: var(--color-surface-inverse);
-  font-size: var(--font-size-x-small);
-  font-weight: var(--font-weight-bold);
+  line-height: var(--line-height-body);
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .networkGuide {
-    transition: none;
+  .questCard {
+    transition-duration: var(--motion-instant);
   }
 }

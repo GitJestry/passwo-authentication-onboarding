@@ -8,9 +8,11 @@ function flushMicrotasks(): Promise<void> {
 
 function configureAllAccounts(controller: PasswordModuleController): void {
   controller.setPasswordValue('campus-board-archive', 'three');
+  controller.configureAccount('campus-board-archive');
   controller.setPasswordValue('campus-id', 'one');
+  controller.configureAccount('campus-id');
   controller.setPasswordValue('campus-mail', 'two');
-  controller.configureAccounts();
+  controller.configureAccount('campus-mail');
 }
 
 describe('PasswordModuleController', () => {

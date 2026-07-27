@@ -6,9 +6,10 @@ import {
 } from '@passwo/training-engine';
 import { BrowserShell, type BrowserShellSnapshot } from '@passwo/ui';
 import { useEffect, useRef, useState } from 'react';
+import { PassWoQuestDock } from '../../adapters/character/PassWoCharacterAdapter.js';
 import styles from './S01Training.module.css';
 
-function isConfigured(snapshot: PasswordModuleSnapshot): boolean {
+function isReadyToContinue(snapshot: PasswordModuleSnapshot): boolean {
   return (
     snapshot.matches({ s01: 'configured' }) ||
     snapshot.matches({ s01: 'ending' }) ||
@@ -36,37 +37,42 @@ export function S01Training({
   const [revealedAccountIds, setRevealedAccountIds] = useState<ReadonlySet<string>>(
     () => new Set(),
   );
+  const [questHelpOpen, setQuestHelpOpen] = useState(false);
   const completionStatusRef = useRef<HTMLHeadingElement>(null);
-  const configured = isConfigured(snapshot);
   const account =
     s01Content.browser.accounts.find(({ id }) => id === snapshot.context.activeAccountId) ??
     s01Content.browser.accounts[0];
 
-  useEffect(() => {
-    if (configured) completionStatusRef.current?.focus();
-  }, [configured]);
-
   if (account === undefined) return null;
 
   const configuredCount = getConfiguredAccountCount(snapshot.context);
+  const readyToContinue = isReadyToContinue(snapshot);
   const editing = snapshot.matches({ s01: 'editing' });
+  const accountConfigured = snapshot.context.configuredAccountIds.includes(account.id);
   const localTimingFailure = isLocalTimingFailure(snapshot);
   const initialTimingPending = snapshot.matches({ s01: 'starting' });
   const interactionBlocked =
     externalTimingError !== null || localTimingFailure || initialTimingPending;
   const timingFailure = externalTimingError !== null || localTimingFailure;
-  const canConfigure = editing && configuredCount === s01Content.browser.accounts.length;
   const activeValue = snapshot.context.passwordValues[account.id] ?? '';
+  const canConfigure =
+    editing && !accountConfigured && activeValue.length > 0 && !interactionBlocked;
   const snapshotForBrowser: BrowserShellSnapshot = {
     tabs: s01Content.browser.accounts.map((tabAccount) => ({
       id: tabAccount.id,
       label: tabAccount.label,
       enabled: !interactionBlocked,
-      ...(configured ? { status: 'complete' as const } : {}),
+      ...(snapshot.context.configuredAccountIds.includes(tabAccount.id)
+        ? { status: 'complete' as const }
+        : {}),
     })),
     activeTabId: account.id,
     address: account.address,
   };
+
+  useEffect(() => {
+    if (accountConfigured) completionStatusRef.current?.focus();
+  }, [account.id, accountConfigured]);
 
   function toggleReveal(accountId: string): void {
     setRevealedAccountIds((currentIds) => {
@@ -91,24 +97,44 @@ export function S01Training({
   return (
     <section className={styles.training} aria-label={s01Content.trainingAriaLabel}>
       <BrowserShell
+        variant="artifact"
         snapshot={snapshotForBrowser}
         ariaLabel={s01Content.browser.ariaLabel}
         onTabSelect={(accountId) => controller.selectAccount(accountId)}
+        layers={{
+          passWo: (
+            <PassWoQuestDock
+              guideName={s01Content.completion.guideName}
+              progressLabel={s01Content.progress.status(configuredCount)}
+              helpOpen={questHelpOpen}
+              helpId="s01-quest-help"
+              openHelpLabel={s01Content.quest.helpLabel}
+              closeHelpLabel="Hinweis schließen"
+              helpContent={
+                <p>
+                  {readyToContinue
+                    ? s01Content.quest.readyToContinue
+                    : s01Content.quest.nextAccount(account.label)}
+                </p>
+              }
+              onToggleHelp={() => setQuestHelpOpen((open) => !open)}
+            />
+          ),
+        }}
       >
         <article className={styles.page} aria-labelledby="s01-page-title">
           <header className={styles.pageHeader}>
             <span className={styles.identityMark} aria-hidden="true">
               cr
             </span>
-            <span className={styles.identityName}>{s01Content.browser.identityName}</span>
+            <span className={styles.identityName}>{account.label}</span>
           </header>
           <div className={styles.pageBody}>
             <section className={styles.setupPanel} aria-labelledby="s01-page-title">
-              <p className={styles.eyebrow}>Konten einrichten</p>
               <h1 id="s01-page-title">{account.label}</h1>
               <dl className={styles.accountDetails}>
                 <div>
-                  <dt className={styles.screenReaderOnly}>{account.accountDataLabel}</dt>
+                  <dt>{account.accountDataLabel}</dt>
                   <dd>{account.accountData}</dd>
                 </div>
                 <div>
@@ -116,130 +142,80 @@ export function S01Training({
                   <dd>{account.role}</dd>
                 </div>
               </dl>
-              <form
-                className={styles.passwordForm}
-                onSubmit={(event) => {
-                  event.preventDefault();
-                  if (canConfigure) controller.configureAccounts();
-                }}
-              >
-                <label
-                  className={styles.passwordLabel}
-                  htmlFor={`fictional-password-${account.id}`}
+              {accountConfigured ? (
+                <section className={styles.accountComplete} aria-label={s01Content.completion.accountStatus}>
+                  <span aria-hidden="true">✓</span>
+                  <h2 ref={completionStatusRef} tabIndex={-1} aria-live="polite">
+                    {s01Content.completion.accountStatus}
+                  </h2>
+                </section>
+              ) : (
+                <form
+                  className={styles.passwordForm}
+                  onSubmit={(event) => {
+                    event.preventDefault();
+                    if (canConfigure) controller.configureAccount(account.id);
+                  }}
                 >
-                  {s01Content.controls.passwordLabel}
-                </label>
-                <span className={styles.passwordInputGroup}>
-                  <input
-                    id={`fictional-password-${account.id}`}
-                    name={`fictional-password-${account.id}`}
-                    type={revealedAccountIds.has(account.id) ? 'text' : 'password'}
-                    autoComplete="off"
-                    spellCheck={false}
-                    disabled={!editing || interactionBlocked}
-                    value={activeValue}
-                    onChange={(event) =>
-                      controller.setPasswordValue(account.id, event.currentTarget.value)
-                    }
-                  />
-                  <button
-                    type="button"
-                    className={styles.revealButton}
-                    aria-pressed={revealedAccountIds.has(account.id)}
-                    aria-label={
-                      revealedAccountIds.has(account.id)
-                        ? s01Content.controls.hidePassword(account.label)
-                        : s01Content.controls.showPassword(account.label)
-                    }
-                    disabled={interactionBlocked}
-                    onClick={() => toggleReveal(account.id)}
-                  >
-                    {revealedAccountIds.has(account.id)
-                      ? s01Content.controls.hide
-                      : s01Content.controls.show}
-                  </button>
-                </span>
-                {!configured ? (
+                  <label className={styles.passwordLabel} htmlFor={`fictional-password-${account.id}`}>
+                    {s01Content.controls.passwordLabel}
+                  </label>
+                  <span className={styles.passwordInputGroup}>
+                    <input
+                      id={`fictional-password-${account.id}`}
+                      name={`fictional-password-${account.id}`}
+                      type={revealedAccountIds.has(account.id) ? 'text' : 'password'}
+                      autoComplete="off"
+                      spellCheck={false}
+                      disabled={!editing || interactionBlocked}
+                      value={activeValue}
+                      onChange={(event) =>
+                        controller.setPasswordValue(account.id, event.currentTarget.value)
+                      }
+                    />
+                    <button
+                      type="button"
+                      className={styles.revealButton}
+                      aria-pressed={revealedAccountIds.has(account.id)}
+                      aria-label={
+                        revealedAccountIds.has(account.id)
+                          ? s01Content.controls.hidePassword(account.label)
+                          : s01Content.controls.showPassword(account.label)
+                      }
+                      disabled={interactionBlocked}
+                      onClick={() => toggleReveal(account.id)}
+                    >
+                      {revealedAccountIds.has(account.id)
+                        ? s01Content.controls.hide
+                        : s01Content.controls.show}
+                    </button>
+                  </span>
                   <div className={styles.buttonRow}>
                     <button
                       type="submit"
                       className={styles.primaryButton}
-                      disabled={!canConfigure || interactionBlocked}
-                      aria-describedby={canConfigure ? undefined : 's01-configure-reason'}
+                      disabled={!canConfigure}
                     >
                       {s01Content.controls.configure}
                     </button>
-                    {!canConfigure ? (
-                      <>
-                        <button
-                          type="button"
-                          className={styles.disabledHint}
-                          aria-label="Hinweis zur gesperrten Aktion"
-                          aria-describedby="s01-configure-reason"
-                        >
-                          ?
-                        </button>
-                        <p id="s01-configure-reason" className={styles.screenReaderOnly}>
-                          {s01Content.controls.configureReason}
-                        </p>
-                      </>
-                    ) : null}
                   </div>
-                ) : null}
-              </form>
-              {configured ? (
-                <h2
-                  ref={completionStatusRef}
-                  className={styles.accountComplete}
-                  tabIndex={-1}
-                  aria-live="polite"
-                >
-                  <span aria-hidden="true">✓</span>
-                  {s01Content.completion.accountStatus}
-                </h2>
+                </form>
+              )}
+              {readyToContinue ? (
+                <section className={styles.continueAction} aria-label={s01Content.completion.guideName}>
+                  <p>{s01Content.completion.guideMessage}</p>
+                  <button
+                    type="button"
+                    className={styles.primaryButton}
+                    disabled={snapshot.matches({ s01: 'ending' }) || interactionBlocked}
+                    onClick={() => controller.continue()}
+                  >
+                    {s01Content.controls.continue}
+                  </button>
+                </section>
               ) : null}
             </section>
-            <aside className={styles.progressCard} aria-label={s01Content.progress.label}>
-              <p className={styles.progressLabel}>{s01Content.progress.label}</p>
-              <strong className={styles.progressValue} aria-live="polite">
-                {s01Content.progress.status(configuredCount)}
-              </strong>
-              <div
-                className={styles.progressTrack}
-                role="progressbar"
-                aria-label={s01Content.progress.label}
-                aria-valuemin={0}
-                aria-valuemax={s01Content.browser.accounts.length}
-                aria-valuenow={configuredCount}
-                aria-valuetext={s01Content.progress.status(configuredCount)}
-              >
-                {s01Content.browser.accounts.map((tabAccount) => (
-                  <span
-                    key={tabAccount.id}
-                    data-filled={(snapshot.context.passwordValues[tabAccount.id] ?? '').length > 0}
-                    aria-hidden="true"
-                  />
-                ))}
-              </div>
-              <p className={styles.helpText}>{s01Content.progress.helpText}</p>
-            </aside>
           </div>
-          {configured ? (
-            <aside className={styles.guideCard} aria-label={s01Content.completion.guideName}>
-              <p className={styles.guideName}>{s01Content.completion.guideName}</p>
-              <p>{s01Content.completion.guideMessage}</p>
-              <div className={styles.buttonRow}>
-                <button
-                  type="button"
-                  className={styles.primaryButton}
-                  disabled={snapshot.matches({ s01: 'ending' }) || interactionBlocked}
-                  onClick={() => controller.continue()}
-                >
-                  {s01Content.controls.continue}
-                </button>
-              </div>
-            </aside>
-          ) : null}
           {(snapshot.matches({ s01: 'ending' }) || initialTimingPending) &&
           externalTimingError === null ? (
             <p className={styles.timingStatus} role="status">

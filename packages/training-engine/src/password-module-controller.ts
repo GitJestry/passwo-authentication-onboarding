@@ -71,8 +71,11 @@ export class PasswordModuleController {
     this.#actor.send({ type: 'SET_PASSWORD_VALUE', accountId, value });
   }
 
-  configureAccounts(): void {
-    this.#actor.send({ type: 'CONFIGURE_ACCOUNTS' });
+  configureAccount(accountId: string): void {
+    const snapshot = this.#actor.getSnapshot();
+    if (!snapshot.matches({ s01: 'editing' })) return;
+    if (!snapshot.context.accountIds.includes(accountId)) return;
+    this.#actor.send({ type: 'CONFIGURE_ACCOUNT', accountId });
   }
 
   continue(): void {

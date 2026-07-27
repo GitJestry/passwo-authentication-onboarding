@@ -14,12 +14,7 @@ import {
   hasRevealedTarget,
   type S00SceneSnapshot,
 } from '../../adapters/animation/s00-scene.js';
-import {
-  characterObscuresStage,
-  PassWoCharacterRenderer,
-  PassWoGuideCharacter,
-  toCharacterRendererState,
-} from '../../adapters/character/PassWoCharacterAdapter.js';
+import { PassWoQuestDock } from '../../adapters/character/PassWoCharacterAdapter.js';
 import styles from './S00Training.module.css';
 
 const mission: MissionDefinition = {
@@ -77,17 +72,12 @@ function S00Page({ safetyVisible }: { readonly safetyVisible: boolean }) {
 
 function PassWoSpeech({ displayName }: { readonly displayName: string }) {
   return (
-    <section
-      id="s00-passwo-speech"
-      className={styles.speechCard}
-      aria-labelledby="s00-passwo-speech-title"
-    >
-      <p className={styles.speechLabel}>{s00Content.narration.guideName}</p>
+    <>
       <h2 id="s00-passwo-speech-title">{s00Content.narration.title}</h2>
       <p>{formatS00Greeting(displayName)}</p>
       <p>{s00Content.narration.followUp}</p>
       <p>{s00Content.narration.dockedHelp}</p>
-    </section>
+    </>
   );
 }
 
@@ -111,14 +101,8 @@ export function S00Training({
   const [scene, setScene] = useState<S00SceneSnapshot>(createInitialS00SceneSnapshot);
   const [missionSnapshot, setMissionSnapshot] = useState<MissionSnapshot | null>(null);
   const [timingError, setTimingError] = useState<string | null>(null);
-  const [characterRenderer] = useState(
-    () =>
-      new PassWoCharacterRenderer(
-        toCharacterRendererState(createInitialS00SceneSnapshot().character),
-      ),
-  );
   const controllerRef = useRef<MissionController | null>(null);
-  const characterRef = useRef<HTMLButtonElement | null>(null);
+  const characterAnimationAnchorRef = useRef<HTMLSpanElement | null>(null);
   const pageRef = useRef<HTMLDivElement | null>(null);
   const onCompleteRef = useRef(onComplete);
   onCompleteRef.current = onComplete;
@@ -126,7 +110,7 @@ export function S00Training({
   useEffect(() => {
     const animationPlayer = new MotionAnimationAdapter({
       applySnapshot: setScene,
-      getCharacterElement: () => characterRef.current,
+      getCharacterElement: () => characterAnimationAnchorRef.current,
       getRevealTargetElement: (targetId) =>
         pageRef.current?.querySelector<HTMLElement>(`[data-animation-target="${targetId}"]`) ??
         null,
@@ -155,11 +139,6 @@ export function S00Training({
     };
   }, [forceAnimationFailure, timingPort]);
 
-  const characterState = toCharacterRendererState(scene.character);
-  useEffect(() => {
-    characterRenderer.render(characterState);
-  }, [characterRenderer, characterState]);
-
   const awaitingDecision = missionSnapshot?.matches({ active: 'awaitingDecision' }) ?? false;
   const safetyAcknowledged = missionSnapshot?.context.safetyAcknowledged ?? false;
   const canContinue =
@@ -169,10 +148,6 @@ export function S00Training({
   const safetyVisible = hasRevealedTarget(scene, s00Content.safety.targetId);
   const guideOpen = scene.announcedMessageId === 's00.greeting';
   const animationError = missionSnapshot?.context.lastAnimationError ?? null;
-  const snapshot: BrowserShellSnapshot = {
-    ...browserSnapshot,
-    dimmed: characterObscuresStage(characterState),
-  };
   const activeTimingError = timingError ?? externalTimingError;
 
   function retryTiming(): void {
@@ -202,28 +177,34 @@ export function S00Training({
   return (
     <section className={styles.training} aria-label={s00Content.trainingAriaLabel}>
       <BrowserShell
-        snapshot={snapshot}
+        snapshot={browserSnapshot}
         ariaLabel={s00Content.browser.ariaLabel}
         layers={{
           passWo: (
-            <PassWoGuideCharacter
-              renderer={characterRenderer}
-              guideOpen={guideOpen}
-              characterRef={characterRef}
-              controlsId="s00-passwo-speech"
-              guideName={s00Content.narration.guideName}
-              openLabel={s00Content.narration.openGuideLabel}
-              closeLabel={s00Content.narration.closeGuideLabel}
-              onToggle={() =>
-                setScene((currentScene) => ({
-                  ...currentScene,
-                  announcedMessageId:
-                    currentScene.announcedMessageId === 's00.greeting' ? null : 's00.greeting',
-                }))
-              }
-            />
+            <>
+              <span
+                ref={characterAnimationAnchorRef}
+                className={styles.characterAnimationAnchor}
+                aria-hidden="true"
+              />
+              <PassWoQuestDock
+                guideName={s00Content.narration.guideName}
+                placement="bottom-left"
+                helpOpen={guideOpen}
+                helpId="s00-passwo-speech"
+                openHelpLabel={s00Content.narration.openGuideLabel}
+                closeHelpLabel={s00Content.narration.closeGuideLabel}
+                helpContent={<PassWoSpeech displayName={displayName} />}
+                onToggleHelp={() =>
+                  setScene((currentScene) => ({
+                    ...currentScene,
+                    announcedMessageId:
+                      currentScene.announcedMessageId === 's00.greeting' ? null : 's00.greeting',
+                  }))
+                }
+              />
+            </>
           ),
-          ...(guideOpen ? { speech: <PassWoSpeech displayName={displayName} /> } : {}),
           controls: (
             <div className={styles.controls}>
               {activeTimingError === null ? (

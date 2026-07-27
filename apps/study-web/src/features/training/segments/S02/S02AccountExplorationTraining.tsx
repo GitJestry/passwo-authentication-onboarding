@@ -1,11 +1,7 @@
 import { s02Content } from '@passwo/training-content';
 import { BrowserShell, type BrowserShellSnapshot } from '@passwo/ui';
 import { useEffect, useRef, useState } from 'react';
-import {
-  PassWoCharacterRenderer,
-  PassWoNetworkCharacter,
-  toCharacterRendererState,
-} from '../../../../adapters/character/PassWoCharacterAdapter.js';
+import { PassWoQuestDock } from '../../../../adapters/character/PassWoCharacterAdapter.js';
 import { NetworkMotionAdapter } from '../../../../adapters/network/NetworkMotionAdapter.js';
 import {
   ReactFlowNetwork,
@@ -52,11 +48,11 @@ export function S02AccountExplorationTraining({
   onContinue,
   onRetryTiming,
 }: S02AccountExplorationTrainingProps) {
-  const characterRef = useRef<HTMLDivElement | null>(null);
+  const characterAnimationAnchorRef = useRef<HTMLSpanElement | null>(null);
   const networkHostRef = useRef<HTMLDivElement | null>(null);
   const onAllAccountsUnderstoodRef = useRef(onAllAccountsUnderstood);
   onAllAccountsUnderstoodRef.current = onAllAccountsUnderstood;
-  const [characterRenderer] = useState(() => new PassWoCharacterRenderer());
+  const [questHelpOpen, setQuestHelpOpen] = useState(false);
   const [runtime, setRuntime] = useState<Runtime | null>(null);
   const [snapshot, setSnapshot] = useState<S02AccountExplorationControllerSnapshot | null>(null);
 
@@ -66,7 +62,7 @@ export function S02AccountExplorationTraining({
       initialNodeId: definition.accounts[0]?.id ?? '',
       initialRevealedNodeIds: definition.accounts.map(({ id }) => id),
       applySnapshot: (presentation) => controller?.updatePresentation(presentation),
-      getCharacterElement: () => characterRef.current,
+      getCharacterElement: () => characterAnimationAnchorRef.current,
       getNodeElement: (nodeId) =>
         networkHostRef.current?.querySelector<HTMLElement>(
           `[data-scene-node-button="${nodeId}"]`,
@@ -88,13 +84,6 @@ export function S02AccountExplorationTraining({
       void controller?.dispose();
     };
   }, []);
-
-  const pendingPresentation = snapshot?.presentation ?? null;
-  useEffect(() => {
-    if (pendingPresentation !== null) {
-      characterRenderer.render(toCharacterRendererState(pendingPresentation.character));
-    }
-  }, [characterRenderer, pendingPresentation]);
 
   if (runtime === null || snapshot === null) return null;
 
@@ -129,9 +118,24 @@ export function S02AccountExplorationTraining({
   return (
     <section className={styles.training} aria-label={s02Content.trainingAriaLabel}>
       <BrowserShell
+        variant="artifact"
         snapshot={browserSnapshot}
         ariaLabel={s02Content.browser.ariaLabel}
         onTabSelect={() => undefined}
+        layers={{
+          passWo: (
+            <PassWoQuestDock
+              guideName={s02Content.narration.guideName}
+              progressLabel={s02Content.page.globalProgress(understoodCount)}
+              helpOpen={questHelpOpen}
+              helpId="s02-quest-help"
+              openHelpLabel="Nächsten Schritt anzeigen"
+              closeHelpLabel="Hinweis schließen"
+              helpContent={<p>{s02Content.page.instruction}</p>}
+              onToggleHelp={() => setQuestHelpOpen((open) => !open)}
+            />
+          ),
+        }}
       >
         <article className={styles.page} aria-labelledby="s02-account-title">
           <header className={styles.pageHeader}>
@@ -140,19 +144,15 @@ export function S02AccountExplorationTraining({
               <h1 id="s02-account-title">{s02Content.page.title}</h1>
               <p className={styles.pageInstruction}>{s02Content.page.instruction}</p>
             </div>
-            <div className={styles.progressBlock}>
-              <strong aria-live="polite">{s02Content.page.globalProgress(understoodCount)}</strong>
-              <span>{localProgress}</span>
-              <progress
-                max={definition.accounts.length}
-                value={understoodCount}
-                aria-label={s02Content.page.globalProgress(understoodCount)}
-              />
-            </div>
           </header>
 
           <div className={styles.workspace}>
             <div ref={networkHostRef} className={styles.networkPanel}>
+              <span
+                ref={characterAnimationAnchorRef}
+                className={styles.characterAnimationAnchor}
+                aria-hidden="true"
+              />
               <ReactFlowNetwork
                 adapter={renderer}
                 presentation={presentation}
@@ -161,7 +161,6 @@ export function S02AccountExplorationTraining({
                 canvasAriaLabel="Deterministisch angeordnetes Knotennetz mit drei Hauptkonten"
                 interactionDisabled={interactionBlocked}
               />
-              <PassWoNetworkCharacter renderer={characterRenderer} characterRef={characterRef} />
               <section className={styles.narration} aria-labelledby="s02-passwo-title">
                 <p className={styles.cardLabel}>{s02Content.narration.guideName}</p>
                 <h2 id="s02-passwo-title">

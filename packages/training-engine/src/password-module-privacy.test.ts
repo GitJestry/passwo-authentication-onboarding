@@ -35,7 +35,7 @@ describe('password module privacy boundary', () => {
       onComplete: () => undefined,
     });
     const displayName = '  Browsername Nur Lokal  ';
-    const trainingValue = '  only-in-password-module !?  ';
+    const trainingValue = 'only-in-password-module!?';
 
     controller.enterDisplayName(displayName);
     controller.completeS00();

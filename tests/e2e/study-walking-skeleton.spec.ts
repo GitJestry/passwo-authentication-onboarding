@@ -154,6 +154,23 @@ async function expectInsideViewport(page: Page, locator: Locator): Promise<void>
   expect(box.y + box.height).toBeLessThanOrEqual(viewport.height);
 }
 
+async function expectArtifactShellFlush(page: Page): Promise<void> {
+  const artifactSurface = page.locator('main[data-artifact-surface]');
+  const shell = page.getByRole('region', { name: /Fiktive Browseranwendung, Segment S0[12]/ });
+  const artifactBox = await artifactSurface.boundingBox();
+  const shellBox = await shell.boundingBox();
+
+  expect(artifactBox).not.toBeNull();
+  expect(shellBox).not.toBeNull();
+  if (artifactBox === null || shellBox === null) return;
+
+  expect(shellBox).toEqual(artifactBox);
+  await expect(shell).toHaveAttribute('data-browser-shell-variant', 'artifact');
+  await expect(shell).toHaveCSS('border-top-width', '0px');
+  await expect(shell).toHaveCSS('border-top-left-radius', '0px');
+  await expect(shell).toHaveCSS('box-shadow', 'none');
+}
+
 async function expectNoHighImpactAxeFindings(page: Page): Promise<void> {
   const results = await new AxeBuilder({ page }).analyze();
   expect(
@@ -335,13 +352,14 @@ async function completeS00(page: Page): Promise<void> {
 
 async function configureS01(page: Page): Promise<void> {
   await expect(page.getByRole('heading', { name: 'CampusID' })).toBeVisible();
-  await page.getByRole('tab', { name: 'CampusBoard Archiv' }).click();
-  await page.getByLabel('Fiktives Passwort').fill('board !?');
+  await page.getByLabel('Fiktives Passwort').fill('id!?');
+  await page.getByRole('button', { name: 'Konto einrichten' }).click();
   await page.getByRole('tab', { name: 'CampusMail' }).click();
-  await page.getByLabel('Fiktives Passwort').fill('mail !?');
-  await page.getByRole('tab', { name: 'CampusID' }).click();
-  await page.getByLabel('Fiktives Passwort').fill('id !?');
-  await page.getByRole('button', { name: 'Konten einrichten' }).click();
+  await page.getByLabel('Fiktives Passwort').fill('mail!?');
+  await page.getByRole('button', { name: 'Konto einrichten' }).click();
+  await page.getByRole('tab', { name: 'CampusBoard Archiv' }).click();
+  await page.getByLabel('Fiktives Passwort').fill('board!?');
+  await page.getByRole('button', { name: 'Konto einrichten' }).click();
   await expect(page.getByText('Die drei Konten sind eingerichtet.')).toBeVisible();
 }
 
@@ -414,7 +432,7 @@ for (const viewport of [
     await expectNoHighImpactAxeFindings(page);
 
     await completeS00(page);
-    const s01Action = page.getByRole('button', { name: 'Konten einrichten' });
+    const s01Action = page.getByRole('button', { name: 'Konto einrichten' });
     await expectInsideViewport(page, s01Action);
     await expectNoHorizontalScroll(page);
     await expectNoHighImpactAxeFindings(page);
@@ -499,20 +517,29 @@ test('forced-supportive completes and visibly blocks a failed research write', a
   await expectNoHighImpactAxeFindings(page);
 });
 
-test('supportive S00 to S01 keeps fictitious values local and supports keyboard tabs', async ({
+test('supportive S00 to S01 keeps fictitious values local and configures accounts independently', async ({
   page,
 }) => {
   await startStudyServer('forced-supportive');
   const requests = captureResearchRequests(page);
-  const archiveValue = '  archiv !?  ';
+  const archiveValue = 'archiv!?_Ä';
   await acceptConsent(page);
   await submitPlaceholder(page);
   await enterSupportiveTraining(page, 'Nur lokal');
   await completeS00(page);
 
   const passwordField = page.getByLabel('Fiktives Passwort');
-  await expect(page.getByText('0/3 Konten ausgefüllt')).toBeVisible();
-  await expect(page.getByRole('button', { name: 'Konten einrichten' })).toBeDisabled();
+  await expect(page.getByText('0/3 Konten eingerichtet')).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Konto einrichten' })).toBeDisabled();
+  const questHelpButton = page.getByRole('button', { name: 'Nächsten Schritt anzeigen' });
+  await questHelpButton.focus();
+  await page.keyboard.press('Enter');
+  await expect(page.getByRole('region', { name: 'PassWo Hinweis' })).toContainText(
+    'Richte das Passwort für CampusID ein.',
+  );
+  await expect(page.getByRole('button', { name: 'Hinweis schließen' })).toBeFocused();
+  await page.keyboard.press('Enter');
+  await expect(page.getByRole('region', { name: 'PassWo Hinweis' })).toHaveCount(0);
   await page.getByRole('tab', { name: 'CampusID' }).focus();
   await page.getByRole('tab', { name: 'CampusID' }).press('End');
   await expect(page.getByRole('heading', { name: 'CampusBoard Archiv' })).toBeVisible();
@@ -529,52 +556,53 @@ test('supportive S00 to S01 keeps fictitious values local and supports keyboard 
   await expect(passwordField).toHaveValue(archiveValue);
   await page.keyboard.press('Enter');
   await expect(passwordField).toHaveAttribute('type', 'password');
-  await page.keyboard.press('Shift+Tab');
-  await page.keyboard.press('Shift+Tab');
-  await page.keyboard.press('Shift+Tab');
-  await page.keyboard.press('Home');
-  await expect(page.getByRole('heading', { name: 'CampusID' })).toBeVisible();
-  await page.keyboard.press('Tab');
-  await page.keyboard.press('Tab');
-  await expect(passwordField).toBeFocused();
-  await page.keyboard.type('id !?');
-  await page.keyboard.press('Shift+Tab');
-  await page.keyboard.press('Shift+Tab');
-  await page.keyboard.press('ArrowRight');
-  await expect(page.getByRole('heading', { name: 'CampusMail' })).toBeVisible();
-  await page.keyboard.press('Tab');
-  await page.keyboard.press('Tab');
-  await expect(passwordField).toBeFocused();
-  await page.keyboard.type('mail !?');
-  await expect(page.getByText('3/3 Konten ausgefüllt')).toBeVisible();
-  await expect(page.getByRole('button', { name: 'Konten einrichten' })).toBeEnabled();
-  await page.keyboard.press('Shift+Tab');
-  await page.keyboard.press('Shift+Tab');
-  await page.keyboard.press('End');
-  await expect(passwordField).toHaveValue(archiveValue);
-  await page.keyboard.press('Tab');
-  await page.keyboard.press('Tab');
-  await page.keyboard.press('Tab');
-  await page.keyboard.press('Tab');
-  await expect(page.getByRole('button', { name: 'Konten einrichten' })).toBeFocused();
-  await page.keyboard.press('Enter');
+  await expect(page.getByRole('button', { name: 'Konto einrichten' })).toBeEnabled();
+  await page.getByRole('button', { name: 'Konto einrichten' }).click();
+  await expect(page.getByText('1/3 Konten eingerichtet')).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Konto eingerichtet' })).toBeFocused();
+  await expect(page.getByLabel('Fiktives Passwort')).toHaveCount(0);
+
+  await page.getByRole('tab', { name: 'CampusID' }).click();
+  await expect(page.getByLabel('Fiktives Passwort')).toBeEnabled();
+  await page.getByLabel('Fiktives Passwort').fill('id!?');
+  await page.getByRole('button', { name: 'Konto einrichten' }).click();
+  await expect(page.getByText('2/3 Konten eingerichtet')).toBeVisible();
+
+  await page.getByRole('tab', { name: 'CampusMail' }).click();
+  await expect(page.getByLabel('Fiktives Passwort')).toBeEnabled();
+  await page.getByLabel('Fiktives Passwort').fill('mail!?');
+  await page.getByRole('button', { name: 'Konto einrichten' }).click();
+  await expect(page.getByText('3/3 Konten eingerichtet')).toBeVisible();
   await expect(page.getByRole('img', { name: 'Abgeschlossen' })).toHaveCount(3);
-  await expect(passwordField).toBeDisabled();
   const completionStatus = page.getByRole('heading', { name: 'Konto eingerichtet' });
   await expect(completionStatus).toBeFocused();
-  await page.keyboard.press('Tab');
-  await expect(page.getByRole('button', { name: 'Weiter' })).toBeFocused();
-  await page.keyboard.press('Enter');
+  await expect(page.locator('img[data-passwo-dock-asset]')).toHaveCount(1);
+  await page.getByRole('button', { name: 'Weiter' }).click();
   await expect(page.getByRole('heading', { name: 'Was hängt an deinen Konten?' })).toBeVisible();
+  await expect(page.locator('img[data-passwo-dock-asset]')).toHaveCount(1);
   expect(await page.locator('body').innerText()).not.toContain(archiveValue);
-  expect(await page.locator('body').innerText()).not.toContain('mail !?');
-  expect(await page.locator('body').innerText()).not.toContain('id !?');
+  expect(await page.locator('body').innerText()).not.toContain('mail!?');
+  expect(await page.locator('body').innerText()).not.toContain('id!?');
   await completeS02(page);
   await finishAfterArtifact(page);
 
   expect(requests.bodies.join('\n')).not.toContain(archiveValue);
-  expect(requests.bodies.join('\n')).not.toContain('mail !?');
-  expect(requests.bodies.join('\n')).not.toContain('id !?');
+  expect(requests.bodies.join('\n')).not.toContain('mail!?');
+  expect(requests.bodies.join('\n')).not.toContain('id!?');
+});
+
+test('S01 and S02 fill the artifact surface without an outer browser frame', async ({ page }) => {
+  await startStudyServer('forced-supportive');
+  await acceptConsent(page);
+  await submitPlaceholder(page);
+  await enterSupportiveTraining(page, 'Randlos');
+  await completeS00(page);
+
+  await expectArtifactShellFlush(page);
+  await configureS01(page);
+  await page.getByRole('button', { name: 'Weiter' }).click();
+  await expect(page.getByRole('heading', { name: 'Was hängt an deinen Konten?' })).toBeVisible();
+  await expectArtifactShellFlush(page);
 });
 
 test('retries failed S01 start and end timing writes with the same payload', async ({ page }) => {

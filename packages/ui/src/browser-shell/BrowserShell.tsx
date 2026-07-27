@@ -26,6 +26,7 @@ export interface BrowserShellProps {
   readonly snapshot: BrowserShellSnapshot;
   readonly children: ReactNode;
   readonly layers?: BrowserShellLayers;
+  readonly variant?: 'artifact' | 'framed';
   readonly ariaLabel?: string;
   readonly onTabSelect?: (tabId: string) => void;
 }
@@ -34,6 +35,7 @@ export function BrowserShell({
   snapshot,
   children,
   layers,
+  variant = 'framed',
   ariaLabel = 'Fiktive Browseranwendung',
   onTabSelect,
 }: BrowserShellProps) {
@@ -173,7 +175,12 @@ export function BrowserShell({
   });
 
   return (
-    <section className={styles.window} aria-label={ariaLabel} data-dimmed={dimmed}>
+    <section
+      className={variant === 'artifact' ? `${styles.window} ${styles.artifactWindow}` : styles.window}
+      aria-label={ariaLabel}
+      data-dimmed={dimmed}
+      data-browser-shell-variant={variant}
+    >
       <header className={styles.chrome}>
         <div className={styles.tabRow}>
           <div className={styles.windowControls} aria-hidden="true">

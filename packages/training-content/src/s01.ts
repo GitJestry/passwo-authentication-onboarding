@@ -30,8 +30,12 @@ export interface S01SegmentContent {
   readonly progress: {
     readonly label: string;
     readonly accountRoleLabel: string;
-    readonly helpText: string;
     readonly status: (configuredCount: number) => string;
+  };
+  readonly quest: {
+    readonly helpLabel: string;
+    readonly nextAccount: (accountLabel: string) => string;
+    readonly readyToContinue: string;
   };
   readonly controls: {
     readonly passwordLabel: string;
@@ -40,7 +44,6 @@ export interface S01SegmentContent {
     readonly show: string;
     readonly hide: string;
     readonly configure: string;
-    readonly configureReason: string;
     readonly continue: string;
     readonly timingFailure: string;
     readonly timingSaving: string;
@@ -54,7 +57,7 @@ export interface S01SegmentContent {
   };
 }
 
-export const S01_CONTENT_VERSION = '1.0.0';
+export const S01_CONTENT_VERSION = '2.0.0';
 
 export const s01Content: S01SegmentContent = {
   version: S01_CONTENT_VERSION,
@@ -101,8 +104,12 @@ export const s01Content: S01SegmentContent = {
   progress: {
     label: 'Einrichtungsfortschritt',
     accountRoleLabel: 'Wofür steht dieses Konto?',
-    helpText: 'Jede nicht leere Eingabe zählt in dieser fiktiven Übung als ausgefüllt.',
-    status: (configuredCount) => `${configuredCount}/3 Konten ausgefüllt`,
+    status: (configuredCount) => `${configuredCount}/3 Konten eingerichtet`,
+  },
+  quest: {
+    helpLabel: 'Nächsten Schritt anzeigen',
+    nextAccount: (accountLabel) => `Richte das Passwort für ${accountLabel} ein.`,
+    readyToContinue: 'Alle drei Konten sind eingerichtet. Wähle Weiter.',
   },
   controls: {
     passwordLabel: 'Fiktives Passwort',
@@ -110,8 +117,7 @@ export const s01Content: S01SegmentContent = {
     hidePassword: (accountLabel) => `Passwort für ${accountLabel} verbergen`,
     show: 'Anzeigen',
     hide: 'Verbergen',
-    configure: 'Konten einrichten',
-    configureReason: 'Fülle zuerst alle drei Passwortfelder aus.',
+    configure: 'Konto einrichten',
     continue: 'Weiter',
     timingFailure:
       'Das Speichern des Zeitereignisses ist fehlgeschlagen. Der nächste Schritt bleibt gesperrt.',

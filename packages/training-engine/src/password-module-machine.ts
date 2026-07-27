@@ -5,6 +5,7 @@ export interface PasswordModuleContext {
   readonly displayName: string | null;
   readonly activeAccountId: string | null;
   readonly passwordValues: Readonly<Record<string, string>>;
+  readonly configuredAccountIds: readonly string[];
   readonly s02ContentCompleted: boolean;
   readonly timingErrorCode: string | null;
 }
@@ -25,7 +26,7 @@ export type PasswordModuleEvent =
       readonly accountId: string;
       readonly value: string;
     }
-  | { readonly type: 'CONFIGURE_ACCOUNTS' }
+  | { readonly type: 'CONFIGURE_ACCOUNT'; readonly accountId: string }
   | { readonly type: 'CONTINUE' }
   | { readonly type: 'S01_END_RECORDED' }
   | { readonly type: 'S01_END_FAILED'; readonly errorCode: string }
@@ -45,6 +46,32 @@ function emptyPasswordValues(accountIds: readonly string[]): Record<string, stri
   return values;
 }
 
+const emojiSequencePattern =
+  /(?:[#*0-9]\uFE0F?\u20E3|[\u{1F1E6}-\u{1F1FF}]{1,2}|(?:\p{Extended_Pictographic}|\p{Emoji_Modifier})(?:\uFE0E|\uFE0F)?(?:\u200D(?:\p{Extended_Pictographic}|\p{Emoji_Modifier})(?:\uFE0E|\uFE0F)?)*[\u{E0020}-\u{E007F}]*)/gu;
+
+/** Keeps fictional values local while removing unsupported invisible and emoji input. */
+export function sanitizePasswordValue(value: string): string {
+  return value
+    .replace(emojiSequencePattern, '')
+    .replace(/[\p{White_Space}\p{Cc}\u200D]/gu, '');
+}
+
+function isKnownAccount(context: PasswordModuleContext, accountId: string): boolean {
+  return context.accountIds.includes(accountId);
+}
+
+function isConfiguredAccount(context: PasswordModuleContext, accountId: string): boolean {
+  return context.configuredAccountIds.includes(accountId);
+}
+
+function canConfigureAccount(context: PasswordModuleContext, accountId: string): boolean {
+  return (
+    isKnownAccount(context, accountId) &&
+    !isConfiguredAccount(context, accountId) &&
+    (context.passwordValues[accountId] ?? '').length > 0
+  );
+}
+
 export const passwordModuleMachine = setup({
   types: {
     context: {} as PasswordModuleContext,
@@ -54,8 +81,18 @@ export const passwordModuleMachine = setup({
   guards: {
     hasDisplayName: ({ event }) =>
       event.type === 'DISPLAY_NAME_ENTERED' && event.displayName.trim().length > 0,
-    hasAllPasswordValues: ({ context }) =>
-      context.accountIds.every((accountId) => (context.passwordValues[accountId] ?? '').length > 0),
+    isKnownAccount: ({ context, event }) =>
+      event.type === 'SELECT_ACCOUNT' && isKnownAccount(context, event.accountId),
+    canEditAccount: ({ context, event }) =>
+      event.type === 'SET_PASSWORD_VALUE' &&
+      isKnownAccount(context, event.accountId) &&
+      !isConfiguredAccount(context, event.accountId),
+    canConfigureAccount: ({ context, event }) =>
+      event.type === 'CONFIGURE_ACCOUNT' && canConfigureAccount(context, event.accountId),
+    configuresLastAccount: ({ context, event }) =>
+      event.type === 'CONFIGURE_ACCOUNT' &&
+      canConfigureAccount(context, event.accountId) &&
+      getConfiguredAccountCount(context) + 1 === context.accountIds.length,
     hasCompletedS02Content: ({ context }) => context.s02ContentCompleted,
   },
   actions: {
@@ -79,13 +116,23 @@ export const passwordModuleMachine = setup({
     setPasswordValue: assign({
       passwordValues: ({ context, event }) => {
         if (event.type !== 'SET_PASSWORD_VALUE') return context.passwordValues;
-        return { ...context.passwordValues, [event.accountId]: event.value };
+        return {
+          ...context.passwordValues,
+          [event.accountId]: sanitizePasswordValue(event.value),
+        };
+      },
+    }),
+    configureAccount: assign({
+      configuredAccountIds: ({ context, event }) => {
+        if (event.type !== 'CONFIGURE_ACCOUNT') return context.configuredAccountIds;
+        return [...context.configuredAccountIds, event.accountId];
       },
     }),
     discardTransientTrainingData: assign({
       displayName: () => null,
       activeAccountId: () => null,
       passwordValues: ({ context }) => emptyPasswordValues(context.accountIds),
+      configuredAccountIds: () => [],
       s02ContentCompleted: () => false,
       timingErrorCode: () => null,
     }),
@@ -99,6 +146,7 @@ export const passwordModuleMachine = setup({
     displayName: null,
     activeAccountId: input.accountIds[0] ?? null,
     passwordValues: emptyPasswordValues(input.accountIds),
+    configuredAccountIds: [],
     s02ContentCompleted: false,
     timingErrorCode: null,
   }),
@@ -132,27 +180,34 @@ export const passwordModuleMachine = setup({
         },
         editing: {
           on: {
-            SELECT_ACCOUNT: { actions: 'selectAccount' },
-            SET_PASSWORD_VALUE: { actions: 'setPasswordValue' },
-            CONFIGURE_ACCOUNTS: { guard: 'hasAllPasswordValues', target: 'configured' },
+            SELECT_ACCOUNT: { guard: 'isKnownAccount', actions: 'selectAccount' },
+            SET_PASSWORD_VALUE: { guard: 'canEditAccount', actions: 'setPasswordValue' },
+            CONFIGURE_ACCOUNT: [
+              {
+                guard: 'configuresLastAccount',
+                target: 'configured',
+                actions: 'configureAccount',
+              },
+              { guard: 'canConfigureAccount', actions: 'configureAccount' },
+            ],
           },
         },
         configured: {
           on: {
-            SELECT_ACCOUNT: { actions: 'selectAccount' },
+            SELECT_ACCOUNT: { guard: 'isKnownAccount', actions: 'selectAccount' },
             CONTINUE: { target: 'ending', actions: 'clearTimingError' },
           },
         },
         ending: {
           on: {
-            SELECT_ACCOUNT: { actions: 'selectAccount' },
+            SELECT_ACCOUNT: { guard: 'isKnownAccount', actions: 'selectAccount' },
             S01_END_RECORDED: { target: '#passwordModule.s02.starting' },
             S01_END_FAILED: { target: 'endFailed', actions: 'storeTimingError' },
           },
         },
         endFailed: {
           on: {
-            SELECT_ACCOUNT: { actions: 'selectAccount' },
+            SELECT_ACCOUNT: { guard: 'isKnownAccount', actions: 'selectAccount' },
             RETRY_S01_END: { target: 'ending', actions: 'clearTimingError' },
           },
         },
@@ -197,7 +252,6 @@ export const passwordModuleMachine = setup({
 });
 
 export function getConfiguredAccountCount(context: PasswordModuleContext): number {
-  return context.accountIds.filter(
-    (accountId) => (context.passwordValues[accountId] ?? '').length > 0,
-  ).length;
+  return context.accountIds.filter((accountId) => context.configuredAccountIds.includes(accountId))
+    .length;
 }
