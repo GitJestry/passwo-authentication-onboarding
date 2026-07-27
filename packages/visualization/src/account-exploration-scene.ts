@@ -5,6 +5,7 @@ import type {
   SceneEdgeKind,
   SceneNode,
   SceneNodeKind,
+  SceneNodeSymbolId,
 } from './scene.js';
 
 export interface AccountExplorationSceneDefinition {
@@ -17,6 +18,7 @@ export interface AccountExplorationSceneDefinition {
   readonly accounts: readonly {
     readonly id: string;
     readonly label: string;
+    readonly symbolId: SceneNodeSymbolId;
     readonly position: AuthoredPosition;
     readonly detailKind: Extract<SceneNodeKind, 'service' | 'function' | 'content'>;
     readonly edgeKind: Extract<SceneEdgeKind, 'dependency' | 'association'> | null;
@@ -42,6 +44,7 @@ export interface AccountExplorationSceneDefinition {
     readonly details: readonly {
       readonly id: string;
       readonly label: string;
+      readonly symbolId: SceneNodeSymbolId;
       readonly position: AuthoredPosition;
       readonly animationId: string;
       readonly narrationId: string;
@@ -152,6 +155,7 @@ function buildNetwork(
     return {
       id: account.id,
       kind: 'account',
+      symbolId: account.symbolId,
       label: account.label,
       description,
       status: understood.has(account.id) ? 'understood' : 'neutral',
@@ -173,6 +177,7 @@ function buildNetwork(
       : activeAccount.details.map((detail) => ({
           id: detail.id,
           kind: activeAccount.detailKind,
+          symbolId: detail.symbolId,
           label: detail.label,
           description:
             pendingDetail?.id === detail.id

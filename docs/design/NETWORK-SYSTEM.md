@@ -27,19 +27,40 @@ Das Netzwerk zeigt Konten, abhängige Dienste, Funktionen, Passwortbeziehungen u
 - Hypothetische Beispiele besitzen immer sichtbare Kennzeichnung.
 - Ein Schutzschild bedeutet „dieser Angriffsweg ist blockiert“, nicht absolute Kontosicherheit.
 
+## Visuelle Sprache
+
+- Account-, Service-, Function- und Content-Nodes werden als Kreise gerendert. Hauptkonten haben
+  einen Kreisdurchmesser von ungefähr 112 px, Detailknoten von ungefähr 76 px.
+- Jeder Node führt eine semantische `symbolId`. Der Renderer löst diese ID ausschließlich über
+  eine lokale Inline-SVG-Registry auf; Emojis und externe Icon-Abhängigkeiten werden nicht
+  verwendet.
+- Im Kreis steht nur das Symbol. Das kompakte Label sitzt unterhalb des Kreises; Beschreibung und
+  Textstatus bleiben für die zugängliche Benennung sowie für separate Kontextkarten reserviert.
+- Ein kleiner Statusmarker überlagert den Kreis: offen, verstanden, betroffen oder geschützt.
+  Farbe ergänzt dabei Symbol und zugänglichen Status, ersetzt sie aber nicht.
+- Kanten sind eigene ruhige quadratische Kreis-Kanten. Sie beginnen und enden am Kreisrand, liegen
+  hinter den Nodes und ihren Label-Flächen und verwenden keine rechteckigen Smoothstep-Segmente.
+- Die Statusfarben und Linienarten für S06 bleiben erhalten: direkte, ähnliche, blockierte und
+  hypothetische Verbindungen unterscheiden sich zusätzlich durch Strichmuster.
+
 ## S02-Kontenerkundung
 
 S02 „Konten verstehen“ bildet die erste vollständige Kontenerkundung:
 
-1. CampusID, CampusMail und CampusBoard Archiv sind gleichzeitig in festen Positionen sichtbar;
+1. CampusID, CampusMail und CampusBoard Archiv sind gleichzeitig als unterschiedliche
+   Symbolkreise in festen Positionen sichtbar;
 2. die Konten können in beliebiger Reihenfolge geöffnet werden und behalten ihren Fortschritt;
 3. PassWo bewegt sich beim erstmaligen Öffnen zum Ziel;
-4. nur die Detailknoten des aktiven Kontos erscheinen;
+4. das aktive Konto vergrößert sich leicht; nur seine Detailknoten erscheinen schrittweise als
+   Bubbles;
 5. CampusID-Dienste verwenden `service`/`dependency`, CampusMail-Funktionen
    `function`/`association`;
 6. CampusBoard-Inhalte verwenden `content` und erzeugen keine ausgehenden Kanten;
-7. jedes Konto erhält erst nach allen eigenen Details den Textstatus `verstanden`;
+7. jedes Konto erhält erst nach allen eigenen Details den Statusmarker `verstanden`;
 8. der Segmentabschluss ist erst nach allen drei verstandenen Konten verfügbar.
+
+Die Detailvorschau bleibt eine separate Karte neben dem Graphen. Sie ist kein Bestandteil eines
+Nodes und beeinflusst weder Positionen noch den Trainingsablauf.
 
 Danach wird in S06 derselbe Graph um Angriffs- und Schutzstatus erweitert. So wird der Adapter
 früh mit den wichtigsten Zuständen validiert, bevor alle Segmente umgesetzt werden.

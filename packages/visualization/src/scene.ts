@@ -16,6 +16,19 @@ export type SceneNodeStatus =
   | 'protected'
   | 'hypothetical';
 
+/**
+ * Semantic identifiers keep visual symbols separate from labels and renderer
+ * details. The known values are intentionally open for authored future scenes.
+ */
+export type SceneNodeSymbolId =
+  | 'account'
+  | 'service'
+  | 'function'
+  | 'content'
+  | 'shield'
+  | 'annotation'
+  | (string & {});
+
 export type SceneEdgeKind =
   | 'dependency'
   | 'association'
@@ -40,6 +53,7 @@ export interface AuthoredPosition {
 export interface SceneNode {
   readonly id: string;
   readonly kind: SceneNodeKind;
+  readonly symbolId?: SceneNodeSymbolId;
   readonly label: string;
   readonly description: string;
   readonly status: SceneNodeStatus;

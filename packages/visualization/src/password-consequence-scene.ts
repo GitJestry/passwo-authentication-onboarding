@@ -83,6 +83,7 @@ function createAccountNodes(
     {
       id: analysis.sourceAccountId,
       kind: 'account',
+      symbolId: analysis.sourceAccountId,
       label: definition.sourceAccount.label,
       description: labels.sourceKnown,
       status: hypothetical ? 'hypothetical' : 'exposed',
@@ -92,6 +93,7 @@ function createAccountNodes(
     {
       id: analysis.targetAccountId,
       kind: 'account',
+      symbolId: analysis.targetAccountId,
       label: definition.targetAccount.label,
       description:
         phase === 'comparing'
@@ -113,6 +115,7 @@ function createAccountNodes(
     nodes.push({
       id: `${definition.id}-shield`,
       kind: 'shield',
+      symbolId: 'shield',
       label: labels.blocked,
       description: labels.unique,
       status: 'protected',
@@ -125,6 +128,7 @@ function createAccountNodes(
     nodes.push({
       id: `${definition.id}-structure`,
       kind: 'annotation',
+      symbolId: 'structure',
       label: labels.structure,
       description: labels.structureDescription,
       status: 'affected',
@@ -137,6 +141,7 @@ function createAccountNodes(
     nodes.push({
       id: `${definition.id}-hypothetical`,
       kind: 'annotation',
+      symbolId: 'hypothetical',
       label: labels.hypothetical,
       description: labels.hypotheticalDescription,
       status: 'hypothetical',

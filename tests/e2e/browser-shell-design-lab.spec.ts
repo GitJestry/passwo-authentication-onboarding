@@ -461,6 +461,34 @@ test('S02 shows all accounts, keeps free-order partial progress, and restores an
   await expect(page.getByText('Bestätigung für Anmeldung oder Änderung')).toBeVisible();
 });
 
+test('S02 renders semantic symbols, circular nodes, and circle-boundary curves', async ({
+  page,
+}) => {
+  await page.emulateMedia({ reducedMotion: 'reduce' });
+  await page.goto('/design-lab/s02-campus-id');
+
+  const network = page.getByLabel('Knotennetz zum Erkunden der drei Konten');
+  for (const [nodeId, symbolId] of [
+    ['campus-id', 'campus-id'],
+    ['campus-mail', 'campus-mail'],
+    ['campus-board-archive', 'campus-board-archive'],
+  ] as const) {
+    const node = network.locator(`[data-scene-node="${nodeId}"]`);
+    await expect(node).toHaveAttribute('data-node-shape', 'circle');
+    await expect(node).toHaveAttribute('data-symbol-id', symbolId);
+    await expect(node.locator(`[data-network-symbol="${symbolId}"]`)).toHaveCount(1);
+    await expect(node.locator('[data-network-status-marker="open"]')).toHaveCount(1);
+  }
+
+  await network.locator('[data-scene-node-button="campus-id"]').click();
+  await network.locator('[data-scene-node-button="campus-id-learnspace"]').click();
+  await expect(network.locator('[data-scene-node="campus-id-learnspace"]')).toHaveAttribute(
+    'data-symbol-id',
+    'learnspace',
+  );
+  await expect(network.locator('.react-flow__edge-path')).toHaveAttribute('d', / Q /);
+});
+
 test('S02 completes CampusID 3/3, CampusMail 4/4, and CampusBoard 3/3 without Board edges', async ({
   page,
 }) => {

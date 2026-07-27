@@ -34,6 +34,7 @@ export interface S02AnimationSequence {
 export interface S02AccountContent {
   readonly id: S02AccountId;
   readonly label: string;
+  readonly symbolId: string;
   readonly position: { readonly x: number; readonly y: number };
   readonly detailKind: 'service' | 'function' | 'content';
   readonly edgeKind: 'dependency' | 'association' | null;
@@ -59,6 +60,7 @@ export interface S02AccountContent {
   readonly details: readonly {
     readonly id: string;
     readonly label: string;
+    readonly symbolId: string;
     readonly preview: string;
     readonly position: { readonly x: number; readonly y: number };
     readonly animationId: string;
@@ -123,7 +125,7 @@ export interface S02SegmentContent {
   readonly animations: readonly S02AnimationSequence[];
 }
 
-export const S02_CONTENT_VERSION = '2.0.0';
+export const S02_CONTENT_VERSION = '2.1.0';
 
 const introId = 's02.accounts.intro';
 
@@ -131,6 +133,7 @@ const accounts = [
   {
     id: 'campus-id',
     label: 'CampusID',
+    symbolId: 'campus-id',
     position: { x: 0.04, y: 0 },
     detailKind: 'service',
     edgeKind: 'dependency',
@@ -157,6 +160,7 @@ const accounts = [
       {
         id: 'campus-id-learnspace',
         label: 'LearnSpace',
+        symbolId: 'learnspace',
         preview: 'Kurszugänge, Vorlesungsunterlagen, Abgaben',
         position: { x: 0.05, y: 0.54 },
         animationId: 's02-check-campus-id-learnspace',
@@ -170,6 +174,7 @@ const accounts = [
       {
         id: 'campus-id-exam-portal',
         label: 'Prüfungsportal',
+        symbolId: 'exam-portal',
         preview: 'Anmeldungen, Termine, Ergebnisübersichten',
         position: { x: 0.4, y: 0.54 },
         animationId: 's02-check-campus-id-exam-portal',
@@ -183,6 +188,7 @@ const accounts = [
       {
         id: 'campus-id-cloud-notes',
         label: 'Cloud Notes',
+        symbolId: 'cloud-notes',
         preview: 'Notizen, Entwürfe, Arbeitsdateien, Projektmaterial',
         position: { x: 0.75, y: 0.54 },
         animationId: 's02-check-campus-id-cloud-notes',
@@ -198,6 +204,7 @@ const accounts = [
   {
     id: 'campus-mail',
     label: 'CampusMail',
+    symbolId: 'campus-mail',
     position: { x: 0.39, y: 0 },
     detailKind: 'function',
     edgeKind: 'association',
@@ -224,6 +231,7 @@ const accounts = [
       {
         id: 'campus-mail-notifications',
         label: 'Benachrichtigungen',
+        symbolId: 'notifications',
         preview: 'Neue Kursnachricht, Terminänderung, Systemhinweis',
         position: { x: 0.22, y: 0.51 },
         animationId: 's02-check-campus-mail-notifications',
@@ -237,6 +245,7 @@ const accounts = [
       {
         id: 'campus-mail-confirmations',
         label: 'Bestätigungen',
+        symbolId: 'confirmations',
         preview: 'Bestätigung für Anmeldung oder Änderung',
         position: { x: 0.56, y: 0.51 },
         animationId: 's02-check-campus-mail-confirmations',
@@ -250,6 +259,7 @@ const accounts = [
       {
         id: 'campus-mail-reset-links',
         label: 'Zurücksetzungslinks',
+        symbolId: 'reset-links',
         preview: 'Passwort zurücksetzen angefordert → Link liegt im Postfach',
         position: { x: 0.22, y: 1 },
         animationId: 's02-check-campus-mail-reset-links',
@@ -263,6 +273,7 @@ const accounts = [
       {
         id: 'campus-mail-impersonation',
         label: 'Kommunikation in deinem Namen',
+        symbolId: 'compose-message',
         preview: 'Nachricht verfassen',
         position: { x: 0.56, y: 1 },
         animationId: 's02-check-campus-mail-impersonation',
@@ -278,6 +289,7 @@ const accounts = [
   {
     id: 'campus-board-archive',
     label: 'CampusBoard Archiv',
+    symbolId: 'campus-board-archive',
     position: { x: 0.74, y: 0 },
     detailKind: 'content',
     edgeKind: null,
@@ -304,6 +316,7 @@ const accounts = [
       {
         id: 'campus-board-old-announcements',
         label: 'Alte Ankündigungen',
+        symbolId: 'announcements',
         preview: 'Ältere Hinweise und Informationen',
         position: { x: 0.12, y: 0.58 },
         animationId: 's02-check-campus-board-old-announcements',
@@ -317,6 +330,7 @@ const accounts = [
       {
         id: 'campus-board-project-questions',
         label: 'Projektfragen',
+        symbolId: 'project-questions',
         preview: 'Fragen, Antworten, kurze Projektabsprachen',
         position: { x: 0.43, y: 0.58 },
         animationId: 's02-check-campus-board-project-questions',
@@ -330,6 +344,7 @@ const accounts = [
       {
         id: 'campus-board-archived-discussions',
         label: 'Archivierte Diskussionen',
+        symbolId: 'archived-discussions',
         preview: 'Diskussionsverlauf aus früheren Kursen',
         position: { x: 0.74, y: 0.58 },
         animationId: 's02-check-campus-board-archived-discussions',

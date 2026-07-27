@@ -13,6 +13,7 @@ const definition: AccountExplorationSceneDefinition = {
     {
       id: 'campus-id',
       label: 'CampusID',
+      symbolId: 'campus-id',
       position: { x: 0.05, y: 0.05 },
       detailKind: 'service',
       edgeKind: 'dependency',
@@ -36,6 +37,7 @@ const definition: AccountExplorationSceneDefinition = {
         {
           id: 'service-one',
           label: 'Dienst Eins',
+          symbolId: 'service',
           position: { x: 0.1, y: 0.5 },
           animationId: 'check-service-one',
           narrationId: 'service-one',
@@ -44,6 +46,7 @@ const definition: AccountExplorationSceneDefinition = {
         {
           id: 'service-two',
           label: 'Dienst Zwei',
+          symbolId: 'service',
           position: { x: 0.5, y: 0.5 },
           animationId: 'check-service-two',
           narrationId: 'service-two',
@@ -54,6 +57,7 @@ const definition: AccountExplorationSceneDefinition = {
     {
       id: 'board',
       label: 'Board',
+      symbolId: 'content',
       position: { x: 0.7, y: 0.05 },
       detailKind: 'content',
       edgeKind: null,
@@ -77,6 +81,7 @@ const definition: AccountExplorationSceneDefinition = {
         {
           id: 'content-one',
           label: 'Inhalt',
+          symbolId: 'content',
           position: { x: 0.2, y: 0.5 },
           animationId: 'check-content-one',
           narrationId: 'content-one',
@@ -105,6 +110,7 @@ describe('account exploration scene', () => {
   it('shows every main account initially and only details for the active account', () => {
     const initial = createAccountExplorationScene(definition);
     expect(initial.network.nodes.map(({ id }) => id)).toEqual(['campus-id', 'board']);
+    expect(initial.network.nodes.map(({ symbolId }) => symbolId)).toEqual(['campus-id', 'content']);
 
     const opening = select(initial, 'campus-id');
     expect(opening.snapshot.network.nodes.map(({ id }) => id)).toEqual([

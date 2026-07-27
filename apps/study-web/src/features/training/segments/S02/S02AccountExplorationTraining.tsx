@@ -127,6 +127,7 @@ export function S02AccountExplorationTraining({
             <PassWoQuestDock
               guideName={s02Content.narration.guideName}
               progressLabel={s02Content.page.globalProgress(understoodCount)}
+              placement={complete ? 'bottom-left' : 'bottom-right'}
               helpOpen={questHelpOpen}
               helpId="s02-quest-help"
               openHelpLabel="Nächsten Schritt anzeigen"
@@ -164,31 +165,20 @@ export function S02AccountExplorationTraining({
                 activeNodeId={scene.activeAccountId}
                 showEdgeLabels={false}
               />
-              <section className={styles.mapContext} aria-label="Aktueller Hinweis">
-                {activeAccount !== undefined ? (
-                  <p className={styles.localStatus} role="status">
-                    <span aria-hidden="true">
-                      {scene.understoodAccountIds.includes(activeAccount.id) ? '✓' : '○'}
-                    </span>
-                    {localProgress}
-                  </p>
-                ) : null}
-                <section className={styles.narration}>
-                  <p>{narration}</p>
-                  {completionNarration !== '' && completionNarration !== narration ? (
-                    <p>{completionNarration}</p>
-                  ) : null}
-                </section>
-                {complete ? (
-                  <section className={styles.completion} aria-label={s02Content.page.completion}>
-                    <p role="status">
-                      <span aria-hidden="true">✓</span>
-                      {s02Content.page.completion}
-                    </p>
-                    <button type="button" disabled={interactionBlocked} onClick={onContinue}>
-                      {s02Content.controls.continue}
-                    </button>
-                  </section>
+            </div>
+            <aside className={styles.mapContext} aria-label="Aktueller Hinweis">
+              {activeAccount !== undefined ? (
+                <p className={styles.localStatus} role="status">
+                  <span aria-hidden="true">
+                    {scene.understoodAccountIds.includes(activeAccount.id) ? '✓' : '○'}
+                  </span>
+                  {localProgress}
+                </p>
+              ) : null}
+              <section className={styles.narration}>
+                <p>{narration}</p>
+                {completionNarration !== '' && completionNarration !== narration ? (
+                  <p>{completionNarration}</p>
                 ) : null}
               </section>
               {activePreview !== undefined ? (
@@ -198,7 +188,18 @@ export function S02AccountExplorationTraining({
                   <p>{activePreview.preview}</p>
                 </section>
               ) : null}
-            </div>
+              {complete ? (
+                <section className={styles.completion} aria-label={s02Content.page.completion}>
+                  <p role="status">
+                    <span aria-hidden="true">✓</span>
+                    {s02Content.page.completion}
+                  </p>
+                  <button type="button" disabled={interactionBlocked} onClick={onContinue}>
+                    {s02Content.controls.continue}
+                  </button>
+                </section>
+              ) : null}
+            </aside>
           </div>
 
           {(timingState === 'starting' || timingState === 'ending') &&

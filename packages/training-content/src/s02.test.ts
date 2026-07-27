@@ -13,35 +13,50 @@ describe('complete S02 content', () => {
 
   it('authors all three accounts and their required detail semantics', () => {
     expect(
-      s02Content.scene.accounts.map(({ id, detailKind, edgeKind, details }) => ({
+      s02Content.scene.accounts.map(({ id, symbolId, detailKind, edgeKind, details }) => ({
         id,
+        symbolId,
         detailKind,
         edgeKind,
-        details: details.map(({ label }) => label),
+        details: details.map(({ label, symbolId: detailSymbolId }) => ({
+          label,
+          symbolId: detailSymbolId,
+        })),
       })),
     ).toEqual([
       {
         id: 'campus-id',
+        symbolId: 'campus-id',
         detailKind: 'service',
         edgeKind: 'dependency',
-        details: ['LearnSpace', 'Prüfungsportal', 'Cloud Notes'],
+        details: [
+          { label: 'LearnSpace', symbolId: 'learnspace' },
+          { label: 'Prüfungsportal', symbolId: 'exam-portal' },
+          { label: 'Cloud Notes', symbolId: 'cloud-notes' },
+        ],
       },
       {
         id: 'campus-mail',
+        symbolId: 'campus-mail',
         detailKind: 'function',
         edgeKind: 'association',
         details: [
-          'Benachrichtigungen',
-          'Bestätigungen',
-          'Zurücksetzungslinks',
-          'Kommunikation in deinem Namen',
+          { label: 'Benachrichtigungen', symbolId: 'notifications' },
+          { label: 'Bestätigungen', symbolId: 'confirmations' },
+          { label: 'Zurücksetzungslinks', symbolId: 'reset-links' },
+          { label: 'Kommunikation in deinem Namen', symbolId: 'compose-message' },
         ],
       },
       {
         id: 'campus-board-archive',
+        symbolId: 'campus-board-archive',
         detailKind: 'content',
         edgeKind: null,
-        details: ['Alte Ankündigungen', 'Projektfragen', 'Archivierte Diskussionen'],
+        details: [
+          { label: 'Alte Ankündigungen', symbolId: 'announcements' },
+          { label: 'Projektfragen', symbolId: 'project-questions' },
+          { label: 'Archivierte Diskussionen', symbolId: 'archived-discussions' },
+        ],
       },
     ]);
   });

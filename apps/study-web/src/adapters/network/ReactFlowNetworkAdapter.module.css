@@ -14,11 +14,23 @@
 }
 
 .nodeFrame {
+  --node-diameter: 76px;
+  --node-label-surface: var(--color-surface-primary);
+
+  position: relative;
   width: 100%;
   height: 100%;
   transition:
     opacity var(--motion-standard) var(--motion-ease-out),
     transform var(--motion-standard) var(--motion-ease-out);
+}
+
+.nodeFrame[data-size="main"] {
+  --node-diameter: 112px;
+}
+
+.nodeFrame[data-variant="account-map"] {
+  --node-label-surface: var(--color-surface-muted);
 }
 
 .nodeFrame[data-visible="false"] {
@@ -30,17 +42,15 @@
   display: grid;
   width: 100%;
   height: 100%;
-  min-height: 5.8rem;
-  grid-template-columns: auto minmax(0, 1fr);
-  align-items: center;
-  gap: var(--space-3);
-  padding: var(--space-3);
-  border: var(--border-width-medium) solid var(--color-border);
-  border-radius: var(--radius-small);
+  grid-template-rows: var(--node-diameter) minmax(0, 1fr);
+  justify-items: center;
+  gap: var(--space-2);
+  padding: 0;
+  border: 0;
   color: var(--color-ink);
-  background: var(--color-surface-elevated);
-  box-shadow: var(--shadow-float);
-  text-align: left;
+  background: transparent;
+  font: inherit;
+  text-align: center;
 }
 
 .nodeButton:not(:disabled) {
@@ -52,188 +62,160 @@
 }
 
 .nodeButton:focus-visible {
+  outline: 0;
+}
+
+.nodeCircle {
+  position: relative;
+  display: grid;
+  width: var(--node-diameter);
+  height: var(--node-diameter);
+  place-items: center;
+  border: var(--border-width-medium) solid var(--color-border);
+  border-radius: var(--radius-round);
+  color: var(--color-accent-strong);
+  background: var(--color-surface-elevated);
+  box-shadow: var(--shadow-card);
+  transition:
+    border-color var(--motion-standard) var(--motion-ease-out),
+    box-shadow var(--motion-standard) var(--motion-ease-out),
+    transform var(--motion-standard) var(--motion-ease-out);
+}
+
+.nodeButton:focus-visible .nodeCircle {
   outline: var(--border-width-focus) solid var(--color-focus);
   outline-offset: var(--space-1);
   box-shadow: var(--shadow-focus);
 }
 
-.nodeFrame[data-highlighted="true"] .nodeButton {
+.nodeFrame[data-size="main"] .nodeCircle {
+  border-width: var(--border-width-medium);
+}
+
+.nodeFrame[data-kind="service"] .nodeCircle {
+  color: var(--color-accent-strong);
+}
+
+.nodeFrame[data-kind="function"] .nodeCircle {
+  border-style: dashed;
+  color: var(--color-warning);
+}
+
+.nodeFrame[data-kind="content"] .nodeCircle {
+  color: var(--color-positive);
+}
+
+.nodeFrame[data-highlighted="true"] .nodeCircle {
   border-color: var(--color-accent-strong);
   box-shadow:
     0 0 0 3px var(--color-accent-soft),
     var(--shadow-float);
 }
 
-.nodeFrame[data-status="understood"] .nodeButton {
-  border-style: solid;
+.nodeFrame[data-active="true"] .nodeCircle {
+  border-color: var(--color-accent-strong);
+  box-shadow:
+    0 0 0 4px var(--color-accent-soft),
+    var(--shadow-float);
+  transform: scale(1.055);
+}
+
+.nodeFrame[data-status="understood"] .nodeCircle,
+.nodeFrame[data-status="protected"] .nodeCircle {
   border-color: var(--color-positive);
 }
 
-.nodeFrame[data-status="exposed"] .nodeButton,
-.nodeFrame[data-status="affected"] .nodeButton {
-  border-color: var(--color-danger);
-  background: var(--color-danger-soft);
-}
-
-.nodeFrame[data-status="protected"] .nodeButton {
-  border-color: var(--color-positive);
-  background: var(--color-positive-soft);
-}
-
-.nodeFrame[data-status="hypothetical"] .nodeButton {
-  border-style: dashed;
-  border-color: var(--color-hypothetical);
-  background: var(--color-hypothetical-soft);
-}
-
-.nodeFrame:has([data-scene-node-button="campus-id"]) .nodeButton,
-.nodeFrame:has([data-scene-node-button="campus-mail"]) .nodeButton,
-.nodeFrame:has([data-scene-node-button="campus-board-archive"]) .nodeButton {
-  border-width: var(--border-width-medium);
-}
-
-.nodeFrame:has([data-scene-node-button^="campus-id-"]) .nodeButton {
-  border-left: var(--space-1) solid var(--color-accent);
-}
-
-.nodeFrame:has([data-scene-node-button^="campus-mail-"]) .nodeButton {
-  border-left: var(--space-1) solid var(--color-warning);
-}
-
-.nodeFrame:has([data-scene-node-button^="campus-board-"]) .nodeButton {
-  border-left: var(--space-1) solid var(--color-positive);
-}
-
-.nodeBadge {
-  display: grid;
-  width: var(--size-control-medium);
-  height: var(--size-control-medium);
-  place-items: center;
-  border: var(--border-width-thin) solid var(--color-accent-strong);
-  border-radius: var(--radius-round);
-  color: var(--color-ink-strong);
-  background: var(--color-accent-soft);
-  font-size: var(--font-size-x-small);
-  font-weight: var(--font-weight-heavy);
-}
-
-.nodeFrame[data-status="understood"] .nodeBadge {
-  border-color: var(--color-positive);
-  background: var(--color-positive-soft);
-}
-
-.nodeFrame[data-status="exposed"] .nodeBadge,
-.nodeFrame[data-status="affected"] .nodeBadge {
+.nodeFrame[data-status="exposed"] .nodeCircle,
+.nodeFrame[data-status="affected"] .nodeCircle {
   border-color: var(--color-danger);
   color: var(--color-danger);
   background: var(--color-danger-soft);
 }
 
-.nodeFrame[data-status="protected"] .nodeBadge {
-  border-color: var(--color-positive);
+.nodeFrame[data-status="protected"] .nodeCircle {
+  color: var(--color-positive);
   background: var(--color-positive-soft);
 }
 
-.nodeFrame[data-status="hypothetical"] .nodeBadge {
+.nodeFrame[data-status="hypothetical"] .nodeCircle {
+  border-style: dashed;
   border-color: var(--color-hypothetical);
   color: var(--color-hypothetical);
   background: var(--color-hypothetical-soft);
 }
 
-.nodeCopy {
+.nodeSymbol {
+  width: 46%;
+  height: 46%;
+}
+
+.nodeFrame[data-size="detail"] .nodeSymbol {
+  width: 50%;
+  height: 50%;
+}
+
+.statusMarker {
+  position: absolute;
+  top: 7%;
+  right: 7%;
   display: grid;
-  min-width: 0;
-  gap: var(--space-1);
-}
-
-.nodeCopy strong {
-  color: var(--color-ink-strong);
-  font-size: var(--font-size-body);
-}
-
-.nodeCopy small {
-  color: var(--color-ink-muted);
-  font-size: var(--font-size-x-small);
-  font-weight: var(--font-weight-bold);
-}
-
-.nodeCopy > span {
-  color: var(--color-accent-strong);
-  font-size: var(--font-size-x-small);
-  font-weight: var(--font-weight-semibold);
-}
-
-.nodeStatus {
-  display: grid;
-  width: 1rem;
-  height: 1rem;
+  width: 23%;
+  aspect-ratio: 1;
   place-items: center;
   border: var(--border-width-thin) solid var(--color-border);
   border-radius: var(--radius-round);
   color: var(--color-ink-muted);
   background: var(--color-surface-primary);
-  font-size: 0.68rem;
+}
+
+.statusSymbol {
+  width: 72%;
+  height: 72%;
+}
+
+.nodeFrame[data-status="understood"] .statusMarker,
+.nodeFrame[data-status="protected"] .statusMarker {
+  border-color: var(--color-positive);
+  color: var(--color-positive);
+  background: var(--color-positive-soft);
+}
+
+.nodeFrame[data-status="exposed"] .statusMarker,
+.nodeFrame[data-status="affected"] .statusMarker {
+  border-color: var(--color-danger);
+  color: var(--color-danger);
+  background: var(--color-danger-soft);
+}
+
+.nodeFrame[data-status="hypothetical"] .statusMarker {
+  border-color: var(--color-hypothetical);
+  color: var(--color-hypothetical);
+  background: var(--color-hypothetical-soft);
+}
+
+.nodeLabel {
+  z-index: 1;
+  width: 100%;
+  min-height: 2.2em;
+  padding: 0 var(--space-1);
+  color: var(--color-ink-strong);
+  background: var(--node-label-surface);
+  font-size: var(--font-size-x-small);
   font-weight: var(--font-weight-heavy);
+  line-height: 1.1;
+  overflow-wrap: anywhere;
+}
+
+.nodeFrame[data-size="detail"] .nodeLabel {
+  font-size: 0.65rem;
 }
 
 .handle {
-  width: var(--space-2);
-  height: var(--space-2);
-  border: var(--border-width-thin) solid var(--color-surface-primary);
-  background: var(--color-positive);
+  width: 1px;
+  height: 1px;
+  border: 0;
+  opacity: 0;
   pointer-events: none;
-}
-
-.nodeFrame[data-variant="account-map"] .handle {
-  visibility: hidden;
-}
-
-.nodeFrame[data-variant="account-map"] .nodeButton {
-  gap: var(--space-2);
-  padding: var(--space-3);
-  border-radius: var(--radius-medium);
-  box-shadow: var(--shadow-card);
-}
-
-.nodeFrame[data-variant="account-map"] .nodeCopy {
-  grid-template-columns: minmax(0, 1fr) auto;
-  align-items: center;
-}
-
-.nodeFrame[data-variant="account-map"] .nodeCopy strong {
-  font-size: var(--font-size-small);
-}
-
-.nodeFrame[data-variant="account-map"][data-kind="account"] .nodeButton {
-  border-width: var(--border-width-medium);
-  background: var(--color-surface-elevated);
-}
-
-.nodeFrame[data-variant="account-map"][data-kind="service"] .nodeButton {
-  border-left: var(--space-1) solid var(--color-accent);
-}
-
-.nodeFrame[data-variant="account-map"][data-kind="function"] .nodeButton {
-  border-style: dashed;
-  border-left: var(--space-1) solid var(--color-warning);
-}
-
-.nodeFrame[data-variant="account-map"][data-kind="content"] .nodeButton {
-  border-left: var(--space-1) solid var(--color-positive);
-}
-
-.nodeFrame[data-variant="account-map"][data-active="true"] .nodeButton {
-  border-color: var(--color-accent-strong);
-  box-shadow:
-    0 0 0 4px var(--color-accent-soft),
-    var(--shadow-float);
-  transform: scale(1.035);
-}
-
-.nodeFrame[data-variant="account-map"][data-status="understood"] .nodeStatus {
-  border-color: var(--color-positive);
-  color: var(--color-ink-strong);
-  background: var(--color-positive-soft);
 }
 
 .edgeNeutral :global(.react-flow__edge-path) {
@@ -338,6 +320,10 @@
 
 @media (prefers-reduced-motion: reduce) {
   .nodeFrame {
+    transition: none;
+  }
+
+  .nodeFrame .nodeCircle {
     transition: none;
   }
 }
