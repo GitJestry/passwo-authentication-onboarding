@@ -46,15 +46,15 @@ export function S03RetrievalTraining({
 }: S03RetrievalTrainingProps) {
   const networkHostRef = useRef<HTMLDivElement | null>(null);
   const characterAnimationAnchorRef = useRef<HTMLSpanElement | null>(null);
-  const warningCompletionRef = useRef(() => controller.completeS03WarningSequence());
-  warningCompletionRef.current = () => controller.completeS03WarningSequence();
+  const warningConfirmationRef = useRef(() => controller.completeS03WarningSequence());
+  warningConfirmationRef.current = () => controller.completeS03WarningSequence();
   const [runtime, setRuntime] = useState<Runtime | null>(null);
   const [presentationSnapshot, setPresentationSnapshot] =
     useState<S03RetrievalControllerSnapshot | null>(null);
   const [revealedAccountIds, setRevealedAccountIds] = useState<ReadonlySet<string>>(
     () => new Set(),
   );
-  const [questHelpOpen, setQuestHelpOpen] = useState(true);
+  const [questHelpOpen, setQuestHelpOpen] = useState(false);
 
   useEffect(() => {
     let retrievalController: S03RetrievalController | null = null;
@@ -71,7 +71,7 @@ export function S03RetrievalTraining({
     });
     retrievalController = new S03RetrievalController({
       animationPlayer,
-      onWarningSequenceCompleted: () => warningCompletionRef.current(),
+      onWarningConfirmed: () => warningConfirmationRef.current(),
     });
     const renderer = new ReactFlowNetworkAdapter(retrievalController.getSnapshot().network);
     retrievalController.attachRenderer(renderer);
@@ -118,6 +118,8 @@ export function S03RetrievalTraining({
   const announcement = presentationSnapshot.presentation.announcedMessageId;
   const timeLapseActive = announcement === 's03.completion.result';
   const boardWarningActive = announcement === 's03.campus-board.warning';
+  const warningConfirmationAvailable =
+    presentationSnapshot.warningState === 'ready' && boardWarningActive;
   const guideMessage = boardWarningActive
     ? s03Content.narration.warning
     : result === 'retrievable'
@@ -314,6 +316,15 @@ export function S03RetrievalTraining({
                   <strong>
                     {boardWarningActive ? s03Content.narration.warning : s03Content.page.resultLine}
                   </strong>
+                  {warningConfirmationAvailable ? (
+                    <button
+                      type="button"
+                      className={`${styles.primaryButton} ${styles.warningContinue}`}
+                      onClick={() => runtime.controller.confirmWarning()}
+                    >
+                      Weiter
+                    </button>
+                  ) : null}
                 </section>
               ) : null}
             </section>

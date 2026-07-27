@@ -274,6 +274,10 @@
   color: var(--color-danger);
 }
 
+.warningContinue {
+  margin-top: var(--space-4);
+}
+
 .characterAnimationAnchor {
   position: absolute;
   right: 0;

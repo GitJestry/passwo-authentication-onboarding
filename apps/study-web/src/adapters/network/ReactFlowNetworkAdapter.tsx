@@ -278,7 +278,6 @@ function toReactFlowElements(
         focusable: false,
         zIndex: activeNodeId === node.id ? 2 : node.kind === 'account' ? 1 : 0,
         style: { width: layout.width, height: layout.height, pointerEvents: 'all' },
-        ariaLabel: `${node.label}. ${node.description}`,
       };
     }),
     edges: snapshot.edges.map((edge) => ({

@@ -20,11 +20,12 @@ type ControllerListener = (snapshot: S03RetrievalControllerSnapshot) => void;
 export interface S03RetrievalControllerSnapshot {
   readonly network: NetworkSceneSnapshot;
   readonly presentation: NetworkPresentationSnapshot;
+  readonly warningState: 'idle' | 'playing' | 'ready' | 'failed' | 'confirmed';
 }
 
 export interface S03RetrievalControllerOptions {
   readonly animationPlayer: AnimationPlayerPort;
-  readonly onWarningSequenceCompleted: () => void;
+  readonly onWarningConfirmed: () => void;
 }
 
 interface RetrievalSceneInput {
@@ -118,7 +119,7 @@ function createInitialPresentation(): NetworkPresentationSnapshot {
 
 export class S03RetrievalController {
   readonly #animationPlayer: AnimationPlayerPort;
-  readonly #onWarningSequenceCompleted: () => void;
+  readonly #onWarningConfirmed: () => void;
   readonly #listeners = new Set<ControllerListener>();
   #renderer: NetworkRendererPort | null = null;
   #snapshot: S03RetrievalControllerSnapshot;
@@ -126,15 +127,16 @@ export class S03RetrievalController {
   #completionSequenceQueued = false;
   #disposed = false;
 
-  constructor({ animationPlayer, onWarningSequenceCompleted }: S03RetrievalControllerOptions) {
+  constructor({ animationPlayer, onWarningConfirmed }: S03RetrievalControllerOptions) {
     this.#animationPlayer = animationPlayer;
-    this.#onWarningSequenceCompleted = onWarningSequenceCompleted;
+    this.#onWarningConfirmed = onWarningConfirmed;
     this.#snapshot = {
       network: createS03RetrievalNetwork({
         activeAccountId: s01Content.browser.accounts[0]?.id ?? null,
         retrievalResults: {},
       }),
       presentation: createInitialPresentation(),
+      warningState: 'idle',
     };
   }
 
@@ -160,6 +162,7 @@ export class S03RetrievalController {
 
     if (completionSequenceActive && !this.#completionSequenceQueued) {
       this.#completionSequenceQueued = true;
+      this.#setWarningState('playing');
       this.#queueAnimation('s03-completion-timeskip', true);
     }
   }
@@ -175,6 +178,12 @@ export class S03RetrievalController {
     this.#emit();
   }
 
+  confirmWarning(): void {
+    if (this.#disposed || this.#snapshot.warningState !== 'ready') return;
+    this.#setWarningState('confirmed');
+    this.#onWarningConfirmed();
+  }
+
   async dispose(): Promise<void> {
     this.#disposed = true;
     await this.#animationPlayer.cancel();
@@ -187,12 +196,20 @@ export class S03RetrievalController {
     this.#animationQueue = this.#animationQueue
       .then(async () => {
         const result: AnimationResult = await this.#animationPlayer.play(animation);
-        if (this.#disposed || result.status === 'cancelled' || !completesWarningSequence) return;
-        this.#onWarningSequenceCompleted();
+        if (this.#disposed || !completesWarningSequence) return;
+        const reachedWarningEndScene =
+          result.status === 'finished' &&
+          this.#snapshot.presentation.announcedMessageId === 's03.campus-board.warning';
+        this.#setWarningState(reachedWarningEndScene ? 'ready' : 'failed');
       })
       .catch(() => {
-        if (!this.#disposed && completesWarningSequence) this.#onWarningSequenceCompleted();
+        if (!this.#disposed && completesWarningSequence) this.#setWarningState('failed');
       });
+  }
+
+  #setWarningState(warningState: S03RetrievalControllerSnapshot['warningState']): void {
+    this.#snapshot = { ...this.#snapshot, warningState };
+    this.#emit();
   }
 
   #emit(): void {

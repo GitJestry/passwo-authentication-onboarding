@@ -405,6 +405,13 @@ async function completeS03(page: Page): Promise<void> {
     await page.getByRole('tab', { name: accountName }).click();
     await page.getByRole('button', { name: 'Ich weiß es nicht mehr — weiter' }).click();
   }
+  const s03Article = page.locator('article[aria-labelledby="s03-page-title"]');
+  await expect(
+    s03Article.getByText(
+      'STOP - bei campusboard bgibt es eine sicherheitsmeldung. Kannst du es dir bitte ansehen?',
+    ),
+  ).toBeVisible();
+  await s03Article.getByRole('button', { name: 'Weiter' }).click();
 }
 
 async function completePasswordModule(page: Page): Promise<void> {
@@ -636,7 +643,8 @@ test('S03 compares only transient values, permits retry or skip, and ends at the
   await completeS01(page);
   await completeS02(page);
 
-  await expect(page.getByText('Wieder anmelden: 0/3 abgeschlossen')).toBeVisible();
+  const s03Article = page.locator('article[aria-labelledby="s03-page-title"]');
+  await expect(s03Article.getByRole('status')).toHaveText('Wieder anmelden: 0/3 abgeschlossen');
   await page.getByRole('tab', { name: 'CampusMail' }).click();
   const passwordField = page.getByLabel('Fiktives Passwort');
   await passwordField.fill('falscher-versuch!?');
@@ -646,20 +654,29 @@ test('S03 compares only transient values, permits retry or skip, and ends at the
 
   await passwordField.fill('mail!?');
   await page.getByRole('button', { name: 'Einloggen' }).click();
-  await expect(page.getByText('abrufbar', { exact: true })).toBeVisible();
+  await expect(
+    s03Article.getByLabel('Melde dich bei CampusMail an.').getByText('abrufbar', { exact: true }),
+  ).toBeVisible();
 
   await page.getByRole('tab', { name: 'CampusBoard Archiv' }).click();
   await page.getByRole('button', { name: 'Ich weiß es nicht mehr — weiter' }).click();
-  await expect(page.getByText('nicht erinnert', { exact: true })).toBeVisible();
+  await expect(
+    s03Article
+      .getByLabel('Melde dich bei CampusBoard Archiv an.')
+      .getByText('nicht erinnert', { exact: true }),
+  ).toBeVisible();
 
   await page.getByRole('tab', { name: 'CampusID' }).click();
   await page.getByLabel('Fiktives Passwort').fill('id!?');
   await page.getByRole('button', { name: 'Einloggen' }).click();
   await expect(
-    page.getByText(
+    s03Article.getByText(
       'STOP - bei campusboard bgibt es eine sicherheitsmeldung. Kannst du es dir bitte ansehen?',
     ),
   ).toBeVisible();
+  await expect(s03Article.getByRole('button', { name: 'Weiter' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Fragebogen nach dem Artefakt' })).toHaveCount(0);
+  await s03Article.getByRole('button', { name: 'Weiter' }).click();
   await expect(page.getByText('Fehlercode: s03-segment-end-write-failed')).toBeVisible();
   await expect(page.getByRole('heading', { name: 'Fragebogen nach dem Artefakt' })).toHaveCount(0);
 
