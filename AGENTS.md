@@ -105,7 +105,11 @@ Stoppe außerdem, wenn ein Auftrag:
 - Keine zufälligen Werte ohne injizierbaren Seed/Generator in testrelevanter Logik.
 - Nutzertexte sind deutsch; Code, Typen und technische Kommentare sind englisch.
 - Kommentare erklären Gründe und Grenzen, nicht offensichtlichen Code.
-- Jede Änderung erhält passende Unit-, Contract-, E2E- oder visuelle Tests.
+- Automatische Tests schützen ausschließlich Research-Core-Grenzen: Verträge,
+  Persistenz, Timing, Studienablauf, Export und lokale Trainingsdaten.
+- UI-, Layout-, Text-, Icon-, Animations- und Styling-Änderungen erhalten keine
+  automatischen Tests.
+- E2E-Tests sind nur für ausdrücklich benannte Milestones oder einen Study Freeze zulässig.
 - Farbe ist nie der einzige Bedeutungsträger; Tastatur, Fokus und `prefers-reduced-motion`
   müssen berücksichtigt werden.
 
@@ -124,16 +128,17 @@ Während der Änderung:
 - Füge keine Bibliothek hinzu, wenn eine vorhandene Abstraktion genügt.
 - Schreibe keine Platzhalterlogik, die wie eine validierte Passwortbewertung wirkt.
 
+Tests und Checks:
+
+- Führe keinen Test- oder Check-Befehl ohne ausdrückliche Prompt-Anweisung aus.
+- Führe jeden ausdrücklich verlangten Check höchstens einmal aus.
+- Berichte Registry-, Toolchain- oder Runtime-Fehler sofort; wiederhole den Befehl nicht und
+  weiche nicht auf eine andere Runtime aus.
+- Reviews führen keine Tests aus, außer der Review-Prompt verlangt exakt einen bestimmten
+  Befehl.
+
 Vor Abschluss:
 
-```bash
-pnpm check
-```
-
-Bei UI-Änderungen zusätzlich:
-
-```bash
-pnpm test:e2e
-```
+- Führe nur die im Prompt ausdrücklich verlangten Checks aus.
 
 Berichte abschließend nur: geänderte Dateien, ausgeführte Checks, offene Risiken/Entscheidungen.

@@ -17,3 +17,7 @@ Zusätzlich zur globalen `AGENTS.md` gilt:
   Trainings- beziehungsweise QA-Oberflächen, keine eigenständigen Auslieferungspfade.
 - Neue Renderer- oder fachliche Systeme werden einmal hier oder im passenden bestehenden
   Domain-Package implementiert; es entstehen keine Desktop-Kopien.
+- UI-, Layout-, Text-, Icon-, Animations- und Styling-Änderungen erhalten keine automatischen
+  Tests. Automatisierte Tests in diesem Bereich schützen nur die Research-Core-Grenzen.
+- E2E-Tests sind nur für ausdrücklich benannte Milestones oder einen Study Freeze zulässig;
+  sie prüfen dann Forschungswrites und den Abschluss, nie die visuelle Darstellung.

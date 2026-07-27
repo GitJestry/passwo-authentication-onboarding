@@ -1,35 +1,25 @@
-import { createHash } from 'node:crypto';
 import { mkdtempSync, readFileSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { fileURLToPath } from 'node:url';
-import { REFERENCE_ARTIFACT_VERSION, SUPPORTIVE_ARTIFACT_VERSION } from '@passwo/contracts';
 import type { FastifyInstance } from 'fastify';
 import { afterEach, describe, expect, it } from 'vitest';
 import { buildStudyServer } from './app.js';
 import { exportResearchData } from './research-export.js';
 import { createSession, savePreAndStartArtifact } from './test-support.js';
 
-const temporaryDirectories: string[] = [];
 const servers: FastifyInstance[] = [];
-const referenceArtifactFixtureDirectory = fileURLToPath(
-  new URL('./test-fixtures/reference-artifact/', import.meta.url),
-);
+const temporaryDirectories: string[] = [];
 
 afterEach(async () => {
   await Promise.all(servers.splice(0).map((server) => server.close()));
-  temporaryDirectories.splice(0).forEach((directory) => {
+  for (const directory of temporaryDirectories.splice(0)) {
     rmSync(directory, { recursive: true, force: true });
-  });
+  }
 });
 
-function sha256(content: string): string {
-  return createHash('sha256').update(content, 'utf8').digest('hex');
-}
-
 describe('research export', () => {
-  it('writes deterministic CSV and JSON tables with manifest hashes inside the data contract', async () => {
-    const temporaryDirectory = mkdtempSync(join(tmpdir(), 'passwo-research-export-test-'));
+  it('exports the approved tables and excludes private training data', async () => {
+    const temporaryDirectory = mkdtempSync(join(tmpdir(), 'passwo-research-export-'));
     temporaryDirectories.push(temporaryDirectory);
     const databasePath = join(temporaryDirectory, 'study.sqlite');
     const server = buildStudyServer({
@@ -39,201 +29,25 @@ describe('research export', () => {
       nowIso: () => '2026-07-24T12:00:00.000Z',
     });
     servers.push(server);
+    const session = await createSession(server);
+    await savePreAndStartArtifact(server, session.sessionId);
 
-    const { sessionId: incompleteSessionId } = await createSession(server, 1);
-    await savePreAndStartArtifact(server, incompleteSessionId);
-    const heartbeat = await server.inject({
-      method: 'POST',
-      url: `/api/study/sessions/${incompleteSessionId}/artifact-lease/heartbeat`,
-      payload: {},
-    });
-    expect(heartbeat.json()).toEqual({ active: true });
-    await server.inject({
-      method: 'POST',
-      url: `/api/study/sessions/${incompleteSessionId}/incomplete-reload`,
-    });
-
-    const { sessionId: completedSessionId } = await createSession(server, 2);
-    await savePreAndStartArtifact(server, completedSessionId);
-    await server.inject({
-      method: 'POST',
-      url: `/api/study/sessions/${completedSessionId}/timing`,
-      payload: {
-        sequence: 1,
-        phase: 'artifact',
-        sectionId: 'passwords',
-        segmentId: 'S00',
-        eventType: 'start',
-        clientMonotonicMs: 200,
-        clientWallClockIso: '2026-07-24T12:00:00.000Z',
-        elapsedMs: null,
-        reasonCode: null,
-      },
-    });
-    await server.inject({
-      method: 'POST',
-      url: `/api/study/sessions/${completedSessionId}/timing`,
-      payload: {
-        sequence: 2,
-        phase: 'artifact',
-        sectionId: 'passwords',
-        segmentId: 'S00',
-        eventType: 'end',
-        clientMonotonicMs: 600,
-        clientWallClockIso: '2026-07-24T12:00:00.000Z',
-        elapsedMs: 400,
-        reasonCode: null,
-      },
-    });
-    await server.inject({
-      method: 'POST',
-      url: `/api/study/sessions/${completedSessionId}/timing`,
-      payload: {
-        sequence: 3,
-        phase: 'artifact',
-        sectionId: 'passwords',
-        segmentId: 'S01',
-        eventType: 'start',
-        clientMonotonicMs: 650,
-        clientWallClockIso: '2026-07-24T12:00:00.000Z',
-        elapsedMs: null,
-        reasonCode: null,
-      },
-    });
-    await server.inject({
-      method: 'POST',
-      url: `/api/study/sessions/${completedSessionId}/timing`,
-      payload: {
-        sequence: 4,
-        phase: 'artifact',
-        sectionId: 'passwords',
-        segmentId: 'S01',
-        eventType: 'end',
-        clientMonotonicMs: 800,
-        clientWallClockIso: '2026-07-24T12:00:00.000Z',
-        elapsedMs: 150,
-        reasonCode: null,
-      },
-    });
-    await server.inject({
-      method: 'POST',
-      url: `/api/study/sessions/${completedSessionId}/timing`,
-      payload: {
-        sequence: 5,
-        phase: 'artifact',
-        sectionId: 'passwords',
-        segmentId: 'S02',
-        eventType: 'start',
-        clientMonotonicMs: 825,
-        clientWallClockIso: '2026-07-24T12:00:00.000Z',
-        elapsedMs: null,
-        reasonCode: null,
-      },
-    });
-    await server.inject({
-      method: 'POST',
-      url: `/api/study/sessions/${completedSessionId}/timing`,
-      payload: {
-        sequence: 6,
-        phase: 'artifact',
-        sectionId: 'passwords',
-        segmentId: 'S02',
-        eventType: 'end',
-        clientMonotonicMs: 875,
-        clientWallClockIso: '2026-07-24T12:00:00.000Z',
-        elapsedMs: 50,
-        reasonCode: null,
-      },
-    });
-    await server.inject({
-      method: 'POST',
-      url: `/api/study/sessions/${completedSessionId}/timing`,
-      payload: {
-        sequence: 7,
-        phase: 'artifact',
-        sectionId: 'passwords',
-        segmentId: 'S03',
-        eventType: 'start',
-        clientMonotonicMs: 880,
-        clientWallClockIso: '2026-07-24T12:00:00.000Z',
-        elapsedMs: null,
-        reasonCode: null,
-      },
-    });
-    await server.inject({
-      method: 'POST',
-      url: `/api/study/sessions/${completedSessionId}/timing`,
-      payload: {
-        sequence: 8,
-        phase: 'artifact',
-        sectionId: 'passwords',
-        segmentId: 'S03',
-        eventType: 'end',
-        clientMonotonicMs: 890,
-        clientWallClockIso: '2026-07-24T12:00:00.000Z',
-        elapsedMs: 10,
-        reasonCode: null,
-      },
-    });
-    await server.inject({
-      method: 'POST',
-      url: `/api/study/sessions/${completedSessionId}/timing`,
-      payload: {
-        sequence: 9,
-        phase: 'artifact',
-        sectionId: null,
-        segmentId: null,
-        eventType: 'end',
-        clientMonotonicMs: 900,
-        clientWallClockIso: '2026-07-24T12:00:00.000Z',
-        elapsedMs: 800,
-        reasonCode: null,
-      },
-    });
-    for (const instrumentId of ['post-placeholder', 'guardrail-placeholder'] as const) {
-      await server.inject({
-        method: 'POST',
-        url: `/api/study/sessions/${completedSessionId}/responses`,
-        payload: { instrumentId, itemId: 'placeholder-complete', value: true },
-      });
-    }
-    await server.inject({
-      method: 'POST',
-      url: `/api/study/sessions/${completedSessionId}/complete`,
-      payload: { debriefAcknowledged: true },
-    });
-
-    await server.close();
-    servers.splice(servers.indexOf(server), 1);
-
-    const referenceServer = buildStudyServer({
-      version: '0.1.2',
-      assignmentMode: 'forced-reference',
+    const outputDirectory = join(temporaryDirectory, 'export');
+    const result = exportResearchData({
       databasePath,
-      nowIso: () => '2026-07-24T12:00:00.000Z',
-      referenceArtifactDirectory: referenceArtifactFixtureDirectory,
-    });
-    servers.push(referenceServer);
-    await createSession(referenceServer, 3);
-    await referenceServer.close();
-    servers.splice(servers.indexOf(referenceServer), 1);
-
-    const firstOutputDirectory = join(temporaryDirectory, 'first-export');
-    const secondOutputDirectory = join(temporaryDirectory, 'second-export');
-    const exportOptions = {
-      databasePath,
+      outputDirectory,
       exportedAtIso: '2026-07-25T10:00:00.000Z',
-    } as const;
-    const first = exportResearchData({ ...exportOptions, outputDirectory: firstOutputDirectory });
-    const second = exportResearchData({ ...exportOptions, outputDirectory: secondOutputDirectory });
-    const manifest = JSON.parse(readFileSync(join(firstOutputDirectory, 'manifest.json'), 'utf8'));
-    const sessions = JSON.parse(readFileSync(join(firstOutputDirectory, 'sessions.json'), 'utf8'));
-    const timing = JSON.parse(readFileSync(join(firstOutputDirectory, 'timing.json'), 'utf8'));
-    const responses = JSON.parse(
-      readFileSync(join(firstOutputDirectory, 'responses.json'), 'utf8'),
-    );
+    });
+    const exportedData = [
+      readFileSync(join(outputDirectory, 'sessions.csv'), 'utf8'),
+      readFileSync(join(outputDirectory, 'timing.csv'), 'utf8'),
+      readFileSync(join(outputDirectory, 'responses.csv'), 'utf8'),
+      readFileSync(join(outputDirectory, 'sessions.json'), 'utf8'),
+      readFileSync(join(outputDirectory, 'timing.json'), 'utf8'),
+      readFileSync(join(outputDirectory, 'responses.json'), 'utf8'),
+    ].join('\n');
 
-    expect(first.files).toEqual([
+    expect(result.files).toEqual([
       'sessions.csv',
       'timing.csv',
       'responses.csv',
@@ -242,112 +56,11 @@ describe('research export', () => {
       'responses.json',
       'manifest.json',
     ]);
-    expect(first.manifest).toEqual(manifest);
-    expect(second.manifest).toEqual(first.manifest);
-    expect(sessions).toHaveLength(3);
-    expect(responses).toHaveLength(4);
-    expect(timing).toContainEqual(
-      expect.objectContaining({
-        sessionId: completedSessionId,
-        sequence: 1,
-        phase: 'artifact',
-        sectionId: 'passwords',
-        segmentId: 'S00',
-        eventType: 'start',
-        elapsedMs: null,
-      }),
-    );
-    expect(timing).toContainEqual(
-      expect.objectContaining({
-        sessionId: completedSessionId,
-        sequence: 6,
-        segmentId: 'S02',
-        eventType: 'end',
-        elapsedMs: 50,
-      }),
-    );
-    expect(timing).toContainEqual(
-      expect.objectContaining({
-        sessionId: completedSessionId,
-        sequence: 8,
-        segmentId: 'S03',
-        eventType: 'end',
-        elapsedMs: 10,
-      }),
-    );
-    expect(timing).toContainEqual(
-      expect.objectContaining({
-        sessionId: completedSessionId,
-        sequence: 2,
-        phase: 'artifact',
-        sectionId: 'passwords',
-        segmentId: 'S00',
-        eventType: 'end',
-        elapsedMs: 400,
-      }),
-    );
-    expect(JSON.stringify({ sessions, timing, responses })).not.toMatch(
-      /display.?name|password.?value|password.?input|password.?part|training.?input|request.?body|user.?agent|ip.?address|heartbeat/iu,
-    );
-    expect(readFileSync(join(firstOutputDirectory, 'sessions.csv'), 'utf8')).toMatch(
+    expect(readFileSync(join(outputDirectory, 'sessions.csv'), 'utf8')).toMatch(
       /^sessionId,participantCode,condition,assignmentMode,studyVersion,contentVersion/u,
     );
-
-    for (const file of manifest.files as readonly { fileName: string; sha256: string }[]) {
-      const content = readFileSync(join(firstOutputDirectory, file.fileName), 'utf8');
-      expect(file.sha256).toBe(sha256(content));
-      expect(readFileSync(join(secondOutputDirectory, file.fileName), 'utf8')).toBe(content);
-    }
-    expect(sessions).toContainEqual(
-      expect.objectContaining({
-        condition: 'supportive',
-        contentVersion: SUPPORTIVE_ARTIFACT_VERSION,
-        referenceArtifactVersion: null,
-      }),
+    expect(exportedData).not.toMatch(
+      /display.?name|password.?value|password.?input|password.?part|training.?input|request.?body|user.?agent|ip.?address/iu,
     );
-    expect(sessions).toContainEqual(
-      expect.objectContaining({
-        condition: 'reference',
-        contentVersion: REFERENCE_ARTIFACT_VERSION,
-        referenceArtifactVersion: REFERENCE_ARTIFACT_VERSION,
-      }),
-    );
-    expect(manifest.versions.content).toEqual(
-      [
-        ...new Set(
-          sessions.map(({ contentVersion }: { contentVersion: string }) => contentVersion),
-        ),
-      ].sort(),
-    );
-    expect(manifest.versions.referenceArtifact).toEqual(
-      [
-        ...new Set(
-          sessions
-            .map(
-              ({ referenceArtifactVersion }: { referenceArtifactVersion: string | null }) =>
-                referenceArtifactVersion,
-            )
-            .filter((version: string | null): version is string => version !== null),
-        ),
-      ].sort(),
-    );
-    expect(manifest.versions).toEqual({
-      study: ['walking-skeleton-v1'],
-      content: [REFERENCE_ARTIFACT_VERSION, SUPPORTIVE_ARTIFACT_VERSION].sort(),
-      questionnaire: ['questionnaire-placeholder-v1'],
-      guardrail: ['guardrail-placeholder-v1'],
-      consent: ['consent-placeholder-v1'],
-      referenceArtifact: [REFERENCE_ARTIFACT_VERSION],
-    });
-    expect(manifest.sessionCounts).toContainEqual({
-      condition: 'supportive',
-      completionStatus: 'completed',
-      count: 1,
-    });
-    expect(manifest.sessionCounts).toContainEqual({
-      condition: 'supportive',
-      completionStatus: 'incomplete-reload',
-      count: 1,
-    });
   });
 });

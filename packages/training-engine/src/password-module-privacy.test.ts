@@ -3,7 +3,7 @@ import { describe, expect, it } from 'vitest';
 import { createActor } from 'xstate';
 import { PasswordModuleController } from './password-module-controller.js';
 
-function studyRuntimePorts(): StudyRuntimePorts {
+function studyRuntimePorts(requestArguments: unknown[][]): StudyRuntimePorts {
   return {
     createSession: async () => ({
       sessionId: 'a185bbd8-2088-47d2-b45a-924c8d8778ea',
@@ -11,8 +11,12 @@ function studyRuntimePorts(): StudyRuntimePorts {
       condition: 'supportive',
       assignmentMode: 'forced-supportive',
     }),
-    savePlaceholder: async () => {},
-    startArtifact: async () => {},
+    savePlaceholder: async (...arguments_) => {
+      requestArguments.push(arguments_);
+    },
+    startArtifact: async (...arguments_) => {
+      requestArguments.push(arguments_);
+    },
     endArtifact: async () => 0,
     recordArtifactVisibility: async () => {},
     retryArtifactTiming: async () => null,
@@ -27,32 +31,32 @@ function flushMicrotasks(): Promise<void> {
 }
 
 describe('password module privacy boundary', () => {
-  it('keeps display name and fictitious values out of the StudyMachine context', async () => {
-    const studyActor = createActor(createStudyMachine(studyRuntimePorts()));
+  it('keeps display names and fictitious passwords out of StudyMachine and runtime requests', async () => {
+    const requestArguments: unknown[][] = [];
+    const studyActor = createActor(createStudyMachine(studyRuntimePorts(requestArguments)));
     studyActor.start();
     const controller = new PasswordModuleController({
       accountIds: ['campus-id', 'campus-mail', 'campus-board-archive'],
       onComplete: () => undefined,
     });
-    const displayName = '  Browsername Nur Lokal  ';
+    const displayName = 'Browsername Nur Lokal';
     const trainingValue = 'only-in-password-module!?';
 
     controller.enterDisplayName(displayName);
     controller.completeS00();
     await flushMicrotasks();
     controller.setPasswordValue('campus-id', trainingValue);
+    studyActor.send({ type: 'ACCEPT_CONSENT' });
+    await flushMicrotasks();
+    studyActor.send({ type: 'SUBMIT_PRE' });
+    await flushMicrotasks();
+    await flushMicrotasks();
 
-    expect(controller.getSnapshot().context.displayName).toBe('Browsername Nur Lokal');
-    expect(controller.getSnapshot().context.passwordValues['campus-id']).toBe(trainingValue);
-    expect(JSON.stringify(studyActor.getSnapshot().context)).not.toContain(displayName.trim());
-    expect(JSON.stringify(studyActor.getSnapshot().context)).not.toContain(trainingValue);
-    expect(studyActor.getSnapshot().context).not.toHaveProperty('displayName');
-    expect(studyActor.getSnapshot().context).not.toHaveProperty('passwordValues');
-    expect(studyActor.getSnapshot().context).not.toHaveProperty('retrievalPasswordValues');
-    expect(studyActor.getSnapshot().context).not.toHaveProperty('retrievalResults');
-
-    controller.dispose();
-    expect(controller.getSnapshot().context.displayName).toBeNull();
-    expect(controller.getSnapshot().context.passwordValues['campus-id']).toBe('');
+    const studyContext = JSON.stringify(studyActor.getSnapshot().context);
+    const runtimeRequests = JSON.stringify(requestArguments);
+    expect(studyContext).not.toContain(displayName);
+    expect(studyContext).not.toContain(trainingValue);
+    expect(runtimeRequests).not.toContain(displayName);
+    expect(runtimeRequests).not.toContain(trainingValue);
   });
 });
