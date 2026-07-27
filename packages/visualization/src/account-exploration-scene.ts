@@ -24,6 +24,7 @@ export interface AccountExplorationSceneDefinition {
     readonly edgeKind: Extract<SceneEdgeKind, 'dependency' | 'association'> | null;
     readonly edgeLabel: string | null;
     readonly unlockAnimationId: string;
+    readonly detailRevealAnimationId: string;
     readonly narrationIds: {
       readonly open: string;
       readonly understood: string;
@@ -67,6 +68,7 @@ export interface AccountExplorationProgress {
 export type AccountExplorationScenePhase =
   | 'idle'
   | 'unlocking-account'
+  | 'revealing-details'
   | 'exploring'
   | 'checking-detail'
   | 'complete';
@@ -159,6 +161,7 @@ function buildNetwork(
       label: account.label,
       description,
       status: understood.has(account.id) ? 'understood' : 'neutral',
+      locked: accountProgress?.unlocked !== true,
       position: account.position,
       selectable: !interactionLocked,
     };
@@ -166,7 +169,7 @@ function buildNetwork(
   const activeDetailsVisible =
     activeAccount !== undefined &&
     activeProgress !== undefined &&
-    (activeProgress.unlocked || values.phase === 'unlocking-account');
+    activeProgress.unlocked;
   const openedDetails = new Set(activeProgress?.openedDetailIds ?? []);
   const pendingDetail = activeAccount?.details.find(
     ({ animationId }) => animationId === values.pendingAnimationId,
@@ -215,6 +218,8 @@ function buildNetwork(
     accessibleSummary =
       values.phase === 'unlocking-account'
         ? activeAccount.summaries.opening
+        : values.phase === 'revealing-details'
+          ? activeAccount.summaries.opening
         : values.phase === 'checking-detail' && pendingDetail !== undefined
           ? formatSummary(activeAccount.summaries.checking, {
               opened: openedDetails.size,
@@ -368,12 +373,24 @@ export function transitionAccountExplorationScene(
       ...activeProgress,
       unlocked: true,
     });
+    return {
+      snapshot: createSnapshot(definition, {
+        ...snapshot,
+        phase: 'revealing-details',
+        accountProgress: nextProgress,
+        pendingAnimationId: activeAccount.detailRevealAnimationId,
+        narrationId: activeAccount.narrationIds.open,
+      }),
+      effects: [{ type: 'play-animation', animationId: activeAccount.detailRevealAnimationId }],
+    };
+  }
+
+  if (event.animationId === activeAccount.detailRevealAnimationId) {
     const firstDetail = activeAccount.details[0];
     return {
       snapshot: createSnapshot(definition, {
         ...snapshot,
         phase: 'exploring',
-        accountProgress: nextProgress,
         pendingAnimationId: null,
         narrationId: activeAccount.narrationIds.open,
       }),

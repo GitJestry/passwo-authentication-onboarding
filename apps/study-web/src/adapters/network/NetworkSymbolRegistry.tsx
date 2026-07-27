@@ -151,13 +151,17 @@ export function NetworkSymbol({ symbolId, className }: NetworkSymbolProps) {
 
 export function NetworkStatusMarker({
   status,
+  locked = false,
   className,
 }: {
   readonly status: SceneNodeStatus;
+  readonly locked?: boolean;
   readonly className: string | undefined;
 }) {
   const marker =
-    status === 'understood'
+    locked
+      ? 'locked'
+      : status === 'understood'
       ? 'understood'
       : status === 'protected'
         ? 'protected'
@@ -179,6 +183,12 @@ export function NetworkStatusMarker({
       strokeLinecap="round"
       strokeLinejoin="round"
     >
+      {marker === 'locked' ? (
+        <>
+          <rect x="5.5" y="10" width="13" height="9" rx="1.5" />
+          <path d="M8.5 10V7.7a3.5 3.5 0 0 1 7 0V10" />
+        </>
+      ) : null}
       {marker === 'understood' ? <path d="m5 12 4.2 4.2L19 6.7" /> : null}
       {marker === 'protected' ? (
         <path d="M12 3 19 6v5c0 4.2-2.8 7.7-7 10-4.2-2.3-7-5.8-7-10V6l7-3Zm-3 9 2 2 4-4" />

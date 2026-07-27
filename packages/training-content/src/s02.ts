@@ -40,6 +40,7 @@ export interface S02AccountContent {
   readonly edgeKind: 'dependency' | 'association' | null;
   readonly edgeLabel: string | null;
   readonly unlockAnimationId: string;
+  readonly detailRevealAnimationId: string;
   readonly narrationIds: {
     readonly open: string;
     readonly understood: string;
@@ -84,29 +85,25 @@ export interface S02SegmentContent {
     readonly sectionId: TrainingSectionId;
   };
   readonly trainingAriaLabel: string;
-  readonly browser: {
-    readonly ariaLabel: string;
-    readonly address: string;
-    readonly tab: {
-      readonly id: string;
-      readonly label: string;
-      readonly enabled: true;
-    };
+  readonly accessibility: {
+    readonly networkLabel: string;
+    readonly canvasLabel: string;
+    readonly currentContextLabel: string;
+    readonly characterLabel: string;
   };
   readonly page: {
     readonly eyebrow: string;
     readonly title: string;
-    readonly instruction: string;
     readonly globalProgress: (understood: number) => string;
     readonly localProgress: (accountLabel: string, opened: number, total: number) => string;
     readonly previewTitle: string;
-    readonly previewEmpty: string;
     readonly completion: string;
   };
   readonly controls: {
     readonly continue: string;
     readonly timingFailure: string;
     readonly timingSaving: string;
+    readonly timingErrorCode: string;
     readonly retry: string;
   };
   readonly narration: {
@@ -125,7 +122,7 @@ export interface S02SegmentContent {
   readonly animations: readonly S02AnimationSequence[];
 }
 
-export const S02_CONTENT_VERSION = '2.1.0';
+export const S02_CONTENT_VERSION = '3.0.0';
 
 const introId = 's02.accounts.intro';
 
@@ -134,11 +131,12 @@ const accounts = [
     id: 'campus-id',
     label: 'CampusID',
     symbolId: 'campus-id',
-    position: { x: 0.04, y: 0 },
+    position: { x: 0.12, y: 0.13 },
     detailKind: 'service',
     edgeKind: 'dependency',
     edgeLabel: 'Mit CampusID geöffnet',
     unlockAnimationId: 's02-unlock-campus-id',
+    detailRevealAnimationId: 's02-reveal-campus-id-details',
     narrationIds: {
       open: 's02.campus-id.open',
       understood: 's02.campus-id.understood',
@@ -162,7 +160,7 @@ const accounts = [
         label: 'LearnSpace',
         symbolId: 'learnspace',
         preview: 'Kurszugänge, Vorlesungsunterlagen, Abgaben',
-        position: { x: 0.05, y: 0.54 },
+        position: { x: 0.03, y: 0.43 },
         animationId: 's02-check-campus-id-learnspace',
         narrationId: 's02.campus-id.learnspace',
         descriptions: {
@@ -176,7 +174,7 @@ const accounts = [
         label: 'Prüfungsportal',
         symbolId: 'exam-portal',
         preview: 'Anmeldungen, Termine, Ergebnisübersichten',
-        position: { x: 0.4, y: 0.54 },
+        position: { x: 0.22, y: 0.64 },
         animationId: 's02-check-campus-id-exam-portal',
         narrationId: 's02.campus-id.exam-portal',
         descriptions: {
@@ -190,7 +188,7 @@ const accounts = [
         label: 'Cloud Notes',
         symbolId: 'cloud-notes',
         preview: 'Notizen, Entwürfe, Arbeitsdateien, Projektmaterial',
-        position: { x: 0.75, y: 0.54 },
+        position: { x: 0.04, y: 0.8 },
         animationId: 's02-check-campus-id-cloud-notes',
         narrationId: 's02.campus-id.cloud-notes',
         descriptions: {
@@ -205,11 +203,12 @@ const accounts = [
     id: 'campus-mail',
     label: 'CampusMail',
     symbolId: 'campus-mail',
-    position: { x: 0.39, y: 0 },
+    position: { x: 0.7, y: 0.1 },
     detailKind: 'function',
     edgeKind: 'association',
     edgeLabel: 'Mit CampusMail verbunden',
     unlockAnimationId: 's02-unlock-campus-mail',
+    detailRevealAnimationId: 's02-reveal-campus-mail-details',
     narrationIds: {
       open: 's02.campus-mail.open',
       understood: 's02.campus-mail.understood',
@@ -233,7 +232,7 @@ const accounts = [
         label: 'Benachrichtigungen',
         symbolId: 'notifications',
         preview: 'Neue Kursnachricht, Terminänderung, Systemhinweis',
-        position: { x: 0.22, y: 0.51 },
+        position: { x: 0.85, y: 0.38 },
         animationId: 's02-check-campus-mail-notifications',
         narrationId: 's02.campus-mail.notifications',
         descriptions: {
@@ -247,7 +246,7 @@ const accounts = [
         label: 'Bestätigungen',
         symbolId: 'confirmations',
         preview: 'Bestätigung für Anmeldung oder Änderung',
-        position: { x: 0.56, y: 0.51 },
+        position: { x: 0.65, y: 0.45 },
         animationId: 's02-check-campus-mail-confirmations',
         narrationId: 's02.campus-mail.confirmations',
         descriptions: {
@@ -261,7 +260,7 @@ const accounts = [
         label: 'Zurücksetzungslinks',
         symbolId: 'reset-links',
         preview: 'Passwort zurücksetzen angefordert → Link liegt im Postfach',
-        position: { x: 0.22, y: 1 },
+        position: { x: 0.82, y: 0.7 },
         animationId: 's02-check-campus-mail-reset-links',
         narrationId: 's02.campus-mail.reset-links',
         descriptions: {
@@ -275,7 +274,7 @@ const accounts = [
         label: 'Kommunikation in deinem Namen',
         symbolId: 'compose-message',
         preview: 'Nachricht verfassen',
-        position: { x: 0.56, y: 1 },
+        position: { x: 0.62, y: 0.77 },
         animationId: 's02-check-campus-mail-impersonation',
         narrationId: 's02.campus-mail.impersonation',
         descriptions: {
@@ -290,11 +289,12 @@ const accounts = [
     id: 'campus-board-archive',
     label: 'CampusBoard Archiv',
     symbolId: 'campus-board-archive',
-    position: { x: 0.74, y: 0 },
+    position: { x: 0.42, y: 0.43 },
     detailKind: 'content',
     edgeKind: null,
     edgeLabel: null,
     unlockAnimationId: 's02-unlock-campus-board-archive',
+    detailRevealAnimationId: 's02-reveal-campus-board-archive-details',
     narrationIds: {
       open: 's02.campus-board.open',
       understood: 's02.campus-board.understood',
@@ -318,7 +318,7 @@ const accounts = [
         label: 'Alte Ankündigungen',
         symbolId: 'announcements',
         preview: 'Ältere Hinweise und Informationen',
-        position: { x: 0.12, y: 0.58 },
+        position: { x: 0.25, y: 0.78 },
         animationId: 's02-check-campus-board-old-announcements',
         narrationId: 's02.campus-board.old-announcements',
         descriptions: {
@@ -332,7 +332,7 @@ const accounts = [
         label: 'Projektfragen',
         symbolId: 'project-questions',
         preview: 'Fragen, Antworten, kurze Projektabsprachen',
-        position: { x: 0.43, y: 0.58 },
+        position: { x: 0.45, y: 0.8 },
         animationId: 's02-check-campus-board-project-questions',
         narrationId: 's02.campus-board.project-questions',
         descriptions: {
@@ -346,7 +346,7 @@ const accounts = [
         label: 'Archivierte Diskussionen',
         symbolId: 'archived-discussions',
         preview: 'Diskussionsverlauf aus früheren Kursen',
-        position: { x: 0.74, y: 0.58 },
+        position: { x: 0.57, y: 0.62 },
         animationId: 's02-check-campus-board-archived-discussions',
         narrationId: 's02.campus-board.archived-discussions',
         descriptions: {
@@ -360,25 +360,35 @@ const accounts = [
 ] as const satisfies readonly S02AccountContent[];
 
 function unlockAnimation(account: S02AccountContent): S02AnimationSequence {
-  const steps: S02AnimationStep[] = [
-    {
-      type: 'move-character',
-      pose: 'flight',
-      from: 'bottom-left',
-      to: 'focused-node',
-      durationMs: 320,
-    },
-    { type: 'announce', messageId: account.narrationIds.open },
-  ];
+  return {
+    id: account.unlockAnimationId,
+    steps: [
+      {
+        type: 'move-character',
+        pose: 'flight',
+        from: 'bottom-left',
+        to: 'focused-node',
+        durationMs: 320,
+      },
+      { type: 'highlight', targetId: account.id, emphasis: 'positive', durationMs: 180 },
+      { type: 'announce', messageId: account.narrationIds.open },
+    ],
+    reducedMotion: { strategy: 'instant-end-state', maxDurationMs: 0 },
+    maxDurationMs: 500,
+  };
+}
+
+function revealDetailsAnimation(account: S02AccountContent): S02AnimationSequence {
+  const steps: S02AnimationStep[] = [];
   account.details.forEach((detail, index) => {
     if (index > 0) steps.push({ type: 'pause', durationMs: 60 });
     steps.push({ type: 'reveal', targetId: detail.id, durationMs: 140 });
   });
   return {
-    id: account.unlockAnimationId,
+    id: account.detailRevealAnimationId,
     steps,
     reducedMotion: { strategy: 'instant-end-state', maxDurationMs: 0 },
-    maxDurationMs: 320 + account.details.length * 140 + (account.details.length - 1) * 60,
+    maxDurationMs: account.details.length * 140 + (account.details.length - 1) * 60,
   };
 }
 
@@ -396,6 +406,7 @@ function detailAnimation(detail: S02AccountContent['details'][number]): S02Anima
 
 const animations = accounts.flatMap((account) => [
   unlockAnimation(account),
+  revealDetailsAnimation(account),
   ...account.details.map(detailAnimation),
 ]);
 
@@ -410,25 +421,19 @@ export const s02Content: S02SegmentContent = {
     sectionId: 'passwords',
   },
   trainingAriaLabel: 'PassWo Training, Segment S02, Konten verstehen',
-  browser: {
-    ariaLabel: 'Fiktive Browseranwendung, Segment S02, Konten verstehen',
-    address: 'campus.example/konten-verstehen',
-    tab: {
-      id: 'account-map',
-      label: 'Konten verstehen',
-      enabled: true,
-    },
+  accessibility: {
+    networkLabel: 'Knotennetz zum Erkunden der drei Konten',
+    canvasLabel: 'Frei angeordnete Karte mit drei fiktiven Konten',
+    currentContextLabel: 'Aktueller Hinweis von PassWo',
+    characterLabel: 'PassWo, Begleiter im Training',
   },
   page: {
     eyebrow: 'Konten verstehen',
     title: 'Was hängt an deinen Konten?',
-    instruction:
-      'Öffne die drei Konten in beliebiger Reihenfolge und sieh dir jeweils alle Details an.',
     globalProgress: (understood) => `Konten verstehen: ${understood}/3 angesehen`,
     localProgress: (accountLabel, opened, total) =>
       `${accountLabel}: ${opened}/${total} Details angesehen`,
     previewTitle: 'Vorschau',
-    previewEmpty: 'Öffne ein Konto und wähle danach ein Detail für die Vorschau aus.',
     completion: 'Alle drei Konten verstanden',
   },
   controls: {
@@ -436,6 +441,7 @@ export const s02Content: S02SegmentContent = {
     timingFailure:
       'Das Speichern des Zeitereignisses ist fehlgeschlagen. Der nächste Schritt bleibt gesperrt.',
     timingSaving: 'Zeitereignis wird gespeichert …',
+    timingErrorCode: 'Fehlercode',
     retry: 'Erneut versuchen',
   },
   narration: {
@@ -447,9 +453,9 @@ export const s02Content: S02SegmentContent = {
       's02.campus-id.open': 'Die Campusservices brauchen den Zugang über deine CampusID.',
       's02.campus-id.understood':
         'Zusammengefasst steckt hinter dem einen Passwort nicht nur die CampusID, sondern drei weitere persönliche Dienste.',
-      's02.campus-id.learnspace': 'LearnSpace wurde mit CampusID geöffnet.',
-      's02.campus-id.exam-portal': 'Prüfungsportal wurde mit CampusID geöffnet.',
-      's02.campus-id.cloud-notes': 'Cloud Notes wurde mit CampusID geöffnet.',
+      's02.campus-id.learnspace': 'Die Campusservices brauchen den Zugang über deine CampusID.',
+      's02.campus-id.exam-portal': 'Die Campusservices brauchen den Zugang über deine CampusID.',
+      's02.campus-id.cloud-notes': 'Die Campusservices brauchen den Zugang über deine CampusID.',
       's02.campus-mail.open':
         'CampusMail verbindet Nachrichten, Bestätigungen, Zurücksetzungen und Kommunikation.',
       's02.campus-mail.understood':

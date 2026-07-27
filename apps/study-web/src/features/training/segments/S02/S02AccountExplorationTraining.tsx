@@ -1,7 +1,6 @@
 import { s02Content } from '@passwo/training-content';
-import { BrowserShell, type BrowserShellSnapshot } from '@passwo/ui';
 import { useEffect, useRef, useState } from 'react';
-import { PassWoQuestDock } from '../../../../adapters/character/PassWoCharacterAdapter.js';
+import passWoDockAsset from '../../../../assets/passwo/passwo-dock.png';
 import { NetworkMotionAdapter } from '../../../../adapters/network/NetworkMotionAdapter.js';
 import {
   ReactFlowNetwork,
@@ -25,11 +24,6 @@ export interface S02AccountExplorationTrainingProps {
 }
 
 const definition = s02Content.scene;
-const browserSnapshot: BrowserShellSnapshot = {
-  tabs: [s02Content.browser.tab],
-  activeTabId: s02Content.browser.tab.id,
-  address: s02Content.browser.address,
-};
 
 function prefersReducedMotion(): boolean {
   return window.matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -48,11 +42,10 @@ export function S02AccountExplorationTraining({
   onContinue,
   onRetryTiming,
 }: S02AccountExplorationTrainingProps) {
-  const characterAnimationAnchorRef = useRef<HTMLSpanElement | null>(null);
+  const characterAnimationAnchorRef = useRef<HTMLDivElement | null>(null);
   const networkHostRef = useRef<HTMLDivElement | null>(null);
   const onAllAccountsUnderstoodRef = useRef(onAllAccountsUnderstood);
   onAllAccountsUnderstoodRef.current = onAllAccountsUnderstood;
-  const [questHelpOpen, setQuestHelpOpen] = useState(false);
   const [runtime, setRuntime] = useState<Runtime | null>(null);
   const [snapshot, setSnapshot] = useState<S02AccountExplorationControllerSnapshot | null>(null);
 
@@ -63,6 +56,10 @@ export function S02AccountExplorationTraining({
       initialRevealedNodeIds: definition.accounts.map(({ id }) => id),
       applySnapshot: (presentation) => controller?.updatePresentation(presentation),
       getCharacterElement: () => characterAnimationAnchorRef.current,
+      getActiveNodeElement: () =>
+        networkHostRef.current?.querySelector<HTMLElement>(
+          '[data-active="true"] [data-scene-node-button]',
+        ) ?? null,
       getNodeElement: (nodeId) =>
         networkHostRef.current?.querySelector<HTMLElement>(
           `[data-scene-node-button="${nodeId}"]`,
@@ -107,121 +104,107 @@ export function S02AccountExplorationTraining({
   const complete = understoodCount === definition.accounts.length;
   const localOpened = activeProgress?.openedDetailIds.length ?? 0;
   const localTotal = activeAccount?.details.length ?? 0;
-  const localProgress =
-    activeAccount === undefined
-      ? 'Noch kein Konto ausgewählt'
-      : s02Content.page.localProgress(activeAccount.label, localOpened, localTotal);
   const timingFailure =
     externalTimingError !== null || timingState === 'startFailed' || timingState === 'endFailed';
   const interactionBlocked = timingState !== 'active' || externalTimingError !== null;
 
   return (
     <section className={styles.training} aria-label={s02Content.trainingAriaLabel}>
-      <BrowserShell
-        variant="artifact"
-        snapshot={browserSnapshot}
-        ariaLabel={s02Content.browser.ariaLabel}
-        onTabSelect={() => undefined}
-        layers={{
-          passWo: (
-            <PassWoQuestDock
-              guideName={s02Content.narration.guideName}
-              progressLabel={s02Content.page.globalProgress(understoodCount)}
-              placement={complete ? 'bottom-left' : 'bottom-right'}
-              helpOpen={questHelpOpen}
-              helpId="s02-quest-help"
-              openHelpLabel="Nächsten Schritt anzeigen"
-              closeHelpLabel="Hinweis schließen"
-              helpContent={<p>{s02Content.page.instruction}</p>}
-              onToggleHelp={() => setQuestHelpOpen((open) => !open)}
-            />
-          ),
-        }}
-      >
-        <article className={styles.page} aria-labelledby="s02-account-title">
-          <header className={styles.pageHeader}>
-            <div>
-              <p className={styles.eyebrow}>{s02Content.page.eyebrow}</p>
-              <h1 id="s02-account-title">{s02Content.page.title}</h1>
-              <p className={styles.pageInstruction}>{s02Content.page.instruction}</p>
-            </div>
-          </header>
+      <article className={styles.scene} aria-labelledby="s02-account-title">
+        <header className={styles.sceneHeader}>
+          <div>
+            <p className={styles.eyebrow}>{s02Content.page.eyebrow}</p>
+            <h1 id="s02-account-title">{s02Content.page.title}</h1>
+          </div>
+          <p className={styles.taskTracker} role="status">
+            {s02Content.page.globalProgress(understoodCount)}
+          </p>
+        </header>
 
-          <div className={styles.workspace}>
-            <div ref={networkHostRef} className={styles.networkPanel}>
-              <span
-                ref={characterAnimationAnchorRef}
-                className={styles.characterAnimationAnchor}
-                aria-hidden="true"
-              />
-              <ReactFlowNetwork
-                adapter={renderer}
-                presentation={presentation}
-                onNodeSelect={(nodeId) => controller.selectNode(nodeId)}
-                ariaLabel="Knotennetz zum Erkunden der drei Konten"
-                canvasAriaLabel="Deterministisch angeordnetes Knotennetz mit drei Hauptkonten"
-                interactionDisabled={interactionBlocked}
-                visualVariant="account-map"
-                activeNodeId={scene.activeAccountId}
-                showEdgeLabels={false}
-              />
-            </div>
-            <aside className={styles.mapContext} aria-label="Aktueller Hinweis">
-              {activeAccount !== undefined ? (
-                <p className={styles.localStatus} role="status">
-                  <span aria-hidden="true">
-                    {scene.understoodAccountIds.includes(activeAccount.id) ? '✓' : '○'}
-                  </span>
-                  {localProgress}
-                </p>
-              ) : null}
-              <section className={styles.narration}>
-                <p>{narration}</p>
-                {completionNarration !== '' && completionNarration !== narration ? (
-                  <p>{completionNarration}</p>
-                ) : null}
-              </section>
-              {activePreview !== undefined ? (
-                <section className={styles.preview} aria-labelledby="s02-preview-title">
-                  <p className={styles.cardLabel}>{s02Content.page.previewTitle}</p>
-                  <h2 id="s02-preview-title">{activePreview.label}</h2>
-                  <p>{activePreview.preview}</p>
-                </section>
-              ) : null}
-              {complete ? (
-                <section className={styles.completion} aria-label={s02Content.page.completion}>
-                  <p role="status">
-                    <span aria-hidden="true">✓</span>
-                    {s02Content.page.completion}
-                  </p>
-                  <button type="button" disabled={interactionBlocked} onClick={onContinue}>
-                    {s02Content.controls.continue}
-                  </button>
-                </section>
-              ) : null}
-            </aside>
+        <div className={styles.voidScene}>
+          <div ref={networkHostRef} className={styles.networkPanel}>
+            <ReactFlowNetwork
+              adapter={renderer}
+              presentation={presentation}
+              onNodeSelect={(nodeId) => controller.selectNode(nodeId)}
+              ariaLabel={s02Content.accessibility.networkLabel}
+              canvasAriaLabel={s02Content.accessibility.canvasLabel}
+              interactionDisabled={interactionBlocked}
+              visualVariant="void"
+              activeNodeId={scene.activeAccountId}
+              showEdgeLabels={false}
+            />
           </div>
 
-          {(timingState === 'starting' || timingState === 'ending') &&
-          externalTimingError === null ? (
-            <p className={styles.timingStatus} role="status">
-              {s02Content.controls.timingSaving}
+          {activeAccount !== undefined ? (
+            <p className={styles.localStatus} role="status">
+              <span aria-hidden="true">
+                {scene.understoodAccountIds.includes(activeAccount.id) ? '✓' : '○'}
+              </span>
+              {s02Content.page.localProgress(activeAccount.label, localOpened, localTotal)}
             </p>
           ) : null}
-          {timingFailure ? (
-            <section className={styles.timingError} role="alert">
-              <p>{s02Content.controls.timingFailure}</p>
-              <p>Fehlercode: {externalTimingError ?? timingErrorCode}</p>
-              <button type="button" onClick={onRetryTiming}>
-                {s02Content.controls.retry}
+
+          {activePreview !== undefined ? (
+            <section className={styles.preview} aria-labelledby="s02-preview-title">
+              <p className={styles.cardLabel}>{s02Content.page.previewTitle}</p>
+              <h2 id="s02-preview-title">{activePreview.label}</h2>
+              <p>{activePreview.preview}</p>
+            </section>
+          ) : null}
+
+          {complete ? (
+            <section className={styles.completion} aria-label={s02Content.page.completion}>
+              <p role="status">
+                <span aria-hidden="true">✓</span>
+                {s02Content.page.completion}
+              </p>
+              <button type="button" disabled={interactionBlocked} onClick={onContinue}>
+                {s02Content.controls.continue}
               </button>
             </section>
           ) : null}
-          <p className={styles.screenReaderOnly} aria-live="polite" aria-atomic="true">
-            {animationAnnouncement}
+
+          <div
+            ref={characterAnimationAnchorRef}
+            className={styles.passWo}
+            data-passwo-placement={presentation.character.placement}
+          >
+            <img
+              className={styles.passWoImage}
+              src={passWoDockAsset}
+              alt={s02Content.accessibility.characterLabel}
+            />
+            <section className={styles.narration} aria-label={s02Content.accessibility.currentContextLabel}>
+              <strong>{s02Content.narration.guideName}</strong>
+              <p>{narration}</p>
+              {completionNarration !== '' && completionNarration !== narration ? (
+                <p>{completionNarration}</p>
+              ) : null}
+            </section>
+          </div>
+        </div>
+
+        {(timingState === 'starting' || timingState === 'ending') && externalTimingError === null ? (
+          <p className={styles.timingStatus} role="status">
+            {s02Content.controls.timingSaving}
           </p>
-        </article>
-      </BrowserShell>
+        ) : null}
+        {timingFailure ? (
+          <section className={styles.timingError} role="alert">
+            <p>{s02Content.controls.timingFailure}</p>
+            <p>
+              {s02Content.controls.timingErrorCode}: {externalTimingError ?? timingErrorCode}
+            </p>
+            <button type="button" onClick={onRetryTiming}>
+              {s02Content.controls.retry}
+            </button>
+          </section>
+        ) : null}
+        <p className={styles.screenReaderOnly} aria-live="polite" aria-atomic="true">
+          {animationAnnouncement}
+        </p>
+      </article>
     </section>
   );
 }

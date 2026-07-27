@@ -32,6 +32,7 @@ export interface NetworkMotionAdapterOptions {
   readonly initialRevealedNodeIds?: readonly string[];
   readonly applySnapshot: (snapshot: NetworkPresentationSnapshot) => void;
   readonly getCharacterElement: () => HTMLElement | null;
+  readonly getActiveNodeElement: () => HTMLElement | null;
   readonly getNodeElement: (nodeId: string) => HTMLElement | null;
   readonly prefersReducedMotion: () => boolean;
 }
@@ -56,15 +57,18 @@ function nextFrame(): Promise<void> {
   return new Promise((resolve) => requestAnimationFrame(() => resolve()));
 }
 
-function moveTransform(step: Extract<AnimationStep, { readonly type: 'move-character' }>): string {
-  if (step.to === 'focused-node') return 'translate3d(-18vw, 30vh, 0)';
-  if (step.to === 'bottom-left') return 'translate3d(18vw, -30vh, 0)';
-  return 'translate3d(0, 0, 0)';
+function currentTranslation(element: HTMLElement): Readonly<{ x: number; y: number }> {
+  const transform = window.getComputedStyle(element).transform;
+  const values = transform.match(/^matrix\(([^)]+)\)$/)?.[1]?.split(',').map(Number);
+  return values === undefined || values.length !== 6
+    ? { x: 0, y: 0 }
+    : { x: values[4] ?? 0, y: values[5] ?? 0 };
 }
 
 export class NetworkMotionAdapter implements AnimationPlayerPort {
   readonly #applySnapshot: (snapshot: NetworkPresentationSnapshot) => void;
   readonly #getCharacterElement: () => HTMLElement | null;
+  readonly #getActiveNodeElement: () => HTMLElement | null;
   readonly #getNodeElement: (nodeId: string) => HTMLElement | null;
   readonly #prefersReducedMotion: () => boolean;
   #activeAnimation: AnimationPlaybackControlsWithThen | null = null;
@@ -77,12 +81,14 @@ export class NetworkMotionAdapter implements AnimationPlayerPort {
     initialRevealedNodeIds,
     applySnapshot,
     getCharacterElement,
+    getActiveNodeElement,
     getNodeElement,
     prefersReducedMotion,
   }: NetworkMotionAdapterOptions) {
     this.#snapshot = createInitialNetworkPresentation(initialNodeId, initialRevealedNodeIds);
     this.#applySnapshot = applySnapshot;
     this.#getCharacterElement = getCharacterElement;
+    this.#getActiveNodeElement = getActiveNodeElement;
     this.#getNodeElement = getNodeElement;
     this.#prefersReducedMotion = prefersReducedMotion;
   }
@@ -128,12 +134,14 @@ export class NetworkMotionAdapter implements AnimationPlayerPort {
         await nextFrame();
         const character = this.#getCharacterElement();
         if (character === null) throw new Error('missing-network-character');
+        const destination = this.#transformToActiveNode(character);
+        if (destination === null) throw new Error('missing-active-network-node');
         await this.#animate(character, step.durationMs, {
           opacity: [0.7, 1],
-          transform: [moveTransform(step), 'translate3d(0, 0, 0)'],
+          transform: [character.style.transform || 'translate3d(0px, 0px, 0px)', destination],
         });
-        character.style.removeProperty('opacity');
-        character.style.removeProperty('transform');
+        character.style.opacity = '1';
+        character.style.transform = destination;
         return;
       }
       case 'reveal': {
@@ -202,6 +210,11 @@ export class NetworkMotionAdapter implements AnimationPlayerPort {
           ...this.#snapshot,
           character: { placement: step.to, pose: step.pose },
         };
+        requestAnimationFrame(() => {
+          const character = this.#getCharacterElement();
+          const destination = character === null ? null : this.#transformToActiveNode(character);
+          if (character !== null && destination !== null) character.style.transform = destination;
+        });
       } else if (step.type === 'reveal') {
         this.#snapshot = {
           ...this.#snapshot,
@@ -220,5 +233,21 @@ export class NetworkMotionAdapter implements AnimationPlayerPort {
   #setSnapshot(snapshot: NetworkPresentationSnapshot): void {
     this.#snapshot = snapshot;
     this.#applySnapshot(snapshot);
+  }
+
+  #transformToActiveNode(character: HTMLElement): string | null {
+    const activeNode = this.#getActiveNodeElement();
+    if (activeNode === null) return null;
+
+    const characterRect = character.getBoundingClientRect();
+    const nodeRect = activeNode.getBoundingClientRect();
+    const current = currentTranslation(character);
+    const targetX = nodeRect.left + nodeRect.width / 2;
+    const targetY = nodeRect.top + nodeRect.height * 0.42;
+    const characterAnchorX = characterRect.left + characterRect.width * 0.32;
+    const characterAnchorY = characterRect.top + characterRect.height * 0.55;
+    const x = Math.round(current.x + targetX - characterAnchorX);
+    const y = Math.round(current.y + targetY - characterAnchorY);
+    return `translate3d(${x}px, ${y}px, 0px)`;
   }
 }

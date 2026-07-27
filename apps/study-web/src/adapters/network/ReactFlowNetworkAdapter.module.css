@@ -13,6 +13,10 @@
   background: transparent;
 }
 
+.network:has(.nodeFrame[data-variant="void"]) {
+  background: transparent;
+}
+
 .nodeFrame {
   --node-diameter: 76px;
   --node-label-surface: var(--color-surface-primary);
@@ -31,6 +35,10 @@
 
 .nodeFrame[data-variant="account-map"] {
   --node-label-surface: var(--color-surface-muted);
+}
+
+.nodeFrame[data-variant="void"] {
+  --node-label-surface: transparent;
 }
 
 .nodeFrame[data-visible="false"] {
@@ -112,12 +120,53 @@
     var(--shadow-float);
 }
 
-.nodeFrame[data-active="true"] .nodeCircle {
+.nodeFrame[data-active="true"][data-locked="false"] .nodeCircle {
   border-color: var(--color-accent-strong);
   box-shadow:
     0 0 0 4px var(--color-accent-soft),
     var(--shadow-float);
   transform: scale(1.055);
+}
+
+.nodeFrame[data-locked="true"] .statusMarker {
+  color: var(--color-ink-muted);
+}
+
+.nodeFrame[data-variant="void"] .nodeCircle {
+  border-color: color-mix(in srgb, var(--color-surface-primary) 62%, transparent);
+  color: var(--color-on-inverse);
+  background: color-mix(in srgb, var(--color-surface-inverse) 76%, transparent);
+  box-shadow: 0 1.1rem 2.6rem color-mix(in srgb, #000 42%, transparent);
+}
+
+.nodeFrame[data-variant="void"][data-kind="service"] .nodeCircle {
+  color: var(--color-accent-soft);
+}
+
+.nodeFrame[data-variant="void"][data-kind="function"] .nodeCircle {
+  color: var(--color-warning-soft);
+}
+
+.nodeFrame[data-variant="void"][data-kind="content"] .nodeCircle {
+  color: var(--color-positive-soft);
+}
+
+.nodeFrame[data-variant="void"][data-active="true"][data-locked="false"] .nodeCircle {
+  border-color: var(--color-accent-soft);
+  box-shadow:
+    0 0 0 4px color-mix(in srgb, var(--color-accent-strong) 45%, transparent),
+    0 1.2rem 3rem color-mix(in srgb, #000 52%, transparent);
+}
+
+.nodeFrame[data-variant="void"] .nodeLabel {
+  color: var(--color-on-inverse);
+  text-shadow: 0 0.15rem 0.6rem color-mix(in srgb, #000 75%, transparent);
+}
+
+.nodeFrame[data-variant="void"] .statusMarker {
+  border-color: color-mix(in srgb, var(--color-surface-primary) 62%, transparent);
+  color: var(--color-on-inverse);
+  background: var(--color-surface-inverse);
 }
 
 .nodeFrame[data-status="understood"] .nodeCircle,

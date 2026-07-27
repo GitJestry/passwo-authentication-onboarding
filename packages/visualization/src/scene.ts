@@ -57,6 +57,11 @@ export interface SceneNode {
   readonly label: string;
   readonly description: string;
   readonly status: SceneNodeStatus;
+  /**
+   * S02 starts its accounts in a deliberately simple lock state. This is a
+   * visual affordance only; the workflow remains in the scene snapshot.
+   */
+  readonly locked?: boolean;
   readonly position: AuthoredPosition;
   readonly selectable: boolean;
 }

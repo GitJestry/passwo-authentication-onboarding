@@ -99,7 +99,7 @@ interface SceneNodeData extends Record<string, unknown> {
 
 type SceneFlowNode = Node<SceneNodeData, 'scene-node'>;
 
-export type NetworkVisualVariant = 'default' | 'account-map';
+export type NetworkVisualVariant = 'default' | 'account-map' | 'void';
 
 export interface NetworkCanvasSize {
   readonly width: number;
@@ -232,6 +232,7 @@ export function createCircularEdgePath(
 }
 
 function statusLabel(node: SceneNode): string {
+  if (node.locked === true) return 'Geschlossen';
   const labels: Record<SceneNode['status'], string> = {
     neutral:
       node.kind === 'account'
@@ -269,6 +270,7 @@ function SceneNodeCircle({ data }: NodeProps<SceneFlowNode>) {
       data-active={active}
       data-highlighted={highlighted}
       data-kind={sceneNode.kind}
+      data-locked={sceneNode.locked === true}
       data-node-shape="circle"
       data-scene-node={sceneNode.id}
       data-size={nodeSize}
@@ -294,7 +296,11 @@ function SceneNodeCircle({ data }: NodeProps<SceneFlowNode>) {
         <span className={styles.nodeCircle} aria-hidden="true">
           <NetworkSymbol symbolId={symbolId} className={styles.nodeSymbol} />
           <span className={styles.statusMarker}>
-            <NetworkStatusMarker status={sceneNode.status} className={styles.statusSymbol} />
+            <NetworkStatusMarker
+              status={sceneNode.status}
+              locked={sceneNode.locked}
+              className={styles.statusSymbol}
+            />
           </span>
         </span>
         <span className={styles.nodeLabel}>{sceneNode.label}</span>
@@ -521,7 +527,7 @@ export function ReactFlowNetwork({
     <section
       ref={containerRef}
       className={
-        visualVariant === 'account-map'
+        visualVariant === 'account-map' || visualVariant === 'void'
           ? `${styles.network} ${styles.accountMapNetwork}`
           : styles.network
       }
@@ -547,11 +553,13 @@ export function ReactFlowNetwork({
           zoomOnPinch={false}
           zoomOnDoubleClick={false}
           preventScrolling={false}
-          colorMode="light"
+          colorMode={visualVariant === 'void' ? 'dark' : 'light'}
           aria-label={canvasAriaLabel}
-          {...(visualVariant === 'account-map' ? { proOptions: { hideAttribution: true } } : {})}
+          {...(visualVariant === 'account-map' || visualVariant === 'void'
+            ? { proOptions: { hideAttribution: true } }
+            : {})}
         >
-          {visualVariant === 'account-map' ? null : (
+          {visualVariant === 'account-map' || visualVariant === 'void' ? null : (
             <Background variant={BackgroundVariant.Dots} gap={24} size={1} />
           )}
         </ReactFlow>
