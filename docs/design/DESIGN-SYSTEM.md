@@ -12,6 +12,11 @@ Alle Farben, Abstände, Typografie, Radien, Schatten und Motion-Dauern werden al
 Properties in `packages/ui/src/styles/tokens.css` gepflegt. Keine ad-hoc Hexwerte in
 Feature-Komponenten.
 
+Die Oberfläche verwendet drei Elevation-Stufen: die flache Seitenfläche, sparsam abgehobene
+Arbeitsgruppen und den Browserrahmen als höchste Ebene. Karten werden nur eingesetzt, wenn sie
+eine eigenständige Interaktion oder einen Status bündeln; eine Umrahmung ist kein Ersatz für
+Hierarchie.
+
 Kernrollen:
 
 - `--color-ink`: Lesetext und Struktur;
@@ -29,6 +34,10 @@ Primärer Studienviewport: `1440 × 900` CSS-Pixel.
 Mindestziel: `1280 × 720` CSS-Pixel.
 
 - Browserbühne bleibt innerhalb des Viewports sichtbar.
+- Die Artifact Surface lässt rundum nur 12–20 px ruhigen Abstand; der Browser selbst füllt den
+  übrigen Raum.
+- Die Browser-Chrome bleibt kompakt, damit die Inhaltsfläche mindestens ungefähr 82 % der
+  verfügbaren Fensterhöhe erhält.
 - Textzeilen maximal ungefähr 65–75 Zeichen.
 - PassWo darf zentrale Interaktionen nicht verdecken.
 - Dialoge besitzen eine feste Fokusreihenfolge und keinen horizontalen Scroll.
@@ -60,6 +69,8 @@ Jedes interaktive Element hat mindestens:
 ## Motion
 
 - Transform und Opacity bevorzugen; keine unnötigen Layoutanimationen.
+- Nicht reduzierte Übergänge liegen zwischen 180 und 450 ms und machen eine räumliche Ursache
+  sichtbar, etwa das Auftauchen einer Erklärung am referenzierten Element.
 - `prefers-reduced-motion: reduce` zeigt denselben Endzustand unmittelbar oder mit kurzer
   Überblendung.
 - Pädagogisch notwendige Schritte bleiben inhaltlich sichtbar, auch wenn Bewegung deaktiviert ist.

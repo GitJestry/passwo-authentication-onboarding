@@ -262,9 +262,19 @@ export function S00Training({
                     >
                       {s00Content.controls.continue}
                     </button>
+                    {!canContinue ? (
+                      <button
+                        type="button"
+                        className={styles.disabledHint}
+                        aria-label="Hinweis zur gesperrten Aktion"
+                        aria-describedby="s00-continue-reason"
+                      >
+                        ?
+                      </button>
+                    ) : null}
                   </div>
                   {!canContinue ? (
-                    <p id="s00-continue-reason" className={styles.continueReason}>
+                    <p id="s00-continue-reason" className={styles.screenReaderOnly}>
                       {s00Content.controls.continueReason}
                     </p>
                   ) : null}

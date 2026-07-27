@@ -58,13 +58,15 @@ export function PasswordModuleTraining({
   if (snapshot.matches('entry')) {
     return (
       <section className={styles.entry} aria-labelledby="training-entry-title">
-        <div className={styles.entryContent}>
-          <p className={styles.eyebrow}>PassWo Training</p>
-          <h1 id="training-entry-title">Passwörter &amp; Authentifizierung Training</h1>
-          <p className={styles.introduction}>
-            Bevor es losgeht: Wie soll PassWo dich im Training ansprechen? Die Angabe bleibt
-            flüchtig in diesem Trainingsmodul und wird nicht gespeichert oder gesendet.
-          </p>
+        <div className={styles.entryComposition}>
+          <div className={styles.entryContent}>
+            <p className={styles.entryGuide}>PassWo</p>
+            <h1 id="training-entry-title">Passwörter &amp; Authentifizierung</h1>
+            <p className={styles.introduction}>
+              Bevor es losgeht: Wie soll PassWo dich im Training ansprechen? Die Angabe bleibt
+              flüchtig in diesem Trainingsmodul und wird nicht gespeichert oder gesendet.
+            </p>
+          </div>
           <form
             className={styles.entryForm}
             onSubmit={(event) => {

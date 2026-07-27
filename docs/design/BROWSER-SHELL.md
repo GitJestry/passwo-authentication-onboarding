@@ -43,6 +43,15 @@ Der Chrome bleibt kompakt: Fensterkontrollen, Tabs und eine neutrale Adresszeile
 Orientierung, ohne erklärende Meta-Labels einzublenden. Gründe für nicht verfügbare Tabs werden
 über `aria-describedby` bereitgestellt, sind aber kein dauerhaft sichtbarer Chromeblock.
 
+Die Fensterkontrollen sind klein und ausschließlich orientierend; sie kopieren weder
+Browsermarken noch Browserfunktionen. Tabs zeigen eine zurückhaltende neutrale Kennzeichnung und
+eine klar zusammenhängende aktive Fläche. Die Adresszeile hat kein sichtbares Label. Eine kleine
+Schlossform markiert den dargestellten Seitenstatus, ohne eine Sicherheitszusage abzuleiten.
+
+Sichtbare Disabled-Gründe werden nicht als dauerhafte Absätze im Chrome oder neben Aktionen
+wiederholt. Die zugehörige Erklärung bleibt über `aria-describedby` verfügbar und kann über eine
+fokussierbare Hinweis-Markierung erreicht werden.
+
 ## Fiktive Identität
 
 - Produktneutraler Name wie `campusID` oder eine endgültig freigegebene fiktive Variante.
@@ -57,5 +66,7 @@ Orientierung, ohne erklärende Meta-Labels einzublenden. Gründe für nicht verf
 - Browserrahmen beeinflusst keine Studienzeit oder Navigation außerhalb des Artefakts.
 - Der Browser kann abgedunkelt werden, ohne Fokus oder Lesbarkeit der aktiven PassWo-Schicht zu
   verlieren.
+- Dimming verringert den Kontrast der Bühne nur so weit, dass der Seitenkontext weiter lesbar
+  bleibt; es blendet keine Information aus.
 - Die Inhaltsfläche erhält den überwiegenden Teil der Höhe; bei `1440 × 900` und `1280 × 720`
   bleiben Hauptaktionen innerhalb des Viewports erreichbar.

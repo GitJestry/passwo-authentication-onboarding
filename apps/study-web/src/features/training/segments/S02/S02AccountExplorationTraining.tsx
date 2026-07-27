@@ -162,9 +162,6 @@ export function S02AccountExplorationTraining({
                 interactionDisabled={interactionBlocked}
               />
               <PassWoNetworkCharacter renderer={characterRenderer} characterRef={characterRef} />
-            </div>
-
-            <aside className={styles.sidebar} aria-label="Kontenerklärung und Vorschau">
               <section className={styles.narration} aria-labelledby="s02-passwo-title">
                 <p className={styles.cardLabel}>{s02Content.narration.guideName}</p>
                 <h2 id="s02-passwo-title">
@@ -175,7 +172,9 @@ export function S02AccountExplorationTraining({
                   <p>{completionNarration}</p>
                 ) : null}
               </section>
+            </div>
 
+            <aside className={styles.sidebar} aria-label="Kontenfortschritt und Vorschau">
               {activeAccount !== undefined ? (
                 <p className={styles.localStatus} role="status">
                   <span aria-hidden="true">

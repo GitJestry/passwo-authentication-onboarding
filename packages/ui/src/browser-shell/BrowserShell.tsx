@@ -156,6 +156,7 @@ export function BrowserShell({
         onClick={() => selectTab(tab.id)}
         onKeyDown={(event) => handleTabKeyDown(event, tab.id, enabled)}
       >
+        <span className={styles.tabIcon} aria-hidden="true" />
         <span>{tab.label}</span>
         {status ? (
           <span
@@ -197,7 +198,9 @@ export function BrowserShell({
         ) : null}
         <div className={styles.addressRow}>
           <output className={styles.address} aria-label="Adresszeile">
-            <span className={styles.addressIndicator} aria-hidden="true" />
+            <span className={styles.addressIndicator} aria-hidden="true">
+              <span />
+            </span>
             <span className={styles.addressText}>{snapshot.address}</span>
           </output>
         </div>

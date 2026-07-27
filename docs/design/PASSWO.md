@@ -44,15 +44,15 @@ nicht in der Komponente.
 Die gelieferten Designbilder sind Stil- und Kompositionsreferenzen. Sie enthalten mehrere Posen
 und UI-Elemente in einem Bild und werden deshalb nicht direkt als Runtime-Sprite verwendet.
 
-Phase 1:
+Die Runtime-Integration beginnt erst, wenn für `wave`, `explain`, `point`, `caution`, `idea`,
+`dock` und `flight` jeweils ein freigegebenes transparentes Einzelasset vorliegt. Dann enthält
+das zentrale Posenregister für jede semantische Pose genau einen Runtime-Assetpfad; Renderer und
+Motion-Port bleiben davon unabhängig.
 
-- CSS/PNG-Platzhalter und Motion;
-- zentrales Posenregister im Character-Adapter und Renderer-Port stabilisieren;
-- notwendige Einzelposen als transparente Exporte erstellen.
-
-Das Posenregister enthält für jede semantische Pose genau einen optionalen Runtime-Assetpfad.
-Solange kein freigegebener transparenter Einzelexport vorhanden ist, bleibt der bestehende
-`PW`-Platzhalter sichtbar. Zusammengesetzte Designboards werden nicht als Sprite eingebunden.
+Derzeit fehlen diese sieben Einzelassets im Runtime-Ordner. Die vorhandenen Designboards bleiben
+Stil- und Kompositionsreferenzen und werden nicht als Sprite ausgeschnitten oder eingebunden.
+Bis zur Asset-Lieferung bleibt die Character-Integration unverändert; der `PW`-Platzhalter ist
+ausdrücklich keine finale Figurenlösung.
 
 Phase 2 nur bei Bedarf:
 

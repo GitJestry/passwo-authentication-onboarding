@@ -3,6 +3,8 @@
   height: 100%;
   min-height: 0;
   flex: 1;
+  padding: clamp(0.75rem, 1.2vw, 1.25rem);
+  background: var(--color-surface-canvas);
 }
 
 .pageTarget,
@@ -13,9 +15,7 @@
 
 .pageScene {
   color: var(--color-ink);
-  background:
-    radial-gradient(circle at 88% 12%, var(--color-accent-soft) 0 12%, transparent 35%),
-    var(--color-surface-muted);
+  background: var(--color-surface-muted);
 }
 
 .pageHeader {
@@ -60,8 +60,8 @@
 .pageBody {
   display: grid;
   min-height: calc(100% - var(--size-control-large) - var(--space-7));
-  grid-template-columns: minmax(0, 1fr) minmax(18rem, 0.78fr);
-  align-items: center;
+  grid-template-columns: minmax(0, 1.2fr) minmax(17rem, 0.6fr);
+  align-items: start;
   gap: clamp(var(--space-6), 5vw, var(--space-9));
   padding: clamp(var(--space-6), 6vh, var(--space-9)) clamp(var(--space-6), 6vw, var(--space-9));
 }
@@ -73,12 +73,12 @@
 .eyebrow,
 .safetyEyebrow,
 .speechLabel {
-  margin: 0 0 var(--space-2);
-  color: var(--color-accent-strong);
-  font-size: var(--font-size-x-small);
-  font-weight: var(--font-weight-heavy);
-  letter-spacing: var(--letter-spacing-wide);
-  text-transform: uppercase;
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
 }
 
 .pageCopy h1,
@@ -104,11 +104,12 @@
 }
 
 .safetyCard {
-  padding: clamp(var(--space-5), 3vw, var(--space-7));
-  border: var(--border-width-medium) solid var(--color-warning);
-  border-radius: var(--radius-medium);
+  align-self: start;
+  padding: var(--space-5);
+  border: var(--border-width-thin) solid var(--color-warning);
+  border-left-width: var(--space-1);
+  border-radius: var(--radius-small);
   background: var(--color-warning-soft);
-  box-shadow: var(--shadow-card);
 }
 
 .safetyCard[data-visible="false"] {
@@ -125,15 +126,28 @@
 
 .speechCard {
   position: absolute;
-  top: clamp(var(--space-5), 4vw, var(--space-8));
-  right: clamp(var(--space-5), 4vw, var(--space-8));
-  width: min(var(--size-overlay-content-max), calc(100% - var(--space-9)));
-  padding: var(--space-6);
-  border: var(--border-width-medium) solid var(--color-accent-strong);
+  bottom: clamp(8.5rem, 18vh, 10.5rem);
+  left: clamp(var(--space-5), 4vw, var(--space-8));
+  width: min(27rem, calc(100% - 35rem));
+  padding: var(--space-5);
+  border: var(--border-width-thin) solid var(--color-border);
   border-radius: var(--radius-medium);
   color: var(--color-ink);
   background: var(--color-surface-elevated);
   box-shadow: var(--shadow-card);
+}
+
+.speechCard::after {
+  position: absolute;
+  bottom: calc(-1 * var(--space-2));
+  left: var(--space-7);
+  width: var(--space-4);
+  height: var(--space-4);
+  border-right: var(--border-width-thin) solid var(--color-border);
+  border-bottom: var(--border-width-thin) solid var(--color-border);
+  background: var(--color-surface-elevated);
+  content: "";
+  transform: rotate(45deg);
 }
 
 .speechCard h2 {
@@ -145,13 +159,13 @@
   right: clamp(var(--space-5), 4vw, var(--space-8));
   bottom: clamp(var(--space-5), 4vw, var(--space-8));
   display: grid;
-  width: min(32rem, calc(100% - var(--space-9)));
-  gap: var(--space-3);
-  padding: var(--space-4);
-  border: var(--border-width-thin) solid var(--color-border);
-  border-radius: var(--radius-medium);
-  background: var(--color-surface-elevated);
-  box-shadow: var(--shadow-card);
+  width: min(28rem, calc(100% - var(--space-9)));
+  gap: var(--space-2);
+  padding: var(--space-3);
+  border: var(--border-width-thin) solid var(--color-border-soft);
+  border-radius: var(--radius-small);
+  background: var(--color-surface-float);
+  box-shadow: var(--shadow-float);
 }
 
 .acknowledgement {
@@ -159,7 +173,7 @@
   grid-template-columns: auto 1fr;
   align-items: start;
   gap: var(--space-3);
-  padding: var(--space-3);
+  padding: var(--space-2);
   border-radius: var(--radius-small);
   color: var(--color-ink-strong);
   font-size: var(--font-size-small);
@@ -216,6 +230,35 @@
   line-height: var(--line-height-body);
 }
 
+.disabledHint {
+  display: grid;
+  width: 1.7rem;
+  height: 1.7rem;
+  flex: none;
+  place-items: center;
+  border: var(--border-width-thin) solid var(--color-border);
+  border-radius: var(--radius-round);
+  color: var(--color-ink-muted);
+  background: var(--color-surface-primary);
+  font-size: var(--font-size-small);
+  font-weight: var(--font-weight-heavy);
+}
+
+.disabledHint:focus-visible {
+  outline: var(--border-width-focus) solid var(--color-focus);
+  outline-offset: var(--space-1);
+  box-shadow: var(--shadow-focus);
+}
+
+.screenReaderOnly {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
 .animationError {
   padding: var(--space-3);
   border-left: var(--border-width-medium) solid var(--color-warning);
@@ -230,6 +273,7 @@
 
   .speechCard {
     width: calc(100% - var(--space-8));
+    left: var(--space-4);
   }
 
   .controls {
@@ -238,5 +282,12 @@
 
   .buttonRow > button {
     flex: 1;
+  }
+}
+
+@media (min-width: 761px) and (max-height: 760px) {
+  .speechCard {
+    bottom: var(--space-6);
+    left: 13.5rem;
   }
 }

@@ -1,6 +1,6 @@
 import { fileURLToPath } from 'node:url';
 import AxeBuilder from '@axe-core/playwright';
-import { expect, type Frame, type Page, test } from '@playwright/test';
+import { expect, type Frame, type Locator, type Page, test } from '@playwright/test';
 import { buildStudyServer } from '../../apps/study-server/src/app.js';
 
 type ForcedAssignmentMode = 'forced-supportive' | 'forced-reference';
@@ -138,6 +138,20 @@ async function expectNoHorizontalScroll(page: Page): Promise<void> {
     document: document.documentElement.scrollWidth - document.documentElement.clientWidth,
   }));
   expect(overflow).toEqual({ body: 0, document: 0 });
+}
+
+async function expectInsideViewport(page: Page, locator: Locator): Promise<void> {
+  await expect(locator).toBeVisible();
+  const viewport = page.viewportSize();
+  const box = await locator.boundingBox();
+  expect(viewport).not.toBeNull();
+  expect(box).not.toBeNull();
+  if (viewport === null || box === null) return;
+
+  expect(box.x).toBeGreaterThanOrEqual(0);
+  expect(box.y).toBeGreaterThanOrEqual(0);
+  expect(box.x + box.width).toBeLessThanOrEqual(viewport.width);
+  expect(box.y + box.height).toBeLessThanOrEqual(viewport.height);
 }
 
 async function expectNoHighImpactAxeFindings(page: Page): Promise<void> {
@@ -329,9 +343,7 @@ async function waitForReferenceContentFrame(page: Page): Promise<Frame> {
 async function enterSupportiveTraining(page: Page, displayName: string): Promise<void> {
   await expect(page.locator('main[data-artifact-surface]')).toBeVisible();
   await expect(page.locator('main[data-study-surface]')).toHaveCount(0);
-  await expect(
-    page.getByRole('heading', { name: 'Passwörter & Authentifizierung Training' }),
-  ).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Passwörter & Authentifizierung' })).toBeVisible();
   await expectNoForbiddenVisibleRuntimeText(page);
   await expectNoHorizontalScroll(page);
   await page.getByLabel('Wie soll PassWo dich ansprechen?').fill(displayName);
@@ -418,6 +430,46 @@ async function completePasswordModule(page: Page): Promise<void> {
   await completeS02(page);
 }
 
+for (const viewport of [
+  { width: 1440, height: 900 },
+  { width: 1280, height: 720 },
+] as const) {
+  test(`supportive S00–S02 keeps primary actions visible at ${viewport.width}x${viewport.height}`, async ({
+    page,
+  }) => {
+    await page.setViewportSize(viewport);
+    await startStudyServer('forced-supportive');
+    await acceptConsent(page);
+    await submitPlaceholder(page);
+
+    const entryAction = page.getByRole('button', { name: 'Training starten' });
+    await expect(
+      page.getByRole('heading', { name: 'Passwörter & Authentifizierung' }),
+    ).toBeVisible();
+    await expectInsideViewport(page, entryAction);
+    await expectNoHorizontalScroll(page);
+    await expectNoHighImpactAxeFindings(page);
+
+    await enterSupportiveTraining(page, 'Visuelle Vorschau');
+    const s00Action = page.getByRole('button', { name: 'Weiter' });
+    await expectInsideViewport(page, s00Action);
+    await expectNoHorizontalScroll(page);
+    await expectNoHighImpactAxeFindings(page);
+
+    await completeS00(page);
+    const s01Action = page.getByRole('button', { name: 'Konten einrichten' });
+    await expectInsideViewport(page, s01Action);
+    await expectNoHorizontalScroll(page);
+    await expectNoHighImpactAxeFindings(page);
+
+    await completeS01(page);
+    const accountAction = page.getByRole('button', { name: /^CampusID\./ });
+    await expectInsideViewport(page, accountAction);
+    await expectNoHorizontalScroll(page);
+    await expectNoHighImpactAxeFindings(page);
+  });
+}
+
 test('forced-supportive completes and visibly blocks a failed research write', async ({ page }) => {
   await page.setViewportSize({ width: 1280, height: 720 });
   await startStudyServer('forced-supportive');
@@ -430,9 +482,7 @@ test('forced-supportive completes and visibly blocks a failed research write', a
   await expect(page.getByText('Der nächste Studienteil bleibt gesperrt')).toBeVisible();
   await page.getByRole('button', { name: 'Erneut versuchen' }).click();
 
-  await expect(
-    page.getByRole('heading', { name: 'Passwörter & Authentifizierung Training' }),
-  ).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Passwörter & Authentifizierung' })).toBeVisible();
   await expectNoHighImpactAxeFindings(page);
   await enterSupportiveTraining(page, 'Browsername Nur Lokal');
   await completePasswordModule(page);

@@ -108,7 +108,7 @@ export function S01Training({
               <h1 id="s01-page-title">{account.label}</h1>
               <dl className={styles.accountDetails}>
                 <div>
-                  <dt>{account.accountDataLabel}</dt>
+                  <dt className={styles.screenReaderOnly}>{account.accountDataLabel}</dt>
                   <dd>{account.accountData}</dd>
                 </div>
                 <div>
@@ -123,9 +123,15 @@ export function S01Training({
                   if (canConfigure) controller.configureAccounts();
                 }}
               >
-                <label className={styles.passwordLabel}>
-                  <span>{s01Content.controls.passwordLabel}</span>
+                <label
+                  className={styles.passwordLabel}
+                  htmlFor={`fictional-password-${account.id}`}
+                >
+                  {s01Content.controls.passwordLabel}
+                </label>
+                <span className={styles.passwordInputGroup}>
                   <input
+                    id={`fictional-password-${account.id}`}
                     name={`fictional-password-${account.id}`}
                     type={revealedAccountIds.has(account.id) ? 'text' : 'password'}
                     autoComplete="off"
@@ -136,23 +142,23 @@ export function S01Training({
                       controller.setPasswordValue(account.id, event.currentTarget.value)
                     }
                   />
-                </label>
-                <button
-                  type="button"
-                  className={styles.revealButton}
-                  aria-pressed={revealedAccountIds.has(account.id)}
-                  aria-label={
-                    revealedAccountIds.has(account.id)
-                      ? s01Content.controls.hidePassword(account.label)
-                      : s01Content.controls.showPassword(account.label)
-                  }
-                  disabled={interactionBlocked}
-                  onClick={() => toggleReveal(account.id)}
-                >
-                  {revealedAccountIds.has(account.id)
-                    ? s01Content.controls.hide
-                    : s01Content.controls.show}
-                </button>
+                  <button
+                    type="button"
+                    className={styles.revealButton}
+                    aria-pressed={revealedAccountIds.has(account.id)}
+                    aria-label={
+                      revealedAccountIds.has(account.id)
+                        ? s01Content.controls.hidePassword(account.label)
+                        : s01Content.controls.showPassword(account.label)
+                    }
+                    disabled={interactionBlocked}
+                    onClick={() => toggleReveal(account.id)}
+                  >
+                    {revealedAccountIds.has(account.id)
+                      ? s01Content.controls.hide
+                      : s01Content.controls.show}
+                  </button>
+                </span>
                 {!configured ? (
                   <div className={styles.buttonRow}>
                     <button
@@ -164,9 +170,19 @@ export function S01Training({
                       {s01Content.controls.configure}
                     </button>
                     {!canConfigure ? (
-                      <p id="s01-configure-reason" className={styles.helpText}>
-                        {s01Content.controls.configureReason}
-                      </p>
+                      <>
+                        <button
+                          type="button"
+                          className={styles.disabledHint}
+                          aria-label="Hinweis zur gesperrten Aktion"
+                          aria-describedby="s01-configure-reason"
+                        >
+                          ?
+                        </button>
+                        <p id="s01-configure-reason" className={styles.screenReaderOnly}>
+                          {s01Content.controls.configureReason}
+                        </p>
+                      </>
                     ) : null}
                   </div>
                 ) : null}

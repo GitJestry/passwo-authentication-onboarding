@@ -9,20 +9,16 @@
   flex-direction: column;
   overflow: hidden;
   border: var(--border-width-thin) solid var(--passwo-border);
-  border-radius: var(--radius-medium);
+  border-radius: var(--radius-large);
   background: var(--passwo-surface);
-  box-shadow: var(--shadow-card);
+  box-shadow: var(--shadow-window);
 }
 
 .chrome {
   z-index: 1;
   flex: none;
   border-bottom: var(--border-width-thin) solid var(--passwo-border);
-  background: linear-gradient(
-    180deg,
-    var(--color-surface-chrome-start) 0%,
-    var(--color-surface-chrome-end) 100%
-  );
+  background: var(--color-surface-chrome);
 }
 
 .tabRow {
@@ -46,13 +42,21 @@
   height: var(--size-window-control);
   border: var(--border-width-thin) solid var(--color-control-neutral-border);
   border-radius: var(--radius-round);
-  background: var(--color-control-neutral);
+  background: var(--color-control-close);
+}
+
+.windowControls span:nth-child(2) {
+  background: var(--color-control-minimize);
+}
+
+.windowControls span:nth-child(3) {
+  background: var(--color-control-expand);
 }
 
 .tabs {
   display: flex;
   min-width: 0;
-  min-height: var(--size-control-medium);
+  min-height: 2rem;
   margin: 0;
   gap: var(--space-1);
   overflow-x: auto;
@@ -62,11 +66,11 @@
 .tab,
 .activeTab {
   display: inline-flex;
-  min-width: var(--size-browser-tab-min);
+  min-width: min(10.5rem, 32vw);
   align-items: center;
   justify-content: space-between;
   gap: var(--space-2);
-  padding: var(--space-2) var(--space-3);
+  padding: 0.4rem var(--space-3);
   border: var(--border-width-thin) solid transparent;
   border-radius: var(--radius-small) var(--radius-small) 0 0;
   color: var(--passwo-text);
@@ -83,6 +87,21 @@ button.activeTab {
 
 .tab {
   background: var(--color-surface-tab-idle);
+}
+
+.tabIcon {
+  width: 0.65rem;
+  height: 0.65rem;
+  flex: none;
+  border: var(--border-width-thin) solid var(--color-ink-muted);
+  border-radius: var(--radius-round);
+  opacity: 0.72;
+}
+
+.activeTab .tabIcon {
+  border-color: var(--color-accent-strong);
+  box-shadow: inset 0 0 0 0.15rem var(--color-accent-soft);
+  opacity: 1;
 }
 
 .activeTab {
@@ -147,16 +166,16 @@ button.activeTab[aria-disabled="true"] {
 
 .addressRow {
   display: block;
-  padding: var(--space-2) var(--space-4) var(--space-3);
+  padding: 0.4rem var(--space-4) var(--space-2);
 }
 
 .address {
   display: flex;
   min-width: 0;
   align-items: center;
-  gap: var(--space-3);
+  gap: var(--space-2);
   overflow: hidden;
-  min-height: 2rem;
+  min-height: 1.8rem;
   padding: var(--space-1) var(--space-3);
   border: var(--border-width-thin) solid var(--passwo-border);
   border-radius: var(--radius-round);
@@ -166,12 +185,33 @@ button.activeTab[aria-disabled="true"] {
 }
 
 .addressIndicator {
-  width: var(--space-2);
-  height: var(--space-2);
+  position: relative;
+  display: grid;
+  width: 0.7rem;
+  height: 0.65rem;
   flex: none;
+  place-items: end center;
+  border: var(--border-width-medium) solid var(--color-accent-strong);
+  border-radius: 0.18rem;
+}
+
+.addressIndicator::before {
+  position: absolute;
+  top: -0.45rem;
+  width: 0.44rem;
+  height: 0.45rem;
+  border: var(--border-width-medium) solid var(--color-accent-strong);
+  border-bottom: 0;
+  border-radius: var(--radius-round) var(--radius-round) 0 0;
+  content: "";
+}
+
+.addressIndicator span {
+  width: 0.12rem;
+  height: 0.18rem;
+  margin-bottom: 0.08rem;
   border-radius: var(--radius-round);
-  background: var(--color-accent);
-  box-shadow: 0 0 0 var(--border-width-medium) var(--color-accent-soft);
+  background: var(--color-accent-strong);
 }
 
 .addressText {
@@ -196,7 +236,7 @@ button.activeTab[aria-disabled="true"] {
 }
 
 .dimmedContent {
-  filter: saturate(0.72);
+  filter: saturate(0.86) contrast(0.96);
 }
 
 .dimLayer {

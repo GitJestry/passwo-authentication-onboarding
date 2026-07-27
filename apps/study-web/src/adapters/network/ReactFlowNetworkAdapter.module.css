@@ -2,14 +2,9 @@
   position: absolute;
   inset: 0;
   min-width: 0;
-  background:
-    linear-gradient(
-      90deg,
-      transparent 0 49.9%,
-      var(--color-border-soft) 50% 50.1%,
-      transparent 50.2%
-    ),
-    var(--color-surface-muted);
+  border: var(--border-width-thin) solid var(--color-border-soft);
+  border-radius: var(--radius-medium);
+  background: var(--color-surface-primary);
 }
 
 .nodeFrame {
@@ -33,10 +28,10 @@
   gap: var(--space-3);
   padding: var(--space-3);
   border: var(--border-width-medium) solid var(--color-border);
-  border-radius: var(--radius-medium);
+  border-radius: var(--radius-small);
   color: var(--color-ink);
   background: var(--color-surface-elevated);
-  box-shadow: 0 8px 20px rgb(8 43 82 / 12%);
+  box-shadow: var(--shadow-float);
   text-align: left;
 }
 
@@ -55,8 +50,10 @@
 }
 
 .nodeFrame[data-highlighted="true"] .nodeButton {
-  border-style: double;
-  border-color: var(--color-positive);
+  border-color: var(--color-accent-strong);
+  box-shadow:
+    0 0 0 3px var(--color-accent-soft),
+    var(--shadow-float);
 }
 
 .nodeFrame[data-status="understood"] .nodeButton {
@@ -66,8 +63,8 @@
 
 .nodeFrame[data-status="exposed"] .nodeButton,
 .nodeFrame[data-status="affected"] .nodeButton {
-  border-color: #b42318;
-  background: #fff1f0;
+  border-color: var(--color-danger);
+  background: var(--color-danger-soft);
 }
 
 .nodeFrame[data-status="protected"] .nodeButton {
@@ -77,8 +74,26 @@
 
 .nodeFrame[data-status="hypothetical"] .nodeButton {
   border-style: dashed;
-  border-color: #65558f;
-  background: #f5f2ff;
+  border-color: var(--color-hypothetical);
+  background: var(--color-hypothetical-soft);
+}
+
+.nodeFrame:has([data-scene-node-button="campus-id"]) .nodeButton,
+.nodeFrame:has([data-scene-node-button="campus-mail"]) .nodeButton,
+.nodeFrame:has([data-scene-node-button="campus-board-archive"]) .nodeButton {
+  border-width: var(--border-width-medium);
+}
+
+.nodeFrame:has([data-scene-node-button^="campus-id-"]) .nodeButton {
+  border-left: var(--space-1) solid var(--color-accent);
+}
+
+.nodeFrame:has([data-scene-node-button^="campus-mail-"]) .nodeButton {
+  border-left: var(--space-1) solid var(--color-warning);
+}
+
+.nodeFrame:has([data-scene-node-button^="campus-board-"]) .nodeButton {
+  border-left: var(--space-1) solid var(--color-positive);
 }
 
 .nodeBadge {
@@ -101,9 +116,9 @@
 
 .nodeFrame[data-status="exposed"] .nodeBadge,
 .nodeFrame[data-status="affected"] .nodeBadge {
-  border-color: #b42318;
-  color: #7a271a;
-  background: #fee4e2;
+  border-color: var(--color-danger);
+  color: var(--color-danger);
+  background: var(--color-danger-soft);
 }
 
 .nodeFrame[data-status="protected"] .nodeBadge {
@@ -112,9 +127,9 @@
 }
 
 .nodeFrame[data-status="hypothetical"] .nodeBadge {
-  border-color: #65558f;
-  color: #493971;
-  background: #ebe5ff;
+  border-color: var(--color-hypothetical);
+  color: var(--color-hypothetical);
+  background: var(--color-hypothetical-soft);
 }
 
 .nodeCopy {
@@ -160,12 +175,12 @@
 }
 
 .edgeDirect :global(.react-flow__edge-path) {
-  stroke: #b42318;
+  stroke: var(--color-danger);
   stroke-width: 4px;
 }
 
 .edgeSimilar :global(.react-flow__edge-path) {
-  stroke: #c65f00;
+  stroke: var(--color-warning);
   stroke-width: 4px;
   stroke-dasharray: 9 7;
 }
@@ -177,7 +192,7 @@
 }
 
 .edgeHypothetical :global(.react-flow__edge-path) {
-  stroke: #65558f;
+  stroke: var(--color-hypothetical);
   stroke-width: 4px;
   stroke-dasharray: 10 6 2 6;
 }
@@ -194,32 +209,37 @@
 }
 
 .edgeDirect :global(.react-flow__edge-text) {
-  fill: #7a271a;
+  fill: var(--color-danger);
 }
 
 .edgeDirect :global(.react-flow__edge-textbg) {
-  fill: #fee4e2;
+  fill: var(--color-danger-soft);
 }
 
 .edgeSimilar :global(.react-flow__edge-text) {
-  fill: #7a3b00;
+  fill: var(--color-warning);
 }
 
 .edgeSimilar :global(.react-flow__edge-textbg) {
-  fill: #ffead5;
+  fill: var(--color-warning-soft);
 }
 
 .edgeHypothetical :global(.react-flow__edge-text) {
-  fill: #493971;
+  fill: var(--color-hypothetical);
 }
 
 .edgeHypothetical :global(.react-flow__edge-textbg) {
-  fill: #ebe5ff;
+  fill: var(--color-hypothetical-soft);
 }
 
 :global(.react-flow__attribution) {
-  font-size: 0.55rem;
-  opacity: 0.72;
+  color: var(--color-ink-muted);
+  font-size: var(--font-size-x-small);
+  opacity: 1;
+}
+
+:global(.react-flow__attribution a) {
+  color: inherit;
 }
 
 .screenReaderOnly {
