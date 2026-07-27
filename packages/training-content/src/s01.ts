@@ -16,8 +16,6 @@ export interface S01SegmentContent {
   };
   readonly browser: {
     readonly ariaLabel: string;
-    readonly identityName: string;
-    readonly fictionalBadge: string;
     readonly accounts: readonly {
       readonly id: S01AccountId;
       readonly label: string;
@@ -25,6 +23,14 @@ export interface S01SegmentContent {
       readonly accountDataLabel: string;
       readonly accountData: string;
       readonly role: string;
+      readonly symbolId: string;
+      readonly navigation: readonly string[];
+      readonly overview: {
+        readonly title: string;
+        readonly description: string;
+        readonly activityTitle: string;
+        readonly activityItems: readonly string[];
+      };
     }[];
   };
   readonly progress: {
@@ -34,6 +40,7 @@ export interface S01SegmentContent {
   };
   readonly quest: {
     readonly helpLabel: string;
+    readonly closeHelpLabel: string;
     readonly nextAccount: (accountLabel: string) => string;
     readonly readyToContinue: string;
   };
@@ -41,8 +48,6 @@ export interface S01SegmentContent {
     readonly passwordLabel: string;
     readonly showPassword: (accountLabel: string) => string;
     readonly hidePassword: (accountLabel: string) => string;
-    readonly show: string;
-    readonly hide: string;
     readonly configure: string;
     readonly continue: string;
     readonly timingFailure: string;
@@ -57,7 +62,7 @@ export interface S01SegmentContent {
   };
 }
 
-export const S01_CONTENT_VERSION = '2.0.0';
+export const S01_CONTENT_VERSION = '2.1.0';
 
 export const s01Content: S01SegmentContent = {
   version: S01_CONTENT_VERSION,
@@ -72,8 +77,6 @@ export const s01Content: S01SegmentContent = {
   },
   browser: {
     ariaLabel: 'Fiktive Browseranwendung, Segment S01',
-    identityName: 'Campusraum',
-    fictionalBadge: 'Fiktive Übungsseite',
     accounts: [
       {
         id: 'campus-id',
@@ -82,6 +85,14 @@ export const s01Content: S01SegmentContent = {
         accountDataLabel: 'Kontodaten',
         accountData: 'alex27@campus.example',
         role: 'Zentrales Campus-Konto.',
+        symbolId: 'campus-id',
+        navigation: ['Übersicht', 'Dienste', 'Einstellungen'],
+        overview: {
+          title: 'Kontoübersicht',
+          description: 'Dein Zugang zu zentralen Campusdiensten.',
+          activityTitle: 'Aktuelle Bereiche',
+          activityItems: ['Campusdienste werden geladen', 'Kontostatus wird vorbereitet'],
+        },
       },
       {
         id: 'campus-mail',
@@ -90,6 +101,14 @@ export const s01Content: S01SegmentContent = {
         accountDataLabel: 'Kontodaten',
         accountData: 'alex27@mail.campus.example',
         role: 'Campusbezogene Nachrichten, Bestätigungen und Zurücksetzungslinks.',
+        symbolId: 'campus-mail',
+        navigation: ['Posteingang', 'Ordner', 'Einstellungen'],
+        overview: {
+          title: 'Postfachübersicht',
+          description: 'Campusbezogene Nachrichten und Bestätigungen.',
+          activityTitle: 'Neue Einträge',
+          activityItems: ['Nachrichten werden geladen', 'Ordner werden vorbereitet'],
+        },
       },
       {
         id: 'campus-board-archive',
@@ -98,6 +117,14 @@ export const s01Content: S01SegmentContent = {
         accountDataLabel: 'Kontodaten',
         accountData: 'alex_board',
         role: 'Ältere Ankündigungen, Projektfragen und informelle Campus-Diskussionen.',
+        symbolId: 'campus-board-archive',
+        navigation: ['Archiv', 'Themen', 'Suche'],
+        overview: {
+          title: 'Archivübersicht',
+          description: 'Ältere Beiträge und Diskussionen aus dem Campusalltag.',
+          activityTitle: 'Archivierte Inhalte',
+          activityItems: ['Beiträge werden geladen', 'Themen werden vorbereitet'],
+        },
       },
     ],
   },
@@ -107,7 +134,8 @@ export const s01Content: S01SegmentContent = {
     status: (configuredCount) => `${configuredCount}/3 Konten eingerichtet`,
   },
   quest: {
-    helpLabel: 'Nächsten Schritt anzeigen',
+    helpLabel: 'PassWo-Hinweis öffnen',
+    closeHelpLabel: 'PassWo-Hinweis schließen',
     nextAccount: (accountLabel) => `Richte das Passwort für ${accountLabel} ein.`,
     readyToContinue: 'Alle drei Konten sind eingerichtet. Wähle Weiter.',
   },
@@ -115,8 +143,6 @@ export const s01Content: S01SegmentContent = {
     passwordLabel: 'Fiktives Passwort',
     showPassword: (accountLabel) => `Passwort für ${accountLabel} anzeigen`,
     hidePassword: (accountLabel) => `Passwort für ${accountLabel} verbergen`,
-    show: 'Anzeigen',
-    hide: 'Verbergen',
     configure: 'Konto einrichten',
     continue: 'Weiter',
     timingFailure:

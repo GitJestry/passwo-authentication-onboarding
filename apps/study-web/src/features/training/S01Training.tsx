@@ -7,7 +7,8 @@ import {
 } from '@passwo/training-engine';
 import { BrowserShell, type BrowserShellSnapshot } from '@passwo/ui';
 import { useEffect, useRef, useState } from 'react';
-import { PassWoQuestDock } from '../../adapters/character/PassWoCharacterAdapter.js';
+import { NetworkSymbol } from '../../adapters/network/NetworkSymbolRegistry.js';
+import { PassWoGuide } from './PassWoGuide.js';
 import styles from './S01Training.module.css';
 
 function isReadyToContinue(snapshot: PasswordModuleSnapshot): boolean {
@@ -20,6 +21,25 @@ function isReadyToContinue(snapshot: PasswordModuleSnapshot): boolean {
 
 function isLocalTimingFailure(snapshot: PasswordModuleSnapshot): boolean {
   return snapshot.matches({ s01: 'startFailed' }) || snapshot.matches({ s01: 'endFailed' });
+}
+
+function PasswordVisibilityIcon({ revealed }: { readonly revealed: boolean }) {
+  return (
+    <svg
+      aria-hidden="true"
+      className={styles.revealIcon}
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.8"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <path d="M2.5 12s3.5-6 9.5-6 9.5 6 9.5 6-3.5 6-9.5 6-9.5-6-9.5-6Z" />
+      <circle cx="12" cy="12" r="2.5" />
+      {revealed ? <path d="M4 4 20 20" /> : null}
+    </svg>
+  );
 }
 
 export interface S01TrainingProps {
@@ -38,7 +58,7 @@ export function S01Training({
   const [revealedAccountIds, setRevealedAccountIds] = useState<ReadonlySet<string>>(
     () => new Set(),
   );
-  const [questHelpOpen, setQuestHelpOpen] = useState(false);
+  const [questHelpOpen, setQuestHelpOpen] = useState(true);
   const completionStatusRef = useRef<HTMLHeadingElement>(null);
   const account =
     s01Content.browser.accounts.find(({ id }) => id === snapshot.context.activeAccountId) ??
@@ -113,31 +133,35 @@ export function S01Training({
         onTabSelect={(accountId) => controller.selectAccount(accountId)}
         layers={{
           passWo: (
-            <PassWoQuestDock
+            <PassWoGuide
               guideName={s01Content.completion.guideName}
               progressLabel={s01Content.progress.status(configuredCount)}
               helpOpen={questHelpOpen}
               helpId="s01-quest-help"
               openHelpLabel={s01Content.quest.helpLabel}
-              closeHelpLabel="Hinweis schließen"
-              helpContent={
-                <p>
-                  {readyToContinue
-                    ? s01Content.quest.readyToContinue
-                    : s01Content.quest.nextAccount(account.label)}
-                </p>
-              }
+              closeHelpLabel={s01Content.quest.closeHelpLabel}
               onToggleHelp={() => setQuestHelpOpen((open) => !open)}
-            />
+            >
+              <p>
+                {readyToContinue
+                  ? s01Content.quest.readyToContinue
+                  : s01Content.quest.nextAccount(account.label)}
+              </p>
+            </PassWoGuide>
           ),
         }}
       >
         <article className={styles.page} aria-labelledby="s01-page-title">
           <header className={styles.pageHeader}>
-            <span className={styles.identityMark} aria-hidden="true">
-              cr
-            </span>
-            <span className={styles.identityName}>{account.label}</span>
+            <div className={styles.siteIdentity}>
+              <NetworkSymbol symbolId={account.symbolId} className={styles.siteSymbol} />
+              <span className={styles.identityName}>{account.label}</span>
+            </div>
+            <nav className={styles.siteNavigation} aria-label={`${account.label}-Navigation`}>
+              {account.navigation.map((item) => (
+                <span key={item}>{item}</span>
+              ))}
+            </nav>
           </header>
           <div className={styles.pageBody}>
             <section className={styles.setupPanel} aria-labelledby="s01-page-title">
@@ -201,9 +225,7 @@ export function S01Training({
                       disabled={interactionBlocked}
                       onClick={() => toggleReveal(account.id)}
                     >
-                      {revealedAccountIds.has(account.id)
-                        ? s01Content.controls.hide
-                        : s01Content.controls.show}
+                      <PasswordVisibilityIcon revealed={revealedAccountIds.has(account.id)} />
                     </button>
                   </span>
                   <div className={styles.buttonRow}>
@@ -230,6 +252,25 @@ export function S01Training({
                 </section>
               ) : null}
             </section>
+            <aside className={styles.websiteSidebar} aria-label={`${account.label}-Übersicht`}>
+              <section className={styles.websiteModule}>
+                <NetworkSymbol symbolId={account.symbolId} className={styles.moduleSymbol} />
+                <h2>{account.overview.title}</h2>
+                <p>{account.overview.description}</p>
+              </section>
+              <section className={styles.activityModule}>
+                <h2>{account.overview.activityTitle}</h2>
+                <ul>
+                  {account.overview.activityItems.map((item) => (
+                    <li key={item}>
+                      <span className={styles.skeletonDot} aria-hidden="true" />
+                      <span>{item}</span>
+                      <span className={styles.skeletonLine} aria-hidden="true" />
+                    </li>
+                  ))}
+                </ul>
+              </section>
+            </aside>
           </div>
           {(snapshot.matches({ s01: 'ending' }) || initialTimingPending) &&
           externalTimingError === null ? (

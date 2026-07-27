@@ -19,24 +19,23 @@
 .pageHeader {
   display: flex;
   align-items: center;
-  gap: var(--space-3);
+  justify-content: space-between;
+  gap: var(--space-4);
   padding: var(--space-4) clamp(var(--space-5), 4vw, var(--space-8));
   border-bottom: var(--border-width-thin) solid var(--color-border-soft);
   background: var(--color-surface-primary);
 }
 
-.identityMark {
-  display: grid;
+.siteIdentity {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.siteSymbol {
   width: var(--size-control-medium);
   height: var(--size-control-medium);
-  place-items: center;
-  border-radius: var(--radius-small);
-  color: var(--color-on-inverse);
-  background: var(--color-accent-strong);
-  font-size: var(--font-size-x-small);
-  font-weight: var(--font-weight-heavy);
-  letter-spacing: var(--letter-spacing-wide);
-  text-transform: uppercase;
+  color: var(--color-accent-strong);
 }
 
 .identityName {
@@ -44,28 +43,50 @@
   font-weight: var(--font-weight-heavy);
 }
 
+.siteNavigation {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: var(--space-4);
+  color: var(--color-ink-muted);
+  font-size: var(--font-size-small);
+  font-weight: var(--font-weight-semibold);
+}
+
 .pageBody {
   display: grid;
   min-height: 0;
   flex: 1;
-  place-items: center;
-  padding: clamp(var(--space-5), 5vh, var(--space-8)) clamp(var(--space-5), 8vw, var(--space-9));
+  grid-template-columns: minmax(17rem, 1fr) minmax(15rem, 0.65fr);
+  align-items: start;
+  gap: clamp(var(--space-5), 4vw, var(--space-8));
+  padding: clamp(var(--space-5), 5vh, var(--space-8)) clamp(var(--space-5), 6vw, var(--space-9));
 }
 
-.setupPanel {
-  width: min(100%, 35rem);
-  padding: clamp(var(--space-5), 4vw, var(--space-7));
+.setupPanel,
+.websiteModule,
+.activityModule {
   border: var(--border-width-thin) solid var(--color-border-soft);
   border-radius: var(--radius-medium);
   background: var(--color-surface-primary);
   box-shadow: var(--shadow-card);
 }
 
-.setupPanel h1 {
+.setupPanel {
+  width: min(100%, 35rem);
+  padding: clamp(var(--space-5), 4vw, var(--space-7));
+}
+
+.setupPanel h1,
+.websiteModule h2,
+.activityModule h2 {
   margin: 0;
   color: var(--color-ink-strong);
-  font-size: var(--font-size-heading-medium);
   line-height: var(--line-height-tight);
+}
+
+.setupPanel h1 {
+  font-size: var(--font-size-heading-medium);
 }
 
 .accountDetails {
@@ -143,11 +164,20 @@
 }
 
 .revealButton {
+  display: grid;
+  min-width: var(--size-control-large);
+  place-items: center;
+  padding: var(--space-2);
   border: 0;
   border-left: var(--border-width-thin) solid var(--color-border-soft);
   border-radius: 0;
   color: var(--color-ink-strong);
   background: var(--color-surface-muted);
+}
+
+.revealIcon {
+  width: 1.3rem;
+  height: 1.3rem;
 }
 
 .primaryButton {
@@ -229,11 +259,71 @@
   font-size: var(--font-size-x-small);
 }
 
+.websiteSidebar {
+  display: grid;
+  gap: var(--space-4);
+}
+
+.websiteModule,
+.activityModule {
+  padding: var(--space-5);
+}
+
+.moduleSymbol {
+  width: 2.15rem;
+  height: 2.15rem;
+  margin-bottom: var(--space-4);
+  color: var(--color-accent-strong);
+}
+
+.websiteModule h2,
+.activityModule h2 {
+  font-size: var(--font-size-heading-small);
+}
+
+.websiteModule p {
+  margin: var(--space-3) 0 0;
+  color: var(--color-ink-muted);
+  line-height: var(--line-height-body);
+}
+
+.activityModule ul {
+  display: grid;
+  margin: var(--space-4) 0 0;
+  padding: 0;
+  gap: var(--space-3);
+  list-style: none;
+}
+
+.activityModule li {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  gap: var(--space-2);
+  color: var(--color-ink-muted);
+  font-size: var(--font-size-small);
+}
+
+.skeletonDot {
+  width: 0.6rem;
+  height: 0.6rem;
+  border-radius: var(--radius-round);
+  background: var(--color-accent-soft);
+}
+
+.skeletonLine {
+  grid-column: 2;
+  width: 68%;
+  height: 0.35rem;
+  border-radius: var(--radius-round);
+  background: var(--color-surface-muted);
+}
+
 .timingStatus,
 .timingError {
   position: absolute;
   z-index: 3;
-  left: var(--space-4);
+  right: var(--space-4);
   bottom: var(--space-4);
 }
 
@@ -255,12 +345,29 @@
   box-shadow: var(--shadow-card);
 }
 
+@media (max-width: 760px) {
+  .pageHeader {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .siteNavigation {
+    justify-content: flex-start;
+  }
+
+  .pageBody {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
 @media (max-width: 560px) {
   .pageBody {
     padding: var(--space-4);
   }
 
-  .setupPanel {
+  .setupPanel,
+  .websiteModule,
+  .activityModule {
     padding: var(--space-5);
   }
 }

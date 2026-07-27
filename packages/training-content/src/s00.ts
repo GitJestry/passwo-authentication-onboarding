@@ -32,28 +32,25 @@ export interface S00SegmentContent {
       readonly enabled: boolean;
     }[];
     readonly page: {
-      readonly eyebrow: string;
       readonly title: string;
       readonly description: string;
       readonly identityName: string;
-      readonly fictionalBadge: string;
+      readonly navigation: readonly string[];
+      readonly modules: readonly {
+        readonly title: string;
+        readonly description: string;
+      }[];
     };
   };
   readonly narration: {
     readonly guideName: string;
-    readonly title: string;
     readonly greetingTemplate: string;
-    readonly followUp: string;
-    readonly dockedHelp: string;
+    readonly instruction: string;
     readonly openGuideLabel: string;
     readonly closeGuideLabel: string;
   };
-  readonly safety: {
-    readonly targetId: 's00-safety-boundary';
+  readonly acknowledgement: {
     readonly label: string;
-    readonly title: string;
-    readonly body: string;
-    readonly acknowledgement: string;
   };
   readonly controls: {
     readonly replay: string;
@@ -80,7 +77,7 @@ export interface S00SegmentContent {
   };
 }
 
-export const S00_CONTENT_VERSION = '1.0.0';
+export const S00_CONTENT_VERSION = '1.1.0';
 
 export const s00Content: S00SegmentContent = {
   version: S00_CONTENT_VERSION,
@@ -97,42 +94,45 @@ export const s00Content: S00SegmentContent = {
     ariaLabel: 'Fiktive Browseranwendung, Segment S00',
     address: 'campus.example/start',
     tabs: [
-      { id: 'campus-id', label: 'Campus-ID', enabled: true },
-      { id: 'mail', label: 'Campus-Mail', enabled: false },
-      { id: 'learning', label: 'Lernportal', enabled: false },
+      { id: 'campus-id', label: 'CampusID', enabled: true },
+      { id: 'campus-mail', label: 'CampusMail', enabled: false },
+      { id: 'campus-board-archive', label: 'CampusBoard Archiv', enabled: false },
     ],
     page: {
-      eyebrow: 'Willkommen',
-      title: 'Dein Campus-Start',
-      description:
-        'Diese fiktive Übung begleitet dich beim Einrichten von drei Campus-Konten. Dafür werden hier keine Passwörter abgefragt.',
-      identityName: 'Campusraum',
-      fictionalBadge: 'Fiktive Übungsseite',
+      title: 'Zentraler Zugang zum Campus',
+      description: 'Verwalte deinen Zugang zu zentralen Campusdiensten an einem Ort.',
+      identityName: 'CampusID',
+      navigation: ['Übersicht', 'Dienste', 'Hilfe'],
+      modules: [
+        {
+          title: 'Campusdienste',
+          description: 'Zentrale Bereiche werden für dich bereitgestellt.',
+        },
+        {
+          title: 'Aktuelle Hinweise',
+          description: 'Neue Informationen erscheinen hier in einer Übersicht.',
+        },
+      ],
     },
   },
   narration: {
     guideName: 'PassWo',
-    title: 'Willkommen im Training',
     greetingTemplate:
       'Hallo {displayName}, ich bin PassWo. Ich begleite dich heute Schritt für Schritt beim Einrichten deiner fiktiven Campus-Konten.',
-    followUp:
-      'Du wählst später für jedes Konto ein neu ausgedachtes Passwort, das stark und merkbar erscheint.',
-    dockedHelp: 'Wenn du Fragen hast, bin ich unten links für dich da.',
+    instruction:
+      'Verwende dafür nur neue, ausgedachte Passwörter - keine echten Passwörter und keine Varianten davon. Die Kontodaten sind schon eingetragen.',
     openGuideLabel: 'PassWo-Hilfe öffnen',
     closeGuideLabel: 'PassWo-Hilfe schließen',
   },
-  safety: {
-    targetId: 's00-safety-boundary',
-    label: 'Safety Note',
-    title: 'Hinweis für die Übung',
-    body: 'Bitte verwende nur neue, ausgedachte Passwörter. Nutze keine echten Passwörter und keine Varianten davon. Eingaben dienen nur dieser fiktiven Übung und werden nicht dauerhaft gespeichert.',
-    acknowledgement: 'Ich verwende nur ausgedachte Passwörter.',
+  acknowledgement: {
+    label: 'Ich verwende nur neue, ausgedachte Passwörter.',
   },
   controls: {
     replay: 'Animation wiederholen',
     continue: 'Weiter',
-    continueReason: 'Bestätige zuerst den Hinweis für die Übung.',
-    animationError: 'Die Animation wurde beendet. Du kannst den Hinweis bestätigen und fortfahren.',
+    continueReason: 'Bestätige PassWo zuerst, dass du nur ausgedachte Passwörter verwendest.',
+    animationError:
+      'Die Animation wurde beendet. Du kannst PassWos Hinweis bestätigen und fortfahren.',
   },
   mission: {
     id: 's00-entry-and-safety',
@@ -152,7 +152,6 @@ export const s00Content: S00SegmentContent = {
               durationMs: 420,
             },
             { type: 'announce', messageId: 's00.greeting' },
-            { type: 'reveal', targetId: 's00-safety-boundary', durationMs: 240 },
             {
               type: 'move-character',
               pose: 'dock',
@@ -165,7 +164,7 @@ export const s00Content: S00SegmentContent = {
             strategy: 'instant-end-state',
             maxDurationMs: 0,
           },
-          maxDurationMs: 1040,
+          maxDurationMs: 800,
         },
       },
     ],

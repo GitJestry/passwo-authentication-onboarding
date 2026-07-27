@@ -158,7 +158,6 @@ export function BrowserShell({
         onClick={() => selectTab(tab.id)}
         onKeyDown={(event) => handleTabKeyDown(event, tab.id, enabled)}
       >
-        <span className={styles.tabIcon} aria-hidden="true" />
         <span>{tab.label}</span>
         {status ? (
           <span
@@ -176,7 +175,9 @@ export function BrowserShell({
 
   return (
     <section
-      className={variant === 'artifact' ? `${styles.window} ${styles.artifactWindow}` : styles.window}
+      className={
+        variant === 'artifact' ? `${styles.window} ${styles.artifactWindow}` : styles.window
+      }
       aria-label={ariaLabel}
       data-dimmed={dimmed}
       data-browser-shell-variant={variant}

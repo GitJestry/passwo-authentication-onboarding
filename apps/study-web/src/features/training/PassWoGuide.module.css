@@ -1,0 +1,107 @@
+.guide {
+  position: absolute;
+  z-index: 1;
+  bottom: clamp(var(--space-3), 2vw, var(--space-6));
+  left: clamp(var(--space-3), 2vw, var(--space-6));
+  display: grid;
+  max-width: min(31rem, calc(100vw - var(--space-6)));
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: end;
+  gap: var(--space-3);
+}
+
+.speech {
+  min-width: 0;
+  padding: var(--space-4);
+  border: var(--border-width-thin) solid var(--color-border-soft);
+  border-radius: var(--radius-medium);
+  color: var(--color-ink-strong);
+  background: var(--color-surface-primary);
+  box-shadow: var(--shadow-float);
+}
+
+.speech::after {
+  position: absolute;
+  bottom: calc(var(--space-6) + 0.2rem);
+  left: 5.25rem;
+  width: 0.85rem;
+  height: 0.85rem;
+  border-right: var(--border-width-thin) solid var(--color-border-soft);
+  border-bottom: var(--border-width-thin) solid var(--color-border-soft);
+  background: var(--color-surface-primary);
+  content: "";
+  transform: rotate(45deg);
+}
+
+.characterButton {
+  position: relative;
+  display: grid;
+  width: 7.5rem;
+  justify-items: center;
+  gap: var(--space-1);
+  padding: var(--space-2) 0 0;
+  border: 0;
+  border-radius: var(--radius-medium);
+  color: var(--color-ink-strong);
+  background: transparent;
+  font: inherit;
+  cursor: pointer;
+}
+
+.characterButton:focus-visible {
+  outline: var(--border-width-focus) solid var(--color-focus);
+  outline-offset: var(--space-1);
+  box-shadow: var(--shadow-focus);
+}
+
+.nameTag {
+  z-index: 1;
+  padding: var(--space-1) var(--space-3);
+  border: var(--border-width-thin) solid var(--color-border-soft);
+  border-radius: var(--radius-round);
+  color: var(--color-ink-strong);
+  background: var(--color-surface-primary);
+  box-shadow: var(--shadow-card);
+  font-size: var(--font-size-small);
+  font-weight: var(--font-weight-heavy);
+}
+
+.character {
+  width: 7.25rem;
+  height: 7.25rem;
+  object-fit: contain;
+  object-position: center bottom;
+}
+
+.progress {
+  max-width: 100%;
+  color: var(--color-ink-muted);
+  font-size: var(--font-size-x-small);
+  font-weight: var(--font-weight-semibold);
+  line-height: var(--line-height-body);
+  text-align: center;
+}
+
+@media (max-width: 680px) {
+  .guide {
+    max-width: calc(100vw - var(--space-6));
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .speech {
+    grid-row: 1;
+  }
+
+  .speech::after {
+    display: none;
+  }
+
+  .characterButton {
+    width: 6rem;
+  }
+
+  .character {
+    width: 5.75rem;
+    height: 5.75rem;
+  }
+}

@@ -11,10 +11,10 @@ import { useEffect, useRef, useState } from 'react';
 import { MotionAnimationAdapter } from '../../adapters/animation/MotionAnimationAdapter.js';
 import {
   createInitialS00SceneSnapshot,
-  hasRevealedTarget,
   type S00SceneSnapshot,
 } from '../../adapters/animation/s00-scene.js';
-import { PassWoQuestDock } from '../../adapters/character/PassWoCharacterAdapter.js';
+import { NetworkSymbol } from '../../adapters/network/NetworkSymbolRegistry.js';
+import { PassWoGuide } from './PassWoGuide.js';
 import styles from './S00Training.module.css';
 
 const mission: MissionDefinition = {
@@ -39,31 +39,40 @@ function prefersReducedMotion(): boolean {
   return window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 }
 
-function S00Page({ safetyVisible }: { readonly safetyVisible: boolean }) {
+function S00Page() {
   return (
     <article className={styles.pageScene} aria-labelledby="s00-page-title">
       <header className={styles.pageHeader}>
-        <span className={styles.identityMark} aria-hidden="true">
-          cr
-        </span>
-        <span className={styles.identityName}>{s00Content.browser.page.identityName}</span>
+        <div className={styles.siteIdentity}>
+          <NetworkSymbol symbolId="campus-id" className={styles.siteSymbol} />
+          <span className={styles.identityName}>{s00Content.browser.page.identityName}</span>
+        </div>
+        <nav className={styles.siteNavigation} aria-label="CampusID-Navigation">
+          {s00Content.browser.page.navigation.map((item) => (
+            <span key={item}>{item}</span>
+          ))}
+        </nav>
       </header>
       <div className={styles.pageBody}>
         <section className={styles.pageCopy}>
-          <p className={styles.eyebrow}>{s00Content.browser.page.eyebrow}</p>
           <h1 id="s00-page-title">{s00Content.browser.page.title}</h1>
           <p>{s00Content.browser.page.description}</p>
         </section>
-        <section
-          className={styles.safetyCard}
-          data-animation-target={s00Content.safety.targetId}
-          data-visible={safetyVisible}
-          aria-hidden={!safetyVisible}
-          aria-labelledby="s00-safety-title"
-        >
-          <p className={styles.safetyEyebrow}>{s00Content.safety.label}</p>
-          <h2 id="s00-safety-title">{s00Content.safety.title}</h2>
-          <p>{s00Content.safety.body}</p>
+        <section className={styles.moduleGrid} aria-label="CampusID-Übersicht">
+          {s00Content.browser.page.modules.map((module) => (
+            <article key={module.title} className={styles.siteModule}>
+              <div className={styles.moduleHeading}>
+                <NetworkSymbol symbolId="service" className={styles.moduleSymbol} />
+                <h2>{module.title}</h2>
+              </div>
+              <p>{module.description}</p>
+              <div className={styles.skeletonLines} aria-hidden="true">
+                <span />
+                <span />
+                <span />
+              </div>
+            </article>
+          ))}
         </section>
       </div>
     </article>
@@ -73,10 +82,8 @@ function S00Page({ safetyVisible }: { readonly safetyVisible: boolean }) {
 function PassWoSpeech({ displayName }: { readonly displayName: string }) {
   return (
     <>
-      <h2 id="s00-passwo-speech-title">{s00Content.narration.title}</h2>
       <p>{formatS00Greeting(displayName)}</p>
-      <p>{s00Content.narration.followUp}</p>
-      <p>{s00Content.narration.dockedHelp}</p>
+      <p>{s00Content.narration.instruction}</p>
     </>
   );
 }
@@ -103,7 +110,6 @@ export function S00Training({
   const [timingError, setTimingError] = useState<string | null>(null);
   const controllerRef = useRef<MissionController | null>(null);
   const characterAnimationAnchorRef = useRef<HTMLSpanElement | null>(null);
-  const pageRef = useRef<HTMLDivElement | null>(null);
   const onCompleteRef = useRef(onComplete);
   onCompleteRef.current = onComplete;
 
@@ -111,9 +117,7 @@ export function S00Training({
     const animationPlayer = new MotionAnimationAdapter({
       applySnapshot: setScene,
       getCharacterElement: () => characterAnimationAnchorRef.current,
-      getRevealTargetElement: (targetId) =>
-        pageRef.current?.querySelector<HTMLElement>(`[data-animation-target="${targetId}"]`) ??
-        null,
+      getRevealTargetElement: () => null,
       prefersReducedMotion,
       forceFailure: forceAnimationFailure,
     });
@@ -145,7 +149,6 @@ export function S00Training({
     missionSnapshot === null
       ? false
       : canContinueMission(missionSnapshot.context) && awaitingDecision;
-  const safetyVisible = hasRevealedTarget(scene, s00Content.safety.targetId);
   const guideOpen = scene.announcedMessageId === 's00.greeting';
   const animationError = missionSnapshot?.context.lastAnimationError ?? null;
   const activeTimingError = timingError ?? externalTimingError;
@@ -187,14 +190,12 @@ export function S00Training({
                 className={styles.characterAnimationAnchor}
                 aria-hidden="true"
               />
-              <PassWoQuestDock
+              <PassWoGuide
                 guideName={s00Content.narration.guideName}
-                placement="bottom-left"
                 helpOpen={guideOpen}
                 helpId="s00-passwo-speech"
                 openHelpLabel={s00Content.narration.openGuideLabel}
                 closeHelpLabel={s00Content.narration.closeGuideLabel}
-                helpContent={<PassWoSpeech displayName={displayName} />}
                 onToggleHelp={() =>
                   setScene((currentScene) => ({
                     ...currentScene,
@@ -202,84 +203,72 @@ export function S00Training({
                       currentScene.announcedMessageId === 's00.greeting' ? null : 's00.greeting',
                   }))
                 }
-              />
-            </>
-          ),
-          controls: (
-            <div className={styles.controls}>
-              {activeTimingError === null ? (
-                <>
-                  {animationError !== null ? (
-                    <p className={styles.animationError} role="status">
-                      {s00Content.controls.animationError}
-                    </p>
-                  ) : null}
-                  <label className={styles.acknowledgement}>
-                    <input
-                      type="checkbox"
-                      checked={safetyAcknowledged}
-                      disabled={!awaitingDecision || !safetyVisible}
-                      onChange={(event) =>
-                        controllerRef.current?.setSafetyAcknowledged(event.currentTarget.checked)
-                      }
-                    />
-                    <span>{s00Content.safety.acknowledgement}</span>
-                  </label>
-                  <div className={styles.buttonRow}>
-                    <button
-                      type="button"
-                      className={styles.secondaryButton}
-                      disabled={!awaitingDecision}
-                      onClick={() => controllerRef.current?.replay()}
-                    >
-                      {s00Content.controls.replay}
-                    </button>
-                    <button
-                      type="button"
-                      className={styles.primaryButton}
-                      disabled={!canContinue}
-                      aria-describedby={canContinue ? undefined : 's00-continue-reason'}
-                      onClick={continueMission}
-                    >
-                      {s00Content.controls.continue}
-                    </button>
-                    {!canContinue ? (
+              >
+                <PassWoSpeech displayName={displayName} />
+                {activeTimingError === null ? (
+                  <>
+                    {animationError !== null ? (
+                      <p className={styles.animationError} role="status">
+                        {s00Content.controls.animationError}
+                      </p>
+                    ) : null}
+                    <label className={styles.acknowledgement}>
+                      <input
+                        type="checkbox"
+                        checked={safetyAcknowledged}
+                        disabled={!awaitingDecision}
+                        onChange={(event) =>
+                          controllerRef.current?.setSafetyAcknowledged(event.currentTarget.checked)
+                        }
+                      />
+                      <span>{s00Content.acknowledgement.label}</span>
+                    </label>
+                    <div className={styles.buttonRow}>
                       <button
                         type="button"
-                        className={styles.disabledHint}
-                        aria-label="Hinweis zur gesperrten Aktion"
-                        aria-describedby="s00-continue-reason"
+                        className={styles.secondaryButton}
+                        disabled={!awaitingDecision}
+                        onClick={() => controllerRef.current?.replay()}
                       >
-                        ?
+                        {s00Content.controls.replay}
                       </button>
+                      <button
+                        type="button"
+                        className={styles.primaryButton}
+                        disabled={!canContinue}
+                        aria-describedby={canContinue ? undefined : 's00-continue-reason'}
+                        onClick={continueMission}
+                      >
+                        {s00Content.controls.continue}
+                      </button>
+                    </div>
+                    {!canContinue ? (
+                      <p id="s00-continue-reason" className={styles.screenReaderOnly}>
+                        {s00Content.controls.continueReason}
+                      </p>
                     ) : null}
-                  </div>
-                  {!canContinue ? (
-                    <p id="s00-continue-reason" className={styles.screenReaderOnly}>
-                      {s00Content.controls.continueReason}
+                  </>
+                ) : (
+                  <>
+                    <p className={styles.animationError} role="alert">
+                      Das Speichern des Zeitereignisses ist fehlgeschlagen. Der nächste Schritt
+                      bleibt gesperrt.
                     </p>
-                  ) : null}
-                </>
-              ) : (
-                <>
-                  <p className={styles.animationError} role="alert">
-                    Das Speichern des Zeitereignisses ist fehlgeschlagen. Der nächste Schritt bleibt
-                    gesperrt.
-                  </p>
-                  <p className={styles.continueReason}>Fehlercode: {activeTimingError}</p>
-                  <div className={styles.buttonRow}>
-                    <button type="button" className={styles.primaryButton} onClick={retryTiming}>
-                      Erneut versuchen
-                    </button>
-                  </div>
-                </>
-              )}
-            </div>
+                    <p className={styles.continueReason}>Fehlercode: {activeTimingError}</p>
+                    <div className={styles.buttonRow}>
+                      <button type="button" className={styles.primaryButton} onClick={retryTiming}>
+                        Erneut versuchen
+                      </button>
+                    </div>
+                  </>
+                )}
+              </PassWoGuide>
+            </>
           ),
         }}
       >
-        <div ref={pageRef} className={styles.pageTarget}>
-          <S00Page safetyVisible={safetyVisible} />
+        <div className={styles.pageTarget}>
+          <S00Page />
         </div>
       </BrowserShell>
     </section>
