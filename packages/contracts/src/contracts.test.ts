@@ -78,6 +78,7 @@ describe('research-safe contracts', () => {
 
     expect(artifactVersionForCondition.supportive).toBe(SUPPORTIVE_ARTIFACT_VERSION);
     expect(artifactVersionForCondition.reference).toBe(REFERENCE_ARTIFACT_VERSION);
+    expect(SUPPORTIVE_ARTIFACT_VERSION).toBe('supportive-s00-s03-1.1.0');
     expect(SUPPORTIVE_ARTIFACT_VERSION).not.toBe(REFERENCE_ARTIFACT_VERSION);
   });
 
@@ -158,9 +159,10 @@ describe('research-safe contracts', () => {
   }
 
   it('defines and accepts the canonical implemented supportive segment order', () => {
-    expect(SUPPORTIVE_ARTIFACT_SEGMENT_IDS).toEqual(['S00', 'S01', 'S02']);
+    expect(SUPPORTIVE_ARTIFACT_SEGMENT_IDS).toEqual(['S00', 'S01', 'S02', 'S03']);
     expect(studyTimingEventSchema.safeParse(supportiveSegmentStart('S01')).success).toBe(true);
     expect(studyTimingEventSchema.safeParse(supportiveSegmentStart('S02')).success).toBe(true);
+    expect(studyTimingEventSchema.safeParse(supportiveSegmentStart('S03')).success).toBe(true);
   });
 
   it('accepts S01 end', () => {
@@ -176,7 +178,7 @@ describe('research-safe contracts', () => {
   it('rejects unknown supportive segment IDs', () => {
     const segmentStart = supportiveSegmentStart('S00');
 
-    expect(studyTimingEventSchema.safeParse({ ...segmentStart, segmentId: 'S03' }).success).toBe(
+    expect(studyTimingEventSchema.safeParse({ ...segmentStart, segmentId: 'S04' }).success).toBe(
       false,
     );
     expect(

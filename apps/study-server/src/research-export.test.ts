@@ -151,6 +151,36 @@ describe('research export', () => {
       payload: {
         sequence: 7,
         phase: 'artifact',
+        sectionId: 'passwords',
+        segmentId: 'S03',
+        eventType: 'start',
+        clientMonotonicMs: 880,
+        clientWallClockIso: '2026-07-24T12:00:00.000Z',
+        elapsedMs: null,
+        reasonCode: null,
+      },
+    });
+    await server.inject({
+      method: 'POST',
+      url: `/api/study/sessions/${completedSessionId}/timing`,
+      payload: {
+        sequence: 8,
+        phase: 'artifact',
+        sectionId: 'passwords',
+        segmentId: 'S03',
+        eventType: 'end',
+        clientMonotonicMs: 890,
+        clientWallClockIso: '2026-07-24T12:00:00.000Z',
+        elapsedMs: 10,
+        reasonCode: null,
+      },
+    });
+    await server.inject({
+      method: 'POST',
+      url: `/api/study/sessions/${completedSessionId}/timing`,
+      payload: {
+        sequence: 9,
+        phase: 'artifact',
         sectionId: null,
         segmentId: null,
         eventType: 'end',
@@ -234,6 +264,15 @@ describe('research export', () => {
         segmentId: 'S02',
         eventType: 'end',
         elapsedMs: 50,
+      }),
+    );
+    expect(timing).toContainEqual(
+      expect.objectContaining({
+        sessionId: completedSessionId,
+        sequence: 8,
+        segmentId: 'S03',
+        eventType: 'end',
+        elapsedMs: 10,
       }),
     );
     expect(timing).toContainEqual(

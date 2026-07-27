@@ -11,7 +11,7 @@ Dauern aus den Ereignissen.
 
 Für das supportive Artefakt werden diagnostische Segmentgrenzen in derselben Sequenzquelle wie
 Artefakt- und Visibility-Ereignisse geführt. Die kanonische implementierte Reihenfolge ist
-S00 → S01 → S02. Alle drei verwenden `phase=artifact`, `sectionId=passwords` und ihre jeweilige
+S00 → S01 → S02 → S03. Alle vier verwenden `phase=artifact`, `sectionId=passwords` und ihre jeweilige
 `segmentId`: der Start hat keine Dauer, das Ende enthält die aus der monotonen Uhr berechnete
 Segmentdauer. Segmentgrenzen sind für Referenzsitzungen nicht zulässig; pro Sitzung darf nur ein
 Segment aktiv sein. Ein Segmentstart ist erst nach dem erfolgreichen Ende des vorherigen Segments

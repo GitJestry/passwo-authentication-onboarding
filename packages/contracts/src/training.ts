@@ -1,6 +1,6 @@
 import { z } from 'zod';
 
-export const SUPPORTIVE_ARTIFACT_VERSION = 'supportive-s00-s02-1.0.0';
+export const SUPPORTIVE_ARTIFACT_VERSION = 'supportive-s00-s03-1.1.0';
 export const REFERENCE_ARTIFACT_VERSION =
   'secaware-passwords-authentication-v9-study-adapted-2026-07-26-r2';
 export const REFERENCE_ARTIFACT_SNAPSHOT_ID = 'secaware-passwords-authentication-2026-07-26';
@@ -13,7 +13,7 @@ export const REFERENCE_ARTIFACT_COMPLETION_MESSAGE_TYPE = 'passwo:reference-comp
 export const REFERENCE_ARTIFACT_OPEN_SUPPLEMENT_MESSAGE_TYPE =
   'passwo:reference-open-supplement' as const;
 
-export const SUPPORTIVE_ARTIFACT_SEGMENT_IDS = ['S00', 'S01', 'S02'] as const;
+export const SUPPORTIVE_ARTIFACT_SEGMENT_IDS = ['S00', 'S01', 'S02', 'S03'] as const;
 export type SupportiveArtifactSegmentId = (typeof SUPPORTIVE_ARTIFACT_SEGMENT_IDS)[number];
 
 export const segmentIds = [
