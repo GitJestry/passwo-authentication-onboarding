@@ -1,6 +1,6 @@
 import { createStudyMachine } from '@passwo/study-engine';
 import { useMachine } from '@xstate/react';
-import { type ReactNode, useCallback, useMemo, useState } from 'react';
+import { type ReactNode, useCallback, useEffect, useMemo, useState } from 'react';
 import { BrowserSegmentTimingAdapter } from '../../adapters/animation/BrowserSegmentTimingAdapter.js';
 import { createStudyApi } from '../../api/study-api.js';
 import { ReferenceArtifact } from '../reference/ReferenceArtifact.js';
@@ -103,6 +103,35 @@ function SupportiveArtifact({
   );
 }
 
+function ArtifactPreparation({
+  condition,
+  onStart,
+}: {
+  readonly condition: 'supportive' | 'reference';
+  readonly onStart: () => void;
+}) {
+  const conditionHint =
+    condition === 'supportive'
+      ? 'PassWo begleitet dich im fiktiven Campusraum. Beachte seine Hinweise und nutze alle dargestellten Konten und Elemente.'
+      : 'Lies auch die zusätzlichen Hinweise und nutze alle Elemente, die im Lernangebot angeboten werden.';
+
+  return (
+    <section className={styles.artifactPreparation} aria-labelledby="artifact-preparation-title">
+      <header className={styles.artifactPreparationHeader}>
+        <p className={styles.eyebrow}>Lernangebot</p>
+        <h1 id="artifact-preparation-title">Das Lernangebot beginnt gleich</h1>
+      </header>
+      <div className={styles.artifactPreparationContent}>
+        <p>Bitte bearbeite das Lernangebot gründlich und vollständig.</p>
+        <p>{conditionHint}</p>
+      </div>
+      <button className={styles.button} type="button" onClick={onStart}>
+        Lernangebot beginnen
+      </button>
+    </section>
+  );
+}
+
 function ResearchDataError({
   errorCode,
   onRetry,
@@ -130,12 +159,20 @@ export function StudyFlow() {
   const api = useMemo(() => createStudyApi(), []);
   const machine = useMemo(() => createStudyMachine(api), [api]);
   const [snapshot, send] = useMachine(machine);
+  const [artifactPreparationComplete, setArtifactPreparationComplete] = useState(false);
   const { context } = snapshot;
   const completeArtifact = useCallback(() => send({ type: 'ARTIFACT_COMPLETED' }), [send]);
   const segmentTimingPort = useMemo(() => {
     if (context.sessionId === null || context.condition !== 'supportive') return null;
     return new BrowserSegmentTimingAdapter(api.createSegmentTimingPort(context.sessionId));
   }, [api, context.condition, context.sessionId]);
+  const artifactVisible =
+    snapshot.matches({ artifactLifecycle: { artifact: 'supportive' } }) ||
+    snapshot.matches({ artifactLifecycle: { artifact: 'reference' } });
+
+  useEffect(() => {
+    if (!artifactVisible) setArtifactPreparationComplete(false);
+  }, [artifactVisible]);
 
   let content: ReactNode;
   let step = 'Einwilligung';
@@ -180,7 +217,7 @@ export function StudyFlow() {
     if (segmentTimingPort === null) {
       throw new Error('missing-segment-timing-port');
     }
-    content = (
+    content = artifactPreparationComplete ? (
       <SupportiveArtifact
         onComplete={completeArtifact}
         timingPort={segmentTimingPort}
@@ -189,10 +226,22 @@ export function StudyFlow() {
         }
         onRetryTiming={() => send({ type: 'RETRY_ARTIFACT_VISIBILITY' })}
       />
+    ) : (
+      <ArtifactPreparation
+        condition="supportive"
+        onStart={() => setArtifactPreparationComplete(true)}
+      />
     );
     step = 'Artefakt';
   } else if (snapshot.matches({ artifactLifecycle: { artifact: 'reference' } })) {
-    content = <ReferenceArtifact onComplete={completeArtifact} />;
+    content = artifactPreparationComplete ? (
+      <ReferenceArtifact onComplete={completeArtifact} />
+    ) : (
+      <ArtifactPreparation
+        condition="reference"
+        onStart={() => setArtifactPreparationComplete(true)}
+      />
+    );
     step = 'Artefakt';
   } else if (snapshot.matches({ artifactLifecycle: 'endError' })) {
     content = (
@@ -295,10 +344,6 @@ export function StudyFlow() {
   } else {
     content = <div className={styles.loading}>Forschungsdaten werden gespeichert …</div>;
   }
-
-  const artifactVisible =
-    snapshot.matches({ artifactLifecycle: { artifact: 'supportive' } }) ||
-    snapshot.matches({ artifactLifecycle: { artifact: 'reference' } });
 
   if (artifactVisible) {
     return (

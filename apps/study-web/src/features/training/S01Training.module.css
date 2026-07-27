@@ -233,7 +233,7 @@
 .timingError {
   position: absolute;
   z-index: 3;
-  right: var(--space-4);
+  left: var(--space-4);
   bottom: var(--space-4);
 }
 

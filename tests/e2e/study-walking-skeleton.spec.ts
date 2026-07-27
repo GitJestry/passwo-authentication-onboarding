@@ -314,14 +314,34 @@ async function waitForReferenceContentFrame(page: Page): Promise<Frame> {
   return contentFrame;
 }
 
-async function enterSupportiveTraining(page: Page, displayName: string): Promise<void> {
+async function beginArtifact(page: Page, condition: ForcedAssignmentMode): Promise<void> {
   await expect(page.locator('main[data-artifact-surface]')).toBeVisible();
   await expect(page.locator('main[data-study-surface]')).toHaveCount(0);
+  await expect(page.getByRole('heading', { name: 'Das Lernangebot beginnt gleich' })).toBeVisible();
+  await expect(
+    page.getByText('Bitte bearbeite das Lernangebot gründlich und vollständig.'),
+  ).toBeVisible();
+  await expect(
+    page.getByText(
+      condition === 'forced-supportive'
+        ? 'PassWo begleitet dich im fiktiven Campusraum. Beachte seine Hinweise und nutze alle dargestellten Konten und Elemente.'
+        : 'Lies auch die zusätzlichen Hinweise und nutze alle Elemente, die im Lernangebot angeboten werden.',
+    ),
+  ).toBeVisible();
+  await page.getByRole('button', { name: 'Lernangebot beginnen' }).click();
+}
+
+async function startSupportiveTrainingFromEntry(page: Page, displayName: string): Promise<void> {
   await expect(page.getByRole('heading', { name: 'Passwörter & Authentifizierung' })).toBeVisible();
   await expectNoForbiddenVisibleRuntimeText(page);
   await expectNoHorizontalScroll(page);
-  await page.getByLabel('Wie soll PassWo dich ansprechen?').fill(displayName);
+  await page.getByLabel('Dein Name').fill(displayName);
   await page.getByRole('button', { name: 'Training starten' }).click();
+}
+
+async function enterSupportiveTraining(page: Page, displayName: string): Promise<void> {
+  await beginArtifact(page, 'forced-supportive');
+  await startSupportiveTrainingFromEntry(page, displayName);
 }
 
 async function finishAfterArtifact(page: Page) {
@@ -432,6 +452,7 @@ for (const viewport of [
     await startStudyServer('forced-supportive');
     await acceptConsent(page);
     await submitPlaceholder(page);
+    await beginArtifact(page, 'forced-supportive');
 
     const entryAction = page.getByRole('button', { name: 'Training starten' });
     await expect(
@@ -441,7 +462,7 @@ for (const viewport of [
     await expectNoHorizontalScroll(page);
     await expectNoHighImpactAxeFindings(page);
 
-    await enterSupportiveTraining(page, 'Visuelle Vorschau');
+    await startSupportiveTrainingFromEntry(page, 'Visuelle Vorschau');
     const s00Action = page.getByRole('button', { name: 'Weiter' });
     await expectInsideViewport(page, s00Action);
     await expectNoHorizontalScroll(page);
@@ -479,9 +500,10 @@ test('forced-supportive completes and visibly blocks a failed research write', a
   await expect(page.getByText('Der nächste Studienteil bleibt gesperrt')).toBeVisible();
   await page.getByRole('button', { name: 'Erneut versuchen' }).click();
 
+  await beginArtifact(page, 'forced-supportive');
   await expect(page.getByRole('heading', { name: 'Passwörter & Authentifizierung' })).toBeVisible();
   await expectNoHighImpactAxeFindings(page);
-  await enterSupportiveTraining(page, 'Browsername Nur Lokal');
+  await startSupportiveTrainingFromEntry(page, 'Browsername Nur Lokal');
   await completePasswordModule(page);
   await finishAfterArtifact(page);
 
@@ -568,6 +590,7 @@ test('supportive S00 to S01 keeps fictitious values local and configures account
 
   const passwordField = page.getByLabel('Fiktives Passwort');
   await expect(page.getByText('0/3 Konten eingerichtet')).toBeVisible();
+  await expect(page.getByText('nur.lokal@campus.example')).toBeVisible();
   await expect(page.getByRole('button', { name: 'Konto einrichten' })).toBeDisabled();
   const questHelpButton = page.getByRole('button', { name: 'Nächsten Schritt anzeigen' });
   await questHelpButton.focus();
@@ -608,6 +631,7 @@ test('supportive S00 to S01 keeps fictitious values local and configures account
 
   await page.getByRole('tab', { name: 'CampusMail' }).click();
   await expect(page.getByLabel('Fiktives Passwort')).toBeEnabled();
+  await expect(page.getByText('nur.lokal@mail.campus.example')).toBeVisible();
   await page.getByLabel('Fiktives Passwort').fill('mail!?');
   await page.getByRole('button', { name: 'Konto einrichten' }).click();
   await expect(page.getByText('3/3 Konten eingerichtet')).toBeVisible();
@@ -628,6 +652,7 @@ test('supportive S00 to S01 keeps fictitious values local and configures account
   expect(requests.bodies.join('\n')).not.toContain(archiveValue);
   expect(requests.bodies.join('\n')).not.toContain('mail!?');
   expect(requests.bodies.join('\n')).not.toContain('id!?');
+  expect(requests.bodies.join('\n')).not.toContain('nur.lokal@campus.example');
 });
 
 test('S03 compares only transient values, permits retry or skip, and ends at the CampusBoard warning', async ({
@@ -980,10 +1005,11 @@ test('forced-reference embeds the local artifact and accepts only its valid comp
   const requests = captureResearchRequests(page);
   await acceptConsent(page);
   await submitPlaceholder(page);
+  await beginArtifact(page, 'forced-reference');
 
   await expect(page.locator('main[data-artifact-surface]')).toBeVisible();
   await expect(page.locator('main[data-study-surface]')).toHaveCount(0);
-  await expect(page.getByLabel('Wie soll PassWo dich ansprechen?')).toHaveCount(0);
+  await expect(page.getByLabel('Dein Name')).toHaveCount(0);
   await expect(page.getByRole('button', { name: 'Weiter' })).toHaveCount(0);
   await expect(page.locator('[target="_blank"]')).toHaveCount(0);
   await expect(page.getByRole('link')).toHaveCount(0);
@@ -1188,6 +1214,7 @@ test('forced-reference shows a technical supplement notice without the desktop b
   await startStudyServer('forced-reference');
   await acceptConsent(page);
   await submitPlaceholder(page);
+  await beginArtifact(page, 'forced-reference');
   const contentFrame = await waitForReferenceContentFrame(page);
 
   await contentFrame.evaluate(() =>
@@ -1222,6 +1249,7 @@ test('forced-reference offers a neutral retry after an iframe load error', async
     { times: 1 },
   );
   await submitPlaceholder(page);
+  await beginArtifact(page, 'forced-reference');
 
   const courseIframe = page.getByTitle('Passwörter & Authentifizierung');
   await expect(courseIframe).toBeVisible();

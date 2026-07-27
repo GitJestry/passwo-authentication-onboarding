@@ -1,17 +1,15 @@
 .studyPage {
   display: grid;
   min-height: 100dvh;
-  place-items: center;
-  padding: var(--space-7) var(--space-5);
+  background: var(--color-surface-canvas);
 }
 
 .studyShell {
-  width: min(100%, 48rem);
-  overflow: hidden;
-  border: var(--border-width-thin) solid var(--color-border);
-  border-radius: var(--radius-large);
+  display: grid;
+  width: 100%;
+  min-height: 100dvh;
+  grid-template-rows: auto minmax(0, 1fr);
   background: var(--color-surface-primary);
-  box-shadow: var(--shadow-window);
 }
 
 .studyHeader {
@@ -19,6 +17,8 @@
   align-items: center;
   justify-content: space-between;
   gap: var(--space-6);
+  width: min(100%, 72rem);
+  margin: 0 auto;
   padding: var(--space-5) clamp(var(--space-5), 5vw, var(--space-8));
   border-bottom: var(--border-width-thin) solid var(--color-border-soft);
   color: var(--color-ink-strong);
@@ -36,8 +36,12 @@
 }
 
 .studyContent {
-  min-height: 28rem;
-  padding: clamp(var(--space-7), 6vw, var(--space-9));
+  display: grid;
+  width: min(100%, 56rem);
+  min-height: 0;
+  align-content: center;
+  margin: 0 auto;
+  padding: clamp(var(--space-7), 8vw, 8rem) clamp(var(--space-5), 5vw, var(--space-8));
 }
 
 .eyebrow {
@@ -155,6 +159,50 @@
   flex: 1;
 }
 
+.artifactPreparation {
+  display: grid;
+  width: min(100%, 62rem);
+  min-height: 100%;
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  margin: 0 auto;
+  padding: clamp(var(--space-7), 8vw, 8rem) clamp(var(--space-5), 6vw, var(--space-9));
+}
+
+.artifactPreparationHeader {
+  text-align: center;
+}
+
+.artifactPreparationHeader h1 {
+  margin: 0;
+  color: var(--color-ink-strong);
+  font-size: clamp(2rem, 5vw, 3.5rem);
+  line-height: var(--line-height-tight);
+  letter-spacing: var(--letter-spacing-tight);
+}
+
+.artifactPreparationContent {
+  width: min(100%, 42rem);
+  align-self: center;
+  margin: 0 auto;
+  color: var(--color-ink);
+  font-size: clamp(1.1rem, 2vw, 1.35rem);
+  line-height: var(--line-height-body);
+  text-align: center;
+}
+
+.artifactPreparationContent p {
+  margin: 0;
+}
+
+.artifactPreparationContent p + p {
+  margin-top: var(--space-5);
+  color: var(--color-ink-muted);
+}
+
+.artifactPreparation .button {
+  justify-self: center;
+}
+
 @media (max-width: 560px) {
   .studyPage {
     padding: 0;
@@ -162,14 +210,16 @@
 
   .studyShell {
     min-height: 100dvh;
-    border: 0;
-    border-radius: 0;
   }
 
   .studyHeader {
     align-items: flex-start;
     flex-direction: column;
     gap: var(--space-2);
+  }
+
+  .artifactPreparation {
+    padding: var(--space-6) var(--space-5);
   }
 }
 

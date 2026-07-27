@@ -1,5 +1,6 @@
 import { s01Content } from '@passwo/training-content';
 import {
+  deriveCampusIdentity,
   getConfiguredAccountCount,
   type PasswordModuleController,
   type PasswordModuleSnapshot,
@@ -42,19 +43,32 @@ export function S01Training({
   const account =
     s01Content.browser.accounts.find(({ id }) => id === snapshot.context.activeAccountId) ??
     s01Content.browser.accounts[0];
+  const accountConfigured =
+    account !== undefined && snapshot.context.configuredAccountIds.includes(account.id);
+  const completionFocusTarget = accountConfigured ? account?.id : null;
+
+  useEffect(() => {
+    if (completionFocusTarget !== null) completionStatusRef.current?.focus();
+  }, [completionFocusTarget]);
 
   if (account === undefined) return null;
 
   const configuredCount = getConfiguredAccountCount(snapshot.context);
   const readyToContinue = isReadyToContinue(snapshot);
   const editing = snapshot.matches({ s01: 'editing' });
-  const accountConfigured = snapshot.context.configuredAccountIds.includes(account.id);
   const localTimingFailure = isLocalTimingFailure(snapshot);
   const initialTimingPending = snapshot.matches({ s01: 'starting' });
   const interactionBlocked =
     externalTimingError !== null || localTimingFailure || initialTimingPending;
   const timingFailure = externalTimingError !== null || localTimingFailure;
   const activeValue = snapshot.context.passwordValues[account.id] ?? '';
+  const campusIdentity = deriveCampusIdentity(snapshot.context.displayName ?? '');
+  const accountData =
+    account.id === 'campus-id'
+      ? campusIdentity.campusId
+      : account.id === 'campus-mail'
+        ? campusIdentity.campusMail
+        : account.accountData;
   const canConfigure =
     editing && !accountConfigured && activeValue.length > 0 && !interactionBlocked;
   const snapshotForBrowser: BrowserShellSnapshot = {
@@ -69,10 +83,6 @@ export function S01Training({
     activeTabId: account.id,
     address: account.address,
   };
-
-  useEffect(() => {
-    if (accountConfigured) completionStatusRef.current?.focus();
-  }, [account.id, accountConfigured]);
 
   function toggleReveal(accountId: string): void {
     setRevealedAccountIds((currentIds) => {
@@ -135,7 +145,7 @@ export function S01Training({
               <dl className={styles.accountDetails}>
                 <div>
                   <dt>{account.accountDataLabel}</dt>
-                  <dd>{account.accountData}</dd>
+                  <dd>{accountData}</dd>
                 </div>
                 <div>
                   <dt>{s01Content.progress.accountRoleLabel}</dt>
@@ -143,7 +153,10 @@ export function S01Training({
                 </div>
               </dl>
               {accountConfigured ? (
-                <section className={styles.accountComplete} aria-label={s01Content.completion.accountStatus}>
+                <section
+                  className={styles.accountComplete}
+                  aria-label={s01Content.completion.accountStatus}
+                >
                   <span aria-hidden="true">✓</span>
                   <h2 ref={completionStatusRef} tabIndex={-1} aria-live="polite">
                     {s01Content.completion.accountStatus}
@@ -157,7 +170,10 @@ export function S01Training({
                     if (canConfigure) controller.configureAccount(account.id);
                   }}
                 >
-                  <label className={styles.passwordLabel} htmlFor={`fictional-password-${account.id}`}>
+                  <label
+                    className={styles.passwordLabel}
+                    htmlFor={`fictional-password-${account.id}`}
+                  >
                     {s01Content.controls.passwordLabel}
                   </label>
                   <span className={styles.passwordInputGroup}>
@@ -191,18 +207,17 @@ export function S01Training({
                     </button>
                   </span>
                   <div className={styles.buttonRow}>
-                    <button
-                      type="submit"
-                      className={styles.primaryButton}
-                      disabled={!canConfigure}
-                    >
+                    <button type="submit" className={styles.primaryButton} disabled={!canConfigure}>
                       {s01Content.controls.configure}
                     </button>
                   </div>
                 </form>
               )}
               {readyToContinue ? (
-                <section className={styles.continueAction} aria-label={s01Content.completion.guideName}>
+                <section
+                  className={styles.continueAction}
+                  aria-label={s01Content.completion.guideName}
+                >
                   <p>{s01Content.completion.guideMessage}</p>
                   <button
                     type="button"

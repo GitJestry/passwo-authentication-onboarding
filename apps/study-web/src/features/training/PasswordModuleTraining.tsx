@@ -5,6 +5,7 @@ import {
   type SegmentTimingPort,
 } from '@passwo/training-engine';
 import { useEffect, useRef, useState } from 'react';
+import passWoDockAsset from '../../assets/passwo/passwo-dock.png';
 import styles from './PasswordModuleTraining.module.css';
 import { S00Training } from './S00Training.js';
 import { S01Training } from './S01Training.js';
@@ -59,36 +60,44 @@ export function PasswordModuleTraining({
   if (snapshot.matches('entry')) {
     return (
       <section className={styles.entry} aria-labelledby="training-entry-title">
-        <div className={styles.entryComposition}>
-          <div className={styles.entryContent}>
-            <p className={styles.entryGuide}>PassWo</p>
-            <h1 id="training-entry-title">Passwörter &amp; Authentifizierung</h1>
-            <p className={styles.introduction}>
-              Bevor es losgeht: Wie soll PassWo dich im Training ansprechen? Die Angabe bleibt
-              flüchtig in diesem Trainingsmodul und wird nicht gespeichert oder gesendet.
-            </p>
+        <header className={styles.entryHeader}>
+          <h1 id="training-entry-title">Passwörter &amp; Authentifizierung</h1>
+        </header>
+        <div className={styles.entryScene}>
+          <div className={styles.entryCharacter}>
+            <img src={passWoDockAsset} alt="PassWo, Begleiter im Training" />
           </div>
-          <form
-            className={styles.entryForm}
-            onSubmit={(event) => {
-              event.preventDefault();
-              const value = new FormData(event.currentTarget).get('training-display-name');
-              if (typeof value === 'string') controller.enterDisplayName(value);
-            }}
-          >
-            <label className={styles.entryLabel}>
-              Wie soll PassWo dich ansprechen?
-              <input
-                name="training-display-name"
-                type="text"
-                autoComplete="off"
-                maxLength={40}
-                required
-              />
-            </label>
-            <button type="submit">Training starten</button>
-          </form>
+          <div className={styles.entrySpeech}>
+            <p className={styles.entryGuide}>PassWo</p>
+            <p>Hallo! Ich bin PassWo und begleite dich durch dieses Training.</p>
+            <p>Du richtest drei fiktive Campus-Konten ein und wählst dafür Passwörter.</p>
+            <p>
+              Wähle Passwörter, die stark und merkbar sind: Später meldest du dich damit noch einmal
+              an.
+            </p>
+            <p className={styles.entryQuestion}>Wie darf ich dich nennen?</p>
+          </div>
         </div>
+        <form
+          className={styles.entryForm}
+          onSubmit={(event) => {
+            event.preventDefault();
+            const value = new FormData(event.currentTarget).get('training-display-name');
+            if (typeof value === 'string') controller.enterDisplayName(value);
+          }}
+        >
+          <label className={styles.entryLabel}>
+            Dein Name
+            <input
+              name="training-display-name"
+              type="text"
+              autoComplete="off"
+              maxLength={40}
+              required
+            />
+          </label>
+          <button type="submit">Training starten</button>
+        </form>
       </section>
     );
   }

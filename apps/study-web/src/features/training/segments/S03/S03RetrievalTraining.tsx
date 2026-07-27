@@ -1,5 +1,6 @@
 import { s01Content, s03Content } from '@passwo/training-content';
 import {
+  deriveCampusIdentity,
   getRetrievedAccountCount,
   type PasswordModuleController,
   type PasswordModuleSnapshot,
@@ -105,6 +106,13 @@ export function S03RetrievalTraining({
   const completedCount = getRetrievedAccountCount(snapshot.context);
   const result = snapshot.context.retrievalResults[account.id] ?? 'pending';
   const activeValue = snapshot.context.retrievalPasswordValues[account.id] ?? '';
+  const campusIdentity = deriveCampusIdentity(snapshot.context.displayName ?? '');
+  const accountData =
+    account.id === 'campus-id'
+      ? campusIdentity.campusId
+      : account.id === 'campus-mail'
+        ? campusIdentity.campusMail
+        : account.accountData;
   const isStarting = snapshot.matches({ s03: 'starting' });
   const isEnding = snapshot.matches({ s03: 'ending' });
   const localTimingFailure = isLocalTimingFailure(snapshot);
@@ -206,7 +214,7 @@ export function S03RetrievalTraining({
             <section className={styles.loginPanel} aria-labelledby="s03-login-title">
               <p className={styles.accountDataLabel}>{account.accountDataLabel}</p>
               <h2 id="s03-login-title">{s03Content.accountLoginTitles[account.id]}</h2>
-              <p className={styles.accountData}>{account.accountData}</p>
+              <p className={styles.accountData}>{accountData}</p>
               {result === 'pending' ? (
                 <form
                   className={styles.loginForm}
