@@ -12,6 +12,7 @@ import {
   S02AccountExplorationTraining,
   type S02TimingState,
 } from './segments/S02/S02AccountExplorationTraining.js';
+import { S03RetrievalTraining } from './segments/S03/S03RetrievalTraining.js';
 
 export interface PasswordModuleTrainingProps {
   readonly onComplete: () => void;
@@ -117,29 +118,40 @@ export function PasswordModuleTraining({
     );
   }
 
-  const timingState: S02TimingState = snapshot.matches({ s02: 'starting' })
-    ? 'starting'
-    : snapshot.matches({ s02: 'startFailed' })
-      ? 'startFailed'
-      : snapshot.matches({ s02: 'ending' })
-        ? 'ending'
-        : snapshot.matches({ s02: 'endFailed' })
-          ? 'endFailed'
-          : 'active';
+  if (snapshot.matches('s02')) {
+    const timingState: S02TimingState = snapshot.matches({ s02: 'starting' })
+      ? 'starting'
+      : snapshot.matches({ s02: 'startFailed' })
+        ? 'startFailed'
+        : snapshot.matches({ s02: 'ending' })
+          ? 'ending'
+          : snapshot.matches({ s02: 'endFailed' })
+            ? 'endFailed'
+            : 'active';
+    return (
+      <S02AccountExplorationTraining
+        timingState={timingState}
+        timingErrorCode={snapshot.context.timingErrorCode}
+        externalTimingError={externalTimingError}
+        onAllAccountsUnderstood={() => controller.completeS02Content()}
+        onContinue={() => controller.continue()}
+        onRetryTiming={() => {
+          if (externalTimingError !== null) {
+            onRetryExternalTiming?.();
+          } else {
+            controller.retryTiming();
+          }
+        }}
+      />
+    );
+  }
+
   return (
-    <S02AccountExplorationTraining
-      timingState={timingState}
-      timingErrorCode={snapshot.context.timingErrorCode}
+    <S03RetrievalTraining
+      controller={controller}
+      snapshot={snapshot}
       externalTimingError={externalTimingError}
-      onAllAccountsUnderstood={() => controller.completeS02Content()}
-      onContinue={() => controller.continue()}
-      onRetryTiming={() => {
-        if (externalTimingError !== null) {
-          onRetryExternalTiming?.();
-        } else {
-          controller.retryTiming();
-        }
-      }}
+      {...(onRetryExternalTiming === undefined ? {} : { onRetryExternalTiming })}
     />
   );
 }

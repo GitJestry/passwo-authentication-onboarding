@@ -48,6 +48,8 @@ describe('password module privacy boundary', () => {
     expect(JSON.stringify(studyActor.getSnapshot().context)).not.toContain(trainingValue);
     expect(studyActor.getSnapshot().context).not.toHaveProperty('displayName');
     expect(studyActor.getSnapshot().context).not.toHaveProperty('passwordValues');
+    expect(studyActor.getSnapshot().context).not.toHaveProperty('retrievalPasswordValues');
+    expect(studyActor.getSnapshot().context).not.toHaveProperty('retrievalResults');
 
     controller.dispose();
     expect(controller.getSnapshot().context.displayName).toBeNull();

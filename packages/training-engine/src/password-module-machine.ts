@@ -1,5 +1,7 @@
 import { assign, setup } from 'xstate';
 
+export type RetrievalResult = 'pending' | 'retrievable' | 'not-remembered';
+
 export interface PasswordModuleContext {
   readonly accountIds: readonly string[];
   readonly displayName: string | null;
@@ -7,6 +9,8 @@ export interface PasswordModuleContext {
   readonly passwordValues: Readonly<Record<string, string>>;
   readonly configuredAccountIds: readonly string[];
   readonly s02ContentCompleted: boolean;
+  readonly retrievalPasswordValues: Readonly<Record<string, string>>;
+  readonly retrievalResults: Readonly<Record<string, RetrievalResult>>;
   readonly timingErrorCode: string | null;
 }
 
@@ -38,6 +42,20 @@ export type PasswordModuleEvent =
   | { readonly type: 'S02_END_RECORDED' }
   | { readonly type: 'S02_END_FAILED'; readonly errorCode: string }
   | { readonly type: 'RETRY_S02_END' }
+  | { readonly type: 'S03_START_RECORDED' }
+  | { readonly type: 'S03_START_FAILED'; readonly errorCode: string }
+  | { readonly type: 'RETRY_S03_START' }
+  | {
+      readonly type: 'SET_RETRIEVAL_PASSWORD_VALUE';
+      readonly accountId: string;
+      readonly value: string;
+    }
+  | { readonly type: 'SUBMIT_RETRIEVAL_LOGIN'; readonly accountId: string }
+  | { readonly type: 'SKIP_RETRIEVAL'; readonly accountId: string }
+  | { readonly type: 'S03_WARNING_SEQUENCE_COMPLETED' }
+  | { readonly type: 'S03_END_RECORDED' }
+  | { readonly type: 'S03_END_FAILED'; readonly errorCode: string }
+  | { readonly type: 'RETRY_S03_END' }
   | { readonly type: 'DISCARD' };
 
 function emptyPasswordValues(accountIds: readonly string[]): Record<string, string> {
@@ -46,14 +64,18 @@ function emptyPasswordValues(accountIds: readonly string[]): Record<string, stri
   return values;
 }
 
+function emptyRetrievalResults(accountIds: readonly string[]): Record<string, RetrievalResult> {
+  const results: Record<string, RetrievalResult> = {};
+  for (const accountId of accountIds) results[accountId] = 'pending';
+  return results;
+}
+
 const emojiSequencePattern =
   /(?:[#*0-9]\uFE0F?\u20E3|[\u{1F1E6}-\u{1F1FF}]{1,2}|(?:\p{Extended_Pictographic}|\p{Emoji_Modifier})(?:\uFE0E|\uFE0F)?(?:\u200D(?:\p{Extended_Pictographic}|\p{Emoji_Modifier})(?:\uFE0E|\uFE0F)?)*[\u{E0020}-\u{E007F}]*)/gu;
 
 /** Keeps fictional values local while removing unsupported invisible and emoji input. */
 export function sanitizePasswordValue(value: string): string {
-  return value
-    .replace(emojiSequencePattern, '')
-    .replace(/[\p{White_Space}\p{Cc}\u200D]/gu, '');
+  return value.replace(emojiSequencePattern, '').replace(/[\p{White_Space}\p{Cc}\u200D]/gu, '');
 }
 
 function isKnownAccount(context: PasswordModuleContext, accountId: string): boolean {
@@ -69,6 +91,21 @@ function canConfigureAccount(context: PasswordModuleContext, accountId: string):
     isKnownAccount(context, accountId) &&
     !isConfiguredAccount(context, accountId) &&
     (context.passwordValues[accountId] ?? '').length > 0
+  );
+}
+
+function canProcessRetrieval(context: PasswordModuleContext, accountId: string): boolean {
+  return (
+    isKnownAccount(context, accountId) &&
+    isConfiguredAccount(context, accountId) &&
+    context.retrievalResults[accountId] === 'pending'
+  );
+}
+
+function matchesRetrievalPassword(context: PasswordModuleContext, accountId: string): boolean {
+  return (
+    canProcessRetrieval(context, accountId) &&
+    context.retrievalPasswordValues[accountId] === context.passwordValues[accountId]
   );
 }
 
@@ -94,6 +131,15 @@ export const passwordModuleMachine = setup({
       canConfigureAccount(context, event.accountId) &&
       getConfiguredAccountCount(context) + 1 === context.accountIds.length,
     hasCompletedS02Content: ({ context }) => context.s02ContentCompleted,
+    canEditRetrieval: ({ context, event }) =>
+      event.type === 'SET_RETRIEVAL_PASSWORD_VALUE' &&
+      canProcessRetrieval(context, event.accountId),
+    matchesRetrievalPassword: ({ context, event }) =>
+      event.type === 'SUBMIT_RETRIEVAL_LOGIN' && matchesRetrievalPassword(context, event.accountId),
+    completesRetrieval: ({ context, event }) =>
+      (event.type === 'SUBMIT_RETRIEVAL_LOGIN' || event.type === 'SKIP_RETRIEVAL') &&
+      canProcessRetrieval(context, event.accountId) &&
+      getRetrievedAccountCount(context) + 1 === context.accountIds.length,
   },
   actions: {
     storeDisplayName: assign({
@@ -106,7 +152,9 @@ export const passwordModuleMachine = setup({
         event.type === 'S01_START_FAILED' ||
         event.type === 'S01_END_FAILED' ||
         event.type === 'S02_START_FAILED' ||
-        event.type === 'S02_END_FAILED'
+        event.type === 'S02_END_FAILED' ||
+        event.type === 'S03_START_FAILED' ||
+        event.type === 'S03_END_FAILED'
           ? event.errorCode
           : null,
     }),
@@ -128,12 +176,43 @@ export const passwordModuleMachine = setup({
         return [...context.configuredAccountIds, event.accountId];
       },
     }),
+    setRetrievalPasswordValue: assign({
+      retrievalPasswordValues: ({ context, event }) => {
+        if (event.type !== 'SET_RETRIEVAL_PASSWORD_VALUE') return context.retrievalPasswordValues;
+        return {
+          ...context.retrievalPasswordValues,
+          [event.accountId]: sanitizePasswordValue(event.value),
+        };
+      },
+    }),
+    markRetrievable: assign({
+      retrievalResults: ({ context, event }) => {
+        if (event.type !== 'SUBMIT_RETRIEVAL_LOGIN') return context.retrievalResults;
+        return { ...context.retrievalResults, [event.accountId]: 'retrievable' };
+      },
+      retrievalPasswordValues: ({ context, event }) => {
+        if (event.type !== 'SUBMIT_RETRIEVAL_LOGIN') return context.retrievalPasswordValues;
+        return { ...context.retrievalPasswordValues, [event.accountId]: '' };
+      },
+    }),
+    markNotRemembered: assign({
+      retrievalResults: ({ context, event }) => {
+        if (event.type !== 'SKIP_RETRIEVAL') return context.retrievalResults;
+        return { ...context.retrievalResults, [event.accountId]: 'not-remembered' };
+      },
+      retrievalPasswordValues: ({ context, event }) => {
+        if (event.type !== 'SKIP_RETRIEVAL') return context.retrievalPasswordValues;
+        return { ...context.retrievalPasswordValues, [event.accountId]: '' };
+      },
+    }),
     discardTransientTrainingData: assign({
       displayName: () => null,
       activeAccountId: () => null,
       passwordValues: ({ context }) => emptyPasswordValues(context.accountIds),
       configuredAccountIds: () => [],
       s02ContentCompleted: () => false,
+      retrievalPasswordValues: ({ context }) => emptyPasswordValues(context.accountIds),
+      retrievalResults: ({ context }) => emptyRetrievalResults(context.accountIds),
       timingErrorCode: () => null,
     }),
     markS02ContentCompleted: assign({ s02ContentCompleted: () => true }),
@@ -148,6 +227,8 @@ export const passwordModuleMachine = setup({
     passwordValues: emptyPasswordValues(input.accountIds),
     configuredAccountIds: [],
     s02ContentCompleted: false,
+    retrievalPasswordValues: emptyPasswordValues(input.accountIds),
+    retrievalResults: emptyRetrievalResults(input.accountIds),
     timingErrorCode: null,
   }),
   on: {
@@ -237,12 +318,72 @@ export const passwordModuleMachine = setup({
         },
         ending: {
           on: {
-            S02_END_RECORDED: { target: '#passwordModule.complete' },
+            S02_END_RECORDED: { target: '#passwordModule.s03.starting' },
             S02_END_FAILED: { target: 'endFailed', actions: 'storeTimingError' },
           },
         },
         endFailed: {
           on: { RETRY_S02_END: { target: 'ending', actions: 'clearTimingError' } },
+        },
+      },
+    },
+    s03: {
+      initial: 'starting',
+      states: {
+        starting: {
+          on: {
+            S03_START_RECORDED: { target: 'active', actions: 'clearTimingError' },
+            S03_START_FAILED: { target: 'startFailed', actions: 'storeTimingError' },
+          },
+        },
+        startFailed: {
+          on: { RETRY_S03_START: { target: 'starting', actions: 'clearTimingError' } },
+        },
+        active: {
+          on: {
+            SELECT_ACCOUNT: { guard: 'isKnownAccount', actions: 'selectAccount' },
+            SET_RETRIEVAL_PASSWORD_VALUE: {
+              guard: 'canEditRetrieval',
+              actions: 'setRetrievalPasswordValue',
+            },
+            SUBMIT_RETRIEVAL_LOGIN: [
+              {
+                guard: ({ context, event }) =>
+                  event.type === 'SUBMIT_RETRIEVAL_LOGIN' &&
+                  matchesRetrievalPassword(context, event.accountId) &&
+                  getRetrievedAccountCount(context) + 1 === context.accountIds.length,
+                target: 'completionSequence',
+                actions: 'markRetrievable',
+              },
+              { guard: 'matchesRetrievalPassword', actions: 'markRetrievable' },
+            ],
+            SKIP_RETRIEVAL: [
+              {
+                guard: 'completesRetrieval',
+                target: 'completionSequence',
+                actions: 'markNotRemembered',
+              },
+              {
+                guard: ({ context, event }) =>
+                  event.type === 'SKIP_RETRIEVAL' && canProcessRetrieval(context, event.accountId),
+                actions: 'markNotRemembered',
+              },
+            ],
+          },
+        },
+        completionSequence: {
+          on: {
+            S03_WARNING_SEQUENCE_COMPLETED: { target: 'ending', actions: 'clearTimingError' },
+          },
+        },
+        ending: {
+          on: {
+            S03_END_RECORDED: { target: '#passwordModule.complete' },
+            S03_END_FAILED: { target: 'endFailed', actions: 'storeTimingError' },
+          },
+        },
+        endFailed: {
+          on: { RETRY_S03_END: { target: 'ending', actions: 'clearTimingError' } },
         },
       },
     },
@@ -253,5 +394,10 @@ export const passwordModuleMachine = setup({
 
 export function getConfiguredAccountCount(context: PasswordModuleContext): number {
   return context.accountIds.filter((accountId) => context.configuredAccountIds.includes(accountId))
+    .length;
+}
+
+export function getRetrievedAccountCount(context: PasswordModuleContext): number {
+  return context.accountIds.filter((accountId) => context.retrievalResults[accountId] !== 'pending')
     .length;
 }

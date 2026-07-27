@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { createActor } from 'xstate';
 import {
   getConfiguredAccountCount,
+  getRetrievedAccountCount,
   passwordModuleMachine,
   sanitizePasswordValue,
 } from './password-module-machine.js';
@@ -24,6 +25,29 @@ function configureAllAccounts(actor: ReturnType<typeof createModuleActor>): void
   }
 }
 
+function startS03(actor: ReturnType<typeof createModuleActor>): void {
+  actor.send({ type: 'CONTINUE' });
+  actor.send({ type: 'S01_END_RECORDED' });
+  actor.send({ type: 'S02_START_RECORDED' });
+  actor.send({ type: 'S02_CONTENT_COMPLETED' });
+  actor.send({ type: 'CONTINUE' });
+  actor.send({ type: 'S02_END_RECORDED' });
+  actor.send({ type: 'S03_START_RECORDED' });
+}
+
+function finishS03(actor: ReturnType<typeof createModuleActor>): void {
+  actor.send({
+    type: 'SET_RETRIEVAL_PASSWORD_VALUE',
+    accountId: 'campus-id',
+    value: 'campus-id!?',
+  });
+  actor.send({ type: 'SUBMIT_RETRIEVAL_LOGIN', accountId: 'campus-id' });
+  actor.send({ type: 'SKIP_RETRIEVAL', accountId: 'campus-mail' });
+  actor.send({ type: 'SKIP_RETRIEVAL', accountId: 'campus-board-archive' });
+  actor.send({ type: 'S03_WARNING_SEQUENCE_COMPLETED' });
+  actor.send({ type: 'S03_END_RECORDED' });
+}
+
 describe('passwordModuleMachine', () => {
   it('requires a non-empty local display name before S00 can begin', () => {
     const actor = createActor(passwordModuleMachine, { input: { accountIds } });
@@ -40,21 +64,25 @@ describe('passwordModuleMachine', () => {
     expect(actor.getSnapshot().matches('s00')).toBe(true);
   });
 
-  it('moves from S00 through S01 and S02 to module complete', () => {
+  it('moves from S00 through S02 into S03 and completes only after the warning sequence', () => {
     const actor = createModuleActor();
-
-    expect(actor.getSnapshot().matches({ s01: 'editing' })).toBe(true);
     configureAllAccounts(actor);
-    actor.send({ type: 'CONTINUE' });
-    actor.send({ type: 'S01_END_RECORDED' });
+    startS03(actor);
 
-    expect(actor.getSnapshot().matches({ s02: 'starting' })).toBe(true);
-    actor.send({ type: 'S02_START_RECORDED' });
-    actor.send({ type: 'CONTINUE' });
-    expect(actor.getSnapshot().matches({ s02: 'active' })).toBe(true);
-    actor.send({ type: 'S02_CONTENT_COMPLETED' });
-    actor.send({ type: 'CONTINUE' });
-    actor.send({ type: 'S02_END_RECORDED' });
+    expect(actor.getSnapshot().matches({ s03: 'active' })).toBe(true);
+    actor.send({
+      type: 'SET_RETRIEVAL_PASSWORD_VALUE',
+      accountId: 'campus-id',
+      value: 'campus-id!?',
+    });
+    actor.send({ type: 'SUBMIT_RETRIEVAL_LOGIN', accountId: 'campus-id' });
+    actor.send({ type: 'SKIP_RETRIEVAL', accountId: 'campus-mail' });
+    actor.send({ type: 'SKIP_RETRIEVAL', accountId: 'campus-board-archive' });
+    expect(actor.getSnapshot().matches({ s03: 'completionSequence' })).toBe(true);
+
+    actor.send({ type: 'S03_WARNING_SEQUENCE_COMPLETED' });
+    expect(actor.getSnapshot().matches({ s03: 'ending' })).toBe(true);
+    actor.send({ type: 'S03_END_RECORDED' });
 
     expect(actor.getSnapshot().matches('complete')).toBe(true);
     expect(actor.getSnapshot().context.displayName).toBeNull();
@@ -66,9 +94,14 @@ describe('passwordModuleMachine', () => {
       'campus-mail': '',
       'campus-board-archive': '',
     });
+    expect(actor.getSnapshot().context.retrievalResults).toEqual({
+      'campus-id': 'pending',
+      'campus-mail': 'pending',
+      'campus-board-archive': 'pending',
+    });
   });
 
-  it('keeps values local throughout S02 and discards them only after S02 end', () => {
+  it('keeps passwords and retrieval results local through S03 and discards them only after S03 end', () => {
     const actor = createModuleActor();
     const values = {
       'campus-id': 'id!?',
@@ -79,25 +112,55 @@ describe('passwordModuleMachine', () => {
       actor.send({ type: 'SET_PASSWORD_VALUE', accountId, value });
       actor.send({ type: 'CONFIGURE_ACCOUNT', accountId });
     }
-    actor.send({ type: 'CONTINUE' });
-    actor.send({ type: 'S01_END_RECORDED' });
+    startS03(actor);
 
-    expect(actor.getSnapshot().context.passwordValues).toEqual(values);
-    actor.send({ type: 'S02_START_RECORDED' });
-    actor.send({ type: 'S02_CONTENT_COMPLETED' });
-    actor.send({ type: 'CONTINUE' });
-    actor.send({ type: 'S02_END_FAILED', errorCode: 'write-failed' });
-    expect(actor.getSnapshot().matches({ s02: 'endFailed' })).toBe(true);
-    expect(actor.getSnapshot().context.passwordValues).toEqual(values);
+    actor.send({ type: 'SET_RETRIEVAL_PASSWORD_VALUE', accountId: 'campus-id', value: 'id!?' });
+    actor.send({ type: 'SUBMIT_RETRIEVAL_LOGIN', accountId: 'campus-id' });
+    actor.send({ type: 'SKIP_RETRIEVAL', accountId: 'campus-mail' });
+    actor.send({ type: 'SKIP_RETRIEVAL', accountId: 'campus-board-archive' });
+    actor.send({ type: 'S03_WARNING_SEQUENCE_COMPLETED' });
+    actor.send({ type: 'S03_END_FAILED', errorCode: 'write-failed' });
 
-    actor.send({ type: 'RETRY_S02_END' });
-    actor.send({ type: 'S02_END_RECORDED' });
+    expect(actor.getSnapshot().matches({ s03: 'endFailed' })).toBe(true);
+    expect(actor.getSnapshot().context.passwordValues).toEqual(values);
+    expect(actor.getSnapshot().context.retrievalResults).toEqual({
+      'campus-id': 'retrievable',
+      'campus-mail': 'not-remembered',
+      'campus-board-archive': 'not-remembered',
+    });
+
+    actor.send({ type: 'RETRY_S03_END' });
+    actor.send({ type: 'S03_END_RECORDED' });
     expect(actor.getSnapshot().context.displayName).toBeNull();
     expect(actor.getSnapshot().context.passwordValues).toEqual({
       'campus-id': '',
       'campus-mail': '',
       'campus-board-archive': '',
     });
+  });
+
+  it('requires an exact transient S01 value, permits retry, and records skips neutrally', () => {
+    const actor = createModuleActor();
+    configureAllAccounts(actor);
+    startS03(actor);
+
+    actor.send({ type: 'SET_RETRIEVAL_PASSWORD_VALUE', accountId: 'campus-mail', value: 'wrong' });
+    actor.send({ type: 'SUBMIT_RETRIEVAL_LOGIN', accountId: 'campus-mail' });
+    expect(actor.getSnapshot().context.retrievalResults['campus-mail']).toBe('pending');
+    expect(actor.getSnapshot().matches({ s03: 'active' })).toBe(true);
+
+    actor.send({ type: 'SKIP_RETRIEVAL', accountId: 'campus-mail' });
+    expect(actor.getSnapshot().context.retrievalResults['campus-mail']).toBe('not-remembered');
+    expect(getRetrievedAccountCount(actor.getSnapshot().context)).toBe(1);
+    actor.send({
+      type: 'SET_RETRIEVAL_PASSWORD_VALUE',
+      accountId: 'campus-board-archive',
+      value: 'campus-board-archive!?',
+    });
+    actor.send({ type: 'SUBMIT_RETRIEVAL_LOGIN', accountId: 'campus-board-archive' });
+    expect(actor.getSnapshot().context.retrievalResults['campus-board-archive']).toBe(
+      'retrievable',
+    );
   });
 
   it('configures each account immediately after its own value and locks only that account', () => {
@@ -156,5 +219,13 @@ describe('passwordModuleMachine', () => {
     const value = 'Ä_#~漢字e\u0301!?';
 
     expect(sanitizePasswordValue(value)).toBe(value);
+  });
+
+  it('can still finish the complete S03 path from the helper workflow', () => {
+    const actor = createModuleActor();
+    configureAllAccounts(actor);
+    startS03(actor);
+    finishS03(actor);
+    expect(actor.getSnapshot().matches('complete')).toBe(true);
   });
 });
