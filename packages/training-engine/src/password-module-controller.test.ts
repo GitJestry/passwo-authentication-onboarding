@@ -24,7 +24,7 @@ function completeS03(controller: PasswordModuleController): void {
 }
 
 describe('PasswordModuleController', () => {
-  it('records S01–S03 boundaries and completes after the final segment end', async () => {
+  it('records S01–S03 boundaries and awaits S04 after the final segment end', async () => {
     const timingEvents: SegmentTimingEvent[] = [];
     let completions = 0;
     const controller = new PasswordModuleController({
@@ -57,7 +57,8 @@ describe('PasswordModuleController', () => {
       { eventType: 'segment-start', segmentId: 'S03', sectionId: 'passwords' },
       { eventType: 'segment-end', segmentId: 'S03', sectionId: 'passwords' },
     ]);
-    expect(completions).toBe(1);
+    expect(completions).toBe(0);
+    expect(controller.getSnapshot().matches('awaitingS04')).toBe(true);
   });
 
   it('retries failed S03 timing writes with the original boundary', async () => {
@@ -105,6 +106,6 @@ describe('PasswordModuleController', () => {
       { eventType: 'segment-end', segmentId: 'S03', sectionId: 'passwords' },
       { eventType: 'segment-end', segmentId: 'S03', sectionId: 'passwords' },
     ]);
-    expect(controller.getSnapshot().matches('complete')).toBe(true);
+    expect(controller.getSnapshot().matches('awaitingS04')).toBe(true);
   });
 });

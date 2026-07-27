@@ -378,7 +378,7 @@ export const passwordModuleMachine = setup({
         },
         ending: {
           on: {
-            S03_END_RECORDED: { target: '#passwordModule.complete' },
+            S03_END_RECORDED: { target: '#passwordModule.awaitingS04' },
             S03_END_FAILED: { target: 'endFailed', actions: 'storeTimingError' },
           },
         },
@@ -387,7 +387,7 @@ export const passwordModuleMachine = setup({
         },
       },
     },
-    complete: { type: 'final', entry: 'discardTransientTrainingData' },
+    awaitingS04: {},
     discarded: { type: 'final' },
   },
 });

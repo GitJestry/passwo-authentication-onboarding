@@ -24,7 +24,7 @@ function timingErrorCode(error: unknown): string {
 export interface PasswordModuleControllerOptions {
   readonly accountIds: readonly string[];
   readonly timingPort?: SegmentTimingPort;
-  readonly onComplete: () => void;
+  readonly onComplete?: () => void;
 }
 
 export type PasswordModuleSnapshot = SnapshotFrom<typeof passwordModuleMachine>;
@@ -32,15 +32,12 @@ export type PasswordModuleSnapshot = SnapshotFrom<typeof passwordModuleMachine>;
 export class PasswordModuleController {
   readonly #actor: ReturnType<typeof createActor<typeof passwordModuleMachine>>;
   readonly #timingPort: SegmentTimingPort | undefined;
-  readonly #onComplete: () => void;
   #disposed = false;
-  #completionNotified = false;
 
-  constructor({ accountIds, timingPort, onComplete }: PasswordModuleControllerOptions) {
+  constructor({ accountIds, timingPort }: PasswordModuleControllerOptions) {
     if (accountIds.length !== 3) throw new Error('password-module-requires-three-accounts');
     this.#actor = createActor(passwordModuleMachine, { input: { accountIds } });
     this.#timingPort = timingPort;
-    this.#onComplete = onComplete;
     this.#actor.start();
   }
 
@@ -230,7 +227,6 @@ export class PasswordModuleController {
       await this.#recordTiming('segment-end', s03TimingScope);
       if (this.#disposed) return;
       this.#actor.send({ type: 'S03_END_RECORDED' });
-      this.#notifyComplete();
     } catch (error) {
       if (!this.#disposed) {
         this.#actor.send({ type: 'S03_END_FAILED', errorCode: timingErrorCode(error) });
@@ -278,7 +274,6 @@ export class PasswordModuleController {
         return;
       }
       this.#actor.send({ type: 'S03_END_RECORDED' });
-      this.#notifyComplete();
     } catch (error) {
       if (this.#disposed) return;
       this.#actor.send({
@@ -307,9 +302,4 @@ export class PasswordModuleController {
     await this.#timingPort.record({ eventType, ...scope });
   }
 
-  #notifyComplete(): void {
-    if (this.#disposed || this.#completionNotified) return;
-    this.#completionNotified = true;
-    this.#onComplete();
-  }
 }

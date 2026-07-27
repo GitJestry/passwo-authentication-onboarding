@@ -23,21 +23,17 @@ export interface PasswordModuleTrainingProps {
 }
 
 export function PasswordModuleTraining({
-  onComplete,
   timingPort,
   externalTimingError = null,
   onRetryExternalTiming,
 }: PasswordModuleTrainingProps) {
   const [snapshot, setSnapshot] = useState<PasswordModuleSnapshot | null>(null);
   const controllerRef = useRef<PasswordModuleController | null>(null);
-  const onCompleteRef = useRef(onComplete);
-  onCompleteRef.current = onComplete;
 
   useEffect(() => {
     const controller = new PasswordModuleController({
       accountIds: s01Content.browser.accounts.map(({ id }) => id),
       ...(timingPort === undefined ? {} : { timingPort }),
-      onComplete: () => onCompleteRef.current(),
     });
     const unsubscribe = controller.subscribe(setSnapshot);
     controllerRef.current = controller;
@@ -114,7 +110,7 @@ export function PasswordModuleTraining({
     );
   }
 
-  if (snapshot.matches('complete') || snapshot.matches('discarded')) return null;
+  if (snapshot.matches('discarded')) return null;
 
   if (snapshot.matches('s01')) {
     return (
@@ -155,12 +151,16 @@ export function PasswordModuleTraining({
     );
   }
 
-  return (
-    <S03RetrievalTraining
-      controller={controller}
-      snapshot={snapshot}
-      externalTimingError={externalTimingError}
-      {...(onRetryExternalTiming === undefined ? {} : { onRetryExternalTiming })}
-    />
-  );
+  if (snapshot.matches('s03') || snapshot.matches('awaitingS04')) {
+    return (
+      <S03RetrievalTraining
+        controller={controller}
+        snapshot={snapshot}
+        externalTimingError={externalTimingError}
+        {...(onRetryExternalTiming === undefined ? {} : { onRetryExternalTiming })}
+      />
+    );
+  }
+
+  return null;
 }

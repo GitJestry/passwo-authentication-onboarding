@@ -34,7 +34,7 @@ function startS03(actor: ReturnType<typeof createModuleActor>): void {
 }
 
 describe('passwordModuleMachine', () => {
-  it('progresses from S00 through S03 and completes after the warning sequence', () => {
+  it('ends S03 after the warning sequence and awaits S04', () => {
     const actor = createModuleActor();
     configureAllAccounts(actor);
     startS03(actor);
@@ -45,10 +45,11 @@ describe('passwordModuleMachine', () => {
     actor.send({ type: 'S03_WARNING_SEQUENCE_COMPLETED' });
     actor.send({ type: 'S03_END_RECORDED' });
 
-    expect(actor.getSnapshot().matches('complete')).toBe(true);
+    expect(actor.getSnapshot().matches('awaitingS04')).toBe(true);
+    expect(actor.getSnapshot().status).toBe('active');
   });
 
-  it('keeps local password data until S03 end and clears it afterward', () => {
+  it('preserves transient S03 data until discard', () => {
     const actor = createModuleActor();
     const values = {
       'campus-id': 'id!?',
@@ -60,20 +61,33 @@ describe('passwordModuleMachine', () => {
       actor.send({ type: 'CONFIGURE_ACCOUNT', accountId });
     }
     startS03(actor);
-    actor.send({ type: 'SKIP_RETRIEVAL', accountId: 'campus-id' });
+    actor.send({ type: 'SET_RETRIEVAL_PASSWORD_VALUE', accountId: 'campus-id', value: 'id!?' });
+    actor.send({ type: 'SUBMIT_RETRIEVAL_LOGIN', accountId: 'campus-id' });
     actor.send({ type: 'SKIP_RETRIEVAL', accountId: 'campus-mail' });
     actor.send({ type: 'SKIP_RETRIEVAL', accountId: 'campus-board-archive' });
     actor.send({ type: 'S03_WARNING_SEQUENCE_COMPLETED' });
-    actor.send({ type: 'S03_END_FAILED', errorCode: 'write-failed' });
-
-    expect(actor.getSnapshot().context.passwordValues).toEqual(values);
-
-    actor.send({ type: 'RETRY_S03_END' });
     actor.send({ type: 'S03_END_RECORDED' });
+
+    expect(actor.getSnapshot().matches('awaitingS04')).toBe(true);
+    expect(actor.getSnapshot().context.passwordValues).toEqual(values);
+    expect(actor.getSnapshot().context.retrievalResults).toEqual({
+      'campus-id': 'retrievable',
+      'campus-mail': 'not-remembered',
+      'campus-board-archive': 'not-remembered',
+    });
+
+    actor.send({ type: 'DISCARD' });
+
+    expect(actor.getSnapshot().matches('discarded')).toBe(true);
     expect(actor.getSnapshot().context.passwordValues).toEqual({
       'campus-id': '',
       'campus-mail': '',
       'campus-board-archive': '',
+    });
+    expect(actor.getSnapshot().context.retrievalResults).toEqual({
+      'campus-id': 'pending',
+      'campus-mail': 'pending',
+      'campus-board-archive': 'pending',
     });
   });
 
