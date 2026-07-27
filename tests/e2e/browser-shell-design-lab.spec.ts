@@ -56,6 +56,45 @@ async function expectControlInsideViewport(page: Page, control: Locator): Promis
   expect(controlBox.y + controlBox.height).toBeLessThanOrEqual(viewport.height);
 }
 
+async function expectS02NodesInsideMap(
+  page: Page,
+  expectedNodeIds: readonly string[],
+): Promise<void> {
+  const network = page.getByLabel('Knotennetz zum Erkunden der drei Konten');
+  const networkBox = await network.boundingBox();
+  const nodes = network.locator('[data-scene-node]');
+
+  expect(networkBox).not.toBeNull();
+  await expect(nodes).toHaveCount(expectedNodeIds.length);
+  if (networkBox === null) return;
+
+  const boxes = await Promise.all(
+    expectedNodeIds.map(async (nodeId) => {
+      const node = network.locator(`[data-scene-node="${nodeId}"]`);
+      await expect(node).toBeVisible();
+      const box = await node.boundingBox();
+      expect(box).not.toBeNull();
+      if (box === null) throw new Error(`S02 node ${nodeId} has no visible bounds.`);
+      expect(box.x).toBeGreaterThanOrEqual(networkBox.x);
+      expect(box.y).toBeGreaterThanOrEqual(networkBox.y);
+      expect(box.x + box.width).toBeLessThanOrEqual(networkBox.x + networkBox.width);
+      expect(box.y + box.height).toBeLessThanOrEqual(networkBox.y + networkBox.height);
+      return box;
+    }),
+  );
+
+  for (const [index, first] of boxes.entries()) {
+    for (const second of boxes.slice(index + 1)) {
+      const overlaps =
+        first.x < second.x + second.width &&
+        first.x + first.width > second.x &&
+        first.y < second.y + second.height &&
+        first.y + first.height > second.y;
+      expect(overlaps).toBe(false);
+    }
+  }
+}
+
 for (const viewport of viewports) {
   test(`all design-lab scenes fit ${viewport.width}x${viewport.height}`, async ({ page }) => {
     await page.setViewportSize(viewport);
@@ -70,6 +109,52 @@ for (const viewport of viewports) {
       }
       if (scene === 's02-campus-id') {
         await expectControlInsideViewport(page, page.getByRole('button', { name: /^CampusID\./ }));
+      }
+    }
+  });
+}
+
+for (const viewport of viewports) {
+  test(`S02 maps every active account detail set inside ${viewport.width}x${viewport.height}`, async ({
+    page,
+  }) => {
+    await page.setViewportSize(viewport);
+    await page.emulateMedia({ reducedMotion: 'reduce' });
+    await page.goto('/design-lab/s02-campus-id');
+
+    const network = page.getByLabel('Knotennetz zum Erkunden der drei Konten');
+    const accountIds = ['campus-id', 'campus-mail', 'campus-board-archive'] as const;
+    const detailIds = {
+      'campus-id': ['campus-id-learnspace', 'campus-id-exam-portal', 'campus-id-cloud-notes'],
+      'campus-mail': [
+        'campus-mail-notifications',
+        'campus-mail-confirmations',
+        'campus-mail-reset-links',
+        'campus-mail-impersonation',
+      ],
+      'campus-board-archive': [
+        'campus-board-old-announcements',
+        'campus-board-project-questions',
+        'campus-board-archived-discussions',
+      ],
+    } as const;
+
+    await expectS02NodesInsideMap(page, accountIds);
+    await expect(network.locator('.react-flow__background')).toHaveCount(0);
+    await expect(network.locator('.react-flow__attribution')).toHaveCount(0);
+
+    for (const accountId of accountIds) {
+      await network.locator(`[data-scene-node-button="${accountId}"]`).click();
+      await expect(network.locator(`[data-scene-node="${accountId}"]`)).toHaveAttribute(
+        'data-active',
+        'true',
+      );
+      await expectS02NodesInsideMap(page, [...accountIds, ...detailIds[accountId]]);
+
+      for (const otherAccountId of accountIds.filter((id) => id !== accountId)) {
+        for (const detailId of detailIds[otherAccountId]) {
+          await expect(network.locator(`[data-scene-node="${detailId}"]`)).toHaveCount(0);
+        }
       }
     }
   });

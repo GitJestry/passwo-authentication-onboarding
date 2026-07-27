@@ -160,49 +160,45 @@ export function S02AccountExplorationTraining({
                 ariaLabel="Knotennetz zum Erkunden der drei Konten"
                 canvasAriaLabel="Deterministisch angeordnetes Knotennetz mit drei Hauptkonten"
                 interactionDisabled={interactionBlocked}
+                visualVariant="account-map"
+                activeNodeId={scene.activeAccountId}
+                showEdgeLabels={false}
               />
-              <section className={styles.narration} aria-labelledby="s02-passwo-title">
-                <p className={styles.cardLabel}>{s02Content.narration.guideName}</p>
-                <h2 id="s02-passwo-title">
-                  {activeAccount?.label ?? 'Drei Konten, unterschiedliche Bedeutung'}
-                </h2>
-                <p>{narration}</p>
-                {completionNarration !== '' && completionNarration !== narration ? (
-                  <p>{completionNarration}</p>
+              <section className={styles.mapContext} aria-label="Aktueller Hinweis">
+                {activeAccount !== undefined ? (
+                  <p className={styles.localStatus} role="status">
+                    <span aria-hidden="true">
+                      {scene.understoodAccountIds.includes(activeAccount.id) ? '✓' : '○'}
+                    </span>
+                    {localProgress}
+                  </p>
+                ) : null}
+                <section className={styles.narration}>
+                  <p>{narration}</p>
+                  {completionNarration !== '' && completionNarration !== narration ? (
+                    <p>{completionNarration}</p>
+                  ) : null}
+                </section>
+                {complete ? (
+                  <section className={styles.completion} aria-label={s02Content.page.completion}>
+                    <p role="status">
+                      <span aria-hidden="true">✓</span>
+                      {s02Content.page.completion}
+                    </p>
+                    <button type="button" disabled={interactionBlocked} onClick={onContinue}>
+                      {s02Content.controls.continue}
+                    </button>
+                  </section>
                 ) : null}
               </section>
-            </div>
-
-            <aside className={styles.sidebar} aria-label="Kontenfortschritt und Vorschau">
-              {activeAccount !== undefined ? (
-                <p className={styles.localStatus} role="status">
-                  <span aria-hidden="true">
-                    {scene.understoodAccountIds.includes(activeAccount.id) ? '✓' : '○'}
-                  </span>
-                  {localProgress}
-                </p>
-              ) : null}
-
-              <section className={styles.preview} aria-labelledby="s02-preview-title">
-                <p className={styles.cardLabel}>{s02Content.page.previewTitle}</p>
-                <h2 id="s02-preview-title">
-                  {activePreview?.label ?? 'Noch keine Vorschau geöffnet'}
-                </h2>
-                <p>{activePreview?.preview ?? s02Content.page.previewEmpty}</p>
-              </section>
-
-              {complete ? (
-                <section className={styles.completion} aria-label={s02Content.page.completion}>
-                  <p role="status">
-                    <span aria-hidden="true">✓</span>
-                    {s02Content.page.completion}
-                  </p>
-                  <button type="button" disabled={interactionBlocked} onClick={onContinue}>
-                    {s02Content.controls.continue}
-                  </button>
+              {activePreview !== undefined ? (
+                <section className={styles.preview} aria-labelledby="s02-preview-title">
+                  <p className={styles.cardLabel}>{s02Content.page.previewTitle}</p>
+                  <h2 id="s02-preview-title">{activePreview.label}</h2>
+                  <p>{activePreview.preview}</p>
                 </section>
               ) : null}
-            </aside>
+            </div>
           </div>
 
           {(timingState === 'starting' || timingState === 'ending') &&

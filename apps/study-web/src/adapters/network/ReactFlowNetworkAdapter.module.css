@@ -7,8 +7,15 @@
   background: var(--color-surface-primary);
 }
 
+.accountMapNetwork {
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+}
+
 .nodeFrame {
-  width: 14.5rem;
+  width: 100%;
+  height: 100%;
   transition:
     opacity var(--motion-standard) var(--motion-ease-out),
     transform var(--motion-standard) var(--motion-ease-out);
@@ -22,6 +29,7 @@
 .nodeButton {
   display: grid;
   width: 100%;
+  height: 100%;
   min-height: 5.8rem;
   grid-template-columns: auto minmax(0, 1fr);
   align-items: center;
@@ -155,6 +163,19 @@
   font-weight: var(--font-weight-semibold);
 }
 
+.nodeStatus {
+  display: grid;
+  width: 1rem;
+  height: 1rem;
+  place-items: center;
+  border: var(--border-width-thin) solid var(--color-border);
+  border-radius: var(--radius-round);
+  color: var(--color-ink-muted);
+  background: var(--color-surface-primary);
+  font-size: 0.68rem;
+  font-weight: var(--font-weight-heavy);
+}
+
 .handle {
   width: var(--space-2);
   height: var(--space-2);
@@ -163,9 +184,73 @@
   pointer-events: none;
 }
 
+.nodeFrame[data-variant="account-map"] .handle {
+  visibility: hidden;
+}
+
+.nodeFrame[data-variant="account-map"] .nodeButton {
+  gap: var(--space-2);
+  padding: var(--space-3);
+  border-radius: var(--radius-medium);
+  box-shadow: var(--shadow-card);
+}
+
+.nodeFrame[data-variant="account-map"] .nodeCopy {
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+}
+
+.nodeFrame[data-variant="account-map"] .nodeCopy strong {
+  font-size: var(--font-size-small);
+}
+
+.nodeFrame[data-variant="account-map"][data-kind="account"] .nodeButton {
+  border-width: var(--border-width-medium);
+  background: var(--color-surface-elevated);
+}
+
+.nodeFrame[data-variant="account-map"][data-kind="service"] .nodeButton {
+  border-left: var(--space-1) solid var(--color-accent);
+}
+
+.nodeFrame[data-variant="account-map"][data-kind="function"] .nodeButton {
+  border-style: dashed;
+  border-left: var(--space-1) solid var(--color-warning);
+}
+
+.nodeFrame[data-variant="account-map"][data-kind="content"] .nodeButton {
+  border-left: var(--space-1) solid var(--color-positive);
+}
+
+.nodeFrame[data-variant="account-map"][data-active="true"] .nodeButton {
+  border-color: var(--color-accent-strong);
+  box-shadow:
+    0 0 0 4px var(--color-accent-soft),
+    var(--shadow-float);
+  transform: scale(1.035);
+}
+
+.nodeFrame[data-variant="account-map"][data-status="understood"] .nodeStatus {
+  border-color: var(--color-positive);
+  color: var(--color-ink-strong);
+  background: var(--color-positive-soft);
+}
+
 .edgeNeutral :global(.react-flow__edge-path) {
   stroke: var(--color-ink-muted);
   stroke-width: var(--border-width-medium);
+}
+
+:global(.edge-kind-dependency) :global(.react-flow__edge-path) {
+  stroke: var(--color-accent-strong);
+  stroke-width: 3px;
+}
+
+:global(.edge-kind-association) :global(.react-flow__edge-path) {
+  stroke: var(--color-ink-muted);
+  stroke-width: var(--border-width-medium);
+  stroke-dasharray: 4 8;
+  opacity: 0.68;
 }
 
 .edgeChecking :global(.react-flow__edge-path) {
