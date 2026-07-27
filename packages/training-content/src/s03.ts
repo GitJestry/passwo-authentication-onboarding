@@ -38,9 +38,8 @@ export interface S03SegmentContent {
     readonly ariaLabel: string;
   };
   readonly page: {
-    readonly eyebrow: string;
     readonly title: string;
-    readonly instruction: string;
+    readonly accountListLabel: string;
     readonly progress: (completed: number) => string;
     readonly resultLine: string;
   };
@@ -64,14 +63,28 @@ export interface S03SegmentContent {
     readonly warning: string;
   };
   readonly accountLoginTitles: Readonly<Record<S01AccountId, string>>;
+  readonly accountPages: Readonly<
+    Record<
+      S01AccountId,
+      {
+        readonly areaLabel: string;
+        readonly signedInLabel: string;
+        readonly modules: readonly {
+          readonly label: string;
+          readonly value: string;
+        }[];
+      }
+    >
+  >;
   readonly statuses: {
+    readonly pending: string;
     readonly retrievable: string;
     readonly notRemembered: string;
   };
   readonly animations: readonly S03AnimationSequence[];
 }
 
-export const S03_CONTENT_VERSION = '1.0.0';
+export const S03_CONTENT_VERSION = '1.1.0';
 
 const resultAnimation = (
   accountId: S01AccountId,
@@ -144,16 +157,13 @@ export const s03Content: S03SegmentContent = {
     ariaLabel: 'Fiktive Browseranwendung, Segment S03, Wieder anmelden',
   },
   page: {
-    eyebrow: 'Wieder anmelden',
-    title: 'Melde dich erneut an',
-    instruction:
-      'Du hast jetzt gesehen, was an den Konten hängt. Versuche nun, dich bei allen drei Konten wieder anzumelden. Wenn du ein Passwort nicht mehr weißt, ist das in Ordnung — wähle dann „Ich weiß es nicht mehr — weiter“.',
+    title: 'Wieder anmelden',
+    accountListLabel: 'Konten',
     progress: (completed) => `Wieder anmelden: ${completed}/3 abgeschlossen`,
-    resultLine:
-      'Du hast dich bei allen 3 Konten angemeldet und kannst somti deine universitäre Praxis weiter fortführen.',
+    resultLine: 'Alle drei Konten sind wieder geöffnet. Gleich geht es weiter.',
   },
   controls: {
-    passwordLabel: 'Fiktives Passwort',
+    passwordLabel: 'Passwort',
     showPassword: (accountLabel) => `Passwort für ${accountLabel} anzeigen`,
     hidePassword: (accountLabel) => `Passwort für ${accountLabel} verbergen`,
     show: 'Anzeigen',
@@ -168,11 +178,12 @@ export const s03Content: S03SegmentContent = {
   narration: {
     guideName: 'PassWo',
     intro:
-      'Du hast jetzt gesehen, was an den Konten hängt. Versuche nun, dich bei allen drei Konten wieder anzumelden. Wenn du ein Passwort nicht mehr weißt, ist das in Ordnung — wähle dann „Ich weiß es nicht mehr — weiter“.',
+      'Wähle ein Konto und melde dich an. Wenn du das Passwort nicht mehr weißt, wähle „Ich weiß es nicht mehr — weiter“.',
     accountSuccess: {
-      'campus-id': 'CampusID ist wieder geöffnet.',
-      'campus-mail': 'CampusMail ist wieder geöffnet.',
-      'campus-board-archive': 'CampusBoard Archiv ist wieder geöffnet.',
+      'campus-id': 'CampusID ist wieder geöffnet. Wähle als Nächstes ein weiteres Konto.',
+      'campus-mail': 'CampusMail ist wieder geöffnet. Wähle als Nächstes ein weiteres Konto.',
+      'campus-board-archive':
+        'CampusBoard Archiv ist wieder geöffnet. Wähle als Nächstes ein weiteres Konto.',
     },
     accountSkipped: {
       'campus-id':
@@ -183,14 +194,41 @@ export const s03Content: S03SegmentContent = {
         'Auch das ist eine nützliche Beobachtung für die spätere Passwortauswertung.',
     },
     warning:
-      'STOP - bei campusboard bgibt es eine sicherheitsmeldung. Kannst du es dir bitte ansehen?',
+      'Stopp – bei CampusBoard gibt es eine Sicherheitsmeldung. Kannst du sie dir bitte ansehen?',
   },
   accountLoginTitles: {
     'campus-id': 'Melde dich bei CampusID an.',
     'campus-mail': 'Melde dich bei CampusMail an.',
     'campus-board-archive': 'Melde dich bei CampusBoard Archiv an.',
   },
+  accountPages: {
+    'campus-id': {
+      areaLabel: 'Campuszugang',
+      signedInLabel: 'Angemeldet',
+      modules: [
+        { label: 'Profil', value: 'Campuszugang aktiv' },
+        { label: 'Dienste', value: 'LearnSpace · Prüfungsportal · Cloud Notes' },
+      ],
+    },
+    'campus-mail': {
+      areaLabel: 'Posteingang',
+      signedInLabel: 'Angemeldet',
+      modules: [
+        { label: 'Postfach', value: 'CampusMail ist geöffnet' },
+        { label: 'Heute', value: 'Bestätigungen · Benachrichtigungen' },
+      ],
+    },
+    'campus-board-archive': {
+      areaLabel: 'Archiv und Austausch',
+      signedInLabel: 'Angemeldet',
+      modules: [
+        { label: 'Bereiche', value: 'Alte Ankündigungen · Projektfragen' },
+        { label: 'Materialien', value: 'Archivierte Diskussionen' },
+      ],
+    },
+  },
   statuses: {
+    pending: 'Bereit',
     retrievable: 'abrufbar',
     notRemembered: 'nicht erinnert',
   },

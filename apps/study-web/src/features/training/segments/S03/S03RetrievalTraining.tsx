@@ -10,6 +10,10 @@ import { useEffect, useRef, useState } from 'react';
 import { PassWoQuestDock } from '../../../../adapters/character/PassWoCharacterAdapter.js';
 import { NetworkMotionAdapter } from '../../../../adapters/network/NetworkMotionAdapter.js';
 import {
+  NetworkStatusMarker,
+  NetworkSymbol,
+} from '../../../../adapters/network/NetworkSymbolRegistry.js';
+import {
   ReactFlowNetwork,
   ReactFlowNetworkAdapter,
 } from '../../../../adapters/network/ReactFlowNetworkAdapter.js';
@@ -37,6 +41,51 @@ function prefersReducedMotion(): boolean {
 
 function isLocalTimingFailure(snapshot: PasswordModuleSnapshot): boolean {
   return snapshot.matches({ s03: 'startFailed' }) || snapshot.matches({ s03: 'endFailed' });
+}
+
+function CampusPage({
+  account,
+  accountData,
+}: {
+  readonly account: (typeof s01Content.browser.accounts)[number];
+  readonly accountData: string;
+}) {
+  const page = s03Content.accountPages[account.id];
+
+  return (
+    <section className={styles.campusPage} aria-label={`${account.label}, ${page.signedInLabel}`}>
+      <header className={styles.campusPageHeader}>
+        <div className={styles.siteIdentity}>
+          <NetworkSymbol symbolId={account.symbolId} className={styles.siteSymbol} />
+          <span>{account.label}</span>
+        </div>
+        <span className={styles.signedInLabel}>{page.signedInLabel}</span>
+      </header>
+      <nav className={styles.siteNavigation} aria-label={`${account.label}-Navigation`}>
+        {account.navigation.map((item) => (
+          <span key={item}>{item}</span>
+        ))}
+      </nav>
+      <div className={styles.campusPageBody}>
+        <div>
+          <p className={styles.areaLabel}>{page.areaLabel}</p>
+          <h2 id="s03-login-title">{account.label}</h2>
+        </div>
+        <dl className={styles.campusDetails}>
+          <div>
+            <dt>{account.accountDataLabel}</dt>
+            <dd>{accountData}</dd>
+          </div>
+          {page.modules.map((module) => (
+            <div key={module.label}>
+              <dt>{module.label}</dt>
+              <dd>{module.value}</dd>
+            </div>
+          ))}
+        </dl>
+      </div>
+    </section>
+  );
 }
 
 export function S03RetrievalTraining({
@@ -130,11 +179,13 @@ export function S03RetrievalTraining({
     presentationSnapshot.warningState === 'ready' && boardWarningActive;
   const guideMessage = boardWarningActive
     ? s03Content.narration.warning
-    : result === 'retrievable'
-      ? s03Content.narration.accountSuccess[account.id]
-      : result === 'not-remembered'
-        ? s03Content.narration.accountSkipped[account.id]
-        : s03Content.narration.intro;
+    : timeLapseActive
+      ? s03Content.page.resultLine
+      : result === 'retrievable'
+        ? s03Content.narration.accountSuccess[account.id]
+        : result === 'not-remembered'
+          ? s03Content.narration.accountSkipped[account.id]
+          : s03Content.narration.intro;
   const browserSnapshot: BrowserShellSnapshot = {
     tabs: s01Content.browser.accounts.map((tabAccount) => ({
       id: tabAccount.id,
@@ -200,106 +251,149 @@ export function S03RetrievalTraining({
       >
         <article className={styles.page} aria-labelledby="s03-page-title">
           <header className={styles.pageHeader}>
-            <div>
-              <p className={styles.eyebrow}>{s03Content.page.eyebrow}</p>
-              <h1 id="s03-page-title">{s03Content.page.title}</h1>
-              <p>{s03Content.page.instruction}</p>
-            </div>
+            <h1 id="s03-page-title">{s03Content.page.title}</h1>
             <p className={styles.progress} role="status">
               {s03Content.page.progress(completedCount)}
             </p>
           </header>
 
           <div className={styles.workspace}>
-            <section className={styles.loginPanel} aria-labelledby="s03-login-title">
-              <p className={styles.accountDataLabel}>{account.accountDataLabel}</p>
-              <h2 id="s03-login-title">{s03Content.accountLoginTitles[account.id]}</h2>
-              <p className={styles.accountData}>{accountData}</p>
-              {result === 'pending' ? (
-                <form
-                  className={styles.loginForm}
-                  onSubmit={(event) => {
-                    event.preventDefault();
-                    const previousResult =
-                      snapshot.context.retrievalResults[account.id] ?? 'pending';
-                    controller.submitRetrievalLogin(account.id);
-                    if (
-                      previousResult === 'pending' &&
-                      controller.getSnapshot().context.retrievalResults[account.id] ===
-                        'retrievable'
-                    ) {
-                      runtime.controller.playSuccessfulRetrieval(account.id);
-                    }
-                  }}
-                >
-                  <label htmlFor={`s03-password-${account.id}`}>
-                    {s03Content.controls.passwordLabel}
-                  </label>
-                  <span className={styles.passwordInputGroup}>
-                    <input
-                      id={`s03-password-${account.id}`}
-                      name={`s03-password-${account.id}`}
-                      type={revealedAccountIds.has(account.id) ? 'text' : 'password'}
-                      autoComplete="off"
-                      spellCheck={false}
-                      value={activeValue}
-                      disabled={interactionBlocked}
-                      onChange={(event) =>
-                        controller.setRetrievalPasswordValue(account.id, event.currentTarget.value)
-                      }
-                    />
-                    <button
-                      type="button"
-                      className={styles.revealButton}
-                      aria-pressed={revealedAccountIds.has(account.id)}
-                      aria-label={
-                        revealedAccountIds.has(account.id)
-                          ? s03Content.controls.hidePassword(account.label)
-                          : s03Content.controls.showPassword(account.label)
-                      }
-                      disabled={interactionBlocked}
-                      onClick={() => toggleReveal(account.id)}
-                    >
-                      {revealedAccountIds.has(account.id)
-                        ? s03Content.controls.hide
-                        : s03Content.controls.show}
-                    </button>
-                  </span>
-                  <div className={styles.buttonRow}>
-                    <button
-                      type="submit"
-                      className={styles.primaryButton}
-                      disabled={interactionBlocked}
-                    >
-                      {s03Content.controls.login}
-                    </button>
-                    <button
-                      type="button"
-                      className={styles.secondaryButton}
-                      disabled={interactionBlocked}
-                      onClick={() => controller.skipRetrieval(account.id)}
-                    >
-                      {s03Content.controls.skip}
-                    </button>
-                  </div>
-                </form>
-              ) : (
-                <section className={styles.resultNode} data-result={result} aria-live="polite">
-                  <span aria-hidden="true">{result === 'retrievable' ? '✓' : '○'}</span>
-                  <div>
-                    <strong>
-                      {result === 'retrievable'
+            <aside className={styles.accountRail} aria-label={s03Content.page.accountListLabel}>
+              <p>{s03Content.page.accountListLabel}</p>
+              <div className={styles.accountList}>
+                {s01Content.browser.accounts.map((railAccount) => {
+                  const railResult = snapshot.context.retrievalResults[railAccount.id] ?? 'pending';
+                  const statusLabel =
+                    railResult === 'pending'
+                      ? s03Content.statuses.pending
+                      : railResult === 'retrievable'
                         ? s03Content.statuses.retrievable
-                        : s03Content.statuses.notRemembered}
-                    </strong>
-                    <p>
-                      {result === 'retrievable'
-                        ? s03Content.narration.accountSuccess[account.id]
-                        : s03Content.narration.accountSkipped[account.id]}
-                    </p>
-                  </div>
-                </section>
-              )}
+                        : s03Content.statuses.notRemembered;
+
+                  return (
+                    <button
+                      key={railAccount.id}
+                      type="button"
+                      className={styles.accountCard}
+                      data-active={railAccount.id === account.id}
+                      data-result={railResult}
+                      aria-current={railAccount.id === account.id ? 'page' : undefined}
+                      disabled={interactionBlocked}
+                      onClick={() => controller.selectAccount(railAccount.id)}
+                    >
+                      <NetworkSymbol
+                        symbolId={railAccount.symbolId}
+                        className={styles.accountSymbol}
+                      />
+                      <span>
+                        <strong>{railAccount.label}</strong>
+                        <small>{statusLabel}</small>
+                      </span>
+                      <NetworkStatusMarker
+                        status={railResult}
+                        className={styles.accountStatusMarker}
+                      />
+                    </button>
+                  );
+                })}
+              </div>
+            </aside>
+
+            <section className={styles.loginStage} aria-labelledby="s03-login-title">
+              <div className={styles.loginPanel}>
+                {result === 'retrievable' ? (
+                  <CampusPage account={account} accountData={accountData} />
+                ) : result === 'not-remembered' ? (
+                  <section className={styles.resultNode} data-result={result} aria-live="polite">
+                    <NetworkSymbol symbolId={account.symbolId} className={styles.resultSymbol} />
+                    <div>
+                      <h2 id="s03-login-title">{account.label}</h2>
+                      <strong>{s03Content.statuses.notRemembered}</strong>
+                    </div>
+                  </section>
+                ) : (
+                  <>
+                    <div className={styles.loginIdentity}>
+                      <NetworkSymbol symbolId={account.symbolId} className={styles.loginSymbol} />
+                      <div>
+                        <p className={styles.accountDataLabel}>{account.accountDataLabel}</p>
+                        <h2 id="s03-login-title">{account.label}</h2>
+                        <p className={styles.accountData}>{accountData}</p>
+                      </div>
+                    </div>
+                    <form
+                      className={styles.loginForm}
+                      onSubmit={(event) => {
+                        event.preventDefault();
+                        const previousResult =
+                          snapshot.context.retrievalResults[account.id] ?? 'pending';
+                        controller.submitRetrievalLogin(account.id);
+                        if (
+                          previousResult === 'pending' &&
+                          controller.getSnapshot().context.retrievalResults[account.id] ===
+                            'retrievable'
+                        ) {
+                          runtime.controller.playSuccessfulRetrieval(account.id);
+                        }
+                      }}
+                    >
+                      <label htmlFor={`s03-password-${account.id}`}>
+                        {s03Content.controls.passwordLabel}
+                      </label>
+                      <span className={styles.passwordInputGroup}>
+                        <input
+                          id={`s03-password-${account.id}`}
+                          name={`s03-password-${account.id}`}
+                          type={revealedAccountIds.has(account.id) ? 'text' : 'password'}
+                          autoComplete="off"
+                          spellCheck={false}
+                          value={activeValue}
+                          disabled={interactionBlocked}
+                          onChange={(event) =>
+                            controller.setRetrievalPasswordValue(
+                              account.id,
+                              event.currentTarget.value,
+                            )
+                          }
+                        />
+                        <button
+                          type="button"
+                          className={styles.revealButton}
+                          aria-pressed={revealedAccountIds.has(account.id)}
+                          aria-label={
+                            revealedAccountIds.has(account.id)
+                              ? s03Content.controls.hidePassword(account.label)
+                              : s03Content.controls.showPassword(account.label)
+                          }
+                          disabled={interactionBlocked}
+                          onClick={() => toggleReveal(account.id)}
+                        >
+                          {revealedAccountIds.has(account.id)
+                            ? s03Content.controls.hide
+                            : s03Content.controls.show}
+                        </button>
+                      </span>
+                      <div className={styles.buttonRow}>
+                        <button
+                          type="submit"
+                          className={styles.primaryButton}
+                          disabled={interactionBlocked}
+                        >
+                          {s03Content.controls.login}
+                        </button>
+                        <button
+                          type="button"
+                          className={styles.secondaryButton}
+                          disabled={interactionBlocked}
+                          onClick={() => controller.skipRetrieval(account.id)}
+                        >
+                          {s03Content.controls.skip}
+                        </button>
+                      </div>
+                    </form>
+                  </>
+                )}
+              </div>
             </section>
 
             <section
