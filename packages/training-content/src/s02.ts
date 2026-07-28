@@ -149,7 +149,7 @@ export interface S02SegmentContent {
   readonly animations: readonly S02AnimationSequence[];
 }
 
-export const S02_CONTENT_VERSION = '3.3.0';
+export const S02_CONTENT_VERSION = '3.4.0';
 
 const introId = 's02.accounts.intro';
 const completeId = 's02.accounts.complete';
@@ -157,12 +157,12 @@ const completeId = 's02.accounts.complete';
 const accounts = [
   {
     id: 'campus-id',
-    label: 'CampusID',
+    label: 'Master Campus',
     symbolId: 'campus-id',
     position: { x: 0.12, y: 0.13 },
     detailKind: 'service',
     edgeKind: 'dependency',
-    edgeLabel: 'Mit CampusID geöffnet',
+    edgeLabel: 'Mit Master Campus geöffnet',
     unlockAnimationId: 's02-unlock-campus-id',
     detailRevealAnimationId: 's02-reveal-campus-id-details',
     returnToDockAnimationId: 's02-return-campus-id-to-dock',
@@ -172,16 +172,16 @@ const accounts = [
     },
     descriptions: {
       locked: 'Konto öffnen',
-      opening: 'CampusID wird geöffnet …',
+      opening: 'Master Campus wird geöffnet …',
       open: 'Verbundene Dienste ansehen',
-      understood: 'CampusID verstanden',
+      understood: 'Master Campus verstanden',
     },
     summaries: {
-      locked: 'CampusID ist geschlossen.',
-      opening: 'CampusID wird geöffnet. Die verbundenen Dienste erscheinen nacheinander.',
-      progress: '{opened} von {total} Details zu CampusID geöffnet.',
-      checking: '{detail} wird mit CampusID geprüft.',
-      understood: 'CampusID verstanden. Alle drei verbundenen Dienste wurden geöffnet.',
+      locked: 'Master Campus ist geschlossen.',
+      opening: 'Master Campus wird geöffnet. Die verbundenen Dienste erscheinen nacheinander.',
+      progress: '{opened} von {total} Details zu Master Campus geöffnet.',
+      checking: '{detail} wird mit Master Campus geprüft.',
+      understood: 'Master Campus verstanden. Alle drei verbundenen Dienste wurden geöffnet.',
     },
     details: [
       {
@@ -193,8 +193,8 @@ const accounts = [
         animationId: 's02-check-campus-id-learnspace',
         narrationId: 's02.campus-id.learnspace',
         descriptions: {
-          available: 'Mit CampusID öffnen',
-          checking: 'CampusID wird geprüft …',
+          available: 'Mit Master Campus öffnen',
+          checking: 'Master Campus wird geprüft …',
           opened: 'Vorschau erneut öffnen',
         },
       },
@@ -207,8 +207,8 @@ const accounts = [
         animationId: 's02-check-campus-id-exam-portal',
         narrationId: 's02.campus-id.exam-portal',
         descriptions: {
-          available: 'Mit CampusID öffnen',
-          checking: 'CampusID wird geprüft …',
+          available: 'Mit Master Campus öffnen',
+          checking: 'Master Campus wird geprüft …',
           opened: 'Vorschau erneut öffnen',
         },
       },
@@ -221,8 +221,8 @@ const accounts = [
         animationId: 's02-check-campus-id-cloud-notes',
         narrationId: 's02.campus-id.cloud-notes',
         descriptions: {
-          available: 'Mit CampusID öffnen',
-          checking: 'CampusID wird geprüft …',
+          available: 'Mit Master Campus öffnen',
+          checking: 'Master Campus wird geprüft …',
           opened: 'Vorschau erneut öffnen',
         },
       },
@@ -230,12 +230,12 @@ const accounts = [
   },
   {
     id: 'campus-mail',
-    label: 'CampusMail',
+    label: 'Campus E-Mail',
     symbolId: 'campus-mail',
     position: { x: 0.7, y: 0.1 },
     detailKind: 'function',
     edgeKind: 'association',
-    edgeLabel: 'Mit CampusMail verbunden',
+    edgeLabel: 'Mit Campus E-Mail verbunden',
     unlockAnimationId: 's02-unlock-campus-mail',
     detailRevealAnimationId: 's02-reveal-campus-mail-details',
     returnToDockAnimationId: 's02-return-campus-mail-to-dock',
@@ -245,16 +245,16 @@ const accounts = [
     },
     descriptions: {
       locked: 'Konto öffnen',
-      opening: 'CampusMail wird geöffnet …',
+      opening: 'Campus E-Mail wird geöffnet …',
       open: 'Funktionen ansehen',
-      understood: 'CampusMail verstanden',
+      understood: 'Campus E-Mail verstanden',
     },
     summaries: {
-      locked: 'CampusMail ist geschlossen.',
-      opening: 'CampusMail wird geöffnet. Vier Funktionen erscheinen nacheinander.',
-      progress: '{opened} von {total} Details zu CampusMail geöffnet.',
-      checking: '{detail} in CampusMail wird geöffnet.',
-      understood: 'CampusMail verstanden. Alle vier Funktionen wurden angesehen.',
+      locked: 'Campus E-Mail ist geschlossen.',
+      opening: 'Campus E-Mail wird geöffnet. Vier Funktionen erscheinen nacheinander.',
+      progress: '{opened} von {total} Details zu Campus E-Mail geöffnet.',
+      checking: '{detail} in Campus E-Mail wird geöffnet.',
+      understood: 'Campus E-Mail verstanden. Alle vier Funktionen wurden angesehen.',
     },
     details: [
       {
@@ -317,12 +317,12 @@ const accounts = [
   },
   {
     id: 'campus-board-archive',
-    label: 'CampusBoard Archiv',
+    label: 'Campusgram',
     symbolId: 'campus-board-archive',
     position: { x: 0.42, y: 0.43 },
     detailKind: 'content',
     edgeKind: 'association',
-    edgeLabel: 'Lokaler Inhalt im CampusBoard Archiv',
+    edgeLabel: 'Lokaler Inhalt in Campusgram',
     unlockAnimationId: 's02-unlock-campus-board-archive',
     detailRevealAnimationId: 's02-reveal-campus-board-archive-details',
     returnToDockAnimationId: 's02-return-campus-board-archive-to-dock',
@@ -332,16 +332,16 @@ const accounts = [
     },
     descriptions: {
       locked: 'Konto öffnen',
-      opening: 'CampusBoard Archiv wird geöffnet …',
+      opening: 'Campusgram wird geöffnet …',
       open: 'Archivierte Inhalte ansehen',
-      understood: 'CampusBoard Archiv verstanden',
+      understood: 'Campusgram verstanden',
     },
     summaries: {
-      locked: 'CampusBoard Archiv ist geschlossen.',
-      opening: 'CampusBoard Archiv wird geöffnet. Drei archivierte Inhalte erscheinen.',
-      progress: '{opened} von {total} Details im CampusBoard Archiv geöffnet.',
+      locked: 'Campusgram ist geschlossen.',
+      opening: 'Campusgram wird geöffnet. Drei archivierte Inhalte erscheinen.',
+      progress: '{opened} von {total} Details in Campusgram geöffnet.',
       checking: '{detail} wird geöffnet.',
-      understood: 'CampusBoard Archiv verstanden. Alle drei archivierten Inhalte wurden angesehen.',
+      understood: 'Campusgram verstanden. Alle drei archivierten Inhalte wurden angesehen.',
     },
     details: [
       {
@@ -521,9 +521,9 @@ export const s02Content: S02SegmentContent = {
       [completeId]:
         'Du hast die Konten erkundet. Klicke unten im Dock auf den Browser, wenn du bereit bist weiterzugehen.',
       's02.campus-id.open':
-        'CampusID ist dein zentrales Konto: Mit einem Passwort kannst du dich bei mehreren verbundenen Diensten anmelden.',
+        'Master Campus ist dein zentrales Konto: Mit einem Passwort kannst du dich bei mehreren verbundenen Diensten anmelden.',
       's02.campus-id.understood':
-        'Zusammengefasst steckt hinter dem einen Passwort nicht nur die CampusID, sondern drei weitere persönliche Dienste.',
+        'Zusammengefasst steckt hinter dem einen Passwort nicht nur Master Campus, sondern drei weitere persönliche Dienste.',
       's02.campus-id.learnspace':
         'Hier sammeln sich deine Kurse, Materialien und Abgaben. Darin können auch persönliche Notizen und Dateien liegen.',
       's02.campus-id.exam-portal':
@@ -531,9 +531,9 @@ export const s02Content: S02SegmentContent = {
       's02.campus-id.cloud-notes':
         'Hier liegen Notizen, Entwürfe und Arbeitsdateien – zum Beispiel auch persönliche Fotos, wenn du sie dort abgelegt hast.',
       's02.campus-mail.open':
-        'CampusMail verbindet Nachrichten, Bestätigungen, Zurücksetzungen und Kommunikation.',
+        'Campus E-Mail verbindet Nachrichten, Bestätigungen, Zurücksetzungen und Kommunikation.',
       's02.campus-mail.understood':
-        'CampusMail ist die Brücke zu persönlichen Informationen, Zurücksetzungen und Kommunikation in deinem Namen.',
+        'Campus E-Mail ist die Brücke zu persönlichen Informationen, Zurücksetzungen und Kommunikation in deinem Namen.',
       's02.campus-mail.notifications':
         'Hier landen Hinweise zu Kursen, Terminen und Systemen. Sie zeigen, welche Vorgänge dich gerade betreffen.',
       's02.campus-mail.confirmations':
@@ -543,9 +543,9 @@ export const s02Content: S02SegmentContent = {
       's02.campus-mail.impersonation':
         'Über dieses Postfach könnten in diesem Szenario Nachrichten in deinem Namen geschrieben werden.',
       's02.campus-board.open':
-        'Im CampusBoard Archiv liegen lokale Inhalte ohne Verbindungen zu weiteren Campusdiensten.',
+        'In Campusgram liegen lokale Inhalte ohne Verbindungen zu weiteren Campusdiensten.',
       's02.campus-board.understood':
-        'CampusBoard öffnet hier keine weiteren Campusdienste und enthält typische archivierte Informationen.',
+        'Campusgram öffnet hier keine weiteren Campusdienste und enthält typische archivierte Informationen.',
       's02.campus-board.old-announcements':
         'Hier liegen ältere Hinweise und Informationen, die zeigen können, welche Themen oder Veranstaltungen dich betroffen haben.',
       's02.campus-board.project-questions':

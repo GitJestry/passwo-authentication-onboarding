@@ -50,7 +50,7 @@ Das Netzwerk zeigt Konten, abhängige Dienste, Funktionen, Passwortbeziehungen u
 
 S02 „Konten verstehen“ bildet die erste vollständige Kontenerkundung:
 
-1. CampusID, CampusMail und CampusBoard Archiv sind gleichzeitig als unterschiedliche
+1. Master Campus, Campus E-Mail und Campusgram sind gleichzeitig als unterschiedliche
    Symbolkreise in festen Positionen sichtbar;
 2. das zuerst gewählte unvollständige Konto sperrt die Auswahl der beiden anderen Konten, bis
    alle seine Details geöffnet sind; danach kann das nächste Konto frei gewählt werden;
@@ -59,9 +59,9 @@ S02 „Konten verstehen“ bildet die erste vollständige Kontenerkundung:
 4. das aktive Konto vergrößert sich leicht; seine Detailknoten erscheinen schrittweise als
    Bubbles und bleiben zusammen mit bereits geöffneten Konten und Kanten bei späteren Wechseln
    sichtbar;
-5. CampusID-Dienste verwenden `service`/`dependency`, CampusMail-Funktionen
+5. Master-Campus-Dienste verwenden `service`/`dependency`, Campus-E-Mail-Funktionen
    `function`/`association`;
-6. CampusBoard-Inhalte verwenden `content`/`association`; diese Kanten bilden ausschließlich
+6. Campusgram-Inhalte verwenden `content`/`association`; diese Kanten bilden ausschließlich
    lokale Inhaltszuordnungen im Archiv ab, keine SSO- oder Dienstverbindungen;
 7. nach dem Unlock existieren alle Details und Kanten des Kontos; die Kanten sind zunächst
    `neutral`, während der Prüfung `checking` und danach `opened`;

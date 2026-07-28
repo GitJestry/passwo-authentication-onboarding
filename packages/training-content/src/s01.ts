@@ -41,7 +41,7 @@ export interface S01SegmentContent {
   readonly quest: {
     readonly helpLabel: string;
     readonly closeHelpLabel: string;
-    readonly nextAccount: (accountLabel: string) => string;
+    readonly guideMessage: string;
     readonly readyToContinue: string;
   };
   readonly controls: {
@@ -61,7 +61,7 @@ export interface S01SegmentContent {
   };
 }
 
-export const S01_CONTENT_VERSION = '2.4.0';
+export const S01_CONTENT_VERSION = '2.5.0';
 
 export const s01Content: S01SegmentContent = {
   version: S01_CONTENT_VERSION,
@@ -79,9 +79,9 @@ export const s01Content: S01SegmentContent = {
     accounts: [
       {
         id: 'campus-id',
-        label: 'CampusID',
+        label: 'Master Campus',
         address: 'campus.example/campus-id',
-        accountDataLabel: 'Kontodaten',
+        accountDataLabel: 'Benutzername',
         accountData: 'alex27@campus.example',
         role: 'Zentrales Campus-Konto.',
         symbolId: 'campus-id',
@@ -95,9 +95,9 @@ export const s01Content: S01SegmentContent = {
       },
       {
         id: 'campus-mail',
-        label: 'CampusMail',
+        label: 'Campus E-Mail',
         address: 'mail.campus.example',
-        accountDataLabel: 'Kontodaten',
+        accountDataLabel: 'Benutzername',
         accountData: 'alex27@mail.campus.example',
         role: 'Campusbezogene Nachrichten, Bestätigungen und Zurücksetzungslinks.',
         symbolId: 'campus-mail',
@@ -111,9 +111,9 @@ export const s01Content: S01SegmentContent = {
       },
       {
         id: 'campus-board-archive',
-        label: 'CampusBoard Archiv',
+        label: 'Campusgram',
         address: 'campus.example/board-archiv',
-        accountDataLabel: 'Kontodaten',
+        accountDataLabel: 'Benutzername',
         accountData: 'alex_board',
         role: 'Ältere Ankündigungen, Projektfragen und informelle Campus-Diskussionen.',
         symbolId: 'campus-board-archive',
@@ -135,7 +135,8 @@ export const s01Content: S01SegmentContent = {
   quest: {
     helpLabel: 'PassWo-Hinweis öffnen',
     closeHelpLabel: 'PassWo-Hinweis schließen',
-    nextAccount: (accountLabel) => `Richte das Passwort für ${accountLabel} ein.`,
+    guideMessage:
+      'Erstelle starke und merkbare Passwörter, da wir uns später wieder anmelden müssen und unsere Accounts schützen wollen.',
     readyToContinue:
       'Die drei Konten sind eingerichtet. Bevor du dich erneut anmeldest, schauen wir kurz an, wofür diese Konten im Campusalltag stehen.',
   },

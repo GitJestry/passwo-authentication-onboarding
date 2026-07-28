@@ -34,7 +34,7 @@ export interface S06ConsequenceFixture {
   readonly animationId: string;
 }
 
-export const S06_CONSEQUENCE_CONTENT_VERSION = '1.1.0';
+export const S06_CONSEQUENCE_CONTENT_VERSION = '1.2.0';
 
 const commonAnalysis = {
   source: 'authored-fixture',
@@ -46,8 +46,8 @@ const results: Record<S06ConsequenceResultKey, S06ConsequenceResultContent> = {
   equal: {
     key: 'equal',
     scenarioLabel: 'Szenario: Gleich',
-    comparisonTitle: 'Vergleich mit CampusID',
-    targetLabel: 'CampusID',
+    comparisonTitle: 'Vergleich mit Master Campus',
+    targetLabel: 'Master Campus',
     hypotheticalNotice: null,
     explanations: {
       ready: { body: 'Der Vergleich ist bereit.', listItems: [] },
@@ -69,8 +69,8 @@ const results: Record<S06ConsequenceResultKey, S06ConsequenceResultContent> = {
   similar: {
     key: 'similar',
     scenarioLabel: 'Szenario: Ähnlich',
-    comparisonTitle: 'Vergleich mit CampusMail',
-    targetLabel: 'CampusMail',
+    comparisonTitle: 'Vergleich mit Campus E-Mail',
+    targetLabel: 'Campus E-Mail',
     hypotheticalNotice: null,
     explanations: {
       ready: { body: 'Der Vergleich ist bereit.', listItems: [] },
@@ -92,8 +92,8 @@ const results: Record<S06ConsequenceResultKey, S06ConsequenceResultContent> = {
   unique: {
     key: 'unique',
     scenarioLabel: 'Szenario: Einzigartig',
-    comparisonTitle: 'Vergleich mit CampusMail',
-    targetLabel: 'CampusMail',
+    comparisonTitle: 'Vergleich mit Campus E-Mail',
+    targetLabel: 'Campus E-Mail',
     hypotheticalNotice: null,
     explanations: {
       ready: { body: 'Der Vergleich ist bereit.', listItems: [] },
@@ -115,8 +115,8 @@ const results: Record<S06ConsequenceResultKey, S06ConsequenceResultContent> = {
   hypothetical: {
     key: 'hypothetical',
     scenarioLabel: 'Szenario: Hypothetisch',
-    comparisonTitle: 'Vergleich mit CampusID',
-    targetLabel: 'CampusID',
+    comparisonTitle: 'Vergleich mit Master Campus',
+    targetLabel: 'Master Campus',
     hypotheticalNotice: 'Hypothetisches Beispiel — nicht deine Auswahl',
     explanations: {
       ready: { body: 'Der Vergleich ist bereit.', listItems: [] },
@@ -161,7 +161,7 @@ export const s06ConsequenceContent = {
   page: {
     eyebrow: 'Einzigartigkeit und Ausbreitung',
     title: 'Wohin kann ein bekanntes Passwort führen?',
-    instruction: 'Vergleiche das bekannte CampusBoard-Passwort mit dem ausgewählten Zielkonto.',
+    instruction: 'Vergleiche das bekannte Campusgram-Passwort mit dem ausgewählten Zielkonto.',
     fixtureNotice: 'Vorgegebenes Beispiel — keine echte Passwortbewertung',
     start: 'Vergleich starten',
     replay: 'Vergleich wiederholen',
@@ -169,7 +169,7 @@ export const s06ConsequenceContent = {
   },
   scene: {
     sourceAccount: {
-      label: 'CampusBoard',
+      label: 'Campusgram',
       position: { x: 0.05, y: 0.31 },
     },
     targetPosition: { x: 0.63, y: 0.31 },
@@ -190,7 +190,7 @@ export const s06ConsequenceContent = {
       hypotheticalDescription: 'Diese Szene zeigt dauerhaft eine nicht reale Auswahl.',
     },
     summaries: {
-      ready: 'CampusBoard-Passwort bekannt. Der Vergleich mit dem Zielkonto ist bereit.',
+      ready: 'Campusgram-Passwort bekannt. Der Vergleich mit dem Zielkonto ist bereit.',
       comparing: 'Das vorgegebene Analyseergebnis wird auf die Szene angewendet.',
       identical:
         'Gleiches Passwort: Eine rote direkte Verbindung zeigt, dass der Zugang betroffen ist.',

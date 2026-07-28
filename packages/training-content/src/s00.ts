@@ -87,7 +87,7 @@ export interface S00SegmentContent {
   };
 }
 
-export const S00_CONTENT_VERSION = '1.4.0';
+export const S00_CONTENT_VERSION = '1.6.0';
 
 export const s00Content: S00SegmentContent = {
   version: S00_CONTENT_VERSION,
@@ -105,7 +105,7 @@ export const s00Content: S00SegmentContent = {
   },
   sectionTransition: {
     label: 'Sektion 1',
-    title: 'Starke und einzigartige Passwörter',
+    title: 'Starke Passwörter',
     holdDurationMs: 5000,
   },
   source: {
@@ -120,14 +120,14 @@ export const s00Content: S00SegmentContent = {
     ariaLabel: 'Fiktive Browseranwendung, Segment S00',
     address: 'campus.example/start',
     tabs: [
-      { id: 'campus-id', label: 'CampusID', enabled: true },
-      { id: 'campus-mail', label: 'CampusMail', enabled: false },
-      { id: 'campus-board-archive', label: 'CampusBoard Archiv', enabled: false },
+      { id: 'campus-id', label: 'Master Campus', enabled: true },
+      { id: 'campus-mail', label: 'Campus E-Mail', enabled: false },
+      { id: 'campus-board-archive', label: 'Campusgram', enabled: false },
     ],
     page: {
       title: 'Zentraler Zugang zum Campus',
       description: 'Verwalte deinen Zugang zu zentralen Campusdiensten an einem Ort.',
-      identityName: 'CampusID',
+      identityName: 'Master Campus',
       navigation: ['Übersicht', 'Dienste', 'Hilfe'],
       modules: [
         {
@@ -146,7 +146,7 @@ export const s00Content: S00SegmentContent = {
     greetingTemplate:
       'Hey {displayName}, wichtig ist, dass du hier keine eigenen Passwörter oder Varianten davon verwendest.',
     instruction:
-      'Nutze nur neue, ausgedachte Passwörter. Deine Kontodaten sind bereits eingetragen.',
+      'Nutze nur neue, ausgedachte Passwörter. Dein Benutzername ist bereits eingetragen.',
     openGuideLabel: 'PassWo-Hilfe öffnen',
     closeGuideLabel: 'PassWo-Hilfe schließen',
   },

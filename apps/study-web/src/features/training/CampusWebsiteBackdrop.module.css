@@ -1,10 +1,46 @@
 .page {
+  --color-ink-strong: #173b5b;
+  --color-ink-muted: #526d86;
+  --color-accent-strong: #23577e;
+  --color-accent-soft: #dbeaf7;
+  --color-border: #a7bdcf;
+  --color-border-soft: #d6e1ea;
+  --color-surface-primary: #ffffff;
+  --color-surface-muted: #f3f7fa;
+  --color-surface-inverse: #173b5b;
+  --color-on-inverse: #ffffff;
+  --color-focus: #285d88;
   display: flex;
   min-height: 100%;
   flex: 1;
   flex-direction: column;
   color: var(--color-ink);
   background: var(--color-surface-muted);
+}
+
+.page[data-campus-site="campus-mail"] {
+  --color-ink-strong: #9b4511;
+  --color-ink-muted: #9a704f;
+  --color-accent-strong: #dd7216;
+  --color-accent-soft: #fff0df;
+  --color-border: #efbf95;
+  --color-border-soft: #f8dcc2;
+  --color-surface-muted: #fff9f2;
+  --color-surface-inverse: #dc6f12;
+  --color-focus: #bd5b0f;
+}
+
+.page[data-campus-site="campus-board-archive"] {
+  --color-ink-strong: #8e2757;
+  --color-ink-muted: #9a5d78;
+  --color-accent-strong: #d64d82;
+  --color-accent-soft: #ffe0ec;
+  --color-border: #eca9c4;
+  --color-border-soft: #f7d0df;
+  --color-surface-muted: #fff7fa;
+  --color-surface-inverse: #d04478;
+  --color-focus: #b93669;
+  font-family: ui-rounded, "Avenir Next", "Trebuchet MS", sans-serif;
 }
 
 .pageHeader {

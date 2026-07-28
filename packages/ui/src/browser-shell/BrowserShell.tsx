@@ -13,6 +13,7 @@ import styles from './BrowserShell.module.css';
 export interface BrowserTabModel {
   readonly id: string;
   readonly label: string;
+  readonly icon?: ReactNode;
   readonly status?: 'neutral' | 'complete' | 'attention';
   readonly enabled?: boolean;
   readonly disabledReason?: string;
@@ -213,7 +214,10 @@ export function BrowserShell({
         onClick={() => selectTab(tab.id)}
         onKeyDown={(event) => handleTabKeyDown(event, tab.id, enabled)}
       >
-        <span>{tab.label}</span>
+        <span className={styles.tabIdentity}>
+          {tab.icon ? <span className={styles.tabIcon}>{tab.icon}</span> : null}
+          <span>{tab.label}</span>
+        </span>
         {status ? (
           <span
             className={`${styles.tabMarker} ${status.style}`}
@@ -266,7 +270,9 @@ export function BrowserShell({
                   setWindowOpen(false);
                 }}
               >
-                <span aria-hidden="true">x</span>
+                <svg className={styles.closeIcon} viewBox="0 0 10 10" aria-hidden="true">
+                  <path d="m2 2 6 6M8 2 2 8" />
+                </svg>
               </button>
               <button
                 type="button"
@@ -275,7 +281,9 @@ export function BrowserShell({
                 title="Im Dock ablegen"
                 onClick={() => setWindowOpen(false)}
               >
-                <span aria-hidden="true">-</span>
+                <svg className={styles.minimizeIcon} viewBox="0 0 10 10" aria-hidden="true">
+                  <path d="M2 5h6" />
+                </svg>
               </button>
               <button
                 type="button"

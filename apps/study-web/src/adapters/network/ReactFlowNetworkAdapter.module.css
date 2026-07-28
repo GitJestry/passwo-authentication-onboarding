@@ -118,6 +118,21 @@
   color: #287657;
 }
 
+.nodeFrame[data-symbol-id="campus-id"] .nodeCircle {
+  border-color: #6f8eaa;
+  background: #eef5fa;
+}
+
+.nodeFrame[data-symbol-id="campus-mail"] .nodeCircle {
+  border-color: #eea15c;
+  background: #fff3e6;
+}
+
+.nodeFrame[data-symbol-id="campus-board-archive"] .nodeCircle {
+  border-color: #e681aa;
+  background: #fff0f6;
+}
+
 .nodeFrame[data-highlighted="true"] .nodeCircle {
   border-color: #00c870;
   box-shadow:

@@ -102,6 +102,7 @@ export function S03InitialBrowserSurface({
     tabs: s01Content.browser.accounts.map((tabAccount) => ({
       id: tabAccount.id,
       label: tabAccount.label,
+      icon: <NetworkSymbol symbolId={tabAccount.symbolId} />,
       enabled: false,
     })),
     activeTabId: account.id,
@@ -248,6 +249,7 @@ export function S03RetrievalTraining({
     tabs: s01Content.browser.accounts.map((tabAccount) => ({
       id: tabAccount.id,
       label: tabAccount.label,
+      icon: <NetworkSymbol symbolId={tabAccount.symbolId} />,
       enabled: !interactionBlocked,
       ...(snapshot.context.retrievalResults[tabAccount.id] === 'retrievable'
         ? { status: 'complete' as const }
@@ -315,6 +317,7 @@ export function S03RetrievalTraining({
                 speech={[guideMessage]}
                 speechKey={`${account.id}-${result}-${announcement ?? 'login'}`}
                 speechPlacement="right"
+                awaitsAction={warningConfirmationAvailable}
                 speechFooter={
                   warningConfirmationAvailable ? (
                     <button
@@ -407,12 +410,21 @@ export function S03RetrievalTraining({
                             </h2>
                           </div>
                         </header>
-                        <dl className={styles.accountDetails}>
-                          <div>
-                            <dt>{s03Content.controls.accountDataLabel}</dt>
-                            <dd>{accountData}</dd>
-                          </div>
-                        </dl>
+                        <label
+                          className={styles.usernameLabel}
+                          htmlFor={`s03-username-${account.id}`}
+                        >
+                          {s03Content.controls.accountDataLabel}
+                        </label>
+                        <input
+                          id={`s03-username-${account.id}`}
+                          className={styles.usernameInput}
+                          name={`s03-username-${account.id}`}
+                          type="text"
+                          value={accountData}
+                          readOnly
+                          aria-readonly="true"
+                        />
                         <label
                           className={styles.passwordLabel}
                           htmlFor={`s03-password-${account.id}`}
@@ -460,14 +472,18 @@ export function S03RetrievalTraining({
                           >
                             {s03Content.controls.login}
                           </button>
-                          <button
-                            type="button"
-                            className={styles.secondaryButton}
-                            disabled={interactionBlocked}
-                            onClick={() => controller.skipRetrieval(account.id)}
+                          <a
+                            href="#passwort-vergessen"
+                            className={styles.forgotPassword}
+                            aria-disabled={interactionBlocked || undefined}
+                            tabIndex={interactionBlocked ? -1 : undefined}
+                            onClick={(event) => {
+                              event.preventDefault();
+                              if (!interactionBlocked) controller.skipRetrieval(account.id);
+                            }}
                           >
-                            {s03Content.controls.skip}
-                          </button>
+                            {s03Content.controls.forgotPassword}
+                          </a>
                         </div>
                       </form>
                     ) : (

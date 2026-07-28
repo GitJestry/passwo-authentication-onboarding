@@ -10,7 +10,7 @@
 }
 
 .titleCard {
-  max-width: min(42rem, calc(100% - 3rem));
+  max-width: min(54rem, calc(100% - 3rem));
   padding: clamp(var(--space-5), 4vw, var(--space-7));
   text-align: center;
   animation: section-transition-arrival var(--section-transition-arrival-duration) cubic-bezier(0.16, 0.78, 0.22, 1) both;

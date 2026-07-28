@@ -7,6 +7,7 @@ import {
 } from '@passwo/training-engine';
 import { BrowserShell, type BrowserShellSnapshot } from '@passwo/ui';
 import { useEffect, useRef, useState } from 'react';
+import { NetworkSymbol } from '../../adapters/network/NetworkSymbolRegistry.js';
 import { CampusWebsiteBackdrop } from './CampusWebsiteBackdrop.js';
 import { PassWoGuide } from './PassWoGuide.js';
 import styles from './S01Training.module.css';
@@ -58,7 +59,7 @@ export function S01Training({
   const [revealedAccountIds, setRevealedAccountIds] = useState<ReadonlySet<string>>(
     () => new Set(),
   );
-  const [questHelpOpen, setQuestHelpOpen] = useState(true);
+  const [questHelpOpen, setQuestHelpOpen] = useState(false);
   const [browserOpen, setBrowserOpen] = useState(true);
   const [desktopTransitioning, setDesktopTransitioning] = useState(false);
   const completionStatusRef = useRef<HTMLHeadingElement>(null);
@@ -72,10 +73,6 @@ export function S01Training({
   useEffect(() => {
     if (completionFocusTarget !== null) completionStatusRef.current?.focus();
   }, [completionFocusTarget]);
-
-  useEffect(() => {
-    if (isReadyToContinue(snapshot)) setQuestHelpOpen(true);
-  }, [snapshot]);
 
   useEffect(() => {
     if (
@@ -111,6 +108,7 @@ export function S01Training({
     tabs: s01Content.browser.accounts.map((tabAccount) => ({
       id: tabAccount.id,
       label: tabAccount.label,
+      icon: <NetworkSymbol symbolId={tabAccount.symbolId} />,
       enabled: !interactionBlocked,
       ...(snapshot.context.configuredAccountIds.includes(tabAccount.id)
         ? { status: 'complete' as const }
@@ -142,6 +140,10 @@ export function S01Training({
     controller.retryTiming();
   }
 
+  function selectAccount(accountId: string): void {
+    controller.selectAccount(accountId);
+  }
+
   return (
     <section className={styles.training} aria-label={s01Content.trainingAriaLabel}>
       <BrowserShell
@@ -161,7 +163,7 @@ export function S01Training({
         onWindowTransitionEnd={(state) => {
           if (state === 'closed' && desktopTransitioning) controller.continue();
         }}
-        onTabSelect={(accountId) => controller.selectAccount(accountId)}
+        onTabSelect={selectAccount}
         layers={{
           passWo: (
             <PassWoGuide
@@ -178,11 +180,11 @@ export function S01Training({
               speech={[
                 readyToContinue
                   ? s01Content.completion.guideMessage
-                  : s01Content.quest.nextAccount(account.label),
+                  : s01Content.quest.guideMessage,
               ]}
               speechKey={readyToContinue ? 's01-ready' : `s01-${account.id}-${configuredCount}`}
               speechPlacement="right"
-              onToggleHelp={() => setQuestHelpOpen((open) => !open)}
+              onToggleHelp={() => setQuestHelpOpen(true)}
               onSpeechAdvance={() => setQuestHelpOpen(false)}
             />
           ),
@@ -215,7 +217,9 @@ export function S01Training({
                 className={styles.passwordForm}
                 onSubmit={(event) => {
                   event.preventDefault();
-                  if (canConfigure) controller.configureAccount(account.id);
+                  if (canConfigure) {
+                    controller.configureAccount(account.id);
+                  }
                 }}
               >
                 <label

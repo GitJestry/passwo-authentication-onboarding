@@ -49,7 +49,7 @@ export interface S03SegmentContent {
     readonly hidePassword: (accountLabel: string) => string;
     readonly openLogin: (accountLabel: string) => string;
     readonly login: string;
-    readonly skip: string;
+    readonly forgotPassword: string;
     readonly timingFailure: string;
     readonly timingSaving: string;
     readonly retry: string;
@@ -84,7 +84,7 @@ export interface S03SegmentContent {
   readonly animations: readonly S03AnimationSequence[];
 }
 
-export const S03_CONTENT_VERSION = '1.3.0';
+export const S03_CONTENT_VERSION = '1.4.0';
 
 const resultAnimation = (
   accountId: S01AccountId,
@@ -162,13 +162,13 @@ export const s03Content: S03SegmentContent = {
     resultLine: 'Alle drei Konten sind wieder geöffnet. Gleich geht es weiter.',
   },
   controls: {
-    accountDataLabel: 'Kontodaten',
+    accountDataLabel: 'Benutzername',
     passwordLabel: 'Passwort',
     showPassword: (accountLabel) => `Passwort für ${accountLabel} anzeigen`,
     hidePassword: (accountLabel) => `Passwort für ${accountLabel} verbergen`,
     openLogin: (accountLabel) => `Anmelden mit ${accountLabel}`,
     login: 'Anmelden',
-    skip: 'Ich weiß es nicht mehr — weiter',
+    forgotPassword: 'Passwort vergessen?',
     timingFailure:
       'Das Speichern des Zeitereignisses ist fehlgeschlagen. Der nächste Schritt bleibt gesperrt.',
     timingSaving: 'Zeitereignis wird gespeichert …',
@@ -178,9 +178,9 @@ export const s03Content: S03SegmentContent = {
     guideName: 'PassWo',
     intro: 'Melde dich jetzt mit den eben gewählten Passwörtern erneut an.',
     accountSuccess: {
-      'campus-id': 'CampusID ist wieder geöffnet.',
-      'campus-mail': 'CampusMail ist wieder geöffnet.',
-      'campus-board-archive': 'CampusBoard Archiv ist wieder geöffnet.',
+      'campus-id': 'Master Campus ist wieder geöffnet.',
+      'campus-mail': 'Campus E-Mail ist wieder geöffnet.',
+      'campus-board-archive': 'Campusgram ist wieder geöffnet.',
     },
     accountSkipped: {
       'campus-id':
@@ -191,12 +191,12 @@ export const s03Content: S03SegmentContent = {
         'Auch das ist eine nützliche Beobachtung für die spätere Passwortauswertung.',
     },
     warning:
-      'Stopp – bei CampusBoard gibt es eine Sicherheitsmeldung. Kannst du sie dir bitte ansehen?',
+      'Stopp – bei Campusgram gibt es eine Sicherheitsmeldung. Kannst du sie dir bitte ansehen?',
   },
   accountLoginTitles: {
-    'campus-id': 'Melde dich bei CampusID an.',
-    'campus-mail': 'Melde dich bei CampusMail an.',
-    'campus-board-archive': 'Melde dich bei CampusBoard Archiv an.',
+    'campus-id': 'Melde dich bei Master Campus an.',
+    'campus-mail': 'Melde dich bei Campus E-Mail an.',
+    'campus-board-archive': 'Melde dich bei Campusgram an.',
   },
   accountPages: {
     'campus-id': {
@@ -211,7 +211,7 @@ export const s03Content: S03SegmentContent = {
       areaLabel: 'Posteingang',
       signedInLabel: 'Angemeldet',
       modules: [
-        { label: 'Postfach', value: 'CampusMail ist geöffnet' },
+        { label: 'Postfach', value: 'Campus E-Mail ist geöffnet' },
         { label: 'Heute', value: 'Bestätigungen · Benachrichtigungen' },
       ],
     },

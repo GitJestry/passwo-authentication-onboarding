@@ -2,7 +2,7 @@ import type { SceneNode, SceneNodeStatus } from '@passwo/visualization';
 
 interface NetworkSymbolProps {
   readonly symbolId: string;
-  readonly className: string | undefined;
+  readonly className?: string | undefined;
 }
 
 const symbolIdByNodeId: Readonly<Record<string, string>> = {
@@ -21,23 +21,73 @@ function SymbolPaths({ symbolId }: Pick<NetworkSymbolProps, 'symbolId'>) {
     case 'campus-id':
       return (
         <>
-          <rect x="4" y="3" width="16" height="18" rx="3" />
-          <circle cx="12" cy="9" r="2.25" />
-          <path d="M8 17c.8-2.2 2.1-3.3 4-3.3s3.2 1.1 4 3.3" />
+          <path
+            d="m2.5 9.4 9.5-4.8 9.5 4.8-9.5 4.8-9.5-4.8Z"
+            fill="#9d2046"
+            stroke="none"
+          />
+          <path
+            d="M6.7 11.5v4.1c2.8 2.1 7.8 2.1 10.6 0v-4.1L12 14.2l-5.3-2.7Z"
+            fill="#9d2046"
+            stroke="none"
+          />
+          <path
+            d="M19 10.2v5.2M19 15.4c0 .8-.6 1.3-1.2 1.3s-1.2-.5-1.2-1.3.6-1.3 1.2-1.3 1.2.5 1.2 1.3Z"
+            stroke="#9d2046"
+            strokeWidth="1.35"
+          />
         </>
       );
     case 'campus-mail':
       return (
         <>
-          <rect x="3" y="5" width="18" height="14" rx="2" />
-          <path d="m4 7 8 6 8-6" />
+          <circle cx="12" cy="12" r="9.3" stroke="#e97716" strokeWidth="1.35" />
+          <rect
+            x="6.2"
+            y="8"
+            width="11.6"
+            height="8"
+            rx="1.35"
+            stroke="#e97716"
+            strokeWidth="1.35"
+          />
+          <path d="m6.8 9 5.2 4 5.2-4" stroke="#e97716" strokeWidth="1.35" />
         </>
       );
     case 'campus-board-archive':
       return (
         <>
-          <path d="M4 8h16v12H4z" />
-          <path d="M7 8V5h10v3M9 13h6M12 11v4" />
+          <defs>
+            <linearGradient
+              id="campusgram-gradient"
+              x1="4"
+              y1="20"
+              x2="20"
+              y2="4"
+              gradientUnits="userSpaceOnUse"
+            >
+              <stop stopColor="#f7a63a" />
+              <stop offset="0.45" stopColor="#dc4d85" />
+              <stop offset="1" stopColor="#7a5bc4" />
+            </linearGradient>
+          </defs>
+          <rect
+            x="3"
+            y="3"
+            width="18"
+            height="18"
+            rx="5.4"
+            fill="url(#campusgram-gradient)"
+            stroke="none"
+          />
+          <circle cx="12" cy="12" r="5.15" stroke="white" strokeWidth="1.35" />
+          <circle cx="10.15" cy="10.8" r="0.62" fill="white" stroke="none" />
+          <circle cx="13.85" cy="10.8" r="0.62" fill="white" stroke="none" />
+          <path
+            d="M9.45 13.35c.75 1.15 1.55 1.7 2.55 1.7s1.8-.55 2.55-1.7"
+            stroke="white"
+            strokeWidth="1.35"
+          />
         </>
       );
     case 'learnspace':
@@ -135,7 +185,7 @@ export function NetworkSymbol({ symbolId, className }: NetworkSymbolProps) {
   return (
     <svg
       aria-hidden="true"
-      className={className}
+      className={className ?? ''}
       data-network-symbol={symbolId}
       viewBox="0 0 24 24"
       fill="none"

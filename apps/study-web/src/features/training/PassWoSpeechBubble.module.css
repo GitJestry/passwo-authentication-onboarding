@@ -66,6 +66,7 @@
 
 .speaker {
   display: inline-flex;
+  padding-right: 2.5rem;
   margin-bottom: var(--space-2);
   color: var(--color-accent-strong);
   font-size: var(--font-size-small);
@@ -102,22 +103,56 @@
 }
 
 .speechActionRow {
-  display: flex;
-  justify-content: flex-end;
-  margin-top: var(--space-3);
+  position: absolute;
+  top: var(--space-3);
+  right: var(--space-4);
 }
 
 .speechAction {
-  min-height: 2rem;
-  padding: var(--space-1) var(--space-3);
+  position: relative;
+  display: grid;
+  width: 2rem;
+  height: 2rem;
+  place-items: center;
+  padding: 0;
   border: var(--border-width-thin) solid var(--bubble-border);
   border-radius: var(--radius-round);
   color: var(--bubble-text);
   background: color-mix(in srgb, var(--bubble-surface) 82%, var(--color-accent-soft));
-  font: inherit;
-  font-size: var(--font-size-x-small);
-  font-weight: var(--font-weight-heavy);
   cursor: pointer;
+}
+
+.speechAction svg {
+  display: block;
+  width: 1.1rem;
+  height: 1.1rem;
+}
+
+.speechAction::after {
+  position: absolute;
+  z-index: 1;
+  top: calc(100% + 0.4rem);
+  right: 0;
+  padding: 0.3rem 0.45rem;
+  border-radius: var(--radius-small);
+  color: var(--color-on-inverse);
+  background: var(--color-surface-inverse);
+  box-shadow: var(--shadow-card);
+  content: attr(data-tooltip);
+  font-size: var(--font-size-x-small);
+  font-weight: var(--font-weight-semibold);
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(-0.15rem);
+  transition:
+    opacity var(--motion-fast) var(--motion-ease-out),
+    transform var(--motion-fast) var(--motion-ease-out);
+}
+
+.speechAction:hover::after,
+.speechAction:focus-visible::after {
+  opacity: 1;
+  transform: translateY(0);
 }
 
 .speechAction:focus-visible {
@@ -126,9 +161,20 @@
   box-shadow: var(--shadow-focus);
 }
 
-.visualText {
+.textLayout,
+.visualText,
+.fullTextSizer {
   display: grid;
   gap: var(--space-3);
+}
+
+.textLayout > .visualText,
+.textLayout > .fullTextSizer {
+  grid-area: 1 / 1;
+}
+
+.fullTextSizer {
+  visibility: hidden;
 }
 
 .paragraph {
@@ -183,5 +229,9 @@
   .caret {
     display: none;
     animation: none;
+  }
+
+  .speechAction::after {
+    transition: none;
   }
 }

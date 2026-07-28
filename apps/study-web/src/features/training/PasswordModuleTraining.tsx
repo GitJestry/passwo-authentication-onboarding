@@ -83,7 +83,8 @@ export function PasswordModuleTraining({
             paragraphs={s00Content.entry.paragraphs}
             speechKey="module-entry"
             placement="right"
-            onAdvance={() => setEntrySpeechComplete(true)}
+            awaitsAction
+            onComplete={() => setEntrySpeechComplete(true)}
           />
         </div>
         {entrySpeechComplete ? (

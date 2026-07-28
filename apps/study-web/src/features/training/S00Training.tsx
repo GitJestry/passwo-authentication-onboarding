@@ -14,6 +14,7 @@ import {
   createInitialS00SceneSnapshot,
   type S00SceneSnapshot,
 } from '../../adapters/animation/s00-scene.js';
+import { NetworkSymbol } from '../../adapters/network/NetworkSymbolRegistry.js';
 import { CampusWebsiteBackdrop } from './CampusWebsiteBackdrop.js';
 import { PassWoGuide } from './PassWoGuide.js';
 import styles from './S00Training.module.css';
@@ -31,7 +32,10 @@ const mission: MissionDefinition = {
 };
 
 const browserSnapshot: BrowserShellSnapshot = {
-  tabs: s00Content.browser.tabs,
+  tabs: s00Content.browser.tabs.map((tab) => ({
+    ...tab,
+    icon: <NetworkSymbol symbolId={tab.id} />,
+  })),
   activeTabId: s00Content.browser.tabs[0]?.id ?? 'campus-id',
   address: s00Content.browser.address,
 };
@@ -43,12 +47,12 @@ function prefersReducedMotion(): boolean {
 function S00Page({ displayName }: { readonly displayName: string }) {
   const campusIdentity = deriveCampusIdentity(displayName);
   return (
-    <CampusWebsiteBackdrop accountId="campus-id" interactionLabel="CampusID einrichten">
+    <CampusWebsiteBackdrop accountId="campus-id" interactionLabel="Master Campus einrichten">
       <section className={styles.setupPreview} aria-labelledby="s00-page-title">
-        <h1 id="s00-page-title">CampusID</h1>
+        <h1 id="s00-page-title">Master Campus</h1>
         <dl className={styles.previewAccountData}>
           <div>
-            <dt>Kontodaten</dt>
+            <dt>Benutzername</dt>
             <dd>{campusIdentity.campusId}</dd>
           </div>
         </dl>
@@ -195,6 +199,7 @@ export function S00Training({
                 speechKey={`s00-greeting-${displayName}-${speechRound}`}
                 speechPlacement="right"
                 hasNextSpeech={speechRound === 0}
+                awaitsAction={speechRound === 1}
                 showHelpButton={false}
                 speechFooter={
                   safetySpeechCompleted && activeTimingError === null ? (
@@ -250,9 +255,10 @@ export function S00Training({
                 onSpeechAdvance={() => {
                   if (speechRound === 0) {
                     setSpeechRound(1);
-                  } else {
-                    setSafetySpeechCompleted(true);
                   }
+                }}
+                onSpeechComplete={() => {
+                  if (speechRound === 1) setSafetySpeechCompleted(true);
                 }}
               />
             </>

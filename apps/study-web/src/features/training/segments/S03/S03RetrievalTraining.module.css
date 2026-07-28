@@ -148,6 +148,7 @@
 }
 
 .accountDetails dt,
+.usernameLabel,
 .passwordLabel {
   color: var(--color-ink-strong);
   font-size: var(--font-size-small);
@@ -163,6 +164,27 @@
 
 .passwordLabel {
   margin-top: var(--space-2);
+}
+
+.usernameLabel {
+  margin-top: var(--space-2);
+}
+
+.usernameInput {
+  min-width: 0;
+  min-height: var(--size-control-large);
+  padding: var(--space-3) var(--space-4);
+  border: var(--border-width-thin) solid var(--color-border);
+  border-radius: var(--radius-small);
+  color: var(--color-ink-strong);
+  background: var(--color-surface-muted);
+  font: inherit;
+}
+
+.usernameInput:focus-visible {
+  outline: var(--border-width-focus) solid var(--color-focus);
+  outline-offset: var(--space-1);
+  box-shadow: var(--shadow-focus);
 }
 
 .passwordInputGroup {
@@ -209,6 +231,31 @@
   display: grid;
   gap: var(--space-3);
   margin-top: var(--space-2);
+}
+
+.forgotPassword {
+  justify-self: center;
+  color: var(--color-accent-strong);
+  font-size: var(--font-size-x-small);
+  font-weight: var(--font-weight-bold);
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 0.25rem;
+}
+
+.forgotPassword:not([aria-disabled="true"]) {
+  cursor: pointer;
+}
+
+.forgotPassword[aria-disabled="true"] {
+  cursor: not-allowed;
+  opacity: 0.58;
+}
+
+.forgotPassword:focus-visible {
+  outline: var(--border-width-focus) solid var(--color-focus);
+  outline-offset: var(--space-1);
+  box-shadow: var(--shadow-focus);
 }
 
 .primaryButton,

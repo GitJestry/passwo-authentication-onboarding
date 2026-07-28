@@ -22,7 +22,7 @@ function SkeletonLines({ count = 3 }: { readonly count?: number }) {
 
 function CampusIdContext() {
   return (
-    <section className={styles.portalContext} aria-label="CampusID-Übersicht">
+    <section className={styles.portalContext} aria-label="Master-Campus-Übersicht">
       <div className={styles.portalWelcome}>
         <NetworkSymbol symbolId="campus-id" className={styles.contextHeroSymbol} />
         <div>
@@ -44,7 +44,7 @@ function CampusIdContext() {
 
 function CampusMailContext() {
   return (
-    <section className={styles.mailContext} aria-label="CampusMail-Postfachansicht">
+    <section className={styles.mailContext} aria-label="Campus-E-Mail-Postfachansicht">
       <aside className={styles.mailFolders} aria-hidden="true">
         <NetworkSymbol symbolId="campus-mail" className={styles.contextHeroSymbol} />
         <span className={styles.folderActive} />
@@ -70,7 +70,7 @@ function CampusMailContext() {
 
 function CampusBoardContext() {
   return (
-    <section className={styles.boardContext} aria-label="CampusBoard-Archivansicht">
+    <section className={styles.boardContext} aria-label="Campusgram-Ansicht">
       <div className={styles.boardToolbar} aria-hidden="true">
         <span />
         <span />

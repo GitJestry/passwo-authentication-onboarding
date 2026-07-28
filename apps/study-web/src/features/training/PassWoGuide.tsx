@@ -23,8 +23,10 @@ export interface PassWoGuideProps {
   readonly speechFooter?: ReactNode;
   readonly speechPlacement?: PassWoSpeechPlacement;
   readonly hasNextSpeech?: boolean;
+  readonly awaitsAction?: boolean;
   readonly showHelpButton?: boolean;
   readonly onToggleHelp?: () => void;
+  readonly onSpeechComplete?: () => void;
   readonly onSpeechAdvance?: () => void;
 }
 
@@ -40,8 +42,10 @@ export function PassWoGuide({
   speechFooter,
   speechPlacement = 'right',
   hasNextSpeech = false,
+  awaitsAction = false,
   showHelpButton = true,
   onToggleHelp,
+  onSpeechComplete,
   onSpeechAdvance,
 }: PassWoGuideProps) {
   const progressPercent =
@@ -108,6 +112,8 @@ export function PassWoGuide({
             placement={speechPlacement}
             footer={speechFooter}
             hasNext={hasNextSpeech}
+            awaitsAction={awaitsAction}
+            {...(onSpeechComplete === undefined ? {} : { onComplete: onSpeechComplete })}
             {...(onSpeechAdvance === undefined ? {} : { onAdvance: onSpeechAdvance })}
           />
         </div>

@@ -50,8 +50,8 @@ Orientierung, ohne erklärende Meta-Labels einzublenden. Gründe für nicht verf
 Die Fensterkontrollen sind klein und kopieren keine Browsermarke. Schließen und Minimieren legen
 das fiktive Browserfenster in seinem Dock-Icon ab; das Browser-Icon schließt das geöffnete Fenster
 beziehungsweise öffnet es wieder. Die grüne Kontrolle bleibt orientierend, weil das Fenster bereits
-die verfügbare Desktopfläche nutzt. Tabs zeigen eine zurückhaltende neutrale Kennzeichnung und eine
-klar zusammenhängende aktive Fläche.
+die verfügbare Desktopfläche nutzt. Tabs zeigen neben dem Seitennamen das zugehörige kleine lokale
+Markensymbol sowie eine klar zusammenhängende aktive Fläche.
 Die Adresszeile hat kein sichtbares Label. Eine kleine Schlossform markiert den dargestellten
 Seitenstatus, ohne eine Sicherheitszusage abzuleiten.
 
@@ -61,7 +61,8 @@ fokussierbare Hinweis-Markierung erreicht werden.
 
 ## Fiktive Identität
 
-- Produktneutraler Name wie `campusID` oder eine endgültig freigegebene fiktive Variante.
+- Fiktive Dienste heißen `Master Campus`, `Campus E-Mail` und `Campusgram`; ihre Logos stammen
+  aus derselben lokalen Symbolregistry wie die Netzwerkknoten.
 - Reservierte Beispieldomain wie `campus.example`.
 - Tabs und Konten stammen ausschließlich aus dem Trainingsskript.
 

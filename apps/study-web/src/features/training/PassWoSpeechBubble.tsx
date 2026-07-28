@@ -13,9 +13,12 @@ export interface PassWoSpeechBubbleProps {
   readonly footer?: ReactNode;
   readonly className?: string | undefined;
   readonly hasNext?: boolean;
+  readonly awaitsAction?: boolean;
   readonly onComplete?: () => void;
   readonly onAdvance?: () => void;
 }
+
+type SpeechActionKind = 'skip' | 'next' | 'close';
 
 function prefersReducedMotion(): boolean {
   return window.matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -33,12 +36,50 @@ function visualParagraphs(text: string): readonly string[] {
 }
 
 function isInteractiveTarget(target: EventTarget | null, container: HTMLElement | null): boolean {
+  if (container === null || !(target instanceof Element) || !container.contains(target)) {
+    return false;
+  }
+
+  const interactiveElement = target.closest(
+    'button, input, select, textarea, a, [role="button"], [role="checkbox"]',
+  );
+  return interactiveElement !== null && !interactiveElement.matches(':disabled');
+}
+
+function SpeechActionIcon({ kind }: { readonly kind: SpeechActionKind }) {
+  if (kind === 'skip') {
+    return (
+      <svg aria-hidden="true" viewBox="0 0 24 24" fill="none">
+        <path d="m4 6 6 6-6 6V6Z" fill="currentColor" />
+        <path d="m10.5 6 6 6-6 6V6Z" fill="currentColor" />
+        <path d="M19 5v14" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+      </svg>
+    );
+  }
+
+  if (kind === 'next') {
+    return (
+      <svg aria-hidden="true" viewBox="0 0 24 24" fill="none">
+        <path
+          d="M4 12h15M13 6l6 6-6 6"
+          stroke="currentColor"
+          strokeWidth="2.1"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+      </svg>
+    );
+  }
+
   return (
-    container !== null &&
-    target instanceof Element &&
-    container.contains(target) &&
-    target.closest('button, input, select, textarea, a, [role="button"], [role="checkbox"]') !==
-      null
+    <svg aria-hidden="true" viewBox="0 0 24 24" fill="none">
+      <path
+        d="m6 6 12 12M18 6 6 18"
+        stroke="currentColor"
+        strokeWidth="2.1"
+        strokeLinecap="round"
+      />
+    </svg>
   );
 }
 
@@ -51,25 +92,30 @@ export function PassWoSpeechBubble({
   footer,
   className,
   hasNext = false,
+  awaitsAction = false,
   onComplete,
   onAdvance,
 }: PassWoSpeechBubbleProps) {
   const fullText = useMemo(() => paragraphs.join('\n\n'), [paragraphs]);
   const [visibleCharacters, setVisibleCharacters] = useState(0);
   const [advanceCompleted, setAdvanceCompleted] = useState(false);
+  const [activeSpeechKey, setActiveSpeechKey] = useState(speechKey);
   const descriptionId = useId();
   const bubbleRef = useRef<HTMLElement | null>(null);
   const completedSpeechKeyRef = useRef<string | null>(null);
-  const complete = visibleCharacters >= fullText.length;
+  const currentSpeech = activeSpeechKey === speechKey;
+  const complete = currentSpeech && visibleCharacters >= fullText.length;
 
   useEffect(() => {
     const initiallyComplete = prefersReducedMotion() || fullText.length === 0;
+    setActiveSpeechKey(speechKey);
     completedSpeechKeyRef.current = null;
     setVisibleCharacters(initiallyComplete ? fullText.length : 0);
     setAdvanceCompleted(false);
   }, [fullText, speechKey]);
 
   useEffect(() => {
+    if (!currentSpeech) return;
     if (complete) {
       if (completedSpeechKeyRef.current !== speechKey) {
         completedSpeechKeyRef.current = speechKey;
@@ -84,9 +130,10 @@ export function PassWoSpeechBubble({
       nextDelay(character),
     );
     return () => window.clearTimeout(timer);
-  }, [complete, fullText, onComplete, speechKey, visibleCharacters]);
+  }, [complete, currentSpeech, fullText, onComplete, speechKey, visibleCharacters]);
 
   const advanceSpeech = useCallback((): void => {
+    if (!currentSpeech) return;
     if (!complete) {
       setVisibleCharacters(fullText.length);
       return;
@@ -95,10 +142,10 @@ export function PassWoSpeechBubble({
 
     setAdvanceCompleted(true);
     onAdvance?.();
-  }, [advanceCompleted, complete, fullText, onAdvance]);
+  }, [advanceCompleted, complete, currentSpeech, fullText, onAdvance]);
 
   useEffect(() => {
-    if (advanceCompleted) return;
+    if (advanceCompleted || (complete && awaitsAction)) return;
 
     function handleScreenClick(event: MouseEvent): void {
       if (isInteractiveTarget(event.target, bubbleRef.current)) return;
@@ -110,11 +157,14 @@ export function PassWoSpeechBubble({
 
     document.addEventListener('click', handleScreenClick, true);
     return () => document.removeEventListener('click', handleScreenClick, true);
-  }, [advanceCompleted, advanceSpeech]);
+  }, [advanceCompleted, advanceSpeech, awaitsAction, complete]);
 
-  const visibleText = fullText.slice(0, visibleCharacters);
+  const visibleText = currentSpeech ? fullText.slice(0, visibleCharacters) : '';
   const bubbleClassName = className === undefined ? styles.bubble : `${styles.bubble} ${className}`;
-  const actionLabel = complete ? (hasNext ? 'Nächste' : 'Ende') : 'Überspringen';
+  const actionKind: SpeechActionKind = !complete ? 'skip' : hasNext ? 'next' : 'close';
+  const actionLabel =
+    actionKind === 'skip' ? 'Überspringen' : actionKind === 'next' ? 'Nächste' : 'Schließen';
+  const showAction = !advanceCompleted && (!complete || !awaitsAction);
 
   return (
     <section
@@ -134,25 +184,36 @@ export function PassWoSpeechBubble({
         disabled={complete}
         onClick={() => setVisibleCharacters(fullText.length)}
       >
-        <span className={styles.visualText} aria-hidden="true">
-          {visualParagraphs(visibleText).map((paragraph, index) => (
-            <span className={styles.paragraph} key={`${speechKey}-${index}`}>
-              {paragraph}
-              {!complete && index === visualParagraphs(visibleText).length - 1 ? (
-                <span className={styles.caret} />
-              ) : null}
-            </span>
-          ))}
+        <span className={styles.textLayout} aria-hidden="true">
+          <span className={styles.fullTextSizer}>
+            {visualParagraphs(fullText).map((paragraph, index) => (
+              <span className={styles.paragraph} key={`${speechKey}-full-${index}`}>
+                {paragraph}
+              </span>
+            ))}
+          </span>
+          <span className={styles.visualText}>
+            {visualParagraphs(visibleText).map((paragraph, index) => (
+              <span className={styles.paragraph} key={`${speechKey}-${index}`}>
+                {paragraph}
+                {!complete && index === visualParagraphs(visibleText).length - 1 ? (
+                  <span className={styles.caret} />
+                ) : null}
+              </span>
+            ))}
+          </span>
         </span>
       </button>
-      {!advanceCompleted ? (
+      {showAction ? (
         <div className={styles.speechActionRow}>
           <button
             type="button"
             className={styles.speechAction}
             onClick={advanceSpeech}
+            aria-label={actionLabel}
+            data-tooltip={actionLabel}
           >
-            {actionLabel}
+            <SpeechActionIcon kind={actionKind} />
           </button>
         </div>
       ) : null}
