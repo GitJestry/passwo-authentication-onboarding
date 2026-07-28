@@ -95,12 +95,14 @@ interface SceneNodeData extends Record<string, unknown> {
   readonly interactionDisabled: boolean;
   readonly visualVariant: NetworkVisualVariant;
   readonly nodeSize: 'main' | 'detail';
+  readonly nodeShape: NetworkNodeShape;
   readonly onSelect: (nodeId: string) => void;
 }
 
 type SceneFlowNode = Node<SceneNodeData, 'scene-node'>;
 
-export type NetworkVisualVariant = 'default' | 'account-map' | 'void';
+export type NetworkVisualVariant = 'default' | 'account-map';
+export type NetworkNodeShape = 'circle' | 'rounded-rectangle';
 
 export interface NetworkCanvasSize {
   readonly width: number;
@@ -110,16 +112,20 @@ export interface NetworkCanvasSize {
 export interface NetworkNodeLayout {
   readonly width: number;
   readonly height: number;
-  readonly circleDiameter: number;
+  readonly shapeWidth: number;
+  readonly shapeHeight: number;
+  readonly shape: NetworkNodeShape;
 }
 
-export interface CircleGeometry {
+export interface NodeGeometry {
   readonly centerX: number;
   readonly centerY: number;
-  readonly radius: number;
+  readonly width: number;
+  readonly height: number;
+  readonly shape: NetworkNodeShape;
 }
 
-export interface CircularEdgePath {
+export interface NodeEdgePath {
   readonly path: string;
   readonly labelX: number;
   readonly labelY: number;
@@ -128,12 +134,23 @@ export interface CircularEdgePath {
 const accountNodeLayout: NetworkNodeLayout = {
   width: 112,
   height: 142,
-  circleDiameter: 112,
+  shapeWidth: 112,
+  shapeHeight: 112,
+  shape: 'circle',
 };
-const detailNodeLayout: NetworkNodeLayout = {
+const serviceNodeLayout: NetworkNodeLayout = {
   width: 76,
   height: 108,
-  circleDiameter: 76,
+  shapeWidth: 76,
+  shapeHeight: 76,
+  shape: 'circle',
+};
+const connectedDetailNodeLayout: NetworkNodeLayout = {
+  width: 104,
+  height: 108,
+  shapeWidth: 104,
+  shapeHeight: 72,
+  shape: 'rounded-rectangle',
 };
 
 function clamp(value: number, minimum: number, maximum: number): number {
@@ -145,7 +162,10 @@ function round(value: number): number {
 }
 
 function layoutForNode(node: Pick<SceneNode, 'kind'>): NetworkNodeLayout {
-  return node.kind === 'account' ? accountNodeLayout : detailNodeLayout;
+  if (node.kind === 'account') return accountNodeLayout;
+  return node.kind === 'function' || node.kind === 'content'
+    ? connectedDetailNodeLayout
+    : serviceNodeLayout;
 }
 
 /**
@@ -178,39 +198,51 @@ export function layoutSceneNode(
   };
 }
 
-function circleForNode(
+function geometryForNode(
   position: Readonly<{ x: number; y: number }>,
   layout: NetworkNodeLayout,
-): CircleGeometry {
+): NodeGeometry {
   return {
-    centerX: position.x + layout.circleDiameter / 2,
-    centerY: position.y + layout.circleDiameter / 2,
-    radius: layout.circleDiameter / 2,
+    centerX: position.x + layout.shapeWidth / 2,
+    centerY: position.y + layout.shapeHeight / 2,
+    width: layout.shapeWidth,
+    height: layout.shapeHeight,
+    shape: layout.shape,
   };
 }
 
 function boundaryPoint(
-  source: CircleGeometry,
-  target: CircleGeometry,
+  source: NodeGeometry,
+  target: NodeGeometry,
 ): Readonly<{ x: number; y: number }> {
   const deltaX = target.centerX - source.centerX;
   const deltaY = target.centerY - source.centerY;
   const distance = Math.hypot(deltaX, deltaY);
   if (distance === 0) return { x: source.centerX, y: source.centerY };
+  if (source.shape === 'circle') {
+    const radius = Math.min(source.width, source.height) / 2;
+    return {
+      x: round(source.centerX + (deltaX / distance) * radius),
+      y: round(source.centerY + (deltaY / distance) * radius),
+    };
+  }
+  const scale =
+    1 /
+    Math.max(Math.abs(deltaX) / (source.width / 2), Math.abs(deltaY) / (source.height / 2));
   return {
-    x: round(source.centerX + (deltaX / distance) * source.radius),
-    y: round(source.centerY + (deltaY / distance) * source.radius),
+    x: round(source.centerX + deltaX * scale),
+    y: round(source.centerY + deltaY * scale),
   };
 }
 
 /**
  * A single quadratic curve gives each connection a quiet direction while its
- * endpoints stop at the actual circular node boundary, not at a hidden handle.
+ * endpoints stop at the visible node boundary, not at a hidden handle.
  */
-export function createCircularEdgePath(
-  source: CircleGeometry,
-  target: CircleGeometry,
-): CircularEdgePath {
+export function createNodeEdgePath(
+  source: NodeGeometry,
+  target: NodeGeometry,
+): NodeEdgePath {
   const start = boundaryPoint(source, target);
   const end = boundaryPoint(target, source);
   const deltaX = end.x - start.x;
@@ -262,9 +294,12 @@ function SceneNodeCircle({ data }: NodeProps<SceneFlowNode>) {
     interactionDisabled,
     visualVariant,
     nodeSize,
+    nodeShape,
     onSelect,
   } = data;
   const symbolId = resolveNetworkSymbolId(sceneNode);
+  const lockedAccount = sceneNode.kind === 'account' && sceneNode.locked === true;
+  const showStatusMarker = !lockedAccount && sceneNode.status !== 'neutral';
 
   return (
     <div
@@ -274,7 +309,7 @@ function SceneNodeCircle({ data }: NodeProps<SceneFlowNode>) {
       data-highlighted={highlighted}
       data-kind={sceneNode.kind}
       data-locked={sceneNode.locked === true}
-      data-node-shape="circle"
+      data-node-shape={nodeShape}
       data-scene-node={sceneNode.id}
       data-size={nodeSize}
       data-status={sceneNode.status}
@@ -297,14 +332,28 @@ function SceneNodeCircle({ data }: NodeProps<SceneFlowNode>) {
         onClick={() => onSelect(sceneNode.id)}
       >
         <span className={styles.nodeCircle} aria-hidden="true">
-          <NetworkSymbol symbolId={symbolId} className={styles.nodeSymbol} />
-          <span className={styles.statusMarker}>
-            <NetworkStatusMarker
-              status={sceneNode.status}
-              locked={sceneNode.locked ?? false}
-              className={styles.statusSymbol}
-            />
-          </span>
+          {lockedAccount ? (
+            <NetworkStatusMarker status={sceneNode.status} locked className={styles.lockSymbol} />
+          ) : (
+            <NetworkSymbol symbolId={symbolId} className={styles.nodeSymbol} />
+          )}
+          {lockedAccount ? (
+            <span className={styles.unlockParticles}>
+              <i />
+              <i />
+              <i />
+              <i />
+            </span>
+          ) : null}
+          {showStatusMarker ? (
+            <span className={styles.statusMarker}>
+              <NetworkStatusMarker
+                status={sceneNode.status}
+                locked={sceneNode.locked ?? false}
+                className={styles.statusSymbol}
+              />
+            </span>
+          ) : null}
         </span>
         <span className={styles.nodeLabel}>{sceneNode.label}</span>
       </button>
@@ -322,18 +371,18 @@ const nodeTypes = {
   'scene-node': SceneNodeCircle,
 };
 
-interface CircleEdgeData extends Record<string, unknown> {
-  readonly sourceCircle: CircleGeometry;
-  readonly targetCircle: CircleGeometry;
+interface NodeEdgeData extends Record<string, unknown> {
+  readonly sourceGeometry: NodeGeometry;
+  readonly targetGeometry: NodeGeometry;
   readonly targetNodeId: string;
   readonly visible: boolean;
   readonly drawing: boolean;
   readonly dimmed: boolean;
 }
 
-type CircleFlowEdge = Edge<CircleEdgeData, 'circle-edge'>;
+type NodeFlowEdge = Edge<NodeEdgeData, 'node-edge'>;
 
-function CircleEdge({
+function NodeEdge({
   id,
   data,
   interactionWidth,
@@ -346,9 +395,9 @@ function CircleEdge({
   markerEnd,
   markerStart,
   style,
-}: EdgeProps<CircleFlowEdge>) {
+}: EdgeProps<NodeFlowEdge>) {
   if (data === undefined) return null;
-  const edge = createCircularEdgePath(data.sourceCircle, data.targetCircle);
+  const edge = createNodeEdgePath(data.sourceGeometry, data.targetGeometry);
   const optionalEdgeProps = {
     ...(interactionWidth === undefined ? {} : { interactionWidth }),
     ...(label === undefined ? {} : { label }),
@@ -380,7 +429,7 @@ function CircleEdge({
 }
 
 const edgeTypes = {
-  'circle-edge': CircleEdge,
+  'node-edge': NodeEdge,
 } satisfies EdgeTypes;
 
 const edgeClassByStatus: Record<SceneEdgeStatus, string> = {
@@ -402,22 +451,15 @@ function toReactFlowElements(
   visualVariant: NetworkVisualVariant,
   activeNodeId: string | null,
   showEdgeLabels: boolean,
-): { readonly nodes: readonly SceneFlowNode[]; readonly edges: readonly CircleFlowEdge[] } {
+): { readonly nodes: readonly SceneFlowNode[]; readonly edges: readonly NodeFlowEdge[] } {
   const revealed = new Set(presentation.revealedNodeIds);
   const drawingTargetNodeId = presentation.drawingTargetNodeId ?? null;
-  const activeGroupNodeIds = new Set<string>();
-  if (activeNodeId !== null) {
-    activeGroupNodeIds.add(activeNodeId);
-    for (const edge of snapshot.edges) {
-      if (edge.sourceId === activeNodeId) activeGroupNodeIds.add(edge.targetId);
-    }
-  }
   const positionedNodes = snapshot.nodes.map((node) => ({
     node,
     ...layoutSceneNode(node, canvas, visualVariant),
   }));
-  const circlesByNodeId = new Map(
-    positionedNodes.map(({ node, position, layout }) => [node.id, circleForNode(position, layout)]),
+  const geometriesByNodeId = new Map(
+    positionedNodes.map(({ node, position, layout }) => [node.id, geometryForNode(position, layout)]),
   );
 
   return {
@@ -430,10 +472,11 @@ function toReactFlowElements(
         visible: revealed.has(node.id),
         highlighted: presentation.highlightedNodeId === node.id,
         active: activeNodeId === node.id,
-        dimmed: activeNodeId !== null && !activeGroupNodeIds.has(node.id),
+        dimmed: false,
         interactionDisabled,
         visualVariant,
         nodeSize: node.kind === 'account' ? 'main' : 'detail',
+        nodeShape: layout.shape,
         onSelect: onNodeSelect,
       },
       draggable: false,
@@ -443,28 +486,28 @@ function toReactFlowElements(
       style: { width: layout.width, height: layout.height, pointerEvents: 'all' },
     })),
     edges: snapshot.edges.flatMap((edge) => {
-      const sourceCircle = circlesByNodeId.get(edge.sourceId);
-      const targetCircle = circlesByNodeId.get(edge.targetId);
-      if (sourceCircle === undefined || targetCircle === undefined) return [];
+      const sourceGeometry = geometriesByNodeId.get(edge.sourceId);
+      const targetGeometry = geometriesByNodeId.get(edge.targetId);
+      if (sourceGeometry === undefined || targetGeometry === undefined) return [];
       return [
         {
           id: edge.id,
           source: edge.sourceId,
           target: edge.targetId,
-          type: 'circle-edge',
+          type: 'node-edge',
           ...(showEdgeLabels && edge.label !== null ? { label: edge.label } : {}),
           focusable: false,
           selectable: false,
           animated: false,
           zIndex: 0,
-          className: `${styles.edge} ${visualVariant === 'void' ? styles.voidEdge : ''} ${edgeClassByStatus[edge.status]} edge-status-${edge.status} edge-kind-${edge.kind}`,
+          className: `${styles.edge} ${edgeClassByStatus[edge.status]} edge-status-${edge.status} edge-kind-${edge.kind}`,
           data: {
-            sourceCircle,
-            targetCircle,
+            sourceGeometry,
+            targetGeometry,
             targetNodeId: edge.targetId,
             visible: revealed.has(edge.targetId),
             drawing: drawingTargetNodeId === edge.targetId,
-            dimmed: activeNodeId !== null && edge.sourceId !== activeNodeId,
+            dimmed: false,
           },
           ariaLabel: edge.label ?? `${edge.sourceId} mit ${edge.targetId} verbunden`,
         },
@@ -569,14 +612,12 @@ export function ReactFlowNetwork({
     <section
       ref={containerRef}
       className={
-        visualVariant === 'account-map' || visualVariant === 'void'
-          ? `${styles.network} ${styles.accountMapNetwork}`
-          : styles.network
+        visualVariant === 'account-map' ? `${styles.network} ${styles.accountMapNetwork}` : styles.network
       }
       aria-label={ariaLabel}
     >
       {canvas.width > 0 && canvas.height > 0 ? (
-        <ReactFlow<SceneFlowNode, CircleFlowEdge>
+        <ReactFlow<SceneFlowNode, NodeFlowEdge>
           nodes={[...elements.nodes]}
           edges={[...elements.edges]}
           nodeTypes={nodeTypes}
@@ -595,13 +636,13 @@ export function ReactFlowNetwork({
           zoomOnPinch={false}
           zoomOnDoubleClick={false}
           preventScrolling={false}
-          colorMode={visualVariant === 'void' ? 'dark' : 'light'}
+          colorMode="light"
           aria-label={canvasAriaLabel}
-          {...(visualVariant === 'account-map' || visualVariant === 'void'
+          {...(visualVariant === 'account-map'
             ? { proOptions: { hideAttribution: true } }
             : {})}
         >
-          {visualVariant === 'account-map' || visualVariant === 'void' ? null : (
+          {visualVariant === 'account-map' ? null : (
             <Background variant={BackgroundVariant.Dots} gap={24} size={1} />
           )}
         </ReactFlow>

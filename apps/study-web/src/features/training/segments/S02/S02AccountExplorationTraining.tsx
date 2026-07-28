@@ -1,4 +1,4 @@
-import { s02Content } from '@passwo/training-content';
+import { s02Content, type S01AccountId, type S02VisualPreviewKind } from '@passwo/training-content';
 import { useEffect, useLayoutEffect, useRef, useState, type CSSProperties } from 'react';
 import passWoDockAsset from '../../../../assets/passwo/passwo-dock.png';
 import { NetworkMotionAdapter } from '../../../../adapters/network/NetworkMotionAdapter.js';
@@ -14,7 +14,9 @@ import {
   PassWoSpeechBubble,
   type PassWoSpeechPlacement,
 } from '../../PassWoSpeechBubble.js';
+import { S02DesktopSurface } from './S02DesktopSurface.js';
 import styles from './S02AccountExplorationTraining.module.css';
+import { S03InitialBrowserSurface } from '../S03/S03RetrievalTraining.js';
 
 export type S02TimingState = 'starting' | 'startFailed' | 'active' | 'ending' | 'endFailed';
 
@@ -25,6 +27,7 @@ export interface S02AccountExplorationTrainingProps {
   readonly onAllAccountsUnderstood?: () => void;
   readonly onContinue?: () => void;
   readonly onRetryTiming?: () => void;
+  readonly nextActiveAccountId?: S01AccountId;
 }
 
 const definition = s02Content.scene;
@@ -49,6 +52,30 @@ function clamp(value: number, minimum: number, maximum: number): number {
   return Math.min(maximum, Math.max(minimum, value));
 }
 
+function VisualPreview({ kind }: { readonly kind: S02VisualPreviewKind }) {
+  return (
+    <div
+      className={styles.visualPreview}
+      data-preview-kind={kind}
+      data-preview-ready
+      aria-hidden="true"
+    >
+      <span className={styles.previewChrome}>
+        <i />
+        <i />
+        <i />
+      </span>
+      <span className={styles.previewNavigation} />
+      <span className={styles.previewContent}>
+        <i />
+        <i />
+        <i />
+        <i />
+      </span>
+    </div>
+  );
+}
+
 export function S02AccountExplorationTraining({
   timingState = 'active',
   timingErrorCode = null,
@@ -56,6 +83,7 @@ export function S02AccountExplorationTraining({
   onAllAccountsUnderstood,
   onContinue,
   onRetryTiming,
+  nextActiveAccountId,
 }: S02AccountExplorationTrainingProps) {
   const characterAnimationAnchorRef = useRef<HTMLDivElement | null>(null);
   const networkHostRef = useRef<HTMLDivElement | null>(null);
@@ -67,12 +95,24 @@ export function S02AccountExplorationTraining({
   const [snapshot, setSnapshot] = useState<S02AccountExplorationControllerSnapshot | null>(null);
   const [previewPosition, setPreviewPosition] = useState<PreviewPosition | null>(null);
   const [speechPlacement, setSpeechPlacement] = useState<PassWoSpeechPlacement>('right');
+  const [introNarrationFinished, setIntroNarrationFinished] = useState(false);
+  const [returningToBrowser, setReturningToBrowser] = useState(false);
+  const resolvedNextActiveAccountId = nextActiveAccountId ?? 'campus-id';
+
+  useEffect(() => {
+    if (
+      returningToBrowser &&
+      (externalTimingError !== null || timingState === 'startFailed' || timingState === 'endFailed')
+    ) {
+      setReturningToBrowser(false);
+    }
+  }, [externalTimingError, returningToBrowser, timingState]);
 
   useEffect(() => {
     let controller: S02AccountExplorationController | null = null;
     const animationPlayer = new NetworkMotionAdapter({
       initialNodeId: definition.accounts[0]?.id ?? '',
-      initialRevealedNodeIds: definition.accounts.map(({ id }) => id),
+      initialRevealedNodeIds: [],
       applySnapshot: (presentation) => controller?.updatePresentation(presentation),
       getCharacterElement: () => characterAnimationAnchorRef.current,
       getActiveNodeElement: () =>
@@ -104,6 +144,19 @@ export function S02AccountExplorationTraining({
       void controller?.dispose();
     };
   }, []);
+
+  useEffect(() => {
+    if (
+      runtime === null ||
+      snapshot === null ||
+      !introNarrationFinished ||
+      timingState !== 'active' ||
+      externalTimingError !== null
+    ) {
+      return;
+    }
+    runtime.controller.startIntro();
+  }, [externalTimingError, introNarrationFinished, runtime, snapshot, timingState]);
 
   useLayoutEffect(() => {
     const activeAccountId = snapshot?.scene.activeAccountId ?? null;
@@ -170,24 +223,10 @@ export function S02AccountExplorationTraining({
         availableRight >= previewRect.width + gap || availableRight >= availableLeft
           ? 'right'
           : 'left';
-      const completionRect = sceneElement
-        .querySelector<HTMLElement>(`[aria-label="${s02Content.page.completion}"]`)
-        ?.getBoundingClientRect();
-      const overlapsCompletion = (side: 'left' | 'right') =>
-        completionRect !== undefined &&
-        leftBySide[side] + previewRect.width > completionRect.left - sceneRect.left &&
-        leftBySide[side] < completionRect.right - sceneRect.left &&
-        clampedTop + previewRect.height > completionRect.top - sceneRect.top &&
-        clampedTop < completionRect.bottom - sceneRect.top;
-      const alternateSide = preferredSide === 'right' ? 'left' : 'right';
-      const side =
-        overlapsCompletion(preferredSide) && !overlapsCompletion(alternateSide)
-          ? alternateSide
-          : preferredSide;
       setPreviewPosition({
         nodeId: previewNodeId,
-        side,
-        left: leftBySide[side],
+        side: preferredSide,
+        left: leftBySide[preferredSide],
         top: clampedTop,
       });
     };
@@ -200,28 +239,35 @@ export function S02AccountExplorationTraining({
     };
   }, [snapshot?.scene.activeAccountId, snapshot?.scene.activePreviewDetailId]);
 
-  if (runtime === null || snapshot === null) return null;
+  if (runtime === null || snapshot === null) {
+    return (
+      <section className={styles.training} aria-label={s02Content.trainingAriaLabel}>
+        <article className={styles.scene}>
+          <S02DesktopSurface
+            browserDock={{
+              active: false,
+              enabled: false,
+              label: s02Content.desktop.browserDockLabel,
+            }}
+          />
+        </article>
+      </section>
+    );
+  }
 
   const { controller, renderer } = runtime;
   const { scene, presentation } = snapshot;
   const activeAccount = definition.accounts.find(({ id }) => id === scene.activeAccountId);
-  const activeProgress = scene.accountProgress.find(
-    ({ accountId }) => accountId === scene.activeAccountId,
-  );
   const activePreview = activeAccount?.details.find(({ id }) => id === scene.activePreviewDetailId);
-  const narration = s02Content.narration.messages[scene.narrationId] ?? '';
-  const completionNarration =
-    activeAccount !== undefined && scene.understoodAccountIds.includes(activeAccount.id)
-      ? (s02Content.narration.messages[activeAccount.narrationIds.understood] ?? '')
-      : '';
+  const understoodCount = scene.understoodAccountIds.length;
+  const complete = understoodCount === definition.accounts.length;
+  const narration = complete
+    ? (s02Content.narration.messages[s02Content.narration.completeId] ?? '')
+    : (s02Content.narration.messages[scene.narrationId] ?? '');
   const animationAnnouncement =
     presentation.announcedMessageId === null
       ? ''
       : (s02Content.narration.messages[presentation.announcedMessageId] ?? '');
-  const understoodCount = scene.understoodAccountIds.length;
-  const complete = understoodCount === definition.accounts.length;
-  const localOpened = activeProgress?.openedDetailIds.length ?? 0;
-  const localTotal = activeAccount?.details.length ?? 0;
   const timingFailure =
     externalTimingError !== null || timingState === 'startFailed' || timingState === 'endFailed';
   const interactionBlocked = timingState !== 'active' || externalTimingError !== null;
@@ -231,20 +277,47 @@ export function S02AccountExplorationTraining({
     ? { left: previewPosition.left, top: previewPosition.top }
     : undefined;
 
-  return (
-    <section className={styles.training} aria-label={s02Content.trainingAriaLabel}>
-      <article className={styles.scene} aria-labelledby="s02-account-title">
-        <header className={styles.sceneHeader}>
-          <div>
-            <p className={styles.eyebrow}>{s02Content.page.eyebrow}</p>
-            <h1 id="s02-account-title">{s02Content.page.title}</h1>
-          </div>
-          <p className={styles.taskTracker} role="status">
-            {s02Content.page.globalProgress(understoodCount)}
-          </p>
-        </header>
+  function returnToBrowser(): void {
+    if (!complete || interactionBlocked || scene.pendingAnimationId !== null || returningToBrowser) {
+      return;
+    }
+    if (prefersReducedMotion()) {
+      onContinue?.();
+      return;
+    }
+    setReturningToBrowser(true);
+  }
 
-        <div ref={sceneRef} className={styles.voidScene}>
+  return (
+    <section
+      className={styles.training}
+      aria-label={s02Content.trainingAriaLabel}
+      data-browser-returning={returningToBrowser}
+    >
+      <div className={styles.browserHandoff}>
+        <S03InitialBrowserSurface activeAccountId={resolvedNextActiveAccountId} inert />
+      </div>
+      <article
+        className={styles.scene}
+        onAnimationEnd={(event) => {
+          if (event.target === event.currentTarget && returningToBrowser) onContinue?.();
+        }}
+      >
+        <S02DesktopSurface
+          sceneRef={sceneRef}
+          browserDock={{
+            active: complete,
+            enabled:
+              complete &&
+              !interactionBlocked &&
+              scene.pendingAnimationId === null &&
+              !returningToBrowser,
+            label: complete
+              ? s02Content.desktop.browserDockReadyLabel
+              : s02Content.desktop.browserDockLabel,
+            onClick: returnToBrowser,
+          }}
+        >
           <div ref={networkHostRef} className={styles.networkPanel}>
             <ReactFlowNetwork
               adapter={renderer}
@@ -252,21 +325,12 @@ export function S02AccountExplorationTraining({
               onNodeSelect={(nodeId) => controller.selectNode(nodeId)}
               ariaLabel={s02Content.accessibility.networkLabel}
               canvasAriaLabel={s02Content.accessibility.canvasLabel}
-              interactionDisabled={interactionBlocked}
-              visualVariant="void"
+              interactionDisabled={interactionBlocked || snapshot.introState !== 'complete' || complete}
+              visualVariant="account-map"
               activeNodeId={scene.activeAccountId}
               showEdgeLabels={false}
             />
           </div>
-
-          {activeAccount !== undefined ? (
-            <p className={styles.localStatus} role="status">
-              <span aria-hidden="true">
-                {scene.understoodAccountIds.includes(activeAccount.id) ? '✓' : '○'}
-              </span>
-              {s02Content.page.localProgress(activeAccount.label, localOpened, localTotal)}
-            </p>
-          ) : null}
 
           {activePreview !== undefined ? (
             <section
@@ -275,23 +339,9 @@ export function S02AccountExplorationTraining({
               data-positioned={positionedPreview}
               data-side={positionedPreview ? previewPosition.side : 'right'}
               style={previewStyle}
-              aria-labelledby="s02-preview-title"
+              aria-label={`Visuelle Vorschau für ${activePreview.label}`}
             >
-              <p className={styles.cardLabel}>{s02Content.page.previewTitle}</p>
-              <h2 id="s02-preview-title">{activePreview.label}</h2>
-              <p>{activePreview.preview}</p>
-            </section>
-          ) : null}
-
-          {complete ? (
-            <section className={styles.completion} aria-label={s02Content.page.completion}>
-              <p role="status">
-                <span aria-hidden="true">✓</span>
-                {s02Content.page.completion}
-              </p>
-              <button type="button" disabled={interactionBlocked} onClick={onContinue}>
-                {s02Content.controls.continue}
-              </button>
+              <VisualPreview key={activePreview.id} kind={activePreview.preview.kind} />
             </section>
           ) : null}
 
@@ -312,16 +362,21 @@ export function S02AccountExplorationTraining({
               speaker={s02Content.narration.guideName}
               paragraphs={[
                 narration,
-                ...(completionNarration !== '' && completionNarration !== narration
-                  ? [completionNarration]
-                  : []),
               ]}
-              speechKey={`${scene.narrationId}-${completionNarration}`}
+              speechKey={`${scene.narrationId}-${complete}`}
               placement={speechPlacement}
-              tone="dark"
+              onComplete={() => {
+                if (scene.narrationId === s02Content.narration.introId) {
+                  setIntroNarrationFinished(true);
+                }
+              }}
             />
           </div>
-        </div>
+
+          <p className={styles.screenReaderOnly} role="status">
+            {complete ? s02Content.page.completion : ''}
+          </p>
+        </S02DesktopSurface>
 
         {(timingState === 'starting' || timingState === 'ending') && externalTimingError === null ? (
           <p className={styles.timingStatus} role="status">
@@ -343,6 +398,9 @@ export function S02AccountExplorationTraining({
           {animationAnnouncement}
         </p>
       </article>
+      {returningToBrowser ? (
+        <img className={styles.passWoReturnFlight} src={passWoDockAsset} alt="" />
+      ) : null}
     </section>
   );
 }

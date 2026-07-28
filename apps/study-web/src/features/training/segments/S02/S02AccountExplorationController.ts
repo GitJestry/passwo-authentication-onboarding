@@ -21,6 +21,7 @@ const definition = {
 export interface S02AccountExplorationControllerSnapshot {
   readonly scene: AccountExplorationSceneSnapshot;
   readonly presentation: NetworkPresentationSnapshot;
+  readonly introState: 'ready' | 'playing' | 'complete';
 }
 
 export interface S02AccountExplorationControllerOptions {
@@ -49,7 +50,7 @@ function createInitialPresentation(): NetworkPresentationSnapshot {
       placement: 'bottom-left',
       pose: 'dock',
     },
-    revealedNodeIds: definition.accounts.map(({ id }) => id),
+    revealedNodeIds: [],
     highlightedNodeId: null,
     emphasis: null,
     announcedMessageId: null,
@@ -73,6 +74,7 @@ export class S02AccountExplorationController {
   readonly #listeners = new Set<ControllerListener>();
   #snapshot: S02AccountExplorationControllerSnapshot;
   #pendingAnimation: PendingAnimation | null = null;
+  #introRunId: number | null = null;
   #nextRunId = 0;
   #completionNotified = false;
   #disposed = false;
@@ -86,6 +88,7 @@ export class S02AccountExplorationController {
     this.#snapshot = {
       scene: createAccountExplorationScene(definition),
       presentation: createInitialPresentation(),
+      introState: 'ready',
     };
   }
 
@@ -97,7 +100,29 @@ export class S02AccountExplorationController {
   };
 
   selectNode(nodeId: string): void {
+    if (
+      this.#snapshot.introState !== 'complete' ||
+      this.#snapshot.scene.understoodAccountIds.length === definition.accounts.length
+    ) {
+      return;
+    }
     this.#send({ type: 'node-selected', nodeId });
+  }
+
+  startIntro(): void {
+    if (this.#disposed || this.#snapshot.introState !== 'ready') return;
+    const animation = getS02Animation(definition.introAnimationId);
+    if (animation === undefined) {
+      this.#snapshot = { ...this.#snapshot, introState: 'complete' };
+      this.#emit();
+      return;
+    }
+    const runId = this.#nextRunId;
+    this.#nextRunId += 1;
+    this.#introRunId = runId;
+    this.#snapshot = { ...this.#snapshot, introState: 'playing' };
+    this.#emit();
+    void this.#runIntroAnimation(animation, runId);
   }
 
   attachRenderer(renderer: NetworkRendererPort): void {
@@ -115,6 +140,7 @@ export class S02AccountExplorationController {
   async dispose(): Promise<void> {
     this.#disposed = true;
     this.#pendingAnimation = null;
+    this.#introRunId = null;
     await this.#animationPlayer.cancel();
     this.#listeners.clear();
   }
@@ -141,7 +167,11 @@ export class S02AccountExplorationController {
       const presentation = revealSettledNodes
         ? revealSceneNodes(this.#snapshot.presentation, transition.snapshot)
         : this.#snapshot.presentation;
-      this.#snapshot = { scene: transition.snapshot, presentation };
+      this.#snapshot = {
+        scene: transition.snapshot,
+        presentation,
+        introState: this.#snapshot.introState,
+      };
       this.#renderer?.render(transition.snapshot.network);
       this.#emit();
       this.#notifyCompleteIfNeeded();
@@ -170,6 +200,22 @@ export class S02AccountExplorationController {
       return;
     }
     void this.#runAnimation(pendingAnimation, animation);
+  }
+
+  async #runIntroAnimation(animation: AnimationSequence, runId: number): Promise<void> {
+    try {
+      const result = await this.#animationPlayer.play(animation);
+      if (result.status !== 'cancelled') this.#completeIntro(runId);
+    } catch {
+      this.#completeIntro(runId);
+    }
+  }
+
+  #completeIntro(runId: number): void {
+    if (this.#disposed || this.#introRunId !== runId) return;
+    this.#introRunId = null;
+    this.#snapshot = { ...this.#snapshot, introState: 'complete' };
+    this.#emit();
   }
 
   async #runAnimation(

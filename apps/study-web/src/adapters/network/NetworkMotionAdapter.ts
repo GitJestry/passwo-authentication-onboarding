@@ -140,14 +140,19 @@ export class NetworkMotionAdapter implements AnimationPlayerPort {
         await nextFrame();
         const character = this.#getCharacterElement();
         if (character === null) throw new Error('missing-network-character');
-        const destination = this.#transformToActiveNode(character);
+        const destination =
+          step.to === 'bottom-left' ? 'translate3d(0px, 0px, 0px)' : this.#transformToActiveNode(character);
         if (destination === null) throw new Error('missing-active-network-node');
         await this.#animate(character, step.durationMs, {
           opacity: [0.7, 1],
           transform: [character.style.transform || 'translate3d(0px, 0px, 0px)', destination],
         });
         character.style.opacity = '1';
-        character.style.transform = destination;
+        if (step.to === 'bottom-left') {
+          character.style.removeProperty('transform');
+        } else {
+          character.style.transform = destination;
+        }
         return;
       }
       case 'reveal': {
@@ -183,18 +188,19 @@ export class NetworkMotionAdapter implements AnimationPlayerPort {
         await nextFrame();
         const node = this.#getNodeElement(step.targetId);
         if (node === null) throw new Error(`missing-network-node:${step.targetId}`);
-        const shackle = node.querySelector<SVGPathElement>(
-          '[data-network-status-marker="locked"] path',
-        );
-        if (shackle !== null) {
-          shackle.style.transformBox = 'fill-box';
-          shackle.style.transformOrigin = 'left bottom';
-          await this.#animate(shackle, Math.min(step.durationMs, 180), {
-            transform: ['translateY(0) rotate(0deg)', 'translateY(-3px) rotate(-18deg)'],
+        const lock = node.querySelector<SVGSVGElement>('[data-network-status-marker="locked"]');
+        if (lock !== null) {
+          lock.style.transformBox = 'fill-box';
+          lock.style.transformOrigin = 'left bottom';
+          await this.#animate(lock, Math.min(step.durationMs, 360), {
+            transform: [
+              'translate3d(0, 0, 0) rotate(0deg) scale(1)',
+              'translate3d(-3px, -8px, 0) rotate(-22deg) scale(1.08)',
+            ],
           });
         }
-        await this.#animate(node, step.durationMs, {
-          transform: ['scale(0.97)', 'scale(1.025)', 'scale(1)'],
+        await this.#animate(node, Math.min(step.durationMs, 420), {
+          transform: ['scale(0.94)', 'scale(1.055)', 'scale(1)'],
         });
         node.style.removeProperty('transform');
         this.#setSnapshot({ ...this.#snapshot, highlightedNodeId: null });
@@ -214,7 +220,7 @@ export class NetworkMotionAdapter implements AnimationPlayerPort {
   }
 
   async #animate(
-    element: HTMLElement,
+    element: HTMLElement | SVGElement,
     durationMs: number,
     keyframes: DOMKeyframesDefinition,
   ): Promise<void> {
@@ -229,12 +235,19 @@ export class NetworkMotionAdapter implements AnimationPlayerPort {
 
   async #drawEdge(edge: SVGPathElement, durationMs: number): Promise<void> {
     const length = edge.getTotalLength();
+    if (!Number.isFinite(length) || length <= 0) return;
     edge.style.strokeDasharray = `${length}`;
     edge.style.strokeDashoffset = `${length}`;
     edge.style.opacity = '1';
-    await this.#animate(edge, durationMs, {
+    const animation = animate(edge, {
       strokeDashoffset: [length, 0],
+    }, {
+      duration: durationMs / 1000,
+      ease: 'easeInOut',
     });
+    this.#activeAnimation = animation;
+    await animation;
+    if (this.#activeAnimation === animation) this.#activeAnimation = null;
     edge.style.removeProperty('stroke-dasharray');
     edge.style.removeProperty('stroke-dashoffset');
     edge.style.removeProperty('opacity');
@@ -249,8 +262,13 @@ export class NetworkMotionAdapter implements AnimationPlayerPort {
         };
         requestAnimationFrame(() => {
           const character = this.#getCharacterElement();
-          const destination = character === null ? null : this.#transformToActiveNode(character);
-          if (character !== null && destination !== null) character.style.transform = destination;
+          if (character === null) return;
+          if (step.to === 'bottom-left') {
+            character.style.removeProperty('transform');
+            return;
+          }
+          const destination = this.#transformToActiveNode(character);
+          if (destination !== null) character.style.transform = destination;
         });
       } else if (step.type === 'reveal') {
         this.#snapshot = {
@@ -282,10 +300,13 @@ export class NetworkMotionAdapter implements AnimationPlayerPort {
     const characterRect = characterAnchor.getBoundingClientRect();
     const nodeRect = activeNode.getBoundingClientRect();
     const current = currentTranslation(character);
-    const targetX = nodeRect.left + nodeRect.width / 2;
-    const targetY = nodeRect.top + nodeRect.height * 0.42;
-    const characterAnchorX = characterRect.left + characterRect.width * 0.32;
-    const characterAnchorY = characterRect.top + characterRect.height * 0.55;
+    const placeOnRight = nodeRect.left + nodeRect.width / 2 < window.innerWidth / 2;
+    const targetX = placeOnRight
+      ? nodeRect.right + characterRect.width * 0.3
+      : nodeRect.left - characterRect.width * 0.3;
+    const targetY = nodeRect.top + nodeRect.height * 0.68;
+    const characterAnchorX = characterRect.left + characterRect.width * 0.5;
+    const characterAnchorY = characterRect.top + characterRect.height * 0.62;
     const x = Math.round(current.x + targetX - characterAnchorX);
     const y = Math.round(current.y + targetY - characterAnchorY);
     return `translate3d(${x}px, ${y}px, 0px)`;

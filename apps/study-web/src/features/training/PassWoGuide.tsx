@@ -55,7 +55,7 @@ export function PassWoGuide({
         onClick={onToggleHelp}
       >
         <span className={styles.nameTag}>{guideName}</span>
-        <img className={styles.character} src={passWoDockAsset} alt="" />
+        <img className={styles.character} data-passwo-character src={passWoDockAsset} alt="" />
         {progressLabel === undefined ? null : (
           <span className={styles.progress} aria-live="polite">
             {progressLabel}

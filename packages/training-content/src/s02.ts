@@ -2,6 +2,17 @@ import type { TrainingSectionId } from '@passwo/contracts';
 
 export const s02AccountIds = ['campus-id', 'campus-mail', 'campus-board-archive'] as const;
 export type S02AccountId = (typeof s02AccountIds)[number];
+export type S02VisualPreviewKind =
+  | 'course-space'
+  | 'exam-list'
+  | 'cloud-files'
+  | 'mail-list'
+  | 'confirmation'
+  | 'reset-link'
+  | 'compose'
+  | 'announcement'
+  | 'discussion'
+  | 'message-thread';
 
 export type S02AnimationStep =
   | {
@@ -9,6 +20,13 @@ export type S02AnimationStep =
       readonly pose: 'flight';
       readonly from: 'bottom-left';
       readonly to: 'focused-node';
+      readonly durationMs: number;
+    }
+  | {
+      readonly type: 'move-character';
+      readonly pose: 'flight';
+      readonly from: 'focused-node';
+      readonly to: 'bottom-left';
       readonly durationMs: number;
     }
   | { readonly type: 'reveal'; readonly targetId: string; readonly durationMs: number }
@@ -41,6 +59,7 @@ export interface S02AccountContent {
   readonly edgeLabel: string | null;
   readonly unlockAnimationId: string;
   readonly detailRevealAnimationId: string;
+  readonly returnToDockAnimationId: string;
   readonly narrationIds: {
     readonly open: string;
     readonly understood: string;
@@ -62,7 +81,9 @@ export interface S02AccountContent {
     readonly id: string;
     readonly label: string;
     readonly symbolId: string;
-    readonly preview: string;
+    readonly preview: {
+      readonly kind: S02VisualPreviewKind;
+    };
     readonly position: { readonly x: number; readonly y: number };
     readonly animationId: string;
     readonly narrationId: string;
@@ -109,22 +130,29 @@ export interface S02SegmentContent {
   readonly narration: {
     readonly guideName: string;
     readonly introId: string;
+    readonly completeId: string;
     readonly messages: Readonly<Record<string, string>>;
   };
   readonly scene: {
     readonly id: string;
+    readonly introAnimationId: string;
     readonly summaries: {
       readonly initial: string;
       readonly complete: string;
     };
     readonly accounts: readonly S02AccountContent[];
   };
+  readonly desktop: {
+    readonly browserDockLabel: string;
+    readonly browserDockReadyLabel: string;
+  };
   readonly animations: readonly S02AnimationSequence[];
 }
 
-export const S02_CONTENT_VERSION = '3.1.0';
+export const S02_CONTENT_VERSION = '3.3.0';
 
 const introId = 's02.accounts.intro';
+const completeId = 's02.accounts.complete';
 
 const accounts = [
   {
@@ -137,6 +165,7 @@ const accounts = [
     edgeLabel: 'Mit CampusID geöffnet',
     unlockAnimationId: 's02-unlock-campus-id',
     detailRevealAnimationId: 's02-reveal-campus-id-details',
+    returnToDockAnimationId: 's02-return-campus-id-to-dock',
     narrationIds: {
       open: 's02.campus-id.open',
       understood: 's02.campus-id.understood',
@@ -159,7 +188,7 @@ const accounts = [
         id: 'campus-id-learnspace',
         label: 'LearnSpace',
         symbolId: 'learnspace',
-        preview: 'Kurszugänge, Vorlesungsunterlagen, Abgaben',
+        preview: { kind: 'course-space' },
         position: { x: 0.03, y: 0.43 },
         animationId: 's02-check-campus-id-learnspace',
         narrationId: 's02.campus-id.learnspace',
@@ -173,7 +202,7 @@ const accounts = [
         id: 'campus-id-exam-portal',
         label: 'Prüfungsportal',
         symbolId: 'exam-portal',
-        preview: 'Anmeldungen, Termine, Ergebnisübersichten',
+        preview: { kind: 'exam-list' },
         position: { x: 0.22, y: 0.64 },
         animationId: 's02-check-campus-id-exam-portal',
         narrationId: 's02.campus-id.exam-portal',
@@ -187,7 +216,7 @@ const accounts = [
         id: 'campus-id-cloud-notes',
         label: 'Cloud Notes',
         symbolId: 'cloud-notes',
-        preview: 'Notizen, Entwürfe, Arbeitsdateien, Projektmaterial',
+        preview: { kind: 'cloud-files' },
         position: { x: 0.04, y: 0.8 },
         animationId: 's02-check-campus-id-cloud-notes',
         narrationId: 's02.campus-id.cloud-notes',
@@ -209,6 +238,7 @@ const accounts = [
     edgeLabel: 'Mit CampusMail verbunden',
     unlockAnimationId: 's02-unlock-campus-mail',
     detailRevealAnimationId: 's02-reveal-campus-mail-details',
+    returnToDockAnimationId: 's02-return-campus-mail-to-dock',
     narrationIds: {
       open: 's02.campus-mail.open',
       understood: 's02.campus-mail.understood',
@@ -231,7 +261,7 @@ const accounts = [
         id: 'campus-mail-notifications',
         label: 'Benachrichtigungen',
         symbolId: 'notifications',
-        preview: 'Neue Kursnachricht, Terminänderung, Systemhinweis',
+        preview: { kind: 'mail-list' },
         position: { x: 0.85, y: 0.38 },
         animationId: 's02-check-campus-mail-notifications',
         narrationId: 's02.campus-mail.notifications',
@@ -245,7 +275,7 @@ const accounts = [
         id: 'campus-mail-confirmations',
         label: 'Bestätigungen',
         symbolId: 'confirmations',
-        preview: 'Bestätigung für Anmeldung oder Änderung',
+        preview: { kind: 'confirmation' },
         position: { x: 0.65, y: 0.45 },
         animationId: 's02-check-campus-mail-confirmations',
         narrationId: 's02.campus-mail.confirmations',
@@ -259,7 +289,7 @@ const accounts = [
         id: 'campus-mail-reset-links',
         label: 'Zurücksetzungslinks',
         symbolId: 'reset-links',
-        preview: 'Passwort zurücksetzen angefordert → Link liegt im Postfach',
+        preview: { kind: 'reset-link' },
         position: { x: 0.82, y: 0.7 },
         animationId: 's02-check-campus-mail-reset-links',
         narrationId: 's02.campus-mail.reset-links',
@@ -273,7 +303,7 @@ const accounts = [
         id: 'campus-mail-impersonation',
         label: 'Kommunikation in deinem Namen',
         symbolId: 'compose-message',
-        preview: 'Nachricht verfassen',
+        preview: { kind: 'compose' },
         position: { x: 0.62, y: 0.77 },
         animationId: 's02-check-campus-mail-impersonation',
         narrationId: 's02.campus-mail.impersonation',
@@ -295,6 +325,7 @@ const accounts = [
     edgeLabel: 'Lokaler Inhalt im CampusBoard Archiv',
     unlockAnimationId: 's02-unlock-campus-board-archive',
     detailRevealAnimationId: 's02-reveal-campus-board-archive-details',
+    returnToDockAnimationId: 's02-return-campus-board-archive-to-dock',
     narrationIds: {
       open: 's02.campus-board.open',
       understood: 's02.campus-board.understood',
@@ -317,7 +348,7 @@ const accounts = [
         id: 'campus-board-old-announcements',
         label: 'Alte Ankündigungen',
         symbolId: 'announcements',
-        preview: 'Ältere Hinweise und Informationen',
+        preview: { kind: 'announcement' },
         position: { x: 0.25, y: 0.78 },
         animationId: 's02-check-campus-board-old-announcements',
         narrationId: 's02.campus-board.old-announcements',
@@ -331,7 +362,7 @@ const accounts = [
         id: 'campus-board-project-questions',
         label: 'Projektfragen',
         symbolId: 'project-questions',
-        preview: 'Fragen, Antworten, kurze Projektabsprachen',
+        preview: { kind: 'discussion' },
         position: { x: 0.45, y: 0.8 },
         animationId: 's02-check-campus-board-project-questions',
         narrationId: 's02.campus-board.project-questions',
@@ -345,7 +376,7 @@ const accounts = [
         id: 'campus-board-archived-discussions',
         label: 'Archivierte Diskussionen',
         symbolId: 'archived-discussions',
-        preview: 'Diskussionsverlauf aus früheren Kursen',
+        preview: { kind: 'message-thread' },
         position: { x: 0.57, y: 0.62 },
         animationId: 's02-check-campus-board-archived-discussions',
         narrationId: 's02.campus-board.archived-discussions',
@@ -370,25 +401,57 @@ function unlockAnimation(account: S02AccountContent): S02AnimationSequence {
         to: 'focused-node',
         durationMs: 520,
       },
-      { type: 'highlight', targetId: account.id, emphasis: 'positive', durationMs: 220 },
+      { type: 'highlight', targetId: account.id, emphasis: 'positive', durationMs: 640 },
       { type: 'announce', messageId: account.narrationIds.open },
     ],
     reducedMotion: { strategy: 'instant-end-state', maxDurationMs: 0 },
-    maxDurationMs: 740,
+    maxDurationMs: 1160,
   };
 }
 
 function revealDetailsAnimation(account: S02AccountContent): S02AnimationSequence {
   const steps: S02AnimationStep[] = [];
   account.details.forEach((detail, index) => {
-    if (index > 0) steps.push({ type: 'pause', durationMs: 70 });
-    steps.push({ type: 'reveal', targetId: detail.id, durationMs: 260 });
+    if (index > 0) steps.push({ type: 'pause', durationMs: 140 });
+    steps.push({ type: 'reveal', targetId: detail.id, durationMs: 420 });
   });
   return {
     id: account.detailRevealAnimationId,
     steps,
     reducedMotion: { strategy: 'instant-end-state', maxDurationMs: 0 },
-    maxDurationMs: account.details.length * 440 + (account.details.length - 1) * 70,
+    maxDurationMs: account.details.length * 600 + (account.details.length - 1) * 140,
+  };
+}
+
+function returnToDockAnimation(account: S02AccountContent): S02AnimationSequence {
+  return {
+    id: account.returnToDockAnimationId,
+    steps: [
+      {
+        type: 'move-character',
+        pose: 'flight',
+        from: 'focused-node',
+        to: 'bottom-left',
+        durationMs: 540,
+      },
+      { type: 'announce', messageId: account.narrationIds.understood },
+    ],
+    reducedMotion: { strategy: 'instant-end-state', maxDurationMs: 0 },
+    maxDurationMs: 540,
+  };
+}
+
+function introAnimation(): S02AnimationSequence {
+  const steps: S02AnimationStep[] = [{ type: 'announce', messageId: introId }];
+  accounts.forEach((account, index) => {
+    if (index > 0) steps.push({ type: 'pause', durationMs: 180 });
+    steps.push({ type: 'reveal', targetId: account.id, durationMs: 340 });
+  });
+  return {
+    id: 's02-reveal-accounts',
+    steps,
+    reducedMotion: { strategy: 'instant-end-state', maxDurationMs: 0 },
+    maxDurationMs: 1380,
   };
 }
 
@@ -404,11 +467,15 @@ function detailAnimation(detail: S02AccountContent['details'][number]): S02Anima
   };
 }
 
-const animations = accounts.flatMap((account) => [
-  unlockAnimation(account),
-  revealDetailsAnimation(account),
-  ...account.details.map(detailAnimation),
-]);
+const animations = [
+  introAnimation(),
+  ...accounts.flatMap((account) => [
+    unlockAnimation(account),
+    revealDetailsAnimation(account),
+    returnToDockAnimation(account),
+    ...account.details.map(detailAnimation),
+  ]),
+];
 
 export const s02Content: S02SegmentContent = {
   version: S02_CONTENT_VERSION,
@@ -447,46 +514,58 @@ export const s02Content: S02SegmentContent = {
   narration: {
     guideName: 'PassWo',
     introId,
+    completeId,
     messages: {
       [introId]:
-        'Du hast jetzt drei Passwörter, Schlüssel wie mich, die dir Türen zu Konten öffnen. Klicke auf die Konten, um zu sehen, welche Dienste oder Inhalte daran hängen.',
-      's02.campus-id.open': 'Die Campusservices brauchen den Zugang über deine CampusID.',
+        'Stell dir deine Konten als Knoten in einem Netzwerk vor. Sie sind zunächst geschlossen: Dein Passwort ist der Schlüssel, mit dem du – zusammen mit mir – den Zugang zu ihnen öffnest.',
+      [completeId]:
+        'Du hast die Konten erkundet. Klicke unten im Dock auf den Browser, wenn du bereit bist weiterzugehen.',
+      's02.campus-id.open':
+        'CampusID ist dein zentrales Konto: Mit einem Passwort kannst du dich bei mehreren verbundenen Diensten anmelden.',
       's02.campus-id.understood':
         'Zusammengefasst steckt hinter dem einen Passwort nicht nur die CampusID, sondern drei weitere persönliche Dienste.',
-      's02.campus-id.learnspace': 'Die Campusservices brauchen den Zugang über deine CampusID.',
-      's02.campus-id.exam-portal': 'Die Campusservices brauchen den Zugang über deine CampusID.',
-      's02.campus-id.cloud-notes': 'Die Campusservices brauchen den Zugang über deine CampusID.',
+      's02.campus-id.learnspace':
+        'Hier sammeln sich deine Kurse, Materialien und Abgaben. Darin können auch persönliche Notizen und Dateien liegen.',
+      's02.campus-id.exam-portal':
+        'Hier stehen Anmeldungen, Termine und Ergebnisse. Diese Informationen zeigen, wie dein Studienalltag organisiert ist.',
+      's02.campus-id.cloud-notes':
+        'Hier liegen Notizen, Entwürfe und Arbeitsdateien – zum Beispiel auch persönliche Fotos, wenn du sie dort abgelegt hast.',
       's02.campus-mail.open':
         'CampusMail verbindet Nachrichten, Bestätigungen, Zurücksetzungen und Kommunikation.',
       's02.campus-mail.understood':
         'CampusMail ist die Brücke zu persönlichen Informationen, Zurücksetzungen und Kommunikation in deinem Namen.',
       's02.campus-mail.notifications':
-        'CampusMail sammelt hier Nachrichten, die im Studienalltag relevant sein können.',
+        'Hier landen Hinweise zu Kursen, Terminen und Systemen. Sie zeigen, welche Vorgänge dich gerade betreffen.',
       's02.campus-mail.confirmations':
-        'Viele Vorgänge werden per E-Mail bestätigt. Wer Zugriff auf Mail hat, sieht solche Bestätigungen.',
+        'Hier kommen Bestätigungen für Anmeldungen oder Änderungen an. Sie können verraten, was du gerade organisiert hast.',
       's02.campus-mail.reset-links':
-        'E-Mail ist besonders wichtig, weil manche Dienste darüber Änderungen bestätigen oder Passwörter zurücksetzen.',
+        'Hier erscheinen Links, mit denen manche Dienste Änderungen bestätigen oder ein Passwort zurücksetzen lassen.',
       's02.campus-mail.impersonation':
-        'Mit Zugriff auf Mail könnte jemand in diesem Szenario auch Nachrichten in deinem Namen schreiben.',
+        'Über dieses Postfach könnten in diesem Szenario Nachrichten in deinem Namen geschrieben werden.',
       's02.campus-board.open':
         'Im CampusBoard Archiv liegen lokale Inhalte ohne Verbindungen zu weiteren Campusdiensten.',
       's02.campus-board.understood':
         'CampusBoard öffnet hier keine weiteren Campusdienste und enthält typische archivierte Informationen.',
       's02.campus-board.old-announcements':
-        'CampusBoard enthält hier ältere Ankündigungen und Informationen.',
+        'Hier liegen ältere Hinweise und Informationen, die zeigen können, welche Themen oder Veranstaltungen dich betroffen haben.',
       's02.campus-board.project-questions':
-        'Hier können informelle Projektfragen oder ältere Absprachen liegen.',
+        'Hier können Projektfragen, Antworten und kurze Absprachen gesammelt sein – auch wenn sie schon etwas zurückliegen.',
       's02.campus-board.archived-discussions':
-        'CampusBoard öffnet hier keine weiteren Campusdienste und wird für typische Informationssammlung genutzt. Es ist weniger zentral als CampusID oder CampusMail.',
+        'Hier bleiben Diskussionen aus früheren Kursen erhalten. Das Archiv öffnet keine weiteren Dienste, kann aber trotzdem persönliche Informationen enthalten.',
     },
   },
   scene: {
     id: 's02-account-exploration',
+    introAnimationId: 's02-reveal-accounts',
     summaries: {
       initial: 'Drei Konten sind sichtbar und können in beliebiger Reihenfolge geöffnet werden.',
       complete: 'Alle drei Konten wurden mit ihren Details angesehen und verstanden.',
     },
     accounts,
+  },
+  desktop: {
+    browserDockLabel: 'Browser — wird nach dem Erkunden verfügbar',
+    browserDockReadyLabel: 'Browser öffnen und zum nächsten Schritt gehen',
   },
   animations,
 };

@@ -10,6 +10,7 @@ import type {
 
 export interface AccountExplorationSceneDefinition {
   readonly id: string;
+  readonly introAnimationId: string;
   readonly initialNarrationId: string;
   readonly summaries: {
     readonly initial: string;
@@ -25,6 +26,7 @@ export interface AccountExplorationSceneDefinition {
     readonly edgeLabel: string | null;
     readonly unlockAnimationId: string;
     readonly detailRevealAnimationId: string;
+    readonly returnToDockAnimationId: string;
     readonly narrationIds: {
       readonly open: string;
       readonly understood: string;
@@ -71,6 +73,7 @@ export type AccountExplorationScenePhase =
   | 'revealing-details'
   | 'exploring'
   | 'checking-detail'
+  | 'returning-to-dock'
   | 'complete';
 
 export interface AccountExplorationSceneSnapshot {
@@ -140,6 +143,7 @@ function buildNetwork(
 ): NetworkSceneSnapshot {
   const understood = new Set(understoodIds);
   const interactionLocked = values.pendingAnimationId !== null;
+  const sceneComplete = understoodIds.length === definition.accounts.length;
   const activeAccount = definition.accounts.find(({ id }) => id === values.activeAccountId);
   const activeProgress =
     activeAccount === undefined ? undefined : progressFor(values, activeAccount.id);
@@ -165,7 +169,7 @@ function buildNetwork(
       locked: accountProgress?.unlocked !== true,
       position: account.position,
       selectable:
-        !interactionLocked && (activeAccountUnderstood || activeAccount?.id === account.id),
+        !sceneComplete && !interactionLocked && (activeAccountUnderstood || activeAccount?.id === account.id),
     };
   });
   const pendingDetail = activeAccount?.details.find(
@@ -189,7 +193,7 @@ function buildNetwork(
             : detail.descriptions.available,
       status: openedDetails.has(detail.id) ? 'understood' : 'neutral',
       position: detail.position,
-      selectable: !interactionLocked && isActive,
+      selectable: !sceneComplete && !interactionLocked && isActive,
     }));
   });
   const edges: readonly SceneEdge[] = definition.accounts.flatMap((account) => {
@@ -408,6 +412,21 @@ export function transitionAccountExplorationScene(
     };
   }
 
+  if (event.animationId === activeAccount.returnToDockAnimationId) {
+    return {
+      snapshot: createSnapshot(definition, {
+        ...snapshot,
+        phase:
+          snapshot.understoodAccountIds.length === definition.accounts.length
+            ? 'complete'
+            : 'exploring',
+        pendingAnimationId: null,
+        narrationId: activeAccount.narrationIds.understood,
+      }),
+      effects: [],
+    };
+  }
+
   const detail = activeAccount.details.find(({ animationId }) => animationId === event.animationId);
   if (detail === undefined) return { snapshot, effects: [] };
   const nextProgress = replaceProgress(snapshot.accountProgress, {
@@ -417,17 +436,20 @@ export function transitionAccountExplorationScene(
   });
   const nextUnderstoodIds = understoodAccountIds(definition, nextProgress);
   const activeAccountUnderstood = nextUnderstoodIds.includes(activeAccount.id);
+  const shouldReturnToDock = activeAccountUnderstood;
   return {
     snapshot: createSnapshot(definition, {
       ...snapshot,
-      phase: nextUnderstoodIds.length === definition.accounts.length ? 'complete' : 'exploring',
+      phase: shouldReturnToDock ? 'returning-to-dock' : 'exploring',
       accountProgress: nextProgress,
       activePreviewDetailId: detail.id,
-      pendingAnimationId: null,
+      pendingAnimationId: shouldReturnToDock ? activeAccount.returnToDockAnimationId : null,
       narrationId: activeAccountUnderstood
         ? activeAccount.narrationIds.understood
         : detail.narrationId,
     }),
-    effects: [{ type: 'focus-node', nodeId: detail.id }],
+    effects: shouldReturnToDock
+      ? [{ type: 'play-animation', animationId: activeAccount.returnToDockAnimationId }]
+      : [{ type: 'focus-node', nodeId: detail.id }],
   };
 }

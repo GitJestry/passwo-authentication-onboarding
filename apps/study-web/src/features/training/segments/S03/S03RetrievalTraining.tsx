@@ -65,6 +65,74 @@ function PasswordVisibilityIcon({ revealed }: { readonly revealed: boolean }) {
   );
 }
 
+function InitialLoginWelcome({
+  accountId,
+  disabled,
+  onOpenLogin,
+}: {
+  readonly accountId: S01AccountId;
+  readonly disabled: boolean;
+  readonly onOpenLogin?: () => void;
+}) {
+  const account = s01Content.browser.accounts.find(({ id }) => id === accountId);
+  if (account === undefined) return null;
+
+  return (
+    <section className={styles.siteWelcome}>
+      <NetworkSymbol symbolId={account.symbolId} className={styles.welcomeSymbol} />
+      <p>{s03Content.accountPages[account.id].areaLabel}</p>
+      <h2>{account.label}</h2>
+      <button type="button" className={styles.primaryButton} disabled={disabled} onClick={onOpenLogin}>
+        {s03Content.controls.openLogin(account.label)}
+      </button>
+    </section>
+  );
+}
+
+export function S03InitialBrowserSurface({
+  activeAccountId,
+  inert = false,
+}: {
+  readonly activeAccountId: S01AccountId;
+  readonly inert?: boolean;
+}) {
+  const account = s01Content.browser.accounts.find(({ id }) => id === activeAccountId);
+  if (account === undefined) return null;
+  const browserSnapshot: BrowserShellSnapshot = {
+    tabs: s01Content.browser.accounts.map((tabAccount) => ({
+      id: tabAccount.id,
+      label: tabAccount.label,
+      enabled: false,
+    })),
+    activeTabId: account.id,
+    address: account.address,
+  };
+
+  return (
+    <div className={styles.handoff} aria-hidden={inert || undefined} inert={inert || undefined}>
+      <BrowserShell
+        variant="artifact"
+        snapshot={browserSnapshot}
+        ariaLabel={s03Content.browser.ariaLabel}
+      >
+        <div className={styles.page}>
+          <CampusWebsiteBackdrop
+            accountId={account.id}
+            interactionLabel={`${account.label} wieder anmelden`}
+          >
+            <section className={styles.siteTask} aria-labelledby="s03-handoff-page-title">
+              <header className={styles.sceneToolbar}>
+                <h1 id="s03-handoff-page-title">{s03Content.page.title}</h1>
+              </header>
+              <InitialLoginWelcome accountId={account.id} disabled />
+            </section>
+          </CampusWebsiteBackdrop>
+        </div>
+      </BrowserShell>
+    </div>
+  );
+}
+
 export function S03RetrievalTraining({
   controller,
   snapshot,
@@ -84,6 +152,9 @@ export function S03RetrievalTraining({
   );
   const [loginAccountId, setLoginAccountId] = useState<S01AccountId | null>(null);
   const [guideOpen, setGuideOpen] = useState(true);
+  const initialAccountId =
+    s01Content.browser.accounts.find(({ id }) => id === snapshot.context.activeAccountId)?.id ??
+    'campus-id';
 
   useEffect(() => {
     let retrievalController: S03RetrievalController | null = null;
@@ -136,7 +207,9 @@ export function S03RetrievalTraining({
     if (loginAccountId !== null) loginTitleRef.current?.focus();
   }, [loginAccountId]);
 
-  if (runtime === null || presentationSnapshot === null) return null;
+  if (runtime === null || presentationSnapshot === null) {
+    return <S03InitialBrowserSurface activeAccountId={initialAccountId} />;
+  }
 
   const account =
     s01Content.browser.accounts.find(({ id }) => id === snapshot.context.activeAccountId) ??
@@ -282,7 +355,6 @@ export function S03RetrievalTraining({
             >
               <header className={styles.sceneToolbar}>
                 <h1 id="s03-page-title">{s03Content.page.title}</h1>
-                <p role="status">{s03Content.page.progress(completedCount)}</p>
               </header>
               {network}
             </section>
@@ -294,23 +366,14 @@ export function S03RetrievalTraining({
               <section className={styles.siteTask}>
                 <header className={styles.sceneToolbar}>
                   <h1 id="s03-page-title">{s03Content.page.title}</h1>
-                  <p role="status">{s03Content.page.progress(completedCount)}</p>
                 </header>
 
                 {result === 'pending' && loginAccountId !== account.id ? (
-                  <section className={styles.siteWelcome}>
-                    <NetworkSymbol symbolId={account.symbolId} className={styles.welcomeSymbol} />
-                    <p>{accountPage.areaLabel}</p>
-                    <h2>{account.label}</h2>
-                    <button
-                      type="button"
-                      className={styles.primaryButton}
-                      disabled={interactionBlocked}
-                      onClick={() => setLoginAccountId(account.id)}
-                    >
-                      {s03Content.controls.openLogin(account.label)}
-                    </button>
-                  </section>
+                  <InitialLoginWelcome
+                    accountId={account.id}
+                    disabled={interactionBlocked}
+                    onOpenLogin={() => setLoginAccountId(account.id)}
+                  />
                 ) : (
                   <div
                     ref={networkHostRef}

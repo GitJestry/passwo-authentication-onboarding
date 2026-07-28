@@ -13,12 +13,9 @@
   background: transparent;
 }
 
-.network:has(.nodeFrame[data-variant="void"]) {
-  background: transparent;
-}
-
 .nodeFrame {
-  --node-diameter: 76px;
+  --node-visual-width: 76px;
+  --node-visual-height: 76px;
   --node-label-surface: var(--color-surface-primary);
 
   position: relative;
@@ -30,14 +27,16 @@
 }
 
 .nodeFrame[data-size="main"] {
-  --node-diameter: 112px;
+  --node-visual-width: 112px;
+  --node-visual-height: 112px;
+}
+
+.nodeFrame[data-node-shape="rounded-rectangle"] {
+  --node-visual-width: 104px;
+  --node-visual-height: 72px;
 }
 
 .nodeFrame[data-variant="account-map"] {
-  --node-label-surface: var(--color-surface-muted);
-}
-
-.nodeFrame[data-variant="void"] {
   --node-label-surface: transparent;
 }
 
@@ -47,7 +46,7 @@
 }
 
 .nodeFrame[data-dimmed="true"] {
-  opacity: 0.34;
+  opacity: 0.28;
   transform: scale(0.96);
 }
 
@@ -55,7 +54,7 @@
   display: grid;
   width: 100%;
   height: 100%;
-  grid-template-rows: var(--node-diameter) minmax(0, 1fr);
+  grid-template-rows: var(--node-visual-height) minmax(0, 1fr);
   justify-items: center;
   gap: var(--space-2);
   padding: 0;
@@ -81,18 +80,23 @@
 .nodeCircle {
   position: relative;
   display: grid;
-  width: var(--node-diameter);
-  height: var(--node-diameter);
+  width: var(--node-visual-width);
+  height: var(--node-visual-height);
   place-items: center;
+  overflow: visible;
   border: var(--border-width-medium) solid var(--color-border);
   border-radius: var(--radius-round);
   color: var(--color-accent-strong);
-  background: var(--color-surface-elevated);
-  box-shadow: var(--shadow-card);
+  background: color-mix(in srgb, var(--color-surface-elevated) 94%, #edf6ff);
+  box-shadow: 0 0.8rem 1.8rem color-mix(in srgb, #285377 16%, transparent);
   transition:
     border-color var(--motion-standard) var(--motion-ease-out),
     box-shadow var(--motion-standard) var(--motion-ease-out),
     transform var(--motion-standard) var(--motion-ease-out);
+}
+
+.nodeFrame[data-node-shape="rounded-rectangle"] .nodeCircle {
+  border-radius: 1rem;
 }
 
 .nodeButton:focus-visible .nodeCircle {
@@ -101,82 +105,44 @@
   box-shadow: var(--shadow-focus);
 }
 
-.nodeFrame[data-size="main"] .nodeCircle {
-  border-width: var(--border-width-medium);
-}
-
 .nodeFrame[data-kind="service"] .nodeCircle {
   color: var(--color-accent-strong);
 }
 
 .nodeFrame[data-kind="function"] .nodeCircle {
   border-style: dashed;
-  color: var(--color-warning);
+  color: #a4630e;
 }
 
 .nodeFrame[data-kind="content"] .nodeCircle {
-  color: var(--color-positive);
+  color: #287657;
 }
 
 .nodeFrame[data-highlighted="true"] .nodeCircle {
-  border-color: var(--color-accent-strong);
+  border-color: #00c870;
   box-shadow:
-    0 0 0 3px var(--color-accent-soft),
-    var(--shadow-float);
+    0 0 0 5px color-mix(in srgb, #00d477 21%, transparent),
+    0 0 2rem color-mix(in srgb, #00d477 48%, transparent),
+    0 1.1rem 2.5rem color-mix(in srgb, #138453 24%, transparent);
 }
 
 .nodeFrame[data-active="true"][data-locked="false"] .nodeCircle {
-  border-color: var(--color-accent-strong);
+  border-color: #00c870;
   box-shadow:
-    0 0 0 4px var(--color-accent-soft),
-    var(--shadow-float);
+    0 0 0 4px color-mix(in srgb, #00d477 18%, transparent),
+    0 0 1.8rem color-mix(in srgb, #00d477 38%, transparent),
+    0 1.1rem 2.5rem color-mix(in srgb, #138453 22%, transparent);
   transform: scale(1.055);
-}
-
-.nodeFrame[data-locked="true"] .statusMarker {
-  color: var(--color-ink-muted);
-}
-
-.nodeFrame[data-variant="void"] .nodeCircle {
-  border-color: color-mix(in srgb, var(--color-surface-primary) 62%, transparent);
-  color: var(--color-on-inverse);
-  background: color-mix(in srgb, var(--color-surface-inverse) 76%, transparent);
-  box-shadow: 0 1.1rem 2.6rem color-mix(in srgb, #000 42%, transparent);
-}
-
-.nodeFrame[data-variant="void"][data-kind="service"] .nodeCircle {
-  color: var(--color-accent-soft);
-}
-
-.nodeFrame[data-variant="void"][data-kind="function"] .nodeCircle {
-  color: var(--color-warning-soft);
-}
-
-.nodeFrame[data-variant="void"][data-kind="content"] .nodeCircle {
-  color: var(--color-positive-soft);
-}
-
-.nodeFrame[data-variant="void"][data-active="true"][data-locked="false"] .nodeCircle {
-  border-color: var(--color-accent-soft);
-  box-shadow:
-    0 0 0 4px color-mix(in srgb, var(--color-accent-strong) 45%, transparent),
-    0 1.2rem 3rem color-mix(in srgb, #000 52%, transparent);
-}
-
-.nodeFrame[data-variant="void"] .nodeLabel {
-  color: var(--color-on-inverse);
-  text-shadow: 0 0.15rem 0.6rem color-mix(in srgb, #000 75%, transparent);
-}
-
-.nodeFrame[data-variant="void"] .statusMarker {
-  border-color: color-mix(in srgb, var(--color-surface-primary) 62%, transparent);
-  color: var(--color-on-inverse);
-  background: var(--color-surface-inverse);
 }
 
 .nodeFrame[data-status="understood"] .nodeCircle,
 .nodeFrame[data-status="protected"] .nodeCircle {
-  border-color: var(--color-positive);
+  border-color: #08c978;
+  background: color-mix(in srgb, #e9fff3 74%, var(--color-surface-elevated));
+  box-shadow:
+    0 0 0 3px color-mix(in srgb, #08c978 14%, transparent),
+    0 0 1.5rem color-mix(in srgb, #08c978 30%, transparent),
+    0 0.8rem 1.8rem color-mix(in srgb, #285377 16%, transparent);
 }
 
 .nodeFrame[data-status="exposed"] .nodeCircle,
@@ -198,14 +164,68 @@
   background: var(--color-hypothetical-soft);
 }
 
-.nodeSymbol {
+.nodeSymbol,
+.lockSymbol {
   width: 46%;
   height: 46%;
+}
+
+.lockSymbol {
+  width: 58%;
+  height: 58%;
+  color: #386d9e;
 }
 
 .nodeFrame[data-size="detail"] .nodeSymbol {
   width: 50%;
   height: 50%;
+}
+
+.nodeFrame[data-node-shape="rounded-rectangle"] .nodeSymbol {
+  width: 40%;
+  height: 54%;
+}
+
+.unlockParticles {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.unlockParticles i {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0.3rem;
+  height: 0.3rem;
+  border-radius: var(--radius-round);
+  background: #5ac8ff;
+  opacity: 0;
+  transform: translate(-50%, -50%);
+}
+
+.unlockParticles i:nth-child(1) {
+  --particle-x: -2rem;
+  --particle-y: -1.6rem;
+}
+
+.unlockParticles i:nth-child(2) {
+  --particle-x: 2.1rem;
+  --particle-y: -1.2rem;
+}
+
+.unlockParticles i:nth-child(3) {
+  --particle-x: -1.65rem;
+  --particle-y: 1.65rem;
+}
+
+.unlockParticles i:nth-child(4) {
+  --particle-x: 1.9rem;
+  --particle-y: 1.8rem;
+}
+
+.nodeFrame[data-highlighted="true"] .unlockParticles i {
+  animation: unlock-particle 620ms cubic-bezier(0.16, 0.72, 0.25, 1) both;
 }
 
 .statusMarker {
@@ -229,9 +249,9 @@
 
 .nodeFrame[data-status="understood"] .statusMarker,
 .nodeFrame[data-status="protected"] .statusMarker {
-  border-color: var(--color-positive);
-  color: var(--color-positive);
-  background: var(--color-positive-soft);
+  border-color: #08c978;
+  color: #087a4a;
+  background: #e9fff3;
 }
 
 .nodeFrame[data-status="exposed"] .statusMarker,
@@ -252,7 +272,7 @@
   width: 100%;
   min-height: 2.2em;
   padding: 0 var(--space-1);
-  color: var(--color-ink-strong);
+  color: #24384d;
   background: var(--node-label-surface);
   font-size: var(--font-size-x-small);
   font-weight: var(--font-weight-heavy);
@@ -273,7 +293,7 @@
 }
 
 .edgeNeutral :global(.react-flow__edge-path) {
-  stroke: var(--color-ink-muted);
+  stroke: #8ca2b7;
   stroke-width: var(--border-width-medium);
 }
 
@@ -287,36 +307,29 @@
 }
 
 .edge :global([data-network-edge-dimmed="true"]) {
-  opacity: 0.25;
-}
-
-.voidEdge.edgeNeutral :global(.react-flow__edge-path) {
-  stroke: color-mix(in srgb, var(--color-on-inverse) 46%, transparent);
-  stroke-width: var(--border-width-medium);
-  stroke-dasharray: none;
-  opacity: 1;
+  opacity: 0.18;
 }
 
 :global(.edge-kind-dependency) :global(.react-flow__edge-path) {
-  stroke: var(--color-accent-strong);
+  stroke: #397ac3;
   stroke-width: 3px;
 }
 
 :global(.edge-kind-association) :global(.react-flow__edge-path) {
-  stroke: var(--color-ink-muted);
+  stroke: #758fa7;
   stroke-width: var(--border-width-medium);
   stroke-dasharray: 4 8;
-  opacity: 0.68;
+  opacity: 0.78;
 }
 
 .edgeChecking :global(.react-flow__edge-path) {
-  stroke: var(--color-positive);
-  stroke-width: 3px;
+  stroke: #00d477;
+  stroke-width: 4px;
   stroke-dasharray: 5 5;
 }
 
 .edgeOpened :global(.react-flow__edge-path) {
-  stroke: var(--color-positive);
+  stroke: #08c978;
   stroke-width: 3px;
   stroke-dasharray: none;
   opacity: 1;
@@ -399,16 +412,28 @@
   white-space: nowrap;
 }
 
+@keyframes unlock-particle {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.4);
+  }
+
+  25% {
+    opacity: 1;
+  }
+
+  100% {
+    opacity: 0;
+    transform: translate(calc(-50% + var(--particle-x)), calc(-50% + var(--particle-y))) scale(0.7);
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
-  .nodeFrame {
+  .nodeFrame,
+  .nodeFrame .nodeCircle,
+  .edge,
+  .nodeFrame[data-highlighted="true"] .unlockParticles i {
     transition: none;
-  }
-
-  .nodeFrame .nodeCircle {
-    transition: none;
-  }
-
-  .edge {
-    transition: none;
+    animation: none;
   }
 }

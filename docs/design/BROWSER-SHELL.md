@@ -70,3 +70,17 @@ fokussierbare Hinweis-Markierung erreicht werden.
   bleibt; es blendet keine Information aus.
 - Die Inhaltsfläche erhält den überwiegenden Teil der Höhe; bei `1440 × 900` und `1280 × 720`
   bleiben Hauptaktionen innerhalb des Viewports erreichbar.
+
+## Übergang zur Desktop-Bühne
+
+S01 darf nach dem Abschluss über die explizite Aktion „Zum Desktop“ in die S02-Desktop-Bühne
+wechseln. Der Browserrahmen gleitet dabei in einer klar begrenzten, reduzierbaren Animation nach
+rechts aus dem Bild; die tatsächliche initiale S02-Desktop-Bühne ist bereits darunter sichtbar.
+PassWo überquert den Übergang mit der Bühne. Die Desktop-Bühne ist keine Betriebssystemsimulation: Eine dekorative
+Menüleiste und ein kompaktes, macOS-ähnliches Dock geben nur die räumliche Orientierung.
+
+Der Browser im Dock wird erst nach dem Abschluss der S02-Kontenerkundung aktiv. Sein Klick führt
+in einer spiegelbildlichen, reduzierbaren Wischanimation zur tatsächlichen initialen
+S03-Browserbühne; PassWo fliegt dabei zurück zum Browser. Beide Zielbühnen werden im
+nicht-interaktiven Handoff-Modus gerendert, bis der bestehende Segment- und Timingwechsel
+abgeschlossen ist. Es gibt dabei keine echte Navigation oder einen Browserzustand.
