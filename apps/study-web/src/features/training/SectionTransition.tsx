@@ -1,8 +1,8 @@
 import type { CSSProperties } from 'react';
 import styles from './SectionTransition.module.css';
 
-const arrivalDurationMs = 420;
-const fadeDurationMs = 360;
+const arrivalDurationMs = 560;
+const fadeDurationMs = 480;
 
 interface SectionTransitionStyle extends CSSProperties {
   readonly '--section-transition-arrival-duration': string;

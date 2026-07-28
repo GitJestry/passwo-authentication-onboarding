@@ -4,12 +4,12 @@ import styles from './PassWoCharacterAdapter.module.css';
 
 export interface PassWoQuestDockProps {
   readonly guideName: string;
+  readonly taskLabel: string;
   readonly progressLabel?: string;
   readonly placement?: 'bottom-left' | 'bottom-right';
   readonly helpOpen: boolean;
   readonly helpId: string;
   readonly openHelpLabel: string;
-  readonly closeHelpLabel: string;
   readonly helpContent: ReactNode;
   readonly onToggleHelp: () => void;
 }
@@ -19,12 +19,12 @@ export interface PassWoQuestDockProps {
  */
 export function PassWoQuestDock({
   guideName,
+  taskLabel,
   progressLabel,
   placement = 'bottom-right',
   helpOpen,
   helpId,
   openHelpLabel,
-  closeHelpLabel,
   helpContent,
   onToggleHelp,
 }: PassWoQuestDockProps) {
@@ -47,19 +47,21 @@ export function PassWoQuestDock({
           data-passwo-dock-asset=""
         />
         <div className={styles.questStatus}>
-          <strong>{guideName}</strong>
+          <strong>{taskLabel}</strong>
           {progressLabel === undefined ? null : <span aria-live="polite">{progressLabel}</span>}
         </div>
-        <button
-          type="button"
-          className={styles.helpButton}
-          aria-expanded={helpOpen}
-          aria-controls={helpId}
-          aria-label={helpOpen ? closeHelpLabel : openHelpLabel}
-          onClick={onToggleHelp}
-        >
-          <span aria-hidden="true">?</span>
-        </button>
+        {!helpOpen ? (
+          <button
+            type="button"
+            className={styles.helpButton}
+            aria-expanded={false}
+            aria-controls={helpId}
+            aria-label={openHelpLabel}
+            onClick={onToggleHelp}
+          >
+            <span aria-hidden="true">?</span>
+          </button>
+        ) : null}
       </div>
     </div>
   );

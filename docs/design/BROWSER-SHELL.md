@@ -48,9 +48,10 @@ Orientierung, ohne erklärende Meta-Labels einzublenden. Gründe für nicht verf
 über `aria-describedby` bereitgestellt, sind aber kein dauerhaft sichtbarer Chromeblock.
 
 Die Fensterkontrollen sind klein und kopieren keine Browsermarke. Schließen und Minimieren legen
-das fiktive Browserfenster in seinem Dock-Icon ab; das Browser-Icon öffnet es wieder. Die grüne
-Kontrolle bleibt orientierend, weil das Fenster bereits die verfügbare Desktopfläche nutzt. Tabs
-zeigen eine zurückhaltende neutrale Kennzeichnung und eine klar zusammenhängende aktive Fläche.
+das fiktive Browserfenster in seinem Dock-Icon ab; das Browser-Icon schließt das geöffnete Fenster
+beziehungsweise öffnet es wieder. Die grüne Kontrolle bleibt orientierend, weil das Fenster bereits
+die verfügbare Desktopfläche nutzt. Tabs zeigen eine zurückhaltende neutrale Kennzeichnung und eine
+klar zusammenhängende aktive Fläche.
 Die Adresszeile hat kein sichtbares Label. Eine kleine Schlossform markiert den dargestellten
 Seitenstatus, ohne eine Sicherheitszusage abzuleiten.
 

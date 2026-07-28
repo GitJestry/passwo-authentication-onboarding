@@ -46,12 +46,28 @@
 }
 
 .windowControls button {
+  display: grid;
   width: var(--size-window-control);
   height: var(--size-window-control);
+  place-items: center;
   padding: 0;
   border: var(--border-width-thin) solid var(--color-control-neutral-border);
   border-radius: var(--radius-round);
+  color: rgb(23 39 55 / 74%);
   cursor: pointer;
+  font: inherit;
+  font-size: 0.7rem;
+  font-weight: var(--font-weight-heavy);
+  line-height: 1;
+}
+
+.windowControls button span {
+  display: block;
+  transform: translateY(-0.02rem);
+}
+
+.windowControls .closeControl span {
+  font-size: 0.82rem;
 }
 
 .closeControl {

@@ -44,24 +44,24 @@
 @keyframes section-transition-arrival {
   from {
     opacity: 0;
-    transform: translateY(-7rem) rotate(-2deg);
-  }
-
-  72% {
-    opacity: 1;
-    transform: translateY(0.32rem) rotate(0.35deg);
+    transform: translateY(1.4rem) scale(0.97);
   }
 
   to {
     opacity: 1;
-    transform: translateY(0) rotate(0);
+    transform: translateY(0) scale(1);
   }
 }
 
 @keyframes section-transition-fade {
+  from {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+
   to {
     opacity: 0;
-    transform: translateY(0.45rem);
+    transform: translateY(-0.6rem) scale(0.985);
   }
 }
 

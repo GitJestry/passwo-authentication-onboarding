@@ -92,6 +92,8 @@ export function S00Training({
   const [scene, setScene] = useState<S00SceneSnapshot>(createInitialS00SceneSnapshot);
   const [missionSnapshot, setMissionSnapshot] = useState<MissionSnapshot | null>(null);
   const [timingError, setTimingError] = useState<string | null>(null);
+  const [speechRound, setSpeechRound] = useState(0);
+  const [safetySpeechCompleted, setSafetySpeechCompleted] = useState(false);
   const controllerRef = useRef<MissionController | null>(null);
   const characterAnimationAnchorRef = useRef<HTMLSpanElement | null>(null);
   const onCompleteRef = useRef(onComplete);
@@ -181,15 +183,21 @@ export function S00Training({
               />
               <PassWoGuide
                 guideName={s00Content.narration.guideName}
+                taskLabel="Einrichten"
                 helpOpen={guideOpen}
                 helpId="s00-passwo-speech"
                 openHelpLabel={s00Content.narration.openGuideLabel}
-                closeHelpLabel={s00Content.narration.closeGuideLabel}
-                speech={[formatS00Greeting(displayName), s00Content.narration.instruction]}
-                speechKey={`s00-greeting-${displayName}`}
+                speech={
+                  speechRound === 0
+                    ? [formatS00Greeting(displayName)]
+                    : [s00Content.narration.instruction]
+                }
+                speechKey={`s00-greeting-${displayName}-${speechRound}`}
                 speechPlacement="right"
+                hasNextSpeech={speechRound === 0}
+                showHelpButton={false}
                 speechFooter={
-                  activeTimingError === null ? (
+                  safetySpeechCompleted && activeTimingError === null ? (
                     <>
                       {animationError !== null ? (
                         <p className={styles.animationError} role="status">
@@ -224,7 +232,7 @@ export function S00Training({
                         </p>
                       ) : null}
                     </>
-                  ) : (
+                  ) : safetySpeechCompleted ? (
                     <>
                       <p className={styles.animationError} role="alert">
                         Das Speichern des Zeitereignisses ist fehlgeschlagen. Der nächste Schritt
@@ -237,15 +245,15 @@ export function S00Training({
                         </button>
                       </div>
                     </>
-                  )
+                  ) : undefined
                 }
-                onToggleHelp={() =>
-                  setScene((currentScene) => ({
-                    ...currentScene,
-                    announcedMessageId:
-                      currentScene.announcedMessageId === 's00.greeting' ? null : 's00.greeting',
-                  }))
-                }
+                onSpeechAdvance={() => {
+                  if (speechRound === 0) {
+                    setSpeechRound(1);
+                  } else {
+                    setSafetySpeechCompleted(true);
+                  }
+                }}
               />
             </>
           ),

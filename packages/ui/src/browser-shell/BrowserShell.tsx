@@ -232,12 +232,12 @@ export function BrowserShell({
     <DesktopSurface
       browserDock={{
         active: windowState !== 'closed',
-        enabled: windowState === 'closed',
+        enabled: !dimmed,
         label:
           windowState === 'closed'
             ? 'Browserfenster vom Dock öffnen'
-            : 'Browserfenster ist geöffnet',
-        onClick: () => setWindowOpen(true),
+            : 'Browserfenster im Dock ablegen',
+        onClick: () => setWindowOpen(windowState === 'closed' || windowState === 'closing'),
       }}
     >
       <section
@@ -253,7 +253,7 @@ export function BrowserShell({
         data-window-state={windowState}
         onAnimationEnd={handleWindowAnimationEnd}
       >
-        <header className={styles.chrome}>
+        <header className={styles.chrome} inert={dimmed || undefined}>
           <div className={styles.tabRow}>
             <div className={styles.windowControls}>
               <button
@@ -265,14 +265,18 @@ export function BrowserShell({
                   onWindowClose?.();
                   setWindowOpen(false);
                 }}
-              />
+              >
+                <span aria-hidden="true">x</span>
+              </button>
               <button
                 type="button"
                 className={styles.minimizeControl}
                 aria-label="Browserfenster im Dock ablegen"
                 title="Im Dock ablegen"
                 onClick={() => setWindowOpen(false)}
-              />
+              >
+                <span aria-hidden="true">-</span>
+              </button>
               <button
                 type="button"
                 className={styles.expandControl}

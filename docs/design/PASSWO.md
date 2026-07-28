@@ -58,9 +58,12 @@ Für `wave`, `explain`, `point`, `caution`, `idea` und `flight` fehlen weiterhin
 Einzelassets. Die vorhandenen Designboards bleiben Stil- und Kompositionsreferenzen und werden
 nicht als Sprite ausgeschnitten oder eingebunden.
 
-Direkt neben dem Namen öffnet ein Info-Button die jeweilige Erklärung. Falls eine Aufgabe
-Fortschritt besitzt, zeigt die schmale Zeile darunter ausschließlich den Zähler und eine
-Fortschrittsleiste; der ausführliche Text bleibt als zugängliche Bezeichnung erhalten.
+Die Namenszeile zeigt den einwortigen Aufgabenstatus statt des Figurennamens. Direkt daneben
+öffnet ein Fragezeichen-Button die jeweilige Erklärung. Während PassWo spricht, verschwindet
+dieser Button vollständig; die Sprechblase steuert den Sprechschritt dann mit
+Überspringen, Nächste oder Ende. Falls eine Aufgabe Fortschritt besitzt, zeigt die schmale Zeile
+darunter ausschließlich den Zähler und eine Fortschrittsleiste; der ausführliche Text bleibt als
+zugängliche Bezeichnung erhalten.
 
 Phase 2 nur bei Bedarf:
 

@@ -118,6 +118,8 @@ export function S01Training({
     })),
     activeTabId: account.id,
     address: account.address,
+    dimmed: questHelpOpen,
+    dimStrength: 'soft',
   };
 
   function toggleReveal(accountId: string): void {
@@ -164,6 +166,7 @@ export function S01Training({
           passWo: (
             <PassWoGuide
               guideName={s01Content.completion.guideName}
+              taskLabel="Einrichten"
               progress={{
                 current: configuredCount,
                 total: s01Content.browser.accounts.length,
@@ -172,7 +175,6 @@ export function S01Training({
               helpOpen={questHelpOpen}
               helpId="s01-quest-help"
               openHelpLabel={s01Content.quest.helpLabel}
-              closeHelpLabel={s01Content.quest.closeHelpLabel}
               speech={[
                 readyToContinue
                   ? s01Content.completion.guideMessage
@@ -181,6 +183,7 @@ export function S01Training({
               speechKey={readyToContinue ? 's01-ready' : `s01-${account.id}-${configuredCount}`}
               speechPlacement="right"
               onToggleHelp={() => setQuestHelpOpen((open) => !open)}
+              onSpeechAdvance={() => setQuestHelpOpen(false)}
             />
           ),
         }}

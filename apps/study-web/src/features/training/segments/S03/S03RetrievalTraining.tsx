@@ -257,6 +257,8 @@ export function S03RetrievalTraining({
     })),
     activeTabId: account.id,
     address: account.address,
+    dimmed: guideOpen,
+    dimStrength: 'soft',
   };
 
   function toggleReveal(accountId: string): void {
@@ -301,6 +303,7 @@ export function S03RetrievalTraining({
               />
               <PassWoGuide
                 guideName={s03Content.narration.guideName}
+                taskLabel="Anmelden"
                 progress={{
                   current: completedCount,
                   total: s01Content.browser.accounts.length,
@@ -309,7 +312,6 @@ export function S03RetrievalTraining({
                 helpOpen={guideOpen}
                 helpId="s03-guide"
                 openHelpLabel="PassWo-Hinweis öffnen"
-                closeHelpLabel="PassWo-Hinweis schließen"
                 speech={[guideMessage]}
                 speechKey={`${account.id}-${result}-${announcement ?? 'login'}`}
                 speechPlacement="right"
@@ -318,13 +320,19 @@ export function S03RetrievalTraining({
                     <button
                       type="button"
                       className={styles.primaryButton}
-                      onClick={() => runtime.controller.confirmWarning()}
+                      onClick={() => {
+                        setGuideOpen(false);
+                        runtime.controller.confirmWarning();
+                      }}
                     >
                       Weiter
                     </button>
                   ) : undefined
                 }
                 onToggleHelp={() => setGuideOpen((open) => !open)}
+                {...(warningConfirmationAvailable
+                  ? {}
+                  : { onSpeechAdvance: () => setGuideOpen(false) })}
               />
             </>
           ),

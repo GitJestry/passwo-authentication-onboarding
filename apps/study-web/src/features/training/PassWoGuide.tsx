@@ -9,6 +9,7 @@ import styles from './PassWoGuide.module.css';
 
 export interface PassWoGuideProps {
   readonly guideName: string;
+  readonly taskLabel: string;
   readonly progress?: {
     readonly current: number;
     readonly total: number;
@@ -17,26 +18,31 @@ export interface PassWoGuideProps {
   readonly helpOpen: boolean;
   readonly helpId: string;
   readonly openHelpLabel: string;
-  readonly closeHelpLabel: string;
   readonly speech: readonly string[];
   readonly speechKey: string;
   readonly speechFooter?: ReactNode;
   readonly speechPlacement?: PassWoSpeechPlacement;
-  readonly onToggleHelp: () => void;
+  readonly hasNextSpeech?: boolean;
+  readonly showHelpButton?: boolean;
+  readonly onToggleHelp?: () => void;
+  readonly onSpeechAdvance?: () => void;
 }
 
 export function PassWoGuide({
   guideName,
+  taskLabel,
   progress,
   helpOpen,
   helpId,
   openHelpLabel,
-  closeHelpLabel,
   speech,
   speechKey,
   speechFooter,
   speechPlacement = 'right',
+  hasNextSpeech = false,
+  showHelpButton = true,
   onToggleHelp,
+  onSpeechAdvance,
 }: PassWoGuideProps) {
   const progressPercent =
     progress === undefined || progress.total <= 0
@@ -47,19 +53,21 @@ export function PassWoGuide({
     <aside className={styles.guide} aria-label={`${guideName} Begleitung`}>
       <div className={styles.guideDock}>
         <div className={styles.guideToolbar}>
-          <button
-            type="button"
-            className={styles.infoButton}
-            aria-expanded={helpOpen}
-            aria-controls={helpId}
-            aria-label={helpOpen ? closeHelpLabel : openHelpLabel}
-            title={helpOpen ? closeHelpLabel : openHelpLabel}
-            onClick={onToggleHelp}
-          >
-            <span aria-hidden="true">i</span>
-          </button>
+          {!helpOpen && showHelpButton ? (
+            <button
+              type="button"
+              className={styles.infoButton}
+              aria-expanded={false}
+              aria-controls={helpId}
+              aria-label={openHelpLabel}
+              title={openHelpLabel}
+              onClick={onToggleHelp}
+            >
+              <span aria-hidden="true">?</span>
+            </button>
+          ) : null}
           <div className={styles.guideStatus}>
-            <strong>{guideName}</strong>
+            <strong>{taskLabel}</strong>
             {progress === undefined ? null : (
               <div className={styles.taskProgress} aria-live="polite">
                 <span aria-hidden="true">
@@ -99,6 +107,8 @@ export function PassWoGuide({
             speechKey={speechKey}
             placement={speechPlacement}
             footer={speechFooter}
+            hasNext={hasNextSpeech}
+            {...(onSpeechAdvance === undefined ? {} : { onAdvance: onSpeechAdvance })}
           />
         </div>
       ) : null}

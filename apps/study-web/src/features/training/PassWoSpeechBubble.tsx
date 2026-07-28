@@ -1,4 +1,4 @@
-import { useEffect, useId, useMemo, useRef, useState, type ReactNode } from 'react';
+import { useCallback, useEffect, useId, useMemo, useRef, useState, type ReactNode } from 'react';
 import styles from './PassWoSpeechBubble.module.css';
 
 export type PassWoSpeechPlacement = 'right' | 'left' | 'above-right' | 'above-left';
@@ -12,7 +12,9 @@ export interface PassWoSpeechBubbleProps {
   readonly tone?: PassWoSpeechTone;
   readonly footer?: ReactNode;
   readonly className?: string | undefined;
+  readonly hasNext?: boolean;
   readonly onComplete?: () => void;
+  readonly onAdvance?: () => void;
 }
 
 function prefersReducedMotion(): boolean {
@@ -30,6 +32,16 @@ function visualParagraphs(text: string): readonly string[] {
   return text.split('\n\n');
 }
 
+function isInteractiveTarget(target: EventTarget | null, container: HTMLElement | null): boolean {
+  return (
+    container !== null &&
+    target instanceof Element &&
+    container.contains(target) &&
+    target.closest('button, input, select, textarea, a, [role="button"], [role="checkbox"]') !==
+      null
+  );
+}
+
 export function PassWoSpeechBubble({
   speaker,
   paragraphs,
@@ -38,11 +50,15 @@ export function PassWoSpeechBubble({
   tone = 'light',
   footer,
   className,
+  hasNext = false,
   onComplete,
+  onAdvance,
 }: PassWoSpeechBubbleProps) {
   const fullText = useMemo(() => paragraphs.join('\n\n'), [paragraphs]);
   const [visibleCharacters, setVisibleCharacters] = useState(0);
+  const [advanceCompleted, setAdvanceCompleted] = useState(false);
   const descriptionId = useId();
+  const bubbleRef = useRef<HTMLElement | null>(null);
   const completedSpeechKeyRef = useRef<string | null>(null);
   const complete = visibleCharacters >= fullText.length;
 
@@ -50,6 +66,7 @@ export function PassWoSpeechBubble({
     const initiallyComplete = prefersReducedMotion() || fullText.length === 0;
     completedSpeechKeyRef.current = null;
     setVisibleCharacters(initiallyComplete ? fullText.length : 0);
+    setAdvanceCompleted(false);
   }, [fullText, speechKey]);
 
   useEffect(() => {
@@ -69,11 +86,39 @@ export function PassWoSpeechBubble({
     return () => window.clearTimeout(timer);
   }, [complete, fullText, onComplete, speechKey, visibleCharacters]);
 
+  const advanceSpeech = useCallback((): void => {
+    if (!complete) {
+      setVisibleCharacters(fullText.length);
+      return;
+    }
+    if (advanceCompleted) return;
+
+    setAdvanceCompleted(true);
+    onAdvance?.();
+  }, [advanceCompleted, complete, fullText, onAdvance]);
+
+  useEffect(() => {
+    if (advanceCompleted) return;
+
+    function handleScreenClick(event: MouseEvent): void {
+      if (isInteractiveTarget(event.target, bubbleRef.current)) return;
+
+      event.preventDefault();
+      event.stopPropagation();
+      advanceSpeech();
+    }
+
+    document.addEventListener('click', handleScreenClick, true);
+    return () => document.removeEventListener('click', handleScreenClick, true);
+  }, [advanceCompleted, advanceSpeech]);
+
   const visibleText = fullText.slice(0, visibleCharacters);
   const bubbleClassName = className === undefined ? styles.bubble : `${styles.bubble} ${className}`;
+  const actionLabel = complete ? (hasNext ? 'Nächste' : 'Ende') : 'Überspringen';
 
   return (
     <section
+      ref={bubbleRef}
       className={bubbleClassName}
       data-placement={placement}
       data-speaking={!complete}
@@ -100,6 +145,17 @@ export function PassWoSpeechBubble({
           ))}
         </span>
       </button>
+      {!advanceCompleted ? (
+        <div className={styles.speechActionRow}>
+          <button
+            type="button"
+            className={styles.speechAction}
+            onClick={advanceSpeech}
+          >
+            {actionLabel}
+          </button>
+        </div>
+      ) : null}
       <span id={descriptionId} className={styles.screenReaderOnly}>
         {fullText}
       </span>

@@ -89,6 +89,7 @@ export function S02AccountExplorationTraining({
   const [snapshot, setSnapshot] = useState<S02AccountExplorationControllerSnapshot | null>(null);
   const [previewPosition, setPreviewPosition] = useState<PreviewPosition | null>(null);
   const [introNarrationFinished, setIntroNarrationFinished] = useState(false);
+  const [dismissedSpeechKey, setDismissedSpeechKey] = useState<string | null>(null);
   const [returningToBrowser, setReturningToBrowser] = useState(false);
 
   useEffect(() => {
@@ -241,6 +242,8 @@ export function S02AccountExplorationTraining({
   const narration = complete
     ? (s02Content.narration.messages[s02Content.narration.completeId] ?? '')
     : (s02Content.narration.messages[scene.narrationId] ?? '');
+  const speechKey = `${scene.narrationId}-${complete}`;
+  const narrationActive = dismissedSpeechKey !== speechKey;
   const animationAnnouncement =
     presentation.announcedMessageId === null
       ? ''
@@ -276,6 +279,7 @@ export function S02AccountExplorationTraining({
               complete &&
               !interactionBlocked &&
               scene.pendingAnimationId === null &&
+              !narrationActive &&
               !returningToBrowser,
             label: complete
               ? s02Content.desktop.browserDockReadyLabel
@@ -290,7 +294,12 @@ export function S02AccountExplorationTraining({
               onNodeSelect={(nodeId) => controller.selectNode(nodeId)}
               ariaLabel={s02Content.accessibility.networkLabel}
               canvasAriaLabel={s02Content.accessibility.canvasLabel}
-              interactionDisabled={interactionBlocked || snapshot.introState !== 'complete' || complete}
+              interactionDisabled={
+                interactionBlocked ||
+                narrationActive ||
+                snapshot.introState !== 'complete' ||
+                complete
+              }
               visualVariant="account-map"
               activeNodeId={scene.activeAccountId}
               showEdgeLabels={false}
@@ -330,9 +339,11 @@ export function S02AccountExplorationTraining({
               className={styles.narration}
               speaker={s02Content.narration.guideName}
               paragraphs={[narration]}
-              speechKey={`${scene.narrationId}-${complete}`}
+              speechKey={speechKey}
               placement="right"
-              onComplete={() => {
+              hasNext={scene.narrationId === s02Content.narration.introId && !complete}
+              onAdvance={() => {
+                setDismissedSpeechKey(speechKey);
                 if (scene.narrationId === s02Content.narration.introId) {
                   setIntroNarrationFinished(true);
                 }

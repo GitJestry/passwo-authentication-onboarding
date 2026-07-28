@@ -87,7 +87,7 @@ export interface S00SegmentContent {
   };
 }
 
-export const S00_CONTENT_VERSION = '1.3.0';
+export const S00_CONTENT_VERSION = '1.4.0';
 
 export const s00Content: S00SegmentContent = {
   version: S00_CONTENT_VERSION,
@@ -106,7 +106,7 @@ export const s00Content: S00SegmentContent = {
   sectionTransition: {
     label: 'Sektion 1',
     title: 'Starke und einzigartige Passwörter',
-    holdDurationMs: 3000,
+    holdDurationMs: 5000,
   },
   source: {
     document: 'research/private/training-script.pdf',
