@@ -79,11 +79,12 @@ export interface S03SegmentContent {
     readonly pending: string;
     readonly retrievable: string;
     readonly notRemembered: string;
+    readonly cancelledLogin: string;
   };
   readonly animations: readonly S03AnimationSequence[];
 }
 
-export const S03_CONTENT_VERSION = '1.2.0';
+export const S03_CONTENT_VERSION = '1.3.0';
 
 const resultAnimation = (
   accountId: S01AccountId,
@@ -227,6 +228,7 @@ export const s03Content: S03SegmentContent = {
     pending: 'Bereit',
     retrievable: 'abrufbar',
     notRemembered: 'nicht erinnert',
+    cancelledLogin: 'Anmeldung abgebrochen',
   },
   animations,
 };

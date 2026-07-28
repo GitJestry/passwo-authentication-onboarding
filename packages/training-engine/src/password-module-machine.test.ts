@@ -11,6 +11,7 @@ function createModuleActor() {
   const actor = createActor(passwordModuleMachine, { input: { accountIds } });
   actor.start();
   actor.send({ type: 'DISPLAY_NAME_ENTERED', displayName: 'Alex' });
+  actor.send({ type: 'SECTION_TRANSITION_COMPLETED' });
   actor.send({ type: 'S00_COMPLETED' });
   actor.send({ type: 'S01_START_RECORDED' });
   return actor;

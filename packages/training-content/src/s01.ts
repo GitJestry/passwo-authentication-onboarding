@@ -49,7 +49,6 @@ export interface S01SegmentContent {
     readonly showPassword: (accountLabel: string) => string;
     readonly hidePassword: (accountLabel: string) => string;
     readonly configure: string;
-    readonly continue: string;
     readonly timingFailure: string;
     readonly timingSaving: string;
     readonly retry: string;
@@ -62,7 +61,7 @@ export interface S01SegmentContent {
   };
 }
 
-export const S01_CONTENT_VERSION = '2.3.0';
+export const S01_CONTENT_VERSION = '2.4.0';
 
 export const s01Content: S01SegmentContent = {
   version: S01_CONTENT_VERSION,
@@ -145,7 +144,6 @@ export const s01Content: S01SegmentContent = {
     showPassword: (accountLabel) => `Passwort für ${accountLabel} anzeigen`,
     hidePassword: (accountLabel) => `Passwort für ${accountLabel} verbergen`,
     configure: 'Konto einrichten',
-    continue: 'Zum Desktop',
     timingFailure:
       'Das Speichern des Zeitereignisses ist fehlgeschlagen. Der nächste Schritt bleibt gesperrt.',
     timingSaving: 'Zeitereignis wird gespeichert …',

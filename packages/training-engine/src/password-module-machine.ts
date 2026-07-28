@@ -20,6 +20,7 @@ export interface PasswordModuleInput {
 
 export type PasswordModuleEvent =
   | { readonly type: 'DISPLAY_NAME_ENTERED'; readonly displayName: string }
+  | { readonly type: 'SECTION_TRANSITION_COMPLETED' }
   | { readonly type: 'S00_COMPLETED' }
   | { readonly type: 'S01_START_RECORDED' }
   | { readonly type: 'S01_START_FAILED'; readonly errorCode: string }
@@ -239,10 +240,13 @@ export const passwordModuleMachine = setup({
       on: {
         DISPLAY_NAME_ENTERED: {
           guard: 'hasDisplayName',
-          target: 's00',
+          target: 'sectionTransition',
           actions: 'storeDisplayName',
         },
       },
+    },
+    sectionTransition: {
+      on: { SECTION_TRANSITION_COMPLETED: { target: 's00' } },
     },
     s00: {
       on: { S00_COMPLETED: { target: 's01.starting', actions: 'clearTimingError' } },

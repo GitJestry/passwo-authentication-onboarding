@@ -21,6 +21,11 @@ export interface S00SegmentContent {
     readonly nameLabel: string;
     readonly startLabel: string;
   };
+  readonly sectionTransition: {
+    readonly label: string;
+    readonly title: string;
+    readonly holdDurationMs: number;
+  };
   readonly source: {
     readonly document: string;
     readonly internalPage: 2;
@@ -59,7 +64,6 @@ export interface S00SegmentContent {
     readonly label: string;
   };
   readonly controls: {
-    readonly replay: string;
     readonly continue: string;
     readonly continueReason: string;
     readonly animationError: string;
@@ -83,7 +87,7 @@ export interface S00SegmentContent {
   };
 }
 
-export const S00_CONTENT_VERSION = '1.2.0';
+export const S00_CONTENT_VERSION = '1.3.0';
 
 export const s00Content: S00SegmentContent = {
   version: S00_CONTENT_VERSION,
@@ -98,6 +102,11 @@ export const s00Content: S00SegmentContent = {
     ],
     nameLabel: 'Dein Name',
     startLabel: 'Training starten',
+  },
+  sectionTransition: {
+    label: 'Sektion 1',
+    title: 'Starke und einzigartige Passwörter',
+    holdDurationMs: 3000,
   },
   source: {
     document: 'research/private/training-script.pdf',
@@ -145,7 +154,6 @@ export const s00Content: S00SegmentContent = {
     label: 'Ich verwende nur neue, ausgedachte Passwörter.',
   },
   controls: {
-    replay: 'Animation wiederholen',
     continue: 'Weiter',
     continueReason: 'Bestätige PassWo zuerst, dass du nur ausgedachte Passwörter verwendest.',
     animationError:

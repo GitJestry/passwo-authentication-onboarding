@@ -9,43 +9,6 @@
   background: var(--color-surface-primary);
 }
 
-.desktopHandoff,
-.browserStage {
-  position: absolute;
-  inset: 0;
-}
-
-.desktopHandoff {
-  z-index: 0;
-  overflow: hidden;
-}
-
-.passWoDesktopFlight {
-  position: absolute;
-  z-index: 2;
-  bottom: clamp(var(--space-5), 6vh, var(--space-8));
-  left: clamp(var(--space-5), 5vw, var(--space-9));
-  width: clamp(6rem, 10vw, 8.5rem);
-  pointer-events: none;
-  filter: drop-shadow(0 0.9rem 1.1rem color-mix(in srgb, #476581 24%, transparent));
-  will-change: transform, opacity;
-  animation: passwo-to-desktop 1500ms cubic-bezier(0.22, 0.75, 0.26, 1) both;
-}
-
-.browserStage {
-  z-index: 1;
-}
-
-.training[data-desktop-transitioning="true"] .browserStage {
-  pointer-events: none;
-  will-change: transform;
-  animation: browser-to-desktop 1500ms cubic-bezier(0.22, 0.75, 0.26, 1) both;
-}
-
-.training[data-desktop-transitioning="true"] .browserStage [data-passwo-character] {
-  opacity: 0;
-}
-
 .setupPanel {
   width: min(100%, 35rem);
   padding: clamp(var(--space-5), 4vw, var(--space-7));
@@ -251,48 +214,5 @@
 @media (max-width: 760px) {
   .setupPanel {
     width: 100%;
-  }
-}
-
-@keyframes browser-to-desktop {
-  0% {
-    opacity: 1;
-    transform: translateX(0) scale(1);
-  }
-
-  68% {
-    opacity: 1;
-    transform: translateX(82%) scale(0.99);
-  }
-
-  100% {
-    opacity: 1;
-    transform: translateX(116%) scale(0.985);
-  }
-}
-
-@keyframes passwo-to-desktop {
-  0% {
-    opacity: 0;
-    transform: translate3d(56vw, -28vh, 0) scale(0.82);
-  }
-
-  16% {
-    opacity: 1;
-  }
-
-  100% {
-    opacity: 1;
-    transform: translate3d(0, 0, 0) scale(1);
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .training[data-desktop-transitioning="true"] .browserStage {
-    animation: none;
-  }
-
-  .passWoDesktopFlight {
-    animation: none;
   }
 }

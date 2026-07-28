@@ -40,6 +40,7 @@ describe('PasswordModuleController', () => {
     });
 
     controller.enterDisplayName('Alex');
+    controller.completeSectionTransition();
     controller.completeS00();
     await flushMicrotasks();
     configureAllAccounts(controller);
@@ -87,6 +88,7 @@ describe('PasswordModuleController', () => {
     });
 
     controller.enterDisplayName('Alex');
+    controller.completeSectionTransition();
     controller.completeS00();
     await flushMicrotasks();
     configureAllAccounts(controller);

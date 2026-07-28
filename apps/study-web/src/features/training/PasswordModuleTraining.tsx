@@ -8,6 +8,7 @@ import { useEffect, useRef, useState } from 'react';
 import passWoDockAsset from '../../assets/passwo/passwo-dock.png';
 import { PassWoSpeechBubble } from './PassWoSpeechBubble.js';
 import styles from './PasswordModuleTraining.module.css';
+import { SectionTransition } from './SectionTransition.js';
 import { S00Training } from './S00Training.js';
 import { S01Training } from './S01Training.js';
 import {
@@ -54,6 +55,17 @@ export function PasswordModuleTraining({
 
   const controller = controllerRef.current;
   if (controller === null) return null;
+
+  if (snapshot.matches('sectionTransition')) {
+    return (
+      <SectionTransition
+        sectionLabel={s00Content.sectionTransition.label}
+        title={s00Content.sectionTransition.title}
+        holdDurationMs={s00Content.sectionTransition.holdDurationMs}
+        onComplete={() => controller.completeSectionTransition()}
+      />
+    );
+  }
 
   if (snapshot.matches('entry')) {
     return (
@@ -127,10 +139,6 @@ export function PasswordModuleTraining({
   }
 
   if (snapshot.matches('s02')) {
-    const nextActiveAccountId =
-      s01Content.browser.accounts.find(({ id }) => id === snapshot.context.activeAccountId)?.id ??
-      s01Content.browser.accounts[0]?.id ??
-      'campus-id';
     const timingState: S02TimingState = snapshot.matches({ s02: 'starting' })
       ? 'starting'
       : snapshot.matches({ s02: 'startFailed' })
@@ -145,7 +153,6 @@ export function PasswordModuleTraining({
         timingState={timingState}
         timingErrorCode={snapshot.context.timingErrorCode}
         externalTimingError={externalTimingError}
-        nextActiveAccountId={nextActiveAccountId}
         onAllAccountsUnderstood={() => controller.completeS02Content()}
         onContinue={() => controller.continue()}
         onRetryTiming={() => {

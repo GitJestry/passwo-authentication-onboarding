@@ -24,53 +24,24 @@
 
 .siteTask {
   display: grid;
+  width: 100%;
   min-height: 30rem;
-  align-content: start;
-  gap: var(--space-5);
-}
-
-.sceneToolbar {
-  position: relative;
-  z-index: 3;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: var(--space-4);
-}
-
-.sceneToolbar h1,
-.sceneToolbar p {
-  margin: 0;
-}
-
-.sceneToolbar h1 {
-  color: var(--color-ink-strong);
-  font-size: var(--font-size-heading-small);
-}
-
-.sceneToolbar p {
-  padding: var(--space-2) var(--space-3);
-  border: var(--border-width-thin) solid var(--color-border);
-  border-radius: var(--radius-round);
-  color: var(--color-ink-strong);
-  background: var(--color-surface-primary);
-  font-size: var(--font-size-x-small);
-  font-weight: var(--font-weight-heavy);
-  white-space: nowrap;
+  place-items: center;
 }
 
 .siteWelcome {
   display: grid;
-  width: min(100%, 28rem);
+  width: min(100%, 23.5rem);
   align-content: center;
-  justify-items: start;
+  justify-items: center;
   gap: var(--space-3);
-  min-height: 22rem;
+  min-height: 20rem;
   padding: clamp(var(--space-5), 4vw, var(--space-7));
-  border: var(--border-width-thin) solid var(--color-border-soft);
-  border-radius: var(--radius-large);
-  background: color-mix(in srgb, var(--color-surface-primary) 96%, transparent);
-  box-shadow: var(--shadow-card);
+  border: var(--border-width-thin) solid var(--color-border);
+  border-radius: 1.2rem;
+  background: var(--color-surface-primary);
+  box-shadow: 0 1.25rem 3rem color-mix(in srgb, var(--color-ink-strong) 12%, transparent);
+  text-align: center;
 }
 
 .siteWelcome p,
@@ -104,46 +75,28 @@
 }
 
 .siteWelcome .primaryButton {
+  width: 100%;
   margin-top: var(--space-3);
 }
 
 .relationshipStage {
   position: relative;
   display: grid;
+  width: 100%;
   min-height: 25rem;
   place-items: center;
-  overflow: hidden;
-  border: var(--border-width-thin) solid var(--color-border-soft);
-  border-radius: var(--radius-large);
-  background:
-    radial-gradient(circle at 50% 48%, var(--color-surface-primary) 0 24%, transparent 58%),
-    color-mix(in srgb, var(--color-surface-muted) 86%, var(--color-surface-primary));
-  box-shadow: var(--shadow-card);
-}
-
-.relationshipNetwork {
-  position: absolute;
-  inset: 0;
-  opacity: 0.8;
-  pointer-events: none;
-}
-
-.relationshipNetwork :global(.react-flow__controls),
-.relationshipNetwork :global(.react-flow__attribution) {
-  display: none;
 }
 
 .authCard,
 .resultCard {
   position: relative;
   z-index: 2;
-  width: min(25rem, calc(100% - var(--space-6)));
+  width: min(23.5rem, calc(100% - var(--space-6)));
   padding: clamp(var(--space-4), 3vw, var(--space-6));
   border: var(--border-width-thin) solid var(--color-border);
-  border-radius: var(--radius-large);
-  background: color-mix(in srgb, var(--color-surface-primary) 97%, transparent);
-  box-shadow: var(--shadow-float);
-  backdrop-filter: blur(10px);
+  border-radius: 1.2rem;
+  background: var(--color-surface-primary);
+  box-shadow: 0 1.25rem 3rem color-mix(in srgb, var(--color-ink-strong) 12%, transparent);
 }
 
 .authCard {
@@ -172,8 +125,7 @@
   outline: 0;
 }
 
-.authSymbol,
-.resultSymbol {
+.authSymbol {
   width: 3rem;
   height: 3rem;
   padding: var(--space-2);
@@ -302,8 +254,24 @@
 
 .resultCard {
   display: grid;
-  justify-items: start;
-  gap: var(--space-2);
+  justify-items: center;
+  gap: var(--space-3);
+  padding-block: clamp(var(--space-6), 5vw, var(--space-8));
+  text-align: center;
+}
+
+.resultIndicator {
+  display: grid;
+  width: 5rem;
+  height: 5rem;
+  place-items: center;
+  border: var(--border-width-medium) solid color-mix(in srgb, var(--color-positive) 34%, transparent);
+  border-radius: var(--radius-round);
+  color: var(--color-positive);
+  background: var(--color-positive-soft);
+  font-size: 2.8rem;
+  font-weight: var(--font-weight-heavy);
+  line-height: 1;
 }
 
 .resultCard strong {
@@ -318,9 +286,10 @@
   color: var(--color-ink-muted);
 }
 
-.resultCard[data-result="not-remembered"] .resultSymbol {
-  color: var(--color-ink-muted);
-  background: var(--color-surface-muted);
+.resultCard[data-result="not-remembered"] .resultIndicator {
+  border-color: color-mix(in srgb, var(--color-danger) 30%, transparent);
+  color: var(--color-danger);
+  background: var(--color-danger-soft);
 }
 
 .resultCard[data-result="not-remembered"] strong {
@@ -335,32 +304,61 @@
 
 .completionStage {
   position: relative;
+  display: grid;
   min-width: 0;
   min-height: 38rem;
   flex: 1;
+  place-items: center;
   overflow: hidden;
   background:
-    radial-gradient(circle at 50% 18%, var(--color-accent-soft), transparent 34%),
+    radial-gradient(circle at 50% 44%, var(--color-accent-soft), transparent 28rem),
     var(--color-surface-muted);
 }
 
-.completionStage .sceneToolbar {
-  position: absolute;
-  z-index: 3;
-  top: var(--space-5);
-  right: var(--space-6);
-  left: var(--space-6);
+.completionStatus {
+  display: grid;
+  width: min(26rem, calc(100% - var(--space-8)));
+  place-items: center;
+  gap: var(--space-4);
+  padding: var(--space-7);
+  border: var(--border-width-thin) solid var(--color-border);
+  border-radius: var(--radius-large);
+  background: var(--color-surface-primary);
+  box-shadow: var(--shadow-float);
+  text-align: center;
 }
 
-.completionStage[data-timeskip="true"] :global(.react-flow__nodes) {
+.completionStatus > span {
+  display: grid;
+  width: 5rem;
+  height: 5rem;
+  place-items: center;
+  border-radius: var(--radius-round);
+  color: var(--color-positive);
+  background: var(--color-positive-soft);
+  font-size: 2.8rem;
+  font-weight: var(--font-weight-heavy);
+}
+
+.completionStatus p {
+  margin: 0;
+  color: var(--color-ink-strong);
+  font-weight: var(--font-weight-bold);
+}
+
+.completionStage[data-timeskip="true"] .completionStatus > span {
   animation: s03-time-lapse 1.1s linear infinite;
 }
 
-.completionStage[data-board-warning="true"]
-  :global([data-scene-node="campus-board-archive"] [data-scene-node-button]) {
-  border-color: var(--color-danger);
+.completionStage[data-board-warning="true"] .completionStatus {
+  border-color: color-mix(in srgb, var(--color-danger) 52%, var(--color-border));
   background: var(--color-danger-soft);
   animation: s03-board-warning 0.7s ease-in-out infinite;
+}
+
+.completionStage[data-board-warning="true"] .completionStatus > span {
+  color: var(--color-danger);
+  background: var(--color-surface-primary);
 }
 
 .characterAnimationAnchor {
@@ -371,6 +369,15 @@
   height: 1px;
   opacity: 0;
   pointer-events: none;
+}
+
+.screenReaderOnly {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
 }
 
 .timingStatus,
@@ -435,11 +442,6 @@
 }
 
 @media (max-width: 760px) {
-  .sceneToolbar {
-    align-items: flex-start;
-    flex-direction: column;
-  }
-
   .siteWelcome {
     min-height: 18rem;
   }
@@ -454,9 +456,8 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .completionStage[data-timeskip="true"] :global(.react-flow__nodes),
-  .completionStage[data-board-warning="true"]
-    :global([data-scene-node="campus-board-archive"] [data-scene-node-button]) {
+  .completionStage[data-timeskip="true"] .completionStatus > span,
+  .completionStage[data-board-warning="true"] .completionStatus {
     animation: none;
   }
 }

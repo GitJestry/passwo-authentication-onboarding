@@ -14,10 +14,6 @@ import { BrowserShell, type BrowserShellSnapshot } from '@passwo/ui';
 import { useEffect, useRef, useState } from 'react';
 import { NetworkMotionAdapter } from '../../../../adapters/network/NetworkMotionAdapter.js';
 import { NetworkSymbol } from '../../../../adapters/network/NetworkSymbolRegistry.js';
-import {
-  ReactFlowNetwork,
-  ReactFlowNetworkAdapter,
-} from '../../../../adapters/network/ReactFlowNetworkAdapter.js';
 import { CampusWebsiteBackdrop } from '../../CampusWebsiteBackdrop.js';
 import { PassWoGuide } from '../../PassWoGuide.js';
 import {
@@ -35,7 +31,6 @@ export interface S03RetrievalTrainingProps {
 
 interface Runtime {
   readonly controller: S03RetrievalController;
-  readonly renderer: ReactFlowNetworkAdapter;
 }
 
 function prefersReducedMotion(): boolean {
@@ -82,7 +77,12 @@ function InitialLoginWelcome({
       <NetworkSymbol symbolId={account.symbolId} className={styles.welcomeSymbol} />
       <p>{s03Content.accountPages[account.id].areaLabel}</p>
       <h2>{account.label}</h2>
-      <button type="button" className={styles.primaryButton} disabled={disabled} onClick={onOpenLogin}>
+      <button
+        type="button"
+        className={styles.primaryButton}
+        disabled={disabled}
+        onClick={onOpenLogin}
+      >
         {s03Content.controls.openLogin(account.label)}
       </button>
     </section>
@@ -119,11 +119,12 @@ export function S03InitialBrowserSurface({
           <CampusWebsiteBackdrop
             accountId={account.id}
             interactionLabel={`${account.label} wieder anmelden`}
+            layout="authentication"
           >
             <section className={styles.siteTask} aria-labelledby="s03-handoff-page-title">
-              <header className={styles.sceneToolbar}>
-                <h1 id="s03-handoff-page-title">{s03Content.page.title}</h1>
-              </header>
+              <h1 id="s03-handoff-page-title" className={styles.screenReaderOnly}>
+                {s03Content.page.title}
+              </h1>
               <InitialLoginWelcome accountId={account.id} disabled />
             </section>
           </CampusWebsiteBackdrop>
@@ -139,7 +140,7 @@ export function S03RetrievalTraining({
   externalTimingError = null,
   onRetryExternalTiming,
 }: S03RetrievalTrainingProps) {
-  const networkHostRef = useRef<HTMLDivElement | null>(null);
+  const animationTargetRef = useRef<HTMLDivElement | null>(null);
   const characterAnimationAnchorRef = useRef<HTMLSpanElement | null>(null);
   const loginTitleRef = useRef<HTMLHeadingElement | null>(null);
   const warningConfirmationRef = useRef(() => controller.completeS03WarningSequence());
@@ -151,7 +152,7 @@ export function S03RetrievalTraining({
     () => new Set(),
   );
   const [loginAccountId, setLoginAccountId] = useState<S01AccountId | null>(null);
-  const [guideOpen, setGuideOpen] = useState(true);
+  const [guideOpen, setGuideOpen] = useState(false);
   const initialAccountId =
     s01Content.browser.accounts.find(({ id }) => id === snapshot.context.activeAccountId)?.id ??
     'campus-id';
@@ -167,24 +168,16 @@ export function S03RetrievalTraining({
       initialRevealedNodeIds: revealedNodeIds,
       applySnapshot: (presentation) => retrievalController?.updatePresentation(presentation),
       getCharacterElement: () => characterAnimationAnchorRef.current,
-      getActiveNodeElement: () =>
-        networkHostRef.current?.querySelector<HTMLElement>(
-          '[data-active="true"] [data-scene-node-button]',
-        ) ?? null,
-      getNodeElement: (nodeId) =>
-        networkHostRef.current?.querySelector<HTMLElement>(
-          `[data-scene-node-button="${nodeId}"]`,
-        ) ?? null,
+      getActiveNodeElement: () => animationTargetRef.current,
+      getNodeElement: () => animationTargetRef.current,
       prefersReducedMotion,
     });
     retrievalController = new S03RetrievalController({
       animationPlayer,
       onWarningConfirmed: () => warningConfirmationRef.current(),
     });
-    const renderer = new ReactFlowNetworkAdapter(retrievalController.getSnapshot().network);
-    retrievalController.attachRenderer(renderer);
     const unsubscribe = retrievalController.subscribe(setPresentationSnapshot);
-    setRuntime({ controller: retrievalController, renderer });
+    setRuntime({ controller: retrievalController });
     setPresentationSnapshot(retrievalController.getSnapshot());
 
     return () => {
@@ -258,7 +251,9 @@ export function S03RetrievalTraining({
       enabled: !interactionBlocked,
       ...(snapshot.context.retrievalResults[tabAccount.id] === 'retrievable'
         ? { status: 'complete' as const }
-        : {}),
+        : snapshot.context.retrievalResults[tabAccount.id] === 'not-remembered'
+          ? { status: 'attention' as const }
+          : {}),
     })),
     activeTabId: account.id,
     address: account.address,
@@ -289,20 +284,6 @@ export function S03RetrievalTraining({
     controller.retryTiming();
   }
 
-  const network = (
-    <ReactFlowNetwork
-      adapter={runtime.renderer}
-      presentation={presentationSnapshot.presentation}
-      onNodeSelect={() => undefined}
-      interactionDisabled
-      visualVariant="account-map"
-      activeNodeId={completionSequenceActive ? null : account.id}
-      ariaLabel="Zusammenhang der aktuellen Anmeldung"
-      canvasAriaLabel="Konto und damit verbundene Dienste"
-      showEdgeLabels={false}
-    />
-  );
-
   return (
     <section className={styles.training} aria-label={s03Content.trainingAriaLabel}>
       <BrowserShell
@@ -320,7 +301,11 @@ export function S03RetrievalTraining({
               />
               <PassWoGuide
                 guideName={s03Content.narration.guideName}
-                progressLabel={s03Content.page.progress(completedCount)}
+                progress={{
+                  current: completedCount,
+                  total: s01Content.browser.accounts.length,
+                  label: s03Content.page.progress(completedCount),
+                }}
                 helpOpen={guideOpen}
                 helpId="s03-guide"
                 openHelpLabel="PassWo-Hinweis öffnen"
@@ -348,25 +333,30 @@ export function S03RetrievalTraining({
         <div className={styles.page} aria-labelledby="s03-page-title">
           {completionSequenceActive ? (
             <section
-              ref={networkHostRef}
               className={styles.completionStage}
               data-timeskip={timeLapseActive}
               data-board-warning={boardWarningActive}
             >
-              <header className={styles.sceneToolbar}>
-                <h1 id="s03-page-title">{s03Content.page.title}</h1>
-              </header>
-              {network}
+              <h1 id="s03-page-title" className={styles.screenReaderOnly}>
+                {s03Content.page.title}
+              </h1>
+              <div ref={animationTargetRef} className={styles.completionStatus} aria-live="polite">
+                <span aria-hidden="true">
+                  {boardWarningActive ? '!' : timeLapseActive ? '…' : '✓'}
+                </span>
+                <p>{boardWarningActive ? account.label : s03Content.page.resultLine}</p>
+              </div>
             </section>
           ) : (
             <CampusWebsiteBackdrop
               accountId={account.id}
               interactionLabel={`${account.label} wieder anmelden`}
+              layout="authentication"
             >
-              <section className={styles.siteTask}>
-                <header className={styles.sceneToolbar}>
-                  <h1 id="s03-page-title">{s03Content.page.title}</h1>
-                </header>
+              <section className={styles.siteTask} aria-labelledby="s03-page-title">
+                <h1 id="s03-page-title" className={styles.screenReaderOnly}>
+                  {s03Content.page.title}
+                </h1>
 
                 {result === 'pending' && loginAccountId !== account.id ? (
                   <InitialLoginWelcome
@@ -376,14 +366,10 @@ export function S03RetrievalTraining({
                   />
                 ) : (
                   <div
-                    ref={networkHostRef}
+                    ref={animationTargetRef}
                     className={styles.relationshipStage}
                     data-result={result}
                   >
-                    <div className={styles.relationshipNetwork}>
-                      {network}
-                    </div>
-
                     {result === 'pending' ? (
                       <form
                         className={styles.authCard}
@@ -419,7 +405,10 @@ export function S03RetrievalTraining({
                             <dd>{accountData}</dd>
                           </div>
                         </dl>
-                        <label className={styles.passwordLabel} htmlFor={`s03-password-${account.id}`}>
+                        <label
+                          className={styles.passwordLabel}
+                          htmlFor={`s03-password-${account.id}`}
+                        >
                           {s03Content.controls.passwordLabel}
                         </label>
                         <span className={styles.passwordInputGroup}>
@@ -475,16 +464,15 @@ export function S03RetrievalTraining({
                       </form>
                     ) : (
                       <section className={styles.resultCard} data-result={result} aria-live="polite">
-                        <NetworkSymbol
-                          symbolId={account.symbolId}
-                          className={styles.resultSymbol}
-                        />
+                        <span className={styles.resultIndicator} aria-hidden="true">
+                          {result === 'retrievable' ? '✓' : '×'}
+                        </span>
                         <p>{accountPage.areaLabel}</p>
                         <h2>{account.label}</h2>
                         <strong>
                           {result === 'retrievable'
                             ? accountPage.signedInLabel
-                            : s03Content.statuses.notRemembered}
+                            : s03Content.statuses.cancelledLogin}
                         </strong>
                         {result === 'retrievable' ? (
                           <dl className={styles.accountDetails}>

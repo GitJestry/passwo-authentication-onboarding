@@ -55,6 +55,20 @@
   padding: clamp(var(--space-5), 5vh, var(--space-8)) clamp(var(--space-5), 5vw, var(--space-9));
 }
 
+.page[data-layout="authentication"] .pageBody {
+  grid-template-columns: minmax(0, 1fr);
+  place-items: center;
+  background:
+    radial-gradient(circle at 50% 34%, color-mix(in srgb, var(--color-accent-soft) 58%, transparent), transparent 23rem),
+    var(--color-surface-muted);
+}
+
+.page[data-layout="authentication"] .interactionColumn {
+  width: min(100%, 33rem);
+  min-height: 31rem;
+  align-content: center;
+}
+
 .interactionColumn {
   position: relative;
   z-index: 1;

@@ -7,6 +7,7 @@ export interface CampusWebsiteBackdropProps {
   readonly accountId: S01AccountId;
   readonly children: ReactNode;
   readonly interactionLabel: string;
+  readonly layout?: 'default' | 'authentication';
 }
 
 function SkeletonLines({ count = 3 }: { readonly count?: number }) {
@@ -100,12 +101,13 @@ export function CampusWebsiteBackdrop({
   accountId,
   children,
   interactionLabel,
+  layout = 'default',
 }: CampusWebsiteBackdropProps) {
   const account = s01Content.browser.accounts.find(({ id }) => id === accountId);
   if (account === undefined) return null;
 
   return (
-    <article className={styles.page} data-campus-site={account.id}>
+    <article className={styles.page} data-campus-site={account.id} data-layout={layout}>
       <header className={styles.pageHeader}>
         <div className={styles.siteIdentity}>
           <NetworkSymbol symbolId={account.symbolId} className={styles.siteSymbol} />
@@ -121,7 +123,7 @@ export function CampusWebsiteBackdrop({
         <section className={styles.interactionColumn} aria-label={interactionLabel}>
           {children}
         </section>
-        <AccountContext accountId={account.id} />
+        {layout === 'default' ? <AccountContext accountId={account.id} /> : null}
       </div>
     </article>
   );

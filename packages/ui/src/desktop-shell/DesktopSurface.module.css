@@ -1,0 +1,281 @@
+.desktopScene {
+  position: relative;
+  isolation: isolate;
+  width: 100%;
+  height: 100%;
+  min-height: clamp(34rem, calc(100dvh - 7rem), 58rem);
+  overflow: hidden;
+  color: #162334;
+  background:
+    radial-gradient(ellipse at 18% 8%, rgb(255 255 255 / 96%), transparent 30rem),
+    radial-gradient(ellipse at 94% 22%, rgb(143 208 255 / 54%), transparent 29rem),
+    radial-gradient(ellipse at 52% 102%, rgb(167 187 255 / 42%), transparent 34rem),
+    linear-gradient(145deg, #b8e7ff, #d5e9ff 43%, #e3dcff 100%);
+}
+
+.desktopMenuBar {
+  position: absolute;
+  z-index: 60;
+  top: 0;
+  right: 0;
+  left: 0;
+  display: flex;
+  height: 1.6rem;
+  align-items: center;
+  padding: 0 0.55rem;
+  background: rgb(238 247 255 / 18%);
+  backdrop-filter: blur(0.7rem) saturate(1.06);
+}
+
+.desktopMenuStart,
+.desktopMenuEnd {
+  display: flex;
+  align-items: center;
+}
+
+.desktopMenuStart {
+  gap: 0.72rem;
+}
+
+.desktopMenuEnd {
+  gap: 0.58rem;
+}
+
+.desktopMark {
+  display: grid;
+  width: 1.15rem;
+  height: 1.15rem;
+  place-items: center;
+}
+
+.desktopMark svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.desktopMenuItem,
+.desktopMenuTime {
+  color: rgb(22 35 52 / 88%);
+  font-size: 0.66rem;
+  font-weight: var(--font-weight-semibold);
+  line-height: 1;
+}
+
+.desktopMenuSpacer {
+  flex: 1;
+}
+
+.desktopMenuStatus {
+  display: grid;
+  width: 1.05rem;
+  height: 1rem;
+  place-items: center;
+  color: rgb(22 35 52 / 78%);
+}
+
+.desktopMenuStatus svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.desktopMenuStatus:nth-child(2) {
+  width: 1.55rem;
+}
+
+.desktopMenuTime {
+  min-width: 8.9rem;
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}
+
+.desktopContent {
+  position: absolute;
+  z-index: 1;
+  inset: 1.6rem 0 0;
+  min-width: 0;
+  min-height: 0;
+}
+
+.desktopDock {
+  position: absolute;
+  z-index: 70;
+  bottom: clamp(0.55rem, 1.5vh, 0.9rem);
+  left: 50%;
+  display: flex;
+  align-items: end;
+  justify-content: center;
+  gap: 0.34rem;
+  padding: 0.42rem 0.55rem;
+  border: 1px solid rgb(255 255 255 / 86%);
+  border-radius: 1.25rem;
+  background: rgb(255 255 255 / 58%);
+  box-shadow:
+    0 0.85rem 2rem rgb(45 76 113 / 22%),
+    inset 0 1px 0 rgb(255 255 255 / 70%);
+  transform: translateX(-50%);
+  backdrop-filter: blur(1.1rem) saturate(1.18);
+}
+
+.decorativeDockIcon,
+.browserDockButton {
+  position: relative;
+  display: grid;
+  width: 2.75rem;
+  height: 2.75rem;
+  flex: none;
+  place-items: center;
+  padding: 0;
+  border: 0;
+  border-radius: 0.8rem;
+  background: transparent;
+}
+
+.decorativeDockIcon svg,
+.browserDockButton svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+  filter: drop-shadow(0 0.28rem 0.35rem rgb(35 77 133 / 22%));
+}
+
+.browserDockButton {
+  color: #20364c;
+  cursor: pointer;
+  transition:
+    transform var(--motion-fast) var(--motion-ease-out),
+    filter var(--motion-fast) var(--motion-ease-out);
+}
+
+.browserDockButton:not(:disabled):hover {
+  transform: translateY(-0.22rem) scale(1.08);
+}
+
+.browserDockButton:disabled {
+  cursor: default;
+  filter: grayscale(0.18);
+  opacity: 0.54;
+}
+
+.browserDockButton:focus-visible {
+  outline: var(--border-width-focus) solid var(--color-focus);
+  outline-offset: var(--space-1);
+  box-shadow: var(--shadow-focus);
+}
+
+.browserDockButton i {
+  position: absolute;
+  bottom: -0.26rem;
+  width: 0.28rem;
+  height: 0.28rem;
+  border-radius: var(--radius-round);
+  background: #276ddb;
+}
+
+.browserLaunchSurface {
+  position: absolute;
+  z-index: 55;
+  inset: 1.6rem 0 5.15rem;
+  overflow: hidden;
+  border: 1px solid rgb(102 128 151 / 42%);
+  border-radius: 0.9rem;
+  background: #ffffff;
+  box-shadow: 0 1.4rem 3.6rem rgb(35 63 92 / 24%);
+  transform-origin: 50% calc(100% + 4.2rem);
+  animation: browser-paper-open 520ms cubic-bezier(0.16, 0.78, 0.22, 1) both;
+}
+
+.browserLaunchSurface::after {
+  display: block;
+  height: 4.6rem;
+  border-bottom: 1px solid var(--color-border);
+  background: var(--color-surface-chrome);
+  content: "";
+}
+
+.browserLaunchSurface > span {
+  position: absolute;
+  z-index: 1;
+  top: 1rem;
+  width: var(--size-window-control);
+  height: var(--size-window-control);
+  border: 1px solid var(--color-control-neutral-border);
+  border-radius: var(--radius-round);
+  background: var(--color-control-close);
+}
+
+.browserLaunchSurface > span:first-child {
+  left: 1rem;
+}
+
+.browserLaunchSurface > span:nth-child(2) {
+  left: 2rem;
+  background: var(--color-control-minimize);
+}
+
+.browserLaunchSurface > span:nth-child(3) {
+  left: 3rem;
+  background: var(--color-control-expand);
+}
+
+@keyframes browser-paper-open {
+  0% {
+    border-radius: 48% 48% 0.9rem 0.9rem;
+    clip-path: polygon(46% 100%, 54% 100%, 58% 100%, 42% 100%);
+    opacity: 0.35;
+    transform: translateY(4.1rem) scale(0.06, 0.03);
+  }
+
+  54% {
+    clip-path: polygon(12% 12%, 88% 3%, 100% 92%, 0 100%);
+    opacity: 1;
+    transform: translateY(0.3rem) scale(0.97, 0.9);
+  }
+
+  100% {
+    border-radius: 0.9rem;
+    clip-path: inset(0 round 0.9rem);
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@media (max-width: 760px) {
+  .desktopScene {
+    min-height: 57rem;
+  }
+
+  .desktopDock {
+    gap: 0.2rem;
+  }
+
+  .desktopMenuStart {
+    gap: 0.48rem;
+  }
+
+  .desktopMenuItem:nth-of-type(n + 4) {
+    display: none;
+  }
+
+  .desktopMenuTime {
+    min-width: 7.8rem;
+    font-size: 0.6rem;
+  }
+
+  .decorativeDockIcon,
+  .browserDockButton {
+    width: 2.35rem;
+    height: 2.35rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .browserDockButton {
+    transition: none;
+  }
+
+  .browserLaunchSurface {
+    animation-duration: var(--motion-instant);
+  }
+}

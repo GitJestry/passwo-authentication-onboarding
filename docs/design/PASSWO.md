@@ -16,7 +16,7 @@ Die Runtime referenziert stabile IDs statt konkreter Bilddateien:
 | `point` | einen konkreten Knoten oder Befund zeigen |
 | `caution` | vorsichtiger Sicherheitshinweis |
 | `idea` | umsetzbare nächste Handlung |
-| `dock` | ruhiger Guide unten links |
+| `dock` | ruhiger Guide am unteren linken Rand |
 | `flight` | Übergang in oder aus der Browserbühne |
 
 Ein Renderer übersetzt diese IDs in PNG-, SVG- oder Rive-Assets.
@@ -49,15 +49,18 @@ nicht in der Komponente.
 Die gelieferten Designbilder sind Stil- und Kompositionsreferenzen. Sie enthalten mehrere Posen
 und UI-Elemente in einem Bild und werden deshalb nicht direkt als Runtime-Sprite verwendet.
 
-Die Runtime-Integration beginnt erst, wenn für `wave`, `explain`, `point`, `caution`, `idea`,
-`dock` und `flight` jeweils ein freigegebenes transparentes Einzelasset vorliegt. Dann enthält
-das zentrale Posenregister für jede semantische Pose genau einen Runtime-Assetpfad; Renderer und
-Motion-Port bleiben davon unabhängig.
+Die Runtime-Integration beginnt schrittweise mit freigegebenen transparenten Einzelassets. Der
+stille `bottom-left`-Zustand verwendet bereits das zugeschnittene Waiting-Asset; während PassWo
+spricht, bleibt vorläufig das bestehende Dock-Asset aktiv. Der Guide sitzt fest am unteren Rand
+der Browserfläche und bewegt sich nicht mehr zwischen Seitenknoten.
 
-Derzeit fehlen diese sieben Einzelassets im Runtime-Ordner. Die vorhandenen Designboards bleiben
-Stil- und Kompositionsreferenzen und werden nicht als Sprite ausgeschnitten oder eingebunden.
-Bis zur Asset-Lieferung bleibt die Character-Integration unverändert; der `PW`-Platzhalter ist
-ausdrücklich keine finale Figurenlösung.
+Für `wave`, `explain`, `point`, `caution`, `idea` und `flight` fehlen weiterhin freigegebene
+Einzelassets. Die vorhandenen Designboards bleiben Stil- und Kompositionsreferenzen und werden
+nicht als Sprite ausgeschnitten oder eingebunden.
+
+Direkt neben dem Namen öffnet ein Info-Button die jeweilige Erklärung. Falls eine Aufgabe
+Fortschritt besitzt, zeigt die schmale Zeile darunter ausschließlich den Zähler und eine
+Fortschrittsleiste; der ausführliche Text bleibt als zugängliche Bezeichnung erhalten.
 
 Phase 2 nur bei Bedarf:
 

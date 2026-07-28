@@ -7,10 +7,8 @@ import {
 } from '@passwo/training-engine';
 import { BrowserShell, type BrowserShellSnapshot } from '@passwo/ui';
 import { useEffect, useRef, useState } from 'react';
-import passWoDockAsset from '../../assets/passwo/passwo-dock.png';
 import { CampusWebsiteBackdrop } from './CampusWebsiteBackdrop.js';
 import { PassWoGuide } from './PassWoGuide.js';
-import { S02DesktopHandoff } from './segments/S02/S02DesktopSurface.js';
 import styles from './S01Training.module.css';
 
 function isReadyToContinue(snapshot: PasswordModuleSnapshot): boolean {
@@ -23,10 +21,6 @@ function isReadyToContinue(snapshot: PasswordModuleSnapshot): boolean {
 
 function isLocalTimingFailure(snapshot: PasswordModuleSnapshot): boolean {
   return snapshot.matches({ s01: 'startFailed' }) || snapshot.matches({ s01: 'endFailed' });
-}
-
-function prefersReducedMotion(): boolean {
-  return window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 }
 
 function PasswordVisibilityIcon({ revealed }: { readonly revealed: boolean }) {
@@ -65,6 +59,7 @@ export function S01Training({
     () => new Set(),
   );
   const [questHelpOpen, setQuestHelpOpen] = useState(true);
+  const [browserOpen, setBrowserOpen] = useState(true);
   const [desktopTransitioning, setDesktopTransitioning] = useState(false);
   const completionStatusRef = useRef<HTMLHeadingElement>(null);
   const account =
@@ -88,6 +83,7 @@ export function S01Training({
       (externalTimingError !== null || isLocalTimingFailure(snapshot))
     ) {
       setDesktopTransitioning(false);
+      setBrowserOpen(true);
     }
   }, [desktopTransitioning, externalTimingError, snapshot]);
 
@@ -144,71 +140,51 @@ export function S01Training({
     controller.retryTiming();
   }
 
-  function continueToDesktop(): void {
-    if (!readyToContinue || interactionBlocked || desktopTransitioning) return;
-    if (prefersReducedMotion()) {
-      controller.continue();
-      return;
-    }
-    setDesktopTransitioning(true);
-  }
-
   return (
-    <section
-      className={styles.training}
-      aria-label={s01Content.trainingAriaLabel}
-      data-desktop-transitioning={desktopTransitioning}
-    >
-      <div className={styles.desktopHandoff}>
-        <S02DesktopHandoff />
-      </div>
-      {desktopTransitioning ? (
-        <img className={styles.passWoDesktopFlight} src={passWoDockAsset} alt="" />
-      ) : null}
-      <div
-        className={styles.browserStage}
-        onAnimationEnd={(event) => {
-          if (event.target === event.currentTarget && desktopTransitioning) controller.continue();
+    <section className={styles.training} aria-label={s01Content.trainingAriaLabel}>
+      <BrowserShell
+        variant="artifact"
+        snapshot={snapshotForBrowser}
+        ariaLabel={s01Content.browser.ariaLabel}
+        windowOpen={browserOpen}
+        onWindowOpenChange={(open) => {
+          setBrowserOpen(open);
+          if (open) setDesktopTransitioning(false);
+        }}
+        onWindowClose={() => {
+          if (readyToContinue && !interactionBlocked && !desktopTransitioning) {
+            setDesktopTransitioning(true);
+          }
+        }}
+        onWindowTransitionEnd={(state) => {
+          if (state === 'closed' && desktopTransitioning) controller.continue();
+        }}
+        onTabSelect={(accountId) => controller.selectAccount(accountId)}
+        layers={{
+          passWo: (
+            <PassWoGuide
+              guideName={s01Content.completion.guideName}
+              progress={{
+                current: configuredCount,
+                total: s01Content.browser.accounts.length,
+                label: s01Content.progress.status(configuredCount),
+              }}
+              helpOpen={questHelpOpen}
+              helpId="s01-quest-help"
+              openHelpLabel={s01Content.quest.helpLabel}
+              closeHelpLabel={s01Content.quest.closeHelpLabel}
+              speech={[
+                readyToContinue
+                  ? s01Content.completion.guideMessage
+                  : s01Content.quest.nextAccount(account.label),
+              ]}
+              speechKey={readyToContinue ? 's01-ready' : `s01-${account.id}-${configuredCount}`}
+              speechPlacement="right"
+              onToggleHelp={() => setQuestHelpOpen((open) => !open)}
+            />
+          ),
         }}
       >
-        <BrowserShell
-          variant="artifact"
-          snapshot={snapshotForBrowser}
-          ariaLabel={s01Content.browser.ariaLabel}
-          onTabSelect={(accountId) => controller.selectAccount(accountId)}
-          layers={{
-            passWo: (
-              <PassWoGuide
-                guideName={s01Content.completion.guideName}
-                progressLabel={s01Content.progress.status(configuredCount)}
-                helpOpen={questHelpOpen}
-                helpId="s01-quest-help"
-                openHelpLabel={s01Content.quest.helpLabel}
-                closeHelpLabel={s01Content.quest.closeHelpLabel}
-                speech={[
-                  readyToContinue
-                    ? s01Content.completion.guideMessage
-                    : s01Content.quest.nextAccount(account.label),
-                ]}
-                speechKey={readyToContinue ? 's01-ready' : `s01-${account.id}-${configuredCount}`}
-                speechPlacement="right"
-                speechFooter={
-                  readyToContinue ? (
-                    <button
-                      type="button"
-                      className={styles.primaryButton}
-                      disabled={snapshot.matches({ s01: 'ending' }) || interactionBlocked || desktopTransitioning}
-                      onClick={continueToDesktop}
-                    >
-                      {s01Content.controls.continue}
-                    </button>
-                  ) : undefined
-                }
-                onToggleHelp={() => setQuestHelpOpen((open) => !open)}
-              />
-            ),
-          }}
-        >
         <CampusWebsiteBackdrop
           accountId={account.id}
           interactionLabel={`${account.label} einrichten`}
@@ -297,8 +273,7 @@ export function S01Training({
             </button>
           </section>
         ) : null}
-        </BrowserShell>
-      </div>
+      </BrowserShell>
     </section>
   );
 }

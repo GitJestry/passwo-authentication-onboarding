@@ -1,4 +1,13 @@
-import { type KeyboardEvent, type ReactNode, useId, useRef, useState } from 'react';
+import {
+  type AnimationEvent,
+  type KeyboardEvent,
+  type ReactNode,
+  useEffect,
+  useId,
+  useRef,
+  useState,
+} from 'react';
+import { DesktopSurface } from '../desktop-shell/DesktopSurface.js';
 import styles from './BrowserShell.module.css';
 
 export interface BrowserTabModel {
@@ -29,8 +38,14 @@ export interface BrowserShellProps {
   readonly layers?: BrowserShellLayers;
   readonly variant?: 'artifact' | 'framed';
   readonly ariaLabel?: string;
+  readonly windowOpen?: boolean;
   readonly onTabSelect?: (tabId: string) => void;
+  readonly onWindowClose?: () => void;
+  readonly onWindowOpenChange?: (open: boolean) => void;
+  readonly onWindowTransitionEnd?: (state: 'open' | 'closed') => void;
 }
+
+type BrowserWindowState = 'open' | 'opening' | 'closing' | 'closed';
 
 export function BrowserShell({
   snapshot,
@@ -38,10 +53,19 @@ export function BrowserShell({
   layers,
   variant = 'framed',
   ariaLabel = 'Fiktive Browseranwendung',
+  windowOpen,
   onTabSelect,
+  onWindowClose,
+  onWindowOpenChange,
+  onWindowTransitionEnd,
 }: BrowserShellProps) {
   const idPrefix = useId().replaceAll(':', '');
   const tabElements = useRef(new Map<string, HTMLButtonElement>());
+  const [uncontrolledOpen, setUncontrolledOpen] = useState(true);
+  const desiredWindowOpen = windowOpen ?? uncontrolledOpen;
+  const [windowState, setWindowState] = useState<BrowserWindowState>(
+    desiredWindowOpen ? 'open' : 'closed',
+  );
   const dimmed = snapshot.dimmed ?? false;
   const dimStrength = snapshot.dimStrength ?? 'standard';
   const panelId = `${idPrefix}-tabpanel`;
@@ -69,6 +93,35 @@ export function BrowserShell({
   const tabStopIndex = tabStates.findIndex(({ tab }) => tab.id === focusedTabId);
   const resolvedTabStopIndex = tabStopIndex >= 0 ? tabStopIndex : 0;
   const labelledByTabId = tabStates[selectedTabIndex >= 0 ? selectedTabIndex : 0]?.tabId;
+
+  useEffect(() => {
+    setWindowState((currentState) => {
+      if (desiredWindowOpen && (currentState === 'closed' || currentState === 'closing')) {
+        return 'opening';
+      }
+      if (!desiredWindowOpen && (currentState === 'open' || currentState === 'opening')) {
+        return 'closing';
+      }
+      return currentState;
+    });
+  }, [desiredWindowOpen]);
+
+  function setWindowOpen(open: boolean): void {
+    if (windowOpen === undefined) setUncontrolledOpen(open);
+    onWindowOpenChange?.(open);
+  }
+
+  function handleWindowAnimationEnd(event: AnimationEvent<HTMLElement>): void {
+    if (event.target !== event.currentTarget) return;
+
+    if (windowState === 'closing') {
+      setWindowState('closed');
+      onWindowTransitionEnd?.('closed');
+    } else if (windowState === 'opening') {
+      setWindowState('open');
+      onWindowTransitionEnd?.('open');
+    }
+  }
 
   function selectTab(tabId: string): void {
     const tabState = tabStates.find(({ tab, enabled }) => tab.id === tabId && enabled);
@@ -176,77 +229,114 @@ export function BrowserShell({
   });
 
   return (
-    <section
-      className={
-        variant === 'artifact' ? `${styles.window} ${styles.artifactWindow}` : styles.window
-      }
-      aria-label={ariaLabel}
-      data-dimmed={dimmed}
-      data-dim-strength={dimStrength}
-      data-browser-shell-variant={variant}
+    <DesktopSurface
+      browserDock={{
+        active: windowState !== 'closed',
+        enabled: windowState === 'closed',
+        label:
+          windowState === 'closed'
+            ? 'Browserfenster vom Dock öffnen'
+            : 'Browserfenster ist geöffnet',
+        onClick: () => setWindowOpen(true),
+      }}
     >
-      <header className={styles.chrome}>
-        <div className={styles.tabRow}>
-          <div className={styles.windowControls} aria-hidden="true">
-            <span />
-            <span />
-            <span />
+      <section
+        className={
+          variant === 'artifact' ? `${styles.window} ${styles.artifactWindow}` : styles.window
+        }
+        aria-label={ariaLabel}
+        aria-hidden={windowState === 'closed' || undefined}
+        inert={windowState === 'closed' || undefined}
+        data-dimmed={dimmed}
+        data-dim-strength={dimStrength}
+        data-browser-shell-variant={variant}
+        data-window-state={windowState}
+        onAnimationEnd={handleWindowAnimationEnd}
+      >
+        <header className={styles.chrome}>
+          <div className={styles.tabRow}>
+            <div className={styles.windowControls}>
+              <button
+                type="button"
+                className={styles.closeControl}
+                aria-label="Browserfenster schließen"
+                title="Schließen"
+                onClick={() => {
+                  onWindowClose?.();
+                  setWindowOpen(false);
+                }}
+              />
+              <button
+                type="button"
+                className={styles.minimizeControl}
+                aria-label="Browserfenster im Dock ablegen"
+                title="Im Dock ablegen"
+                onClick={() => setWindowOpen(false)}
+              />
+              <button
+                type="button"
+                className={styles.expandControl}
+                aria-label="Browserfenster ist maximiert"
+                title="Maximiert"
+                disabled
+              />
+            </div>
+            <div className={styles.tabs} role="tablist" aria-label="Fiktive Seitentabs">
+              {tabItems}
+            </div>
           </div>
-          <div className={styles.tabs} role="tablist" aria-label="Fiktive Seitentabs">
-            {tabItems}
+          {tabStates.some(({ enabled }) => !enabled) ? (
+            <div className={styles.disabledReasons} aria-live="polite">
+              {tabStates.map(({ tab, enabled, disabledReason, reasonId }) =>
+                enabled ? null : (
+                  <p key={tab.id} id={reasonId}>
+                    <strong>{tab.label}:</strong> {disabledReason}
+                  </p>
+                ),
+              )}
+            </div>
+          ) : null}
+          <div className={styles.addressRow}>
+            <output className={styles.address} aria-label="Adresszeile">
+              <span className={styles.addressIndicator} aria-hidden="true">
+                <span />
+              </span>
+              <span className={styles.addressText}>{snapshot.address}</span>
+            </output>
           </div>
+        </header>
+        <div className={styles.viewport}>
+          <div
+            id={panelId}
+            role="tabpanel"
+            aria-labelledby={labelledByTabId}
+            className={dimmed ? styles.dimmedContent : styles.content}
+            aria-hidden={dimmed || undefined}
+            inert={dimmed || undefined}
+            tabIndex={dimmed ? -1 : 0}
+          >
+            {children}
+          </div>
+          {dimmed ? (
+            <div className={styles.dimLayer} data-browser-layer="dimming" aria-hidden="true" />
+          ) : null}
+          {layers?.passWo ? (
+            <div className={styles.passWoLayer} data-browser-layer="passwo">
+              {layers.passWo}
+            </div>
+          ) : null}
+          {layers?.speech ? (
+            <div className={styles.speechLayer} data-browser-layer="speech">
+              {layers.speech}
+            </div>
+          ) : null}
+          {layers?.controls ? (
+            <div className={styles.controlsLayer} data-browser-layer="controls">
+              {layers.controls}
+            </div>
+          ) : null}
         </div>
-        {tabStates.some(({ enabled }) => !enabled) ? (
-          <div className={styles.disabledReasons} aria-live="polite">
-            {tabStates.map(({ tab, enabled, disabledReason, reasonId }) =>
-              enabled ? null : (
-                <p key={tab.id} id={reasonId}>
-                  <strong>{tab.label}:</strong> {disabledReason}
-                </p>
-              ),
-            )}
-          </div>
-        ) : null}
-        <div className={styles.addressRow}>
-          <output className={styles.address} aria-label="Adresszeile">
-            <span className={styles.addressIndicator} aria-hidden="true">
-              <span />
-            </span>
-            <span className={styles.addressText}>{snapshot.address}</span>
-          </output>
-        </div>
-      </header>
-      <div className={styles.viewport}>
-        <div
-          id={panelId}
-          role="tabpanel"
-          aria-labelledby={labelledByTabId}
-          className={dimmed ? styles.dimmedContent : styles.content}
-          aria-hidden={dimmed || undefined}
-          inert={dimmed || undefined}
-          tabIndex={dimmed ? -1 : 0}
-        >
-          {children}
-        </div>
-        {dimmed ? (
-          <div className={styles.dimLayer} data-browser-layer="dimming" aria-hidden="true" />
-        ) : null}
-        {layers?.passWo ? (
-          <div className={styles.passWoLayer} data-browser-layer="passwo">
-            {layers.passWo}
-          </div>
-        ) : null}
-        {layers?.speech ? (
-          <div className={styles.speechLayer} data-browser-layer="speech">
-            {layers.speech}
-          </div>
-        ) : null}
-        {layers?.controls ? (
-          <div className={styles.controlsLayer} data-browser-layer="controls">
-            {layers.controls}
-          </div>
-        ) : null}
-      </div>
-    </section>
+      </section>
+    </DesktopSurface>
   );
 }

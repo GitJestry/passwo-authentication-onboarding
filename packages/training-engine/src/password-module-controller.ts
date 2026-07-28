@@ -55,6 +55,11 @@ export class PasswordModuleController {
     this.#actor.send({ type: 'DISPLAY_NAME_ENTERED', displayName });
   }
 
+  completeSectionTransition(): void {
+    if (!this.#actor.getSnapshot().matches('sectionTransition')) return;
+    this.#actor.send({ type: 'SECTION_TRANSITION_COMPLETED' });
+  }
+
   completeS00(): void {
     if (!this.#actor.getSnapshot().matches('s00')) return;
     this.#actor.send({ type: 'S00_COMPLETED' });

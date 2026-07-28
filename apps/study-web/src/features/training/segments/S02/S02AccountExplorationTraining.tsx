@@ -1,4 +1,4 @@
-import { s02Content, type S01AccountId, type S02VisualPreviewKind } from '@passwo/training-content';
+import { s02Content, type S02VisualPreviewKind } from '@passwo/training-content';
 import { useEffect, useLayoutEffect, useRef, useState, type CSSProperties } from 'react';
 import passWoDockAsset from '../../../../assets/passwo/passwo-dock.png';
 import { NetworkMotionAdapter } from '../../../../adapters/network/NetworkMotionAdapter.js';
@@ -10,13 +10,9 @@ import {
   S02AccountExplorationController,
   type S02AccountExplorationControllerSnapshot,
 } from './S02AccountExplorationController.js';
-import {
-  PassWoSpeechBubble,
-  type PassWoSpeechPlacement,
-} from '../../PassWoSpeechBubble.js';
+import { PassWoSpeechBubble } from '../../PassWoSpeechBubble.js';
 import { S02DesktopSurface } from './S02DesktopSurface.js';
 import styles from './S02AccountExplorationTraining.module.css';
-import { S03InitialBrowserSurface } from '../S03/S03RetrievalTraining.js';
 
 export type S02TimingState = 'starting' | 'startFailed' | 'active' | 'ending' | 'endFailed';
 
@@ -27,7 +23,6 @@ export interface S02AccountExplorationTrainingProps {
   readonly onAllAccountsUnderstood?: () => void;
   readonly onContinue?: () => void;
   readonly onRetryTiming?: () => void;
-  readonly nextActiveAccountId?: S01AccountId;
 }
 
 const definition = s02Content.scene;
@@ -83,7 +78,6 @@ export function S02AccountExplorationTraining({
   onAllAccountsUnderstood,
   onContinue,
   onRetryTiming,
-  nextActiveAccountId,
 }: S02AccountExplorationTrainingProps) {
   const characterAnimationAnchorRef = useRef<HTMLDivElement | null>(null);
   const networkHostRef = useRef<HTMLDivElement | null>(null);
@@ -94,10 +88,8 @@ export function S02AccountExplorationTraining({
   const [runtime, setRuntime] = useState<Runtime | null>(null);
   const [snapshot, setSnapshot] = useState<S02AccountExplorationControllerSnapshot | null>(null);
   const [previewPosition, setPreviewPosition] = useState<PreviewPosition | null>(null);
-  const [speechPlacement, setSpeechPlacement] = useState<PassWoSpeechPlacement>('right');
   const [introNarrationFinished, setIntroNarrationFinished] = useState(false);
   const [returningToBrowser, setReturningToBrowser] = useState(false);
-  const resolvedNextActiveAccountId = nextActiveAccountId ?? 'campus-id';
 
   useEffect(() => {
     if (
@@ -159,27 +151,12 @@ export function S02AccountExplorationTraining({
   }, [externalTimingError, introNarrationFinished, runtime, snapshot, timingState]);
 
   useLayoutEffect(() => {
-    const activeAccountId = snapshot?.scene.activeAccountId ?? null;
     const previewNodeId = snapshot?.scene.activePreviewDetailId ?? null;
     const sceneElement = sceneRef.current;
     if (sceneElement === null) return;
 
     const updateGeometry = () => {
       const sceneRect = sceneElement.getBoundingClientRect();
-      if (activeAccountId !== null) {
-        const accountElement = networkHostRef.current?.querySelector<HTMLElement>(
-          `[data-scene-node-button="${activeAccountId}"]`,
-        );
-        if (accountElement !== null && accountElement !== undefined) {
-          const accountRect = accountElement.getBoundingClientRect();
-          const availableLeft = accountRect.left - sceneRect.left;
-          const availableRight = sceneRect.right - accountRect.right;
-          setSpeechPlacement(availableRight >= availableLeft ? 'right' : 'left');
-        }
-      } else {
-        setSpeechPlacement('right');
-      }
-
       const previewElement = previewRef.current;
       if (previewNodeId === null || previewElement === null) {
         setPreviewPosition(null);
@@ -237,7 +214,7 @@ export function S02AccountExplorationTraining({
       cancelAnimationFrame(frame);
       window.removeEventListener('resize', updateGeometry);
     };
-  }, [snapshot?.scene.activeAccountId, snapshot?.scene.activePreviewDetailId]);
+  }, [snapshot?.scene.activePreviewDetailId]);
 
   if (runtime === null || snapshot === null) {
     return (
@@ -281,30 +258,18 @@ export function S02AccountExplorationTraining({
     if (!complete || interactionBlocked || scene.pendingAnimationId !== null || returningToBrowser) {
       return;
     }
-    if (prefersReducedMotion()) {
-      onContinue?.();
-      return;
-    }
     setReturningToBrowser(true);
   }
 
   return (
-    <section
-      className={styles.training}
-      aria-label={s02Content.trainingAriaLabel}
-      data-browser-returning={returningToBrowser}
-    >
-      <div className={styles.browserHandoff}>
-        <S03InitialBrowserSurface activeAccountId={resolvedNextActiveAccountId} inert />
-      </div>
-      <article
-        className={styles.scene}
-        onAnimationEnd={(event) => {
-          if (event.target === event.currentTarget && returningToBrowser) onContinue?.();
-        }}
-      >
+    <section className={styles.training} aria-label={s02Content.trainingAriaLabel}>
+      <article className={styles.scene}>
         <S02DesktopSurface
           sceneRef={sceneRef}
+          browserLaunching={returningToBrowser}
+          {...(onContinue === undefined
+            ? {}
+            : { onBrowserLaunchAnimationEnd: onContinue })}
           browserDock={{
             active: complete,
             enabled:
@@ -345,11 +310,15 @@ export function S02AccountExplorationTraining({
             </section>
           ) : null}
 
-          <div
+          <span
             ref={characterAnimationAnchorRef}
+            className={styles.characterAnimationAnchor}
+            aria-hidden="true"
+          />
+          <div
             className={styles.passWo}
             data-passwo-placement={presentation.character.placement}
-            data-speech-side={speechPlacement === 'left' ? 'left' : 'right'}
+            data-speech-side="right"
           >
             <img
               className={styles.passWoImage}
@@ -360,11 +329,9 @@ export function S02AccountExplorationTraining({
             <PassWoSpeechBubble
               className={styles.narration}
               speaker={s02Content.narration.guideName}
-              paragraphs={[
-                narration,
-              ]}
+              paragraphs={[narration]}
               speechKey={`${scene.narrationId}-${complete}`}
-              placement={speechPlacement}
+              placement="right"
               onComplete={() => {
                 if (scene.narrationId === s02Content.narration.introId) {
                   setIntroNarrationFinished(true);
@@ -398,9 +365,6 @@ export function S02AccountExplorationTraining({
           {animationAnnouncement}
         </p>
       </article>
-      {returningToBrowser ? (
-        <img className={styles.passWoReturnFlight} src={passWoDockAsset} alt="" />
-      ) : null}
     </section>
   );
 }

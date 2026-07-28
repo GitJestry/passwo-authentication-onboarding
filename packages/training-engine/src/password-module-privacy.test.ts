@@ -43,6 +43,7 @@ describe('password module privacy boundary', () => {
     const trainingValue = 'only-in-password-module!?';
 
     controller.enterDisplayName(displayName);
+    controller.completeSectionTransition();
     controller.completeS00();
     await flushMicrotasks();
     controller.setPasswordValue('campus-id', trainingValue);

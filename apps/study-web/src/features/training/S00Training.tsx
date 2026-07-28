@@ -210,14 +210,6 @@ export function S00Training({
                       <div className={styles.buttonRow}>
                         <button
                           type="button"
-                          className={styles.secondaryButton}
-                          disabled={!awaitingDecision}
-                          onClick={() => controllerRef.current?.replay()}
-                        >
-                          {s00Content.controls.replay}
-                        </button>
-                        <button
-                          type="button"
                           className={styles.primaryButton}
                           disabled={!canContinue}
                           aria-describedby={canContinue ? undefined : 's00-continue-reason'}

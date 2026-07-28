@@ -1,23 +1,25 @@
 .window {
+  position: absolute;
+  z-index: 10;
+  top: 0;
+  right: 0;
+  bottom: 5.15rem;
+  left: 0;
   isolation: isolate;
   display: flex;
-  width: 100%;
-  height: 100%;
   min-width: 0;
   min-height: 0;
-  flex: 1 1 auto;
   flex-direction: column;
   overflow: hidden;
   border: var(--border-width-thin) solid var(--passwo-border);
-  border-radius: var(--radius-large);
+  border-radius: 0.65rem 0.65rem 0 0;
   background: var(--passwo-surface);
   box-shadow: var(--shadow-window);
+  transform-origin: 50% calc(100% + 4.2rem);
 }
 
 .artifactWindow {
-  border: 0;
-  border-radius: 0;
-  box-shadow: none;
+  border-color: color-mix(in srgb, var(--passwo-border) 82%, transparent);
 }
 
 .chrome {
@@ -43,20 +45,35 @@
   padding-bottom: var(--space-2);
 }
 
-.windowControls span {
+.windowControls button {
   width: var(--size-window-control);
   height: var(--size-window-control);
+  padding: 0;
   border: var(--border-width-thin) solid var(--color-control-neutral-border);
   border-radius: var(--radius-round);
+  cursor: pointer;
+}
+
+.closeControl {
   background: var(--color-control-close);
 }
 
-.windowControls span:nth-child(2) {
+.minimizeControl {
   background: var(--color-control-minimize);
 }
 
-.windowControls span:nth-child(3) {
+.expandControl {
   background: var(--color-control-expand);
+}
+
+.windowControls button:disabled {
+  cursor: default;
+  opacity: 1;
+}
+
+.windowControls button:focus-visible {
+  outline: var(--border-width-focus) solid var(--passwo-focus);
+  outline-offset: 2px;
 }
 
 .tabs {
@@ -267,6 +284,65 @@ button.activeTab[aria-disabled="true"] {
   pointer-events: auto;
 }
 
+.window[data-window-state="closing"] {
+  pointer-events: none;
+  animation: browser-paper-close 520ms cubic-bezier(0.44, 0, 0.84, 0.22) both;
+}
+
+.window[data-window-state="opening"] {
+  pointer-events: none;
+  animation: browser-paper-open 520ms cubic-bezier(0.16, 0.78, 0.22, 1) both;
+}
+
+.window[data-window-state="closed"] {
+  visibility: hidden;
+  opacity: 0;
+  transform: translateY(4.1rem) scale(0.06, 0.03);
+}
+
+@keyframes browser-paper-close {
+  0% {
+    clip-path: inset(0 round 0.9rem);
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+
+  46% {
+    clip-path: polygon(12% 12%, 88% 3%, 100% 92%, 0 100%);
+    opacity: 1;
+    transform: translateY(0.3rem) scale(0.97, 0.9);
+  }
+
+  100% {
+    border-radius: 48% 48% 0.9rem 0.9rem;
+    clip-path: polygon(46% 100%, 54% 100%, 58% 100%, 42% 100%);
+    opacity: 0.35;
+    transform: translateY(4.1rem) scale(0.06, 0.03);
+  }
+}
+
+@keyframes browser-paper-open {
+  0% {
+    border-radius: 48% 48% 0.9rem 0.9rem;
+    clip-path: polygon(46% 100%, 54% 100%, 58% 100%, 42% 100%);
+    opacity: 0.35;
+    transform: translateY(4.1rem) scale(0.06, 0.03);
+  }
+
+  54% {
+    clip-path: polygon(12% 12%, 88% 3%, 100% 92%, 0 100%);
+    opacity: 1;
+    transform: translateY(0.3rem) scale(0.97, 0.9);
+  }
+
+  100% {
+    border-radius: 0.9rem;
+    clip-path: inset(0 round 0.9rem);
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
 @media (hover: hover) {
   button.tab:not([aria-disabled="true"]):hover,
   button.activeTab:not([aria-disabled="true"]):hover {
@@ -275,8 +351,9 @@ button.activeTab[aria-disabled="true"] {
 }
 
 @media (max-width: 760px) {
-  .window:not(.artifactWindow) {
-    border-radius: var(--radius-small);
+  .window {
+    bottom: 4.6rem;
+    border-radius: 0.5rem 0.5rem 0 0;
   }
 
   .tabRow {
@@ -296,6 +373,11 @@ button.activeTab[aria-disabled="true"] {
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .window[data-window-state="closing"],
+  .window[data-window-state="opening"] {
+    animation-duration: var(--motion-instant);
+  }
+
   .window *,
   .window *::before,
   .window *::after {

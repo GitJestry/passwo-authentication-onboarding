@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react';
 import passWoDockAsset from '../../assets/passwo/passwo-dock.png';
+import passWoWaitingAsset from '../../assets/passwo/passwo-waiting.png';
 import {
   PassWoSpeechBubble,
   type PassWoSpeechPlacement,
@@ -8,7 +9,11 @@ import styles from './PassWoGuide.module.css';
 
 export interface PassWoGuideProps {
   readonly guideName: string;
-  readonly progressLabel?: string;
+  readonly progress?: {
+    readonly current: number;
+    readonly total: number;
+    readonly label: string;
+  };
   readonly helpOpen: boolean;
   readonly helpId: string;
   readonly openHelpLabel: string;
@@ -22,7 +27,7 @@ export interface PassWoGuideProps {
 
 export function PassWoGuide({
   guideName,
-  progressLabel,
+  progress,
   helpOpen,
   helpId,
   openHelpLabel,
@@ -33,8 +38,59 @@ export function PassWoGuide({
   speechPlacement = 'right',
   onToggleHelp,
 }: PassWoGuideProps) {
+  const progressPercent =
+    progress === undefined || progress.total <= 0
+      ? 0
+      : Math.min(100, Math.max(0, (progress.current / progress.total) * 100));
+
   return (
     <aside className={styles.guide} aria-label={`${guideName} Begleitung`}>
+      <div className={styles.guideDock}>
+        <div className={styles.guideToolbar}>
+          <button
+            type="button"
+            className={styles.infoButton}
+            aria-expanded={helpOpen}
+            aria-controls={helpId}
+            aria-label={helpOpen ? closeHelpLabel : openHelpLabel}
+            title={helpOpen ? closeHelpLabel : openHelpLabel}
+            onClick={onToggleHelp}
+          >
+            <span aria-hidden="true">i</span>
+          </button>
+          <div className={styles.guideStatus}>
+            <strong>{guideName}</strong>
+            {progress === undefined ? null : (
+              <div className={styles.taskProgress} aria-live="polite">
+                <span aria-hidden="true">
+                  {progress.current}/{progress.total}
+                </span>
+                <span
+                  className={styles.progressTrack}
+                  role="progressbar"
+                  aria-label={progress.label}
+                  aria-valuemin={0}
+                  aria-valuemax={progress.total}
+                  aria-valuenow={progress.current}
+                >
+                  <span
+                    style={{
+                      width: `${progressPercent}%`,
+                    }}
+                  />
+                </span>
+              </div>
+            )}
+          </div>
+        </div>
+        <img
+          className={styles.character}
+          data-passwo-character
+          data-pose={helpOpen ? 'speaking' : 'waiting'}
+          src={helpOpen ? passWoDockAsset : passWoWaitingAsset}
+          alt=""
+        />
+      </div>
       {helpOpen ? (
         <div id={helpId} className={styles.speechSlot}>
           <PassWoSpeechBubble
@@ -46,22 +102,6 @@ export function PassWoGuide({
           />
         </div>
       ) : null}
-      <button
-        type="button"
-        className={styles.characterButton}
-        aria-expanded={helpOpen}
-        aria-controls={helpId}
-        aria-label={helpOpen ? closeHelpLabel : openHelpLabel}
-        onClick={onToggleHelp}
-      >
-        <span className={styles.nameTag}>{guideName}</span>
-        <img className={styles.character} data-passwo-character src={passWoDockAsset} alt="" />
-        {progressLabel === undefined ? null : (
-          <span className={styles.progress} aria-live="polite">
-            {progressLabel}
-          </span>
-        )}
-      </button>
     </aside>
   );
 }
