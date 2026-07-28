@@ -1,4 +1,4 @@
-import { s01Content } from '@passwo/training-content';
+import { s00Content, s01Content } from '@passwo/training-content';
 import {
   PasswordModuleController,
   type PasswordModuleSnapshot,
@@ -6,6 +6,7 @@ import {
 } from '@passwo/training-engine';
 import { useEffect, useRef, useState } from 'react';
 import passWoDockAsset from '../../assets/passwo/passwo-dock.png';
+import { PassWoSpeechBubble } from './PassWoSpeechBubble.js';
 import styles from './PasswordModuleTraining.module.css';
 import { S00Training } from './S00Training.js';
 import { S01Training } from './S01Training.js';
@@ -28,6 +29,7 @@ export function PasswordModuleTraining({
   onRetryExternalTiming,
 }: PasswordModuleTrainingProps) {
   const [snapshot, setSnapshot] = useState<PasswordModuleSnapshot | null>(null);
+  const [entrySpeechComplete, setEntrySpeechComplete] = useState(false);
   const controllerRef = useRef<PasswordModuleController | null>(null);
 
   useEffect(() => {
@@ -57,43 +59,44 @@ export function PasswordModuleTraining({
     return (
       <section className={styles.entry} aria-labelledby="training-entry-title">
         <header className={styles.entryHeader}>
-          <h1 id="training-entry-title">Passwörter &amp; Authentifizierung</h1>
+          <h1 id="training-entry-title">{s00Content.entry.title}</h1>
         </header>
         <div className={styles.entryScene}>
           <div className={styles.entryCharacter}>
             <img src={passWoDockAsset} alt="PassWo, Begleiter im Training" />
           </div>
-          <div className={styles.entrySpeech}>
-            <p className={styles.entryGuide}>PassWo</p>
-            <p>Hallo! Ich bin PassWo und begleite dich durch dieses Training.</p>
-            <p>Du richtest drei fiktive Campus-Konten ein und wählst dafür Passwörter.</p>
-            <p>
-              Wähle Passwörter, die stark und merkbar sind: Später meldest du dich damit noch einmal
-              an.
-            </p>
-            <p className={styles.entryQuestion}>Wie darf ich dich nennen?</p>
-          </div>
+          <PassWoSpeechBubble
+            className={styles.entrySpeech}
+            speaker={s00Content.narration.guideName}
+            paragraphs={s00Content.entry.paragraphs}
+            speechKey="module-entry"
+            placement="right"
+            onComplete={() => setEntrySpeechComplete(true)}
+          />
         </div>
-        <form
-          className={styles.entryForm}
-          onSubmit={(event) => {
-            event.preventDefault();
-            const value = new FormData(event.currentTarget).get('training-display-name');
-            if (typeof value === 'string') controller.enterDisplayName(value);
-          }}
-        >
-          <label className={styles.entryLabel}>
-            Dein Name
-            <input
-              name="training-display-name"
-              type="text"
-              autoComplete="off"
-              maxLength={40}
-              required
-            />
-          </label>
-          <button type="submit">Training starten</button>
-        </form>
+        {entrySpeechComplete ? (
+          <form
+            className={styles.entryForm}
+            onSubmit={(event) => {
+              event.preventDefault();
+              const value = new FormData(event.currentTarget).get('training-display-name');
+              if (typeof value === 'string') controller.enterDisplayName(value);
+            }}
+          >
+            <label className={styles.entryLabel}>
+              {s00Content.entry.nameLabel}
+              <input
+                name="training-display-name"
+                type="text"
+                autoComplete="off"
+                maxLength={40}
+                required
+                autoFocus
+              />
+            </label>
+            <button type="submit">{s00Content.entry.startLabel}</button>
+          </form>
+        ) : null}
       </section>
     );
   }

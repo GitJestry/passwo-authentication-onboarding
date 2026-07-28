@@ -298,7 +298,7 @@ function SceneNodeCircle({ data }: NodeProps<SceneFlowNode>) {
           <span className={styles.statusMarker}>
             <NetworkStatusMarker
               status={sceneNode.status}
-              locked={sceneNode.locked}
+              locked={sceneNode.locked ?? false}
               className={styles.statusSymbol}
             />
           </span>
@@ -372,6 +372,7 @@ const edgeTypes = {
 const edgeClassByStatus: Record<SceneEdgeStatus, string> = {
   neutral: styles.edgeNeutral ?? '',
   checking: styles.edgeChecking ?? '',
+  opened: styles.edgeNeutral ?? '',
   direct: styles.edgeDirect ?? '',
   similar: styles.edgeSimilar ?? '',
   blocked: styles.edgeBlocked ?? '',

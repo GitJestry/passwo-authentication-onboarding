@@ -1,5 +1,9 @@
 import type { ReactNode } from 'react';
 import passWoDockAsset from '../../assets/passwo/passwo-dock.png';
+import {
+  PassWoSpeechBubble,
+  type PassWoSpeechPlacement,
+} from './PassWoSpeechBubble.js';
 import styles from './PassWoGuide.module.css';
 
 export interface PassWoGuideProps {
@@ -9,14 +13,13 @@ export interface PassWoGuideProps {
   readonly helpId: string;
   readonly openHelpLabel: string;
   readonly closeHelpLabel: string;
-  readonly children: ReactNode;
+  readonly speech: readonly string[];
+  readonly speechKey: string;
+  readonly speechFooter?: ReactNode;
+  readonly speechPlacement?: PassWoSpeechPlacement;
   readonly onToggleHelp: () => void;
 }
 
-/**
- * Keeps PassWo visually separate from the spoken guidance so the guide remains a character,
- * rather than a label for an instruction card.
- */
 export function PassWoGuide({
   guideName,
   progressLabel,
@@ -24,15 +27,24 @@ export function PassWoGuide({
   helpId,
   openHelpLabel,
   closeHelpLabel,
-  children,
+  speech,
+  speechKey,
+  speechFooter,
+  speechPlacement = 'right',
   onToggleHelp,
 }: PassWoGuideProps) {
   return (
     <aside className={styles.guide} aria-label={`${guideName} Begleitung`}>
       {helpOpen ? (
-        <section id={helpId} className={styles.speech} aria-label={`${guideName} sagt`}>
-          {children}
-        </section>
+        <div id={helpId} className={styles.speechSlot}>
+          <PassWoSpeechBubble
+            speaker={guideName}
+            paragraphs={speech}
+            speechKey={speechKey}
+            placement={speechPlacement}
+            footer={speechFooter}
+          />
+        </div>
       ) : null}
       <button
         type="button"

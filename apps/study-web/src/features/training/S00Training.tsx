@@ -1,6 +1,7 @@
 import { formatS00Greeting, s00Content } from '@passwo/training-content';
 import {
   canContinueMission,
+  deriveCampusIdentity,
   MissionController,
   type MissionDefinition,
   type MissionSnapshot,
@@ -13,7 +14,7 @@ import {
   createInitialS00SceneSnapshot,
   type S00SceneSnapshot,
 } from '../../adapters/animation/s00-scene.js';
-import { NetworkSymbol } from '../../adapters/network/NetworkSymbolRegistry.js';
+import { CampusWebsiteBackdrop } from './CampusWebsiteBackdrop.js';
 import { PassWoGuide } from './PassWoGuide.js';
 import styles from './S00Training.module.css';
 
@@ -39,52 +40,35 @@ function prefersReducedMotion(): boolean {
   return window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 }
 
-function S00Page() {
+function S00Page({ displayName }: { readonly displayName: string }) {
+  const campusIdentity = deriveCampusIdentity(displayName);
   return (
-    <article className={styles.pageScene} aria-labelledby="s00-page-title">
-      <header className={styles.pageHeader}>
-        <div className={styles.siteIdentity}>
-          <NetworkSymbol symbolId="campus-id" className={styles.siteSymbol} />
-          <span className={styles.identityName}>{s00Content.browser.page.identityName}</span>
-        </div>
-        <nav className={styles.siteNavigation} aria-label="CampusID-Navigation">
-          {s00Content.browser.page.navigation.map((item) => (
-            <span key={item}>{item}</span>
-          ))}
-        </nav>
-      </header>
-      <div className={styles.pageBody}>
-        <section className={styles.pageCopy}>
-          <h1 id="s00-page-title">{s00Content.browser.page.title}</h1>
-          <p>{s00Content.browser.page.description}</p>
-        </section>
-        <section className={styles.moduleGrid} aria-label="CampusID-Übersicht">
-          {s00Content.browser.page.modules.map((module) => (
-            <article key={module.title} className={styles.siteModule}>
-              <div className={styles.moduleHeading}>
-                <NetworkSymbol symbolId="service" className={styles.moduleSymbol} />
-                <h2>{module.title}</h2>
-              </div>
-              <p>{module.description}</p>
-              <div className={styles.skeletonLines} aria-hidden="true">
-                <span />
-                <span />
-                <span />
-              </div>
-            </article>
-          ))}
-        </section>
-      </div>
-    </article>
-  );
-}
-
-function PassWoSpeech({ displayName }: { readonly displayName: string }) {
-  return (
-    <>
-      <p>{formatS00Greeting(displayName)}</p>
-      <p>{s00Content.narration.instruction}</p>
-    </>
+    <CampusWebsiteBackdrop accountId="campus-id" interactionLabel="CampusID einrichten">
+      <section className={styles.setupPreview} aria-labelledby="s00-page-title">
+        <h1 id="s00-page-title">CampusID</h1>
+        <dl className={styles.previewAccountData}>
+          <div>
+            <dt>Kontodaten</dt>
+            <dd>{campusIdentity.campusId}</dd>
+          </div>
+        </dl>
+        <label className={styles.previewPasswordLabel} htmlFor="s00-preview-password">
+          Passwort
+        </label>
+        <span className={styles.previewPasswordGroup}>
+          <input id="s00-preview-password" type="password" disabled value="" readOnly />
+          <span className={styles.previewEye} aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
+              <path d="M2.5 12s3.5-6 9.5-6 9.5 6 9.5 6-3.5 6-9.5 6-9.5-6-9.5-6Z" />
+              <circle cx="12" cy="12" r="2.5" />
+            </svg>
+          </span>
+        </span>
+        <button type="button" disabled>
+          Konto einrichten
+        </button>
+      </section>
+    </CampusWebsiteBackdrop>
   );
 }
 
@@ -152,6 +136,11 @@ export function S00Training({
   const guideOpen = scene.announcedMessageId === 's00.greeting';
   const animationError = missionSnapshot?.context.lastAnimationError ?? null;
   const activeTimingError = timingError ?? externalTimingError;
+  const activeBrowserSnapshot: BrowserShellSnapshot = {
+    ...browserSnapshot,
+    dimmed: guideOpen,
+    dimStrength: 'soft',
+  };
 
   function retryTiming(): void {
     if (timingError === null) {
@@ -180,7 +169,7 @@ export function S00Training({
   return (
     <section className={styles.training} aria-label={s00Content.trainingAriaLabel}>
       <BrowserShell
-        snapshot={browserSnapshot}
+        snapshot={activeBrowserSnapshot}
         ariaLabel={s00Content.browser.ariaLabel}
         layers={{
           passWo: (
@@ -196,6 +185,68 @@ export function S00Training({
                 helpId="s00-passwo-speech"
                 openHelpLabel={s00Content.narration.openGuideLabel}
                 closeHelpLabel={s00Content.narration.closeGuideLabel}
+                speech={[formatS00Greeting(displayName), s00Content.narration.instruction]}
+                speechKey={`s00-greeting-${displayName}`}
+                speechPlacement="right"
+                speechFooter={
+                  activeTimingError === null ? (
+                    <>
+                      {animationError !== null ? (
+                        <p className={styles.animationError} role="status">
+                          {s00Content.controls.animationError}
+                        </p>
+                      ) : null}
+                      <label className={styles.acknowledgement}>
+                        <input
+                          type="checkbox"
+                          checked={safetyAcknowledged}
+                          disabled={!awaitingDecision}
+                          onChange={(event) =>
+                            controllerRef.current?.setSafetyAcknowledged(event.currentTarget.checked)
+                          }
+                        />
+                        <span>{s00Content.acknowledgement.label}</span>
+                      </label>
+                      <div className={styles.buttonRow}>
+                        <button
+                          type="button"
+                          className={styles.secondaryButton}
+                          disabled={!awaitingDecision}
+                          onClick={() => controllerRef.current?.replay()}
+                        >
+                          {s00Content.controls.replay}
+                        </button>
+                        <button
+                          type="button"
+                          className={styles.primaryButton}
+                          disabled={!canContinue}
+                          aria-describedby={canContinue ? undefined : 's00-continue-reason'}
+                          onClick={continueMission}
+                        >
+                          {s00Content.controls.continue}
+                        </button>
+                      </div>
+                      {!canContinue ? (
+                        <p id="s00-continue-reason" className={styles.screenReaderOnly}>
+                          {s00Content.controls.continueReason}
+                        </p>
+                      ) : null}
+                    </>
+                  ) : (
+                    <>
+                      <p className={styles.animationError} role="alert">
+                        Das Speichern des Zeitereignisses ist fehlgeschlagen. Der nächste Schritt
+                        bleibt gesperrt.
+                      </p>
+                      <p className={styles.continueReason}>Fehlercode: {activeTimingError}</p>
+                      <div className={styles.buttonRow}>
+                        <button type="button" className={styles.primaryButton} onClick={retryTiming}>
+                          Erneut versuchen
+                        </button>
+                      </div>
+                    </>
+                  )
+                }
                 onToggleHelp={() =>
                   setScene((currentScene) => ({
                     ...currentScene,
@@ -203,72 +254,13 @@ export function S00Training({
                       currentScene.announcedMessageId === 's00.greeting' ? null : 's00.greeting',
                   }))
                 }
-              >
-                <PassWoSpeech displayName={displayName} />
-                {activeTimingError === null ? (
-                  <>
-                    {animationError !== null ? (
-                      <p className={styles.animationError} role="status">
-                        {s00Content.controls.animationError}
-                      </p>
-                    ) : null}
-                    <label className={styles.acknowledgement}>
-                      <input
-                        type="checkbox"
-                        checked={safetyAcknowledged}
-                        disabled={!awaitingDecision}
-                        onChange={(event) =>
-                          controllerRef.current?.setSafetyAcknowledged(event.currentTarget.checked)
-                        }
-                      />
-                      <span>{s00Content.acknowledgement.label}</span>
-                    </label>
-                    <div className={styles.buttonRow}>
-                      <button
-                        type="button"
-                        className={styles.secondaryButton}
-                        disabled={!awaitingDecision}
-                        onClick={() => controllerRef.current?.replay()}
-                      >
-                        {s00Content.controls.replay}
-                      </button>
-                      <button
-                        type="button"
-                        className={styles.primaryButton}
-                        disabled={!canContinue}
-                        aria-describedby={canContinue ? undefined : 's00-continue-reason'}
-                        onClick={continueMission}
-                      >
-                        {s00Content.controls.continue}
-                      </button>
-                    </div>
-                    {!canContinue ? (
-                      <p id="s00-continue-reason" className={styles.screenReaderOnly}>
-                        {s00Content.controls.continueReason}
-                      </p>
-                    ) : null}
-                  </>
-                ) : (
-                  <>
-                    <p className={styles.animationError} role="alert">
-                      Das Speichern des Zeitereignisses ist fehlgeschlagen. Der nächste Schritt
-                      bleibt gesperrt.
-                    </p>
-                    <p className={styles.continueReason}>Fehlercode: {activeTimingError}</p>
-                    <div className={styles.buttonRow}>
-                      <button type="button" className={styles.primaryButton} onClick={retryTiming}>
-                        Erneut versuchen
-                      </button>
-                    </div>
-                  </>
-                )}
-              </PassWoGuide>
+              />
             </>
           ),
         }}
       >
         <div className={styles.pageTarget}>
-          <S00Page />
+          <S00Page displayName={displayName} />
         </div>
       </BrowserShell>
     </section>

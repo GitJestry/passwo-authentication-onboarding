@@ -65,6 +65,10 @@ export function S06ConsequenceTraining({
       initialRevealedNodeIds: initialPresentation.initialRevealedNodeIds,
       applySnapshot: (presentation) => controller?.updatePresentation(presentation),
       getCharacterElement: () => null,
+      getActiveNodeElement: () =>
+        networkHostRef.current?.querySelector<HTMLElement>(
+          '[data-active="true"] [data-scene-node-button]',
+        ) ?? null,
       getNodeElement: (nodeId) =>
         networkHostRef.current?.querySelector<HTMLElement>(
           `[data-scene-node-button="${nodeId}"]`,

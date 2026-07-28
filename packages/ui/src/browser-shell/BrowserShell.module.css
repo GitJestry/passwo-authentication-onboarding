@@ -237,6 +237,10 @@ button.activeTab[aria-disabled="true"] {
   background: var(--color-overlay);
 }
 
+.window[data-dim-strength="soft"] .dimLayer {
+  background: color-mix(in srgb, var(--color-surface-inverse) 13%, transparent);
+}
+
 .passWoLayer,
 .speechLayer,
 .controlsLayer {

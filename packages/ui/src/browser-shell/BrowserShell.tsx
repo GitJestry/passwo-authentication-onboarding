@@ -14,6 +14,7 @@ export interface BrowserShellSnapshot {
   readonly activeTabId: string;
   readonly address: string;
   readonly dimmed?: boolean;
+  readonly dimStrength?: 'soft' | 'standard';
 }
 
 export interface BrowserShellLayers {
@@ -42,6 +43,7 @@ export function BrowserShell({
   const idPrefix = useId().replaceAll(':', '');
   const tabElements = useRef(new Map<string, HTMLButtonElement>());
   const dimmed = snapshot.dimmed ?? false;
+  const dimStrength = snapshot.dimStrength ?? 'standard';
   const panelId = `${idPrefix}-tabpanel`;
   const selectedTabIndex = snapshot.tabs.findIndex((tab) => tab.id === snapshot.activeTabId);
   const [focusedTabId, setFocusedTabId] = useState(
@@ -180,6 +182,7 @@ export function BrowserShell({
       }
       aria-label={ariaLabel}
       data-dimmed={dimmed}
+      data-dim-strength={dimStrength}
       data-browser-shell-variant={variant}
     >
       <header className={styles.chrome}>

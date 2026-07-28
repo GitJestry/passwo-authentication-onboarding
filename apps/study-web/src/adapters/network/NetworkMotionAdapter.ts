@@ -239,7 +239,9 @@ export class NetworkMotionAdapter implements AnimationPlayerPort {
     const activeNode = this.#getActiveNodeElement();
     if (activeNode === null) return null;
 
-    const characterRect = character.getBoundingClientRect();
+    const characterAnchor =
+      character.querySelector<HTMLElement>('[data-passwo-character]') ?? character;
+    const characterRect = characterAnchor.getBoundingClientRect();
     const nodeRect = activeNode.getBoundingClientRect();
     const current = currentTranslation(character);
     const targetX = nodeRect.left + nodeRect.width / 2;

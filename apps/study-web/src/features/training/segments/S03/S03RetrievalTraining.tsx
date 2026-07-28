@@ -113,6 +113,10 @@ export function S03RetrievalTraining({
       initialRevealedNodeIds: s01Content.browser.accounts.map(({ id }) => id),
       applySnapshot: (presentation) => retrievalController?.updatePresentation(presentation),
       getCharacterElement: () => characterAnimationAnchorRef.current,
+      getActiveNodeElement: () =>
+        networkHostRef.current?.querySelector<HTMLElement>(
+          '[data-active="true"] [data-scene-node-button]',
+        ) ?? null,
       getNodeElement: (nodeId) =>
         networkHostRef.current?.querySelector<HTMLElement>(
           `[data-scene-node-button="${nodeId}"]`,
@@ -290,7 +294,7 @@ export function S03RetrievalTraining({
                         <small>{statusLabel}</small>
                       </span>
                       <NetworkStatusMarker
-                        status={railResult}
+                        status={railResult === 'pending' ? 'neutral' : railResult}
                         className={styles.accountStatusMarker}
                       />
                     </button>

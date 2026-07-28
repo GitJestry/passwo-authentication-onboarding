@@ -29,7 +29,11 @@ describe('PasswordModuleController', () => {
     let completions = 0;
     const controller = new PasswordModuleController({
       accountIds: ['campus-id', 'campus-mail', 'campus-board-archive'],
-      timingPort: { record: async (event) => timingEvents.push(event) },
+      timingPort: {
+        record: async (event) => {
+          timingEvents.push(event);
+        },
+      },
       onComplete: () => {
         completions += 1;
       },

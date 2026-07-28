@@ -10,6 +10,7 @@ import {
   S02AccountExplorationController,
   type S02AccountExplorationControllerSnapshot,
 } from './S02AccountExplorationController.js';
+import { PassWoSpeechBubble } from '../../PassWoSpeechBubble.js';
 import styles from './S02AccountExplorationTraining.module.css';
 
 export type S02TimingState = 'starting' | 'startFailed' | 'active' | 'ending' | 'endFailed';
@@ -172,16 +173,23 @@ export function S02AccountExplorationTraining({
           >
             <img
               className={styles.passWoImage}
+              data-passwo-character
               src={passWoDockAsset}
               alt={s02Content.accessibility.characterLabel}
             />
-            <section className={styles.narration} aria-label={s02Content.accessibility.currentContextLabel}>
-              <strong>{s02Content.narration.guideName}</strong>
-              <p>{narration}</p>
-              {completionNarration !== '' && completionNarration !== narration ? (
-                <p>{completionNarration}</p>
-              ) : null}
-            </section>
+            <PassWoSpeechBubble
+              className={styles.narration}
+              speaker={s02Content.narration.guideName}
+              paragraphs={[
+                narration,
+                ...(completionNarration !== '' && completionNarration !== narration
+                  ? [completionNarration]
+                  : []),
+              ]}
+              speechKey={`${scene.narrationId}-${completionNarration}`}
+              placement="right"
+              tone="dark"
+            />
           </div>
         </div>
 

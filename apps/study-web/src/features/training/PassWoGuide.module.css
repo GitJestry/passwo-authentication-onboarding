@@ -4,39 +4,23 @@
   bottom: clamp(var(--space-3), 2vw, var(--space-6));
   left: clamp(var(--space-3), 2vw, var(--space-6));
   display: grid;
-  max-width: min(31rem, calc(100vw - var(--space-6)));
+  width: min(43rem, calc(100vw - var(--space-6)));
   grid-template-columns: auto minmax(0, 1fr);
-  align-items: end;
+  align-items: start;
   gap: var(--space-3);
 }
 
-.speech {
+.speechSlot {
+  grid-column: 2;
   min-width: 0;
-  padding: var(--space-4);
-  border: var(--border-width-thin) solid var(--color-border-soft);
-  border-radius: var(--radius-medium);
-  color: var(--color-ink-strong);
-  background: var(--color-surface-primary);
-  box-shadow: var(--shadow-float);
-}
-
-.speech::after {
-  position: absolute;
-  bottom: calc(var(--space-6) + 0.2rem);
-  left: 5.25rem;
-  width: 0.85rem;
-  height: 0.85rem;
-  border-right: var(--border-width-thin) solid var(--color-border-soft);
-  border-bottom: var(--border-width-thin) solid var(--color-border-soft);
-  background: var(--color-surface-primary);
-  content: "";
-  transform: rotate(45deg);
+  align-self: start;
 }
 
 .characterButton {
   position: relative;
+  grid-column: 1;
   display: grid;
-  width: 7.5rem;
+  width: 9.75rem;
   justify-items: center;
   gap: var(--space-1);
   padding: var(--space-2) 0 0;
@@ -67,10 +51,11 @@
 }
 
 .character {
-  width: 7.25rem;
-  height: 7.25rem;
+  width: 9.25rem;
+  height: 9.25rem;
   object-fit: contain;
   object-position: center bottom;
+  filter: drop-shadow(0 0.9rem 1.2rem color-mix(in srgb, #06192b 18%, transparent));
 }
 
 .progress {
@@ -82,26 +67,29 @@
   text-align: center;
 }
 
-@media (max-width: 680px) {
+@media (max-width: 760px) {
   .guide {
-    max-width: calc(100vw - var(--space-6));
+    width: calc(100vw - var(--space-6));
     grid-template-columns: minmax(0, 1fr);
   }
 
-  .speech {
+  .speechSlot {
     grid-row: 1;
+    grid-column: 1;
   }
 
-  .speech::after {
+  .speechSlot > section::after {
     display: none;
   }
 
   .characterButton {
-    width: 6rem;
+    grid-row: 2;
+    grid-column: 1;
+    width: 7.25rem;
   }
 
   .character {
-    width: 5.75rem;
-    height: 5.75rem;
+    width: 7rem;
+    height: 7rem;
   }
 }

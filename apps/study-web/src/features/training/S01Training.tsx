@@ -7,7 +7,7 @@ import {
 } from '@passwo/training-engine';
 import { BrowserShell, type BrowserShellSnapshot } from '@passwo/ui';
 import { useEffect, useRef, useState } from 'react';
-import { NetworkSymbol } from '../../adapters/network/NetworkSymbolRegistry.js';
+import { CampusWebsiteBackdrop } from './CampusWebsiteBackdrop.js';
 import { PassWoGuide } from './PassWoGuide.js';
 import styles from './S01Training.module.css';
 
@@ -70,6 +70,10 @@ export function S01Training({
   useEffect(() => {
     if (completionFocusTarget !== null) completionStatusRef.current?.focus();
   }, [completionFocusTarget]);
+
+  useEffect(() => {
+    if (isReadyToContinue(snapshot)) setQuestHelpOpen(true);
+  }, [snapshot]);
 
   if (account === undefined) return null;
 
@@ -140,107 +144,15 @@ export function S01Training({
               helpId="s01-quest-help"
               openHelpLabel={s01Content.quest.helpLabel}
               closeHelpLabel={s01Content.quest.closeHelpLabel}
-              onToggleHelp={() => setQuestHelpOpen((open) => !open)}
-            >
-              <p>
-                {readyToContinue
-                  ? s01Content.quest.readyToContinue
-                  : s01Content.quest.nextAccount(account.label)}
-              </p>
-            </PassWoGuide>
-          ),
-        }}
-      >
-        <article className={styles.page} aria-labelledby="s01-page-title">
-          <header className={styles.pageHeader}>
-            <div className={styles.siteIdentity}>
-              <NetworkSymbol symbolId={account.symbolId} className={styles.siteSymbol} />
-              <span className={styles.identityName}>{account.label}</span>
-            </div>
-            <nav className={styles.siteNavigation} aria-label={`${account.label}-Navigation`}>
-              {account.navigation.map((item) => (
-                <span key={item}>{item}</span>
-              ))}
-            </nav>
-          </header>
-          <div className={styles.pageBody}>
-            <section className={styles.setupPanel} aria-labelledby="s01-page-title">
-              <h1 id="s01-page-title">{account.label}</h1>
-              <dl className={styles.accountDetails}>
-                <div>
-                  <dt>{account.accountDataLabel}</dt>
-                  <dd>{accountData}</dd>
-                </div>
-                <div>
-                  <dt>{s01Content.progress.accountRoleLabel}</dt>
-                  <dd>{account.role}</dd>
-                </div>
-              </dl>
-              {accountConfigured ? (
-                <section
-                  className={styles.accountComplete}
-                  aria-label={s01Content.completion.accountStatus}
-                >
-                  <span aria-hidden="true">✓</span>
-                  <h2 ref={completionStatusRef} tabIndex={-1} aria-live="polite">
-                    {s01Content.completion.accountStatus}
-                  </h2>
-                </section>
-              ) : (
-                <form
-                  className={styles.passwordForm}
-                  onSubmit={(event) => {
-                    event.preventDefault();
-                    if (canConfigure) controller.configureAccount(account.id);
-                  }}
-                >
-                  <label
-                    className={styles.passwordLabel}
-                    htmlFor={`fictional-password-${account.id}`}
-                  >
-                    {s01Content.controls.passwordLabel}
-                  </label>
-                  <span className={styles.passwordInputGroup}>
-                    <input
-                      id={`fictional-password-${account.id}`}
-                      name={`fictional-password-${account.id}`}
-                      type={revealedAccountIds.has(account.id) ? 'text' : 'password'}
-                      autoComplete="off"
-                      spellCheck={false}
-                      disabled={!editing || interactionBlocked}
-                      value={activeValue}
-                      onChange={(event) =>
-                        controller.setPasswordValue(account.id, event.currentTarget.value)
-                      }
-                    />
-                    <button
-                      type="button"
-                      className={styles.revealButton}
-                      aria-pressed={revealedAccountIds.has(account.id)}
-                      aria-label={
-                        revealedAccountIds.has(account.id)
-                          ? s01Content.controls.hidePassword(account.label)
-                          : s01Content.controls.showPassword(account.label)
-                      }
-                      disabled={interactionBlocked}
-                      onClick={() => toggleReveal(account.id)}
-                    >
-                      <PasswordVisibilityIcon revealed={revealedAccountIds.has(account.id)} />
-                    </button>
-                  </span>
-                  <div className={styles.buttonRow}>
-                    <button type="submit" className={styles.primaryButton} disabled={!canConfigure}>
-                      {s01Content.controls.configure}
-                    </button>
-                  </div>
-                </form>
-              )}
-              {readyToContinue ? (
-                <section
-                  className={styles.continueAction}
-                  aria-label={s01Content.completion.guideName}
-                >
-                  <p>{s01Content.completion.guideMessage}</p>
+              speech={[
+                readyToContinue
+                  ? s01Content.completion.guideMessage
+                  : s01Content.quest.nextAccount(account.label),
+              ]}
+              speechKey={readyToContinue ? 's01-ready' : `s01-${account.id}-${configuredCount}`}
+              speechPlacement="right"
+              speechFooter={
+                readyToContinue ? (
                   <button
                     type="button"
                     className={styles.primaryButton}
@@ -249,45 +161,101 @@ export function S01Training({
                   >
                     {s01Content.controls.continue}
                   </button>
-                </section>
-              ) : null}
-            </section>
-            <aside className={styles.websiteSidebar} aria-label={`${account.label}-Übersicht`}>
-              <section className={styles.websiteModule}>
-                <NetworkSymbol symbolId={account.symbolId} className={styles.moduleSymbol} />
-                <h2>{account.overview.title}</h2>
-                <p>{account.overview.description}</p>
+                ) : undefined
+              }
+              onToggleHelp={() => setQuestHelpOpen((open) => !open)}
+            />
+          ),
+        }}
+      >
+        <CampusWebsiteBackdrop
+          accountId={account.id}
+          interactionLabel={`${account.label} einrichten`}
+        >
+          <section className={styles.setupPanel} aria-labelledby="s01-page-title">
+            <h1 id="s01-page-title">{account.label}</h1>
+            <dl className={styles.accountDetails}>
+              <div>
+                <dt>{account.accountDataLabel}</dt>
+                <dd>{accountData}</dd>
+              </div>
+            </dl>
+            {accountConfigured ? (
+              <section
+                className={styles.accountComplete}
+                aria-label={s01Content.completion.accountStatus}
+              >
+                <span aria-hidden="true">✓</span>
+                <h2 ref={completionStatusRef} tabIndex={-1} aria-live="polite">
+                  {s01Content.completion.accountStatus}
+                </h2>
               </section>
-              <section className={styles.activityModule}>
-                <h2>{account.overview.activityTitle}</h2>
-                <ul>
-                  {account.overview.activityItems.map((item) => (
-                    <li key={item}>
-                      <span className={styles.skeletonDot} aria-hidden="true" />
-                      <span>{item}</span>
-                      <span className={styles.skeletonLine} aria-hidden="true" />
-                    </li>
-                  ))}
-                </ul>
-              </section>
-            </aside>
-          </div>
-          {(snapshot.matches({ s01: 'ending' }) || initialTimingPending) &&
-          externalTimingError === null ? (
-            <p className={styles.timingStatus} role="status">
-              {s01Content.controls.timingSaving}
-            </p>
-          ) : null}
-          {timingFailure ? (
-            <section className={styles.timingError} role="alert">
-              <p>{s01Content.controls.timingFailure}</p>
-              <p>Fehlercode: {externalTimingError ?? snapshot.context.timingErrorCode}</p>
-              <button type="button" className={styles.primaryButton} onClick={retryTiming}>
-                {s01Content.controls.retry}
-              </button>
-            </section>
-          ) : null}
-        </article>
+            ) : (
+              <form
+                className={styles.passwordForm}
+                onSubmit={(event) => {
+                  event.preventDefault();
+                  if (canConfigure) controller.configureAccount(account.id);
+                }}
+              >
+                <label
+                  className={styles.passwordLabel}
+                  htmlFor={`fictional-password-${account.id}`}
+                >
+                  {s01Content.controls.passwordLabel}
+                </label>
+                <span className={styles.passwordInputGroup}>
+                  <input
+                    id={`fictional-password-${account.id}`}
+                    name={`fictional-password-${account.id}`}
+                    type={revealedAccountIds.has(account.id) ? 'text' : 'password'}
+                    autoComplete="off"
+                    spellCheck={false}
+                    disabled={!editing || interactionBlocked}
+                    value={activeValue}
+                    onChange={(event) =>
+                      controller.setPasswordValue(account.id, event.currentTarget.value)
+                    }
+                  />
+                  <button
+                    type="button"
+                    className={styles.revealButton}
+                    aria-pressed={revealedAccountIds.has(account.id)}
+                    aria-label={
+                      revealedAccountIds.has(account.id)
+                        ? s01Content.controls.hidePassword(account.label)
+                        : s01Content.controls.showPassword(account.label)
+                    }
+                    disabled={interactionBlocked}
+                    onClick={() => toggleReveal(account.id)}
+                  >
+                    <PasswordVisibilityIcon revealed={revealedAccountIds.has(account.id)} />
+                  </button>
+                </span>
+                <div className={styles.buttonRow}>
+                  <button type="submit" className={styles.primaryButton} disabled={!canConfigure}>
+                    {s01Content.controls.configure}
+                  </button>
+                </div>
+              </form>
+            )}
+          </section>
+        </CampusWebsiteBackdrop>
+        {(snapshot.matches({ s01: 'ending' }) || initialTimingPending) &&
+        externalTimingError === null ? (
+          <p className={styles.timingStatus} role="status">
+            {s01Content.controls.timingSaving}
+          </p>
+        ) : null}
+        {timingFailure ? (
+          <section className={styles.timingError} role="alert">
+            <p>{s01Content.controls.timingFailure}</p>
+            <p>Fehlercode: {externalTimingError ?? snapshot.context.timingErrorCode}</p>
+            <button type="button" className={styles.primaryButton} onClick={retryTiming}>
+              {s01Content.controls.retry}
+            </button>
+          </section>
+        ) : null}
       </BrowserShell>
     </section>
   );

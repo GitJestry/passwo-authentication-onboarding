@@ -15,6 +15,12 @@ export type S00AnimationStep =
 export interface S00SegmentContent {
   readonly version: string;
   readonly trainingAriaLabel: string;
+  readonly entry: {
+    readonly title: string;
+    readonly paragraphs: readonly string[];
+    readonly nameLabel: string;
+    readonly startLabel: string;
+  };
   readonly source: {
     readonly document: string;
     readonly internalPage: 2;
@@ -77,11 +83,22 @@ export interface S00SegmentContent {
   };
 }
 
-export const S00_CONTENT_VERSION = '1.1.0';
+export const S00_CONTENT_VERSION = '1.2.0';
 
 export const s00Content: S00SegmentContent = {
   version: S00_CONTENT_VERSION,
   trainingAriaLabel: 'PassWo Training, Segment S00',
+  entry: {
+    title: 'Passwörter & Authentifizierung',
+    paragraphs: [
+      'Aloha! Mein Name ist PassWo, und ich begleite dich heute durch das Training.',
+      'Vielleicht kennst du die Situation: Du bist ganz neu an einer Universität und musst dich nun für die wichtigsten Campus-Konten registrieren.',
+      'Deine Aufgabe ist zunächst, für drei Campus-Konten starke und merkbare Passwörter zu wählen. Später meldest du dich nämlich noch einmal damit an.',
+      "Und das war's schon. Darf ich noch fragen, wie du heißt?",
+    ],
+    nameLabel: 'Dein Name',
+    startLabel: 'Training starten',
+  },
   source: {
     document: 'research/private/training-script.pdf',
     internalPage: 2,
@@ -118,9 +135,9 @@ export const s00Content: S00SegmentContent = {
   narration: {
     guideName: 'PassWo',
     greetingTemplate:
-      'Hallo {displayName}, ich bin PassWo. Ich begleite dich heute Schritt für Schritt beim Einrichten deiner fiktiven Campus-Konten.',
+      'Hey {displayName}, wichtig ist, dass du hier keine eigenen Passwörter oder Varianten davon verwendest.',
     instruction:
-      'Verwende dafür nur neue, ausgedachte Passwörter - keine echten Passwörter und keine Varianten davon. Die Kontodaten sind schon eingetragen.',
+      'Nutze nur neue, ausgedachte Passwörter. Deine Kontodaten sind bereits eingetragen.',
     openGuideLabel: 'PassWo-Hilfe öffnen',
     closeGuideLabel: 'PassWo-Hilfe schließen',
   },

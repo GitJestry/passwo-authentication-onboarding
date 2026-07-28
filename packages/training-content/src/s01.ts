@@ -62,7 +62,7 @@ export interface S01SegmentContent {
   };
 }
 
-export const S01_CONTENT_VERSION = '2.1.0';
+export const S01_CONTENT_VERSION = '2.2.0';
 
 export const s01Content: S01SegmentContent = {
   version: S01_CONTENT_VERSION,
@@ -137,10 +137,11 @@ export const s01Content: S01SegmentContent = {
     helpLabel: 'PassWo-Hinweis öffnen',
     closeHelpLabel: 'PassWo-Hinweis schließen',
     nextAccount: (accountLabel) => `Richte das Passwort für ${accountLabel} ein.`,
-    readyToContinue: 'Alle drei Konten sind eingerichtet. Wähle Weiter.',
+    readyToContinue:
+      'Die drei Konten sind eingerichtet. Bevor du dich erneut anmeldest, schauen wir kurz an, wofür diese Konten im Campusalltag stehen.',
   },
   controls: {
-    passwordLabel: 'Fiktives Passwort',
+    passwordLabel: 'Passwort',
     showPassword: (accountLabel) => `Passwort für ${accountLabel} anzeigen`,
     hidePassword: (accountLabel) => `Passwort für ${accountLabel} verbergen`,
     configure: 'Konto einrichten',
