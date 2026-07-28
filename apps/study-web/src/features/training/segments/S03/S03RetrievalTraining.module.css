@@ -12,182 +12,160 @@
   display: flex;
   min-height: 100%;
   flex: 1;
-  flex-direction: column;
-  color: var(--color-ink);
-  background: var(--color-surface-muted);
 }
 
-.pageHeader {
-  z-index: 2;
+.siteTask {
+  display: grid;
+  min-height: 30rem;
+  align-content: start;
+  gap: var(--space-5);
+}
+
+.sceneToolbar {
+  position: relative;
+  z-index: 3;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: var(--space-5);
-  padding: var(--space-4) clamp(var(--space-5), 4vw, var(--space-8));
-  border-bottom: var(--border-width-thin) solid var(--color-border-soft);
-  background: var(--color-surface-primary);
+  gap: var(--space-4);
 }
 
-.pageHeader h1,
-.loginPanel h2 {
+.sceneToolbar h1,
+.sceneToolbar p {
+  margin: 0;
+}
+
+.sceneToolbar h1 {
+  color: var(--color-ink-strong);
+  font-size: var(--font-size-heading-small);
+}
+
+.sceneToolbar p {
+  padding: var(--space-2) var(--space-3);
+  border: var(--border-width-thin) solid var(--color-border);
+  border-radius: var(--radius-round);
+  color: var(--color-ink-strong);
+  background: var(--color-surface-primary);
+  font-size: var(--font-size-x-small);
+  font-weight: var(--font-weight-heavy);
+  white-space: nowrap;
+}
+
+.siteWelcome {
+  display: grid;
+  width: min(100%, 28rem);
+  align-content: center;
+  justify-items: start;
+  gap: var(--space-3);
+  min-height: 22rem;
+  padding: clamp(var(--space-5), 4vw, var(--space-7));
+  border: var(--border-width-thin) solid var(--color-border-soft);
+  border-radius: var(--radius-large);
+  background: color-mix(in srgb, var(--color-surface-primary) 96%, transparent);
+  box-shadow: var(--shadow-card);
+}
+
+.siteWelcome p,
+.authHeader p,
+.resultCard > p {
+  margin: 0;
+  color: var(--color-accent-strong);
+  font-size: var(--font-size-x-small);
+  font-weight: var(--font-weight-heavy);
+}
+
+.siteWelcome h2,
+.authHeader h2,
+.resultCard h2 {
   margin: 0;
   color: var(--color-ink-strong);
   line-height: var(--line-height-tight);
 }
 
-.pageHeader h1 {
-  font-size: var(--font-size-heading-small);
+.siteWelcome h2 {
+  font-size: var(--font-size-heading-large);
 }
 
-.progress {
-  flex: none;
-  margin: 0;
-  padding: var(--space-2) var(--space-3);
-  border: var(--border-width-thin) solid var(--color-border);
-  border-radius: var(--radius-round);
-  color: var(--color-ink-strong);
-  background: var(--color-surface-muted);
-  font-size: var(--font-size-x-small);
-  font-weight: var(--font-weight-heavy);
-  white-space: nowrap;
-}
-
-.workspace {
-  display: grid;
-  min-height: 0;
-  flex: 1;
-  grid-template-columns: minmax(11rem, 0.55fr) minmax(23rem, 1.15fr) minmax(17rem, 0.85fr);
-}
-
-.accountRail {
-  display: grid;
-  align-content: center;
-  gap: var(--space-3);
-  min-width: 0;
-  padding: var(--space-4);
-  border-right: var(--border-width-thin) solid var(--color-border-soft);
-  background: var(--color-surface-primary);
-}
-
-.accountRail > p,
-.areaLabel,
-.accountDataLabel,
-.completionMessage > p {
-  margin: 0;
-  color: var(--color-ink-muted);
-  font-size: var(--font-size-x-small);
-  font-weight: var(--font-weight-heavy);
-}
-
-.accountList {
-  display: grid;
-  gap: var(--space-2);
-}
-
-.accountCard {
-  display: grid;
-  min-width: 0;
-  grid-template-columns: auto minmax(0, 1fr) auto;
-  align-items: center;
-  gap: var(--space-2);
+.welcomeSymbol {
+  width: 4rem;
+  height: 4rem;
   padding: var(--space-3);
-  border: var(--border-width-thin) solid transparent;
-  border-radius: var(--radius-medium);
-  color: var(--color-ink-strong);
-  background: transparent;
-  font: inherit;
-  text-align: left;
-}
-
-.accountCard:not(:disabled) {
-  cursor: pointer;
-}
-
-.accountCard:disabled {
-  cursor: not-allowed;
-  opacity: 0.66;
-}
-
-.accountCard[data-active="true"] {
-  border-color: var(--color-accent-strong);
+  border-radius: var(--radius-large);
+  color: var(--color-accent-strong);
   background: var(--color-accent-soft);
 }
 
-.accountCard[data-result="retrievable"] {
-  color: var(--color-positive);
+.siteWelcome .primaryButton {
+  margin-top: var(--space-3);
 }
 
-.accountCard[data-result="not-remembered"] {
-  color: var(--color-ink-muted);
-}
-
-.accountCard:focus-visible {
-  outline: var(--border-width-focus) solid var(--color-focus);
-  outline-offset: var(--space-1);
-  box-shadow: var(--shadow-focus);
-}
-
-.accountSymbol {
-  width: 1.55rem;
-  height: 1.55rem;
-  flex: none;
-}
-
-.accountCard > span {
+.relationshipStage {
+  position: relative;
   display: grid;
-  min-width: 0;
-  gap: 0.1rem;
-}
-
-.accountCard strong,
-.accountCard small {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.accountCard strong {
-  font-size: var(--font-size-small);
-}
-
-.accountCard small {
-  color: var(--color-ink-muted);
-  font-size: var(--font-size-x-small);
-}
-
-.accountStatusMarker {
-  width: 1.1rem;
-  height: 1.1rem;
-  color: currentColor;
-}
-
-.loginStage {
-  display: grid;
-  min-width: 0;
+  min-height: 25rem;
   place-items: center;
-  padding: clamp(var(--space-4), 3vw, var(--space-7));
-  background:
-    radial-gradient(circle at 50% 20%, var(--color-accent-soft), transparent 44%),
-    var(--color-surface-muted);
-}
-
-.loginPanel {
-  width: min(100%, 35rem);
-  padding: clamp(var(--space-5), 3.5vw, var(--space-7));
+  overflow: hidden;
   border: var(--border-width-thin) solid var(--color-border-soft);
   border-radius: var(--radius-large);
-  background: var(--color-surface-primary);
+  background:
+    radial-gradient(circle at 50% 48%, var(--color-surface-primary) 0 24%, transparent 58%),
+    color-mix(in srgb, var(--color-surface-muted) 86%, var(--color-surface-primary));
   box-shadow: var(--shadow-card);
 }
 
-.loginIdentity {
+.relationshipNetwork {
+  position: absolute;
+  inset: 0;
+  opacity: 0.8;
+  pointer-events: none;
+}
+
+.relationshipNetwork :global(.react-flow__controls),
+.relationshipNetwork :global(.react-flow__attribution) {
+  display: none;
+}
+
+.authCard,
+.resultCard {
+  position: relative;
+  z-index: 2;
+  width: min(25rem, calc(100% - var(--space-6)));
+  padding: clamp(var(--space-4), 3vw, var(--space-6));
+  border: var(--border-width-thin) solid var(--color-border);
+  border-radius: var(--radius-large);
+  background: color-mix(in srgb, var(--color-surface-primary) 97%, transparent);
+  box-shadow: var(--shadow-float);
+  backdrop-filter: blur(10px);
+}
+
+.authCard {
+  display: grid;
+  gap: var(--space-3);
+}
+
+.authHeader {
   display: grid;
   grid-template-columns: auto minmax(0, 1fr);
   align-items: center;
-  gap: var(--space-4);
+  gap: var(--space-3);
+  margin-bottom: var(--space-2);
 }
 
-.loginSymbol {
+.authHeader > div {
+  display: grid;
+  gap: var(--space-1);
+}
+
+.authHeader h2 {
+  font-size: var(--font-size-heading-small);
+}
+
+.authHeader h2:focus {
+  outline: 0;
+}
+
+.authSymbol,
+.resultSymbol {
   width: 3rem;
   height: 3rem;
   padding: var(--space-2);
@@ -196,36 +174,40 @@
   background: var(--color-accent-soft);
 }
 
-.accountDataLabel {
-  margin-bottom: var(--space-1);
-}
-
-.loginPanel h2 {
-  font-size: var(--font-size-heading-small);
-}
-
-.accountData {
-  margin: var(--space-1) 0 0;
-  color: var(--color-ink-muted);
-  font-size: var(--font-size-small);
-  line-height: var(--line-height-body);
-}
-
-.loginForm {
+.accountDetails {
   display: grid;
   gap: var(--space-3);
-  margin-top: var(--space-6);
+  margin: 0;
 }
 
-.loginForm > label {
+.accountDetails > div {
+  display: grid;
+  gap: var(--space-1);
+  padding-top: var(--space-3);
+  border-top: var(--border-width-thin) solid var(--color-border-soft);
+}
+
+.accountDetails dt,
+.passwordLabel {
   color: var(--color-ink-strong);
   font-size: var(--font-size-small);
   font-weight: var(--font-weight-bold);
 }
 
+.accountDetails dd {
+  margin: 0;
+  color: var(--color-ink-muted);
+  font-size: var(--font-size-small);
+  line-height: var(--line-height-body);
+}
+
+.passwordLabel {
+  margin-top: var(--space-2);
+}
+
 .passwordInputGroup {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-columns: minmax(0, 1fr) var(--size-control-large);
   overflow: hidden;
   border: var(--border-width-thin) solid var(--color-border);
   border-radius: var(--radius-small);
@@ -248,9 +230,25 @@
   box-shadow: var(--shadow-focus);
 }
 
+.revealButton {
+  display: grid;
+  place-items: center;
+  padding: 0;
+  border: 0;
+  border-left: var(--border-width-thin) solid var(--color-border-soft);
+  color: var(--color-ink-strong);
+  background: var(--color-surface-muted);
+}
+
+.revealIcon {
+  width: 1.35rem;
+  height: 1.35rem;
+}
+
 .buttonRow {
   display: grid;
   gap: var(--space-3);
+  margin-top: var(--space-2);
 }
 
 .primaryButton,
@@ -268,18 +266,9 @@
   background: var(--color-surface-inverse);
 }
 
-.secondaryButton,
-.revealButton {
+.secondaryButton {
   color: var(--color-ink-strong);
-  background: var(--color-surface-muted);
-}
-
-.revealButton {
-  padding: var(--space-3) var(--space-4);
-  border: 0;
-  border-left: var(--border-width-thin) solid var(--color-border-soft);
-  font: inherit;
-  font-weight: var(--font-weight-heavy);
+  background: var(--color-surface-primary);
 }
 
 .primaryButton:not(:disabled),
@@ -303,183 +292,67 @@
   box-shadow: var(--shadow-focus);
 }
 
-.resultNode {
+.resultCard {
   display: grid;
-  min-height: 13rem;
-  place-items: center;
-  align-content: center;
-  gap: var(--space-3);
-  color: var(--color-ink-muted);
-  text-align: center;
-}
-
-.resultNode > div {
-  display: grid;
-  gap: var(--space-1);
-}
-
-.resultNode p,
-.resultNode strong {
-  margin: 0;
-}
-
-.resultNode strong {
-  color: var(--color-ink-strong);
-  font-size: var(--font-size-heading-small);
-}
-
-.resultSymbol {
-  width: 3.5rem;
-  height: 3.5rem;
-  padding: var(--space-3);
-  border: var(--border-width-thin) solid var(--color-border);
-  border-radius: var(--radius-round);
-}
-
-.campusPage {
-  overflow: hidden;
-  border: var(--border-width-thin) solid var(--color-border-soft);
-  border-radius: var(--radius-medium);
-  background: var(--color-surface-primary);
-}
-
-.campusPageHeader {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: var(--space-3);
-  padding: var(--space-3) var(--space-4);
-  border-bottom: var(--border-width-thin) solid var(--color-border-soft);
-}
-
-.siteIdentity {
-  display: inline-flex;
-  min-width: 0;
-  align-items: center;
+  justify-items: start;
   gap: var(--space-2);
-  color: var(--color-ink-strong);
-  font-size: var(--font-size-small);
-  font-weight: var(--font-weight-heavy);
 }
 
-.siteSymbol {
-  width: 1.4rem;
-  height: 1.4rem;
-  flex: none;
-  color: var(--color-accent-strong);
-}
-
-.signedInLabel {
-  padding: var(--space-1) var(--space-2);
+.resultCard strong {
+  padding: var(--space-1) var(--space-3);
   border-radius: var(--radius-round);
   color: var(--color-positive);
   background: var(--color-positive-soft);
-  font-size: var(--font-size-x-small);
-  font-weight: var(--font-weight-heavy);
-}
-
-.siteNavigation {
-  display: flex;
-  gap: var(--space-3);
-  overflow-x: auto;
-  padding: var(--space-2) var(--space-4);
-  border-bottom: var(--border-width-thin) solid var(--color-border-soft);
-  color: var(--color-ink-muted);
-  font-size: var(--font-size-x-small);
-  font-weight: var(--font-weight-bold);
-  white-space: nowrap;
-}
-
-.campusPageBody {
-  display: grid;
-  gap: var(--space-5);
-  padding: var(--space-5);
-}
-
-.areaLabel {
-  margin-bottom: var(--space-1);
-  color: var(--color-accent-strong);
-}
-
-.campusDetails {
-  display: grid;
-  gap: var(--space-3);
-  margin: 0;
-}
-
-.campusDetails > div {
-  display: grid;
-  gap: var(--space-1);
-  padding-top: var(--space-3);
-  border-top: var(--border-width-thin) solid var(--color-border-soft);
-}
-
-.campusDetails dt {
-  color: var(--color-ink-muted);
-  font-size: var(--font-size-x-small);
-  font-weight: var(--font-weight-bold);
-}
-
-.campusDetails dd {
-  margin: 0;
-  color: var(--color-ink-strong);
   font-size: var(--font-size-small);
-  line-height: var(--line-height-body);
 }
 
-.networkPanel {
+.resultCard[data-result="not-remembered"] {
+  color: var(--color-ink-muted);
+}
+
+.resultCard[data-result="not-remembered"] .resultSymbol {
+  color: var(--color-ink-muted);
+  background: var(--color-surface-muted);
+}
+
+.resultCard[data-result="not-remembered"] strong {
+  color: var(--color-ink-muted);
+  background: var(--color-surface-muted);
+}
+
+.resultCard .accountDetails {
+  width: 100%;
+  margin-top: var(--space-2);
+}
+
+.completionStage {
   position: relative;
   min-width: 0;
-  min-height: 0;
+  min-height: 38rem;
+  flex: 1;
   overflow: hidden;
-  border-left: var(--border-width-thin) solid var(--color-border-soft);
   background:
-    radial-gradient(circle at 50% 15%, var(--color-accent-soft), transparent 36%),
+    radial-gradient(circle at 50% 18%, var(--color-accent-soft), transparent 34%),
     var(--color-surface-muted);
 }
 
-.networkPanel[data-timeskip="true"] :global(.react-flow__nodes) {
+.completionStage .sceneToolbar {
+  position: absolute;
+  z-index: 3;
+  top: var(--space-5);
+  right: var(--space-6);
+  left: var(--space-6);
+}
+
+.completionStage[data-timeskip="true"] :global(.react-flow__nodes) {
   animation: s03-time-lapse 1.1s linear infinite;
 }
 
-.networkPanel[data-board-warning="true"]
+.completionStage[data-board-warning="true"]
   :global([data-scene-node="campus-board-archive"] [data-scene-node-button]) {
   border-color: var(--color-danger);
   background: var(--color-danger-soft);
   animation: s03-board-warning 0.7s ease-in-out infinite;
-}
-
-.completionMessage {
-  position: absolute;
-  z-index: 3;
-  top: 50%;
-  left: 50%;
-  width: min(24rem, calc(100% - var(--space-6)));
-  padding: var(--space-5);
-  border: var(--border-width-medium) solid var(--color-accent-strong);
-  border-radius: var(--radius-medium);
-  color: var(--color-ink-strong);
-  background: var(--color-surface-primary);
-  box-shadow: var(--shadow-float);
-  text-align: center;
-  transform: translate(-50%, -50%);
-}
-
-.completionMessage[data-warning="true"] {
-  border-color: var(--color-danger);
-  background: var(--color-danger-soft);
-}
-
-.completionMessage > p {
-  color: var(--color-accent-strong);
-}
-
-.completionMessage[data-warning="true"] > p {
-  color: var(--color-danger);
-}
-
-.warningContinue {
-  margin-top: var(--space-4);
 }
 
 .characterAnimationAnchor {
@@ -553,72 +426,28 @@
   }
 }
 
-@media (max-width: 1080px) {
-  .workspace {
-    grid-template-columns: minmax(11rem, 0.55fr) minmax(0, 1fr);
-    grid-template-rows: minmax(25rem, 1fr) minmax(16rem, 0.62fr);
-  }
-
-  .networkPanel {
-    min-height: 16rem;
-    grid-column: 1 / -1;
-    border-top: var(--border-width-thin) solid var(--color-border-soft);
-    border-left: 0;
-  }
-}
-
 @media (max-width: 760px) {
-  .pageHeader {
+  .sceneToolbar {
     align-items: flex-start;
     flex-direction: column;
   }
 
-  .workspace {
-    grid-template-columns: minmax(0, 1fr);
-    grid-template-rows: auto auto minmax(22rem, 1fr);
+  .siteWelcome {
+    min-height: 18rem;
   }
 
-  .accountRail {
-    gap: var(--space-2);
-    border-right: 0;
-    border-bottom: var(--border-width-thin) solid var(--color-border-soft);
+  .relationshipStage {
+    min-height: 31rem;
   }
 
-  .accountList {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-  }
-
-  .accountCard {
-    grid-template-columns: auto minmax(0, 1fr);
-    padding: var(--space-2);
-  }
-
-  .accountCard > span {
-    display: none;
-  }
-
-  .accountStatusMarker {
-    width: 0.9rem;
-    height: 0.9rem;
-  }
-
-  .loginStage {
-    padding: var(--space-4);
-  }
-
-  .loginPanel {
-    padding: var(--space-5);
-  }
-
-  .networkPanel {
-    min-height: 22rem;
-    grid-column: auto;
+  .completionStage {
+    min-height: 48rem;
   }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .networkPanel[data-timeskip="true"] :global(.react-flow__nodes),
-  .networkPanel[data-board-warning="true"]
+  .completionStage[data-timeskip="true"] :global(.react-flow__nodes),
+  .completionStage[data-board-warning="true"]
     :global([data-scene-node="campus-board-archive"] [data-scene-node-button]) {
     animation: none;
   }

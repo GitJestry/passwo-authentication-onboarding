@@ -1,4 +1,9 @@
-import { s01Content, s03Content } from '@passwo/training-content';
+import {
+  s01Content,
+  s02Content,
+  s03Content,
+  type S01AccountId,
+} from '@passwo/training-content';
 import {
   deriveCampusIdentity,
   getRetrievedAccountCount,
@@ -7,16 +12,14 @@ import {
 } from '@passwo/training-engine';
 import { BrowserShell, type BrowserShellSnapshot } from '@passwo/ui';
 import { useEffect, useRef, useState } from 'react';
-import { PassWoQuestDock } from '../../../../adapters/character/PassWoCharacterAdapter.js';
 import { NetworkMotionAdapter } from '../../../../adapters/network/NetworkMotionAdapter.js';
-import {
-  NetworkStatusMarker,
-  NetworkSymbol,
-} from '../../../../adapters/network/NetworkSymbolRegistry.js';
+import { NetworkSymbol } from '../../../../adapters/network/NetworkSymbolRegistry.js';
 import {
   ReactFlowNetwork,
   ReactFlowNetworkAdapter,
 } from '../../../../adapters/network/ReactFlowNetworkAdapter.js';
+import { CampusWebsiteBackdrop } from '../../CampusWebsiteBackdrop.js';
+import { PassWoGuide } from '../../PassWoGuide.js';
 import {
   S03RetrievalController,
   type S03RetrievalControllerSnapshot,
@@ -43,48 +46,22 @@ function isLocalTimingFailure(snapshot: PasswordModuleSnapshot): boolean {
   return snapshot.matches({ s03: 'startFailed' }) || snapshot.matches({ s03: 'endFailed' });
 }
 
-function CampusPage({
-  account,
-  accountData,
-}: {
-  readonly account: (typeof s01Content.browser.accounts)[number];
-  readonly accountData: string;
-}) {
-  const page = s03Content.accountPages[account.id];
-
+function PasswordVisibilityIcon({ revealed }: { readonly revealed: boolean }) {
   return (
-    <section className={styles.campusPage} aria-label={`${account.label}, ${page.signedInLabel}`}>
-      <header className={styles.campusPageHeader}>
-        <div className={styles.siteIdentity}>
-          <NetworkSymbol symbolId={account.symbolId} className={styles.siteSymbol} />
-          <span>{account.label}</span>
-        </div>
-        <span className={styles.signedInLabel}>{page.signedInLabel}</span>
-      </header>
-      <nav className={styles.siteNavigation} aria-label={`${account.label}-Navigation`}>
-        {account.navigation.map((item) => (
-          <span key={item}>{item}</span>
-        ))}
-      </nav>
-      <div className={styles.campusPageBody}>
-        <div>
-          <p className={styles.areaLabel}>{page.areaLabel}</p>
-          <h2 id="s03-login-title">{account.label}</h2>
-        </div>
-        <dl className={styles.campusDetails}>
-          <div>
-            <dt>{account.accountDataLabel}</dt>
-            <dd>{accountData}</dd>
-          </div>
-          {page.modules.map((module) => (
-            <div key={module.label}>
-              <dt>{module.label}</dt>
-              <dd>{module.value}</dd>
-            </div>
-          ))}
-        </dl>
-      </div>
-    </section>
+    <svg
+      aria-hidden="true"
+      className={styles.revealIcon}
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.8"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <path d="M2.5 12s3.5-6 9.5-6 9.5 6 9.5 6-3.5 6-9.5 6-9.5-6-9.5-6Z" />
+      <circle cx="12" cy="12" r="2.5" />
+      {revealed ? <path d="M4 4 20 20" /> : null}
+    </svg>
   );
 }
 
@@ -96,6 +73,7 @@ export function S03RetrievalTraining({
 }: S03RetrievalTrainingProps) {
   const networkHostRef = useRef<HTMLDivElement | null>(null);
   const characterAnimationAnchorRef = useRef<HTMLSpanElement | null>(null);
+  const loginTitleRef = useRef<HTMLHeadingElement | null>(null);
   const warningConfirmationRef = useRef(() => controller.completeS03WarningSequence());
   warningConfirmationRef.current = () => controller.completeS03WarningSequence();
   const [runtime, setRuntime] = useState<Runtime | null>(null);
@@ -104,13 +82,18 @@ export function S03RetrievalTraining({
   const [revealedAccountIds, setRevealedAccountIds] = useState<ReadonlySet<string>>(
     () => new Set(),
   );
-  const [questHelpOpen, setQuestHelpOpen] = useState(false);
+  const [loginAccountId, setLoginAccountId] = useState<S01AccountId | null>(null);
+  const [guideOpen, setGuideOpen] = useState(true);
 
   useEffect(() => {
     let retrievalController: S03RetrievalController | null = null;
+    const revealedNodeIds = [
+      ...s01Content.browser.accounts.map(({ id }) => id),
+      ...s02Content.scene.accounts.flatMap(({ details }) => details.map(({ id }) => id)),
+    ];
     const animationPlayer = new NetworkMotionAdapter({
       initialNodeId: s01Content.browser.accounts[0]?.id ?? '',
-      initialRevealedNodeIds: s01Content.browser.accounts.map(({ id }) => id),
+      initialRevealedNodeIds: revealedNodeIds,
       applySnapshot: (presentation) => retrievalController?.updatePresentation(presentation),
       getCharacterElement: () => characterAnimationAnchorRef.current,
       getActiveNodeElement: () =>
@@ -149,6 +132,10 @@ export function S03RetrievalTraining({
     );
   }, [runtime, snapshot]);
 
+  useEffect(() => {
+    if (loginAccountId !== null) loginTitleRef.current?.focus();
+  }, [loginAccountId]);
+
   if (runtime === null || presentationSnapshot === null) return null;
 
   const account =
@@ -166,6 +153,7 @@ export function S03RetrievalTraining({
       : account.id === 'campus-mail'
         ? campusIdentity.campusMail
         : account.accountData;
+  const accountPage = s03Content.accountPages[account.id];
   const isStarting = snapshot.matches({ s03: 'starting' });
   const isEnding = snapshot.matches({ s03: 'ending' });
   const localTimingFailure = isLocalTimingFailure(snapshot);
@@ -215,6 +203,11 @@ export function S03RetrievalTraining({
     });
   }
 
+  function selectAccount(accountId: string): void {
+    setLoginAccountId(null);
+    controller.selectAccount(accountId);
+  }
+
   function retryTiming(): void {
     if (externalTimingError !== null) {
       onRetryExternalTiming?.();
@@ -223,13 +216,27 @@ export function S03RetrievalTraining({
     controller.retryTiming();
   }
 
+  const network = (
+    <ReactFlowNetwork
+      adapter={runtime.renderer}
+      presentation={presentationSnapshot.presentation}
+      onNodeSelect={() => undefined}
+      interactionDisabled
+      visualVariant="account-map"
+      activeNodeId={completionSequenceActive ? null : account.id}
+      ariaLabel="Zusammenhang der aktuellen Anmeldung"
+      canvasAriaLabel="Konto und damit verbundene Dienste"
+      showEdgeLabels={false}
+    />
+  );
+
   return (
     <section className={styles.training} aria-label={s03Content.trainingAriaLabel}>
       <BrowserShell
         variant="artifact"
         snapshot={browserSnapshot}
         ariaLabel={s03Content.browser.ariaLabel}
-        onTabSelect={(accountId) => controller.selectAccount(accountId)}
+        onTabSelect={selectAccount}
         layers={{
           passWo: (
             <>
@@ -238,203 +245,201 @@ export function S03RetrievalTraining({
                 className={styles.characterAnimationAnchor}
                 aria-hidden="true"
               />
-              <PassWoQuestDock
+              <PassWoGuide
                 guideName={s03Content.narration.guideName}
                 progressLabel={s03Content.page.progress(completedCount)}
-                placement="bottom-left"
-                helpOpen={questHelpOpen}
-                helpId="s03-quest-help"
-                openHelpLabel="Hinweis öffnen"
-                closeHelpLabel="Hinweis schließen"
-                helpContent={<p>{guideMessage}</p>}
-                onToggleHelp={() => setQuestHelpOpen((open) => !open)}
+                helpOpen={guideOpen}
+                helpId="s03-guide"
+                openHelpLabel="PassWo-Hinweis öffnen"
+                closeHelpLabel="PassWo-Hinweis schließen"
+                speech={[guideMessage]}
+                speechKey={`${account.id}-${result}-${announcement ?? 'login'}`}
+                speechPlacement="right"
+                speechFooter={
+                  warningConfirmationAvailable ? (
+                    <button
+                      type="button"
+                      className={styles.primaryButton}
+                      onClick={() => runtime.controller.confirmWarning()}
+                    >
+                      Weiter
+                    </button>
+                  ) : undefined
+                }
+                onToggleHelp={() => setGuideOpen((open) => !open)}
               />
             </>
           ),
         }}
       >
-        <article className={styles.page} aria-labelledby="s03-page-title">
-          <header className={styles.pageHeader}>
-            <h1 id="s03-page-title">{s03Content.page.title}</h1>
-            <p className={styles.progress} role="status">
-              {s03Content.page.progress(completedCount)}
-            </p>
-          </header>
-
-          <div className={styles.workspace}>
-            <aside className={styles.accountRail} aria-label={s03Content.page.accountListLabel}>
-              <p>{s03Content.page.accountListLabel}</p>
-              <div className={styles.accountList}>
-                {s01Content.browser.accounts.map((railAccount) => {
-                  const railResult = snapshot.context.retrievalResults[railAccount.id] ?? 'pending';
-                  const statusLabel =
-                    railResult === 'pending'
-                      ? s03Content.statuses.pending
-                      : railResult === 'retrievable'
-                        ? s03Content.statuses.retrievable
-                        : s03Content.statuses.notRemembered;
-
-                  return (
-                    <button
-                      key={railAccount.id}
-                      type="button"
-                      className={styles.accountCard}
-                      data-active={railAccount.id === account.id}
-                      data-result={railResult}
-                      aria-current={railAccount.id === account.id ? 'page' : undefined}
-                      disabled={interactionBlocked}
-                      onClick={() => controller.selectAccount(railAccount.id)}
-                    >
-                      <NetworkSymbol
-                        symbolId={railAccount.symbolId}
-                        className={styles.accountSymbol}
-                      />
-                      <span>
-                        <strong>{railAccount.label}</strong>
-                        <small>{statusLabel}</small>
-                      </span>
-                      <NetworkStatusMarker
-                        status={railResult === 'pending' ? 'neutral' : railResult}
-                        className={styles.accountStatusMarker}
-                      />
-                    </button>
-                  );
-                })}
-              </div>
-            </aside>
-
-            <section className={styles.loginStage} aria-labelledby="s03-login-title">
-              <div className={styles.loginPanel}>
-                {result === 'retrievable' ? (
-                  <CampusPage account={account} accountData={accountData} />
-                ) : result === 'not-remembered' ? (
-                  <section className={styles.resultNode} data-result={result} aria-live="polite">
-                    <NetworkSymbol symbolId={account.symbolId} className={styles.resultSymbol} />
-                    <div>
-                      <h2 id="s03-login-title">{account.label}</h2>
-                      <strong>{s03Content.statuses.notRemembered}</strong>
-                    </div>
-                  </section>
-                ) : (
-                  <>
-                    <div className={styles.loginIdentity}>
-                      <NetworkSymbol symbolId={account.symbolId} className={styles.loginSymbol} />
-                      <div>
-                        <p className={styles.accountDataLabel}>{account.accountDataLabel}</p>
-                        <h2 id="s03-login-title">{account.label}</h2>
-                        <p className={styles.accountData}>{accountData}</p>
-                      </div>
-                    </div>
-                    <form
-                      className={styles.loginForm}
-                      onSubmit={(event) => {
-                        event.preventDefault();
-                        const previousResult =
-                          snapshot.context.retrievalResults[account.id] ?? 'pending';
-                        controller.submitRetrievalLogin(account.id);
-                        if (
-                          previousResult === 'pending' &&
-                          controller.getSnapshot().context.retrievalResults[account.id] ===
-                            'retrievable'
-                        ) {
-                          runtime.controller.playSuccessfulRetrieval(account.id);
-                        }
-                      }}
-                    >
-                      <label htmlFor={`s03-password-${account.id}`}>
-                        {s03Content.controls.passwordLabel}
-                      </label>
-                      <span className={styles.passwordInputGroup}>
-                        <input
-                          id={`s03-password-${account.id}`}
-                          name={`s03-password-${account.id}`}
-                          type={revealedAccountIds.has(account.id) ? 'text' : 'password'}
-                          autoComplete="off"
-                          spellCheck={false}
-                          value={activeValue}
-                          disabled={interactionBlocked}
-                          onChange={(event) =>
-                            controller.setRetrievalPasswordValue(
-                              account.id,
-                              event.currentTarget.value,
-                            )
-                          }
-                        />
-                        <button
-                          type="button"
-                          className={styles.revealButton}
-                          aria-pressed={revealedAccountIds.has(account.id)}
-                          aria-label={
-                            revealedAccountIds.has(account.id)
-                              ? s03Content.controls.hidePassword(account.label)
-                              : s03Content.controls.showPassword(account.label)
-                          }
-                          disabled={interactionBlocked}
-                          onClick={() => toggleReveal(account.id)}
-                        >
-                          {revealedAccountIds.has(account.id)
-                            ? s03Content.controls.hide
-                            : s03Content.controls.show}
-                        </button>
-                      </span>
-                      <div className={styles.buttonRow}>
-                        <button
-                          type="submit"
-                          className={styles.primaryButton}
-                          disabled={interactionBlocked}
-                        >
-                          {s03Content.controls.login}
-                        </button>
-                        <button
-                          type="button"
-                          className={styles.secondaryButton}
-                          disabled={interactionBlocked}
-                          onClick={() => controller.skipRetrieval(account.id)}
-                        >
-                          {s03Content.controls.skip}
-                        </button>
-                      </div>
-                    </form>
-                  </>
-                )}
-              </div>
-            </section>
-
+        <div className={styles.page} aria-labelledby="s03-page-title">
+          {completionSequenceActive ? (
             <section
               ref={networkHostRef}
-              className={styles.networkPanel}
+              className={styles.completionStage}
               data-timeskip={timeLapseActive}
               data-board-warning={boardWarningActive}
-              aria-label="Knotennetz der bereits bekannten Konten"
             >
-              <ReactFlowNetwork
-                adapter={runtime.renderer}
-                presentation={presentationSnapshot.presentation}
-                onNodeSelect={() => undefined}
-                interactionDisabled
-                ariaLabel="Knotennetz der Konten und zugehörigen Dienste"
-                canvasAriaLabel="Knotennetz für die aktuelle Wiederanmeldung"
-                showEdgeLabels={false}
-              />
-              {timeLapseActive || boardWarningActive ? (
-                <section className={styles.completionMessage} data-warning={boardWarningActive}>
-                  <p>PassWo</p>
-                  <strong>
-                    {boardWarningActive ? s03Content.narration.warning : s03Content.page.resultLine}
-                  </strong>
-                  {warningConfirmationAvailable ? (
+              <header className={styles.sceneToolbar}>
+                <h1 id="s03-page-title">{s03Content.page.title}</h1>
+                <p role="status">{s03Content.page.progress(completedCount)}</p>
+              </header>
+              {network}
+            </section>
+          ) : (
+            <CampusWebsiteBackdrop
+              accountId={account.id}
+              interactionLabel={`${account.label} wieder anmelden`}
+            >
+              <section className={styles.siteTask}>
+                <header className={styles.sceneToolbar}>
+                  <h1 id="s03-page-title">{s03Content.page.title}</h1>
+                  <p role="status">{s03Content.page.progress(completedCount)}</p>
+                </header>
+
+                {result === 'pending' && loginAccountId !== account.id ? (
+                  <section className={styles.siteWelcome}>
+                    <NetworkSymbol symbolId={account.symbolId} className={styles.welcomeSymbol} />
+                    <p>{accountPage.areaLabel}</p>
+                    <h2>{account.label}</h2>
                     <button
                       type="button"
-                      className={`${styles.primaryButton} ${styles.warningContinue}`}
-                      onClick={() => runtime.controller.confirmWarning()}
+                      className={styles.primaryButton}
+                      disabled={interactionBlocked}
+                      onClick={() => setLoginAccountId(account.id)}
                     >
-                      Weiter
+                      {s03Content.controls.openLogin(account.label)}
                     </button>
-                  ) : null}
-                </section>
-              ) : null}
-            </section>
-          </div>
+                  </section>
+                ) : (
+                  <div
+                    ref={networkHostRef}
+                    className={styles.relationshipStage}
+                    data-result={result}
+                  >
+                    <div className={styles.relationshipNetwork}>
+                      {network}
+                    </div>
+
+                    {result === 'pending' ? (
+                      <form
+                        className={styles.authCard}
+                        onSubmit={(event) => {
+                          event.preventDefault();
+                          const previousResult =
+                            snapshot.context.retrievalResults[account.id] ?? 'pending';
+                          controller.submitRetrievalLogin(account.id);
+                          if (
+                            previousResult === 'pending' &&
+                            controller.getSnapshot().context.retrievalResults[account.id] ===
+                              'retrievable'
+                          ) {
+                            runtime.controller.playSuccessfulRetrieval(account.id);
+                          }
+                        }}
+                      >
+                        <header className={styles.authHeader}>
+                          <NetworkSymbol
+                            symbolId={account.symbolId}
+                            className={styles.authSymbol}
+                          />
+                          <div>
+                            <p>{account.label}</p>
+                            <h2 ref={loginTitleRef} tabIndex={-1}>
+                              {s03Content.accountLoginTitles[account.id]}
+                            </h2>
+                          </div>
+                        </header>
+                        <dl className={styles.accountDetails}>
+                          <div>
+                            <dt>{s03Content.controls.accountDataLabel}</dt>
+                            <dd>{accountData}</dd>
+                          </div>
+                        </dl>
+                        <label className={styles.passwordLabel} htmlFor={`s03-password-${account.id}`}>
+                          {s03Content.controls.passwordLabel}
+                        </label>
+                        <span className={styles.passwordInputGroup}>
+                          <input
+                            id={`s03-password-${account.id}`}
+                            name={`s03-password-${account.id}`}
+                            type={revealedAccountIds.has(account.id) ? 'text' : 'password'}
+                            autoComplete="off"
+                            spellCheck={false}
+                            value={activeValue}
+                            disabled={interactionBlocked}
+                            onChange={(event) =>
+                              controller.setRetrievalPasswordValue(
+                                account.id,
+                                event.currentTarget.value,
+                              )
+                            }
+                          />
+                          <button
+                            type="button"
+                            className={styles.revealButton}
+                            aria-pressed={revealedAccountIds.has(account.id)}
+                            aria-label={
+                              revealedAccountIds.has(account.id)
+                                ? s03Content.controls.hidePassword(account.label)
+                                : s03Content.controls.showPassword(account.label)
+                            }
+                            disabled={interactionBlocked}
+                            onClick={() => toggleReveal(account.id)}
+                          >
+                            <PasswordVisibilityIcon
+                              revealed={revealedAccountIds.has(account.id)}
+                            />
+                          </button>
+                        </span>
+                        <div className={styles.buttonRow}>
+                          <button
+                            type="submit"
+                            className={styles.primaryButton}
+                            disabled={interactionBlocked || activeValue.length === 0}
+                          >
+                            {s03Content.controls.login}
+                          </button>
+                          <button
+                            type="button"
+                            className={styles.secondaryButton}
+                            disabled={interactionBlocked}
+                            onClick={() => controller.skipRetrieval(account.id)}
+                          >
+                            {s03Content.controls.skip}
+                          </button>
+                        </div>
+                      </form>
+                    ) : (
+                      <section className={styles.resultCard} data-result={result} aria-live="polite">
+                        <NetworkSymbol
+                          symbolId={account.symbolId}
+                          className={styles.resultSymbol}
+                        />
+                        <p>{accountPage.areaLabel}</p>
+                        <h2>{account.label}</h2>
+                        <strong>
+                          {result === 'retrievable'
+                            ? accountPage.signedInLabel
+                            : s03Content.statuses.notRemembered}
+                        </strong>
+                        {result === 'retrievable' ? (
+                          <dl className={styles.accountDetails}>
+                            {accountPage.modules.map((module) => (
+                              <div key={module.label}>
+                                <dt>{module.label}</dt>
+                                <dd>{module.value}</dd>
+                              </div>
+                            ))}
+                          </dl>
+                        ) : null}
+                      </section>
+                    )}
+                  </div>
+                )}
+              </section>
+            </CampusWebsiteBackdrop>
+          )}
 
           {(isStarting || isEnding) && externalTimingError === null ? (
             <p className={styles.timingStatus} role="status">
@@ -450,7 +455,7 @@ export function S03RetrievalTraining({
               </button>
             </section>
           ) : null}
-        </article>
+        </div>
       </BrowserShell>
     </section>
   );

@@ -93,7 +93,7 @@ export function createS03RetrievalNetwork({
           sourceId: activeAccount.id,
           targetId: detail.id,
           kind: activeEdgeKind,
-          status: 'neutral',
+          status: activeResult === 'retrievable' ? 'opened' : 'neutral',
           label: activeAccount.edgeLabel,
         }));
 
@@ -110,7 +110,10 @@ export function createS03RetrievalNetwork({
 function createInitialPresentation(): NetworkPresentationSnapshot {
   return {
     character: { placement: 'bottom-left', pose: 'dock' },
-    revealedNodeIds: s01Content.browser.accounts.map(({ id }) => id),
+    revealedNodeIds: [
+      ...s01Content.browser.accounts.map(({ id }) => id),
+      ...s02Content.scene.accounts.flatMap(({ details }) => details.map(({ id }) => id)),
+    ],
     highlightedNodeId: null,
     emphasis: null,
     announcedMessageId: null,

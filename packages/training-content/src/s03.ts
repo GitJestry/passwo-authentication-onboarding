@@ -39,16 +39,15 @@ export interface S03SegmentContent {
   };
   readonly page: {
     readonly title: string;
-    readonly accountListLabel: string;
     readonly progress: (completed: number) => string;
     readonly resultLine: string;
   };
   readonly controls: {
+    readonly accountDataLabel: string;
     readonly passwordLabel: string;
     readonly showPassword: (accountLabel: string) => string;
     readonly hidePassword: (accountLabel: string) => string;
-    readonly show: string;
-    readonly hide: string;
+    readonly openLogin: (accountLabel: string) => string;
     readonly login: string;
     readonly skip: string;
     readonly timingFailure: string;
@@ -84,7 +83,7 @@ export interface S03SegmentContent {
   readonly animations: readonly S03AnimationSequence[];
 }
 
-export const S03_CONTENT_VERSION = '1.1.0';
+export const S03_CONTENT_VERSION = '1.2.0';
 
 const resultAnimation = (
   accountId: S01AccountId,
@@ -158,17 +157,16 @@ export const s03Content: S03SegmentContent = {
   },
   page: {
     title: 'Wieder anmelden',
-    accountListLabel: 'Konten',
     progress: (completed) => `Wieder anmelden: ${completed}/3 abgeschlossen`,
     resultLine: 'Alle drei Konten sind wieder geöffnet. Gleich geht es weiter.',
   },
   controls: {
+    accountDataLabel: 'Kontodaten',
     passwordLabel: 'Passwort',
     showPassword: (accountLabel) => `Passwort für ${accountLabel} anzeigen`,
     hidePassword: (accountLabel) => `Passwort für ${accountLabel} verbergen`,
-    show: 'Anzeigen',
-    hide: 'Verbergen',
-    login: 'Einloggen',
+    openLogin: (accountLabel) => `Anmelden mit ${accountLabel}`,
+    login: 'Anmelden',
     skip: 'Ich weiß es nicht mehr — weiter',
     timingFailure:
       'Das Speichern des Zeitereignisses ist fehlgeschlagen. Der nächste Schritt bleibt gesperrt.',
@@ -177,13 +175,11 @@ export const s03Content: S03SegmentContent = {
   },
   narration: {
     guideName: 'PassWo',
-    intro:
-      'Wähle ein Konto und melde dich an. Wenn du das Passwort nicht mehr weißt, wähle „Ich weiß es nicht mehr — weiter“.',
+    intro: 'Melde dich jetzt mit den eben gewählten Passwörtern erneut an.',
     accountSuccess: {
-      'campus-id': 'CampusID ist wieder geöffnet. Wähle als Nächstes ein weiteres Konto.',
-      'campus-mail': 'CampusMail ist wieder geöffnet. Wähle als Nächstes ein weiteres Konto.',
-      'campus-board-archive':
-        'CampusBoard Archiv ist wieder geöffnet. Wähle als Nächstes ein weiteres Konto.',
+      'campus-id': 'CampusID ist wieder geöffnet.',
+      'campus-mail': 'CampusMail ist wieder geöffnet.',
+      'campus-board-archive': 'CampusBoard Archiv ist wieder geöffnet.',
     },
     accountSkipped: {
       'campus-id':
