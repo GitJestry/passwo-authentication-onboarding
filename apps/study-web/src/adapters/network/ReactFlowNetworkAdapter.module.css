@@ -46,6 +46,11 @@
   opacity: 0;
 }
 
+.nodeFrame[data-dimmed="true"] {
+  opacity: 0.34;
+  transform: scale(0.96);
+}
+
 .nodeButton {
   display: grid;
   width: 100%;
@@ -272,6 +277,26 @@
   stroke-width: var(--border-width-medium);
 }
 
+.edge {
+  transition: opacity var(--motion-standard) var(--motion-ease-out);
+}
+
+.edge :global([data-network-edge-visible="false"]) {
+  opacity: 0;
+  visibility: hidden;
+}
+
+.edge :global([data-network-edge-dimmed="true"]) {
+  opacity: 0.25;
+}
+
+.voidEdge.edgeNeutral :global(.react-flow__edge-path) {
+  stroke: color-mix(in srgb, var(--color-on-inverse) 46%, transparent);
+  stroke-width: var(--border-width-medium);
+  stroke-dasharray: none;
+  opacity: 1;
+}
+
 :global(.edge-kind-dependency) :global(.react-flow__edge-path) {
   stroke: var(--color-accent-strong);
   stroke-width: 3px;
@@ -285,9 +310,16 @@
 }
 
 .edgeChecking :global(.react-flow__edge-path) {
-  stroke: var(--color-accent-strong);
-  stroke-width: var(--border-width-medium);
+  stroke: var(--color-positive);
+  stroke-width: 3px;
   stroke-dasharray: 5 5;
+}
+
+.edgeOpened :global(.react-flow__edge-path) {
+  stroke: var(--color-positive);
+  stroke-width: 3px;
+  stroke-dasharray: none;
+  opacity: 1;
 }
 
 .edgeDirect :global(.react-flow__edge-path) {
@@ -373,6 +405,10 @@
   }
 
   .nodeFrame .nodeCircle {
+    transition: none;
+  }
+
+  .edge {
     transition: none;
   }
 }

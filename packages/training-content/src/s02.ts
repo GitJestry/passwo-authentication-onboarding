@@ -368,27 +368,27 @@ function unlockAnimation(account: S02AccountContent): S02AnimationSequence {
         pose: 'flight',
         from: 'bottom-left',
         to: 'focused-node',
-        durationMs: 320,
+        durationMs: 520,
       },
-      { type: 'highlight', targetId: account.id, emphasis: 'positive', durationMs: 180 },
+      { type: 'highlight', targetId: account.id, emphasis: 'positive', durationMs: 220 },
       { type: 'announce', messageId: account.narrationIds.open },
     ],
     reducedMotion: { strategy: 'instant-end-state', maxDurationMs: 0 },
-    maxDurationMs: 500,
+    maxDurationMs: 740,
   };
 }
 
 function revealDetailsAnimation(account: S02AccountContent): S02AnimationSequence {
   const steps: S02AnimationStep[] = [];
   account.details.forEach((detail, index) => {
-    if (index > 0) steps.push({ type: 'pause', durationMs: 60 });
-    steps.push({ type: 'reveal', targetId: detail.id, durationMs: 140 });
+    if (index > 0) steps.push({ type: 'pause', durationMs: 70 });
+    steps.push({ type: 'reveal', targetId: detail.id, durationMs: 260 });
   });
   return {
     id: account.detailRevealAnimationId,
     steps,
     reducedMotion: { strategy: 'instant-end-state', maxDurationMs: 0 },
-    maxDurationMs: account.details.length * 140 + (account.details.length - 1) * 60,
+    maxDurationMs: account.details.length * 440 + (account.details.length - 1) * 70,
   };
 }
 

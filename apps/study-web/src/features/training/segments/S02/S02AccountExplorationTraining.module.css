@@ -69,7 +69,7 @@
 
 .voidScene {
   position: relative;
-  min-height: 38rem;
+  min-height: clamp(30rem, calc(100dvh - 14rem), 38rem);
   flex: 1;
   overflow: hidden;
   background:
@@ -81,7 +81,7 @@
 
 .networkPanel {
   position: absolute;
-  inset: 0 clamp(17rem, 24vw, 21rem) 0 0;
+  inset: 0;
   min-width: 0;
 }
 
@@ -109,8 +109,6 @@
 .completion {
   position: absolute;
   z-index: 2;
-  right: var(--space-4);
-  width: min(20rem, calc(24vw - var(--space-8)));
   padding: var(--space-4);
   border: 1px solid color-mix(in srgb, var(--color-surface-primary) 22%, transparent);
   border-radius: var(--radius-medium);
@@ -119,8 +117,41 @@
 }
 
 .preview {
-  top: 5.4rem;
+  width: min(19rem, calc(100% - var(--space-8)));
   border-top: var(--space-1) solid var(--color-accent-soft);
+  pointer-events: none;
+  transition:
+    opacity var(--motion-fast) var(--motion-ease-out),
+    transform var(--motion-fast) var(--motion-ease-out);
+}
+
+.preview[data-positioned="false"] {
+  top: var(--space-4);
+  left: var(--space-4);
+  opacity: 0;
+  pointer-events: none;
+}
+
+.preview::before {
+  position: absolute;
+  top: 50%;
+  width: 0.8rem;
+  height: 0.8rem;
+  border: inherit;
+  border-top: 0;
+  border-right: 0;
+  background: color-mix(in srgb, #0d1d2c 96%, transparent);
+  content: "";
+}
+
+.preview[data-side="right"]::before {
+  left: -0.45rem;
+  transform: translateY(-50%) rotate(45deg);
+}
+
+.preview[data-side="left"]::before {
+  right: -0.45rem;
+  transform: translateY(-50%) rotate(225deg);
 }
 
 .preview h2 {
@@ -136,7 +167,9 @@
 }
 
 .completion {
+  right: var(--space-4);
   bottom: var(--space-4);
+  width: min(20rem, calc(100% - var(--space-8)));
   display: grid;
   gap: var(--space-3);
   border-left: var(--space-1) solid var(--color-positive);
@@ -186,24 +219,29 @@
   z-index: 4;
   bottom: clamp(var(--space-4), 3vw, var(--space-7));
   left: clamp(var(--space-4), 3vw, var(--space-7));
-  display: flex;
-  width: min(38rem, calc(100% - var(--space-8)));
-  align-items: end;
-  gap: var(--space-3);
+  width: clamp(6.25rem, 9vw, 8.5rem);
   pointer-events: none;
   will-change: transform, opacity;
 }
 
 .passWoImage {
-  width: clamp(6.25rem, 9vw, 8.5rem);
+  display: block;
+  width: 100%;
   height: auto;
-  flex: 0 0 auto;
   object-fit: contain;
 }
 
 .narration {
+  position: absolute;
+  bottom: 0;
+  left: calc(100% + var(--space-3));
   width: min(28rem, calc(100vw - 14rem));
-  pointer-events: auto;
+  pointer-events: none;
+}
+
+.passWo[data-speech-side="left"] .narration {
+  right: calc(100% + var(--space-3));
+  left: auto;
 }
 
 .timingStatus {
@@ -265,7 +303,6 @@
   }
 
   .localStatus,
-  .preview,
   .completion,
   .passWo {
     position: absolute;
@@ -276,15 +313,10 @@
     right: var(--space-4);
   }
 
-  .preview,
   .completion {
     right: var(--space-4);
     left: var(--space-4);
     width: auto;
-  }
-
-  .preview {
-    top: 37rem;
   }
 
   .completion {
@@ -294,12 +326,16 @@
   .passWo {
     right: var(--space-4);
     left: var(--space-4);
-    width: auto;
+    width: clamp(6.25rem, 20vw, 8.5rem);
   }
 }
 
 @media (prefers-reduced-motion: reduce) {
   .passWo {
     will-change: auto;
+  }
+
+  .preview {
+    transition: none;
   }
 }

@@ -22,6 +22,7 @@ export interface NetworkPresentationSnapshot {
     readonly pose: PassWoPose;
   };
   readonly revealedNodeIds: readonly string[];
+  readonly drawingTargetNodeId?: string | null;
   readonly highlightedNodeId: string | null;
   readonly emphasis?: NetworkPresentationEmphasis | null;
   readonly announcedMessageId: string | null;
@@ -34,6 +35,7 @@ export interface NetworkMotionAdapterOptions {
   readonly getCharacterElement: () => HTMLElement | null;
   readonly getActiveNodeElement: () => HTMLElement | null;
   readonly getNodeElement: (nodeId: string) => HTMLElement | null;
+  readonly getEdgeElement?: (targetNodeId: string) => SVGPathElement | null;
   readonly prefersReducedMotion: () => boolean;
 }
 
@@ -47,6 +49,7 @@ export function createInitialNetworkPresentation(
       pose: 'dock',
     },
     revealedNodeIds: [...new Set(initialRevealedNodeIds)],
+    drawingTargetNodeId: null,
     highlightedNodeId: null,
     emphasis: null,
     announcedMessageId: null,
@@ -70,6 +73,7 @@ export class NetworkMotionAdapter implements AnimationPlayerPort {
   readonly #getCharacterElement: () => HTMLElement | null;
   readonly #getActiveNodeElement: () => HTMLElement | null;
   readonly #getNodeElement: (nodeId: string) => HTMLElement | null;
+  readonly #getEdgeElement: (targetNodeId: string) => SVGPathElement | null;
   readonly #prefersReducedMotion: () => boolean;
   #activeAnimation: AnimationPlaybackControlsWithThen | null = null;
   #activeSequence: AnimationSequence | null = null;
@@ -83,6 +87,7 @@ export class NetworkMotionAdapter implements AnimationPlayerPort {
     getCharacterElement,
     getActiveNodeElement,
     getNodeElement,
+    getEdgeElement = () => null,
     prefersReducedMotion,
   }: NetworkMotionAdapterOptions) {
     this.#snapshot = createInitialNetworkPresentation(initialNodeId, initialRevealedNodeIds);
@@ -90,6 +95,7 @@ export class NetworkMotionAdapter implements AnimationPlayerPort {
     this.#getCharacterElement = getCharacterElement;
     this.#getActiveNodeElement = getActiveNodeElement;
     this.#getNodeElement = getNodeElement;
+    this.#getEdgeElement = getEdgeElement;
     this.#prefersReducedMotion = prefersReducedMotion;
   }
 
@@ -147,14 +153,22 @@ export class NetworkMotionAdapter implements AnimationPlayerPort {
       case 'reveal': {
         this.#setSnapshot({
           ...this.#snapshot,
+          drawingTargetNodeId: step.targetId,
+        });
+        await nextFrame();
+        const edge = this.#getEdgeElement(step.targetId);
+        if (edge !== null) await this.#drawEdge(edge, step.durationMs);
+        this.#setSnapshot({
+          ...this.#snapshot,
           revealedNodeIds: [...new Set([...this.#snapshot.revealedNodeIds, step.targetId])],
+          drawingTargetNodeId: null,
         });
         await nextFrame();
         const node = this.#getNodeElement(step.targetId);
         if (node === null) throw new Error(`missing-network-node:${step.targetId}`);
-        await this.#animate(node, step.durationMs, {
+        await this.#animate(node, Math.min(step.durationMs, 180), {
           opacity: [0, 1],
-          transform: ['translate3d(14px, 0, 0)', 'translate3d(0, 0, 0)'],
+          transform: ['scale(0.72)', 'scale(1.04)', 'scale(1)'],
         });
         node.style.removeProperty('opacity');
         node.style.removeProperty('transform');
@@ -169,6 +183,16 @@ export class NetworkMotionAdapter implements AnimationPlayerPort {
         await nextFrame();
         const node = this.#getNodeElement(step.targetId);
         if (node === null) throw new Error(`missing-network-node:${step.targetId}`);
+        const shackle = node.querySelector<SVGPathElement>(
+          '[data-network-status-marker="locked"] path',
+        );
+        if (shackle !== null) {
+          shackle.style.transformBox = 'fill-box';
+          shackle.style.transformOrigin = 'left bottom';
+          await this.#animate(shackle, Math.min(step.durationMs, 180), {
+            transform: ['translateY(0) rotate(0deg)', 'translateY(-3px) rotate(-18deg)'],
+          });
+        }
         await this.#animate(node, step.durationMs, {
           transform: ['scale(0.97)', 'scale(1.025)', 'scale(1)'],
         });
@@ -203,6 +227,19 @@ export class NetworkMotionAdapter implements AnimationPlayerPort {
     if (this.#activeAnimation === animation) this.#activeAnimation = null;
   }
 
+  async #drawEdge(edge: SVGPathElement, durationMs: number): Promise<void> {
+    const length = edge.getTotalLength();
+    edge.style.strokeDasharray = `${length}`;
+    edge.style.strokeDashoffset = `${length}`;
+    edge.style.opacity = '1';
+    await this.#animate(edge, durationMs, {
+      strokeDashoffset: [length, 0],
+    });
+    edge.style.removeProperty('stroke-dasharray');
+    edge.style.removeProperty('stroke-dashoffset');
+    edge.style.removeProperty('opacity');
+  }
+
   #applyEndState(sequence: AnimationSequence): void {
     for (const step of sequence.steps) {
       if (step.type === 'move-character') {
@@ -219,6 +256,7 @@ export class NetworkMotionAdapter implements AnimationPlayerPort {
         this.#snapshot = {
           ...this.#snapshot,
           revealedNodeIds: [...new Set([...this.#snapshot.revealedNodeIds, step.targetId])],
+          drawingTargetNodeId: null,
         };
       } else if (step.type === 'highlight') {
         this.#snapshot = { ...this.#snapshot, emphasis: step.emphasis };

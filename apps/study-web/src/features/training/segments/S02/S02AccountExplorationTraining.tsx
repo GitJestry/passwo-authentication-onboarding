@@ -1,5 +1,5 @@
 import { s02Content } from '@passwo/training-content';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useLayoutEffect, useRef, useState, type CSSProperties } from 'react';
 import passWoDockAsset from '../../../../assets/passwo/passwo-dock.png';
 import { NetworkMotionAdapter } from '../../../../adapters/network/NetworkMotionAdapter.js';
 import {
@@ -10,7 +10,10 @@ import {
   S02AccountExplorationController,
   type S02AccountExplorationControllerSnapshot,
 } from './S02AccountExplorationController.js';
-import { PassWoSpeechBubble } from '../../PassWoSpeechBubble.js';
+import {
+  PassWoSpeechBubble,
+  type PassWoSpeechPlacement,
+} from '../../PassWoSpeechBubble.js';
 import styles from './S02AccountExplorationTraining.module.css';
 
 export type S02TimingState = 'starting' | 'startFailed' | 'active' | 'ending' | 'endFailed';
@@ -35,6 +38,17 @@ interface Runtime {
   readonly renderer: ReactFlowNetworkAdapter;
 }
 
+interface PreviewPosition {
+  readonly nodeId: string;
+  readonly left: number;
+  readonly top: number;
+  readonly side: 'left' | 'right';
+}
+
+function clamp(value: number, minimum: number, maximum: number): number {
+  return Math.min(maximum, Math.max(minimum, value));
+}
+
 export function S02AccountExplorationTraining({
   timingState = 'active',
   timingErrorCode = null,
@@ -45,10 +59,14 @@ export function S02AccountExplorationTraining({
 }: S02AccountExplorationTrainingProps) {
   const characterAnimationAnchorRef = useRef<HTMLDivElement | null>(null);
   const networkHostRef = useRef<HTMLDivElement | null>(null);
+  const sceneRef = useRef<HTMLDivElement | null>(null);
+  const previewRef = useRef<HTMLElement | null>(null);
   const onAllAccountsUnderstoodRef = useRef(onAllAccountsUnderstood);
   onAllAccountsUnderstoodRef.current = onAllAccountsUnderstood;
   const [runtime, setRuntime] = useState<Runtime | null>(null);
   const [snapshot, setSnapshot] = useState<S02AccountExplorationControllerSnapshot | null>(null);
+  const [previewPosition, setPreviewPosition] = useState<PreviewPosition | null>(null);
+  const [speechPlacement, setSpeechPlacement] = useState<PassWoSpeechPlacement>('right');
 
   useEffect(() => {
     let controller: S02AccountExplorationController | null = null;
@@ -64,6 +82,10 @@ export function S02AccountExplorationTraining({
       getNodeElement: (nodeId) =>
         networkHostRef.current?.querySelector<HTMLElement>(
           `[data-scene-node-button="${nodeId}"]`,
+        ) ?? null,
+      getEdgeElement: (targetNodeId) =>
+        networkHostRef.current?.querySelector<SVGPathElement>(
+          `[data-network-edge-target="${targetNodeId}"] .react-flow__edge-path`,
         ) ?? null,
       prefersReducedMotion,
     });
@@ -82,6 +104,101 @@ export function S02AccountExplorationTraining({
       void controller?.dispose();
     };
   }, []);
+
+  useLayoutEffect(() => {
+    const activeAccountId = snapshot?.scene.activeAccountId ?? null;
+    const previewNodeId = snapshot?.scene.activePreviewDetailId ?? null;
+    const sceneElement = sceneRef.current;
+    if (sceneElement === null) return;
+
+    const updateGeometry = () => {
+      const sceneRect = sceneElement.getBoundingClientRect();
+      if (activeAccountId !== null) {
+        const accountElement = networkHostRef.current?.querySelector<HTMLElement>(
+          `[data-scene-node-button="${activeAccountId}"]`,
+        );
+        if (accountElement !== null && accountElement !== undefined) {
+          const accountRect = accountElement.getBoundingClientRect();
+          const availableLeft = accountRect.left - sceneRect.left;
+          const availableRight = sceneRect.right - accountRect.right;
+          setSpeechPlacement(availableRight >= availableLeft ? 'right' : 'left');
+        }
+      } else {
+        setSpeechPlacement('right');
+      }
+
+      const previewElement = previewRef.current;
+      if (previewNodeId === null || previewElement === null) {
+        setPreviewPosition(null);
+        return;
+      }
+      const nodeElement = networkHostRef.current?.querySelector<HTMLElement>(
+        `[data-scene-node-button="${previewNodeId}"]`,
+      );
+      if (nodeElement === null || nodeElement === undefined) return;
+
+      const nodeRect = nodeElement.getBoundingClientRect();
+      const previewRect = previewElement.getBoundingClientRect();
+      const gap = 18;
+      const margin = 16;
+      const availableRight = sceneRect.right - nodeRect.right;
+      const availableLeft = nodeRect.left - sceneRect.left;
+      const clampedTop = Math.round(
+        clamp(
+          nodeRect.top - sceneRect.top + nodeRect.height / 2 - previewRect.height / 2,
+          margin,
+          Math.max(margin, sceneRect.height - previewRect.height - margin),
+        ),
+      );
+      const leftBySide = {
+        right: Math.round(
+          clamp(
+            nodeRect.right - sceneRect.left + gap,
+            margin,
+            Math.max(margin, sceneRect.width - previewRect.width - margin),
+          ),
+        ),
+        left: Math.round(
+          clamp(
+            nodeRect.left - sceneRect.left - previewRect.width - gap,
+            margin,
+            Math.max(margin, sceneRect.width - previewRect.width - margin),
+          ),
+        ),
+      };
+      const preferredSide =
+        availableRight >= previewRect.width + gap || availableRight >= availableLeft
+          ? 'right'
+          : 'left';
+      const completionRect = sceneElement
+        .querySelector<HTMLElement>(`[aria-label="${s02Content.page.completion}"]`)
+        ?.getBoundingClientRect();
+      const overlapsCompletion = (side: 'left' | 'right') =>
+        completionRect !== undefined &&
+        leftBySide[side] + previewRect.width > completionRect.left - sceneRect.left &&
+        leftBySide[side] < completionRect.right - sceneRect.left &&
+        clampedTop + previewRect.height > completionRect.top - sceneRect.top &&
+        clampedTop < completionRect.bottom - sceneRect.top;
+      const alternateSide = preferredSide === 'right' ? 'left' : 'right';
+      const side =
+        overlapsCompletion(preferredSide) && !overlapsCompletion(alternateSide)
+          ? alternateSide
+          : preferredSide;
+      setPreviewPosition({
+        nodeId: previewNodeId,
+        side,
+        left: leftBySide[side],
+        top: clampedTop,
+      });
+    };
+
+    const frame = requestAnimationFrame(updateGeometry);
+    window.addEventListener('resize', updateGeometry);
+    return () => {
+      cancelAnimationFrame(frame);
+      window.removeEventListener('resize', updateGeometry);
+    };
+  }, [snapshot?.scene.activeAccountId, snapshot?.scene.activePreviewDetailId]);
 
   if (runtime === null || snapshot === null) return null;
 
@@ -108,6 +225,11 @@ export function S02AccountExplorationTraining({
   const timingFailure =
     externalTimingError !== null || timingState === 'startFailed' || timingState === 'endFailed';
   const interactionBlocked = timingState !== 'active' || externalTimingError !== null;
+  const positionedPreview =
+    activePreview !== undefined && previewPosition?.nodeId === activePreview.id;
+  const previewStyle: CSSProperties | undefined = positionedPreview
+    ? { left: previewPosition.left, top: previewPosition.top }
+    : undefined;
 
   return (
     <section className={styles.training} aria-label={s02Content.trainingAriaLabel}>
@@ -122,7 +244,7 @@ export function S02AccountExplorationTraining({
           </p>
         </header>
 
-        <div className={styles.voidScene}>
+        <div ref={sceneRef} className={styles.voidScene}>
           <div ref={networkHostRef} className={styles.networkPanel}>
             <ReactFlowNetwork
               adapter={renderer}
@@ -147,7 +269,14 @@ export function S02AccountExplorationTraining({
           ) : null}
 
           {activePreview !== undefined ? (
-            <section className={styles.preview} aria-labelledby="s02-preview-title">
+            <section
+              ref={previewRef}
+              className={styles.preview}
+              data-positioned={positionedPreview}
+              data-side={positionedPreview ? previewPosition.side : 'right'}
+              style={previewStyle}
+              aria-labelledby="s02-preview-title"
+            >
               <p className={styles.cardLabel}>{s02Content.page.previewTitle}</p>
               <h2 id="s02-preview-title">{activePreview.label}</h2>
               <p>{activePreview.preview}</p>
@@ -170,6 +299,7 @@ export function S02AccountExplorationTraining({
             ref={characterAnimationAnchorRef}
             className={styles.passWo}
             data-passwo-placement={presentation.character.placement}
+            data-speech-side={speechPlacement === 'left' ? 'left' : 'right'}
           >
             <img
               className={styles.passWoImage}
@@ -187,7 +317,7 @@ export function S02AccountExplorationTraining({
                   : []),
               ]}
               speechKey={`${scene.narrationId}-${completionNarration}`}
-              placement="right"
+              placement={speechPlacement}
               tone="dark"
             />
           </div>

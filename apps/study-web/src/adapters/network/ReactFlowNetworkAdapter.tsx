@@ -91,6 +91,7 @@ interface SceneNodeData extends Record<string, unknown> {
   readonly visible: boolean;
   readonly highlighted: boolean;
   readonly active: boolean;
+  readonly dimmed: boolean;
   readonly interactionDisabled: boolean;
   readonly visualVariant: NetworkVisualVariant;
   readonly nodeSize: 'main' | 'detail';
@@ -257,6 +258,7 @@ function SceneNodeCircle({ data }: NodeProps<SceneFlowNode>) {
     visible,
     highlighted,
     active,
+    dimmed,
     interactionDisabled,
     visualVariant,
     nodeSize,
@@ -268,6 +270,7 @@ function SceneNodeCircle({ data }: NodeProps<SceneFlowNode>) {
     <div
       className={styles.nodeFrame}
       data-active={active}
+      data-dimmed={dimmed}
       data-highlighted={highlighted}
       data-kind={sceneNode.kind}
       data-locked={sceneNode.locked === true}
@@ -322,6 +325,10 @@ const nodeTypes = {
 interface CircleEdgeData extends Record<string, unknown> {
   readonly sourceCircle: CircleGeometry;
   readonly targetCircle: CircleGeometry;
+  readonly targetNodeId: string;
+  readonly visible: boolean;
+  readonly drawing: boolean;
+  readonly dimmed: boolean;
 }
 
 type CircleFlowEdge = Edge<CircleEdgeData, 'circle-edge'>;
@@ -355,13 +362,20 @@ function CircleEdge({
     ...(style === undefined ? {} : { style }),
   };
   return (
-    <BaseEdge
-      id={id}
-      path={edge.path}
-      labelX={edge.labelX}
-      labelY={edge.labelY}
-      {...optionalEdgeProps}
-    />
+    <g
+      data-network-edge-target={data.targetNodeId}
+      data-network-edge-visible={data.visible || data.drawing}
+      data-network-edge-drawing={data.drawing}
+      data-network-edge-dimmed={data.dimmed}
+    >
+      <BaseEdge
+        id={id}
+        path={edge.path}
+        labelX={edge.labelX}
+        labelY={edge.labelY}
+        {...optionalEdgeProps}
+      />
+    </g>
   );
 }
 
@@ -372,7 +386,7 @@ const edgeTypes = {
 const edgeClassByStatus: Record<SceneEdgeStatus, string> = {
   neutral: styles.edgeNeutral ?? '',
   checking: styles.edgeChecking ?? '',
-  opened: styles.edgeNeutral ?? '',
+  opened: styles.edgeOpened ?? '',
   direct: styles.edgeDirect ?? '',
   similar: styles.edgeSimilar ?? '',
   blocked: styles.edgeBlocked ?? '',
@@ -390,6 +404,14 @@ function toReactFlowElements(
   showEdgeLabels: boolean,
 ): { readonly nodes: readonly SceneFlowNode[]; readonly edges: readonly CircleFlowEdge[] } {
   const revealed = new Set(presentation.revealedNodeIds);
+  const drawingTargetNodeId = presentation.drawingTargetNodeId ?? null;
+  const activeGroupNodeIds = new Set<string>();
+  if (activeNodeId !== null) {
+    activeGroupNodeIds.add(activeNodeId);
+    for (const edge of snapshot.edges) {
+      if (edge.sourceId === activeNodeId) activeGroupNodeIds.add(edge.targetId);
+    }
+  }
   const positionedNodes = snapshot.nodes.map((node) => ({
     node,
     ...layoutSceneNode(node, canvas, visualVariant),
@@ -408,6 +430,7 @@ function toReactFlowElements(
         visible: revealed.has(node.id),
         highlighted: presentation.highlightedNodeId === node.id,
         active: activeNodeId === node.id,
+        dimmed: activeNodeId !== null && !activeGroupNodeIds.has(node.id),
         interactionDisabled,
         visualVariant,
         nodeSize: node.kind === 'account' ? 'main' : 'detail',
@@ -434,8 +457,15 @@ function toReactFlowElements(
           selectable: false,
           animated: false,
           zIndex: 0,
-          className: `${styles.edge} ${edgeClassByStatus[edge.status]} edge-status-${edge.status} edge-kind-${edge.kind}`,
-          data: { sourceCircle, targetCircle },
+          className: `${styles.edge} ${visualVariant === 'void' ? styles.voidEdge : ''} ${edgeClassByStatus[edge.status]} edge-status-${edge.status} edge-kind-${edge.kind}`,
+          data: {
+            sourceCircle,
+            targetCircle,
+            targetNodeId: edge.targetId,
+            visible: revealed.has(edge.targetId),
+            drawing: drawingTargetNodeId === edge.targetId,
+            dimmed: activeNodeId !== null && edge.sourceId !== activeNodeId,
+          },
           ariaLabel: edge.label ?? `${edge.sourceId} mit ${edge.targetId} verbunden`,
         },
       ];
@@ -508,10 +538,21 @@ export function ReactFlowNetwork({
           : nextCanvas,
       );
     };
-    const observer = new ResizeObserver(updateCanvas);
+    let frame: number | null = null;
+    const scheduleCanvasUpdate = () => {
+      if (frame !== null) return;
+      frame = requestAnimationFrame(() => {
+        frame = null;
+        updateCanvas();
+      });
+    };
+    const observer = new ResizeObserver(scheduleCanvasUpdate);
     observer.observe(container);
     updateCanvas();
-    return () => observer.disconnect();
+    return () => {
+      observer.disconnect();
+      if (frame !== null) cancelAnimationFrame(frame);
+    };
   }, []);
 
   useEffect(
