@@ -122,7 +122,7 @@ export interface S02SegmentContent {
   readonly animations: readonly S02AnimationSequence[];
 }
 
-export const S02_CONTENT_VERSION = '3.0.0';
+export const S02_CONTENT_VERSION = '3.1.0';
 
 const introId = 's02.accounts.intro';
 
@@ -291,8 +291,8 @@ const accounts = [
     symbolId: 'campus-board-archive',
     position: { x: 0.42, y: 0.43 },
     detailKind: 'content',
-    edgeKind: null,
-    edgeLabel: null,
+    edgeKind: 'association',
+    edgeLabel: 'Lokaler Inhalt im CampusBoard Archiv',
     unlockAnimationId: 's02-unlock-campus-board-archive',
     detailRevealAnimationId: 's02-reveal-campus-board-archive-details',
     narrationIds: {

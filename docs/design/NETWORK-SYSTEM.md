@@ -12,7 +12,7 @@ Das Netzwerk zeigt Konten, abhängige Dienste, Funktionen, Passwortbeziehungen u
   blockierter Weg.
 - `NodeStatus`: neutral, verstanden, abrufbar, nicht-erinnert, exponiert, betroffen, geschützt,
   hypothetisch.
-- `EdgeStatus`: neutral, prüfend, direkt, ähnlich, blockiert, hypothetisch.
+- `EdgeStatus`: neutral, prüfend, geöffnet, direkt, ähnlich, blockiert, hypothetisch.
 - `AuthoredPosition`: feste normierte Position im Szenenkoordinatensystem.
 
 ## Zentrale Regeln
@@ -49,15 +49,22 @@ S02 „Konten verstehen“ bildet die erste vollständige Kontenerkundung:
 
 1. CampusID, CampusMail und CampusBoard Archiv sind gleichzeitig als unterschiedliche
    Symbolkreise in festen Positionen sichtbar;
-2. die Konten können in beliebiger Reihenfolge geöffnet werden und behalten ihren Fortschritt;
+2. das zuerst gewählte unvollständige Konto sperrt die Auswahl der beiden anderen Konten, bis
+   alle seine Details geöffnet sind; danach kann das nächste Konto frei gewählt werden;
 3. PassWo bewegt sich beim erstmaligen Öffnen zum Ziel;
-4. das aktive Konto vergrößert sich leicht; nur seine Detailknoten erscheinen schrittweise als
-   Bubbles;
+4. das aktive Konto vergrößert sich leicht; seine Detailknoten erscheinen schrittweise als
+   Bubbles und bleiben zusammen mit bereits geöffneten Konten und Kanten bei späteren Wechseln
+   sichtbar;
 5. CampusID-Dienste verwenden `service`/`dependency`, CampusMail-Funktionen
    `function`/`association`;
-6. CampusBoard-Inhalte verwenden `content` und erzeugen keine ausgehenden Kanten;
-7. jedes Konto erhält erst nach allen eigenen Details den Statusmarker `verstanden`;
-8. der Segmentabschluss ist erst nach allen drei verstandenen Konten verfügbar.
+6. CampusBoard-Inhalte verwenden `content`/`association`; diese Kanten bilden ausschließlich
+   lokale Inhaltszuordnungen im Archiv ab, keine SSO- oder Dienstverbindungen;
+7. nach dem Unlock existieren alle Details und Kanten des Kontos; die Kanten sind zunächst
+   `neutral`, während der Prüfung `checking` und danach `opened`;
+8. `opened` bezeichnet ausschließlich die abgeschlossene Detailöffnung und ist weder
+   `protected` noch `blocked`;
+9. jedes Konto erhält erst nach allen eigenen Details den Statusmarker `verstanden`;
+10. der Segmentabschluss ist erst nach allen drei verstandenen Konten verfügbar.
 
 Die Detailvorschau bleibt eine separate Karte neben dem Graphen. Sie ist kein Bestandteil eines
 Nodes und beeinflusst weder Positionen noch den Trainingsablauf.

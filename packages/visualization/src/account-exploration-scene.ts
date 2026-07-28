@@ -143,6 +143,7 @@ function buildNetwork(
   const activeAccount = definition.accounts.find(({ id }) => id === values.activeAccountId);
   const activeProgress =
     activeAccount === undefined ? undefined : progressFor(values, activeAccount.id);
+  const activeAccountUnderstood = activeAccount === undefined || understood.has(activeAccount.id);
   const accountNodes: readonly SceneNode[] = definition.accounts.map((account) => {
     const accountProgress = progressFor(values, account.id);
     const isActive = activeAccount?.id === account.id;
@@ -163,53 +164,56 @@ function buildNetwork(
       status: understood.has(account.id) ? 'understood' : 'neutral',
       locked: accountProgress?.unlocked !== true,
       position: account.position,
-      selectable: !interactionLocked,
+      selectable:
+        !interactionLocked && (activeAccountUnderstood || activeAccount?.id === account.id),
     };
   });
-  const activeDetailsVisible =
-    activeAccount !== undefined &&
-    activeProgress !== undefined &&
-    activeProgress.unlocked;
-  const openedDetails = new Set(activeProgress?.openedDetailIds ?? []);
   const pendingDetail = activeAccount?.details.find(
     ({ animationId }) => animationId === values.pendingAnimationId,
   );
-  const detailNodes: readonly SceneNode[] =
-    activeAccount === undefined || !activeDetailsVisible
-      ? []
-      : activeAccount.details.map((detail) => ({
-          id: detail.id,
-          kind: activeAccount.detailKind,
-          symbolId: detail.symbolId,
-          label: detail.label,
-          description:
-            pendingDetail?.id === detail.id
-              ? detail.descriptions.checking
-              : openedDetails.has(detail.id)
-                ? detail.descriptions.opened
-                : detail.descriptions.available,
-          status: openedDetails.has(detail.id) ? 'understood' : 'neutral',
-          position: detail.position,
-          selectable: !interactionLocked,
-        }));
-  const activeEdgeKind = activeAccount?.edgeKind ?? null;
-  const edges: readonly SceneEdge[] =
-    activeAccount === undefined || activeEdgeKind === null
-      ? []
-      : activeAccount.details.flatMap((detail) =>
-          openedDetails.has(detail.id)
-            ? [
-                {
-                  id: `${activeAccount.id}--${detail.id}`,
-                  sourceId: activeAccount.id,
-                  targetId: detail.id,
-                  kind: activeEdgeKind,
-                  status: 'neutral',
-                  label: activeAccount.edgeLabel,
-                },
-              ]
-            : [],
-        );
+  const detailNodes: readonly SceneNode[] = definition.accounts.flatMap((account) => {
+    const accountProgress = progressFor(values, account.id);
+    if (accountProgress?.unlocked !== true) return [];
+    const openedDetails = new Set(accountProgress.openedDetailIds);
+    const isActive = activeAccount?.id === account.id;
+    return account.details.map((detail) => ({
+      id: detail.id,
+      kind: account.detailKind,
+      symbolId: detail.symbolId,
+      label: detail.label,
+      description:
+        isActive && pendingDetail?.id === detail.id
+          ? detail.descriptions.checking
+          : openedDetails.has(detail.id)
+            ? detail.descriptions.opened
+            : detail.descriptions.available,
+      status: openedDetails.has(detail.id) ? 'understood' : 'neutral',
+      position: detail.position,
+      selectable: !interactionLocked && isActive,
+    }));
+  });
+  const edges: readonly SceneEdge[] = definition.accounts.flatMap((account) => {
+    const accountProgress = progressFor(values, account.id);
+    const edgeKind = account.edgeKind;
+    if (accountProgress?.unlocked !== true || edgeKind === null) return [];
+    const openedDetails = new Set(accountProgress.openedDetailIds);
+    const isActive = activeAccount?.id === account.id;
+    return account.details.map((detail) => ({
+      id: `${account.id}--${detail.id}`,
+      sourceId: account.id,
+      targetId: detail.id,
+      kind: edgeKind,
+      status:
+        isActive && pendingDetail?.id === detail.id
+          ? 'checking'
+          : openedDetails.has(detail.id)
+            ? 'opened'
+            : 'neutral',
+      label: account.edgeLabel,
+    }));
+  });
+
+  const openedDetails = new Set(activeProgress?.openedDetailIds ?? []);
 
   let accessibleSummary = definition.summaries.initial;
   if (understoodIds.length === definition.accounts.length) {
@@ -287,6 +291,12 @@ export function transitionAccountExplorationScene(
     if (account !== undefined) {
       const accountProgress = progressFor(snapshot, account.id);
       if (accountProgress === undefined) return { snapshot, effects: [] };
+      const activeAccountIsIncomplete =
+        snapshot.activeAccountId !== null &&
+        !snapshot.understoodAccountIds.includes(snapshot.activeAccountId);
+      if (activeAccountIsIncomplete && snapshot.activeAccountId !== account.id) {
+        return { snapshot, effects: [] };
+      }
       if (!accountProgress.unlocked) {
         return {
           snapshot: createSnapshot(definition, {
@@ -406,6 +416,7 @@ export function transitionAccountExplorationScene(
     activePreviewDetailId: detail.id,
   });
   const nextUnderstoodIds = understoodAccountIds(definition, nextProgress);
+  const activeAccountUnderstood = nextUnderstoodIds.includes(activeAccount.id);
   return {
     snapshot: createSnapshot(definition, {
       ...snapshot,
@@ -413,7 +424,9 @@ export function transitionAccountExplorationScene(
       accountProgress: nextProgress,
       activePreviewDetailId: detail.id,
       pendingAnimationId: null,
-      narrationId: detail.narrationId,
+      narrationId: activeAccountUnderstood
+        ? activeAccount.narrationIds.understood
+        : detail.narrationId,
     }),
     effects: [{ type: 'focus-node', nodeId: detail.id }],
   };

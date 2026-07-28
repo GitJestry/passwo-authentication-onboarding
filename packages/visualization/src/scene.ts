@@ -40,6 +40,7 @@ export type SceneEdgeKind =
 export type SceneEdgeStatus =
   | 'neutral'
   | 'checking'
+  | 'opened'
   | 'direct'
   | 'similar'
   | 'blocked'
