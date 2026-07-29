@@ -18,8 +18,14 @@ function configureAllAccounts(controller: PasswordModuleController): void {
 function completeS03(controller: PasswordModuleController): void {
   controller.setRetrievalPasswordValue('campus-board-archive', 'three');
   controller.submitRetrievalLogin('campus-board-archive');
-  controller.skipRetrieval('campus-id');
-  controller.skipRetrieval('campus-mail');
+  for (const accountId of ['campus-id', 'campus-mail'] as const) {
+    controller.skipRetrieval(accountId);
+    controller.startAssistedLogin(accountId);
+    controller.completeAssistedAutofill(accountId);
+    controller.submitAssistedLogin(accountId);
+  }
+  controller.continueS03CompletionFeedback();
+  controller.continueS03CampusStart();
   controller.completeS03WarningSequence();
 }
 

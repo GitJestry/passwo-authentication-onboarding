@@ -95,8 +95,36 @@ export class PasswordModuleController {
     this.#actor.send({ type: 'SKIP_RETRIEVAL', accountId });
   }
 
+  startAssistedLogin(accountId: string): void {
+    if (!this.#actor.getSnapshot().matches({ s03: 'assistance' })) return;
+    if (!this.#actor.getSnapshot().context.accountIds.includes(accountId)) return;
+    this.#actor.send({ type: 'START_ASSISTED_LOGIN', accountId });
+  }
+
+  completeAssistedAutofill(accountId: string): void {
+    if (!this.#actor.getSnapshot().matches({ s03: 'autofilling' })) return;
+    if (!this.#actor.getSnapshot().context.accountIds.includes(accountId)) return;
+    this.#actor.send({ type: 'S03_ASSISTED_AUTOFILL_COMPLETED', accountId });
+  }
+
+  submitAssistedLogin(accountId: string): void {
+    if (!this.#actor.getSnapshot().matches({ s03: 'assistedLogin' })) return;
+    if (!this.#actor.getSnapshot().context.accountIds.includes(accountId)) return;
+    this.#actor.send({ type: 'SUBMIT_ASSISTED_LOGIN', accountId });
+  }
+
+  continueS03CompletionFeedback(): void {
+    if (!this.#actor.getSnapshot().matches({ s03: { completionSequence: 'feedback' } })) return;
+    this.#actor.send({ type: 'S03_COMPLETION_FEEDBACK_CONTINUED' });
+  }
+
+  continueS03CampusStart(): void {
+    if (!this.#actor.getSnapshot().matches({ s03: { completionSequence: 'campusStart' } })) return;
+    this.#actor.send({ type: 'S03_CAMPUS_START_CONTINUED' });
+  }
+
   completeS03WarningSequence(): void {
-    if (!this.#actor.getSnapshot().matches({ s03: 'completionSequence' })) return;
+    if (!this.#actor.getSnapshot().matches({ s03: { completionSequence: 'timeLapse' } })) return;
     this.#actor.send({ type: 'S03_WARNING_SEQUENCE_COMPLETED' });
     void this.#recordS03End();
   }

@@ -71,6 +71,8 @@ fokussierbare Hinweis-Markierung erreicht werden.
 - Tabs werden aus einem SceneSnapshot gerendert.
 - Nur explizit freigegebene Tabs sind anklickbar.
 - Adressleiste ist standardmäßig read-only.
+- Erklärende Zeitraffer können die sichtbare Shell vorübergehend sperren, ohne sie abzudunkeln;
+  Fensterkontrollen, Dock, Tabs und Seiteninhalt bleiben dann bis zum nächsten Lernschritt inaktiv.
 - Browserrahmen beeinflusst keine Studienzeit oder Navigation außerhalb des Artefakts.
 - Der Browser kann abgedunkelt werden, ohne Fokus oder Lesbarkeit der aktiven PassWo-Schicht zu
   verlieren.

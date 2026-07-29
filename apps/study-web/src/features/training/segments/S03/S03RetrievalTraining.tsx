@@ -6,6 +6,7 @@ import {
 } from '@passwo/training-content';
 import {
   deriveCampusIdentity,
+  getRememberedAccountCount,
   getRetrievedAccountCount,
   type PasswordModuleController,
   type PasswordModuleSnapshot,
@@ -57,6 +58,80 @@ function PasswordVisibilityIcon({ revealed }: { readonly revealed: boolean }) {
       <circle cx="12" cy="12" r="2.5" />
       {revealed ? <path d="M4 4 20 20" /> : null}
     </svg>
+  );
+}
+
+function completionNarration(rememberedCount: number): string {
+  if (rememberedCount <= 0) return s03Content.narration.completionByRememberedCount[0];
+  if (rememberedCount === 1) return s03Content.narration.completionByRememberedCount[1];
+  if (rememberedCount === 2) return s03Content.narration.completionByRememberedCount[2];
+  return s03Content.narration.completionByRememberedCount[3];
+}
+
+function CampusStartTimeLapse({
+  running,
+  warning,
+}: {
+  readonly running: boolean;
+  readonly warning: boolean;
+}) {
+  return (
+    <div
+      className={styles.campusTimeLapse}
+      data-running={running || undefined}
+      data-warning={warning || undefined}
+      aria-label={
+        warning
+          ? 'Der Campusalltag wurde wegen einer Warnung bei Campusgram angehalten.'
+          : 'Der fiktive Campusalltag läuft im Zeitraffer.'
+      }
+    >
+      <CampusWebsiteBackdrop
+        accountId="campus-id"
+        interactionLabel="Fiktiver Campusalltag im Zeitraffer"
+      >
+        <section className={styles.campusActivity} aria-hidden="true">
+          <header>
+            <span>Campusstart</span>
+            <strong>{warning ? 'Aktivität angehalten' : 'Heute'}</strong>
+          </header>
+          <div className={styles.activityTimeline}>
+            <article>
+              <span className={styles.activityTime}>08:15</span>
+              <div>
+                <strong>Stundenplan öffnen</strong>
+                <span>Master Campus</span>
+              </div>
+            </article>
+            <article>
+              <span className={styles.activityTime}>09:40</span>
+              <div>
+                <strong>Nachricht lesen</strong>
+                <span>Campus E-Mail</span>
+              </div>
+            </article>
+            <article>
+              <span className={styles.activityTime}>11:05</span>
+              <div>
+                <strong>Beitrag ansehen</strong>
+                <span>Campusgram</span>
+              </div>
+            </article>
+          </div>
+          <span className={styles.timeLapseCursor}>
+            <svg viewBox="0 0 24 24" fill="none">
+              <path
+                d="m5 3 14 10-7 1.4L8.5 21 5 3Z"
+                fill="currentColor"
+                stroke="white"
+                strokeWidth="1.2"
+                strokeLinejoin="round"
+              />
+            </svg>
+          </span>
+        </section>
+      </CampusWebsiteBackdrop>
+    </div>
   );
 }
 
@@ -144,6 +219,7 @@ export function S03RetrievalTraining({
   const animationTargetRef = useRef<HTMLDivElement | null>(null);
   const characterAnimationAnchorRef = useRef<HTMLSpanElement | null>(null);
   const loginTitleRef = useRef<HTMLHeadingElement | null>(null);
+  const assistedLoginButtonRef = useRef<HTMLButtonElement | null>(null);
   const warningConfirmationRef = useRef(() => controller.completeS03WarningSequence());
   warningConfirmationRef.current = () => controller.completeS03WarningSequence();
   const [runtime, setRuntime] = useState<Runtime | null>(null);
@@ -154,6 +230,7 @@ export function S03RetrievalTraining({
   );
   const [loginAccountId, setLoginAccountId] = useState<S01AccountId | null>(null);
   const [guideOpen, setGuideOpen] = useState(false);
+  const [completedGuideSpeechKey, setCompletedGuideSpeechKey] = useState<string | null>(null);
   const initialAccountId =
     s01Content.browser.accounts.find(({ id }) => id === snapshot.context.activeAccountId)?.id ??
     'campus-id';
@@ -193,13 +270,49 @@ export function S03RetrievalTraining({
         activeAccountId: snapshot.context.activeAccountId,
         retrievalResults: snapshot.context.retrievalResults,
       },
-      snapshot.matches({ s03: 'completionSequence' }),
+      snapshot.matches({ s03: { completionSequence: 'timeLapse' } }),
     );
   }, [runtime, snapshot]);
+
+  const assistanceActive = snapshot.matches({ s03: 'assistance' });
+  const autofillingActive = snapshot.matches({ s03: 'autofilling' });
+  const assistedLoginActive = snapshot.matches({ s03: 'assistedLogin' });
+  const completionFeedbackActive = snapshot.matches({
+    s03: { completionSequence: 'feedback' },
+  });
+  const campusStartActive = snapshot.matches({
+    s03: { completionSequence: 'campusStart' },
+  });
+  const timeLapsePhaseActive = snapshot.matches({
+    s03: { completionSequence: 'timeLapse' },
+  });
+  const announcement = presentationSnapshot?.presentation.announcedMessageId ?? null;
+  const timeLapseActive =
+    timeLapsePhaseActive && announcement === 's03.completion.timeskip';
+  const boardWarningActive =
+    timeLapsePhaseActive && announcement === 's03.campus-board.warning';
+
+  useEffect(() => {
+    if (assistanceActive || completionFeedbackActive || campusStartActive || boardWarningActive) {
+      setGuideOpen(true);
+      return;
+    }
+    if (timeLapsePhaseActive) setGuideOpen(false);
+  }, [
+    assistanceActive,
+    boardWarningActive,
+    campusStartActive,
+    completionFeedbackActive,
+    timeLapsePhaseActive,
+  ]);
 
   useEffect(() => {
     if (loginAccountId !== null) loginTitleRef.current?.focus();
   }, [loginAccountId]);
+
+  useEffect(() => {
+    if (assistedLoginActive) assistedLoginButtonRef.current?.focus();
+  }, [assistedLoginActive]);
 
   if (runtime === null || presentationSnapshot === null) {
     return <S03InitialBrowserSurface activeAccountId={initialAccountId} />;
@@ -211,6 +324,7 @@ export function S03RetrievalTraining({
   if (account === undefined) return null;
 
   const completedCount = getRetrievedAccountCount(snapshot.context);
+  const rememberedCount = getRememberedAccountCount(snapshot.context);
   const result = snapshot.context.retrievalResults[account.id] ?? 'pending';
   const activeValue = snapshot.context.retrievalPasswordValues[account.id] ?? '';
   const campusIdentity = deriveCampusIdentity(snapshot.context.displayName ?? '');
@@ -229,38 +343,69 @@ export function S03RetrievalTraining({
     isEnding ||
     snapshot.matches({ s03: 'endFailed' });
   const interactionBlocked =
-    externalTimingError !== null || localTimingFailure || isStarting || completionSequenceActive;
+    externalTimingError !== null ||
+    localTimingFailure ||
+    isStarting ||
+    assistanceActive ||
+    autofillingActive ||
+    assistedLoginActive ||
+    completionSequenceActive;
   const timingFailure = externalTimingError !== null || localTimingFailure;
-  const announcement = presentationSnapshot.presentation.announcedMessageId;
-  const timeLapseActive = announcement === 's03.completion.result';
-  const boardWarningActive = announcement === 's03.campus-board.warning';
   const warningConfirmationAvailable =
     presentationSnapshot.warningState === 'ready' && boardWarningActive;
   const guideMessage = boardWarningActive
     ? s03Content.narration.warning
-    : timeLapseActive
-      ? s03Content.page.resultLine
-      : result === 'retrievable'
-        ? s03Content.narration.accountSuccess[account.id]
-        : result === 'not-remembered'
-          ? s03Content.narration.accountSkipped[account.id]
-          : s03Content.narration.intro;
+    : assistanceActive
+      ? s03Content.narration.retrievalHelp
+      : completionFeedbackActive
+        ? completionNarration(rememberedCount)
+        : campusStartActive
+          ? s03Content.narration.campusStart
+          : result === 'retrievable'
+            ? s03Content.narration.accountSuccess[account.id]
+            : result === 'assisted'
+              ? s03Content.narration.accountAssisted[account.id]
+              : result === 'not-remembered'
+                ? s03Content.narration.retrievalHelp
+                : s03Content.narration.intro;
+  const guidePhase = boardWarningActive
+    ? 'warning'
+    : assistanceActive
+      ? 'assistance'
+      : completionFeedbackActive
+        ? 'completion-feedback'
+        : campusStartActive
+          ? 'campus-start'
+          : autofillingActive
+            ? 'autofilling'
+            : assistedLoginActive
+              ? 'assisted-login'
+              : 'login';
+  const guideSpeechKey = `${account.id}-${result}-${guidePhase}-${announcement ?? 'idle'}`;
+  const guideSpeechCompleted = completedGuideSpeechKey === guideSpeechKey;
+  const assistanceActionAvailable = assistanceActive && guideSpeechCompleted;
   const browserSnapshot: BrowserShellSnapshot = {
     tabs: s01Content.browser.accounts.map((tabAccount) => ({
       id: tabAccount.id,
       label: tabAccount.label,
       icon: <NetworkSymbol symbolId={tabAccount.symbolId} />,
       enabled: !interactionBlocked,
-      ...(snapshot.context.retrievalResults[tabAccount.id] === 'retrievable'
-        ? { status: 'complete' as const }
-        : snapshot.context.retrievalResults[tabAccount.id] === 'not-remembered'
-          ? { status: 'attention' as const }
+      ...(boardWarningActive && tabAccount.id === 'campus-board-archive'
+        ? { status: 'danger' as const }
+        : snapshot.context.retrievalResults[tabAccount.id] === 'retrievable' ||
+            snapshot.context.retrievalResults[tabAccount.id] === 'assisted'
+          ? { status: 'complete' as const }
           : {}),
     })),
-    activeTabId: account.id,
-    address: account.address,
+    activeTabId: completionSequenceActive ? 'campus-id' : account.id,
+    address:
+      completionSequenceActive
+        ? (s01Content.browser.accounts.find(({ id }) => id === 'campus-id')?.address ??
+          account.address)
+        : account.address,
     dimmed: guideOpen,
     dimStrength: 'soft',
+    locked: timeLapsePhaseActive,
   };
 
   function toggleReveal(accountId: string): void {
@@ -315,11 +460,24 @@ export function S03RetrievalTraining({
                 helpId="s03-guide"
                 openHelpLabel="PassWo-Hinweis öffnen"
                 speech={[guideMessage]}
-                speechKey={`${account.id}-${result}-${announcement ?? 'login'}`}
+                speechKey={guideSpeechKey}
                 speechPlacement="right"
-                awaitsAction={warningConfirmationAvailable}
+                hasNextSpeech={completionFeedbackActive || campusStartActive}
+                awaitsAction={assistanceActive || warningConfirmationAvailable}
                 speechFooter={
-                  warningConfirmationAvailable ? (
+                  assistanceActionAvailable ? (
+                    <button
+                      type="button"
+                      className={styles.primaryButton}
+                      onClick={() => {
+                        setLoginAccountId(account.id);
+                        setGuideOpen(false);
+                        controller.startAssistedLogin(account.id);
+                      }}
+                    >
+                      {s03Content.controls.assistedLogin}
+                    </button>
+                  ) : warningConfirmationAvailable && guideSpeechCompleted ? (
                     <button
                       type="button"
                       className={styles.primaryButton}
@@ -328,14 +486,24 @@ export function S03RetrievalTraining({
                         runtime.controller.confirmWarning();
                       }}
                     >
-                      Weiter
+                      {s03Content.controls.viewWarning}
                     </button>
                   ) : undefined
                 }
                 onToggleHelp={() => setGuideOpen((open) => !open)}
-                {...(warningConfirmationAvailable
-                  ? {}
-                  : { onSpeechAdvance: () => setGuideOpen(false) })}
+                onSpeechComplete={() => setCompletedGuideSpeechKey(guideSpeechKey)}
+                onSpeechAdvance={() => {
+                  if (completionFeedbackActive) {
+                    controller.continueS03CompletionFeedback();
+                    return;
+                  }
+                  if (campusStartActive) {
+                    setGuideOpen(false);
+                    controller.continueS03CampusStart();
+                    return;
+                  }
+                  if (!assistanceActive && !warningConfirmationAvailable) setGuideOpen(false);
+                }}
               />
             </>
           ),
@@ -351,11 +519,11 @@ export function S03RetrievalTraining({
               <h1 id="s03-page-title" className={styles.screenReaderOnly}>
                 {s03Content.page.title}
               </h1>
-              <div ref={animationTargetRef} className={styles.completionStatus} aria-live="polite">
-                <span aria-hidden="true">
-                  {boardWarningActive ? '!' : timeLapseActive ? '…' : '✓'}
-                </span>
-                <p>{boardWarningActive ? account.label : s03Content.page.resultLine}</p>
+              <div ref={animationTargetRef} className={styles.timeLapseStage} aria-live="polite">
+                <CampusStartTimeLapse
+                  running={timeLapsePhaseActive}
+                  warning={boardWarningActive}
+                />
               </div>
             </section>
           ) : (
@@ -375,19 +543,31 @@ export function S03RetrievalTraining({
                     disabled={interactionBlocked}
                     onOpenLogin={() => setLoginAccountId(account.id)}
                   />
-                ) : (
+                ) : result === 'pending' || autofillingActive || assistedLoginActive ? (
                   <div
                     ref={animationTargetRef}
                     className={styles.relationshipStage}
                     data-result={result}
                   >
-                    {result === 'pending' ? (
-                      <form
-                        className={styles.authCard}
-                        onSubmit={(event) => {
-                          event.preventDefault();
-                          const previousResult =
-                            snapshot.context.retrievalResults[account.id] ?? 'pending';
+                    <form
+                      className={styles.authCard}
+                      data-assisted={autofillingActive || assistedLoginActive || undefined}
+                      onSubmit={(event) => {
+                        event.preventDefault();
+                        const previousResult =
+                          snapshot.context.retrievalResults[account.id] ?? 'pending';
+                        if (assistedLoginActive) {
+                          controller.submitAssistedLogin(account.id);
+                          if (
+                            previousResult === 'not-remembered' &&
+                            controller.getSnapshot().context.retrievalResults[account.id] ===
+                              'assisted'
+                          ) {
+                            runtime.controller.playSuccessfulRetrieval(account.id);
+                          }
+                          return;
+                        }
+                        if (result === 'pending') {
                           controller.submitRetrievalLogin(account.id);
                           if (
                             previousResult === 'pending' &&
@@ -396,82 +576,112 @@ export function S03RetrievalTraining({
                           ) {
                             runtime.controller.playSuccessfulRetrieval(account.id);
                           }
-                        }}
+                        }
+                      }}
+                    >
+                      <header className={styles.authHeader}>
+                        <NetworkSymbol symbolId={account.symbolId} className={styles.authSymbol} />
+                        <div>
+                          <p>{account.label}</p>
+                          <h2 ref={loginTitleRef} tabIndex={-1}>
+                            {s03Content.accountLoginTitles[account.id]}
+                          </h2>
+                        </div>
+                      </header>
+                      <label
+                        className={styles.usernameLabel}
+                        htmlFor={`s03-username-${account.id}`}
                       >
-                        <header className={styles.authHeader}>
-                          <NetworkSymbol
-                            symbolId={account.symbolId}
-                            className={styles.authSymbol}
-                          />
-                          <div>
-                            <p>{account.label}</p>
-                            <h2 ref={loginTitleRef} tabIndex={-1}>
-                              {s03Content.accountLoginTitles[account.id]}
-                            </h2>
-                          </div>
-                        </header>
-                        <label
-                          className={styles.usernameLabel}
-                          htmlFor={`s03-username-${account.id}`}
-                        >
-                          {s03Content.controls.accountDataLabel}
-                        </label>
+                        {s03Content.controls.accountDataLabel}
+                      </label>
+                      <input
+                        id={`s03-username-${account.id}`}
+                        className={styles.usernameInput}
+                        name={`s03-username-${account.id}`}
+                        type="text"
+                        value={accountData}
+                        readOnly
+                        aria-readonly="true"
+                      />
+                      <label
+                        className={styles.passwordLabel}
+                        htmlFor={`s03-password-${account.id}`}
+                      >
+                        {s03Content.controls.passwordLabel}
+                      </label>
+                      <span
+                        className={styles.passwordInputGroup}
+                        data-autofill={
+                          autofillingActive ? 'running' : assistedLoginActive ? 'ready' : undefined
+                        }
+                      >
                         <input
-                          id={`s03-username-${account.id}`}
-                          className={styles.usernameInput}
-                          name={`s03-username-${account.id}`}
-                          type="text"
-                          value={accountData}
-                          readOnly
-                          aria-readonly="true"
+                          id={`s03-password-${account.id}`}
+                          name={`s03-password-${account.id}`}
+                          type={
+                            revealedAccountIds.has(account.id) && !assistedLoginActive
+                              ? 'text'
+                              : 'password'
+                          }
+                          autoComplete="off"
+                          spellCheck={false}
+                          value={activeValue}
+                          disabled={autofillingActive}
+                          readOnly={assistedLoginActive}
+                          aria-readonly={assistedLoginActive || undefined}
+                          onChange={
+                            assistedLoginActive
+                              ? undefined
+                              : (event) =>
+                                  controller.setRetrievalPasswordValue(
+                                    account.id,
+                                    event.currentTarget.value,
+                                  )
+                          }
                         />
-                        <label
-                          className={styles.passwordLabel}
-                          htmlFor={`s03-password-${account.id}`}
+                        {autofillingActive ? (
+                          <span
+                            className={styles.autofillValue}
+                            aria-hidden="true"
+                            onAnimationEnd={(event) => {
+                              if (event.currentTarget !== event.target) return;
+                              controller.completeAssistedAutofill(account.id);
+                            }}
+                          >
+                            ••••••••••••
+                          </span>
+                        ) : null}
+                        <button
+                          type="button"
+                          className={styles.revealButton}
+                          aria-pressed={revealedAccountIds.has(account.id)}
+                          aria-label={
+                            revealedAccountIds.has(account.id)
+                              ? s03Content.controls.hidePassword(account.label)
+                              : s03Content.controls.showPassword(account.label)
+                          }
+                          disabled={interactionBlocked}
+                          onClick={() => toggleReveal(account.id)}
                         >
-                          {s03Content.controls.passwordLabel}
-                        </label>
-                        <span className={styles.passwordInputGroup}>
-                          <input
-                            id={`s03-password-${account.id}`}
-                            name={`s03-password-${account.id}`}
-                            type={revealedAccountIds.has(account.id) ? 'text' : 'password'}
-                            autoComplete="off"
-                            spellCheck={false}
-                            value={activeValue}
-                            disabled={interactionBlocked}
-                            onChange={(event) =>
-                              controller.setRetrievalPasswordValue(
-                                account.id,
-                                event.currentTarget.value,
-                              )
-                            }
+                          <PasswordVisibilityIcon
+                            revealed={revealedAccountIds.has(account.id)}
                           />
-                          <button
-                            type="button"
-                            className={styles.revealButton}
-                            aria-pressed={revealedAccountIds.has(account.id)}
-                            aria-label={
-                              revealedAccountIds.has(account.id)
-                                ? s03Content.controls.hidePassword(account.label)
-                                : s03Content.controls.showPassword(account.label)
-                            }
-                            disabled={interactionBlocked}
-                            onClick={() => toggleReveal(account.id)}
-                          >
-                            <PasswordVisibilityIcon
-                              revealed={revealedAccountIds.has(account.id)}
-                            />
-                          </button>
-                        </span>
-                        <div className={styles.buttonRow}>
-                          <button
-                            type="submit"
-                            className={styles.primaryButton}
-                            disabled={interactionBlocked || activeValue.length === 0}
-                          >
-                            {s03Content.controls.login}
-                          </button>
+                        </button>
+                      </span>
+                      <div className={styles.buttonRow}>
+                        <button
+                          ref={assistedLoginActive ? assistedLoginButtonRef : undefined}
+                          type="submit"
+                          className={styles.primaryButton}
+                          disabled={
+                            assistedLoginActive
+                              ? activeValue.length === 0
+                              : interactionBlocked || activeValue.length === 0
+                          }
+                        >
+                          {s03Content.controls.login}
+                        </button>
+                        {result === 'pending' ? (
                           <a
                             href="#passwort-vergessen"
                             className={styles.forgotPassword}
@@ -484,32 +694,40 @@ export function S03RetrievalTraining({
                           >
                             {s03Content.controls.forgotPassword}
                           </a>
-                        </div>
-                      </form>
-                    ) : (
-                      <section className={styles.resultCard} data-result={result} aria-live="polite">
-                        <span className={styles.resultIndicator} aria-hidden="true">
-                          {result === 'retrievable' ? '✓' : '×'}
-                        </span>
-                        <p>{accountPage.areaLabel}</p>
-                        <h2>{account.label}</h2>
-                        <strong>
-                          {result === 'retrievable'
-                            ? accountPage.signedInLabel
-                            : s03Content.statuses.cancelledLogin}
-                        </strong>
-                        {result === 'retrievable' ? (
-                          <dl className={styles.accountDetails}>
-                            {accountPage.modules.map((module) => (
-                              <div key={module.label}>
-                                <dt>{module.label}</dt>
-                                <dd>{module.value}</dd>
-                              </div>
-                            ))}
-                          </dl>
                         ) : null}
-                      </section>
-                    )}
+                      </div>
+                    </form>
+                  </div>
+                ) : (
+                  <div
+                    ref={animationTargetRef}
+                    className={styles.relationshipStage}
+                    data-result={result}
+                  >
+                    <section className={styles.resultCard} data-result={result} aria-live="polite">
+                      {result === 'not-remembered' ? null : (
+                        <span className={styles.resultIndicator} aria-hidden="true">
+                          ✓
+                        </span>
+                      )}
+                      <p>{accountPage.areaLabel}</p>
+                      <h2>{account.label}</h2>
+                      <strong>
+                        {result === 'retrievable' || result === 'assisted'
+                          ? accountPage.signedInLabel
+                          : s03Content.statuses.cancelledLogin}
+                      </strong>
+                      {result === 'retrievable' || result === 'assisted' ? (
+                        <dl className={styles.accountDetails}>
+                          {accountPage.modules.map((module) => (
+                            <div key={module.label}>
+                              <dt>{module.label}</dt>
+                              <dd>{module.value}</dd>
+                            </div>
+                          ))}
+                        </dl>
+                      ) : null}
+                    </section>
                   </div>
                 )}
               </section>

@@ -54,6 +54,11 @@ stille `bottom-left`-Zustand verwendet bereits das zugeschnittene Waiting-Asset;
 spricht, bleibt vorläufig das bestehende Dock-Asset aktiv. Der Guide sitzt fest am unteren Rand
 der Browserfläche und bewegt sich nicht mehr zwischen Seitenknoten.
 
+S02 bildet die ausdrücklich begrenzte Ausnahme: Während ein Konto erkundet wird, steht PassWo
+neben dem aktiven Kontoknoten und die Sprechblase folgt als gemeinsame Guide-Einheit. Beim Intro,
+nach Abschluss eines Kontos und beim Segmentabschluss kehrt die Einheit an den unteren linken
+Ausgangspunkt zurück.
+
 Für `wave`, `explain`, `point`, `caution`, `idea` und `flight` fehlen weiterhin freigegebene
 Einzelassets. Die vorhandenen Designboards bleiben Stil- und Kompositionsreferenzen und werden
 nicht als Sprite ausgeschnitten oder eingebunden.

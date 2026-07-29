@@ -14,9 +14,26 @@ export interface BrowserTabModel {
   readonly id: string;
   readonly label: string;
   readonly icon?: ReactNode;
-  readonly status?: 'neutral' | 'complete' | 'attention';
+  readonly status?: 'neutral' | 'complete' | 'attention' | 'danger';
   readonly enabled?: boolean;
   readonly disabledReason?: string;
+}
+
+function BugStatusIcon() {
+  return (
+    <svg
+      aria-hidden="true"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.9"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <path d="M8 9.5h8v5.2a4 4 0 0 1-8 0V9.5Z" />
+      <path d="M9.5 9.5V8a2.5 2.5 0 0 1 5 0v1.5M12 10v8M5 11h3M16 11h3M5.5 16H8M16 16h2.5M7 6l2 2M17 6l-2 2" />
+    </svg>
+  );
 }
 
 export interface BrowserShellSnapshot {
@@ -26,6 +43,7 @@ export interface BrowserShellSnapshot {
   readonly dimmed?: boolean;
   readonly dimStrength?: 'soft' | 'standard';
   readonly highlightedTabId?: string;
+  readonly locked?: boolean;
 }
 
 export interface BrowserShellLayers {
@@ -69,6 +87,7 @@ export function BrowserShell({
     desiredWindowOpen ? 'open' : 'closed',
   );
   const dimmed = snapshot.dimmed ?? false;
+  const locked = snapshot.locked ?? false;
   const dimStrength = snapshot.dimStrength ?? 'standard';
   const panelId = `${idPrefix}-tabpanel`;
   const selectedTabIndex = snapshot.tabs.findIndex((tab) => tab.id === snapshot.activeTabId);
@@ -190,7 +209,9 @@ export function BrowserShell({
         ? { label: 'Abgeschlossen', marker: '✓', style: styles.completeMarker }
         : tab.status === 'attention'
           ? { label: 'Hinweis', marker: '!', style: styles.attentionMarker }
-          : null;
+          : tab.status === 'danger'
+            ? { label: 'Warnung', marker: <BugStatusIcon />, style: styles.dangerMarker }
+            : null;
 
     return (
       <button
@@ -238,7 +259,7 @@ export function BrowserShell({
     <DesktopSurface
       browserDock={{
         active: windowState !== 'closed',
-        enabled: !dimmed,
+        enabled: !dimmed && !locked,
         label:
           windowState === 'closed'
             ? 'Browserfenster vom Dock öffnen'
@@ -259,7 +280,7 @@ export function BrowserShell({
         data-window-state={windowState}
         onAnimationEnd={handleWindowAnimationEnd}
       >
-        <header className={styles.chrome} inert={dimmed || undefined}>
+        <header className={styles.chrome} inert={dimmed || locked || undefined}>
           <div className={styles.tabRow}>
             <div className={styles.windowControls}>
               <button
@@ -326,8 +347,8 @@ export function BrowserShell({
             aria-labelledby={labelledByTabId}
             className={dimmed ? styles.dimmedContent : styles.content}
             aria-hidden={dimmed || undefined}
-            inert={dimmed || undefined}
-            tabIndex={dimmed ? -1 : 0}
+            inert={dimmed || locked || undefined}
+            tabIndex={dimmed || locked ? -1 : 0}
           >
             {children}
           </div>

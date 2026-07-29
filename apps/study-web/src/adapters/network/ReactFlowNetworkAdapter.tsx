@@ -155,21 +155,21 @@ const connectedDetailNodeLayout: NetworkNodeLayout = {
 };
 const accountMapAccountNodeLayout: NetworkNodeLayout = {
   width: 128,
-  height: 128,
+  height: 164,
   shapeWidth: 128,
   shapeHeight: 128,
   shape: 'circle',
 };
 const accountMapServiceNodeLayout: NetworkNodeLayout = {
   width: 92,
-  height: 92,
+  height: 126,
   shapeWidth: 92,
   shapeHeight: 92,
   shape: 'circle',
 };
 const accountMapDetailNodeLayout: NetworkNodeLayout = {
   width: 116,
-  height: 78,
+  height: 118,
   shapeWidth: 116,
   shapeHeight: 78,
   shape: 'rounded-rectangle',
@@ -537,9 +537,11 @@ function toReactFlowElements(
       draggable: false,
       selectable: false,
       focusable: false,
+      width: layout.width,
+      height: layout.height,
       zIndex:
         activePreviewNodeId === node.id ? 4 : activeNodeId === node.id ? 3 : node.kind === 'account' ? 2 : 1,
-      style: { width: layout.width, height: layout.height, pointerEvents: 'all' },
+      style: { pointerEvents: 'all' },
     })),
     edges: snapshot.edges.flatMap((edge) => {
       const sourceGeometry = geometriesByNodeId.get(edge.sourceId);

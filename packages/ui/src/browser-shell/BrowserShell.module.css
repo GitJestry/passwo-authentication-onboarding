@@ -235,6 +235,41 @@ button.activeTab[aria-disabled="true"] {
   background: var(--color-warning-soft);
 }
 
+.dangerMarker {
+  border: var(--border-width-thin) solid var(--color-danger);
+  color: var(--color-danger);
+  background: var(--color-danger-soft);
+  box-shadow: 0 0 0 0.18rem color-mix(in srgb, var(--color-danger) 22%, transparent);
+  animation: browser-danger-marker 0.8s ease-in-out infinite;
+}
+
+.dangerMarker svg {
+  width: 0.8rem;
+  height: 0.8rem;
+}
+
+.activeTab:has(.dangerMarker),
+.tab:has(.dangerMarker) {
+  border-color: var(--color-danger);
+  color: var(--color-danger);
+  background: color-mix(in srgb, var(--color-danger-soft) 72%, var(--passwo-surface));
+  box-shadow: inset 0 -0.16rem var(--color-danger);
+  animation: browser-danger-tab 0.8s ease-in-out infinite;
+}
+
+@keyframes browser-danger-marker {
+  50% {
+    box-shadow: 0 0 0 0.34rem color-mix(in srgb, var(--color-danger) 30%, transparent);
+    transform: scale(1.08);
+  }
+}
+
+@keyframes browser-danger-tab {
+  50% {
+    background: color-mix(in srgb, var(--color-danger-soft) 92%, var(--passwo-surface));
+  }
+}
+
 .disabledReasons {
   position: absolute;
   width: 1px;
@@ -450,6 +485,12 @@ button.activeTab[aria-disabled="true"] {
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .dangerMarker,
+  .activeTab:has(.dangerMarker),
+  .tab:has(.dangerMarker) {
+    animation: none;
+  }
+
   .window[data-window-state="closing"],
   .window[data-window-state="opening"] {
     animation-duration: var(--motion-instant);

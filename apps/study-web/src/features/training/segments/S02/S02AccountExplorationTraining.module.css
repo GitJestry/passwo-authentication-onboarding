@@ -23,14 +23,14 @@
 .networkPanel {
   position: absolute;
   z-index: 1;
-  inset: 0 0 15rem;
+  inset: 0 0 clamp(10.5rem, 21vh, 12.5rem);
   min-width: 0;
 }
 
 .preview {
   position: absolute;
   z-index: 4;
-  width: clamp(21rem, 31vw, 28rem);
+  width: clamp(18rem, 27vw, 23rem);
   padding: 0.55rem;
   border: 1px solid rgb(255 255 255 / 88%);
   border-radius: 1.3rem;
@@ -102,7 +102,7 @@
 .visualPreview {
   position: relative;
   display: grid;
-  height: clamp(14.5rem, 31vh, 17.5rem);
+  height: clamp(12.5rem, 27vh, 15rem);
   grid-template-rows: 1.55rem 2.35rem minmax(0, 1fr);
   overflow: hidden;
   border: 1px solid #cbd8e5;
@@ -471,15 +471,36 @@
   animation: social-click 5s ease-out infinite;
 }
 
-.passWo {
+.guide {
   position: absolute;
-  z-index: 5;
+  z-index: 6;
   bottom: 4.8rem;
   left: clamp(var(--space-4), 3vw, var(--space-7));
+  display: flex;
+  width: fit-content;
+  max-width: calc(100% - 2 * var(--space-5));
+  align-items: flex-end;
+  gap: var(--space-3);
+  transition:
+    top 520ms var(--motion-ease-out),
+    left 520ms var(--motion-ease-out);
+  will-change: top, left;
+}
+
+.guide[data-positioned="true"] {
+  right: auto;
+  bottom: auto;
+}
+
+.guide[data-side="left"] {
+  flex-direction: row-reverse;
+}
+
+.passWo {
+  position: relative;
   width: clamp(6.25rem, 9vw, 8.5rem);
+  flex: none;
   pointer-events: none;
-  transition: transform 520ms var(--motion-ease-out);
-  will-change: transform;
 }
 
 .passWoImage {
@@ -491,16 +512,11 @@
 }
 
 .narration {
-  position: absolute;
-  z-index: 6;
-  bottom: 5.65rem;
-  left: clamp(9.75rem, 12vw, 13rem);
-  width: min(36rem, calc(100vw - 17rem));
+  position: relative;
+  z-index: 1;
+  width: clamp(20rem, 29vw, 28rem);
+  min-width: 0;
   pointer-events: auto;
-}
-
-.narration::after {
-  display: none;
 }
 
 .characterAnimationAnchor {
@@ -680,27 +696,27 @@
 @keyframes mail-pointer {
   0%,
   18% {
-    top: 82%;
-    left: 90%;
+    top: 84%;
+    left: 92%;
   }
 
   42%,
   61% {
-    top: 43%;
-    left: 48%;
+    top: 48%;
+    left: 27%;
   }
 
   100% {
-    top: 82%;
-    left: 90%;
+    top: 84%;
+    left: 92%;
   }
 }
 
 @keyframes mail-click {
   0%,
   43% {
-    top: 41%;
-    left: 46%;
+    top: 46%;
+    left: 25%;
     opacity: 0;
     transform: scale(0.3);
   }
@@ -711,8 +727,8 @@
 
   59%,
   100% {
-    top: 41%;
-    left: 46%;
+    top: 46%;
+    left: 25%;
     opacity: 0;
     transform: scale(1.7);
   }
@@ -746,8 +762,8 @@
 
   42%,
   61% {
-    top: 42%;
-    left: 58%;
+    top: 44%;
+    left: 23%;
   }
 
   100% {
@@ -759,8 +775,8 @@
 @keyframes social-click {
   0%,
   43% {
-    top: 40%;
-    left: 56%;
+    top: 42%;
+    left: 21%;
     opacity: 0;
     transform: scale(0.3);
   }
@@ -771,8 +787,8 @@
 
   59%,
   100% {
-    top: 40%;
-    left: 56%;
+    top: 42%;
+    left: 21%;
     opacity: 0;
     transform: scale(1.7);
   }
@@ -803,17 +819,25 @@
     height: 30rem;
   }
 
+  .guide {
+    right: var(--space-3);
+    bottom: 4.6rem;
+    left: var(--space-3);
+    max-width: none;
+    align-items: center;
+    flex-direction: column;
+  }
+
+  .guide[data-positioned="true"] {
+    right: auto;
+  }
+
   .passWo {
-    right: var(--space-4);
-    left: var(--space-4);
     width: clamp(6.25rem, 20vw, 8.5rem);
   }
 
   .narration {
-    right: var(--space-3);
-    bottom: 5rem;
-    left: var(--space-3);
-    width: auto;
+    width: min(21rem, calc(100vw - var(--space-6)));
   }
 
   .preview {
@@ -826,7 +850,7 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .passWo,
+  .guide,
   .preview {
     transition: none;
     will-change: auto;

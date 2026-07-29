@@ -43,20 +43,122 @@ interface Runtime {
   readonly renderer: ReactFlowNetworkAdapter;
 }
 
-interface PreviewPosition {
-  readonly previewId: string;
+type OverlaySide = 'left' | 'right' | 'above' | 'below';
+
+interface OverlayPosition {
+  readonly anchorId: string;
   readonly left: number;
   readonly top: number;
-  readonly side: 'left' | 'right' | 'above' | 'below';
+  readonly side: OverlaySide;
 }
 
-interface GuidePosition {
-  readonly x: number;
-  readonly y: number;
+interface OverlayLayout {
+  readonly guide: OverlayPosition | null;
+  readonly preview: OverlayPosition | null;
+}
+
+interface Bounds {
+  readonly left: number;
+  readonly top: number;
+  readonly right: number;
+  readonly bottom: number;
+}
+
+interface PlacementCandidate {
+  readonly left: number;
+  readonly top: number;
+  readonly side: OverlaySide;
 }
 
 function clamp(value: number, minimum: number, maximum: number): number {
   return Math.min(maximum, Math.max(minimum, value));
+}
+
+function relativeBounds(rect: DOMRect, containerRect: DOMRect, padding = 0): Bounds {
+  return {
+    left: rect.left - containerRect.left - padding,
+    top: rect.top - containerRect.top - padding,
+    right: rect.right - containerRect.left + padding,
+    bottom: rect.bottom - containerRect.top + padding,
+  };
+}
+
+function overlapArea(
+  left: number,
+  top: number,
+  width: number,
+  height: number,
+  obstacle: Bounds,
+): number {
+  return (
+    Math.max(0, Math.min(left + width, obstacle.right) - Math.max(left, obstacle.left)) *
+    Math.max(0, Math.min(top + height, obstacle.bottom) - Math.max(top, obstacle.top))
+  );
+}
+
+function placementCandidates(
+  anchor: Bounds,
+  width: number,
+  height: number,
+  availableWidth: number,
+  availableBottom: number,
+  margin: number,
+  gap: number,
+): readonly PlacementCandidate[] {
+  const centerX = (anchor.left + anchor.right) / 2;
+  const centerY = (anchor.top + anchor.bottom) / 2;
+  const maxLeft = Math.max(margin, availableWidth - width - margin);
+  const maxTop = Math.max(margin, availableBottom - height);
+  const position = (
+    side: OverlaySide,
+    proposedLeft: number,
+    proposedTop: number,
+  ): PlacementCandidate => ({
+    side,
+    left: Math.round(clamp(proposedLeft, margin, maxLeft)),
+    top: Math.round(clamp(proposedTop, margin, maxTop)),
+  });
+
+  return [
+    position('right', anchor.right + gap, centerY - height / 2),
+    position('left', anchor.left - width - gap, centerY - height / 2),
+    position('below', centerX - width / 2, anchor.bottom + gap),
+    position('above', centerX - width / 2, anchor.top - height - gap),
+  ];
+}
+
+function bestPlacement(
+  candidates: readonly PlacementCandidate[],
+  width: number,
+  height: number,
+  obstacles: readonly Bounds[],
+  anchor: Bounds,
+): PlacementCandidate {
+  const scored = candidates.map((candidate, preference) => ({
+    ...candidate,
+    score:
+      overlapArea(candidate.left, candidate.top, width, height, anchor) * 10_000 +
+      obstacles.reduce(
+        (score, obstacle) =>
+          score + overlapArea(candidate.left, candidate.top, width, height, obstacle),
+        0,
+      ) +
+      preference * 40,
+  }));
+  return scored.reduce((best, candidate) => (candidate.score < best.score ? candidate : best));
+}
+
+function samePosition(
+  current: OverlayPosition | null,
+  next: OverlayPosition | null,
+): boolean {
+  if (current === null || next === null) return current === next;
+  return (
+    current.anchorId === next.anchorId &&
+    current.left === next.left &&
+    current.top === next.top &&
+    current.side === next.side
+  );
 }
 
 function VisualPreview({ kind }: { readonly kind: S02VisualPreviewKind }) {
@@ -174,24 +276,6 @@ function VisualPreview({ kind }: { readonly kind: S02VisualPreviewKind }) {
   );
 }
 
-function overlapArea(
-  left: number,
-  top: number,
-  width: number,
-  height: number,
-  obstacle: DOMRect,
-  sceneRect: DOMRect,
-): number {
-  const obstacleLeft = obstacle.left - sceneRect.left - 12;
-  const obstacleTop = obstacle.top - sceneRect.top - 12;
-  const obstacleRight = obstacle.right - sceneRect.left + 12;
-  const obstacleBottom = obstacle.bottom - sceneRect.top + 12;
-  return (
-    Math.max(0, Math.min(left + width, obstacleRight) - Math.max(left, obstacleLeft)) *
-    Math.max(0, Math.min(top + height, obstacleBottom) - Math.max(top, obstacleTop))
-  );
-}
-
 export function S02AccountExplorationTraining({
   timingState = 'active',
   timingErrorCode = null,
@@ -201,7 +285,7 @@ export function S02AccountExplorationTraining({
   onRetryTiming,
 }: S02AccountExplorationTrainingProps) {
   const characterAnimationAnchorRef = useRef<HTMLSpanElement | null>(null);
-  const passWoRef = useRef<HTMLDivElement | null>(null);
+  const guideRef = useRef<HTMLDivElement | null>(null);
   const cursorKeyRef = useRef<HTMLDivElement | null>(null);
   const networkHostRef = useRef<HTMLDivElement | null>(null);
   const sceneRef = useRef<HTMLDivElement | null>(null);
@@ -210,8 +294,10 @@ export function S02AccountExplorationTraining({
   onAllAccountsUnderstoodRef.current = onAllAccountsUnderstood;
   const [runtime, setRuntime] = useState<Runtime | null>(null);
   const [snapshot, setSnapshot] = useState<S02AccountExplorationControllerSnapshot | null>(null);
-  const [previewPosition, setPreviewPosition] = useState<PreviewPosition | null>(null);
-  const [guidePosition, setGuidePosition] = useState<GuidePosition | null>(null);
+  const [overlayLayout, setOverlayLayout] = useState<OverlayLayout>({
+    guide: null,
+    preview: null,
+  });
   const [introNarrationFinished, setIntroNarrationFinished] = useState(false);
   const [dismissedSpeechKey, setDismissedSpeechKey] = useState<string | null>(null);
   const [returningToBrowser, setReturningToBrowser] = useState(false);
@@ -233,9 +319,8 @@ export function S02AccountExplorationTraining({
       applySnapshot: (presentation) => controller?.updatePresentation(presentation),
       getCharacterElement: () => characterAnimationAnchorRef.current,
       getActiveNodeElement: () =>
-        previewRef.current ??
         networkHostRef.current?.querySelector<HTMLElement>(
-          '[data-active="true"] [data-scene-node-button]',
+          '[data-focused="true"] [data-scene-node-button], [data-active="true"] [data-scene-node-button]',
         ) ??
         null,
       getNodeElement: (nodeId) =>
@@ -279,180 +364,147 @@ export function S02AccountExplorationTraining({
 
   useLayoutEffect(() => {
     const activeAccountId = snapshot?.scene.activeAccountId ?? null;
-    const sceneElement = sceneRef.current;
-    if (activeAccountId === null || sceneElement === null) {
-      setGuidePosition(null);
-      return;
-    }
-
-    const updateGuidePosition = () => {
-      const passWoElement = passWoRef.current;
-      const accountElement = networkHostRef.current?.querySelector<HTMLElement>(
-        `[data-scene-node-button="${activeAccountId}"]`,
-      );
-      if (passWoElement === null || accountElement === null || accountElement === undefined) return;
-
-      const sceneRect = sceneElement.getBoundingClientRect();
-      const accountRect = accountElement.getBoundingClientRect();
-      const passWoRect = passWoElement.getBoundingClientRect();
-      const margin = 24;
-      const guideRailHeight = 224;
-      const accountOnLeft =
-        accountRect.left + accountRect.width / 2 < sceneRect.left + sceneRect.width / 2;
-      const targetLeft = accountOnLeft
-        ? accountRect.right - sceneRect.left + 18
-        : accountRect.left - sceneRect.left - passWoRect.width - 18;
-      const targetTop =
-        accountRect.top - sceneRect.top + accountRect.height / 2 - passWoRect.height / 2;
-
-      setGuidePosition({
-        x: Math.round(
-          clamp(targetLeft, margin, Math.max(margin, sceneRect.width - passWoRect.width - margin)) -
-            passWoElement.offsetLeft,
-        ),
-        y: Math.round(
-          clamp(
-            targetTop,
-            42,
-            Math.max(42, sceneRect.height - passWoRect.height - guideRailHeight),
-          ) - passWoElement.offsetTop,
-        ),
-      });
-    };
-
-    const frame = requestAnimationFrame(updateGuidePosition);
-    window.addEventListener('resize', updateGuidePosition);
-    return () => {
-      cancelAnimationFrame(frame);
-      window.removeEventListener('resize', updateGuidePosition);
-    };
-  }, [snapshot?.scene.activeAccountId]);
-
-  useLayoutEffect(() => {
     const previewId = snapshot?.scene.activePreviewDetailId ?? null;
-    const activeAccountId = snapshot?.scene.activeAccountId ?? null;
-    const anchorId =
-      activeAccountId === 'campus-id' ? previewId : activeAccountId;
     const sceneElement = sceneRef.current;
-    if (sceneElement === null) return;
+    const networkElement = networkHostRef.current;
+    if (sceneElement === null || networkElement === null) return;
+    const layoutElement = networkElement.parentElement;
+    if (layoutElement === null) return;
 
+    let frame: number | null = null;
     const updateGeometry = () => {
-      const sceneRect = sceneElement.getBoundingClientRect();
-      const previewElement = previewRef.current;
-      if (previewId === null || anchorId === null || previewElement === null) {
-        setPreviewPosition(null);
-        return;
-      }
-      const nodeElement = networkHostRef.current?.querySelector<HTMLElement>(
-        `[data-scene-node-button="${anchorId}"]`,
-      );
-      if (nodeElement === null || nodeElement === undefined) return;
-
-      const nodeRect = nodeElement.getBoundingClientRect();
-      const previewRect = previewElement.getBoundingClientRect();
-      const gap = 26;
-      const guideRailHeight = 224;
-      const margin = 28;
-      const centeredLeft =
-        nodeRect.left - sceneRect.left + nodeRect.width / 2 - previewRect.width / 2;
-      const centeredTop =
-        nodeRect.top - sceneRect.top + nodeRect.height / 2 - previewRect.height / 2;
-      const candidates: readonly {
-        readonly side: PreviewPosition['side'];
-        readonly left: number;
-        readonly top: number;
-      }[] = [
-        {
-          side: 'right',
-          left: nodeRect.right - sceneRect.left + gap,
-          top: centeredTop,
-        },
-        {
-          side: 'left',
-          left: nodeRect.left - sceneRect.left - previewRect.width - gap,
-          top: centeredTop,
-        },
-        {
-          side: 'below',
-          left: centeredLeft,
-          top: nodeRect.bottom - sceneRect.top + gap,
-        },
-        {
-          side: 'above',
-          left: centeredLeft,
-          top: nodeRect.top - sceneRect.top - previewRect.height - gap,
-        },
-      ];
-      const obstacles = [
-        ...(networkHostRef.current?.querySelectorAll<HTMLElement>(
+      const layoutRect = layoutElement.getBoundingClientRect();
+      const dockRect = sceneElement
+        .querySelector<HTMLElement>('nav[aria-label="Desktop-Apps"]')
+        ?.getBoundingClientRect();
+      const margin = 22;
+      const availableBottom =
+        dockRect === undefined
+          ? layoutRect.height - margin
+          : Math.min(layoutRect.height - margin, dockRect.top - layoutRect.top - 18);
+      const visibleElements = [
+        ...networkElement.querySelectorAll<HTMLElement>(
           '[data-scene-node-button], [data-scene-node-label]',
-        ) ?? []),
+        ),
       ].filter(
-        (element) => {
-          const elementNodeId =
-            element.dataset.sceneNodeButton ?? element.dataset.sceneNodeLabel ?? null;
-          return (
-            elementNodeId !== anchorId &&
-            element.closest<HTMLElement>('[data-visible="true"]') !== null
-          );
-        },
+        (element) => element.closest<HTMLElement>('[data-visible="true"]') !== null,
       );
-      const positionedCandidates = candidates.map((candidate, preference) => {
-        const left = Math.round(
-          clamp(
-            candidate.left,
-            margin,
-            Math.max(margin, sceneRect.width - previewRect.width - margin),
-          ),
-        );
-        const top = Math.round(
-          clamp(
-            candidate.top,
-            margin,
-            Math.max(margin, sceneRect.height - previewRect.height - guideRailHeight),
-          ),
-        );
-        const collisionScore = obstacles.reduce(
-          (score, obstacle) =>
-            score +
-            overlapArea(
-              left,
-              top,
-              previewRect.width,
-              previewRect.height,
-              obstacle.getBoundingClientRect(),
-              sceneRect,
-            ),
-          preference * 40,
-        );
-        return {
-          ...candidate,
-          left,
-          top,
-          collisionScore,
-        };
-      });
-      const bestCandidate = positionedCandidates.reduce((best, candidate) =>
-        candidate.collisionScore < best.collisionScore ? candidate : best,
+      const nodeObstacles = visibleElements.map((element) =>
+        relativeBounds(element.getBoundingClientRect(), layoutRect, 10),
       );
-      setPreviewPosition({
-        previewId,
-        side: bestCandidate.side,
-        left: bestCandidate.left,
-        top: bestCandidate.top,
-      });
+      const activeAccountUnderstood =
+        activeAccountId !== null &&
+        (snapshot?.scene.understoodAccountIds.includes(activeAccountId) ?? false);
+
+      let guide: OverlayPosition | null = null;
+      const guideElement = guideRef.current;
+      const accountElement =
+        activeAccountId === null
+          ? null
+          : networkElement.querySelector<HTMLElement>(
+              `[data-scene-node-button="${activeAccountId}"]`,
+            );
+      if (
+        activeAccountId !== null &&
+        guideElement !== null &&
+        accountElement !== null &&
+        !activeAccountUnderstood
+      ) {
+        const guideRect = guideElement.getBoundingClientRect();
+        const accountBounds = relativeBounds(
+          accountElement.getBoundingClientRect(),
+          layoutRect,
+          14,
+        );
+        const candidate = bestPlacement(
+          placementCandidates(
+            accountBounds,
+            guideRect.width,
+            guideRect.height,
+            layoutRect.width,
+            availableBottom,
+            margin,
+            20,
+          ),
+          guideRect.width,
+          guideRect.height,
+          nodeObstacles,
+          accountBounds,
+        );
+        guide = { anchorId: activeAccountId, ...candidate };
+      }
+
+      let preview: OverlayPosition | null = null;
+      const previewElement = previewRef.current;
+      const previewAnchor =
+        previewId === null
+          ? null
+          : networkElement.querySelector<HTMLElement>(
+              `[data-scene-node-button="${previewId}"]`,
+            );
+      if (previewId !== null && previewElement !== null && previewAnchor !== null) {
+        const previewRect = previewElement.getBoundingClientRect();
+        const previewAnchorBounds = relativeBounds(
+          previewAnchor.getBoundingClientRect(),
+          layoutRect,
+          14,
+        );
+        const guideObstacle =
+          guide === null || guideElement === null
+            ? []
+            : [
+                {
+                  left: guide.left - 14,
+                  top: guide.top - 14,
+                  right: guide.left + guideElement.offsetWidth + 14,
+                  bottom: guide.top + guideElement.offsetHeight + 14,
+                },
+              ];
+        const candidate = bestPlacement(
+          placementCandidates(
+            previewAnchorBounds,
+            previewRect.width,
+            previewRect.height,
+            layoutRect.width,
+            availableBottom,
+            margin,
+            24,
+          ),
+          previewRect.width,
+          previewRect.height,
+          [...nodeObstacles, ...guideObstacle],
+          previewAnchorBounds,
+        );
+        preview = { anchorId: previewId, ...candidate };
+      }
+
+      setOverlayLayout((current) =>
+        samePosition(current.guide, guide) && samePosition(current.preview, preview)
+          ? current
+          : { guide, preview },
+      );
     };
 
-    const frame = requestAnimationFrame(updateGeometry);
-    window.addEventListener('resize', updateGeometry);
+    const scheduleGeometryUpdate = () => {
+      if (frame !== null) return;
+      frame = requestAnimationFrame(() => {
+        frame = null;
+        updateGeometry();
+      });
+    };
+    const observer = new ResizeObserver(scheduleGeometryUpdate);
+    observer.observe(sceneElement);
+    scheduleGeometryUpdate();
     return () => {
-      cancelAnimationFrame(frame);
-      window.removeEventListener('resize', updateGeometry);
+      observer.disconnect();
+      if (frame !== null) cancelAnimationFrame(frame);
     };
   }, [
     snapshot?.scene.activeAccountId,
     snapshot?.scene.activePreviewDetailId,
+    snapshot?.scene.narrationId,
     snapshot?.scene.pendingAnimationId,
+    snapshot?.scene.understoodAccountIds,
   ]);
 
   if (runtime === null || snapshot === null) {
@@ -490,14 +542,19 @@ export function S02AccountExplorationTraining({
     externalTimingError !== null || timingState === 'startFailed' || timingState === 'endFailed';
   const interactionBlocked = timingState !== 'active' || externalTimingError !== null;
   const positionedPreview =
-    activePreview !== undefined && previewPosition?.previewId === activePreview.id;
+    activePreview !== undefined && overlayLayout.preview?.anchorId === activePreview.id
+      ? overlayLayout.preview
+      : null;
   const previewStyle: CSSProperties | undefined = positionedPreview
-    ? { left: previewPosition.left, top: previewPosition.top }
+    ? { left: positionedPreview.left, top: positionedPreview.top }
     : undefined;
-  const passWoStyle: CSSProperties | undefined = guidePosition
-    ? {
-        transform: `translate3d(${guidePosition.x}px, ${guidePosition.y}px, 0)`,
-      }
+  const positionedGuide =
+    scene.activeAccountId !== null &&
+    overlayLayout.guide?.anchorId === scene.activeAccountId
+      ? overlayLayout.guide
+      : null;
+  const guideStyle: CSSProperties | undefined = positionedGuide
+    ? { left: positionedGuide.left, top: positionedGuide.top }
     : undefined;
   const activeAccountUnderstood =
     scene.activeAccountId !== null && scene.understoodAccountIds.includes(scene.activeAccountId);
@@ -587,9 +644,9 @@ export function S02AccountExplorationTraining({
             <section
               ref={previewRef}
               className={styles.preview}
-              data-positioned={positionedPreview}
+              data-positioned={positionedPreview !== null}
               data-pointer-over="false"
-              data-side={positionedPreview ? previewPosition.side : 'right'}
+              data-side={positionedPreview?.side ?? 'right'}
               data-phase={scene.phase}
               style={previewStyle}
               aria-label={`Visuelle Vorschau für ${activePreview.label}`}
@@ -604,35 +661,42 @@ export function S02AccountExplorationTraining({
             aria-hidden="true"
           />
           <div
-            ref={passWoRef}
-            className={styles.passWo}
+            ref={guideRef}
+            className={styles.guide}
+            data-guide-cluster
+            data-positioned={positionedGuide !== null}
+            data-side={positionedGuide?.side ?? 'right'}
             data-passwo-placement={presentation.character.placement}
-            style={passWoStyle}
+            style={guideStyle}
           >
-            <img
-              className={styles.passWoImage}
-              data-passwo-character
-              src={passWoDockAsset}
-              alt={s02Content.accessibility.characterLabel}
+            <div className={styles.passWo}>
+              <img
+                className={styles.passWoImage}
+                data-passwo-character
+                src={passWoDockAsset}
+                alt={s02Content.accessibility.characterLabel}
+              />
+            </div>
+            <PassWoSpeechBubble
+              className={styles.narration}
+              speaker={s02Content.narration.guideName}
+              paragraphs={[narration]}
+              speechKey={speechKey}
+              placement={
+                positionedGuide?.side === 'left' ? 'left' : 'right'
+              }
+              hasNext={scene.narrationId === s02Content.narration.introId && !complete}
+              awaitsAction={
+                scene.narrationId !== s02Content.narration.introId && !complete
+              }
+              onAdvance={() => {
+                setDismissedSpeechKey(speechKey);
+                if (scene.narrationId === s02Content.narration.introId) {
+                  setIntroNarrationFinished(true);
+                }
+              }}
             />
           </div>
-          <PassWoSpeechBubble
-            className={styles.narration}
-            speaker={s02Content.narration.guideName}
-            paragraphs={[narration]}
-            speechKey={speechKey}
-            placement="above-right"
-            hasNext={scene.narrationId === s02Content.narration.introId && !complete}
-            awaitsAction={
-              scene.narrationId !== s02Content.narration.introId && !complete
-            }
-            onAdvance={() => {
-              setDismissedSpeechKey(speechKey);
-              if (scene.narrationId === s02Content.narration.introId) {
-                setIntroNarrationFinished(true);
-              }
-            }}
-          />
 
           <div
             ref={cursorKeyRef}

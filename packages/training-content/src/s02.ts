@@ -192,7 +192,7 @@ const accounts = [
     id: 'campus-id',
     label: 'Master Campus',
     symbolId: 'campus-id',
-    position: { x: 0.12, y: 0.13 },
+    position: { x: 0.12, y: 0.08 },
     detailKind: 'service',
     edgeKind: 'dependency',
     edgeLabel: 'Mit Master Campus geöffnet',
@@ -222,7 +222,7 @@ const accounts = [
         label: 'LearnSpace',
         symbolId: 'learnspace',
         preview: { kind: 'course-space' },
-        position: { x: 0.03, y: 0.43 },
+        position: { x: 0.03, y: 0.4 },
         animationId: 's02-check-campus-id-learnspace',
         narrationId: 's02.campus-id.learnspace',
         descriptions: {
@@ -236,7 +236,7 @@ const accounts = [
         label: 'Prüfungsportal',
         symbolId: 'exam-portal',
         preview: { kind: 'exam-list' },
-        position: { x: 0.22, y: 0.64 },
+        position: { x: 0.22, y: 0.58 },
         animationId: 's02-check-campus-id-exam-portal',
         narrationId: 's02.campus-id.exam-portal',
         descriptions: {
@@ -250,7 +250,7 @@ const accounts = [
         label: 'Cloud Notes',
         symbolId: 'cloud-notes',
         preview: { kind: 'cloud-files' },
-        position: { x: 0.04, y: 0.8 },
+        position: { x: 0.04, y: 0.79 },
         animationId: 's02-check-campus-id-cloud-notes',
         narrationId: 's02.campus-id.cloud-notes',
         descriptions: {
@@ -265,7 +265,7 @@ const accounts = [
     id: 'campus-mail',
     label: 'Campus E-Mail',
     symbolId: 'campus-mail',
-    position: { x: 0.7, y: 0.1 },
+    position: { x: 0.72, y: 0.06 },
     detailKind: 'function',
     edgeKind: 'association',
     edgeLabel: 'Mit Campus E-Mail verbunden',
@@ -295,7 +295,7 @@ const accounts = [
         label: 'Benachrichtigungen',
         symbolId: 'notifications',
         preview: { kind: 'mail-list' },
-        position: { x: 0.85, y: 0.38 },
+        position: { x: 0.87, y: 0.34 },
         animationId: 's02-check-campus-mail-notifications',
         narrationId: 's02.campus-mail.notifications',
         descriptions: {
@@ -309,7 +309,7 @@ const accounts = [
         label: 'Bestätigungen',
         symbolId: 'confirmations',
         preview: { kind: 'confirmation' },
-        position: { x: 0.65, y: 0.45 },
+        position: { x: 0.67, y: 0.36 },
         animationId: 's02-check-campus-mail-confirmations',
         narrationId: 's02.campus-mail.confirmations',
         descriptions: {
@@ -323,7 +323,7 @@ const accounts = [
         label: 'Zurücksetzungslinks',
         symbolId: 'reset-links',
         preview: { kind: 'reset-link' },
-        position: { x: 0.82, y: 0.7 },
+        position: { x: 0.87, y: 0.7 },
         animationId: 's02-check-campus-mail-reset-links',
         narrationId: 's02.campus-mail.reset-links',
         descriptions: {
@@ -337,7 +337,7 @@ const accounts = [
         label: 'Kommunikation in deinem Namen',
         symbolId: 'compose-message',
         preview: { kind: 'compose' },
-        position: { x: 0.62, y: 0.77 },
+        position: { x: 0.67, y: 0.74 },
         animationId: 's02-check-campus-mail-impersonation',
         narrationId: 's02.campus-mail.impersonation',
         descriptions: {
@@ -352,7 +352,7 @@ const accounts = [
     id: 'campus-board-archive',
     label: 'Campusgram',
     symbolId: 'campus-board-archive',
-    position: { x: 0.42, y: 0.43 },
+    position: { x: 0.43, y: 0.34 },
     detailKind: 'content',
     edgeKind: 'association',
     edgeLabel: 'Lokaler Inhalt in Campusgram',
@@ -382,7 +382,7 @@ const accounts = [
         label: 'Alte Ankündigungen',
         symbolId: 'announcements',
         preview: { kind: 'announcement' },
-        position: { x: 0.25, y: 0.78 },
+        position: { x: 0.27, y: 0.76 },
         animationId: 's02-check-campus-board-old-announcements',
         narrationId: 's02.campus-board.old-announcements',
         descriptions: {
@@ -396,7 +396,7 @@ const accounts = [
         label: 'Projektfragen',
         symbolId: 'project-questions',
         preview: { kind: 'discussion' },
-        position: { x: 0.45, y: 0.8 },
+        position: { x: 0.46, y: 0.81 },
         animationId: 's02-check-campus-board-project-questions',
         narrationId: 's02.campus-board.project-questions',
         descriptions: {
@@ -410,7 +410,7 @@ const accounts = [
         label: 'Archivierte Diskussionen',
         symbolId: 'archived-discussions',
         preview: { kind: 'message-thread' },
-        position: { x: 0.57, y: 0.62 },
+        position: { x: 0.52, y: 0.58 },
         animationId: 's02-check-campus-board-archived-discussions',
         narrationId: 's02.campus-board.archived-discussions',
         descriptions: {

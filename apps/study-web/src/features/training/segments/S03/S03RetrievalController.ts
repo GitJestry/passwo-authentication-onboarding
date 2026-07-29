@@ -41,12 +41,18 @@ function accountDetails(accountId: string) {
 
 function nodeDescription(accountId: S01AccountId, result: S03RetrievalResult): string {
   if (result === 'retrievable') return s03Content.statuses.retrievable;
+  if (result === 'assisted') return s03Content.statuses.assisted;
   if (result === 'not-remembered') return s03Content.statuses.notRemembered;
   return s03Content.accountLoginTitles[accountId];
 }
 
 function nodeStatus(result: S03RetrievalResult): SceneNode['status'] {
+  if (result === 'assisted') return 'retrievable';
   return result === 'pending' ? 'neutral' : result;
+}
+
+function isOpened(result: S03RetrievalResult): boolean {
+  return result === 'retrievable' || result === 'assisted';
 }
 
 export function createS03RetrievalNetwork({
@@ -75,12 +81,14 @@ export function createS03RetrievalNetwork({
           kind: activeAccount.detailKind,
           label: detail.label,
           description:
-            activeResult === 'retrievable'
-              ? s03Content.statuses.retrievable
+            isOpened(activeResult)
+              ? activeResult === 'assisted'
+                ? s03Content.statuses.assisted
+                : s03Content.statuses.retrievable
               : activeResult === 'not-remembered'
                 ? s03Content.statuses.notRemembered
                 : s03Content.accountLoginTitles[activeAccount.id],
-          status: activeResult === 'retrievable' ? 'understood' : 'neutral',
+          status: isOpened(activeResult) ? 'understood' : 'neutral',
           position: detail.position,
           selectable: false,
         }));
@@ -93,7 +101,7 @@ export function createS03RetrievalNetwork({
           sourceId: activeAccount.id,
           targetId: detail.id,
           kind: activeEdgeKind,
-          status: activeResult === 'retrievable' ? 'opened' : 'neutral',
+          status: isOpened(activeResult) ? 'opened' : 'neutral',
           label: activeAccount.edgeLabel,
         }));
 

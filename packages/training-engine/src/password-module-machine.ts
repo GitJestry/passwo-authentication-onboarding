@@ -1,6 +1,6 @@
 import { assign, setup } from 'xstate';
 
-export type RetrievalResult = 'pending' | 'retrievable' | 'not-remembered';
+export type RetrievalResult = 'pending' | 'retrievable' | 'not-remembered' | 'assisted';
 
 export interface PasswordModuleContext {
   readonly accountIds: readonly string[];
@@ -53,6 +53,11 @@ export type PasswordModuleEvent =
     }
   | { readonly type: 'SUBMIT_RETRIEVAL_LOGIN'; readonly accountId: string }
   | { readonly type: 'SKIP_RETRIEVAL'; readonly accountId: string }
+  | { readonly type: 'START_ASSISTED_LOGIN'; readonly accountId: string }
+  | { readonly type: 'S03_ASSISTED_AUTOFILL_COMPLETED'; readonly accountId: string }
+  | { readonly type: 'SUBMIT_ASSISTED_LOGIN'; readonly accountId: string }
+  | { readonly type: 'S03_COMPLETION_FEEDBACK_CONTINUED' }
+  | { readonly type: 'S03_CAMPUS_START_CONTINUED' }
   | { readonly type: 'S03_WARNING_SEQUENCE_COMPLETED' }
   | { readonly type: 'S03_END_RECORDED' }
   | { readonly type: 'S03_END_FAILED'; readonly errorCode: string }
@@ -110,6 +115,17 @@ function matchesRetrievalPassword(context: PasswordModuleContext, accountId: str
   );
 }
 
+function isActiveNotRememberedAccount(
+  context: PasswordModuleContext,
+  accountId: string,
+): boolean {
+  return (
+    isKnownAccount(context, accountId) &&
+    context.activeAccountId === accountId &&
+    context.retrievalResults[accountId] === 'not-remembered'
+  );
+}
+
 export const passwordModuleMachine = setup({
   types: {
     context: {} as PasswordModuleContext,
@@ -137,9 +153,20 @@ export const passwordModuleMachine = setup({
       canProcessRetrieval(context, event.accountId),
     matchesRetrievalPassword: ({ context, event }) =>
       event.type === 'SUBMIT_RETRIEVAL_LOGIN' && matchesRetrievalPassword(context, event.accountId),
-    completesRetrieval: ({ context, event }) =>
-      (event.type === 'SUBMIT_RETRIEVAL_LOGIN' || event.type === 'SKIP_RETRIEVAL') &&
-      canProcessRetrieval(context, event.accountId) &&
+    canStartAssistedLogin: ({ context, event }) =>
+      event.type === 'START_ASSISTED_LOGIN' &&
+      isActiveNotRememberedAccount(context, event.accountId),
+    canCompleteAssistedAutofill: ({ context, event }) =>
+      event.type === 'S03_ASSISTED_AUTOFILL_COMPLETED' &&
+      isActiveNotRememberedAccount(context, event.accountId),
+    canSubmitAssistedLogin: ({ context, event }) =>
+      event.type === 'SUBMIT_ASSISTED_LOGIN' &&
+      isActiveNotRememberedAccount(context, event.accountId) &&
+      context.retrievalPasswordValues[event.accountId] === context.passwordValues[event.accountId],
+    completesAssistedRetrieval: ({ context, event }) =>
+      event.type === 'SUBMIT_ASSISTED_LOGIN' &&
+      isActiveNotRememberedAccount(context, event.accountId) &&
+      context.retrievalPasswordValues[event.accountId] === context.passwordValues[event.accountId] &&
       getRetrievedAccountCount(context) + 1 === context.accountIds.length,
   },
   actions: {
@@ -203,6 +230,27 @@ export const passwordModuleMachine = setup({
       },
       retrievalPasswordValues: ({ context, event }) => {
         if (event.type !== 'SKIP_RETRIEVAL') return context.retrievalPasswordValues;
+        return { ...context.retrievalPasswordValues, [event.accountId]: '' };
+      },
+    }),
+    fillAssistedPassword: assign({
+      retrievalPasswordValues: ({ context, event }) => {
+        if (event.type !== 'S03_ASSISTED_AUTOFILL_COMPLETED') {
+          return context.retrievalPasswordValues;
+        }
+        return {
+          ...context.retrievalPasswordValues,
+          [event.accountId]: context.passwordValues[event.accountId] ?? '',
+        };
+      },
+    }),
+    markAssisted: assign({
+      retrievalResults: ({ context, event }) => {
+        if (event.type !== 'SUBMIT_ASSISTED_LOGIN') return context.retrievalResults;
+        return { ...context.retrievalResults, [event.accountId]: 'assisted' };
+      },
+      retrievalPasswordValues: ({ context, event }) => {
+        if (event.type !== 'SUBMIT_ASSISTED_LOGIN') return context.retrievalPasswordValues;
         return { ...context.retrievalPasswordValues, [event.accountId]: '' };
       },
     }),
@@ -363,21 +411,68 @@ export const passwordModuleMachine = setup({
             ],
             SKIP_RETRIEVAL: [
               {
-                guard: 'completesRetrieval',
-                target: 'completionSequence',
-                actions: 'markNotRemembered',
-              },
-              {
                 guard: ({ context, event }) =>
                   event.type === 'SKIP_RETRIEVAL' && canProcessRetrieval(context, event.accountId),
+                target: 'assistance',
                 actions: 'markNotRemembered',
               },
             ],
           },
         },
-        completionSequence: {
+        assistance: {
           on: {
-            S03_WARNING_SEQUENCE_COMPLETED: { target: 'ending', actions: 'clearTimingError' },
+            START_ASSISTED_LOGIN: {
+              guard: 'canStartAssistedLogin',
+              target: 'autofilling',
+            },
+          },
+        },
+        autofilling: {
+          on: {
+            S03_ASSISTED_AUTOFILL_COMPLETED: {
+              guard: 'canCompleteAssistedAutofill',
+              target: 'assistedLogin',
+              actions: 'fillAssistedPassword',
+            },
+          },
+        },
+        assistedLogin: {
+          on: {
+            SUBMIT_ASSISTED_LOGIN: [
+              {
+                guard: 'completesAssistedRetrieval',
+                target: 'completionSequence',
+                actions: 'markAssisted',
+              },
+              {
+                guard: 'canSubmitAssistedLogin',
+                target: 'active',
+                actions: 'markAssisted',
+              },
+            ],
+          },
+        },
+        completionSequence: {
+          initial: 'feedback',
+          states: {
+            feedback: {
+              on: {
+                S03_COMPLETION_FEEDBACK_CONTINUED: { target: 'campusStart' },
+              },
+            },
+            campusStart: {
+              on: {
+                S03_CAMPUS_START_CONTINUED: { target: 'timeLapse' },
+              },
+            },
+            timeLapse: {
+              on: {
+                S03_WARNING_SEQUENCE_COMPLETED: {
+                  target: '#passwordModule.s03.ending',
+                  actions: 'clearTimingError',
+                },
+              },
+            },
           },
         },
         ending: {
@@ -402,6 +497,14 @@ export function getConfiguredAccountCount(context: PasswordModuleContext): numbe
 }
 
 export function getRetrievedAccountCount(context: PasswordModuleContext): number {
-  return context.accountIds.filter((accountId) => context.retrievalResults[accountId] !== 'pending')
-    .length;
+  return context.accountIds.filter((accountId) => {
+    const result = context.retrievalResults[accountId];
+    return result === 'retrievable' || result === 'assisted';
+  }).length;
+}
+
+export function getRememberedAccountCount(context: PasswordModuleContext): number {
+  return context.accountIds.filter(
+    (accountId) => context.retrievalResults[accountId] === 'retrievable',
+  ).length;
 }

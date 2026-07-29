@@ -61,9 +61,18 @@
 }
 
 .nodeFrame[data-dimmed="true"] {
-  filter: saturate(0.42);
-  opacity: 0.24;
   transform: scale(0.96);
+}
+
+.nodeFrame[data-dimmed="true"] .nodeCircle {
+  filter: saturate(0.58);
+  opacity: 0.55;
+  box-shadow: 0 0.45rem 1rem color-mix(in srgb, #285377 9%, transparent);
+}
+
+.nodeFrame[data-dimmed="true"] .nodeLabel {
+  color: #3d5369;
+  background: color-mix(in srgb, #ffffff 90%, transparent);
 }
 
 .nodeButton {
@@ -343,10 +352,9 @@
 }
 
 .nodeFrame[data-variant="account-map"] .nodeLabel {
-  position: absolute;
   z-index: 2;
-  bottom: calc(100% + 0.5rem);
-  left: 50%;
+  align-self: start;
+  justify-self: center;
   width: max-content;
   max-width: 11rem;
   padding: 0.3rem 0.58rem;
@@ -355,7 +363,6 @@
   background: color-mix(in srgb, #ffffff 82%, transparent);
   box-shadow: 0 0.4rem 1rem color-mix(in srgb, #426889 10%, transparent);
   line-height: 1.15;
-  transform: translateX(-50%);
   backdrop-filter: blur(0.5rem);
 }
 
@@ -396,7 +403,7 @@
 }
 
 .edge :global([data-network-edge-dimmed="true"]) {
-  opacity: 0.18;
+  opacity: 0.42;
 }
 
 :global(.edge-kind-dependency) :global(.react-flow__edge-path) {

@@ -1,7 +1,7 @@
 import type { TrainingSectionId } from '@passwo/contracts';
 import type { S01AccountId } from './s01.js';
 
-export type S03RetrievalResult = 'pending' | 'retrievable' | 'not-remembered';
+export type S03RetrievalResult = 'pending' | 'retrievable' | 'not-remembered' | 'assisted';
 
 export type S03AnimationStep =
   | {
@@ -28,6 +28,7 @@ export interface S03SegmentContent {
   readonly source: {
     readonly document: string;
     readonly internalPages: readonly [8, 9, 10, 11];
+    readonly revision: string;
   };
   readonly segment: {
     readonly id: 'S03';
@@ -53,12 +54,17 @@ export interface S03SegmentContent {
     readonly timingFailure: string;
     readonly timingSaving: string;
     readonly retry: string;
+    readonly assistedLogin: string;
+    readonly viewWarning: string;
   };
   readonly narration: {
     readonly guideName: string;
     readonly intro: string;
     readonly accountSuccess: Readonly<Record<S01AccountId, string>>;
-    readonly accountSkipped: Readonly<Record<S01AccountId, string>>;
+    readonly accountAssisted: Readonly<Record<S01AccountId, string>>;
+    readonly retrievalHelp: string;
+    readonly completionByRememberedCount: Readonly<Record<0 | 1 | 2 | 3, string>>;
+    readonly campusStart: string;
     readonly warning: string;
   };
   readonly accountLoginTitles: Readonly<Record<S01AccountId, string>>;
@@ -79,12 +85,13 @@ export interface S03SegmentContent {
     readonly pending: string;
     readonly retrievable: string;
     readonly notRemembered: string;
+    readonly assisted: string;
     readonly cancelledLogin: string;
   };
   readonly animations: readonly S03AnimationSequence[];
 }
 
-export const S03_CONTENT_VERSION = '1.4.0';
+export const S03_CONTENT_VERSION = '1.5.0';
 
 const resultAnimation = (
   accountId: S01AccountId,
@@ -124,21 +131,12 @@ const animations = [
   {
     id: 's03-completion-timeskip',
     steps: [
-      { type: 'announce', messageId: 's03.completion.result' },
-      { type: 'highlight', targetId: 'campus-id', emphasis: 'info', durationMs: 180 },
-      { type: 'highlight', targetId: 'campus-mail', emphasis: 'info', durationMs: 180 },
-      { type: 'highlight', targetId: 'campus-board-archive', emphasis: 'info', durationMs: 180 },
-      { type: 'pause', durationMs: 10_000 },
-      {
-        type: 'highlight',
-        targetId: 'campus-board-archive',
-        emphasis: 'danger',
-        durationMs: 360,
-      },
+      { type: 'announce', messageId: 's03.completion.timeskip' },
+      { type: 'pause', durationMs: 5_000 },
       { type: 'announce', messageId: 's03.campus-board.warning' },
     ],
     reducedMotion: { strategy: 'instant-end-state', maxDurationMs: 0 },
-    maxDurationMs: 10_900,
+    maxDurationMs: 5_000,
   },
 ] as const satisfies readonly S03AnimationSequence[];
 
@@ -147,6 +145,7 @@ export const s03Content: S03SegmentContent = {
   source: {
     document: 'research/private/training-script.pdf',
     internalPages: [8, 9, 10, 11],
+    revision: 'Userauftrag vom 2026-07-29',
   },
   segment: {
     id: 'S03',
@@ -173,6 +172,8 @@ export const s03Content: S03SegmentContent = {
       'Das Speichern des Zeitereignisses ist fehlgeschlagen. Der nächste Schritt bleibt gesperrt.',
     timingSaving: 'Zeitereignis wird gespeichert …',
     retry: 'Erneut versuchen',
+    assistedLogin: 'Für mich anmelden',
+    viewWarning: 'Warnung ansehen',
   },
   narration: {
     guideName: 'PassWo',
@@ -182,16 +183,22 @@ export const s03Content: S03SegmentContent = {
       'campus-mail': 'Campus E-Mail ist wieder geöffnet.',
       'campus-board-archive': 'Campusgram ist wieder geöffnet.',
     },
-    accountSkipped: {
-      'campus-id':
-        'Kein Problem für die Übung. Wir merken nur: Dieses Passwort war gerade nicht abrufbar.',
-      'campus-mail':
-        'Das ist in Ordnung. Ein Passwort muss nicht nur stark sein, sondern später auch wieder abrufbar bleiben.',
-      'campus-board-archive':
-        'Auch das ist eine nützliche Beobachtung für die spätere Passwortauswertung.',
+    accountAssisted: {
+      'campus-id': 'Master Campus ist mit Unterstützung wieder geöffnet.',
+      'campus-mail': 'Campus E-Mail ist mit Unterstützung wieder geöffnet.',
+      'campus-board-archive': 'Campusgram ist mit Unterstützung wieder geöffnet.',
     },
+    retrievalHelp:
+      'Keine Panik – dein fiktives Konto ist nicht verloren. Das zeigt aber: Ein Passwort muss nicht nur stark sein, sondern später auch wieder abrufbar bleiben.\n\nDass du dich nicht erinnern konntest, ist eine hilfreiche Beobachtung. Ich melde dich jetzt mit dem richtigen Passwort wieder an, damit wir unseren Campusalltag fortsetzen können.',
+    completionByRememberedCount: {
+      0: 'Du konntest diesmal keines der drei Passwörter selbst abrufen. Das ist eine hilfreiche Beobachtung.\n\nAlle drei fiktiven Konten sind wieder geöffnet. Nimm mit: Ein Passwort muss stark und im Alltag abrufbar sein.',
+      1: 'Du konntest dich bei einem von drei Konten selbst wieder anmelden. Bei zwei Konten war Unterstützung nötig.\n\nAlle drei fiktiven Konten sind wieder geöffnet. Der Unterschied zeigt: Stärke allein reicht nicht, wenn ein Passwort im Alltag nicht abrufbar bleibt.',
+      2: 'Du konntest dich bei zwei von drei Konten selbst wieder anmelden. Bei einem Konto war Unterstützung nötig.\n\nAlle drei fiktiven Konten sind wieder geöffnet. Auch ein einzelnes schwer abrufbares Passwort kann den Alltag unterbrechen.',
+      3: 'Du konntest dich bei allen drei Konten selbst wieder anmelden. Deine drei Passwörter waren diesmal abrufbar.\n\nAlle drei fiktiven Konten sind wieder geöffnet. Behalte trotzdem im Blick: Abrufbarkeit ist nur eine von mehreren Anforderungen an ein Passwort.',
+    },
+    campusStart: 'Wir können jetzt in Ruhe unseren Campusstart fortsetzen.',
     warning:
-      'Stopp – bei Campusgram gibt es eine Sicherheitsmeldung. Kannst du sie dir bitte ansehen?',
+      'Warte, bei Campusgram gibt es eine Warnung. Kannst du sie dir bitte ansehen?',
   },
   accountLoginTitles: {
     'campus-id': 'Melde dich bei Master Campus an.',
@@ -228,6 +235,7 @@ export const s03Content: S03SegmentContent = {
     pending: 'Bereit',
     retrievable: 'abrufbar',
     notRemembered: 'nicht erinnert',
+    assisted: 'mit Unterstützung geöffnet',
     cancelledLogin: 'Anmeldung abgebrochen',
   },
   animations,
