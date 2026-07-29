@@ -69,6 +69,7 @@ export function S01Training({
   const accountConfigured =
     account !== undefined && snapshot.context.configuredAccountIds.includes(account.id);
   const completionFocusTarget = accountConfigured ? account?.id : null;
+  const readyToContinue = isReadyToContinue(snapshot);
 
   useEffect(() => {
     if (completionFocusTarget !== null) completionStatusRef.current?.focus();
@@ -84,10 +85,13 @@ export function S01Training({
     }
   }, [desktopTransitioning, externalTimingError, snapshot]);
 
+  useEffect(() => {
+    if (readyToContinue) setQuestHelpOpen(true);
+  }, [readyToContinue]);
+
   if (account === undefined) return null;
 
   const configuredCount = getConfiguredAccountCount(snapshot.context);
-  const readyToContinue = isReadyToContinue(snapshot);
   const editing = snapshot.matches({ s01: 'editing' });
   const localTimingFailure = isLocalTimingFailure(snapshot);
   const initialTimingPending = snapshot.matches({ s01: 'starting' });
@@ -101,7 +105,7 @@ export function S01Training({
       ? campusIdentity.campusId
       : account.id === 'campus-mail'
         ? campusIdentity.campusMail
-        : account.accountData;
+        : campusIdentity.campusgram;
   const canConfigure =
     editing && !accountConfigured && activeValue.length > 0 && !interactionBlocked;
   const snapshotForBrowser: BrowserShellSnapshot = {
@@ -116,7 +120,7 @@ export function S01Training({
     })),
     activeTabId: account.id,
     address: account.address,
-    dimmed: questHelpOpen,
+    dimmed: questHelpOpen && !readyToContinue,
     dimStrength: 'soft',
   };
 
@@ -144,6 +148,12 @@ export function S01Training({
     controller.selectAccount(accountId);
   }
 
+  function beginDesktopTransition(): void {
+    if (readyToContinue && !interactionBlocked && !desktopTransitioning) {
+      setDesktopTransitioning(true);
+    }
+  }
+
   return (
     <section className={styles.training} aria-label={s01Content.trainingAriaLabel}>
       <BrowserShell
@@ -153,12 +163,14 @@ export function S01Training({
         windowOpen={browserOpen}
         onWindowOpenChange={(open) => {
           setBrowserOpen(open);
-          if (open) setDesktopTransitioning(false);
+          if (open) {
+            setDesktopTransitioning(false);
+          } else {
+            beginDesktopTransition();
+          }
         }}
         onWindowClose={() => {
-          if (readyToContinue && !interactionBlocked && !desktopTransitioning) {
-            setDesktopTransitioning(true);
-          }
+          beginDesktopTransition();
         }}
         onWindowTransitionEnd={(state) => {
           if (state === 'closed' && desktopTransitioning) controller.continue();
@@ -184,6 +196,7 @@ export function S01Training({
               ]}
               speechKey={readyToContinue ? 's01-ready' : `s01-${account.id}-${configuredCount}`}
               speechPlacement="right"
+              awaitsAction={readyToContinue}
               onToggleHelp={() => setQuestHelpOpen(true)}
               onSpeechAdvance={() => setQuestHelpOpen(false)}
             />

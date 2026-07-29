@@ -219,7 +219,7 @@ export function S03RetrievalTraining({
       ? campusIdentity.campusId
       : account.id === 'campus-mail'
         ? campusIdentity.campusMail
-        : account.accountData;
+        : campusIdentity.campusgram;
   const accountPage = s03Content.accountPages[account.id];
   const isStarting = snapshot.matches({ s03: 'starting' });
   const isEnding = snapshot.matches({ s03: 'ending' });

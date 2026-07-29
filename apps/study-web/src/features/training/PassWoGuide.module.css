@@ -1,7 +1,7 @@
 .guide {
   position: absolute;
   z-index: 1;
-  bottom: 0;
+  top: calc(100% - 9.5rem);
   left: clamp(var(--space-2), 1.4vw, var(--space-4));
   display: grid;
   width: min(41rem, calc(100vw - var(--space-4)));
@@ -9,6 +9,24 @@
   align-items: end;
   gap: var(--space-2);
   pointer-events: none;
+  transition:
+    top 580ms var(--motion-ease-out),
+    left 580ms var(--motion-ease-out);
+}
+
+.guide[data-guided-account="campus-id"] {
+  top: -4.7rem;
+  left: clamp(15rem, 25vw, 23rem);
+}
+
+.guide[data-guided-account="campus-mail"] {
+  top: -4.7rem;
+  left: clamp(21rem, 38vw, 33rem);
+}
+
+.guide[data-guided-account="campus-board-archive"] {
+  top: -4.7rem;
+  left: clamp(26rem, 51vw, 42rem);
 }
 
 .speechSlot {
@@ -127,6 +145,8 @@
 
 @media (max-width: 760px) {
   .guide {
+    top: auto;
+    bottom: 0;
     width: calc(100vw - var(--space-4));
     grid-template-columns: minmax(0, 1fr);
   }
@@ -154,6 +174,10 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .guide {
+    transition: none;
+  }
+
   .progressTrack > span {
     transition: none;
   }

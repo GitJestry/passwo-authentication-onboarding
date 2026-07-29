@@ -56,21 +56,21 @@ export interface S00SegmentContent {
   readonly narration: {
     readonly guideName: string;
     readonly greetingTemplate: string;
-    readonly instruction: string;
+    readonly safetyWarning: string;
     readonly openGuideLabel: string;
     readonly closeGuideLabel: string;
-  };
-  readonly acknowledgement: {
-    readonly label: string;
+    readonly accountExplanations: readonly {
+      readonly accountId: 'campus-mail' | 'campus-board-archive';
+      readonly text: string;
+    }[];
   };
   readonly controls: {
     readonly continue: string;
-    readonly continueReason: string;
     readonly animationError: string;
   };
   readonly mission: {
     readonly id: 's00-entry-and-safety';
-    readonly requiresSafetyAcknowledgement: true;
+    readonly requiresSafetyAcknowledgement: false;
     readonly steps: readonly {
       readonly id: string;
       readonly narrationId: string;
@@ -87,7 +87,7 @@ export interface S00SegmentContent {
   };
 }
 
-export const S00_CONTENT_VERSION = '1.6.0';
+export const S00_CONTENT_VERSION = '1.9.0';
 
 export const s00Content: S00SegmentContent = {
   version: S00_CONTENT_VERSION,
@@ -106,7 +106,7 @@ export const s00Content: S00SegmentContent = {
   sectionTransition: {
     label: 'Sektion 1',
     title: 'Starke Passwörter',
-    holdDurationMs: 5000,
+    holdDurationMs: 3000,
   },
   source: {
     document: 'research/private/training-script.pdf',
@@ -144,24 +144,30 @@ export const s00Content: S00SegmentContent = {
   narration: {
     guideName: 'PassWo',
     greetingTemplate:
-      'Hey {displayName}, wichtig ist, dass du hier keine eigenen Passwörter oder Varianten davon verwendest.',
-    instruction:
-      'Nutze nur neue, ausgedachte Passwörter. Dein Benutzername ist bereits eingetragen.',
+      'Hey {displayName}, bevor wir loslegen, zeige ich dir kurz die drei fiktiven Campus-Konten. Master Campus ist dein zentraler Zugang: Damit meldest du dich bei den wichtigsten Diensten der Universität an.',
+    accountExplanations: [
+      {
+        accountId: 'campus-mail',
+        text: 'Campus E-Mail ist dein Postfach für Campus-Nachrichten, Bestätigungen und Zurücksetzungslinks.',
+      },
+      {
+        accountId: 'campus-board-archive',
+        text: 'Campusgram ist ein separates Konto für Beiträge und Diskussionen aus dem Campusalltag.',
+      },
+    ],
+    safetyWarning:
+      'Nutze bitte keine eigenen Passwörter oder Varianten davon.',
     openGuideLabel: 'PassWo-Hilfe öffnen',
     closeGuideLabel: 'PassWo-Hilfe schließen',
   },
-  acknowledgement: {
-    label: 'Ich verwende nur neue, ausgedachte Passwörter.',
-  },
   controls: {
     continue: 'Weiter',
-    continueReason: 'Bestätige PassWo zuerst, dass du nur ausgedachte Passwörter verwendest.',
     animationError:
-      'Die Animation wurde beendet. Du kannst PassWos Hinweis bestätigen und fortfahren.',
+      'Die Animation wurde beendet. Du kannst fortfahren.',
   },
   mission: {
     id: 's00-entry-and-safety',
-    requiresSafetyAcknowledgement: true,
+    requiresSafetyAcknowledgement: false,
     steps: [
       {
         id: 's00-arrival',

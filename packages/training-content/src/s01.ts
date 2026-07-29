@@ -61,7 +61,7 @@ export interface S01SegmentContent {
   };
 }
 
-export const S01_CONTENT_VERSION = '2.5.0';
+export const S01_CONTENT_VERSION = '2.6.0';
 
 export const s01Content: S01SegmentContent = {
   version: S01_CONTENT_VERSION,
@@ -138,7 +138,7 @@ export const s01Content: S01SegmentContent = {
     guideMessage:
       'Erstelle starke und merkbare Passwörter, da wir uns später wieder anmelden müssen und unsere Accounts schützen wollen.',
     readyToContinue:
-      'Die drei Konten sind eingerichtet. Bevor du dich erneut anmeldest, schauen wir kurz an, wofür diese Konten im Campusalltag stehen.',
+      'Die drei Konten sind eingerichtet. Bevor du dich erneut anmeldest, müssen wir schauen, was du gerade mit deinen Passwörtern schützt und ob vielleicht mehr als nur ein Konto auf den ersten Blick dahinter steckt. Schließe dafür bitte den Browser.',
   },
   controls: {
     passwordLabel: 'Passwort',
@@ -155,6 +155,6 @@ export const s01Content: S01SegmentContent = {
     accountStatus: 'Konto eingerichtet',
     guideName: 'PassWo',
     guideMessage:
-      'Die drei Konten sind eingerichtet. Bevor du dich erneut anmeldest, schauen wir kurz an, wofür diese Konten im Campusalltag stehen.',
+      'Die drei Konten sind eingerichtet. Bevor du dich erneut anmeldest, müssen wir schauen, was du gerade mit deinen Passwörtern schützt und ob vielleicht mehr als nur ein Konto auf den ersten Blick dahinter steckt. Schließe dafür bitte den Browser.',
   },
 };

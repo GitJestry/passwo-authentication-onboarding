@@ -25,6 +25,7 @@ export interface BrowserShellSnapshot {
   readonly address: string;
   readonly dimmed?: boolean;
   readonly dimStrength?: 'soft' | 'standard';
+  readonly highlightedTabId?: string;
 }
 
 export interface BrowserShellLayers {
@@ -211,6 +212,7 @@ export function BrowserShell({
         aria-describedby={enabled ? undefined : reasonId}
         tabIndex={index === resolvedTabStopIndex ? 0 : -1}
         className={selected ? styles.activeTab : styles.tab}
+        data-guided-highlight={snapshot.highlightedTabId === tab.id || undefined}
         onClick={() => selectTab(tab.id)}
         onKeyDown={(event) => handleTabKeyDown(event, tab.id, enabled)}
       >

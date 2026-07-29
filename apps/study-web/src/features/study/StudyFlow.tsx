@@ -327,7 +327,7 @@ export function StudyFlow() {
           Sitzungscode: <strong>{context.participantCode}</strong>
         </p>
         <p>
-          Gesamtzeit im Artefakt: <strong>{Math.round(context.artifactWallClockMs ?? 0)} ms</strong>
+          Gesamtzeit im Artefakt: <strong>{Math.round((context.artifactWallClockMs ?? 0) / 1000)} s</strong>
         </p>
       </section>
     );

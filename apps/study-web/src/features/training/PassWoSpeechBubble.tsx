@@ -35,6 +35,21 @@ function visualParagraphs(text: string): readonly string[] {
   return text.split('\n\n');
 }
 
+interface SpeechParagraphLayout {
+  readonly text: string;
+  readonly characterOffset: number;
+}
+
+function createParagraphLayout(text: string): readonly SpeechParagraphLayout[] {
+  let characterOffset = 0;
+
+  return visualParagraphs(text).map((paragraph) => {
+    const layout = { text: paragraph, characterOffset };
+    characterOffset += Array.from(paragraph).length + 2;
+    return layout;
+  });
+}
+
 function isInteractiveTarget(target: EventTarget | null, container: HTMLElement | null): boolean {
   if (container === null || !(target instanceof Element) || !container.contains(target)) {
     return false;
@@ -97,6 +112,8 @@ export function PassWoSpeechBubble({
   onAdvance,
 }: PassWoSpeechBubbleProps) {
   const fullText = useMemo(() => paragraphs.join('\n\n'), [paragraphs]);
+  const fullCharacters = useMemo(() => Array.from(fullText), [fullText]);
+  const paragraphLayout = useMemo(() => createParagraphLayout(fullText), [fullText]);
   const [visibleCharacters, setVisibleCharacters] = useState(0);
   const [advanceCompleted, setAdvanceCompleted] = useState(false);
   const [activeSpeechKey, setActiveSpeechKey] = useState(speechKey);
@@ -104,15 +121,15 @@ export function PassWoSpeechBubble({
   const bubbleRef = useRef<HTMLElement | null>(null);
   const completedSpeechKeyRef = useRef<string | null>(null);
   const currentSpeech = activeSpeechKey === speechKey;
-  const complete = currentSpeech && visibleCharacters >= fullText.length;
+  const complete = currentSpeech && visibleCharacters >= fullCharacters.length;
 
   useEffect(() => {
-    const initiallyComplete = prefersReducedMotion() || fullText.length === 0;
+    const initiallyComplete = prefersReducedMotion() || fullCharacters.length === 0;
     setActiveSpeechKey(speechKey);
     completedSpeechKeyRef.current = null;
-    setVisibleCharacters(initiallyComplete ? fullText.length : 0);
+    setVisibleCharacters(initiallyComplete ? fullCharacters.length : 0);
     setAdvanceCompleted(false);
-  }, [fullText, speechKey]);
+  }, [fullCharacters, speechKey]);
 
   useEffect(() => {
     if (!currentSpeech) return;
@@ -124,25 +141,32 @@ export function PassWoSpeechBubble({
       return;
     }
 
-    const character = fullText[visibleCharacters] ?? '';
+    const character = fullCharacters[visibleCharacters] ?? '';
     const timer = window.setTimeout(
-      () => setVisibleCharacters((current) => Math.min(current + 1, fullText.length)),
+      () => setVisibleCharacters((current) => Math.min(current + 1, fullCharacters.length)),
       nextDelay(character),
     );
     return () => window.clearTimeout(timer);
-  }, [complete, currentSpeech, fullText, onComplete, speechKey, visibleCharacters]);
+  }, [
+    complete,
+    currentSpeech,
+    fullCharacters,
+    onComplete,
+    speechKey,
+    visibleCharacters,
+  ]);
 
   const advanceSpeech = useCallback((): void => {
     if (!currentSpeech) return;
     if (!complete) {
-      setVisibleCharacters(fullText.length);
+      setVisibleCharacters(fullCharacters.length);
       return;
     }
     if (advanceCompleted) return;
 
     setAdvanceCompleted(true);
     onAdvance?.();
-  }, [advanceCompleted, complete, currentSpeech, fullText, onAdvance]);
+  }, [advanceCompleted, complete, currentSpeech, fullCharacters.length, onAdvance]);
 
   useEffect(() => {
     if (advanceCompleted || (complete && awaitsAction)) return;
@@ -159,7 +183,6 @@ export function PassWoSpeechBubble({
     return () => document.removeEventListener('click', handleScreenClick, true);
   }, [advanceCompleted, advanceSpeech, awaitsAction, complete]);
 
-  const visibleText = currentSpeech ? fullText.slice(0, visibleCharacters) : '';
   const bubbleClassName = className === undefined ? styles.bubble : `${styles.bubble} ${className}`;
   const actionKind: SpeechActionKind = !complete ? 'skip' : hasNext ? 'next' : 'close';
   const actionLabel =
@@ -182,26 +205,32 @@ export function PassWoSpeechBubble({
         aria-describedby={descriptionId}
         aria-label={complete ? `${speaker}-Text` : `${speaker}-Text vollständig anzeigen`}
         disabled={complete}
-        onClick={() => setVisibleCharacters(fullText.length)}
+        onClick={() => setVisibleCharacters(fullCharacters.length)}
       >
         <span className={styles.textLayout} aria-hidden="true">
-          <span className={styles.fullTextSizer}>
-            {visualParagraphs(fullText).map((paragraph, index) => (
-              <span className={styles.paragraph} key={`${speechKey}-full-${index}`}>
-                {paragraph}
-              </span>
-            ))}
-          </span>
-          <span className={styles.visualText}>
-            {visualParagraphs(visibleText).map((paragraph, index) => (
-              <span className={styles.paragraph} key={`${speechKey}-${index}`}>
-                {paragraph}
-                {!complete && index === visualParagraphs(visibleText).length - 1 ? (
-                  <span className={styles.caret} />
-                ) : null}
-              </span>
-            ))}
-          </span>
+          {paragraphLayout.map(({ text, characterOffset }, paragraphIndex) => (
+            <span className={styles.paragraph} key={`${speechKey}-${paragraphIndex}`}>
+              {Array.from(text).map((character, characterIndex) => {
+                const characterPosition = characterOffset + characterIndex;
+                const isVisible = currentSpeech && characterPosition < visibleCharacters;
+                const showsCaret = !complete && characterPosition === visibleCharacters - 1;
+
+                return (
+                  <span
+                    className={styles.character}
+                    data-caret={showsCaret}
+                    data-visible={isVisible}
+                    key={`${speechKey}-${paragraphIndex}-${characterIndex}`}
+                  >
+                    {character}
+                  </span>
+                );
+              })}
+              {!complete && visibleCharacters === characterOffset ? (
+                <span className={styles.initialCaret} />
+              ) : null}
+            </span>
+          ))}
         </span>
       </button>
       {showAction ? (

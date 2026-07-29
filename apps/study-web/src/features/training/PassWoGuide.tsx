@@ -24,6 +24,7 @@ export interface PassWoGuideProps {
   readonly speechPlacement?: PassWoSpeechPlacement;
   readonly hasNextSpeech?: boolean;
   readonly awaitsAction?: boolean;
+  readonly guidedAccountId?: string | null;
   readonly showHelpButton?: boolean;
   readonly onToggleHelp?: () => void;
   readonly onSpeechComplete?: () => void;
@@ -43,6 +44,7 @@ export function PassWoGuide({
   speechPlacement = 'right',
   hasNextSpeech = false,
   awaitsAction = false,
+  guidedAccountId = null,
   showHelpButton = true,
   onToggleHelp,
   onSpeechComplete,
@@ -54,7 +56,11 @@ export function PassWoGuide({
       : Math.min(100, Math.max(0, (progress.current / progress.total) * 100));
 
   return (
-    <aside className={styles.guide} aria-label={`${guideName} Begleitung`}>
+    <aside
+      className={styles.guide}
+      data-guided-account={guidedAccountId ?? undefined}
+      aria-label={`${guideName} Begleitung`}
+    >
       <div className={styles.guideDock}>
         <div className={styles.guideToolbar}>
           {!helpOpen && showHelpButton ? (

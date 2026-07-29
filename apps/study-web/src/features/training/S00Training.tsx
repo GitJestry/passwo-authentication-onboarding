@@ -1,6 +1,5 @@
 import { formatS00Greeting, s00Content } from '@passwo/training-content';
 import {
-  canContinueMission,
   deriveCampusIdentity,
   MissionController,
   type MissionDefinition,
@@ -44,7 +43,11 @@ function prefersReducedMotion(): boolean {
   return window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 }
 
-function S00Page({ displayName }: { readonly displayName: string }) {
+function S00Page({
+  displayName,
+}: {
+  readonly displayName: string;
+}) {
   const campusIdentity = deriveCampusIdentity(displayName);
   return (
     <CampusWebsiteBackdrop accountId="campus-id" interactionLabel="Master Campus einrichten">
@@ -97,7 +100,7 @@ export function S00Training({
   const [missionSnapshot, setMissionSnapshot] = useState<MissionSnapshot | null>(null);
   const [timingError, setTimingError] = useState<string | null>(null);
   const [speechRound, setSpeechRound] = useState(0);
-  const [safetySpeechCompleted, setSafetySpeechCompleted] = useState(false);
+  const [finalSpeechCompleted, setFinalSpeechCompleted] = useState(false);
   const controllerRef = useRef<MissionController | null>(null);
   const characterAnimationAnchorRef = useRef<HTMLSpanElement | null>(null);
   const onCompleteRef = useRef(onComplete);
@@ -134,18 +137,24 @@ export function S00Training({
   }, [forceAnimationFailure, timingPort]);
 
   const awaitingDecision = missionSnapshot?.matches({ active: 'awaitingDecision' }) ?? false;
-  const safetyAcknowledged = missionSnapshot?.context.safetyAcknowledged ?? false;
-  const canContinue =
-    missionSnapshot === null
-      ? false
-      : canContinueMission(missionSnapshot.context) && awaitingDecision;
+  const canContinue = awaitingDecision;
   const guideOpen = scene.announcedMessageId === 's00.greeting';
   const animationError = missionSnapshot?.context.lastAnimationError ?? null;
   const activeTimingError = timingError ?? externalTimingError;
+  const speechSteps = [
+    { accountId: 'campus-id', text: formatS00Greeting(displayName) },
+    ...s00Content.narration.accountExplanations.map(({ accountId, text }) => ({ accountId, text })),
+    { accountId: null, text: s00Content.narration.safetyWarning },
+  ] as const;
+  const currentSpeechStep = speechSteps[speechRound] ?? speechSteps[0];
+  const isFinalSpeechStep = speechRound === speechSteps.length - 1;
   const activeBrowserSnapshot: BrowserShellSnapshot = {
     ...browserSnapshot,
     dimmed: guideOpen,
     dimStrength: 'soft',
+    ...(currentSpeechStep?.accountId === null || currentSpeechStep === undefined
+      ? {}
+      : { highlightedTabId: currentSpeechStep.accountId }),
   };
 
   function retryTiming(): void {
@@ -191,53 +200,33 @@ export function S00Training({
                 helpOpen={guideOpen}
                 helpId="s00-passwo-speech"
                 openHelpLabel={s00Content.narration.openGuideLabel}
-                speech={
-                  speechRound === 0
-                    ? [formatS00Greeting(displayName)]
-                    : [s00Content.narration.instruction]
-                }
+                speech={currentSpeechStep === undefined ? [] : [currentSpeechStep.text]}
                 speechKey={`s00-greeting-${displayName}-${speechRound}`}
                 speechPlacement="right"
-                hasNextSpeech={speechRound === 0}
-                awaitsAction={speechRound === 1}
+                hasNextSpeech={!isFinalSpeechStep}
+                awaitsAction={isFinalSpeechStep}
+                guidedAccountId={currentSpeechStep?.accountId}
                 showHelpButton={false}
                 speechFooter={
-                  safetySpeechCompleted && activeTimingError === null ? (
+                  finalSpeechCompleted && activeTimingError === null ? (
                     <>
                       {animationError !== null ? (
                         <p className={styles.animationError} role="status">
                           {s00Content.controls.animationError}
                         </p>
                       ) : null}
-                      <label className={styles.acknowledgement}>
-                        <input
-                          type="checkbox"
-                          checked={safetyAcknowledged}
-                          disabled={!awaitingDecision}
-                          onChange={(event) =>
-                            controllerRef.current?.setSafetyAcknowledged(event.currentTarget.checked)
-                          }
-                        />
-                        <span>{s00Content.acknowledgement.label}</span>
-                      </label>
                       <div className={styles.buttonRow}>
                         <button
                           type="button"
                           className={styles.primaryButton}
                           disabled={!canContinue}
-                          aria-describedby={canContinue ? undefined : 's00-continue-reason'}
                           onClick={continueMission}
                         >
                           {s00Content.controls.continue}
                         </button>
                       </div>
-                      {!canContinue ? (
-                        <p id="s00-continue-reason" className={styles.screenReaderOnly}>
-                          {s00Content.controls.continueReason}
-                        </p>
-                      ) : null}
                     </>
-                  ) : safetySpeechCompleted ? (
+                  ) : finalSpeechCompleted ? (
                     <>
                       <p className={styles.animationError} role="alert">
                         Das Speichern des Zeitereignisses ist fehlgeschlagen. Der nächste Schritt
@@ -253,12 +242,10 @@ export function S00Training({
                   ) : undefined
                 }
                 onSpeechAdvance={() => {
-                  if (speechRound === 0) {
-                    setSpeechRound(1);
-                  }
+                  if (!isFinalSpeechStep) setSpeechRound((current) => current + 1);
                 }}
                 onSpeechComplete={() => {
-                  if (speechRound === 1) setSafetySpeechCompleted(true);
+                  if (isFinalSpeechStep) setFinalSpeechCompleted(true);
                 }}
               />
             </>

@@ -129,6 +129,28 @@
   text-align: left;
 }
 
+.tab[data-guided-highlight="true"],
+.activeTab[data-guided-highlight="true"] {
+  position: relative;
+  z-index: 1;
+  border: 0.16rem solid #38ee7b;
+  color: var(--color-ink-strong);
+  background: color-mix(in srgb, #38ee7b 18%, var(--passwo-surface));
+  box-shadow: 0 0 0 0.24rem rgb(56 238 123 / 46%), 0 0 1.2rem rgb(56 238 123 / 88%);
+  animation: guided-tab-highlight 1800ms ease-in-out infinite;
+}
+
+@keyframes guided-tab-highlight {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0.24rem rgb(56 238 123 / 46%), 0 0 0.8rem rgb(56 238 123 / 72%);
+  }
+
+  50% {
+    box-shadow: 0 0 0 0.38rem rgb(87 255 147 / 60%), 0 0 1.65rem rgb(56 238 123 / 100%);
+  }
+}
+
 .tabIdentity {
   display: inline-flex;
   min-width: 0;
@@ -284,9 +306,10 @@ button.activeTab[aria-disabled="true"] {
 
 .viewport {
   position: relative;
+  z-index: 2;
   min-height: 0;
   flex: 1;
-  overflow: hidden;
+  overflow: visible;
   background: var(--passwo-surface);
 }
 

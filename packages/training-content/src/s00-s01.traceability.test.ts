@@ -5,26 +5,28 @@ import { S02_CONTENT_VERSION, s02Content } from './s02.js';
 
 describe('S00 to S02 training-content traceability', () => {
   it('keeps the S00 safety boundary in PassWo narration from the named script page', () => {
-    expect(S00_CONTENT_VERSION).toBe('1.6.0');
+    expect(S00_CONTENT_VERSION).toBe('1.9.0');
     expect(s00Content.source).toEqual({
       document: 'research/private/training-script.pdf',
       internalPage: 2,
     });
-    const safetyText = `${s00Content.narration.greetingTemplate} ${s00Content.narration.instruction}`;
+    const safetyText = s00Content.narration.safetyWarning;
     expect(safetyText).toContain('keine eigenen Passwörter');
     expect(safetyText).toContain('Varianten davon');
-    expect(safetyText).toContain('neue, ausgedachte Passwörter');
-    expect(safetyText).toContain('Benutzername ist bereits eingetragen');
+    expect(s00Content.narration.accountExplanations.map(({ accountId }) => accountId)).toEqual([
+      'campus-mail',
+      'campus-board-archive',
+    ]);
     expect(s00Content.browser.page.title).not.toBe('Dein Campus-Start');
     expect(s00Content.sectionTransition).toEqual({
       label: 'Sektion 1',
       title: 'Starke Passwörter',
-      holdDurationMs: 5000,
+      holdDurationMs: 3000,
     });
   });
 
   it('keeps the S01 account order and account-specific website identity from the named script page', () => {
-    expect(S01_CONTENT_VERSION).toBe('2.5.0');
+    expect(S01_CONTENT_VERSION).toBe('2.6.0');
     expect(s01Content.source).toEqual({
       document: 'research/private/training-script.pdf',
       internalPage: 3,
