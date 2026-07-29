@@ -1,4 +1,6 @@
 .window {
+  --window-minimized-transform: translateY(2.2rem) scale(0.9);
+
   position: absolute;
   z-index: 10;
   top: 0;
@@ -79,6 +81,15 @@
   stroke: currentcolor;
   stroke-linecap: round;
   stroke-width: 1.25;
+}
+
+.expandIcon {
+  display: block;
+  width: 0.46rem;
+  height: 0.46rem;
+  fill: none;
+  stroke: currentcolor;
+  stroke-width: 1.2;
 }
 
 .closeControl {
@@ -398,60 +409,193 @@ button.activeTab[aria-disabled="true"] {
 
 .window[data-window-state="closing"] {
   pointer-events: none;
-  animation: browser-paper-close 520ms cubic-bezier(0.44, 0, 0.84, 0.22) both;
+  animation: browser-window-close 280ms cubic-bezier(0.4, 0, 0.8, 0.35) both;
 }
 
 .window[data-window-state="opening"] {
   pointer-events: none;
-  animation: browser-paper-open 520ms cubic-bezier(0.16, 0.78, 0.22, 1) both;
+  animation: browser-window-open 320ms cubic-bezier(0.2, 0.78, 0.24, 1) both;
 }
 
 .window[data-window-state="closed"] {
   visibility: hidden;
   opacity: 0;
-  transform: translateY(4.1rem) scale(0.06, 0.03);
+  transform: var(--window-minimized-transform);
 }
 
-@keyframes browser-paper-close {
-  0% {
-    clip-path: inset(0 round 0.9rem);
-    opacity: 1;
-    transform: translateY(0) scale(1);
-  }
+.window[data-platform="mac"] .expandIcon {
+  opacity: 0;
+}
 
-  46% {
-    clip-path: polygon(12% 12%, 88% 3%, 100% 92%, 0 100%);
+.window[data-platform="windows"] {
+  --window-minimized-transform: translateY(1.35rem) scale(0.96);
+
+  bottom: 0;
+  border-color: rgb(33 61 82 / 24%);
+  border-radius: 0;
+  box-shadow: 0 0.8rem 2.6rem rgb(23 63 95 / 22%);
+  transform-origin: 7.6rem calc(100% + 2.4rem);
+}
+
+.window[data-platform="windows"] .chrome {
+  background: #f3f5f7;
+}
+
+.window[data-platform="windows"] .tabRow,
+.window[data-platform="linux"] .tabRow {
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: var(--space-2);
+}
+
+.window[data-platform="windows"] .tabRow {
+  min-height: 2.55rem;
+  padding: 0 0 0 var(--space-2);
+}
+
+.window[data-platform="windows"] .tabs,
+.window[data-platform="linux"] .tabs {
+  order: 1;
+}
+
+.window[data-platform="windows"] .windowControls,
+.window[data-platform="linux"] .windowControls {
+  order: 2;
+  padding: 0;
+}
+
+.window[data-platform="windows"] .windowControls {
+  align-self: stretch;
+  gap: 0;
+}
+
+.window[data-platform="windows"] .minimizeControl,
+.window[data-platform="linux"] .minimizeControl {
+  order: 1;
+}
+
+.window[data-platform="windows"] .expandControl,
+.window[data-platform="linux"] .expandControl {
+  order: 2;
+}
+
+.window[data-platform="windows"] .closeControl,
+.window[data-platform="linux"] .closeControl {
+  order: 3;
+}
+
+.window[data-platform="windows"] .windowControls button {
+  width: 2.9rem;
+  height: 100%;
+  min-height: 2.55rem;
+  border: 0;
+  border-radius: 0;
+  color: #263542;
+  background: transparent;
+}
+
+.window[data-platform="windows"] .closeIcon,
+.window[data-platform="windows"] .minimizeIcon {
+  width: 0.68rem;
+  height: 0.68rem;
+  stroke-width: 1.5;
+}
+
+.window[data-platform="windows"] .expandIcon {
+  width: 0.7rem;
+  height: 0.7rem;
+  stroke-width: 1.4;
+}
+
+.window[data-platform="windows"] .windowControls button:not(:disabled):hover,
+.window[data-platform="windows"] .expandControl:hover {
+  background: #dfe5e9;
+}
+
+.window[data-platform="windows"] .windowControls .closeControl:not(:disabled):hover {
+  color: #fff;
+  background: #c42b1c;
+}
+
+.window[data-platform="windows"] .tabs {
+  align-self: end;
+}
+
+.window[data-platform="windows"] .tab,
+.window[data-platform="windows"] .activeTab {
+  border-radius: 0.45rem 0.45rem 0 0;
+}
+
+.window[data-platform="windows"] .address {
+  border-radius: 0.42rem;
+  background: #fff;
+}
+
+.window[data-platform="linux"] {
+  --window-minimized-transform: translateX(-1.6rem) scale(0.94);
+
+  bottom: 0;
+  left: 4.45rem;
+  border-color: rgb(35 27 39 / 42%);
+  border-radius: 0.7rem 0.7rem 0 0;
+  box-shadow: 0 1.25rem 3rem rgb(29 14 34 / 30%);
+  transform-origin: -3.2rem 50%;
+}
+
+.window[data-platform="linux"] .chrome {
+  background: #e9e6ea;
+}
+
+.window[data-platform="linux"] .tabRow {
+  min-height: 2.65rem;
+  padding: var(--space-1) var(--space-2) 0 var(--space-3);
+}
+
+.window[data-platform="linux"] .windowControls {
+  align-self: center;
+  gap: var(--space-2);
+  padding-bottom: var(--space-1);
+}
+
+.window[data-platform="linux"] .windowControls button {
+  width: 1.55rem;
+  height: 1.55rem;
+  border: 1px solid rgb(30 25 32 / 10%);
+  color: #312b33;
+  background: #d6d1d7;
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 55%);
+}
+
+.window[data-platform="linux"] .windowControls .closeControl {
+  color: #fff;
+  background: #d94f43;
+}
+
+.window[data-platform="linux"] .address {
+  border-radius: 0.5rem;
+  background: #f8f7f8;
+}
+
+@keyframes browser-window-close {
+  0% {
     opacity: 1;
-    transform: translateY(0.3rem) scale(0.97, 0.9);
+    transform: none;
   }
 
   100% {
-    border-radius: 48% 48% 0.9rem 0.9rem;
-    clip-path: polygon(46% 100%, 54% 100%, 58% 100%, 42% 100%);
-    opacity: 0.35;
-    transform: translateY(4.1rem) scale(0.06, 0.03);
+    opacity: 0;
+    transform: var(--window-minimized-transform);
   }
 }
 
-@keyframes browser-paper-open {
+@keyframes browser-window-open {
   0% {
-    border-radius: 48% 48% 0.9rem 0.9rem;
-    clip-path: polygon(46% 100%, 54% 100%, 58% 100%, 42% 100%);
-    opacity: 0.35;
-    transform: translateY(4.1rem) scale(0.06, 0.03);
-  }
-
-  54% {
-    clip-path: polygon(12% 12%, 88% 3%, 100% 92%, 0 100%);
-    opacity: 1;
-    transform: translateY(0.3rem) scale(0.97, 0.9);
+    opacity: 0;
+    transform: var(--window-minimized-transform);
   }
 
   100% {
-    border-radius: 0.9rem;
-    clip-path: inset(0 round 0.9rem);
     opacity: 1;
-    transform: translateY(0) scale(1);
+    transform: none;
   }
 }
 
@@ -481,6 +625,11 @@ button.activeTab[aria-disabled="true"] {
   .tab,
   .activeTab {
     min-width: var(--size-browser-tab-min-compact);
+  }
+
+  .window[data-platform="windows"],
+  .window[data-platform="linux"] {
+    bottom: 0;
   }
 }
 

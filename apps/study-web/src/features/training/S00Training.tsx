@@ -6,7 +6,11 @@ import {
   type MissionSnapshot,
   type SegmentTimingPort,
 } from '@passwo/training-engine';
-import { BrowserShell, type BrowserShellSnapshot } from '@passwo/ui';
+import {
+  BrowserShell,
+  type BrowserShellSnapshot,
+  type DesktopPlatform,
+} from '@passwo/ui';
 import { useEffect, useRef, useState } from 'react';
 import { MotionAnimationAdapter } from '../../adapters/animation/MotionAnimationAdapter.js';
 import {
@@ -82,6 +86,7 @@ function S00Page({
 export interface S00TrainingProps {
   readonly displayName: string;
   readonly onComplete: () => void;
+  readonly platform?: DesktopPlatform;
   readonly timingPort?: SegmentTimingPort;
   readonly externalTimingError?: string | null;
   readonly onRetryExternalTiming?: () => void;
@@ -91,6 +96,7 @@ export interface S00TrainingProps {
 export function S00Training({
   displayName,
   onComplete,
+  platform = 'mac',
   timingPort,
   externalTimingError = null,
   onRetryExternalTiming,
@@ -184,6 +190,7 @@ export function S00Training({
   return (
     <section className={styles.training} aria-label={s00Content.trainingAriaLabel}>
       <BrowserShell
+        platform={platform}
         snapshot={activeBrowserSnapshot}
         ariaLabel={s00Content.browser.ariaLabel}
         layers={{

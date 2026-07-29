@@ -11,7 +11,11 @@ import {
   type PasswordModuleController,
   type PasswordModuleSnapshot,
 } from '@passwo/training-engine';
-import { BrowserShell, type BrowserShellSnapshot } from '@passwo/ui';
+import {
+  BrowserShell,
+  type BrowserShellSnapshot,
+  type DesktopPlatform,
+} from '@passwo/ui';
 import { useEffect, useRef, useState } from 'react';
 import { NetworkMotionAdapter } from '../../../../adapters/network/NetworkMotionAdapter.js';
 import { NetworkSymbol } from '../../../../adapters/network/NetworkSymbolRegistry.js';
@@ -25,6 +29,7 @@ import styles from './S03RetrievalTraining.module.css';
 
 export interface S03RetrievalTrainingProps {
   readonly controller: PasswordModuleController;
+  readonly platform?: DesktopPlatform;
   readonly snapshot: PasswordModuleSnapshot;
   readonly externalTimingError?: string | null;
   readonly onRetryExternalTiming?: () => void;
@@ -167,9 +172,11 @@ function InitialLoginWelcome({
 export function S03InitialBrowserSurface({
   activeAccountId,
   inert = false,
+  platform = 'mac',
 }: {
   readonly activeAccountId: S01AccountId;
   readonly inert?: boolean;
+  readonly platform?: DesktopPlatform;
 }) {
   const account = s01Content.browser.accounts.find(({ id }) => id === activeAccountId);
   if (account === undefined) return null;
@@ -187,6 +194,7 @@ export function S03InitialBrowserSurface({
   return (
     <div className={styles.handoff} aria-hidden={inert || undefined} inert={inert || undefined}>
       <BrowserShell
+        platform={platform}
         variant="artifact"
         snapshot={browserSnapshot}
         ariaLabel={s03Content.browser.ariaLabel}
@@ -212,6 +220,7 @@ export function S03InitialBrowserSurface({
 
 export function S03RetrievalTraining({
   controller,
+  platform = 'mac',
   snapshot,
   externalTimingError = null,
   onRetryExternalTiming,
@@ -319,7 +328,7 @@ export function S03RetrievalTraining({
   }, [assistedLoginActive]);
 
   if (runtime === null || presentationSnapshot === null) {
-    return <S03InitialBrowserSurface activeAccountId={initialAccountId} />;
+    return <S03InitialBrowserSurface activeAccountId={initialAccountId} platform={platform} />;
   }
 
   const account =
@@ -446,6 +455,7 @@ export function S03RetrievalTraining({
   return (
     <section className={styles.training} aria-label={s03Content.trainingAriaLabel}>
       <BrowserShell
+        platform={platform}
         variant="artifact"
         snapshot={browserSnapshot}
         ariaLabel={s03Content.browser.ariaLabel}

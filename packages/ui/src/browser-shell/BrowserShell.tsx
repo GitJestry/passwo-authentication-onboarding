@@ -7,7 +7,10 @@ import {
   useRef,
   useState,
 } from 'react';
-import { DesktopSurface } from '../desktop-shell/DesktopSurface.js';
+import {
+  DesktopSurface,
+  type DesktopPlatform,
+} from '../desktop-shell/DesktopSurface.js';
 import styles from './BrowserShell.module.css';
 
 export interface BrowserTabModel {
@@ -56,6 +59,7 @@ export interface BrowserShellProps {
   readonly snapshot: BrowserShellSnapshot;
   readonly children: ReactNode;
   readonly layers?: BrowserShellLayers;
+  readonly platform?: DesktopPlatform;
   readonly variant?: 'artifact' | 'framed';
   readonly ariaLabel?: string;
   readonly windowOpen?: boolean;
@@ -71,6 +75,7 @@ export function BrowserShell({
   snapshot,
   children,
   layers,
+  platform = 'mac',
   variant = 'framed',
   ariaLabel = 'Fiktive Browseranwendung',
   windowOpen,
@@ -257,6 +262,7 @@ export function BrowserShell({
 
   return (
     <DesktopSurface
+      platform={platform}
       browserDock={{
         active: windowState !== 'closed',
         enabled: !dimmed && !locked,
@@ -277,6 +283,7 @@ export function BrowserShell({
         data-dimmed={dimmed}
         data-dim-strength={dimStrength}
         data-browser-shell-variant={variant}
+        data-platform={platform}
         data-window-state={windowState}
         onAnimationEnd={handleWindowAnimationEnd}
       >
@@ -314,7 +321,11 @@ export function BrowserShell({
                 aria-label="Browserfenster ist maximiert"
                 title="Maximiert"
                 disabled
-              />
+              >
+                <svg className={styles.expandIcon} viewBox="0 0 10 10" aria-hidden="true">
+                  <rect x="2" y="2" width="6" height="6" rx="0.5" />
+                </svg>
+              </button>
             </div>
             <div className={styles.tabs} role="tablist" aria-label="Fiktive Seitentabs">
               {tabItems}

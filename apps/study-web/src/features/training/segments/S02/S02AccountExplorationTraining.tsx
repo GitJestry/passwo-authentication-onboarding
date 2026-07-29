@@ -1,4 +1,5 @@
 import { s02Content, type S02VisualPreviewKind } from '@passwo/training-content';
+import type { DesktopPlatform } from '@passwo/ui';
 import {
   useEffect,
   useLayoutEffect,
@@ -30,6 +31,7 @@ export interface S02AccountExplorationTrainingProps {
   readonly onAllAccountsUnderstood?: () => void;
   readonly onContinue?: () => void;
   readonly onRetryTiming?: () => void;
+  readonly platform?: DesktopPlatform;
 }
 
 const definition = s02Content.scene;
@@ -283,6 +285,7 @@ export function S02AccountExplorationTraining({
   onAllAccountsUnderstood,
   onContinue,
   onRetryTiming,
+  platform = 'mac',
 }: S02AccountExplorationTrainingProps) {
   const characterAnimationAnchorRef = useRef<HTMLSpanElement | null>(null);
   const guideRef = useRef<HTMLDivElement | null>(null);
@@ -510,6 +513,7 @@ export function S02AccountExplorationTraining({
       <section className={styles.training} aria-label={s02Content.trainingAriaLabel}>
         <article className={styles.scene}>
           <S02DesktopSurface
+            platform={platform}
             browserDock={{
               active: false,
               enabled: false,
@@ -599,6 +603,7 @@ export function S02AccountExplorationTraining({
     <section className={styles.training} aria-label={s02Content.trainingAriaLabel}>
       <article className={styles.scene} onPointerMove={moveCursorKey}>
         <S02DesktopSurface
+          platform={platform}
           sceneRef={sceneRef}
           browserLaunching={returningToBrowser}
           {...(onContinue === undefined

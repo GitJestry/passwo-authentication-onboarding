@@ -176,6 +176,8 @@
 }
 
 .browserLaunchSurface {
+  --browser-launch-transform: translateY(2.2rem) scale(0.9);
+
   position: absolute;
   z-index: 55;
   inset: 1.6rem 0 5.15rem;
@@ -185,7 +187,7 @@
   background: #ffffff;
   box-shadow: 0 1.4rem 3.6rem rgb(35 63 92 / 24%);
   transform-origin: 50% calc(100% + 4.2rem);
-  animation: browser-paper-open 520ms cubic-bezier(0.16, 0.78, 0.22, 1) both;
+  animation: browser-window-launch 320ms cubic-bezier(0.2, 0.78, 0.24, 1) both;
 }
 
 .browserLaunchSurface::after {
@@ -221,25 +223,220 @@
   background: var(--color-control-expand);
 }
 
-@keyframes browser-paper-open {
+.desktopScene[data-platform="windows"] {
+  background:
+    radial-gradient(circle at 72% 18%, rgb(255 255 255 / 82%), transparent 27rem),
+    radial-gradient(circle at 56% 52%, rgb(123 211 255 / 78%), transparent 36rem),
+    linear-gradient(145deg, #1676d2 0%, #55b9ee 52%, #b9e4f7 100%);
+}
+
+.desktopScene[data-platform="windows"] .desktopMenuBar {
+  top: auto;
+  bottom: 0;
+  height: 3.5rem;
+  border-top: 1px solid rgb(255 255 255 / 88%);
+  background: rgb(239 248 253 / 94%);
+  box-shadow:
+    0 -0.6rem 1.8rem rgb(20 65 101 / 18%),
+    inset 0 1px 0 rgb(255 255 255 / 88%);
+  backdrop-filter: blur(1.65rem) saturate(1.22);
+}
+
+.desktopScene[data-platform="windows"] .desktopMark {
+  width: 1.55rem;
+  height: 1.55rem;
+  color: #0878d1;
+}
+
+.desktopScene[data-platform="windows"] .desktopContent {
+  inset: 0 0 3.5rem;
+}
+
+.desktopScene[data-platform="windows"] .desktopDock {
+  bottom: 0.38rem;
+  left: 3.45rem;
+  justify-content: flex-start;
+  gap: 0.24rem;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+  transform: none;
+  backdrop-filter: none;
+}
+
+.desktopScene[data-platform="windows"] .decorativeDockIcon,
+.desktopScene[data-platform="windows"] .browserDockButton {
+  width: 2.65rem;
+  height: 2.65rem;
+  padding: 0.18rem;
+  border-radius: 0.35rem;
+}
+
+.desktopScene[data-platform="windows"] .browserDockButton:not(:disabled):hover {
+  background: rgb(255 255 255 / 58%);
+  transform: translateY(-0.08rem);
+}
+
+.desktopScene[data-platform="windows"] .browserDockButton i {
+  bottom: -0.16rem;
+  width: 1.05rem;
+  height: 0.16rem;
+  border-radius: 0.2rem 0.2rem 0 0;
+}
+
+.desktopScene[data-platform="windows"] .browserLaunchSurface {
+  --browser-launch-transform: translateY(1.35rem) scale(0.96);
+
+  inset: 0 0 3.5rem;
+  border-radius: 0;
+  transform-origin: 7.6rem calc(100% + 2.4rem);
+}
+
+.desktopScene[data-platform="windows"] .browserLaunchSurface > span {
+  top: 0;
+  width: 2.9rem;
+  height: 2.55rem;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+}
+
+.desktopScene[data-platform="windows"] .browserLaunchSurface > span:first-child {
+  right: 0;
+  left: auto;
+}
+
+.desktopScene[data-platform="windows"] .browserLaunchSurface > span:nth-child(2) {
+  right: 5.8rem;
+  left: auto;
+  background: transparent;
+}
+
+.desktopScene[data-platform="windows"] .browserLaunchSurface > span:nth-child(3) {
+  right: 2.9rem;
+  left: auto;
+  background: transparent;
+}
+
+.desktopScene[data-platform="linux"] {
+  background:
+    radial-gradient(circle at 82% 15%, rgb(249 168 80 / 72%), transparent 24rem),
+    radial-gradient(circle at 45% 68%, rgb(162 78 151 / 66%), transparent 36rem),
+    linear-gradient(145deg, #3b184f 0%, #71306f 48%, #d45e45 100%);
+}
+
+.desktopScene[data-platform="linux"] .desktopMenuBar {
+  height: 2rem;
+  color: #fff;
+  background: rgb(25 22 29 / 92%);
+  box-shadow: 0 1px 0 rgb(255 255 255 / 7%);
+  backdrop-filter: blur(1rem);
+}
+
+.desktopScene[data-platform="linux"] .desktopMenuStart {
+  gap: 0.85rem;
+}
+
+.desktopScene[data-platform="linux"] .desktopMenuStart .desktopMenuItem:first-of-type {
+  font-weight: var(--font-weight-heavy);
+}
+
+.desktopScene[data-platform="linux"] .desktopMenuItem,
+.desktopScene[data-platform="linux"] .desktopMenuTime,
+.desktopScene[data-platform="linux"] .desktopMenuStatus {
+  color: rgb(255 255 255 / 94%);
+}
+
+.desktopScene[data-platform="linux"] .desktopMenuTime {
+  position: absolute;
+  left: 50%;
+  min-width: max-content;
+  transform: translateX(-50%);
+  text-align: center;
+}
+
+.desktopScene[data-platform="linux"] .desktopContent {
+  inset: 2rem 0 0;
+}
+
+.desktopScene[data-platform="linux"] .desktopDock {
+  top: 50%;
+  bottom: auto;
+  left: 0.55rem;
+  flex-direction: column;
+  gap: 0.3rem;
+  padding: 0.48rem;
+  border-color: rgb(255 255 255 / 20%);
+  border-radius: 1rem;
+  background: rgb(34 25 40 / 72%);
+  box-shadow:
+    0.55rem 0.9rem 2rem rgb(22 11 27 / 28%),
+    inset 0 1px 0 rgb(255 255 255 / 13%);
+  transform: translateY(-50%);
+  backdrop-filter: blur(1.2rem) saturate(1.08);
+}
+
+.desktopScene[data-platform="linux"] .browserDockButton:not(:disabled):hover {
+  background: rgb(255 255 255 / 12%);
+  transform: scale(1.06);
+}
+
+.desktopScene[data-platform="linux"] .browserDockButton i {
+  right: -0.48rem;
+  bottom: auto;
+  width: 0.18rem;
+  height: 1.15rem;
+  background: #f18a4b;
+}
+
+.desktopScene[data-platform="linux"] .browserLaunchSurface {
+  --browser-launch-transform: translateX(-1.6rem) scale(0.94);
+
+  inset: 2rem 0 0 4.5rem;
+  transform-origin: -3.2rem 50%;
+}
+
+.desktopScene[data-platform="linux"] .browserLaunchSurface > span {
+  top: 0.65rem;
+  width: 1.55rem;
+  height: 1.55rem;
+  border-color: rgb(30 25 32 / 10%);
+  background: #d6d1d7;
+}
+
+.desktopScene[data-platform="linux"] .browserLaunchSurface > span:first-child {
+  right: 0.8rem;
+  left: auto;
+  background: #d94f43;
+}
+
+.desktopScene[data-platform="linux"] .browserLaunchSurface > span:nth-child(2) {
+  right: 4.9rem;
+  left: auto;
+  background: #d6d1d7;
+}
+
+.desktopScene[data-platform="linux"] .browserLaunchSurface > span:nth-child(3) {
+  right: 2.85rem;
+  left: auto;
+  background: #d6d1d7;
+}
+
+@keyframes browser-window-launch {
   0% {
-    border-radius: 48% 48% 0.9rem 0.9rem;
-    clip-path: polygon(46% 100%, 54% 100%, 58% 100%, 42% 100%);
-    opacity: 0.35;
-    transform: translateY(4.1rem) scale(0.06, 0.03);
+    opacity: 0;
+    transform: var(--browser-launch-transform);
   }
 
-  54% {
-    clip-path: polygon(12% 12%, 88% 3%, 100% 92%, 0 100%);
+  70% {
     opacity: 1;
-    transform: translateY(0.3rem) scale(0.97, 0.9);
   }
 
   100% {
-    border-radius: 0.9rem;
-    clip-path: inset(0 round 0.9rem);
     opacity: 1;
-    transform: translateY(0) scale(1);
+    transform: none;
   }
 }
 

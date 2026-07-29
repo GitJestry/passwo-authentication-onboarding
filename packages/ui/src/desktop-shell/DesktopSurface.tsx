@@ -8,10 +8,13 @@ export interface DesktopBrowserDockModel {
   readonly onClick?: () => void;
 }
 
+export type DesktopPlatform = 'mac' | 'windows' | 'linux';
+
 export interface DesktopSurfaceProps {
   readonly browserDock: DesktopBrowserDockModel;
   readonly browserLaunching?: boolean;
   readonly children?: ReactNode;
+  readonly platform?: DesktopPlatform;
   readonly sceneRef?: Ref<HTMLDivElement>;
   readonly onBrowserLaunchAnimationEnd?: () => void;
 }
@@ -72,6 +75,19 @@ function PassWoOsMark() {
   );
 }
 
+function WindowsStartMark() {
+  return (
+    <svg aria-hidden="true" viewBox="0 0 24 24" fill="none">
+      <path
+        d="M12 2.5 21 7v10l-9 4.5L3 17V7l9-4.5Z"
+        fill="currentColor"
+        stroke="rgb(255 255 255 / 62%)"
+      />
+      <path d="m12 4.9 6.7 3.4v2.8H12V4.9Zm0 8h6.7v2.8L12 19.1v-6.2ZM5.3 8.3 10 5.9v5.2H5.3V8.3Zm0 4.6H10v5.2l-4.7-2.4v-2.8Z" fill="#fff" />
+    </svg>
+  );
+}
+
 function NetworkStatusIcon() {
   return (
     <svg aria-hidden="true" viewBox="0 0 20 16" fill="none">
@@ -107,10 +123,9 @@ function BatteryStatusIcon() {
 function FinderIcon() {
   return (
     <svg aria-hidden="true" viewBox="0 0 48 48" fill="none">
-      <rect x="4" y="4" width="40" height="40" rx="10" fill="#78c9f2" />
-      <path d="M24 5v38M9 28c7 5.4 22.7 5.4 30 0" stroke="#173d66" strokeWidth="2.5" />
-      <circle cx="16" cy="19" r="1.8" fill="#173d66" />
-      <circle cx="32" cy="19" r="1.8" fill="#173d66" />
+      <rect x="4" y="5" width="40" height="38" rx="10" fill="#72c4ed" />
+      <path d="M8 16h13l4 4h15v18H8V16Z" fill="#e9f7ff" />
+      <path d="M8 20h32M14 27h13M14 32h18" stroke="#24658b" strokeLinecap="round" strokeWidth="2" />
     </svg>
   );
 }
@@ -127,6 +142,71 @@ function MessengerIcon() {
         strokeWidth="2"
       />
       <path d="M18 21h12M18 25.5h8" stroke="#43b86e" strokeLinecap="round" strokeWidth="2" />
+    </svg>
+  );
+}
+
+function FolderIcon({ platform }: { readonly platform: 'windows' | 'linux' }) {
+  const bodyColor = platform === 'windows' ? '#f5c94f' : '#e8a34b';
+  const topColor = platform === 'windows' ? '#ffdc72' : '#f3bd70';
+  return (
+    <svg aria-hidden="true" viewBox="0 0 48 48" fill="none">
+      <path d="M5 12.5h14l4 4H43v23H5v-27Z" fill={topColor} />
+      <path d="M5 17h38l-3 23H8L5 17Z" fill={bodyColor} />
+      <path d="M8 20h32" stroke="rgb(255 255 255 / 65%)" strokeWidth="2" />
+    </svg>
+  );
+}
+
+function MailIcon() {
+  return (
+    <svg aria-hidden="true" viewBox="0 0 48 48" fill="none">
+      <rect x="4" y="5" width="40" height="38" rx="7" fill="#1679c5" />
+      <path d="M10 14h28v21H10V14Z" fill="#fff" />
+      <path d="m11 16 13 10 13-10M11 34l9-10M37 34l-9-10" stroke="#78bce8" strokeWidth="2" />
+    </svg>
+  );
+}
+
+function DocumentAppIcon() {
+  return (
+    <svg aria-hidden="true" viewBox="0 0 48 48" fill="none">
+      <rect x="5" y="5" width="38" height="38" rx="7" fill="#2457a6" />
+      <path d="M13 10h18l6 6v22H13V10Z" fill="#fff" />
+      <path d="M31 10v7h6" fill="#b7d1ed" />
+      <path d="M18 21h14M18 26h14M18 31h10" stroke="#6e9aca" strokeLinecap="round" strokeWidth="2.2" />
+      <rect x="8" y="16" width="7" height="17" rx="2" fill="#3a82cc" />
+    </svg>
+  );
+}
+
+function TerminalIcon() {
+  return (
+    <svg aria-hidden="true" viewBox="0 0 48 48" fill="none">
+      <rect x="4" y="5" width="40" height="38" rx="9" fill="#28242b" />
+      <circle cx="10" cy="11" r="1.4" fill="#ef6a5b" />
+      <circle cx="15" cy="11" r="1.4" fill="#e9bd55" />
+      <circle cx="20" cy="11" r="1.4" fill="#66b970" />
+      <path
+        d="m11 21 5 4-5 4M20 30h9"
+        stroke="#f4f1f5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        strokeWidth="2.2"
+      />
+    </svg>
+  );
+}
+
+function AppsIcon() {
+  return (
+    <svg aria-hidden="true" viewBox="0 0 48 48" fill="none">
+      <rect x="4" y="4" width="40" height="40" rx="11" fill="#f1edf2" />
+      {[15, 24, 33].flatMap((x) =>
+        [15, 24, 33].map((y) => (
+          <circle key={`${x}-${y}`} cx={x} cy={y} r="2.3" fill="#655c69" />
+        )),
+      )}
     </svg>
   );
 }
@@ -190,6 +270,7 @@ export function DesktopSurface({
   browserDock,
   browserLaunching = false,
   children,
+  platform = 'mac',
   sceneRef,
   onBrowserLaunchAnimationEnd,
 }: DesktopSurfaceProps) {
@@ -200,17 +281,26 @@ export function DesktopSurface({
   }
 
   return (
-    <div ref={sceneRef} className={styles.desktopScene}>
+    <div ref={sceneRef} className={styles.desktopScene} data-platform={platform}>
       <div className={styles.desktopMenuBar}>
         <div className={styles.desktopMenuStart} aria-hidden="true">
           <span className={styles.desktopMark}>
-            <PassWoOsMark />
+            {platform === 'windows' ? <WindowsStartMark /> : <PassWoOsMark />}
           </span>
-          <span className={styles.desktopMenuItem}>Datei</span>
-          <span className={styles.desktopMenuItem}>Bearbeiten</span>
-          <span className={styles.desktopMenuItem}>Ansicht</span>
-          <span className={styles.desktopMenuItem}>Fenster</span>
-          <span className={styles.desktopMenuItem}>Hilfe</span>
+          {platform === 'mac' ? (
+            <>
+              <span className={styles.desktopMenuItem}>Datei</span>
+              <span className={styles.desktopMenuItem}>Bearbeiten</span>
+              <span className={styles.desktopMenuItem}>Ansicht</span>
+              <span className={styles.desktopMenuItem}>Fenster</span>
+              <span className={styles.desktopMenuItem}>Hilfe</span>
+            </>
+          ) : platform === 'linux' ? (
+            <>
+              <span className={styles.desktopMenuItem}>Aktivitäten</span>
+              <span className={styles.desktopMenuItem}>Browser</span>
+            </>
+          ) : null}
         </div>
         <span className={styles.desktopMenuSpacer} />
         <div className={styles.desktopMenuEnd}>
@@ -241,11 +331,25 @@ export function DesktopSurface({
       ) : null}
 
       <nav className={styles.desktopDock} aria-label="Desktop-Apps">
-        <DecorativeDockIcon label="Finder">
-          <FinderIcon />
+        <DecorativeDockIcon label={platform === 'mac' ? 'Finder' : 'Dateien'}>
+          {platform === 'mac' ? <FinderIcon /> : <FolderIcon platform={platform} />}
         </DecorativeDockIcon>
-        <DecorativeDockIcon label="Messenger">
-          <MessengerIcon />
+        <DecorativeDockIcon
+          label={
+            platform === 'windows'
+              ? 'E-Mail'
+              : platform === 'linux'
+                ? 'Terminal'
+                : 'Nachrichten'
+          }
+        >
+          {platform === 'windows' ? (
+            <MailIcon />
+          ) : platform === 'linux' ? (
+            <TerminalIcon />
+          ) : (
+            <MessengerIcon />
+          )}
         </DecorativeDockIcon>
         <button
           type="button"
@@ -258,12 +362,28 @@ export function DesktopSurface({
           <BrowserIcon />
           {browserDock.active ? <i aria-hidden="true" /> : null}
         </button>
-        <DecorativeDockIcon label="Einstellungen">
-          <SettingsIcon />
+        <DecorativeDockIcon
+          label={
+            platform === 'windows'
+              ? 'Dokumente'
+              : platform === 'linux'
+                ? 'Anwendungen'
+                : 'Einstellungen'
+          }
+        >
+          {platform === 'windows' ? (
+            <DocumentAppIcon />
+          ) : platform === 'linux' ? (
+            <AppsIcon />
+          ) : (
+            <SettingsIcon />
+          )}
         </DecorativeDockIcon>
-        <DecorativeDockIcon label="Papierkorb">
-          <TrashIcon />
-        </DecorativeDockIcon>
+        {platform === 'windows' ? null : (
+          <DecorativeDockIcon label="Papierkorb">
+            <TrashIcon />
+          </DecorativeDockIcon>
+        )}
       </nav>
     </div>
   );

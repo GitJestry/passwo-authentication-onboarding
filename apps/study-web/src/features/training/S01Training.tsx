@@ -5,7 +5,11 @@ import {
   type PasswordModuleController,
   type PasswordModuleSnapshot,
 } from '@passwo/training-engine';
-import { BrowserShell, type BrowserShellSnapshot } from '@passwo/ui';
+import {
+  BrowserShell,
+  type BrowserShellSnapshot,
+  type DesktopPlatform,
+} from '@passwo/ui';
 import { useEffect, useRef, useState } from 'react';
 import { NetworkSymbol } from '../../adapters/network/NetworkSymbolRegistry.js';
 import { CampusWebsiteBackdrop } from './CampusWebsiteBackdrop.js';
@@ -45,6 +49,7 @@ function PasswordVisibilityIcon({ revealed }: { readonly revealed: boolean }) {
 
 export interface S01TrainingProps {
   readonly controller: PasswordModuleController;
+  readonly platform?: DesktopPlatform;
   readonly snapshot: PasswordModuleSnapshot;
   readonly externalTimingError?: string | null;
   readonly onRetryExternalTiming?: () => void;
@@ -52,6 +57,7 @@ export interface S01TrainingProps {
 
 export function S01Training({
   controller,
+  platform = 'mac',
   snapshot,
   externalTimingError = null,
   onRetryExternalTiming,
@@ -157,6 +163,7 @@ export function S01Training({
   return (
     <section className={styles.training} aria-label={s01Content.trainingAriaLabel}>
       <BrowserShell
+        platform={platform}
         variant="artifact"
         snapshot={snapshotForBrowser}
         ariaLabel={s01Content.browser.ariaLabel}

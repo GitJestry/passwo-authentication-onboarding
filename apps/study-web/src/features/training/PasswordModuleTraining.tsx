@@ -4,6 +4,7 @@ import {
   type PasswordModuleSnapshot,
   type SegmentTimingPort,
 } from '@passwo/training-engine';
+import type { DesktopPlatform } from '@passwo/ui';
 import { useEffect, useRef, useState } from 'react';
 import passWoDockAsset from '../../assets/passwo/passwo-dock.png';
 import { PassWoSpeechBubble } from './PassWoSpeechBubble.js';
@@ -31,6 +32,7 @@ export function PasswordModuleTraining({
 }: PasswordModuleTrainingProps) {
   const [snapshot, setSnapshot] = useState<PasswordModuleSnapshot | null>(null);
   const [entrySpeechComplete, setEntrySpeechComplete] = useState(false);
+  const [platform, setPlatform] = useState<DesktopPlatform>('mac');
   const controllerRef = useRef<PasswordModuleController | null>(null);
 
   useEffect(() => {
@@ -82,7 +84,11 @@ export function PasswordModuleTraining({
           <PassWoSpeechBubble
             className={styles.entrySpeech}
             speaker={s00Content.narration.guideName}
-            paragraphs={s00Content.entry.paragraphs}
+            paragraphs={[
+              ...s00Content.entry.paragraphs,
+              'Du startest gleich in einen virtuellen PC im Training. Wähle das zu deinem Alltag passende Betriebssystem aus.',
+              'Und zu allerletzt: Darf ich noch fragen, wie du heißt?',
+            ]}
             speechKey="module-entry"
             placement="right"
             awaitsAction
@@ -98,6 +104,29 @@ export function PasswordModuleTraining({
               if (typeof value === 'string') controller.enterDisplayName(value);
             }}
           >
+            <fieldset className={styles.platformFieldset}>
+              <legend>Betriebssystem auswählen</legend>
+              <div className={styles.platformOptions}>
+                {(
+                  [
+                    { value: 'mac', label: 'Mac' },
+                    { value: 'windows', label: 'Windows' },
+                    { value: 'linux', label: 'Linux' },
+                  ] as const
+                ).map((option) => (
+                  <label className={styles.platformOption} key={option.value}>
+                    <input
+                      type="radio"
+                      name="training-platform"
+                      value={option.value}
+                      checked={platform === option.value}
+                      onChange={() => setPlatform(option.value)}
+                    />
+                    <span>{option.label}</span>
+                  </label>
+                ))}
+              </div>
+            </fieldset>
             <label className={styles.entryLabel}>
               {s00Content.entry.nameLabel}
               <input
@@ -120,6 +149,7 @@ export function PasswordModuleTraining({
     return (
       <S00Training
         displayName={snapshot.context.displayName ?? ''}
+        platform={platform}
         onComplete={() => controllerRef.current?.completeS00()}
         {...(timingPort === undefined ? {} : { timingPort })}
         externalTimingError={externalTimingError}
@@ -134,6 +164,7 @@ export function PasswordModuleTraining({
     return (
       <S01Training
         controller={controller}
+        platform={platform}
         snapshot={snapshot}
         externalTimingError={externalTimingError}
         {...(onRetryExternalTiming === undefined ? {} : { onRetryExternalTiming })}
@@ -153,6 +184,7 @@ export function PasswordModuleTraining({
             : 'active';
     return (
       <S02AccountExplorationTraining
+        platform={platform}
         timingState={timingState}
         timingErrorCode={snapshot.context.timingErrorCode}
         externalTimingError={externalTimingError}
@@ -173,6 +205,7 @@ export function PasswordModuleTraining({
     return (
       <S03RetrievalTraining
         controller={controller}
+        platform={platform}
         snapshot={snapshot}
         externalTimingError={externalTimingError}
         {...(onRetryExternalTiming === undefined ? {} : { onRetryExternalTiming })}
