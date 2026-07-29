@@ -78,7 +78,7 @@ export class NetworkMotionAdapter implements AnimationPlayerPort {
   readonly #getNodeElement: (nodeId: string) => HTMLElement | null;
   readonly #getEdgeElement: (targetNodeId: string) => SVGPathElement | null;
   readonly #prefersReducedMotion: () => boolean;
-  #activeAnimation: AnimationPlaybackControlsWithThen | null = null;
+  readonly #activeAnimations = new Set<AnimationPlaybackControlsWithThen>();
   #activeSequence: AnimationSequence | null = null;
   #cancelled = false;
   #snapshot: NetworkPresentationSnapshot;
@@ -113,8 +113,23 @@ export class NetworkMotionAdapter implements AnimationPlayerPort {
     }
 
     try {
-      for (const step of sequence.steps) {
+      for (let stepIndex = 0; stepIndex < sequence.steps.length; stepIndex += 1) {
         if (this.#cancelled) return { status: 'cancelled' };
+        const step = sequence.steps[stepIndex];
+        if (step === undefined) continue;
+        if (step.type === 'reveal') {
+          const revealSteps = [step];
+          while (sequence.steps[stepIndex + 1]?.type === 'reveal') {
+            const nextStep = sequence.steps[stepIndex + 1];
+            if (nextStep?.type !== 'reveal') break;
+            revealSteps.push(nextStep);
+            stepIndex += 1;
+          }
+          if (revealSteps.length > 1) {
+            await this.#playRevealBatch(revealSteps);
+            continue;
+          }
+        }
         await this.#playStep(step);
       }
       return this.#cancelled ? { status: 'cancelled' } : { status: 'finished' };
@@ -122,14 +137,15 @@ export class NetworkMotionAdapter implements AnimationPlayerPort {
       this.#applyEndState(sequence);
       return { status: 'failed', reasonCode: 'network-motion-adapter-failed' };
     } finally {
-      this.#activeAnimation = null;
+      this.#activeAnimations.clear();
       this.#activeSequence = null;
     }
   }
 
   async cancel(): Promise<void> {
     this.#cancelled = true;
-    this.#activeAnimation?.stop();
+    for (const animation of this.#activeAnimations) animation.stop();
+    this.#activeAnimations.clear();
     if (this.#activeSequence !== null) this.#applyEndState(this.#activeSequence);
   }
 
@@ -222,6 +238,40 @@ export class NetworkMotionAdapter implements AnimationPlayerPort {
     }
   }
 
+  async #playRevealBatch(
+    steps: readonly Extract<AnimationStep, { readonly type: 'reveal' }>[],
+  ): Promise<void> {
+    this.#setSnapshot({
+      ...this.#snapshot,
+      revealedNodeIds: [
+        ...new Set([
+          ...this.#snapshot.revealedNodeIds,
+          ...steps.map(({ targetId }) => targetId),
+        ]),
+      ],
+      drawingTargetNodeId: null,
+    });
+    await nextFrame();
+
+    await Promise.all(
+      steps.flatMap((step) => {
+        const node = this.#getNodeElement(step.targetId);
+        if (node === null) throw new Error(`missing-network-node:${step.targetId}`);
+        const edge = this.#getEdgeElement(step.targetId);
+        return [
+          ...(edge === null ? [] : [this.#drawEdge(edge, step.durationMs)]),
+          this.#animate(node, Math.min(step.durationMs, 420), {
+            opacity: [0, 1],
+            transform: ['scale(0.72)', 'scale(1.04)', 'scale(1)'],
+          }).then(() => {
+            node.style.removeProperty('opacity');
+            node.style.removeProperty('transform');
+          }),
+        ];
+      }),
+    );
+  }
+
   async #animate(
     element: HTMLElement | SVGElement,
     durationMs: number,
@@ -231,9 +281,12 @@ export class NetworkMotionAdapter implements AnimationPlayerPort {
       duration: durationMs / 1000,
       ease: 'easeOut',
     });
-    this.#activeAnimation = animation;
-    await animation;
-    if (this.#activeAnimation === animation) this.#activeAnimation = null;
+    this.#activeAnimations.add(animation);
+    try {
+      await animation;
+    } finally {
+      this.#activeAnimations.delete(animation);
+    }
   }
 
   async #drawEdge(edge: SVGPathElement, durationMs: number): Promise<void> {
@@ -248,9 +301,12 @@ export class NetworkMotionAdapter implements AnimationPlayerPort {
       duration: durationMs / 1000,
       ease: 'easeInOut',
     });
-    this.#activeAnimation = animation;
-    await animation;
-    if (this.#activeAnimation === animation) this.#activeAnimation = null;
+    this.#activeAnimations.add(animation);
+    try {
+      await animation;
+    } finally {
+      this.#activeAnimations.delete(animation);
+    }
     edge.style.removeProperty('stroke-dasharray');
     edge.style.removeProperty('stroke-dashoffset');
     edge.style.removeProperty('opacity');

@@ -118,6 +118,15 @@ function isInteractiveTarget(target: EventTarget | null, container: HTMLElement 
   return interactiveElement !== null && !interactiveElement.matches(':disabled');
 }
 
+function isKeyboardInteractiveTarget(target: EventTarget | null): boolean {
+  if (!(target instanceof Element)) return false;
+  return (
+    target.closest(
+      'button, input, select, textarea, a, [contenteditable="true"], [role="button"], [role="checkbox"]',
+    ) !== null
+  );
+}
+
 function SpeechActionIcon({ kind }: { readonly kind: SpeechActionKind }) {
   if (kind === 'skip') {
     return (
@@ -230,7 +239,7 @@ export function PassWoSpeechBubble({
   }, [advanceCompleted, complete, currentSpeech, fullCharacters.length, onAdvance]);
 
   useEffect(() => {
-    if (advanceCompleted || (complete && awaitsAction)) return;
+    if (advanceCompleted || awaitsAction) return;
 
     function handleScreenClick(event: MouseEvent): void {
       if (isInteractiveTarget(event.target, bubbleRef.current)) return;
@@ -242,6 +251,27 @@ export function PassWoSpeechBubble({
 
     document.addEventListener('click', handleScreenClick, true);
     return () => document.removeEventListener('click', handleScreenClick, true);
+  }, [advanceCompleted, advanceSpeech, awaitsAction]);
+
+  useEffect(() => {
+    if (advanceCompleted || (complete && awaitsAction)) return;
+
+    function handleSpaceKey(event: KeyboardEvent): void {
+      if (
+        event.code !== 'Space' ||
+        event.repeat ||
+        event.defaultPrevented ||
+        isKeyboardInteractiveTarget(event.target)
+      ) {
+        return;
+      }
+
+      event.preventDefault();
+      advanceSpeech();
+    }
+
+    document.addEventListener('keydown', handleSpaceKey);
+    return () => document.removeEventListener('keydown', handleSpaceKey);
   }, [advanceCompleted, advanceSpeech, awaitsAction, complete]);
 
   const bubbleClassName = className === undefined ? styles.bubble : `${styles.bubble} ${className}`;

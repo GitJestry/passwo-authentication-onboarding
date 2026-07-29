@@ -298,7 +298,6 @@ export function S02AccountExplorationTraining({
     guide: null,
     preview: null,
   });
-  const [introNarrationFinished, setIntroNarrationFinished] = useState(false);
   const [dismissedSpeechKey, setDismissedSpeechKey] = useState<string | null>(null);
   const [returningToBrowser, setReturningToBrowser] = useState(false);
 
@@ -353,14 +352,13 @@ export function S02AccountExplorationTraining({
     if (
       runtime === null ||
       snapshot === null ||
-      !introNarrationFinished ||
       timingState !== 'active' ||
       externalTimingError !== null
     ) {
       return;
     }
     runtime.controller.startIntro();
-  }, [externalTimingError, introNarrationFinished, runtime, snapshot, timingState]);
+  }, [externalTimingError, runtime, snapshot, timingState]);
 
   useLayoutEffect(() => {
     const activeAccountId = snapshot?.scene.activeAccountId ?? null;
@@ -612,7 +610,6 @@ export function S02AccountExplorationTraining({
               complete &&
               !interactionBlocked &&
               scene.pendingAnimationId === null &&
-              !narrationActive &&
               !returningToBrowser,
             label: complete
               ? s02Content.desktop.browserDockReadyLabel
@@ -687,13 +684,10 @@ export function S02AccountExplorationTraining({
               }
               hasNext={scene.narrationId === s02Content.narration.introId && !complete}
               awaitsAction={
-                scene.narrationId !== s02Content.narration.introId && !complete
+                scene.narrationId !== s02Content.narration.introId || complete
               }
               onAdvance={() => {
                 setDismissedSpeechKey(speechKey);
-                if (scene.narrationId === s02Content.narration.introId) {
-                  setIntroNarrationFinished(true);
-                }
               }}
             />
           </div>

@@ -44,7 +44,7 @@ describe('S00 to S02 training-content traceability', () => {
   });
 
   it('keeps the S02 account map and content-oriented PassWo narration versioned', () => {
-    expect(S02_CONTENT_VERSION).toBe('3.5.0');
+    expect(S02_CONTENT_VERSION).toBe('3.6.0');
     expect(s02Content.source).toEqual({
       document: 'research/private/training-script.pdf',
       internalPages: [4, 5, 6, 7],

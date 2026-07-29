@@ -231,6 +231,10 @@ export function S03RetrievalTraining({
   const [loginAccountId, setLoginAccountId] = useState<S01AccountId | null>(null);
   const [guideOpen, setGuideOpen] = useState(false);
   const [completedGuideSpeechKey, setCompletedGuideSpeechKey] = useState<string | null>(null);
+  const [invalidLoginFeedback, setInvalidLoginFeedback] = useState<{
+    readonly accountId: S01AccountId;
+    readonly attempt: number;
+  } | null>(null);
   const initialAccountId =
     s01Content.browser.accounts.find(({ id }) => id === snapshot.context.activeAccountId)?.id ??
     'campus-id';
@@ -327,6 +331,11 @@ export function S03RetrievalTraining({
   const rememberedCount = getRememberedAccountCount(snapshot.context);
   const result = snapshot.context.retrievalResults[account.id] ?? 'pending';
   const activeValue = snapshot.context.retrievalPasswordValues[account.id] ?? '';
+  const autofillTargetValue = snapshot.context.passwordValues[account.id] ?? '';
+  const autofillDisplayValue = revealedAccountIds.has(account.id)
+    ? autofillTargetValue
+    : '•'.repeat(Array.from(autofillTargetValue).length);
+  const invalidLoginActive = invalidLoginFeedback?.accountId === account.id;
   const campusIdentity = deriveCampusIdentity(snapshot.context.displayName ?? '');
   const accountData =
     account.id === 'campus-id'
@@ -422,6 +431,7 @@ export function S03RetrievalTraining({
 
   function selectAccount(accountId: string): void {
     setLoginAccountId(null);
+    setInvalidLoginFeedback(null);
     controller.selectAccount(accountId);
   }
 
@@ -552,6 +562,10 @@ export function S03RetrievalTraining({
                     <form
                       className={styles.authCard}
                       data-assisted={autofillingActive || assistedLoginActive || undefined}
+                      data-invalid={invalidLoginActive || undefined}
+                      data-invalid-animation={
+                        invalidLoginActive ? (invalidLoginFeedback?.attempt ?? 0) % 2 : undefined
+                      }
                       onSubmit={(event) => {
                         event.preventDefault();
                         const previousResult =
@@ -569,12 +583,17 @@ export function S03RetrievalTraining({
                         }
                         if (result === 'pending') {
                           controller.submitRetrievalLogin(account.id);
-                          if (
-                            previousResult === 'pending' &&
-                            controller.getSnapshot().context.retrievalResults[account.id] ===
-                              'retrievable'
-                          ) {
+                          const nextResult =
+                            controller.getSnapshot().context.retrievalResults[account.id] ??
+                            'pending';
+                          if (previousResult === 'pending' && nextResult === 'retrievable') {
                             runtime.controller.playSuccessfulRetrieval(account.id);
+                          } else if (previousResult === 'pending' && nextResult === 'pending') {
+                            setInvalidLoginFeedback((current) => ({
+                              accountId: account.id,
+                              attempt:
+                                current?.accountId === account.id ? current.attempt + 1 : 1,
+                            }));
                           }
                         }
                       }}
@@ -618,25 +637,27 @@ export function S03RetrievalTraining({
                         <input
                           id={`s03-password-${account.id}`}
                           name={`s03-password-${account.id}`}
-                          type={
-                            revealedAccountIds.has(account.id) && !assistedLoginActive
-                              ? 'text'
-                              : 'password'
-                          }
+                          type={revealedAccountIds.has(account.id) ? 'text' : 'password'}
                           autoComplete="off"
                           spellCheck={false}
                           value={activeValue}
                           disabled={autofillingActive}
                           readOnly={assistedLoginActive}
                           aria-readonly={assistedLoginActive || undefined}
+                          aria-invalid={invalidLoginActive || undefined}
+                          aria-describedby={
+                            invalidLoginActive ? `s03-password-error-${account.id}` : undefined
+                          }
                           onChange={
                             assistedLoginActive
                               ? undefined
-                              : (event) =>
+                              : (event) => {
+                                  setInvalidLoginFeedback(null);
                                   controller.setRetrievalPasswordValue(
                                     account.id,
                                     event.currentTarget.value,
-                                  )
+                                  );
+                                }
                           }
                         />
                         {autofillingActive ? (
@@ -648,7 +669,7 @@ export function S03RetrievalTraining({
                               controller.completeAssistedAutofill(account.id);
                             }}
                           >
-                            ••••••••••••
+                            {autofillDisplayValue}
                           </span>
                         ) : null}
                         <button
@@ -660,7 +681,9 @@ export function S03RetrievalTraining({
                               ? s03Content.controls.hidePassword(account.label)
                               : s03Content.controls.showPassword(account.label)
                           }
-                          disabled={interactionBlocked}
+                          disabled={
+                            interactionBlocked && !autofillingActive && !assistedLoginActive
+                          }
                           onClick={() => toggleReveal(account.id)}
                         >
                           <PasswordVisibilityIcon
@@ -668,6 +691,16 @@ export function S03RetrievalTraining({
                           />
                         </button>
                       </span>
+                      {invalidLoginActive ? (
+                        <p
+                          id={`s03-password-error-${account.id}`}
+                          className={styles.loginError}
+                          role="alert"
+                        >
+                          <span aria-hidden="true">!</span>
+                          {s03Content.controls.incorrectPassword}
+                        </p>
+                      ) : null}
                       <div className={styles.buttonRow}>
                         <button
                           ref={assistedLoginActive ? assistedLoginButtonRef : undefined}

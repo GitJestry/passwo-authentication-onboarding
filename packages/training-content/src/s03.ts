@@ -46,6 +46,7 @@ export interface S03SegmentContent {
   readonly controls: {
     readonly accountDataLabel: string;
     readonly passwordLabel: string;
+    readonly incorrectPassword: string;
     readonly showPassword: (accountLabel: string) => string;
     readonly hidePassword: (accountLabel: string) => string;
     readonly openLogin: (accountLabel: string) => string;
@@ -91,7 +92,7 @@ export interface S03SegmentContent {
   readonly animations: readonly S03AnimationSequence[];
 }
 
-export const S03_CONTENT_VERSION = '1.5.0';
+export const S03_CONTENT_VERSION = '1.6.0';
 
 const resultAnimation = (
   accountId: S01AccountId,
@@ -163,6 +164,7 @@ export const s03Content: S03SegmentContent = {
   controls: {
     accountDataLabel: 'Benutzername',
     passwordLabel: 'Passwort',
+    incorrectPassword: 'Das Passwort ist nicht korrekt.',
     showPassword: (accountLabel) => `Passwort für ${accountLabel} anzeigen`,
     hidePassword: (accountLabel) => `Passwort für ${accountLabel} verbergen`,
     openLogin: (accountLabel) => `Anmelden mit ${accountLabel}`,

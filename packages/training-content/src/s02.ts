@@ -182,7 +182,7 @@ export interface S02SegmentContent {
   readonly animations: readonly S02AnimationSequence[];
 }
 
-export const S02_CONTENT_VERSION = '3.5.0';
+export const S02_CONTENT_VERSION = '3.6.0';
 
 const introId = 's02.accounts.intro';
 const completeId = 's02.accounts.complete';
@@ -211,7 +211,7 @@ const accounts = [
     },
     summaries: {
       locked: 'Master Campus ist geschlossen.',
-      opening: 'Master Campus wird geöffnet. Die verbundenen Dienste erscheinen nacheinander.',
+      opening: 'Master Campus wird geöffnet. Die verbundenen Dienste erscheinen gemeinsam.',
       progress: '{opened} von {total} Details zu Master Campus geöffnet.',
       checking: '{detail} wird mit Master Campus geprüft.',
       understood: 'Master Campus verstanden. Alle drei verbundenen Dienste wurden geöffnet.',
@@ -284,7 +284,7 @@ const accounts = [
     },
     summaries: {
       locked: 'Campus E-Mail ist geschlossen.',
-      opening: 'Campus E-Mail wird geöffnet. Vier Funktionen erscheinen nacheinander.',
+      opening: 'Campus E-Mail wird geöffnet. Vier Funktionen erscheinen gemeinsam.',
       progress: '{opened} von {total} Details zu Campus E-Mail geöffnet.',
       checking: '{detail} in Campus E-Mail wird geöffnet.',
       understood: 'Campus E-Mail verstanden. Alle vier Funktionen wurden angesehen.',
@@ -443,16 +443,16 @@ function unlockAnimation(account: S02AccountContent): S02AnimationSequence {
 }
 
 function revealDetailsAnimation(account: S02AccountContent): S02AnimationSequence {
-  const steps: S02AnimationStep[] = [];
-  account.details.forEach((detail, index) => {
-    if (index > 0) steps.push({ type: 'pause', durationMs: 140 });
-    steps.push({ type: 'reveal', targetId: detail.id, durationMs: 420 });
-  });
+  const steps: S02AnimationStep[] = account.details.map((detail) => ({
+    type: 'reveal',
+    targetId: detail.id,
+    durationMs: 420,
+  }));
   return {
     id: account.detailRevealAnimationId,
     steps,
     reducedMotion: { strategy: 'instant-end-state', maxDurationMs: 0 },
-    maxDurationMs: account.details.length * 600 + (account.details.length - 1) * 140,
+    maxDurationMs: 420,
   };
 }
 
@@ -475,16 +475,19 @@ function returnToDockAnimation(account: S02AccountContent): S02AnimationSequence
 }
 
 function introAnimation(): S02AnimationSequence {
-  const steps: S02AnimationStep[] = [{ type: 'announce', messageId: introId }];
-  accounts.forEach((account, index) => {
-    if (index > 0) steps.push({ type: 'pause', durationMs: 180 });
-    steps.push({ type: 'reveal', targetId: account.id, durationMs: 340 });
-  });
+  const steps: S02AnimationStep[] = [
+    { type: 'announce', messageId: introId },
+    ...accounts.map((account) => ({
+      type: 'reveal' as const,
+      targetId: account.id,
+      durationMs: 340,
+    })),
+  ];
   return {
     id: 's02-reveal-accounts',
     steps,
     reducedMotion: { strategy: 'instant-end-state', maxDurationMs: 0 },
-    maxDurationMs: 1380,
+    maxDurationMs: 340,
   };
 }
 

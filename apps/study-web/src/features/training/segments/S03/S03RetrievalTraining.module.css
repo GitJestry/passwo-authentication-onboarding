@@ -104,6 +104,14 @@
   gap: var(--space-3);
 }
 
+.authCard[data-invalid-animation="0"] {
+  animation: s03-invalid-login-even 360ms ease-out;
+}
+
+.authCard[data-invalid-animation="1"] {
+  animation: s03-invalid-login-odd 360ms ease-out;
+}
+
 .authHeader {
   display: grid;
   grid-template-columns: auto minmax(0, 1fr);
@@ -207,6 +215,11 @@
   background: #fff2a8;
 }
 
+.authCard[data-invalid] .passwordInputGroup {
+  border-color: var(--color-danger);
+  box-shadow: 0 0 0 0.18rem color-mix(in srgb, var(--color-danger) 20%, transparent);
+}
+
 .autofillValue {
   position: absolute;
   z-index: 1;
@@ -220,7 +233,7 @@
   font: inherit;
   letter-spacing: 0.08em;
   white-space: nowrap;
-  animation: s03-assisted-autofill 900ms steps(12, end) both;
+  animation: s03-assisted-autofill 900ms ease-out both;
 }
 
 .passwordInputGroup input {
@@ -252,6 +265,28 @@
 .revealIcon {
   width: 1.35rem;
   height: 1.35rem;
+}
+
+.loginError {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin: calc(var(--space-2) * -1) 0 0;
+  color: var(--color-danger);
+  font-size: var(--font-size-x-small);
+  font-weight: var(--font-weight-bold);
+}
+
+.loginError span {
+  display: grid;
+  width: 1.15rem;
+  height: 1.15rem;
+  flex: 0 0 auto;
+  place-items: center;
+  border: var(--border-width-medium) solid currentColor;
+  border-radius: var(--radius-round);
+  font-size: 0.75rem;
+  line-height: 1;
 }
 
 .buttonRow {
@@ -571,6 +606,44 @@
   }
 }
 
+@keyframes s03-invalid-login-even {
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+
+  25% {
+    transform: translateX(-0.45rem);
+  }
+
+  50% {
+    transform: translateX(0.35rem);
+  }
+
+  75% {
+    transform: translateX(-0.18rem);
+  }
+}
+
+@keyframes s03-invalid-login-odd {
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+
+  25% {
+    transform: translateX(0.45rem);
+  }
+
+  50% {
+    transform: translateX(-0.35rem);
+  }
+
+  75% {
+    transform: translateX(0.18rem);
+  }
+}
+
 @keyframes s03-campus-cursor {
   0% {
     opacity: 0;
@@ -625,6 +698,10 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .authCard[data-invalid-animation] {
+    animation: none;
+  }
+
   .autofillValue {
     animation-duration: var(--motion-instant);
   }

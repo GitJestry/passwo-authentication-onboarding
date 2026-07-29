@@ -56,9 +56,9 @@ S02 „Konten verstehen“ bildet die erste vollständige Kontenerkundung:
    alle seine Details geöffnet sind; danach kann das nächste Konto frei gewählt werden;
 3. PassWo fliegt beim erstmaligen Öffnen zum Ziel, steht dort seitlich vom Knoten und kehrt nach
    Abschluss dieses Kontos an seinen Platz unten links zurück;
-4. das aktive Konto vergrößert sich leicht; seine Detailknoten erscheinen schrittweise als
-   Bubbles und bleiben zusammen mit bereits geöffneten Konten und Kanten bei späteren Wechseln
-   sichtbar;
+4. das aktive Konto vergrößert sich leicht; seine Detailknoten erscheinen gemeinsam in einer
+   weichen Animation und bleiben zusammen mit bereits geöffneten Konten und Kanten bei späteren
+   Wechseln sichtbar;
 5. Master-Campus-Dienste verwenden `service`/`dependency`, Campus-E-Mail-Funktionen
    `function`/`association`;
 6. Campusgram-Inhalte verwenden `content`/`association`; diese Kanten bilden ausschließlich
