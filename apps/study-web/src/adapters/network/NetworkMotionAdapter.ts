@@ -62,10 +62,13 @@ function nextFrame(): Promise<void> {
 
 function currentTranslation(element: HTMLElement): Readonly<{ x: number; y: number }> {
   const transform = window.getComputedStyle(element).transform;
-  const values = transform.match(/^matrix\(([^)]+)\)$/)?.[1]?.split(',').map(Number);
-  return values === undefined || values.length !== 6
-    ? { x: 0, y: 0 }
-    : { x: values[4] ?? 0, y: values[5] ?? 0 };
+  if (transform === 'none') return { x: 0, y: 0 };
+  try {
+    const matrix = new DOMMatrixReadOnly(transform);
+    return { x: matrix.m41, y: matrix.m42 };
+  } catch {
+    return { x: 0, y: 0 };
+  }
 }
 
 export class NetworkMotionAdapter implements AnimationPlayerPort {
@@ -188,14 +191,14 @@ export class NetworkMotionAdapter implements AnimationPlayerPort {
         await nextFrame();
         const node = this.#getNodeElement(step.targetId);
         if (node === null) throw new Error(`missing-network-node:${step.targetId}`);
-        const lock = node.querySelector<SVGSVGElement>('[data-network-status-marker="locked"]');
-        if (lock !== null) {
-          lock.style.transformBox = 'fill-box';
-          lock.style.transformOrigin = 'left bottom';
-          await this.#animate(lock, Math.min(step.durationMs, 360), {
+        const lockShackle = node.querySelector<SVGPathElement>('[data-lock-shackle]');
+        if (lockShackle !== null) {
+          lockShackle.style.transformBox = 'fill-box';
+          lockShackle.style.transformOrigin = 'left bottom';
+          await this.#animate(lockShackle, Math.min(step.durationMs, 360), {
             transform: [
               'translate3d(0, 0, 0) rotate(0deg) scale(1)',
-              'translate3d(-3px, -8px, 0) rotate(-22deg) scale(1.08)',
+              'translate3d(-2px, -7px, 0) rotate(-32deg) scale(1.06)',
             ],
           });
         }

@@ -1,4 +1,5 @@
 .transition {
+  position: relative;
   display: grid;
   width: 100%;
   height: 100%;
@@ -9,17 +10,26 @@
   background: var(--color-surface-canvas);
 }
 
-.titleCard {
-  max-width: min(54rem, calc(100% - 3rem));
-  padding: clamp(var(--space-5), 4vw, var(--space-7));
-  text-align: center;
-  animation: section-transition-arrival var(--section-transition-arrival-duration) cubic-bezier(0.16, 0.78, 0.22, 1) both;
-}
-
-.titleContent {
+.transitionContent {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  min-height: 100%;
   animation: section-transition-fade var(--section-transition-fade-duration) var(--motion-ease-out) calc(
     var(--section-transition-arrival-duration) + var(--section-transition-hold-duration)
   ) forwards;
+}
+
+.titleCard {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: max-content;
+  max-width: min(54rem, calc(100% - 3rem));
+  padding: clamp(var(--space-5), 4vw, var(--space-7));
+  text-align: center;
+  transform: translate(-50%, -58%);
+  animation: section-transition-arrival var(--section-transition-arrival-duration) cubic-bezier(0.16, 0.78, 0.22, 1) both;
 }
 
 .titleCard p,
@@ -41,33 +51,141 @@
   letter-spacing: var(--letter-spacing-tight);
 }
 
+.roadmap {
+  position: absolute;
+  bottom: clamp(var(--space-7), 7vh, var(--space-9));
+  left: 50%;
+  width: min(19rem, calc(100% - 3rem));
+  padding: var(--space-4) var(--space-5);
+  border: var(--border-width-thin) solid color-mix(
+    in srgb,
+    var(--color-accent) 18%,
+    var(--color-border-soft)
+  );
+  border-radius: var(--radius-round);
+  background: color-mix(in srgb, var(--color-surface-primary) 88%, transparent);
+  box-shadow:
+    var(--shadow-float),
+    inset 0 1px 0 color-mix(in srgb, var(--color-surface-primary) 86%, transparent);
+  backdrop-filter: blur(12px);
+  transform: translateX(-50%);
+}
+
+.roadmap ol {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0;
+  margin: 0;
+  list-style: none;
+}
+
+.progressTrack {
+  position: absolute;
+  z-index: 0;
+  top: 50%;
+  right: calc(var(--space-5) + 1.2rem);
+  left: calc(var(--space-5) + 1.2rem);
+  height: 0.28rem;
+  overflow: hidden;
+  border-radius: var(--radius-round);
+  background: color-mix(in srgb, var(--color-border) 78%, var(--color-surface-muted));
+  transform: translateY(-50%);
+}
+
+.progressTrack > span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--color-accent);
+  transition: width var(--motion-standard) var(--motion-ease-out);
+}
+
+.roadmap li {
+  position: relative;
+  z-index: 1;
+}
+
+.point {
+  display: grid;
+  width: 2.4rem;
+  height: 2.4rem;
+  place-items: center;
+  border: var(--border-width-medium) solid var(--color-border);
+  border-radius: var(--radius-round);
+  color: var(--color-ink-muted);
+  background: var(--color-surface-primary);
+  font-size: var(--font-size-small);
+  font-weight: var(--font-weight-heavy);
+}
+
+.roadmap li[data-state="active"] .point {
+  border-color: var(--color-surface-primary);
+  background: var(--color-accent);
+  box-shadow:
+    0 0 0 var(--border-width-medium) var(--color-accent-strong),
+    0 0 0 0.48rem color-mix(in srgb, var(--color-accent-soft) 82%, transparent),
+    0 0 1.5rem color-mix(in srgb, var(--color-accent) 38%, transparent);
+}
+
+.roadmap li[data-state="active"] .point::after {
+  width: 0.48rem;
+  height: 0.48rem;
+  border-radius: var(--radius-round);
+  background: var(--color-on-inverse);
+  content: "";
+}
+
+.roadmap li[data-state="complete"] .point {
+  border-color: var(--color-positive);
+  color: var(--color-on-inverse);
+  background: var(--color-positive);
+}
+
+.roadmap li[data-state="future"] .point {
+  border-color: color-mix(in srgb, var(--color-border) 88%, var(--color-ink-muted));
+  background: var(--color-surface-muted);
+}
+
+.screenReaderOnly {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
 @keyframes section-transition-arrival {
   from {
     opacity: 0;
-    transform: translateY(1.4rem) scale(0.97);
+    transform: translate(-50%, calc(-58% + 1.4rem)) scale(0.97);
   }
 
   to {
     opacity: 1;
-    transform: translateY(0) scale(1);
+    transform: translate(-50%, -58%) scale(1);
   }
 }
 
 @keyframes section-transition-fade {
   from {
     opacity: 1;
-    transform: translateY(0) scale(1);
   }
 
   to {
     opacity: 0;
-    transform: translateY(-0.6rem) scale(0.985);
   }
 }
 
 @media (prefers-reduced-motion: reduce) {
   .titleCard,
-  .titleContent {
+  .transitionContent {
     animation-duration: var(--motion-instant);
+  }
+
+  .progressTrack > span {
+    transition: none;
   }
 }

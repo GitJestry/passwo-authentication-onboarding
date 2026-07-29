@@ -1,5 +1,12 @@
 import { s02Content, type S02VisualPreviewKind } from '@passwo/training-content';
-import { useEffect, useLayoutEffect, useRef, useState, type CSSProperties } from 'react';
+import {
+  useEffect,
+  useLayoutEffect,
+  useRef,
+  useState,
+  type CSSProperties,
+  type PointerEvent,
+} from 'react';
 import passWoDockAsset from '../../../../assets/passwo/passwo-dock.png';
 import { NetworkMotionAdapter } from '../../../../adapters/network/NetworkMotionAdapter.js';
 import {
@@ -37,10 +44,15 @@ interface Runtime {
 }
 
 interface PreviewPosition {
-  readonly nodeId: string;
+  readonly previewId: string;
   readonly left: number;
   readonly top: number;
-  readonly side: 'left' | 'right';
+  readonly side: 'left' | 'right' | 'above' | 'below';
+}
+
+interface GuidePosition {
+  readonly x: number;
+  readonly y: number;
 }
 
 function clamp(value: number, minimum: number, maximum: number): number {
@@ -48,26 +60,135 @@ function clamp(value: number, minimum: number, maximum: number): number {
 }
 
 function VisualPreview({ kind }: { readonly kind: S02VisualPreviewKind }) {
+  const previewContent = s02Content.previewSimulation;
+  const preview = previewContent.variants[kind];
+
   return (
     <div
       className={styles.visualPreview}
       data-preview-kind={kind}
+      data-preview-category={preview.category}
       data-preview-ready
       aria-hidden="true"
     >
       <span className={styles.previewChrome}>
-        <i />
-        <i />
+        <span className={styles.previewWindowControls}>
+          <i />
+          <i />
+          <i />
+        </span>
+        <span className={styles.previewAddress}>{previewContent.address}</span>
+      </span>
+      <span className={styles.previewAppBar}>
+        <strong>{preview.app}</strong>
         <i />
       </span>
-      <span className={styles.previewNavigation} />
-      <span className={styles.previewContent}>
-        <i />
-        <i />
-        <i />
-        <i />
-      </span>
+      {preview.category === 'login' ? (
+        <span className={styles.loginPreview}>
+          <span className={styles.loginCard}>
+            <small>
+              {previewContent.welcomeLabel} {preview.app}
+            </small>
+            <strong>{preview.title}</strong>
+            <i className={styles.loginField} />
+            <i className={styles.loginField} />
+            <span className={styles.masterCampusButton}>
+              <i>MC</i>
+              {previewContent.masterCampusSignInLabel}
+            </span>
+          </span>
+          <span className={styles.previewPointer} />
+          <span className={styles.previewClickPulse} />
+        </span>
+      ) : null}
+      {preview.category === 'mail' ? (
+        <span className={styles.mailPreview}>
+          <span className={styles.mailSidebar}>
+            <i />
+            <i />
+            <i />
+          </span>
+          <span className={styles.mailList}>
+            <strong>{preview.title}</strong>
+            <span className={styles.mailRow}>
+              <i />
+              <span>
+                <b>{previewContent.serviceSender}</b>
+                <small>{previewContent.serviceMessage}</small>
+              </span>
+            </span>
+            <span className={styles.mailRow}>
+              <i />
+              <span>
+                <b>{previewContent.projectSender}</b>
+                <small>{previewContent.projectMessage}</small>
+              </span>
+            </span>
+            <span className={styles.mailDetail}>
+              <b>{kind === 'compose' ? previewContent.sendMessageLabel : preview.title}</b>
+              <i />
+              <i />
+            </span>
+          </span>
+          <span className={styles.previewPointer} />
+          <span className={styles.previewClickPulse} />
+        </span>
+      ) : null}
+      {preview.category === 'social' ? (
+        <span className={styles.socialPreview}>
+          <span className={styles.socialNavigation}>
+            <i />
+            <i />
+            <i />
+          </span>
+          <span className={styles.socialFeed}>
+            <strong>{preview.title}</strong>
+            <span className={styles.socialPost}>
+              <i className={styles.socialAvatar}>L</i>
+              <span>
+                <b>
+                  {kind === 'discussion'
+                    ? previewContent.projectQuestionLabel
+                    : previewContent.archivedPostLabel}
+                </b>
+                <small>
+                  {kind === 'discussion'
+                    ? previewContent.projectQuestionText
+                    : previewContent.archivedPostText}
+                </small>
+              </span>
+            </span>
+            <span className={styles.socialReply}>
+              <i className={styles.socialAvatar}>M</i>
+              <span>
+                <b>{previewContent.replyLabel}</b>
+                <small>{previewContent.replyText}</small>
+              </span>
+            </span>
+          </span>
+          <span className={styles.previewPointer} />
+          <span className={styles.previewClickPulse} />
+        </span>
+      ) : null}
     </div>
+  );
+}
+
+function overlapArea(
+  left: number,
+  top: number,
+  width: number,
+  height: number,
+  obstacle: DOMRect,
+  sceneRect: DOMRect,
+): number {
+  const obstacleLeft = obstacle.left - sceneRect.left - 12;
+  const obstacleTop = obstacle.top - sceneRect.top - 12;
+  const obstacleRight = obstacle.right - sceneRect.left + 12;
+  const obstacleBottom = obstacle.bottom - sceneRect.top + 12;
+  return (
+    Math.max(0, Math.min(left + width, obstacleRight) - Math.max(left, obstacleLeft)) *
+    Math.max(0, Math.min(top + height, obstacleBottom) - Math.max(top, obstacleTop))
   );
 }
 
@@ -79,7 +200,9 @@ export function S02AccountExplorationTraining({
   onContinue,
   onRetryTiming,
 }: S02AccountExplorationTrainingProps) {
-  const characterAnimationAnchorRef = useRef<HTMLDivElement | null>(null);
+  const characterAnimationAnchorRef = useRef<HTMLSpanElement | null>(null);
+  const passWoRef = useRef<HTMLDivElement | null>(null);
+  const cursorKeyRef = useRef<HTMLDivElement | null>(null);
   const networkHostRef = useRef<HTMLDivElement | null>(null);
   const sceneRef = useRef<HTMLDivElement | null>(null);
   const previewRef = useRef<HTMLElement | null>(null);
@@ -88,6 +211,7 @@ export function S02AccountExplorationTraining({
   const [runtime, setRuntime] = useState<Runtime | null>(null);
   const [snapshot, setSnapshot] = useState<S02AccountExplorationControllerSnapshot | null>(null);
   const [previewPosition, setPreviewPosition] = useState<PreviewPosition | null>(null);
+  const [guidePosition, setGuidePosition] = useState<GuidePosition | null>(null);
   const [introNarrationFinished, setIntroNarrationFinished] = useState(false);
   const [dismissedSpeechKey, setDismissedSpeechKey] = useState<string | null>(null);
   const [returningToBrowser, setReturningToBrowser] = useState(false);
@@ -109,9 +233,11 @@ export function S02AccountExplorationTraining({
       applySnapshot: (presentation) => controller?.updatePresentation(presentation),
       getCharacterElement: () => characterAnimationAnchorRef.current,
       getActiveNodeElement: () =>
+        previewRef.current ??
         networkHostRef.current?.querySelector<HTMLElement>(
           '[data-active="true"] [data-scene-node-button]',
-        ) ?? null,
+        ) ??
+        null,
       getNodeElement: (nodeId) =>
         networkHostRef.current?.querySelector<HTMLElement>(
           `[data-scene-node-button="${nodeId}"]`,
@@ -152,60 +278,168 @@ export function S02AccountExplorationTraining({
   }, [externalTimingError, introNarrationFinished, runtime, snapshot, timingState]);
 
   useLayoutEffect(() => {
-    const previewNodeId = snapshot?.scene.activePreviewDetailId ?? null;
+    const activeAccountId = snapshot?.scene.activeAccountId ?? null;
+    const sceneElement = sceneRef.current;
+    if (activeAccountId === null || sceneElement === null) {
+      setGuidePosition(null);
+      return;
+    }
+
+    const updateGuidePosition = () => {
+      const passWoElement = passWoRef.current;
+      const accountElement = networkHostRef.current?.querySelector<HTMLElement>(
+        `[data-scene-node-button="${activeAccountId}"]`,
+      );
+      if (passWoElement === null || accountElement === null || accountElement === undefined) return;
+
+      const sceneRect = sceneElement.getBoundingClientRect();
+      const accountRect = accountElement.getBoundingClientRect();
+      const passWoRect = passWoElement.getBoundingClientRect();
+      const margin = 24;
+      const guideRailHeight = 224;
+      const accountOnLeft =
+        accountRect.left + accountRect.width / 2 < sceneRect.left + sceneRect.width / 2;
+      const targetLeft = accountOnLeft
+        ? accountRect.right - sceneRect.left + 18
+        : accountRect.left - sceneRect.left - passWoRect.width - 18;
+      const targetTop =
+        accountRect.top - sceneRect.top + accountRect.height / 2 - passWoRect.height / 2;
+
+      setGuidePosition({
+        x: Math.round(
+          clamp(targetLeft, margin, Math.max(margin, sceneRect.width - passWoRect.width - margin)) -
+            passWoElement.offsetLeft,
+        ),
+        y: Math.round(
+          clamp(
+            targetTop,
+            42,
+            Math.max(42, sceneRect.height - passWoRect.height - guideRailHeight),
+          ) - passWoElement.offsetTop,
+        ),
+      });
+    };
+
+    const frame = requestAnimationFrame(updateGuidePosition);
+    window.addEventListener('resize', updateGuidePosition);
+    return () => {
+      cancelAnimationFrame(frame);
+      window.removeEventListener('resize', updateGuidePosition);
+    };
+  }, [snapshot?.scene.activeAccountId]);
+
+  useLayoutEffect(() => {
+    const previewId = snapshot?.scene.activePreviewDetailId ?? null;
+    const activeAccountId = snapshot?.scene.activeAccountId ?? null;
+    const anchorId =
+      activeAccountId === 'campus-id' ? previewId : activeAccountId;
     const sceneElement = sceneRef.current;
     if (sceneElement === null) return;
 
     const updateGeometry = () => {
       const sceneRect = sceneElement.getBoundingClientRect();
       const previewElement = previewRef.current;
-      if (previewNodeId === null || previewElement === null) {
+      if (previewId === null || anchorId === null || previewElement === null) {
         setPreviewPosition(null);
         return;
       }
       const nodeElement = networkHostRef.current?.querySelector<HTMLElement>(
-        `[data-scene-node-button="${previewNodeId}"]`,
+        `[data-scene-node-button="${anchorId}"]`,
       );
       if (nodeElement === null || nodeElement === undefined) return;
 
       const nodeRect = nodeElement.getBoundingClientRect();
       const previewRect = previewElement.getBoundingClientRect();
-      const gap = 18;
-      const margin = 16;
-      const availableRight = sceneRect.right - nodeRect.right;
-      const availableLeft = nodeRect.left - sceneRect.left;
-      const clampedTop = Math.round(
-        clamp(
-          nodeRect.top - sceneRect.top + nodeRect.height / 2 - previewRect.height / 2,
-          margin,
-          Math.max(margin, sceneRect.height - previewRect.height - margin),
-        ),
+      const gap = 26;
+      const guideRailHeight = 224;
+      const margin = 28;
+      const centeredLeft =
+        nodeRect.left - sceneRect.left + nodeRect.width / 2 - previewRect.width / 2;
+      const centeredTop =
+        nodeRect.top - sceneRect.top + nodeRect.height / 2 - previewRect.height / 2;
+      const candidates: readonly {
+        readonly side: PreviewPosition['side'];
+        readonly left: number;
+        readonly top: number;
+      }[] = [
+        {
+          side: 'right',
+          left: nodeRect.right - sceneRect.left + gap,
+          top: centeredTop,
+        },
+        {
+          side: 'left',
+          left: nodeRect.left - sceneRect.left - previewRect.width - gap,
+          top: centeredTop,
+        },
+        {
+          side: 'below',
+          left: centeredLeft,
+          top: nodeRect.bottom - sceneRect.top + gap,
+        },
+        {
+          side: 'above',
+          left: centeredLeft,
+          top: nodeRect.top - sceneRect.top - previewRect.height - gap,
+        },
+      ];
+      const obstacles = [
+        ...(networkHostRef.current?.querySelectorAll<HTMLElement>(
+          '[data-scene-node-button], [data-scene-node-label]',
+        ) ?? []),
+      ].filter(
+        (element) => {
+          const elementNodeId =
+            element.dataset.sceneNodeButton ?? element.dataset.sceneNodeLabel ?? null;
+          return (
+            elementNodeId !== anchorId &&
+            element.closest<HTMLElement>('[data-visible="true"]') !== null
+          );
+        },
       );
-      const leftBySide = {
-        right: Math.round(
+      const positionedCandidates = candidates.map((candidate, preference) => {
+        const left = Math.round(
           clamp(
-            nodeRect.right - sceneRect.left + gap,
+            candidate.left,
             margin,
             Math.max(margin, sceneRect.width - previewRect.width - margin),
           ),
-        ),
-        left: Math.round(
+        );
+        const top = Math.round(
           clamp(
-            nodeRect.left - sceneRect.left - previewRect.width - gap,
+            candidate.top,
             margin,
-            Math.max(margin, sceneRect.width - previewRect.width - margin),
+            Math.max(margin, sceneRect.height - previewRect.height - guideRailHeight),
           ),
-        ),
-      };
-      const preferredSide =
-        availableRight >= previewRect.width + gap || availableRight >= availableLeft
-          ? 'right'
-          : 'left';
+        );
+        const collisionScore = obstacles.reduce(
+          (score, obstacle) =>
+            score +
+            overlapArea(
+              left,
+              top,
+              previewRect.width,
+              previewRect.height,
+              obstacle.getBoundingClientRect(),
+              sceneRect,
+            ),
+          preference * 40,
+        );
+        return {
+          ...candidate,
+          left,
+          top,
+          collisionScore,
+        };
+      });
+      const bestCandidate = positionedCandidates.reduce((best, candidate) =>
+        candidate.collisionScore < best.collisionScore ? candidate : best,
+      );
       setPreviewPosition({
-        nodeId: previewNodeId,
-        side: preferredSide,
-        left: leftBySide[preferredSide],
-        top: clampedTop,
+        previewId,
+        side: bestCandidate.side,
+        left: bestCandidate.left,
+        top: bestCandidate.top,
       });
     };
 
@@ -215,7 +449,11 @@ export function S02AccountExplorationTraining({
       cancelAnimationFrame(frame);
       window.removeEventListener('resize', updateGeometry);
     };
-  }, [snapshot?.scene.activePreviewDetailId]);
+  }, [
+    snapshot?.scene.activeAccountId,
+    snapshot?.scene.activePreviewDetailId,
+    snapshot?.scene.pendingAnimationId,
+  ]);
 
   if (runtime === null || snapshot === null) {
     return (
@@ -252,10 +490,48 @@ export function S02AccountExplorationTraining({
     externalTimingError !== null || timingState === 'startFailed' || timingState === 'endFailed';
   const interactionBlocked = timingState !== 'active' || externalTimingError !== null;
   const positionedPreview =
-    activePreview !== undefined && previewPosition?.nodeId === activePreview.id;
+    activePreview !== undefined && previewPosition?.previewId === activePreview.id;
   const previewStyle: CSSProperties | undefined = positionedPreview
     ? { left: previewPosition.left, top: previewPosition.top }
     : undefined;
+  const passWoStyle: CSSProperties | undefined = guidePosition
+    ? {
+        transform: `translate3d(${guidePosition.x}px, ${guidePosition.y}px, 0)`,
+      }
+    : undefined;
+  const activeAccountUnderstood =
+    scene.activeAccountId !== null && scene.understoodAccountIds.includes(scene.activeAccountId);
+  const keyVisible =
+    snapshot.introState === 'complete' &&
+    !complete &&
+    scene.pendingAnimationId === null &&
+    (scene.activeAccountId === null || activeAccountUnderstood);
+  const narrationBlocksInteraction =
+    narrationActive &&
+    (scene.narrationId === s02Content.narration.introId || complete);
+
+  function moveCursorKey(event: PointerEvent<HTMLElement>): void {
+    const preview = previewRef.current;
+    if (preview !== null) {
+      const previewRect = preview.getBoundingClientRect();
+      const pointerOverPreview =
+        event.pointerType !== 'touch' &&
+        event.clientX >= previewRect.left &&
+        event.clientX <= previewRect.right &&
+        event.clientY >= previewRect.top &&
+        event.clientY <= previewRect.bottom;
+      preview.dataset.pointerOver = String(pointerOverPreview);
+    }
+
+    const cursorKey = cursorKeyRef.current;
+    if (cursorKey === null || event.pointerType === 'touch') return;
+    const parent = cursorKey.parentElement;
+    if (parent === null) return;
+    const parentRect = parent.getBoundingClientRect();
+    cursorKey.style.transform = `translate3d(${Math.round(
+      event.clientX - parentRect.left + 16,
+    )}px, ${Math.round(event.clientY - parentRect.top + 18)}px, 0)`;
+  }
 
   function returnToBrowser(): void {
     if (!complete || interactionBlocked || scene.pendingAnimationId !== null || returningToBrowser) {
@@ -266,7 +542,7 @@ export function S02AccountExplorationTraining({
 
   return (
     <section className={styles.training} aria-label={s02Content.trainingAriaLabel}>
-      <article className={styles.scene}>
+      <article className={styles.scene} onPointerMove={moveCursorKey}>
         <S02DesktopSurface
           sceneRef={sceneRef}
           browserLaunching={returningToBrowser}
@@ -296,12 +572,13 @@ export function S02AccountExplorationTraining({
               canvasAriaLabel={s02Content.accessibility.canvasLabel}
               interactionDisabled={
                 interactionBlocked ||
-                narrationActive ||
+                narrationBlocksInteraction ||
                 snapshot.introState !== 'complete' ||
                 complete
               }
               visualVariant="account-map"
               activeNodeId={scene.activeAccountId}
+              activePreviewNodeId={scene.activePreviewDetailId}
               showEdgeLabels={false}
             />
           </div>
@@ -311,7 +588,9 @@ export function S02AccountExplorationTraining({
               ref={previewRef}
               className={styles.preview}
               data-positioned={positionedPreview}
+              data-pointer-over="false"
               data-side={positionedPreview ? previewPosition.side : 'right'}
+              data-phase={scene.phase}
               style={previewStyle}
               aria-label={`Visuelle Vorschau für ${activePreview.label}`}
             >
@@ -325,9 +604,10 @@ export function S02AccountExplorationTraining({
             aria-hidden="true"
           />
           <div
+            ref={passWoRef}
             className={styles.passWo}
             data-passwo-placement={presentation.character.placement}
-            data-speech-side="right"
+            style={passWoStyle}
           >
             <img
               className={styles.passWoImage}
@@ -335,20 +615,37 @@ export function S02AccountExplorationTraining({
               src={passWoDockAsset}
               alt={s02Content.accessibility.characterLabel}
             />
-            <PassWoSpeechBubble
-              className={styles.narration}
-              speaker={s02Content.narration.guideName}
-              paragraphs={[narration]}
-              speechKey={speechKey}
-              placement="right"
-              hasNext={scene.narrationId === s02Content.narration.introId && !complete}
-              onAdvance={() => {
-                setDismissedSpeechKey(speechKey);
-                if (scene.narrationId === s02Content.narration.introId) {
-                  setIntroNarrationFinished(true);
-                }
-              }}
-            />
+          </div>
+          <PassWoSpeechBubble
+            className={styles.narration}
+            speaker={s02Content.narration.guideName}
+            paragraphs={[narration]}
+            speechKey={speechKey}
+            placement="above-right"
+            hasNext={scene.narrationId === s02Content.narration.introId && !complete}
+            awaitsAction={
+              scene.narrationId !== s02Content.narration.introId && !complete
+            }
+            onAdvance={() => {
+              setDismissedSpeechKey(speechKey);
+              if (scene.narrationId === s02Content.narration.introId) {
+                setIntroNarrationFinished(true);
+              }
+            }}
+          />
+
+          <div
+            ref={cursorKeyRef}
+            className={styles.cursorKey}
+            data-visible={keyVisible}
+            aria-hidden="true"
+          >
+            <svg viewBox="0 0 92 52" fill="none">
+              <circle cx="65" cy="26" r="18" />
+              <circle cx="65" cy="26" r="7" />
+              <path d="M49 26H8m11 0v9m11-9v7m10-7v5" />
+            </svg>
+            <span>******</span>
           </div>
 
           <p className={styles.screenReaderOnly} role="status">

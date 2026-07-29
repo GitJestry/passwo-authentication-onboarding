@@ -61,6 +61,8 @@ export function PasswordModuleTraining({
       <SectionTransition
         sectionLabel={s00Content.sectionTransition.label}
         title={s00Content.sectionTransition.title}
+        currentSection={1}
+        totalSections={3}
         holdDurationMs={s00Content.sectionTransition.holdDurationMs}
         onComplete={() => controller.completeSectionTransition()}
       />

@@ -40,17 +40,34 @@
   --node-label-surface: transparent;
 }
 
+.nodeFrame[data-variant="account-map"][data-size="main"] {
+  --node-visual-width: 128px;
+  --node-visual-height: 128px;
+}
+
+.nodeFrame[data-variant="account-map"][data-size="detail"]:not([data-node-shape="rounded-rectangle"]) {
+  --node-visual-width: 92px;
+  --node-visual-height: 92px;
+}
+
+.nodeFrame[data-variant="account-map"][data-node-shape="rounded-rectangle"] {
+  --node-visual-width: 116px;
+  --node-visual-height: 78px;
+}
+
 .nodeFrame[data-visible="false"] {
   visibility: hidden;
   opacity: 0;
 }
 
 .nodeFrame[data-dimmed="true"] {
-  opacity: 0.28;
+  filter: saturate(0.42);
+  opacity: 0.24;
   transform: scale(0.96);
 }
 
 .nodeButton {
+  position: relative;
   display: grid;
   width: 100%;
   height: 100%;
@@ -67,6 +84,14 @@
 
 .nodeButton:not(:disabled) {
   cursor: pointer;
+}
+
+.nodeButton:not(:disabled):hover .nodeCircle {
+  border-color: color-mix(in srgb, var(--color-accent-strong) 62%, #ffffff);
+  box-shadow:
+    0 0 0 5px color-mix(in srgb, #50bff2 12%, transparent),
+    0 1.1rem 2.2rem color-mix(in srgb, #285377 22%, transparent);
+  transform: translateY(-3px) scale(1.025);
 }
 
 .nodeButton:disabled {
@@ -141,6 +166,15 @@
     0 1.1rem 2.5rem color-mix(in srgb, #138453 24%, transparent);
 }
 
+.nodeFrame[data-focused="true"] .nodeCircle {
+  border-color: #008dce;
+  box-shadow:
+    0 0 0 5px color-mix(in srgb, #2ab7f0 20%, transparent),
+    0 0 2.2rem color-mix(in srgb, #2ab7f0 34%, transparent),
+    0 1rem 2.2rem color-mix(in srgb, #285377 20%, transparent);
+  transform: translateY(-2px) scale(1.045);
+}
+
 .nodeFrame[data-active="true"][data-locked="false"] .nodeCircle {
   border-color: #00c870;
   box-shadow:
@@ -185,10 +219,23 @@
   height: 46%;
 }
 
+.nodeFrame[data-variant="account-map"] .nodeSymbol {
+  width: 62%;
+  height: 62%;
+}
+
 .lockSymbol {
   width: 58%;
   height: 58%;
   color: #386d9e;
+}
+
+.lockSymbol [data-lock-body] {
+  fill: color-mix(in srgb, #d9ebfa 76%, transparent);
+}
+
+.lockSymbol [data-lock-keyhole] {
+  stroke: #245985;
 }
 
 .nodeFrame[data-size="detail"] .nodeSymbol {
@@ -197,8 +244,8 @@
 }
 
 .nodeFrame[data-node-shape="rounded-rectangle"] .nodeSymbol {
-  width: 40%;
-  height: 54%;
+  width: 52%;
+  height: 62%;
 }
 
 .unlockParticles {
@@ -295,7 +342,25 @@
   overflow-wrap: anywhere;
 }
 
+.nodeFrame[data-variant="account-map"] .nodeLabel {
+  position: absolute;
+  z-index: 2;
+  bottom: calc(100% + 0.5rem);
+  left: 50%;
+  width: max-content;
+  max-width: 11rem;
+  padding: 0.3rem 0.58rem;
+  border: 1px solid color-mix(in srgb, #557997 13%, transparent);
+  border-radius: var(--radius-round);
+  background: color-mix(in srgb, #ffffff 82%, transparent);
+  box-shadow: 0 0.4rem 1rem color-mix(in srgb, #426889 10%, transparent);
+  line-height: 1.15;
+  transform: translateX(-50%);
+  backdrop-filter: blur(0.5rem);
+}
+
 .nodeFrame[data-size="detail"] .nodeLabel {
+  max-width: 9.5rem;
   font-size: 0.65rem;
 }
 
@@ -316,6 +381,15 @@
   transition: opacity var(--motion-standard) var(--motion-ease-out);
 }
 
+.edge :global(.react-flow__edge-path) {
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.edge :global([data-network-edge-drawing="true"] .react-flow__edge-path) {
+  animation: none;
+}
+
 .edge :global([data-network-edge-visible="false"]) {
   opacity: 0;
   visibility: hidden;
@@ -333,14 +407,17 @@
 :global(.edge-kind-association) :global(.react-flow__edge-path) {
   stroke: #758fa7;
   stroke-width: var(--border-width-medium);
-  stroke-dasharray: 4 8;
+  stroke-dasharray: 3 10;
   opacity: 0.78;
+  animation: edge-drift 1.4s linear infinite;
 }
 
 .edgeChecking :global(.react-flow__edge-path) {
   stroke: #00d477;
   stroke-width: 4px;
-  stroke-dasharray: 5 5;
+  stroke-dasharray: 7 8;
+  filter: drop-shadow(0 0 5px color-mix(in srgb, #00d477 72%, transparent));
+  animation: edge-drift 720ms linear infinite;
 }
 
 .edgeOpened :global(.react-flow__edge-path) {
@@ -443,12 +520,23 @@
   }
 }
 
+@keyframes edge-drift {
+  to {
+    stroke-dashoffset: -26;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .nodeFrame,
   .nodeFrame .nodeCircle,
   .edge,
   .nodeFrame[data-highlighted="true"] .unlockParticles i {
     transition: none;
+    animation: none;
+  }
+
+  :global(.edge-kind-association) :global(.react-flow__edge-path),
+  .edgeChecking :global(.react-flow__edge-path) {
     animation: none;
   }
 }

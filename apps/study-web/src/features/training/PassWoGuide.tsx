@@ -5,6 +5,7 @@ import {
   PassWoSpeechBubble,
   type PassWoSpeechPlacement,
 } from './PassWoSpeechBubble.js';
+import type { PassWoSpeechEmphasis } from './PassWoSpeechEmphasis.js';
 import styles from './PassWoGuide.module.css';
 
 export interface PassWoGuideProps {
@@ -20,6 +21,7 @@ export interface PassWoGuideProps {
   readonly openHelpLabel: string;
   readonly speech: readonly string[];
   readonly speechKey: string;
+  readonly speechEmphasis?: readonly PassWoSpeechEmphasis[];
   readonly speechFooter?: ReactNode;
   readonly speechPlacement?: PassWoSpeechPlacement;
   readonly hasNextSpeech?: boolean;
@@ -40,6 +42,7 @@ export function PassWoGuide({
   openHelpLabel,
   speech,
   speechKey,
+  speechEmphasis,
   speechFooter,
   speechPlacement = 'right',
   hasNextSpeech = false,
@@ -62,45 +65,47 @@ export function PassWoGuide({
       aria-label={`${guideName} Begleitung`}
     >
       <div className={styles.guideDock}>
-        <div className={styles.guideToolbar}>
-          {!helpOpen && showHelpButton ? (
-            <button
-              type="button"
-              className={styles.infoButton}
-              aria-expanded={false}
-              aria-controls={helpId}
-              aria-label={openHelpLabel}
-              title={openHelpLabel}
-              onClick={onToggleHelp}
-            >
-              <span aria-hidden="true">?</span>
-            </button>
-          ) : null}
-          <div className={styles.guideStatus}>
-            <strong>{taskLabel}</strong>
-            {progress === undefined ? null : (
-              <div className={styles.taskProgress} aria-live="polite">
-                <span aria-hidden="true">
-                  {progress.current}/{progress.total}
-                </span>
-                <span
-                  className={styles.progressTrack}
-                  role="progressbar"
-                  aria-label={progress.label}
-                  aria-valuemin={0}
-                  aria-valuemax={progress.total}
-                  aria-valuenow={progress.current}
-                >
+        {!helpOpen ? (
+          <div className={styles.guideToolbar}>
+            {showHelpButton ? (
+              <button
+                type="button"
+                className={styles.infoButton}
+                aria-expanded={false}
+                aria-controls={helpId}
+                aria-label={openHelpLabel}
+                title={openHelpLabel}
+                onClick={onToggleHelp}
+              >
+                <span aria-hidden="true">?</span>
+              </button>
+            ) : null}
+            <div className={styles.guideStatus}>
+              <strong>{taskLabel}</strong>
+              {progress === undefined ? null : (
+                <div className={styles.taskProgress} aria-live="polite">
+                  <span aria-hidden="true">
+                    {progress.current}/{progress.total}
+                  </span>
                   <span
-                    style={{
-                      width: `${progressPercent}%`,
-                    }}
-                  />
-                </span>
-              </div>
-            )}
+                    className={styles.progressTrack}
+                    role="progressbar"
+                    aria-label={progress.label}
+                    aria-valuemin={0}
+                    aria-valuemax={progress.total}
+                    aria-valuenow={progress.current}
+                  >
+                    <span
+                      style={{
+                        width: `${progressPercent}%`,
+                      }}
+                    />
+                  </span>
+                </div>
+              )}
+            </div>
           </div>
-        </div>
+        ) : null}
         <img
           className={styles.character}
           data-passwo-character
@@ -115,6 +120,7 @@ export function PassWoGuide({
             speaker={guideName}
             paragraphs={speech}
             speechKey={speechKey}
+            {...(speechEmphasis === undefined ? {} : { emphasis: speechEmphasis })}
             placement={speechPlacement}
             footer={speechFooter}
             hasNext={hasNextSpeech}

@@ -1,4 +1,9 @@
 import { useCallback, useEffect, useId, useMemo, useRef, useState, type ReactNode } from 'react';
+import { NetworkSymbol } from '../../adapters/network/NetworkSymbolRegistry.js';
+import {
+  defaultPassWoSpeechEmphasis,
+  type PassWoSpeechEmphasis,
+} from './PassWoSpeechEmphasis.js';
 import styles from './PassWoSpeechBubble.module.css';
 
 export type PassWoSpeechPlacement = 'right' | 'left' | 'above-right' | 'above-left';
@@ -10,6 +15,7 @@ export interface PassWoSpeechBubbleProps {
   readonly speechKey: string;
   readonly placement?: PassWoSpeechPlacement;
   readonly tone?: PassWoSpeechTone;
+  readonly emphasis?: readonly PassWoSpeechEmphasis[];
   readonly footer?: ReactNode;
   readonly className?: string | undefined;
   readonly hasNext?: boolean;
@@ -36,16 +42,67 @@ function visualParagraphs(text: string): readonly string[] {
 }
 
 interface SpeechParagraphLayout {
-  readonly text: string;
-  readonly characterOffset: number;
+  readonly segments: readonly SpeechTextSegment[];
+  readonly paragraphOffset: number;
 }
 
-function createParagraphLayout(text: string): readonly SpeechParagraphLayout[] {
+interface SpeechTextSegment {
+  readonly text: string;
+  readonly characterOffset: number;
+  readonly emphasis?: PassWoSpeechEmphasis & { readonly showSymbol: boolean };
+}
+
+function createParagraphLayout(
+  text: string,
+  emphasisRules: readonly PassWoSpeechEmphasis[],
+): readonly SpeechParagraphLayout[] {
   let characterOffset = 0;
+  const shownSymbolIds = new Set<string>();
 
   return visualParagraphs(text).map((paragraph) => {
-    const layout = { text: paragraph, characterOffset };
-    characterOffset += Array.from(paragraph).length + 2;
+    const paragraphOffset = characterOffset;
+    const segments: SpeechTextSegment[] = [];
+    let textOffset = 0;
+    let plainText = '';
+
+    function pushPlainText(): void {
+      if (plainText.length === 0) return;
+      segments.push({ text: plainText, characterOffset });
+      characterOffset += Array.from(plainText).length;
+      plainText = '';
+    }
+
+    while (textOffset < paragraph.length) {
+      const matchingRule = emphasisRules
+        .filter(({ phrase }) => phrase.length > 0 && paragraph.startsWith(phrase, textOffset))
+        .sort((first, second) => second.phrase.length - first.phrase.length)[0];
+
+      if (matchingRule === undefined) {
+        const character = Array.from(paragraph.slice(textOffset))[0];
+        if (character === undefined) break;
+        plainText += character;
+        textOffset += character.length;
+        continue;
+      }
+
+      pushPlainText();
+      const showSymbol =
+        matchingRule.symbolId !== undefined && !shownSymbolIds.has(matchingRule.symbolId);
+      if (showSymbol && matchingRule.symbolId !== undefined) {
+        shownSymbolIds.add(matchingRule.symbolId);
+      }
+      segments.push({
+        text: matchingRule.phrase,
+        characterOffset,
+        emphasis: { ...matchingRule, showSymbol },
+      });
+      characterOffset += Array.from(matchingRule.phrase).length;
+      textOffset += matchingRule.phrase.length;
+    }
+
+    pushPlainText();
+    const layout = { segments, paragraphOffset };
+    characterOffset += 2;
     return layout;
   });
 }
@@ -104,6 +161,7 @@ export function PassWoSpeechBubble({
   speechKey,
   placement = 'right',
   tone = 'light',
+  emphasis = defaultPassWoSpeechEmphasis,
   footer,
   className,
   hasNext = false,
@@ -113,7 +171,10 @@ export function PassWoSpeechBubble({
 }: PassWoSpeechBubbleProps) {
   const fullText = useMemo(() => paragraphs.join('\n\n'), [paragraphs]);
   const fullCharacters = useMemo(() => Array.from(fullText), [fullText]);
-  const paragraphLayout = useMemo(() => createParagraphLayout(fullText), [fullText]);
+  const paragraphLayout = useMemo(
+    () => createParagraphLayout(fullText, emphasis),
+    [emphasis, fullText],
+  );
   const [visibleCharacters, setVisibleCharacters] = useState(0);
   const [advanceCompleted, setAdvanceCompleted] = useState(false);
   const [activeSpeechKey, setActiveSpeechKey] = useState(speechKey);
@@ -208,25 +269,56 @@ export function PassWoSpeechBubble({
         onClick={() => setVisibleCharacters(fullCharacters.length)}
       >
         <span className={styles.textLayout} aria-hidden="true">
-          {paragraphLayout.map(({ text, characterOffset }, paragraphIndex) => (
+          {paragraphLayout.map(({ segments, paragraphOffset }, paragraphIndex) => (
             <span className={styles.paragraph} key={`${speechKey}-${paragraphIndex}`}>
-              {Array.from(text).map((character, characterIndex) => {
-                const characterPosition = characterOffset + characterIndex;
-                const isVisible = currentSpeech && characterPosition < visibleCharacters;
-                const showsCaret = !complete && characterPosition === visibleCharacters - 1;
+              {segments.map((segment, segmentIndex) => {
+                const characters = Array.from(segment.text).map((character, characterIndex) => {
+                  const characterPosition = segment.characterOffset + characterIndex;
+                  const isVisible = currentSpeech && characterPosition < visibleCharacters;
+                  const showsCaret = !complete && characterPosition === visibleCharacters - 1;
 
+                  return (
+                    <span
+                      className={styles.character}
+                      data-caret={showsCaret}
+                      data-visible={isVisible}
+                      key={`${speechKey}-${paragraphIndex}-${segmentIndex}-${characterIndex}`}
+                    >
+                      {character}
+                    </span>
+                  );
+                });
+
+                if (segment.emphasis === undefined) {
+                  return (
+                    <span key={`${speechKey}-${paragraphIndex}-${segmentIndex}`}>
+                      {characters}
+                    </span>
+                  );
+                }
+
+                const segmentEnd =
+                  segment.characterOffset + Array.from(segment.text).length;
                 return (
-                  <span
-                    className={styles.character}
-                    data-caret={showsCaret}
-                    data-visible={isVisible}
-                    key={`${speechKey}-${paragraphIndex}-${characterIndex}`}
+                  <strong
+                    className={styles.emphasis}
+                    data-emphasis-tone={segment.emphasis.tone}
+                    key={`${speechKey}-${paragraphIndex}-${segmentIndex}`}
                   >
-                    {character}
-                  </span>
+                    {characters}
+                    {segment.emphasis.symbolId === undefined ||
+                    !segment.emphasis.showSymbol ? null : (
+                      <span
+                        className={styles.inlineSymbol}
+                        data-visible={currentSpeech && visibleCharacters >= segmentEnd}
+                      >
+                        <NetworkSymbol symbolId={segment.emphasis.symbolId} />
+                      </span>
+                    )}
+                  </strong>
                 );
               })}
-              {!complete && visibleCharacters === characterOffset ? (
+              {!complete && visibleCharacters === paragraphOffset ? (
                 <span className={styles.initialCaret} />
               ) : null}
             </span>

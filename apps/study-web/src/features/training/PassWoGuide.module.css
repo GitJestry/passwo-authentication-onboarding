@@ -1,7 +1,8 @@
 .guide {
   position: absolute;
   z-index: 1;
-  top: calc(100% - 9.5rem);
+  top: auto;
+  bottom: 0;
   left: clamp(var(--space-2), 1.4vw, var(--space-4));
   display: grid;
   width: min(41rem, calc(100vw - var(--space-4)));
@@ -16,16 +17,19 @@
 
 .guide[data-guided-account="campus-id"] {
   top: -4.7rem;
+  bottom: auto;
   left: clamp(15rem, 25vw, 23rem);
 }
 
 .guide[data-guided-account="campus-mail"] {
   top: -4.7rem;
+  bottom: auto;
   left: clamp(21rem, 38vw, 33rem);
 }
 
 .guide[data-guided-account="campus-board-archive"] {
   top: -4.7rem;
+  bottom: auto;
   left: clamp(26rem, 51vw, 42rem);
 }
 

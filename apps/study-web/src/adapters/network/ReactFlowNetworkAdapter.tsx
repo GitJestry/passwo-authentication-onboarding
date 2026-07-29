@@ -90,6 +90,7 @@ interface SceneNodeData extends Record<string, unknown> {
   readonly sceneNode: SceneNode;
   readonly visible: boolean;
   readonly highlighted: boolean;
+  readonly focused: boolean;
   readonly active: boolean;
   readonly dimmed: boolean;
   readonly interactionDisabled: boolean;
@@ -152,6 +153,27 @@ const connectedDetailNodeLayout: NetworkNodeLayout = {
   shapeHeight: 72,
   shape: 'rounded-rectangle',
 };
+const accountMapAccountNodeLayout: NetworkNodeLayout = {
+  width: 128,
+  height: 128,
+  shapeWidth: 128,
+  shapeHeight: 128,
+  shape: 'circle',
+};
+const accountMapServiceNodeLayout: NetworkNodeLayout = {
+  width: 92,
+  height: 92,
+  shapeWidth: 92,
+  shapeHeight: 92,
+  shape: 'circle',
+};
+const accountMapDetailNodeLayout: NetworkNodeLayout = {
+  width: 116,
+  height: 78,
+  shapeWidth: 116,
+  shapeHeight: 78,
+  shape: 'rounded-rectangle',
+};
 
 function clamp(value: number, minimum: number, maximum: number): number {
   return Math.min(maximum, Math.max(minimum, value));
@@ -161,7 +183,16 @@ function round(value: number): number {
   return Math.round(value * 100) / 100;
 }
 
-function layoutForNode(node: Pick<SceneNode, 'kind'>): NetworkNodeLayout {
+function layoutForNode(
+  node: Pick<SceneNode, 'kind'>,
+  visualVariant: NetworkVisualVariant,
+): NetworkNodeLayout {
+  if (visualVariant === 'account-map') {
+    if (node.kind === 'account') return accountMapAccountNodeLayout;
+    return node.kind === 'function' || node.kind === 'content'
+      ? accountMapDetailNodeLayout
+      : accountMapServiceNodeLayout;
+  }
   if (node.kind === 'account') return accountNodeLayout;
   return node.kind === 'function' || node.kind === 'content'
     ? connectedDetailNodeLayout
@@ -169,8 +200,8 @@ function layoutForNode(node: Pick<SceneNode, 'kind'>): NetworkNodeLayout {
 }
 
 /**
- * Authored positions map to the complete graph canvas. Context and preview cards
- * sit beside the S02 graph, so they cannot overlap deterministic node positions.
+ * Authored positions map to the complete graph canvas. The S02 preview overlay
+ * resolves its collision-free position separately from these deterministic nodes.
  */
 export function positionAuthoredNode(
   position: AuthoredPosition,
@@ -191,7 +222,7 @@ export function layoutSceneNode(
   canvas: NetworkCanvasSize,
   visualVariant: NetworkVisualVariant = 'default',
 ): Readonly<{ position: { readonly x: number; readonly y: number }; layout: NetworkNodeLayout }> {
-  const layout = layoutForNode(node);
+  const layout = layoutForNode(node, visualVariant);
   return {
     position: positionAuthoredNode(node.position, layout, canvas, visualVariant),
     layout,
@@ -236,8 +267,8 @@ function boundaryPoint(
 }
 
 /**
- * A single quadratic curve gives each connection a quiet direction while its
- * endpoints stop at the visible node boundary, not at a hidden handle.
+ * Two cubic control points make the authored connections grow as continuous,
+ * organic curves while their endpoints stop at the visible node boundary.
  */
 export function createNodeEdgePath(
   source: NodeGeometry,
@@ -252,13 +283,15 @@ export function createNodeEdgePath(
   const perpendicularY = distance === 0 ? 0 : deltaX / distance;
   const direction = deltaX === 0 ? 1 : Math.sign(deltaX);
   const bend = Math.min(42, Math.max(14, distance * 0.12)) * direction;
-  const controlX = round((start.x + end.x) / 2 + perpendicularX * bend);
-  const controlY = round((start.y + end.y) / 2 + perpendicularY * bend);
-  const labelX = round((start.x + 2 * controlX + end.x) / 4);
-  const labelY = round((start.y + 2 * controlY + end.y) / 4);
+  const control1X = round(start.x + deltaX * 0.34 + perpendicularX * bend);
+  const control1Y = round(start.y + deltaY * 0.34 + perpendicularY * bend);
+  const control2X = round(start.x + deltaX * 0.66 + perpendicularX * bend);
+  const control2Y = round(start.y + deltaY * 0.66 + perpendicularY * bend);
+  const labelX = round((start.x + 3 * control1X + 3 * control2X + end.x) / 8);
+  const labelY = round((start.y + 3 * control1Y + 3 * control2Y + end.y) / 8);
 
   return {
-    path: `M ${start.x} ${start.y} Q ${controlX} ${controlY} ${end.x} ${end.y}`,
+    path: `M ${start.x} ${start.y} C ${control1X} ${control1Y} ${control2X} ${control2Y} ${end.x} ${end.y}`,
     labelX,
     labelY,
   };
@@ -289,6 +322,7 @@ function SceneNodeCircle({ data }: NodeProps<SceneFlowNode>) {
     sceneNode,
     visible,
     highlighted,
+    focused,
     active,
     dimmed,
     interactionDisabled,
@@ -306,6 +340,7 @@ function SceneNodeCircle({ data }: NodeProps<SceneFlowNode>) {
       className={styles.nodeFrame}
       data-active={active}
       data-dimmed={dimmed}
+      data-focused={focused}
       data-highlighted={highlighted}
       data-kind={sceneNode.kind}
       data-locked={sceneNode.locked === true}
@@ -355,7 +390,9 @@ function SceneNodeCircle({ data }: NodeProps<SceneFlowNode>) {
             </span>
           ) : null}
         </span>
-        <span className={styles.nodeLabel}>{sceneNode.label}</span>
+        <span className={styles.nodeLabel} data-scene-node-label={sceneNode.id}>
+          {sceneNode.label}
+        </span>
       </button>
       <Handle
         type="source"
@@ -450,6 +487,7 @@ function toReactFlowElements(
   canvas: NetworkCanvasSize,
   visualVariant: NetworkVisualVariant,
   activeNodeId: string | null,
+  activePreviewNodeId: string | null,
   showEdgeLabels: boolean,
 ): { readonly nodes: readonly SceneFlowNode[]; readonly edges: readonly NodeFlowEdge[] } {
   const revealed = new Set(presentation.revealedNodeIds);
@@ -461,6 +499,18 @@ function toReactFlowElements(
   const geometriesByNodeId = new Map(
     positionedNodes.map(({ node, position, layout }) => [node.id, geometryForNode(position, layout)]),
   );
+  const activeAccount = snapshot.nodes.find(({ id }) => id === activeNodeId);
+  const choosingAccount = activeAccount === undefined || activeAccount.status === 'understood';
+  const activeBranchNodeIds = new Set<string>(
+    activeNodeId === null
+      ? []
+      : [
+          activeNodeId,
+          ...snapshot.edges
+            .filter(({ sourceId }) => sourceId === activeNodeId)
+            .map(({ targetId }) => targetId),
+        ],
+  );
 
   return {
     nodes: positionedNodes.map(({ node, position, layout }) => ({
@@ -471,8 +521,13 @@ function toReactFlowElements(
         sceneNode: node,
         visible: revealed.has(node.id),
         highlighted: presentation.highlightedNodeId === node.id,
+        focused: activePreviewNodeId === node.id,
         active: activeNodeId === node.id,
-        dimmed: false,
+        dimmed: choosingAccount
+          ? node.kind === 'account'
+            ? node.status === 'understood'
+            : true
+          : !activeBranchNodeIds.has(node.id),
         interactionDisabled,
         visualVariant,
         nodeSize: node.kind === 'account' ? 'main' : 'detail',
@@ -482,7 +537,8 @@ function toReactFlowElements(
       draggable: false,
       selectable: false,
       focusable: false,
-      zIndex: activeNodeId === node.id ? 3 : node.kind === 'account' ? 2 : 1,
+      zIndex:
+        activePreviewNodeId === node.id ? 4 : activeNodeId === node.id ? 3 : node.kind === 'account' ? 2 : 1,
       style: { width: layout.width, height: layout.height, pointerEvents: 'all' },
     })),
     edges: snapshot.edges.flatMap((edge) => {
@@ -507,7 +563,7 @@ function toReactFlowElements(
             targetNodeId: edge.targetId,
             visible: revealed.has(edge.targetId),
             drawing: drawingTargetNodeId === edge.targetId,
-            dimmed: false,
+            dimmed: choosingAccount || edge.sourceId !== activeNodeId,
           },
           ariaLabel: edge.label ?? `${edge.sourceId} mit ${edge.targetId} verbunden`,
         },
@@ -525,6 +581,7 @@ export interface ReactFlowNetworkProps {
   readonly interactionDisabled?: boolean;
   readonly visualVariant?: NetworkVisualVariant;
   readonly activeNodeId?: string | null;
+  readonly activePreviewNodeId?: string | null;
   readonly showEdgeLabels?: boolean;
 }
 
@@ -537,6 +594,7 @@ export function ReactFlowNetwork({
   interactionDisabled = false,
   visualVariant = 'default',
   activeNodeId = null,
+  activePreviewNodeId = null,
   showEdgeLabels = true,
 }: ReactFlowNetworkProps) {
   const containerRef = useRef<HTMLElement | null>(null);
@@ -556,10 +614,12 @@ export function ReactFlowNetwork({
         canvas,
         visualVariant,
         activeNodeId,
+        activePreviewNodeId,
         showEdgeLabels,
       ),
     [
       activeNodeId,
+      activePreviewNodeId,
       canvas,
       interactionDisabled,
       onNodeSelect,

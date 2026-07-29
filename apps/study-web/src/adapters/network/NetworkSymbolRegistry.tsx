@@ -235,8 +235,13 @@ export function NetworkStatusMarker({
     >
       {marker === 'locked' ? (
         <>
-          <rect x="5.5" y="10" width="13" height="9" rx="1.5" />
-          <path d="M8.5 10V7.7a3.5 3.5 0 0 1 7 0V10" />
+          <path
+            data-lock-shackle
+            d="M8.2 10V7.4a3.8 3.8 0 0 1 7.6 0V10"
+            strokeWidth="2.8"
+          />
+          <rect data-lock-body x="4.8" y="9.5" width="14.4" height="10.2" rx="2.2" />
+          <path data-lock-keyhole d="M12 13v3.2" strokeWidth="2.8" />
         </>
       ) : null}
       {marker === 'understood' ? <path d="m5 12 4.2 4.2L19 6.7" /> : null}

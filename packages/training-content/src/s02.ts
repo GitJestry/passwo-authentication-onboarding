@@ -29,6 +29,13 @@ export type S02AnimationStep =
       readonly to: 'bottom-left';
       readonly durationMs: number;
     }
+  | {
+      readonly type: 'move-character';
+      readonly pose: 'flight';
+      readonly from: 'focused-node';
+      readonly to: 'focused-node';
+      readonly durationMs: number;
+    }
   | { readonly type: 'reveal'; readonly targetId: string; readonly durationMs: number }
   | {
       readonly type: 'highlight';
@@ -127,6 +134,32 @@ export interface S02SegmentContent {
     readonly timingErrorCode: string;
     readonly retry: string;
   };
+  readonly previewSimulation: {
+    readonly address: string;
+    readonly welcomeLabel: string;
+    readonly masterCampusSignInLabel: string;
+    readonly serviceSender: string;
+    readonly serviceMessage: string;
+    readonly projectSender: string;
+    readonly projectMessage: string;
+    readonly sendMessageLabel: string;
+    readonly projectQuestionLabel: string;
+    readonly archivedPostLabel: string;
+    readonly projectQuestionText: string;
+    readonly archivedPostText: string;
+    readonly replyLabel: string;
+    readonly replyText: string;
+    readonly variants: Readonly<
+      Record<
+        S02VisualPreviewKind,
+        {
+          readonly app: string;
+          readonly title: string;
+          readonly category: 'login' | 'mail' | 'social';
+        }
+      >
+    >;
+  };
   readonly narration: {
     readonly guideName: string;
     readonly introId: string;
@@ -149,7 +182,7 @@ export interface S02SegmentContent {
   readonly animations: readonly S02AnimationSequence[];
 }
 
-export const S02_CONTENT_VERSION = '3.4.0';
+export const S02_CONTENT_VERSION = '3.5.0';
 
 const introId = 's02.accounts.intro';
 const completeId = 's02.accounts.complete';
@@ -459,11 +492,18 @@ function detailAnimation(detail: S02AccountContent['details'][number]): S02Anima
   return {
     id: detail.animationId,
     steps: [
-      { type: 'highlight', targetId: detail.id, emphasis: 'positive', durationMs: 220 },
+      {
+        type: 'move-character',
+        pose: 'flight',
+        from: 'focused-node',
+        to: 'focused-node',
+        durationMs: 420,
+      },
+      { type: 'highlight', targetId: detail.id, emphasis: 'positive', durationMs: 320 },
       { type: 'announce', messageId: detail.narrationId },
     ],
     reducedMotion: { strategy: 'instant-end-state', maxDurationMs: 0 },
-    maxDurationMs: 220,
+    maxDurationMs: 740,
   };
 }
 
@@ -511,13 +551,45 @@ export const s02Content: S02SegmentContent = {
     timingErrorCode: 'Fehlercode',
     retry: 'Erneut versuchen',
   },
+  previewSimulation: {
+    address: 'campus.local',
+    welcomeLabel: 'Willkommen bei',
+    masterCampusSignInLabel: 'Anmelden mit Master Campus',
+    serviceSender: 'Campus Service',
+    serviceMessage: 'Informationen zu deinem Konto',
+    projectSender: 'Projektteam',
+    projectMessage: 'Neue Nachricht im Verlauf',
+    sendMessageLabel: 'Nachricht senden',
+    projectQuestionLabel: 'Frage zum Projekt',
+    archivedPostLabel: 'Beitrag aus dem Archiv',
+    projectQuestionText: 'Wie teilen wir die Projektaufgaben auf?',
+    archivedPostText: 'Diese Information bleibt im Konto sichtbar.',
+    replyLabel: 'Antwort',
+    replyText: 'Ich übernehme Recherche und Zusammenfassung.',
+    variants: {
+      'course-space': { app: 'LearnSpace', title: 'Meine Kurse', category: 'login' },
+      'exam-list': { app: 'Prüfungsportal', title: 'Meine Prüfungen', category: 'login' },
+      'cloud-files': { app: 'Cloud Notes', title: 'Meine Dateien', category: 'login' },
+      'mail-list': { app: 'Campus E-Mail', title: 'Benachrichtigungen', category: 'mail' },
+      confirmation: { app: 'Campus E-Mail', title: 'Bestätigungen', category: 'mail' },
+      'reset-link': { app: 'Campus E-Mail', title: 'Zurücksetzungslink', category: 'mail' },
+      compose: { app: 'Campus E-Mail', title: 'Neue Nachricht', category: 'mail' },
+      announcement: { app: 'Campusgram', title: 'Alte Ankündigungen', category: 'social' },
+      discussion: { app: 'Campusgram', title: 'Projektfragen', category: 'social' },
+      'message-thread': {
+        app: 'Campusgram',
+        title: 'Archivierte Diskussion',
+        category: 'social',
+      },
+    },
+  },
   narration: {
     guideName: 'PassWo',
     introId,
     completeId,
     messages: {
       [introId]:
-        'Stell dir deine Konten als Knoten in einem Netzwerk vor. Sie sind zunächst geschlossen: Dein Passwort ist der Schlüssel, mit dem du – zusammen mit mir – den Zugang zu ihnen öffnest.',
+        'Dein Passwort ist oft die letzte Hürde, die Angreifer daran hindert, an deine persönlichen Daten zu kommen. Schaue nach, was sich hinter unseren erstellten Konten versteckt, indem du auf die Knoten klickst.',
       [completeId]:
         'Du hast die Konten erkundet. Klicke unten im Dock auf den Browser, wenn du bereit bist weiterzugehen.',
       's02.campus-id.open':

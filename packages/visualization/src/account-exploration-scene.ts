@@ -169,7 +169,10 @@ function buildNetwork(
       locked: accountProgress?.unlocked !== true,
       position: account.position,
       selectable:
-        !sceneComplete && !interactionLocked && (activeAccountUnderstood || activeAccount?.id === account.id),
+        !sceneComplete &&
+        !interactionLocked &&
+        !understood.has(account.id) &&
+        (activeAccountUnderstood || activeAccount?.id === account.id),
     };
   });
   const pendingDetail = activeAccount?.details.find(
@@ -193,7 +196,7 @@ function buildNetwork(
             : detail.descriptions.available,
       status: openedDetails.has(detail.id) ? 'understood' : 'neutral',
       position: detail.position,
-      selectable: !sceneComplete && !interactionLocked && isActive,
+      selectable: !sceneComplete && !interactionLocked && isActive && !understood.has(account.id),
     }));
   });
   const edges: readonly SceneEdge[] = definition.accounts.flatMap((account) => {
@@ -365,8 +368,9 @@ export function transitionAccountExplorationScene(
       snapshot: createSnapshot(definition, {
         ...snapshot,
         phase: 'checking-detail',
-        activePreviewDetailId: null,
+        activePreviewDetailId: detail.id,
         pendingAnimationId: detail.animationId,
+        narrationId: detail.narrationId,
       }),
       effects: [{ type: 'play-animation', animationId: detail.animationId }],
     };
@@ -401,6 +405,18 @@ export function transitionAccountExplorationScene(
 
   if (event.animationId === activeAccount.detailRevealAnimationId) {
     const firstDetail = activeAccount.details[0];
+    if (firstDetail !== undefined) {
+      return {
+        snapshot: createSnapshot(definition, {
+          ...snapshot,
+          phase: 'checking-detail',
+          activePreviewDetailId: firstDetail.id,
+          pendingAnimationId: firstDetail.animationId,
+          narrationId: firstDetail.narrationId,
+        }),
+        effects: [{ type: 'play-animation', animationId: firstDetail.animationId }],
+      };
+    }
     return {
       snapshot: createSnapshot(definition, {
         ...snapshot,
@@ -408,7 +424,7 @@ export function transitionAccountExplorationScene(
         pendingAnimationId: null,
         narrationId: activeAccount.narrationIds.open,
       }),
-      effects: firstDetail === undefined ? [] : [{ type: 'focus-node', nodeId: firstDetail.id }],
+      effects: [],
     };
   }
 

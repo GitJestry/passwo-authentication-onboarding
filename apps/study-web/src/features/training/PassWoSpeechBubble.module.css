@@ -184,6 +184,66 @@
   visibility: visible;
 }
 
+.emphasis {
+  color: var(--emphasis-color, var(--color-accent-strong));
+  font-weight: var(--font-weight-heavy);
+}
+
+.emphasis[data-emphasis-tone="positive"] {
+  --emphasis-color: var(--color-positive);
+}
+
+.emphasis[data-emphasis-tone="warning"] {
+  --emphasis-color: var(--color-warning);
+}
+
+.emphasis[data-emphasis-tone="action"] {
+  --emphasis-color: var(--color-accent-strong);
+}
+
+.emphasis[data-emphasis-tone="campus-id"] {
+  --emphasis-color: var(--color-campus-id);
+}
+
+.emphasis[data-emphasis-tone="campus-mail"] {
+  --emphasis-color: var(--color-campus-mail);
+}
+
+.emphasis[data-emphasis-tone="campusgram"] {
+  --emphasis-color: var(--color-campusgram);
+}
+
+.emphasis > .character[data-visible="true"] {
+  text-decoration: underline;
+  text-decoration-color: color-mix(in srgb, var(--emphasis-color) 38%, transparent);
+  text-decoration-thickness: 0.12em;
+  text-underline-offset: 0.16em;
+}
+
+.inlineSymbol {
+  display: inline-grid;
+  width: 1.12em;
+  height: 1.12em;
+  place-items: center;
+  margin-left: 0.28em;
+  vertical-align: -0.18em;
+  visibility: hidden;
+}
+
+.inlineSymbol[data-visible="true"] {
+  visibility: visible;
+}
+
+.inlineSymbol svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.bubble[data-tone="dark"] .emphasis {
+  color: color-mix(in srgb, var(--emphasis-color) 48%, var(--color-on-inverse));
+}
+
 .character[data-caret="true"]::after,
 .initialCaret {
   position: absolute;
