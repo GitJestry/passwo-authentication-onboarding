@@ -16,7 +16,7 @@ export default defineConfig([
   },
   {
     clean: false,
-    entry: { preload: 'src/preload.ts' },
+    entry: { 'pdf-preload': 'src/pdf-preload.ts', preload: 'src/preload.ts' },
     external: ['electron'],
     format: ['cjs'],
     outExtension: () => ({ js: '.cjs' }),

@@ -26,12 +26,16 @@ function parseRegistry(value) {
       fail(`registry entry ${String(index)} is not an object.`);
     }
     const id = requireString(entry.id, `registry entry ${String(index)} ID`);
+    const kind = requireString(entry.kind, `registry entry ${String(index)} kind`);
+    if (kind !== 'pdf' && kind !== 'web') {
+      fail(`registry entry ${id} has an unknown kind.`);
+    }
     const url = requireString(entry.url, `registry entry ${String(index)} URL`);
     const protocol = new URL(url).protocol;
     if (protocol !== 'http:' && protocol !== 'https:') {
       fail(`registry entry ${id} does not use HTTP(S).`);
     }
-    return Object.freeze({ id, url });
+    return Object.freeze({ id, kind, url });
   });
 
   if (new Set(links.map(({ id }) => id)).size !== links.length) {

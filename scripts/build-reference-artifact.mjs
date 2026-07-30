@@ -34,57 +34,14 @@ const retainedLessonIds = [
   'cCLcBEovpLj72dCgZ6HsfeQV4xIR2_Lv',
   '8s5ZF8ravaGthNGdmPcOMPOpdjLwXR-O',
   'zbxeD7QUdMnDlBWKvVsxMy5G8ghjnDRt',
+  'Ti_fsrlLUHNndcM9En6vVDUgA9f5i3Wx',
 ];
 const removedLessonIds = [
-  'Ti_fsrlLUHNndcM9En6vVDUgA9f5i3Wx',
   '7rcfm_gAfAzVzRVVTR_iWnlKKBnZpaHM',
   'HH7SqnNUTjwy5QdPUzFsX-aWNvrIcwkF',
 ];
-const finalContinueBlockId = 'cld8nihms01nn1tdj5q8tcthv';
-const quizLabelKeys = [
-  'a11yQuizFailed',
-  'a11yQuizFeedback',
-  'a11yQuizPassed',
-  'a11yQuizReviewCorrectlyChecked',
-  'a11yQuizReviewCorrectlySelected',
-  'a11yQuizReviewCorrectlyUnchecked',
-  'a11yQuizReviewCorrectlyUnselected',
-  'a11yQuizReviewIncorrectlyChecked',
-  'a11yQuizReviewIncorrectlySelected',
-  'a11yQuizReviewIncorrectlyUnchecked',
-  'a11yQuizReviewIncorrectlyUnselected',
-  'coverQuizPercentOrHigher',
-  'coverQuizScoreOf',
-  'progressPieQuizFailed',
-  'progressSummaryQuizRequirement',
-  'progressSummaryViewQuiz',
-  'quizAcceptableResponses',
-  'quizAnswerPlaceholder',
-  'quizContinue',
-  'quizCorrect',
-  'quizIncorrect',
-  'quizNext',
-  'quizPassing',
-  'quizQuestion',
-  'quizRequireAnswer',
-  'quizRequirePassingScore',
-  'quizRestart',
-  'quizResults',
-  'quizScore',
-  'quizStart',
-  'quizSubmit',
-  'quizTakeAgain',
-  'quizTimerElapsed',
-  'quizTimerExpired',
-  'quizTimerExpiredAction',
-  'quizTimerExpiredMessage',
-  'quizTimerHide',
-  'quizTimerLimit',
-  'quizTimerMinute',
-  'quizTimerMinutePlural',
-  'quizTimerRemaining',
-  'quizTimerShow',
-];
+const finalInstructionContinueBlockId = 'cld8nihms01nn1tdj5q8tcthv';
+const quizContinueBlockId = 'cm1etwitt00vi2a6r4ew4az3m';
 const externalEmbedTransforms = [
   {
     lessonId: 'cCLcBEovpLj72dCgZ6HsfeQV4xIR2_Lv',
@@ -428,19 +385,6 @@ function localizeExternalCourseMetadata(course) {
   }
 }
 
-function removeQuizLabels(dataset) {
-  const labels = dataset.labelSet?.labels;
-  if (typeof labels !== 'object' || labels === null || Array.isArray(labels)) {
-    fail('the decoded dataset has no labelSet labels object.');
-  }
-  for (const key of quizLabelKeys) {
-    if (!(key in labels) || typeof labels[key] !== 'string') {
-      fail(`expected quiz labelSet key ${key} is missing from the frozen snapshot.`);
-    }
-    delete labels[key];
-  }
-}
-
 function assertNoExternalDatasetTarget(dataset, allowedDescriptions) {
   function visit(value, path = 'dataset') {
     if (typeof value === 'string' && /https?:\/\//iu.test(value)) {
@@ -453,31 +397,56 @@ function assertNoExternalDatasetTarget(dataset, allowedDescriptions) {
   visit(dataset);
 }
 
-function findFinalContinueBlock(course) {
-  const mfaLesson = course.lessons.find(
-    (lesson) => lesson.id === 'zbxeD7QUdMnDlBWKvVsxMy5G8ghjnDRt',
-  );
-  if (!mfaLesson || !Array.isArray(mfaLesson.items)) {
-    fail('the MFA lesson or its blocks are missing.');
+function findContinueNavigation(course, lessonId, blockId, description) {
+  const lesson = course.lessons.find((candidate) => candidate.id === lessonId);
+  if (!lesson || !Array.isArray(lesson.items)) {
+    fail(`${description} lesson or its blocks are missing.`);
   }
-  const block = mfaLesson.items.at(-1);
+  const block = lesson.items.at(-1);
   if (
     typeof block !== 'object' ||
     block === null ||
-    block.id !== finalContinueBlockId ||
+    block.id !== blockId ||
     block.family !== 'continue' ||
     !Array.isArray(block.items) ||
     block.items.length !== 1
   ) {
-    fail(`the final Continue block ${finalContinueBlockId} has an unexpected structure.`);
+    fail(`${description} Continue block ${blockId} has an unexpected structure.`);
   }
-  const navigation = block.items[0];
+  return block.items[0];
+}
+
+function requireNativeQuizNavigation(course) {
+  const navigation = findContinueNavigation(
+    course,
+    'zbxeD7QUdMnDlBWKvVsxMy5G8ghjnDRt',
+    finalInstructionContinueBlockId,
+    'final instructional',
+  );
   if (
     typeof navigation !== 'object' ||
     navigation === null ||
     navigation.title !== 'WEITER ZU PASSWÖRTER & AUTHENTIFIZIERUNG // BE SECAWARE!'
   ) {
-    fail(`the final Continue block ${finalContinueBlockId} has unexpected navigation text.`);
+    fail(
+      `the final instructional Continue block ${finalInstructionContinueBlockId} has unexpected navigation text.`,
+    );
+  }
+}
+
+function findQuizCompletionNavigation(course) {
+  const navigation = findContinueNavigation(
+    course,
+    'Ti_fsrlLUHNndcM9En6vVDUgA9f5i3Wx',
+    quizContinueBlockId,
+    'quiz completion',
+  );
+  if (
+    typeof navigation !== 'object' ||
+    navigation === null ||
+    navigation.title !== 'WEITER ZU DEN NUTZUNGSHINWEISEN'
+  ) {
+    fail(`the quiz Continue block ${quizContinueBlockId} has unexpected navigation text.`);
   }
   return navigation;
 }
@@ -498,10 +467,10 @@ function adaptCourseDataset(sourceDataset) {
     fail('the expected enabled telemetry setting is missing.');
   }
   course.lmsOptions.enableTelemetryCollection = false;
-  findFinalContinueBlock(course).title = 'Training abschließen';
+  requireNativeQuizNavigation(course);
+  findQuizCompletionNavigation(course).title = 'Training abschließen';
   adaptSupplementaryNavigation(course);
   localizeExternalCourseMetadata(course);
-  removeQuizLabels(adaptedDataset);
   const allowedDescriptions = verifySupplementaryNavigation(course);
   assertNoExternalDatasetTarget(adaptedDataset, allowedDescriptions);
 

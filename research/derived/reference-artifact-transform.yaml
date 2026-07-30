@@ -1,5 +1,5 @@
 schemaVersion: 1
-artifactVersion: secaware-passwords-authentication-v9-study-adapted-2026-07-26-r2
+artifactVersion: secaware-passwords-authentication-v9-study-adapted-2026-07-26-r3
 sourceVersion: V9 (27.03.2026)
 courseId: CwynTB5JDjzJgtE8M2SKmgtgC6sM4C4h
 selection:
@@ -8,11 +8,11 @@ selection:
     - cCLcBEovpLj72dCgZ6HsfeQV4xIR2_Lv
     - 8s5ZF8ravaGthNGdmPcOMPOpdjLwXR-O
     - zbxeD7QUdMnDlBWKvVsxMy5G8ghjnDRt
-  removedLessonIds:
     - Ti_fsrlLUHNndcM9En6vVDUgA9f5i3Wx
+  removedLessonIds:
     - 7rcfm_gAfAzVzRVVTR_iWnlKKBnZpaHM
     - HH7SqnNUTjwy5QdPUzFsX-aWNvrIcwkF
-removedQuizLabelKeys:
+retainedQuizLabelKeys:
   - a11yQuizFailed
   - a11yQuizFeedback
   - a11yQuizPassed
@@ -140,10 +140,6 @@ externalTargets:
       target: target="_blank"
       operation: replace-with-empty-target
 transformations:
-  - id: lesson-Ti_fsrlLUHNndcM9En6vVDUgA9f5i3Wx-remove
-    targetId: Ti_fsrlLUHNndcM9En6vVDUgA9f5i3Wx
-    operation: remove-from-course-lessons
-    reason: The common study post-questionnaire and understanding guardrail replace the provider quiz.
   - id: lesson-7rcfm_gAfAzVzRVVTR_iWnlKKBnZpaHM-remove
     targetId: 7rcfm_gAfAzVzRVVTR_iWnlKKBnZpaHM
     operation: remove-from-course-lessons
@@ -168,22 +164,22 @@ transformations:
     targetId: supplementaryLinks
     operation: remove-empty-anchors-and-post-canonical-link-id
     reason: The desktop viewer needs a data-minimal link-ID signal while the SecAware iframe itself remains navigation-blocked.
-  - id: quiz-labelSet-remove
-    targetId: removedQuizLabelKeys
-    operation: remove-explicit-keys
-    reason: Labels for the removed provider quiz must not reach the Study Runtime.
+  - id: quiz-labelSet-retain
+    targetId: retainedQuizLabelKeys
+    operation: retain-frozen-keys
+    reason: The native provider quiz remains part of the measured reference artifact and requires its original labels.
   - id: runtime-popup-apis-disable
     targetId: frozen-window-open-call-sites
     operation: replace-with-null-return
     reason: Generic bundled popup APIs are not required by the retained local lesson path.
-  - id: block-cld8nihms01nn1tdj5q8tcthv-completion-navigation
-    targetId: cld8nihms01nn1tdj5q8tcthv
+  - id: block-cm1etwitt00vi2a6r4ew4az3m-completion-navigation
+    targetId: cm1etwitt00vi2a6r4ew4az3m
     operation: set-navigation-title-to-Training-abschließen
-    reason: The final Continue block must complete the retained path instead of navigating to the removed quiz.
+    reason: The quiz remains in the measured artifact, while the removed usage-notes lesson must not remain a navigation target.
   - id: runtime-completion-percentage
     targetId: completionPercentage
     operation: set-100
-    reason: All three retained instructional lessons must be complete before course completion is reported.
+    reason: All three instructional lessons and the native quiz must be complete before course completion is reported.
   - id: driver-completion-bridge
     targetId: scormdriver/indexAPI.html
     operation: wrap-SetReachedEnd-and-post-once

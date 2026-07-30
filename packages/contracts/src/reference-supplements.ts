@@ -4,6 +4,7 @@ import rawReferenceSupplementLinks from './reference-supplement-links.json' with
 const referenceSupplementLinkSchema = z
   .object({
     id: z.string().min(1),
+    kind: z.enum(['pdf', 'web']),
     url: z.url().refine((value) => {
       const protocol = new URL(value).protocol;
       return protocol === 'http:' || protocol === 'https:';

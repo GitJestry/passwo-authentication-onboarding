@@ -40,7 +40,8 @@ Doppelübermittlung durch `UNIQUE(session_id, sequence)`.
 - Animationen und Dialoge dürfen den Timer nicht selbst steuern.
 - Im Referenzpfad läuft der Study Build same-origin in einem sandboxed iframe. Ein isolierter
   Desktop-Viewer kann nur eingefrorene Zusatzlinks öffnen; weder iframe noch Viewer verändern die
-  globale Artefaktzeit oder erzeugen Referenz-Segmentzeiten.
+  globale Artefaktzeit oder erzeugen Referenz-Segmentzeiten. Das native SecAware-Quiz gehört zum
+  Referenzartefakt; erst dessen vollständiger Abschluss beendet die globale Artefaktzeit.
 - Im PassWo-Pfad werden verborgene Intervalle diagnostisch markiert, aber die primäre Wall-Clock
   läuft weiter.
 

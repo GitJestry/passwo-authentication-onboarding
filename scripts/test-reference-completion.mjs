@@ -176,6 +176,22 @@ try {
 
   await clickCourseControl(/WEITER ZUM THEMA PASSWORT-MANAGER/iu);
   await clickCourseControl(/WEITER ZUM THEMA MULTI-FAKTOR-AUTHENTIFIZIERUNG/iu);
+  await clickCourseControl(/WEITER ZU PASSWÖRTER & AUTHENTIFIZIERUNG/iu);
+
+  await courseFrame.getByTitle('Passwörter_Quiz_DE 23.03.2026').waitFor();
+  if (artifactEndTimings.length !== 0) {
+    fail('entering the native quiz ended artifact timing before quiz completion.');
+  }
+  await courseFrame.evaluate(() => {
+    window.postMessage(
+      {
+        type: 'course:update',
+        windowName: 'cm1enk06a001j2a6s3oz0elns',
+        payload: { result: { completion: true } },
+      },
+      window.location.origin,
+    );
+  });
   await clickCourseControl(/Training abschließen/iu);
 
   await page.getByRole('heading', { name: 'Fragebogen nach dem Artefakt' }).waitFor();
@@ -191,7 +207,7 @@ try {
   await clickPlaceholder(page);
   await page.getByRole('heading', { name: 'Verständnis prüfen' }).waitFor();
   process.stdout.write(
-    'Reference completion integration passed: real course path, twelve supplements, one completion signal, one artifact end, shared post and guardrail.\n',
+    'Reference completion integration passed: native quiz boundary, twelve supplements, one completion signal, one artifact end, shared post and guardrail.\n',
   );
 } finally {
   await browser?.close();

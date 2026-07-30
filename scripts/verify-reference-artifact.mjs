@@ -17,7 +17,7 @@ const expectedBuildPath =
   'research/private/reference/secaware/passwords-authentication/2026-07-26/study-build';
 const expectedTransformationPath = 'research/derived/reference-artifact-transform.yaml';
 const expectedSnapshotId = 'secaware-passwords-authentication-2026-07-26';
-const expectedReferenceVersion = 'secaware-passwords-authentication-v9-study-adapted-2026-07-26-r2';
+const expectedReferenceVersion = 'secaware-passwords-authentication-v9-study-adapted-2026-07-26-r3';
 const expectedSourceVersion = 'V9 (27.03.2026)';
 const expectedEntryPoint = 'scormdriver/indexAPI.html';
 const expectedCourseId = 'CwynTB5JDjzJgtE8M2SKmgtgC6sM4C4h';
@@ -28,12 +28,13 @@ const expectedSourceManifestSha256 =
   '4eee807687cad07e9856decd711a45a79076caf2ef9b9b6d6dae0401d23f821b';
 const expectedBuildFileCount = 146;
 const expectedBuildManifestSha256 =
-  '612588188d47a7a782c7b17c7e52f584205428e50e4982d3b58a24b67ae3b3f8';
+  '5b1d26d28efd73ed95a3b3a6198511a8445f9af9869c5c95ef918552e15d07de';
 const expectedTransformationConfigSha256 =
-  'f80dde80fb958d2e11899356eb7143379ee90c48fdee88774667b62f229788c4';
+  '939949486b2842cb955a44a5e126fdfdd41f036d4b48bb880acf42185d81aa86';
 const coursePath = 'scormcontent/index.html';
 const driverPath = 'scormdriver/indexAPI.html';
-const finalContinueBlockId = 'cld8nihms01nn1tdj5q8tcthv';
+const finalInstructionContinueBlockId = 'cld8nihms01nn1tdj5q8tcthv';
+const quizContinueBlockId = 'cm1etwitt00vi2a6r4ew4az3m';
 const quizLabelKeys = [
   'a11yQuizFailed',
   'a11yQuizFeedback',
@@ -113,26 +114,26 @@ const retainedLessons = [
     title: 'Multi-Faktor-Authentifizierung',
     type: 'blocks',
   },
-];
-const removedLessons = [
   {
     id: 'Ti_fsrlLUHNndcM9En6vVDUgA9f5i3Wx',
     title: 'Quiz: Passwörter & Authentifizierung // BE SecAware! ',
+    type: 'blocks',
   },
+];
+const removedLessons = [
   { id: '7rcfm_gAfAzVzRVVTR_iWnlKKBnZpaHM', title: 'VERÖFFENTLICHUNGSHINWEISE' },
   { id: 'HH7SqnNUTjwy5QdPUzFsX-aWNvrIcwkF', title: 'Nutzungshinweise' },
 ];
 const expectedTransformationIds = [
-  'lesson-Ti_fsrlLUHNndcM9En6vVDUgA9f5i3Wx-remove',
   'lesson-7rcfm_gAfAzVzRVVTR_iWnlKKBnZpaHM-remove',
   'lesson-HH7SqnNUTjwy5QdPUzFsX-aWNvrIcwkF-remove',
   'course-description-neutralize',
   'course-telemetry-disable',
   'course-external-targets-localize',
   'course-supplement-navigation-bridge',
-  'quiz-labelSet-remove',
+  'quiz-labelSet-retain',
   'runtime-popup-apis-disable',
-  'block-cld8nihms01nn1tdj5q8tcthv-completion-navigation',
+  'block-cm1etwitt00vi2a6r4ew4az3m-completion-navigation',
   'runtime-completion-percentage',
   'driver-completion-bridge',
 ];
@@ -223,18 +224,16 @@ function lessonMap(course, description) {
   return result;
 }
 
-function finalContinueNavigation(course, description) {
-  const mfaLesson = course.lessons.find(
-    (lesson) => lesson.id === 'zbxeD7QUdMnDlBWKvVsxMy5G8ghjnDRt',
-  );
-  if (!mfaLesson || !Array.isArray(mfaLesson.items)) {
-    fail(`${description} has no valid MFA lesson blocks.`);
+function continueNavigation(course, lessonId, blockId, description) {
+  const lesson = course.lessons.find((candidate) => candidate.id === lessonId);
+  if (!lesson || !Array.isArray(lesson.items)) {
+    fail(`${description} has no valid lesson blocks.`);
   }
-  const block = mfaLesson.items.at(-1);
+  const block = lesson.items.at(-1);
   if (
     typeof block !== 'object' ||
     block === null ||
-    block.id !== finalContinueBlockId ||
+    block.id !== blockId ||
     block.family !== 'continue' ||
     !Array.isArray(block.items) ||
     block.items.length !== 1 ||
@@ -244,6 +243,24 @@ function finalContinueNavigation(course, description) {
     fail(`${description} has an unexpected final Continue block.`);
   }
   return block.items[0];
+}
+
+function finalInstructionNavigation(course, description) {
+  return continueNavigation(
+    course,
+    'zbxeD7QUdMnDlBWKvVsxMy5G8ghjnDRt',
+    finalInstructionContinueBlockId,
+    description,
+  );
+}
+
+function quizCompletionNavigation(course, description) {
+  return continueNavigation(
+    course,
+    'Ti_fsrlLUHNndcM9En6vVDUgA9f5i3Wx',
+    quizContinueBlockId,
+    description,
+  );
 }
 
 const externalValueReplacements = new Map([
@@ -315,13 +332,13 @@ function expectedAdaptedDataset(sourceDataset) {
     fail('the source clone has no LMS options.');
   }
   course.lmsOptions.enableTelemetryCollection = false;
-  finalContinueNavigation(course, 'source clone').title = 'Training abschließen';
+  finalInstructionNavigation(course, 'source clone');
+  quizCompletionNavigation(course, 'source clone').title = 'Training abschließen';
   adaptSupplementaryNavigation(course);
   for (const key of quizLabelKeys) {
     if (!(key in expected.labelSet.labels)) {
       fail(`source clone is missing quiz label ${key}.`);
     }
-    delete expected.labelSet.labels[key];
   }
   transformExpectedExternalValues(expected);
   return expected;
@@ -352,11 +369,8 @@ function verifyQuizLabels(sourceDataset, buildDataset) {
   }
   for (const key of quizLabelKeys) {
     if (!(key in sourceLabels)) fail(`frozen source is missing quiz label ${key}.`);
-    if (key in buildLabels) fail(`generated dataset retains quiz label ${key}.`);
-  }
-  for (const [key, value] of Object.entries(buildLabels)) {
-    if (/quiz/iu.test(key) || (typeof value === 'string' && /quiz/iu.test(value))) {
-      fail(`generated dataset retains quiz-related label ${key}.`);
+    if (buildLabels[key] !== sourceLabels[key]) {
+      fail(`generated dataset changes or omits quiz label ${key}.`);
     }
   }
 }
@@ -618,9 +632,16 @@ async function verify() {
     fail('the generated course still enables provider telemetry.');
   }
   if (
-    finalContinueNavigation(buildCourse, 'generated study build').title !== 'Training abschließen'
+    finalInstructionNavigation(buildCourse, 'generated study build').title !==
+    'WEITER ZU PASSWÖRTER & AUTHENTIFIZIERUNG // BE SECAWARE!'
   ) {
-    fail('the final Continue block does not navigate to Training abschließen.');
+    fail('the final instructional Continue block does not navigate to the native quiz.');
+  }
+  if (
+    quizCompletionNavigation(buildCourse, 'generated study build').title !==
+    'Training abschließen'
+  ) {
+    fail('the quiz Continue block does not complete the retained participant path.');
   }
   if (JSON.stringify(buildDataset) !== JSON.stringify(expectedAdaptedDataset(sourceDataset))) {
     fail('the generated dataset contains a change outside the declared course transformations.');
@@ -629,7 +650,7 @@ async function verify() {
     occurrenceCount(buildCourseHtml, 'var completionPercentage = 100;') !== 1 ||
     buildCourseHtml.includes('var completionPercentage = 80;')
   ) {
-    fail('the generated three-lesson completion requirement is not exactly 100 percent.');
+    fail('the generated instructional-and-quiz completion requirement is not exactly 100 percent.');
   }
   if (
     occurrenceCount(buildCourseHtml, 'passwo-reference-supplement-bridge:start') !== 1 ||

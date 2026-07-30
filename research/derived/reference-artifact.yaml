@@ -2,7 +2,7 @@ status: frozen-local-study-adapted
 studyConfigId: main-study-v1
 snapshotId: secaware-passwords-authentication-2026-07-26
 sourceArtifactVersion: V9 (27.03.2026)
-artifactVersion: secaware-passwords-authentication-v9-study-adapted-2026-07-26-r2
+artifactVersion: secaware-passwords-authentication-v9-study-adapted-2026-07-26-r3
 sourcePath: research/private/reference/secaware/passwords-authentication/2026-07-26/source
 studyBuildPath: research/private/reference/secaware/passwords-authentication/2026-07-26/study-build
 transformationPath: research/derived/reference-artifact-transform.yaml
@@ -18,28 +18,28 @@ artifact:
   entryPoint: scormdriver/indexAPI.html
   runtimeUrl: /reference/secaware/passwords-authentication/scormdriver/indexAPI.html?StandAlone=true
   deliveryFormat: deterministically adapted SCORM 1.2 package served over same-origin local HTTP
-  completionPath: verified SetReachedEnd bridge with immediate transition into the common post-flow
-  embeddedChecks: none in the adapted participant path
-  immediateFeedback: retained only inside the three instructional lessons
+  completionPath: verified SetReachedEnd bridge after the native quiz with immediate transition into the common post-flow
+  embeddedChecks: native SecAware quiz retained inside the measured artifact path
+  immediateFeedback: retained inside the three instructional lessons and native quiz
 characterization:
   retainedLessons:
     - Starke Passwörter
     - Passwort-Manager
     - Multi-Faktor-Authentifizierung
+    - "Quiz: Passwörter & Authentifizierung // BE SecAware!"
   removedLessons:
-    - Quiz: Passwörter & Authentifizierung // BE SecAware!
     - VERÖFFENTLICHUNGSHINWEISE
     - Nutzungshinweise
   mediaFormat: website with locally bundled video, image, subtitle, font, HTML, CSS, and JavaScript assets
-  navigationStructure: course overview with one section and three instructional lessons
-  interactionTypes: navigation links, media controls, and retained lesson interactions
+  navigationStructure: course overview with one section, three instructional lessons, and the native quiz
+  interactionTypes: navigation links, media controls, retained lesson interactions, and native quiz interactions
 integrity:
   algorithm: SHA-256 over sorted lines "<file-sha256>  <POSIX-relative-path>\\n"
   sourceFileCount: 146
   sourceManifestSha256: 4eee807687cad07e9856decd711a45a79076caf2ef9b9b6d6dae0401d23f821b
   studyBuildFileCount: 146
-  studyBuildManifestSha256: 612588188d47a7a782c7b17c7e52f584205428e50e4982d3b58a24b67ae3b3f8
-  transformationConfigSha256: f80dde80fb958d2e11899356eb7143379ee90c48fdee88774667b62f229788c4
+  studyBuildManifestSha256: 5b1d26d28efd73ed95a3b3a6198511a8445f9af9869c5c95ef918552e15d07de
+  transformationConfigSha256: 939949486b2842cb955a44a5e126fdfdd41f036d4b48bb880acf42185d81aa86
 completionBridge:
   messageType: passwo:reference-completed
   payloadFields:
@@ -67,4 +67,5 @@ freeze:
     - All 140 files declared by imsmanifest.xml are present after URL decoding.
     - The 146-file source snapshot remains byte-identical and is never served directly.
     - The ignored study-build directory is deleted and reconstructed by the deterministic build script.
-    - The wrapper does not read quiz answers, SCORM interactions, lesson progress, or participant data.
+    - The wrapper does not read quiz answers, quiz scores, SCORM interactions, lesson progress, or participant data.
+    - Quiz answers and quiz scores are not study outcomes.

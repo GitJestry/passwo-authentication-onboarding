@@ -13,6 +13,7 @@
 | Ephemeral personalization | Anzeigename/Kürzel | nur flüchtiger Electron-Renderer; Persistenz verboten |
 | Training input | fiktive Passwörter und Loginversuche | nur flüchtiger Electron-Renderer; Persistenz verboten |
 | Training diagnosis | Findings, Ähnlichkeit, Abrufbarkeit, Auswahlpfade | nur flüchtiger Electron-Renderer; Persistenz verboten |
+| Reference quiz state | SecAware-Quizantworten, Quizpunkte, SCORM-Interaktionen | nur flüchtige eingebettete Laufzeit; Persistenz und Outcome-Nutzung verboten |
 | Sensitive real-world data | reale Konten, Passwörter, Tokens, Vorfälle | nie erheben |
 | Passive metadata | IP, User-Agent, Request-Bodies | nicht persistieren |
 

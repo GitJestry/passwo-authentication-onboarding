@@ -1,3 +1,5 @@
+import { get as getHttp } from 'node:http';
+import { get as getHttps } from 'node:https';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import {
@@ -22,8 +24,11 @@ import {
 
 const applicationVersion = '0.1.2';
 const viewerToolbarHeight = 56;
+const maximumPdfBytes = 10 * 1024 * 1024;
+const pdfFetchTimeoutMilliseconds = 15_000;
 const openReferenceSupplementChannel = 'passwo:desktop:open-reference-supplement';
 const closeReferenceSupplementChannel = 'passwo:desktop:close-reference-supplement';
+const pdfViewerMessageChannel = 'passwo:desktop:pdf-viewer-message';
 const currentDirectory = dirname(fileURLToPath(import.meta.url));
 const packagedViewerErrorUrl = `data:text/html;charset=utf-8,${encodeURIComponent(`<!doctype html>
 <html lang="de">
@@ -54,6 +59,7 @@ const packagedViewerErrorUrl = `data:text/html;charset=utf-8,${encodeURIComponen
 let mainWindow: BrowserWindow | null = null;
 let studyRuntime: StudyRuntime | null = null;
 let supplementView: WebContentsView | null = null;
+let supplementPdfAbortController: AbortController | null = null;
 let shuttingDown = false;
 
 function runtimeResourcePath(developmentPath: string, packagedName: string): string {
@@ -106,6 +112,8 @@ function updateSupplementBounds(): void {
 }
 
 function closeReferenceSupplement(): void {
+  supplementPdfAbortController?.abort();
+  supplementPdfAbortController = null;
   if (mainWindow === null || supplementView === null) return;
   const view = supplementView;
   supplementView = null;
@@ -150,6 +158,158 @@ function configureSupplementView(view: WebContentsView): void {
   );
 }
 
+function configurePdfSupplementView(view: WebContentsView, viewerUrl: string): void {
+  const { webContents } = view;
+  const pdfSession = webContents.session;
+
+  pdfSession.setPermissionCheckHandler(() => false);
+  pdfSession.setPermissionRequestHandler((_contents, _permission, callback) => callback(false));
+  pdfSession.on('will-download', (event) => event.preventDefault());
+
+  const guardNavigation = (event: Electron.Event, navigationUrl: string) => {
+    if (navigationUrl !== viewerUrl && navigationUrl !== packagedViewerErrorUrl) {
+      event.preventDefault();
+    }
+  };
+  webContents.on('will-navigate', guardNavigation);
+  webContents.on('will-redirect', guardNavigation);
+  webContents.setWindowOpenHandler(() => ({ action: 'deny' }));
+  webContents.on(
+    'did-fail-load',
+    (_event, errorCode, _errorDescription, validatedUrl, isMainFrame) => {
+      if (!isMainFrame || errorCode === -3 || validatedUrl.startsWith('data:')) return;
+      void webContents.loadURL(packagedViewerErrorUrl);
+    },
+  );
+}
+
+function isPdfDocument(bytes: Uint8Array): boolean {
+  const signature = [0x25, 0x50, 0x44, 0x46, 0x2d];
+  return signature.every((value, index) => bytes[index] === value);
+}
+
+function readBoundedPdf(
+  url: string,
+  signal: AbortSignal,
+  redirectCount = 0,
+): Promise<Uint8Array> {
+  return new Promise((resolvePdf, rejectPdf) => {
+    const parsedUrl = new URL(url);
+    const request = (parsedUrl.protocol === 'https:' ? getHttps : getHttp)(
+      parsedUrl,
+      {
+        headers: { Accept: 'application/pdf' },
+        signal,
+      },
+      (response) => {
+        const statusCode = response.statusCode ?? 0;
+        const redirectLocation = response.headers.location;
+        if (statusCode >= 300 && statusCode < 400 && redirectLocation !== undefined) {
+          response.resume();
+          if (redirectCount >= 5) {
+            rejectPdf(new Error('reference-pdf-too-many-redirects'));
+            return;
+          }
+          const redirectUrl = new URL(redirectLocation, parsedUrl).href;
+          if (!isAllowedWebUrl(redirectUrl)) {
+            rejectPdf(new Error('invalid-reference-pdf-redirect'));
+            return;
+          }
+          void readBoundedPdf(redirectUrl, signal, redirectCount + 1).then(
+            resolvePdf,
+            rejectPdf,
+          );
+          return;
+        }
+
+        const rawContentType = response.headers['content-type'];
+        const contentType = (
+          Array.isArray(rawContentType) ? (rawContentType[0] ?? '') : (rawContentType ?? '')
+        ).toLowerCase();
+        const rawContentLength = response.headers['content-length'];
+        const contentLengthValue = Array.isArray(rawContentLength)
+          ? rawContentLength[0]
+          : rawContentLength;
+        const contentLength =
+          contentLengthValue === undefined ? null : Number.parseInt(contentLengthValue, 10);
+        if (
+          statusCode < 200 ||
+          statusCode >= 300 ||
+          !contentType.startsWith('application/pdf') ||
+          (contentLength !== null &&
+            (!Number.isFinite(contentLength) ||
+              contentLength < 0 ||
+              contentLength > maximumPdfBytes))
+        ) {
+          response.resume();
+          rejectPdf(new Error('invalid-reference-pdf-response'));
+          return;
+        }
+
+        const chunks: Uint8Array[] = [];
+        let byteLength = 0;
+        let failed = false;
+        response.on('data', (chunk: Buffer) => {
+          if (failed) return;
+          byteLength += chunk.byteLength;
+          if (byteLength > maximumPdfBytes) {
+            failed = true;
+            response.destroy();
+            rejectPdf(new Error('reference-pdf-too-large'));
+            return;
+          }
+          chunks.push(chunk);
+        });
+        response.on('error', (error) => {
+          if (!failed) rejectPdf(error);
+        });
+        response.on('end', () => {
+          if (failed) return;
+          const bytes = new Uint8Array(byteLength);
+          let offset = 0;
+          for (const chunk of chunks) {
+            bytes.set(chunk, offset);
+            offset += chunk.byteLength;
+          }
+          if (!isPdfDocument(bytes)) {
+            rejectPdf(new Error('invalid-reference-pdf-signature'));
+            return;
+          }
+          resolvePdf(bytes);
+        });
+      },
+    );
+    request.on('error', rejectPdf);
+  });
+}
+
+async function loadReferencePdf(view: WebContentsView, url: string): Promise<void> {
+  if (studyRuntime === null) return;
+  const viewerUrl = new URL('/pdf-viewer.html', studyRuntime.origin).href;
+  const abortController = new AbortController();
+  supplementPdfAbortController = abortController;
+  const signal = AbortSignal.any([
+    abortController.signal,
+    AbortSignal.timeout(pdfFetchTimeoutMilliseconds),
+  ]);
+
+  try {
+    const [, bytes] = await Promise.all([
+      view.webContents.loadURL(viewerUrl),
+      readBoundedPdf(url, signal),
+    ]);
+    if (supplementView !== view || view.webContents.isDestroyed()) return;
+    view.webContents.send(pdfViewerMessageChannel, { status: 'document', bytes });
+  } catch {
+    if (supplementView !== view || view.webContents.isDestroyed()) return;
+    view.webContents.send(pdfViewerMessageChannel, { status: 'error' });
+  } finally {
+    if (supplementPdfAbortController === abortController) {
+      supplementPdfAbortController = null;
+    }
+  }
+}
+
 async function openReferenceSupplement(
   event: IpcMainInvokeEvent,
   candidateLinkId: unknown,
@@ -160,6 +320,10 @@ async function openReferenceSupplement(
   const parsedLinkId = referenceSupplementLinkIdSchema.safeParse(candidateLinkId);
   if (!parsedLinkId.success) return false;
   const link = referenceSupplementLinkForId(parsedLinkId.data);
+  const viewerUrl =
+    link.kind === 'pdf' && studyRuntime !== null
+      ? new URL('/pdf-viewer.html', studyRuntime.origin).href
+      : null;
 
   const view = new WebContentsView({
     webPreferences: {
@@ -168,15 +332,26 @@ async function openReferenceSupplement(
       devTools: false,
       nodeIntegration: false,
       partition: 'passwo-reference-supplements',
+      ...(link.kind === 'pdf'
+        ? { preload: join(currentDirectory, 'pdf-preload.cjs') }
+        : {}),
       sandbox: true,
       webSecurity: true,
     },
   });
-  configureSupplementView(view);
+  if (viewerUrl === null) {
+    configureSupplementView(view);
+  } else {
+    configurePdfSupplementView(view, viewerUrl);
+  }
   supplementView = view;
   mainWindow.contentView.addChildView(view);
   updateSupplementBounds();
-  void view.webContents.loadURL(link.url);
+  if (link.kind === 'pdf') {
+    void loadReferencePdf(view, link.url);
+  } else {
+    void view.webContents.loadURL(link.url);
+  }
   return true;
 }
 

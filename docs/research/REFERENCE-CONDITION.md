@@ -19,22 +19,25 @@ Begründung in `research/derived/reference-artifact-transform.yaml` dokumentiert
 ## Studienadaption
 
 Der dekodierte Kurs muss die Course-ID `CwynTB5JDjzJgtE8M2SKmgtgC6sM4C4h` besitzen. Der
-Teilnehmerpfad enthält danach ausschließlich die ursprüngliche Section und die drei
-Unterrichtslektionen:
+Teilnehmerpfad enthält danach ausschließlich die ursprüngliche Section, die drei
+Unterrichtslektionen und das native Quiz:
 
 - Starke Passwörter;
 - Passwort-Manager;
-- Multi-Faktor-Authentifizierung.
+- Multi-Faktor-Authentifizierung;
+- Quiz: Passwörter & Authentifizierung // BE SecAware!
 
-Der SecAware-Quiz, die Veröffentlichungshinweise und die Nutzungshinweise werden aus dem
-Kursdatensatz entfernt. Unterrichtsaussagen, Videos, Übungen und Zusammenfassungen der drei
-Lektionen bleiben unverändert. Lediglich der navigationsbezogene Titel im letzten Continue-Block
-`cld8nihms01nn1tdj5q8tcthv` lautet `Training abschließen`. Die Kursbeschreibung wird geleert,
-Telemetrie wird deaktiviert und ihr externer Fetch-Endpunkt entfernt. Die Abschlussanforderung
-wird auf 100 Prozent der drei Lektionen gesetzt.
+Die Veröffentlichungshinweise und die Nutzungshinweise werden aus dem Kursdatensatz entfernt.
+Unterrichtsaussagen, Videos, Übungen, Zusammenfassungen und das native Quiz bleiben unverändert.
+Der letzte Continue-Block der MFA-Lektion führt wie im Originalsnapshot in das Quiz. Die
+Kursbeschreibung wird geleert, Telemetrie wird deaktiviert und ihr externer Fetch-Endpunkt
+entfernt. Der abschließende Continue-Block des Quiz lautet `Training abschließen`, weil die
+nachfolgende Nutzungshinweis-Lektion nicht zum Teilnehmerpfad gehört. Die Abschlussanforderung
+wird auf 100 Prozent der drei Unterrichtslektionen und des Quiz gesetzt.
 
-Die explizit eingefrorenen Quiz-labelSet-Schlüssel werden vollständig entfernt. Die Texte und
-Ziele der zwölf sichtbaren supplementären Links der drei Lektionen bleiben wortgleich erhalten.
+Die explizit eingefrorenen Quiz-labelSet-Schlüssel bleiben für das native Quiz erhalten. Die
+Texte und Ziele der zwölf sichtbaren supplementären Links der drei Lektionen bleiben wortgleich
+erhalten.
 Jeder Link erhält eine kanonische ID; vier leere Duplikat-Anker werden entfernt. Eine
 Capture-Bridge unterbindet die Navigation im iframe und sendet nur Typ, Snapshot-ID und Link-ID
 an den Studienwrapper. Externe Thumbnail- und Darstellungsmetadaten werden auf bereits im Snapshot
@@ -54,10 +57,12 @@ Trainingsheader.
 
 Der Wrapper akzeptiert Zusatznavigation ausschließlich von seiner konfigurierten
 iframe-Window-Referenz, von derselben Origin, mit exakter Schlüsselmenge sowie eingefrorenem Typ,
-Snapshot-ID und Link-ID. In der Desktop-App öffnet die ID ihre kanonische HTTP(S)-URL in einem
-nicht persistenten, sandboxed Viewer. Dessen 56-Pixel-Leiste bietet jederzeit „Zurück zum
-Training“. Der Viewer wird beim Zurückkehren zerstört; Kurszustand, Operational Lease und globale
-Artefaktzeit bleiben erhalten. Im Browser-Entwicklungsmodus erscheint nur ein technischer Hinweis.
+Snapshot-ID und Link-ID. In der Desktop-App öffnen Webseiten ihre kanonische HTTP(S)-URL in einem
+nicht persistenten, sandboxed Viewer. Das eingefrorene PDF wird gemäß ADR 0011 begrenzt geladen,
+validiert und durch den lokal gebündelten PDF-Viewer im selben isolierten View dargestellt. Dessen
+56-Pixel-Leiste bietet jederzeit „Zurück zum Training“. Der Viewer wird beim Zurückkehren zerstört;
+Kurszustand, Operational Lease und globale Artefaktzeit bleiben erhalten. Im
+Browser-Entwicklungsmodus erscheint nur ein technischer Hinweis.
 
 Der generierte SCORM-Treiber umschließt den tatsächlichen erfolgreichen Aufruf von
 `SetReachedEnd`. Höchstens einmal sendet er an `window.top` die Nachricht
@@ -65,12 +70,14 @@ Der generierte SCORM-Treiber umschließt den tatsächlichen erfolgreichen Aufruf
 "secaware-passwords-authentication-2026-07-26" }` mit der eigenen Origin als Ziel. Der Wrapper
 akzeptiert sie nur von seiner konfigurierten iframe-Window-Referenz, von derselben Origin und mit
 exakt diesem Nachrichtentyp, dieser Snapshot-ID und dieser Schlüsselmenge. Das erste gültige
-Signal beendet unmittelbar das globale Artifact-Timing und wechselt in den gemeinsamen
-Post-Fragebogen; weitere Signale bleiben ohne Wirkung.
+Signal nach Abschluss des vollständigen retained Pfads einschließlich Quiz beendet unmittelbar
+das globale Artifact-Timing und wechselt in den gemeinsamen Post-Fragebogen; weitere Signale
+bleiben ohne Wirkung. Danach folgt derselbe externe Understanding Guardrail wie in der
+PassWo-Bedingung.
 
-Weder Quizantworten noch SCORM-Interaktionen, Lernfortschritt oder persönliche Daten werden
-gelesen, gespeichert oder exportiert. Für diese Bedingung entstehen weiterhin keine
-Segment-Timingevents.
+Weder Quizantworten noch Quizpunkte, SCORM-Interaktionen, Lernfortschritt oder persönliche Daten
+werden gelesen, gespeichert oder exportiert. Quizantworten und Quizpunkte sind keine
+Studienoutcomes. Für diese Bedingung entstehen weiterhin keine Segment-Timingevents.
 
 ## Vergleichsgrenzen
 

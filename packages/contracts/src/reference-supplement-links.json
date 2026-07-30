@@ -1,50 +1,62 @@
 [
   {
     "id": "passwords-bsi-checklist",
+    "kind": "pdf",
     "url": "https://www.bsi.bund.de/SharedDocs/Downloads/DE/BSI/Checklisten/sichere_passwoerter_faktenblatt.pdf?__blob=publicationFile&v=1"
   },
   {
     "id": "passwords-bsi-guidance",
+    "kind": "web",
     "url": "https://www.bsi.bund.de/DE/Themen/Verbraucherinnen-und-Verbraucher/Informationen-und-Empfehlungen/Cyber-Sicherheitsempfehlungen/Accountschutz/Sichere-Passwoerter-erstellen/Umgang-mit-Passwoertern/umgang-mit-passwoertern_node.html"
   },
   {
     "id": "passwords-attack-vector",
+    "kind": "web",
     "url": "https://norbert-pohlmann.com/glossar-cyber-sicherheit/angriffsvektor/"
   },
   {
     "id": "passwords-consumer-advice",
+    "kind": "web",
     "url": "https://www.verbraucherzentrale.de/wissen/digitale-welt/datenschutz/starke-passwoerter-so-gehts-11672"
   },
   {
     "id": "passwords-password-card",
+    "kind": "web",
     "url": "https://www.sicher-im-netz.de/dsin-passwortkarte"
   },
   {
     "id": "passwords-police-advice",
+    "kind": "web",
     "url": "https://polizei.nrw/artikel/mach-dein-passwort-stark#:~:text=Zahlenreihen%20wie%201234567%20oder%20111111,leicht%2C%20Ihre%20Zugangsdaten%20zu%20hacken."
   },
   {
     "id": "password-manager-bsi-overview",
+    "kind": "web",
     "url": "https://www.bsi.bund.de/DE/Themen/Verbraucherinnen-und-Verbraucher/Informationen-und-Empfehlungen/Cyber-Sicherheitsempfehlungen/Accountschutz/Projekt-Accountschutz/browser-passwortmanager.html"
   },
   {
     "id": "password-manager-bsi-video",
+    "kind": "web",
     "url": "https://www.bsi.bund.de/SharedDocs/Videos/DE/BSI/VerbraucherInnen/passwort-manager-statement.html"
   },
   {
     "id": "password-manager-aware7",
+    "kind": "web",
     "url": "https://aware7.com/de/blog/passwort-manager-sicherheit-kaspersky-erstellt-schwache-passwoerter/"
   },
   {
     "id": "mfa-bsi-basics",
+    "kind": "web",
     "url": "https://www.bsi.bund.de/DE/Themen/Verbraucherinnen-und-Verbraucher/Informationen-und-Empfehlungen/Wie-geht-Internet/Zwei-Faktor-Authentisierung-Datensicherheit/zwei-faktor-authentisierung-datensicherheit_node.html"
   },
   {
     "id": "mfa-bsi-methods",
+    "kind": "web",
     "url": "https://www.bsi.bund.de/DE/Themen/Verbraucherinnen-und-Verbraucher/Informationen-und-Empfehlungen/Cyber-Sicherheitsempfehlungen/Accountschutz/Zwei-Faktor-Authentisierung/Bewertung-2FA-Verfahren/bewertung-2fa-verfahren_node.html"
   },
   {
     "id": "mfa-consumer-advice",
+    "kind": "web",
     "url": "https://www.verbraucherzentrale.de/wissen/digitale-welt/datenschutz/zweifaktorauthentisierung-so-schuetzen-sie-ihre-accounts-85173"
   }
 ]

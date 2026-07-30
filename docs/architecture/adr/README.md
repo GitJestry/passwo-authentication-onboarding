@@ -14,3 +14,10 @@ bleiben unverändert; neue Verweise verwenden deshalb die folgenden eindeutigen 
 | `ADR 0008-Reference` | Eingebettetes, studienadaptiertes Referenzartefakt | [0008-embedded-adapted-reference-artifact.md](./0008-embedded-adapted-reference-artifact.md) |
 
 ADR 0006 bleibt als durch `ADR 0008-Reference` abgelöste historische Entscheidung erhalten.
+
+## Neuere Ergänzungen
+
+| Zitierlabel | Entscheidung | Pfad |
+|---|---|---|
+| `ADR 0010-Reference-Quiz` | Natives SecAware-Quiz innerhalb der Artefaktzeit | [0010-reference-native-quiz.md](./0010-reference-native-quiz.md) |
+| `ADR 0011-Reference-PDF` | Lokaler PDF-Viewer für SecAware-Zusatzinformationen | [0011-local-reference-pdf-viewer.md](./0011-local-reference-pdf-viewer.md) |

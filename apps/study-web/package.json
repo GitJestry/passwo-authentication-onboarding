@@ -19,6 +19,7 @@
     "@xstate/react": "^6.1.0",
     "@xyflow/react": "^12.11.0",
     "motion": "^12.42.0",
+    "pdfjs-dist": "6.1.200",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
     "xstate": "^5.32.0"

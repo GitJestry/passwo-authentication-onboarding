@@ -1,0 +1,104 @@
+:root {
+  color: #18282d;
+  background: #dfe7e9;
+  font-family: var(
+    --font-family-sans,
+    ui-sans-serif,
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    sans-serif
+  );
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  min-height: 100%;
+  margin: 0;
+}
+
+body {
+  background: #dfe7e9;
+}
+
+.viewer {
+  min-height: 100vh;
+  padding: 1.5rem;
+}
+
+.status {
+  width: fit-content;
+  margin: 20vh auto 0;
+  padding: 1rem 1.25rem;
+  border: 1px solid #b7c7cb;
+  border-radius: 0.75rem;
+  color: #183042;
+  background: #f4f8f9;
+  font-weight: 650;
+  text-align: center;
+}
+
+.status[hidden] {
+  display: none;
+}
+
+.pages {
+  display: grid;
+  gap: 1.5rem;
+  justify-items: center;
+}
+
+.page {
+  display: grid;
+  justify-items: center;
+  width: 100%;
+}
+
+.pageTitle {
+  margin: 0 0 0.5rem;
+  color: #31464d;
+  font-size: 0.875rem;
+  font-weight: 700;
+}
+
+.pageCanvas {
+  display: block;
+  max-width: 100%;
+  height: auto;
+  background: #fff;
+  box-shadow: 0 0.25rem 1rem rgb(24 40 45 / 18%);
+}
+
+.screenReaderText {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: normal;
+  border: 0;
+}
+
+@media (max-width: 720px) {
+  .viewer {
+    padding: 1rem 0.5rem;
+  }
+
+  .pages {
+    gap: 1rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+  }
+}

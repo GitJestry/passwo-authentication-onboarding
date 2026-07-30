@@ -1,0 +1,19 @@
+<!doctype html>
+<html lang="de" data-pdf-status="loading">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'none'; script-src 'self'; style-src 'self'; worker-src 'self' blob:; img-src 'self' blob:; font-src 'self'"
+    />
+    <title>PDF-Zusatzinformation</title>
+    <script type="module" src="/src/pdf-viewer/main.ts"></script>
+  </head>
+  <body>
+    <main class="viewer" aria-live="polite">
+      <p class="status" data-pdf-status-message="">Dokument wird geladen …</p>
+      <div class="pages" data-pdf-pages=""></div>
+    </main>
+  </body>
+</html>
