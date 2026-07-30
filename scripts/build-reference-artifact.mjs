@@ -27,6 +27,7 @@ const expectedSourceManifestSha256 =
 const expectedCourseId = 'CwynTB5JDjzJgtE8M2SKmgtgC6sM4C4h';
 const expectedSourceVersion = 'V9 (27.03.2026)';
 const completionMessageType = 'passwo:reference-completed';
+const completionRequestMessageType = 'passwo:reference-completion-request';
 const openSupplementMessageType = 'passwo:reference-open-supplement';
 const snapshotId = 'secaware-passwords-authentication-2026-07-26';
 const retainedLessonIds = [
@@ -34,14 +35,13 @@ const retainedLessonIds = [
   'cCLcBEovpLj72dCgZ6HsfeQV4xIR2_Lv',
   '8s5ZF8ravaGthNGdmPcOMPOpdjLwXR-O',
   'zbxeD7QUdMnDlBWKvVsxMy5G8ghjnDRt',
-  'Ti_fsrlLUHNndcM9En6vVDUgA9f5i3Wx',
 ];
 const removedLessonIds = [
+  'Ti_fsrlLUHNndcM9En6vVDUgA9f5i3Wx',
   '7rcfm_gAfAzVzRVVTR_iWnlKKBnZpaHM',
   'HH7SqnNUTjwy5QdPUzFsX-aWNvrIcwkF',
 ];
 const finalInstructionContinueBlockId = 'cld8nihms01nn1tdj5q8tcthv';
-const quizContinueBlockId = 'cm1etwitt00vi2a6r4ew4az3m';
 const externalEmbedTransforms = [
   {
     lessonId: 'cCLcBEovpLj72dCgZ6HsfeQV4xIR2_Lv',
@@ -96,8 +96,6 @@ const providerLogoTargets = [
 const datasetPattern =
   /async function __fetchCourse\(\) \{\s*return Promise\.resolve\(deserialize\("([A-Za-z0-9+/=]+)"\)\)\s*\}/u;
 const completionPercentageSource = 'var completionPercentage = 80;';
-const nativeStorylineQuizCompletion = "      completeOut(passed, 'passed-failed');";
-const studyStorylineQuizCompletion = "      completeOut(true, 'completed-failed');";
 const storylinePlaceholderHref = 'about:blank';
 const completionGuardMarker = 'passwo-reference-incomplete-completion-guard';
 const instructionalLessonIds = [
@@ -105,6 +103,7 @@ const instructionalLessonIds = [
   '8s5ZF8ravaGthNGdmPcOMPOpdjLwXR-O',
   'zbxeD7QUdMnDlBWKvVsxMy5G8ghjnDRt',
 ];
+const finalInstructionLessonId = 'zbxeD7QUdMnDlBWKvVsxMy5G8ghjnDRt';
 const completionGuard = `  <script type="text/javascript">
     // ${completionGuardMarker}:start
     (function preventIncompleteReferenceCompletion() {
@@ -115,32 +114,52 @@ const completionGuard = `  <script type="text/javascript">
 
       function incompleteLessonTitles() {
         if (!course || !Array.isArray(course.lessons)) return [];
-        var progress = window.Runtime && typeof window.Runtime.getProgress === 'function'
-          ? window.Runtime.getProgress()
-          : null;
-        var lessonProgress = progress && progress.lessons ? progress.lessons : {};
         return course.lessons
           .filter(function retainedInstruction(lesson) {
             return lesson && ${JSON.stringify(instructionalLessonIds)}.indexOf(lesson.id) !== -1;
           })
           .filter(function isIncomplete(lesson) {
-            return Number(lessonProgress[lesson.id] && lessonProgress[lesson.id].c) !== 1;
+            if (lesson.id === '${finalInstructionLessonId}') return false;
+            var navigation = document.querySelector(
+              '.nav-sidebar__outline-section-item a[href="#/lessons/' + lesson.id + '"]'
+            );
+            return !navigation || !navigation.parentElement ||
+              !navigation.parentElement.classList.contains(
+                'nav-sidebar__outline-section-item--complete'
+              );
           })
           .map(function lessonTitle(lesson) {
             return lesson.title;
           });
       }
 
-      document.addEventListener('click', function guardCompletion(event) {
-        var target = event.target instanceof Element
-          ? event.target.closest('a, button, [role="button"]')
+      function completionActionFrom(element) {
+        var action = element instanceof Element
+          ? element.closest('a, button, [role="button"]')
           : null;
-        if (!target || target.textContent.trim() !== 'Training abschließen') return;
+        return action && action.textContent.trim() === 'Training abschließen' ? action : null;
+      }
+
+      document.addEventListener('click', function guardCompletion(event) {
+        if (!completionActionFrom(event.target)) return;
         var incomplete = incompleteLessonTitles();
-        if (incomplete.length === 0) return;
+        if (incomplete.length > 0) {
+          event.preventDefault();
+          event.stopImmediatePropagation();
+          window.alert('Bitte bearbeite zunächst noch: ' + incomplete.join(', ') + '.');
+          return;
+        }
         event.preventDefault();
         event.stopImmediatePropagation();
-        window.alert('Bitte bearbeite zunächst noch: ' + incomplete.join(', ') + '.');
+        if (window.parent) {
+          window.parent.postMessage(
+            {
+              type: '${completionRequestMessageType}',
+              snapshotId: '${snapshotId}'
+            },
+            window.location.origin
+          );
+        }
       }, true);
     })();
     // ${completionGuardMarker}:end
@@ -162,6 +181,15 @@ const completionBridge = `${driverScriptTag}
       var originalSetReachedEnd = window.SetReachedEnd;
       var completionReported = false;
 
+      function reportCompletionOnce() {
+        if (completionReported) return;
+        completionReported = true;
+        window.top.postMessage(
+          { type: '${completionMessageType}', snapshotId: '${snapshotId}' },
+          window.location.origin
+        );
+      }
+
       window.PasswoOpenReferenceSupplement = function openReferenceSupplement(linkId) {
         window.top.postMessage(
           {
@@ -175,15 +203,25 @@ const completionBridge = `${driverScriptTag}
 
       window.SetReachedEnd = function reportReachedEndOnce() {
         var result = originalSetReachedEnd.apply(window, arguments);
-        if (!completionReported && result !== false) {
-          completionReported = true;
-          window.top.postMessage(
-            { type: '${completionMessageType}', snapshotId: '${snapshotId}' },
-            window.location.origin
-          );
-        }
+        if (result !== false) reportCompletionOnce();
         return result;
       };
+
+      window.addEventListener('message', function completeFromVisibleCourseAction(event) {
+        if (
+          event.source !== window.scormdriver_content ||
+          event.origin !== window.location.origin ||
+          typeof event.data !== 'object' ||
+          event.data === null ||
+          event.data.type !== '${completionRequestMessageType}' ||
+          event.data.snapshotId !== '${snapshotId}' ||
+          Object.keys(event.data).length !== 2
+        ) {
+          return;
+        }
+        originalSetReachedEnd.apply(window, []);
+        reportCompletionOnce();
+      });
     })();
     // passwo-reference-completion-bridge:end
   </script>`;
@@ -478,7 +516,7 @@ function findContinueNavigation(course, lessonId, blockId, description) {
   return block.items[0];
 }
 
-function requireNativeQuizNavigation(course) {
+function finalInstructionCompletionNavigation(course) {
   const navigation = findContinueNavigation(
     course,
     'zbxeD7QUdMnDlBWKvVsxMy5G8ghjnDRt',
@@ -490,25 +528,7 @@ function requireNativeQuizNavigation(course) {
     navigation === null ||
     navigation.title !== 'WEITER ZU PASSWÖRTER & AUTHENTIFIZIERUNG // BE SECAWARE!'
   ) {
-    fail(
-      `the final instructional Continue block ${finalInstructionContinueBlockId} has unexpected navigation text.`,
-    );
-  }
-}
-
-function findQuizCompletionNavigation(course) {
-  const navigation = findContinueNavigation(
-    course,
-    'Ti_fsrlLUHNndcM9En6vVDUgA9f5i3Wx',
-    quizContinueBlockId,
-    'quiz completion',
-  );
-  if (
-    typeof navigation !== 'object' ||
-    navigation === null ||
-    navigation.title !== 'WEITER ZU DEN NUTZUNGSHINWEISEN'
-  ) {
-    fail(`the quiz Continue block ${quizContinueBlockId} has unexpected navigation text.`);
+    fail(`the final instructional Continue block ${finalInstructionContinueBlockId} has unexpected navigation text.`);
   }
   return navigation;
 }
@@ -531,8 +551,7 @@ function adaptCourseDataset(sourceDataset) {
   }
   course.lmsOptions.enableTelemetryCollection = false;
   course.lmsOptions.enableExitCourse = false;
-  requireNativeQuizNavigation(course);
-  findQuizCompletionNavigation(course).title = 'Training abschließen';
+  finalInstructionCompletionNavigation(course).title = 'Training abschließen';
   adaptSupplementaryNavigation(course);
   localizeExternalCourseMetadata(course);
   const allowedDescriptions = verifySupplementaryNavigation(course);
@@ -629,12 +648,6 @@ let adaptedCourseHtml = replaceExactlyOnce(
 if (adaptedCourseHtml.split(completionPercentageSource).length - 1 !== 1) {
   fail('the native completion percentage is not exactly 80 percent.');
 }
-adaptedCourseHtml = replaceExactlyOnce(
-  adaptedCourseHtml,
-  nativeStorylineQuizCompletion,
-  studyStorylineQuizCompletion,
-  'the native Storyline quiz completion handler',
-);
 adaptedCourseHtml = replaceExactlyOnce(
   adaptedCourseHtml,
   telemetryFetchSource,

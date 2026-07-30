@@ -2,7 +2,7 @@ status: frozen-local-study-adapted
 studyConfigId: main-study-v1
 snapshotId: secaware-passwords-authentication-2026-07-26
 sourceArtifactVersion: V9 (27.03.2026)
-artifactVersion: secaware-passwords-authentication-v9-study-adapted-2026-07-30-r7
+artifactVersion: secaware-passwords-authentication-v9-study-adapted-2026-07-30-r15
 sourcePath: research/private/reference/secaware/passwords-authentication/2026-07-26/source
 studyBuildPath: research/private/reference/secaware/passwords-authentication/2026-07-26/study-build
 transformationPath: research/derived/reference-artifact-transform.yaml
@@ -18,28 +18,28 @@ artifact:
   entryPoint: scormdriver/indexAPI.html
   runtimeUrl: /reference/secaware/passwords-authentication/scormdriver/indexAPI.html?StandAlone=true
   deliveryFormat: deterministically adapted SCORM 1.2 package served over same-origin local HTTP
-  completionPath: verified SetReachedEnd bridge after the native quiz with immediate transition into the common post-flow
-  embeddedChecks: native SecAware quiz retained inside the measured artifact path
-  immediateFeedback: retained inside the three instructional lessons and native quiz
+  completionPath: verified SetReachedEnd bridge after the final instructional lesson with immediate transition into the common post-flow
+  embeddedChecks: no native SecAware quiz in the measured artifact path
+  immediateFeedback: retained inside the three instructional lessons
 characterization:
   retainedLessons:
     - Starke Passwörter
     - Passwort-Manager
     - Multi-Faktor-Authentifizierung
-    - "Quiz: Passwörter & Authentifizierung // BE SecAware!"
   removedLessons:
+    - "Quiz: Passwörter & Authentifizierung // BE SecAware!"
     - VERÖFFENTLICHUNGSHINWEISE
     - Nutzungshinweise
   mediaFormat: website with locally bundled video, image, subtitle, font, HTML, CSS, and JavaScript assets
-  navigationStructure: course overview with one section, three instructional lessons, and the native quiz
-  interactionTypes: navigation links, media controls, retained lesson interactions, and native quiz interactions
+  navigationStructure: course overview with one section and three instructional lessons
+  interactionTypes: navigation links, media controls, and retained lesson interactions
 integrity:
   algorithm: SHA-256 over sorted lines "<file-sha256>  <POSIX-relative-path>\\n"
   sourceFileCount: 146
   sourceManifestSha256: 4eee807687cad07e9856decd711a45a79076caf2ef9b9b6d6dae0401d23f821b
   studyBuildFileCount: 146
-  studyBuildManifestSha256: 56e55d180b6fdd6d407b90157cbd454ca78e2e16b677c4ecfadc79b082b8b16a
-  transformationConfigSha256: e2798961576ab7c5c3496df40a79d2bb62b8eedff69709f729d75423bfadf5c8
+  studyBuildManifestSha256: 4964b4d3c851278c1c061970c0ab7b0918b60f53d08c8ef398331f789e7fe8d7
+  transformationConfigSha256: 1e19f45b0b79b0c2195d45b020c807b1d194a8926149515e81cf85b2f02517d9
 completionBridge:
   messageType: passwo:reference-completed
   payloadFields:

@@ -153,18 +153,6 @@ try {
   await openAndCloseSupplement();
   await clickCourseControl(/WEITER ZUM THEMA PASSWORT-MANAGER/iu);
   await clickCourseControl(/WEITER ZUM THEMA MULTI-FAKTOR-AUTHENTIFIZIERUNG/iu);
-  await clickCourseControl(/WEITER ZU PASSWÖRTER & AUTHENTIFIZIERUNG/iu);
-  await courseFrame.getByTitle('Passwörter_Quiz_DE 23.03.2026').waitFor();
-  await courseFrame.evaluate(() => {
-    window.postMessage(
-      {
-        type: 'course:update',
-        windowName: 'cm1enk06a001j2a6s3oz0elns',
-        payload: { result: { completion: true } },
-      },
-      window.location.origin,
-    );
-  });
   await clickCourseControl(/Training abschließen/iu);
 
   await page.getByRole('heading', { name: 'Fragebogen nach dem Artefakt' }).waitFor();
@@ -174,7 +162,7 @@ try {
   }
 
   process.stdout.write(
-    'Desktop smoke passed: local Runtime/SQLite, native quiz boundary, representative supplement link, isolated viewer, preserved course state, and automatic post transition.\n',
+    'Desktop smoke passed: local Runtime/SQLite, three-lesson boundary, representative supplement link, isolated viewer, preserved course state, and automatic post transition.\n',
   );
 } finally {
   await electronApplication.close();

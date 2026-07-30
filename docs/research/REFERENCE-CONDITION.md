@@ -20,29 +20,27 @@ Begründung in `research/derived/reference-artifact-transform.yaml` dokumentiert
 
 Der dekodierte Kurs muss die Course-ID `CwynTB5JDjzJgtE8M2SKmgtgC6sM4C4h` besitzen. Der
 Teilnehmerpfad enthält danach ausschließlich die ursprüngliche Section, die drei
-Unterrichtslektionen und das native Quiz:
+Unterrichtslektionen:
 
 - Starke Passwörter;
 - Passwort-Manager;
 - Multi-Faktor-Authentifizierung;
-- Quiz: Passwörter & Authentifizierung // BE SecAware!
 
 Die Veröffentlichungshinweise und die Nutzungshinweise werden aus dem Kursdatensatz entfernt.
-Unterrichtsaussagen, Videos, Übungen, Zusammenfassungen und das native Quiz bleiben unverändert.
-Der letzte Continue-Block der MFA-Lektion führt wie im Originalsnapshot in das Quiz. Die
-Kursbeschreibung wird geleert, Telemetrie wird deaktiviert und ihr externer Fetch-Endpunkt
-entfernt. Der abschließende Continue-Block des Quiz lautet `Training abschließen`, weil die
-nachfolgende Nutzungshinweis-Lektion nicht zum Teilnehmerpfad gehört. Die Abschlussanforderung
-deckt die drei Unterrichtslektionen ab. Ein abgeschlossener Quizversuch löst den Studienabschluss
-auch bei einem nicht bestandenen Quiz aus; Quizpunkte und -ergebnis bleiben dafür ohne Bedeutung.
+Unterrichtsaussagen, Videos, Übungen und Zusammenfassungen bleiben unverändert. Das native Quiz
+wird aus dem Kursdatensatz entfernt. Der letzte Continue-Block der MFA-Lektion lautet
+`Training abschließen`. Die Abschlussanforderung deckt die drei Unterrichtslektionen ab.
 Die provider-eigene Aktion zum Verlassen des
-Kurses wird im lokalen Kursdatensatz deaktiviert und dadurch nicht gerendert. Wird
-`Training abschließen` vor dem vollständigen Unterrichtspfad ausgewählt, bleibt die Aktion
-verfügbar und nennt die noch nicht bearbeiteten Unterrichtslektionen.
+Kurses wird im lokalen Kursdatensatz deaktiviert und dadurch nicht gerendert. Der Klick auf
+`Training abschließen` löst nach dem vollständigen Unterrichtspfad direkt den lokalen
+SCORM-Abschluss aus. Am Ende der MFA-Lektion steht diese Aktion unabhängig von einer
+fehlerhaften internen Fortschrittsmarkierung bereit.
+Der SCORM-Treiber akzeptiert diese Aufforderung nur vom konfigurierten lokalen Kursframe und
+sendet anschließend höchstens ein Abschlussereignis; davor bleibt die Aktion verfügbar und
+nennt die noch nicht bearbeiteten Unterrichtslektionen.
 
-Die explizit eingefrorenen Quiz-labelSet-Schlüssel bleiben für das native Quiz erhalten. Die
-Texte und Ziele der zwölf sichtbaren supplementären Links der drei Lektionen bleiben wortgleich
-erhalten.
+Die Texte und Ziele der zwölf sichtbaren supplementären Links der drei Lektionen bleiben
+wortgleich erhalten.
 Jeder Link erhält eine kanonische ID; vier leere Duplikat-Anker werden entfernt. Eine
 Capture-Bridge unterbindet die Navigation im iframe und sendet nur Typ, Snapshot-ID und Link-ID
 an den Studienwrapper. Externe Thumbnail- und Darstellungsmetadaten werden auf bereits im Snapshot
@@ -75,14 +73,13 @@ Der generierte SCORM-Treiber umschließt den tatsächlichen erfolgreichen Aufruf
 "secaware-passwords-authentication-2026-07-26" }` mit der eigenen Origin als Ziel. Der Wrapper
 akzeptiert sie nur von seiner konfigurierten iframe-Window-Referenz, von derselben Origin und mit
 exakt diesem Nachrichtentyp, dieser Snapshot-ID und dieser Schlüsselmenge. Das erste gültige
-Signal nach Abschluss der drei Unterrichtslektionen und des aufgerufenen nativen Quiz beendet unmittelbar
+Signal nach Abschluss der drei Unterrichtslektionen beendet unmittelbar
 das globale Artifact-Timing und wechselt in den gemeinsamen Post-Fragebogen; weitere Signale
 bleiben ohne Wirkung. Danach folgt derselbe externe Understanding Guardrail wie in der
 PassWo-Bedingung.
 
-Weder Quizantworten noch Quizpunkte, SCORM-Interaktionen, Lernfortschritt oder persönliche Daten
-werden gelesen, gespeichert oder exportiert. Quizantworten und Quizpunkte sind keine
-Studienoutcomes. Für diese Bedingung entstehen weiterhin keine Segment-Timingevents.
+Weder SCORM-Interaktionen, Lernfortschritt noch persönliche Daten werden gelesen, gespeichert
+oder exportiert. Für diese Bedingung entstehen weiterhin keine Segment-Timingevents.
 
 ## Vergleichsgrenzen
 

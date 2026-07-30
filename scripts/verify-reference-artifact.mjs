@@ -17,68 +17,24 @@ const expectedBuildPath =
   'research/private/reference/secaware/passwords-authentication/2026-07-26/study-build';
 const expectedTransformationPath = 'research/derived/reference-artifact-transform.yaml';
 const expectedSnapshotId = 'secaware-passwords-authentication-2026-07-26';
-const expectedReferenceVersion = 'secaware-passwords-authentication-v9-study-adapted-2026-07-30-r7';
+const expectedReferenceVersion = 'secaware-passwords-authentication-v9-study-adapted-2026-07-30-r15';
 const expectedSourceVersion = 'V9 (27.03.2026)';
 const expectedEntryPoint = 'scormdriver/indexAPI.html';
 const expectedCourseId = 'CwynTB5JDjzJgtE8M2SKmgtgC6sM4C4h';
 const expectedCompletionMessageType = 'passwo:reference-completed';
+const expectedCompletionRequestMessageType = 'passwo:reference-completion-request';
 const expectedOpenSupplementMessageType = 'passwo:reference-open-supplement';
 const expectedSourceFileCount = 146;
 const expectedSourceManifestSha256 =
   '4eee807687cad07e9856decd711a45a79076caf2ef9b9b6d6dae0401d23f821b';
 const expectedBuildFileCount = 146;
 const expectedBuildManifestSha256 =
-  '56e55d180b6fdd6d407b90157cbd454ca78e2e16b677c4ecfadc79b082b8b16a';
+  '4964b4d3c851278c1c061970c0ab7b0918b60f53d08c8ef398331f789e7fe8d7';
 const expectedTransformationConfigSha256 =
-  'e2798961576ab7c5c3496df40a79d2bb62b8eedff69709f729d75423bfadf5c8';
+  '1e19f45b0b79b0c2195d45b020c807b1d194a8926149515e81cf85b2f02517d9';
 const coursePath = 'scormcontent/index.html';
 const driverPath = 'scormdriver/indexAPI.html';
 const finalInstructionContinueBlockId = 'cld8nihms01nn1tdj5q8tcthv';
-const quizContinueBlockId = 'cm1etwitt00vi2a6r4ew4az3m';
-const quizLabelKeys = [
-  'a11yQuizFailed',
-  'a11yQuizFeedback',
-  'a11yQuizPassed',
-  'a11yQuizReviewCorrectlyChecked',
-  'a11yQuizReviewCorrectlySelected',
-  'a11yQuizReviewCorrectlyUnchecked',
-  'a11yQuizReviewCorrectlyUnselected',
-  'a11yQuizReviewIncorrectlyChecked',
-  'a11yQuizReviewIncorrectlySelected',
-  'a11yQuizReviewIncorrectlyUnchecked',
-  'a11yQuizReviewIncorrectlyUnselected',
-  'coverQuizPercentOrHigher',
-  'coverQuizScoreOf',
-  'progressPieQuizFailed',
-  'progressSummaryQuizRequirement',
-  'progressSummaryViewQuiz',
-  'quizAcceptableResponses',
-  'quizAnswerPlaceholder',
-  'quizContinue',
-  'quizCorrect',
-  'quizIncorrect',
-  'quizNext',
-  'quizPassing',
-  'quizQuestion',
-  'quizRequireAnswer',
-  'quizRequirePassingScore',
-  'quizRestart',
-  'quizResults',
-  'quizScore',
-  'quizStart',
-  'quizSubmit',
-  'quizTakeAgain',
-  'quizTimerElapsed',
-  'quizTimerExpired',
-  'quizTimerExpiredAction',
-  'quizTimerExpiredMessage',
-  'quizTimerHide',
-  'quizTimerLimit',
-  'quizTimerMinute',
-  'quizTimerMinutePlural',
-  'quizTimerRemaining',
-  'quizTimerShow',
-];
 const blockedWindowOpenFiles = new Set([
   'scormcontent/assets/U4w9PDNngJxwB5_j/html5/lib/scripts/bootstrapper.min.js',
   'scormcontent/assets/U4w9PDNngJxwB5_j/html5/lib/scripts/slides.min.js',
@@ -129,30 +85,23 @@ const retainedLessons = [
     title: 'Multi-Faktor-Authentifizierung',
     type: 'blocks',
   },
-  {
-    id: 'Ti_fsrlLUHNndcM9En6vVDUgA9f5i3Wx',
-    title: 'Quiz: Passwörter & Authentifizierung // BE SecAware! ',
-    type: 'blocks',
-  },
 ];
 const removedLessons = [
+  { id: 'Ti_fsrlLUHNndcM9En6vVDUgA9f5i3Wx', title: 'Quiz: Passwörter & Authentifizierung // BE SecAware! ' },
   { id: '7rcfm_gAfAzVzRVVTR_iWnlKKBnZpaHM', title: 'VERÖFFENTLICHUNGSHINWEISE' },
   { id: 'HH7SqnNUTjwy5QdPUzFsX-aWNvrIcwkF', title: 'Nutzungshinweise' },
 ];
 const expectedTransformationIds = [
+  'lesson-Ti_fsrlLUHNndcM9En6vVDUgA9f5i3Wx-remove',
   'lesson-7rcfm_gAfAzVzRVVTR_iWnlKKBnZpaHM-remove',
   'lesson-HH7SqnNUTjwy5QdPUzFsX-aWNvrIcwkF-remove',
   'course-description-neutralize',
   'course-telemetry-disable',
   'course-external-targets-localize',
   'course-supplement-navigation-bridge',
-  'quiz-labelSet-retain',
   'runtime-popup-apis-disable',
-  'block-cm1etwitt00vi2a6r4ew4az3m-completion-navigation',
-  'runtime-completion-percentage',
-  'runtime-storyline-quiz-completion',
   'course-exit-disable',
-  'runtime-incomplete-completion-guard',
+  'runtime-completion-action-bridge',
   'runtime-provider-logo-targets-localize',
   'driver-completion-bridge',
 ];
@@ -273,15 +222,6 @@ function finalInstructionNavigation(course, description) {
   );
 }
 
-function quizCompletionNavigation(course, description) {
-  return continueNavigation(
-    course,
-    'Ti_fsrlLUHNndcM9En6vVDUgA9f5i3Wx',
-    quizContinueBlockId,
-    description,
-  );
-}
-
 const externalValueReplacements = new Map([
   [
     'https://articulateusercontent.com/assets/rise/assets/themes/classic/cover-image/30_wfh.jpg',
@@ -352,14 +292,8 @@ function expectedAdaptedDataset(sourceDataset) {
   }
   course.lmsOptions.enableTelemetryCollection = false;
   course.lmsOptions.enableExitCourse = false;
-  finalInstructionNavigation(course, 'source clone');
-  quizCompletionNavigation(course, 'source clone').title = 'Training abschließen';
+  finalInstructionNavigation(course, 'source clone').title = 'Training abschließen';
   adaptSupplementaryNavigation(course);
-  for (const key of quizLabelKeys) {
-    if (!(key in expected.labelSet.labels)) {
-      fail(`source clone is missing quiz label ${key}.`);
-    }
-  }
   transformExpectedExternalValues(expected);
   return expected;
 }
@@ -374,25 +308,6 @@ function verifyNoExternalDatasetTargets(dataset, allowedDescriptions) {
     for (const [key, child] of Object.entries(value)) visit(child, `${path}.${key}`);
   }
   visit(dataset);
-}
-
-function verifyQuizLabels(sourceDataset, buildDataset) {
-  const sourceLabels = sourceDataset.labelSet?.labels;
-  const buildLabels = buildDataset.labelSet?.labels;
-  if (
-    typeof sourceLabels !== 'object' ||
-    sourceLabels === null ||
-    typeof buildLabels !== 'object' ||
-    buildLabels === null
-  ) {
-    fail('source or generated dataset has no labelSet labels.');
-  }
-  for (const key of quizLabelKeys) {
-    if (!(key in sourceLabels)) fail(`frozen source is missing quiz label ${key}.`);
-    if (buildLabels[key] !== sourceLabels[key]) {
-      fail(`generated dataset changes or omits quiz label ${key}.`);
-    }
-  }
 }
 
 async function verifyManifestFiles(sourceDirectory) {
@@ -578,11 +493,6 @@ async function verify() {
   if (occurrenceCount(transformations, '    reason: ') !== expectedTransformationIds.length) {
     fail('each declared transformation must have exactly one reason.');
   }
-  for (const key of quizLabelKeys) {
-    if (!transformations.includes(`  - ${key}`)) {
-      fail(`the transformation configuration omits quiz label ${key}.`);
-    }
-  }
   if (!transformations.includes(`messageType: ${expectedOpenSupplementMessageType}`)) {
     fail('the transformation configuration omits the supplement message type.');
   }
@@ -608,7 +518,6 @@ async function verify() {
   const buildCourse = requireCourse(buildDataset, 'generated study build');
   const sourceLessonsById = lessonMap(sourceCourse, 'original snapshot');
   const buildLessonsById = lessonMap(buildCourse, 'generated study build');
-  verifyQuizLabels(sourceDataset, buildDataset);
   const allowedSupplementDescriptions = verifySupplementaryNavigation(buildCourse);
   verifyNoExternalDatasetTargets(buildDataset, allowedSupplementDescriptions);
 
@@ -657,38 +566,27 @@ async function verify() {
   }
   if (
     finalInstructionNavigation(buildCourse, 'generated study build').title !==
-    'WEITER ZU PASSWÖRTER & AUTHENTIFIZIERUNG // BE SECAWARE!'
-  ) {
-    fail('the final instructional Continue block does not navigate to the native quiz.');
-  }
-  if (
-    quizCompletionNavigation(buildCourse, 'generated study build').title !==
     'Training abschließen'
   ) {
-    fail('the quiz Continue block does not complete the retained participant path.');
+    fail('the final instructional Continue block does not complete the participant path.');
   }
   if (JSON.stringify(buildDataset) !== JSON.stringify(expectedAdaptedDataset(sourceDataset))) {
     fail('the generated dataset contains a change outside the declared course transformations.');
   }
   if (
-    occurrenceCount(buildCourseHtml, 'var completionPercentage = 80;') !== 1
-  ) {
-    fail('the generated completion requirement is not the retained native 80 percent.');
-  }
-  if (
-    occurrenceCount(sourceCourseHtml, "completeOut(passed, 'passed-failed');") !== 1 ||
-    occurrenceCount(buildCourseHtml, "completeOut(true, 'completed-failed');") !== 1 ||
-    buildCourseHtml.includes("completeOut(passed, 'passed-failed');")
-  ) {
-    fail('the generated Storyline quiz does not complete independently of its result.');
-  }
-  if (
     occurrenceCount(buildCourseHtml, 'passwo-reference-incomplete-completion-guard:start') !== 1 ||
     occurrenceCount(buildCourseHtml, 'passwo-reference-incomplete-completion-guard:end') !== 1 ||
     !buildCourseHtml.includes('event.stopImmediatePropagation()') ||
-    !buildCourseHtml.includes("window.alert('Bitte bearbeite zunächst noch: '")
+    !buildCourseHtml.includes("window.alert('Bitte bearbeite zunächst noch: '") ||
+    !buildCourseHtml.includes(expectedCompletionRequestMessageType) ||
+    !buildCourseHtml.includes('window.parent.postMessage(') ||
+    !buildCourseHtml.includes("lesson.id === 'zbxeD7QUdMnDlBWKvVsxMy5G8ghjnDRt'") ||
+    !buildCourseHtml.includes('.nav-sidebar__outline-section-item a[href=') ||
+    !buildCourseHtml.includes('nav-sidebar__outline-section-item--complete') ||
+    buildCourseHtml.includes('window.Runtime') ||
+    buildCourseHtml.includes('data-passwo-reference-completion-action')
   ) {
-    fail('the generated course does not guard incomplete completion.');
+    fail('the generated course does not validate and bridge its original completion action.');
   }
   if (
     occurrenceCount(buildCourseHtml, 'passwo-reference-supplement-bridge:start') !== 1 ||
@@ -710,9 +608,18 @@ async function verify() {
     occurrenceCount(buildDriverHtml, 'passwo-reference-completion-bridge:start') !== 1 ||
     occurrenceCount(buildDriverHtml, 'passwo-reference-completion-bridge:end') !== 1 ||
     occurrenceCount(buildDriverHtml, expectedCompletionMessageType) !== 1 ||
+    occurrenceCount(buildDriverHtml, expectedCompletionRequestMessageType) !== 1 ||
     occurrenceCount(buildDriverHtml, expectedOpenSupplementMessageType) !== 1 ||
-    occurrenceCount(buildDriverHtml, expectedSnapshotId) !== 2 ||
+    occurrenceCount(buildDriverHtml, expectedSnapshotId) !== 3 ||
     !buildDriverHtml.includes('originalSetReachedEnd.apply(window, arguments)') ||
+    !buildDriverHtml.includes('event.source !== window.scormdriver_content') ||
+    !buildDriverHtml.includes('originalSetReachedEnd.apply(window, [])') ||
+    occurrenceCount(buildDriverHtml, 'if (result !== false) reportCompletionOnce();') !== 1 ||
+    !buildDriverHtml.includes(
+      'originalSetReachedEnd.apply(window, []);\n        reportCompletionOnce();',
+    ) ||
+    !buildDriverHtml.includes('if (result !== false) reportCompletionOnce();') ||
+    !buildDriverHtml.includes('reportCompletionOnce();') ||
     !buildDriverHtml.includes(
       `{ type: '${expectedCompletionMessageType}', snapshotId: '${expectedSnapshotId}' }`,
     )
