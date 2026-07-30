@@ -1,0 +1,861 @@
+schemaVersion: 2
+instrumentVersion: 1.4.0-draft
+questionnaireVersion: questionnaire-v1.3-draft
+guardrailVersion: guardrail-v2-draft
+consentVersion: consent-v2-draft
+followUpVersion: follow-up-v1-draft
+language: de-DE
+participantTerm: Lernangebot
+scales:
+  agreement7:
+    type: integer
+    min: 1
+    max: 7
+    anchors:
+      1: stimme überhaupt nicht zu
+      2: stimme nicht zu
+      3: stimme eher nicht zu
+      4: weder noch
+      5: stimme eher zu
+      6: stimme zu
+      7: stimme vollständig zu
+  confidence11:
+    type: integer
+    min: 0
+    max: 10
+    anchors:
+      0: überhaupt nicht sicher
+      5: mäßig sicher
+      10: vollständig sicher
+  familiarity5:
+    type: integer
+    min: 1
+    max: 5
+    anchors:
+      1: gar nicht vertraut
+      2: wenig vertraut
+      3: teilweise vertraut
+      4: ziemlich vertraut
+      5: sehr vertraut
+  intensity5:
+    type: integer
+    min: 1
+    max: 5
+    anchors:
+      1: gar nicht
+      2: wenig
+      3: mittel
+      4: stark
+      5: sehr stark
+  durationAppropriateness7:
+    type: integer
+    min: 1
+    max: 7
+    anchors:
+      1: viel zu kurz
+      4: genau richtig
+      7: viel zu lang
+  ueqSemanticDifferential7:
+    type: integer
+    min: 1
+    max: 7
+    derivedTransform: value - 4
+analysis:
+  selfEfficacy:
+    aggregateScore: false
+    scale: confidence11
+    topics:
+      passwordManagement:
+        preItemId: SE_PASSWORDS_PRE
+        postItemId: SE_PASSWORDS_POST
+      passwordManagerUse:
+        preItemId: SE_PM_PRE
+        postItemId: SE_PM_POST
+      mfaActivation:
+        preItemId: SE_MFA_PRE
+        postItemId: SE_MFA_POST
+  familiarity:
+    aggregateScore: false
+  emotionProfile:
+    aggregateScore: false
+procedures:
+  eligibility:
+    persisted: false
+    items:
+    - id: ELIG_AGE
+      prompt: Ich bin mindestens 18 Jahre alt.
+      requiredValue: true
+    - id: ELIG_UNIVERSITY
+      prompt: Ich bin derzeit Mitglied einer Hochschule.
+      requiredValue: true
+    - id: ELIG_GERMAN
+      prompt: Ich kann deutschsprachige Lernmaterialien und Fragebogenfragen sicher verstehen.
+      requiredValue: true
+  consent:
+    statement: Ich habe die Teilnahmeinformationen gelesen und willige in die Teilnahme einschließlich der Nachbefragung
+      nach zehn Tagen ein.
+  followUpRecontact:
+    requiredBeforePreQuestionnaire: true
+    heading: Nachbefragung nach zehn Tagen
+    explanation: Zehn Tage nach deiner Teilnahme senden wir dir per E-Mail einen kurzen Fragebogen zur Nachbefragung. Die
+      Beantwortung dauert etwa eine Minute. Bitte gib die E-Mail-Adresse an, an die wir die Einladung senden dürfen.
+      Falls du bis dahin noch nicht geantwortet hast, senden wir höchstens eine Erinnerung.
+    emailLabel: E-Mail-Adresse für die Nachbefragung
+    emailRequired: true
+    emailNeverStoredInResearchDatabase: true
+    firstInvitationDelayHours: 240
+    reminderDelayAfterFirstInvitationHours: 48
+    closeAfterSessionHours: 336
+    emailSubject: Kurze Nachbefragung zur Studie
+    emailContainsTrainingAdvice: false
+instruments:
+  pre-v1:
+    sections:
+    - id: sample
+      items:
+      - id: PRE_ROLE
+        type: singleChoice
+        prompt: Welche Rolle beschreibt deine derzeitige Hochschulzugehörigkeit am besten?
+        options:
+        - id: undergraduate
+          label: Bachelor, Staatsexamen oder anderes grundständiges Studium
+        - id: graduate
+          label: Master oder anderes weiterführendes Studium
+        - id: doctoral
+          label: Promotion
+        - id: academic_teaching
+          label: Wissenschaft oder Lehre
+        - id: technical_admin_service
+          label: Technik, Verwaltung oder Service
+        - id: other_university
+          label: Anderer Hochschulbereich
+        - id: no_answer
+          label: Keine Angabe
+      - id: PRE_FIELD
+        type: singleChoice
+        prompt: Welchem Bereich bist du überwiegend zugeordnet?
+        options:
+        - id: stem
+          label: Mathematik, Informatik, Naturwissenschaften oder Technik
+        - id: medicine_life_sciences
+          label: Medizin, Gesundheit oder Lebenswissenschaften
+        - id: law_economics
+          label: Rechts- oder Wirtschaftswissenschaften
+        - id: social_behavioral
+          label: Sozial- oder Verhaltenswissenschaften
+        - id: humanities_culture_languages
+          label: Geistes-, Kultur- oder Sprachwissenschaften
+        - id: administration_service_no_field
+          label: Technik, Verwaltung, Service oder keinem Fachbereich zugeordnet
+        - id: other
+          label: Anderer Bereich
+        - id: no_answer
+          label: Keine Angabe
+      - id: PRE_AGE
+        type: singleChoice
+        prompt: Zu welcher Altersgruppe gehörst du?
+        options:
+        - id: age_18_25
+          label: 18–25 Jahre
+        - id: age_26_35
+          label: 26–35 Jahre
+        - id: age_36_45
+          label: 36–45 Jahre
+        - id: age_46_55
+          label: 46–55 Jahre
+        - id: age_56_65
+          label: 56–65 Jahre
+        - id: age_66_plus
+          label: 66 Jahre oder älter
+        - id: no_answer
+          label: Keine Angabe
+      - id: PRE_GENDER
+        type: singleChoice
+        participantOptional: true
+        prompt: Wie beschreibst du dein Geschlecht?
+        options:
+        - id: female
+          label: Weiblich
+        - id: male
+          label: Männlich
+        - id: nonbinary_diverse
+          label: Nichtbinär oder divers
+        - id: another_identity
+          label: Eine andere Geschlechtsidentität
+        - id: no_answer
+          label: Keine Angabe
+    - id: experience
+      items:
+      - id: PRE_SECAWARE
+        type: singleChoice
+        prompt: Wie vertraut bist du bereits mit SecAware.NRW?
+        options:
+        - id: never_heard
+          label: Noch nie davon gehört
+        - id: heard_not_used
+          label: Davon gehört, aber nicht genutzt
+        - id: viewed_or_started
+          label: Kurz angesehen oder ein Modul begonnen
+        - id: completed_password_auth_module
+          label: Das Modul „Passwörter & Authentifizierung“ vollständig bearbeitet
+        - id: unsure
+          label: Unsicher
+        analysisFlag:
+          completed_password_auth_module: exclude_primary_sample
+      - id: PRE_TRAINING
+        type: singleChoice
+        prompt: Wie oft hast du bereits ein Training oder Lernmodul zu Passwörtern, Passwortmanagern oder MFA/2FA bearbeitet?
+        options:
+        - id: never
+          label: Nie
+        - id: once
+          label: Einmal
+        - id: multiple
+          label: Mehrmals
+        - id: unsure
+          label: Unsicher
+      - id: PRE_PM_USE
+        type: multiChoice
+        prompt: Welche der folgenden Funktionen nutzt du aktuell, um Passwörter zu speichern oder beim Anmelden auszufüllen?
+        instruction: Mehrfachauswahl ist möglich.
+        options:
+        - id: browser_or_device_integrated
+          label: Im Browser oder Gerät integrierte Passwortspeicherung beziehungsweise Autofill
+        - id: separate_app_or_extension
+          label: Separate Passwortmanager-App oder Browser-Erweiterung
+        - id: none
+          label: Keine davon
+        - id: unsure
+          label: Unsicher
+        exclusiveOptions:
+        - none
+        - unsure
+      - id: PRE_MFA_USE
+        type: singleChoice
+        prompt: Bei wie vielen deiner wichtigen Konten nutzt du einen zusätzlichen Anmeldeschritt, zum Beispiel eine App-Bestätigung,
+          einen Einmalcode oder einen Sicherheitsschlüssel?
+        options:
+        - id: none
+          label: Bei keinem
+        - id: few
+          label: Bei wenigen
+        - id: about_half
+          label: Bei ungefähr der Hälfte
+        - id: most_or_all
+          label: Bei den meisten oder allen wichtigen Konten
+        - id: unsure
+          label: Unsicher
+      - id: PRE_FAM_PASSWORDS
+        type: scale
+        scale: familiarity5
+        prompt: Wie vertraut bist du mit starken und unterschiedlichen Passwörtern?
+      - id: PRE_FAM_PM
+        type: scale
+        scale: familiarity5
+        prompt: Wie vertraut bist du mit Passwortmanagern?
+      - id: PRE_FAM_MFA
+        type: scale
+        scale: familiarity5
+        prompt: Wie vertraut bist du mit MFA/2FA?
+    - id: self_efficacy
+      instruction: Wie sicher bist du dir, dass du die folgenden Aufgaben derzeit bewältigen kannst?
+      items:
+      - id: SE_PASSWORDS_PRE
+        type: scale
+        scale: confidence11
+        prompt: Starke und unterschiedliche Passwörter für mehrere Konten praktikabel verwalten.
+      - id: SE_PM_PRE
+        type: scale
+        scale: confidence11
+        prompt: Einen Passwortmanager so nutzen, dass meine Konten unterschiedliche Passwörter erhalten.
+      - id: SE_MFA_PRE
+        type: scale
+        scale: confidence11
+        prompt: MFA/2FA bei einem wichtigen Konto aktivieren.
+  post-v1:
+    order:
+    - ueqs
+    - time
+    - focus
+    - credibility_understanding
+    - self_efficacy
+    - emotion
+    sections:
+    - id: ueqs
+      source: UEQ-S official German items
+      preserveItemOrder: true
+      instruction: Bitte bewerte deinen unmittelbaren Gesamteindruck des gerade bearbeiteten Lernangebots. Markiere jeweils
+        eine Position zwischen den beiden Begriffen.
+      items:
+      - id: UEQS_PQ1
+        type: semanticDifferential
+        scale: ueqSemanticDifferential7
+        left: behindernd
+        right: unterstützend
+        dimension: pragmatic
+      - id: UEQS_PQ2
+        type: semanticDifferential
+        scale: ueqSemanticDifferential7
+        left: kompliziert
+        right: einfach
+        dimension: pragmatic
+      - id: UEQS_PQ3
+        type: semanticDifferential
+        scale: ueqSemanticDifferential7
+        left: ineffizient
+        right: effizient
+        dimension: pragmatic
+      - id: UEQS_PQ4
+        type: semanticDifferential
+        scale: ueqSemanticDifferential7
+        left: verwirrend
+        right: übersichtlich
+        dimension: pragmatic
+      - id: UEQS_HQ1
+        type: semanticDifferential
+        scale: ueqSemanticDifferential7
+        left: langweilig
+        right: spannend
+        dimension: hedonic
+      - id: UEQS_HQ2
+        type: semanticDifferential
+        scale: ueqSemanticDifferential7
+        left: uninteressant
+        right: interessant
+        dimension: hedonic
+      - id: UEQS_HQ3
+        type: semanticDifferential
+        scale: ueqSemanticDifferential7
+        left: konventionell
+        right: originell
+        dimension: hedonic
+      - id: UEQS_HQ4
+        type: semanticDifferential
+        scale: ueqSemanticDifferential7
+        left: herkömmlich
+        right: neuartig
+        dimension: hedonic
+    - id: time
+      objectiveDurationHiddenUntilSectionCommitted: true
+      items:
+      - id: TIME_FELT_MINUTES
+        type: integer
+        min: 1
+        max: 90
+        prompt: 'Ohne nachzusehen: Wie viele Minuten hat sich das Lernangebot für dich angefühlt?'
+        derived: TIME_FELT_MINUTES * 60 - artifactWallClockSeconds
+      - id: TIME_FIT
+        type: scale
+        scale: durationAppropriateness7
+        prompt: Die Dauer des Lernangebots war für mich …
+      - id: TIME_VALUE
+        type: scale
+        scale: agreement7
+        prompt: Die aufgewendete Zeit stand in einem angemessenen Verhältnis zum Nutzen des Lernangebots.
+    - id: focus
+      aggregate: false
+      items:
+      - id: USEFULNESS_PRACTICAL
+        type: scale
+        scale: agreement7
+        prompt: Die Inhalte waren für den Schutz von Konten in meinem Alltag praktisch nützlich.
+        focus: practical_usefulness
+      - id: FOCUS_TF1
+        type: scale
+        scale: agreement7
+        prompt: Die Empfehlungen wurden unterstützend und ohne Vorwürfe vermittelt.
+        focus: TF1
+      - id: FOCUS_TF2
+        type: scale
+        scale: agreement7
+        prompt: Die Beispiele halfen mir, die Bedeutung für Konten aus meinem Alltag zu erkennen.
+        focus: TF2
+      - id: FOCUS_TF3
+        type: scale
+        scale: agreement7
+        prompt: Ich habe die Inhalte auf konkrete Kontosituationen angewendet, statt sie nur zu lesen oder anzusehen.
+        focus: TF3
+      - id: FOCUS_FEEDBACK
+        type: scale
+        scale: agreement7
+        prompt: Die Erklärungen oder Rückmeldungen halfen mir zu verstehen, warum eine Entscheidung sinnvoll oder riskant
+          war.
+        focus: TF3_TF6
+      - id: FOCUS_TF4
+        type: scale
+        scale: agreement7
+        prompt: Die Folgen verschiedener Authentifizierungsentscheidungen wurden für mich anschaulich.
+        focus: TF4
+      - id: FOCUS_TF5
+        type: scale
+        scale: agreement7
+        prompt: Die Gestaltung hielt mein Interesse am Thema aufrecht.
+        focus: TF5
+      - id: FOCUS_TF6_MANAGE
+        type: scale
+        scale: agreement7
+        prompt: Die Informationsmenge war für mich gut zu bewältigen.
+        focus: TF6
+      - id: FOCUS_TF6_ACTION
+        type: scale
+        scale: agreement7
+        prompt: Nach dem Lernangebot wusste ich, welche konkreten nächsten Schritte ich umsetzen könnte.
+        focus: TF6
+    - id: credibility_understanding
+      items:
+      - id: CRED_TECHNICAL
+        type: scale
+        scale: agreement7
+        prompt: Die Erklärungen wirkten technisch glaubwürdig.
+      - id: CRED_BALANCED
+        type: scale
+        scale: agreement7
+        prompt: Die Empfehlungen wirkten ausgewogen und nicht übertrieben.
+      - id: UNDERSTANDING_GLOBAL
+        type: scale
+        scale: agreement7
+        prompt: Ich habe die zentralen Zusammenhänge des Lernangebots verstanden.
+      - id: UNDERSTANDING_EXPLAIN
+        type: scale
+        scale: agreement7
+        prompt: Ich könnte einer anderen Person erklären, wie die behandelten Schutzmaßnahmen zusammenwirken.
+    - id: self_efficacy
+      instruction: Wie sicher bist du dir, dass du die folgenden Aufgaben derzeit bewältigen kannst?
+      items:
+      - id: SE_PASSWORDS_POST
+        type: scale
+        scale: confidence11
+        prompt: Starke und unterschiedliche Passwörter für mehrere Konten praktikabel verwalten.
+      - id: SE_PM_POST
+        type: scale
+        scale: confidence11
+        prompt: Einen Passwortmanager so nutzen, dass meine Konten unterschiedliche Passwörter erhalten.
+      - id: SE_MFA_POST
+        type: scale
+        scale: confidence11
+        prompt: MFA/2FA bei einem wichtigen Konto aktivieren.
+    - id: emotion
+      aggregate: false
+      instruction: Wie stark hast du dich während des Lernangebots jeweils so gefühlt?
+      items:
+      - id: EMOTION_CURIOUS
+        type: scale
+        scale: intensity5
+        label: neugierig
+      - id: EMOTION_ENCOURAGED
+        type: scale
+        scale: intensity5
+        label: ermutigt
+      - id: EMOTION_OVERWHELMED
+        type: scale
+        scale: intensity5
+        label: überfordert
+      - id: EMOTION_FRUSTRATED
+        type: scale
+        scale: intensity5
+        label: frustriert
+      - id: EMOTION_UNCERTAIN
+        type: scale
+        scale: intensity5
+        label: verunsichert
+  guardrail-v2:
+    participantTitle: Kurze Abschlussfragen zum Kontoschutz
+    purpose: criterion_referenced_immediate_safety_check
+    comparisonScope:
+    - password_reuse
+    - password_manager_for_distinct_passwords
+    - mfa_as_additional_barrier
+    excludedFromPrimaryComparison:
+    - detailed_password_strength
+    - passwo_specific_methods
+    - product_specific_setup
+    - incident_response_beyond_shared_content
+    feedbackBeforeComplete: false
+    mustNotDuplicateEmbeddedArtifactQuestions: true
+    contentAuditRequired: docs/research/GUARDRAIL-CONTENT-AUDIT.md
+    scoringShippedToClient: false
+    responseFormat:
+      type: singleBestAnswer
+      substantiveOptionsPerItem: 3
+      fixedUnsureOption: true
+      multipleResponseUsed: false
+    questionOrder:
+    - MR_REUSE
+    - MR_PASSWORD_MANAGER
+    - MR_MFA
+    - SCENARIO_LEAK_REUSE_MFA
+    - SCENARIO_PM_REDUCE_REUSE
+    - SCENARIO_UNIQUE_PLUS_MFA
+    optionPresentation:
+      strategy: balanced_predefined_forms
+      formIds:
+      - F1
+      - F2
+      - F3
+      fixedLastOptionId: unsure
+      assignedBy: server
+      independentOfArtifactCondition: true
+      balanceWithinCondition: small_permuted_blocks
+      stableAcrossNavigationAndReload: true
+      persist:
+      - optionOrderFormId
+      - displayedOptionIdsByItem
+      forms:
+        F1:
+          MR_REUSE:
+          - try_other_service
+          - same_username_required
+          - risk_stays_at_breached_service
+          - unsure
+          MR_PASSWORD_MANAGER:
+          - one_strong_reused
+          - distinct_per_account
+          - store_similar_unchanged
+          - unsure
+          MR_MFA:
+          - reuse_becomes_safe
+          - prevents_password_exposure
+          - additional_barrier
+          - unsure
+          SCENARIO_LEAK_REUSE_MFA:
+          - replace_both_distinct_keep_mfa
+          - change_shop_keep_email_due_mfa
+          - same_core_different_endings
+          - unsure
+          SCENARIO_PM_REDUCE_REUSE:
+          - store_shared_password
+          - replace_gradually_with_pm
+          - unique_only_for_important
+          - unsure
+          SCENARIO_UNIQUE_PLUS_MFA:
+          - reuse_long_and_mfa
+          - new_unique_without_mfa
+          - new_unique_and_mfa
+          - unsure
+        F2:
+          MR_REUSE:
+          - same_username_required
+          - risk_stays_at_breached_service
+          - try_other_service
+          - unsure
+          MR_PASSWORD_MANAGER:
+          - distinct_per_account
+          - store_similar_unchanged
+          - one_strong_reused
+          - unsure
+          MR_MFA:
+          - prevents_password_exposure
+          - additional_barrier
+          - reuse_becomes_safe
+          - unsure
+          SCENARIO_LEAK_REUSE_MFA:
+          - change_shop_keep_email_due_mfa
+          - same_core_different_endings
+          - replace_both_distinct_keep_mfa
+          - unsure
+          SCENARIO_PM_REDUCE_REUSE:
+          - replace_gradually_with_pm
+          - unique_only_for_important
+          - store_shared_password
+          - unsure
+          SCENARIO_UNIQUE_PLUS_MFA:
+          - new_unique_without_mfa
+          - new_unique_and_mfa
+          - reuse_long_and_mfa
+          - unsure
+        F3:
+          MR_REUSE:
+          - risk_stays_at_breached_service
+          - try_other_service
+          - same_username_required
+          - unsure
+          MR_PASSWORD_MANAGER:
+          - store_similar_unchanged
+          - one_strong_reused
+          - distinct_per_account
+          - unsure
+          MR_MFA:
+          - additional_barrier
+          - reuse_becomes_safe
+          - prevents_password_exposure
+          - unsure
+          SCENARIO_LEAK_REUSE_MFA:
+          - same_core_different_endings
+          - replace_both_distinct_keep_mfa
+          - change_shop_keep_email_due_mfa
+          - unsure
+          SCENARIO_PM_REDUCE_REUSE:
+          - unique_only_for_important
+          - store_shared_password
+          - replace_gradually_with_pm
+          - unsure
+          SCENARIO_UNIQUE_PLUS_MFA:
+          - new_unique_and_mfa
+          - reuse_long_and_mfa
+          - new_unique_without_mfa
+          - unsure
+    nativeArtifactCheckPolicy:
+      retainNativeChecksInPrimaryPath: true
+      nativeScoresAreStudyOutcomes: false
+      externalItemsMustBeNovelAndTransferOriented: true
+      doNotMixSecAwareQuizAndSkipPaths: true
+    blocks:
+    - id: recognition
+      submitLocksBlock: true
+      items:
+      - id: MR_REUSE
+        prompt: Ein Passwort wird bei zwei voneinander unabhängigen Diensten verwendet. Bei einem Dienst wird es bekannt.
+          Welche Folge ist dadurch zusätzlich möglich?
+        options:
+        - id: try_other_service
+          label: Das bekannte Passwort kann auch beim anderen Dienst ausprobiert werden.
+          classification: correct
+        - id: same_username_required
+          label: Ein Versuch beim anderen Dienst ist nur sinnvoll, wenn auch der Benutzername identisch ist.
+          classification: unsafe
+        - id: risk_stays_at_breached_service
+          label: Das zusätzliche Risiko bleibt auf den Dienst begrenzt, bei dem das Passwort bekannt wurde.
+          classification: unsafe
+        - id: unsure
+          label: Weiß ich nicht.
+          classification: unsure
+      - id: MR_PASSWORD_MANAGER
+        prompt: Welche Nutzung eines Passwortmanagers adressiert Passwortwiederverwendung am direktesten?
+        options:
+        - id: distinct_per_account
+          label: Für verschiedene Konten unterschiedliche Passwörter erzeugen oder speichern und passend ausfüllen lassen.
+          classification: correct
+        - id: one_strong_reused
+          label: Ein besonders starkes Passwort speichern und bei möglichst vielen Konten verwenden.
+          classification: unsafe
+        - id: store_similar_unchanged
+          label: Bereits ähnliche Passwörter speichern, ohne sie voneinander zu trennen.
+          classification: incomplete
+        - id: unsure
+          label: Weiß ich nicht.
+          classification: unsure
+      - id: MR_MFA
+        prompt: Welche Aussage beschreibt die Rolle von MFA/2FA am treffendsten?
+        options:
+        - id: additional_barrier
+          label: MFA kann eine zusätzliche Anmeldebarriere bilden, wenn das Passwort bekannt ist.
+          classification: correct
+        - id: reuse_becomes_safe
+          label: Mit MFA kann dasselbe Passwort bei mehreren Konten ohne zusätzliches Risiko verwendet werden.
+          classification: unsafe
+        - id: prevents_password_exposure
+          label: MFA verhindert, dass ein Passwort durch ein Datenleck oder andere Wege bekannt wird.
+          classification: incorrect
+        - id: unsure
+          label: Weiß ich nicht.
+          classification: unsure
+    - id: scenarios
+      submitLocksBlock: true
+      items:
+      - id: SCENARIO_LEAK_REUSE_MFA
+        prompt: Bei einem Online-Shop wird dein dort verwendetes Passwort als kompromittiert gemeldet. Dasselbe Passwort nutzt
+          du auch für dein E-Mail-Konto; dort ist MFA aktiviert. Welche Reaktion adressiert das beschriebene Risiko am vollständigsten?
+        options:
+        - id: replace_both_distinct_keep_mfa
+          label: Für beide Konten neue, voneinander verschiedene Passwörter setzen und MFA beim E-Mail-Konto beibehalten.
+          classification: appropriate
+        - id: change_shop_keep_email_due_mfa
+          label: Nur beim Online-Shop das Passwort ändern und das E-Mail-Passwort wegen MFA beibehalten.
+          classification: unsafe
+        - id: same_core_different_endings
+          label: Bei beiden Konten denselben Passwortkern behalten, aber unterschiedliche Endungen ergänzen.
+          classification: unsafe
+        - id: unsure
+          label: Weiß ich nicht.
+          classification: unsure
+      - id: SCENARIO_PM_REDUCE_REUSE
+        prompt: Du bemerkst, dass mehrere Konten dasselbe oder ein sehr ähnliches Passwort verwenden. Du möchtest das schrittweise
+          ändern, ohne alle neuen Passwörter auswendig zu lernen. Welche Vorgehensweise passt am besten?
+        options:
+        - id: replace_gradually_with_pm
+          label: Mit einem Passwortmanager nach und nach eigene Passwörter für diese Konten erzeugen oder speichern und die
+            alten ersetzen.
+          classification: appropriate
+        - id: store_shared_password
+          label: Das gemeinsame Passwort in einem Passwortmanager speichern und unverändert weiterverwenden.
+          classification: unsafe
+        - id: unique_only_for_important
+          label: Nur bei den wichtigsten Konten unterschiedliche Passwörter verwenden und das gemeinsame Passwort bei den
+            übrigen behalten.
+          classification: incomplete
+        - id: unsure
+          label: Weiß ich nicht.
+          classification: unsure
+      - id: SCENARIO_UNIQUE_PLUS_MFA
+        prompt: Du richtest ein wichtiges Konto ein. Ein langes Passwort, das du bereits bei einem anderen Konto verwendest,
+          wäre leicht verfügbar; der Dienst bietet MFA/2FA an. Was ist die sinnvollste Einrichtung?
+        options:
+        - id: new_unique_and_mfa
+          label: Für dieses Konto ein neues, eigenes Passwort verwenden und MFA/2FA aktivieren.
+          classification: appropriate
+        - id: reuse_long_and_mfa
+          label: Das bereits verwendete lange Passwort übernehmen und zusätzlich MFA/2FA aktivieren.
+          classification: unsafe
+        - id: new_unique_without_mfa
+          label: Ein neues, eigenes Passwort verwenden und auf MFA/2FA verzichten, weil das Passwort einzigartig ist.
+          classification: incomplete
+        - id: unsure
+          label: Weiß ich nicht.
+          classification: unsure
+        provisionalUntilContentAudit: true
+    derivedMetrics:
+    - id: mechanismRecognitionCorrect
+      range:
+      - 0
+      - 3
+    - id: scenarioAppropriateCount
+      range:
+      - 0
+      - 3
+    - id: scenarioIncompleteCount
+      range:
+      - 0
+      - 3
+    - id: unsafeMisconceptionCount
+      range:
+      - 0
+      - 6
+    - id: unsureCount
+      range:
+      - 0
+      - 6
+    forbiddenDerivedMetrics:
+    - pass_fail
+    - single_guardrail_total
+    - psychometric_scale_score
+  post-open-v1:
+    alwaysSubmit: true
+    blankOptionalTextValue: null
+    warning: Bitte nenne keine realen Konten, Passwörter oder Sicherheitsvorfälle.
+    items:
+    - id: OPEN_HELPFUL
+      type: text
+      participantOptional: true
+      maxLength: 1000
+      prompt: Was hat dir am meisten geholfen, die Inhalte zu verstehen?
+    - id: OPEN_UNCLEAR
+      type: text
+      participantOptional: true
+      maxLength: 1000
+      prompt: Was war unklar, unnötig oder zu lang?
+  follow-up-v1:
+    participantTitle: Kurze Nachbefragung zur Studie
+    estimatedMinutes: 1
+    reportingWindow:
+      startsAfterMainSession: true
+      cutoff: first_invitation_at_iso
+      instruction: Bitte beziehe dich ausschließlich auf Handlungen, die du nach deiner Studienteilnahme und bereits vor [STICHTAG]
+        abgeschlossen hattest.
+    safetyNote: Öffne oder ändere für diese Befragung keine Kontoeinstellungen. Bitte nenne keine Konten, Dienste, Passwörter,
+      Anmeldecodes oder Wiederherstellungsdaten.
+    items:
+    - id: FU_PM_ACTIONS
+      type: multiChoice
+      prompt: Welche der folgenden Handlungen hattest du bis zu diesem Zeitpunkt tatsächlich durchgeführt?
+      note: In Browsern oder Geräten integrierte und separat installierte Passwortmanager zählen gleichermaßen. Mehrfachauswahl
+        ist möglich.
+      options:
+      - id: inspected_available_manager
+        label: Ich habe geprüft, welchen Passwortmanager ich bereits nutzen kann und wie ich darauf zugreife.
+      - id: generated_stored_account_specific
+        label: Ich habe einen Passwortmanager genutzt, um für mindestens ein Konto, das ich tatsächlich verwende, ein neues
+          Passwort zu erzeugen und zu speichern, das nur für dieses Konto verwendet wird.
+      - id: used_retrieval_or_autofill
+        label: Ich habe einen bereits eingerichteten Passwortmanager bewusst zum Abrufen oder automatischen Ausfüllen eines
+          gespeicherten Passworts verwendet.
+      - id: reviewed_access_or_recovery
+        label: Ich habe geprüft, wie ich auf meinen Passwortmanager auf einem neuen Gerät oder nach einem Zugangsproblem wieder
+          zugreifen könnte.
+      - id: none
+        label: Keine dieser Handlungen.
+      - id: unsure_no_answer
+        label: Ich weiß es nicht mehr oder möchte keine Angabe machen.
+      exclusiveOptions:
+      - none
+      - unsure_no_answer
+    - id: FU_PM_NONE_REASON
+      type: singleChoice
+      displayWhen:
+        itemId: FU_PM_ACTIONS
+        contains: none
+      prompt: Welche Aussage beschreibt den wichtigsten Grund dafür am besten?
+      options:
+      - id: already_set_up
+        label: Ich hatte dies bereits so eingerichtet oder genutzt, wie ich es derzeit möchte.
+      - id: no_opportunity
+        label: Es ergab sich noch keine passende Gelegenheit.
+      - id: intended_not_done
+        label: Ich hatte es vor, aber noch nicht umgesetzt.
+      - id: unsure_how
+        label: Ich war nicht sicher, wie ich vorgehen sollte.
+      - id: time_effort
+        label: Zeit oder Aufwand waren für mich zu hoch.
+      - id: trust_access_recovery_concerns
+        label: Ich hatte Bedenken hinsichtlich Zugang, Vertrauen oder Wiederherstellung.
+      - id: technical_barrier
+        label: Eine technische Hürde hat mich daran gehindert.
+      - id: not_relevant
+        label: Das Thema war für mich derzeit nicht relevant.
+      - id: no_answer
+        label: Keine Angabe.
+    - id: FU_MFA_ACTIONS
+      type: multiChoice
+      prompt: Welche der folgenden Handlungen hattest du bis zu diesem Zeitpunkt tatsächlich durchgeführt?
+      instruction: Mehrfachauswahl ist möglich.
+      options:
+      - id: checked_availability_or_status
+        label: Ich habe bei mindestens einem Konto, das ich tatsächlich verwende, geprüft, ob MFA/2FA verfügbar oder bereits
+          aktiviert ist.
+      - id: enabled_mfa
+        label: Ich habe MFA/2FA bei mindestens einem Konto aktiviert.
+      - id: reviewed_factor_or_recovery
+        label: Ich habe bei einer bereits eingerichteten MFA-Methode den verwendeten zweiten Faktor oder eine angebotene Wiederherstellungsoption
+          geprüft.
+      - id: none
+        label: Keine dieser Handlungen.
+      - id: unsure_no_answer
+        label: Ich weiß es nicht mehr oder möchte keine Angabe machen.
+      exclusiveOptions:
+      - none
+      - unsure_no_answer
+    - id: FU_MFA_NONE_REASON
+      type: singleChoice
+      displayWhen:
+        itemId: FU_MFA_ACTIONS
+        contains: none
+      prompt: Welche Aussage beschreibt den wichtigsten Grund dafür am besten?
+      options:
+      - id: already_set_up
+        label: Ich hatte dies bereits so eingerichtet oder genutzt, wie ich es derzeit möchte.
+      - id: no_opportunity
+        label: Es ergab sich noch keine passende Gelegenheit.
+      - id: intended_not_done
+        label: Ich hatte es vor, aber noch nicht umgesetzt.
+      - id: unsure_how
+        label: Ich war nicht sicher, wie ich vorgehen sollte.
+      - id: time_effort
+        label: Zeit oder Aufwand waren für mich zu hoch.
+      - id: trust_access_recovery_concerns
+        label: Ich hatte Bedenken hinsichtlich Zugang, Vertrauen oder Wiederherstellung.
+      - id: technical_barrier
+        label: Eine technische Hürde hat mich daran gehindert.
+      - id: not_relevant
+        label: Das Thema war für mich derzeit nicht relevant.
+      - id: no_answer
+        label: Keine Angabe.
+    analysis:
+      primaryDelayedOutcomes:
+        password_manager_protective_use_action:
+          itemId: FU_PM_ACTIONS
+          selectedOption: generated_stored_account_specific
+        mfa_enablement_action:
+          itemId: FU_MFA_ACTIONS
+          selectedOption: enabled_mfa
+      combinedBehaviorScore: false
+      nonresponseMeansNoAction: false
+      claims: ten-day delayed self-reported account-protection actions

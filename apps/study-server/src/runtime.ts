@@ -9,6 +9,7 @@ export interface StartStudyRuntimeOptions {
   readonly version: string;
   readonly assignmentMode?: AssignmentMode;
   readonly databasePath?: string;
+  readonly recontactDatabasePath?: string;
   readonly referenceArtifactDirectory?: string;
   readonly webBuildDirectory?: string;
   readonly host?: '127.0.0.1';
@@ -32,19 +33,35 @@ export function resolveStudyDatabasePath(
   );
 }
 
+export function resolveRecontactDatabasePath(
+  environment: NodeJS.ProcessEnv = process.env,
+  homeDirectory = homedir(),
+): string {
+  const configuredDataDirectory = environment.STUDY_DATA_DIR?.trim();
+  return resolve(
+    configuredDataDirectory || homeDirectory,
+    configuredDataDirectory ? 'recontact.sqlite' : '.passwo-study/recontact.sqlite',
+  );
+}
+
 export async function startStudyRuntime({
   version,
   assignmentMode,
   databasePath = resolveStudyDatabasePath(),
+  recontactDatabasePath,
   referenceArtifactDirectory,
   webBuildDirectory,
   host = '127.0.0.1',
   port = 0,
 }: StartStudyRuntimeOptions): Promise<StudyRuntime> {
+  const selectedRecontactDatabasePath =
+    recontactDatabasePath ??
+    (databasePath === ':memory:' ? ':memory:' : resolveRecontactDatabasePath());
   const server = buildStudyServer({
     version,
     ...(assignmentMode === undefined ? {} : { assignmentMode }),
     ...(databasePath === undefined ? {} : { databasePath }),
+    recontactDatabasePath: selectedRecontactDatabasePath,
     ...(referenceArtifactDirectory === undefined ? {} : { referenceArtifactDirectory }),
   });
 

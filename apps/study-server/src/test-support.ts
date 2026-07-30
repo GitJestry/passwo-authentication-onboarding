@@ -1,4 +1,11 @@
-import type { CreateSessionResponse, SupportiveArtifactSegmentId } from '@passwo/contracts';
+import {
+  type CreateSessionResponse,
+  type InstrumentResponseValue,
+  type InstrumentRuntimeItem,
+  type InstrumentSubmissionRequest,
+  mainInstrumentBlocks,
+  type SupportiveArtifactSegmentId,
+} from '@passwo/contracts';
 import type { FastifyInstance } from 'fastify';
 import { expect } from 'vitest';
 
@@ -27,6 +34,7 @@ export function createSessionBody(identity: number) {
 export async function createSession(
   server: FastifyInstance,
   identity = 1,
+  registerRecontact = true,
 ): Promise<CreateSessionResponse> {
   const response = await server.inject({
     method: 'POST',
@@ -34,23 +42,69 @@ export async function createSession(
     payload: createSessionBody(identity),
   });
   expect(response.statusCode).toBe(201);
-  return response.json<CreateSessionResponse>();
+  const session = response.json<CreateSessionResponse>();
+  if (registerRecontact) {
+    const registration = await server.inject({
+      method: 'POST',
+      url: `/api/study/sessions/${session.sessionId}/recontact`,
+      payload: {
+        requestId: `20000000-0000-4000-8000-${identity.toString().padStart(12, '0')}`,
+        email: `participant-${identity}@example.org`,
+      },
+    });
+    expect(registration.statusCode).toBe(200);
+  }
+  return session;
+}
+
+function validValue(item: InstrumentRuntimeItem): InstrumentResponseValue {
+  if (item.type === 'integer') return item.min ?? 1;
+  if (item.type === 'scale' || item.type === 'semanticDifferential') return 1;
+  if (item.type === 'text') return null;
+  const optionId = item.options?.[0]?.id;
+  if (optionId === undefined) throw new Error(`missing-test-option-${item.id}`);
+  return item.type === 'multiChoice' ? [optionId] : optionId;
+}
+
+export function validSubmission(
+  instrumentId: string,
+  sectionId: string,
+): InstrumentSubmissionRequest {
+  const block = mainInstrumentBlocks.find(
+    (candidate) => candidate.instrumentId === instrumentId && candidate.sectionId === sectionId,
+  );
+  if (block === undefined) throw new Error(`missing-test-block-${instrumentId}-${sectionId}`);
+  return {
+    instrumentId: block.instrumentId,
+    sectionId: block.sectionId,
+    responses: block.items.map((item) => ({ itemId: item.id, value: validValue(item) })),
+  };
+}
+
+export async function submitBlock(
+  server: FastifyInstance,
+  sessionId: string,
+  instrumentId: string,
+  sectionId: string,
+) {
+  return server.inject({
+    method: 'POST',
+    url: `/api/study/sessions/${sessionId}/instrument-submissions`,
+    payload: validSubmission(instrumentId, sectionId),
+  });
 }
 
 export async function savePreAndStartArtifact(
   server: FastifyInstance,
   sessionId: string,
 ): Promise<void> {
-  await server.inject({
-    method: 'POST',
-    url: `/api/study/sessions/${sessionId}/responses`,
-    payload: {
-      instrumentId: 'pre-placeholder',
-      itemId: 'placeholder-complete',
-      value: true,
-    },
-  });
-  await server.inject({
+  for (const block of mainInstrumentBlocks.filter(
+    (candidate) => candidate.instrumentId === 'pre-v1',
+  )) {
+    const response = await submitBlock(server, sessionId, block.instrumentId, block.sectionId);
+    expect(response.statusCode).toBe(200);
+  }
+  const artifactStart = await server.inject({
     method: 'POST',
     url: `/api/study/sessions/${sessionId}/timing`,
     payload: {
@@ -65,6 +119,7 @@ export async function savePreAndStartArtifact(
       reasonCode: null,
     },
   });
+  expect(artifactStart.statusCode).toBe(200);
 }
 
 export async function recordSupportiveSegmentsThroughEnd(

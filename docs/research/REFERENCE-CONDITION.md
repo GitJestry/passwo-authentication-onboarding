@@ -33,7 +33,12 @@ Der letzte Continue-Block der MFA-Lektion führt wie im Originalsnapshot in das 
 Kursbeschreibung wird geleert, Telemetrie wird deaktiviert und ihr externer Fetch-Endpunkt
 entfernt. Der abschließende Continue-Block des Quiz lautet `Training abschließen`, weil die
 nachfolgende Nutzungshinweis-Lektion nicht zum Teilnehmerpfad gehört. Die Abschlussanforderung
-wird auf 100 Prozent der drei Unterrichtslektionen und des Quiz gesetzt.
+deckt die drei Unterrichtslektionen ab. Ein abgeschlossener Quizversuch löst den Studienabschluss
+auch bei einem nicht bestandenen Quiz aus; Quizpunkte und -ergebnis bleiben dafür ohne Bedeutung.
+Die provider-eigene Aktion zum Verlassen des
+Kurses wird im lokalen Kursdatensatz deaktiviert und dadurch nicht gerendert. Wird
+`Training abschließen` vor dem vollständigen Unterrichtspfad ausgewählt, bleibt die Aktion
+verfügbar und nennt die noch nicht bearbeiteten Unterrichtslektionen.
 
 Die explizit eingefrorenen Quiz-labelSet-Schlüssel bleiben für das native Quiz erhalten. Die
 Texte und Ziele der zwölf sichtbaren supplementären Links der drei Lektionen bleiben wortgleich
@@ -70,7 +75,7 @@ Der generierte SCORM-Treiber umschließt den tatsächlichen erfolgreichen Aufruf
 "secaware-passwords-authentication-2026-07-26" }` mit der eigenen Origin als Ziel. Der Wrapper
 akzeptiert sie nur von seiner konfigurierten iframe-Window-Referenz, von derselben Origin und mit
 exakt diesem Nachrichtentyp, dieser Snapshot-ID und dieser Schlüsselmenge. Das erste gültige
-Signal nach Abschluss des vollständigen retained Pfads einschließlich Quiz beendet unmittelbar
+Signal nach Abschluss der drei Unterrichtslektionen und des aufgerufenen nativen Quiz beendet unmittelbar
 das globale Artifact-Timing und wechselt in den gemeinsamen Post-Fragebogen; weitere Signale
 bleiben ohne Wirkung. Danach folgt derselbe externe Understanding Guardrail wie in der
 PassWo-Bedingung.

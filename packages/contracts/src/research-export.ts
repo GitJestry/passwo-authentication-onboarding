@@ -1,5 +1,10 @@
 import { z } from 'zod';
 import {
+  instrumentResponseValueSchema,
+  instrumentSectionIdSchema,
+  mainInstrumentIdSchema,
+} from './instrument-runtime.js';
+import {
   completionStatusSchema,
   persistedSessionRecordSchema,
   studyConditionSchema,
@@ -19,14 +24,55 @@ export type ResearchExportTimingRecord = z.infer<typeof researchExportTimingReco
 export const researchExportResponseRecordSchema = z
   .object({
     sessionId: z.uuid(),
-    instrumentId: z.enum(['pre-placeholder', 'post-placeholder', 'guardrail-placeholder']),
+    instrumentId: mainInstrumentIdSchema,
     instrumentVersion: versionIdSchema,
-    itemId: z.literal('placeholder-complete'),
-    value: z.literal(true),
+    sectionId: instrumentSectionIdSchema,
+    itemId: z.string().trim().min(1).max(80),
+    value: instrumentResponseValueSchema,
     createdAtIso: z.iso.datetime(),
   })
   .strict();
 export type ResearchExportResponseRecord = z.infer<typeof researchExportResponseRecordSchema>;
+
+export const researchExportPresentationRecordSchema = z
+  .object({
+    sessionId: z.uuid(),
+    instrumentId: z.literal('guardrail-v2'),
+    instrumentVersion: versionIdSchema,
+    sectionId: instrumentSectionIdSchema,
+    itemId: z.string().trim().min(1).max(80),
+    formId: z.enum(['F1', 'F2', 'F3']),
+    displayedOptionIds: z.array(z.string().trim().min(1).max(80)).length(4),
+    createdAtIso: z.iso.datetime(),
+  })
+  .strict();
+export type ResearchExportPresentationRecord = z.infer<
+  typeof researchExportPresentationRecordSchema
+>;
+
+export const researchExportDataDictionaryRecordSchema = z
+  .object({
+    instrumentId: z.string().trim().min(1).max(80),
+    sectionId: z.string().trim().min(1).max(80),
+    itemId: z.string().trim().min(1).max(80),
+    responseType: z.enum([
+      'singleChoice',
+      'multiChoice',
+      'scale',
+      'semanticDifferential',
+      'integer',
+      'text',
+    ]),
+    required: z.boolean(),
+    minimum: z.number().int().nullable(),
+    maximum: z.number().int().nullable(),
+    maxLength: z.number().int().positive().nullable(),
+    optionId: z.string().trim().min(1).max(80).nullable(),
+  })
+  .strict();
+export type ResearchExportDataDictionaryRecord = z.infer<
+  typeof researchExportDataDictionaryRecordSchema
+>;
 
 export const researchExportFileManifestSchema = z
   .object({
@@ -47,8 +93,9 @@ export type ResearchExportSessionCount = z.infer<typeof researchExportSessionCou
 
 export const researchExportManifestSchema = z
   .object({
-    schemaVersion: z.literal('research-export-v1'),
+    schemaVersion: z.literal('research-export-v3'),
     exportedAtIso: z.iso.datetime(),
+    runtimeManifestVersion: versionIdSchema,
     versions: z
       .object({
         study: z.array(versionIdSchema),
@@ -56,6 +103,7 @@ export const researchExportManifestSchema = z
         questionnaire: z.array(versionIdSchema),
         guardrail: z.array(versionIdSchema),
         consent: z.array(versionIdSchema),
+        followUp: z.array(versionIdSchema),
         referenceArtifact: z.array(versionIdSchema),
       })
       .strict(),

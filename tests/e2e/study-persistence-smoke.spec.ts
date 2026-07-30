@@ -74,7 +74,13 @@ function timingEvents(bodies: readonly string[]): CapturedTimingEvent[] {
 
 async function acceptConsentAndSubmitPre(page: Page): Promise<void> {
   await page.goto('/');
-  await page.getByLabel('Ich habe die Hinweise gelesen und willige').check();
+  await page.getByLabel('Ich bin mindestens 18 Jahre alt.').check();
+  await page.getByLabel('Ich bin derzeit Mitglied einer Hochschule.').check();
+  await page
+    .getByLabel('Ich kann deutschsprachige Lernmaterialien und Fragebogenfragen sicher verstehen.')
+    .check();
+  await page.getByLabel('Ich habe die Teilnahmeinformationen gelesen und willige').check();
+  await page.getByLabel('E-Mail-Adresse für die Nachbefragung').fill('participant@example.org');
   await page.getByRole('button', { name: 'Weiter zum Fragebogen' }).click();
   await page.getByLabel('Ich habe die Hinweise zu diesem Abschnitt gelesen.').check();
   await page.getByRole('button', { name: 'Antwort speichern' }).click();

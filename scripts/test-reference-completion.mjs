@@ -159,6 +159,12 @@ try {
     await control.click();
   };
   await clickCourseControl(/KURS STARTEN/iu);
+  const providerExitControl = courseFrame
+    .getByRole('button', { name: /KURS VERLASSEN/iu })
+    .or(courseFrame.getByRole('link', { name: /KURS VERLASSEN/iu }));
+  if ((await providerExitControl.count()) !== 0) {
+    fail('the embedded course still exposes the provider exit control.');
+  }
   const disclosure = courseFrame
     .locator('button[aria-expanded="false"]')
     .filter({ hasText: 'Zusatzinformationen' });
@@ -187,7 +193,13 @@ try {
       {
         type: 'course:update',
         windowName: 'cm1enk06a001j2a6s3oz0elns',
-        payload: { result: { completion: true } },
+        payload: {
+          result: {
+            completion: true,
+            score: { scaled: 0 },
+            success: false,
+          },
+        },
       },
       window.location.origin,
     );

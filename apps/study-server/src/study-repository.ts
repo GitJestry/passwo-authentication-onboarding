@@ -1,10 +1,19 @@
+import { createHash, randomBytes } from 'node:crypto';
 import {
   type AssignmentMode,
   type CreateSessionRequest,
   type CreateSessionResponse,
+  type GuardrailFormId,
+  guardrailFormIdSchema,
+  guardrailPresentationForForm,
+  followUpTokenHashSchema,
+  followUpRawTokenSchema,
+  instrumentRuntimeManifest,
+  type InstrumentSubmissionRequest,
+  mainInstrumentBlocks,
+  normalizeInstrumentSubmission,
   type PersistedSessionRecord,
-  type PlaceholderInstrumentId,
-  type PlaceholderResponseRequest,
+  type RegisterRecontactRequest,
   type StudyCondition,
   type StudyTimingEvent,
   SUPPORTIVE_ARTIFACT_SEGMENT_IDS,
@@ -23,6 +32,7 @@ export interface StudyVersions {
   readonly questionnaire: string;
   readonly guardrail: string;
   readonly consent: string;
+  readonly followUp: string;
   readonly referenceArtifact: string;
 }
 
@@ -42,10 +52,21 @@ interface Assignment {
   readonly slotIndex: number | null;
 }
 
+interface GuardrailFormAssignment {
+  readonly formId: GuardrailFormId;
+  readonly blockNumber: number;
+  readonly slotIndex: number;
+}
+
 const assignmentSlotSchema = z.object({
   blockNumber: z.number().int(),
   slotIndex: z.number().int(),
   condition: studyConditionSchema,
+});
+const guardrailFormSlotSchema = z.object({
+  blockNumber: z.number().int(),
+  slotIndex: z.number().int(),
+  formId: guardrailFormIdSchema,
 });
 
 const countSchema = z.object({ count: z.number().int().nonnegative() });
@@ -63,6 +84,22 @@ const artifactBoundsSchema = z.object({
   endedAt: z.number().nullable(),
 });
 const sessionIdRowSchema = z.object({ sessionId: z.string() });
+const submissionFingerprintSchema = z.object({ payloadFingerprint: z.string() });
+const instrumentVersionsSchema = z.object({
+  questionnaireVersion: z.string(),
+  guardrailVersion: z.string(),
+});
+const recontactRegistrationSchema = z.object({
+  sessionId: z.string(),
+  requestId: z.string(),
+  email: z.string(),
+  tokenHash: followUpTokenHashSchema,
+});
+const followUpSessionSchema = z.object({
+  followUpTokenHash: followUpTokenHashSchema.nullable(),
+  completionStatus: z.string(),
+  completedAtIso: z.string().nullable(),
+});
 
 export const artifactLeaseExpiresAfterMs = 5 * 60 * 1000;
 
@@ -72,13 +109,18 @@ function toCreateResponse(session: PersistedSessionRecord): CreateSessionRespons
     participantCode: session.participantCode,
     condition: session.condition,
     assignmentMode: session.assignmentMode,
+    guardrailFormId: session.guardrailFormId,
   };
 }
 
-function instrumentVersion(request: PlaceholderResponseRequest, versions: StudyVersions): string {
-  return request.instrumentId === 'guardrail-placeholder'
-    ? versions.guardrail
-    : versions.questionnaire;
+function submissionFingerprint(request: InstrumentSubmissionRequest): string {
+  return createHash('sha256').update(jsonString(request), 'utf8').digest('hex');
+}
+
+function jsonString(value: unknown): string {
+  const serialized = JSON.stringify(value);
+  if (serialized === undefined) throw new StudyRepositoryError('invalid-research-data', 400);
+  return serialized;
 }
 
 function artifactVersionForCondition(condition: StudyCondition, versions: StudyVersions): string {
@@ -91,6 +133,7 @@ export class StudyRepository {
   readonly #versions: StudyVersions;
   readonly #random: StudyRandomSource;
   readonly #nowIso: () => string;
+  readonly #createRecontactToken: () => string;
 
   constructor(options: {
     database: Database.Database;
@@ -98,12 +141,15 @@ export class StudyRepository {
     versions: StudyVersions;
     random: StudyRandomSource;
     nowIso?: () => string;
+    createRecontactToken?: () => string;
   }) {
     this.#database = options.database;
     this.#assignmentMode = options.assignmentMode;
     this.#versions = options.versions;
     this.#random = options.random;
     this.#nowIso = options.nowIso ?? (() => new Date().toISOString());
+    this.#createRecontactToken =
+      options.createRecontactToken ?? (() => randomBytes(32).toString('base64url'));
     this.#ensureArtifactBoundaryIndex();
   }
 
@@ -117,6 +163,7 @@ export class StudyRepository {
 
       const sessionId = this.#random.randomUuid();
       const assignment = this.#nextAssignment();
+      const guardrailFormAssignment = this.#nextGuardrailFormAssignment(assignment.condition);
       const participantCode = this.#newParticipantCode();
       const createdAtIso = this.#nowIso();
       const artifactVersion = artifactVersionForCondition(assignment.condition, this.#versions);
@@ -133,9 +180,12 @@ export class StudyRepository {
             content_version,
             questionnaire_version,
             guardrail_version,
+            guardrail_form_id,
             consent_version,
             reference_artifact_version,
             consent_accepted,
+            follow_up_version,
+            follow_up_token_hash,
             completion_status,
             technical_error_code,
             created_at_iso,
@@ -150,9 +200,12 @@ export class StudyRepository {
             @contentVersion,
             @questionnaireVersion,
             @guardrailVersion,
+            @guardrailFormId,
             @consentVersion,
             @referenceArtifactVersion,
             1,
+            @followUpVersion,
+            NULL,
             'in-progress',
             NULL,
             @createdAtIso,
@@ -169,7 +222,9 @@ export class StudyRepository {
           contentVersion: artifactVersion,
           questionnaireVersion: this.#versions.questionnaire,
           guardrailVersion: this.#versions.guardrail,
+          guardrailFormId: guardrailFormAssignment.formId,
           consentVersion: this.#versions.consent,
+          followUpVersion: this.#versions.followUp,
           referenceArtifactVersion: assignment.condition === 'reference' ? artifactVersion : null,
           createdAtIso,
         });
@@ -183,6 +238,22 @@ export class StudyRepository {
           )
           .run(sessionId, assignment.blockNumber, assignment.slotIndex);
       }
+      this.#database
+        .prepare(
+          `UPDATE guardrail_form_slots
+           SET session_id = ?
+           WHERE condition = ?
+             AND block_number = ?
+             AND slot_index = ?
+             AND session_id IS NULL`,
+        )
+        .run(
+          sessionId,
+          assignment.condition,
+          guardrailFormAssignment.blockNumber,
+          guardrailFormAssignment.slotIndex,
+        );
+      this.#persistGuardrailPresentations(sessionId, guardrailFormAssignment.formId, createdAtIso);
 
       const session = this.findSession(sessionId);
       if (session === null) {
@@ -194,35 +265,148 @@ export class StudyRepository {
     return create();
   }
 
-  savePlaceholder(sessionId: string, request: PlaceholderResponseRequest): void {
-    this.recoverStaleArtifactSessions();
-    const status = this.#completionStatus(sessionId);
-    if (this.#hasResponse(sessionId, request.instrumentId)) return;
-    if (status !== 'in-progress') {
-      throw new StudyRepositoryError('session-not-in-progress', 409);
-    }
+  registerRecontact(sessionId: string, request: RegisterRecontactRequest): void {
+    const normalizedEmail = request.email.trim().toLowerCase();
+    const register = this.#database.transaction(() => {
+      const session = this.#followUpSession(sessionId);
 
-    this.#requirePlaceholderPrerequisites(sessionId, request.instrumentId);
-    this.#database
-      .prepare(
+      const existingBySession = this.#findRecontactRegistration('session_id = ?', sessionId);
+      if (existingBySession !== null) {
+        if (
+          existingBySession.requestId !== request.requestId ||
+          existingBySession.email !== normalizedEmail
+        ) {
+          throw new StudyRepositoryError('recontact-registration-conflict', 409);
+        }
+        this.#persistFollowUpTokenHash(sessionId, existingBySession.tokenHash);
+        return;
+      }
+      if (session.completionStatus !== 'in-progress') {
+        throw new StudyRepositoryError('session-not-in-progress', 409);
+      }
+
+      const existingByRequest = this.#findRecontactRegistration(
+        'registration_request_id = ?',
+        request.requestId,
+      );
+      if (existingByRequest !== null) {
+        throw new StudyRepositoryError('recontact-registration-conflict', 409);
+      }
+      if (session.followUpTokenHash !== null) {
+        throw new StudyRepositoryError('recontact-registration-inconsistent', 500);
+      }
+
+      const token = this.#newRecontactToken();
+      const tokenHash = createHash('sha256').update(token, 'utf8').digest('hex');
+      this.#database
+        .prepare(
+          `INSERT INTO recontact.registrations (
+            session_id,
+            registration_request_id,
+            email,
+            raw_token,
+            token_hash,
+            consent_version,
+            registered_at_iso,
+            first_invitation_at_iso,
+            reminder_at_iso,
+            closes_at_iso,
+            first_invitation_sent_at_iso,
+            reminder_sent_at_iso
+          ) VALUES (?, ?, ?, ?, ?, ?, ?, NULL, NULL, NULL, NULL, NULL)`,
+        )
+        .run(
+          sessionId,
+          request.requestId,
+          normalizedEmail,
+          token,
+          tokenHash,
+          instrumentRuntimeManifest.consentVersion,
+          this.#nowIso(),
+        );
+      this.#persistFollowUpTokenHash(sessionId, tokenHash);
+    });
+
+    register();
+  }
+
+  saveInstrumentSubmission(sessionId: string, request: InstrumentSubmissionRequest): void {
+    this.recoverStaleArtifactSessions();
+    const normalized = normalizeInstrumentSubmission(request);
+    const fingerprint = submissionFingerprint(normalized);
+    const save = this.#database.transaction(() => {
+      const existing = submissionFingerprintSchema.nullable().parse(
+        this.#database
+          .prepare(
+            `SELECT payload_fingerprint AS payloadFingerprint
+             FROM instrument_submissions
+             WHERE session_id = ? AND instrument_id = ? AND section_id = ?`,
+          )
+          .get(sessionId, normalized.instrumentId, normalized.sectionId) ?? null,
+      );
+      if (existing !== null) {
+        if (existing.payloadFingerprint !== fingerprint) {
+          throw new StudyRepositoryError('instrument-submission-conflict', 409);
+        }
+        return;
+      }
+      this.#requireInProgress(sessionId);
+      this.#requireRecontactRegistration(sessionId);
+      this.#requireInstrumentSubmissionPrerequisites(
+        sessionId,
+        normalized.instrumentId,
+        normalized.sectionId,
+      );
+
+      const instrumentVersionValue = this.#instrumentVersionForSession(
+        sessionId,
+        normalized.instrumentId,
+      );
+      const submittedAtIso = this.#nowIso();
+      const insertResponse = this.#database.prepare(
         `INSERT INTO responses (
           session_id,
           instrument_id,
           instrument_version,
+          section_id,
           item_id,
           json_value,
           created_at_iso
-        ) VALUES (?, ?, ?, ?, ?, ?)
-        ON CONFLICT(session_id, instrument_id, item_id) DO NOTHING`,
-      )
-      .run(
-        sessionId,
-        request.instrumentId,
-        instrumentVersion(request, this.#versions),
-        request.itemId,
-        JSON.stringify(request.value),
-        this.#nowIso(),
+        ) VALUES (?, ?, ?, ?, ?, ?, ?)`,
       );
+      for (const response of normalized.responses) {
+        insertResponse.run(
+          sessionId,
+          normalized.instrumentId,
+          instrumentVersionValue,
+          normalized.sectionId,
+          response.itemId,
+          jsonString(response.value),
+          submittedAtIso,
+        );
+      }
+      this.#database
+        .prepare(
+          `INSERT INTO instrument_submissions (
+            session_id,
+            instrument_id,
+            instrument_version,
+            section_id,
+            payload_fingerprint,
+            submitted_at_iso
+          ) VALUES (?, ?, ?, ?, ?, ?)`,
+        )
+        .run(
+          sessionId,
+          normalized.instrumentId,
+          instrumentVersionValue,
+          normalized.sectionId,
+          fingerprint,
+          submittedAtIso,
+        );
+    });
+
+    save();
   }
 
   recordTiming(sessionId: string, event: StudyTimingEvent): TimingWriteResponse {
@@ -402,7 +586,13 @@ export class StudyRepository {
     this.recoverStaleArtifactSessions();
     const complete = this.#database.transaction(() => {
       const status = this.#completionStatus(sessionId);
-      if (status === 'completed') return status;
+      if (status === 'completed') {
+        const session = this.#followUpSession(sessionId);
+        if (session.completedAtIso !== null) {
+          this.#scheduleRecontact(sessionId, session.completedAtIso);
+        }
+        return status;
+      }
       if (status !== 'in-progress') {
         throw new StudyRepositoryError('session-not-in-progress', 409);
       }
@@ -413,13 +603,15 @@ export class StudyRepository {
       this.#requirePostCompleted(sessionId);
       this.#requireGuardrailsCompleted(sessionId);
 
+      const completedAtIso = this.#nowIso();
       this.#database
         .prepare(
           `UPDATE study_sessions
            SET completion_status = 'completed', completed_at_iso = ?
            WHERE session_id = ?`,
         )
-        .run(this.#nowIso(), sessionId);
+        .run(completedAtIso, sessionId);
+      this.#scheduleRecontact(sessionId, completedAtIso);
       this.#closeArtifactLease(sessionId, this.#nowIso());
       return 'completed';
     });
@@ -483,6 +675,110 @@ export class StudyRepository {
       .prepare(`${sessionRowSelection} WHERE create_request_id = ?`)
       .get(requestId);
     return row === undefined ? null : mapSessionRow(row);
+  }
+
+  #followUpSession(sessionId: string): z.infer<typeof followUpSessionSchema> {
+    const row = this.#database
+      .prepare(
+        `SELECT
+          follow_up_token_hash AS followUpTokenHash,
+          completion_status AS completionStatus,
+          completed_at_iso AS completedAtIso
+         FROM study_sessions
+         WHERE session_id = ?`,
+      )
+      .get(sessionId);
+    if (row === undefined) {
+      throw new StudyRepositoryError('session-not-found', 404);
+    }
+    return followUpSessionSchema.parse(row);
+  }
+
+  #findRecontactRegistration(
+    whereClause: 'session_id = ?' | 'registration_request_id = ?',
+    value: string,
+  ): z.infer<typeof recontactRegistrationSchema> | null {
+    const row = this.#database
+      .prepare(
+        `SELECT
+          session_id AS sessionId,
+          registration_request_id AS requestId,
+          email,
+          token_hash AS tokenHash
+         FROM recontact.registrations
+         WHERE ${whereClause}`,
+      )
+      .get(value);
+    return row === undefined ? null : recontactRegistrationSchema.parse(row);
+  }
+
+  #persistFollowUpTokenHash(sessionId: string, tokenHash: string): void {
+    const session = this.#followUpSession(sessionId);
+    if (session.followUpTokenHash !== null && session.followUpTokenHash !== tokenHash) {
+      throw new StudyRepositoryError('recontact-registration-conflict', 409);
+    }
+    this.#database
+      .prepare(
+        `UPDATE study_sessions
+         SET follow_up_token_hash = ?
+         WHERE session_id = ?`,
+      )
+      .run(tokenHash, sessionId);
+  }
+
+  #newRecontactToken(): string {
+    for (let attempt = 0; attempt < 20; attempt += 1) {
+      const token = this.#createRecontactToken();
+      if (!followUpRawTokenSchema.safeParse(token).success) {
+        throw new StudyRepositoryError('invalid-recontact-token-source', 500);
+      }
+      const tokenHash = createHash('sha256').update(token, 'utf8').digest('hex');
+      const existing = countSchema.parse(
+        this.#database
+          .prepare(
+            `SELECT COUNT(*) AS count
+             FROM recontact.registrations
+             WHERE raw_token = ? OR token_hash = ?`,
+          )
+          .get(token, tokenHash),
+      );
+      if (existing.count === 0) return token;
+    }
+    throw new StudyRepositoryError('recontact-token-unavailable', 500);
+  }
+
+  #scheduleRecontact(sessionId: string, completedAtIso: string): void {
+    const session = this.#followUpSession(sessionId);
+    if (session.followUpTokenHash === null) {
+      throw new StudyRepositoryError('recontact-registration-required', 409);
+    }
+    const procedure = instrumentRuntimeManifest.procedures.followUpRecontact;
+    const completedAt = Date.parse(completedAtIso);
+    if (!Number.isFinite(completedAt)) {
+      throw new StudyRepositoryError('invalid-server-clock', 500);
+    }
+    const hourMs = 60 * 60 * 1000;
+    const firstInvitationAtIso = new Date(
+      completedAt + procedure.firstInvitationDelayHours * hourMs,
+    ).toISOString();
+    const reminderAtIso = new Date(
+      Date.parse(firstInvitationAtIso) + procedure.reminderDelayAfterFirstInvitationHours * hourMs,
+    ).toISOString();
+    const closesAtIso = new Date(
+      completedAt + procedure.closeAfterSessionHours * hourMs,
+    ).toISOString();
+    const result = this.#database
+      .prepare(
+        `UPDATE recontact.registrations
+         SET first_invitation_at_iso = COALESCE(first_invitation_at_iso, ?),
+             reminder_at_iso = COALESCE(reminder_at_iso, ?),
+             closes_at_iso = COALESCE(closes_at_iso, ?)
+         WHERE session_id = ? AND token_hash = ?`,
+      )
+      .run(firstInvitationAtIso, reminderAtIso, closesAtIso, sessionId, session.followUpTokenHash);
+    if (result.changes !== 1) {
+      throw new StudyRepositoryError('recontact-registration-missing', 409);
+    }
   }
 
   #nextAssignment(): Assignment {
@@ -552,6 +848,99 @@ export class StudyRepository {
     });
   }
 
+  #nextGuardrailFormAssignment(condition: StudyCondition): GuardrailFormAssignment {
+    let slot = this.#nextOpenGuardrailFormSlot(condition);
+    if (slot === null) {
+      this.#createGuardrailFormBlock(condition);
+      slot = this.#nextOpenGuardrailFormSlot(condition);
+    }
+    if (slot === null) {
+      throw new StudyRepositoryError('guardrail-form-assignment-unavailable', 500);
+    }
+    return slot;
+  }
+
+  #nextOpenGuardrailFormSlot(condition: StudyCondition): GuardrailFormAssignment | null {
+    const row = this.#database
+      .prepare(
+        `SELECT
+          block_number AS blockNumber,
+          slot_index AS slotIndex,
+          form_id AS formId
+         FROM guardrail_form_slots
+         WHERE condition = ? AND session_id IS NULL
+         ORDER BY block_number, slot_index
+         LIMIT 1`,
+      )
+      .get(condition);
+    return row === undefined ? null : guardrailFormSlotSchema.parse(row);
+  }
+
+  #createGuardrailFormBlock(condition: StudyCondition): void {
+    const maximum = timingMaximumSchema.parse(
+      this.#database
+        .prepare(
+          `SELECT COALESCE(MAX(block_number), -1) AS maximum
+           FROM guardrail_form_slots
+           WHERE condition = ?`,
+        )
+        .get(condition),
+    );
+    const forms: GuardrailFormId[] = ['F1', 'F2', 'F3'];
+    for (let index = forms.length - 1; index > 0; index -= 1) {
+      const swapIndex = this.#random.randomIndex(index + 1);
+      if (swapIndex < 0 || swapIndex > index) {
+        throw new StudyRepositoryError('invalid-random-source', 500);
+      }
+      const current = forms[index];
+      const swap = forms[swapIndex];
+      if (current === undefined || swap === undefined) {
+        throw new StudyRepositoryError('guardrail-form-assignment-unavailable', 500);
+      }
+      forms[index] = swap;
+      forms[swapIndex] = current;
+    }
+
+    const insert = this.#database.prepare(
+      `INSERT INTO guardrail_form_slots (
+        condition, block_number, slot_index, form_id, session_id
+      ) VALUES (?, ?, ?, ?, NULL)`,
+    );
+    forms.forEach((formId, slotIndex) => {
+      insert.run(condition, maximum.maximum + 1, slotIndex, formId);
+    });
+  }
+
+  #persistGuardrailPresentations(
+    sessionId: string,
+    formId: GuardrailFormId,
+    createdAtIso: string,
+  ): void {
+    const insert = this.#database.prepare(
+      `INSERT INTO response_presentations (
+        session_id,
+        instrument_id,
+        instrument_version,
+        section_id,
+        item_id,
+        form_id,
+        option_ids_json,
+        created_at_iso
+      ) VALUES (?, 'guardrail-v2', ?, ?, ?, ?, ?, ?)`,
+    );
+    for (const presentation of guardrailPresentationForForm(formId)) {
+      insert.run(
+        sessionId,
+        this.#versions.guardrail,
+        presentation.sectionId,
+        presentation.itemId,
+        formId,
+        jsonString(presentation.displayedOptionIds),
+        createdAtIso,
+      );
+    }
+  }
+
   #newParticipantCode(): string {
     for (let attempt = 0; attempt < 20; attempt += 1) {
       const participantCode = `PW-${this.#random.participantToken()}`;
@@ -579,56 +968,119 @@ export class StudyRepository {
     return statusSchema.parse(row).completionStatus;
   }
 
+  #instrumentVersionForSession(sessionId: string, instrumentId: string): string {
+    const row = this.#database
+      .prepare(
+        `SELECT
+          questionnaire_version AS questionnaireVersion,
+          guardrail_version AS guardrailVersion
+         FROM study_sessions
+         WHERE session_id = ?`,
+      )
+      .get(sessionId);
+    if (row === undefined) {
+      throw new StudyRepositoryError('session-not-found', 404);
+    }
+    const versions = instrumentVersionsSchema.parse(row);
+    const storedVersion =
+      instrumentId === 'guardrail-v2' ? versions.guardrailVersion : versions.questionnaireVersion;
+    const runtimeVersion =
+      instrumentId === 'guardrail-v2' ? this.#versions.guardrail : this.#versions.questionnaire;
+    if (storedVersion !== runtimeVersion) {
+      throw new StudyRepositoryError('instrument-version-mismatch', 409);
+    }
+    return storedVersion;
+  }
+
   #requireInProgress(sessionId: string): void {
     if (this.#completionStatus(sessionId) !== 'in-progress') {
       throw new StudyRepositoryError('session-not-in-progress', 409);
     }
   }
 
-  #hasResponse(sessionId: string, instrumentId: PlaceholderInstrumentId): boolean {
-    const responseCount = countSchema.parse(
-      this.#database
-        .prepare(
-          `SELECT COUNT(*) AS count
-           FROM responses
-           WHERE session_id = ? AND instrument_id = ? AND item_id = 'placeholder-complete'`,
-        )
-        .get(sessionId, instrumentId),
-    );
-    return responseCount.count === 1;
+  #requireRecontactRegistration(sessionId: string): void {
+    const session = this.#followUpSession(sessionId);
+    if (session.followUpTokenHash === null) {
+      throw new StudyRepositoryError('recontact-registration-required', 409);
+    }
+    const registration = this.#findRecontactRegistration('session_id = ?', sessionId);
+    if (registration === null || registration.tokenHash !== session.followUpTokenHash) {
+      throw new StudyRepositoryError('recontact-registration-required', 409);
+    }
   }
 
-  #requirePlaceholderPrerequisites(sessionId: string, instrumentId: PlaceholderInstrumentId): void {
-    if (instrumentId === 'pre-placeholder') {
+  #isInstrumentBlockSubmitted(sessionId: string, instrumentId: string, sectionId: string): boolean {
+    return (
+      countSchema.parse(
+        this.#database
+          .prepare(
+            `SELECT COUNT(*) AS count
+             FROM instrument_submissions
+             WHERE session_id = ? AND instrument_id = ? AND section_id = ?`,
+          )
+          .get(sessionId, instrumentId, sectionId),
+      ).count === 1
+    );
+  }
+
+  #requireInstrumentSubmissionPrerequisites(
+    sessionId: string,
+    instrumentId: string,
+    sectionId: string,
+  ): void {
+    const blockIndex = mainInstrumentBlocks.findIndex(
+      (block) => block.instrumentId === instrumentId && block.sectionId === sectionId,
+    );
+    if (blockIndex < 0) {
+      throw new StudyRepositoryError('unknown-instrument-block', 400);
+    }
+    for (const precedingBlock of mainInstrumentBlocks.slice(0, blockIndex)) {
+      if (
+        !this.#isInstrumentBlockSubmitted(
+          sessionId,
+          precedingBlock.instrumentId,
+          precedingBlock.sectionId,
+        )
+      ) {
+        throw new StudyRepositoryError('instrument-block-order-conflict', 409);
+      }
+    }
+    if (instrumentId === 'pre-v1') {
       if (this.#artifactBoundaryCount(sessionId, 'start') > 0) {
         throw new StudyRepositoryError('pre-response-not-available', 409);
       }
       return;
     }
-    if (instrumentId === 'post-placeholder') {
-      this.#requirePreCompleted(sessionId);
-      this.#requireArtifactEnded(sessionId);
-      return;
-    }
-    this.#requirePostCompleted(sessionId);
+    this.#requireArtifactEnded(sessionId);
   }
 
   #requirePreCompleted(sessionId: string): void {
-    if (!this.#hasResponse(sessionId, 'pre-placeholder')) {
-      throw new StudyRepositoryError('pre-response-required', 409);
-    }
+    const complete = mainInstrumentBlocks
+      .filter((block) => block.instrumentId === 'pre-v1')
+      .every((block) =>
+        this.#isInstrumentBlockSubmitted(sessionId, block.instrumentId, block.sectionId),
+      );
+    if (!complete) throw new StudyRepositoryError('pre-response-required', 409);
   }
 
   #requirePostCompleted(sessionId: string): void {
-    if (!this.#hasResponse(sessionId, 'post-placeholder')) {
-      throw new StudyRepositoryError('post-response-required', 409);
-    }
+    const complete = mainInstrumentBlocks
+      .filter((block) => block.instrumentId === 'post-v1')
+      .every((block) =>
+        this.#isInstrumentBlockSubmitted(sessionId, block.instrumentId, block.sectionId),
+      );
+    if (!complete) throw new StudyRepositoryError('post-response-required', 409);
   }
 
   #requireGuardrailsCompleted(sessionId: string): void {
-    if (!this.#hasResponse(sessionId, 'guardrail-placeholder')) {
-      throw new StudyRepositoryError('guardrail-response-required', 409);
-    }
+    const complete = mainInstrumentBlocks
+      .filter(
+        (block) => block.instrumentId === 'guardrail-v2' || block.instrumentId === 'post-open-v1',
+      )
+      .every((block) =>
+        this.#isInstrumentBlockSubmitted(sessionId, block.instrumentId, block.sectionId),
+      );
+    if (!complete) throw new StudyRepositoryError('guardrail-response-required', 409);
   }
 
   #requireArtifactStarted(sessionId: string): void {

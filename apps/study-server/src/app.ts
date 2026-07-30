@@ -4,8 +4,11 @@ import {
   completeSessionRequestSchema,
   createSessionRequestSchema,
   createSessionResponseSchema,
-  placeholderResponseRequestSchema,
+  instrumentRuntimeManifest,
+  instrumentSubmissionRequestSchema,
   REFERENCE_ARTIFACT_VERSION,
+  registerRecontactRequestSchema,
+  registerRecontactResponseSchema,
   SUPPORTIVE_ARTIFACT_VERSION,
   saveResponseResponseSchema,
   sessionStatusResponseSchema,
@@ -14,7 +17,7 @@ import {
 } from '@passwo/contracts';
 import Fastify, { type FastifyInstance } from 'fastify';
 import { z } from 'zod';
-import { openStudyDatabase } from './database.js';
+import { attachRecontactDatabase, openStudyDatabase } from './database.js';
 import { cryptoStudyRandomSource, type StudyRandomSource } from './random-source.js';
 import { isReferenceArtifactAvailable, registerReferenceArtifact } from './static-web.js';
 import { StudyRepository, StudyRepositoryError, type StudyVersions } from './study-repository.js';
@@ -24,9 +27,10 @@ const sessionParamsSchema = z.object({ sessionId: z.uuid() });
 export const walkingSkeletonVersions: StudyVersions = {
   study: 'walking-skeleton-v1',
   supportiveArtifact: SUPPORTIVE_ARTIFACT_VERSION,
-  questionnaire: 'questionnaire-placeholder-v1',
-  guardrail: 'guardrail-placeholder-v1',
-  consent: 'consent-placeholder-v1',
+  questionnaire: instrumentRuntimeManifest.questionnaireVersion,
+  guardrail: instrumentRuntimeManifest.guardrailVersion,
+  consent: instrumentRuntimeManifest.consentVersion,
+  followUp: instrumentRuntimeManifest.followUpVersion,
   referenceArtifact: REFERENCE_ARTIFACT_VERSION,
 };
 
@@ -34,9 +38,11 @@ export interface StudyServerBuildOptions {
   readonly version: string;
   readonly assignmentMode?: AssignmentMode;
   readonly databasePath?: string;
+  readonly recontactDatabasePath?: string;
   readonly randomSource?: StudyRandomSource;
   readonly referenceArtifactDirectory?: string;
   readonly nowIso?: () => string;
+  readonly createRecontactToken?: () => string;
   readonly versions?: StudyVersions;
 }
 
@@ -44,18 +50,22 @@ export function buildStudyServer({
   version,
   assignmentMode = 'permuted-block',
   databasePath = ':memory:',
+  recontactDatabasePath = ':memory:',
   randomSource = cryptoStudyRandomSource,
   referenceArtifactDirectory,
   nowIso,
+  createRecontactToken,
   versions = walkingSkeletonVersions,
 }: StudyServerBuildOptions): FastifyInstance {
   const database = openStudyDatabase(databasePath);
+  attachRecontactDatabase(database, recontactDatabasePath);
   const repository = new StudyRepository({
     database,
     assignmentMode,
     versions,
     random: randomSource,
     ...(nowIso === undefined ? {} : { nowIso }),
+    ...(createRecontactToken === undefined ? {} : { createRecontactToken }),
   });
   const server = Fastify({
     logger: false,
@@ -113,11 +123,21 @@ export function buildStudyServer({
   });
 
   server.post<{ Params: { sessionId: string } }>(
-    '/api/study/sessions/:sessionId/responses',
+    '/api/study/sessions/:sessionId/recontact',
     async (request, reply) => {
       const { sessionId } = sessionParamsSchema.parse(request.params);
-      const body = placeholderResponseRequestSchema.parse(request.body);
-      repository.savePlaceholder(sessionId, body);
+      const body = registerRecontactRequestSchema.parse(request.body);
+      repository.registerRecontact(sessionId, body);
+      return reply.send(registerRecontactResponseSchema.parse({ registered: true }));
+    },
+  );
+
+  server.post<{ Params: { sessionId: string } }>(
+    '/api/study/sessions/:sessionId/instrument-submissions',
+    async (request, reply) => {
+      const { sessionId } = sessionParamsSchema.parse(request.params);
+      const body = instrumentSubmissionRequestSchema.parse(request.body);
+      repository.saveInstrumentSubmission(sessionId, body);
       return reply.send(saveResponseResponseSchema.parse({ saved: true }));
     },
   );

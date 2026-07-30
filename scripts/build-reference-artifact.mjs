@@ -78,11 +78,73 @@ const externalRuntimeHrefFiles = [
   'scormcontent/assets/VRuCzkjdJavVemQT/html5/lib/scripts/bootstrapper.min.js',
 ];
 const externalRuntimeHref = 'https://ipc.articulate.com/slw/360/en/streamingvideolocalplayback';
+const providerLogoTargets = [
+  {
+    relativePath: 'scormcontent/assets/U4w9PDNngJxwB5_j/html5/data/js/6a3E34y11SQ.js',
+    url: 'https://secaware.nrw/logo/logo_de_starkepasswoerter_V9.php',
+  },
+  {
+    relativePath: 'scormcontent/assets/U4w9PDNngJxwB5_j/html5/data/js/5zz8UjEmkKy.js',
+    url: 'https://secaware.nrw/logo/logo_de_starkepasswoerter_quiz_failed_V9.php',
+  },
+  {
+    relativePath: 'scormcontent/assets/U4w9PDNngJxwB5_j/html5/data/js/5zz8UjEmkKy.js',
+    url: 'https://secaware.nrw/logo/logo_de_starkepasswoerter_quiz_passed_V9.php',
+  },
+];
 
 const datasetPattern =
   /async function __fetchCourse\(\) \{\s*return Promise\.resolve\(deserialize\("([A-Za-z0-9+/=]+)"\)\)\s*\}/u;
 const completionPercentageSource = 'var completionPercentage = 80;';
-const completionPercentageBuild = 'var completionPercentage = 100;';
+const nativeStorylineQuizCompletion = "      completeOut(passed, 'passed-failed');";
+const studyStorylineQuizCompletion = "      completeOut(true, 'completed-failed');";
+const storylinePlaceholderHref = 'about:blank';
+const completionGuardMarker = 'passwo-reference-incomplete-completion-guard';
+const instructionalLessonIds = [
+  'cCLcBEovpLj72dCgZ6HsfeQV4xIR2_Lv',
+  '8s5ZF8ravaGthNGdmPcOMPOpdjLwXR-O',
+  'zbxeD7QUdMnDlBWKvVsxMy5G8ghjnDRt',
+];
+const completionGuard = `  <script type="text/javascript">
+    // ${completionGuardMarker}:start
+    (function preventIncompleteReferenceCompletion() {
+      var course = null;
+      window.__fetchCourse().then(function cacheCourse(dataset) {
+        course = dataset && dataset.course ? dataset.course : null;
+      });
+
+      function incompleteLessonTitles() {
+        if (!course || !Array.isArray(course.lessons)) return [];
+        var progress = window.Runtime && typeof window.Runtime.getProgress === 'function'
+          ? window.Runtime.getProgress()
+          : null;
+        var lessonProgress = progress && progress.lessons ? progress.lessons : {};
+        return course.lessons
+          .filter(function retainedInstruction(lesson) {
+            return lesson && ${JSON.stringify(instructionalLessonIds)}.indexOf(lesson.id) !== -1;
+          })
+          .filter(function isIncomplete(lesson) {
+            return Number(lessonProgress[lesson.id] && lessonProgress[lesson.id].c) !== 1;
+          })
+          .map(function lessonTitle(lesson) {
+            return lesson.title;
+          });
+      }
+
+      document.addEventListener('click', function guardCompletion(event) {
+        var target = event.target instanceof Element
+          ? event.target.closest('a, button, [role="button"]')
+          : null;
+        if (!target || target.textContent.trim() !== 'Training abschließen') return;
+        var incomplete = incompleteLessonTitles();
+        if (incomplete.length === 0) return;
+        event.preventDefault();
+        event.stopImmediatePropagation();
+        window.alert('Bitte bearbeite zunächst noch: ' + incomplete.join(', ') + '.');
+      }, true);
+    })();
+    // ${completionGuardMarker}:end
+  </script>`;
 const telemetryFetchSource = `    return fetch('https://metrics.articulate.com/v1/import', {
       method: 'POST',
       headers: {
@@ -462,11 +524,13 @@ function adaptCourseDataset(sourceDataset) {
   if (
     typeof course.lmsOptions !== 'object' ||
     course.lmsOptions === null ||
-    course.lmsOptions.enableTelemetryCollection !== true
+    course.lmsOptions.enableTelemetryCollection !== true ||
+    course.lmsOptions.enableExitCourse !== true
   ) {
-    fail('the expected enabled telemetry setting is missing.');
+    fail('the expected source LMS options are missing.');
   }
   course.lmsOptions.enableTelemetryCollection = false;
+  course.lmsOptions.enableExitCourse = false;
   requireNativeQuizNavigation(course);
   findQuizCompletionNavigation(course).title = 'Training abschließen';
   adaptSupplementaryNavigation(course);
@@ -522,6 +586,26 @@ async function blockRuntimePopupApis() {
   }
 }
 
+async function localizeProviderLogoTargets() {
+  const targetsByPath = new Map();
+  for (const target of providerLogoTargets) {
+    const urls = targetsByPath.get(target.relativePath) ?? [];
+    urls.push(target.url);
+    targetsByPath.set(target.relativePath, urls);
+  }
+  for (const [relativePath, urls] of targetsByPath) {
+    const path = resolve(buildDirectory, relativePath);
+    let content = await readFile(path, 'utf8');
+    for (const url of urls) {
+      if (content.split(url).length - 1 !== 3) {
+        fail(`expected provider logo URL is not present exactly three times in ${relativePath}.`);
+      }
+      content = content.replaceAll(url, storylinePlaceholderHref);
+    }
+    await writeFile(path, content, 'utf8');
+  }
+}
+
 if (
   process.argv.includes('--if-reference-study') &&
   process.env.STUDY_ASSIGNMENT_MODE === 'forced-supportive'
@@ -542,11 +626,14 @@ let adaptedCourseHtml = replaceExactlyOnce(
   adaptedBase64,
   'the encoded course dataset',
 );
+if (adaptedCourseHtml.split(completionPercentageSource).length - 1 !== 1) {
+  fail('the native completion percentage is not exactly 80 percent.');
+}
 adaptedCourseHtml = replaceExactlyOnce(
   adaptedCourseHtml,
-  completionPercentageSource,
-  completionPercentageBuild,
-  'the completion percentage',
+  nativeStorylineQuizCompletion,
+  studyStorylineQuizCompletion,
+  'the native Storyline quiz completion handler',
 );
 adaptedCourseHtml = replaceExactlyOnce(
   adaptedCourseHtml,
@@ -557,7 +644,7 @@ adaptedCourseHtml = replaceExactlyOnce(
 adaptedCourseHtml = replaceExactlyOnce(
   adaptedCourseHtml,
   courseBodyClose,
-  supplementBridge,
+  `${completionGuard}\n${supplementBridge}`,
   'the course body closing tag',
 );
 
@@ -576,6 +663,7 @@ await Promise.all([
   writeFile(resolve(buildDirectory, driverPath), adaptedDriverHtml, 'utf8'),
 ]);
 await blockRuntimePopupApis();
+await localizeProviderLogoTargets();
 
 const [sourceManifestAfter, buildManifest] = await Promise.all([
   manifestHash(sourceDirectory),

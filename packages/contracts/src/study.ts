@@ -1,4 +1,6 @@
 import { z } from 'zod';
+import { guardrailFormIdSchema } from './instrument-runtime.js';
+import { followUpTokenHashSchema } from './recontact.js';
 
 export const studyConditionSchema = z.enum(['supportive', 'reference']);
 export type StudyCondition = z.infer<typeof studyConditionSchema>;
@@ -35,6 +37,7 @@ export const createSessionResponseSchema = z
     participantCode: z.string().regex(/^PW-[A-Z0-9]{8}$/u),
     condition: studyConditionSchema,
     assignmentMode: assignmentModeSchema,
+    guardrailFormId: guardrailFormIdSchema,
   })
   .strict();
 export type CreateSessionResponse = z.infer<typeof createSessionResponseSchema>;
@@ -49,9 +52,12 @@ export const persistedSessionRecordSchema = z
     contentVersion: versionIdSchema,
     questionnaireVersion: versionIdSchema,
     guardrailVersion: versionIdSchema,
+    guardrailFormId: guardrailFormIdSchema,
     consentVersion: versionIdSchema,
     referenceArtifactVersion: versionIdSchema.nullable(),
     consentAccepted: z.literal(true),
+    followUpVersion: versionIdSchema,
+    followUpTokenHash: followUpTokenHashSchema.nullable(),
     completionStatus: completionStatusSchema,
     technicalErrorCode: z.string().trim().min(1).max(80).nullable(),
     createdAtIso: z.iso.datetime(),
@@ -59,22 +65,6 @@ export const persistedSessionRecordSchema = z
   })
   .strict();
 export type PersistedSessionRecord = z.infer<typeof persistedSessionRecordSchema>;
-
-export const placeholderInstrumentIdSchema = z.enum([
-  'pre-placeholder',
-  'post-placeholder',
-  'guardrail-placeholder',
-]);
-export type PlaceholderInstrumentId = z.infer<typeof placeholderInstrumentIdSchema>;
-
-export const placeholderResponseRequestSchema = z
-  .object({
-    instrumentId: placeholderInstrumentIdSchema,
-    itemId: z.literal('placeholder-complete'),
-    value: z.literal(true),
-  })
-  .strict();
-export type PlaceholderResponseRequest = z.infer<typeof placeholderResponseRequestSchema>;
 
 export const saveResponseResponseSchema = z.object({ saved: z.literal(true) }).strict();
 export type SaveResponseResponse = z.infer<typeof saveResponseResponseSchema>;

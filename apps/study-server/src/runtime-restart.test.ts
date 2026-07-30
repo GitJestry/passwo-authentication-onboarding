@@ -3,7 +3,12 @@ import { mkdtempSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { afterEach, describe, expect, it } from 'vitest';
-import { type StudyRuntime, startStudyRuntime } from './runtime.js';
+import {
+  resolveRecontactDatabasePath,
+  resolveStudyDatabasePath,
+  type StudyRuntime,
+  startStudyRuntime,
+} from './runtime.js';
 
 const temporaryDirectories: string[] = [];
 const runtimes: StudyRuntime[] = [];
@@ -25,21 +30,35 @@ async function requestJson<T>(runtime: StudyRuntime, path: string, init?: Reques
 }
 
 describe('Study Runtime restart compatibility', () => {
+  it('resolves both databases from the same STUDY_DATA_DIR', () => {
+    expect(
+      resolveStudyDatabasePath({ STUDY_DATA_DIR: '/protected/study-data' }, '/unused-home'),
+    ).toBe('/protected/study-data/study.sqlite');
+    expect(
+      resolveRecontactDatabasePath({ STUDY_DATA_DIR: '/protected/study-data' }, '/unused-home'),
+    ).toBe('/protected/study-data/recontact.sqlite');
+  });
+
   it('keeps one persisted session available after restart', async () => {
     const temporaryDirectory = mkdtempSync(join(tmpdir(), 'passwo-runtime-restart-'));
     temporaryDirectories.push(temporaryDirectory);
     const databasePath = join(temporaryDirectory, 'study.sqlite');
+    const recontactDatabasePath = join(temporaryDirectory, 'recontact.sqlite');
     const firstRuntime = await startStudyRuntime({
       version: '0.1.2',
       assignmentMode: 'forced-supportive',
       databasePath,
+      recontactDatabasePath,
       host: '127.0.0.1',
       port: 0,
     });
     runtimes.push(firstRuntime);
     const session = await requestJson<{ sessionId: string }>(firstRuntime, '/api/study/sessions', {
       method: 'POST',
-      body: JSON.stringify({ requestId: randomUUID(), consentAccepted: true }),
+      body: JSON.stringify({
+        requestId: randomUUID(),
+        consentAccepted: true,
+      }),
     });
     await firstRuntime.close();
     runtimes.splice(runtimes.indexOf(firstRuntime), 1);
@@ -48,6 +67,7 @@ describe('Study Runtime restart compatibility', () => {
       version: '0.1.2',
       assignmentMode: 'forced-supportive',
       databasePath,
+      recontactDatabasePath,
       host: '127.0.0.1',
       port: 0,
     });

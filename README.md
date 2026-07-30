@@ -66,7 +66,10 @@ erzwungen werden:
 ```bash
 STUDY_ASSIGNMENT_MODE=forced-supportive pnpm dev
 STUDY_ASSIGNMENT_MODE=forced-reference pnpm dev
+pnpm dev:secaware
 ```
+
+`pnpm dev:secaware` ist die Kurzform für die serverseitig erzwungene SecAware-Referenzbedingung.
 
 ## Study Runtime und Export
 
@@ -94,6 +97,20 @@ Barrierefreiheitsprüfungen und visuelle Regression. Dazu gehören BrowserShell-
 PassWo-Zustände sowie die S00-, S02-CampusID- und S06-Fixtures. Das Design Lab ist kein
 Auslieferungspfad, speichert keine Forschungsdaten und ersetzt keine vollständige
 Segmentnavigation.
+
+Für einen direkten, ausschließlich lokalen QA-Einstieg in ein Trainingssegment kann der
+Desktop-Entwicklungsstart mit `PASSWO_QA_SEGMENT` aufgerufen werden. Dabei werden weder eine
+Studien-Session noch Timing-Ereignisse angelegt:
+
+```bash
+PASSWO_QA_SEGMENT=s00 pnpm dev
+PASSWO_QA_SEGMENT=s01 pnpm dev
+PASSWO_QA_SEGMENT=s02 pnpm dev
+PASSWO_QA_SEGMENT=s03 pnpm dev
+```
+
+Der Schalter ist nur im ungepackten Entwicklungsstart verfügbar. Ohne ihn bleibt `pnpm dev` im
+normalen Studienpfad.
 
 ## Qualitätschecks
 

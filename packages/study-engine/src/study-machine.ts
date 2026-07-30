@@ -1,14 +1,25 @@
-import type {
-  AssignmentMode,
-  CreateSessionResponse,
-  PlaceholderInstrumentId,
-  StudyCondition,
+import {
+  mainInstrumentBlocks,
+  type AssignmentMode,
+  type CreateSessionResponse,
+  createSessionResponseSchema,
+  type GuardrailFormId,
+  type InstrumentSubmissionFor,
+  type InstrumentSubmissionRequest,
+  type MainInstrumentId,
+  type RegisterRecontactRequest,
+  registerRecontactRequestSchema,
+  type StudyCondition,
 } from '@passwo/contracts';
 import { assign, fromCallback, fromPromise, setup } from 'xstate';
 
 export interface StudyRuntimePorts {
   createSession(): Promise<CreateSessionResponse>;
-  savePlaceholder(sessionId: string, instrumentId: PlaceholderInstrumentId): Promise<void>;
+  registerRecontact(sessionId: string, request: RegisterRecontactRequest): Promise<void>;
+  saveInstrumentSubmission(
+    sessionId: string,
+    submission: InstrumentSubmissionRequest,
+  ): Promise<void>;
   startArtifact(sessionId: string): Promise<void>;
   endArtifact(sessionId: string): Promise<number>;
   recordArtifactVisibility(sessionId: string, visible: boolean): Promise<void>;
@@ -30,7 +41,13 @@ export interface StudyContext {
   readonly participantCode: string | null;
   readonly condition: StudyCondition | null;
   readonly assignmentMode: AssignmentMode | null;
+  readonly guardrailFormId: GuardrailFormId | null;
+  readonly recontactEmail: string | null;
+  readonly recontactRequestId: string | null;
+  readonly instrumentBlockCursor: number;
+  readonly pendingSubmission: InstrumentSubmissionRequest | null;
   readonly artifactWallClockMs: number | null;
+  readonly artifactTimingStarted: boolean;
   readonly pendingArtifactTimingWrites: number;
   readonly artifactCompletionRequested: boolean;
   readonly artifactTimingErrorKind: 'visibility' | 'end' | null;
@@ -39,11 +56,30 @@ export interface StudyContext {
 }
 
 export type StudyEvent =
-  | { readonly type: 'ACCEPT_CONSENT' }
-  | { readonly type: 'SUBMIT_PRE' }
+  | {
+      readonly type: 'ACCEPT_CONSENT';
+      readonly email: string;
+      readonly requestId: string;
+    }
+  | { readonly type: 'RETRY_RECONTACT' }
+  | {
+      readonly type: 'SUBMIT_PRE';
+      readonly payload: InstrumentSubmissionFor<'pre-v1'>;
+    }
+  | { readonly type: 'START_ARTIFACT' }
   | { readonly type: 'ARTIFACT_COMPLETED' }
-  | { readonly type: 'SUBMIT_POST' }
-  | { readonly type: 'SUBMIT_GUARDRAILS' }
+  | {
+      readonly type: 'SUBMIT_POST';
+      readonly payload: InstrumentSubmissionFor<'post-v1'>;
+    }
+  | {
+      readonly type: 'SUBMIT_GUARDRAILS';
+      readonly payload: InstrumentSubmissionFor<'guardrail-v2'>;
+    }
+  | {
+      readonly type: 'SUBMIT_POST_OPEN';
+      readonly payload: InstrumentSubmissionFor<'post-open-v1'>;
+    }
   | { readonly type: 'DEBRIEF_ACKNOWLEDGED' }
   | { readonly type: 'RETRY_SESSION' }
   | { readonly type: 'RETRY_PRE' }
@@ -52,6 +88,7 @@ export type StudyEvent =
   | { readonly type: 'RETRY_ARTIFACT_END' }
   | { readonly type: 'RETRY_POST' }
   | { readonly type: 'RETRY_GUARDRAILS' }
+  | { readonly type: 'RETRY_POST_OPEN' }
   | { readonly type: 'RETRY_COMPLETION' }
   | { readonly type: 'ARTIFACT_VISIBILITY_CHANGED'; readonly visible: boolean }
   | { readonly type: 'ARTIFACT_TIMING_WRITE_SUCCEEDED' }
@@ -68,7 +105,13 @@ const initialContext: StudyContext = {
   participantCode: null,
   condition: null,
   assignmentMode: null,
+  guardrailFormId: null,
+  recontactEmail: null,
+  recontactRequestId: null,
+  instrumentBlockCursor: 0,
+  pendingSubmission: null,
   artifactWallClockMs: null,
+  artifactTimingStarted: false,
   pendingArtifactTimingWrites: 0,
   artifactCompletionRequested: false,
   artifactTimingErrorKind: null,
@@ -90,6 +133,41 @@ function requiredCondition(context: StudyContext): StudyCondition {
   return context.condition;
 }
 
+function requiredPendingSubmission(context: StudyContext): InstrumentSubmissionRequest {
+  if (context.pendingSubmission === null) {
+    throw new Error('missing-pending-instrument-submission');
+  }
+  return context.pendingSubmission;
+}
+
+function requiredRecontactRequest(context: StudyContext): RegisterRecontactRequest {
+  if (context.recontactEmail === null || context.recontactRequestId === null) {
+    throw new Error('missing-recontact-registration');
+  }
+  return {
+    requestId: context.recontactRequestId,
+    email: context.recontactEmail,
+  };
+}
+
+function currentInstrumentId(context: StudyContext): MainInstrumentId | null {
+  return mainInstrumentBlocks[context.instrumentBlockCursor]?.instrumentId ?? null;
+}
+
+function matchesExpectedSubmission(
+  context: StudyContext,
+  submission: InstrumentSubmissionRequest,
+  instrumentId: MainInstrumentId,
+): boolean {
+  const expectedBlock = mainInstrumentBlocks[context.instrumentBlockCursor];
+  return (
+    expectedBlock !== undefined &&
+    expectedBlock.instrumentId === instrumentId &&
+    submission.instrumentId === expectedBlock.instrumentId &&
+    submission.sectionId === expectedBlock.sectionId
+  );
+}
+
 function errorCode(error: unknown): string {
   if (error instanceof Error && error.message.trim().length > 0) {
     return error.message.slice(0, 80);
@@ -105,8 +183,16 @@ export function createStudyMachine(ports: StudyRuntimePorts) {
     },
     actors: {
       createSession: fromPromise(async () => ports.createSession()),
-      savePre: fromPromise(async ({ input }: { input: { sessionId: string } }) =>
-        ports.savePlaceholder(input.sessionId, 'pre-placeholder'),
+      registerRecontact: fromPromise(
+        async ({ input }: { input: { sessionId: string; request: RegisterRecontactRequest } }) =>
+          ports.registerRecontact(input.sessionId, input.request),
+      ),
+      saveInstrumentSubmission: fromPromise(
+        async ({
+          input,
+        }: {
+          input: { sessionId: string; submission: InstrumentSubmissionRequest };
+        }) => ports.saveInstrumentSubmission(input.sessionId, input.submission),
       ),
       startArtifact: fromPromise(async ({ input }: { input: { sessionId: string } }) =>
         ports.startArtifact(input.sessionId),
@@ -132,20 +218,37 @@ export function createStudyMachine(ports: StudyRuntimePorts) {
             onReload: () => sendBack({ type: 'ARTIFACT_RELOAD' }),
           }),
       ),
-      savePost: fromPromise(async ({ input }: { input: { sessionId: string } }) =>
-        ports.savePlaceholder(input.sessionId, 'post-placeholder'),
-      ),
-      saveGuardrails: fromPromise(async ({ input }: { input: { sessionId: string } }) =>
-        ports.savePlaceholder(input.sessionId, 'guardrail-placeholder'),
-      ),
       completeSession: fromPromise(async ({ input }: { input: { sessionId: string } }) =>
         ports.completeSession(input.sessionId),
       ),
     },
     guards: {
+      acceptsConsentDecision: ({ event }) => {
+        if (event.type !== 'ACCEPT_CONSENT') return false;
+        return registerRecontactRequestSchema.safeParse({
+          email: event.email,
+          requestId: event.requestId,
+        }).success;
+      },
+      acceptsPreSubmission: ({ context, event }) =>
+        event.type === 'SUBMIT_PRE' && matchesExpectedSubmission(context, event.payload, 'pre-v1'),
+      acceptsPostSubmission: ({ context, event }) =>
+        event.type === 'SUBMIT_POST' &&
+        matchesExpectedSubmission(context, event.payload, 'post-v1'),
+      acceptsGuardrailSubmission: ({ context, event }) =>
+        event.type === 'SUBMIT_GUARDRAILS' &&
+        matchesExpectedSubmission(context, event.payload, 'guardrail-v2'),
+      acceptsPostOpenSubmission: ({ context, event }) =>
+        event.type === 'SUBMIT_POST_OPEN' &&
+        matchesExpectedSubmission(context, event.payload, 'post-open-v1'),
+      nextBlockIsPre: ({ context }) => currentInstrumentId(context) === 'pre-v1',
+      nextBlockIsPost: ({ context }) => currentInstrumentId(context) === 'post-v1',
+      nextBlockIsGuardrail: ({ context }) => currentInstrumentId(context) === 'guardrail-v2',
       isSupportive: ({ context }) => context.condition === 'supportive',
       acceptsArtifactVisibility: ({ context }) =>
-        context.condition === 'supportive' && !context.artifactCompletionRequested,
+        context.condition === 'supportive' &&
+        context.artifactTimingStarted &&
+        !context.artifactCompletionRequested,
       artifactCompletionReady: ({ context }) =>
         context.artifactCompletionRequested && context.pendingArtifactTimingWrites === 0,
       visibilityTimingFailed: ({ context }) => context.artifactTimingErrorKind === 'visibility',
@@ -153,8 +256,50 @@ export function createStudyMachine(ports: StudyRuntimePorts) {
     },
     actions: {
       clearResearchError: assign({ researchErrorCode: () => null }),
+      storeConsentDecision: assign({
+        recontactEmail: ({ event }) => (event.type === 'ACCEPT_CONSENT' ? event.email : null),
+        recontactRequestId: ({ event }) =>
+          event.type === 'ACCEPT_CONSENT' ? event.requestId : null,
+      }),
+      storeSession: assign(({ event }) => {
+        const output = createSessionResponseSchema.parse('output' in event ? event.output : null);
+        return {
+          sessionId: output.sessionId,
+          participantCode: output.participantCode,
+          condition: output.condition,
+          assignmentMode: output.assignmentMode,
+          guardrailFormId: output.guardrailFormId,
+          researchErrorCode: null,
+        };
+      }),
+      clearRecontactSecrets: assign({
+        recontactEmail: () => null,
+        recontactRequestId: () => null,
+        researchErrorCode: () => null,
+      }),
+      storePendingSubmission: assign({
+        pendingSubmission: ({ context, event }) => {
+          switch (event.type) {
+            case 'SUBMIT_PRE':
+            case 'SUBMIT_POST':
+            case 'SUBMIT_GUARDRAILS':
+            case 'SUBMIT_POST_OPEN':
+              return event.payload;
+            default:
+              return context.pendingSubmission;
+          }
+        },
+      }),
+      confirmPendingSubmission: assign({
+        instrumentBlockCursor: ({ context }) => context.instrumentBlockCursor + 1,
+        pendingSubmission: () => null,
+        researchErrorCode: () => null,
+      }),
       requestArtifactCompletion: assign({
         artifactCompletionRequested: () => true,
+      }),
+      confirmArtifactTimingStarted: assign({
+        artifactTimingStarted: () => true,
       }),
       incrementPendingArtifactTimingWrites: assign({
         pendingArtifactTimingWrites: ({ context }) => context.pendingArtifactTimingWrites + 1,
@@ -225,20 +370,22 @@ export function createStudyMachine(ports: StudyRuntimePorts) {
       TECHNICAL_ABORT: { target: '.fatalError', actions: 'storeFatalError' },
     },
     states: {
-      consent: { on: { ACCEPT_CONSENT: 'creatingSession' } },
+      consent: {
+        on: {
+          ACCEPT_CONSENT: {
+            guard: 'acceptsConsentDecision',
+            target: 'creatingSession',
+            actions: 'storeConsentDecision',
+          },
+        },
+      },
       creatingSession: {
         invoke: {
           id: 'createSession',
           src: 'createSession',
           onDone: {
-            target: 'preQuestionnaire',
-            actions: assign({
-              sessionId: ({ event }) => event.output.sessionId,
-              participantCode: ({ event }) => event.output.participantCode,
-              condition: ({ event }) => event.output.condition,
-              assignmentMode: ({ event }) => event.output.assignmentMode,
-              researchErrorCode: () => null,
-            }),
+            target: 'recontactRegistration',
+            actions: 'storeSession',
           },
           onError: {
             target: 'sessionError',
@@ -253,16 +400,63 @@ export function createStudyMachine(ports: StudyRuntimePorts) {
           RETRY_SESSION: { target: 'creatingSession', actions: 'clearResearchError' },
         },
       },
+      recontactRegistration: {
+        initial: 'registering',
+        states: {
+          registering: {
+            invoke: {
+              id: 'registerRecontact',
+              src: 'registerRecontact',
+              input: ({ context }) => ({
+                sessionId: requiredSessionId(context),
+                request: requiredRecontactRequest(context),
+              }),
+              onDone: {
+                target: '#study.preQuestionnaire',
+                actions: 'clearRecontactSecrets',
+              },
+              onError: {
+                target: 'error',
+                actions: assign({
+                  researchErrorCode: ({ event }) => errorCode(event.error),
+                }),
+              },
+            },
+          },
+          error: {
+            on: {
+              RETRY_RECONTACT: {
+                target: 'registering',
+                actions: 'clearResearchError',
+              },
+            },
+          },
+        },
+      },
       preQuestionnaire: {
         initial: 'editing',
         states: {
-          editing: { on: { SUBMIT_PRE: 'saving' } },
+          editing: {
+            on: {
+              SUBMIT_PRE: {
+                guard: 'acceptsPreSubmission',
+                target: 'saving',
+                actions: 'storePendingSubmission',
+              },
+            },
+          },
           saving: {
             invoke: {
-              id: 'savePre',
-              src: 'savePre',
-              input: ({ context }) => ({ sessionId: requiredSessionId(context) }),
-              onDone: { target: '#study.artifactLifecycle' },
+              id: 'savePreSubmission',
+              src: 'saveInstrumentSubmission',
+              input: ({ context }) => ({
+                sessionId: requiredSessionId(context),
+                submission: requiredPendingSubmission(context),
+              }),
+              onDone: {
+                target: 'routing',
+                actions: 'confirmPendingSubmission',
+              },
               onError: {
                 target: 'error',
                 actions: assign({
@@ -274,11 +468,17 @@ export function createStudyMachine(ports: StudyRuntimePorts) {
           error: {
             on: { RETRY_PRE: { target: 'saving', actions: 'clearResearchError' } },
           },
+          routing: {
+            always: [
+              { guard: 'nextBlockIsPre', target: 'editing' },
+              { target: '#study.artifactLifecycle' },
+            ],
+          },
         },
       },
       artifactLifecycle: {
         tags: ['artifactActive'],
-        initial: 'starting',
+        initial: 'preparing',
         invoke: {
           id: 'observeArtifactLifecycle',
           src: 'observeArtifactLifecycle',
@@ -305,12 +505,20 @@ export function createStudyMachine(ports: StudyRuntimePorts) {
           },
         },
         states: {
+          preparing: {
+            on: {
+              START_ARTIFACT: 'starting',
+            },
+          },
           starting: {
             invoke: {
               id: 'startArtifact',
               src: 'startArtifact',
               input: ({ context }) => ({ sessionId: requiredSessionId(context) }),
-              onDone: { target: 'artifact' },
+              onDone: {
+                target: 'artifact',
+                actions: 'confirmArtifactTimingStarted',
+              },
               onError: {
                 target: 'startError',
                 actions: assign({
@@ -334,7 +542,7 @@ export function createStudyMachine(ports: StudyRuntimePorts) {
               input: ({ context }) => ({ sessionId: requiredSessionId(context) }),
               onDone: {
                 target: 'artifact',
-                actions: 'clearArtifactTimingError',
+                actions: ['confirmArtifactTimingStarted', 'clearArtifactTimingError'],
               },
               onError: {
                 target: 'startError',
@@ -421,13 +629,27 @@ export function createStudyMachine(ports: StudyRuntimePorts) {
       postQuestionnaire: {
         initial: 'editing',
         states: {
-          editing: { on: { SUBMIT_POST: 'saving' } },
+          editing: {
+            on: {
+              SUBMIT_POST: {
+                guard: 'acceptsPostSubmission',
+                target: 'saving',
+                actions: 'storePendingSubmission',
+              },
+            },
+          },
           saving: {
             invoke: {
-              id: 'savePost',
-              src: 'savePost',
-              input: ({ context }) => ({ sessionId: requiredSessionId(context) }),
-              onDone: { target: '#study.guardrails' },
+              id: 'savePostSubmission',
+              src: 'saveInstrumentSubmission',
+              input: ({ context }) => ({
+                sessionId: requiredSessionId(context),
+                submission: requiredPendingSubmission(context),
+              }),
+              onDone: {
+                target: 'routing',
+                actions: 'confirmPendingSubmission',
+              },
               onError: {
                 target: 'error',
                 actions: assign({
@@ -439,18 +661,38 @@ export function createStudyMachine(ports: StudyRuntimePorts) {
           error: {
             on: { RETRY_POST: { target: 'saving', actions: 'clearResearchError' } },
           },
+          routing: {
+            always: [
+              { guard: 'nextBlockIsPost', target: 'editing' },
+              { target: '#study.guardrails' },
+            ],
+          },
         },
       },
       guardrails: {
         initial: 'editing',
         states: {
-          editing: { on: { SUBMIT_GUARDRAILS: 'saving' } },
+          editing: {
+            on: {
+              SUBMIT_GUARDRAILS: {
+                guard: 'acceptsGuardrailSubmission',
+                target: 'saving',
+                actions: 'storePendingSubmission',
+              },
+            },
+          },
           saving: {
             invoke: {
-              id: 'saveGuardrails',
-              src: 'saveGuardrails',
-              input: ({ context }) => ({ sessionId: requiredSessionId(context) }),
-              onDone: { target: '#study.debrief' },
+              id: 'saveGuardrailSubmission',
+              src: 'saveInstrumentSubmission',
+              input: ({ context }) => ({
+                sessionId: requiredSessionId(context),
+                submission: requiredPendingSubmission(context),
+              }),
+              onDone: {
+                target: 'routing',
+                actions: 'confirmPendingSubmission',
+              },
               onError: {
                 target: 'error',
                 actions: assign({
@@ -462,6 +704,51 @@ export function createStudyMachine(ports: StudyRuntimePorts) {
           error: {
             on: {
               RETRY_GUARDRAILS: { target: 'saving', actions: 'clearResearchError' },
+            },
+          },
+          routing: {
+            always: [
+              { guard: 'nextBlockIsGuardrail', target: 'editing' },
+              { target: '#study.postOpen' },
+            ],
+          },
+        },
+      },
+      postOpen: {
+        initial: 'editing',
+        states: {
+          editing: {
+            on: {
+              SUBMIT_POST_OPEN: {
+                guard: 'acceptsPostOpenSubmission',
+                target: 'saving',
+                actions: 'storePendingSubmission',
+              },
+            },
+          },
+          saving: {
+            invoke: {
+              id: 'savePostOpenSubmission',
+              src: 'saveInstrumentSubmission',
+              input: ({ context }) => ({
+                sessionId: requiredSessionId(context),
+                submission: requiredPendingSubmission(context),
+              }),
+              onDone: {
+                target: '#study.debrief',
+                actions: 'confirmPendingSubmission',
+              },
+              onError: {
+                target: 'error',
+                actions: assign({
+                  researchErrorCode: ({ event }) => errorCode(event.error),
+                }),
+              },
+            },
+          },
+          error: {
+            on: {
+              RETRY_POST_OPEN: { target: 'saving', actions: 'clearResearchError' },
             },
           },
         },

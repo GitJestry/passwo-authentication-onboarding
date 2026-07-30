@@ -10,8 +10,10 @@ function studyRuntimePorts(requestArguments: unknown[][]): StudyRuntimePorts {
       participantCode: 'PW-AB12CD34',
       condition: 'supportive',
       assignmentMode: 'forced-supportive',
+      guardrailFormId: 'F1',
     }),
-    savePlaceholder: async (...arguments_) => {
+    registerRecontact: async () => {},
+    saveInstrumentSubmission: async (...arguments_) => {
       requestArguments.push(arguments_);
     },
     startArtifact: async (...arguments_) => {
@@ -47,9 +49,25 @@ describe('password module privacy boundary', () => {
     controller.completeS00();
     await flushMicrotasks();
     controller.setPasswordValue('campus-id', trainingValue);
-    studyActor.send({ type: 'ACCEPT_CONSENT' });
+    studyActor.send({
+      type: 'ACCEPT_CONSENT',
+      email: 'person@example.org',
+      requestId: 'f5d74d44-f700-4dc7-ac00-5e251a8890c3',
+    });
     await flushMicrotasks();
-    studyActor.send({ type: 'SUBMIT_PRE' });
+    studyActor.send({
+      type: 'SUBMIT_PRE',
+      payload: {
+        instrumentId: 'pre-v1',
+        sectionId: 'sample',
+        responses: [
+          { itemId: 'PRE_ROLE', value: 'undergraduate' },
+          { itemId: 'PRE_FIELD', value: 'stem' },
+          { itemId: 'PRE_AGE', value: 'age_18_25' },
+          { itemId: 'PRE_GENDER', value: null },
+        ],
+      },
+    });
     await flushMicrotasks();
     await flushMicrotasks();
 

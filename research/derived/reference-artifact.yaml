@@ -2,7 +2,7 @@ status: frozen-local-study-adapted
 studyConfigId: main-study-v1
 snapshotId: secaware-passwords-authentication-2026-07-26
 sourceArtifactVersion: V9 (27.03.2026)
-artifactVersion: secaware-passwords-authentication-v9-study-adapted-2026-07-26-r3
+artifactVersion: secaware-passwords-authentication-v9-study-adapted-2026-07-30-r7
 sourcePath: research/private/reference/secaware/passwords-authentication/2026-07-26/source
 studyBuildPath: research/private/reference/secaware/passwords-authentication/2026-07-26/study-build
 transformationPath: research/derived/reference-artifact-transform.yaml
@@ -38,8 +38,8 @@ integrity:
   sourceFileCount: 146
   sourceManifestSha256: 4eee807687cad07e9856decd711a45a79076caf2ef9b9b6d6dae0401d23f821b
   studyBuildFileCount: 146
-  studyBuildManifestSha256: 5b1d26d28efd73ed95a3b3a6198511a8445f9af9869c5c95ef918552e15d07de
-  transformationConfigSha256: 939949486b2842cb955a44a5e126fdfdd41f036d4b48bb880acf42185d81aa86
+  studyBuildManifestSha256: 56e55d180b6fdd6d407b90157cbd454ca78e2e16b677c4ecfadc79b082b8b16a
+  transformationConfigSha256: e2798961576ab7c5c3496df40a79d2bb62b8eedff69709f729d75423bfadf5c8
 completionBridge:
   messageType: passwo:reference-completed
   payloadFields:

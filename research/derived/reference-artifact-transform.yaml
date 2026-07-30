@@ -1,5 +1,5 @@
 schemaVersion: 1
-artifactVersion: secaware-passwords-authentication-v9-study-adapted-2026-07-26-r3
+artifactVersion: secaware-passwords-authentication-v9-study-adapted-2026-07-30-r7
 sourceVersion: V9 (27.03.2026)
 courseId: CwynTB5JDjzJgtE8M2SKmgtgC6sM4C4h
 selection:
@@ -178,8 +178,24 @@ transformations:
     reason: The quiz remains in the measured artifact, while the removed usage-notes lesson must not remain a navigation target.
   - id: runtime-completion-percentage
     targetId: completionPercentage
-    operation: set-100
-    reason: All three instructional lessons and the native quiz must be complete before course completion is reported.
+    operation: retain-native-80
+    reason: The three instructional lessons remain the required coverage; a failed native quiz must not prevent the visible completion action.
+  - id: runtime-storyline-quiz-completion
+    targetId: Runtime.finishStoryline
+    operation: complete-on-native-quiz-result
+    reason: A completed native quiz attempt must reach the common study post-flow even when its score is below the provider passing threshold.
+  - id: course-exit-disable
+    targetId: course.lmsOptions.enableExitCourse
+    operation: set-false
+    reason: The embedded study path must not render a provider exit action outside the common study flow.
+  - id: runtime-incomplete-completion-guard
+    targetId: cm1etwitt00vi2a6r4ew4az3m
+    operation: prevent-navigation-and-warn-with-unfinished-titles
+    reason: An incomplete instructional path must keep its completion action available and identify unfinished instructional lessons without treating the quiz result as coverage.
+  - id: runtime-provider-logo-targets-localize
+    targetId: bundled-Storyline-provider-logo-webobjects
+    operation: replace-with-about-blank
+    reason: The retained lesson and quiz webobjects must not request external provider logo PHP endpoints.
   - id: driver-completion-bridge
     targetId: scormdriver/indexAPI.html
     operation: wrap-SetReachedEnd-and-post-once

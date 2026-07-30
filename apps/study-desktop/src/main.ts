@@ -4,10 +4,14 @@ import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import {
   assignmentModeSchema,
+  designLabPathForTrainingQaSegment,
   referenceSupplementLinkForId,
   referenceSupplementLinkIdSchema,
+  trainingQaSegmentSchema,
+  type TrainingQaSegment,
 } from '@passwo/contracts';
 import {
+  resolveRecontactDatabasePath,
   resolveStudyDatabasePath,
   type StudyRuntime,
   startStudyRuntime,
@@ -61,6 +65,18 @@ let studyRuntime: StudyRuntime | null = null;
 let supplementView: WebContentsView | null = null;
 let supplementPdfAbortController: AbortController | null = null;
 let shuttingDown = false;
+
+function qaTrainingSegmentFromEnvironment(): TrainingQaSegment | null {
+  const configuredSegment = process.env.PASSWO_QA_SEGMENT;
+  if (configuredSegment === undefined) return null;
+  if (app.isPackaged) {
+    throw new Error('PASSWO_QA_SEGMENT ist nur beim Entwicklungsstart verfügbar.');
+  }
+
+  const parsedSegment = trainingQaSegmentSchema.safeParse(configuredSegment);
+  if (parsedSegment.success) return parsedSegment.data;
+  throw new Error('Ungültiger PASSWO_QA_SEGMENT-Wert. Erlaubt sind: s00, s01, s02, s03.');
+}
 
 function runtimeResourcePath(developmentPath: string, packagedName: string): string {
   return app.isPackaged
@@ -188,11 +204,7 @@ function isPdfDocument(bytes: Uint8Array): boolean {
   return signature.every((value, index) => bytes[index] === value);
 }
 
-function readBoundedPdf(
-  url: string,
-  signal: AbortSignal,
-  redirectCount = 0,
-): Promise<Uint8Array> {
+function readBoundedPdf(url: string, signal: AbortSignal, redirectCount = 0): Promise<Uint8Array> {
   return new Promise((resolvePdf, rejectPdf) => {
     const parsedUrl = new URL(url);
     const request = (parsedUrl.protocol === 'https:' ? getHttps : getHttp)(
@@ -215,10 +227,7 @@ function readBoundedPdf(
             rejectPdf(new Error('invalid-reference-pdf-redirect'));
             return;
           }
-          void readBoundedPdf(redirectUrl, signal, redirectCount + 1).then(
-            resolvePdf,
-            rejectPdf,
-          );
+          void readBoundedPdf(redirectUrl, signal, redirectCount + 1).then(resolvePdf, rejectPdf);
           return;
         }
 
@@ -332,9 +341,7 @@ async function openReferenceSupplement(
       devTools: false,
       nodeIntegration: false,
       partition: 'passwo-reference-supplements',
-      ...(link.kind === 'pdf'
-        ? { preload: join(currentDirectory, 'pdf-preload.cjs') }
-        : {}),
+      ...(link.kind === 'pdf' ? { preload: join(currentDirectory, 'pdf-preload.cjs') } : {}),
       sandbox: true,
       webSecurity: true,
     },
@@ -366,10 +373,12 @@ async function startApplication(): Promise<void> {
   const assignmentMode = assignmentModeSchema.parse(
     process.env.STUDY_ASSIGNMENT_MODE ?? 'permuted-block',
   );
+  const qaTrainingSegment = qaTrainingSegmentFromEnvironment();
   studyRuntime = await startStudyRuntime({
     version: applicationVersion,
     assignmentMode,
     databasePath: resolveStudyDatabasePath(),
+    recontactDatabasePath: resolveRecontactDatabasePath(),
     referenceArtifactDirectory: runtimeResourcePath(
       '../../../research/private/reference/secaware/passwords-authentication/2026-07-26/study-build',
       'study-build',
@@ -416,7 +425,14 @@ async function startApplication(): Promise<void> {
     app.quit();
   });
 
-  await window.loadURL(studyRuntime.origin);
+  const initialUrl =
+    qaTrainingSegment === null
+      ? studyRuntime.origin
+      : new URL(
+          designLabPathForTrainingQaSegment(qaTrainingSegment),
+          studyRuntime.origin,
+        ).toString();
+  await window.loadURL(initialUrl);
 }
 
 app.setName('Authentication Onboarding');
@@ -445,11 +461,17 @@ if (!hasSingleInstanceLock) {
   void app
     .whenReady()
     .then(startApplication)
-    .catch(async () => {
+    .catch(async (error: unknown) => {
       await shutdown();
+      const developmentHint =
+        error instanceof Error &&
+        (error.message.startsWith('PASSWO_QA_SEGMENT') ||
+          error.message.startsWith('Ungültiger PASSWO_QA_SEGMENT'))
+          ? `\n\n${error.message}`
+          : '';
       dialog.showErrorBox(
         'Authentication Onboarding',
-        'Die lokale Anwendung konnte nicht gestartet werden.',
+        `Die lokale Anwendung konnte nicht gestartet werden.${developmentHint}`,
       );
       app.quit();
     });

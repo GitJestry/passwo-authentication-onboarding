@@ -27,8 +27,10 @@
     "check:reference-artifact": "node ./scripts/verify-reference-artifact.mjs",
     "check": "pnpm check:biome && pnpm typecheck && pnpm check:research-boundary",
     "desktop:dev": "node ./scripts/build-reference-artifact.mjs && node ./scripts/verify-reference-artifact.mjs && pnpm build && pnpm exec electron-forge start apps/study-desktop",
+    "dev:secaware": "STUDY_ASSIGNMENT_MODE=forced-reference pnpm dev",
     "desktop:package": "node ./scripts/build-reference-artifact.mjs && node ./scripts/verify-reference-artifact.mjs && pnpm build && pnpm --filter @passwo/study-desktop run package",
     "study:export": "tsx ./scripts/export-study.ts",
+    "followup:export-schedule": "tsx ./scripts/export-followup-schedule.ts",
     "clean": "node ./scripts/clean.mjs"
   },
   "devDependencies": {

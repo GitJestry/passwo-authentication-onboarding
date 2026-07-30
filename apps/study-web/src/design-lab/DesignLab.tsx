@@ -3,15 +3,22 @@ import {
   designLabPathForScenario,
   designLabScenarioIds,
 } from '@passwo/contracts';
+import { s01Content } from '@passwo/training-content';
+import {
+  PasswordModuleController,
+  type PasswordModuleSnapshot,
+} from '@passwo/training-engine';
 import {
   BrowserShell,
   type BrowserShellLayers,
   type BrowserShellSnapshot,
   type BrowserTabModel,
 } from '@passwo/ui';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { S00Training } from '../features/training/S00Training.js';
+import { S01Training } from '../features/training/S01Training.js';
 import { S02AccountExplorationTraining } from '../features/training/segments/S02/S02AccountExplorationTraining.js';
+import { S03RetrievalTraining } from '../features/training/segments/S03/S03RetrievalTraining.js';
 import { S06ConsequenceTraining } from '../features/training/segments/S06/S06ConsequenceTraining.js';
 import styles from './DesignLab.module.css';
 
@@ -131,9 +138,21 @@ const scenarios: Record<DesignLabScenarioId, DesignLabScenario> = {
     dimmed: false,
     showPassWoOverlay: false,
   },
+  s01: {
+    label: 'S01',
+    description: 'Direkter QA-Einstieg in die fiktive Kontoeinrichtung.',
+    dimmed: false,
+    showPassWoOverlay: false,
+  },
   's02-campus-id': {
     label: 'S02 Konten',
     description: 'Vollständige Kontenerkundung mit drei Konten und ihrem freien Fortschritt.',
+    dimmed: false,
+    showPassWoOverlay: false,
+  },
+  s03: {
+    label: 'S03',
+    description: 'Direkter QA-Einstieg in den fiktiven Anmeldeabruf.',
     dimmed: false,
     showPassWoOverlay: false,
   },
@@ -303,6 +322,102 @@ function createOverlayLayers(
   };
 }
 
+function waitForPreviewState(
+  controller: PasswordModuleController,
+  matches: (snapshot: PasswordModuleSnapshot) => boolean,
+  signal: AbortSignal,
+): Promise<void> {
+  if (matches(controller.getSnapshot())) return Promise.resolve();
+
+  return new Promise((resolve, reject) => {
+    let unsubscribe: () => void = () => undefined;
+    const abort = () => {
+      unsubscribe();
+      reject(new Error('design-lab-preview-cancelled'));
+    };
+    unsubscribe = controller.subscribe((snapshot) => {
+      if (!matches(snapshot)) return;
+      signal.removeEventListener('abort', abort);
+      unsubscribe();
+      resolve();
+    });
+    signal.addEventListener('abort', abort, { once: true });
+  });
+}
+
+function PasswordModuleSegmentPreview({ segment }: { readonly segment: 's01' | 's03' }) {
+  const [controller, setController] = useState<PasswordModuleController | null>(null);
+  const [snapshot, setSnapshot] = useState<PasswordModuleSnapshot | null>(null);
+  const [preparationError, setPreparationError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const previewController = new PasswordModuleController({
+      accountIds: s01Content.browser.accounts.map(({ id }) => id),
+    });
+    const abortController = new AbortController();
+    const unsubscribe = previewController.subscribe(setSnapshot);
+    setController(previewController);
+    setSnapshot(previewController.getSnapshot());
+    setPreparationError(null);
+
+    async function preparePreview(): Promise<void> {
+      previewController.enterDisplayName('Vorschau');
+      previewController.completeSectionTransition();
+      previewController.completeS00();
+      await waitForPreviewState(
+        previewController,
+        (currentSnapshot) => currentSnapshot.matches({ s01: 'editing' }),
+        abortController.signal,
+      );
+      if (segment === 's01') return;
+
+      for (const accountId of previewController.getSnapshot().context.accountIds) {
+        previewController.setPasswordValue(accountId, `preview-${accountId}`);
+        previewController.configureAccount(accountId);
+      }
+      previewController.continue();
+      await waitForPreviewState(
+        previewController,
+        (currentSnapshot) => currentSnapshot.matches({ s02: 'active' }),
+        abortController.signal,
+      );
+      previewController.completeS02Content();
+      previewController.continue();
+      await waitForPreviewState(
+        previewController,
+        (currentSnapshot) => currentSnapshot.matches({ s03: 'active' }),
+        abortController.signal,
+      );
+    }
+
+    void preparePreview().catch((error: unknown) => {
+      if (abortController.signal.aborted) return;
+      setPreparationError(error instanceof Error ? error.message : 'design-lab-preview-failed');
+    });
+
+    return () => {
+      abortController.abort();
+      unsubscribe();
+      previewController.dispose();
+    };
+  }, [segment]);
+
+  if (preparationError !== null) {
+    return <p role="alert">QA-Szene konnte nicht vorbereitet werden: {preparationError}</p>;
+  }
+
+  if (controller === null || snapshot === null) {
+    return <p>QA-Szene wird vorbereitet …</p>;
+  }
+
+  if (segment === 's01') {
+    if (!snapshot.matches('s01')) return <p>QA-Szene wird vorbereitet …</p>;
+    return <S01Training controller={controller} snapshot={snapshot} />;
+  }
+  if (!snapshot.matches('s03')) return <p>QA-Szene wird vorbereitet …</p>;
+  return <S03RetrievalTraining controller={controller} snapshot={snapshot} />;
+}
+
 export function DesignLab({ scenarioId }: { readonly scenarioId: DesignLabScenarioId }) {
   const scenario = scenarios[scenarioId];
   const [activeTabScene, setActiveTabScene] = useState(preparationTabScene);
@@ -335,6 +450,15 @@ export function DesignLab({ scenarioId }: { readonly scenarioId: DesignLabScenar
           onComplete={() => undefined}
           forceAnimationFailure={forceAnimationFailure}
         />
+      </main>
+    );
+  }
+
+  if (scenarioId === 's01' || scenarioId === 's03') {
+    return (
+      <main className={styles.labPage}>
+        <DesignLabIntroduction scenarioId={scenarioId} scenario={scenario} />
+        <PasswordModuleSegmentPreview key={scenarioId} segment={scenarioId} />
       </main>
     );
   }

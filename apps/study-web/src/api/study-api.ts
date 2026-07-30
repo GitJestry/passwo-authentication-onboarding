@@ -3,8 +3,11 @@ import {
   completeSessionRequestSchema,
   createSessionRequestSchema,
   createSessionResponseSchema,
-  type PlaceholderInstrumentId,
-  placeholderResponseRequestSchema,
+  type InstrumentSubmissionRequest,
+  instrumentSubmissionRequestSchema,
+  type RegisterRecontactRequest,
+  registerRecontactRequestSchema,
+  registerRecontactResponseSchema,
   saveResponseResponseSchema,
   sessionStatusResponseSchema,
   studyTimingEventSchema,
@@ -56,10 +59,7 @@ async function postJson(url: string, body: unknown): Promise<unknown> {
 }
 
 export function createStudyApi(): StudyApi {
-  const createRequest = createSessionRequestSchema.parse({
-    requestId: globalThis.crypto.randomUUID(),
-    consentAccepted: true,
-  });
+  const createRequestId = globalThis.crypto.randomUUID();
   let timingSessionId: string | null = null;
 
   function selectTimingSession(sessionId: string): void {
@@ -104,17 +104,30 @@ export function createStudyApi(): StudyApi {
 
   return {
     createSegmentTimingPort,
-    createSession: async () =>
-      createSessionResponseSchema.parse(await postJson('/api/study/sessions', createRequest)),
-
-    savePlaceholder: async (sessionId: string, instrumentId: PlaceholderInstrumentId) => {
-      const request = placeholderResponseRequestSchema.parse({
-        instrumentId,
-        itemId: 'placeholder-complete',
-        value: true,
+    createSession: async () => {
+      const createRequest = createSessionRequestSchema.parse({
+        requestId: createRequestId,
+        consentAccepted: true,
       });
+      return createSessionResponseSchema.parse(
+        await postJson('/api/study/sessions', createRequest),
+      );
+    },
+
+    registerRecontact: async (sessionId: string, registration: RegisterRecontactRequest) => {
+      const request = registerRecontactRequestSchema.parse(registration);
+      registerRecontactResponseSchema.parse(
+        await postJson(`/api/study/sessions/${sessionId}/recontact`, request),
+      );
+    },
+
+    saveInstrumentSubmission: async (
+      sessionId: string,
+      submission: InstrumentSubmissionRequest,
+    ) => {
+      const request = instrumentSubmissionRequestSchema.parse(submission);
       saveResponseResponseSchema.parse(
-        await postJson(`/api/study/sessions/${sessionId}/responses`, request),
+        await postJson(`/api/study/sessions/${sessionId}/instrument-submissions`, request),
       );
     },
 
