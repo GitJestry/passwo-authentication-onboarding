@@ -367,11 +367,16 @@ function SceneNodeCircle({ data }: NodeProps<SceneFlowNode>) {
         onClick={() => onSelect(sceneNode.id)}
       >
         <span className={styles.nodeCircle} aria-hidden="true">
+          <NetworkSymbol symbolId={symbolId} className={styles.nodeSymbol} />
           {lockedAccount ? (
-            <NetworkStatusMarker status={sceneNode.status} locked className={styles.lockSymbol} />
-          ) : (
-            <NetworkSymbol symbolId={symbolId} className={styles.nodeSymbol} />
-          )}
+            <span className={styles.lockOverlay}>
+              <NetworkStatusMarker
+                status={sceneNode.status}
+                locked
+                className={styles.lockSymbol}
+              />
+            </span>
+          ) : null}
           {lockedAccount ? (
             <span className={styles.unlockParticles}>
               <i />

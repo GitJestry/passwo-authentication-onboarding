@@ -44,6 +44,9 @@
 }
 
 .pageHeader {
+  position: sticky;
+  z-index: 3;
+  top: 0;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -116,7 +119,7 @@
 .portalContext,
 .mailContext,
 .boardContext {
-  min-height: 31rem;
+  min-height: 46rem;
   overflow: hidden;
   border: var(--border-width-thin) solid var(--color-border-soft);
   border-radius: var(--radius-large);
@@ -140,9 +143,27 @@
 }
 
 .portalWelcome h2 {
-  margin: 0 0 var(--space-3);
+  margin: var(--space-1) 0 var(--space-2);
   color: var(--color-ink-strong);
   font-size: var(--font-size-heading-small);
+}
+
+.portalWelcome p,
+.boardIntro p,
+.boardPost p,
+.mailReadingPane p {
+  margin: 0;
+  color: var(--color-ink-muted);
+  font-size: var(--font-size-small);
+  line-height: var(--line-height-body);
+}
+
+.eyebrow {
+  display: block;
+  color: var(--color-accent-strong);
+  font-size: var(--font-size-x-small);
+  font-weight: var(--font-weight-heavy);
+  letter-spacing: 0.035em;
 }
 
 .portalGrid {
@@ -152,6 +173,7 @@
 }
 
 .portalTile {
+  position: relative;
   display: grid;
   min-height: 9rem;
   align-content: space-between;
@@ -160,6 +182,59 @@
   border: var(--border-width-thin) solid var(--color-border-soft);
   border-radius: var(--radius-medium);
   background: color-mix(in srgb, var(--color-surface-muted) 68%, var(--color-surface-primary));
+}
+
+.portalTile strong,
+.portalTile > div > span {
+  display: block;
+}
+
+.portalTile strong {
+  color: var(--color-ink-strong);
+}
+
+.portalTile > div > span {
+  margin-top: var(--space-1);
+  color: var(--color-ink-muted);
+  font-size: var(--font-size-x-small);
+  line-height: var(--line-height-body);
+}
+
+.tileArrow {
+  position: absolute;
+  right: var(--space-4);
+  bottom: var(--space-3);
+  color: var(--color-accent-strong);
+  font-weight: var(--font-weight-heavy);
+}
+
+.activityPanel {
+  display: grid;
+  gap: var(--space-2);
+  padding: var(--space-4);
+  border: var(--border-width-thin) solid var(--color-border-soft);
+  border-radius: var(--radius-medium);
+  background: var(--color-surface-muted);
+}
+
+.activityRow {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-3);
+  border-radius: var(--radius-small);
+  color: var(--color-ink-muted);
+  background: var(--color-surface-primary);
+  font-size: var(--font-size-small);
+}
+
+.activityDot {
+  width: 0.55rem;
+  height: 0.55rem;
+  border: var(--border-width-thin) solid var(--color-accent-strong);
+  border-radius: var(--radius-round);
+  background: var(--color-accent-soft);
 }
 
 .contextHeroSymbol {
@@ -175,36 +250,6 @@
   color: var(--color-accent-strong);
 }
 
-.skeletonLines {
-  display: grid;
-  width: 100%;
-  gap: var(--space-2);
-}
-
-.skeletonLines > span {
-  display: block;
-  width: 100%;
-  height: 0.48rem;
-  border-radius: var(--radius-round);
-  background: var(--color-surface-muted);
-}
-
-.skeletonLines > span:nth-child(2) {
-  width: 76%;
-}
-
-.skeletonLines > span:nth-child(3) {
-  width: 88%;
-}
-
-.skeletonLines > span:nth-child(4) {
-  width: 64%;
-}
-
-.skeletonLines > span:nth-child(5) {
-  width: 72%;
-}
-
 .mailContext {
   display: grid;
   grid-template-columns: 7rem minmax(13rem, 0.8fr) minmax(13rem, 1fr);
@@ -214,7 +259,7 @@
 .mailFolders {
   display: grid;
   align-content: start;
-  justify-items: center;
+  justify-items: stretch;
   gap: var(--space-4);
   padding: var(--space-5) var(--space-3);
   border-right: var(--border-width-thin) solid var(--color-border-soft);
@@ -222,20 +267,32 @@
 }
 
 .mailFolders > span {
-  width: 70%;
-  height: 0.6rem;
-  border-radius: var(--radius-round);
-  background: var(--color-surface-muted);
+  padding: var(--space-2);
+  border-radius: var(--radius-small);
+  color: var(--color-ink-muted);
+  font-size: var(--font-size-x-small);
+  font-weight: var(--font-weight-semibold);
+  text-align: center;
 }
 
 .mailFolders .folderActive {
-  width: 92%;
-  height: 2.1rem;
+  color: var(--color-ink-strong);
   background: var(--color-accent-soft);
 }
 
 .mailList {
   border-right: var(--border-width-thin) solid var(--color-border-soft);
+}
+
+.mailListHeader {
+  display: grid;
+  gap: var(--space-1);
+  padding: var(--space-4);
+  border-bottom: var(--border-width-thin) solid var(--color-border-soft);
+}
+
+.mailListHeader strong {
+  color: var(--color-ink-strong);
 }
 
 .mailRow {
@@ -249,21 +306,79 @@
 }
 
 .avatar {
+  display: grid;
   width: 2rem;
   height: 2rem;
+  place-items: center;
   border-radius: var(--radius-round);
+  color: var(--color-accent-strong);
   background: var(--color-accent-soft);
+  font-size: var(--font-size-x-small);
+  font-weight: var(--font-weight-heavy);
 }
 
 .mailTime {
-  width: 2.4rem;
-  height: 0.38rem;
-  border-radius: var(--radius-round);
-  background: var(--color-surface-muted);
+  color: var(--color-ink-muted);
+  font-size: 0.68rem;
+}
+
+.mailSummary {
+  min-width: 0;
+}
+
+.mailSummary strong,
+.mailSummary > span {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.mailSummary strong {
+  color: var(--color-ink-strong);
+  font-size: var(--font-size-small);
+}
+
+.mailSummary > span {
+  margin-top: var(--space-1);
+  color: var(--color-ink-muted);
+  font-size: var(--font-size-x-small);
 }
 
 .mailReadingPane {
   padding: var(--space-6) var(--space-5);
+}
+
+.mailReadingPane h2 {
+  margin: var(--space-2) 0 var(--space-4);
+  color: var(--color-ink-strong);
+  font-size: var(--font-size-heading-small);
+}
+
+.readingRule {
+  height: var(--border-width-thin);
+  margin: var(--space-5) 0;
+  background: var(--color-border-soft);
+}
+
+.readingPreview {
+  display: grid;
+  gap: var(--space-3);
+  margin-top: var(--space-6);
+}
+
+.readingPreview span {
+  height: 0.55rem;
+  border-radius: var(--radius-round);
+  background: var(--color-surface-muted);
+}
+
+.readingPreview span:nth-child(2) {
+  width: 78%;
+}
+
+.readingPreview span:nth-child(3) {
+  width: 62%;
 }
 
 .boardContext {
@@ -282,14 +397,29 @@
 }
 
 .boardToolbar span {
-  width: 5.5rem;
-  height: 1.8rem;
+  min-width: 5.5rem;
+  padding: var(--space-2) var(--space-3);
   border-radius: var(--radius-round);
+  color: var(--color-ink-muted);
   background: var(--color-surface-muted);
+  font-size: var(--font-size-x-small);
+  font-weight: var(--font-weight-semibold);
+  text-align: center;
 }
 
-.boardToolbar span:first-child {
+.boardToolbar .boardToolbarActive {
+  color: var(--color-ink-strong);
   background: var(--color-accent-soft);
+}
+
+.boardIntro {
+  padding: var(--space-5) var(--space-5) 0;
+}
+
+.boardIntro h2 {
+  margin: var(--space-1) 0 var(--space-2);
+  color: var(--color-ink-strong);
+  font-size: var(--font-size-heading-small);
 }
 
 .boardFeed {
@@ -309,13 +439,23 @@
   background: var(--color-surface-primary);
 }
 
+.boardPost strong {
+  color: var(--color-ink-strong);
+}
+
+.boardPost p {
+  margin-top: var(--space-2);
+}
+
 .boardMeta {
-  display: block;
-  width: 34%;
-  height: 0.4rem;
+  display: inline-block;
   margin-top: var(--space-4);
+  padding: var(--space-1) var(--space-2);
   border-radius: var(--radius-round);
+  color: var(--color-accent-strong);
   background: var(--color-accent-soft);
+  font-size: var(--font-size-x-small);
+  font-weight: var(--font-weight-semibold);
 }
 
 @media (max-width: 980px) {
@@ -325,6 +465,12 @@
 
   .interactionColumn {
     min-height: auto;
+  }
+
+  .portalContext,
+  .mailContext,
+  .boardContext {
+    min-height: 38rem;
   }
 }
 

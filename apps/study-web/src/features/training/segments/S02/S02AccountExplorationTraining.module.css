@@ -873,9 +873,3 @@
     transform: none;
   }
 }
-
-@media (pointer: coarse) {
-  .cursorKey {
-    display: none;
-  }
-}

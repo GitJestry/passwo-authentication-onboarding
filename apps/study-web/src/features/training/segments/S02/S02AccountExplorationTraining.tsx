@@ -72,6 +72,16 @@ interface PlacementCandidate {
   readonly side: OverlaySide;
 }
 
+function PasswordKeyGraphic() {
+  return (
+    <svg viewBox="0 0 92 52" fill="none">
+      <circle cx="65" cy="26" r="18" />
+      <circle cx="65" cy="26" r="7" />
+      <path d="M49 26H8m11 0v9m11-9v7m10-7v5" />
+    </svg>
+  );
+}
+
 function clamp(value: number, minimum: number, maximum: number): number {
   return Math.min(maximum, Math.max(minimum, value));
 }
@@ -301,7 +311,6 @@ export function S02AccountExplorationTraining({
     guide: null,
     preview: null,
   });
-  const [dismissedSpeechKey, setDismissedSpeechKey] = useState<string | null>(null);
   const [returningToBrowser, setReturningToBrowser] = useState(false);
 
   useEffect(() => {
@@ -320,6 +329,7 @@ export function S02AccountExplorationTraining({
       initialRevealedNodeIds: [],
       applySnapshot: (presentation) => controller?.updatePresentation(presentation),
       getCharacterElement: () => characterAnimationAnchorRef.current,
+      getCursorKeyElement: () => cursorKeyRef.current,
       getActiveNodeElement: () =>
         networkHostRef.current?.querySelector<HTMLElement>(
           '[data-focused="true"] [data-scene-node-button], [data-active="true"] [data-scene-node-button]',
@@ -528,14 +538,17 @@ export function S02AccountExplorationTraining({
   const { controller, renderer } = runtime;
   const { scene, presentation } = snapshot;
   const activeAccount = definition.accounts.find(({ id }) => id === scene.activeAccountId);
-  const activePreview = activeAccount?.details.find(({ id }) => id === scene.activePreviewDetailId);
+  const activeAccountUnderstood =
+    scene.activeAccountId !== null && scene.understoodAccountIds.includes(scene.activeAccountId);
+  const activePreview = activeAccountUnderstood
+    ? undefined
+    : activeAccount?.details.find(({ id }) => id === scene.activePreviewDetailId);
   const understoodCount = scene.understoodAccountIds.length;
   const complete = understoodCount === definition.accounts.length;
   const narration = complete
     ? (s02Content.narration.messages[s02Content.narration.completeId] ?? '')
     : (s02Content.narration.messages[scene.narrationId] ?? '');
   const speechKey = `${scene.narrationId}-${complete}`;
-  const narrationActive = dismissedSpeechKey !== speechKey;
   const animationAnnouncement =
     presentation.announcedMessageId === null
       ? ''
@@ -558,16 +571,16 @@ export function S02AccountExplorationTraining({
   const guideStyle: CSSProperties | undefined = positionedGuide
     ? { left: positionedGuide.left, top: positionedGuide.top }
     : undefined;
-  const activeAccountUnderstood =
-    scene.activeAccountId !== null && scene.understoodAccountIds.includes(scene.activeAccountId);
   const keyVisible =
     snapshot.introState === 'complete' &&
+    (complete || scene.activeAccountId === null || activeAccountUnderstood);
+  const narrationBlocksInteraction = complete;
+  const canAdvanceNarration =
+    snapshot.introState === 'complete' &&
     !complete &&
-    scene.pendingAnimationId === null &&
-    (scene.activeAccountId === null || activeAccountUnderstood);
-  const narrationBlocksInteraction =
-    narrationActive &&
-    (scene.narrationId === s02Content.narration.introId || complete);
+    scene.activeAccountId !== null &&
+    !activeAccountUnderstood &&
+    scene.pendingAnimationId === null;
 
   function moveCursorKey(event: PointerEvent<HTMLElement>): void {
     const preview = previewRef.current;
@@ -584,6 +597,7 @@ export function S02AccountExplorationTraining({
 
     const cursorKey = cursorKeyRef.current;
     if (cursorKey === null || event.pointerType === 'touch') return;
+    if (cursorKey.dataset.animating === 'true') return;
     const parent = cursorKey.parentElement;
     if (parent === null) return;
     const parentRect = parent.getBoundingClientRect();
@@ -687,12 +701,11 @@ export function S02AccountExplorationTraining({
               placement={
                 positionedGuide?.side === 'left' ? 'left' : 'right'
               }
-              hasNext={scene.narrationId === s02Content.narration.introId && !complete}
-              awaitsAction={
-                scene.narrationId !== s02Content.narration.introId || complete
-              }
+              hasNext={canAdvanceNarration}
+              awaitsAction={!canAdvanceNarration}
+              advanceOnScreenClick={false}
               onAdvance={() => {
-                setDismissedSpeechKey(speechKey);
+                if (canAdvanceNarration) controller.advanceNarration();
               }}
             />
           </div>
@@ -703,11 +716,7 @@ export function S02AccountExplorationTraining({
             data-visible={keyVisible}
             aria-hidden="true"
           >
-            <svg viewBox="0 0 92 52" fill="none">
-              <circle cx="65" cy="26" r="18" />
-              <circle cx="65" cy="26" r="7" />
-              <path d="M49 26H8m11 0v9m11-9v7m10-7v5" />
-            </svg>
+            <PasswordKeyGraphic />
             <span>******</span>
           </div>
 

@@ -182,7 +182,7 @@ export interface S02SegmentContent {
   readonly animations: readonly S02AnimationSequence[];
 }
 
-export const S02_CONTENT_VERSION = '3.6.0';
+export const S02_CONTENT_VERSION = '3.7.0';
 
 const introId = 's02.accounts.intro';
 const completeId = 's02.accounts.complete';
@@ -438,7 +438,7 @@ function unlockAnimation(account: S02AccountContent): S02AnimationSequence {
       { type: 'announce', messageId: account.narrationIds.open },
     ],
     reducedMotion: { strategy: 'instant-end-state', maxDurationMs: 0 },
-    maxDurationMs: 1160,
+    maxDurationMs: 1940,
   };
 }
 
@@ -592,7 +592,7 @@ export const s02Content: S02SegmentContent = {
     completeId,
     messages: {
       [introId]:
-        'Dein Passwort ist oft die letzte Hürde, die Angreifer daran hindert, an deine persönlichen Daten zu kommen. Schaue nach, was sich hinter unseren erstellten Konten versteckt, indem du auf die Knoten klickst.',
+        'Dein Passwort ist oft die letzte Hürde, die Angreifer daran hindert, an deine persönlichen Daten zu kommen. Wähle eines der drei Hauptkonten aus. Danach führt dich „Nächste“ Schritt für Schritt durch die verbundenen Inhalte.',
       [completeId]:
         'Du hast die Konten erkundet. Klicke unten im Dock auf den Browser, wenn du bereit bist weiterzugehen.',
       's02.campus-id.open':

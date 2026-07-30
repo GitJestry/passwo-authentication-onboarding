@@ -87,7 +87,7 @@ export interface S00SegmentContent {
   };
 }
 
-export const S00_CONTENT_VERSION = '1.10.0';
+export const S00_CONTENT_VERSION = '1.10.1';
 
 export const s00Content: S00SegmentContent = {
   version: S00_CONTENT_VERSION,
@@ -98,7 +98,6 @@ export const s00Content: S00SegmentContent = {
       'Aloha! Mein Name ist PassWo, und ich begleite dich heute durch das Training.',
       'Vielleicht kennst du die Situation: Du bist ganz neu an einer Universität und musst dich nun für die wichtigsten Campus-Konten registrieren.',
       'Deine Aufgabe ist zunächst, für drei Campus-Konten starke und merkbare Passwörter zu wählen. Später meldest du dich nämlich noch einmal damit an.',
-      "Und das war's schon. Darf ich noch fragen, wie du heißt?",
     ],
     nameLabel: 'Dein Name',
     startLabel: 'Training starten',

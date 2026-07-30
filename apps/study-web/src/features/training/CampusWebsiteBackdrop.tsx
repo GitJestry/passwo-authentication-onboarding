@@ -10,79 +10,129 @@ export interface CampusWebsiteBackdropProps {
   readonly layout?: 'default' | 'authentication';
 }
 
-function SkeletonLines({ count = 3 }: { readonly count?: number }) {
-  return (
-    <span className={styles.skeletonLines} aria-hidden="true">
-      {Array.from({ length: count }, (_, index) => (
-        <span key={index} />
-      ))}
-    </span>
-  );
-}
+type CampusAccount = (typeof s01Content.browser.accounts)[number];
 
-function CampusIdContext() {
+function CampusIdContext({ account }: { readonly account: CampusAccount }) {
+  const tiles = [
+    { symbolId: 'service', label: account.navigation[0] ?? account.overview.title },
+    { symbolId: 'exam-portal', label: account.navigation[1] ?? account.overview.activityTitle },
+    { symbolId: 'cloud-notes', label: account.overview.activityItems[0] ?? account.overview.title },
+    {
+      symbolId: 'annotation',
+      label: account.overview.activityItems[1] ?? account.overview.activityTitle,
+    },
+  ] as const;
+
   return (
     <section className={styles.portalContext} aria-label="Master-Campus-Übersicht">
       <div className={styles.portalWelcome}>
         <NetworkSymbol symbolId="campus-id" className={styles.contextHeroSymbol} />
         <div>
-          <h2>Campusübersicht</h2>
-          <SkeletonLines count={2} />
+          <span className={styles.eyebrow}>{account.role}</span>
+          <h2>{account.overview.title}</h2>
+          <p>{account.overview.description}</p>
         </div>
       </div>
-      <div className={styles.portalGrid} aria-hidden="true">
-        {['service', 'exam-portal', 'cloud-notes', 'annotation'].map((symbolId) => (
-          <div className={styles.portalTile} key={symbolId}>
-            <NetworkSymbol symbolId={symbolId} className={styles.contextSymbol} />
-            <SkeletonLines count={2} />
-          </div>
+      <div className={styles.portalGrid}>
+        {tiles.map((tile, index) => (
+          <article className={styles.portalTile} key={tile.symbolId}>
+            <NetworkSymbol symbolId={tile.symbolId} className={styles.contextSymbol} />
+            <div>
+              <strong>{tile.label}</strong>
+              <span>
+                {index < 2 ? account.overview.description : account.overview.activityTitle}
+              </span>
+            </div>
+            <span className={styles.tileArrow} aria-hidden="true">
+              →
+            </span>
+          </article>
         ))}
       </div>
+      <section className={styles.activityPanel}>
+        <span className={styles.eyebrow}>{account.overview.activityTitle}</span>
+        {account.overview.activityItems.map((item) => (
+          <div className={styles.activityRow} key={item}>
+            <span className={styles.activityDot} aria-hidden="true" />
+            <span>{item}</span>
+            <span aria-hidden="true">•••</span>
+          </div>
+        ))}
+      </section>
     </section>
   );
 }
 
-function CampusMailContext() {
+function CampusMailContext({ account }: { readonly account: CampusAccount }) {
   return (
     <section className={styles.mailContext} aria-label="Campus-E-Mail-Postfachansicht">
-      <aside className={styles.mailFolders} aria-hidden="true">
+      <aside className={styles.mailFolders}>
         <NetworkSymbol symbolId="campus-mail" className={styles.contextHeroSymbol} />
-        <span className={styles.folderActive} />
-        <span />
-        <span />
-        <span />
+        {account.navigation.map((item, index) => (
+          <span className={index === 0 ? styles.folderActive : undefined} key={item}>
+            {item}
+          </span>
+        ))}
       </aside>
-      <div className={styles.mailList} aria-hidden="true">
-        {Array.from({ length: 5 }, (_, index) => (
-          <div className={styles.mailRow} key={index}>
-            <span className={styles.avatar} />
-            <SkeletonLines count={2} />
-            <span className={styles.mailTime} />
+      <div className={styles.mailList}>
+        <header className={styles.mailListHeader}>
+          <span className={styles.eyebrow}>{account.overview.activityTitle}</span>
+          <strong>{account.overview.title}</strong>
+        </header>
+        {[...account.overview.activityItems, ...account.navigation].map((item, index) => (
+          <div className={styles.mailRow} key={`${item}-${index}`}>
+            <span className={styles.avatar}>{index + 1}</span>
+            <span className={styles.mailSummary}>
+              <strong>{item}</strong>
+              <span>{account.overview.description}</span>
+            </span>
+            <span className={styles.mailTime}>{index + 8}:0{index}</span>
           </div>
         ))}
       </div>
-      <div className={styles.mailReadingPane} aria-hidden="true">
-        <SkeletonLines count={5} />
+      <div className={styles.mailReadingPane}>
+        <span className={styles.eyebrow}>{account.role}</span>
+        <h2>{account.overview.activityItems[0]}</h2>
+        <p>{account.overview.description}</p>
+        <div className={styles.readingRule} aria-hidden="true" />
+        <p>{account.overview.activityItems[1]}</p>
+        <div className={styles.readingPreview} aria-hidden="true">
+          <span />
+          <span />
+          <span />
+        </div>
       </div>
     </section>
   );
 }
 
-function CampusBoardContext() {
+function CampusBoardContext({ account }: { readonly account: CampusAccount }) {
   return (
     <section className={styles.boardContext} aria-label="Campusgram-Ansicht">
-      <div className={styles.boardToolbar} aria-hidden="true">
-        <span />
-        <span />
-        <span />
+      <div className={styles.boardToolbar}>
+        {account.navigation.map((item, index) => (
+          <span className={index === 0 ? styles.boardToolbarActive : undefined} key={item}>
+            {item}
+          </span>
+        ))}
       </div>
-      <div className={styles.boardFeed} aria-hidden="true">
-        {['announcements', 'project-questions', 'archived-discussions'].map((symbolId) => (
+      <div className={styles.boardIntro}>
+        <span className={styles.eyebrow}>{account.role}</span>
+        <h2>{account.overview.title}</h2>
+        <p>{account.overview.description}</p>
+      </div>
+      <div className={styles.boardFeed}>
+        {['announcements', 'project-questions', 'archived-discussions'].map((symbolId, index) => (
           <article className={styles.boardPost} key={symbolId}>
             <NetworkSymbol symbolId={symbolId} className={styles.contextSymbol} />
             <div>
-              <SkeletonLines count={3} />
-              <span className={styles.boardMeta} />
+              <strong>
+                {account.overview.activityItems[
+                  index % account.overview.activityItems.length
+                ] ?? account.overview.activityTitle}
+              </strong>
+              <p>{account.overview.description}</p>
+              <span className={styles.boardMeta}>{account.navigation[index]}</span>
             </div>
           </article>
         ))}
@@ -91,10 +141,10 @@ function CampusBoardContext() {
   );
 }
 
-function AccountContext({ accountId }: { readonly accountId: S01AccountId }) {
-  if (accountId === 'campus-mail') return <CampusMailContext />;
-  if (accountId === 'campus-board-archive') return <CampusBoardContext />;
-  return <CampusIdContext />;
+function AccountContext({ account }: { readonly account: CampusAccount }) {
+  if (account.id === 'campus-mail') return <CampusMailContext account={account} />;
+  if (account.id === 'campus-board-archive') return <CampusBoardContext account={account} />;
+  return <CampusIdContext account={account} />;
 }
 
 export function CampusWebsiteBackdrop({
@@ -123,7 +173,7 @@ export function CampusWebsiteBackdrop({
         <section className={styles.interactionColumn} aria-label={interactionLabel}>
           {children}
         </section>
-        {layout === 'default' ? <AccountContext accountId={account.id} /> : null}
+        {layout === 'default' ? <AccountContext account={account} /> : null}
       </div>
     </article>
   );

@@ -39,6 +39,27 @@ function BugStatusIcon() {
   );
 }
 
+function BrowserNavigationIcon({
+  direction,
+}: {
+  readonly direction: 'back' | 'forward' | 'refresh';
+}) {
+  if (direction === 'refresh') {
+    return (
+      <svg aria-hidden="true" viewBox="0 0 24 24">
+        <path d="M19.2 8.2A8 8 0 1 0 20 13" />
+        <path d="M19.2 3.8v4.4h-4.4" />
+      </svg>
+    );
+  }
+
+  return (
+    <svg aria-hidden="true" viewBox="0 0 24 24">
+      <path d={direction === 'back' ? 'm14.5 5-7 7 7 7' : 'm9.5 5 7 7-7 7'} />
+    </svg>
+  );
+}
+
 export interface BrowserShellSnapshot {
   readonly tabs: readonly BrowserTabModel[];
   readonly activeTabId: string;
@@ -343,6 +364,17 @@ export function BrowserShell({
             </div>
           ) : null}
           <div className={styles.addressRow}>
+            <nav className={styles.browserNavigation} aria-label="Browsernavigation">
+              <button type="button" aria-label="Zurück" title="Zurück" disabled>
+                <BrowserNavigationIcon direction="back" />
+              </button>
+              <button type="button" aria-label="Vor" title="Vor" disabled>
+                <BrowserNavigationIcon direction="forward" />
+              </button>
+              <button type="button" aria-label="Seite neu laden" title="Neu laden" disabled>
+                <BrowserNavigationIcon direction="refresh" />
+              </button>
+            </nav>
             <output className={styles.address} aria-label="Adresszeile">
               <span className={styles.addressIndicator} aria-hidden="true">
                 <span />

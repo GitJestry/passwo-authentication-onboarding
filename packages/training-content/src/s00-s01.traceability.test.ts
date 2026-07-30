@@ -5,7 +5,7 @@ import { S02_CONTENT_VERSION, s02Content } from './s02.js';
 
 describe('S00 to S02 training-content traceability', () => {
   it('keeps the S00 safety boundary in PassWo narration from the named script page', () => {
-    expect(S00_CONTENT_VERSION).toBe('1.10.0');
+    expect(S00_CONTENT_VERSION).toBe('1.10.1');
     expect(s00Content.source).toEqual({
       document: 'research/private/training-script.pdf',
       internalPage: 2,
@@ -44,7 +44,7 @@ describe('S00 to S02 training-content traceability', () => {
   });
 
   it('keeps the S02 account map and content-oriented PassWo narration versioned', () => {
-    expect(S02_CONTENT_VERSION).toBe('3.6.0');
+    expect(S02_CONTENT_VERSION).toBe('3.7.0');
     expect(s02Content.source).toEqual({
       document: 'research/private/training-script.pdf',
       internalPages: [4, 5, 6, 7],
@@ -54,6 +54,10 @@ describe('S00 to S02 training-content traceability', () => {
       'Campus E-Mail',
       'Campusgram',
     ]);
+    expect(s02Content.narration.messages[s02Content.narration.introId]).toContain(
+      'drei Hauptkonten',
+    );
+    expect(s02Content.narration.messages[s02Content.narration.introId]).toContain('„Nächste“');
     expect(s02Content.narration.messages['s02.campus-id.cloud-notes']).toContain(
       'persönliche Fotos',
     );

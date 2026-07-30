@@ -234,9 +234,25 @@
 }
 
 .lockSymbol {
-  width: 58%;
-  height: 58%;
+  width: 72%;
+  height: 72%;
   color: #386d9e;
+}
+
+.lockOverlay {
+  position: absolute;
+  z-index: 3;
+  top: -18%;
+  right: -14%;
+  display: grid;
+  width: 42%;
+  aspect-ratio: 1;
+  place-items: center;
+  border: var(--border-width-thin) solid color-mix(in srgb, #6f8eaa 58%, transparent);
+  border-radius: var(--radius-round);
+  background: color-mix(in srgb, var(--color-surface-primary) 94%, #d9ebfa);
+  box-shadow: 0 0.35rem 0.8rem color-mix(in srgb, #285377 24%, transparent);
+  pointer-events: none;
 }
 
 .lockSymbol [data-lock-body] {

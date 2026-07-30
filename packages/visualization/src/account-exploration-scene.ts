@@ -63,6 +63,7 @@ export interface AccountExplorationSceneDefinition {
 export interface AccountExplorationProgress {
   readonly accountId: string;
   readonly unlocked: boolean;
+  readonly understood: boolean;
   readonly openedDetailIds: readonly string[];
   readonly activePreviewDetailId: string | null;
 }
@@ -89,6 +90,7 @@ export interface AccountExplorationSceneSnapshot {
 
 export type AccountExplorationSceneEvent =
   | { readonly type: 'node-selected'; readonly nodeId: string }
+  | { readonly type: 'narration-advanced' }
   | { readonly type: 'animation-settled'; readonly animationId: string };
 
 export type AccountExplorationSceneEffect =
@@ -119,10 +121,7 @@ function understoodAccountIds(
   progress: readonly AccountExplorationProgress[],
 ): readonly string[] {
   return definition.accounts
-    .filter((account) => {
-      const accountProgress = progress.find(({ accountId }) => accountId === account.id);
-      return accountProgress?.openedDetailIds.length === account.details.length;
-    })
+    .filter((account) => progress.find(({ accountId }) => accountId === account.id)?.understood)
     .map(({ id }) => id);
 }
 
@@ -196,7 +195,7 @@ function buildNetwork(
             : detail.descriptions.available,
       status: openedDetails.has(detail.id) ? 'understood' : 'neutral',
       position: detail.position,
-      selectable: !sceneComplete && !interactionLocked && isActive && !understood.has(account.id),
+      selectable: false,
     }));
   });
   const edges: readonly SceneEdge[] = definition.accounts.flatMap((account) => {
@@ -276,6 +275,7 @@ export function createAccountExplorationScene(
     accountProgress: definition.accounts.map(({ id }) => ({
       accountId: id,
       unlocked: false,
+      understood: false,
       openedDetailIds: [],
       activePreviewDetailId: null,
     })),
@@ -340,39 +340,55 @@ export function transitionAccountExplorationScene(
       };
     }
 
+    return { snapshot, effects: [] };
+  }
+
+  if (event.type === 'narration-advanced') {
+    if (snapshot.pendingAnimationId !== null) return { snapshot, effects: [] };
     const activeAccount = definition.accounts.find(({ id }) => id === snapshot.activeAccountId);
     const activeProgress =
       activeAccount === undefined ? undefined : progressFor(snapshot, activeAccount.id);
-    const detail = activeAccount?.details.find(({ id }) => id === event.nodeId);
-    if (activeAccount === undefined || activeProgress?.unlocked !== true || detail === undefined) {
+    if (
+      activeAccount === undefined ||
+      activeProgress?.unlocked !== true ||
+      activeProgress.understood
+    ) {
       return { snapshot, effects: [] };
     }
 
-    if (activeProgress.openedDetailIds.includes(detail.id)) {
-      const nextProgress = replaceProgress(snapshot.accountProgress, {
-        ...activeProgress,
-        activePreviewDetailId: detail.id,
-      });
+    const nextDetail = activeAccount.details.find(
+      ({ id }) => !activeProgress.openedDetailIds.includes(id),
+    );
+    if (nextDetail !== undefined) {
       return {
         snapshot: createSnapshot(definition, {
           ...snapshot,
-          accountProgress: nextProgress,
-          activePreviewDetailId: detail.id,
-          narrationId: detail.narrationId,
+          phase: 'checking-detail',
+          activePreviewDetailId: nextDetail.id,
+          pendingAnimationId: nextDetail.animationId,
+          narrationId: nextDetail.narrationId,
         }),
-        effects: [{ type: 'focus-node', nodeId: detail.id }],
+        effects: [{ type: 'play-animation', animationId: nextDetail.animationId }],
       };
     }
 
+    const nextProgress = replaceProgress(snapshot.accountProgress, {
+      ...activeProgress,
+      understood: true,
+      activePreviewDetailId: null,
+    });
     return {
       snapshot: createSnapshot(definition, {
         ...snapshot,
-        phase: 'checking-detail',
-        activePreviewDetailId: detail.id,
-        pendingAnimationId: detail.animationId,
-        narrationId: detail.narrationId,
+        phase: 'returning-to-dock',
+        accountProgress: nextProgress,
+        activePreviewDetailId: null,
+        pendingAnimationId: activeAccount.returnToDockAnimationId,
+        narrationId: activeAccount.narrationIds.understood,
       }),
-      effects: [{ type: 'play-animation', animationId: detail.animationId }],
+      effects: [
+        { type: 'play-animation', animationId: activeAccount.returnToDockAnimationId },
+      ],
     };
   }
 
@@ -404,19 +420,6 @@ export function transitionAccountExplorationScene(
   }
 
   if (event.animationId === activeAccount.detailRevealAnimationId) {
-    const firstDetail = activeAccount.details[0];
-    if (firstDetail !== undefined) {
-      return {
-        snapshot: createSnapshot(definition, {
-          ...snapshot,
-          phase: 'checking-detail',
-          activePreviewDetailId: firstDetail.id,
-          pendingAnimationId: firstDetail.animationId,
-          narrationId: firstDetail.narrationId,
-        }),
-        effects: [{ type: 'play-animation', animationId: firstDetail.animationId }],
-      };
-    }
     return {
       snapshot: createSnapshot(definition, {
         ...snapshot,
@@ -450,22 +453,15 @@ export function transitionAccountExplorationScene(
     openedDetailIds: [...activeProgress.openedDetailIds, detail.id],
     activePreviewDetailId: detail.id,
   });
-  const nextUnderstoodIds = understoodAccountIds(definition, nextProgress);
-  const activeAccountUnderstood = nextUnderstoodIds.includes(activeAccount.id);
-  const shouldReturnToDock = activeAccountUnderstood;
   return {
     snapshot: createSnapshot(definition, {
       ...snapshot,
-      phase: shouldReturnToDock ? 'returning-to-dock' : 'exploring',
+      phase: 'exploring',
       accountProgress: nextProgress,
       activePreviewDetailId: detail.id,
-      pendingAnimationId: shouldReturnToDock ? activeAccount.returnToDockAnimationId : null,
-      narrationId: activeAccountUnderstood
-        ? activeAccount.narrationIds.understood
-        : detail.narrationId,
+      pendingAnimationId: null,
+      narrationId: detail.narrationId,
     }),
-    effects: shouldReturnToDock
-      ? [{ type: 'play-animation', animationId: activeAccount.returnToDockAnimationId }]
-      : [{ type: 'focus-node', nodeId: detail.id }],
+    effects: [{ type: 'focus-node', nodeId: detail.id }],
   };
 }

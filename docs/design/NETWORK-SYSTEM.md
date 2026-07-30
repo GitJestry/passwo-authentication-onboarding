@@ -40,6 +40,10 @@ Das Netzwerk zeigt Konten, abhängige Dienste, Funktionen, Passwortbeziehungen u
   Textstatus bleiben für die zugängliche Benennung sowie für separate Kontextkarten reserviert.
 - Ein kleiner Statusmarker überlagert den Kreis: offen, verstanden, betroffen oder geschützt.
   Farbe ergänzt dabei Symbol und zugänglichen Status, ersetzt sie aber nicht.
+- Das Schloss eines geschlossenen Hauptkontos liegt als eigener Marker oberhalb des Knotenkreises,
+  damit Kontosymbol, Schlüsselweg und geöffneter Bügel gleichzeitig sichtbar bleiben. Der
+  Cursor-Schlüssel bleibt nach einem abgeschlossenen Konto am Mauszeiger sichtbar; die Vorschau
+  des zuletzt betrachteten Details wird für die Zusammenfassung geschlossen.
 - Kanten sind eigene ruhige quadratische Kurven. Sie beginnen und enden am sichtbaren Rand des
   jeweiligen Kreises oder Rechtecks, liegen hinter den Nodes und ihren Label-Flächen und verwenden
   keine rechteckigen Smoothstep-Segmente.
@@ -52,8 +56,8 @@ S02 „Konten verstehen“ bildet die erste vollständige Kontenerkundung:
 
 1. Master Campus, Campus E-Mail und Campusgram sind gleichzeitig als unterschiedliche
    Symbolkreise in festen Positionen sichtbar;
-2. das zuerst gewählte unvollständige Konto sperrt die Auswahl der beiden anderen Konten, bis
-   alle seine Details geöffnet sind; danach kann das nächste Konto frei gewählt werden;
+2. ausschließlich die drei Hauptkonten sind auswählbar; das zuerst gewählte unvollständige Konto
+   sperrt die Auswahl der beiden anderen Konten, bis alle seine Details geöffnet sind;
 3. PassWo fliegt beim erstmaligen Öffnen zum Ziel, steht dort seitlich vom Knoten und kehrt nach
    Abschluss dieses Kontos an seinen Platz unten links zurück;
 4. das aktive Konto vergrößert sich leicht; seine Detailknoten erscheinen gemeinsam in einer
@@ -67,10 +71,12 @@ S02 „Konten verstehen“ bildet die erste vollständige Kontenerkundung:
    `neutral`, während der Prüfung `checking` und danach `opened`;
 8. `opened` bezeichnet ausschließlich die abgeschlossene Detailöffnung und ist weder
    `protected` noch `blocked`;
-9. jedes Konto erhält erst nach allen eigenen Details einen klar sichtbaren grünen
-   Statusmarker `verstanden`; gleichzeitig bleiben alle Knoten voll sichtbar und die
-   abgeschlossene Karte ist nicht mehr auswählbar;
-10. der Segmentabschluss ist erst nach allen drei verstandenen Konten verfügbar.
+9. die Detailknoten werden nicht direkt angeklickt: `Nächste` in PassWos Sprechblase öffnet sie
+   in der festgelegten Reihenfolge; nach dem letzten Detail bleibt zunächst dessen Beschreibung
+   sichtbar und erst ein weiterer `Nächste`-Schritt markiert das Konto als `verstanden`;
+10. jedes verstandene Konto erhält einen klar sichtbaren grünen Statusmarker; gleichzeitig
+   bleiben alle Knoten voll sichtbar und die abgeschlossene Karte ist nicht mehr auswählbar;
+11. der Segmentabschluss ist erst nach allen drei verstandenen Konten verfügbar.
 
 Die Detailvorschau bleibt eine separate Karte neben dem Graphen. Sie ist eine kleine visuelle
 Seitenminiatur ohne wiederholenden Erklärungstext, ist kein Bestandteil eines Nodes und beeinflusst

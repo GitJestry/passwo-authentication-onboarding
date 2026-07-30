@@ -38,6 +38,7 @@ interface PendingAnimation {
 
 type ControllerEvent =
   | { readonly type: 'node-selected'; readonly nodeId: string }
+  | { readonly type: 'narration-advanced' }
   | {
       readonly type: 'animation-finished' | 'animation-recovered';
       readonly animationId: string;
@@ -109,6 +110,16 @@ export class S02AccountExplorationController {
     this.#send({ type: 'node-selected', nodeId });
   }
 
+  advanceNarration(): void {
+    if (
+      this.#snapshot.introState !== 'complete' ||
+      this.#snapshot.scene.understoodAccountIds.length === definition.accounts.length
+    ) {
+      return;
+    }
+    this.#send({ type: 'narration-advanced' });
+  }
+
   startIntro(): void {
     if (this.#disposed || this.#snapshot.introState !== 'ready') return;
     const animation = getS02Animation(definition.introAnimationId);
@@ -148,8 +159,12 @@ export class S02AccountExplorationController {
   #send(event: ControllerEvent): void {
     if (this.#disposed) return;
 
-    if (event.type === 'node-selected') {
-      this.#applySceneEvent({ type: 'node-selected', nodeId: event.nodeId });
+    if (event.type === 'node-selected' || event.type === 'narration-advanced') {
+      this.#applySceneEvent(
+        event.type === 'node-selected'
+          ? { type: 'node-selected', nodeId: event.nodeId }
+          : { type: 'narration-advanced' },
+      );
       return;
     }
 

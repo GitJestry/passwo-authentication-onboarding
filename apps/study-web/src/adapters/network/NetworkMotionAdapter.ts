@@ -33,6 +33,7 @@ export interface NetworkMotionAdapterOptions {
   readonly initialRevealedNodeIds?: readonly string[];
   readonly applySnapshot: (snapshot: NetworkPresentationSnapshot) => void;
   readonly getCharacterElement: () => HTMLElement | null;
+  readonly getCursorKeyElement?: () => HTMLElement | null;
   readonly getActiveNodeElement: () => HTMLElement | null;
   readonly getNodeElement: (nodeId: string) => HTMLElement | null;
   readonly getEdgeElement?: (targetNodeId: string) => SVGPathElement | null;
@@ -74,6 +75,7 @@ function currentTranslation(element: HTMLElement): Readonly<{ x: number; y: numb
 export class NetworkMotionAdapter implements AnimationPlayerPort {
   readonly #applySnapshot: (snapshot: NetworkPresentationSnapshot) => void;
   readonly #getCharacterElement: () => HTMLElement | null;
+  readonly #getCursorKeyElement: () => HTMLElement | null;
   readonly #getActiveNodeElement: () => HTMLElement | null;
   readonly #getNodeElement: (nodeId: string) => HTMLElement | null;
   readonly #getEdgeElement: (targetNodeId: string) => SVGPathElement | null;
@@ -88,6 +90,7 @@ export class NetworkMotionAdapter implements AnimationPlayerPort {
     initialRevealedNodeIds,
     applySnapshot,
     getCharacterElement,
+    getCursorKeyElement = () => null,
     getActiveNodeElement,
     getNodeElement,
     getEdgeElement = () => null,
@@ -96,6 +99,7 @@ export class NetworkMotionAdapter implements AnimationPlayerPort {
     this.#snapshot = createInitialNetworkPresentation(initialNodeId, initialRevealedNodeIds);
     this.#applySnapshot = applySnapshot;
     this.#getCharacterElement = getCharacterElement;
+    this.#getCursorKeyElement = getCursorKeyElement;
     this.#getActiveNodeElement = getActiveNodeElement;
     this.#getNodeElement = getNodeElement;
     this.#getEdgeElement = getEdgeElement;
@@ -209,6 +213,7 @@ export class NetworkMotionAdapter implements AnimationPlayerPort {
         if (node === null) throw new Error(`missing-network-node:${step.targetId}`);
         const lockShackle = node.querySelector<SVGPathElement>('[data-lock-shackle]');
         if (lockShackle !== null) {
+          await this.#moveKeyIntoLock(node, Math.min(step.durationMs, 420));
           lockShackle.style.transformBox = 'fill-box';
           lockShackle.style.transformOrigin = 'left bottom';
           await this.#animate(lockShackle, Math.min(step.durationMs, 360), {
@@ -310,6 +315,70 @@ export class NetworkMotionAdapter implements AnimationPlayerPort {
     edge.style.removeProperty('stroke-dasharray');
     edge.style.removeProperty('stroke-dashoffset');
     edge.style.removeProperty('opacity');
+  }
+
+  async #moveKeyIntoLock(node: HTMLElement, durationMs: number): Promise<void> {
+    const key = this.#getCursorKeyElement();
+    const keyGraphic = key?.querySelector<SVGElement>('svg');
+    const keyhole = node.querySelector<SVGPathElement>('[data-lock-keyhole]');
+    if (
+      key === null ||
+      key === undefined ||
+      keyGraphic === null ||
+      keyGraphic === undefined ||
+      keyhole === null
+    ) {
+      return;
+    }
+
+    key.dataset.animating = 'true';
+    key.style.opacity = '1';
+    let keyRect = keyGraphic.getBoundingClientRect();
+    let current = currentTranslation(key);
+    if (
+      keyRect.width === 0 ||
+      keyRect.right < 0 ||
+      keyRect.bottom < 0 ||
+      keyRect.left > window.innerWidth ||
+      keyRect.top > window.innerHeight
+    ) {
+      const nodeRect = node.getBoundingClientRect();
+      const startX = nodeRect.right + 48;
+      const startY = nodeRect.top + nodeRect.height * 0.6;
+      const fallbackX = Math.round(current.x + startX - (keyRect.left + keyRect.width * (8 / 92)));
+      const fallbackY = Math.round(current.y + startY - (keyRect.top + keyRect.height * 0.5));
+      key.style.transform = `translate3d(${fallbackX}px, ${fallbackY}px, 0px)`;
+      keyRect = keyGraphic.getBoundingClientRect();
+      current = currentTranslation(key);
+    }
+
+    const keyholeRect = keyhole.getBoundingClientRect();
+    const keyTipX = keyRect.left + keyRect.width * (8 / 92);
+    const keyTipY = keyRect.top + keyRect.height * 0.5;
+    const targetX = keyholeRect.left + keyholeRect.width * 0.5;
+    const targetY = keyholeRect.top + keyholeRect.height * 0.55;
+    const destinationX = Math.round(current.x + targetX - keyTipX);
+    const destinationY = Math.round(current.y + targetY - keyTipY);
+    const start = key.style.transform || `translate3d(${current.x}px, ${current.y}px, 0px)`;
+    const destination = `translate3d(${destinationX}px, ${destinationY}px, 0px) rotate(-8deg) scale(0.82)`;
+
+    try {
+      await this.#animate(key, durationMs, {
+        opacity: [1, 1],
+        transform: [start, destination],
+      });
+      await this.#animate(key, Math.min(220, durationMs), {
+        opacity: [1, 1, 0],
+        transform: [
+          destination,
+          `translate3d(${destinationX}px, ${destinationY}px, 0px) rotate(18deg) scale(0.82)`,
+          `translate3d(${destinationX}px, ${destinationY}px, 0px) rotate(18deg) scale(0.68)`,
+        ],
+      });
+    } finally {
+      delete key.dataset.animating;
+      key.style.removeProperty('opacity');
+    }
   }
 
   #applyEndState(sequence: AnimationSequence): void {

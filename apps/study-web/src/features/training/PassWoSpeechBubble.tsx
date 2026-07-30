@@ -20,6 +20,7 @@ export interface PassWoSpeechBubbleProps {
   readonly className?: string | undefined;
   readonly hasNext?: boolean;
   readonly awaitsAction?: boolean;
+  readonly advanceOnScreenClick?: boolean;
   readonly onComplete?: () => void;
   readonly onAdvance?: () => void;
 }
@@ -175,6 +176,7 @@ export function PassWoSpeechBubble({
   className,
   hasNext = false,
   awaitsAction = false,
+  advanceOnScreenClick = true,
   onComplete,
   onAdvance,
 }: PassWoSpeechBubbleProps) {
@@ -239,7 +241,7 @@ export function PassWoSpeechBubble({
   }, [advanceCompleted, complete, currentSpeech, fullCharacters.length, onAdvance]);
 
   useEffect(() => {
-    if (advanceCompleted || awaitsAction) return;
+    if (advanceCompleted || awaitsAction || !advanceOnScreenClick) return;
 
     function handleScreenClick(event: MouseEvent): void {
       if (isInteractiveTarget(event.target, bubbleRef.current)) return;
@@ -251,7 +253,7 @@ export function PassWoSpeechBubble({
 
     document.addEventListener('click', handleScreenClick, true);
     return () => document.removeEventListener('click', handleScreenClick, true);
-  }, [advanceCompleted, advanceSpeech, awaitsAction]);
+  }, [advanceCompleted, advanceOnScreenClick, advanceSpeech, awaitsAction]);
 
   useEffect(() => {
     if (advanceCompleted || (complete && awaitsAction)) return;
