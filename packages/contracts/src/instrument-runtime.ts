@@ -272,14 +272,69 @@ const ueqSemanticDifferential7ScaleSchema = z
     derivedTransform: z.literal('value - 4'),
   })
   .strict();
+const participantInformationSchema = z
+  .object({
+    source: z.literal('docs/research/PARTICIPANT-INFORMATION.md'),
+    eyebrow: participantTextSchema,
+    welcomeHeading: participantTextSchema,
+    welcomeParagraphs: z.array(participantTextSchema).min(1).max(5),
+    facts: z
+      .array(
+        z
+          .object({
+            id: stableIdSchema,
+            label: participantTextSchema,
+            value: participantTextSchema,
+          })
+          .strict(),
+      )
+      .min(1)
+      .max(6),
+    readMoreLabel: participantTextSchema,
+    informationHeading: participantTextSchema,
+    sections: z
+      .array(
+        z
+          .object({
+            id: stableIdSchema,
+            heading: participantTextSchema,
+            paragraphs: z.array(participantTextSchema).min(1).max(6),
+          })
+          .strict(),
+      )
+      .min(1)
+      .max(10),
+    requiredConsent: z
+      .object({
+        legend: participantTextSchema,
+        statement: participantTextSchema,
+      })
+      .strict(),
+    actions: z
+      .object({
+        acceptLabel: participantTextSchema,
+        declineLabel: participantTextSchema,
+        declineHeading: participantTextSchema,
+        declineBody: participantTextSchema,
+      })
+      .strict(),
+  })
+  .strict();
+const sessionClosureContentSchema = z
+  .object({
+    heading: participantTextSchema,
+    paragraphs: z.array(participantTextSchema).min(1).max(5),
+    actionLabel: participantTextSchema,
+  })
+  .strict();
 
 export const instrumentRuntimeManifestSchema = z
   .object({
     schemaVersion: z.literal(2),
-    instrumentVersion: z.literal('1.4.0-draft'),
+    instrumentVersion: z.literal('1.5.0-draft'),
     questionnaireVersion: z.literal('questionnaire-v1.3-draft'),
     guardrailVersion: z.literal('guardrail-v2-draft'),
-    consentVersion: z.literal('consent-v2-draft'),
+    consentVersion: z.literal('consent-v3-draft'),
     followUpVersion: z.literal('follow-up-v1-draft'),
     language: z.literal('de-DE'),
     participantTerm: participantTextSchema,
@@ -311,18 +366,12 @@ export const instrumentRuntimeManifestSchema = z
               .min(1),
           })
           .strict(),
-        consent: z
-          .object({
-            heading: participantTextSchema,
-            description: participantTextSchema,
-            statement: participantTextSchema,
-          })
-          .strict(),
+        participantInformation: participantInformationSchema,
         followUpRecontact: z
           .object({
-            requiredBeforePreQuestionnaire: z.literal(true),
-            heading: participantTextSchema,
-            explanation: participantTextSchema,
+            optional: z.literal(true),
+            consentLegend: participantTextSchema,
+            consentStatement: participantTextSchema,
             emailLabel: participantTextSchema,
             emailRequired: z.literal(true),
             emailNeverStoredInResearchDatabase: z.literal(true),
@@ -331,6 +380,12 @@ export const instrumentRuntimeManifestSchema = z
             closeAfterSessionHours: z.number().int().positive(),
             emailSubject: participantTextSchema,
             emailContainsTrainingAdvice: z.literal(false),
+          })
+          .strict(),
+        sessionClosure: z
+          .object({
+            immediateDebriefWithoutFollowUp: sessionClosureContentSchema,
+            deferredDebriefWithFollowUp: sessionClosureContentSchema,
           })
           .strict(),
       })
@@ -344,7 +399,7 @@ export const instrumentRuntimeManifestSchema = z
         'follow-up-v1': followUpInstrumentSchema,
       })
       .strict(),
-    runtimeManifestVersion: z.literal('instrument-runtime-v1.4-draft'),
+    runtimeManifestVersion: z.literal('instrument-runtime-v1.5-draft'),
   })
   .strict();
 

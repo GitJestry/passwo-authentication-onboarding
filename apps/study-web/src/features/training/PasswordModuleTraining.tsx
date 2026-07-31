@@ -19,7 +19,6 @@ import {
 import { S03RetrievalTraining } from './segments/S03/S03RetrievalTraining.js';
 
 export interface PasswordModuleTrainingProps {
-  readonly onComplete: () => void;
   readonly timingPort?: SegmentTimingPort;
   readonly externalTimingError?: string | null;
   readonly onRetryExternalTiming?: () => void;

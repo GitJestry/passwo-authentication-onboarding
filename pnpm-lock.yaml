@@ -100,9 +100,6 @@ importers:
       '@passwo/contracts':
         specifier: workspace:*
         version: link:../../packages/contracts
-      '@passwo/password-analysis':
-        specifier: workspace:*
-        version: link:../../packages/password-analysis
       '@passwo/study-engine':
         specifier: workspace:*
         version: link:../../packages/study-engine

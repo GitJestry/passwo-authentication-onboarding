@@ -2,21 +2,27 @@
 
 ## Methodische Position
 
-Die Untersuchung vergleicht zwei vollständige Onboarding-Artefakte. Unterschiede dürfen nicht
-einem einzelnen Translation Focus, einer Animation oder einem UI-Element kausal zugeschrieben
-werden. Gemessen werden unmittelbare Wahrnehmungen, Bearbeitungszeit und angewandtes
-Verständnis nach einer einzelnen Exposition.
+Verglichen werden zwei vollständige Onboarding-Artefakte. Gemessen werden unmittelbare
+Wahrnehmung, Bearbeitungszeit, kriteriumsbezogenes Sofortverständnis und bei freiwilliger
+Teilnahme zehn Tage später selbstberichtete, eng begrenzte Kontoschutzhandlungen. Unterschiede
+dürfen nicht einzelnen Translation Foci, Animationen, Quizfragen oder UI-Elementen kausal
+zugeschrieben werden.
 
 ## Nicht zulässige Claims
 
 Die Studie belegt nicht:
 
-- langfristige Verhaltensänderung;
-- spätere Passwortmanager- oder MFA-Nutzung;
-- reduzierte Passwortwiederverwendung;
-- weniger reale Sicherheitsvorfälle;
+- objektiv beobachtetes reales Authentifizierungsverhalten;
+- nachhaltige Passwortmanager-Adoption oder fortgesetzte MFA-Nutzung;
+- reduzierte reale Passwortwiederverwendung;
+- langfristige Verhaltensänderung, Gewohnheitsbildung oder weniger Sicherheitsvorfälle;
 - organisatorische Kultur-, Führungs- oder Workflowveränderung;
-- Therapie-, Diagnose- oder Behandlungswirkung.
+- Therapie-, Diagnose- oder Behandlungswirkung;
+- kausale Effekte einzelner Translation Foci;
+- allgemeine Authentifizierungsexpertise durch den Guardrail.
+
+Das Follow-up darf nur als `ten-day delayed self-reported account-protection actions` bezeichnet
+werden.
 
 ## Translation Foci
 
@@ -29,21 +35,38 @@ Die Studie belegt nicht:
 
 Die Foci sind Designrationale, keine unabhängig getesteten Faktoren.
 
-## Technische Sicherheitsgrenzen
+## Guardrail-Fairness
+
+- Primäre Items prüfen nur Claims, die in beiden finalen Artefakten auf gleicher
+  Abstraktionsebene vorkommen.
+- Detaillierte Passwortstärke, Mindestlänge, Sechs-Wort-Methode und PassWo-Begriffe bleiben
+  außerhalb des primären Guardrails.
+- Jedes Item benötigt PassWo-, SecAware- und technische Claim-Evidence im Content Audit.
+- Native PassWo-Aufgaben und das SecAware-Quiz sind keine gemeinsamen Outcomes.
+- Single-Best-Answer verwendet drei inhaltliche Optionen und `unsure`; kein Multiple Response.
+- `F1` bis `F3` werden serverseitig und unabhängig von der Bedingung balanciert.
+- Der Client erhält keine Scoring-Klassifikationen; es gibt kein Pass/Fail.
+
+## Follow-up
+
+- Die Follow-up-Einwilligung ist von der Hauptstudie getrennt und optional.
+- Eine Ablehnung blockiert weder Session, Pre-Fragebogen noch Hauptstudienabschluss.
+- E-Mail und Roh-Token liegen ausschließlich in der getrennten Registry.
+- Nichtantwort ist fehlend und wird nicht als `no action` codiert.
+- Passwortmanager- und MFA-Handlungen bleiben getrennt; es gibt keinen kombinierten Behavior Score.
+- Das Follow-up ist Messung und kein erneutes Training.
+
+## Technische Datenschutzgrenzen
 
 - Nur neue, fiktive Passwörter; keine realen Varianten.
-- Keine dauerhafte oder serverseitige Speicherung von Trainingspasswörtern.
+- Keine dauerhafte oder serverseitige Speicherung von Trainingsinputs oder Diagnosen.
 - Keine Echtkonten, Tokens, Recovery-Codes oder institutionellen Einstellungen.
 - Passwortanalyse ist eine Lehrsimulation, keine Produktionsbewertung.
-- MFA bleibt zusätzliche Barriere; sie macht Wiederverwendung nicht sicher.
-- Passwortmanager unterstützt einzigartige Passwörter; er ersetzt Einzigartigkeit nicht.
+- MFA bleibt eine zusätzliche Barriere und macht Wiederverwendung nicht sicher.
+- Passwortmanager unterstützen einzigartige Passwörter, ersetzen deren Einzigartigkeit aber nicht.
 
-## Studiengleichheit
+## Freeze-Regel
 
-Beide Bedingungen erhalten soweit artefaktbedingt möglich:
-
-- dieselbe neutrale Einleitung und Einwilligung;
-- dieselben Timingregeln und Abschlusskriterien;
-- dieselben Pre-/Post-/Guardrail-Instrumente;
-- dieselbe technische Umgebung und Betreuung;
-- keine zusätzlichen Erklärungen durch die Studienleitung während des Artefakts.
+Vor der Hauptstudie werden Content, Referenzpfad, Instrumenttexte, Guardrail-Formen und Rubrik,
+Follow-up-Stichtagslogik, Consent, Debrief, Timing, Persistenz und Export gemeinsam eingefroren.
+Nach Studienbeginn erfolgen keine Itemänderungen anhand sichtbarer Bedingungsunterschiede.

@@ -2,46 +2,64 @@
 
 ## Zweck
 
-Die Study Runtime umschließt beide Artefaktbedingungen mit demselben neutralen Studienablauf.
-Sie ist methodisch getrennt von der Training Runtime und kennt keine fiktiven Passwortwerte.
+Die Study Runtime umschließt beide Artefaktbedingungen mit demselben neutralen Studienablauf. Sie
+ist methodisch von der Training Runtime getrennt und kennt keine fiktiven Passwortwerte.
 
-## Verbindlicher Ablauf
+## Verbindlicher Hauptablauf
 
 ```text
-Consent
+Eligibility lokal prüfen
+→ gemeinsame Teilnahmeinformation und Einwilligung
+→ optionale Follow-up-Entscheidung
 → Session serverseitig anlegen und Condition verdeckt zuweisen
-→ Pre-Fragebogen
-→ nur in der supportive Bedingung flüchtigen Anzeigenamen erfassen
+→ bei Einwilligung Recontact-E-Mail getrennt registrieren
+→ Pre-Fragebogen blockweise speichern
+→ nur supportive: flüchtigen Anzeigenamen erfassen
 → supportive oder reference Artefakt
-→ nach dem supportive Artefakt Anzeigenamen löschen
 → Post-Fragebogen
-→ Understanding Guardrails
-→ Debrief
+→ Guardrail Recognition
+→ Guardrail Szenarien
+→ optionale offene Rückmeldung als verpflichtende Submission
+→ Session Closure
 → Completion
 ```
 
-Ein Forschungsdatenfehler blockiert den nächsten Übergang. Ein UI- oder Animationsfehler im
-supportive Artefakt darf dagegen auf den fachlichen Endzustand springen, ohne die Sitzung still
-als erfolgreich zu markieren.
+Eligibility wird nicht persistiert. Die optionale Nachbefragung darf die Hauptstudie nicht
+blockieren. Schlägt ihre Registrierung fehl, kann sie mit demselben Request erneut versucht oder
+aufgegeben werden; die Condition wird dabei nicht neu zugewiesen.
+
+## Instrument- und Abschlussreihenfolge
+
+- Pre muss vollständig gespeichert sein, bevor das Artefakt startet.
+- Post muss vollständig gespeichert sein, bevor der Guardrail beginnt.
+- Recognition wird vor den Szenarien abgegeben und gesperrt.
+- Szenarien müssen gespeichert sein, bevor offene Rückmeldung und Session Closure folgen.
+- `post-open-v1` wird immer submitted; leere optionale Felder sind `null`.
+- Ein Forschungsdatenfehler blockiert den Übergang und erlaubt idempotenten Retry.
+
+Teilnehmende ohne Follow-up-Einwilligung erhalten bei der Session Closure die vollständige
+Aufklärung. Teilnehmende mit Einwilligung erhalten zunächst die neutrale Bestätigung der
+Hauptsitzung; ihre vollständige Aufklärung erfolgt nach der Follow-up-Antwort oder spätestens nach
+Schließung des Zeitfensters. Versand und externer Follow-up-Import sind noch vor dem Study Freeze
+festzulegen.
 
 ## Zustandsgrenzen
 
-- `displayName` existiert nur in der supportive Bedingung und ausschließlich im flüchtigen
-  Electron-Rendererkontext; es wird nie an die API gesendet.
-- Fiktive Passwörter und deren Analysen existieren nur in der Training Runtime im flüchtigen
-  Renderer-Arbeitsspeicher.
-- Condition, pseudonymer Code, Versionen, Antworten, Timing und Abschlussstatus liegen serverseitig.
-- Reload während eines Artefakts verwirft temporären Zustand und führt zu einem dokumentierten
-  unvollständigen technischen Status.
-- Browser Storage, IndexedDB und Service Worker werden auch im Electron-Renderer nicht für
-  Teilnehmer- oder Trainingszustand verwendet.
+- `displayName` existiert ausschließlich flüchtig in der supportive Bedingung.
+- Fiktive Passwörter und Analysen bleiben im Arbeitsspeicher der Training Runtime.
+- Condition, Code, Versionen, Antworten, Timing und Abschlussstatus liegen serverseitig.
+- Reload während eines Artefakts verwirft temporären Zustand und markiert den Durchlauf
+  unvollständig.
+- Browser Storage, IndexedDB und Service Worker sind unzulässig.
 
 ## Researcher-Konfiguration
 
 Die Hauptstudie nutzt `permuted-block`. `forced-supportive` und `forced-reference` sind nur für
 Pretests zulässig. Der Client enthält keinen Condition-Auswahlschalter.
 
-## Abschlusskriterium
+## Follow-up-Boundary
 
-Eine Sitzung gilt erst nach bestätigtem Debrief als abgeschlossen. Zertifikate oder Scores des
-externen Referenzartefakts sind keine Studienoutcomes.
+Die lokale Runtime versendet keine E-Mails und hostet keinen öffentlichen Fragebogen. Nach
+Completion werden nur für eingewilligte Sessions Einladung nach 240 Stunden, höchstens eine
+Erinnerung nach weiteren 48 Stunden und Schließung nach 336 Stunden geplant. Schedule-Export,
+öffentliches Formular, Import und abschließender Debrief-Versand bleiben getrennte Funktionen.

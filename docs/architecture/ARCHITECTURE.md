@@ -22,6 +22,7 @@ flowchart LR
   M --> C[PassWo Adapter]
   W -->|relative HTTP-Aufrufe| API[Lokale Fastify Study API]
   API -->|einzige Persistenzgrenze| DB[(SQLite)]
+  API -->|getrennte Kontaktdaten| RC[(Recontact SQLite)]
   R[Forschende] --> E[CSV/JSON Export-CLI]
   E --> DB
   X --> S[Lokaler SecAware-Study-Build]
@@ -39,16 +40,16 @@ apps/
   study-server/    lokales API, verdeckte Zuweisung, SQLite und Export; keine Anzeigenamen
                    oder Trainingsinputs
 packages/
-  contracts/       erlaubte API- und Domänenschemas
+  contracts/       erlaubte API- und Domänenschemas sowie bereinigte Instrument-Runtime
   study-engine/    reine Ablauf- und Timerlogik ohne React, Fetch oder Speicherung
   training-engine/ Missionszustandsautomat und deklaratives Animationsprotokoll
   training-content/versionierte Segmentdaten, Teilnehmertexte, Szenenreferenzen und
                    Traceability; Änderungen benötigen fachliche Prüfung
-  password-analysis/ reine, deterministische Heuristiken für fiktive Simulationen;
-                   kein Produktions-Passwortmeter und keine absolute Bewertung
+  password-analysis/ vorbereitete Grenze für reine, deterministische Heuristiken fiktiver
+                   Simulationen; noch nicht in den Renderer eingebunden
   visualization/   frameworkfreie Knoten-, Kanten-, Status- und Layoutmodelle
-  ui/              Design Tokens, BrowserShell, Bedienelemente, Sprechblase und
-                   PassWo-Platzhalter; keine Trainingslogik oder Forschungsdatenspeicherung
+  ui/              Design Tokens, BrowserShell und DesktopSurface; keine Trainingslogik oder
+                   Forschungsdatenspeicherung
 ```
 
 ## Dependency Rules
@@ -79,12 +80,14 @@ flowchart TD
 
 ## Zustandsverantwortung
 
-- **Study Orchestrator:** Einwilligung, Sitzung, Pre, Anzeigename, Bedingung, Artefakt, Post,
-  Guardrail, Debrief und Abschluss.
+- **Study Orchestrator:** Einwilligung, optionale Recontact-Registrierung, Sitzung, Pre,
+  Anzeigename, Bedingung, Artefakt, Post, Guardrail, Session Closure und Abschluss.
 - **Training Mission Controller:** Segment- und Schrittfolge innerhalb des eigenen Artefakts.
 - **Scene state:** Browser-Tabs, PassWo-Pose, Netzwerkzustand und Animationssequenz.
 - **React:** Projektion des aktuellen Snapshots; kein versteckter Workflow in Effects.
-- **Server:** Session, Zuweisung, Timing, Antworten und Export; kein Trainingswissen.
+- **Server:** Session, getrennte Condition-/Guardrail-Zuweisung, Timing, atomare
+  Instrument-Submissions, Präsentationsreihenfolge, optionale Recontact-Registry und Export; kein
+  Trainingswissen.
 
 ## Ports und Adapter
 
@@ -114,6 +117,8 @@ Adaptertypen dürfen nicht in Content- oder Engine-Schemas erscheinen.
 - Electron startet die vorhandene Study Runtime intern auf `127.0.0.1` mit dynamischem Port.
 - Fastify liefert den Vite-Build und die API aus derselben Origin aus.
 - SQLite bleibt unverändert unter `~/.passwo-study/study.sqlite`.
+- Direkte Kontaktdaten liegen ausschließlich in der getrennten
+  `~/.passwo-study/recontact.sqlite`; der Forschungsdatenexport liest sie nie.
 - Es gibt keinen eigenständigen Browser-Deploymentpfad. Vite und Chromium dienen nur als interne
   Testharnesses; das Design Lab ist ein interner QA-Pfad.
 - Electron-Sondercode bleibt auf Fenster-/App-Lifecycle, Sandbox/Berechtigungen, schmale

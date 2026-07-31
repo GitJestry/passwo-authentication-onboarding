@@ -30,5 +30,3 @@ export interface FictionalPasswordAnalysisPort {
     context: FictionalPasswordAnalysisContext,
   ): FictionalPasswordAnalysisResult;
 }
-
-export const PASSWORD_ANALYSIS_IMPLEMENTED = false;

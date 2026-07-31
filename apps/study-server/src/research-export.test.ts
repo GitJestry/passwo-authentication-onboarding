@@ -117,7 +117,7 @@ describe('research export', () => {
     );
     const productionConsentText = [
       studyFlowSource,
-      JSON.stringify(instrumentRuntimeManifest.procedures.consent),
+      JSON.stringify(instrumentRuntimeManifest.procedures.participantInformation),
     ].join('\n');
 
     expect(productionConsentText).not.toMatch(

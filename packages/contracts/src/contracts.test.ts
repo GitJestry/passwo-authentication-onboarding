@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import reviewedInstrumentRuntimeManifest from '../../../instrument/research/derived/instruments-v1.runtime.json' with {
+import reviewedInstrumentRuntimeManifest from '../../../research/derived/instruments-v1.runtime.json' with {
   type: 'json',
 };
 import {
@@ -140,6 +140,10 @@ describe('research-safe contracts', () => {
     expect(JSON.stringify(instrumentRuntimeManifest)).not.toMatch(
       /"classification"|"appropriate"|"incomplete"|"unsafe"/u,
     );
+    expect(instrumentRuntimeManifest.procedures.followUpRecontact.optional).toBe(true);
+    expect(
+      JSON.stringify(instrumentRuntimeManifest.procedures.participantInformation),
+    ).not.toMatch(/zufällig zugeordnet|zwei deutschsprachige Lernangebote werden verglichen/u);
   });
 
   it('validates complete item-specific instrument blocks without arbitrary JSON values', () => {

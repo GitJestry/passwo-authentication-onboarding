@@ -49,19 +49,15 @@ nicht in der Komponente.
 Die gelieferten Designbilder sind Stil- und Kompositionsreferenzen. Sie enthalten mehrere Posen
 und UI-Elemente in einem Bild und werden deshalb nicht direkt als Runtime-Sprite verwendet.
 
-Die Runtime-Integration beginnt schrittweise mit freigegebenen transparenten Einzelassets. Der
-stille `bottom-left`-Zustand verwendet bereits das zugeschnittene Waiting-Asset; während PassWo
-spricht, bleibt vorläufig das bestehende Dock-Asset aktiv. Der Guide sitzt fest am unteren Rand
-der Browserfläche und bewegt sich nicht mehr zwischen Seitenknoten.
+Die Runtime verwendet zentral das zugeschnittene Waiting-Asset für den stillen Zustand und das
+Dock-Asset während eines Sprechschritts. `PassWoGuide` verbindet Figur, Aufgabenstatus, Hilfe und
+`PassWoSpeechBubble`; segmentbezogene Komponenten liefern nur Zustand und versionierte Texte. Der
+frühere separate `PassWoQuestDock`-Adapter ist entfernt.
 
 S02 bildet die ausdrücklich begrenzte Ausnahme: Während ein Konto erkundet wird, steht PassWo
 neben dem aktiven Kontoknoten und die Sprechblase folgt als gemeinsame Guide-Einheit. Beim Intro,
 nach Abschluss eines Kontos und beim Segmentabschluss kehrt die Einheit an den unteren linken
 Ausgangspunkt zurück.
-
-Für `wave`, `explain`, `point`, `caution`, `idea` und `flight` fehlen weiterhin freigegebene
-Einzelassets. Die vorhandenen Designboards bleiben Stil- und Kompositionsreferenzen und werden
-nicht als Sprite ausgeschnitten oder eingebunden.
 
 Die Namenszeile zeigt den einwortigen Aufgabenstatus statt des Figurennamens. Direkt daneben
 öffnet ein Fragezeichen-Button die jeweilige Erklärung. Während PassWo spricht, verschwindet
@@ -81,9 +77,9 @@ Kein Rive-Einstieg, bevor die benötigten Layer-Assets und Animationsanforderung
 
 ## Verbleibendes Asset-Risiko
 
-Für die Runtime liegen noch keine freigegebenen transparenten Einzelassets der Posen vor. Der
-Adapter kann sie über das zentrale Register aufnehmen; visuell bleibt bis zur Asset-Lieferung der
-semantisch angebundene Textplatzhalter bestehen.
+Für `wave`, `explain`, `point`, `caution`, `idea` und `flight` liegen noch keine freigegebenen
+transparenten Einzelassets vor. Bis zu einer fachlich begründeten Erweiterung verwendet der Guide
+die beiden vorhandenen lokalen Rasterassets; es gibt keinen zusätzlichen Textplatzhalter-Adapter.
 
 ## Inhaltliche Regeln
 

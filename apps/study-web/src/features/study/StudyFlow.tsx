@@ -16,6 +16,9 @@ import styles from './StudyFlow.module.css';
 const preInstrument = instrumentRuntimeManifest.instruments['pre-v1'];
 const postInstrument = instrumentRuntimeManifest.instruments['post-v1'];
 const guardrailInstrument = instrumentRuntimeManifest.instruments['guardrail-v2'];
+const participantInformation = instrumentRuntimeManifest.procedures.participantInformation;
+const recontactProcedure = instrumentRuntimeManifest.procedures.followUpRecontact;
+const sessionClosure = instrumentRuntimeManifest.procedures.sessionClosure;
 
 interface ConsentDecision {
   readonly followUpConsent: boolean;
@@ -75,11 +78,11 @@ function Consent({ onAccept }: { readonly onAccept: (decision: ConsentDecision) 
   if (declined) {
     return (
       <section className={styles.declineNotice} aria-labelledby="declined-title" role="status">
-        <p className={styles.eyebrow}>Studie zu digitalem Kontoschutz</p>
+        <p className={styles.eyebrow}>{participantInformation.eyebrow}</p>
         <h1 id="declined-title" tabIndex={-1} autoFocus>
-          Danke für deine Rückmeldung
+          {participantInformation.actions.declineHeading}
         </h1>
-        <p>Du nimmst nicht an der Studie teil. Es wurde keine Sitzung angelegt.</p>
+        <p>{participantInformation.actions.declineBody}</p>
       </section>
     );
   }
@@ -87,28 +90,22 @@ function Consent({ onAccept }: { readonly onAccept: (decision: ConsentDecision) 
   return (
     <section className={styles.consentPage} aria-labelledby="consent-title">
       <header className={styles.welcomeHeader}>
-        <p className={styles.eyebrow}>Studie zu digitalem Kontoschutz</p>
+        <p className={styles.eyebrow}>{participantInformation.eyebrow}</p>
         <h1 id="consent-title" tabIndex={-1} autoFocus>
-          Willkommen
+          {participantInformation.welcomeHeading}
         </h1>
-        <p className={styles.welcomeCopy}>
-          Vielen Dank, dass du dir Zeit für diese Studie nimmst. Du bearbeitest gleich ein digitales
-          Lernangebot zum Schutz von Online-Konten. Davor und danach beantwortest du einige kurze
-          Fragen.
-        </p>
+        {participantInformation.welcomeParagraphs.map((paragraph) => (
+          <p className={styles.welcomeCopy} key={paragraph}>
+            {paragraph}
+          </p>
+        ))}
         <div className={styles.factCards} aria-label="Kurzüberblick zur Teilnahme">
-          <article className={styles.factCard}>
-            <h2>Dauer heute</h2>
-            <p>etwa 20–30 Minuten</p>
-          </article>
-          <article className={styles.factCard}>
-            <h2>Auswertung</h2>
-            <p>pseudonymisiert</p>
-          </article>
-          <article className={styles.factCard}>
-            <h2>Nachbefragung</h2>
-            <p>optional, etwa 1 Minute nach 10 Tagen</p>
-          </article>
+          {participantInformation.facts.map((fact) => (
+            <article className={styles.factCard} key={fact.id}>
+              <h2>{fact.label}</h2>
+              <p>{fact.value}</p>
+            </article>
+          ))}
         </div>
         {!informationVisible ? (
           <button
@@ -116,7 +113,7 @@ function Consent({ onAccept }: { readonly onAccept: (decision: ConsentDecision) 
             type="button"
             onClick={() => setInformationVisible(true)}
           >
-            Teilnahmeinformationen lesen
+            {participantInformation.readMoreLabel}
           </button>
         ) : null}
       </header>
@@ -124,71 +121,16 @@ function Consent({ onAccept }: { readonly onAccept: (decision: ConsentDecision) 
       {informationVisible ? (
         <div className={styles.consentDetails}>
           <section aria-labelledby="participant-information-title">
-            <h2 id="participant-information-title">Informationen zu deiner Teilnahme</h2>
-            <DisclosureSection title="Worum geht es?">
-              <p>
-                Wir untersuchen, wie ein digitales Lernangebot zum Schutz von Online-Konten genutzt
-                und wahrgenommen wird. Einige Einzelheiten dazu, was genau untersucht wird,
-                erläutern wir erst nach deinem letzten Studienteil. Dadurch soll vermieden werden,
-                dass Vorwissen über die genaue Fragestellung deine Bearbeitung beeinflusst.
-              </p>
-            </DisclosureSection>
-            <DisclosureSection title="Was erwartet dich?">
-              <p>
-                Zunächst beantwortest du kurze Fragen zu deiner Person und zu bisherigen Erfahrungen
-                mit den behandelten Themen. Danach bearbeitest du ein digitales Lernangebot.
-                Abschließend folgen Fragen zu deiner Wahrnehmung des Angebots und zu den
-                vermittelten Inhalten. Die heutige Sitzung dauert voraussichtlich 20 bis 30 Minuten.
-              </p>
-              <p>
-                Optional kannst du etwa zehn Tage später per E-Mail an einer ungefähr einminütigen
-                Nachbefragung teilnehmen. Die Hauptstudie kann vollständig bearbeitet werden, ohne
-                dieser Kontaktaufnahme zuzustimmen.
-              </p>
-            </DisclosureSection>
-            <DisclosureSection title="Welche Daten werden verarbeitet?">
-              <p>
-                Gespeichert werden deine Fragebogenantworten, Bearbeitungszeiten, technische
-                Abschlussinformationen und Angaben zum bearbeiteten Studienablauf. Die
-                Forschungsdaten werden unter einem zufällig erzeugten Teilnehmercode pseudonymisiert
-                gespeichert und ausgewertet. Sie enthalten weder deinen Namen noch deine
-                E-Mail-Adresse.
-              </p>
-              <p>
-                Falls du der Nachbefragung zustimmst, wird deine E-Mail-Adresse getrennt von den
-                Forschungsdaten gespeichert und ausschließlich für die Einladung sowie höchstens
-                eine Erinnerung verwendet.
-              </p>
-            </DisclosureSection>
-            <DisclosureSection title="Freiwilligkeit und Abbruch">
-              <p>
-                Die Teilnahme ist freiwillig. Du kannst sie jederzeit ohne Begründung und ohne
-                Nachteile beenden. Innerhalb der vor dem Study Freeze festgelegten Aufbewahrungs-
-                und Löschfrist kannst du unter Angabe deines Teilnehmercodes die Löschung deiner
-                Forschungsdaten verlangen.
-              </p>
-            </DisclosureSection>
-            <DisclosureSection title="Mögliche Belastungen und Nutzen">
-              <p>
-                Es sind keine besonderen Risiken zu erwarten, die über alltägliche Belastungen bei
-                der Nutzung digitaler Lernangebote und Fragebögen hinausgehen. Ein unmittelbarer
-                persönlicher Nutzen kann nicht zugesichert werden.
-              </p>
-            </DisclosureSection>
-            <DisclosureSection title="Fragen und Kontakt">
-              <p>
-                Bei Fragen zur Studie, zur Teilnahme oder zur Verarbeitung deiner Daten kannst du
-                dich an folgende Stelle wenden:
-              </p>
-              <ul className={styles.contactList}>
-                <li>Studienleitung: Julian Meyer, s27jmeye@uni-bonn.de</li>
-                <li>Betreuung: Dr. Christian Tiefenau, tiefenau@cs.uni-bonn.de</li>
-                <li>
-                  Verantwortliche Stelle / Datenschutzkontakt: [nach Vorgabe der Universität
-                  ergänzen]
-                </li>
-              </ul>
-            </DisclosureSection>
+            <h2 id="participant-information-title">
+              {participantInformation.informationHeading}
+            </h2>
+            {participantInformation.sections.map((section) => (
+              <DisclosureSection key={section.id} title={section.heading}>
+                {section.paragraphs.map((paragraph) => (
+                  <p key={paragraph}>{paragraph}</p>
+                ))}
+              </DisclosureSection>
+            ))}
           </section>
 
           <form
@@ -248,24 +190,19 @@ function Consent({ onAccept }: { readonly onAccept: (decision: ConsentDecision) 
             </fieldset>
 
             <fieldset className={styles.consentPanel}>
-              <legend>Einwilligung</legend>
+              <legend>{participantInformation.requiredConsent.legend}</legend>
               <label className={styles.check}>
                 <input
                   type="checkbox"
                   checked={accepted}
                   onChange={(event) => setAccepted(event.currentTarget.checked)}
                 />
-                <span>
-                  Ich habe die Teilnahmeinformationen gelesen und verstanden. Ich weiß, dass einige
-                  Einzelheiten zur genauen Fragestellung erst nach meinem letzten Studienteil
-                  erläutert werden. Ich willige freiwillig in die Teilnahme und in die beschriebene
-                  pseudonymisierte Verarbeitung meiner Forschungsdaten ein.
-                </span>
+                <span>{participantInformation.requiredConsent.statement}</span>
               </label>
             </fieldset>
 
             <fieldset className={styles.consentPanel}>
-              <legend>Optionale Nachbefragung</legend>
+              <legend>{recontactProcedure.consentLegend}</legend>
               <label className={styles.check}>
                 <input
                   type="checkbox"
@@ -279,15 +216,11 @@ function Consent({ onAccept }: { readonly onAccept: (decision: ConsentDecision) 
                     }
                   }}
                 />
-                <span>
-                  Ich möchte etwa zehn Tage später per E-Mail zu einer kurzen Nachbefragung
-                  eingeladen werden. Meine E-Mail-Adresse wird getrennt von den Forschungsdaten
-                  gespeichert und nur für diese Kontaktaufnahme verwendet.
-                </span>
+                <span>{recontactProcedure.consentStatement}</span>
               </label>
               {wantsRecontact ? (
                 <label className={styles.emailField}>
-                  <span>E-Mail-Adresse für die Nachbefragung</span>
+                  <span>{recontactProcedure.emailLabel}</span>
                   <input
                     type="email"
                     autoComplete="email"
@@ -313,14 +246,14 @@ function Consent({ onAccept }: { readonly onAccept: (decision: ConsentDecision) 
                 type="submit"
                 disabled={!accepted || !eligible || !emailValid}
               >
-                Teilnahme beginnen
+                {participantInformation.actions.acceptLabel}
               </button>
               <button
                 className={styles.secondaryButton}
                 type="button"
                 onClick={() => setDeclined(true)}
               >
-                Nicht teilnehmen
+                {participantInformation.actions.declineLabel}
               </button>
             </div>
           </form>
@@ -366,19 +299,16 @@ function RecontactError({
 }
 
 function SupportiveArtifact({
-  onComplete,
   timingPort,
   timingError,
   onRetryTiming,
 }: {
-  readonly onComplete: () => void;
   readonly timingPort: BrowserSegmentTimingAdapter;
   readonly timingError: string | null;
   readonly onRetryTiming: () => void;
 }) {
   return (
     <PasswordModuleTraining
-      onComplete={onComplete}
       timingPort={timingPort}
       externalTimingError={timingError}
       onRetryExternalTiming={onRetryTiming}
@@ -544,7 +474,6 @@ export function StudyFlow() {
         <ConfigurationError errorCode="missing-segment-timing-port" />
       ) : (
         <SupportiveArtifact
-          onComplete={completeArtifact}
           timingPort={segmentTimingPort}
           timingError={
             context.artifactTimingErrorKind === 'visibility' ? context.researchErrorCode : null
@@ -641,31 +570,25 @@ export function StudyFlow() {
           onSubmit={(payload) => send({ type: 'SUBMIT_POST_OPEN', payload })}
         />
       );
-  } else if (snapshot.matches('debrief')) {
+  } else if (snapshot.matches('sessionClosure')) {
+    const closureContent = context.followUpConsent
+      ? sessionClosure.deferredDebriefWithFollowUp
+      : sessionClosure.immediateDebriefWithoutFollowUp;
     content = (
-      <section aria-labelledby="debrief-title">
-        <h1 id="debrief-title" tabIndex={-1} autoFocus>
-          Vielen Dank für deine Teilnahme
+      <section aria-labelledby="session-closure-title">
+        <h1 id="session-closure-title" tabIndex={-1} autoFocus>
+          {closureContent.heading}
         </h1>
-        {context.followUpConsent ? (
-          <p>
-            Die Hauptsitzung ist damit abgeschlossen. Zehn Tage nach deiner Teilnahme erhältst du
-            die kurze Nachbefragung an die angegebene E-Mail-Adresse. Du kannst dieses Fenster jetzt
-            schließen.
-          </p>
-        ) : (
-          <p>
-            Die Hauptsitzung ist damit abgeschlossen. Du hast keine Kontaktaufnahme für die
-            optionale Nachbefragung gewählt. Du kannst dieses Fenster jetzt schließen.
-          </p>
-        )}
+        {closureContent.paragraphs.map((paragraph) => (
+          <p key={paragraph}>{paragraph}</p>
+        ))}
         <div className={styles.form}>
           <button
             className={styles.button}
             type="button"
-            onClick={() => send({ type: 'DEBRIEF_ACKNOWLEDGED' })}
+            onClick={() => send({ type: 'SESSION_CLOSURE_ACKNOWLEDGED' })}
           >
-            Abschluss bestätigen
+            {closureContent.actionLabel}
           </button>
         </div>
       </section>

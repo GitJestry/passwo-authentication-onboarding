@@ -1,22 +1,25 @@
 # PassWo Authentication Onboarding
 
 Dieses pnpm-Monorepo enthält das **Supportive Authentication Onboarding** und die lokale Runtime
-für die gekoppelte Between-Subjects-Studie. Nach M3 sind der technische
-Studienpfad, die visuelle Trainingsplattform und die ersten Knotennetzwerk-Slices implementiert.
-Die finalen Forschungsinstrumente und die vollständigen Trainingssegmente folgen in späteren
-Meilensteinen.
+für die gekoppelte Between-Subjects-Studie. Der technische Studienpfad, die visuelle
+Trainingsplattform, die Segmente S00 bis S03 und die draft-versionierten Forschungsinstrumente
+sind integriert. S04 bis S17, das externe Follow-up-Formular mit Import und der Study Freeze sind
+noch offen.
 
-## Stand nach M3
+## Aktueller Stand
 
 - **M1 – Study Runtime:** serverseitige Sitzungsanlage und verdeckte Blockzuweisung, getrennte
   Study- und Training-Statecharts, SQLite-Persistenz erlaubter Forschungsdaten, Timing,
   Reload-/Lease-Behandlung sowie CSV-/JSON-Export mit Manifest und Prüfsummen.
 - **M2 – Visual Platform:** BrowserShell, PassWo-Adapter, Mission-/Animations-Handshake,
   Reduced Motion und der vollständige S00-Slice.
-- **M3 – Knotennetzwerk:** frameworkfreie Szenenmodelle mit React-Flow-Adapter, ein
-  S02-CampusID-Durchlauf und die geprüften S06-Konsequenzszenen.
-- **Als Nächstes – M4:** das bereits angebundene Package `@passwo/password-analysis` wird für
-  die rein lokale, simulationsspezifische Passwortanalyse umgesetzt.
+- **Training:** S00 bis S03 bilden den integrierten Lauf. S06 besitzt deterministische
+  Konsequenz-Fixtures im Design Lab, ist aber noch nicht in den Studienpfad eingebunden.
+- **Instrumente:** Pre, Post, Guardrail und offene Rückmeldung laufen als versionierte,
+  atomare Submissions; das optionale Follow-up besitzt eine getrennte Recontact-Registry und
+  Schedule-Export.
+- **Als Nächstes:** S04 bis S11 einschließlich der vorbereiteten, noch nicht in den Renderer
+  eingebundenen lokalen Passwortanalyse.
 
 `apps/study-desktop` verpackt die Anwendung für Apple Silicon ohne Adresszeile und startet die
 vorhandene Runtime intern. `apps/study-web` ist der einzige React-/Vite-Renderer.
@@ -73,10 +76,11 @@ pnpm dev:secaware
 
 ## Study Runtime und Export
 
-Der Runtime-Pfad führt von Einwilligung und serverseitiger Session über Pre-Platzhalter,
-flüchtigen Anzeigenamen und zugewiesenes Artefakt zu Post-/Guardrail-Platzhaltern, Debrief und
-Abschluss. Anzeigenamen und Trainingsinputs bleiben ausschließlich im flüchtigen Arbeitsspeicher
-des Electron-Renderers. Standardmäßig liegt die Datenbank unter
+Der Runtime-Pfad führt von Eligibility, Einwilligung und optionaler Follow-up-Entscheidung über
+serverseitige Session, echte Pre-/Post-/Guardrail-Instrumentblöcke und das zugewiesene Artefakt
+zur bedingten Session Closure und zum Abschluss. Anzeigenamen und Trainingsinputs bleiben
+ausschließlich im flüchtigen Arbeitsspeicher des Electron-Renderers. Standardmäßig liegt die
+Datenbank unter
 `~/.passwo-study/study.sqlite`; ein anderer lokaler Datenordner kann über `STUDY_DATA_DIR`
 gesetzt werden.
 
@@ -115,7 +119,8 @@ normalen Studienpfad.
 ## Qualitätschecks
 
 ```bash
-pnpm check                    # Biome, TypeScript, Unit-/Contract-Tests, Research Boundary
+pnpm check                    # Biome, TypeScript und Research Boundary
+pnpm test:core                # Research-Core-, Contract- und lokale Trainingsdaten-Tests
 pnpm build                    # Server, kanonischen Renderer und Electron-Hülle bauen
 pnpm test:e2e                 # Study Runtime, Design Lab und Barrierefreiheit
 pnpm test:reference-artifact  # echter SecAware-Kursweg und automatischer Post-Übergang

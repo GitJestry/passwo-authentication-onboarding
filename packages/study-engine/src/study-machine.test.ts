@@ -283,7 +283,7 @@ describe('studyMachine', () => {
     actor.stop();
   });
 
-  it('requires recognition, scenarios, and post-open before entering the debrief', async () => {
+  it('requires recognition, scenarios, and post-open before entering session closure', async () => {
     const savedSubmissions: InstrumentSubmissionRequest[] = [];
     const actor = await startAtPreQuestionnaire(
       runtimePorts('reference', async (_sessionId, submission) => {
@@ -332,11 +332,11 @@ describe('studyMachine', () => {
 
     await submitCurrentBlock(actor);
     await waitForState(actor, () => actor.getSnapshot().matches({ postOpen: 'editing' }));
-    actor.send({ type: 'DEBRIEF_ACKNOWLEDGED' });
+    actor.send({ type: 'SESSION_CLOSURE_ACKNOWLEDGED' });
     expect(actor.getSnapshot().matches({ postOpen: 'editing' })).toBe(true);
 
     await submitCurrentBlock(actor);
-    await waitForState(actor, () => actor.getSnapshot().matches('debrief'));
+    await waitForState(actor, () => actor.getSnapshot().matches('sessionClosure'));
 
     expect(actor.getSnapshot().context.pendingSubmission).toBeNull();
     expect(savedSubmissions.at(-1)?.instrumentId).toBe('post-open-v1');

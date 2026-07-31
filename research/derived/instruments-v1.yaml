@@ -1,8 +1,9 @@
 schemaVersion: 2
-instrumentVersion: 1.4.0-draft
+# Kanonische Forschungsquelle; die Browserprojektion liegt zusätzlich unter packages/contracts.
+instrumentVersion: 1.5.0-draft
 questionnaireVersion: questionnaire-v1.3-draft
 guardrailVersion: guardrail-v2-draft
-consentVersion: consent-v2-draft
+consentVersion: consent-v3-draft
 followUpVersion: follow-up-v1-draft
 language: de-DE
 participantTerm: Lernangebot
@@ -91,23 +92,83 @@ procedures:
     - id: ELIG_GERMAN
       prompt: Ich kann deutschsprachige Lernmaterialien und Fragebogenfragen sicher verstehen.
       requiredValue: true
-  consent:
-    heading: Studieninformationen und Einwilligung
-    description: |-
-      In dieser Studie vergleichen wir zwei deutschsprachige Lernangebote zum Schutz von Online-Konten. Nach einigen kurzen Angaben wirst du zufällig einem der beiden Lernangebote zugeordnet. Anschließend beantwortest du Fragen zu deinem Eindruck und zum Verständnis der Inhalte.
-
-      Die Hauptsitzung dauert voraussichtlich etwa 20 bis 30 Minuten. Zehn Tage später folgt eine kurze Nachbefragung per E-Mail. Deine Teilnahme ist freiwillig und kann jederzeit ohne Nachteile beendet werden.
-
-      Es werden keine realen Passwörter, Konten, Anmeldecodes oder persönlichen Sicherheitsvorfälle abgefragt. Verwende in den fiktiven Übungen ausschließlich neu ausgedachte Angaben.
-    statement: Ich habe die Teilnahmeinformationen gelesen und verstanden. Ich weiß, dass einige Einzelheiten zur genauen
-      Fragestellung erst nach meinem letzten Studienteil erläutert werden. Ich willige freiwillig in die Teilnahme und in
-      die beschriebene pseudonymisierte Verarbeitung meiner Forschungsdaten ein.
+  participantInformation:
+    source: docs/research/PARTICIPANT-INFORMATION.md
+    eyebrow: Studie zu digitalem Kontoschutz
+    welcomeHeading: Willkommen
+    welcomeParagraphs:
+    - Vielen Dank, dass du dir Zeit für diese Studie nimmst. Du bearbeitest gleich ein digitales Lernangebot zum Schutz
+      von Online-Konten. Davor und danach beantwortest du einige kurze Fragen.
+    - Plane für die heutige Sitzung etwa 20 bis 30 Minuten ein. Die Teilnahme ist freiwillig und kann jederzeit ohne
+      Nachteile beendet werden.
+    facts:
+    - id: duration
+      label: Dauer heute
+      value: etwa 20–30 Minuten
+    - id: analysis
+      label: Auswertung
+      value: pseudonymisiert
+    - id: follow_up
+      label: Nachbefragung
+      value: optional, etwa 1 Minute nach 10 Tagen
+    readMoreLabel: Teilnahmeinformationen lesen
+    informationHeading: Informationen zu deiner Teilnahme
+    sections:
+    - id: purpose
+      heading: Worum geht es?
+      paragraphs:
+      - Wir untersuchen, wie ein digitales Lernangebot zum Schutz von Online-Konten genutzt und wahrgenommen wird. Einige
+        Einzelheiten dazu, was genau untersucht wird, erläutern wir erst nach deinem letzten Studienteil. Dadurch soll
+        vermieden werden, dass Vorwissen über die genaue Fragestellung deine Bearbeitung beeinflusst.
+    - id: procedure
+      heading: Was erwartet dich?
+      paragraphs:
+      - Zunächst beantwortest du kurze Fragen zu deiner Person und zu bisherigen Erfahrungen mit den behandelten Themen.
+        Danach bearbeitest du ein digitales Lernangebot. Abschließend folgen Fragen zu deiner Wahrnehmung des Angebots und
+        zu den vermittelten Inhalten. Die heutige Sitzung dauert voraussichtlich 20 bis 30 Minuten.
+      - Optional kannst du etwa zehn Tage später per E-Mail an einer ungefähr einminütigen Nachbefragung teilnehmen. Die
+        Hauptstudie kann vollständig bearbeitet werden, ohne dieser Kontaktaufnahme zuzustimmen.
+    - id: data
+      heading: Welche Daten werden verarbeitet?
+      paragraphs:
+      - Gespeichert werden deine Fragebogenantworten, Bearbeitungszeiten, technische Abschlussinformationen und Angaben
+        zum bearbeiteten Studienablauf. Die Forschungsdaten werden unter einem zufällig erzeugten Teilnehmercode
+        pseudonymisiert gespeichert und ausgewertet. Sie enthalten weder deinen Namen noch deine E-Mail-Adresse.
+      - Falls du der Nachbefragung zustimmst, wird deine E-Mail-Adresse getrennt von den Forschungsdaten gespeichert und
+        ausschließlich für die Einladung sowie höchstens eine Erinnerung verwendet.
+    - id: voluntariness
+      heading: Freiwilligkeit und Abbruch
+      paragraphs:
+      - Die Teilnahme ist freiwillig. Du kannst sie jederzeit ohne Begründung und ohne Nachteile beenden. Innerhalb der
+        vor dem Study Freeze festgelegten Aufbewahrungs- und Löschfrist kannst du unter Angabe deines Teilnehmercodes die
+        Löschung deiner Forschungsdaten verlangen.
+    - id: burden
+      heading: Mögliche Belastungen und Nutzen
+      paragraphs:
+      - Es sind keine besonderen Risiken zu erwarten, die über alltägliche Belastungen bei der Nutzung digitaler
+        Lernangebote und Fragebögen hinausgehen. Ein unmittelbarer persönlicher Nutzen kann nicht zugesichert werden.
+    - id: contact
+      heading: Fragen und Kontakt
+      paragraphs:
+      - "Bei Fragen zur Studie, zur Teilnahme oder zur Verarbeitung deiner Daten kannst du dich an folgende Stelle wenden:"
+      - "Studienleitung: Julian Meyer, s27jmeye@uni-bonn.de"
+      - "Betreuung: Dr. Christian Tiefenau, tiefenau@cs.uni-bonn.de"
+      - "Verantwortliche Stelle / Datenschutzkontakt: [nach Vorgabe der Universität ergänzen]"
+    requiredConsent:
+      legend: Einwilligung
+      statement: Ich habe die Teilnahmeinformationen gelesen und verstanden. Ich weiß, dass einige Einzelheiten zur
+        genauen Fragestellung erst nach meinem letzten Studienteil erläutert werden. Ich willige freiwillig in die
+        Teilnahme und in die beschriebene pseudonymisierte Verarbeitung meiner Forschungsdaten ein.
+    actions:
+      acceptLabel: Teilnahme beginnen
+      declineLabel: Nicht teilnehmen
+      declineHeading: Danke für deine Rückmeldung
+      declineBody: Du nimmst nicht an der Studie teil. Es wurde keine Sitzung angelegt.
   followUpRecontact:
-    requiredBeforePreQuestionnaire: true
-    heading: Nachbefragung nach zehn Tagen
-    explanation: Zehn Tage nach deiner Teilnahme senden wir dir per E-Mail einen kurzen Fragebogen zur Nachbefragung. Die
-      Beantwortung wird etwa eine Minute dauern. Bitte gib deshalb die E-Mail-Adresse an, an die wir die Nachbefragung
-      senden dürfen.
+    optional: true
+    consentLegend: Optionale Nachbefragung
+    consentStatement: Ich möchte etwa zehn Tage später per E-Mail zu einer kurzen Nachbefragung eingeladen werden. Meine
+      E-Mail-Adresse wird getrennt von den Forschungsdaten gespeichert und nur für diese Kontaktaufnahme verwendet.
     emailLabel: E-Mail-Adresse für die Nachbefragung
     emailRequired: true
     emailNeverStoredInResearchDatabase: true
@@ -116,6 +177,29 @@ procedures:
     closeAfterSessionHours: 336
     emailSubject: Kurze Nachbefragung zur Studie
     emailContainsTrainingAdvice: false
+  sessionClosure:
+    immediateDebriefWithoutFollowUp:
+      heading: Aufklärung zur Studie
+      paragraphs:
+      - Zu Beginn wurden nicht alle Einzelheiten des Studiendesigns offengelegt. In der Studie werden zwei
+        deutschsprachige Lernangebote zum Schutz von Online-Konten als vollständige Angebote miteinander verglichen. Die
+        Zuweisung erfolgte zufällig. Diese Information wurde zunächst zurückgehalten, damit Erwartungen an einen Vergleich
+        die Bearbeitung und Bewertung des jeweiligen Lernangebots möglichst wenig beeinflussen.
+      - Untersucht werden insbesondere die Wahrnehmung des Lernangebots, die Bearbeitungsdauer sowie das unmittelbare
+        Verständnis zentraler Aussagen zu Passwortwiederverwendung, Passwortmanagern und MFA/2FA. Die Studie prüft nicht,
+        ob eine einzelne Gestaltungskomponente oder ein einzelnes psychologisches Prinzip die Ergebnisse verursacht hat.
+      - Du kannst nach dieser Aufklärung innerhalb der vor dem Study Freeze festgelegten Aufbewahrungs- und Löschfrist
+        weiterhin die Löschung deiner Forschungsdaten verlangen. Verwende dafür deinen Teilnehmercode und die angegebene
+        Kontaktadresse.
+      actionLabel: Abschluss bestätigen
+    deferredDebriefWithFollowUp:
+      heading: Vielen Dank für deine Teilnahme
+      paragraphs:
+      - Die Hauptsitzung ist damit abgeschlossen. Zehn Tage nach deiner Teilnahme erhältst du die kurze Nachbefragung an
+        die angegebene E-Mail-Adresse.
+      - Die vollständige Aufklärung zur Studie erhältst du nach deiner Antwort oder spätestens nach Schließung des
+        Follow-up-Zeitfensters. Du kannst dieses Fenster jetzt schließen.
+      actionLabel: Abschluss bestätigen
 instruments:
   pre-v1:
     sections:

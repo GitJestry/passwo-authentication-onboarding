@@ -83,7 +83,7 @@ export type StudyEvent =
       readonly type: 'SUBMIT_POST_OPEN';
       readonly payload: InstrumentSubmissionFor<'post-open-v1'>;
     }
-  | { readonly type: 'DEBRIEF_ACKNOWLEDGED' }
+  | { readonly type: 'SESSION_CLOSURE_ACKNOWLEDGED' }
   | { readonly type: 'RETRY_SESSION' }
   | { readonly type: 'RETRY_PRE' }
   | { readonly type: 'RETRY_ARTIFACT_START' }
@@ -786,7 +786,7 @@ export function createStudyMachine(ports: StudyRuntimePorts) {
                 submission: requiredPendingSubmission(context),
               }),
               onDone: {
-                target: '#study.debrief',
+                target: '#study.sessionClosure',
                 actions: 'confirmPendingSubmission',
               },
               onError: {
@@ -804,7 +804,7 @@ export function createStudyMachine(ports: StudyRuntimePorts) {
           },
         },
       },
-      debrief: { on: { DEBRIEF_ACKNOWLEDGED: 'completing' } },
+      sessionClosure: { on: { SESSION_CLOSURE_ACKNOWLEDGED: 'completing' } },
       completing: {
         invoke: {
           id: 'completeSession',

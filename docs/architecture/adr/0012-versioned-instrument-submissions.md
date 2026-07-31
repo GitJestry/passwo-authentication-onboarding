@@ -72,3 +72,15 @@ Die Instrumentversion wird auf `1.4.0-draft`, das Runtime-Manifest auf
 Nachbefragung ist nun angekündigter Bestandteil der allgemeinen Einwilligung; eine separate
 Follow-up-Entscheidung entfällt. Fragebogen-, Guardrail- und Follow-up-Instrumentversion sowie die
 Follow-up-Fragen bleiben unverändert.
+
+## Revision 2026-07-31 — optionale Nachbefragung und strukturierte Teilnehmerinformation
+
+Die vorangehende Pflicht-Follow-up-Revision wird durch `ADR 0011-Follow-up-Recontact` und die
+kanonische `PARTICIPANT-INFORMATION.md` abgelöst. Die Follow-up-Einwilligung ist getrennt und
+optional; eine Ablehnung blockiert die Hauptstudie nicht.
+
+Die Instrumentversion wird auf `1.5.0-draft`, das Runtime-Manifest auf
+`instrument-runtime-v1.5-draft` und die Consent-Version auf `consent-v3-draft` angehoben. Die
+gemeinsame Teilnahmeinformation, Consent-Texte, optionale Recontact-Texte und beide Varianten der
+Session Closure werden als strukturierte Runtime-Daten geführt. Fragebogen-, Guardrail- und
+Follow-up-Inhaltsversionen bleiben unverändert.

@@ -4,86 +4,79 @@
 
 | Klasse | Beispiele | Persistenz |
 |---|---|---|
-| Study identity | Session UUID, pseudonymer Teilnehmercode | erlaubt |
-| Assignment | Bedingung, Zuweisungsmodus, Config-ID | erlaubt |
-| Versioning | Commit, Content-, Fragebogen-, Consent-, Referenzversion | erlaubt |
-| Timing | Phase, Segment-ID, Start/Ende, monotone Dauer | erlaubt |
-| Instruments | Pre, Post, Mechanism Recognition, Szenarioantworten | erlaubt |
-| Completion | complete, incomplete, technical failure | erlaubt |
-| Follow-up-Verknüpfung | optionale Einwilligung, Instrumentversion, optionaler Token-Hash | erlaubt in `study.sqlite` |
-| Recontact | E-Mail, Roh-Token, Token-Hash, Consent-Version, Versand-/Schließzeitpunkte | nur in `recontact.sqlite` |
-| Ephemeral personalization | Anzeigename/Kürzel | nur flüchtiger Electron-Renderer; Persistenz verboten |
-| Training input | fiktive Passwörter und Loginversuche | nur flüchtiger Electron-Renderer; Persistenz verboten |
-| Training diagnosis | Findings, Ähnlichkeit, Abrufbarkeit, Auswahlpfade | nur flüchtiger Electron-Renderer; Persistenz verboten |
-| Reference quiz state | SecAware-Quizantworten, Quizpunkte, SCORM-Interaktionen | nur flüchtige eingebettete Laufzeit; Persistenz und Outcome-Nutzung verboten |
+| Study identity | Session UUID, pseudonymer Teilnehmercode | `study.sqlite` |
+| Assignment | Bedingung, Zuweisungsmodus, Config-ID, Guardrail-Form | `study.sqlite` |
+| Versioning | Study-, Content-, Fragebogen-, Guardrail-, Consent-, Follow-up- und Referenzversion | `study.sqlite` |
+| Timing | Phase, Segment-ID, Start/Ende, monotone Dauer | `study.sqlite` |
+| Instruments | Pre, Post, Guardrail, optionale offene Rückmeldung, später importiertes Follow-up | `study.sqlite` |
+| Presentation | Form-ID und tatsächlich angezeigte Guardrail-Option-IDs | `study.sqlite` |
+| Completion | complete, incomplete, technical failure | `study.sqlite` |
+| Follow-up-Verknüpfung | optionale Einwilligung, Follow-up-Version, optionaler Token-Hash | `study.sqlite` |
+| Recontact | E-Mail, Roh-Token, Token-Hash, Consent-Version, Versand-/Schließzeitpunkte | ausschließlich `recontact.sqlite` |
+| Ephemeral personalization | Anzeigename/Kürzel | nur flüchtiger Electron-Renderer |
+| Training input/diagnosis | fiktive Passwörter, Loginversuche, Findings, Ähnlichkeit | nie persistieren |
+| Reference quiz state | Antworten, Punkte, SCORM-Interaktionen | nicht erheben |
 | Sensitive real-world data | reale Konten, Passwörter, Tokens, Vorfälle | nie erheben |
 | Passive metadata | IP, User-Agent, Request-Bodies | nicht persistieren |
 
-## Datenbankschema
+## Forschungsdatenbank
 
-Drei exportierbare fachliche Tabellen reichen für den Start:
+`study.sqlite` enthält:
 
-- `study_sessions` — Identität, Zuweisung, Versionen und Status;
-- `timing_events` — idempotente Zeitereignisse;
-- `responses` — versionierte Instrument-/Itemantworten.
+- `study_sessions` für Identität, Zuweisung, Versionen, Follow-up-Einwilligung und Status;
+- `assignment_slots` und `guardrail_form_slots` für getrennte serverseitige Blockzuweisungen;
+- `timing_events` für idempotente Zeitereignisse;
+- `artifact_leases` ausschließlich für operative Reload-Erkennung;
+- `instrument_submissions` für atomare Blockabgaben und Payload-Fingerprints;
+- `responses` für validierte Itemantworten;
+- `response_presentations` für die tatsächlich dargestellten Guardrail-Optionen.
 
-`assignment_slots` verwaltet nur die verdeckte Blockzuweisung.
-`artifact_leases` enthält ausschließlich operative Heartbeat- und Schließzeitpunkte zur
-Reload-Erkennung. Diese Betriebsmetadaten sind weder Forschungstiming noch Bestandteil der
-Sessions-, Timing- oder Responses-Exporte.
+`artifact_leases` sind weder Forschungstiming noch Bestandteil des Exports. E-Mail,
+Roh-Token und Recontact-Request-ID sind in `study.sqlite` verboten.
 
-`study.sqlite` enthält den Follow-up-Einwilligungsstatus, die Follow-up-Version und optional den
-Token-Hash, aber niemals E-Mail, Roh-Token oder Recontact-Request-ID. `recontact.sqlite` enthält
-E-Mail, Roh-Token, Token-Hash, Consent-Version sowie Einladungs-, Erinnerungs-, Schließ- und
-Versandzeitpunkte. Sie enthält keine Condition, Antworten, Timings, Demografie oder
-Trainingsdiagnosen.
+## Antwort-Submission
 
-## Antwortformat
+Der Client sendet einen vollständigen Instrumentblock mit `instrumentId`, `sectionId` und der
+exakt erwarteten Itemmenge. Der Server validiert IDs, Reihenfolge, Wertebereiche,
+Mehrfachauswahl-Exklusivität und Textlängen anhand der versionierten Runtime-Definition.
 
-Antworten werden durch `instrumentId` und `itemId` adressiert. `value` ist ein begrenzter,
-validierter JSON-Wert. Freitext wird nur aufgenommen, wenn er methodisch beschlossen und mit
-Datenschutzhinweis versehen ist.
+Die erste gültige Submission wird transaktional gespeichert. Eine identische Wiederholung ist
+idempotent; ein abweichender zweiter Payload für denselben Block erzeugt einen Konflikt und
+überschreibt keine Daten. Rohantworten und Präsentationsreihenfolge werden exportiert, Scoring
+findet ausschließlich im Analyseprozess statt.
 
-## Pseudonymisierung
+## Pseudonymisierung und Recontact
 
 Der Teilnehmercode wird zufällig erzeugt und enthält keine Initialen, Matrikelnummer oder
-Zeitstempel. Operative und analytische Forschungsdaten bleiben unter diesem stabilen Schlüssel
-pseudonymisiert, damit Instrumentteile und Follow-up-Antworten verknüpft, unvollständige Sitzungen
-geprüft und Löschanfragen bearbeitet werden können. Pseudonymisierte Forschungsdaten sind weiterhin
-geschützte Forschungsdaten und entsprechend zugriffsbeschränkt zu behandeln.
+Zeitstempel. Pseudonymisierte Forschungsdaten bleiben geschützt und zugriffsbeschränkt.
 
-Direkte Kontaktdaten für die optionale Nachbefragung liegen ausschließlich in der getrennten
-Recontact-Registry. Der normale Forschungsdatenexport liest diese Registry nicht und enthält weder
-E-Mail-Adressen noch Roh-Tokens, Follow-up-Links oder Token-Hashes.
+Die optionale Nachbefragung beeinflusst weder Teilnahme noch Condition-Zuweisung. Bei Einwilligung
+enthält `~/.passwo-study/recontact.sqlite` ausschließlich Token-Hash und Roh-Token, E-Mail-Adresse,
+Consent-Version sowie Registrierungs-, Einladungs-, Erinnerungs-, Schließ- und Versandstatus. Die
+Registry enthält keine Condition, Antworten, Timings oder Trainingsdaten.
+
+Ein Verzicht oder ein abgebrochener Registrierungsversuch setzt Einwilligungsstatus und Token-Hash
+in der Forschungsdatenbank zurück und entfernt einen gegebenenfalls angelegten Registry-Datensatz,
+ohne Session, Teilnehmercode oder Condition zu verändern.
 
 ## Speicherort und Rechte
 
-- Standard: `~/.passwo-study/study.sqlite`.
-- Verzeichnisrecht `0700`, Datei möglichst `0600`.
+- Standard: `~/.passwo-study/study.sqlite` und getrennt `recontact.sqlite`.
+- Verzeichnisrecht `0700`, Dateien möglichst `0600`.
 - Kein automatischer Cloud-Sync-Pfad.
-- Exporte werden in ein explizites lokales Zielverzeichnis geschrieben.
-- Browser Storage, IndexedDB und Service Worker sind auch innerhalb des Electron-Renderers keine
-  zulässige Persistenz.
+- Browser Storage, IndexedDB und Service Worker sind unzulässig.
+- Exporte werden nur in explizit gewählte lokale Zielverzeichnisse geschrieben.
 
 ## Export
 
-Jeder Export enthält:
+Der Forschungsdatenexport enthält Sessions, Timing, Responses und Response Presentations als CSV
+und JSON, ein Data Dictionary sowie ein Manifest mit Versionen, Zählungen und SHA-256-Prüfsummen.
+Er enthält keine E-Mail, Roh-Tokens, Token-Hashes, Trainingsinputs oder SecAware-Quizdaten.
 
-- CSV-Dateien für Sessions, Timing und Responses;
-- JSON-Kopie derselben Tabellen;
-- Manifest mit Exportzeit, Schema-Version, Studienversionen und SHA-256-Hashes;
-- kein privates Source-Dokument und keinen flüchtigen Trainingszustand.
-
-Operative Datenbank und regulärer Export bleiben pseudonymisiert. Ergebnisse werden in der
-Bachelorarbeit ausschließlich aggregiert dargestellt.
-
-Der explizite, separate Schedule-Export enthält ausschließlich E-Mail-Adresse, individuellen
-Token-Link sowie Einladungs-, Erinnerungs- und Schließzeitpunkte. Er enthält weder Condition noch
+Der getrennte Schedule-Export enthält ausschließlich E-Mail, individuellen Token-Link sowie
+Einladungs-, Erinnerungs- und Schließzeitpunkte. Er enthält weder Condition noch
 Forschungsantworten.
 
-Aufbewahrung, Löschung und Backup-Zeitpunkte folgen einem separat freizugebenden Plan. Der konkrete
-Fristwert für Löschanfragen ist vor dem Study Freeze festzulegen und bleibt bis dahin ein
-Study-Freeze-Blocker. Die Runtime führt keine automatische oder destruktive Löschung der Research-
-oder Recontact-Datenbank durch. Die spätere Löschung der Recontact-Registry ist als Funktion des
-Follow-up-Import-/Debrief-Workflows umzusetzen, sobald dieser den Antwortimport und den Versand des
-abschließenden Debriefings zuverlässig feststellen kann.
+Aufbewahrungs-, Lösch- und Backup-Fristen sind vor dem Study Freeze festzulegen. Die Runtime führt
+bis dahin keine automatische oder destruktive Löschung der Research- oder Recontact-Datenbank
+durch.

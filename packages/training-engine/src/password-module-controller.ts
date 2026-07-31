@@ -24,7 +24,6 @@ function timingErrorCode(error: unknown): string {
 export interface PasswordModuleControllerOptions {
   readonly accountIds: readonly string[];
   readonly timingPort?: SegmentTimingPort;
-  readonly onComplete?: () => void;
 }
 
 export type PasswordModuleSnapshot = SnapshotFrom<typeof passwordModuleMachine>;

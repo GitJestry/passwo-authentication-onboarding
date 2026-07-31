@@ -10,7 +10,6 @@
   },
   "dependencies": {
     "@passwo/contracts": "workspace:*",
-    "@passwo/password-analysis": "workspace:*",
     "@passwo/study-engine": "workspace:*",
     "@passwo/training-content": "workspace:*",
     "@passwo/training-engine": "workspace:*",

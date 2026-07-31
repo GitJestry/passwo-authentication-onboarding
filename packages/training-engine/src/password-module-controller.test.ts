@@ -32,16 +32,12 @@ function completeS03(controller: PasswordModuleController): void {
 describe('PasswordModuleController', () => {
   it('records S01–S03 boundaries and awaits S04 after the final segment end', async () => {
     const timingEvents: SegmentTimingEvent[] = [];
-    let completions = 0;
     const controller = new PasswordModuleController({
       accountIds: ['campus-id', 'campus-mail', 'campus-board-archive'],
       timingPort: {
         record: async (event) => {
           timingEvents.push(event);
         },
-      },
-      onComplete: () => {
-        completions += 1;
       },
     });
 
@@ -68,7 +64,6 @@ describe('PasswordModuleController', () => {
       { eventType: 'segment-start', segmentId: 'S03', sectionId: 'passwords' },
       { eventType: 'segment-end', segmentId: 'S03', sectionId: 'passwords' },
     ]);
-    expect(completions).toBe(0);
     expect(controller.getSnapshot().matches('awaitingS04')).toBe(true);
   });
 
@@ -90,7 +85,6 @@ describe('PasswordModuleController', () => {
           timingEvents.push(pending);
         },
       },
-      onComplete: () => undefined,
     });
 
     controller.enterDisplayName('Alex');

@@ -1,94 +1,33 @@
-# Roadmap mit Abnahmetoren
+# Roadmap und aktueller Umsetzungsstand
 
-Die Reihenfolge reduziert das größte Projektrisiko: erst Studien- und Interaktionsgrundlagen
-validieren, dann Inhalt skalieren. Nicht alle 18 Segmente gleichzeitig bauen.
+Die Meilensteine bleiben als Planungsrahmen erhalten, laufen aber nicht mehr strikt linear:
+Instrument- und Referenzarbeit aus M6 wurde bereits parallel zum noch unvollständigen
+Trainingsmodul umgesetzt.
 
-M0 bis M3 sind abgeschlossen. M4 ist der nächste Meilenstein.
+| Meilenstein | Status | Stand / nächster Abschluss |
+|---|---|---|
+| M0 — Foundation und Scope Freeze | abgeschlossen | Repository, ADRs, Datengrenze, Studienfluss und Segmentindex stehen. |
+| M1 — Technischer Walking Skeleton | abgeschlossen | Session, verdeckte Zuweisung, SQLite, Timing, Reload-/Lease-Verhalten und Export sind implementiert. |
+| M2 — Visual Platform | abgeschlossen | BrowserShell, DesktopSurface, PassWoGuide, Animation-Handshake, Reduced Motion und Design Lab stehen. |
+| M3 — Knotennetzwerk | abgeschlossen | Frameworkfreie Szenenmodelle, React-Flow-Adapter, S02 und S06-Konsequenz-Fixtures stehen. |
+| M4 — Passwortmodul S03–S11 | teilweise | S03 ist integriert; S04–S11 und die lokale Passwortanalyse fehlen. S06 ist bisher nur ein deterministisches Fixture. |
+| M5 — Passwortmanager und MFA S12–S17 | offen | Simulationen, Recovery-Grenzen, MFA und integrierte Abschlusskarte fehlen. |
+| M6 — Instrumente und Referenzartefakt | teilweise | Draft-Instrumente, Guardrail-Formen, eingebettetes Referenzartefakt, PDF-Viewer, Recontact-Registry und Schedule-Export stehen. Cognitive Pretest, Content Audit, öffentliches Follow-up, Import und finaler Debrief-Versand fehlen. |
+| M7 — Pretest und Hardening | offen | Technischer Smoke-Test am Studiengerät und 3–5 Pilotdurchläufe pro Bedingung stehen aus. |
+| M8 — Study Freeze | offen | Versionen, Commit, Aufbewahrungsfrist, Datenschutzkontakt, Backup und Exportprozedur müssen eingefroren werden. |
 
-## M0 — Foundation und Scope Freeze (abgeschlossen)
+## Nächste Abnahmetore
 
-**Ergebnis:** Repository, ADRs, private Quellen, Segmentindex, Datengrenze, Studienfluss.
+1. S04 bis S11 einschließlich simulationsspezifischer Passwortanalyse implementieren und fachlich
+   prüfen.
+2. S12 bis S17 integrieren und den vollständigen supportive Artefaktabschluss herstellen.
+3. Instrumente und Guardrail Content Audit im Cognitive Pretest prüfen.
+4. Follow-up-Formular, Token-Import und abschließenden Debrief-Versand entscheiden und umsetzen.
+5. Pilotdurchläufe durchführen und anschließend den Study Freeze dokumentieren.
 
-**Gate:** Supervisor bestätigt Inhaltsumfang, gespeicherte Variablen, Randomisierung und
-Referenzbedingung.
+## Unveränderte Gates
 
-## M1 — Technischer Walking Skeleton (abgeschlossen)
-
-Minimaler vollständiger Pfad:
-
-`Einwilligung → Pre-Platzhalter → Anzeigename → Bedingung → Artefakt-Platzhalter →
-Post-Platzhalter → Guardrail-Platzhalter → Debrief → Export`
-
-Dabei funktionieren bereits Sitzungsanlage, permutierte Blockzuweisung, Gesamtzeit, lokale
-SQLite-Persistenz, Fehlerzustand und Export.
-
-**Gate:** In der Datenbank stehen ausschließlich erlaubte Felder. Ein Reload während des
-Trainings markiert den Durchlauf als unvollständig; Trainingszustand wird nicht rekonstruiert.
-
-## M2 — Visual Platform Vertical Slice (abgeschlossen)
-
-- BrowserShell mit fiktiven Tabs und neutraler macOS-Anmutung.
-- PassWo-Renderer mit Platzhalterpose, Flugbewegung, Dock und Sprechblase.
-- AnimationSequence-Handshake mit `replay` und `continue`.
-- `/design-lab` für deterministische Zustände und Screenshots.
-- Segment S00 als erster echter Inhaltsdurchlauf.
-
-**Gate:** Reduced Motion, Tastatur und feste Screenshot-Viewports funktionieren.
-
-BrowserShell ist dabei ausschließlich die simulierte Trainingsoberfläche; `/design-lab` bleibt
-ein interner QA-Pfad. Beide verwenden die einmalig implementierten Quellen des kanonischen
-Renderers und bilden keine eigene Auslieferungsplattform.
-
-## M3 — Knotennetzwerk Vertical Slice (abgeschlossen)
-
-- Authored Layout und React-Flow-Adapter.
-- Ein vollständiger Durchlauf aus S02 „Konten verstehen“.
-- Eine Konsequenzkette aus S06 mit neutral, betroffen, hypothetisch und blockiert.
-- Farbcodierung immer zusätzlich durch Form, Label oder Icon.
-
-**Gate:** Netzwerkzustände werden nur durch Domänenereignisse verändert; keine React-Flow-Typen
-lecken in Content oder Engine.
-
-## M4 — Verbleibendes Passwortmodul S03–S11 (nächster Meilenstein)
-
-- Passwortanalyse als reine, simulationsspezifische Heuristik.
-- Abrufbarkeit, Leak, drei Angriffswege, Ähnlichkeit, Diagnose, Wortmethode und Skalierungsbrücke.
-- Adaptive Texte und Kontrastbeispiele.
-
-**Gate:** Fachliche Testfälle und Teilnehmertexte sind einzeln geprüft. Keine Produktions-
-„Passwortstärke“-Behauptung.
-
-## M5 — Passwortmanager und MFA S12–S17
-
-- Produktneutrale Passwortmanager-Simulation.
-- Autofill-Ausnahme, Tresorzugang, Recovery-Hinweis, Systemwahl.
-- MFA-Faktoren, Aktivierungssimulation und integrierte Abschlusskarte.
-
-**Gate:** Passwortmanager und MFA werden weder überversprochen noch als Ersatz für einzigartige
-Passwörter dargestellt.
-
-## M6 — Forschungsinstrumente und Referenzartefakt
-
-- Finale Pre-/Post-Fragebögen und Guardrail-Rubrik versionieren.
-- SecAware-Version, Zugriffspfad, Datum und Abschlusskriterium einfrieren.
-- Eingebettetes Referenzartefakt, automatischen Abschluss und isolierten Zusatzviewer testen.
-- Vollständiger Datenexport mit Codebook.
-
-**Gate:** Beide Bedingungen haben dieselbe neutrale Einführung, Timingregel und Nachbefragung.
-
-## M7 — Pretest und Hardening
-
-- Technischer Smoke-Test auf dem tatsächlichen MacBook.
-- 3–5 Pilotdurchläufe pro Bedingung.
-- Dead Ends, missverständliche Erklärungen, Dauer, Pop-up-Blocker und Datenexport prüfen.
-- Änderungen protokollieren.
-
-**Gate:** Keine kritischen Findings; Studienkonfiguration wird eingefroren.
-
-## M8 — Study Freeze
-
-- Commit-Hash, Content-Version, Fragebogen-Version, Consent-Version und Referenzversion fixieren.
-- Automatische Updates und externe Abhängigkeiten während der Studie vermeiden.
-- Backup- und Exportprozedur trocken testen.
-
-Nach dem Freeze nur noch dokumentierte kritische Bugfixes mit Versionssprung.
+- Keine Produktions-„Passwortstärke“- oder Sicherheitsgarantie.
+- Keine Trainingsinputs oder Diagnosen in Forschungsdaten.
+- Beide Bedingungen verwenden dieselbe neutrale Einführung, Timingregel und Nachbefragung.
+- Nach dem Study Freeze nur dokumentierte kritische Bugfixes mit Versionssprung.

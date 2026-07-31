@@ -1,6 +1,7 @@
-# Participant Information and Consent v1.0-draft
+# Participant Information and Consent v3-draft
 
-**Repository path:** `docs/research/PARTICIPANT-INFORMATION.md`
+Dieses Dokument ist die kanonische fachliche Quelle der gemeinsamen Teilnehmertexte. Die
+ausführbare Projektion liegt im versionierten Instrument-Manifest.
 
 ## Status and methodological decision
 

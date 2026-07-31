@@ -1,13 +1,14 @@
-# Measurement Instrument v1.4
+# Measurement Instrument v1.5
 
 Status: methodischer Entwurf für Cognitive Pretest und anschließenden Study Freeze.  
 Geltungsbereich: randomisierter Between-Subjects-Vergleich des Supportive Authentication
 Onboarding mit dem eingefrorenen SecAware.NRW-Referenzartefakt.
 
 Die vollständigen Teilnehmertexte, stabilen IDs, Antwortoptionen, Guardrail-Formen und
-Follow-up-Bedingungen stehen in `research/derived/instruments-v1.yaml`. Die Datei
-`instruments-v1.runtime.json` ist die bereinigte Runtime-Quelle ohne Scoring- und
-Analysekategorien.
+Follow-up-Bedingungen stehen in `research/derived/instruments-v1.yaml`. Die gemeinsame
+Teilnahmeinformation wird fachlich in `docs/research/PARTICIPANT-INFORMATION.md` geführt und in
+dieselbe Quelle projiziert. `research/derived/instruments-v1.runtime.json` ist die bereinigte
+Runtime-Projektion ohne Scoring- und Analysekategorien.
 
 ## 1. Evaluationsziel
 
@@ -27,16 +28,17 @@ Understanding Guardrail interpretiert.
 ## 2. Verbindlicher Ablauf
 
 ```text
-Eligibility + Consent einschließlich Nachbefragung
+Eligibility + gemeinsame Teilnahmeinformation und Einwilligung
+→ optionale Follow-up-Entscheidung
 → Sessionerstellung und verdeckte Condition-Zuweisung
-→ verpflichtende getrennte Recontact-Registrierung
+→ bei Einwilligung getrennte Recontact-Registrierung
 → Pre-Fragebogen
 → zugewiesenes Artefakt
 → Post-Fragebogen
 → Guardrail Recognition
 → Guardrail Szenarien
 → optionale offene Rückmeldung
-→ korrektives Debrief
+→ unmittelbares Debrief ohne Follow-up oder neutrale Session Closure mit Follow-up
 → Completion
 → Nachbefragung zehn Tage später
 ```
@@ -141,25 +143,28 @@ und keinen gemeinsamen Guardrail-Score.
 ## 6. Open Feedback and Corrective Debrief
 
 Nach dem Guardrail folgen zwei optionale Freitextfelder. Leere Felder werden explizit als `null`
-gespeichert; die Submission selbst ist verpflichtend. Danach zeigt das Debrief eine kurze
-korrektive Zusammenfassung der drei gemeinsamen Mechanismen, jedoch keinen persönlichen Score.
-Die native PassWo-Abschlussfrage und das native SecAware-Quiz bleiben Bestandteile ihrer jeweiligen
-Artefakte, dürfen aber nicht wortgleich oder strukturell nahezu identisch zum externen Guardrail
-sein.
+gespeichert; die Submission selbst ist verpflichtend. Teilnehmende ohne Follow-up-Einwilligung
+erhalten anschließend die vollständige Aufklärung. Bei Follow-up-Einwilligung wird sie bis nach
+der Antwort beziehungsweise bis zur Schließung des Follow-up-Zeitfensters zurückgestellt. Es wird
+kein persönlicher Score gezeigt. Die native PassWo-Abschlussfrage und das native SecAware-Quiz
+bleiben Bestandteile ihrer jeweiligen Artefakte, dürfen aber nicht wortgleich oder strukturell
+nahezu identisch zum externen Guardrail sein.
 
 ## 7. Ten-Day Delayed Follow-Up
 
 ### 7.1 Recontact-Protokoll
 
-Die allgemeine Einwilligung umfasst die Nachbefragung. Eine separate Kontaktzustimmung wird nicht
-erhoben. Die E-Mail-Adresse wird vor dem Pre-Fragebogen verpflichtend in der getrennten
-Recontact-Registry registriert. Die erste neutrale Einladung wird 240 Stunden nach
+Die Nachbefragung besitzt eine von der Hauptstudie getrennte optionale Kontaktzustimmung. Eine
+Ablehnung oder der Verzicht nach einem Registrierungsfehler blockiert weder Pre-Fragebogen noch
+Hauptstudienabschluss. Nur bei Einwilligung wird die E-Mail-Adresse vor dem Pre-Fragebogen in der
+getrennten Recontact-Registry registriert. Die erste neutrale Einladung wird 240 Stunden nach
 Session-Completion geplant, maximal eine Erinnerung 48 Stunden später; der Link schließt 336
 Stunden nach der Hauptsitzung.
 
 E-Mail und Roh-Token liegen ausschließlich in einer getrennten Recontact-Registry. Die
-Forschungsdatenbank enthält nur die allgemeine Einwilligung, Follow-up-Version und Token-Hash. Die
-lokale Runtime versendet keine E-Mails und enthält keine SMTP-, Gmail- oder Cloud-Credentials.
+Forschungsdatenbank enthält nur den Follow-up-Einwilligungsstatus, die Follow-up-Version und
+optional den Token-Hash. Die lokale Runtime versendet keine E-Mails und enthält keine SMTP-,
+Gmail- oder Cloud-Credentials.
 
 ### 7.2 Minimaler Fragebogen
 
@@ -189,7 +194,8 @@ wird nie als `keine Handlung` codiert.
 ## 8. Claim- und Analysegrenzen
 
 Das Follow-up darf als `ten-day delayed self-reported account-protection actions` bezeichnet
-werden. Es belegt weder objektiv beobachtetes Verhalten noch dauerhafte Adoption, fortgesetzte
+werden. Wegen der freiwilligen Teilnahme wird es zusätzlich getrennt von der Hauptstichprobe
+beschrieben. Es belegt weder objektiv beobachtetes Verhalten noch dauerhafte Adoption, fortgesetzte
 Nutzung, reduzierte Passwortwiederverwendung, Habit Formation oder langfristige
 Verhaltensänderung. Die Studie bleibt explorativ und berichtet Itemverteilungen, Zeitverteilungen,
 UEQ-S-Dimensionen, Self-Efficacy-Veränderungen je Aufgabe, getrennte Guardrail-Kategorien und

@@ -27,7 +27,9 @@ Wähle danach nur die zum Auftrag passenden Quellen:
 - Passwortanalyse: `packages/password-analysis/AGENTS.md` und
   `docs/research/RESEARCH-GUARDRAILS.md`; private S05-/S06-Seiten nur bei explizitem Auftrag.
 - Fragebogen und Guardrails: `docs/research/DATA-CONTRACT.md`,
-  `docs/research/RESEARCH-GUARDRAILS.md` und nur die ausdrücklich benannte Instrumentenquelle.
+  `docs/research/RESEARCH-GUARDRAILS.md`, `docs/research/MEASUREMENT-INSTRUMENT.md`,
+  `docs/research/GUARDRAIL-CONTENT-AUDIT.md` und
+  `research/derived/instruments-v1.{yaml,runtime.json}`.
 
 Lies private Rohquellen nie pauschal.
 

@@ -40,7 +40,6 @@ describe('password module privacy boundary', () => {
     studyActor.start();
     const controller = new PasswordModuleController({
       accountIds: ['campus-id', 'campus-mail', 'campus-board-archive'],
-      onComplete: () => undefined,
     });
     const displayName = 'Browsername Nur Lokal';
     const trainingValue = 'only-in-password-module!?';
