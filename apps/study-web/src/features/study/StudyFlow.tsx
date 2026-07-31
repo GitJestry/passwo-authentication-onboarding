@@ -20,6 +20,49 @@ const participantInformation = instrumentRuntimeManifest.procedures.participantI
 const recontactProcedure = instrumentRuntimeManifest.procedures.followUpRecontact;
 const sessionClosure = instrumentRuntimeManifest.procedures.sessionClosure;
 
+function FactIcon({ factId }: { readonly factId: string }) {
+  if (factId === 'duration') {
+    return (
+      <svg aria-hidden="true" viewBox="0 0 24 24">
+        <circle cx="12" cy="12" r="8.5" />
+        <path d="M12 7.5v5l3.25 2" />
+      </svg>
+    );
+  }
+
+  if (factId === 'analysis') {
+    return (
+      <svg aria-hidden="true" viewBox="0 0 24 24">
+        <path d="M5.5 18.5V13m4.25 5.5V9.75M14 18.5v-7.25m4.25 7.25V6.5" />
+        <path d="M4 18.5h16" />
+      </svg>
+    );
+  }
+
+  return (
+    <svg aria-hidden="true" viewBox="0 0 24 24">
+      <rect x="4" y="6.5" width="16" height="11" rx="1.5" />
+      <path d="m5 8 7 5 7-5" />
+    </svg>
+  );
+}
+
+function InformationIcon() {
+  return (
+    <span className={styles.informationIcon} aria-hidden="true">
+      i
+    </span>
+  );
+}
+
+function ArrowIcon() {
+  return (
+    <svg aria-hidden="true" className={styles.buttonIcon} viewBox="0 0 24 24">
+      <path d="M5 12h14m-5-5 5 5-5 5" />
+    </svg>
+  );
+}
+
 interface ConsentDecision {
   readonly followUpConsent: boolean;
   readonly recontact: {
@@ -35,7 +78,7 @@ function DisclosureSection({
   readonly title: string;
   readonly children: ReactNode;
 }) {
-  const [expanded, setExpanded] = useState(true);
+  const [expanded, setExpanded] = useState(false);
   const id = `participant-information-${title.toLowerCase().replaceAll(/[^a-z]+/gu, '-')}`;
 
   return (
@@ -48,7 +91,10 @@ function DisclosureSection({
           aria-controls={id}
           onClick={() => setExpanded((current) => !current)}
         >
-          {title}
+          <span className={styles.disclosureHeading}>
+            <InformationIcon />
+            <span>{title}</span>
+          </span>
         </button>
       </h3>
       <div id={id} hidden={!expanded}>
@@ -102,8 +148,13 @@ function Consent({ onAccept }: { readonly onAccept: (decision: ConsentDecision) 
         <div className={styles.factCards} aria-label="Kurzüberblick zur Teilnahme">
           {participantInformation.facts.map((fact) => (
             <article className={styles.factCard} key={fact.id}>
-              <h2>{fact.label}</h2>
-              <p>{fact.value}</p>
+              <span className={styles.factIcon}>
+                <FactIcon factId={fact.id} />
+              </span>
+              <div>
+                <h2>{fact.label}</h2>
+                <p>{fact.value}</p>
+              </div>
             </article>
           ))}
         </div>
@@ -114,40 +165,43 @@ function Consent({ onAccept }: { readonly onAccept: (decision: ConsentDecision) 
             onClick={() => setInformationVisible(true)}
           >
             {participantInformation.readMoreLabel}
+            <ArrowIcon />
           </button>
         ) : null}
       </header>
 
       {informationVisible ? (
-        <div className={styles.consentDetails}>
-          <section aria-labelledby="participant-information-title">
-            <h2 id="participant-information-title">
-              {participantInformation.informationHeading}
-            </h2>
-            {participantInformation.sections.map((section) => (
-              <DisclosureSection key={section.id} title={section.heading}>
-                {section.paragraphs.map((paragraph) => (
-                  <p key={paragraph}>{paragraph}</p>
+        <form
+          className={styles.consentDetails}
+          noValidate
+          onSubmit={(event) => {
+            event.preventDefault();
+            if (accepted && eligible && emailValid) {
+              onAccept({
+                followUpConsent: wantsRecontact,
+                recontact: wantsRecontact
+                  ? { email: email.trim(), requestId: globalThis.crypto.randomUUID() }
+                  : null,
+              });
+            }
+          }}
+        >
+          <div className={styles.consentColumn}>
+            <section aria-labelledby="participant-information-title">
+              <h2 id="participant-information-title">
+                {participantInformation.informationHeading}
+              </h2>
+              <div className={styles.disclosureList}>
+                {participantInformation.sections.map((section) => (
+                  <DisclosureSection key={section.id} title={section.heading}>
+                    {section.paragraphs.map((paragraph) => (
+                      <p key={paragraph}>{paragraph}</p>
+                    ))}
+                  </DisclosureSection>
                 ))}
-              </DisclosureSection>
-            ))}
-          </section>
+              </div>
+            </section>
 
-          <form
-            className={styles.consentForm}
-            noValidate
-            onSubmit={(event) => {
-              event.preventDefault();
-              if (accepted && eligible && emailValid) {
-                onAccept({
-                  followUpConsent: wantsRecontact,
-                  recontact: wantsRecontact
-                    ? { email: email.trim(), requestId: globalThis.crypto.randomUUID() }
-                    : null,
-                });
-              }
-            }}
-          >
             <fieldset
               className={
                 showEligibilityNotice
@@ -188,7 +242,9 @@ function Consent({ onAccept }: { readonly onAccept: (decision: ConsentDecision) 
                 </p>
               ) : null}
             </fieldset>
+          </div>
 
+          <div className={styles.consentColumn}>
             <fieldset className={styles.consentPanel}>
               <legend>{participantInformation.requiredConsent.legend}</legend>
               <label className={styles.check}>
@@ -239,25 +295,26 @@ function Consent({ onAccept }: { readonly onAccept: (decision: ConsentDecision) 
                 </label>
               ) : null}
             </fieldset>
+          </div>
 
-            <div className={styles.consentActions}>
-              <button
-                className={styles.button}
-                type="submit"
-                disabled={!accepted || !eligible || !emailValid}
-              >
-                {participantInformation.actions.acceptLabel}
-              </button>
-              <button
-                className={styles.secondaryButton}
-                type="button"
-                onClick={() => setDeclined(true)}
-              >
-                {participantInformation.actions.declineLabel}
-              </button>
-            </div>
-          </form>
-        </div>
+          <div className={styles.consentActions}>
+            <button
+              className={styles.button}
+              type="submit"
+              disabled={!accepted || !eligible || !emailValid}
+            >
+              {participantInformation.actions.acceptLabel}
+              <ArrowIcon />
+            </button>
+            <button
+              className={styles.secondaryButton}
+              type="button"
+              onClick={() => setDeclined(true)}
+            >
+              {participantInformation.actions.declineLabel}
+            </button>
+          </div>
+        </form>
       ) : null}
     </section>
   );
@@ -445,8 +502,8 @@ export function StudyFlow() {
           instrumentId="pre-v1"
           section={section}
           title="Fragebogen vor dem Lernangebot"
-          progressLabel={`Abschnitt ${sectionIndex + 1} von ${preInstrument.sections.length}`}
-          submitLabel="Abschnitt verbindlich abgeben"
+          currentSection={sectionIndex + 1}
+          sectionCount={preInstrument.sections.length}
           onSubmit={(payload) => send({ type: 'SUBMIT_PRE', payload })}
         />
       );
@@ -517,8 +574,8 @@ export function StudyFlow() {
           instrumentId="post-v1"
           section={section}
           title="Fragebogen nach dem Lernangebot"
-          progressLabel={`Abschnitt ${sectionIndex + 1} von ${postInstrument.sections.length}`}
-          submitLabel="Abschnitt verbindlich abgeben"
+          currentSection={sectionIndex + 1}
+          sectionCount={postInstrument.sections.length}
           onSubmit={(payload) => send({ type: 'SUBMIT_POST', payload })}
         />
       );
@@ -575,7 +632,7 @@ export function StudyFlow() {
       ? sessionClosure.deferredDebriefWithFollowUp
       : sessionClosure.immediateDebriefWithoutFollowUp;
     content = (
-      <section aria-labelledby="session-closure-title">
+      <section className={styles.sessionClosure} aria-labelledby="session-closure-title">
         <h1 id="session-closure-title" tabIndex={-1} autoFocus>
           {closureContent.heading}
         </h1>
@@ -603,7 +660,7 @@ export function StudyFlow() {
     );
   } else if (snapshot.matches('complete')) {
     content = (
-      <section aria-labelledby="complete-title">
+      <section className={styles.sessionComplete} aria-labelledby="complete-title">
         <h1 id="complete-title" tabIndex={-1} autoFocus>
           Sitzung abgeschlossen
         </h1>

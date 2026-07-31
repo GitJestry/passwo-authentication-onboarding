@@ -202,7 +202,7 @@
           "Untersucht werden insbesondere die Wahrnehmung des Lernangebots, die Bearbeitungsdauer sowie das unmittelbare Verständnis zentraler Aussagen zu Passwortwiederverwendung, Passwortmanagern und MFA/2FA. Die Studie prüft nicht, ob eine einzelne Gestaltungskomponente oder ein einzelnes psychologisches Prinzip die Ergebnisse verursacht hat.",
           "Du kannst nach dieser Aufklärung innerhalb der vor dem Study Freeze festgelegten Aufbewahrungs- und Löschfrist weiterhin die Löschung deiner Forschungsdaten verlangen. Verwende dafür deinen Teilnehmercode und die angegebene Kontaktadresse."
         ],
-        "actionLabel": "Abschluss bestätigen"
+        "actionLabel": "Sitzung abschließen"
       },
       "deferredDebriefWithFollowUp": {
         "heading": "Vielen Dank für deine Teilnahme",
@@ -210,7 +210,7 @@
           "Die Hauptsitzung ist damit abgeschlossen. Zehn Tage nach deiner Teilnahme erhältst du die kurze Nachbefragung an die angegebene E-Mail-Adresse.",
           "Die vollständige Aufklärung zur Studie erhältst du nach deiner Antwort oder spätestens nach Schließung des Follow-up-Zeitfensters. Du kannst dieses Fenster jetzt schließen."
         ],
-        "actionLabel": "Abschluss bestätigen"
+        "actionLabel": "Sitzung abschließen"
       }
     }
   },

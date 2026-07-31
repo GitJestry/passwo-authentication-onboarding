@@ -37,6 +37,90 @@ type ChoiceOption = SingleChoiceItem['options'][number];
 type QuestionnaireInstrumentId = 'pre-v1' | 'post-v1';
 type Draft = Record<string, InstrumentResponseValue | undefined>;
 
+function InstrumentHeader({
+  headingId,
+  title,
+  currentStep,
+  totalSteps,
+  stepNoun,
+}: {
+  readonly headingId: string;
+  readonly title: string;
+  readonly currentStep?: number;
+  readonly totalSteps?: number;
+  readonly stepNoun?: string;
+}) {
+  const heading = (
+    <h1 id={headingId} tabIndex={-1} autoFocus>
+      {title}
+    </h1>
+  );
+
+  if (currentStep === undefined || totalSteps === undefined || stepNoun === undefined) {
+    return <header className={styles.instrumentHeader}>{heading}</header>;
+  }
+
+  return (
+    <header className={styles.instrumentHeader}>
+      {heading}
+      <ol
+        className={styles.sectionProgressLine}
+        aria-label={`${stepNoun} ${currentStep} von ${totalSteps}`}
+      >
+        {Array.from({ length: totalSteps }, (_, index) => {
+          const step = index + 1;
+          const state =
+            step < currentStep ? 'completed' : step === currentStep ? 'current' : 'upcoming';
+          const progressClassName =
+            state === 'completed'
+              ? styles.sectionProgressCompleted
+              : state === 'current'
+                ? styles.sectionProgressCurrent
+                : '';
+          return (
+            <li
+              aria-current={step === currentStep ? 'step' : undefined}
+              className={progressClassName}
+              key={step}
+            >
+              <span className={styles.sectionProgressNode} aria-hidden="true">
+                {step}
+              </span>
+              <span className={styles.visuallyHidden}>
+                {step === currentStep ? `${stepNoun} ${step}, aktuell` : `${stepNoun} ${step}`}
+              </span>
+            </li>
+          );
+        })}
+      </ol>
+    </header>
+  );
+}
+
+function ForwardIcon() {
+  return (
+    <svg aria-hidden="true" className={styles.buttonIcon} viewBox="0 0 24 24">
+      <path d="M5 12h14m-5-5 5 5-5 5" />
+    </svg>
+  );
+}
+
+function BackIcon() {
+  return (
+    <svg aria-hidden="true" className={styles.buttonIcon} viewBox="0 0 24 24">
+      <path d="M19 12H5m5-5-5 5 5 5" />
+    </svg>
+  );
+}
+
+function FormInformationIcon() {
+  return (
+    <span className={styles.informationIcon} aria-hidden="true">
+      i
+    </span>
+  );
+}
+
 interface FieldStateProps {
   readonly invalid: boolean;
 }
@@ -800,7 +884,12 @@ function semanticDifferentialItemsFrom(
   return result;
 }
 
-function QuestionnaireSectionFields({
+interface QuestionnaireFieldGroup {
+  readonly key: string;
+  readonly content: ReactNode;
+}
+
+function questionnaireSectionFieldGroups({
   items,
   draft,
   invalidItemIds,
@@ -810,8 +899,8 @@ function QuestionnaireSectionFields({
   readonly draft: Draft;
   readonly invalidItemIds: ReadonlySet<string>;
   readonly onChange: (itemId: string, value: InstrumentResponseValue | undefined) => void;
-}) {
-  const fields = [];
+}): readonly QuestionnaireFieldGroup[] {
+  const fieldGroups: QuestionnaireFieldGroup[] = [];
   let itemIndex = 0;
 
   while (itemIndex < items.length) {
@@ -820,92 +909,115 @@ function QuestionnaireSectionFields({
 
     if (item.type === 'semanticDifferential') {
       const matrixItems = semanticDifferentialItemsFrom(items, itemIndex);
-      fields.push(
-        <UeqSemanticDifferential7
-          key={`ueq:${matrixItems[0]?.id ?? item.id}`}
-          items={matrixItems}
-          draft={draft}
-          invalidItemIds={invalidItemIds}
-          onChange={onChange}
-        />,
-      );
+      const key = `ueq:${matrixItems[0]?.id ?? item.id}`;
+      fieldGroups.push({
+        key,
+        content: (
+          <UeqSemanticDifferential7
+            key={key}
+            items={matrixItems}
+            draft={draft}
+            invalidItemIds={invalidItemIds}
+            onChange={onChange}
+          />
+        ),
+      });
       itemIndex += matrixItems.length;
       continue;
     }
 
     if (hasScale(item, 'agreement7')) {
       const matrixItems = scaleItemsFrom(items, itemIndex, 'agreement7', 5);
-      fields.push(
-        <Agreement7Matrix
-          key={`agreement:${matrixItems[0]?.id ?? item.id}`}
-          items={matrixItems}
-          draft={draft}
-          invalidItemIds={invalidItemIds}
-          onChange={onChange}
-        />,
-      );
+      const key = `agreement:${matrixItems[0]?.id ?? item.id}`;
+      fieldGroups.push({
+        key,
+        content: (
+          <Agreement7Matrix
+            key={key}
+            items={matrixItems}
+            draft={draft}
+            invalidItemIds={invalidItemIds}
+            onChange={onChange}
+          />
+        ),
+      });
       itemIndex += matrixItems.length;
       continue;
     }
 
     if (hasScale(item, 'confidence11')) {
       const matrixItems = scaleItemsFrom(items, itemIndex, 'confidence11', items.length);
-      fields.push(
-        <Confidence11Matrix
-          key={`confidence:${matrixItems[0]?.id ?? item.id}`}
-          items={matrixItems}
-          draft={draft}
-          invalidItemIds={invalidItemIds}
-          onChange={onChange}
-        />,
-      );
+      const key = `confidence:${matrixItems[0]?.id ?? item.id}`;
+      fieldGroups.push({
+        key,
+        content: (
+          <Confidence11Matrix
+            key={key}
+            items={matrixItems}
+            draft={draft}
+            invalidItemIds={invalidItemIds}
+            onChange={onChange}
+          />
+        ),
+      });
       itemIndex += matrixItems.length;
       continue;
     }
 
     if (hasScale(item, 'familiarity5')) {
       const matrixItems = scaleItemsFrom(items, itemIndex, 'familiarity5', items.length);
-      fields.push(
-        <Familiarity5Matrix
-          key={`familiarity:${matrixItems[0]?.id ?? item.id}`}
-          items={matrixItems}
-          draft={draft}
-          invalidItemIds={invalidItemIds}
-          onChange={onChange}
-        />,
-      );
+      const key = `familiarity:${matrixItems[0]?.id ?? item.id}`;
+      fieldGroups.push({
+        key,
+        content: (
+          <Familiarity5Matrix
+            key={key}
+            items={matrixItems}
+            draft={draft}
+            invalidItemIds={invalidItemIds}
+            onChange={onChange}
+          />
+        ),
+      });
       itemIndex += matrixItems.length;
       continue;
     }
 
     if (hasScale(item, 'intensity5')) {
       const matrixItems = scaleItemsFrom(items, itemIndex, 'intensity5', items.length);
-      fields.push(
-        <EmotionIntensity5Matrix
-          key={`emotion:${matrixItems[0]?.id ?? item.id}`}
-          items={matrixItems}
-          draft={draft}
-          invalidItemIds={invalidItemIds}
-          onChange={onChange}
-        />,
-      );
+      const key = `emotion:${matrixItems[0]?.id ?? item.id}`;
+      fieldGroups.push({
+        key,
+        content: (
+          <EmotionIntensity5Matrix
+            key={key}
+            items={matrixItems}
+            draft={draft}
+            invalidItemIds={invalidItemIds}
+            onChange={onChange}
+          />
+        ),
+      });
       itemIndex += matrixItems.length;
       continue;
     }
 
-    fields.push(
-      <QuestionnaireItemField
-        key={item.id}
-        item={item}
-        value={draft[item.id]}
-        invalid={invalidItemIds.has(item.id)}
-        onChange={(value) => onChange(item.id, value)}
-      />,
-    );
+    fieldGroups.push({
+      key: item.id,
+      content: (
+        <QuestionnaireItemField
+          key={item.id}
+          item={item}
+          value={draft[item.id]}
+          invalid={invalidItemIds.has(item.id)}
+          onChange={(value) => onChange(item.id, value)}
+        />
+      ),
+    });
     itemIndex += 1;
   }
 
-  return fields;
+  return fieldGroups;
 }
 
 export function QuestionnaireSectionForm<
@@ -914,21 +1026,27 @@ export function QuestionnaireSectionForm<
   instrumentId,
   section,
   title,
-  progressLabel,
-  submitLabel,
+  currentSection,
+  sectionCount,
   onSubmit,
 }: {
   readonly instrumentId: TInstrumentId;
   readonly section: QuestionnaireSection;
   readonly title: string;
-  readonly progressLabel: string;
-  readonly submitLabel: string;
+  readonly currentSection: number;
+  readonly sectionCount: number;
   readonly onSubmit: (submission: InstrumentSubmissionFor<TInstrumentId>) => void;
 }) {
   const [draft, setDraft] = useState<Draft>({});
   const [invalidItemIds, setInvalidItemIds] = useState<ReadonlySet<string>>(new Set<string>());
   const formRef = useRef<HTMLFormElement>(null);
   const headingId = `${instrumentId}-${section.id}-title`;
+  const fieldGroups = questionnaireSectionFieldGroups({
+    items: section.items,
+    draft,
+    invalidItemIds,
+    onChange: updateDraft,
+  });
 
   function updateDraft(itemId: string, value: InstrumentResponseValue | undefined): void {
     setDraft((current) => ({ ...current, [itemId]: value }));
@@ -940,9 +1058,8 @@ export function QuestionnaireSectionForm<
     });
   }
 
-  function submit(event: FormEvent<HTMLFormElement>): void {
-    event.preventDefault();
-    const submission: InstrumentSubmissionFor<TInstrumentId> = {
+  function questionnaireSubmission(): InstrumentSubmissionFor<TInstrumentId> {
+    return {
       instrumentId,
       sectionId: section.id,
       responses: section.items.map((item) => ({
@@ -950,6 +1067,11 @@ export function QuestionnaireSectionForm<
         value: questionnaireValue(item, draft[item.id]),
       })),
     };
+  }
+
+  function submit(event: FormEvent<HTMLFormElement>): void {
+    event.preventDefault();
+    const submission = questionnaireSubmission();
     const invalid = invalidSubmissionItems(submission);
     if (invalid !== null) {
       setInvalidItemIds(invalid);
@@ -966,29 +1088,51 @@ export function QuestionnaireSectionForm<
 
   return (
     <section aria-labelledby={headingId}>
-      <h1 id={headingId} tabIndex={-1} autoFocus>
-        {title}
-      </h1>
-      <p className={styles.progress}>{progressLabel}</p>
-      {section.instruction === undefined ? null : (
-        <p className={styles.sectionInstruction}>{section.instruction}</p>
-      )}
-      <form className={styles.instrumentForm} ref={formRef} noValidate onSubmit={submit}>
-        <QuestionnaireSectionFields
-          items={section.items}
-          draft={draft}
-          invalidItemIds={invalidItemIds}
-          onChange={updateDraft}
-        />
-        {invalidItemIds.size === 0 ? null : (
-          <div className={styles.validationSummary} role="alert">
-            Bitte prüfe die markierten Felder. Der Abschnitt wurde noch nicht abgegeben.
+      <InstrumentHeader
+        headingId={headingId}
+        title={title}
+        currentStep={currentSection}
+        totalSteps={sectionCount}
+        stepNoun="Abschnitt"
+      />
+      <div className={styles.instrumentCard}>
+        <form className={styles.instrumentForm} ref={formRef} noValidate onSubmit={submit}>
+          {section.instruction === undefined ? null : (
+            <div className={styles.sectionInstruction}>
+              <FormInformationIcon />
+              <p>{section.instruction}</p>
+            </div>
+          )}
+          <div className={styles.instrumentFields}>
+            {fieldGroups.map((fieldGroup) => (
+              <div className={styles.instrumentFieldGroup} key={fieldGroup.key}>
+                {fieldGroup.content}
+              </div>
+            ))}
+            {invalidItemIds.size === 0 ? null : (
+              <div className={styles.validationSummary} role="alert">
+                Bitte prüfe die markierten Felder. Der Abschnitt wurde noch nicht abgegeben.
+              </div>
+            )}
           </div>
-        )}
-        <button className={styles.button} type="submit">
-          {submitLabel}
-        </button>
-      </form>
+          <div
+            className={`${styles.instrumentActions} ${
+              currentSection === 1 ? styles.instrumentActionsForwardOnly : ''
+            }`.trim()}
+          >
+            {currentSection > 1 ? (
+              <button className={styles.secondaryButton} type="button" disabled>
+                <BackIcon />
+                Zurück
+              </button>
+            ) : null}
+            <button className={styles.button} type="submit">
+              Weiter
+              <ForwardIcon />
+            </button>
+          </div>
+        </form>
+      </div>
     </section>
   );
 }
@@ -1090,34 +1234,42 @@ export function GuardrailBlockForm({
 
   return (
     <section aria-labelledby="guardrail-title">
-      <h1 id="guardrail-title" tabIndex={-1} autoFocus>
-        {instrumentRuntimeManifest.instruments['guardrail-v2'].participantTitle}
-      </h1>
-      <p className={styles.progress}>
-        Teil {blockNumber} von {blockCount}
-      </p>
-      <form className={styles.instrumentForm} ref={formRef} noValidate onSubmit={submit}>
-        {presentedItems.map(({ item, options }) => (
-          <SingleChoiceList
-            key={item.id}
-            itemId={item.id}
-            prompt={item.prompt}
-            options={options}
-            optional={false}
-            value={stringDraftValue(draft[item.id])}
-            invalid={invalidItemIds.has(item.id)}
-            onChange={(value) => updateDraft(item.id, value)}
-          />
-        ))}
-        {invalidItemIds.size === 0 ? null : (
-          <div className={styles.validationSummary} role="alert">
-            Bitte beantworte alle Fragen. Der Teil wurde noch nicht abgegeben.
+      <InstrumentHeader
+        headingId="guardrail-title"
+        title={instrumentRuntimeManifest.instruments['guardrail-v2'].participantTitle}
+        currentStep={blockNumber}
+        totalSteps={blockCount}
+        stepNoun="Teil"
+      />
+      <div className={styles.instrumentCard}>
+        <form className={styles.instrumentForm} ref={formRef} noValidate onSubmit={submit}>
+          <div className={styles.instrumentFields}>
+            {presentedItems.map(({ item, options }) => (
+              <SingleChoiceList
+                key={item.id}
+                itemId={item.id}
+                prompt={item.prompt}
+                options={options}
+                optional={false}
+                value={stringDraftValue(draft[item.id])}
+                invalid={invalidItemIds.has(item.id)}
+                onChange={(value) => updateDraft(item.id, value)}
+              />
+            ))}
+            {invalidItemIds.size === 0 ? null : (
+              <div className={styles.validationSummary} role="alert">
+                Bitte beantworte alle Fragen. Der Teil wurde noch nicht abgegeben.
+              </div>
+            )}
           </div>
-        )}
-        <button className={styles.button} type="submit">
-          Antworten verbindlich abgeben
-        </button>
-      </form>
+          <div className={styles.instrumentActions}>
+            <button className={styles.button} type="submit">
+              Antworten verbindlich abgeben
+              <ForwardIcon />
+            </button>
+          </div>
+        </form>
+      </div>
     </section>
   );
 }
@@ -1154,37 +1306,42 @@ export function PostOpenForm({
 
   return (
     <section aria-labelledby="post-open-title">
-      <h1 id="post-open-title" tabIndex={-1} autoFocus>
-        Deine Rückmeldung
-      </h1>
-      <div className={styles.notice}>{instrument.warning}</div>
-      <form className={styles.instrumentForm} noValidate onSubmit={submit}>
-        {instrument.items.map((item) => (
-          <OptionalTextField
-            key={item.id}
-            item={item}
-            value={stringDraftValue(draft[item.id]) ?? ''}
-            invalid={invalidItemIds.has(item.id)}
-            onChange={(value) => {
-              setDraft((current) => ({ ...current, [item.id]: value }));
-              setInvalidItemIds((current) => {
-                if (!current.has(item.id)) return current;
-                const next = new Set(current);
-                next.delete(item.id);
-                return next;
-              });
-            }}
-          />
-        ))}
-        {invalidItemIds.size === 0 ? null : (
-          <div className={styles.validationSummary} role="alert">
-            Die Rückmeldung konnte noch nicht vorbereitet werden.
+      <InstrumentHeader headingId="post-open-title" title="Deine Rückmeldung" />
+      <div className={styles.instrumentCard}>
+        <form className={styles.instrumentForm} noValidate onSubmit={submit}>
+          <div className={styles.notice}>{instrument.warning}</div>
+          <div className={styles.instrumentFields}>
+            {instrument.items.map((item) => (
+              <OptionalTextField
+                key={item.id}
+                item={item}
+                value={stringDraftValue(draft[item.id]) ?? ''}
+                invalid={invalidItemIds.has(item.id)}
+                onChange={(value) => {
+                  setDraft((current) => ({ ...current, [item.id]: value }));
+                  setInvalidItemIds((current) => {
+                    if (!current.has(item.id)) return current;
+                    const next = new Set(current);
+                    next.delete(item.id);
+                    return next;
+                  });
+                }}
+              />
+            ))}
+            {invalidItemIds.size === 0 ? null : (
+              <div className={styles.validationSummary} role="alert">
+                Die Rückmeldung konnte noch nicht vorbereitet werden.
+              </div>
+            )}
           </div>
-        )}
-        <button className={styles.button} type="submit">
-          Rückmeldung abgeben
-        </button>
-      </form>
+          <div className={styles.instrumentActions}>
+            <button className={styles.button} type="submit">
+              Rückmeldung abgeben
+              <ForwardIcon />
+            </button>
+          </div>
+        </form>
+      </div>
     </section>
   );
 }
