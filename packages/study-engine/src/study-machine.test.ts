@@ -103,12 +103,23 @@ async function submitCurrentBlock(actor: StudyActor): Promise<void> {
   await waitForState(actor, () => actor.getSnapshot().context.instrumentBlockCursor === cursor + 1);
 }
 
-async function submitBlocksFor(actor: StudyActor, instrumentId: string): Promise<void> {
+async function completeQuestionnaire(
+  actor: StudyActor,
+  instrumentId: 'pre-v1' | 'post-v1',
+): Promise<void> {
   while (
-    mainInstrumentBlocks[actor.getSnapshot().context.instrumentBlockCursor]?.instrumentId ===
+    mainInstrumentBlocks[actor.getSnapshot().context.questionnaireBlockCursor]?.instrumentId ===
     instrumentId
   ) {
-    await submitCurrentBlock(actor);
+    const pageCursor = actor.getSnapshot().context.questionnaireBlockCursor;
+    actor.send(submitEvent(submissionAt(pageCursor)));
+    if (mainInstrumentBlocks[pageCursor + 1]?.instrumentId === instrumentId) continue;
+    await waitForState(
+      actor,
+      () =>
+        mainInstrumentBlocks[actor.getSnapshot().context.instrumentBlockCursor]?.instrumentId !==
+        instrumentId,
+    );
   }
 }
 
@@ -215,7 +226,7 @@ describe('studyMachine', () => {
     actor.stop();
   });
 
-  it('keeps the submitted payload pending and retries that identical payload', async () => {
+  it('keeps the first questionnaire payload pending and retries it unchanged', async () => {
     let attempts = 0;
     const savedSubmissions: InstrumentSubmissionRequest[] = [];
     const actor = await startAtPreQuestionnaire(
@@ -238,6 +249,8 @@ describe('studyMachine', () => {
 
     expect(actor.getSnapshot().context.guardrailFormId).toBe('F1');
     actor.send({ type: 'SUBMIT_PRE', payload: submission });
+    actor.send(submitEvent(submissionAt(1)));
+    actor.send(submitEvent(submissionAt(2)));
     await waitForState(actor, () => actor.getSnapshot().matches({ preQuestionnaire: 'error' }));
 
     expect(actor.getSnapshot().context.pendingSubmission).toBe(submission);
@@ -247,14 +260,13 @@ describe('studyMachine', () => {
     actor.send({ type: 'RETRY_PRE' });
     await waitForState(
       actor,
-      () =>
-        actor.getSnapshot().matches({ preQuestionnaire: 'editing' }) &&
-        actor.getSnapshot().context.instrumentBlockCursor === 1,
+      () => actor.getSnapshot().matches({ artifactLifecycle: 'preparing' }),
     );
 
-    expect(savedSubmissions).toHaveLength(2);
+    expect(savedSubmissions).toHaveLength(4);
     expect(savedSubmissions[1]).toBe(submission);
     expect(actor.getSnapshot().context.pendingSubmission).toBeNull();
+    expect(actor.getSnapshot().context.questionnaireDrafts).toEqual([]);
     actor.stop();
   });
 
@@ -273,13 +285,52 @@ describe('studyMachine', () => {
     expect(actor.getSnapshot().context.pendingSubmission).toBeNull();
     expect(savedSubmissions).toHaveLength(0);
 
-    await submitCurrentBlock(actor);
+    actor.send(submitEvent(submissionAt(0)));
     actor.send(submitEvent(submissionAt(2)));
 
     expect(actor.getSnapshot().matches({ preQuestionnaire: 'editing' })).toBe(true);
-    expect(actor.getSnapshot().context.instrumentBlockCursor).toBe(1);
+    expect(actor.getSnapshot().context.instrumentBlockCursor).toBe(0);
+    expect(actor.getSnapshot().context.questionnaireBlockCursor).toBe(1);
     expect(actor.getSnapshot().context.pendingSubmission).toBeNull();
-    expect(savedSubmissions.map(({ sectionId }) => sectionId)).toEqual(['sample']);
+    expect(savedSubmissions).toHaveLength(0);
+    actor.stop();
+  });
+
+  it('keeps questionnaire drafts across back and forward navigation and saves the latest values', async () => {
+    const savedSubmissions: InstrumentSubmissionRequest[] = [];
+    const actor = await startAtPreQuestionnaire(
+      runtimePorts('supportive', async (_sessionId, submission) => {
+        savedSubmissions.push(submission);
+      }),
+    );
+    const initialSample = submissionAt(0);
+    const revisedSample = {
+      ...initialSample,
+      responses: initialSample.responses.map((response) =>
+        response.itemId === 'PRE_ROLE' ? { ...response, value: 'undergraduate' } : response,
+      ),
+    };
+
+    actor.send(submitEvent(initialSample));
+    actor.send({ type: 'BACK_PRE', payload: { ...submissionAt(1), instrumentId: 'pre-v1' } });
+
+    expect(actor.getSnapshot().context.questionnaireBlockCursor).toBe(0);
+    expect(actor.getSnapshot().context.questionnaireDrafts[1]?.sectionId).toBe('experience');
+
+    actor.send(submitEvent(revisedSample));
+    actor.send(submitEvent(submissionAt(1)));
+    actor.send(submitEvent(submissionAt(2)));
+    await waitForState(actor, () =>
+      actor.getSnapshot().matches({ artifactLifecycle: 'preparing' }),
+    );
+
+    expect(savedSubmissions.map(({ sectionId }) => sectionId)).toEqual([
+      'sample',
+      'experience',
+      'self_efficacy',
+    ]);
+    expect(savedSubmissions[0]).toEqual(revisedSample);
+    expect(actor.getSnapshot().context.questionnaireDrafts).toEqual([]);
     actor.stop();
   });
 
@@ -291,7 +342,7 @@ describe('studyMachine', () => {
       }),
     );
 
-    await submitBlocksFor(actor, 'pre-v1');
+    await completeQuestionnaire(actor, 'pre-v1');
     await waitForState(actor, () =>
       actor.getSnapshot().matches({ artifactLifecycle: 'preparing' }),
     );
@@ -302,7 +353,7 @@ describe('studyMachine', () => {
     actor.send({ type: 'ARTIFACT_COMPLETED' });
     await waitForState(actor, () => actor.getSnapshot().matches({ postQuestionnaire: 'editing' }));
 
-    await submitBlocksFor(actor, 'post-v1');
+    await completeQuestionnaire(actor, 'post-v1');
     await waitForState(actor, () => actor.getSnapshot().matches({ guardrails: 'editing' }));
     expect(mainInstrumentBlocks[actor.getSnapshot().context.instrumentBlockCursor]?.sectionId).toBe(
       'recognition',

@@ -446,6 +446,7 @@ export function StudyFlow() {
   const [snapshot, send] = useMachine(machine);
   const { context } = snapshot;
   const currentBlock = mainInstrumentBlocks[context.instrumentBlockCursor];
+  const currentQuestionnaireBlock = mainInstrumentBlocks[context.questionnaireBlockCursor];
   const completeArtifact = useCallback(() => send({ type: 'ARTIFACT_COMPLETED' }), [send]);
   const segmentTimingPort = useMemo(() => {
     if (context.sessionId === null || context.condition !== 'supportive') return null;
@@ -486,8 +487,10 @@ export function StudyFlow() {
     );
   } else if (snapshot.matches({ preQuestionnaire: 'editing' })) {
     const section =
-      currentBlock?.instrumentId === 'pre-v1'
-        ? preInstrument.sections.find((candidate) => candidate.id === currentBlock.sectionId)
+      currentQuestionnaireBlock?.instrumentId === 'pre-v1'
+        ? preInstrument.sections.find(
+            (candidate) => candidate.id === currentQuestionnaireBlock.sectionId,
+          )
         : undefined;
     const sectionIndex =
       section === undefined
@@ -504,6 +507,10 @@ export function StudyFlow() {
           title="Fragebogen vor dem Lernangebot"
           currentSection={sectionIndex + 1}
           sectionCount={preInstrument.sections.length}
+          initialSubmission={
+            context.questionnaireDrafts[context.questionnaireBlockCursor] ?? null
+          }
+          onBack={(payload) => send({ type: 'BACK_PRE', payload })}
           onSubmit={(payload) => send({ type: 'SUBMIT_PRE', payload })}
         />
       );
@@ -558,8 +565,10 @@ export function StudyFlow() {
     );
   } else if (snapshot.matches({ postQuestionnaire: 'editing' })) {
     const section =
-      currentBlock?.instrumentId === 'post-v1'
-        ? postInstrument.sections.find((candidate) => candidate.id === currentBlock.sectionId)
+      currentQuestionnaireBlock?.instrumentId === 'post-v1'
+        ? postInstrument.sections.find(
+            (candidate) => candidate.id === currentQuestionnaireBlock.sectionId,
+          )
         : undefined;
     const sectionIndex =
       section === undefined
@@ -576,6 +585,10 @@ export function StudyFlow() {
           title="Fragebogen nach dem Lernangebot"
           currentSection={sectionIndex + 1}
           sectionCount={postInstrument.sections.length}
+          initialSubmission={
+            context.questionnaireDrafts[context.questionnaireBlockCursor] ?? null
+          }
+          onBack={(payload) => send({ type: 'BACK_POST', payload })}
           onSubmit={(payload) => send({ type: 'SUBMIT_POST', payload })}
         />
       );

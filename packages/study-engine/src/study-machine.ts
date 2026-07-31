@@ -47,6 +47,8 @@ export interface StudyContext {
   readonly recontactEmail: string | null;
   readonly recontactRequestId: string | null;
   readonly instrumentBlockCursor: number;
+  readonly questionnaireBlockCursor: number;
+  readonly questionnaireDrafts: readonly (InstrumentSubmissionRequest | null)[];
   readonly pendingSubmission: InstrumentSubmissionRequest | null;
   readonly artifactWallClockMs: number | null;
   readonly artifactTimingStarted: boolean;
@@ -69,10 +71,18 @@ export type StudyEvent =
       readonly type: 'SUBMIT_PRE';
       readonly payload: InstrumentSubmissionFor<'pre-v1'>;
     }
+  | {
+      readonly type: 'BACK_PRE';
+      readonly payload: InstrumentSubmissionFor<'pre-v1'>;
+    }
   | { readonly type: 'START_ARTIFACT' }
   | { readonly type: 'ARTIFACT_COMPLETED' }
   | {
       readonly type: 'SUBMIT_POST';
+      readonly payload: InstrumentSubmissionFor<'post-v1'>;
+    }
+  | {
+      readonly type: 'BACK_POST';
       readonly payload: InstrumentSubmissionFor<'post-v1'>;
     }
   | {
@@ -113,6 +123,8 @@ const initialContext: StudyContext = {
   recontactEmail: null,
   recontactRequestId: null,
   instrumentBlockCursor: 0,
+  questionnaireBlockCursor: 0,
+  questionnaireDrafts: [],
   pendingSubmission: null,
   artifactWallClockMs: null,
   artifactTimingStarted: false,
@@ -158,6 +170,17 @@ function currentInstrumentId(context: StudyContext): MainInstrumentId | null {
   return mainInstrumentBlocks[context.instrumentBlockCursor]?.instrumentId ?? null;
 }
 
+function questionnaireDraftAt(
+  context: StudyContext,
+  blockCursor = context.instrumentBlockCursor,
+): InstrumentSubmissionRequest {
+  const submission = context.questionnaireDrafts[blockCursor];
+  if (submission === undefined || submission === null) {
+    throw new Error('missing-questionnaire-draft');
+  }
+  return submission;
+}
+
 function matchesExpectedSubmission(
   context: StudyContext,
   submission: InstrumentSubmissionRequest,
@@ -169,6 +192,30 @@ function matchesExpectedSubmission(
     expectedBlock.instrumentId === instrumentId &&
     submission.instrumentId === expectedBlock.instrumentId &&
     submission.sectionId === expectedBlock.sectionId
+  );
+}
+
+function matchesQuestionnairePage(
+  context: StudyContext,
+  submission: InstrumentSubmissionRequest,
+  instrumentId: 'pre-v1' | 'post-v1',
+): boolean {
+  const expectedBlock = mainInstrumentBlocks[context.questionnaireBlockCursor];
+  return (
+    expectedBlock !== undefined &&
+    expectedBlock.instrumentId === instrumentId &&
+    submission.instrumentId === expectedBlock.instrumentId &&
+    submission.sectionId === expectedBlock.sectionId
+  );
+}
+
+function adjacentQuestionnaireBlockIs(
+  context: StudyContext,
+  offset: -1 | 1,
+  instrumentId: 'pre-v1' | 'post-v1',
+): boolean {
+  return (
+    mainInstrumentBlocks[context.questionnaireBlockCursor + offset]?.instrumentId === instrumentId
   );
 }
 
@@ -241,10 +288,26 @@ export function createStudyMachine(ports: StudyRuntimePorts) {
       hasRecontactRegistration: ({ context }) =>
         context.recontactEmail !== null && context.recontactRequestId !== null,
       acceptsPreSubmission: ({ context, event }) =>
-        event.type === 'SUBMIT_PRE' && matchesExpectedSubmission(context, event.payload, 'pre-v1'),
+        event.type === 'SUBMIT_PRE' && matchesQuestionnairePage(context, event.payload, 'pre-v1'),
+      acceptsPreAdvance: ({ context, event }) =>
+        event.type === 'SUBMIT_PRE' &&
+        matchesQuestionnairePage(context, event.payload, 'pre-v1') &&
+        adjacentQuestionnaireBlockIs(context, 1, 'pre-v1'),
+      acceptsPreBack: ({ context, event }) =>
+        event.type === 'BACK_PRE' &&
+        matchesQuestionnairePage(context, event.payload, 'pre-v1') &&
+        adjacentQuestionnaireBlockIs(context, -1, 'pre-v1'),
       acceptsPostSubmission: ({ context, event }) =>
         event.type === 'SUBMIT_POST' &&
-        matchesExpectedSubmission(context, event.payload, 'post-v1'),
+        matchesQuestionnairePage(context, event.payload, 'post-v1'),
+      acceptsPostAdvance: ({ context, event }) =>
+        event.type === 'SUBMIT_POST' &&
+        matchesQuestionnairePage(context, event.payload, 'post-v1') &&
+        adjacentQuestionnaireBlockIs(context, 1, 'post-v1'),
+      acceptsPostBack: ({ context, event }) =>
+        event.type === 'BACK_POST' &&
+        matchesQuestionnairePage(context, event.payload, 'post-v1') &&
+        adjacentQuestionnaireBlockIs(context, -1, 'post-v1'),
       acceptsGuardrailSubmission: ({ context, event }) =>
         event.type === 'SUBMIT_GUARDRAILS' &&
         matchesExpectedSubmission(context, event.payload, 'guardrail-v2'),
@@ -303,8 +366,6 @@ export function createStudyMachine(ports: StudyRuntimePorts) {
       storePendingSubmission: assign({
         pendingSubmission: ({ context, event }) => {
           switch (event.type) {
-            case 'SUBMIT_PRE':
-            case 'SUBMIT_POST':
             case 'SUBMIT_GUARDRAILS':
             case 'SUBMIT_POST_OPEN':
               return event.payload;
@@ -313,8 +374,55 @@ export function createStudyMachine(ports: StudyRuntimePorts) {
           }
         },
       }),
+      storeQuestionnaireDraft: assign({
+        questionnaireDrafts: ({ context, event }) => {
+          if (
+            event.type !== 'SUBMIT_PRE' &&
+            event.type !== 'BACK_PRE' &&
+            event.type !== 'SUBMIT_POST' &&
+            event.type !== 'BACK_POST'
+          ) {
+            return context.questionnaireDrafts;
+          }
+          const drafts = [...context.questionnaireDrafts];
+          drafts[context.questionnaireBlockCursor] = event.payload;
+          return drafts;
+        },
+      }),
+      advanceQuestionnaire: assign({
+        questionnaireBlockCursor: ({ context }) => context.questionnaireBlockCursor + 1,
+      }),
+      returnToPreviousQuestionnaireSection: assign({
+        questionnaireBlockCursor: ({ context }) =>
+          Math.max(context.instrumentBlockCursor, context.questionnaireBlockCursor - 1),
+      }),
+      prepareQuestionnaireSubmission: assign({
+        questionnaireDrafts: ({ context, event }) => {
+          if (event.type !== 'SUBMIT_PRE' && event.type !== 'SUBMIT_POST') {
+            return context.questionnaireDrafts;
+          }
+          const drafts = [...context.questionnaireDrafts];
+          drafts[context.questionnaireBlockCursor] = event.payload;
+          return drafts;
+        },
+        pendingSubmission: ({ context, event }) => {
+          if (event.type !== 'SUBMIT_PRE' && event.type !== 'SUBMIT_POST') {
+            return context.pendingSubmission;
+          }
+          return context.instrumentBlockCursor === context.questionnaireBlockCursor
+            ? event.payload
+            : questionnaireDraftAt(context);
+        },
+      }),
+      loadNextQuestionnaireSubmission: assign({
+        pendingSubmission: ({ context }) => questionnaireDraftAt(context),
+      }),
+      clearQuestionnaireDrafts: assign({
+        questionnaireDrafts: () => [],
+      }),
       confirmPendingSubmission: assign({
         instrumentBlockCursor: ({ context }) => context.instrumentBlockCursor + 1,
+        questionnaireBlockCursor: ({ context }) => context.instrumentBlockCursor + 1,
         pendingSubmission: () => null,
         researchErrorCode: () => null,
       }),
@@ -489,10 +597,20 @@ export function createStudyMachine(ports: StudyRuntimePorts) {
         states: {
           editing: {
             on: {
-              SUBMIT_PRE: {
-                guard: 'acceptsPreSubmission',
-                target: 'saving',
-                actions: 'storePendingSubmission',
+              SUBMIT_PRE: [
+                {
+                  guard: 'acceptsPreAdvance',
+                  actions: ['storeQuestionnaireDraft', 'advanceQuestionnaire'],
+                },
+                {
+                  guard: 'acceptsPreSubmission',
+                  target: 'saving',
+                  actions: 'prepareQuestionnaireSubmission',
+                },
+              ],
+              BACK_PRE: {
+                guard: 'acceptsPreBack',
+                actions: ['storeQuestionnaireDraft', 'returnToPreviousQuestionnaireSection'],
               },
             },
           },
@@ -521,8 +639,12 @@ export function createStudyMachine(ports: StudyRuntimePorts) {
           },
           routing: {
             always: [
-              { guard: 'nextBlockIsPre', target: 'editing' },
-              { target: '#study.artifactLifecycle' },
+              {
+                guard: 'nextBlockIsPre',
+                target: 'saving',
+                actions: 'loadNextQuestionnaireSubmission',
+              },
+              { target: '#study.artifactLifecycle', actions: 'clearQuestionnaireDrafts' },
             ],
           },
         },
@@ -682,10 +804,20 @@ export function createStudyMachine(ports: StudyRuntimePorts) {
         states: {
           editing: {
             on: {
-              SUBMIT_POST: {
-                guard: 'acceptsPostSubmission',
-                target: 'saving',
-                actions: 'storePendingSubmission',
+              SUBMIT_POST: [
+                {
+                  guard: 'acceptsPostAdvance',
+                  actions: ['storeQuestionnaireDraft', 'advanceQuestionnaire'],
+                },
+                {
+                  guard: 'acceptsPostSubmission',
+                  target: 'saving',
+                  actions: 'prepareQuestionnaireSubmission',
+                },
+              ],
+              BACK_POST: {
+                guard: 'acceptsPostBack',
+                actions: ['storeQuestionnaireDraft', 'returnToPreviousQuestionnaireSection'],
               },
             },
           },
@@ -714,8 +846,12 @@ export function createStudyMachine(ports: StudyRuntimePorts) {
           },
           routing: {
             always: [
-              { guard: 'nextBlockIsPost', target: 'editing' },
-              { target: '#study.guardrails' },
+              {
+                guard: 'nextBlockIsPost',
+                target: 'saving',
+                actions: 'loadNextQuestionnaireSubmission',
+              },
+              { target: '#study.guardrails', actions: 'clearQuestionnaireDrafts' },
             ],
           },
         },

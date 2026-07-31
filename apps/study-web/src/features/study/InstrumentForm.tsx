@@ -37,6 +37,15 @@ type ChoiceOption = SingleChoiceItem['options'][number];
 type QuestionnaireInstrumentId = 'pre-v1' | 'post-v1';
 type Draft = Record<string, InstrumentResponseValue | undefined>;
 
+function draftFromSubmission(submission: InstrumentSubmissionRequest | null): Draft {
+  const draft: Draft = {};
+  if (submission === null) return draft;
+  for (const response of submission.responses) {
+    draft[response.itemId] = response.value;
+  }
+  return draft;
+}
+
 function InstrumentHeader({
   headingId,
   title,
@@ -1028,6 +1037,8 @@ export function QuestionnaireSectionForm<
   title,
   currentSection,
   sectionCount,
+  initialSubmission,
+  onBack,
   onSubmit,
 }: {
   readonly instrumentId: TInstrumentId;
@@ -1035,9 +1046,11 @@ export function QuestionnaireSectionForm<
   readonly title: string;
   readonly currentSection: number;
   readonly sectionCount: number;
+  readonly initialSubmission: InstrumentSubmissionRequest | null;
+  readonly onBack: (submission: InstrumentSubmissionFor<TInstrumentId>) => void;
   readonly onSubmit: (submission: InstrumentSubmissionFor<TInstrumentId>) => void;
 }) {
-  const [draft, setDraft] = useState<Draft>({});
+  const [draft, setDraft] = useState<Draft>(() => draftFromSubmission(initialSubmission));
   const [invalidItemIds, setInvalidItemIds] = useState<ReadonlySet<string>>(new Set<string>());
   const formRef = useRef<HTMLFormElement>(null);
   const headingId = `${instrumentId}-${section.id}-title`;
@@ -1121,7 +1134,11 @@ export function QuestionnaireSectionForm<
             }`.trim()}
           >
             {currentSection > 1 ? (
-              <button className={styles.secondaryButton} type="button" disabled>
+              <button
+                className={styles.secondaryButton}
+                type="button"
+                onClick={() => onBack(questionnaireSubmission())}
+              >
                 <BackIcon />
                 Zurück
               </button>
