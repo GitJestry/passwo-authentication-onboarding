@@ -156,6 +156,7 @@ export function S00Training({
   const isFinalSpeechStep = speechRound === speechSteps.length - 1;
   const activeBrowserSnapshot: BrowserShellSnapshot = {
     ...browserSnapshot,
+    accountInitial: displayName,
     dimmed: guideOpen,
     dimStrength: 'soft',
     ...(currentSpeechStep?.accountId === null || currentSpeechStep === undefined

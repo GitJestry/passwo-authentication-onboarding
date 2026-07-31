@@ -60,10 +60,39 @@ function BrowserNavigationIcon({
   );
 }
 
+function BrowserChromeIcon({ kind }: { readonly kind: 'add-tab' | 'bookmark' | 'menu' }) {
+  if (kind === 'menu') {
+    return (
+      <svg aria-hidden="true" viewBox="0 0 24 24" fill="currentColor">
+        <circle cx="12" cy="5" r="1.7" />
+        <circle cx="12" cy="12" r="1.7" />
+        <circle cx="12" cy="19" r="1.7" />
+      </svg>
+    );
+  }
+
+  return kind === 'add-tab' ? (
+    <svg aria-hidden="true" viewBox="0 0 24 24" fill="none">
+      <path d="M12 5v14M5 12h14" />
+    </svg>
+  ) : (
+    <svg aria-hidden="true" viewBox="0 0 24 24" fill="none">
+      <path d="m12 3.8 2.55 5.17 5.7.83-4.12 4.02.97 5.67L12 16.8l-5.1 2.68.97-5.67-4.12-4.02 5.7-.83L12 3.8Z" />
+    </svg>
+  );
+}
+
+function deriveAccountInitial(value: string | undefined): string {
+  const initial = Array.from(value?.trim() ?? '')[0];
+  return (initial ?? 'P').toLocaleUpperCase('de-DE');
+}
+
 export interface BrowserShellSnapshot {
   readonly tabs: readonly BrowserTabModel[];
   readonly activeTabId: string;
   readonly address: string;
+  /** Ephemeral participant-facing identity; never persisted by the shell. */
+  readonly accountInitial?: string;
   readonly dimmed?: boolean;
   readonly dimStrength?: 'soft' | 'standard';
   readonly highlightedTabId?: string;
@@ -115,6 +144,7 @@ export function BrowserShell({
   const dimmed = snapshot.dimmed ?? false;
   const locked = snapshot.locked ?? false;
   const dimStrength = snapshot.dimStrength ?? 'standard';
+  const accountInitial = deriveAccountInitial(snapshot.accountInitial);
   const panelId = `${idPrefix}-tabpanel`;
   const selectedTabIndex = snapshot.tabs.findIndex((tab) => tab.id === snapshot.activeTabId);
   const [focusedTabId, setFocusedTabId] = useState(
@@ -348,8 +378,13 @@ export function BrowserShell({
                 </svg>
               </button>
             </div>
-            <div className={styles.tabs} role="tablist" aria-label="Fiktive Seitentabs">
-              {tabItems}
+            <div className={styles.tabBar}>
+              <div className={styles.tabs} role="tablist" aria-label="Fiktive Seitentabs">
+                {tabItems}
+              </div>
+              <span className={styles.newTabHint} role="img" aria-label="Weiterer Tab">
+                <BrowserChromeIcon kind="add-tab" />
+              </span>
             </div>
           </div>
           {tabStates.some(({ enabled }) => !enabled) ? (
@@ -380,7 +415,18 @@ export function BrowserShell({
                 <span />
               </span>
               <span className={styles.addressText}>{snapshot.address}</span>
+              <span className={styles.bookmarkHint} role="img" aria-label="Lesezeichen">
+                <BrowserChromeIcon kind="bookmark" />
+              </span>
             </output>
+            <div className={styles.accountControls} aria-label="Fiktive Kontosteuerung">
+              <span className={styles.accountInitial} role="img" aria-label={`Konto ${accountInitial}`}>
+                {accountInitial}
+              </span>
+              <span className={styles.menuHint} role="img" aria-label="Browsermenü und Einstellungen">
+                <BrowserChromeIcon kind="menu" />
+              </span>
+            </div>
           </div>
         </header>
         <div className={styles.viewport}>

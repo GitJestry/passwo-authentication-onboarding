@@ -126,6 +126,7 @@ export function S01Training({
     })),
     activeTabId: account.id,
     address: account.address,
+    accountInitial: snapshot.context.displayName ?? '',
     dimmed: questHelpOpen && !readyToContinue,
     dimStrength: 'soft',
   };

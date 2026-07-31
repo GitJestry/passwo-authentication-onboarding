@@ -124,6 +124,39 @@
   scrollbar-width: thin;
 }
 
+.tabBar {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: var(--space-1);
+}
+
+.newTabHint,
+.bookmarkHint,
+.menuHint {
+  display: grid;
+  flex: none;
+  place-items: center;
+  color: var(--color-ink-muted);
+}
+
+.newTabHint {
+  width: 1.85rem;
+  height: 1.85rem;
+  border-radius: var(--radius-small);
+}
+
+.newTabHint svg,
+.bookmarkHint svg,
+.menuHint svg {
+  width: 1rem;
+  height: 1rem;
+  stroke: currentcolor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 1.8;
+}
+
 .tab,
 .activeTab {
   display: inline-flex;
@@ -296,7 +329,7 @@ button.activeTab[aria-disabled="true"] {
 
 .addressRow {
   display: grid;
-  grid-template-columns: auto minmax(0, 1fr);
+  grid-template-columns: auto minmax(0, 1fr) auto;
   align-items: center;
   gap: var(--space-2);
   padding: 0.4rem var(--space-4) var(--space-2);
@@ -382,9 +415,45 @@ button.activeTab[aria-disabled="true"] {
 }
 
 .addressText {
+  min-width: 0;
+  flex: 1;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+.bookmarkHint {
+  width: 1.4rem;
+  height: 1.4rem;
+  margin-left: auto;
+}
+
+.accountControls {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.accountInitial {
+  display: grid;
+  width: 1.7rem;
+  height: 1.7rem;
+  place-items: center;
+  border-radius: var(--radius-round);
+  color: var(--passwo-surface);
+  background: var(--color-accent-strong);
+  font-size: var(--font-size-x-small);
+  font-weight: var(--font-weight-heavy);
+}
+
+.menuHint {
+  width: 1.65rem;
+  height: 1.65rem;
+}
+
+.menuHint svg {
+  fill: currentcolor;
+  stroke: none;
 }
 
 .viewport {
@@ -494,6 +563,16 @@ button.activeTab[aria-disabled="true"] {
   order: 1;
 }
 
+.window[data-platform="windows"] .tabBar,
+.window[data-platform="linux"] .tabBar {
+  order: 1;
+}
+
+.window[data-platform="windows"] .tabs,
+.window[data-platform="linux"] .tabs {
+  order: initial;
+}
+
 .window[data-platform="windows"] .windowControls,
 .window[data-platform="linux"] .windowControls {
   order: 2;
@@ -575,6 +654,12 @@ button.activeTab[aria-disabled="true"] {
   border-radius: 0.35rem;
 }
 
+.window[data-platform="windows"] .newTabHint,
+.window[data-platform="windows"] .accountInitial,
+.window[data-platform="windows"] .menuHint {
+  border-radius: 0.35rem;
+}
+
 .window[data-platform="linux"] {
   --window-minimized-transform: translateX(-1.6rem) scale(0.94);
 
@@ -621,6 +706,12 @@ button.activeTab[aria-disabled="true"] {
 }
 
 .window[data-platform="linux"] .browserNavigation button {
+  border-radius: 0.42rem;
+}
+
+.window[data-platform="linux"] .newTabHint,
+.window[data-platform="linux"] .accountInitial,
+.window[data-platform="linux"] .menuHint {
   border-radius: 0.42rem;
 }
 

@@ -421,6 +421,7 @@ export function S03RetrievalTraining({
         ? (s01Content.browser.accounts.find(({ id }) => id === 'campus-id')?.address ??
           account.address)
         : account.address,
+    accountInitial: snapshot.context.displayName ?? '',
     dimmed: guideOpen,
     dimStrength: 'soft',
     locked: timeLapsePhaseActive,
