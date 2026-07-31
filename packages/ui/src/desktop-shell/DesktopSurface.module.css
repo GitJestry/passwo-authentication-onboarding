@@ -25,7 +25,7 @@
   padding:
     0 max(0.7rem, env(safe-area-inset-right))
     0 max(0.7rem, env(safe-area-inset-left));
-  background: rgb(238 247 255 / 18%);
+  background: var(--color-surface-desktop-menu-mac);
   backdrop-filter: blur(0.7rem) saturate(1.06);
 }
 
@@ -183,7 +183,7 @@
   inset: 1.6rem 0 5.15rem;
   overflow: hidden;
   border: 1px solid rgb(102 128 151 / 42%);
-  border-radius: 0.9rem;
+  border-radius: var(--radius-browser-window-mac);
   background: #ffffff;
   box-shadow: 0 1.4rem 3.6rem rgb(35 63 92 / 24%);
   transform-origin: 50% calc(100% + 4.2rem);
@@ -194,7 +194,7 @@
   display: block;
   height: 4.6rem;
   border-bottom: 1px solid var(--color-border);
-  background: var(--color-surface-chrome);
+  background: var(--color-surface-browser-chrome-mac);
   content: "";
 }
 
@@ -290,8 +290,13 @@
   --browser-launch-transform: translateY(1.35rem) scale(0.96);
 
   inset: 0 0 3.5rem;
-  border-radius: 0;
+  border-radius: var(--radius-browser-window-windows);
+  box-shadow: none;
   transform-origin: 7.6rem calc(100% + 2.4rem);
+}
+
+.desktopScene[data-platform="windows"] .browserLaunchSurface::after {
+  background: var(--color-surface-browser-chrome-windows);
 }
 
 .desktopScene[data-platform="windows"] .browserLaunchSurface > span {
@@ -396,6 +401,14 @@
 
   inset: 2rem 0 0 4.5rem;
   transform-origin: -3.2rem 50%;
+}
+
+.desktopScene[data-platform="linux"] .browserLaunchSurface {
+  border-radius: var(--radius-browser-window-linux);
+}
+
+.desktopScene[data-platform="linux"] .browserLaunchSurface::after {
+  background: var(--color-surface-browser-chrome-linux);
 }
 
 .desktopScene[data-platform="linux"] .browserLaunchSurface > span {
