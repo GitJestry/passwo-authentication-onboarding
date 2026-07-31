@@ -1,0 +1,49 @@
+.overlay {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-content: center;
+  justify-items: center;
+  gap: var(--space-4);
+  color: #123b28;
+  background: rgb(236 239 238 / 91%);
+  backdrop-filter: grayscale(1) blur(0.18rem);
+  pointer-events: none;
+  animation: account-success-overlay 2000ms var(--motion-ease-out) both;
+}
+
+.overlay > span {
+  display: grid;
+  width: 5.25rem;
+  height: 5.25rem;
+  place-items: center;
+  border-radius: var(--radius-round);
+  color: #fff;
+  background: #21864f;
+  box-shadow: 0 0.9rem 2.3rem rgb(33 134 79 / 22%);
+  font-size: 2.45rem;
+  font-weight: var(--font-weight-heavy);
+}
+
+.overlay strong {
+  font-size: var(--font-size-heading-small);
+  letter-spacing: var(--letter-spacing-tight);
+}
+
+@keyframes account-success-overlay {
+  0% { opacity: 0; }
+  12%, 82% { opacity: 1; }
+  100% { opacity: 0; }
+}
+
+@keyframes account-success-overlay-reduced {
+  0%, 99% { opacity: 1; }
+  100% { opacity: 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .overlay {
+    animation-name: account-success-overlay-reduced;
+    animation-timing-function: linear;
+  }
+}

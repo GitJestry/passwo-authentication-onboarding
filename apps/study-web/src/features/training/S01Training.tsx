@@ -1,4 +1,4 @@
-import { s01Content } from '@passwo/training-content';
+import { s01Content, type S01AccountId } from '@passwo/training-content';
 import {
   deriveCampusIdentity,
   getConfiguredAccountCount,
@@ -12,6 +12,7 @@ import {
 } from '@passwo/ui';
 import { useEffect, useRef, useState } from 'react';
 import { NetworkSymbol } from '../../adapters/network/NetworkSymbolRegistry.js';
+import { AccountSuccessOverlay } from './AccountSuccessOverlay.js';
 import { CampusWebsiteBackdrop } from './CampusWebsiteBackdrop.js';
 import { PassWoGuide } from './PassWoGuide.js';
 import styles from './S01Training.module.css';
@@ -53,6 +54,7 @@ export interface S01TrainingProps {
   readonly snapshot: PasswordModuleSnapshot;
   readonly externalTimingError?: string | null;
   readonly onRetryExternalTiming?: () => void;
+  readonly initialAuthenticationAccountId?: S01AccountId;
 }
 
 export function S01Training({
@@ -61,25 +63,43 @@ export function S01Training({
   snapshot,
   externalTimingError = null,
   onRetryExternalTiming,
+  initialAuthenticationAccountId,
 }: S01TrainingProps) {
   const [revealedAccountIds, setRevealedAccountIds] = useState<ReadonlySet<string>>(
     () => new Set(),
   );
+  const [registrationOpenedAccountIds, setRegistrationOpenedAccountIds] = useState<
+    ReadonlySet<string>
+  >(() =>
+    initialAuthenticationAccountId === undefined
+      ? new Set()
+      : new Set([initialAuthenticationAccountId]),
+  );
   const [questHelpOpen, setQuestHelpOpen] = useState(false);
+  const [completionOverlayAccountId, setCompletionOverlayAccountId] =
+    useState<S01AccountId | null>(null);
+  const knownConfiguredAccountIdsRef = useRef<ReadonlySet<string>>(
+    new Set(snapshot.context.configuredAccountIds),
+  );
   const [browserOpen, setBrowserOpen] = useState(true);
   const [desktopTransitioning, setDesktopTransitioning] = useState(false);
-  const completionStatusRef = useRef<HTMLHeadingElement>(null);
   const account =
     s01Content.browser.accounts.find(({ id }) => id === snapshot.context.activeAccountId) ??
     s01Content.browser.accounts[0];
   const accountConfigured =
     account !== undefined && snapshot.context.configuredAccountIds.includes(account.id);
-  const completionFocusTarget = accountConfigured ? account?.id : null;
   const readyToContinue = isReadyToContinue(snapshot);
 
   useEffect(() => {
-    if (completionFocusTarget !== null) completionStatusRef.current?.focus();
-  }, [completionFocusTarget]);
+    const knownAccountIds = knownConfiguredAccountIdsRef.current;
+    const completedAccount = s01Content.browser.accounts.find(
+      ({ id }) => snapshot.context.configuredAccountIds.includes(id) && !knownAccountIds.has(id),
+    );
+    knownConfiguredAccountIdsRef.current = new Set(snapshot.context.configuredAccountIds);
+    if (completedAccount !== undefined) {
+      setCompletionOverlayAccountId(completedAccount.id);
+    }
+  }, [snapshot.context.configuredAccountIds]);
 
   useEffect(() => {
     if (
@@ -114,6 +134,17 @@ export function S01Training({
         : campusIdentity.campusgram;
   const canConfigure =
     editing && !accountConfigured && activeValue.length > 0 && !interactionBlocked;
+  const websiteView = accountConfigured
+    ? 'dashboard'
+    : registrationOpenedAccountIds.has(account.id)
+      ? 'authentication'
+      : 'landing';
+  const pageAddress =
+    websiteView === 'authentication'
+      ? `${account.address}/register`
+      : websiteView === 'dashboard'
+        ? `${account.address}/dashboard`
+        : account.address;
   const snapshotForBrowser: BrowserShellSnapshot = {
     tabs: s01Content.browser.accounts.map((tabAccount) => ({
       id: tabAccount.id,
@@ -125,8 +156,9 @@ export function S01Training({
         : {}),
     })),
     activeTabId: account.id,
-    address: account.address,
-    accountInitial: snapshot.context.displayName ?? '',
+    address: pageAddress,
+    accountIdentifier: accountData,
+    scrollKey: `s01:${account.id}:${websiteView}`,
     dimmed: questHelpOpen && !readyToContinue,
     dimStrength: 'soft',
   };
@@ -152,6 +184,7 @@ export function S01Training({
   }
 
   function selectAccount(accountId: string): void {
+    setCompletionOverlayAccountId(null);
     controller.selectAccount(accountId);
   }
 
@@ -171,6 +204,7 @@ export function S01Training({
         windowOpen={browserOpen}
         onWindowOpenChange={(open) => {
           setBrowserOpen(open);
+          if (!open) setCompletionOverlayAccountId(null);
           if (open) {
             setDesktopTransitioning(false);
           } else {
@@ -178,6 +212,7 @@ export function S01Training({
           }
         }}
         onWindowClose={() => {
+          setCompletionOverlayAccountId(null);
           beginDesktopTransition();
         }}
         onWindowTransitionEnd={(state) => {
@@ -186,61 +221,90 @@ export function S01Training({
         onTabSelect={selectAccount}
         layers={{
           passWo: (
-            <PassWoGuide
-              guideName={s01Content.completion.guideName}
-              taskLabel="Einrichten"
-              progress={{
-                current: configuredCount,
-                total: s01Content.browser.accounts.length,
-                label: s01Content.progress.status(configuredCount),
-              }}
-              helpOpen={questHelpOpen}
-              helpId="s01-quest-help"
-              openHelpLabel={s01Content.quest.helpLabel}
-              speech={[
-                readyToContinue
-                  ? s01Content.completion.guideMessage
-                  : s01Content.quest.guideMessage,
-              ]}
-              speechKey={readyToContinue ? 's01-ready' : `s01-${account.id}-${configuredCount}`}
-              speechPlacement="right"
-              awaitsAction={readyToContinue}
-              onToggleHelp={() => setQuestHelpOpen(true)}
-              onSpeechAdvance={() => setQuestHelpOpen(false)}
-            />
+            <>
+              {completionOverlayAccountId === null ? null : (
+                <AccountSuccessOverlay
+                  label={s01Content.completion.overlayLabel(
+                    s01Content.browser.accounts.find(
+                      ({ id }) => id === completionOverlayAccountId,
+                    )?.label ?? '',
+                  )}
+                  onComplete={() => setCompletionOverlayAccountId(null)}
+                />
+              )}
+              <PassWoGuide
+                guideName={s01Content.completion.guideName}
+                taskLabel="Einrichten"
+                progress={{
+                  current: configuredCount,
+                  total: s01Content.browser.accounts.length,
+                  label: s01Content.progress.status(configuredCount),
+                }}
+                helpOpen={questHelpOpen}
+                helpId="s01-quest-help"
+                openHelpLabel={s01Content.quest.helpLabel}
+                speech={[
+                  readyToContinue
+                    ? s01Content.completion.guideMessage
+                    : s01Content.quest.guideMessage,
+                ]}
+                speechKey={readyToContinue ? 's01-ready' : `s01-${account.id}-${configuredCount}`}
+                speechPlacement="right"
+                awaitsAction={readyToContinue}
+                onToggleHelp={() => setQuestHelpOpen(true)}
+                onSpeechAdvance={() => setQuestHelpOpen(false)}
+              />
+            </>
           ),
         }}
       >
         <CampusWebsiteBackdrop
           accountId={account.id}
           interactionLabel={`${account.label} einrichten`}
+          view={websiteView}
+          displayName={snapshot.context.displayName ?? ''}
+          {...(websiteView === 'landing'
+            ? {
+                primaryAction: {
+                  label: account.landing.loginLabel,
+                  disabled: true,
+                  disabledReason: s01Content.siteUi.loginUnavailable,
+                },
+                secondaryAction: {
+                  label: account.landing.registerLabel,
+                  disabled: interactionBlocked,
+                  onClick: () => {
+                    setRegistrationOpenedAccountIds((currentIds) => {
+                      const nextIds = new Set(currentIds);
+                      nextIds.add(account.id);
+                      return nextIds;
+                    });
+                  },
+                },
+              }
+            : {})}
+          authenticationTitle={s01Content.controls.registrationTitle}
+          onBack={() => {
+            setRegistrationOpenedAccountIds((currentIds) => {
+              const nextIds = new Set(currentIds);
+              nextIds.delete(account.id);
+              return nextIds;
+            });
+          }}
         >
-          <section className={styles.setupPanel} aria-labelledby="s01-page-title">
-            <h1 id="s01-page-title">{account.label}</h1>
-            <dl className={styles.accountDetails}>
-              <div>
-                <dt>{account.accountDataLabel}</dt>
-                <dd>{accountData}</dd>
-              </div>
-            </dl>
-            {accountConfigured ? (
-              <section
-                className={styles.accountComplete}
-                aria-label={s01Content.completion.accountStatus}
-              >
-                <span aria-hidden="true">✓</span>
-                <h2 ref={completionStatusRef} tabIndex={-1} aria-live="polite">
-                  {s01Content.completion.accountStatus}
-                </h2>
-              </section>
-            ) : (
+          {websiteView === 'authentication' ? (
+            <section className={styles.setupPanel} aria-label={s01Content.controls.registrationTitle}>
+              <dl className={styles.accountDetails}>
+                <div>
+                  <dt>{account.accountDataLabel}</dt>
+                  <dd>{accountData}</dd>
+                </div>
+              </dl>
               <form
                 className={styles.passwordForm}
                 onSubmit={(event) => {
                   event.preventDefault();
-                  if (canConfigure) {
-                    controller.configureAccount(account.id);
-                  }
+                  if (canConfigure) controller.configureAccount(account.id);
                 }}
               >
                 <label
@@ -283,8 +347,8 @@ export function S01Training({
                   </button>
                 </div>
               </form>
-            )}
-          </section>
+            </section>
+          ) : null}
         </CampusWebsiteBackdrop>
         {(snapshot.matches({ s01: 'ending' }) || initialTimingPending) &&
         externalTimingError === null ? (

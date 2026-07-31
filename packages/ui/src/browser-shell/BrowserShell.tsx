@@ -4,6 +4,7 @@ import {
   type ReactNode,
   useEffect,
   useId,
+  useLayoutEffect,
   useRef,
   useState,
 } from 'react';
@@ -82,9 +83,13 @@ function BrowserChromeIcon({ kind }: { readonly kind: 'add-tab' | 'bookmark' | '
   );
 }
 
-function deriveAccountInitial(value: string | undefined): string {
-  const initial = Array.from(value?.trim() ?? '')[0];
-  return (initial ?? 'P').toLocaleUpperCase('de-DE');
+function deriveAccountInitials(value: string | undefined): string {
+  const username = value?.trim().split('@', 1)[0] ?? '';
+  const initials = Array.from(username)
+    .filter((character) => /[a-z0-9]/iu.test(character))
+    .slice(0, 2)
+    .join('');
+  return (initials || 'P').toLocaleUpperCase('de-DE');
 }
 
 export interface BrowserShellSnapshot {
@@ -92,7 +97,9 @@ export interface BrowserShellSnapshot {
   readonly activeTabId: string;
   readonly address: string;
   /** Ephemeral participant-facing identity; never persisted by the shell. */
-  readonly accountInitial?: string;
+  readonly accountIdentifier?: string;
+  /** Ephemeral document key used for in-memory scroll restoration. */
+  readonly scrollKey?: string;
   readonly dimmed?: boolean;
   readonly dimStrength?: 'soft' | 'standard';
   readonly highlightedTabId?: string;
@@ -136,6 +143,8 @@ export function BrowserShell({
 }: BrowserShellProps) {
   const idPrefix = useId().replaceAll(':', '');
   const tabElements = useRef(new Map<string, HTMLButtonElement>());
+  const contentElementRef = useRef<HTMLDivElement | null>(null);
+  const scrollPositionsRef = useRef(new Map<string, number>());
   const [uncontrolledOpen, setUncontrolledOpen] = useState(true);
   const desiredWindowOpen = windowOpen ?? uncontrolledOpen;
   const [windowState, setWindowState] = useState<BrowserWindowState>(
@@ -144,7 +153,9 @@ export function BrowserShell({
   const dimmed = snapshot.dimmed ?? false;
   const locked = snapshot.locked ?? false;
   const dimStrength = snapshot.dimStrength ?? 'standard';
-  const accountInitial = deriveAccountInitial(snapshot.accountInitial);
+  const accountInitials = deriveAccountInitials(snapshot.accountIdentifier);
+  const scrollKey = snapshot.scrollKey ?? snapshot.activeTabId;
+  const activeScrollKeyRef = useRef(scrollKey);
   const panelId = `${idPrefix}-tabpanel`;
   const selectedTabIndex = snapshot.tabs.findIndex((tab) => tab.id === snapshot.activeTabId);
   const [focusedTabId, setFocusedTabId] = useState(
@@ -182,6 +193,18 @@ export function BrowserShell({
       return currentState;
     });
   }, [desiredWindowOpen]);
+
+  useLayoutEffect(() => {
+    const contentElement = contentElementRef.current;
+    if (contentElement === null) return;
+
+    const previousKey = activeScrollKeyRef.current;
+    if (previousKey === scrollKey) return;
+
+    scrollPositionsRef.current.set(previousKey, contentElement.scrollTop);
+    activeScrollKeyRef.current = scrollKey;
+    contentElement.scrollTop = scrollPositionsRef.current.get(scrollKey) ?? 0;
+  }, [scrollKey]);
 
   function setWindowOpen(open: boolean): void {
     if (windowOpen === undefined) setUncontrolledOpen(open);
@@ -420,8 +443,12 @@ export function BrowserShell({
               </span>
             </output>
             <div className={styles.accountControls} aria-label="Fiktive Kontosteuerung">
-              <span className={styles.accountInitial} role="img" aria-label={`Konto ${accountInitial}`}>
-                {accountInitial}
+              <span
+                className={styles.accountInitial}
+                role="img"
+                aria-label={`Konto ${accountInitials}`}
+              >
+                {accountInitials}
               </span>
               <span className={styles.menuHint} role="img" aria-label="Browsermenü und Einstellungen">
                 <BrowserChromeIcon kind="menu" />
@@ -431,6 +458,7 @@ export function BrowserShell({
         </header>
         <div className={styles.viewport}>
           <div
+            ref={contentElementRef}
             id={panelId}
             role="tabpanel"
             aria-labelledby={labelledByTabId}
@@ -438,6 +466,12 @@ export function BrowserShell({
             aria-hidden={dimmed || undefined}
             inert={dimmed || locked || undefined}
             tabIndex={dimmed || locked ? -1 : 0}
+            onScroll={(event) => {
+              scrollPositionsRef.current.set(
+                activeScrollKeyRef.current,
+                event.currentTarget.scrollTop,
+              );
+            }}
           >
             {children}
           </div>

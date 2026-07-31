@@ -92,7 +92,7 @@ export interface S03SegmentContent {
   readonly animations: readonly S03AnimationSequence[];
 }
 
-export const S03_CONTENT_VERSION = '1.6.0';
+export const S03_CONTENT_VERSION = '1.7.0';
 
 const resultAnimation = (
   accountId: S01AccountId,
@@ -146,7 +146,7 @@ export const s03Content: S03SegmentContent = {
   source: {
     document: 'research/private/training-script.pdf',
     internalPages: [8, 9, 10, 11],
-    revision: 'Userauftrag vom 2026-07-29',
+    revision: 'Userauftrag und UX-Konzeptboards vom 2026-07-31',
   },
   segment: {
     id: 'S03',

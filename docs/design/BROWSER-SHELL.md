@@ -55,6 +55,17 @@ Markensymbol sowie eine klar zusammenhängende aktive Fläche.
 Die Adresszeile hat kein sichtbares Label. Eine kleine Schlossform markiert den dargestellten
 Seitenstatus, ohne eine Sicherheitszusage abzuleiten.
 
+Die drei fiktiven Landingpages enden nach ihrem viewportfüllenden Hero. Zusätzliche Produkt-,
+Aktivitäts- oder Marketingsektionen unterhalb dieses Einstiegs werden nicht gerendert. Die
+Registrierungs- und Anmeldeansichten behalten Zurück-Link und Seitentitel links und zentrieren das
+größere Formular darunter in der verfügbaren Inhaltsfläche. Sie wiederholen dort weder Dienstrolle
+noch Dienstwerbung. Dashboards beginnen direkt unter dem Browser-Chrome und besitzen keinen
+zusätzlichen Website-Header.
+
+Der flüchtige Konto-Identifier kann im Chrome als Kreis mit den ersten zwei alphanumerischen
+Zeichen des fiktiven Benutzernamens erscheinen. Die Ableitung und die Anzeige bleiben im
+Arbeitsspeicher; die BrowserShell persistiert weder Identifier noch Kürzel.
+
 Sichtbare Disabled-Gründe werden nicht als dauerhafte Absätze im Chrome oder neben Aktionen
 wiederholt. Die zugehörige Erklärung bleibt über `aria-describedby` verfügbar und kann über eine
 fokussierbare Hinweis-Markierung erreicht werden.
@@ -74,6 +85,12 @@ fokussierbare Hinweis-Markierung erreicht werden.
 - Erklärende Zeitraffer können die sichtbare Shell vorübergehend sperren, ohne sie abzudunkeln;
   Fensterkontrollen, Dock, Tabs und Seiteninhalt bleiben dann bis zum nächsten Lernschritt inaktiv.
 - Browserrahmen beeinflusst keine Studienzeit oder Navigation außerhalb des Artefakts.
+- Die Inhaltsfläche scrollt nativ. Ein optionaler `scrollKey` merkt die vertikale Position pro
+  fiktivem Tab und Seitenzustand nur für die Lebensdauer der BrowserShell; ein neuer Schlüssel
+  startet oben.
+- Ein erfolgreicher Registrierungs- oder Anmelde-Check wird zwei Sekunden lang angezeigt und
+  danach automatisch beendet. Tabwechsel und Trainingsübergänge dürfen ihn früher beenden; nach
+  der Rückkehr zu einem bereits bestätigten Konto erscheint er nicht erneut.
 - Der Browser kann abgedunkelt werden, ohne Fokus oder Lesbarkeit der aktiven PassWo-Schicht zu
   verlieren.
 - Dimming verringert den Kontrast der Bühne nur so weit, dass der Seitenkontext weiter lesbar

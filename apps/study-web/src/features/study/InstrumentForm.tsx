@@ -8,7 +8,7 @@ import {
   type InstrumentSubmissionFor,
   type InstrumentSubmissionRequest,
 } from '@passwo/contracts';
-import { type FormEvent, type ReactNode, useRef, useState } from 'react';
+import { type FormEvent, type ReactNode, useEffect, useRef, useState } from 'react';
 import styles from './StudyFlow.module.css';
 
 type QuestionnaireSection =
@@ -1053,6 +1053,11 @@ export function QuestionnaireSectionForm<
   const [draft, setDraft] = useState<Draft>(() => draftFromSubmission(initialSubmission));
   const [invalidItemIds, setInvalidItemIds] = useState<ReadonlySet<string>>(new Set<string>());
   const formRef = useRef<HTMLFormElement>(null);
+
+  useEffect(() => {
+    window.scrollTo({ top: 0, left: 0, behavior: 'auto' });
+  }, []);
+
   const headingId = `${instrumentId}-${section.id}-title`;
   const fieldGroups = questionnaireSectionFieldGroups({
     items: section.items,

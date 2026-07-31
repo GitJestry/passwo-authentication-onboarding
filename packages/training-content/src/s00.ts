@@ -29,6 +29,7 @@ export interface S00SegmentContent {
   readonly source: {
     readonly document: string;
     readonly internalPage: 2;
+    readonly uxReference: string;
   };
   readonly segment: {
     readonly id: 'S00';
@@ -87,7 +88,7 @@ export interface S00SegmentContent {
   };
 }
 
-export const S00_CONTENT_VERSION = '1.10.1';
+export const S00_CONTENT_VERSION = '1.11.0';
 
 export const s00Content: S00SegmentContent = {
   version: S00_CONTENT_VERSION,
@@ -110,6 +111,7 @@ export const s00Content: S00SegmentContent = {
   source: {
     document: 'research/private/training-script.pdf',
     internalPage: 2,
+    uxReference: 'Vom Nutzer bereitgestellte UX-Konzeptboards, 2026-07-31',
   },
   segment: {
     id: 'S00',

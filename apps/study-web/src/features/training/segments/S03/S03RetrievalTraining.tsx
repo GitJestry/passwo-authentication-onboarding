@@ -19,6 +19,7 @@ import {
 import { useEffect, useRef, useState } from 'react';
 import { NetworkMotionAdapter } from '../../../../adapters/network/NetworkMotionAdapter.js';
 import { NetworkSymbol } from '../../../../adapters/network/NetworkSymbolRegistry.js';
+import { AccountSuccessOverlay } from '../../AccountSuccessOverlay.js';
 import { CampusWebsiteBackdrop } from '../../CampusWebsiteBackdrop.js';
 import { PassWoGuide } from '../../PassWoGuide.js';
 import {
@@ -33,6 +34,7 @@ export interface S03RetrievalTrainingProps {
   readonly snapshot: PasswordModuleSnapshot;
   readonly externalTimingError?: string | null;
   readonly onRetryExternalTiming?: () => void;
+  readonly initialLoginAccountId?: S01AccountId;
 }
 
 interface Runtime {
@@ -140,46 +142,26 @@ function CampusStartTimeLapse({
   );
 }
 
-function InitialLoginWelcome({
-  accountId,
-  disabled,
-  onOpenLogin,
-}: {
-  readonly accountId: S01AccountId;
-  readonly disabled: boolean;
-  readonly onOpenLogin?: () => void;
-}) {
-  const account = s01Content.browser.accounts.find(({ id }) => id === accountId);
-  if (account === undefined) return null;
-
-  return (
-    <section className={styles.siteWelcome}>
-      <NetworkSymbol symbolId={account.symbolId} className={styles.welcomeSymbol} />
-      <p>{s03Content.accountPages[account.id].areaLabel}</p>
-      <h2>{account.label}</h2>
-      <button
-        type="button"
-        className={styles.primaryButton}
-        disabled={disabled}
-        onClick={onOpenLogin}
-      >
-        {s03Content.controls.openLogin(account.label)}
-      </button>
-    </section>
-  );
-}
-
 export function S03InitialBrowserSurface({
   activeAccountId,
   inert = false,
   platform = 'mac',
+  displayName = '',
 }: {
   readonly activeAccountId: S01AccountId;
   readonly inert?: boolean;
   readonly platform?: DesktopPlatform;
+  readonly displayName?: string;
 }) {
   const account = s01Content.browser.accounts.find(({ id }) => id === activeAccountId);
   if (account === undefined) return null;
+  const campusIdentity = deriveCampusIdentity(displayName);
+  const accountIdentifier =
+    account.id === 'campus-id'
+      ? campusIdentity.campusId
+      : account.id === 'campus-mail'
+        ? campusIdentity.campusMail
+        : campusIdentity.campusgram;
   const browserSnapshot: BrowserShellSnapshot = {
     tabs: s01Content.browser.accounts.map((tabAccount) => ({
       id: tabAccount.id,
@@ -189,6 +171,8 @@ export function S03InitialBrowserSurface({
     })),
     activeTabId: account.id,
     address: account.address,
+    accountIdentifier,
+    scrollKey: `s03:${account.id}:landing`,
   };
 
   return (
@@ -203,15 +187,18 @@ export function S03InitialBrowserSurface({
           <CampusWebsiteBackdrop
             accountId={account.id}
             interactionLabel={`${account.label} wieder anmelden`}
-            layout="authentication"
-          >
-            <section className={styles.siteTask} aria-labelledby="s03-handoff-page-title">
-              <h1 id="s03-handoff-page-title" className={styles.screenReaderOnly}>
-                {s03Content.page.title}
-              </h1>
-              <InitialLoginWelcome accountId={account.id} disabled />
-            </section>
-          </CampusWebsiteBackdrop>
+            view="landing"
+            primaryAction={{
+              label: account.landing.loginLabel,
+              disabled: true,
+              disabledReason: s01Content.siteUi.previewUnavailable,
+            }}
+            secondaryAction={{
+              label: account.landing.registerLabel,
+              disabled: true,
+              disabledReason: s01Content.siteUi.registrationUnavailable,
+            }}
+          />
         </div>
       </BrowserShell>
     </div>
@@ -224,8 +211,9 @@ export function S03RetrievalTraining({
   snapshot,
   externalTimingError = null,
   onRetryExternalTiming,
+  initialLoginAccountId,
 }: S03RetrievalTrainingProps) {
-  const animationTargetRef = useRef<HTMLDivElement | null>(null);
+  const animationTargetRef = useRef<HTMLElement | null>(null);
   const characterAnimationAnchorRef = useRef<HTMLSpanElement | null>(null);
   const loginTitleRef = useRef<HTMLHeadingElement | null>(null);
   const assistedLoginButtonRef = useRef<HTMLButtonElement | null>(null);
@@ -237,13 +225,27 @@ export function S03RetrievalTraining({
   const [revealedAccountIds, setRevealedAccountIds] = useState<ReadonlySet<string>>(
     () => new Set(),
   );
-  const [loginAccountId, setLoginAccountId] = useState<S01AccountId | null>(null);
+  const [loginAccountId, setLoginAccountId] = useState<S01AccountId | null>(
+    initialLoginAccountId ?? null,
+  );
   const [guideOpen, setGuideOpen] = useState(false);
   const [completedGuideSpeechKey, setCompletedGuideSpeechKey] = useState<string | null>(null);
   const [invalidLoginFeedback, setInvalidLoginFeedback] = useState<{
     readonly accountId: S01AccountId;
     readonly attempt: number;
   } | null>(null);
+  const [successOverlayAccountId, setSuccessOverlayAccountId] =
+    useState<S01AccountId | null>(null);
+  const knownSuccessfulAccountIdsRef = useRef<ReadonlySet<string>>(
+    new Set(
+      s01Content.browser.accounts
+        .filter(({ id }) => {
+          const result = snapshot.context.retrievalResults[id];
+          return result === 'retrievable' || result === 'assisted';
+        })
+        .map(({ id }) => id),
+    ),
+  );
   const initialAccountId =
     s01Content.browser.accounts.find(({ id }) => id === snapshot.context.activeAccountId)?.id ??
     'campus-id';
@@ -327,8 +329,34 @@ export function S03RetrievalTraining({
     if (assistedLoginActive) assistedLoginButtonRef.current?.focus();
   }, [assistedLoginActive]);
 
+  useEffect(() => {
+    const knownAccountIds = knownSuccessfulAccountIdsRef.current;
+    const completedAccount = s01Content.browser.accounts.find(({ id }) => {
+      const retrievalResult = snapshot.context.retrievalResults[id];
+      return (
+        (retrievalResult === 'retrievable' || retrievalResult === 'assisted') &&
+        !knownAccountIds.has(id)
+      );
+    });
+    knownSuccessfulAccountIdsRef.current = new Set(
+      s01Content.browser.accounts
+        .filter(({ id }) => {
+          const retrievalResult = snapshot.context.retrievalResults[id];
+          return retrievalResult === 'retrievable' || retrievalResult === 'assisted';
+        })
+        .map(({ id }) => id),
+    );
+    if (completedAccount !== undefined) setSuccessOverlayAccountId(completedAccount.id);
+  }, [snapshot.context.retrievalResults]);
+
   if (runtime === null || presentationSnapshot === null) {
-    return <S03InitialBrowserSurface activeAccountId={initialAccountId} platform={platform} />;
+    return (
+      <S03InitialBrowserSurface
+        activeAccountId={initialAccountId}
+        platform={platform}
+        displayName={snapshot.context.displayName ?? ''}
+      />
+    );
   }
 
   const account =
@@ -369,6 +397,18 @@ export function S03RetrievalTraining({
     assistedLoginActive ||
     completionSequenceActive;
   const timingFailure = externalTimingError !== null || localTimingFailure;
+  const websiteView =
+    result === 'retrievable' || result === 'assisted'
+      ? 'dashboard'
+      : loginAccountId === account.id || result === 'not-remembered'
+        ? 'authentication'
+        : 'landing';
+  const pageAddress =
+    websiteView === 'authentication'
+      ? `${account.address}/login`
+      : websiteView === 'dashboard'
+        ? `${account.address}/dashboard`
+        : account.address;
   const warningConfirmationAvailable =
     presentationSnapshot.warningState === 'ready' && boardWarningActive;
   const guideMessage = boardWarningActive
@@ -402,6 +442,16 @@ export function S03RetrievalTraining({
   const guideSpeechKey = `${account.id}-${result}-${guidePhase}-${announcement ?? 'idle'}`;
   const guideSpeechCompleted = completedGuideSpeechKey === guideSpeechKey;
   const assistanceActionAvailable = assistanceActive && guideSpeechCompleted;
+  const successOverlayResult =
+    successOverlayAccountId === null
+      ? undefined
+      : snapshot.context.retrievalResults[successOverlayAccountId];
+  const successOverlayLabel =
+    successOverlayAccountId === null
+      ? null
+      : successOverlayResult === 'assisted'
+        ? s03Content.narration.accountAssisted[successOverlayAccountId]
+        : s03Content.narration.accountSuccess[successOverlayAccountId];
   const browserSnapshot: BrowserShellSnapshot = {
     tabs: s01Content.browser.accounts.map((tabAccount) => ({
       id: tabAccount.id,
@@ -420,8 +470,11 @@ export function S03RetrievalTraining({
       completionSequenceActive
         ? (s01Content.browser.accounts.find(({ id }) => id === 'campus-id')?.address ??
           account.address)
-        : account.address,
-    accountInitial: snapshot.context.displayName ?? '',
+        : pageAddress,
+    accountIdentifier: completionSequenceActive ? campusIdentity.campusId : accountData,
+    scrollKey: completionSequenceActive
+      ? `s03:completion:${announcement ?? 'starting'}`
+      : `s03:${account.id}:${websiteView}`,
     dimmed: guideOpen,
     dimStrength: 'soft',
     locked: timeLapsePhaseActive,
@@ -440,6 +493,7 @@ export function S03RetrievalTraining({
   }
 
   function selectAccount(accountId: string): void {
+    setSuccessOverlayAccountId(null);
     setLoginAccountId(null);
     setInvalidLoginFeedback(null);
     controller.selectAccount(accountId);
@@ -469,6 +523,12 @@ export function S03RetrievalTraining({
                 className={styles.characterAnimationAnchor}
                 aria-hidden="true"
               />
+              {successOverlayLabel === null ? null : (
+                <AccountSuccessOverlay
+                  label={successOverlayLabel}
+                  onComplete={() => setSuccessOverlayAccountId(null)}
+                />
+              )}
               <PassWoGuide
                 guideName={s03Content.narration.guideName}
                 taskLabel="Anmelden"
@@ -515,6 +575,7 @@ export function S03RetrievalTraining({
                 onSpeechComplete={() => setCompletedGuideSpeechKey(guideSpeechKey)}
                 onSpeechAdvance={() => {
                   if (completionFeedbackActive) {
+                    setSuccessOverlayAccountId(null);
                     controller.continueS03CompletionFeedback();
                     return;
                   }
@@ -540,7 +601,13 @@ export function S03RetrievalTraining({
               <h1 id="s03-page-title" className={styles.screenReaderOnly}>
                 {s03Content.page.title}
               </h1>
-              <div ref={animationTargetRef} className={styles.timeLapseStage} aria-live="polite">
+              <div
+                ref={(element) => {
+                  animationTargetRef.current = element;
+                }}
+                className={styles.timeLapseStage}
+                aria-live="polite"
+              >
                 <CampusStartTimeLapse
                   running={timeLapsePhaseActive}
                   warning={boardWarningActive}
@@ -551,22 +618,46 @@ export function S03RetrievalTraining({
             <CampusWebsiteBackdrop
               accountId={account.id}
               interactionLabel={`${account.label} wieder anmelden`}
-              layout="authentication"
+              view={websiteView}
+              displayName={snapshot.context.displayName ?? ''}
+              {...(websiteView === 'landing'
+                ? {
+                    primaryAction: {
+                      label: account.landing.loginLabel,
+                      disabled: interactionBlocked,
+                      onClick: () => setLoginAccountId(account.id),
+                    },
+                    secondaryAction: {
+                      label: account.landing.registerLabel,
+                      disabled: true,
+                      disabledReason: s01Content.siteUi.registrationUnavailable,
+                    },
+                  }
+                : {})}
+              authenticationTitle={s03Content.controls.login}
+              {...(websiteView === 'authentication' && result === 'pending'
+                ? {
+                    onBack: () => {
+                      setLoginAccountId(null);
+                      setInvalidLoginFeedback(null);
+                    },
+                  }
+                : {})}
+              rootRef={animationTargetRef}
             >
-              <section className={styles.siteTask} aria-labelledby="s03-page-title">
-                <h1 id="s03-page-title" className={styles.screenReaderOnly}>
-                  {s03Content.page.title}
+              {websiteView === 'authentication' ? (
+                <section className={styles.siteTask} aria-labelledby="s03-page-title">
+                <h1
+                  ref={loginTitleRef}
+                  id="s03-page-title"
+                  className={styles.screenReaderOnly}
+                  tabIndex={-1}
+                >
+                  {s03Content.controls.login}
                 </h1>
 
-                {result === 'pending' && loginAccountId !== account.id ? (
-                  <InitialLoginWelcome
-                    accountId={account.id}
-                    disabled={interactionBlocked}
-                    onOpenLogin={() => setLoginAccountId(account.id)}
-                  />
-                ) : result === 'pending' || autofillingActive || assistedLoginActive ? (
+                {result === 'pending' || autofillingActive || assistedLoginActive ? (
                   <div
-                    ref={animationTargetRef}
                     className={styles.relationshipStage}
                     data-result={result}
                   >
@@ -609,15 +700,6 @@ export function S03RetrievalTraining({
                         }
                       }}
                     >
-                      <header className={styles.authHeader}>
-                        <NetworkSymbol symbolId={account.symbolId} className={styles.authSymbol} />
-                        <div>
-                          <p>{account.label}</p>
-                          <h2 ref={loginTitleRef} tabIndex={-1}>
-                            {s03Content.accountLoginTitles[account.id]}
-                          </h2>
-                        </div>
-                      </header>
                       <label
                         className={styles.usernameLabel}
                         htmlFor={`s03-username-${account.id}`}
@@ -744,7 +826,6 @@ export function S03RetrievalTraining({
                   </div>
                 ) : (
                   <div
-                    ref={animationTargetRef}
                     className={styles.relationshipStage}
                     data-result={result}
                   >
@@ -761,20 +842,11 @@ export function S03RetrievalTraining({
                           ? accountPage.signedInLabel
                           : s03Content.statuses.cancelledLogin}
                       </strong>
-                      {result === 'retrievable' || result === 'assisted' ? (
-                        <dl className={styles.accountDetails}>
-                          {accountPage.modules.map((module) => (
-                            <div key={module.label}>
-                              <dt>{module.label}</dt>
-                              <dd>{module.value}</dd>
-                            </div>
-                          ))}
-                        </dl>
-                      ) : null}
                     </section>
                   </div>
                 )}
-              </section>
+                </section>
+              ) : null}
             </CampusWebsiteBackdrop>
           )}
 

@@ -1,4 +1,9 @@
-import { formatS00Greeting, s00Content } from '@passwo/training-content';
+import {
+  formatS00Greeting,
+  s00Content,
+  s01Content,
+  type S01AccountId,
+} from '@passwo/training-content';
 import {
   deriveCampusIdentity,
   MissionController,
@@ -48,38 +53,28 @@ function prefersReducedMotion(): boolean {
 }
 
 function S00Page({
-  displayName,
+  accountId,
 }: {
-  readonly displayName: string;
+  readonly accountId: S01AccountId;
 }) {
-  const campusIdentity = deriveCampusIdentity(displayName);
+  const account = s01Content.browser.accounts.find(({ id }) => id === accountId);
+  if (account === undefined) return null;
   return (
-    <CampusWebsiteBackdrop accountId="campus-id" interactionLabel="Master Campus einrichten">
-      <section className={styles.setupPreview} aria-labelledby="s00-page-title">
-        <h1 id="s00-page-title">Master Campus</h1>
-        <dl className={styles.previewAccountData}>
-          <div>
-            <dt>Benutzername</dt>
-            <dd>{campusIdentity.campusId}</dd>
-          </div>
-        </dl>
-        <label className={styles.previewPasswordLabel} htmlFor="s00-preview-password">
-          Passwort
-        </label>
-        <span className={styles.previewPasswordGroup}>
-          <input id="s00-preview-password" type="password" disabled value="" readOnly />
-          <span className={styles.previewEye} aria-hidden="true">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
-              <path d="M2.5 12s3.5-6 9.5-6 9.5 6 9.5 6-3.5 6-9.5 6-9.5-6-9.5-6Z" />
-              <circle cx="12" cy="12" r="2.5" />
-            </svg>
-          </span>
-        </span>
-        <button type="button" disabled>
-          Konto einrichten
-        </button>
-      </section>
-    </CampusWebsiteBackdrop>
+    <CampusWebsiteBackdrop
+      accountId={accountId}
+      interactionLabel={`${account.label} kennenlernen`}
+      view="landing"
+      primaryAction={{
+        label: account.landing.loginLabel,
+        disabled: true,
+        disabledReason: s01Content.siteUi.previewUnavailable,
+      }}
+      secondaryAction={{
+        label: account.landing.registerLabel,
+        disabled: true,
+        disabledReason: s01Content.siteUi.previewUnavailable,
+      }}
+    />
   );
 }
 
@@ -91,6 +86,7 @@ export interface S00TrainingProps {
   readonly externalTimingError?: string | null;
   readonly onRetryExternalTiming?: () => void;
   readonly forceAnimationFailure?: boolean;
+  readonly previewAccountId?: S01AccountId;
 }
 
 export function S00Training({
@@ -101,6 +97,7 @@ export function S00Training({
   externalTimingError = null,
   onRetryExternalTiming,
   forceAnimationFailure = false,
+  previewAccountId,
 }: S00TrainingProps) {
   const [scene, setScene] = useState<S00SceneSnapshot>(createInitialS00SceneSnapshot);
   const [missionSnapshot, setMissionSnapshot] = useState<MissionSnapshot | null>(null);
@@ -154,9 +151,26 @@ export function S00Training({
   ] as const;
   const currentSpeechStep = speechSteps[speechRound] ?? speechSteps[0];
   const isFinalSpeechStep = speechRound === speechSteps.length - 1;
+  const activeAccountId: S01AccountId =
+    previewAccountId ??
+    (currentSpeechStep?.accountId === 'campus-mail' ||
+    currentSpeechStep?.accountId === 'campus-board-archive'
+      ? currentSpeechStep.accountId
+      : 'campus-id');
+  const activeAccount = s01Content.browser.accounts.find(({ id }) => id === activeAccountId);
+  const campusIdentity = deriveCampusIdentity(displayName);
+  const accountIdentifier =
+    activeAccountId === 'campus-mail'
+      ? campusIdentity.campusMail
+      : activeAccountId === 'campus-board-archive'
+        ? campusIdentity.campusgram
+        : campusIdentity.campusId;
   const activeBrowserSnapshot: BrowserShellSnapshot = {
     ...browserSnapshot,
-    accountInitial: displayName,
+    activeTabId: activeAccountId,
+    address: activeAccount?.address ?? browserSnapshot.address,
+    accountIdentifier,
+    scrollKey: `s00:${activeAccountId}:landing`,
     dimmed: guideOpen,
     dimStrength: 'soft',
     ...(currentSpeechStep?.accountId === null || currentSpeechStep === undefined
@@ -261,7 +275,7 @@ export function S00Training({
         }}
       >
         <div className={styles.pageTarget}>
-          <S00Page displayName={displayName} />
+          <S00Page accountId={activeAccountId} />
         </div>
       </BrowserShell>
     </section>

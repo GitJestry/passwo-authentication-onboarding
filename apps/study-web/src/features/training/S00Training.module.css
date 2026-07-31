@@ -12,95 +12,6 @@
   min-height: 100%;
 }
 
-.setupPreview {
-  width: min(100%, 35rem);
-  padding: clamp(var(--space-5), 4vw, var(--space-7));
-  border: var(--border-width-thin) solid var(--color-border-soft);
-  border-radius: var(--radius-large);
-  background: color-mix(in srgb, var(--color-surface-primary) 97%, transparent);
-  box-shadow: var(--shadow-float);
-  backdrop-filter: blur(8px);
-}
-
-.setupPreview h1 {
-  margin: 0;
-  color: var(--color-ink-strong);
-  font-size: var(--font-size-heading-medium);
-  line-height: var(--line-height-tight);
-}
-
-.previewAccountData {
-  display: grid;
-  margin: var(--space-6) 0;
-}
-
-.previewAccountData div {
-  display: grid;
-  gap: var(--space-1);
-}
-
-.previewAccountData dt,
-.previewPasswordLabel {
-  color: var(--color-ink-muted);
-  font-size: var(--font-size-x-small);
-  font-weight: var(--font-weight-bold);
-}
-
-.previewAccountData dd {
-  margin: 0;
-  color: var(--color-ink-strong);
-}
-
-.previewPasswordLabel {
-  display: block;
-  margin-bottom: var(--space-2);
-  color: var(--color-ink-strong);
-  font-size: var(--font-size-small);
-}
-
-.previewPasswordGroup {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
-  overflow: hidden;
-  border: var(--border-width-thin) solid var(--color-border);
-  border-radius: var(--radius-small);
-  background: var(--color-surface-primary);
-}
-
-.previewPasswordGroup input {
-  min-height: var(--size-control-large);
-  padding: var(--space-3) var(--space-4);
-  border: 0;
-  background: transparent;
-}
-
-.previewEye {
-  display: grid;
-  width: var(--size-control-large);
-  place-items: center;
-  border-left: var(--border-width-thin) solid var(--color-border-soft);
-  color: var(--color-ink-muted);
-  background: var(--color-surface-muted);
-}
-
-.previewEye svg {
-  width: 1.3rem;
-  height: 1.3rem;
-}
-
-.setupPreview > button {
-  min-height: var(--size-control-large);
-  margin-top: var(--space-3);
-  padding: var(--space-3) var(--space-4);
-  border: var(--border-width-medium) solid var(--color-surface-inverse);
-  border-radius: var(--radius-small);
-  color: var(--color-on-inverse);
-  background: var(--color-surface-inverse);
-  font: inherit;
-  font-weight: var(--font-weight-heavy);
-  opacity: 0.58;
-}
-
 .characterAnimationAnchor {
   position: absolute;
   right: 0;
@@ -186,10 +97,4 @@
   border-left: var(--border-width-medium) solid var(--color-warning);
   color: var(--color-ink-strong);
   background: var(--color-warning-soft);
-}
-
-@media (max-width: 760px) {
-  .setupPreview {
-    width: 100%;
-  }
 }

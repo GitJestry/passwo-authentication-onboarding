@@ -25,27 +25,10 @@
 .siteTask {
   display: grid;
   width: 100%;
-  min-height: 30rem;
-  place-items: center;
+  min-height: 0;
+  place-items: start center;
 }
 
-.siteWelcome {
-  display: grid;
-  width: min(100%, 23.5rem);
-  align-content: center;
-  justify-items: center;
-  gap: var(--space-3);
-  min-height: 20rem;
-  padding: clamp(var(--space-5), 4vw, var(--space-7));
-  border: var(--border-width-thin) solid var(--color-border);
-  border-radius: 1.2rem;
-  background: var(--color-surface-primary);
-  box-shadow: 0 1.25rem 3rem color-mix(in srgb, var(--color-ink-strong) 12%, transparent);
-  text-align: center;
-}
-
-.siteWelcome p,
-.authHeader p,
 .resultCard > p {
   margin: 0;
   color: var(--color-accent-strong);
@@ -53,45 +36,24 @@
   font-weight: var(--font-weight-heavy);
 }
 
-.siteWelcome h2,
-.authHeader h2,
 .resultCard h2 {
   margin: 0;
   color: var(--color-ink-strong);
   line-height: var(--line-height-tight);
 }
 
-.siteWelcome h2 {
-  font-size: var(--font-size-heading-large);
-}
-
-.welcomeSymbol {
-  width: 4rem;
-  height: 4rem;
-  padding: var(--space-3);
-  border-radius: var(--radius-large);
-  color: var(--color-accent-strong);
-  background: var(--color-accent-soft);
-}
-
-.siteWelcome .primaryButton {
-  width: 100%;
-  margin-top: var(--space-3);
-}
-
 .relationshipStage {
   position: relative;
   display: grid;
   width: 100%;
-  min-height: 25rem;
-  place-items: center;
+  min-height: 0;
+  place-items: start center;
 }
 
 .authCard,
 .resultCard {
   position: relative;
   z-index: 2;
-  width: min(23.5rem, calc(100% - var(--space-6)));
   padding: clamp(var(--space-4), 3vw, var(--space-6));
   border: var(--border-width-thin) solid var(--color-border);
   border-radius: 1.2rem;
@@ -101,7 +63,12 @@
 
 .authCard {
   display: grid;
+  width: min(100%, 40rem);
   gap: var(--space-3);
+}
+
+.resultCard {
+  width: min(30rem, calc(100% - var(--space-6)));
 }
 
 .authCard[data-invalid-animation="0"] {
@@ -110,36 +77,6 @@
 
 .authCard[data-invalid-animation="1"] {
   animation: s03-invalid-login-odd 360ms ease-out;
-}
-
-.authHeader {
-  display: grid;
-  grid-template-columns: auto minmax(0, 1fr);
-  align-items: center;
-  gap: var(--space-3);
-  margin-bottom: var(--space-2);
-}
-
-.authHeader > div {
-  display: grid;
-  gap: var(--space-1);
-}
-
-.authHeader h2 {
-  font-size: var(--font-size-heading-small);
-}
-
-.authHeader h2:focus {
-  outline: 0;
-}
-
-.authSymbol {
-  width: 3rem;
-  height: 3rem;
-  padding: var(--space-2);
-  border-radius: var(--radius-medium);
-  color: var(--color-accent-strong);
-  background: var(--color-accent-soft);
 }
 
 .accountDetails {
@@ -684,10 +621,6 @@
 }
 
 @media (max-width: 760px) {
-  .siteWelcome {
-    min-height: 18rem;
-  }
-
   .relationshipStage {
     min-height: 31rem;
   }

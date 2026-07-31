@@ -3,7 +3,11 @@ import {
   designLabPathForScenario,
   designLabScenarioIds,
 } from '@passwo/contracts';
-import { s01Content } from '@passwo/training-content';
+import {
+  s01AccountIds,
+  s01Content,
+  type S01AccountId,
+} from '@passwo/training-content';
 import {
   PasswordModuleController,
   type PasswordModuleSnapshot,
@@ -44,6 +48,21 @@ interface FictionalPageSnapshot {
 interface DesignLabTabScene {
   readonly snapshot: BrowserShellSnapshot;
   readonly page: FictionalPageSnapshot;
+}
+
+type CampusWebsitePreviewView = 'landing' | 'auth' | 'dashboard';
+
+function readCampusWebsitePreview(): {
+  readonly accountId: S01AccountId;
+  readonly view: CampusWebsitePreviewView;
+} {
+  const parameters = new URLSearchParams(window.location.search);
+  const requestedAccountId = parameters.get('account');
+  const requestedView = parameters.get('view');
+  const accountId = s01AccountIds.find((candidate) => candidate === requestedAccountId) ?? 'campus-id';
+  const view =
+    requestedView === 'auth' || requestedView === 'dashboard' ? requestedView : 'landing';
+  return { accountId, view };
 }
 
 const overviewTab: BrowserTabModel = {
@@ -345,7 +364,15 @@ function waitForPreviewState(
   });
 }
 
-function PasswordModuleSegmentPreview({ segment }: { readonly segment: 's01' | 's03' }) {
+function PasswordModuleSegmentPreview({
+  segment,
+  accountId,
+  view,
+}: {
+  readonly segment: 's01' | 's03';
+  readonly accountId: S01AccountId;
+  readonly view: CampusWebsitePreviewView;
+}) {
   const [controller, setController] = useState<PasswordModuleController | null>(null);
   const [snapshot, setSnapshot] = useState<PasswordModuleSnapshot | null>(null);
   const [preparationError, setPreparationError] = useState<string | null>(null);
@@ -369,7 +396,14 @@ function PasswordModuleSegmentPreview({ segment }: { readonly segment: 's01' | '
         (currentSnapshot) => currentSnapshot.matches({ s01: 'editing' }),
         abortController.signal,
       );
-      if (segment === 's01') return;
+      previewController.selectAccount(accountId);
+      if (segment === 's01') {
+        if (view === 'dashboard') {
+          previewController.setPasswordValue(accountId, `preview-${accountId}`);
+          previewController.configureAccount(accountId);
+        }
+        return;
+      }
 
       for (const accountId of previewController.getSnapshot().context.accountIds) {
         previewController.setPasswordValue(accountId, `preview-${accountId}`);
@@ -388,6 +422,12 @@ function PasswordModuleSegmentPreview({ segment }: { readonly segment: 's01' | '
         (currentSnapshot) => currentSnapshot.matches({ s03: 'active' }),
         abortController.signal,
       );
+      previewController.selectAccount(accountId);
+      if (view === 'dashboard') {
+        const password = previewController.getSnapshot().context.passwordValues[accountId] ?? '';
+        previewController.setRetrievalPasswordValue(accountId, password);
+        previewController.submitRetrievalLogin(accountId);
+      }
     }
 
     void preparePreview().catch((error: unknown) => {
@@ -400,7 +440,7 @@ function PasswordModuleSegmentPreview({ segment }: { readonly segment: 's01' | '
       unsubscribe();
       previewController.dispose();
     };
-  }, [segment]);
+  }, [accountId, segment, view]);
 
   if (preparationError !== null) {
     return <p role="alert">QA-Szene konnte nicht vorbereitet werden: {preparationError}</p>;
@@ -412,10 +452,22 @@ function PasswordModuleSegmentPreview({ segment }: { readonly segment: 's01' | '
 
   if (segment === 's01') {
     if (!snapshot.matches('s01')) return <p>QA-Szene wird vorbereitet …</p>;
-    return <S01Training controller={controller} snapshot={snapshot} />;
+    return (
+      <S01Training
+        controller={controller}
+        snapshot={snapshot}
+        {...(view === 'auth' ? { initialAuthenticationAccountId: accountId } : {})}
+      />
+    );
   }
   if (!snapshot.matches('s03')) return <p>QA-Szene wird vorbereitet …</p>;
-  return <S03RetrievalTraining controller={controller} snapshot={snapshot} />;
+  return (
+    <S03RetrievalTraining
+      controller={controller}
+      snapshot={snapshot}
+      {...(view === 'auth' ? { initialLoginAccountId: accountId } : {})}
+    />
+  );
 }
 
 export function DesignLab({ scenarioId }: { readonly scenarioId: DesignLabScenarioId }) {
@@ -440,6 +492,7 @@ export function DesignLab({ scenarioId }: { readonly scenarioId: DesignLabScenar
     : undefined;
 
   if (scenarioId === 's00') {
+    const campusWebsitePreview = readCampusWebsitePreview();
     const forceAnimationFailure =
       new URLSearchParams(window.location.search).get('animation') === 'fail';
     return (
@@ -449,16 +502,23 @@ export function DesignLab({ scenarioId }: { readonly scenarioId: DesignLabScenar
           displayName="Vorschau"
           onComplete={() => undefined}
           forceAnimationFailure={forceAnimationFailure}
+          previewAccountId={campusWebsitePreview.accountId}
         />
       </main>
     );
   }
 
   if (scenarioId === 's01' || scenarioId === 's03') {
+    const campusWebsitePreview = readCampusWebsitePreview();
     return (
       <main className={styles.labPage}>
         <DesignLabIntroduction scenarioId={scenarioId} scenario={scenario} />
-        <PasswordModuleSegmentPreview key={scenarioId} segment={scenarioId} />
+        <PasswordModuleSegmentPreview
+          key={`${scenarioId}:${campusWebsitePreview.accountId}:${campusWebsitePreview.view}`}
+          segment={scenarioId}
+          accountId={campusWebsitePreview.accountId}
+          view={campusWebsitePreview.view}
+        />
       </main>
     );
   }
