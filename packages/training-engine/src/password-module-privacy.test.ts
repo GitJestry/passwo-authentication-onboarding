@@ -13,6 +13,7 @@ function studyRuntimePorts(requestArguments: unknown[][]): StudyRuntimePorts {
       guardrailFormId: 'F1',
     }),
     registerRecontact: async () => {},
+    abandonRecontact: async () => {},
     saveInstrumentSubmission: async (...arguments_) => {
       requestArguments.push(arguments_);
     },
@@ -51,8 +52,11 @@ describe('password module privacy boundary', () => {
     controller.setPasswordValue('campus-id', trainingValue);
     studyActor.send({
       type: 'ACCEPT_CONSENT',
-      email: 'person@example.org',
-      requestId: 'f5d74d44-f700-4dc7-ac00-5e251a8890c3',
+      followUpConsent: true,
+      recontact: {
+        email: 'person@example.org',
+        requestId: 'f5d74d44-f700-4dc7-ac00-5e251a8890c3',
+      },
     });
     await flushMicrotasks();
     studyActor.send({

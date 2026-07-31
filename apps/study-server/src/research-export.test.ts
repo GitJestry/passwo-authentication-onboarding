@@ -1,7 +1,8 @@
 import { createHash } from 'node:crypto';
-import { mkdtempSync, readFileSync, rmSync } from 'node:fs';
+import { existsSync, mkdtempSync, readFileSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
+import { instrumentRuntimeManifest } from '@passwo/contracts';
 import type { FastifyInstance } from 'fastify';
 import { afterEach, describe, expect, it } from 'vitest';
 import { buildStudyServer } from './app.js';
@@ -34,7 +35,7 @@ describe('research export', () => {
       createRecontactToken: () => rawToken,
     });
     servers.push(server);
-    const session = await createSession(server, 1, false);
+    const session = await createSession(server, 1, false, true);
     expect(
       (
         await server.inject({
@@ -85,11 +86,14 @@ describe('research export', () => {
       /^sessionId,participantCode,condition,assignmentMode,studyVersion,contentVersion/u,
     );
     expect(exportedData).not.toMatch(
-      /display.?name|password.?value|password.?input|password.?part|training.?input|request.?body|user.?agent|ip.?address|email.?address|raw.?token|score|classification|secaware.?quiz/iu,
+      /display.?name|password.?value|password.?input|password.?part|training.?input|request.?body|user.?agent|ip.?address|email.?address|score|classification|secaware.?quiz/iu,
     );
+    expect(exportedData).not.toMatch(/[{"\n,](?:email|rawToken|followUpTokenHash)[",:]/u);
     expect(exportedData).not.toContain('private@example.org');
     expect(exportedData).not.toContain(rawToken);
-    expect(exportedData).toContain(createHash('sha256').update(rawToken, 'utf8').digest('hex'));
+    expect(exportedData).not.toContain(createHash('sha256').update(rawToken, 'utf8').digest('hex'));
+    expect(existsSync(databasePath)).toBe(true);
+    expect(existsSync(recontactDatabasePath)).toBe(true);
     expect(readFileSync(join(outputDirectory, 'response-presentations.json'), 'utf8')).toContain(
       '"displayedOptionIds"',
     );
@@ -104,5 +108,20 @@ describe('research export', () => {
           .digest('hex'),
       ).toBe(file.sha256);
     }
+  });
+
+  it('keeps production consent text free of mandatory anonymization promises', () => {
+    const studyFlowSource = readFileSync(
+      new URL('../../study-web/src/features/study/StudyFlow.tsx', import.meta.url),
+      'utf8',
+    );
+    const productionConsentText = [
+      studyFlowSource,
+      JSON.stringify(instrumentRuntimeManifest.procedures.consent),
+    ].join('\n');
+
+    expect(productionConsentText).not.toMatch(
+      /irreversibel anonymisiert|nach Studienende anonymisiert|einschließlich der Nachbefragung/u,
+    );
   });
 });

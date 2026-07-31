@@ -255,7 +255,12 @@ describe('study server research core', () => {
       .all();
     const responseColumns = migrated.prepare(`PRAGMA table_info(responses)`).all();
     const session = migrated
-      .prepare(`SELECT guardrail_form_id AS guardrailFormId FROM study_sessions`)
+      .prepare(
+        `SELECT
+          guardrail_form_id AS guardrailFormId,
+          follow_up_consent AS followUpConsent
+         FROM study_sessions`,
+      )
       .get();
     const guardrailSlot = migrated
       .prepare(
@@ -274,11 +279,17 @@ describe('study server research core', () => {
       .all();
     migrated.close();
 
-    expect(migrationVersions).toEqual([{ version: 1 }, { version: 2 }, { version: 3 }]);
+    expect(migrationVersions).toEqual([
+      { version: 1 },
+      { version: 2 },
+      { version: 3 },
+      { version: 4 },
+      { version: 5 },
+    ]);
     expect(responseColumns).toEqual(
       expect.arrayContaining([expect.objectContaining({ name: 'section_id', notnull: 1 })]),
     );
-    expect(session).toEqual({ guardrailFormId: 'F1' });
+    expect(session).toEqual({ guardrailFormId: 'F1', followUpConsent: 0 });
     expect(guardrailSlot).toEqual({
       condition: 'supportive',
       blockNumber: 0,

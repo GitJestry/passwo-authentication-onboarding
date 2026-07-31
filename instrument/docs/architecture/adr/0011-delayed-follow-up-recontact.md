@@ -7,23 +7,27 @@
 
 ## Kontext
 
-Die Studie ergänzt die unmittelbaren Instrumente um eine angekündigte Nachbefragung zehn Tage nach
-der Hauptsitzung. Sie ist Bestandteil der Studienteilnahme und erfordert eine E-Mail-Adresse. Die
-lokale Electron/Fastify/SQLite-
-Runtime und ihr Forschungsdatenexport dürfen keine direkt identifizierenden Kontaktdaten enthalten.
+Die Studie ergänzt die unmittelbaren Instrumente um eine optionale angekündigte Nachbefragung zehn
+Tage nach der Hauptsitzung. Die Hauptstudie erfordert keine E-Mail-Adresse. Die lokale
+Electron/Fastify/SQLite-Runtime und ihr Forschungsdatenexport dürfen keine direkt identifizierenden
+Kontaktdaten enthalten.
 Zugleich soll die Runtime weder SMTP-/Cloud-Credentials aufnehmen noch als öffentlicher
 Survey-Server betrieben werden.
 
 ## Entscheidung
 
-Die allgemeine Einwilligung umfasst die Nachbefragung. Im Consent-Schritt wird deshalb keine
-separate Recontact-Entscheidung getroffen. Vor dem Pre-Fragebogen wird nach Sessionerstellung die
-E-Mail-Adresse zwingend in der getrennten Recontact-Registry registriert.
+Die Einwilligung in die Hauptstudie ist verpflichtend. Die Einwilligung in die Nachbefragung ist
+davon getrennt und optional. Eine Ablehnung verhindert weder die Sessionerstellung noch den
+Pre-Fragebogen oder den Abschluss der Hauptstudie. Die Session wird zuerst mit verdeckter,
+serverseitiger Condition-Zuweisung erstellt. Nur bei erteilter Nachbefragungseinwilligung wird
+anschließend die E-Mail-Adresse in der getrennten Recontact-Registry registriert. Die
+Follow-up-Entscheidung beeinflusst die Condition-Zuweisung nicht.
 
 `study.sqlite` speichert nur:
 
-- Hash eines kryptographisch zufälligen Follow-up-Tokens;
-- Follow-up-Instrumentversion.
+- Follow-up-Einwilligungsstatus;
+- Follow-up-Instrumentversion;
+- optional den Hash eines kryptographisch zufälligen Follow-up-Tokens.
 
 `~/.passwo-study/recontact.sqlite` speichert nur:
 
@@ -33,7 +37,8 @@ E-Mail-Adresse zwingend in der getrennten Recontact-Registry registriert.
 - Registrierung, Einladung, Erinnerung, Schließung und Versandstatus.
 
 Die Registry enthält keine Bedingung, Antworten, Timings, Trainingsinputs oder PassWo-Diagnosen.
-Der normale Forschungsdatenexport liest sie nie.
+Der normale Forschungsdatenexport liest sie nie. Er enthält außerdem weder E-Mail-Adresse noch
+Roh-Token noch Token-Hash.
 
 Nach erfolgreicher Session-Completion werden erste Einladung auf `completedAt + 240h`, optionale
 Erinnerung auf `firstInvitation + 48h` und Schließung auf `completedAt + 336h` gesetzt. Ein eigener
@@ -48,9 +53,14 @@ wird er gehasht und der pseudonymen Session zugeordnet. Roh-Token und E-Mail wer
 ## Konsequenzen
 
 - Registrierung, Schedule-Export und späterer Antwortimport bleiben getrennte Funktionen.
-- Ein Registrierungsfehler erlaubt Retry, aber keinen Studienpfad ohne Nachbefragung und erzeugt
-  keine neue Condition-Zuweisung. Widerruf oder Abbruch beenden die Teilnahme entsprechend der
-  Teilnahmeinformation.
+- Ein Registrierungsfehler erlaubt Retry oder den Verzicht auf die Nachbefragung. Beim Verzicht
+  werden Einwilligungsstatus und Token-Hash in `study.sqlite` zurückgesetzt und ein eventuell
+  teilweise angelegter Registry-Datensatz gelöscht. Session, Teilnehmercode, Condition und
+  Forschungsantworten bleiben unverändert.
+- Die Recontact-Registry wird noch nicht automatisch gelöscht. Erst der spätere
+  Follow-up-Import-/Debrief-Workflow kann sicher feststellen, dass eine Follow-up-Antwort importiert
+  und das abschließende Debriefing versandt wurde; dort ist die anschließende Löschung zu
+  implementieren.
 - Öffentliche Survey-Infrastruktur und tatsächlicher Mailversand bleiben separat vor dem Study
   Freeze festzulegen.
 - Änderungen an Tokenformat, Zeitfenstern oder Registry-Feldern benötigen eine ADR-Revision.

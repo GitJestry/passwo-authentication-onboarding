@@ -13,7 +13,9 @@ import { timingEventSchema } from './timing.js';
 
 const versionIdSchema = z.string().trim().min(1).max(80);
 
-export const researchExportSessionRecordSchema = persistedSessionRecordSchema;
+export const researchExportSessionRecordSchema = persistedSessionRecordSchema.omit({
+  followUpTokenHash: true,
+});
 export type ResearchExportSessionRecord = z.infer<typeof researchExportSessionRecordSchema>;
 
 export const researchExportTimingRecordSchema = timingEventSchema

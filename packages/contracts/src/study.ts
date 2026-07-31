@@ -27,6 +27,7 @@ export const createSessionRequestSchema = z
   .object({
     requestId: z.uuid(),
     consentAccepted: z.literal(true),
+    followUpConsent: z.boolean(),
   })
   .strict();
 export type CreateSessionRequest = z.infer<typeof createSessionRequestSchema>;
@@ -56,6 +57,7 @@ export const persistedSessionRecordSchema = z
     consentVersion: versionIdSchema,
     referenceArtifactVersion: versionIdSchema.nullable(),
     consentAccepted: z.literal(true),
+    followUpConsent: z.boolean(),
     followUpVersion: versionIdSchema,
     followUpTokenHash: followUpTokenHashSchema.nullable(),
     completionStatus: completionStatusSchema,

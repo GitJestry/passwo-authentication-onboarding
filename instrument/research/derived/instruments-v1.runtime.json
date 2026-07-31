@@ -95,12 +95,14 @@
       ]
     },
     "consent": {
-      "statement": "Ich habe die Teilnahmeinformationen gelesen und willige in die Teilnahme einschließlich der Nachbefragung nach zehn Tagen ein."
+      "heading": "Studieninformationen und Einwilligung",
+      "description": "In dieser Studie vergleichen wir zwei deutschsprachige Lernangebote zum Schutz von Online-Konten. Nach einigen kurzen Angaben wirst du zufällig einem der beiden Lernangebote zugeordnet. Anschließend beantwortest du Fragen zu deinem Eindruck und zum Verständnis der Inhalte.\n\nDie Hauptsitzung dauert voraussichtlich etwa 20 bis 30 Minuten. Zehn Tage später folgt eine kurze Nachbefragung per E-Mail. Deine Teilnahme ist freiwillig und kann jederzeit ohne Nachteile beendet werden.\n\nEs werden keine realen Passwörter, Konten, Anmeldecodes oder persönlichen Sicherheitsvorfälle abgefragt. Verwende in den fiktiven Übungen ausschließlich neu ausgedachte Angaben.",
+      "statement": "Ich habe die Teilnahmeinformationen gelesen und verstanden. Ich weiß, dass einige Einzelheiten zur genauen Fragestellung erst nach meinem letzten Studienteil erläutert werden. Ich willige freiwillig in die Teilnahme und in die beschriebene pseudonymisierte Verarbeitung meiner Forschungsdaten ein."
     },
     "followUpRecontact": {
       "requiredBeforePreQuestionnaire": true,
       "heading": "Nachbefragung nach zehn Tagen",
-      "explanation": "Zehn Tage nach deiner Teilnahme senden wir dir per E-Mail einen kurzen Fragebogen zur Nachbefragung. Die Beantwortung dauert etwa eine Minute. Bitte gib die E-Mail-Adresse an, an die wir die Einladung senden dürfen. Falls du bis dahin noch nicht geantwortet hast, senden wir höchstens eine Erinnerung.",
+      "explanation": "Zehn Tage nach deiner Teilnahme senden wir dir per E-Mail einen kurzen Fragebogen zur Nachbefragung. Die Beantwortung wird etwa eine Minute dauern. Bitte gib deshalb die E-Mail-Adresse an, an die wir die Nachbefragung senden dürfen.",
       "emailLabel": "E-Mail-Adresse für die Nachbefragung",
       "emailRequired": true,
       "emailNeverStoredInResearchDatabase": true,
@@ -368,19 +370,23 @@
               "id": "PRE_FAM_PASSWORDS",
               "type": "scale",
               "scale": "familiarity5",
-              "prompt": "Wie vertraut bist du mit starken und unterschiedlichen Passwörtern?"
+              "instruction": "Wie vertraut bist du derzeit mit den folgenden Themen?",
+              "prompt": "Wie vertraut bist du mit starken und unterschiedlichen Passwörtern?",
+              "label": "starke und unterschiedliche Passwörter"
             },
             {
               "id": "PRE_FAM_PM",
               "type": "scale",
               "scale": "familiarity5",
-              "prompt": "Wie vertraut bist du mit Passwortmanagern?"
+              "prompt": "Wie vertraut bist du mit Passwortmanagern?",
+              "label": "Passwortmanager"
             },
             {
               "id": "PRE_FAM_MFA",
               "type": "scale",
               "scale": "familiarity5",
-              "prompt": "Wie vertraut bist du mit MFA/2FA?"
+              "prompt": "Wie vertraut bist du mit MFA/2FA?",
+              "label": "MFA/2FA"
             }
           ]
         },
@@ -512,6 +518,7 @@
         {
           "id": "focus",
           "aggregate": false,
+          "instruction": "Wie sehr stimmst du den folgenden Aussagen über das Lernangebot zu?",
           "items": [
             {
               "id": "USEFULNESS_PRACTICAL",
@@ -571,6 +578,7 @@
         },
         {
           "id": "credibility_understanding",
+          "instruction": "Wie sehr stimmst du den folgenden Aussagen zur Glaubwürdigkeit und Verständlichkeit des Lernangebots zu?",
           "items": [
             {
               "id": "CRED_TECHNICAL",

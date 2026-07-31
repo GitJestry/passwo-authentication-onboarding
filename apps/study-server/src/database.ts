@@ -164,6 +164,33 @@ const requiredFollowUpSchema = `
   ALTER TABLE study_sessions DROP COLUMN follow_up_consent;
 `;
 
+const optionalFollowUpSchema = `
+  ALTER TABLE study_sessions ADD COLUMN follow_up_consent INTEGER NOT NULL DEFAULT 0
+    CHECK (follow_up_consent IN (0, 1));
+
+  UPDATE study_sessions
+  SET follow_up_token_hash = (
+    SELECT registration.token_hash
+    FROM recontact.registrations AS registration
+    WHERE registration.session_id = study_sessions.session_id
+  )
+  WHERE follow_up_token_hash IS NULL
+    AND EXISTS (
+      SELECT 1
+      FROM recontact.registrations AS registration
+      WHERE registration.session_id = study_sessions.session_id
+    );
+
+  UPDATE study_sessions
+  SET follow_up_consent = 1
+  WHERE follow_up_token_hash IS NOT NULL
+     OR EXISTS (
+       SELECT 1
+       FROM recontact.registrations AS registration
+       WHERE registration.session_id = study_sessions.session_id
+     );
+`;
+
 const recontactSchema = `
   CREATE TABLE IF NOT EXISTS recontact.registrations (
     session_id TEXT PRIMARY KEY,
@@ -257,6 +284,10 @@ const migrations: readonly Migration[] = [
     version: 4,
     apply: (database) => database.exec(requiredFollowUpSchema),
   },
+  {
+    version: 5,
+    apply: (database) => database.exec(optionalFollowUpSchema),
+  },
 ];
 
 function migrate(database: Database.Database): void {
@@ -282,7 +313,10 @@ function migrate(database: Database.Database): void {
   }
 }
 
-export function openStudyDatabase(databasePath: string): Database.Database {
+export function openStudyDatabase(
+  databasePath: string,
+  recontactDatabasePath = ':memory:',
+): Database.Database {
   if (databasePath !== ':memory:') {
     const dataDirectory = dirname(databasePath);
     mkdirSync(dataDirectory, { recursive: true, mode: 0o700 });
@@ -292,6 +326,7 @@ export function openStudyDatabase(databasePath: string): Database.Database {
   const database = new Database(databasePath);
   database.pragma('foreign_keys = ON');
   database.pragma('journal_mode = DELETE');
+  attachRecontactDatabase(database, recontactDatabasePath);
   migrate(database);
 
   if (databasePath !== ':memory:') {

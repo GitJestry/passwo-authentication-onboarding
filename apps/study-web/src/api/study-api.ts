@@ -1,4 +1,6 @@
 import {
+  abandonRecontactRequestSchema,
+  abandonRecontactResponseSchema,
   artifactLeaseResponseSchema,
   completeSessionRequestSchema,
   createSessionRequestSchema,
@@ -104,10 +106,11 @@ export function createStudyApi(): StudyApi {
 
   return {
     createSegmentTimingPort,
-    createSession: async () => {
+    createSession: async (followUpConsent: boolean) => {
       const createRequest = createSessionRequestSchema.parse({
         requestId: createRequestId,
         consentAccepted: true,
+        followUpConsent,
       });
       return createSessionResponseSchema.parse(
         await postJson('/api/study/sessions', createRequest),
@@ -118,6 +121,13 @@ export function createStudyApi(): StudyApi {
       const request = registerRecontactRequestSchema.parse(registration);
       registerRecontactResponseSchema.parse(
         await postJson(`/api/study/sessions/${sessionId}/recontact`, request),
+      );
+    },
+
+    abandonRecontact: async (sessionId: string) => {
+      const request = abandonRecontactRequestSchema.parse({});
+      abandonRecontactResponseSchema.parse(
+        await postJson(`/api/study/sessions/${sessionId}/recontact/abandon`, request),
       );
     },
 

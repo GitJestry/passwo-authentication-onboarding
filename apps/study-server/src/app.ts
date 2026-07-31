@@ -1,4 +1,6 @@
 import {
+  abandonRecontactRequestSchema,
+  abandonRecontactResponseSchema,
   type AssignmentMode,
   artifactLeaseResponseSchema,
   completeSessionRequestSchema,
@@ -17,7 +19,7 @@ import {
 } from '@passwo/contracts';
 import Fastify, { type FastifyInstance } from 'fastify';
 import { z } from 'zod';
-import { attachRecontactDatabase, openStudyDatabase } from './database.js';
+import { openStudyDatabase } from './database.js';
 import { cryptoStudyRandomSource, type StudyRandomSource } from './random-source.js';
 import { isReferenceArtifactAvailable, registerReferenceArtifact } from './static-web.js';
 import { StudyRepository, StudyRepositoryError, type StudyVersions } from './study-repository.js';
@@ -57,8 +59,7 @@ export function buildStudyServer({
   createRecontactToken,
   versions = walkingSkeletonVersions,
 }: StudyServerBuildOptions): FastifyInstance {
-  const database = openStudyDatabase(databasePath);
-  attachRecontactDatabase(database, recontactDatabasePath);
+  const database = openStudyDatabase(databasePath, recontactDatabasePath);
   const repository = new StudyRepository({
     database,
     assignmentMode,
@@ -129,6 +130,16 @@ export function buildStudyServer({
       const body = registerRecontactRequestSchema.parse(request.body);
       repository.registerRecontact(sessionId, body);
       return reply.send(registerRecontactResponseSchema.parse({ registered: true }));
+    },
+  );
+
+  server.post<{ Params: { sessionId: string } }>(
+    '/api/study/sessions/:sessionId/recontact/abandon',
+    async (request, reply) => {
+      const { sessionId } = sessionParamsSchema.parse(request.params);
+      abandonRecontactRequestSchema.parse(request.body);
+      repository.abandonRecontact(sessionId);
+      return reply.send(abandonRecontactResponseSchema.parse({ abandoned: true }));
     },
   );
 

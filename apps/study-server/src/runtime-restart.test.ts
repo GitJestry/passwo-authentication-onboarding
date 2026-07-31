@@ -58,6 +58,7 @@ describe('Study Runtime restart compatibility', () => {
       body: JSON.stringify({
         requestId: randomUUID(),
         consentAccepted: true,
+        followUpConsent: true,
       }),
     });
     await firstRuntime.close();

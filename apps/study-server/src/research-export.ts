@@ -111,6 +111,12 @@ function toPresentationRecord(row: unknown): ResearchExportPresentationRecord {
   });
 }
 
+function toSessionRecord(row: unknown): ResearchExportSessionRecord {
+  const { followUpTokenHash, ...session } = mapSessionRow(row);
+  void followUpTokenHash;
+  return researchExportSessionRecordSchema.parse(session);
+}
+
 function stableJson(value: unknown): string {
   return `${JSON.stringify(value, null, 2)}\n`;
 }
@@ -239,7 +245,7 @@ export function exportResearchData({
     const sessions = database
       .prepare(`${sessionRowSelection} ORDER BY session_id`)
       .all()
-      .map((row) => researchExportSessionRecordSchema.parse(mapSessionRow(row)));
+      .map(toSessionRecord);
     const timing = database
       .prepare(
         `SELECT
@@ -320,8 +326,8 @@ export function exportResearchData({
             'consentVersion',
             'referenceArtifactVersion',
             'consentAccepted',
+            'followUpConsent',
             'followUpVersion',
-            'followUpTokenHash',
             'completionStatus',
             'technicalErrorCode',
             'createdAtIso',
@@ -340,8 +346,8 @@ export function exportResearchData({
             session.consentVersion,
             session.referenceArtifactVersion,
             session.consentAccepted,
+            session.followUpConsent,
             session.followUpVersion,
-            session.followUpTokenHash,
             session.completionStatus,
             session.technicalErrorCode,
             session.createdAtIso,

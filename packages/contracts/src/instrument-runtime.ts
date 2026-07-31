@@ -51,6 +51,7 @@ const scaleItemSchema = z
     id: stableIdSchema,
     type: z.literal('scale'),
     scale: scaleIdSchema,
+    instruction: participantTextSchema.optional(),
     prompt: participantTextSchema.optional(),
     label: participantTextSchema.optional(),
   })
@@ -312,6 +313,8 @@ export const instrumentRuntimeManifestSchema = z
           .strict(),
         consent: z
           .object({
+            heading: participantTextSchema,
+            description: participantTextSchema,
             statement: participantTextSchema,
           })
           .strict(),

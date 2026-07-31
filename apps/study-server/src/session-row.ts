@@ -14,6 +14,7 @@ const sessionRowSchema = z.object({
   consentVersion: z.string(),
   referenceArtifactVersion: z.string().nullable(),
   consentAccepted: z.number().int(),
+  followUpConsent: z.number().int(),
   followUpVersion: z.string(),
   followUpTokenHash: z.string().nullable(),
   completionStatus: z.string(),
@@ -36,6 +37,7 @@ export const sessionRowSelection = `
     consent_version AS consentVersion,
     reference_artifact_version AS referenceArtifactVersion,
     consent_accepted AS consentAccepted,
+    follow_up_consent AS followUpConsent,
     follow_up_version AS followUpVersion,
     follow_up_token_hash AS followUpTokenHash,
     completion_status AS completionStatus,
@@ -50,5 +52,6 @@ export function mapSessionRow(row: unknown): PersistedSessionRecord {
   return persistedSessionRecordSchema.parse({
     ...parsed,
     consentAccepted: parsed.consentAccepted === 1,
+    followUpConsent: parsed.followUpConsent === 1,
   });
 }

@@ -18,126 +18,314 @@ const postInstrument = instrumentRuntimeManifest.instruments['post-v1'];
 const guardrailInstrument = instrumentRuntimeManifest.instruments['guardrail-v2'];
 
 interface ConsentDecision {
-  readonly email: string;
-  readonly requestId: string;
+  readonly followUpConsent: boolean;
+  readonly recontact: {
+    readonly email: string;
+    readonly requestId: string;
+  } | null;
+}
+
+function DisclosureSection({
+  title,
+  children,
+}: {
+  readonly title: string;
+  readonly children: ReactNode;
+}) {
+  const [expanded, setExpanded] = useState(true);
+  const id = `participant-information-${title.toLowerCase().replaceAll(/[^a-z]+/gu, '-')}`;
+
+  return (
+    <section className={styles.informationSection}>
+      <h3>
+        <button
+          className={styles.disclosureButton}
+          type="button"
+          aria-expanded={expanded}
+          aria-controls={id}
+          onClick={() => setExpanded((current) => !current)}
+        >
+          {title}
+        </button>
+      </h3>
+      <div id={id} hidden={!expanded}>
+        {children}
+      </div>
+    </section>
+  );
 }
 
 function Consent({ onAccept }: { readonly onAccept: (decision: ConsentDecision) => void }) {
   const eligibilityItems = instrumentRuntimeManifest.procedures.eligibility.items;
   const [eligibilityDraft, setEligibilityDraft] = useState<Readonly<Record<string, boolean>>>({});
   const [accepted, setAccepted] = useState(false);
+  const [informationVisible, setInformationVisible] = useState(false);
+  const [declined, setDeclined] = useState(false);
+  const [wantsRecontact, setWantsRecontact] = useState(false);
   const [email, setEmail] = useState('');
-  const [submissionAttempted, setSubmissionAttempted] = useState(false);
+  const [eligibilityInteracted, setEligibilityInteracted] = useState(false);
+  const [emailTouched, setEmailTouched] = useState(false);
   const eligible = eligibilityItems.every(
     (item) => eligibilityDraft[item.id] === item.requiredValue,
   );
-  const emailValid = recontactEmailSchema.safeParse(email).success;
-  const consent = instrumentRuntimeManifest.procedures.consent;
-  const followUpRecontact = instrumentRuntimeManifest.procedures.followUpRecontact;
+  const emailValid = !wantsRecontact || recontactEmailSchema.safeParse(email).success;
+  const showEligibilityNotice = eligibilityInteracted && !eligible;
+  const showEmailError = wantsRecontact && emailTouched && !emailValid;
+
+  if (declined) {
+    return (
+      <section className={styles.declineNotice} aria-labelledby="declined-title" role="status">
+        <p className={styles.eyebrow}>Studie zu digitalem Kontoschutz</p>
+        <h1 id="declined-title" tabIndex={-1} autoFocus>
+          Danke für deine Rückmeldung
+        </h1>
+        <p>Du nimmst nicht an der Studie teil. Es wurde keine Sitzung angelegt.</p>
+      </section>
+    );
+  }
 
   return (
-    <section aria-labelledby="consent-title">
-      <p className={styles.eyebrow}>Einwilligung</p>
-      <h1 id="consent-title" tabIndex={-1} autoFocus>
-        Willkommen
-      </h1>
-      <p>
-        Im folgenden Ablauf werden keine realen Passwörter, Konten oder Sicherheitsvorfälle
-        abgefragt. Bitte lies die Hinweise vollständig, bevor du fortfährst.
-      </p>
-      <form
-        className={styles.form}
-        noValidate
-        onSubmit={(event) => {
-          event.preventDefault();
-          setSubmissionAttempted(true);
-          if (accepted && eligible && emailValid) {
-            onAccept({
-              email: email.trim(),
-              requestId: globalThis.crypto.randomUUID(),
-            });
-          }
-        }}
-      >
-        <fieldset
-          className={
-            submissionAttempted && !eligible
-              ? `${styles.eligibility} ${styles.fieldInvalid}`
-              : styles.eligibility
-          }
-          aria-describedby={
-            submissionAttempted && !eligible ? 'eligibility-error' : 'eligibility-description'
-          }
-          aria-invalid={submissionAttempted && !eligible}
-        >
-          <legend>Voraussetzungen für die Teilnahme</legend>
-          <p className={styles.fieldHint} id="eligibility-description">
-            Bitte bestätige jede Voraussetzung, die auf dich zutrifft.
-          </p>
-          <div className={styles.optionList}>
-            {eligibilityItems.map((item) => (
-              <label className={styles.option} key={item.id}>
+    <section className={styles.consentPage} aria-labelledby="consent-title">
+      <header className={styles.welcomeHeader}>
+        <p className={styles.eyebrow}>Studie zu digitalem Kontoschutz</p>
+        <h1 id="consent-title" tabIndex={-1} autoFocus>
+          Willkommen
+        </h1>
+        <p className={styles.welcomeCopy}>
+          Vielen Dank, dass du dir Zeit für diese Studie nimmst. Du bearbeitest gleich ein digitales
+          Lernangebot zum Schutz von Online-Konten. Davor und danach beantwortest du einige kurze
+          Fragen.
+        </p>
+        <div className={styles.factCards} aria-label="Kurzüberblick zur Teilnahme">
+          <article className={styles.factCard}>
+            <h2>Dauer heute</h2>
+            <p>etwa 20–30 Minuten</p>
+          </article>
+          <article className={styles.factCard}>
+            <h2>Auswertung</h2>
+            <p>pseudonymisiert</p>
+          </article>
+          <article className={styles.factCard}>
+            <h2>Nachbefragung</h2>
+            <p>optional, etwa 1 Minute nach 10 Tagen</p>
+          </article>
+        </div>
+        {!informationVisible ? (
+          <button
+            className={styles.button}
+            type="button"
+            onClick={() => setInformationVisible(true)}
+          >
+            Teilnahmeinformationen lesen
+          </button>
+        ) : null}
+      </header>
+
+      {informationVisible ? (
+        <div className={styles.consentDetails}>
+          <section aria-labelledby="participant-information-title">
+            <h2 id="participant-information-title">Informationen zu deiner Teilnahme</h2>
+            <DisclosureSection title="Worum geht es?">
+              <p>
+                Wir untersuchen, wie ein digitales Lernangebot zum Schutz von Online-Konten genutzt
+                und wahrgenommen wird. Einige Einzelheiten dazu, was genau untersucht wird,
+                erläutern wir erst nach deinem letzten Studienteil. Dadurch soll vermieden werden,
+                dass Vorwissen über die genaue Fragestellung deine Bearbeitung beeinflusst.
+              </p>
+            </DisclosureSection>
+            <DisclosureSection title="Was erwartet dich?">
+              <p>
+                Zunächst beantwortest du kurze Fragen zu deiner Person und zu bisherigen Erfahrungen
+                mit den behandelten Themen. Danach bearbeitest du ein digitales Lernangebot.
+                Abschließend folgen Fragen zu deiner Wahrnehmung des Angebots und zu den
+                vermittelten Inhalten. Die heutige Sitzung dauert voraussichtlich 20 bis 30 Minuten.
+              </p>
+              <p>
+                Optional kannst du etwa zehn Tage später per E-Mail an einer ungefähr einminütigen
+                Nachbefragung teilnehmen. Die Hauptstudie kann vollständig bearbeitet werden, ohne
+                dieser Kontaktaufnahme zuzustimmen.
+              </p>
+            </DisclosureSection>
+            <DisclosureSection title="Welche Daten werden verarbeitet?">
+              <p>
+                Gespeichert werden deine Fragebogenantworten, Bearbeitungszeiten, technische
+                Abschlussinformationen und Angaben zum bearbeiteten Studienablauf. Die
+                Forschungsdaten werden unter einem zufällig erzeugten Teilnehmercode pseudonymisiert
+                gespeichert und ausgewertet. Sie enthalten weder deinen Namen noch deine
+                E-Mail-Adresse.
+              </p>
+              <p>
+                Falls du der Nachbefragung zustimmst, wird deine E-Mail-Adresse getrennt von den
+                Forschungsdaten gespeichert und ausschließlich für die Einladung sowie höchstens
+                eine Erinnerung verwendet.
+              </p>
+            </DisclosureSection>
+            <DisclosureSection title="Freiwilligkeit und Abbruch">
+              <p>
+                Die Teilnahme ist freiwillig. Du kannst sie jederzeit ohne Begründung und ohne
+                Nachteile beenden. Innerhalb der vor dem Study Freeze festgelegten Aufbewahrungs-
+                und Löschfrist kannst du unter Angabe deines Teilnehmercodes die Löschung deiner
+                Forschungsdaten verlangen.
+              </p>
+            </DisclosureSection>
+            <DisclosureSection title="Mögliche Belastungen und Nutzen">
+              <p>
+                Es sind keine besonderen Risiken zu erwarten, die über alltägliche Belastungen bei
+                der Nutzung digitaler Lernangebote und Fragebögen hinausgehen. Ein unmittelbarer
+                persönlicher Nutzen kann nicht zugesichert werden.
+              </p>
+            </DisclosureSection>
+            <DisclosureSection title="Fragen und Kontakt">
+              <p>
+                Bei Fragen zur Studie, zur Teilnahme oder zur Verarbeitung deiner Daten kannst du
+                dich an folgende Stelle wenden:
+              </p>
+              <ul className={styles.contactList}>
+                <li>Studienleitung: Julian Meyer, s27jmeye@uni-bonn.de</li>
+                <li>Betreuung: Dr. Christian Tiefenau, tiefenau@cs.uni-bonn.de</li>
+                <li>
+                  Verantwortliche Stelle / Datenschutzkontakt: [nach Vorgabe der Universität
+                  ergänzen]
+                </li>
+              </ul>
+            </DisclosureSection>
+          </section>
+
+          <form
+            className={styles.consentForm}
+            noValidate
+            onSubmit={(event) => {
+              event.preventDefault();
+              if (accepted && eligible && emailValid) {
+                onAccept({
+                  followUpConsent: wantsRecontact,
+                  recontact: wantsRecontact
+                    ? { email: email.trim(), requestId: globalThis.crypto.randomUUID() }
+                    : null,
+                });
+              }
+            }}
+          >
+            <fieldset
+              className={
+                showEligibilityNotice
+                  ? `${styles.consentPanel} ${styles.fieldInvalid}`
+                  : styles.consentPanel
+              }
+              aria-describedby={
+                showEligibilityNotice ? 'eligibility-error' : 'eligibility-description'
+              }
+              aria-invalid={showEligibilityNotice}
+            >
+              <legend>Teilnahmevoraussetzungen</legend>
+              <p className={styles.fieldHint} id="eligibility-description">
+                Bitte bestätige jede Voraussetzung, die auf dich zutrifft.
+              </p>
+              <div className={styles.optionList}>
+                {eligibilityItems.map((item) => (
+                  <label className={styles.option} key={item.id}>
+                    <input
+                      type="checkbox"
+                      id={item.id}
+                      name={item.id}
+                      checked={eligibilityDraft[item.id] === true}
+                      onChange={(event) => {
+                        const checked = event.currentTarget.checked;
+                        setEligibilityInteracted(true);
+                        setEligibilityDraft((current) => ({ ...current, [item.id]: checked }));
+                      }}
+                    />
+                    <span>{item.prompt}</span>
+                  </label>
+                ))}
+              </div>
+              {showEligibilityNotice ? (
+                <p className={styles.fieldError} id="eligibility-error" role="alert">
+                  Eine Teilnahme ist nicht möglich, wenn eine Voraussetzung nicht erfüllt ist. Es
+                  wurde keine Sitzung angelegt.
+                </p>
+              ) : null}
+            </fieldset>
+
+            <fieldset className={styles.consentPanel}>
+              <legend>Einwilligung</legend>
+              <label className={styles.check}>
                 <input
                   type="checkbox"
-                  id={item.id}
-                  name={item.id}
-                  checked={eligibilityDraft[item.id] === true}
+                  checked={accepted}
+                  onChange={(event) => setAccepted(event.currentTarget.checked)}
+                />
+                <span>
+                  Ich habe die Teilnahmeinformationen gelesen und verstanden. Ich weiß, dass einige
+                  Einzelheiten zur genauen Fragestellung erst nach meinem letzten Studienteil
+                  erläutert werden. Ich willige freiwillig in die Teilnahme und in die beschriebene
+                  pseudonymisierte Verarbeitung meiner Forschungsdaten ein.
+                </span>
+              </label>
+            </fieldset>
+
+            <fieldset className={styles.consentPanel}>
+              <legend>Optionale Nachbefragung</legend>
+              <label className={styles.check}>
+                <input
+                  type="checkbox"
+                  checked={wantsRecontact}
                   onChange={(event) => {
                     const checked = event.currentTarget.checked;
-                    setEligibilityDraft((current) => ({ ...current, [item.id]: checked }));
+                    setWantsRecontact(checked);
+                    if (!checked) {
+                      setEmail('');
+                      setEmailTouched(false);
+                    }
                   }}
                 />
-                <span>{item.prompt}</span>
+                <span>
+                  Ich möchte etwa zehn Tage später per E-Mail zu einer kurzen Nachbefragung
+                  eingeladen werden. Meine E-Mail-Adresse wird getrennt von den Forschungsdaten
+                  gespeichert und nur für diese Kontaktaufnahme verwendet.
+                </span>
               </label>
-            ))}
-          </div>
-          {submissionAttempted && !eligible ? (
-            <p className={styles.fieldError} id="eligibility-error" role="alert">
-              Eine Teilnahme ist nur möglich, wenn alle drei Voraussetzungen erfüllt sind. Es wurde
-              keine Sitzung angelegt.
-            </p>
-          ) : null}
-        </fieldset>
+              {wantsRecontact ? (
+                <label className={styles.emailField}>
+                  <span>E-Mail-Adresse für die Nachbefragung</span>
+                  <input
+                    type="email"
+                    autoComplete="email"
+                    value={email}
+                    aria-invalid={showEmailError}
+                    aria-describedby={showEmailError ? 'recontact-email-error' : undefined}
+                    onBlur={() => setEmailTouched(true)}
+                    onChange={(event) => setEmail(event.currentTarget.value)}
+                    required
+                  />
+                  {showEmailError ? (
+                    <span className={styles.fieldError} id="recontact-email-error" role="alert">
+                      Bitte gib eine gültige E-Mail-Adresse ein.
+                    </span>
+                  ) : null}
+                </label>
+              ) : null}
+            </fieldset>
 
-        <label className={styles.check}>
-          <input
-            type="checkbox"
-            checked={accepted}
-            onChange={(event) => setAccepted(event.currentTarget.checked)}
-          />
-          <span>{consent.statement}</span>
-        </label>
-        <fieldset className={styles.eligibility}>
-          <legend>{followUpRecontact.heading}</legend>
-          <p className={styles.fieldHint}>{followUpRecontact.explanation}</p>
-          <label className={styles.emailField}>
-            <span>{followUpRecontact.emailLabel}</span>
-            <input
-              type="email"
-              autoComplete="email"
-              value={email}
-              aria-invalid={submissionAttempted && !emailValid}
-              aria-describedby={
-                submissionAttempted && !emailValid ? 'recontact-email-error' : undefined
-              }
-              onChange={(event) => setEmail(event.currentTarget.value)}
-              required
-            />
-            {submissionAttempted && !emailValid ? (
-              <span className={styles.fieldError} id="recontact-email-error" role="alert">
-                Bitte gib eine gültige E-Mail-Adresse ein.
-              </span>
-            ) : null}
-          </label>
-        </fieldset>
-        <button
-          className={styles.button}
-          type="submit"
-          disabled={!accepted || !eligible || !emailValid}
-        >
-          Weiter zum Fragebogen
-        </button>
-      </form>
+            <div className={styles.consentActions}>
+              <button
+                className={styles.button}
+                type="submit"
+                disabled={!accepted || !eligible || !emailValid}
+              >
+                Teilnahme beginnen
+              </button>
+              <button
+                className={styles.secondaryButton}
+                type="button"
+                onClick={() => setDeclined(true)}
+              >
+                Nicht teilnehmen
+              </button>
+            </div>
+          </form>
+        </div>
+      ) : null}
     </section>
   );
 }
@@ -145,23 +333,32 @@ function Consent({ onAccept }: { readonly onAccept: (decision: ConsentDecision) 
 function RecontactError({
   errorCode,
   onRetry,
+  onContinueWithoutFollowUp,
 }: {
   readonly errorCode: string | null;
   readonly onRetry: () => void;
+  readonly onContinueWithoutFollowUp: () => void;
 }) {
   return (
     <section aria-labelledby="recontact-error-title" role="alert">
-      <p className={styles.eyebrow}>Nachbefragung nach zehn Tagen</p>
       <h1 id="recontact-error-title" tabIndex={-1} autoFocus>
         Registrierung nicht möglich
       </h1>
       <p>
-        Die Teilnahme bleibt gesperrt, bis die E-Mail-Adresse erfolgreich registriert wurde.
+        Die E-Mail-Adresse konnte nicht für die optionale Nachbefragung registriert werden. Du
+        kannst es erneut versuchen oder die Hauptstudie ohne Nachbefragung fortsetzen.
       </p>
       <p className={styles.errorCode}>Fehlercode: {errorCode ?? 'recontact-registration-failed'}</p>
       <div className={styles.form}>
         <button className={styles.button} type="button" onClick={onRetry}>
           Erneut versuchen
+        </button>
+        <button
+          className={styles.secondaryButton}
+          type="button"
+          onClick={onContinueWithoutFollowUp}
+        >
+          Ohne Nachbefragung fortfahren
         </button>
       </div>
     </section>
@@ -204,7 +401,6 @@ function ArtifactPreparation({
   return (
     <section className={styles.artifactPreparation} aria-labelledby="artifact-preparation-title">
       <header className={styles.artifactPreparationHeader}>
-        <p className={styles.eyebrow}>Lernangebot</p>
         <h1 id="artifact-preparation-title" tabIndex={-1} autoFocus>
           Das Lernangebot beginnt gleich
         </h1>
@@ -231,7 +427,6 @@ function ResearchDataError({
 }) {
   return (
     <section aria-labelledby={titleId} role="alert">
-      <p className={styles.eyebrow}>Technische Unterbrechung</p>
       <h1 id={titleId} tabIndex={-1} autoFocus>
         Speichern nicht möglich
       </h1>
@@ -250,7 +445,6 @@ function ResearchDataError({
 function ConfigurationError({ errorCode }: { readonly errorCode: string }) {
   return (
     <section aria-labelledby="configuration-error-title" role="alert">
-      <p className={styles.eyebrow}>Technische Unterbrechung</p>
       <h1 id="configuration-error-title" tabIndex={-1} autoFocus>
         Dieser Studienteil ist nicht verfügbar
       </h1>
@@ -276,25 +470,6 @@ export function StudyFlow() {
     snapshot.matches({ artifactLifecycle: { artifact: 'reference' } });
 
   let content: ReactNode;
-  let step = snapshot.matches('preQuestionnaire')
-    ? 'Vorher'
-    : snapshot.matches('artifactLifecycle')
-      ? 'Lernangebot'
-      : snapshot.matches('postQuestionnaire')
-        ? 'Nachher'
-        : snapshot.matches('guardrails')
-          ? 'Verständnis'
-          : snapshot.matches('postOpen')
-            ? 'Rückmeldung'
-            : snapshot.matches('debrief') ||
-                snapshot.matches('completing') ||
-                snapshot.matches('completionError')
-              ? 'Abschluss'
-              : snapshot.matches('complete')
-                ? 'Fertig'
-                : snapshot.matches('recontactRegistration')
-                  ? 'Nachbefragung'
-                  : 'Einwilligung';
 
   if (snapshot.matches('consent')) {
     content = <Consent onAccept={(decision) => send({ type: 'ACCEPT_CONSENT', ...decision })} />;
@@ -311,6 +486,7 @@ export function StudyFlow() {
       <RecontactError
         errorCode={context.researchErrorCode}
         onRetry={() => send({ type: 'RETRY_RECONTACT' })}
+        onContinueWithoutFollowUp={() => send({ type: 'CONTINUE_WITHOUT_FOLLOW_UP' })}
       />
     );
   } else if (snapshot.matches({ preQuestionnaire: 'error' })) {
@@ -321,7 +497,6 @@ export function StudyFlow() {
         onRetry={() => send({ type: 'RETRY_PRE' })}
       />
     );
-    step = 'Vorher';
   } else if (snapshot.matches({ preQuestionnaire: 'editing' })) {
     const section =
       currentBlock?.instrumentId === 'pre-v1'
@@ -339,14 +514,12 @@ export function StudyFlow() {
           key={`pre-v1:${section.id}`}
           instrumentId="pre-v1"
           section={section}
-          eyebrow="Vor dem Lernangebot"
           title="Fragebogen vor dem Lernangebot"
           progressLabel={`Abschnitt ${sectionIndex + 1} von ${preInstrument.sections.length}`}
           submitLabel="Abschnitt verbindlich abgeben"
           onSubmit={(payload) => send({ type: 'SUBMIT_PRE', payload })}
         />
       );
-    step = `Vorher · ${Math.max(sectionIndex + 1, 1)}/${preInstrument.sections.length}`;
   } else if (snapshot.matches({ artifactLifecycle: 'preparing' })) {
     content =
       context.condition === null ? (
@@ -357,7 +530,6 @@ export function StudyFlow() {
           onStart={() => send({ type: 'START_ARTIFACT' })}
         />
       );
-    step = 'Lernangebot';
   } else if (snapshot.matches({ artifactLifecycle: 'startError' })) {
     content = (
       <ResearchDataError
@@ -366,7 +538,6 @@ export function StudyFlow() {
         onRetry={() => send({ type: 'RETRY_ARTIFACT_START' })}
       />
     );
-    step = 'Lernangebot';
   } else if (snapshot.matches({ artifactLifecycle: { artifact: 'supportive' } })) {
     content =
       segmentTimingPort === null ? (
@@ -381,10 +552,8 @@ export function StudyFlow() {
           onRetryTiming={() => send({ type: 'RETRY_ARTIFACT_VISIBILITY' })}
         />
       );
-    step = 'Lernangebot';
   } else if (snapshot.matches({ artifactLifecycle: { artifact: 'reference' } })) {
     content = <ReferenceArtifact onComplete={completeArtifact} />;
-    step = 'Lernangebot';
   } else if (snapshot.matches({ artifactLifecycle: 'endError' })) {
     content = (
       <ResearchDataError
@@ -393,7 +562,6 @@ export function StudyFlow() {
         onRetry={() => send({ type: 'RETRY_ARTIFACT_END' })}
       />
     );
-    step = 'Lernangebot';
   } else if (snapshot.matches({ postQuestionnaire: 'error' })) {
     content = (
       <ResearchDataError
@@ -402,7 +570,6 @@ export function StudyFlow() {
         onRetry={() => send({ type: 'RETRY_POST' })}
       />
     );
-    step = 'Nachher';
   } else if (snapshot.matches({ postQuestionnaire: 'editing' })) {
     const section =
       currentBlock?.instrumentId === 'post-v1'
@@ -420,14 +587,12 @@ export function StudyFlow() {
           key={`post-v1:${section.id}`}
           instrumentId="post-v1"
           section={section}
-          eyebrow="Nach dem Lernangebot"
           title="Fragebogen nach dem Lernangebot"
           progressLabel={`Abschnitt ${sectionIndex + 1} von ${postInstrument.sections.length}`}
           submitLabel="Abschnitt verbindlich abgeben"
           onSubmit={(payload) => send({ type: 'SUBMIT_POST', payload })}
         />
       );
-    step = `Nachher · ${Math.max(sectionIndex + 1, 1)}/${postInstrument.sections.length}`;
   } else if (snapshot.matches({ guardrails: 'error' })) {
     content = (
       <ResearchDataError
@@ -436,7 +601,6 @@ export function StudyFlow() {
         onRetry={() => send({ type: 'RETRY_GUARDRAILS' })}
       />
     );
-    step = 'Verständnis';
   } else if (snapshot.matches({ guardrails: 'editing' })) {
     const block =
       currentBlock?.instrumentId === 'guardrail-v2'
@@ -459,7 +623,6 @@ export function StudyFlow() {
           onSubmit={(payload) => send({ type: 'SUBMIT_GUARDRAILS', payload })}
         />
       );
-    step = `Verständnis · ${Math.max(blockIndex + 1, 1)}/${guardrailInstrument.blocks.length}`;
   } else if (snapshot.matches({ postOpen: 'error' })) {
     content = (
       <ResearchDataError
@@ -468,7 +631,6 @@ export function StudyFlow() {
         onRetry={() => send({ type: 'RETRY_POST_OPEN' })}
       />
     );
-    step = 'Rückmeldung';
   } else if (snapshot.matches({ postOpen: 'editing' })) {
     content =
       currentBlock?.instrumentId !== 'post-open-v1' || currentBlock.sectionId !== 'post-open' ? (
@@ -479,39 +641,35 @@ export function StudyFlow() {
           onSubmit={(payload) => send({ type: 'SUBMIT_POST_OPEN', payload })}
         />
       );
-    step = 'Rückmeldung';
   } else if (snapshot.matches('debrief')) {
     content = (
       <section aria-labelledby="debrief-title">
-        <p className={styles.eyebrow}>Debrief</p>
         <h1 id="debrief-title" tabIndex={-1} autoFocus>
-          Abschließende Hinweise
+          Vielen Dank für deine Teilnahme
         </h1>
-        <ul className={styles.debriefList}>
-          <li>
-            Wird ein wiederverwendetes Passwort bekannt, kann es auch bei weiteren Konten
-            ausprobiert werden.
-          </li>
-          <li>
-            Ein Passwortmanager unterstützt dich dabei, für unterschiedliche Konten unterschiedliche
-            Passwörter zu verwenden.
-          </li>
-          <li>
-            MFA bildet eine zusätzliche Barriere. Sie macht Passwortwiederverwendung nicht sicher.
-          </li>
-        </ul>
+        {context.followUpConsent ? (
+          <p>
+            Die Hauptsitzung ist damit abgeschlossen. Zehn Tage nach deiner Teilnahme erhältst du
+            die kurze Nachbefragung an die angegebene E-Mail-Adresse. Du kannst dieses Fenster jetzt
+            schließen.
+          </p>
+        ) : (
+          <p>
+            Die Hauptsitzung ist damit abgeschlossen. Du hast keine Kontaktaufnahme für die
+            optionale Nachbefragung gewählt. Du kannst dieses Fenster jetzt schließen.
+          </p>
+        )}
         <div className={styles.form}>
           <button
             className={styles.button}
             type="button"
             onClick={() => send({ type: 'DEBRIEF_ACKNOWLEDGED' })}
           >
-            Debrief bestätigen
+            Abschluss bestätigen
           </button>
         </div>
       </section>
     );
-    step = 'Abschluss';
   } else if (snapshot.matches('completionError')) {
     content = (
       <ResearchDataError
@@ -520,11 +678,9 @@ export function StudyFlow() {
         onRetry={() => send({ type: 'RETRY_COMPLETION' })}
       />
     );
-    step = 'Abschluss';
   } else if (snapshot.matches('complete')) {
     content = (
       <section aria-labelledby="complete-title">
-        <p className={styles.eyebrow}>Abgeschlossen</p>
         <h1 id="complete-title" tabIndex={-1} autoFocus>
           Sitzung abgeschlossen
         </h1>
@@ -539,18 +695,15 @@ export function StudyFlow() {
         )}
       </section>
     );
-    step = 'Fertig';
   } else if (snapshot.matches('fatalError')) {
     content = (
       <section aria-labelledby="fatal-title" role="alert">
-        <p className={styles.eyebrow}>Technischer Abbruch</p>
         <h1 id="fatal-title" tabIndex={-1} autoFocus>
           Die Sitzung kann nicht fortgesetzt werden
         </h1>
         <p className={styles.errorCode}>Fehlercode: {context.fatalErrorCode}</p>
       </section>
     );
-    step = 'Abbruch';
   } else {
     content = (
       <div className={styles.loading} role="status">
@@ -570,12 +723,6 @@ export function StudyFlow() {
   return (
     <main className={styles.studyPage} data-study-surface="">
       <div className={styles.studyShell}>
-        <header className={styles.studyHeader}>
-          <strong>Studienteilnahme</strong>
-          <span className={styles.step} aria-live="polite">
-            {step}
-          </span>
-        </header>
         <div className={styles.studyContent}>{content}</div>
       </div>
     </main>

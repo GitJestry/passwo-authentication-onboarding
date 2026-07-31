@@ -62,7 +62,7 @@ describe('follow-up recontact boundary', () => {
     const paths = temporaryDatabasePaths();
     const token = 'A'.repeat(43);
     const firstServer = createServer(paths.study, paths.recontact, () => token);
-    const session = await createSession(firstServer, 1, false);
+    const session = await createSession(firstServer, 1, false, true);
     const registration = {
       requestId,
       email: 'Person@Example.org',
@@ -106,6 +106,7 @@ describe('follow-up recontact boundary', () => {
       .prepare(
         `SELECT
           condition,
+          follow_up_consent AS followUpConsent,
           follow_up_version AS followUpVersion,
           follow_up_token_hash AS followUpTokenHash
          FROM study_sessions
@@ -134,6 +135,7 @@ describe('follow-up recontact boundary', () => {
 
     expect(studyRow).toEqual({
       condition: 'supportive',
+      followUpConsent: 1,
       followUpVersion: 'follow-up-v1-draft',
       followUpTokenHash: expectedHash,
     });
@@ -151,7 +153,40 @@ describe('follow-up recontact boundary', () => {
     expect(statSync(paths.directory).mode & 0o777).toBe(0o700);
     expect(statSync(paths.study).mode & 0o777).toBe(0o600);
     expect(statSync(paths.recontact).mode & 0o777).toBe(0o600);
+  });
 
+  it('migrates existing token hashes or registry entries to explicit follow-up consent', async () => {
+    const paths = temporaryDatabasePaths();
+    const firstServer = createServer(paths.study, paths.recontact, () => 'F'.repeat(43));
+    const session = await createSession(firstServer, 5);
+    await firstServer.close();
+    servers.splice(servers.indexOf(firstServer), 1);
+
+    const legacyStudyDatabase = new Database(paths.study);
+    legacyStudyDatabase.exec(`
+      ALTER TABLE study_sessions DROP COLUMN follow_up_consent;
+      DELETE FROM schema_migrations WHERE version = 5;
+      UPDATE study_sessions SET follow_up_token_hash = NULL;
+    `);
+    legacyStudyDatabase.close();
+
+    createServer(paths.study, paths.recontact);
+    const migratedStudyDatabase = new Database(paths.study, { readonly: true });
+    expect(
+      migratedStudyDatabase
+        .prepare(
+          `SELECT
+             follow_up_consent AS followUpConsent,
+             follow_up_token_hash AS followUpTokenHash
+           FROM study_sessions
+           WHERE session_id = ?`,
+        )
+        .get(session.sessionId),
+    ).toEqual({
+      followUpConsent: 1,
+      followUpTokenHash: createHash('sha256').update('F'.repeat(43), 'utf8').digest('hex'),
+    });
+    migratedStudyDatabase.close();
   });
 
   it('calculates completion-relative dates and exports a protected local token schedule', async () => {
@@ -167,7 +202,7 @@ describe('follow-up recontact boundary', () => {
       createRecontactToken: () => token,
     });
     servers.push(server);
-    const session = await createSession(server, 2, false);
+    const session = await createSession(server, 2, false, true);
     expect(
       (
         await server.inject({
@@ -251,6 +286,7 @@ describe('follow-up recontact boundary', () => {
         closesAtIso: '2026-08-07T12:00:00.000Z',
       },
     ]);
+    expect(readFileSync(outputPath, 'utf8')).not.toMatch(/condition/iu);
     expect(statSync(outputPath).mode & 0o777).toBe(0o600);
     expect(readFileSync(outputPath, 'utf8')).not.toMatch(/smtp|gmail|credential/iu);
 
@@ -266,5 +302,119 @@ describe('follow-up recontact boundary', () => {
       'email,tokenLink,firstInvitationAtIso,reminderAtIso,closesAtIso',
     );
     expect(statSync(csvOutputPath).mode & 0o777).toBe(0o600);
+  });
+
+  it('completes the main study without a recontact registration', async () => {
+    const paths = temporaryDatabasePaths();
+    const server = buildStudyServer({
+      version: '0.1.2',
+      assignmentMode: 'forced-reference',
+      databasePath: paths.study,
+      recontactDatabasePath: paths.recontact,
+      referenceArtifactDirectory: referenceArtifactFixtureDirectory,
+      nowIso: () => '2026-07-24T12:00:00.000Z',
+    });
+    servers.push(server);
+    const session = await createSession(server, 3, false);
+    await savePreAndStartArtifact(server, session.sessionId);
+    expect(
+      (
+        await server.inject({
+          method: 'POST',
+          url: `/api/study/sessions/${session.sessionId}/timing`,
+          payload: {
+            sequence: 1,
+            phase: 'artifact',
+            sectionId: null,
+            segmentId: null,
+            eventType: 'end',
+            clientMonotonicMs: 900,
+            clientWallClockIso: '2026-07-24T12:00:00.000Z',
+            elapsedMs: 800,
+            reasonCode: null,
+          },
+        })
+      ).statusCode,
+    ).toBe(200);
+    for (const block of mainInstrumentBlocks.filter(
+      (candidate) => candidate.instrumentId !== 'pre-v1',
+    )) {
+      expect(
+        (await submitBlock(server, session.sessionId, block.instrumentId, block.sectionId))
+          .statusCode,
+      ).toBe(200);
+    }
+
+    expect(
+      (
+        await server.inject({
+          method: 'POST',
+          url: `/api/study/sessions/${session.sessionId}/complete`,
+          payload: { debriefAcknowledged: true },
+        })
+      ).json(),
+    ).toEqual({ completionStatus: 'completed' });
+
+    const recontactDatabase = new Database(paths.recontact, { readonly: true });
+    expect(recontactDatabase.prepare('SELECT COUNT(*) AS count FROM registrations').get()).toEqual({
+      count: 0,
+    });
+    recontactDatabase.close();
+
+    const schedulePath = join(paths.directory, 'empty-schedule.json');
+    expect(
+      exportFollowUpSchedule({
+        databasePath: paths.recontact,
+        outputPath: schedulePath,
+        baseUrl: 'https://survey.example.org/follow-up',
+      }),
+    ).toEqual({ recordCount: 0 });
+    expect(JSON.parse(readFileSync(schedulePath, 'utf8'))).toEqual([]);
+  });
+
+  it('abandons optional recontact idempotently without changing the research identity', async () => {
+    const paths = temporaryDatabasePaths();
+    const server = createServer(paths.study, paths.recontact, () => 'E'.repeat(43));
+    const session = await createSession(server, 4);
+
+    const abandon = () =>
+      server.inject({
+        method: 'POST',
+        url: `/api/study/sessions/${session.sessionId}/recontact/abandon`,
+        payload: {},
+      });
+    expect((await abandon()).json()).toEqual({ abandoned: true });
+    expect((await abandon()).json()).toEqual({ abandoned: true });
+
+    const studyDatabase = new Database(paths.study, { readonly: true });
+    expect(
+      studyDatabase
+        .prepare(
+          `SELECT
+            session_id AS sessionId,
+            participant_code AS participantCode,
+            condition,
+            follow_up_consent AS followUpConsent,
+            follow_up_token_hash AS followUpTokenHash
+           FROM study_sessions
+           WHERE session_id = ?`,
+        )
+        .get(session.sessionId),
+    ).toEqual({
+      sessionId: session.sessionId,
+      participantCode: session.participantCode,
+      condition: session.condition,
+      followUpConsent: 0,
+      followUpTokenHash: null,
+    });
+    studyDatabase.close();
+
+    const recontactDatabase = new Database(paths.recontact, { readonly: true });
+    expect(recontactDatabase.prepare('SELECT COUNT(*) AS count FROM registrations').get()).toEqual({
+      count: 0,
+    });
+    recontactDatabase.close();
+
+    expect((await submitBlock(server, session.sessionId, 'pre-v1', 'sample')).statusCode).toBe(200);
   });
 });

@@ -8,6 +8,7 @@ import {
   instrumentSubmissionRequestSchema,
   persistedSessionRecordSchema,
   researchExportManifestSchema,
+  researchExportSessionRecordSchema,
   registerRecontactRequestSchema,
   REFERENCE_ARTIFACT_VERSION,
   SUPPORTIVE_ARTIFACT_SEGMENT_IDS,
@@ -21,6 +22,7 @@ describe('research-safe contracts', () => {
     const result = createSessionRequestSchema.safeParse({
       requestId: 'f5d74d44-f700-4dc7-ac00-5e251a8890c3',
       consentAccepted: true,
+      followUpConsent: false,
       [forbiddenPersonalizationField]: 'Alex',
     });
 
@@ -41,6 +43,7 @@ describe('research-safe contracts', () => {
       createSessionRequestSchema.safeParse({
         requestId: 'f5d74d44-f700-4dc7-ac00-5e251a8890c3',
         consentAccepted: true,
+        followUpConsent: false,
         condition: 'supportive',
       }).success,
     ).toBe(false);
@@ -51,9 +54,27 @@ describe('research-safe contracts', () => {
       createSessionRequestSchema.safeParse({
         requestId: 'f5d74d44-f700-4dc7-ac00-5e251a8890c3',
         consentAccepted: true,
+        followUpConsent: false,
+      }).success,
+    ).toBe(true);
+    expect(
+      createSessionRequestSchema.safeParse({
+        requestId: 'f5d74d44-f700-4dc7-ac00-5e251a8890c3',
+        consentAccepted: true,
+        followUpConsent: true,
         email: 'person@example.org',
       }).success,
     ).toBe(false);
+    for (const forbiddenField of ['rawToken', 'recontactRequestId']) {
+      expect(
+        createSessionRequestSchema.safeParse({
+          requestId: 'f5d74d44-f700-4dc7-ac00-5e251a8890c3',
+          consentAccepted: true,
+          followUpConsent: true,
+          [forbiddenField]: 'not-allowed',
+        }).success,
+      ).toBe(false);
+    }
     expect(
       registerRecontactRequestSchema.safeParse({
         requestId: 'f5d74d44-f700-4dc7-ac00-5e251a8890c3',
@@ -109,6 +130,9 @@ describe('research-safe contracts', () => {
       researchExportManifestSchema.safeParse({ ...manifest, requestBody: 'not-exportable' })
         .success,
     ).toBe(false);
+    expect(Object.keys(researchExportSessionRecordSchema.shape)).not.toEqual(
+      expect.arrayContaining(['email', 'rawToken', 'followUpTokenHash']),
+    );
   });
 
   it('keeps the generated runtime manifest fully synchronized with the reviewed projection', () => {

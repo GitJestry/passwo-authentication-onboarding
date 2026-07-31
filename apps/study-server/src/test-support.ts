@@ -24,10 +24,11 @@ const supportiveSegmentTimingBounds = {
   }
 >;
 
-export function createSessionBody(identity: number) {
+export function createSessionBody(identity: number, followUpConsent = true) {
   return {
     requestId: `10000000-0000-4000-8000-${identity.toString().padStart(12, '0')}`,
     consentAccepted: true,
+    followUpConsent,
   };
 }
 
@@ -35,11 +36,12 @@ export async function createSession(
   server: FastifyInstance,
   identity = 1,
   registerRecontact = true,
+  followUpConsent = registerRecontact,
 ): Promise<CreateSessionResponse> {
   const response = await server.inject({
     method: 'POST',
     url: '/api/study/sessions',
-    payload: createSessionBody(identity),
+    payload: createSessionBody(identity, followUpConsent),
   });
   expect(response.statusCode).toBe(201);
   const session = response.json<CreateSessionResponse>();
