@@ -1,41 +1,43 @@
-import type { AuthoredPasswordComparisonFixture } from '@passwo/contracts';
-import { compareFictionalPasswords } from '@passwo/password-analysis';
+import type { S06AccountId, S06LocalAccountAnalysis, S06PairComparison } from '@passwo/contracts';
 import {
-  type S06ConsequenceExplanation,
+  analyzeFictionalPassword,
+  analyzeFictionalPasswordStructure,
+  compareFictionalPasswords,
+  determinePasswordSimulationDisposition,
+} from '@passwo/password-analysis';
+import {
   type S06ConsequenceFixtureId,
-  type S06ConsequenceResultContent,
-  type S06ConsequenceSemanticContent,
-  getS06ConsequenceAnimation,
+  type S06NarrationContent,
+  type S06NarrationId,
   getS06ConsequenceFixture,
-  getS06ConsequenceResultContent,
   s06ConsequenceContent,
 } from '@passwo/training-content';
 import {
   type AnimationPlayerPort,
   type MissionDefinition,
   type MissionSnapshot,
-  type SegmentTimingPort,
   MissionController,
 } from '@passwo/training-engine';
 import {
   type NetworkRendererPort,
-  type PasswordConsequenceSceneDefinition,
-  type PasswordConsequenceSceneSnapshot,
-  createPasswordConsequenceScene,
-  transitionPasswordConsequenceScene,
+  type PasswordConsequencePlanStep,
+  type PasswordConsequenceScenePlan,
+  projectPasswordConsequenceScenePlan,
 } from '@passwo/visualization';
 import type { NetworkPresentationSnapshot } from '../../../../adapters/network/NetworkMotionAdapter.js';
 
 export interface S06ConsequenceParticipantSnapshot {
-  readonly scenarioLabel: string;
-  readonly comparisonTitle: string;
-  readonly hypotheticalNotice: string | null;
-  readonly explanation: S06ConsequenceExplanation;
-  readonly semantic: S06ConsequenceSemanticContent | null;
+  readonly narration: S06NarrationContent;
+  readonly mode: (typeof s06ConsequenceContent.modes)[keyof typeof s06ConsequenceContent.modes];
+  readonly relationLabel: string | null;
+  readonly transformationLabel: string | null;
+  readonly generatedCandidate: string | null;
 }
 
 export interface S06ConsequenceControllerSnapshot {
-  readonly scene: PasswordConsequenceSceneSnapshot;
+  readonly phase: 'ready' | 'animating' | 'awaiting-decision' | 'complete';
+  readonly stepIndex: number;
+  readonly step: PasswordConsequencePlanStep;
   readonly presentation: NetworkPresentationSnapshot;
   readonly participant: S06ConsequenceParticipantSnapshot;
   readonly controls: {
@@ -46,106 +48,123 @@ export interface S06ConsequenceControllerSnapshot {
 }
 
 export interface S06ConsequenceControllerOptions {
-  readonly fixtureId: S06ConsequenceFixtureId;
+  readonly plan: PasswordConsequenceScenePlan;
   readonly animationPlayer: AnimationPlayerPort;
-  readonly timingPort?: SegmentTimingPort;
   readonly onComplete?: () => void;
 }
 
 type ControllerListener = (snapshot: S06ConsequenceControllerSnapshot) => void;
 
-export function createS06ConsequenceDefinition(
+const accountIds = ['campusgram', 'master-campus', 'campus-email'] as const;
+const comparisonPairs = [
+  ['campusgram', 'master-campus'],
+  ['campusgram', 'campus-email'],
+  ['master-campus', 'campus-email'],
+] as const satisfies readonly (readonly [S06AccountId, S06AccountId])[];
+
+export function createS06FixtureScenePlan(
   fixtureId: S06ConsequenceFixtureId,
-): PasswordConsequenceSceneDefinition {
+): PasswordConsequenceScenePlan {
   const fixture = getS06ConsequenceFixture(fixtureId);
-  const result = getS06ConsequenceResultContent(fixture.resultKey);
-  const authored = s06ConsequenceContent.scene;
-  const comparisonFixture: AuthoredPasswordComparisonFixture = {
-    fixtureId: fixture.id,
-    kind: fixture.kind,
-    sourcePassword: fixture.sourcePassword,
-    targetPassword: fixture.targetPassword,
-    sceneContext: {
-      sourceAccountId: fixture.sourceAccountId,
-      targetAccountId: fixture.targetAccountId,
-      context: fixture.context,
-    },
-    comparisonResult: compareFictionalPasswords(
-      fixture.sourcePassword,
-      fixture.targetPassword,
-    ),
-  };
-  return {
+  const accounts: S06LocalAccountAnalysis[] = accountIds.map((accountId) => {
+    const account = fixture.accounts[accountId];
+    const definition = s06ConsequenceContent.accounts[accountId];
+    const componentAnalysis = analyzeFictionalPassword({
+      fictionalPassword: account.fictionalPassword,
+      authoredAccountTerms: definition.accountTerms,
+    });
+    const structureAnalysis = analyzeFictionalPasswordStructure({
+      fictionalPassword: account.fictionalPassword,
+      componentAnalysis,
+    });
+    return {
+      accountId,
+      fictionalPassword: account.fictionalPassword,
+      retrievalStatus: account.retrievalStatus,
+      disposition: determinePasswordSimulationDisposition({
+        fictionalPassword: account.fictionalPassword,
+        componentAnalysis,
+        structureAnalysis,
+      }),
+    };
+  });
+  const authoredAccountAndServiceTerms = accountIds.flatMap(
+    (accountId) => s06ConsequenceContent.accounts[accountId].accountTerms,
+  );
+  const comparisons: S06PairComparison[] = comparisonPairs.map(
+    ([sourceAccountId, targetAccountId]) => ({
+      sourceAccountId,
+      targetAccountId,
+      result: compareFictionalPasswords({
+        sourcePassword: fixture.accounts[sourceAccountId].fictionalPassword,
+        targetPassword: fixture.accounts[targetAccountId].fictionalPassword,
+        authoredAccountAndServiceTerms,
+      }),
+    }),
+  );
+  return projectPasswordConsequenceScenePlan({
     id: fixture.routeId,
-    comparisonFixture,
-    animationId: fixture.animationId,
-    sourceAccount: authored.sourceAccount,
-    targetAccount: {
-      label: result.targetLabel,
-      position: authored.targetPosition,
-    },
-    structurePosition: authored.structurePosition,
-    hypotheticalPosition: authored.hypotheticalPosition,
-    labels: authored.labels,
-    summaries: authored.summaries,
-  };
+    incidentSource: 'campusgram',
+    accounts,
+    comparisons,
+    accountDefinitions: accountIds.map((accountId) => ({
+      accountId,
+      label: s06ConsequenceContent.accounts[accountId].label,
+      detailKind:
+        accountId === 'master-campus'
+          ? 'service'
+          : accountId === 'campus-email'
+            ? 'function'
+            : 'content',
+      details: s06ConsequenceContent.accounts[accountId].details,
+    })),
+  });
 }
 
-export function getS06InitialNetworkPresentation(fixtureId: S06ConsequenceFixtureId): {
-  readonly initialNodeId: string;
-  readonly initialRevealedNodeIds: readonly string[];
-} {
-  const definition = createS06ConsequenceDefinition(fixtureId);
-  const scene = createPasswordConsequenceScene(definition);
+function createMission(plan: PasswordConsequenceScenePlan): MissionDefinition {
   return {
-    initialNodeId: definition.comparisonFixture.sceneContext.sourceAccountId,
-    initialRevealedNodeIds: scene.network.nodes.map(({ id }) => id),
-  };
-}
-
-function createS06Mission(
-  fixtureId: S06ConsequenceFixtureId,
-  animationId: string,
-): MissionDefinition {
-  const animation = getS06ConsequenceAnimation(animationId);
-  if (animation === undefined) {
-    throw new Error(`Missing authored S06 animation: ${animationId}`);
-  }
-  return {
-    id: `s06-consequence-${fixtureId}`,
-    segmentId: s06ConsequenceContent.segment.id,
-    sectionId: s06ConsequenceContent.segment.sectionId,
+    id: `s06-consequence-${plan.id}`,
+    segmentId: 'S06',
+    sectionId: 'passwords',
     requiresSafetyAcknowledgement: false,
-    steps: [
-      {
-        id: animation.id,
-        narrationId: animation.id,
-        animation,
+    steps: plan.steps.map((step) => ({
+      id: step.id,
+      narrationId: step.narrationId,
+      animation: {
+        id: `${step.id}-animation`,
+        steps: [
+          {
+            type: 'highlight',
+            targetId: step.visibleChange.targetId,
+            emphasis: step.visibleChange.emphasis,
+            durationMs: 420,
+          },
+        ],
+        reducedMotion: { strategy: 'instant-end-state', maxDurationMs: 0 },
+        maxDurationMs: 420,
       },
-    ],
+    })),
   };
 }
 
-function createParticipantSnapshot(
-  result: S06ConsequenceResultContent,
-  scene: PasswordConsequenceSceneSnapshot,
-  presentation: NetworkPresentationSnapshot,
-): S06ConsequenceParticipantSnapshot {
+function participantSnapshot(step: PasswordConsequencePlanStep): S06ConsequenceParticipantSnapshot {
+  const relation = step.relation;
   return {
-    scenarioLabel: result.scenarioLabel,
-    comparisonTitle: result.comparisonTitle,
-    hypotheticalNotice: result.hypotheticalNotice,
-    explanation: result.explanations[scene.phase],
-    semantic:
-      presentation.emphasis === null || presentation.emphasis === undefined
-        ? null
-        : result.semantic,
+    narration: s06ConsequenceContent.narrations[step.narrationId as S06NarrationId],
+    mode: s06ConsequenceContent.modes[step.mode],
+    relationLabel:
+      relation === null ? null : s06ConsequenceContent.relationLabels[relation.kind],
+    transformationLabel:
+      relation?.kind === 'derived-variant-match'
+        ? s06ConsequenceContent.transformationLabels[relation.transformationId]
+        : null,
+    generatedCandidate:
+      relation?.kind === 'derived-variant-match' ? relation.candidate : null,
   };
 }
 
 export class S06ConsequenceController {
-  readonly #definition: PasswordConsequenceSceneDefinition;
-  readonly #result: S06ConsequenceResultContent;
+  readonly #plan: PasswordConsequenceScenePlan;
   readonly #missionController: MissionController;
   readonly #mission: MissionDefinition;
   readonly #listeners = new Set<ControllerListener>();
@@ -154,33 +173,31 @@ export class S06ConsequenceController {
   #snapshot: S06ConsequenceControllerSnapshot;
   #disposed = false;
 
-  constructor({
-    fixtureId,
-    animationPlayer,
-    timingPort,
-    onComplete,
-  }: S06ConsequenceControllerOptions) {
-    const fixture = getS06ConsequenceFixture(fixtureId);
-    this.#definition = createS06ConsequenceDefinition(fixtureId);
-    this.#result = getS06ConsequenceResultContent(fixture.resultKey);
-    this.#mission = createS06Mission(fixtureId, fixture.animationId);
-    const scene = createPasswordConsequenceScene(this.#definition);
+  constructor({ plan, animationPlayer, onComplete }: S06ConsequenceControllerOptions) {
+    const firstStep = plan.steps[0];
+    if (firstStep === undefined) throw new Error('S06 scene plan requires at least one step.');
+    this.#plan = plan;
+    this.#mission = createMission(plan);
+    const allNodeIds = [
+      ...new Set(plan.steps.flatMap(({ network }) => network.nodes.map(({ id }) => id))),
+    ];
     const presentation: NetworkPresentationSnapshot = {
       character: { placement: 'bottom-left', pose: 'dock' },
-      revealedNodeIds: scene.network.nodes.map(({ id }) => id),
+      revealedNodeIds: allNodeIds,
       highlightedNodeId: null,
       emphasis: null,
       announcedMessageId: null,
     };
     this.#snapshot = {
-      scene,
+      phase: 'ready',
+      stepIndex: 0,
+      step: firstStep,
       presentation,
-      participant: createParticipantSnapshot(this.#result, scene, presentation),
+      participant: participantSnapshot(firstStep),
       controls: { canStart: true, canReplay: false, canContinue: false },
     };
     this.#missionController = new MissionController({
       animationPlayer,
-      ...(timingPort === undefined ? {} : { timingPort }),
       onComplete: onComplete ?? (() => undefined),
     });
     this.#unsubscribeMission = this.#missionController.subscribe((snapshot) =>
@@ -198,21 +215,21 @@ export class S06ConsequenceController {
   attachRenderer(renderer: NetworkRendererPort): void {
     if (this.#disposed) return;
     this.#renderer = renderer;
-    renderer.render(this.#snapshot.scene.network);
+    renderer.render(this.#snapshot.step.network);
   }
 
-  startComparison(): void {
+  start(): void {
     if (this.#disposed || !this.#snapshot.controls.canStart) return;
-    const transition = transitionPasswordConsequenceScene(this.#definition, this.#snapshot.scene, {
-      type: 'comparison-started',
-    });
-    if (transition.effects.length === 0) return;
-    this.#setControls({ canStart: false, canReplay: false, canContinue: false });
-    this.#applyTransition(transition.snapshot);
-    this.#missionController.start(this.#mission);
+    this.#snapshot = {
+      ...this.#snapshot,
+      phase: 'animating',
+      controls: { canStart: false, canReplay: false, canContinue: false },
+    };
+    this.#emit();
+    void this.#missionController.start(this.#mission);
   }
 
-  replayComparison(): void {
+  replay(): void {
     if (this.#disposed || !this.#snapshot.controls.canReplay) return;
     this.#missionController.replay();
   }
@@ -224,11 +241,7 @@ export class S06ConsequenceController {
 
   updatePresentation(presentation: NetworkPresentationSnapshot): void {
     if (this.#disposed || presentation === this.#snapshot.presentation) return;
-    this.#snapshot = {
-      ...this.#snapshot,
-      presentation,
-      participant: createParticipantSnapshot(this.#result, this.#snapshot.scene, presentation),
-    };
+    this.#snapshot = { ...this.#snapshot, presentation };
     this.#emit();
   }
 
@@ -240,47 +253,35 @@ export class S06ConsequenceController {
   }
 
   #handleMissionSnapshot(missionSnapshot: MissionSnapshot): void {
-    if (this.#disposed) return;
-    const awaitingDecision = missionSnapshot.matches({ active: 'awaitingDecision' });
-    this.#setControls({
-      canStart: false,
-      canReplay: awaitingDecision,
-      canContinue: awaitingDecision,
-    });
-    if (awaitingDecision && this.#snapshot.scene.phase === 'comparing') {
-      const transition = transitionPasswordConsequenceScene(
-        this.#definition,
-        this.#snapshot.scene,
-        {
-          type: 'animation-settled',
-          animationId: this.#definition.animationId,
-        },
-      );
-      this.#applyTransition(transition.snapshot);
+    if (this.#disposed || missionSnapshot.matches('idle')) return;
+    if (missionSnapshot.status === 'done') {
+      this.#snapshot = {
+        ...this.#snapshot,
+        phase: 'complete',
+        controls: { canStart: false, canReplay: false, canContinue: false },
+      };
+      this.#emit();
       return;
     }
-    this.#emit();
-  }
-
-  #setControls(controls: S06ConsequenceControllerSnapshot['controls']): void {
-    this.#snapshot = { ...this.#snapshot, controls };
-  }
-
-  #applyTransition(scene: PasswordConsequenceSceneSnapshot): void {
-    if (scene === this.#snapshot.scene) return;
-    const revealedNodeIds = new Set(this.#snapshot.presentation.revealedNodeIds);
-    for (const node of scene.network.nodes) revealedNodeIds.add(node.id);
-    const presentation = {
-      ...this.#snapshot.presentation,
-      revealedNodeIds: [...revealedNodeIds],
-    };
+    const stepIndex = missionSnapshot.context.stepIndex;
+    const step = this.#plan.steps[stepIndex];
+    if (step === undefined) return;
+    if (stepIndex !== this.#snapshot.stepIndex) {
+      this.#renderer?.render(step.network);
+    }
+    const awaitingDecision = missionSnapshot.matches({ active: 'awaitingDecision' });
     this.#snapshot = {
       ...this.#snapshot,
-      scene,
-      presentation,
-      participant: createParticipantSnapshot(this.#result, scene, presentation),
+      phase: awaitingDecision ? 'awaiting-decision' : 'animating',
+      stepIndex,
+      step,
+      participant: participantSnapshot(step),
+      controls: {
+        canStart: false,
+        canReplay: awaitingDecision,
+        canContinue: awaitingDecision,
+      },
     };
-    this.#renderer?.render(scene.network);
     this.#emit();
   }
 

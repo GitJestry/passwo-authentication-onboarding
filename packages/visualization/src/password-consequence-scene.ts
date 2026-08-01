@@ -1,249 +1,408 @@
 import type {
-  AuthoredPasswordComparisonFixture,
-  PasswordComparisonResult,
+  IncidentSource,
+  LocalPasswordDisposition,
+  PasswordConsequenceSceneMode,
+  PasswordRelation,
+  S06AccountId,
+  S06LocalAccountAnalysis,
+  S06PairComparison,
 } from '@passwo/contracts';
-import type { AuthoredPosition, NetworkSceneSnapshot, SceneEdge, SceneNode } from './scene.js';
+import type { NetworkSceneSnapshot, SceneEdge, SceneNode } from './scene.js';
 
-export interface PasswordConsequenceSceneDefinition {
+export type PasswordConsequenceStepId =
+  | 's06-step-campusgram-incident'
+  | 's06-step-campusgram-master-campus'
+  | 's06-step-campusgram-campus-email'
+  | 's06-step-master-campus-perspective'
+  | 's06-step-master-campus-campus-email'
+  | 's06-step-campus-email-local-check'
+  | 's06-step-summary';
+
+export interface PasswordConsequenceAccountDefinition {
+  readonly accountId: S06AccountId;
+  readonly label: string;
+  readonly detailKind: 'service' | 'function' | 'content';
+  readonly details: readonly string[];
+}
+
+export interface PasswordConsequenceProjectionInput {
   readonly id: string;
-  readonly comparisonFixture: AuthoredPasswordComparisonFixture;
-  readonly animationId: string;
-  readonly sourceAccount: {
-    readonly label: string;
-    readonly position: AuthoredPosition;
-  };
-  readonly targetAccount: {
-    readonly label: string;
-    readonly position: AuthoredPosition;
-  };
-  readonly structurePosition: AuthoredPosition;
-  readonly hypotheticalPosition: AuthoredPosition;
-  readonly labels: {
-    readonly sourceKnown: string;
-    readonly targetReady: string;
-    readonly comparing: string;
-    readonly identical: string;
-    readonly similar: string;
-    readonly noDerivedPath: string;
-    readonly structure: string;
-    readonly structureDescription: string;
-    readonly hypothetical: string;
-    readonly hypotheticalDescription: string;
-  };
-  readonly summaries: {
-    readonly ready: string;
-    readonly comparing: string;
-    readonly identical: string;
-    readonly similar: string;
-    readonly noDerivedPath: string;
-    readonly hypothetical: string;
-  };
+  readonly incidentSource: IncidentSource;
+  readonly accounts: readonly S06LocalAccountAnalysis[];
+  readonly comparisons: readonly S06PairComparison[];
+  readonly accountDefinitions: readonly PasswordConsequenceAccountDefinition[];
 }
 
-export type PasswordConsequenceScenePhase = 'ready' | 'comparing' | 'complete';
+export interface PasswordConsequenceVisibleChange {
+  readonly targetId: string;
+  readonly emphasis: 'info' | 'positive' | 'warning' | 'danger';
+}
 
-export interface PasswordConsequenceSceneSnapshot {
-  readonly phase: PasswordConsequenceScenePhase;
-  readonly analysis: PasswordComparisonResult;
+export interface PasswordConsequencePlanStep {
+  readonly id: PasswordConsequenceStepId;
+  readonly mode: PasswordConsequenceSceneMode;
+  readonly narrationId: string;
+  readonly sourceAccountId: S06AccountId | null;
+  readonly targetAccountId: S06AccountId | null;
+  readonly relation: PasswordRelation | null;
   readonly network: NetworkSceneSnapshot;
-  readonly pendingAnimationId: string | null;
+  readonly visibleChange: PasswordConsequenceVisibleChange;
 }
 
-export type PasswordConsequenceSceneEvent =
-  | { readonly type: 'comparison-started' }
-  | { readonly type: 'animation-settled'; readonly animationId: string };
-
-export type PasswordConsequenceSceneEffect = {
-  readonly type: 'play-animation';
-  readonly animationId: string;
-};
-
-export interface PasswordConsequenceSceneTransition {
-  readonly snapshot: PasswordConsequenceSceneSnapshot;
-  readonly effects: readonly PasswordConsequenceSceneEffect[];
+export interface PasswordConsequenceScenePlan {
+  readonly id: string;
+  readonly incidentSource: IncidentSource;
+  readonly accounts: readonly S06LocalAccountAnalysis[];
+  readonly comparisons: readonly S06PairComparison[];
+  readonly steps: readonly PasswordConsequencePlanStep[];
 }
 
-function createAccountNodes(
-  definition: PasswordConsequenceSceneDefinition,
-  phase: PasswordConsequenceScenePhase,
-): readonly SceneNode[] {
-  const { comparisonResult: analysis, sceneContext } = definition.comparisonFixture;
-  const { labels } = definition;
-  const complete = phase === 'complete';
-  const hypothetical = sceneContext.context === 'hypothetical-example';
-  const targetStatus = !complete
-    ? hypothetical
-      ? 'hypothetical'
-      : 'neutral'
-    : hypothetical
-      ? 'hypothetical'
-      : analysis.outcome === 'no-derived-path-recognized'
-        ? 'neutral'
-        : 'affected';
+const accountPositions = {
+  campusgram: { x: 0.08, y: 0.34 },
+  'master-campus': { x: 0.42, y: 0.16 },
+  'campus-email': { x: 0.72, y: 0.4 },
+} as const;
 
-  const nodes: SceneNode[] = [
-    {
-      id: sceneContext.sourceAccountId,
-      kind: 'account',
-      symbolId: sceneContext.sourceAccountId,
-      label: definition.sourceAccount.label,
-      description: labels.sourceKnown,
-      status: hypothetical ? 'hypothetical' : 'exposed',
-      position: definition.sourceAccount.position,
-      selectable: false,
-    },
-    {
-      id: sceneContext.targetAccountId,
-      kind: 'account',
-      symbolId: sceneContext.targetAccountId,
-      label: definition.targetAccount.label,
-      description:
-        phase === 'comparing'
-          ? labels.comparing
-          : complete
-            ? analysis.outcome === 'identical'
-              ? labels.identical
-              : analysis.outcome === 'similar'
-                ? labels.similar
-                : labels.noDerivedPath
-            : labels.targetReady,
-      status: targetStatus,
-      position: definition.targetAccount.position,
-      selectable: false,
-    },
-  ];
+const detailOffsets = [
+  { x: -0.05, y: 0.34 },
+  { x: 0.04, y: 0.43 },
+  { x: 0.13, y: 0.34 },
+  { x: 0.22, y: 0.43 },
+] as const;
 
-  if (complete && analysis.outcome === 'similar') {
+function accountById(
+  accounts: readonly S06LocalAccountAnalysis[],
+  accountId: S06AccountId,
+): S06LocalAccountAnalysis {
+  const account = accounts.find((candidate) => candidate.accountId === accountId);
+  if (account === undefined) throw new Error(`Missing S06 account analysis: ${accountId}`);
+  return account;
+}
+
+function definitionById(
+  definitions: readonly PasswordConsequenceAccountDefinition[],
+  accountId: S06AccountId,
+): PasswordConsequenceAccountDefinition {
+  const definition = definitions.find((candidate) => candidate.accountId === accountId);
+  if (definition === undefined) throw new Error(`Missing S06 account definition: ${accountId}`);
+  return definition;
+}
+
+function comparisonByPair(
+  comparisons: readonly S06PairComparison[],
+  sourceAccountId: S06AccountId,
+  targetAccountId: S06AccountId,
+): S06PairComparison {
+  const comparison = comparisons.find(
+    (candidate) =>
+      candidate.sourceAccountId === sourceAccountId &&
+      candidate.targetAccountId === targetAccountId,
+  );
+  if (comparison === undefined) {
+    throw new Error(`Missing S06 comparison: ${sourceAccountId}:${targetAccountId}`);
+  }
+  return comparison;
+}
+
+function quickPathRecognized(disposition: LocalPasswordDisposition): boolean {
+  return disposition.kind === 'quick-path-recognized';
+}
+
+function createBaseNetwork(
+  id: string,
+  accounts: readonly S06LocalAccountAnalysis[],
+  definitions: readonly PasswordConsequenceAccountDefinition[],
+): { readonly nodes: SceneNode[]; readonly edges: SceneEdge[] } {
+  const nodes: SceneNode[] = [];
+  const edges: SceneEdge[] = [];
+  for (const account of accounts) {
+    const definition = definitionById(definitions, account.accountId);
+    const position = accountPositions[account.accountId];
     nodes.push({
-      id: `${definition.id}-structure`,
-      kind: 'annotation',
-      symbolId: 'structure',
-      label: labels.structure,
-      description: labels.structureDescription,
-      status: 'affected',
-      position: definition.structurePosition,
+      id: account.accountId,
+      kind: 'account',
+      symbolId: account.accountId,
+      label: definition.label,
+      description: `Fiktives Konto · Abrufbarkeit: ${account.retrievalStatus}`,
+      status: 'neutral',
+      position,
       selectable: false,
     });
-  }
-
-  if (hypothetical) {
-    nodes.push({
-      id: `${definition.id}-hypothetical`,
-      kind: 'annotation',
-      symbolId: 'hypothetical',
-      label: labels.hypothetical,
-      description: labels.hypotheticalDescription,
-      status: 'hypothetical',
-      position: definition.hypotheticalPosition,
-      selectable: false,
+    definition.details.forEach((detail, index) => {
+      const offset = detailOffsets[index];
+      if (offset === undefined) return;
+      const detailId = `${account.accountId}-detail-${index + 1}`;
+      nodes.push({
+        id: detailId,
+        kind: definition.detailKind,
+        symbolId: definition.detailKind,
+        label: detail,
+        description: `${detail} gehört zum fiktiven Konto ${definition.label}.`,
+        status: 'neutral',
+        position: { x: position.x + offset.x, y: position.y + offset.y },
+        selectable: false,
+      });
+      edges.push({
+        id: `${id}-${account.accountId}-role-${index + 1}`,
+        sourceId: account.accountId,
+        targetId: detailId,
+        kind: definition.detailKind === 'service' ? 'dependency' : 'association',
+        status: 'neutral',
+        label: null,
+      });
     });
   }
-
-  return nodes;
+  return { nodes, edges };
 }
 
-function createEdges(
-  definition: PasswordConsequenceSceneDefinition,
-  phase: PasswordConsequenceScenePhase,
-): readonly SceneEdge[] {
-  const { comparisonResult: analysis, sceneContext } = definition.comparisonFixture;
-  const { labels } = definition;
-  if (phase !== 'complete') {
-    return [
-      {
-        id: `${definition.id}-comparison`,
-        sourceId: sceneContext.sourceAccountId,
-        targetId: sceneContext.targetAccountId,
-        kind: 'check',
-        status: phase === 'comparing' ? 'checking' : 'neutral',
-        label: phase === 'comparing' ? labels.comparing : labels.targetReady,
-      },
-    ];
-  }
+function withNodeStatus(
+  nodes: readonly SceneNode[],
+  accountId: S06AccountId,
+  status: SceneNode['status'],
+): SceneNode[] {
+  return nodes.map((node) =>
+    node.id === accountId || node.id.startsWith(`${accountId}-detail-`)
+      ? { ...node, status }
+      : node,
+  );
+}
 
-  if (analysis.outcome === 'no-derived-path-recognized') {
-    return [];
-  }
-
+function addShield(
+  nodes: readonly SceneNode[],
+  targetAccountId: S06AccountId,
+  stepId: PasswordConsequenceStepId,
+): SceneNode[] {
+  const target = accountPositions[targetAccountId];
   return [
+    ...nodes,
     {
-      id: `${definition.id}-result`,
-      sourceId: sceneContext.sourceAccountId,
-      targetId: sceneContext.targetAccountId,
-      kind: analysis.outcome === 'identical' ? 'identical-reuse' : 'similar-pattern',
-      status:
-        sceneContext.context === 'hypothetical-example'
-          ? 'hypothetical'
-          : analysis.outcome === 'identical'
-            ? 'direct'
-            : 'similar',
-      label: analysis.outcome === 'identical' ? labels.identical : labels.similar,
+      id: `${stepId}-shield`,
+      kind: 'shield',
+      symbolId: 'shield',
+      label: 'Dieser Angriffsweg ist blockiert.',
+      description:
+        'Mit den begrenzten Transformationswegen dieser Simulation wurde kein direkter Weg erkannt.',
+      status: 'protected',
+      position: { x: target.x - 0.12, y: target.y - 0.04 },
+      selectable: false,
     },
   ];
 }
 
-function createNetwork(
-  definition: PasswordConsequenceSceneDefinition,
-  phase: PasswordConsequenceScenePhase,
-): NetworkSceneSnapshot {
-  const summary =
-    phase === 'ready'
-      ? definition.summaries.ready
-      : phase === 'comparing'
-        ? definition.summaries.comparing
-        : definition.comparisonFixture.sceneContext.context === 'hypothetical-example'
-          ? definition.summaries.hypothetical
-          : definition.comparisonFixture.comparisonResult.outcome ===
-              'no-derived-path-recognized'
-            ? definition.summaries.noDerivedPath
-            : definition.summaries[definition.comparisonFixture.comparisonResult.outcome];
-
+function localCheckStep(
+  input: PasswordConsequenceProjectionInput,
+  stepId: PasswordConsequenceStepId,
+  accountId: S06AccountId,
+  narrationPrefix: 's06.incident.campusgram' | 's06.perspective.master-campus' | 's06.local-check.campus-email',
+  mode: PasswordConsequenceSceneMode,
+): PasswordConsequencePlanStep {
+  const account = accountById(input.accounts, accountId);
+  const found = quickPathRecognized(account.disposition);
+  const base = createBaseNetwork(stepId, input.accounts, input.accountDefinitions);
+  let nodes = withNodeStatus(base.nodes, accountId, found ? 'exposed' : 'protected');
+  if (!found) nodes = addShield(nodes, accountId, stepId);
   return {
-    id: definition.id,
-    nodes: createAccountNodes(definition, phase),
-    edges: createEdges(definition, phase),
-    accessibleSummary: summary,
+    id: stepId,
+    mode,
+    narrationId: `${narrationPrefix}-${found ? 'found' : 'blocked'}`,
+    sourceAccountId: accountId,
+    targetAccountId: null,
+    relation: null,
+    network: {
+      id: `${input.id}-${stepId}`,
+      nodes,
+      edges: base.edges,
+      accessibleSummary: found
+        ? `${definitionById(input.accountDefinitions, accountId).label}: schneller Weg erkannt.`
+        : `${definitionById(input.accountDefinitions, accountId).label}: tatsächlicher Weg blockiert.`,
+    },
+    visibleChange: { targetId: accountId, emphasis: found ? 'danger' : 'positive' },
   };
 }
 
-function createSnapshot(
-  definition: PasswordConsequenceSceneDefinition,
-  phase: PasswordConsequenceScenePhase,
-  pendingAnimationId: string | null,
-): PasswordConsequenceSceneSnapshot {
+function comparisonStep(
+  input: PasswordConsequenceProjectionInput,
+  stepId: PasswordConsequenceStepId,
+  sourceAccountId: S06AccountId,
+  targetAccountId: S06AccountId,
+  mode: PasswordConsequenceSceneMode,
+): PasswordConsequencePlanStep {
+  const comparison = comparisonByPair(input.comparisons, sourceAccountId, targetAccountId);
+  const relation = comparison.result.relation;
+  const base = createBaseNetwork(stepId, input.accounts, input.accountDefinitions);
+  let nodes = withNodeStatus(base.nodes, sourceAccountId, mode === 'actual' ? 'exposed' : 'hypothetical');
+  const reached = relation.kind !== 'no-derived-path-recognized';
+  nodes = withNodeStatus(nodes, targetAccountId, reached ? 'affected' : 'protected');
+  if (!reached) nodes = addShield(nodes, targetAccountId, stepId);
+  const resultEdge: SceneEdge = {
+    id: `${stepId}-path`,
+    sourceId: sourceAccountId,
+    targetId: targetAccountId,
+    kind:
+      relation.kind === 'exact-match'
+        ? 'identical-reuse'
+        : relation.kind === 'derived-variant-match'
+          ? 'similar-pattern'
+          : 'blocked-path',
+    status:
+      relation.kind === 'exact-match'
+        ? 'direct'
+        : relation.kind === 'derived-variant-match'
+          ? 'similar'
+          : 'blocked',
+    label:
+      relation.kind === 'exact-match'
+        ? 'Exakte Wiederverwendung'
+        : relation.kind === 'derived-variant-match'
+          ? 'Konkreter abgeleiteter Kandidat'
+          : 'Dieser Angriffsweg ist blockiert.',
+  };
   return {
-    phase,
-    analysis: definition.comparisonFixture.comparisonResult,
-    network: createNetwork(definition, phase),
-    pendingAnimationId,
+    id: stepId,
+    mode,
+    narrationId: `s06.compare.${relation.kind}`,
+    sourceAccountId,
+    targetAccountId,
+    relation,
+    network: {
+      id: `${input.id}-${stepId}`,
+      nodes,
+      edges: [...base.edges, resultEdge],
+      accessibleSummary: reached
+        ? `${definitionById(input.accountDefinitions, targetAccountId).label} wird in dieser Simulation durch ${relation.kind} erreicht.`
+        : `Die Angriffslinie stoppt vor ${definitionById(input.accountDefinitions, targetAccountId).label}.`,
+    },
+    visibleChange: {
+      targetId: targetAccountId,
+      emphasis:
+        relation.kind === 'exact-match'
+          ? 'danger'
+          : relation.kind === 'derived-variant-match'
+            ? 'warning'
+            : 'positive',
+    },
   };
 }
 
-export function createPasswordConsequenceScene(
-  definition: PasswordConsequenceSceneDefinition,
-): PasswordConsequenceSceneSnapshot {
-  return createSnapshot(definition, 'ready', null);
+function summaryStep(input: PasswordConsequenceProjectionInput): PasswordConsequencePlanStep {
+  const base = createBaseNetwork('s06-step-summary', input.accounts, input.accountDefinitions);
+  const nodes = input.accounts.reduce<SceneNode[]>((current, account) => {
+    const hasReachedRelation = input.comparisons.some(
+      ({ targetAccountId, result }) =>
+        targetAccountId === account.accountId &&
+        result.relation.kind !== 'no-derived-path-recognized',
+    );
+    return withNodeStatus(
+      current,
+      account.accountId,
+      hasReachedRelation
+        ? 'affected'
+        : quickPathRecognized(account.disposition)
+          ? 'exposed'
+          : 'protected',
+    );
+  }, base.nodes);
+  return {
+    id: 's06-step-summary',
+    mode: 'actual',
+    narrationId: 's06.summary',
+    sourceAccountId: null,
+    targetAccountId: null,
+    relation: null,
+    network: {
+      id: `${input.id}-s06-step-summary`,
+      nodes,
+      edges: base.edges,
+      accessibleSummary:
+        'Gemeinsame Endübersicht mit Einzelcheck, Passwortbeziehungen und Abrufbarkeit der drei fiktiven Konten.',
+    },
+    visibleChange: { targetId: 'campus-email', emphasis: 'info' },
+  };
 }
 
-export function transitionPasswordConsequenceScene(
-  definition: PasswordConsequenceSceneDefinition,
-  snapshot: PasswordConsequenceSceneSnapshot,
-  event: PasswordConsequenceSceneEvent,
-): PasswordConsequenceSceneTransition {
-  if (event.type === 'comparison-started') {
-    if (snapshot.phase !== 'ready') return { snapshot, effects: [] };
-    return {
-      snapshot: createSnapshot(definition, 'comparing', definition.animationId),
-      effects: [{ type: 'play-animation', animationId: definition.animationId }],
-    };
+function validateInput(input: PasswordConsequenceProjectionInput): void {
+  if (input.accounts.length !== 3) throw new Error('S06 requires exactly three account analyses.');
+  if (input.comparisons.length !== 3) throw new Error('S06 requires exactly three pair comparisons.');
+  const pairKeys = new Set(
+    input.comparisons.map(({ sourceAccountId, targetAccountId }) =>
+      [sourceAccountId, targetAccountId].sort().join(':'),
+    ),
+  );
+  if (
+    pairKeys.size !== 3 ||
+    !pairKeys.has('campusgram:master-campus') ||
+    !pairKeys.has('campus-email:campusgram') ||
+    !pairKeys.has('campus-email:master-campus')
+  ) {
+    throw new Error('S06 comparisons must cover every account pair exactly once.');
   }
+}
 
-  if (snapshot.phase !== 'comparing' || snapshot.pendingAnimationId !== event.animationId) {
-    return { snapshot, effects: [] };
-  }
-
+export function projectPasswordConsequenceScenePlan(
+  input: PasswordConsequenceProjectionInput,
+): PasswordConsequenceScenePlan {
+  validateInput(input);
+  const campusgramFound = quickPathRecognized(
+    accountById(input.accounts, 'campusgram').disposition,
+  );
+  const masterCampusFound = quickPathRecognized(
+    accountById(input.accounts, 'master-campus').disposition,
+  );
+  const campusgramComparisonMode: PasswordConsequenceSceneMode = campusgramFound
+    ? 'actual'
+    : 'hypothetical';
+  const masterComparisonMode: PasswordConsequenceSceneMode = masterCampusFound
+    ? 'actual'
+    : 'hypothetical';
   return {
-    snapshot: createSnapshot(definition, 'complete', null),
-    effects: [],
+    id: input.id,
+    incidentSource: input.incidentSource,
+    accounts: input.accounts,
+    comparisons: input.comparisons,
+    steps: [
+      localCheckStep(
+        input,
+        's06-step-campusgram-incident',
+        'campusgram',
+        's06.incident.campusgram',
+        'actual',
+      ),
+      comparisonStep(
+        input,
+        's06-step-campusgram-master-campus',
+        'campusgram',
+        'master-campus',
+        campusgramComparisonMode,
+      ),
+      comparisonStep(
+        input,
+        's06-step-campusgram-campus-email',
+        'campusgram',
+        'campus-email',
+        campusgramComparisonMode,
+      ),
+      localCheckStep(
+        input,
+        's06-step-master-campus-perspective',
+        'master-campus',
+        's06.perspective.master-campus',
+        'actual',
+      ),
+      comparisonStep(
+        input,
+        's06-step-master-campus-campus-email',
+        'master-campus',
+        'campus-email',
+        masterComparisonMode,
+      ),
+      localCheckStep(
+        input,
+        's06-step-campus-email-local-check',
+        'campus-email',
+        's06.local-check.campus-email',
+        'actual',
+      ),
+      summaryStep(input),
+    ],
   };
 }

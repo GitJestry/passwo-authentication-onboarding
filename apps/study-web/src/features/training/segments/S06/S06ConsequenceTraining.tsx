@@ -1,20 +1,21 @@
+import type { S06AccountId } from '@passwo/contracts';
 import {
-  type S06ConsequenceExplanation,
+  type PasswordConsequenceScenePlan,
+} from '@passwo/visualization';
+import {
   type S06ConsequenceFixtureId,
   s06ConsequenceContent,
 } from '@passwo/training-content';
 import { type BrowserShellSnapshot, BrowserShell } from '@passwo/ui';
 import { useEffect, useRef, useState } from 'react';
 import { NetworkMotionAdapter } from '../../../../adapters/network/NetworkMotionAdapter.js';
-import { NetworkSymbol } from '../../../../adapters/network/NetworkSymbolRegistry.js';
 import {
   ReactFlowNetwork,
   ReactFlowNetworkAdapter,
 } from '../../../../adapters/network/ReactFlowNetworkAdapter.js';
-import { BrowserSegmentTimingAdapter } from '../../../../adapters/timing/BrowserSegmentTimingAdapter.js';
 import {
   type S06ConsequenceControllerSnapshot,
-  getS06InitialNetworkPresentation,
+  createS06FixtureScenePlan,
   S06ConsequenceController,
 } from './S06ConsequenceController.js';
 import styles from './S06ConsequenceTraining.module.css';
@@ -25,6 +26,8 @@ const browserSnapshot: BrowserShellSnapshot = {
   address: s06ConsequenceContent.browser.address,
 };
 
+const accountOrder = ['campusgram', 'master-campus', 'campus-email'] as const;
+
 function prefersReducedMotion(): boolean {
   return window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 }
@@ -32,21 +35,7 @@ function prefersReducedMotion(): boolean {
 interface Runtime {
   readonly controller: S06ConsequenceController;
   readonly renderer: ReactFlowNetworkAdapter;
-}
-
-function ResultExplanation({ content }: { readonly content: S06ConsequenceExplanation }) {
-  return (
-    <>
-      <p>{content.body}</p>
-      {content.listItems.length === 0 ? null : (
-        <ul>
-          {content.listItems.map((item) => (
-            <li key={item}>{item}</li>
-          ))}
-        </ul>
-      )}
-    </>
-  );
+  readonly plan: PasswordConsequenceScenePlan;
 }
 
 export function S06ConsequenceTraining({
@@ -57,13 +46,17 @@ export function S06ConsequenceTraining({
   const networkHostRef = useRef<HTMLDivElement | null>(null);
   const [runtime, setRuntime] = useState<Runtime | null>(null);
   const [snapshot, setSnapshot] = useState<S06ConsequenceControllerSnapshot | null>(null);
+  const [revealedAccounts, setRevealedAccounts] = useState<ReadonlySet<S06AccountId>>(new Set());
 
   useEffect(() => {
+    const plan = createS06FixtureScenePlan(fixtureId);
+    const allNodeIds = [
+      ...new Set(plan.steps.flatMap(({ network }) => network.nodes.map(({ id }) => id))),
+    ];
     let controller: S06ConsequenceController | null = null;
-    const initialPresentation = getS06InitialNetworkPresentation(fixtureId);
     const animationPlayer = new NetworkMotionAdapter({
-      initialNodeId: initialPresentation.initialNodeId,
-      initialRevealedNodeIds: initialPresentation.initialRevealedNodeIds,
+      initialNodeId: 'campusgram',
+      initialRevealedNodeIds: allNodeIds,
       applySnapshot: (presentation) => controller?.updatePresentation(presentation),
       getCharacterElement: () => null,
       getActiveNodeElement: () =>
@@ -76,16 +69,13 @@ export function S06ConsequenceTraining({
         ) ?? null,
       prefersReducedMotion,
     });
-    controller = new S06ConsequenceController({
-      fixtureId,
-      animationPlayer,
-      timingPort: new BrowserSegmentTimingAdapter(),
-    });
-    const renderer = new ReactFlowNetworkAdapter(controller.getSnapshot().scene.network);
+    controller = new S06ConsequenceController({ plan, animationPlayer });
+    const renderer = new ReactFlowNetworkAdapter(controller.getSnapshot().step.network);
     controller.attachRenderer(renderer);
     const unsubscribe = controller.subscribe(setSnapshot);
-    setRuntime({ controller, renderer });
+    setRuntime({ controller, renderer, plan });
     setSnapshot(controller.getSnapshot());
+    setRevealedAccounts(new Set());
 
     return () => {
       unsubscribe();
@@ -95,6 +85,15 @@ export function S06ConsequenceTraining({
 
   if (runtime === null || snapshot === null) return null;
 
+  function togglePassword(accountId: S06AccountId): void {
+    setRevealedAccounts((current) => {
+      const next = new Set(current);
+      if (next.has(accountId)) next.delete(accountId);
+      else next.add(accountId);
+      return next;
+    });
+  }
+
   return (
     <section className={styles.training} aria-label={s06ConsequenceContent.trainingAriaLabel}>
       <BrowserShell
@@ -102,7 +101,11 @@ export function S06ConsequenceTraining({
         ariaLabel={s06ConsequenceContent.browser.ariaLabel}
         onTabSelect={() => undefined}
       >
-        <article className={styles.page} aria-labelledby="s06-consequence-title">
+        <article
+          className={styles.page}
+          data-scene-mode={snapshot.step.mode}
+          aria-labelledby="s06-consequence-title"
+        >
           <header className={styles.pageHeader}>
             <div>
               <p className={styles.eyebrow}>{s06ConsequenceContent.page.eyebrow}</p>
@@ -112,11 +115,33 @@ export function S06ConsequenceTraining({
             <span className={styles.fixtureNotice}>{s06ConsequenceContent.page.fixtureNotice}</span>
           </header>
 
-          {snapshot.participant.hypotheticalNotice === null ? null : (
-            <p className={styles.hypotheticalBanner} role="status">
-              {snapshot.participant.hypotheticalNotice}
-            </p>
-          )}
+          <div className={styles.modeOverlay} role="status">
+            <strong>{snapshot.participant.mode.heading}</strong>
+            <span>{snapshot.participant.mode.overlay}</span>
+          </div>
+
+          <div className={styles.passwordRow} aria-label="Fiktive Übungspasswörter">
+            {accountOrder.map((accountId) => {
+              const account = snapshot.step.network.nodes.find(({ id }) => id === accountId);
+              const accountAnalysis = runtime.plan.accounts.find(
+                (candidate) => candidate.accountId === accountId,
+              );
+              const revealed = revealedAccounts.has(accountId);
+              if (account === undefined || accountAnalysis === undefined) return null;
+              return (
+                <section key={accountId} className={styles.passwordCard}>
+                  <span>Ausdrücklich fiktiver Übungswert</span>
+                  <strong>{account.label}</strong>
+                  <code>{revealed ? accountAnalysis.fictionalPassword : '••••••••••••'}</code>
+                  <button type="button" onClick={() => togglePassword(accountId)}>
+                    {revealed
+                      ? s06ConsequenceContent.page.hidePassword
+                      : s06ConsequenceContent.page.showPassword}
+                  </button>
+                </section>
+              );
+            })}
+          </div>
 
           <div className={styles.workspace}>
             <div ref={networkHostRef} className={styles.networkPanel}>
@@ -126,25 +151,38 @@ export function S06ConsequenceTraining({
                 onNodeSelect={() => undefined}
               />
             </div>
-            <aside className={styles.sidebar} aria-labelledby="s06-result-title">
-              <p className={styles.cardLabel}>{snapshot.participant.scenarioLabel}</p>
-              <h2 id="s06-result-title">{snapshot.participant.comparisonTitle}</h2>
-              <ResultExplanation content={snapshot.participant.explanation} />
-              {snapshot.participant.semantic === null ? null : (
-                <p
-                  className={styles.semanticStatus}
-                  data-emphasis={snapshot.participant.semantic.emphasis}
-                  role="status"
-                >
-                  <NetworkSymbol symbolId={snapshot.participant.semantic.symbolId} />
-                  <span>{snapshot.participant.semantic.label}</span>
+            <aside className={styles.sidebar} aria-labelledby="s06-step-title">
+              <p className={styles.modeStatus}>{snapshot.participant.mode.status}</p>
+              <p className={styles.stepCount}>
+                Schritt {snapshot.stepIndex + 1} von 7 · {snapshot.step.id}
+              </p>
+              <h2 id="s06-step-title">{snapshot.participant.narration.heading}</h2>
+              <p>{snapshot.participant.narration.body}</p>
+              {snapshot.participant.relationLabel === null ? null : (
+                <p className={styles.relationStatus}>{snapshot.participant.relationLabel}</p>
+              )}
+              {snapshot.participant.transformationLabel === null ? null : (
+                <p>{snapshot.participant.transformationLabel}</p>
+              )}
+              {snapshot.participant.generatedCandidate === null ? null : (
+                <p className={styles.candidate}>
+                  Tatsächlich erzeugter fiktiver Kandidat:{' '}
+                  <code>{snapshot.participant.generatedCandidate}</code>
                 </p>
               )}
+              <p className={styles.roleSummary}>
+                {accountOrder
+                  .map(
+                    (accountId) =>
+                      `${s06ConsequenceContent.accounts[accountId].label}: ${s06ConsequenceContent.accounts[accountId].roleSummary}`,
+                  )
+                  .join(' · ')}
+              </p>
               <div className={styles.buttonRow}>
                 <button
                   type="button"
                   disabled={!snapshot.controls.canStart}
-                  onClick={() => runtime.controller.startComparison()}
+                  onClick={() => runtime.controller.start()}
                 >
                   {s06ConsequenceContent.page.start}
                 </button>
@@ -152,7 +190,7 @@ export function S06ConsequenceTraining({
                   type="button"
                   className={styles.secondaryButton}
                   disabled={!snapshot.controls.canReplay}
-                  onClick={() => runtime.controller.replayComparison()}
+                  onClick={() => runtime.controller.replay()}
                 >
                   {s06ConsequenceContent.page.replay}
                 </button>
@@ -163,6 +201,11 @@ export function S06ConsequenceTraining({
                 >
                   {s06ConsequenceContent.page.continue}
                 </button>
+                {snapshot.phase === 'complete' ? (
+                  <p className={styles.completeStatus} role="status">
+                    {s06ConsequenceContent.page.complete}
+                  </p>
+                ) : null}
               </div>
             </aside>
           </div>

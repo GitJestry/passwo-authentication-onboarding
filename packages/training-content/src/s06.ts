@@ -1,286 +1,217 @@
-import type { TrainingSectionId } from '@passwo/contracts';
+import type { S06AccountId, TrainingSectionId } from '@passwo/contracts';
 
 export type S06ConsequenceFixtureId =
-  | 'identical'
-  | 'similar'
-  | 'no-derived-path'
-  | 'hypothetical';
-export type S06ConsequenceResultKey =
-  | 'equal'
-  | 'similar'
-  | 'no-derived-path'
-  | 'hypothetical';
-export type S06ConsequenceEmphasis = 'danger' | 'warning' | 'neutral' | 'info';
-export type S06ConsequenceContentPhase = 'ready' | 'comparing' | 'complete';
-
-export interface S06ConsequenceExplanation {
-  readonly body: string;
-  readonly listItems: readonly string[];
-}
-
-export interface S06ConsequenceSemanticContent {
-  readonly emphasis: S06ConsequenceEmphasis;
-  readonly symbolId: 'annotation' | 'structure' | 'hypothetical';
-  readonly label: string;
-}
-
-export interface S06ConsequenceResultContent {
-  readonly key: S06ConsequenceResultKey;
-  readonly scenarioLabel: string;
-  readonly comparisonTitle: string;
-  readonly targetLabel: string;
-  readonly hypotheticalNotice: string | null;
-  readonly explanations: Readonly<Record<S06ConsequenceContentPhase, S06ConsequenceExplanation>>;
-  readonly semantic: S06ConsequenceSemanticContent;
-}
+  | 'reuse-and-derived'
+  | 'incident-not-found'
+  | 'incident-found-blocked'
+  | 'mixed-actual-hypothetical';
 
 export interface S06ConsequenceFixture {
   readonly id: S06ConsequenceFixtureId;
-  readonly kind: 'authored-fixture';
-  readonly routeId: string;
-  readonly resultKey: S06ConsequenceResultKey;
-  readonly sourcePassword: string;
-  readonly targetPassword: string;
-  readonly sourceAccountId: string;
-  readonly targetAccountId: string;
-  readonly context: 'actual-selection' | 'hypothetical-example';
-  readonly animationId: string;
+  readonly routeId:
+    | 's06-reuse-and-derived'
+    | 's06-incident-not-found'
+    | 's06-incident-found-blocked'
+    | 's06-mixed-actual-hypothetical';
+  readonly accounts: Readonly<
+    Record<
+      S06AccountId,
+      {
+        readonly fictionalPassword: string;
+        readonly retrievalStatus: 'retrievable' | 'not-remembered' | 'assisted';
+      }
+    >
+  >;
 }
 
-export const S06_CONSEQUENCE_CONTENT_VERSION = '1.4.0';
+export type S06NarrationId =
+  | 's06.incident.campusgram-found'
+  | 's06.incident.campusgram-blocked'
+  | 's06.compare.exact-match'
+  | 's06.compare.derived-variant-match'
+  | 's06.compare.no-derived-path-recognized'
+  | 's06.perspective.master-campus-found'
+  | 's06.perspective.master-campus-blocked'
+  | 's06.local-check.campus-email-found'
+  | 's06.local-check.campus-email-blocked'
+  | 's06.summary';
 
-const commonScene = {
-  sourceAccountId: 'campus-board',
-  targetAccountId: 'target-account',
-} as const;
+export interface S06NarrationContent {
+  readonly heading: string;
+  readonly body: string;
+}
 
-const results: Record<S06ConsequenceResultKey, S06ConsequenceResultContent> = {
-  equal: {
-    key: 'equal',
-    scenarioLabel: 'Szenario: Gleich',
-    comparisonTitle: 'Vergleich mit Master Campus',
-    targetLabel: 'Master Campus',
-    hypotheticalNotice: null,
-    explanations: {
-      ready: { body: 'Der Vergleich ist bereit.', listItems: [] },
-      comparing: {
-        body: 'Die beiden fiktiven Passwörter werden mit den begrenzten Regeln verglichen …',
-        listItems: [],
-      },
-      complete: {
-        body: 'Gleiches Passwort: Der Zugang zum Zielkonto ist in dieser Szene betroffen.',
-        listItems: [],
-      },
-    },
-    semantic: {
-      emphasis: 'danger',
-      symbolId: 'annotation',
-      label: 'Direkter Weg · gleiches Passwort',
-    },
-  },
-  similar: {
-    key: 'similar',
-    scenarioLabel: 'Szenario: Ähnlich',
-    comparisonTitle: 'Vergleich mit Campus E-Mail',
-    targetLabel: 'Campus E-Mail',
-    hypotheticalNotice: null,
-    explanations: {
-      ready: { body: 'Der Vergleich ist bereit.', listItems: [] },
-      comparing: {
-        body: 'Die beiden fiktiven Passwörter werden mit den begrenzten Regeln verglichen …',
-        listItems: [],
-      },
-      complete: {
-        body: 'Ähnliche Struktur: Der Zugang zum Zielkonto ist in dieser Szene betroffen.',
-        listItems: ['Gemeinsamer Kern', 'Ähnlicher Aufbau'],
-      },
-    },
-    semantic: {
-      emphasis: 'warning',
-      symbolId: 'structure',
-      label: 'Ähnliche Struktur · gestrichelter Weg',
-    },
-  },
-  'no-derived-path': {
-    key: 'no-derived-path',
-    scenarioLabel: 'Szenario: Begrenzter Vergleich',
-    comparisonTitle: 'Kein ableitbarer Weg erkannt',
-    targetLabel: 'Campus E-Mail',
-    hypotheticalNotice: null,
-    explanations: {
-      ready: { body: 'Der Vergleich ist bereit.', listItems: [] },
-      comparing: {
-        body: 'Die beiden fiktiven Passwörter werden mit den begrenzten Regeln verglichen …',
-        listItems: [],
-      },
-      complete: {
-        body: 'Mit den begrenzten Vergleichsregeln dieser Simulation wurde kein ableitbarer Weg zwischen den beiden Passwörtern erkannt.',
-        listItems: [],
-      },
-    },
-    semantic: {
-      emphasis: 'neutral',
-      symbolId: 'annotation',
-      label: 'Kein ableitbarer Weg erkannt.',
-    },
-  },
-  hypothetical: {
-    key: 'hypothetical',
-    scenarioLabel: 'Szenario: Hypothetisch',
-    comparisonTitle: 'Vergleich mit Master Campus',
-    targetLabel: 'Master Campus',
-    hypotheticalNotice: 'Hypothetisches Beispiel — nicht deine Auswahl',
-    explanations: {
-      ready: { body: 'Der Vergleich ist bereit.', listItems: [] },
-      comparing: {
-        body: 'Die beiden fiktiven Passwörter werden mit den begrenzten Regeln verglichen …',
-        listItems: [],
-      },
-      complete: {
-        body: 'Dieses direkte Ergebnis gehört nur zum hypothetischen Gegenbeispiel und nicht zu einer realen Auswahl.',
-        listItems: [],
-      },
-    },
-    semantic: {
-      emphasis: 'info',
-      symbolId: 'hypothetical',
-      label: 'Hypothetischer Weg · nicht reale Auswahl',
-    },
-  },
-};
+export const S06_CONSEQUENCE_CONTENT_VERSION = '2.0.0';
 
 export const s06ConsequenceContent = {
   version: S06_CONSEQUENCE_CONTENT_VERSION,
   source: {
     document: 'research/private/training-script.pdf',
-    internalPages: [36, 37, 38, 39, 40] as const,
+    internalPages: [36, 37, 38, 39, 40, 41, 42, 43, 44] as const,
   },
   segment: {
     id: 'S06',
     sectionId: 'passwords' as TrainingSectionId,
-    slice: 'consequence-comparison',
+    slice: 'dynamic-consequence-simulation',
   },
-  trainingAriaLabel: 'PassWo Training, Segment S06, Passwortfolgen',
+  trainingAriaLabel: 'PassWo Design Lab, Segment S06, dynamische Konsequenzsimulation',
   browser: {
     ariaLabel: 'Fiktive Browseranwendung, Segment S06, Passwortfolgen',
     address: 'campus.example/passwortfolgen',
-    tab: {
-      id: 'consequence',
-      label: 'Passwortvergleich',
-      enabled: true,
-    },
+    tab: { id: 'consequence', label: 'Passwortfolgen', enabled: true },
   },
   page: {
-    eyebrow: 'Vergleich und Ausbreitung',
+    eyebrow: 'Design Lab · S06',
     title: 'Wohin kann ein bekanntes Passwort führen?',
-    instruction: 'Vergleiche das bekannte Campusgram-Passwort mit dem ausgewählten Zielkonto.',
-    fixtureNotice: 'Vorgegebenes Beispiel — keine echte Passwortbewertung',
-    start: 'Vergleich starten',
-    replay: 'Vergleich wiederholen',
+    instruction:
+      'Die Übung zeigt ausschließlich fiktive Passwörter und begrenzte, konkrete Ableitungswege.',
+    fixtureNotice: 'Fiktive Übungswerte · nur lokal im Design Lab',
+    start: 'Simulation starten',
+    replay: 'Animation wiederholen',
     continue: 'Weiter',
+    complete: 'Endübersicht erreicht',
+    showPassword: 'Fiktives Passwort anzeigen',
+    hidePassword: 'Fiktives Passwort verbergen',
   },
-  scene: {
-    sourceAccount: {
+  modes: {
+    actual: {
+      heading: 'Tatsächliche Darstellung dieser Übung',
+      status: 'Tatsächlicher Simulationspfad',
+      overlay: 'Tatsächlich · mit den drei fiktiven Übungswerten',
+    },
+    hypothetical: {
+      heading: 'Was wäre, wenn das Ausgangspasswort bekannt wäre?',
+      status: 'Hypothetischer Simulationspfad',
+      overlay: 'Hypothetisches Beispiel · nicht als tatsächlicher Vorfall dargestellt',
+    },
+  },
+  accounts: {
+    'master-campus': {
+      label: 'Master Campus',
+      roleSummary: 'Campus Workspace, Campus Services und Campus Cloud',
+      details: ['Campus Workspace', 'Campus Services', 'Campus Cloud'],
+      accountTerms: ['MasterCampus', 'Master Campus', 'Campus'],
+    },
+    'campus-email': {
+      label: 'Campus E-Mail',
+      roleSummary:
+        'Benachrichtigungen, Bestätigungen, Zurücksetzungslinks und Kommunikation in deinem Namen',
+      details: [
+        'Benachrichtigungen',
+        'Bestätigungen',
+        'Zurücksetzungslinks',
+        'Kommunikation in deinem Namen',
+      ],
+      accountTerms: ['CampusMail', 'Campus E-Mail', 'Mail', 'E-Mail'],
+    },
+    campusgram: {
       label: 'Campusgram',
-      position: { x: 0.05, y: 0.31 },
+      roleSummary: 'Direktnachrichten, Gruppen und Kontakte sowie Beiträge und Reaktionen',
+      details: ['Direktnachrichten', 'Gruppen und Kontakte', 'Beiträge und Reaktionen'],
+      accountTerms: ['Campusgram', 'Gram'],
     },
-    targetPosition: { x: 0.63, y: 0.31 },
-    structurePosition: { x: 0.35, y: 0.68 },
-    hypotheticalPosition: { x: 0.29, y: 0.01 },
-    labels: {
-      sourceKnown: 'Passwort in dieser Simulation bekannt',
-      targetReady: 'Zielkonto für den Vergleich',
-      comparing: 'Vergleich läuft',
-      identical: 'Gleiches Passwort · Zugang betroffen',
-      similar: 'Ähnliche Struktur · Zugang betroffen',
-      noDerivedPath: 'Kein ableitbarer Weg erkannt.',
-      structure: 'Gemeinsame Struktur sichtbar',
-      structureDescription: 'Gemeinsamer Kern · ähnlicher Aufbau',
-      hypothetical: 'Hypothetisches Beispiel — nicht deine Auswahl',
-      hypotheticalDescription: 'Diese Szene zeigt dauerhaft eine nicht reale Auswahl.',
-    },
-    summaries: {
-      ready: 'Campusgram-Passwort bekannt. Der Vergleich mit dem Zielkonto ist bereit.',
-      comparing: 'Die begrenzten Vergleichsregeln werden auf die fiktiven Passwörter angewendet.',
-      identical:
-        'Gleiches Passwort: Eine rote direkte Verbindung zeigt, dass der Zugang betroffen ist.',
-      similar:
-        'Ähnliches Passwort: Eine orange gestrichelte Verbindung und die gemeinsame Struktur zeigen, dass der Zugang betroffen ist.',
-      noDerivedPath:
-        'Mit den begrenzten Vergleichsregeln dieser Simulation wurde kein ableitbarer Weg zwischen den beiden Passwörtern erkannt.',
-      hypothetical:
-        'Hypothetisches Beispiel, nicht die reale Auswahl: Ein direkter Angriffsweg wird nur als Gegenbeispiel gezeigt.',
-    },
+  } as const satisfies Readonly<Record<S06AccountId, unknown>>,
+  relationLabels: {
+    'exact-match': 'Exakte Wiederverwendung · Ziel in dieser Simulation erreicht',
+    'derived-variant-match':
+      'Konkrete abgeleitete Variante · erzeugter Kandidat trifft das Zielpasswort',
+    'no-derived-path-recognized':
+      'Mit den begrenzten Transformationswegen wurde kein direkter Weg erkannt',
+    blockedShield: 'Dieser Angriffsweg ist blockiert.',
   },
+  transformationLabels: {
+    'account-or-service-term-replaced': 'Konto- oder Dienstbegriff wurde ausgetauscht.',
+    'bounded-year-changed': 'Die Jahreszahl wurde innerhalb des begrenzten Wegs verändert.',
+    'typical-suffix-changed-or-added': 'Ein typischer Anhang wurde verändert oder ergänzt.',
+    'account-term-and-year-changed': 'Konto- oder Dienstbegriff und Jahreszahl wurden verändert.',
+    'account-term-and-suffix-changed': 'Konto- oder Dienstbegriff und Anhang wurden verändert.',
+    'year-and-suffix-changed': 'Jahreszahl und typischer Anhang wurden verändert.',
+    'account-term-year-and-suffix-changed':
+      'Konto- oder Dienstbegriff, Jahreszahl und typischer Anhang wurden begrenzt verändert.',
+  },
+  narrations: {
+    's06.incident.campusgram-found': {
+      heading: 'Erster Vorfall: Campusgram',
+      body: 'Das Campusgram-Passwort wurde über einen schnellen Weg dieser Simulation gefunden.',
+    },
+    's06.incident.campusgram-blocked': {
+      heading: 'Erster Vorfall: Campusgram',
+      body: 'Das Datenleck allein reicht hier nicht aus. Dieser tatsächliche Weg stoppt zunächst.',
+    },
+    's06.compare.exact-match': {
+      heading: 'Vollständige Werte stimmen überein',
+      body: 'Das bekannte Passwort kann ohne Veränderung beim Zielkonto ausprobiert werden.',
+    },
+    's06.compare.derived-variant-match': {
+      heading: 'Ein begrenzter Kandidatenweg trifft den Zielwert',
+      body: 'Die sichtbare Transformation erzeugt das vollständige fiktive Zielpasswort.',
+    },
+    's06.compare.no-derived-path-recognized': {
+      heading: 'Kein direkter Weg erkannt',
+      body: 'Die Prüflinie stoppt vor dem Ziel. Das ist keine allgemeine Sicherheitsgarantie.',
+    },
+    's06.perspective.master-campus-found': {
+      heading: 'Perspektivwechsel zu Master Campus',
+      body: 'Auch Master Campus kann Ausgangspunkt eines Vorfalls sein. Der lokale Einzelcheck findet hier einen schnellen Weg.',
+    },
+    's06.perspective.master-campus-blocked': {
+      heading: 'Perspektivwechsel zu Master Campus',
+      body: 'Der tatsächliche Weg stoppt zunächst; der anschließende Vergleich ist klar hypothetisch.',
+    },
+    's06.local-check.campus-email-found': {
+      heading: 'Lokaler Einzelcheck von Campus E-Mail',
+      body: 'Die begrenzte Einzelanalyse erkennt bei diesem fiktiven Passwort einen schnellen Weg.',
+    },
+    's06.local-check.campus-email-blocked': {
+      heading: 'Lokaler Einzelcheck von Campus E-Mail',
+      body: 'Mit den begrenzten Wegen wurde hier kein schneller Weg erkannt.',
+    },
+    's06.summary': {
+      heading: 'Gemeinsame Endübersicht',
+      body: 'Ein Passwort wirkt für sich und durch seine konkrete Beziehung zu anderen Passwörtern.',
+    },
+  } as const satisfies Readonly<Record<S06NarrationId, S06NarrationContent>>,
   fixtures: [
     {
-      id: 'identical',
-      kind: 'authored-fixture',
-      routeId: 's06-identical',
-      resultKey: 'equal',
-      sourcePassword: 'Campus2026!',
-      targetPassword: 'Campus2026!',
-      ...commonScene,
-      context: 'actual-selection',
-      animationId: 's06-compare-identical',
+      id: 'reuse-and-derived',
+      routeId: 's06-reuse-and-derived',
+      accounts: {
+        campusgram: { fictionalPassword: 'LunaCampusgram2026!', retrievalStatus: 'retrievable' },
+        'master-campus': {
+          fictionalPassword: 'LunaCampusgram2026!',
+          retrievalStatus: 'retrievable',
+        },
+        'campus-email': { fictionalPassword: 'LunaMail2027?', retrievalStatus: 'assisted' },
+      },
     },
     {
-      id: 'similar',
-      kind: 'authored-fixture',
-      routeId: 's06-similar',
-      resultKey: 'similar',
-      sourcePassword: 'Campus2025!',
-      targetPassword: 'Campus2026?',
-      ...commonScene,
-      context: 'actual-selection',
-      animationId: 's06-compare-similar',
+      id: 'incident-not-found',
+      routeId: 's06-incident-not-found',
+      accounts: {
+        campusgram: { fictionalPassword: 'rQ7mL2vX9pK4', retrievalStatus: 'retrievable' },
+        'master-campus': { fictionalPassword: 'N8vT2kR6mZ4q', retrievalStatus: 'assisted' },
+        'campus-email': { fictionalPassword: 'B3xJ9pW5dF7s', retrievalStatus: 'not-remembered' },
+      },
     },
     {
-      id: 'no-derived-path',
-      kind: 'authored-fixture',
-      routeId: 's06-no-derived-path',
-      resultKey: 'no-derived-path',
-      sourcePassword: 'MorgenKaffee7',
-      targetPassword: 'MorgenTasse7',
-      ...commonScene,
-      context: 'actual-selection',
-      animationId: 's06-compare-no-derived-path',
+      id: 'incident-found-blocked',
+      routeId: 's06-incident-found-blocked',
+      accounts: {
+        campusgram: { fictionalPassword: 'Passwort123!', retrievalStatus: 'retrievable' },
+        'master-campus': { fictionalPassword: 'N8vT2kR6mZ4q', retrievalStatus: 'assisted' },
+        'campus-email': { fictionalPassword: 'B3xJ9pW5dF7s', retrievalStatus: 'retrievable' },
+      },
     },
     {
-      id: 'hypothetical',
-      kind: 'authored-fixture',
-      routeId: 's06-hypothetical',
-      resultKey: 'hypothetical',
-      sourcePassword: 'Campus2026!',
-      targetPassword: 'Campus2026!',
-      ...commonScene,
-      context: 'hypothetical-example',
-      animationId: 's06-compare-hypothetical',
+      id: 'mixed-actual-hypothetical',
+      routeId: 's06-mixed-actual-hypothetical',
+      accounts: {
+        campusgram: { fictionalPassword: 'LunaCampusgram2026!', retrievalStatus: 'retrievable' },
+        'master-campus': { fictionalPassword: 'rQ7mL2vX9pK4', retrievalStatus: 'assisted' },
+        'campus-email': { fictionalPassword: 'LunaMail2027?', retrievalStatus: 'retrievable' },
+      },
     },
   ] as const satisfies readonly S06ConsequenceFixture[],
-  results,
-  animations: [
-    {
-      id: 's06-compare-identical',
-      targetId: 'target-account',
-      emphasis: 'danger',
-    },
-    {
-      id: 's06-compare-similar',
-      targetId: 'target-account',
-      emphasis: 'warning',
-    },
-    {
-      id: 's06-compare-no-derived-path',
-      targetId: 'target-account',
-      emphasis: 'info',
-    },
-    {
-      id: 's06-compare-hypothetical',
-      targetId: 'target-account',
-      emphasis: 'info',
-    },
-  ] as const,
 } as const;
 
 export function getS06ConsequenceFixture(
@@ -292,29 +223,8 @@ export function getS06ConsequenceFixture(
   );
 }
 
-export function getS06ConsequenceResultContent(
-  resultKey: S06ConsequenceResultKey,
-): S06ConsequenceResultContent {
-  return s06ConsequenceContent.results[resultKey];
-}
-
-export function getS06ConsequenceAnimation(animationId: string) {
-  const authored = s06ConsequenceContent.animations.find(({ id }) => id === animationId);
-  if (authored === undefined) return undefined;
-  return {
-    id: authored.id,
-    steps: [
-      {
-        type: 'highlight' as const,
-        targetId: authored.targetId,
-        emphasis: authored.emphasis,
-        durationMs: 360,
-      },
-    ],
-    reducedMotion: {
-      strategy: 'instant-end-state' as const,
-      maxDurationMs: 0,
-    },
-    maxDurationMs: 360,
-  };
+export function getS06ConsequenceFixtureByRouteId(
+  routeId: string,
+): S06ConsequenceFixture | undefined {
+  return s06ConsequenceContent.fixtures.find((fixture) => fixture.routeId === routeId);
 }

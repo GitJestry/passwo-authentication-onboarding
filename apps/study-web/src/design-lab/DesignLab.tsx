@@ -5,6 +5,7 @@ import {
 } from '@passwo/contracts';
 import {
   getS05DesignLabFixtureByRouteId,
+  getS06ConsequenceFixtureByRouteId,
   type S01AccountId,
   s01AccountIds,
   s01Content,
@@ -224,28 +225,27 @@ const scenarios: Record<DesignLabScenarioId, DesignLabScenario> = {
     dimmed: false,
     showPassWoOverlay: false,
   },
-  's06-identical': {
-    label: 'S06 Gleich',
-    description: 'Vergleich zweier konkreter gleicher Fixture-Passwörter.',
+  's06-reuse-and-derived': {
+    label: 'S06 Wiederverwendung + Ableitung',
+    description: 'Campusgram wird gefunden, Master Campus exakt und Campus E-Mail konkret abgeleitet.',
     dimmed: false,
     showPassWoOverlay: false,
   },
-  's06-similar': {
-    label: 'S06 Ähnlich',
-    description: 'Vergleich konkreter Fixture-Passwörter mit begrenzt erkannter Ähnlichkeit.',
+  's06-incident-not-found': {
+    label: 'S06 Vorfall stoppt',
+    description: 'Campusgram wird nicht schnell gefunden; alle drei Beziehungen bleiben ohne erkannten Weg.',
     dimmed: false,
     showPassWoOverlay: false,
   },
-  's06-no-derived-path': {
-    label: 'Kein ableitbarer Weg erkannt',
-    description:
-      'Mit den begrenzten Vergleichsregeln dieser Simulation wurde kein ableitbarer Weg zwischen den beiden Passwörtern erkannt.',
+  's06-incident-found-blocked': {
+    label: 'S06 gefunden, Wege blockiert',
+    description: 'Campusgram wird gefunden; beide weiteren Konten bleiben ohne erkannten Ableitungsweg.',
     dimmed: false,
     showPassWoOverlay: false,
   },
-  's06-hypothetical': {
-    label: 'S06 Hypothetisch',
-    description: 'Dauerhaft als nicht reale Auswahl markiertes Gegenbeispiel.',
+  's06-mixed-actual-hypothetical': {
+    label: 'S06 gemischt',
+    description: 'Tatsächliche und hypothetische Schritte sind in einem deterministischen Ablauf klar getrennt.',
     dimmed: false,
     showPassWoOverlay: false,
   },
@@ -621,18 +621,12 @@ export function DesignLab({ scenarioId }: { readonly scenarioId: DesignLabScenar
     );
   }
 
-  const s06Fixture = {
-    's06-identical': 'identical',
-    's06-similar': 'similar',
-    's06-no-derived-path': 'no-derived-path',
-    's06-hypothetical': 'hypothetical',
-  } as const;
-  if (scenarioId in s06Fixture) {
-    const fixtureId = s06Fixture[scenarioId as keyof typeof s06Fixture];
+  const s06Fixture = getS06ConsequenceFixtureByRouteId(scenarioId);
+  if (s06Fixture !== undefined) {
     return (
       <main className={styles.labPage}>
         <DesignLabIntroduction scenarioId={scenarioId} scenario={scenario} />
-        <S06ConsequenceTraining fixtureId={fixtureId} />
+        <S06ConsequenceTraining fixtureId={s06Fixture.id} />
       </main>
     );
   }

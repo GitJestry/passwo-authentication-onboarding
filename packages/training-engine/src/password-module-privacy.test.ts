@@ -2,6 +2,7 @@ import { createStudyMachine, type StudyRuntimePorts } from '@passwo/study-engine
 import { describe, expect, it } from 'vitest';
 import { createActor } from 'xstate';
 import { PasswordModuleController } from './password-module-controller.js';
+import type { PasswordModuleEvent } from './password-module-machine.js';
 
 function studyRuntimePorts(requestArguments: unknown[][]): StudyRuntimePorts {
   return {
@@ -34,6 +35,31 @@ function flushMicrotasks(): Promise<void> {
 }
 
 describe('password module privacy boundary', () => {
+  it('keeps S05 completion payloadless and all S05 analysis data out of machine context', () => {
+    const completionEvent: PasswordModuleEvent = { type: 'S05_COMPLETED' };
+    expect(Object.keys(completionEvent)).toEqual(['type']);
+
+    const controller = new PasswordModuleController({
+      accountIds: ['master-campus', 'campus-email', 'campusgram'],
+    });
+    const contextKeys = Object.keys(controller.getSnapshot().context);
+    expect(contextKeys).not.toEqual(
+      expect.arrayContaining([
+        's05Findings',
+        'findings',
+        'evidence',
+        'evidenceSpans',
+        'evidenceTokens',
+        'analyzedPasswordSections',
+        'theoreticalDemonstrationValues',
+        'estimate',
+        'estimateAnswer',
+        's05Result',
+      ]),
+    );
+    controller.dispose();
+  });
+
   it('keeps display names and fictitious passwords out of StudyMachine and runtime requests', async () => {
     const requestArguments: unknown[][] = [];
     const studyActor = createActor(createStudyMachine(studyRuntimePorts(requestArguments)));

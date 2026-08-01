@@ -299,25 +299,62 @@ describe('local fictional password analysis', () => {
     },
   );
 
+  const comparisonTerms = ['Campusgram', 'MasterCampus', 'CampusMail', 'Mail'] as const;
+
   it.each([
-    ['Campus2026!', 'Campus2026!', 'identical'],
-    ['Campus2025!', 'Campus2026?', 'similar'],
-    ['Passw0rt1!', 'Passwort2?', 'similar'],
+    ['LunaCampusgram2026!', 'LunaCampusgram2026!', 'exact-match'],
+    ['LunaCampusgram2026!', 'LunaCampusgram2027?', 'derived-variant-match'],
+    ['LunaCampusgram2026', 'LunaCampusgram2026!', 'derived-variant-match'],
+    ['LunaCampusgram2026!', 'LunaMail2027?', 'derived-variant-match'],
     ['MorgenKaffee7', 'MorgenTasse7', 'no-derived-path-recognized'],
     ['rQ7mL2vX', 'rQ7mL2vY', 'no-derived-path-recognized'],
-  ] as const)('classifies %s and %s without generic edit distance', (source, target, outcome) => {
-    expect(compareFictionalPasswords(source, target).outcome).toBe(outcome);
+  ] as const)(
+    'classifies %s and %s only through concrete candidate paths',
+    (sourcePassword, targetPassword, relationKind) => {
+      expect(
+        compareFictionalPasswords({
+          sourcePassword,
+          targetPassword,
+          authoredAccountAndServiceTerms: comparisonTerms,
+        }).relation.kind,
+      ).toBe(relationKind);
+    },
+  );
+
+  it('returns the concrete generated candidate and grounded evidence for a derived relation', () => {
+    const sourcePassword = 'LunaCampusgram2026!';
+    const targetPassword = 'LunaMail2027?';
+    const relation = compareFictionalPasswords({
+      sourcePassword,
+      targetPassword,
+      authoredAccountAndServiceTerms: comparisonTerms,
+    }).relation;
+
+    expect(relation.kind).toBe('derived-variant-match');
+    if (relation.kind !== 'derived-variant-match') return;
+    expect(relation.candidate).toBe(targetPassword);
+    expect(relation.transformationId).toBe('account-term-year-and-suffix-changed');
+    expect(relation.relationId).toMatch(/^relation:account-term-year-and-suffix-changed:/u);
+    for (const span of relation.sourceEvidence) {
+      expect(sourcePassword.slice(span.start, span.end)).toBe(span.token);
+    }
+    for (const span of relation.targetEvidence) {
+      expect(targetPassword.slice(span.start, span.end)).toBe(span.token);
+    }
   });
 
-  it('grounds comparison evidence in the two concrete passwords', () => {
-    const sourcePassword = 'Campus2025!';
-    const targetPassword = 'Campus2026?';
-    const finding = compareFictionalPasswords(sourcePassword, targetPassword).findings[0];
-    const spans = finding?.evidence.filter((evidence) => evidence.type === 'span') ?? [];
-
-    expect(spans).toHaveLength(2);
-    expect(sourcePassword.slice(spans[0]?.start, spans[0]?.end)).toBe(spans[0]?.token);
-    expect(targetPassword.slice(spans[1]?.start, spans[1]?.end)).toBe(spans[1]?.token);
-    expect(finding?.evidence.some((evidence) => evidence.type === 'token')).toBe(false);
+  it.each([
+    ['common substring only', 'MorgenKaffee7', 'MorgenTasse7'],
+    ['single edit only', 'rQ7mL2vX', 'rQ7mL2vY'],
+    ['character substitution only', 'Passw0rt1!', 'Passwort1!'],
+    ['unbounded year change', 'LunaCampusgram2020!', 'LunaCampusgram2026!'],
+  ] as const)('does not treat %s as a derived path', (_case, sourcePassword, targetPassword) => {
+    expect(
+      compareFictionalPasswords({
+        sourcePassword,
+        targetPassword,
+        authoredAccountAndServiceTerms: comparisonTerms,
+      }).relation.kind,
+    ).toBe('no-derived-path-recognized');
   });
 });

@@ -45,6 +45,23 @@ Seitenangaben beziehen sich auf die im Trainingsdokument ausgewiesene interne Pa
 - Die sechs Beispielwörter sind ein festes Demonstrationsbeispiel. Wortliste und produktiver
   Generator bleiben ausschließlich S08 vorbehalten.
 
+## Implementierte S06-Design-Lab-Version
+
+- S06 verwendet die internen Seiten 36 bis 44 als Inhaltsquelle und bleibt vollständig im
+  Design Lab. Es ist noch nicht in den Study-Runtime-Pfad integriert und erzeugt keine
+  S06-Timingereignisse.
+- Die Projektion verwendet die drei fiktiven Konten Master Campus, Campus E-Mail und Campusgram
+  sowie alle drei Konto-Paare genau einmal. Campusgram-Inhalte bleiben lokale Inhaltszuordnungen
+  und werden nicht als SSO-Dienste modelliert.
+- Eine Beziehung ist ausschließlich `exact-match`, `derived-variant-match` oder
+  `no-derived-path-recognized`. Eine abgeleitete Variante benötigt einen konkreten begrenzten
+  Transformationsweg, dessen erzeugter Kandidat den vollständigen Zielwert trifft.
+- Gemeinsame Teilstrings, allgemeine Ähnlichkeit und Edit-Distance begründen keinen Treffer. Ein
+  nicht erkannter Weg bedeutet nur, dass diese Simulation keinen direkten Weg erkannt hat.
+- Vier deterministische Fixtures decken exakte Wiederverwendung plus Ableitung, einen gestoppten
+  ersten Vorfall, zwei blockierte Folgewege und eine gemischte tatsächliche/hypothetische
+  Darstellung ab.
+
 ## Sections
 
 - `passwords`: S00–S11

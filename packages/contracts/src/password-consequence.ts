@@ -101,7 +101,7 @@ export type SimulationQuickPathRuleId =
   | 'account-context-with-predictable-qualifier'
   | 'clearly-repeated-explainable-structure';
 
-export type PasswordSimulationDisposition =
+export type LocalPasswordDisposition =
   | {
       readonly kind: 'quick-path-recognized';
       readonly ruleId: SimulationQuickPathRuleId;
@@ -112,43 +112,79 @@ export type PasswordSimulationDisposition =
       readonly explanationId: 's05.disposition.no-quick-path-recognized';
     };
 
-export type PasswordComparisonOutcome = 'identical' | 'similar' | 'no-derived-path-recognized';
+/** @deprecated Use LocalPasswordDisposition for new local simulation code. */
+export type PasswordSimulationDisposition = LocalPasswordDisposition;
 
-export type PasswordComparisonFindingKind =
+export type PasswordRelationKind =
   | 'exact-match'
-  | 'shared-core-with-bounded-transformation'
+  | 'derived-variant-match'
   | 'no-derived-path-recognized';
 
-export type PasswordComparisonTransformation =
-  | 'case-change'
-  | 'common-character-substitution'
-  | 'typical-suffix-change';
+export type PasswordTransformationId =
+  | 'account-or-service-term-replaced'
+  | 'bounded-year-changed'
+  | 'typical-suffix-changed-or-added'
+  | 'account-term-and-year-changed'
+  | 'account-term-and-suffix-changed'
+  | 'year-and-suffix-changed'
+  | 'account-term-year-and-suffix-changed';
 
-export interface PasswordComparisonFinding {
-  readonly id: string;
-  readonly kind: PasswordComparisonFindingKind;
-  readonly evidence: readonly PasswordEvidence[];
-  readonly explanationId: string;
-  readonly confidence: PasswordFindingConfidence;
-  readonly transformations: readonly PasswordComparisonTransformation[];
+export interface ExactPasswordRelation {
+  readonly kind: 'exact-match';
+  readonly relationId: string;
+  readonly sourceEvidence: readonly PasswordEvidenceSpan[];
+  readonly targetEvidence: readonly PasswordEvidenceSpan[];
+  readonly explanationId: 's06.relation.exact-match';
 }
+
+export interface DerivedVariantPasswordRelation {
+  readonly kind: 'derived-variant-match';
+  readonly relationId: string;
+  readonly transformationId: PasswordTransformationId;
+  readonly sourceEvidence: readonly PasswordEvidenceSpan[];
+  readonly targetEvidence: readonly PasswordEvidenceSpan[];
+  readonly candidate: string;
+  readonly explanationId: `s06.relation.${PasswordTransformationId}`;
+}
+
+export interface NoDerivedPathPasswordRelation {
+  readonly kind: 'no-derived-path-recognized';
+  readonly relationId: string;
+  readonly sourceEvidence: readonly [];
+  readonly targetEvidence: readonly [];
+  readonly explanationId: 's06.relation.no-derived-path-recognized';
+}
+
+export type PasswordRelation =
+  | ExactPasswordRelation
+  | DerivedVariantPasswordRelation
+  | NoDerivedPathPasswordRelation;
 
 export interface PasswordComparisonResult {
   readonly kind: 'fictional-password-comparison';
-  readonly outcome: PasswordComparisonOutcome;
-  readonly findings: readonly PasswordComparisonFinding[];
+  readonly relation: PasswordRelation;
   readonly disclaimerId: 'simulation-not-production-strength';
 }
 
-export interface AuthoredPasswordComparisonFixture {
-  readonly fixtureId: string;
-  readonly kind: 'authored-fixture';
+export interface FictionalPasswordComparisonInput {
   readonly sourcePassword: string;
   readonly targetPassword: string;
-  readonly sceneContext: {
-    readonly sourceAccountId: string;
-    readonly targetAccountId: string;
-    readonly context: 'actual-selection' | 'hypothetical-example';
-  };
-  readonly comparisonResult: PasswordComparisonResult;
+  readonly authoredAccountAndServiceTerms: readonly string[];
+}
+
+export type S06AccountId = 'master-campus' | 'campus-email' | 'campusgram';
+export type IncidentSource = S06AccountId;
+export type PasswordConsequenceSceneMode = 'actual' | 'hypothetical';
+
+export interface S06LocalAccountAnalysis {
+  readonly accountId: S06AccountId;
+  readonly fictionalPassword: string;
+  readonly disposition: LocalPasswordDisposition;
+  readonly retrievalStatus: 'retrievable' | 'not-remembered' | 'assisted';
+}
+
+export interface S06PairComparison {
+  readonly sourceAccountId: S06AccountId;
+  readonly targetAccountId: S06AccountId;
+  readonly result: PasswordComparisonResult;
 }

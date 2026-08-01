@@ -57,7 +57,8 @@ export const trainingSegments = [
     section: 'passwords',
     sourcePages: '36-44',
     foci: ['TF3', 'TF4'],
-    learningObjective: 'Wiederverwendung, Ähnlichkeit und begrenzten Schaden unterscheiden.',
+    learningObjective:
+      'Exakte Wiederverwendung, konkret abgeleitete Varianten und nicht erkannte Wege unterscheiden.',
   },
   {
     id: 'S07',

@@ -3,9 +3,8 @@ import reviewedInstrumentRuntimeManifest from '../../../research/derived/instrum
   type: 'json',
 };
 import {
-  type AuthoredPasswordComparisonFixture,
   type AuthoredStructureDemonstration,
-  type PasswordSimulationDisposition,
+  type LocalPasswordDisposition,
   type PasswordComparisonResult,
   type RuntimeStructureFinding,
   type TheoreticalSearchSpaceModel,
@@ -142,53 +141,37 @@ describe('research-safe contracts', () => {
     ).toBe(true);
   });
 
-  it('uses only the neutral no-derived-path Design Lab route', () => {
-    expect(designLabScenarioForPath('/design-lab/s06-no-derived-path')).toBe('s06-no-derived-path');
+  it('uses only the four deterministic S06 Design Lab routes', () => {
+    expect(designLabScenarioForPath('/design-lab/s06-reuse-and-derived')).toBe(
+      's06-reuse-and-derived',
+    );
     expect(designLabScenarioForPath('/design-lab/s06-unique')).toBeNull();
   });
 
-  it('keeps authored scene context outside the general password comparison result', () => {
-    const sourcePassword = 'Campus2025!';
-    const targetPassword = 'Campus2026?';
+  it('keeps scene and fixture context outside the general password relation result', () => {
     const comparison: PasswordComparisonResult = {
       kind: 'fictional-password-comparison',
-      outcome: 'similar',
-      findings: [
-        {
-          id: 'comparison:shared-core:campus',
-          kind: 'shared-core-with-bounded-transformation',
-          evidence: [
-            { type: 'span', start: 0, end: 6, token: 'Campus' },
-            { type: 'span', start: 0, end: 6, token: 'Campus' },
-          ],
-          explanationId: 's06.shared-core-with-bounded-transformation',
-          confidence: 'bounded-heuristic',
-          transformations: ['typical-suffix-change'],
-        },
-      ],
+      relation: {
+        kind: 'derived-variant-match',
+        relationId: 'relation:year-and-suffix-changed:14-18:14-18:18-19:18-19',
+        transformationId: 'year-and-suffix-changed',
+        sourceEvidence: [
+          { type: 'span', start: 14, end: 18, token: '2025' },
+          { type: 'span', start: 18, end: 19, token: '!' },
+        ],
+        targetEvidence: [
+          { type: 'span', start: 14, end: 18, token: '2026' },
+          { type: 'span', start: 18, end: 19, token: '?' },
+        ],
+        candidate: 'LunaCampusgram2026?',
+        explanationId: 's06.relation.year-and-suffix-changed',
+      },
       disclaimerId: 'simulation-not-production-strength',
     };
-    const fixture: AuthoredPasswordComparisonFixture = {
-      fixtureId: 's06-similar',
-      kind: 'authored-fixture',
-      sourcePassword,
-      targetPassword,
-      sceneContext: {
-        sourceAccountId: 'campusgram',
-        targetAccountId: 'campus-mail',
-        context: 'actual-selection',
-      },
-      comparisonResult: comparison,
-    };
-
-    expect(comparison.outcome).toBe('similar');
-    expect(fixture.kind).toBe('authored-fixture');
-    expect(fixture.comparisonResult).toBe(comparison);
+    expect(comparison.relation.kind).toBe('derived-variant-match');
     expect(Object.keys(comparison)).not.toEqual(
       expect.arrayContaining([
         'fixtureId',
-        'source',
-        'context',
         'sourcePassword',
         'targetPassword',
         'sourceAccountId',
@@ -245,7 +228,7 @@ describe('research-safe contracts', () => {
         exhaustiveSearch: true,
       },
     };
-    const disposition: PasswordSimulationDisposition = {
+    const disposition: LocalPasswordDisposition = {
       kind: 'no-quick-path-recognized',
       explanationId: 's05.disposition.no-quick-path-recognized',
     };
