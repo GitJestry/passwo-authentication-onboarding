@@ -1,10 +1,11 @@
 schemaVersion: 2
 # Kanonische Forschungsquelle; die Browserprojektion liegt zusätzlich unter packages/contracts.
-instrumentVersion: 1.5.0-draft
-questionnaireVersion: questionnaire-v1.3-draft
-guardrailVersion: guardrail-v2-draft
+instrumentVersion: 1.6.0-draft
+questionnaireVersion: questionnaire-v1.4-draft
+guardrailVersion: guardrail-v3-draft
 consentVersion: consent-v3-draft
-followUpVersion: follow-up-v1-draft
+followUpVersion: follow-up-v2-draft
+runtimeManifestVersion: instrument-runtime-v1.6-draft
 language: de-DE
 participantTerm: Lernangebot
 scales:
@@ -25,9 +26,9 @@ scales:
     min: 0
     max: 10
     anchors:
-      0: überhaupt nicht sicher
-      5: mäßig sicher
-      10: vollständig sicher
+      0: überhaupt nicht zuversichtlich
+      5: mäßig zuversichtlich
+      10: vollständig zuversichtlich
   familiarity5:
     type: integer
     min: 1
@@ -263,7 +264,6 @@ instruments:
           label: Keine Angabe
       - id: PRE_GENDER
         type: singleChoice
-        participantOptional: true
         prompt: Wie beschreibst du dein Geschlecht?
         options:
         - id: female
@@ -286,14 +286,17 @@ instruments:
           label: Noch nie davon gehört
         - id: heard_not_used
           label: Davon gehört, aber nicht genutzt
-        - id: viewed_or_started
-          label: Kurz angesehen oder ein Modul begonnen
+        - id: used_other_secaware_content
+          label: SecAware.NRW genutzt, aber nicht das Modul „Passwörter & Authentifizierung“
+        - id: viewed_or_started_password_auth_module
+          label: Das Modul „Passwörter & Authentifizierung“ angesehen oder begonnen, aber nicht abgeschlossen
         - id: completed_password_auth_module
           label: Das Modul „Passwörter & Authentifizierung“ vollständig bearbeitet
         - id: unsure
           label: Unsicher
         analysisFlag:
           completed_password_auth_module: exclude_primary_sample
+          viewed_or_started_password_auth_module: sensitivity_flag
       - id: PRE_TRAINING
         type: singleChoice
         prompt: Wie oft hast du bereits ein Training oder Lernmodul zu Passwörtern, Passwortmanagern oder MFA/2FA bearbeitet?
@@ -308,11 +311,11 @@ instruments:
           label: Unsicher
       - id: PRE_PM_USE
         type: multiChoice
-        prompt: Welche der folgenden Funktionen nutzt du aktuell, um Passwörter zu speichern oder beim Anmelden auszufüllen?
+        prompt: Welche Arten von Passwortmanager-Lösungen nutzt du aktuell?
         instruction: Mehrfachauswahl ist möglich.
         options:
         - id: browser_or_device_integrated
-          label: Im Browser oder Gerät integrierte Passwortspeicherung beziehungsweise Autofill
+          label: Im Browser, Betriebssystem oder Gerät integrierter Passwortmanager beziehungsweise Autofill
         - id: separate_app_or_extension
           label: Separate Passwortmanager-App oder Browser-Erweiterung
         - id: none
@@ -324,8 +327,7 @@ instruments:
         - unsure
       - id: PRE_MFA_USE
         type: singleChoice
-        prompt: Bei wie vielen deiner wichtigen Konten nutzt du einen zusätzlichen Anmeldeschritt, zum Beispiel eine App-Bestätigung,
-          einen Einmalcode oder einen Sicherheitsschlüssel?
+        prompt: Bei wie vielen deiner wichtigen Konten ist MFA/2FA aktiviert, soweit der jeweilige Dienst dies anbietet?
         options:
         - id: none
           label: Bei keinem
@@ -354,16 +356,16 @@ instruments:
         prompt: Wie vertraut bist du mit MFA/2FA?
         label: MFA/2FA
     - id: self_efficacy
-      instruction: Wie sicher bist du dir, dass du die folgenden Aufgaben derzeit bewältigen kannst?
+      instruction: Wie zuversichtlich bist du, die folgenden Aufgaben derzeit bewältigen zu können?
       items:
       - id: SE_PASSWORDS_PRE
         type: scale
         scale: confidence11
-        prompt: Starke und unterschiedliche Passwörter für mehrere Konten praktikabel verwalten.
+        prompt: Passwörter für mehrere Konten praktikabel verwalten.
       - id: SE_PM_PRE
         type: scale
         scale: confidence11
-        prompt: Einen Passwortmanager so nutzen, dass meine Konten unterschiedliche Passwörter erhalten.
+        prompt: Einen Passwortmanager beim Einrichten und späteren Anmelden an einem Konto nutzen.
       - id: SE_MFA_PRE
         type: scale
         scale: confidence11
@@ -438,12 +440,13 @@ instruments:
         type: integer
         min: 1
         max: 90
-        prompt: 'Ohne nachzusehen: Wie viele Minuten hat sich das Lernangebot für dich angefühlt?'
+        prompt: Wie lange hat sich das Lernangebot für dich angefühlt? Bitte schätze in ganzen Minuten.
         derived: TIME_FELT_MINUTES * 60 - artifactWallClockSeconds
       - id: TIME_FIT
         type: scale
         scale: durationAppropriateness7
         prompt: Die Dauer des Lernangebots war für mich …
+        analysisNote: 4 ist der optimale Mittelpunkt; höhere Werte sind nicht besser. Keine Rekodierung als gewöhnliche Zustimmungsskala.
       - id: TIME_VALUE
         type: scale
         scale: agreement7
@@ -460,7 +463,7 @@ instruments:
       - id: FOCUS_TF1
         type: scale
         scale: agreement7
-        prompt: Die Empfehlungen wurden unterstützend und ohne Vorwürfe vermittelt.
+        prompt: Das Lernangebot behandelte unsichere Entscheidungen ohne Schuldzuweisung.
         focus: TF1
       - id: FOCUS_TF2
         type: scale
@@ -470,7 +473,7 @@ instruments:
       - id: FOCUS_TF3
         type: scale
         scale: agreement7
-        prompt: Ich habe die Inhalte auf konkrete Kontosituationen angewendet, statt sie nur zu lesen oder anzusehen.
+        prompt: Das Lernangebot gab mir Gelegenheit, die Inhalte auf konkrete Kontosituationen anzuwenden.
         focus: TF3
       - id: FOCUS_FEEDBACK
         type: scale
@@ -481,7 +484,7 @@ instruments:
       - id: FOCUS_TF4
         type: scale
         scale: agreement7
-        prompt: Die Folgen verschiedener Authentifizierungsentscheidungen wurden für mich anschaulich.
+        prompt: Die Folgen verschiedener Entscheidungen zum Schutz von Konten wurden für mich anschaulich.
         focus: TF4
       - id: FOCUS_TF5
         type: scale
@@ -508,26 +511,22 @@ instruments:
       - id: CRED_BALANCED
         type: scale
         scale: agreement7
-        prompt: Die Empfehlungen wirkten ausgewogen und nicht übertrieben.
+        prompt: Die Darstellung der Sicherheitsrisiken wirkte angemessen.
       - id: UNDERSTANDING_GLOBAL
         type: scale
         scale: agreement7
         prompt: Ich habe die zentralen Zusammenhänge des Lernangebots verstanden.
-      - id: UNDERSTANDING_EXPLAIN
-        type: scale
-        scale: agreement7
-        prompt: Ich könnte einer anderen Person erklären, wie die behandelten Schutzmaßnahmen zusammenwirken.
     - id: self_efficacy
-      instruction: Wie sicher bist du dir, dass du die folgenden Aufgaben derzeit bewältigen kannst?
+      instruction: Wie zuversichtlich bist du, die folgenden Aufgaben derzeit bewältigen zu können?
       items:
       - id: SE_PASSWORDS_POST
         type: scale
         scale: confidence11
-        prompt: Starke und unterschiedliche Passwörter für mehrere Konten praktikabel verwalten.
+        prompt: Passwörter für mehrere Konten praktikabel verwalten.
       - id: SE_PM_POST
         type: scale
         scale: confidence11
-        prompt: Einen Passwortmanager so nutzen, dass meine Konten unterschiedliche Passwörter erhalten.
+        prompt: Einen Passwortmanager beim Einrichten und späteren Anmelden an einem Konto nutzen.
       - id: SE_MFA_POST
         type: scale
         scale: confidence11
@@ -581,8 +580,8 @@ instruments:
     - MR_REUSE
     - MR_PASSWORD_MANAGER
     - MR_MFA
-    - SCENARIO_LEAK_REUSE_MFA
-    - SCENARIO_PM_REDUCE_REUSE
+    - SCENARIO_DISTINCT_PASSWORDS
+    - SCENARIO_PM_MANY_ACCOUNTS
     - SCENARIO_UNIQUE_PLUS_MFA
     optionPresentation:
       strategy: balanced_predefined_forms
@@ -601,29 +600,29 @@ instruments:
       forms:
         F1:
           MR_REUSE:
-          - try_other_service
-          - same_username_required
-          - risk_stays_at_breached_service
+          - distinct_per_account
+          - one_long_reused_everywhere
+          - reuse_with_mfa_for_important
           - unsure
           MR_PASSWORD_MANAGER:
-          - one_strong_reused
-          - distinct_per_account
           - store_similar_unchanged
+          - distinct_generate_or_store
+          - one_strong_reused
           - unsure
           MR_MFA:
           - reuse_becomes_safe
           - prevents_password_exposure
           - additional_barrier
           - unsure
-          SCENARIO_LEAK_REUSE_MFA:
-          - replace_both_distinct_keep_mfa
-          - change_shop_keep_email_due_mfa
-          - same_core_different_endings
+          SCENARIO_DISTINCT_PASSWORDS:
+          - distinct_for_both
+          - same_long_for_both
+          - same_core_service_name
           - unsure
-          SCENARIO_PM_REDUCE_REUSE:
-          - store_shared_password
-          - replace_gradually_with_pm
+          SCENARIO_PM_MANY_ACCOUNTS:
           - unique_only_for_important
+          - unique_with_pm_retrieve
+          - shared_in_pm
           - unsure
           SCENARIO_UNIQUE_PLUS_MFA:
           - reuse_long_and_mfa
@@ -632,29 +631,29 @@ instruments:
           - unsure
         F2:
           MR_REUSE:
-          - same_username_required
-          - risk_stays_at_breached_service
-          - try_other_service
+          - one_long_reused_everywhere
+          - reuse_with_mfa_for_important
+          - distinct_per_account
           - unsure
           MR_PASSWORD_MANAGER:
-          - distinct_per_account
-          - store_similar_unchanged
+          - distinct_generate_or_store
           - one_strong_reused
+          - store_similar_unchanged
           - unsure
           MR_MFA:
           - prevents_password_exposure
           - additional_barrier
           - reuse_becomes_safe
           - unsure
-          SCENARIO_LEAK_REUSE_MFA:
-          - change_shop_keep_email_due_mfa
-          - same_core_different_endings
-          - replace_both_distinct_keep_mfa
+          SCENARIO_DISTINCT_PASSWORDS:
+          - same_long_for_both
+          - same_core_service_name
+          - distinct_for_both
           - unsure
-          SCENARIO_PM_REDUCE_REUSE:
-          - replace_gradually_with_pm
+          SCENARIO_PM_MANY_ACCOUNTS:
+          - unique_with_pm_retrieve
+          - shared_in_pm
           - unique_only_for_important
-          - store_shared_password
           - unsure
           SCENARIO_UNIQUE_PLUS_MFA:
           - new_unique_without_mfa
@@ -663,29 +662,29 @@ instruments:
           - unsure
         F3:
           MR_REUSE:
-          - risk_stays_at_breached_service
-          - try_other_service
-          - same_username_required
+          - reuse_with_mfa_for_important
+          - distinct_per_account
+          - one_long_reused_everywhere
           - unsure
           MR_PASSWORD_MANAGER:
-          - store_similar_unchanged
           - one_strong_reused
-          - distinct_per_account
+          - store_similar_unchanged
+          - distinct_generate_or_store
           - unsure
           MR_MFA:
           - additional_barrier
           - reuse_becomes_safe
           - prevents_password_exposure
           - unsure
-          SCENARIO_LEAK_REUSE_MFA:
-          - same_core_different_endings
-          - replace_both_distinct_keep_mfa
-          - change_shop_keep_email_due_mfa
+          SCENARIO_DISTINCT_PASSWORDS:
+          - same_core_service_name
+          - distinct_for_both
+          - same_long_for_both
           - unsure
-          SCENARIO_PM_REDUCE_REUSE:
+          SCENARIO_PM_MANY_ACCOUNTS:
+          - shared_in_pm
           - unique_only_for_important
-          - store_shared_password
-          - replace_gradually_with_pm
+          - unique_with_pm_retrieve
           - unsure
           SCENARIO_UNIQUE_PLUS_MFA:
           - new_unique_and_mfa
@@ -693,42 +692,42 @@ instruments:
           - new_unique_without_mfa
           - unsure
     nativeArtifactCheckPolicy:
-      retainNativeChecksInPrimaryPath: true
+      passwoNativeLearningChecksRetained: true
+      secAwareNativeQuizIncludedInMeasuredPath: false
+      secAwareQuizRemovalReason: avoid_immediate_feedback_contamination_of_external_guardrail
       nativeScoresAreStudyOutcomes: false
       externalItemsMustBeNovelAndTransferOriented: true
-      doNotMixSecAwareQuizAndSkipPaths: true
     blocks:
     - id: recognition
       submitLocksBlock: true
       items:
       - id: MR_REUSE
-        prompt: Ein Passwort wird bei zwei voneinander unabhängigen Diensten verwendet. Bei einem Dienst wird es bekannt.
-          Welche Folge ist dadurch zusätzlich möglich?
+        prompt: Welche Maßnahme begrenzt am direktesten, dass ein bekannt gewordenes Passwort weitere, voneinander unabhängige Konten betrifft?
         options:
-        - id: try_other_service
-          label: Das bekannte Passwort kann auch beim anderen Dienst ausprobiert werden.
+        - id: distinct_per_account
+          label: Für jedes Konto ein eigenes Passwort verwenden.
           classification: correct
-        - id: same_username_required
-          label: Ein Versuch beim anderen Dienst ist nur sinnvoll, wenn auch der Benutzername identisch ist.
+        - id: one_long_reused_everywhere
+          label: Dasselbe besonders lange Passwort für alle Konten verwenden.
           classification: unsafe
-        - id: risk_stays_at_breached_service
-          label: Das zusätzliche Risiko bleibt auf den Dienst begrenzt, bei dem das Passwort bekannt wurde.
+        - id: reuse_with_mfa_for_important
+          label: Dasselbe Passwort verwenden und nur bei wichtigen Konten MFA/2FA aktivieren.
           classification: unsafe
         - id: unsure
           label: Weiß ich nicht.
           classification: unsure
       - id: MR_PASSWORD_MANAGER
-        prompt: Welche Nutzung eines Passwortmanagers adressiert Passwortwiederverwendung am direktesten?
+        prompt: Welche Aufgabe kann ein Passwortmanager beim Schutz mehrerer Konten übernehmen?
         options:
-        - id: distinct_per_account
-          label: Für verschiedene Konten unterschiedliche Passwörter erzeugen oder speichern und passend ausfüllen lassen.
+        - id: distinct_generate_or_store
+          label: Für verschiedene Konten jeweils eigene Passwörter erzeugen oder sicher speichern.
           classification: correct
         - id: one_strong_reused
-          label: Ein besonders starkes Passwort speichern und bei möglichst vielen Konten verwenden.
+          label: Ein einziges besonders starkes Passwort für alle Konten verwalten.
           classification: unsafe
         - id: store_similar_unchanged
-          label: Bereits ähnliche Passwörter speichern, ohne sie voneinander zu trennen.
-          classification: incomplete
+          label: Ähnliche Passwörter speichern, ohne sie voneinander zu trennen.
+          classification: unsafe
         - id: unsure
           label: Weiß ich nicht.
           classification: unsure
@@ -743,43 +742,39 @@ instruments:
           classification: unsafe
         - id: prevents_password_exposure
           label: MFA verhindert, dass ein Passwort durch ein Datenleck oder andere Wege bekannt wird.
-          classification: incorrect
+          classification: unsafe
         - id: unsure
           label: Weiß ich nicht.
           classification: unsure
     - id: scenarios
       submitLocksBlock: true
       items:
-      - id: SCENARIO_LEAK_REUSE_MFA
-        prompt: Bei einem Online-Shop wird dein dort verwendetes Passwort als kompromittiert gemeldet. Dasselbe Passwort nutzt
-          du auch für dein E-Mail-Konto; dort ist MFA aktiviert. Welche Reaktion adressiert das beschriebene Risiko am vollständigsten?
+      - id: SCENARIO_DISTINCT_PASSWORDS
+        prompt: Du richtest Konten bei zwei voneinander unabhängigen Diensten ein. Welche Passwortstrategie begrenzt am besten, dass ein Passwortvorfall bei einem Dienst auch das andere Konto betrifft?
         options:
-        - id: replace_both_distinct_keep_mfa
-          label: Für beide Konten neue, voneinander verschiedene Passwörter setzen und MFA beim E-Mail-Konto beibehalten.
+        - id: distinct_for_both
+          label: Für beide Konten unterschiedliche Passwörter verwenden.
           classification: appropriate
-        - id: change_shop_keep_email_due_mfa
-          label: Nur beim Online-Shop das Passwort ändern und das E-Mail-Passwort wegen MFA beibehalten.
+        - id: same_long_for_both
+          label: Dasselbe besonders lange Passwort bei beiden Konten verwenden.
           classification: unsafe
-        - id: same_core_different_endings
-          label: Bei beiden Konten denselben Passwortkern behalten, aber unterschiedliche Endungen ergänzen.
+        - id: same_core_service_name
+          label: Denselben Passwortkern verwenden und nur den Dienstnamen ändern.
           classification: unsafe
         - id: unsure
           label: Weiß ich nicht.
           classification: unsure
-      - id: SCENARIO_PM_REDUCE_REUSE
-        prompt: Du bemerkst, dass mehrere Konten dasselbe oder ein sehr ähnliches Passwort verwenden. Du möchtest das schrittweise
-          ändern, ohne alle neuen Passwörter auswendig zu lernen. Welche Vorgehensweise passt am besten?
+      - id: SCENARIO_PM_MANY_ACCOUNTS
+        prompt: Du verwaltest viele Konten und möchtest für jedes ein eigenes Passwort verwenden, ohne alle Passwörter auswendig lernen zu müssen. Welche Nutzung eines Passwortmanagers passt am besten?
         options:
-        - id: replace_gradually_with_pm
-          label: Mit einem Passwortmanager nach und nach eigene Passwörter für diese Konten erzeugen oder speichern und die
-            alten ersetzen.
+        - id: unique_with_pm_retrieve
+          label: Für die Konten jeweils eigene Passwörter erzeugen oder speichern und bei Bedarf wieder abrufen.
           classification: appropriate
-        - id: store_shared_password
-          label: Das gemeinsame Passwort in einem Passwortmanager speichern und unverändert weiterverwenden.
+        - id: shared_in_pm
+          label: Ein gemeinsames Passwort im Passwortmanager speichern und überall verwenden.
           classification: unsafe
         - id: unique_only_for_important
-          label: Nur bei den wichtigsten Konten unterschiedliche Passwörter verwenden und das gemeinsame Passwort bei den
-            übrigen behalten.
+          label: Nur für die wichtigsten Konten eigene Passwörter verwenden und für die übrigen dasselbe Passwort behalten.
           classification: incomplete
         - id: unsure
           label: Weiß ich nicht.
@@ -800,7 +795,6 @@ instruments:
         - id: unsure
           label: Weiß ich nicht.
           classification: unsure
-        provisionalUntilContentAudit: true
     derivedMetrics:
     - id: mechanismRecognitionCorrect
       range:
@@ -866,16 +860,16 @@ instruments:
       - id: used_retrieval_or_autofill
         label: Ich habe einen bereits eingerichteten Passwortmanager bewusst zum Abrufen oder automatischen Ausfüllen eines
           gespeicherten Passworts verwendet.
-      - id: reviewed_access_or_recovery
-        label: Ich habe geprüft, wie ich auf meinen Passwortmanager auf einem neuen Gerät oder nach einem Zugangsproblem wieder
-          zugreifen könnte.
       - id: none
         label: Keine dieser Handlungen.
-      - id: unsure_no_answer
-        label: Ich weiß es nicht mehr oder möchte keine Angabe machen.
+      - id: cannot_recall
+        label: Ich weiß es nicht mehr.
+      - id: no_answer
+        label: Keine Angabe.
       exclusiveOptions:
       - none
-      - unsure_no_answer
+      - cannot_recall
+      - no_answer
     - id: FU_PM_NONE_REASON
       type: singleChoice
       displayWhen:
@@ -893,8 +887,10 @@ instruments:
         label: Ich war nicht sicher, wie ich vorgehen sollte.
       - id: time_effort
         label: Zeit oder Aufwand waren für mich zu hoch.
-      - id: trust_access_recovery_concerns
-        label: Ich hatte Bedenken hinsichtlich Zugang, Vertrauen oder Wiederherstellung.
+      - id: trust_concerns
+        label: Ich hatte Bedenken, dem Passwortmanager meine Passwörter anzuvertrauen.
+      - id: access_loss_concerns
+        label: Ich hatte Sorge, später nicht mehr auf den Passwortmanager zugreifen zu können.
       - id: technical_barrier
         label: Eine technische Hürde hat mich daran gehindert.
       - id: not_relevant
@@ -911,16 +907,16 @@ instruments:
           aktiviert ist.
       - id: enabled_mfa
         label: Ich habe MFA/2FA bei mindestens einem Konto aktiviert.
-      - id: reviewed_factor_or_recovery
-        label: Ich habe bei einer bereits eingerichteten MFA-Methode den verwendeten zweiten Faktor oder eine angebotene Wiederherstellungsoption
-          geprüft.
       - id: none
         label: Keine dieser Handlungen.
-      - id: unsure_no_answer
-        label: Ich weiß es nicht mehr oder möchte keine Angabe machen.
+      - id: cannot_recall
+        label: Ich weiß es nicht mehr.
+      - id: no_answer
+        label: Keine Angabe.
       exclusiveOptions:
       - none
-      - unsure_no_answer
+      - cannot_recall
+      - no_answer
     - id: FU_MFA_NONE_REASON
       type: singleChoice
       displayWhen:
@@ -938,8 +934,10 @@ instruments:
         label: Ich war nicht sicher, wie ich vorgehen sollte.
       - id: time_effort
         label: Zeit oder Aufwand waren für mich zu hoch.
-      - id: trust_access_recovery_concerns
-        label: Ich hatte Bedenken hinsichtlich Zugang, Vertrauen oder Wiederherstellung.
+      - id: not_available_or_not_found
+        label: Ich habe MFA/2FA beim betreffenden Dienst nicht gefunden oder der Dienst bot sie nicht an.
+      - id: second_factor_loss_concerns
+        label: Ich hatte Sorge, bei Verlust des zweiten Faktors den Zugang zu verlieren.
       - id: technical_barrier
         label: Eine technische Hürde hat mich daran gehindert.
       - id: not_relevant

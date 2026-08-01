@@ -143,7 +143,7 @@ describe('password module privacy boundary', () => {
           { itemId: 'PRE_ROLE', value: 'undergraduate' },
           { itemId: 'PRE_FIELD', value: 'stem' },
           { itemId: 'PRE_AGE', value: 'age_18_25' },
-          { itemId: 'PRE_GENDER', value: null },
+          { itemId: 'PRE_GENDER', value: 'no_answer' },
         ],
       },
     });

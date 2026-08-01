@@ -1,4 +1,4 @@
-# Measurement Instrument v1.5
+# Measurement Instrument v1.6
 
 Status: methodischer Entwurf für Cognitive Pretest und anschließenden Study Freeze.  
 Geltungsbereich: randomisierter Between-Subjects-Vergleich des Supportive Authentication
@@ -53,7 +53,8 @@ Trainingsergebnis interpretiert wird.
 Der Pre-Fragebogen beschreibt die Stichprobe und erfasst Vorerfahrung, die Ceiling-Effekte oder
 Zuweisungsungleichgewichte erklären kann:
 
-- Hochschulrolle, breiter Fachbereich, Altersgruppe und optionales Geschlecht;
+- Hochschulrolle, breiter Fachbereich, Altersgruppe und Geschlecht mit der verpflichtend
+  auswählbaren Antwort `Keine Angabe` statt eines zusätzlichen Nullwerts;
 - SecAware-Vorerfahrung und frühere Authentifizierungstrainings;
 - konkrete Nutzung integrierter und/oder separat installierter Passwortmanagerfunktionen;
 - Breite bisheriger MFA-Nutzung;
@@ -62,7 +63,8 @@ Zuweisungsungleichgewichte erklären kann:
   Konfidenzskala von 0 bis 10.
 
 Eine frühere vollständige Bearbeitung genau des verwendeten SecAware-Moduls ist ein vorab
-festgelegter Ausschlussgrund für die primäre Vergleichsstichprobe. Es gibt keinen Wissens-Pretest,
+festgelegter Ausschlussgrund für die primäre Vergleichsstichprobe. Ein angesehenes oder begonnenes,
+aber nicht abgeschlossenes Modul wird als Sensitivitätsflag dokumentiert. Es gibt keinen Wissens-Pretest,
 weil dieser die gemeinsamen Mechanismen und die selbst erzeugten Trainingsentscheidungen vorprägen
 würde. Reale Konten, Passwörter, Vorfälle, Tokens und Recovery-Daten werden nicht erhoben.
 
@@ -96,19 +98,25 @@ Die Antwortformate sind fachlich getrennt:
   die Transformation von `1`--`7` auf `-3`--`+3`.
 - Task-specific Self-Efficacy verwendet in Pre und Post dieselbe Instruktion, dieselben drei
   Fähigkeitsformulierungen und elf diskrete Werte von `0` bis `10` mit den Ankern
-  „überhaupt nicht sicher“, „mäßig sicher“ und „vollständig sicher“.
+  „überhaupt nicht zuversichtlich“, „mäßig zuversichtlich“ und „vollständig zuversichtlich“.
 - Eigene Zustimmungsitems verwenden sieben Punkte mit vollständig benannten Antwortkategorien;
   Vertrautheit und Emotionsintensität verwenden jeweils eigene vollständig benannte
   Fünf-Punkt-Kategorien.
 - Gefühlte Dauer ist eine numerische Minuteneingabe. Angemessenheit der Dauer ist bipolar von
   „viel zu kurz“ über „genau richtig“ bis „viel zu lang“; nur das Zeit-Nutzen-Verhältnis ist ein
-  Zustimmungsitem.
+  Zustimmungsitem. Für `TIME_FIT` ist `4` der optimale Mittelpunkt; höhere Werte sind nicht besser
+  und werden nicht wie eine gewöhnliche Zustimmungsskala rekodiert.
 
 Die drei Self-Efficacy-Themen werden als getrennte Pre-/Post-Paare ausgewertet. Ein gemeinsamer
-Self-Efficacy-Score wird nicht gebildet.
+Self-Efficacy-Score wird nicht gebildet. Pre und Post verwenden wortgleich: „Passwörter für
+mehrere Konten praktikabel verwalten.“, „Einen Passwortmanager beim Einrichten und späteren
+Anmelden an einem Konto nutzen.“ und „MFA/2FA bei einem wichtigen Konto aktivieren.“ Die
+Instruktion lautet jeweils: „Wie zuversichtlich bist du, die folgenden Aufgaben derzeit
+bewältigen zu können?“ Diese Items werden nicht als Wissensmaß interpretiert.
 
-Glaubwürdigkeit und wahrgenommenes Verständnis bleiben subjektive Einschätzungen. Sie werden vom
-kriteriumsbezogenen Guardrail getrennt interpretiert. Neugier, Ermutigung, Überforderung,
+Glaubwürdigkeit und das verbleibende Item `UNDERSTANDING_GLOBAL` bleiben subjektive
+Einschätzungen. Sie werden vom kriteriumsbezogenen Guardrail getrennt interpretiert; ein
+zusätzliches Erklärungsitem wird nicht erhoben. Neugier, Ermutigung, Überforderung,
 Frustration und Verunsicherung bilden ein exploratives Itemprofil; sie sind weder PANAS noch eine
 neu behauptete Affektskala.
 
@@ -146,9 +154,11 @@ Nach dem Guardrail folgen zwei optionale Freitextfelder. Leere Felder werden exp
 gespeichert; die Submission selbst ist verpflichtend. Teilnehmende ohne Follow-up-Einwilligung
 erhalten anschließend die vollständige Aufklärung. Bei Follow-up-Einwilligung wird sie bis nach
 der Antwort beziehungsweise bis zur Schließung des Follow-up-Zeitfensters zurückgestellt. Es wird
-kein persönlicher Score gezeigt. Die native PassWo-Abschlussfrage und das native SecAware-Quiz
-bleiben Bestandteile ihrer jeweiligen Artefakte, dürfen aber nicht wortgleich oder strukturell
-nahezu identisch zum externen Guardrail sein.
+kein persönlicher Score gezeigt. Die PassWo-internen Lernfragen bleiben Bestandteil dieses
+Artefakts und dürfen nicht wortgleich oder strukturell nahezu identisch zum externen Guardrail
+sein. Das native SecAware-Abschlussquiz ist als gebilligte Studienadaption bewusst aus dem
+gemessenen Referenzpfad entfernt. Beide Bedingungen bearbeiten anschließend denselben externen
+Guardrail.
 
 ## 7. Ten-Day Delayed Follow-Up
 
@@ -175,11 +185,11 @@ Befragung fordert nicht dazu auf, Kontoeinstellungen zu öffnen oder für die Be
 Zwei Mehrfachauswahlfragen erfassen getrennt:
 
 - Passwortmanager: vorhandene Funktion prüfen, ein neues kontospezifisches Passwort erzeugen und
-  speichern, bewusstes Abrufen/Autofill oder Zugangs-/Recovery-Weg prüfen;
-- MFA: Verfügbarkeit/Status prüfen, MFA aktivieren oder vorhandenen Faktor/Recovery-Weg prüfen.
+  speichern oder bewusstes Abrufen/Autofill;
+- MFA: Verfügbarkeit/Status prüfen oder MFA aktivieren.
 
 Integrierte und separat installierte Passwortmanager zählen gleichwertig. `Keine dieser
-Handlungen` und `weiß ich nicht/keine Angabe` sind exklusiv. Nur bei `keine` erscheint je
+Handlungen`, `Ich weiß es nicht mehr` und `Keine Angabe` sind jeweils exklusiv. Nur bei `keine` erscheint je
 Themenbereich eine kurze Frage nach dem Hauptgrund.
 
 Die beiden primären verzögerten Einzeloutcomes sind:

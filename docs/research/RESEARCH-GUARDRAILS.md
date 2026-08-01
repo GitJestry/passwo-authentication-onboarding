@@ -42,7 +42,9 @@ Die Foci sind Designrationale, keine unabhängig getesteten Faktoren.
 - Detaillierte Passwortstärke, Mindestlänge, Sechs-Wort-Methode und PassWo-Begriffe bleiben
   außerhalb des primären Guardrails.
 - Jedes Item benötigt PassWo-, SecAware- und technische Claim-Evidence im Content Audit.
-- Native PassWo-Aufgaben und das SecAware-Quiz sind keine gemeinsamen Outcomes.
+- PassWo-interne Lernfragen dürfen im PassWo-Pfad bestehen. Das native SecAware-Abschlussquiz ist
+  bewusst aus dem gemessenen Referenzpfad entfernt; beide Bedingungen bearbeiten denselben
+  externen Guardrail. Native Lernfragen und -scores sind keine Studienoutcomes.
 - Single-Best-Answer verwendet drei inhaltliche Optionen und `unsure`; kein Multiple Response.
 - `F1` bis `F3` werden serverseitig und unabhängig von der Bedingung balanciert.
 - Der Client erhält keine Scoring-Klassifikationen; es gibt kein Pass/Fail.

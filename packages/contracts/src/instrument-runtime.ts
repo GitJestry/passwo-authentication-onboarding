@@ -165,10 +165,13 @@ const guardrailInstrumentSchema = z
       .strict(),
     nativeArtifactCheckPolicy: z
       .object({
-        retainNativeChecksInPrimaryPath: z.literal(true),
+        passwoNativeLearningChecksRetained: z.literal(true),
+        secAwareNativeQuizIncludedInMeasuredPath: z.literal(false),
+        secAwareQuizRemovalReason: z.literal(
+          'avoid_immediate_feedback_contamination_of_external_guardrail',
+        ),
         nativeScoresAreStudyOutcomes: z.literal(false),
         externalItemsMustBeNovelAndTransferOriented: z.literal(true),
-        doNotMixSecAwareQuizAndSkipPaths: z.literal(true),
       })
       .strict(),
     blocks: z.array(guardrailBlockSchema).length(2),
@@ -331,11 +334,11 @@ const sessionClosureContentSchema = z
 export const instrumentRuntimeManifestSchema = z
   .object({
     schemaVersion: z.literal(2),
-    instrumentVersion: z.literal('1.5.0-draft'),
-    questionnaireVersion: z.literal('questionnaire-v1.3-draft'),
-    guardrailVersion: z.literal('guardrail-v2-draft'),
+    instrumentVersion: z.literal('1.6.0-draft'),
+    questionnaireVersion: z.literal('questionnaire-v1.4-draft'),
+    guardrailVersion: z.literal('guardrail-v3-draft'),
     consentVersion: z.literal('consent-v3-draft'),
-    followUpVersion: z.literal('follow-up-v1-draft'),
+    followUpVersion: z.literal('follow-up-v2-draft'),
     language: z.literal('de-DE'),
     participantTerm: participantTextSchema,
     scales: z
@@ -399,7 +402,7 @@ export const instrumentRuntimeManifestSchema = z
         'follow-up-v1': followUpInstrumentSchema,
       })
       .strict(),
-    runtimeManifestVersion: z.literal('instrument-runtime-v1.5-draft'),
+    runtimeManifestVersion: z.literal('instrument-runtime-v1.6-draft'),
   })
   .strict();
 

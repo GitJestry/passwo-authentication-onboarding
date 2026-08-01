@@ -332,6 +332,45 @@ describe('research-safe contracts', () => {
       /"classification"|"appropriate"|"incomplete"|"unsafe"/u,
     );
     expect(instrumentRuntimeManifest.procedures.followUpRecontact.optional).toBe(true);
+    expect(instrumentRuntimeManifest).toMatchObject({
+      instrumentVersion: '1.6.0-draft',
+      questionnaireVersion: 'questionnaire-v1.4-draft',
+      guardrailVersion: 'guardrail-v3-draft',
+      consentVersion: 'consent-v3-draft',
+      followUpVersion: 'follow-up-v2-draft',
+      runtimeManifestVersion: 'instrument-runtime-v1.6-draft',
+    });
+    expect(
+      instrumentRuntimeManifest.instruments['guardrail-v2'].nativeArtifactCheckPolicy,
+    ).toEqual({
+      passwoNativeLearningChecksRetained: true,
+      secAwareNativeQuizIncludedInMeasuredPath: false,
+      secAwareQuizRemovalReason:
+        'avoid_immediate_feedback_contamination_of_external_guardrail',
+      nativeScoresAreStudyOutcomes: false,
+      externalItemsMustBeNovelAndTransferOriented: true,
+    });
+    const forms = instrumentRuntimeManifest.instruments['guardrail-v2'].optionPresentation.forms;
+    const bestOptionIds = [
+      'distinct_per_account',
+      'distinct_generate_or_store',
+      'additional_barrier',
+      'distinct_for_both',
+      'unique_with_pm_retrieve',
+      'new_unique_and_mfa',
+    ];
+    expect(
+      (['F1', 'F2', 'F3'] as const).map((formId) =>
+        instrumentRuntimeManifest.instruments['guardrail-v2'].questionOrder.map(
+          (itemId, itemIndex) =>
+            forms[formId][itemId]?.indexOf(bestOptionIds[itemIndex] ?? '') ?? -1,
+        ),
+      ),
+    ).toEqual([
+      [0, 1, 2, 0, 1, 2],
+      [2, 0, 1, 2, 0, 1],
+      [1, 2, 0, 1, 2, 0],
+    ]);
     expect(JSON.stringify(instrumentRuntimeManifest.procedures.participantInformation)).not.toMatch(
       /zufällig zugeordnet|zwei deutschsprachige Lernangebote werden verglichen/u,
     );
@@ -345,7 +384,7 @@ describe('research-safe contracts', () => {
         { itemId: 'PRE_ROLE', value: 'undergraduate' },
         { itemId: 'PRE_FIELD', value: 'stem' },
         { itemId: 'PRE_AGE', value: 'age_18_25' },
-        { itemId: 'PRE_GENDER', value: null },
+        { itemId: 'PRE_GENDER', value: 'no_answer' },
       ],
     };
     const experienceBlock = {
@@ -375,6 +414,14 @@ describe('research-safe contracts', () => {
     };
 
     expect(instrumentSubmissionRequestSchema.safeParse(sampleBlock).success).toBe(true);
+    expect(
+      instrumentSubmissionRequestSchema.safeParse({
+        ...sampleBlock,
+        responses: sampleBlock.responses.map((response) =>
+          response.itemId === 'PRE_GENDER' ? { ...response, value: null } : response,
+        ),
+      }).success,
+    ).toBe(false);
     expect(
       instrumentSubmissionRequestSchema.safeParse({
         ...sampleBlock,

@@ -15,7 +15,7 @@
 | Recontact | E-Mail, Roh-Token, Token-Hash, Consent-Version, Versand-/Schließzeitpunkte | ausschließlich `recontact.sqlite` |
 | Ephemeral personalization | Anzeigename/Kürzel | nur flüchtiger Electron-Renderer |
 | Training input/diagnosis | fiktive Passwörter, Loginversuche, Findings, Ähnlichkeit | nie persistieren |
-| Reference quiz state | Antworten, Punkte, SCORM-Interaktionen | nicht erheben |
+| Reference quiz state | im gemessenen Pfad nicht vorhanden; etwaige SCORM-Interaktionen der Unterrichtslektionen | nicht erheben |
 | Sensitive real-world data | reale Konten, Passwörter, Tokens, Vorfälle | nie erheben |
 | Passive metadata | IP, User-Agent, Request-Bodies | nicht persistieren |
 
@@ -45,6 +45,13 @@ idempotent; ein abweichender zweiter Payload für denselben Block erzeugt einen 
 überschreibt keine Daten. Rohantworten und Präsentationsreihenfolge werden exportiert, Scoring
 findet ausschließlich im Analyseprozess statt.
 
+`PRE_GENDER` ist technisch verpflichtend und verwendet für die inhaltlich freiwillige Antwort die
+stabile Option `no_answer`; `null` ist für dieses Item unzulässig. Im Follow-up unterscheiden die
+exklusiven Optionen `cannot_recall` und `no_answer` fehlende Erinnerung von verweigerter Angabe.
+Die primären verzögerten Outcomes bleiben die einzelnen Optionen
+`generated_stored_account_specific` und `enabled_mfa`; ein kombinierter Behavior Score wird nicht
+gebildet.
+
 ## Pseudonymisierung und Recontact
 
 Der Teilnehmercode wird zufällig erzeugt und enthält keine Initialen, Matrikelnummer oder
@@ -72,6 +79,9 @@ ohne Session, Teilnehmercode oder Condition zu verändern.
 Der Forschungsdatenexport enthält Sessions, Timing, Responses und Response Presentations als CSV
 und JSON, ein Data Dictionary sowie ein Manifest mit Versionen, Zählungen und SHA-256-Prüfsummen.
 Er enthält keine E-Mail, Roh-Tokens, Token-Hashes, Trainingsinputs oder SecAware-Quizdaten.
+Das native SecAware-Abschlussquiz ist aus dem gemessenen Referenzpfad entfernt; PassWo-interne
+Lernfragen dürfen bestehen, werden aber ebenso wenig als gemeinsamer Outcome exportiert. Beide
+Bedingungen bearbeiten den gemeinsamen externen Guardrail.
 
 Der getrennte Schedule-Export enthält ausschließlich E-Mail, individuellen Token-Link sowie
 Einladungs-, Erinnerungs- und Schließzeitpunkte. Er enthält weder Condition noch

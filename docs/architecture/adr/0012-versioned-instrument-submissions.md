@@ -84,3 +84,25 @@ Die Instrumentversion wird auf `1.5.0-draft`, das Runtime-Manifest auf
 gemeinsame Teilnahmeinformation, Consent-Texte, optionale Recontact-Texte und beide Varianten der
 Session Closure werden als strukturierte Runtime-Daten geführt. Fragebogen-, Guardrail- und
 Follow-up-Inhaltsversionen bleiben unverändert.
+
+## Revision 2026-08-02 — Instrument Revision v1.6
+
+Die Instrumentversion wird auf `1.6.0-draft`, die Fragebogenversion auf
+`questionnaire-v1.4-draft`, die Guardrail-Version auf `guardrail-v3-draft`, die Follow-up-Version
+auf `follow-up-v2-draft` und das Runtime-Manifest auf `instrument-runtime-v1.6-draft` angehoben.
+Die Consent-Version bleibt `consent-v3-draft`.
+
+Die Instrument-IDs `pre-v1`, `post-v1`, `guardrail-v2`, `post-open-v1` und `follow-up-v1`
+bleiben stabil. Im Guardrail ersetzen die Item-IDs `SCENARIO_DISTINCT_PASSWORDS` und
+`SCENARIO_PM_MANY_ACCOUNTS` die bisherigen Szenario-IDs. Die revidierten Follow-up-Optionen
+trennen `cannot_recall` und `no_answer`, entfernen die beiden Recovery-Prüfhandlungen und teilen
+die bisherigen kombinierten Vertrauens-/Zugangsgründe in die fachlich festgelegten Einzelgründe.
+
+`PRE_GENDER` ist technisch verpflichtend. Inhaltliche Freiwilligkeit wird ausschließlich durch
+die stabile Antwortoption `no_answer` abgebildet; ein zusätzlicher Nullwert ist unzulässig.
+
+PassWo-interne Lernfragen bleiben im PassWo-Artefakt erhalten. Das native SecAware-Abschlussquiz
+bleibt als fest beschlossene und betreuerseitig gebilligte Studienadaption aus dem gemessenen
+Referenzpfad entfernt, um unmittelbare Feedback-Kontamination des gemeinsamen externen
+Guardrails zu vermeiden. Native Scores sind keine Studienoutcomes. Diese Revision ändert weder
+den eingefrorenen SecAware-Build noch Persistenzschema, Migrationen, Randomisierung oder Timing.
