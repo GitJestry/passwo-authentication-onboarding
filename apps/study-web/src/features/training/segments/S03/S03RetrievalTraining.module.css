@@ -157,19 +157,7 @@
   box-shadow: 0 0 0 0.18rem color-mix(in srgb, var(--color-danger) 20%, transparent);
 }
 
-.autofillValue {
-  position: absolute;
-  z-index: 1;
-  inset: 0 var(--size-control-large) 0 0;
-  display: flex;
-  align-items: center;
-  overflow: hidden;
-  padding: var(--space-3) var(--space-4);
-  color: var(--color-ink-strong);
-  background: #fff2a8;
-  font: inherit;
-  letter-spacing: 0.08em;
-  white-space: nowrap;
+.passwordInputGroup[data-autofill="running"] input {
   animation: s03-assisted-autofill 900ms ease-out both;
 }
 
@@ -635,7 +623,7 @@
     animation: none;
   }
 
-  .autofillValue {
+  .passwordInputGroup[data-autofill="running"] input {
     animation-duration: var(--motion-instant);
   }
 

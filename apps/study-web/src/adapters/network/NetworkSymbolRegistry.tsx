@@ -12,6 +12,21 @@ const symbolIdByNodeId: Readonly<Record<string, string>> = {
   'campus-board-archive': 'campus-board-archive',
 };
 
+const detailSymbolIds = new Set([
+  'campus-workspace',
+  'campus-services',
+  'campus-cloud',
+  'notifications',
+  'confirmations',
+  'reset-links',
+  'compose-message',
+  'direct-messages',
+  'groups-contacts',
+  'posts-reactions',
+]);
+
+const conceptEmailSymbolIds = new Set(['confirmations', 'reset-links']);
+
 export function resolveNetworkSymbolId(node: Pick<SceneNode, 'id' | 'kind' | 'symbolId'>): string {
   return node.symbolId ?? symbolIdByNodeId[node.id] ?? node.kind;
 }
@@ -90,69 +105,209 @@ function SymbolPaths({ symbolId }: Pick<NetworkSymbolProps, 'symbolId'>) {
           />
         </>
       );
-    case 'learnspace':
+    case 'campus-workspace':
       return (
         <>
-          <path d="M4 6.5c3-1.5 5.7-1.2 8 1v10c-2.3-2.2-5-2.5-8-1V6.5Z" />
-          <path d="M20 6.5c-3-1.5-5.7-1.2-8 1v10c2.3-2.2 5-2.5 8-1V6.5Z" />
+          <rect
+            x="3.2"
+            y="5"
+            width="17.6"
+            height="12.2"
+            rx="2.2"
+            fill="currentColor"
+            fillOpacity="0.12"
+          />
+          <path d="M4.8 6.7h14.4v8.8H4.8zM2.8 18.6h18.4M9.2 18.6l.7-1.4h4.2l.7 1.4" />
+          <rect
+            x="6.4"
+            y="8.2"
+            width="4.1"
+            height="3.2"
+            rx="0.65"
+            fill="currentColor"
+            fillOpacity="0.32"
+            stroke="none"
+          />
+          <path d="M12.4 8.8h4.4M12.4 11.1h3.1M6.4 13.4h10.4" />
         </>
       );
-    case 'exam-portal':
+    case 'campus-services':
       return (
         <>
-          <rect x="6" y="4" width="12" height="17" rx="2" />
-          <path d="M9 4.5h6v3H9zM9 12l1.5 1.5 3-3M9 17h6" />
+          <path
+            d="M5.2 2.9h9.2l4.4 4.4v13.8H5.2V2.9Z"
+            fill="currentColor"
+            fillOpacity="0.1"
+          />
+          <path d="M5.2 2.9h9.2l4.4 4.4v13.8H5.2V2.9ZM14.4 3v4.3h4.3" />
+          <circle cx="9" cy="10" r="1.55" fill="currentColor" fillOpacity="0.28" />
+          <path d="m8.25 10 .55.6 1.05-1.25M12.2 10h3.5" />
+          <circle cx="9" cy="15.5" r="1.55" fill="currentColor" fillOpacity="0.28" />
+          <path d="m8.25 15.5.55.6 1.05-1.25M12.2 15.5h3.5" />
+          <circle cx="18.7" cy="18.8" r="3" fill="#b98a54" stroke="white" strokeWidth="0.9" />
+          <path d="m17.35 18.8.85.85 1.75-1.85" stroke="white" strokeWidth="1.1" />
         </>
       );
-    case 'cloud-notes':
+    case 'campus-cloud':
       return (
         <>
-          <path d="M7.2 18.5H18a3.2 3.2 0 1 0-.9-6.2A5.3 5.3 0 0 0 7 10.3a4.1 4.1 0 0 0 .2 8.2Z" />
-          <path d="M10 6h5v7h-5zM11.5 9h2" />
+          <path
+            d="M5.5 18.4h12.7a3.6 3.6 0 0 0 .2-7.2 6.2 6.2 0 0 0-11.8-1.6 4.5 4.5 0 0 0-1.1 8.8Z"
+            fill="currentColor"
+            fillOpacity="0.12"
+          />
+          <path d="M5.5 18.4h12.7a3.6 3.6 0 0 0 .2-7.2 6.2 6.2 0 0 0-11.8-1.6 4.5 4.5 0 0 0-1.1 8.8Z" />
+          <rect x="9.1" y="11.4" width="5.8" height="4.8" rx="1.1" fill="currentColor" fillOpacity="0.28" />
+          <path d="M10.5 11.4V10a1.5 1.5 0 0 1 3 0v1.4M12 13.4v1.1" />
+          <circle cx="18.6" cy="18.4" r="2.6" fill="white" stroke="currentColor" strokeWidth="1.1" />
+          <path d="M17.2 18.4a1.5 1.5 0 0 1 2.5-1.1M19.9 17.1v1.1h-1.1M20 18.5a1.5 1.5 0 0 1-2.5 1.1M17.3 19.8v-1.1h1.1" />
         </>
       );
     case 'notifications':
       return (
         <>
-          <path d="M6.5 16.5h11l-1.6-2.2v-4.1a3.9 3.9 0 0 0-7.8 0v4.1l-1.6 2.2Z" />
-          <path d="M10 19h4" />
+          <path
+            d="M5.1 17.2h13.8l-2-2.8v-4.2a4.9 4.9 0 0 0-9.8 0v4.2l-2 2.8Z"
+            fill="currentColor"
+            fillOpacity="0.2"
+          />
+          <path d="M5.1 17.2h13.8l-2-2.8v-4.2a4.9 4.9 0 0 0-9.8 0v4.2l-2 2.8ZM10.1 19.2c.5.8 1.1 1.2 1.9 1.2s1.4-.4 1.9-1.2M12 5.3V3.5" />
+          <circle cx="18.3" cy="7.1" r="2.9" fill="#b98a54" stroke="white" strokeWidth="0.9" />
+          <path d="M18.3 5.7v1.8M18.3 8.5h.01" stroke="white" strokeWidth="1.15" />
         </>
       );
     case 'confirmations':
       return (
         <>
-          <rect x="5" y="4" width="14" height="16" rx="2" />
-          <path d="m8.5 12 2.2 2.2 4.8-5M9 7h6" />
+          <path
+            d="M11 27.5 32 16l21 11.5V49a7 7 0 0 1-7 7H18a7 7 0 0 1-7-7V27.5Z"
+            fill="#d7efeb"
+            stroke="#3e9292"
+          />
+          <rect
+            x="18.5"
+            y="5"
+            width="27"
+            height="39"
+            rx="3.5"
+            fill="#f8fcfb"
+            stroke="#3e9292"
+          />
+          <circle
+            cx="32"
+            cy="18"
+            r="8.5"
+            fill="#83cdbd"
+            stroke="#3e9292"
+          />
+          <path d="m27.8 18.1 2.9 3 5.8-6.2" stroke="white" strokeWidth="3.2" />
+          <path d="M25 31h14M27.5 36h9" stroke="#78aaa7" strokeWidth="2.6" />
+          <path
+            d="M11 28 32 47.5 53 28v21a7 7 0 0 1-7 7H18a7 7 0 0 1-7-7V28Z"
+            fill="#c9e9e4"
+            stroke="#3e9292"
+          />
+          <path d="m11.8 54.1 14.9-13.8M52.2 54.1 37.3 40.3" stroke="#69aaa5" />
+          <circle cx="52" cy="51.5" r="11.5" fill="white" stroke="white" strokeWidth="2" />
+          <circle cx="52" cy="51.5" r="9.1" fill="#fff9f1" stroke="#ae7d48" strokeWidth="2.3" />
+          <circle cx="52" cy="51.5" r="6.8" stroke="#d4b083" strokeWidth="1.4" />
+          <path d="m47.6 51.4 3 3.1 6.1-6.4" stroke="#a77745" strokeWidth="2.8" />
         </>
       );
     case 'reset-links':
       return (
         <>
-          <circle cx="8.5" cy="12" r="3.5" />
-          <path d="m11 14.5 7-7M15.5 7.5H18V10M15 16.5a6.5 6.5 0 0 1-8.7.2" />
+          <path
+            d="M42.5 51A22.5 22.5 0 1 1 50 20"
+            stroke="#72bcae"
+            strokeWidth="4"
+          />
+          <path d="M42 19.5h8.5V28" stroke="#72bcae" strokeWidth="4" />
+          <rect
+            x="14"
+            y="31"
+            width="26"
+            height="11"
+            rx="5.5"
+            fill="#d9f1ed"
+            stroke="#3e9292"
+            strokeWidth="3"
+            transform="rotate(-45 27 36.5)"
+          />
+          <path d="m20.7 42.8 12.6-12.6" stroke="#84cabe" strokeWidth="2.2" />
+          <rect
+            x="25"
+            y="20"
+            width="26"
+            height="11"
+            rx="5.5"
+            fill="#f5fbfa"
+            stroke="white"
+            strokeWidth="7"
+            transform="rotate(-45 38 25.5)"
+          />
+          <rect
+            x="25"
+            y="20"
+            width="26"
+            height="11"
+            rx="5.5"
+            fill="#d9f1ed"
+            stroke="#3e9292"
+            strokeWidth="3"
+            transform="rotate(-45 38 25.5)"
+          />
+          <path d="m31.7 31.8 12.6-12.6" stroke="#84cabe" strokeWidth="2.2" />
+          <circle cx="52" cy="51.5" r="11.5" fill="white" stroke="white" strokeWidth="2" />
+          <circle cx="52" cy="51.5" r="9.1" fill="#fff9f1" stroke="#ae7d48" strokeWidth="2.3" />
+          <path
+            d="M57 52.5a5.2 5.2 0 1 1-1.5-4.3M55.7 44.9l-.2 3.3-3.4-.2"
+            stroke="#a77745"
+            strokeWidth="2.4"
+          />
         </>
       );
     case 'compose-message':
       return (
         <>
-          <path d="M5 5h14v10H9l-4 4V5Z" />
-          <path d="m11 12 5-5 1.4 1.4-5 5L10 14Z" />
+          <path d="m2.8 10.6 18.4-7.2-5.8 17.2-4.1-6.5-8.5-3.5Z" fill="currentColor" fillOpacity="0.16" />
+          <path d="m2.8 10.6 18.4-7.2-5.8 17.2-4.1-6.5-8.5-3.5ZM11.3 14.1l9.9-10.7M11.3 14.1l-.6 4" />
+          <circle cx="18.2" cy="17.7" r="3.2" fill="white" stroke="currentColor" strokeWidth="1.1" />
+          <circle cx="18.2" cy="16.8" r="0.9" fill="currentColor" fillOpacity="0.45" />
+          <path d="M16.6 19.4c.3-1 .8-1.5 1.6-1.5s1.3.5 1.6 1.5" />
         </>
       );
-    case 'announcements':
-      return <path d="m5 12 10-5v10L5 12ZM15 9.5h3.5M15 14.5h3.5M7 13v4" />;
-    case 'project-questions':
+    case 'direct-messages':
       return (
         <>
-          <path d="M4 5h12v9H9l-4 3V5ZM10 8.5a1.7 1.7 0 1 1 2.8 1.3c-.8.7-1.3 1-1.3 2M11.5 13h.01" />
-          <path d="M18 9h2v8l-3-2h-5" />
+          <path d="M3.1 4.5h13.2v9H8.4l-4.2 3.3v-3.3H3.1v-9Z" fill="currentColor" fillOpacity="0.12" />
+          <path d="M3.1 4.5h13.2v9H8.4l-4.2 3.3v-3.3H3.1v-9ZM7 8.1h5.5M7 10.5h3.5" />
+          <path d="M9.2 16h6.4l4.2 3.3V16h1.1V8.2h-2.1" />
+          <circle cx="17.8" cy="8" r="2.8" fill="white" stroke="currentColor" strokeWidth="1.05" />
+          <rect x="16.65" y="7.65" width="2.3" height="1.75" rx="0.45" fill="currentColor" fillOpacity="0.28" />
+          <path d="M17.15 7.65v-.7a.65.65 0 0 1 1.3 0v.7" />
         </>
       );
-    case 'archived-discussions':
+    case 'groups-contacts':
       return (
         <>
-          <path d="M4 5h16v14H8l-4 2V5Z" />
-          <path d="M8 10h8M8 14h5" />
+          <circle cx="12" cy="9" r="3" fill="currentColor" fillOpacity="0.2" />
+          <circle cx="5.4" cy="10.5" r="2.1" fill="currentColor" fillOpacity="0.12" />
+          <circle cx="18.6" cy="10.5" r="2.1" fill="currentColor" fillOpacity="0.12" />
+          <path d="M7.4 19.8c.5-3.9 2-5.8 4.6-5.8s4.1 1.9 4.6 5.8H7.4ZM1.8 18.4c.4-2.8 1.6-4.2 3.6-4.2 1 0 1.9.4 2.5 1.1M22.2 18.4c-.4-2.8-1.6-4.2-3.6-4.2-1 0-1.9.4-2.5 1.1" />
+          <path d="M4.8 5.7A8.8 8.8 0 0 1 12 2.4a8.8 8.8 0 0 1 7.2 3.3" strokeDasharray="1.2 2.2" />
+          <circle cx="12" cy="2.4" r="1" fill="#b98a54" stroke="none" />
+        </>
+      );
+    case 'posts-reactions':
+      return (
+        <>
+          <rect x="3.3" y="3.3" width="15.8" height="17.4" rx="2.1" fill="currentColor" fillOpacity="0.1" />
+          <path d="M3.3 3.3h15.8v17.4H3.3V3.3Z" />
+          <circle cx="7" cy="7.1" r="1.4" fill="currentColor" fillOpacity="0.3" />
+          <path d="M9.6 6.2h6M9.6 8.1h4M5.5 17l3.7-4 2.5 2.5 2.1-2.2 3 3.7" />
+          <circle cx="18.3" cy="18.2" r="3.2" fill="#b98a54" stroke="white" strokeWidth="0.9" />
+          <path d="M18.3 19.7 16.8 18c-1.4-1.6.8-3 1.5-1.7.7-1.3 2.9.1 1.5 1.7l-1.5 1.7Z" fill="white" stroke="none" />
         </>
       );
     case 'shield':
@@ -182,15 +337,18 @@ function SymbolPaths({ symbolId }: Pick<NetworkSymbolProps, 'symbolId'>) {
 }
 
 export function NetworkSymbol({ symbolId, className }: NetworkSymbolProps) {
+  const usesConceptEmailArtwork = conceptEmailSymbolIds.has(symbolId);
+  const strokeWidth = usesConceptEmailArtwork ? 2.2 : detailSymbolIds.has(symbolId) ? 1.35 : 1.8;
+
   return (
     <svg
       aria-hidden="true"
       className={className ?? ''}
       data-network-symbol={symbolId}
-      viewBox="0 0 24 24"
+      viewBox={usesConceptEmailArtwork ? '0 0 64 64' : '0 0 24 24'}
       fill="none"
       stroke="currentColor"
-      strokeWidth="1.8"
+      strokeWidth={strokeWidth}
       strokeLinecap="round"
       strokeLinejoin="round"
     >

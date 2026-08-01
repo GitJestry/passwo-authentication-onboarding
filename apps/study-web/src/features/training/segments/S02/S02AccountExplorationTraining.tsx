@@ -1,6 +1,7 @@
 import { s02Content, type S02VisualPreviewKind } from '@passwo/training-content';
 import type { DesktopPlatform } from '@passwo/ui';
 import {
+  useCallback,
   useEffect,
   useLayoutEffect,
   useRef,
@@ -258,25 +259,17 @@ function VisualPreview({ kind }: { readonly kind: S02VisualPreviewKind }) {
           <span className={styles.socialFeed}>
             <strong>{preview.title}</strong>
             <span className={styles.socialPost}>
-              <i className={styles.socialAvatar}>L</i>
+              <i className={styles.socialAvatar}>{preview.primaryItem.authorInitial}</i>
               <span>
-                <b>
-                  {kind === 'discussion'
-                    ? previewContent.projectQuestionLabel
-                    : previewContent.archivedPostLabel}
-                </b>
-                <small>
-                  {kind === 'discussion'
-                    ? previewContent.projectQuestionText
-                    : previewContent.archivedPostText}
-                </small>
+                <b>{preview.primaryItem.label}</b>
+                <small>{preview.primaryItem.text}</small>
               </span>
             </span>
             <span className={styles.socialReply}>
-              <i className={styles.socialAvatar}>M</i>
+              <i className={styles.socialAvatar}>{preview.replyItem.authorInitial}</i>
               <span>
-                <b>{previewContent.replyLabel}</b>
-                <small>{previewContent.replyText}</small>
+                <b>{preview.replyItem.label}</b>
+                <small>{preview.replyItem.text}</small>
               </span>
             </span>
           </span>
@@ -300,6 +293,9 @@ export function S02AccountExplorationTraining({
   const characterAnimationAnchorRef = useRef<HTMLSpanElement | null>(null);
   const guideRef = useRef<HTMLDivElement | null>(null);
   const cursorKeyRef = useRef<HTMLDivElement | null>(null);
+  const lastPointerPositionRef = useRef<{ readonly clientX: number; readonly clientY: number } | null>(
+    null,
+  );
   const networkHostRef = useRef<HTMLDivElement | null>(null);
   const sceneRef = useRef<HTMLDivElement | null>(null);
   const previewRef = useRef<HTMLElement | null>(null);
@@ -312,6 +308,26 @@ export function S02AccountExplorationTraining({
     preview: null,
   });
   const [returningToBrowser, setReturningToBrowser] = useState(false);
+  const cursorKeyActiveAccountId = snapshot?.scene.activeAccountId ?? null;
+  const cursorKeyUnderstoodAccountIds = snapshot?.scene.understoodAccountIds ?? [];
+  const cursorKeyShouldFollowPointer =
+    !returningToBrowser &&
+    snapshot?.introState === 'complete' &&
+    cursorKeyUnderstoodAccountIds.length < definition.accounts.length &&
+    (cursorKeyActiveAccountId === null ||
+      cursorKeyUnderstoodAccountIds.includes(cursorKeyActiveAccountId));
+
+  const positionCursorKey = useCallback((clientX: number, clientY: number): void => {
+    const cursorKey = cursorKeyRef.current;
+    const parent = cursorKey?.parentElement;
+    if (cursorKey === null || cursorKey === undefined || parent === null || parent === undefined) {
+      return;
+    }
+    const parentRect = parent.getBoundingClientRect();
+    cursorKey.style.transform = `translate3d(${Math.round(
+      clientX - parentRect.left + 16,
+    )}px, ${Math.round(clientY - parentRect.top + 18)}px, 0)`;
+  }, []);
 
   useEffect(() => {
     if (
@@ -372,6 +388,21 @@ export function S02AccountExplorationTraining({
     }
     runtime.controller.startIntro();
   }, [externalTimingError, runtime, snapshot, timingState]);
+
+  useLayoutEffect(() => {
+    const cursorKey = cursorKeyRef.current;
+    const lastPointerPosition = lastPointerPositionRef.current;
+    if (
+      !cursorKeyShouldFollowPointer ||
+      cursorKey === null ||
+      lastPointerPosition === null ||
+      cursorKey.dataset.animating === 'true'
+    ) {
+      return;
+    }
+    cursorKey.style.removeProperty('opacity');
+    positionCursorKey(lastPointerPosition.clientX, lastPointerPosition.clientY);
+  }, [cursorKeyShouldFollowPointer, cursorKeyUnderstoodAccountIds.length, positionCursorKey]);
 
   useLayoutEffect(() => {
     const activeAccountId = snapshot?.scene.activeAccountId ?? null;
@@ -572,8 +603,10 @@ export function S02AccountExplorationTraining({
     ? { left: positionedGuide.left, top: positionedGuide.top }
     : undefined;
   const keyVisible =
+    !returningToBrowser &&
     snapshot.introState === 'complete' &&
-    (complete || scene.activeAccountId === null || activeAccountUnderstood);
+    !complete &&
+    (scene.activeAccountId === null || activeAccountUnderstood);
   const narrationBlocksInteraction = complete;
   const canAdvanceNarration =
     snapshot.introState === 'complete' &&
@@ -583,6 +616,9 @@ export function S02AccountExplorationTraining({
     scene.pendingAnimationId === null;
 
   function moveCursorKey(event: PointerEvent<HTMLElement>): void {
+    if (event.pointerType !== 'touch') {
+      lastPointerPositionRef.current = { clientX: event.clientX, clientY: event.clientY };
+    }
     const preview = previewRef.current;
     if (preview !== null) {
       const previewRect = preview.getBoundingClientRect();
@@ -598,12 +634,7 @@ export function S02AccountExplorationTraining({
     const cursorKey = cursorKeyRef.current;
     if (cursorKey === null || event.pointerType === 'touch') return;
     if (cursorKey.dataset.animating === 'true') return;
-    const parent = cursorKey.parentElement;
-    if (parent === null) return;
-    const parentRect = parent.getBoundingClientRect();
-    cursorKey.style.transform = `translate3d(${Math.round(
-      event.clientX - parentRect.left + 16,
-    )}px, ${Math.round(event.clientY - parentRect.top + 18)}px, 0)`;
+    positionCursorKey(event.clientX, event.clientY);
   }
 
   function returnToBrowser(): void {
@@ -710,15 +741,17 @@ export function S02AccountExplorationTraining({
             />
           </div>
 
-          <div
-            ref={cursorKeyRef}
-            className={styles.cursorKey}
-            data-visible={keyVisible}
-            aria-hidden="true"
-          >
-            <PasswordKeyGraphic />
-            <span>******</span>
-          </div>
+          {complete ? null : (
+            <div
+              ref={cursorKeyRef}
+              className={styles.cursorKey}
+              data-visible={keyVisible}
+              aria-hidden="true"
+            >
+              <PasswordKeyGraphic />
+              <span>******</span>
+            </div>
+          )}
 
           <p className={styles.screenReaderOnly} role="status">
             {complete ? s02Content.page.completion : ''}

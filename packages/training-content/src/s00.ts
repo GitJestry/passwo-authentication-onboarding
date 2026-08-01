@@ -56,7 +56,7 @@ export interface S00SegmentContent {
   };
   readonly narration: {
     readonly guideName: string;
-    readonly greetingTemplate: string;
+    readonly greeting: string;
     readonly safetyWarning: string;
     readonly openGuideLabel: string;
     readonly closeGuideLabel: string;
@@ -88,7 +88,7 @@ export interface S00SegmentContent {
   };
 }
 
-export const S00_CONTENT_VERSION = '1.11.0';
+export const S00_CONTENT_VERSION = '1.14.0';
 
 export const s00Content: S00SegmentContent = {
   version: S00_CONTENT_VERSION,
@@ -96,11 +96,13 @@ export const s00Content: S00SegmentContent = {
   entry: {
     title: 'Passwörter & Authentifizierung',
     paragraphs: [
-      'Aloha! Mein Name ist PassWo, und ich begleite dich heute durch das Training.',
-      'Vielleicht kennst du die Situation: Du bist ganz neu an einer Universität und musst dich nun für die wichtigsten Campus-Konten registrieren.',
-      'Deine Aufgabe ist zunächst, für drei Campus-Konten starke und merkbare Passwörter zu wählen. Später meldest du dich nämlich noch einmal damit an.',
+      'Aloha! Ich bin PassWo und begleite dich heute durch das Training.',
+      'Stell dir vor, du hast an einer Hochschule gerade neue Campuszugänge erhalten und musst nun drei Campuskonten einrichten.',
+      'In der ersten Sektion entscheidest du selbst, welche Passwörter du für diese Konten verwendest. Überlege wie du die Konten in so einer Situation schützen würdest, und erstelle dafür starke Passwörter, die du dir gut merken kannst.',
+      'Nach einem kurzen Zwischenschritt meldest du dich noch einmal bei allen drei Konten an. Wähle deine Passwörter deshalb so, dass du sie später wieder abrufen kannst.',
+      'Du arbeitest gleich in einem virtuellen PC. Wähle gerne das Betriebssystem, das deinem Alltag am nächsten kommt.',
     ],
-    nameLabel: 'Dein Name',
+    nameLabel: 'Wie soll PassWo dich ansprechen?',
     startLabel: 'Training starten',
   },
   sectionTransition: {
@@ -144,8 +146,8 @@ export const s00Content: S00SegmentContent = {
   },
   narration: {
     guideName: 'PassWo',
-    greetingTemplate:
-      'Hey {displayName}, bevor wir loslegen, zeige ich dir kurz die drei fiktiven Campus-Konten. Master Campus ist dein zentraler Zugang: Damit meldest du dich bei den wichtigsten Diensten der Universität an.',
+    greeting:
+      'Das ist dein Browser. Bevor du die Passwörter erstellst, erkläre ich dir kurz, wofür die drei Konten überhaupt stehen.\n\nMaster Campus ist dein zentraler Zugang. Mit dem Konto meldest du dich auch bei Campus Workspace für Projekt- und Arbeitsräume, Campus Services für Anträge, Termine und Dokumente sowie Campus Cloud für persönliche Dateien, Notizen und Entwürfe an.',
     accountExplanations: [
       {
         accountId: 'campus-mail',
@@ -153,11 +155,11 @@ export const s00Content: S00SegmentContent = {
       },
       {
         accountId: 'campus-board-archive',
-        text: 'Campusgram ist ein separates Konto für Beiträge und Diskussionen aus dem Campusalltag.',
+        text: 'Campusgram ist ein Community-Konto für persönliche Direktnachrichten, Gruppen und Kontakte sowie Beiträge und Reaktionen.',
       },
     ],
     safetyWarning:
-      'Nutze bitte keine eigenen Passwörter oder Varianten davon.',
+      'Nutze bitte keine eigenen Passwörter oder Varianten davon. Und keine Sorge, die Eingaben werden nur lokal für diese fiktive Übung ausgewertet und nicht dauerhaft gespeichert.\nViel Erfolg!',
     openGuideLabel: 'PassWo-Hilfe öffnen',
     closeGuideLabel: 'PassWo-Hilfe schließen',
   },
@@ -202,7 +204,3 @@ export const s00Content: S00SegmentContent = {
     ],
   },
 };
-
-export function formatS00Greeting(displayName: string): string {
-  return s00Content.narration.greetingTemplate.replace('{displayName}', displayName);
-}

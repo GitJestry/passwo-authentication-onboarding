@@ -3,16 +3,38 @@ import type { TrainingSectionId } from '@passwo/contracts';
 export const s02AccountIds = ['campus-id', 'campus-mail', 'campus-board-archive'] as const;
 export type S02AccountId = (typeof s02AccountIds)[number];
 export type S02VisualPreviewKind =
-  | 'course-space'
-  | 'exam-list'
-  | 'cloud-files'
+  | 'campus-workspace'
+  | 'campus-services'
+  | 'campus-cloud'
   | 'mail-list'
   | 'confirmation'
   | 'reset-link'
   | 'compose'
-  | 'announcement'
-  | 'discussion'
-  | 'message-thread';
+  | 'direct-messages'
+  | 'groups-contacts'
+  | 'posts-reactions';
+
+export type S02VisualPreview =
+  | {
+      readonly app: string;
+      readonly title: string;
+      readonly category: 'login' | 'mail';
+    }
+  | {
+      readonly app: string;
+      readonly title: string;
+      readonly category: 'social';
+      readonly primaryItem: {
+        readonly authorInitial: string;
+        readonly label: string;
+        readonly text: string;
+      };
+      readonly replyItem: {
+        readonly authorInitial: string;
+        readonly label: string;
+        readonly text: string;
+      };
+    };
 
 export type S02AnimationStep =
   | {
@@ -143,22 +165,7 @@ export interface S02SegmentContent {
     readonly projectSender: string;
     readonly projectMessage: string;
     readonly sendMessageLabel: string;
-    readonly projectQuestionLabel: string;
-    readonly archivedPostLabel: string;
-    readonly projectQuestionText: string;
-    readonly archivedPostText: string;
-    readonly replyLabel: string;
-    readonly replyText: string;
-    readonly variants: Readonly<
-      Record<
-        S02VisualPreviewKind,
-        {
-          readonly app: string;
-          readonly title: string;
-          readonly category: 'login' | 'mail' | 'social';
-        }
-      >
-    >;
+    readonly variants: Readonly<Record<S02VisualPreviewKind, S02VisualPreview>>;
   };
   readonly narration: {
     readonly guideName: string;
@@ -182,7 +189,7 @@ export interface S02SegmentContent {
   readonly animations: readonly S02AnimationSequence[];
 }
 
-export const S02_CONTENT_VERSION = '3.7.0';
+export const S02_CONTENT_VERSION = '3.10.0';
 
 const introId = 's02.accounts.intro';
 const completeId = 's02.accounts.complete';
@@ -211,20 +218,22 @@ const accounts = [
     },
     summaries: {
       locked: 'Master Campus ist geschlossen.',
-      opening: 'Master Campus wird geöffnet. Die verbundenen Dienste erscheinen gemeinsam.',
+      opening:
+        'Master Campus wird geöffnet. Campus Workspace, Campus Services und Campus Cloud erscheinen gemeinsam.',
       progress: '{opened} von {total} Details zu Master Campus geöffnet.',
       checking: '{detail} wird mit Master Campus geprüft.',
-      understood: 'Master Campus verstanden. Alle drei verbundenen Dienste wurden geöffnet.',
+      understood:
+        'Master Campus verstanden. Campus Workspace, Campus Services und Campus Cloud wurden geöffnet.',
     },
     details: [
       {
-        id: 'campus-id-learnspace',
-        label: 'LearnSpace',
-        symbolId: 'learnspace',
-        preview: { kind: 'course-space' },
+        id: 'campus-id-workspace',
+        label: 'Campus Workspace',
+        symbolId: 'campus-workspace',
+        preview: { kind: 'campus-workspace' },
         position: { x: 0.03, y: 0.4 },
-        animationId: 's02-check-campus-id-learnspace',
-        narrationId: 's02.campus-id.learnspace',
+        animationId: 's02-check-campus-id-workspace',
+        narrationId: 's02.campus-id.workspace',
         descriptions: {
           available: 'Mit Master Campus öffnen',
           checking: 'Master Campus wird geprüft …',
@@ -232,13 +241,13 @@ const accounts = [
         },
       },
       {
-        id: 'campus-id-exam-portal',
-        label: 'Prüfungsportal',
-        symbolId: 'exam-portal',
-        preview: { kind: 'exam-list' },
+        id: 'campus-id-services',
+        label: 'Campus Services',
+        symbolId: 'campus-services',
+        preview: { kind: 'campus-services' },
         position: { x: 0.22, y: 0.58 },
-        animationId: 's02-check-campus-id-exam-portal',
-        narrationId: 's02.campus-id.exam-portal',
+        animationId: 's02-check-campus-id-services',
+        narrationId: 's02.campus-id.services',
         descriptions: {
           available: 'Mit Master Campus öffnen',
           checking: 'Master Campus wird geprüft …',
@@ -246,13 +255,13 @@ const accounts = [
         },
       },
       {
-        id: 'campus-id-cloud-notes',
-        label: 'Cloud Notes',
-        symbolId: 'cloud-notes',
-        preview: { kind: 'cloud-files' },
+        id: 'campus-id-campus-cloud',
+        label: 'Campus Cloud',
+        symbolId: 'campus-cloud',
+        preview: { kind: 'campus-cloud' },
         position: { x: 0.04, y: 0.79 },
-        animationId: 's02-check-campus-id-cloud-notes',
-        narrationId: 's02.campus-id.cloud-notes',
+        animationId: 's02-check-campus-id-campus-cloud',
+        narrationId: 's02.campus-id.campus-cloud',
         descriptions: {
           available: 'Mit Master Campus öffnen',
           checking: 'Master Campus wird geprüft …',
@@ -360,62 +369,62 @@ const accounts = [
     detailRevealAnimationId: 's02-reveal-campus-board-archive-details',
     returnToDockAnimationId: 's02-return-campus-board-archive-to-dock',
     narrationIds: {
-      open: 's02.campus-board.open',
-      understood: 's02.campus-board.understood',
+      open: 's02.campusgram.open',
+      understood: 's02.campusgram.understood',
     },
     descriptions: {
       locked: 'Konto öffnen',
       opening: 'Campusgram wird geöffnet …',
-      open: 'Archivierte Inhalte ansehen',
+      open: 'Lokale Inhaltsbereiche ansehen',
       understood: 'Campusgram verstanden',
     },
     summaries: {
       locked: 'Campusgram ist geschlossen.',
-      opening: 'Campusgram wird geöffnet. Drei archivierte Inhalte erscheinen.',
+      opening: 'Campusgram wird geöffnet. Drei lokale Inhaltsbereiche erscheinen.',
       progress: '{opened} von {total} Details in Campusgram geöffnet.',
       checking: '{detail} wird geöffnet.',
-      understood: 'Campusgram verstanden. Alle drei archivierten Inhalte wurden angesehen.',
+      understood: 'Campusgram verstanden. Alle drei lokalen Inhaltsbereiche wurden angesehen.',
     },
     details: [
       {
-        id: 'campus-board-old-announcements',
-        label: 'Alte Ankündigungen',
-        symbolId: 'announcements',
-        preview: { kind: 'announcement' },
+        id: 'campusgram-direct-messages',
+        label: 'Direktnachrichten',
+        symbolId: 'direct-messages',
+        preview: { kind: 'direct-messages' },
         position: { x: 0.27, y: 0.76 },
-        animationId: 's02-check-campus-board-old-announcements',
-        narrationId: 's02.campus-board.old-announcements',
+        animationId: 's02-check-campusgram-direct-messages',
+        narrationId: 's02.campusgram.direct-messages',
         descriptions: {
-          available: 'Archivvorschau öffnen',
-          checking: 'Alte Ankündigungen werden geöffnet …',
+          available: 'Vorschau öffnen',
+          checking: 'Direktnachrichten werden geöffnet …',
           opened: 'Vorschau erneut öffnen',
         },
       },
       {
-        id: 'campus-board-project-questions',
-        label: 'Projektfragen',
-        symbolId: 'project-questions',
-        preview: { kind: 'discussion' },
+        id: 'campusgram-groups-contacts',
+        label: 'Gruppen und Kontakte',
+        symbolId: 'groups-contacts',
+        preview: { kind: 'groups-contacts' },
         position: { x: 0.46, y: 0.81 },
-        animationId: 's02-check-campus-board-project-questions',
-        narrationId: 's02.campus-board.project-questions',
+        animationId: 's02-check-campusgram-groups-contacts',
+        narrationId: 's02.campusgram.groups-contacts',
         descriptions: {
-          available: 'Archivvorschau öffnen',
-          checking: 'Projektfragen werden geöffnet …',
+          available: 'Vorschau öffnen',
+          checking: 'Gruppen und Kontakte werden geöffnet …',
           opened: 'Vorschau erneut öffnen',
         },
       },
       {
-        id: 'campus-board-archived-discussions',
-        label: 'Archivierte Diskussionen',
-        symbolId: 'archived-discussions',
-        preview: { kind: 'message-thread' },
+        id: 'campusgram-posts-reactions',
+        label: 'Beiträge und Reaktionen',
+        symbolId: 'posts-reactions',
+        preview: { kind: 'posts-reactions' },
         position: { x: 0.52, y: 0.58 },
-        animationId: 's02-check-campus-board-archived-discussions',
-        narrationId: 's02.campus-board.archived-discussions',
+        animationId: 's02-check-campusgram-posts-reactions',
+        narrationId: 's02.campusgram.posts-reactions',
         descriptions: {
-          available: 'Archivvorschau öffnen',
-          checking: 'Archivierte Diskussionen werden geöffnet …',
+          available: 'Vorschau öffnen',
+          checking: 'Beiträge und Reaktionen werden geöffnet …',
           opened: 'Vorschau erneut öffnen',
         },
       },
@@ -563,26 +572,66 @@ export const s02Content: S02SegmentContent = {
     projectSender: 'Projektteam',
     projectMessage: 'Neue Nachricht im Verlauf',
     sendMessageLabel: 'Nachricht senden',
-    projectQuestionLabel: 'Frage zum Projekt',
-    archivedPostLabel: 'Beitrag aus dem Archiv',
-    projectQuestionText: 'Wie teilen wir die Projektaufgaben auf?',
-    archivedPostText: 'Diese Information bleibt im Konto sichtbar.',
-    replyLabel: 'Antwort',
-    replyText: 'Ich übernehme Recherche und Zusammenfassung.',
     variants: {
-      'course-space': { app: 'LearnSpace', title: 'Meine Kurse', category: 'login' },
-      'exam-list': { app: 'Prüfungsportal', title: 'Meine Prüfungen', category: 'login' },
-      'cloud-files': { app: 'Cloud Notes', title: 'Meine Dateien', category: 'login' },
+      'campus-workspace': { app: 'Campus Workspace', title: 'Arbeitsräume', category: 'login' },
+      'campus-services': {
+        app: 'Campus Services',
+        title: 'Persönliche Vorgänge',
+        category: 'login',
+      },
+      'campus-cloud': {
+        app: 'Campus Cloud',
+        title: 'Persönliche Dateien, Notizen und Entwürfe',
+        category: 'login',
+      },
       'mail-list': { app: 'Campus E-Mail', title: 'Benachrichtigungen', category: 'mail' },
       confirmation: { app: 'Campus E-Mail', title: 'Bestätigungen', category: 'mail' },
       'reset-link': { app: 'Campus E-Mail', title: 'Zurücksetzungslink', category: 'mail' },
       compose: { app: 'Campus E-Mail', title: 'Neue Nachricht', category: 'mail' },
-      announcement: { app: 'Campusgram', title: 'Alte Ankündigungen', category: 'social' },
-      discussion: { app: 'Campusgram', title: 'Projektfragen', category: 'social' },
-      'message-thread': {
+      'direct-messages': {
         app: 'Campusgram',
-        title: 'Archivierte Diskussion',
+        title: 'Direktnachrichten',
         category: 'social',
+        primaryItem: {
+          authorInitial: 'L',
+          label: 'Private Nachricht',
+          text: 'Kannst du die Datei heute noch freigeben?',
+        },
+        replyItem: {
+          authorInitial: 'M',
+          label: 'Antwort',
+          text: 'Ja, ich teile sie gleich mit dem Team.',
+        },
+      },
+      'groups-contacts': {
+        app: 'Campusgram',
+        title: 'Gruppen und Kontakte',
+        category: 'social',
+        primaryItem: {
+          authorInitial: 'T',
+          label: 'Team Nachhaltigkeit',
+          text: '12 Kontakte und zwei gemeinsame Initiativen.',
+        },
+        replyItem: {
+          authorInitial: 'R',
+          label: 'Kontakt aktualisiert',
+          text: 'Neue Verbindung in der Arbeitsgruppe.',
+        },
+      },
+      'posts-reactions': {
+        app: 'Campusgram',
+        title: 'Beiträge und Reaktionen',
+        category: 'social',
+        primaryItem: {
+          authorInitial: 'V',
+          label: 'Beitrag zur Veranstaltung',
+          text: 'Die Rückmeldung zur gemeinsamen Veranstaltung ist veröffentlicht.',
+        },
+        replyItem: {
+          authorInitial: 'K',
+          label: 'Neue Reaktion',
+          text: 'Kommentar und Reaktion wurden hinzugefügt.',
+        },
       },
     },
   },
@@ -596,37 +645,37 @@ export const s02Content: S02SegmentContent = {
       [completeId]:
         'Du hast die Konten erkundet. Klicke unten im Dock auf den Browser, wenn du bereit bist weiterzugehen.',
       's02.campus-id.open':
-        'Master Campus ist dein zentrales Konto: Mit einem Passwort kannst du dich bei mehreren verbundenen Diensten anmelden.',
+        'Master Campus ist dein zentraler Zugang. Mit einem Passwort öffnest du Campus Workspace, Campus Services und Campus Cloud.',
       's02.campus-id.understood':
-        'Zusammengefasst steckt hinter dem einen Passwort nicht nur Master Campus, sondern drei weitere persönliche Dienste.',
-      's02.campus-id.learnspace':
-        'Hier sammeln sich deine Kurse, Materialien und Abgaben. Darin können auch persönliche Notizen und Dateien liegen.',
-      's02.campus-id.exam-portal':
-        'Hier stehen Anmeldungen, Termine und Ergebnisse. Diese Informationen zeigen, wie dein Studienalltag organisiert ist.',
-      's02.campus-id.cloud-notes':
-        'Hier liegen Notizen, Entwürfe und Arbeitsdateien – zum Beispiel auch persönliche Fotos, wenn du sie dort abgelegt hast.',
+        'Hinter diesem einen Zugang liegen Projekt- und Arbeitsräume, persönliche Verwaltungsvorgänge sowie persönliche Dateien, Notizen und Entwürfe.',
+      's02.campus-id.workspace':
+        'Campus Workspace enthält Projekt- und Arbeitsräume, geteilte Dateien und Gruppenmitgliedschaften.',
+      's02.campus-id.services':
+        'Campus Services enthält persönliche Angaben, Anträge, Termine und Dokumente.',
+      's02.campus-id.campus-cloud':
+        'Campus Cloud enthält persönliche Dateien, Notizen und Entwürfe.',
       's02.campus-mail.open':
         'Campus E-Mail verbindet Nachrichten, Bestätigungen, Zurücksetzungen und Kommunikation.',
       's02.campus-mail.understood':
         'Campus E-Mail ist die Brücke zu persönlichen Informationen, Zurücksetzungen und Kommunikation in deinem Namen.',
       's02.campus-mail.notifications':
-        'Hier landen Hinweise zu Kursen, Terminen und Systemen. Sie zeigen, welche Vorgänge dich gerade betreffen.',
+        'Benachrichtigungen zu Kursen, Terminen und Systemen zeigen, welche Vorgänge dich gerade betreffen.',
       's02.campus-mail.confirmations':
-        'Hier kommen Bestätigungen für Anmeldungen oder Änderungen an. Sie können verraten, was du gerade organisiert hast.',
+        'Bestätigungen für Anmeldungen oder Änderungen können verraten, was du gerade organisiert hast.',
       's02.campus-mail.reset-links':
-        'Hier erscheinen Links, mit denen manche Dienste Änderungen bestätigen oder ein Passwort zurücksetzen lassen.',
+        'Zurücksetzungslinks ermöglichen bei manchen Diensten, Änderungen zu bestätigen oder ein Passwort zurückzusetzen.',
       's02.campus-mail.impersonation':
-        'Über dieses Postfach könnten in diesem Szenario Nachrichten in deinem Namen geschrieben werden.',
-      's02.campus-board.open':
-        'In Campusgram liegen lokale Inhalte ohne Verbindungen zu weiteren Campusdiensten.',
-      's02.campus-board.understood':
-        'Campusgram öffnet hier keine weiteren Campusdienste und enthält typische archivierte Informationen.',
-      's02.campus-board.old-announcements':
-        'Hier liegen ältere Hinweise und Informationen, die zeigen können, welche Themen oder Veranstaltungen dich betroffen haben.',
-      's02.campus-board.project-questions':
-        'Hier können Projektfragen, Antworten und kurze Absprachen gesammelt sein – auch wenn sie schon etwas zurückliegen.',
-      's02.campus-board.archived-discussions':
-        'Hier bleiben Diskussionen aus früheren Kursen erhalten. Das Archiv öffnet keine weiteren Dienste, kann aber trotzdem persönliche Informationen enthalten.',
+        'Kommunikation in deinem Namen bedeutet in diesem Szenario, dass über dieses Postfach Nachrichten als du geschrieben werden könnten.',
+      's02.campusgram.open':
+        'Campusgram ist ein Community-Konto für persönliche Direktnachrichten, Gruppen und Kontakte sowie Beiträge und Reaktionen.',
+      's02.campusgram.understood':
+        'Die drei Bereiche zeigen persönliche Kommunikation, Kontakte sowie Beiträge und Reaktionen.',
+      's02.campusgram.direct-messages':
+        'Direktnachrichten können das Lesen privater Gespräche und Anhänge sowie Schreiben im Namen der Person ermöglichen.',
+      's02.campusgram.groups-contacts':
+        'Gruppen und Kontakte können Teams, Initiativen und Kontaktbeziehungen sichtbar machen.',
+      's02.campusgram.posts-reactions':
+        'Beiträge und Reaktionen können Beiträge, Kommentare, Interessen und Veranstaltungsaktivitäten sichtbar machen oder verändern.',
     },
   },
   scene: {

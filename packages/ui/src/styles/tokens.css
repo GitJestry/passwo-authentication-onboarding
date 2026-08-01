@@ -47,6 +47,11 @@
   --color-surface-address: rgb(255 255 255 / 74%);
   --color-surface-float: rgb(255 255 255 / 94%);
   --color-surface-desktop-menu-mac: rgb(239 247 252 / 86%);
+  --color-wallpaper-mac-base: #5369ca;
+  --color-wallpaper-mac-blue: #61c5e5;
+  --color-wallpaper-mac-violet: #8a62d2;
+  --color-wallpaper-mac-coral: #ec879c;
+  --color-wallpaper-mac-peach: #f2ad79;
   --color-surface-browser-chrome-mac: #dfe8ed;
   --color-surface-browser-navigation-mac: #f6f8fa;
   --color-surface-browser-tab-idle-mac: #e3ebef;

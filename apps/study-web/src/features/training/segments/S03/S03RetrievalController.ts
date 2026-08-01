@@ -178,11 +178,6 @@ export class S03RetrievalController {
     }
   }
 
-  playSuccessfulRetrieval(accountId: string): void {
-    if (this.#disposed) return;
-    this.#queueAnimation(`s03-result-${accountId}`);
-  }
-
   updatePresentation(presentation: NetworkPresentationSnapshot): void {
     if (this.#disposed || presentation === this.#snapshot.presentation) return;
     this.#snapshot = { ...this.#snapshot, presentation };

@@ -97,9 +97,9 @@ async function completeSupportiveArtifact(page: Page): Promise<void> {
   await page.getByRole('button', { name: 'Weiter' }).click();
 
   for (const [account, password] of [
-    ['CampusID', 'id!?'],
-    ['CampusMail', 'mail!?'],
-    ['CampusBoard Archiv', 'board!?'],
+    ['Master Campus', 'id!?'],
+    ['Campus E-Mail', 'mail!?'],
+    ['Campusgram', 'board!?'],
   ] as const) {
     await page.getByRole('tab', { name: account }).click();
     await page.getByLabel('Fiktives Passwort').fill(password);
@@ -108,9 +108,12 @@ async function completeSupportiveArtifact(page: Page): Promise<void> {
   await page.getByRole('button', { name: 'Weiter' }).click();
 
   for (const account of [
-    ['CampusMail', ['Benachrichtigungen', 'Bestätigungen', 'Zurücksetzungslinks', 'Kommunikation in deinem Namen']],
-    ['CampusBoard Archiv', ['Alte Ankündigungen', 'Projektfragen', 'Archivierte Diskussionen']],
-    ['CampusID', ['LearnSpace', 'Prüfungsportal', 'Cloud Notes']],
+    [
+      'Campus E-Mail',
+      ['Benachrichtigungen', 'Bestätigungen', 'Zurücksetzungslinks', 'Kommunikation in deinem Namen'],
+    ],
+    ['Campusgram', ['Direktnachrichten', 'Gruppen und Kontakte', 'Beiträge und Reaktionen']],
+    ['Master Campus', ['Campus Workspace', 'Campus Services', 'Cloud Notes']],
   ] as const) {
     await page.getByRole('button', { name: new RegExp(`^${account[0]}\\.`) }).click();
     for (const detail of account[1]) {
@@ -119,7 +122,7 @@ async function completeSupportiveArtifact(page: Page): Promise<void> {
   }
   await page.getByRole('button', { name: 'Weiter' }).click();
 
-  for (const account of ['CampusBoard Archiv', 'CampusMail', 'CampusID'] as const) {
+  for (const account of ['Campusgram', 'Campus E-Mail', 'Master Campus'] as const) {
     await page.getByRole('tab', { name: account }).click();
     await page.getByRole('button', { name: 'Ich weiß es nicht mehr — weiter' }).click();
   }

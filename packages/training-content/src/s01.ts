@@ -120,7 +120,10 @@ export interface S01SegmentContent {
   };
 }
 
-export const S01_CONTENT_VERSION = '2.10.0';
+export const S01_CONTENT_VERSION = '2.13.0';
+
+const readyToContinueMessage =
+  'Die drei Konten sind eingerichtet. Bevor du dich wieder anmeldest, betrachten wir sie aus einer anderen Perspektive: als Knoten-Netzwerk. So wird sichtbar, welche Dienste und Funktionen mit jedem Kontozugang verbunden sind. Schließe dafür bitte zunächst den Browser.';
 
 export const s01Content: S01SegmentContent = {
   version: S01_CONTENT_VERSION,
@@ -143,40 +146,60 @@ export const s01Content: S01SegmentContent = {
         address: 'campus.example/campus-id',
         accountDataLabel: 'Benutzername',
         accountData: 'alex27@campus.example',
-        role: 'Zentrales Campus-Konto.',
+        role: 'Zentraler Zugang zu Campus Workspace, Campus Services und Campus Cloud.',
         symbolId: 'campus-id',
         landingNavigation: ['Überblick', 'Sicherheit', 'Hilfe'],
         authenticationNavigation: ['Hilfe'],
         overview: {
           title: 'Kontoübersicht',
-          description: 'Dein Zugang zu zentralen Campusdiensten.',
+          description: 'Dein Zugang zu Campus Workspace, Campus Services und Campus Cloud.',
           activityTitle: 'Aktuelle Bereiche',
-          activityItems: ['Campusdienste werden geladen', 'Kontostatus wird vorbereitet'],
+          activityItems: [
+            'Campus Workspace wird vorbereitet',
+            'Campus Services werden vorbereitet',
+            'Campus Cloud wird vorbereitet',
+          ],
         },
         landing: {
           headline: 'Dein Zugang zum Campus.',
           description:
-            'Master Campus ist dein zentraler Schlüssel zu allen digitalen Diensten der Hochschule.',
+            'Master Campus ist dein zentraler Zugang zu Campus Workspace, Campus Services und Campus Cloud.',
           benefits: [
-            'Ein Konto für alle Campusdienste',
-            'Sichere Anmeldung mit starken Standards',
-            'Verwaltung deiner Daten und Geräte',
+            'Campus Workspace: Projekt- und Arbeitsräume, geteilte Dateien und Gruppenmitgliedschaften.',
+            'Campus Services: Persönliche Angaben, Anträge, Termine und Dokumente.',
+            'Campus Cloud: Persönliche Dateien, Notizen und Entwürfe.',
           ],
           registerLabel: 'Registrieren',
           loginLabel: 'Anmelden',
         },
         dashboard: {
-          navigation: ['Übersicht', 'Dienste', 'Sicherheit', 'Profil', 'Geräte', 'Einstellungen'],
+          navigation: [
+            'Übersicht',
+            'Campus Workspace',
+            'Campus Services',
+            'Campus Cloud',
+            'Sicherheit',
+            'Profil',
+          ],
           summaryCards: [
-            { title: 'Kontoübersicht', detail: 'Benutzername, E-Mail und Kontostatus' },
-            { title: 'Sicherheit', detail: 'Passwort und zweistufige Anmeldung' },
-            { title: 'Meine Dienste', detail: 'E-Mail, Cloud Notes und LearnSpace' },
+            {
+              title: 'Campus Workspace',
+              detail: 'Projekt- und Arbeitsräume, geteilte Dateien und Gruppenmitgliedschaften.',
+            },
+            {
+              title: 'Campus Services',
+              detail: 'Persönliche Angaben, Anträge, Termine und Dokumente.',
+            },
+            {
+              title: 'Campus Cloud',
+              detail: 'Persönliche Dateien, Notizen und Entwürfe.',
+            },
           ],
           activityTitle: 'Aktuelle Aktivitäten',
           activities: [
-            { title: 'Anmeldung erfolgreich', meta: 'Heute · Browser' },
-            { title: 'Kontozugang eingerichtet', meta: 'Master Campus' },
-            { title: 'Campusdienste verbunden', meta: 'Diensteübersicht' },
+            { title: 'Campus Workspace', meta: 'Arbeitsräume und Gruppen sind verbunden' },
+            { title: 'Campus Services', meta: 'Persönliche Vorgänge sind erreichbar' },
+            { title: 'Campus Cloud', meta: 'Persönliche Dateien, Notizen und Entwürfe.' },
           ],
           lowerCards: [
             { title: 'Verknüpfte Geräte', detail: 'Laptop und Smartphone verwalten' },
@@ -227,7 +250,7 @@ export const s01Content: S01SegmentContent = {
             { title: 'Willkommen bei Campus E-Mail', meta: 'Campus IT-Service · 09:15' },
             { title: 'Deine Anmeldung wurde bestätigt', meta: 'Master Campus · Gestern' },
             { title: 'Neue Informationen zum Campusstart', meta: 'Studierendenwerk · Montag' },
-            { title: 'LearnSpace ist bereit', meta: 'Lernplattform · Montag' },
+            { title: 'Neue Campusinformation', meta: 'Campus IT-Service · Montag' },
           ],
           lowerCards: [
             { title: 'Letzte Aktivitäten', detail: 'Anmeldungen und geöffnete Nachrichten' },
@@ -239,58 +262,68 @@ export const s01Content: S01SegmentContent = {
       {
         id: 'campus-board-archive',
         label: 'Campusgram',
-        address: 'campus.example/board-archiv',
+        address: 'campus.example/campusgram',
         accountDataLabel: 'Benutzername',
         accountData: 'alex_board',
-        role: 'Ältere Ankündigungen, Projektfragen und informelle Campus-Diskussionen.',
+        role:
+          'Eigenständiges Community-Konto für Direktnachrichten, Gruppen und Kontakte sowie Beiträge und Reaktionen.',
         symbolId: 'campus-board-archive',
-        landingNavigation: ['Archiv', 'Themen', 'Suche'],
-        authenticationNavigation: ['Archiv', 'Themen', 'Suche'],
+        landingNavigation: ['Nachrichten', 'Gruppen und Kontakte', 'Beiträge', 'Aktivitäten'],
+        authenticationNavigation: ['Nachrichten', 'Gruppen und Kontakte', 'Beiträge', 'Aktivitäten'],
         overview: {
-          title: 'Archivübersicht',
-          description: 'Ältere Beiträge und Diskussionen aus dem Campusalltag.',
-          activityTitle: 'Archivierte Inhalte',
-          activityItems: ['Beiträge werden geladen', 'Themen werden vorbereitet'],
+          title: 'Community-Übersicht',
+          description: 'Aktuelle Kommunikation, Kontakte und Aktivitäten aus deiner Community.',
+          activityTitle: 'Aktuelle Aktivitäten',
+          activityItems: [
+            'Direktnachrichten werden geladen',
+            'Gruppen und Kontakte werden vorbereitet',
+            'Beiträge und Reaktionen werden aktualisiert',
+          ],
         },
         landing: {
           headline: 'Deine Community. Dein Campus. Dein Wissen.',
           description:
-            'Campusgram verbindet Studierende und Mitarbeitende, um Fragen zu stellen, Erfahrungen zu teilen und voneinander zu lernen.',
+            'Campusgram verbindet Studierende, Lehrende, Forschende und weitere Beschäftigte für Austausch, Zusammenarbeit und gemeinsame Aktivitäten.',
           benefits: [
-            'Fragen stellen und Antworten finden',
-            'Diskussionen führen und Wissen teilen',
-            'Projekte und Gruppen vernetzen',
-            'Wichtige Infos und Ankündigungen erhalten',
+            'Direktnachrichten: Private Unterhaltungen, Anhänge und informelle Absprachen.',
+            'Gruppen und Kontakte: Projektgruppen, Teams, Initiativen und Kontaktbeziehungen.',
+            'Beiträge und Reaktionen: Beiträge, Kommentare, Reaktionen und Veranstaltungsaktivitäten.',
           ],
           registerLabel: 'Registrieren',
           loginLabel: 'Anmelden',
         },
         dashboard: {
           navigation: [
-            'Übersicht',
-            'Ankündigungen',
-            'Projektfragen',
-            'Gruppen',
-            'Diskussionen',
-            'Archiv',
-            'Gespeichert',
+            'Nachrichten',
+            'Gruppen und Kontakte',
+            'Beiträge',
+            'Aktivitäten',
           ],
           summaryCards: [
-            { title: 'Ankündigungen', detail: 'Wichtige Neuigkeiten aus dem Campusalltag' },
-            { title: 'Projektfragen', detail: 'Aktuelle Fragen aus Kursen und Projekten' },
-            { title: 'Aktive Gruppen', detail: 'Communities und Lerngruppen entdecken' },
+            {
+              title: 'Direktnachrichten',
+              detail: 'Private Unterhaltungen, Anhänge und informelle Absprachen.',
+            },
+            {
+              title: 'Gruppen und Kontakte',
+              detail: 'Projektgruppen, Teams, Initiativen und Kontaktbeziehungen.',
+            },
+            {
+              title: 'Beiträge und Reaktionen',
+              detail: 'Beiträge, Kommentare, Reaktionen und Veranstaltungsaktivitäten.',
+            },
           ],
-          activityTitle: 'Diskussionen',
+          activityTitle: 'Aktivitäten',
           activities: [
-            { title: 'KI im Studium: Chance oder Risiko?', meta: '23 Antworten · vor 5 Std.' },
-            { title: 'Laptop-Empfehlungen fürs Studium', meta: '18 Antworten · vor 1 Tag' },
-            { title: 'Lernmethoden: Was hilft wirklich?', meta: '31 Antworten · vor 2 Tagen' },
+            { title: 'Neue Direktnachricht', meta: 'Team Nachhaltigkeit · vor 15 Min.' },
+            { title: 'Kontaktbeziehung aktualisiert', meta: 'Initiative Campusleben · vor 2 Std.' },
+            { title: 'Neue Reaktion auf einen Beitrag', meta: 'Veranstaltungsgruppe · vor 1 Tag' },
           ],
           lowerCards: [
-            { title: 'Trendthemen', detail: 'Prüfungen, Python und Designsysteme' },
-            { title: 'Archiv-Highlights', detail: 'Beliebte Beiträge aus vergangenen Semestern' },
-            { title: 'Neueste Aktivitäten', detail: 'Antworten, Kommentare und gespeicherte Beiträge' },
-            { title: 'Empfohlene Gruppen', detail: 'Passende Communities für deinen Campusstart' },
+            { title: 'Aktive Kontakte', detail: 'Kontakte aus Teams, Initiativen und Arbeitsgruppen' },
+            { title: 'Meine Gruppen', detail: 'Aktuelle Gruppen und gemeinsame Bereiche' },
+            { title: 'Neueste Beiträge', detail: 'Beiträge, Kommentare und Reaktionen aus der Community' },
+            { title: 'Veranstaltungen', detail: 'Aktivitäten und Rückmeldungen aus deinen Gruppen' },
           ],
         },
       },
@@ -323,8 +356,8 @@ export const s01Content: S01SegmentContent = {
       forwardLabel: 'Weiterleiten',
     },
     community: {
-      topicsAriaLabel: 'Aktive Themen',
-      topics: ['Informatik', 'Design Lab', 'Mathe 1', 'AStA', 'Career Hub'],
+      topicsAriaLabel: 'Aktive Community-Themen',
+      topics: ['Arbeitsgruppen', 'Forschung', 'Initiativen', 'Veranstaltungen', 'Campusleben'],
       newCount: (count) => `${count} neu`,
       searchLabel: 'Suche in Campusgram',
       createLabel: 'Beitrag erstellen',
@@ -339,9 +372,8 @@ export const s01Content: S01SegmentContent = {
     helpLabel: 'PassWo-Hinweis öffnen',
     closeHelpLabel: 'PassWo-Hinweis schließen',
     guideMessage:
-      'Erstelle starke und merkbare Passwörter, da wir uns später wieder anmelden müssen und unsere Accounts schützen wollen.',
-    readyToContinue:
-      'Die drei Konten sind eingerichtet. Bevor du dich erneut anmeldest, müssen wir schauen, was du gerade mit deinen Passwörtern schützt und ob vielleicht mehr als nur ein Konto auf den ersten Blick dahinter steckt. Schließe dafür bitte den Browser.',
+      'Erstelle für jedes der drei Konten ein starkes Passwort, das du dir für die spätere erneute Anmeldung merken kannst.',
+    readyToContinue: readyToContinueMessage,
   },
   controls: {
     registrationTitle: 'Konto registrieren',
@@ -357,7 +389,6 @@ export const s01Content: S01SegmentContent = {
   completion: {
     overlayLabel: (accountLabel) => `${accountLabel} eingerichtet`,
     guideName: 'PassWo',
-    guideMessage:
-      'Die drei Konten sind eingerichtet. Bevor du dich erneut anmeldest, müssen wir schauen, was du gerade mit deinen Passwörtern schützt und ob vielleicht mehr als nur ein Konto auf den ersten Blick dahinter steckt. Schließe dafür bitte den Browser.',
+    guideMessage: readyToContinueMessage,
   },
 };

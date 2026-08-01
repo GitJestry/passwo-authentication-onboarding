@@ -83,11 +83,7 @@ export function PasswordModuleTraining({
           <PassWoSpeechBubble
             className={styles.entrySpeech}
             speaker={s00Content.narration.guideName}
-            paragraphs={[
-              ...s00Content.entry.paragraphs,
-              'Du startest gleich in einen virtuellen PC im Training. Wähle das zu deinem Alltag passende Betriebssystem aus.',
-              'Und zu allerletzt: Darf ich noch fragen, wie du heißt?',
-            ]}
+            paragraphs={s00Content.entry.paragraphs}
             speechKey="module-entry"
             placement="right"
             awaitsAction

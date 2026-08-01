@@ -273,6 +273,12 @@
   height: 62%;
 }
 
+.nodeFrame[data-symbol-id="confirmations"] .nodeSymbol,
+.nodeFrame[data-symbol-id="reset-links"] .nodeSymbol {
+  width: 68%;
+  height: 82%;
+}
+
 .unlockParticles {
   position: absolute;
   inset: 0;

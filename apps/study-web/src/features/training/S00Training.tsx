@@ -1,9 +1,4 @@
-import {
-  formatS00Greeting,
-  s00Content,
-  s01Content,
-  type S01AccountId,
-} from '@passwo/training-content';
+import { s00Content, s01Content, type S01AccountId } from '@passwo/training-content';
 import {
   deriveCampusIdentity,
   MissionController,
@@ -145,7 +140,7 @@ export function S00Training({
   const animationError = missionSnapshot?.context.lastAnimationError ?? null;
   const activeTimingError = timingError ?? externalTimingError;
   const speechSteps = [
-    { accountId: 'campus-id', text: formatS00Greeting(displayName) },
+    { accountId: 'campus-id', text: s00Content.narration.greeting },
     ...s00Content.narration.accountExplanations.map(({ accountId, text }) => ({ accountId, text })),
     { accountId: null, text: s00Content.narration.safetyWarning },
   ] as const;

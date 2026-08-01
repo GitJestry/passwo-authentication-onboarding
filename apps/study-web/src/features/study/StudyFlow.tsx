@@ -373,18 +373,7 @@ function SupportiveArtifact({
   );
 }
 
-function ArtifactPreparation({
-  condition,
-  onStart,
-}: {
-  readonly condition: 'supportive' | 'reference';
-  readonly onStart: () => void;
-}) {
-  const conditionHint =
-    condition === 'supportive'
-      ? 'PassWo begleitet dich im fiktiven Campusraum. Beachte seine Hinweise und nutze alle dargestellten Konten und Elemente.'
-      : 'Lies auch die zusätzlichen Hinweise und nutze alle Elemente, die im Lernangebot angeboten werden.';
-
+function ArtifactPreparation({ onStart }: { readonly onStart: () => void }) {
   return (
     <section className={styles.artifactPreparation} aria-labelledby="artifact-preparation-title">
       <header className={styles.artifactPreparationHeader}>
@@ -393,8 +382,15 @@ function ArtifactPreparation({
         </h1>
       </header>
       <div className={styles.artifactPreparationContent}>
-        <p>Bitte bearbeite das Lernangebot gründlich und vollständig.</p>
-        <p>{conditionHint}</p>
+        <p>
+          Stelle dir vor, deine Hochschule hat dir dieses Lernangebot bereitgestellt und dich
+          gebeten, es zu bearbeiten.
+        </p>
+        <p>
+          Bearbeite die Inhalte aus dieser Perspektive aufmerksam und vollständig in deinem
+          eigenen Temp. Die Zusätzliche Informationen können dir helfen, die Inhalte genauer
+          einzuordnen und zu vertiefen.
+        </p>
       </div>
       <button className={styles.button} type="button" onClick={onStart}>
         Lernangebot beginnen
@@ -519,10 +515,7 @@ export function StudyFlow() {
       context.condition === null ? (
         <ConfigurationError errorCode="missing-condition" />
       ) : (
-        <ArtifactPreparation
-          condition={context.condition}
-          onStart={() => send({ type: 'START_ARTIFACT' })}
-        />
+        <ArtifactPreparation onStart={() => send({ type: 'START_ARTIFACT' })} />
       );
   } else if (snapshot.matches({ artifactLifecycle: 'startError' })) {
     content = (

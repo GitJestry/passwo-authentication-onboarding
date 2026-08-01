@@ -66,7 +66,9 @@ S02 „Konten verstehen“ bildet die erste vollständige Kontenerkundung:
 5. Master-Campus-Dienste verwenden `service`/`dependency`, Campus-E-Mail-Funktionen
    `function`/`association`;
 6. Campusgram-Inhalte verwenden `content`/`association`; diese Kanten bilden ausschließlich
-   lokale Inhaltszuordnungen im Archiv ab, keine SSO- oder Dienstverbindungen;
+   lokale Inhaltszuordnungen in einem eigenständigen Community-Konto ab, keine SSO- oder
+   Dienstverbindungen. Die drei Bereiche sind Direktnachrichten, Gruppen und Kontakte sowie
+   Beiträge und Reaktionen;
 7. nach dem Unlock existieren alle Details und Kanten des Kontos; die Kanten sind zunächst
    `neutral`, während der Prüfung `checking` und danach `opened`;
 8. `opened` bezeichnet ausschließlich die abgeschlossene Detailöffnung und ist weder

@@ -13,6 +13,67 @@
     linear-gradient(145deg, #b8e7ff, #d5e9ff 43%, #e3dcff 100%);
 }
 
+.desktopScene[data-platform="mac"] {
+  background:
+    radial-gradient(circle at 78% 16%, rgb(255 255 255 / 28%), transparent 22rem),
+    linear-gradient(
+      132deg,
+      var(--color-wallpaper-mac-blue) 0%,
+      var(--color-wallpaper-mac-base) 44%,
+      var(--color-wallpaper-mac-violet) 100%
+    );
+}
+
+.desktopScene[data-platform="mac"]::before,
+.desktopScene[data-platform="mac"]::after {
+  position: absolute;
+  z-index: 0;
+  content: "";
+  pointer-events: none;
+}
+
+.desktopScene[data-platform="mac"]::before {
+  top: -58%;
+  right: -18%;
+  width: 82%;
+  height: 138%;
+  border-radius: 42% 0 54% 48%;
+  background:
+    radial-gradient(ellipse at 26% 72%, rgb(255 255 255 / 42%), transparent 35%),
+    linear-gradient(
+      152deg,
+      var(--color-wallpaper-mac-peach) 5%,
+      var(--color-wallpaper-mac-coral) 43%,
+      var(--color-wallpaper-mac-violet) 82%
+    );
+  box-shadow:
+    -3.5rem 4rem 7rem rgb(50 35 131 / 24%),
+    inset 2rem -2rem 4rem rgb(255 255 255 / 16%);
+  opacity: 0.92;
+  transform: rotate(-18deg);
+}
+
+.desktopScene[data-platform="mac"]::after {
+  bottom: -70%;
+  left: -23%;
+  width: 92%;
+  height: 142%;
+  border-radius: 0 58% 44% 52%;
+  background:
+    radial-gradient(ellipse at 72% 18%, rgb(255 255 255 / 34%), transparent 34%),
+    linear-gradient(
+      128deg,
+      var(--color-wallpaper-mac-violet) 8%,
+      var(--color-wallpaper-mac-blue) 54%,
+      var(--color-wallpaper-mac-peach) 100%
+    );
+  box-shadow:
+    4rem -3rem 8rem rgb(44 38 139 / 28%),
+    inset -2rem 2rem 4rem rgb(255 255 255 / 14%);
+  opacity: 0.88;
+  transform: rotate(14deg);
+}
+
 .desktopMenuBar {
   position: absolute;
   z-index: 60;

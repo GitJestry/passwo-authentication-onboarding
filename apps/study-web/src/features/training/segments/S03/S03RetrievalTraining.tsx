@@ -217,6 +217,7 @@ export function S03RetrievalTraining({
   const characterAnimationAnchorRef = useRef<HTMLSpanElement | null>(null);
   const loginTitleRef = useRef<HTMLHeadingElement | null>(null);
   const assistedLoginButtonRef = useRef<HTMLButtonElement | null>(null);
+  const failedLoginAttemptsRef = useRef<Partial<Record<S01AccountId, number>>>({});
   const warningConfirmationRef = useRef(() => controller.completeS03WarningSequence());
   warningConfirmationRef.current = () => controller.completeS03WarningSequence();
   const [runtime, setRuntime] = useState<Runtime | null>(null);
@@ -234,6 +235,8 @@ export function S03RetrievalTraining({
     readonly accountId: S01AccountId;
     readonly attempt: number;
   } | null>(null);
+  const [thirdAttemptGuideAccountId, setThirdAttemptGuideAccountId] =
+    useState<S01AccountId | null>(null);
   const [successOverlayAccountId, setSuccessOverlayAccountId] =
     useState<S01AccountId | null>(null);
   const knownSuccessfulAccountIdsRef = useRef<ReadonlySet<string>>(
@@ -369,10 +372,9 @@ export function S03RetrievalTraining({
   const result = snapshot.context.retrievalResults[account.id] ?? 'pending';
   const activeValue = snapshot.context.retrievalPasswordValues[account.id] ?? '';
   const autofillTargetValue = snapshot.context.passwordValues[account.id] ?? '';
-  const autofillDisplayValue = revealedAccountIds.has(account.id)
-    ? autofillTargetValue
-    : '•'.repeat(Array.from(autofillTargetValue).length);
   const invalidLoginActive = invalidLoginFeedback?.accountId === account.id;
+  const thirdAttemptGuideActive =
+    thirdAttemptGuideAccountId === account.id && result === 'pending';
   const campusIdentity = deriveCampusIdentity(snapshot.context.displayName ?? '');
   const accountData =
     account.id === 'campus-id'
@@ -415,30 +417,34 @@ export function S03RetrievalTraining({
     ? s03Content.narration.warning
     : assistanceActive
       ? s03Content.narration.retrievalHelp
-      : completionFeedbackActive
-        ? completionNarration(rememberedCount)
-        : campusStartActive
-          ? s03Content.narration.campusStart
-          : result === 'retrievable'
-            ? s03Content.narration.accountSuccess[account.id]
-            : result === 'assisted'
-              ? s03Content.narration.accountAssisted[account.id]
-              : result === 'not-remembered'
-                ? s03Content.narration.retrievalHelp
-                : s03Content.narration.intro;
+      : thirdAttemptGuideActive
+        ? s03Content.narration.thirdFailedLogin
+        : completionFeedbackActive
+          ? completionNarration(rememberedCount)
+          : campusStartActive
+            ? s03Content.narration.campusStart
+            : result === 'retrievable'
+              ? s03Content.narration.accountSuccess[account.id]
+              : result === 'assisted'
+                ? s03Content.narration.accountAssisted[account.id]
+                : result === 'not-remembered'
+                  ? s03Content.narration.retrievalHelp
+                  : s03Content.narration.intro;
   const guidePhase = boardWarningActive
     ? 'warning'
     : assistanceActive
       ? 'assistance'
-      : completionFeedbackActive
-        ? 'completion-feedback'
-        : campusStartActive
-          ? 'campus-start'
-          : autofillingActive
-            ? 'autofilling'
-            : assistedLoginActive
-              ? 'assisted-login'
-              : 'login';
+      : thirdAttemptGuideActive
+        ? 'third-failed-login'
+        : completionFeedbackActive
+          ? 'completion-feedback'
+          : campusStartActive
+            ? 'campus-start'
+            : autofillingActive
+              ? 'autofilling'
+              : assistedLoginActive
+                ? 'assisted-login'
+                : 'login';
   const guideSpeechKey = `${account.id}-${result}-${guidePhase}-${announcement ?? 'idle'}`;
   const guideSpeechCompleted = completedGuideSpeechKey === guideSpeechKey;
   const assistanceActionAvailable = assistanceActive && guideSpeechCompleted;
@@ -496,6 +502,8 @@ export function S03RetrievalTraining({
     setSuccessOverlayAccountId(null);
     setLoginAccountId(null);
     setInvalidLoginFeedback(null);
+    setThirdAttemptGuideAccountId(null);
+    setGuideOpen(false);
     controller.selectAccount(accountId);
   }
 
@@ -542,6 +550,13 @@ export function S03RetrievalTraining({
                 openHelpLabel="PassWo-Hinweis öffnen"
                 speech={[guideMessage]}
                 speechKey={guideSpeechKey}
+                {...(thirdAttemptGuideActive
+                  ? {
+                      speechEmphasis: [
+                        { phrase: '„Passwort vergessen?“', tone: 'action' as const },
+                      ],
+                    }
+                  : {})}
                 speechPlacement="right"
                 hasNextSpeech={completionFeedbackActive || campusStartActive}
                 awaitsAction={assistanceActive || warningConfirmationAvailable}
@@ -571,7 +586,10 @@ export function S03RetrievalTraining({
                     </button>
                   ) : undefined
                 }
-                onToggleHelp={() => setGuideOpen((open) => !open)}
+                onToggleHelp={() => {
+                  if (guideOpen) setThirdAttemptGuideAccountId(null);
+                  setGuideOpen((open) => !open);
+                }}
                 onSpeechComplete={() => setCompletedGuideSpeechKey(guideSpeechKey)}
                 onSpeechAdvance={() => {
                   if (completionFeedbackActive) {
@@ -584,7 +602,10 @@ export function S03RetrievalTraining({
                     controller.continueS03CampusStart();
                     return;
                   }
-                  if (!assistanceActive && !warningConfirmationAvailable) setGuideOpen(false);
+                  if (!assistanceActive && !warningConfirmationAvailable) {
+                    setThirdAttemptGuideAccountId(null);
+                    setGuideOpen(false);
+                  }
                 }}
               />
             </>
@@ -640,6 +661,8 @@ export function S03RetrievalTraining({
                     onBack: () => {
                       setLoginAccountId(null);
                       setInvalidLoginFeedback(null);
+                      setThirdAttemptGuideAccountId(null);
+                      setGuideOpen(false);
                     },
                   }
                 : {})}
@@ -674,13 +697,6 @@ export function S03RetrievalTraining({
                           snapshot.context.retrievalResults[account.id] ?? 'pending';
                         if (assistedLoginActive) {
                           controller.submitAssistedLogin(account.id);
-                          if (
-                            previousResult === 'not-remembered' &&
-                            controller.getSnapshot().context.retrievalResults[account.id] ===
-                              'assisted'
-                          ) {
-                            runtime.controller.playSuccessfulRetrieval(account.id);
-                          }
                           return;
                         }
                         if (result === 'pending') {
@@ -689,13 +705,23 @@ export function S03RetrievalTraining({
                             controller.getSnapshot().context.retrievalResults[account.id] ??
                             'pending';
                           if (previousResult === 'pending' && nextResult === 'retrievable') {
-                            runtime.controller.playSuccessfulRetrieval(account.id);
+                            setThirdAttemptGuideAccountId(null);
+                            setGuideOpen(false);
                           } else if (previousResult === 'pending' && nextResult === 'pending') {
-                            setInvalidLoginFeedback((current) => ({
+                            const attempt =
+                              (failedLoginAttemptsRef.current[account.id] ?? 0) + 1;
+                            failedLoginAttemptsRef.current = {
+                              ...failedLoginAttemptsRef.current,
+                              [account.id]: attempt,
+                            };
+                            setInvalidLoginFeedback({
                               accountId: account.id,
-                              attempt:
-                                current?.accountId === account.id ? current.attempt + 1 : 1,
-                            }));
+                              attempt,
+                            });
+                            if (attempt === 3) {
+                              setThirdAttemptGuideAccountId(account.id);
+                              setGuideOpen(true);
+                            }
                           }
                         }
                       }}
@@ -733,10 +759,9 @@ export function S03RetrievalTraining({
                           type={revealedAccountIds.has(account.id) ? 'text' : 'password'}
                           autoComplete="off"
                           spellCheck={false}
-                          value={activeValue}
-                          disabled={autofillingActive}
-                          readOnly={assistedLoginActive}
-                          aria-readonly={assistedLoginActive || undefined}
+                          value={autofillingActive ? autofillTargetValue : activeValue}
+                          readOnly={autofillingActive || assistedLoginActive}
+                          aria-readonly={autofillingActive || assistedLoginActive || undefined}
                           aria-invalid={invalidLoginActive || undefined}
                           aria-describedby={
                             invalidLoginActive ? `s03-password-error-${account.id}` : undefined
@@ -752,19 +777,15 @@ export function S03RetrievalTraining({
                                   );
                                 }
                           }
+                          onAnimationEnd={
+                            autofillingActive
+                              ? (event) => {
+                                  if (event.currentTarget !== event.target) return;
+                                  controller.completeAssistedAutofill(account.id);
+                                }
+                              : undefined
+                          }
                         />
-                        {autofillingActive ? (
-                          <span
-                            className={styles.autofillValue}
-                            aria-hidden="true"
-                            onAnimationEnd={(event) => {
-                              if (event.currentTarget !== event.target) return;
-                              controller.completeAssistedAutofill(account.id);
-                            }}
-                          >
-                            {autofillDisplayValue}
-                          </span>
-                        ) : null}
                         <button
                           type="button"
                           className={styles.revealButton}
@@ -815,7 +836,11 @@ export function S03RetrievalTraining({
                             tabIndex={interactionBlocked ? -1 : undefined}
                             onClick={(event) => {
                               event.preventDefault();
-                              if (!interactionBlocked) controller.skipRetrieval(account.id);
+                              if (!interactionBlocked) {
+                                setInvalidLoginFeedback(null);
+                                setThirdAttemptGuideAccountId(null);
+                                controller.skipRetrieval(account.id);
+                              }
                             }}
                           >
                             {s03Content.controls.forgotPassword}

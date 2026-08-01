@@ -63,6 +63,7 @@ export interface S03SegmentContent {
     readonly intro: string;
     readonly accountSuccess: Readonly<Record<S01AccountId, string>>;
     readonly accountAssisted: Readonly<Record<S01AccountId, string>>;
+    readonly thirdFailedLogin: string;
     readonly retrievalHelp: string;
     readonly completionByRememberedCount: Readonly<Record<0 | 1 | 2 | 3, string>>;
     readonly campusStart: string;
@@ -92,7 +93,7 @@ export interface S03SegmentContent {
   readonly animations: readonly S03AnimationSequence[];
 }
 
-export const S03_CONTENT_VERSION = '1.7.0';
+export const S03_CONTENT_VERSION = '1.10.0';
 
 const resultAnimation = (
   accountId: S01AccountId,
@@ -114,9 +115,9 @@ const resultAnimation = (
 
 const animations = [
   resultAnimation('campus-id', [
-    'campus-id-learnspace',
-    'campus-id-exam-portal',
-    'campus-id-cloud-notes',
+    'campus-id-workspace',
+    'campus-id-services',
+    'campus-id-campus-cloud',
   ]),
   resultAnimation('campus-mail', [
     'campus-mail-notifications',
@@ -125,9 +126,9 @@ const animations = [
     'campus-mail-impersonation',
   ]),
   resultAnimation('campus-board-archive', [
-    'campus-board-old-announcements',
-    'campus-board-project-questions',
-    'campus-board-archived-discussions',
+    'campusgram-direct-messages',
+    'campusgram-groups-contacts',
+    'campusgram-posts-reactions',
   ]),
   {
     id: 's03-completion-timeskip',
@@ -146,7 +147,7 @@ export const s03Content: S03SegmentContent = {
   source: {
     document: 'research/private/training-script.pdf',
     internalPages: [8, 9, 10, 11],
-    revision: 'Userauftrag und UX-Konzeptboards vom 2026-07-31',
+    revision: 'Userauftrag vom 2026-08-01 und UX-Konzeptboards vom 2026-07-31',
   },
   segment: {
     id: 'S03',
@@ -190,6 +191,8 @@ export const s03Content: S03SegmentContent = {
       'campus-mail': 'Campus E-Mail ist mit Unterstützung wieder geöffnet.',
       'campus-board-archive': 'Campusgram ist mit Unterstützung wieder geöffnet.',
     },
+    thirdFailedLogin:
+      'Wenn du dich nicht an das richtige Passwort erinnern kannst, klicke als Lösung auf „Passwort vergessen?“.',
     retrievalHelp:
       'Keine Panik – dein fiktives Konto ist nicht verloren. Das zeigt aber: Ein Passwort muss nicht nur stark sein, sondern später auch wieder abrufbar bleiben.\n\nDass du dich nicht erinnern konntest, ist eine hilfreiche Beobachtung. Ich melde dich jetzt mit dem richtigen Passwort wieder an, damit wir unseren Campusalltag fortsetzen können.',
     completionByRememberedCount: {
@@ -213,7 +216,7 @@ export const s03Content: S03SegmentContent = {
       signedInLabel: 'Angemeldet',
       modules: [
         { label: 'Profil', value: 'Campuszugang aktiv' },
-        { label: 'Dienste', value: 'LearnSpace · Prüfungsportal · Cloud Notes' },
+        { label: 'Dienste', value: 'Campus Workspace · Campus Services · Campus Cloud' },
       ],
     },
     'campus-mail': {
@@ -225,11 +228,11 @@ export const s03Content: S03SegmentContent = {
       ],
     },
     'campus-board-archive': {
-      areaLabel: 'Archiv und Austausch',
+      areaLabel: 'Community und Austausch',
       signedInLabel: 'Angemeldet',
       modules: [
-        { label: 'Bereiche', value: 'Alte Ankündigungen · Projektfragen' },
-        { label: 'Materialien', value: 'Archivierte Diskussionen' },
+        { label: 'Bereiche', value: 'Direktnachrichten · Gruppen und Kontakte' },
+        { label: 'Aktivitäten', value: 'Beiträge und Reaktionen' },
       ],
     },
   },
