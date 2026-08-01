@@ -1,40 +1,11 @@
 import type {
   S06AccountId,
-  S06LocalAccountAnalysis,
   S07IncidentStatus,
   S07ProblemClass,
   S07RecommendationId,
   S07Retrievability,
   TrainingSectionId,
 } from '@passwo/contracts';
-
-type S07FixtureAccountInputs = Readonly<
-  Record<
-    S06AccountId,
-    {
-      readonly fictionalPassword: string;
-      readonly retrievalStatus: S06LocalAccountAnalysis['retrievalStatus'];
-    }
-  >
->;
-
-export type S07EvaluationFixtureId =
-  | 'directly-reached'
-  | 'exact-reuse'
-  | 'derived-variant'
-  | 'retrievability-only'
-  | 'no-change';
-
-export interface S07EvaluationFixture {
-  readonly id: S07EvaluationFixtureId;
-  readonly routeId:
-    | 's07-directly-reached'
-    | 's07-exact-reuse'
-    | 's07-derived-variant'
-    | 's07-retrievability-only'
-    | 's07-no-change';
-  readonly accounts: S07FixtureAccountInputs;
-}
 
 export const S07_EVALUATION_CONTENT_VERSION = '1.0.0';
 
@@ -128,57 +99,4 @@ export const s07EvaluationContent = {
   } as const satisfies Readonly<Record<S07ProblemClass, string>>,
   noProblemStatement:
     'In dieser begrenzten Übung wurde kein Änderungsbedarf erkannt. Die neue Methode wird im nächsten Schritt an einem zusätzlichen Beispiel geübt.',
-  fixtures: [
-    {
-      id: 'directly-reached',
-      routeId: 's07-directly-reached',
-      accounts: {
-        campusgram: { fictionalPassword: 'Passwort123!', retrievalStatus: 'retrievable' },
-        'master-campus': { fictionalPassword: 'Passwort123!', retrievalStatus: 'retrievable' },
-        'campus-email': { fictionalPassword: 'B3xJ9pW5dF7s', retrievalStatus: 'retrievable' },
-      },
-    },
-    {
-      id: 'exact-reuse',
-      routeId: 's07-exact-reuse',
-      accounts: {
-        campusgram: { fictionalPassword: 'rQ7mL2vX9pK4', retrievalStatus: 'retrievable' },
-        'master-campus': { fictionalPassword: 'rQ7mL2vX9pK4', retrievalStatus: 'retrievable' },
-        'campus-email': { fictionalPassword: 'B3xJ9pW5dF7s', retrievalStatus: 'retrievable' },
-      },
-    },
-    {
-      id: 'derived-variant',
-      routeId: 's07-derived-variant',
-      accounts: {
-        campusgram: { fictionalPassword: 'LunaCampusgramRiver', retrievalStatus: 'retrievable' },
-        'master-campus': { fictionalPassword: 'N8vT2kR6mZ4q', retrievalStatus: 'retrievable' },
-        'campus-email': { fictionalPassword: 'LunaMailRiver', retrievalStatus: 'retrievable' },
-      },
-    },
-    {
-      id: 'retrievability-only',
-      routeId: 's07-retrievability-only',
-      accounts: {
-        campusgram: { fictionalPassword: 'rQ7mL2vX9pK4', retrievalStatus: 'retrievable' },
-        'master-campus': { fictionalPassword: 'N8vT2kR6mZ4q', retrievalStatus: 'assisted' },
-        'campus-email': { fictionalPassword: 'B3xJ9pW5dF7s', retrievalStatus: 'retrievable' },
-      },
-    },
-    {
-      id: 'no-change',
-      routeId: 's07-no-change',
-      accounts: {
-        campusgram: { fictionalPassword: 'rQ7mL2vX9pK4', retrievalStatus: 'retrievable' },
-        'master-campus': { fictionalPassword: 'N8vT2kR6mZ4q', retrievalStatus: 'retrievable' },
-        'campus-email': { fictionalPassword: 'B3xJ9pW5dF7s', retrievalStatus: 'retrievable' },
-      },
-    },
-  ] as const satisfies readonly S07EvaluationFixture[],
 } as const;
-
-export function getS07EvaluationFixtureByRouteId(
-  routeId: string,
-): S07EvaluationFixture | undefined {
-  return s07EvaluationContent.fixtures.find((fixture) => fixture.routeId === routeId);
-}

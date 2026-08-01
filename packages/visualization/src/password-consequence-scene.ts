@@ -111,6 +111,13 @@ function quickPathRecognized(disposition: LocalPasswordDisposition): boolean {
   return disposition.kind === 'quick-path-recognized';
 }
 
+function targetReachedFor(
+  mode: PasswordConsequenceSceneMode,
+  relation: PasswordRelation,
+): boolean {
+  return mode === 'actual' && relation.kind !== 'no-derived-path-recognized';
+}
+
 function createBaseNetwork(
   id: string,
   accounts: readonly S06LocalAccountAnalysis[],
@@ -241,9 +248,17 @@ function comparisonStep(
     sourceAccountId,
     mode === 'actual' ? 'exposed' : 'hypothetical',
   );
-  const reached = relation.kind !== 'no-derived-path-recognized';
-  nodes = withNodeStatus(nodes, targetAccountId, reached ? 'affected' : 'protected');
-  if (!reached) nodes = addShield(nodes, targetAccountId, stepId);
+  const targetReached = targetReachedFor(mode, relation);
+  const hasHypotheticalRelation =
+    mode === 'hypothetical' && relation.kind !== 'no-derived-path-recognized';
+  nodes = withNodeStatus(
+    nodes,
+    targetAccountId,
+    targetReached ? 'affected' : hasHypotheticalRelation ? 'hypothetical' : 'protected',
+  );
+  if (!targetReached && !hasHypotheticalRelation) {
+    nodes = addShield(nodes, targetAccountId, stepId);
+  }
   const resultEdge: SceneEdge = {
     id: `${stepId}-path`,
     sourceId: sourceAccountId,
@@ -255,7 +270,9 @@ function comparisonStep(
           ? 'similar-pattern'
           : 'blocked-path',
     status:
-      relation.kind === 'exact-match'
+      hasHypotheticalRelation
+        ? 'hypothetical'
+        : relation.kind === 'exact-match'
         ? 'direct'
         : relation.kind === 'derived-variant-match'
           ? 'similar'
@@ -278,8 +295,10 @@ function comparisonStep(
       id: `${input.id}-${stepId}`,
       nodes,
       edges: [...base.edges, resultEdge],
-      accessibleSummary: reached
+      accessibleSummary: targetReached
         ? `${definitionById(input.accountDefinitions, targetAccountId).label} wird in dieser Simulation durch ${relation.kind} erreicht.`
+        : hasHypotheticalRelation
+          ? `${definitionById(input.accountDefinitions, targetAccountId).label} würde nur in diesem hypothetischen Beispiel durch ${relation.kind} erreicht.`
         : `Die Angriffslinie stoppt vor ${definitionById(input.accountDefinitions, targetAccountId).label}.`,
     },
     visibleChange: {
@@ -294,18 +313,20 @@ function comparisonStep(
   };
 }
 
-function summaryStep(input: PasswordConsequenceProjectionInput): PasswordConsequencePlanStep {
+function summaryStep(
+  input: PasswordConsequenceProjectionInput,
+  paths: readonly S06ResolvedConsequencePath[],
+): PasswordConsequencePlanStep {
   const base = createBaseNetwork('s06-step-summary', input.accounts, input.accountDefinitions);
   const nodes = input.accounts.reduce<SceneNode[]>((current, account) => {
-    const hasReachedRelation = input.comparisons.some(
-      ({ targetAccountId, result }) =>
-        targetAccountId === account.accountId &&
-        result.relation.kind !== 'no-derived-path-recognized',
+    const targetReached = paths.some(
+      ({ targetAccountId, targetReached: reached }) =>
+        targetAccountId === account.accountId && reached,
     );
     return withNodeStatus(
       current,
       account.accountId,
-      hasReachedRelation
+      targetReached
         ? 'affected'
         : quickPathRecognized(account.disposition)
           ? 'exposed'
@@ -365,7 +386,7 @@ export function projectPasswordConsequenceScenePlan(
   const masterComparisonMode: PasswordConsequenceSceneMode = masterCampusFound
     ? 'actual'
     : 'hypothetical';
-  const steps: readonly PasswordConsequencePlanStep[] = [
+  const consequenceSteps: readonly PasswordConsequencePlanStep[] = [
     localCheckStep(
       input,
       's06-step-campusgram-incident',
@@ -408,9 +429,8 @@ export function projectPasswordConsequenceScenePlan(
       's06.local-check.campus-email',
       'actual',
     ),
-    summaryStep(input),
   ];
-  const paths = steps.flatMap((step): readonly S06ResolvedConsequencePath[] => {
+  const paths = consequenceSteps.flatMap((step): readonly S06ResolvedConsequencePath[] => {
     if (step.sourceAccountId === null || step.targetAccountId === null || step.relation === null) {
       return [];
     }
@@ -420,11 +440,14 @@ export function projectPasswordConsequenceScenePlan(
         targetAccountId: step.targetAccountId,
         mode: step.mode,
         relationKind: step.relation.kind,
-        targetReached:
-          step.mode === 'actual' && step.relation.kind !== 'no-derived-path-recognized',
+        targetReached: targetReachedFor(step.mode, step.relation),
       },
     ];
   });
+  const steps: readonly PasswordConsequencePlanStep[] = [
+    ...consequenceSteps,
+    summaryStep(input, paths),
+  ];
   const affectedAccountIds = [
     ...(campusgramFound ? [input.incidentSource] : []),
     ...paths

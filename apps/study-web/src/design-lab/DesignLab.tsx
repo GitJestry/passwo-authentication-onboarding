@@ -6,7 +6,7 @@ import {
 import {
   getS05DesignLabFixtureByRouteId,
   getS06ConsequenceFixtureByRouteId,
-  getS07EvaluationFixtureByRouteId,
+  getS06PreparedS07EvaluationFixtureByRouteId,
   type S01AccountId,
   s01AccountIds,
   s01Content,
@@ -667,7 +667,7 @@ export function DesignLab({ scenarioId }: { readonly scenarioId: DesignLabScenar
     );
   }
 
-  const s07Fixture = getS07EvaluationFixtureByRouteId(scenarioId);
+  const s07Fixture = getS06PreparedS07EvaluationFixtureByRouteId(scenarioId);
   if (s07Fixture !== undefined) {
     return (
       <main className={styles.labPage}>
