@@ -133,19 +133,25 @@ describe('study server research core', () => {
     temporaryDirectories.push(temporaryDirectory);
     const databasePath = join(temporaryDirectory, 'study.sqlite');
     const server = createServer('forced-supportive', databasePath);
-    const session = await recordSupportiveSegmentsThroughEnd(server, ['S00', 'S01', 'S02', 'S03']);
+    const session = await recordSupportiveSegmentsThroughEnd(server, [
+      'S00',
+      'S01',
+      'S02',
+      'S03',
+      'S04',
+    ]);
     const artifactEnd = await server.inject({
       method: 'POST',
       url: `/api/study/sessions/${session.sessionId}/timing`,
       payload: {
-        sequence: 9,
+        sequence: 11,
         phase: 'artifact',
         sectionId: null,
         segmentId: null,
         eventType: 'end',
-        clientMonotonicMs: 900,
+        clientMonotonicMs: 1_000,
         clientWallClockIso: '2026-07-24T12:00:00.000Z',
-        elapsedMs: 800,
+        elapsedMs: 900,
         reasonCode: null,
       },
     });
@@ -189,7 +195,9 @@ describe('study server research core', () => {
       { sequence: 6, segmentId: 'S02', eventType: 'end' },
       { sequence: 7, segmentId: 'S03', eventType: 'start' },
       { sequence: 8, segmentId: 'S03', eventType: 'end' },
-      { sequence: 9, segmentId: null, eventType: 'end' },
+      { sequence: 9, segmentId: 'S04', eventType: 'start' },
+      { sequence: 10, segmentId: 'S04', eventType: 'end' },
+      { sequence: 11, segmentId: null, eventType: 'end' },
     ]);
     expect(completion.json()).toEqual({ completionStatus: 'completed' });
     expect(reload.json()).toEqual({ completionStatus: 'completed' });

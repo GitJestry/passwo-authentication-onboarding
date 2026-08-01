@@ -5,7 +5,7 @@ import {
 } from '@passwo/training-content';
 import { BrowserShell, type BrowserShellSnapshot } from '@passwo/ui';
 import { useEffect, useRef, useState } from 'react';
-import { BrowserSegmentTimingAdapter } from '../../../../adapters/animation/BrowserSegmentTimingAdapter.js';
+import { BrowserSegmentTimingAdapter } from '../../../../adapters/timing/BrowserSegmentTimingAdapter.js';
 import { NetworkMotionAdapter } from '../../../../adapters/network/NetworkMotionAdapter.js';
 import {
   ReactFlowNetwork,

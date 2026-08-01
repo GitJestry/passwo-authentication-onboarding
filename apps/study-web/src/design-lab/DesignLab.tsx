@@ -23,6 +23,7 @@ import { S00Training } from '../features/training/S00Training.js';
 import { S01Training } from '../features/training/S01Training.js';
 import { S02AccountExplorationTraining } from '../features/training/segments/S02/S02AccountExplorationTraining.js';
 import { S03RetrievalTraining } from '../features/training/segments/S03/S03RetrievalTraining.js';
+import { S04IncidentTraining } from '../features/training/segments/S04/S04IncidentTraining.js';
 import { S06ConsequenceTraining } from '../features/training/segments/S06/S06ConsequenceTraining.js';
 import styles from './DesignLab.module.css';
 
@@ -172,6 +173,18 @@ const scenarios: Record<DesignLabScenarioId, DesignLabScenario> = {
   s03: {
     label: 'S03',
     description: 'Direkter QA-Einstieg in den fiktiven Anmeldeabruf.',
+    dimmed: false,
+    showPassWoOverlay: false,
+  },
+  's03-warning': {
+    label: 'S03 Warnung',
+    description: 'Zeitraffer und klickgetriebene Campusgram-Warnung vor dem Segmentwechsel.',
+    dimmed: false,
+    showPassWoOverlay: false,
+  },
+  s04: {
+    label: 'S04',
+    description: 'Datenleck-Erklärung innerhalb der fiktiven Campusgram-Website.',
     dimmed: false,
     showPassWoOverlay: false,
   },
@@ -369,7 +382,7 @@ function PasswordModuleSegmentPreview({
   accountId,
   view,
 }: {
-  readonly segment: 's01' | 's03';
+  readonly segment: 's01' | 's03' | 's03-warning' | 's04';
   readonly accountId: S01AccountId;
   readonly view: CampusWebsitePreviewView;
 }) {
@@ -423,11 +436,31 @@ function PasswordModuleSegmentPreview({
         abortController.signal,
       );
       previewController.selectAccount(accountId);
-      if (view === 'dashboard') {
+      if (segment === 's03' && view === 'dashboard') {
         const password = previewController.getSnapshot().context.passwordValues[accountId] ?? '';
         previewController.setRetrievalPasswordValue(accountId, password);
         previewController.submitRetrievalLogin(accountId);
       }
+      if (segment === 's03') return;
+
+      for (const retrievalAccountId of previewController.getSnapshot().context.accountIds) {
+        const password =
+          previewController.getSnapshot().context.passwordValues[retrievalAccountId] ?? '';
+        previewController.setRetrievalPasswordValue(retrievalAccountId, password);
+        previewController.submitRetrievalLogin(retrievalAccountId);
+      }
+      previewController.continueS03CompletionFeedback();
+      previewController.continueS03CampusStart();
+      previewController.completeS03TimeLapse();
+      if (segment === 's03-warning') return;
+
+      previewController.completeS03WarningAnnouncement();
+      previewController.openIncidentAccount('campusgram');
+      await waitForPreviewState(
+        previewController,
+        (currentSnapshot) => currentSnapshot.matches({ s04: 'active' }),
+        abortController.signal,
+      );
     }
 
     void preparePreview().catch((error: unknown) => {
@@ -460,14 +493,18 @@ function PasswordModuleSegmentPreview({
       />
     );
   }
-  if (!snapshot.matches('s03')) return <p>QA-Szene wird vorbereitet …</p>;
-  return (
-    <S03RetrievalTraining
-      controller={controller}
-      snapshot={snapshot}
-      {...(view === 'auth' ? { initialLoginAccountId: accountId } : {})}
-    />
-  );
+  if (segment === 's03' || segment === 's03-warning') {
+    if (!snapshot.matches('s03')) return <p>QA-Szene wird vorbereitet …</p>;
+    return (
+      <S03RetrievalTraining
+        controller={controller}
+        snapshot={snapshot}
+        {...(view === 'auth' ? { initialLoginAccountId: accountId } : {})}
+      />
+    );
+  }
+  if (!snapshot.matches('s04')) return <p>QA-Szene wird vorbereitet …</p>;
+  return <S04IncidentTraining controller={controller} snapshot={snapshot} />;
 }
 
 export function DesignLab({ scenarioId }: { readonly scenarioId: DesignLabScenarioId }) {
@@ -508,7 +545,12 @@ export function DesignLab({ scenarioId }: { readonly scenarioId: DesignLabScenar
     );
   }
 
-  if (scenarioId === 's01' || scenarioId === 's03') {
+  if (
+    scenarioId === 's01' ||
+    scenarioId === 's03' ||
+    scenarioId === 's03-warning' ||
+    scenarioId === 's04'
+  ) {
     const campusWebsitePreview = readCampusWebsitePreview();
     return (
       <main className={styles.labPage}>

@@ -10,7 +10,7 @@ Trainingsmodul umgesetzt.
 | M1 — Technischer Walking Skeleton | abgeschlossen | Session, verdeckte Zuweisung, SQLite, Timing, Reload-/Lease-Verhalten und Export sind implementiert. |
 | M2 — Visual Platform | abgeschlossen | BrowserShell, DesktopSurface, PassWoGuide, Animation-Handshake, Reduced Motion und Design Lab stehen. |
 | M3 — Knotennetzwerk | abgeschlossen | Frameworkfreie Szenenmodelle, React-Flow-Adapter, S02 und S06-Konsequenz-Fixtures stehen. |
-| M4 — Passwortmodul S03–S11 | teilweise | S03 ist integriert; S04–S11 und die lokale Passwortanalyse fehlen. S06 ist bisher nur ein deterministisches Fixture. |
+| M4 — Passwortmodul S03–S11 | teilweise | S03 und S04 sind integriert; S05–S11 und die lokale Passwortanalyse fehlen. S06 ist bisher nur ein deterministisches Fixture. |
 | M5 — Passwortmanager und MFA S12–S17 | offen | Simulationen, Recovery-Grenzen, MFA und integrierte Abschlusskarte fehlen. |
 | M6 — Instrumente und Referenzartefakt | teilweise | Draft-Instrumente, Guardrail-Formen, eingebettetes Referenzartefakt, PDF-Viewer, Recontact-Registry und Schedule-Export stehen. Cognitive Pretest, Content Audit, öffentliches Follow-up, Import und finaler Debrief-Versand fehlen. |
 | M7 — Pretest und Hardening | offen | Technischer Smoke-Test am Studiengerät und 3–5 Pilotdurchläufe pro Bedingung stehen aus. |
@@ -18,7 +18,7 @@ Trainingsmodul umgesetzt.
 
 ## Nächste Abnahmetore
 
-1. S04 bis S11 einschließlich simulationsspezifischer Passwortanalyse implementieren und fachlich
+1. S05 bis S11 einschließlich simulationsspezifischer Passwortanalyse implementieren und fachlich
    prüfen.
 2. S12 bis S17 integrieren und den vollständigen supportive Artefaktabschluss herstellen.
 3. Instrumente und Guardrail Content Audit im Cognitive Pretest prüfen.

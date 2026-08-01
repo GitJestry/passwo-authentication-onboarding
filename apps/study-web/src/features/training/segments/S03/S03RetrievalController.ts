@@ -1,31 +1,20 @@
 import {
-  getS03Animation,
   type S01AccountId,
   type S03RetrievalResult,
   s01Content,
   s02Content,
   s03Content,
 } from '@passwo/training-content';
-import type { AnimationPlayerPort, AnimationResult } from '@passwo/training-engine';
 import type {
   NetworkRendererPort,
   NetworkSceneSnapshot,
   SceneEdge,
   SceneNode,
 } from '@passwo/visualization';
-import type { NetworkPresentationSnapshot } from '../../../../adapters/network/NetworkMotionAdapter.js';
-
 type ControllerListener = (snapshot: S03RetrievalControllerSnapshot) => void;
 
 export interface S03RetrievalControllerSnapshot {
   readonly network: NetworkSceneSnapshot;
-  readonly presentation: NetworkPresentationSnapshot;
-  readonly warningState: 'idle' | 'playing' | 'ready' | 'failed' | 'confirmed';
-}
-
-export interface S03RetrievalControllerOptions {
-  readonly animationPlayer: AnimationPlayerPort;
-  readonly onWarningConfirmed: () => void;
 }
 
 interface RetrievalSceneInput {
@@ -115,39 +104,18 @@ export function createS03RetrievalNetwork({
   };
 }
 
-function createInitialPresentation(): NetworkPresentationSnapshot {
-  return {
-    character: { placement: 'bottom-left', pose: 'dock' },
-    revealedNodeIds: [
-      ...s01Content.browser.accounts.map(({ id }) => id),
-      ...s02Content.scene.accounts.flatMap(({ details }) => details.map(({ id }) => id)),
-    ],
-    highlightedNodeId: null,
-    emphasis: null,
-    announcedMessageId: null,
-  };
-}
-
 export class S03RetrievalController {
-  readonly #animationPlayer: AnimationPlayerPort;
-  readonly #onWarningConfirmed: () => void;
   readonly #listeners = new Set<ControllerListener>();
   #renderer: NetworkRendererPort | null = null;
   #snapshot: S03RetrievalControllerSnapshot;
-  #animationQueue: Promise<void> = Promise.resolve();
-  #completionSequenceQueued = false;
   #disposed = false;
 
-  constructor({ animationPlayer, onWarningConfirmed }: S03RetrievalControllerOptions) {
-    this.#animationPlayer = animationPlayer;
-    this.#onWarningConfirmed = onWarningConfirmed;
+  constructor() {
     this.#snapshot = {
       network: createS03RetrievalNetwork({
         activeAccountId: s01Content.browser.accounts[0]?.id ?? null,
         retrievalResults: {},
       }),
-      presentation: createInitialPresentation(),
-      warningState: 'idle',
     };
   }
 
@@ -164,58 +132,17 @@ export class S03RetrievalController {
     renderer.render(this.#snapshot.network);
   }
 
-  synchronize(input: RetrievalSceneInput, completionSequenceActive: boolean): void {
+  synchronize(input: RetrievalSceneInput): void {
     if (this.#disposed) return;
     const network = createS03RetrievalNetwork(input);
     this.#snapshot = { ...this.#snapshot, network };
     this.#renderer?.render(network);
     this.#emit();
-
-    if (completionSequenceActive && !this.#completionSequenceQueued) {
-      this.#completionSequenceQueued = true;
-      this.#setWarningState('playing');
-      this.#queueAnimation('s03-completion-timeskip', true);
-    }
   }
 
-  updatePresentation(presentation: NetworkPresentationSnapshot): void {
-    if (this.#disposed || presentation === this.#snapshot.presentation) return;
-    this.#snapshot = { ...this.#snapshot, presentation };
-    this.#emit();
-  }
-
-  confirmWarning(): void {
-    if (this.#disposed || this.#snapshot.warningState !== 'ready') return;
-    this.#setWarningState('confirmed');
-    this.#onWarningConfirmed();
-  }
-
-  async dispose(): Promise<void> {
+  dispose(): void {
     this.#disposed = true;
-    await this.#animationPlayer.cancel();
     this.#listeners.clear();
-  }
-
-  #queueAnimation(animationId: string, completesWarningSequence = false): void {
-    const animation = getS03Animation(animationId);
-    if (animation === undefined) return;
-    this.#animationQueue = this.#animationQueue
-      .then(async () => {
-        const result: AnimationResult = await this.#animationPlayer.play(animation);
-        if (this.#disposed || !completesWarningSequence) return;
-        const reachedWarningEndScene =
-          result.status === 'finished' &&
-          this.#snapshot.presentation.announcedMessageId === 's03.campusgram.warning';
-        this.#setWarningState(reachedWarningEndScene ? 'ready' : 'failed');
-      })
-      .catch(() => {
-        if (!this.#disposed && completesWarningSequence) this.#setWarningState('failed');
-      });
-  }
-
-  #setWarningState(warningState: S03RetrievalControllerSnapshot['warningState']): void {
-    this.#snapshot = { ...this.#snapshot, warningState };
-    this.#emit();
   }
 
   #emit(): void {

@@ -1,6 +1,5 @@
 import {
   s01Content,
-  s02Content,
   s03Content,
   type S01AccountId,
 } from '@passwo/training-content';
@@ -17,16 +16,11 @@ import {
   type DesktopPlatform,
 } from '@passwo/ui';
 import { useEffect, useRef, useState } from 'react';
-import { NetworkMotionAdapter } from '../../../../adapters/network/NetworkMotionAdapter.js';
 import { NetworkSymbol } from '../../../../adapters/network/NetworkSymbolRegistry.js';
 import { AccountSuccessOverlay } from '../../AccountSuccessOverlay.js';
 import { CampusWebsiteBackdrop } from '../../CampusWebsiteBackdrop.js';
 import { PassWoGuide } from '../../PassWoGuide.js';
 import { passWoSpeechEmphasisFor } from '../../PassWoSpeechEmphasis.js';
-import {
-  S03RetrievalController,
-  type S03RetrievalControllerSnapshot,
-} from './S03RetrievalController.js';
 import styles from './S03RetrievalTraining.module.css';
 
 export interface S03RetrievalTrainingProps {
@@ -38,16 +32,11 @@ export interface S03RetrievalTrainingProps {
   readonly initialLoginAccountId?: S01AccountId;
 }
 
-interface Runtime {
-  readonly controller: S03RetrievalController;
-}
-
-function prefersReducedMotion(): boolean {
-  return window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-}
-
 function isLocalTimingFailure(snapshot: PasswordModuleSnapshot): boolean {
-  return snapshot.matches({ s03: 'startFailed' }) || snapshot.matches({ s03: 'endFailed' });
+  return (
+    snapshot.matches({ s03: 'startFailed' }) ||
+    snapshot.matches({ s03: 'endWriteFailed' })
+  );
 }
 
 function PasswordVisibilityIcon({ revealed }: { readonly revealed: boolean }) {
@@ -79,9 +68,11 @@ function completionNarration(rememberedCount: number): string {
 function CampusStartTimeLapse({
   running,
   warning,
+  onTimeLapseComplete,
 }: {
   readonly running: boolean;
   readonly warning: boolean;
+  readonly onTimeLapseComplete: () => void;
 }) {
   return (
     <div
@@ -94,6 +85,15 @@ function CampusStartTimeLapse({
           : 'Der fiktive Campusalltag läuft im Zeitraffer.'
       }
     >
+      {running ? (
+        <span
+          className={styles.timeLapseCompletionSignal}
+          aria-hidden="true"
+          onAnimationEnd={(event) => {
+            if (event.currentTarget === event.target) onTimeLapseComplete();
+          }}
+        />
+      ) : null}
       <CampusWebsiteBackdrop
         accountId="master-campus"
         interactionLabel="Fiktiver Campusalltag im Zeitraffer"
@@ -214,16 +214,10 @@ export function S03RetrievalTraining({
   onRetryExternalTiming,
   initialLoginAccountId,
 }: S03RetrievalTrainingProps) {
-  const animationTargetRef = useRef<HTMLElement | null>(null);
-  const characterAnimationAnchorRef = useRef<HTMLSpanElement | null>(null);
+  const trainingRootRef = useRef<HTMLElement | null>(null);
   const loginTitleRef = useRef<HTMLHeadingElement | null>(null);
   const assistedLoginButtonRef = useRef<HTMLButtonElement | null>(null);
   const failedLoginAttemptsRef = useRef<Partial<Record<S01AccountId, number>>>({});
-  const warningConfirmationRef = useRef(() => controller.completeS03WarningSequence());
-  warningConfirmationRef.current = () => controller.completeS03WarningSequence();
-  const [runtime, setRuntime] = useState<Runtime | null>(null);
-  const [presentationSnapshot, setPresentationSnapshot] =
-    useState<S03RetrievalControllerSnapshot | null>(null);
   const [revealedAccountIds, setRevealedAccountIds] = useState<ReadonlySet<string>>(
     () => new Set(),
   );
@@ -250,49 +244,6 @@ export function S03RetrievalTraining({
         .map(({ id }) => id),
     ),
   );
-  const initialAccountId =
-    s01Content.browser.accounts.find(({ id }) => id === snapshot.context.activeAccountId)?.id ??
-    'master-campus';
-
-  useEffect(() => {
-    let retrievalController: S03RetrievalController | null = null;
-    const revealedNodeIds = [
-      ...s01Content.browser.accounts.map(({ id }) => id),
-      ...s02Content.scene.accounts.flatMap(({ details }) => details.map(({ id }) => id)),
-    ];
-    const animationPlayer = new NetworkMotionAdapter({
-      initialNodeId: s01Content.browser.accounts[0]?.id ?? '',
-      initialRevealedNodeIds: revealedNodeIds,
-      applySnapshot: (presentation) => retrievalController?.updatePresentation(presentation),
-      getCharacterElement: () => characterAnimationAnchorRef.current,
-      getActiveNodeElement: () => animationTargetRef.current,
-      getNodeElement: () => animationTargetRef.current,
-      prefersReducedMotion,
-    });
-    retrievalController = new S03RetrievalController({
-      animationPlayer,
-      onWarningConfirmed: () => warningConfirmationRef.current(),
-    });
-    const unsubscribe = retrievalController.subscribe(setPresentationSnapshot);
-    setRuntime({ controller: retrievalController });
-    setPresentationSnapshot(retrievalController.getSnapshot());
-
-    return () => {
-      unsubscribe();
-      void retrievalController?.dispose();
-    };
-  }, []);
-
-  useEffect(() => {
-    runtime?.controller.synchronize(
-      {
-        activeAccountId: snapshot.context.activeAccountId,
-        retrievalResults: snapshot.context.retrievalResults,
-      },
-      snapshot.matches({ s03: { completionSequence: 'timeLapse' } }),
-    );
-  }, [runtime, snapshot]);
-
   const assistanceActive = snapshot.matches({ s03: 'assistance' });
   const autofillingActive = snapshot.matches({ s03: 'autofilling' });
   const assistedLoginActive = snapshot.matches({ s03: 'assistedLogin' });
@@ -303,32 +254,15 @@ export function S03RetrievalTraining({
     s03: { completionSequence: 'campusStart' },
   });
   const timeLapsePhaseActive = snapshot.matches({
-    s03: { completionSequence: 'timeLapse' },
+    s03: { completionSequence: 'timeLapseRunning' },
   });
-  const announcement = presentationSnapshot?.presentation.announcedMessageId ?? null;
-  const timeLapseActive =
-    timeLapsePhaseActive && announcement === 's03.completion.timeskip';
+  const warningAnnouncementActive = snapshot.matches({ s03: 'warningAnnouncement' });
+  const awaitingIncidentOpen = snapshot.matches({ s03: 'awaitingIncidentOpen' });
   const campusgramWarningActive =
-    timeLapsePhaseActive && announcement === 's03.campusgram.warning';
-
-  useEffect(() => {
-    if (
-      assistanceActive ||
-      completionFeedbackActive ||
-      campusStartActive ||
-      campusgramWarningActive
-    ) {
-      setGuideOpen(true);
-      return;
-    }
-    if (timeLapsePhaseActive) setGuideOpen(false);
-  }, [
-    assistanceActive,
-    campusgramWarningActive,
-    campusStartActive,
-    completionFeedbackActive,
-    timeLapsePhaseActive,
-  ]);
+    warningAnnouncementActive ||
+    awaitingIncidentOpen ||
+    snapshot.matches({ s03: 'writingEnd' }) ||
+    snapshot.matches({ s03: 'endWriteFailed' });
 
   useEffect(() => {
     if (loginAccountId !== null) loginTitleRef.current?.focus();
@@ -337,6 +271,16 @@ export function S03RetrievalTraining({
   useEffect(() => {
     if (assistedLoginActive) assistedLoginButtonRef.current?.focus();
   }, [assistedLoginActive]);
+
+  const incidentTabAvailable = awaitingIncidentOpen && externalTimingError === null;
+
+  useEffect(() => {
+    if (!incidentTabAvailable) return;
+    const campusgramTab = Array.from(
+      trainingRootRef.current?.querySelectorAll<HTMLButtonElement>('[role="tab"]') ?? [],
+    ).find((tab) => tab.getAttribute('aria-label')?.startsWith('Campusgram'));
+    campusgramTab?.focus();
+  }, [incidentTabAvailable]);
 
   useEffect(() => {
     const knownAccountIds = knownSuccessfulAccountIdsRef.current;
@@ -357,16 +301,6 @@ export function S03RetrievalTraining({
     );
     if (completedAccount !== undefined) setSuccessOverlayAccountId(completedAccount.id);
   }, [snapshot.context.retrievalResults]);
-
-  if (runtime === null || presentationSnapshot === null) {
-    return (
-      <S03InitialBrowserSurface
-        activeAccountId={initialAccountId}
-        platform={platform}
-        displayName={snapshot.context.displayName ?? ''}
-      />
-    );
-  }
 
   const account =
     s01Content.browser.accounts.find(({ id }) => id === snapshot.context.activeAccountId) ??
@@ -390,12 +324,14 @@ export function S03RetrievalTraining({
         : campusIdentity.campusgram;
   const accountPage = s03Content.accountPages[account.id];
   const isStarting = snapshot.matches({ s03: 'starting' });
-  const isEnding = snapshot.matches({ s03: 'ending' });
+  const s03EndWritePending = snapshot.matches({ s03: 'writingEnd' });
+  const handoffActive = s03EndWritePending || snapshot.matches({ s03: 'endWriteFailed' });
   const localTimingFailure = isLocalTimingFailure(snapshot);
   const completionSequenceActive =
     snapshot.matches({ s03: 'completionSequence' }) ||
-    isEnding ||
-    snapshot.matches({ s03: 'endFailed' });
+    warningAnnouncementActive ||
+    awaitingIncidentOpen ||
+    handoffActive;
   const interactionBlocked =
     externalTimingError !== null ||
     localTimingFailure ||
@@ -405,6 +341,12 @@ export function S03RetrievalTraining({
     assistedLoginActive ||
     completionSequenceActive;
   const timingFailure = externalTimingError !== null || localTimingFailure;
+  const guidedPhaseOpen =
+    assistanceActive ||
+    completionFeedbackActive ||
+    campusStartActive ||
+    campusgramWarningActive;
+  const guideVisible = guidedPhaseOpen || guideOpen;
   const websiteView =
     result === 'retrievable' || result === 'assisted'
       ? 'dashboard'
@@ -417,8 +359,6 @@ export function S03RetrievalTraining({
       : websiteView === 'dashboard'
         ? `${account.address}/dashboard`
         : account.address;
-  const warningConfirmationAvailable =
-    presentationSnapshot.warningState === 'ready' && campusgramWarningActive;
   const guideContent = campusgramWarningActive
     ? { message: s03Content.narration.warning, emphasisId: 's03.warning' }
     : assistanceActive
@@ -467,7 +407,7 @@ export function S03RetrievalTraining({
               : assistedLoginActive
                 ? 'assisted-login'
                 : 'login';
-  const guideSpeechKey = `${account.id}-${result}-${guidePhase}-${announcement ?? 'idle'}`;
+  const guideSpeechKey = `${account.id}-${result}-${guidePhase}`;
   const guideSpeechCompleted = completedGuideSpeechKey === guideSpeechKey;
   const assistanceActionAvailable = assistanceActive && guideSpeechCompleted;
   const successOverlayResult =
@@ -483,9 +423,20 @@ export function S03RetrievalTraining({
   const browserSnapshot: BrowserShellSnapshot = {
     tabs: s01Content.browser.accounts.map((tabAccount) => ({
       id: tabAccount.id,
-      label: tabAccount.label,
+      label:
+        campusgramWarningActive && tabAccount.id === 'campusgram'
+          ? `${tabAccount.label} · Warnung`
+          : tabAccount.label,
       icon: <NetworkSymbol symbolId={tabAccount.symbolId} />,
-      enabled: !interactionBlocked,
+      enabled: campusgramWarningActive
+        ? incidentTabAvailable && tabAccount.id === 'campusgram'
+        : !interactionBlocked,
+      disabledReason:
+        campusgramWarningActive && tabAccount.id !== 'campusgram'
+          ? 'Während der Warnung ist nur Campusgram freigegeben.'
+          : campusgramWarningActive
+            ? 'PassWo beendet zuerst die kurze Ansage oder das Zeitereignis wird noch gespeichert.'
+            : 'Dieser Tab ist in der aktuellen Szene nicht freigegeben.',
       ...(campusgramWarningActive && tabAccount.id === 'campusgram'
         ? { status: 'danger' as const }
         : snapshot.context.retrievalResults[tabAccount.id] === 'retrievable' ||
@@ -502,12 +453,11 @@ export function S03RetrievalTraining({
     accountIdentifier: completionSequenceActive
       ? campusIdentity.masterCampus
       : accountIdentifier,
-    scrollKey: completionSequenceActive
-      ? `s03:completion:${announcement ?? 'starting'}`
-      : `s03:${account.id}:${websiteView}`,
-    dimmed: guideOpen,
+    scrollKey: completionSequenceActive ? 's03:completion' : `s03:${account.id}:${websiteView}`,
+    dimmed: guideVisible && !campusgramWarningActive,
     dimStrength: 'soft',
-    locked: timeLapsePhaseActive,
+    ...(campusgramWarningActive ? { highlightedTabId: 'campusgram' } : {}),
+    locked: isStarting || timeLapsePhaseActive || warningAnnouncementActive || s03EndWritePending,
   };
 
   function toggleReveal(accountId: string): void {
@@ -523,6 +473,10 @@ export function S03RetrievalTraining({
   }
 
   function selectAccount(accountId: string): void {
+    if (incidentTabAvailable && accountId === 'campusgram') {
+      controller.openIncidentAccount(accountId);
+      return;
+    }
     setSuccessOverlayAccountId(null);
     setLoginAccountId(null);
     setInvalidLoginFeedback(null);
@@ -540,7 +494,11 @@ export function S03RetrievalTraining({
   }
 
   return (
-    <section className={styles.training} aria-label={s03Content.trainingAriaLabel}>
+    <section
+      ref={trainingRootRef}
+      className={styles.training}
+      aria-label={s03Content.trainingAriaLabel}
+    >
       <BrowserShell
         platform={platform}
         variant="artifact"
@@ -550,11 +508,6 @@ export function S03RetrievalTraining({
         layers={{
           passWo: (
             <>
-              <span
-                ref={characterAnimationAnchorRef}
-                className={styles.characterAnimationAnchor}
-                aria-hidden="true"
-              />
               {successOverlayLabel === null ? null : (
                 <AccountSuccessOverlay
                   label={successOverlayLabel}
@@ -569,7 +522,7 @@ export function S03RetrievalTraining({
                   total: s01Content.browser.accounts.length,
                   label: s03Content.page.progress(completedCount),
                 }}
-                helpOpen={guideOpen}
+                helpOpen={guideVisible}
                 helpId="s03-guide"
                 openHelpLabel="PassWo-Hinweis öffnen"
                 speech={[guideMessage]}
@@ -577,7 +530,8 @@ export function S03RetrievalTraining({
                 speechEmphasis={passWoSpeechEmphasisFor(guideContent.emphasisId)}
                 speechPlacement="right"
                 hasNextSpeech={completionFeedbackActive || campusStartActive}
-                awaitsAction={assistanceActive || warningConfirmationAvailable}
+                awaitsAction={assistanceActive || campusgramWarningActive}
+                showHelpButton={!guidedPhaseOpen}
                 speechFooter={
                   assistanceActionAvailable ? (
                     <button
@@ -591,24 +545,18 @@ export function S03RetrievalTraining({
                     >
                       {s03Content.controls.assistedLogin}
                     </button>
-                  ) : warningConfirmationAvailable && guideSpeechCompleted ? (
-                    <button
-                      type="button"
-                      className={styles.primaryButton}
-                      onClick={() => {
-                        setGuideOpen(false);
-                        runtime.controller.confirmWarning();
-                      }}
-                    >
-                      {s03Content.controls.viewWarning}
-                    </button>
                   ) : undefined
                 }
                 onToggleHelp={() => {
-                  if (guideOpen) setThirdAttemptGuideAccountId(null);
+                  if (guideVisible) setThirdAttemptGuideAccountId(null);
                   setGuideOpen((open) => !open);
                 }}
-                onSpeechComplete={() => setCompletedGuideSpeechKey(guideSpeechKey)}
+                onSpeechComplete={() => {
+                  setCompletedGuideSpeechKey(guideSpeechKey);
+                  if (warningAnnouncementActive) {
+                    controller.completeS03WarningAnnouncement();
+                  }
+                }}
                 onSpeechAdvance={() => {
                   if (completionFeedbackActive) {
                     setSuccessOverlayAccountId(null);
@@ -620,7 +568,7 @@ export function S03RetrievalTraining({
                     controller.continueS03CampusStart();
                     return;
                   }
-                  if (!assistanceActive && !warningConfirmationAvailable) {
+                  if (!assistanceActive && !campusgramWarningActive) {
                     setThirdAttemptGuideAccountId(null);
                     setGuideOpen(false);
                   }
@@ -628,28 +576,37 @@ export function S03RetrievalTraining({
               />
             </>
           ),
+          controls: (
+            <>
+              {(isStarting || s03EndWritePending) && externalTimingError === null ? (
+                <p className={styles.timingStatus} role="status">
+                  {s03Content.controls.timingSaving}
+                </p>
+              ) : null}
+              {timingFailure ? (
+                <section className={styles.timingError} role="alert">
+                  <p>{s03Content.controls.timingFailure}</p>
+                  <p>Fehlercode: {externalTimingError ?? snapshot.context.timingErrorCode}</p>
+                  <button type="button" className={styles.primaryButton} onClick={retryTiming}>
+                    {s03Content.controls.retry}
+                  </button>
+                </section>
+              ) : null}
+            </>
+          ),
         }}
       >
         <div className={styles.page} aria-labelledby="s03-page-title">
           {completionSequenceActive ? (
-            <section
-              className={styles.completionStage}
-              data-timeskip={timeLapseActive}
-              data-campusgram-warning={campusgramWarningActive}
-            >
+            <section className={styles.completionStage}>
               <h1 id="s03-page-title" className={styles.screenReaderOnly}>
                 {s03Content.page.title}
               </h1>
-              <div
-                ref={(element) => {
-                  animationTargetRef.current = element;
-                }}
-                className={styles.timeLapseStage}
-                aria-live="polite"
-              >
+              <div className={styles.timeLapseStage} aria-live="polite">
                 <CampusStartTimeLapse
                   running={timeLapsePhaseActive}
                   warning={campusgramWarningActive}
+                  onTimeLapseComplete={() => controller.completeS03TimeLapse()}
                 />
               </div>
             </section>
@@ -684,7 +641,6 @@ export function S03RetrievalTraining({
                     },
                   }
                 : {})}
-              rootRef={animationTargetRef}
             >
               {websiteView === 'authentication' ? (
                 <section className={styles.siteTask} aria-labelledby="s03-page-title">
@@ -892,21 +848,6 @@ export function S03RetrievalTraining({
               ) : null}
             </CampusWebsiteBackdrop>
           )}
-
-          {(isStarting || isEnding) && externalTimingError === null ? (
-            <p className={styles.timingStatus} role="status">
-              {s03Content.controls.timingSaving}
-            </p>
-          ) : null}
-          {timingFailure ? (
-            <section className={styles.timingError} role="alert">
-              <p>{s03Content.controls.timingFailure}</p>
-              <p>Fehlercode: {externalTimingError ?? snapshot.context.timingErrorCode}</p>
-              <button type="button" className={styles.primaryButton} onClick={retryTiming}>
-                {s03Content.controls.retry}
-              </button>
-            </section>
-          ) : null}
         </div>
       </BrowserShell>
     </section>

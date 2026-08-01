@@ -10,6 +10,8 @@ export const designLabScenarioIdSchema = z.enum([
   's01',
   's02-master-campus',
   's03',
+  's03-warning',
+  's04',
   's06-identical',
   's06-similar',
   's06-unique',

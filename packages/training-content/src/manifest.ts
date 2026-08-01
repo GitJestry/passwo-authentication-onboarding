@@ -37,7 +37,7 @@ export const trainingSegments = [
   },
   {
     id: 'S04',
-    title: 'Campusgram leak',
+    title: 'Datenleck bei Campusgram',
     section: 'passwords',
     sourcePages: '12',
     foci: ['TF4'],

@@ -3,7 +3,7 @@ import { S03_CONTENT_VERSION, s03Content } from './s03.js';
 
 describe('S03 content traceability', () => {
   it('keeps S03 linked to its named pages and canonical account structure', () => {
-    expect(S03_CONTENT_VERSION).toBe('1.11.0');
+    expect(S03_CONTENT_VERSION).toBe('1.13.0');
     expect(s03Content.source).toMatchObject({
       document: 'research/private/training-script.pdf',
       internalPages: [8, 9, 10, 11],
@@ -19,5 +19,7 @@ describe('S03 content traceability', () => {
       's03-result-campus-email',
       's03-result-campusgram',
     ]);
+    expect(s03Content.narration.warning).toContain('Campusgram-Tab');
+    expect(s03Content.animations.at(-1)?.id).toBe('s03-completion-timeskip');
   });
 });

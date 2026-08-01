@@ -18,6 +18,7 @@ import {
   type S02TimingState,
 } from './segments/S02/S02AccountExplorationTraining.js';
 import { S03RetrievalTraining } from './segments/S03/S03RetrievalTraining.js';
+import { S04IncidentTraining } from './segments/S04/S04IncidentTraining.js';
 
 export interface PasswordModuleTrainingProps {
   readonly timingPort?: SegmentTimingPort;
@@ -198,9 +199,21 @@ export function PasswordModuleTraining({
     );
   }
 
-  if (snapshot.matches('s03') || snapshot.matches('awaitingS04')) {
+  if (snapshot.matches('s03')) {
     return (
       <S03RetrievalTraining
+        controller={controller}
+        platform={platform}
+        snapshot={snapshot}
+        externalTimingError={externalTimingError}
+        {...(onRetryExternalTiming === undefined ? {} : { onRetryExternalTiming })}
+      />
+    );
+  }
+
+  if (snapshot.matches('s04')) {
+    return (
+      <S04IncidentTraining
         controller={controller}
         platform={platform}
         snapshot={snapshot}

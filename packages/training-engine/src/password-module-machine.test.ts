@@ -44,26 +44,106 @@ function completeAssistedLogin(
   actor.send({ type: 'SUBMIT_ASSISTED_LOGIN', accountId });
 }
 
-function finishS03(actor: ReturnType<typeof createModuleActor>): void {
+function reachS03TimeLapse(actor: ReturnType<typeof createModuleActor>): void {
   actor.send({ type: 'S03_COMPLETION_FEEDBACK_CONTINUED' });
   actor.send({ type: 'S03_CAMPUS_START_CONTINUED' });
-  actor.send({ type: 'S03_WARNING_SEQUENCE_COMPLETED' });
+}
+
+function reachAwaitingIncidentOpen(actor: ReturnType<typeof createModuleActor>): void {
+  reachS03TimeLapse(actor);
+  actor.send({ type: 'S03_TIMELAPSE_COMPLETED' });
+  actor.send({ type: 'S03_WARNING_ANNOUNCEMENT_COMPLETED' });
+}
+
+function startS04(actor: ReturnType<typeof createModuleActor>): void {
+  actor.send({ type: 'OPEN_INCIDENT_ACCOUNT', accountId: 'campusgram' });
   actor.send({ type: 'S03_END_RECORDED' });
+  actor.send({ type: 'S04_START_RECORDED' });
 }
 
 describe('passwordModuleMachine', () => {
-  it('ends S03 after the warning sequence and awaits S04', () => {
+  it('moves from the completed time lapse into the warning announcement', () => {
     const actor = createModuleActor();
     configureAllAccounts(actor);
     startS03(actor);
+    for (const accountId of accountIds) completeAssistedLogin(actor, accountId);
+    reachS03TimeLapse(actor);
 
-    completeAssistedLogin(actor, 'master-campus');
-    completeAssistedLogin(actor, 'campus-email');
-    completeAssistedLogin(actor, 'campusgram');
-    finishS03(actor);
+    expect(
+      actor.getSnapshot().matches({ s03: { completionSequence: 'timeLapseRunning' } }),
+    ).toBe(true);
+    actor.send({ type: 'S03_TIMELAPSE_COMPLETED' });
 
-    expect(actor.getSnapshot().matches('awaitingS04')).toBe(true);
+    expect(actor.getSnapshot().matches({ s03: 'warningAnnouncement' })).toBe(true);
+  });
+
+  it('enables the incident account only after the warning announcement completes', () => {
+    const actor = createModuleActor();
+    configureAllAccounts(actor);
+    startS03(actor);
+    for (const accountId of accountIds) completeAssistedLogin(actor, accountId);
+    reachS03TimeLapse(actor);
+    actor.send({ type: 'S03_TIMELAPSE_COMPLETED' });
+
+    actor.send({ type: 'S03_WARNING_ANNOUNCEMENT_COMPLETED' });
+
+    expect(actor.getSnapshot().matches({ s03: 'awaitingIncidentOpen' })).toBe(true);
+  });
+
+  it('ignores an incident activation for every account except Campusgram', () => {
+    const actor = createModuleActor();
+    configureAllAccounts(actor);
+    startS03(actor);
+    for (const accountId of accountIds) completeAssistedLogin(actor, accountId);
+    reachAwaitingIncidentOpen(actor);
+
+    actor.send({ type: 'OPEN_INCIDENT_ACCOUNT', accountId: 'campus-email' });
+
+    expect(actor.getSnapshot().matches({ s03: 'awaitingIncidentOpen' })).toBe(true);
+  });
+
+  it('accepts the first Campusgram activation once and ignores later activations', () => {
+    const actor = createModuleActor();
+    configureAllAccounts(actor);
+    startS03(actor);
+    for (const accountId of accountIds) completeAssistedLogin(actor, accountId);
+    reachAwaitingIncidentOpen(actor);
+
+    actor.send({ type: 'OPEN_INCIDENT_ACCOUNT', accountId: 'campusgram' });
+    actor.send({ type: 'OPEN_INCIDENT_ACCOUNT', accountId: 'campusgram' });
+
+    expect(actor.getSnapshot().matches({ s03: 'writingEnd' })).toBe(true);
+    actor.send({ type: 'S03_END_RECORDED' });
+    expect(actor.getSnapshot().matches({ s04: 'writingStart' })).toBe(true);
+    actor.send({ type: 'S04_START_RECORDED' });
+
+    expect(actor.getSnapshot().matches({ s04: 'active' })).toBe(true);
     expect(actor.getSnapshot().status).toBe('active');
+  });
+
+  it('keeps each failed transition retryable and ends S04 in a stable completed state', () => {
+    const actor = createModuleActor();
+    configureAllAccounts(actor);
+    startS03(actor);
+    for (const accountId of accountIds) completeAssistedLogin(actor, accountId);
+    reachAwaitingIncidentOpen(actor);
+
+    actor.send({ type: 'OPEN_INCIDENT_ACCOUNT', accountId: 'campusgram' });
+    actor.send({ type: 'S03_END_FAILED', errorCode: 's03-end-failed' });
+    expect(actor.getSnapshot().matches({ s03: 'endWriteFailed' })).toBe(true);
+    actor.send({ type: 'RETRY_S03_END' });
+    actor.send({ type: 'S03_END_RECORDED' });
+    actor.send({ type: 'S04_START_FAILED', errorCode: 's04-start-failed' });
+    expect(actor.getSnapshot().matches({ s04: 'startWriteFailed' })).toBe(true);
+    actor.send({ type: 'RETRY_S04_START' });
+    actor.send({ type: 'S04_START_RECORDED' });
+    actor.send({ type: 'S04_COMPLETED' });
+    actor.send({ type: 'S04_END_FAILED', errorCode: 's04-end-failed' });
+    expect(actor.getSnapshot().matches({ s04: 'endWriteFailed' })).toBe(true);
+    actor.send({ type: 'RETRY_S04_END' });
+    actor.send({ type: 'S04_END_RECORDED' });
+
+    expect(actor.getSnapshot().matches({ s04: 'completed' })).toBe(true);
   });
 
   it('preserves transient S03 data until discard', () => {
@@ -86,9 +166,10 @@ describe('passwordModuleMachine', () => {
     actor.send({ type: 'SUBMIT_RETRIEVAL_LOGIN', accountId: 'master-campus' });
     completeAssistedLogin(actor, 'campus-email');
     completeAssistedLogin(actor, 'campusgram');
-    finishS03(actor);
+    reachAwaitingIncidentOpen(actor);
+    startS04(actor);
 
-    expect(actor.getSnapshot().matches('awaitingS04')).toBe(true);
+    expect(actor.getSnapshot().matches({ s04: 'active' })).toBe(true);
     expect(actor.getSnapshot().context.passwordValues).toEqual(values);
     expect(actor.getSnapshot().context.retrievalResults).toEqual({
       'master-campus': 'retrievable',

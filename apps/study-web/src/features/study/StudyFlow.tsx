@@ -6,7 +6,7 @@ import {
 import { createStudyMachine } from '@passwo/study-engine';
 import { useMachine } from '@xstate/react';
 import { type ReactNode, useCallback, useMemo, useState } from 'react';
-import { BrowserSegmentTimingAdapter } from '../../adapters/animation/BrowserSegmentTimingAdapter.js';
+import { BrowserSegmentTimingAdapter } from '../../adapters/timing/BrowserSegmentTimingAdapter.js';
 import { createStudyApi } from '../../api/study-api.js';
 import { ReferenceArtifact } from '../reference/ReferenceArtifact.js';
 import { PasswordModuleTraining } from '../training/PasswordModuleTraining.js';

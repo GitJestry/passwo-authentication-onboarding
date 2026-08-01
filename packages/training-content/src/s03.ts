@@ -56,7 +56,6 @@ export interface S03SegmentContent {
     readonly timingSaving: string;
     readonly retry: string;
     readonly assistedLogin: string;
-    readonly viewWarning: string;
   };
   readonly narration: {
     readonly guideName: string;
@@ -93,7 +92,7 @@ export interface S03SegmentContent {
   readonly animations: readonly S03AnimationSequence[];
 }
 
-export const S03_CONTENT_VERSION = '1.11.0';
+export const S03_CONTENT_VERSION = '1.13.0';
 
 const resultAnimation = (
   accountId: S01AccountId,
@@ -135,7 +134,6 @@ const animations = [
     steps: [
       { type: 'announce', messageId: 's03.completion.timeskip' },
       { type: 'pause', durationMs: 5_000 },
-      { type: 'announce', messageId: 's03.campusgram.warning' },
     ],
     reducedMotion: { strategy: 'instant-end-state', maxDurationMs: 0 },
     maxDurationMs: 5_000,
@@ -176,7 +174,6 @@ export const s03Content: S03SegmentContent = {
     timingSaving: 'Zeitereignis wird gespeichert …',
     retry: 'Erneut versuchen',
     assistedLogin: 'Für mich anmelden',
-    viewWarning: 'Warnung ansehen',
   },
   narration: {
     guideName: 'PassWo',
@@ -203,7 +200,7 @@ export const s03Content: S03SegmentContent = {
     },
     campusStart: 'Wir können jetzt in Ruhe unseren Campusstart fortsetzen.',
     warning:
-      'Warte, bei Campusgram gibt es eine Warnung. Kannst du sie dir bitte ansehen?',
+      'Warte, bei Campusgram gibt es eine Warnung. Kannst du sie dir bitte über den hervorgehobenen Campusgram-Tab ansehen?',
   },
   accountLoginTitles: {
     'master-campus': 'Melde dich bei Master Campus an.',

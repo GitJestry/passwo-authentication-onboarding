@@ -8,7 +8,7 @@ Seitenangaben beziehen sich auf die im Trainingsdokument ausgewiesene interne Pa
 | S01 | Ordinary account setup | 3 | TF2, TF3 | drei fiktive Passwörter, freie Tabreihenfolge |
 | S02 | Konten verstehen | 4–7 | TF2, TF3, TF4 | Knotennetz, Unlock, Vorschaukarten, 0/3–3/3 |
 | S03 | Wieder anmelden | 8–11 | TF1, TF3, TF6 | Abrufbarkeit, Skip ohne Beschämung, Status |
-| S04 | Campusgram leak | 12 | TF4 | Datenleck, Offline-Prüfung, Übergang zur Analyse |
+| S04 | Datenleck bei Campusgram | 12 | TF4 | Warnung im Browser-Tab, Offline-Prüfung, Übergang zur Analyse |
 | S05 | Einzelstärke des Passworts | 12–35 | TF3, TF4, TF6 | Bestandteile, Aufbau, freies Ausprobieren, Zusammenführung |
 | S06 | Einzigartigkeit und Ausbreitung | 36–44 | TF3, TF4 | gleich/ähnlich/einzigartig, tatsächliche und hypothetische Pfade |
 | S07 | Diagnose | 44–50 | TF1, TF4, TF6 | drei Kontokarten, priorisierte nächste Handlung |

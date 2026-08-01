@@ -58,10 +58,19 @@ export type PasswordModuleEvent =
   | { readonly type: 'SUBMIT_ASSISTED_LOGIN'; readonly accountId: string }
   | { readonly type: 'S03_COMPLETION_FEEDBACK_CONTINUED' }
   | { readonly type: 'S03_CAMPUS_START_CONTINUED' }
-  | { readonly type: 'S03_WARNING_SEQUENCE_COMPLETED' }
+  | { readonly type: 'S03_TIMELAPSE_COMPLETED' }
+  | { readonly type: 'S03_WARNING_ANNOUNCEMENT_COMPLETED' }
+  | { readonly type: 'OPEN_INCIDENT_ACCOUNT'; readonly accountId: string }
   | { readonly type: 'S03_END_RECORDED' }
   | { readonly type: 'S03_END_FAILED'; readonly errorCode: string }
   | { readonly type: 'RETRY_S03_END' }
+  | { readonly type: 'S04_START_RECORDED' }
+  | { readonly type: 'S04_START_FAILED'; readonly errorCode: string }
+  | { readonly type: 'RETRY_S04_START' }
+  | { readonly type: 'S04_COMPLETED' }
+  | { readonly type: 'S04_END_RECORDED' }
+  | { readonly type: 'S04_END_FAILED'; readonly errorCode: string }
+  | { readonly type: 'RETRY_S04_END' }
   | { readonly type: 'DISCARD' };
 
 function emptyPasswordValues(accountIds: readonly string[]): Record<string, string> {
@@ -160,6 +169,8 @@ export const passwordModuleMachine = setup({
       isActiveNotRememberedAccount(context, event.accountId) &&
       context.retrievalPasswordValues[event.accountId] === context.passwordValues[event.accountId] &&
       getRetrievedAccountCount(context) + 1 === context.accountIds.length,
+    opensCampusgramIncident: ({ event }) =>
+      event.type === 'OPEN_INCIDENT_ACCOUNT' && event.accountId === 'campusgram',
   },
   actions: {
     storeDisplayName: assign({
@@ -174,7 +185,9 @@ export const passwordModuleMachine = setup({
         event.type === 'S02_START_FAILED' ||
         event.type === 'S02_END_FAILED' ||
         event.type === 'S03_START_FAILED' ||
-        event.type === 'S03_END_FAILED'
+        event.type === 'S03_END_FAILED' ||
+        event.type === 'S04_START_FAILED' ||
+        event.type === 'S04_END_FAILED'
           ? event.errorCode
           : null,
     }),
@@ -454,31 +467,76 @@ export const passwordModuleMachine = setup({
             },
             campusStart: {
               on: {
-                S03_CAMPUS_START_CONTINUED: { target: 'timeLapse' },
+                S03_CAMPUS_START_CONTINUED: { target: 'timeLapseRunning' },
               },
             },
-            timeLapse: {
+            timeLapseRunning: {
               on: {
-                S03_WARNING_SEQUENCE_COMPLETED: {
-                  target: '#passwordModule.s03.ending',
+                S03_TIMELAPSE_COMPLETED: {
+                  target: '#passwordModule.s03.warningAnnouncement',
                   actions: 'clearTimingError',
                 },
               },
             },
           },
         },
-        ending: {
+        warningAnnouncement: {
           on: {
-            S03_END_RECORDED: { target: '#passwordModule.awaitingS04' },
-            S03_END_FAILED: { target: 'endFailed', actions: 'storeTimingError' },
+            S03_WARNING_ANNOUNCEMENT_COMPLETED: {
+              target: 'awaitingIncidentOpen',
+              actions: 'clearTimingError',
+            },
           },
         },
-        endFailed: {
-          on: { RETRY_S03_END: { target: 'ending', actions: 'clearTimingError' } },
+        awaitingIncidentOpen: {
+          on: {
+            OPEN_INCIDENT_ACCOUNT: {
+              guard: 'opensCampusgramIncident',
+              target: 'writingEnd',
+              actions: 'clearTimingError',
+            },
+          },
+        },
+        writingEnd: {
+          on: {
+            S03_END_RECORDED: { target: '#passwordModule.s04.writingStart' },
+            S03_END_FAILED: { target: 'endWriteFailed', actions: 'storeTimingError' },
+          },
+        },
+        endWriteFailed: {
+          on: { RETRY_S03_END: { target: 'writingEnd', actions: 'clearTimingError' } },
         },
       },
     },
-    awaitingS04: {},
+    s04: {
+      initial: 'writingStart',
+      states: {
+        writingStart: {
+          on: {
+            S04_START_RECORDED: { target: 'active', actions: 'clearTimingError' },
+            S04_START_FAILED: { target: 'startWriteFailed', actions: 'storeTimingError' },
+          },
+        },
+        startWriteFailed: {
+          on: { RETRY_S04_START: { target: 'writingStart', actions: 'clearTimingError' } },
+        },
+        active: {
+          on: {
+            S04_COMPLETED: { target: 'writingEnd', actions: 'clearTimingError' },
+          },
+        },
+        writingEnd: {
+          on: {
+            S04_END_RECORDED: { target: 'completed', actions: 'clearTimingError' },
+            S04_END_FAILED: { target: 'endWriteFailed', actions: 'storeTimingError' },
+          },
+        },
+        endWriteFailed: {
+          on: { RETRY_S04_END: { target: 'writingEnd', actions: 'clearTimingError' } },
+        },
+        completed: {},
+      },
+    },
     discarded: { type: 'final' },
   },
 });

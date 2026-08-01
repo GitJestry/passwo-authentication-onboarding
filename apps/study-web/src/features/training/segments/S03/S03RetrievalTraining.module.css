@@ -353,6 +353,15 @@
   pointer-events: none;
 }
 
+.timeLapseCompletionSignal {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  opacity: 0;
+  animation: s03-time-lapse-completion 5s linear both;
+}
+
 .campusActivity {
   position: relative;
   display: grid;
@@ -467,16 +476,6 @@
 .campusTimeLapse[data-warning="true"] .timeLapseCursor,
 .campusTimeLapse[data-warning="true"] .activityTimeline article {
   animation-play-state: paused;
-}
-
-.characterAnimationAnchor {
-  position: absolute;
-  right: 0;
-  bottom: 0;
-  width: 1px;
-  height: 1px;
-  opacity: 0;
-  pointer-events: none;
 }
 
 .screenReaderOnly {
@@ -608,6 +607,16 @@
   }
 }
 
+@keyframes s03-time-lapse-completion {
+  from {
+    transform: scale(1);
+  }
+
+  to {
+    transform: scale(1.001);
+  }
+}
+
 @media (max-width: 760px) {
   .relationshipStage {
     min-height: 31rem;
@@ -630,5 +639,9 @@
   .campusTimeLapse[data-running="true"] .timeLapseCursor,
   .campusTimeLapse[data-running="true"] .activityTimeline article {
     animation: none;
+  }
+
+  .timeLapseCompletionSignal {
+    animation-duration: var(--motion-instant);
   }
 }
