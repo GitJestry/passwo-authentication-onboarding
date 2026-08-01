@@ -1,5 +1,7 @@
 .window {
-  --window-minimized-transform: translateY(2.2rem) scale(0.9);
+  --window-minimized-transform: translateY(0.35rem) scale(0.08);
+  --window-lift-transform: translateY(-0.14rem) scale(0.994, 0.986);
+  --window-settle-transform: translateY(-0.1rem) scale(1.006);
   --browser-window-radius: var(--radius-browser-window-mac);
   --browser-chrome-surface: var(--color-surface-browser-chrome-mac);
   --browser-navigation-surface: var(--color-surface-browser-navigation-mac);
@@ -28,7 +30,7 @@
   border-radius: var(--browser-window-radius);
   background: var(--passwo-surface);
   box-shadow: var(--shadow-window);
-  transform-origin: 50% calc(100% + 4.2rem);
+  transform-origin: 50% calc(100% + 2.65rem);
 }
 
 .artifactWindow {
@@ -533,12 +535,14 @@ button.activeTab[aria-disabled="true"] {
 
 .window[data-window-state="closing"] {
   pointer-events: none;
-  animation: browser-window-close 280ms cubic-bezier(0.4, 0, 0.8, 0.35) both;
+  will-change: transform, opacity, border-radius, box-shadow;
+  animation: browser-window-close 360ms cubic-bezier(0.5, 0, 0.82, 0.34) both;
 }
 
 .window[data-window-state="opening"] {
   pointer-events: none;
-  animation: browser-window-open 320ms cubic-bezier(0.2, 0.78, 0.24, 1) both;
+  will-change: transform, opacity, border-radius, box-shadow;
+  animation: browser-window-open 420ms cubic-bezier(0.18, 0.82, 0.24, 1) both;
 }
 
 .window[data-window-state="closed"] {
@@ -552,7 +556,7 @@ button.activeTab[aria-disabled="true"] {
 }
 
 .window[data-platform="windows"] {
-  --window-minimized-transform: translateY(1.35rem) scale(0.96);
+  --window-minimized-transform: translateY(0.2rem) scale(0.08);
   --browser-window-radius: var(--radius-browser-window-windows);
   --browser-chrome-surface: var(--color-surface-browser-chrome-windows);
   --browser-navigation-surface: var(--color-surface-browser-navigation-windows);
@@ -564,7 +568,7 @@ button.activeTab[aria-disabled="true"] {
   border-color: rgb(33 61 82 / 24%);
   border-radius: var(--browser-window-radius);
   box-shadow: none;
-  transform-origin: 7.6rem calc(100% + 2.4rem);
+  transform-origin: 10.55rem calc(100% + 1.8rem);
 }
 
 .window[data-platform="windows"] .tabRow,
@@ -680,7 +684,7 @@ button.activeTab[aria-disabled="true"] {
 }
 
 .window[data-platform="linux"] {
-  --window-minimized-transform: translateX(-1.6rem) scale(0.94);
+  --window-minimized-transform: translateX(-0.2rem) scale(0.08);
   --browser-window-radius: var(--radius-browser-window-linux);
   --browser-chrome-surface: var(--color-surface-browser-chrome-linux);
   --browser-navigation-surface: var(--color-surface-browser-navigation-linux);
@@ -693,7 +697,7 @@ button.activeTab[aria-disabled="true"] {
   border-color: rgb(35 27 39 / 42%);
   border-radius: var(--browser-window-radius);
   box-shadow: 0 1.25rem 3rem rgb(29 14 34 / 30%);
-  transform-origin: -3.2rem 50%;
+  transform-origin: -2.05rem 50%;
 }
 
 .window[data-platform="linux"] .tabRow {
@@ -741,7 +745,28 @@ button.activeTab[aria-disabled="true"] {
     transform: none;
   }
 
+  16% {
+    opacity: 1;
+    transform: var(--window-lift-transform);
+  }
+
+  58% {
+    border-radius: 1rem;
+    box-shadow: 0 0.45rem 1.1rem rgb(30 55 82 / 14%);
+    opacity: 1;
+    transform: scale(0.42, 0.36);
+  }
+
+  88% {
+    border-radius: 1.1rem;
+    box-shadow: 0 0.12rem 0.3rem rgb(30 55 82 / 8%);
+    opacity: 0.82;
+    transform: scale(0.12, 0.09);
+  }
+
   100% {
+    border-radius: 1rem;
+    box-shadow: none;
     opacity: 0;
     transform: var(--window-minimized-transform);
   }
@@ -749,8 +774,29 @@ button.activeTab[aria-disabled="true"] {
 
 @keyframes browser-window-open {
   0% {
+    border-radius: 1rem;
+    box-shadow: none;
     opacity: 0;
     transform: var(--window-minimized-transform);
+  }
+
+  24% {
+    border-radius: 1.1rem;
+    box-shadow: 0 0.12rem 0.3rem rgb(30 55 82 / 8%);
+    opacity: 0.78;
+    transform: scale(0.13, 0.1);
+  }
+
+  68% {
+    border-radius: 1rem;
+    box-shadow: 0 0.9rem 2rem rgb(30 55 82 / 18%);
+    opacity: 1;
+    transform: scale(0.93, 0.9);
+  }
+
+  86% {
+    opacity: 1;
+    transform: var(--window-settle-transform);
   }
 
   100% {
@@ -793,6 +839,11 @@ button.activeTab[aria-disabled="true"] {
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .window[data-window-state="closing"],
+  .window[data-window-state="opening"] {
+    animation-duration: var(--motion-instant);
+  }
+
   .dangerMarker,
   .activeTab:has(.dangerMarker),
   .tab:has(.dangerMarker) {

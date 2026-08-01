@@ -20,6 +20,7 @@ import {
   type S02AccountExplorationControllerSnapshot,
 } from './S02AccountExplorationController.js';
 import { PassWoSpeechBubble } from '../../PassWoSpeechBubble.js';
+import { passWoSpeechEmphasisFor } from '../../PassWoSpeechEmphasis.js';
 import { S02DesktopSurface } from './S02DesktopSurface.js';
 import styles from './S02AccountExplorationTraining.module.css';
 
@@ -579,6 +580,7 @@ export function S02AccountExplorationTraining({
   const narration = complete
     ? (s02Content.narration.messages[s02Content.narration.completeId] ?? '')
     : (s02Content.narration.messages[scene.narrationId] ?? '');
+  const narrationId = complete ? s02Content.narration.completeId : scene.narrationId;
   const speechKey = `${scene.narrationId}-${complete}`;
   const animationAnnouncement =
     presentation.announcedMessageId === null
@@ -729,6 +731,7 @@ export function S02AccountExplorationTraining({
               speaker={s02Content.narration.guideName}
               paragraphs={[narration]}
               speechKey={speechKey}
+              emphasis={passWoSpeechEmphasisFor(narrationId)}
               placement={
                 positionedGuide?.side === 'left' ? 'left' : 'right'
               }

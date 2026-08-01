@@ -1,9 +1,6 @@
 import { useCallback, useEffect, useId, useMemo, useRef, useState, type ReactNode } from 'react';
 import { NetworkSymbol } from '../../adapters/network/NetworkSymbolRegistry.js';
-import {
-  defaultPassWoSpeechEmphasis,
-  type PassWoSpeechEmphasis,
-} from './PassWoSpeechEmphasis.js';
+import type { PassWoSpeechEmphasis } from './PassWoSpeechEmphasis.js';
 import styles from './PassWoSpeechBubble.module.css';
 
 export type PassWoSpeechPlacement = 'right' | 'left' | 'above-right' | 'above-left';
@@ -26,6 +23,8 @@ export interface PassWoSpeechBubbleProps {
 }
 
 type SpeechActionKind = 'skip' | 'next' | 'close';
+
+const noSpeechEmphasis: readonly PassWoSpeechEmphasis[] = [];
 
 function prefersReducedMotion(): boolean {
   return window.matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -171,7 +170,7 @@ export function PassWoSpeechBubble({
   speechKey,
   placement = 'right',
   tone = 'light',
-  emphasis = defaultPassWoSpeechEmphasis,
+  emphasis = noSpeechEmphasis,
   footer,
   className,
   hasNext = false,

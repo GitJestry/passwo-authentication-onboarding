@@ -15,6 +15,7 @@ import { NetworkSymbol } from '../../adapters/network/NetworkSymbolRegistry.js';
 import { AccountSuccessOverlay } from './AccountSuccessOverlay.js';
 import { CampusWebsiteBackdrop } from './CampusWebsiteBackdrop.js';
 import { PassWoGuide } from './PassWoGuide.js';
+import { passWoSpeechEmphasisFor } from './PassWoSpeechEmphasis.js';
 import styles from './S01Training.module.css';
 
 function isReadyToContinue(snapshot: PasswordModuleSnapshot): boolean {
@@ -249,6 +250,9 @@ export function S01Training({
                     : s01Content.quest.guideMessage,
                 ]}
                 speechKey={readyToContinue ? 's01-ready' : `s01-${account.id}-${configuredCount}`}
+                speechEmphasis={passWoSpeechEmphasisFor(
+                  readyToContinue ? 's01.ready' : 's01.quest',
+                )}
                 speechPlacement="right"
                 awaitsAction={readyToContinue}
                 onToggleHelp={() => setQuestHelpOpen(true)}

@@ -22,6 +22,7 @@ import { NetworkSymbol } from '../../../../adapters/network/NetworkSymbolRegistr
 import { AccountSuccessOverlay } from '../../AccountSuccessOverlay.js';
 import { CampusWebsiteBackdrop } from '../../CampusWebsiteBackdrop.js';
 import { PassWoGuide } from '../../PassWoGuide.js';
+import { passWoSpeechEmphasisFor } from '../../PassWoSpeechEmphasis.js';
 import {
   S03RetrievalController,
   type S03RetrievalControllerSnapshot,
@@ -413,23 +414,39 @@ export function S03RetrievalTraining({
         : account.address;
   const warningConfirmationAvailable =
     presentationSnapshot.warningState === 'ready' && boardWarningActive;
-  const guideMessage = boardWarningActive
-    ? s03Content.narration.warning
+  const guideContent = boardWarningActive
+    ? { message: s03Content.narration.warning, emphasisId: 's03.warning' }
     : assistanceActive
-      ? s03Content.narration.retrievalHelp
+      ? { message: s03Content.narration.retrievalHelp, emphasisId: 's03.retrieval-help' }
       : thirdAttemptGuideActive
-        ? s03Content.narration.thirdFailedLogin
+        ? {
+            message: s03Content.narration.thirdFailedLogin,
+            emphasisId: 's03.third-failed-login',
+          }
         : completionFeedbackActive
-          ? completionNarration(rememberedCount)
+          ? {
+              message: completionNarration(rememberedCount),
+              emphasisId: `s03.completion.${Math.min(3, Math.max(0, rememberedCount))}`,
+            }
           : campusStartActive
-            ? s03Content.narration.campusStart
+            ? { message: s03Content.narration.campusStart, emphasisId: 's03.campus-start' }
             : result === 'retrievable'
-              ? s03Content.narration.accountSuccess[account.id]
+              ? {
+                  message: s03Content.narration.accountSuccess[account.id],
+                  emphasisId: 's03.success',
+                }
               : result === 'assisted'
-                ? s03Content.narration.accountAssisted[account.id]
+                ? {
+                    message: s03Content.narration.accountAssisted[account.id],
+                    emphasisId: 's03.assisted',
+                  }
                 : result === 'not-remembered'
-                  ? s03Content.narration.retrievalHelp
-                  : s03Content.narration.intro;
+                  ? {
+                      message: s03Content.narration.retrievalHelp,
+                      emphasisId: 's03.retrieval-help',
+                    }
+                  : { message: s03Content.narration.intro, emphasisId: 's03.intro' };
+  const guideMessage = guideContent.message;
   const guidePhase = boardWarningActive
     ? 'warning'
     : assistanceActive
@@ -550,13 +567,7 @@ export function S03RetrievalTraining({
                 openHelpLabel="PassWo-Hinweis öffnen"
                 speech={[guideMessage]}
                 speechKey={guideSpeechKey}
-                {...(thirdAttemptGuideActive
-                  ? {
-                      speechEmphasis: [
-                        { phrase: '„Passwort vergessen?“', tone: 'action' as const },
-                      ],
-                    }
-                  : {})}
+                speechEmphasis={passWoSpeechEmphasisFor(guideContent.emphasisId)}
                 speechPlacement="right"
                 hasNextSpeech={completionFeedbackActive || campusStartActive}
                 awaitsAction={assistanceActive || warningConfirmationAvailable}

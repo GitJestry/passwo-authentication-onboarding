@@ -8,6 +8,7 @@ import type { DesktopPlatform } from '@passwo/ui';
 import { useEffect, useRef, useState } from 'react';
 import passWoDockAsset from '../../assets/passwo/passwo-dock.png';
 import { PassWoSpeechBubble } from './PassWoSpeechBubble.js';
+import { passWoSpeechEmphasisFor } from './PassWoSpeechEmphasis.js';
 import styles from './PasswordModuleTraining.module.css';
 import { SectionTransition } from './SectionTransition.js';
 import { S00Training } from './S00Training.js';
@@ -85,6 +86,7 @@ export function PasswordModuleTraining({
             speaker={s00Content.narration.guideName}
             paragraphs={s00Content.entry.paragraphs}
             speechKey="module-entry"
+            emphasis={passWoSpeechEmphasisFor('module-entry')}
             placement="right"
             awaitsAction
             onComplete={() => setEntrySpeechComplete(true)}

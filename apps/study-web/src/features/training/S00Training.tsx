@@ -20,6 +20,7 @@ import {
 import { NetworkSymbol } from '../../adapters/network/NetworkSymbolRegistry.js';
 import { CampusWebsiteBackdrop } from './CampusWebsiteBackdrop.js';
 import { PassWoGuide } from './PassWoGuide.js';
+import { passWoSpeechEmphasisFor } from './PassWoSpeechEmphasis.js';
 import styles from './S00Training.module.css';
 
 const mission: MissionDefinition = {
@@ -140,9 +141,17 @@ export function S00Training({
   const animationError = missionSnapshot?.context.lastAnimationError ?? null;
   const activeTimingError = timingError ?? externalTimingError;
   const speechSteps = [
-    { accountId: 'campus-id', text: s00Content.narration.greeting },
-    ...s00Content.narration.accountExplanations.map(({ accountId, text }) => ({ accountId, text })),
-    { accountId: null, text: s00Content.narration.safetyWarning },
+    {
+      accountId: 'campus-id',
+      text: s00Content.narration.greeting,
+      emphasisId: 's00.greeting',
+    },
+    ...s00Content.narration.accountExplanations.map(({ accountId, text }) => ({
+      accountId,
+      text,
+      emphasisId: `s00.${accountId}`,
+    })),
+    { accountId: null, text: s00Content.narration.safetyWarning, emphasisId: 's00.safety' },
   ] as const;
   const currentSpeechStep = speechSteps[speechRound] ?? speechSteps[0];
   const isFinalSpeechStep = speechRound === speechSteps.length - 1;
@@ -219,6 +228,9 @@ export function S00Training({
                 openHelpLabel={s00Content.narration.openGuideLabel}
                 speech={currentSpeechStep === undefined ? [] : [currentSpeechStep.text]}
                 speechKey={`s00-greeting-${displayName}-${speechRound}`}
+                speechEmphasis={passWoSpeechEmphasisFor(
+                  currentSpeechStep?.emphasisId ?? 's00.greeting',
+                )}
                 speechPlacement="right"
                 hasNextSpeech={!isFinalSpeechStep}
                 awaitsAction={isFinalSpeechStep}
