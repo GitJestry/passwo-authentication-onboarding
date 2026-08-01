@@ -1,0 +1,58 @@
+import type {
+  AnimationPlayerPort,
+  AnimationResult,
+  AnimationSequence,
+} from '@passwo/training-engine';
+
+export interface S05AnimationAdapterOptions {
+  readonly getElement: (targetId: string) => HTMLElement | null;
+  readonly prefersReducedMotion: () => boolean;
+}
+
+export class S05AnimationAdapter implements AnimationPlayerPort {
+  readonly #getElement: S05AnimationAdapterOptions['getElement'];
+  readonly #prefersReducedMotion: S05AnimationAdapterOptions['prefersReducedMotion'];
+  #activeAnimation: Animation | null = null;
+  #cancelled = false;
+
+  constructor({ getElement, prefersReducedMotion }: S05AnimationAdapterOptions) {
+    this.#getElement = getElement;
+    this.#prefersReducedMotion = prefersReducedMotion;
+  }
+
+  async play(sequence: AnimationSequence): Promise<AnimationResult> {
+    await this.cancel();
+    this.#cancelled = false;
+    if (this.#prefersReducedMotion()) return { status: 'finished' };
+
+    for (const step of sequence.steps) {
+      if (step.type !== 'highlight' && step.type !== 'reveal') continue;
+      await new Promise<void>((resolve) => requestAnimationFrame(() => resolve()));
+      if (this.#cancelled) return { status: 'cancelled' };
+      const element = this.#getElement(step.targetId);
+      if (element === null) return { status: 'failed', reasonCode: 's05-animation-target-missing' };
+      this.#activeAnimation = element.animate(
+        [
+          { opacity: 0.45, transform: 'scale(0.98)' },
+          { opacity: 1, transform: 'scale(1.015)', offset: 0.55 },
+          { opacity: 1, transform: 'scale(1)' },
+        ],
+        { duration: step.durationMs, easing: 'ease-out' },
+      );
+      try {
+        await this.#activeAnimation.finished;
+      } catch {
+        return { status: this.#cancelled ? 'cancelled' : 'failed' };
+      } finally {
+        this.#activeAnimation = null;
+      }
+    }
+    return { status: 'finished' };
+  }
+
+  async cancel(): Promise<void> {
+    this.#cancelled = true;
+    this.#activeAnimation?.cancel();
+    this.#activeAnimation = null;
+  }
+}

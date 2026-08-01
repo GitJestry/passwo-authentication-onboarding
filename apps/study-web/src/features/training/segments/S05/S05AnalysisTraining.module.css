@@ -1,0 +1,202 @@
+.training {
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  flex: 1;
+}
+
+.page {
+  display: flex;
+  height: 100%;
+  min-height: 100%;
+  flex-direction: column;
+  color: var(--color-ink);
+  background: var(--color-surface-muted);
+}
+
+.pageHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-5);
+  padding: var(--space-4) clamp(var(--space-5), 4vw, var(--space-8));
+  border-bottom: var(--border-width-thin) solid var(--color-border-soft);
+  background: var(--color-surface-primary);
+}
+
+.pageHeader h1,
+.candidatePanel h2,
+.resultCard h2 {
+  margin: 0;
+  color: var(--color-ink-strong);
+}
+
+.pageHeader h1 {
+  font-size: var(--font-size-heading-small);
+}
+
+.eyebrow,
+.cardLabel {
+  margin: 0 0 var(--space-1);
+  color: var(--color-accent-strong);
+  font-size: var(--font-size-x-small);
+  font-weight: var(--font-weight-heavy);
+  letter-spacing: var(--letter-spacing-wide);
+  text-transform: uppercase;
+}
+
+.fixtureNotice,
+.theoryNotice {
+  padding: var(--space-2) var(--space-3);
+  border: var(--border-width-thin) solid var(--color-border);
+  border-radius: var(--radius-round);
+  color: var(--color-ink-muted);
+  background: var(--color-surface-primary);
+  font-size: var(--font-size-x-small);
+  font-weight: var(--font-weight-bold);
+}
+
+.content {
+  min-height: 0;
+  flex: 1;
+  overflow: auto;
+  padding: var(--space-4);
+}
+
+.sceneGrid,
+.findingWorkspace {
+  display: grid;
+  height: 100%;
+  gap: var(--space-4);
+  grid-template-columns: minmax(0, 1.2fr) minmax(16rem, 0.8fr);
+}
+
+.candidatePanel,
+.searchComparison,
+.demonstrations article,
+.resultCard {
+  padding: var(--space-4);
+  border: var(--border-width-thin) solid var(--color-border-soft);
+  border-radius: var(--radius-medium);
+  background: var(--color-surface-primary);
+}
+
+.candidateStream {
+  display: grid;
+  gap: var(--space-2);
+  margin: var(--space-5) 0;
+}
+
+.candidateStream code,
+.fixturePassword {
+  width: fit-content;
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-small);
+  color: var(--color-ink-strong);
+  background: var(--color-accent-soft);
+  font-size: var(--font-size-body);
+}
+
+.marker {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-3);
+  border: var(--border-width-medium) dashed var(--color-accent-strong);
+  border-radius: var(--radius-small);
+}
+
+.searchComparison,
+.demonstrations {
+  display: grid;
+  align-content: start;
+  gap: var(--space-3);
+}
+
+.searchComparison article + article {
+  padding-top: var(--space-3);
+  border-top: var(--border-width-thin) solid var(--color-border-soft);
+}
+
+.searchComparison h3,
+.demonstrations h3 {
+  margin: 0 0 var(--space-2);
+  color: var(--color-ink-strong);
+  font-size: var(--font-size-body);
+}
+
+.searchComparison p,
+.demonstrations p,
+.resultCard p,
+.resultCard li {
+  color: var(--color-ink-muted);
+  font-size: var(--font-size-small);
+  line-height: var(--line-height-body);
+}
+
+.exampleLine {
+  color: var(--color-accent-strong) !important;
+  font-family: ui-monospace, monospace;
+  font-weight: var(--font-weight-bold);
+}
+
+.resultCard {
+  align-self: start;
+}
+
+.resultCard ol {
+  display: grid;
+  gap: var(--space-3);
+  padding-left: var(--space-5);
+}
+
+.resultCard li span {
+  display: block;
+  margin-top: var(--space-1);
+  font-family: ui-monospace, monospace;
+}
+
+.controls {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--space-2);
+  padding: var(--space-3) var(--space-4);
+  border-top: var(--border-width-thin) solid var(--color-border-soft);
+  background: var(--color-surface-primary);
+}
+
+.controls button {
+  min-height: var(--size-control-medium);
+  padding: var(--space-2) var(--space-4);
+  border: var(--border-width-medium) solid var(--color-accent-strong);
+  border-radius: var(--radius-small);
+  color: var(--color-on-inverse);
+  background: var(--color-accent-strong);
+  font-weight: var(--font-weight-heavy);
+  cursor: pointer;
+}
+
+.controls button:disabled {
+  border-color: var(--color-border);
+  color: var(--color-ink-muted);
+  background: var(--color-surface-muted);
+  cursor: default;
+}
+
+.controls button:focus-visible {
+  outline: var(--border-width-focus) solid var(--color-focus);
+  outline-offset: var(--space-1);
+}
+
+@media (max-width: 760px) {
+  .pageHeader,
+  .controls {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .sceneGrid,
+  .findingWorkspace {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}

@@ -3,6 +3,7 @@ import reviewedInstrumentRuntimeManifest from '../../../research/derived/instrum
   type: 'json',
 };
 import {
+  type PasswordComparisonResult,
   createSessionRequestSchema,
   instrumentRuntimeManifest,
   instrumentSubmissionRequestSchema,
@@ -121,6 +122,35 @@ describe('research-safe contracts', () => {
     ).toBe(true);
   });
 
+  it('keeps authored scene context outside the general password comparison result', () => {
+    const comparison: PasswordComparisonResult = {
+      kind: 'fictional-password-comparison',
+      outcome: 'similar',
+      findings: [
+        {
+          id: 'comparison:shared-core:campus',
+          kind: 'shared-core-with-bounded-transformation',
+          evidence: [{ type: 'token', token: 'campus' }],
+          explanationId: 's06.shared-core-with-bounded-transformation',
+          confidence: 'bounded-heuristic',
+          transformations: ['typical-suffix-change'],
+        },
+      ],
+      disclaimerId: 'simulation-not-production-strength',
+    };
+
+    expect(comparison.outcome).toBe('similar');
+    expect(Object.keys(comparison)).not.toEqual(
+      expect.arrayContaining([
+        'fixtureId',
+        'source',
+        'context',
+        'sourceAccountId',
+        'targetAccountId',
+      ]),
+    );
+  });
+
   it('keeps researcher exports inside the approved data boundary', () => {
     const manifest = {
       schemaVersion: 'research-export-v3',
@@ -155,9 +185,9 @@ describe('research-safe contracts', () => {
       /"classification"|"appropriate"|"incomplete"|"unsafe"/u,
     );
     expect(instrumentRuntimeManifest.procedures.followUpRecontact.optional).toBe(true);
-    expect(
-      JSON.stringify(instrumentRuntimeManifest.procedures.participantInformation),
-    ).not.toMatch(/zufällig zugeordnet|zwei deutschsprachige Lernangebote werden verglichen/u);
+    expect(JSON.stringify(instrumentRuntimeManifest.procedures.participantInformation)).not.toMatch(
+      /zufällig zugeordnet|zwei deutschsprachige Lernangebote werden verglichen/u,
+    );
   });
 
   it('validates complete item-specific instrument blocks without arbitrary JSON values', () => {

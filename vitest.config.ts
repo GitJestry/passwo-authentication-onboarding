@@ -4,6 +4,7 @@ export default defineConfig({
   test: {
     environment: 'node',
     include: [
+      'packages/password-analysis/src/password-analysis.test.ts',
       'packages/contracts/src/contracts.test.ts',
       'packages/study-engine/src/study-machine.test.ts',
       'packages/study-engine/src/timing.test.ts',

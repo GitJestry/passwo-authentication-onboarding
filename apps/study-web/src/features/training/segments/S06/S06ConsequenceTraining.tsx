@@ -3,18 +3,19 @@ import {
   type S06ConsequenceFixtureId,
   s06ConsequenceContent,
 } from '@passwo/training-content';
-import { BrowserShell, type BrowserShellSnapshot } from '@passwo/ui';
+import { type BrowserShellSnapshot, BrowserShell } from '@passwo/ui';
 import { useEffect, useRef, useState } from 'react';
-import { BrowserSegmentTimingAdapter } from '../../../../adapters/timing/BrowserSegmentTimingAdapter.js';
 import { NetworkMotionAdapter } from '../../../../adapters/network/NetworkMotionAdapter.js';
+import { NetworkSymbol } from '../../../../adapters/network/NetworkSymbolRegistry.js';
 import {
   ReactFlowNetwork,
   ReactFlowNetworkAdapter,
 } from '../../../../adapters/network/ReactFlowNetworkAdapter.js';
+import { BrowserSegmentTimingAdapter } from '../../../../adapters/timing/BrowserSegmentTimingAdapter.js';
 import {
+  type S06ConsequenceControllerSnapshot,
   getS06InitialNetworkPresentation,
   S06ConsequenceController,
-  type S06ConsequenceControllerSnapshot,
 } from './S06ConsequenceController.js';
 import styles from './S06ConsequenceTraining.module.css';
 
@@ -113,7 +114,7 @@ export function S06ConsequenceTraining({
 
           {snapshot.participant.hypotheticalNotice === null ? null : (
             <p className={styles.hypotheticalBanner} role="status">
-              ◇ {snapshot.participant.hypotheticalNotice}
+              {snapshot.participant.hypotheticalNotice}
             </p>
           )}
 
@@ -135,7 +136,7 @@ export function S06ConsequenceTraining({
                   data-emphasis={snapshot.participant.semantic.emphasis}
                   role="status"
                 >
-                  <span aria-hidden="true">{snapshot.participant.semantic.symbol}</span>
+                  <NetworkSymbol symbolId={snapshot.participant.semantic.symbolId} />
                   <span>{snapshot.participant.semantic.label}</span>
                 </p>
               )}

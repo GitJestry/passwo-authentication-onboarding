@@ -3,20 +3,13 @@ import {
   designLabPathForScenario,
   designLabScenarioIds,
 } from '@passwo/contracts';
+import { type S01AccountId, s01AccountIds, s01Content } from '@passwo/training-content';
+import { type PasswordModuleSnapshot, PasswordModuleController } from '@passwo/training-engine';
 import {
-  s01AccountIds,
-  s01Content,
-  type S01AccountId,
-} from '@passwo/training-content';
-import {
-  PasswordModuleController,
-  type PasswordModuleSnapshot,
-} from '@passwo/training-engine';
-import {
-  BrowserShell,
   type BrowserShellLayers,
   type BrowserShellSnapshot,
   type BrowserTabModel,
+  BrowserShell,
 } from '@passwo/ui';
 import { useEffect, useState } from 'react';
 import { S00Training } from '../features/training/S00Training.js';
@@ -24,6 +17,7 @@ import { S01Training } from '../features/training/S01Training.js';
 import { S02AccountExplorationTraining } from '../features/training/segments/S02/S02AccountExplorationTraining.js';
 import { S03RetrievalTraining } from '../features/training/segments/S03/S03RetrievalTraining.js';
 import { S04IncidentTraining } from '../features/training/segments/S04/S04IncidentTraining.js';
+import { S05DesignLabTraining } from '../features/training/segments/S05/S05AnalysisTraining.js';
 import { S06ConsequenceTraining } from '../features/training/segments/S06/S06ConsequenceTraining.js';
 import styles from './DesignLab.module.css';
 
@@ -60,7 +54,8 @@ function readCampusWebsitePreview(): {
   const parameters = new URLSearchParams(window.location.search);
   const requestedAccountId = parameters.get('account');
   const requestedView = parameters.get('view');
-  const accountId = s01AccountIds.find((candidate) => candidate === requestedAccountId) ?? 'master-campus';
+  const accountId =
+    s01AccountIds.find((candidate) => candidate === requestedAccountId) ?? 'master-campus';
   const view =
     requestedView === 'auth' || requestedView === 'dashboard' ? requestedView : 'landing';
   return { accountId, view };
@@ -185,6 +180,24 @@ const scenarios: Record<DesignLabScenarioId, DesignLabScenario> = {
   s04: {
     label: 'S04',
     description: 'Datenleck-Erklärung innerhalb der fiktiven Campusgram-Website.',
+    dimmed: false,
+    showPassWoOverlay: false,
+  },
+  's05-common-suffix': {
+    label: 'S05 Kern + Anhang',
+    description: 'Lokale Analyse eines häufigen authored Kerns mit typischem Anhang.',
+    dimmed: false,
+    showPassWoOverlay: false,
+  },
+  's05-account-year': {
+    label: 'S05 Konto + Jahr',
+    description: 'Lokale Analyse eines Campusgram-Begriffs mit Jahreszahl.',
+    dimmed: false,
+    showPassWoOverlay: false,
+  },
+  's05-no-simple-component': {
+    label: 'S05 kein Bestandteil',
+    description: 'Begrenzter Befund ohne erkannten einfachen Bestandteil.',
     dimmed: false,
     showPassWoOverlay: false,
   },
@@ -570,6 +583,21 @@ export function DesignLab({ scenarioId }: { readonly scenarioId: DesignLabScenar
       <main className={styles.labPage}>
         <DesignLabIntroduction scenarioId={scenarioId} scenario={scenario} />
         <S02AccountExplorationTraining />
+      </main>
+    );
+  }
+
+  const s05Fixture = {
+    's05-common-suffix': 'common-suffix',
+    's05-account-year': 'account-year',
+    's05-no-simple-component': 'no-simple-component',
+  } as const;
+  if (scenarioId in s05Fixture) {
+    const fixtureId = s05Fixture[scenarioId as keyof typeof s05Fixture];
+    return (
+      <main className={styles.labPage}>
+        <DesignLabIntroduction scenarioId={scenarioId} scenario={scenario} />
+        <S05DesignLabTraining fixtureId={fixtureId} />
       </main>
     );
   }

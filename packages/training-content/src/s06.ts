@@ -1,4 +1,4 @@
-import type { AuthoredPasswordComparisonResult, TrainingSectionId } from '@passwo/contracts';
+import type { PasswordComparisonResult, TrainingSectionId } from '@passwo/contracts';
 
 export type S06ConsequenceFixtureId = 'identical' | 'similar' | 'unique' | 'hypothetical';
 export type S06ConsequenceResultKey = 'equal' | 'similar' | 'unique' | 'hypothetical';
@@ -12,7 +12,7 @@ export interface S06ConsequenceExplanation {
 
 export interface S06ConsequenceSemanticContent {
   readonly emphasis: S06ConsequenceEmphasis;
-  readonly symbol: string;
+  readonly symbolId: 'annotation' | 'structure' | 'shield' | 'hypothetical';
   readonly label: string;
 }
 
@@ -30,17 +30,55 @@ export interface S06ConsequenceFixture {
   readonly id: S06ConsequenceFixtureId;
   readonly routeId: string;
   readonly resultKey: S06ConsequenceResultKey;
-  readonly analysis: AuthoredPasswordComparisonResult;
+  readonly sourceAccountId: string;
+  readonly targetAccountId: string;
+  readonly context: 'actual-selection' | 'hypothetical-example';
+  readonly analysis: PasswordComparisonResult;
   readonly animationId: string;
 }
 
-export const S06_CONSEQUENCE_CONTENT_VERSION = '1.2.0';
+export const S06_CONSEQUENCE_CONTENT_VERSION = '1.3.0';
 
-const commonAnalysis = {
-  source: 'authored-fixture',
+const commonScene = {
   sourceAccountId: 'campus-board',
   targetAccountId: 'target-account',
 } as const;
+
+const comparisonResult = (
+  outcome: PasswordComparisonResult['outcome'],
+): PasswordComparisonResult => ({
+  kind: 'fictional-password-comparison',
+  outcome,
+  findings: [
+    outcome === 'identical'
+      ? {
+          id: 'comparison:exact-match',
+          kind: 'exact-match',
+          evidence: [{ type: 'token', token: 'exact-code-point-match' }],
+          explanationId: 's06.exact-match',
+          confidence: 'authored-exact-match',
+          transformations: [],
+        }
+      : outcome === 'similar'
+        ? {
+            id: 'comparison:shared-core:authored-s06',
+            kind: 'shared-core-with-bounded-transformation',
+            evidence: [{ type: 'token', token: 'authored-shared-core' }],
+            explanationId: 's06.shared-core-with-bounded-transformation',
+            confidence: 'bounded-heuristic',
+            transformations: ['typical-suffix-change'],
+          }
+        : {
+            id: 'comparison:no-derived-path-recognized',
+            kind: 'no-derived-path-recognized',
+            evidence: [],
+            explanationId: 's06.no-derived-path-recognized',
+            confidence: 'bounded-heuristic',
+            transformations: [],
+          },
+  ],
+  disclaimerId: 'simulation-not-production-strength',
+});
 
 const results: Record<S06ConsequenceResultKey, S06ConsequenceResultContent> = {
   equal: {
@@ -56,13 +94,13 @@ const results: Record<S06ConsequenceResultKey, S06ConsequenceResultContent> = {
         listItems: [],
       },
       complete: {
-        body: '⚠ Gleiches Passwort: Der Zugang zum Zielkonto ist in dieser Szene betroffen.',
+        body: 'Gleiches Passwort: Der Zugang zum Zielkonto ist in dieser Szene betroffen.',
         listItems: [],
       },
     },
     semantic: {
       emphasis: 'danger',
-      symbol: '⚠',
+      symbolId: 'annotation',
       label: 'Direkter Weg · gleiches Passwort',
     },
   },
@@ -79,13 +117,13 @@ const results: Record<S06ConsequenceResultKey, S06ConsequenceResultContent> = {
         listItems: [],
       },
       complete: {
-        body: '≈ Ähnliche Struktur: Der Zugang zum Zielkonto ist in dieser Szene betroffen.',
+        body: 'Ähnliche Struktur: Der Zugang zum Zielkonto ist in dieser Szene betroffen.',
         listItems: ['Gemeinsamer Kern', 'Ähnlicher Aufbau'],
       },
     },
     semantic: {
       emphasis: 'warning',
-      symbol: '≈',
+      symbolId: 'structure',
       label: 'Ähnliche Struktur · gestrichelter Weg',
     },
   },
@@ -108,7 +146,7 @@ const results: Record<S06ConsequenceResultKey, S06ConsequenceResultContent> = {
     },
     semantic: {
       emphasis: 'positive',
-      symbol: '🛡',
+      symbolId: 'shield',
       label: 'Blockierter Weg · Schutzschild',
     },
   },
@@ -131,7 +169,7 @@ const results: Record<S06ConsequenceResultKey, S06ConsequenceResultContent> = {
     },
     semantic: {
       emphasis: 'info',
-      symbol: '◇',
+      symbolId: 'hypothetical',
       label: 'Hypothetischer Weg · nicht reale Auswahl',
     },
   },
@@ -180,8 +218,8 @@ export const s06ConsequenceContent = {
       sourceKnown: 'Passwort in dieser Simulation bekannt',
       targetReady: 'Zielkonto für den Vergleich',
       comparing: 'Vergleich läuft',
-      identical: '⚠ Gleiches Passwort · Zugang betroffen',
-      similar: '≈ Ähnliche Struktur · Zugang betroffen',
+      identical: 'Gleiches Passwort · Zugang betroffen',
+      similar: 'Ähnliche Struktur · Zugang betroffen',
       unique: 'Keine ableitbare Verbindung zu diesem Zielkonto',
       blocked: 'Dieser Angriffsweg ist blockiert',
       structure: 'Gemeinsame Struktur sichtbar',
@@ -207,52 +245,36 @@ export const s06ConsequenceContent = {
       id: 'identical',
       routeId: 's06-identical',
       resultKey: 'equal',
-      analysis: {
-        ...commonAnalysis,
-        fixtureId: 's06-identical',
-        outcome: 'identical',
-        context: 'actual-selection',
-        cues: ['complete-match'],
-      },
+      ...commonScene,
+      context: 'actual-selection',
+      analysis: comparisonResult('identical'),
       animationId: 's06-compare-identical',
     },
     {
       id: 'similar',
       routeId: 's06-similar',
       resultKey: 'similar',
-      analysis: {
-        ...commonAnalysis,
-        fixtureId: 's06-similar',
-        outcome: 'similar',
-        context: 'actual-selection',
-        cues: ['shared-core', 'similar-construction'],
-      },
+      ...commonScene,
+      context: 'actual-selection',
+      analysis: comparisonResult('similar'),
       animationId: 's06-compare-similar',
     },
     {
       id: 'unique',
       routeId: 's06-unique',
       resultKey: 'unique',
-      analysis: {
-        ...commonAnalysis,
-        fixtureId: 's06-unique',
-        outcome: 'unique',
-        context: 'actual-selection',
-        cues: [],
-      },
+      ...commonScene,
+      context: 'actual-selection',
+      analysis: comparisonResult('no-derived-path-recognized'),
       animationId: 's06-compare-unique',
     },
     {
       id: 'hypothetical',
       routeId: 's06-hypothetical',
       resultKey: 'hypothetical',
-      analysis: {
-        ...commonAnalysis,
-        fixtureId: 's06-hypothetical',
-        outcome: 'identical',
-        context: 'hypothetical-example',
-        cues: ['complete-match'],
-      },
+      ...commonScene,
+      context: 'hypothetical-example',
+      analysis: comparisonResult('identical'),
       animationId: 's06-compare-hypothetical',
     },
   ] as const satisfies readonly S06ConsequenceFixture[],

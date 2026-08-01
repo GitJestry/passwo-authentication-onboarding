@@ -135,11 +135,10 @@
   font-weight: var(--font-weight-heavy);
 }
 
-.semanticStatus > span:first-child {
-  display: grid;
+.semanticStatus > svg:first-child {
   width: 1.5rem;
   height: 1.5rem;
-  place-items: center;
+  flex: 0 0 auto;
 }
 
 .semanticStatus[data-emphasis="danger"] {

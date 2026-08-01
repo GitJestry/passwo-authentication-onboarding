@@ -1,25 +1,25 @@
 import {
-  getS06ConsequenceAnimation,
-  getS06ConsequenceFixture,
-  getS06ConsequenceResultContent,
   type S06ConsequenceExplanation,
   type S06ConsequenceFixtureId,
   type S06ConsequenceResultContent,
   type S06ConsequenceSemanticContent,
+  getS06ConsequenceAnimation,
+  getS06ConsequenceFixture,
+  getS06ConsequenceResultContent,
   s06ConsequenceContent,
 } from '@passwo/training-content';
 import {
   type AnimationPlayerPort,
-  MissionController,
   type MissionDefinition,
   type MissionSnapshot,
   type SegmentTimingPort,
+  MissionController,
 } from '@passwo/training-engine';
 import {
-  createPasswordConsequenceScene,
   type NetworkRendererPort,
   type PasswordConsequenceSceneDefinition,
   type PasswordConsequenceSceneSnapshot,
+  createPasswordConsequenceScene,
   transitionPasswordConsequenceScene,
 } from '@passwo/visualization';
 import type { NetworkPresentationSnapshot } from '../../../../adapters/network/NetworkMotionAdapter.js';
@@ -59,8 +59,11 @@ export function createS06ConsequenceDefinition(
   const result = getS06ConsequenceResultContent(fixture.resultKey);
   const authored = s06ConsequenceContent.scene;
   return {
-    id: fixture.analysis.fixtureId,
+    id: fixture.routeId,
     analysis: fixture.analysis,
+    sourceAccountId: fixture.sourceAccountId,
+    targetAccountId: fixture.targetAccountId,
+    context: fixture.context,
     animationId: fixture.animationId,
     sourceAccount: authored.sourceAccount,
     targetAccount: {
@@ -81,7 +84,7 @@ export function getS06InitialNetworkPresentation(fixtureId: S06ConsequenceFixtur
 } {
   const scene = createPasswordConsequenceScene(createS06ConsequenceDefinition(fixtureId));
   return {
-    initialNodeId: scene.analysis.sourceAccountId,
+    initialNodeId: createS06ConsequenceDefinition(fixtureId).sourceAccountId,
     initialRevealedNodeIds: scene.network.nodes.map(({ id }) => id),
   };
 }
