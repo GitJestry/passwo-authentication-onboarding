@@ -1,3 +1,5 @@
+import type { AuthoredPasswordComparisonFixture } from '@passwo/contracts';
+import { compareFictionalPasswords } from '@passwo/password-analysis';
 import {
   type S06ConsequenceExplanation,
   type S06ConsequenceFixtureId,
@@ -58,19 +60,30 @@ export function createS06ConsequenceDefinition(
   const fixture = getS06ConsequenceFixture(fixtureId);
   const result = getS06ConsequenceResultContent(fixture.resultKey);
   const authored = s06ConsequenceContent.scene;
+  const comparisonFixture: AuthoredPasswordComparisonFixture = {
+    fixtureId: fixture.id,
+    kind: fixture.kind,
+    sourcePassword: fixture.sourcePassword,
+    targetPassword: fixture.targetPassword,
+    sceneContext: {
+      sourceAccountId: fixture.sourceAccountId,
+      targetAccountId: fixture.targetAccountId,
+      context: fixture.context,
+    },
+    comparisonResult: compareFictionalPasswords(
+      fixture.sourcePassword,
+      fixture.targetPassword,
+    ),
+  };
   return {
     id: fixture.routeId,
-    analysis: fixture.analysis,
-    sourceAccountId: fixture.sourceAccountId,
-    targetAccountId: fixture.targetAccountId,
-    context: fixture.context,
+    comparisonFixture,
     animationId: fixture.animationId,
     sourceAccount: authored.sourceAccount,
     targetAccount: {
       label: result.targetLabel,
       position: authored.targetPosition,
     },
-    shieldPosition: authored.shieldPosition,
     structurePosition: authored.structurePosition,
     hypotheticalPosition: authored.hypotheticalPosition,
     labels: authored.labels,
@@ -82,9 +95,10 @@ export function getS06InitialNetworkPresentation(fixtureId: S06ConsequenceFixtur
   readonly initialNodeId: string;
   readonly initialRevealedNodeIds: readonly string[];
 } {
-  const scene = createPasswordConsequenceScene(createS06ConsequenceDefinition(fixtureId));
+  const definition = createS06ConsequenceDefinition(fixtureId);
+  const scene = createPasswordConsequenceScene(definition);
   return {
-    initialNodeId: createS06ConsequenceDefinition(fixtureId).sourceAccountId,
+    initialNodeId: definition.comparisonFixture.sceneContext.sourceAccountId,
     initialRevealedNodeIds: scene.network.nodes.map(({ id }) => id),
   };
 }

@@ -3,13 +3,18 @@ import {
   designLabPathForScenario,
   designLabScenarioIds,
 } from '@passwo/contracts';
-import { type S01AccountId, s01AccountIds, s01Content } from '@passwo/training-content';
-import { type PasswordModuleSnapshot, PasswordModuleController } from '@passwo/training-engine';
 import {
+  getS05DesignLabFixtureByRouteId,
+  type S01AccountId,
+  s01AccountIds,
+  s01Content,
+} from '@passwo/training-content';
+import { PasswordModuleController, type PasswordModuleSnapshot } from '@passwo/training-engine';
+import {
+  BrowserShell,
   type BrowserShellLayers,
   type BrowserShellSnapshot,
   type BrowserTabModel,
-  BrowserShell,
 } from '@passwo/ui';
 import { useEffect, useState } from 'react';
 import { S00Training } from '../features/training/S00Training.js';
@@ -201,21 +206,40 @@ const scenarios: Record<DesignLabScenarioId, DesignLabScenario> = {
     dimmed: false,
     showPassWoOverlay: false,
   },
+  's05-structure-repetition': {
+    label: 'S05 Aufbau · Wiederholung',
+    description: 'Begrenzter Struktur-Befund für einen exakt wiederholten Bestandteil.',
+    dimmed: false,
+    showPassWoOverlay: false,
+  },
+  's05-structure-context': {
+    label: 'S05 Aufbau · Kontext',
+    description: 'Begrenzte Struktur-Befunde für Campusgram-Kontext plus Jahr und Anhang.',
+    dimmed: false,
+    showPassWoOverlay: false,
+  },
+  's05-structure-none': {
+    label: 'S05 Aufbau · kein Weg',
+    description: 'Die begrenzten Regeln erkennen keinen einfachen Zusammenhang.',
+    dimmed: false,
+    showPassWoOverlay: false,
+  },
   's06-identical': {
     label: 'S06 Gleich',
-    description: 'Vorgegebenes Ergebnis: gleiches Passwort und direkter Angriffsweg.',
+    description: 'Vergleich zweier konkreter gleicher Fixture-Passwörter.',
     dimmed: false,
     showPassWoOverlay: false,
   },
   's06-similar': {
     label: 'S06 Ähnlich',
-    description: 'Vorgegebenes Ergebnis: ähnliche Struktur und betroffener Zugang.',
+    description: 'Vergleich konkreter Fixture-Passwörter mit begrenzt erkannter Ähnlichkeit.',
     dimmed: false,
     showPassWoOverlay: false,
   },
-  's06-unique': {
-    label: 'S06 Einzigartig',
-    description: 'Vorgegebenes Ergebnis: Der dargestellte Angriffsweg ist blockiert.',
+  's06-no-derived-path': {
+    label: 'Kein ableitbarer Weg erkannt',
+    description:
+      'Mit den begrenzten Vergleichsregeln dieser Simulation wurde kein ableitbarer Weg zwischen den beiden Passwörtern erkannt.',
     dimmed: false,
     showPassWoOverlay: false,
   },
@@ -587,17 +611,12 @@ export function DesignLab({ scenarioId }: { readonly scenarioId: DesignLabScenar
     );
   }
 
-  const s05Fixture = {
-    's05-common-suffix': 'common-suffix',
-    's05-account-year': 'account-year',
-    's05-no-simple-component': 'no-simple-component',
-  } as const;
-  if (scenarioId in s05Fixture) {
-    const fixtureId = s05Fixture[scenarioId as keyof typeof s05Fixture];
+  const s05Fixture = getS05DesignLabFixtureByRouteId(scenarioId);
+  if (s05Fixture !== undefined) {
     return (
       <main className={styles.labPage}>
         <DesignLabIntroduction scenarioId={scenarioId} scenario={scenario} />
-        <S05DesignLabTraining fixtureId={fixtureId} />
+        <S05DesignLabTraining fixtureId={s05Fixture.id} />
       </main>
     );
   }
@@ -605,7 +624,7 @@ export function DesignLab({ scenarioId }: { readonly scenarioId: DesignLabScenar
   const s06Fixture = {
     's06-identical': 'identical',
     's06-similar': 'similar',
-    's06-unique': 'unique',
+    's06-no-derived-path': 'no-derived-path',
     's06-hypothetical': 'hypothetical',
   } as const;
   if (scenarioId in s06Fixture) {

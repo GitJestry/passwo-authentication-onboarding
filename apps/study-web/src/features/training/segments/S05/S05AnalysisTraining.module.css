@@ -26,7 +26,9 @@
 
 .pageHeader h1,
 .candidatePanel h2,
-.resultCard h2 {
+.resultCard h2,
+.structureDemonstration h2,
+.structureResult h2 {
   margin: 0;
   color: var(--color-ink-strong);
 }
@@ -36,7 +38,8 @@
 }
 
 .eyebrow,
-.cardLabel {
+.cardLabel,
+.authoredBadge {
   margin: 0 0 var(--space-1);
   color: var(--color-accent-strong);
   font-size: var(--font-size-x-small);
@@ -64,7 +67,8 @@
 }
 
 .sceneGrid,
-.findingWorkspace {
+.findingWorkspace,
+.structureWorkspace {
   display: grid;
   height: 100%;
   gap: var(--space-4);
@@ -74,7 +78,10 @@
 .candidatePanel,
 .searchComparison,
 .demonstrations article,
-.resultCard {
+.resultCard,
+.passWoExplanation,
+.structureDemonstration,
+.structureResult {
   padding: var(--space-4);
   border: var(--border-width-thin) solid var(--color-border-soft);
   border-radius: var(--radius-medium);
@@ -128,7 +135,11 @@
 .searchComparison p,
 .demonstrations p,
 .resultCard p,
-.resultCard li {
+.resultCard li,
+.passWoExplanation p,
+.structureDemonstration p,
+.structureResult p,
+.structureResult li {
   color: var(--color-ink-muted);
   font-size: var(--font-size-small);
   line-height: var(--line-height-body);
@@ -144,16 +155,103 @@
   align-self: start;
 }
 
-.resultCard ol {
+.resultCard ol,
+.structureResult ol {
   display: grid;
   gap: var(--space-3);
   padding-left: var(--space-5);
 }
 
-.resultCard li span {
+.resultCard li span,
+.structureResult li span {
   display: block;
   margin-top: var(--space-1);
   font-family: ui-monospace, monospace;
+}
+
+.passWoExplanation {
+  align-self: start;
+  border-color: var(--color-accent-strong);
+}
+
+.passWoExplanation p:last-child {
+  margin: 0;
+  color: var(--color-ink-strong);
+  font-size: var(--font-size-body);
+}
+
+.structureDemonstration,
+.structureResult {
+  align-self: start;
+}
+
+.authoredBadge {
+  width: fit-content;
+  padding: var(--space-1) var(--space-2);
+  border-radius: var(--radius-round);
+  background: var(--color-accent-soft);
+}
+
+.structureTokens {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  margin: var(--space-5) 0 var(--space-3);
+}
+
+.structureTokens span {
+  padding: var(--space-2) var(--space-3);
+  border: var(--border-width-medium) solid var(--color-accent-strong);
+  border-radius: var(--radius-small);
+  color: var(--color-ink-strong);
+  background: var(--color-surface-muted);
+  font-family: ui-monospace, monospace;
+  font-weight: var(--font-weight-bold);
+}
+
+.connectionLabel {
+  display: block;
+  width: fit-content;
+  padding-top: var(--space-2);
+  border-top: var(--border-width-medium) solid var(--color-accent-strong);
+  color: var(--color-accent-strong);
+}
+
+.boundaryNote {
+  margin: var(--space-4) 0 0;
+}
+
+.structuredPassword {
+  display: inline-flex;
+  margin: var(--space-4) 0;
+  border-radius: var(--radius-small);
+  color: var(--color-ink-strong);
+  background: var(--color-surface-muted);
+  font-size: var(--font-size-body);
+  overflow: hidden;
+}
+
+.structuredPassword span,
+.structuredPassword mark {
+  padding: var(--space-2) 0;
+}
+
+.structuredPassword span:first-child,
+.structuredPassword mark:first-child {
+  padding-left: var(--space-3);
+}
+
+.structuredPassword span:last-child,
+.structuredPassword mark:last-child {
+  padding-right: var(--space-3);
+}
+
+.structuredPassword mark {
+  color: var(--color-ink-strong);
+  background: var(--color-warning-soft);
+  text-decoration: underline;
+  text-decoration-thickness: var(--border-width-medium);
+  text-underline-offset: var(--space-1);
 }
 
 .controls {
@@ -196,7 +294,8 @@
   }
 
   .sceneGrid,
-  .findingWorkspace {
+  .findingWorkspace,
+  .structureWorkspace {
     grid-template-columns: minmax(0, 1fr);
   }
 }

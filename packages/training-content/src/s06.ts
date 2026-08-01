@@ -1,8 +1,16 @@
-import type { PasswordComparisonResult, TrainingSectionId } from '@passwo/contracts';
+import type { TrainingSectionId } from '@passwo/contracts';
 
-export type S06ConsequenceFixtureId = 'identical' | 'similar' | 'unique' | 'hypothetical';
-export type S06ConsequenceResultKey = 'equal' | 'similar' | 'unique' | 'hypothetical';
-export type S06ConsequenceEmphasis = 'danger' | 'warning' | 'positive' | 'info';
+export type S06ConsequenceFixtureId =
+  | 'identical'
+  | 'similar'
+  | 'no-derived-path'
+  | 'hypothetical';
+export type S06ConsequenceResultKey =
+  | 'equal'
+  | 'similar'
+  | 'no-derived-path'
+  | 'hypothetical';
+export type S06ConsequenceEmphasis = 'danger' | 'warning' | 'neutral' | 'info';
 export type S06ConsequenceContentPhase = 'ready' | 'comparing' | 'complete';
 
 export interface S06ConsequenceExplanation {
@@ -12,7 +20,7 @@ export interface S06ConsequenceExplanation {
 
 export interface S06ConsequenceSemanticContent {
   readonly emphasis: S06ConsequenceEmphasis;
-  readonly symbolId: 'annotation' | 'structure' | 'shield' | 'hypothetical';
+  readonly symbolId: 'annotation' | 'structure' | 'hypothetical';
   readonly label: string;
 }
 
@@ -28,57 +36,23 @@ export interface S06ConsequenceResultContent {
 
 export interface S06ConsequenceFixture {
   readonly id: S06ConsequenceFixtureId;
+  readonly kind: 'authored-fixture';
   readonly routeId: string;
   readonly resultKey: S06ConsequenceResultKey;
+  readonly sourcePassword: string;
+  readonly targetPassword: string;
   readonly sourceAccountId: string;
   readonly targetAccountId: string;
   readonly context: 'actual-selection' | 'hypothetical-example';
-  readonly analysis: PasswordComparisonResult;
   readonly animationId: string;
 }
 
-export const S06_CONSEQUENCE_CONTENT_VERSION = '1.3.0';
+export const S06_CONSEQUENCE_CONTENT_VERSION = '1.4.0';
 
 const commonScene = {
   sourceAccountId: 'campus-board',
   targetAccountId: 'target-account',
 } as const;
-
-const comparisonResult = (
-  outcome: PasswordComparisonResult['outcome'],
-): PasswordComparisonResult => ({
-  kind: 'fictional-password-comparison',
-  outcome,
-  findings: [
-    outcome === 'identical'
-      ? {
-          id: 'comparison:exact-match',
-          kind: 'exact-match',
-          evidence: [{ type: 'token', token: 'exact-code-point-match' }],
-          explanationId: 's06.exact-match',
-          confidence: 'authored-exact-match',
-          transformations: [],
-        }
-      : outcome === 'similar'
-        ? {
-            id: 'comparison:shared-core:authored-s06',
-            kind: 'shared-core-with-bounded-transformation',
-            evidence: [{ type: 'token', token: 'authored-shared-core' }],
-            explanationId: 's06.shared-core-with-bounded-transformation',
-            confidence: 'bounded-heuristic',
-            transformations: ['typical-suffix-change'],
-          }
-        : {
-            id: 'comparison:no-derived-path-recognized',
-            kind: 'no-derived-path-recognized',
-            evidence: [],
-            explanationId: 's06.no-derived-path-recognized',
-            confidence: 'bounded-heuristic',
-            transformations: [],
-          },
-  ],
-  disclaimerId: 'simulation-not-production-strength',
-});
 
 const results: Record<S06ConsequenceResultKey, S06ConsequenceResultContent> = {
   equal: {
@@ -90,7 +64,7 @@ const results: Record<S06ConsequenceResultKey, S06ConsequenceResultContent> = {
     explanations: {
       ready: { body: 'Der Vergleich ist bereit.', listItems: [] },
       comparing: {
-        body: 'Passwörter werden anhand des vorgegebenen Ergebnisses verglichen …',
+        body: 'Die beiden fiktiven Passwörter werden mit den begrenzten Regeln verglichen …',
         listItems: [],
       },
       complete: {
@@ -113,7 +87,7 @@ const results: Record<S06ConsequenceResultKey, S06ConsequenceResultContent> = {
     explanations: {
       ready: { body: 'Der Vergleich ist bereit.', listItems: [] },
       comparing: {
-        body: 'Passwörter werden anhand des vorgegebenen Ergebnisses verglichen …',
+        body: 'Die beiden fiktiven Passwörter werden mit den begrenzten Regeln verglichen …',
         listItems: [],
       },
       complete: {
@@ -127,27 +101,27 @@ const results: Record<S06ConsequenceResultKey, S06ConsequenceResultContent> = {
       label: 'Ähnliche Struktur · gestrichelter Weg',
     },
   },
-  unique: {
-    key: 'unique',
-    scenarioLabel: 'Szenario: Einzigartig',
-    comparisonTitle: 'Vergleich mit Campus E-Mail',
+  'no-derived-path': {
+    key: 'no-derived-path',
+    scenarioLabel: 'Szenario: Begrenzter Vergleich',
+    comparisonTitle: 'Kein ableitbarer Weg erkannt',
     targetLabel: 'Campus E-Mail',
     hypotheticalNotice: null,
     explanations: {
       ready: { body: 'Der Vergleich ist bereit.', listItems: [] },
       comparing: {
-        body: 'Passwörter werden anhand des vorgegebenen Ergebnisses verglichen …',
+        body: 'Die beiden fiktiven Passwörter werden mit den begrenzten Regeln verglichen …',
         listItems: [],
       },
       complete: {
-        body: 'Dieser Angriffsweg ist blockiert. Die Aussage gilt nur für diesen dargestellten Weg.',
+        body: 'Mit den begrenzten Vergleichsregeln dieser Simulation wurde kein ableitbarer Weg zwischen den beiden Passwörtern erkannt.',
         listItems: [],
       },
     },
     semantic: {
-      emphasis: 'positive',
-      symbolId: 'shield',
-      label: 'Blockierter Weg · Schutzschild',
+      emphasis: 'neutral',
+      symbolId: 'annotation',
+      label: 'Kein ableitbarer Weg erkannt.',
     },
   },
   hypothetical: {
@@ -159,7 +133,7 @@ const results: Record<S06ConsequenceResultKey, S06ConsequenceResultContent> = {
     explanations: {
       ready: { body: 'Der Vergleich ist bereit.', listItems: [] },
       comparing: {
-        body: 'Passwörter werden anhand des vorgegebenen Ergebnisses verglichen …',
+        body: 'Die beiden fiktiven Passwörter werden mit den begrenzten Regeln verglichen …',
         listItems: [],
       },
       complete: {
@@ -192,12 +166,12 @@ export const s06ConsequenceContent = {
     address: 'campus.example/passwortfolgen',
     tab: {
       id: 'consequence',
-      label: 'Einzigartigkeit',
+      label: 'Passwortvergleich',
       enabled: true,
     },
   },
   page: {
-    eyebrow: 'Einzigartigkeit und Ausbreitung',
+    eyebrow: 'Vergleich und Ausbreitung',
     title: 'Wohin kann ein bekanntes Passwort führen?',
     instruction: 'Vergleiche das bekannte Campusgram-Passwort mit dem ausgewählten Zielkonto.',
     fixtureNotice: 'Vorgegebenes Beispiel — keine echte Passwortbewertung',
@@ -211,7 +185,6 @@ export const s06ConsequenceContent = {
       position: { x: 0.05, y: 0.31 },
     },
     targetPosition: { x: 0.63, y: 0.31 },
-    shieldPosition: { x: 0.48, y: 0.31 },
     structurePosition: { x: 0.35, y: 0.68 },
     hypotheticalPosition: { x: 0.29, y: 0.01 },
     labels: {
@@ -220,8 +193,7 @@ export const s06ConsequenceContent = {
       comparing: 'Vergleich läuft',
       identical: 'Gleiches Passwort · Zugang betroffen',
       similar: 'Ähnliche Struktur · Zugang betroffen',
-      unique: 'Keine ableitbare Verbindung zu diesem Zielkonto',
-      blocked: 'Dieser Angriffsweg ist blockiert',
+      noDerivedPath: 'Kein ableitbarer Weg erkannt.',
       structure: 'Gemeinsame Struktur sichtbar',
       structureDescription: 'Gemeinsamer Kern · ähnlicher Aufbau',
       hypothetical: 'Hypothetisches Beispiel — nicht deine Auswahl',
@@ -229,13 +201,13 @@ export const s06ConsequenceContent = {
     },
     summaries: {
       ready: 'Campusgram-Passwort bekannt. Der Vergleich mit dem Zielkonto ist bereit.',
-      comparing: 'Das vorgegebene Analyseergebnis wird auf die Szene angewendet.',
+      comparing: 'Die begrenzten Vergleichsregeln werden auf die fiktiven Passwörter angewendet.',
       identical:
         'Gleiches Passwort: Eine rote direkte Verbindung zeigt, dass der Zugang betroffen ist.',
       similar:
         'Ähnliches Passwort: Eine orange gestrichelte Verbindung und die gemeinsame Struktur zeigen, dass der Zugang betroffen ist.',
-      unique:
-        'Einzigartiges Passwort: Die Linie stoppt am Schild. Dieser Angriffsweg ist blockiert.',
+      noDerivedPath:
+        'Mit den begrenzten Vergleichsregeln dieser Simulation wurde kein ableitbarer Weg zwischen den beiden Passwörtern erkannt.',
       hypothetical:
         'Hypothetisches Beispiel, nicht die reale Auswahl: Ein direkter Angriffsweg wird nur als Gegenbeispiel gezeigt.',
     },
@@ -243,38 +215,46 @@ export const s06ConsequenceContent = {
   fixtures: [
     {
       id: 'identical',
+      kind: 'authored-fixture',
       routeId: 's06-identical',
       resultKey: 'equal',
+      sourcePassword: 'Campus2026!',
+      targetPassword: 'Campus2026!',
       ...commonScene,
       context: 'actual-selection',
-      analysis: comparisonResult('identical'),
       animationId: 's06-compare-identical',
     },
     {
       id: 'similar',
+      kind: 'authored-fixture',
       routeId: 's06-similar',
       resultKey: 'similar',
+      sourcePassword: 'Campus2025!',
+      targetPassword: 'Campus2026?',
       ...commonScene,
       context: 'actual-selection',
-      analysis: comparisonResult('similar'),
       animationId: 's06-compare-similar',
     },
     {
-      id: 'unique',
-      routeId: 's06-unique',
-      resultKey: 'unique',
+      id: 'no-derived-path',
+      kind: 'authored-fixture',
+      routeId: 's06-no-derived-path',
+      resultKey: 'no-derived-path',
+      sourcePassword: 'MorgenKaffee7',
+      targetPassword: 'MorgenTasse7',
       ...commonScene,
       context: 'actual-selection',
-      analysis: comparisonResult('no-derived-path-recognized'),
-      animationId: 's06-compare-unique',
+      animationId: 's06-compare-no-derived-path',
     },
     {
       id: 'hypothetical',
+      kind: 'authored-fixture',
       routeId: 's06-hypothetical',
       resultKey: 'hypothetical',
+      sourcePassword: 'Campus2026!',
+      targetPassword: 'Campus2026!',
       ...commonScene,
       context: 'hypothetical-example',
-      analysis: comparisonResult('identical'),
       animationId: 's06-compare-hypothetical',
     },
   ] as const satisfies readonly S06ConsequenceFixture[],
@@ -291,9 +271,9 @@ export const s06ConsequenceContent = {
       emphasis: 'warning',
     },
     {
-      id: 's06-compare-unique',
+      id: 's06-compare-no-derived-path',
       targetId: 'target-account',
-      emphasis: 'positive',
+      emphasis: 'info',
     },
     {
       id: 's06-compare-hypothetical',

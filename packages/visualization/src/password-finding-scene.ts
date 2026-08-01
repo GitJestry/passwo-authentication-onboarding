@@ -2,24 +2,27 @@ import type { PasswordAnalysisResult, PasswordSingleFinding } from '@passwo/cont
 
 export interface PasswordFindingSceneSnapshot {
   readonly id: string;
-  readonly analysis: PasswordAnalysisResult;
+  readonly runtimeAnalysis: PasswordAnalysisResult;
   readonly prioritizedFindings: readonly PasswordSingleFinding[];
   readonly omittedFindingCount: number;
   readonly accessibleSummary: string;
 }
 
+export const MAX_VISIBLE_PASSWORD_FINDINGS = 2;
+
 export function createPasswordFindingScene(
   id: string,
-  analysis: PasswordAnalysisResult,
-  maximumVisibleFindings = 3,
+  runtimeAnalysis: PasswordAnalysisResult,
 ): PasswordFindingSceneSnapshot {
-  const boundedMaximum = Math.max(2, Math.min(3, Math.trunc(maximumVisibleFindings)));
-  const prioritizedFindings = analysis.findings.slice(0, boundedMaximum);
+  const prioritizedFindings = runtimeAnalysis.findings.slice(0, MAX_VISIBLE_PASSWORD_FINDINGS);
   return {
     id,
-    analysis,
+    runtimeAnalysis,
     prioritizedFindings,
-    omittedFindingCount: Math.max(0, analysis.findings.length - prioritizedFindings.length),
+    omittedFindingCount: Math.max(
+      0,
+      runtimeAnalysis.findings.length - prioritizedFindings.length,
+    ),
     accessibleSummary:
       prioritizedFindings.length === 1 &&
       prioritizedFindings[0]?.kind === 'no-simple-component-recognized'

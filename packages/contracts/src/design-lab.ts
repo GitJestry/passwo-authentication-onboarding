@@ -15,9 +15,12 @@ export const designLabScenarioIdSchema = z.enum([
   's05-common-suffix',
   's05-account-year',
   's05-no-simple-component',
+  's05-structure-repetition',
+  's05-structure-context',
+  's05-structure-none',
   's06-identical',
   's06-similar',
-  's06-unique',
+  's06-no-derived-path',
   's06-hypothetical',
 ]);
 export type DesignLabScenarioId = z.infer<typeof designLabScenarioIdSchema>;

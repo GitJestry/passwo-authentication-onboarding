@@ -1,12 +1,12 @@
-import type { PasswordComparisonResult } from '@passwo/contracts';
+import type {
+  AuthoredPasswordComparisonFixture,
+  PasswordComparisonResult,
+} from '@passwo/contracts';
 import type { AuthoredPosition, NetworkSceneSnapshot, SceneEdge, SceneNode } from './scene.js';
 
 export interface PasswordConsequenceSceneDefinition {
   readonly id: string;
-  readonly analysis: PasswordComparisonResult;
-  readonly sourceAccountId: string;
-  readonly targetAccountId: string;
-  readonly context: 'actual-selection' | 'hypothetical-example';
+  readonly comparisonFixture: AuthoredPasswordComparisonFixture;
   readonly animationId: string;
   readonly sourceAccount: {
     readonly label: string;
@@ -16,7 +16,6 @@ export interface PasswordConsequenceSceneDefinition {
     readonly label: string;
     readonly position: AuthoredPosition;
   };
-  readonly shieldPosition: AuthoredPosition;
   readonly structurePosition: AuthoredPosition;
   readonly hypotheticalPosition: AuthoredPosition;
   readonly labels: {
@@ -25,8 +24,7 @@ export interface PasswordConsequenceSceneDefinition {
     readonly comparing: string;
     readonly identical: string;
     readonly similar: string;
-    readonly unique: string;
-    readonly blocked: string;
+    readonly noDerivedPath: string;
     readonly structure: string;
     readonly structureDescription: string;
     readonly hypothetical: string;
@@ -37,7 +35,7 @@ export interface PasswordConsequenceSceneDefinition {
     readonly comparing: string;
     readonly identical: string;
     readonly similar: string;
-    readonly unique: string;
+    readonly noDerivedPath: string;
     readonly hypothetical: string;
   };
 }
@@ -69,9 +67,10 @@ function createAccountNodes(
   definition: PasswordConsequenceSceneDefinition,
   phase: PasswordConsequenceScenePhase,
 ): readonly SceneNode[] {
-  const { analysis, labels } = definition;
+  const { comparisonResult: analysis, sceneContext } = definition.comparisonFixture;
+  const { labels } = definition;
   const complete = phase === 'complete';
-  const hypothetical = definition.context === 'hypothetical-example';
+  const hypothetical = sceneContext.context === 'hypothetical-example';
   const targetStatus = !complete
     ? hypothetical
       ? 'hypothetical'
@@ -79,14 +78,14 @@ function createAccountNodes(
     : hypothetical
       ? 'hypothetical'
       : analysis.outcome === 'no-derived-path-recognized'
-        ? 'protected'
+        ? 'neutral'
         : 'affected';
 
   const nodes: SceneNode[] = [
     {
-      id: definition.sourceAccountId,
+      id: sceneContext.sourceAccountId,
       kind: 'account',
-      symbolId: definition.sourceAccountId,
+      symbolId: sceneContext.sourceAccountId,
       label: definition.sourceAccount.label,
       description: labels.sourceKnown,
       status: hypothetical ? 'hypothetical' : 'exposed',
@@ -94,9 +93,9 @@ function createAccountNodes(
       selectable: false,
     },
     {
-      id: definition.targetAccountId,
+      id: sceneContext.targetAccountId,
       kind: 'account',
-      symbolId: definition.targetAccountId,
+      symbolId: sceneContext.targetAccountId,
       label: definition.targetAccount.label,
       description:
         phase === 'comparing'
@@ -106,26 +105,13 @@ function createAccountNodes(
               ? labels.identical
               : analysis.outcome === 'similar'
                 ? labels.similar
-                : labels.unique
+                : labels.noDerivedPath
             : labels.targetReady,
       status: targetStatus,
       position: definition.targetAccount.position,
       selectable: false,
     },
   ];
-
-  if (complete && analysis.outcome === 'no-derived-path-recognized') {
-    nodes.push({
-      id: `${definition.id}-shield`,
-      kind: 'shield',
-      symbolId: 'shield',
-      label: labels.blocked,
-      description: labels.unique,
-      status: 'protected',
-      position: definition.shieldPosition,
-      selectable: false,
-    });
-  }
 
   if (complete && analysis.outcome === 'similar') {
     nodes.push({
@@ -160,13 +146,14 @@ function createEdges(
   definition: PasswordConsequenceSceneDefinition,
   phase: PasswordConsequenceScenePhase,
 ): readonly SceneEdge[] {
-  const { analysis, labels } = definition;
+  const { comparisonResult: analysis, sceneContext } = definition.comparisonFixture;
+  const { labels } = definition;
   if (phase !== 'complete') {
     return [
       {
         id: `${definition.id}-comparison`,
-        sourceId: definition.sourceAccountId,
-        targetId: definition.targetAccountId,
+        sourceId: sceneContext.sourceAccountId,
+        targetId: sceneContext.targetAccountId,
         kind: 'check',
         status: phase === 'comparing' ? 'checking' : 'neutral',
         label: phase === 'comparing' ? labels.comparing : labels.targetReady,
@@ -175,26 +162,17 @@ function createEdges(
   }
 
   if (analysis.outcome === 'no-derived-path-recognized') {
-    return [
-      {
-        id: `${definition.id}-blocked`,
-        sourceId: definition.sourceAccountId,
-        targetId: `${definition.id}-shield`,
-        kind: 'blocked-path',
-        status: 'blocked',
-        label: labels.blocked,
-      },
-    ];
+    return [];
   }
 
   return [
     {
       id: `${definition.id}-result`,
-      sourceId: definition.sourceAccountId,
-      targetId: definition.targetAccountId,
+      sourceId: sceneContext.sourceAccountId,
+      targetId: sceneContext.targetAccountId,
       kind: analysis.outcome === 'identical' ? 'identical-reuse' : 'similar-pattern',
       status:
-        definition.context === 'hypothetical-example'
+        sceneContext.context === 'hypothetical-example'
           ? 'hypothetical'
           : analysis.outcome === 'identical'
             ? 'direct'
@@ -213,11 +191,12 @@ function createNetwork(
       ? definition.summaries.ready
       : phase === 'comparing'
         ? definition.summaries.comparing
-        : definition.context === 'hypothetical-example'
+        : definition.comparisonFixture.sceneContext.context === 'hypothetical-example'
           ? definition.summaries.hypothetical
-          : definition.analysis.outcome === 'no-derived-path-recognized'
-            ? definition.summaries.unique
-            : definition.summaries[definition.analysis.outcome];
+          : definition.comparisonFixture.comparisonResult.outcome ===
+              'no-derived-path-recognized'
+            ? definition.summaries.noDerivedPath
+            : definition.summaries[definition.comparisonFixture.comparisonResult.outcome];
 
   return {
     id: definition.id,
@@ -234,7 +213,7 @@ function createSnapshot(
 ): PasswordConsequenceSceneSnapshot {
   return {
     phase,
-    analysis: definition.analysis,
+    analysis: definition.comparisonFixture.comparisonResult,
     network: createNetwork(definition, phase),
     pendingAnimationId,
   };

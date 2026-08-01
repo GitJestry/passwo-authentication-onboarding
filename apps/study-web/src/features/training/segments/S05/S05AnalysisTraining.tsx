@@ -1,4 +1,4 @@
-import type { PasswordAnalysisResult, PasswordSingleFindingKind } from '@passwo/contracts';
+import type { PasswordSingleFindingKind, RuntimeStructureFindingKind } from '@passwo/contracts';
 import {
   type S05DesignLabFixture,
   type S05DesignLabFixtureId,
@@ -6,7 +6,12 @@ import {
   s05Content,
 } from '@passwo/training-content';
 import { type BrowserShellSnapshot, BrowserShell } from '@passwo/ui';
-import { useEffect, useRef, useState } from 'react';
+import type {
+  PasswordCandidateSceneSnapshot,
+  PasswordFindingSceneSnapshot,
+  PasswordStructureSceneSnapshot,
+} from '@passwo/visualization';
+import { type ReactNode, useEffect, useRef, useState } from 'react';
 import {
   type S05AnalysisControllerSnapshot,
   S05AnalysisController,
@@ -24,14 +29,14 @@ function findingLabel(kind: PasswordSingleFindingKind): string {
   return s05Content.findingLabels[kind];
 }
 
-function CandidateScene({ snapshot }: { readonly snapshot: S05AnalysisControllerSnapshot }) {
+function CandidateScene({ scene }: { readonly scene: PasswordCandidateSceneSnapshot }) {
   return (
-    <div className={styles.sceneGrid} aria-label={snapshot.candidateScene.accessibleSummary}>
+    <div className={styles.sceneGrid} aria-label={scene.accessibleSummary}>
       <section className={styles.candidatePanel}>
         <h2>{s05Content.intro.title}</h2>
         <p>{s05Content.intro.explanation}</p>
         <div className={styles.candidateStream} aria-label="Authored Kandidaten">
-          {snapshot.candidateScene.candidates.map((candidate) => (
+          {scene.candidates.map((candidate) => (
             <code key={candidate.id}>{candidate.candidate}</code>
           ))}
         </div>
@@ -57,10 +62,10 @@ function CandidateScene({ snapshot }: { readonly snapshot: S05AnalysisController
 
 function FindingScene({
   fixture,
-  snapshot,
+  scene,
 }: {
   readonly fixture: S05DesignLabFixture;
-  readonly snapshot: S05AnalysisControllerSnapshot;
+  readonly scene: PasswordFindingSceneSnapshot;
 }) {
   return (
     <div className={styles.findingWorkspace}>
@@ -78,7 +83,7 @@ function FindingScene({
         <h2>{s05Content.result.title}</h2>
         <code className={styles.fixturePassword}>{fixture.fictionalPassword}</code>
         <ol>
-          {snapshot.findingScene.prioritizedFindings.map((finding) => (
+          {scene.prioritizedFindings.map((finding) => (
             <li key={finding.id}>
               <strong>{findingLabel(finding.kind)}</strong>
               {finding.evidence.length === 0 ? null : (
@@ -93,13 +98,115 @@ function FindingScene({
   );
 }
 
-export function S05AnalysisTraining({
+function structureFindingLabel(kind: RuntimeStructureFindingKind): string {
+  return s05Content.structure.findingLabels[kind];
+}
+
+function FictionalPasswordWithEvidence({
+  password,
+  scene,
+}: {
+  readonly password: string;
+  readonly scene: PasswordStructureSceneSnapshot;
+}) {
+  const parts: ReactNode[] = [];
+  let cursor = 0;
+  for (const span of scene.highlightedSpans) {
+    if (cursor < span.start) {
+      parts.push(<span key={`plain-${cursor}`}>{password.slice(cursor, span.start)}</span>);
+    }
+    parts.push(
+      <mark key={`evidence-${span.start}-${span.end}`}>
+        {password.slice(span.start, span.end)}
+      </mark>,
+    );
+    cursor = span.end;
+  }
+  if (cursor < password.length) {
+    parts.push(<span key={`plain-${cursor}`}>{password.slice(cursor)}</span>);
+  }
+  return <code className={styles.structuredPassword}>{parts}</code>;
+}
+
+function StructureDemonstrationScene({
+  snapshot,
+}: {
+  readonly snapshot: S05AnalysisControllerSnapshot;
+}) {
+  const scene = snapshot.structureScene;
+  const demonstration = scene?.authoredDemonstrations.find(
+    ({ id }) => id === `s05-${snapshot.step}`,
+  );
+  if (scene === null || scene === undefined || demonstration === undefined) return null;
+  return (
+    <div
+      className={styles.structureWorkspace}
+      aria-label={`${demonstration.title}. ${demonstration.passWoExplanation}`}
+    >
+      <section className={styles.passWoExplanation}>
+        <p className={styles.cardLabel}>PassWo erklärt</p>
+        <p>{demonstration.passWoExplanation}</p>
+      </section>
+      <article
+        className={styles.structureDemonstration}
+        data-s05-target={snapshot.step}
+        aria-label={`${demonstration.title}, feste Demonstration`}
+      >
+        <p className={styles.authoredBadge}>Feste Demonstration</p>
+        <h2>{demonstration.title}</h2>
+        <div className={styles.structureTokens} aria-label={demonstration.tokens.join(', ')}>
+          {demonstration.tokens.map((token, index) => (
+            <span key={`${token}-${index}`}>{token}</span>
+          ))}
+        </div>
+        <strong className={styles.connectionLabel}>{demonstration.connectionLabel}</strong>
+        <p className={styles.boundaryNote}>{demonstration.boundaryNote}</p>
+      </article>
+    </div>
+  );
+}
+
+function StructureApplicationScene({
   fixture,
-  analysis,
+  scene,
 }: {
   readonly fixture: S05DesignLabFixture;
-  readonly analysis: PasswordAnalysisResult;
+  readonly scene: PasswordStructureSceneSnapshot;
 }) {
+  const noSimpleStructure =
+    scene.prioritizedRuntimeFindings.length === 1 &&
+    scene.prioritizedRuntimeFindings[0]?.findingKind === 'no-simple-structure-recognized';
+  return (
+    <div className={styles.structureWorkspace} aria-label={scene.accessibleSummary}>
+      <section className={styles.passWoExplanation}>
+        <p className={styles.cardLabel}>PassWo erklärt</p>
+        <p>
+          {noSimpleStructure
+            ? s05Content.structure.application.noneExplanation
+            : s05Content.structure.application.recognizedExplanation}
+        </p>
+      </section>
+      <article className={styles.structureResult} data-s05-target="structure-application">
+        <p className={styles.cardLabel}>Laufzeitbefund · fiktives Passwort</p>
+        <h2>{s05Content.structure.application.title}</h2>
+        <FictionalPasswordWithEvidence password={fixture.fictionalPassword} scene={scene} />
+        <ol>
+          {scene.prioritizedRuntimeFindings.map((finding) => (
+            <li key={finding.id}>
+              <strong>{structureFindingLabel(finding.findingKind)}</strong>
+              {finding.evidence.length === 0 ? null : (
+                <span>{finding.evidence.map(({ token }) => token).join(' · ')}</span>
+              )}
+            </li>
+          ))}
+        </ol>
+        <p>{s05Content.structure.application.boundedNotice}</p>
+      </article>
+    </div>
+  );
+}
+
+export function S05AnalysisTraining({ fixture }: { readonly fixture: S05DesignLabFixture }) {
   const hostRef = useRef<HTMLElement | null>(null);
   const [controller, setController] = useState<S05AnalysisController | null>(null);
   const [snapshot, setSnapshot] = useState<S05AnalysisControllerSnapshot | null>(null);
@@ -110,7 +217,10 @@ export function S05AnalysisTraining({
         hostRef.current?.querySelector<HTMLElement>(`[data-s05-target="${targetId}"]`) ?? null,
       prefersReducedMotion: () => window.matchMedia('(prefers-reduced-motion: reduce)').matches,
     });
-    const nextController = new S05AnalysisController({ fixture, analysis, animationPlayer });
+    const nextController = new S05AnalysisController({
+      fixture,
+      animationPlayer,
+    });
     const unsubscribe = nextController.subscribe(setSnapshot);
     setController(nextController);
     setSnapshot(nextController.getSnapshot());
@@ -118,7 +228,7 @@ export function S05AnalysisTraining({
       unsubscribe();
       void nextController.dispose();
     };
-  }, [analysis, fixture]);
+  }, [fixture]);
 
   if (controller === null || snapshot === null) return null;
 
@@ -138,10 +248,14 @@ export function S05AnalysisTraining({
             <span className={styles.fixtureNotice}>{s05Content.page.fixtureNotice}</span>
           </header>
           <div className={styles.content} aria-live="polite">
-            {snapshot.step === 'candidate-check' ? (
-              <CandidateScene snapshot={snapshot} />
+            {snapshot.step === 'candidate-check' && snapshot.candidateScene !== null ? (
+              <CandidateScene scene={snapshot.candidateScene} />
+            ) : snapshot.step === 'component-analysis' && snapshot.findingScene !== null ? (
+              <FindingScene fixture={fixture} scene={snapshot.findingScene} />
+            ) : snapshot.step === 'structure-application' && snapshot.structureScene !== null ? (
+              <StructureApplicationScene fixture={fixture} scene={snapshot.structureScene} />
             ) : (
-              <FindingScene fixture={fixture} snapshot={snapshot} />
+              <StructureDemonstrationScene snapshot={snapshot} />
             )}
           </div>
           <footer className={styles.controls}>
@@ -175,5 +289,5 @@ export function S05AnalysisTraining({
 
 export function S05DesignLabTraining({ fixtureId }: { readonly fixtureId: S05DesignLabFixtureId }) {
   const fixture = getS05DesignLabFixture(fixtureId);
-  return <S05AnalysisTraining fixture={fixture} analysis={fixture.analysis} />;
+  return <S05AnalysisTraining fixture={fixture} />;
 }

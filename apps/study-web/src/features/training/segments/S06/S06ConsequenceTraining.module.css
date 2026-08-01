@@ -149,7 +149,7 @@
   border-style: dashed;
 }
 
-.semanticStatus[data-emphasis="positive"] {
+.semanticStatus[data-emphasis="neutral"] {
   border-style: solid;
 }
 

@@ -3,8 +3,12 @@ import reviewedInstrumentRuntimeManifest from '../../../research/derived/instrum
   type: 'json',
 };
 import {
+  type AuthoredPasswordComparisonFixture,
+  type AuthoredStructureDemonstration,
   type PasswordComparisonResult,
+  type RuntimeStructureFinding,
   createSessionRequestSchema,
+  designLabScenarioForPath,
   instrumentRuntimeManifest,
   instrumentSubmissionRequestSchema,
   persistedSessionRecordSchema,
@@ -122,7 +126,16 @@ describe('research-safe contracts', () => {
     ).toBe(true);
   });
 
+  it('uses only the neutral no-derived-path Design Lab route', () => {
+    expect(designLabScenarioForPath('/design-lab/s06-no-derived-path')).toBe(
+      's06-no-derived-path',
+    );
+    expect(designLabScenarioForPath('/design-lab/s06-unique')).toBeNull();
+  });
+
   it('keeps authored scene context outside the general password comparison result', () => {
+    const sourcePassword = 'Campus2025!';
+    const targetPassword = 'Campus2026?';
     const comparison: PasswordComparisonResult = {
       kind: 'fictional-password-comparison',
       outcome: 'similar',
@@ -130,7 +143,10 @@ describe('research-safe contracts', () => {
         {
           id: 'comparison:shared-core:campus',
           kind: 'shared-core-with-bounded-transformation',
-          evidence: [{ type: 'token', token: 'campus' }],
+          evidence: [
+            { type: 'span', start: 0, end: 6, token: 'Campus' },
+            { type: 'span', start: 0, end: 6, token: 'Campus' },
+          ],
           explanationId: 's06.shared-core-with-bounded-transformation',
           confidence: 'bounded-heuristic',
           transformations: ['typical-suffix-change'],
@@ -138,16 +154,62 @@ describe('research-safe contracts', () => {
       ],
       disclaimerId: 'simulation-not-production-strength',
     };
+    const fixture: AuthoredPasswordComparisonFixture = {
+      fixtureId: 's06-similar',
+      kind: 'authored-fixture',
+      sourcePassword,
+      targetPassword,
+      sceneContext: {
+        sourceAccountId: 'campusgram',
+        targetAccountId: 'campus-mail',
+        context: 'actual-selection',
+      },
+      comparisonResult: comparison,
+    };
 
     expect(comparison.outcome).toBe('similar');
+    expect(fixture.kind).toBe('authored-fixture');
+    expect(fixture.comparisonResult).toBe(comparison);
     expect(Object.keys(comparison)).not.toEqual(
       expect.arrayContaining([
         'fixtureId',
         'source',
         'context',
+        'sourcePassword',
+        'targetPassword',
         'sourceAccountId',
         'targetAccountId',
       ]),
+    );
+  });
+
+  it('separates authored structure demonstrations from runtime structure findings', () => {
+    const demonstration: AuthoredStructureDemonstration = {
+      kind: 'authoredStructureDemonstration',
+      id: 's05-structure-theme',
+      relation: 'thematic-relation',
+      title: 'Thematischer Zusammenhang',
+      tokens: ['Kaffee', 'Tasse', 'Morgen'],
+      connectionLabel: 'Morgenroutine',
+      passWoExplanation: 'Feste Erklärung.',
+      boundaryNote: 'Keine Laufzeitanalyse.',
+    };
+    const finding: RuntimeStructureFinding = {
+      kind: 'runtimeStructureFinding',
+      id: 'structure:exact-component-repetition:0-6:6-12',
+      findingKind: 'exact-component-repetition',
+      evidence: [
+        { type: 'span', start: 0, end: 6, token: 'Kaffee' },
+        { type: 'span', start: 6, end: 12, token: 'Kaffee' },
+      ],
+      explanationId: 's05.structure.exact-component-repetition',
+      confidence: 'bounded-heuristic',
+    };
+
+    expect(demonstration.kind).toBe('authoredStructureDemonstration');
+    expect(finding.kind).toBe('runtimeStructureFinding');
+    expect(Object.keys(finding)).not.toEqual(
+      expect.arrayContaining(['relation', 'title', 'connectionLabel', 'passWoExplanation']),
     );
   });
 
@@ -171,8 +233,10 @@ describe('research-safe contracts', () => {
 
     expect(researchExportManifestSchema.safeParse(manifest).success).toBe(true);
     expect(
-      researchExportManifestSchema.safeParse({ ...manifest, requestBody: 'not-exportable' })
-        .success,
+      researchExportManifestSchema.safeParse({
+        ...manifest,
+        requestBody: 'not-exportable',
+      }).success,
     ).toBe(false);
     expect(Object.keys(researchExportSessionRecordSchema.shape)).not.toEqual(
       expect.arrayContaining(['email', 'rawToken', 'followUpTokenHash']),
@@ -207,7 +271,10 @@ describe('research-safe contracts', () => {
       responses: [
         { itemId: 'PRE_SECAWARE', value: 'never_heard' },
         { itemId: 'PRE_TRAINING', value: 'never' },
-        { itemId: 'PRE_PM_USE', value: ['none', 'browser_or_device_integrated'] },
+        {
+          itemId: 'PRE_PM_USE',
+          value: ['none', 'browser_or_device_integrated'],
+        },
         { itemId: 'PRE_MFA_USE', value: 'none' },
         { itemId: 'PRE_FAM_PASSWORDS', value: 3 },
         { itemId: 'PRE_FAM_PM', value: 3 },
