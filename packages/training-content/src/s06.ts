@@ -1,4 +1,8 @@
-import type { S06AccountId, TrainingSectionId } from '@passwo/contracts';
+import type {
+  S06AccountId,
+  S06ResolvedConsequenceResult,
+  TrainingSectionId,
+} from '@passwo/contracts';
 
 export type S06ConsequenceFixtureId =
   | 'reuse-and-derived'
@@ -41,7 +45,7 @@ export interface S06NarrationContent {
   readonly body: string;
 }
 
-export const S06_CONSEQUENCE_CONTENT_VERSION = '2.1.0';
+export const S06_CONSEQUENCE_CONTENT_VERSION = '2.2.0';
 
 export const s06ConsequenceContent = {
   version: S06_CONSEQUENCE_CONTENT_VERSION,
@@ -237,4 +241,282 @@ export function getS06ConsequenceFixtureByRouteId(
   routeId: string,
 ): S06ConsequenceFixture | undefined {
   return s06ConsequenceContent.fixtures.find((fixture) => fixture.routeId === routeId);
+}
+
+export type S06PreparedS07EvaluationFixtureId =
+  | 'directly-reached'
+  | 'exact-reuse'
+  | 'derived-variant'
+  | 'retrievability-only'
+  | 'no-change';
+
+export interface S06PreparedS07EvaluationFixture {
+  readonly id: S06PreparedS07EvaluationFixtureId;
+  readonly routeId:
+    | 's07-directly-reached'
+    | 's07-exact-reuse'
+    | 's07-derived-variant'
+    | 's07-retrievability-only'
+    | 's07-no-change';
+  readonly resolvedResult: S06ResolvedConsequenceResult;
+}
+
+const noQuickPathDisposition = {
+  kind: 'no-quick-path-recognized',
+  explanationId: 's05.disposition.no-quick-path-recognized',
+} as const;
+
+const commonPasswordQuickPathDisposition = {
+  kind: 'quick-path-recognized',
+  ruleId: 'common-password-core-with-typical-change',
+  explanationId: 's05.disposition.common-password-core-with-typical-change',
+} as const;
+
+export const s06PreparedS07EvaluationFixtures = [
+  {
+    id: 'directly-reached',
+    routeId: 's07-directly-reached',
+    resolvedResult: {
+      incidentSource: 'campusgram',
+      accounts: [
+        {
+          accountId: 'master-campus',
+          disposition: commonPasswordQuickPathDisposition,
+          retrievalStatus: 'retrievable',
+        },
+        {
+          accountId: 'campus-email',
+          disposition: noQuickPathDisposition,
+          retrievalStatus: 'retrievable',
+        },
+        {
+          accountId: 'campusgram',
+          disposition: commonPasswordQuickPathDisposition,
+          retrievalStatus: 'retrievable',
+        },
+      ],
+      paths: [
+        {
+          sourceAccountId: 'campusgram',
+          targetAccountId: 'master-campus',
+          mode: 'actual',
+          relationKind: 'exact-match',
+          targetReached: true,
+        },
+        {
+          sourceAccountId: 'campusgram',
+          targetAccountId: 'campus-email',
+          mode: 'actual',
+          relationKind: 'no-derived-path-recognized',
+          targetReached: false,
+        },
+        {
+          sourceAccountId: 'master-campus',
+          targetAccountId: 'campus-email',
+          mode: 'actual',
+          relationKind: 'no-derived-path-recognized',
+          targetReached: false,
+        },
+      ],
+      affectedAccountIds: ['campusgram', 'master-campus'],
+    },
+  },
+  {
+    id: 'exact-reuse',
+    routeId: 's07-exact-reuse',
+    resolvedResult: {
+      incidentSource: 'campusgram',
+      accounts: [
+        {
+          accountId: 'master-campus',
+          disposition: noQuickPathDisposition,
+          retrievalStatus: 'retrievable',
+        },
+        {
+          accountId: 'campus-email',
+          disposition: noQuickPathDisposition,
+          retrievalStatus: 'retrievable',
+        },
+        {
+          accountId: 'campusgram',
+          disposition: noQuickPathDisposition,
+          retrievalStatus: 'retrievable',
+        },
+      ],
+      paths: [
+        {
+          sourceAccountId: 'campusgram',
+          targetAccountId: 'master-campus',
+          mode: 'hypothetical',
+          relationKind: 'exact-match',
+          targetReached: false,
+        },
+        {
+          sourceAccountId: 'campusgram',
+          targetAccountId: 'campus-email',
+          mode: 'hypothetical',
+          relationKind: 'no-derived-path-recognized',
+          targetReached: false,
+        },
+        {
+          sourceAccountId: 'master-campus',
+          targetAccountId: 'campus-email',
+          mode: 'hypothetical',
+          relationKind: 'no-derived-path-recognized',
+          targetReached: false,
+        },
+      ],
+      affectedAccountIds: [],
+    },
+  },
+  {
+    id: 'derived-variant',
+    routeId: 's07-derived-variant',
+    resolvedResult: {
+      incidentSource: 'campusgram',
+      accounts: [
+        {
+          accountId: 'master-campus',
+          disposition: noQuickPathDisposition,
+          retrievalStatus: 'retrievable',
+        },
+        {
+          accountId: 'campus-email',
+          disposition: noQuickPathDisposition,
+          retrievalStatus: 'retrievable',
+        },
+        {
+          accountId: 'campusgram',
+          disposition: noQuickPathDisposition,
+          retrievalStatus: 'retrievable',
+        },
+      ],
+      paths: [
+        {
+          sourceAccountId: 'campusgram',
+          targetAccountId: 'master-campus',
+          mode: 'hypothetical',
+          relationKind: 'no-derived-path-recognized',
+          targetReached: false,
+        },
+        {
+          sourceAccountId: 'campusgram',
+          targetAccountId: 'campus-email',
+          mode: 'hypothetical',
+          relationKind: 'derived-variant-match',
+          targetReached: false,
+        },
+        {
+          sourceAccountId: 'master-campus',
+          targetAccountId: 'campus-email',
+          mode: 'hypothetical',
+          relationKind: 'no-derived-path-recognized',
+          targetReached: false,
+        },
+      ],
+      affectedAccountIds: [],
+    },
+  },
+  {
+    id: 'retrievability-only',
+    routeId: 's07-retrievability-only',
+    resolvedResult: {
+      incidentSource: 'campusgram',
+      accounts: [
+        {
+          accountId: 'master-campus',
+          disposition: noQuickPathDisposition,
+          retrievalStatus: 'assisted',
+        },
+        {
+          accountId: 'campus-email',
+          disposition: noQuickPathDisposition,
+          retrievalStatus: 'retrievable',
+        },
+        {
+          accountId: 'campusgram',
+          disposition: noQuickPathDisposition,
+          retrievalStatus: 'retrievable',
+        },
+      ],
+      paths: [
+        {
+          sourceAccountId: 'campusgram',
+          targetAccountId: 'master-campus',
+          mode: 'hypothetical',
+          relationKind: 'no-derived-path-recognized',
+          targetReached: false,
+        },
+        {
+          sourceAccountId: 'campusgram',
+          targetAccountId: 'campus-email',
+          mode: 'hypothetical',
+          relationKind: 'no-derived-path-recognized',
+          targetReached: false,
+        },
+        {
+          sourceAccountId: 'master-campus',
+          targetAccountId: 'campus-email',
+          mode: 'hypothetical',
+          relationKind: 'no-derived-path-recognized',
+          targetReached: false,
+        },
+      ],
+      affectedAccountIds: [],
+    },
+  },
+  {
+    id: 'no-change',
+    routeId: 's07-no-change',
+    resolvedResult: {
+      incidentSource: 'campusgram',
+      accounts: [
+        {
+          accountId: 'master-campus',
+          disposition: noQuickPathDisposition,
+          retrievalStatus: 'retrievable',
+        },
+        {
+          accountId: 'campus-email',
+          disposition: noQuickPathDisposition,
+          retrievalStatus: 'retrievable',
+        },
+        {
+          accountId: 'campusgram',
+          disposition: noQuickPathDisposition,
+          retrievalStatus: 'retrievable',
+        },
+      ],
+      paths: [
+        {
+          sourceAccountId: 'campusgram',
+          targetAccountId: 'master-campus',
+          mode: 'hypothetical',
+          relationKind: 'no-derived-path-recognized',
+          targetReached: false,
+        },
+        {
+          sourceAccountId: 'campusgram',
+          targetAccountId: 'campus-email',
+          mode: 'hypothetical',
+          relationKind: 'no-derived-path-recognized',
+          targetReached: false,
+        },
+        {
+          sourceAccountId: 'master-campus',
+          targetAccountId: 'campus-email',
+          mode: 'hypothetical',
+          relationKind: 'no-derived-path-recognized',
+          targetReached: false,
+        },
+      ],
+      affectedAccountIds: [],
+    },
+  },
+] as const satisfies readonly S06PreparedS07EvaluationFixture[];
+
+export function getS06PreparedS07EvaluationFixtureByRouteId(
+  routeId: string,
+): S06PreparedS07EvaluationFixture | undefined {
+  return s06PreparedS07EvaluationFixtures.find((fixture) => fixture.routeId === routeId);
 }

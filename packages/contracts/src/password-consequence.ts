@@ -189,6 +189,27 @@ export interface S06PairComparison {
   readonly result: PasswordComparisonResult;
 }
 
+export interface S06ResolvedAccountFinding {
+  readonly accountId: S06AccountId;
+  readonly disposition: LocalPasswordDisposition;
+  readonly retrievalStatus: S06LocalAccountAnalysis['retrievalStatus'];
+}
+
+export interface S06ResolvedConsequencePath {
+  readonly sourceAccountId: S06AccountId;
+  readonly targetAccountId: S06AccountId;
+  readonly mode: PasswordConsequenceSceneMode;
+  readonly relationKind: PasswordRelationKind;
+  readonly targetReached: boolean;
+}
+
+export interface S06ResolvedConsequenceResult {
+  readonly incidentSource: IncidentSource;
+  readonly accounts: readonly S06ResolvedAccountFinding[];
+  readonly paths: readonly S06ResolvedConsequencePath[];
+  readonly affectedAccountIds: readonly S06AccountId[];
+}
+
 export const s07RecommendationIds = [
   'replace-exposed-password',
   'separate-exact-reuse',
@@ -242,8 +263,4 @@ export interface S07RecommendationProjection {
   readonly summary: S07RecommendationSummary;
 }
 
-export interface S07RecommendationProjectionInput {
-  readonly incidentSource: IncidentSource;
-  readonly accounts: readonly S06LocalAccountAnalysis[];
-  readonly comparisons: readonly S06PairComparison[];
-}
+export type S07RecommendationProjectionInput = S06ResolvedConsequenceResult;

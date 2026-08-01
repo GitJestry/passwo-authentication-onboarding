@@ -123,11 +123,7 @@ export function S06ConsequenceTraining({
         ? cachedPlan.plan
         : createScenePlan(fixtureId, runtimeAccounts);
     planCacheRef.current = { sourceIdentity, plan };
-    onEvaluationInputReady?.({
-      incidentSource: plan.incidentSource,
-      accounts: plan.accounts,
-      comparisons: plan.comparisons,
-    });
+    onEvaluationInputReady?.(plan.resolvedResult);
     const allNodeIds = [
       ...new Set(plan.steps.flatMap(({ network }) => network.nodes.map(({ id }) => id))),
     ];

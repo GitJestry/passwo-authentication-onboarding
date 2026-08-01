@@ -41,7 +41,6 @@ const evaluationInput: S07RecommendationProjectionInput = {
     (accountId) =>
       ({
         accountId,
-        fictionalPassword: `fixture-${accountId}`,
         disposition: {
           kind: 'no-quick-path-recognized',
           explanationId: 's05.disposition.no-quick-path-recognized',
@@ -49,25 +48,20 @@ const evaluationInput: S07RecommendationProjectionInput = {
         retrievalStatus: 'retrievable',
       }) as const,
   ),
-  comparisons: ([
-    ['campusgram', 'master-campus'],
-    ['campusgram', 'campus-email'],
-    ['master-campus', 'campus-email'],
-  ] as const).map(([sourceAccountId, targetAccountId]) => ({
+  paths: (
+    [
+      ['campusgram', 'master-campus'],
+      ['campusgram', 'campus-email'],
+      ['master-campus', 'campus-email'],
+    ] as const
+  ).map(([sourceAccountId, targetAccountId]) => ({
     sourceAccountId,
     targetAccountId,
-    result: {
-      kind: 'fictional-password-comparison',
-      relation: {
-        kind: 'no-derived-path-recognized',
-        relationId: 'relation:no-derived-path-recognized',
-        sourceEvidence: [],
-        targetEvidence: [],
-        explanationId: 's06.relation.no-derived-path-recognized',
-      },
-      disclaimerId: 'simulation-not-production-strength',
-    } as const,
+    mode: 'hypothetical',
+    relationKind: 'no-derived-path-recognized',
+    targetReached: false,
   })),
+  affectedAccountIds: [],
 };
 
 const recommendationProjection: S07RecommendationProjection = {

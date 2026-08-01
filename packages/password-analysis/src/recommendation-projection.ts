@@ -1,8 +1,7 @@
 import type {
   LocalPasswordDisposition,
-  PasswordRelationKind,
   S06AccountId,
-  S06PairComparison,
+  S06ResolvedConsequencePath,
   S07AccountConnection,
   S07AccountRecommendation,
   S07IncidentStatus,
@@ -31,72 +30,50 @@ function accountDisposition(
 }
 
 function connectionsFor(
-  comparisons: readonly S06PairComparison[],
+  paths: readonly S06ResolvedConsequencePath[],
   accountId: S06AccountId,
 ): readonly S07AccountConnection[] {
-  return comparisons
+  return paths
     .filter(
       ({ sourceAccountId, targetAccountId }) =>
         sourceAccountId === accountId || targetAccountId === accountId,
     )
-    .map(({ sourceAccountId, targetAccountId, result }) => ({
+    .map(({ sourceAccountId, targetAccountId, relationKind }) => ({
       accountId: sourceAccountId === accountId ? targetAccountId : sourceAccountId,
-      relationKind: result.relation.kind,
+      relationKind,
     }))
     .sort(
       (left, right) => accountOrder.indexOf(left.accountId) - accountOrder.indexOf(right.accountId),
     );
 }
 
-function actualReachByAccount(
-  input: S07RecommendationProjectionInput,
-): ReadonlyMap<S06AccountId, ReadonlySet<PasswordRelationKind>> {
-  const knownPasswords = new Set<S06AccountId>();
-  if (accountDisposition(input, input.incidentSource).kind === 'quick-path-recognized') {
-    knownPasswords.add(input.incidentSource);
-  }
-  const reached = new Map<S06AccountId, Set<PasswordRelationKind>>();
-  let changed = true;
-  while (changed) {
-    changed = false;
-    for (const { sourceAccountId, targetAccountId, result } of input.comparisons) {
-      if (
-        !knownPasswords.has(sourceAccountId) ||
-        result.relation.kind === 'no-derived-path-recognized'
-      ) {
-        continue;
-      }
-      const relations = reached.get(targetAccountId) ?? new Set<PasswordRelationKind>();
-      relations.add(result.relation.kind);
-      reached.set(targetAccountId, relations);
-      if (!knownPasswords.has(targetAccountId)) {
-        knownPasswords.add(targetAccountId);
-        changed = true;
-      }
-    }
-  }
-  return reached;
-}
-
 function incidentStatusFor(
   input: S07RecommendationProjectionInput,
   accountId: S06AccountId,
-  actualReach: ReadonlyMap<S06AccountId, ReadonlySet<PasswordRelationKind>>,
 ): S07IncidentStatus {
   if (accountId === input.incidentSource) return 'source-of-incident';
-  const actualRelations = actualReach.get(accountId);
-  if (actualRelations?.has('exact-match')) return 'reached-via-exact-reuse';
-  if (actualRelations?.has('derived-variant-match')) return 'reached-via-derived-variant';
-  const hasHypotheticalPath = input.comparisons.some(
-    ({ targetAccountId, result }) =>
+  const actualPaths = input.paths.filter(
+    ({ targetAccountId, mode, targetReached }) =>
+      targetAccountId === accountId && mode === 'actual' && targetReached,
+  );
+  if (actualPaths.some(({ relationKind }) => relationKind === 'exact-match')) {
+    return 'reached-via-exact-reuse';
+  }
+  if (actualPaths.some(({ relationKind }) => relationKind === 'derived-variant-match')) {
+    return 'reached-via-derived-variant';
+  }
+  const hasHypotheticalPath = input.paths.some(
+    ({ targetAccountId, mode, relationKind }) =>
       targetAccountId === accountId &&
-      result.relation.kind !== 'no-derived-path-recognized' &&
-      !actualReach.has(targetAccountId),
+      mode === 'hypothetical' &&
+      relationKind !== 'no-derived-path-recognized',
   );
   return hasHypotheticalPath ? 'hypothetical-only' : 'not-reached';
 }
 
-function retrievabilityFor(status: 'retrievable' | 'not-remembered' | 'assisted'): S07Retrievability {
+function retrievabilityFor(
+  status: 'retrievable' | 'not-remembered' | 'assisted',
+): S07Retrievability {
   if (status === 'retrievable') return 'remembered';
   return status === 'assisted' ? 'skipped' : 'not-remembered';
 }
@@ -128,10 +105,10 @@ function recommendationFor(
 
 function validateInput(input: S07RecommendationProjectionInput): void {
   if (input.accounts.length !== 3) throw new Error('S07 requires exactly three account analyses.');
-  if (input.comparisons.length !== 3) throw new Error('S07 requires exactly three comparisons.');
+  if (input.paths.length !== 3) throw new Error('S07 requires exactly three resolved paths.');
   const accountIds = new Set(input.accounts.map(({ accountId }) => accountId));
   const pairKeys = new Set(
-    input.comparisons.map(({ sourceAccountId, targetAccountId }) =>
+    input.paths.map(({ sourceAccountId, targetAccountId }) =>
       [sourceAccountId, targetAccountId].sort().join(':'),
     ),
   );
@@ -151,12 +128,11 @@ export function projectS07Recommendations(
   input: S07RecommendationProjectionInput,
 ): S07RecommendationProjection {
   validateInput(input);
-  const actualReach = actualReachByAccount(input);
   const accounts: S07AccountRecommendation[] = accountOrder.map((accountId) => {
     const source = input.accounts.find((candidate) => candidate.accountId === accountId);
     if (source === undefined) throw new Error(`Missing S07 account analysis: ${accountId}`);
-    const connections = connectionsFor(input.comparisons, accountId);
-    const incidentStatus = incidentStatusFor(input, accountId, actualReach);
+    const connections = connectionsFor(input.paths, accountId);
+    const incidentStatus = incidentStatusFor(input, accountId);
     const retrievability = retrievabilityFor(source.retrievalStatus);
     return {
       accountId,

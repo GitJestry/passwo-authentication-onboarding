@@ -6,6 +6,8 @@ import type {
   S06AccountId,
   S06LocalAccountAnalysis,
   S06PairComparison,
+  S06ResolvedConsequencePath,
+  S06ResolvedConsequenceResult,
 } from '@passwo/contracts';
 import type { NetworkSceneSnapshot, SceneEdge, SceneNode } from './scene.js';
 
@@ -55,6 +57,7 @@ export interface PasswordConsequenceScenePlan {
   readonly accounts: readonly S06LocalAccountAnalysis[];
   readonly comparisons: readonly S06PairComparison[];
   readonly steps: readonly PasswordConsequencePlanStep[];
+  readonly resolvedResult: S06ResolvedConsequenceResult;
 }
 
 const accountPositions = {
@@ -193,7 +196,10 @@ function localCheckStep(
   input: PasswordConsequenceProjectionInput,
   stepId: PasswordConsequenceStepId,
   accountId: S06AccountId,
-  narrationPrefix: 's06.incident.campusgram' | 's06.perspective.master-campus' | 's06.local-check.campus-email',
+  narrationPrefix:
+    | 's06.incident.campusgram'
+    | 's06.perspective.master-campus'
+    | 's06.local-check.campus-email',
   mode: PasswordConsequenceSceneMode,
 ): PasswordConsequencePlanStep {
   const account = accountById(input.accounts, accountId);
@@ -230,7 +236,11 @@ function comparisonStep(
   const comparison = comparisonByPair(input.comparisons, sourceAccountId, targetAccountId);
   const relation = comparison.result.relation;
   const base = createBaseNetwork(stepId, input.accounts, input.accountDefinitions);
-  let nodes = withNodeStatus(base.nodes, sourceAccountId, mode === 'actual' ? 'exposed' : 'hypothetical');
+  let nodes = withNodeStatus(
+    base.nodes,
+    sourceAccountId,
+    mode === 'actual' ? 'exposed' : 'hypothetical',
+  );
   const reached = relation.kind !== 'no-derived-path-recognized';
   nodes = withNodeStatus(nodes, targetAccountId, reached ? 'affected' : 'protected');
   if (!reached) nodes = addShield(nodes, targetAccountId, stepId);
@@ -322,7 +332,8 @@ function summaryStep(input: PasswordConsequenceProjectionInput): PasswordConsequ
 
 function validateInput(input: PasswordConsequenceProjectionInput): void {
   if (input.accounts.length !== 3) throw new Error('S06 requires exactly three account analyses.');
-  if (input.comparisons.length !== 3) throw new Error('S06 requires exactly three pair comparisons.');
+  if (input.comparisons.length !== 3)
+    throw new Error('S06 requires exactly three pair comparisons.');
   const pairKeys = new Set(
     input.comparisons.map(({ sourceAccountId, targetAccountId }) =>
       [sourceAccountId, targetAccountId].sort().join(':'),
@@ -354,55 +365,87 @@ export function projectPasswordConsequenceScenePlan(
   const masterComparisonMode: PasswordConsequenceSceneMode = masterCampusFound
     ? 'actual'
     : 'hypothetical';
+  const steps: readonly PasswordConsequencePlanStep[] = [
+    localCheckStep(
+      input,
+      's06-step-campusgram-incident',
+      'campusgram',
+      's06.incident.campusgram',
+      'actual',
+    ),
+    comparisonStep(
+      input,
+      's06-step-campusgram-master-campus',
+      'campusgram',
+      'master-campus',
+      campusgramComparisonMode,
+    ),
+    comparisonStep(
+      input,
+      's06-step-campusgram-campus-email',
+      'campusgram',
+      'campus-email',
+      campusgramComparisonMode,
+    ),
+    localCheckStep(
+      input,
+      's06-step-master-campus-perspective',
+      'master-campus',
+      's06.perspective.master-campus',
+      'actual',
+    ),
+    comparisonStep(
+      input,
+      's06-step-master-campus-campus-email',
+      'master-campus',
+      'campus-email',
+      masterComparisonMode,
+    ),
+    localCheckStep(
+      input,
+      's06-step-campus-email-local-check',
+      'campus-email',
+      's06.local-check.campus-email',
+      'actual',
+    ),
+    summaryStep(input),
+  ];
+  const paths = steps.flatMap((step): readonly S06ResolvedConsequencePath[] => {
+    if (step.sourceAccountId === null || step.targetAccountId === null || step.relation === null) {
+      return [];
+    }
+    return [
+      {
+        sourceAccountId: step.sourceAccountId,
+        targetAccountId: step.targetAccountId,
+        mode: step.mode,
+        relationKind: step.relation.kind,
+        targetReached:
+          step.mode === 'actual' && step.relation.kind !== 'no-derived-path-recognized',
+      },
+    ];
+  });
+  const affectedAccountIds = [
+    ...(campusgramFound ? [input.incidentSource] : []),
+    ...paths
+      .filter(({ targetReached }) => targetReached)
+      .map(({ targetAccountId }) => targetAccountId),
+  ].filter((accountId, index, all): accountId is S06AccountId => all.indexOf(accountId) === index);
   return {
     id: input.id,
     incidentSource: input.incidentSource,
     accounts: input.accounts,
     comparisons: input.comparisons,
-    steps: [
-      localCheckStep(
-        input,
-        's06-step-campusgram-incident',
-        'campusgram',
-        's06.incident.campusgram',
-        'actual',
-      ),
-      comparisonStep(
-        input,
-        's06-step-campusgram-master-campus',
-        'campusgram',
-        'master-campus',
-        campusgramComparisonMode,
-      ),
-      comparisonStep(
-        input,
-        's06-step-campusgram-campus-email',
-        'campusgram',
-        'campus-email',
-        campusgramComparisonMode,
-      ),
-      localCheckStep(
-        input,
-        's06-step-master-campus-perspective',
-        'master-campus',
-        's06.perspective.master-campus',
-        'actual',
-      ),
-      comparisonStep(
-        input,
-        's06-step-master-campus-campus-email',
-        'master-campus',
-        'campus-email',
-        masterComparisonMode,
-      ),
-      localCheckStep(
-        input,
-        's06-step-campus-email-local-check',
-        'campus-email',
-        's06.local-check.campus-email',
-        'actual',
-      ),
-      summaryStep(input),
-    ],
+    steps,
+    resolvedResult: {
+      incidentSource: input.incidentSource,
+      accounts: input.accounts.map(({ accountId, disposition, retrievalStatus }) => ({
+        accountId,
+        disposition,
+        retrievalStatus,
+      })),
+      paths,
+      affectedAccountIds,
+    },
   };
 }
