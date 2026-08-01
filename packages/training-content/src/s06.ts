@@ -41,7 +41,7 @@ export interface S06NarrationContent {
   readonly body: string;
 }
 
-export const S06_CONSEQUENCE_CONTENT_VERSION = '2.0.0';
+export const S06_CONSEQUENCE_CONTENT_VERSION = '2.1.0';
 
 export const s06ConsequenceContent = {
   version: S06_CONSEQUENCE_CONTENT_VERSION,
@@ -54,18 +54,19 @@ export const s06ConsequenceContent = {
     sectionId: 'passwords' as TrainingSectionId,
     slice: 'dynamic-consequence-simulation',
   },
-  trainingAriaLabel: 'PassWo Design Lab, Segment S06, dynamische Konsequenzsimulation',
+  trainingAriaLabel: 'PassWo, Segment S06, dynamische Konsequenzsimulation',
   browser: {
     ariaLabel: 'Fiktive Browseranwendung, Segment S06, Passwortfolgen',
     address: 'campus.example/passwortfolgen',
     tab: { id: 'consequence', label: 'Passwortfolgen', enabled: true },
   },
   page: {
-    eyebrow: 'Design Lab · S06',
+    eyebrow: 'PassWo · S06',
     title: 'Wohin kann ein bekanntes Passwort führen?',
     instruction:
       'Die Übung zeigt ausschließlich fiktive Passwörter und begrenzte, konkrete Ableitungswege.',
     fixtureNotice: 'Fiktive Übungswerte · nur lokal im Design Lab',
+    runtimeNotice: 'Deine drei fiktiven Übungswerte · bleiben nur lokal',
     start: 'Simulation starten',
     replay: 'Animation wiederholen',
     continue: 'Weiter',
@@ -128,6 +129,15 @@ export const s06ConsequenceContent = {
     'year-and-suffix-changed': 'Jahreszahl und typischer Anhang wurden verändert.',
     'account-term-year-and-suffix-changed':
       'Konto- oder Dienstbegriff, Jahreszahl und typischer Anhang wurden begrenzt verändert.',
+  },
+  dispositionLabels: {
+    'quick-path-recognized': 'Schneller Weg in dieser begrenzten Simulation erkannt',
+    'no-quick-path-recognized': 'Kein schnellerer Weg in dieser begrenzten Simulation erkannt',
+  },
+  retrievalLabels: {
+    retrievable: 'direkt abrufbar',
+    'not-remembered': 'nicht direkt erinnert',
+    assisted: 'mit lokaler Hilfe abgerufen',
   },
   narrations: {
     's06.incident.campusgram-found': {

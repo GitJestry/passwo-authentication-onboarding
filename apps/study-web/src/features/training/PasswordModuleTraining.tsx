@@ -2,10 +2,11 @@ import { s00Content, s01Content } from '@passwo/training-content';
 import {
   PasswordModuleController,
   type PasswordModuleSnapshot,
+  type RetrievalResult,
   type SegmentTimingPort,
 } from '@passwo/training-engine';
 import type { DesktopPlatform } from '@passwo/ui';
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import passWoDockAsset from '../../assets/passwo/passwo-dock.png';
 import { PassWoSpeechBubble } from './PassWoSpeechBubble.js';
 import { passWoSpeechEmphasisFor } from './PassWoSpeechEmphasis.js';
@@ -24,11 +25,22 @@ import {
   type S05CompletionPort,
   type S05TimingState,
 } from './segments/S05/S05AnalysisTraining.js';
+import {
+  S06ConsequenceTraining,
+  type S06ConsequenceSource,
+  type S06TimingState,
+} from './segments/S06/S06ConsequenceTraining.js';
 
 export interface PasswordModuleTrainingProps {
   readonly timingPort?: SegmentTimingPort;
   readonly externalTimingError?: string | null;
   readonly onRetryExternalTiming?: () => void;
+}
+
+function s06RetrievalStatus(
+  status: RetrievalResult | undefined,
+): 'retrievable' | 'not-remembered' | 'assisted' | null {
+  return status === undefined || status === 'pending' ? null : status;
 }
 
 export function PasswordModuleTraining({
@@ -40,6 +52,8 @@ export function PasswordModuleTraining({
   const [entrySpeechComplete, setEntrySpeechComplete] = useState(false);
   const [platform, setPlatform] = useState<DesktopPlatform>('mac');
   const controllerRef = useRef<PasswordModuleController | null>(null);
+  const passwordValues = snapshot?.context.passwordValues;
+  const retrievalResults = snapshot?.context.retrievalResults;
   const campusgramPassword = snapshot?.context.passwordValues['campusgram'] ?? '';
   const s05Subject = useMemo(
     () => ({
@@ -56,6 +70,46 @@ export function PasswordModuleTraining({
     }),
     [],
   );
+  const s06Source = useMemo<S06ConsequenceSource | null>(() => {
+    if (passwordValues === undefined || retrievalResults === undefined) return null;
+    const masterCampusPassword = passwordValues['master-campus'];
+    const campusEmailPassword = passwordValues['campus-email'];
+    const campusgramPasswordValue = passwordValues.campusgram;
+    const masterCampusRetrieval = s06RetrievalStatus(retrievalResults['master-campus']);
+    const campusEmailRetrieval = s06RetrievalStatus(retrievalResults['campus-email']);
+    const campusgramRetrieval = s06RetrievalStatus(retrievalResults.campusgram);
+    if (
+      masterCampusPassword === undefined ||
+      masterCampusPassword.length === 0 ||
+      campusEmailPassword === undefined ||
+      campusEmailPassword.length === 0 ||
+      campusgramPasswordValue === undefined ||
+      campusgramPasswordValue.length === 0 ||
+      masterCampusRetrieval === null ||
+      campusEmailRetrieval === null ||
+      campusgramRetrieval === null
+    ) {
+      return null;
+    }
+    return {
+      kind: 'runtime',
+      accounts: {
+        'master-campus': {
+          fictionalPassword: masterCampusPassword,
+          retrievalStatus: masterCampusRetrieval,
+        },
+        'campus-email': {
+          fictionalPassword: campusEmailPassword,
+          retrievalStatus: campusEmailRetrieval,
+        },
+        campusgram: {
+          fictionalPassword: campusgramPasswordValue,
+          retrievalStatus: campusgramRetrieval,
+        },
+      },
+    };
+  }, [passwordValues, retrievalResults]);
+  const completeS06 = useCallback(() => controllerRef.current?.completeS06(), []);
 
   useEffect(() => {
     const controller = new PasswordModuleController({
@@ -299,14 +353,56 @@ export function PasswordModuleTraining({
     );
   }
 
-  if (snapshot.matches('awaiting-s06')) {
-    // S06 must derive its required local analysis from the ephemeral training passwords and must
-    // not depend on retained S05 findings.
+  if (snapshot.matches('s06')) {
+    const startWritePending = snapshot.matches({ s06: 'writingStart' });
+    const startWriteFailed = snapshot.matches({ s06: 'startWriteFailed' });
+    if (startWritePending || startWriteFailed) {
+      return (
+        <S05AnalysisTraining
+          subject={s05Subject}
+          timingState={startWriteFailed ? 'endWriteFailed' : 'writingEnd'}
+          timingErrorCode={snapshot.context.timingErrorCode}
+          externalTimingError={externalTimingError}
+          completionPort={s05CompletionPort}
+          onRetryTiming={() => {
+            if (externalTimingError !== null) onRetryExternalTiming?.();
+            else controller.retryTiming();
+          }}
+        />
+      );
+    }
+    if (s06Source === null) {
+      return (
+        <section className={styles.loading} role="alert">
+          <p>S06 kann wegen unvollständiger lokaler Trainingsdaten nicht gestartet werden.</p>
+          <p>Fehlercode: s06-runtime-data-incomplete</p>
+        </section>
+      );
+    }
+    const timingState: S06TimingState = snapshot.matches({ s06: 'writingEnd' })
+      ? 'writingEnd'
+      : snapshot.matches({ s06: 'endWriteFailed' })
+        ? 'endWriteFailed'
+        : 'active';
     return (
-      <section className={styles.loading} aria-labelledby="awaiting-s06-title">
-        <h1 id="awaiting-s06-title">
-          Als Nächstes vergleichen wir die drei Passwortentscheidungen miteinander.
-        </h1>
+      <S06ConsequenceTraining
+        source={s06Source}
+        timingState={timingState}
+        timingErrorCode={snapshot.context.timingErrorCode}
+        externalTimingError={externalTimingError}
+        onComplete={completeS06}
+        onRetryTiming={() => {
+          if (externalTimingError !== null) onRetryExternalTiming?.();
+          else controller.retryTiming();
+        }}
+      />
+    );
+  }
+
+  if (snapshot.matches('awaiting-s07')) {
+    return (
+      <section className={styles.loading} aria-labelledby="awaiting-s07-title">
+        <h1 id="awaiting-s07-title">S07 ist noch nicht implementiert.</h1>
       </section>
     );
   }

@@ -53,6 +53,16 @@ export interface S06ConsequenceControllerOptions {
   readonly onComplete?: () => void;
 }
 
+export type S06ConsequenceAccountInputs = Readonly<
+  Record<
+    S06AccountId,
+    {
+      readonly fictionalPassword: string;
+      readonly retrievalStatus: S06LocalAccountAnalysis['retrievalStatus'];
+    }
+  >
+>;
+
 type ControllerListener = (snapshot: S06ConsequenceControllerSnapshot) => void;
 
 const accountIds = ['campusgram', 'master-campus', 'campus-email'] as const;
@@ -66,8 +76,15 @@ export function createS06FixtureScenePlan(
   fixtureId: S06ConsequenceFixtureId,
 ): PasswordConsequenceScenePlan {
   const fixture = getS06ConsequenceFixture(fixtureId);
+  return createS06ConsequenceScenePlan(fixture.routeId, fixture.accounts);
+}
+
+export function createS06ConsequenceScenePlan(
+  id: string,
+  accountInputs: S06ConsequenceAccountInputs,
+): PasswordConsequenceScenePlan {
   const accounts: S06LocalAccountAnalysis[] = accountIds.map((accountId) => {
-    const account = fixture.accounts[accountId];
+    const account = accountInputs[accountId];
     const definition = s06ConsequenceContent.accounts[accountId];
     const componentAnalysis = analyzeFictionalPassword({
       fictionalPassword: account.fictionalPassword,
@@ -96,14 +113,14 @@ export function createS06FixtureScenePlan(
       sourceAccountId,
       targetAccountId,
       result: compareFictionalPasswords({
-        sourcePassword: fixture.accounts[sourceAccountId].fictionalPassword,
-        targetPassword: fixture.accounts[targetAccountId].fictionalPassword,
+        sourcePassword: accountInputs[sourceAccountId].fictionalPassword,
+        targetPassword: accountInputs[targetAccountId].fictionalPassword,
         authoredAccountAndServiceTerms,
       }),
     }),
   );
   return projectPasswordConsequenceScenePlan({
-    id: fixture.routeId,
+    id,
     incidentSource: 'campusgram',
     accounts,
     comparisons,
@@ -152,14 +169,12 @@ function participantSnapshot(step: PasswordConsequencePlanStep): S06ConsequenceP
   return {
     narration: s06ConsequenceContent.narrations[step.narrationId as S06NarrationId],
     mode: s06ConsequenceContent.modes[step.mode],
-    relationLabel:
-      relation === null ? null : s06ConsequenceContent.relationLabels[relation.kind],
+    relationLabel: relation === null ? null : s06ConsequenceContent.relationLabels[relation.kind],
     transformationLabel:
       relation?.kind === 'derived-variant-match'
         ? s06ConsequenceContent.transformationLabels[relation.transformationId]
         : null,
-    generatedCandidate:
-      relation?.kind === 'derived-variant-match' ? relation.candidate : null,
+    generatedCandidate: relation?.kind === 'derived-variant-match' ? relation.candidate : null,
   };
 }
 

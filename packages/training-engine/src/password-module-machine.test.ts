@@ -118,7 +118,30 @@ describe('passwordModuleMachine', () => {
     expect(actor.getSnapshot().status).toBe('active');
   });
 
-  it('keeps each failed transition retryable and ends S05 in awaiting-s06', () => {
+  it('enters active S06 only after its start boundary and awaits S07 after its end boundary', () => {
+    const actor = createModuleActor();
+    configureAllAccounts(actor);
+    startS03(actor);
+    for (const accountId of accountIds) completeAssistedLogin(actor, accountId);
+    reachAwaitingIncidentOpen(actor);
+    startS04(actor);
+    actor.send({ type: 'S04_COMPLETED' });
+    actor.send({ type: 'S04_END_RECORDED' });
+    actor.send({ type: 'S05_START_RECORDED' });
+    actor.send({ type: 'S05_COMPLETED' });
+
+    expect(actor.getSnapshot().matches({ s05: 'writingEnd' })).toBe(true);
+    actor.send({ type: 'S05_END_RECORDED' });
+    expect(actor.getSnapshot().matches({ s06: 'writingStart' })).toBe(true);
+    actor.send({ type: 'S06_START_RECORDED' });
+    expect(actor.getSnapshot().matches({ s06: 'active' })).toBe(true);
+    actor.send({ type: 'S06_COMPLETED' });
+    expect(actor.getSnapshot().matches({ s06: 'writingEnd' })).toBe(true);
+    actor.send({ type: 'S06_END_RECORDED' });
+    expect(actor.getSnapshot().matches('awaiting-s07')).toBe(true);
+  });
+
+  it('keeps each failed transition retryable and ends S06 in awaiting-s07', () => {
     const actor = createModuleActor();
     configureAllAccounts(actor);
     startS03(actor);
@@ -148,9 +171,19 @@ describe('passwordModuleMachine', () => {
     expect(actor.getSnapshot().matches({ s05: 'endWriteFailed' })).toBe(true);
     actor.send({ type: 'RETRY_S05_END' });
     actor.send({ type: 'S05_END_RECORDED' });
+    actor.send({ type: 'S06_START_FAILED', errorCode: 's06-start-failed' });
+    expect(actor.getSnapshot().matches({ s06: 'startWriteFailed' })).toBe(true);
+    actor.send({ type: 'RETRY_S06_START' });
+    actor.send({ type: 'S06_START_RECORDED' });
+    actor.send({ type: 'S06_COMPLETED' });
+    actor.send({ type: 'S06_END_FAILED', errorCode: 's06-end-failed' });
+    expect(actor.getSnapshot().matches({ s06: 'endWriteFailed' })).toBe(true);
+    actor.send({ type: 'RETRY_S06_END' });
+    actor.send({ type: 'S06_END_RECORDED' });
 
-    expect(actor.getSnapshot().matches('awaiting-s06')).toBe(true);
+    expect(actor.getSnapshot().matches('awaiting-s07')).toBe(true);
     expect(actor.getSnapshot().context).not.toHaveProperty('s05Result');
+    expect(actor.getSnapshot().context).not.toHaveProperty('s06Result');
   });
 
   it('preserves transient S03 data until discard', () => {
@@ -179,10 +212,15 @@ describe('passwordModuleMachine', () => {
     actor.send({ type: 'S04_END_RECORDED' });
     actor.send({ type: 'S05_START_RECORDED' });
     actor.send({ type: 'S05_COMPLETED' });
+    actor.send({ type: 'S05_END_RECORDED' });
+    actor.send({ type: 'S06_START_RECORDED' });
+    actor.send({ type: 'S06_COMPLETED' });
+    actor.send({ type: 'S06_END_RECORDED' });
 
-    expect(actor.getSnapshot().matches({ s05: 'writingEnd' })).toBe(true);
+    expect(actor.getSnapshot().matches('awaiting-s07')).toBe(true);
     expect(actor.getSnapshot().context.passwordValues).toEqual(values);
     expect(actor.getSnapshot().context).not.toHaveProperty('s05Result');
+    expect(actor.getSnapshot().context).not.toHaveProperty('s06Result');
     expect(actor.getSnapshot().context.retrievalResults).toEqual({
       'master-campus': 'retrievable',
       'campus-email': 'assisted',
@@ -208,6 +246,7 @@ describe('passwordModuleMachine', () => {
       campusgram: '',
     });
     expect(actor.getSnapshot().context).not.toHaveProperty('s05Result');
+    expect(actor.getSnapshot().context).not.toHaveProperty('s06Result');
   });
 
   it('keeps failed entries retryable and completes forgotten passwords through assistance', () => {

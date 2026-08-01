@@ -1,7 +1,7 @@
 import type { SegmentTimingEvent } from './mission-controller.js';
 import type { PasswordModuleEvent } from './password-module-machine.js';
 
-export type PasswordTimedSegmentId = 'S01' | 'S02' | 'S03' | 'S04' | 'S05';
+export type PasswordTimedSegmentId = 'S01' | 'S02' | 'S03' | 'S04' | 'S05' | 'S06';
 
 interface PasswordSegmentBoundaryDefinition {
   readonly recordedEvent: PasswordModuleEvent;
@@ -84,7 +84,7 @@ export const passwordSegmentTimingPlan = {
   },
   S05: {
     scope: { segmentId: 'S05', sectionId: 'passwords' },
-    nextSegmentId: null,
+    nextSegmentId: 'S06',
     boundaries: {
       'segment-start': {
         recordedEvent: { type: 'S05_START_RECORDED' },
@@ -95,6 +95,22 @@ export const passwordSegmentTimingPlan = {
         recordedEvent: { type: 'S05_END_RECORDED' },
         retryEvent: { type: 'RETRY_S05_END' },
         failedEvent: (errorCode) => ({ type: 'S05_END_FAILED', errorCode }),
+      },
+    },
+  },
+  S06: {
+    scope: { segmentId: 'S06', sectionId: 'passwords' },
+    nextSegmentId: null,
+    boundaries: {
+      'segment-start': {
+        recordedEvent: { type: 'S06_START_RECORDED' },
+        retryEvent: { type: 'RETRY_S06_START' },
+        failedEvent: (errorCode) => ({ type: 'S06_START_FAILED', errorCode }),
+      },
+      'segment-end': {
+        recordedEvent: { type: 'S06_END_RECORDED' },
+        retryEvent: { type: 'RETRY_S06_END' },
+        failedEvent: (errorCode) => ({ type: 'S06_END_FAILED', errorCode }),
       },
     },
   },

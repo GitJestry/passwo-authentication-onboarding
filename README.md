@@ -2,8 +2,8 @@
 
 Dieses pnpm-Monorepo enthält das **Supportive Authentication Onboarding** und die lokale Runtime
 für die gekoppelte Between-Subjects-Studie. Der technische Studienpfad, die visuelle
-Trainingsplattform, die Segmente S00 bis S05 und die draft-versionierten Forschungsinstrumente
-sind integriert. S06 bis S17, das externe Follow-up-Formular mit Import und der Study Freeze sind
+Trainingsplattform, die Segmente S00 bis S06 und die draft-versionierten Forschungsinstrumente
+sind integriert. S07 bis S17, das externe Follow-up-Formular mit Import und der Study Freeze sind
 noch offen.
 
 ## Aktueller Stand
@@ -13,12 +13,12 @@ noch offen.
   Reload-/Lease-Behandlung sowie CSV-/JSON-Export mit Manifest und Prüfsummen.
 - **M2 – Visual Platform:** BrowserShell, PassWo-Adapter, Mission-/Animations-Handshake,
   Reduced Motion und der vollständige S00-Slice.
-- **Training:** S00 bis S05 bilden den integrierten Lauf. S06 besitzt deterministische
-  Konsequenz-Fixtures im Design Lab, ist aber noch nicht in den Studienpfad eingebunden.
+- **Training:** S00 bis S06 bilden den integrierten Lauf. S06 verwendet im Studienpfad und Design
+  Lab dieselbe dynamische Konsequenzsimulation mit lokalen Laufzeitdaten beziehungsweise Fixtures.
 - **Instrumente:** Pre, Post, Guardrail und offene Rückmeldung laufen als versionierte,
   atomare Submissions; das optionale Follow-up besitzt eine getrennte Recontact-Registry und
   Schedule-Export.
-- **Als Nächstes:** S06 bis S11 einschließlich des kontoübergreifenden Passwortvergleichs.
+- **Als Nächstes:** S07 bis S11 mit Diagnose und anschließender Passwortüberarbeitung.
 
 `apps/study-desktop` verpackt die Anwendung für Apple Silicon ohne Adresszeile und startet die
 vorhandene Runtime intern. `apps/study-web` ist der einzige React-/Vite-Renderer.

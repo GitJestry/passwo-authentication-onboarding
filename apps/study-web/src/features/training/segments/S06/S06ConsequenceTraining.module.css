@@ -73,6 +73,23 @@
   text-align: center;
 }
 
+.headerControls {
+  display: grid;
+  justify-items: end;
+  gap: var(--space-2);
+}
+
+.headerControls button {
+  min-height: var(--size-control-medium);
+  padding: var(--space-2) var(--space-3);
+  border: var(--border-width-thin) solid var(--color-border);
+  border-radius: var(--radius-small);
+  color: var(--color-accent-strong);
+  background: var(--color-surface-primary);
+  font-weight: var(--font-weight-bold);
+  cursor: pointer;
+}
+
 .modeOverlay {
   z-index: 3;
   display: flex;
@@ -135,20 +152,6 @@
 .passwordCard code {
   grid-column: 1;
   color: var(--color-ink-strong);
-}
-
-.passwordCard button {
-  grid-column: 2;
-  grid-row: 2 / 4;
-  min-height: var(--size-control-medium);
-  padding: var(--space-1) var(--space-2);
-  border: var(--border-width-thin) solid var(--color-border);
-  border-radius: var(--radius-small);
-  color: var(--color-accent-strong);
-  background: var(--color-surface-primary);
-  font-size: var(--font-size-x-small);
-  font-weight: var(--font-weight-bold);
-  cursor: pointer;
 }
 
 .workspace {
@@ -217,6 +220,48 @@
   margin-top: var(--space-1);
   color: var(--color-ink-strong);
   font-weight: var(--font-weight-heavy);
+}
+
+.comparison,
+.summary {
+  display: grid;
+  gap: var(--space-2);
+  padding: var(--space-3);
+  border: var(--border-width-thin) solid var(--color-border-soft);
+  border-radius: var(--radius-small);
+  background: var(--color-surface-muted);
+}
+
+.comparison p,
+.summary h3,
+.summary ul {
+  margin: 0;
+}
+
+.comparison code {
+  overflow-wrap: anywhere;
+  color: var(--color-ink-strong);
+}
+
+.comparison mark {
+  padding: 0 var(--space-1);
+  color: var(--color-ink-strong);
+  background: #ffd8a8;
+  box-shadow: inset 0 -0.16rem 0 #9a4a00;
+}
+
+.summary h3 {
+  color: var(--color-ink-strong);
+  font-size: var(--font-size-small);
+}
+
+.timingError {
+  display: grid;
+  gap: var(--space-2);
+}
+
+.timingError p {
+  margin: 0;
 }
 
 .roleSummary {
@@ -303,7 +348,7 @@
   outline-offset: var(--space-1);
 }
 
-.passwordCard button:focus-visible {
+.headerControls button:focus-visible {
   outline: var(--border-width-focus) solid var(--color-focus);
   outline-offset: var(--space-1);
 }
@@ -319,6 +364,10 @@
   .pageHeader {
     align-items: flex-start;
     flex-direction: column;
+  }
+
+  .headerControls {
+    justify-items: start;
   }
 
   .workspace {

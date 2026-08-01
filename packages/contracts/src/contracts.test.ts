@@ -96,10 +96,18 @@ describe('research-safe contracts', () => {
     ).toBe(false);
   });
 
-  it('keeps canonical artifact versions and the S00–S05 segment order', () => {
-    expect(SUPPORTIVE_ARTIFACT_VERSION).toBe('supportive-s00-s05-1.6.0');
+  it('keeps canonical artifact versions and the S00–S06 segment order', () => {
+    expect(SUPPORTIVE_ARTIFACT_VERSION).toBe('supportive-s00-s06-1.7.0');
     expect(SUPPORTIVE_ARTIFACT_VERSION).not.toBe(REFERENCE_ARTIFACT_VERSION);
-    expect(SUPPORTIVE_ARTIFACT_SEGMENT_IDS).toEqual(['S00', 'S01', 'S02', 'S03', 'S04', 'S05']);
+    expect(SUPPORTIVE_ARTIFACT_SEGMENT_IDS).toEqual([
+      'S00',
+      'S01',
+      'S02',
+      'S03',
+      'S04',
+      'S05',
+      'S06',
+    ]);
     expect(
       studyTimingEventSchema.safeParse({
         sequence: 1,
@@ -108,6 +116,19 @@ describe('research-safe contracts', () => {
         segmentId: 'S03',
         eventType: 'end',
         clientMonotonicMs: 125,
+        clientWallClockIso: '2026-07-24T12:00:00.000Z',
+        elapsedMs: 25,
+        reasonCode: null,
+      }).success,
+    ).toBe(true);
+    expect(
+      studyTimingEventSchema.safeParse({
+        sequence: 4,
+        phase: 'artifact',
+        sectionId: 'passwords',
+        segmentId: 'S06',
+        eventType: 'end',
+        clientMonotonicMs: 200,
         clientWallClockIso: '2026-07-24T12:00:00.000Z',
         elapsedMs: 25,
         reasonCode: null,

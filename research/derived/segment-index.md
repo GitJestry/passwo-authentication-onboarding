@@ -26,9 +26,8 @@ Seitenangaben beziehen sich auf die im Trainingsdokument ausgewiesene interne Pa
 ## Implementierte S05-Version
 
 - S05.0 bis S05.4 verwenden die internen Seiten 12 bis 35 als Inhaltsquelle und sind im Design Lab
-  sowie im realen Supportive-Training zwischen S04 und dem stabilen Zustand
-  `awaiting-s06` vollständig durchspielbar. Beide Pfade verwenden dieselbe Komponente und denselben
-  lokalen Controller.
+  sowie im realen Supportive-Training zwischen S04 und S06 vollständig durchspielbar. Beide Pfade
+  verwenden dieselbe Komponente und denselben lokalen Controller.
 - S05.2 zeigt Thema, Satzstruktur, Wiederholung und Passwortkontext nacheinander. Thema und
   Satzstruktur bleiben ausschließlich feste redaktionelle Demonstrationen.
 - Die lokale Laufzeitanalyse benennt nur exakte Wiederholung, eine feste Konto-/Kontextbeziehung
@@ -45,11 +44,18 @@ Seitenangaben beziehen sich auf die im Trainingsdokument ausgewiesene interne Pa
 - Die sechs Beispielwörter sind ein festes Demonstrationsbeispiel. Wortliste und produktiver
   Generator bleiben ausschließlich S08 vorbehalten.
 
-## Implementierte S06-Design-Lab-Version
+## Implementierte S06-Version
 
-- S06 verwendet die internen Seiten 36 bis 44 als Inhaltsquelle und bleibt vollständig im
-  Design Lab. Es ist noch nicht in den Study-Runtime-Pfad integriert und erzeugt keine
-  S06-Timingereignisse.
+- S06 verwendet die internen Seiten 36 bis 44 als Inhaltsquelle und ist im realen
+  Supportive-Training zwischen S05 und dem stabilen Zustand `awaiting-s07` integriert. Design Lab
+  und Teilnehmerpfad verwenden dieselbe Komponente, denselben lokalen Controller und dieselbe
+  Projektion; nur die Eingabequelle unterscheidet sich zwischen Fixtures und flüchtigen
+  Übungswerten.
+- Die Laufzeitwerte werden beim bestätigten Eintritt einmal lokal ausgewertet. Drei
+  Einzelanalysen, drei Paarvergleiche und die daraus projizierten Szenen bleiben flüchtig und
+  werden weder in den globalen Machine Context kopiert noch an eine Study API gesendet.
+- Der Timing-Handshake lautet S05 segment-end, S06 segment-start, S06 segment-end. Ein
+  fehlgeschlagener späterer Write wiederholt keine bereits bestätigte Grenze.
 - Die Projektion verwendet die drei fiktiven Konten Master Campus, Campus E-Mail und Campusgram
   sowie alle drei Konto-Paare genau einmal. Campusgram-Inhalte bleiben lokale Inhaltszuordnungen
   und werden nicht als SSO-Dienste modelliert.
@@ -58,9 +64,9 @@ Seitenangaben beziehen sich auf die im Trainingsdokument ausgewiesene interne Pa
   Transformationsweg, dessen erzeugter Kandidat den vollständigen Zielwert trifft.
 - Gemeinsame Teilstrings, allgemeine Ähnlichkeit und Edit-Distance begründen keinen Treffer. Ein
   nicht erkannter Weg bedeutet nur, dass diese Simulation keinen direkten Weg erkannt hat.
-- Vier deterministische Fixtures decken exakte Wiederverwendung plus Ableitung, einen gestoppten
-  ersten Vorfall, zwei blockierte Folgewege und eine gemischte tatsächliche/hypothetische
-  Darstellung ab.
+- Vier deterministische Design-Lab-Fixtures decken exakte Wiederverwendung plus Ableitung, einen
+  gestoppten ersten Vorfall, zwei blockierte Folgewege und eine gemischte
+  tatsächliche/hypothetische Darstellung ab.
 
 ## Sections
 

@@ -35,9 +35,11 @@ function flushMicrotasks(): Promise<void> {
 }
 
 describe('password module privacy boundary', () => {
-  it('keeps S05 completion payloadless and all S05 analysis data out of machine context', () => {
+  it('keeps S05 and S06 completion payloadless and analysis data out of machine context', () => {
     const completionEvent: PasswordModuleEvent = { type: 'S05_COMPLETED' };
+    const s06CompletionEvent: PasswordModuleEvent = { type: 'S06_COMPLETED' };
     expect(Object.keys(completionEvent)).toEqual(['type']);
+    expect(Object.keys(s06CompletionEvent)).toEqual(['type']);
 
     const controller = new PasswordModuleController({
       accountIds: ['master-campus', 'campus-email', 'campusgram'],
@@ -55,6 +57,10 @@ describe('password module privacy boundary', () => {
         'estimate',
         'estimateAnswer',
         's05Result',
+        's06Result',
+        'passwordComparisons',
+        'generatedCandidates',
+        'retrievalAnalysis',
       ]),
     );
     controller.dispose();
@@ -62,22 +68,28 @@ describe('password module privacy boundary', () => {
 
   it('keeps display names and fictitious passwords out of StudyMachine and runtime requests', async () => {
     const requestArguments: unknown[][] = [];
+    const timingRequests: unknown[] = [];
     const studyActor = createActor(createStudyMachine(studyRuntimePorts(requestArguments)));
     studyActor.start();
     const controller = new PasswordModuleController({
       accountIds: ['master-campus', 'campus-email', 'campusgram'],
+      timingPort: {
+        record: async (event) => {
+          timingRequests.push(event);
+        },
+      },
     });
     const displayName = 'Browsername Nur Lokal';
-    const trainingValue = 'only-in-password-module!?';
+    const fictionalPasswords = [
+      ['master-campus', 'only-in-password-module!?'],
+      ['campus-email', 'second-local-password'],
+      ['campusgram', 'third-local-password'],
+    ] as const;
     controller.enterDisplayName(displayName);
     controller.completeSectionTransition();
     controller.completeS00();
     await flushMicrotasks();
-    for (const [accountId, password] of [
-      ['master-campus', trainingValue],
-      ['campus-email', 'second-local-password'],
-      ['campusgram', 'third-local-password'],
-    ] as const) {
+    for (const [accountId, password] of fictionalPasswords) {
       controller.setPasswordValue(accountId, password);
       controller.configureAccount(accountId);
     }
@@ -88,11 +100,7 @@ describe('password module privacy boundary', () => {
     controller.continue();
     await flushMicrotasks();
     await flushMicrotasks();
-    for (const [accountId, password] of [
-      ['master-campus', trainingValue],
-      ['campus-email', 'second-local-password'],
-      ['campusgram', 'third-local-password'],
-    ] as const) {
+    for (const [accountId, password] of fictionalPasswords) {
       controller.setRetrievalPasswordValue(accountId, password);
       controller.submitRetrievalLogin(accountId);
     }
@@ -108,6 +116,11 @@ describe('password module privacy boundary', () => {
     await flushMicrotasks();
     controller.completeS05();
     await flushMicrotasks();
+    await flushMicrotasks();
+    expect(controller.getSnapshot().matches({ s06: 'active' })).toBe(true);
+    controller.completeS06();
+    await flushMicrotasks();
+    expect(controller.getSnapshot().matches('awaiting-s07')).toBe(true);
     studyActor.send({
       type: 'ACCEPT_CONSENT',
       followUpConsent: true,
@@ -134,11 +147,24 @@ describe('password module privacy boundary', () => {
     await flushMicrotasks();
 
     const studyContext = JSON.stringify(studyActor.getSnapshot().context);
-    const runtimeRequests = JSON.stringify(requestArguments);
+    const runtimeRequests = JSON.stringify([...requestArguments, ...timingRequests]);
     expect(studyContext).not.toContain(displayName);
-    expect(studyContext).not.toContain(trainingValue);
     expect(runtimeRequests).not.toContain(displayName);
-    expect(runtimeRequests).not.toContain(trainingValue);
+    for (const [, password] of fictionalPasswords) {
+      expect(studyContext).not.toContain(password);
+      expect(runtimeRequests).not.toContain(password);
+    }
+    expect(timingRequests).toContainEqual({
+      eventType: 'segment-start',
+      segmentId: 'S06',
+      sectionId: 'passwords',
+    });
+    expect(timingRequests).toContainEqual({
+      eventType: 'segment-end',
+      segmentId: 'S06',
+      sectionId: 'passwords',
+    });
     expect(controller.getSnapshot().context).not.toHaveProperty('s05Result');
+    expect(controller.getSnapshot().context).not.toHaveProperty('s06Result');
   });
 });

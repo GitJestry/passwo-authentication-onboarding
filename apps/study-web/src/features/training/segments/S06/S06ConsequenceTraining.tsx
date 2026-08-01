@@ -1,13 +1,9 @@
-import type { S06AccountId } from '@passwo/contracts';
-import {
-  type PasswordConsequenceScenePlan,
-} from '@passwo/visualization';
-import {
-  type S06ConsequenceFixtureId,
-  s06ConsequenceContent,
-} from '@passwo/training-content';
+import type { PasswordEvidenceSpan, S06AccountId } from '@passwo/contracts';
+import type { S06ConsequenceFixtureId } from '@passwo/training-content';
+import { s06ConsequenceContent } from '@passwo/training-content';
+import type { PasswordConsequenceScenePlan } from '@passwo/visualization';
 import { type BrowserShellSnapshot, BrowserShell } from '@passwo/ui';
-import { useEffect, useRef, useState } from 'react';
+import { type ReactNode, useEffect, useRef, useState } from 'react';
 import { NetworkMotionAdapter } from '../../../../adapters/network/NetworkMotionAdapter.js';
 import {
   ReactFlowNetwork,
@@ -15,6 +11,8 @@ import {
 } from '../../../../adapters/network/ReactFlowNetworkAdapter.js';
 import {
   type S06ConsequenceControllerSnapshot,
+  type S06ConsequenceAccountInputs,
+  createS06ConsequenceScenePlan,
   createS06FixtureScenePlan,
   S06ConsequenceController,
 } from './S06ConsequenceController.js';
@@ -38,18 +36,87 @@ interface Runtime {
   readonly plan: PasswordConsequenceScenePlan;
 }
 
-export function S06ConsequenceTraining({
-  fixtureId,
+export type S06TimingState = 'active' | 'writingEnd' | 'endWriteFailed';
+
+export type S06ConsequenceSource =
+  | { readonly kind: 'fixture'; readonly fixtureId: S06ConsequenceFixtureId }
+  | { readonly kind: 'runtime'; readonly accounts: S06ConsequenceAccountInputs };
+
+export interface S06ConsequenceTrainingProps {
+  readonly source: S06ConsequenceSource;
+  readonly timingState?: S06TimingState;
+  readonly timingErrorCode?: string | null;
+  readonly externalTimingError?: string | null;
+  readonly onRetryTiming?: () => void;
+  readonly onComplete?: () => void;
+}
+
+interface PlanCache {
+  readonly sourceIdentity: S06ConsequenceFixtureId | S06ConsequenceAccountInputs;
+  readonly plan: PasswordConsequenceScenePlan;
+}
+
+function createScenePlan(
+  fixtureId: S06ConsequenceFixtureId | null,
+  runtimeAccounts: S06ConsequenceAccountInputs | null,
+): PasswordConsequenceScenePlan {
+  if (fixtureId !== null) return createS06FixtureScenePlan(fixtureId);
+  if (runtimeAccounts !== null) {
+    return createS06ConsequenceScenePlan('supportive-runtime-s06', runtimeAccounts);
+  }
+  throw new Error('S06 consequence source is missing.');
+}
+
+function FictionalPassword({
+  value,
+  evidence,
+  revealed,
 }: {
-  readonly fixtureId: S06ConsequenceFixtureId;
+  readonly value: string;
+  readonly evidence: readonly PasswordEvidenceSpan[];
+  readonly revealed: boolean;
 }) {
+  if (!revealed) return <code>{'•'.repeat(Math.max(8, value.length))}</code>;
+  const parts: ReactNode[] = [];
+  let cursor = 0;
+  for (const span of [...evidence].sort((left, right) => left.start - right.start)) {
+    if (cursor < span.start) {
+      parts.push(<span key={`plain-${cursor}`}>{value.slice(cursor, span.start)}</span>);
+    }
+    parts.push(
+      <mark key={`evidence-${span.start}-${span.end}`}>{value.slice(span.start, span.end)}</mark>,
+    );
+    cursor = Math.max(cursor, span.end);
+  }
+  if (cursor < value.length) parts.push(<span key={`plain-${cursor}`}>{value.slice(cursor)}</span>);
+  return <code>{parts}</code>;
+}
+
+export function S06ConsequenceTraining({
+  source,
+  timingState = 'active',
+  timingErrorCode = null,
+  externalTimingError = null,
+  onRetryTiming,
+  onComplete,
+}: S06ConsequenceTrainingProps) {
   const networkHostRef = useRef<HTMLDivElement | null>(null);
+  const planCacheRef = useRef<PlanCache | null>(null);
   const [runtime, setRuntime] = useState<Runtime | null>(null);
   const [snapshot, setSnapshot] = useState<S06ConsequenceControllerSnapshot | null>(null);
-  const [revealedAccounts, setRevealedAccounts] = useState<ReadonlySet<S06AccountId>>(new Set());
+  const [passwordsRevealed, setPasswordsRevealed] = useState(false);
+  const fixtureId = source.kind === 'fixture' ? source.fixtureId : null;
+  const runtimeAccounts = source.kind === 'runtime' ? source.accounts : null;
 
   useEffect(() => {
-    const plan = createS06FixtureScenePlan(fixtureId);
+    const sourceIdentity = fixtureId ?? runtimeAccounts;
+    if (sourceIdentity === null) return;
+    const cachedPlan = planCacheRef.current;
+    const plan =
+      cachedPlan?.sourceIdentity === sourceIdentity
+        ? cachedPlan.plan
+        : createScenePlan(fixtureId, runtimeAccounts);
+    planCacheRef.current = { sourceIdentity, plan };
     const allNodeIds = [
       ...new Set(plan.steps.flatMap(({ network }) => network.nodes.map(({ id }) => id))),
     ];
@@ -69,30 +136,33 @@ export function S06ConsequenceTraining({
         ) ?? null,
       prefersReducedMotion,
     });
-    controller = new S06ConsequenceController({ plan, animationPlayer });
+    controller = new S06ConsequenceController({
+      plan,
+      animationPlayer,
+      ...(onComplete === undefined ? {} : { onComplete }),
+    });
     const renderer = new ReactFlowNetworkAdapter(controller.getSnapshot().step.network);
     controller.attachRenderer(renderer);
     const unsubscribe = controller.subscribe(setSnapshot);
     setRuntime({ controller, renderer, plan });
     setSnapshot(controller.getSnapshot());
-    setRevealedAccounts(new Set());
+    setPasswordsRevealed(false);
 
     return () => {
       unsubscribe();
       void controller?.dispose();
     };
-  }, [fixtureId]);
+  }, [fixtureId, onComplete, runtimeAccounts]);
 
   if (runtime === null || snapshot === null) return null;
 
-  function togglePassword(accountId: S06AccountId): void {
-    setRevealedAccounts((current) => {
-      const next = new Set(current);
-      if (next.has(accountId)) next.delete(accountId);
-      else next.add(accountId);
-      return next;
-    });
-  }
+  const relation = snapshot.step.relation;
+  const sourceAnalysis = runtime.plan.accounts.find(
+    ({ accountId }) => accountId === snapshot.step.sourceAccountId,
+  );
+  const targetAnalysis = runtime.plan.accounts.find(
+    ({ accountId }) => accountId === snapshot.step.targetAccountId,
+  );
 
   return (
     <section className={styles.training} aria-label={s06ConsequenceContent.trainingAriaLabel}>
@@ -112,7 +182,18 @@ export function S06ConsequenceTraining({
               <h1 id="s06-consequence-title">{s06ConsequenceContent.page.title}</h1>
               <p>{s06ConsequenceContent.page.instruction}</p>
             </div>
-            <span className={styles.fixtureNotice}>{s06ConsequenceContent.page.fixtureNotice}</span>
+            <div className={styles.headerControls}>
+              <span className={styles.fixtureNotice}>
+                {source.kind === 'fixture'
+                  ? s06ConsequenceContent.page.fixtureNotice
+                  : s06ConsequenceContent.page.runtimeNotice}
+              </span>
+              <button type="button" onClick={() => setPasswordsRevealed((revealed) => !revealed)}>
+                {passwordsRevealed
+                  ? s06ConsequenceContent.page.hidePassword
+                  : s06ConsequenceContent.page.showPassword}
+              </button>
+            </div>
           </header>
 
           <div className={styles.modeOverlay} role="status">
@@ -126,18 +207,16 @@ export function S06ConsequenceTraining({
               const accountAnalysis = runtime.plan.accounts.find(
                 (candidate) => candidate.accountId === accountId,
               );
-              const revealed = revealedAccounts.has(accountId);
               if (account === undefined || accountAnalysis === undefined) return null;
               return (
                 <section key={accountId} className={styles.passwordCard}>
                   <span>Ausdrücklich fiktiver Übungswert</span>
                   <strong>{account.label}</strong>
-                  <code>{revealed ? accountAnalysis.fictionalPassword : '••••••••••••'}</code>
-                  <button type="button" onClick={() => togglePassword(accountId)}>
-                    {revealed
-                      ? s06ConsequenceContent.page.hidePassword
-                      : s06ConsequenceContent.page.showPassword}
-                  </button>
+                  <FictionalPassword
+                    value={accountAnalysis.fictionalPassword}
+                    evidence={[]}
+                    revealed={passwordsRevealed}
+                  />
                 </section>
               );
             })}
@@ -164,10 +243,32 @@ export function S06ConsequenceTraining({
               {snapshot.participant.transformationLabel === null ? null : (
                 <p>{snapshot.participant.transformationLabel}</p>
               )}
+              {relation === null ||
+              sourceAnalysis === undefined ||
+              targetAnalysis === undefined ? null : (
+                <section className={styles.comparison} aria-label="Vergleich fiktiver Passwörter">
+                  <p>Ausgangswert · ausdrücklich fiktiv</p>
+                  <FictionalPassword
+                    value={sourceAnalysis.fictionalPassword}
+                    evidence={relation.sourceEvidence}
+                    revealed={passwordsRevealed}
+                  />
+                  <p>Zielwert · ausdrücklich fiktiv</p>
+                  <FictionalPassword
+                    value={targetAnalysis.fictionalPassword}
+                    evidence={relation.targetEvidence}
+                    revealed={passwordsRevealed}
+                  />
+                </section>
+              )}
               {snapshot.participant.generatedCandidate === null ? null : (
                 <p className={styles.candidate}>
-                  Tatsächlich erzeugter fiktiver Kandidat:{' '}
-                  <code>{snapshot.participant.generatedCandidate}</code>
+                  Erzeugter fiktiver Kandidat:{' '}
+                  <FictionalPassword
+                    value={snapshot.participant.generatedCandidate}
+                    evidence={[]}
+                    revealed={passwordsRevealed}
+                  />
                 </p>
               )}
               <p className={styles.roleSummary}>
@@ -178,6 +279,30 @@ export function S06ConsequenceTraining({
                   )
                   .join(' · ')}
               </p>
+              {snapshot.step.id === 's06-step-summary' ? (
+                <div className={styles.summary}>
+                  <h3>Lokaler Simulationsstatus und Abrufbarkeit</h3>
+                  <ul>
+                    {runtime.plan.accounts.map((account) => (
+                      <li key={account.accountId}>
+                        {s06ConsequenceContent.accounts[account.accountId].label}:{' '}
+                        {s06ConsequenceContent.dispositionLabels[account.disposition.kind]} ·{' '}
+                        {s06ConsequenceContent.retrievalLabels[account.retrievalStatus]}
+                      </li>
+                    ))}
+                  </ul>
+                  <h3>Paarweise Relationen</h3>
+                  <ul>
+                    {runtime.plan.comparisons.map((comparison) => (
+                      <li key={`${comparison.sourceAccountId}-${comparison.targetAccountId}`}>
+                        {s06ConsequenceContent.accounts[comparison.sourceAccountId].label} →{' '}
+                        {s06ConsequenceContent.accounts[comparison.targetAccountId].label}:{' '}
+                        {s06ConsequenceContent.relationLabels[comparison.result.relation.kind]}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              ) : null}
               <div className={styles.buttonRow}>
                 <button
                   type="button"
@@ -201,10 +326,24 @@ export function S06ConsequenceTraining({
                 >
                   {s06ConsequenceContent.page.continue}
                 </button>
-                {snapshot.phase === 'complete' ? (
+                {snapshot.phase === 'complete' && timingState === 'active' ? (
                   <p className={styles.completeStatus} role="status">
                     {s06ConsequenceContent.page.complete}
                   </p>
+                ) : null}
+                {timingState === 'writingEnd' ? (
+                  <p className={styles.completeStatus} role="status">
+                    Segmentabschluss wird bestätigt …
+                  </p>
+                ) : null}
+                {timingState === 'endWriteFailed' ? (
+                  <div className={styles.timingError} role="alert">
+                    <p>Die Segmentgrenze konnte nicht bestätigt werden.</p>
+                    <p>Fehlercode: {externalTimingError ?? timingErrorCode}</p>
+                    <button type="button" onClick={onRetryTiming}>
+                      Erneut versuchen
+                    </button>
+                  </div>
                 ) : null}
               </div>
             </aside>

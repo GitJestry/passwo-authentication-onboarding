@@ -227,25 +227,29 @@ const scenarios: Record<DesignLabScenarioId, DesignLabScenario> = {
   },
   's06-reuse-and-derived': {
     label: 'S06 Wiederverwendung + Ableitung',
-    description: 'Campusgram wird gefunden, Master Campus exakt und Campus E-Mail konkret abgeleitet.',
+    description:
+      'Campusgram wird gefunden, Master Campus exakt und Campus E-Mail konkret abgeleitet.',
     dimmed: false,
     showPassWoOverlay: false,
   },
   's06-incident-not-found': {
     label: 'S06 Vorfall stoppt',
-    description: 'Campusgram wird nicht schnell gefunden; alle drei Beziehungen bleiben ohne erkannten Weg.',
+    description:
+      'Campusgram wird nicht schnell gefunden; alle drei Beziehungen bleiben ohne erkannten Weg.',
     dimmed: false,
     showPassWoOverlay: false,
   },
   's06-incident-found-blocked': {
     label: 'S06 gefunden, Wege blockiert',
-    description: 'Campusgram wird gefunden; beide weiteren Konten bleiben ohne erkannten Ableitungsweg.',
+    description:
+      'Campusgram wird gefunden; beide weiteren Konten bleiben ohne erkannten Ableitungsweg.',
     dimmed: false,
     showPassWoOverlay: false,
   },
   's06-mixed-actual-hypothetical': {
     label: 'S06 gemischt',
-    description: 'Tatsächliche und hypothetische Schritte sind in einem deterministischen Ablauf klar getrennt.',
+    description:
+      'Tatsächliche und hypothetische Schritte sind in einem deterministischen Ablauf klar getrennt.',
     dimmed: false,
     showPassWoOverlay: false,
   },
@@ -626,7 +630,7 @@ export function DesignLab({ scenarioId }: { readonly scenarioId: DesignLabScenar
     return (
       <main className={styles.labPage}>
         <DesignLabIntroduction scenarioId={scenarioId} scenario={scenario} />
-        <S06ConsequenceTraining fixtureId={s06Fixture.id} />
+        <S06ConsequenceTraining source={{ kind: 'fixture', fixtureId: s06Fixture.id }} />
       </main>
     );
   }
