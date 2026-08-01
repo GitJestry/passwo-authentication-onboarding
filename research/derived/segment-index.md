@@ -23,16 +23,25 @@ Seitenangaben beziehen sich auf die im Trainingsdokument ausgewiesene interne Pa
 | S16 | Priorisierung/Ausweitung | 68 | TF1, TF6 | wichtige Konten zuerst, MFA wo verfügbar |
 | S17 | Integrierte Zusammenfassung | 69–71 | TF4, TF6 | vier Schutzebenen, letzter Guardrail |
 
-## Implementierter S05-Design-Lab-Slice
+## Implementierte S05-Design-Lab-Version
 
-- S05.0 bis S05.2 verwenden die internen Seiten 12 bis 25 als Inhaltsquelle; die auf Seite 26
-  beginnende S05.3-Mechanik ist nicht Bestandteil dieses Slices.
+- S05.0 bis S05.4 verwenden die internen Seiten 12 bis 35 als Inhaltsquelle und sind nur im
+  Design Lab vollständig durchspielbar. S05 ist noch nicht in den realen Studienpfad integriert.
 - S05.2 zeigt Thema, Satzstruktur, Wiederholung und Passwortkontext nacheinander. Thema und
   Satzstruktur bleiben ausschließlich feste redaktionelle Demonstrationen.
 - Die lokale Laufzeitanalyse benennt nur exakte Wiederholung, eine feste Konto-/Kontextbeziehung
   mit erkanntem Zahlenmarker oder Anhang sowie eine begrenzte Beziehung bereits erkannter
   Bestandteile. Andernfalls lautet der Befund ausschließlich „kein einfacher Zusammenhang
   erkannt“.
+- S05.3 berechnet theoretische Suchräume ausschließlich für deklarierte Demonstrationen mit
+  unabhängiger Zufallsauswahl, festem Zeichenvorrat, vollständigem Durchprobieren und einer
+  Billion Versuchen pro Sekunde. Kandidatenzahlen bleiben exakte Ganzzahlen; für das fiktive
+  Passwort werden keine Zeit, effektive Länge, Entropie oder Gesamtstärke berechnet.
+- Die Simulationsdisposition benennt entweder eine konkrete erkannte Regel als schnelleren Weg
+  oder ausschließlich: „Mit den begrenzten Wegen dieser Simulation wurde kein schnellerer Weg
+  erkannt.“ Der zweite Befund bedeutet nicht stark, sicher, zufällig oder unangreifbar.
+- Die sechs Beispielwörter sind ein festes Demonstrationsbeispiel. Wortliste und produktiver
+  Generator bleiben ausschließlich S08 vorbehalten.
 
 ## Sections
 

@@ -75,6 +75,43 @@ export interface PasswordStructureAnalysisResult {
   readonly disclaimerId: 'bounded-rules-not-strength-assessment';
 }
 
+export interface ExhaustiveSearchDuration {
+  readonly wholeSeconds: bigint;
+  readonly remainingCandidates: bigint;
+  readonly attemptsPerSecond: bigint;
+}
+
+export interface TheoreticalSearchSpaceModel {
+  readonly kind: 'theoretical-search-space-model';
+  readonly alphabetSize: number;
+  readonly length: number;
+  readonly attemptsPerSecond: bigint;
+  readonly totalCandidateCount: bigint;
+  readonly exhaustiveSearchDuration: ExhaustiveSearchDuration;
+  readonly assumptions: {
+    readonly independentlyRandomCharacters: true;
+    readonly fixedAlphabet: true;
+    readonly exhaustiveSearch: true;
+  };
+}
+
+export type SimulationQuickPathRuleId =
+  | 'very-short-string'
+  | 'common-password-core-with-typical-change'
+  | 'account-context-with-predictable-qualifier'
+  | 'clearly-repeated-explainable-structure';
+
+export type PasswordSimulationDisposition =
+  | {
+      readonly kind: 'quick-path-recognized';
+      readonly ruleId: SimulationQuickPathRuleId;
+      readonly explanationId: `s05.disposition.${SimulationQuickPathRuleId}`;
+    }
+  | {
+      readonly kind: 'no-quick-path-recognized';
+      readonly explanationId: 's05.disposition.no-quick-path-recognized';
+    };
+
 export type PasswordComparisonOutcome = 'identical' | 'similar' | 'no-derived-path-recognized';
 
 export type PasswordComparisonFindingKind =

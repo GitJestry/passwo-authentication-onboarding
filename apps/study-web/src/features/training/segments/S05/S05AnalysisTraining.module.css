@@ -185,6 +185,282 @@
   align-self: start;
 }
 
+.focusScene,
+.applicationScene,
+.summaryScene {
+  max-width: 70rem;
+  min-height: calc(100% - var(--space-4));
+  margin: 0 auto;
+  padding: clamp(var(--space-5), 4vw, var(--space-8));
+  border: var(--border-width-thin) solid var(--color-border-soft);
+  border-radius: var(--radius-medium);
+  background: var(--color-surface-primary);
+}
+
+.focusScene h2,
+.applicationScene h2,
+.summaryScene h2 {
+  margin: 0 0 var(--space-4);
+  color: var(--color-ink-strong);
+}
+
+.focusScene > p,
+.applicationScene > p,
+.summaryScene > p {
+  color: var(--color-ink-muted);
+  line-height: var(--line-height-body);
+}
+
+.passwordComparison,
+.applicationGrid,
+.summaryCards {
+  display: grid;
+  gap: var(--space-3);
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.passwordComparison article,
+.applicationGrid article,
+.summaryCards article {
+  padding: var(--space-4);
+  border: var(--border-width-thin) solid var(--color-border-soft);
+  border-radius: var(--radius-small);
+  background: var(--color-surface-muted);
+}
+
+.passwordComparison code,
+.largePassword,
+.joinedWords {
+  display: block;
+  width: fit-content;
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-small);
+  color: var(--color-ink-strong);
+  background: var(--color-accent-soft);
+  font-size: var(--font-size-body);
+}
+
+.passwordComparison strong,
+.applicationGrid strong,
+.applicationGrid span {
+  display: block;
+  margin-top: var(--space-2);
+}
+
+.tokenRow,
+.generatedPassword,
+.labeledParts,
+.wordCards {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  margin: var(--space-4) 0;
+}
+
+.tokenRow span,
+.generatedPassword span,
+.labeledParts > span,
+.wordCards > span {
+  padding: var(--space-2);
+  border: var(--border-width-thin) solid var(--color-accent-strong);
+  border-radius: var(--radius-small);
+  background: var(--color-surface-primary);
+}
+
+.estimateScale {
+  margin: var(--space-5) 0;
+  padding: 0;
+  border: 0;
+}
+
+.estimateScale legend {
+  margin-bottom: var(--space-4);
+  color: var(--color-ink-strong);
+  font-weight: var(--font-weight-bold);
+}
+
+.estimateScale > div {
+  display: grid;
+  gap: var(--space-2);
+  grid-template-columns: repeat(9, minmax(2.75rem, 1fr));
+}
+
+.estimateScale label {
+  cursor: pointer;
+}
+
+.estimateScale input {
+  position: absolute;
+  opacity: 0;
+}
+
+.estimateScale span {
+  display: grid;
+  min-height: var(--size-control-medium);
+  place-items: center;
+  border: var(--border-width-medium) solid var(--color-border);
+  border-radius: var(--radius-round);
+  color: var(--color-ink-strong);
+  background: var(--color-surface-primary);
+  font-weight: var(--font-weight-bold);
+}
+
+.estimateScale input:checked + span {
+  border-color: var(--color-accent-strong);
+  color: var(--color-on-inverse);
+  background: var(--color-accent-strong);
+}
+
+.estimateScale input:focus-visible + span {
+  outline: var(--border-width-focus) solid var(--color-focus);
+  outline-offset: var(--space-1);
+}
+
+.confirmEstimate {
+  min-height: var(--size-control-medium);
+  padding: var(--space-2) var(--space-4);
+  border: var(--border-width-medium) solid var(--color-accent-strong);
+  border-radius: var(--radius-small);
+  color: var(--color-on-inverse);
+  background: var(--color-accent-strong);
+  font-weight: var(--font-weight-heavy);
+}
+
+.confirmEstimate:disabled {
+  border-color: var(--color-border);
+  color: var(--color-ink-muted);
+  background: var(--color-surface-muted);
+}
+
+.confirmEstimate:focus-visible {
+  outline: var(--border-width-focus) solid var(--color-focus);
+  outline-offset: var(--space-1);
+}
+
+.localNotice,
+.boundaryCallout,
+.generatedNote {
+  padding: var(--space-3);
+  border-left: var(--border-width-medium) solid var(--color-accent-strong);
+  background: var(--color-accent-soft);
+}
+
+.assumptions {
+  display: grid;
+  gap: var(--space-2);
+  color: var(--color-ink-muted);
+}
+
+.clockScale {
+  display: grid;
+  gap: var(--space-2);
+  margin: var(--space-5) 0;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+}
+
+.clockScale article {
+  display: grid;
+  gap: var(--space-2);
+  min-height: 8rem;
+  align-content: end;
+  padding: var(--space-3);
+  border: var(--border-width-thin) solid var(--color-border-soft);
+  border-radius: var(--radius-small);
+  background: var(--color-surface-muted);
+}
+
+.clockScale article:nth-child(2) {
+  min-height: 10rem;
+}
+.clockScale article:nth-child(3) {
+  min-height: 12rem;
+}
+.clockScale article:nth-child(4) {
+  min-height: 14rem;
+  border-color: var(--color-accent-strong);
+}
+.clockScale article:nth-child(5) {
+  min-height: 16rem;
+}
+
+.clockScale span,
+.labeledParts small,
+.wordExamples small,
+.wordCards small,
+.disposition span {
+  display: block;
+  color: var(--color-ink-muted);
+  font-size: var(--font-size-x-small);
+}
+
+.generatedPassword span {
+  font-family: ui-monospace, monospace;
+  font-weight: var(--font-weight-bold);
+}
+
+.labeledParts > span {
+  display: grid;
+  gap: var(--space-1);
+}
+
+.wordExamples {
+  display: grid;
+  gap: var(--space-3);
+  margin: var(--space-5) 0;
+}
+
+.wordExamples code {
+  width: fit-content;
+  padding: var(--space-3);
+  border-radius: var(--radius-small);
+  background: var(--color-surface-muted);
+  font-size: var(--font-size-body);
+}
+
+.wordCards > span {
+  display: grid;
+  gap: var(--space-1);
+  color: var(--color-ink-strong);
+  font-family: ui-monospace, monospace;
+  font-weight: var(--font-weight-bold);
+}
+
+.applicationGrid {
+  margin: var(--space-5) 0;
+}
+
+.applicationGrid article {
+  min-height: 7rem;
+}
+
+.disposition {
+  display: grid;
+  gap: var(--space-1);
+  padding: var(--space-4);
+  border: var(--border-width-medium) solid var(--color-warning);
+  border-radius: var(--radius-small);
+  background: var(--color-warning-soft);
+}
+
+.summaryCards {
+  margin: var(--space-5) 0;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.summaryCards article {
+  border-width: var(--border-width-medium);
+}
+
+.summaryCards article[data-active="true"] {
+  border-color: var(--color-accent-strong);
+  box-shadow: 0 0 0 var(--border-width-thin) var(--color-accent-strong);
+}
+
+.summaryCards h3 {
+  margin: 0 0 var(--space-2);
+  color: var(--color-ink-strong);
+}
+
 .authoredBadge {
   width: fit-content;
   padding: var(--space-1) var(--space-2);
@@ -297,5 +573,24 @@
   .findingWorkspace,
   .structureWorkspace {
     grid-template-columns: minmax(0, 1fr);
+  }
+
+  .passwordComparison,
+  .applicationGrid,
+  .summaryCards,
+  .clockScale {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .estimateScale > div {
+    grid-template-columns: repeat(3, minmax(2.75rem, 1fr));
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .focusScene,
+  .applicationScene,
+  .summaryScene {
+    scroll-behavior: auto;
   }
 }

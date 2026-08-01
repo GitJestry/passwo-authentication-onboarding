@@ -10,6 +10,9 @@ import type {
   RuntimeStructureFinding,
 } from '@passwo/contracts';
 
+export * from './simulation-disposition.js';
+export * from './theoretical-search-space.js';
+
 export type {
   PasswordAnalysisResult,
   PasswordComparisonResult,

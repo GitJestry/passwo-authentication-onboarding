@@ -4,7 +4,80 @@ import {
   analyzeFictionalPassword,
   analyzeFictionalPasswordStructure,
   compareFictionalPasswords,
+  createLowercaseSearchSpaceModel,
+  createSystemGeneratedSearchSpaceModel,
+  createTheoreticalSearchSpaceModel,
+  determinePasswordSimulationDisposition,
 } from './index.js';
+
+describe('exact theoretical search-space demonstrations', () => {
+  it.each([
+    [8, 208_827_064_576n],
+    [12, 95_428_956_661_682_176n],
+    [14, 64_509_974_703_297_150_976n],
+    [15, 1_677_259_342_285_725_925_376n],
+    [16, 43_608_742_899_428_874_059_776n],
+  ] as const)(
+    'models 26 independently random lowercase characters at length %i',
+    (length, count) => {
+      const model = createLowercaseSearchSpaceModel(length);
+      expect(model).toMatchObject({
+        alphabetSize: 26,
+        length,
+        attemptsPerSecond: 1_000_000_000_000n,
+        totalCandidateCount: count,
+        exhaustiveSearchDuration: {
+          wholeSeconds: count / 1_000_000_000_000n,
+          remainingCandidates: count % 1_000_000_000_000n,
+          attemptsPerSecond: 1_000_000_000_000n,
+        },
+        assumptions: {
+          independentlyRandomCharacters: true,
+          fixedAlphabet: true,
+          exhaustiveSearch: true,
+        },
+      });
+    },
+  );
+
+  it('places the authored lowercase durations in their displayed ranges', () => {
+    const secondsPerDay = 86_400n;
+    const secondsPerYear = 31_557_600n;
+    expect(createLowercaseSearchSpaceModel(8).exhaustiveSearchDuration.wholeSeconds).toBe(0n);
+    expect(
+      createLowercaseSearchSpaceModel(12).exhaustiveSearchDuration.wholeSeconds,
+    ).toBeGreaterThan(secondsPerDay);
+    expect(
+      createLowercaseSearchSpaceModel(14).exhaustiveSearchDuration.wholeSeconds,
+    ).toBeGreaterThan(secondsPerYear * 2n);
+    expect(
+      createLowercaseSearchSpaceModel(15).exhaustiveSearchDuration.wholeSeconds,
+    ).toBeGreaterThan(secondsPerYear * 53n);
+    expect(
+      createLowercaseSearchSpaceModel(16).exhaustiveSearchDuration.wholeSeconds,
+    ).toBeGreaterThan(secondsPerYear * 1_000n);
+  });
+
+  it('models the authored 72-character demonstration exactly', () => {
+    const generated = createSystemGeneratedSearchSpaceModel(12);
+    const lowercase = createLowercaseSearchSpaceModel(15);
+    expect(generated.totalCandidateCount).toBe(19_408_409_961_765_342_806_016n);
+    expect(generated.totalCandidateCount).toBeGreaterThan(lowercase.totalCandidateCount);
+    expect(generated.totalCandidateCount * 10n).toBeGreaterThan(
+      lowercase.totalCandidateCount * 115n,
+    );
+    const completeYears = generated.exhaustiveSearchDuration.wholeSeconds / 31_557_600n;
+    expect(completeYears).toBe(615n);
+  });
+
+  it.each([
+    [{ alphabetSize: 0, length: 12, attemptsPerSecond: 1n }, 'alphabetSize'],
+    [{ alphabetSize: 26, length: 0, attemptsPerSecond: 1n }, 'length'],
+    [{ alphabetSize: 26, length: 12, attemptsPerSecond: 0n }, 'attemptsPerSecond'],
+  ] as const)('rejects invalid model parameter %s', (input, parameter) => {
+    expect(() => createTheoreticalSearchSpaceModel(input)).toThrow(parameter);
+  });
+});
 
 describe('local fictional password analysis', () => {
   it.each([
@@ -28,6 +101,55 @@ describe('local fictional password analysis', () => {
       }
     },
   );
+
+  it.each([
+    ['kurz', [], 'very-short-string'],
+    ['Passwort123!', [], 'common-password-core-with-typical-change'],
+    ['Campusgram2026!', ['Campusgram'], 'account-context-with-predictable-qualifier'],
+    ['KaffeeKaffeeKaffee7', [], 'clearly-repeated-explainable-structure'],
+  ] as const)(
+    'names a concrete quick path for %s',
+    (fictionalPassword, authoredAccountTerms, expectedRuleId) => {
+      const componentAnalysis = analyzeFictionalPassword({
+        fictionalPassword,
+        authoredAccountTerms,
+      });
+      const structureAnalysis = analyzeFictionalPasswordStructure({
+        fictionalPassword,
+        componentAnalysis,
+      });
+      expect(
+        determinePasswordSimulationDisposition({
+          fictionalPassword,
+          componentAnalysis,
+          structureAnalysis,
+        }),
+      ).toEqual({
+        kind: 'quick-path-recognized',
+        ruleId: expectedRuleId,
+        explanationId: `s05.disposition.${expectedRuleId}`,
+      });
+    },
+  );
+
+  it('uses the bounded no-quick-path disposition without inferring strength', () => {
+    const fictionalPassword = 'rQ7mL2vX9pK4';
+    const componentAnalysis = analyzeFictionalPassword({ fictionalPassword });
+    const structureAnalysis = analyzeFictionalPasswordStructure({
+      fictionalPassword,
+      componentAnalysis,
+    });
+    expect(
+      determinePasswordSimulationDisposition({
+        fictionalPassword,
+        componentAnalysis,
+        structureAnalysis,
+      }),
+    ).toEqual({
+      kind: 'no-quick-path-recognized',
+      explanationId: 's05.disposition.no-quick-path-recognized',
+    });
+  });
 
   it.each([
     [

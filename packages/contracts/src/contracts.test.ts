@@ -5,8 +5,10 @@ import reviewedInstrumentRuntimeManifest from '../../../research/derived/instrum
 import {
   type AuthoredPasswordComparisonFixture,
   type AuthoredStructureDemonstration,
+  type PasswordSimulationDisposition,
   type PasswordComparisonResult,
   type RuntimeStructureFinding,
+  type TheoreticalSearchSpaceModel,
   createSessionRequestSchema,
   designLabScenarioForPath,
   instrumentRuntimeManifest,
@@ -127,9 +129,7 @@ describe('research-safe contracts', () => {
   });
 
   it('uses only the neutral no-derived-path Design Lab route', () => {
-    expect(designLabScenarioForPath('/design-lab/s06-no-derived-path')).toBe(
-      's06-no-derived-path',
-    );
+    expect(designLabScenarioForPath('/design-lab/s06-no-derived-path')).toBe('s06-no-derived-path');
     expect(designLabScenarioForPath('/design-lab/s06-unique')).toBeNull();
   });
 
@@ -210,6 +210,37 @@ describe('research-safe contracts', () => {
     expect(finding.kind).toBe('runtimeStructureFinding');
     expect(Object.keys(finding)).not.toEqual(
       expect.arrayContaining(['relation', 'title', 'connectionLabel', 'passWoExplanation']),
+    );
+  });
+
+  it('keeps theoretical demonstrations exact and dispositions explicitly bounded', () => {
+    const model: TheoreticalSearchSpaceModel = {
+      kind: 'theoretical-search-space-model',
+      alphabetSize: 26,
+      length: 15,
+      attemptsPerSecond: 1_000_000_000_000n,
+      totalCandidateCount: 1_677_259_342_285_725_925_376n,
+      exhaustiveSearchDuration: {
+        wholeSeconds: 1_677_259_342n,
+        remainingCandidates: 285_725_925_376n,
+        attemptsPerSecond: 1_000_000_000_000n,
+      },
+      assumptions: {
+        independentlyRandomCharacters: true,
+        fixedAlphabet: true,
+        exhaustiveSearch: true,
+      },
+    };
+    const disposition: PasswordSimulationDisposition = {
+      kind: 'no-quick-path-recognized',
+      explanationId: 's05.disposition.no-quick-path-recognized',
+    };
+
+    expect(typeof model.totalCandidateCount).toBe('bigint');
+    expect(model.exhaustiveSearchDuration.wholeSeconds).toBe(1_677_259_342n);
+    expect(disposition.kind).toBe('no-quick-path-recognized');
+    expect(Object.keys(disposition)).not.toEqual(
+      expect.arrayContaining(['score', 'crackTime', 'effectiveLength', 'entropy']),
     );
   });
 
