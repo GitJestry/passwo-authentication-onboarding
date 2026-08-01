@@ -95,7 +95,7 @@ function CampusStartTimeLapse({
       }
     >
       <CampusWebsiteBackdrop
-        accountId="campus-id"
+        accountId="master-campus"
         interactionLabel="Fiktiver Campusalltag im Zeitraffer"
       >
         <section className={styles.campusActivity} aria-hidden="true">
@@ -158,10 +158,10 @@ export function S03InitialBrowserSurface({
   if (account === undefined) return null;
   const campusIdentity = deriveCampusIdentity(displayName);
   const accountIdentifier =
-    account.id === 'campus-id'
-      ? campusIdentity.campusId
-      : account.id === 'campus-mail'
-        ? campusIdentity.campusMail
+    account.id === 'master-campus'
+      ? campusIdentity.masterCampus
+      : account.id === 'campus-email'
+        ? campusIdentity.campusEmail
         : campusIdentity.campusgram;
   const browserSnapshot: BrowserShellSnapshot = {
     tabs: s01Content.browser.accounts.map((tabAccount) => ({
@@ -252,7 +252,7 @@ export function S03RetrievalTraining({
   );
   const initialAccountId =
     s01Content.browser.accounts.find(({ id }) => id === snapshot.context.activeAccountId)?.id ??
-    'campus-id';
+    'master-campus';
 
   useEffect(() => {
     let retrievalController: S03RetrievalController | null = null;
@@ -308,18 +308,23 @@ export function S03RetrievalTraining({
   const announcement = presentationSnapshot?.presentation.announcedMessageId ?? null;
   const timeLapseActive =
     timeLapsePhaseActive && announcement === 's03.completion.timeskip';
-  const boardWarningActive =
-    timeLapsePhaseActive && announcement === 's03.campus-board.warning';
+  const campusgramWarningActive =
+    timeLapsePhaseActive && announcement === 's03.campusgram.warning';
 
   useEffect(() => {
-    if (assistanceActive || completionFeedbackActive || campusStartActive || boardWarningActive) {
+    if (
+      assistanceActive ||
+      completionFeedbackActive ||
+      campusStartActive ||
+      campusgramWarningActive
+    ) {
       setGuideOpen(true);
       return;
     }
     if (timeLapsePhaseActive) setGuideOpen(false);
   }, [
     assistanceActive,
-    boardWarningActive,
+    campusgramWarningActive,
     campusStartActive,
     completionFeedbackActive,
     timeLapsePhaseActive,
@@ -377,11 +382,11 @@ export function S03RetrievalTraining({
   const thirdAttemptGuideActive =
     thirdAttemptGuideAccountId === account.id && result === 'pending';
   const campusIdentity = deriveCampusIdentity(snapshot.context.displayName ?? '');
-  const accountData =
-    account.id === 'campus-id'
-      ? campusIdentity.campusId
-      : account.id === 'campus-mail'
-        ? campusIdentity.campusMail
+  const accountIdentifier =
+    account.id === 'master-campus'
+      ? campusIdentity.masterCampus
+      : account.id === 'campus-email'
+        ? campusIdentity.campusEmail
         : campusIdentity.campusgram;
   const accountPage = s03Content.accountPages[account.id];
   const isStarting = snapshot.matches({ s03: 'starting' });
@@ -413,8 +418,8 @@ export function S03RetrievalTraining({
         ? `${account.address}/dashboard`
         : account.address;
   const warningConfirmationAvailable =
-    presentationSnapshot.warningState === 'ready' && boardWarningActive;
-  const guideContent = boardWarningActive
+    presentationSnapshot.warningState === 'ready' && campusgramWarningActive;
+  const guideContent = campusgramWarningActive
     ? { message: s03Content.narration.warning, emphasisId: 's03.warning' }
     : assistanceActive
       ? { message: s03Content.narration.retrievalHelp, emphasisId: 's03.retrieval-help' }
@@ -447,7 +452,7 @@ export function S03RetrievalTraining({
                     }
                   : { message: s03Content.narration.intro, emphasisId: 's03.intro' };
   const guideMessage = guideContent.message;
-  const guidePhase = boardWarningActive
+  const guidePhase = campusgramWarningActive
     ? 'warning'
     : assistanceActive
       ? 'assistance'
@@ -481,20 +486,22 @@ export function S03RetrievalTraining({
       label: tabAccount.label,
       icon: <NetworkSymbol symbolId={tabAccount.symbolId} />,
       enabled: !interactionBlocked,
-      ...(boardWarningActive && tabAccount.id === 'campus-board-archive'
+      ...(campusgramWarningActive && tabAccount.id === 'campusgram'
         ? { status: 'danger' as const }
         : snapshot.context.retrievalResults[tabAccount.id] === 'retrievable' ||
             snapshot.context.retrievalResults[tabAccount.id] === 'assisted'
           ? { status: 'complete' as const }
           : {}),
     })),
-    activeTabId: completionSequenceActive ? 'campus-id' : account.id,
+    activeTabId: completionSequenceActive ? 'master-campus' : account.id,
     address:
       completionSequenceActive
-        ? (s01Content.browser.accounts.find(({ id }) => id === 'campus-id')?.address ??
+        ? (s01Content.browser.accounts.find(({ id }) => id === 'master-campus')?.address ??
           account.address)
         : pageAddress,
-    accountIdentifier: completionSequenceActive ? campusIdentity.campusId : accountData,
+    accountIdentifier: completionSequenceActive
+      ? campusIdentity.masterCampus
+      : accountIdentifier,
     scrollKey: completionSequenceActive
       ? `s03:completion:${announcement ?? 'starting'}`
       : `s03:${account.id}:${websiteView}`,
@@ -628,7 +635,7 @@ export function S03RetrievalTraining({
             <section
               className={styles.completionStage}
               data-timeskip={timeLapseActive}
-              data-board-warning={boardWarningActive}
+              data-campusgram-warning={campusgramWarningActive}
             >
               <h1 id="s03-page-title" className={styles.screenReaderOnly}>
                 {s03Content.page.title}
@@ -642,7 +649,7 @@ export function S03RetrievalTraining({
               >
                 <CampusStartTimeLapse
                   running={timeLapsePhaseActive}
-                  warning={boardWarningActive}
+                  warning={campusgramWarningActive}
                 />
               </div>
             </section>
@@ -748,7 +755,7 @@ export function S03RetrievalTraining({
                         className={styles.usernameInput}
                         name={`s03-username-${account.id}`}
                         type="text"
-                        value={accountData}
+                        value={accountIdentifier}
                         readOnly
                         aria-readonly="true"
                       />

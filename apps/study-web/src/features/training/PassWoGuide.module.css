@@ -15,19 +15,19 @@
     left 580ms var(--motion-ease-out);
 }
 
-.guide[data-guided-account="campus-id"] {
+.guide[data-guided-account="master-campus"] {
   top: -4.7rem;
   bottom: auto;
   left: clamp(15rem, 25vw, 23rem);
 }
 
-.guide[data-guided-account="campus-mail"] {
+.guide[data-guided-account="campus-email"] {
   top: -4.7rem;
   bottom: auto;
   left: clamp(21rem, 38vw, 33rem);
 }
 
-.guide[data-guided-account="campus-board-archive"] {
+.guide[data-guided-account="campusgram"] {
   top: -4.7rem;
   bottom: auto;
   left: clamp(26rem, 51vw, 42rem);

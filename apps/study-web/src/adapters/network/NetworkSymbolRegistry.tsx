@@ -6,10 +6,9 @@ interface NetworkSymbolProps {
 }
 
 const symbolIdByNodeId: Readonly<Record<string, string>> = {
-  'campus-id': 'campus-id',
-  'campus-mail': 'campus-mail',
-  'campus-board': 'campus-board-archive',
-  'campus-board-archive': 'campus-board-archive',
+  'master-campus': 'master-campus',
+  'campus-email': 'campus-email',
+  'campusgram': 'campusgram',
 };
 
 const detailSymbolIds = new Set([
@@ -33,7 +32,7 @@ export function resolveNetworkSymbolId(node: Pick<SceneNode, 'id' | 'kind' | 'sy
 
 function SymbolPaths({ symbolId }: Pick<NetworkSymbolProps, 'symbolId'>) {
   switch (symbolId) {
-    case 'campus-id':
+    case 'master-campus':
       return (
         <>
           <path
@@ -53,7 +52,7 @@ function SymbolPaths({ symbolId }: Pick<NetworkSymbolProps, 'symbolId'>) {
           />
         </>
       );
-    case 'campus-mail':
+    case 'campus-email':
       return (
         <>
           <circle cx="12" cy="12" r="9.3" stroke="#e97716" strokeWidth="1.35" />
@@ -69,7 +68,7 @@ function SymbolPaths({ symbolId }: Pick<NetworkSymbolProps, 'symbolId'>) {
           <path d="m6.8 9 5.2 4 5.2-4" stroke="#e97716" strokeWidth="1.35" />
         </>
       );
-    case 'campus-board-archive':
+    case 'campusgram':
       return (
         <>
           <defs>

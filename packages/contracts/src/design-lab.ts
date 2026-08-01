@@ -8,7 +8,7 @@ export const designLabScenarioIdSchema = z.enum([
   'passwo-overlay',
   's00',
   's01',
-  's02-campus-id',
+  's02-master-campus',
   's03',
   's06-identical',
   's06-similar',
@@ -25,7 +25,7 @@ export type TrainingQaSegment = z.infer<typeof trainingQaSegmentSchema>;
 const designLabScenarioByTrainingQaSegment = {
   s00: 's00',
   s01: 's01',
-  s02: 's02-campus-id',
+  s02: 's02-master-campus',
   s03: 's03',
 } as const satisfies Readonly<Record<TrainingQaSegment, DesignLabScenarioId>>;
 

@@ -84,9 +84,9 @@ export function S01Training({
   );
   const [browserOpen, setBrowserOpen] = useState(true);
   const [desktopTransitioning, setDesktopTransitioning] = useState(false);
-  const account =
-    s01Content.browser.accounts.find(({ id }) => id === snapshot.context.activeAccountId) ??
-    s01Content.browser.accounts[0];
+  const account = s01Content.browser.accounts.find(
+    ({ id }) => id === snapshot.context.activeAccountId,
+  );
   const accountConfigured =
     account !== undefined && snapshot.context.configuredAccountIds.includes(account.id);
   const readyToContinue = isReadyToContinue(snapshot);
@@ -127,11 +127,11 @@ export function S01Training({
   const timingFailure = externalTimingError !== null || localTimingFailure;
   const activeValue = snapshot.context.passwordValues[account.id] ?? '';
   const campusIdentity = deriveCampusIdentity(snapshot.context.displayName ?? '');
-  const accountData =
-    account.id === 'campus-id'
-      ? campusIdentity.campusId
-      : account.id === 'campus-mail'
-        ? campusIdentity.campusMail
+  const accountIdentifier =
+    account.id === 'master-campus'
+      ? campusIdentity.masterCampus
+      : account.id === 'campus-email'
+        ? campusIdentity.campusEmail
         : campusIdentity.campusgram;
   const canConfigure =
     editing && !accountConfigured && activeValue.length > 0 && !interactionBlocked;
@@ -158,7 +158,7 @@ export function S01Training({
     })),
     activeTabId: account.id,
     address: pageAddress,
-    accountIdentifier: accountData,
+    accountIdentifier,
     scrollKey: `s01:${account.id}:${websiteView}`,
     dimmed: questHelpOpen && !readyToContinue,
     dimStrength: 'soft',
@@ -301,7 +301,7 @@ export function S01Training({
               <dl className={styles.accountDetails}>
                 <div>
                   <dt>{account.accountDataLabel}</dt>
-                  <dd>{accountData}</dd>
+                  <dd>{accountIdentifier}</dd>
                 </div>
               </dl>
               <form

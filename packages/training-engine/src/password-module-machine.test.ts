@@ -5,7 +5,7 @@ import {
   passwordModuleMachine,
 } from './password-module-machine.js';
 
-const accountIds = ['campus-id', 'campus-mail', 'campus-board-archive'] as const;
+const accountIds = ['master-campus', 'campus-email', 'campusgram'] as const;
 
 function createModuleActor() {
   const actor = createActor(passwordModuleMachine, { input: { accountIds } });
@@ -57,9 +57,9 @@ describe('passwordModuleMachine', () => {
     configureAllAccounts(actor);
     startS03(actor);
 
-    completeAssistedLogin(actor, 'campus-id');
-    completeAssistedLogin(actor, 'campus-mail');
-    completeAssistedLogin(actor, 'campus-board-archive');
+    completeAssistedLogin(actor, 'master-campus');
+    completeAssistedLogin(actor, 'campus-email');
+    completeAssistedLogin(actor, 'campusgram');
     finishS03(actor);
 
     expect(actor.getSnapshot().matches('awaitingS04')).toBe(true);
@@ -69,41 +69,45 @@ describe('passwordModuleMachine', () => {
   it('preserves transient S03 data until discard', () => {
     const actor = createModuleActor();
     const values = {
-      'campus-id': 'id!?',
-      'campus-mail': 'mail#$',
-      'campus-board-archive': 'board_Ä',
+      'master-campus': '  id 🙂!?  ',
+      'campus-email': 'mail 🧭 #$',
+      'campusgram': 'gram_Ä 🐾',
     } as const;
     for (const [accountId, value] of Object.entries(values)) {
       actor.send({ type: 'SET_PASSWORD_VALUE', accountId, value });
       actor.send({ type: 'CONFIGURE_ACCOUNT', accountId });
     }
     startS03(actor);
-    actor.send({ type: 'SET_RETRIEVAL_PASSWORD_VALUE', accountId: 'campus-id', value: 'id!?' });
-    actor.send({ type: 'SUBMIT_RETRIEVAL_LOGIN', accountId: 'campus-id' });
-    completeAssistedLogin(actor, 'campus-mail');
-    completeAssistedLogin(actor, 'campus-board-archive');
+    actor.send({
+      type: 'SET_RETRIEVAL_PASSWORD_VALUE',
+      accountId: 'master-campus',
+      value: '  id 🙂!?  ',
+    });
+    actor.send({ type: 'SUBMIT_RETRIEVAL_LOGIN', accountId: 'master-campus' });
+    completeAssistedLogin(actor, 'campus-email');
+    completeAssistedLogin(actor, 'campusgram');
     finishS03(actor);
 
     expect(actor.getSnapshot().matches('awaitingS04')).toBe(true);
     expect(actor.getSnapshot().context.passwordValues).toEqual(values);
     expect(actor.getSnapshot().context.retrievalResults).toEqual({
-      'campus-id': 'retrievable',
-      'campus-mail': 'assisted',
-      'campus-board-archive': 'assisted',
+      'master-campus': 'retrievable',
+      'campus-email': 'assisted',
+      'campusgram': 'assisted',
     });
 
     actor.send({ type: 'DISCARD' });
 
     expect(actor.getSnapshot().matches('discarded')).toBe(true);
     expect(actor.getSnapshot().context.passwordValues).toEqual({
-      'campus-id': '',
-      'campus-mail': '',
-      'campus-board-archive': '',
+      'master-campus': '',
+      'campus-email': '',
+      'campusgram': '',
     });
     expect(actor.getSnapshot().context.retrievalResults).toEqual({
-      'campus-id': 'pending',
-      'campus-mail': 'pending',
-      'campus-board-archive': 'pending',
+      'master-campus': 'pending',
+      'campus-email': 'pending',
+      'campusgram': 'pending',
     });
   });
 
@@ -112,18 +116,18 @@ describe('passwordModuleMachine', () => {
     configureAllAccounts(actor);
     startS03(actor);
 
-    actor.send({ type: 'SET_RETRIEVAL_PASSWORD_VALUE', accountId: 'campus-mail', value: 'wrong' });
-    actor.send({ type: 'SUBMIT_RETRIEVAL_LOGIN', accountId: 'campus-mail' });
-    completeAssistedLogin(actor, 'campus-mail');
+    actor.send({ type: 'SET_RETRIEVAL_PASSWORD_VALUE', accountId: 'campus-email', value: 'wrong' });
+    actor.send({ type: 'SUBMIT_RETRIEVAL_LOGIN', accountId: 'campus-email' });
+    completeAssistedLogin(actor, 'campus-email');
     actor.send({
       type: 'SET_RETRIEVAL_PASSWORD_VALUE',
-      accountId: 'campus-board-archive',
-      value: 'campus-board-archive!?',
+      accountId: 'campusgram',
+      value: 'campusgram!?',
     });
-    actor.send({ type: 'SUBMIT_RETRIEVAL_LOGIN', accountId: 'campus-board-archive' });
+    actor.send({ type: 'SUBMIT_RETRIEVAL_LOGIN', accountId: 'campusgram' });
 
-    expect(actor.getSnapshot().context.retrievalResults['campus-mail']).toBe('assisted');
-    expect(actor.getSnapshot().context.retrievalResults['campus-board-archive']).toBe('retrievable');
+    expect(actor.getSnapshot().context.retrievalResults['campus-email']).toBe('assisted');
+    expect(actor.getSnapshot().context.retrievalResults['campusgram']).toBe('retrievable');
     expect(getRetrievedAccountCount(actor.getSnapshot().context)).toBe(2);
   });
 });

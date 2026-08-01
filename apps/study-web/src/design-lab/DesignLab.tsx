@@ -59,7 +59,7 @@ function readCampusWebsitePreview(): {
   const parameters = new URLSearchParams(window.location.search);
   const requestedAccountId = parameters.get('account');
   const requestedView = parameters.get('view');
-  const accountId = s01AccountIds.find((candidate) => candidate === requestedAccountId) ?? 'campus-id';
+  const accountId = s01AccountIds.find((candidate) => candidate === requestedAccountId) ?? 'master-campus';
   const view =
     requestedView === 'auth' || requestedView === 'dashboard' ? requestedView : 'landing';
   return { accountId, view };
@@ -163,7 +163,7 @@ const scenarios: Record<DesignLabScenarioId, DesignLabScenario> = {
     dimmed: false,
     showPassWoOverlay: false,
   },
-  's02-campus-id': {
+  's02-master-campus': {
     label: 'S02 Konten',
     description: 'Vollständige Kontenerkundung mit drei Konten und ihrem freien Fortschritt.',
     dimmed: false,
@@ -523,7 +523,7 @@ export function DesignLab({ scenarioId }: { readonly scenarioId: DesignLabScenar
     );
   }
 
-  if (scenarioId === 's02-campus-id') {
+  if (scenarioId === 's02-master-campus') {
     return (
       <main className={styles.labPage}>
         <DesignLabIntroduction scenarioId={scenarioId} scenario={scenario} />

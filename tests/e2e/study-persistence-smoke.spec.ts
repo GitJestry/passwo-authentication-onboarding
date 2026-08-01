@@ -99,7 +99,7 @@ async function completeSupportiveArtifact(page: Page): Promise<void> {
   for (const [account, password] of [
     ['Master Campus', 'id!?'],
     ['Campus E-Mail', 'mail!?'],
-    ['Campusgram', 'board!?'],
+    ['Campusgram', 'gram!?'],
   ] as const) {
     await page.getByRole('tab', { name: account }).click();
     await page.getByLabel('Fiktives Passwort').fill(password);

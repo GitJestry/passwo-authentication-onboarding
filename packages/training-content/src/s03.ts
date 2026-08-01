@@ -93,7 +93,7 @@ export interface S03SegmentContent {
   readonly animations: readonly S03AnimationSequence[];
 }
 
-export const S03_CONTENT_VERSION = '1.10.0';
+export const S03_CONTENT_VERSION = '1.11.0';
 
 const resultAnimation = (
   accountId: S01AccountId,
@@ -114,18 +114,18 @@ const resultAnimation = (
 });
 
 const animations = [
-  resultAnimation('campus-id', [
-    'campus-id-workspace',
-    'campus-id-services',
-    'campus-id-campus-cloud',
+  resultAnimation('master-campus', [
+    'master-campus-workspace',
+    'master-campus-services',
+    'master-campus-campus-cloud',
   ]),
-  resultAnimation('campus-mail', [
-    'campus-mail-notifications',
-    'campus-mail-confirmations',
-    'campus-mail-reset-links',
-    'campus-mail-impersonation',
+  resultAnimation('campus-email', [
+    'campus-email-notifications',
+    'campus-email-confirmations',
+    'campus-email-reset-links',
+    'campus-email-impersonation',
   ]),
-  resultAnimation('campus-board-archive', [
+  resultAnimation('campusgram', [
     'campusgram-direct-messages',
     'campusgram-groups-contacts',
     'campusgram-posts-reactions',
@@ -135,7 +135,7 @@ const animations = [
     steps: [
       { type: 'announce', messageId: 's03.completion.timeskip' },
       { type: 'pause', durationMs: 5_000 },
-      { type: 'announce', messageId: 's03.campus-board.warning' },
+      { type: 'announce', messageId: 's03.campusgram.warning' },
     ],
     reducedMotion: { strategy: 'instant-end-state', maxDurationMs: 0 },
     maxDurationMs: 5_000,
@@ -182,14 +182,14 @@ export const s03Content: S03SegmentContent = {
     guideName: 'PassWo',
     intro: 'Melde dich jetzt mit den eben gewählten Passwörtern erneut an.',
     accountSuccess: {
-      'campus-id': 'Master Campus ist wieder geöffnet.',
-      'campus-mail': 'Campus E-Mail ist wieder geöffnet.',
-      'campus-board-archive': 'Campusgram ist wieder geöffnet.',
+      'master-campus': 'Master Campus ist wieder geöffnet.',
+      'campus-email': 'Campus E-Mail ist wieder geöffnet.',
+      'campusgram': 'Campusgram ist wieder geöffnet.',
     },
     accountAssisted: {
-      'campus-id': 'Master Campus ist mit Unterstützung wieder geöffnet.',
-      'campus-mail': 'Campus E-Mail ist mit Unterstützung wieder geöffnet.',
-      'campus-board-archive': 'Campusgram ist mit Unterstützung wieder geöffnet.',
+      'master-campus': 'Master Campus ist mit Unterstützung wieder geöffnet.',
+      'campus-email': 'Campus E-Mail ist mit Unterstützung wieder geöffnet.',
+      'campusgram': 'Campusgram ist mit Unterstützung wieder geöffnet.',
     },
     thirdFailedLogin:
       'Wenn du dich nicht an das richtige Passwort erinnern kannst, klicke als Lösung auf „Passwort vergessen?“.',
@@ -206,12 +206,12 @@ export const s03Content: S03SegmentContent = {
       'Warte, bei Campusgram gibt es eine Warnung. Kannst du sie dir bitte ansehen?',
   },
   accountLoginTitles: {
-    'campus-id': 'Melde dich bei Master Campus an.',
-    'campus-mail': 'Melde dich bei Campus E-Mail an.',
-    'campus-board-archive': 'Melde dich bei Campusgram an.',
+    'master-campus': 'Melde dich bei Master Campus an.',
+    'campus-email': 'Melde dich bei Campus E-Mail an.',
+    'campusgram': 'Melde dich bei Campusgram an.',
   },
   accountPages: {
-    'campus-id': {
+    'master-campus': {
       areaLabel: 'Campuszugang',
       signedInLabel: 'Angemeldet',
       modules: [
@@ -219,7 +219,7 @@ export const s03Content: S03SegmentContent = {
         { label: 'Dienste', value: 'Campus Workspace · Campus Services · Campus Cloud' },
       ],
     },
-    'campus-mail': {
+    'campus-email': {
       areaLabel: 'Posteingang',
       signedInLabel: 'Angemeldet',
       modules: [
@@ -227,7 +227,7 @@ export const s03Content: S03SegmentContent = {
         { label: 'Heute', value: 'Bestätigungen · Benachrichtigungen' },
       ],
     },
-    'campus-board-archive': {
+    'campusgram': {
       areaLabel: 'Community und Austausch',
       signedInLabel: 'Angemeldet',
       modules: [

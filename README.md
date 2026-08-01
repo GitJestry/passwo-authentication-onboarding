@@ -98,13 +98,13 @@ Zählungen und SHA-256-Prüfsummen.
 
 `/design-lab` ist ein interner QA-Pfad für deterministische, vom Studienablauf isolierte Szenen,
 Barrierefreiheitsprüfungen und visuelle Regression. Dazu gehören BrowserShell- und
-PassWo-Zustände sowie die S00-, S02-CampusID- und S06-Fixtures. Das Design Lab ist kein
+PassWo-Zustände sowie die S00-, S02-Master-Campus- und S06-Fixtures. Das Design Lab ist kein
 Auslieferungspfad, speichert keine Forschungsdaten und ersetzt keine vollständige
 Segmentnavigation.
 
-Die Campus-Websites lassen sich in S01 und S03 mit `account=campus-id|campus-mail|campus-board-archive`
+Die Campus-Websites lassen sich in S01 und S03 mit `account=master-campus|campus-email|campusgram`
 und `view=landing|auth|dashboard` direkt aufrufen. S00 verwendet denselben `account`-Parameter für
-die jeweilige Landingpage, zum Beispiel `/design-lab/s01?account=campus-mail&view=dashboard`.
+die jeweilige Landingpage, zum Beispiel `/design-lab/s01?account=campus-email&view=dashboard`.
 
 Für einen direkten, ausschließlich lokalen QA-Einstieg in ein Trainingssegment kann der
 Desktop-Entwicklungsstart mit `PASSWO_QA_SEGMENT` aufgerufen werden. Dabei werden weder eine

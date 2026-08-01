@@ -61,7 +61,7 @@ export interface S00SegmentContent {
     readonly openGuideLabel: string;
     readonly closeGuideLabel: string;
     readonly accountExplanations: readonly {
-      readonly accountId: 'campus-mail' | 'campus-board-archive';
+      readonly accountId: 'campus-email' | 'campusgram';
       readonly text: string;
     }[];
   };
@@ -88,7 +88,7 @@ export interface S00SegmentContent {
   };
 }
 
-export const S00_CONTENT_VERSION = '1.14.0';
+export const S00_CONTENT_VERSION = '1.15.0';
 
 export const s00Content: S00SegmentContent = {
   version: S00_CONTENT_VERSION,
@@ -123,9 +123,9 @@ export const s00Content: S00SegmentContent = {
     ariaLabel: 'Fiktive Browseranwendung, Segment S00',
     address: 'campus.example/start',
     tabs: [
-      { id: 'campus-id', label: 'Master Campus', enabled: true },
-      { id: 'campus-mail', label: 'Campus E-Mail', enabled: false },
-      { id: 'campus-board-archive', label: 'Campusgram', enabled: false },
+      { id: 'master-campus', label: 'Master Campus', enabled: true },
+      { id: 'campus-email', label: 'Campus E-Mail', enabled: false },
+      { id: 'campusgram', label: 'Campusgram', enabled: false },
     ],
     page: {
       title: 'Zentraler Zugang zum Campus',
@@ -150,11 +150,11 @@ export const s00Content: S00SegmentContent = {
       'Das ist dein Browser. Bevor du die Passwörter erstellst, erkläre ich dir kurz, wofür die drei Konten überhaupt stehen.\n\nMaster Campus ist dein zentraler Zugang. Mit dem Konto meldest du dich auch bei Campus Workspace für Projekt- und Arbeitsräume, Campus Services für Anträge, Termine und Dokumente sowie Campus Cloud für persönliche Dateien, Notizen und Entwürfe an.',
     accountExplanations: [
       {
-        accountId: 'campus-mail',
+        accountId: 'campus-email',
         text: 'Campus E-Mail ist dein Postfach für Campus-Nachrichten, Bestätigungen und Zurücksetzungslinks.',
       },
       {
-        accountId: 'campus-board-archive',
+        accountId: 'campusgram',
         text: 'Campusgram ist ein Community-Konto für persönliche Direktnachrichten, Gruppen und Kontakte sowie Beiträge und Reaktionen.',
       },
     ],

@@ -201,12 +201,12 @@
   --emphasis-color: var(--color-accent-strong);
 }
 
-.emphasis[data-emphasis-tone="campus-id"] {
-  --emphasis-color: var(--color-campus-id);
+.emphasis[data-emphasis-tone="master-campus"] {
+  --emphasis-color: var(--color-master-campus);
 }
 
-.emphasis[data-emphasis-tone="campus-mail"] {
-  --emphasis-color: var(--color-campus-mail);
+.emphasis[data-emphasis-tone="campus-email"] {
+  --emphasis-color: var(--color-campus-email);
 }
 
 .emphasis[data-emphasis-tone="campusgram"] {

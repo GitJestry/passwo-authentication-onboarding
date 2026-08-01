@@ -11,7 +11,7 @@ import {
 } from 'motion';
 import { createInitialS00SceneSnapshot, type S00SceneSnapshot } from './s00-scene.js';
 
-export interface MotionAnimationAdapterOptions {
+export interface S00MotionAnimationAdapterOptions {
   readonly applySnapshot: (snapshot: S00SceneSnapshot) => void;
   readonly getCharacterElement: () => HTMLElement | null;
   readonly getRevealTargetElement: (targetId: string) => HTMLElement | null;
@@ -27,7 +27,7 @@ function moveTransform(step: Extract<AnimationStep, { readonly type: 'move-chara
   return step.to === 'center' ? 'translate3d(120vw, 0, 0)' : 'translate3d(46vw, -34vh, 0)';
 }
 
-export class MotionAnimationAdapter implements AnimationPlayerPort {
+export class S00MotionAnimationAdapter implements AnimationPlayerPort {
   readonly #applySnapshot: (snapshot: S00SceneSnapshot) => void;
   readonly #getCharacterElement: () => HTMLElement | null;
   readonly #getRevealTargetElement: (targetId: string) => HTMLElement | null;
@@ -44,7 +44,7 @@ export class MotionAnimationAdapter implements AnimationPlayerPort {
     getRevealTargetElement,
     prefersReducedMotion,
     forceFailure = false,
-  }: MotionAnimationAdapterOptions) {
+  }: S00MotionAnimationAdapterOptions) {
     this.#applySnapshot = applySnapshot;
     this.#getCharacterElement = getCharacterElement;
     this.#getRevealTargetElement = getRevealTargetElement;

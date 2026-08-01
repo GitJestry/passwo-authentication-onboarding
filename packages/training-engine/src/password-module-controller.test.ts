@@ -7,18 +7,18 @@ function flushMicrotasks(): Promise<void> {
 }
 
 function configureAllAccounts(controller: PasswordModuleController): void {
-  controller.setPasswordValue('campus-board-archive', 'three');
-  controller.configureAccount('campus-board-archive');
-  controller.setPasswordValue('campus-id', 'one');
-  controller.configureAccount('campus-id');
-  controller.setPasswordValue('campus-mail', 'two');
-  controller.configureAccount('campus-mail');
+  controller.setPasswordValue('campusgram', 'three');
+  controller.configureAccount('campusgram');
+  controller.setPasswordValue('master-campus', 'one');
+  controller.configureAccount('master-campus');
+  controller.setPasswordValue('campus-email', 'two');
+  controller.configureAccount('campus-email');
 }
 
 function completeS03(controller: PasswordModuleController): void {
-  controller.setRetrievalPasswordValue('campus-board-archive', 'three');
-  controller.submitRetrievalLogin('campus-board-archive');
-  for (const accountId of ['campus-id', 'campus-mail'] as const) {
+  controller.setRetrievalPasswordValue('campusgram', 'three');
+  controller.submitRetrievalLogin('campusgram');
+  for (const accountId of ['master-campus', 'campus-email'] as const) {
     controller.skipRetrieval(accountId);
     controller.startAssistedLogin(accountId);
     controller.completeAssistedAutofill(accountId);
@@ -33,7 +33,7 @@ describe('PasswordModuleController', () => {
   it('records S01–S03 boundaries and awaits S04 after the final segment end', async () => {
     const timingEvents: SegmentTimingEvent[] = [];
     const controller = new PasswordModuleController({
-      accountIds: ['campus-id', 'campus-mail', 'campus-board-archive'],
+      accountIds: ['master-campus', 'campus-email', 'campusgram'],
       timingPort: {
         record: async (event) => {
           timingEvents.push(event);
@@ -71,7 +71,7 @@ describe('PasswordModuleController', () => {
     const timingEvents: SegmentTimingEvent[] = [];
     const failedBoundaries = new Set(['S03:segment-start', 'S03:segment-end']);
     const controller = new PasswordModuleController({
-      accountIds: ['campus-id', 'campus-mail', 'campus-board-archive'],
+      accountIds: ['master-campus', 'campus-email', 'campusgram'],
       timingPort: {
         record: async (event) => {
           timingEvents.push(event);

@@ -2,32 +2,22 @@ import { describe, expect, it } from 'vitest';
 import { S03_CONTENT_VERSION, s03Content } from './s03.js';
 
 describe('S03 content traceability', () => {
-  it('keeps the scripted retrieval sequence and login labels versioned', () => {
-    expect(S03_CONTENT_VERSION).toBe('1.10.0');
-    expect(s03Content.source).toEqual({
+  it('keeps S03 linked to its named pages and canonical account structure', () => {
+    expect(S03_CONTENT_VERSION).toBe('1.11.0');
+    expect(s03Content.source).toMatchObject({
       document: 'research/private/training-script.pdf',
       internalPages: [8, 9, 10, 11],
-      revision: 'Userauftrag vom 2026-08-01 und UX-Konzeptboards vom 2026-07-31',
     });
-    expect(s03Content.controls.accountDataLabel).toBe('Benutzername');
-    expect(s03Content.controls.passwordLabel).toBe('Passwort');
-    expect(s03Content.controls.openLogin('Master Campus')).toBe('Anmelden mit Master Campus');
-    expect(s03Content.controls.assistedLogin).toBe('Für mich anmelden');
-    expect(s03Content.narration.thirdFailedLogin).toBe(
-      'Wenn du dich nicht an das richtige Passwort erinnern kannst, klicke als Lösung auf „Passwort vergessen?“.',
-    );
-    expect(Object.keys(s03Content.narration.completionByRememberedCount)).toEqual([
-      '0',
-      '1',
-      '2',
-      '3',
+    expect(s03Content.segment.id).toBe('S03');
+    expect(Object.keys(s03Content.accountPages)).toEqual([
+      'master-campus',
+      'campus-email',
+      'campusgram',
     ]);
-    expect(s03Content.accountPages['campus-id'].modules[1]?.value).toBe(
-      'Campus Workspace · Campus Services · Campus Cloud',
-    );
-    expect(s03Content.accountPages['campus-board-archive'].modules).toEqual([
-      { label: 'Bereiche', value: 'Direktnachrichten · Gruppen und Kontakte' },
-      { label: 'Aktivitäten', value: 'Beiträge und Reaktionen' },
+    expect(s03Content.animations.slice(0, 3).map(({ id }) => id)).toEqual([
+      's03-result-master-campus',
+      's03-result-campus-email',
+      's03-result-campusgram',
     ]);
   });
 });

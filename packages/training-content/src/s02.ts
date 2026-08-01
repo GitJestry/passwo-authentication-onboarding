@@ -1,6 +1,6 @@
 import type { TrainingSectionId } from '@passwo/contracts';
 
-export const s02AccountIds = ['campus-id', 'campus-mail', 'campus-board-archive'] as const;
+export const s02AccountIds = ['master-campus', 'campus-email', 'campusgram'] as const;
 export type S02AccountId = (typeof s02AccountIds)[number];
 export type S02VisualPreviewKind =
   | 'campus-workspace'
@@ -189,26 +189,26 @@ export interface S02SegmentContent {
   readonly animations: readonly S02AnimationSequence[];
 }
 
-export const S02_CONTENT_VERSION = '3.10.0';
+export const S02_CONTENT_VERSION = '3.11.0';
 
 const introId = 's02.accounts.intro';
 const completeId = 's02.accounts.complete';
 
 const accounts = [
   {
-    id: 'campus-id',
+    id: 'master-campus',
     label: 'Master Campus',
-    symbolId: 'campus-id',
+    symbolId: 'master-campus',
     position: { x: 0.12, y: 0.08 },
     detailKind: 'service',
     edgeKind: 'dependency',
     edgeLabel: 'Mit Master Campus geöffnet',
-    unlockAnimationId: 's02-unlock-campus-id',
-    detailRevealAnimationId: 's02-reveal-campus-id-details',
-    returnToDockAnimationId: 's02-return-campus-id-to-dock',
+    unlockAnimationId: 's02-unlock-master-campus',
+    detailRevealAnimationId: 's02-reveal-master-campus-details',
+    returnToDockAnimationId: 's02-return-master-campus-to-dock',
     narrationIds: {
-      open: 's02.campus-id.open',
-      understood: 's02.campus-id.understood',
+      open: 's02.master-campus.open',
+      understood: 's02.master-campus.understood',
     },
     descriptions: {
       locked: 'Konto öffnen',
@@ -227,13 +227,13 @@ const accounts = [
     },
     details: [
       {
-        id: 'campus-id-workspace',
+        id: 'master-campus-workspace',
         label: 'Campus Workspace',
         symbolId: 'campus-workspace',
         preview: { kind: 'campus-workspace' },
         position: { x: 0.03, y: 0.4 },
-        animationId: 's02-check-campus-id-workspace',
-        narrationId: 's02.campus-id.workspace',
+        animationId: 's02-check-master-campus-workspace',
+        narrationId: 's02.master-campus.workspace',
         descriptions: {
           available: 'Mit Master Campus öffnen',
           checking: 'Master Campus wird geprüft …',
@@ -241,13 +241,13 @@ const accounts = [
         },
       },
       {
-        id: 'campus-id-services',
+        id: 'master-campus-services',
         label: 'Campus Services',
         symbolId: 'campus-services',
         preview: { kind: 'campus-services' },
         position: { x: 0.22, y: 0.58 },
-        animationId: 's02-check-campus-id-services',
-        narrationId: 's02.campus-id.services',
+        animationId: 's02-check-master-campus-services',
+        narrationId: 's02.master-campus.services',
         descriptions: {
           available: 'Mit Master Campus öffnen',
           checking: 'Master Campus wird geprüft …',
@@ -255,13 +255,13 @@ const accounts = [
         },
       },
       {
-        id: 'campus-id-campus-cloud',
+        id: 'master-campus-campus-cloud',
         label: 'Campus Cloud',
         symbolId: 'campus-cloud',
         preview: { kind: 'campus-cloud' },
         position: { x: 0.04, y: 0.79 },
-        animationId: 's02-check-campus-id-campus-cloud',
-        narrationId: 's02.campus-id.campus-cloud',
+        animationId: 's02-check-master-campus-campus-cloud',
+        narrationId: 's02.master-campus.campus-cloud',
         descriptions: {
           available: 'Mit Master Campus öffnen',
           checking: 'Master Campus wird geprüft …',
@@ -271,19 +271,19 @@ const accounts = [
     ],
   },
   {
-    id: 'campus-mail',
+    id: 'campus-email',
     label: 'Campus E-Mail',
-    symbolId: 'campus-mail',
+    symbolId: 'campus-email',
     position: { x: 0.72, y: 0.06 },
     detailKind: 'function',
     edgeKind: 'association',
     edgeLabel: 'Mit Campus E-Mail verbunden',
-    unlockAnimationId: 's02-unlock-campus-mail',
-    detailRevealAnimationId: 's02-reveal-campus-mail-details',
-    returnToDockAnimationId: 's02-return-campus-mail-to-dock',
+    unlockAnimationId: 's02-unlock-campus-email',
+    detailRevealAnimationId: 's02-reveal-campus-email-details',
+    returnToDockAnimationId: 's02-return-campus-email-to-dock',
     narrationIds: {
-      open: 's02.campus-mail.open',
-      understood: 's02.campus-mail.understood',
+      open: 's02.campus-email.open',
+      understood: 's02.campus-email.understood',
     },
     descriptions: {
       locked: 'Konto öffnen',
@@ -300,13 +300,13 @@ const accounts = [
     },
     details: [
       {
-        id: 'campus-mail-notifications',
+        id: 'campus-email-notifications',
         label: 'Benachrichtigungen',
         symbolId: 'notifications',
         preview: { kind: 'mail-list' },
         position: { x: 0.87, y: 0.34 },
-        animationId: 's02-check-campus-mail-notifications',
-        narrationId: 's02.campus-mail.notifications',
+        animationId: 's02-check-campus-email-notifications',
+        narrationId: 's02.campus-email.notifications',
         descriptions: {
           available: 'Vorschau öffnen',
           checking: 'Benachrichtigungen werden geöffnet …',
@@ -314,13 +314,13 @@ const accounts = [
         },
       },
       {
-        id: 'campus-mail-confirmations',
+        id: 'campus-email-confirmations',
         label: 'Bestätigungen',
         symbolId: 'confirmations',
         preview: { kind: 'confirmation' },
         position: { x: 0.67, y: 0.36 },
-        animationId: 's02-check-campus-mail-confirmations',
-        narrationId: 's02.campus-mail.confirmations',
+        animationId: 's02-check-campus-email-confirmations',
+        narrationId: 's02.campus-email.confirmations',
         descriptions: {
           available: 'Vorschau öffnen',
           checking: 'Bestätigungen werden geöffnet …',
@@ -328,13 +328,13 @@ const accounts = [
         },
       },
       {
-        id: 'campus-mail-reset-links',
+        id: 'campus-email-reset-links',
         label: 'Zurücksetzungslinks',
         symbolId: 'reset-links',
         preview: { kind: 'reset-link' },
         position: { x: 0.87, y: 0.7 },
-        animationId: 's02-check-campus-mail-reset-links',
-        narrationId: 's02.campus-mail.reset-links',
+        animationId: 's02-check-campus-email-reset-links',
+        narrationId: 's02.campus-email.reset-links',
         descriptions: {
           available: 'Vorschau öffnen',
           checking: 'Zurücksetzungslinks werden geöffnet …',
@@ -342,13 +342,13 @@ const accounts = [
         },
       },
       {
-        id: 'campus-mail-impersonation',
+        id: 'campus-email-impersonation',
         label: 'Kommunikation in deinem Namen',
         symbolId: 'compose-message',
         preview: { kind: 'compose' },
         position: { x: 0.67, y: 0.74 },
-        animationId: 's02-check-campus-mail-impersonation',
-        narrationId: 's02.campus-mail.impersonation',
+        animationId: 's02-check-campus-email-impersonation',
+        narrationId: 's02.campus-email.impersonation',
         descriptions: {
           available: 'Vorschau öffnen',
           checking: 'Kommunikationsvorschau wird geöffnet …',
@@ -358,16 +358,16 @@ const accounts = [
     ],
   },
   {
-    id: 'campus-board-archive',
+    id: 'campusgram',
     label: 'Campusgram',
-    symbolId: 'campus-board-archive',
+    symbolId: 'campusgram',
     position: { x: 0.43, y: 0.34 },
     detailKind: 'content',
     edgeKind: 'association',
     edgeLabel: 'Lokaler Inhalt in Campusgram',
-    unlockAnimationId: 's02-unlock-campus-board-archive',
-    detailRevealAnimationId: 's02-reveal-campus-board-archive-details',
-    returnToDockAnimationId: 's02-return-campus-board-archive-to-dock',
+    unlockAnimationId: 's02-unlock-campusgram',
+    detailRevealAnimationId: 's02-reveal-campusgram-details',
+    returnToDockAnimationId: 's02-return-campusgram-to-dock',
     narrationIds: {
       open: 's02.campusgram.open',
       understood: 's02.campusgram.understood',
@@ -644,27 +644,27 @@ export const s02Content: S02SegmentContent = {
         'Dein Passwort ist oft die letzte Hürde, die Angreifer daran hindert, an deine persönlichen Daten zu kommen. Wähle eines der drei Hauptkonten aus. Danach führt dich „Nächste“ Schritt für Schritt durch die verbundenen Inhalte.',
       [completeId]:
         'Du hast die Konten erkundet. Klicke unten im Dock auf den Browser, wenn du bereit bist weiterzugehen.',
-      's02.campus-id.open':
+      's02.master-campus.open':
         'Master Campus ist dein zentraler Zugang. Mit einem Passwort öffnest du Campus Workspace, Campus Services und Campus Cloud.',
-      's02.campus-id.understood':
+      's02.master-campus.understood':
         'Hinter diesem einen Zugang liegen Projekt- und Arbeitsräume, persönliche Verwaltungsvorgänge sowie persönliche Dateien, Notizen und Entwürfe.',
-      's02.campus-id.workspace':
+      's02.master-campus.workspace':
         'Campus Workspace enthält Projekt- und Arbeitsräume, geteilte Dateien und Gruppenmitgliedschaften.',
-      's02.campus-id.services':
+      's02.master-campus.services':
         'Campus Services enthält persönliche Angaben, Anträge, Termine und Dokumente.',
-      's02.campus-id.campus-cloud':
+      's02.master-campus.campus-cloud':
         'Campus Cloud enthält persönliche Dateien, Notizen und Entwürfe.',
-      's02.campus-mail.open':
+      's02.campus-email.open':
         'Campus E-Mail verbindet Nachrichten, Bestätigungen, Zurücksetzungen und Kommunikation.',
-      's02.campus-mail.understood':
+      's02.campus-email.understood':
         'Campus E-Mail ist die Brücke zu persönlichen Informationen, Zurücksetzungen und Kommunikation in deinem Namen.',
-      's02.campus-mail.notifications':
+      's02.campus-email.notifications':
         'Benachrichtigungen zu Kursen, Terminen und Systemen zeigen, welche Vorgänge dich gerade betreffen.',
-      's02.campus-mail.confirmations':
+      's02.campus-email.confirmations':
         'Bestätigungen für Anmeldungen oder Änderungen können verraten, was du gerade organisiert hast.',
-      's02.campus-mail.reset-links':
+      's02.campus-email.reset-links':
         'Zurücksetzungslinks ermöglichen bei manchen Diensten, Änderungen zu bestätigen oder ein Passwort zurückzusetzen.',
-      's02.campus-mail.impersonation':
+      's02.campus-email.impersonation':
         'Kommunikation in deinem Namen bedeutet in diesem Szenario, dass über dieses Postfach Nachrichten als du geschrieben werden könnten.',
       's02.campusgram.open':
         'Campusgram ist ein Community-Konto für persönliche Direktnachrichten, Gruppen und Kontakte sowie Beiträge und Reaktionen.',

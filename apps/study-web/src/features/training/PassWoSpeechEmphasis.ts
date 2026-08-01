@@ -3,8 +3,8 @@ export type PassWoSpeechEmphasisTone =
   | 'positive'
   | 'warning'
   | 'action'
-  | 'campus-id'
-  | 'campus-mail'
+  | 'master-campus'
+  | 'campus-email'
   | 'campusgram';
 
 export interface PassWoSpeechEmphasis {
@@ -14,8 +14,8 @@ export interface PassWoSpeechEmphasis {
 }
 
 const accountAndServiceEmphasis = {
-  'Master Campus': { phrase: 'Master Campus', tone: 'campus-id', symbolId: 'campus-id' },
-  'Campus E-Mail': { phrase: 'Campus E-Mail', tone: 'campus-mail', symbolId: 'campus-mail' },
+  'Master Campus': { phrase: 'Master Campus', tone: 'master-campus', symbolId: 'master-campus' },
+  'Campus E-Mail': { phrase: 'Campus E-Mail', tone: 'campus-email', symbolId: 'campus-email' },
   'Campus Workspace': {
     phrase: 'Campus Workspace',
     tone: 'accent',
@@ -30,7 +30,7 @@ const accountAndServiceEmphasis = {
   Campusgram: {
     phrase: 'Campusgram',
     tone: 'campusgram',
-    symbolId: 'campus-board-archive',
+    symbolId: 'campusgram',
   },
   Benachrichtigungen: {
     phrase: 'Benachrichtigungen',
@@ -73,19 +73,19 @@ const emphasisBySpeechId: Readonly<Record<string, readonly PassWoSpeechEmphasis[
     { phrase: 'später wieder abrufen kannst', tone: 'positive' },
     { phrase: 'Betriebssystem', tone: 'action' },
   ],
-  's00.greeting': [
+  's00.master-campus': [
     accountAndServiceEmphasis['Master Campus'],
     accountAndServiceEmphasis['Campus Workspace'],
     accountAndServiceEmphasis['Campus Services'],
     accountAndServiceEmphasis['Campus Cloud'],
   ],
-  's00.campus-mail': [
+  's00.campus-email': [
     accountAndServiceEmphasis['Campus E-Mail'],
     { phrase: 'Campus-Nachrichten', tone: 'accent', symbolId: 'notifications' },
     accountAndServiceEmphasis.Bestätigungen,
     accountAndServiceEmphasis.Zurücksetzungslinks,
   ],
-  's00.campus-board-archive': [
+  's00.campusgram': [
     accountAndServiceEmphasis.Campusgram,
     { phrase: 'persönliche Direktnachrichten', tone: 'accent', symbolId: 'direct-messages' },
     accountAndServiceEmphasis['Gruppen und Kontakte'],
@@ -113,30 +113,30 @@ const emphasisBySpeechId: Readonly<Record<string, readonly PassWoSpeechEmphasis[
   's02.accounts.complete': [
     { phrase: 'Klicke unten im Dock auf den Browser', tone: 'action' },
   ],
-  's02.campus-id.open': [
+  's02.master-campus.open': [
     accountAndServiceEmphasis['Master Campus'],
     accountAndServiceEmphasis['Campus Workspace'],
     accountAndServiceEmphasis['Campus Services'],
     accountAndServiceEmphasis['Campus Cloud'],
   ],
-  's02.campus-id.understood': [{ phrase: 'diesem einen Zugang', tone: 'accent' }],
-  's02.campus-id.workspace': [accountAndServiceEmphasis['Campus Workspace']],
-  's02.campus-id.services': [accountAndServiceEmphasis['Campus Services']],
-  's02.campus-id.campus-cloud': [accountAndServiceEmphasis['Campus Cloud']],
-  's02.campus-mail.open': [
+  's02.master-campus.understood': [{ phrase: 'diesem einen Zugang', tone: 'accent' }],
+  's02.master-campus.workspace': [accountAndServiceEmphasis['Campus Workspace']],
+  's02.master-campus.services': [accountAndServiceEmphasis['Campus Services']],
+  's02.master-campus.campus-cloud': [accountAndServiceEmphasis['Campus Cloud']],
+  's02.campus-email.open': [
     accountAndServiceEmphasis['Campus E-Mail'],
     { phrase: 'Nachrichten', tone: 'accent', symbolId: 'notifications' },
     accountAndServiceEmphasis.Bestätigungen,
     { phrase: 'Zurücksetzungen', tone: 'accent', symbolId: 'reset-links' },
     { phrase: 'Kommunikation', tone: 'accent', symbolId: 'compose-message' },
   ],
-  's02.campus-mail.understood': [
+  's02.campus-email.understood': [
     { phrase: 'Kommunikation in deinem Namen', tone: 'warning', symbolId: 'compose-message' },
   ],
-  's02.campus-mail.notifications': [accountAndServiceEmphasis.Benachrichtigungen],
-  's02.campus-mail.confirmations': [accountAndServiceEmphasis.Bestätigungen],
-  's02.campus-mail.reset-links': [accountAndServiceEmphasis.Zurücksetzungslinks],
-  's02.campus-mail.impersonation': [
+  's02.campus-email.notifications': [accountAndServiceEmphasis.Benachrichtigungen],
+  's02.campus-email.confirmations': [accountAndServiceEmphasis.Bestätigungen],
+  's02.campus-email.reset-links': [accountAndServiceEmphasis.Zurücksetzungslinks],
+  's02.campus-email.impersonation': [
     { phrase: 'Kommunikation in deinem Namen', tone: 'warning', symbolId: 'compose-message' },
   ],
   's02.campusgram.open': [

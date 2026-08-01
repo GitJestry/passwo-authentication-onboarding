@@ -76,14 +76,6 @@ function emptyRetrievalResults(accountIds: readonly string[]): Record<string, Re
   return results;
 }
 
-const emojiSequencePattern =
-  /(?:[#*0-9]\uFE0F?\u20E3|[\u{1F1E6}-\u{1F1FF}]{1,2}|(?:\p{Extended_Pictographic}|\p{Emoji_Modifier})(?:\uFE0E|\uFE0F)?(?:\u200D(?:\p{Extended_Pictographic}|\p{Emoji_Modifier})(?:\uFE0E|\uFE0F)?)*[\u{E0020}-\u{E007F}]*)/gu;
-
-/** Keeps fictional values local while removing unsupported invisible and emoji input. */
-export function sanitizePasswordValue(value: string): string {
-  return value.replace(emojiSequencePattern, '').replace(/[\p{White_Space}\p{Cc}\u200D]/gu, '');
-}
-
 function isKnownAccount(context: PasswordModuleContext, accountId: string): boolean {
   return context.accountIds.includes(accountId);
 }
@@ -194,7 +186,7 @@ export const passwordModuleMachine = setup({
         if (event.type !== 'SET_PASSWORD_VALUE') return context.passwordValues;
         return {
           ...context.passwordValues,
-          [event.accountId]: sanitizePasswordValue(event.value),
+          [event.accountId]: event.value,
         };
       },
     }),
@@ -209,7 +201,7 @@ export const passwordModuleMachine = setup({
         if (event.type !== 'SET_RETRIEVAL_PASSWORD_VALUE') return context.retrievalPasswordValues;
         return {
           ...context.retrievalPasswordValues,
-          [event.accountId]: sanitizePasswordValue(event.value),
+          [event.accountId]: event.value,
         };
       },
     }),

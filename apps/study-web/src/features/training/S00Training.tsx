@@ -12,7 +12,7 @@ import {
   type DesktopPlatform,
 } from '@passwo/ui';
 import { useEffect, useRef, useState } from 'react';
-import { MotionAnimationAdapter } from '../../adapters/animation/MotionAnimationAdapter.js';
+import { S00MotionAnimationAdapter } from '../../adapters/animation/S00MotionAnimationAdapter.js';
 import {
   createInitialS00SceneSnapshot,
   type S00SceneSnapshot,
@@ -40,7 +40,7 @@ const browserSnapshot: BrowserShellSnapshot = {
     ...tab,
     icon: <NetworkSymbol symbolId={tab.id} />,
   })),
-  activeTabId: s00Content.browser.tabs[0]?.id ?? 'campus-id',
+  activeTabId: s00Content.browser.tabs[0]?.id ?? 'master-campus',
   address: s00Content.browser.address,
 };
 
@@ -106,7 +106,7 @@ export function S00Training({
   onCompleteRef.current = onComplete;
 
   useEffect(() => {
-    const animationPlayer = new MotionAnimationAdapter({
+    const animationPlayer = new S00MotionAnimationAdapter({
       applySnapshot: setScene,
       getCharacterElement: () => characterAnimationAnchorRef.current,
       getRevealTargetElement: () => null,
@@ -142,9 +142,9 @@ export function S00Training({
   const activeTimingError = timingError ?? externalTimingError;
   const speechSteps = [
     {
-      accountId: 'campus-id',
+      accountId: 'master-campus',
       text: s00Content.narration.greeting,
-      emphasisId: 's00.greeting',
+      emphasisId: 's00.master-campus',
     },
     ...s00Content.narration.accountExplanations.map(({ accountId, text }) => ({
       accountId,
@@ -157,18 +157,18 @@ export function S00Training({
   const isFinalSpeechStep = speechRound === speechSteps.length - 1;
   const activeAccountId: S01AccountId =
     previewAccountId ??
-    (currentSpeechStep?.accountId === 'campus-mail' ||
-    currentSpeechStep?.accountId === 'campus-board-archive'
+    (currentSpeechStep?.accountId === 'campus-email' ||
+    currentSpeechStep?.accountId === 'campusgram'
       ? currentSpeechStep.accountId
-      : 'campus-id');
+      : 'master-campus');
   const activeAccount = s01Content.browser.accounts.find(({ id }) => id === activeAccountId);
   const campusIdentity = deriveCampusIdentity(displayName);
   const accountIdentifier =
-    activeAccountId === 'campus-mail'
-      ? campusIdentity.campusMail
-      : activeAccountId === 'campus-board-archive'
+    activeAccountId === 'campus-email'
+      ? campusIdentity.campusEmail
+      : activeAccountId === 'campusgram'
         ? campusIdentity.campusgram
-        : campusIdentity.campusId;
+        : campusIdentity.masterCampus;
   const activeBrowserSnapshot: BrowserShellSnapshot = {
     ...browserSnapshot,
     activeTabId: activeAccountId,

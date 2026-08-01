@@ -1,6 +1,6 @@
 export interface CampusIdentity {
-  readonly campusId: string;
-  readonly campusMail: string;
+  readonly masterCampus: string;
+  readonly campusEmail: string;
   readonly campusgram: string;
 }
 
@@ -21,8 +21,8 @@ function toCampusStringId(displayName: string): string {
 export function deriveCampusIdentity(displayName: string): CampusIdentity {
   const stringId = toCampusStringId(displayName);
   return {
-    campusId: `${stringId}@campus.example`,
-    campusMail: `${stringId}@mail.campus.example`,
+    masterCampus: `${stringId}@campus.example`,
+    campusEmail: `${stringId}@mail.campus.example`,
     campusgram: `${stringId}.campusgram`,
   };
 }

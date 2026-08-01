@@ -1,6 +1,6 @@
 import type { TrainingSectionId } from '@passwo/contracts';
 
-export const s01AccountIds = ['campus-id', 'campus-mail', 'campus-board-archive'] as const;
+export const s01AccountIds = ['master-campus', 'campus-email', 'campusgram'] as const;
 export type S01AccountId = (typeof s01AccountIds)[number];
 
 export interface S01SegmentContent {
@@ -22,7 +22,6 @@ export interface S01SegmentContent {
       readonly label: string;
       readonly address: string;
       readonly accountDataLabel: string;
-      readonly accountData: string;
       readonly role: string;
       readonly symbolId: string;
       readonly landingNavigation: readonly string[];
@@ -120,7 +119,7 @@ export interface S01SegmentContent {
   };
 }
 
-export const S01_CONTENT_VERSION = '2.13.0';
+export const S01_CONTENT_VERSION = '2.14.0';
 
 const readyToContinueMessage =
   'Die drei Konten sind eingerichtet. Bevor du dich wieder anmeldest, betrachten wir sie aus einer anderen Perspektive: als Knoten-Netzwerk. So wird sichtbar, welche Dienste und Funktionen mit jedem Kontozugang verbunden sind. Schließe dafür bitte zunächst den Browser.';
@@ -141,13 +140,12 @@ export const s01Content: S01SegmentContent = {
     ariaLabel: 'Fiktive Browseranwendung, Segment S01',
     accounts: [
       {
-        id: 'campus-id',
+        id: 'master-campus',
         label: 'Master Campus',
-        address: 'campus.example/campus-id',
+        address: 'campus.example/master-campus',
         accountDataLabel: 'Benutzername',
-        accountData: 'alex27@campus.example',
         role: 'Zentraler Zugang zu Campus Workspace, Campus Services und Campus Cloud.',
-        symbolId: 'campus-id',
+        symbolId: 'master-campus',
         landingNavigation: ['Überblick', 'Sicherheit', 'Hilfe'],
         authenticationNavigation: ['Hilfe'],
         overview: {
@@ -210,13 +208,12 @@ export const s01Content: S01SegmentContent = {
         },
       },
       {
-        id: 'campus-mail',
+        id: 'campus-email',
         label: 'Campus E-Mail',
         address: 'mail.campus.example',
         accountDataLabel: 'Benutzername',
-        accountData: 'alex27@mail.campus.example',
         role: 'Campusbezogene Nachrichten, Bestätigungen und Zurücksetzungslinks.',
-        symbolId: 'campus-mail',
+        symbolId: 'campus-email',
         landingNavigation: ['Posteingang', 'Ordner', 'Einstellungen', 'Hilfe'],
         authenticationNavigation: ['Hilfe'],
         overview: {
@@ -230,7 +227,7 @@ export const s01Content: S01SegmentContent = {
           description:
             'Sicher. Persönlich. Hochschulweit. Campus E-Mail verbindet dich mit Lehrenden und der Hochschule – zuverlässig und überall verfügbar.',
           benefits: [
-            'Deine @campus-mail Adresse',
+            'Deine @campus-email Adresse',
             'Spam- und Virenschutz',
             'Großer Speicher und Cloud-Integration',
             'Auf allen Geräten synchron',
@@ -260,14 +257,13 @@ export const s01Content: S01SegmentContent = {
         },
       },
       {
-        id: 'campus-board-archive',
+        id: 'campusgram',
         label: 'Campusgram',
         address: 'campus.example/campusgram',
         accountDataLabel: 'Benutzername',
-        accountData: 'alex_board',
         role:
           'Eigenständiges Community-Konto für Direktnachrichten, Gruppen und Kontakte sowie Beiträge und Reaktionen.',
-        symbolId: 'campus-board-archive',
+        symbolId: 'campusgram',
         landingNavigation: ['Nachrichten', 'Gruppen und Kontakte', 'Beiträge', 'Aktivitäten'],
         authenticationNavigation: ['Nachrichten', 'Gruppen und Kontakte', 'Beiträge', 'Aktivitäten'],
         overview: {

@@ -39,7 +39,7 @@ describe('password module privacy boundary', () => {
     const studyActor = createActor(createStudyMachine(studyRuntimePorts(requestArguments)));
     studyActor.start();
     const controller = new PasswordModuleController({
-      accountIds: ['campus-id', 'campus-mail', 'campus-board-archive'],
+      accountIds: ['master-campus', 'campus-email', 'campusgram'],
     });
     const displayName = 'Browsername Nur Lokal';
     const trainingValue = 'only-in-password-module!?';
@@ -48,7 +48,7 @@ describe('password module privacy boundary', () => {
     controller.completeSectionTransition();
     controller.completeS00();
     await flushMicrotasks();
-    controller.setPasswordValue('campus-id', trainingValue);
+    controller.setPasswordValue('master-campus', trainingValue);
     studyActor.send({
       type: 'ACCEPT_CONSENT',
       followUpConsent: true,

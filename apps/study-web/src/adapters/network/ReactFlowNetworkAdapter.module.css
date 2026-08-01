@@ -152,17 +152,17 @@
   color: #287657;
 }
 
-.nodeFrame[data-symbol-id="campus-id"] .nodeCircle {
+.nodeFrame[data-symbol-id="master-campus"] .nodeCircle {
   border-color: #6f8eaa;
   background: #eef5fa;
 }
 
-.nodeFrame[data-symbol-id="campus-mail"] .nodeCircle {
+.nodeFrame[data-symbol-id="campus-email"] .nodeCircle {
   border-color: #eea15c;
   background: #fff3e6;
 }
 
-.nodeFrame[data-symbol-id="campus-board-archive"] .nodeCircle {
+.nodeFrame[data-symbol-id="campusgram"] .nodeCircle {
   border-color: #e681aa;
   background: #fff0f6;
 }

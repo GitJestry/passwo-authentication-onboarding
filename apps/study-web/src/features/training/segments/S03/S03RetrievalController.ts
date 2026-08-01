@@ -205,7 +205,7 @@ export class S03RetrievalController {
         if (this.#disposed || !completesWarningSequence) return;
         const reachedWarningEndScene =
           result.status === 'finished' &&
-          this.#snapshot.presentation.announcedMessageId === 's03.campus-board.warning';
+          this.#snapshot.presentation.announcedMessageId === 's03.campusgram.warning';
         this.#setWarningState(reachedWarningEndScene ? 'ready' : 'failed');
       })
       .catch(() => {

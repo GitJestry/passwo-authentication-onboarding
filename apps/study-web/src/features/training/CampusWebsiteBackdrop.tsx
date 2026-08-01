@@ -1,7 +1,7 @@
 import { s01Content, type S01AccountId } from '@passwo/training-content';
 import type { ReactNode, Ref } from 'react';
 import campusgramHero from '../../assets/campus-sites/campusgram-hero.png';
-import campusMailHero from '../../assets/campus-sites/campus-mail-hero.png';
+import campusEmailHero from '../../assets/campus-sites/campus-mail-hero.png';
 import masterCampusHero from '../../assets/campus-sites/master-campus-hero.png';
 import { NetworkSymbol } from '../../adapters/network/NetworkSymbolRegistry.js';
 import styles from './CampusWebsiteBackdrop.module.css';
@@ -31,16 +31,39 @@ export interface CampusWebsiteBackdropProps {
 
 type CampusAccount = (typeof s01Content.browser.accounts)[number];
 
-const heroImages: Readonly<Record<S01AccountId, string>> = {
-  'campus-id': masterCampusHero,
-  'campus-mail': campusMailHero,
-  'campus-board-archive': campusgramHero,
-};
+type CampusWebsiteKind = S01AccountId;
 
-function SiteVisual({ account }: { readonly account: CampusAccount }) {
+interface CampusWebsiteDefinition {
+  readonly account: CampusAccount;
+  readonly heroImage: string;
+  readonly kind: CampusWebsiteKind;
+}
+
+function campusAccount(accountId: S01AccountId): CampusAccount {
+  const account = s01Content.browser.accounts.find(({ id }) => id === accountId);
+  if (account === undefined) throw new Error(`missing-campus-account:${accountId}`);
+  return account;
+}
+
+function campusWebsiteDefinition(accountId: S01AccountId): CampusWebsiteDefinition {
+  switch (accountId) {
+    case 'master-campus':
+      return { account: campusAccount(accountId), heroImage: masterCampusHero, kind: accountId };
+    case 'campus-email':
+      return { account: campusAccount(accountId), heroImage: campusEmailHero, kind: accountId };
+    case 'campusgram':
+      return { account: campusAccount(accountId), heroImage: campusgramHero, kind: accountId };
+    default: {
+      const exhaustiveAccountId: never = accountId;
+      throw new Error(`unknown-campus-account:${String(exhaustiveAccountId)}`);
+    }
+  }
+}
+
+function SiteVisual({ definition }: { readonly definition: CampusWebsiteDefinition }) {
   return (
     <figure className={styles.heroVisual}>
-      <img src={heroImages[account.id]} alt="" />
+      <img src={definition.heroImage} alt="" />
     </figure>
   );
 }
@@ -103,14 +126,15 @@ function ActionButton({
 }
 
 function LandingView({
-  account,
+  definition,
   primaryAction,
   secondaryAction,
 }: {
-  readonly account: CampusAccount;
+  readonly definition: CampusWebsiteDefinition;
   readonly primaryAction?: CampusWebsiteAction | undefined;
   readonly secondaryAction?: CampusWebsiteAction | undefined;
 }) {
+  const { account } = definition;
   return (
     <main className={styles.landing}>
       <section className={styles.landingHero}>
@@ -136,7 +160,7 @@ function LandingView({
             </div>
           )}
         </div>
-        <SiteVisual account={account} />
+        <SiteVisual definition={definition} />
       </section>
 
     </main>
@@ -165,11 +189,12 @@ function DashboardHeading({
   );
 }
 
-function DashboardSidebar({ account }: { readonly account: CampusAccount }) {
+function DashboardSidebar({ definition }: { readonly definition: CampusWebsiteDefinition }) {
+  const { account, kind } = definition;
   const storageCard = account.dashboard.lowerCards.find(({ title }) => title === 'Speicherplatz');
   return (
     <aside className={styles.dashboardSidebar} aria-label={`${account.label}-Bereiche`}>
-      {account.id === 'campus-mail' ? (
+      {kind === 'campus-email' ? (
         <span className={styles.sidebarCompose}>＋ {s01Content.siteUi.mailbox.composeLabel}</span>
       ) : (
         <div className={styles.sidebarIdentity}>
@@ -185,7 +210,7 @@ function DashboardSidebar({ account }: { readonly account: CampusAccount }) {
           </span>
         ))}
       </nav>
-      {account.id === 'campus-mail' && storageCard !== undefined ? (
+      {kind === 'campus-email' && storageCard !== undefined ? (
         <div className={styles.sidebarStorage}>
           <strong>{storageCard.title}</strong>
           <span>{storageCard.detail}</span>
@@ -197,16 +222,20 @@ function DashboardSidebar({ account }: { readonly account: CampusAccount }) {
 }
 
 function MasterDashboard(props: {
-  readonly account: CampusAccount;
+  readonly definition: CampusWebsiteDefinition;
   readonly displayName?: string | undefined;
   readonly dashboardHeadingRef?: Ref<HTMLHeadingElement> | undefined;
 }) {
-  const { account } = props;
+  const { account } = props.definition;
   return (
     <main className={styles.dashboard}>
-      <DashboardSidebar account={account} />
+      <DashboardSidebar definition={props.definition} />
       <div className={styles.dashboardContent}>
-        <DashboardHeading {...props} />
+        <DashboardHeading
+          account={account}
+          displayName={props.displayName}
+          dashboardHeadingRef={props.dashboardHeadingRef}
+        />
         <section className={styles.masterSummary} aria-label={s01Content.siteUi.summaryAriaLabel}>
           {account.dashboard.summaryCards.map((card) => (
             <article className={styles.hubCard} key={card.title}>
@@ -259,15 +288,15 @@ function MasterDashboard(props: {
 }
 
 function MailDashboard(props: {
-  readonly account: CampusAccount;
+  readonly definition: CampusWebsiteDefinition;
   readonly displayName?: string | undefined;
   readonly dashboardHeadingRef?: Ref<HTMLHeadingElement> | undefined;
 }) {
-  const { account } = props;
+  const { account } = props.definition;
   const selectedMessage = account.dashboard.activities[0];
   return (
     <main className={`${styles.dashboard} ${styles.mailDashboard}`}>
-      <DashboardSidebar account={account} />
+      <DashboardSidebar definition={props.definition} />
       <div className={styles.mailWorkspace}>
         <section
           className={styles.mailToolbar}
@@ -342,15 +371,15 @@ function MailDashboard(props: {
 }
 
 function CommunityDashboard(props: {
-  readonly account: CampusAccount;
+  readonly definition: CampusWebsiteDefinition;
   readonly displayName?: string | undefined;
   readonly dashboardHeadingRef?: Ref<HTMLHeadingElement> | undefined;
 }) {
-  const { account } = props;
+  const { account } = props.definition;
   const greetingName = props.displayName?.trim().split(/\s+/u)[0] || 'Campus';
   return (
     <main className={`${styles.dashboard} ${styles.communityDashboard}`}>
-      <DashboardSidebar account={account} />
+      <DashboardSidebar definition={props.definition} />
       <div className={styles.communityContent}>
         <header className={styles.communityToolbar}>
           <h1
@@ -415,13 +444,22 @@ function CommunityDashboard(props: {
 }
 
 function DashboardView(props: {
-  readonly account: CampusAccount;
+  readonly definition: CampusWebsiteDefinition;
   readonly displayName?: string | undefined;
   readonly dashboardHeadingRef?: Ref<HTMLHeadingElement> | undefined;
 }) {
-  if (props.account.id === 'campus-mail') return <MailDashboard {...props} />;
-  if (props.account.id === 'campus-board-archive') return <CommunityDashboard {...props} />;
-  return <MasterDashboard {...props} />;
+  switch (props.definition.kind) {
+    case 'master-campus':
+      return <MasterDashboard {...props} />;
+    case 'campus-email':
+      return <MailDashboard {...props} />;
+    case 'campusgram':
+      return <CommunityDashboard {...props} />;
+    default: {
+      const exhaustiveKind: never = props.definition.kind;
+      throw new Error(`unknown-campus-dashboard:${String(exhaustiveKind)}`);
+    }
+  }
 }
 
 function ContextView({
@@ -467,8 +505,8 @@ export function CampusWebsiteBackdrop({
   dashboardHeadingRef,
   rootRef,
 }: CampusWebsiteBackdropProps) {
-  const account = s01Content.browser.accounts.find(({ id }) => id === accountId);
-  if (account === undefined) return null;
+  const definition = campusWebsiteDefinition(accountId);
+  const { account } = definition;
 
   return (
     <article
@@ -481,7 +519,7 @@ export function CampusWebsiteBackdrop({
       {view === 'dashboard' ? null : <SiteHeader account={account} view={view} />}
       {view === 'landing' ? (
         <LandingView
-          account={account}
+          definition={definition}
           primaryAction={primaryAction}
           secondaryAction={secondaryAction}
         />
@@ -501,7 +539,7 @@ export function CampusWebsiteBackdrop({
         </main>
       ) : view === 'dashboard' ? (
         <DashboardView
-          account={account}
+          definition={definition}
           displayName={displayName}
           dashboardHeadingRef={dashboardHeadingRef}
         />
