@@ -19,6 +19,7 @@ function reachAwaitingIncidentOpen(controller: PasswordModuleController): void {
   controller.setRetrievalPasswordValue('campusgram', 'three');
   controller.submitRetrievalLogin('campusgram');
   for (const accountId of ['master-campus', 'campus-email'] as const) {
+    controller.selectAccount(accountId);
     controller.skipRetrieval(accountId);
     controller.startAssistedLogin(accountId);
     controller.completeAssistedAutofill(accountId);
@@ -31,7 +32,7 @@ function reachAwaitingIncidentOpen(controller: PasswordModuleController): void {
 }
 
 describe('PasswordModuleController', () => {
-  it('records S01–S04 boundaries and completes S04 without starting S05', async () => {
+  it('records S01–S05 boundaries and reaches awaiting-s06', async () => {
     const timingEvents: SegmentTimingEvent[] = [];
     const controller = new PasswordModuleController({
       accountIds: ['master-campus', 'campus-email', 'campusgram'],
@@ -60,6 +61,10 @@ describe('PasswordModuleController', () => {
     await flushMicrotasks();
     controller.completeS04();
     await flushMicrotasks();
+    await flushMicrotasks();
+    controller.completeS05();
+    controller.completeS05();
+    await flushMicrotasks();
 
     expect(timingEvents).toEqual([
       { eventType: 'segment-start', segmentId: 'S01', sectionId: 'passwords' },
@@ -70,17 +75,16 @@ describe('PasswordModuleController', () => {
       { eventType: 'segment-end', segmentId: 'S03', sectionId: 'passwords' },
       { eventType: 'segment-start', segmentId: 'S04', sectionId: 'passwords' },
       { eventType: 'segment-end', segmentId: 'S04', sectionId: 'passwords' },
+      { eventType: 'segment-start', segmentId: 'S05', sectionId: 'passwords' },
+      { eventType: 'segment-end', segmentId: 'S05', sectionId: 'passwords' },
     ]);
-    expect(controller.getSnapshot().matches({ s04: 'completed' })).toBe(true);
+    expect(controller.getSnapshot().matches('awaiting-s06')).toBe(true);
+    expect(controller.getSnapshot().context).not.toHaveProperty('s05Result');
   });
 
-  it('retries S03 end, S04 start, and S04 end with the original boundary', async () => {
+  it('retries only the open S04-end and S05-start boundaries', async () => {
     const timingEvents: SegmentTimingEvent[] = [];
-    const failedBoundaries = new Set([
-      'S03:segment-end',
-      'S04:segment-start',
-      'S04:segment-end',
-    ]);
+    const failedBoundaries = new Set(['S04:segment-end', 'S05:segment-start', 'S05:segment-end']);
     const controller = new PasswordModuleController({
       accountIds: ['master-campus', 'campus-email', 'campusgram'],
       timingPort: {
@@ -113,28 +117,31 @@ describe('PasswordModuleController', () => {
     reachAwaitingIncidentOpen(controller);
     controller.openIncidentAccount('campusgram');
     await flushMicrotasks();
-    controller.retryTiming();
-    await flushMicrotasks();
-    await flushMicrotasks();
-    controller.retryTiming();
     await flushMicrotasks();
     controller.completeS04();
     await flushMicrotasks();
     controller.retryTiming();
     await flushMicrotasks();
+    await flushMicrotasks();
+    controller.retryTiming();
+    await flushMicrotasks();
+    controller.completeS05();
+    await flushMicrotasks();
+    controller.retryTiming();
+    await flushMicrotasks();
 
     expect(
-      timingEvents.filter(({ segmentId }) => segmentId === 'S03' || segmentId === 'S04'),
+      timingEvents.filter(({ segmentId }) => segmentId === 'S04' || segmentId === 'S05'),
     ).toEqual([
-      { eventType: 'segment-start', segmentId: 'S03', sectionId: 'passwords' },
-      { eventType: 'segment-end', segmentId: 'S03', sectionId: 'passwords' },
-      { eventType: 'segment-end', segmentId: 'S03', sectionId: 'passwords' },
-      { eventType: 'segment-start', segmentId: 'S04', sectionId: 'passwords' },
       { eventType: 'segment-start', segmentId: 'S04', sectionId: 'passwords' },
       { eventType: 'segment-end', segmentId: 'S04', sectionId: 'passwords' },
       { eventType: 'segment-end', segmentId: 'S04', sectionId: 'passwords' },
+      { eventType: 'segment-start', segmentId: 'S05', sectionId: 'passwords' },
+      { eventType: 'segment-start', segmentId: 'S05', sectionId: 'passwords' },
+      { eventType: 'segment-end', segmentId: 'S05', sectionId: 'passwords' },
+      { eventType: 'segment-end', segmentId: 'S05', sectionId: 'passwords' },
     ]);
-    expect(controller.getSnapshot().matches({ s04: 'completed' })).toBe(true);
+    expect(controller.getSnapshot().matches('awaiting-s06')).toBe(true);
   });
 
   it('ignores repeated Campusgram activation while the S03 end write is pending', async () => {
@@ -172,8 +179,7 @@ describe('PasswordModuleController', () => {
 
     expect(
       timingEvents.filter(
-        ({ segmentId, eventType }) =>
-          segmentId === 'S03' && eventType === 'segment-end',
+        ({ segmentId, eventType }) => segmentId === 'S03' && eventType === 'segment-end',
       ),
     ).toHaveLength(1);
     finishS03End?.();

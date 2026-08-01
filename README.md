@@ -2,8 +2,8 @@
 
 Dieses pnpm-Monorepo enthält das **Supportive Authentication Onboarding** und die lokale Runtime
 für die gekoppelte Between-Subjects-Studie. Der technische Studienpfad, die visuelle
-Trainingsplattform, die Segmente S00 bis S04 und die draft-versionierten Forschungsinstrumente
-sind integriert. S05 bis S17, das externe Follow-up-Formular mit Import und der Study Freeze sind
+Trainingsplattform, die Segmente S00 bis S05 und die draft-versionierten Forschungsinstrumente
+sind integriert. S06 bis S17, das externe Follow-up-Formular mit Import und der Study Freeze sind
 noch offen.
 
 ## Aktueller Stand
@@ -13,13 +13,12 @@ noch offen.
   Reload-/Lease-Behandlung sowie CSV-/JSON-Export mit Manifest und Prüfsummen.
 - **M2 – Visual Platform:** BrowserShell, PassWo-Adapter, Mission-/Animations-Handshake,
   Reduced Motion und der vollständige S00-Slice.
-- **Training:** S00 bis S04 bilden den integrierten Lauf. S06 besitzt deterministische
+- **Training:** S00 bis S05 bilden den integrierten Lauf. S06 besitzt deterministische
   Konsequenz-Fixtures im Design Lab, ist aber noch nicht in den Studienpfad eingebunden.
 - **Instrumente:** Pre, Post, Guardrail und offene Rückmeldung laufen als versionierte,
   atomare Submissions; das optionale Follow-up besitzt eine getrennte Recontact-Registry und
   Schedule-Export.
-- **Als Nächstes:** S05 bis S11 einschließlich der vorbereiteten, noch nicht in den Renderer
-  eingebundenen lokalen Passwortanalyse.
+- **Als Nächstes:** S06 bis S11 einschließlich des kontoübergreifenden Passwortvergleichs.
 
 `apps/study-desktop` verpackt die Anwendung für Apple Silicon ohne Adresszeile und startet die
 vorhandene Runtime intern. `apps/study-web` ist der einzige React-/Vite-Renderer.
@@ -98,9 +97,9 @@ Zählungen und SHA-256-Prüfsummen.
 
 `/design-lab` ist ein interner QA-Pfad für deterministische, vom Studienablauf isolierte Szenen,
 Barrierefreiheitsprüfungen und visuelle Regression. Dazu gehören BrowserShell- und
-PassWo-Zustände sowie die S00-, S02-Master-Campus-, S03-Warnungs-, S04- und S06-Fixtures. Das Design Lab ist kein
-Auslieferungspfad, speichert keine Forschungsdaten und ersetzt keine vollständige
-Segmentnavigation.
+PassWo-Zustände sowie die S00-, S02-Master-Campus-, S03-Warnungs-, S04-, S05- und S06-Fixtures.
+Das Design Lab ist kein Auslieferungspfad, speichert keine Forschungsdaten und ersetzt keine
+vollständige Segmentnavigation.
 
 Die Campus-Websites lassen sich in S01 und S03 mit `account=master-campus|campus-email|campusgram`
 und `view=landing|auth|dashboard` direkt aufrufen. S00 verwendet denselben `account`-Parameter für

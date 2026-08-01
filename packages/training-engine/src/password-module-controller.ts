@@ -144,6 +144,12 @@ export class PasswordModuleController {
     void this.#writeSegmentBoundary('S04', 'segment-end');
   }
 
+  completeS05(): void {
+    if (!this.#actor.getSnapshot().matches({ s05: 'active' })) return;
+    this.#actor.send({ type: 'S05_COMPLETED' });
+    void this.#writeSegmentBoundary('S05', 'segment-end');
+  }
+
   configureAccount(accountId: string): void {
     const snapshot = this.#actor.getSnapshot();
     if (!snapshot.matches({ s01: 'editing' })) return;

@@ -43,12 +43,45 @@ describe('password module privacy boundary', () => {
     });
     const displayName = 'Browsername Nur Lokal';
     const trainingValue = 'only-in-password-module!?';
-
     controller.enterDisplayName(displayName);
     controller.completeSectionTransition();
     controller.completeS00();
     await flushMicrotasks();
-    controller.setPasswordValue('master-campus', trainingValue);
+    for (const [accountId, password] of [
+      ['master-campus', trainingValue],
+      ['campus-email', 'second-local-password'],
+      ['campusgram', 'third-local-password'],
+    ] as const) {
+      controller.setPasswordValue(accountId, password);
+      controller.configureAccount(accountId);
+    }
+    controller.continue();
+    await flushMicrotasks();
+    await flushMicrotasks();
+    controller.completeS02Content();
+    controller.continue();
+    await flushMicrotasks();
+    await flushMicrotasks();
+    for (const [accountId, password] of [
+      ['master-campus', trainingValue],
+      ['campus-email', 'second-local-password'],
+      ['campusgram', 'third-local-password'],
+    ] as const) {
+      controller.setRetrievalPasswordValue(accountId, password);
+      controller.submitRetrievalLogin(accountId);
+    }
+    controller.continueS03CompletionFeedback();
+    controller.continueS03CampusStart();
+    controller.completeS03TimeLapse();
+    controller.completeS03WarningAnnouncement();
+    controller.openIncidentAccount('campusgram');
+    await flushMicrotasks();
+    await flushMicrotasks();
+    controller.completeS04();
+    await flushMicrotasks();
+    await flushMicrotasks();
+    controller.completeS05();
+    await flushMicrotasks();
     studyActor.send({
       type: 'ACCEPT_CONSENT',
       followUpConsent: true,
@@ -80,5 +113,6 @@ describe('password module privacy boundary', () => {
     expect(studyContext).not.toContain(trainingValue);
     expect(runtimeRequests).not.toContain(displayName);
     expect(runtimeRequests).not.toContain(trainingValue);
+    expect(controller.getSnapshot().context).not.toHaveProperty('s05Result');
   });
 });

@@ -5,7 +5,7 @@ import {
   createSystemGeneratedSearchSpaceModel,
   determinePasswordSimulationDisposition,
 } from '@passwo/password-analysis';
-import { type S05DesignLabFixture, getS05Animation, s05Content } from '@passwo/training-content';
+import { getS05Animation, s05Content } from '@passwo/training-content';
 import {
   type AnimationPlayerPort,
   type MissionDefinition,
@@ -49,6 +49,15 @@ export type S05AnalysisStep =
 
 export type S05Estimate = (typeof s05Content.freeSearch.estimate.options)[number];
 
+export interface S05AnalysisSubject {
+  readonly id: string;
+  readonly label: string;
+  readonly fictionalPassword: string;
+  readonly analysisContext: {
+    readonly accountTerms: readonly string[];
+  };
+}
+
 export interface S05AnalysisControllerSnapshot {
   readonly phase: 'ready' | 'animating' | 'awaiting-decision' | 'complete';
   readonly step: S05AnalysisStep;
@@ -69,8 +78,9 @@ export interface S05AnalysisControllerSnapshot {
 }
 
 interface S05AnalysisControllerOptions {
-  readonly fixture: S05DesignLabFixture;
+  readonly subject: S05AnalysisSubject;
   readonly animationPlayer: AnimationPlayerPort;
+  readonly onComplete?: () => void;
 }
 
 type Listener = (snapshot: S05AnalysisControllerSnapshot) => void;
@@ -98,14 +108,14 @@ const stepByMissionId: Readonly<Record<string, S05AnalysisStep>> = {
   's05-summary-memory': 'summary-memory',
 };
 
-function createMission(fixture: S05DesignLabFixture): MissionDefinition {
+function createMission(subject: S05AnalysisSubject): MissionDefinition {
   const animations = s05Content.animations.map(([animationId]) => {
     const animation = getS05Animation(animationId);
     if (animation === undefined) throw new Error(`Missing authored S05 animation: ${animationId}`);
     return { id: animation.id, narrationId: animation.id, animation };
   });
   return {
-    id: `s05-analysis-${fixture.id}`,
+    id: `s05-analysis-${subject.id}`,
     segmentId: 'S05',
     sectionId: 'passwords',
     requiresSafetyAcknowledgement: false,
@@ -125,39 +135,54 @@ export class S05AnalysisController {
   readonly #missionController: MissionController;
   readonly #listeners = new Set<Listener>();
   readonly #unsubscribe: () => void;
-  #snapshot: S05AnalysisControllerSnapshot;
+  readonly #onComplete: (() => void) | undefined;
+  #snapshot: S05AnalysisControllerSnapshot | null;
+  #completionReported = false;
   #disposed = false;
 
-  constructor({ fixture, animationPlayer }: S05AnalysisControllerOptions) {
-    this.#mission = createMission(fixture);
+  constructor({ subject, animationPlayer, onComplete }: S05AnalysisControllerOptions) {
+    this.#mission = createMission(subject);
+    this.#onComplete = onComplete;
     const componentAnalysis = analyzeFictionalPassword({
-      fictionalPassword: fixture.fictionalPassword,
-      authoredAccountTerms: fixture.analysisContext.accountTerms,
+      fictionalPassword: subject.fictionalPassword,
+      authoredAccountTerms: subject.analysisContext.accountTerms,
     });
     const structureAnalysis = analyzeFictionalPasswordStructure({
-      fictionalPassword: fixture.fictionalPassword,
+      fictionalPassword: subject.fictionalPassword,
       componentAnalysis,
     });
     const disposition = determinePasswordSimulationDisposition({
-      fictionalPassword: fixture.fictionalPassword,
+      fictionalPassword: subject.fictionalPassword,
       componentAnalysis,
       structureAnalysis,
     });
+    const findingScene = createPasswordFindingScene(
+      `s05-findings-${subject.id}`,
+      componentAnalysis,
+    );
+    const structureScene = createPasswordStructureScene(
+      `s05-structure-${subject.id}`,
+      s05Content.structure.demonstrations,
+      structureAnalysis,
+    );
+    const freeSearchApplicationScene = createPasswordFreeSearchApplicationScene(
+      `s05-free-search-application-${subject.id}`,
+      subject.fictionalPassword,
+      componentAnalysis,
+      structureAnalysis,
+      disposition,
+    );
     this.#snapshot = {
       phase: 'ready',
       step: 'candidate-check',
       candidateScene: createPasswordCandidateScene({
-        id: `s05-candidates-${fixture.id}`,
+        id: `s05-candidates-${subject.id}`,
         candidates: s05Content.intro.candidates,
       }),
-      findingScene: createPasswordFindingScene(`s05-findings-${fixture.id}`, componentAnalysis),
-      structureScene: createPasswordStructureScene(
-        `s05-structure-${fixture.id}`,
-        s05Content.structure.demonstrations,
-        structureAnalysis,
-      ),
+      findingScene,
+      structureScene,
       freeSearchDemonstrationScene: createPasswordFreeSearchDemonstrationScene({
-        id: `s05-free-search-${fixture.id}`,
+        id: `s05-free-search-${subject.id}`,
         lowercaseMeasurements: s05Content.freeSearch.theoreticalModel.lowercaseMeasurements.map(
           ({ length, durationLabel }) => ({
             model: createLowercaseSearchSpaceModel(length),
@@ -167,25 +192,23 @@ export class S05AnalysisController {
         generatedCharacterModel: createSystemGeneratedSearchSpaceModel(12),
         lowercaseReferenceModel: createLowercaseSearchSpaceModel(15),
       }),
-      freeSearchApplicationScene: createPasswordFreeSearchApplicationScene(
-        `s05-free-search-application-${fixture.id}`,
-        fixture.fictionalPassword,
-        componentAnalysis,
-        structureAnalysis,
-        disposition,
-      ),
+      freeSearchApplicationScene,
       estimate: { selected: null, confirmed: false },
       controls: { canStart: true, canReplay: false, canContinue: false },
     };
     this.#missionController = new MissionController({
       animationPlayer,
       onComplete: () => {
+        const snapshot = this.#snapshot;
+        if (snapshot === null || this.#completionReported) return;
+        this.#completionReported = true;
         this.#snapshot = {
-          ...this.#snapshot,
+          ...snapshot,
           phase: 'complete',
           controls: { canStart: false, canReplay: false, canContinue: false },
         };
         this.#emit();
+        this.#onComplete?.();
       },
     });
     this.#unsubscribe = this.#missionController.subscribe((snapshot) =>
@@ -193,7 +216,10 @@ export class S05AnalysisController {
     );
   }
 
-  getSnapshot = (): S05AnalysisControllerSnapshot => this.#snapshot;
+  getSnapshot = (): S05AnalysisControllerSnapshot => {
+    if (this.#snapshot === null) throw new Error('s05-controller-disposed');
+    return this.#snapshot;
+  };
 
   subscribe(listener: Listener): () => void {
     this.#listeners.add(listener);
@@ -201,9 +227,10 @@ export class S05AnalysisController {
   }
 
   start(): void {
-    if (this.#disposed || !this.#snapshot.controls.canStart) return;
+    const snapshot = this.#snapshot;
+    if (this.#disposed || snapshot === null || !snapshot.controls.canStart) return;
     this.#snapshot = {
-      ...this.#snapshot,
+      ...snapshot,
       controls: { canStart: false, canReplay: false, canContinue: false },
     };
     this.#emit();
@@ -211,45 +238,54 @@ export class S05AnalysisController {
   }
 
   selectEstimate(estimate: S05Estimate): void {
-    if (this.#disposed || this.#snapshot.step !== 'estimate' || this.#snapshot.estimate.confirmed) {
+    const snapshot = this.#snapshot;
+    if (
+      this.#disposed ||
+      snapshot === null ||
+      snapshot.step !== 'estimate' ||
+      snapshot.estimate.confirmed
+    )
       return;
-    }
-    this.#snapshot = { ...this.#snapshot, estimate: { selected: estimate, confirmed: false } };
+    this.#snapshot = { ...snapshot, estimate: { selected: estimate, confirmed: false } };
     this.#emit();
   }
 
   confirmEstimate(): void {
+    const snapshot = this.#snapshot;
     if (
       this.#disposed ||
-      this.#snapshot.step !== 'estimate' ||
-      this.#snapshot.estimate.selected === null ||
-      this.#snapshot.estimate.confirmed
+      snapshot === null ||
+      snapshot.step !== 'estimate' ||
+      snapshot.estimate.selected === null ||
+      snapshot.estimate.confirmed
     ) {
       return;
     }
     this.#snapshot = {
-      ...this.#snapshot,
-      estimate: { ...this.#snapshot.estimate, confirmed: true },
-      controls: { ...this.#snapshot.controls, canContinue: true },
+      ...snapshot,
+      estimate: { ...snapshot.estimate, confirmed: true },
+      controls: { ...snapshot.controls, canContinue: true },
     };
     this.#emit();
   }
 
   replay(): void {
-    if (this.#disposed || !this.#snapshot.controls.canReplay) return;
+    if (this.#disposed || this.#snapshot === null || !this.#snapshot.controls.canReplay) return;
     this.#missionController.replay();
   }
 
   continue(): void {
-    if (this.#disposed || !this.#snapshot.controls.canContinue) return;
+    if (this.#disposed || this.#snapshot === null || !this.#snapshot.controls.canContinue) return;
     void this.#missionController.continue();
   }
 
   async dispose(): Promise<void> {
+    if (this.#disposed) return;
     this.#disposed = true;
     this.#unsubscribe();
-    await this.#missionController.dispose();
+    this.#snapshot = null;
     this.#listeners.clear();
+    await this.#missionController.dispose();
   }
 
   #handleMissionSnapshot(snapshot: MissionSnapshot): void {
@@ -258,20 +294,25 @@ export class S05AnalysisController {
     const awaitingDecision = snapshot.matches({ active: 'awaitingDecision' });
     const animating = snapshot.matches({ active: 'animating' });
     if (!awaitingDecision && !animating) return;
+    const currentSnapshot = this.#snapshot;
+    if (currentSnapshot === null) return;
     this.#snapshot = {
-      ...this.#snapshot,
+      ...currentSnapshot,
       phase: awaitingDecision ? 'awaiting-decision' : 'animating',
       step,
       controls: {
         canStart: false,
         canReplay: awaitingDecision,
-        canContinue: awaitingDecision && (step !== 'estimate' || this.#snapshot.estimate.confirmed),
+        canContinue:
+          awaitingDecision && (step !== 'estimate' || currentSnapshot.estimate.confirmed),
       },
     };
     this.#emit();
   }
 
   #emit(): void {
-    for (const listener of this.#listeners) listener(this.#snapshot);
+    const snapshot = this.#snapshot;
+    if (snapshot === null) return;
+    for (const listener of this.#listeners) listener(snapshot);
   }
 }

@@ -1,10 +1,8 @@
-import type { PasswordSingleFindingKind, RuntimeStructureFindingKind } from '@passwo/contracts';
-import {
-  type S05DesignLabFixture,
-  type S05DesignLabFixtureId,
-  getS05DesignLabFixture,
-  s05Content,
-} from '@passwo/training-content';
+import type {
+  PasswordSingleFindingKind,
+  RuntimeStructureFindingKind,
+} from '@passwo/contracts';
+import { s05Content } from '@passwo/training-content';
 import { type BrowserShellSnapshot, BrowserShell } from '@passwo/ui';
 import type {
   PasswordCandidateSceneSnapshot,
@@ -16,10 +14,26 @@ import type {
 import { type ReactNode, useEffect, useRef, useState } from 'react';
 import {
   type S05AnalysisControllerSnapshot,
+  type S05AnalysisSubject,
   S05AnalysisController,
 } from './S05AnalysisController.js';
 import { S05AnimationAdapter } from './S05AnimationAdapter.js';
 import styles from './S05AnalysisTraining.module.css';
+
+export type S05TimingState = 'active' | 'writingEnd' | 'endWriteFailed';
+
+export interface S05CompletionPort {
+  complete(): void;
+}
+
+export interface S05AnalysisTrainingProps {
+  readonly subject: S05AnalysisSubject;
+  readonly timingState?: S05TimingState;
+  readonly timingErrorCode?: string | null;
+  readonly externalTimingError?: string | null;
+  readonly onRetryTiming?: () => void;
+  readonly completionPort?: S05CompletionPort;
+}
 
 const browserSnapshot: BrowserShellSnapshot = {
   tabs: [s05Content.browser.tab],
@@ -63,10 +77,10 @@ function CandidateScene({ scene }: { readonly scene: PasswordCandidateSceneSnaps
 }
 
 function FindingScene({
-  fixture,
+  subject,
   scene,
 }: {
-  readonly fixture: S05DesignLabFixture;
+  readonly subject: S05AnalysisSubject;
   readonly scene: PasswordFindingSceneSnapshot;
 }) {
   return (
@@ -81,9 +95,9 @@ function FindingScene({
         ))}
       </section>
       <aside className={styles.resultCard} data-s05-target="analysis-result">
-        <p className={styles.cardLabel}>{fixture.label}</p>
+        <p className={styles.cardLabel}>{subject.label}</p>
         <h2>{s05Content.result.title}</h2>
-        <code className={styles.fixturePassword}>{fixture.fictionalPassword}</code>
+        <code className={styles.fixturePassword}>{subject.fictionalPassword}</code>
         <ol>
           {scene.prioritizedFindings.map((finding) => (
             <li key={finding.id}>
@@ -398,10 +412,10 @@ function AuthoredWordsScene() {
 }
 
 function FreeSearchApplicationScene({
-  fixture,
+  subject,
   scene,
 }: {
-  readonly fixture: S05DesignLabFixture;
+  readonly subject: S05AnalysisSubject;
   readonly scene: PasswordFreeSearchApplicationSceneSnapshot;
 }) {
   const content = s05Content.freeSearch.application;
@@ -413,7 +427,7 @@ function FreeSearchApplicationScene({
     >
       <p className={styles.cardLabel}>Laufzeitbefund · fiktives Passwort</p>
       <h2>{content.title}</h2>
-      <code className={styles.largePassword}>{fixture.fictionalPassword}</code>
+      <code className={styles.largePassword}>{subject.fictionalPassword}</code>
       <div className={styles.applicationGrid}>
         <article>
           <strong>{content.visibleLength}</strong>
@@ -494,21 +508,21 @@ function SummaryScene({ step }: { readonly step: S05AnalysisControllerSnapshot['
 
 function renderScene(
   snapshot: S05AnalysisControllerSnapshot,
-  fixture: S05DesignLabFixture,
+  subject: S05AnalysisSubject,
   controller: S05AnalysisController,
 ) {
   switch (snapshot.step) {
     case 'candidate-check':
       return <CandidateScene scene={snapshot.candidateScene} />;
     case 'component-analysis':
-      return <FindingScene fixture={fixture} scene={snapshot.findingScene} />;
+      return <FindingScene subject={subject} scene={snapshot.findingScene} />;
     case 'structure-theme':
     case 'structure-sentence':
     case 'structure-repetition':
     case 'structure-context':
       return <StructureDemonstrationScene snapshot={snapshot} />;
     case 'structure-application':
-      return <StructureApplicationScene fixture={fixture} scene={snapshot.structureScene} />;
+      return <StructureApplicationScene subject={subject} scene={snapshot.structureScene} />;
     case 'free-search-transition':
       return (
         <ShortExplanationScene
@@ -534,7 +548,7 @@ function renderScene(
       return <AuthoredWordsScene />;
     case 'free-search-application':
       return (
-        <FreeSearchApplicationScene fixture={fixture} scene={snapshot.freeSearchApplicationScene} />
+        <FreeSearchApplicationScene subject={subject} scene={snapshot.freeSearchApplicationScene} />
       );
     case 'summary-components':
     case 'summary-structure':
@@ -547,10 +561,10 @@ function renderScene(
 }
 
 function StructureApplicationScene({
-  fixture,
+  subject,
   scene,
 }: {
-  readonly fixture: S05DesignLabFixture;
+  readonly subject: S05AnalysisSubject;
   readonly scene: PasswordStructureSceneSnapshot;
 }) {
   const noSimpleStructure =
@@ -569,7 +583,7 @@ function StructureApplicationScene({
       <article className={styles.structureResult} data-s05-target="structure-application">
         <p className={styles.cardLabel}>Laufzeitbefund · fiktives Passwort</p>
         <h2>{s05Content.structure.application.title}</h2>
-        <FictionalPasswordWithEvidence password={fixture.fictionalPassword} scene={scene} />
+        <FictionalPasswordWithEvidence password={subject.fictionalPassword} scene={scene} />
         <ol>
           {scene.prioritizedRuntimeFindings.map((finding) => (
             <li key={finding.id}>
@@ -586,10 +600,18 @@ function StructureApplicationScene({
   );
 }
 
-export function S05AnalysisTraining({ fixture }: { readonly fixture: S05DesignLabFixture }) {
+export function S05AnalysisTraining({
+  subject,
+  timingState = 'active',
+  timingErrorCode = null,
+  externalTimingError = null,
+  onRetryTiming,
+  completionPort,
+}: S05AnalysisTrainingProps) {
   const hostRef = useRef<HTMLElement | null>(null);
   const [controller, setController] = useState<S05AnalysisController | null>(null);
   const [snapshot, setSnapshot] = useState<S05AnalysisControllerSnapshot | null>(null);
+  const timingFailure = externalTimingError !== null || timingState === 'endWriteFailed';
 
   useEffect(() => {
     const animationPlayer = new S05AnimationAdapter({
@@ -598,8 +620,9 @@ export function S05AnalysisTraining({ fixture }: { readonly fixture: S05DesignLa
       prefersReducedMotion: () => window.matchMedia('(prefers-reduced-motion: reduce)').matches,
     });
     const nextController = new S05AnalysisController({
-      fixture,
+      subject,
       animationPlayer,
+      onComplete: () => completionPort?.complete(),
     });
     const unsubscribe = nextController.subscribe(setSnapshot);
     setController(nextController);
@@ -608,14 +631,19 @@ export function S05AnalysisTraining({ fixture }: { readonly fixture: S05DesignLa
       unsubscribe();
       void nextController.dispose();
     };
-  }, [fixture]);
+  }, [completionPort, subject]);
+
+  const writingBoundary = timingState === 'writingEnd';
+  const currentBrowserSnapshot = writingBoundary
+    ? { ...browserSnapshot, locked: true }
+    : browserSnapshot;
 
   if (controller === null || snapshot === null) return null;
 
   return (
     <section ref={hostRef} className={styles.training} aria-label={s05Content.trainingAriaLabel}>
       <BrowserShell
-        snapshot={browserSnapshot}
+        snapshot={currentBrowserSnapshot}
         ariaLabel={s05Content.browser.ariaLabel}
         onTabSelect={() => undefined}
       >
@@ -628,26 +656,38 @@ export function S05AnalysisTraining({ fixture }: { readonly fixture: S05DesignLa
             <span className={styles.fixtureNotice}>{s05Content.page.fixtureNotice}</span>
           </header>
           <div className={styles.content} aria-live="polite">
-            {renderScene(snapshot, fixture, controller)}
+            {renderScene(snapshot, subject, controller)}
           </div>
           <footer className={styles.controls}>
+            {writingBoundary && externalTimingError === null ? (
+              <p role="status">Segmentgrenze wird bestätigt …</p>
+            ) : null}
+            {timingFailure ? (
+              <section className={styles.timingError} role="alert">
+                <p>Die Segmentgrenze konnte nicht bestätigt werden.</p>
+                <p>Fehlercode: {externalTimingError ?? timingErrorCode}</p>
+                <button type="button" onClick={onRetryTiming}>
+                  Erneut versuchen
+                </button>
+              </section>
+            ) : null}
             <button
               type="button"
-              disabled={!snapshot.controls.canStart}
+              disabled={!snapshot.controls.canStart || externalTimingError !== null}
               onClick={() => controller.start()}
             >
               {s05Content.page.start}
             </button>
             <button
               type="button"
-              disabled={!snapshot.controls.canReplay}
+              disabled={!snapshot.controls.canReplay || externalTimingError !== null}
               onClick={() => controller.replay()}
             >
               {s05Content.page.replay}
             </button>
             <button
               type="button"
-              disabled={!snapshot.controls.canContinue}
+              disabled={!snapshot.controls.canContinue || externalTimingError !== null}
               onClick={() => controller.continue()}
             >
               {s05Content.page.continue}
@@ -657,9 +697,4 @@ export function S05AnalysisTraining({ fixture }: { readonly fixture: S05DesignLa
       </BrowserShell>
     </section>
   );
-}
-
-export function S05DesignLabTraining({ fixtureId }: { readonly fixtureId: S05DesignLabFixtureId }) {
-  const fixture = getS05DesignLabFixture(fixtureId);
-  return <S05AnalysisTraining fixture={fixture} />;
 }

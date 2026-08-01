@@ -22,9 +22,9 @@ import { S01Training } from '../features/training/S01Training.js';
 import { S02AccountExplorationTraining } from '../features/training/segments/S02/S02AccountExplorationTraining.js';
 import { S03RetrievalTraining } from '../features/training/segments/S03/S03RetrievalTraining.js';
 import { S04IncidentTraining } from '../features/training/segments/S04/S04IncidentTraining.js';
-import { S05DesignLabTraining } from '../features/training/segments/S05/S05AnalysisTraining.js';
 import { S06ConsequenceTraining } from '../features/training/segments/S06/S06ConsequenceTraining.js';
 import styles from './DesignLab.module.css';
+import { S05DesignLabTraining } from './S05DesignLabTraining.js';
 
 interface DesignLabScenario {
   readonly label: string;

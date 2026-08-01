@@ -1,12 +1,8 @@
 import { describe, expect, it } from 'vitest';
 import { createActor } from 'xstate';
-import {
-  getRetrievedAccountCount,
-  passwordModuleMachine,
-} from './password-module-machine.js';
+import { getRetrievedAccountCount, passwordModuleMachine } from './password-module-machine.js';
 
 const accountIds = ['master-campus', 'campus-email', 'campusgram'] as const;
-
 function createModuleActor() {
   const actor = createActor(passwordModuleMachine, { input: { accountIds } });
   actor.start();
@@ -38,6 +34,7 @@ function completeAssistedLogin(
   actor: ReturnType<typeof createModuleActor>,
   accountId: (typeof accountIds)[number],
 ): void {
+  actor.send({ type: 'SELECT_ACCOUNT', accountId });
   actor.send({ type: 'SKIP_RETRIEVAL', accountId });
   actor.send({ type: 'START_ASSISTED_LOGIN', accountId });
   actor.send({ type: 'S03_ASSISTED_AUTOFILL_COMPLETED', accountId });
@@ -69,9 +66,9 @@ describe('passwordModuleMachine', () => {
     for (const accountId of accountIds) completeAssistedLogin(actor, accountId);
     reachS03TimeLapse(actor);
 
-    expect(
-      actor.getSnapshot().matches({ s03: { completionSequence: 'timeLapseRunning' } }),
-    ).toBe(true);
+    expect(actor.getSnapshot().matches({ s03: { completionSequence: 'timeLapseRunning' } })).toBe(
+      true,
+    );
     actor.send({ type: 'S03_TIMELAPSE_COMPLETED' });
 
     expect(actor.getSnapshot().matches({ s03: 'warningAnnouncement' })).toBe(true);
@@ -121,7 +118,7 @@ describe('passwordModuleMachine', () => {
     expect(actor.getSnapshot().status).toBe('active');
   });
 
-  it('keeps each failed transition retryable and ends S04 in a stable completed state', () => {
+  it('keeps each failed transition retryable and ends S05 in awaiting-s06', () => {
     const actor = createModuleActor();
     configureAllAccounts(actor);
     startS03(actor);
@@ -142,8 +139,18 @@ describe('passwordModuleMachine', () => {
     expect(actor.getSnapshot().matches({ s04: 'endWriteFailed' })).toBe(true);
     actor.send({ type: 'RETRY_S04_END' });
     actor.send({ type: 'S04_END_RECORDED' });
+    actor.send({ type: 'S05_START_FAILED', errorCode: 's05-start-failed' });
+    expect(actor.getSnapshot().matches({ s05: 'startWriteFailed' })).toBe(true);
+    actor.send({ type: 'RETRY_S05_START' });
+    actor.send({ type: 'S05_START_RECORDED' });
+    actor.send({ type: 'S05_COMPLETED' });
+    actor.send({ type: 'S05_END_FAILED', errorCode: 's05-end-failed' });
+    expect(actor.getSnapshot().matches({ s05: 'endWriteFailed' })).toBe(true);
+    actor.send({ type: 'RETRY_S05_END' });
+    actor.send({ type: 'S05_END_RECORDED' });
 
-    expect(actor.getSnapshot().matches({ s04: 'completed' })).toBe(true);
+    expect(actor.getSnapshot().matches('awaiting-s06')).toBe(true);
+    expect(actor.getSnapshot().context).not.toHaveProperty('s05Result');
   });
 
   it('preserves transient S03 data until discard', () => {
@@ -151,7 +158,7 @@ describe('passwordModuleMachine', () => {
     const values = {
       'master-campus': '  id 🙂!?  ',
       'campus-email': 'mail 🧭 #$',
-      'campusgram': 'gram_Ä 🐾',
+      campusgram: 'gram_Ä 🐾',
     } as const;
     for (const [accountId, value] of Object.entries(values)) {
       actor.send({ type: 'SET_PASSWORD_VALUE', accountId, value });
@@ -168,13 +175,18 @@ describe('passwordModuleMachine', () => {
     completeAssistedLogin(actor, 'campusgram');
     reachAwaitingIncidentOpen(actor);
     startS04(actor);
+    actor.send({ type: 'S04_COMPLETED' });
+    actor.send({ type: 'S04_END_RECORDED' });
+    actor.send({ type: 'S05_START_RECORDED' });
+    actor.send({ type: 'S05_COMPLETED' });
 
-    expect(actor.getSnapshot().matches({ s04: 'active' })).toBe(true);
+    expect(actor.getSnapshot().matches({ s05: 'writingEnd' })).toBe(true);
     expect(actor.getSnapshot().context.passwordValues).toEqual(values);
+    expect(actor.getSnapshot().context).not.toHaveProperty('s05Result');
     expect(actor.getSnapshot().context.retrievalResults).toEqual({
       'master-campus': 'retrievable',
       'campus-email': 'assisted',
-      'campusgram': 'assisted',
+      campusgram: 'assisted',
     });
 
     actor.send({ type: 'DISCARD' });
@@ -183,13 +195,19 @@ describe('passwordModuleMachine', () => {
     expect(actor.getSnapshot().context.passwordValues).toEqual({
       'master-campus': '',
       'campus-email': '',
-      'campusgram': '',
+      campusgram: '',
     });
     expect(actor.getSnapshot().context.retrievalResults).toEqual({
       'master-campus': 'pending',
       'campus-email': 'pending',
-      'campusgram': 'pending',
+      campusgram: 'pending',
     });
+    expect(actor.getSnapshot().context.retrievalPasswordValues).toEqual({
+      'master-campus': '',
+      'campus-email': '',
+      campusgram: '',
+    });
+    expect(actor.getSnapshot().context).not.toHaveProperty('s05Result');
   });
 
   it('keeps failed entries retryable and completes forgotten passwords through assistance', () => {

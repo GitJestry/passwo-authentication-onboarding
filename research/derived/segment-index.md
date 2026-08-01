@@ -23,10 +23,12 @@ Seitenangaben beziehen sich auf die im Trainingsdokument ausgewiesene interne Pa
 | S16 | Priorisierung/Ausweitung | 68 | TF1, TF6 | wichtige Konten zuerst, MFA wo verfügbar |
 | S17 | Integrierte Zusammenfassung | 69–71 | TF4, TF6 | vier Schutzebenen, letzter Guardrail |
 
-## Implementierte S05-Design-Lab-Version
+## Implementierte S05-Version
 
-- S05.0 bis S05.4 verwenden die internen Seiten 12 bis 35 als Inhaltsquelle und sind nur im
-  Design Lab vollständig durchspielbar. S05 ist noch nicht in den realen Studienpfad integriert.
+- S05.0 bis S05.4 verwenden die internen Seiten 12 bis 35 als Inhaltsquelle und sind im Design Lab
+  sowie im realen Supportive-Training zwischen S04 und dem stabilen Zustand
+  `awaiting-s06` vollständig durchspielbar. Beide Pfade verwenden dieselbe Komponente und denselben
+  lokalen Controller.
 - S05.2 zeigt Thema, Satzstruktur, Wiederholung und Passwortkontext nacheinander. Thema und
   Satzstruktur bleiben ausschließlich feste redaktionelle Demonstrationen.
 - Die lokale Laufzeitanalyse benennt nur exakte Wiederholung, eine feste Konto-/Kontextbeziehung

@@ -71,6 +71,13 @@ export type PasswordModuleEvent =
   | { readonly type: 'S04_END_RECORDED' }
   | { readonly type: 'S04_END_FAILED'; readonly errorCode: string }
   | { readonly type: 'RETRY_S04_END' }
+  | { readonly type: 'S05_START_RECORDED' }
+  | { readonly type: 'S05_START_FAILED'; readonly errorCode: string }
+  | { readonly type: 'RETRY_S05_START' }
+  | { readonly type: 'S05_COMPLETED' }
+  | { readonly type: 'S05_END_RECORDED' }
+  | { readonly type: 'S05_END_FAILED'; readonly errorCode: string }
+  | { readonly type: 'RETRY_S05_END' }
   | { readonly type: 'DISCARD' };
 
 function emptyPasswordValues(accountIds: readonly string[]): Record<string, string> {
@@ -116,10 +123,7 @@ function matchesRetrievalPassword(context: PasswordModuleContext, accountId: str
   );
 }
 
-function isActiveNotRememberedAccount(
-  context: PasswordModuleContext,
-  accountId: string,
-): boolean {
+function isActiveNotRememberedAccount(context: PasswordModuleContext, accountId: string): boolean {
   return (
     isKnownAccount(context, accountId) &&
     context.activeAccountId === accountId &&
@@ -167,7 +171,8 @@ export const passwordModuleMachine = setup({
     completesAssistedRetrieval: ({ context, event }) =>
       event.type === 'SUBMIT_ASSISTED_LOGIN' &&
       isActiveNotRememberedAccount(context, event.accountId) &&
-      context.retrievalPasswordValues[event.accountId] === context.passwordValues[event.accountId] &&
+      context.retrievalPasswordValues[event.accountId] ===
+        context.passwordValues[event.accountId] &&
       getRetrievedAccountCount(context) + 1 === context.accountIds.length,
     opensCampusgramIncident: ({ event }) =>
       event.type === 'OPEN_INCIDENT_ACCOUNT' && event.accountId === 'campusgram',
@@ -187,7 +192,9 @@ export const passwordModuleMachine = setup({
         event.type === 'S03_START_FAILED' ||
         event.type === 'S03_END_FAILED' ||
         event.type === 'S04_START_FAILED' ||
-        event.type === 'S04_END_FAILED'
+        event.type === 'S04_END_FAILED' ||
+        event.type === 'S05_START_FAILED' ||
+        event.type === 'S05_END_FAILED'
           ? event.errorCode
           : null,
     }),
@@ -527,16 +534,53 @@ export const passwordModuleMachine = setup({
         },
         writingEnd: {
           on: {
-            S04_END_RECORDED: { target: 'completed', actions: 'clearTimingError' },
+            S04_END_RECORDED: {
+              target: '#passwordModule.s05.writingStart',
+              actions: 'clearTimingError',
+            },
             S04_END_FAILED: { target: 'endWriteFailed', actions: 'storeTimingError' },
           },
         },
         endWriteFailed: {
           on: { RETRY_S04_END: { target: 'writingEnd', actions: 'clearTimingError' } },
         },
-        completed: {},
       },
     },
+    s05: {
+      initial: 'writingStart',
+      states: {
+        writingStart: {
+          on: {
+            S05_START_RECORDED: { target: 'active', actions: 'clearTimingError' },
+            S05_START_FAILED: { target: 'startWriteFailed', actions: 'storeTimingError' },
+          },
+        },
+        startWriteFailed: {
+          on: { RETRY_S05_START: { target: 'writingStart', actions: 'clearTimingError' } },
+        },
+        active: {
+          on: {
+            S05_COMPLETED: {
+              target: 'writingEnd',
+              actions: 'clearTimingError',
+            },
+          },
+        },
+        writingEnd: {
+          on: {
+            S05_END_RECORDED: {
+              target: '#passwordModule.awaiting-s06',
+              actions: 'clearTimingError',
+            },
+            S05_END_FAILED: { target: 'endWriteFailed', actions: 'storeTimingError' },
+          },
+        },
+        endWriteFailed: {
+          on: { RETRY_S05_END: { target: 'writingEnd', actions: 'clearTimingError' } },
+        },
+      },
+    },
+    'awaiting-s06': {},
     discarded: { type: 'final' },
   },
 });

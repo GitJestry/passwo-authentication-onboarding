@@ -5,7 +5,7 @@ import {
   type SegmentTimingPort,
 } from '@passwo/training-engine';
 import type { DesktopPlatform } from '@passwo/ui';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import passWoDockAsset from '../../assets/passwo/passwo-dock.png';
 import { PassWoSpeechBubble } from './PassWoSpeechBubble.js';
 import { passWoSpeechEmphasisFor } from './PassWoSpeechEmphasis.js';
@@ -19,6 +19,11 @@ import {
 } from './segments/S02/S02AccountExplorationTraining.js';
 import { S03RetrievalTraining } from './segments/S03/S03RetrievalTraining.js';
 import { S04IncidentTraining } from './segments/S04/S04IncidentTraining.js';
+import {
+  S05AnalysisTraining,
+  type S05CompletionPort,
+  type S05TimingState,
+} from './segments/S05/S05AnalysisTraining.js';
 
 export interface PasswordModuleTrainingProps {
   readonly timingPort?: SegmentTimingPort;
@@ -35,6 +40,22 @@ export function PasswordModuleTraining({
   const [entrySpeechComplete, setEntrySpeechComplete] = useState(false);
   const [platform, setPlatform] = useState<DesktopPlatform>('mac');
   const controllerRef = useRef<PasswordModuleController | null>(null);
+  const campusgramPassword = snapshot?.context.passwordValues['campusgram'] ?? '';
+  const s05Subject = useMemo(
+    () => ({
+      id: 'supportive-campusgram',
+      label: 'Fiktives Campusgram-Passwort',
+      fictionalPassword: campusgramPassword,
+      analysisContext: { accountTerms: ['Campusgram'] },
+    }),
+    [campusgramPassword],
+  );
+  const s05CompletionPort = useMemo<S05CompletionPort>(
+    () => ({
+      complete: () => controllerRef.current?.completeS05(),
+    }),
+    [],
+  );
 
   useEffect(() => {
     const controller = new PasswordModuleController({
@@ -220,6 +241,73 @@ export function PasswordModuleTraining({
         externalTimingError={externalTimingError}
         {...(onRetryExternalTiming === undefined ? {} : { onRetryExternalTiming })}
       />
+    );
+  }
+
+  if (snapshot.matches('s05')) {
+    const startWritePending = snapshot.matches({ s05: 'writingStart' });
+    const startWriteFailed = snapshot.matches({ s05: 'startWriteFailed' });
+    if (startWritePending || startWriteFailed) {
+      return (
+        <section className={styles.loading} aria-live="polite">
+          <p role={startWriteFailed ? 'alert' : 'status'}>
+            {startWriteFailed
+              ? 'Die Segmentgrenze konnte nicht bestätigt werden.'
+              : 'Segmentgrenze wird bestätigt …'}
+          </p>
+          {startWriteFailed ? (
+            <>
+              <p>Fehlercode: {externalTimingError ?? snapshot.context.timingErrorCode}</p>
+              <button
+                type="button"
+                onClick={() => {
+                  if (externalTimingError !== null) {
+                    onRetryExternalTiming?.();
+                  } else {
+                    controller.retryTiming();
+                  }
+                }}
+              >
+                Erneut versuchen
+              </button>
+            </>
+          ) : null}
+        </section>
+      );
+    }
+
+    const timingState: S05TimingState = snapshot.matches({ s05: 'writingEnd' })
+      ? 'writingEnd'
+      : snapshot.matches({ s05: 'endWriteFailed' })
+        ? 'endWriteFailed'
+        : 'active';
+    return (
+      <S05AnalysisTraining
+        subject={s05Subject}
+        timingState={timingState}
+        timingErrorCode={snapshot.context.timingErrorCode}
+        externalTimingError={externalTimingError}
+        completionPort={s05CompletionPort}
+        onRetryTiming={() => {
+          if (externalTimingError !== null) {
+            onRetryExternalTiming?.();
+          } else {
+            controller.retryTiming();
+          }
+        }}
+      />
+    );
+  }
+
+  if (snapshot.matches('awaiting-s06')) {
+    // S06 must derive its required local analysis from the ephemeral training passwords and must
+    // not depend on retained S05 findings.
+    return (
+      <section className={styles.loading} aria-labelledby="awaiting-s06-title">
+        <h1 id="awaiting-s06-title">
+          Als Nächstes vergleichen wir die drei Passwortentscheidungen miteinander.
+        </h1>
+      </section>
     );
   }
 

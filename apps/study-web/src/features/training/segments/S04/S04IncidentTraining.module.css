@@ -76,7 +76,6 @@
 
 .explanation p,
 .nextStep,
-.completed,
 .timingError p {
   margin: 0;
   line-height: var(--line-height-body);
@@ -126,24 +125,6 @@
   outline: var(--border-width-focus) solid var(--color-focus);
   outline-offset: var(--space-1);
   box-shadow: var(--shadow-focus);
-}
-
-.completed {
-  display: flex;
-  align-items: center;
-  gap: var(--space-3);
-  color: var(--color-positive);
-  font-weight: var(--font-weight-bold);
-}
-
-.completed span {
-  display: grid;
-  width: 1.8rem;
-  height: 1.8rem;
-  place-items: center;
-  border: var(--border-width-thin) solid currentColor;
-  border-radius: var(--radius-round);
-  background: var(--color-positive-soft);
 }
 
 .timingStatus,

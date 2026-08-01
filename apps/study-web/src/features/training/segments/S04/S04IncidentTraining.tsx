@@ -49,7 +49,6 @@ export function S04IncidentTraining({
   const active = snapshot.matches({ s04: 'active' });
   const writingEnd = snapshot.matches({ s04: 'writingEnd' });
   const endWriteFailed = snapshot.matches({ s04: 'endWriteFailed' });
-  const completed = snapshot.matches({ s04: 'completed' });
   const startHandoff = writingStart || startWriteFailed;
   const timingFailure = externalTimingError !== null || startWriteFailed || endWriteFailed;
   const campusIdentity = deriveCampusIdentity(snapshot.context.displayName ?? '');
@@ -140,21 +139,14 @@ export function S04IncidentTraining({
                 ))}
               </div>
               <p className={styles.nextStep}>{s04Content.notice.nextStep}</p>
-              {completed ? (
-                <p className={styles.completed} role="status">
-                  <span aria-hidden="true">✓</span>
-                  {s04Content.notice.completedLabel}
-                </p>
-              ) : (
-                <button
-                  type="button"
-                  className={styles.continueButton}
-                  disabled={!active || externalTimingError !== null}
-                  onClick={() => controller.completeS04()}
-                >
-                  {s04Content.notice.continueLabel}
-                </button>
-              )}
+              <button
+                type="button"
+                className={styles.continueButton}
+                disabled={!active || externalTimingError !== null}
+                onClick={() => controller.completeS04()}
+              >
+                {s04Content.notice.continueLabel}
+              </button>
             </article>
           </CampusWebsiteBackdrop>
         )}
