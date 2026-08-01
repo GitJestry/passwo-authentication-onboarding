@@ -65,81 +65,47 @@ function completionNarration(rememberedCount: number): string {
   return s03Content.narration.completionByRememberedCount[3];
 }
 
-function CampusStartTimeLapse({
-  running,
-  warning,
+const timeLapseDays = Array.from({ length: 42 }, (_, index) => index + 1);
+
+function TimeLapseOverlay({
   onTimeLapseComplete,
 }: {
-  readonly running: boolean;
-  readonly warning: boolean;
   readonly onTimeLapseComplete: () => void;
 }) {
   return (
-    <div
-      className={styles.campusTimeLapse}
-      data-running={running || undefined}
-      data-warning={warning || undefined}
-      aria-label={
-        warning
-          ? 'Der Campusalltag wurde wegen einer Warnung bei Campusgram angehalten.'
-          : 'Der fiktive Campusalltag läuft im Zeitraffer.'
-      }
+    <section
+      className={styles.timeLapseOverlay}
+      aria-label="Der fiktive Campusalltag läuft im Zeitraffer."
     >
-      {running ? (
-        <span
-          className={styles.timeLapseCompletionSignal}
-          aria-hidden="true"
-          onAnimationEnd={(event) => {
-            if (event.currentTarget === event.target) onTimeLapseComplete();
-          }}
-        />
-      ) : null}
-      <CampusWebsiteBackdrop
-        accountId="master-campus"
-        interactionLabel="Fiktiver Campusalltag im Zeitraffer"
-      >
-        <section className={styles.campusActivity} aria-hidden="true">
-          <header>
-            <span>Campusstart</span>
-            <strong>{warning ? 'Aktivität angehalten' : 'Heute'}</strong>
-          </header>
-          <div className={styles.activityTimeline}>
-            <article>
-              <span className={styles.activityTime}>08:15</span>
-              <div>
-                <strong>Stundenplan öffnen</strong>
-                <span>Master Campus</span>
-              </div>
-            </article>
-            <article>
-              <span className={styles.activityTime}>09:40</span>
-              <div>
-                <strong>Nachricht lesen</strong>
-                <span>Campus E-Mail</span>
-              </div>
-            </article>
-            <article>
-              <span className={styles.activityTime}>11:05</span>
-              <div>
-                <strong>Beitrag ansehen</strong>
-                <span>Campusgram</span>
-              </div>
-            </article>
-          </div>
-          <span className={styles.timeLapseCursor}>
-            <svg viewBox="0 0 24 24" fill="none">
-              <path
-                d="m5 3 14 10-7 1.4L8.5 21 5 3Z"
-                fill="currentColor"
-                stroke="white"
-                strokeWidth="1.2"
-                strokeLinejoin="round"
-              />
-            </svg>
+      <span
+        className={styles.timeLapseCompletionSignal}
+        aria-hidden="true"
+        onAnimationEnd={(event) => {
+          if (event.currentTarget === event.target) onTimeLapseComplete();
+        }}
+      />
+      <div className={styles.timeLapseCenter} aria-hidden="true">
+        <span className={styles.timeLapseClock}>
+          <svg viewBox="0 0 120 120" fill="none">
+            <circle cx="60" cy="60" r="52" />
+            <path d="M60 20v8M100 60h-8M60 100v-8M20 60h8" />
+            <path className={styles.clockMinuteHand} d="M60 60V30" />
+            <path className={styles.clockHourHand} d="m60 60 22 13" />
+            <circle cx="60" cy="60" r="4" fill="currentColor" stroke="none" />
+          </svg>
+        </span>
+        <span className={styles.timeLapseDayViewport}>
+          <span className={styles.timeLapseDayTrack}>
+            {timeLapseDays.map((day) => (
+              <strong key={day}>Tag {day}</strong>
+            ))}
           </span>
-        </section>
-      </CampusWebsiteBackdrop>
-    </div>
+        </span>
+      </div>
+      <span className={styles.screenReaderOnly} role="status">
+        Zeitraffer läuft. Die Tage vergehen.
+      </span>
+    </section>
   );
 }
 
@@ -302,8 +268,12 @@ export function S03RetrievalTraining({
     if (completedAccount !== undefined) setSuccessOverlayAccountId(completedAccount.id);
   }, [snapshot.context.retrievalResults]);
 
+  const presentedAccountId =
+    campusStartActive || timeLapsePhaseActive || campusgramWarningActive
+      ? 'master-campus'
+      : snapshot.context.activeAccountId;
   const account =
-    s01Content.browser.accounts.find(({ id }) => id === snapshot.context.activeAccountId) ??
+    s01Content.browser.accounts.find(({ id }) => id === presentedAccountId) ??
     s01Content.browser.accounts[0];
   if (account === undefined) return null;
 
@@ -444,18 +414,13 @@ export function S03RetrievalTraining({
           ? { status: 'complete' as const }
           : {}),
     })),
-    activeTabId: completionSequenceActive ? 'master-campus' : account.id,
-    address:
-      completionSequenceActive
-        ? (s01Content.browser.accounts.find(({ id }) => id === 'master-campus')?.address ??
-          account.address)
-        : pageAddress,
-    accountIdentifier: completionSequenceActive
-      ? campusIdentity.masterCampus
-      : accountIdentifier,
-    scrollKey: completionSequenceActive ? 's03:completion' : `s03:${account.id}:${websiteView}`,
-    dimmed: guideVisible && !campusgramWarningActive,
-    dimStrength: 'soft',
+    activeTabId: account.id,
+    address: pageAddress,
+    accountIdentifier,
+    scrollKey: `s03:${account.id}:${websiteView}`,
+    dimmed: timeLapsePhaseActive || guideVisible,
+    dimStrength: timeLapsePhaseActive ? 'standard' : 'soft',
+    ...(incidentTabAvailable ? { allowTabInteractionWhenDimmed: true } : {}),
     ...(campusgramWarningActive ? { highlightedTabId: 'campusgram' } : {}),
     locked: isStarting || timeLapsePhaseActive || warningAnnouncementActive || s03EndWritePending,
   };
@@ -514,70 +479,79 @@ export function S03RetrievalTraining({
                   onComplete={() => setSuccessOverlayAccountId(null)}
                 />
               )}
-              <PassWoGuide
-                guideName={s03Content.narration.guideName}
-                taskLabel="Anmelden"
-                progress={{
-                  current: completedCount,
-                  total: s01Content.browser.accounts.length,
-                  label: s03Content.page.progress(completedCount),
-                }}
-                helpOpen={guideVisible}
-                helpId="s03-guide"
-                openHelpLabel="PassWo-Hinweis öffnen"
-                speech={[guideMessage]}
-                speechKey={guideSpeechKey}
-                speechEmphasis={passWoSpeechEmphasisFor(guideContent.emphasisId)}
-                speechPlacement="right"
-                hasNextSpeech={completionFeedbackActive || campusStartActive}
-                awaitsAction={assistanceActive || campusgramWarningActive}
-                showHelpButton={!guidedPhaseOpen}
-                speechFooter={
-                  assistanceActionAvailable ? (
-                    <button
-                      type="button"
-                      className={styles.primaryButton}
-                      onClick={() => {
-                        setLoginAccountId(account.id);
-                        setGuideOpen(false);
-                        controller.startAssistedLogin(account.id);
-                      }}
-                    >
-                      {s03Content.controls.assistedLogin}
-                    </button>
-                  ) : undefined
-                }
-                onToggleHelp={() => {
-                  if (guideVisible) setThirdAttemptGuideAccountId(null);
-                  setGuideOpen((open) => !open);
-                }}
-                onSpeechComplete={() => {
-                  setCompletedGuideSpeechKey(guideSpeechKey);
-                  if (warningAnnouncementActive) {
-                    controller.completeS03WarningAnnouncement();
+              {timeLapsePhaseActive ? null : (
+                <PassWoGuide
+                  guideName={s03Content.narration.guideName}
+                  taskLabel="Anmelden"
+                  progress={{
+                    current: completedCount,
+                    total: s01Content.browser.accounts.length,
+                    label: s03Content.page.progress(completedCount),
+                  }}
+                  helpOpen={guideVisible}
+                  helpId="s03-guide"
+                  openHelpLabel="PassWo-Hinweis öffnen"
+                  speech={[guideMessage]}
+                  speechKey={guideSpeechKey}
+                  speechEmphasis={passWoSpeechEmphasisFor(guideContent.emphasisId)}
+                  speechPlacement="right"
+                  placement={campusgramWarningActive ? 'center' : 'bottom-left'}
+                  pose={campusgramWarningActive ? 'warning' : 'default'}
+                  hasNextSpeech={completionFeedbackActive || campusStartActive}
+                  awaitsAction={assistanceActive || campusgramWarningActive}
+                  showHelpButton={!guidedPhaseOpen}
+                  speechFooter={
+                    assistanceActionAvailable ? (
+                      <button
+                        type="button"
+                        className={styles.primaryButton}
+                        onClick={() => {
+                          setLoginAccountId(account.id);
+                          setGuideOpen(false);
+                          controller.startAssistedLogin(account.id);
+                        }}
+                      >
+                        {s03Content.controls.assistedLogin}
+                      </button>
+                    ) : undefined
                   }
-                }}
-                onSpeechAdvance={() => {
-                  if (completionFeedbackActive) {
-                    setSuccessOverlayAccountId(null);
-                    controller.continueS03CompletionFeedback();
-                    return;
-                  }
-                  if (campusStartActive) {
-                    setGuideOpen(false);
-                    controller.continueS03CampusStart();
-                    return;
-                  }
-                  if (!assistanceActive && !campusgramWarningActive) {
-                    setThirdAttemptGuideAccountId(null);
-                    setGuideOpen(false);
-                  }
-                }}
-              />
+                  onToggleHelp={() => {
+                    if (guideVisible) setThirdAttemptGuideAccountId(null);
+                    setGuideOpen((open) => !open);
+                  }}
+                  onSpeechComplete={() => {
+                    setCompletedGuideSpeechKey(guideSpeechKey);
+                    if (warningAnnouncementActive) {
+                      controller.completeS03WarningAnnouncement();
+                    }
+                  }}
+                  onSpeechAdvance={() => {
+                    if (completionFeedbackActive) {
+                      setSuccessOverlayAccountId(null);
+                      controller.continueS03CompletionFeedback();
+                      return;
+                    }
+                    if (campusStartActive) {
+                      setGuideOpen(false);
+                      controller.continueS03CampusStart();
+                      return;
+                    }
+                    if (!assistanceActive && !campusgramWarningActive) {
+                      setThirdAttemptGuideAccountId(null);
+                      setGuideOpen(false);
+                    }
+                  }}
+                />
+              )}
             </>
           ),
           controls: (
             <>
+              {timeLapsePhaseActive ? (
+                <TimeLapseOverlay
+                  onTimeLapseComplete={() => controller.completeS03TimeLapse()}
+                />
+              ) : null}
               {(isStarting || s03EndWritePending) && externalTimingError === null ? (
                 <p className={styles.timingStatus} role="status">
                   {s03Content.controls.timingSaving}
@@ -597,53 +571,40 @@ export function S03RetrievalTraining({
         }}
       >
         <div className={styles.page} aria-labelledby="s03-page-title">
-          {completionSequenceActive ? (
-            <section className={styles.completionStage}>
-              <h1 id="s03-page-title" className={styles.screenReaderOnly}>
-                {s03Content.page.title}
-              </h1>
-              <div className={styles.timeLapseStage} aria-live="polite">
-                <CampusStartTimeLapse
-                  running={timeLapsePhaseActive}
-                  warning={campusgramWarningActive}
-                  onTimeLapseComplete={() => controller.completeS03TimeLapse()}
-                />
-              </div>
-            </section>
-          ) : (
-            <CampusWebsiteBackdrop
-              accountId={account.id}
-              interactionLabel={`${account.label} wieder anmelden`}
-              view={websiteView}
-              displayName={snapshot.context.displayName ?? ''}
-              {...(websiteView === 'landing'
-                ? {
-                    primaryAction: {
-                      label: account.landing.loginLabel,
-                      disabled: interactionBlocked,
-                      onClick: () => setLoginAccountId(account.id),
-                    },
-                    secondaryAction: {
-                      label: account.landing.registerLabel,
-                      disabled: true,
-                      disabledReason: s01Content.siteUi.registrationUnavailable,
-                    },
-                  }
-                : {})}
-              authenticationTitle={s03Content.controls.login}
-              {...(websiteView === 'authentication' && result === 'pending'
-                ? {
-                    onBack: () => {
-                      setLoginAccountId(null);
-                      setInvalidLoginFeedback(null);
-                      setThirdAttemptGuideAccountId(null);
-                      setGuideOpen(false);
-                    },
-                  }
-                : {})}
-            >
-              {websiteView === 'authentication' ? (
-                <section className={styles.siteTask} aria-labelledby="s03-page-title">
+          <CampusWebsiteBackdrop
+            accountId={account.id}
+            interactionLabel={`${account.label} wieder anmelden`}
+            view={websiteView}
+            displayName={snapshot.context.displayName ?? ''}
+            timeLapseActive={timeLapsePhaseActive}
+            {...(websiteView === 'landing'
+              ? {
+                  primaryAction: {
+                    label: account.landing.loginLabel,
+                    disabled: interactionBlocked,
+                    onClick: () => setLoginAccountId(account.id),
+                  },
+                  secondaryAction: {
+                    label: account.landing.registerLabel,
+                    disabled: true,
+                    disabledReason: s01Content.siteUi.registrationUnavailable,
+                  },
+                }
+              : {})}
+            authenticationTitle={s03Content.controls.login}
+            {...(websiteView === 'authentication' && result === 'pending'
+              ? {
+                  onBack: () => {
+                    setLoginAccountId(null);
+                    setInvalidLoginFeedback(null);
+                    setThirdAttemptGuideAccountId(null);
+                    setGuideOpen(false);
+                  },
+                }
+              : {})}
+          >
+            {websiteView === 'authentication' ? (
+              <section className={styles.siteTask} aria-labelledby="s03-page-title">
                 <h1
                   ref={loginTitleRef}
                   id="s03-page-title"
@@ -845,11 +806,13 @@ export function S03RetrievalTraining({
                   </div>
                 )}
                 </section>
-              ) : null}
-            </CampusWebsiteBackdrop>
-          )}
+                ) : null}
+          </CampusWebsiteBackdrop>
         </div>
       </BrowserShell>
+      {warningAnnouncementActive ? (
+        <span className={styles.warningFlashOverlay} aria-hidden="true" />
+      ) : null}
     </section>
   );
 }

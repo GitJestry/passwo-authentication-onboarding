@@ -1,4 +1,6 @@
 .training {
+  position: relative;
+  isolation: isolate;
   display: flex;
   width: 100%;
   height: 100%;
@@ -330,26 +332,16 @@
   margin-top: var(--space-2);
 }
 
-.completionStage {
-  position: relative;
-  display: flex;
-  min-width: 0;
-  min-height: 38rem;
-  flex: 1;
+.timeLapseOverlay {
+  --time-lapse-day-height: 6.75rem;
+
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: var(--space-6);
   overflow: hidden;
-  background: var(--color-surface-muted);
-}
-
-.timeLapseStage,
-.campusTimeLapse {
-  display: flex;
-  width: 100%;
-  min-width: 0;
-  min-height: 100%;
-  flex: 1;
-}
-
-.campusTimeLapse {
+  background: rgb(1 13 25 / 16%);
   pointer-events: none;
 }
 
@@ -359,123 +351,93 @@
   height: 1px;
   overflow: hidden;
   opacity: 0;
-  animation: s03-time-lapse-completion 5s linear both;
+  animation: s03-time-lapse-completion 8s linear both;
 }
 
-.campusActivity {
-  position: relative;
+.timeLapseCenter {
   display: grid;
-  min-height: 28rem;
-  align-content: start;
-  gap: var(--space-5);
-  padding: var(--space-5);
-  overflow: hidden;
-  border: var(--border-width-thin) solid var(--color-border-soft);
-  border-radius: var(--radius-large);
-  background: var(--color-surface-primary);
-  box-shadow: var(--shadow-card);
-}
-
-.campusActivity > header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: var(--space-3);
-  padding-bottom: var(--space-4);
-  border-bottom: var(--border-width-thin) solid var(--color-border-soft);
-}
-
-.campusActivity > header span {
-  color: var(--color-accent-strong);
-  font-size: var(--font-size-small);
-  font-weight: var(--font-weight-heavy);
-}
-
-.campusActivity > header strong {
-  color: var(--color-ink-strong);
-  font-size: var(--font-size-x-small);
-}
-
-.activityTimeline {
-  display: grid;
-  gap: var(--space-3);
-}
-
-.activityTimeline article {
-  display: grid;
+  width: min(38rem, calc(100% - var(--space-8)));
   grid-template-columns: auto minmax(0, 1fr);
   align-items: center;
-  gap: var(--space-3);
-  padding: var(--space-3);
-  border: var(--border-width-thin) solid var(--color-border-soft);
-  border-radius: var(--radius-medium);
-  background: var(--color-surface-primary);
-  box-shadow: 0 0.35rem 1rem color-mix(in srgb, var(--color-ink-strong) 7%, transparent);
+  justify-items: center;
+  gap: clamp(var(--space-4), 4vw, var(--space-7));
+  margin: 0 auto;
+  color: var(--color-on-inverse);
+  filter: drop-shadow(0 0.8rem 1.6rem rgb(1 13 25 / 42%));
 }
 
-.activityTimeline article > div {
+.timeLapseClock {
   display: grid;
-  gap: var(--space-1);
+  width: clamp(12rem, 22vw, 18rem);
+  aspect-ratio: 1;
+  place-items: center;
+  border: var(--border-width-thin) solid color-mix(in srgb, currentColor 56%, transparent);
+  border-radius: var(--radius-round);
+  background: color-mix(in srgb, var(--color-surface-inverse) 58%, transparent);
+  box-shadow: 0 0 2.5rem color-mix(in srgb, var(--color-on-inverse) 16%, transparent);
 }
 
-.activityTimeline article strong {
-  color: var(--color-ink-strong);
-  font-size: var(--font-size-small);
-}
-
-.activityTimeline article div span,
-.activityTime {
-  color: var(--color-ink-muted);
-  font-size: var(--font-size-x-small);
-}
-
-.activityTime {
-  min-width: 3rem;
-  font-weight: var(--font-weight-bold);
-}
-
-.timeLapseCursor {
-  position: absolute;
-  z-index: 2;
-  top: 18%;
-  left: 12%;
-  width: 2rem;
-  height: 2rem;
-  color: var(--color-accent-strong);
-  filter: drop-shadow(0 0.2rem 0.25rem rgb(15 43 68 / 30%));
-  opacity: 0;
-}
-
-.timeLapseCursor svg {
+.timeLapseClock svg {
   width: 100%;
   height: 100%;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 5;
 }
 
-.campusTimeLapse[data-running="true"] .timeLapseCursor {
-  opacity: 1;
-  animation: s03-campus-cursor 1.65s ease-in-out 3 both;
+.clockMinuteHand,
+.clockHourHand {
+  transform-box: view-box;
+  transform-origin: center;
 }
 
-.campusTimeLapse[data-running="true"] .activityTimeline article {
-  animation: s03-campus-activity 1.65s ease-in-out 3;
+.clockMinuteHand {
+  animation: s03-clock-minute 220ms linear infinite;
 }
 
-.campusTimeLapse[data-running="true"] .activityTimeline article:nth-child(2) {
-  animation-delay: 0.28s;
+.clockHourHand {
+  animation: s03-clock-hour 1s linear infinite;
 }
 
-.campusTimeLapse[data-running="true"] .activityTimeline article:nth-child(3) {
-  animation-delay: 0.56s;
+.timeLapseDayViewport {
+  display: grid;
+  width: 100%;
+  height: var(--time-lapse-day-height);
+  place-items: center;
+  overflow: hidden;
+  text-align: center;
 }
 
-.campusTimeLapse[data-warning="true"] .campusActivity {
-  border-color: color-mix(in srgb, var(--color-danger) 62%, var(--color-border));
-  box-shadow: inset 0 0 0 0.2rem var(--color-danger-soft), var(--shadow-card);
+.timeLapseDayTrack {
+  display: grid;
+  grid-auto-rows: var(--time-lapse-day-height);
+  animation: s03-day-count 7.7s steps(41, end) both;
 }
 
-.campusTimeLapse[data-warning="true"] .timeLapseCursor,
-.campusTimeLapse[data-warning="true"] .activityTimeline article {
-  animation-play-state: paused;
+.timeLapseDayTrack strong {
+  display: flex;
+  min-width: max-content;
+  align-items: center;
+  justify-content: center;
+  padding: 0.3rem 0.15rem 0.45rem;
+  color: currentColor;
+  font-size: clamp(3.7rem, 6.2vw, 5.5rem);
+  font-weight: var(--font-weight-heavy);
+  letter-spacing: -0.06em;
+  line-height: 0.94;
+  text-shadow: 0 0.2rem 0.8rem rgb(1 13 25 / 48%);
+  white-space: nowrap;
+}
+
+.warningFlashOverlay {
+  position: absolute;
+  z-index: 100;
+  inset: 0;
+  background: rgb(224 24 36 / 52%);
+  opacity: 0;
+  pointer-events: none;
+  animation: s03-warning-flash 1.2s ease-in-out both;
 }
 
 .screenReaderOnly {
@@ -568,42 +530,36 @@
   }
 }
 
-@keyframes s03-campus-cursor {
-  0% {
-    opacity: 0;
-    transform: translate3d(0, 0, 0);
-  }
-
-  14% {
-    opacity: 1;
-  }
-
-  32% {
-    transform: translate3d(12rem, 3.8rem, 0);
-  }
-
-  64% {
-    transform: translate3d(4.5rem, 8.5rem, 0);
-  }
-
-  100% {
-    opacity: 0;
-    transform: translate3d(14rem, 13rem, 0);
+@keyframes s03-clock-minute {
+  to {
+    transform: rotate(360deg);
   }
 }
 
-@keyframes s03-campus-activity {
+@keyframes s03-clock-hour {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes s03-day-count {
+  to {
+    transform: translateY(-276.75rem);
+  }
+}
+
+@keyframes s03-warning-flash {
   0%,
+  22%,
+  50%,
+  72%,
   100% {
-    border-color: var(--color-border-soft);
-    background: var(--color-surface-primary);
-    transform: translateY(0);
+    opacity: 0;
   }
 
-  50% {
-    border-color: var(--color-accent-strong);
-    background: var(--color-accent-soft);
-    transform: translateY(-0.18rem);
+  10%,
+  62% {
+    opacity: 1;
   }
 }
 
@@ -622,8 +578,14 @@
     min-height: 31rem;
   }
 
-  .completionStage {
-    min-height: 48rem;
+  .timeLapseCenter {
+    width: min(22rem, calc(100% - var(--space-6)));
+    grid-template-columns: 1fr;
+    gap: var(--space-3);
+  }
+
+  .timeLapseClock {
+    width: clamp(9rem, 38vw, 13rem);
   }
 }
 
@@ -636,12 +598,18 @@
     animation-duration: var(--motion-instant);
   }
 
-  .campusTimeLapse[data-running="true"] .timeLapseCursor,
-  .campusTimeLapse[data-running="true"] .activityTimeline article {
+  .clockMinuteHand,
+  .clockHourHand,
+  .timeLapseDayTrack {
     animation: none;
   }
 
   .timeLapseCompletionSignal {
     animation-duration: var(--motion-instant);
+  }
+
+  .warningFlashOverlay {
+    opacity: 0.22;
+    animation: none;
   }
 }

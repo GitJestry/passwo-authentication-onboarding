@@ -33,6 +33,34 @@
   left: clamp(26rem, 51vw, 42rem);
 }
 
+.guide[data-placement="center"] {
+  top: 50%;
+  bottom: auto;
+  left: 50%;
+  width: min(47rem, calc(100% - var(--space-8)));
+  grid-template-columns: minmax(9rem, 11.4rem) minmax(0, 1fr);
+  align-items: center;
+  gap: clamp(var(--space-4), 3vw, var(--space-7));
+  transform: translate(-50%, -50%);
+}
+
+.guide[data-placement="center"] .speechSlot {
+  position: static;
+  grid-column: 2;
+  align-self: center;
+  width: auto;
+  margin: 0;
+}
+
+.guide[data-placement="center"] .guideDock {
+  width: min(11.4rem, 100%);
+}
+
+.guide[data-placement="center"] .character[data-pose="warning"] {
+  width: min(11.4rem, 100%);
+  height: min(17.1rem, 54vh);
+}
+
 .speechSlot {
   grid-column: 2;
   min-width: 0;
@@ -119,6 +147,11 @@
   height: 9.36rem;
 }
 
+.character[data-pose="warning"] {
+  width: 11.4rem;
+  height: 17.1rem;
+}
+
 .taskProgress {
   display: grid;
   grid-template-columns: auto minmax(2.5rem, 1fr);
@@ -153,6 +186,27 @@
     bottom: 0;
     width: calc(100vw - var(--space-4));
     grid-template-columns: minmax(0, 1fr);
+  }
+
+  .guide[data-placement="center"] {
+    top: 50%;
+    bottom: auto;
+    width: calc(100vw - var(--space-4));
+    grid-template-columns: minmax(0, 1fr);
+    transform: translate(-50%, -50%);
+  }
+
+  .guide[data-placement="center"] .speechSlot {
+    position: static;
+    grid-row: 1;
+    grid-column: 1;
+    width: auto;
+    margin-bottom: 0;
+  }
+
+  .guide[data-placement="center"] .guideDock {
+    grid-row: 2;
+    grid-column: 1;
   }
 
   .speechSlot {

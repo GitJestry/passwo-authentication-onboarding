@@ -1,6 +1,7 @@
 import type {
   PasswordComparisonResult,
   PasswordRelationKind,
+  S06AccountId,
   S06LocalAccountAnalysis,
   S06PairComparison,
 } from '@passwo/contracts';
@@ -28,11 +29,13 @@ const accountDefinitions = [
   },
 ] as const;
 
-const accounts: readonly S06LocalAccountAnalysis[] = [
+const accountIds = [
   'campusgram',
   'master-campus',
   'campus-email',
-].map((accountId) => ({
+] as const satisfies readonly S06AccountId[];
+
+const accounts: readonly S06LocalAccountAnalysis[] = accountIds.map((accountId) => ({
   accountId,
   fictionalPassword: `fixture-${accountId}`,
   disposition: {

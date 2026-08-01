@@ -434,8 +434,11 @@ describe('local fictional password analysis', () => {
     expect(result.findings.map(({ findingKind }) => findingKind)).toEqual([
       'account-context-with-qualifier',
     ]);
-    for (const span of result.findings.flatMap(({ evidence }) => evidence)) {
-      expect(fictionalPassword.slice(span.start, span.end)).toBe(span.token);
+    for (const evidence of result.findings.flatMap(({ evidence }) => evidence)) {
+      expect(evidence.type).toBe('span');
+      if (evidence.type === 'span') {
+        expect(fictionalPassword.slice(evidence.start, evidence.end)).toBe(evidence.token);
+      }
     }
   });
 

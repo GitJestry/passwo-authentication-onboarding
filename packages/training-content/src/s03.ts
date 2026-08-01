@@ -92,7 +92,7 @@ export interface S03SegmentContent {
   readonly animations: readonly S03AnimationSequence[];
 }
 
-export const S03_CONTENT_VERSION = '1.13.0';
+export const S03_CONTENT_VERSION = '1.14.0';
 
 const resultAnimation = (
   accountId: S01AccountId,
@@ -145,7 +145,7 @@ export const s03Content: S03SegmentContent = {
   source: {
     document: 'research/private/training-script.pdf',
     internalPages: [8, 9, 10, 11],
-    revision: 'Userauftrag vom 2026-08-01 und UX-Konzeptboards vom 2026-07-31',
+    revision: 'Userauftrag vom 2026-08-02 und UX-Konzeptboards vom 2026-07-31',
   },
   segment: {
     id: 'S03',
@@ -199,8 +199,7 @@ export const s03Content: S03SegmentContent = {
       3: 'Du konntest dich bei allen drei Konten selbst wieder anmelden. Deine drei Passwörter waren diesmal abrufbar.\n\nAlle drei fiktiven Konten sind wieder geöffnet. Behalte trotzdem im Blick: Abrufbarkeit ist nur eine von mehreren Anforderungen an ein Passwort.',
     },
     campusStart: 'Wir können jetzt in Ruhe unseren Campusstart fortsetzen.',
-    warning:
-      'Warte, bei Campusgram gibt es eine Warnung. Kannst du sie dir bitte über den hervorgehobenen Campusgram-Tab ansehen?',
+    warning: 'Bei Campusgram gibt es eine Warnung. Schau dort bitte nach.',
   },
   accountLoginTitles: {
     'master-campus': 'Melde dich bei Master Campus an.',

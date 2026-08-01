@@ -13,36 +13,22 @@
 .labHeader {
   display: flex;
   width: min(100%, var(--size-browser-shell-max));
-  min-height: var(--size-control-large);
+  min-height: var(--size-control-medium);
   align-items: center;
-  justify-content: space-between;
+  justify-content: flex-end;
   gap: var(--space-6);
 }
 
-.labHeader h1 {
-  margin: 0;
-  color: var(--color-ink-strong);
-  font-size: var(--font-size-heading-small);
-  line-height: var(--line-height-tight);
-}
-
-.labEyebrow {
-  margin: 0 0 var(--space-1);
-  color: var(--color-accent-strong);
-  font-size: var(--font-size-x-small);
-  font-weight: var(--font-weight-heavy);
-  letter-spacing: var(--letter-spacing-wide);
-  text-transform: uppercase;
-}
-
 .labHeader nav {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: flex-end;
-  gap: var(--space-2);
+  position: relative;
+  flex: 0 0 auto;
 }
 
-.labHeader a {
+.scenarioMenu {
+  position: relative;
+}
+
+.scenarioMenu summary {
   min-height: var(--size-control-medium);
   padding: var(--space-2) var(--space-4);
   border: var(--border-width-thin) solid var(--color-border);
@@ -51,27 +37,86 @@
   background: var(--color-surface-primary);
   font-size: var(--font-size-small);
   font-weight: var(--font-weight-semibold);
+  cursor: pointer;
+  list-style: none;
+}
+
+.scenarioMenu summary::-webkit-details-marker {
+  display: none;
+}
+
+.scenarioMenu summary {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.scenarioMenu summary strong {
+  color: var(--color-ink-strong);
+}
+
+.scenarioMenu[open] summary {
+  border-color: var(--color-ink-strong);
+  background: var(--color-surface-elevated);
+}
+
+.scenarioMenuIndicator {
+  width: 0;
+  height: 0;
+  margin-left: var(--space-1);
+  border-top: calc(var(--border-width-medium) + 2px) solid currentcolor;
+  border-right: calc(var(--border-width-medium) + 2px) solid transparent;
+  border-left: calc(var(--border-width-medium) + 2px) solid transparent;
+  transition: transform var(--motion-fast) var(--motion-ease-out);
+}
+
+.scenarioMenu[open] .scenarioMenuIndicator {
+  transform: rotate(180deg);
+}
+
+.scenarioMenu ul {
+  position: absolute;
+  z-index: 2;
+  top: calc(100% + var(--space-2));
+  right: 0;
+  display: grid;
+  width: min(22rem, calc(100vw - (2 * var(--space-4))));
+  max-height: min(30rem, calc(100dvh - 12rem));
+  margin: 0;
+  padding: var(--space-2);
+  overflow-y: auto;
+  border: var(--border-width-thin) solid var(--color-border);
+  border-radius: var(--radius-medium);
+  background: var(--color-surface-elevated);
+  box-shadow: var(--shadow-card);
+  gap: var(--space-1);
+  list-style: none;
+}
+
+.scenarioMenu a {
+  display: block;
+  min-height: var(--size-control-medium);
+  padding: var(--space-2) var(--space-3);
+  border: var(--border-width-thin) solid transparent;
+  border-radius: var(--radius-small);
+  color: var(--color-ink);
+  font-size: var(--font-size-small);
+  font-weight: var(--font-weight-semibold);
   text-decoration: none;
 }
 
-.labHeader a[aria-current="page"] {
+.scenarioMenu a[aria-current="page"] {
   border-color: var(--color-ink-strong);
   color: var(--color-on-inverse);
   background: var(--color-surface-inverse);
 }
 
-.labHeader a:focus-visible,
+.scenarioMenu summary:focus-visible,
+.scenarioMenu a:focus-visible,
 .overlayControls button:focus-visible {
   outline: var(--border-width-focus) solid var(--color-focus);
   outline-offset: var(--space-1);
   box-shadow: var(--shadow-focus);
-}
-
-.scenarioDescription {
-  width: min(100%, var(--size-browser-shell-max));
-  margin: 0;
-  color: var(--color-ink-muted);
-  font-size: var(--font-size-small);
 }
 
 .scene {
@@ -390,7 +435,21 @@
   }
 
   .labHeader nav {
-    justify-content: flex-start;
+    align-self: stretch;
+  }
+
+  .scenarioMenu {
+    width: 100%;
+  }
+
+  .scenarioMenu summary {
+    justify-content: space-between;
+  }
+
+  .scenarioMenu ul {
+    right: auto;
+    left: 0;
+    width: 100%;
   }
 
   .sceneHeader {

@@ -27,6 +27,7 @@ export interface CampusWebsiteBackdropProps {
   readonly onBack?: (() => void) | undefined;
   readonly dashboardHeadingRef?: Ref<HTMLHeadingElement> | undefined;
   readonly rootRef?: Ref<HTMLElement> | undefined;
+  readonly timeLapseActive?: boolean | undefined;
 }
 
 type CampusAccount = (typeof s01Content.browser.accounts)[number];
@@ -504,6 +505,7 @@ export function CampusWebsiteBackdrop({
   onBack,
   dashboardHeadingRef,
   rootRef,
+  timeLapseActive = false,
 }: CampusWebsiteBackdropProps) {
   const definition = campusWebsiteDefinition(accountId);
   const { account } = definition;
@@ -513,6 +515,7 @@ export function CampusWebsiteBackdrop({
       ref={rootRef}
       className={styles.page}
       data-campus-site={account.id}
+      data-time-lapse={timeLapseActive || undefined}
       data-view={view}
       aria-label={interactionLabel}
     >

@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react';
 import passWoDockAsset from '../../assets/passwo/passwo-dock.png';
+import passWoWarningAsset from '../../assets/passwo/passwo-warning.png';
 import passWoWaitingAsset from '../../assets/passwo/passwo-waiting.png';
 import {
   PassWoSpeechBubble,
@@ -26,6 +27,8 @@ export interface PassWoGuideProps {
   readonly speechPlacement?: PassWoSpeechPlacement;
   readonly hasNextSpeech?: boolean;
   readonly awaitsAction?: boolean;
+  readonly placement?: 'bottom-left' | 'center';
+  readonly pose?: 'default' | 'warning';
   readonly guidedAccountId?: string | null;
   readonly showHelpButton?: boolean;
   readonly onToggleHelp?: () => void;
@@ -47,6 +50,8 @@ export function PassWoGuide({
   speechPlacement = 'right',
   hasNextSpeech = false,
   awaitsAction = false,
+  placement = 'bottom-left',
+  pose = 'default',
   guidedAccountId = null,
   showHelpButton = true,
   onToggleHelp,
@@ -61,6 +66,7 @@ export function PassWoGuide({
   return (
     <aside
       className={styles.guide}
+      data-placement={placement}
       data-guided-account={guidedAccountId ?? undefined}
       aria-label={`${guideName} Begleitung`}
     >
@@ -109,8 +115,14 @@ export function PassWoGuide({
         <img
           className={styles.character}
           data-passwo-character
-          data-pose={helpOpen ? 'speaking' : 'waiting'}
-          src={helpOpen ? passWoDockAsset : passWoWaitingAsset}
+          data-pose={pose === 'warning' ? 'warning' : helpOpen ? 'speaking' : 'waiting'}
+          src={
+            pose === 'warning'
+              ? passWoWarningAsset
+              : helpOpen
+                ? passWoDockAsset
+                : passWoWaitingAsset
+          }
           alt=""
         />
       </div>

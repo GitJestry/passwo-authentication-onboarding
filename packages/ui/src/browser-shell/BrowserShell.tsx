@@ -102,6 +102,7 @@ export interface BrowserShellSnapshot {
   readonly scrollKey?: string;
   readonly dimmed?: boolean;
   readonly dimStrength?: 'soft' | 'standard';
+  readonly allowTabInteractionWhenDimmed?: boolean;
   readonly highlightedTabId?: string;
   readonly locked?: boolean;
 }
@@ -152,6 +153,8 @@ export function BrowserShell({
   );
   const dimmed = snapshot.dimmed ?? false;
   const locked = snapshot.locked ?? false;
+  const tabsInert = locked || (dimmed && snapshot.allowTabInteractionWhenDimmed !== true);
+  const chromeInert = dimmed || locked;
   const dimStrength = snapshot.dimStrength ?? 'standard';
   const accountInitials = deriveAccountInitials(snapshot.accountIdentifier);
   const scrollKey = snapshot.scrollKey ?? snapshot.activeTabId;
@@ -361,9 +364,9 @@ export function BrowserShell({
         data-window-state={windowState}
         onAnimationEnd={handleWindowAnimationEnd}
       >
-        <header className={styles.chrome} inert={dimmed || locked || undefined}>
+        <header className={styles.chrome}>
           <div className={styles.tabRow}>
-            <div className={styles.windowControls}>
+            <div className={styles.windowControls} inert={chromeInert || undefined}>
               <button
                 type="button"
                 className={styles.closeControl}
@@ -402,7 +405,12 @@ export function BrowserShell({
               </button>
             </div>
             <div className={styles.tabBar}>
-              <div className={styles.tabs} role="tablist" aria-label="Fiktive Seitentabs">
+              <div
+                className={styles.tabs}
+                role="tablist"
+                aria-label="Fiktive Seitentabs"
+                inert={tabsInert || undefined}
+              >
                 {tabItems}
               </div>
               <span className={styles.newTabHint} role="img" aria-label="Weiterer Tab">
@@ -421,7 +429,7 @@ export function BrowserShell({
               )}
             </div>
           ) : null}
-          <div className={styles.addressRow}>
+          <div className={styles.addressRow} inert={chromeInert || undefined}>
             <nav className={styles.browserNavigation} aria-label="Browsernavigation">
               <button type="button" aria-label="Zurück" title="Zurück" disabled>
                 <BrowserNavigationIcon direction="back" />

@@ -294,29 +294,35 @@ function DesignLabIntroduction({
   readonly scenarioId: DesignLabScenarioId;
   readonly scenario: DesignLabScenario;
 }) {
+  const scenarioMenuIds = [
+    scenarioId,
+    ...designLabScenarioIds.filter((id) => id !== scenarioId),
+  ];
+
   return (
-    <>
-      <header className={styles.labHeader}>
-        <div>
-          <p className={styles.labEyebrow}>Deterministische Vorschau</p>
-          <h1>BrowserShell Design Lab</h1>
-        </div>
-        <nav aria-label="Design-Lab-Szenen">
-          {designLabScenarioIds.map((id) => (
-            <a
-              key={id}
-              href={designLabPathForScenario(id)}
-              aria-current={id === scenarioId ? 'page' : undefined}
-            >
-              {scenarios[id].label}
-            </a>
-          ))}
-        </nav>
-      </header>
-      <p className={styles.scenarioDescription}>
-        <strong>{scenario.label}:</strong> {scenario.description}
-      </p>
-    </>
+    <header className={styles.labHeader}>
+      <nav aria-label="Design-Lab-Szenen">
+        <details className={styles.scenarioMenu}>
+          <summary>
+            <span>QA-Szene</span>
+            <strong>{scenario.label}</strong>
+            <span className={styles.scenarioMenuIndicator} aria-hidden="true" />
+          </summary>
+          <ul>
+            {scenarioMenuIds.map((id) => (
+              <li key={id}>
+                <a
+                  href={designLabPathForScenario(id)}
+                  aria-current={id === scenarioId ? 'page' : undefined}
+                >
+                  {scenarios[id].label}
+                </a>
+              </li>
+            ))}
+          </ul>
+        </details>
+      </nav>
+    </header>
   );
 }
 
