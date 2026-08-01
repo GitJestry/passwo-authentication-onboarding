@@ -6,6 +6,7 @@ import {
 import {
   getS05DesignLabFixtureByRouteId,
   getS06ConsequenceFixtureByRouteId,
+  getS07EvaluationFixtureByRouteId,
   type S01AccountId,
   s01AccountIds,
   s01Content,
@@ -26,6 +27,7 @@ import { S04IncidentTraining } from '../features/training/segments/S04/S04Incide
 import { S06ConsequenceTraining } from '../features/training/segments/S06/S06ConsequenceTraining.js';
 import styles from './DesignLab.module.css';
 import { S05DesignLabTraining } from './S05DesignLabTraining.js';
+import { S07DesignLabTraining } from './S07DesignLabTraining.js';
 
 interface DesignLabScenario {
   readonly label: string;
@@ -250,6 +252,36 @@ const scenarios: Record<DesignLabScenarioId, DesignLabScenario> = {
     label: 'S06 gemischt',
     description:
       'Tatsächliche und hypothetische Schritte sind in einem deterministischen Ablauf klar getrennt.',
+    dimmed: false,
+    showPassWoOverlay: false,
+  },
+  's07-directly-reached': {
+    label: 'S07 direkt erreicht',
+    description: 'Auswertung mit einem in der tatsächlichen Simulation erreichten Konto.',
+    dimmed: false,
+    showPassWoOverlay: false,
+  },
+  's07-exact-reuse': {
+    label: 'S07 exakte Wiederverwendung',
+    description: 'Auswertung mit exakt wiederverwendeten fiktiven Passwörtern.',
+    dimmed: false,
+    showPassWoOverlay: false,
+  },
+  's07-derived-variant': {
+    label: 'S07 abgeleitete Variante',
+    description: 'Auswertung mit einem konkreten abgeleiteten Kandidatenweg.',
+    dimmed: false,
+    showPassWoOverlay: false,
+  },
+  's07-retrievability-only': {
+    label: 'S07 nur Abrufbarkeit',
+    description: 'Auswertung mit ausschließlich einem Abrufbarkeitsproblem.',
+    dimmed: false,
+    showPassWoOverlay: false,
+  },
+  's07-no-change': {
+    label: 'S07 kein Änderungsbedarf',
+    description: 'Auswertung ohne erkannte Problemklasse in der begrenzten Übung.',
     dimmed: false,
     showPassWoOverlay: false,
   },
@@ -631,6 +663,16 @@ export function DesignLab({ scenarioId }: { readonly scenarioId: DesignLabScenar
       <main className={styles.labPage}>
         <DesignLabIntroduction scenarioId={scenarioId} scenario={scenario} />
         <S06ConsequenceTraining source={{ kind: 'fixture', fixtureId: s06Fixture.id }} />
+      </main>
+    );
+  }
+
+  const s07Fixture = getS07EvaluationFixtureByRouteId(scenarioId);
+  if (s07Fixture !== undefined) {
+    return (
+      <main className={styles.labPage}>
+        <DesignLabIntroduction scenarioId={scenarioId} scenario={scenario} />
+        <S07DesignLabTraining routeId={s07Fixture.routeId} />
       </main>
     );
   }

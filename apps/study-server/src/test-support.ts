@@ -15,6 +15,9 @@ const supportiveSegmentTimingBounds = {
   S02: { startSequence: 5, startMs: 725, endSequence: 6, endMs: 850 },
   S03: { startSequence: 7, startMs: 860, endSequence: 8, endMs: 875 },
   S04: { startSequence: 9, startMs: 880, endSequence: 10, endMs: 925 },
+  S05: { startSequence: 11, startMs: 930, endSequence: 12, endMs: 960 },
+  S06: { startSequence: 13, startMs: 965, endSequence: 14, endMs: 1_005 },
+  S07: { startSequence: 15, startMs: 1_010, endSequence: 16, endMs: 1_055 },
 } satisfies Record<
   SupportiveArtifactSegmentId,
   {

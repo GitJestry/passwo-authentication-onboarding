@@ -118,7 +118,7 @@ describe('passwordModuleMachine', () => {
     expect(actor.getSnapshot().status).toBe('active');
   });
 
-  it('enters active S06 only after its start boundary and awaits S07 after its end boundary', () => {
+  it('records S06 completion before S07 and reaches awaiting S08 only after S07 ends', () => {
     const actor = createModuleActor();
     configureAllAccounts(actor);
     startS03(actor);
@@ -138,10 +138,16 @@ describe('passwordModuleMachine', () => {
     actor.send({ type: 'S06_COMPLETED' });
     expect(actor.getSnapshot().matches({ s06: 'writingEnd' })).toBe(true);
     actor.send({ type: 'S06_END_RECORDED' });
-    expect(actor.getSnapshot().matches('awaiting-s07')).toBe(true);
+    expect(actor.getSnapshot().matches({ s07: 'writingStart' })).toBe(true);
+    actor.send({ type: 'S07_START_RECORDED' });
+    expect(actor.getSnapshot().matches({ s07: 'active' })).toBe(true);
+    actor.send({ type: 'S07_COMPLETED' });
+    expect(actor.getSnapshot().matches({ s07: 'writingEnd' })).toBe(true);
+    actor.send({ type: 'S07_END_RECORDED' });
+    expect(actor.getSnapshot().matches('awaiting-s08')).toBe(true);
   });
 
-  it('keeps each failed transition retryable and ends S06 in awaiting-s07', () => {
+  it('keeps each failed transition retryable through S07', () => {
     const actor = createModuleActor();
     configureAllAccounts(actor);
     startS03(actor);
@@ -180,8 +186,17 @@ describe('passwordModuleMachine', () => {
     expect(actor.getSnapshot().matches({ s06: 'endWriteFailed' })).toBe(true);
     actor.send({ type: 'RETRY_S06_END' });
     actor.send({ type: 'S06_END_RECORDED' });
+    actor.send({ type: 'S07_START_FAILED', errorCode: 's07-start-failed' });
+    expect(actor.getSnapshot().matches({ s07: 'startWriteFailed' })).toBe(true);
+    actor.send({ type: 'RETRY_S07_START' });
+    actor.send({ type: 'S07_START_RECORDED' });
+    actor.send({ type: 'S07_COMPLETED' });
+    actor.send({ type: 'S07_END_FAILED', errorCode: 's07-end-failed' });
+    expect(actor.getSnapshot().matches({ s07: 'endWriteFailed' })).toBe(true);
+    actor.send({ type: 'RETRY_S07_END' });
+    actor.send({ type: 'S07_END_RECORDED' });
 
-    expect(actor.getSnapshot().matches('awaiting-s07')).toBe(true);
+    expect(actor.getSnapshot().matches('awaiting-s08')).toBe(true);
     expect(actor.getSnapshot().context).not.toHaveProperty('s05Result');
     expect(actor.getSnapshot().context).not.toHaveProperty('s06Result');
   });
@@ -217,7 +232,7 @@ describe('passwordModuleMachine', () => {
     actor.send({ type: 'S06_COMPLETED' });
     actor.send({ type: 'S06_END_RECORDED' });
 
-    expect(actor.getSnapshot().matches('awaiting-s07')).toBe(true);
+    expect(actor.getSnapshot().matches({ s07: 'writingStart' })).toBe(true);
     expect(actor.getSnapshot().context.passwordValues).toEqual(values);
     expect(actor.getSnapshot().context).not.toHaveProperty('s05Result');
     expect(actor.getSnapshot().context).not.toHaveProperty('s06Result');

@@ -62,7 +62,7 @@ export const trainingSegments = [
   },
   {
     id: 'S07',
-    title: 'Diagnose',
+    title: 'Auswertung',
     section: 'passwords',
     sourcePages: '44-50',
     foci: ['TF1', 'TF4', 'TF6'],

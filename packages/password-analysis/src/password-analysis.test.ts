@@ -1,5 +1,13 @@
 import { describe, expect, it } from 'vitest';
-import type { PasswordAnalysisResult, PasswordEvidenceSpan } from '@passwo/contracts';
+import type {
+  LocalPasswordDisposition,
+  PasswordAnalysisResult,
+  PasswordComparisonResult,
+  PasswordEvidenceSpan,
+  PasswordRelationKind,
+  S06AccountId,
+  S07RecommendationProjectionInput,
+} from '@passwo/contracts';
 import {
   analyzeFictionalPassword,
   analyzeFictionalPasswordStructure,
@@ -8,6 +16,7 @@ import {
   createSystemGeneratedSearchSpaceModel,
   createTheoreticalSearchSpaceModel,
   determinePasswordSimulationDisposition,
+  projectS07Recommendations,
 } from './index.js';
 
 describe('exact theoretical search-space demonstrations', () => {
@@ -76,6 +85,197 @@ describe('exact theoretical search-space demonstrations', () => {
     [{ alphabetSize: 26, length: 12, attemptsPerSecond: 0n }, 'attemptsPerSecond'],
   ] as const)('rejects invalid model parameter %s', (input, parameter) => {
     expect(() => createTheoreticalSearchSpaceModel(input)).toThrow(parameter);
+  });
+});
+
+const s07AccountIds = ['master-campus', 'campus-email', 'campusgram'] as const;
+const s07Pairs = [
+  ['campusgram', 'master-campus'],
+  ['campusgram', 'campus-email'],
+  ['master-campus', 'campus-email'],
+] as const;
+
+function s07Disposition(quickPath: boolean): LocalPasswordDisposition {
+  return quickPath
+    ? {
+        kind: 'quick-path-recognized',
+        ruleId: 'very-short-string',
+        explanationId: 's05.disposition.very-short-string',
+      }
+    : {
+        kind: 'no-quick-path-recognized',
+        explanationId: 's05.disposition.no-quick-path-recognized',
+      };
+}
+
+function s07ComparisonResult(kind: PasswordRelationKind): PasswordComparisonResult {
+  if (kind === 'exact-match') {
+    return {
+      kind: 'fictional-password-comparison',
+      relation: {
+        kind,
+        relationId: 'relation:exact-match',
+        sourceEvidence: [],
+        targetEvidence: [],
+        explanationId: 's06.relation.exact-match',
+      },
+      disclaimerId: 'simulation-not-production-strength',
+    };
+  }
+  if (kind === 'derived-variant-match') {
+    return {
+      kind: 'fictional-password-comparison',
+      relation: {
+        kind,
+        relationId: 'relation:bounded-year-changed:fixture',
+        transformationId: 'bounded-year-changed',
+        sourceEvidence: [],
+        targetEvidence: [],
+        candidate: 'fixture-candidate',
+        explanationId: 's06.relation.bounded-year-changed',
+      },
+      disclaimerId: 'simulation-not-production-strength',
+    };
+  }
+  return {
+    kind: 'fictional-password-comparison',
+    relation: {
+      kind,
+      relationId: 'relation:no-derived-path-recognized',
+      sourceEvidence: [],
+      targetEvidence: [],
+      explanationId: 's06.relation.no-derived-path-recognized',
+    },
+    disclaimerId: 'simulation-not-production-strength',
+  };
+}
+
+function s07Input(options: {
+  readonly quickPathAccounts?: readonly S06AccountId[];
+  readonly retrieval?: Partial<
+    Readonly<Record<S06AccountId, 'retrievable' | 'not-remembered' | 'assisted'>>
+  >;
+  readonly relations?: readonly [PasswordRelationKind, PasswordRelationKind, PasswordRelationKind];
+} = {}): S07RecommendationProjectionInput {
+  const relations = options.relations ?? [
+    'no-derived-path-recognized',
+    'no-derived-path-recognized',
+    'no-derived-path-recognized',
+  ];
+  return {
+    incidentSource: 'campusgram',
+    accounts: s07AccountIds.map((accountId) => ({
+      accountId,
+      fictionalPassword: `fixture-${accountId}`,
+      disposition: s07Disposition(options.quickPathAccounts?.includes(accountId) ?? false),
+      retrievalStatus: options.retrieval?.[accountId] ?? 'retrievable',
+    })),
+    comparisons: s07Pairs.map(([sourceAccountId, targetAccountId], index) => ({
+      sourceAccountId,
+      targetAccountId,
+      result: s07ComparisonResult(relations[index] ?? 'no-derived-path-recognized'),
+    })),
+  };
+}
+
+function recommendationFor(
+  input: S07RecommendationProjectionInput,
+  accountId: S06AccountId,
+) {
+  return projectS07Recommendations(input).accounts.find(
+    (account) => account.accountId === accountId,
+  )?.recommendationId;
+}
+
+describe('S07 recommendation projection', () => {
+  it('applies the six stable recommendation priorities without copying password values', () => {
+    expect(
+      recommendationFor(
+        s07Input({
+          quickPathAccounts: ['campusgram'],
+          relations: ['exact-match', 'no-derived-path-recognized', 'no-derived-path-recognized'],
+        }),
+        'campusgram',
+      ),
+    ).toBe('replace-exposed-password');
+    expect(
+      recommendationFor(
+        s07Input({
+          relations: ['exact-match', 'no-derived-path-recognized', 'no-derived-path-recognized'],
+        }),
+        'master-campus',
+      ),
+    ).toBe('separate-exact-reuse');
+    expect(
+      recommendationFor(s07Input({ quickPathAccounts: ['campus-email'] }), 'campus-email'),
+    ).toBe('rebuild-predictable-password');
+    expect(
+      recommendationFor(
+        s07Input({
+          relations: [
+            'no-derived-path-recognized',
+            'derived-variant-match',
+            'no-derived-path-recognized',
+          ],
+        }),
+        'campus-email',
+      ),
+    ).toBe('replace-derived-pattern');
+    expect(
+      recommendationFor(
+        s07Input({ retrieval: { 'master-campus': 'assisted' } }),
+        'master-campus',
+      ),
+    ).toBe('improve-retrievability');
+    const noChangeProjection = projectS07Recommendations(s07Input());
+    expect(recommendationFor(s07Input(), 'master-campus')).toBe('no-change-practice-method');
+    expect(JSON.stringify(noChangeProjection)).not.toMatch(/fixture-master-campus|candidate/u);
+  });
+
+  it('marks a derived target reached only when its complete S06 path was actual', () => {
+    const hypothetical = projectS07Recommendations(
+      s07Input({
+        relations: [
+          'no-derived-path-recognized',
+          'derived-variant-match',
+          'no-derived-path-recognized',
+        ],
+      }),
+    );
+    const actual = projectS07Recommendations(
+      s07Input({
+        quickPathAccounts: ['campusgram'],
+        relations: [
+          'no-derived-path-recognized',
+          'derived-variant-match',
+          'no-derived-path-recognized',
+        ],
+      }),
+    );
+    expect(
+      hypothetical.accounts.find(({ accountId }) => accountId === 'campus-email')?.incidentStatus,
+    ).toBe('hypothetical-only');
+    expect(
+      actual.accounts.find(({ accountId }) => accountId === 'campus-email')?.incidentStatus,
+    ).toBe('reached-via-derived-variant');
+  });
+
+  it('creates one recommendation per account and only present adaptive problem classes', () => {
+    const projection = projectS07Recommendations(
+      s07Input({
+        quickPathAccounts: ['campusgram'],
+        retrieval: { 'master-campus': 'not-remembered' },
+        relations: ['exact-match', 'derived-variant-match', 'no-derived-path-recognized'],
+      }),
+    );
+    expect(projection.accounts).toHaveLength(3);
+    expect(new Set(projection.accounts.map(({ accountId }) => accountId)).size).toBe(3);
+    expect(projection.summary.problemClasses).toEqual([
+      'local-quick-path',
+      'exact-reuse',
+      'derived-variant',
+      'retrievability',
+    ]);
   });
 });
 

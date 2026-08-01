@@ -35,11 +35,13 @@ function flushMicrotasks(): Promise<void> {
 }
 
 describe('password module privacy boundary', () => {
-  it('keeps S05 and S06 completion payloadless and analysis data out of machine context', () => {
+  it('keeps S05–S07 completion payloadless and analysis data out of machine context', () => {
     const completionEvent: PasswordModuleEvent = { type: 'S05_COMPLETED' };
     const s06CompletionEvent: PasswordModuleEvent = { type: 'S06_COMPLETED' };
+    const s07CompletionEvent: PasswordModuleEvent = { type: 'S07_COMPLETED' };
     expect(Object.keys(completionEvent)).toEqual(['type']);
     expect(Object.keys(s06CompletionEvent)).toEqual(['type']);
+    expect(Object.keys(s07CompletionEvent)).toEqual(['type']);
 
     const controller = new PasswordModuleController({
       accountIds: ['master-campus', 'campus-email', 'campusgram'],
@@ -61,6 +63,7 @@ describe('password module privacy boundary', () => {
         'passwordComparisons',
         'generatedCandidates',
         'retrievalAnalysis',
+        's07Recommendations',
       ]),
     );
     controller.dispose();
@@ -120,7 +123,8 @@ describe('password module privacy boundary', () => {
     expect(controller.getSnapshot().matches({ s06: 'active' })).toBe(true);
     controller.completeS06();
     await flushMicrotasks();
-    expect(controller.getSnapshot().matches('awaiting-s07')).toBe(true);
+    await flushMicrotasks();
+    expect(controller.getSnapshot().matches({ s07: 'active' })).toBe(true);
     studyActor.send({
       type: 'ACCEPT_CONSENT',
       followUpConsent: true,
@@ -164,7 +168,13 @@ describe('password module privacy boundary', () => {
       segmentId: 'S06',
       sectionId: 'passwords',
     });
+    expect(timingRequests).toContainEqual({
+      eventType: 'segment-start',
+      segmentId: 'S07',
+      sectionId: 'passwords',
+    });
     expect(controller.getSnapshot().context).not.toHaveProperty('s05Result');
     expect(controller.getSnapshot().context).not.toHaveProperty('s06Result');
+    expect(controller.getSnapshot().context).not.toHaveProperty('s07Recommendations');
   });
 });

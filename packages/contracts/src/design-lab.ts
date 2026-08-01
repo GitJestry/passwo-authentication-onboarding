@@ -22,6 +22,11 @@ export const designLabScenarioIdSchema = z.enum([
   's06-incident-not-found',
   's06-incident-found-blocked',
   's06-mixed-actual-hypothetical',
+  's07-directly-reached',
+  's07-exact-reuse',
+  's07-derived-variant',
+  's07-retrievability-only',
+  's07-no-change',
 ]);
 export type DesignLabScenarioId = z.infer<typeof designLabScenarioIdSchema>;
 

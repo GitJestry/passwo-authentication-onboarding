@@ -1,6 +1,6 @@
 import { z } from 'zod';
 
-export const SUPPORTIVE_ARTIFACT_VERSION = 'supportive-s00-s06-1.7.0';
+export const SUPPORTIVE_ARTIFACT_VERSION = 'supportive-s00-s07-1.8.0';
 export const REFERENCE_ARTIFACT_VERSION =
   'secaware-passwords-authentication-v9-study-adapted-2026-07-30-r15';
 export const REFERENCE_ARTIFACT_SNAPSHOT_ID = 'secaware-passwords-authentication-2026-07-26';
@@ -21,6 +21,7 @@ export const SUPPORTIVE_ARTIFACT_SEGMENT_IDS = [
   'S04',
   'S05',
   'S06',
+  'S07',
 ] as const;
 export type SupportiveArtifactSegmentId = (typeof SUPPORTIVE_ARTIFACT_SEGMENT_IDS)[number];
 

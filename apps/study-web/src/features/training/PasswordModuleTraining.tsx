@@ -30,6 +30,10 @@ import {
   type S06ConsequenceSource,
   type S06TimingState,
 } from './segments/S06/S06ConsequenceTraining.js';
+import {
+  S07EvaluationTraining,
+  type S07TimingState,
+} from './segments/S07/S07EvaluationTraining.js';
 
 export interface PasswordModuleTrainingProps {
   readonly timingPort?: SegmentTimingPort;
@@ -110,6 +114,17 @@ export function PasswordModuleTraining({
     };
   }, [passwordValues, retrievalResults]);
   const completeS06 = useCallback(() => controllerRef.current?.completeS06(), []);
+  const storeS06EvaluationInput = useCallback(
+    (input: Parameters<PasswordModuleController['setS06EvaluationInput']>[0]) =>
+      controllerRef.current?.setS06EvaluationInput(input),
+    [],
+  );
+  const storeS07Recommendations = useCallback(
+    (projection: Parameters<PasswordModuleController['setS07Recommendations']>[0]) =>
+      controllerRef.current?.setS07Recommendations(projection),
+    [],
+  );
+  const completeS07 = useCallback(() => controllerRef.current?.completeS07(), []);
 
   useEffect(() => {
     const controller = new PasswordModuleController({
@@ -391,6 +406,7 @@ export function PasswordModuleTraining({
         timingErrorCode={snapshot.context.timingErrorCode}
         externalTimingError={externalTimingError}
         onComplete={completeS06}
+        onEvaluationInputReady={storeS06EvaluationInput}
         onRetryTiming={() => {
           if (externalTimingError !== null) onRetryExternalTiming?.();
           else controller.retryTiming();
@@ -399,10 +415,68 @@ export function PasswordModuleTraining({
     );
   }
 
-  if (snapshot.matches('awaiting-s07')) {
+  if (snapshot.matches('s07')) {
+    const startWritePending = snapshot.matches({ s07: 'writingStart' });
+    const startWriteFailed = snapshot.matches({ s07: 'startWriteFailed' });
+    if (startWritePending || startWriteFailed) {
+      return (
+        <section className={styles.loading} aria-live="polite">
+          <p role={startWriteFailed ? 'alert' : 'status'}>
+            {startWriteFailed
+              ? 'Die Segmentgrenze konnte nicht bestätigt werden.'
+              : 'Segmentgrenze wird bestätigt …'}
+          </p>
+          {startWriteFailed ? (
+            <>
+              <p>Fehlercode: {externalTimingError ?? snapshot.context.timingErrorCode}</p>
+              <button
+                type="button"
+                onClick={() => {
+                  if (externalTimingError !== null) onRetryExternalTiming?.();
+                  else controller.retryTiming();
+                }}
+              >
+                Erneut versuchen
+              </button>
+            </>
+          ) : null}
+        </section>
+      );
+    }
+    const input = controller.getS06EvaluationInput();
+    if (input === null) {
+      return (
+        <section className={styles.loading} role="alert">
+          <p>S07 kann wegen fehlender lokaler S06-Befunde nicht gestartet werden.</p>
+          <p>Fehlercode: s07-runtime-data-incomplete</p>
+        </section>
+      );
+    }
+    const timingState: S07TimingState = snapshot.matches({ s07: 'writingEnd' })
+      ? 'writingEnd'
+      : snapshot.matches({ s07: 'endWriteFailed' })
+        ? 'endWriteFailed'
+        : 'active';
     return (
-      <section className={styles.loading} aria-labelledby="awaiting-s07-title">
-        <h1 id="awaiting-s07-title">S07 ist noch nicht implementiert.</h1>
+      <S07EvaluationTraining
+        input={input}
+        timingState={timingState}
+        timingErrorCode={snapshot.context.timingErrorCode}
+        externalTimingError={externalTimingError}
+        onProjectionReady={storeS07Recommendations}
+        onComplete={completeS07}
+        onRetryTiming={() => {
+          if (externalTimingError !== null) onRetryExternalTiming?.();
+          else controller.retryTiming();
+        }}
+      />
+    );
+  }
+
+  if (snapshot.matches('awaiting-s08')) {
+    return (
+      <section className={styles.loading} aria-labelledby="awaiting-s08-title">
+        <h1 id="awaiting-s08-title">Auswertung abgeschlossen.</h1>
       </section>
     );
   }

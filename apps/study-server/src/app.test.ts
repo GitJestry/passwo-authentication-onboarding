@@ -141,12 +141,13 @@ describe('study server research core', () => {
       'S04',
       'S05',
       'S06',
+      'S07',
     ]);
     const artifactEnd = await server.inject({
       method: 'POST',
       url: `/api/study/sessions/${session.sessionId}/timing`,
       payload: {
-        sequence: 15,
+        sequence: 17,
         phase: 'artifact',
         sectionId: null,
         segmentId: null,
@@ -203,7 +204,9 @@ describe('study server research core', () => {
       { sequence: 12, segmentId: 'S05', eventType: 'end' },
       { sequence: 13, segmentId: 'S06', eventType: 'start' },
       { sequence: 14, segmentId: 'S06', eventType: 'end' },
-      { sequence: 15, segmentId: null, eventType: 'end' },
+      { sequence: 15, segmentId: 'S07', eventType: 'start' },
+      { sequence: 16, segmentId: 'S07', eventType: 'end' },
+      { sequence: 17, segmentId: null, eventType: 'end' },
     ]);
     expect(completion.json()).toEqual({ completionStatus: 'completed' });
     expect(reload.json()).toEqual({ completionStatus: 'completed' });

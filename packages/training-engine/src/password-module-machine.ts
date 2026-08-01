@@ -85,6 +85,13 @@ export type PasswordModuleEvent =
   | { readonly type: 'S06_END_RECORDED' }
   | { readonly type: 'S06_END_FAILED'; readonly errorCode: string }
   | { readonly type: 'RETRY_S06_END' }
+  | { readonly type: 'S07_START_RECORDED' }
+  | { readonly type: 'S07_START_FAILED'; readonly errorCode: string }
+  | { readonly type: 'RETRY_S07_START' }
+  | { readonly type: 'S07_COMPLETED' }
+  | { readonly type: 'S07_END_RECORDED' }
+  | { readonly type: 'S07_END_FAILED'; readonly errorCode: string }
+  | { readonly type: 'RETRY_S07_END' }
   | { readonly type: 'DISCARD' };
 
 function emptyPasswordValues(accountIds: readonly string[]): Record<string, string> {
@@ -203,7 +210,9 @@ export const passwordModuleMachine = setup({
         event.type === 'S05_START_FAILED' ||
         event.type === 'S05_END_FAILED' ||
         event.type === 'S06_START_FAILED' ||
-        event.type === 'S06_END_FAILED'
+        event.type === 'S06_END_FAILED' ||
+        event.type === 'S07_START_FAILED' ||
+        event.type === 'S07_END_FAILED'
           ? event.errorCode
           : null,
     }),
@@ -609,7 +618,7 @@ export const passwordModuleMachine = setup({
         writingEnd: {
           on: {
             S06_END_RECORDED: {
-              target: '#passwordModule.awaiting-s07',
+              target: '#passwordModule.s07.writingStart',
               actions: 'clearTimingError',
             },
             S06_END_FAILED: { target: 'endWriteFailed', actions: 'storeTimingError' },
@@ -620,7 +629,38 @@ export const passwordModuleMachine = setup({
         },
       },
     },
-    'awaiting-s07': {},
+    s07: {
+      initial: 'writingStart',
+      states: {
+        writingStart: {
+          on: {
+            S07_START_RECORDED: { target: 'active', actions: 'clearTimingError' },
+            S07_START_FAILED: { target: 'startWriteFailed', actions: 'storeTimingError' },
+          },
+        },
+        startWriteFailed: {
+          on: { RETRY_S07_START: { target: 'writingStart', actions: 'clearTimingError' } },
+        },
+        active: {
+          on: {
+            S07_COMPLETED: { target: 'writingEnd', actions: 'clearTimingError' },
+          },
+        },
+        writingEnd: {
+          on: {
+            S07_END_RECORDED: {
+              target: '#passwordModule.awaiting-s08',
+              actions: 'clearTimingError',
+            },
+            S07_END_FAILED: { target: 'endWriteFailed', actions: 'storeTimingError' },
+          },
+        },
+        endWriteFailed: {
+          on: { RETRY_S07_END: { target: 'writingEnd', actions: 'clearTimingError' } },
+        },
+      },
+    },
+    'awaiting-s08': {},
     discarded: { type: 'final' },
   },
 });

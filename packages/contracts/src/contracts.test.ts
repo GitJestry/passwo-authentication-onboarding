@@ -17,6 +17,7 @@ import {
   researchExportSessionRecordSchema,
   registerRecontactRequestSchema,
   REFERENCE_ARTIFACT_VERSION,
+  s07RecommendationIds,
   SUPPORTIVE_ARTIFACT_SEGMENT_IDS,
   SUPPORTIVE_ARTIFACT_VERSION,
   studyTimingEventSchema,
@@ -96,8 +97,8 @@ describe('research-safe contracts', () => {
     ).toBe(false);
   });
 
-  it('keeps canonical artifact versions and the S00–S06 segment order', () => {
-    expect(SUPPORTIVE_ARTIFACT_VERSION).toBe('supportive-s00-s06-1.7.0');
+  it('keeps canonical artifact versions and the S00–S07 segment order', () => {
+    expect(SUPPORTIVE_ARTIFACT_VERSION).toBe('supportive-s00-s07-1.8.0');
     expect(SUPPORTIVE_ARTIFACT_VERSION).not.toBe(REFERENCE_ARTIFACT_VERSION);
     expect(SUPPORTIVE_ARTIFACT_SEGMENT_IDS).toEqual([
       'S00',
@@ -107,6 +108,7 @@ describe('research-safe contracts', () => {
       'S04',
       'S05',
       'S06',
+      'S07',
     ]);
     expect(
       studyTimingEventSchema.safeParse({
@@ -118,6 +120,19 @@ describe('research-safe contracts', () => {
         clientMonotonicMs: 125,
         clientWallClockIso: '2026-07-24T12:00:00.000Z',
         elapsedMs: 25,
+        reasonCode: null,
+      }).success,
+    ).toBe(true);
+    expect(
+      studyTimingEventSchema.safeParse({
+        sequence: 5,
+        phase: 'artifact',
+        sectionId: 'passwords',
+        segmentId: 'S07',
+        eventType: 'start',
+        clientMonotonicMs: 225,
+        clientWallClockIso: '2026-07-24T12:00:00.000Z',
+        elapsedMs: null,
         reasonCode: null,
       }).success,
     ).toBe(true);
@@ -167,6 +182,25 @@ describe('research-safe contracts', () => {
       's06-reuse-and-derived',
     );
     expect(designLabScenarioForPath('/design-lab/s06-unique')).toBeNull();
+  });
+
+  it('exposes the five deterministic S07 Auswertung routes', () => {
+    expect(designLabScenarioForPath('/design-lab/s07-directly-reached')).toBe(
+      's07-directly-reached',
+    );
+    expect(designLabScenarioForPath('/design-lab/s07-no-change')).toBe('s07-no-change');
+    expect(designLabScenarioForPath('/design-lab/s07-score')).toBeNull();
+  });
+
+  it('keeps the six S07 recommendation IDs stable and score-free', () => {
+    expect(s07RecommendationIds).toEqual([
+      'replace-exposed-password',
+      'separate-exact-reuse',
+      'rebuild-predictable-password',
+      'replace-derived-pattern',
+      'improve-retrievability',
+      'no-change-practice-method',
+    ]);
   });
 
   it('keeps scene and fixture context outside the general password relation result', () => {

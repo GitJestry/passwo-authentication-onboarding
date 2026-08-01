@@ -1,0 +1,170 @@
+.training {
+  min-height: 100%;
+}
+
+.page {
+  min-height: 680px;
+  padding: clamp(1.25rem, 3vw, 2.5rem);
+  color: #17324d;
+  background: linear-gradient(145deg, #f7fbff 0%, #eef8f5 100%);
+}
+
+.pageHeader {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(280px, 0.8fr);
+  gap: 1.5rem;
+  align-items: start;
+}
+
+.pageHeader h1,
+.accountCard h2,
+.summary h2 {
+  margin: 0.25rem 0 0.6rem;
+  color: #123d5a;
+}
+
+.overview {
+  display: grid;
+  gap: 0.65rem;
+  margin: 0;
+  padding: 1rem;
+  border: 1px solid #b9d6db;
+  border-radius: 18px;
+  background: rgb(255 255 255 / 86%);
+}
+
+.overview div {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.overview dd {
+  margin: 0;
+  font-weight: 800;
+}
+
+.cardStage,
+.summary {
+  max-width: 900px;
+  margin: 2rem auto 0;
+}
+
+.progress {
+  color: #456579;
+  font-weight: 700;
+}
+
+.accountCard {
+  padding: clamp(1.25rem, 3vw, 2rem);
+  border: 2px solid #8ebfc6;
+  border-radius: 24px;
+  background: #fff;
+  box-shadow: 0 18px 40px rgb(25 73 91 / 12%);
+}
+
+.findings {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.85rem;
+}
+
+.findings div {
+  padding: 0.9rem;
+  border-radius: 14px;
+  background: #f2f7f8;
+}
+
+.findings dt {
+  margin-bottom: 0.35rem;
+  font-weight: 800;
+}
+
+.findings dd {
+  margin: 0;
+}
+
+.findings ul,
+.summary ul {
+  margin: 0;
+  padding-left: 1.2rem;
+}
+
+.supportiveFeedback {
+  padding: 0.9rem 1rem;
+  border-left: 4px solid #4b8792;
+  background: #edf7f7;
+}
+
+.recommendation {
+  margin-top: 1rem;
+  padding: 1rem;
+  border-radius: 16px;
+  background: #153f5b;
+  color: #fff;
+}
+
+.recommendation p,
+.recommendation h3 {
+  margin: 0;
+}
+
+.recommendation p {
+  margin-bottom: 0.35rem;
+  color: #cce7eb;
+}
+
+.cardStage > button,
+.summary > button,
+.timingError button {
+  margin-top: 1rem;
+}
+
+.summary {
+  padding: clamp(1.25rem, 3vw, 2rem);
+  border: 2px solid #8ebfc6;
+  border-radius: 24px;
+  background: #fff;
+}
+
+.summary li + li {
+  margin-top: 0.6rem;
+}
+
+.miniCards {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.65rem;
+  margin: 1rem 0;
+}
+
+.miniCards span {
+  padding: 0.8rem;
+  border: 1px solid #b9d6db;
+  border-radius: 12px;
+  text-align: center;
+  font-weight: 800;
+  background: #f2f7f8;
+}
+
+.timingError {
+  margin-top: 1rem;
+  padding: 1rem;
+  border: 2px solid #9f3d43;
+  border-radius: 14px;
+}
+
+@media (max-width: 760px) {
+  .pageHeader,
+  .findings,
+  .miniCards {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .accountCard,
+  .summary {
+    scroll-behavior: auto;
+  }
+}

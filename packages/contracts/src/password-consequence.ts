@@ -188,3 +188,62 @@ export interface S06PairComparison {
   readonly targetAccountId: S06AccountId;
   readonly result: PasswordComparisonResult;
 }
+
+export const s07RecommendationIds = [
+  'replace-exposed-password',
+  'separate-exact-reuse',
+  'rebuild-predictable-password',
+  'replace-derived-pattern',
+  'improve-retrievability',
+  'no-change-practice-method',
+] as const;
+
+export type S07RecommendationId = (typeof s07RecommendationIds)[number];
+
+export type S07IncidentStatus =
+  | 'source-of-incident'
+  | 'reached-via-exact-reuse'
+  | 'reached-via-derived-variant'
+  | 'not-reached'
+  | 'hypothetical-only';
+
+export type S07Retrievability = 'remembered' | 'not-remembered' | 'skipped';
+
+export type S07ProblemClass =
+  | 'local-quick-path'
+  | 'exact-reuse'
+  | 'derived-variant'
+  | 'retrievability';
+
+export interface S07AccountConnection {
+  readonly accountId: S06AccountId;
+  readonly relationKind: PasswordRelationKind;
+}
+
+export interface S07AccountRecommendation {
+  readonly accountId: S06AccountId;
+  readonly disposition: LocalPasswordDisposition;
+  readonly connections: readonly S07AccountConnection[];
+  readonly incidentStatus: S07IncidentStatus;
+  readonly retrievability: S07Retrievability;
+  readonly recommendationId: S07RecommendationId;
+}
+
+export interface S07RecommendationSummary {
+  readonly noQuickPathCount: number;
+  readonly noPasswordConnectionCount: number;
+  readonly rememberedCount: number;
+  readonly problemClasses: readonly S07ProblemClass[];
+}
+
+export interface S07RecommendationProjection {
+  readonly kind: 's07-recommendation-projection';
+  readonly accounts: readonly S07AccountRecommendation[];
+  readonly summary: S07RecommendationSummary;
+}
+
+export interface S07RecommendationProjectionInput {
+  readonly incidentSource: IncidentSource;
+  readonly accounts: readonly S06LocalAccountAnalysis[];
+  readonly comparisons: readonly S06PairComparison[];
+}

@@ -11,6 +11,7 @@ import type {
 } from '@passwo/contracts';
 
 export * from './simulation-disposition.js';
+export * from './recommendation-projection.js';
 export * from './theoretical-search-space.js';
 
 export type {

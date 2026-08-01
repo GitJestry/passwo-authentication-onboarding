@@ -1,4 +1,8 @@
-import type { PasswordEvidenceSpan, S06AccountId } from '@passwo/contracts';
+import type {
+  PasswordEvidenceSpan,
+  S06AccountId,
+  S07RecommendationProjectionInput,
+} from '@passwo/contracts';
 import type { S06ConsequenceFixtureId } from '@passwo/training-content';
 import { s06ConsequenceContent } from '@passwo/training-content';
 import type { PasswordConsequenceScenePlan } from '@passwo/visualization';
@@ -49,6 +53,7 @@ export interface S06ConsequenceTrainingProps {
   readonly externalTimingError?: string | null;
   readonly onRetryTiming?: () => void;
   readonly onComplete?: () => void;
+  readonly onEvaluationInputReady?: (input: S07RecommendationProjectionInput) => void;
 }
 
 interface PlanCache {
@@ -99,6 +104,7 @@ export function S06ConsequenceTraining({
   externalTimingError = null,
   onRetryTiming,
   onComplete,
+  onEvaluationInputReady,
 }: S06ConsequenceTrainingProps) {
   const networkHostRef = useRef<HTMLDivElement | null>(null);
   const planCacheRef = useRef<PlanCache | null>(null);
@@ -117,6 +123,11 @@ export function S06ConsequenceTraining({
         ? cachedPlan.plan
         : createScenePlan(fixtureId, runtimeAccounts);
     planCacheRef.current = { sourceIdentity, plan };
+    onEvaluationInputReady?.({
+      incidentSource: plan.incidentSource,
+      accounts: plan.accounts,
+      comparisons: plan.comparisons,
+    });
     const allNodeIds = [
       ...new Set(plan.steps.flatMap(({ network }) => network.nodes.map(({ id }) => id))),
     ];
@@ -152,7 +163,7 @@ export function S06ConsequenceTraining({
       unsubscribe();
       void controller?.dispose();
     };
-  }, [fixtureId, onComplete, runtimeAccounts]);
+  }, [fixtureId, onComplete, onEvaluationInputReady, runtimeAccounts]);
 
   if (runtime === null || snapshot === null) return null;
 
@@ -279,30 +290,6 @@ export function S06ConsequenceTraining({
                   )
                   .join(' · ')}
               </p>
-              {snapshot.step.id === 's06-step-summary' ? (
-                <div className={styles.summary}>
-                  <h3>Lokaler Simulationsstatus und Abrufbarkeit</h3>
-                  <ul>
-                    {runtime.plan.accounts.map((account) => (
-                      <li key={account.accountId}>
-                        {s06ConsequenceContent.accounts[account.accountId].label}:{' '}
-                        {s06ConsequenceContent.dispositionLabels[account.disposition.kind]} ·{' '}
-                        {s06ConsequenceContent.retrievalLabels[account.retrievalStatus]}
-                      </li>
-                    ))}
-                  </ul>
-                  <h3>Paarweise Relationen</h3>
-                  <ul>
-                    {runtime.plan.comparisons.map((comparison) => (
-                      <li key={`${comparison.sourceAccountId}-${comparison.targetAccountId}`}>
-                        {s06ConsequenceContent.accounts[comparison.sourceAccountId].label} →{' '}
-                        {s06ConsequenceContent.accounts[comparison.targetAccountId].label}:{' '}
-                        {s06ConsequenceContent.relationLabels[comparison.result.relation.kind]}
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              ) : null}
               <div className={styles.buttonRow}>
                 <button
                   type="button"
