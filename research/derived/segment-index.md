@@ -25,6 +25,11 @@ Seitenangaben beziehen sich auf die im Trainingsdokument ausgewiesene interne Pa
 
 ## Implementierte S05-Version
 
+- Der Einstieg in `Naheliegende Bestandteile` zeigt eine reproduzierbare Folge aus einem bis acht
+  verdeckten Bausteinen. `Häufige Kerne` verwendet eine rein authored, fortlaufende Maschine für
+  die sechs festgelegten Beispiele und typische sichtbare Varianten; anschließend werden nur
+  vorhandene lokale Kern-, Zahlenfolgen- und Jahresbefunde am maskierten fiktiven Passwort
+  hervorgehoben. Die Szene übergibt mit kompakter Zusammenfassung an `Persönliche Angaben`.
 - S05.0 bis S05.4 verwenden die internen Seiten 12 bis 35 als Inhaltsquelle und sind im Design Lab
   sowie im realen Supportive-Training zwischen S04 und S06 vollständig durchspielbar. Beide Pfade
   verwenden dieselbe Komponente und denselben lokalen Controller.

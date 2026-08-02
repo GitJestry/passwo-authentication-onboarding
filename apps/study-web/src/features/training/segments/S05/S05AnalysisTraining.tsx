@@ -1,4 +1,5 @@
 import type {
+  PasswordEvidenceSpan,
   PasswordSingleFindingKind,
   RuntimeStructureFindingKind,
 } from '@passwo/contracts';
@@ -10,6 +11,10 @@ import type {
   PasswordStructureSceneSnapshot,
 } from '@passwo/visualization';
 import { type CSSProperties, type ReactNode, useEffect, useRef, useState } from 'react';
+import accountContextAsset from '../../../../assets/s05/category-logos/account-context.png';
+import commonCoresAsset from '../../../../assets/s05/category-logos/common-cores.png';
+import personalDetailsAsset from '../../../../assets/s05/category-logos/personal-details.png';
+import typicalChangesAsset from '../../../../assets/s05/category-logos/typical-changes.png';
 import attackerAsset from '../../../../assets/passwo/attacker.png';
 import { NetworkSymbol } from '../../../../adapters/network/NetworkSymbolRegistry.js';
 import { PassWoGuide } from '../../PassWoGuide.js';
@@ -37,37 +42,8 @@ export interface S05AnalysisTrainingProps {
   readonly completionPort?: S05CompletionPort;
 }
 
-interface StrategyTransitionRect {
-  readonly top: number;
-  readonly left: number;
-  readonly width: number;
-  readonly height: number;
-}
-
-function strategyTransitionStyle(rect: StrategyTransitionRect | null): CSSProperties | undefined {
-  if (rect === null) return undefined;
-  return {
-    '--strategy-transition-top': `${rect.top}px`,
-    '--strategy-transition-left': `${rect.left}px`,
-    '--strategy-transition-width': `${rect.width}px`,
-    '--strategy-transition-height': `${rect.height}px`,
-  } as CSSProperties;
-}
-
 function findingLabel(kind: PasswordSingleFindingKind): string {
   return s05Content.findingLabels[kind];
-}
-
-const candidateAlphabet = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789!?#$%&';
-
-function createRandomCandidate(maximumLength: number): string {
-  const randomValues = new Uint32Array(Math.max(2, maximumLength + 1));
-  globalThis.crypto.getRandomValues(randomValues);
-  const length = 1 + ((randomValues[0] ?? 0) % maximumLength);
-  return Array.from(
-    { length },
-    (_, index) => candidateAlphabet[(randomValues[index + 1] ?? 0) % candidateAlphabet.length] ?? 'x',
-  ).join('');
 }
 
 function CampusgramPassword({
@@ -96,32 +72,40 @@ function CampusgramPassword({
   );
 }
 
-function AttackerAttempt({ maximumLength }: { readonly maximumLength: number }) {
-  const [candidate, setCandidate] = useState(() => createRandomCandidate(maximumLength));
-
-  useEffect(() => {
-    setCandidate(createRandomCandidate(maximumLength));
-    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return undefined;
-    const interval = window.setInterval(() => setCandidate(createRandomCandidate(maximumLength)), 820);
-    return () => window.clearInterval(interval);
-  }, [maximumLength]);
-
+function ComponentSequence() {
   return (
-    <div className={styles.attackerAttempt} data-s05-target="attacker-attempt" aria-live="off">
-      <code key={candidate}>{candidate}</code>
-      <strong>
-        <span aria-hidden="true">×</span>
-        {s05Content.intro.candidateFailure}
-      </strong>
+    <div
+      className={styles.componentSequence}
+      role="img"
+      aria-label="Wechselnde Folge aus einem bis acht verdeckten Bestandteilen; jeweils ein Bestandteil ist hervorgehoben."
+    >
+      <div aria-hidden="true">
+        {s05Content.intro.componentFrames.map((frame, frameIndex) => (
+          <div
+            key={`${frame.count}-${frame.highlightedIndex}`}
+            className={styles.componentFrame}
+            style={{ '--frame-index': frameIndex } as CSSProperties}
+          >
+            {Array.from({ length: frame.count }, (_, blockIndex) => (
+              <span
+                key={blockIndex}
+                data-highlighted={blockIndex === frame.highlightedIndex || undefined}
+              >
+                •••
+              </span>
+            ))}
+          </div>
+        ))}
+      </div>
     </div>
   );
 }
 
-function CandidateCheckScene({ subject }: { readonly subject: S05AnalysisSubject }) {
+function ComponentStartScene({ subject }: { readonly subject: S05AnalysisSubject }) {
   return (
-    <div className={styles.attackerStage}>
+    <div className={styles.attackerStage} data-s05-target="component-start">
       <CampusgramPassword password={subject.fictionalPassword} />
-      <AttackerAttempt maximumLength={Math.max(1, subject.fictionalPassword.length + 5)} />
+      <ComponentSequence />
       <div className={styles.attackerConnection} aria-hidden="true">
         <span />
       </div>
@@ -134,170 +118,219 @@ function CandidateCheckScene({ subject }: { readonly subject: S05AnalysisSubject
   );
 }
 
-function RandomSequenceScene() {
+const categoryAssets = {
+  'common-components': commonCoresAsset,
+  'personal-examples': personalDetailsAsset,
+  'account-context': accountContextAsset,
+  'typical-changes': typicalChangesAsset,
+} as const;
+
+function CategoryCard({
+  title,
+  image,
+  active = false,
+  summary,
+}: {
+  readonly title: string;
+  readonly image: string;
+  readonly active?: boolean;
+  readonly summary?: string;
+}) {
   return (
-    <div className={styles.memorabilityStage} data-s05-target="random-sequence">
-      <section className={styles.generatedSequence} aria-label="Zufällig erzeugte Zeichenfolge">
-        <code>
-          {[...s05Content.intro.generatedPassword].map((character, index) => (
-            <i key={`${character}-${index}`} style={{ '--character-index': index } as CSSProperties}>
-              {character}
-            </i>
+    <article className={styles.categoryCard} data-active={active || undefined}>
+      <img src={image} alt="" />
+      <div>
+        <h2>{title}</h2>
+        {summary === undefined ? null : <code>{summary}</code>}
+      </div>
+    </article>
+  );
+}
+
+function CommonCoresIntroScene() {
+  return (
+    <div className={styles.commonCoresIntro} data-s05-target="common-cores">
+      <CategoryCard title="Häufige Kerne" image={commonCoresAsset} active />
+      <img className={styles.commonCoresHero} src={commonCoresAsset} alt="" />
+    </div>
+  );
+}
+
+function CommonCoreMachineScene({ variants }: { readonly variants: readonly string[] }) {
+  const examples = s05Content.intro.commonCores.examples;
+  const visibleVariants = variants.slice(0, 48);
+  return (
+    <div className={styles.commonCoreWorkspace} data-s05-target="common-core-machine">
+      <div className={styles.categoryRail}>
+        <CategoryCard title="Häufige Kerne" image={commonCoresAsset} active />
+      </div>
+      <section className={styles.coreSource} aria-label={`Beispielkerne: ${examples.join(', ')}`}>
+        <strong>Häufig verwendete Kerne</strong>
+        <div aria-hidden="true">
+          {[...examples, ...examples].map((example, index) => (
+            <code key={`${example}-${index}`}>{example}</code>
           ))}
-        </code>
+        </div>
+      </section>
+      <section className={styles.variantMachine} aria-label="Typische Veränderungen werden erzeugt">
+        <div className={styles.machineHousing}>
+          <span />
+          <strong>Varianten</strong>
+          <span />
+        </div>
+        <div className={styles.conveyor} aria-hidden="true">
+          {examples.map((example) => <i key={example}>{example}</i>)}
+        </div>
+      </section>
+      <section className={styles.variantStream} aria-label="Viele schnell erzeugte Varianten">
+        <strong>Erzeugte Varianten</strong>
+        <div aria-hidden="true">
+          {[...visibleVariants, ...visibleVariants].map((variant, index) => (
+            <code key={`${variant}-${index}`}>{variant}</code>
+          ))}
+        </div>
       </section>
     </div>
   );
 }
 
-function RecognizableCombinationScene() {
-  return (
-    <div className={styles.recognizableStage} data-s05-target="recognizable-password">
-      <PasswordBuildingBlocks
-        value={s05Content.intro.memorablePassword}
-        parts={s05Content.intro.memorablePasswordParts}
-        display="assembled"
-        ariaLabel={s05Content.intro.memorablePassword}
-      />
-    </div>
-  );
+const commonCoreFindingKinds = new Set<PasswordSingleFindingKind>([
+  'common-password-core',
+  'simple-number-sequence',
+  'year',
+]);
+
+function commonCoreFindings(scene: PasswordFindingSceneSnapshot) {
+  return scene.prioritizedFindings.filter(({ kind }) => commonCoreFindingKinds.has(kind));
 }
 
-function BuildingBlocksScene() {
+function PasswordVisibilityIcon({ revealed }: { readonly revealed: boolean }) {
   return (
-    <div className={styles.buildingBlocksStage} data-s05-target="building-blocks">
-      <div className={styles.buildingBlocksVisual} data-s05-speech-obstacle>
-        <PasswordBuildingBlocks
-          value={s05Content.intro.memorablePassword}
-          parts={s05Content.intro.memorablePasswordParts}
-          display="decomposed"
-          ariaLabel={`${s05Content.intro.memorablePassword} in Bausteinen`}
-        />
-      </div>
-    </div>
-  );
-}
-
-function StrategyTargetingScene() {
-  return (
-    <div className={styles.strategyTargeting} data-s05-target="strategy-targeting">
-      <div className={styles.buildingBlocksVisual} data-s05-speech-obstacle>
-        <PasswordBuildingBlocks
-          value={s05Content.intro.memorablePassword}
-          parts={s05Content.intro.memorablePasswordParts}
-          display="decomposed"
-          annotations={s05Content.intro.strategyAnnotations}
-          ariaLabel={`${s05Content.intro.memorablePassword}: ${Object.values(s05Content.intro.strategyAnnotations).join(', ')}`}
-        />
-      </div>
-    </div>
-  );
-}
-
-function StrategyPreview({
-  strategyId,
-}: {
-  readonly strategyId: (typeof s05Content.intro.strategies)[number]['id'];
-}) {
-  return (
-    <div className={styles.strategyPreview} data-strategy={strategyId} aria-hidden="true">
-      <span />
-      <span />
-      <span />
-    </div>
-  );
-}
-
-function StrategyOverviewScene({
-  transitioning,
-  transitionStyle,
-  onTransitionEnd,
-}: {
-  readonly transitioning: boolean;
-  readonly transitionStyle: CSSProperties | undefined;
-  readonly onTransitionEnd: () => void;
-}) {
-  return (
-    <div
-      className={styles.strategyOverview}
-      data-s05-target="strategy-overview"
-      data-transitioning={transitioning || undefined}
+    <svg
+      aria-hidden="true"
+      className={styles.revealIcon}
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.8"
+      strokeLinecap="round"
+      strokeLinejoin="round"
     >
-      <div className={styles.strategyCards}>
-        {s05Content.intro.strategies.map((strategy, index) => (
-          <article
-            key={strategy.id}
-            data-strategy={strategy.id}
-            style={{ '--strategy-index': index } as CSSProperties}
-          >
-            <StrategyPreview strategyId={strategy.id} />
-            <h2>{`${index + 1}. ${strategy.title}`}</h2>
-          </article>
-        ))}
-      </div>
-      <div className={styles.strategyBuildingBlocks} data-s05-speech-obstacle>
-        <PasswordBuildingBlocks
-          value={s05Content.intro.memorablePassword}
-          parts={s05Content.intro.memorablePasswordParts}
-          display="decomposed"
-          animate={false}
-          annotations={s05Content.intro.strategyAnnotations}
-          ariaLabel={`${s05Content.intro.memorablePassword}: ${Object.values(s05Content.intro.strategyAnnotations).join(', ')}`}
-        />
-      </div>
-      {transitioning ? (
-        <article
-          className={styles.strategyTransitionCard}
-          style={transitionStyle}
-          onAnimationEnd={(event) => {
-            if (event.currentTarget === event.target) onTransitionEnd();
-          }}
-        >
-          <StrategyPreview strategyId="components" />
-          <h2>{`1. ${s05Content.intro.strategies[0].title}`}</h2>
-        </article>
-      ) : null}
-    </div>
+      <path d="M2.5 12s3.5-6 9.5-6 9.5 6 9.5 6-3.5 6-9.5 6-9.5-6-9.5-6Z" />
+      <circle cx="12" cy="12" r="2.5" />
+      {revealed ? <path d="M4 4 20 20" /> : null}
+    </svg>
   );
 }
 
-function FindingScene({
+function HighlightedCommonCorePassword({
+  password,
+  scene,
+}: {
+  readonly password: string;
+  readonly scene: PasswordFindingSceneSnapshot;
+}) {
+  const spans = commonCoreFindings(scene)
+    .flatMap(({ evidence }) => evidence)
+    .filter((evidence): evidence is PasswordEvidenceSpan => evidence.type === 'span')
+    .sort((left, right) => left.start - right.start);
+  const parts: ReactNode[] = [];
+  let cursor = 0;
+  for (const span of spans) {
+    if (span.start < cursor) continue;
+    if (cursor < span.start) {
+      parts.push(<span key={`plain-${cursor}`}>{password.slice(cursor, span.start)}</span>);
+    }
+    parts.push(
+      <mark key={`core-${span.start}-${span.end}`}>
+        {password.slice(span.start, span.end)}
+      </mark>,
+    );
+    cursor = span.end;
+  }
+  if (cursor < password.length) parts.push(<span key={`plain-${cursor}`}>{password.slice(cursor)}</span>);
+  return <code className={styles.commonCorePassword}>{parts}</code>;
+}
+
+function CommonCoreApplicationScene({
   subject,
   scene,
+  revealed,
+  onToggle,
 }: {
   readonly subject: S05AnalysisSubject;
   readonly scene: PasswordFindingSceneSnapshot;
+  readonly revealed: boolean;
+  readonly onToggle: () => void;
 }) {
+  const findings = commonCoreFindings(scene);
   return (
-    <div className={styles.componentWorkspace}>
-      <header className={styles.strategyFocus} data-s05-target="strategy-components-focus">
-        <h2>{`1. ${s05Content.intro.strategies[0].title}`}</h2>
-      </header>
-      <section className={styles.demonstrations} aria-label="Beispiele">
-        {s05Content.componentDemonstrations.map((demonstration) => (
+    <div className={styles.commonCoreApplication} data-s05-target="common-core-application">
+      <div className={styles.categoryRail}>
+        <CategoryCard title="Häufige Kerne" image={commonCoresAsset} active />
+      </div>
+      <section className={styles.commonCoreResult}>
+        <p>{s05Content.intro.commonCores.application}</p>
+        <div className={styles.passwordRevealRow}>
+          {revealed ? (
+            <HighlightedCommonCorePassword password={subject.fictionalPassword} scene={scene} />
+          ) : (
+            <code className={styles.commonCorePassword}>
+              {'•'.repeat(Math.max(8, subject.fictionalPassword.length))}
+            </code>
+          )}
+          <button
+            type="button"
+            className={styles.revealButton}
+            aria-pressed={revealed}
+            aria-label={revealed ? 'Fiktives Passwort verbergen' : 'Fiktives Passwort anzeigen'}
+            onClick={onToggle}
+          >
+            <PasswordVisibilityIcon revealed={revealed} />
+          </button>
+        </div>
+        {findings.length === 0 ? (
+          <strong className={styles.noFinding}>{s05Content.intro.commonCores.noFinding}</strong>
+        ) : (
+          <ol>
+            {findings.map((finding) => (
+              <li key={finding.id}>
+                <strong>{findingLabel(finding.kind)}</strong>
+                <span>{finding.evidence.map(({ token }) => token).join(' · ')}</span>
+              </li>
+            ))}
+          </ol>
+        )}
+      </section>
+    </div>
+  );
+}
+
+function PersonalDetailsTransitionScene({ scene }: { readonly scene: PasswordFindingSceneSnapshot }) {
+  const firstToken =
+    commonCoreFindings(scene)[0]?.evidence[0]?.token ?? s05Content.intro.commonCores.noFinding;
+  const remainingDemonstrations = s05Content.componentDemonstrations.slice(1);
+  return (
+    <div className={styles.personalTransition} data-s05-target="personal-details">
+      <div className={styles.categoryRail}>
+        <CategoryCard title="Häufige Kerne" image={commonCoresAsset} summary={firstToken} />
+        <CategoryCard title="Persönliche Angaben" image={personalDetailsAsset} active />
+      </div>
+      <section
+        className={styles.remainingCategories}
+        aria-label="Weitere Kategorien naheliegender Bestandteile"
+      >
+        {remainingDemonstrations.map((demonstration) => (
           <article key={demonstration.id}>
-            <h3>{demonstration.title}</h3>
-            <p className={styles.exampleLine}>{demonstration.examples.join(' · ')}</p>
-            <p>{demonstration.note}</p>
+            <img src={categoryAssets[demonstration.id]} alt="" />
+            <div>
+              <h3>{demonstration.title}</h3>
+              <p className={styles.exampleLine}>{demonstration.examples.join(' · ')}</p>
+              <p>{demonstration.note}</p>
+            </div>
           </article>
         ))}
       </section>
-      <aside className={styles.resultCard} data-s05-target="analysis-result">
-        <p className={styles.cardLabel}>{subject.label}</p>
-        <h2>{s05Content.result.title}</h2>
-        <code className={styles.fixturePassword}>{subject.fictionalPassword}</code>
-        <ol>
-          {scene.prioritizedFindings.map((finding) => (
-            <li key={finding.id}>
-              <strong>{findingLabel(finding.kind)}</strong>
-              {finding.evidence.length === 0 ? null : (
-                <span>{finding.evidence.map(({ token }) => token).join(', ')}</span>
-              )}
-            </li>
-          ))}
-        </ol>
-        <p>{s05Content.result.boundedNotice}</p>
-      </aside>
     </div>
   );
 }
@@ -696,30 +729,30 @@ function renderScene(
   snapshot: S05AnalysisControllerSnapshot,
   subject: S05AnalysisSubject,
   controller: S05AnalysisController,
-  strategyTransition: StrategyTransitionRect | null,
-  onStrategyTransitionEnd: () => void,
+  passwordRevealed: boolean,
+  onTogglePassword: () => void,
 ) {
   switch (snapshot.step) {
-    case 'candidate-check':
-      return <CandidateCheckScene subject={subject} />;
-    case 'random-sequence':
-      return <RandomSequenceScene />;
-    case 'recognizable-combination':
-      return <RecognizableCombinationScene />;
-    case 'building-blocks':
-      return <BuildingBlocksScene />;
-    case 'strategy-targeting':
-      return <StrategyTargetingScene />;
-    case 'strategy-overview':
+    case 'component-start-question':
+    case 'component-frequency':
+    case 'component-category-overview':
+      return <ComponentStartScene subject={subject} />;
+    case 'common-cores-intro':
+      return <CommonCoresIntroScene />;
+    case 'common-cores-definition':
+    case 'common-cores-variants':
+      return <CommonCoreMachineScene variants={snapshot.commonCorePresentation.variants} />;
+    case 'common-cores-application':
       return (
-        <StrategyOverviewScene
-          transitioning={strategyTransition !== null}
-          transitionStyle={strategyTransitionStyle(strategyTransition)}
-          onTransitionEnd={onStrategyTransitionEnd}
+        <CommonCoreApplicationScene
+          subject={subject}
+          scene={snapshot.findingScene}
+          revealed={passwordRevealed}
+          onToggle={onTogglePassword}
         />
       );
-    case 'component-analysis':
-      return <FindingScene subject={subject} scene={snapshot.findingScene} />;
+    case 'personal-details-transition':
+      return <PersonalDetailsTransitionScene scene={snapshot.findingScene} />;
     case 'structure-theme':
     case 'structure-sentence':
     case 'structure-repetition':
@@ -768,18 +801,18 @@ function introNarrationFor(
   step: S05AnalysisControllerSnapshot['step'],
 ): readonly string[] | null {
   switch (step) {
-    case 'candidate-check':
-      return s05Content.intro.narration.candidateCheck;
-    case 'random-sequence':
-      return s05Content.intro.narration.randomSequence;
-    case 'recognizable-combination':
-      return s05Content.intro.narration.recognizableCombination;
-    case 'building-blocks':
-      return s05Content.intro.narration.buildingBlocks;
-    case 'strategy-targeting':
-      return s05Content.intro.narration.strategyTargeting;
-    case 'strategy-overview':
-      return s05Content.intro.narration.strategyOverview;
+    case 'component-start-question':
+      return s05Content.intro.narration.componentStartQuestion;
+    case 'component-frequency':
+      return s05Content.intro.narration.componentFrequency;
+    case 'component-category-overview':
+      return s05Content.intro.narration.componentCategoryOverview;
+    case 'common-cores-intro':
+      return s05Content.intro.narration.commonCoresIntro;
+    case 'common-cores-definition':
+      return s05Content.intro.narration.commonCoresDefinition;
+    case 'common-cores-variants':
+      return s05Content.intro.narration.commonCoresVariants;
     default:
       return null;
   }
@@ -836,7 +869,7 @@ export function S05AnalysisTraining({
   const hostRef = useRef<HTMLElement | null>(null);
   const [controller, setController] = useState<S05AnalysisController | null>(null);
   const [snapshot, setSnapshot] = useState<S05AnalysisControllerSnapshot | null>(null);
-  const [strategyTransition, setStrategyTransition] = useState<StrategyTransitionRect | null>(null);
+  const [passwordRevealed, setPasswordRevealed] = useState(false);
   const timingFailure = externalTimingError !== null || timingState === 'endWriteFailed';
 
   useEffect(() => {
@@ -863,42 +896,11 @@ export function S05AnalysisTraining({
     controller?.start();
   }, [controller]);
 
-  useEffect(() => {
-    if (snapshot?.step !== 'strategy-overview') setStrategyTransition(null);
-  }, [snapshot?.step]);
-
   if (controller === null || snapshot === null) return null;
 
-  const activeController = controller;
-  const activeSnapshot = snapshot;
   const writingBoundary = timingState === 'writingEnd';
   const introNarration = introNarrationFor(snapshot.step);
   const introGuidanceVisible = introNarration !== null;
-
-  function continueFromSpeech(): void {
-    if (activeSnapshot.step !== 'strategy-overview') {
-      activeController.continue();
-      return;
-    }
-    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
-      activeController.continue();
-      return;
-    }
-    const componentCard = hostRef.current?.querySelector<HTMLElement>(
-      '[data-strategy="components"]',
-    );
-    if (componentCard === null || componentCard === undefined) {
-      activeController.continue();
-      return;
-    }
-    const rect = componentCard.getBoundingClientRect();
-    setStrategyTransition({
-      top: rect.top,
-      left: rect.left,
-      width: rect.width,
-      height: rect.height,
-    });
-  }
 
   return (
     <section ref={hostRef} className={styles.training} aria-label={s05Content.trainingAriaLabel}>
@@ -911,14 +913,14 @@ export function S05AnalysisTraining({
             snapshot,
             subject,
             controller,
-            strategyTransition,
-            () => controller.continue(),
+            passwordRevealed,
+            () => setPasswordRevealed((revealed) => !revealed),
           )}
         </div>
         {introNarration === null ? null : (
           <PassWoGuide
             guideName={s00Content.narration.guideName}
-            taskLabel="Passwortwege"
+            taskLabel="Bestandteile"
             helpOpen
             helpId="s05-intro-passwo-speech"
             openHelpLabel={s00Content.narration.openGuideLabel}
@@ -928,11 +930,8 @@ export function S05AnalysisTraining({
             speechObstacleSelector="[data-s05-speech-obstacle]"
             speechAction={{
               kind: 'advance',
-              disabled:
-                !snapshot.controls.canContinue ||
-                externalTimingError !== null ||
-                strategyTransition !== null,
-              onAction: continueFromSpeech,
+              disabled: !snapshot.controls.canContinue || externalTimingError !== null,
+              onAction: () => controller.continue(),
             }}
             placement="incident"
             showHelpButton={false}

@@ -24,13 +24,14 @@ import {
 } from '@passwo/visualization';
 
 export type S05AnalysisStep =
-  | 'candidate-check'
-  | 'random-sequence'
-  | 'recognizable-combination'
-  | 'building-blocks'
-  | 'strategy-targeting'
-  | 'strategy-overview'
-  | 'component-analysis'
+  | 'component-start-question'
+  | 'component-frequency'
+  | 'component-category-overview'
+  | 'common-cores-intro'
+  | 'common-cores-definition'
+  | 'common-cores-variants'
+  | 'common-cores-application'
+  | 'personal-details-transition'
   | 'structure-theme'
   | 'structure-sentence'
   | 'structure-repetition'
@@ -72,6 +73,9 @@ export interface S05AnalysisControllerSnapshot {
     readonly selected: S05Estimate | null;
     readonly confirmed: boolean;
   };
+  readonly commonCorePresentation: {
+    readonly variants: readonly string[];
+  };
   readonly controls: {
     readonly canStart: boolean;
     readonly canReplay: boolean;
@@ -88,13 +92,14 @@ interface S05AnalysisControllerOptions {
 type Listener = (snapshot: S05AnalysisControllerSnapshot) => void;
 
 const stepByMissionId: Readonly<Record<string, S05AnalysisStep>> = {
-  's05-candidate-check': 'candidate-check',
-  's05-random-sequence': 'random-sequence',
-  's05-recognizable-combination': 'recognizable-combination',
-  's05-building-blocks': 'building-blocks',
-  's05-strategy-targeting': 'strategy-targeting',
-  's05-strategy-overview': 'strategy-overview',
-  's05-component-analysis': 'component-analysis',
+  's05-component-start-question': 'component-start-question',
+  's05-component-frequency': 'component-frequency',
+  's05-component-category-overview': 'component-category-overview',
+  's05-common-cores-intro': 'common-cores-intro',
+  's05-common-cores-definition': 'common-cores-definition',
+  's05-common-cores-variants': 'common-cores-variants',
+  's05-common-cores-application': 'common-cores-application',
+  's05-personal-details-transition': 'personal-details-transition',
   's05-structure-theme': 'structure-theme',
   's05-structure-sentence': 'structure-sentence',
   's05-structure-repetition': 'structure-repetition',
@@ -114,6 +119,42 @@ const stepByMissionId: Readonly<Record<string, S05AnalysisStep>> = {
   's05-summary-free-search': 'summary-free-search',
   's05-summary-memory': 'summary-memory',
 };
+
+function capitalize(value: string): string {
+  const [first = '', ...remaining] = [...value];
+  return `${first.toLocaleUpperCase('de-DE')}${remaining.join('')}`;
+}
+
+function applyTypicalReplacements(value: string): string {
+  return [...value]
+    .map((character) => {
+      const rule = s05Content.intro.commonCores.replacementRules.find(
+        ([source]) => source === character.toLocaleLowerCase('de-DE'),
+      );
+      return rule?.[1] ?? character;
+    })
+    .join('');
+}
+
+/** Authored presentation stream only; it is not used for runtime password analysis. */
+function createCommonCoreVariants(): readonly string[] {
+  const variants = new Set<string>();
+  for (const core of s05Content.intro.commonCores.examples) {
+    const bases = [
+      core,
+      capitalize(core),
+      core.toLocaleUpperCase('de-DE'),
+      applyTypicalReplacements(core),
+    ];
+    for (const base of bases) {
+      variants.add(base);
+      for (const suffix of s05Content.intro.commonCores.suffixes) {
+        variants.add(`${base}${suffix}`);
+      }
+    }
+  }
+  return [...variants];
+}
 
 function createMission(subject: S05AnalysisSubject): MissionDefinition {
   const animations = s05Content.animations.map(([animationId]) => {
@@ -181,7 +222,7 @@ export class S05AnalysisController {
     );
     this.#snapshot = {
       phase: 'ready',
-      step: 'candidate-check',
+      step: 'component-start-question',
       findingScene,
       structureScene,
       freeSearchDemonstrationScene: createPasswordFreeSearchDemonstrationScene({
@@ -197,6 +238,7 @@ export class S05AnalysisController {
       }),
       freeSearchApplicationScene,
       estimate: { selected: null, confirmed: false },
+      commonCorePresentation: { variants: createCommonCoreVariants() },
       controls: { canStart: true, canReplay: false, canContinue: false },
     };
     this.#missionController = new MissionController({

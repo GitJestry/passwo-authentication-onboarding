@@ -3,7 +3,7 @@ import { S05_CONTENT_VERSION, s05Content } from './s05.js';
 
 describe('S05 content traceability', () => {
   it('keeps the participant copy bounded and separate from internal terminology', () => {
-    expect(S05_CONTENT_VERSION).toBe('2.6.0');
+    expect(S05_CONTENT_VERSION).toBe('2.7.0');
     expect(s05Content.source).toMatchObject({
       document: 'research/private/training-script.pdf',
       internalPages: [
@@ -11,12 +11,19 @@ describe('S05 content traceability', () => {
         34, 35,
       ],
       copyReference:
-        'docs/design/S00-S05-COPY-AUDIT.md#copy-delta-s05-bausteinannotation-und-strategiebrücke-2-august-2026',
+        'docs/design/S00-S05-COPY-AUDIT.md#copy-delta-s05-naheliegende-bestandteile-und-häufige-kerne-2-august-2026',
     });
     expect(s05Content.segment.id).toBe('S05');
     expect(s05Content.page.fixtureNotice).toBe(
       'Diese Simulation betrachtet nur das fiktive Passwort und ist keine allgemeine Sicherheitsbewertung.',
     );
+    expect(s05Content.page.title).toBe('Naheliegende Bestandteile');
+    expect(s05Content.intro.componentFrames.map(({ count }) => count)).toEqual([
+      3, 7, 1, 5, 8, 2, 6, 4,
+    ]);
+    expect(s05Content.intro.narration.componentStartQuestion).toEqual([
+      'Die Strategie beginnt mit der Frage: Bei welchen Bestandteilen soll der Angreifer anfangen?',
+    ]);
 
     const participantContent = JSON.stringify({
       trainingAriaLabel: s05Content.trainingAriaLabel,

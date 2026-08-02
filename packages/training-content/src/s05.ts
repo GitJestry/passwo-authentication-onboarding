@@ -24,7 +24,9 @@ export interface S05DesignLabFixture {
   };
 }
 
-export const S05_CONTENT_VERSION = '2.6.0';
+export const S05_CONTENT_VERSION = '2.7.0';
+
+const commonCoreExamples = ['passwort', 'qwertz', '123456789', '2026', 'sommer', 'admin'] as const;
 
 const s05StrategyCards = [
   { id: 'components', title: 'Naheliegende Bestandteile' },
@@ -40,9 +42,9 @@ export const s05Content = {
       12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34,
       35,
     ] as const,
-    revision: 'Userauftrag vom 2026-08-02 · animierte Bausteinannotation',
+    revision: 'Userauftrag vom 2026-08-02 · häufige Kerne und Kategorienlogos',
     copyReference:
-      'docs/design/S00-S05-COPY-AUDIT.md#copy-delta-s05-bausteinannotation-und-strategiebrücke-2-august-2026',
+      'docs/design/S00-S05-COPY-AUDIT.md#copy-delta-s05-naheliegende-bestandteile-und-häufige-kerne-2-august-2026',
   },
   segment: {
     id: 'S05',
@@ -56,7 +58,7 @@ export const s05Content = {
     tab: { id: 'analysis', label: 'Passwortwege', enabled: true },
   },
   page: {
-    title: 'Wie der Angreifer dein Passwort rät',
+    title: 'Naheliegende Bestandteile',
     fixtureNotice:
       'Diese Simulation betrachtet nur das fiktive Passwort und ist keine allgemeine Sicherheitsbewertung.',
     start: 'Animation starten',
@@ -68,36 +70,49 @@ export const s05Content = {
       accessibleLabel: 'Campusgram – Passwort',
       visibleSuffix: '– Passwort',
     },
-    candidateFailure: 'passt nicht',
-    generatedPassword: 'rQ7mL2vX9pK4',
-    memorablePassword: 'MeinStarkesUniPasswort2005!',
-    memorablePasswordParts: ['Mein', 'Starkes', 'Uni', 'Passwort', '2005', '!'],
-    strategyAnnotations: {
-      sentenceStructure: 'Satzbau',
-      probability: 'Wahrscheinlichkeit ↑',
-      personalDetail: 'Persönliche Angaben',
-      typicalEnding: 'Typische Endung',
-    },
     strategies: s05StrategyCards,
+    componentFrames: [
+      { count: 3, highlightedIndex: 1 },
+      { count: 7, highlightedIndex: 5 },
+      { count: 1, highlightedIndex: 0 },
+      { count: 5, highlightedIndex: 3 },
+      { count: 8, highlightedIndex: 6 },
+      { count: 2, highlightedIndex: 0 },
+      { count: 6, highlightedIndex: 4 },
+      { count: 4, highlightedIndex: 2 },
+    ] as const,
+    commonCores: {
+      examples: commonCoreExamples,
+      replacementRules: [
+        ['a', '4'],
+        ['e', '3'],
+        ['i', '1'],
+        ['o', '0'],
+        ['s', '5'],
+      ] as const,
+      suffixes: ['1', '12', '123', '!', '?', '2026', '123!'] as const,
+      noFinding: 'Kein häufiger Kern erkannt',
+      application:
+        'Die markierten Stellen zeigen, welche häufigen Kerne die Simulation im fiktiven Campusgram-Passwort erkannt hat.',
+    },
     narration: {
-      candidateCheck: [
-        'Für den Angreifer ist das Passwort verdeckt. Sein Programm muss mögliche Passwörter erzeugen und prüfen, ob eines davon passt.',
+      componentStartQuestion: [
+        'Die Strategie beginnt mit der Frage: Bei welchen Bestandteilen soll der Angreifer anfangen?',
       ],
-      randomSequence: [
-        'Völlig zufällige Folgen von Zeichen sind aber enorm schwierig für Menschen zu merken. Deswegen nutzen die meisten eine merkbare Kombination.',
+      componentFrequency: [
+        'Er könnte alle Zeichenfolgen, Wörter und Begriffe der Welt ausprobieren. Aber nicht alle Bestandteile werden in Passwörtern gleich häufig verwendet.',
       ],
-      recognizableCombination: [
-        'Bei diesem Passwort erkennt deine eigene Intuition wahrscheinlich schon einen Aufbau.',
+      componentCategoryOverview: [
+        'Bestimmte Bestandteile – und sehr häufige vollständige Passwörter wie „123456789“ – kann er früh abgleichen. Diese Idee lässt sich in vier Kategorien aufteilen.',
       ],
-      buildingBlocks: [
-        'Vereinfacht kannst du dir Passwörter wie mehrere aneinandergesetzte Bausteine vorstellen.',
+      commonCoresIntro: [
+        'Die erste Kategorie sind häufige Kerne.',
       ],
-      strategyTargeting: [
-        'Angreifer kennen diese Bausteine noch nicht.',
-        'Einige Passwortteile sind aber wahrscheinlicher als andere, da Menschen oft naheliegende Bestandteile verwenden oder ihr Passwort vorhersehbar aufbauen, um es sich leichter zu merken.',
+      commonCoresDefinition: [
+        'Zu häufigen Kernen gehören bekannte Passwörter, Tastaturfolgen, Zahlenfolgen und häufig verwendete Jahreszahlen.',
       ],
-      strategyOverview: [
-        'Und dieses Wissen nutzen Angreifer aus. Wir schauen uns nun drei Strategien an, die Angreifer miteinander kombinieren, um dein Campusgram-Passwort herauszufinden. Als ersten Ausgangspunkt beginnen Angreifer mit Dingen, die bei vielen Menschen schon funktioniert haben.',
+      commonCoresVariants: [
+        'Dabei testen Angreifer nicht nur die ursprüngliche Schreibweise. Sie rechnen auch mit typischen Veränderungen.',
       ],
     },
   },
@@ -105,7 +120,7 @@ export const s05Content = {
     {
       id: 'common-components',
       title: 'Häufige Kerne',
-      examples: ['passwort', 'qwertz', '123456789', '2026', 'sommer', 'admin'],
+      examples: commonCoreExamples,
       note: 'Beispiele für häufig verwendete Bestandteile.',
     },
     {
@@ -378,13 +393,14 @@ export const s05Content = {
     },
   ] as const satisfies readonly S05DesignLabFixture[],
   animations: [
-    ['s05-candidate-check', 'attacker-attempt', 'info'],
-    ['s05-random-sequence', 'random-sequence', 'info'],
-    ['s05-recognizable-combination', 'recognizable-password', 'info'],
-    ['s05-building-blocks', 'building-blocks', 'info'],
-    ['s05-strategy-targeting', 'strategy-targeting', 'info'],
-    ['s05-strategy-overview', 'strategy-overview', 'info'],
-    ['s05-component-analysis', 'strategy-components-focus', 'warning'],
+    ['s05-component-start-question', 'component-start', 'info'],
+    ['s05-component-frequency', 'component-start', 'info'],
+    ['s05-component-category-overview', 'component-start', 'info'],
+    ['s05-common-cores-intro', 'common-cores', 'info'],
+    ['s05-common-cores-definition', 'common-core-machine', 'info'],
+    ['s05-common-cores-variants', 'common-core-machine', 'info'],
+    ['s05-common-cores-application', 'common-core-application', 'warning'],
+    ['s05-personal-details-transition', 'personal-details', 'info'],
     ['s05-structure-theme', 'structure-theme', 'info'],
     ['s05-structure-sentence', 'structure-sentence', 'info'],
     ['s05-structure-repetition', 'structure-repetition', 'warning'],
