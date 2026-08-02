@@ -134,7 +134,6 @@ const guardrailInstrumentSchema = z
     feedbackBeforeComplete: z.literal(false),
     mustNotDuplicateEmbeddedArtifactQuestions: z.literal(true),
     contentAuditRequired: z.string().min(1).max(200),
-    scoringShippedToClient: z.literal(false),
     responseFormat: z
       .object({
         type: z.literal('singleBestAnswer'),
@@ -170,7 +169,6 @@ const guardrailInstrumentSchema = z
         secAwareQuizRemovalReason: z.literal(
           'avoid_immediate_feedback_contamination_of_external_guardrail',
         ),
-        nativeScoresAreStudyOutcomes: z.literal(false),
         externalItemsMustBeNovelAndTransferOriented: z.literal(true),
       })
       .strict(),

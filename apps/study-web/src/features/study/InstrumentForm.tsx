@@ -390,11 +390,19 @@ function Agreement7Matrix({
   const anchors = instrumentRuntimeManifest.scales.agreement7.anchors;
   return (
     <div
-      className={`${styles.matrix ?? ''} ${styles.matrix7 ?? ''}`.trim()}
+      className={`${styles.matrix ?? ''} ${styles.matrix7 ?? ''} ${
+        styles.matrixAgreement7 ?? ''
+      }`.trim()}
       aria-label="Zustimmungsskala von 1 bis 7"
     >
       <MatrixHeader accessibleLabel="Antwortwerte 1 bis 7">
-        {points7.map((point) => <MatrixNumber key={point} point={point} />)}
+        {points7.map((point) => (
+          <MatrixHeaderLabel
+            key={point}
+            point={point}
+            label={requiredAnchor(anchors, point)}
+          />
+        ))}
       </MatrixHeader>
       {items.map((item) => {
         const value = typeof draft[item.id] === 'number' ? draft[item.id] : undefined;
@@ -416,15 +424,6 @@ function Agreement7Matrix({
           </MatrixRow>
         );
       })}
-      <SharedAnchors>
-        <AnchorLabel label={anchors['1']} />
-        <span aria-hidden="true" />
-        <span aria-hidden="true" />
-        <AnchorLabel label={anchors['4']} />
-        <span aria-hidden="true" />
-        <span aria-hidden="true" />
-        <AnchorLabel label={anchors['7']} />
-      </SharedAnchors>
     </div>
   );
 }
@@ -439,9 +438,9 @@ function Confidence11Matrix({
   return (
     <div
       className={`${styles.matrix ?? ''} ${styles.matrix11 ?? ''}`.trim()}
-      aria-label="Sicherheitsskala von 0 bis 10"
+      aria-label="Zuversichtsskala von 0 bis 10"
     >
-      <MatrixHeader accessibleLabel="Antwortwerte 0 bis 10">
+      <MatrixHeader accessibleLabel="Zuversichtsskala, Antwortwerte 0 bis 10">
         {points11.map((point) => <MatrixNumber key={point} point={point} />)}
       </MatrixHeader>
       {items.map((item) => {

@@ -329,7 +329,7 @@ describe('research-safe contracts', () => {
   it('keeps the generated runtime manifest fully synchronized with the reviewed projection', () => {
     expect(instrumentRuntimeManifest).toEqual(reviewedInstrumentRuntimeManifest);
     expect(JSON.stringify(instrumentRuntimeManifest)).not.toMatch(
-      /"classification"|"appropriate"|"incomplete"|"unsafe"/u,
+      /"[^"]*(?:classification|scor(?:e|ing)|derivedMetric)[^"]*"\s*:/iu,
     );
     expect(instrumentRuntimeManifest.procedures.followUpRecontact.optional).toBe(true);
     expect(instrumentRuntimeManifest).toMatchObject({
@@ -347,7 +347,6 @@ describe('research-safe contracts', () => {
       secAwareNativeQuizIncludedInMeasuredPath: false,
       secAwareQuizRemovalReason:
         'avoid_immediate_feedback_contamination_of_external_guardrail',
-      nativeScoresAreStudyOutcomes: false,
       externalItemsMustBeNovelAndTransferOriented: true,
     });
     const forms = instrumentRuntimeManifest.instruments['guardrail-v2'].optionPresentation.forms;

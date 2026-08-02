@@ -785,7 +785,6 @@
       "feedbackBeforeComplete": false,
       "mustNotDuplicateEmbeddedArtifactQuestions": true,
       "contentAuditRequired": "docs/research/GUARDRAIL-CONTENT-AUDIT.md",
-      "scoringShippedToClient": false,
       "responseFormat": {
         "type": "singleBestAnswer",
         "substantiveOptionsPerItem": 3,
@@ -937,7 +936,6 @@
         "passwoNativeLearningChecksRetained": true,
         "secAwareNativeQuizIncludedInMeasuredPath": false,
         "secAwareQuizRemovalReason": "avoid_immediate_feedback_contamination_of_external_guardrail",
-        "nativeScoresAreStudyOutcomes": false,
         "externalItemsMustBeNovelAndTransferOriented": true
       },
       "blocks": [
