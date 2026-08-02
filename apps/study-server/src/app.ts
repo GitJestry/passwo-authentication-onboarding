@@ -59,7 +59,11 @@ export function buildStudyServer({
   createRecontactToken,
   versions = walkingSkeletonVersions,
 }: StudyServerBuildOptions): FastifyInstance {
-  const database = openStudyDatabase(databasePath, recontactDatabasePath);
+  const database = openStudyDatabase(
+    databasePath,
+    recontactDatabasePath,
+    () => randomSource.researchToken(),
+  );
   const repository = new StudyRepository({
     database,
     assignmentMode,

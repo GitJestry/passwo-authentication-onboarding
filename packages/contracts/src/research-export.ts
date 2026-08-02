@@ -4,28 +4,44 @@ import {
   instrumentSectionIdSchema,
   mainInstrumentIdSchema,
 } from './instrument-runtime.js';
-import {
-  completionStatusSchema,
-  persistedSessionRecordSchema,
-  studyConditionSchema,
-} from './study.js';
+import { completionStatusSchema, researchCodeSchema, studyConditionSchema } from './study.js';
 import { timingEventSchema } from './timing.js';
 
 const versionIdSchema = z.string().trim().min(1).max(80);
 
-export const researchExportSessionRecordSchema = persistedSessionRecordSchema.omit({
-  followUpTokenHash: true,
-});
+export const researchIdSchema = researchCodeSchema;
+
+export const researchExportSessionRecordSchema = z
+  .object({
+    researchId: researchIdSchema,
+    condition: studyConditionSchema,
+    assignmentMode: z.enum(['permuted-block', 'forced-supportive', 'forced-reference']),
+    studyVersion: versionIdSchema,
+    contentVersion: versionIdSchema,
+    questionnaireVersion: versionIdSchema,
+    guardrailVersion: versionIdSchema,
+    guardrailFormId: z.enum(['F1', 'F2', 'F3']),
+    consentVersion: versionIdSchema,
+    referenceArtifactVersion: versionIdSchema.nullable(),
+    consentAccepted: z.literal(true),
+    followUpConsent: z.boolean(),
+    followUpVersion: versionIdSchema,
+    completionStatus: completionStatusSchema,
+    technicalErrorCode: z.string().trim().min(1).max(80).nullable(),
+    createdAtIso: z.iso.datetime(),
+    completedAtIso: z.iso.datetime().nullable(),
+  })
+  .strict();
 export type ResearchExportSessionRecord = z.infer<typeof researchExportSessionRecordSchema>;
 
 export const researchExportTimingRecordSchema = timingEventSchema
-  .extend({ sessionId: z.uuid(), serverReceivedAtIso: z.iso.datetime() })
+  .extend({ researchId: researchIdSchema, serverReceivedAtIso: z.iso.datetime() })
   .strict();
 export type ResearchExportTimingRecord = z.infer<typeof researchExportTimingRecordSchema>;
 
 export const researchExportResponseRecordSchema = z
   .object({
-    sessionId: z.uuid(),
+    researchId: researchIdSchema,
     instrumentId: mainInstrumentIdSchema,
     instrumentVersion: versionIdSchema,
     sectionId: instrumentSectionIdSchema,
@@ -38,7 +54,7 @@ export type ResearchExportResponseRecord = z.infer<typeof researchExportResponse
 
 export const researchExportPresentationRecordSchema = z
   .object({
-    sessionId: z.uuid(),
+    researchId: researchIdSchema,
     instrumentId: z.literal('guardrail-v2'),
     instrumentVersion: versionIdSchema,
     sectionId: instrumentSectionIdSchema,
@@ -95,7 +111,7 @@ export type ResearchExportSessionCount = z.infer<typeof researchExportSessionCou
 
 export const researchExportManifestSchema = z
   .object({
-    schemaVersion: z.literal('research-export-v3'),
+    schemaVersion: z.literal('research-export-v4'),
     exportedAtIso: z.iso.datetime(),
     runtimeManifestVersion: versionIdSchema,
     versions: z

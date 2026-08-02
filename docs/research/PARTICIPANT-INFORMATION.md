@@ -1,4 +1,4 @@
-# Participant Information and Consent v4-draft
+# Participant Information and Consent v5-draft
 
 Dieses Dokument ist die kanonische fachliche Quelle der gemeinsamen Teilnehmertexte. Die
 ausführbare Projektion liegt im versionierten Instrument-Manifest.
@@ -17,20 +17,15 @@ the supportive condition immediately before the first fictional password task.
 
 ## Visible welcome and essential information
 
-**Eyebrow:** Studie zu digitalem Kontoschutz
+**Eyebrow:** Studie zu Passwörtern und dem Schutz von Online-Konten
 
 **Heading:** Willkommen
 
 **Welcome text:**
 
-Vielen Dank, dass du dir Zeit für diese Studie nimmst. Du bearbeitest gleich ein digitales
-Lernangebot zum Schutz von Online-Konten und beantwortest davor und danach einige Fragen.
-
-**Summary facts:**
-
-- Heutige Dauer: etwa 20--30 Minuten
-- Auswertung: pseudonymisiert
-- Nachbefragung: optional, etwa 1--2 Minuten nach 10 Tagen
+Vielen Dank, dass du dir Zeit für diese Studie nimmst. Im Verlauf der Studie bearbeitest du ein
+digitales Lernangebot zu Passwörtern und zum Schutz von Online-Konten. Vor und nach dem
+Lernangebot beantwortest du einige Fragen.
 
 The consent screen immediately shows the following essential information. It is not hidden behind
 an accordion or a read-progress gate:
@@ -53,10 +48,12 @@ The following sections remain available as expandable details and through a pers
 
 ### Worum geht es?
 
-Wir untersuchen, wie ein digitales Lernangebot zum Schutz von Online-Konten genutzt und
-wahrgenommen wird. Einige Einzelheiten dazu, was genau untersucht wird, erläutern wir erst nach
-deinem letzten Studienteil. Dadurch soll vermieden werden, dass Vorwissen über die genaue
-Fragestellung deine Bearbeitung beeinflusst.
+Wir untersuchen, wie ein digitales Lernangebot zu Passwörtern und Kontoschutz genutzt,
+wahrgenommen und verstanden wird.
+
+Einige Details zur genauen Forschungsfrage erläutern wir dir erst nach Abschluss aller
+Studienteile. Dadurch soll vermieden werden, dass diese Informationen deine Bearbeitung oder
+deine Antworten vorab beeinflussen.
 
 ### Was erwartet dich?
 
@@ -73,9 +70,9 @@ Kontaktaufnahme zuzustimmen.
 
 Gespeichert werden deine Fragebogenantworten, Bearbeitungs- und Abschnittszeiten, der technische
 Abschlussstatus sowie die für die Auswertung erforderlichen Angaben zum bearbeiteten Lernangebot,
-zu Versionen und Darstellungsreihenfolgen. Die Forschungsdaten werden unter einem
-zufällig erzeugten Teilnehmercode pseudonymisiert gespeichert und ausgewertet. Sie enthalten
-weder deinen Namen noch deine E-Mail-Adresse.
+zu Versionen und Darstellungsreihenfolgen. Die Forschungsdaten werden unter einer
+zufällig erzeugten, nicht angezeigten Forschungs-ID pseudonymisiert gespeichert und ausgewertet.
+Sie enthalten weder deinen Namen noch deine E-Mail-Adresse.
 
 Falls du der Nachbefragung zustimmst, wird deine E-Mail-Adresse getrennt von den Forschungsdaten
 gespeichert und ausschließlich für die Einladung sowie höchstens eine Erinnerung verwendet.
@@ -84,7 +81,7 @@ gespeichert und ausschließlich für die Einladung sowie höchstens eine Erinner
 
 Die Teilnahme ist freiwillig. Du kannst sie jederzeit ohne Begründung und ohne Nachteile beenden.
 Innerhalb der vor dem Study Freeze festgelegten Aufbewahrungs- und Löschfrist kannst du unter
-Angabe deines Teilnehmercodes die Löschung deiner Forschungsdaten verlangen.
+Angabe deines Löschcodes die Löschung deiner Forschungsdaten verlangen.
 
 ### Mögliche Belastungen und Nutzen
 
@@ -122,12 +119,16 @@ The optional decision is independent from main-study consent and never blocks ma
 participation. Eligibility errors are shown only after a submission attempt, not while the person
 is still completing the three confirmations.
 
-## Participant code and continuing access
+## Deletion code and continuing access
 
-The participant code is shown immediately after session creation and remains accessible through
-the persistent participant-information control. The control is also available while an artifact
-is running. The information can be printed. No condition or response data are exposed through
-this control.
+The deletion code is shown immediately after session creation and remains accessible through the
+compact participant-information control. It is shown again at session closure. The control is also
+available while an artifact is running. The information can be printed. No research ID, condition,
+response, or timing data are exposed through this control.
+
+The research ID used in analysis is generated separately, is never shown to participants, and is
+not derivable from the deletion code. Only a cryptographic hash of the deletion code is stored in
+the research database; neither the raw deletion code nor its hash is included in research exports.
 
 ## Condition-specific just-in-time safety note
 
@@ -151,5 +152,5 @@ follow-up consent are debriefed after their response or when the follow-up windo
 withdrawal handling follows the approved protocol.
 
 The debrief explains the artifact-level comparison, random assignment, outcome families, and the
-right to request deletion using the participant code. The exact debrief timing and all deletion
+right to request deletion using the deletion code. The exact debrief timing and all deletion
 periods must be approved before recruitment.

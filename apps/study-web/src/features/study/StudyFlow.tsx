@@ -1,11 +1,12 @@
 import {
+  type DeletionCode,
   instrumentRuntimeManifest,
   mainInstrumentBlocks,
   recontactEmailSchema,
 } from '@passwo/contracts';
 import { createStudyMachine } from '@passwo/study-engine';
 import { useMachine } from '@xstate/react';
-import { type ReactNode, useCallback, useMemo, useState } from 'react';
+import { type ReactNode, useCallback, useMemo, useRef, useState } from 'react';
 import { BrowserSegmentTimingAdapter } from '../../adapters/timing/BrowserSegmentTimingAdapter.js';
 import { createStudyApi } from '../../api/study-api.js';
 import { ReferenceArtifact } from '../reference/ReferenceArtifact.js';
@@ -19,33 +20,6 @@ const guardrailInstrument = instrumentRuntimeManifest.instruments['guardrail-v2'
 const participantInformation = instrumentRuntimeManifest.procedures.participantInformation;
 const recontactProcedure = instrumentRuntimeManifest.procedures.followUpRecontact;
 const sessionClosure = instrumentRuntimeManifest.procedures.sessionClosure;
-
-function FactIcon({ factId }: { readonly factId: string }) {
-  if (factId === 'duration') {
-    return (
-      <svg aria-hidden="true" viewBox="0 0 24 24">
-        <circle cx="12" cy="12" r="8.5" />
-        <path d="M12 7.5v5l3.25 2" />
-      </svg>
-    );
-  }
-
-  if (factId === 'analysis') {
-    return (
-      <svg aria-hidden="true" viewBox="0 0 24 24">
-        <path d="M5.5 18.5V13m4.25 5.5V9.75M14 18.5v-7.25m4.25 7.25V6.5" />
-        <path d="M4 18.5h16" />
-      </svg>
-    );
-  }
-
-  return (
-    <svg aria-hidden="true" viewBox="0 0 24 24">
-      <rect x="4" y="6.5" width="16" height="11" rx="1.5" />
-      <path d="m5 8 7 5 7-5" />
-    </svg>
-  );
-}
 
 function InformationIcon() {
   return (
@@ -118,22 +92,48 @@ function ParticipantInformationSections() {
   );
 }
 
-function ParticipantInformationAccess({ participantCode }: { readonly participantCode: string }) {
+function ParticipantInformationAccess({ deletionCode }: { readonly deletionCode: DeletionCode }) {
+  const dialogRef = useRef<HTMLDialogElement>(null);
+
   return (
-    <details className={styles.participantInformationAccess}>
-      <summary>Teilnahmeinformationen</summary>
-      <div className={styles.participantInformationAccessBody}>
-        <h2>{participantInformation.informationHeading}</h2>
-        <p>
-          Dein Teilnehmercode lautet <strong>{participantCode}</strong>. Notiere ihn, falls du
-          später Fragen zur Speicherung oder Löschung deiner Daten hast.
-        </p>
-        <ParticipantInformationSections />
-        <button className={styles.secondaryButton} type="button" onClick={() => window.print()}>
-          Informationen drucken
-        </button>
-      </div>
-    </details>
+    <div className={styles.participantInformationFloating}>
+      <button
+        className={styles.participantInformationTrigger}
+        type="button"
+        aria-haspopup="dialog"
+        onClick={() => dialogRef.current?.showModal()}
+      >
+        Teilnahmeinformationen
+      </button>
+      <dialog
+        ref={dialogRef}
+        className={styles.participantInformationDialog}
+        aria-labelledby="participant-information-dialog-title"
+      >
+        <div className={styles.participantInformationDialogHeader}>
+          <h2 id="participant-information-dialog-title">
+            {participantInformation.informationHeading}
+          </h2>
+          <button
+            className={styles.participantInformationDialogClose}
+            type="button"
+            onClick={() => dialogRef.current?.close()}
+          >
+            Schließen
+          </button>
+        </div>
+        <div className={styles.participantInformationDialogBody}>
+          <p>
+            Dein Löschcode lautet <strong>{deletionCode}</strong>. Bewahre ihn auf, wenn du später
+            die Löschung deiner Forschungsdaten anfragen möchtest.
+          </p>
+          <ParticipantInformationSections />
+          <button className={styles.secondaryButton} type="button" onClick={() => window.print()}>
+            Informationen drucken
+          </button>
+        </div>
+      </dialog>
+    </div>
   );
 }
 
@@ -177,19 +177,6 @@ function Consent({ onAccept }: { readonly onAccept: (decision: ConsentDecision) 
             {paragraph}
           </p>
         ))}
-        <div className={styles.factCards} aria-label="Kurzüberblick zur Teilnahme">
-          {participantInformation.facts.map((fact) => (
-            <article className={styles.factCard} key={fact.id}>
-              <span className={styles.factIcon}>
-                <FactIcon factId={fact.id} />
-              </span>
-              <div>
-                <h2>{fact.label}</h2>
-                <p>{fact.value}</p>
-              </div>
-            </article>
-          ))}
-        </div>
       </header>
 
       <form
@@ -474,6 +461,11 @@ export function StudyFlow() {
     snapshot.matches({ artifactLifecycle: 'preparing' }) ||
     snapshot.matches({ artifactLifecycle: { artifact: 'supportive' } }) ||
     snapshot.matches({ artifactLifecycle: { artifact: 'reference' } });
+  const questionnaireVisible =
+    snapshot.matches({ preQuestionnaire: 'editing' }) ||
+    snapshot.matches({ postQuestionnaire: 'editing' }) ||
+    snapshot.matches({ guardrails: 'editing' }) ||
+    snapshot.matches({ postOpen: 'editing' });
 
   let content: ReactNode;
 
@@ -518,29 +510,17 @@ export function StudyFlow() {
       section === undefined || sectionIndex < 0 ? (
         <ConfigurationError errorCode="pre-instrument-cursor-invalid" />
       ) : (
-        <>
-          {sectionIndex === 0 && context.participantCode !== null ? (
-            <section className={styles.participantCodeNotice} aria-label="Teilnehmercode">
-              <p>
-                Dein Teilnehmercode lautet <strong>{context.participantCode}</strong>. Bitte notiere
-                ihn, falls du später die Löschung deiner Daten anfragen möchtest.
-              </p>
-            </section>
-          ) : null}
-          <QuestionnaireSectionForm
-            key={`pre-v1:${section.id}`}
-            instrumentId="pre-v1"
-            section={section}
-            title="Fragebogen vor dem Lernangebot"
-            currentSection={sectionIndex + 1}
-            sectionCount={preInstrument.sections.length}
-            initialSubmission={
-              context.questionnaireDrafts[context.questionnaireBlockCursor] ?? null
-            }
-            onBack={(payload) => send({ type: 'BACK_PRE', payload })}
-            onSubmit={(payload) => send({ type: 'SUBMIT_PRE', payload })}
-          />
-        </>
+        <QuestionnaireSectionForm
+          key={`pre-v1:${section.id}`}
+          instrumentId="pre-v1"
+          section={section}
+          title="Fragebogen vor dem Lernangebot"
+          currentSection={sectionIndex + 1}
+          sectionCount={preInstrument.sections.length}
+          initialSubmission={context.questionnaireDrafts[context.questionnaireBlockCursor] ?? null}
+          onBack={(payload) => send({ type: 'BACK_PRE', payload })}
+          onSubmit={(payload) => send({ type: 'SUBMIT_PRE', payload })}
+        />
       );
   } else if (snapshot.matches({ artifactLifecycle: 'preparing' })) {
     content =
@@ -675,6 +655,16 @@ export function StudyFlow() {
         {closureContent.paragraphs.map((paragraph) => (
           <p key={paragraph}>{paragraph}</p>
         ))}
+        {context.deletionCode === null ? null : (
+          <div className={styles.closingDeletionCode}>
+            <span>Dein Löschcode</span>
+            <strong>{context.deletionCode}</strong>
+            <p>
+              Bewahre ihn auf, wenn du später die Löschung deiner Forschungsdaten anfragen
+              möchtest.
+            </p>
+          </div>
+        )}
         <div className={styles.form}>
           <button
             className={styles.button}
@@ -701,7 +691,7 @@ export function StudyFlow() {
           Sitzung abgeschlossen
         </h1>
         <p>
-          Sitzungscode: <strong>{context.participantCode}</strong>
+          Löschcode: <strong>{context.deletionCode}</strong>
         </p>
         {context.artifactWallClockMs === null ? null : (
           <p>
@@ -729,8 +719,8 @@ export function StudyFlow() {
   }
 
   const participantInformationAccess =
-    context.participantCode === null ? null : (
-      <ParticipantInformationAccess participantCode={context.participantCode} />
+    context.deletionCode === null || !questionnaireVisible ? null : (
+      <ParticipantInformationAccess deletionCode={context.deletionCode} />
     );
 
   if (artifactVisible) {
@@ -743,7 +733,14 @@ export function StudyFlow() {
   }
 
   return (
-    <main className={styles.studyPage} data-study-surface="">
+    <main
+      className={
+        participantInformationAccess === null
+          ? styles.studyPage
+          : `${styles.studyPage} ${styles.studyPageWithParticipantInformation}`
+      }
+      data-study-surface=""
+    >
       {participantInformationAccess}
       <div className={styles.studyShell}>
         <div className={styles.studyContent}>{content}</div>

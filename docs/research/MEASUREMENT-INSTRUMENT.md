@@ -51,7 +51,7 @@ interpretiert.
 ```text
 Eligibility + gemeinsame Teilnahmeinformation und Einwilligung
 → optionale Follow-up-Entscheidung
-→ Sessionerstellung und Teilnehmercode
+→ Sessionerstellung und Löschcode
 → bei Einwilligung getrennte Recontact-Registrierung
 → Pre-Fragebogen
 → zugewiesenes Artefakt

@@ -11,7 +11,7 @@ ist methodisch von der Training Runtime getrennt und kennt keine fiktiven Passwo
 Eligibility lokal prüfen
 → gemeinsame Teilnahmeinformation und Einwilligung
 → optionale Follow-up-Entscheidung
-→ Session serverseitig anlegen, Condition verdeckt zuweisen und Teilnehmercode anzeigen
+→ Löschcode lokal erzeugen, Session serverseitig anlegen, Condition verdeckt zuweisen und Löschcode anzeigen
 → bei Einwilligung Recontact-E-Mail getrennt registrieren
 → Pre-Fragebogen blockweise speichern
 → nur supportive: flüchtigen Anzeigenamen erfassen
@@ -43,9 +43,9 @@ Hauptsitzung; ihre vollständige Aufklärung erfolgt nach der Follow-up-Antwort 
 Schließung des Zeitfensters. Versand und externer Follow-up-Import sind noch vor dem Study Freeze
 festzulegen.
 
-## Teilnahmeinformation und Teilnehmercode
+## Teilnahmeinformation und Löschcode
 
-Die Kerninformation ist vor der Einwilligung direkt sichtbar; ausführliche Abschnitte bleiben aufklappbar. Nach Sessionerstellung wird der Teilnehmercode vor dem ersten Pre-Abschnitt angezeigt. Teilnahmeinformation und Code bleiben über eine unaufdringliche gemeinsame Kontrolle auch während des Artefakts erreichbar und können gedruckt werden. Die Kontrolle zeigt weder Condition noch Antworten oder Timingdaten.
+Die Kerninformation ist vor der Einwilligung direkt sichtbar; ausführliche Abschnitte bleiben aufklappbar. Nach Sessionerstellung wird der Löschcode vor dem ersten Pre-Abschnitt angezeigt. Er steht dort neben einem kompakten Zugang zu den Teilnahmeinformationen und wird am Sitzungsende erneut gezeigt. Die Teilnahmeinformationen bleiben über eine unaufdringliche Kontrolle auch während des Artefakts erreichbar und können gedruckt werden. Die Kontrolle zeigt weder Forschungs-ID noch Condition, Antworten oder Timingdaten.
 
 Eligibility-Fehler werden erst nach einem Abgabeversuch angezeigt. Das bloße Bearbeiten der drei Bestätigungen löst keine vorzeitige Ausschlussmeldung aus.
 
@@ -53,7 +53,7 @@ Eligibility-Fehler werden erst nach einem Abgabeversuch angezeigt. Das bloße Be
 
 - `displayName` existiert ausschließlich flüchtig in der supportive Bedingung.
 - Fiktive Passwörter und Analysen bleiben im Arbeitsspeicher der Training Runtime.
-- Condition, Code, Versionen, Antworten, Timing und Abschlussstatus liegen serverseitig.
+- Condition, Forschungs-ID, Löschcode-Hash, Versionen, Antworten, Timing und Abschlussstatus liegen serverseitig; der rohe Löschcode bleibt flüchtig im Renderer.
 - Reload während eines Artefakts verwirft temporären Zustand und markiert den Durchlauf
   unvollständig.
 - Browser Storage, IndexedDB und Service Worker sind unzulässig.

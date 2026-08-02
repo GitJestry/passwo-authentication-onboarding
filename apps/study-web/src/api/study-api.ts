@@ -5,6 +5,8 @@ import {
   completeSessionRequestSchema,
   createSessionRequestSchema,
   createSessionResponseSchema,
+  type DeletionCode,
+  deletionCodeSchema,
   type InstrumentSubmissionRequest,
   instrumentSubmissionRequestSchema,
   type RegisterRecontactRequest,
@@ -45,6 +47,28 @@ function apiErrorCode(value: unknown): string {
   return 'research-data-write-failed';
 }
 
+function generateDeletionCode(): DeletionCode {
+  const bytes = globalThis.crypto.getRandomValues(new Uint8Array(8));
+  const hexadecimal = Array.from(bytes, (byte) => byte.toString(16).padStart(2, '0'))
+    .join('')
+    .toUpperCase();
+  const groups = [
+    hexadecimal.slice(0, 4),
+    hexadecimal.slice(4, 8),
+    hexadecimal.slice(8, 12),
+    hexadecimal.slice(12, 16),
+  ];
+  return deletionCodeSchema.parse(`PW-${groups.join('-')}`);
+}
+
+async function sha256Hex(value: string): Promise<string> {
+  const digest = await globalThis.crypto.subtle.digest(
+    'SHA-256',
+    new TextEncoder().encode(value),
+  );
+  return Array.from(new Uint8Array(digest), (byte) => byte.toString(16).padStart(2, '0')).join('');
+}
+
 async function postJson(url: string, body: unknown): Promise<unknown> {
   const response = await fetch(url, {
     method: 'POST',
@@ -62,6 +86,8 @@ async function postJson(url: string, body: unknown): Promise<unknown> {
 
 export function createStudyApi(): StudyApi {
   const createRequestId = globalThis.crypto.randomUUID();
+  const deletionCode = generateDeletionCode();
+  const deletionCodeHash = sha256Hex(deletionCode);
   let timingSessionId: string | null = null;
 
   function selectTimingSession(sessionId: string): void {
@@ -111,10 +137,12 @@ export function createStudyApi(): StudyApi {
         requestId: createRequestId,
         consentAccepted: true,
         followUpConsent,
+        deletionCodeHash: await deletionCodeHash,
       });
-      return createSessionResponseSchema.parse(
+      const response = createSessionResponseSchema.parse(
         await postJson('/api/study/sessions', createRequest),
       );
+      return { ...response, deletionCode };
     },
 
     registerRecontact: async (sessionId: string, registration: RegisterRecontactRequest) => {

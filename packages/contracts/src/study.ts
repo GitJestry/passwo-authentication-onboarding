@@ -22,12 +22,23 @@ export const completionStatusSchema = z.enum([
 export type CompletionStatus = z.infer<typeof completionStatusSchema>;
 
 const versionIdSchema = z.string().trim().min(1).max(80);
+export const deletionCodeSchema = z
+  .string()
+  .regex(/^PW-(?:[A-F0-9]{4}-){3}[A-F0-9]{4}$/u);
+export type DeletionCode = z.infer<typeof deletionCodeSchema>;
+
+export const deletionCodeHashSchema = z.string().regex(/^[a-f0-9]{64}$/u);
+export type DeletionCodeHash = z.infer<typeof deletionCodeHashSchema>;
+
+export const researchCodeSchema = z.string().regex(/^RS-[A-F0-9]{16}$/u);
+export type ResearchCode = z.infer<typeof researchCodeSchema>;
 
 export const createSessionRequestSchema = z
   .object({
     requestId: z.uuid(),
     consentAccepted: z.literal(true),
     followUpConsent: z.boolean(),
+    deletionCodeHash: deletionCodeHashSchema,
   })
   .strict();
 export type CreateSessionRequest = z.infer<typeof createSessionRequestSchema>;
@@ -35,7 +46,6 @@ export type CreateSessionRequest = z.infer<typeof createSessionRequestSchema>;
 export const createSessionResponseSchema = z
   .object({
     sessionId: z.uuid(),
-    participantCode: z.string().regex(/^PW-[A-Z0-9]{8}$/u),
     condition: studyConditionSchema,
     assignmentMode: assignmentModeSchema,
     guardrailFormId: guardrailFormIdSchema,
@@ -46,7 +56,8 @@ export type CreateSessionResponse = z.infer<typeof createSessionResponseSchema>;
 export const persistedSessionRecordSchema = z
   .object({
     sessionId: z.uuid(),
-    participantCode: z.string().regex(/^PW-[A-Z0-9]{8}$/u),
+    researchCode: researchCodeSchema,
+    deletionCodeHash: deletionCodeHashSchema,
     condition: studyConditionSchema,
     assignmentMode: assignmentModeSchema,
     studyVersion: versionIdSchema,

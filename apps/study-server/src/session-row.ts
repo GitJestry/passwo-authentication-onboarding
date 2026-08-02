@@ -3,7 +3,8 @@ import { z } from 'zod';
 
 const sessionRowSchema = z.object({
   sessionId: z.string(),
-  participantCode: z.string(),
+  researchCode: z.string(),
+  deletionCodeHash: z.string(),
   condition: z.string(),
   assignmentMode: z.string(),
   studyVersion: z.string(),
@@ -26,7 +27,8 @@ const sessionRowSchema = z.object({
 export const sessionRowSelection = `
   SELECT
     session_id AS sessionId,
-    participant_code AS participantCode,
+    research_code AS researchCode,
+    deletion_code_hash AS deletionCodeHash,
     condition,
     assignment_mode AS assignmentMode,
     study_version AS studyVersion,

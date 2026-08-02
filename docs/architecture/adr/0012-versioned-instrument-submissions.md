@@ -124,3 +124,19 @@ Die Teilnehmerinformation erhält eine sofort sichtbare Kerninformation, einen w
 erreichbaren Detailzugang und den zugänglichen Teilnehmercode. Offizielle Datenschutzkontakte,
 Rechtsgrundlage und konkrete Löschfristen bleiben externe Study-Freeze-Eingaben und werden nicht
 durch die Software erfunden.
+
+## Revision 2026-08-02 — Teilnehmertext und Löschcode-Trennung v1.8
+
+Die Instrumentversion wird auf `1.8.0-draft`, die Consent-Version auf `consent-v5-draft` und das
+Runtime-Manifest auf `instrument-runtime-v1.8-draft` angehoben. Fragebogen-, Guardrail- und
+Follow-up-Inhaltsversionen bleiben unverändert.
+
+Die sichtbaren Kurzfakten auf der Willkommensseite entfallen, weil dieselben Informationen bereits
+in der unmittelbar sichtbaren Kerninformation und in den ausführlichen Teilnahmeinformationen
+enthalten sind. Titel, Willkommenstext und Zweckbeschreibung werden auf Passwörter und den Schutz
+von Online-Konten präzisiert. Die ausführlichen Informationen bleiben über einen kompakten,
+zugänglichen Dialog erreichbar.
+
+Gemäß `ADR 0013-Deletion-Code-Separation` wird der bisherige Teilnehmercode als Löschcode
+bezeichnet und von der Forschungs-ID getrennt. Der Löschcode wird nach Sessionerstellung und am
+Sitzungsende angezeigt, aber weder als Forschungs-ID verwendet noch exportiert.

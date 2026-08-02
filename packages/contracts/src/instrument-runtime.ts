@@ -261,18 +261,6 @@ const participantInformationSchema = z
     eyebrow: participantTextSchema,
     welcomeHeading: participantTextSchema,
     welcomeParagraphs: z.array(participantTextSchema).min(1).max(5),
-    facts: z
-      .array(
-        z
-          .object({
-            id: stableIdSchema,
-            label: participantTextSchema,
-            value: participantTextSchema,
-          })
-          .strict(),
-      )
-      .min(1)
-      .max(6),
     readMoreLabel: participantTextSchema,
     essentialSummaryHeading: participantTextSchema,
     essentialSummaryParagraphs: z.array(participantTextSchema).min(1).max(6),
@@ -316,10 +304,10 @@ const sessionClosureContentSchema = z
 export const instrumentRuntimeManifestSchema = z
   .object({
     schemaVersion: z.literal(2),
-    instrumentVersion: z.literal('1.7.0-draft'),
+    instrumentVersion: z.literal('1.8.0-draft'),
     questionnaireVersion: z.literal('questionnaire-v1.5-draft'),
     guardrailVersion: z.literal('guardrail-v3-draft'),
-    consentVersion: z.literal('consent-v4-draft'),
+    consentVersion: z.literal('consent-v5-draft'),
     followUpVersion: z.literal('follow-up-v3-draft'),
     language: z.literal('de-DE'),
     participantTerm: participantTextSchema,
@@ -382,7 +370,7 @@ export const instrumentRuntimeManifestSchema = z
         'follow-up-v1': followUpInstrumentSchema,
       })
       .strict(),
-    runtimeManifestVersion: z.literal('instrument-runtime-v1.7-draft'),
+    runtimeManifestVersion: z.literal('instrument-runtime-v1.8-draft'),
   })
   .strict();
 

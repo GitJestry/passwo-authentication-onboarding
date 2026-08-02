@@ -1,3 +1,4 @@
+import { createHash } from 'node:crypto';
 import { mkdtempSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
@@ -38,13 +39,17 @@ afterEach(async () => {
 });
 
 function deterministicRandomSource(): StudyRandomSource {
-  let identity = 0;
+  let uuidIdentity = 0;
+  let researchIdentity = 0;
   return {
     randomUuid: () => {
-      identity += 1;
-      return `00000000-0000-4000-8000-${identity.toString().padStart(12, '0')}`;
+      uuidIdentity += 1;
+      return `00000000-0000-4000-8000-${uuidIdentity.toString().padStart(12, '0')}`;
     },
-    participantToken: () => `A${identity.toString().padStart(7, '0')}`,
+    researchToken: () => {
+      researchIdentity += 1;
+      return `A${researchIdentity.toString(16).toUpperCase().padStart(15, '0')}`;
+    },
     randomIndex: () => 0,
   };
 }
@@ -86,7 +91,35 @@ describe('study server research core', () => {
       assignmentMode: 'forced-supportive',
     });
     expect(reference).toMatchObject({ condition: 'reference', assignmentMode: 'forced-reference' });
+    expect(Object.keys(supportive)).not.toEqual(
+      expect.arrayContaining(['researchCode', 'researchId', 'deletionCode', 'deletionCodeHash']),
+    );
     expect(clientCondition?.statusCode).toBe(400);
+  });
+
+  it('binds idempotent session creation to the deletion-code hash', async () => {
+    const server = createServer('forced-supportive');
+    const request = createSessionBody(1, false);
+    const first = await server.inject({
+      method: 'POST',
+      url: '/api/study/sessions',
+      payload: request,
+    });
+    const retry = await server.inject({
+      method: 'POST',
+      url: '/api/study/sessions',
+      payload: request,
+    });
+    const conflictingRetry = await server.inject({
+      method: 'POST',
+      url: '/api/study/sessions',
+      payload: { ...request, deletionCodeHash: 'f'.repeat(64) },
+    });
+
+    expect(first.statusCode).toBe(201);
+    expect(retry.statusCode).toBe(201);
+    expect(retry.json()).toEqual(first.json());
+    expect(conflictingRetry.statusCode).toBe(409);
   });
 
   it('persists only approved research session fields and condition-derived versions', async () => {
@@ -103,6 +136,8 @@ describe('study server research core', () => {
     const sessions = database
       .prepare(
         `SELECT
+          research_code AS researchCode,
+          deletion_code_hash AS deletionCodeHash,
           condition,
           content_version AS contentVersion,
           reference_artifact_version AS referenceArtifactVersion
@@ -115,17 +150,29 @@ describe('study server research core', () => {
 
     expect(sessions).toEqual([
       {
+        researchCode: 'RS-A000000000000002',
+        deletionCodeHash: '2'.padStart(64, '0'),
         condition: 'reference',
         contentVersion: REFERENCE_ARTIFACT_VERSION,
         referenceArtifactVersion: REFERENCE_ARTIFACT_VERSION,
       },
       {
+        researchCode: 'RS-A000000000000001',
+        deletionCodeHash: '1'.padStart(64, '0'),
         condition: 'supportive',
         contentVersion: SUPPORTIVE_ARTIFACT_VERSION,
         referenceArtifactVersion: null,
       },
     ]);
-    expect(JSON.stringify(sessionColumns)).not.toMatch(/display.?name|password|training.?input/iu);
+    expect(sessionColumns).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ name: 'research_code' }),
+        expect.objectContaining({ name: 'deletion_code_hash' }),
+      ]),
+    );
+    expect(JSON.stringify(sessionColumns)).not.toMatch(
+      /participant_code|display.?name|password|training.?input/iu,
+    );
   });
 
   it('persists the supportive timing sequence through completion and preserves completed reloads', async () => {
@@ -266,7 +313,7 @@ describe('study server research core', () => {
     `);
     legacy.close();
 
-    const migrated = openStudyDatabase(databasePath);
+    const migrated = openStudyDatabase(databasePath, ':memory:', () => 'A1B2C3D4E5F60718');
     const migrationVersions = migrated
       .prepare(`SELECT version FROM schema_migrations ORDER BY version`)
       .all();
@@ -274,6 +321,8 @@ describe('study server research core', () => {
     const session = migrated
       .prepare(
         `SELECT
+          research_code AS researchCode,
+          deletion_code_hash AS deletionCodeHash,
           guardrail_form_id AS guardrailFormId,
           follow_up_consent AS followUpConsent
          FROM study_sessions`,
@@ -302,11 +351,17 @@ describe('study server research core', () => {
       { version: 3 },
       { version: 4 },
       { version: 5 },
+      { version: 6 },
     ]);
     expect(responseColumns).toEqual(
       expect.arrayContaining([expect.objectContaining({ name: 'section_id', notnull: 1 })]),
     );
-    expect(session).toEqual({ guardrailFormId: 'F1', followUpConsent: 0 });
+    expect(session).toEqual({
+      researchCode: 'RS-A1B2C3D4E5F60718',
+      deletionCodeHash: createHash('sha256').update('PW-LEGACY01', 'utf8').digest('hex'),
+      guardrailFormId: 'F1',
+      followUpConsent: 0,
+    });
     expect(guardrailSlot).toEqual({
       condition: 'supportive',
       blockNumber: 0,

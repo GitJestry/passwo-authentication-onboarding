@@ -1,3 +1,4 @@
+import { createHash, randomBytes } from 'node:crypto';
 import { chmodSync, mkdirSync } from 'node:fs';
 import { dirname } from 'node:path';
 import Database from 'better-sqlite3';
@@ -210,7 +211,10 @@ const recontactSchema = `
 
 interface Migration {
   readonly version: number;
-  readonly apply: (database: Database.Database) => void;
+  readonly apply: (
+    database: Database.Database,
+    migrationResearchToken: () => string,
+  ) => void;
 }
 
 function migrateLegacyGuardrailAssignments(database: Database.Database): void {
@@ -264,6 +268,82 @@ function migrateLegacyGuardrailAssignments(database: Database.Database): void {
   }
 }
 
+const legacyDeletionIdentityRowSchema = z.object({
+  sessionId: z.string(),
+  participantCode: z.string(),
+});
+const migrationResearchTokenSchema = z.string().regex(/^[A-F0-9]{16}$/u);
+
+function legacyDeletionCodeHash(participantCode: string): string {
+  return createHash('sha256').update(participantCode, 'utf8').digest('hex');
+}
+
+function newMigrationResearchCode(
+  existingCodes: Set<string>,
+  migrationResearchToken: () => string,
+): string {
+  for (let attempt = 0; attempt < 20; attempt += 1) {
+    const token = migrationResearchTokenSchema.parse(migrationResearchToken());
+    const researchCode = `RS-${token}`;
+    if (!existingCodes.has(researchCode)) return researchCode;
+  }
+  throw new Error('research-code-migration-failed');
+}
+
+function migrateResearchIdentitySeparation(
+  database: Database.Database,
+  migrationResearchToken: () => string,
+): void {
+  const legacyRows = z.array(legacyDeletionIdentityRowSchema).parse(
+    database
+      .prepare(
+        `SELECT
+          session_id AS sessionId,
+          participant_code AS participantCode
+         FROM study_sessions
+         ORDER BY session_id`,
+      )
+      .all(),
+  );
+
+  database.exec(`
+    ALTER TABLE study_sessions RENAME COLUMN participant_code TO research_code;
+    ALTER TABLE study_sessions ADD COLUMN deletion_code_hash TEXT
+      CHECK (deletion_code_hash IS NULL OR length(deletion_code_hash) = 64);
+  `);
+
+  const usedResearchCodes = new Set<string>();
+  const updateIdentity = database.prepare(
+    `UPDATE study_sessions
+     SET research_code = ?, deletion_code_hash = ?
+     WHERE session_id = ?`,
+  );
+  for (const row of legacyRows) {
+    const researchCode = newMigrationResearchCode(usedResearchCodes, migrationResearchToken);
+    usedResearchCodes.add(researchCode);
+    updateIdentity.run(researchCode, legacyDeletionCodeHash(row.participantCode), row.sessionId);
+  }
+
+  database.exec(`
+    CREATE UNIQUE INDEX unique_deletion_code_hash
+    ON study_sessions(deletion_code_hash);
+
+    CREATE TRIGGER require_deletion_code_hash_on_insert
+    BEFORE INSERT ON study_sessions
+    WHEN NEW.deletion_code_hash IS NULL
+    BEGIN
+      SELECT RAISE(ABORT, 'deletion-code-hash-required');
+    END;
+
+    CREATE TRIGGER require_deletion_code_hash_on_update
+    BEFORE UPDATE OF deletion_code_hash ON study_sessions
+    WHEN NEW.deletion_code_hash IS NULL
+    BEGIN
+      SELECT RAISE(ABORT, 'deletion-code-hash-required');
+    END;
+  `);
+}
+
 const migrations: readonly Migration[] = [
   {
     version: 1,
@@ -288,9 +368,13 @@ const migrations: readonly Migration[] = [
     version: 5,
     apply: (database) => database.exec(optionalFollowUpSchema),
   },
+  {
+    version: 6,
+    apply: migrateResearchIdentitySeparation,
+  },
 ];
 
-function migrate(database: Database.Database): void {
+function migrate(database: Database.Database, migrationResearchToken: () => string): void {
   database.exec(`
     CREATE TABLE IF NOT EXISTS schema_migrations (
       version INTEGER PRIMARY KEY,
@@ -302,7 +386,7 @@ function migrate(database: Database.Database): void {
     .parse(database.prepare(`SELECT version FROM schema_migrations ORDER BY version`).all());
   const appliedVersions = new Set(appliedRows.map((row) => row.version));
   const applyMigration = database.transaction((migration: Migration) => {
-    migration.apply(database);
+    migration.apply(database, migrationResearchToken);
     database
       .prepare(`INSERT INTO schema_migrations (version, applied_at_iso) VALUES (?, ?)`)
       .run(migration.version, new Date().toISOString());
@@ -316,6 +400,7 @@ function migrate(database: Database.Database): void {
 export function openStudyDatabase(
   databasePath: string,
   recontactDatabasePath = ':memory:',
+  migrationResearchToken: () => string = () => randomBytes(8).toString('hex').toUpperCase(),
 ): Database.Database {
   if (databasePath !== ':memory:') {
     const dataDirectory = dirname(databasePath);
@@ -327,7 +412,7 @@ export function openStudyDatabase(
   database.pragma('foreign_keys = ON');
   database.pragma('journal_mode = DELETE');
   attachRecontactDatabase(database, recontactDatabasePath);
-  migrate(database);
+  migrate(database, migrationResearchToken);
 
   if (databasePath !== ':memory:') {
     chmodSync(databasePath, 0o600);

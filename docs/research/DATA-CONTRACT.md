@@ -4,7 +4,8 @@
 
 | Klasse                    | Beispiele                                                                                | Persistenz                        |
 | ------------------------- | ---------------------------------------------------------------------------------------- | --------------------------------- |
-| Study identity            | Session UUID, pseudonymer Teilnehmercode                                                 | `study.sqlite`                    |
+| Study identity            | interne Session-UUID, nicht angezeigte Forschungs-ID                                    | `study.sqlite`                    |
+| Deletion lookup           | ausschließlich SHA-256-Hash des flüchtigen Löschcodes                                   | `study.sqlite`                    |
 | Assignment                | Bedingung, Zuweisungsmodus, Config-ID, Guardrail-Form                                    | `study.sqlite`                    |
 | Versioning                | Study-, Content-, Fragebogen-, Guardrail-, Consent-, Follow-up- und Referenzversion      | `study.sqlite`                    |
 | Timing                    | Phase, Segment-ID, Start/Ende, monotone Dauer                                            | `study.sqlite`                    |
@@ -13,7 +14,7 @@
 | Completion                | complete, incomplete, technical failure                                                  | `study.sqlite`                    |
 | Follow-up-Verknüpfung     | optionale Einwilligung, Follow-up-Version, optionaler Token-Hash                         | `study.sqlite`                    |
 | Recontact                 | E-Mail, Roh-Token, Token-Hash, Consent-Version, Versand-/Schließzeitpunkte               | ausschließlich `recontact.sqlite` |
-| Ephemeral personalization | Anzeigename/Kürzel                                                                       | nur flüchtiger Electron-Renderer  |
+| Ephemeral participant data | Anzeigename/Kürzel, roher Löschcode                                                      | nur flüchtiger Study-Renderer     |
 | Training input/diagnosis  | fiktive Passwörter, Loginversuche, Findings, Ähnlichkeit                                 | nie persistieren                  |
 | Reference quiz state      | im gemessenen Pfad nicht vorhanden; etwaige SCORM-Interaktionen der Unterrichtslektionen | nicht erheben                     |
 | Sensitive real-world data | reale Konten, Passwörter, Tokens, Vorfälle                                               | nie erheben                       |
@@ -23,7 +24,7 @@
 
 `study.sqlite` enthält:
 
-- `study_sessions` für Identität, Zuweisung, Versionen, Follow-up-Einwilligung und Status;
+- `study_sessions` für interne Session-UUID, Forschungs-ID, Löschcode-Hash, Zuweisung, Versionen, Follow-up-Einwilligung und Status;
 - `assignment_slots` und `guardrail_form_slots` für getrennte serverseitige Blockzuweisungen;
 - `timing_events` für idempotente Zeitereignisse;
 - `artifact_leases` ausschließlich für operative Reload-Erkennung;
@@ -55,8 +56,11 @@ gebildet.
 
 ## Pseudonymisierung und Recontact
 
-Der Teilnehmercode wird zufällig erzeugt und enthält keine Initialen, Matrikelnummer oder
-Zeitstempel. Pseudonymisierte Forschungsdaten bleiben geschützt und zugriffsbeschränkt.
+Die Forschungs-ID wird serverseitig zufällig erzeugt und enthält keine Initialen, Matrikelnummer
+oder Zeitstempel. Sie wird den Teilnehmenden nicht angezeigt. Der Löschcode wird unabhängig davon
+kryptographisch im Browser erzeugt; nur sein SHA-256-Hash wird gespeichert. Rohcode und Hash
+werden nicht in Forschungsdatenexporte aufgenommen. Pseudonymisierte Forschungsdaten bleiben
+geschützt und zugriffsbeschränkt.
 
 Die optionale Nachbefragung beeinflusst weder Teilnahme noch Condition-Zuweisung. Bei Einwilligung
 enthält `~/.passwo-study/recontact.sqlite` ausschließlich Token-Hash und Roh-Token, E-Mail-Adresse,
@@ -65,7 +69,7 @@ Registry enthält keine Condition, Antworten, Timings oder Trainingsdaten.
 
 Ein Verzicht oder ein abgebrochener Registrierungsversuch setzt Einwilligungsstatus und Token-Hash
 in der Forschungsdatenbank zurück und entfernt einen gegebenenfalls angelegten Registry-Datensatz,
-ohne Session, Teilnehmercode oder Condition zu verändern.
+ohne Session, Forschungs-ID, Löschcode-Hash oder Condition zu verändern.
 
 ## Speicherort und Rechte
 
@@ -77,9 +81,11 @@ ohne Session, Teilnehmercode oder Condition zu verändern.
 
 ## Export
 
-Der Forschungsdatenexport enthält Sessions, Timing, Responses und Response Presentations als CSV
-und JSON, ein Data Dictionary sowie ein Manifest mit Versionen, Zählungen und SHA-256-Prüfsummen.
-Er enthält keine E-Mail, Roh-Tokens, Token-Hashes, Trainingsinputs oder SecAware-Quizdaten.
+Der Forschungsdatenexport enthält Sessions, Timing, Responses und Response Presentations unter
+einer gemeinsamen `researchId` als CSV und JSON, ein Data Dictionary sowie ein Manifest mit
+Versionen, Zählungen und SHA-256-Prüfsummen. Er enthält keine interne Session-UUID, keinen
+Löschcode oder Löschcode-Hash, keine E-Mail, Roh-Tokens, Token-Hashes, Trainingsinputs oder
+SecAware-Quizdaten.
 Das native SecAware-Abschlussquiz ist aus dem gemessenen Referenzpfad entfernt; PassWo-interne
 Lernfragen dürfen bestehen, werden aber ebenso wenig als gemeinsamer Outcome exportiert. Beide
 Bedingungen bearbeiten den gemeinsamen externen Guardrail.

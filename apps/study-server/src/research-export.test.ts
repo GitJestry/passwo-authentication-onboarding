@@ -83,12 +83,16 @@ describe('research export', () => {
       'manifest.json',
     ]);
     expect(readFileSync(join(outputDirectory, 'sessions.csv'), 'utf8')).toMatch(
-      /^sessionId,participantCode,condition,assignmentMode,studyVersion,contentVersion/u,
+      /^researchId,condition,assignmentMode,studyVersion,contentVersion/u,
     );
     expect(exportedData).not.toMatch(
       /display.?name|password.?value|password.?input|password.?part|training.?input|request.?body|user.?agent|ip.?address|email.?address|score|classification|secaware.?quiz/iu,
     );
-    expect(exportedData).not.toMatch(/[{"\n,](?:email|rawToken|followUpTokenHash)[",:]/u);
+    expect(exportedData).not.toMatch(
+      /[{"\n,](?:sessionId|participantCode|deletionCode|deletionCodeHash|email|rawToken|followUpTokenHash)[",:]/u,
+    );
+    expect(exportedData).not.toContain(session.sessionId);
+    expect(exportedData).not.toContain('1'.padStart(64, '0'));
     expect(exportedData).not.toContain('private@example.org');
     expect(exportedData).not.toContain(rawToken);
     expect(exportedData).not.toContain(createHash('sha256').update(rawToken, 'utf8').digest('hex'));
@@ -100,7 +104,7 @@ describe('research export', () => {
     expect(readFileSync(join(outputDirectory, 'data-dictionary.json'), 'utf8')).toContain(
       '"itemId": "MR_REUSE"',
     );
-    expect(result.manifest.schemaVersion).toBe('research-export-v3');
+    expect(result.manifest.schemaVersion).toBe('research-export-v4');
     for (const file of result.manifest.files) {
       expect(
         createHash('sha256')

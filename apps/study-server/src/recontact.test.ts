@@ -144,7 +144,7 @@ describe('follow-up recontact boundary', () => {
       email: 'person@example.org',
       rawToken: token,
       tokenHash: expectedHash,
-      consentVersion: 'consent-v4-draft',
+      consentVersion: 'consent-v5-draft',
       requestId,
     });
     expect(JSON.stringify(recontactSchema)).not.toMatch(
@@ -392,7 +392,8 @@ describe('follow-up recontact boundary', () => {
         .prepare(
           `SELECT
             session_id AS sessionId,
-            participant_code AS participantCode,
+            research_code AS researchCode,
+            deletion_code_hash AS deletionCodeHash,
             condition,
             follow_up_consent AS followUpConsent,
             follow_up_token_hash AS followUpTokenHash
@@ -402,7 +403,8 @@ describe('follow-up recontact boundary', () => {
         .get(session.sessionId),
     ).toEqual({
       sessionId: session.sessionId,
-      participantCode: session.participantCode,
+      researchCode: expect.stringMatching(/^RS-[A-F0-9]{16}$/u),
+      deletionCodeHash: '4'.padStart(64, '0'),
       condition: session.condition,
       followUpConsent: 0,
       followUpTokenHash: null,

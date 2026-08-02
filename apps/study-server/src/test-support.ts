@@ -33,6 +33,7 @@ export function createSessionBody(identity: number, followUpConsent = true) {
     requestId: `10000000-0000-4000-8000-${identity.toString().padStart(12, '0')}`,
     consentAccepted: true,
     followUpConsent,
+    deletionCodeHash: identity.toString(16).padStart(64, '0'),
   };
 }
 

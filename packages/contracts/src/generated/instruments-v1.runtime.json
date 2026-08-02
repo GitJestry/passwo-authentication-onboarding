@@ -1,11 +1,11 @@
 {
   "schemaVersion": 2,
-  "instrumentVersion": "1.7.0-draft",
+  "instrumentVersion": "1.8.0-draft",
   "questionnaireVersion": "questionnaire-v1.5-draft",
   "guardrailVersion": "guardrail-v3-draft",
-  "consentVersion": "consent-v4-draft",
+  "consentVersion": "consent-v5-draft",
   "followUpVersion": "follow-up-v3-draft",
-  "runtimeManifestVersion": "instrument-runtime-v1.7-draft",
+  "runtimeManifestVersion": "instrument-runtime-v1.8-draft",
   "language": "de-DE",
   "participantTerm": "Lernangebot",
   "scales": {
@@ -73,27 +73,10 @@
     },
     "participantInformation": {
       "source": "docs/research/PARTICIPANT-INFORMATION.md",
-      "eyebrow": "Studie zu digitalem Kontoschutz",
+      "eyebrow": "Studie zu Passwörtern und dem Schutz von Online-Konten",
       "welcomeHeading": "Willkommen",
       "welcomeParagraphs": [
-        "Vielen Dank, dass du dir Zeit für diese Studie nimmst. Du bearbeitest gleich ein digitales Lernangebot zum Schutz von Online-Konten und beantwortest davor und danach einige Fragen."
-      ],
-      "facts": [
-        {
-          "id": "duration",
-          "label": "Dauer heute",
-          "value": "etwa 20–30 Minuten"
-        },
-        {
-          "id": "analysis",
-          "label": "Auswertung",
-          "value": "pseudonymisiert"
-        },
-        {
-          "id": "follow_up",
-          "label": "Nachbefragung",
-          "value": "optional, etwa 1–2 Minuten nach 10 Tagen"
-        }
+        "Vielen Dank, dass du dir Zeit für diese Studie nimmst. Im Verlauf der Studie bearbeitest du ein digitales Lernangebot zu Passwörtern und zum Schutz von Online-Konten. Vor und nach dem Lernangebot beantwortest du einige Fragen."
       ],
       "readMoreLabel": "Ausführliche Teilnahmeinformationen",
       "informationHeading": "Informationen zu deiner Teilnahme",
@@ -102,7 +85,8 @@
           "id": "purpose",
           "heading": "Worum geht es?",
           "paragraphs": [
-            "Wir untersuchen, wie ein digitales Lernangebot zum Schutz von Online-Konten genutzt und wahrgenommen wird. Einige Einzelheiten dazu, was genau untersucht wird, erläutern wir erst nach deinem letzten Studienteil. Dadurch soll vermieden werden, dass Vorwissen über die genaue Fragestellung deine Bearbeitung beeinflusst."
+            "Wir untersuchen, wie ein digitales Lernangebot zu Passwörtern und Kontoschutz genutzt, wahrgenommen und verstanden wird.",
+            "Einige Details zur genauen Forschungsfrage erläutern wir dir erst nach Abschluss aller Studienteile. Dadurch soll vermieden werden, dass diese Informationen deine Bearbeitung oder deine Antworten vorab beeinflussen."
           ]
         },
         {
@@ -117,7 +101,7 @@
           "id": "data",
           "heading": "Welche Daten werden verarbeitet?",
           "paragraphs": [
-            "Gespeichert werden deine Fragebogenantworten, Bearbeitungs- und Abschnittszeiten, der technische Abschlussstatus sowie die für die Auswertung erforderlichen Angaben zum bearbeiteten Lernangebot, zu Versionen und Darstellungsreihenfolgen. Die Forschungsdaten werden unter einem zufällig erzeugten Teilnehmercode pseudonymisiert gespeichert und ausgewertet. Sie enthalten weder deinen Namen noch deine E-Mail-Adresse.",
+            "Gespeichert werden deine Fragebogenantworten, Bearbeitungs- und Abschnittszeiten, der technische Abschlussstatus sowie die für die Auswertung erforderlichen Angaben zum bearbeiteten Lernangebot, zu Versionen und Darstellungsreihenfolgen. Die Forschungsdaten werden unter einer zufällig erzeugten, nicht angezeigten Forschungs-ID pseudonymisiert gespeichert und ausgewertet. Sie enthalten weder deinen Namen noch deine E-Mail-Adresse.",
             "Falls du der Nachbefragung zustimmst, wird deine E-Mail-Adresse getrennt von den Forschungsdaten gespeichert und ausschließlich für die Einladung sowie höchstens eine Erinnerung verwendet."
           ]
         },
@@ -125,7 +109,7 @@
           "id": "voluntariness",
           "heading": "Freiwilligkeit und Abbruch",
           "paragraphs": [
-            "Die Teilnahme ist freiwillig. Du kannst sie jederzeit ohne Begründung und ohne Nachteile beenden. Innerhalb der vor dem Study Freeze festgelegten Aufbewahrungs- und Löschfrist kannst du unter Angabe deines Teilnehmercodes die Löschung deiner Forschungsdaten verlangen."
+            "Die Teilnahme ist freiwillig. Du kannst sie jederzeit ohne Begründung und ohne Nachteile beenden. Innerhalb der vor dem Study Freeze festgelegten Aufbewahrungs- und Löschfrist kannst du unter Angabe deines Löschcodes die Löschung deiner Forschungsdaten verlangen."
           ]
         },
         {
@@ -183,7 +167,7 @@
         "paragraphs": [
           "Zu Beginn wurden nicht alle Einzelheiten des Studiendesigns offengelegt. In der Studie werden zwei deutschsprachige Lernangebote zum Schutz von Online-Konten als vollständige Angebote miteinander verglichen. Die Zuweisung erfolgte zufällig. Diese Information wurde zunächst zurückgehalten, damit Erwartungen an einen Vergleich die Bearbeitung und Bewertung des jeweiligen Lernangebots möglichst wenig beeinflussen.",
           "Untersucht werden insbesondere die Wahrnehmung des Lernangebots, die Bearbeitungsdauer sowie das unmittelbare Verständnis zentraler Aussagen zu Passwortwiederverwendung, Passwortmanagern und MFA/2FA. Die Studie prüft nicht, ob eine einzelne Gestaltungskomponente oder ein einzelnes psychologisches Prinzip die Ergebnisse verursacht hat.",
-          "Du kannst nach dieser Aufklärung innerhalb der vor dem Study Freeze festgelegten Aufbewahrungs- und Löschfrist weiterhin die Löschung deiner Forschungsdaten verlangen. Verwende dafür deinen Teilnehmercode und die angegebene Kontaktadresse."
+          "Du kannst nach dieser Aufklärung innerhalb der vor dem Study Freeze festgelegten Aufbewahrungs- und Löschfrist weiterhin die Löschung deiner Forschungsdaten verlangen. Verwende dafür deinen Löschcode und die angegebene Kontaktadresse."
         ],
         "actionLabel": "Sitzung abschließen"
       },
@@ -394,7 +378,10 @@
                   "label": "Unsicher"
                 }
               ],
-              "exclusiveOptions": ["none", "unsure"]
+              "exclusiveOptions": [
+                "none",
+                "unsure"
+              ]
             },
             {
               "id": "PRE_MFA_USE",
@@ -699,13 +686,20 @@
       ],
       "optionPresentation": {
         "strategy": "balanced_predefined_forms",
-        "formIds": ["F1", "F2", "F3"],
+        "formIds": [
+          "F1",
+          "F2",
+          "F3"
+        ],
         "fixedLastOptionId": "unsure",
         "assignedBy": "server",
         "independentOfArtifactCondition": true,
         "balanceWithinCondition": "small_permuted_blocks",
         "stableAcrossNavigationAndReload": true,
-        "persist": ["optionOrderFormId", "displayedOptionIdsByItem"],
+        "persist": [
+          "optionOrderFormId",
+          "displayedOptionIdsByItem"
+        ],
         "forms": {
           "F1": {
             "MR_REUSE": [
@@ -1037,7 +1031,11 @@
               "label": "Keine Angabe."
             }
           ],
-          "exclusiveOptions": ["none", "cannot_recall", "no_answer"]
+          "exclusiveOptions": [
+            "none",
+            "cannot_recall",
+            "no_answer"
+          ]
         },
         {
           "id": "FU_PM_NONE_REASON",
@@ -1117,7 +1115,11 @@
               "label": "Keine Angabe."
             }
           ],
-          "exclusiveOptions": ["none", "cannot_recall", "no_answer"]
+          "exclusiveOptions": [
+            "none",
+            "cannot_recall",
+            "no_answer"
+          ]
         },
         {
           "id": "FU_MFA_NONE_REASON",

@@ -35,7 +35,7 @@ const exportFileNames = [
 ] as const;
 
 const databaseResponseRowSchema = z.object({
-  sessionId: z.string(),
+  researchId: z.string(),
   instrumentId: z.string(),
   instrumentVersion: z.string(),
   sectionId: z.string(),
@@ -44,7 +44,7 @@ const databaseResponseRowSchema = z.object({
   createdAtIso: z.string(),
 });
 const databasePresentationRowSchema = z.object({
-  sessionId: z.string(),
+  researchId: z.string(),
   instrumentId: z.string(),
   instrumentVersion: z.string(),
   sectionId: z.string(),
@@ -86,7 +86,7 @@ function toResponseRecord(row: unknown): ResearchExportResponseRecord {
   const parsed = databaseResponseRowSchema.parse(row);
   const value: unknown = JSON.parse(parsed.jsonValue);
   return researchExportResponseRecordSchema.parse({
-    sessionId: parsed.sessionId,
+    researchId: parsed.researchId,
     instrumentId: parsed.instrumentId,
     instrumentVersion: parsed.instrumentVersion,
     sectionId: parsed.sectionId,
@@ -100,7 +100,7 @@ function toPresentationRecord(row: unknown): ResearchExportPresentationRecord {
   const parsed = databasePresentationRowSchema.parse(row);
   const displayedOptionIds: unknown = JSON.parse(parsed.optionIdsJson);
   return researchExportPresentationRecordSchema.parse({
-    sessionId: parsed.sessionId,
+    researchId: parsed.researchId,
     instrumentId: parsed.instrumentId,
     instrumentVersion: parsed.instrumentVersion,
     sectionId: parsed.sectionId,
@@ -112,9 +112,17 @@ function toPresentationRecord(row: unknown): ResearchExportPresentationRecord {
 }
 
 function toSessionRecord(row: unknown): ResearchExportSessionRecord {
-  const { followUpTokenHash, ...session } = mapSessionRow(row);
+  const {
+    sessionId,
+    researchCode,
+    deletionCodeHash,
+    followUpTokenHash,
+    ...session
+  } = mapSessionRow(row);
+  void sessionId;
+  void deletionCodeHash;
   void followUpTokenHash;
-  return researchExportSessionRecordSchema.parse(session);
+  return researchExportSessionRecordSchema.parse({ researchId: researchCode, ...session });
 }
 
 function stableJson(value: unknown): string {
@@ -243,32 +251,33 @@ export function exportResearchData({
   const database = new Database(databasePath, { readonly: true });
   try {
     const sessions = database
-      .prepare(`${sessionRowSelection} ORDER BY session_id`)
+      .prepare(`${sessionRowSelection} ORDER BY research_code`)
       .all()
       .map(toSessionRecord);
     const timing = database
       .prepare(
         `SELECT
-          session_id AS sessionId,
-          sequence,
-          phase,
-          section_id AS sectionId,
-          segment_id AS segmentId,
-          event_type AS eventType,
-          client_monotonic_ms AS clientMonotonicMs,
-          client_wall_clock_iso AS clientWallClockIso,
-          elapsed_ms AS elapsedMs,
-          reason_code AS reasonCode,
-          server_received_at_iso AS serverReceivedAtIso
-         FROM timing_events
-         ORDER BY session_id, sequence`,
+          session.research_code AS researchId,
+          timing.sequence,
+          timing.phase,
+          timing.section_id AS sectionId,
+          timing.segment_id AS segmentId,
+          timing.event_type AS eventType,
+          timing.client_monotonic_ms AS clientMonotonicMs,
+          timing.client_wall_clock_iso AS clientWallClockIso,
+          timing.elapsed_ms AS elapsedMs,
+          timing.reason_code AS reasonCode,
+          timing.server_received_at_iso AS serverReceivedAtIso
+         FROM timing_events AS timing
+         INNER JOIN study_sessions AS session ON session.session_id = timing.session_id
+         ORDER BY session.research_code, timing.sequence`,
       )
       .all()
       .map((row) => researchExportTimingRecordSchema.parse(row));
     const responses = database
       .prepare(
         `SELECT
-          response.session_id AS sessionId,
+          session.research_code AS researchId,
           response.instrument_id AS instrumentId,
           response.instrument_version AS instrumentVersion,
           response.section_id AS sectionId,
@@ -276,6 +285,7 @@ export function exportResearchData({
           response.json_value AS jsonValue,
           response.created_at_iso AS createdAtIso
          FROM responses AS response
+         INNER JOIN study_sessions AS session ON session.session_id = response.session_id
          WHERE EXISTS (
            SELECT 1
            FROM instrument_submissions AS submission
@@ -284,7 +294,7 @@ export function exportResearchData({
              AND submission.section_id = response.section_id
          )
          ORDER BY
-           response.session_id,
+           session.research_code,
            response.instrument_id,
            response.section_id,
            response.item_id`,
@@ -294,16 +304,21 @@ export function exportResearchData({
     const presentations = database
       .prepare(
         `SELECT
-          session_id AS sessionId,
-          instrument_id AS instrumentId,
-          instrument_version AS instrumentVersion,
-          section_id AS sectionId,
-          item_id AS itemId,
-          form_id AS formId,
-          option_ids_json AS optionIdsJson,
-          created_at_iso AS createdAtIso
-         FROM response_presentations
-         ORDER BY session_id, instrument_id, section_id, item_id`,
+          session.research_code AS researchId,
+          presentation.instrument_id AS instrumentId,
+          presentation.instrument_version AS instrumentVersion,
+          presentation.section_id AS sectionId,
+          presentation.item_id AS itemId,
+          presentation.form_id AS formId,
+          presentation.option_ids_json AS optionIdsJson,
+          presentation.created_at_iso AS createdAtIso
+         FROM response_presentations AS presentation
+         INNER JOIN study_sessions AS session ON session.session_id = presentation.session_id
+         ORDER BY
+           session.research_code,
+           presentation.instrument_id,
+           presentation.section_id,
+           presentation.item_id`,
       )
       .all()
       .map(toPresentationRecord);
@@ -314,8 +329,7 @@ export function exportResearchData({
         fileName: 'sessions.csv',
         content: csvFile(
           [
-            'sessionId',
-            'participantCode',
+            'researchId',
             'condition',
             'assignmentMode',
             'studyVersion',
@@ -334,8 +348,7 @@ export function exportResearchData({
             'completedAtIso',
           ],
           sessions.map((session) => [
-            session.sessionId,
-            session.participantCode,
+            session.researchId,
             session.condition,
             session.assignmentMode,
             session.studyVersion,
@@ -359,7 +372,7 @@ export function exportResearchData({
         fileName: 'timing.csv',
         content: csvFile(
           [
-            'sessionId',
+            'researchId',
             'sequence',
             'phase',
             'sectionId',
@@ -372,7 +385,7 @@ export function exportResearchData({
             'serverReceivedAtIso',
           ],
           timing.map((event) => [
-            event.sessionId,
+            event.researchId,
             event.sequence,
             event.phase,
             event.sectionId,
@@ -390,7 +403,7 @@ export function exportResearchData({
         fileName: 'responses.csv',
         content: csvFile(
           [
-            'sessionId',
+            'researchId',
             'instrumentId',
             'instrumentVersion',
             'sectionId',
@@ -399,7 +412,7 @@ export function exportResearchData({
             'createdAtIso',
           ],
           responses.map((response) => [
-            response.sessionId,
+            response.researchId,
             response.instrumentId,
             response.instrumentVersion,
             response.sectionId,
@@ -413,7 +426,7 @@ export function exportResearchData({
         fileName: 'response-presentations.csv',
         content: csvFile(
           [
-            'sessionId',
+            'researchId',
             'instrumentId',
             'instrumentVersion',
             'sectionId',
@@ -423,7 +436,7 @@ export function exportResearchData({
             'createdAtIso',
           ],
           presentations.map((presentation) => [
-            presentation.sessionId,
+            presentation.researchId,
             presentation.instrumentId,
             presentation.instrumentVersion,
             presentation.sectionId,
@@ -474,7 +487,7 @@ export function exportResearchData({
     }
 
     const manifest = researchExportManifestSchema.parse({
-      schemaVersion: 'research-export-v3',
+      schemaVersion: 'research-export-v4',
       exportedAtIso,
       runtimeManifestVersion: instrumentRuntimeManifest.runtimeManifestVersion,
       versions: {

@@ -107,7 +107,6 @@ export const artifactLeaseExpiresAfterMs = 5 * 60 * 1000;
 function toCreateResponse(session: PersistedSessionRecord): CreateSessionResponse {
   return {
     sessionId: session.sessionId,
-    participantCode: session.participantCode,
     condition: session.condition,
     assignmentMode: session.assignmentMode,
     guardrailFormId: session.guardrailFormId,
@@ -159,7 +158,10 @@ export class StudyRepository {
     const create = this.#database.transaction(() => {
       const existing = this.#findSessionByRequestId(request.requestId);
       if (existing !== null) {
-        if (existing.followUpConsent !== request.followUpConsent) {
+        if (
+          existing.followUpConsent !== request.followUpConsent ||
+          existing.deletionCodeHash !== request.deletionCodeHash
+        ) {
           throw new StudyRepositoryError('session-create-conflict', 409);
         }
         return toCreateResponse(existing);
@@ -168,7 +170,7 @@ export class StudyRepository {
       const sessionId = this.#random.randomUuid();
       const assignment = this.#nextAssignment();
       const guardrailFormAssignment = this.#nextGuardrailFormAssignment(assignment.condition);
-      const participantCode = this.#newParticipantCode();
+      const researchCode = this.#newResearchCode();
       const createdAtIso = this.#nowIso();
       const artifactVersion = artifactVersionForCondition(assignment.condition, this.#versions);
 
@@ -177,7 +179,8 @@ export class StudyRepository {
           `INSERT INTO study_sessions (
             session_id,
             create_request_id,
-            participant_code,
+            research_code,
+            deletion_code_hash,
             condition,
             assignment_mode,
             study_version,
@@ -198,7 +201,8 @@ export class StudyRepository {
           ) VALUES (
             @sessionId,
             @requestId,
-            @participantCode,
+            @researchCode,
+            @deletionCodeHash,
             @condition,
             @assignmentMode,
             @studyVersion,
@@ -221,7 +225,8 @@ export class StudyRepository {
         .run({
           sessionId,
           requestId: request.requestId,
-          participantCode,
+          researchCode,
+          deletionCodeHash: request.deletionCodeHash,
           condition: assignment.condition,
           assignmentMode: this.#assignmentMode,
           studyVersion: this.#versions.study,
@@ -975,17 +980,17 @@ export class StudyRepository {
     }
   }
 
-  #newParticipantCode(): string {
+  #newResearchCode(): string {
     for (let attempt = 0; attempt < 20; attempt += 1) {
-      const participantCode = `PW-${this.#random.participantToken()}`;
+      const researchCode = `RS-${this.#random.researchToken()}`;
       const existing = countSchema.parse(
         this.#database
-          .prepare(`SELECT COUNT(*) AS count FROM study_sessions WHERE participant_code = ?`)
-          .get(participantCode),
+          .prepare(`SELECT COUNT(*) AS count FROM study_sessions WHERE research_code = ?`)
+          .get(researchCode),
       );
-      if (existing.count === 0) return participantCode;
+      if (existing.count === 0) return researchCode;
     }
-    throw new StudyRepositoryError('participant-code-unavailable', 500);
+    throw new StudyRepositoryError('research-code-unavailable', 500);
   }
 
   #completionStatus(sessionId: string): string {

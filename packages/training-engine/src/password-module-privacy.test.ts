@@ -8,7 +8,7 @@ function studyRuntimePorts(requestArguments: unknown[][]): StudyRuntimePorts {
   return {
     createSession: async () => ({
       sessionId: 'a185bbd8-2088-47d2-b45a-924c8d8778ea',
-      participantCode: 'PW-AB12CD34',
+      deletionCode: 'PW-AB12-CD34-EF56-7890',
       condition: 'supportive',
       assignmentMode: 'forced-supportive',
       guardrailFormId: 'F1',

@@ -3,6 +3,8 @@ import {
   type AssignmentMode,
   type CreateSessionResponse,
   createSessionResponseSchema,
+  type DeletionCode,
+  deletionCodeSchema,
   type GuardrailFormId,
   type InstrumentSubmissionFor,
   type InstrumentSubmissionRequest,
@@ -13,8 +15,16 @@ import {
 } from '@passwo/contracts';
 import { assign, fromCallback, fromPromise, setup } from 'xstate';
 
+export type StudySessionInitialization = CreateSessionResponse & {
+  readonly deletionCode: DeletionCode;
+};
+
+const studySessionInitializationSchema = createSessionResponseSchema
+  .extend({ deletionCode: deletionCodeSchema })
+  .strict();
+
 export interface StudyRuntimePorts {
-  createSession(followUpConsent: boolean): Promise<CreateSessionResponse>;
+  createSession(followUpConsent: boolean): Promise<StudySessionInitialization>;
   registerRecontact(sessionId: string, request: RegisterRecontactRequest): Promise<void>;
   abandonRecontact(sessionId: string): Promise<void>;
   saveInstrumentSubmission(
@@ -39,7 +49,7 @@ export interface ArtifactLifecycleInput {
 
 export interface StudyContext {
   readonly sessionId: string | null;
-  readonly participantCode: string | null;
+  readonly deletionCode: DeletionCode | null;
   readonly condition: StudyCondition | null;
   readonly assignmentMode: AssignmentMode | null;
   readonly guardrailFormId: GuardrailFormId | null;
@@ -115,7 +125,7 @@ export type StudyEvent =
 
 const initialContext: StudyContext = {
   sessionId: null,
-  participantCode: null,
+  deletionCode: null,
   condition: null,
   assignmentMode: null,
   guardrailFormId: null,
@@ -342,10 +352,12 @@ export function createStudyMachine(ports: StudyRuntimePorts) {
             : null,
       }),
       storeSession: assign(({ event }) => {
-        const output = createSessionResponseSchema.parse('output' in event ? event.output : null);
+        const output = studySessionInitializationSchema.parse(
+          'output' in event ? event.output : null,
+        );
         return {
           sessionId: output.sessionId,
-          participantCode: output.participantCode,
+          deletionCode: output.deletionCode,
           condition: output.condition,
           assignmentMode: output.assignmentMode,
           guardrailFormId: output.guardrailFormId,

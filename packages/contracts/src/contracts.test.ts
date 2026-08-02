@@ -23,6 +23,8 @@ import {
   studyTimingEventSchema,
 } from './index.js';
 
+const validDeletionCodeHash = 'a'.repeat(64);
+
 describe('research-safe contracts', () => {
   it('allows only approved session fields and excludes local training data', () => {
     const forbiddenPersonalizationField = ['display', 'Name'].join('');
@@ -30,6 +32,7 @@ describe('research-safe contracts', () => {
       requestId: 'f5d74d44-f700-4dc7-ac00-5e251a8890c3',
       consentAccepted: true,
       followUpConsent: false,
+      deletionCodeHash: validDeletionCodeHash,
       [forbiddenPersonalizationField]: 'Alex',
     });
 
@@ -52,6 +55,7 @@ describe('research-safe contracts', () => {
         requestId: 'f5d74d44-f700-4dc7-ac00-5e251a8890c3',
         consentAccepted: true,
         followUpConsent: false,
+        deletionCodeHash: validDeletionCodeHash,
         condition: 'supportive',
       }).success,
     ).toBe(false);
@@ -63,6 +67,7 @@ describe('research-safe contracts', () => {
         requestId: 'f5d74d44-f700-4dc7-ac00-5e251a8890c3',
         consentAccepted: true,
         followUpConsent: false,
+        deletionCodeHash: validDeletionCodeHash,
       }).success,
     ).toBe(true);
     expect(
@@ -70,6 +75,7 @@ describe('research-safe contracts', () => {
         requestId: 'f5d74d44-f700-4dc7-ac00-5e251a8890c3',
         consentAccepted: true,
         followUpConsent: true,
+        deletionCodeHash: validDeletionCodeHash,
         email: 'person@example.org',
       }).success,
     ).toBe(false);
@@ -79,7 +85,20 @@ describe('research-safe contracts', () => {
           requestId: 'f5d74d44-f700-4dc7-ac00-5e251a8890c3',
           consentAccepted: true,
           followUpConsent: true,
+          deletionCodeHash: validDeletionCodeHash,
           [forbiddenField]: 'not-allowed',
+        }).success,
+      ).toBe(false);
+    }
+
+    for (const forbiddenIdentityField of ['deletionCode', 'researchCode', 'researchId']) {
+      expect(
+        createSessionRequestSchema.safeParse({
+          requestId: 'f5d74d44-f700-4dc7-ac00-5e251a8890c3',
+          consentAccepted: true,
+          followUpConsent: true,
+          deletionCodeHash: validDeletionCodeHash,
+          [forbiddenIdentityField]: 'not-allowed',
         }).success,
       ).toBe(false);
     }
@@ -298,7 +317,7 @@ describe('research-safe contracts', () => {
 
   it('keeps researcher exports inside the approved data boundary', () => {
     const manifest = {
-      schemaVersion: 'research-export-v3',
+      schemaVersion: 'research-export-v4',
       exportedAtIso: '2026-07-24T12:00:00.000Z',
       runtimeManifestVersion: instrumentRuntimeManifest.runtimeManifestVersion,
       versions: {
@@ -322,7 +341,15 @@ describe('research-safe contracts', () => {
       }).success,
     ).toBe(false);
     expect(Object.keys(researchExportSessionRecordSchema.shape)).not.toEqual(
-      expect.arrayContaining(['email', 'rawToken', 'followUpTokenHash']),
+      expect.arrayContaining([
+        'sessionId',
+        'participantCode',
+        'deletionCode',
+        'deletionCodeHash',
+        'email',
+        'rawToken',
+        'followUpTokenHash',
+      ]),
     );
   });
 
@@ -333,12 +360,12 @@ describe('research-safe contracts', () => {
     );
     expect(instrumentRuntimeManifest.procedures.followUpRecontact.optional).toBe(true);
     expect(instrumentRuntimeManifest).toMatchObject({
-      instrumentVersion: '1.7.0-draft',
+      instrumentVersion: '1.8.0-draft',
       questionnaireVersion: 'questionnaire-v1.5-draft',
       guardrailVersion: 'guardrail-v3-draft',
-      consentVersion: 'consent-v4-draft',
+      consentVersion: 'consent-v5-draft',
       followUpVersion: 'follow-up-v3-draft',
-      runtimeManifestVersion: 'instrument-runtime-v1.7-draft',
+      runtimeManifestVersion: 'instrument-runtime-v1.8-draft',
     });
     const preItemIds = instrumentRuntimeManifest.instruments['pre-v1'].sections.flatMap((section) =>
       section.items.map((item) => item.id),
