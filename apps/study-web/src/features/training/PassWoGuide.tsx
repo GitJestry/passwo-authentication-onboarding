@@ -33,6 +33,12 @@ export interface PassWoGuideProps {
   readonly speechAction?: 'advance' | 'dismiss';
   readonly placement?: 'bottom-left' | 'center' | 'incident';
   readonly pose?: 'default' | 'warning';
+  /** Keeps the guide aligned with a currently explained browser tab. */
+  readonly guidedAccountId?: string | null;
+  /** Shows the task status alongside a currently visible speech bubble. */
+  readonly showTaskStatusWhenSpeaking?: boolean;
+  /** Marks the task status as complete and replaces its progress indicator. */
+  readonly taskComplete?: boolean;
   readonly showHelpButton?: boolean;
   readonly onToggleHelp?: () => void;
   readonly onSpeechAction?: () => void;
@@ -66,6 +72,9 @@ export function PassWoGuide({
   speechAction,
   placement = 'bottom-left',
   pose = 'default',
+  guidedAccountId = null,
+  showTaskStatusWhenSpeaking = false,
+  taskComplete = false,
   showHelpButton = true,
   onToggleHelp,
   onSpeechAction,
@@ -86,18 +95,20 @@ export function PassWoGuide({
     progress === undefined || progress.total <= 0
       ? 0
       : Math.min(100, Math.max(0, (progress.current / progress.total) * 100));
+  const showTaskStatus = !helpOpen || showTaskStatusWhenSpeaking;
 
   return (
     <aside
       ref={guideRef}
       className={styles.guide}
       data-placement={placement}
+      data-guided-account={guidedAccountId ?? undefined}
       aria-label={`${guideName} Begleitung`}
     >
       <div className={styles.guideDock}>
-        {!helpOpen ? (
+        {showTaskStatus ? (
           <div className={styles.guideToolbar}>
-            {showHelpButton ? (
+            {!helpOpen && showHelpButton ? (
               <button
                 type="button"
                 className={styles.infoButton}
@@ -111,8 +122,15 @@ export function PassWoGuide({
               </button>
             ) : null}
             <div className={styles.guideStatus}>
-              <strong>{taskLabel}</strong>
-              {progress === undefined ? null : (
+              <strong>
+                {taskLabel}
+                {taskComplete ? (
+                  <span className={styles.completeMark} role="img" aria-label="Abgeschlossen">
+                    ✓
+                  </span>
+                ) : null}
+              </strong>
+              {progress === undefined || taskComplete ? null : (
                 <div className={styles.taskProgress} aria-live="polite">
                   <span aria-hidden="true">
                     {progress.current}/{progress.total}

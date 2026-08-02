@@ -388,7 +388,7 @@ function ArtifactPreparation({ onStart }: { readonly onStart: () => void }) {
         </p>
         <p>
           Bearbeite die Inhalte aus dieser Perspektive aufmerksam und vollständig in deinem
-          eigenen Temp. Die Zusätzliche Informationen können dir helfen, die Inhalte genauer
+          eigenen Tempo. Die Zusätzliche Informationen können dir helfen, die Inhalte genauer
           einzuordnen und zu vertiefen.
         </p>
       </div>

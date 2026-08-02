@@ -119,6 +119,7 @@ export function S01Training({
   if (account === undefined) return null;
 
   const configuredCount = getConfiguredAccountCount(snapshot.context);
+  const allAccountsConfigured = configuredCount === s01Content.browser.accounts.length;
   const editing = snapshot.matches({ s01: 'editing' });
   const localTimingFailure = isLocalTimingFailure(snapshot);
   const initialTimingPending = snapshot.matches({ s01: 'starting' });
@@ -235,7 +236,11 @@ export function S01Training({
               )}
               <PassWoGuide
                 guideName={s01Content.completion.guideName}
-                taskLabel="Einrichten"
+                taskLabel={
+                  allAccountsConfigured ? s01Content.progress.completeStatus : 'Einrichten'
+                }
+                taskComplete={allAccountsConfigured}
+                showTaskStatusWhenSpeaking={allAccountsConfigured}
                 progress={{
                   current: configuredCount,
                   total: s01Content.browser.accounts.length,

@@ -219,58 +219,61 @@ export function S00Training({
                 className={styles.characterAnimationAnchor}
                 aria-hidden="true"
               />
-              <PassWoGuide
-                guideName={s00Content.narration.guideName}
-                taskLabel="Einrichten"
-                helpOpen={guideOpen}
-                helpId="s00-passwo-speech"
-                openHelpLabel={s00Content.narration.openGuideLabel}
-                speech={currentSpeechStep === undefined ? [] : [currentSpeechStep.text]}
-                speechKey={`s00-greeting-${displayName}-${speechRound}`}
-                speechEmphasis={passWoSpeechEmphasisFor(
-                  currentSpeechStep?.emphasisId ?? 's00.greeting',
-                )}
-                speechPlacement="right"
-                {...(isFinalSpeechStep ? {} : { speechAction: 'advance' as const })}
-                showHelpButton={false}
-                speechFooter={
-                  !isFinalSpeechStep ? undefined : activeTimingError === null ? (
-                    <>
-                      {animationError !== null ? (
-                        <p className={styles.animationError} role="status">
-                          {s00Content.controls.animationError}
+              {!guideOpen ? null : (
+                <PassWoGuide
+                  guideName={s00Content.narration.guideName}
+                  taskLabel="Einrichten"
+                  helpOpen={guideOpen}
+                  helpId="s00-passwo-speech"
+                  openHelpLabel={s00Content.narration.openGuideLabel}
+                  speech={currentSpeechStep === undefined ? [] : [currentSpeechStep.text]}
+                  speechKey={`s00-greeting-${displayName}-${speechRound}`}
+                  speechEmphasis={passWoSpeechEmphasisFor(
+                    currentSpeechStep?.emphasisId ?? 's00.greeting',
+                  )}
+                  speechPlacement="right"
+                  guidedAccountId={currentSpeechStep?.accountId}
+                  {...(isFinalSpeechStep ? {} : { speechAction: 'advance' as const })}
+                  showHelpButton={false}
+                  speechFooter={
+                    !isFinalSpeechStep ? undefined : activeTimingError === null ? (
+                      <>
+                        {animationError !== null ? (
+                          <p className={styles.animationError} role="status">
+                            {s00Content.controls.animationError}
+                          </p>
+                        ) : null}
+                        <div className={styles.buttonRow}>
+                          <button
+                            type="button"
+                            className={styles.primaryButton}
+                            disabled={!canContinue}
+                            onClick={continueMission}
+                          >
+                            {s00Content.controls.continue}
+                          </button>
+                        </div>
+                      </>
+                    ) : (
+                      <>
+                        <p className={styles.animationError} role="alert">
+                          Das Speichern des Zeitereignisses ist fehlgeschlagen. Der nächste Schritt
+                          bleibt gesperrt.
                         </p>
-                      ) : null}
-                      <div className={styles.buttonRow}>
-                        <button
-                          type="button"
-                          className={styles.primaryButton}
-                          disabled={!canContinue}
-                          onClick={continueMission}
-                        >
-                          {s00Content.controls.continue}
-                        </button>
-                      </div>
-                    </>
-                  ) : (
-                    <>
-                      <p className={styles.animationError} role="alert">
-                        Das Speichern des Zeitereignisses ist fehlgeschlagen. Der nächste Schritt
-                        bleibt gesperrt.
-                      </p>
-                      <p className={styles.continueReason}>Fehlercode: {activeTimingError}</p>
-                      <div className={styles.buttonRow}>
-                        <button type="button" className={styles.primaryButton} onClick={retryTiming}>
-                          Erneut versuchen
-                        </button>
-                      </div>
-                    </>
-                  )
-                }
-                onSpeechAction={() => {
-                  if (!isFinalSpeechStep) setSpeechRound((current) => current + 1);
-                }}
-              />
+                        <p className={styles.continueReason}>Fehlercode: {activeTimingError}</p>
+                        <div className={styles.buttonRow}>
+                          <button type="button" className={styles.primaryButton} onClick={retryTiming}>
+                            Erneut versuchen
+                          </button>
+                        </div>
+                      </>
+                    )
+                  }
+                  onSpeechAction={() => {
+                    if (!isFinalSpeechStep) setSpeechRound((current) => current + 1);
+                  }}
+                />
+              )}
             </>
           ),
         }}

@@ -95,6 +95,7 @@ export interface S01SegmentContent {
     readonly label: string;
     readonly accountRoleLabel: string;
     readonly status: (configuredCount: number) => string;
+    readonly completeStatus: string;
   };
   readonly quest: {
     readonly helpLabel: string;
@@ -119,7 +120,7 @@ export interface S01SegmentContent {
   };
 }
 
-export const S01_CONTENT_VERSION = '2.14.0';
+export const S01_CONTENT_VERSION = '2.14.1';
 
 const readyToContinueMessage =
   'Die drei Konten sind eingerichtet. Bevor du dich wieder anmeldest, betrachten wir sie aus einer anderen Perspektive: als Knoten-Netzwerk. So wird sichtbar, welche Dienste und Funktionen mit jedem Kontozugang verbunden sind. Schließe dafür bitte zunächst den Browser.';
@@ -363,6 +364,7 @@ export const s01Content: S01SegmentContent = {
     label: 'Einrichtungsfortschritt',
     accountRoleLabel: 'Wofür steht dieses Konto?',
     status: (configuredCount) => `Einrichten ${configuredCount}/3`,
+    completeStatus: 'Eingerichtet',
   },
   quest: {
     helpLabel: 'PassWo-Hinweis öffnen',
