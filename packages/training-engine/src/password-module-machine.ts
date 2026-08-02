@@ -60,7 +60,6 @@ export type PasswordModuleEvent =
   | { readonly type: 'S03_COMPLETION_FEEDBACK_CONTINUED' }
   | { readonly type: 'S03_CAMPUS_START_CONTINUED' }
   | { readonly type: 'S03_TIMELAPSE_COMPLETED' }
-  | { readonly type: 'S03_WARNING_ANNOUNCEMENT_COMPLETED' }
   | { readonly type: 'OPEN_INCIDENT_ACCOUNT'; readonly accountId: string }
   | { readonly type: 'S03_END_RECORDED' }
   | { readonly type: 'S03_END_FAILED'; readonly errorCode: string }
@@ -499,18 +498,10 @@ export const passwordModuleMachine = setup({
             timeLapseRunning: {
               on: {
                 S03_TIMELAPSE_COMPLETED: {
-                  target: '#passwordModule.s03.warningAnnouncement',
+                  target: '#passwordModule.s03.awaitingIncidentOpen',
                   actions: 'clearTimingError',
                 },
               },
-            },
-          },
-        },
-        warningAnnouncement: {
-          on: {
-            S03_WARNING_ANNOUNCEMENT_COMPLETED: {
-              target: 'awaitingIncidentOpen',
-              actions: 'clearTimingError',
             },
           },
         },

@@ -102,14 +102,12 @@ const emphasisBySpeechId: Readonly<Record<string, readonly PassWoSpeechEmphasis[
   's03.success': [{ phrase: 'wieder geöffnet', tone: 'positive' }],
   's03.assisted': [{ phrase: 'mit Unterstützung wieder geöffnet', tone: 'positive' }],
   's03.third-failed-login': [{ phrase: '„Passwort vergessen?“', tone: 'action' }],
-  's03.retrieval-help': [{ phrase: 'wieder abrufbar bleiben', tone: 'accent' }],
-  's03.completion.0': [{ phrase: 'stark und im Alltag abrufbar', tone: 'accent' }],
-  's03.completion.1': [{ phrase: 'Stärke allein reicht nicht', tone: 'warning' }],
-  's03.completion.2': [{ phrase: 'ein einzelnes schwer abrufbares Passwort', tone: 'warning' }],
-  's03.completion.3': [
-    { phrase: 'Abrufbarkeit ist nur eine von mehreren Anforderungen', tone: 'accent' },
-  ],
-  's03.warning': [{ phrase: 'Warnung', tone: 'warning' }],
+  's03.retrieval-help': [{ phrase: 'gerade nicht abrufbar', tone: 'accent' }],
+  's03.completion.0': [{ phrase: 'ohne Unterstützung abrufbar', tone: 'accent' }],
+  's03.completion.1': [{ phrase: 'ohne Unterstützung abrufbar', tone: 'accent' }],
+  's03.completion.2': [{ phrase: 'ohne Unterstützung abrufbar', tone: 'accent' }],
+  's03.completion.3': [{ phrase: 'ohne Unterstützung abrufbar', tone: 'accent' }],
+  's03.warning': [{ phrase: 'markierten Tab', tone: 'action' }],
 };
 
 export function passWoSpeechEmphasisFor(

@@ -132,11 +132,6 @@ export class PasswordModuleController {
     this.#actor.send({ type: 'S03_TIMELAPSE_COMPLETED' });
   }
 
-  completeS03WarningAnnouncement(): void {
-    if (!this.#actor.getSnapshot().matches({ s03: 'warningAnnouncement' })) return;
-    this.#actor.send({ type: 'S03_WARNING_ANNOUNCEMENT_COMPLETED' });
-  }
-
   openIncidentAccount(accountId: string): void {
     if (!this.#actor.getSnapshot().matches({ s03: 'awaitingIncidentOpen' })) return;
     this.#actor.send({ type: 'OPEN_INCIDENT_ACCOUNT', accountId });

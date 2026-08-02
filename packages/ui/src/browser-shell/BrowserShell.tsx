@@ -103,6 +103,7 @@ export interface BrowserShellSnapshot {
   readonly dimmed?: boolean;
   readonly dimStrength?: 'soft' | 'standard' | 'strong';
   readonly allowTabInteractionWhenDimmed?: boolean;
+  readonly tabActivation?: 'automatic' | 'manual';
   readonly highlightedTabId?: string;
   readonly highlightedWindowControl?: 'close';
   readonly locked?: boolean;
@@ -278,7 +279,7 @@ export function BrowserShell({
     const targetTab = tabStates[targetIndex];
     if (targetTab === undefined) return;
 
-    if (targetTab.enabled) {
+    if (targetTab.enabled && snapshot.tabActivation !== 'manual') {
       selectTab(targetTab.tab.id);
     } else {
       focusTab(targetTab.tab.id);

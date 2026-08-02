@@ -92,7 +92,7 @@ export interface S03SegmentContent {
   readonly animations: readonly S03AnimationSequence[];
 }
 
-export const S03_CONTENT_VERSION = '1.14.0';
+export const S03_CONTENT_VERSION = '1.15.0';
 
 const resultAnimation = (
   accountId: S01AccountId,
@@ -133,10 +133,10 @@ const animations = [
     id: 's03-completion-timeskip',
     steps: [
       { type: 'announce', messageId: 's03.completion.timeskip' },
-      { type: 'pause', durationMs: 5_000 },
+      { type: 'pause', durationMs: 4_000 },
     ],
     reducedMotion: { strategy: 'instant-end-state', maxDurationMs: 0 },
-    maxDurationMs: 5_000,
+    maxDurationMs: 4_000,
   },
 ] as const satisfies readonly S03AnimationSequence[];
 
@@ -145,7 +145,8 @@ export const s03Content: S03SegmentContent = {
   source: {
     document: 'research/private/training-script.pdf',
     internalPages: [8, 9, 10, 11],
-    revision: 'Userauftrag vom 2026-08-02 und UX-Konzeptboards vom 2026-07-31',
+    revision:
+      'Userauftrag vom 2026-08-02: Retrieval-Feedback gekürzt und Campusgram-Warnübergang an den Tab gebunden.',
   },
   segment: {
     id: 'S03',
@@ -158,7 +159,7 @@ export const s03Content: S03SegmentContent = {
   page: {
     title: 'Wieder anmelden',
     progress: (completed) => `Wieder anmelden: ${completed}/3 abgeschlossen`,
-    resultLine: 'Alle drei Konten sind wieder geöffnet. Gleich geht es weiter.',
+    resultLine: 'Alle drei Konten sind wieder geöffnet.',
   },
   controls: {
     accountDataLabel: 'Benutzername',
@@ -191,15 +192,16 @@ export const s03Content: S03SegmentContent = {
     thirdFailedLogin:
       'Wenn du dich nicht an das richtige Passwort erinnern kannst, klicke als Lösung auf „Passwort vergessen?“.',
     retrievalHelp:
-      'Keine Panik – dein fiktives Konto ist nicht verloren. Das zeigt aber: Ein Passwort muss nicht nur stark sein, sondern später auch wieder abrufbar bleiben.\n\nDass du dich nicht erinnern konntest, ist eine hilfreiche Beobachtung. Ich melde dich jetzt mit dem richtigen Passwort wieder an, damit wir unseren Campusalltag fortsetzen können.',
+      'Kein Problem. Dieses Passwort war gerade nicht abrufbar; ich unterstütze dich bei der Anmeldung.',
     completionByRememberedCount: {
-      0: 'Du konntest diesmal keines der drei Passwörter selbst abrufen. Das ist eine hilfreiche Beobachtung.\n\nAlle drei fiktiven Konten sind wieder geöffnet. Nimm mit: Ein Passwort muss stark und im Alltag abrufbar sein.',
-      1: 'Du konntest dich bei einem von drei Konten selbst wieder anmelden. Bei zwei Konten war Unterstützung nötig.\n\nAlle drei fiktiven Konten sind wieder geöffnet. Der Unterschied zeigt: Stärke allein reicht nicht, wenn ein Passwort im Alltag nicht abrufbar bleibt.',
-      2: 'Du konntest dich bei zwei von drei Konten selbst wieder anmelden. Bei einem Konto war Unterstützung nötig.\n\nAlle drei fiktiven Konten sind wieder geöffnet. Auch ein einzelnes schwer abrufbares Passwort kann den Alltag unterbrechen.',
-      3: 'Du konntest dich bei allen drei Konten selbst wieder anmelden. Deine drei Passwörter waren diesmal abrufbar.\n\nAlle drei fiktiven Konten sind wieder geöffnet. Behalte trotzdem im Blick: Abrufbarkeit ist nur eine von mehreren Anforderungen an ein Passwort.',
+      0: 'Alle drei Konten sind wieder geöffnet.\n\nKeines der drei Passwörter war ohne Unterstützung abrufbar.',
+      1: 'Alle drei Konten sind wieder geöffnet.\n\nEin Passwort war ohne Unterstützung abrufbar.',
+      2: 'Alle drei Konten sind wieder geöffnet.\n\nZwei Passwörter waren ohne Unterstützung abrufbar.',
+      3: 'Alle drei Konten sind wieder geöffnet.\n\nAlle drei Passwörter waren ohne Unterstützung abrufbar.',
     },
     campusStart: 'Wir können jetzt in Ruhe unseren Campusstart fortsetzen.',
-    warning: 'Bei Campusgram gibt es eine Warnung. Schau dort bitte nach.',
+    warning:
+      'Bei Campusgram ist eine Sicherheitsmeldung erschienen. Öffne den markierten Tab und schau sie dir an.',
   },
   accountLoginTitles: {
     'master-campus': 'Melde dich bei Master Campus an.',

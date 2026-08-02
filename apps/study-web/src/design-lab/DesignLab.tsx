@@ -533,7 +533,6 @@ function PasswordModuleSegmentPreview({
       previewController.completeS03TimeLapse();
       if (segment === 's03-warning') return;
 
-      previewController.completeS03WarningAnnouncement();
       previewController.openIncidentAccount('campusgram');
       await waitForPreviewState(
         previewController,

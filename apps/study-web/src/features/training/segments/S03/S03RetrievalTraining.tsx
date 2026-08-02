@@ -222,10 +222,8 @@ export function S03RetrievalTraining({
   const timeLapsePhaseActive = snapshot.matches({
     s03: { completionSequence: 'timeLapseRunning' },
   });
-  const warningAnnouncementActive = snapshot.matches({ s03: 'warningAnnouncement' });
   const awaitingIncidentOpen = snapshot.matches({ s03: 'awaitingIncidentOpen' });
   const campusgramWarningActive =
-    warningAnnouncementActive ||
     awaitingIncidentOpen ||
     snapshot.matches({ s03: 'writingEnd' }) ||
     snapshot.matches({ s03: 'endWriteFailed' });
@@ -238,8 +236,7 @@ export function S03RetrievalTraining({
     if (assistedLoginActive) assistedLoginButtonRef.current?.focus();
   }, [assistedLoginActive]);
 
-  const incidentTabAvailable =
-    (warningAnnouncementActive || awaitingIncidentOpen) && externalTimingError === null;
+  const incidentTabAvailable = awaitingIncidentOpen && externalTimingError === null;
 
   useEffect(() => {
     if (!incidentTabAvailable) return;
@@ -300,7 +297,6 @@ export function S03RetrievalTraining({
   const localTimingFailure = isLocalTimingFailure(snapshot);
   const completionSequenceActive =
     snapshot.matches({ s03: 'completionSequence' }) ||
-    warningAnnouncementActive ||
     awaitingIncidentOpen ||
     handoffActive;
   const interactionBlocked =
@@ -454,7 +450,9 @@ export function S03RetrievalTraining({
     scrollKey: `s03:${account.id}:${websiteView}`,
     dimmed: timeLapsePhaseActive || guideVisible,
     dimStrength: timeLapsePhaseActive ? 'standard' : 'soft',
-    ...(incidentTabAvailable ? { allowTabInteractionWhenDimmed: true } : {}),
+    ...(incidentTabAvailable
+      ? { allowTabInteractionWhenDimmed: true, tabActivation: 'manual' as const }
+      : {}),
     ...(campusgramWarningActive ? { highlightedTabId: 'campusgram' } : {}),
     locked: isStarting || timeLapsePhaseActive || s03EndWritePending,
   };
@@ -473,7 +471,6 @@ export function S03RetrievalTraining({
 
   function selectAccount(accountId: string): void {
     if (incidentTabAvailable && accountId === 'campusgram') {
-      if (warningAnnouncementActive) controller.completeS03WarningAnnouncement();
       controller.openIncidentAccount(accountId);
       return;
     }
@@ -807,9 +804,6 @@ export function S03RetrievalTraining({
           </CampusWebsiteBackdrop>
         </div>
       </BrowserShell>
-      {warningAnnouncementActive ? (
-        <span className={styles.warningFlashOverlay} aria-hidden="true" />
-      ) : null}
     </section>
   );
 }

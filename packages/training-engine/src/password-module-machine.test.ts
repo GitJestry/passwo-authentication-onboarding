@@ -49,7 +49,6 @@ function reachS03TimeLapse(actor: ReturnType<typeof createModuleActor>): void {
 function reachAwaitingIncidentOpen(actor: ReturnType<typeof createModuleActor>): void {
   reachS03TimeLapse(actor);
   actor.send({ type: 'S03_TIMELAPSE_COMPLETED' });
-  actor.send({ type: 'S03_WARNING_ANNOUNCEMENT_COMPLETED' });
 }
 
 function startS04(actor: ReturnType<typeof createModuleActor>): void {
@@ -70,7 +69,7 @@ describe('passwordModuleMachine', () => {
     expect(actor.getSnapshot().matches({ s01: 'ending' })).toBe(true);
   });
 
-  it('moves from the completed time lapse into the warning announcement', () => {
+  it('shows the Campusgram warning in an explicit state after the time lapse', () => {
     const actor = createModuleActor();
     configureAllAccounts(actor);
     startS03(actor);
@@ -82,18 +81,17 @@ describe('passwordModuleMachine', () => {
     );
     actor.send({ type: 'S03_TIMELAPSE_COMPLETED' });
 
-    expect(actor.getSnapshot().matches({ s03: 'warningAnnouncement' })).toBe(true);
+    expect(actor.getSnapshot().matches({ s03: 'awaitingIncidentOpen' })).toBe(true);
   });
 
-  it('enables the incident account only after the warning announcement completes', () => {
+  it('does not auto-transition from the Campusgram warning', async () => {
     const actor = createModuleActor();
     configureAllAccounts(actor);
     startS03(actor);
     for (const accountId of accountIds) completeAssistedLogin(actor, accountId);
     reachS03TimeLapse(actor);
     actor.send({ type: 'S03_TIMELAPSE_COMPLETED' });
-
-    actor.send({ type: 'S03_WARNING_ANNOUNCEMENT_COMPLETED' });
+    await new Promise<void>((resolve) => queueMicrotask(resolve));
 
     expect(actor.getSnapshot().matches({ s03: 'awaitingIncidentOpen' })).toBe(true);
   });
@@ -110,7 +108,7 @@ describe('passwordModuleMachine', () => {
     expect(actor.getSnapshot().matches({ s03: 'awaitingIncidentOpen' })).toBe(true);
   });
 
-  it('accepts the first Campusgram activation once and ignores later activations', () => {
+  it('starts S04 only through the Campusgram tab activation', () => {
     const actor = createModuleActor();
     configureAllAccounts(actor);
     startS03(actor);

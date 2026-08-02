@@ -32,7 +32,6 @@ function reachAwaitingIncidentOpen(controller: PasswordModuleController): void {
   controller.continueS03CompletionFeedback();
   controller.continueS03CampusStart();
   controller.completeS03TimeLapse();
-  controller.completeS03WarningAnnouncement();
 }
 
 const evaluationInput: S07RecommendationProjectionInput = {

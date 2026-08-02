@@ -110,7 +110,6 @@ describe('password module privacy boundary', () => {
     controller.continueS03CompletionFeedback();
     controller.continueS03CampusStart();
     controller.completeS03TimeLapse();
-    controller.completeS03WarningAnnouncement();
     controller.openIncidentAccount('campusgram');
     await flushMicrotasks();
     await flushMicrotasks();
