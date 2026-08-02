@@ -9,7 +9,8 @@ import {
   type CSSProperties,
   type PointerEvent,
 } from 'react';
-import passWoDockAsset from '../../../../assets/passwo/passwo-dock.png';
+import passWoThinkAsset from '../../../../assets/passwo/passwo-dock.png';
+import passWoWaitingAsset from '../../../../assets/passwo/passwo-waiting.png';
 import { NetworkMotionAdapter } from '../../../../adapters/network/NetworkMotionAdapter.js';
 import {
   ReactFlowNetwork,
@@ -61,7 +62,6 @@ interface OverlayPosition {
 }
 
 interface OverlayLayout {
-  readonly guide: OverlayPosition | null;
   readonly preview: OverlayPosition | null;
 }
 
@@ -276,15 +276,17 @@ export function S02AccountExplorationTraining({
   const [runtime, setRuntime] = useState<Runtime | null>(null);
   const [snapshot, setSnapshot] = useState<S02AccountExplorationControllerSnapshot | null>(null);
   const [overlayLayout, setOverlayLayout] = useState<OverlayLayout>({
-    guide: null,
     preview: null,
   });
+  const [guideOpen, setGuideOpen] = useState(true);
   const [returningToBrowser, setReturningToBrowser] = useState(false);
   const guideSpeechPosition = usePassWoSpeechPosition({
     ownerRef: guideRef,
     characterRef: passWoRef,
     speechRef: guideSpeechRef,
-    enabled: snapshot !== null,
+    enabled: snapshot !== null && guideOpen,
+    obstacleSelector:
+      '[data-scene-node][data-visible="true"], [data-guide-toolbar], nav[aria-label="Desktop-Apps"]',
     positionKey: `${snapshot?.scene.activeAccountId ?? 'none'}-${snapshot?.scene.narrationId ?? 'none'}-${snapshot?.presentation.character.placement ?? 'none'}`,
   });
   const cursorKeyActiveAccountId = snapshot?.scene.activeAccountId ?? null;
@@ -421,45 +423,7 @@ export function S02AccountExplorationTraining({
       const nodeObstacles = visibleElements.map((element) =>
         relativeBounds(element.getBoundingClientRect(), layoutRect, 10),
       );
-      const activeAccountViewed =
-        activeAccountId !== null &&
-        (snapshot?.scene.viewedAccountIds.includes(activeAccountId) ?? false);
-
-      let guide: OverlayPosition | null = null;
       const guideElement = guideRef.current;
-      const accountElement =
-        activeAccountId === null
-          ? null
-          : networkElement.querySelector<HTMLElement>(
-              `[data-scene-node-button="${activeAccountId}"]`,
-            );
-      if (
-        activeAccountId !== null &&
-        guideElement !== null &&
-        accountElement !== null &&
-        !activeAccountViewed
-      ) {
-        const guideRect = guideElement.getBoundingClientRect();
-        const accountBounds = relativeBounds(
-          accountElement.getBoundingClientRect(),
-          layoutRect,
-          14,
-        );
-        const candidate = calculatePassWoSpeechPosition({
-          anchor: accountBounds,
-          bubble: { width: guideRect.width, height: guideRect.height },
-          boundary: { left: 0, top: 0, right: layoutRect.width, bottom: availableBottom },
-          obstacles: nodeObstacles,
-          gap: 20,
-          margin,
-        });
-        guide = {
-          anchorId: activeAccountId,
-          left: candidate.left,
-          top: candidate.top,
-          side: candidate.side,
-        };
-      }
 
       let preview: OverlayPosition | null = null;
       const previewElement = previewRef.current;
@@ -477,15 +441,10 @@ export function S02AccountExplorationTraining({
           14,
         );
         const guideObstacle =
-          guide === null || guideElement === null
+          guideElement === null
             ? []
             : [
-                {
-                  left: guide.left - 14,
-                  top: guide.top - 14,
-                  right: guide.left + guideElement.offsetWidth + 14,
-                  bottom: guide.top + guideElement.offsetHeight + 14,
-                },
+                relativeBounds(guideElement.getBoundingClientRect(), layoutRect, 14),
               ];
         const candidate = calculatePassWoSpeechPosition({
           anchor: previewAnchorBounds,
@@ -504,9 +463,7 @@ export function S02AccountExplorationTraining({
       }
 
       setOverlayLayout((current) =>
-        samePosition(current.guide, guide) && samePosition(current.preview, preview)
-          ? current
-          : { guide, preview },
+        samePosition(current.preview, preview) ? current : { preview },
       );
     };
 
@@ -592,16 +549,9 @@ export function S02AccountExplorationTraining({
   const previewStyle: CSSProperties | undefined = positionedPreview
     ? { left: positionedPreview.left, top: positionedPreview.top }
     : undefined;
-  const positionedGuide =
-    scene.activeAccountId !== null &&
-    overlayLayout.guide?.anchorId === scene.activeAccountId
-      ? overlayLayout.guide
-      : null;
-  const guideStyle: CSSProperties | undefined = positionedGuide
-    ? { left: positionedGuide.left, top: positionedGuide.top }
-    : undefined;
   const keyVisible =
     !returningToBrowser &&
+    !guideOpen &&
     snapshot.introState === 'complete' &&
     (scene.activeAccountId === null || activeAccountViewed);
 
@@ -657,9 +607,6 @@ export function S02AccountExplorationTraining({
             onClick: returnToBrowser,
           }}
         >
-          <p className={styles.accountProgress}>
-            {s02Content.page.globalProgress(viewedCount)}
-          </p>
           <div ref={networkHostRef} className={styles.networkPanel}>
             <ReactFlowNetwork
               adapter={renderer}
@@ -724,37 +671,74 @@ export function S02AccountExplorationTraining({
             ref={guideRef}
             className={styles.guide}
             data-guide-cluster
-            data-positioned={positionedGuide !== null}
-            data-passwo-placement={presentation.character.placement}
-            style={guideStyle}
           >
+            <div className={styles.guideToolbar} data-guide-toolbar>
+              {guideOpen ? null : (
+                <button
+                  type="button"
+                  className={styles.infoButton}
+                  aria-expanded={false}
+                  aria-controls="s02-task-help"
+                  aria-label={s02Content.page.openTaskHelp}
+                  title={s02Content.page.openTaskHelp}
+                  onClick={() => setGuideOpen(true)}
+                >
+                  <span aria-hidden="true">?</span>
+                </button>
+              )}
+              <div className={styles.guideStatus}>
+                <strong>{s02Content.page.eyebrow}</strong>
+                <div className={styles.taskProgress} aria-live="polite">
+                  <span aria-hidden="true">
+                    {viewedCount}/{definition.accounts.length}
+                  </span>
+                  <span
+                    className={styles.progressTrack}
+                    role="progressbar"
+                    aria-label={s02Content.page.globalProgress(viewedCount)}
+                    aria-valuemin={0}
+                    aria-valuemax={definition.accounts.length}
+                    aria-valuenow={viewedCount}
+                  >
+                    <span
+                      style={{ width: `${(viewedCount / definition.accounts.length) * 100}%` }}
+                    />
+                  </span>
+                </div>
+              </div>
+            </div>
             <div className={styles.passWo}>
               <img
                 ref={passWoRef}
                 className={styles.passWoImage}
                 data-passwo-character
-                src={passWoDockAsset}
+                data-speaking={guideOpen || undefined}
+                src={guideOpen ? passWoThinkAsset : passWoWaitingAsset}
                 alt={s02Content.accessibility.characterLabel}
               />
             </div>
-            <div
-              ref={guideSpeechRef}
-              className={styles.speechSlot}
-              data-positioned={guideSpeechPosition !== null}
-              style={passWoSpeechPositionStyle(guideSpeechPosition)}
-            >
-              <PassWoSpeechBubble
-                className={styles.narration}
-                speaker={s02Content.narration.guideName}
-                paragraphs={[narration]}
-                speechKey={speechKey}
-                emphasis={passWoSpeechEmphasisFor(narrationId)}
-                placement={guideSpeechPosition?.side ?? 'right'}
-                {...(guideSpeechPosition === null
-                  ? {}
-                  : { arrowOffset: guideSpeechPosition.arrowOffset })}
-              />
-            </div>
+            {guideOpen ? (
+              <div
+                ref={guideSpeechRef}
+                id="s02-task-help"
+                className={styles.speechSlot}
+                data-positioned={guideSpeechPosition !== null}
+                style={passWoSpeechPositionStyle(guideSpeechPosition)}
+              >
+                <PassWoSpeechBubble
+                  className={styles.narration}
+                  speaker={s02Content.narration.guideName}
+                  paragraphs={[narration]}
+                  speechKey={speechKey}
+                  emphasis={passWoSpeechEmphasisFor(narrationId)}
+                  placement={guideSpeechPosition?.side ?? 'right'}
+                  action={{ kind: 'dismiss', onAction: () => setGuideOpen(false) }}
+                  {...(guideSpeechPosition === null
+                    ? {}
+                    : { arrowOffset: guideSpeechPosition.arrowOffset })}
+                />
+              </div>
+            ) : null}
           </div>
 
           {complete ? null : (

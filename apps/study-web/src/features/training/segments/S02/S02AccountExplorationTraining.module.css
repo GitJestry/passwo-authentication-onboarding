@@ -23,26 +23,12 @@
 .networkPanel {
   position: absolute;
   z-index: 1;
-  inset: 0 0 clamp(10.5rem, 21vh, 12.5rem);
+  inset: 0 0 clamp(12.5rem, 23vh, 13rem);
   min-width: 0;
 }
 
-.accountProgress {
-  position: absolute;
-  z-index: 5;
-  top: var(--space-4);
-  left: 50%;
-  margin: 0;
-  padding: 0.48rem 0.82rem;
-  border: 1px solid rgb(73 111 145 / 20%);
-  border-radius: var(--radius-round);
-  color: #264964;
-  background: rgb(255 255 255 / 82%);
-  box-shadow: 0 0.45rem 1.2rem rgb(39 72 104 / 12%);
-  font-size: 0.76rem;
-  font-weight: 760;
-  transform: translateX(-50%);
-  backdrop-filter: blur(0.65rem);
+:global([data-platform="linux"]) .networkPanel {
+  left: 5.25rem;
 }
 
 .preview {
@@ -610,18 +596,14 @@
 .guide {
   position: absolute;
   z-index: 6;
-  bottom: 4.8rem;
+  bottom: 2.25rem;
   left: clamp(var(--space-4), 3vw, var(--space-7));
-  width: var(--size-passwo-speaking-width);
-  transition:
-    top 520ms var(--motion-ease-out),
-    left 520ms var(--motion-ease-out);
-  will-change: top, left;
+  width: 10.08rem;
+  pointer-events: none;
 }
 
-.guide[data-positioned="true"] {
-  right: auto;
-  bottom: auto;
+:global([data-platform="linux"]) .guide {
+  left: 5.25rem;
 }
 
 .passWo {
@@ -633,16 +615,104 @@
 
 .passWoImage {
   display: block;
+  width: 10.08rem;
+  height: 9.36rem;
+  object-fit: contain;
+  object-position: center bottom;
+  filter: drop-shadow(0 0.9rem 1.1rem color-mix(in srgb, #476581 24%, transparent));
+}
+
+.passWoImage[data-speaking="true"] {
   width: var(--size-passwo-speaking-width);
   height: var(--size-passwo-speaking-height);
-  object-fit: contain;
-  filter: drop-shadow(0 0.9rem 1.1rem color-mix(in srgb, #476581 24%, transparent));
+}
+
+.guideToolbar {
+  position: absolute;
+  z-index: 3;
+  top: -2.25rem;
+  left: 0;
+  display: flex;
+  align-items: center;
+  gap: 0.28rem;
+  pointer-events: auto;
+}
+
+.infoButton {
+  display: grid;
+  width: 1.45rem;
+  height: 1.45rem;
+  place-items: center;
+  padding: 0;
+  border: var(--border-width-thin) solid var(--color-border);
+  border-radius: var(--radius-round);
+  color: var(--color-accent-strong);
+  background: var(--color-surface-primary);
+  box-shadow: var(--shadow-card);
+  font: inherit;
+  font-family: ui-serif, Georgia, serif;
+  font-size: 0.74rem;
+  font-weight: var(--font-weight-heavy);
+  cursor: pointer;
+}
+
+.infoButton:focus-visible {
+  outline: var(--border-width-focus) solid var(--color-focus);
+  outline-offset: var(--space-1);
+  box-shadow: var(--shadow-focus);
+}
+
+.guideStatus {
+  display: grid;
+  min-width: 8.6rem;
+  gap: 0.18rem;
+  padding: 0.22rem 0.5rem 0.3rem;
+  border: var(--border-width-thin) solid var(--color-border-soft);
+  border-radius: 0.72rem;
+  color: var(--color-ink-strong);
+  background: color-mix(in srgb, var(--color-surface-primary) 94%, transparent);
+  box-shadow: var(--shadow-card);
+  backdrop-filter: blur(0.6rem);
+}
+
+.guideStatus strong {
+  font-size: 0.7rem;
+  font-weight: var(--font-weight-heavy);
+  line-height: 1;
+}
+
+.taskProgress {
+  display: grid;
+  grid-template-columns: auto minmax(2.5rem, 1fr);
+  align-items: center;
+  gap: 0.3rem;
+  color: var(--color-ink-muted);
+  font-size: 0.55rem;
+  font-variant-numeric: tabular-nums;
+  font-weight: var(--font-weight-heavy);
+  line-height: 1;
+}
+
+.progressTrack {
+  display: block;
+  height: 0.28rem;
+  overflow: hidden;
+  border-radius: var(--radius-round);
+  background: var(--color-border-soft);
+}
+
+.progressTrack > span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--color-accent-strong);
+  transition: width var(--motion-standard) var(--motion-ease-out);
 }
 
 .narration {
   position: relative;
   z-index: 1;
-  width: clamp(20rem, 29vw, 28rem);
+  width: clamp(20rem, 28vw, 22rem);
   min-width: 0;
   pointer-events: auto;
 }
@@ -650,7 +720,7 @@
 .speechSlot {
   position: absolute;
   z-index: 2;
-  width: clamp(20rem, 29vw, 28rem);
+  width: clamp(20rem, 28vw, 22rem);
   pointer-events: auto;
   opacity: 0;
 }
@@ -661,7 +731,7 @@
 
 .characterAnimationAnchor {
   position: absolute;
-  bottom: 4.8rem;
+  bottom: 2.25rem;
   left: clamp(var(--space-4), 3vw, var(--space-7));
   width: 1px;
   height: 1px;
@@ -961,17 +1031,18 @@
 
   .guide {
     right: auto;
-    bottom: 4.6rem;
+    bottom: 2.4rem;
     left: var(--space-3);
-    width: var(--size-passwo-speaking-width);
-  }
-
-  .guide[data-positioned="true"] {
-    right: auto;
+    width: 7.25rem;
   }
 
   .passWo {
     width: 100%;
+  }
+
+  .passWoImage {
+    width: 7rem;
+    height: 7rem;
   }
 
   .narration {
@@ -997,6 +1068,7 @@
 
 @media (prefers-reduced-motion: reduce) {
   .guide,
+  .progressTrack > span,
   .preview,
   .coreActionOverlay {
     transition: none;

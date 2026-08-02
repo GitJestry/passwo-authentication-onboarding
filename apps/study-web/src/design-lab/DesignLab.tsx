@@ -17,6 +17,7 @@ import {
   type BrowserShellLayers,
   type BrowserShellSnapshot,
   type BrowserTabModel,
+  type DesktopPlatform,
 } from '@passwo/ui';
 import { useEffect, useState } from 'react';
 import { S00Training } from '../features/training/S00Training.js';
@@ -67,6 +68,13 @@ function readCampusWebsitePreview(): {
   const view =
     requestedView === 'auth' || requestedView === 'dashboard' ? requestedView : 'landing';
   return { accountId, view };
+}
+
+function readDesktopPlatform(): DesktopPlatform {
+  const requestedPlatform = new URLSearchParams(window.location.search).get('platform');
+  return requestedPlatform === 'windows' || requestedPlatform === 'linux'
+    ? requestedPlatform
+    : 'mac';
 }
 
 const overviewTab: BrowserTabModel = {
@@ -647,7 +655,7 @@ export function DesignLab({ scenarioId }: { readonly scenarioId: DesignLabScenar
     return (
       <main className={styles.labPage}>
         <DesignLabIntroduction scenarioId={scenarioId} scenario={scenario} />
-        <S02AccountExplorationTraining />
+        <S02AccountExplorationTraining platform={readDesktopPlatform()} />
       </main>
     );
   }

@@ -44,6 +44,7 @@ export interface UsePassWoSpeechPositionOptions {
   readonly enabled: boolean;
   readonly positionKey: string;
   readonly preferredSides?: readonly PassWoSpeechSide[];
+  readonly obstacleSelector?: string;
 }
 
 function clamp(value: number, minimum: number, maximum: number): number {
@@ -164,6 +165,7 @@ export function usePassWoSpeechPosition({
   enabled,
   positionKey,
   preferredSides,
+  obstacleSelector,
 }: UsePassWoSpeechPositionOptions): PassWoSpeechPosition | null {
   const [position, setPosition] = useState<PassWoSpeechPosition | null>(null);
 
@@ -183,6 +185,7 @@ export function usePassWoSpeechPosition({
     const boundary =
       owner.closest<HTMLElement>('[data-browser-layer="passwo"]') ?? owner.parentElement;
     if (boundary === null) return;
+    const obstacleRoot = boundary.closest<HTMLElement>('[data-platform]') ?? boundary;
 
     let frame: number | null = null;
     let trackingMotion = false;
@@ -193,11 +196,17 @@ export function usePassWoSpeechPosition({
       const speechRect = speech.getBoundingClientRect();
       const boundaryRect = boundary.getBoundingClientRect();
       if (speechRect.width === 0 || speechRect.height === 0) return;
-
+      const obstacles =
+        obstacleSelector === undefined
+          ? []
+          : [...obstacleRoot.querySelectorAll<HTMLElement>(obstacleSelector)]
+              .filter((element) => element !== owner && !owner.contains(element))
+              .map((element) => rectangleFromDomRect(element.getBoundingClientRect()));
       const next = calculatePassWoSpeechPosition({
         anchor: rectangleFromDomRect(characterRect),
         bubble: { width: speechRect.width, height: speechRect.height },
         boundary: rectangleFromDomRect(boundaryRect),
+        obstacles,
         ...(preferredSides === undefined ? {} : { preferredSides }),
       });
       const relativePosition = {
@@ -231,7 +240,7 @@ export function usePassWoSpeechPosition({
     observer.observe(character);
     observer.observe(speech);
     const layoutObserver = new MutationObserver(scheduleUpdate);
-    layoutObserver.observe(boundary, {
+    layoutObserver.observe(obstacleRoot, {
       childList: true,
       subtree: true,
       attributes: true,
@@ -260,7 +269,15 @@ export function usePassWoSpeechPosition({
       character.removeEventListener('animationcancel', stopTrackingMotion);
       if (frame !== null) cancelAnimationFrame(frame);
     };
-  }, [characterRef, enabled, ownerRef, positionKey, preferredSides, speechRef]);
+  }, [
+    characterRef,
+    enabled,
+    obstacleSelector,
+    ownerRef,
+    positionKey,
+    preferredSides,
+    speechRef,
+  ]);
 
   return position;
 }

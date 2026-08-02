@@ -132,6 +132,7 @@ export interface S02SegmentContent {
     readonly eyebrow: string;
     readonly title: string;
     readonly globalProgress: (viewed: number) => string;
+    readonly openTaskHelp: string;
     readonly previewTitle: string;
     readonly completion: string;
   };
@@ -175,7 +176,7 @@ export interface S02SegmentContent {
   readonly animations: readonly S02AnimationSequence[];
 }
 
-export const S02_CONTENT_VERSION = '4.1.0';
+export const S02_CONTENT_VERSION = '4.3.0';
 
 const introId = 's02.accounts.intro';
 const introReadyId = 's02.accounts.intro-ready';
@@ -186,7 +187,7 @@ const accounts = [
     id: 'master-campus',
     label: 'Master Campus',
     symbolId: 'master-campus',
-    position: { x: 0.12, y: 0.08 },
+    position: { x: 0.42, y: 0.25 },
     detailKind: 'service',
     edgeKind: 'dependency',
     edgeLabel: 'Mit Master Campus geöffnet',
@@ -220,7 +221,7 @@ const accounts = [
         label: 'Campus Workspace',
         symbolId: 'campus-workspace',
         preview: { kind: 'campus-workspace' },
-        position: { x: 0.03, y: 0.4 },
+        position: { x: 0.25, y: 0.1 },
         descriptions: {
           available: 'Optionale Vorschau öffnen',
           opened: 'Vorschau erneut öffnen',
@@ -231,7 +232,7 @@ const accounts = [
         label: 'Campus Services',
         symbolId: 'campus-services',
         preview: { kind: 'campus-services' },
-        position: { x: 0.22, y: 0.58 },
+        position: { x: 0.26, y: 0.31 },
         descriptions: {
           available: 'Optionale Vorschau öffnen',
           opened: 'Vorschau erneut öffnen',
@@ -242,7 +243,7 @@ const accounts = [
         label: 'Campus Cloud',
         symbolId: 'campus-cloud',
         preview: { kind: 'campus-cloud' },
-        position: { x: 0.04, y: 0.79 },
+        position: { x: 0.18, y: 0.36 },
         descriptions: {
           available: 'Optionale Vorschau öffnen',
           opened: 'Vorschau erneut öffnen',
@@ -254,7 +255,7 @@ const accounts = [
     id: 'campus-email',
     label: 'Campus E-Mail',
     symbolId: 'campus-email',
-    position: { x: 0.72, y: 0.06 },
+    position: { x: 0.42, y: 0.77 },
     detailKind: 'function',
     edgeKind: 'association',
     edgeLabel: 'In Campus E-Mail',
@@ -288,7 +289,7 @@ const accounts = [
         label: 'Benachrichtigungen',
         symbolId: 'notifications',
         preview: { kind: 'mail-list' },
-        position: { x: 0.87, y: 0.34 },
+        position: { x: 0.18, y: 0.58 },
         descriptions: {
           available: 'Optionale Vorschau öffnen',
           opened: 'Vorschau erneut öffnen',
@@ -299,7 +300,7 @@ const accounts = [
         label: 'Bestätigungen',
         symbolId: 'confirmations',
         preview: { kind: 'confirmation' },
-        position: { x: 0.67, y: 0.36 },
+        position: { x: 0.32, y: 0.58 },
         descriptions: {
           available: 'Optionale Vorschau öffnen',
           opened: 'Vorschau erneut öffnen',
@@ -310,7 +311,7 @@ const accounts = [
         label: 'Zurücksetzungslinks',
         symbolId: 'reset-links',
         preview: { kind: 'reset-link' },
-        position: { x: 0.87, y: 0.7 },
+        position: { x: 0.18, y: 0.81 },
         descriptions: {
           available: 'Optionale Vorschau öffnen',
           opened: 'Vorschau erneut öffnen',
@@ -321,7 +322,7 @@ const accounts = [
         label: 'Nachrichten schreiben',
         symbolId: 'compose-message',
         preview: { kind: 'compose' },
-        position: { x: 0.67, y: 0.74 },
+        position: { x: 0.32, y: 0.81 },
         descriptions: {
           available: 'Optionale Vorschau öffnen',
           opened: 'Vorschau erneut öffnen',
@@ -333,7 +334,7 @@ const accounts = [
     id: 'campusgram',
     label: 'Campusgram',
     symbolId: 'campusgram',
-    position: { x: 0.43, y: 0.34 },
+    position: { x: 0.8, y: 0.5 },
     detailKind: 'content',
     edgeKind: 'association',
     edgeLabel: 'In Campusgram',
@@ -367,7 +368,7 @@ const accounts = [
         label: 'Direktnachrichten',
         symbolId: 'direct-messages',
         preview: { kind: 'direct-messages' },
-        position: { x: 0.27, y: 0.76 },
+        position: { x: 0.66, y: 0.82 },
         descriptions: {
           available: 'Optionale Vorschau öffnen',
           opened: 'Vorschau erneut öffnen',
@@ -378,7 +379,7 @@ const accounts = [
         label: 'Gruppen und Kontakte',
         symbolId: 'groups-contacts',
         preview: { kind: 'groups-contacts' },
-        position: { x: 0.46, y: 0.81 },
+        position: { x: 0.8, y: 0.82 },
         descriptions: {
           available: 'Optionale Vorschau öffnen',
           opened: 'Vorschau erneut öffnen',
@@ -389,7 +390,7 @@ const accounts = [
         label: 'Beiträge und Reaktionen',
         symbolId: 'posts-reactions',
         preview: { kind: 'posts-reactions' },
-        position: { x: 0.52, y: 0.58 },
+        position: { x: 0.94, y: 0.82 },
         descriptions: {
           available: 'Optionale Vorschau öffnen',
           opened: 'Vorschau erneut öffnen',
@@ -494,6 +495,7 @@ export const s02Content: S02SegmentContent = {
     eyebrow: 'Konten kennenlernen',
     title: 'Drei Konten erkunden',
     globalProgress: (viewed) => `Konten kennenlernen: ${viewed}/3 angesehen`,
+    openTaskHelp: 'Aufgabe noch einmal anzeigen',
     previewTitle: 'Optionale Vorschau',
     completion: 'Alle drei Konten angesehen',
   },

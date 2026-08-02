@@ -41,18 +41,33 @@
 }
 
 .nodeFrame[data-variant="account-map"][data-size="main"] {
-  --node-visual-width: 128px;
-  --node-visual-height: 128px;
+  --node-visual-width: 102px;
+  --node-visual-height: 102px;
 }
 
 .nodeFrame[data-variant="account-map"][data-size="detail"]:not([data-node-shape="rounded-rectangle"]) {
-  --node-visual-width: 92px;
-  --node-visual-height: 92px;
+  --node-visual-width: 74px;
+  --node-visual-height: 74px;
 }
 
 .nodeFrame[data-variant="account-map"][data-node-shape="rounded-rectangle"] {
-  --node-visual-width: 116px;
-  --node-visual-height: 78px;
+  --node-visual-width: 93px;
+  --node-visual-height: 62px;
+}
+
+.nodeFrame[data-variant="account-map"][data-compact="true"][data-size="main"] {
+  --node-visual-width: 87px;
+  --node-visual-height: 87px;
+}
+
+.nodeFrame[data-variant="account-map"][data-compact="true"][data-size="detail"]:not([data-node-shape="rounded-rectangle"]) {
+  --node-visual-width: 63px;
+  --node-visual-height: 63px;
+}
+
+.nodeFrame[data-variant="account-map"][data-compact="true"][data-node-shape="rounded-rectangle"] {
+  --node-visual-width: 79px;
+  --node-visual-height: 53px;
 }
 
 .nodeFrame[data-visible="false"] {
@@ -230,8 +245,8 @@
 }
 
 .nodeFrame[data-variant="account-map"] .nodeSymbol {
-  width: 62%;
-  height: 62%;
+  width: 58%;
+  height: 58%;
 }
 
 .lockSymbol {
@@ -388,11 +403,22 @@
   box-shadow: 0 0.4rem 1rem color-mix(in srgb, #426889 10%, transparent);
   line-height: 1.15;
   backdrop-filter: blur(0.5rem);
+  font-size: 0.6rem;
 }
 
 .nodeFrame[data-size="detail"] .nodeLabel {
   max-width: 9.5rem;
   font-size: 0.65rem;
+}
+
+.nodeFrame[data-variant="account-map"][data-size="detail"] .nodeLabel {
+  max-width: 7.6rem;
+  font-size: 0.52rem;
+}
+
+.nodeFrame[data-variant="account-map"][data-compact="true"] .nodeLabel {
+  max-width: 6.6rem;
+  font-size: 0.48rem;
 }
 
 .handle {

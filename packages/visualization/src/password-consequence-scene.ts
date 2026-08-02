@@ -61,17 +61,29 @@ export interface PasswordConsequenceScenePlan {
 }
 
 const accountPositions = {
-  campusgram: { x: 0.08, y: 0.34 },
-  'master-campus': { x: 0.42, y: 0.16 },
-  'campus-email': { x: 0.72, y: 0.4 },
+  campusgram: { x: 0.8, y: 0.5 },
+  'master-campus': { x: 0.32, y: 0.2 },
+  'campus-email': { x: 0.32, y: 0.72 },
 } as const;
 
-const detailOffsets = [
-  { x: -0.05, y: 0.34 },
-  { x: 0.04, y: 0.43 },
-  { x: 0.13, y: 0.34 },
-  { x: 0.22, y: 0.43 },
-] as const;
+const detailOffsets = {
+  'master-campus': [
+    { x: -0.27, y: -0.15 },
+    { x: -0.1, y: 0 },
+    { x: -0.24, y: 0.11 },
+  ],
+  'campus-email': [
+    { x: -0.24, y: -0.19 },
+    { x: -0.1, y: -0.19 },
+    { x: -0.24, y: 0.04 },
+    { x: -0.1, y: 0.04 },
+  ],
+  campusgram: [
+    { x: -0.14, y: 0.32 },
+    { x: 0, y: 0.32 },
+    { x: 0.14, y: 0.32 },
+  ],
+} as const satisfies Readonly<Record<S06AccountId, readonly { x: number; y: number }[]>>;
 
 function accountById(
   accounts: readonly S06LocalAccountAnalysis[],
@@ -139,7 +151,7 @@ function createBaseNetwork(
       selectable: false,
     });
     definition.details.forEach((detail, index) => {
-      const offset = detailOffsets[index];
+      const offset = detailOffsets[account.accountId][index];
       if (offset === undefined) return;
       const detailId = `${account.accountId}-detail-${index + 1}`;
       nodes.push({

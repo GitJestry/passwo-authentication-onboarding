@@ -95,6 +95,7 @@ interface SceneNodeData extends Record<string, unknown> {
   readonly dimmed: boolean;
   readonly interactionDisabled: boolean;
   readonly visualVariant: NetworkVisualVariant;
+  readonly compact: boolean;
   readonly nodeSize: 'main' | 'detail';
   readonly nodeShape: NetworkNodeShape;
   readonly onSelect: (nodeId: string) => void;
@@ -154,24 +155,45 @@ const connectedDetailNodeLayout: NetworkNodeLayout = {
   shape: 'rounded-rectangle',
 };
 const accountMapAccountNodeLayout: NetworkNodeLayout = {
-  width: 128,
-  height: 164,
-  shapeWidth: 128,
-  shapeHeight: 128,
+  width: 102,
+  height: 131,
+  shapeWidth: 102,
+  shapeHeight: 102,
   shape: 'circle',
 };
 const accountMapServiceNodeLayout: NetworkNodeLayout = {
-  width: 92,
-  height: 126,
-  shapeWidth: 92,
-  shapeHeight: 92,
+  width: 74,
+  height: 101,
+  shapeWidth: 74,
+  shapeHeight: 74,
   shape: 'circle',
 };
 const accountMapDetailNodeLayout: NetworkNodeLayout = {
-  width: 116,
-  height: 118,
-  shapeWidth: 116,
-  shapeHeight: 78,
+  width: 93,
+  height: 94,
+  shapeWidth: 93,
+  shapeHeight: 62,
+  shape: 'rounded-rectangle',
+};
+const compactAccountMapAccountNodeLayout: NetworkNodeLayout = {
+  width: 87,
+  height: 111,
+  shapeWidth: 87,
+  shapeHeight: 87,
+  shape: 'circle',
+};
+const compactAccountMapServiceNodeLayout: NetworkNodeLayout = {
+  width: 63,
+  height: 86,
+  shapeWidth: 63,
+  shapeHeight: 63,
+  shape: 'circle',
+};
+const compactAccountMapDetailNodeLayout: NetworkNodeLayout = {
+  width: 79,
+  height: 80,
+  shapeWidth: 79,
+  shapeHeight: 53,
   shape: 'rounded-rectangle',
 };
 
@@ -186,12 +208,16 @@ function round(value: number): number {
 function layoutForNode(
   node: Pick<SceneNode, 'kind'>,
   visualVariant: NetworkVisualVariant,
+  compact: boolean,
 ): NetworkNodeLayout {
   if (visualVariant === 'account-map') {
-    if (node.kind === 'account') return accountMapAccountNodeLayout;
-    return node.kind === 'function' || node.kind === 'content'
-      ? accountMapDetailNodeLayout
-      : accountMapServiceNodeLayout;
+    if (node.kind === 'account') {
+      return compact ? compactAccountMapAccountNodeLayout : accountMapAccountNodeLayout;
+    }
+    if (node.kind === 'function' || node.kind === 'content') {
+      return compact ? compactAccountMapDetailNodeLayout : accountMapDetailNodeLayout;
+    }
+    return compact ? compactAccountMapServiceNodeLayout : accountMapServiceNodeLayout;
   }
   if (node.kind === 'account') return accountNodeLayout;
   return node.kind === 'function' || node.kind === 'content'
@@ -207,10 +233,16 @@ export function positionAuthoredNode(
   position: AuthoredPosition,
   layout: NetworkNodeLayout,
   canvas: NetworkCanvasSize,
-  _visualVariant: NetworkVisualVariant = 'default',
+  visualVariant: NetworkVisualVariant = 'default',
 ): { readonly x: number; readonly y: number } {
   const availableWidth = Math.max(0, canvas.width - layout.width);
   const availableHeight = Math.max(0, canvas.height - layout.height);
+  if (visualVariant === 'account-map') {
+    return {
+      x: Math.round(clamp(position.x * canvas.width - layout.width / 2, 0, availableWidth)),
+      y: Math.round(clamp(position.y * canvas.height - layout.height / 2, 0, availableHeight)),
+    };
+  }
   return {
     x: Math.round(clamp(position.x, 0, 1) * availableWidth),
     y: Math.round(clamp(position.y, 0, 1) * availableHeight),
@@ -221,11 +253,17 @@ export function layoutSceneNode(
   node: Pick<SceneNode, 'kind' | 'position'>,
   canvas: NetworkCanvasSize,
   visualVariant: NetworkVisualVariant = 'default',
-): Readonly<{ position: { readonly x: number; readonly y: number }; layout: NetworkNodeLayout }> {
-  const layout = layoutForNode(node, visualVariant);
+): Readonly<{
+  position: { readonly x: number; readonly y: number };
+  layout: NetworkNodeLayout;
+  compact: boolean;
+}> {
+  const compact = visualVariant === 'account-map' && canvas.height < 520;
+  const layout = layoutForNode(node, visualVariant, compact);
   return {
     position: positionAuthoredNode(node.position, layout, canvas, visualVariant),
     layout,
+    compact,
   };
 }
 
@@ -328,6 +366,7 @@ function SceneNodeCircle({ data }: NodeProps<SceneFlowNode>) {
     dimmed,
     interactionDisabled,
     visualVariant,
+    compact,
     nodeSize,
     nodeShape,
     onSelect,
@@ -340,6 +379,7 @@ function SceneNodeCircle({ data }: NodeProps<SceneFlowNode>) {
     <div
       className={styles.nodeFrame}
       data-active={active}
+      data-compact={compact}
       data-dimmed={dimmed}
       data-focused={focused}
       data-highlighted={highlighted}
@@ -519,7 +559,7 @@ function toReactFlowElements(
   );
 
   return {
-    nodes: positionedNodes.map(({ node, position, layout }) => ({
+    nodes: positionedNodes.map(({ node, position, layout, compact }) => ({
       id: node.id,
       type: 'scene-node',
       position,
@@ -536,6 +576,7 @@ function toReactFlowElements(
           : !activeBranchNodeIds.has(node.id),
         interactionDisabled,
         visualVariant,
+        compact,
         nodeSize: node.kind === 'account' ? 'main' : 'detail',
         nodeShape: layout.shape,
         onSelect: onNodeSelect,

@@ -235,6 +235,7 @@ export function S06ConsequenceTraining({
                 adapter={runtime.renderer}
                 presentation={snapshot.presentation}
                 onNodeSelect={() => undefined}
+                visualVariant="account-map"
               />
             </div>
             <aside className={styles.sidebar} aria-labelledby="s06-step-title">
