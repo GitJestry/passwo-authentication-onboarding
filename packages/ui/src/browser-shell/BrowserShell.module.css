@@ -300,8 +300,6 @@ button.activeTab[aria-disabled="true"] {
   border: var(--border-width-thin) solid var(--color-danger);
   color: var(--color-danger);
   background: var(--color-danger-soft);
-  box-shadow: 0 0 0 0.18rem color-mix(in srgb, var(--color-danger) 22%, transparent);
-  animation: browser-danger-marker 0.8s ease-in-out infinite;
 }
 
 .dangerMarker svg {
@@ -315,7 +313,21 @@ button.activeTab[aria-disabled="true"] {
   color: var(--color-danger);
   background: color-mix(in srgb, var(--color-danger-soft) 72%, var(--passwo-surface));
   box-shadow: inset 0 -0.16rem var(--color-danger);
+}
+
+.activeTab[data-guided-highlight="true"]:has(.dangerMarker),
+.tab[data-guided-highlight="true"]:has(.dangerMarker) {
+  border-color: var(--color-danger);
+  color: var(--color-danger);
+  background: color-mix(in srgb, var(--color-danger-soft) 92%, var(--passwo-surface));
+  outline-color: var(--color-danger);
   animation: browser-danger-tab 0.8s ease-in-out infinite;
+}
+
+.tab[data-guided-highlight="true"] .dangerMarker,
+.activeTab[data-guided-highlight="true"] .dangerMarker {
+  box-shadow: 0 0 0 0.18rem color-mix(in srgb, var(--color-danger) 22%, transparent);
+  animation: browser-danger-marker 0.8s ease-in-out infinite;
 }
 
 @keyframes browser-danger-marker {
@@ -328,6 +340,9 @@ button.activeTab[aria-disabled="true"] {
 @keyframes browser-danger-tab {
   50% {
     background: color-mix(in srgb, var(--color-danger-soft) 92%, var(--passwo-surface));
+    box-shadow:
+      inset 0 -0.16rem var(--color-danger),
+      0 0 1rem color-mix(in srgb, var(--color-danger) 42%, transparent);
   }
 }
 

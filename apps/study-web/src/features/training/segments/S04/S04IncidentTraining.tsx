@@ -65,9 +65,6 @@ export function S04IncidentTraining({
     address: s04Content.browser.address,
     accountIdentifier: campusIdentity.campusgram,
     scrollKey: 's04:campusgram:incident',
-    highlightedTabId: 'campusgram',
-    dimmed: true,
-    dimStrength: 'strong',
     locked: writingStart || writingEnd,
   };
 

@@ -112,6 +112,7 @@ export interface BrowserShellLayers {
   readonly passWo?: ReactNode;
   readonly speech?: ReactNode;
   readonly controls?: ReactNode;
+  readonly screen?: ReactNode;
 }
 
 export interface BrowserShellProps {
@@ -346,6 +347,7 @@ export function BrowserShell({
   return (
     <DesktopSurface
       platform={platform}
+      overlay={layers?.screen}
       browserDock={{
         active: windowState !== 'closed',
         enabled: !dimmed && !locked,

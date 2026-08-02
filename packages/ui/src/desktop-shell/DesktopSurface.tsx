@@ -14,6 +14,7 @@ export interface DesktopSurfaceProps {
   readonly browserDock: DesktopBrowserDockModel;
   readonly browserLaunching?: boolean;
   readonly children?: ReactNode;
+  readonly overlay?: ReactNode;
   readonly platform?: DesktopPlatform;
   readonly sceneRef?: Ref<HTMLDivElement>;
   readonly onBrowserLaunchAnimationEnd?: () => void;
@@ -270,6 +271,7 @@ export function DesktopSurface({
   browserDock,
   browserLaunching = false,
   children,
+  overlay,
   platform = 'mac',
   sceneRef,
   onBrowserLaunchAnimationEnd,
@@ -385,6 +387,7 @@ export function DesktopSurface({
           </DecorativeDockIcon>
         )}
       </nav>
+      {overlay ? <div className={styles.screenOverlay}>{overlay}</div> : null}
     </div>
   );
 }

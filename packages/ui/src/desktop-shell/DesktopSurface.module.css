@@ -181,6 +181,13 @@
   backdrop-filter: blur(1.1rem) saturate(1.18);
 }
 
+.screenOverlay {
+  position: absolute;
+  z-index: 80;
+  inset: 0;
+  pointer-events: none;
+}
+
 .decorativeDockIcon,
 .browserDockButton {
   position: relative;

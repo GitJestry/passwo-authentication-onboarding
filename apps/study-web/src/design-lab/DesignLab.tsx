@@ -509,6 +509,7 @@ function PasswordModuleSegmentPreview({
         previewController.setPasswordValue(accountId, `preview-${accountId}`);
         previewController.configureAccount(accountId);
       }
+      previewController.closeS01Browser();
       previewController.continue();
       await waitForPreviewState(
         previewController,

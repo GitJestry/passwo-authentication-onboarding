@@ -66,7 +66,7 @@ function completionNarration(rememberedCount: number): string {
   return s03Content.narration.completionByRememberedCount[3];
 }
 
-const timeLapseDays = Array.from({ length: 42 }, (_, index) => index + 1);
+const timeLapseDays = Array.from({ length: 100 }, (_, index) => index + 1);
 
 function TimeLapseOverlay({
   onTimeLapseComplete,
@@ -108,6 +108,10 @@ function TimeLapseOverlay({
       </span>
     </section>
   );
+}
+
+function WarningScreenFlash() {
+  return <div className={styles.warningScreenFlash} aria-hidden="true" />;
 }
 
 export function S03InitialBrowserSurface({
@@ -237,6 +241,7 @@ export function S03RetrievalTraining({
   }, [assistedLoginActive]);
 
   const incidentTabAvailable = awaitingIncidentOpen && externalTimingError === null;
+  const incidentTabHighlighted = awaitingIncidentOpen;
 
   useEffect(() => {
     if (!incidentTabAvailable) return;
@@ -449,12 +454,12 @@ export function S03RetrievalTraining({
     address: pageAddress,
     accountIdentifier,
     scrollKey: `s03:${account.id}:${websiteView}`,
-    dimmed: timeLapsePhaseActive || guideVisible,
-    dimStrength: timeLapsePhaseActive ? 'standard' : 'soft',
+    dimmed: guideVisible && !campusgramWarningActive,
+    dimStrength: 'soft',
     ...(incidentTabAvailable
       ? { allowTabInteractionWhenDimmed: true, tabActivation: 'manual' as const }
       : {}),
-    ...(campusgramWarningActive ? { highlightedTabId: 'campusgram' } : {}),
+    ...(incidentTabHighlighted ? { highlightedTabId: 'campusgram' } : {}),
     locked: isStarting || timeLapsePhaseActive || s03EndWritePending,
   };
 
@@ -504,6 +509,17 @@ export function S03RetrievalTraining({
         ariaLabel={s03Content.browser.ariaLabel}
         onTabSelect={selectAccount}
         layers={{
+          ...(timeLapsePhaseActive
+            ? {
+                screen: (
+                  <TimeLapseOverlay
+                    onTimeLapseComplete={() => controller.completeS03TimeLapse()}
+                  />
+                ),
+              }
+            : awaitingIncidentOpen
+              ? { screen: <WarningScreenFlash /> }
+              : {}),
           passWo: (
             <>
               {successOverlayLabel === null ? null : (
@@ -542,11 +558,6 @@ export function S03RetrievalTraining({
           ),
           controls: (
             <>
-              {timeLapsePhaseActive ? (
-                <TimeLapseOverlay
-                  onTimeLapseComplete={() => controller.completeS03TimeLapse()}
-                />
-              ) : null}
               {(isStarting || s03EndWritePending) && externalTimingError === null ? (
                 <p className={styles.timingStatus} role="status">
                   {s03Content.controls.timingSaving}

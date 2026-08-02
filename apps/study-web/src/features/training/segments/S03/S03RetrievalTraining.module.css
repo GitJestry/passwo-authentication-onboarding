@@ -334,6 +334,8 @@
 
 .timeLapseOverlay {
   --time-lapse-day-height: 6.75rem;
+  --time-lapse-duration: 8s;
+  --time-lapse-darken-duration: 8s;
 
   position: absolute;
   inset: 0;
@@ -341,8 +343,9 @@
   place-items: center;
   padding: var(--space-6);
   overflow: hidden;
-  background: rgb(1 13 25 / 16%);
+  background: transparent;
   pointer-events: none;
+  animation: s03-time-lapse-darken var(--time-lapse-darken-duration) linear both;
 }
 
 .timeLapseCompletionSignal {
@@ -351,7 +354,7 @@
   height: 1px;
   overflow: hidden;
   opacity: 0;
-  animation: s03-time-lapse-completion 4s linear both;
+  animation: s03-time-lapse-completion var(--time-lapse-duration) linear both;
 }
 
 .timeLapseCenter {
@@ -412,7 +415,7 @@
 .timeLapseDayTrack {
   display: grid;
   grid-auto-rows: var(--time-lapse-day-height);
-  animation: s03-day-count 3.7s steps(41, end) both;
+  animation: s03-day-count var(--time-lapse-duration) steps(99, end) both;
 }
 
 .timeLapseDayTrack strong {
@@ -534,7 +537,38 @@
 
 @keyframes s03-day-count {
   to {
-    transform: translateY(-276.75rem);
+    transform: translateY(-668.25rem);
+  }
+}
+
+@keyframes s03-time-lapse-darken {
+  35% {
+    background: rgb(1 13 25 / 64%);
+  }
+
+  to {
+    background: rgb(1 13 25 / 82%);
+  }
+}
+
+.warningScreenFlash {
+  position: absolute;
+  inset: 0;
+  background: var(--color-danger);
+  opacity: 0;
+  animation: s03-warning-screen-flash 900ms ease-in-out both;
+}
+
+@keyframes s03-warning-screen-flash {
+  18%,
+  58% {
+    opacity: 0.36;
+  }
+
+  38%,
+  78%,
+  to {
+    opacity: 0;
   }
 }
 
@@ -581,6 +615,15 @@
 
   .timeLapseCompletionSignal {
     animation-duration: var(--motion-instant);
+  }
+
+  .timeLapseOverlay {
+    animation: none;
+    background: rgb(1 13 25 / 82%);
+  }
+
+  .warningScreenFlash {
+    animation: none;
   }
 
 }
