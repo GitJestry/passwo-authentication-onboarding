@@ -102,6 +102,7 @@ export function PassWoGuide({
       className={styles.guide}
       data-placement={placement}
       data-guided-account={guidedAccountId ?? undefined}
+      data-speaking={helpOpen || undefined}
       aria-label={`${guideName} Begleitung`}
     >
       <div className={styles.guideDock}>
@@ -156,6 +157,7 @@ export function PassWoGuide({
         <img
           ref={characterRef}
           className={styles.character}
+          data-speaking={helpOpen || undefined}
           data-passwo-character
           data-pose={pose === 'warning' ? 'warning' : helpOpen ? 'speaking' : 'waiting'}
           src={

@@ -105,7 +105,6 @@ export interface BrowserShellSnapshot {
   readonly allowTabInteractionWhenDimmed?: boolean;
   readonly tabActivation?: 'automatic' | 'manual';
   readonly highlightedTabId?: string;
-  readonly highlightedWindowControl?: 'close';
   readonly locked?: boolean;
 }
 
@@ -214,6 +213,11 @@ export function BrowserShell({
   function setWindowOpen(open: boolean): void {
     if (windowOpen === undefined) setUncontrolledOpen(open);
     onWindowOpenChange?.(open);
+  }
+
+  function closeWindow(): void {
+    onWindowClose?.();
+    setWindowOpen(false);
   }
 
   function handleWindowAnimationEnd(event: AnimationEvent<HTMLElement>): void {
@@ -349,7 +353,13 @@ export function BrowserShell({
           windowState === 'closed'
             ? 'Browserfenster vom Dock öffnen'
             : 'Browserfenster im Dock ablegen',
-        onClick: () => setWindowOpen(windowState === 'closed' || windowState === 'closing'),
+        onClick: () => {
+          if (windowState === 'closed' || windowState === 'closing') {
+            setWindowOpen(true);
+            return;
+          }
+          closeWindow();
+        },
       }}
     >
       <section
@@ -374,11 +384,7 @@ export function BrowserShell({
                 className={styles.closeControl}
                 aria-label="Browserfenster schließen"
                 title="Schließen"
-                data-guided-highlight={snapshot.highlightedWindowControl === 'close' || undefined}
-                onClick={() => {
-                  onWindowClose?.();
-                  setWindowOpen(false);
-                }}
+                onClick={closeWindow}
               >
                 <svg className={styles.closeIcon} viewBox="0 0 10 10" aria-hidden="true">
                   <path d="m2 2 6 6M8 2 2 8" />
@@ -389,7 +395,7 @@ export function BrowserShell({
                 className={styles.minimizeControl}
                 aria-label="Browserfenster im Dock ablegen"
                 title="Im Dock ablegen"
-                onClick={() => setWindowOpen(false)}
+                onClick={closeWindow}
               >
                 <svg className={styles.minimizeIcon} viewBox="0 0 10 10" aria-hidden="true">
                   <path d="M2 5h6" />

@@ -99,7 +99,7 @@ export function calculatePassWoSpeechPosition({
   boundary,
   obstacles = [],
   preferredSides = ['right', 'left', 'above', 'below'],
-  gap = 16,
+  gap = 8,
   margin = 12,
 }: PassWoSpeechPositionOptions): PassWoSpeechPosition {
   const centerX = (anchor.left + anchor.right) / 2;

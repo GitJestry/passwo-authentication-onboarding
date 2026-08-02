@@ -612,7 +612,7 @@
   z-index: 6;
   bottom: 4.8rem;
   left: clamp(var(--space-4), 3vw, var(--space-7));
-  width: clamp(6.25rem, 9vw, 8.5rem);
+  width: var(--size-passwo-speaking-width);
   transition:
     top 520ms var(--motion-ease-out),
     left 520ms var(--motion-ease-out);
@@ -633,8 +633,8 @@
 
 .passWoImage {
   display: block;
-  width: 100%;
-  height: auto;
+  width: var(--size-passwo-speaking-width);
+  height: var(--size-passwo-speaking-height);
   object-fit: contain;
   filter: drop-shadow(0 0.9rem 1.1rem color-mix(in srgb, #476581 24%, transparent));
 }
@@ -963,7 +963,7 @@
     right: auto;
     bottom: 4.6rem;
     left: var(--space-3);
-    width: clamp(6.25rem, 20vw, 8.5rem);
+    width: var(--size-passwo-speaking-width);
   }
 
   .guide[data-positioned="true"] {

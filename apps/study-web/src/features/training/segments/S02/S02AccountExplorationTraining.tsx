@@ -561,11 +561,14 @@ export function S02AccountExplorationTraining({
   const activePreview = activeAccount?.details.find(({ id }) => id === scene.activePreviewDetailId);
   const viewedCount = scene.viewedAccountIds.length;
   const complete = scene.isComplete;
-  const narration = complete
-    ? (s02Content.narration.messages[s02Content.narration.completeId] ?? '')
-    : (s02Content.narration.messages[scene.narrationId] ?? '');
-  const narrationId = complete ? s02Content.narration.completeId : scene.narrationId;
-  const speechKey = `${scene.narrationId}-${complete}`;
+  const introReady = presentation.announcedMessageId === s02Content.narration.introReadyId;
+  const narrationId = complete
+    ? s02Content.narration.completeId
+    : introReady
+      ? s02Content.narration.introReadyId
+      : scene.narrationId;
+  const narration = s02Content.narration.messages[narrationId] ?? '';
+  const speechKey = `${narrationId}-${complete}`;
   const animationAnnouncement =
     presentation.announcedMessageId === null
       ? ''

@@ -155,6 +155,7 @@ export interface S02SegmentContent {
   readonly narration: {
     readonly guideName: string;
     readonly introId: string;
+    readonly introReadyId: string;
     readonly completeId: string;
     readonly messages: Readonly<Record<string, string>>;
   };
@@ -174,9 +175,10 @@ export interface S02SegmentContent {
   readonly animations: readonly S02AnimationSequence[];
 }
 
-export const S02_CONTENT_VERSION = '4.0.0';
+export const S02_CONTENT_VERSION = '4.1.0';
 
 const introId = 's02.accounts.intro';
+const introReadyId = 's02.accounts.intro-ready';
 const completeId = 's02.accounts.complete';
 
 const accounts = [
@@ -454,6 +456,7 @@ function introAnimation(): S02AnimationSequence {
         targetId: account.id,
         durationMs: 340,
       })),
+      { type: 'announce', messageId: introReadyId },
     ],
     reducedMotion: { strategy: 'instant-end-state', maxDurationMs: 0 },
     maxDurationMs: 340,
@@ -580,10 +583,13 @@ export const s02Content: S02SegmentContent = {
   narration: {
     guideName: 'PassWo',
     introId,
+    introReadyId,
     completeId,
     messages: {
       [introId]:
-        'Schau dir kurz an, was hinter den drei Konten liegt. Du musst dir keine Einzelheiten merken und kannst die Reihenfolge selbst wählen.',
+        'Ich habe die drei Konten als Netzwerk dargestellt. So kannst du sehen, welche Funktionen mit ihnen verbunden sind.',
+      [introReadyId]:
+        'Wähle selbst, welches Konto du zuerst erkundest. Du musst dir keine Einzelheiten merken – viele dieser Funktionen kennst du wahrscheinlich aus deinem Alltag.',
       [completeId]:
         'Du hast alle drei Konten angesehen. Klicke unten im Dock auf den Browser, wenn du weitergehen möchtest.',
       's02.master-campus':

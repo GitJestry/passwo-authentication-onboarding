@@ -31,7 +31,7 @@ export interface S04SegmentContent {
   };
 }
 
-export const S04_CONTENT_VERSION = '1.3.0';
+export const S04_CONTENT_VERSION = '1.4.0';
 
 export const s04Content: S04SegmentContent = {
   version: S04_CONTENT_VERSION,
@@ -57,9 +57,9 @@ export const s04Content: S04SegmentContent = {
     paragraphs: [
       'Bei Campusgram gab es ein Datenleck. Eine alte Datei mit gespeicherten Passwortdaten ist in fremde Hände geraten.',
       'Das bedeutet nicht automatisch, dass dein Passwort sofort lesbar ist. Die Passwortdaten können aber von Angreifern offline getestet werden: Ein Programm probiert viele mögliche Passwörter aus und prüft, ob eines davon passt.',
-      'Deshalb schauen wir uns jetzt an, welche schnellen Prüfwege die Simulation bei diesem fiktiven Passwort erkennt.',
+      'Wie schwer wäre es für einen Angreifer, dieses Passwort zu finden? Dafür nehmen wir jetzt seine Perspektive ein und schauen uns drei Wege an, mit denen er mögliche Passwörter prüft.',
     ],
-    continueLabel: 'Passwort prüfen',
+    continueLabel: 'Prüfung starten',
     completedLabel: 'Die Erklärung zum Datenleck ist abgeschlossen.',
   },
   controls: {

@@ -73,7 +73,7 @@ export interface S00SegmentContent {
   };
 }
 
-export const S00_CONTENT_VERSION = '1.16.0';
+export const S00_CONTENT_VERSION = '1.17.0';
 
 export const s00Content: S00SegmentContent = {
   version: S00_CONTENT_VERSION,

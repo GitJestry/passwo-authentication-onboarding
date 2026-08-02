@@ -185,14 +185,15 @@ function buildNetwork(
   });
   const edges: readonly SceneEdge[] = definition.accounts.flatMap((account) => {
     const accountProgress = progressFor(values, account.id);
-    if (accountProgress?.unlocked !== true || account.edgeKind === null) return [];
+    const edgeKind = account.edgeKind;
+    if (accountProgress?.unlocked !== true || edgeKind === null) return [];
     const isPendingCoreAction =
       values.phase === 'performing-core-action' && activeAccount?.id === account.id;
     return account.details.map((detail) => ({
       id: `${account.id}--${detail.id}`,
       sourceId: account.id,
       targetId: detail.id,
-      kind: account.edgeKind,
+      kind: edgeKind,
       status:
         isPendingCoreAction && pendingDetailId === detail.id
           ? 'checking'

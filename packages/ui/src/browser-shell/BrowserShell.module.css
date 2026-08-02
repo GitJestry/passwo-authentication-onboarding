@@ -112,12 +112,6 @@
   background: var(--color-control-close);
 }
 
-.closeControl[data-guided-highlight="true"] {
-  outline: var(--border-width-medium) solid var(--color-accent-strong);
-  outline-offset: 3px;
-  box-shadow: 0 0 0 4px color-mix(in srgb, var(--color-accent-soft) 72%, transparent);
-}
-
 .minimizeControl {
   background: var(--color-control-minimize);
 }

@@ -163,9 +163,6 @@ export function S01Training({
     scrollKey: `s01:${account.id}:${websiteView}`,
     dimmed: questHelpOpen && !readyToContinue,
     dimStrength: 'soft',
-    ...(readyToContinue && !interactionBlocked
-      ? { highlightedWindowControl: 'close' as const }
-      : {}),
   };
 
   function toggleReveal(accountId: string): void {

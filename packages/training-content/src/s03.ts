@@ -29,6 +29,7 @@ export interface S03SegmentContent {
     readonly document: string;
     readonly internalPages: readonly [8, 9, 10, 11];
     readonly revision: string;
+    readonly copyReference: string;
   };
   readonly segment: {
     readonly id: 'S03';
@@ -56,6 +57,7 @@ export interface S03SegmentContent {
     readonly timingSaving: string;
     readonly retry: string;
     readonly assistedLogin: string;
+    readonly campusStartContinue: string;
   };
   readonly narration: {
     readonly guideName: string;
@@ -92,7 +94,7 @@ export interface S03SegmentContent {
   readonly animations: readonly S03AnimationSequence[];
 }
 
-export const S03_CONTENT_VERSION = '1.15.0';
+export const S03_CONTENT_VERSION = '1.18.0';
 
 const resultAnimation = (
   accountId: S01AccountId,
@@ -146,7 +148,9 @@ export const s03Content: S03SegmentContent = {
     document: 'research/private/training-script.pdf',
     internalPages: [8, 9, 10, 11],
     revision:
-      'Userauftrag vom 2026-08-02: Retrieval-Feedback gekürzt und Campusgram-Warnübergang an den Tab gebunden.',
+      'Userauftrag vom 2026-08-02: Retrieval-Feedback gekürzt, Campusgram-Warnübergang an den Tab gebunden und Abschlusswiederholung entfernt.',
+    copyReference:
+      'docs/design/S00-S05-COPY-AUDIT.md#copy-delta-abschlusswiederholung-2-august-2026',
   },
   segment: {
     id: 'S03',
@@ -175,6 +179,7 @@ export const s03Content: S03SegmentContent = {
     timingSaving: 'Zeitereignis wird gespeichert …',
     retry: 'Erneut versuchen',
     assistedLogin: 'Für mich anmelden',
+    campusStartContinue: 'Campusalltag fortsetzen',
   },
   narration: {
     guideName: 'PassWo',
@@ -192,16 +197,16 @@ export const s03Content: S03SegmentContent = {
     thirdFailedLogin:
       'Wenn du dich nicht an das richtige Passwort erinnern kannst, klicke als Lösung auf „Passwort vergessen?“.',
     retrievalHelp:
-      'Kein Problem. Dieses Passwort war gerade nicht abrufbar; ich unterstütze dich bei der Anmeldung.',
+      'Kein Problem. Das zeigt: Ein Passwort muss nicht nur stark, sondern später auch wieder abrufbar sein. Ich unterstütze dich jetzt bei der Anmeldung.',
     completionByRememberedCount: {
       0: 'Alle drei Konten sind wieder geöffnet.\n\nKeines der drei Passwörter war ohne Unterstützung abrufbar.',
       1: 'Alle drei Konten sind wieder geöffnet.\n\nEin Passwort war ohne Unterstützung abrufbar.',
       2: 'Alle drei Konten sind wieder geöffnet.\n\nZwei Passwörter waren ohne Unterstützung abrufbar.',
       3: 'Alle drei Konten sind wieder geöffnet.\n\nAlle drei Passwörter waren ohne Unterstützung abrufbar.',
     },
-    campusStart: 'Wir können jetzt in Ruhe unseren Campusstart fortsetzen.',
-    warning:
-      'Bei Campusgram ist eine Sicherheitsmeldung erschienen. Öffne den markierten Tab und schau sie dir an.',
+    campusStart:
+      'Wir können unseren Campusalltag jetzt fortsetzen.',
+    warning: 'Bei Campusgram ist eine Sicherheitsmeldung erschienen. Schau bitte nach.',
   },
   accountLoginTitles: {
     'master-campus': 'Melde dich bei Master Campus an.',

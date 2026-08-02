@@ -393,9 +393,10 @@ export function S03RetrievalTraining({
             controller.continueS03CompletionFeedback();
           },
         }
-      : campusStartActive
+    : campusStartActive
         ? {
             kind: 'advance',
+            label: s03Content.controls.campusStartContinue,
             onAction: () => {
               setGuideOpen(false);
               controller.continueS03CampusStart();

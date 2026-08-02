@@ -7,7 +7,7 @@ const canonicalAccountIds = ['master-campus', 'campus-email', 'campusgram'] as c
 
 describe('S00 to S02 training-content traceability', () => {
   it('keeps S00 linked to its named source page and canonical accounts', () => {
-    expect(S00_CONTENT_VERSION).toBe('1.16.0');
+    expect(S00_CONTENT_VERSION).toBe('1.17.0');
     expect(s00Content.source).toMatchObject({
       document: 'research/private/training-script.pdf',
       internalPage: 2,
@@ -32,7 +32,7 @@ describe('S00 to S02 training-content traceability', () => {
   });
 
   it('keeps S01 linked to its named source page and canonical account order', () => {
-    expect(S01_CONTENT_VERSION).toBe('2.15.0');
+    expect(S01_CONTENT_VERSION).toBe('2.16.0');
     expect(s01Content.source).toMatchObject({
       document: 'research/private/training-script.pdf',
       internalPage: 3,
@@ -42,14 +42,14 @@ describe('S00 to S02 training-content traceability', () => {
     expect(s01Content.segment.id).toBe('S01');
     expect(s01Content.browser.accounts.map(({ id }) => id)).toEqual(canonicalAccountIds);
     expect(s01Content.completion.guideMessage).toBe(
-      'Die drei Konten sind eingerichtet. Schließe jetzt das Browserfenster über die Schließen-Schaltfläche in der Fenstersteuerung.',
+      'Die drei Konten sind eingerichtet. Schließe jetzt das Browserfenster. Bevor du dich wieder anmeldest, schauen wir uns kurz an, was hinter den Konten steckt.',
     );
     expect(s01Content.completion.guideMessage).not.toMatch(/Knoten|Dienste|Funktionen/u);
     expect(s01Content.quest).not.toHaveProperty('readyToContinue');
   });
 
   it('keeps S02 linked to its named pages and essential account-node structure', () => {
-    expect(S02_CONTENT_VERSION).toBe('4.0.0');
+    expect(S02_CONTENT_VERSION).toBe('4.1.0');
     expect(s02Content.source).toEqual({
       document: 'research/private/training-script.pdf',
       internalPages: [4, 5, 6, 7],
@@ -77,7 +77,10 @@ describe('S00 to S02 training-content traceability', () => {
     ]);
     expect(s02Content.page.globalProgress(2)).toBe('Konten kennenlernen: 2/3 angesehen');
     expect(s02Content.narration.messages[s02Content.narration.introId]).toBe(
-      'Schau dir kurz an, was hinter den drei Konten liegt. Du musst dir keine Einzelheiten merken und kannst die Reihenfolge selbst wählen.',
+      'Ich habe die drei Konten als Netzwerk dargestellt. So kannst du sehen, welche Funktionen mit ihnen verbunden sind.',
+    );
+    expect(s02Content.narration.messages[s02Content.narration.introReadyId]).toBe(
+      'Wähle selbst, welches Konto du zuerst erkundest. Du musst dir keine Einzelheiten merken – viele dieser Funktionen kennst du wahrscheinlich aus deinem Alltag.',
     );
     expect(s02Content.scene.accounts.map(({ coreAction }) => coreAction.targetDetailIds)).toEqual([
       ['master-campus-workspace'],

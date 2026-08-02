@@ -10,6 +10,7 @@ export type PassWoSpeechTone = 'light' | 'dark';
 export type PassWoSpeechAction =
   | {
       readonly kind: 'advance';
+      readonly label?: string;
       readonly onAction: () => void;
       readonly disabled?: boolean;
     }
@@ -105,16 +106,15 @@ function visibleEmphasis(
   if (first === undefined) return noSpeechEmphasis;
   if (first.contrastId === undefined) return [first];
 
-  const contrasting = emphasisRules.find(
-    (rule) => rule !== first && rule.phrase.length > 0 && rule.contrastId === first.contrastId,
+  return emphasisRules.filter(
+    ({ phrase, contrastId }) => phrase.length > 0 && contrastId === first.contrastId,
   );
-  return contrasting === undefined ? [first] : [first, contrasting];
 }
 
 function actionLabel(action: PassWoSpeechAction): string {
   switch (action.kind) {
     case 'advance':
-      return 'Weiter';
+      return action.label ?? 'Weiter';
     case 'dismiss':
       return 'Schließen';
     case 'perform':
@@ -154,8 +154,8 @@ export function PassWoSpeechBubble({
       aria-labelledby={headingId}
       style={bubbleStyle}
     >
-      <span id={headingId} className={styles.screenReaderOnly}>
-        {speaker} sagt:
+      <span id={headingId} className={styles.speaker}>
+        {speaker}
       </span>
       <div className={styles.textLayout} key={speechKey}>
         {paragraphLayout.map(({ segments }, paragraphIndex) => (

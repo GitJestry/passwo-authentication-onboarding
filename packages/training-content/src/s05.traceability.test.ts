@@ -21,7 +21,7 @@ describe('S05 content traceability', () => {
     const participantContent = JSON.stringify({
       trainingAriaLabel: s05Content.trainingAriaLabel,
       browser: s05Content.browser,
-      page: s05Content.page,
+      page: Object.values(s05Content.page),
       intro: s05Content.intro,
       componentDemonstrations: s05Content.componentDemonstrations,
       findingLabels: s05Content.findingLabels,

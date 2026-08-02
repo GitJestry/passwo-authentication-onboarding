@@ -28,6 +28,11 @@
   left: clamp(26rem, 51vw, 42rem);
 }
 
+.guide[data-speaking="true"][data-placement="bottom-left"] {
+  top: auto;
+  bottom: 0;
+}
+
 .guide[data-placement="center"] {
   top: 50%;
   left: 50%;
@@ -40,8 +45,13 @@
 }
 
 .guide[data-placement="center"] .character[data-pose="warning"] {
-  width: min(10.08rem, 100%);
-  height: min(9.36rem, 54vh);
+  width: min(var(--passwo-character-width), 100%);
+  height: min(var(--passwo-character-height), 54vh);
+}
+
+.guide[data-placement="center"] .character[data-speaking="true"] {
+  width: min(var(--size-passwo-speaking-width), 200%);
+  height: min(var(--size-passwo-speaking-height), 108vh);
 }
 
 .guide[data-placement="incident"] {
@@ -70,6 +80,9 @@
 }
 
 .guideDock {
+  --passwo-character-width: 10.08rem;
+  --passwo-character-height: 9.36rem;
+
   position: relative;
   display: grid;
   width: 8.4rem;
@@ -149,11 +162,16 @@
 
 .character {
   display: block;
-  width: 10.08rem;
-  height: 9.36rem;
+  width: var(--passwo-character-width);
+  height: var(--passwo-character-height);
   object-fit: contain;
   object-position: center bottom;
   filter: drop-shadow(0 0.9rem 1.2rem color-mix(in srgb, #06192b 18%, transparent));
+}
+
+.character[data-speaking="true"] {
+  width: var(--size-passwo-speaking-width);
+  height: var(--size-passwo-speaking-height);
 }
 
 .taskProgress {
@@ -208,12 +226,10 @@
   }
 
   .guideDock {
-    width: 7.25rem;
-  }
+    --passwo-character-width: 7rem;
+    --passwo-character-height: 7rem;
 
-  .character {
-    width: 7rem;
-    height: 7rem;
+    width: 7.25rem;
   }
 }
 

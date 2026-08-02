@@ -118,10 +118,10 @@ export interface S01SegmentContent {
   };
 }
 
-export const S01_CONTENT_VERSION = '2.15.0';
+export const S01_CONTENT_VERSION = '2.16.0';
 
 const readyToContinueMessage =
-  'Die drei Konten sind eingerichtet. Schließe jetzt das Browserfenster über die Schließen-Schaltfläche in der Fenstersteuerung.';
+  'Die drei Konten sind eingerichtet. Schließe jetzt das Browserfenster. Bevor du dich wieder anmeldest, schauen wir uns kurz an, was hinter den Konten steckt.';
 
 export const s01Content: S01SegmentContent = {
   version: S01_CONTENT_VERSION,
