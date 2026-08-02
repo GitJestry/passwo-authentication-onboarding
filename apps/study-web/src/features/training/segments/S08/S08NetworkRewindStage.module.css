@@ -1,0 +1,56 @@
+.training {
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  flex: 1;
+}
+
+.network {
+  position: absolute;
+  inset: 0 0 4.8rem;
+  animation: network-rewind 900ms var(--motion-ease-out) both;
+}
+
+.statusCard {
+  position: absolute;
+  z-index: 4;
+  top: var(--space-5);
+  left: 50%;
+  padding: var(--space-3) var(--space-5);
+  border: var(--border-width-thin) solid var(--color-border-soft);
+  border-radius: var(--radius-round);
+  background: var(--color-surface-float);
+  box-shadow: var(--shadow-float);
+  transform: translateX(-50%);
+  backdrop-filter: blur(1rem);
+}
+
+.statusCard h1 {
+  margin: 0;
+  color: var(--color-ink-strong);
+  font-size: var(--font-size-body);
+}
+
+@keyframes network-rewind {
+  0% {
+    opacity: 0.28;
+    filter: saturate(1.55) contrast(1.15);
+    transform: scale(1.035);
+  }
+  42% {
+    opacity: 0.72;
+    filter: saturate(0.55) contrast(0.92);
+    transform: scale(0.985);
+  }
+  100% {
+    opacity: 1;
+    filter: none;
+    transform: scale(1);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .network {
+    animation: none;
+  }
+}

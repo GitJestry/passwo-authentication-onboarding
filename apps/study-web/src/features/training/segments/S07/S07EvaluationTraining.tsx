@@ -5,20 +5,22 @@ import type {
   S07RecommendationProjectionInput,
 } from '@passwo/contracts';
 import { s07EvaluationContent } from '@passwo/training-content';
-import type { S07AccountCardModel } from '@passwo/visualization';
-import { BrowserShell, type BrowserShellSnapshot } from '@passwo/ui';
-import { useEffect, useState } from 'react';
+import { DesktopSurface, type DesktopPlatform } from '@passwo/ui';
+import type { NetworkSceneSnapshot, S07AccountCardModel } from '@passwo/visualization';
+import { useEffect, useMemo, useState } from 'react';
+import {
+  ReactFlowNetwork,
+  ReactFlowNetworkAdapter,
+} from '../../../../adapters/network/ReactFlowNetworkAdapter.js';
+import {
+  createCompletedS02Network,
+  staticNetworkPresentation,
+} from '../account-network.js';
 import {
   S07EvaluationController,
   type S07EvaluationControllerSnapshot,
 } from './S07EvaluationController.js';
 import styles from './S07EvaluationTraining.module.css';
-
-const browserSnapshot: BrowserShellSnapshot = {
-  tabs: [s07EvaluationContent.browser.tab],
-  activeTabId: s07EvaluationContent.browser.tab.id,
-  address: s07EvaluationContent.browser.address,
-};
 
 const accountDefinitions = (
   ['master-campus', 'campus-email', 'campusgram'] as const
@@ -38,9 +40,19 @@ function accountLabel(accountId: S06AccountId): string {
   return s07EvaluationContent.accounts[accountId].label;
 }
 
-function AccountCard({ card }: { readonly card: S07AccountCardModel }) {
+function AccountCard({
+  card,
+  active,
+}: {
+  readonly card: S07AccountCardModel;
+  readonly active: boolean;
+}) {
   return (
-    <article className={styles.accountCard} aria-labelledby={`${card.id}-title`}>
+    <article
+      className={styles.accountCard}
+      data-active={active}
+      aria-labelledby={`${card.id}-title`}
+    >
       <header>
         <p>Kontokarte</p>
         <h2 id={`${card.id}-title`}>{card.label}</h2>
@@ -90,6 +102,8 @@ export type S07TimingState = 'active' | 'writingEnd' | 'endWriteFailed';
 
 export interface S07EvaluationTrainingProps {
   readonly input: S07RecommendationProjectionInput;
+  readonly network?: NetworkSceneSnapshot | null;
+  readonly platform?: DesktopPlatform;
   readonly timingState?: S07TimingState;
   readonly timingErrorCode?: string | null;
   readonly externalTimingError?: string | null;
@@ -100,6 +114,8 @@ export interface S07EvaluationTrainingProps {
 
 export function S07EvaluationTraining({
   input,
+  network,
+  platform = 'mac',
   timingState = 'active',
   timingErrorCode = null,
   externalTimingError = null,
@@ -109,6 +125,15 @@ export function S07EvaluationTraining({
 }: S07EvaluationTrainingProps) {
   const [controller, setController] = useState<S07EvaluationController | null>(null);
   const [snapshot, setSnapshot] = useState<S07EvaluationControllerSnapshot | null>(null);
+  const backgroundNetwork = useMemo(() => network ?? createCompletedS02Network(), [network]);
+  const networkAdapter = useMemo(
+    () => new ReactFlowNetworkAdapter(backgroundNetwork),
+    [backgroundNetwork],
+  );
+  const networkPresentation = useMemo(
+    () => staticNetworkPresentation(backgroundNetwork),
+    [backgroundNetwork],
+  );
 
   useEffect(() => {
     const nextController = new S07EvaluationController({
@@ -130,12 +155,22 @@ export function S07EvaluationTraining({
   const { overview } = snapshot.deck;
   return (
     <section className={styles.training} aria-label={s07EvaluationContent.trainingAriaLabel}>
-      <BrowserShell
-        snapshot={browserSnapshot}
-        ariaLabel={s07EvaluationContent.browser.ariaLabel}
-        onTabSelect={() => undefined}
+      <DesktopSurface
+        platform={platform}
+        browserDock={{ active: false, enabled: false, label: 'Browser geschlossen' }}
       >
         <article className={styles.page} aria-labelledby="s07-title">
+          <div className={styles.networkBackdrop} aria-hidden="true">
+            <ReactFlowNetwork
+              adapter={networkAdapter}
+              presentation={networkPresentation}
+              onNodeSelect={() => undefined}
+              interactionDisabled
+              visualVariant="account-map"
+              showEdgeLabels={false}
+            />
+          </div>
+          <div className={styles.foreground}>
           <header className={styles.pageHeader}>
             <div>
               <p>{s07EvaluationContent.page.eyebrow}</p>
@@ -163,7 +198,15 @@ export function S07EvaluationTraining({
               <p className={styles.progress} aria-live="polite">
                 Kontokarte {snapshot.viewedCardCount} von 3
               </p>
-              <AccountCard card={snapshot.currentCard} />
+              <div className={styles.accountCards}>
+                {snapshot.deck.cards.map((card) => (
+                  <AccountCard
+                    key={card.id}
+                    card={card}
+                    active={card.id === snapshot.currentCard?.id}
+                  />
+                ))}
+              </div>
               <button type="button" onClick={() => controller.continue()}>
                 {snapshot.viewedCardCount < 3
                   ? s07EvaluationContent.page.nextAccount
@@ -211,8 +254,9 @@ export function S07EvaluationTraining({
               ) : null}
             </section>
           ) : null}
+          </div>
         </article>
-      </BrowserShell>
+      </DesktopSurface>
     </section>
   );
 }

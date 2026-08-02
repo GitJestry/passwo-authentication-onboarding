@@ -3,7 +3,6 @@ import type {
   RuntimeStructureFindingKind,
 } from '@passwo/contracts';
 import { s05Content } from '@passwo/training-content';
-import { type BrowserShellSnapshot, BrowserShell } from '@passwo/ui';
 import type {
   PasswordCandidateSceneSnapshot,
   PasswordFindingSceneSnapshot,
@@ -34,12 +33,6 @@ export interface S05AnalysisTrainingProps {
   readonly onRetryTiming?: () => void;
   readonly completionPort?: S05CompletionPort;
 }
-
-const browserSnapshot: BrowserShellSnapshot = {
-  tabs: [s05Content.browser.tab],
-  activeTabId: s05Content.browser.tab.id,
-  address: s05Content.browser.address,
-};
 
 function findingLabel(kind: PasswordSingleFindingKind): string {
   return s05Content.findingLabels[kind];
@@ -634,31 +627,20 @@ export function S05AnalysisTraining({
   }, [completionPort, subject]);
 
   const writingBoundary = timingState === 'writingEnd';
-  const currentBrowserSnapshot = writingBoundary
-    ? { ...browserSnapshot, locked: true }
-    : browserSnapshot;
 
   if (controller === null || snapshot === null) return null;
 
   return (
     <section ref={hostRef} className={styles.training} aria-label={s05Content.trainingAriaLabel}>
-      <BrowserShell
-        snapshot={currentBrowserSnapshot}
-        ariaLabel={s05Content.browser.ariaLabel}
-        onTabSelect={() => undefined}
-      >
-        <article className={styles.page} aria-labelledby="s05-title">
-          <header className={styles.pageHeader}>
-            <div>
-              <p className={styles.eyebrow}>{s05Content.page.eyebrow}</p>
-              <h1 id="s05-title">{s05Content.page.title}</h1>
-            </div>
-            <span className={styles.fixtureNotice}>{s05Content.page.fixtureNotice}</span>
-          </header>
-          <div className={styles.content} aria-live="polite">
-            {renderScene(snapshot, subject, controller)}
-          </div>
-          <footer className={styles.controls}>
+      <article className={styles.page} aria-labelledby="s05-title">
+        <header className={styles.pageHeader}>
+          <p className={styles.eyebrow}>{s05Content.page.eyebrow}</p>
+          <h1 id="s05-title">{s05Content.page.title}</h1>
+        </header>
+        <div className={styles.content} aria-live="polite">
+          {renderScene(snapshot, subject, controller)}
+        </div>
+        <footer className={styles.controls}>
             {writingBoundary && externalTimingError === null ? (
               <p role="status">Segmentgrenze wird bestätigt …</p>
             ) : null}
@@ -692,9 +674,8 @@ export function S05AnalysisTraining({
             >
               {s05Content.page.continue}
             </button>
-          </footer>
-        </article>
-      </BrowserShell>
+        </footer>
+      </article>
     </section>
   );
 }

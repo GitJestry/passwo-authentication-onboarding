@@ -25,6 +25,7 @@ import {
   projectPasswordConsequenceScenePlan,
 } from '@passwo/visualization';
 import type { NetworkPresentationSnapshot } from '../../../../adapters/network/NetworkMotionAdapter.js';
+import { alignNetworkSceneToS02 } from '../account-network.js';
 
 export interface S06ConsequenceParticipantSnapshot {
   readonly narration: S06NarrationContent;
@@ -119,7 +120,7 @@ export function createS06ConsequenceScenePlan(
       }),
     }),
   );
-  return projectPasswordConsequenceScenePlan({
+  const plan = projectPasswordConsequenceScenePlan({
     id,
     incidentSource: 'campusgram',
     accounts,
@@ -136,6 +137,13 @@ export function createS06ConsequenceScenePlan(
       details: s06ConsequenceContent.accounts[accountId].details,
     })),
   });
+  return {
+    ...plan,
+    steps: plan.steps.map((step) => ({
+      ...step,
+      network: alignNetworkSceneToS02(step.network),
+    })),
+  };
 }
 
 function createMission(plan: PasswordConsequenceScenePlan): MissionDefinition {

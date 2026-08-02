@@ -5,8 +5,8 @@ import type {
 } from '@passwo/contracts';
 import type { S06ConsequenceFixtureId } from '@passwo/training-content';
 import { s06ConsequenceContent } from '@passwo/training-content';
-import type { PasswordConsequenceScenePlan } from '@passwo/visualization';
-import { type BrowserShellSnapshot, BrowserShell } from '@passwo/ui';
+import { DesktopSurface, type DesktopPlatform } from '@passwo/ui';
+import type { NetworkSceneSnapshot, PasswordConsequenceScenePlan } from '@passwo/visualization';
 import { type ReactNode, useEffect, useRef, useState } from 'react';
 import { NetworkMotionAdapter } from '../../../../adapters/network/NetworkMotionAdapter.js';
 import {
@@ -21,12 +21,6 @@ import {
   S06ConsequenceController,
 } from './S06ConsequenceController.js';
 import styles from './S06ConsequenceTraining.module.css';
-
-const browserSnapshot: BrowserShellSnapshot = {
-  tabs: [s06ConsequenceContent.browser.tab],
-  activeTabId: s06ConsequenceContent.browser.tab.id,
-  address: s06ConsequenceContent.browser.address,
-};
 
 const accountOrder = ['campusgram', 'master-campus', 'campus-email'] as const;
 
@@ -48,12 +42,14 @@ export type S06ConsequenceSource =
 
 export interface S06ConsequenceTrainingProps {
   readonly source: S06ConsequenceSource;
+  readonly platform?: DesktopPlatform;
   readonly timingState?: S06TimingState;
   readonly timingErrorCode?: string | null;
   readonly externalTimingError?: string | null;
   readonly onRetryTiming?: () => void;
   readonly onComplete?: () => void;
   readonly onEvaluationInputReady?: (input: S07RecommendationProjectionInput) => void;
+  readonly onSummaryNetworkReady?: (network: NetworkSceneSnapshot) => void;
 }
 
 interface PlanCache {
@@ -99,12 +95,14 @@ function FictionalPassword({
 
 export function S06ConsequenceTraining({
   source,
+  platform = 'mac',
   timingState = 'active',
   timingErrorCode = null,
   externalTimingError = null,
   onRetryTiming,
   onComplete,
   onEvaluationInputReady,
+  onSummaryNetworkReady,
 }: S06ConsequenceTrainingProps) {
   const networkHostRef = useRef<HTMLDivElement | null>(null);
   const planCacheRef = useRef<PlanCache | null>(null);
@@ -124,6 +122,8 @@ export function S06ConsequenceTraining({
         : createScenePlan(fixtureId, runtimeAccounts);
     planCacheRef.current = { sourceIdentity, plan };
     onEvaluationInputReady?.(plan.resolvedResult);
+    const summaryNetwork = plan.steps.at(-1)?.network;
+    if (summaryNetwork !== undefined) onSummaryNetworkReady?.(summaryNetwork);
     const allNodeIds = [
       ...new Set(plan.steps.flatMap(({ network }) => network.nodes.map(({ id }) => id))),
     ];
@@ -159,7 +159,7 @@ export function S06ConsequenceTraining({
       unsubscribe();
       void controller?.dispose();
     };
-  }, [fixtureId, onComplete, onEvaluationInputReady, runtimeAccounts]);
+  }, [fixtureId, onComplete, onEvaluationInputReady, onSummaryNetworkReady, runtimeAccounts]);
 
   if (runtime === null || snapshot === null) return null;
 
@@ -173,10 +173,9 @@ export function S06ConsequenceTraining({
 
   return (
     <section className={styles.training} aria-label={s06ConsequenceContent.trainingAriaLabel}>
-      <BrowserShell
-        snapshot={browserSnapshot}
-        ariaLabel={s06ConsequenceContent.browser.ariaLabel}
-        onTabSelect={() => undefined}
+      <DesktopSurface
+        platform={platform}
+        browserDock={{ active: false, enabled: false, label: 'Browser geschlossen' }}
       >
         <article
           className={styles.page}
@@ -333,7 +332,7 @@ export function S06ConsequenceTraining({
             </aside>
           </div>
         </article>
-      </BrowserShell>
+      </DesktopSurface>
     </section>
   );
 }

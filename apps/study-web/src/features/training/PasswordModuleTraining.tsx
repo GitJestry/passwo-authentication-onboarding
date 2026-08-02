@@ -6,6 +6,7 @@ import {
   type SegmentTimingPort,
 } from '@passwo/training-engine';
 import type { DesktopPlatform } from '@passwo/ui';
+import type { NetworkSceneSnapshot } from '@passwo/visualization';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import passWoWelcomeAsset from '../../assets/passwo/passwo-welcome.png';
 import { PassWoSpeechBubble } from './PassWoSpeechBubble.js';
@@ -38,6 +39,7 @@ import {
   S07EvaluationTraining,
   type S07TimingState,
 } from './segments/S07/S07EvaluationTraining.js';
+import { S08NetworkRewindStage } from './segments/S08/S08NetworkRewindStage.js';
 
 export interface PasswordModuleTrainingProps {
   readonly timingPort?: SegmentTimingPort;
@@ -58,6 +60,7 @@ export function PasswordModuleTraining({
 }: PasswordModuleTrainingProps) {
   const [snapshot, setSnapshot] = useState<PasswordModuleSnapshot | null>(null);
   const [platform, setPlatform] = useState<DesktopPlatform>('mac');
+  const [s06SummaryNetwork, setS06SummaryNetwork] = useState<NetworkSceneSnapshot | null>(null);
   const controllerRef = useRef<PasswordModuleController | null>(null);
   const entrySceneRef = useRef<HTMLDivElement | null>(null);
   const entryCharacterRef = useRef<HTMLImageElement | null>(null);
@@ -425,11 +428,13 @@ export function PasswordModuleTraining({
     return (
       <S06ConsequenceTraining
         source={s06Source}
+        platform={platform}
         timingState={timingState}
         timingErrorCode={snapshot.context.timingErrorCode}
         externalTimingError={externalTimingError}
         onComplete={completeS06}
         onEvaluationInputReady={storeS06EvaluationInput}
+        onSummaryNetworkReady={setS06SummaryNetwork}
         onRetryTiming={() => {
           if (externalTimingError !== null) onRetryExternalTiming?.();
           else controller.retryTiming();
@@ -483,6 +488,8 @@ export function PasswordModuleTraining({
     return (
       <S07EvaluationTraining
         input={input}
+        network={s06SummaryNetwork}
+        platform={platform}
         timingState={timingState}
         timingErrorCode={snapshot.context.timingErrorCode}
         externalTimingError={externalTimingError}
@@ -497,11 +504,7 @@ export function PasswordModuleTraining({
   }
 
   if (snapshot.matches('awaiting-s08')) {
-    return (
-      <section className={styles.loading} aria-labelledby="awaiting-s08-title">
-        <h1 id="awaiting-s08-title">Auswertung abgeschlossen.</h1>
-      </section>
-    );
+    return <S08NetworkRewindStage platform={platform} network={s06SummaryNetwork} />;
   }
 
   return null;
