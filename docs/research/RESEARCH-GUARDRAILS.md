@@ -58,6 +58,23 @@ Die Foci sind Designrationale, keine unabhängig getesteten Faktoren.
 - Passwortmanager- und MFA-Handlungen bleiben getrennt; es gibt keinen kombinierten Behavior Score.
 - Das Follow-up ist Messung und kein erneutes Training.
 
+## Begrenzte lokale Passwort-Rateweganalyse
+
+- S05 verwendet die in `ADR 0014-Bounded-Password-Guessing` definierte lokale, deterministische
+  und versionierte zxcvbn-ts-Konfiguration.
+- Die Analyse ist adaptive Trainingssteuerung und kein Studienmessinstrument, kein
+  Produktions-Password-Strength-Meter und keine allgemeine Sicherheitsbewertung.
+- `quick-path-recognized` bedeutet nur, dass der günstigste vollständige Rateweg der begrenzten
+  Konfiguration höchstens 100000 geschätzte Kandidaten umfasst. Die Schwelle ist kein
+  NIST-Grenzwert und wird nicht in eine Crack-Zeit übersetzt.
+- `no-quick-path-recognized` bedeutet weder stark noch sicher. Die 15-Zeichen-Orientierung für
+  selbst erstellte Passwörter wird getrennt ausgewiesen.
+- Persönliche Bedeutung, Thema und Satzstruktur werden nicht algorithmisch behauptet. Eine
+  lokale Selbsteinordnung mit einer Ausweichoption für „Nichts davon oder unsicher“ verändert
+  die Disposition nicht und wird nicht persistiert.
+- zxcvbn-Score, Crack-Time-Ausgaben, externe Leak-Abfragen, KI-Modelle und Forschungsdatenexporte
+  der Trainingsanalyse sind unzulässig.
+
 ## Technische Datenschutzgrenzen
 
 - Nur neue, fiktive Passwörter; keine realen Varianten.

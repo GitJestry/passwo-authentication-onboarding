@@ -24,3 +24,4 @@ ADR 0006 bleibt als durch `ADR 0008-Reference` abgelöste historische Entscheidu
 | `ADR 0011-Follow-up-Recontact` | Getrennte Recontact-Registry für das verzögerte Follow-up | [0011-delayed-follow-up-recontact.md](./0011-delayed-follow-up-recontact.md) |
 | `ADR 0012-Instrument-Submissions` | Versionierte Instrumentblöcke und balancierte Guardrail-Präsentation | [0012-versioned-instrument-submissions.md](./0012-versioned-instrument-submissions.md) |
 | `ADR 0013-Deletion-Code-Separation` | Trennung von Forschungs-ID und Löschcode | [0013-research-id-and-deletion-code-separation.md](./0013-research-id-and-deletion-code-separation.md) |
+| `ADR 0014-Bounded-Password-Guessing` | Begrenzte lokale Passwort-Rateweganalyse | [0014-bounded-local-password-guessing-analysis.md](./0014-bounded-local-password-guessing-analysis.md) |

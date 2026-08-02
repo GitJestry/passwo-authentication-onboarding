@@ -16,10 +16,16 @@ export type PasswordEvidence = PasswordEvidenceSpan | PasswordEvidenceToken;
 
 export type PasswordSingleFindingKind =
   | 'common-password-core'
+  | 'common-word'
+  | 'common-name'
+  | 'keyboard-pattern'
   | 'year'
-  | 'simple-number-sequence'
+  | 'date'
+  | 'simple-character-sequence'
+  | 'predictable-word-sequence'
   | 'repeated-component'
   | 'account-or-service-term'
+  | 'typical-transformation'
   | 'typical-suffix'
   | 'no-simple-component-recognized';
 
@@ -31,9 +37,47 @@ export interface PasswordSingleFinding {
   readonly confidence: PasswordFindingConfidence;
 }
 
+export type PasswordGuessPathPattern =
+  | 'dictionary'
+  | 'keyboard'
+  | 'repeat'
+  | 'sequence'
+  | 'date'
+  | 'brute-force'
+  | 'separator'
+  | 'other';
+
+export interface PasswordGuessPathMatch {
+  readonly pattern: PasswordGuessPathPattern;
+  readonly start: number;
+  readonly end: number;
+  readonly sourceId: string | null;
+}
+
+export interface PasswordGuessPathAnalysis {
+  readonly engineId: 'zxcvbn-ts';
+  readonly configurationVersion: string;
+  readonly estimatedGuesses: number;
+  readonly estimatedGuessesLog10: number;
+  readonly matches: readonly PasswordGuessPathMatch[];
+}
+
+export type PasswordSemanticReflectionSelection =
+  | 'personal-meaning'
+  | 'shared-theme'
+  | 'sentence-or-familiar-phrase'
+  | 'none-or-unsure';
+
+export interface PasswordSemanticReflection {
+  readonly kind: 'local-password-semantic-reflection';
+  readonly selected: readonly PasswordSemanticReflectionSelection[];
+  readonly confirmed: boolean;
+}
+
 export interface PasswordAnalysisResult {
   readonly kind: 'fictional-password-analysis';
   readonly findings: readonly PasswordSingleFinding[];
+  readonly guessPath: PasswordGuessPathAnalysis;
   readonly disclaimerId: 'simulation-not-production-strength';
 }
 
@@ -95,22 +139,26 @@ export interface TheoreticalSearchSpaceModel {
   };
 }
 
-export type SimulationQuickPathRuleId =
-  | 'very-short-string'
-  | 'common-password-core-with-typical-change'
-  | 'account-context-with-predictable-qualifier'
-  | 'clearly-repeated-explainable-structure';
+export type SimulationQuickPathRuleId = 'bounded-complete-guess-path';
+export type PasswordLengthOrientation = 'below-15' | 'at-least-15';
+
+interface LocalPasswordDispositionBase {
+  readonly estimatedGuesses: number;
+  readonly quickPathThreshold: number;
+  readonly lengthOrientation: PasswordLengthOrientation;
+  readonly analysisVersion: string;
+}
 
 export type LocalPasswordDisposition =
-  | {
+  | (LocalPasswordDispositionBase & {
       readonly kind: 'quick-path-recognized';
       readonly ruleId: SimulationQuickPathRuleId;
-      readonly explanationId: `s05.disposition.${SimulationQuickPathRuleId}`;
-    }
-  | {
+      readonly explanationId: 's05.disposition.bounded-complete-guess-path';
+    })
+  | (LocalPasswordDispositionBase & {
       readonly kind: 'no-quick-path-recognized';
       readonly explanationId: 's05.disposition.no-quick-path-recognized';
-    };
+    });
 
 /** @deprecated Use LocalPasswordDisposition for new local simulation code. */
 export type PasswordSimulationDisposition = LocalPasswordDisposition;
@@ -214,6 +262,7 @@ export const s07RecommendationIds = [
   'replace-exposed-password',
   'separate-exact-reuse',
   'rebuild-predictable-password',
+  'rebuild-below-length-orientation',
   'replace-derived-pattern',
   'improve-retrievability',
   'no-change-practice-method',
@@ -232,6 +281,7 @@ export type S07Retrievability = 'remembered' | 'not-remembered' | 'skipped';
 
 export type S07ProblemClass =
   | 'local-quick-path'
+  | 'below-length-orientation'
   | 'exact-reuse'
   | 'derived-variant'
   | 'retrievability';

@@ -1,4 +1,4 @@
-import { s00Content, s01Content } from '@passwo/training-content';
+import { s00Content, s01Content, s05Content } from '@passwo/training-content';
 import {
   PasswordModuleController,
   type PasswordModuleSnapshot,
@@ -80,7 +80,7 @@ export function PasswordModuleTraining({
       id: 'supportive-campusgram',
       label: 'Fiktives Campusgram-Passwort',
       fictionalPassword: campusgramPassword,
-      analysisContext: { accountTerms: ['Campusgram'] },
+      analysisContext: { accountTerms: s05Content.analysis.authoredAccountTerms },
     }),
     [campusgramPassword],
   );

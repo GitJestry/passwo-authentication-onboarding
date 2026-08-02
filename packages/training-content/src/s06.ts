@@ -45,13 +45,17 @@ export interface S06NarrationContent {
   readonly body: string;
 }
 
-export const S06_CONSEQUENCE_CONTENT_VERSION = '2.2.0';
+export const S06_CONSEQUENCE_CONTENT_VERSION = '2.3.0';
 
 export const s06ConsequenceContent = {
   version: S06_CONSEQUENCE_CONTENT_VERSION,
   source: {
     document: 'research/private/training-script.pdf',
     internalPages: [36, 37, 38, 39, 40, 41, 42, 43, 44] as const,
+    revision:
+      'Bounded complete guess-path terminology aligned with S05 on 2026-08-03',
+    copyReference:
+      'docs/design/S06-S07-COPY-AUDIT.md#copy-delta-vollstaendiger-pruefweg-und-laengenorientierung-3-august-2026',
   },
   segment: {
     id: 'S06',
@@ -135,8 +139,10 @@ export const s06ConsequenceContent = {
       'Konto- oder Dienstbegriff, Jahreszahl und typischer Anhang wurden begrenzt verändert.',
   },
   dispositionLabels: {
-    'quick-path-recognized': 'Schneller Weg in dieser begrenzten Simulation erkannt',
-    'no-quick-path-recognized': 'Kein schnellerer Weg in dieser begrenzten Simulation erkannt',
+    'quick-path-recognized':
+      'Entsprechend kurzer vollständiger Prüfweg in dieser begrenzten Simulation erkannt',
+    'no-quick-path-recognized':
+      'Kein entsprechend kurzer vollständiger Prüfweg in dieser begrenzten Simulation erkannt',
   },
   retrievalLabels: {
     retrievable: 'direkt abrufbar',
@@ -146,7 +152,7 @@ export const s06ConsequenceContent = {
   narrations: {
     's06.incident.campusgram-found': {
       heading: 'Erster Vorfall: Campusgram',
-      body: 'Das Campusgram-Passwort wurde über einen schnellen Weg dieser Simulation gefunden.',
+      body: 'Die begrenzte Analyse erkannte für das Campusgram-Passwort einen entsprechend kurzen vollständigen Prüfweg.',
     },
     's06.incident.campusgram-blocked': {
       heading: 'Erster Vorfall: Campusgram',
@@ -166,7 +172,7 @@ export const s06ConsequenceContent = {
     },
     's06.perspective.master-campus-found': {
       heading: 'Perspektivwechsel zu Master Campus',
-      body: 'Auch Master Campus kann Ausgangspunkt eines Vorfalls sein. Der lokale Einzelcheck findet hier einen schnellen Weg.',
+      body: 'Auch Master Campus kann Ausgangspunkt eines Vorfalls sein. Die begrenzte Analyse erkennt hier einen entsprechend kurzen vollständigen Prüfweg.',
     },
     's06.perspective.master-campus-blocked': {
       heading: 'Perspektivwechsel zu Master Campus',
@@ -174,11 +180,11 @@ export const s06ConsequenceContent = {
     },
     's06.local-check.campus-email-found': {
       heading: 'Lokaler Einzelcheck von Campus E-Mail',
-      body: 'Die begrenzte Einzelanalyse erkennt bei diesem fiktiven Passwort einen schnellen Weg.',
+      body: 'Die begrenzte Analyse erkennt bei diesem fiktiven Passwort einen entsprechend kurzen vollständigen Prüfweg.',
     },
     's06.local-check.campus-email-blocked': {
       heading: 'Lokaler Einzelcheck von Campus E-Mail',
-      body: 'Mit den begrenzten Wegen wurde hier kein schneller Weg erkannt.',
+      body: 'Die begrenzte Analyse erkannte hier keinen entsprechend kurzen vollständigen Prüfweg.',
     },
     's06.summary': {
       heading: 'Gemeinsame Endübersicht',
@@ -263,13 +269,21 @@ export interface S06PreparedS07EvaluationFixture {
 
 const noQuickPathDisposition = {
   kind: 'no-quick-path-recognized',
+  estimatedGuesses: 1_000_000,
+  quickPathThreshold: 100_000,
+  lengthOrientation: 'at-least-15',
+  analysisVersion: 'passwo-bounded-guess-path-v1',
   explanationId: 's05.disposition.no-quick-path-recognized',
 } as const;
 
 const commonPasswordQuickPathDisposition = {
   kind: 'quick-path-recognized',
-  ruleId: 'common-password-core-with-typical-change',
-  explanationId: 's05.disposition.common-password-core-with-typical-change',
+  ruleId: 'bounded-complete-guess-path',
+  estimatedGuesses: 1_000,
+  quickPathThreshold: 100_000,
+  lengthOrientation: 'below-15',
+  analysisVersion: 'passwo-bounded-guess-path-v1',
+  explanationId: 's05.disposition.bounded-complete-guess-path',
 } as const;
 
 export const s06PreparedS07EvaluationFixtures = [

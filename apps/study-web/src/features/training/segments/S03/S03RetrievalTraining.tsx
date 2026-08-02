@@ -699,6 +699,7 @@ export function S03RetrievalTraining({
                           name={`s03-password-${account.id}`}
                           type={revealedAccountIds.has(account.id) ? 'text' : 'password'}
                           autoComplete="off"
+                          maxLength={128}
                           spellCheck={false}
                           value={autofillingActive ? autofillTargetValue : activeValue}
                           readOnly={autofillingActive || assistedLoginActive}

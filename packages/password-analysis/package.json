@@ -1,6 +1,6 @@
 {
   "name": "@passwo/password-analysis",
-  "version": "0.1.2",
+  "version": "0.2.0",
   "private": true,
   "type": "module",
   "exports": {
@@ -13,7 +13,11 @@
     "typecheck": "tsc -p tsconfig.json --noEmit"
   },
   "dependencies": {
-    "@passwo/contracts": "workspace:*"
+    "@passwo/contracts": "workspace:*",
+    "@zxcvbn-ts/core": "4.1.2",
+    "@zxcvbn-ts/language-common": "4.1.2",
+    "@zxcvbn-ts/language-de": "4.1.1",
+    "@zxcvbn-ts/language-en": "4.1.1"
   },
   "devDependencies": {
     "typescript": "~6.0.0"

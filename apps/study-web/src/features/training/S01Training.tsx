@@ -333,6 +333,7 @@ export function S01Training({
                     name={`fictional-password-${account.id}`}
                     type={revealedAccountIds.has(account.id) ? 'text' : 'password'}
                     autoComplete="off"
+                    maxLength={128}
                     spellCheck={false}
                     disabled={!editing || interactionBlocked}
                     value={activeValue}

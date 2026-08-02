@@ -15,6 +15,7 @@ import type {
 const accountOrder = ['master-campus', 'campus-email', 'campusgram'] as const;
 const problemClassOrder = [
   'local-quick-path',
+  'below-length-orientation',
   'exact-reuse',
   'derived-variant',
   'retrievability',
@@ -99,6 +100,9 @@ function recommendationFor(
   if (connections.some(({ relationKind }) => relationKind === 'derived-variant-match')) {
     return 'replace-derived-pattern';
   }
+  if (disposition.lengthOrientation === 'below-15') {
+    return 'rebuild-below-length-orientation';
+  }
   if (retrievability !== 'remembered') return 'improve-retrievability';
   return 'no-change-practice-method';
 }
@@ -152,6 +156,9 @@ export function projectS07Recommendations(
   const detectedProblemClasses = new Set<S07ProblemClass>();
   if (accounts.some(({ disposition }) => disposition.kind === 'quick-path-recognized')) {
     detectedProblemClasses.add('local-quick-path');
+  }
+  if (accounts.some(({ disposition }) => disposition.lengthOrientation === 'below-15')) {
+    detectedProblemClasses.add('below-length-orientation');
   }
   if (
     accounts.some(({ connections }) =>

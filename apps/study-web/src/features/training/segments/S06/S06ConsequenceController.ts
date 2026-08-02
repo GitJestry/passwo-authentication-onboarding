@@ -1,7 +1,6 @@
 import type { S06AccountId, S06LocalAccountAnalysis, S06PairComparison } from '@passwo/contracts';
 import {
   analyzeFictionalPassword,
-  analyzeFictionalPasswordStructure,
   compareFictionalPasswords,
   determinePasswordSimulationDisposition,
 } from '@passwo/password-analysis';
@@ -91,10 +90,6 @@ export function createS06ConsequenceScenePlan(
       fictionalPassword: account.fictionalPassword,
       authoredAccountTerms: definition.accountTerms,
     });
-    const structureAnalysis = analyzeFictionalPasswordStructure({
-      fictionalPassword: account.fictionalPassword,
-      componentAnalysis,
-    });
     return {
       accountId,
       fictionalPassword: account.fictionalPassword,
@@ -102,7 +97,6 @@ export function createS06ConsequenceScenePlan(
       disposition: determinePasswordSimulationDisposition({
         fictionalPassword: account.fictionalPassword,
         componentAnalysis,
-        structureAnalysis,
       }),
     };
   });

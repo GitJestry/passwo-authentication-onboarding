@@ -249,11 +249,12 @@ describe('research-safe contracts', () => {
     expect(designLabScenarioForPath('/design-lab/s07-score')).toBeNull();
   });
 
-  it('keeps the six S07 recommendation IDs stable and score-free', () => {
+  it('keeps the seven S07 recommendation IDs stable and score-free', () => {
     expect(s07RecommendationIds).toEqual([
       'replace-exposed-password',
       'separate-exact-reuse',
       'rebuild-predictable-password',
+      'rebuild-below-length-orientation',
       'replace-derived-pattern',
       'improve-retrievability',
       'no-change-practice-method',
@@ -342,6 +343,10 @@ describe('research-safe contracts', () => {
     };
     const disposition: LocalPasswordDisposition = {
       kind: 'no-quick-path-recognized',
+      estimatedGuesses: 1_000_000,
+      quickPathThreshold: 100_000,
+      lengthOrientation: 'at-least-15',
+      analysisVersion: 'passwo-bounded-guess-path-v1',
       explanationId: 's05.disposition.no-quick-path-recognized',
     };
 

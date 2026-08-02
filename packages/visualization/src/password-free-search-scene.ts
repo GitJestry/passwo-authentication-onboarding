@@ -119,8 +119,8 @@ export function createPasswordFreeSearchApplicationScene(
   const recognizedSpans = concreteEvidenceSpans(componentAnalysis, structureAnalysis);
   const dispositionSummary =
     disposition.kind === 'quick-path-recognized'
-      ? 'Eine konkrete Regel zeigt einen schnelleren Weg.'
-      : 'Mit den gezeigten Prüfwegen wurde kein schnellerer Weg erkannt. Das bedeutet nicht stark, sicher, zufällig oder unangreifbar.';
+      ? 'Die erkannten Hinweise ergeben zusammen einen entsprechend kurzen vollständigen Prüfweg.'
+      : 'Die erkannten Hinweise ergaben keinen entsprechend kurzen vollständigen Prüfweg. Das bedeutet nicht stark, sicher, zufällig oder unangreifbar.';
   return {
     id,
     visibleLength: [...fictionalPassword].length,

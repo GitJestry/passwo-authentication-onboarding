@@ -1,6 +1,7 @@
 import type {
   AuthoredStructureDemonstration,
   DesignLabScenarioId,
+  PasswordSemanticReflectionSelection,
   PasswordSingleFindingKind,
   RuntimeStructureFindingKind,
   SimulationQuickPathRuleId,
@@ -24,7 +25,7 @@ export interface S05DesignLabFixture {
   };
 }
 
-export const S05_CONTENT_VERSION = '2.7.0';
+export const S05_CONTENT_VERSION = '2.9.0';
 
 const commonCoreExamples = ['passwort', 'qwertz', '123456789', '2026', 'sommer', 'admin'] as const;
 
@@ -42,9 +43,10 @@ export const s05Content = {
       12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34,
       35,
     ] as const,
-    revision: 'Userauftrag vom 2026-08-02 · häufige Kerne und Kategorienlogos',
+    revision:
+      'Userauftrag vom 2026-08-03 · begrenzter vollständiger Rateweg mit zxcvbn-ts und lokale semantische Einordnung',
     copyReference:
-      'docs/design/S00-S05-COPY-AUDIT.md#copy-delta-s05-naheliegende-bestandteile-und-häufige-kerne-2-august-2026',
+      'docs/design/S00-S05-COPY-AUDIT.md#copy-delta-s05-begrenzter-rateweg-und-lokale-semantische-einordnung-3-august-2026',
   },
   segment: {
     id: 'S05',
@@ -56,6 +58,16 @@ export const s05Content = {
     ariaLabel: 'Fiktive Browseranwendung, Segment S05, Passwortwege',
     address: 'campus.example/passwortwege',
     tab: { id: 'analysis', label: 'Passwortwege', enabled: true },
+  },
+  analysis: {
+    authoredAccountTerms: [
+      'Campusgram',
+      'Campus',
+      'Nachrichten',
+      'Gruppen',
+      'Kontakte',
+      'Beiträge',
+    ] as const,
   },
   page: {
     title: 'Naheliegende Bestandteile',
@@ -132,7 +144,7 @@ export const s05Content = {
     {
       id: 'account-context',
       title: 'Konto-Kontext',
-      examples: ['Campus', 'Campusgram', 'Prüfung', 'Semester', 'Archiv'],
+      examples: ['Campusgram', 'Campus', 'Nachrichten', 'Gruppen', 'Kontakte', 'Beiträge'],
       note: 'Begriffe, die zum fiktiven Konto passen können.',
     },
     {
@@ -144,10 +156,16 @@ export const s05Content = {
   ],
   findingLabels: {
     'common-password-core': 'häufiger Passwortkern',
+    'common-word': 'häufig verwendetes Wort',
+    'common-name': 'häufig verwendeter Name',
+    'keyboard-pattern': 'Tastaturmuster',
     year: 'Jahreszahl',
-    'simple-number-sequence': 'einfache Zahlenfolge',
+    date: 'Datumsmuster',
+    'simple-character-sequence': 'einfache Zeichenfolge',
+    'predictable-word-sequence': 'bekannte Wortfolge',
     'repeated-component': 'wiederholter Bestandteil',
     'account-or-service-term': 'Konto- oder Dienstbegriff',
+    'typical-transformation': 'typische Veränderung',
     'typical-suffix': 'typischer Zahlen- oder Symbolanhang',
     'no-simple-component-recognized': 'kein einfacher Bestandteil erkannt',
   } satisfies Readonly<Record<PasswordSingleFindingKind, string>>,
@@ -220,6 +238,21 @@ export const s05Content = {
       noneExplanation:
         'Die Übung hat hier keinen einfachen Zusammenhang erkannt. Das bedeutet nicht, dass das Passwort zufällig, stark oder sicher ist.',
       boundedNotice: 'Die Markierungen zeigen konkrete Zusammenhänge im fiktiven Passwort.',
+      reflection: {
+        title: 'Deine lokale Einordnung',
+        question: 'Trifft etwas davon auf deine fiktive Passwortidee zu?',
+        privacyNote:
+          'Du musst nicht angeben, um welche Information es geht. Die Auswahl bleibt nur in der laufenden Übung und verändert nicht die Simulationsentscheidung.',
+        options: {
+          'personal-meaning': 'Mindestens ein Bestandteil war als persönliche Angabe gedacht.',
+          'shared-theme': 'Mehrere Bestandteile gehören für mich zu demselben Thema.',
+          'sentence-or-familiar-phrase':
+            'Mehrere Bestandteile bilden einen Satz oder eine vertraute Formulierung.',
+          'none-or-unsure': 'Nichts davon oder unsicher.',
+        } satisfies Readonly<Record<PasswordSemanticReflectionSelection, string>>,
+        confirm: 'Einordnung bestätigen',
+        confirmed: 'Für diese Übung bestätigt',
+      },
     },
   },
   freeSearch: {
@@ -312,18 +345,18 @@ export const s05Content = {
       structureFindings: 'Erkannte Zusammenhänge',
       unexplainedAreas: 'Bereiche ohne erkannte einfachere Erklärung',
       noUnexplainedArea: 'Kein weiterer Bereich',
-      boundary: 'Die Übersicht zeigt keine Zeitprognose und kein einzelnes Gesamturteil.',
+      boundary: 'Die Übersicht zeigt keine Crack-Zeit und keine Sicherheitsgarantie.',
       dispositionLabels: {
-        'very-short-string': 'konkreter Weg: sehr kurze Zeichenfolge',
-        'common-password-core-with-typical-change':
-          'konkreter Weg: häufiger Passwortkern mit typischer Veränderung',
-        'account-context-with-predictable-qualifier':
-          'konkreter Weg: Konto- oder Kontextbegriff mit vorhersehbarem Jahr oder Anhang',
-        'clearly-repeated-explainable-structure':
-          'konkreter Weg: klar wiederholter, leicht erklärbarer Aufbau',
+        'bounded-complete-guess-path':
+          'Die erkannten Hinweise ergeben zusammen einen entsprechend kurzen vollständigen Prüfweg.',
       } satisfies Readonly<Record<SimulationQuickPathRuleId, string>>,
-      noQuickPath: 'Mit den gezeigten Prüfwegen wurde kein schnellerer Weg erkannt.',
+      noQuickPath:
+        'Die erkannten Hinweise ergaben in dieser begrenzten Analyse keinen entsprechend kurzen vollständigen Prüfweg.',
       noQuickPathBoundary: 'Das bedeutet nicht stark, sicher, zufällig oder unangreifbar.',
+      lengthOrientationLabels: {
+        'below-15': 'unter der 15-Zeichen-Orientierung für selbst erstellte Passwörter',
+        'at-least-15': 'mindestens 15 sichtbare Zeichen',
+      },
     },
   },
   summary: {
@@ -346,7 +379,8 @@ export const s05Content = {
     ],
     generatedNote:
       'Systemseitig zufällig erzeugte Zeichenfolgen werden nach ihrem Erzeugungsprozess eingeordnet, nicht nach Zeichenarten-Häkchen.',
-    noScore: 'Die drei Blickwinkel ergänzen einander. Sie werden nicht zu einem einzelnen Urteil verrechnet.',
+    noScore:
+      'Der Angreifer kombiniert die drei Blickwinkel zu vollständigen Kandidatenwegen. Die 15-Zeichen-Orientierung bleibt davon getrennt.',
   },
   fixtures: [
     {

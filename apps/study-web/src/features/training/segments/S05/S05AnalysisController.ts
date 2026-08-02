@@ -1,3 +1,4 @@
+import type { PasswordSemanticReflectionSelection } from '@passwo/contracts';
 import {
   analyzeFictionalPassword,
   analyzeFictionalPasswordStructure,
@@ -202,7 +203,6 @@ export class S05AnalysisController {
     const disposition = determinePasswordSimulationDisposition({
       fictionalPassword: subject.fictionalPassword,
       componentAnalysis,
-      structureAnalysis,
     });
     const findingScene = createPasswordFindingScene(
       `s05-findings-${subject.id}`,
@@ -212,6 +212,11 @@ export class S05AnalysisController {
       `s05-structure-${subject.id}`,
       s05Content.structure.demonstrations,
       structureAnalysis,
+      {
+        kind: 'local-password-semantic-reflection',
+        selected: [],
+        confirmed: false,
+      },
     );
     const freeSearchApplicationScene = createPasswordFreeSearchApplicationScene(
       `s05-free-search-application-${subject.id}`,
@@ -282,6 +287,67 @@ export class S05AnalysisController {
     void this.#missionController.start(this.#mission);
   }
 
+  toggleSemanticReflection(selection: PasswordSemanticReflectionSelection): void {
+    const snapshot = this.#snapshot;
+    if (
+      this.#disposed ||
+      snapshot === null ||
+      snapshot.step !== 'structure-application' ||
+      snapshot.structureScene.semanticReflection.confirmed
+    ) {
+      return;
+    }
+    const selected = new Set(snapshot.structureScene.semanticReflection.selected);
+    if (selection === 'none-or-unsure') {
+      selected.clear();
+      selected.add(selection);
+    } else {
+      selected.delete('none-or-unsure');
+      if (selected.has(selection)) selected.delete(selection);
+      else selected.add(selection);
+    }
+    this.#snapshot = {
+      ...snapshot,
+      structureScene: {
+        ...snapshot.structureScene,
+        semanticReflection: {
+          ...snapshot.structureScene.semanticReflection,
+          selected: [...selected],
+        },
+      },
+      controls: { ...snapshot.controls, canContinue: false },
+    };
+    this.#emit();
+  }
+
+  confirmSemanticReflection(): void {
+    const snapshot = this.#snapshot;
+    if (
+      this.#disposed ||
+      snapshot === null ||
+      snapshot.step !== 'structure-application' ||
+      snapshot.structureScene.semanticReflection.confirmed ||
+      snapshot.structureScene.semanticReflection.selected.length === 0
+    ) {
+      return;
+    }
+    const semanticReflection = {
+      ...snapshot.structureScene.semanticReflection,
+      confirmed: true,
+    } as const;
+    this.#snapshot = {
+      ...snapshot,
+      structureScene: createPasswordStructureScene(
+        snapshot.structureScene.id,
+        snapshot.structureScene.authoredDemonstrations,
+        snapshot.structureScene.runtimeAnalysis,
+        semanticReflection,
+      ),
+      controls: { ...snapshot.controls, canContinue: true },
+    };
+    this.#emit();
+  }
+
   selectEstimate(estimate: S05Estimate): void {
     const snapshot = this.#snapshot;
     if (
@@ -349,7 +415,10 @@ export class S05AnalysisController {
         canStart: false,
         canReplay: awaitingDecision,
         canContinue:
-          awaitingDecision && (step !== 'estimate' || currentSnapshot.estimate.confirmed),
+          awaitingDecision &&
+          (step !== 'estimate' || currentSnapshot.estimate.confirmed) &&
+          (step !== 'structure-application' ||
+            currentSnapshot.structureScene.semanticReflection.confirmed),
       },
     };
     this.#emit();

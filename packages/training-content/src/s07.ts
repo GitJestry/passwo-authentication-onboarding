@@ -7,13 +7,17 @@ import type {
   TrainingSectionId,
 } from '@passwo/contracts';
 
-export const S07_EVALUATION_CONTENT_VERSION = '1.0.0';
+export const S07_EVALUATION_CONTENT_VERSION = '1.1.0';
 
 export const s07EvaluationContent = {
   version: S07_EVALUATION_CONTENT_VERSION,
   source: {
     document: 'research/private/training-script.pdf',
     internalPages: [44, 45, 46, 47, 48, 49, 50] as const,
+    revision:
+      'Bounded complete guess-path and separate length-orientation wording aligned on 2026-08-03',
+    copyReference:
+      'docs/design/S06-S07-COPY-AUDIT.md#copy-delta-vollstaendiger-pruefweg-und-laengenorientierung-3-august-2026',
   },
   segment: {
     id: 'S07',
@@ -52,11 +56,10 @@ export const s07EvaluationContent = {
     },
   } as const satisfies Readonly<Record<S06AccountId, unknown>>,
   dispositionLabels: {
-    'very-short-string': 'Ein naheliegender Prüfweg wurde erkannt.',
-    'common-password-core-with-typical-change': 'Ein naheliegender Prüfweg wurde erkannt.',
-    'account-context-with-predictable-qualifier': 'Ein vorhersehbarer Aufbau wurde erkannt.',
-    'clearly-repeated-explainable-structure': 'Ein vorhersehbarer Aufbau wurde erkannt.',
-    none: 'Mit den begrenzten Wegen dieser Simulation wurde kein schnellerer Weg erkannt.',
+    'bounded-complete-guess-path':
+      'Die erkannten Hinweise ergaben zusammen einen entsprechend kurzen vollständigen Prüfweg.',
+    none:
+      'Die begrenzte Analyse erkannte keinen entsprechend kurzen vollständigen Prüfweg.',
   },
   relationLabels: {
     'exact-match': 'exakt wiederverwendet',
@@ -83,6 +86,8 @@ export const s07EvaluationContent = {
     'separate-exact-reuse': 'Trenne dieses Konto vollständig vom exakt wiederverwendeten Passwort.',
     'rebuild-predictable-password':
       'Baue dieses Passwort auf einer neuen Grundlage auf, statt nur einzelne Zeichen zu verändern.',
+    'rebuild-below-length-orientation':
+      'Baue dieses selbst erstellte Passwort mit mindestens 15 Zeichen neu auf.',
     'replace-derived-pattern':
       'Ersetze die gemeinsame Grundlage; ändere nicht nur Zahl, Jahr oder Dienstname.',
     'improve-retrievability': 'Verwende eine praktikablere Merkmethode für dieses Konto.',
@@ -91,7 +96,9 @@ export const s07EvaluationContent = {
   } as const satisfies Readonly<Record<S07RecommendationId, string>>,
   problemStatements: {
     'local-quick-path':
-      'Mindestens ein Passwort bot in der begrenzten Simulation einen schnelleren lokalen Weg.',
+      'Mindestens ein Passwort ergab in der begrenzten Analyse einen entsprechend kurzen vollständigen Prüfweg.',
+    'below-length-orientation':
+      'Mindestens ein selbst erstelltes Passwort lag unter der 15-Zeichen-Orientierung.',
     'exact-reuse': 'Zwischen mindestens zwei Konten besteht eine exakte Passwortwiederverwendung.',
     'derived-variant':
       'Zwischen mindestens zwei Passwörtern wurde ein konkreter abgeleiteter Kandidatenweg erkannt.',

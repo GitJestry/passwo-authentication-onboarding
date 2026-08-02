@@ -1,5 +1,6 @@
 import type {
   PasswordEvidenceSpan,
+  PasswordSemanticReflectionSelection,
   PasswordSingleFindingKind,
   RuntimeStructureFindingKind,
 } from '@passwo/contracts';
@@ -196,9 +197,21 @@ function CommonCoreMachineScene({ variants }: { readonly variants: readonly stri
 
 const commonCoreFindingKinds = new Set<PasswordSingleFindingKind>([
   'common-password-core',
-  'simple-number-sequence',
+  'common-word',
+  'common-name',
+  'keyboard-pattern',
+  'simple-character-sequence',
+  'predictable-word-sequence',
   'year',
+  'date',
 ]);
+
+const semanticReflectionOrder = [
+  'personal-meaning',
+  'shared-theme',
+  'sentence-or-familiar-phrase',
+  'none-or-unsure',
+] as const satisfies readonly PasswordSemanticReflectionSelection[];
 
 function commonCoreFindings(scene: PasswordFindingSceneSnapshot) {
   return scene.prioritizedFindings.filter(({ kind }) => commonCoreFindingKinds.has(kind));
@@ -683,6 +696,7 @@ function FreeSearchApplicationScene({
             <span>{content.noQuickPathBoundary}</span>
           </>
         )}
+        <span>{content.lengthOrientationLabels[scene.disposition.lengthOrientation]}</span>
       </div>
       <p className={styles.boundaryCallout}>{content.boundary}</p>
     </div>
@@ -759,7 +773,13 @@ function renderScene(
     case 'structure-context':
       return <StructureDemonstrationScene snapshot={snapshot} />;
     case 'structure-application':
-      return <StructureApplicationScene subject={subject} scene={snapshot.structureScene} />;
+      return (
+        <StructureApplicationScene
+          subject={subject}
+          snapshot={snapshot}
+          controller={controller}
+        />
+      );
     case 'free-search-transition':
       return (
         <ShortExplanationScene
@@ -820,22 +840,35 @@ function introNarrationFor(
 
 function StructureApplicationScene({
   subject,
-  scene,
+  snapshot,
+  controller,
 }: {
   readonly subject: S05AnalysisSubject;
-  readonly scene: PasswordStructureSceneSnapshot;
+  readonly snapshot: S05AnalysisControllerSnapshot;
+  readonly controller: S05AnalysisController;
 }) {
+  const scene = snapshot.structureScene;
+  const reflection = scene.semanticReflection;
+  const substantiveSelections = reflection.selected.filter(
+    (selection) => selection !== 'none-or-unsure',
+  );
   const noSimpleStructure =
     scene.prioritizedRuntimeFindings.length === 1 &&
     scene.prioritizedRuntimeFindings[0]?.findingKind === 'no-simple-structure-recognized';
+  const recognizedSomething = !noSimpleStructure || substantiveSelections.length > 0;
+  const reflectionContent = s05Content.structure.application.reflection;
+  const reflectionOptions = semanticReflectionOrder.map(
+    (selection) => [selection, reflectionContent.options[selection]] as const,
+  );
+
   return (
     <div className={styles.structureWorkspace} aria-label={scene.accessibleSummary}>
       <section className={styles.passWoExplanation}>
         <p className={styles.cardLabel}>PassWo erklärt</p>
         <p>
-          {noSimpleStructure
-            ? s05Content.structure.application.noneExplanation
-            : s05Content.structure.application.recognizedExplanation}
+          {recognizedSomething
+            ? s05Content.structure.application.recognizedExplanation
+            : s05Content.structure.application.noneExplanation}
         </p>
       </section>
       <article className={styles.structureResult} data-s05-target="structure-application">
@@ -854,6 +887,41 @@ function StructureApplicationScene({
         </ol>
         <p>{s05Content.structure.application.boundedNotice}</p>
       </article>
+      <section className={styles.semanticReflection} aria-labelledby="s05-reflection-title">
+        <p className={styles.cardLabel}>{reflectionContent.title}</p>
+        <h2 id="s05-reflection-title">{reflectionContent.question}</h2>
+        <p>{reflectionContent.privacyNote}</p>
+        <fieldset disabled={reflection.confirmed}>
+          <legend className={styles.visuallyHidden}>{reflectionContent.question}</legend>
+          {reflectionOptions.map(([selection, label]) => (
+            <label key={selection}>
+              <input
+                type="checkbox"
+                checked={reflection.selected.includes(selection)}
+                onChange={() => controller.toggleSemanticReflection(selection)}
+              />
+              <span>{label}</span>
+            </label>
+          ))}
+        </fieldset>
+        <button
+          type="button"
+          disabled={reflection.confirmed || reflection.selected.length === 0}
+          onClick={() => controller.confirmSemanticReflection()}
+        >
+          {reflectionContent.confirm}
+        </button>
+        {reflection.confirmed ? (
+          <div className={styles.semanticReflectionResult} role="status">
+            <strong>{reflectionContent.confirmed}</strong>
+            <ul>
+              {reflection.selected.map((selection) => (
+                <li key={selection}>{reflectionContent.options[selection]}</li>
+              ))}
+            </ul>
+          </div>
+        ) : null}
+      </section>
     </div>
   );
 }

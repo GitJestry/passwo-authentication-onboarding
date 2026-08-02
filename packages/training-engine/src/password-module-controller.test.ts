@@ -42,6 +42,10 @@ const evaluationInput: S07RecommendationProjectionInput = {
         accountId,
         disposition: {
           kind: 'no-quick-path-recognized',
+          estimatedGuesses: 1_000_000,
+          quickPathThreshold: 100_000,
+          lengthOrientation: 'at-least-15',
+          analysisVersion: 'passwo-bounded-guess-path-v1',
           explanationId: 's05.disposition.no-quick-path-recognized',
         },
         retrievalStatus: 'retrievable',
@@ -71,6 +75,10 @@ const recommendationProjection: S07RecommendationProjection = {
         accountId,
         disposition: {
           kind: 'no-quick-path-recognized',
+          estimatedGuesses: 1_000_000,
+          quickPathThreshold: 100_000,
+          lengthOrientation: 'at-least-15',
+          analysisVersion: 'passwo-bounded-guess-path-v1',
           explanationId: 's05.disposition.no-quick-path-recognized',
         },
         connections: [],
