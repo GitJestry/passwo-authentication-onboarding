@@ -507,6 +507,10 @@ button.activeTab[aria-disabled="true"] {
   background: color-mix(in srgb, var(--color-surface-inverse) 22%, transparent);
 }
 
+.window[data-dim-strength="strong"] .dimLayer {
+  background: rgb(7 24 40 / 64%);
+}
+
 .passWoLayer,
 .speechLayer,
 .controlsLayer {

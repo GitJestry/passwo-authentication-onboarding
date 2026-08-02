@@ -5,7 +5,6 @@ import {
   type PasswordModuleSnapshot,
 } from '@passwo/training-engine';
 import { BrowserShell, type BrowserShellSnapshot, type DesktopPlatform } from '@passwo/ui';
-import { useEffect, useRef } from 'react';
 import attackerAsset from '../../../../assets/passwo/attacker.png';
 import { NetworkSymbol } from '../../../../adapters/network/NetworkSymbolRegistry.js';
 import { CampusWebsiteBackdrop } from '../../CampusWebsiteBackdrop.js';
@@ -46,7 +45,6 @@ export function S04IncidentTraining({
   externalTimingError = null,
   onRetryExternalTiming,
 }: S04IncidentTrainingProps) {
-  const titleRef = useRef<HTMLHeadingElement | null>(null);
   const writingStart = snapshot.matches({ s04: 'writingStart' });
   const startWriteFailed = snapshot.matches({ s04: 'startWriteFailed' });
   const active = snapshot.matches({ s04: 'active' });
@@ -69,12 +67,9 @@ export function S04IncidentTraining({
     scrollKey: 's04:campusgram:incident',
     highlightedTabId: 'campusgram',
     dimmed: true,
+    dimStrength: 'strong',
     locked: writingStart || writingEnd,
   };
-
-  useEffect(() => {
-    if (active) titleRef.current?.focus();
-  }, [active]);
 
   function retryTiming(): void {
     if (externalTimingError !== null) {
@@ -93,19 +88,11 @@ export function S04IncidentTraining({
         ariaLabel={s04Content.browser.ariaLabel}
         layers={{
           passWo: (
-            <section className={styles.incidentOverlay} aria-labelledby="s04-incident-title">
-              <header className={styles.warningBanner} role="alert">
-                <span className={styles.incidentIcon} aria-hidden="true">
-                  <IncidentIcon />
-                </span>
-                <div>
-                  <h1 ref={titleRef} id="s04-incident-title" tabIndex={-1}>
-                    {s04Content.notice.title}
-                  </h1>
-                  <p>{s04Content.notice.paragraphs[0]}</p>
-                </div>
-              </header>
-
+            <section
+              className={styles.incidentOverlay}
+              role="alert"
+              aria-label={`${s04Content.notice.title}. ${s04Content.notice.paragraphs[0]}`}
+            >
               <div className={styles.incidentStage}>
                 <img
                   className={styles.attacker}
@@ -120,7 +107,7 @@ export function S04IncidentTraining({
                   openHelpLabel={s00Content.narration.openGuideLabel}
                   speech={s04Content.notice.paragraphs}
                   speechKey="s04-incident-explanation"
-                  speechPlacement="right"
+                  speechPlacement="above"
                   speechFooter={
                     <button
                       type="button"
@@ -163,6 +150,17 @@ export function S04IncidentTraining({
           interactionLabel={s04Content.browser.tabWarningLabel}
           view="dashboard"
           displayName={snapshot.context.displayName ?? ''}
+          dashboardNotice={
+            <section className={styles.serviceNotice} role="alert">
+              <span className={styles.incidentIcon} aria-hidden="true">
+                <IncidentIcon />
+              </span>
+              <div>
+                <h2>{s04Content.notice.title}</h2>
+                <p>{s04Content.notice.paragraphs[0]}</p>
+              </div>
+            </section>
+          }
         />
       </BrowserShell>
     </section>

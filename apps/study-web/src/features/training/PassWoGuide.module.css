@@ -28,7 +28,9 @@
 }
 
 .guide[data-placement="incident"] {
-  position: relative;
+  right: clamp(var(--space-3), 2.4vw, var(--space-6));
+  bottom: clamp(var(--space-3), 2.4vh, var(--space-6));
+  left: auto;
   width: min(10.08rem, 100%);
 }
 
@@ -159,6 +161,8 @@
   }
 
   .guide[data-placement="incident"] {
+    right: var(--space-2);
+    bottom: var(--space-2);
     width: 7.25rem;
   }
 

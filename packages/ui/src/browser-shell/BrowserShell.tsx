@@ -101,7 +101,7 @@ export interface BrowserShellSnapshot {
   /** Ephemeral document key used for in-memory scroll restoration. */
   readonly scrollKey?: string;
   readonly dimmed?: boolean;
-  readonly dimStrength?: 'soft' | 'standard';
+  readonly dimStrength?: 'soft' | 'standard' | 'strong';
   readonly allowTabInteractionWhenDimmed?: boolean;
   readonly highlightedTabId?: string;
   readonly locked?: boolean;

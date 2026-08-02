@@ -26,6 +26,7 @@ export interface CampusWebsiteBackdropProps {
   readonly authenticationTitle?: string | undefined;
   readonly onBack?: (() => void) | undefined;
   readonly dashboardHeadingRef?: Ref<HTMLHeadingElement> | undefined;
+  readonly dashboardNotice?: ReactNode | undefined;
   readonly rootRef?: Ref<HTMLElement> | undefined;
   readonly timeLapseActive?: boolean | undefined;
 }
@@ -375,6 +376,7 @@ function CommunityDashboard(props: {
   readonly definition: CampusWebsiteDefinition;
   readonly displayName?: string | undefined;
   readonly dashboardHeadingRef?: Ref<HTMLHeadingElement> | undefined;
+  readonly dashboardNotice?: ReactNode | undefined;
 }) {
   const { account } = props.definition;
   const greetingName = props.displayName?.trim().split(/\s+/u)[0] || 'Campus';
@@ -392,6 +394,7 @@ function CommunityDashboard(props: {
           <span>⌕ {s01Content.siteUi.community.searchLabel}</span>
           <strong>＋ {s01Content.siteUi.community.createLabel}</strong>
         </header>
+        {props.dashboardNotice}
         <section className={styles.topicRail} aria-label={s01Content.siteUi.community.topicsAriaLabel}>
           {s01Content.siteUi.community.topics.map((topic, index) => (
             <span key={topic}>
@@ -448,6 +451,7 @@ function DashboardView(props: {
   readonly definition: CampusWebsiteDefinition;
   readonly displayName?: string | undefined;
   readonly dashboardHeadingRef?: Ref<HTMLHeadingElement> | undefined;
+  readonly dashboardNotice?: ReactNode | undefined;
 }) {
   switch (props.definition.kind) {
     case 'master-campus':
@@ -474,6 +478,7 @@ export function CampusWebsiteBackdrop({
   authenticationTitle,
   onBack,
   dashboardHeadingRef,
+  dashboardNotice,
   rootRef,
   timeLapseActive = false,
 }: CampusWebsiteBackdropProps) {
@@ -515,6 +520,7 @@ export function CampusWebsiteBackdrop({
           definition={definition}
           displayName={displayName}
           dashboardHeadingRef={dashboardHeadingRef}
+          dashboardNotice={dashboardNotice}
         />
       )}
     </article>
