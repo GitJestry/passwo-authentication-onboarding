@@ -693,6 +693,27 @@
   line-height: 1;
 }
 
+.completionStatus {
+  display: flex;
+  align-items: center;
+  gap: 0.28rem;
+  color: #21734e;
+  font-size: 0.6rem;
+  font-weight: var(--font-weight-heavy);
+  line-height: 1;
+}
+
+.completionStatus svg {
+  width: 0.78rem;
+  height: 0.78rem;
+  flex: none;
+  fill: none;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 2.25;
+}
+
 .progressTrack {
   display: block;
   height: 0.28rem;

@@ -73,7 +73,7 @@ export interface S00SegmentContent {
   };
 }
 
-export const S00_CONTENT_VERSION = '1.17.0';
+export const S00_CONTENT_VERSION = '1.17.1';
 
 export const s00Content: S00SegmentContent = {
   version: S00_CONTENT_VERSION,
@@ -119,7 +119,7 @@ export const s00Content: S00SegmentContent = {
     greeting:
       'Das ist dein virtueller Browser: Oben wechselst du zwischen drei Konten und richtest alle drei ein.',
     safetyWarning:
-      'Verwende bitte nur neue, ausgedachte Passwörter. Nutze keine echten Passwörter oder Varianten davon. Die Eingaben werden nur lokal für diese fiktive Übung ausgewertet und nicht dauerhaft gespeichert.\nViel Erfolg!',
+      'Verwende bitte nur neue, ausgedachte Passwörter. Nutze keine echten Passwörter oder Varianten davon. Die Eingaben werden nur lokal für diese fiktive Übung ausgewertet und nicht dauerhaft gespeichert. Viel Erfolg!',
     openGuideLabel: 'PassWo-Hilfe öffnen',
   },
   controls: {

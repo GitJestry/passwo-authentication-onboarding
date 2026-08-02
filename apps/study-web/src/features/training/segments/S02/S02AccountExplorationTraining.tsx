@@ -82,6 +82,14 @@ function PasswordKeyGraphic() {
   );
 }
 
+function CompletionCheckIcon() {
+  return (
+    <svg viewBox="0 0 16 16" aria-hidden="true">
+      <path d="m3.25 8.25 2.9 2.9 6.6-6.6" />
+    </svg>
+  );
+}
+
 function relativeBounds(rect: DOMRect, containerRect: DOMRect, padding = 0): Bounds {
   return {
     left: rect.left - containerRect.left - padding,
@@ -369,6 +377,12 @@ export function S02AccountExplorationTraining({
     }
     runtime.controller.startIntro();
   }, [externalTimingError, runtime, snapshot, timingState]);
+
+  useEffect(() => {
+    if (snapshot?.scene.isComplete) {
+      setGuideOpen(true);
+    }
+  }, [snapshot?.scene.isComplete]);
 
   useLayoutEffect(() => {
     const cursorKey = cursorKeyRef.current;
@@ -688,23 +702,30 @@ export function S02AccountExplorationTraining({
               )}
               <div className={styles.guideStatus}>
                 <strong>{s02Content.page.eyebrow}</strong>
-                <div className={styles.taskProgress} aria-live="polite">
-                  <span aria-hidden="true">
-                    {viewedCount}/{definition.accounts.length}
-                  </span>
-                  <span
-                    className={styles.progressTrack}
-                    role="progressbar"
-                    aria-label={s02Content.page.globalProgress(viewedCount)}
-                    aria-valuemin={0}
-                    aria-valuemax={definition.accounts.length}
-                    aria-valuenow={viewedCount}
-                  >
+                {complete ? (
+                  <div className={styles.completionStatus} aria-live="polite">
+                    <CompletionCheckIcon />
+                    <span>{s02Content.page.completion}</span>
+                  </div>
+                ) : (
+                  <div className={styles.taskProgress} aria-live="polite">
+                    <span aria-hidden="true">
+                      {viewedCount}/{definition.accounts.length}
+                    </span>
                     <span
-                      style={{ width: `${(viewedCount / definition.accounts.length) * 100}%` }}
-                    />
-                  </span>
-                </div>
+                      className={styles.progressTrack}
+                      role="progressbar"
+                      aria-label={s02Content.page.globalProgress(viewedCount)}
+                      aria-valuemin={0}
+                      aria-valuemax={definition.accounts.length}
+                      aria-valuenow={viewedCount}
+                    >
+                      <span
+                        style={{ width: `${(viewedCount / definition.accounts.length) * 100}%` }}
+                      />
+                    </span>
+                  </div>
+                )}
               </div>
             </div>
             <div className={styles.passWo}>

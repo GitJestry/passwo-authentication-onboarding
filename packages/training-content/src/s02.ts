@@ -176,7 +176,7 @@ export interface S02SegmentContent {
   readonly animations: readonly S02AnimationSequence[];
 }
 
-export const S02_CONTENT_VERSION = '4.3.0';
+export const S02_CONTENT_VERSION = '4.3.1';
 
 const introId = 's02.accounts.intro';
 const introReadyId = 's02.accounts.intro-ready';
@@ -497,7 +497,7 @@ export const s02Content: S02SegmentContent = {
     globalProgress: (viewed) => `Konten kennenlernen: ${viewed}/3 angesehen`,
     openTaskHelp: 'Aufgabe noch einmal anzeigen',
     previewTitle: 'Optionale Vorschau',
-    completion: 'Alle drei Konten angesehen',
+    completion: 'Konten erkundet',
   },
   controls: {
     timingFailure:
