@@ -51,3 +51,21 @@ Rohcode bleibt dadurch nicht in der Forschungsdatenbank erhalten.
   Exportdateien oder Recontact-Nachrichten aufgenommen werden.
 - Die getrennte Recontact-Registry bleibt unverändert. Ihre Zugriffs- und Löschregeln müssen vor
   dem Study Freeze weiterhin organisatorisch und technisch festgelegt werden.
+
+## Revision 2026-08-02 — Lokaler Löschworkflow
+
+Die Runtime erhält einen ausschließlich lokalen CLI-Workflow. Er ist nicht über HTTP erreichbar
+und besitzt weder eine Webroute noch eine Teilnehmeroberfläche. Der Löschcode wird verdeckt über
+die Standardeingabe gelesen, gegen das `PW-`-Format validiert und mittels desselben UTF-8-
+SHA-256-Verfahrens wie der Study Client gehasht. Der Rohcode bleibt im Prozessspeicher und wird
+weder persistiert noch geloggt oder als Kommandozeilenargument akzeptiert.
+
+Die Suche erfolgt ausschließlich über `study_sessions.deletion_code_hash`. Standardmäßig läuft die
+CLI im Dry-Run und zeigt lediglich die betroffenen Tabellen und ihre Datensatzanzahlen. Eine
+destruktive Ausführung verlangt zusätzlich `--confirm`. Die bestätigte Löschung entfernt die
+Session, alle sessionabhängigen Forschungs- und Betriebsdatensätze sowie eine vorhandene
+Recontact-Registrierung in einer lokalen SQLite-Transaktion. Sie erzeugt kein Löschprotokoll, weil
+ein solcher zusätzlicher Datensatz die Löschung unterlaufen würde.
+
+Bestehende Forschungs- oder Schedule-Exporte und Backups liegen außerhalb dieses Workflows. Die
+CLI löscht und behauptet weder ihre Löschung noch ihre nachträgliche Bereinigung.

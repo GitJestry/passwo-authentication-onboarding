@@ -7,6 +7,7 @@ import {
   createSessionResponseSchema,
   type DeletionCode,
   deletionCodeSchema,
+  hashDeletionCode,
   type InstrumentSubmissionRequest,
   instrumentSubmissionRequestSchema,
   type RegisterRecontactRequest,
@@ -61,14 +62,6 @@ function generateDeletionCode(): DeletionCode {
   return deletionCodeSchema.parse(`PW-${groups.join('-')}`);
 }
 
-async function sha256Hex(value: string): Promise<string> {
-  const digest = await globalThis.crypto.subtle.digest(
-    'SHA-256',
-    new TextEncoder().encode(value),
-  );
-  return Array.from(new Uint8Array(digest), (byte) => byte.toString(16).padStart(2, '0')).join('');
-}
-
 async function postJson(url: string, body: unknown): Promise<unknown> {
   const response = await fetch(url, {
     method: 'POST',
@@ -87,7 +80,7 @@ async function postJson(url: string, body: unknown): Promise<unknown> {
 export function createStudyApi(): StudyApi {
   const createRequestId = globalThis.crypto.randomUUID();
   const deletionCode = generateDeletionCode();
-  const deletionCodeHash = sha256Hex(deletionCode);
+  const deletionCodeHash = hashDeletionCode(deletionCode);
   let timingSessionId: string | null = null;
 
   function selectTimingSession(sessionId: string): void {

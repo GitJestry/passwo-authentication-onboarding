@@ -14,6 +14,7 @@
 | Completion                | complete, incomplete, technical failure                                                  | `study.sqlite`                    |
 | Follow-up-Verknüpfung     | optionale Einwilligung, Follow-up-Version, optionaler Token-Hash                         | `study.sqlite`                    |
 | Recontact                 | E-Mail, Roh-Token, Token-Hash, Consent-Version, Versand-/Schließzeitpunkte               | ausschließlich `recontact.sqlite` |
+| Lokaler Löschworkflow     | tabellarische Anzahl betroffener Datensätze                                                | nur Prozessausgabe, nie persistiert |
 | Ephemeral participant data | Anzeigename/Kürzel, roher Löschcode                                                      | nur flüchtiger Study-Renderer     |
 | Training input/diagnosis  | fiktive Passwörter, Loginversuche, Findings, Ähnlichkeit                                 | nie persistieren                  |
 | Reference quiz state      | im gemessenen Pfad nicht vorhanden; etwaige SCORM-Interaktionen der Unterrichtslektionen | nicht erheben                     |
@@ -71,6 +72,23 @@ Ein Verzicht oder ein abgebrochener Registrierungsversuch setzt Einwilligungssta
 in der Forschungsdatenbank zurück und entfernt einen gegebenenfalls angelegten Registry-Datensatz,
 ohne Session, Forschungs-ID, Löschcode-Hash oder Condition zu verändern.
 
+## Lokaler Löschworkflow
+
+`pnpm study:delete` ist ausschließlich ein lokaler CLI-Prozess, keine HTTP-Funktion und keine
+Teilnehmeroberfläche. Er akzeptiert keinen Identifikator außer einem Löschcode im `PW-`-Format,
+liest diesen nicht als Kommandozeilenargument und hält ihn nur bis zur SHA-256-Berechnung im
+Prozessspeicher. Die Auflösung verwendet ausschließlich `deletion_code_hash`.
+
+Ohne `--confirm` ist der Workflow ein schreibgeschützter Dry-Run. Seine Ausgabe beschränkt sich
+auf die Namen der betroffenen Tabellen und ihre Datensatzanzahlen; sie enthält keine Antworten,
+E-Mail-Adressen, Forschungs-IDs, Session-IDs, Token oder Löschcode-Hashes. Mit `--confirm` löscht
+er die Session, abhängige Timing-, Submission-, Response-, Präsentations-, Lease- und
+Zuweisungsdatensätze sowie eine vorhandene `recontact.registrations`-Zeile transaktional. Ein
+Löschprotokoll wird nicht persistiert.
+
+Bereits erzeugte Exporte, Schedule-Dateien und Backups sind nicht Teil der SQLite-Transaktion. Der
+Workflow verändert sie nicht und darf ihre Löschung nicht behaupten.
+
 ## Speicherort und Rechte
 
 - Standard: `~/.passwo-study/study.sqlite` und getrennt `recontact.sqlite`.
@@ -95,5 +113,5 @@ Einladungs-, Erinnerungs- und Schließzeitpunkte. Er enthält weder Condition no
 Forschungsantworten.
 
 Aufbewahrungs-, Lösch- und Backup-Fristen sind vor dem Study Freeze festzulegen. Die Runtime führt
-bis dahin keine automatische oder destruktive Löschung der Research- oder Recontact-Datenbank
-durch.
+keine automatische Löschung aus; ausschließlich der oben definierte, ausdrücklich bestätigte
+lokale CLI-Workflow kann einzelne Research- und Recontact-Datensätze löschen.

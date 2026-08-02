@@ -69,3 +69,9 @@ Die lokale Runtime versendet keine E-Mails und hostet keinen öffentlichen Frage
 Completion werden nur für eingewilligte Sessions Einladung nach 240 Stunden, höchstens eine
 Erinnerung nach weiteren 48 Stunden und Schließung nach 336 Stunden geplant. Schedule-Export,
 öffentliches Formular, Import und abschließender Debrief-Versand bleiben getrennte Funktionen.
+
+## Lokale Datenlöschung
+
+Die Runtime stellt keine Teilnehmeroberfläche und keine HTTP-Route für Löschungen bereit. Ein
+lokaler, explizit bestätigter CLI-Workflow kann ausschließlich über den Löschcode eine Session und
+ihre abhängigen Daten auflösen; sein Standardmodus bleibt ein schreibgeschützter Dry-Run.

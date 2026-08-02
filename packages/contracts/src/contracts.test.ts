@@ -1,3 +1,4 @@
+import { createHash } from 'node:crypto';
 import { describe, expect, it } from 'vitest';
 import reviewedInstrumentRuntimeManifest from '../../../research/derived/instruments-v1.runtime.json' with {
   type: 'json',
@@ -9,7 +10,9 @@ import {
   type RuntimeStructureFinding,
   type TheoreticalSearchSpaceModel,
   createSessionRequestSchema,
+  deletionCodeSchema,
   designLabScenarioForPath,
+  hashDeletionCode,
   instrumentRuntimeManifest,
   instrumentSubmissionRequestSchema,
   persistedSessionRecordSchema,
@@ -21,6 +24,7 @@ import {
   SUPPORTIVE_ARTIFACT_SEGMENT_IDS,
   SUPPORTIVE_ARTIFACT_VERSION,
   studyTimingEventSchema,
+  studyDataDeletionReportSchema,
 } from './index.js';
 
 const validDeletionCodeHash = 'a'.repeat(64);
@@ -112,6 +116,40 @@ describe('research-safe contracts', () => {
       registerRecontactRequestSchema.safeParse({
         requestId: 'f5d74d44-f700-4dc7-ac00-5e251a8890c3',
         email: 'not-an-email',
+      }).success,
+    ).toBe(false);
+  });
+
+  it('uses the PW deletion-code format and shared SHA-256 lookup hash', async () => {
+    const deletionCode = deletionCodeSchema.parse('PW-AB12-CD34-EF56-7890');
+    const deletionCodeHash = await hashDeletionCode(deletionCode);
+
+    expect(deletionCodeHash).toBe(
+      createHash('sha256').update(deletionCode, 'utf8').digest('hex'),
+    );
+    expect(deletionCodeSchema.safeParse('PW-ab12-CD34-EF56-7890').success).toBe(false);
+  });
+
+  it('limits local deletion reports to table names and affected record counts', () => {
+    const report = {
+      tables: [
+        { table: 'study_sessions', count: 1 },
+        { table: 'assignment_slots', count: 1 },
+        { table: 'guardrail_form_slots', count: 1 },
+        { table: 'artifact_leases', count: 1 },
+        { table: 'timing_events', count: 1 },
+        { table: 'instrument_submissions', count: 1 },
+        { table: 'responses', count: 3 },
+        { table: 'response_presentations', count: 4 },
+        { table: 'recontact.registrations', count: 1 },
+      ],
+    };
+
+    expect(studyDataDeletionReportSchema.safeParse(report).success).toBe(true);
+    expect(
+      studyDataDeletionReportSchema.safeParse({
+        ...report,
+        email: 'not-allowed@example.org',
       }).success,
     ).toBe(false);
   });

@@ -94,6 +94,17 @@ pnpm study:export -- --database /pfad/study.sqlite --output ./study-export
 Er erzeugt Sessions, Timing und Antworten als CSV und JSON sowie ein Manifest mit Versionen,
 Zählungen und SHA-256-Prüfsummen.
 
+Eine einzelne Session kann ausschließlich lokal über ihren Löschcode geprüft oder gelöscht werden.
+Der Code wird verdeckt über die Standardeingabe gelesen und nie als Kommandozeilenargument
+übergeben. Ohne `--confirm` bleibt der Vorgang ein Dry-Run; vorhandene Exporte und Backups werden
+nicht verändert.
+
+```bash
+pnpm study:delete
+pnpm study:delete -- --confirm
+pnpm study:delete -- --database /pfad/study.sqlite --recontact-database /pfad/recontact.sqlite
+```
+
 ## Design Lab
 
 `/design-lab` ist ein interner QA-Pfad für deterministische, vom Studienablauf isolierte Szenen,

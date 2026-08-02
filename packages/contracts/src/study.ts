@@ -30,6 +30,18 @@ export type DeletionCode = z.infer<typeof deletionCodeSchema>;
 export const deletionCodeHashSchema = z.string().regex(/^[a-f0-9]{64}$/u);
 export type DeletionCodeHash = z.infer<typeof deletionCodeHashSchema>;
 
+export async function hashDeletionCode(deletionCode: DeletionCode): Promise<DeletionCodeHash> {
+  const digest = await globalThis.crypto.subtle.digest(
+    'SHA-256',
+    new TextEncoder().encode(deletionCode),
+  );
+  const deletionCodeHash = Array.from(
+    new Uint8Array(digest),
+    (byte) => byte.toString(16).padStart(2, '0'),
+  ).join('');
+  return deletionCodeHashSchema.parse(deletionCodeHash);
+}
+
 export const researchCodeSchema = z.string().regex(/^RS-[A-F0-9]{16}$/u);
 export type ResearchCode = z.infer<typeof researchCodeSchema>;
 

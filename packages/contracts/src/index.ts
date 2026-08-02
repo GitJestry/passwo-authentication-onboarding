@@ -6,5 +6,6 @@ export * from './recontact.js';
 export * from './reference-supplements.js';
 export * from './research-export.js';
 export * from './study.js';
+export * from './study-data-deletion.js';
 export * from './timing.js';
 export * from './training.js';
