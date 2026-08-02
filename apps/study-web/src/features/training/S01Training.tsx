@@ -161,8 +161,9 @@ export function S01Training({
     address: pageAddress,
     accountIdentifier,
     scrollKey: `s01:${account.id}:${websiteView}`,
-    dimmed: questHelpOpen && !readyToContinue,
+    dimmed: questHelpOpen,
     dimStrength: 'soft',
+    allowWindowInteractionWhenDimmed: readyToContinue,
   };
 
   function toggleReveal(accountId: string): void {

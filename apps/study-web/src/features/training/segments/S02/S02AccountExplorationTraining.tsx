@@ -367,22 +367,10 @@ export function S02AccountExplorationTraining({
   }, []);
 
   useEffect(() => {
-    if (
-      runtime === null ||
-      snapshot === null ||
-      timingState !== 'active' ||
-      externalTimingError !== null
-    ) {
-      return;
-    }
-    runtime.controller.startIntro();
-  }, [externalTimingError, runtime, snapshot, timingState]);
-
-  useEffect(() => {
-    if (snapshot?.scene.isComplete) {
+    if (snapshot?.scene.isComplete || snapshot?.introState === 'complete') {
       setGuideOpen(true);
     }
-  }, [snapshot?.scene.isComplete]);
+  }, [snapshot?.introState, snapshot?.scene.isComplete]);
 
   useLayoutEffect(() => {
     const cursorKey = cursorKeyRef.current;
@@ -753,7 +741,17 @@ export function S02AccountExplorationTraining({
                   speechKey={speechKey}
                   emphasis={passWoSpeechEmphasisFor(narrationId)}
                   placement={guideSpeechPosition?.side ?? 'right'}
-                  action={{ kind: 'dismiss', onAction: () => setGuideOpen(false) }}
+                  action={
+                    snapshot.introState === 'ready'
+                      ? {
+                          kind: 'advance',
+                          disabled: interactionBlocked,
+                          onAction: () => controller.startIntro(),
+                        }
+                      : snapshot.introState === 'playing'
+                        ? { kind: 'advance', disabled: true, onAction: () => undefined }
+                      : { kind: 'dismiss', onAction: () => setGuideOpen(false) }
+                  }
                   {...(guideSpeechPosition === null
                     ? {}
                     : { arrowOffset: guideSpeechPosition.arrowOffset })}

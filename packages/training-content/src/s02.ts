@@ -176,7 +176,7 @@ export interface S02SegmentContent {
   readonly animations: readonly S02AnimationSequence[];
 }
 
-export const S02_CONTENT_VERSION = '4.3.1';
+export const S02_CONTENT_VERSION = '4.3.2';
 
 const introId = 's02.accounts.intro';
 const introReadyId = 's02.accounts.intro-ready';
@@ -478,7 +478,8 @@ export const s02Content: S02SegmentContent = {
   source: {
     document: 'research/private/training-script.pdf',
     internalPages: [4, 5, 6, 7],
-    copyReference: 'docs/design/S00-S05-COPY-AUDIT.md#s02----konten-kennenlernen',
+    copyReference:
+      'docs/design/S00-S05-COPY-AUDIT.md#copy-delta-s02-netzwerk-orientierung-3-august-2026',
   },
   segment: {
     id: 'S02',
@@ -589,9 +590,9 @@ export const s02Content: S02SegmentContent = {
     completeId,
     messages: {
       [introId]:
-        'Ich habe die drei Konten als Netzwerk dargestellt. So kannst du sehen, welche Funktionen mit ihnen verbunden sind.',
+        'Im Alltag ist nicht immer sichtbar, welche Funktionen mit einem Konto verbunden sind. Deshalb habe ich die drei Konten als Netzwerk dargestellt.',
       [introReadyId]:
-        'Wähle selbst, welches Konto du zuerst erkundest. Du musst dir keine Einzelheiten merken – viele dieser Funktionen kennst du wahrscheinlich aus deinem Alltag.',
+        'Du musst dir keine Einzelheiten merken – vieles kommt dir wahrscheinlich bekannt vor. Wähle einen Kontoknoten aus, den du zuerst erkunden möchtest.',
       [completeId]:
         'Du hast alle drei Konten angesehen. Klicke unten im Dock auf den Browser, wenn du weitergehen möchtest.',
       's02.master-campus':

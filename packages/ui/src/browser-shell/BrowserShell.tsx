@@ -103,6 +103,8 @@ export interface BrowserShellSnapshot {
   readonly dimmed?: boolean;
   readonly dimStrength?: 'soft' | 'standard' | 'strong';
   readonly allowTabInteractionWhenDimmed?: boolean;
+  /** Keeps the close, minimize, and Dock controls available for an explicitly guided transition. */
+  readonly allowWindowInteractionWhenDimmed?: boolean;
   readonly tabActivation?: 'automatic' | 'manual';
   readonly highlightedTabId?: string;
   readonly locked?: boolean;
@@ -156,6 +158,8 @@ export function BrowserShell({
   const dimmed = snapshot.dimmed ?? false;
   const locked = snapshot.locked ?? false;
   const tabsInert = locked || (dimmed && snapshot.allowTabInteractionWhenDimmed !== true);
+  const windowControlsInert =
+    locked || (dimmed && snapshot.allowWindowInteractionWhenDimmed !== true);
   const chromeInert = dimmed || locked;
   const dimStrength = snapshot.dimStrength ?? 'standard';
   const accountInitials = deriveAccountInitials(snapshot.accountIdentifier);
@@ -350,7 +354,7 @@ export function BrowserShell({
       overlay={layers?.screen}
       browserDock={{
         active: windowState !== 'closed',
-        enabled: !dimmed && !locked,
+        enabled: !locked && (!dimmed || snapshot.allowWindowInteractionWhenDimmed === true),
         label:
           windowState === 'closed'
             ? 'Browserfenster vom Dock öffnen'
@@ -380,7 +384,7 @@ export function BrowserShell({
       >
         <header className={styles.chrome}>
           <div className={styles.tabRow}>
-            <div className={styles.windowControls} inert={chromeInert || undefined}>
+            <div className={styles.windowControls} inert={windowControlsInert || undefined}>
               <button
                 type="button"
                 className={styles.closeControl}

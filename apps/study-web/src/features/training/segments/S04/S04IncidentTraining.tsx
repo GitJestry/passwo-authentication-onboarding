@@ -68,6 +68,8 @@ export function S04IncidentTraining({
     address: s04Content.browser.address,
     accountIdentifier: campusIdentity.campusgram,
     scrollKey: 's04:campusgram:incident',
+    dimmed: true,
+    dimStrength: 'soft',
     locked: writingStart || writingEnd,
   };
 

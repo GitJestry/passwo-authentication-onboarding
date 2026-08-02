@@ -908,7 +908,11 @@ export function S05AnalysisTraining({
         <header className={styles.pageHeader}>
           <h1 id="s05-title">{s05Content.page.title}</h1>
         </header>
-        <div className={styles.content} aria-live="polite">
+        <div
+          className={styles.content}
+          aria-live="polite"
+          inert={introGuidanceVisible || undefined}
+        >
           {renderScene(
             snapshot,
             subject,
@@ -917,27 +921,34 @@ export function S05AnalysisTraining({
             () => setPasswordRevealed((revealed) => !revealed),
           )}
         </div>
+        {introGuidanceVisible ? <div className={styles.dimLayer} aria-hidden="true" /> : null}
         {introNarration === null ? null : (
-          <PassWoGuide
-            guideName={s00Content.narration.guideName}
-            taskLabel="Bestandteile"
-            helpOpen
-            helpId="s05-intro-passwo-speech"
-            openHelpLabel={s00Content.narration.openGuideLabel}
-            speech={introNarration}
-            speechKey={`s05-${snapshot.step}`}
-            speechPlacement="above"
-            speechObstacleSelector="[data-s05-speech-obstacle]"
-            speechAction={{
-              kind: 'advance',
-              disabled: !snapshot.controls.canContinue || externalTimingError !== null,
-              onAction: () => controller.continue(),
-            }}
-            placement="incident"
-            showHelpButton={false}
-          />
+          <div className={styles.passWoLayer}>
+            <PassWoGuide
+              guideName={s00Content.narration.guideName}
+              taskLabel="Bestandteile"
+              helpOpen
+              helpId="s05-intro-passwo-speech"
+              openHelpLabel={s00Content.narration.openGuideLabel}
+              speech={introNarration}
+              speechKey={`s05-${snapshot.step}`}
+              speechPlacement="above"
+              speechObstacleSelector="[data-s05-speech-obstacle]"
+              speechAction={{
+                kind: 'advance',
+                disabled: !snapshot.controls.canContinue || externalTimingError !== null,
+                onAction: () => controller.continue(),
+              }}
+              placement="incident"
+              showHelpButton={false}
+            />
+          </div>
         )}
-        <footer className={styles.controls} data-hidden={introGuidanceVisible || undefined}>
+        <footer
+          className={styles.controls}
+          data-hidden={introGuidanceVisible || undefined}
+          inert={introGuidanceVisible || undefined}
+        >
             {writingBoundary && externalTimingError === null ? (
               <p role="status">Segmentgrenze wird bestätigt …</p>
             ) : null}

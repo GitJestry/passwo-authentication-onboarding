@@ -49,11 +49,12 @@ describe('S00 to S02 training-content traceability', () => {
   });
 
   it('keeps S02 linked to its named pages and essential account-node structure', () => {
-    expect(S02_CONTENT_VERSION).toBe('4.3.1');
+    expect(S02_CONTENT_VERSION).toBe('4.3.2');
     expect(s02Content.source).toEqual({
       document: 'research/private/training-script.pdf',
       internalPages: [4, 5, 6, 7],
-      copyReference: 'docs/design/S00-S05-COPY-AUDIT.md#s02----konten-kennenlernen',
+      copyReference:
+        'docs/design/S00-S05-COPY-AUDIT.md#copy-delta-s02-netzwerk-orientierung-3-august-2026',
     });
     expect(s02Content.segment.id).toBe('S02');
     expect(s02Content.scene.accounts.map(({ id }) => id)).toEqual(canonicalAccountIds);
@@ -77,10 +78,10 @@ describe('S00 to S02 training-content traceability', () => {
     ]);
     expect(s02Content.page.globalProgress(2)).toBe('Konten kennenlernen: 2/3 angesehen');
     expect(s02Content.narration.messages[s02Content.narration.introId]).toBe(
-      'Ich habe die drei Konten als Netzwerk dargestellt. So kannst du sehen, welche Funktionen mit ihnen verbunden sind.',
+      'Im Alltag ist nicht immer sichtbar, welche Funktionen mit einem Konto verbunden sind. Deshalb habe ich die drei Konten als Netzwerk dargestellt.',
     );
     expect(s02Content.narration.messages[s02Content.narration.introReadyId]).toBe(
-      'Wähle selbst, welches Konto du zuerst erkundest. Du musst dir keine Einzelheiten merken – viele dieser Funktionen kennst du wahrscheinlich aus deinem Alltag.',
+      'Du musst dir keine Einzelheiten merken – vieles kommt dir wahrscheinlich bekannt vor. Wähle einen Kontoknoten aus, den du zuerst erkunden möchtest.',
     );
     expect(s02Content.scene.accounts.map(({ coreAction }) => coreAction.targetDetailIds)).toEqual([
       ['master-campus-workspace'],

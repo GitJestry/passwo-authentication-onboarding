@@ -454,7 +454,7 @@ export function S03RetrievalTraining({
     address: pageAddress,
     accountIdentifier,
     scrollKey: `s03:${account.id}:${websiteView}`,
-    dimmed: guideVisible && !campusgramWarningActive,
+    dimmed: guideVisible,
     dimStrength: 'soft',
     ...(incidentTabAvailable
       ? { allowTabInteractionWhenDimmed: true, tabActivation: 'manual' as const }
