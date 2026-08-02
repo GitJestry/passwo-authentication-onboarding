@@ -106,3 +106,21 @@ bleibt als fest beschlossene und betreuerseitig gebilligte Studienadaption aus d
 Referenzpfad entfernt, um unmittelbare Feedback-Kontamination des gemeinsamen externen
 Guardrails zu vermeiden. Native Scores sind keine Studienoutcomes. Diese Revision ändert weder
 den eingefrorenen SecAware-Build noch Persistenzschema, Migrationen, Randomisierung oder Timing.
+
+## Revision 2026-08-02 — Instrument Revision v1.7
+
+Die Instrumentversion wird auf `1.7.0-draft`, die Fragebogenversion auf
+`questionnaire-v1.5-draft`, die Consent-Version auf `consent-v4-draft`, die Follow-up-Version auf
+`follow-up-v3-draft` und das Runtime-Manifest auf `instrument-runtime-v1.7-draft` angehoben.
+Guardrail-Version und Guardrail-Formen bleiben unverändert.
+
+`PRE_GENDER`, die drei allgemeinen Familiarity-Items, das redundante TF5-Interesse-Item und der
+explorative Emotionsblock werden entfernt. Das bisher doppelte Passwortmanager-Self-Efficacy-Item
+wird in Erzeugen/Speichern und Abruf/Anmeldung getrennt. Zeitfragen stehen im Post unmittelbar
+nach dem Artefakt vor dem UEQ-S. Die Zustimmungsskala bleibt siebenstufig und vollständig
+beschriftet, wird aber ohne horizontale Scrollpflicht pro Item dargestellt.
+
+Die Teilnehmerinformation erhält eine sofort sichtbare Kerninformation, einen während der Sitzung
+erreichbaren Detailzugang und den zugänglichen Teilnehmercode. Offizielle Datenschutzkontakte,
+Rechtsgrundlage und konkrete Löschfristen bleiben externe Study-Freeze-Eingaben und werden nicht
+durch die Software erfunden.

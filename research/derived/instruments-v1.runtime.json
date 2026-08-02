@@ -1,11 +1,11 @@
 {
   "schemaVersion": 2,
-  "instrumentVersion": "1.6.0-draft",
-  "questionnaireVersion": "questionnaire-v1.4-draft",
+  "instrumentVersion": "1.7.0-draft",
+  "questionnaireVersion": "questionnaire-v1.5-draft",
   "guardrailVersion": "guardrail-v3-draft",
-  "consentVersion": "consent-v3-draft",
-  "followUpVersion": "follow-up-v2-draft",
-  "runtimeManifestVersion": "instrument-runtime-v1.6-draft",
+  "consentVersion": "consent-v4-draft",
+  "followUpVersion": "follow-up-v3-draft",
+  "runtimeManifestVersion": "instrument-runtime-v1.7-draft",
   "language": "de-DE",
   "participantTerm": "Lernangebot",
   "scales": {
@@ -31,30 +31,6 @@
         "0": "überhaupt nicht zuversichtlich",
         "5": "mäßig zuversichtlich",
         "10": "vollständig zuversichtlich"
-      }
-    },
-    "familiarity5": {
-      "type": "integer",
-      "min": 1,
-      "max": 5,
-      "anchors": {
-        "1": "gar nicht vertraut",
-        "2": "wenig vertraut",
-        "3": "teilweise vertraut",
-        "4": "ziemlich vertraut",
-        "5": "sehr vertraut"
-      }
-    },
-    "intensity5": {
-      "type": "integer",
-      "min": 1,
-      "max": 5,
-      "anchors": {
-        "1": "gar nicht",
-        "2": "wenig",
-        "3": "mittel",
-        "4": "stark",
-        "5": "sehr stark"
       }
     },
     "durationAppropriateness7": {
@@ -100,8 +76,7 @@
       "eyebrow": "Studie zu digitalem Kontoschutz",
       "welcomeHeading": "Willkommen",
       "welcomeParagraphs": [
-        "Vielen Dank, dass du dir Zeit für diese Studie nimmst. Du bearbeitest gleich ein digitales Lernangebot zum Schutz von Online-Konten. Davor und danach beantwortest du einige kurze Fragen.",
-        "Plane für die heutige Sitzung etwa 20 bis 30 Minuten ein. Die Teilnahme ist freiwillig und kann jederzeit ohne Nachteile beendet werden."
+        "Vielen Dank, dass du dir Zeit für diese Studie nimmst. Du bearbeitest gleich ein digitales Lernangebot zum Schutz von Online-Konten und beantwortest davor und danach einige Fragen."
       ],
       "facts": [
         {
@@ -117,10 +92,10 @@
         {
           "id": "follow_up",
           "label": "Nachbefragung",
-          "value": "optional, etwa 1 Minute nach 10 Tagen"
+          "value": "optional, etwa 1–2 Minuten nach 10 Tagen"
         }
       ],
-      "readMoreLabel": "Teilnahmeinformationen lesen",
+      "readMoreLabel": "Ausführliche Teilnahmeinformationen",
       "informationHeading": "Informationen zu deiner Teilnahme",
       "sections": [
         {
@@ -135,14 +110,14 @@
           "heading": "Was erwartet dich?",
           "paragraphs": [
             "Zunächst beantwortest du kurze Fragen zu deiner Person und zu bisherigen Erfahrungen mit den behandelten Themen. Danach bearbeitest du ein digitales Lernangebot. Abschließend folgen Fragen zu deiner Wahrnehmung des Angebots und zu den vermittelten Inhalten. Die heutige Sitzung dauert voraussichtlich 20 bis 30 Minuten.",
-            "Optional kannst du etwa zehn Tage später per E-Mail an einer ungefähr einminütigen Nachbefragung teilnehmen. Die Hauptstudie kann vollständig bearbeitet werden, ohne dieser Kontaktaufnahme zuzustimmen."
+            "Optional kannst du etwa zehn Tage später per E-Mail an einer etwa ein- bis zweiminütigen Nachbefragung teilnehmen. Die Hauptstudie kann vollständig bearbeitet werden, ohne dieser Kontaktaufnahme zuzustimmen."
           ]
         },
         {
           "id": "data",
           "heading": "Welche Daten werden verarbeitet?",
           "paragraphs": [
-            "Gespeichert werden deine Fragebogenantworten, Bearbeitungszeiten, technische Abschlussinformationen und Angaben zum bearbeiteten Studienablauf. Die Forschungsdaten werden unter einem zufällig erzeugten Teilnehmercode pseudonymisiert gespeichert und ausgewertet. Sie enthalten weder deinen Namen noch deine E-Mail-Adresse.",
+            "Gespeichert werden deine Fragebogenantworten, Bearbeitungs- und Abschnittszeiten, der technische Abschlussstatus sowie die für die Auswertung erforderlichen Angaben zum bearbeiteten Lernangebot, zu Versionen und Darstellungsreihenfolgen. Die Forschungsdaten werden unter einem zufällig erzeugten Teilnehmercode pseudonymisiert gespeichert und ausgewertet. Sie enthalten weder deinen Namen noch deine E-Mail-Adresse.",
             "Falls du der Nachbefragung zustimmst, wird deine E-Mail-Adresse getrennt von den Forschungsdaten gespeichert und ausschließlich für die Einladung sowie höchstens eine Erinnerung verwendet."
           ]
         },
@@ -180,7 +155,14 @@
         "declineLabel": "Nicht teilnehmen",
         "declineHeading": "Danke für deine Rückmeldung",
         "declineBody": "Du nimmst nicht an der Studie teil. Es wurde keine Sitzung angelegt."
-      }
+      },
+      "essentialSummaryHeading": "Das Wichtigste zur Teilnahme",
+      "essentialSummaryParagraphs": [
+        "Die heutige Sitzung dauert voraussichtlich 20 bis 30 Minuten. Die Teilnahme ist freiwillig und kann jederzeit ohne Begründung und ohne Nachteile beendet werden.",
+        "Gespeichert werden Fragebogenantworten, Bearbeitungs- und Abschnittszeiten, der technische Abschlussstatus sowie erforderliche Angaben zum bearbeiteten Lernangebot, zu Versionen und Darstellungsreihenfolgen. Es werden keine realen Passwörter oder Kontozugangsdaten verlangt.",
+        "Eine kurze Nachbefragung nach etwa zehn Tagen ist optional. Eine E-Mail-Adresse wird nur mit gesonderter Einwilligung und getrennt von den Forschungsdaten gespeichert. Ein unmittelbarer persönlicher Nutzen kann nicht zugesichert werden.",
+        "Fragen zur Studie oder Datenverarbeitung können an die in den ausführlichen Teilnahmeinformationen genannten Kontakte gerichtet werden."
+      ]
     },
     "followUpRecontact": {
       "optional": true,
@@ -224,7 +206,7 @@
             {
               "id": "PRE_ROLE",
               "type": "singleChoice",
-              "prompt": "Welche Rolle beschreibt deine derzeitige Hochschulzugehörigkeit am besten?",
+              "prompt": "Welche Rolle beschreibt deine überwiegende Tätigkeit an der Hochschule am besten?",
               "options": [
                 {
                   "id": "undergraduate",
@@ -236,11 +218,11 @@
                 },
                 {
                   "id": "doctoral",
-                  "label": "Promotion"
+                  "label": "Promotion, auch bei gleichzeitiger Beschäftigung"
                 },
                 {
                   "id": "academic_teaching",
-                  "label": "Wissenschaft oder Lehre"
+                  "label": "Wissenschaft oder Lehre ohne Promotion"
                 },
                 {
                   "id": "technical_admin_service",
@@ -283,7 +265,7 @@
                 },
                 {
                   "id": "administration_service_no_field",
-                  "label": "Technik, Verwaltung, Service oder keinem Fachbereich zugeordnet"
+                  "label": "Zentrale Einrichtung, Verwaltung oder keinem Fachbereich zugeordnet"
                 },
                 {
                   "id": "other",
@@ -323,33 +305,6 @@
                 {
                   "id": "age_66_plus",
                   "label": "66 Jahre oder älter"
-                },
-                {
-                  "id": "no_answer",
-                  "label": "Keine Angabe"
-                }
-              ]
-            },
-            {
-              "id": "PRE_GENDER",
-              "type": "singleChoice",
-              "prompt": "Wie beschreibst du dein Geschlecht?",
-              "options": [
-                {
-                  "id": "female",
-                  "label": "Weiblich"
-                },
-                {
-                  "id": "male",
-                  "label": "Männlich"
-                },
-                {
-                  "id": "nonbinary_diverse",
-                  "label": "Nichtbinär oder divers"
-                },
-                {
-                  "id": "another_identity",
-                  "label": "Eine andere Geschlechtsidentität"
                 },
                 {
                   "id": "no_answer",
@@ -424,7 +379,7 @@
               "options": [
                 {
                   "id": "browser_or_device_integrated",
-                  "label": "Im Browser, Betriebssystem oder Gerät integrierter Passwortmanager beziehungsweise Autofill"
+                  "label": "Im Browser, Betriebssystem oder Gerät integrierter Passwortmanager, einschließlich gespeicherter Passwörter und Autofill"
                 },
                 {
                   "id": "separate_app_or_extension",
@@ -439,10 +394,7 @@
                   "label": "Unsicher"
                 }
               ],
-              "exclusiveOptions": [
-                "none",
-                "unsure"
-              ]
+              "exclusiveOptions": ["none", "unsure"]
             },
             {
               "id": "PRE_MFA_USE",
@@ -470,28 +422,6 @@
                   "label": "Unsicher"
                 }
               ]
-            },
-            {
-              "id": "PRE_FAM_PASSWORDS",
-              "type": "scale",
-              "scale": "familiarity5",
-              "instruction": "Wie vertraut bist du derzeit mit den folgenden Themen?",
-              "prompt": "Wie vertraut bist du mit starken und unterschiedlichen Passwörtern?",
-              "label": "starke und unterschiedliche Passwörter"
-            },
-            {
-              "id": "PRE_FAM_PM",
-              "type": "scale",
-              "scale": "familiarity5",
-              "prompt": "Wie vertraut bist du mit Passwortmanagern?",
-              "label": "Passwortmanager"
-            },
-            {
-              "id": "PRE_FAM_MFA",
-              "type": "scale",
-              "scale": "familiarity5",
-              "prompt": "Wie vertraut bist du mit MFA/2FA?",
-              "label": "MFA/2FA"
             }
           ]
         },
@@ -506,10 +436,16 @@
               "prompt": "Passwörter für mehrere Konten praktikabel verwalten."
             },
             {
-              "id": "SE_PM_PRE",
+              "id": "SE_PM_CREATE_STORE_PRE",
               "type": "scale",
               "scale": "confidence11",
-              "prompt": "Einen Passwortmanager beim Einrichten und späteren Anmelden an einem Konto nutzen."
+              "prompt": "Einen Passwortmanager verwenden, um für ein Konto ein Passwort zu erzeugen und zu speichern."
+            },
+            {
+              "id": "SE_PM_RETRIEVE_USE_PRE",
+              "type": "scale",
+              "scale": "confidence11",
+              "prompt": "Ein gespeichertes Passwort aus einem Passwortmanager bei einer Anmeldung verwenden."
             },
             {
               "id": "SE_MFA_PRE",
@@ -523,14 +459,38 @@
     },
     "post-v1": {
       "order": [
-        "ueqs",
         "time",
+        "ueqs",
         "focus",
         "credibility_understanding",
-        "self_efficacy",
-        "emotion"
+        "self_efficacy"
       ],
       "sections": [
+        {
+          "id": "time",
+          "objectiveDurationHiddenUntilSectionCommitted": true,
+          "items": [
+            {
+              "id": "TIME_FELT_MINUTES",
+              "type": "integer",
+              "min": 1,
+              "max": 90,
+              "prompt": "Wie lange hat sich das Lernangebot für dich angefühlt? Bitte schätze in ganzen Minuten."
+            },
+            {
+              "id": "TIME_FIT",
+              "type": "scale",
+              "scale": "durationAppropriateness7",
+              "prompt": "Die Dauer des Lernangebots war für mich …"
+            },
+            {
+              "id": "TIME_VALUE",
+              "type": "scale",
+              "scale": "agreement7",
+              "prompt": "Die aufgewendete Zeit stand in einem angemessenen Verhältnis zum Nutzen des Lernangebots."
+            }
+          ]
+        },
         {
           "id": "ueqs",
           "source": "UEQ-S official German items",
@@ -596,31 +556,6 @@
           ]
         },
         {
-          "id": "time",
-          "objectiveDurationHiddenUntilSectionCommitted": true,
-          "items": [
-            {
-              "id": "TIME_FELT_MINUTES",
-              "type": "integer",
-              "min": 1,
-              "max": 90,
-              "prompt": "Wie lange hat sich das Lernangebot für dich angefühlt? Bitte schätze in ganzen Minuten."
-            },
-            {
-              "id": "TIME_FIT",
-              "type": "scale",
-              "scale": "durationAppropriateness7",
-              "prompt": "Die Dauer des Lernangebots war für mich …"
-            },
-            {
-              "id": "TIME_VALUE",
-              "type": "scale",
-              "scale": "agreement7",
-              "prompt": "Die aufgewendete Zeit stand in einem angemessenen Verhältnis zum Nutzen des Lernangebots."
-            }
-          ]
-        },
-        {
           "id": "focus",
           "aggregate": false,
           "instruction": "Wie sehr stimmst du den folgenden Aussagen über das Lernangebot zu?",
@@ -635,7 +570,7 @@
               "id": "FOCUS_TF1",
               "type": "scale",
               "scale": "agreement7",
-              "prompt": "Das Lernangebot behandelte unsichere Entscheidungen ohne Schuldzuweisung."
+              "prompt": "Die Empfehlungen wurden vermittelt, ohne mir Vorwürfe zu machen."
             },
             {
               "id": "FOCUS_TF2",
@@ -647,7 +582,7 @@
               "id": "FOCUS_TF3",
               "type": "scale",
               "scale": "agreement7",
-              "prompt": "Das Lernangebot gab mir Gelegenheit, die Inhalte auf konkrete Kontosituationen anzuwenden."
+              "prompt": "Während des Lernangebots konnte ich die Inhalte auf konkrete Kontosituationen anwenden."
             },
             {
               "id": "FOCUS_FEEDBACK",
@@ -660,12 +595,6 @@
               "type": "scale",
               "scale": "agreement7",
               "prompt": "Die Folgen verschiedener Entscheidungen zum Schutz von Konten wurden für mich anschaulich."
-            },
-            {
-              "id": "FOCUS_TF5",
-              "type": "scale",
-              "scale": "agreement7",
-              "prompt": "Die Gestaltung hielt mein Interesse am Thema aufrecht."
             },
             {
               "id": "FOCUS_TF6_MANAGE",
@@ -716,53 +645,22 @@
               "prompt": "Passwörter für mehrere Konten praktikabel verwalten."
             },
             {
-              "id": "SE_PM_POST",
+              "id": "SE_PM_CREATE_STORE_POST",
               "type": "scale",
               "scale": "confidence11",
-              "prompt": "Einen Passwortmanager beim Einrichten und späteren Anmelden an einem Konto nutzen."
+              "prompt": "Einen Passwortmanager verwenden, um für ein Konto ein Passwort zu erzeugen und zu speichern."
+            },
+            {
+              "id": "SE_PM_RETRIEVE_USE_POST",
+              "type": "scale",
+              "scale": "confidence11",
+              "prompt": "Ein gespeichertes Passwort aus einem Passwortmanager bei einer Anmeldung verwenden."
             },
             {
               "id": "SE_MFA_POST",
               "type": "scale",
               "scale": "confidence11",
               "prompt": "MFA/2FA bei einem wichtigen Konto aktivieren."
-            }
-          ]
-        },
-        {
-          "id": "emotion",
-          "aggregate": false,
-          "instruction": "Wie stark hast du dich während des Lernangebots jeweils so gefühlt?",
-          "items": [
-            {
-              "id": "EMOTION_CURIOUS",
-              "type": "scale",
-              "scale": "intensity5",
-              "label": "neugierig"
-            },
-            {
-              "id": "EMOTION_ENCOURAGED",
-              "type": "scale",
-              "scale": "intensity5",
-              "label": "ermutigt"
-            },
-            {
-              "id": "EMOTION_OVERWHELMED",
-              "type": "scale",
-              "scale": "intensity5",
-              "label": "überfordert"
-            },
-            {
-              "id": "EMOTION_FRUSTRATED",
-              "type": "scale",
-              "scale": "intensity5",
-              "label": "frustriert"
-            },
-            {
-              "id": "EMOTION_UNCERTAIN",
-              "type": "scale",
-              "scale": "intensity5",
-              "label": "verunsichert"
             }
           ]
         }
@@ -801,20 +699,13 @@
       ],
       "optionPresentation": {
         "strategy": "balanced_predefined_forms",
-        "formIds": [
-          "F1",
-          "F2",
-          "F3"
-        ],
+        "formIds": ["F1", "F2", "F3"],
         "fixedLastOptionId": "unsure",
         "assignedBy": "server",
         "independentOfArtifactCondition": true,
         "balanceWithinCondition": "small_permuted_blocks",
         "stableAcrossNavigationAndReload": true,
-        "persist": [
-          "optionOrderFormId",
-          "displayedOptionIdsByItem"
-        ],
+        "persist": ["optionOrderFormId", "displayedOptionIdsByItem"],
         "forms": {
           "F1": {
             "MR_REUSE": [
@@ -1094,21 +985,20 @@
           "id": "OPEN_HELPFUL",
           "type": "text",
           "participantOptional": true,
-          "maxLength": 1000,
+          "maxLength": 500,
           "prompt": "Was hat dir am meisten geholfen, die Inhalte zu verstehen?"
         },
         {
           "id": "OPEN_UNCLEAR",
           "type": "text",
           "participantOptional": true,
-          "maxLength": 1000,
-          "prompt": "Was war unklar, unnötig oder zu lang?"
+          "maxLength": 500,
+          "prompt": "Was sollte am Lernangebot verbessert werden?"
         }
       ]
     },
     "follow-up-v1": {
       "participantTitle": "Kurze Nachbefragung zur Studie",
-      "estimatedMinutes": 1,
       "reportingWindow": {
         "startsAfterMainSession": true,
         "cutoff": "first_invitation_at_iso",
@@ -1147,11 +1037,7 @@
               "label": "Keine Angabe."
             }
           ],
-          "exclusiveOptions": [
-            "none",
-            "cannot_recall",
-            "no_answer"
-          ]
+          "exclusiveOptions": ["none", "cannot_recall", "no_answer"]
         },
         {
           "id": "FU_PM_NONE_REASON",
@@ -1231,11 +1117,7 @@
               "label": "Keine Angabe."
             }
           ],
-          "exclusiveOptions": [
-            "none",
-            "cannot_recall",
-            "no_answer"
-          ]
+          "exclusiveOptions": ["none", "cannot_recall", "no_answer"]
         },
         {
           "id": "FU_MFA_NONE_REASON",
@@ -1288,7 +1170,11 @@
             }
           ]
         }
-      ]
+      ],
+      "estimatedMinutesRange": {
+        "min": 1,
+        "max": 2
+      }
     }
   }
 }

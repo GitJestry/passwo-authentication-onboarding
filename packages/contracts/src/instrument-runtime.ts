@@ -17,13 +17,7 @@ const displayWhenSchema = z
     contains: stableIdSchema,
   })
   .strict();
-const scaleIdSchema = z.enum([
-  'agreement7',
-  'confidence11',
-  'familiarity5',
-  'intensity5',
-  'durationAppropriateness7',
-]);
+const scaleIdSchema = z.enum(['agreement7', 'confidence11', 'durationAppropriateness7']);
 
 const singleChoiceItemSchema = z
   .object({
@@ -187,7 +181,12 @@ const postOpenInstrumentSchema = z
 const followUpInstrumentSchema = z
   .object({
     participantTitle: participantTextSchema,
-    estimatedMinutes: z.number().int().positive(),
+    estimatedMinutesRange: z
+      .object({
+        min: z.literal(1),
+        max: z.literal(2),
+      })
+      .strict(),
     reportingWindow: z
       .object({
         startsAfterMainSession: z.literal(true),
@@ -234,23 +233,6 @@ const confidence11ScaleSchema = z
       .strict(),
   })
   .strict();
-const familiarity5ScaleSchema = z
-  .object({
-    type: z.literal('integer'),
-    min: z.literal(1),
-    max: z.literal(5),
-    anchors: z
-      .object({
-        1: participantTextSchema,
-        2: participantTextSchema,
-        3: participantTextSchema,
-        4: participantTextSchema,
-        5: participantTextSchema,
-      })
-      .strict(),
-  })
-  .strict();
-const intensity5ScaleSchema = familiarity5ScaleSchema;
 const durationAppropriateness7ScaleSchema = z
   .object({
     type: z.literal('integer'),
@@ -292,6 +274,8 @@ const participantInformationSchema = z
       .min(1)
       .max(6),
     readMoreLabel: participantTextSchema,
+    essentialSummaryHeading: participantTextSchema,
+    essentialSummaryParagraphs: z.array(participantTextSchema).min(1).max(6),
     informationHeading: participantTextSchema,
     sections: z
       .array(
@@ -332,19 +316,17 @@ const sessionClosureContentSchema = z
 export const instrumentRuntimeManifestSchema = z
   .object({
     schemaVersion: z.literal(2),
-    instrumentVersion: z.literal('1.6.0-draft'),
-    questionnaireVersion: z.literal('questionnaire-v1.4-draft'),
+    instrumentVersion: z.literal('1.7.0-draft'),
+    questionnaireVersion: z.literal('questionnaire-v1.5-draft'),
     guardrailVersion: z.literal('guardrail-v3-draft'),
-    consentVersion: z.literal('consent-v3-draft'),
-    followUpVersion: z.literal('follow-up-v2-draft'),
+    consentVersion: z.literal('consent-v4-draft'),
+    followUpVersion: z.literal('follow-up-v3-draft'),
     language: z.literal('de-DE'),
     participantTerm: participantTextSchema,
     scales: z
       .object({
         agreement7: agreement7ScaleSchema,
         confidence11: confidence11ScaleSchema,
-        familiarity5: familiarity5ScaleSchema,
-        intensity5: intensity5ScaleSchema,
         durationAppropriateness7: durationAppropriateness7ScaleSchema,
         ueqSemanticDifferential7: ueqSemanticDifferential7ScaleSchema,
       })
@@ -400,7 +382,7 @@ export const instrumentRuntimeManifestSchema = z
         'follow-up-v1': followUpInstrumentSchema,
       })
       .strict(),
-    runtimeManifestVersion: z.literal('instrument-runtime-v1.6-draft'),
+    runtimeManifestVersion: z.literal('instrument-runtime-v1.7-draft'),
   })
   .strict();
 

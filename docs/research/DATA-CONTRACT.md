@@ -2,22 +2,22 @@
 
 ## Datenklassen
 
-| Klasse | Beispiele | Persistenz |
-|---|---|---|
-| Study identity | Session UUID, pseudonymer Teilnehmercode | `study.sqlite` |
-| Assignment | Bedingung, Zuweisungsmodus, Config-ID, Guardrail-Form | `study.sqlite` |
-| Versioning | Study-, Content-, Fragebogen-, Guardrail-, Consent-, Follow-up- und Referenzversion | `study.sqlite` |
-| Timing | Phase, Segment-ID, Start/Ende, monotone Dauer | `study.sqlite` |
-| Instruments | Pre, Post, Guardrail, optionale offene Rückmeldung, später importiertes Follow-up | `study.sqlite` |
-| Presentation | Form-ID und tatsächlich angezeigte Guardrail-Option-IDs | `study.sqlite` |
-| Completion | complete, incomplete, technical failure | `study.sqlite` |
-| Follow-up-Verknüpfung | optionale Einwilligung, Follow-up-Version, optionaler Token-Hash | `study.sqlite` |
-| Recontact | E-Mail, Roh-Token, Token-Hash, Consent-Version, Versand-/Schließzeitpunkte | ausschließlich `recontact.sqlite` |
-| Ephemeral personalization | Anzeigename/Kürzel | nur flüchtiger Electron-Renderer |
-| Training input/diagnosis | fiktive Passwörter, Loginversuche, Findings, Ähnlichkeit | nie persistieren |
-| Reference quiz state | im gemessenen Pfad nicht vorhanden; etwaige SCORM-Interaktionen der Unterrichtslektionen | nicht erheben |
-| Sensitive real-world data | reale Konten, Passwörter, Tokens, Vorfälle | nie erheben |
-| Passive metadata | IP, User-Agent, Request-Bodies | nicht persistieren |
+| Klasse                    | Beispiele                                                                                | Persistenz                        |
+| ------------------------- | ---------------------------------------------------------------------------------------- | --------------------------------- |
+| Study identity            | Session UUID, pseudonymer Teilnehmercode                                                 | `study.sqlite`                    |
+| Assignment                | Bedingung, Zuweisungsmodus, Config-ID, Guardrail-Form                                    | `study.sqlite`                    |
+| Versioning                | Study-, Content-, Fragebogen-, Guardrail-, Consent-, Follow-up- und Referenzversion      | `study.sqlite`                    |
+| Timing                    | Phase, Segment-ID, Start/Ende, monotone Dauer                                            | `study.sqlite`                    |
+| Instruments               | Pre, Post, Guardrail, optionale offene Rückmeldung, später importiertes Follow-up        | `study.sqlite`                    |
+| Presentation              | Form-ID und tatsächlich angezeigte Guardrail-Option-IDs                                  | `study.sqlite`                    |
+| Completion                | complete, incomplete, technical failure                                                  | `study.sqlite`                    |
+| Follow-up-Verknüpfung     | optionale Einwilligung, Follow-up-Version, optionaler Token-Hash                         | `study.sqlite`                    |
+| Recontact                 | E-Mail, Roh-Token, Token-Hash, Consent-Version, Versand-/Schließzeitpunkte               | ausschließlich `recontact.sqlite` |
+| Ephemeral personalization | Anzeigename/Kürzel                                                                       | nur flüchtiger Electron-Renderer  |
+| Training input/diagnosis  | fiktive Passwörter, Loginversuche, Findings, Ähnlichkeit                                 | nie persistieren                  |
+| Reference quiz state      | im gemessenen Pfad nicht vorhanden; etwaige SCORM-Interaktionen der Unterrichtslektionen | nicht erheben                     |
+| Sensitive real-world data | reale Konten, Passwörter, Tokens, Vorfälle                                               | nie erheben                       |
+| Passive metadata          | IP, User-Agent, Request-Bodies                                                           | nicht persistieren                |
 
 ## Forschungsdatenbank
 
@@ -45,8 +45,9 @@ idempotent; ein abweichender zweiter Payload für denselben Block erzeugt einen 
 überschreibt keine Daten. Rohantworten und Präsentationsreihenfolge werden exportiert, Scoring
 findet ausschließlich im Analyseprozess statt.
 
-`PRE_GENDER` ist technisch verpflichtend und verwendet für die inhaltlich freiwillige Antwort die
-stabile Option `no_answer`; `null` ist für dieses Item unzulässig. Im Follow-up unterscheiden die
+Geschlecht und allgemeine Familiarity-Items werden nicht erhoben. Die vier Self-Efficacy-Paare
+verwenden getrennte stabile IDs für Passwortverwaltung, Passwortmanager-Erzeugen/Speichern,
+Passwortmanager-Abruf/Anmeldung und MFA-Aktivierung. Im Follow-up unterscheiden die
 exklusiven Optionen `cannot_recall` und `no_answer` fehlende Erinnerung von verweigerter Angabe.
 Die primären verzögerten Outcomes bleiben die einzelnen Optionen
 `generated_stored_account_specific` und `enabled_mfa`; ein kombinierter Behavior Score wird nicht

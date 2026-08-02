@@ -333,22 +333,56 @@ describe('research-safe contracts', () => {
     );
     expect(instrumentRuntimeManifest.procedures.followUpRecontact.optional).toBe(true);
     expect(instrumentRuntimeManifest).toMatchObject({
-      instrumentVersion: '1.6.0-draft',
-      questionnaireVersion: 'questionnaire-v1.4-draft',
+      instrumentVersion: '1.7.0-draft',
+      questionnaireVersion: 'questionnaire-v1.5-draft',
       guardrailVersion: 'guardrail-v3-draft',
-      consentVersion: 'consent-v3-draft',
-      followUpVersion: 'follow-up-v2-draft',
-      runtimeManifestVersion: 'instrument-runtime-v1.6-draft',
+      consentVersion: 'consent-v4-draft',
+      followUpVersion: 'follow-up-v3-draft',
+      runtimeManifestVersion: 'instrument-runtime-v1.7-draft',
     });
-    expect(
-      instrumentRuntimeManifest.instruments['guardrail-v2'].nativeArtifactCheckPolicy,
-    ).toEqual({
-      passwoNativeLearningChecksRetained: true,
-      secAwareNativeQuizIncludedInMeasuredPath: false,
-      secAwareQuizRemovalReason:
-        'avoid_immediate_feedback_contamination_of_external_guardrail',
-      externalItemsMustBeNovelAndTransferOriented: true,
+    const preItemIds = instrumentRuntimeManifest.instruments['pre-v1'].sections.flatMap((section) =>
+      section.items.map((item) => item.id),
+    );
+    const postInstrument = instrumentRuntimeManifest.instruments['post-v1'];
+    const postItemIds = postInstrument.sections.flatMap((section) =>
+      section.items.map((item) => item.id),
+    );
+    expect(preItemIds).toEqual([
+      'PRE_ROLE',
+      'PRE_FIELD',
+      'PRE_AGE',
+      'PRE_SECAWARE',
+      'PRE_TRAINING',
+      'PRE_PM_USE',
+      'PRE_MFA_USE',
+      'SE_PASSWORDS_PRE',
+      'SE_PM_CREATE_STORE_PRE',
+      'SE_PM_RETRIEVE_USE_PRE',
+      'SE_MFA_PRE',
+    ]);
+    expect(postInstrument.order).toEqual([
+      'time',
+      'ueqs',
+      'focus',
+      'credibility_understanding',
+      'self_efficacy',
+    ]);
+    expect(postItemIds).toHaveLength(26);
+    expect(JSON.stringify({ preItemIds, postItemIds })).not.toMatch(
+      /PRE_GENDER|PRE_FAM_|FOCUS_TF5|EMOTION_|SE_PM_(?:PRE|POST)/u,
+    );
+    expect(instrumentRuntimeManifest.instruments['follow-up-v1'].estimatedMinutesRange).toEqual({
+      min: 1,
+      max: 2,
     });
+    expect(instrumentRuntimeManifest.instruments['guardrail-v2'].nativeArtifactCheckPolicy).toEqual(
+      {
+        passwoNativeLearningChecksRetained: true,
+        secAwareNativeQuizIncludedInMeasuredPath: false,
+        secAwareQuizRemovalReason: 'avoid_immediate_feedback_contamination_of_external_guardrail',
+        externalItemsMustBeNovelAndTransferOriented: true,
+      },
+    );
     const forms = instrumentRuntimeManifest.instruments['guardrail-v2'].optionPresentation.forms;
     const bestOptionIds = [
       'distinct_per_account',
@@ -383,7 +417,6 @@ describe('research-safe contracts', () => {
         { itemId: 'PRE_ROLE', value: 'undergraduate' },
         { itemId: 'PRE_FIELD', value: 'stem' },
         { itemId: 'PRE_AGE', value: 'age_18_25' },
-        { itemId: 'PRE_GENDER', value: 'no_answer' },
       ],
     };
     const experienceBlock = {
@@ -397,9 +430,6 @@ describe('research-safe contracts', () => {
           value: ['none', 'browser_or_device_integrated'],
         },
         { itemId: 'PRE_MFA_USE', value: 'none' },
-        { itemId: 'PRE_FAM_PASSWORDS', value: 3 },
-        { itemId: 'PRE_FAM_PM', value: 3 },
-        { itemId: 'PRE_FAM_MFA', value: 3 },
       ],
     };
     const selfEfficacyBlock = {
@@ -407,20 +437,13 @@ describe('research-safe contracts', () => {
       sectionId: 'self_efficacy',
       responses: [
         { itemId: 'SE_PASSWORDS_PRE', value: 0 },
-        { itemId: 'SE_PM_PRE', value: 5 },
+        { itemId: 'SE_PM_CREATE_STORE_PRE', value: 5 },
+        { itemId: 'SE_PM_RETRIEVE_USE_PRE', value: 5 },
         { itemId: 'SE_MFA_PRE', value: 10 },
       ],
     };
 
     expect(instrumentSubmissionRequestSchema.safeParse(sampleBlock).success).toBe(true);
-    expect(
-      instrumentSubmissionRequestSchema.safeParse({
-        ...sampleBlock,
-        responses: sampleBlock.responses.map((response) =>
-          response.itemId === 'PRE_GENDER' ? { ...response, value: null } : response,
-        ),
-      }).success,
-    ).toBe(false);
     expect(
       instrumentSubmissionRequestSchema.safeParse({
         ...sampleBlock,

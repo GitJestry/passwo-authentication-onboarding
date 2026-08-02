@@ -11,7 +11,7 @@ ist methodisch von der Training Runtime getrennt und kennt keine fiktiven Passwo
 Eligibility lokal prüfen
 → gemeinsame Teilnahmeinformation und Einwilligung
 → optionale Follow-up-Entscheidung
-→ Session serverseitig anlegen und Condition verdeckt zuweisen
+→ Session serverseitig anlegen, Condition verdeckt zuweisen und Teilnehmercode anzeigen
 → bei Einwilligung Recontact-E-Mail getrennt registrieren
 → Pre-Fragebogen blockweise speichern
 → nur supportive: flüchtigen Anzeigenamen erfassen
@@ -31,7 +31,7 @@ aufgegeben werden; die Condition wird dabei nicht neu zugewiesen.
 ## Instrument- und Abschlussreihenfolge
 
 - Pre muss vollständig gespeichert sein, bevor das Artefakt startet.
-- Post muss vollständig gespeichert sein, bevor der Guardrail beginnt.
+- Post läuft in der eingefrorenen Reihenfolge Zeit → UEQ-S → Design-Diagnostik → Glaubwürdigkeit/Verständnis → Self-Efficacy und muss vollständig gespeichert sein, bevor der Guardrail beginnt.
 - Recognition wird vor den Szenarien abgegeben und gesperrt.
 - Szenarien müssen gespeichert sein, bevor offene Rückmeldung und Session Closure folgen.
 - `post-open-v1` wird immer submitted; leere optionale Felder sind `null`.
@@ -42,6 +42,12 @@ Aufklärung. Teilnehmende mit Einwilligung erhalten zunächst die neutrale Best�
 Hauptsitzung; ihre vollständige Aufklärung erfolgt nach der Follow-up-Antwort oder spätestens nach
 Schließung des Zeitfensters. Versand und externer Follow-up-Import sind noch vor dem Study Freeze
 festzulegen.
+
+## Teilnahmeinformation und Teilnehmercode
+
+Die Kerninformation ist vor der Einwilligung direkt sichtbar; ausführliche Abschnitte bleiben aufklappbar. Nach Sessionerstellung wird der Teilnehmercode vor dem ersten Pre-Abschnitt angezeigt. Teilnahmeinformation und Code bleiben über eine unaufdringliche gemeinsame Kontrolle auch während des Artefakts erreichbar und können gedruckt werden. Die Kontrolle zeigt weder Condition noch Antworten oder Timingdaten.
+
+Eligibility-Fehler werden erst nach einem Abgabeversuch angezeigt. Das bloße Bearbeiten der drei Bestätigungen löst keine vorzeitige Ausschlussmeldung aus.
 
 ## Zustandsgrenzen
 

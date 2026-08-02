@@ -136,7 +136,7 @@ describe('follow-up recontact boundary', () => {
     expect(studyRow).toEqual({
       condition: 'supportive',
       followUpConsent: 1,
-      followUpVersion: 'follow-up-v2-draft',
+      followUpVersion: 'follow-up-v3-draft',
       followUpTokenHash: expectedHash,
     });
     expect(JSON.stringify(studyColumns)).not.toMatch(/email|raw_token/iu);
@@ -144,7 +144,7 @@ describe('follow-up recontact boundary', () => {
       email: 'person@example.org',
       rawToken: token,
       tokenHash: expectedHash,
-      consentVersion: 'consent-v3-draft',
+      consentVersion: 'consent-v4-draft',
       requestId,
     });
     expect(JSON.stringify(recontactSchema)).not.toMatch(

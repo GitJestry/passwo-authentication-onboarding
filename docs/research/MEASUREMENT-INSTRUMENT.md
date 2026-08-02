@@ -1,124 +1,157 @@
-# Measurement Instrument v1.6
+# Measurement Instrument v1.7
 
 Status: methodischer Entwurf für Cognitive Pretest und anschließenden Study Freeze.  
 Geltungsbereich: randomisierter Between-Subjects-Vergleich des Supportive Authentication
 Onboarding mit dem eingefrorenen SecAware.NRW-Referenzartefakt.
 
-Die vollständigen Teilnehmertexte, stabilen IDs, Antwortoptionen, Guardrail-Formen und
-Follow-up-Bedingungen stehen in `research/derived/instruments-v1.yaml`. Die gemeinsame
-Teilnahmeinformation wird fachlich in `docs/research/PARTICIPANT-INFORMATION.md` geführt und in
-dieselbe Quelle projiziert. `research/derived/instruments-v1.runtime.json` ist die bereinigte
-Runtime-Projektion ohne Scoring- und Analysekategorien.
+Die kanonischen Teilnehmertexte, stabilen IDs, Antwortoptionen, Guardrail-Formen und
+Follow-up-Bedingungen stehen in `research/derived/instruments-v1.yaml`.
+`research/derived/instruments-v1.runtime.json` ist die bereinigte Runtime-Projektion ohne
+Scoring- und Analysekategorien.
 
-## 1. Evaluationsziel
+## 1. Evaluationsziel und Ergebnisfamilien
 
-Verglichen werden zwei vollständige Onboarding-Artefakte. Die Studie untersucht:
+Verglichen werden zwei vollständige Onboarding-Artefakte. Die Translation Foci dienen als
+Designrationale und als Grundlage einzelner design-diagnostischer Items. Sie sind weder validierte
+latente Konstrukte noch isoliert manipulierte Wirkfaktoren. Es wird kein Supportiveness-Score
+gebildet.
 
-1. unmittelbare Wahrnehmung und praktische Nützlichkeit;
-2. design-diagnostische Wahrnehmungen entlang der Translation Foci, ohne diese als validierte
-   Skalen oder isolierte Wirkfaktoren zu behandeln;
-3. objektive und subjektive Bearbeitungszeit;
-4. unmittelbare Mechanismenerkennung und szenariobasierte Entscheidungsqualität;
-5. zehn Tage später selbstberichtete, eng begrenzte Kontoschutzhandlungen.
+Vor Datenerhebung werden folgende Ergebnisfamilien festgelegt:
 
-Es wird kein Supportiveness-Gesamtscore, kein allgemeiner UX-KPI, kein Guardrail-Gesamtscore und
-kein kombinierter Behavior Score gebildet. Favorable Wahrnehmung wird nur zusammen mit Dauer und
-Understanding Guardrail interpretiert.
+### Zentrale Artefakt-Evidenz
+
+- tatsächliche Gesamtzeit des Lernangebots;
+- praktische Nützlichkeit;
+- Möglichkeit zur Anwendung auf konkrete Kontosituationen;
+- kognitive Bewältigbarkeit und handlungsorientierte Klarheit;
+- Antwortverteilungen der drei Guardrail-Szenarien;
+- Auftreten sicherheitsrelevanter Fehlvorstellungen.
+
+### Sekundäre Evidenz
+
+- UEQ-S Pragmatic Quality und Hedonic Quality, getrennt berichtet;
+- persönliche Relevanz, nicht-vorwurfsvolle Vermittlung, sichtbare Konsequenzen und erklärendes
+  Feedback;
+- technische Glaubwürdigkeit und wahrgenommenes Verständnis;
+- vier getrennte task-specific Self-Efficacy-Veränderungen.
+
+### Explorative Evidenz
+
+- die drei Guardrail-Recognition-Antworten;
+- optionale offene Rückmeldungen;
+- zehn Tage später selbstberichtete Passwortmanager- und MFA-Handlungen;
+- Follow-up-Teilnahme und -Ausfall.
+
+Es gibt keinen allgemeinen UX-Gesamtscore, keinen Guardrail-Gesamtscore und keinen kombinierten
+Behavior Score. Positive Wahrnehmung wird nur zusammen mit Dauer und Understanding Guardrail
+interpretiert.
 
 ## 2. Verbindlicher Ablauf
 
 ```text
 Eligibility + gemeinsame Teilnahmeinformation und Einwilligung
 → optionale Follow-up-Entscheidung
-→ Sessionerstellung und verdeckte Condition-Zuweisung
+→ Sessionerstellung und Teilnehmercode
 → bei Einwilligung getrennte Recontact-Registrierung
 → Pre-Fragebogen
 → zugewiesenes Artefakt
-→ Post-Fragebogen
+→ Post: Zeit → UEQ-S → Design-Diagnostik → Glaubwürdigkeit/Verständnis → Self-Efficacy
 → Guardrail Recognition
 → Guardrail Szenarien
 → optionale offene Rückmeldung
-→ unmittelbares Debrief ohne Follow-up oder neutrale Session Closure mit Follow-up
+→ Debrief oder neutrale Session Closure
 → Completion
-→ Nachbefragung zehn Tage später
+→ optionale Nachbefragung zehn Tage später
 ```
 
 Eligibility wird lokal geprüft und nicht als Forschungsantwort gespeichert. Eine konkrete
 Handlungsabsicht wird unmittelbar nach dem Artefakt nicht abgefragt, damit die spätere Handlung
-nicht bereits durch eine Commitment-Frage angestoßen und anschließend fälschlich als
-Trainingsergebnis interpretiert wird.
+nicht bereits durch eine Commitment-Frage angestoßen wird.
 
 ## 3. Pre-Questionnaire
 
-Der Pre-Fragebogen beschreibt die Stichprobe und erfasst Vorerfahrung, die Ceiling-Effekte oder
-Zuweisungsungleichgewichte erklären kann:
+Der Pre-Fragebogen enthält elf Antworten in drei Abschnitten.
 
-- Hochschulrolle, breiter Fachbereich, Altersgruppe und Geschlecht mit der verpflichtend
-  auswählbaren Antwort `Keine Angabe` statt eines zusätzlichen Nullwerts;
-- SecAware-Vorerfahrung und frühere Authentifizierungstrainings;
-- konkrete Nutzung integrierter und/oder separat installierter Passwortmanagerfunktionen;
-- Breite bisheriger MFA-Nutzung;
-- selbst eingeschätzte Vertrautheit mit unterschiedlichen Passwörtern, Passwortmanagern und MFA;
-- drei task-specific Self-Efficacy-Items als konkrete Fähigkeiten auf einer unipolaren
-  Konfidenzskala von 0 bis 10.
+### Stichprobenbeschreibung
 
-Eine frühere vollständige Bearbeitung genau des verwendeten SecAware-Moduls ist ein vorab
+- überwiegende Hochschultätigkeit: Bachelor/Staatsexamen/anderes grundständiges Studium,
+  Master/anderes weiterführendes Studium, Promotion auch bei gleichzeitiger Beschäftigung,
+  Wissenschaft oder Lehre ohne Promotion, Technik/Verwaltung/Service, anderer Hochschulbereich
+  oder keine Angabe;
+- breiter organisatorischer beziehungsweise fachlicher Bereich;
+- Altersgruppe.
+
+Geschlecht wird nicht erhoben, da keine geschlechtsspezifische Forschungsfrage oder belastbare
+Subgruppenanalyse vorgesehen ist.
+
+### Vorerfahrung und Ausgangsnutzung
+
+- differenzierte SecAware-Vorerfahrung;
+- frühere Authentifizierungstrainings;
+- konkrete Nutzung integrierter und/oder separat installierter Passwortmanager;
+- Breite bisheriger MFA-Nutzung.
+
+Eine vollständige frühere Bearbeitung genau des verwendeten SecAware-Moduls ist ein vorab
 festgelegter Ausschlussgrund für die primäre Vergleichsstichprobe. Ein angesehenes oder begonnenes,
-aber nicht abgeschlossenes Modul wird als Sensitivitätsflag dokumentiert. Es gibt keinen Wissens-Pretest,
-weil dieser die gemeinsamen Mechanismen und die selbst erzeugten Trainingsentscheidungen vorprägen
-würde. Reale Konten, Passwörter, Vorfälle, Tokens und Recovery-Daten werden nicht erhoben.
+aber nicht abgeschlossenes Modul wird als Sensitivitätsflag dokumentiert. Allgemeine
+Familiarity-Items werden nicht erhoben: Sie überlappen mit Trainingserfahrung, Ausgangsnutzung und
+Self-Efficacy, ohne objektives Wissen oder eine eigenständige Zielvariable abzubilden.
+
+### Task-specific Self-Efficacy
+
+Vier getrennte Aufgaben werden auf einer unipolaren Skala von `0` bis `10` mit den Ankern
+„überhaupt nicht zuversichtlich“, „mäßig zuversichtlich“ und „vollständig zuversichtlich“ erhoben:
+
+1. Passwörter für mehrere Konten praktikabel verwalten;
+2. einen Passwortmanager zum Erzeugen und Speichern eines Kontopassworts verwenden;
+3. ein gespeichertes Passwort bei einer Anmeldung verwenden;
+4. MFA/2FA bei einem wichtigen Konto aktivieren.
+
+Die vier Items werden im Post wortgleich wiederholt und einzeln ausgewertet. Es wird kein
+Self-Efficacy-Gesamtscore gebildet. Es gibt keinen Wissens-Pretest, weil dieser die gemeinsamen
+Mechanismen und die selbst erzeugten Trainingsentscheidungen vorprägen würde.
 
 ## 4. Immediate Post-Questionnaire
 
 ### 4.1 Reihenfolge
 
-1. offizielle deutsche UEQ-S-Items;
-2. subjektive Zeitwahrnehmung;
-3. design-diagnostische Wahrnehmungsitems;
-4. Glaubwürdigkeit und wahrgenommenes Verständnis;
-5. dieselben drei Self-Efficacy-Items wie im Pre;
-6. fünf explorative Security-Emotionen.
+1. subjektive Zeitwahrnehmung und Zeitbewertung;
+2. offizielle deutsche UEQ-S-Items;
+3. acht design-diagnostische Einzelitems;
+4. technische Glaubwürdigkeit, Angemessenheit der Risikodarstellung und wahrgenommenes
+   Verständnis;
+5. die vier Self-Efficacy-Items aus dem Pre.
 
 Die objektive Dauer bleibt verborgen, bis die gesamte Zeitsektion verbindlich abgegeben wurde.
-Die empfundene Dauer wird daher nicht durch eine vorher angezeigte Messzeit verankert.
+Die Zeitschätzung erfolgt unmittelbar nach dem Lernangebot und wird nicht durch eine vorher
+angezeigte Messzeit verankert.
 
-### 4.2 Standardisierte und eigene Items
+### 4.2 Antwortformate
 
-UEQ-S Pragmatic Quality und Hedonic Quality werden getrennt nach dem offiziellen Scoring
-berichtet. Die eigenen siebenstufigen Items prüfen praktische Nützlichkeit, unterstützende und
-nicht-vorwurfsvolle Vermittlung, Alltagsrelevanz, aktive Anwendung, erklärendes Feedback,
-Anschaulichkeit von Konsequenzen, anhaltendes Interesse, kognitive Bewältigbarkeit und konkrete
-Handlungsorientierung. Sie werden einzeln ausgewertet und nicht nachträglich zu einer neuen Skala
-zusammengezogen.
+- UEQ-S verwendet die acht offiziellen deutschen Begriffspaare in ihrer festgelegten Reihenfolge
+  mit sieben unbeschrifteten Positionen. Pragmatic Quality und Hedonic Quality werden getrennt
+  ausgewertet; ein Gesamtwert wird nicht als allgemeiner UX-KPI verwendet.
+- Eigene Zustimmungsitems verwenden sieben vollständig sichtbar beschriftete Kategorien von
+  „stimme überhaupt nicht zu“ bis „stimme vollständig zu“.
+- Self-Efficacy verwendet elf diskrete Werte von `0` bis `10` mit drei verbalen Ankern.
+- Gefühlte Dauer ist eine numerische Minuteneingabe. `TIME_FIT` ist bipolar von „viel zu kurz“
+  über `4 = genau richtig` bis „viel zu lang“; höhere Werte sind nicht besser.
 
-Die Antwortformate sind fachlich getrennt:
+### 4.3 Design-diagnostische Items
 
-- UEQ-S verwendet die acht offiziellen deutschen Begriffspaare in der festgelegten Reihenfolge,
-  je Item sieben unbeschriftete Positionen zwischen negativem und positivem Begriff sowie intern
-  die Transformation von `1`--`7` auf `-3`--`+3`.
-- Task-specific Self-Efficacy verwendet in Pre und Post dieselbe Instruktion, dieselben drei
-  Fähigkeitsformulierungen und elf diskrete Werte von `0` bis `10` mit den Ankern
-  „überhaupt nicht zuversichtlich“, „mäßig zuversichtlich“ und „vollständig zuversichtlich“.
-- Eigene Zustimmungsitems verwenden sieben Punkte mit vollständig benannten Antwortkategorien;
-  Vertrautheit und Emotionsintensität verwenden jeweils eigene vollständig benannte
-  Fünf-Punkt-Kategorien.
-- Gefühlte Dauer ist eine numerische Minuteneingabe. Angemessenheit der Dauer ist bipolar von
-  „viel zu kurz“ über „genau richtig“ bis „viel zu lang“; nur das Zeit-Nutzen-Verhältnis ist ein
-  Zustimmungsitem. Für `TIME_FIT` ist `4` der optimale Mittelpunkt; höhere Werte sind nicht besser
-  und werden nicht wie eine gewöhnliche Zustimmungsskala rekodiert.
+Einzeln erhoben werden praktische Nützlichkeit, nicht-vorwurfsvolle Vermittlung,
+Alltagsrelevanz, Anwendung auf Kontosituationen, erklärendes Feedback, Anschaulichkeit von
+Konsequenzen, kognitive Bewältigbarkeit und konkrete nächste Schritte. Das frühere TF5-Interesse-
+Item entfällt wegen starker Überlappung mit den offiziellen UEQ-S-Paaren
+`langweilig–spannend` und `uninteressant–interessant`.
 
-Die drei Self-Efficacy-Themen werden als getrennte Pre-/Post-Paare ausgewertet. Ein gemeinsamer
-Self-Efficacy-Score wird nicht gebildet. Pre und Post verwenden wortgleich: „Passwörter für
-mehrere Konten praktikabel verwalten.“, „Einen Passwortmanager beim Einrichten und späteren
-Anmelden an einem Konto nutzen.“ und „MFA/2FA bei einem wichtigen Konto aktivieren.“ Die
-Instruktion lautet jeweils: „Wie zuversichtlich bist du, die folgenden Aufgaben derzeit
-bewältigen zu können?“ Diese Items werden nicht als Wissensmaß interpretiert.
+Der frühere selbst entwickelte Emotionsblock entfällt aus der Hauptstudie. Er erzeugte fünf
+zusätzliche explorative Outcomes ohne zentrale Analysefunktion; insbesondere `verunsichert` war
+semantisch mehrdeutig. Emotionale Reaktionen können weiterhin im Pilot qualitativ beobachtet
+werden.
 
-Glaubwürdigkeit und das verbleibende Item `UNDERSTANDING_GLOBAL` bleiben subjektive
-Einschätzungen. Sie werden vom kriteriumsbezogenen Guardrail getrennt interpretiert; ein
-zusätzliches Erklärungsitem wird nicht erhoben. Neugier, Ermutigung, Überforderung,
-Frustration und Verunsicherung bilden ein exploratives Itemprofil; sie sind weder PANAS noch eine
-neu behauptete Affektskala.
+Glaubwürdigkeit und wahrgenommenes Verständnis bleiben subjektive Einschätzungen und werden vom
+kriteriumsbezogenen Guardrail getrennt interpretiert.
 
 ## 5. Immediate Understanding Guardrail
 
@@ -130,84 +163,65 @@ nur den gemeinsamen primären Mechanismenkern beider Artefakte:
 - Passwortmanager unterstützen unterschiedliche kontospezifische Passwörter;
 - MFA bildet eine zusätzliche Barriere und macht Wiederverwendung nicht sicher.
 
-Detaillierte Passwortstärke, konkrete Mindestlängen, die Sechs-Wort-Methode, PassWo-Metaphern,
-produktspezifische Einrichtung und Recovery-Details gehören nicht in den primären Vergleich,
-solange keine gleichwertige Abdeckung in beiden finalen Artefakten nachgewiesen ist.
+Er enthält drei Recognition-Items und drei Transfer-Szenarien. Jedes Item hat eine beste Antwort,
+zwei plausible Distraktoren und `Weiß ich nicht`. Recognition wird zuerst atomar abgegeben und
+gesperrt; danach folgen die Szenarien. Vor Abschluss beider Blöcke gibt es keine
+Richtig/Falsch-Rückmeldung.
 
-Der Guardrail enthält drei Recognition-Items und drei Transfer-Szenarien. Jedes Item hat eine
-beste Antwort, zwei plausible inhaltliche Distraktoren und `Weiß ich nicht`. Recognition wird
-zuerst atomar abgegeben und gesperrt; danach folgen die Szenarien. Vor Abschluss beider Blöcke gibt
-es keine Richtig/Falsch-Rückmeldung.
+Der Server vergibt unabhängig von der Artefaktbedingung eine der drei balancierten Formen
+`F1`--`F3`. `Weiß ich nicht` bleibt immer an letzter Stelle. Das native SecAware-Abschlussquiz ist
+mit Zustimmung der Betreuung aus dem gemessenen Referenzpfad entfernt, um eine unmittelbare
+Feedback-Kontamination des gemeinsamen Guardrails zu vermeiden. PassWo-interne Lernfragen dürfen
+den externen Guardrail nicht wortgleich oder strukturell nahezu identisch vorwegnehmen.
 
-Die inhaltlichen Optionen werden nicht frei bei jedem Rendern randomisiert. Der Server vergibt
-stattdessen unabhängig von der Artefaktbedingung eine der drei balancierten Formen `F1`--`F3`.
-`Weiß ich nicht` bleibt immer an letzter Stelle. Form-ID und tatsächlich dargestellte Option-IDs
-werden gespeichert. Scoring- und Klassifikationsmetadaten gelangen nicht in den Client.
+Vorrang haben die Antwortverteilungen je Item und die drei Szenarioantworten. Summen wie
+`unsafeMisconceptionCount` oder `unsureCount` sind ausschließlich sekundär-deskriptive
+Zusammenfassungen heterogener Antworten. Es gibt kein Pass/Fail und keinen psychometrischen
+Gesamtscore. Der Guardrail wird erst nach finalem S11--S17-Content und Cognitive Pretest
+eingefroren.
 
-Ausgewertet werden getrennt: korrekte Mechanismenerkennung, angemessene Szenarioantworten,
-unvollständige Antworten, unsichere Fehlvorstellungen und `Weiß ich nicht`. Es gibt kein Pass/Fail
-und keinen gemeinsamen Guardrail-Score.
+## 6. Open Feedback
 
-## 6. Open Feedback and Corrective Debrief
+Nach dem Guardrail folgen zwei optionale Freitextfelder mit maximal 500 Zeichen:
 
-Nach dem Guardrail folgen zwei optionale Freitextfelder. Leere Felder werden explizit als `null`
-gespeichert; die Submission selbst ist verpflichtend. Teilnehmende ohne Follow-up-Einwilligung
-erhalten anschließend die vollständige Aufklärung. Bei Follow-up-Einwilligung wird sie bis nach
-der Antwort beziehungsweise bis zur Schließung des Follow-up-Zeitfensters zurückgestellt. Es wird
-kein persönlicher Score gezeigt. Die PassWo-internen Lernfragen bleiben Bestandteil dieses
-Artefakts und dürfen nicht wortgleich oder strukturell nahezu identisch zum externen Guardrail
-sein. Das native SecAware-Abschlussquiz ist als gebilligte Studienadaption bewusst aus dem
-gemessenen Referenzpfad entfernt. Beide Bedingungen bearbeiten anschließend denselben externen
-Guardrail.
+- Was hat am meisten beim Verständnis geholfen?
+- Was sollte am Lernangebot verbessert werden?
+
+Leere Felder werden als `null` gespeichert; die Block-Submission selbst ist verpflichtend. Die
+zweite Frage vermeidet die frühere Dreifachformulierung `unklar, unnötig oder zu lang`.
 
 ## 7. Ten-Day Delayed Follow-Up
 
-### 7.1 Recontact-Protokoll
+Die Nachbefragung besitzt eine getrennte optionale Kontaktzustimmung. Die erste neutrale Einladung
+wird 240 Stunden nach Session-Completion geplant, maximal eine Erinnerung 48 Stunden später; der
+Link schließt 336 Stunden nach der Hauptsitzung. Die erwartete Bearbeitungszeit wird bis zum Pilot
+als etwa ein bis zwei Minuten angegeben.
 
-Die Nachbefragung besitzt eine von der Hauptstudie getrennte optionale Kontaktzustimmung. Eine
-Ablehnung oder der Verzicht nach einem Registrierungsfehler blockiert weder Pre-Fragebogen noch
-Hauptstudienabschluss. Nur bei Einwilligung wird die E-Mail-Adresse vor dem Pre-Fragebogen in der
-getrennten Recontact-Registry registriert. Die erste neutrale Einladung wird 240 Stunden nach
-Session-Completion geplant, maximal eine Erinnerung 48 Stunden später; der Link schließt 336
-Stunden nach der Hauptsitzung.
-
-E-Mail und Roh-Token liegen ausschließlich in einer getrennten Recontact-Registry. Die
-Forschungsdatenbank enthält nur den Follow-up-Einwilligungsstatus, die Follow-up-Version und
-optional den Token-Hash. Die lokale Runtime versendet keine E-Mails und enthält keine SMTP-,
-Gmail- oder Cloud-Credentials.
-
-### 7.2 Minimaler Fragebogen
-
-Der Follow-up zeigt den Zeitpunkt der ersten Einladung als Stichtag. Berichtet werden nur
-Handlungen, die nach der Hauptsitzung und bereits vor diesem Stichtag abgeschlossen waren. Die
-Befragung fordert nicht dazu auf, Kontoeinstellungen zu öffnen oder für die Befragung zu ändern.
-
-Zwei Mehrfachauswahlfragen erfassen getrennt:
-
-- Passwortmanager: vorhandene Funktion prüfen, ein neues kontospezifisches Passwort erzeugen und
-  speichern oder bewusstes Abrufen/Autofill;
-- MFA: Verfügbarkeit/Status prüfen oder MFA aktivieren.
-
-Integrierte und separat installierte Passwortmanager zählen gleichwertig. `Keine dieser
-Handlungen`, `Ich weiß es nicht mehr` und `Keine Angabe` sind jeweils exklusiv. Nur bei `keine` erscheint je
-Themenbereich eine kurze Frage nach dem Hauptgrund.
-
-Die beiden primären verzögerten Einzeloutcomes sind:
+Der Follow-up fragt ausschließlich nach Handlungen, die nach der Hauptsitzung und vor dem
+angezeigten Stichtag abgeschlossen waren. Integrierte und separat installierte Passwortmanager
+zählen gleichwertig. Die primären verzögerten Einzeloutcomes sind:
 
 - Nutzung eines Passwortmanagers zur Einrichtung mindestens eines neuen kontospezifischen
   Passworts;
 - Aktivierung von MFA bei mindestens einem tatsächlich verwendeten Konto.
 
-Prüf- und Wartungshandlungen sind sekundär-deskriptiv. Nichtantwort ist fehlende Information und
-wird nie als `keine Handlung` codiert.
+Prüf- und Nutzungshandlungen bleiben sekundär-deskriptiv. `Ich weiß es nicht mehr` und
+`Keine Angabe` sind getrennte exklusive Optionen. Nichtantwort ist fehlende Information und wird
+nie als `keine Handlung` codiert. Ergebnisse werden zusätzlich deskriptiv nach grober
+Ausgangsnutzung betrachtet, weil bereits etablierte Nutzerinnen und Nutzer kaum eine neue
+Aktivierung berichten können.
 
-## 8. Claim- und Analysegrenzen
+## 8. Claim- und Freeze-Grenzen
 
 Das Follow-up darf als `ten-day delayed self-reported account-protection actions` bezeichnet
-werden. Wegen der freiwilligen Teilnahme wird es zusätzlich getrennt von der Hauptstichprobe
-beschrieben. Es belegt weder objektiv beobachtetes Verhalten noch dauerhafte Adoption, fortgesetzte
-Nutzung, reduzierte Passwortwiederverwendung, Habit Formation oder langfristige
-Verhaltensänderung. Die Studie bleibt explorativ und berichtet Itemverteilungen, Zeitverteilungen,
-UEQ-S-Dimensionen, Self-Efficacy-Veränderungen je Aufgabe, getrennte Guardrail-Kategorien und
-die verzögerten Handlungen. Nach Studienbeginn werden Instrumenttexte, Formen oder Rubriken nicht
-anhand sichtbarer Bedingungsunterschiede verändert.
+werden. Es belegt weder objektiv beobachtetes Verhalten noch dauerhafte Adoption, fortgesetzte
+Nutzung, reduzierte Passwortwiederverwendung oder langfristige Verhaltensänderung.
+
+Vor dem Study Freeze sind verpflichtend:
+
+- offizielle verantwortliche Stelle, Datenschutzkontakt, Rechtsgrundlage und konkrete
+  Aufbewahrungs-/Löschfristen;
+- vollständiger Cognitive Pretest aller eigenen Items und Guardrail-Distraktoren;
+- vollständiger Pilot auf dem tatsächlichen Studienlaptop einschließlich Layout und Dauer;
+- erneuter Guardrail-Audit gegen den finalen PassWo-Stand S11--S17;
+- dokumentierter Freeze der Instrument-, Content- und Referenzversionen.

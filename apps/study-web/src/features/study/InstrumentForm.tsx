@@ -11,8 +11,7 @@ import {
 import { type FormEvent, type ReactNode, useEffect, useRef, useState } from 'react';
 import styles from './StudyFlow.module.css';
 
-type QuestionnaireSection =
-  InstrumentRuntimeManifest['instruments']['pre-v1']['sections'][number];
+type QuestionnaireSection = InstrumentRuntimeManifest['instruments']['pre-v1']['sections'][number];
 type QuestionnaireItem = QuestionnaireSection['items'][number];
 type SingleChoiceItem = Extract<QuestionnaireItem, { readonly type: 'singleChoice' }>;
 type MultiChoiceItem = Extract<QuestionnaireItem, { readonly type: 'multiChoice' }>;
@@ -25,13 +24,10 @@ type IntegerItem = Extract<QuestionnaireItem, { readonly type: 'integer' }>;
 type TextItem = Extract<QuestionnaireItem, { readonly type: 'text' }>;
 type Agreement7Item = ScaleItem & { readonly scale: 'agreement7' };
 type Confidence11Item = ScaleItem & { readonly scale: 'confidence11' };
-type Familiarity5Item = ScaleItem & { readonly scale: 'familiarity5' };
-type EmotionIntensity5Item = ScaleItem & { readonly scale: 'intensity5' };
 type DurationAppropriateness7Item = ScaleItem & {
   readonly scale: 'durationAppropriateness7';
 };
-type GuardrailBlock =
-  InstrumentRuntimeManifest['instruments']['guardrail-v2']['blocks'][number];
+type GuardrailBlock = InstrumentRuntimeManifest['instruments']['guardrail-v2']['blocks'][number];
 type GuardrailItem = GuardrailBlock['items'][number];
 type ChoiceOption = SingleChoiceItem['options'][number];
 type QuestionnaireInstrumentId = 'pre-v1' | 'post-v1';
@@ -280,14 +276,10 @@ function NativeRadioControl({
   );
 }
 
-const points5 = [1, 2, 3, 4, 5] as const;
 const points7 = [1, 2, 3, 4, 5, 6, 7] as const;
 const points11 = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10] as const;
 
-function requiredAnchor(
-  anchors: Readonly<Record<string, string>>,
-  point: number,
-): string {
+function requiredAnchor(anchors: Readonly<Record<string, string>>, point: number): string {
   const anchor = anchors[String(point)];
   if (anchor === undefined) throw new Error(`missing-scale-anchor-${point}`);
   return anchor;
@@ -331,7 +323,9 @@ function MatrixRow({
   const label = item.label ?? item.prompt ?? item.id;
   return (
     <fieldset
-      className={`${styles.matrixRow ?? ''} ${invalid ? styles.matrixRowInvalid ?? '' : ''}`.trim()}
+      className={`${styles.matrixRow ?? ''} ${
+        invalid ? (styles.matrixRowInvalid ?? '') : ''
+      }`.trim()}
       aria-describedby={invalid ? `${item.id}-error` : undefined}
       aria-invalid={invalid}
     >
@@ -366,62 +360,47 @@ function MatrixNumber({ point }: { readonly point: number }) {
   );
 }
 
-function MatrixHeaderLabel({
-  point,
-  label,
-}: {
-  readonly point: number;
-  readonly label: string;
-}) {
-  return (
-    <span className={styles.matrixHeaderLabel} aria-hidden="true">
-      <span className={styles.matrixNumber}>{point}</span>
-      <span>{label}</span>
-    </span>
-  );
-}
-
-function Agreement7Matrix({
-  items,
-  draft,
-  invalidItemIds,
-  onChange,
-}: MatrixProps<Agreement7Item>) {
+function Agreement7Matrix({ items, draft, invalidItemIds, onChange }: MatrixProps<Agreement7Item>) {
   const anchors = instrumentRuntimeManifest.scales.agreement7.anchors;
   return (
-    <div
-      className={`${styles.matrix ?? ''} ${styles.matrix7 ?? ''} ${
-        styles.matrixAgreement7 ?? ''
-      }`.trim()}
-      aria-label="Zustimmungsskala von 1 bis 7"
-    >
-      <MatrixHeader accessibleLabel="Antwortwerte 1 bis 7">
-        {points7.map((point) => (
-          <MatrixHeaderLabel
-            key={point}
-            point={point}
-            label={requiredAnchor(anchors, point)}
-          />
-        ))}
-      </MatrixHeader>
+    <div className={styles.agreementList} aria-label="Zustimmungsskala von 1 bis 7">
       {items.map((item) => {
         const value = typeof draft[item.id] === 'number' ? draft[item.id] : undefined;
+        const invalid = invalidItemIds.has(item.id);
         return (
-          <MatrixRow key={item.id} item={item} invalid={invalidItemIds.has(item.id)}>
-            {points7.map((point) => (
-              <NativeRadioControl
-                key={point}
-                itemId={item.id}
-                point={point}
-                checked={value === point}
-                accessibleName={`${item.prompt ?? item.id}: ${point}, ${requiredAnchor(
-                  anchors,
-                  point,
-                )}`}
-                onChange={(nextValue) => onChange(item.id, nextValue)}
-              />
-            ))}
-          </MatrixRow>
+          <fieldset
+            className={`${styles.agreementItem ?? ''} ${
+              invalid ? (styles.matrixRowInvalid ?? '') : ''
+            }`.trim()}
+            aria-describedby={invalid ? `${item.id}-error` : undefined}
+            aria-invalid={invalid}
+            key={item.id}
+          >
+            <legend>{item.prompt ?? item.id}</legend>
+            <div className={styles.agreementOptions}>
+              {points7.map((point) => (
+                <label className={styles.agreementOption} key={point}>
+                  <input
+                    type="radio"
+                    name={item.id}
+                    value={point}
+                    checked={value === point}
+                    required
+                    aria-label={`${item.prompt ?? item.id}: ${point}, ${requiredAnchor(
+                      anchors,
+                      point,
+                    )}`}
+                    onChange={() => onChange(item.id, point)}
+                  />
+                  <span className={styles.agreementPoint} aria-hidden="true">
+                    {point}
+                  </span>
+                  <span>{requiredAnchor(anchors, point)}</span>
+                </label>
+              ))}
+            </div>
+            <FieldError invalid={invalid} itemId={item.id} />
+          </fieldset>
         );
       })}
     </div>
@@ -441,7 +420,9 @@ function Confidence11Matrix({
       aria-label="Zuversichtsskala von 0 bis 10"
     >
       <MatrixHeader accessibleLabel="Zuversichtsskala, Antwortwerte 0 bis 10">
-        {points11.map((point) => <MatrixNumber key={point} point={point} />)}
+        {points11.map((point) => (
+          <MatrixNumber key={point} point={point} />
+        ))}
       </MatrixHeader>
       {items.map((item) => {
         const value = typeof draft[item.id] === 'number' ? draft[item.id] : undefined;
@@ -454,9 +435,7 @@ function Confidence11Matrix({
                 point={point}
                 checked={value === point}
                 accessibleName={`${item.prompt ?? item.id}: ${point} von 10${
-                  !hasAnchor(anchors, point)
-                    ? ''
-                    : `, ${requiredAnchor(anchors, point)}`
+                  !hasAnchor(anchors, point) ? '' : `, ${requiredAnchor(anchors, point)}`
                 }`}
                 onChange={(nextValue) => onChange(item.id, nextValue)}
               />
@@ -466,106 +445,15 @@ function Confidence11Matrix({
       })}
       <SharedAnchors>
         <AnchorLabel label={anchors['0']} />
-        {points11.slice(1, 5).map((point) => <span key={point} aria-hidden="true" />)}
+        {points11.slice(1, 5).map((point) => (
+          <span key={point} aria-hidden="true" />
+        ))}
         <AnchorLabel label={anchors['5']} />
-        {points11.slice(6, 10).map((point) => <span key={point} aria-hidden="true" />)}
+        {points11.slice(6, 10).map((point) => (
+          <span key={point} aria-hidden="true" />
+        ))}
         <AnchorLabel label={anchors['10']} />
       </SharedAnchors>
-    </div>
-  );
-}
-
-function Familiarity5Matrix({
-  items,
-  draft,
-  invalidItemIds,
-  onChange,
-}: MatrixProps<Familiarity5Item>) {
-  const anchors = instrumentRuntimeManifest.scales.familiarity5.anchors;
-  const instruction = items[0]?.instruction;
-  return (
-    <div className={styles.matrixGroup}>
-      {instruction === undefined ? null : (
-        <p className={styles.matrixInstruction}>{instruction}</p>
-      )}
-      <div
-        className={`${styles.matrix ?? ''} ${styles.matrix5 ?? ''}`.trim()}
-        aria-label="Vertrautheitsskala von 1 bis 5"
-      >
-        <MatrixHeader accessibleLabel="Antwortwerte 1 bis 5">
-          {points5.map((point) => (
-            <MatrixHeaderLabel
-              key={point}
-              point={point}
-              label={requiredAnchor(anchors, point)}
-            />
-          ))}
-        </MatrixHeader>
-        {items.map((item) => {
-          const value = typeof draft[item.id] === 'number' ? draft[item.id] : undefined;
-          return (
-            <MatrixRow key={item.id} item={item} invalid={invalidItemIds.has(item.id)}>
-              {points5.map((point) => (
-                <NativeRadioControl
-                  key={point}
-                  itemId={item.id}
-                  point={point}
-                  checked={value === point}
-                  accessibleName={`${item.label ?? item.prompt ?? item.id}: ${point}, ${
-                    requiredAnchor(anchors, point)
-                  }`}
-                  onChange={(nextValue) => onChange(item.id, nextValue)}
-                />
-              ))}
-            </MatrixRow>
-          );
-        })}
-      </div>
-    </div>
-  );
-}
-
-function EmotionIntensity5Matrix({
-  items,
-  draft,
-  invalidItemIds,
-  onChange,
-}: MatrixProps<EmotionIntensity5Item>) {
-  const anchors = instrumentRuntimeManifest.scales.intensity5.anchors;
-  return (
-    <div
-      className={`${styles.matrix ?? ''} ${styles.matrix5 ?? ''}`.trim()}
-      aria-label="Emotionsintensität von 1 bis 5"
-    >
-      <MatrixHeader accessibleLabel="Antwortwerte 1 bis 5">
-        {points5.map((point) => (
-          <MatrixHeaderLabel
-            key={point}
-            point={point}
-            label={requiredAnchor(anchors, point)}
-          />
-        ))}
-      </MatrixHeader>
-      {items.map((item) => {
-        const value = typeof draft[item.id] === 'number' ? draft[item.id] : undefined;
-        return (
-          <MatrixRow key={item.id} item={item} invalid={invalidItemIds.has(item.id)}>
-            {points5.map((point) => (
-              <NativeRadioControl
-                key={point}
-                itemId={item.id}
-                point={point}
-                checked={value === point}
-                accessibleName={`${item.label ?? item.id}: ${point}, ${requiredAnchor(
-                  anchors,
-                  point,
-                )}`}
-                onChange={(nextValue) => onChange(item.id, nextValue)}
-              />
-            ))}
-          </MatrixRow>
-        );
-      })}
     </div>
   );
 }
@@ -588,7 +476,9 @@ function DurationAppropriateness7({
       aria-label="Angemessenheit der Dauer"
     >
       <MatrixHeader accessibleLabel="Antwortwerte 1 bis 7">
-        {points7.map((point) => <MatrixNumber key={point} point={point} />)}
+        {points7.map((point) => (
+          <MatrixNumber key={point} point={point} />
+        ))}
       </MatrixHeader>
       <MatrixRow item={item} invalid={invalid}>
         {points7.map((point) => (
@@ -629,10 +519,7 @@ function UeqSemanticDifferential7({
   readonly onChange: (itemId: string, value: number) => void;
 }) {
   const scale = instrumentRuntimeManifest.scales.ueqSemanticDifferential7;
-  const points = Array.from(
-    { length: scale.max - scale.min + 1 },
-    (_, index) => scale.min + index,
-  );
+  const points = Array.from({ length: scale.max - scale.min + 1 }, (_, index) => scale.min + index);
 
   return (
     <div className={styles.ueqMatrix} aria-label="UEQ-S Begriffspaare">
@@ -642,7 +529,7 @@ function UeqSemanticDifferential7({
         return (
           <fieldset
             className={`${styles.ueqRow ?? ''} ${
-              invalid ? styles.matrixRowInvalid ?? '' : ''
+              invalid ? (styles.matrixRowInvalid ?? '') : ''
             }`.trim()}
             aria-describedby={invalid ? `${item.id}-error` : undefined}
             aria-invalid={invalid}
@@ -972,44 +859,6 @@ function questionnaireSectionFieldGroups({
       continue;
     }
 
-    if (hasScale(item, 'familiarity5')) {
-      const matrixItems = scaleItemsFrom(items, itemIndex, 'familiarity5', items.length);
-      const key = `familiarity:${matrixItems[0]?.id ?? item.id}`;
-      fieldGroups.push({
-        key,
-        content: (
-          <Familiarity5Matrix
-            key={key}
-            items={matrixItems}
-            draft={draft}
-            invalidItemIds={invalidItemIds}
-            onChange={onChange}
-          />
-        ),
-      });
-      itemIndex += matrixItems.length;
-      continue;
-    }
-
-    if (hasScale(item, 'intensity5')) {
-      const matrixItems = scaleItemsFrom(items, itemIndex, 'intensity5', items.length);
-      const key = `emotion:${matrixItems[0]?.id ?? item.id}`;
-      fieldGroups.push({
-        key,
-        content: (
-          <EmotionIntensity5Matrix
-            key={key}
-            items={matrixItems}
-            draft={draft}
-            invalidItemIds={invalidItemIds}
-            onChange={onChange}
-          />
-        ),
-      });
-      itemIndex += matrixItems.length;
-      continue;
-    }
-
     fieldGroups.push({
       key: item.id,
       content: (
@@ -1028,9 +877,7 @@ function questionnaireSectionFieldGroups({
   return fieldGroups;
 }
 
-export function QuestionnaireSectionForm<
-  TInstrumentId extends QuestionnaireInstrumentId,
->({
+export function QuestionnaireSectionForm<TInstrumentId extends QuestionnaireInstrumentId>({
   instrumentId,
   section,
   title,
@@ -1094,9 +941,7 @@ export function QuestionnaireSectionForm<
       setInvalidItemIds(invalid);
       const firstInvalidItemId = invalid.values().next().value;
       if (typeof firstInvalidItemId === 'string') {
-        formRef.current
-          ?.querySelector<HTMLElement>(`[name="${firstInvalidItemId}"]`)
-          ?.focus();
+        formRef.current?.querySelector<HTMLElement>(`[name="${firstInvalidItemId}"]`)?.focus();
       }
       return;
     }
@@ -1244,9 +1089,7 @@ export function GuardrailBlockForm({
       setInvalidItemIds(invalid);
       const firstInvalidItemId = invalid.values().next().value;
       if (typeof firstInvalidItemId === 'string') {
-        formRef.current
-          ?.querySelector<HTMLElement>(`[name="${firstInvalidItemId}"]`)
-          ?.focus();
+        formRef.current?.querySelector<HTMLElement>(`[name="${firstInvalidItemId}"]`)?.focus();
       }
       return;
     }
