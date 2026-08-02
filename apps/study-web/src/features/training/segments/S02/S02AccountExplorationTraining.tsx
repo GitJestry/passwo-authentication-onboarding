@@ -21,6 +21,12 @@ import {
 } from './S02AccountExplorationController.js';
 import { PassWoSpeechBubble } from '../../PassWoSpeechBubble.js';
 import { passWoSpeechEmphasisFor } from '../../PassWoSpeechEmphasis.js';
+import {
+  calculatePassWoSpeechPosition,
+  passWoSpeechPositionStyle,
+  usePassWoSpeechPosition,
+  type PassWoSpeechSide,
+} from '../../PassWoSpeechPosition.js';
 import { S02DesktopSurface } from './S02DesktopSurface.js';
 import styles from './S02AccountExplorationTraining.module.css';
 
@@ -47,13 +53,11 @@ interface Runtime {
   readonly renderer: ReactFlowNetworkAdapter;
 }
 
-type OverlaySide = 'left' | 'right' | 'above' | 'below';
-
 interface OverlayPosition {
   readonly anchorId: string;
   readonly left: number;
   readonly top: number;
-  readonly side: OverlaySide;
+  readonly side: PassWoSpeechSide;
 }
 
 interface OverlayLayout {
@@ -68,12 +72,6 @@ interface Bounds {
   readonly bottom: number;
 }
 
-interface PlacementCandidate {
-  readonly left: number;
-  readonly top: number;
-  readonly side: OverlaySide;
-}
-
 function PasswordKeyGraphic() {
   return (
     <svg viewBox="0 0 92 52" fill="none">
@@ -84,10 +82,6 @@ function PasswordKeyGraphic() {
   );
 }
 
-function clamp(value: number, minimum: number, maximum: number): number {
-  return Math.min(maximum, Math.max(minimum, value));
-}
-
 function relativeBounds(rect: DOMRect, containerRect: DOMRect, padding = 0): Bounds {
   return {
     left: rect.left - containerRect.left - padding,
@@ -95,71 +89,6 @@ function relativeBounds(rect: DOMRect, containerRect: DOMRect, padding = 0): Bou
     right: rect.right - containerRect.left + padding,
     bottom: rect.bottom - containerRect.top + padding,
   };
-}
-
-function overlapArea(
-  left: number,
-  top: number,
-  width: number,
-  height: number,
-  obstacle: Bounds,
-): number {
-  return (
-    Math.max(0, Math.min(left + width, obstacle.right) - Math.max(left, obstacle.left)) *
-    Math.max(0, Math.min(top + height, obstacle.bottom) - Math.max(top, obstacle.top))
-  );
-}
-
-function placementCandidates(
-  anchor: Bounds,
-  width: number,
-  height: number,
-  availableWidth: number,
-  availableBottom: number,
-  margin: number,
-  gap: number,
-): readonly PlacementCandidate[] {
-  const centerX = (anchor.left + anchor.right) / 2;
-  const centerY = (anchor.top + anchor.bottom) / 2;
-  const maxLeft = Math.max(margin, availableWidth - width - margin);
-  const maxTop = Math.max(margin, availableBottom - height);
-  const position = (
-    side: OverlaySide,
-    proposedLeft: number,
-    proposedTop: number,
-  ): PlacementCandidate => ({
-    side,
-    left: Math.round(clamp(proposedLeft, margin, maxLeft)),
-    top: Math.round(clamp(proposedTop, margin, maxTop)),
-  });
-
-  return [
-    position('right', anchor.right + gap, centerY - height / 2),
-    position('left', anchor.left - width - gap, centerY - height / 2),
-    position('below', centerX - width / 2, anchor.bottom + gap),
-    position('above', centerX - width / 2, anchor.top - height - gap),
-  ];
-}
-
-function bestPlacement(
-  candidates: readonly PlacementCandidate[],
-  width: number,
-  height: number,
-  obstacles: readonly Bounds[],
-  anchor: Bounds,
-): PlacementCandidate {
-  const scored = candidates.map((candidate, preference) => ({
-    ...candidate,
-    score:
-      overlapArea(candidate.left, candidate.top, width, height, anchor) * 10_000 +
-      obstacles.reduce(
-        (score, obstacle) =>
-          score + overlapArea(candidate.left, candidate.top, width, height, obstacle),
-        0,
-      ) +
-      preference * 40,
-  }));
-  return scored.reduce((best, candidate) => (candidate.score < best.score ? candidate : best));
 }
 
 function samePosition(
@@ -293,6 +222,8 @@ export function S02AccountExplorationTraining({
 }: S02AccountExplorationTrainingProps) {
   const characterAnimationAnchorRef = useRef<HTMLSpanElement | null>(null);
   const guideRef = useRef<HTMLDivElement | null>(null);
+  const passWoRef = useRef<HTMLImageElement | null>(null);
+  const guideSpeechRef = useRef<HTMLDivElement | null>(null);
   const cursorKeyRef = useRef<HTMLDivElement | null>(null);
   const lastPointerPositionRef = useRef<{ readonly clientX: number; readonly clientY: number } | null>(
     null,
@@ -309,6 +240,13 @@ export function S02AccountExplorationTraining({
     preview: null,
   });
   const [returningToBrowser, setReturningToBrowser] = useState(false);
+  const guideSpeechPosition = usePassWoSpeechPosition({
+    ownerRef: guideRef,
+    characterRef: passWoRef,
+    speechRef: guideSpeechRef,
+    enabled: snapshot !== null,
+    positionKey: `${snapshot?.scene.activeAccountId ?? 'none'}-${snapshot?.scene.narrationId ?? 'none'}-${snapshot?.presentation.character.placement ?? 'none'}`,
+  });
   const cursorKeyActiveAccountId = snapshot?.scene.activeAccountId ?? null;
   const cursorKeyUnderstoodAccountIds = snapshot?.scene.understoodAccountIds ?? [];
   const cursorKeyShouldFollowPointer =
@@ -459,22 +397,20 @@ export function S02AccountExplorationTraining({
           layoutRect,
           14,
         );
-        const candidate = bestPlacement(
-          placementCandidates(
-            accountBounds,
-            guideRect.width,
-            guideRect.height,
-            layoutRect.width,
-            availableBottom,
-            margin,
-            20,
-          ),
-          guideRect.width,
-          guideRect.height,
-          nodeObstacles,
-          accountBounds,
-        );
-        guide = { anchorId: activeAccountId, ...candidate };
+        const candidate = calculatePassWoSpeechPosition({
+          anchor: accountBounds,
+          bubble: { width: guideRect.width, height: guideRect.height },
+          boundary: { left: 0, top: 0, right: layoutRect.width, bottom: availableBottom },
+          obstacles: nodeObstacles,
+          gap: 20,
+          margin,
+        });
+        guide = {
+          anchorId: activeAccountId,
+          left: candidate.left,
+          top: candidate.top,
+          side: candidate.side,
+        };
       }
 
       let preview: OverlayPosition | null = null;
@@ -503,22 +439,20 @@ export function S02AccountExplorationTraining({
                   bottom: guide.top + guideElement.offsetHeight + 14,
                 },
               ];
-        const candidate = bestPlacement(
-          placementCandidates(
-            previewAnchorBounds,
-            previewRect.width,
-            previewRect.height,
-            layoutRect.width,
-            availableBottom,
-            margin,
-            24,
-          ),
-          previewRect.width,
-          previewRect.height,
-          [...nodeObstacles, ...guideObstacle],
-          previewAnchorBounds,
-        );
-        preview = { anchorId: previewId, ...candidate };
+        const candidate = calculatePassWoSpeechPosition({
+          anchor: previewAnchorBounds,
+          bubble: { width: previewRect.width, height: previewRect.height },
+          boundary: { left: 0, top: 0, right: layoutRect.width, bottom: availableBottom },
+          obstacles: [...nodeObstacles, ...guideObstacle],
+          gap: 24,
+          margin,
+        });
+        preview = {
+          anchorId: previewId,
+          left: candidate.left,
+          top: candidate.top,
+          side: candidate.side,
+        };
       }
 
       setOverlayLayout((current) =>
@@ -714,34 +648,44 @@ export function S02AccountExplorationTraining({
             className={styles.guide}
             data-guide-cluster
             data-positioned={positionedGuide !== null}
-            data-side={positionedGuide?.side ?? 'right'}
             data-passwo-placement={presentation.character.placement}
             style={guideStyle}
           >
             <div className={styles.passWo}>
               <img
+                ref={passWoRef}
                 className={styles.passWoImage}
                 data-passwo-character
                 src={passWoDockAsset}
                 alt={s02Content.accessibility.characterLabel}
               />
             </div>
-            <PassWoSpeechBubble
-              className={styles.narration}
-              speaker={s02Content.narration.guideName}
-              paragraphs={[narration]}
-              speechKey={speechKey}
-              emphasis={passWoSpeechEmphasisFor(narrationId)}
-              placement={
-                positionedGuide?.side === 'left' ? 'left' : 'right'
-              }
-              hasNext={canAdvanceNarration}
-              awaitsAction={!canAdvanceNarration}
-              advanceOnScreenClick={false}
-              onAdvance={() => {
-                if (canAdvanceNarration) controller.advanceNarration();
-              }}
-            />
+            <div
+              ref={guideSpeechRef}
+              className={styles.speechSlot}
+              data-positioned={guideSpeechPosition !== null}
+              style={passWoSpeechPositionStyle(guideSpeechPosition)}
+            >
+              <PassWoSpeechBubble
+                className={styles.narration}
+                speaker={s02Content.narration.guideName}
+                paragraphs={[narration]}
+                speechKey={speechKey}
+                emphasis={passWoSpeechEmphasisFor(narrationId)}
+                placement={guideSpeechPosition?.side ?? 'right'}
+                {...(guideSpeechPosition === null
+                  ? {}
+                  : { arrowOffset: guideSpeechPosition.arrowOffset })}
+                {...(!canAdvanceNarration
+                  ? {}
+                  : {
+                      action: {
+                        kind: 'advance' as const,
+                        onAction: () => controller.advanceNarration(),
+                      },
+                    })}
+              />
+            </div>
           </div>
 
           {complete ? null : (

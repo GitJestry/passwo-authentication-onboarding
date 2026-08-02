@@ -6,7 +6,7 @@ import masterCampusHero from '../../assets/campus-sites/master-campus-hero.png';
 import { NetworkSymbol } from '../../adapters/network/NetworkSymbolRegistry.js';
 import styles from './CampusWebsiteBackdrop.module.css';
 
-export type CampusWebsiteView = 'context' | 'landing' | 'authentication' | 'dashboard';
+export type CampusWebsiteView = 'landing' | 'authentication' | 'dashboard';
 
 export interface CampusWebsiteAction {
   readonly label: string;
@@ -18,7 +18,7 @@ export interface CampusWebsiteAction {
 export interface CampusWebsiteBackdropProps {
   readonly accountId: S01AccountId;
   readonly interactionLabel: string;
-  readonly view?: CampusWebsiteView;
+  readonly view: CampusWebsiteView;
   readonly children?: ReactNode | undefined;
   readonly displayName?: string | undefined;
   readonly primaryAction?: CampusWebsiteAction | undefined;
@@ -463,41 +463,11 @@ function DashboardView(props: {
   }
 }
 
-function ContextView({
-  account,
-  children,
-}: {
-  readonly account: CampusAccount;
-  readonly children?: ReactNode | undefined;
-}) {
-  return (
-    <main className={styles.contextBody}>
-      <section className={styles.interactionColumn}>{children}</section>
-      <section className={styles.contextPreview} aria-label={`${account.label}-Vorschau`}>
-        <div className={styles.contextIntro}>
-          <NetworkSymbol symbolId={account.symbolId} className={styles.contextSymbol} />
-          <div>
-            <p className={styles.eyebrow}>{account.role}</p>
-            <h2>{account.overview.title}</h2>
-            <p>{account.overview.description}</p>
-          </div>
-        </div>
-        {account.dashboard.summaryCards.map((card) => (
-          <article className={styles.contextCard} key={card.title}>
-            <strong>{card.title}</strong>
-            <span>{card.detail}</span>
-          </article>
-        ))}
-      </section>
-    </main>
-  );
-}
-
 export function CampusWebsiteBackdrop({
   accountId,
   children,
   interactionLabel,
-  view = 'context',
+  view,
   displayName,
   primaryAction,
   secondaryAction,
@@ -540,14 +510,12 @@ export function CampusWebsiteBackdrop({
             {children}
           </section>
         </main>
-      ) : view === 'dashboard' ? (
+      ) : (
         <DashboardView
           definition={definition}
           displayName={displayName}
           dashboardHeadingRef={dashboardHeadingRef}
         />
-      ) : (
-        <ContextView account={account}>{children}</ContextView>
       )}
     </article>
   );

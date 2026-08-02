@@ -18,10 +18,8 @@ export interface S04SegmentContent {
     readonly tabWarningLabel: string;
   };
   readonly notice: {
-    readonly eyebrow: string;
     readonly title: string;
     readonly paragraphs: readonly [string, string, string];
-    readonly nextStep: string;
     readonly continueLabel: string;
     readonly completedLabel: string;
   };
@@ -32,14 +30,14 @@ export interface S04SegmentContent {
   };
 }
 
-export const S04_CONTENT_VERSION = '1.1.0';
+export const S04_CONTENT_VERSION = '1.2.0';
 
 export const s04Content: S04SegmentContent = {
   version: S04_CONTENT_VERSION,
   source: {
     document: 'research/private/training-script.pdf',
     internalPages: [12],
-    revision: 'Userauftrag vom 2026-08-01',
+    revision: 'Userauftrag vom 2026-08-02',
   },
   segment: {
     id: 'S04',
@@ -52,15 +50,12 @@ export const s04Content: S04SegmentContent = {
     tabWarningLabel: 'Warnung bei Campusgram',
   },
   notice: {
-    eyebrow: 'Sicherheitswarnung',
     title: 'Datenleck bei Campusgram',
     paragraphs: [
-      'Bei Campusgram gab es ein Datenleck.',
-      'Das Passwort ist dadurch nicht automatisch lesbar. Das Konto ist dadurch nicht automatisch geöffnet.',
-      'Gespeicherte Passwortdaten können offline mit vielen Kandidaten geprüft werden.',
+      'Bei Campusgram gab es ein Datenleck. Eine alte Datei mit gespeicherten Passwortdaten ist in fremde Hände geraten.',
+      'Das bedeutet nicht automatisch, dass dein Passwort sofort lesbar ist. Die Passwortdaten können aber von Angreifern offline getestet werden: Ein Programm probiert viele mögliche Passwörter aus und prüft, ob eines davon passt.',
+      'Deswegen prüfen wir jetzt, ob dein Passwort für sich stark genug ist, indem wir uns anschauen, wie der Angreifer vorgeht.',
     ],
-    nextStep:
-      'Als Nächstes betrachten wir das fiktive Campusgram-Passwort in der begrenzten Simulation.',
     continueLabel: 'Passwort prüfen',
     completedLabel: 'Die Erklärung zum Datenleck ist abgeschlossen.',
   },

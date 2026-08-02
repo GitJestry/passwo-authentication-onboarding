@@ -99,7 +99,6 @@ export function S00Training({
   const [missionSnapshot, setMissionSnapshot] = useState<MissionSnapshot | null>(null);
   const [timingError, setTimingError] = useState<string | null>(null);
   const [speechRound, setSpeechRound] = useState(0);
-  const [finalSpeechCompleted, setFinalSpeechCompleted] = useState(false);
   const controllerRef = useRef<MissionController | null>(null);
   const characterAnimationAnchorRef = useRef<HTMLSpanElement | null>(null);
   const onCompleteRef = useRef(onComplete);
@@ -232,12 +231,10 @@ export function S00Training({
                   currentSpeechStep?.emphasisId ?? 's00.greeting',
                 )}
                 speechPlacement="right"
-                hasNextSpeech={!isFinalSpeechStep}
-                awaitsAction={isFinalSpeechStep}
-                guidedAccountId={currentSpeechStep?.accountId}
+                {...(isFinalSpeechStep ? {} : { speechAction: 'advance' as const })}
                 showHelpButton={false}
                 speechFooter={
-                  finalSpeechCompleted && activeTimingError === null ? (
+                  !isFinalSpeechStep ? undefined : activeTimingError === null ? (
                     <>
                       {animationError !== null ? (
                         <p className={styles.animationError} role="status">
@@ -255,7 +252,7 @@ export function S00Training({
                         </button>
                       </div>
                     </>
-                  ) : finalSpeechCompleted ? (
+                  ) : (
                     <>
                       <p className={styles.animationError} role="alert">
                         Das Speichern des Zeitereignisses ist fehlgeschlagen. Der nächste Schritt
@@ -268,13 +265,10 @@ export function S00Training({
                         </button>
                       </div>
                     </>
-                  ) : undefined
+                  )
                 }
-                onSpeechAdvance={() => {
+                onSpeechAction={() => {
                   if (!isFinalSpeechStep) setSpeechRound((current) => current + 1);
-                }}
-                onSpeechComplete={() => {
-                  if (isFinalSpeechStep) setFinalSpeechCompleted(true);
                 }}
               />
             </>

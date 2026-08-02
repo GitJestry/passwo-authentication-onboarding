@@ -61,12 +61,17 @@ Ausgangspunkt zurück.
 
 Die Namenszeile zeigt den einwortigen Aufgabenstatus statt des Figurennamens. Direkt daneben
 öffnet ein Fragezeichen-Button die jeweilige Erklärung. Während PassWo spricht, verschwindet
-dieser Button vollständig; die Sprechblase steuert den Sprechschritt dann mit
-einem Symbol oben rechts: Überspringen, Nächste oder Schließen. Die Bezeichnung erscheint nur
-als Tooltip. Bei einem Sprechschritt, der auf eine direkte Handlung wartet, wird kein
-Schließen-Symbol gezeigt: Die Handlung selbst beendet den Schritt. Falls eine Aufgabe Fortschritt
-besitzt, zeigt die schmale Zeile darunter ausschließlich den Zähler und eine Fortschrittsleiste;
-der ausführliche Text bleibt als zugängliche Bezeichnung erhalten.
+dieser Button vollständig. Der vollständige Sprechblasentext ist sofort verfügbar und darf nur
+kurz einblenden. Reine Dialogfortschritte verwenden genau einen sichtbaren Button `Weiter`;
+`Schließen` ist ausschließlich für optionale Hinweise zulässig, die keinen Trainingsübergang
+auslösen. Wenn eine konkrete Handlung nötig ist, etwa ein Konto öffnen oder ein Passwort prüfen,
+ist diese Handlung die einzige primäre Aktion. Falls eine Aufgabe Fortschritt besitzt, zeigt die
+schmale Zeile darunter ausschließlich den Zähler und eine Fortschrittsleiste; der ausführliche
+Text bleibt als zugängliche Bezeichnung erhalten.
+
+Die Sprechblase wird anhand der gerenderten Position von PassWo und der sichtbaren
+Browserbühne gemessen. Bei Größen-, Layout-, Pose- oder Positionswechsel wählt sie bei Bedarf
+eine andere Seite und richtet ihre Spitze erneut auf PassWo aus.
 
 Phase 2 nur bei Bedarf:
 

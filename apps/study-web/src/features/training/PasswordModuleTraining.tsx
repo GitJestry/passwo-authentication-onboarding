@@ -7,9 +7,13 @@ import {
 } from '@passwo/training-engine';
 import type { DesktopPlatform } from '@passwo/ui';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import passWoDockAsset from '../../assets/passwo/passwo-dock.png';
+import passWoWelcomeAsset from '../../assets/passwo/passwo-welcome.png';
 import { PassWoSpeechBubble } from './PassWoSpeechBubble.js';
 import { passWoSpeechEmphasisFor } from './PassWoSpeechEmphasis.js';
+import {
+  passWoSpeechPositionStyle,
+  usePassWoSpeechPosition,
+} from './PassWoSpeechPosition.js';
 import styles from './PasswordModuleTraining.module.css';
 import { SectionTransition } from './SectionTransition.js';
 import { S00Training } from './S00Training.js';
@@ -53,9 +57,18 @@ export function PasswordModuleTraining({
   onRetryExternalTiming,
 }: PasswordModuleTrainingProps) {
   const [snapshot, setSnapshot] = useState<PasswordModuleSnapshot | null>(null);
-  const [entrySpeechComplete, setEntrySpeechComplete] = useState(false);
   const [platform, setPlatform] = useState<DesktopPlatform>('mac');
   const controllerRef = useRef<PasswordModuleController | null>(null);
+  const entrySceneRef = useRef<HTMLDivElement | null>(null);
+  const entryCharacterRef = useRef<HTMLImageElement | null>(null);
+  const entrySpeechRef = useRef<HTMLDivElement | null>(null);
+  const entrySpeechPosition = usePassWoSpeechPosition({
+    ownerRef: entrySceneRef,
+    characterRef: entryCharacterRef,
+    speechRef: entrySpeechRef,
+    enabled: snapshot?.matches('entry') ?? false,
+    positionKey: 'module-entry',
+  });
   const passwordValues = snapshot?.context.passwordValues;
   const retrievalResults = snapshot?.context.retrievalResults;
   const campusgramPassword = snapshot?.context.passwordValues['campusgram'] ?? '';
@@ -168,67 +181,77 @@ export function PasswordModuleTraining({
         <header className={styles.entryHeader}>
           <h1 id="training-entry-title">{s00Content.entry.title}</h1>
         </header>
-        <div className={styles.entryScene}>
+        <div ref={entrySceneRef} className={styles.entryScene}>
           <div className={styles.entryCharacter}>
-            <img src={passWoDockAsset} alt="PassWo, Begleiter im Training" />
+            <img
+              ref={entryCharacterRef}
+              src={passWoWelcomeAsset}
+              alt="PassWo, Begleiter im Training"
+            />
           </div>
-          <PassWoSpeechBubble
-            className={styles.entrySpeech}
-            speaker={s00Content.narration.guideName}
-            paragraphs={s00Content.entry.paragraphs}
-            speechKey="module-entry"
-            emphasis={passWoSpeechEmphasisFor('module-entry')}
-            placement="right"
-            awaitsAction
-            onComplete={() => setEntrySpeechComplete(true)}
-          />
-        </div>
-        {entrySpeechComplete ? (
-          <form
-            className={styles.entryForm}
-            onSubmit={(event) => {
-              event.preventDefault();
-              const value = new FormData(event.currentTarget).get('training-display-name');
-              if (typeof value === 'string') controller.enterDisplayName(value);
-            }}
+          <div
+            ref={entrySpeechRef}
+            className={styles.entrySpeechSlot}
+            data-positioned={entrySpeechPosition !== null}
+            style={passWoSpeechPositionStyle(entrySpeechPosition)}
           >
-            <fieldset className={styles.platformFieldset}>
-              <legend>Betriebssystem auswählen</legend>
-              <div className={styles.platformOptions}>
-                {(
-                  [
-                    { value: 'mac', label: 'Mac' },
-                    { value: 'windows', label: 'Windows' },
-                    { value: 'linux', label: 'Linux' },
-                  ] as const
-                ).map((option) => (
-                  <label className={styles.platformOption} key={option.value}>
-                    <input
-                      type="radio"
-                      name="training-platform"
-                      value={option.value}
-                      checked={platform === option.value}
-                      onChange={() => setPlatform(option.value)}
-                    />
-                    <span>{option.label}</span>
-                  </label>
-                ))}
-              </div>
-            </fieldset>
-            <label className={styles.entryLabel}>
-              {s00Content.entry.nameLabel}
-              <input
-                name="training-display-name"
-                type="text"
-                autoComplete="off"
-                maxLength={40}
-                required
-                autoFocus
-              />
-            </label>
-            <button type="submit">{s00Content.entry.startLabel}</button>
-          </form>
-        ) : null}
+            <PassWoSpeechBubble
+              className={styles.entrySpeech}
+              speaker={s00Content.narration.guideName}
+              paragraphs={s00Content.entry.paragraphs}
+              speechKey="module-entry"
+              emphasis={passWoSpeechEmphasisFor('module-entry')}
+              placement={entrySpeechPosition?.side ?? 'right'}
+              {...(entrySpeechPosition === null
+                ? {}
+                : { arrowOffset: entrySpeechPosition.arrowOffset })}
+            />
+          </div>
+        </div>
+        <form
+          className={styles.entryForm}
+          onSubmit={(event) => {
+            event.preventDefault();
+            const value = new FormData(event.currentTarget).get('training-display-name');
+            if (typeof value === 'string') controller.enterDisplayName(value);
+          }}
+        >
+          <fieldset className={styles.platformFieldset}>
+            <legend>Betriebssystem auswählen</legend>
+            <div className={styles.platformOptions}>
+              {(
+                [
+                  { value: 'mac', label: 'Mac' },
+                  { value: 'windows', label: 'Windows' },
+                  { value: 'linux', label: 'Linux' },
+                ] as const
+              ).map((option) => (
+                <label className={styles.platformOption} key={option.value}>
+                  <input
+                    type="radio"
+                    name="training-platform"
+                    value={option.value}
+                    checked={platform === option.value}
+                    onChange={() => setPlatform(option.value)}
+                  />
+                  <span>{option.label}</span>
+                </label>
+              ))}
+            </div>
+          </fieldset>
+          <label className={styles.entryLabel}>
+            {s00Content.entry.nameLabel}
+            <input
+              name="training-display-name"
+              type="text"
+              autoComplete="off"
+              maxLength={40}
+              required
+              autoFocus
+            />
+          </label>
+          <button type="submit">{s00Content.entry.startLabel}</button>
+        </form>
       </section>
     );
   }

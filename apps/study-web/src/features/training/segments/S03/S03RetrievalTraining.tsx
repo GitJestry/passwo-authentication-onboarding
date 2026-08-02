@@ -191,7 +191,6 @@ export function S03RetrievalTraining({
     initialLoginAccountId ?? null,
   );
   const [guideOpen, setGuideOpen] = useState(false);
-  const [completedGuideSpeechKey, setCompletedGuideSpeechKey] = useState<string | null>(null);
   const [invalidLoginFeedback, setInvalidLoginFeedback] = useState<{
     readonly accountId: S01AccountId;
     readonly attempt: number;
@@ -378,8 +377,13 @@ export function S03RetrievalTraining({
                 ? 'assisted-login'
                 : 'login';
   const guideSpeechKey = `${account.id}-${result}-${guidePhase}`;
-  const guideSpeechCompleted = completedGuideSpeechKey === guideSpeechKey;
-  const assistanceActionAvailable = assistanceActive && guideSpeechCompleted;
+  const guideSpeechAction =
+    completionFeedbackActive || campusStartActive
+      ? 'advance'
+      : assistanceActive || campusgramWarningActive
+        ? null
+        : 'dismiss';
+  const assistanceActionAvailable = assistanceActive;
   const successOverlayResult =
     successOverlayAccountId === null
       ? undefined
@@ -497,11 +501,21 @@ export function S03RetrievalTraining({
                   speechPlacement="right"
                   placement={campusgramWarningActive ? 'center' : 'bottom-left'}
                   pose={campusgramWarningActive ? 'warning' : 'default'}
-                  hasNextSpeech={completionFeedbackActive || campusStartActive}
-                  awaitsAction={assistanceActive || campusgramWarningActive}
+                  {...(guideSpeechAction === null ? {} : { speechAction: guideSpeechAction })}
                   showHelpButton={!guidedPhaseOpen}
                   speechFooter={
-                    assistanceActionAvailable ? (
+                    warningAnnouncementActive ? (
+                      <button
+                        type="button"
+                        className={styles.primaryButton}
+                        onClick={() => {
+                          controller.completeS03WarningAnnouncement();
+                          controller.openIncidentAccount('campusgram');
+                        }}
+                      >
+                        Konto öffnen
+                      </button>
+                    ) : assistanceActionAvailable ? (
                       <button
                         type="button"
                         className={styles.primaryButton}
@@ -519,13 +533,7 @@ export function S03RetrievalTraining({
                     if (guideVisible) setThirdAttemptGuideAccountId(null);
                     setGuideOpen((open) => !open);
                   }}
-                  onSpeechComplete={() => {
-                    setCompletedGuideSpeechKey(guideSpeechKey);
-                    if (warningAnnouncementActive) {
-                      controller.completeS03WarningAnnouncement();
-                    }
-                  }}
-                  onSpeechAdvance={() => {
+                  onSpeechAction={() => {
                     if (completionFeedbackActive) {
                       setSuccessOverlayAccountId(null);
                       controller.continueS03CompletionFeedback();

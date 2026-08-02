@@ -1,4 +1,4 @@
-import type { ReactNode } from 'react';
+import { useMemo, useRef, type ReactNode } from 'react';
 import passWoDockAsset from '../../assets/passwo/passwo-dock.png';
 import passWoWarningAsset from '../../assets/passwo/passwo-warning.png';
 import passWoWaitingAsset from '../../assets/passwo/passwo-waiting.png';
@@ -7,6 +7,11 @@ import {
   type PassWoSpeechPlacement,
 } from './PassWoSpeechBubble.js';
 import type { PassWoSpeechEmphasis } from './PassWoSpeechEmphasis.js';
+import {
+  passWoSpeechPositionStyle,
+  usePassWoSpeechPosition,
+  type PassWoSpeechSide,
+} from './PassWoSpeechPosition.js';
 import styles from './PassWoGuide.module.css';
 
 export interface PassWoGuideProps {
@@ -25,15 +30,25 @@ export interface PassWoGuideProps {
   readonly speechEmphasis?: readonly PassWoSpeechEmphasis[];
   readonly speechFooter?: ReactNode;
   readonly speechPlacement?: PassWoSpeechPlacement;
-  readonly hasNextSpeech?: boolean;
-  readonly awaitsAction?: boolean;
-  readonly placement?: 'bottom-left' | 'center';
+  readonly speechAction?: 'advance' | 'dismiss';
+  readonly placement?: 'bottom-left' | 'center' | 'incident';
   readonly pose?: 'default' | 'warning';
-  readonly guidedAccountId?: string | null;
   readonly showHelpButton?: boolean;
   readonly onToggleHelp?: () => void;
-  readonly onSpeechComplete?: () => void;
-  readonly onSpeechAdvance?: () => void;
+  readonly onSpeechAction?: () => void;
+}
+
+function preferredSides(placement: PassWoSpeechPlacement): readonly PassWoSpeechSide[] {
+  switch (placement) {
+    case 'left':
+      return ['left', 'right', 'above', 'below'];
+    case 'above':
+      return ['above', 'right', 'left', 'below'];
+    case 'below':
+      return ['below', 'right', 'left', 'above'];
+    default:
+      return ['right', 'left', 'above', 'below'];
+  }
 }
 
 export function PassWoGuide({
@@ -48,16 +63,25 @@ export function PassWoGuide({
   speechEmphasis,
   speechFooter,
   speechPlacement = 'right',
-  hasNextSpeech = false,
-  awaitsAction = false,
+  speechAction,
   placement = 'bottom-left',
   pose = 'default',
-  guidedAccountId = null,
   showHelpButton = true,
   onToggleHelp,
-  onSpeechComplete,
-  onSpeechAdvance,
+  onSpeechAction,
 }: PassWoGuideProps) {
+  const guideRef = useRef<HTMLElement | null>(null);
+  const characterRef = useRef<HTMLImageElement | null>(null);
+  const speechSlotRef = useRef<HTMLDivElement | null>(null);
+  const sides = useMemo(() => preferredSides(speechPlacement), [speechPlacement]);
+  const speechPosition = usePassWoSpeechPosition({
+    ownerRef: guideRef,
+    characterRef,
+    speechRef: speechSlotRef,
+    enabled: helpOpen,
+    positionKey: `${speechKey}-${placement}-${pose}`,
+    preferredSides: sides,
+  });
   const progressPercent =
     progress === undefined || progress.total <= 0
       ? 0
@@ -65,9 +89,9 @@ export function PassWoGuide({
 
   return (
     <aside
+      ref={guideRef}
       className={styles.guide}
       data-placement={placement}
-      data-guided-account={guidedAccountId ?? undefined}
       aria-label={`${guideName} Begleitung`}
     >
       <div className={styles.guideDock}>
@@ -113,6 +137,7 @@ export function PassWoGuide({
           </div>
         ) : null}
         <img
+          ref={characterRef}
           className={styles.character}
           data-passwo-character
           data-pose={pose === 'warning' ? 'warning' : helpOpen ? 'speaking' : 'waiting'}
@@ -127,18 +152,24 @@ export function PassWoGuide({
         />
       </div>
       {helpOpen ? (
-        <div id={helpId} className={styles.speechSlot}>
+        <div
+          ref={speechSlotRef}
+          id={helpId}
+          className={styles.speechSlot}
+          data-positioned={speechPosition !== null}
+          style={passWoSpeechPositionStyle(speechPosition)}
+        >
           <PassWoSpeechBubble
             speaker={guideName}
             paragraphs={speech}
             speechKey={speechKey}
             {...(speechEmphasis === undefined ? {} : { emphasis: speechEmphasis })}
-            placement={speechPlacement}
             footer={speechFooter}
-            hasNext={hasNextSpeech}
-            awaitsAction={awaitsAction}
-            {...(onSpeechComplete === undefined ? {} : { onComplete: onSpeechComplete })}
-            {...(onSpeechAdvance === undefined ? {} : { onAdvance: onSpeechAdvance })}
+            placement={speechPosition?.side ?? speechPlacement}
+            {...(speechPosition === null ? {} : { arrowOffset: speechPosition.arrowOffset })}
+            {...(speechAction === undefined || onSpeechAction === undefined
+              ? {}
+              : { action: { kind: speechAction, onAction: onSpeechAction } })}
           />
         </div>
       ) : null}

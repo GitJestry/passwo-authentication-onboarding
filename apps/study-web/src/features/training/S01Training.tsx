@@ -254,9 +254,9 @@ export function S01Training({
                   readyToContinue ? 's01.ready' : 's01.quest',
                 )}
                 speechPlacement="right"
-                awaitsAction={readyToContinue}
                 onToggleHelp={() => setQuestHelpOpen(true)}
-                onSpeechAdvance={() => setQuestHelpOpen(false)}
+                speechAction="dismiss"
+                onSpeechAction={() => setQuestHelpOpen(false)}
               />
             </>
           ),
