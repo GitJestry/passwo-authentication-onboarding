@@ -140,26 +140,12 @@ export function S00Training({
   const animationError = missionSnapshot?.context.lastAnimationError ?? null;
   const activeTimingError = timingError ?? externalTimingError;
   const speechSteps = [
-    {
-      accountId: 'master-campus',
-      text: s00Content.narration.greeting,
-      emphasisId: 's00.master-campus',
-    },
-    ...s00Content.narration.accountExplanations.map(({ accountId, text }) => ({
-      accountId,
-      text,
-      emphasisId: `s00.${accountId}`,
-    })),
-    { accountId: null, text: s00Content.narration.safetyWarning, emphasisId: 's00.safety' },
+    { text: s00Content.narration.greeting, emphasisId: 's00.browser' },
+    { text: s00Content.narration.safetyWarning, emphasisId: 's00.safety' },
   ] as const;
   const currentSpeechStep = speechSteps[speechRound] ?? speechSteps[0];
   const isFinalSpeechStep = speechRound === speechSteps.length - 1;
-  const activeAccountId: S01AccountId =
-    previewAccountId ??
-    (currentSpeechStep?.accountId === 'campus-email' ||
-    currentSpeechStep?.accountId === 'campusgram'
-      ? currentSpeechStep.accountId
-      : 'master-campus');
+  const activeAccountId: S01AccountId = previewAccountId ?? 'master-campus';
   const activeAccount = s01Content.browser.accounts.find(({ id }) => id === activeAccountId);
   const campusIdentity = deriveCampusIdentity(displayName);
   const accountIdentifier =
@@ -176,9 +162,6 @@ export function S00Training({
     scrollKey: `s00:${activeAccountId}:landing`,
     dimmed: guideOpen,
     dimStrength: 'soft',
-    ...(currentSpeechStep?.accountId === null || currentSpeechStep === undefined
-      ? {}
-      : { highlightedTabId: currentSpeechStep.accountId }),
   };
 
   function retryTiming(): void {
@@ -229,31 +212,35 @@ export function S00Training({
                   speech={currentSpeechStep === undefined ? [] : [currentSpeechStep.text]}
                   speechKey={`s00-greeting-${displayName}-${speechRound}`}
                   speechEmphasis={passWoSpeechEmphasisFor(
-                    currentSpeechStep?.emphasisId ?? 's00.greeting',
+                    currentSpeechStep?.emphasisId ?? 's00.browser',
                   )}
                   speechPlacement="right"
-                  guidedAccountId={currentSpeechStep?.accountId}
-                  {...(isFinalSpeechStep ? {} : { speechAction: 'advance' as const })}
+                  speechAction={
+                    !isFinalSpeechStep
+                      ? {
+                          kind: 'advance',
+                          onAction: () => setSpeechRound((current) => current + 1),
+                        }
+                      : activeTimingError === null
+                        ? {
+                            kind: 'advance',
+                            disabled: !canContinue,
+                            onAction: continueMission,
+                          }
+                        : {
+                            kind: 'perform',
+                            label: 'Erneut versuchen',
+                            onAction: retryTiming,
+                          }
+                  }
                   showHelpButton={false}
                   speechFooter={
                     !isFinalSpeechStep ? undefined : activeTimingError === null ? (
-                      <>
-                        {animationError !== null ? (
-                          <p className={styles.animationError} role="status">
-                            {s00Content.controls.animationError}
-                          </p>
-                        ) : null}
-                        <div className={styles.buttonRow}>
-                          <button
-                            type="button"
-                            className={styles.primaryButton}
-                            disabled={!canContinue}
-                            onClick={continueMission}
-                          >
-                            {s00Content.controls.continue}
-                          </button>
-                        </div>
-                      </>
+                      animationError === null ? undefined : (
+                        <p className={styles.animationError} role="status">
+                          {s00Content.controls.animationError}
+                        </p>
+                      )
                     ) : (
                       <>
                         <p className={styles.animationError} role="alert">
@@ -261,17 +248,9 @@ export function S00Training({
                           bleibt gesperrt.
                         </p>
                         <p className={styles.continueReason}>Fehlercode: {activeTimingError}</p>
-                        <div className={styles.buttonRow}>
-                          <button type="button" className={styles.primaryButton} onClick={retryTiming}>
-                            Erneut versuchen
-                          </button>
-                        </div>
                       </>
                     )
                   }
-                  onSpeechAction={() => {
-                    if (!isFinalSpeechStep) setSpeechRound((current) => current + 1);
-                  }}
                 />
               )}
             </>

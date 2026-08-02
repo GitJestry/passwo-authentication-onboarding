@@ -7,10 +7,23 @@ import styles from './PassWoSpeechBubble.module.css';
 export type PassWoSpeechPlacement = PassWoSpeechSide;
 export type PassWoSpeechTone = 'light' | 'dark';
 
-export interface PassWoSpeechAction {
-  readonly kind: 'advance' | 'dismiss';
-  readonly onAction: () => void;
-}
+export type PassWoSpeechAction =
+  | {
+      readonly kind: 'advance';
+      readonly onAction: () => void;
+      readonly disabled?: boolean;
+    }
+  | {
+      readonly kind: 'dismiss';
+      readonly onAction: () => void;
+      readonly disabled?: boolean;
+    }
+  | {
+      readonly kind: 'perform';
+      readonly label: string;
+      readonly onAction: () => void;
+      readonly disabled?: boolean;
+    };
 
 export interface PassWoSpeechBubbleProps {
   readonly speaker: string;
@@ -85,6 +98,30 @@ function createParagraphLayout(
   });
 }
 
+function visibleEmphasis(
+  emphasisRules: readonly PassWoSpeechEmphasis[],
+): readonly PassWoSpeechEmphasis[] {
+  const first = emphasisRules.find(({ phrase }) => phrase.length > 0);
+  if (first === undefined) return noSpeechEmphasis;
+  if (first.contrastId === undefined) return [first];
+
+  const contrasting = emphasisRules.find(
+    (rule) => rule !== first && rule.phrase.length > 0 && rule.contrastId === first.contrastId,
+  );
+  return contrasting === undefined ? [first] : [first, contrasting];
+}
+
+function actionLabel(action: PassWoSpeechAction): string {
+  switch (action.kind) {
+    case 'advance':
+      return 'Weiter';
+    case 'dismiss':
+      return 'Schließen';
+    case 'perform':
+      return action.label;
+  }
+}
+
 export function PassWoSpeechBubble({
   speaker,
   paragraphs,
@@ -99,12 +136,11 @@ export function PassWoSpeechBubble({
 }: PassWoSpeechBubbleProps) {
   const fullText = useMemo(() => paragraphs.join('\n\n'), [paragraphs]);
   const paragraphLayout = useMemo(
-    () => createParagraphLayout(fullText, emphasis),
+    () => createParagraphLayout(fullText, visibleEmphasis(emphasis)),
     [emphasis, fullText],
   );
   const headingId = useId();
   const bubbleClassName = className === undefined ? styles.bubble : `${styles.bubble} ${className}`;
-  const actionLabel = action?.kind === 'dismiss' ? 'Schließen' : 'Weiter';
   const bubbleStyle: CSSProperties | undefined =
     arrowOffset === undefined
       ? undefined
@@ -148,14 +184,19 @@ export function PassWoSpeechBubble({
             </span>
           ))}
       </div>
+      {footer === undefined ? null : <div className={styles.footer}>{footer}</div>}
       {action === undefined ? null : (
         <div className={styles.actionRow}>
-          <button type="button" className={styles.primaryAction} onClick={action.onAction}>
-            {actionLabel}
+          <button
+            type="button"
+            className={styles.primaryAction}
+            disabled={action.disabled}
+            onClick={action.onAction}
+          >
+            {actionLabel(action)}
           </button>
         </div>
       )}
-      {footer === undefined ? null : <div className={styles.footer}>{footer}</div>}
     </section>
   );
 }

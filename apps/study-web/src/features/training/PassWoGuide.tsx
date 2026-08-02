@@ -4,6 +4,7 @@ import passWoWarningAsset from '../../assets/passwo/passwo-warning.png';
 import passWoWaitingAsset from '../../assets/passwo/passwo-waiting.png';
 import {
   PassWoSpeechBubble,
+  type PassWoSpeechAction,
   type PassWoSpeechPlacement,
 } from './PassWoSpeechBubble.js';
 import type { PassWoSpeechEmphasis } from './PassWoSpeechEmphasis.js';
@@ -30,7 +31,7 @@ export interface PassWoGuideProps {
   readonly speechEmphasis?: readonly PassWoSpeechEmphasis[];
   readonly speechFooter?: ReactNode;
   readonly speechPlacement?: PassWoSpeechPlacement;
-  readonly speechAction?: 'advance' | 'dismiss';
+  readonly speechAction?: PassWoSpeechAction;
   readonly placement?: 'bottom-left' | 'center' | 'incident';
   readonly pose?: 'default' | 'warning';
   /** Keeps the guide aligned with a currently explained browser tab. */
@@ -41,7 +42,6 @@ export interface PassWoGuideProps {
   readonly taskComplete?: boolean;
   readonly showHelpButton?: boolean;
   readonly onToggleHelp?: () => void;
-  readonly onSpeechAction?: () => void;
 }
 
 function preferredSides(placement: PassWoSpeechPlacement): readonly PassWoSpeechSide[] {
@@ -77,7 +77,6 @@ export function PassWoGuide({
   taskComplete = false,
   showHelpButton = true,
   onToggleHelp,
-  onSpeechAction,
 }: PassWoGuideProps) {
   const guideRef = useRef<HTMLElement | null>(null);
   const characterRef = useRef<HTMLImageElement | null>(null);
@@ -185,9 +184,7 @@ export function PassWoGuide({
             footer={speechFooter}
             placement={speechPosition?.side ?? speechPlacement}
             {...(speechPosition === null ? {} : { arrowOffset: speechPosition.arrowOffset })}
-            {...(speechAction === undefined || onSpeechAction === undefined
-              ? {}
-              : { action: { kind: speechAction, onAction: onSpeechAction } })}
+            {...(speechAction === undefined ? {} : { action: speechAction })}
           />
         </div>
       ) : null}

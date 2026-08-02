@@ -21,7 +21,7 @@ function configureAllAccounts(actor: ReturnType<typeof createModuleActor>): void
 }
 
 function startS03(actor: ReturnType<typeof createModuleActor>): void {
-  actor.send({ type: 'CONTINUE' });
+  actor.send({ type: 'S01_BROWSER_CLOSED' });
   actor.send({ type: 'S01_END_RECORDED' });
   actor.send({ type: 'S02_START_RECORDED' });
   actor.send({ type: 'S02_CONTENT_COMPLETED' });
@@ -59,6 +59,17 @@ function startS04(actor: ReturnType<typeof createModuleActor>): void {
 }
 
 describe('passwordModuleMachine', () => {
+  it('starts the S01 end boundary only after the browser-close event', () => {
+    const actor = createModuleActor();
+    configureAllAccounts(actor);
+
+    actor.send({ type: 'CONTINUE' });
+    expect(actor.getSnapshot().matches({ s01: 'configured' })).toBe(true);
+
+    actor.send({ type: 'S01_BROWSER_CLOSED' });
+    expect(actor.getSnapshot().matches({ s01: 'ending' })).toBe(true);
+  });
+
   it('moves from the completed time lapse into the warning announcement', () => {
     const actor = createModuleActor();
     configureAllAccounts(actor);

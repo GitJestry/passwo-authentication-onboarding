@@ -172,6 +172,11 @@
   box-shadow: var(--shadow-focus);
 }
 
+.primaryAction:disabled {
+  cursor: not-allowed;
+  opacity: 0.58;
+}
+
 @keyframes speech-text-arrival {
   from {
     opacity: 0;

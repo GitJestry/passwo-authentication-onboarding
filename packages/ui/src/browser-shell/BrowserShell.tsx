@@ -104,6 +104,7 @@ export interface BrowserShellSnapshot {
   readonly dimStrength?: 'soft' | 'standard' | 'strong';
   readonly allowTabInteractionWhenDimmed?: boolean;
   readonly highlightedTabId?: string;
+  readonly highlightedWindowControl?: 'close';
   readonly locked?: boolean;
 }
 
@@ -372,6 +373,7 @@ export function BrowserShell({
                 className={styles.closeControl}
                 aria-label="Browserfenster schließen"
                 title="Schließen"
+                data-guided-highlight={snapshot.highlightedWindowControl === 'close' || undefined}
                 onClick={() => {
                   onWindowClose?.();
                   setWindowOpen(false);

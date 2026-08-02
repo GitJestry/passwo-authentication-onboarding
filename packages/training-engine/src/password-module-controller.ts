@@ -196,15 +196,17 @@ export class PasswordModuleController {
 
   continue(): void {
     const snapshot = this.#actor.getSnapshot();
-    if (snapshot.matches({ s01: 'configured' })) {
-      this.#actor.send({ type: 'CONTINUE' });
-      void this.#writeSegmentBoundary('S01', 'segment-end');
-      return;
-    }
     if (snapshot.matches({ s02: 'active' }) && snapshot.context.s02ContentCompleted) {
       this.#actor.send({ type: 'CONTINUE' });
       void this.#writeSegmentBoundary('S02', 'segment-end');
     }
+  }
+
+  closeS01Browser(): void {
+    const snapshot = this.#actor.getSnapshot();
+    if (!snapshot.matches({ s01: 'configured' })) return;
+    this.#actor.send({ type: 'S01_BROWSER_CLOSED' });
+    void this.#writeSegmentBoundary('S01', 'segment-end');
   }
 
   completeS02Content(): void {

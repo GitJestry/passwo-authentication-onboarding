@@ -81,7 +81,6 @@
   filter: drop-shadow(0 1.2rem 2rem rgb(49 7 35 / 28%));
 }
 
-.continueButton,
 .timingError button {
   min-height: var(--size-control-large);
   padding: var(--space-3) var(--space-5);
@@ -93,21 +92,10 @@
   font-weight: var(--font-weight-heavy);
 }
 
-.continueButton {
-  justify-self: end;
-}
-
-.continueButton:not(:disabled),
 .timingError button {
   cursor: pointer;
 }
 
-.continueButton:disabled {
-  cursor: not-allowed;
-  opacity: 0.58;
-}
-
-.continueButton:focus-visible,
 .timingError button:focus-visible {
   outline: var(--border-width-focus) solid var(--color-focus);
   outline-offset: var(--space-1);

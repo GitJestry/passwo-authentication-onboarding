@@ -10,6 +10,7 @@ export interface S01SegmentContent {
     readonly document: string;
     readonly internalPage: 3;
     readonly uxReference: string;
+    readonly copyReference: string;
   };
   readonly segment: {
     readonly id: 'S01';
@@ -93,15 +94,12 @@ export interface S01SegmentContent {
   };
   readonly progress: {
     readonly label: string;
-    readonly accountRoleLabel: string;
     readonly status: (configuredCount: number) => string;
     readonly completeStatus: string;
   };
   readonly quest: {
     readonly helpLabel: string;
-    readonly closeHelpLabel: string;
     readonly guideMessage: string;
-    readonly readyToContinue: string;
   };
   readonly controls: {
     readonly registrationTitle: string;
@@ -120,10 +118,10 @@ export interface S01SegmentContent {
   };
 }
 
-export const S01_CONTENT_VERSION = '2.14.1';
+export const S01_CONTENT_VERSION = '2.15.0';
 
 const readyToContinueMessage =
-  'Die drei Konten sind eingerichtet. Bevor du dich wieder anmeldest, betrachten wir sie aus einer anderen Perspektive: als Knoten-Netzwerk. So wird sichtbar, welche Dienste und Funktionen mit jedem Kontozugang verbunden sind. Schließe dafür bitte zunächst den Browser.';
+  'Die drei Konten sind eingerichtet. Schließe jetzt das Browserfenster über die Schließen-Schaltfläche in der Fenstersteuerung.';
 
 export const s01Content: S01SegmentContent = {
   version: S01_CONTENT_VERSION,
@@ -132,6 +130,7 @@ export const s01Content: S01SegmentContent = {
     document: 'research/private/training-script.pdf',
     internalPage: 3,
     uxReference: 'Vom Nutzer bereitgestellte UX-Konzeptboards, 2026-07-31',
+    copyReference: 'docs/design/S00-S05-COPY-AUDIT.md#s01----konten-einrichten-und-browser-verlassen',
   },
   segment: {
     id: 'S01',
@@ -362,16 +361,13 @@ export const s01Content: S01SegmentContent = {
   },
   progress: {
     label: 'Einrichtungsfortschritt',
-    accountRoleLabel: 'Wofür steht dieses Konto?',
     status: (configuredCount) => `Einrichten ${configuredCount}/3`,
     completeStatus: 'Eingerichtet',
   },
   quest: {
     helpLabel: 'PassWo-Hinweis öffnen',
-    closeHelpLabel: 'PassWo-Hinweis schließen',
     guideMessage:
       'Erstelle für jedes der drei Konten ein starkes Passwort, das du dir für die spätere erneute Anmeldung merken kannst.',
-    readyToContinue: readyToContinueMessage,
   },
   controls: {
     registrationTitle: 'Konto registrieren',

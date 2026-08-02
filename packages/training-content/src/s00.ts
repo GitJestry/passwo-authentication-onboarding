@@ -30,6 +30,7 @@ export interface S00SegmentContent {
     readonly document: string;
     readonly internalPage: 2;
     readonly uxReference: string;
+    readonly copyReference: string;
   };
   readonly segment: {
     readonly id: 'S00';
@@ -43,30 +44,14 @@ export interface S00SegmentContent {
       readonly label: string;
       readonly enabled: boolean;
     }[];
-    readonly page: {
-      readonly title: string;
-      readonly description: string;
-      readonly identityName: string;
-      readonly navigation: readonly string[];
-      readonly modules: readonly {
-        readonly title: string;
-        readonly description: string;
-      }[];
-    };
   };
   readonly narration: {
     readonly guideName: string;
     readonly greeting: string;
     readonly safetyWarning: string;
     readonly openGuideLabel: string;
-    readonly closeGuideLabel: string;
-    readonly accountExplanations: readonly {
-      readonly accountId: 'campus-email' | 'campusgram';
-      readonly text: string;
-    }[];
   };
   readonly controls: {
-    readonly continue: string;
     readonly animationError: string;
   };
   readonly mission: {
@@ -88,7 +73,7 @@ export interface S00SegmentContent {
   };
 }
 
-export const S00_CONTENT_VERSION = '1.15.0';
+export const S00_CONTENT_VERSION = '1.16.0';
 
 export const s00Content: S00SegmentContent = {
   version: S00_CONTENT_VERSION,
@@ -114,6 +99,7 @@ export const s00Content: S00SegmentContent = {
     document: 'research/private/training-script.pdf',
     internalPage: 2,
     uxReference: 'Vom Nutzer bereitgestellte UX-Konzeptboards, 2026-07-31',
+    copyReference: 'docs/design/S00-S05-COPY-AUDIT.md#s00----einstieg-und-browserorientierung',
   },
   segment: {
     id: 'S00',
@@ -127,44 +113,16 @@ export const s00Content: S00SegmentContent = {
       { id: 'campus-email', label: 'Campus E-Mail', enabled: false },
       { id: 'campusgram', label: 'Campusgram', enabled: false },
     ],
-    page: {
-      title: 'Zentraler Zugang zum Campus',
-      description: 'Verwalte deinen Zugang zu zentralen Campusdiensten an einem Ort.',
-      identityName: 'Master Campus',
-      navigation: ['Übersicht', 'Dienste', 'Hilfe'],
-      modules: [
-        {
-          title: 'Campusdienste',
-          description: 'Zentrale Bereiche werden für dich bereitgestellt.',
-        },
-        {
-          title: 'Aktuelle Hinweise',
-          description: 'Neue Informationen erscheinen hier in einer Übersicht.',
-        },
-      ],
-    },
   },
   narration: {
     guideName: 'PassWo',
     greeting:
-      'Das ist dein Browser. Bevor du die Passwörter erstellst, erkläre ich dir kurz, wofür die drei Konten überhaupt stehen.\n\nMaster Campus ist dein zentraler Zugang. Mit dem Konto meldest du dich auch bei Campus Workspace für Projekt- und Arbeitsräume, Campus Services für Anträge, Termine und Dokumente sowie Campus Cloud für persönliche Dateien, Notizen und Entwürfe an.',
-    accountExplanations: [
-      {
-        accountId: 'campus-email',
-        text: 'Campus E-Mail ist dein Postfach für Campus-Nachrichten, Bestätigungen und Zurücksetzungslinks.',
-      },
-      {
-        accountId: 'campusgram',
-        text: 'Campusgram ist ein Community-Konto für persönliche Direktnachrichten, Gruppen und Kontakte sowie Beiträge und Reaktionen.',
-      },
-    ],
+      'Das ist dein virtueller Browser: Oben wechselst du zwischen drei Konten und richtest alle drei ein.',
     safetyWarning:
-      'Nutze bitte keine eigenen Passwörter oder Varianten davon. Und keine Sorge, die Eingaben werden nur lokal für diese fiktive Übung ausgewertet und nicht dauerhaft gespeichert.\nViel Erfolg!',
+      'Verwende bitte nur neue, ausgedachte Passwörter. Nutze keine echten Passwörter oder Varianten davon. Die Eingaben werden nur lokal für diese fiktive Übung ausgewertet und nicht dauerhaft gespeichert.\nViel Erfolg!',
     openGuideLabel: 'PassWo-Hilfe öffnen',
-    closeGuideLabel: 'PassWo-Hilfe schließen',
   },
   controls: {
-    continue: 'Weiter',
     animationError:
       'Die Animation wurde beendet. Du kannst fortfahren.',
   },

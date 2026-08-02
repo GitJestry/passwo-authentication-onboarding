@@ -163,6 +163,9 @@ export function S01Training({
     scrollKey: `s01:${account.id}:${websiteView}`,
     dimmed: questHelpOpen && !readyToContinue,
     dimStrength: 'soft',
+    ...(readyToContinue && !interactionBlocked
+      ? { highlightedWindowControl: 'close' as const }
+      : {}),
   };
 
   function toggleReveal(accountId: string): void {
@@ -209,8 +212,6 @@ export function S01Training({
           if (!open) setCompletionOverlayAccountId(null);
           if (open) {
             setDesktopTransitioning(false);
-          } else {
-            beginDesktopTransition();
           }
         }}
         onWindowClose={() => {
@@ -218,7 +219,7 @@ export function S01Training({
           beginDesktopTransition();
         }}
         onWindowTransitionEnd={(state) => {
-          if (state === 'closed' && desktopTransitioning) controller.continue();
+          if (state === 'closed' && desktopTransitioning) controller.closeS01Browser();
         }}
         onTabSelect={selectAccount}
         layers={{
@@ -260,8 +261,14 @@ export function S01Training({
                 )}
                 speechPlacement="right"
                 onToggleHelp={() => setQuestHelpOpen(true)}
-                speechAction="dismiss"
-                onSpeechAction={() => setQuestHelpOpen(false)}
+                {...(readyToContinue
+                  ? {}
+                  : {
+                      speechAction: {
+                        kind: 'dismiss',
+                        onAction: () => setQuestHelpOpen(false),
+                      } as const,
+                    })}
               />
             </>
           ),

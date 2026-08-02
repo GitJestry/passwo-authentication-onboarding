@@ -112,6 +112,12 @@
   background: var(--color-control-close);
 }
 
+.closeControl[data-guided-highlight="true"] {
+  outline: var(--border-width-medium) solid var(--color-accent-strong);
+  outline-offset: 3px;
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--color-accent-soft) 72%, transparent);
+}
+
 .minimizeControl {
   background: var(--color-control-minimize);
 }
@@ -658,6 +664,11 @@ button.activeTab[aria-disabled="true"] {
 .window[data-platform="windows"] .windowControls .closeControl:not(:disabled):hover {
   color: #fff;
   background: #c42b1c;
+}
+
+.window[data-platform="windows"] .closeControl[data-guided-highlight="true"],
+.window[data-platform="linux"] .closeControl[data-guided-highlight="true"] {
+  outline-offset: -3px;
 }
 
 .window[data-platform="windows"] .tabs {

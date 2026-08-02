@@ -20,6 +20,7 @@ import { NetworkSymbol } from '../../../../adapters/network/NetworkSymbolRegistr
 import { AccountSuccessOverlay } from '../../AccountSuccessOverlay.js';
 import { CampusWebsiteBackdrop } from '../../CampusWebsiteBackdrop.js';
 import { PassWoGuide } from '../../PassWoGuide.js';
+import type { PassWoSpeechAction } from '../../PassWoSpeechBubble.js';
 import { passWoSpeechEmphasisFor } from '../../PassWoSpeechEmphasis.js';
 import styles from './S03RetrievalTraining.module.css';
 
@@ -237,7 +238,8 @@ export function S03RetrievalTraining({
     if (assistedLoginActive) assistedLoginButtonRef.current?.focus();
   }, [assistedLoginActive]);
 
-  const incidentTabAvailable = awaitingIncidentOpen && externalTimingError === null;
+  const incidentTabAvailable =
+    (warningAnnouncementActive || awaitingIncidentOpen) && externalTimingError === null;
 
   useEffect(() => {
     if (!incidentTabAvailable) return;
@@ -377,13 +379,41 @@ export function S03RetrievalTraining({
                 ? 'assisted-login'
                 : 'login';
   const guideSpeechKey = `${account.id}-${result}-${guidePhase}`;
-  const guideSpeechAction =
-    completionFeedbackActive || campusStartActive
-      ? 'advance'
-      : assistanceActive || campusgramWarningActive
-        ? null
-        : 'dismiss';
-  const assistanceActionAvailable = assistanceActive;
+  const guideSpeechAction: PassWoSpeechAction | undefined = assistanceActive
+    ? {
+        kind: 'perform',
+        label: s03Content.controls.assistedLogin,
+        onAction: () => {
+          setLoginAccountId(account.id);
+          setGuideOpen(false);
+          controller.startAssistedLogin(account.id);
+        },
+      }
+    : completionFeedbackActive
+      ? {
+          kind: 'advance',
+          onAction: () => {
+            setSuccessOverlayAccountId(null);
+            controller.continueS03CompletionFeedback();
+          },
+        }
+      : campusStartActive
+        ? {
+            kind: 'advance',
+            onAction: () => {
+              setGuideOpen(false);
+              controller.continueS03CampusStart();
+            },
+          }
+        : campusgramWarningActive
+          ? undefined
+          : {
+              kind: 'dismiss',
+              onAction: () => {
+                setThirdAttemptGuideAccountId(null);
+                setGuideOpen(false);
+              },
+            };
   const successOverlayResult =
     successOverlayAccountId === null
       ? undefined
@@ -426,7 +456,7 @@ export function S03RetrievalTraining({
     dimStrength: timeLapsePhaseActive ? 'standard' : 'soft',
     ...(incidentTabAvailable ? { allowTabInteractionWhenDimmed: true } : {}),
     ...(campusgramWarningActive ? { highlightedTabId: 'campusgram' } : {}),
-    locked: isStarting || timeLapsePhaseActive || warningAnnouncementActive || s03EndWritePending,
+    locked: isStarting || timeLapsePhaseActive || s03EndWritePending,
   };
 
   function toggleReveal(accountId: string): void {
@@ -443,6 +473,7 @@ export function S03RetrievalTraining({
 
   function selectAccount(accountId: string): void {
     if (incidentTabAvailable && accountId === 'campusgram') {
+      if (warningAnnouncementActive) controller.completeS03WarningAnnouncement();
       controller.openIncidentAccount(accountId);
       return;
     }
@@ -501,53 +532,11 @@ export function S03RetrievalTraining({
                   speechPlacement="right"
                   placement={campusgramWarningActive ? 'center' : 'bottom-left'}
                   pose={campusgramWarningActive ? 'warning' : 'default'}
-                  {...(guideSpeechAction === null ? {} : { speechAction: guideSpeechAction })}
+                  {...(guideSpeechAction === undefined ? {} : { speechAction: guideSpeechAction })}
                   showHelpButton={!guidedPhaseOpen}
-                  speechFooter={
-                    warningAnnouncementActive ? (
-                      <button
-                        type="button"
-                        className={styles.primaryButton}
-                        onClick={() => {
-                          controller.completeS03WarningAnnouncement();
-                          controller.openIncidentAccount('campusgram');
-                        }}
-                      >
-                        Konto öffnen
-                      </button>
-                    ) : assistanceActionAvailable ? (
-                      <button
-                        type="button"
-                        className={styles.primaryButton}
-                        onClick={() => {
-                          setLoginAccountId(account.id);
-                          setGuideOpen(false);
-                          controller.startAssistedLogin(account.id);
-                        }}
-                      >
-                        {s03Content.controls.assistedLogin}
-                      </button>
-                    ) : undefined
-                  }
                   onToggleHelp={() => {
                     if (guideVisible) setThirdAttemptGuideAccountId(null);
                     setGuideOpen((open) => !open);
-                  }}
-                  onSpeechAction={() => {
-                    if (completionFeedbackActive) {
-                      setSuccessOverlayAccountId(null);
-                      controller.continueS03CompletionFeedback();
-                      return;
-                    }
-                    if (campusStartActive) {
-                      setGuideOpen(false);
-                      controller.continueS03CampusStart();
-                      return;
-                    }
-                    if (!assistanceActive && !campusgramWarningActive) {
-                      setThirdAttemptGuideAccountId(null);
-                      setGuideOpen(false);
-                    }
                   }}
                 />
               )}

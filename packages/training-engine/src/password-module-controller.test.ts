@@ -105,7 +105,7 @@ describe('PasswordModuleController', () => {
     controller.completeS00();
     await flushMicrotasks();
     configureAllAccounts(controller);
-    controller.continue();
+    controller.closeS01Browser();
     await flushMicrotasks();
     await flushMicrotasks();
     controller.completeS02Content();
@@ -190,7 +190,7 @@ describe('PasswordModuleController', () => {
     controller.completeS00();
     await flushMicrotasks();
     configureAllAccounts(controller);
-    controller.continue();
+    controller.closeS01Browser();
     await flushMicrotasks();
     await flushMicrotasks();
     controller.completeS02Content();
@@ -275,7 +275,7 @@ describe('PasswordModuleController', () => {
     controller.completeS00();
     await flushMicrotasks();
     configureAllAccounts(controller);
-    controller.continue();
+    controller.closeS01Browser();
     await flushMicrotasks();
     await flushMicrotasks();
     controller.completeS02Content();

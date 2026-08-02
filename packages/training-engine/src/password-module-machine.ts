@@ -32,6 +32,7 @@ export type PasswordModuleEvent =
       readonly value: string;
     }
   | { readonly type: 'CONFIGURE_ACCOUNT'; readonly accountId: string }
+  | { readonly type: 'S01_BROWSER_CLOSED' }
   | { readonly type: 'CONTINUE' }
   | { readonly type: 'S01_END_RECORDED' }
   | { readonly type: 'S01_END_FAILED'; readonly errorCode: string }
@@ -358,7 +359,7 @@ export const passwordModuleMachine = setup({
         configured: {
           on: {
             SELECT_ACCOUNT: { guard: 'isKnownAccount', actions: 'selectAccount' },
-            CONTINUE: { target: 'ending', actions: 'clearTimingError' },
+            S01_BROWSER_CLOSED: { target: 'ending', actions: 'clearTimingError' },
           },
         },
         ending: {

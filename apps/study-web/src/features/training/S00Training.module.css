@@ -41,35 +41,11 @@
   accent-color: var(--color-accent-strong);
 }
 
-.primaryButton:focus-visible,
 .acknowledgement:focus-within {
   outline: var(--border-width-focus) solid var(--color-focus);
   outline-offset: var(--space-1);
   box-shadow: var(--shadow-focus);
 }
-
-.buttonRow {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: flex-end;
-  gap: var(--space-2);
-}
-
-.primaryButton {
-  min-height: var(--size-control-large);
-  padding: var(--space-3) var(--space-4);
-  border: var(--border-width-medium) solid var(--color-surface-inverse);
-  border-radius: var(--radius-small);
-  font-weight: var(--font-weight-heavy);
-  cursor: pointer;
-}
-
-.primaryButton {
-  color: var(--color-on-inverse);
-  background: var(--color-surface-inverse);
-}
-
-.primaryButton:disabled,
 .acknowledgement input:disabled {
   cursor: not-allowed;
   opacity: 0.58;

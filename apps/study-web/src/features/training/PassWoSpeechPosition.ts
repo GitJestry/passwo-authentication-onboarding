@@ -154,8 +154,8 @@ export function calculatePassWoSpeechPosition({
 }
 
 /**
- * Measures the rendered character and bubble so the tail follows PassWo after layout, pose, and
- * viewport changes. The bubble remains an absolutely positioned child of the owner.
+ * Measures the rendered character and bubble so the tail follows PassWo after layout, pose,
+ * page, and viewport changes. The bubble remains an absolutely positioned child of the owner.
  */
 export function usePassWoSpeechPosition({
   ownerRef,
@@ -230,20 +230,34 @@ export function usePassWoSpeechPosition({
     observer.observe(owner);
     observer.observe(character);
     observer.observe(speech);
+    const layoutObserver = new MutationObserver(scheduleUpdate);
+    layoutObserver.observe(boundary, {
+      childList: true,
+      subtree: true,
+      attributes: true,
+      attributeFilter: ['class', 'style'],
+    });
     window.addEventListener('resize', scheduleUpdate);
+    window.addEventListener('scroll', scheduleUpdate, true);
     owner.addEventListener('transitionrun', startTrackingMotion);
     owner.addEventListener('transitionend', stopTrackingMotion);
+    owner.addEventListener('transitioncancel', stopTrackingMotion);
     character.addEventListener('animationstart', startTrackingMotion);
     character.addEventListener('animationend', stopTrackingMotion);
+    character.addEventListener('animationcancel', stopTrackingMotion);
     scheduleUpdate();
 
     return () => {
       observer.disconnect();
+      layoutObserver.disconnect();
       window.removeEventListener('resize', scheduleUpdate);
+      window.removeEventListener('scroll', scheduleUpdate, true);
       owner.removeEventListener('transitionrun', startTrackingMotion);
       owner.removeEventListener('transitionend', stopTrackingMotion);
+      owner.removeEventListener('transitioncancel', stopTrackingMotion);
       character.removeEventListener('animationstart', startTrackingMotion);
       character.removeEventListener('animationend', stopTrackingMotion);
+      character.removeEventListener('animationcancel', stopTrackingMotion);
       if (frame !== null) cancelAnimationFrame(frame);
     };
   }, [characterRef, enabled, ownerRef, positionKey, preferredSides, speechRef]);

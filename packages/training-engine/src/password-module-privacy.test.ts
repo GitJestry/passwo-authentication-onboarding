@@ -96,7 +96,7 @@ describe('password module privacy boundary', () => {
       controller.setPasswordValue(accountId, password);
       controller.configureAccount(accountId);
     }
-    controller.continue();
+    controller.closeS01Browser();
     await flushMicrotasks();
     await flushMicrotasks();
     controller.completeS02Content();

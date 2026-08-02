@@ -108,16 +108,12 @@ export function S04IncidentTraining({
                   speech={s04Content.notice.paragraphs}
                   speechKey="s04-incident-explanation"
                   speechPlacement="above"
-                  speechFooter={
-                    <button
-                      type="button"
-                      className={styles.continueButton}
-                      disabled={!active || externalTimingError !== null}
-                      onClick={() => controller.completeS04()}
-                    >
-                      {s04Content.notice.continueLabel}
-                    </button>
-                  }
+                  speechAction={{
+                    kind: 'perform',
+                    label: s04Content.notice.continueLabel,
+                    disabled: !active || externalTimingError !== null,
+                    onAction: () => controller.completeS04(),
+                  }}
                   placement="incident"
                   pose="warning"
                   showHelpButton={false}
