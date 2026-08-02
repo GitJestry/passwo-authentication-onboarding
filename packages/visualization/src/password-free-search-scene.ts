@@ -105,7 +105,7 @@ export function createPasswordFreeSearchDemonstrationScene({
     generatedModelHasLargerSearchSpace:
       generatedCharacterModel.totalCandidateCount > lowercaseReferenceModel.totalCandidateCount,
     accessibleSummary:
-      'Reine theoretische Demonstration: unabhängige Zufallsauswahl aus festem Zeichenvorrat, vollständiges Durchprobieren und eine Billion Versuche pro Sekunde. Keine Schätzung für das fiktive Passwort.',
+      'Beispiel mit festgelegten Annahmen: unabhängige Zufallsauswahl aus festem Zeichenvorrat, vollständiges Durchprobieren und eine Billion Versuche pro Sekunde. Die Uhr vergleicht nur die gezeigten Zeichenfolgen.',
   };
 }
 
@@ -119,8 +119,8 @@ export function createPasswordFreeSearchApplicationScene(
   const recognizedSpans = concreteEvidenceSpans(componentAnalysis, structureAnalysis);
   const dispositionSummary =
     disposition.kind === 'quick-path-recognized'
-      ? 'Eine konkrete begrenzte Regel benennt einen schnelleren Weg.'
-      : 'Mit den begrenzten Wegen dieser Simulation wurde kein schnellerer Weg erkannt. Das bedeutet nicht stark, sicher, zufällig oder unangreifbar.';
+      ? 'Eine konkrete Regel zeigt einen schnelleren Weg.'
+      : 'Mit den gezeigten Prüfwegen wurde kein schnellerer Weg erkannt. Das bedeutet nicht stark, sicher, zufällig oder unangreifbar.';
   return {
     id,
     visibleLength: [...fictionalPassword].length,
@@ -128,6 +128,6 @@ export function createPasswordFreeSearchApplicationScene(
     structureAnalysis,
     disposition,
     areasWithoutRecognizedSimplerExplanation: unexplainedSpans(fictionalPassword, recognizedSpans),
-    accessibleSummary: `Anwendung auf das fiktive Passwort: sichtbare Länge, Befunde aus S05.1 und S05.2 sowie Bereiche ohne erkannte einfachere Erklärung. ${dispositionSummary} Keine Zeitprognose und kein Gesamtstärkewert.`,
+    accessibleSummary: `Was die Übung beim fiktiven Passwort zeigt: sichtbare Länge, erkannte Bestandteile, erkannte Zusammenhänge und Bereiche ohne erkannte einfachere Erklärung. ${dispositionSummary} Keine Zeitprognose und kein einzelnes Gesamturteil.`,
   };
 }

@@ -299,7 +299,7 @@ export function PasswordModuleTraining({
         timingState={timingState}
         timingErrorCode={snapshot.context.timingErrorCode}
         externalTimingError={externalTimingError}
-        onAllAccountsUnderstood={() => controller.completeS02Content()}
+        onAllAccountsViewed={() => controller.completeS02Content()}
         onContinue={() => controller.continue()}
         onRetryTiming={() => {
           if (externalTimingError !== null) {

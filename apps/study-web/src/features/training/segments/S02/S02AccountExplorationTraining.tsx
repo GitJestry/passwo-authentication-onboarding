@@ -36,7 +36,7 @@ export interface S02AccountExplorationTrainingProps {
   readonly timingState?: S02TimingState;
   readonly timingErrorCode?: string | null;
   readonly externalTimingError?: string | null;
-  readonly onAllAccountsUnderstood?: () => void;
+  readonly onAllAccountsViewed?: () => void;
   readonly onContinue?: () => void;
   readonly onRetryTiming?: () => void;
   readonly platform?: DesktopPlatform;
@@ -211,11 +211,51 @@ function VisualPreview({ kind }: { readonly kind: S02VisualPreviewKind }) {
   );
 }
 
+function CoreActionWebsite({
+  account,
+  pending,
+  onPerform,
+}: {
+  readonly account: (typeof definition.accounts)[number];
+  readonly pending: boolean;
+  readonly onPerform: (targetDetailId: string) => void;
+}) {
+  const targets = account.details.filter(({ id }) => account.coreAction.targetDetailIds.includes(id));
+
+  return (
+    <section className={styles.coreActionWebsite} aria-label={`${account.label}: Kontovorgang`}>
+      <span className={styles.previewChrome} aria-hidden="true">
+        <span className={styles.previewWindowControls}>
+          <i />
+          <i />
+          <i />
+        </span>
+        <span className={styles.previewAddress}>{s02Content.previewSimulation.address}</span>
+      </span>
+      <div className={styles.coreActionBody} data-account={account.id}>
+        <strong>{account.label}</strong>
+        {targets.map((detail) => (
+          <button
+            type="button"
+            key={detail.id}
+            className={styles.coreActionButton}
+            disabled={pending}
+            onClick={() => onPerform(detail.id)}
+          >
+            <span>{detail.label}</span>
+            <span>{pending ? account.coreAction.checkingLabel : account.coreAction.actionLabel}</span>
+          </button>
+        ))}
+      </div>
+    </section>
+  );
+}
+
 export function S02AccountExplorationTraining({
   timingState = 'active',
   timingErrorCode = null,
   externalTimingError = null,
-  onAllAccountsUnderstood,
+  onAllAccountsViewed,
   onContinue,
   onRetryTiming,
   platform = 'mac',
@@ -231,8 +271,8 @@ export function S02AccountExplorationTraining({
   const networkHostRef = useRef<HTMLDivElement | null>(null);
   const sceneRef = useRef<HTMLDivElement | null>(null);
   const previewRef = useRef<HTMLElement | null>(null);
-  const onAllAccountsUnderstoodRef = useRef(onAllAccountsUnderstood);
-  onAllAccountsUnderstoodRef.current = onAllAccountsUnderstood;
+  const onAllAccountsViewedRef = useRef(onAllAccountsViewed);
+  onAllAccountsViewedRef.current = onAllAccountsViewed;
   const [runtime, setRuntime] = useState<Runtime | null>(null);
   const [snapshot, setSnapshot] = useState<S02AccountExplorationControllerSnapshot | null>(null);
   const [overlayLayout, setOverlayLayout] = useState<OverlayLayout>({
@@ -248,13 +288,13 @@ export function S02AccountExplorationTraining({
     positionKey: `${snapshot?.scene.activeAccountId ?? 'none'}-${snapshot?.scene.narrationId ?? 'none'}-${snapshot?.presentation.character.placement ?? 'none'}`,
   });
   const cursorKeyActiveAccountId = snapshot?.scene.activeAccountId ?? null;
-  const cursorKeyUnderstoodAccountIds = snapshot?.scene.understoodAccountIds ?? [];
+  const cursorKeyViewedAccountIds = snapshot?.scene.viewedAccountIds ?? [];
   const cursorKeyShouldFollowPointer =
     !returningToBrowser &&
     snapshot?.introState === 'complete' &&
-    cursorKeyUnderstoodAccountIds.length < definition.accounts.length &&
+    cursorKeyViewedAccountIds.length < definition.accounts.length &&
     (cursorKeyActiveAccountId === null ||
-      cursorKeyUnderstoodAccountIds.includes(cursorKeyActiveAccountId));
+      cursorKeyViewedAccountIds.includes(cursorKeyActiveAccountId));
 
   const positionCursorKey = useCallback((clientX: number, clientY: number): void => {
     const cursorKey = cursorKeyRef.current;
@@ -302,7 +342,7 @@ export function S02AccountExplorationTraining({
     });
     controller = new S02AccountExplorationController({
       animationPlayer,
-      onAllAccountsUnderstood: () => onAllAccountsUnderstoodRef.current?.(),
+      onAllAccountsViewed: () => onAllAccountsViewedRef.current?.(),
     });
     const renderer = new ReactFlowNetworkAdapter(controller.getSnapshot().scene.network);
     controller.attachRenderer(renderer);
@@ -341,11 +381,19 @@ export function S02AccountExplorationTraining({
     }
     cursorKey.style.removeProperty('opacity');
     positionCursorKey(lastPointerPosition.clientX, lastPointerPosition.clientY);
-  }, [cursorKeyShouldFollowPointer, cursorKeyUnderstoodAccountIds.length, positionCursorKey]);
+  }, [cursorKeyShouldFollowPointer, cursorKeyViewedAccountIds.length, positionCursorKey]);
 
   useLayoutEffect(() => {
     const activeAccountId = snapshot?.scene.activeAccountId ?? null;
-    const previewId = snapshot?.scene.activePreviewDetailId ?? null;
+    const activeAccountProgress =
+      activeAccountId === null
+        ? undefined
+        : snapshot?.scene.accountProgress.find(({ accountId }) => accountId === activeAccountId);
+    const previewId =
+      snapshot?.scene.activePreviewDetailId ??
+      (activeAccountProgress?.unlocked === true && snapshot?.scene.pendingAnimationId === null
+        ? activeAccountId
+        : null);
     const sceneElement = sceneRef.current;
     const networkElement = networkHostRef.current;
     if (sceneElement === null || networkElement === null) return;
@@ -373,9 +421,9 @@ export function S02AccountExplorationTraining({
       const nodeObstacles = visibleElements.map((element) =>
         relativeBounds(element.getBoundingClientRect(), layoutRect, 10),
       );
-      const activeAccountUnderstood =
+      const activeAccountViewed =
         activeAccountId !== null &&
-        (snapshot?.scene.understoodAccountIds.includes(activeAccountId) ?? false);
+        (snapshot?.scene.viewedAccountIds.includes(activeAccountId) ?? false);
 
       let guide: OverlayPosition | null = null;
       const guideElement = guideRef.current;
@@ -389,7 +437,7 @@ export function S02AccountExplorationTraining({
         activeAccountId !== null &&
         guideElement !== null &&
         accountElement !== null &&
-        !activeAccountUnderstood
+        !activeAccountViewed
       ) {
         const guideRect = guideElement.getBoundingClientRect();
         const accountBounds = relativeBounds(
@@ -478,10 +526,11 @@ export function S02AccountExplorationTraining({
     };
   }, [
     snapshot?.scene.activeAccountId,
+    snapshot?.scene.accountProgress,
     snapshot?.scene.activePreviewDetailId,
     snapshot?.scene.narrationId,
     snapshot?.scene.pendingAnimationId,
-    snapshot?.scene.understoodAccountIds,
+    snapshot?.scene.viewedAccountIds,
   ]);
 
   if (runtime === null || snapshot === null) {
@@ -504,13 +553,14 @@ export function S02AccountExplorationTraining({
   const { controller, renderer } = runtime;
   const { scene, presentation } = snapshot;
   const activeAccount = definition.accounts.find(({ id }) => id === scene.activeAccountId);
-  const activeAccountUnderstood =
-    scene.activeAccountId !== null && scene.understoodAccountIds.includes(scene.activeAccountId);
-  const activePreview = activeAccountUnderstood
-    ? undefined
-    : activeAccount?.details.find(({ id }) => id === scene.activePreviewDetailId);
-  const understoodCount = scene.understoodAccountIds.length;
-  const complete = understoodCount === definition.accounts.length;
+  const activeAccountProgress =
+    activeAccount === undefined
+      ? undefined
+      : scene.accountProgress.find(({ accountId }) => accountId === activeAccount.id);
+  const activeAccountViewed = activeAccountProgress?.viewed === true;
+  const activePreview = activeAccount?.details.find(({ id }) => id === scene.activePreviewDetailId);
+  const viewedCount = scene.viewedAccountIds.length;
+  const complete = scene.isComplete;
   const narration = complete
     ? (s02Content.narration.messages[s02Content.narration.completeId] ?? '')
     : (s02Content.narration.messages[scene.narrationId] ?? '');
@@ -523,8 +573,17 @@ export function S02AccountExplorationTraining({
   const timingFailure =
     externalTimingError !== null || timingState === 'startFailed' || timingState === 'endFailed';
   const interactionBlocked = timingState !== 'active' || externalTimingError !== null;
+  const coreActionVisible =
+    activeAccount !== undefined &&
+    activeAccountProgress?.unlocked === true &&
+    !activeAccountViewed &&
+    activePreview === undefined &&
+    (scene.phase === 'exploring' || scene.phase === 'performing-core-action');
+  const coreActionPending = scene.phase === 'performing-core-action';
+  const overlayAnchorId =
+    activePreview?.id ?? (coreActionVisible && activeAccount !== undefined ? activeAccount.id : null);
   const positionedPreview =
-    activePreview !== undefined && overlayLayout.preview?.anchorId === activePreview.id
+    overlayAnchorId !== null && overlayLayout.preview?.anchorId === overlayAnchorId
       ? overlayLayout.preview
       : null;
   const previewStyle: CSSProperties | undefined = positionedPreview
@@ -541,15 +600,7 @@ export function S02AccountExplorationTraining({
   const keyVisible =
     !returningToBrowser &&
     snapshot.introState === 'complete' &&
-    !complete &&
-    (scene.activeAccountId === null || activeAccountUnderstood);
-  const narrationBlocksInteraction = complete;
-  const canAdvanceNarration =
-    snapshot.introState === 'complete' &&
-    !complete &&
-    scene.activeAccountId !== null &&
-    !activeAccountUnderstood &&
-    scene.pendingAnimationId === null;
+    (scene.activeAccountId === null || activeAccountViewed);
 
   function moveCursorKey(event: PointerEvent<HTMLElement>): void {
     if (event.pointerType !== 'touch') {
@@ -603,6 +654,9 @@ export function S02AccountExplorationTraining({
             onClick: returnToBrowser,
           }}
         >
+          <p className={styles.accountProgress}>
+            {s02Content.page.globalProgress(viewedCount)}
+          </p>
           <div ref={networkHostRef} className={styles.networkPanel}>
             <ReactFlowNetwork
               adapter={renderer}
@@ -612,9 +666,8 @@ export function S02AccountExplorationTraining({
               canvasAriaLabel={s02Content.accessibility.canvasLabel}
               interactionDisabled={
                 interactionBlocked ||
-                narrationBlocksInteraction ||
                 snapshot.introState !== 'complete' ||
-                complete
+                returningToBrowser
               }
               visualVariant="account-map"
               activeNodeId={scene.activeAccountId}
@@ -635,6 +688,27 @@ export function S02AccountExplorationTraining({
               aria-label={`Visuelle Vorschau für ${activePreview.label}`}
             >
               <VisualPreview key={activePreview.id} kind={activePreview.preview.kind} />
+              {activeAccountViewed && activeAccount !== undefined ? (
+                <p className={styles.takeaway}>{activeAccount.coreAction.takeaway}</p>
+              ) : null}
+            </section>
+          ) : null}
+
+          {coreActionVisible && activeAccount !== undefined ? (
+            <section
+              ref={previewRef}
+              className={styles.coreActionOverlay}
+              data-positioned={positionedPreview !== null}
+              data-side={positionedPreview?.side ?? 'right'}
+              style={previewStyle}
+            >
+              <CoreActionWebsite
+                account={activeAccount}
+                pending={coreActionPending}
+                onPerform={(targetDetailId) =>
+                  controller.performCoreAction(activeAccount.id, targetDetailId)
+                }
+              />
             </section>
           ) : null}
 
@@ -676,14 +750,6 @@ export function S02AccountExplorationTraining({
                 {...(guideSpeechPosition === null
                   ? {}
                   : { arrowOffset: guideSpeechPosition.arrowOffset })}
-                {...(!canAdvanceNarration
-                  ? {}
-                  : {
-                      action: {
-                        kind: 'advance' as const,
-                        onAction: () => controller.advanceNarration(),
-                      },
-                    })}
               />
             </div>
           </div>
@@ -701,7 +767,7 @@ export function S02AccountExplorationTraining({
           )}
 
           <p className={styles.screenReaderOnly} role="status">
-            {complete ? s02Content.page.completion : ''}
+            {complete ? s02Content.page.completion : s02Content.page.globalProgress(viewedCount)}
           </p>
         </S02DesktopSurface>
 

@@ -26,7 +26,7 @@ export interface S02AccountExplorationControllerSnapshot {
 
 export interface S02AccountExplorationControllerOptions {
   readonly animationPlayer: AnimationPlayerPort;
-  readonly onAllAccountsUnderstood?: () => void;
+  readonly onAllAccountsViewed?: () => void;
 }
 
 type ControllerListener = (snapshot: S02AccountExplorationControllerSnapshot) => void;
@@ -38,7 +38,11 @@ interface PendingAnimation {
 
 type ControllerEvent =
   | { readonly type: 'node-selected'; readonly nodeId: string }
-  | { readonly type: 'narration-advanced' }
+  | {
+      readonly type: 'core-action-started';
+      readonly accountId: string;
+      readonly targetDetailId: string;
+    }
   | {
       readonly type: 'animation-finished' | 'animation-recovered';
       readonly animationId: string;
@@ -70,7 +74,7 @@ function revealSceneNodes(
 
 export class S02AccountExplorationController {
   readonly #animationPlayer: AnimationPlayerPort;
-  readonly #onAllAccountsUnderstood: () => void;
+  readonly #onAllAccountsViewed: () => void;
   #renderer: NetworkRendererPort | null = null;
   readonly #listeners = new Set<ControllerListener>();
   #snapshot: S02AccountExplorationControllerSnapshot;
@@ -82,10 +86,10 @@ export class S02AccountExplorationController {
 
   constructor({
     animationPlayer,
-    onAllAccountsUnderstood = () => undefined,
+    onAllAccountsViewed = () => undefined,
   }: S02AccountExplorationControllerOptions) {
     this.#animationPlayer = animationPlayer;
-    this.#onAllAccountsUnderstood = onAllAccountsUnderstood;
+    this.#onAllAccountsViewed = onAllAccountsViewed;
     this.#snapshot = {
       scene: createAccountExplorationScene(definition),
       presentation: createInitialPresentation(),
@@ -101,23 +105,13 @@ export class S02AccountExplorationController {
   };
 
   selectNode(nodeId: string): void {
-    if (
-      this.#snapshot.introState !== 'complete' ||
-      this.#snapshot.scene.understoodAccountIds.length === definition.accounts.length
-    ) {
-      return;
-    }
+    if (this.#snapshot.introState !== 'complete') return;
     this.#send({ type: 'node-selected', nodeId });
   }
 
-  advanceNarration(): void {
-    if (
-      this.#snapshot.introState !== 'complete' ||
-      this.#snapshot.scene.understoodAccountIds.length === definition.accounts.length
-    ) {
-      return;
-    }
-    this.#send({ type: 'narration-advanced' });
+  performCoreAction(accountId: string, targetDetailId: string): void {
+    if (this.#snapshot.introState !== 'complete') return;
+    this.#send({ type: 'core-action-started', accountId, targetDetailId });
   }
 
   startIntro(): void {
@@ -159,12 +153,8 @@ export class S02AccountExplorationController {
   #send(event: ControllerEvent): void {
     if (this.#disposed) return;
 
-    if (event.type === 'node-selected' || event.type === 'narration-advanced') {
-      this.#applySceneEvent(
-        event.type === 'node-selected'
-          ? { type: 'node-selected', nodeId: event.nodeId }
-          : { type: 'narration-advanced' },
-      );
+    if (event.type === 'node-selected' || event.type === 'core-action-started') {
+      this.#applySceneEvent(event);
       return;
     }
 
@@ -276,12 +266,12 @@ export class S02AccountExplorationController {
   #notifyCompleteIfNeeded(): void {
     if (
       this.#completionNotified ||
-      this.#snapshot.scene.understoodAccountIds.length !== definition.accounts.length
+      !this.#snapshot.scene.isComplete
     ) {
       return;
     }
     this.#completionNotified = true;
-    this.#onAllAccountsUnderstood();
+    this.#onAllAccountsViewed();
   }
 
   #emit(): void {

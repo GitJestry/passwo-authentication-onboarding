@@ -51,7 +51,7 @@ function CandidateScene({ scene }: { readonly scene: PasswordCandidateSceneSnaps
       <section className={styles.candidatePanel}>
         <h2>{s05Content.intro.title}</h2>
         <p>{s05Content.intro.explanation}</p>
-        <div className={styles.candidateStream} aria-label="Feste Kandidaten">
+        <div className={styles.candidateStream} aria-label="Beispielkandidaten">
           {scene.candidates.map((candidate) => (
             <code key={candidate.id}>{candidate.candidate}</code>
           ))}
@@ -85,7 +85,7 @@ function FindingScene({
 }) {
   return (
     <div className={styles.findingWorkspace}>
-      <section className={styles.demonstrations} aria-label="Feste Demonstrationen">
+      <section className={styles.demonstrations} aria-label="Beispiele">
         {s05Content.componentDemonstrations.map((demonstration) => (
           <article key={demonstration.id}>
             <h3>{demonstration.title}</h3>
@@ -166,9 +166,9 @@ function StructureDemonstrationScene({
       <article
         className={styles.structureDemonstration}
         data-s05-target={snapshot.step}
-        aria-label={`${demonstration.title}, feste Demonstration`}
+        aria-label={`${demonstration.title}, Beispiel`}
       >
-        <p className={styles.authoredBadge}>Feste Demonstration</p>
+        <p className={styles.authoredBadge}>Beispiel</p>
         <h2>{demonstration.title}</h2>
         <div className={styles.structureTokens} aria-label={demonstration.tokens.join(', ')}>
           {demonstration.tokens.map((token, index) => (
@@ -204,7 +204,7 @@ function SameLengthScene() {
   const content = s05Content.freeSearch.sameLength;
   return (
     <div className={styles.focusScene} data-s05-target="same-length">
-      <p className={styles.cardLabel}>Feste Demonstration</p>
+      <p className={styles.cardLabel}>Beispiel</p>
       <h2>{content.title}</h2>
       <div className={styles.passwordComparison}>
         {[content.predictable, content.independentlyRandom].map((example) => (
@@ -235,7 +235,7 @@ function EstimateScene({
   const content = s05Content.freeSearch.estimate;
   return (
     <div className={styles.focusScene} data-s05-target="estimate">
-      <p className={styles.cardLabel}>Aktive Reflexion · bleibt nur im lokalen Controller</p>
+      <p className={styles.cardLabel}>Deine Schätzung</p>
       <h2>{content.title}</h2>
       <p>{content.explanation}</p>
       <fieldset className={styles.estimateScale} disabled={snapshot.estimate.confirmed}>
@@ -281,7 +281,7 @@ function LowercaseClockScene({
       data-s05-target="lowercase-clock"
       aria-label={scene.accessibleSummary}
     >
-      <p className={styles.cardLabel}>Reines theoretisches Modell</p>
+      <p className={styles.cardLabel}>Beispiel mit festgelegten Annahmen</p>
       <h2>{content.title}</h2>
       <ul className={styles.assumptions}>
         {content.assumptions.map((assumption) => (
@@ -311,7 +311,7 @@ function GeneratedCharactersScene({
   const model = scene.generatedCharacterModel;
   return (
     <div className={styles.focusScene} data-s05-target="generated-characters">
-      <p className={styles.cardLabel}>Feste Generator-Demonstration</p>
+      <p className={styles.cardLabel}>Beispiel: zufällig erzeugte Zeichen</p>
       <h2>{content.title}</h2>
       <div
         className={styles.generatedPassword}
@@ -354,7 +354,7 @@ function PasswordPartsScene({
 }) {
   return (
     <div className={styles.focusScene} data-s05-target={targetId}>
-      <p className={styles.cardLabel}>Feste Demonstration</p>
+      <p className={styles.cardLabel}>Beispiel</p>
       <h2>{title}</h2>
       <code className={styles.largePassword}>{password}</code>
       <div className={styles.labeledParts}>
@@ -374,7 +374,7 @@ function ChosenWordsScene() {
   const content = s05Content.freeSearch.chosenWords;
   return (
     <div className={styles.focusScene} data-s05-target="chosen-words">
-      <p className={styles.cardLabel}>Feste Demonstration</p>
+      <p className={styles.cardLabel}>Beispiel</p>
       <h2>{content.title}</h2>
       <div className={styles.wordExamples}>
         {content.examples.map((example) => (
@@ -425,7 +425,7 @@ function FreeSearchApplicationScene({
       data-s05-target="free-search-application"
       aria-label={scene.accessibleSummary}
     >
-      <p className={styles.cardLabel}>Laufzeitbefund · fiktives Passwort</p>
+      <p className={styles.cardLabel}>Was die Übung erkannt hat</p>
       <h2>{content.title}</h2>
       <code className={styles.largePassword}>{subject.fictionalPassword}</code>
       <div className={styles.applicationGrid}>
@@ -485,7 +485,7 @@ function SummaryScene({ step }: { readonly step: S05AnalysisControllerSnapshot['
       className={styles.summaryScene}
       data-s05-target={step === 'summary-memory' ? 'summary-memory' : undefined}
     >
-      <p className={styles.cardLabel}>Zusammenfassung · kein Gesamtscore</p>
+      <p className={styles.cardLabel}>Zusammenfassung</p>
       <h2>{content.title}</h2>
       <p>{content.intro}</p>
       <div className={styles.summaryCards}>
@@ -581,7 +581,7 @@ function StructureApplicationScene({
         </p>
       </section>
       <article className={styles.structureResult} data-s05-target="structure-application">
-        <p className={styles.cardLabel}>Laufzeitbefund · fiktives Passwort</p>
+        <p className={styles.cardLabel}>Was die Übung erkannt hat</p>
         <h2>{s05Content.structure.application.title}</h2>
         <FictionalPasswordWithEvidence password={subject.fictionalPassword} scene={scene} />
         <ol>

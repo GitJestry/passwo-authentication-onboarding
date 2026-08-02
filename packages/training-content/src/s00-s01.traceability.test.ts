@@ -49,10 +49,11 @@ describe('S00 to S02 training-content traceability', () => {
   });
 
   it('keeps S02 linked to its named pages and essential account-node structure', () => {
-    expect(S02_CONTENT_VERSION).toBe('3.11.0');
+    expect(S02_CONTENT_VERSION).toBe('4.0.0');
     expect(s02Content.source).toEqual({
       document: 'research/private/training-script.pdf',
       internalPages: [4, 5, 6, 7],
+      copyReference: 'docs/design/S00-S05-COPY-AUDIT.md#s02----konten-kennenlernen',
     });
     expect(s02Content.segment.id).toBe('S02');
     expect(s02Content.scene.accounts.map(({ id }) => id)).toEqual(canonicalAccountIds);
@@ -73,6 +74,15 @@ describe('S00 to S02 training-content traceability', () => {
         'campusgram-groups-contacts',
         'campusgram-posts-reactions',
       ],
+    ]);
+    expect(s02Content.page.globalProgress(2)).toBe('Konten kennenlernen: 2/3 angesehen');
+    expect(s02Content.narration.messages[s02Content.narration.introId]).toBe(
+      'Schau dir kurz an, was hinter den drei Konten liegt. Du musst dir keine Einzelheiten merken und kannst die Reihenfolge selbst wählen.',
+    );
+    expect(s02Content.scene.accounts.map(({ coreAction }) => coreAction.targetDetailIds)).toEqual([
+      ['master-campus-workspace'],
+      ['campus-email-reset-links'],
+      ['campusgram-direct-messages'],
     ]);
   });
 });

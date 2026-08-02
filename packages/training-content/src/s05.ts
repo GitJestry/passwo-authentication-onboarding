@@ -24,7 +24,7 @@ export interface S05DesignLabFixture {
   };
 }
 
-export const S05_CONTENT_VERSION = '2.0.0';
+export const S05_CONTENT_VERSION = '2.1.0';
 
 export const s05Content = {
   version: S05_CONTENT_VERSION,
@@ -34,22 +34,26 @@ export const s05Content = {
       12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34,
       35,
     ] as const,
+    revision: 'Userauftrag vom 2026-08-02',
+    copyReference:
+      'docs/design/S00-S05-COPY-AUDIT.md#implementierungs-copy-delta-2-august-2026',
   },
   segment: {
     id: 'S05',
     sectionId: 'passwords',
     slice: 'complete-design-lab-only',
   },
-  trainingAriaLabel: 'PassWo Training, Segment S05, vollständige lokale Design-Lab-Demonstration',
+  trainingAriaLabel: 'PassWo Training, Segment S05, Passwortwege verstehen',
   browser: {
-    ariaLabel: 'Fiktive Browseranwendung, Segment S05, lokale Design-Lab-Demonstration',
-    address: 'campus.example/lokale-passwortanalyse',
-    tab: { id: 'analysis', label: 'Lokale Analyse', enabled: true },
+    ariaLabel: 'Fiktive Browseranwendung, Segment S05, Passwortwege',
+    address: 'campus.example/passwortwege',
+    tab: { id: 'analysis', label: 'Passwortwege', enabled: true },
   },
   page: {
-    eyebrow: 'Einzelanalyse · S05',
+    eyebrow: 'Passwortwege · S05',
     title: 'Wie entstehen wahrscheinliche Kandidaten?',
-    fixtureNotice: 'Fiktives Passwort · bleibt nur im lokalen Arbeitsspeicher',
+    fixtureNotice:
+      'Diese Simulation betrachtet nur das fiktive Passwort und ist keine allgemeine Sicherheitsbewertung.',
     start: 'Animation starten',
     replay: 'Animation wiederholen',
     continue: 'Weiter',
@@ -70,19 +74,19 @@ export const s05Content = {
       id: 'common-components',
       title: 'Häufige Kerne',
       examples: ['passwort', 'qwertz', '123456789', '2026', 'sommer', 'admin'],
-      note: 'Feste Beispiele, die bereits häufig verwendet wurden.',
+      note: 'Beispiele für häufig verwendete Bestandteile.',
     },
     {
       id: 'personal-examples',
       title: 'Persönliche Angaben',
       examples: ['Luna', 'BVB', 'Hochzeit2005'],
-      note: 'Feste Demonstration · keine Ableitung aus Anzeigename oder Nutzerdaten.',
+      note: 'Diese Beispiele stammen nicht aus persönlichen Angaben.',
     },
     {
       id: 'account-context',
       title: 'Konto-Kontext',
       examples: ['Campus', 'Campusgram', 'Prüfung', 'Semester', 'Archiv'],
-      note: 'Feste Begriffe, die das fiktive Konto nahelegt.',
+      note: 'Begriffe, die zum fiktiven Konto passen können.',
     },
     {
       id: 'typical-changes',
@@ -101,9 +105,8 @@ export const s05Content = {
     'no-simple-component-recognized': 'kein einfacher Bestandteil erkannt',
   } satisfies Readonly<Record<PasswordSingleFindingKind, string>>,
   result: {
-    title: 'Lokaler Befund für das fiktive Fixture',
-    boundedNotice:
-      'Die Befunde zeigen nur erkannte Ausgangspunkte. Sie sind kein Score und keine Produktionsbewertung.',
+    title: 'Was die Übung erkennt',
+    boundedNotice: 'Die markierten Stellen zeigen, wo ein Angreifer früh ansetzen könnte.',
   },
   structure: {
     intro: 'Jetzt schauen wir nacheinander, wie Menschen Bestandteile miteinander verbinden.',
@@ -118,7 +121,7 @@ export const s05Content = {
         passWoExplanation:
           'Ein gemeinsames Thema kann mehrere Bestandteile leichter merkbar verbinden.',
         boundaryNote:
-          'Diese feste Demonstration erklärt den Zusammenhang. Die lokale Analyse leitet keine allgemeine Wortsemantik ab.',
+          'Das Beispiel zeigt einen möglichen Zusammenhang. Es leitet keine Bedeutung aus dem fiktiven Passwort ab.',
       },
       {
         kind: 'authoredStructureDemonstration',
@@ -129,7 +132,7 @@ export const s05Content = {
         connectionLabel: 'sprachlich passende Folge',
         passWoExplanation:
           'Sätze lassen sich gut merken, weil ihre Teile sprachlich zusammenpassen.',
-        boundaryNote: 'Diese feste Demonstration ist keine Sprachanalyse des fiktiven Passworts.',
+        boundaryNote: 'Das Beispiel prüft nicht, ob das fiktive Passwort eine Satzstruktur hat.',
       },
       {
         kind: 'authoredStructureDemonstration',
@@ -141,7 +144,7 @@ export const s05Content = {
         passWoExplanation:
           'Nach dem ersten Treffer muss ein exakt wiederholter Bestandteil nicht neu erraten werden.',
         boundaryNote:
-          'Die Laufzeitanalyse markiert nur konkrete, ausreichend lange exakte Wiederholungen.',
+          'Die Übung markiert nur ausreichend lange, exakt wiederholte Bestandteile.',
       },
       {
         kind: 'authoredStructureDemonstration',
@@ -153,7 +156,7 @@ export const s05Content = {
         passWoExplanation:
           'Zum Konto passende Teile können gemeinsam einen gezielteren Suchweg bilden.',
         boundaryNote:
-          'Die Laufzeitanalyse verwendet nur feste Konto- oder Kontextbegriffe des fiktiven Fixtures.',
+          'Die Übung nutzt nur festgelegte Begriffe zum fiktiven Konto.',
       },
     ] as const satisfies readonly AuthoredStructureDemonstration[],
     findingLabels: {
@@ -166,11 +169,10 @@ export const s05Content = {
     application: {
       title: 'Anwendung auf das fiktive Passwort',
       recognizedExplanation:
-        'Nur konkret erkannte Stellen werden markiert. Die begrenzten Regeln benennen höchstens zwei Wege gleichzeitig.',
+        'Markiert sind nur konkret erkannte Stellen. Die Übung zeigt höchstens zwei Wege zugleich.',
       noneExplanation:
-        'Die begrenzten Regeln haben hier keinen einfachen Zusammenhang erkannt. Das ist keine Aussage über Zufälligkeit, Stärke oder Sicherheit.',
-      boundedNotice:
-        'Die Struktur-Befunde sind lokale Simulationsergebnisse und keine Gesamtbewertung.',
+        'Die Übung hat hier keinen einfachen Zusammenhang erkannt. Das bedeutet nicht, dass das Passwort zufällig, stark oder sicher ist.',
+      boundedNotice: 'Die Markierungen zeigen konkrete Zusammenhänge im fiktiven Passwort.',
     },
   },
   freeSearch: {
@@ -203,7 +205,7 @@ export const s05Content = {
       options: [8, 9, 10, 11, 12, 13, 14, 15, 16] as const,
       overflowLabel: '16+',
       confirm: 'Schätzung bestätigen',
-      confirmed: 'Schätzung bestätigt · nur lokale Reflexion, keine Forschungsantwort',
+      confirmed: 'Schätzung bestätigt. Sie bleibt in dieser Übung.',
     },
     theoreticalModel: {
       title: 'Angreifer-Uhr',
@@ -213,7 +215,7 @@ export const s05Content = {
         'Vollständiges Durchprobieren',
         'Eine Billion Versuche pro Sekunde',
       ],
-      boundary: 'Reine theoretische Demonstration · keine Schätzung für das fiktive Passwort.',
+      boundary: 'Die Uhr vergleicht nur die gezeigten Zeichenfolgen.',
       lowercaseMeasurements: [
         { length: 8, durationLabel: 'unter einer Sekunde' },
         { length: 12, durationLabel: 'ungefähr ein Tag' },
@@ -250,21 +252,20 @@ export const s05Content = {
       title: 'Sechs unabhängig gezogene Beispielwörter',
       words: ['Kaktus', 'Fenster', 'Regen', 'Komet', 'Lampe', 'Knochen'],
       joined: 'Kaktus-Fenster-Regen-Komet-Lampe-Knochen',
-      badge: 'Festes Demonstrationsbeispiel · kein Generator',
+      badge: 'Beispiel für zufällig ausgewählte Wörter',
       explanation:
         'Die Stärke stammt aus der unabhängigen zufälligen Auswahl. Einzelne Wörter müssen nicht selten sein.',
       hyphenNote: 'Bindestriche unterstützen die Lesbarkeit. Sie erzeugen nicht die Stärke.',
       outlook: 'Den echten Wortgenerator und die Methode üben wir erst in S08.',
     },
     application: {
-      title: 'Was die begrenzte Simulation zum fiktiven Passwort zeigt',
+      title: 'Was die Übung beim fiktiven Passwort zeigt',
       visibleLength: 'Sichtbare Länge',
-      componentFindings: 'Befunde aus S05.1',
-      structureFindings: 'Befunde aus S05.2',
+      componentFindings: 'Erkannte Bestandteile',
+      structureFindings: 'Erkannte Zusammenhänge',
       unexplainedAreas: 'Bereiche ohne erkannte einfachere Erklärung',
       noUnexplainedArea: 'Kein weiterer Bereich',
-      boundary:
-        'Keine Zeitprognose, keine effektive Länge, keine theoretische Entropie und kein Gesamtstärkewert.',
+      boundary: 'Die Übersicht zeigt keine Zeitprognose und kein einzelnes Gesamturteil.',
       dispositionLabels: {
         'very-short-string': 'konkreter Weg: sehr kurze Zeichenfolge',
         'common-password-core-with-typical-change':
@@ -274,7 +275,7 @@ export const s05Content = {
         'clearly-repeated-explainable-structure':
           'konkreter Weg: klar wiederholter, leicht erklärbarer Aufbau',
       } satisfies Readonly<Record<SimulationQuickPathRuleId, string>>,
-      noQuickPath: 'Mit den begrenzten Wegen dieser Simulation wurde kein schnellerer Weg erkannt.',
+      noQuickPath: 'Mit den gezeigten Prüfwegen wurde kein schnellerer Weg erkannt.',
       noQuickPathBoundary: 'Das bedeutet nicht stark, sicher, zufällig oder unangreifbar.',
     },
   },
@@ -301,7 +302,7 @@ export const s05Content = {
     ],
     generatedNote:
       'Systemseitig zufällig erzeugte Zeichenfolgen werden nach ihrem Erzeugungsprozess eingeordnet, nicht nach Zeichenarten-Häkchen.',
-    noScore: 'Kein Gesamtscore: Die drei Blickwinkel bleiben getrennt und gleichrangig.',
+    noScore: 'Die drei Blickwinkel ergänzen einander. Sie werden nicht zu einem einzelnen Urteil verrechnet.',
   },
   fixtures: [
     {

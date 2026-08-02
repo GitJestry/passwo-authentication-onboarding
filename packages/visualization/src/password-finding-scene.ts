@@ -26,7 +26,7 @@ export function createPasswordFindingScene(
     accessibleSummary:
       prioritizedFindings.length === 1 &&
       prioritizedFindings[0]?.kind === 'no-simple-component-recognized'
-        ? 'In der begrenzten lokalen Analyse wurde kein einfacher Bestandteil erkannt.'
-        : `${prioritizedFindings.length} priorisierte, begrenzte Befunde wurden lokal erkannt.`,
+        ? 'Die Übung hat keinen einfachen Bestandteil erkannt.'
+        : `${prioritizedFindings.length} markierte Bestandteile zeigen mögliche frühe Ansatzpunkte.`,
   };
 }

@@ -306,6 +306,7 @@ function statusLabel(node: SceneNode): string {
         : node.kind === 'service' || node.kind === 'function' || node.kind === 'content'
           ? 'Noch nicht angesehen'
           : 'Offen',
+    viewed: node.kind === 'account' ? 'Angesehen' : 'Vorschau geöffnet',
     understood: node.kind === 'account' ? 'Verstanden' : 'Vorschau geöffnet',
     retrievable: 'Abrufbar',
     'not-remembered': 'Nicht erinnert',
@@ -505,7 +506,7 @@ function toReactFlowElements(
     positionedNodes.map(({ node, position, layout }) => [node.id, geometryForNode(position, layout)]),
   );
   const activeAccount = snapshot.nodes.find(({ id }) => id === activeNodeId);
-  const choosingAccount = activeAccount === undefined || activeAccount.status === 'understood';
+  const choosingAccount = activeAccount === undefined;
   const activeBranchNodeIds = new Set<string>(
     activeNodeId === null
       ? []
@@ -530,7 +531,7 @@ function toReactFlowElements(
         active: activeNodeId === node.id,
         dimmed: choosingAccount
           ? node.kind === 'account'
-            ? node.status === 'understood'
+            ? node.status === 'viewed'
             : true
           : !activeBranchNodeIds.has(node.id),
         interactionDisabled,

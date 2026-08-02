@@ -30,6 +30,6 @@ export function createPasswordCandidateScene(
     })),
     comparisonMarkerId: 'candidate-marker',
     accessibleSummary:
-      'Authored Kandidaten werden erzeugt und als nicht passend am abstrakten Vergleichsmarker geprüft.',
+      'Beispielkandidaten werden erzeugt und am abstrakten Vergleichsmarker geprüft.',
   };
 }

@@ -193,6 +193,7 @@
   transform: scale(1.055);
 }
 
+.nodeFrame[data-status="viewed"] .nodeCircle,
 .nodeFrame[data-status="understood"] .nodeCircle,
 .nodeFrame[data-status="protected"] .nodeCircle {
   border-color: #08c978;
@@ -340,6 +341,7 @@
   height: 72%;
 }
 
+.nodeFrame[data-status="viewed"] .statusMarker,
 .nodeFrame[data-status="understood"] .statusMarker,
 .nodeFrame[data-status="protected"] .statusMarker {
   border-color: #08c978;

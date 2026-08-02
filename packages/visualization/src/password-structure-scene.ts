@@ -57,7 +57,7 @@ export function createPasswordStructureScene(
     highlightedSpans: highlightedEvidenceSpans(prioritizedRuntimeFindings),
     omittedFindingCount: Math.max(0, runtimeAnalysis.findings.length - 2),
     accessibleSummary: noneRecognized
-      ? 'Die begrenzten Regeln haben keinen einfachen Zusammenhang erkannt.'
-      : `${prioritizedRuntimeFindings.length} priorisierte Struktur-Befunde mit konkreter Evidenz.`,
+      ? 'Die Übung hat keinen einfachen Zusammenhang erkannt.'
+      : `${prioritizedRuntimeFindings.length} markierte Zusammenhänge mit konkreten Stellen.`,
   };
 }

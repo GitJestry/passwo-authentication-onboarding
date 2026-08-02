@@ -27,6 +27,24 @@
   min-width: 0;
 }
 
+.accountProgress {
+  position: absolute;
+  z-index: 5;
+  top: var(--space-4);
+  left: 50%;
+  margin: 0;
+  padding: 0.48rem 0.82rem;
+  border: 1px solid rgb(73 111 145 / 20%);
+  border-radius: var(--radius-round);
+  color: #264964;
+  background: rgb(255 255 255 / 82%);
+  box-shadow: 0 0.45rem 1.2rem rgb(39 72 104 / 12%);
+  font-size: 0.76rem;
+  font-weight: 760;
+  transform: translateX(-50%);
+  backdrop-filter: blur(0.65rem);
+}
+
 .preview {
   position: absolute;
   z-index: 4;
@@ -56,6 +74,124 @@
   opacity: 0.2;
   box-shadow: none;
   backdrop-filter: blur(0.15rem);
+}
+
+.coreActionOverlay {
+  position: absolute;
+  z-index: 4;
+  width: clamp(18rem, 27vw, 23rem);
+  padding: 0.55rem;
+  border: 1px solid rgb(255 255 255 / 88%);
+  border-radius: 1.3rem;
+  background: rgb(255 255 255 / 76%);
+  box-shadow:
+    0 1.6rem 4.5rem rgb(42 73 112 / 28%),
+    inset 0 1px 0 rgb(255 255 255 / 82%);
+  transition:
+    opacity var(--motion-standard) var(--motion-ease-out),
+    transform var(--motion-standard) var(--motion-ease-out);
+  backdrop-filter: blur(1.2rem) saturate(1.08);
+}
+
+.coreActionOverlay[data-positioned="false"] {
+  top: var(--space-4);
+  left: var(--space-4);
+  opacity: 0;
+  transform: translateY(0.6rem) scale(0.96);
+}
+
+.coreActionWebsite {
+  display: grid;
+  overflow: hidden;
+  border: 1px solid #cbd8e5;
+  border-radius: 0.92rem;
+  background: #fbfdff;
+  box-shadow:
+    inset 0 0 0 1px rgb(255 255 255 / 88%),
+    0 0.55rem 1.8rem rgb(50 80 112 / 12%);
+}
+
+.coreActionBody {
+  display: grid;
+  gap: 0.7rem;
+  padding: 1rem;
+  color: #183854;
+  background: linear-gradient(145deg, #edf8ff, #f5f0ff);
+}
+
+.coreActionBody[data-account="campus-email"] {
+  background: #f4f8fc;
+}
+
+.coreActionBody[data-account="campusgram"] {
+  background: linear-gradient(150deg, #fff7fb, #f6f2ff);
+}
+
+.coreActionBody > strong {
+  font-size: 0.82rem;
+}
+
+.coreActionButton {
+  display: grid;
+  gap: 0.28rem;
+  width: 100%;
+  min-height: 4.6rem;
+  padding: 0.7rem;
+  border: 1px solid #9d2046;
+  border-radius: 0.62rem;
+  color: #ffffff;
+  background: linear-gradient(135deg, #8f204b, #b33163);
+  box-shadow: 0 0.32rem 0.65rem rgb(141 31 74 / 22%);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.coreActionBody[data-account="campus-email"] .coreActionButton {
+  border-color: #28799e;
+  background: linear-gradient(135deg, #317eb2, #4fa9c5);
+}
+
+.coreActionBody[data-account="campusgram"] .coreActionButton {
+  border-color: #a34582;
+  background: linear-gradient(135deg, #b44685, #7a5bc4);
+}
+
+.coreActionButton > span:first-child {
+  font-size: 0.78rem;
+  font-weight: 800;
+}
+
+.coreActionButton > span:last-child {
+  font-size: 0.68rem;
+  font-weight: 650;
+}
+
+.coreActionButton:not(:disabled):hover {
+  filter: brightness(1.08);
+  transform: translateY(-1px);
+}
+
+.coreActionButton:disabled {
+  cursor: wait;
+  opacity: 0.72;
+}
+
+.coreActionButton:focus-visible {
+  outline: var(--border-width-focus) solid var(--color-focus);
+  outline-offset: var(--space-1);
+  box-shadow: var(--shadow-focus);
+}
+
+.takeaway {
+  margin: 0.7rem 0 0;
+  padding: 0.55rem 0.65rem;
+  border-radius: 0.68rem;
+  color: #173e35;
+  background: #e8f7ef;
+  font-size: 0.7rem;
+  font-weight: 700;
+  line-height: 1.35;
 }
 
 .preview::before {
@@ -850,6 +986,10 @@
     width: min(21rem, calc(100% - var(--space-6)));
   }
 
+  .coreActionOverlay {
+    width: min(21rem, calc(100% - var(--space-6)));
+  }
+
   .visualPreview {
     height: 13.5rem;
   }
@@ -857,7 +997,8 @@
 
 @media (prefers-reduced-motion: reduce) {
   .guide,
-  .preview {
+  .preview,
+  .coreActionOverlay {
     transition: none;
     will-change: auto;
   }

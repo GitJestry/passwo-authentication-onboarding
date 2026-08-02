@@ -6,6 +6,7 @@ export interface S04SegmentContent {
     readonly document: string;
     readonly internalPages: readonly [12];
     readonly revision: string;
+    readonly copyReference: string;
   };
   readonly segment: {
     readonly id: 'S04';
@@ -30,7 +31,7 @@ export interface S04SegmentContent {
   };
 }
 
-export const S04_CONTENT_VERSION = '1.2.0';
+export const S04_CONTENT_VERSION = '1.3.0';
 
 export const s04Content: S04SegmentContent = {
   version: S04_CONTENT_VERSION,
@@ -38,6 +39,8 @@ export const s04Content: S04SegmentContent = {
     document: 'research/private/training-script.pdf',
     internalPages: [12],
     revision: 'Userauftrag vom 2026-08-02',
+    copyReference:
+      'docs/design/S00-S05-COPY-AUDIT.md#implementierungs-copy-delta-2-august-2026',
   },
   segment: {
     id: 'S04',
@@ -54,7 +57,7 @@ export const s04Content: S04SegmentContent = {
     paragraphs: [
       'Bei Campusgram gab es ein Datenleck. Eine alte Datei mit gespeicherten Passwortdaten ist in fremde Hände geraten.',
       'Das bedeutet nicht automatisch, dass dein Passwort sofort lesbar ist. Die Passwortdaten können aber von Angreifern offline getestet werden: Ein Programm probiert viele mögliche Passwörter aus und prüft, ob eines davon passt.',
-      'Deswegen prüfen wir jetzt, ob dein Passwort für sich stark genug ist, indem wir uns anschauen, wie der Angreifer vorgeht.',
+      'Deshalb schauen wir uns jetzt an, welche schnellen Prüfwege die Simulation bei diesem fiktiven Passwort erkennt.',
     ],
     continueLabel: 'Passwort prüfen',
     completedLabel: 'Die Erklärung zum Datenleck ist abgeschlossen.',

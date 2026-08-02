@@ -368,8 +368,8 @@ export function NetworkStatusMarker({
   const marker =
     locked
       ? 'locked'
-      : status === 'understood'
-      ? 'understood'
+      : status === 'viewed' || status === 'understood'
+      ? 'viewed'
       : status === 'protected'
         ? 'protected'
         : status === 'affected' || status === 'exposed'
@@ -401,7 +401,7 @@ export function NetworkStatusMarker({
           <path data-lock-keyhole d="M12 13v3.2" strokeWidth="2.8" />
         </>
       ) : null}
-      {marker === 'understood' ? <path d="m5 12 4.2 4.2L19 6.7" /> : null}
+      {marker === 'viewed' ? <path d="m5 12 4.2 4.2L19 6.7" /> : null}
       {marker === 'protected' ? (
         <path d="M12 3 19 6v5c0 4.2-2.8 7.7-7 10-4.2-2.3-7-5.8-7-10V6l7-3Zm-3 9 2 2 4-4" />
       ) : null}

@@ -8,6 +8,7 @@ export type SceneNodeKind =
 
 export type SceneNodeStatus =
   | 'neutral'
+  | 'viewed'
   | 'understood'
   | 'retrievable'
   | 'not-remembered'

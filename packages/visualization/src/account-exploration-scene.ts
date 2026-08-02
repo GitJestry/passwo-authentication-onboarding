@@ -26,34 +26,32 @@ export interface AccountExplorationSceneDefinition {
     readonly edgeLabel: string | null;
     readonly unlockAnimationId: string;
     readonly detailRevealAnimationId: string;
-    readonly returnToDockAnimationId: string;
-    readonly narrationIds: {
-      readonly open: string;
-      readonly understood: string;
+    readonly coreAction: {
+      readonly id: string;
+      readonly animationId: string;
+      readonly targetDetailIds: readonly string[];
     };
+    readonly narrationId: string;
     readonly descriptions: {
       readonly locked: string;
       readonly opening: string;
-      readonly open: string;
-      readonly understood: string;
+      readonly ready: string;
+      readonly viewed: string;
     };
     readonly summaries: {
       readonly locked: string;
       readonly opening: string;
-      readonly progress: string;
+      readonly ready: string;
       readonly checking: string;
-      readonly understood: string;
+      readonly viewed: string;
     };
     readonly details: readonly {
       readonly id: string;
       readonly label: string;
       readonly symbolId: SceneNodeSymbolId;
       readonly position: AuthoredPosition;
-      readonly animationId: string;
-      readonly narrationId: string;
       readonly descriptions: {
         readonly available: string;
-        readonly checking: string;
         readonly opened: string;
       };
     }[];
@@ -63,9 +61,9 @@ export interface AccountExplorationSceneDefinition {
 export interface AccountExplorationProgress {
   readonly accountId: string;
   readonly unlocked: boolean;
-  readonly understood: boolean;
-  readonly openedDetailIds: readonly string[];
-  readonly activePreviewDetailId: string | null;
+  readonly viewed: boolean;
+  readonly completedCoreActionDetailId: string | null;
+  readonly previewedDetailIds: readonly string[];
 }
 
 export type AccountExplorationScenePhase =
@@ -73,9 +71,7 @@ export type AccountExplorationScenePhase =
   | 'unlocking-account'
   | 'revealing-details'
   | 'exploring'
-  | 'checking-detail'
-  | 'returning-to-dock'
-  | 'complete';
+  | 'performing-core-action';
 
 export interface AccountExplorationSceneSnapshot {
   readonly phase: AccountExplorationScenePhase;
@@ -83,14 +79,20 @@ export interface AccountExplorationSceneSnapshot {
   readonly accountProgress: readonly AccountExplorationProgress[];
   readonly activeAccountId: string | null;
   readonly activePreviewDetailId: string | null;
-  readonly understoodAccountIds: readonly string[];
+  readonly pendingCoreActionTargetDetailId: string | null;
+  readonly viewedAccountIds: readonly string[];
+  readonly isComplete: boolean;
   readonly pendingAnimationId: string | null;
   readonly narrationId: string;
 }
 
 export type AccountExplorationSceneEvent =
   | { readonly type: 'node-selected'; readonly nodeId: string }
-  | { readonly type: 'narration-advanced' }
+  | {
+      readonly type: 'core-action-started';
+      readonly accountId: string;
+      readonly targetDetailId: string;
+    }
   | { readonly type: 'animation-settled'; readonly animationId: string };
 
 export type AccountExplorationSceneEffect =
@@ -116,47 +118,41 @@ function replaceProgress(
   return progress.map((current) => (current.accountId === next.accountId ? next : current));
 }
 
-function understoodAccountIds(
+function viewedAccountIds(
   definition: AccountExplorationSceneDefinition,
   progress: readonly AccountExplorationProgress[],
 ): readonly string[] {
   return definition.accounts
-    .filter((account) => progress.find(({ accountId }) => accountId === account.id)?.understood)
+    .filter((account) => progress.find(({ accountId }) => accountId === account.id)?.viewed)
     .map(({ id }) => id);
 }
 
-function formatSummary(
-  template: string,
-  values: Readonly<Record<'opened' | 'total' | 'detail', string | number>>,
-): string {
-  return Object.entries(values).reduce(
-    (summary, [key, value]) => summary.replaceAll(`{${key}}`, String(value)),
-    template,
-  );
+function formatSummary(template: string, detail: string): string {
+  return template.replaceAll('{detail}', detail);
 }
 
 function buildNetwork(
   definition: AccountExplorationSceneDefinition,
-  values: Omit<AccountExplorationSceneSnapshot, 'network' | 'understoodAccountIds'>,
-  understoodIds: readonly string[],
+  values: Omit<AccountExplorationSceneSnapshot, 'network' | 'viewedAccountIds' | 'isComplete'>,
+  viewedIds: readonly string[],
 ): NetworkSceneSnapshot {
-  const understood = new Set(understoodIds);
+  const viewed = new Set(viewedIds);
+  const isComplete = viewedIds.length === definition.accounts.length;
   const interactionLocked = values.pendingAnimationId !== null;
-  const sceneComplete = understoodIds.length === definition.accounts.length;
   const activeAccount = definition.accounts.find(({ id }) => id === values.activeAccountId);
   const activeProgress =
     activeAccount === undefined ? undefined : progressFor(values, activeAccount.id);
-  const activeAccountUnderstood = activeAccount === undefined || understood.has(activeAccount.id);
+  const pendingDetailId = values.pendingCoreActionTargetDetailId;
   const accountNodes: readonly SceneNode[] = definition.accounts.map((account) => {
     const accountProgress = progressFor(values, account.id);
     const isActive = activeAccount?.id === account.id;
     const description =
       isActive && values.phase === 'unlocking-account'
         ? account.descriptions.opening
-        : understood.has(account.id)
-          ? account.descriptions.understood
+        : viewed.has(account.id)
+          ? account.descriptions.viewed
           : accountProgress?.unlocked === true
-            ? account.descriptions.open
+            ? account.descriptions.ready
             : account.descriptions.locked;
     return {
       id: account.id,
@@ -164,86 +160,63 @@ function buildNetwork(
       symbolId: account.symbolId,
       label: account.label,
       description,
-      status: understood.has(account.id) ? 'understood' : 'neutral',
+      status: viewed.has(account.id) ? 'viewed' : 'neutral',
       locked: accountProgress?.unlocked !== true,
       position: account.position,
-      selectable:
-        !sceneComplete &&
-        !interactionLocked &&
-        !understood.has(account.id) &&
-        (activeAccountUnderstood || activeAccount?.id === account.id),
+      selectable: !interactionLocked,
     };
   });
-  const pendingDetail = activeAccount?.details.find(
-    ({ animationId }) => animationId === values.pendingAnimationId,
-  );
   const detailNodes: readonly SceneNode[] = definition.accounts.flatMap((account) => {
     const accountProgress = progressFor(values, account.id);
     if (accountProgress?.unlocked !== true) return [];
-    const openedDetails = new Set(accountProgress.openedDetailIds);
-    const isActive = activeAccount?.id === account.id;
+    const previewedDetails = new Set(accountProgress.previewedDetailIds);
     return account.details.map((detail) => ({
       id: detail.id,
       kind: account.detailKind,
       symbolId: detail.symbolId,
       label: detail.label,
-      description:
-        isActive && pendingDetail?.id === detail.id
-          ? detail.descriptions.checking
-          : openedDetails.has(detail.id)
-            ? detail.descriptions.opened
-            : detail.descriptions.available,
-      status: openedDetails.has(detail.id) ? 'understood' : 'neutral',
+      description: previewedDetails.has(detail.id)
+        ? detail.descriptions.opened
+        : detail.descriptions.available,
+      status: previewedDetails.has(detail.id) ? 'viewed' : 'neutral',
       position: detail.position,
-      selectable: false,
+      selectable: !interactionLocked,
     }));
   });
   const edges: readonly SceneEdge[] = definition.accounts.flatMap((account) => {
     const accountProgress = progressFor(values, account.id);
-    const edgeKind = account.edgeKind;
-    if (accountProgress?.unlocked !== true || edgeKind === null) return [];
-    const openedDetails = new Set(accountProgress.openedDetailIds);
-    const isActive = activeAccount?.id === account.id;
+    if (accountProgress?.unlocked !== true || account.edgeKind === null) return [];
+    const isPendingCoreAction =
+      values.phase === 'performing-core-action' && activeAccount?.id === account.id;
     return account.details.map((detail) => ({
       id: `${account.id}--${detail.id}`,
       sourceId: account.id,
       targetId: detail.id,
-      kind: edgeKind,
+      kind: account.edgeKind,
       status:
-        isActive && pendingDetail?.id === detail.id
+        isPendingCoreAction && pendingDetailId === detail.id
           ? 'checking'
-          : openedDetails.has(detail.id)
+          : accountProgress.completedCoreActionDetailId === detail.id
             ? 'opened'
             : 'neutral',
       label: account.edgeLabel,
     }));
   });
 
-  const openedDetails = new Set(activeProgress?.openedDetailIds ?? []);
-
-  let accessibleSummary = definition.summaries.initial;
-  if (understoodIds.length === definition.accounts.length) {
-    accessibleSummary = definition.summaries.complete;
-  } else if (activeAccount !== undefined && activeProgress !== undefined) {
+  let accessibleSummary = isComplete ? definition.summaries.complete : definition.summaries.initial;
+  if (!isComplete && activeAccount !== undefined && activeProgress !== undefined) {
     accessibleSummary =
-      values.phase === 'unlocking-account'
+      values.phase === 'unlocking-account' || values.phase === 'revealing-details'
         ? activeAccount.summaries.opening
-        : values.phase === 'revealing-details'
-          ? activeAccount.summaries.opening
-        : values.phase === 'checking-detail' && pendingDetail !== undefined
-          ? formatSummary(activeAccount.summaries.checking, {
-              opened: openedDetails.size,
-              total: activeAccount.details.length,
-              detail: pendingDetail.label,
-            })
-          : understood.has(activeAccount.id)
-            ? activeAccount.summaries.understood
+        : values.phase === 'performing-core-action'
+          ? formatSummary(
+              activeAccount.summaries.checking,
+              activeAccount.details.find(({ id }) => id === pendingDetailId)?.label ?? '',
+            )
+          : activeProgress.viewed
+            ? activeAccount.summaries.viewed
             : activeProgress.unlocked
-              ? formatSummary(activeAccount.summaries.progress, {
-                  opened: openedDetails.size,
-                  total: activeAccount.details.length,
-                  detail: '',
-                })
+              ? activeAccount.summaries.ready
               : activeAccount.summaries.locked;
   }
 
@@ -257,13 +230,18 @@ function buildNetwork(
 
 function createSnapshot(
   definition: AccountExplorationSceneDefinition,
-  values: Omit<AccountExplorationSceneSnapshot, 'network' | 'understoodAccountIds'>,
+  values: Omit<
+    AccountExplorationSceneSnapshot,
+    'network' | 'viewedAccountIds' | 'isComplete'
+  >,
 ): AccountExplorationSceneSnapshot {
-  const understoodIds = understoodAccountIds(definition, values.accountProgress);
+  const viewedIds = viewedAccountIds(definition, values.accountProgress);
+  const isComplete = viewedIds.length === definition.accounts.length;
   return {
     ...values,
-    understoodAccountIds: understoodIds,
-    network: buildNetwork(definition, values, understoodIds),
+    viewedAccountIds: viewedIds,
+    isComplete,
+    network: buildNetwork(definition, values, viewedIds),
   };
 }
 
@@ -275,15 +253,49 @@ export function createAccountExplorationScene(
     accountProgress: definition.accounts.map(({ id }) => ({
       accountId: id,
       unlocked: false,
-      understood: false,
-      openedDetailIds: [],
-      activePreviewDetailId: null,
+      viewed: false,
+      completedCoreActionDetailId: null,
+      previewedDetailIds: [],
     })),
     activeAccountId: null,
     activePreviewDetailId: null,
+    pendingCoreActionTargetDetailId: null,
     pendingAnimationId: null,
     narrationId: definition.initialNarrationId,
   });
+}
+
+function selectDetail(
+  definition: AccountExplorationSceneDefinition,
+  snapshot: AccountExplorationSceneSnapshot,
+  nodeId: string,
+): AccountExplorationSceneTransition | null {
+  const account = definition.accounts.find((candidate) =>
+    candidate.details.some((detail) => detail.id === nodeId),
+  );
+  if (account === undefined) return null;
+  const progress = progressFor(snapshot, account.id);
+  const detail = account.details.find(({ id }) => id === nodeId);
+  if (progress?.unlocked !== true || detail === undefined) return null;
+  const previewedDetailIds = progress.previewedDetailIds.includes(detail.id)
+    ? progress.previewedDetailIds
+    : [...progress.previewedDetailIds, detail.id];
+  return {
+    snapshot: createSnapshot(definition, {
+      ...snapshot,
+      phase: 'exploring',
+      accountProgress: replaceProgress(snapshot.accountProgress, {
+        ...progress,
+        previewedDetailIds,
+      }),
+      activeAccountId: account.id,
+      activePreviewDetailId: detail.id,
+      pendingCoreActionTargetDetailId: null,
+      pendingAnimationId: null,
+      narrationId: account.narrationId,
+    }),
+    effects: [{ type: 'focus-node', nodeId: detail.id }],
+  };
 }
 
 export function transitionAccountExplorationScene(
@@ -296,99 +308,62 @@ export function transitionAccountExplorationScene(
 
     const account = definition.accounts.find(({ id }) => id === event.nodeId);
     if (account !== undefined) {
-      const accountProgress = progressFor(snapshot, account.id);
-      if (accountProgress === undefined) return { snapshot, effects: [] };
-      const activeAccountIsIncomplete =
-        snapshot.activeAccountId !== null &&
-        !snapshot.understoodAccountIds.includes(snapshot.activeAccountId);
-      if (activeAccountIsIncomplete && snapshot.activeAccountId !== account.id) {
-        return { snapshot, effects: [] };
-      }
-      if (!accountProgress.unlocked) {
+      const progress = progressFor(snapshot, account.id);
+      if (progress === undefined) return { snapshot, effects: [] };
+      if (!progress.unlocked) {
         return {
           snapshot: createSnapshot(definition, {
             ...snapshot,
             phase: 'unlocking-account',
             activeAccountId: account.id,
             activePreviewDetailId: null,
+            pendingCoreActionTargetDetailId: null,
             pendingAnimationId: account.unlockAnimationId,
-            narrationId: account.narrationIds.open,
+            narrationId: account.narrationId,
           }),
           effects: [{ type: 'play-animation', animationId: account.unlockAnimationId }],
         };
       }
-
-      const activeDetail = account.details.find(
-        ({ id }) => id === accountProgress.activePreviewDetailId,
-      );
       return {
         snapshot: createSnapshot(definition, {
           ...snapshot,
-          phase:
-            snapshot.understoodAccountIds.length === definition.accounts.length
-              ? 'complete'
-              : 'exploring',
+          phase: 'exploring',
           activeAccountId: account.id,
-          activePreviewDetailId: accountProgress.activePreviewDetailId,
-          narrationId:
-            activeDetail?.narrationId ??
-            (snapshot.understoodAccountIds.includes(account.id)
-              ? account.narrationIds.understood
-              : account.narrationIds.open),
+          activePreviewDetailId: null,
+          pendingCoreActionTargetDetailId: null,
+          pendingAnimationId: null,
+          narrationId: account.narrationId,
         }),
-        effects: [],
+        effects: [{ type: 'focus-node', nodeId: account.id }],
       };
     }
 
-    return { snapshot, effects: [] };
+    return selectDetail(definition, snapshot, event.nodeId) ?? { snapshot, effects: [] };
   }
 
-  if (event.type === 'narration-advanced') {
+  if (event.type === 'core-action-started') {
     if (snapshot.pendingAnimationId !== null) return { snapshot, effects: [] };
-    const activeAccount = definition.accounts.find(({ id }) => id === snapshot.activeAccountId);
-    const activeProgress =
-      activeAccount === undefined ? undefined : progressFor(snapshot, activeAccount.id);
+    const account = definition.accounts.find(({ id }) => id === event.accountId);
+    const progress = account === undefined ? undefined : progressFor(snapshot, account.id);
     if (
-      activeAccount === undefined ||
-      activeProgress?.unlocked !== true ||
-      activeProgress.understood
+      account === undefined ||
+      progress?.unlocked !== true ||
+      progress.viewed ||
+      !account.coreAction.targetDetailIds.includes(event.targetDetailId)
     ) {
       return { snapshot, effects: [] };
     }
-
-    const nextDetail = activeAccount.details.find(
-      ({ id }) => !activeProgress.openedDetailIds.includes(id),
-    );
-    if (nextDetail !== undefined) {
-      return {
-        snapshot: createSnapshot(definition, {
-          ...snapshot,
-          phase: 'checking-detail',
-          activePreviewDetailId: nextDetail.id,
-          pendingAnimationId: nextDetail.animationId,
-          narrationId: nextDetail.narrationId,
-        }),
-        effects: [{ type: 'play-animation', animationId: nextDetail.animationId }],
-      };
-    }
-
-    const nextProgress = replaceProgress(snapshot.accountProgress, {
-      ...activeProgress,
-      understood: true,
-      activePreviewDetailId: null,
-    });
     return {
       snapshot: createSnapshot(definition, {
         ...snapshot,
-        phase: 'returning-to-dock',
-        accountProgress: nextProgress,
+        phase: 'performing-core-action',
+        activeAccountId: account.id,
         activePreviewDetailId: null,
-        pendingAnimationId: activeAccount.returnToDockAnimationId,
-        narrationId: activeAccount.narrationIds.understood,
+        pendingCoreActionTargetDetailId: event.targetDetailId,
+        pendingAnimationId: account.coreAction.animationId,
+        narrationId: account.narrationId,
       }),
-      effects: [
-        { type: 'play-animation', animationId: activeAccount.returnToDockAnimationId },
-      ],
+      effects: [{ type: 'play-animation', animationId: account.coreAction.animationId }],
     };
   }
 
@@ -413,7 +388,7 @@ export function transitionAccountExplorationScene(
         phase: 'revealing-details',
         accountProgress: nextProgress,
         pendingAnimationId: activeAccount.detailRevealAnimationId,
-        narrationId: activeAccount.narrationIds.open,
+        narrationId: activeAccount.narrationId,
       }),
       effects: [{ type: 'play-animation', animationId: activeAccount.detailRevealAnimationId }],
     };
@@ -425,43 +400,36 @@ export function transitionAccountExplorationScene(
         ...snapshot,
         phase: 'exploring',
         pendingAnimationId: null,
-        narrationId: activeAccount.narrationIds.open,
+        narrationId: activeAccount.narrationId,
       }),
       effects: [],
     };
   }
 
-  if (event.animationId === activeAccount.returnToDockAnimationId) {
-    return {
-      snapshot: createSnapshot(definition, {
-        ...snapshot,
-        phase:
-          snapshot.understoodAccountIds.length === definition.accounts.length
-            ? 'complete'
-            : 'exploring',
-        pendingAnimationId: null,
-        narrationId: activeAccount.narrationIds.understood,
-      }),
-      effects: [],
-    };
+  if (event.animationId !== activeAccount.coreAction.animationId) {
+    return { snapshot, effects: [] };
   }
-
-  const detail = activeAccount.details.find(({ animationId }) => animationId === event.animationId);
-  if (detail === undefined) return { snapshot, effects: [] };
+  const targetDetailId = snapshot.pendingCoreActionTargetDetailId;
+  if (targetDetailId === null) return { snapshot, effects: [] };
+  const previewedDetailIds = activeProgress.previewedDetailIds.includes(targetDetailId)
+    ? activeProgress.previewedDetailIds
+    : [...activeProgress.previewedDetailIds, targetDetailId];
   const nextProgress = replaceProgress(snapshot.accountProgress, {
     ...activeProgress,
-    openedDetailIds: [...activeProgress.openedDetailIds, detail.id],
-    activePreviewDetailId: detail.id,
+    viewed: true,
+    completedCoreActionDetailId: targetDetailId,
+    previewedDetailIds,
   });
   return {
     snapshot: createSnapshot(definition, {
       ...snapshot,
       phase: 'exploring',
       accountProgress: nextProgress,
-      activePreviewDetailId: detail.id,
+      activePreviewDetailId: targetDetailId,
+      pendingCoreActionTargetDetailId: null,
       pendingAnimationId: null,
-      narrationId: detail.narrationId,
+      narrationId: activeAccount.narrationId,
     }),
-    effects: [{ type: 'focus-node', nodeId: detail.id }],
+    effects: [{ type: 'focus-node', nodeId: targetDetailId }],
   };
 }
