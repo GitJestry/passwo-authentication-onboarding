@@ -13,12 +13,10 @@ import {
   MissionController,
 } from '@passwo/training-engine';
 import {
-  type PasswordCandidateSceneSnapshot,
   type PasswordFindingSceneSnapshot,
   type PasswordFreeSearchApplicationSceneSnapshot,
   type PasswordFreeSearchDemonstrationSceneSnapshot,
   type PasswordStructureSceneSnapshot,
-  createPasswordCandidateScene,
   createPasswordFindingScene,
   createPasswordFreeSearchApplicationScene,
   createPasswordFreeSearchDemonstrationScene,
@@ -27,6 +25,11 @@ import {
 
 export type S05AnalysisStep =
   | 'candidate-check'
+  | 'random-sequence'
+  | 'recognizable-combination'
+  | 'building-blocks'
+  | 'strategy-targeting'
+  | 'strategy-overview'
   | 'component-analysis'
   | 'structure-theme'
   | 'structure-sentence'
@@ -61,7 +64,6 @@ export interface S05AnalysisSubject {
 export interface S05AnalysisControllerSnapshot {
   readonly phase: 'ready' | 'animating' | 'awaiting-decision' | 'complete';
   readonly step: S05AnalysisStep;
-  readonly candidateScene: PasswordCandidateSceneSnapshot;
   readonly findingScene: PasswordFindingSceneSnapshot;
   readonly structureScene: PasswordStructureSceneSnapshot;
   readonly freeSearchDemonstrationScene: PasswordFreeSearchDemonstrationSceneSnapshot;
@@ -87,6 +89,11 @@ type Listener = (snapshot: S05AnalysisControllerSnapshot) => void;
 
 const stepByMissionId: Readonly<Record<string, S05AnalysisStep>> = {
   's05-candidate-check': 'candidate-check',
+  's05-random-sequence': 'random-sequence',
+  's05-recognizable-combination': 'recognizable-combination',
+  's05-building-blocks': 'building-blocks',
+  's05-strategy-targeting': 'strategy-targeting',
+  's05-strategy-overview': 'strategy-overview',
   's05-component-analysis': 'component-analysis',
   's05-structure-theme': 'structure-theme',
   's05-structure-sentence': 'structure-sentence',
@@ -175,10 +182,6 @@ export class S05AnalysisController {
     this.#snapshot = {
       phase: 'ready',
       step: 'candidate-check',
-      candidateScene: createPasswordCandidateScene({
-        id: `s05-candidates-${subject.id}`,
-        candidates: s05Content.intro.candidates,
-      }),
       findingScene,
       structureScene,
       freeSearchDemonstrationScene: createPasswordFreeSearchDemonstrationScene({

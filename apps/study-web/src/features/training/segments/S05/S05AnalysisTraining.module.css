@@ -16,24 +16,30 @@
 }
 
 .page {
+  position: relative;
   display: flex;
   height: 100%;
   min-height: 100%;
   flex-direction: column;
+  overflow: hidden;
   color: var(--color-ink);
   background: var(--color-surface-muted);
 }
 
 .pageHeader {
+  position: relative;
+  z-index: 2;
   display: grid;
   justify-items: center;
   gap: var(--space-1);
-  padding: clamp(var(--space-5), 4vw, var(--space-8)) var(--space-5) var(--space-3);
+  padding: clamp(var(--space-3), 2.4vw, var(--space-5)) var(--space-5) var(--space-3);
+  border-bottom: var(--border-width-thin) solid color-mix(in srgb, var(--color-border) 82%, transparent);
+  background: color-mix(in srgb, var(--color-surface-analysis) 90%, transparent);
+  box-shadow: 0 0.75rem 1.5rem rgb(0 0 0 / 14%);
   text-align: center;
 }
 
 .pageHeader h1,
-.candidatePanel h2,
 .resultCard h2,
 .structureDemonstration h2,
 .structureResult h2 {
@@ -45,7 +51,6 @@
   font-size: var(--font-size-heading-small);
 }
 
-.eyebrow,
 .cardLabel,
 .authoredBadge {
   margin: 0 0 var(--space-1);
@@ -54,16 +59,6 @@
   font-weight: var(--font-weight-heavy);
   letter-spacing: var(--letter-spacing-wide);
   text-transform: uppercase;
-}
-
-.theoryNotice {
-  padding: var(--space-2) var(--space-3);
-  border: var(--border-width-thin) solid var(--color-border);
-  border-radius: var(--radius-round);
-  color: var(--color-ink-muted);
-  background: var(--color-surface-primary);
-  font-size: var(--font-size-x-small);
-  font-weight: var(--font-weight-bold);
 }
 
 .timingError {
@@ -78,14 +73,421 @@
 }
 
 .content {
+  position: relative;
   min-height: 0;
   flex: 1;
   overflow: auto;
   padding: var(--space-4) clamp(var(--space-5), 5vw, var(--space-8));
 }
 
-.sceneGrid,
-.findingWorkspace,
+.attackerStage,
+.memorabilityStage,
+.recognizableStage,
+.buildingBlocksStage,
+.strategyTargeting,
+.strategyOverview {
+  position: relative;
+  width: min(100%, 84rem);
+  min-height: 31rem;
+  height: 100%;
+  margin: 0 auto;
+}
+
+.campusgramPassword {
+  position: absolute;
+  top: 27%;
+  left: 50%;
+  display: grid;
+  min-width: min(19rem, calc(100vw - var(--space-8)));
+  gap: var(--space-2);
+  justify-items: center;
+  text-align: center;
+  transform: translate(-50%, -50%);
+}
+
+.campusgramPasswordTitle {
+  color: var(--color-ink-muted);
+  font-size: var(--font-size-x-small);
+  font-weight: var(--font-weight-bold);
+  letter-spacing: var(--letter-spacing-wide);
+  text-transform: uppercase;
+}
+
+.campusgramPasswordTitle {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.campusgramSymbol {
+  display: inline-grid;
+  width: 1.45rem;
+  height: 1.45rem;
+}
+
+.campusgramSymbol svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.campusgramPassword code {
+  display: block;
+  width: 100%;
+  overflow: hidden;
+  padding: clamp(var(--space-4), 2vw, var(--space-5)) clamp(var(--space-5), 3vw, var(--space-7));
+  border: var(--border-width-thin) solid color-mix(in srgb, var(--color-campusgram) 58%, var(--color-border));
+  border-radius: var(--radius-medium);
+  color: #f5eaf0;
+  background:
+    linear-gradient(135deg, rgb(198 45 112 / 20%), transparent 54%),
+    #111720;
+  box-shadow: 0 1.3rem 3.5rem rgb(0 0 0 / 34%);
+  font-size: clamp(1.3rem, 3vw, 2.35rem);
+  letter-spacing: 0.12em;
+  text-overflow: ellipsis;
+}
+
+.attackerPortrait {
+  position: absolute;
+  z-index: 1;
+  top: 82%;
+  left: 50%;
+  width: clamp(9rem, min(17vw, 25vh), 14rem);
+  max-height: 31%;
+  object-fit: contain;
+  object-position: center;
+  filter: saturate(0.82) drop-shadow(0 1.2rem 2.2rem rgb(0 0 0 / 44%));
+  transform: translate(-50%, -50%);
+}
+
+.attackerAttempt {
+  position: absolute;
+  z-index: 2;
+  top: 45%;
+  right: 0;
+  left: 0;
+  display: grid;
+  gap: var(--space-2);
+  justify-items: center;
+  margin-inline: auto;
+}
+
+.attackerConnection {
+  position: absolute;
+  z-index: 0;
+  top: calc(45% + 5.7rem);
+  bottom: 14%;
+  left: 50%;
+  width: 0.14rem;
+  overflow: hidden;
+  background: linear-gradient(
+    to bottom,
+    color-mix(in srgb, var(--color-danger) 20%, transparent),
+    color-mix(in srgb, var(--color-danger) 74%, transparent),
+    color-mix(in srgb, var(--color-danger) 20%, transparent)
+  );
+  transform: translateX(-50%);
+}
+
+.attackerConnection span {
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  width: 0.62rem;
+  height: 0.62rem;
+  border: var(--border-width-thin) solid color-mix(in srgb, var(--color-danger) 78%, #fff);
+  border-radius: var(--radius-round);
+  background: var(--color-danger);
+  box-shadow: 0 0 0.7rem color-mix(in srgb, var(--color-danger) 76%, transparent);
+  animation: attacker-link-signal 1.35s linear infinite;
+}
+
+.attackerAttempt code {
+  min-width: 12rem;
+  padding: var(--space-3) var(--space-4);
+  border: var(--border-width-thin) solid color-mix(in srgb, var(--color-danger) 64%, var(--color-border));
+  border-radius: var(--radius-small);
+  color: #ffe9e7;
+  background: rgb(97 24 28 / 72%);
+  box-shadow: 0 0.75rem 1.5rem rgb(0 0 0 / 26%);
+  font-size: clamp(1rem, 2vw, 1.3rem);
+  text-align: center;
+  animation: attacker-candidate-failure 820ms linear both;
+}
+
+.attackerAttempt strong {
+  color: color-mix(in srgb, var(--color-danger) 76%, #fff);
+  font-size: var(--font-size-small);
+  opacity: 0;
+  animation: attacker-failure-label 820ms linear both;
+}
+
+.attackerAttempt strong span {
+  display: inline-grid;
+  width: 1.15em;
+  height: 1.15em;
+  margin-right: var(--space-1);
+  place-items: center;
+  border: var(--border-width-thin) solid currentColor;
+  border-radius: var(--radius-round);
+}
+
+.generatedSequence {
+  display: grid;
+  gap: var(--space-2);
+  justify-items: center;
+  animation: random-sequence-replacement 620ms var(--motion-ease-out) both;
+}
+
+.generatedSequence code {
+  display: flex;
+  overflow: hidden;
+  padding: var(--space-3);
+  border: var(--border-width-thin) solid color-mix(in srgb, var(--color-positive) 48%, var(--color-border));
+  border-radius: var(--radius-small);
+  color: #d5fff0;
+  background: #102d2a;
+  box-shadow: 0 0.9rem 2rem rgb(0 0 0 / 24%);
+  font-size: clamp(1rem, 2vw, 1.42rem);
+}
+
+.generatedSequence i {
+  display: inline-block;
+  min-width: 0.64em;
+  color: inherit;
+  font-style: normal;
+  text-align: center;
+  animation: character-wheel 1.15s cubic-bezier(0.38, 0, 0.58, 1) infinite;
+  animation-delay: calc(var(--character-index) * -83ms);
+}
+
+.memorabilityStage {
+  display: grid;
+  place-items: center;
+}
+
+.recognizableStage,
+.buildingBlocksStage,
+.strategyTargeting {
+  display: grid;
+  place-items: center;
+}
+
+.recognizableStage {
+  align-content: center;
+  padding-bottom: 8vh;
+}
+
+.recognizableStage [data-display="assembled"] {
+  animation: memorable-combination-arrival 660ms var(--motion-ease-out) both;
+}
+
+.buildingBlocksStage {
+  padding: clamp(var(--space-5), 6vw, var(--space-9));
+}
+
+.buildingBlocksVisual {
+  width: min(100%, 52rem);
+}
+
+.strategyTargeting .buildingBlocksVisual {
+  width: min(100%, 70rem);
+}
+
+.buildingBlocksVisual > div {
+  justify-content: center;
+}
+
+.strategyOverview {
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
+  align-content: stretch;
+  gap: clamp(var(--space-4), 4vh, var(--space-7));
+  padding: clamp(var(--space-6), 4vw, var(--space-9));
+}
+
+.strategyBuildingBlocks {
+  width: min(100%, 70rem);
+  justify-self: center;
+  align-self: center;
+}
+
+.strategyBuildingBlocks > div {
+  justify-content: center;
+}
+
+.strategyCards {
+  display: grid;
+  align-self: start;
+  gap: clamp(var(--space-3), 2vw, var(--space-6));
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.strategyCards article {
+  border: var(--border-width-thin) solid #34414b;
+  border-radius: var(--radius-medium);
+  background: linear-gradient(145deg, #141c24, #0c1218);
+  box-shadow: 0 1rem 2rem rgb(0 0 0 / 22%);
+}
+
+.strategyCards article {
+  min-height: 12.25rem;
+  padding: clamp(var(--space-4), 2.4vw, var(--space-6));
+  animation: strategy-card-arrival 480ms var(--motion-ease-out) both;
+  animation-delay: calc(var(--strategy-index) * 90ms);
+}
+
+.strategyCards article[data-strategy="components"] {
+  border-color: var(--color-accent-strong);
+}
+
+.strategyCards article:not([data-strategy="components"]) {
+  animation-delay: calc(var(--strategy-index) * 90ms);
+}
+
+.strategyTransitionCard {
+  position: fixed;
+  z-index: 50;
+  top: var(--strategy-transition-top);
+  left: var(--strategy-transition-left);
+  display: grid;
+  width: var(--strategy-transition-width);
+  height: var(--strategy-transition-height);
+  align-content: start;
+  padding: clamp(var(--space-4), 2.4vw, var(--space-6));
+  border: var(--border-width-thin) solid var(--color-accent-strong);
+  border-radius: var(--radius-medium);
+  color: var(--color-ink-strong);
+  background: linear-gradient(145deg, #141c24, #0c1218);
+  box-shadow: 0 1rem 2rem rgb(0 0 0 / 22%);
+  animation: component-card-expand 720ms var(--motion-ease-out) both;
+}
+
+.strategyTransitionCard h2 {
+  margin: var(--space-4) 0 0;
+  font-size: clamp(1.08rem, 1.8vw, 1.35rem);
+  line-height: var(--line-height-tight);
+}
+
+.strategyPreview {
+  position: relative;
+  display: flex;
+  width: 100%;
+  height: 3rem;
+  align-items: center;
+  gap: var(--space-2);
+  overflow: hidden;
+  border: var(--border-width-thin) solid color-mix(in srgb, var(--color-border) 72%, transparent);
+  border-radius: var(--radius-small);
+  background: color-mix(in srgb, #03080d 34%, transparent);
+}
+
+.strategyPreview span {
+  display: block;
+  flex: 0 0 auto;
+  border: var(--border-width-thin) solid color-mix(in srgb, var(--color-accent-strong) 74%, #fff);
+  border-radius: var(--radius-round);
+  background: var(--color-accent-soft);
+}
+
+.strategyPreview[data-strategy="components"] span {
+  width: 1.15rem;
+  height: 1.15rem;
+  animation: component-preview 1.75s var(--motion-ease-out) infinite;
+}
+
+.strategyPreview[data-strategy="components"] span:nth-child(1) {
+  margin-left: 16%;
+}
+
+.strategyPreview[data-strategy="components"] span:nth-child(2) {
+  animation-delay: 120ms;
+}
+
+.strategyPreview[data-strategy="components"] span:nth-child(3) {
+  animation-delay: 240ms;
+}
+
+.strategyPreview[data-strategy="structure"] {
+  justify-content: center;
+  gap: 0;
+}
+
+.strategyPreview[data-strategy="structure"] span {
+  width: 21%;
+  height: 0.78rem;
+  border-radius: 0;
+  animation: structure-preview 1.8s var(--motion-ease-out) infinite;
+}
+
+.strategyPreview[data-strategy="structure"] span:nth-child(2) {
+  animation-delay: 120ms;
+}
+
+.strategyPreview[data-strategy="structure"] span:nth-child(3) {
+  animation-delay: 240ms;
+}
+
+.strategyPreview[data-strategy="free-search"] {
+  justify-content: center;
+}
+
+.strategyPreview[data-strategy="free-search"] span {
+  width: 0.36rem;
+  height: 1.65rem;
+  border-radius: var(--radius-small);
+  animation: free-search-preview 1.3s linear infinite;
+}
+
+.strategyPreview[data-strategy="free-search"] span:nth-child(2) {
+  animation-delay: 170ms;
+}
+
+.strategyPreview[data-strategy="free-search"] span:nth-child(3) {
+  animation-delay: 340ms;
+}
+
+.strategyCards h2,
+.strategyFocus h2 {
+  margin: var(--space-4) 0 0;
+  color: var(--color-ink-strong);
+  font-size: clamp(1.08rem, 1.8vw, 1.35rem);
+  line-height: var(--line-height-tight);
+}
+
+.componentWorkspace {
+  display: grid;
+  min-height: 100%;
+  gap: var(--space-4);
+  grid-template-areas:
+    'strategy strategy'
+    'demonstrations result';
+  grid-template-columns: minmax(0, 1.2fr) minmax(16rem, 0.8fr);
+  grid-template-rows: auto minmax(0, 1fr);
+}
+
+.strategyFocus {
+  grid-area: strategy;
+  padding: 0 0 var(--space-3);
+  border-bottom: var(--border-width-medium) solid var(--color-accent-strong);
+  animation: strategy-focus-arrival 520ms var(--motion-ease-out) both;
+}
+
+.strategyFocus h2 {
+  margin: 0;
+  color: var(--color-ink-strong);
+  font-size: clamp(1.25rem, 2.2vw, 1.8rem);
+}
+
+.componentWorkspace .demonstrations {
+  grid-area: demonstrations;
+}
+
+.componentWorkspace .resultCard {
+  grid-area: result;
+}
+
 .structureWorkspace {
   display: grid;
   height: 100%;
@@ -93,8 +495,6 @@
   grid-template-columns: minmax(0, 1.2fr) minmax(16rem, 0.8fr);
 }
 
-.candidatePanel,
-.searchComparison,
 .demonstrations article,
 .resultCard,
 .passWoExplanation,
@@ -106,13 +506,6 @@
   background: var(--color-surface-primary);
 }
 
-.candidateStream {
-  display: grid;
-  gap: var(--space-2);
-  margin: var(--space-5) 0;
-}
-
-.candidateStream code,
 .fixturePassword {
   width: fit-content;
   padding: var(--space-2) var(--space-3);
@@ -122,35 +515,18 @@
   font-size: var(--font-size-body);
 }
 
-.marker {
-  display: flex;
-  align-items: center;
-  gap: var(--space-3);
-  padding: var(--space-3);
-  border: var(--border-width-medium) dashed var(--color-accent-strong);
-  border-radius: var(--radius-small);
-}
-
-.searchComparison,
 .demonstrations {
   display: grid;
   align-content: start;
   gap: var(--space-3);
 }
 
-.searchComparison article + article {
-  padding-top: var(--space-3);
-  border-top: var(--border-width-thin) solid var(--color-border-soft);
-}
-
-.searchComparison h3,
 .demonstrations h3 {
   margin: 0 0 var(--space-2);
   color: var(--color-ink-strong);
   font-size: var(--font-size-body);
 }
 
-.searchComparison p,
 .demonstrations p,
 .resultCard p,
 .resultCard li,
@@ -267,7 +643,6 @@
 
 .tokenRow,
 .generatedPassword,
-.labeledParts,
 .wordCards {
   display: flex;
   flex-wrap: wrap;
@@ -277,7 +652,6 @@
 
 .tokenRow span,
 .generatedPassword span,
-.labeledParts > span,
 .wordCards > span {
   padding: var(--space-2);
   border: var(--border-width-thin) solid var(--color-accent-strong);
@@ -402,7 +776,6 @@
 }
 
 .clockScale span,
-.labeledParts small,
 .wordExamples small,
 .wordCards small,
 .disposition span {
@@ -414,11 +787,6 @@
 .generatedPassword span {
   font-family: ui-monospace, monospace;
   font-weight: var(--font-weight-bold);
-}
-
-.labeledParts > span {
-  display: grid;
-  gap: var(--space-1);
 }
 
 .wordExamples {
@@ -556,6 +924,10 @@
   background: var(--color-surface-analysis);
 }
 
+.controls[data-hidden="true"] {
+  display: none;
+}
+
 .controls button {
   min-height: var(--size-control-medium);
   padding: var(--space-2) var(--space-4);
@@ -579,6 +951,217 @@
   outline-offset: var(--space-1);
 }
 
+@keyframes attacker-candidate-failure {
+  0% {
+    opacity: 0;
+    transform: translateY(-0.4rem) scale(0.94);
+  }
+
+  14% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+
+  31% {
+    transform: translateX(-0.32rem) rotate(-1.5deg);
+  }
+
+  39% {
+    transform: translateX(0.32rem) rotate(1.5deg);
+  }
+
+  48% {
+    transform: translateX(0) rotate(0);
+  }
+
+  100% {
+    opacity: 0;
+    transform: translateY(2.6rem) rotate(4deg) scale(0.97);
+  }
+}
+
+@keyframes attacker-failure-label {
+  0%,
+  25% {
+    opacity: 0;
+    transform: translateY(-0.3rem);
+  }
+
+  36%,
+  65% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  100% {
+    opacity: 0;
+    transform: translateY(1.2rem);
+  }
+}
+
+@keyframes attacker-link-signal {
+  from {
+    top: 100%;
+    opacity: 0;
+  }
+
+  14% {
+    opacity: 1;
+  }
+
+  86% {
+    opacity: 1;
+  }
+
+  to {
+    top: -8%;
+    opacity: 0;
+  }
+}
+
+@keyframes random-sequence-replacement {
+  from {
+    opacity: 0;
+    filter: blur(0.5rem);
+    transform: scale(0.86);
+  }
+
+  to {
+    opacity: 1;
+    filter: blur(0);
+    transform: scale(1);
+  }
+}
+
+@keyframes memorable-combination-arrival {
+  from {
+    opacity: 0;
+    transform: translateY(1rem) scale(0.92);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes character-wheel {
+  0% {
+    opacity: 0.46;
+    filter: blur(1.4px);
+    transform: translateY(-0.35em) rotateX(0deg);
+  }
+
+  48% {
+    opacity: 1;
+    filter: blur(0);
+    transform: translateY(0) rotateX(540deg);
+  }
+
+  100% {
+    opacity: 0.52;
+    filter: blur(1.1px);
+    transform: translateY(0.32em) rotateX(900deg);
+  }
+}
+
+@keyframes strategy-card-arrival {
+  from {
+    opacity: 0;
+    transform: translateY(1rem);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes strategy-focus-arrival {
+  from {
+    opacity: 0;
+    transform: translate(2.2rem, 1.8rem) scale(0.94);
+  }
+
+  to {
+    opacity: 1;
+    transform: translate(0) scale(1);
+  }
+}
+
+@keyframes component-card-expand {
+  from {
+    top: var(--strategy-transition-top);
+    left: var(--strategy-transition-left);
+    width: var(--strategy-transition-width);
+    height: var(--strategy-transition-height);
+    border-radius: var(--radius-medium);
+  }
+
+  to {
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    border-radius: 0;
+  }
+}
+
+@keyframes component-preview {
+  0%,
+  18% {
+    opacity: 0.32;
+    transform: translateX(-1.7rem) scale(0.84);
+  }
+
+  50%,
+  72% {
+    opacity: 1;
+    transform: translateX(0) scale(1);
+  }
+
+  100% {
+    opacity: 0.38;
+    transform: translateX(1.7rem) scale(0.9);
+  }
+}
+
+@keyframes structure-preview {
+  0%,
+  18% {
+    opacity: 0.25;
+    transform: scaleX(0.58);
+  }
+
+  50%,
+  72% {
+    opacity: 1;
+    transform: scaleX(1);
+  }
+
+  100% {
+    opacity: 0.42;
+    transform: scaleX(0.76);
+  }
+}
+
+@keyframes free-search-preview {
+  from {
+    opacity: 0.3;
+    transform: translateY(1.2rem);
+  }
+
+  48% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  to {
+    opacity: 0.3;
+    transform: translateY(-1.2rem);
+  }
+}
+
 @media (max-width: 760px) {
   .pageHeader,
   .controls {
@@ -591,10 +1174,55 @@
     flex-direction: column;
   }
 
-  .sceneGrid,
-  .findingWorkspace,
-  .structureWorkspace {
+  .structureWorkspace,
+  .componentWorkspace {
     grid-template-columns: minmax(0, 1fr);
+  }
+
+  .componentWorkspace {
+    grid-template-areas:
+      'strategy'
+      'demonstrations'
+      'result';
+    grid-template-rows: auto;
+  }
+
+  .attackerStage,
+  .memorabilityStage,
+  .recognizableStage,
+  .buildingBlocksStage,
+  .strategyTargeting,
+  .strategyOverview {
+    min-height: 36rem;
+  }
+
+  .attackerPortrait {
+    top: 82%;
+    left: 50%;
+    width: clamp(8.5rem, min(34vw, 24vh), 11.5rem);
+    max-height: 28%;
+    transform: translate(-50%, -50%);
+  }
+
+  .attackerStage .campusgramPassword {
+    top: 27%;
+  }
+
+  .attackerAttempt {
+    top: 45%;
+  }
+
+  .attackerConnection {
+    top: calc(45% + 5.7rem);
+    bottom: 14%;
+  }
+
+  .strategyCards {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .strategyCards article {
+    min-height: 7rem;
   }
 
   .passwordComparison,
@@ -610,6 +1238,18 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .attackerAttempt code,
+  .attackerAttempt strong,
+  .generatedSequence i,
+  .strategyCards article,
+  .strategyFocus,
+  .strategyPreview span,
+  .recognizableStage [data-display="assembled"],
+  .generatedSequence,
+  .attackerConnection span {
+    animation: none;
+  }
+
   .focusScene,
   .applicationScene,
   .summaryScene {

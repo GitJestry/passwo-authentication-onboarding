@@ -5,10 +5,12 @@ import {
   type PasswordModuleSnapshot,
 } from '@passwo/training-engine';
 import { BrowserShell, type BrowserShellSnapshot, type DesktopPlatform } from '@passwo/ui';
+import { useState } from 'react';
 import attackerAsset from '../../../../assets/passwo/attacker.png';
 import { NetworkSymbol } from '../../../../adapters/network/NetworkSymbolRegistry.js';
 import { CampusWebsiteBackdrop } from '../../CampusWebsiteBackdrop.js';
 import { PassWoGuide } from '../../PassWoGuide.js';
+import { passWoSpeechEmphasisFor } from '../../PassWoSpeechEmphasis.js';
 import styles from './S04IncidentTraining.module.css';
 
 export interface S04IncidentTrainingProps {
@@ -45,6 +47,7 @@ export function S04IncidentTraining({
   externalTimingError = null,
   onRetryExternalTiming,
 }: S04IncidentTrainingProps) {
+  const [leavingForAnalysis, setLeavingForAnalysis] = useState(false);
   const writingStart = snapshot.matches({ s04: 'writingStart' });
   const startWriteFailed = snapshot.matches({ s04: 'startWriteFailed' });
   const active = snapshot.matches({ s04: 'active' });
@@ -76,6 +79,15 @@ export function S04IncidentTraining({
     controller.retryTiming();
   }
 
+  function beginAnalysis(): void {
+    if (!active || externalTimingError !== null || leavingForAnalysis) return;
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      controller.completeS04();
+      return;
+    }
+    setLeavingForAnalysis(true);
+  }
+
   return (
     <section className={styles.training} aria-label={s04Content.trainingAriaLabel}>
       <BrowserShell
@@ -84,6 +96,13 @@ export function S04IncidentTraining({
         snapshot={browserSnapshot}
         ariaLabel={s04Content.browser.ariaLabel}
         layers={{
+          screen: leavingForAnalysis ? (
+            <span
+              className={styles.analysisTransition}
+              aria-hidden="true"
+              onAnimationEnd={() => controller.completeS04()}
+            />
+          ) : undefined,
           passWo: (
             <section
               className={styles.incidentOverlay}
@@ -104,12 +123,13 @@ export function S04IncidentTraining({
                   openHelpLabel={s00Content.narration.openGuideLabel}
                   speech={s04Content.notice.paragraphs}
                   speechKey="s04-incident-explanation"
+                  speechEmphasis={passWoSpeechEmphasisFor('s04.incident')}
                   speechPlacement="above"
                   speechAction={{
                     kind: 'perform',
                     label: s04Content.notice.continueLabel,
-                    disabled: !active || externalTimingError !== null,
-                    onAction: () => controller.completeS04(),
+                    disabled: !active || externalTimingError !== null || leavingForAnalysis,
+                    onAction: beginAnalysis,
                   }}
                   placement="incident"
                   pose="warning"

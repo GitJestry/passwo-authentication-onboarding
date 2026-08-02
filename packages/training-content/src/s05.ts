@@ -24,7 +24,13 @@ export interface S05DesignLabFixture {
   };
 }
 
-export const S05_CONTENT_VERSION = '2.1.0';
+export const S05_CONTENT_VERSION = '2.6.0';
+
+const s05StrategyCards = [
+  { id: 'components', title: 'Naheliegende Bestandteile' },
+  { id: 'structure', title: 'Vorhersehbarer Aufbau' },
+  { id: 'free-search', title: 'Freies Ausprobieren' },
+] as const;
 
 export const s05Content = {
   version: S05_CONTENT_VERSION,
@@ -34,9 +40,9 @@ export const s05Content = {
       12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34,
       35,
     ] as const,
-    revision: 'Userauftrag vom 2026-08-02',
+    revision: 'Userauftrag vom 2026-08-02 · animierte Bausteinannotation',
     copyReference:
-      'docs/design/S00-S05-COPY-AUDIT.md#implementierungs-copy-delta-2-august-2026',
+      'docs/design/S00-S05-COPY-AUDIT.md#copy-delta-s05-bausteinannotation-und-strategiebrücke-2-august-2026',
   },
   segment: {
     id: 'S05',
@@ -50,8 +56,7 @@ export const s05Content = {
     tab: { id: 'analysis', label: 'Passwortwege', enabled: true },
   },
   page: {
-    eyebrow: 'Passwortwege · S05',
-    title: 'Wie entstehen wahrscheinliche Kandidaten?',
+    title: 'Wie der Angreifer dein Passwort rät',
     fixtureNotice:
       'Diese Simulation betrachtet nur das fiktive Passwort und ist keine allgemeine Sicherheitsbewertung.',
     start: 'Animation starten',
@@ -59,15 +64,42 @@ export const s05Content = {
     continue: 'Weiter',
   },
   intro: {
-    title: 'Erzeugen und vergleichen',
-    explanation:
-      'Ein Programm erzeugt Kandidaten und prüft sie gegen einen abstrakten Vergleichsmarker.',
-    freeSearchLabel: 'Freies Durchprobieren',
-    freeSearchBody: 'Viele Zeichenkombinationen werden unabhängig voneinander erzeugt.',
-    likelyLabel: 'Wahrscheinliche Bestandteile',
-    likelyBody: 'Bekannte Kerne und typische Veränderungen liefern gezieltere Kandidaten.',
-    candidates: ['campus2026!', 'qwertz123', 'rQ7mL2vX', 'Passwort1!'],
-    markerLabel: 'Vergleichsmarker · passt nicht',
+    campusgramPassword: {
+      accessibleLabel: 'Campusgram – Passwort',
+      visibleSuffix: '– Passwort',
+    },
+    candidateFailure: 'passt nicht',
+    generatedPassword: 'rQ7mL2vX9pK4',
+    memorablePassword: 'MeinStarkesUniPasswort2005!',
+    memorablePasswordParts: ['Mein', 'Starkes', 'Uni', 'Passwort', '2005', '!'],
+    strategyAnnotations: {
+      sentenceStructure: 'Satzbau',
+      probability: 'Wahrscheinlichkeit ↑',
+      personalDetail: 'Persönliche Angaben',
+      typicalEnding: 'Typische Endung',
+    },
+    strategies: s05StrategyCards,
+    narration: {
+      candidateCheck: [
+        'Für den Angreifer ist das Passwort verdeckt. Sein Programm muss mögliche Passwörter erzeugen und prüfen, ob eines davon passt.',
+      ],
+      randomSequence: [
+        'Völlig zufällige Folgen von Zeichen sind aber enorm schwierig für Menschen zu merken. Deswegen nutzen die meisten eine merkbare Kombination.',
+      ],
+      recognizableCombination: [
+        'Bei diesem Passwort erkennt deine eigene Intuition wahrscheinlich schon einen Aufbau.',
+      ],
+      buildingBlocks: [
+        'Vereinfacht kannst du dir Passwörter wie mehrere aneinandergesetzte Bausteine vorstellen.',
+      ],
+      strategyTargeting: [
+        'Angreifer kennen diese Bausteine noch nicht.',
+        'Einige Passwortteile sind aber wahrscheinlicher als andere, da Menschen oft naheliegende Bestandteile verwenden oder ihr Passwort vorhersehbar aufbauen, um es sich leichter zu merken.',
+      ],
+      strategyOverview: [
+        'Und dieses Wissen nutzen Angreifer aus. Wir schauen uns nun drei Strategien an, die Angreifer miteinander kombinieren, um dein Campusgram-Passwort herauszufinden. Als ersten Ausgangspunkt beginnen Angreifer mit Dingen, die bei vielen Menschen schon funktioniert haben.',
+      ],
+    },
   },
   componentDemonstrations: [
     {
@@ -285,18 +317,15 @@ export const s05Content = {
       'Schaue ein Passwort nicht nur wie eine Checkliste aus Länge, Zahlen und Sonderzeichen an.',
     cards: [
       {
-        id: 'components',
-        title: 'Naheliegende Bestandteile',
+        ...s05StrategyCards[0],
         body: 'Kein bekannter, persönlicher oder konto-bezogener Kern.',
       },
       {
-        id: 'structure',
-        title: 'Vorhersehbarer Aufbau',
+        ...s05StrategyCards[1],
         body: 'Kein leicht vorhersehbarer Aufbau.',
       },
       {
-        id: 'free-search',
-        title: 'Freies Ausprobieren',
+        ...s05StrategyCards[2],
         body: 'Mindestens 15 Zeichen für selbst erstellte Passwörter.',
       },
     ],
@@ -349,8 +378,13 @@ export const s05Content = {
     },
   ] as const satisfies readonly S05DesignLabFixture[],
   animations: [
-    ['s05-candidate-check', 'candidate-marker', 'info'],
-    ['s05-component-analysis', 'analysis-result', 'warning'],
+    ['s05-candidate-check', 'attacker-attempt', 'info'],
+    ['s05-random-sequence', 'random-sequence', 'info'],
+    ['s05-recognizable-combination', 'recognizable-password', 'info'],
+    ['s05-building-blocks', 'building-blocks', 'info'],
+    ['s05-strategy-targeting', 'strategy-targeting', 'info'],
+    ['s05-strategy-overview', 'strategy-overview', 'info'],
+    ['s05-component-analysis', 'strategy-components-focus', 'warning'],
     ['s05-structure-theme', 'structure-theme', 'info'],
     ['s05-structure-sentence', 'structure-sentence', 'info'],
     ['s05-structure-repetition', 'structure-repetition', 'warning'],

@@ -6,15 +6,16 @@
   --bubble-arrow-size: 1.15rem;
 
   position: relative;
-  min-width: min(19rem, 72vw);
-  max-width: min(35rem, calc(100vw - var(--space-8)));
-  padding: clamp(var(--space-5), 2.4vw, var(--space-6));
+  min-width: min(16rem, 72vw);
+  max-width: min(30rem, calc(100vw - var(--space-6)));
+  padding: clamp(var(--space-3), min(1.6vw, 2vh), var(--space-5));
   border: var(--border-width-thin) solid var(--bubble-border);
   border-radius: clamp(1.8rem, 4vw, 3rem);
   color: var(--bubble-text);
   background: var(--bubble-surface);
   box-shadow: 0 1.25rem 3.25rem color-mix(in srgb, #051421 18%, transparent);
   backdrop-filter: blur(10px);
+  font-size: clamp(0.8rem, min(1.15vw, 1.75vh), 0.95rem);
 }
 
 .bubble[data-tone="dark"] {
@@ -28,16 +29,12 @@
 
 .speaker {
   position: absolute;
-  top: 0.4rem;
-  left: 50%;
-  color: var(--bubble-muted);
-  font-size: 0.68rem;
-  font-weight: var(--font-weight-semibold);
-  line-height: 1;
-  text-align: center;
-  text-decoration: underline;
-  text-underline-offset: 0.18em;
-  transform: translateX(-50%);
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  clip-path: inset(50%);
+  white-space: nowrap;
 }
 
 .bubble::after {
@@ -84,7 +81,7 @@
 
 .textLayout {
   display: grid;
-  gap: var(--space-3);
+  gap: var(--space-2);
   animation: speech-text-arrival 150ms var(--motion-ease-out) both;
 }
 
@@ -93,7 +90,7 @@
   display: block;
   min-height: 1.35em;
   color: var(--bubble-text);
-  line-height: 1.55;
+  line-height: 1.45;
   white-space: pre-wrap;
 }
 
@@ -156,17 +153,18 @@
 .actionRow {
   display: flex;
   justify-content: flex-end;
-  margin-top: var(--space-4);
+  margin-top: var(--space-3);
 }
 
 .primaryAction {
   min-height: var(--size-control-large);
-  padding: var(--space-3) var(--space-5);
+  padding: var(--space-2) var(--space-4);
   border: var(--border-width-medium) solid var(--color-surface-inverse);
   border-radius: var(--radius-small);
   color: var(--color-on-inverse);
   background: var(--color-surface-inverse);
   font: inherit;
+  font-size: 0.92em;
   font-weight: var(--font-weight-heavy);
   cursor: pointer;
 }

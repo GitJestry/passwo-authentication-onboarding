@@ -31,16 +31,16 @@ export interface S04SegmentContent {
   };
 }
 
-export const S04_CONTENT_VERSION = '1.4.0';
+export const S04_CONTENT_VERSION = '1.6.0';
 
 export const s04Content: S04SegmentContent = {
   version: S04_CONTENT_VERSION,
   source: {
     document: 'research/private/training-script.pdf',
     internalPages: [12],
-    revision: 'Userauftrag vom 2026-08-02',
+    revision: 'Userauftrag vom 2026-08-02 · Angreiferperspektive als Handlungsziel',
     copyReference:
-      'docs/design/S00-S05-COPY-AUDIT.md#implementierungs-copy-delta-2-august-2026',
+      'docs/design/S00-S05-COPY-AUDIT.md#copy-delta-s05-bausteinannotation-und-strategiebrücke-2-august-2026',
   },
   segment: {
     id: 'S04',
@@ -57,9 +57,9 @@ export const s04Content: S04SegmentContent = {
     paragraphs: [
       'Bei Campusgram gab es ein Datenleck. Eine alte Datei mit gespeicherten Passwortdaten ist in fremde Hände geraten.',
       'Das bedeutet nicht automatisch, dass dein Passwort sofort lesbar ist. Die Passwortdaten können aber von Angreifern offline getestet werden: Ein Programm probiert viele mögliche Passwörter aus und prüft, ob eines davon passt.',
-      'Wie schwer wäre es für einen Angreifer, dieses Passwort zu finden? Dafür nehmen wir jetzt seine Perspektive ein und schauen uns drei Wege an, mit denen er mögliche Passwörter prüft.',
+      'Wie schwer wäre es für einen Angreifer, dieses Passwort zu finden? Dafür nehmen wir jetzt seine Perspektive ein.',
     ],
-    continueLabel: 'Prüfung starten',
+    continueLabel: 'Angreifer Perspektive',
     completedLabel: 'Die Erklärung zum Datenleck ist abgeschlossen.',
   },
   controls: {

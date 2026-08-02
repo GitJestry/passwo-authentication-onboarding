@@ -2,15 +2,18 @@ import type {
   PasswordSingleFindingKind,
   RuntimeStructureFindingKind,
 } from '@passwo/contracts';
-import { s05Content } from '@passwo/training-content';
+import { s00Content, s05Content } from '@passwo/training-content';
 import type {
-  PasswordCandidateSceneSnapshot,
   PasswordFindingSceneSnapshot,
   PasswordFreeSearchApplicationSceneSnapshot,
   PasswordFreeSearchDemonstrationSceneSnapshot,
   PasswordStructureSceneSnapshot,
 } from '@passwo/visualization';
-import { type ReactNode, useEffect, useRef, useState } from 'react';
+import { type CSSProperties, type ReactNode, useEffect, useRef, useState } from 'react';
+import attackerAsset from '../../../../assets/passwo/attacker.png';
+import { NetworkSymbol } from '../../../../adapters/network/NetworkSymbolRegistry.js';
+import { PassWoGuide } from '../../PassWoGuide.js';
+import { PasswordBuildingBlocks } from './PasswordBuildingBlocks.js';
 import {
   type S05AnalysisControllerSnapshot,
   type S05AnalysisSubject,
@@ -34,37 +37,226 @@ export interface S05AnalysisTrainingProps {
   readonly completionPort?: S05CompletionPort;
 }
 
+interface StrategyTransitionRect {
+  readonly top: number;
+  readonly left: number;
+  readonly width: number;
+  readonly height: number;
+}
+
+function strategyTransitionStyle(rect: StrategyTransitionRect | null): CSSProperties | undefined {
+  if (rect === null) return undefined;
+  return {
+    '--strategy-transition-top': `${rect.top}px`,
+    '--strategy-transition-left': `${rect.left}px`,
+    '--strategy-transition-width': `${rect.width}px`,
+    '--strategy-transition-height': `${rect.height}px`,
+  } as CSSProperties;
+}
+
 function findingLabel(kind: PasswordSingleFindingKind): string {
   return s05Content.findingLabels[kind];
 }
 
-function CandidateScene({ scene }: { readonly scene: PasswordCandidateSceneSnapshot }) {
+const candidateAlphabet = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789!?#$%&';
+
+function createRandomCandidate(maximumLength: number): string {
+  const randomValues = new Uint32Array(Math.max(2, maximumLength + 1));
+  globalThis.crypto.getRandomValues(randomValues);
+  const length = 1 + ((randomValues[0] ?? 0) % maximumLength);
+  return Array.from(
+    { length },
+    (_, index) => candidateAlphabet[(randomValues[index + 1] ?? 0) % candidateAlphabet.length] ?? 'x',
+  ).join('');
+}
+
+function CampusgramPassword({
+  password,
+  className,
+}: {
+  readonly password: string;
+  readonly className?: string;
+}) {
+  const hiddenValue = '•'.repeat(Math.max(8, password.length));
   return (
-    <div className={styles.sceneGrid} aria-label={scene.accessibleSummary}>
-      <section className={styles.candidatePanel}>
-        <h2>{s05Content.intro.title}</h2>
-        <p>{s05Content.intro.explanation}</p>
-        <div className={styles.candidateStream} aria-label="Beispielkandidaten">
-          {scene.candidates.map((candidate) => (
-            <code key={candidate.id}>{candidate.candidate}</code>
+    <section className={`${styles.campusgramPassword}${className === undefined ? '' : ` ${className}`}`}>
+      <span
+        className={styles.campusgramPasswordTitle}
+        aria-label={s05Content.intro.campusgramPassword.accessibleLabel}
+      >
+        <span className={styles.campusgramSymbol} aria-hidden="true">
+          <NetworkSymbol symbolId="campusgram" />
+        </span>
+        <span aria-hidden="true">{s05Content.intro.campusgramPassword.visibleSuffix}</span>
+      </span>
+      <code aria-label={s05Content.intro.campusgramPassword.accessibleLabel}>
+        {hiddenValue}
+      </code>
+    </section>
+  );
+}
+
+function AttackerAttempt({ maximumLength }: { readonly maximumLength: number }) {
+  const [candidate, setCandidate] = useState(() => createRandomCandidate(maximumLength));
+
+  useEffect(() => {
+    setCandidate(createRandomCandidate(maximumLength));
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return undefined;
+    const interval = window.setInterval(() => setCandidate(createRandomCandidate(maximumLength)), 820);
+    return () => window.clearInterval(interval);
+  }, [maximumLength]);
+
+  return (
+    <div className={styles.attackerAttempt} data-s05-target="attacker-attempt" aria-live="off">
+      <code key={candidate}>{candidate}</code>
+      <strong>
+        <span aria-hidden="true">×</span>
+        {s05Content.intro.candidateFailure}
+      </strong>
+    </div>
+  );
+}
+
+function CandidateCheckScene({ subject }: { readonly subject: S05AnalysisSubject }) {
+  return (
+    <div className={styles.attackerStage}>
+      <CampusgramPassword password={subject.fictionalPassword} />
+      <AttackerAttempt maximumLength={Math.max(1, subject.fictionalPassword.length + 5)} />
+      <div className={styles.attackerConnection} aria-hidden="true">
+        <span />
+      </div>
+      <img
+        className={styles.attackerPortrait}
+        src={attackerAsset}
+        alt="Symbolische Darstellung eines Angreifers am Computer"
+      />
+    </div>
+  );
+}
+
+function RandomSequenceScene() {
+  return (
+    <div className={styles.memorabilityStage} data-s05-target="random-sequence">
+      <section className={styles.generatedSequence} aria-label="Zufällig erzeugte Zeichenfolge">
+        <code>
+          {[...s05Content.intro.generatedPassword].map((character, index) => (
+            <i key={`${character}-${index}`} style={{ '--character-index': index } as CSSProperties}>
+              {character}
+            </i>
           ))}
-        </div>
-        <div className={styles.marker} data-s05-target="candidate-marker">
-          <span aria-hidden="true">→</span>
-          <strong>{s05Content.intro.markerLabel}</strong>
-        </div>
+        </code>
       </section>
-      <section className={styles.searchComparison}>
-        <article>
-          <h3>{s05Content.intro.freeSearchLabel}</h3>
-          <p>{s05Content.intro.freeSearchBody}</p>
+    </div>
+  );
+}
+
+function RecognizableCombinationScene() {
+  return (
+    <div className={styles.recognizableStage} data-s05-target="recognizable-password">
+      <PasswordBuildingBlocks
+        value={s05Content.intro.memorablePassword}
+        parts={s05Content.intro.memorablePasswordParts}
+        display="assembled"
+        ariaLabel={s05Content.intro.memorablePassword}
+      />
+    </div>
+  );
+}
+
+function BuildingBlocksScene() {
+  return (
+    <div className={styles.buildingBlocksStage} data-s05-target="building-blocks">
+      <div className={styles.buildingBlocksVisual} data-s05-speech-obstacle>
+        <PasswordBuildingBlocks
+          value={s05Content.intro.memorablePassword}
+          parts={s05Content.intro.memorablePasswordParts}
+          display="decomposed"
+          ariaLabel={`${s05Content.intro.memorablePassword} in Bausteinen`}
+        />
+      </div>
+    </div>
+  );
+}
+
+function StrategyTargetingScene() {
+  return (
+    <div className={styles.strategyTargeting} data-s05-target="strategy-targeting">
+      <div className={styles.buildingBlocksVisual} data-s05-speech-obstacle>
+        <PasswordBuildingBlocks
+          value={s05Content.intro.memorablePassword}
+          parts={s05Content.intro.memorablePasswordParts}
+          display="decomposed"
+          annotations={s05Content.intro.strategyAnnotations}
+          ariaLabel={`${s05Content.intro.memorablePassword}: ${Object.values(s05Content.intro.strategyAnnotations).join(', ')}`}
+        />
+      </div>
+    </div>
+  );
+}
+
+function StrategyPreview({
+  strategyId,
+}: {
+  readonly strategyId: (typeof s05Content.intro.strategies)[number]['id'];
+}) {
+  return (
+    <div className={styles.strategyPreview} data-strategy={strategyId} aria-hidden="true">
+      <span />
+      <span />
+      <span />
+    </div>
+  );
+}
+
+function StrategyOverviewScene({
+  transitioning,
+  transitionStyle,
+  onTransitionEnd,
+}: {
+  readonly transitioning: boolean;
+  readonly transitionStyle: CSSProperties | undefined;
+  readonly onTransitionEnd: () => void;
+}) {
+  return (
+    <div
+      className={styles.strategyOverview}
+      data-s05-target="strategy-overview"
+      data-transitioning={transitioning || undefined}
+    >
+      <div className={styles.strategyCards}>
+        {s05Content.intro.strategies.map((strategy, index) => (
+          <article
+            key={strategy.id}
+            data-strategy={strategy.id}
+            style={{ '--strategy-index': index } as CSSProperties}
+          >
+            <StrategyPreview strategyId={strategy.id} />
+            <h2>{`${index + 1}. ${strategy.title}`}</h2>
+          </article>
+        ))}
+      </div>
+      <div className={styles.strategyBuildingBlocks} data-s05-speech-obstacle>
+        <PasswordBuildingBlocks
+          value={s05Content.intro.memorablePassword}
+          parts={s05Content.intro.memorablePasswordParts}
+          display="decomposed"
+          animate={false}
+          annotations={s05Content.intro.strategyAnnotations}
+          ariaLabel={`${s05Content.intro.memorablePassword}: ${Object.values(s05Content.intro.strategyAnnotations).join(', ')}`}
+        />
+      </div>
+      {transitioning ? (
+        <article
+          className={styles.strategyTransitionCard}
+          style={transitionStyle}
+          onAnimationEnd={(event) => {
+            if (event.currentTarget === event.target) onTransitionEnd();
+          }}
+        >
+          <StrategyPreview strategyId="components" />
+          <h2>{`1. ${s05Content.intro.strategies[0].title}`}</h2>
         </article>
-        <article>
-          <h3>{s05Content.intro.likelyLabel}</h3>
-          <p>{s05Content.intro.likelyBody}</p>
-        </article>
-        <p className={styles.theoryNotice}>{s05Content.freeSearch.theoreticalModel.boundary}</p>
-      </section>
+      ) : null}
     </div>
   );
 }
@@ -77,7 +269,10 @@ function FindingScene({
   readonly scene: PasswordFindingSceneSnapshot;
 }) {
   return (
-    <div className={styles.findingWorkspace}>
+    <div className={styles.componentWorkspace}>
+      <header className={styles.strategyFocus} data-s05-target="strategy-components-focus">
+        <h2>{`1. ${s05Content.intro.strategies[0].title}`}</h2>
+      </header>
       <section className={styles.demonstrations} aria-label="Beispiele">
         {s05Content.componentDemonstrations.map((demonstration) => (
           <article key={demonstration.id}>
@@ -349,15 +544,13 @@ function PasswordPartsScene({
     <div className={styles.focusScene} data-s05-target={targetId}>
       <p className={styles.cardLabel}>Beispiel</p>
       <h2>{title}</h2>
-      <code className={styles.largePassword}>{password}</code>
-      <div className={styles.labeledParts}>
-        {parts.map((part, index) => (
-          <span key={`${part}-${index}`}>
-            <code>{part}</code>
-            <small>{labels[index]}</small>
-          </span>
-        ))}
-      </div>
+      <PasswordBuildingBlocks
+        value={password}
+        parts={parts}
+        labels={labels}
+        display="separated"
+        ariaLabel={`${password}: ${parts.join(', ')}`}
+      />
       <p>{explanation}</p>
     </div>
   );
@@ -503,10 +696,28 @@ function renderScene(
   snapshot: S05AnalysisControllerSnapshot,
   subject: S05AnalysisSubject,
   controller: S05AnalysisController,
+  strategyTransition: StrategyTransitionRect | null,
+  onStrategyTransitionEnd: () => void,
 ) {
   switch (snapshot.step) {
     case 'candidate-check':
-      return <CandidateScene scene={snapshot.candidateScene} />;
+      return <CandidateCheckScene subject={subject} />;
+    case 'random-sequence':
+      return <RandomSequenceScene />;
+    case 'recognizable-combination':
+      return <RecognizableCombinationScene />;
+    case 'building-blocks':
+      return <BuildingBlocksScene />;
+    case 'strategy-targeting':
+      return <StrategyTargetingScene />;
+    case 'strategy-overview':
+      return (
+        <StrategyOverviewScene
+          transitioning={strategyTransition !== null}
+          transitionStyle={strategyTransitionStyle(strategyTransition)}
+          onTransitionEnd={onStrategyTransitionEnd}
+        />
+      );
     case 'component-analysis':
       return <FindingScene subject={subject} scene={snapshot.findingScene} />;
     case 'structure-theme':
@@ -550,6 +761,27 @@ function renderScene(
       return <SummaryScene step={snapshot.step} />;
     default:
       throw new Error(`Unbekannter S05-Schritt: ${snapshot.step}`);
+  }
+}
+
+function introNarrationFor(
+  step: S05AnalysisControllerSnapshot['step'],
+): readonly string[] | null {
+  switch (step) {
+    case 'candidate-check':
+      return s05Content.intro.narration.candidateCheck;
+    case 'random-sequence':
+      return s05Content.intro.narration.randomSequence;
+    case 'recognizable-combination':
+      return s05Content.intro.narration.recognizableCombination;
+    case 'building-blocks':
+      return s05Content.intro.narration.buildingBlocks;
+    case 'strategy-targeting':
+      return s05Content.intro.narration.strategyTargeting;
+    case 'strategy-overview':
+      return s05Content.intro.narration.strategyOverview;
+    default:
+      return null;
   }
 }
 
@@ -604,6 +836,7 @@ export function S05AnalysisTraining({
   const hostRef = useRef<HTMLElement | null>(null);
   const [controller, setController] = useState<S05AnalysisController | null>(null);
   const [snapshot, setSnapshot] = useState<S05AnalysisControllerSnapshot | null>(null);
+  const [strategyTransition, setStrategyTransition] = useState<StrategyTransitionRect | null>(null);
   const timingFailure = externalTimingError !== null || timingState === 'endWriteFailed';
 
   useEffect(() => {
@@ -626,21 +859,86 @@ export function S05AnalysisTraining({
     };
   }, [completionPort, subject]);
 
-  const writingBoundary = timingState === 'writingEnd';
+  useEffect(() => {
+    controller?.start();
+  }, [controller]);
+
+  useEffect(() => {
+    if (snapshot?.step !== 'strategy-overview') setStrategyTransition(null);
+  }, [snapshot?.step]);
 
   if (controller === null || snapshot === null) return null;
+
+  const activeController = controller;
+  const activeSnapshot = snapshot;
+  const writingBoundary = timingState === 'writingEnd';
+  const introNarration = introNarrationFor(snapshot.step);
+  const introGuidanceVisible = introNarration !== null;
+
+  function continueFromSpeech(): void {
+    if (activeSnapshot.step !== 'strategy-overview') {
+      activeController.continue();
+      return;
+    }
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      activeController.continue();
+      return;
+    }
+    const componentCard = hostRef.current?.querySelector<HTMLElement>(
+      '[data-strategy="components"]',
+    );
+    if (componentCard === null || componentCard === undefined) {
+      activeController.continue();
+      return;
+    }
+    const rect = componentCard.getBoundingClientRect();
+    setStrategyTransition({
+      top: rect.top,
+      left: rect.left,
+      width: rect.width,
+      height: rect.height,
+    });
+  }
 
   return (
     <section ref={hostRef} className={styles.training} aria-label={s05Content.trainingAriaLabel}>
       <article className={styles.page} aria-labelledby="s05-title">
         <header className={styles.pageHeader}>
-          <p className={styles.eyebrow}>{s05Content.page.eyebrow}</p>
           <h1 id="s05-title">{s05Content.page.title}</h1>
         </header>
         <div className={styles.content} aria-live="polite">
-          {renderScene(snapshot, subject, controller)}
+          {renderScene(
+            snapshot,
+            subject,
+            controller,
+            strategyTransition,
+            () => controller.continue(),
+          )}
         </div>
-        <footer className={styles.controls}>
+        {introNarration === null ? null : (
+          <PassWoGuide
+            guideName={s00Content.narration.guideName}
+            taskLabel="Passwortwege"
+            helpOpen
+            helpId="s05-intro-passwo-speech"
+            openHelpLabel={s00Content.narration.openGuideLabel}
+            speech={introNarration}
+            speechKey={`s05-${snapshot.step}`}
+            speechPlacement="above"
+            speechObstacleSelector="[data-s05-speech-obstacle]"
+            speechAction={{
+              kind: 'advance',
+              disabled:
+                !snapshot.controls.canContinue ||
+                externalTimingError !== null ||
+                strategyTransition !== null,
+              onAction: continueFromSpeech,
+            }}
+            placement="incident"
+            showHelpButton={false}
+          />
+        )}
+        <footer className={styles.controls} data-hidden={introGuidanceVisible || undefined}>
             {writingBoundary && externalTimingError === null ? (
               <p role="status">Segmentgrenze wird bestätigt …</p>
             ) : null}

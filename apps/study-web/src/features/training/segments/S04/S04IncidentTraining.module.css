@@ -14,6 +14,15 @@
   min-height: 0;
 }
 
+.analysisTransition {
+  position: absolute;
+  z-index: 20;
+  inset: 0;
+  pointer-events: auto;
+  background: #020507;
+  animation: s04-analysis-darken 420ms var(--motion-ease-out) both;
+}
+
 .serviceNotice {
   display: grid;
   width: 100%;
@@ -136,6 +145,20 @@
   line-height: var(--line-height-body);
 }
 
+@keyframes s04-analysis-darken {
+  from {
+    opacity: 0;
+  }
+
+  72% {
+    opacity: 0.86;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
 @media (max-width: 940px) {
   .attacker {
     width: clamp(18rem, 50vw, 34rem);
@@ -161,5 +184,9 @@
 @media (prefers-reduced-motion: reduce) {
   .attacker {
     filter: none;
+  }
+
+  .analysisTransition {
+    animation: none;
   }
 }

@@ -47,6 +47,10 @@ const emphasisBySpeechId: Readonly<Record<string, readonly PassWoSpeechEmphasis[
   's03.completion.2': [{ phrase: 'ohne Unterstützung abrufbar', tone: 'accent' }],
   's03.completion.3': [{ phrase: 'ohne Unterstützung abrufbar', tone: 'accent' }],
   's03.warning': [{ phrase: 'Sicherheitsmeldung', tone: 'warning' }],
+  's04.incident': [
+    { phrase: 'Datenleck', tone: 'warning', contrastId: 'incident-risk' },
+    { phrase: 'schwer', tone: 'warning', contrastId: 'incident-risk' },
+  ],
 };
 
 export function passWoSpeechEmphasisFor(

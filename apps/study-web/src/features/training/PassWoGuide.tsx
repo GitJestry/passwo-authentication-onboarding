@@ -31,6 +31,7 @@ export interface PassWoGuideProps {
   readonly speechEmphasis?: readonly PassWoSpeechEmphasis[];
   readonly speechFooter?: ReactNode;
   readonly speechPlacement?: PassWoSpeechPlacement;
+  readonly speechObstacleSelector?: string;
   readonly speechAction?: PassWoSpeechAction;
   readonly placement?: 'bottom-left' | 'center' | 'incident';
   readonly pose?: 'default' | 'warning';
@@ -69,6 +70,7 @@ export function PassWoGuide({
   speechEmphasis,
   speechFooter,
   speechPlacement = 'right',
+  speechObstacleSelector,
   speechAction,
   placement = 'bottom-left',
   pose = 'default',
@@ -89,6 +91,7 @@ export function PassWoGuide({
     enabled: helpOpen,
     positionKey: `${speechKey}-${placement}-${pose}`,
     preferredSides: sides,
+    ...(speechObstacleSelector === undefined ? {} : { obstacleSelector: speechObstacleSelector }),
   });
   const progressPercent =
     progress === undefined || progress.total <= 0

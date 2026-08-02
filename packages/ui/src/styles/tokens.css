@@ -142,8 +142,8 @@
   --size-content-narrow: 18rem;
   --size-copy-measure: 42rem;
   --size-illustration-medium: clamp(7.5rem, 14vw, 10.5rem);
-  --size-passwo-speaking-width: clamp(8.4rem, 10.8vw, 11.23rem);
-  --size-passwo-speaking-height: clamp(12.6rem, 16.2vw, 16.85rem);
+  --size-passwo-speaking-width: clamp(7.6rem, min(10.8vw, 16vh), 11.23rem);
+  --size-passwo-speaking-height: clamp(10.8rem, min(16.2vw, 24vh), 16.85rem);
   --size-overlay-content-max: 31rem;
 
   --z-dim: 10;
