@@ -78,8 +78,15 @@ Jedes interaktive Element hat mindestens:
 
 ## Teilnehmertexte
 
+Die verbindliche Authoring- und Review-Grundlage ist
+`docs/design/TRAINING-COPY.md`. Ergänzend gilt:
+
 - kurze, direkte Sätze;
 - kein „Du hast versagt“ oder moralischer Ton;
 - keine absolute Sicherheitszusage;
 - ein Hauptgedanke pro PassWo-Sprechschritt;
-- Buttons benennen die Handlung, nicht „OK“.
+- Buttons benennen die tatsächlich durch sie ausgelöste Handlung, nicht „OK“;
+- externe Handlungsziele wie Tabs oder Fenstersteuerungen erhalten keinen ersetzenden
+  Sprechblasenbutton;
+- Hervorhebung markiert einen Carry-forward-Kerngedanken und ist kein Absatz-Abstract;
+- interne Research-, Runtime- und Design-Lab-Begriffe werden nicht als Lerntext gerendert.

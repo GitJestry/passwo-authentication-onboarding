@@ -21,9 +21,11 @@ Wähle danach nur die zum Auftrag passenden Quellen:
   sowie ADR 0004, 0005 beziehungsweise `ADR 0008-Reference` aus dem ADR-Index.
 - BrowserShell, PassWo, Animation oder Knotennetzwerk: das einschlägige Dokument unter
   `docs/design/` sowie ADR 0003 und 0007.
-- Teilnehmertexte und Segmente: `research/derived/segment-index.md` und die
+- Teilnehmertexte und Segmente: `docs/design/TRAINING-COPY.md`, der passende segmentbezogene
+  Copy-Audit, `research/derived/segment-index.md` und die
   `packages/training-content/AGENTS.md`; private Skriptseiten nur für das ausdrücklich benannte
-  Segment.
+  Segment. Das aktuelle Trainingsskript ist innerhalb dieses Segments die Quelle für narrative
+  Absicht, Reihenfolge und Ton.
 - Passwortanalyse: `packages/password-analysis/AGENTS.md` und
   `docs/research/RESEARCH-GUARDRAILS.md`; private S05-/S06-Seiten nur bei explizitem Auftrag.
 - Fragebogen und Guardrails: `docs/research/DATA-CONTRACT.md`,
@@ -57,7 +59,9 @@ Stoppe außerdem, wenn ein Auftrag:
 - echte Passwörter, Konten oder Sicherheitsvorfälle voraussetzt;
 - aus der Simulation eine Produktions-Passwortbewertung ableitet;
 - ohne ADR einen Kern-Renderer oder eine State-Library einführt;
-- Teilnehmertext ohne benannte Inhaltsquelle verändert.
+- Teilnehmertext ohne benannte Inhaltsquelle, Copy-Delta und konkrete Änderungsbegründung
+  verändert;
+- geschützten Wortlaut aus `docs/design/TRAINING-COPY.md` ohne ausdrückliche Freigabe ändert.
 
 ## 3. Architekturregeln
 
@@ -126,7 +130,9 @@ Vor Änderungen:
 Während der Änderung:
 
 - Halte den Diff klein und auf genau eine vertikale Aufgabe begrenzt.
-- Ändere keine Teilnehmertexte außerhalb des beauftragten Segments.
+- Ändere keine Teilnehmertexte außerhalb des beauftragten Segments. Vor jeder Copy-Änderung
+  klassifiziere die Textrolle und dokumentiere das Copy-Delta gemäß
+  `docs/design/TRAINING-COPY.md`. Bestehender Wortlaut bleibt standardmäßig erhalten.
 - Füge keine Bibliothek hinzu, wenn eine vorhandene Abstraktion genügt.
 - Schreibe keine Platzhalterlogik, die wie eine validierte Passwortbewertung wirkt.
 

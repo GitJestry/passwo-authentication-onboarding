@@ -42,7 +42,8 @@ Eine MissionSequence folgt normalerweise:
 3. `Animation wiederholen` und `Weiter` werden angeboten.
 
 Lange Monologe werden in mehrere Sequenzen geteilt. Teilnehmertexte liegen in Training Content,
-nicht in der Komponente.
+nicht in der Komponente. Für Textrolle, Copy-Locks, Button-Semantik und Hervorhebung gilt
+`docs/design/TRAINING-COPY.md`.
 
 ## Assetstrategie
 
@@ -64,8 +65,10 @@ Die Namenszeile zeigt den einwortigen Aufgabenstatus statt des Figurennamens. Di
 dieser Button vollständig. Der vollständige Sprechblasentext ist sofort verfügbar und darf nur
 kurz einblenden. Reine Dialogfortschritte verwenden genau einen sichtbaren Button `Weiter`;
 `Schließen` ist ausschließlich für optionale Hinweise zulässig, die keinen Trainingsübergang
-auslösen. Wenn eine konkrete Handlung nötig ist, etwa ein Konto öffnen oder ein Passwort prüfen,
-ist diese Handlung die einzige primäre Aktion. Falls eine Aufgabe Fortschritt besitzt, zeigt die
+auslösen. Wenn eine konkrete Handlung innerhalb der Sprechblase nötig ist, etwa `Passwort prüfen`,
+ist diese Handlung die einzige primäre Aktion. Soll die Person dagegen einen sichtbaren Tab,
+eine Fenstersteuerung, einen Knoten oder ein Website-Element bedienen, besitzt die Sprechblase
+keinen Ersatzbutton; nur das Zielobjekt löst den Übergang aus. Falls eine Aufgabe Fortschritt besitzt, zeigt die
 schmale Zeile darunter ausschließlich den Zähler und eine Fortschrittsleiste; der ausführliche
 Text bleibt als zugängliche Bezeichnung erhalten.
 
@@ -93,3 +96,7 @@ die beiden vorhandenen lokalen Rasterassets; es gibt keinen zusätzlichen Textpl
 - Vorsichtszustände vermeiden unnötigen Alarmismus.
 - Erfolgsfeedback beschreibt die Wirkung einer Entscheidung, nicht den moralischen Wert der
   Person.
+- PassWo wiederholt keine vollständig sichtbare Vorschau, sondern erklärt nur den nicht
+  selbsterklärenden Zusammenhang.
+- Hervorhebung markiert höchstens den einen Kerngedanken des Sprechschritts; mehrere Kontonamen
+  erhalten nur dann Identitätsmarkierung, wenn sie zur Referenzauflösung nötig ist.

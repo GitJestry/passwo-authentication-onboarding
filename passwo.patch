@@ -1,0 +1,690 @@
+diff --git a/AGENTS.md b/AGENTS.md
+index f68ad51..bd34d72 100644
+--- a/AGENTS.md
++++ b/AGENTS.md
+@@ -21,9 +21,11 @@ Wähle danach nur die zum Auftrag passenden Quellen:
+   sowie ADR 0004, 0005 beziehungsweise `ADR 0008-Reference` aus dem ADR-Index.
+ - BrowserShell, PassWo, Animation oder Knotennetzwerk: das einschlägige Dokument unter
+   `docs/design/` sowie ADR 0003 und 0007.
+-- Teilnehmertexte und Segmente: `research/derived/segment-index.md` und die
++- Teilnehmertexte und Segmente: `docs/design/TRAINING-COPY.md`, der passende segmentbezogene
++  Copy-Audit, `research/derived/segment-index.md` und die
+   `packages/training-content/AGENTS.md`; private Skriptseiten nur für das ausdrücklich benannte
+-  Segment.
++  Segment. Das aktuelle Trainingsskript ist innerhalb dieses Segments die Quelle für narrative
++  Absicht, Reihenfolge und Ton.
+ - Passwortanalyse: `packages/password-analysis/AGENTS.md` und
+   `docs/research/RESEARCH-GUARDRAILS.md`; private S05-/S06-Seiten nur bei explizitem Auftrag.
+ - Fragebogen und Guardrails: `docs/research/DATA-CONTRACT.md`,
+@@ -57,7 +59,9 @@ Stoppe außerdem, wenn ein Auftrag:
+ - echte Passwörter, Konten oder Sicherheitsvorfälle voraussetzt;
+ - aus der Simulation eine Produktions-Passwortbewertung ableitet;
+ - ohne ADR einen Kern-Renderer oder eine State-Library einführt;
+-- Teilnehmertext ohne benannte Inhaltsquelle verändert.
++- Teilnehmertext ohne benannte Inhaltsquelle, Copy-Delta und konkrete Änderungsbegründung
++  verändert;
++- geschützten Wortlaut aus `docs/design/TRAINING-COPY.md` ohne ausdrückliche Freigabe ändert.
+ 
+ ## 3. Architekturregeln
+ 
+@@ -126,7 +130,9 @@ Vor Änderungen:
+ Während der Änderung:
+ 
+ - Halte den Diff klein und auf genau eine vertikale Aufgabe begrenzt.
+-- Ändere keine Teilnehmertexte außerhalb des beauftragten Segments.
++- Ändere keine Teilnehmertexte außerhalb des beauftragten Segments. Vor jeder Copy-Änderung
++  klassifiziere die Textrolle und dokumentiere das Copy-Delta gemäß
++  `docs/design/TRAINING-COPY.md`. Bestehender Wortlaut bleibt standardmäßig erhalten.
+ - Füge keine Bibliothek hinzu, wenn eine vorhandene Abstraktion genügt.
+ - Schreibe keine Platzhalterlogik, die wie eine validierte Passwortbewertung wirkt.
+ 
+diff --git a/apps/study-web/AGENTS.md b/apps/study-web/AGENTS.md
+index 0c75b00..c3f215d 100644
+--- a/apps/study-web/AGENTS.md
++++ b/apps/study-web/AGENTS.md
+@@ -21,3 +21,17 @@ Zusätzlich zur globalen `AGENTS.md` gilt:
+   Tests. Automatisierte Tests in diesem Bereich schützen nur die Research-Core-Grenzen.
+ - E2E-Tests sind nur für ausdrücklich benannte Milestones oder einen Study Freeze zulässig;
+   sie prüfen dann Forschungswrites und den Abschluss, nie die visuelle Darstellung.
++
++
++## Teilnehmertext und Handlungszuordnung
++
++- Lies bei Sprechblasen-, Button- und Hervorhebungsänderungen
++  `docs/design/TRAINING-COPY.md` und den passenden segmentbezogenen Copy-Audit.
++- Eine Sprechblasenaktion darf ein sichtbares Browser-, Fenster-, Knoten- oder Website-Ziel nicht
++  ersetzen. Wenn die Person einen Tab oder eine Fenstersteuerung bedienen soll, löst nur dieses
++  Element den Domain-Übergang aus.
++- `Schließen` ist nur für optionale Hinweise zulässig. Reiner Dialog verwendet `Weiter`;
++  handlungsspezifische Buttons führen exakt die bezeichnete Handlung aus.
++- Hervorhebungen sind presentation-only und standardmäßig auf eine semantische Phrase pro
++  Sprechschritt begrenzt. Sie dürfen lange Texte nicht künstlich in Wichtigkeitsstufen zerlegen.
++- Teilnehmertext und interne Forschungs- oder Debug-Metadaten bleiben in getrennten Renderpfaden.
+diff --git a/docs/design/DESIGN-SYSTEM.md b/docs/design/DESIGN-SYSTEM.md
+index 19f3fad..6caee1f 100644
+--- a/docs/design/DESIGN-SYSTEM.md
++++ b/docs/design/DESIGN-SYSTEM.md
+@@ -78,8 +78,15 @@ Jedes interaktive Element hat mindestens:
+ 
+ ## Teilnehmertexte
+ 
++Die verbindliche Authoring- und Review-Grundlage ist
++`docs/design/TRAINING-COPY.md`. Ergänzend gilt:
++
+ - kurze, direkte Sätze;
+ - kein „Du hast versagt“ oder moralischer Ton;
+ - keine absolute Sicherheitszusage;
+ - ein Hauptgedanke pro PassWo-Sprechschritt;
+-- Buttons benennen die Handlung, nicht „OK“.
++- Buttons benennen die tatsächlich durch sie ausgelöste Handlung, nicht „OK“;
++- externe Handlungsziele wie Tabs oder Fenstersteuerungen erhalten keinen ersetzenden
++  Sprechblasenbutton;
++- Hervorhebung markiert einen Carry-forward-Kerngedanken und ist kein Absatz-Abstract;
++- interne Research-, Runtime- und Design-Lab-Begriffe werden nicht als Lerntext gerendert.
+diff --git a/docs/design/PASSWO.md b/docs/design/PASSWO.md
+index da10553..8e003bd 100644
+--- a/docs/design/PASSWO.md
++++ b/docs/design/PASSWO.md
+@@ -42,7 +42,8 @@ Eine MissionSequence folgt normalerweise:
+ 3. `Animation wiederholen` und `Weiter` werden angeboten.
+ 
+ Lange Monologe werden in mehrere Sequenzen geteilt. Teilnehmertexte liegen in Training Content,
+-nicht in der Komponente.
++nicht in der Komponente. Für Textrolle, Copy-Locks, Button-Semantik und Hervorhebung gilt
++`docs/design/TRAINING-COPY.md`.
+ 
+ ## Assetstrategie
+ 
+@@ -64,8 +65,10 @@ Die Namenszeile zeigt den einwortigen Aufgabenstatus statt des Figurennamens. Di
+ dieser Button vollständig. Der vollständige Sprechblasentext ist sofort verfügbar und darf nur
+ kurz einblenden. Reine Dialogfortschritte verwenden genau einen sichtbaren Button `Weiter`;
+ `Schließen` ist ausschließlich für optionale Hinweise zulässig, die keinen Trainingsübergang
+-auslösen. Wenn eine konkrete Handlung nötig ist, etwa ein Konto öffnen oder ein Passwort prüfen,
+-ist diese Handlung die einzige primäre Aktion. Falls eine Aufgabe Fortschritt besitzt, zeigt die
++auslösen. Wenn eine konkrete Handlung innerhalb der Sprechblase nötig ist, etwa `Passwort prüfen`,
++ist diese Handlung die einzige primäre Aktion. Soll die Person dagegen einen sichtbaren Tab,
++eine Fenstersteuerung, einen Knoten oder ein Website-Element bedienen, besitzt die Sprechblase
++keinen Ersatzbutton; nur das Zielobjekt löst den Übergang aus. Falls eine Aufgabe Fortschritt besitzt, zeigt die
+ schmale Zeile darunter ausschließlich den Zähler und eine Fortschrittsleiste; der ausführliche
+ Text bleibt als zugängliche Bezeichnung erhalten.
+ 
+@@ -93,3 +96,7 @@ die beiden vorhandenen lokalen Rasterassets; es gibt keinen zusätzlichen Textpl
+ - Vorsichtszustände vermeiden unnötigen Alarmismus.
+ - Erfolgsfeedback beschreibt die Wirkung einer Entscheidung, nicht den moralischen Wert der
+   Person.
++- PassWo wiederholt keine vollständig sichtbare Vorschau, sondern erklärt nur den nicht
++  selbsterklärenden Zusammenhang.
++- Hervorhebung markiert höchstens den einen Kerngedanken des Sprechschritts; mehrere Kontonamen
++  erhalten nur dann Identitätsmarkierung, wenn sie zur Referenzauflösung nötig ist.
+diff --git a/docs/design/S00-S05-COPY-AUDIT.md b/docs/design/S00-S05-COPY-AUDIT.md
+new file mode 100644
+index 0000000..9387fb5
+--- /dev/null
++++ b/docs/design/S00-S05-COPY-AUDIT.md
+@@ -0,0 +1,289 @@
++# S00--S05 Copy and Interaction Audit
++
++## Status und Zweck
++
++Dieser Audit beschreibt den Stand des Repositorys vom 2. August 2026 bis einschließlich S05.
++Er ist eine verbindliche Änderungsgrundlage, aber noch keine Freigabe, alle genannten Texte in
++einem einzigen Codex-Lauf umzuschreiben. Zuerst werden die sprachlichen und semantischen Regeln
++stabilisiert. Danach folgen kleine, segmentbezogene Implementierungsschritte.
++
++Die Prüfung betrachtet Teilnehmertext, Handlungszuordnung, Hervorhebung, Segmentfunktion und die
++Grenze zwischen Lernoberfläche und interner Forschungsdarstellung. S06 und spätere Segmente sind
++nicht Teil dieses Audits.
++
++## Übergreifende Befunde
++
++### 1. PassWo übernimmt zu viele Rollen gleichzeitig
++
++Mehrere Sprechblasen orientieren, erklären Kontofunktionen, beschreiben spätere Risiken und geben
++eine Navigation vor. Dadurch wird PassWo zum Vorleser und die eigentliche Interaktion zum
++Begleitbild. Künftig erhält jeder Sprechschritt eine primäre Rolle gemäß
++`docs/design/TRAINING-COPY.md`.
++
++### 2. Buttontext und tatsächliche Handlung sind teilweise getrennt
++
++Zwei besonders kritische Fälle sind bereits identifiziert:
++
++- Nach S01 fordert PassWo zum Schließen des Browserfensters auf, die Sprechblase zeigt jedoch
++  `Schließen`. Dieser Button schließt nur die Blase und kann fälschlich als Browserhandlung
++  verstanden werden.
++- Nach der Campusgram-Warnung in S03 zeigt die Sprechblase `Konto öffnen` und öffnet das Konto
++  direkt. Die beabsichtigte Lernhandlung ist dagegen der selbst ausgeführte Klick auf den
++  markierten Campusgram-Tab.
++
++Diese Fälle werden nicht durch andere Beschriftungen repariert. Die Sprechblasenaktion muss
++entfallen; der tatsächliche Browser- beziehungsweise Tab-Klick bleibt das einzige Domain-Event.
++
++### 3. Hervorhebung fasst Absätze zusammen, statt einen Kerngedanken zu markieren
++
++Der aktuelle Emphasis-Katalog hebt in einzelnen Sprechschritten drei bis vier Konto-, Dienst- oder
++Funktionsnamen gleichzeitig hervor. Dadurch entsteht eine zweite Leseschicht: unmarkierter Text
++wirkt nebensächlich, markierte Begriffe wirken wie Prüfungsstoff. Künftig gilt standardmäßig eine
++semantische Hervorhebung pro Sprechschritt. Identitätsfarben für Kontonamen dienen nur der
++Referenzauflösung.
++
++### 4. Kontext und Sicherheitsfolge werden zu früh vermischt
++
++S00 und S02 erklären teilweise bereits, welche Daten, Zurücksetzungen oder Handlungen bei einem
++Zugriff möglich wären. Die spätere Konsequenzsimulation verliert dadurch ihren erklärenden
++Zeitpunkt. Frühe Kontoszenen sollen zunächst nur zeigen, was hinter den Konten liegt. Die Schwere
++der Folgen wird erneut und ausführlich dargestellt, wenn ein Angriffspfad sie tatsächlich sichtbar
++macht.
++
++### 5. Interne Forschungsbegriffe gelangen in S05 an die Teilnehmeroberfläche
++
++S05 verwendet unter anderem `Fixture`, `Laufzeitbefund`, `Feste Demonstration`,
++`Produktionsbewertung`, `Gesamtscore` und `theoretische Entropie`. Diese Begriffe schützen zwar
++interne Claim-Grenzen, erzeugen aber als Teilnehmertext unnötige Metakommunikation. Die Grenze
++bleibt bestehen, wird jedoch an wenigen stabilen Stellen in Alltagssprache formuliert.
++
++## Segmentprüfung
++
++## S00 -- Einstieg und Browserorientierung
++
++### Beibehalten
++
++Der Einstieg
++
++> Aloha! Ich bin PassWo und begleite dich heute durch das Training.
++
++ist bewusst charakterbildend, verständlich und mit dem unterstützenden Ton vereinbar. Er bleibt
++wortgleich geschützt. Auch die Szenarioeinordnung, die fiktive Passwortaufgabe, der spätere
++Wiedereinstieg und die Wahl des virtuellen Betriebssystems erfüllen eine klare Orientierungsrolle.
++
++### Problem
++
++Die erste Sprechblase im Browser erklärt Master Campus sowie alle verbundenen Dienste. Weitere
++Sprechblasen erklären Campus E-Mail und Campusgram. Dadurch nimmt S00 wesentliche Teile der
++späteren Kontenerkundung vorweg und verlängert die Navigationseinführung.
++
++### Ziel
++
++S00 erklärt ausschließlich:
++
++- dass die Person sich in einem fiktiven Browser mit drei Tabs befindet;
++- dass sie die Konten in frei wählbarer Reihenfolge einrichten kann;
++- wie PassWo-Hilfe und Browsernavigation funktionieren;
++- dass nur neue fiktive Passwörter verwendet und nicht dauerhaft gespeichert werden.
++
++Die Bedeutung der Konten wird in S02 erlebt, nicht in S00 vorgelesen. Der Safety-Hinweis bleibt
++vollständig und sichtbar; er darf nicht aus Kürzungsgründen abgeschwächt werden.
++
++### Hervorhebung
++
++Der Einstieg benötigt keine vier Lernhervorhebungen. Zulässig ist höchstens eine Hervorhebung für
++die fiktive Aufgabe oder die spätere Abrufbarkeit. Im Safety-Hinweis ist die zentrale
++Handlungsgrenze `keine echten Passwörter oder Varianten davon`; Speichergrenzen bleiben als
++normaler, gut lesbarer Text sichtbar.
++
++## S01 -- Konten einrichten und Browser verlassen
++
++### Beibehalten
++
++Die Websites dürfen ihre jeweilige Identität und die Account-Erstellung zeigen. Der kompakte
++Quest-Hinweis, für alle drei Konten ein starkes und später abrufbares Passwort zu erstellen, passt
++zur Aufgabe.
++
++### Problem
++
++Die Abschluss-Sprechblase erklärt bereits das Knotennetz und fordert zum Schließen des Browsers
++auf. Gleichzeitig besitzt sie die generische Aktion `Schließen`, die nur die Sprechblase schließt.
++Der sichtbare Fensterknopf und die Sprechblasenaktion konkurrieren um dieselbe Bedeutung.
++
++### Ziel
++
++- PassWo nennt nur den nächsten realen Schritt.
++- Die Formulierung verweist eindeutig auf die Fenstersteuerung des virtuellen Browsers.
++- Die Sprechblase besitzt keinen eigenen `Schließen`-Button.
++- Erst das tatsächliche Browser-Close-Event startet den Desktop-/Netzwerkübergang.
++- Der Close-Control erhält eine vorübergehende visuelle Markierung und einen eindeutigen
++  Fokuszustand, ohne eine automatische Ausführung.
++
++Die Erklärung, warum anschließend ein Knotennetz erscheint, gehört in den Einstieg von S02 und
++muss nicht vor dem Schließen vorweggenommen werden.
++
++## S02 -- Konten kennenlernen
++
++### Problem
++
++Der aktuelle Wortlaut bezeichnet die Aufgabe als `Konten verstehen`, fordert alle Unterdetails
++als Pflichtfortschritt und bestätigt anschließend, ein Konto sei `verstanden`. PassWo erklärt jeden
++Unterknoten und teilweise bereits die Schwere eines späteren Zugriffs. Das erzeugt den Eindruck
++eines eigenen Wissensblocks, obwohl das Segment vor allem zeitlichen Abstand, persönliche Nähe
++und ein wiederverwendbares mentales Kontomodell schaffen soll.
++
++Der Introtext enthält zudem die frühe Sicherheitsbehauptung, das Passwort sei oft die `letzte
++Hürde`, und kündigt einen linearen `Nächste`-Ablauf an, obwohl die Benutzeroberfläche freie
++Erkundung unterstützen soll.
++
++### Verbindliches Zieldesign
++
++Titel und Fortschritt verwenden `kennenlernen`, `ansehen` oder `erkunden`, nicht `verstehen`.
++Vor der Exploration wird ausdrücklich gesagt:
++
++> Du musst dir keine Einzelheiten merken. Wähle selbst, welches Konto du zuerst ansehen möchtest.
++
++Pro Hauptkonto gilt:
++
++1. genau eine kurze Pflichtinteraktion, die das notwendige Kontomodell sichtbar macht;
++2. höchstens ein PassWo-Satz;
++3. ein statischer, kurzer Kerngedanke;
++4. optionale zusätzliche Vorschauen;
++5. freie Rückkehr zu bereits angesehenen Konten.
++
++#### Master Campus
++
++Eine verbundene Website wird über `Mit Master Campus öffnen` betreten. Die kurze
++Anmeldesequenz macht den zentralen Zugang sichtbar. Weitere verbundene Websites dürfen optional
++erkundet werden.
++
++Kerngedanke:
++
++> Ein Master-Campus-Zugang kann mehrere verbundene Campusdienste öffnen.
++
++#### Campus E-Mail
++
++Eine kurze, vom Nutzer ausgelöste Mini-Szene zeigt exemplarisch einen Kontovorgang, etwa das
++Eintreffen einer Bestätigung oder eines Zurücksetzungslinks. Die vier vorhandenen Funktionsknoten
++können sichtbar bleiben, müssen aber nicht alle verpflichtend erklärt werden.
++
++Kerngedanke:
++
++> Über Campus E-Mail laufen Nachrichten, Bestätigungen und wichtige Kontovorgänge.
++
++Die spätere Sicherheitsfolge eines fremden Zugriffs wird hier nicht vollständig ausformuliert.
++
++#### Campusgram
++
++Eine persönliche, rein fiktive Kommunikationsansicht wird geöffnet, beispielsweise eine
++Direktnachricht oder ein eigener Beitrag. Zusätzliche Bereiche bleiben optional.
++
++Kerngedanke:
++
++> Campusgram enthält persönliche Beiträge und Kommunikation mit anderen Personen.
++
++### Abschluss
++
++Nach einer Pflichtinteraktion in jedem Konto lautet der Status `3/3 angesehen` oder `3/3
++erkundet`. Es gibt keine Wissensfrage und keine Aussage, die Person habe alle Inhalte
++`verstanden`.
++
++## S03 -- Erneute Anmeldung und Campusgram-Warnung
++
++### Beibehalten
++
++Der Einstieg `Melde dich jetzt mit den eben gewählten Passwörtern erneut an.` ist kurz und
++handlungsnah. Die Wiederanmeldung bleibt in frei wählbarer Kontoreihenfolge. Ein nicht erinnertes
++Passwort bleibt eine zulässige Beobachtung und blockiert das Training nicht.
++
++### Probleme
++
++- Die Retrieval-Hilfe ist länger als für den akuten Zustand nötig und kombiniert Beruhigung,
++  Interpretation und weitere Systemhandlung.
++- Die vier Abschlussvarianten wiederholen jeweils, dass alle Konten geöffnet wurden, und fügen
++  mehrere Lernaussagen hinzu.
++- Die Campusgram-Warnung besitzt einen Sprechblasenbutton `Konto öffnen`, obwohl der Nutzer den
++  markierten Tab selbst öffnen soll.
++
++### Ziel
++
++- Retrieval-Hilfe: Ergebnis plus eine unterstützende Einordnung; die technische Unterstützung
++  wird durch die sichtbare Aktion erklärt.
++- Abschluss: ein invarianter Satz über den geöffneten Zustand plus höchstens ein kurzer adaptiver
++  Satz zur Abrufbarkeit.
++- Die Zeitraffersequenz bleibt kurz und dient nur als Übergang.
++- Nach der Warnansage wechselt der Statechart in einen Zustand `awaitingIncidentOpen`.
++- Die Sprechblase weist auf den markierten Campusgram-Tab hin, besitzt aber keinen
++  `Konto öffnen`-Button.
++- Nur der selbst ausgeführte Tab-Klick öffnet S04.
++
++Die vorhandene Warnformulierung ist grundsätzlich passend und kann gezielt zu
++`Öffne den markierten Campusgram-Tab.` präzisiert werden, ohne die Szene weiter zu erklären.
++
++## S04 -- Datenleck als Brücke zur Passwortanalyse
++
++### Beibehalten
++
++`Passwort prüfen` ist eine zulässige handlungsspezifische Aktion, weil der Button tatsächlich die
++lokale Analyse startet. Die Erklärung, dass geleakte Passwortdaten nicht automatisch sofort
++lesbar sind, ist eine wichtige technische Begrenzung.
++
++### Problem
++
++Die Formulierung `ob dein Passwort für sich stark genug ist` kann als binäre
++Sicherheitsbewertung verstanden werden. Die lokale Simulation untersucht dagegen begrenzte
++Angriffswege und darf keinen allgemeinen Bestehensstatus erzeugen.
++
++### Ziel
++
++Die dritte Passage beschreibt den Vorgang statt eines Urteils, beispielsweise:
++
++> Wir schauen uns jetzt an, welche schnellen Prüfwege die Simulation bei diesem fiktiven Passwort erkennt.
++
++Der konkrete Wortlaut wird erst im segmentbezogenen Implementierungsschritt freigegeben. Die
++Begrenzung muss mit S05 konsistent sein.
++
++## S05 -- Mechanismen der lokalen Passwortsimulation
++
++### Stärke des aktuellen Ansatzes
++
++S05 trennt naheliegende Bestandteile, vorhersehbaren Aufbau und freies Ausprobieren. Die
++Simulation vermeidet eine erfundene effektive Länge und einen universellen Gesamtscore. Diese
++fachliche Begrenzung ist zentral und bleibt erhalten.
++
++### Problem
++
++Die Teilnehmeroberfläche trägt derzeit zu viele interne Forschungs- und Implementierungsgrenzen
++wortwörtlich nach außen. Wiederholte Begriffe wie `Fixture`, `Laufzeitbefund`,
++`Produktionsbewertung`, `kein Gesamtscore` und `theoretische Entropie` erhöhen die
++Informationslast, ohne den Mechanismus verständlicher zu machen.
++
++### Ziel
++
++S05 verwendet drei klar getrennte Textebenen:
++
++1. **Lerntext:** erklärt genau einen Angriffsmechanismus in Alltagssprache;
++2. **sichtbare Simulationsgrenze:** einmalig und kurz, etwa
++   `Diese Übung bewertet keine echten Passwörter.`;
++3. **interne Metadaten:** Fixture-IDs, Controller-, Scoring-, Runtime- und Research-Begriffe,
++   ausschließlich im Design Lab oder in der Dokumentation.
++
++Jeder Schritt folgt künftig:
++
++> eine Behauptung → eine sichtbare Evidenz → ein kurzer Kerngedanke
++
++Die fachliche Tiefe wird nicht durch pauschales Kürzen entfernt. Gekürzt werden Wiederholungen,
++Metakommentare und interne Begriffe. Der spätere Implementierungsschritt prüft außerdem, ob
++zwanzig nacheinander verpflichtende Schritte wirklich notwendig sind oder ob Demonstrationen
++ohne Verlust des Lernziels zusammengeführt werden können.
++
++## Reihenfolge der nächsten Implementierung
++
++1. S00-Navigation und S01-Handlungszuordnung chirurgisch korrigieren.
++2. Den Emphasis-Katalog auf Carry-forward-Hervorhebungen reduzieren.
++3. S03-Warnübergang auf den tatsächlichen Campusgram-Tab verlagern und Retrieval-Copy kürzen.
++4. S02 als geführte Exploration nach der verbindlichen Zielregel neu schneiden.
++5. S04 und S05 sprachlich begrenzen, ohne die technische Genauigkeit der Simulation zu schwächen.
++
++Jeder Schritt erhält einen eigenen kleinen Codex-Auftrag und einen eigenen Content-Versionssprung.
++Eine flächige Umschreibung von S00--S05 in einem Lauf ist ausdrücklich ausgeschlossen.
+diff --git a/docs/design/TRAINING-COPY.md b/docs/design/TRAINING-COPY.md
+new file mode 100644
+index 0000000..20ae020
+--- /dev/null
++++ b/docs/design/TRAINING-COPY.md
+@@ -0,0 +1,246 @@
++# Training Copy and Interaction Language
++
++## Zweck
++
++Diese Datei ist die verbindliche Autorisierungs- und Review-Grundlage für alle sichtbaren
++Teilnehmertexte des Supportive Authentication Onboarding. Sie verhindert, dass technische
++Implementierung, UI-Komponenten oder allgemeine Stiloptimierung die beabsichtigte Dramaturgie,
++den Lernzweck oder den unterstützenden Ton des Trainings schleichend verändern.
++
++Die Regeln gelten für PassWo-Sprechblasen, Seitentitel, Aufgabenhinweise, Statusmeldungen,
++Buttons, Vorschauen, Warnungen und sichtbare Simulationshinweise. Sie definieren keine neue
++psychologische Skala und keine allgemeingültigen Regeln für Security-Training. Es sind
++projektspezifische Authoring-Regeln für dieses Forschungsartefakt.
++
++## 1. Quellenautorität und Änderungsdisziplin
++
++Für Teilnehmertext gilt innerhalb eines ausdrücklich benannten Segments folgende Reihenfolge:
++
++1. der aktuelle Nutzerauftrag und ausdrücklich freigegebene Copy-Entscheidungen;
++2. das aktuelle, vom Nutzer gepflegte Trainingsskript für narrative Absicht, Reihenfolge,
++   Lernfunktion und Ton;
++3. die versionierten Segmentdaten in `packages/training-content` als implementierter Stand;
++4. der segmentbezogene Copy-Audit unter `docs/design/`;
++5. allgemeine Design- und Architekturregeln.
++
++Eine Umbenennung von Konten, ein UI-Umbau oder eine technische Migration ist keine Erlaubnis,
++angrenzende Formulierungen stilistisch neu zu schreiben. Bestehender Text bleibt erhalten, wenn
++er fachlich korrekt ist, zur aktuellen Interaktion passt und keine der Regeln dieser Datei
++verletzt.
++
++Codex darf Teilnehmertext nicht ändern, nur weil eine andere Formulierung kürzer, glatter oder
++"professioneller" erscheint. Jede Änderung braucht einen konkreten Grund aus mindestens einer
++dieser Kategorien:
++
++- fachliche Korrektheit oder Begrenzung einer Sicherheitsbehauptung;
++- Anpassung an die tatsächlich sichtbare Interaktion;
++- Entfernung nachweisbarer Redundanz oder unnötiger kognitiver Last;
++- Konsistenz mit freigegebenen Konto- und Funktionsnamen;
++- Barrierefreiheit oder eindeutige Handlungszuordnung;
++- ausdrücklich freigegebene dramaturgische Änderung.
++
++### Geschützte Formulierungen
++
++Die folgende Formulierung ist als bewusster Charakter- und Toneinstieg geschützt und darf ohne
++expliziten Auftrag nicht umgeschrieben werden:
++
++> Aloha! Ich bin PassWo und begleite dich heute durch das Training.
++
++Weitere geschützte Formulierungen können im jeweiligen Copy-Audit ergänzt werden. Ein
++"Copy-Lock" schützt nur den Wortlaut; notwendige technische Einbettung, Zeichensetzung oder
++barrierefreie Auszeichnung bleibt möglich, sofern die sichtbare Formulierung gleich bleibt.
++
++## 2. Eine Textfläche hat eine primäre Funktion
++
++Jeder sichtbare Text wird vor dem Schreiben genau einer primären Rolle zugeordnet:
++
++| Rolle | Zweck | Typische Form |
++|---|---|---|
++| Orientierung | Wo befinden wir uns und warum? | kurzer Einstieg, kein Detailkatalog |
++| Navigation | Welches sichtbare Element soll als Nächstes benutzt werden? | ein eindeutiger Handlungssatz |
++| Mechanismuserklärung | Was geschieht und warum ist es relevant? | ein Mechanismus pro Schritt |
++| Ergebnisfeedback | Was hat die gerade ausgeführte Handlung verändert? | Ergebnis zuerst, Einordnung danach |
++| Kerngedanke | Was soll nach der Szene erinnerbar bleiben? | ein kurzer, stabiler Satz |
++| Safety Boundary | Welche Daten- oder Geltungsgrenze gilt? | direkt, vollständig, nicht beschönigend |
++| Optionaler Hinweis | Hilfe auf Nachfrage, ohne Fortschritt auszulösen | schließbar, nicht obligatorisch |
++| Interne Metadaten | Fixture, Controller, Scoring, Laufzeit- oder Forschungsstatus | niemals Teilnehmertext |
++
++Eine Sprechblase kombiniert grundsätzlich nicht Navigation, mehrere Mechanismuserklärungen,
++Risikofolgen und eine Zusammenfassung zugleich. Wenn zwei Rollen zwingend zusammengehören,
++steht die Handlungsanweisung zuletzt und bleibt als eigener kurzer Satz erkennbar.
++
++## 3. PassWo-Sprechschritte
++
++PassWo ist Guide und sichtbare Bezugsperson, kein Vorleser einer vollständigen Seite.
++
++- Ein Sprechschritt enthält genau einen Hauptgedanken.
++- Navigation besteht normalerweise aus einem Satz.
++- Erklärung oder Feedback besteht normalerweise aus höchstens zwei kurzen Sätzen.
++- Ein längerer Safety-Hinweis darf ausnahmsweise mehr Text enthalten, wenn die Grenze nicht
++  sinnvoll aufgeteilt werden kann.
++- Lange Texte werden nicht durch kleinere Schrift, Typewriter-Effekt oder mehr Hervorhebungen
++  repariert. Sie werden gekürzt oder entlang einer sichtbaren Zustandsänderung geteilt.
++- PassWo wiederholt keine Information, die bereits eindeutig in einer Vorschau, einem Status oder
++  einer Animation sichtbar ist. Er erklärt nur die Bedeutung, die aus der Darstellung allein
++  nicht zuverlässig hervorgeht.
++- Adaptive Rückmeldung nennt zuerst das beobachtete Ergebnis und danach höchstens eine
++  handlungsrelevante Einordnung. Sie bewertet nicht die Person.
++
++Als Authoring-Hilfe gelten folgende Zielbudgets. Sie sind keine wissenschaftlichen Grenzwerte,
++sondern Review-Schwellen:
++
++- Navigationshinweis: ein Satz, möglichst unter 18 Wörtern;
++- normaler PassWo-Schritt: höchstens zwei Sätze, möglichst unter 35 Wörtern;
++- Kerngedanke: ein Satz, möglichst unter 20 Wörtern;
++- Safety Boundary: so kurz wie möglich, aber vollständig; normalerweise höchstens 50 Wörter.
++
++Eine Überschreitung ist erlaubt, muss im Copy-Delta ausdrücklich begründet werden.
++
++## 4. Handlungszuordnung und Button-Semantik
++
++Die Sprache muss die tatsächliche Bedienhandlung benennen. Eine Sprechblase darf keine zweite,
++bequemere Ersatzhandlung erzeugen, wenn die Lernhandlung an einem sichtbaren Element der
++Browser- oder Netzwerkszene stattfinden soll.
++
++| Interaktionsart | Sprechblasenaktion | Regel |
++|---|---|---|
++| Reiner Dialogfortschritt | `Weiter` | Button führt ausschließlich zum nächsten Sprechschritt |
++| Konkrete fachliche Aktion in der Blase | handlungsspezifisch, z. B. `Passwort prüfen` | Button selbst führt genau diese Aktion aus |
++| Handlung an externem UI-Ziel | kein Button in der Blase | Text verweist auf Tab, Fenstersteuerung, Knoten oder Website-Element; nur dieses Ziel löst den Übergang aus |
++| Optionale Hilfe | `Schließen` | schließt nur den Hinweis und verändert keinen Trainingszustand |
++| Wiederholbare Erklärung | `Animation wiederholen` | wiederholt ausschließlich die fachliche Visualisierung |
++
++Verbindliche Negativregeln:
++
++- Kein `Konto öffnen` in der Sprechblase, wenn der markierte Browser-Tab geöffnet werden soll.
++- Kein `Schließen` in der Sprechblase, wenn ein Browserfenster oder anderes sichtbares Objekt
++  geschlossen werden soll.
++- Kein zusätzlicher `Weiter`-Button neben einer handlungsspezifischen Primäraktion.
++- Kein Buttontext beschreibt einen Effekt, den der Button nicht selbst auslöst.
++- Ein verpflichtendes externes Ziel wird visuell markiert, fokussierbar gemacht und bleibt die
++  einzige Quelle des entsprechenden Domain-Events.
++
++## 5. Hervorhebungen
++
++Hervorhebung markiert nicht "alles Wichtige im Absatz". Sie markiert den einen Kerngedanken, der
++nach dem aktuellen Schritt mitgenommen werden soll.
++
++### Zulässige Verwendung
++
++- Standard: höchstens eine semantische Hervorhebung pro Sprechschritt.
++- Ausnahme: höchstens zwei Hervorhebungen, wenn ein ausdrücklicher Kontrast vermittelt wird,
++  beispielsweise `gleiches Passwort` gegenüber `eigenes Passwort`.
++- Eine Hervorhebung umfasst eine kurze zusammenhängende Phrase, nicht mehrere verstreute
++  Schlüsselwörter.
++- Kontonamen dürfen zur Referenzauflösung ihre stabile Identitätsfarbe oder ihr Symbol tragen.
++  Das ist Orientierung, keine zusätzliche Lernhervorhebung.
++- `warning` wird nur für einen aktuell relevanten Vorsichts- oder Warnzustand verwendet, nicht
++  für jedes Wort mit Sicherheitsbezug.
++- `positive` beschreibt eine sichtbare Schutzwirkung oder einen bestätigten Fortschritt, niemals
++  den moralischen Wert einer Person.
++- `action` verweist nur auf eine tatsächlich vorhandene, sichtbare Handlung.
++
++### Nicht zulässig
++
++- vier oder mehr farbige Begriffe, weil ein Absatz viele Nomen enthält;
++- das Hervorheben sämtlicher Konto-, Dienst- oder Funktionsnamen in einer Erklärung;
++- Hervorhebung als Ersatz für Kürzung oder Segmentierung;
++- wechselnde Farben ohne stabile semantische Rolle;
++- Warnfarbe für hypothetische Folgen, die in der aktuellen Szene noch nicht eintreten;
++- Icons in laufendem Text, wenn sie keine Referenzauflösung oder Zustandsbedeutung leisten.
++
++Wenn kein einzelner Kerngedanke identifizierbar ist, bleibt der Sprechschritt ohne Hervorhebung
++oder wird redaktionell neu geschnitten.
++
++## 6. Kontext zeigen, Folgen zum passenden Zeitpunkt erklären
++
++Frühe Kontextsegmente sollen Nähe, Wiedererkennung und ein mentales Kontomodell herstellen. Sie
++müssen nicht alle späteren Sicherheitsfolgen vorwegnehmen.
++
++- Vorschauen und Mini-Szenarien tragen konkrete Inhalte möglichst selbst.
++- PassWo erklärt in einer Erkundung nur das minimale Kontomodell, das für spätere Szenen gebraucht
++  wird.
++- Schwere Folgen wie kontoübergreifender Zugriff, Zurücksetzung oder Kommunikation im Namen einer
++  Person werden ausführlich erst dann erklärt, wenn die entsprechende Konsequenz in der
++  Simulation sichtbar wird.
++- Ein Kontextsegment verwendet `angesehen` oder `erkundet`, nicht `verstanden`, sofern kein
++  Wissen geprüft wird.
++- Optionales Erkunden bleibt optional. Pflichtfortschritt verlangt nur die kleinste Interaktion,
++  die den später benötigten Zusammenhang sichtbar macht.
++
++Für S02 gilt als Zielregel:
++
++- eine Pflichtinteraktion pro Hauptkonto;
++- höchstens ein PassWo-Satz pro Hauptkonto;
++- ein dauerhaft sichtbarer Kerngedanke;
++- optionale zusätzliche Vorschauen;
++- keine Wissensfrage und kein `verstanden`-Status;
++- freie Reihenfolge und Rückkehrmöglichkeit innerhalb des Segments.
++
++## 7. Teilnehmertext und interne Forschungsgrenzen trennen
++
++Technische und forschungsbezogene Begriffe dürfen nicht ungefiltert in die Lernoberfläche
++gelangen. Insbesondere folgende Begriffe sind standardmäßig intern:
++
++- Fixture;
++- Runtime oder Laufzeitbefund;
++- Controller;
++- Design-Lab;
++- Produktionsbewertung;
++- Scoring- oder Gesamtscore-Hinweise;
++- theoretische Entropie;
++- interne Segment- oder Regel-IDs.
++
++Notwendige Grenzen werden in Alltagssprache formuliert, beispielsweise:
++
++- `Fiktives Beispiel` statt `Fixture`;
++- `Was diese Übung zeigt` statt `Laufzeitbefund`;
++- `Diese Übung bewertet keine echten Passwörter` statt einer internen
++  Produktionsbewertungsformulierung.
++
++Eine Grenze wird an einer stabilen Stelle erklärt und nicht in jeder Karte wiederholt. Interne
++Metadaten bleiben in Design Lab, Entwickleransicht, Logging-freier Debug-Oberfläche oder
++Dokumentation.
++
++## 8. Verbindlicher Codex-Ablauf bei Copy-Änderungen
++
++Vor einer Änderung erstellt Codex für jede betroffene Textfläche ein kompaktes Copy-Delta:
++
++| Feld | Inhalt |
++|---|---|
++| Segment und Text-ID | stabiler Content-Identifier |
++| Quelle | Skriptseite, Nutzerentscheidung oder vorhandener Content |
++| Aktueller Text | Wortlaut vor der Änderung |
++| Geplanter Text | Wortlaut nach der Änderung |
++| Primäre Rolle | Orientierung, Navigation, Mechanismus, Feedback, Kerngedanke oder Safety |
++| Grund | konkrete zulässige Änderungskategorie |
++| Bedeutungsänderung | `nein`, `begrenzt` oder ausdrücklich freigegeben |
++| Interaktionsziel | tatsächliches UI-Ziel oder `kein` |
++| Hervorhebung | Phrase und semantischer Ton oder `keine` |
++
++Danach prüft Codex:
++
++1. Stimmt der Text noch mit der narrativen Absicht des Skripts überein?
++2. Benennt er exakt die Handlung, die technisch ausgelöst wird?
++3. Wiederholt PassWo nur bereits Sichtbares?
++4. Wird eine spätere Konsequenz unnötig vorweggenommen?
++5. Gibt es genau einen Kerngedanken und höchstens die zulässige Hervorhebung?
++6. Bleibt geschützter Wortlaut unverändert?
++7. Wurde die Content-Version des betroffenen Segments erhöht und die Quelle dokumentiert?
++
++Der Abschlussbericht nennt Copy-Änderungen separat. Eine pauschale Angabe wie
++`Texte verbessert` ist unzulässig.
++
++## 9. Review-Gate
++
++Ein Teilnehmertext ist erst freigabefähig, wenn alle Antworten `ja` lauten:
++
++- Ist seine primäre Rolle eindeutig?
++- Passt der Wortlaut zur aktuell sichtbaren Szene?
++- Kann die Person erkennen, welches Element sie bedienen soll?
++- Löst ein sichtbarer Button genau die benannte Handlung aus?
++- Enthält der Schritt nur einen Hauptgedanken?
++- Ist die Hervorhebung auf den Carry-forward-Kerngedanken begrenzt?
++- Bleiben Security-Claim und Simulationsgrenze korrekt?
++- Vermeidet der Text Schuldzuweisung, Alarmismus und absolute Sicherheit?
++- Bleibt die ursprüngliche Skriptabsicht erhalten?
+diff --git a/packages/training-content/AGENTS.md b/packages/training-content/AGENTS.md
+index f7c9482..3afbd29 100644
+--- a/packages/training-content/AGENTS.md
++++ b/packages/training-content/AGENTS.md
+@@ -1,7 +1,19 @@
+ # AGENTS.md — training-content
+ 
+ - Teilnehmertexte und Segmentdaten sind versionierter Forschungscontent.
+-- Ändere nur das im Auftrag benannte Segment und dokumentiere die Quelle.
++- Lies vor jeder Copy-Änderung `docs/design/TRAINING-COPY.md` und den passenden
++  segmentbezogenen Copy-Audit.
++- Das aktuelle Trainingsskript ist innerhalb des ausdrücklich benannten Segments die Quelle für
++  narrative Absicht, Reihenfolge, Lernfunktion und Ton. Konto- oder UI-Migrationen erlauben keine
++  pauschale stilistische Neufassung.
++- Ändere nur das im Auftrag benannte Segment und dokumentiere Quelle, Copy-Delta, Textrolle,
++  Interaktionsziel und Änderungsgrund.
++- Geschützte Formulierungen bleiben ohne ausdrückliche Freigabe wortgleich.
+ - Keine React-, Motion- oder React-Flow-Imports.
+ - Textvarianten bleiben technisch korrekt, nicht beschämend und frei von Sicherheitsgarantien.
++- PassWo erklärt pro Sprechschritt einen Hauptgedanken. Navigation benennt das tatsächliche
++  sichtbare UI-Ziel; sichtbare Folgen werden nicht unnötig vorweggenommen.
++- Hervorhebung markiert den Carry-forward-Kerngedanken, nicht alle wichtigen Nomen eines Absatzes.
++- Interne Begriffe wie Fixture, Runtime, Controller, Score oder Design Lab sind kein
++  Teilnehmertext.
+ - Jede Inhaltsänderung aktualisiert die Content-Version und passende Traceability-Tests.

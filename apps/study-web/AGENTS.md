@@ -21,3 +21,17 @@ Zusätzlich zur globalen `AGENTS.md` gilt:
   Tests. Automatisierte Tests in diesem Bereich schützen nur die Research-Core-Grenzen.
 - E2E-Tests sind nur für ausdrücklich benannte Milestones oder einen Study Freeze zulässig;
   sie prüfen dann Forschungswrites und den Abschluss, nie die visuelle Darstellung.
+
+
+## Teilnehmertext und Handlungszuordnung
+
+- Lies bei Sprechblasen-, Button- und Hervorhebungsänderungen
+  `docs/design/TRAINING-COPY.md` und den passenden segmentbezogenen Copy-Audit.
+- Eine Sprechblasenaktion darf ein sichtbares Browser-, Fenster-, Knoten- oder Website-Ziel nicht
+  ersetzen. Wenn die Person einen Tab oder eine Fenstersteuerung bedienen soll, löst nur dieses
+  Element den Domain-Übergang aus.
+- `Schließen` ist nur für optionale Hinweise zulässig. Reiner Dialog verwendet `Weiter`;
+  handlungsspezifische Buttons führen exakt die bezeichnete Handlung aus.
+- Hervorhebungen sind presentation-only und standardmäßig auf eine semantische Phrase pro
+  Sprechschritt begrenzt. Sie dürfen lange Texte nicht künstlich in Wichtigkeitsstufen zerlegen.
+- Teilnehmertext und interne Forschungs- oder Debug-Metadaten bleiben in getrennten Renderpfaden.
