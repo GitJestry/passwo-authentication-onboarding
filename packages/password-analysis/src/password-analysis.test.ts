@@ -1,4 +1,3 @@
-import { describe, expect, it } from 'vitest';
 import type {
   LocalPasswordDisposition,
   PasswordAnalysisResult,
@@ -8,6 +7,7 @@ import type {
   S06AccountId,
   S07RecommendationProjectionInput,
 } from '@passwo/contracts';
+import { describe, expect, it } from 'vitest';
 import {
   analyzeFictionalPassword,
   analyzeFictionalPasswordStructure,
@@ -213,10 +213,7 @@ describe('S07 recommendation projection', () => {
       ),
     ).toBe('replace-derived-pattern');
     expect(
-      recommendationFor(
-        s07Input({ belowLengthAccounts: ['campus-email'] }),
-        'campus-email',
-      ),
+      recommendationFor(s07Input({ belowLengthAccounts: ['campus-email'] }), 'campus-email'),
     ).toBe('rebuild-below-length-orientation');
     expect(
       recommendationFor(s07Input({ retrieval: { 'master-campus': 'assisted' } }), 'master-campus'),
@@ -373,12 +370,12 @@ describe('local fictional password analysis', () => {
   });
 
   it.each([
-    ['kurz', []],
-    ['Passwort123!', []],
-    ['Campusgram2026!', ['Campusgram']],
+    ['kurz', [], 'quick-path-recognized'],
+    ['Passwort123!', [], 'no-quick-path-recognized'],
+    ['Campusgram2026!', ['Campusgram'], 'no-quick-path-recognized'],
   ] as const)(
     'uses only the complete bounded guess path for a quick-path decision for %s',
-    (fictionalPassword, authoredAccountTerms) => {
+    (fictionalPassword, authoredAccountTerms, expectedKind) => {
       const componentAnalysis = analyzeFictionalPassword({
         fictionalPassword,
         authoredAccountTerms,
@@ -388,12 +385,16 @@ describe('local fictional password analysis', () => {
         componentAnalysis,
       });
       expect(disposition).toMatchObject({
-        kind: 'quick-path-recognized',
-        ruleId: 'bounded-complete-guess-path',
+        kind: expectedKind,
         quickPathThreshold: 100_000,
         analysisVersion: 'passwo-bounded-guess-path-v1',
       });
-      expect(disposition.estimatedGuesses).toBeLessThanOrEqual(disposition.quickPathThreshold);
+      if (disposition.kind === 'quick-path-recognized') {
+        expect(disposition.ruleId).toBe('bounded-complete-guess-path');
+        expect(disposition.estimatedGuesses).toBeLessThanOrEqual(disposition.quickPathThreshold);
+      } else {
+        expect(disposition.estimatedGuesses).toBeGreaterThan(disposition.quickPathThreshold);
+      }
     },
   );
 
@@ -519,6 +520,7 @@ describe('local fictional password analysis', () => {
     );
 
     expect(result.findings.map(({ findingKind }) => findingKind)).toEqual([
+      'exact-component-repetition',
       'account-context-with-qualifier',
     ]);
     for (const evidence of result.findings.flatMap(({ evidence }) => evidence)) {

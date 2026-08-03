@@ -1,27 +1,28 @@
-import type { S06AccountId, S06LocalAccountAnalysis, S06PairComparison } from '@passwo/contracts';
+import type { S06AccountId, S06PairComparison } from '@passwo/contracts';
 import {
   analyzeFictionalPassword,
   compareFictionalPasswords,
   determinePasswordSimulationDisposition,
 } from '@passwo/password-analysis';
 import {
+  getS06ConsequenceFixture,
   type S06ConsequenceFixtureId,
   type S06NarrationContent,
   type S06NarrationId,
-  getS06ConsequenceFixture,
   s06ConsequenceContent,
 } from '@passwo/training-content';
 import {
   type AnimationPlayerPort,
+  MissionController,
   type MissionDefinition,
   type MissionSnapshot,
-  MissionController,
 } from '@passwo/training-engine';
 import {
   type NetworkRendererPort,
   type PasswordConsequencePlanStep,
   type PasswordConsequenceScenePlan,
   projectPasswordConsequenceScenePlan,
+  type S06LocalAccountAnalysis,
 } from '@passwo/visualization';
 import type { NetworkPresentationSnapshot } from '../../../../adapters/network/NetworkMotionAdapter.js';
 import { alignNetworkSceneToS02 } from '../account-network.js';

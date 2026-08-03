@@ -7,8 +7,8 @@ describe('S05 content traceability', () => {
     expect(s05Content.source).toMatchObject({
       document: 'research/private/training-script.pdf',
       internalPages: [
-        12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33,
-        34, 35,
+        12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34,
+        35,
       ],
       copyReference:
         'docs/design/S00-S05-COPY-AUDIT.md#copy-delta-s05-begrenzter-rateweg-und-lokale-semantische-einordnung-3-august-2026',
@@ -21,10 +21,10 @@ describe('S05 content traceability', () => {
     expect(s05Content.analysis.authoredAccountTerms).toEqual([
       'Campusgram',
       'Campus',
-      'Gram',
-      'Prüfung',
-      'Semester',
-      'Archiv',
+      'Nachrichten',
+      'Gruppen',
+      'Kontakte',
+      'Beiträge',
     ]);
     expect(s05Content.intro.componentFrames.map(({ count }) => count)).toEqual([
       3, 7, 1, 5, 8, 2, 6, 4,
@@ -52,8 +52,8 @@ describe('S05 content traceability', () => {
     expect(participantContent.match(/keine allgemeine Sicherheitsbewertung/giu)).toHaveLength(1);
     expect(s05Content.structure.application.reflection.privacyNote).toMatch(/laufenden Übung/u);
     expect(s05Content.structure.application.reflection.privacyNote).toMatch(/verändert nicht/u);
-    expect(s05Content.freeSearch.theoreticalModel.lowercaseMeasurements.map(({ length }) => length)).toEqual(
-      [8, 12, 14, 15, 16],
-    );
+    expect(
+      s05Content.freeSearch.theoreticalModel.lowercaseMeasurements.map(({ length }) => length),
+    ).toEqual([8, 12, 14, 15, 16]);
   });
 });

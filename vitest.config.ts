@@ -13,6 +13,7 @@ export default defineConfig({
       'packages/training-content/src/s04.traceability.test.ts',
       'packages/training-content/src/s05.traceability.test.ts',
       'packages/visualization/src/account-exploration-scene.test.ts',
+      'packages/visualization/src/password-consequence-scene.test.ts',
       'packages/training-engine/src/password-module-machine.test.ts',
       'packages/training-engine/src/password-module-controller.test.ts',
       'packages/training-engine/src/password-module-privacy.test.ts',

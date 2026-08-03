@@ -1,5 +1,4 @@
 import type {
-  FictionalPasswordComparisonInput,
   PasswordComparisonResult,
   PasswordEvidenceSpan,
   PasswordTransformationId,
@@ -7,18 +6,23 @@ import type {
 
 import { findCaseInsensitiveSpans } from './case-insensitive-spans.js';
 
-export * from './password-guessing-analysis.js';
-export * from './simulation-disposition.js';
-export * from './recommendation-projection.js';
-export * from './theoretical-search-space.js';
-
 export type {
   PasswordAnalysisResult,
   PasswordComparisonResult,
-  PasswordStructureAnalysisResult,
   PasswordSingleFinding,
+  PasswordStructureAnalysisResult,
   RuntimeStructureFinding,
 } from '@passwo/contracts';
+export * from './password-guessing-analysis.js';
+export * from './recommendation-projection.js';
+export * from './simulation-disposition.js';
+export * from './theoretical-search-space.js';
+
+export interface LocalPasswordComparisonInput {
+  readonly sourcePassword: string;
+  readonly targetPassword: string;
+  readonly authoredAccountAndServiceTerms: readonly string[];
+}
 
 function evidenceSpan(input: string, start: number, end: number): PasswordEvidenceSpan {
   return { type: 'span', start, end, token: input.slice(start, end) };
@@ -47,7 +51,9 @@ function accountTransformations(
   terms: readonly string[],
 ): readonly CandidateTransformation[] {
   const transformations: CandidateTransformation[] = [];
-  const normalizedTerms = [...new Set(terms.map((term) => term.trim()).filter((term) => term.length >= 3))];
+  const normalizedTerms = [
+    ...new Set(terms.map((term) => term.trim()).filter((term) => term.length >= 3)),
+  ];
   for (const sourceTerm of normalizedTerms) {
     const sourceSpan = firstCaseInsensitiveSpan(sourcePassword, sourceTerm);
     if (sourceSpan === null) continue;
@@ -65,7 +71,12 @@ function accountTransformations(
           const currentSpan = firstCaseInsensitiveSpan(candidate, sourceTerm);
           return currentSpan === null
             ? candidate
-            : replaceRange(candidate, currentSpan[0], currentSpan[1], targetPassword.slice(targetSpan[0], targetSpan[1]));
+            : replaceRange(
+                candidate,
+                currentSpan[0],
+                currentSpan[1],
+                targetPassword.slice(targetSpan[0], targetSpan[1]),
+              );
         },
       });
     }
@@ -118,7 +129,8 @@ function suffixTransformation(
     targetEvidence: evidenceSpan(targetPassword, targetStart, targetPassword.length),
     sourceChangedRange: [sourceStart, sourcePassword.length],
     targetChangedRange: [targetStart, targetPassword.length],
-    apply: (candidate) => `${candidate.slice(0, candidate.length - sourceSuffix.length)}${targetSuffix}`,
+    apply: (candidate) =>
+      `${candidate.slice(0, candidate.length - sourceSuffix.length)}${targetSuffix}`,
   };
 }
 
@@ -182,7 +194,7 @@ export function compareFictionalPasswords({
   sourcePassword,
   targetPassword,
   authoredAccountAndServiceTerms,
-}: FictionalPasswordComparisonInput): PasswordComparisonResult {
+}: LocalPasswordComparisonInput): PasswordComparisonResult {
   if (sourcePassword === targetPassword) {
     return {
       kind: 'fictional-password-comparison',
@@ -204,13 +216,23 @@ export function compareFictionalPasswords({
     ...(suffix === null ? [] : [suffix]),
   ];
   for (const combination of candidateCombinations(transformations)) {
-    const candidate = combination.reduce((value, transformation) => transformation.apply(value), sourcePassword);
-    if (candidate !== targetPassword || !hasStableCommonCore(sourcePassword, targetPassword, combination)) continue;
+    const candidate = combination.reduce(
+      (value, transformation) => transformation.apply(value),
+      sourcePassword,
+    );
+    if (
+      candidate !== targetPassword ||
+      !hasStableCommonCore(sourcePassword, targetPassword, combination)
+    )
+      continue;
     const atoms = combination.map(({ atom }) => atom).join('+');
     const transformationId = transformationIdByAtoms[atoms];
     if (transformationId === undefined) continue;
     const evidenceId = combination
-      .map(({ sourceEvidence, targetEvidence }) => `${sourceEvidence.start}-${sourceEvidence.end}:${targetEvidence.start}-${targetEvidence.end}`)
+      .map(
+        ({ sourceEvidence, targetEvidence }) =>
+          `${sourceEvidence.start}-${sourceEvidence.end}:${targetEvidence.start}-${targetEvidence.end}`,
+      )
       .join(':');
     return {
       kind: 'fictional-password-comparison',

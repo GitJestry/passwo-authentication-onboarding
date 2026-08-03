@@ -214,22 +214,10 @@ export interface PasswordComparisonResult {
   readonly disclaimerId: 'simulation-not-production-strength';
 }
 
-export interface FictionalPasswordComparisonInput {
-  readonly sourcePassword: string;
-  readonly targetPassword: string;
-  readonly authoredAccountAndServiceTerms: readonly string[];
-}
-
 export type S06AccountId = 'master-campus' | 'campus-email' | 'campusgram';
 export type IncidentSource = S06AccountId;
 export type PasswordConsequenceSceneMode = 'actual' | 'hypothetical';
-
-export interface S06LocalAccountAnalysis {
-  readonly accountId: S06AccountId;
-  readonly fictionalPassword: string;
-  readonly disposition: LocalPasswordDisposition;
-  readonly retrievalStatus: 'retrievable' | 'not-remembered' | 'assisted';
-}
+export type S06RetrievalStatus = 'retrievable' | 'not-remembered' | 'assisted';
 
 export interface S06PairComparison {
   readonly sourceAccountId: S06AccountId;
@@ -240,7 +228,7 @@ export interface S06PairComparison {
 export interface S06ResolvedAccountFinding {
   readonly accountId: S06AccountId;
   readonly disposition: LocalPasswordDisposition;
-  readonly retrievalStatus: S06LocalAccountAnalysis['retrievalStatus'];
+  readonly retrievalStatus: S06RetrievalStatus;
 }
 
 export interface S06ResolvedConsequencePath {

@@ -2,11 +2,13 @@ import type {
   PasswordComparisonResult,
   PasswordRelationKind,
   S06AccountId,
-  S06LocalAccountAnalysis,
   S06PairComparison,
 } from '@passwo/contracts';
 import { describe, expect, it } from 'vitest';
-import { projectPasswordConsequenceScenePlan } from './password-consequence-scene.js';
+import {
+  projectPasswordConsequenceScenePlan,
+  type S06LocalAccountAnalysis,
+} from './password-consequence-scene.js';
 
 const accountDefinitions = [
   {
@@ -35,19 +37,22 @@ const accountIds = [
   'campus-email',
 ] as const satisfies readonly S06AccountId[];
 
-const accounts: readonly S06LocalAccountAnalysis[] = accountIds.map((accountId) => ({
-  accountId,
-  fictionalPassword: `fixture-${accountId}`,
-  disposition: {
-    kind: 'no-quick-path-recognized',
-    estimatedGuesses: 1_000_000,
-    quickPathThreshold: 100_000,
-    lengthOrientation: 'at-least-15',
-    analysisVersion: 'passwo-bounded-guess-path-v1',
-    explanationId: 's05.disposition.no-quick-path-recognized',
-  },
-  retrievalStatus: 'retrievable',
-}) as const satisfies S06LocalAccountAnalysis);
+const accounts: readonly S06LocalAccountAnalysis[] = accountIds.map(
+  (accountId) =>
+    ({
+      accountId,
+      fictionalPassword: `fixture-${accountId}`,
+      disposition: {
+        kind: 'no-quick-path-recognized',
+        estimatedGuesses: 1_000_000,
+        quickPathThreshold: 100_000,
+        lengthOrientation: 'at-least-15',
+        analysisVersion: 'passwo-bounded-guess-path-v1',
+        explanationId: 's05.disposition.no-quick-path-recognized',
+      },
+      retrievalStatus: 'retrievable',
+    }) as const satisfies S06LocalAccountAnalysis,
+);
 
 function comparison(kind: PasswordRelationKind): PasswordComparisonResult {
   if (kind === 'derived-variant-match') {
@@ -104,9 +109,7 @@ describe('password consequence scene projection', () => {
       comparisons,
       accountDefinitions,
     });
-    const comparisonStep = plan.steps.find(
-      ({ id }) => id === 's06-step-campusgram-master-campus',
-    );
+    const comparisonStep = plan.steps.find(({ id }) => id === 's06-step-campusgram-master-campus');
     const summaryStep = plan.steps.find(({ id }) => id === 's06-step-summary');
 
     expect(comparisonStep?.network.nodes).toContainEqual(

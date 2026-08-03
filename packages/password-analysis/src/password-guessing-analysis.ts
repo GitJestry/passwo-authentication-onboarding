@@ -1,17 +1,17 @@
-import { ZxcvbnFactory, type OptionsDictionary } from '@zxcvbn-ts/core';
-import * as zxcvbnCommonPackage from '@zxcvbn-ts/language-common';
-import * as zxcvbnDePackage from '@zxcvbn-ts/language-de';
-import * as zxcvbnEnPackage from '@zxcvbn-ts/language-en';
 import type {
   PasswordAnalysisResult,
   PasswordEvidenceSpan,
   PasswordGuessPathMatch,
   PasswordGuessPathPattern,
-  PasswordStructureAnalysisResult,
   PasswordSingleFinding,
   PasswordSingleFindingKind,
+  PasswordStructureAnalysisResult,
   RuntimeStructureFinding,
 } from '@passwo/contracts';
+import { type OptionsDictionary, ZxcvbnFactory } from '@zxcvbn-ts/core';
+import * as zxcvbnCommonPackage from '@zxcvbn-ts/language-common';
+import * as zxcvbnDePackage from '@zxcvbn-ts/language-de';
+import * as zxcvbnEnPackage from '@zxcvbn-ts/language-en';
 
 import {
   findCaseInsensitiveSpans,
@@ -158,10 +158,10 @@ function finding(
   };
 }
 
-function dictionaryFindingKind(match: ZxcvbnMatch): PasswordSingleFindingKind {
-  const dictionaryName = (stringProperty(match, 'dictionaryName') ?? '').toLocaleLowerCase(
-    'en-US',
-  );
+function dictionaryFindingKind(
+  match: ZxcvbnMatch,
+): Exclude<PasswordSingleFindingKind, 'no-simple-component-recognized'> {
+  const dictionaryName = (stringProperty(match, 'dictionaryName') ?? '').toLocaleLowerCase('en-US');
   if (dictionaryName === 'userinputs') return 'account-or-service-term';
   if (dictionaryName.includes('password')) return 'common-password-core';
   if (
@@ -217,7 +217,9 @@ function findingsFromGuessPath(
         findings.push(finding(input, 'keyboard-pattern', start, end, 'bounded-heuristic', ordinal));
         break;
       case 'repeat':
-        findings.push(finding(input, 'repeated-component', start, end, 'bounded-heuristic', ordinal));
+        findings.push(
+          finding(input, 'repeated-component', start, end, 'bounded-heuristic', ordinal),
+        );
         break;
       case 'sequence':
         findings.push(
@@ -296,10 +298,17 @@ function collectYears(input: string): readonly PasswordSingleFinding[] {
   });
 }
 
-function collectTypicalSuffix(input: string): readonly PasswordSingleFinding[] {
-  const match = /(?=.*\p{L})[\p{L}\p{N}]{3,}((?:\d{1,4})?[!?._-]+|\d{1,3})$/u.exec(input);
+function collectTypicalSuffix(
+  input: string,
+  precedingFindings: readonly PasswordSingleFinding[],
+): readonly PasswordSingleFinding[] {
+  const match = /(?=.*\p{L})[\p{L}\p{N}]{3,}?((?:\d{1,4})?[!?._-]+|\d{1,3})$/u.exec(input);
   if (match === null || match[1] === undefined) return [];
   const start = input.length - match[1].length;
+  const followsRecognizedComponent = precedingFindings.some((item) =>
+    item.evidence.some((evidence) => evidence.type === 'span' && evidence.end === start),
+  );
+  if (!followsRecognizedComponent) return [];
   return [finding(input, 'typical-suffix', start, input.length)];
 }
 
@@ -330,11 +339,21 @@ export function analyzeFictionalPassword({
     (term) => term.length >= 3,
   );
   const result = zxcvbnFactory.check(fictionalPassword, trimmedAccountTerms);
+  const guessPathFindings = findingsFromGuessPath(fictionalPassword, result.sequence);
+  const exactAccountTermFindings = collectExactAccountTermFindings(
+    fictionalPassword,
+    trimmedAccountTerms,
+  );
+  const yearFindings = collectYears(fictionalPassword);
   const findings = deduplicateAndSortFindings([
-    ...findingsFromGuessPath(fictionalPassword, result.sequence),
-    ...collectExactAccountTermFindings(fictionalPassword, trimmedAccountTerms),
-    ...collectYears(fictionalPassword),
-    ...collectTypicalSuffix(fictionalPassword),
+    ...guessPathFindings,
+    ...exactAccountTermFindings,
+    ...yearFindings,
+    ...collectTypicalSuffix(fictionalPassword, [
+      ...guessPathFindings,
+      ...exactAccountTermFindings,
+      ...yearFindings,
+    ]),
   ]);
 
   return {

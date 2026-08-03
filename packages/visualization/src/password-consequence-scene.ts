@@ -4,12 +4,19 @@ import type {
   PasswordConsequenceSceneMode,
   PasswordRelation,
   S06AccountId,
-  S06LocalAccountAnalysis,
   S06PairComparison,
   S06ResolvedConsequencePath,
   S06ResolvedConsequenceResult,
+  S06RetrievalStatus,
 } from '@passwo/contracts';
 import type { NetworkSceneSnapshot, SceneEdge, SceneNode } from './scene.js';
+
+export interface S06LocalAccountAnalysis {
+  readonly accountId: S06AccountId;
+  readonly fictionalPassword: string;
+  readonly disposition: LocalPasswordDisposition;
+  readonly retrievalStatus: S06RetrievalStatus;
+}
 
 export type PasswordConsequenceStepId =
   | 's06-step-campusgram-incident'
@@ -123,10 +130,7 @@ function quickPathRecognized(disposition: LocalPasswordDisposition): boolean {
   return disposition.kind === 'quick-path-recognized';
 }
 
-function targetReachedFor(
-  mode: PasswordConsequenceSceneMode,
-  relation: PasswordRelation,
-): boolean {
+function targetReachedFor(mode: PasswordConsequenceSceneMode, relation: PasswordRelation): boolean {
   return mode === 'actual' && relation.kind !== 'no-derived-path-recognized';
 }
 
@@ -281,10 +285,9 @@ function comparisonStep(
         : relation.kind === 'derived-variant-match'
           ? 'similar-pattern'
           : 'blocked-path',
-    status:
-      hasHypotheticalRelation
-        ? 'hypothetical'
-        : relation.kind === 'exact-match'
+    status: hasHypotheticalRelation
+      ? 'hypothetical'
+      : relation.kind === 'exact-match'
         ? 'direct'
         : relation.kind === 'derived-variant-match'
           ? 'similar'
@@ -311,7 +314,7 @@ function comparisonStep(
         ? `${definitionById(input.accountDefinitions, targetAccountId).label} wird in dieser Simulation durch ${relation.kind} erreicht.`
         : hasHypotheticalRelation
           ? `${definitionById(input.accountDefinitions, targetAccountId).label} würde nur in diesem hypothetischen Beispiel durch ${relation.kind} erreicht.`
-        : `Die Angriffslinie stoppt vor ${definitionById(input.accountDefinitions, targetAccountId).label}.`,
+          : `Die Angriffslinie stoppt vor ${definitionById(input.accountDefinitions, targetAccountId).label}.`,
     },
     visibleChange: {
       targetId: targetAccountId,
