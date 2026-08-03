@@ -26,7 +26,7 @@ export const researchExportSessionRecordSchema = z
     contentVersion: versionIdSchema,
     questionnaireVersion: versionIdSchema,
     guardrailVersion: versionIdSchema,
-    guardrailFormId: z.enum(['F1', 'F2', 'F3']),
+    guardrailFormId: z.enum(['F1', 'F2', 'F3', 'F4', 'F5', 'F6']),
     consentVersion: versionIdSchema,
     referenceArtifactVersion: versionIdSchema.nullable(),
     consentAccepted: z.literal(true),
@@ -85,7 +85,7 @@ export const researchExportPresentationRecordSchema = z
     instrumentVersion: versionIdSchema,
     sectionId: instrumentSectionIdSchema,
     itemId: z.string().trim().min(1).max(80),
-    formId: z.enum(['F1', 'F2', 'F3']),
+    formId: z.enum(['F1', 'F2', 'F3', 'F4', 'F5', 'F6']),
     displayedOptionIds: z.array(z.string().trim().min(1).max(80)).length(4),
     createdAtIso: z.iso.datetime(),
   })

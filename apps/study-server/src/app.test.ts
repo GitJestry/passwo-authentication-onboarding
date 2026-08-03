@@ -352,6 +352,7 @@ describe('study server research core', () => {
       { version: 4 },
       { version: 5 },
       { version: 6 },
+      { version: 7 },
     ]);
     expect(responseColumns).toEqual(
       expect.arrayContaining([expect.objectContaining({ name: 'section_id', notnull: 1 })]),
@@ -378,7 +379,7 @@ describe('study server research core', () => {
     );
   });
 
-  it('balances F1/F2/F3 independently within each assigned condition', async () => {
+  it('balances F1 through F6 independently within each assigned condition', async () => {
     const temporaryDirectory = mkdtempSync(join(tmpdir(), 'passwo-study-form-balance-'));
     temporaryDirectories.push(temporaryDirectory);
     const databasePath = join(temporaryDirectory, 'study.sqlite');
@@ -396,7 +397,7 @@ describe('study server research core', () => {
       .array(
         z.object({
           condition: z.enum(['supportive', 'reference']),
-          guardrailFormId: z.enum(['F1', 'F2', 'F3']),
+          guardrailFormId: z.enum(['F1', 'F2', 'F3', 'F4', 'F5', 'F6']),
         }),
       )
       .parse(
@@ -429,7 +430,7 @@ describe('study server research core', () => {
           counts[session.guardrailFormId] = (counts[session.guardrailFormId] ?? 0) + 1;
           return counts;
         }, {}),
-      ).toEqual({ F1: 2, F2: 2, F3: 2 });
+      ).toEqual({ F1: 1, F2: 1, F3: 1, F4: 1, F5: 1, F6: 1 });
     }
     expect(presentationOrders).toHaveLength(72);
     expect(presentationOrders.every((optionIds) => optionIds.at(-1) === 'unsure')).toBe(true);

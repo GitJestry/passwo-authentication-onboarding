@@ -2,178 +2,133 @@
 
 ## Datenklassen
 
-| Klasse                    | Beispiele                                                                                | Persistenz                        |
-| ------------------------- | ---------------------------------------------------------------------------------------- | --------------------------------- |
-| Study identity            | interne Session-UUID, nicht angezeigte Forschungs-ID                                    | `study.sqlite`                    |
-| Deletion lookup           | ausschließlich SHA-256-Hash des flüchtigen Löschcodes                                   | `study.sqlite`                    |
-| Assignment                | Bedingung, Zuweisungsmodus, Config-ID, Guardrail-Form                                    | `study.sqlite`                    |
-| Versioning                | Study-, Content-, Fragebogen-, Guardrail-, Consent-, Follow-up- und Referenzversion      | `study.sqlite`                    |
-| Timing                    | Phase, Segment-ID, Start/Ende, monotone Dauer                                            | `study.sqlite`                    |
-| Instruments               | Pre, Post, Guardrail, optionale offene Rückmeldung, später importiertes Follow-up        | `study.sqlite`                    |
-| Presentation              | Form-ID und tatsächlich angezeigte Guardrail-Option-IDs                                  | `study.sqlite`                    |
-| Completion                | complete, incomplete, technical failure                                                  | `study.sqlite`                    |
-| Follow-up-Verknüpfung     | optionale Einwilligung, Follow-up-Version, optionaler Token-Hash                         | `study.sqlite`                    |
-| Recontact                 | E-Mail, Roh-Token, Token-Hash, Consent-Version, Versand-/Schließzeitpunkte               | ausschließlich `recontact.sqlite` |
-| Lokaler Löschworkflow     | tabellarische Anzahl betroffener Datensätze                                                | nur Prozessausgabe, nie persistiert |
-| Ephemeral participant data | Anzeigename/Kürzel, roher Löschcode                                                      | nur flüchtiger Study-Renderer     |
-| Training input/diagnosis  | fiktive Passwörter, Loginversuche, Findings, Ähnlichkeit                                 | nie persistieren                  |
-| Reference quiz state      | im gemessenen Pfad nicht vorhanden; etwaige SCORM-Interaktionen der Unterrichtslektionen | nicht erheben                     |
-| Sensitive real-world data | reale Konten, Passwörter, Tokens, Vorfälle                                               | nie erheben                       |
-| Passive metadata          | IP, User-Agent, Request-Bodies                                                           | nicht persistieren                |
+| Klasse | Beispiele | Persistenz |
+|---|---|---|
+| Study identity | interne Session-UUID, nicht angezeigte Forschungs-ID | `study.sqlite` |
+| Deletion lookup | ausschließlich SHA-256-Hash des flüchtigen Löschcodes | `study.sqlite` |
+| Assignment | Bedingung, Zuweisungsmodus, Guardrail-Form `F1` bis `F6` | `study.sqlite` |
+| Versioning | Study-, Content-, Fragebogen-, Guardrail-, Consent-, Follow-up- und Referenzversion | `study.sqlite` |
+| Timing | Phase, Segment-ID, Start/Ende, monotone Dauer | `study.sqlite` |
+| Main-session instruments | Pre, unmittelbarer Post, Guardrail, Post-Guardrail-Self-Efficacy, retrospektive SecAware-Frage, optionaler Kommentar | `study.sqlite` |
+| Presentation | Form-ID und tatsächlich angezeigte Guardrail-Option-IDs | `study.sqlite` |
+| Completion | complete, incomplete, technical failure | `study.sqlite` |
+| Follow-up linkage | optionale Einwilligung, Follow-up-Version, optionaler Token-Hash | `study.sqlite` |
+| Recontact | E-Mail, Roh-Token, Token-Hash, Consent-Version, Versand-/Schließzeitpunkte | ausschließlich `recontact.sqlite` |
+| Externes Follow-up | separat ausgelieferte Antworten, später versioniert importierbar | nicht Bestandteil der Training Runtime |
+| Ephemeral participant data | Anzeigename/Kürzel, roher Löschcode | nur flüchtiger Study-Renderer |
+| Training input/diagnosis | fiktive Passwörter, Loginversuche, Findings, Ähnlichkeit | nie persistieren |
+| Sensitive real-world data | reale Konten, Passwörter, Tokens, Vorfälle | nie erheben |
+| Passive metadata | IP, User-Agent, Request-Bodies | nicht persistieren |
 
 ## Forschungsdatenbank
 
 `study.sqlite` enthält:
 
-- `study_sessions` für interne Session-UUID, Forschungs-ID, Löschcode-Hash, Zuweisung, Versionen, Follow-up-Einwilligung und Status;
+- `study_sessions` für interne Session-UUID, Forschungs-ID, Löschcode-Hash, Zuweisung,
+  Instrumentversionen, Follow-up-Einwilligung und Status;
 - `assignment_slots` und `guardrail_form_slots` für getrennte serverseitige Blockzuweisungen;
 - `timing_events` für idempotente Zeitereignisse;
 - `artifact_leases` ausschließlich für operative Reload-Erkennung;
 - `instrument_submissions` für atomare Blockabgaben und Payload-Fingerprints;
-- `responses` für validierte Itemantworten;
+- `responses` für validierte Antworten der Hauptsitzung;
 - `response_presentations` für die tatsächlich dargestellten Guardrail-Optionen.
 
 `artifact_leases` sind weder Forschungstiming noch Bestandteil des Exports. E-Mail,
 Roh-Token und Recontact-Request-ID sind in `study.sqlite` verboten.
 
+## Kanonische Instrumentquellen
+
+Die Hauptsitzung verwendet:
+
+- `research/derived/instruments-v1.yaml` als Forschungs- und Analysespezifikation;
+- `research/derived/instruments-v1.runtime.json` als teilnehmerseitige Runtime-Projektion;
+- `packages/contracts/src/generated/instruments-v1.runtime.json` als identische eingebundene
+  Projektion.
+
+Die Runtime enthält ausschließlich `pre-v1`, `post-v1`, `guardrail-v2` und `post-open-v1`.
+Follow-up-Fragen sind ausdrücklich ausgeschlossen. Ihr separater Wortlaut liegt in
+`research/derived/follow-up-v4.yaml` und `docs/research/FOLLOW-UP-INSTRUMENT.md`.
+
 ## Antwort-Submission
 
 Der Client sendet einen vollständigen Instrumentblock mit `instrumentId`, `sectionId` und der
-exakt erwarteten Itemmenge. Der Server validiert IDs, Reihenfolge, Wertebereiche,
+exakt erwarteten Itemmenge. Der Server validiert IDs, Itemmenge, Wertebereiche,
 Mehrfachauswahl-Exklusivität und Textlängen anhand der versionierten Runtime-Definition.
 
 Die erste gültige Submission wird transaktional gespeichert. Eine identische Wiederholung ist
-idempotent; ein abweichender zweiter Payload für denselben Block erzeugt einen Konflikt und
-überschreibt keine Daten. Rohantworten und Präsentationsreihenfolge werden exportiert, Scoring
-findet ausschließlich im Analyseprozess statt.
+idempotent. Ein abweichender zweiter Payload für denselben Block erzeugt einen Konflikt und
+überschreibt keine Daten. Rohantworten und Präsentationsreihenfolge werden exportiert; Scoring und
+Klassifikation finden ausschließlich im reproduzierbaren Analyseprozess statt.
 
-Geschlecht und allgemeine Familiarity-Items werden nicht erhoben. Die vier Self-Efficacy-Paare
-verwenden getrennte stabile IDs für Passwortverwaltung, Passwortmanager-Erzeugen/Speichern,
-Passwortmanager-Abruf/Anmeldung und MFA-Aktivierung. Im Follow-up unterscheiden die
-exklusiven Optionen `cannot_recall` und `no_answer` fehlende Erinnerung von verweigerter Angabe.
-Die primären verzögerten Outcomes bleiben die einzelnen Optionen
-`generated_stored_account_specific` und `enabled_mfa`; ein kombinierter Behavior Score wird nicht
-gebildet.
+Die Hauptsitzung verwendet folgende Blockreihenfolge:
+
+```text
+Pre-Abschnitte
+→ unmittelbare Post-Abschnitte
+→ Guardrail scenarios
+→ Guardrail recognition
+→ Post-Guardrail Self-Efficacy
+→ retrospektive SecAware-Vorerfahrung
+→ post-open
+```
+
+Die sechs Guardrail-Formen werden serverseitig innerhalb jeder Bedingung in kleinen permutierten
+Sechserblöcken zugewiesen. Form und dargestellte Option-IDs werden vor der ersten Antwort
+persistiert und bleiben über Navigation oder Reload stabil. Der Client kann weder Condition noch
+Form wählen.
+
+## Item- und Analysegrenzen
+
+- `PRE_SECAWARE_RETROSPECTIVE` wird erst nach Guardrail und Post-Self-Efficacy gespeichert. Die
+  primäre Vergleichsanalyse schließt aufgrund dieser retrospektiven Angabe niemanden aus.
+- Die vier Pre-/Post-Self-Efficacy-Paare verwenden getrennte stabile IDs für kontospezifischen
+  Zugang, Passwortmanager-Einrichtung, Passwortmanager-Anmeldung und MFA-Aktivierung. Es gibt
+  keinen gemeinsamen Score.
+- UEQ-S, UEQ+ Inhaltsseriosität und Custom Items bleiben getrennte Ergebnisfamilien.
+- `TIME_FIT` und `RISK_PRESENTATION` sind Mittelpunkturteile; höhere Werte sind nicht besser.
+- Guardrail-Klassifikationen wie `appropriate`, `incomplete`, `unsafe` oder `correct` werden nicht
+  an den Client ausgeliefert und nicht mit den Antworten gespeichert.
+- `OPEN_COMMENT` ist optional. Leerer Text wird als `null` gespeichert; ausgefüllter Freitext wird
+  im Analyseexport bis zur manuellen Prüfung separiert.
 
 ## Pseudonymisierung und Recontact
 
 Die Forschungs-ID wird serverseitig zufällig erzeugt und enthält keine Initialen, Matrikelnummer
-oder Zeitstempel. Sie wird den Teilnehmenden nicht angezeigt. Der Löschcode wird unabhängig davon
-kryptographisch im Browser erzeugt; nur sein SHA-256-Hash wird gespeichert. Rohcode und Hash
-werden nicht in Forschungsdatenexporte aufgenommen. Pseudonymisierte Forschungsdaten bleiben
-geschützt und zugriffsbeschränkt.
+oder Zeitstempel. Sie wird Teilnehmenden nicht angezeigt. Der Löschcode wird unabhängig im Browser
+erzeugt; nur sein SHA-256-Hash wird gespeichert. Rohcode und Hash werden nicht exportiert.
 
-Die optionale Nachbefragung beeinflusst weder Teilnahme noch Condition-Zuweisung. Bei Einwilligung
-enthält `~/.passwo-study/recontact.sqlite` ausschließlich Token-Hash und Roh-Token, E-Mail-Adresse,
-Consent-Version sowie Registrierungs-, Einladungs-, Erinnerungs-, Schließ- und Versandstatus. Die
-Registry enthält keine Condition, Antworten, Timings oder Trainingsdaten.
+Bei optionaler Follow-up-Einwilligung enthält `recontact.sqlite` ausschließlich die für den
+Versand notwendige Kontaktzuordnung. Der Schedule-Export kann E-Mail, Token-Link und
+Versandzeitpunkte für den getrennten Versand bereitstellen. Die Training Runtime zeigt und
+speichert keine Follow-up-Frage. Eine spätere Zusammenführung externer Follow-up-Antworten mit der
+Forschungs-ID benötigt einen eigenen dokumentierten Importprozess; E-Mail und Roh-Token dürfen
+nicht in den Forschungsdatensatz gelangen.
 
-Die Registry dient ausschließlich Kontaktaufnahme, Terminsteuerung, Tokenzuordnung und
-Debriefing. Sie ist keine Analysequelle und darf weder für Stichprobenbeschreibungen noch durch
-Analysewerkzeuge gelesen werden. Der Schedule-Export wird nur auf ausdrücklichen Aufruf erzeugt.
-Einladung, höchstens eine Erinnerung und das abschließende Debriefing werden einzeln und manuell
-über das freigegebene Universitätskonto versandt. Empfänger dürfen einander nicht sehen. Die
-Nachricht enthält ausschließlich neutralen Einladungstext und den individuellen Tokenlink, niemals
-Condition, Forschungs-ID, Antworten oder Löschcode. Die lokale Runtime besitzt keine SMTP-,
-Gmail- oder sonstige automatische Versandintegration.
+## Timing
 
-Ein Verzicht oder ein abgebrochener Registrierungsversuch setzt Einwilligungsstatus und Token-Hash
-in der Forschungsdatenbank zurück und entfernt einen gegebenenfalls angelegten Registry-Datensatz,
-ohne Session, Forschungs-ID, Löschcode-Hash oder Condition zu verändern.
-
-## Lokaler Löschworkflow
-
-`pnpm study:delete` ist ausschließlich ein lokaler CLI-Prozess, keine HTTP-Funktion und keine
-Teilnehmeroberfläche. Er akzeptiert keinen Identifikator außer einem Löschcode im `PW-`-Format,
-liest diesen nicht als Kommandozeilenargument und hält ihn nur bis zur SHA-256-Berechnung im
-Prozessspeicher. Die Auflösung verwendet ausschließlich `deletion_code_hash`.
-
-Ohne `--confirm` ist der Workflow ein schreibgeschützter Dry-Run. Seine Ausgabe beschränkt sich
-auf die Namen der betroffenen Tabellen und ihre Datensatzanzahlen; sie enthält keine Antworten,
-E-Mail-Adressen, Forschungs-IDs, Session-IDs, Token oder Löschcode-Hashes. Mit `--confirm` löscht
-er die Session, abhängige Timing-, Submission-, Response-, Präsentations-, Lease- und
-Zuweisungsdatensätze sowie eine vorhandene `recontact.registrations`-Zeile transaktional. Ein
-Löschprotokoll wird nicht persistiert.
-
-Bereits erzeugte Exporte, Schedule-Dateien und Backups sind nicht Teil der SQLite-Transaktion. Der
-Workflow verändert sie nicht und darf ihre Löschung nicht behaupten.
-
-Eine Löschanfrage wird deshalb zusätzlich als organisatorischer Kopienabgleich bearbeitet:
-
-1. Löschcode lokal auflösen und aktive Research- und Recontact-Datensätze löschen;
-2. Audit- und Analyseexporte anhand der Forschungs-ID prüfen und die betroffene Zeile entfernen;
-3. Freitext-Review-Dateien prüfen;
-4. Schedule-Dateien und lokale Mailkopien prüfen;
-5. gesendete Follow-up-Nachrichten nach der freigegebenen Regel entfernen;
-6. verschlüsselte Backups gemäß der festgelegten Backupregel auslaufen lassen oder sperren;
-7. bereits an die Betreuung weitergegebene Analysekopien in den Löschprozess einbeziehen.
-
-Der Abschluss dieses organisatorischen Abgleichs wird nicht in den Forschungsdaten persistiert.
-
-## Speicherort und Rechte
-
-- Standard: `~/.passwo-study/study.sqlite` und getrennt `recontact.sqlite`.
-- Verzeichnisrecht `0700`, Dateien möglichst `0600`.
-- Kein automatischer Cloud-Sync-Pfad.
-- Browser Storage, IndexedDB und Service Worker sind unzulässig.
-- Exporte werden nur in explizit gewählte lokale Zielverzeichnisse geschrieben.
-
-## Technische und organisatorische Maßnahmen
-
-- Ausschließlich die Studienleitung besitzt Zugriff auf beide Datenbanken, Exporte und Backups.
-- Das Studiengerät verwendet FileVault und ein persönliches, nicht geteiltes Benutzerkonto mit
-  Gerätesperre.
-- Forschungs- und Recontact-Daten bleiben getrennte Dateien. Analysewerkzeuge öffnen
-  `recontact.sqlite` niemals.
-- Weitergaben an die Betreuung erfolgen ausschließlich über den bereinigten Analyseexport.
-- Backups sind verschlüsselt und unterliegen derselben alleinigen Zugriffsbeschränkung.
-- Schedule-Exporte werden nur für den manuellen Versand erzeugt und nicht dauerhaft in
-  Cloud-Sync-Verzeichnissen abgelegt.
-- Verlust, Diebstahl oder unberechtigter Zugriff werden als möglicher Datenschutzvorfall behandelt
-  und unverzüglich an die zuständige universitäre Stelle eskaliert.
+- Artefaktbeginn und -ende werden über serverseitig idempotente Boundary Events erfasst.
+- Die zentrale Dauer ist Wall-Clock-Zeit; sie wird nicht als ununterbrochene aktive Beschäftigung
+  interpretiert.
+- Reloads, technische Fehler und längere Unsichtbarkeit werden über vorab festgelegte technische
+  Regeln markiert.
+- Segmentzeiten des Prototyps sind nur interne Diagnostik, weil sie für das Referenzartefakt nicht
+  äquivalent vorliegen.
 
 ## Export
 
-Der gemeinsame Exporter besitzt die Profile `audit` und `analysis`. Beide enthalten Sessions,
-Timing, Responses und Response Presentations unter einer gemeinsamen `researchId` als CSV und JSON,
-ein Data Dictionary sowie ein Manifest mit Profil, Schemaprofilversion, Versionen, Zählungen und
-SHA-256-Prüfsummen. Beide Profile enthalten keine interne Session-UUID, keinen Löschcode oder
-Löschcode-Hash, keine E-Mail, Roh-Tokens, Token-Hashes, Trainingsinputs oder SecAware-Quizdaten.
-Das gemeinsame Manifestformat ist `research-export-v5`; die gekoppelten Schemaprofilversionen sind
-`research-audit-v1` beziehungsweise `research-analysis-v1`.
+Audit- und Analyseexport schließen Session-ID, E-Mail, Löschcode, Token, Trainingsinputs und
+Passwortdiagnosen aus. Das Data Dictionary enthält nur die Instrumente der Hauptsitzung. Die
+Sessiondatei darf weiterhin `followUpConsent` und `followUpVersion` enthalten, weil diese die
+separate Recontact-Prozedur versionieren; sie bedeuten nicht, dass Follow-up-Fragen Teil des
+Training-Bundles sind.
 
-`audit` ist die ausschließlich intern und geschützt verwendete Nachweisfassung. Sie behält die
-technischen Kalender- und Empfangszeitpunkte. `analysis` ist die einzige Fassung für Analyse und
-Weitergabe. Sie entfernt Session-Erstellungs- und Abschlusszeitpunkt, Client-/Server-Kalenderzeiten,
-technische monotone Startwerte sowie Erstellungszeitpunkte von Antworten und Präsentationen.
-Sequenz, Phase, Segment, Ereignistyp, Dauer, notwendige Fehlercodes, Versionen, Condition,
-Guardrail-Form, Completion-Status und pseudonyme Forschungs-ID bleiben erhalten.
+## Verbotene Datenflüsse
 
-Tatsächlich ausgefüllte Freitextantworten erscheinen im Analyseprofil nicht in `responses`, sondern
-ausschließlich in `free-text-review` mit Status `pending-review`. Leere optionale Freitexte bleiben
-als `null` analysierbar. Vor einer Übernahme in die Analyse müssen Rohtexte manuell auf Namen, Orte,
-Lehrveranstaltungen und andere identifizierende Angaben geprüft und bereinigt werden. Das Manifest
-weist Anzahl und Prüfstatus aus.
-Das native SecAware-Abschlussquiz ist aus dem gemessenen Referenzpfad entfernt; PassWo-interne
-Lernfragen dürfen bestehen, werden aber ebenso wenig als gemeinsamer Outcome exportiert. Beide
-Bedingungen bearbeiten den gemeinsamen externen Guardrail.
+Unzulässig sind insbesondere:
 
-Der getrennte Schedule-Export enthält ausschließlich E-Mail, individuellen Token-Link sowie
-Einladungs-, Erinnerungs- und Schließzeitpunkte. Er enthält weder Condition noch
-Forschungsantworten.
-
-## Noch einzutragende Fristenmatrix
-
-Die konkrete Frist ist die einzige verbleibende Datenschutzentscheidung und wird vor dem Study
-Freeze einheitlich in Teilnehmerinformation, Instrumentprojektion und Freeze-Dokument ergänzt:
-
-| Datenklasse | Frist / Startpunkt |
-| --- | --- |
-| Recontact, Schedule und Mailkopien | `[vor Study Freeze festlegen]` |
-| Forschungsdaten und Audit-/Analyseexporte | `[vor Study Freeze festlegen]` |
-| unvollständige Sessions | `[vor Study Freeze festlegen]` |
-| verschlüsselte Backups | `[vor Study Freeze festlegen]` |
-
-Die Runtime führt keine automatische fristbasierte Löschung aus; ausschließlich der oben definierte,
-ausdrücklich bestätigte lokale CLI-Workflow kann einzelne aktive Research- und
-Recontact-Datensätze löschen. Externe Kopien folgen dem dokumentierten organisatorischen Abgleich.
+- Persistenz realer oder fiktiver Passwortwerte, Passwortteile oder lokaler Findings;
+- Logging von Request-Bodies, Eingabewerten, IP-Adressen oder User-Agents;
+- Aufnahme von E-Mail oder Roh-Token in Forschungsantworten oder Exporte;
+- clientseitige Wahl von Bedingung oder Guardrail-Form;
+- Auslieferung von Scoring-Rubriken an den Teilnehmerclient;
+- Bündelung der Follow-up-Fragen mit Training oder Hauptfragebogen.

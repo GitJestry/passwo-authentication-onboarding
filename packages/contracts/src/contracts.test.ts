@@ -425,20 +425,27 @@ describe('research-safe contracts', () => {
     ).toBe(false);
   });
 
-  it('keeps the generated runtime manifest fully synchronized with the reviewed projection', () => {
+  it('keeps the generated runtime manifest fully synchronized with the frozen projection', () => {
     expect(instrumentRuntimeManifest).toEqual(reviewedInstrumentRuntimeManifest);
     expect(JSON.stringify(instrumentRuntimeManifest)).not.toMatch(
       /"[^"]*(?:classification|scor(?:e|ing)|derivedMetric)[^"]*"\s*:/iu,
     );
     expect(instrumentRuntimeManifest.procedures.followUpRecontact.optional).toBe(true);
     expect(instrumentRuntimeManifest).toMatchObject({
-      instrumentVersion: '1.9.0-draft',
-      questionnaireVersion: 'questionnaire-v1.5-draft',
-      guardrailVersion: 'guardrail-v3-draft',
+      instrumentVersion: '2.0.0',
+      questionnaireVersion: 'questionnaire-v2',
+      guardrailVersion: 'guardrail-v4',
       consentVersion: 'consent-v6-draft',
-      followUpVersion: 'follow-up-v3-draft',
-      runtimeManifestVersion: 'instrument-runtime-v1.9-draft',
+      followUpVersion: 'follow-up-v4',
+      runtimeManifestVersion: 'instrument-runtime-v2',
     });
+    expect(Object.keys(instrumentRuntimeManifest.instruments)).toEqual([
+      'pre-v1',
+      'post-v1',
+      'guardrail-v2',
+      'post-open-v1',
+    ]);
+
     const preItemIds = instrumentRuntimeManifest.instruments['pre-v1'].sections.flatMap((section) =>
       section.items.map((item) => item.id),
     );
@@ -450,59 +457,58 @@ describe('research-safe contracts', () => {
       'PRE_ROLE',
       'PRE_FIELD',
       'PRE_AGE',
-      'PRE_SECAWARE',
       'PRE_TRAINING',
       'PRE_PM_USE',
       'PRE_MFA_USE',
-      'SE_PASSWORDS_PRE',
-      'SE_PM_CREATE_STORE_PRE',
-      'SE_PM_RETRIEVE_USE_PRE',
-      'SE_MFA_PRE',
+      'SE_DISTINCT_ACCESS_PRE',
+      'SE_PM_NEW_ACCOUNT_PRE',
+      'SE_PM_LOGIN_PRE',
+      'SE_MFA_ENABLE_PRE',
     ]);
     expect(postInstrument.order).toEqual([
-      'time',
       'ueqs',
-      'focus',
-      'credibility_understanding',
+      'content_trustworthiness',
+      'duration',
+      'design_diagnostics',
+      'risk_understanding',
       'self_efficacy',
+      'secaware_prior_exposure',
     ]);
-    expect(postItemIds).toHaveLength(26);
+    expect(postItemIds).toHaveLength(28);
     expect(JSON.stringify({ preItemIds, postItemIds })).not.toMatch(
-      /PRE_GENDER|PRE_FAM_|FOCUS_TF5|EMOTION_|SE_PM_(?:PRE|POST)/u,
+      /PRE_GENDER|PRE_FAM_|TIME_FELT|TIME_VALUE|FOCUS_TF|EMOTION_|CRED_/u,
     );
-    expect(instrumentRuntimeManifest.instruments['follow-up-v1'].estimatedMinutesRange).toEqual({
-      min: 1,
-      max: 2,
+
+    const guardrail = instrumentRuntimeManifest.instruments['guardrail-v2'];
+    expect(guardrail.blocks.map((block) => block.id)).toEqual(['scenarios', 'recognition']);
+    expect(guardrail.nativeArtifactCheckPolicy).toEqual({
+      passwoNativeLearningChecksRetained: true,
+      secAwareNativeQuizIncludedInMeasuredPath: false,
+      secAwareQuizRemovalReason: 'avoid_immediate_feedback_contamination_of_external_guardrail',
+      externalItemsMustBeNovelAndTransferOriented: true,
     });
-    expect(instrumentRuntimeManifest.instruments['guardrail-v2'].nativeArtifactCheckPolicy).toEqual(
-      {
-        passwoNativeLearningChecksRetained: true,
-        secAwareNativeQuizIncludedInMeasuredPath: false,
-        secAwareQuizRemovalReason: 'avoid_immediate_feedback_contamination_of_external_guardrail',
-        externalItemsMustBeNovelAndTransferOriented: true,
-      },
-    );
-    const forms = instrumentRuntimeManifest.instruments['guardrail-v2'].optionPresentation.forms;
-    const bestOptionIds = [
-      'distinct_per_account',
-      'distinct_generate_or_store',
+    const forms = guardrail.optionPresentation.forms;
+    const correctOptionIds = [
+      'new_distinct_both',
+      'own_with_pm',
+      'unique_and_mfa',
+      'same_tried_elsewhere',
+      'account_specific_store_use',
       'additional_barrier',
-      'distinct_for_both',
-      'unique_with_pm_retrieve',
-      'new_unique_and_mfa',
     ];
+    const formIds = ['F1', 'F2', 'F3', 'F4', 'F5', 'F6'] as const;
+    for (const itemIndex of guardrail.questionOrder.keys()) {
+      const itemId = guardrail.questionOrder[itemIndex];
+      const correctOptionId = correctOptionIds[itemIndex];
+      if (itemId === undefined || correctOptionId === undefined) throw new Error('test-fixture');
+      expect(
+        formIds.map((formId) => forms[formId][itemId]?.indexOf(correctOptionId) ?? -1).sort(),
+      ).toEqual([0, 0, 1, 1, 2, 2]);
+      expect(formIds.every((formId) => forms[formId][itemId]?.at(-1) === 'unsure')).toBe(true);
+    }
     expect(
-      (['F1', 'F2', 'F3'] as const).map((formId) =>
-        instrumentRuntimeManifest.instruments['guardrail-v2'].questionOrder.map(
-          (itemId, itemIndex) =>
-            forms[formId][itemId]?.indexOf(bestOptionIds[itemIndex] ?? '') ?? -1,
-        ),
-      ),
-    ).toEqual([
-      [0, 1, 2, 0, 1, 2],
-      [2, 0, 1, 2, 0, 1],
-      [1, 2, 0, 1, 2, 0],
-    ]);
+      new Set(Object.values(guardrail.questionPresentation.scenarioOrderByForm).map(String)).size,
+    ).toBe(6);
     expect(JSON.stringify(instrumentRuntimeManifest.procedures.participantInformation)).not.toMatch(
       /zufällig zugeordnet|zwei deutschsprachige Lernangebote werden verglichen/u,
     );
@@ -522,7 +528,6 @@ describe('research-safe contracts', () => {
       instrumentId: 'pre-v1',
       sectionId: 'experience',
       responses: [
-        { itemId: 'PRE_SECAWARE', value: 'never_heard' },
         { itemId: 'PRE_TRAINING', value: 'never' },
         {
           itemId: 'PRE_PM_USE',
@@ -535,10 +540,10 @@ describe('research-safe contracts', () => {
       instrumentId: 'pre-v1',
       sectionId: 'self_efficacy',
       responses: [
-        { itemId: 'SE_PASSWORDS_PRE', value: 0 },
-        { itemId: 'SE_PM_CREATE_STORE_PRE', value: 5 },
-        { itemId: 'SE_PM_RETRIEVE_USE_PRE', value: 5 },
-        { itemId: 'SE_MFA_PRE', value: 10 },
+        { itemId: 'SE_DISTINCT_ACCESS_PRE', value: 0 },
+        { itemId: 'SE_PM_NEW_ACCOUNT_PRE', value: 5 },
+        { itemId: 'SE_PM_LOGIN_PRE', value: 5 },
+        { itemId: 'SE_MFA_ENABLE_PRE', value: 10 },
       ],
     };
 
@@ -571,11 +576,8 @@ describe('research-safe contracts', () => {
       instrumentSubmissionRequestSchema.safeParse({
         instrumentId: 'post-open-v1',
         sectionId: 'post-open',
-        responses: [
-          { itemId: 'OPEN_HELPFUL', value: null },
-          { itemId: 'OPEN_UNCLEAR', value: '   ' },
-        ],
+        responses: [{ itemId: 'OPEN_COMMENT', value: null }],
       }).success,
-    ).toBe(false);
+    ).toBe(true);
   });
 });

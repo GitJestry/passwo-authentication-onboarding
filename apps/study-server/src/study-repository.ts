@@ -925,7 +925,7 @@ export class StudyRepository {
         )
         .get(condition),
     );
-    const forms: GuardrailFormId[] = ['F1', 'F2', 'F3'];
+    const forms: GuardrailFormId[] = ['F1', 'F2', 'F3', 'F4', 'F5', 'F6'];
     for (let index = forms.length - 1; index > 0; index -= 1) {
       const swapIndex = this.#random.randomIndex(index + 1);
       if (swapIndex < 0 || swapIndex > index) {

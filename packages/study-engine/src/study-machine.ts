@@ -863,7 +863,12 @@ export function createStudyMachine(ports: StudyRuntimePorts) {
                 target: 'saving',
                 actions: 'loadNextQuestionnaireSubmission',
               },
-              { target: '#study.guardrails', actions: 'clearQuestionnaireDrafts' },
+              {
+                guard: 'nextBlockIsGuardrail',
+                target: '#study.guardrails',
+                actions: 'clearQuestionnaireDrafts',
+              },
+              { target: '#study.postOpen', actions: 'clearQuestionnaireDrafts' },
             ],
           },
         },
@@ -908,6 +913,7 @@ export function createStudyMachine(ports: StudyRuntimePorts) {
           routing: {
             always: [
               { guard: 'nextBlockIsGuardrail', target: 'editing' },
+              { guard: 'nextBlockIsPost', target: '#study.postQuestionnaire' },
               { target: '#study.postOpen' },
             ],
           },

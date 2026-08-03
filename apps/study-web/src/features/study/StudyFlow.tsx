@@ -1,7 +1,9 @@
 import {
   type DeletionCode,
+  immediatePostSectionIds,
   instrumentRuntimeManifest,
   mainInstrumentBlocks,
+  postGuardrailSectionIds,
   recontactEmailSchema,
 } from '@passwo/contracts';
 import { createStudyMachine } from '@passwo/study-engine';
@@ -572,10 +574,12 @@ export function StudyFlow() {
             (candidate) => candidate.id === currentQuestionnaireBlock.sectionId,
           )
         : undefined;
+    const sectionGroup =
+      section !== undefined && immediatePostSectionIds.some((sectionId) => sectionId === section.id)
+        ? immediatePostSectionIds
+        : postGuardrailSectionIds;
     const sectionIndex =
-      section === undefined
-        ? -1
-        : postInstrument.sections.findIndex((candidate) => candidate.id === section.id);
+      section === undefined ? -1 : sectionGroup.findIndex((sectionId) => sectionId === section.id);
     content =
       section === undefined || sectionIndex < 0 ? (
         <ConfigurationError errorCode="post-instrument-cursor-invalid" />
@@ -586,7 +590,7 @@ export function StudyFlow() {
           section={section}
           title="Fragebogen nach dem Lernangebot"
           currentSection={sectionIndex + 1}
-          sectionCount={postInstrument.sections.length}
+          sectionCount={sectionGroup.length}
           initialSubmission={context.questionnaireDrafts[context.questionnaireBlockCursor] ?? null}
           onBack={(payload) => send({ type: 'BACK_POST', payload })}
           onSubmit={(payload) => send({ type: 'SUBMIT_POST', payload })}

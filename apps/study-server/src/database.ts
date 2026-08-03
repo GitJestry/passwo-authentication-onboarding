@@ -192,6 +192,43 @@ const optionalFollowUpSchema = `
      );
 `;
 
+const sixGuardrailFormsSchema = `
+  ALTER TABLE study_sessions ADD COLUMN guardrail_form_id_v4 TEXT
+    CHECK (guardrail_form_id_v4 IN ('F1', 'F2', 'F3', 'F4', 'F5', 'F6'));
+  UPDATE study_sessions SET guardrail_form_id_v4 = guardrail_form_id;
+  ALTER TABLE study_sessions DROP COLUMN guardrail_form_id;
+  ALTER TABLE study_sessions RENAME COLUMN guardrail_form_id_v4 TO guardrail_form_id;
+
+  ALTER TABLE response_presentations RENAME TO response_presentations_before_six_forms;
+  CREATE TABLE response_presentations (
+    session_id TEXT NOT NULL REFERENCES study_sessions(session_id),
+    instrument_id TEXT NOT NULL,
+    instrument_version TEXT NOT NULL,
+    section_id TEXT NOT NULL,
+    item_id TEXT NOT NULL,
+    form_id TEXT NOT NULL CHECK (form_id IN ('F1', 'F2', 'F3', 'F4', 'F5', 'F6')),
+    option_ids_json TEXT NOT NULL,
+    created_at_iso TEXT NOT NULL,
+    PRIMARY KEY (session_id, instrument_id, section_id, item_id)
+  );
+  INSERT INTO response_presentations
+  SELECT * FROM response_presentations_before_six_forms;
+  DROP TABLE response_presentations_before_six_forms;
+
+  ALTER TABLE guardrail_form_slots RENAME TO guardrail_form_slots_before_six_forms;
+  CREATE TABLE guardrail_form_slots (
+    condition TEXT NOT NULL CHECK (condition IN ('supportive', 'reference')),
+    block_number INTEGER NOT NULL,
+    slot_index INTEGER NOT NULL,
+    form_id TEXT NOT NULL CHECK (form_id IN ('F1', 'F2', 'F3', 'F4', 'F5', 'F6')),
+    session_id TEXT UNIQUE REFERENCES study_sessions(session_id),
+    PRIMARY KEY (condition, block_number, slot_index)
+  );
+  INSERT INTO guardrail_form_slots
+  SELECT * FROM guardrail_form_slots_before_six_forms;
+  DROP TABLE guardrail_form_slots_before_six_forms;
+`;
+
 const recontactSchema = `
   CREATE TABLE IF NOT EXISTS recontact.registrations (
     session_id TEXT PRIMARY KEY,
@@ -371,6 +408,10 @@ const migrations: readonly Migration[] = [
   {
     version: 6,
     apply: migrateResearchIdentitySeparation,
+  },
+  {
+    version: 7,
+    apply: (database) => database.exec(sixGuardrailFormsSchema),
   },
 ];
 

@@ -1,0 +1,153 @@
+version: follow-up-v4
+language: de-DE
+runtimeBoundary:
+  bundledWithMainStudyClient: false
+  importedIntoMainResearchRuntime: false
+  delivery: separate tokenized follow-up questionnaire
+schedule:
+  firstInvitationDelayHours: 240
+  reminderDelayAfterFirstInvitationHours: 48
+  closeAfterSessionHours: 336
+  estimatedMinutes:
+    min: 1
+    max: 2
+email:
+  subject: Kurze Nachbefragung zur Studie
+  containsAuthenticationAdvice: false
+  body: |-
+    Hallo,
+
+    vor zehn Tagen hast du an unserer Studie zu Passwörtern und dem Schutz von Online-Konten teilgenommen und einer kurzen Nachbefragung zugestimmt.
+
+    Die Nachbefragung dauert etwa ein bis zwei Minuten. Bitte berichte nur Handlungen, die du nach deiner Studienteilnahme und bereits vor dem in der Befragung genannten Stichtag abgeschlossen hattest.
+
+    Zur Nachbefragung: [TOKEN_LINK]
+
+    Die Teilnahme ist freiwillig. Der Link ist bis [CLOSES_AT] gültig. Bitte leite ihn nicht weiter.
+
+    Vielen Dank für deine Unterstützung.
+reminderEmail:
+  subject: Erinnerung: kurze Nachbefragung zur Studie
+  containsAuthenticationAdvice: false
+  body: |-
+    Hallo,
+
+    dies ist die einmalige Erinnerung an die kurze Nachbefragung zu deiner Studienteilnahme. Falls du bereits geantwortet hast oder nicht teilnehmen möchtest, kannst du diese Nachricht ignorieren.
+
+    Zur Nachbefragung: [TOKEN_LINK]
+
+    Der Link ist bis [CLOSES_AT] gültig.
+questionnaire:
+  title: Kurze Nachbefragung zur Studie
+  reportingInstruction: Bitte beziehe dich ausschließlich auf Handlungen, die du nach deiner Studienteilnahme und bereits vor [STICHTAG] abgeschlossen hattest.
+  safetyNote: Öffne oder ändere für diese Befragung keine Kontoeinstellungen. Bitte nenne keine Konten, Dienste, Passwörter, Anmeldecodes oder Wiederherstellungsdaten.
+  items:
+    - id: FU_PASSWORD_PM_ACTIONS
+      type: multiChoice
+      prompt: Welche der folgenden Handlungen hast du nach der Studie und vor dem oben genannten Zeitpunkt durchgeführt?
+      instruction: Mehrfachauswahl ist möglich. Integrierte und separat installierte Passwortmanager zählen gleichermaßen.
+      options:
+        - id: replaced_reused_or_varied_password
+          label: Ich habe bei mindestens einem bestehenden Konto ein Passwort ersetzt, das ich auch bei einem anderen Konto verwendet oder nur leicht verändert hatte.
+        - id: inspected_available_manager
+          label: Ich habe geprüft, welcher Passwortmanager auf meinem Gerät oder in meinem Browser verfügbar ist.
+        - id: generated_stored_account_specific
+          label: Ich habe mit einem Passwortmanager für mindestens eines meiner Konten ein eigenes Passwort erzeugt und gespeichert.
+        - id: used_retrieval_or_autofill
+          label: Ich habe ein gespeichertes Passwort bewusst über Autofill oder durch Abruf aus dem Passwortmanager verwendet.
+        - id: none
+          label: Keine dieser Handlungen.
+      exclusiveOptions: [none]
+    - id: FU_MFA_ACTIONS
+      type: multiChoice
+      prompt: Welche der folgenden Handlungen hast du nach der Studie und vor dem oben genannten Zeitpunkt durchgeführt?
+      instruction: Mehrfachauswahl ist möglich.
+      options:
+        - id: checked_availability_or_status
+          label: Ich habe bei mindestens einem Konto geprüft, ob MFA/2FA verfügbar oder bereits aktiviert ist.
+        - id: enabled_mfa
+          label: Ich habe MFA/2FA bei mindestens einem meiner Konten aktiviert.
+        - id: none
+          label: Keine dieser Handlungen.
+      exclusiveOptions: [none]
+    - id: FU_REUSE_OPPORTUNITY
+      type: singleChoice
+      prompt: Gab es nach deiner Einschätzung bereits vor der Studie mindestens zwei Konten, für die du dasselbe Passwort oder nur leicht veränderte Varianten desselben Passworts verwendet hast?
+      options:
+        - id: yes
+          label: Ja.
+        - id: no
+          label: Nein.
+        - id: unsure
+          label: Unsicher.
+        - id: prefer_not_to_answer
+          label: Möchte ich nicht angeben.
+    - id: FU_PASSWORD_PM_NONE_REASON
+      type: singleChoice
+      displayWhen:
+        itemId: FU_PASSWORD_PM_ACTIONS
+        contains: none
+      prompt: Was war der wichtigste Grund dafür, dass du im Bereich Passwörter und Passwortmanager keine der genannten Handlungen durchgeführt hast?
+      options:
+        - id: already_completed
+          label: Die relevanten Schritte waren bereits vor der Studie erledigt.
+        - id: no_opportunity
+          label: Im Zeitraum bestand keine passende Gelegenheit.
+        - id: intended_not_done
+          label: Die Handlung ist weiterhin beabsichtigt, aber noch nicht erfolgt.
+        - id: unsure_how
+          label: Ich war unsicher über die konkrete Umsetzung.
+        - id: time_or_effort
+          label: Der zeitliche oder praktische Aufwand war zu hoch.
+        - id: trust_access_recovery_concerns
+          label: Ich hatte Bedenken bezüglich Vertrauen, Zugang oder Wiederherstellung.
+        - id: technical_barrier
+          label: Es gab technische Hindernisse.
+        - id: not_relevant
+          label: Das Thema hatte derzeit keine persönliche Relevanz.
+        - id: other
+          label: Anderer Grund.
+      otherText:
+        optional: true
+        maxLength: 300
+    - id: FU_MFA_NONE_REASON
+      type: singleChoice
+      displayWhen:
+        itemId: FU_MFA_ACTIONS
+        contains: none
+      prompt: Was war der wichtigste Grund dafür, dass du im Bereich MFA/2FA keine der genannten Handlungen durchgeführt hast?
+      options:
+        - id: already_completed
+          label: Die relevanten Schritte waren bereits vor der Studie erledigt.
+        - id: no_opportunity
+          label: Im Zeitraum bestand keine passende Gelegenheit.
+        - id: intended_not_done
+          label: Die Handlung ist weiterhin beabsichtigt, aber noch nicht erfolgt.
+        - id: unsure_how
+          label: Ich war unsicher über die konkrete Umsetzung.
+        - id: time_or_effort
+          label: Der zeitliche oder praktische Aufwand war zu hoch.
+        - id: trust_access_recovery_concerns
+          label: Ich hatte Bedenken bezüglich Vertrauen, Zugang oder Wiederherstellung.
+        - id: technical_barrier
+          label: Es gab technische Hindernisse.
+        - id: not_relevant
+          label: Das Thema hatte derzeit keine persönliche Relevanz.
+        - id: other
+          label: Anderer Grund.
+      otherText:
+        optional: true
+        maxLength: 300
+analysis:
+  focalOutcomes:
+    - replaced_reused_or_varied_password
+    - generated_stored_account_specific
+    - enabled_mfa
+  secondaryDescriptiveOutcomes:
+    - inspected_available_manager
+    - used_retrieval_or_autofill
+    - checked_availability_or_status
+  combinedScore: false
+  nonResponseMeaning: missing
+  opportunityDependent: true
+  reuseReplacementOpportunityItem: FU_REUSE_OPPORTUNITY

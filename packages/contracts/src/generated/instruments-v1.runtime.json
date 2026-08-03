@@ -1,11 +1,11 @@
 {
-  "schemaVersion": 2,
-  "instrumentVersion": "1.9.0-draft",
-  "questionnaireVersion": "questionnaire-v1.5-draft",
-  "guardrailVersion": "guardrail-v3-draft",
+  "schemaVersion": 3,
+  "instrumentVersion": "2.0.0",
+  "questionnaireVersion": "questionnaire-v2",
+  "guardrailVersion": "guardrail-v4",
   "consentVersion": "consent-v6-draft",
-  "followUpVersion": "follow-up-v3-draft",
-  "runtimeManifestVersion": "instrument-runtime-v1.9-draft",
+  "followUpVersion": "follow-up-v4",
+  "runtimeManifestVersion": "instrument-runtime-v2",
   "language": "de-DE",
   "participantTerm": "Lernangebot",
   "scales": {
@@ -30,7 +30,7 @@
       "anchors": {
         "0": "überhaupt nicht zuversichtlich",
         "5": "mäßig zuversichtlich",
-        "10": "vollständig zuversichtlich"
+        "10": "völlig zuversichtlich"
       }
     },
     "durationAppropriateness7": {
@@ -38,9 +38,13 @@
       "min": 1,
       "max": 7,
       "anchors": {
-        "1": "viel zu kurz",
+        "1": "deutlich zu kurz",
+        "2": "zu kurz",
+        "3": "eher zu kurz",
         "4": "genau richtig",
-        "7": "viel zu lang"
+        "5": "eher zu lang",
+        "6": "zu lang",
+        "7": "deutlich zu lang"
       }
     },
     "ueqSemanticDifferential7": {
@@ -48,6 +52,20 @@
       "min": 1,
       "max": 7,
       "derivedTransform": "value - 4"
+    },
+    "riskPresentation7": {
+      "type": "integer",
+      "min": 1,
+      "max": 7,
+      "anchors": {
+        "1": "deutlich verharmlost",
+        "2": "verharmlost",
+        "3": "eher verharmlost",
+        "4": "angemessen",
+        "5": "eher übertrieben",
+        "6": "übertrieben",
+        "7": "deutlich übertrieben"
+      }
     }
   },
   "procedures": {
@@ -311,37 +329,6 @@
           "id": "experience",
           "items": [
             {
-              "id": "PRE_SECAWARE",
-              "type": "singleChoice",
-              "prompt": "Wie vertraut bist du bereits mit SecAware.NRW?",
-              "options": [
-                {
-                  "id": "never_heard",
-                  "label": "Noch nie davon gehört"
-                },
-                {
-                  "id": "heard_not_used",
-                  "label": "Davon gehört, aber nicht genutzt"
-                },
-                {
-                  "id": "used_other_secaware_content",
-                  "label": "SecAware.NRW genutzt, aber nicht das Modul „Passwörter & Authentifizierung“"
-                },
-                {
-                  "id": "viewed_or_started_password_auth_module",
-                  "label": "Das Modul „Passwörter & Authentifizierung“ angesehen oder begonnen, aber nicht abgeschlossen"
-                },
-                {
-                  "id": "completed_password_auth_module",
-                  "label": "Das Modul „Passwörter & Authentifizierung“ vollständig bearbeitet"
-                },
-                {
-                  "id": "unsure",
-                  "label": "Unsicher"
-                }
-              ]
-            },
-            {
               "id": "PRE_TRAINING",
               "type": "singleChoice",
               "prompt": "Wie oft hast du bereits ein Training oder Lernmodul zu Passwörtern, Passwortmanagern oder MFA/2FA bearbeitet?",
@@ -367,24 +354,24 @@
             {
               "id": "PRE_PM_USE",
               "type": "multiChoice",
-              "prompt": "Welche Arten von Passwortmanager-Lösungen nutzt du aktuell?",
+              "prompt": "Welche Möglichkeiten nutzt du aktuell, um Passwörter zu speichern oder beim Anmelden einzusetzen?",
               "instruction": "Mehrfachauswahl ist möglich.",
               "options": [
                 {
                   "id": "browser_or_device_integrated",
-                  "label": "Im Browser, Betriebssystem oder Gerät integrierter Passwortmanager, einschließlich gespeicherter Passwörter und Autofill"
+                  "label": "Die im Browser, Betriebssystem oder Gerät integrierte Funktion verwenden, um Passwörter zu speichern oder automatisch ausfüllen zu lassen."
                 },
                 {
                   "id": "separate_app_or_extension",
-                  "label": "Separate Passwortmanager-App oder Browser-Erweiterung"
+                  "label": "Eine separate Passwortmanager-App oder deren Browser-Erweiterung verwenden."
                 },
                 {
                   "id": "none",
-                  "label": "Keine davon"
+                  "label": "Keine dieser Möglichkeiten."
                 },
                 {
                   "id": "unsure",
-                  "label": "Unsicher"
+                  "label": "Unsicher."
                 }
               ],
               "exclusiveOptions": [
@@ -395,27 +382,31 @@
             {
               "id": "PRE_MFA_USE",
               "type": "singleChoice",
-              "prompt": "Bei wie vielen deiner wichtigen Konten ist MFA/2FA aktiviert, soweit der jeweilige Dienst dies anbietet?",
+              "prompt": "Bei wie vielen Konten, die dir persönlich wichtig sind, ist nach deinem Wissen eine Mehrfaktor- oder Zwei-Faktor-Authentifizierung (MFA/2FA) aktiviert?",
               "options": [
                 {
                   "id": "none",
-                  "label": "Bei keinem"
+                  "label": "Bei keinem."
                 },
                 {
                   "id": "few",
-                  "label": "Bei wenigen"
+                  "label": "Bei wenigen."
                 },
                 {
                   "id": "about_half",
-                  "label": "Bei ungefähr der Hälfte"
+                  "label": "Bei etwa der Hälfte."
                 },
                 {
-                  "id": "most_or_all",
-                  "label": "Bei den meisten oder allen wichtigen Konten"
+                  "id": "most",
+                  "label": "Bei den meisten."
+                },
+                {
+                  "id": "all",
+                  "label": "Bei allen."
                 },
                 {
                   "id": "unsure",
-                  "label": "Unsicher"
+                  "label": "Unsicher."
                 }
               ]
             }
@@ -423,31 +414,31 @@
         },
         {
           "id": "self_efficacy",
-          "instruction": "Wie zuversichtlich bist du, die folgenden Aufgaben derzeit bewältigen zu können?",
+          "instruction": "Wie zuversichtlich bist du derzeit, die folgenden Aufgaben selbstständig durchführen zu können?",
           "items": [
             {
-              "id": "SE_PASSWORDS_PRE",
+              "id": "SE_DISTINCT_ACCESS_PRE",
               "type": "scale",
               "scale": "confidence11",
-              "prompt": "Passwörter für mehrere Konten praktikabel verwalten."
+              "prompt": "Für mehrere Konten unterschiedliche Passwörter so verwalten, dass ich mich später bei jedem Konto wieder anmelden kann."
             },
             {
-              "id": "SE_PM_CREATE_STORE_PRE",
+              "id": "SE_PM_NEW_ACCOUNT_PRE",
               "type": "scale",
               "scale": "confidence11",
-              "prompt": "Einen Passwortmanager verwenden, um für ein Konto ein Passwort zu erzeugen und zu speichern."
+              "prompt": "Mit einem Passwortmanager für ein neues Konto ein nur dort verwendetes Passwort erzeugen und speichern."
             },
             {
-              "id": "SE_PM_RETRIEVE_USE_PRE",
+              "id": "SE_PM_LOGIN_PRE",
               "type": "scale",
               "scale": "confidence11",
-              "prompt": "Ein gespeichertes Passwort aus einem Passwortmanager bei einer Anmeldung verwenden."
+              "prompt": "Ein im Passwortmanager gespeichertes Passwort bei einer späteren Anmeldung abrufen oder automatisch ausfüllen lassen."
             },
             {
-              "id": "SE_MFA_PRE",
+              "id": "SE_MFA_ENABLE_PRE",
               "type": "scale",
               "scale": "confidence11",
-              "prompt": "MFA/2FA bei einem wichtigen Konto aktivieren."
+              "prompt": "MFA/2FA in den Einstellungen eines wichtigen Kontos aktivieren."
             }
           ]
         }
@@ -455,38 +446,15 @@
     },
     "post-v1": {
       "order": [
-        "time",
         "ueqs",
-        "focus",
-        "credibility_understanding",
-        "self_efficacy"
+        "content_trustworthiness",
+        "duration",
+        "design_diagnostics",
+        "risk_understanding",
+        "self_efficacy",
+        "secaware_prior_exposure"
       ],
       "sections": [
-        {
-          "id": "time",
-          "objectiveDurationHiddenUntilSectionCommitted": true,
-          "items": [
-            {
-              "id": "TIME_FELT_MINUTES",
-              "type": "integer",
-              "min": 1,
-              "max": 90,
-              "prompt": "Wie lange hat sich das Lernangebot für dich angefühlt? Bitte schätze in ganzen Minuten."
-            },
-            {
-              "id": "TIME_FIT",
-              "type": "scale",
-              "scale": "durationAppropriateness7",
-              "prompt": "Die Dauer des Lernangebots war für mich …"
-            },
-            {
-              "id": "TIME_VALUE",
-              "type": "scale",
-              "scale": "agreement7",
-              "prompt": "Die aufgewendete Zeit stand in einem angemessenen Verhältnis zum Nutzen des Lernangebots."
-            }
-          ]
-        },
         {
           "id": "ueqs",
           "source": "UEQ-S official German items",
@@ -552,75 +520,114 @@
           ]
         },
         {
-          "id": "focus",
-          "aggregate": false,
-          "instruction": "Wie sehr stimmst du den folgenden Aussagen über das Lernangebot zu?",
+          "id": "content_trustworthiness",
+          "source": "UEQ+ Trustworthiness of Content, official German items",
+          "preserveItemOrder": true,
+          "instruction": "Die Informationen und Daten, die mir das Lernangebot bereitstellt, sind:",
+          "items": [
+            {
+              "id": "UEQP_TOC1",
+              "type": "semanticDifferential",
+              "scale": "ueqSemanticDifferential7",
+              "left": "nutzlos",
+              "right": "nützlich"
+            },
+            {
+              "id": "UEQP_TOC2",
+              "type": "semanticDifferential",
+              "scale": "ueqSemanticDifferential7",
+              "left": "unglaubwürdig",
+              "right": "glaubwürdig"
+            },
+            {
+              "id": "UEQP_TOC3",
+              "type": "semanticDifferential",
+              "scale": "ueqSemanticDifferential7",
+              "left": "unseriös",
+              "right": "seriös"
+            },
+            {
+              "id": "UEQP_TOC4",
+              "type": "semanticDifferential",
+              "scale": "ueqSemanticDifferential7",
+              "left": "ungenau",
+              "right": "genau"
+            }
+          ]
+        },
+        {
+          "id": "duration",
+          "objectiveDurationHiddenUntilSectionCommitted": true,
+          "items": [
+            {
+              "id": "TIME_FIT",
+              "type": "scale",
+              "scale": "durationAppropriateness7",
+              "prompt": "Wie passend war die Dauer des Lernangebots für dich?"
+            }
+          ]
+        },
+        {
+          "id": "design_diagnostics",
           "items": [
             {
               "id": "USEFULNESS_PRACTICAL",
               "type": "scale",
               "scale": "agreement7",
-              "prompt": "Die Inhalte waren für den Schutz von Konten in meinem Alltag praktisch nützlich."
+              "prompt": "Die Inhalte waren nützlich, um Entscheidungen zum Schutz meiner Konten zu treffen."
             },
             {
-              "id": "FOCUS_TF1",
+              "id": "NONBLAMING_COMMUNICATION",
               "type": "scale",
               "scale": "agreement7",
-              "prompt": "Die Empfehlungen wurden vermittelt, ohne mir Vorwürfe zu machen."
+              "prompt": "Die Sicherheitsempfehlungen wurden ohne persönliche Vorwürfe vermittelt."
             },
             {
-              "id": "FOCUS_TF2",
+              "id": "PERSONAL_RELEVANCE",
               "type": "scale",
               "scale": "agreement7",
-              "prompt": "Die Beispiele halfen mir, die Bedeutung für Konten aus meinem Alltag zu erkennen."
+              "prompt": "Die Beispiele machten deutlich, warum die Inhalte für Konten relevant sind, die ich im Alltag nutze."
             },
             {
-              "id": "FOCUS_TF3",
+              "id": "APPLICATION_OPPORTUNITY",
               "type": "scale",
               "scale": "agreement7",
-              "prompt": "Während des Lernangebots konnte ich die Inhalte auf konkrete Kontosituationen anwenden."
+              "prompt": "Das Lernangebot gab mir Gelegenheit, die Inhalte auf konkrete Kontosituationen anzuwenden."
             },
             {
-              "id": "FOCUS_FEEDBACK",
+              "id": "MECHANISM_EXPLANATION",
               "type": "scale",
               "scale": "agreement7",
-              "prompt": "Die Erklärungen oder Rückmeldungen halfen mir zu verstehen, warum eine Entscheidung sinnvoll oder riskant war."
+              "prompt": "Das Lernangebot erklärte nachvollziehbar, warum die empfohlenen Maßnahmen Konten besser schützen."
             },
             {
-              "id": "FOCUS_TF4",
+              "id": "CONSEQUENCE_VISIBILITY",
               "type": "scale",
               "scale": "agreement7",
-              "prompt": "Die Folgen verschiedener Entscheidungen zum Schutz von Konten wurden für mich anschaulich."
+              "prompt": "Das Lernangebot stellte anschaulich dar, wie sich unterschiedliche Entscheidungen auf den Schutz von Konten auswirken."
             },
             {
-              "id": "FOCUS_TF6_MANAGE",
+              "id": "INFORMATION_MANAGEABILITY",
               "type": "scale",
               "scale": "agreement7",
               "prompt": "Die Informationsmenge war für mich gut zu bewältigen."
             },
             {
-              "id": "FOCUS_TF6_ACTION",
+              "id": "ACTION_CLARITY",
               "type": "scale",
               "scale": "agreement7",
-              "prompt": "Nach dem Lernangebot wusste ich, welche konkreten nächsten Schritte ich umsetzen könnte."
+              "prompt": "Nach dem Lernangebot war mir klar, welche konkreten Schritte ich als Nächstes zum Schutz eigener Konten unternehmen könnte."
             }
           ]
         },
         {
-          "id": "credibility_understanding",
-          "instruction": "Wie sehr stimmst du den folgenden Aussagen zur Glaubwürdigkeit und Verständlichkeit des Lernangebots zu?",
+          "id": "risk_understanding",
           "items": [
             {
-              "id": "CRED_TECHNICAL",
+              "id": "RISK_PRESENTATION",
               "type": "scale",
-              "scale": "agreement7",
-              "prompt": "Die Erklärungen wirkten technisch glaubwürdig."
-            },
-            {
-              "id": "CRED_BALANCED",
-              "type": "scale",
-              "scale": "agreement7",
-              "prompt": "Die Darstellung der Sicherheitsrisiken wirkte angemessen."
+              "scale": "riskPresentation7",
+              "prompt": "Wie wirkte die Darstellung der Sicherheitsrisiken auf dich?"
             },
             {
               "id": "UNDERSTANDING_GLOBAL",
@@ -632,49 +639,80 @@
         },
         {
           "id": "self_efficacy",
-          "instruction": "Wie zuversichtlich bist du, die folgenden Aufgaben derzeit bewältigen zu können?",
+          "instruction": "Wie zuversichtlich bist du derzeit, die folgenden Aufgaben selbstständig durchführen zu können?",
           "items": [
             {
-              "id": "SE_PASSWORDS_POST",
+              "id": "SE_DISTINCT_ACCESS_POST",
               "type": "scale",
               "scale": "confidence11",
-              "prompt": "Passwörter für mehrere Konten praktikabel verwalten."
+              "prompt": "Für mehrere Konten unterschiedliche Passwörter so verwalten, dass ich mich später bei jedem Konto wieder anmelden kann."
             },
             {
-              "id": "SE_PM_CREATE_STORE_POST",
+              "id": "SE_PM_NEW_ACCOUNT_POST",
               "type": "scale",
               "scale": "confidence11",
-              "prompt": "Einen Passwortmanager verwenden, um für ein Konto ein Passwort zu erzeugen und zu speichern."
+              "prompt": "Mit einem Passwortmanager für ein neues Konto ein nur dort verwendetes Passwort erzeugen und speichern."
             },
             {
-              "id": "SE_PM_RETRIEVE_USE_POST",
+              "id": "SE_PM_LOGIN_POST",
               "type": "scale",
               "scale": "confidence11",
-              "prompt": "Ein gespeichertes Passwort aus einem Passwortmanager bei einer Anmeldung verwenden."
+              "prompt": "Ein im Passwortmanager gespeichertes Passwort bei einer späteren Anmeldung abrufen oder automatisch ausfüllen lassen."
             },
             {
-              "id": "SE_MFA_POST",
+              "id": "SE_MFA_ENABLE_POST",
               "type": "scale",
               "scale": "confidence11",
-              "prompt": "MFA/2FA bei einem wichtigen Konto aktivieren."
+              "prompt": "MFA/2FA in den Einstellungen eines wichtigen Kontos aktivieren."
+            }
+          ]
+        },
+        {
+          "id": "secaware_prior_exposure",
+          "items": [
+            {
+              "id": "PRE_SECAWARE_RETROSPECTIVE",
+              "type": "singleChoice",
+              "prompt": "Welche Aussage traf bereits vor deiner heutigen Studienteilnahme auf dich zu?",
+              "options": [
+                {
+                  "id": "unknown",
+                  "label": "Ich kannte SecAware.NRW nicht."
+                },
+                {
+                  "id": "known_not_completed",
+                  "label": "Ich kannte SecAware.NRW, hatte das Modul „Passwörter & Authentifizierung“ aber noch nicht bearbeitet."
+                },
+                {
+                  "id": "partially_completed",
+                  "label": "Ich hatte das Modul bereits teilweise bearbeitet."
+                },
+                {
+                  "id": "fully_completed",
+                  "label": "Ich hatte das Modul bereits vollständig bearbeitet."
+                },
+                {
+                  "id": "unsure",
+                  "label": "Unsicher."
+                }
+              ]
             }
           ]
         }
       ]
     },
     "guardrail-v2": {
-      "participantTitle": "Kurze Abschlussfragen zum Kontoschutz",
-      "purpose": "criterion_referenced_immediate_safety_check",
+      "participantTitle": "Fragen zu den Inhalten",
+      "purpose": "immediate_understanding_guardrail",
       "comparisonScope": [
         "password_reuse",
-        "password_manager_for_distinct_passwords",
-        "mfa_as_additional_barrier"
+        "password_manager",
+        "mfa"
       ],
       "excludedFromPrimaryComparison": [
-        "detailed_password_strength",
-        "passwo_specific_methods",
-        "product_specific_setup",
-        "incident_response_beyond_shared_content"
+        "prototype_specific_password_thresholds",
+        "six_word_method",
+        "visualization_categories"
       ],
       "feedbackBeforeComplete": false,
       "mustNotDuplicateEmbeddedArtifactQuestions": true,
@@ -686,19 +724,61 @@
         "multipleResponseUsed": false
       },
       "questionOrder": [
+        "SC_BREACH_REUSE",
+        "SC_PM_MANY_ACCOUNTS",
+        "SC_LAYERED_PROTECTION",
         "MR_REUSE",
         "MR_PASSWORD_MANAGER",
-        "MR_MFA",
-        "SCENARIO_DISTINCT_PASSWORDS",
-        "SCENARIO_PM_MANY_ACCOUNTS",
-        "SCENARIO_UNIQUE_PLUS_MFA"
+        "MR_MFA"
       ],
+      "questionPresentation": {
+        "fixedRecognitionOrder": [
+          "MR_REUSE",
+          "MR_PASSWORD_MANAGER",
+          "MR_MFA"
+        ],
+        "scenarioOrderByForm": {
+          "F1": [
+            "SC_BREACH_REUSE",
+            "SC_PM_MANY_ACCOUNTS",
+            "SC_LAYERED_PROTECTION"
+          ],
+          "F2": [
+            "SC_BREACH_REUSE",
+            "SC_LAYERED_PROTECTION",
+            "SC_PM_MANY_ACCOUNTS"
+          ],
+          "F3": [
+            "SC_PM_MANY_ACCOUNTS",
+            "SC_BREACH_REUSE",
+            "SC_LAYERED_PROTECTION"
+          ],
+          "F4": [
+            "SC_PM_MANY_ACCOUNTS",
+            "SC_LAYERED_PROTECTION",
+            "SC_BREACH_REUSE"
+          ],
+          "F5": [
+            "SC_LAYERED_PROTECTION",
+            "SC_BREACH_REUSE",
+            "SC_PM_MANY_ACCOUNTS"
+          ],
+          "F6": [
+            "SC_LAYERED_PROTECTION",
+            "SC_PM_MANY_ACCOUNTS",
+            "SC_BREACH_REUSE"
+          ]
+        }
+      },
       "optionPresentation": {
         "strategy": "balanced_predefined_forms",
         "formIds": [
           "F1",
           "F2",
-          "F3"
+          "F3",
+          "F4",
+          "F5",
+          "F6"
         ],
         "fixedLastOptionId": "unsure",
         "assignedBy": "server",
@@ -711,116 +791,230 @@
         ],
         "forms": {
           "F1": {
+            "SC_BREACH_REUSE": [
+              "new_distinct_both",
+              "change_shop_only",
+              "mfa_email_keep_shared",
+              "unsure"
+            ],
+            "SC_PM_MANY_ACCOUNTS": [
+              "own_with_pm",
+              "unique_important_reuse_others",
+              "one_strong_everywhere",
+              "unsure"
+            ],
+            "SC_LAYERED_PROTECTION": [
+              "unique_and_mfa",
+              "unique_without_mfa",
+              "shared_strong_with_mfa",
+              "unsure"
+            ],
             "MR_REUSE": [
-              "distinct_per_account",
-              "one_long_reused_everywhere",
-              "reuse_with_mfa_for_important",
+              "same_tried_elsewhere",
+              "leak_contains_all",
+              "same_email_auto_connected",
               "unsure"
             ],
             "MR_PASSWORD_MANAGER": [
-              "store_similar_unchanged",
-              "distinct_generate_or_store",
-              "one_strong_reused",
+              "account_specific_store_use",
+              "same_strong_everywhere",
+              "auto_mfa",
               "unsure"
             ],
             "MR_MFA": [
-              "reuse_becomes_safe",
-              "prevents_password_exposure",
               "additional_barrier",
-              "unsure"
-            ],
-            "SCENARIO_DISTINCT_PASSWORDS": [
-              "distinct_for_both",
-              "same_long_for_both",
-              "same_core_service_name",
-              "unsure"
-            ],
-            "SCENARIO_PM_MANY_ACCOUNTS": [
-              "unique_only_for_important",
-              "unique_with_pm_retrieve",
-              "shared_in_pm",
-              "unsure"
-            ],
-            "SCENARIO_UNIQUE_PLUS_MFA": [
-              "reuse_long_and_mfa",
-              "new_unique_without_mfa",
-              "new_unique_and_mfa",
+              "reverses_exposure",
+              "reuse_safe",
               "unsure"
             ]
           },
           "F2": {
+            "SC_BREACH_REUSE": [
+              "change_shop_only",
+              "mfa_email_keep_shared",
+              "new_distinct_both",
+              "unsure"
+            ],
+            "SC_PM_MANY_ACCOUNTS": [
+              "unique_important_reuse_others",
+              "one_strong_everywhere",
+              "own_with_pm",
+              "unsure"
+            ],
+            "SC_LAYERED_PROTECTION": [
+              "unique_without_mfa",
+              "shared_strong_with_mfa",
+              "unique_and_mfa",
+              "unsure"
+            ],
             "MR_REUSE": [
-              "one_long_reused_everywhere",
-              "reuse_with_mfa_for_important",
-              "distinct_per_account",
+              "leak_contains_all",
+              "same_email_auto_connected",
+              "same_tried_elsewhere",
               "unsure"
             ],
             "MR_PASSWORD_MANAGER": [
-              "distinct_generate_or_store",
-              "one_strong_reused",
-              "store_similar_unchanged",
+              "same_strong_everywhere",
+              "auto_mfa",
+              "account_specific_store_use",
               "unsure"
             ],
             "MR_MFA": [
-              "prevents_password_exposure",
+              "reverses_exposure",
+              "reuse_safe",
               "additional_barrier",
-              "reuse_becomes_safe",
-              "unsure"
-            ],
-            "SCENARIO_DISTINCT_PASSWORDS": [
-              "same_long_for_both",
-              "same_core_service_name",
-              "distinct_for_both",
-              "unsure"
-            ],
-            "SCENARIO_PM_MANY_ACCOUNTS": [
-              "unique_with_pm_retrieve",
-              "shared_in_pm",
-              "unique_only_for_important",
-              "unsure"
-            ],
-            "SCENARIO_UNIQUE_PLUS_MFA": [
-              "new_unique_without_mfa",
-              "new_unique_and_mfa",
-              "reuse_long_and_mfa",
               "unsure"
             ]
           },
           "F3": {
+            "SC_BREACH_REUSE": [
+              "mfa_email_keep_shared",
+              "new_distinct_both",
+              "change_shop_only",
+              "unsure"
+            ],
+            "SC_PM_MANY_ACCOUNTS": [
+              "one_strong_everywhere",
+              "own_with_pm",
+              "unique_important_reuse_others",
+              "unsure"
+            ],
+            "SC_LAYERED_PROTECTION": [
+              "shared_strong_with_mfa",
+              "unique_and_mfa",
+              "unique_without_mfa",
+              "unsure"
+            ],
             "MR_REUSE": [
-              "reuse_with_mfa_for_important",
-              "distinct_per_account",
-              "one_long_reused_everywhere",
+              "same_email_auto_connected",
+              "same_tried_elsewhere",
+              "leak_contains_all",
               "unsure"
             ],
             "MR_PASSWORD_MANAGER": [
-              "one_strong_reused",
-              "store_similar_unchanged",
-              "distinct_generate_or_store",
+              "auto_mfa",
+              "account_specific_store_use",
+              "same_strong_everywhere",
+              "unsure"
+            ],
+            "MR_MFA": [
+              "reuse_safe",
+              "additional_barrier",
+              "reverses_exposure",
+              "unsure"
+            ]
+          },
+          "F4": {
+            "SC_BREACH_REUSE": [
+              "new_distinct_both",
+              "mfa_email_keep_shared",
+              "change_shop_only",
+              "unsure"
+            ],
+            "SC_PM_MANY_ACCOUNTS": [
+              "own_with_pm",
+              "one_strong_everywhere",
+              "unique_important_reuse_others",
+              "unsure"
+            ],
+            "SC_LAYERED_PROTECTION": [
+              "unique_and_mfa",
+              "shared_strong_with_mfa",
+              "unique_without_mfa",
+              "unsure"
+            ],
+            "MR_REUSE": [
+              "same_tried_elsewhere",
+              "same_email_auto_connected",
+              "leak_contains_all",
+              "unsure"
+            ],
+            "MR_PASSWORD_MANAGER": [
+              "account_specific_store_use",
+              "auto_mfa",
+              "same_strong_everywhere",
               "unsure"
             ],
             "MR_MFA": [
               "additional_barrier",
-              "reuse_becomes_safe",
-              "prevents_password_exposure",
+              "reuse_safe",
+              "reverses_exposure",
+              "unsure"
+            ]
+          },
+          "F5": {
+            "SC_BREACH_REUSE": [
+              "change_shop_only",
+              "new_distinct_both",
+              "mfa_email_keep_shared",
               "unsure"
             ],
-            "SCENARIO_DISTINCT_PASSWORDS": [
-              "same_core_service_name",
-              "distinct_for_both",
-              "same_long_for_both",
+            "SC_PM_MANY_ACCOUNTS": [
+              "unique_important_reuse_others",
+              "own_with_pm",
+              "one_strong_everywhere",
               "unsure"
             ],
-            "SCENARIO_PM_MANY_ACCOUNTS": [
-              "shared_in_pm",
-              "unique_only_for_important",
-              "unique_with_pm_retrieve",
+            "SC_LAYERED_PROTECTION": [
+              "unique_without_mfa",
+              "unique_and_mfa",
+              "shared_strong_with_mfa",
               "unsure"
             ],
-            "SCENARIO_UNIQUE_PLUS_MFA": [
-              "new_unique_and_mfa",
-              "reuse_long_and_mfa",
-              "new_unique_without_mfa",
+            "MR_REUSE": [
+              "leak_contains_all",
+              "same_tried_elsewhere",
+              "same_email_auto_connected",
+              "unsure"
+            ],
+            "MR_PASSWORD_MANAGER": [
+              "same_strong_everywhere",
+              "account_specific_store_use",
+              "auto_mfa",
+              "unsure"
+            ],
+            "MR_MFA": [
+              "reverses_exposure",
+              "additional_barrier",
+              "reuse_safe",
+              "unsure"
+            ]
+          },
+          "F6": {
+            "SC_BREACH_REUSE": [
+              "mfa_email_keep_shared",
+              "change_shop_only",
+              "new_distinct_both",
+              "unsure"
+            ],
+            "SC_PM_MANY_ACCOUNTS": [
+              "one_strong_everywhere",
+              "unique_important_reuse_others",
+              "own_with_pm",
+              "unsure"
+            ],
+            "SC_LAYERED_PROTECTION": [
+              "shared_strong_with_mfa",
+              "unique_without_mfa",
+              "unique_and_mfa",
+              "unsure"
+            ],
+            "MR_REUSE": [
+              "same_email_auto_connected",
+              "leak_contains_all",
+              "same_tried_elsewhere",
+              "unsure"
+            ],
+            "MR_PASSWORD_MANAGER": [
+              "auto_mfa",
+              "same_strong_everywhere",
+              "account_specific_store_use",
+              "unsure"
+            ],
+            "MR_MFA": [
+              "reuse_safe",
+              "reverses_exposure",
+              "additional_barrier",
               "unsure"
             ]
           }
@@ -834,24 +1028,24 @@
       },
       "blocks": [
         {
-          "id": "recognition",
+          "id": "scenarios",
           "submitLocksBlock": true,
           "items": [
             {
-              "id": "MR_REUSE",
-              "prompt": "Welche Maßnahme begrenzt am direktesten, dass ein bekannt gewordenes Passwort weitere, voneinander unabhängige Konten betrifft?",
+              "id": "SC_BREACH_REUSE",
+              "prompt": "Das bei einem Onlineshop verwendete Passwort ist nach einem Datenleck bekannt geworden. Eine Person hat dasselbe Passwort auch für ihr E-Mail-Konto verwendet. Welche Änderung an den Passwörtern begrenzt das Risiko für beide Konten am direktesten?",
               "options": [
                 {
-                  "id": "distinct_per_account",
-                  "label": "Für jedes Konto ein eigenes Passwort verwenden."
+                  "id": "new_distinct_both",
+                  "label": "Für beide Konten jeweils ein neues und voneinander unterschiedliches Passwort festlegen."
                 },
                 {
-                  "id": "one_long_reused_everywhere",
-                  "label": "Dasselbe besonders lange Passwort für alle Konten verwenden."
+                  "id": "change_shop_only",
+                  "label": "Nur beim Onlineshop ein neues Passwort festlegen und das Passwort des E-Mail-Kontos beibehalten."
                 },
                 {
-                  "id": "reuse_with_mfa_for_important",
-                  "label": "Dasselbe Passwort verwenden und nur bei wichtigen Konten MFA/2FA aktivieren."
+                  "id": "mfa_email_keep_shared",
+                  "label": "Beim E-Mail-Konto MFA/2FA aktivieren und das bisherige gemeinsame Passwort ansonsten beibehalten."
                 },
                 {
                   "id": "unsure",
@@ -860,20 +1054,20 @@
               ]
             },
             {
-              "id": "MR_PASSWORD_MANAGER",
-              "prompt": "Welche Aufgabe kann ein Passwortmanager beim Schutz mehrerer Konten übernehmen?",
+              "id": "SC_PM_MANY_ACCOUNTS",
+              "prompt": "Eine Person möchte für viele Konten unterschiedliche Passwörter verwenden, kann sie aber nicht alle im Kopf behalten. Welche Vorgehensweise löst dieses Problem am direktesten?",
               "options": [
                 {
-                  "id": "distinct_generate_or_store",
-                  "label": "Für verschiedene Konten jeweils eigene Passwörter erzeugen oder sicher speichern."
+                  "id": "own_with_pm",
+                  "label": "Für jedes Konto ein eigenes Passwort mit einem Passwortmanager erzeugen, speichern und beim Anmelden verwenden."
                 },
                 {
-                  "id": "one_strong_reused",
-                  "label": "Ein einziges besonders starkes Passwort für alle Konten verwalten."
+                  "id": "unique_important_reuse_others",
+                  "label": "Nur für wichtige Konten eigene Passwörter verwenden und bei den übrigen dasselbe Passwort wiederverwenden."
                 },
                 {
-                  "id": "store_similar_unchanged",
-                  "label": "Ähnliche Passwörter speichern, ohne sie voneinander zu trennen."
+                  "id": "one_strong_everywhere",
+                  "label": "Ein besonders starkes Passwort festlegen und dieses anschließend bei allen Konten verwenden."
                 },
                 {
                   "id": "unsure",
@@ -882,20 +1076,20 @@
               ]
             },
             {
-              "id": "MR_MFA",
-              "prompt": "Welche Aussage beschreibt die Rolle von MFA/2FA am treffendsten?",
+              "id": "SC_LAYERED_PROTECTION",
+              "prompt": "Eine Person schützt ihr E-Mail-Konto und ein Shopping-Konto. Für beide Konten stehen starke Passwörter und MFA/2FA zur Verfügung. Welche Konfiguration schützt beide Konten am umfassendsten, falls eines der Passwörter bekannt wird?",
               "options": [
                 {
-                  "id": "additional_barrier",
-                  "label": "MFA kann eine zusätzliche Anmeldebarriere bilden, wenn das Passwort bekannt ist."
+                  "id": "unique_and_mfa",
+                  "label": "Für jedes Konto ein eigenes starkes Passwort verwenden und MFA/2FA aktivieren."
                 },
                 {
-                  "id": "reuse_becomes_safe",
-                  "label": "Mit MFA kann dasselbe Passwort bei mehreren Konten ohne zusätzliches Risiko verwendet werden."
+                  "id": "unique_without_mfa",
+                  "label": "Für jedes Konto ein eigenes starkes Passwort verwenden, aber MFA/2FA nicht aktivieren."
                 },
                 {
-                  "id": "prevents_password_exposure",
-                  "label": "MFA verhindert, dass ein Passwort durch ein Datenleck oder andere Wege bekannt wird."
+                  "id": "shared_strong_with_mfa",
+                  "label": "Dasselbe starke Passwort bei beiden Konten verwenden, weil MFA/2FA aktiviert ist."
                 },
                 {
                   "id": "unsure",
@@ -906,24 +1100,24 @@
           ]
         },
         {
-          "id": "scenarios",
+          "id": "recognition",
           "submitLocksBlock": true,
           "items": [
             {
-              "id": "SCENARIO_DISTINCT_PASSWORDS",
-              "prompt": "Du richtest Konten bei zwei voneinander unabhängigen Diensten ein. Welche Passwortstrategie begrenzt am besten, dass ein Passwortvorfall bei einem Dienst auch das andere Konto betrifft?",
+              "id": "MR_REUSE",
+              "prompt": "Warum kann ein bei einem Dienst bekannt gewordenes Passwort auch andere Konten gefährden?",
               "options": [
                 {
-                  "id": "distinct_for_both",
-                  "label": "Für beide Konten unterschiedliche Passwörter verwenden."
+                  "id": "same_tried_elsewhere",
+                  "label": "Angreifer können dasselbe Passwort bei anderen Diensten ausprobieren."
                 },
                 {
-                  "id": "same_long_for_both",
-                  "label": "Dasselbe besonders lange Passwort bei beiden Konten verwenden."
+                  "id": "leak_contains_all",
+                  "label": "Ein Datenleck bei einem Dienst enthält automatisch auch die Passwörter aller anderen Dienste."
                 },
                 {
-                  "id": "same_core_service_name",
-                  "label": "Denselben Passwortkern verwenden und nur den Dienstnamen ändern."
+                  "id": "same_email_auto_connected",
+                  "label": "Konten mit derselben E-Mail-Adresse sind technisch automatisch miteinander verbunden."
                 },
                 {
                   "id": "unsure",
@@ -932,20 +1126,20 @@
               ]
             },
             {
-              "id": "SCENARIO_PM_MANY_ACCOUNTS",
-              "prompt": "Du verwaltest viele Konten und möchtest für jedes ein eigenes Passwort verwenden, ohne alle Passwörter auswendig lernen zu müssen. Welche Nutzung eines Passwortmanagers passt am besten?",
+              "id": "MR_PASSWORD_MANAGER",
+              "prompt": "Welche Aufgabe kann ein Passwortmanager beim Schutz vieler Konten übernehmen?",
               "options": [
                 {
-                  "id": "unique_with_pm_retrieve",
-                  "label": "Für die Konten jeweils eigene Passwörter erzeugen oder speichern und bei Bedarf wieder abrufen."
+                  "id": "account_specific_store_use",
+                  "label": "Für verschiedene Konten jeweils eigene Passwörter speichern und beim passenden Konto einsetzen."
                 },
                 {
-                  "id": "shared_in_pm",
-                  "label": "Ein gemeinsames Passwort im Passwortmanager speichern und überall verwenden."
+                  "id": "same_strong_everywhere",
+                  "label": "Für verschiedene Konten dasselbe starke Passwort speichern und bei allen Konten einsetzen."
                 },
                 {
-                  "id": "unique_only_for_important",
-                  "label": "Nur für die wichtigsten Konten eigene Passwörter verwenden und für die übrigen dasselbe Passwort behalten."
+                  "id": "auto_mfa",
+                  "label": "Für verschiedene Konten MFA/2FA ohne weitere Einrichtung automatisch aktivieren."
                 },
                 {
                   "id": "unsure",
@@ -954,20 +1148,20 @@
               ]
             },
             {
-              "id": "SCENARIO_UNIQUE_PLUS_MFA",
-              "prompt": "Du richtest ein wichtiges Konto ein. Ein langes Passwort, das du bereits bei einem anderen Konto verwendest, wäre leicht verfügbar; der Dienst bietet MFA/2FA an. Was ist die sinnvollste Einrichtung?",
+              "id": "MR_MFA",
+              "prompt": "Ein Angreifer kennt bereits das richtige Passwort eines Kontos. Was kann aktivierte MFA/2FA in dieser Situation bewirken?",
               "options": [
                 {
-                  "id": "new_unique_and_mfa",
-                  "label": "Für dieses Konto ein neues, eigenes Passwort verwenden und MFA/2FA aktivieren."
+                  "id": "additional_barrier",
+                  "label": "Sie kann eine zusätzliche Anmeldebarriere bilden."
                 },
                 {
-                  "id": "reuse_long_and_mfa",
-                  "label": "Das bereits verwendete lange Passwort übernehmen und zusätzlich MFA/2FA aktivieren."
+                  "id": "reverses_exposure",
+                  "label": "Sie verhindert nachträglich, dass das Passwort bekannt geworden ist."
                 },
                 {
-                  "id": "new_unique_without_mfa",
-                  "label": "Ein neues, eigenes Passwort verwenden und auf MFA/2FA verzichten, weil das Passwort einzigartig ist."
+                  "id": "reuse_safe",
+                  "label": "Sie macht die Verwendung desselben Passworts bei anderen Konten sicher."
                 },
                 {
                   "id": "unsure",
@@ -982,210 +1176,16 @@
     "post-open-v1": {
       "alwaysSubmit": true,
       "blankOptionalTextValue": null,
-      "warning": "Bitte nenne keine realen Konten, Passwörter oder Sicherheitsvorfälle.",
+      "warning": "Bitte nenne in deinem Kommentar keine echten Passwörter, Kontonamen, Sicherheitscodes oder anderen personenbezogenen Angaben.",
       "items": [
         {
-          "id": "OPEN_HELPFUL",
+          "id": "OPEN_COMMENT",
           "type": "text",
           "participantOptional": true,
           "maxLength": 500,
-          "prompt": "Was hat dir am meisten geholfen, die Inhalte zu verstehen?"
-        },
-        {
-          "id": "OPEN_UNCLEAR",
-          "type": "text",
-          "participantOptional": true,
-          "maxLength": 500,
-          "prompt": "Was sollte am Lernangebot verbessert werden?"
+          "prompt": "Möchtest du uns noch etwas zum Lernangebot mitteilen?"
         }
       ]
-    },
-    "follow-up-v1": {
-      "participantTitle": "Kurze Nachbefragung zur Studie",
-      "reportingWindow": {
-        "startsAfterMainSession": true,
-        "cutoff": "first_invitation_at_iso",
-        "instruction": "Bitte beziehe dich ausschließlich auf Handlungen, die du nach deiner Studienteilnahme und bereits vor [STICHTAG] abgeschlossen hattest."
-      },
-      "safetyNote": "Öffne oder ändere für diese Befragung keine Kontoeinstellungen. Bitte nenne keine Konten, Dienste, Passwörter, Anmeldecodes oder Wiederherstellungsdaten.",
-      "items": [
-        {
-          "id": "FU_PM_ACTIONS",
-          "type": "multiChoice",
-          "prompt": "Welche der folgenden Handlungen hattest du bis zu diesem Zeitpunkt tatsächlich durchgeführt?",
-          "note": "In Browsern oder Geräten integrierte und separat installierte Passwortmanager zählen gleichermaßen. Mehrfachauswahl ist möglich.",
-          "options": [
-            {
-              "id": "inspected_available_manager",
-              "label": "Ich habe geprüft, welchen Passwortmanager ich bereits nutzen kann und wie ich darauf zugreife."
-            },
-            {
-              "id": "generated_stored_account_specific",
-              "label": "Ich habe einen Passwortmanager genutzt, um für mindestens ein Konto, das ich tatsächlich verwende, ein neues Passwort zu erzeugen und zu speichern, das nur für dieses Konto verwendet wird."
-            },
-            {
-              "id": "used_retrieval_or_autofill",
-              "label": "Ich habe einen bereits eingerichteten Passwortmanager bewusst zum Abrufen oder automatischen Ausfüllen eines gespeicherten Passworts verwendet."
-            },
-            {
-              "id": "none",
-              "label": "Keine dieser Handlungen."
-            },
-            {
-              "id": "cannot_recall",
-              "label": "Ich weiß es nicht mehr."
-            },
-            {
-              "id": "no_answer",
-              "label": "Keine Angabe."
-            }
-          ],
-          "exclusiveOptions": [
-            "none",
-            "cannot_recall",
-            "no_answer"
-          ]
-        },
-        {
-          "id": "FU_PM_NONE_REASON",
-          "type": "singleChoice",
-          "displayWhen": {
-            "itemId": "FU_PM_ACTIONS",
-            "contains": "none"
-          },
-          "prompt": "Welche Aussage beschreibt den wichtigsten Grund dafür am besten?",
-          "options": [
-            {
-              "id": "already_set_up",
-              "label": "Ich hatte dies bereits so eingerichtet oder genutzt, wie ich es derzeit möchte."
-            },
-            {
-              "id": "no_opportunity",
-              "label": "Es ergab sich noch keine passende Gelegenheit."
-            },
-            {
-              "id": "intended_not_done",
-              "label": "Ich hatte es vor, aber noch nicht umgesetzt."
-            },
-            {
-              "id": "unsure_how",
-              "label": "Ich war nicht sicher, wie ich vorgehen sollte."
-            },
-            {
-              "id": "time_effort",
-              "label": "Zeit oder Aufwand waren für mich zu hoch."
-            },
-            {
-              "id": "trust_concerns",
-              "label": "Ich hatte Bedenken, dem Passwortmanager meine Passwörter anzuvertrauen."
-            },
-            {
-              "id": "access_loss_concerns",
-              "label": "Ich hatte Sorge, später nicht mehr auf den Passwortmanager zugreifen zu können."
-            },
-            {
-              "id": "technical_barrier",
-              "label": "Eine technische Hürde hat mich daran gehindert."
-            },
-            {
-              "id": "not_relevant",
-              "label": "Das Thema war für mich derzeit nicht relevant."
-            },
-            {
-              "id": "no_answer",
-              "label": "Keine Angabe."
-            }
-          ]
-        },
-        {
-          "id": "FU_MFA_ACTIONS",
-          "type": "multiChoice",
-          "prompt": "Welche der folgenden Handlungen hattest du bis zu diesem Zeitpunkt tatsächlich durchgeführt?",
-          "instruction": "Mehrfachauswahl ist möglich.",
-          "options": [
-            {
-              "id": "checked_availability_or_status",
-              "label": "Ich habe bei mindestens einem Konto, das ich tatsächlich verwende, geprüft, ob MFA/2FA verfügbar oder bereits aktiviert ist."
-            },
-            {
-              "id": "enabled_mfa",
-              "label": "Ich habe MFA/2FA bei mindestens einem Konto aktiviert."
-            },
-            {
-              "id": "none",
-              "label": "Keine dieser Handlungen."
-            },
-            {
-              "id": "cannot_recall",
-              "label": "Ich weiß es nicht mehr."
-            },
-            {
-              "id": "no_answer",
-              "label": "Keine Angabe."
-            }
-          ],
-          "exclusiveOptions": [
-            "none",
-            "cannot_recall",
-            "no_answer"
-          ]
-        },
-        {
-          "id": "FU_MFA_NONE_REASON",
-          "type": "singleChoice",
-          "displayWhen": {
-            "itemId": "FU_MFA_ACTIONS",
-            "contains": "none"
-          },
-          "prompt": "Welche Aussage beschreibt den wichtigsten Grund dafür am besten?",
-          "options": [
-            {
-              "id": "already_set_up",
-              "label": "Ich hatte dies bereits so eingerichtet oder genutzt, wie ich es derzeit möchte."
-            },
-            {
-              "id": "no_opportunity",
-              "label": "Es ergab sich noch keine passende Gelegenheit."
-            },
-            {
-              "id": "intended_not_done",
-              "label": "Ich hatte es vor, aber noch nicht umgesetzt."
-            },
-            {
-              "id": "unsure_how",
-              "label": "Ich war nicht sicher, wie ich vorgehen sollte."
-            },
-            {
-              "id": "time_effort",
-              "label": "Zeit oder Aufwand waren für mich zu hoch."
-            },
-            {
-              "id": "not_available_or_not_found",
-              "label": "Ich habe MFA/2FA beim betreffenden Dienst nicht gefunden oder der Dienst bot sie nicht an."
-            },
-            {
-              "id": "second_factor_loss_concerns",
-              "label": "Ich hatte Sorge, bei Verlust des zweiten Faktors den Zugang zu verlieren."
-            },
-            {
-              "id": "technical_barrier",
-              "label": "Eine technische Hürde hat mich daran gehindert."
-            },
-            {
-              "id": "not_relevant",
-              "label": "Das Thema war für mich derzeit nicht relevant."
-            },
-            {
-              "id": "no_answer",
-              "label": "Keine Angabe."
-            }
-          ]
-        }
-      ],
-      "estimatedMinutesRange": {
-        "min": 1,
-        "max": 2
-      }
     }
   }
 }

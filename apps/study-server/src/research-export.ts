@@ -283,12 +283,7 @@ function dataDictionary(): ResearchExportDataDictionaryRecord[] {
     'post-open',
     instrumentRuntimeManifest.instruments['post-open-v1'].items,
   );
-  const followUp = dictionaryRowsForItems(
-    'follow-up-v1',
-    'follow-up',
-    instrumentRuntimeManifest.instruments['follow-up-v1'].items,
-  );
-  return [...pre, ...post, ...guardrail, ...postOpen, ...followUp];
+  return [...pre, ...post, ...guardrail, ...postOpen];
 }
 
 function assertEmptyExportTarget(

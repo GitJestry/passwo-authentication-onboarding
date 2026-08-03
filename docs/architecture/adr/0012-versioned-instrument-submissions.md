@@ -17,7 +17,7 @@ persistierte Schema und benötigen daher eine explizite Entscheidung.
 
 Die teilnehmerseitige Runtime-Definition wird als geprüftes, eingechecktes JSON in
 `@passwo/contracts` geführt und gegen `research/derived/instruments-v1.runtime.json` getestet. Sie
-enthält Texte, IDs, Antworttypen, Optionen, Blockstruktur und die drei balancierten
+enthält Texte, IDs, Antworttypen, Optionen, Blockstruktur und die sechs balancierten
 Guardrail-Formen, aber keine Richtig-/Falsch-, `appropriate`-, `incomplete`- oder
 `unsafe`-Klassifikationen. Die vollständige Forschungs- und Scoring-Spezifikation bleibt in
 `research/derived/instruments-v1.yaml`.
@@ -32,7 +32,7 @@ Die Forschungsdatenbank ergänzt:
 
 - `guardrail_form_id` an der Session;
 - eine innerhalb jeder Artefaktbedingung getrennt balancierte Formzuweisung über permutierte
-  Dreierblöcke `F1`, `F2`, `F3`;
+  Sechserblöcke `F1` bis `F6`;
 - `instrument_submissions` mit Block-ID, Payload-Fingerprint und Abgabezeit;
 - `response_presentations` mit der tatsächlich dargestellten Optionreihenfolge;
 - `section_id` für einzelne Response-Zeilen.
@@ -171,3 +171,34 @@ Einwilligung gemäß Art. 6 Abs. 1 lit. a DSGVO, Widerruf für die Zukunft, die 
 Betroffenenrechte und die zuständige Landesaufsicht. Der geschützte Einwilligungssatz bleibt
 unverändert. Konkrete Aufbewahrungs- und Löschfristen bleiben die einzige noch einzutragende
 Datenschutzangabe vor dem Study Freeze.
+
+## Revision 2026-08-03 — Finaler Questionnaire Freeze 2.0
+
+Diese Revision ersetzt für die Hauptsitzung alle früheren Draft-Instrumententscheidungen. Die
+Instrumentversion wird `2.0.0`, die Fragebogenversion `questionnaire-v2`, die Guardrail-Version
+`guardrail-v4`, die Follow-up-Version `follow-up-v4` und das Runtime-Manifest
+`instrument-runtime-v2`. Die Consent-Version bleibt durch diese Revision unverändert.
+
+Die Haupt-Study-Runtime enthält ausschließlich `pre-v1`, `post-v1`, `guardrail-v2` und
+`post-open-v1`. Der Follow-up-Fragebogen wird aus der Runtime entfernt und als getrenntes
+Instrument in `research/derived/follow-up-v4.yaml` sowie
+`docs/research/FOLLOW-UP-INSTRUMENT.md` versioniert. Die Hauptanwendung verwaltet weiterhin nur
+optionale Recontact-Einwilligung, getrennte Kontaktregistrierung und Versandplanung.
+
+Die Hauptsitzungsreihenfolge wird verbindlich auf unmittelbare Post-Wahrnehmung, drei
+Anwendungsszenarien, drei Recognition-Items, Post-Guardrail-Self-Efficacy, retrospektive
+SecAware-Vorerfahrung und einen optionalen Kommentar festgelegt. Recognition darf die
+Anwendungsszenarien nicht vorwegnehmen; vor Abschluss aller In-Session-Outcomes wird kein
+Correctness Feedback gezeigt.
+
+Die Guardrail-Zuweisung wird von drei auf sechs Formen `F1` bis `F6` erweitert. Innerhalb jeder
+Artefaktbedingung werden kleine permutierte Sechserblöcke verwendet. Die Formen bilden alle sechs
+Reihenfolgen der drei Anwendungsszenarien ab und platzieren jede substantive Antwortoption für
+jedes Item genau zweimal auf jeder der drei Positionen. `Weiß ich nicht` bleibt fest an letzter
+Stelle. Die Form-ID und angezeigten Option-IDs bleiben persistierte Forschungsdaten; die
+Question-Order wird aus der versionierten Formdefinition deterministisch rekonstruiert.
+
+Die Runtime-Projektion enthält weiterhin keine Guardrail-Klassifikationen. Es werden kein
+Guardrail-Gesamtscore, kein Pass/Fail und kein Unsafe-Summenwert gespeichert oder berechnet. Die
+Erweiterung der zulässigen Form-IDs erfolgt über SQLite-Migration 7. Bestehende Sessions behalten
+ihre frühere Form; neue Formblöcke verwenden alle sechs Formen.

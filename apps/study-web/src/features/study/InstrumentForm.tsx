@@ -1,5 +1,6 @@
 import {
   guardrailPresentationForForm,
+  guardrailQuestionOrderForForm,
   instrumentRuntimeManifest,
   instrumentSubmissionRequestSchema,
   type GuardrailFormId,
@@ -24,8 +25,8 @@ type IntegerItem = Extract<QuestionnaireItem, { readonly type: 'integer' }>;
 type TextItem = Extract<QuestionnaireItem, { readonly type: 'text' }>;
 type Agreement7Item = ScaleItem & { readonly scale: 'agreement7' };
 type Confidence11Item = ScaleItem & { readonly scale: 'confidence11' };
-type DurationAppropriateness7Item = ScaleItem & {
-  readonly scale: 'durationAppropriateness7';
+type FullyLabelled7Item = ScaleItem & {
+  readonly scale: 'durationAppropriateness7' | 'riskPresentation7';
 };
 type GuardrailBlock = InstrumentRuntimeManifest['instruments']['guardrail-v2']['blocks'][number];
 type GuardrailItem = GuardrailBlock['items'][number];
@@ -458,52 +459,51 @@ function Confidence11Matrix({
   );
 }
 
-function DurationAppropriateness7({
+function FullyLabelledScale7({
   item,
   value,
   invalid,
   onChange,
 }: {
-  readonly item: DurationAppropriateness7Item;
+  readonly item: FullyLabelled7Item;
   readonly value: number | undefined;
   readonly invalid: boolean;
   readonly onChange: (value: number) => void;
 }) {
-  const anchors = instrumentRuntimeManifest.scales.durationAppropriateness7.anchors;
+  const anchors = instrumentRuntimeManifest.scales[item.scale].anchors;
   return (
-    <div
-      className={`${styles.matrix ?? ''} ${styles.matrix7 ?? ''}`.trim()}
-      aria-label="Angemessenheit der Dauer"
+    <fieldset
+      className={`${styles.agreementItem ?? ''} ${
+        invalid ? (styles.matrixRowInvalid ?? '') : ''
+      }`.trim()}
+      aria-describedby={invalid ? `${item.id}-error` : undefined}
+      aria-invalid={invalid}
     >
-      <MatrixHeader accessibleLabel="Antwortwerte 1 bis 7">
+      <legend>{item.prompt ?? item.id}</legend>
+      <div className={styles.agreementOptions}>
         {points7.map((point) => (
-          <MatrixNumber key={point} point={point} />
+          <label className={styles.agreementOption} key={point}>
+            <input
+              type="radio"
+              name={item.id}
+              value={point}
+              checked={value === point}
+              required
+              aria-label={`${item.prompt ?? item.id}: ${point}, ${requiredAnchor(
+                anchors,
+                point,
+              )}`}
+              onChange={() => onChange(point)}
+            />
+            <span className={styles.agreementPoint} aria-hidden="true">
+              {point}
+            </span>
+            <span>{requiredAnchor(anchors, point)}</span>
+          </label>
         ))}
-      </MatrixHeader>
-      <MatrixRow item={item} invalid={invalid}>
-        {points7.map((point) => (
-          <NativeRadioControl
-            key={point}
-            itemId={item.id}
-            point={point}
-            checked={value === point}
-            accessibleName={`${item.prompt ?? item.id}: ${point} von 7${
-              !hasAnchor(anchors, point) ? '' : `, ${requiredAnchor(anchors, point)}`
-            }`}
-            onChange={onChange}
-          />
-        ))}
-      </MatrixRow>
-      <SharedAnchors>
-        <AnchorLabel label={anchors['1']} />
-        <span aria-hidden="true" />
-        <span aria-hidden="true" />
-        <AnchorLabel label={anchors['4']} />
-        <span aria-hidden="true" />
-        <span aria-hidden="true" />
-        <AnchorLabel label={anchors['7']} />
-      </SharedAnchors>
-    </div>
+      </div>
+      <FieldError invalid={invalid} itemId={item.id} />
+    </fieldset>
   );
 }
 
@@ -522,7 +522,7 @@ function UeqSemanticDifferential7({
   const points = Array.from({ length: scale.max - scale.min + 1 }, (_, index) => scale.min + index);
 
   return (
-    <div className={styles.ueqMatrix} aria-label="UEQ-S Begriffspaare">
+    <div className={styles.ueqMatrix} aria-label="Semantische Begriffspaare">
       {items.map((item) => {
         const invalid = invalidItemIds.has(item.id);
         const value = typeof draft[item.id] === 'number' ? draft[item.id] : undefined;
@@ -715,8 +715,8 @@ function QuestionnaireItemField({
         />
       );
     case 'scale':
-      return hasScale(item, 'durationAppropriateness7') ? (
-        <DurationAppropriateness7
+      return hasScale(item, 'durationAppropriateness7') || hasScale(item, 'riskPresentation7') ? (
+        <FullyLabelledScale7
           item={item}
           value={typeof value === 'number' ? value : undefined}
           invalid={invalid}
@@ -1049,9 +1049,10 @@ export function GuardrailBlockForm({
     readonly options: readonly ChoiceOption[];
   }[] = [];
 
-  for (const item of block.items) {
-    const options = orderedGuardrailOptions(item, block.id, formId);
-    if (options === null) {
+  for (const itemId of guardrailQuestionOrderForForm(block.id, formId)) {
+    const item = block.items.find((candidate) => candidate.id === itemId);
+    const options = item === undefined ? null : orderedGuardrailOptions(item, block.id, formId);
+    if (item === undefined || options === null) {
       return (
         <section aria-labelledby="guardrail-configuration-error-title" role="alert">
           <h1 id="guardrail-configuration-error-title" tabIndex={-1} autoFocus>
@@ -1062,6 +1063,17 @@ export function GuardrailBlockForm({
       );
     }
     presentedItems.push({ item, options });
+  }
+
+  if (presentedItems.length !== block.items.length) {
+    return (
+      <section aria-labelledby="guardrail-configuration-error-title" role="alert">
+        <h1 id="guardrail-configuration-error-title" tabIndex={-1} autoFocus>
+          Abschlussfragen nicht verfügbar
+        </h1>
+        <p className={styles.errorCode}>Fehlercode: guardrail-question-order-invalid</p>
+      </section>
+    );
   }
 
   function updateDraft(itemId: string, value: string): void {

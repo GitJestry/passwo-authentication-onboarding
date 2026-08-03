@@ -333,7 +333,7 @@ describe('studyMachine', () => {
     actor.stop();
   });
 
-  it('requires recognition, scenarios, and post-open before entering session closure', async () => {
+  it('requires scenarios, recognition, post-guardrail items, and post-open before closure', async () => {
     const savedSubmissions: InstrumentSubmissionRequest[] = [];
     const actor = await startAtPreQuestionnaire(
       runtimePorts('reference', async (_sessionId, submission) => {
@@ -355,12 +355,12 @@ describe('studyMachine', () => {
     await completeQuestionnaire(actor, 'post-v1');
     await waitForState(actor, () => actor.getSnapshot().matches({ guardrails: 'editing' }));
     expect(mainInstrumentBlocks[actor.getSnapshot().context.instrumentBlockCursor]?.sectionId).toBe(
-      'recognition',
+      'scenarios',
     );
 
     await submitCurrentBlock(actor);
     expect(mainInstrumentBlocks[actor.getSnapshot().context.instrumentBlockCursor]?.sectionId).toBe(
-      'scenarios',
+      'recognition',
     );
 
     const postOpen = mainInstrumentBlocks.find(
@@ -377,10 +377,16 @@ describe('studyMachine', () => {
 
     expect(actor.getSnapshot().matches({ guardrails: 'editing' })).toBe(true);
     expect(mainInstrumentBlocks[actor.getSnapshot().context.instrumentBlockCursor]?.sectionId).toBe(
-      'scenarios',
+      'recognition',
     );
 
     await submitCurrentBlock(actor);
+    await waitForState(actor, () => actor.getSnapshot().matches({ postQuestionnaire: 'editing' }));
+    expect(mainInstrumentBlocks[actor.getSnapshot().context.instrumentBlockCursor]?.sectionId).toBe(
+      'self_efficacy',
+    );
+
+    await completeQuestionnaire(actor, 'post-v1');
     await waitForState(actor, () => actor.getSnapshot().matches({ postOpen: 'editing' }));
     actor.send({ type: 'SESSION_CLOSURE_ACKNOWLEDGED' });
     expect(actor.getSnapshot().matches({ postOpen: 'editing' })).toBe(true);

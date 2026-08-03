@@ -167,7 +167,7 @@ describe('research export', () => {
         `INSERT INTO responses (
           session_id, instrument_id, instrument_version, section_id,
           item_id, json_value, created_at_iso
-        ) VALUES (?, 'post-open-v1', ?, 'post-open', 'OPEN_HELPFUL', ?, ?)`,
+        ) VALUES (?, 'post-open-v1', ?, 'post-open', 'OPEN_COMMENT', ?, ?)`,
       )
       .run(
         session.sessionId,

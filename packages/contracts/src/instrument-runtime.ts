@@ -17,7 +17,12 @@ const displayWhenSchema = z
     contains: stableIdSchema,
   })
   .strict();
-const scaleIdSchema = z.enum(['agreement7', 'confidence11', 'durationAppropriateness7']);
+const scaleIdSchema = z.enum([
+  'agreement7',
+  'confidence11',
+  'durationAppropriateness7',
+  'riskPresentation7',
+]);
 
 const singleChoiceItemSchema = z
   .object({
@@ -137,10 +142,32 @@ const guardrailInstrumentSchema = z
       })
       .strict(),
     questionOrder: z.array(stableIdSchema),
+    questionPresentation: z
+      .object({
+        fixedRecognitionOrder: z.array(stableIdSchema).length(3),
+        scenarioOrderByForm: z
+          .object({
+            F1: z.array(stableIdSchema).length(3),
+            F2: z.array(stableIdSchema).length(3),
+            F3: z.array(stableIdSchema).length(3),
+            F4: z.array(stableIdSchema).length(3),
+            F5: z.array(stableIdSchema).length(3),
+            F6: z.array(stableIdSchema).length(3),
+          })
+          .strict(),
+      })
+      .strict(),
     optionPresentation: z
       .object({
         strategy: z.literal('balanced_predefined_forms'),
-        formIds: z.tuple([z.literal('F1'), z.literal('F2'), z.literal('F3')]),
+        formIds: z.tuple([
+          z.literal('F1'),
+          z.literal('F2'),
+          z.literal('F3'),
+          z.literal('F4'),
+          z.literal('F5'),
+          z.literal('F6'),
+        ]),
         fixedLastOptionId: z.literal('unsure'),
         assignedBy: z.literal('server'),
         independentOfArtifactCondition: z.literal(true),
@@ -152,6 +179,9 @@ const guardrailInstrumentSchema = z
             F1: guardrailFormSchema,
             F2: guardrailFormSchema,
             F3: guardrailFormSchema,
+            F4: guardrailFormSchema,
+            F5: guardrailFormSchema,
+            F6: guardrailFormSchema,
           })
           .strict(),
       })
@@ -176,29 +206,6 @@ const postOpenInstrumentSchema = z
     blankOptionalTextValue: z.null(),
     warning: participantTextSchema,
     items: z.array(textItemSchema).min(1).max(10),
-  })
-  .strict();
-const followUpInstrumentSchema = z
-  .object({
-    participantTitle: participantTextSchema,
-    estimatedMinutesRange: z
-      .object({
-        min: z.literal(1),
-        max: z.literal(2),
-      })
-      .strict(),
-    reportingWindow: z
-      .object({
-        startsAfterMainSession: z.literal(true),
-        cutoff: stableIdSchema,
-        instruction: participantTextSchema,
-      })
-      .strict(),
-    safetyNote: participantTextSchema,
-    items: z
-      .array(z.union([singleChoiceItemSchema, multiChoiceItemSchema]))
-      .min(1)
-      .max(20),
   })
   .strict();
 const agreement7ScaleSchema = z
@@ -233,7 +240,7 @@ const confidence11ScaleSchema = z
       .strict(),
   })
   .strict();
-const durationAppropriateness7ScaleSchema = z
+const fullyLabelled7ScaleSchema = z
   .object({
     type: z.literal('integer'),
     min: z.literal(1),
@@ -241,12 +248,18 @@ const durationAppropriateness7ScaleSchema = z
     anchors: z
       .object({
         1: participantTextSchema,
+        2: participantTextSchema,
+        3: participantTextSchema,
         4: participantTextSchema,
+        5: participantTextSchema,
+        6: participantTextSchema,
         7: participantTextSchema,
       })
       .strict(),
   })
   .strict();
+const durationAppropriateness7ScaleSchema = fullyLabelled7ScaleSchema;
+const riskPresentation7ScaleSchema = fullyLabelled7ScaleSchema;
 const ueqSemanticDifferential7ScaleSchema = z
   .object({
     type: z.literal('integer'),
@@ -303,12 +316,12 @@ const sessionClosureContentSchema = z
 
 export const instrumentRuntimeManifestSchema = z
   .object({
-    schemaVersion: z.literal(2),
-    instrumentVersion: z.literal('1.9.0-draft'),
-    questionnaireVersion: z.literal('questionnaire-v1.5-draft'),
-    guardrailVersion: z.literal('guardrail-v3-draft'),
+    schemaVersion: z.literal(3),
+    instrumentVersion: z.literal('2.0.0'),
+    questionnaireVersion: z.literal('questionnaire-v2'),
+    guardrailVersion: z.literal('guardrail-v4'),
     consentVersion: z.literal('consent-v6-draft'),
-    followUpVersion: z.literal('follow-up-v3-draft'),
+    followUpVersion: z.literal('follow-up-v4'),
     language: z.literal('de-DE'),
     participantTerm: participantTextSchema,
     scales: z
@@ -316,6 +329,7 @@ export const instrumentRuntimeManifestSchema = z
         agreement7: agreement7ScaleSchema,
         confidence11: confidence11ScaleSchema,
         durationAppropriateness7: durationAppropriateness7ScaleSchema,
+        riskPresentation7: riskPresentation7ScaleSchema,
         ueqSemanticDifferential7: ueqSemanticDifferential7ScaleSchema,
       })
       .strict(),
@@ -367,10 +381,9 @@ export const instrumentRuntimeManifestSchema = z
         'post-v1': sectionedInstrumentSchema,
         'guardrail-v2': guardrailInstrumentSchema,
         'post-open-v1': postOpenInstrumentSchema,
-        'follow-up-v1': followUpInstrumentSchema,
       })
       .strict(),
-    runtimeManifestVersion: z.literal('instrument-runtime-v1.9-draft'),
+    runtimeManifestVersion: z.literal('instrument-runtime-v2'),
   })
   .strict();
 
@@ -379,7 +392,7 @@ export const instrumentRuntimeManifest = instrumentRuntimeManifestSchema.parse(
   rawInstrumentRuntimeManifest,
 );
 
-export const guardrailFormIdSchema = z.enum(['F1', 'F2', 'F3']);
+export const guardrailFormIdSchema = z.enum(['F1', 'F2', 'F3', 'F4', 'F5', 'F6']);
 export type GuardrailFormId = z.infer<typeof guardrailFormIdSchema>;
 
 export const mainInstrumentIdSchema = z.enum(['pre-v1', 'post-v1', 'guardrail-v2', 'post-open-v1']);
@@ -427,22 +440,40 @@ const postInstrument = instrumentRuntimeManifest.instruments['post-v1'];
 const guardrailInstrument = instrumentRuntimeManifest.instruments['guardrail-v2'];
 const postOpenInstrument = instrumentRuntimeManifest.instruments['post-open-v1'];
 
+export const immediatePostSectionIds = [
+  'ueqs',
+  'content_trustworthiness',
+  'duration',
+  'design_diagnostics',
+  'risk_understanding',
+] as const;
+export const postGuardrailSectionIds = ['self_efficacy', 'secaware_prior_exposure'] as const;
+
+function postBlocksFor(sectionIds: readonly string[]): readonly InstrumentSubmissionBlock[] {
+  return sectionIds.map((sectionId) => {
+    const section = postInstrument.sections.find((candidate) => candidate.id === sectionId);
+    if (section === undefined) throw new Error(`missing-post-section-${sectionId}`);
+    return {
+      instrumentId: 'post-v1' as const,
+      sectionId: section.id,
+      items: section.items,
+    };
+  });
+}
+
 export const mainInstrumentBlocks: readonly InstrumentSubmissionBlock[] = [
   ...preInstrument.sections.map((section) => ({
     instrumentId: 'pre-v1' as const,
     sectionId: section.id,
     items: section.items,
   })),
-  ...postInstrument.sections.map((section) => ({
-    instrumentId: 'post-v1' as const,
-    sectionId: section.id,
-    items: section.items,
-  })),
+  ...postBlocksFor(immediatePostSectionIds),
   ...guardrailInstrument.blocks.map((block) => ({
     instrumentId: 'guardrail-v2' as const,
     sectionId: block.id,
     items: block.items,
   })),
+  ...postBlocksFor(postGuardrailSectionIds),
   {
     instrumentId: 'post-open-v1',
     sectionId: 'post-open',
@@ -609,6 +640,19 @@ export function normalizeInstrumentSubmission(
       return response;
     }),
   };
+}
+
+export function guardrailQuestionOrderForForm(
+  sectionId: string,
+  formId: GuardrailFormId,
+): readonly string[] {
+  if (sectionId === 'scenarios') {
+    return guardrailInstrument.questionPresentation.scenarioOrderByForm[formId];
+  }
+  if (sectionId === 'recognition') {
+    return guardrailInstrument.questionPresentation.fixedRecognitionOrder;
+  }
+  return [];
 }
 
 export function guardrailPresentationForForm(formId: GuardrailFormId): readonly {

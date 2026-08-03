@@ -1,56 +1,57 @@
 # Guardrail Content and Fairness Audit
 
-Status: **für den Cognitive Pretest dokumentiert, noch nicht eingefroren**. Beim Study Freeze erneut
-zu prüfen.
+Status: **Inhalt für `guardrail-v4` festgelegt; vor dem ersten Hauptstudienfall ist nur noch die
+Implementierungsparität mit den finalen Artefaktversionen zu bestätigen.**
 
-## Zweck
+## Gemeinsamer Mechanismenkern
 
-Der externe Guardrail darf weder PassWo noch SecAware durch artefaktspezifische Begriffe,
-Detailtiefe oder unmittelbar wiederholte Quizfragen bevorzugen. Für jedes Item wird vorab eine
-Claim--Evidence--Task-Kette dokumentiert:
-
-1. **Claim:** Welche eng begrenzte Aussage soll die Antwort stützen?
-2. **Evidence:** Wo wird sie in beiden finalen Artefakten explizit vermittelt oder angewandt?
-3. **Task:** Welche neue, produktneutrale Aufgabe prüft sie ohne Wortlaut oder Antwortmuster eines
-   Artefakts zu kopieren?
-
-## Gemeinsamer primärer Mechanismenkern
-
-| Claim-ID | Gemeinsamer Claim | PassWo-Evidence | SecAware-Evidence aus dem eingefrorenen V9-Study-Build | Entscheidung |
+| Claim-ID | Gemeinsamer Claim | PassWo-Evidence | SecAware-Evidence aus dem eingefrorenen Study-Build | Entscheidung |
 |---|---|---|---|---|
-| `CORE_REUSE` | Bekannt gewordene wiederverwendete Passwörter können bei weiteren Konten ausprobiert werden; Einzigartigkeit begrenzt diesen Weg. | Trainingsskript, Segmente 6 und 17 | Lektion `cCLcBEovpLj72dCgZ6HsfeQV4xIR2_Lv`, Item `clcyqrhi30b8h1v5j7zqv53ip`: eigenes starkes Passwort für jedes IT-System und jeden IT-Dienst. Lektion `8s5ZF8ravaGthNGdmPcOMPOpdjLwXR-O`, Item `cld0fg028001v356ougo22jb1`: eigenes, einzigartiges Passwort für jedes Online-Konto. | gemeinsamer Kern belegt |
-| `CORE_PM` | Passwortmanager unterstützen unterschiedliche Passwörter durch Erzeugen/Speichern/Abrufen/Ausfüllen. | Segmente 11--13 | Item `cld0fg028001v356ougo22jb1`: Passwortmanager speichern und organisieren Passwörter. Item `cld0fpnok002r356ofxxnq3hq`: Passwortmanager können starke Passwörter generieren. | gemeinsamer Kern belegt |
-| `CORE_MFA` | MFA bildet eine zusätzliche Anmeldebarriere; sie macht Wiederverwendung nicht sicher. | Segmente 14--17 | Lektion `zbxeD7QUdMnDlBWKvVsxMy5G8ghjnDRt`, Item `cld8n4a3c001v356o04q4t2ws`: starke Passwörter allein reichen nicht; MFA ergänzt weitere Faktoren. Item `cld8niho705jh1s5h4qe44nob`: unterschiedliche Faktoren kombinieren und freiwillige MFA nutzen. | gemeinsamer Kern belegt |
+| `CORE_REUSE` | Ein bekannt gewordenes wiederverwendetes Passwort kann bei weiteren Konten ausprobiert werden; kontospezifische Passwörter begrenzen diesen Weg. | Segmente 6 und 17 | Lektion `cCLcBEovpLj72dCgZ6HsfeQV4xIR2_Lv`, Item `clcyqrhi30b8h1v5j7zqv53ip`; Lektion `8s5ZF8ravaGthNGdmPcOMPOpdjLwXR-O`, Item `cld0fg028001v356ougo22jb1` | gemeinsamer Kern belegt |
+| `CORE_PM` | Passwortmanager unterstützen Erzeugen, Speichern, Organisieren und spätere Bereitstellung kontospezifischer Passwörter. | Segmente 11 bis 13 | Items `cld0fg028001v356ougo22jb1` und `cld0fpnok002r356ofxxnq3hq` | gemeinsamer Kern belegt |
+| `CORE_MFA` | MFA bildet eine zusätzliche Anmeldebarriere; sie verhindert keine Passwortoffenlegung und macht Wiederverwendung nicht sicher. | Segmente 14 bis 17 | Lektion `zbxeD7QUdMnDlBWKvVsxMy5G8ghjnDRt`, Items `cld8n4a3c001v356o04q4t2ws` und `cld8niho705jh1s5h4qe44nob` | gemeinsamer Kern belegt |
 
-Bewusst ausgeschlossen bleiben konkrete Mindestlängen, Zeichenraummodelle, die Sechs-Wort-Methode,
-PassWo-Kategorien und -Metaphern, produktspezifische Einrichtung, Qualitätsrangfolgen zwischen
-Passwortmanagerarten und detaillierte Recovery-/Incident-Response-Schritte.
+Bewusst ausgeschlossen sind konkrete Mindestlängen, Zeichenraummodelle, die Sechs-Wort-Methode,
+PassWo-Metaphern, produktspezifische Einrichtung, Produktvergleiche und detaillierte Recovery-
+oder Incident-Response-Schritte.
 
-## Item-Audit
+## Finaler Item-Audit
 
-| Item-ID | Claim | PassWo | SecAware | PassWo-Lernfragen-Nähe | Distraktoren | Status |
-|---|---|---|---|---|---|---|
-| `MR_REUSE` | `CORE_REUSE` | belegt | belegt | produktneutraler neuer Stem; keine Übernahme einer PassWo-internen Lernfrage | langes Passwort wiederverwenden; Wiederverwendung nur bei wichtigen Konten mit MFA ergänzen | für Cognitive Pretest geeignet |
-| `MR_PASSWORD_MANAGER` | `CORE_PM` | belegt | belegt | produktneutrale Funktionsfrage; keine Übernahme eines PassWo-Antwortmusters | ein starkes Passwort wiederverwenden; ähnliche Passwörter nur speichern | für Cognitive Pretest geeignet |
-| `MR_MFA` | `CORE_MFA` | belegt | belegt | bestehender produktneutraler Wortlaut; gegen PassWo-interne Lernfragen weiter zu prüfen | verhindert Offenlegung; macht Wiederverwendung sicher | für Cognitive Pretest geeignet |
-| `SCENARIO_DISTINCT_PASSWORDS` | `CORE_REUSE` | belegt | belegt | neue Zwei-Dienste-Transfersituation ohne PassWo-spezifische Begriffe | langes Passwort wiederverwenden; Passwortkern mit Dienstnamen variieren | für Cognitive Pretest geeignet |
-| `SCENARIO_PM_MANY_ACCOUNTS` | `CORE_PM` | belegt | belegt | neue Mehrkonten-Transfersituation ohne produktspezifische Einrichtung | gemeinsames Passwort speichern; Einzigartigkeit nur für wichtige Konten | für Cognitive Pretest geeignet |
-| `SCENARIO_UNIQUE_PLUS_MFA` | `CORE_REUSE` + `CORE_MFA` | belegt | belegt | Integration der expliziten Einzigartigkeits- und MFA-Aussagen; keine produktspezifische Einrichtung und keine Übernahme einer PassWo-internen Lernfrage | Wiederverwendung + MFA; einzigartig ohne MFA | für Cognitive Pretest geeignet |
+| Item-ID | Geprüfter Claim | Antwortlogik | Status |
+|---|---|---|---|
+| `SC_BREACH_REUSE` | `CORE_REUSE` | angemessen: beide kompromittierten Wiederverwendungsstellen durch neue unterschiedliche Passwörter ersetzen; unsicher: nur Quellkonto ändern oder gemeinsames Passwort mit MFA beibehalten | freigegeben |
+| `SC_PM_MANY_ACCOUNTS` | `CORE_PM` | angemessen: kontospezifische Passwörter mit Passwortmanager erzeugen, speichern und verwenden; unsicher: Wiederverwendung bei Neben- oder allen Konten | freigegeben |
+| `SC_LAYERED_PROTECTION` | `CORE_REUSE` + `CORE_MFA` | angemessen: kontospezifische starke Passwörter plus MFA; unvollständig: kontospezifisch ohne MFA; unsicher: Wiederverwendung wegen MFA | freigegeben |
+| `MR_REUSE` | `CORE_REUSE` | erkennt kontoübergreifendes Ausprobieren; Distraktoren bilden automatische Leak- beziehungsweise E-Mail-Verknüpfungsmodelle | freigegeben |
+| `MR_PASSWORD_MANAGER` | `CORE_PM` | erkennt kontospezifisches Speichern und passendes Einsetzen; Distraktoren bilden gemeinsames Passwort beziehungsweise automatische MFA-Aktivierung | freigegeben |
+| `MR_MFA` | `CORE_MFA` | erkennt zusätzliche Anmeldebarriere; Distraktoren bilden rückwirkende Geheimhaltung beziehungsweise sichere Wiederverwendung | freigegeben |
 
-Der gemessene SecAware-Pfad besitzt kein natives Abschlussquiz. Deshalb gibt es keine offene
-SecAware-Quiz-Overlap-Annahme und keinen Quiz-/Skip-Pfad zu harmonisieren. Die PassWo-internen
-Lernfragen bleiben Teil des PassWo-Artefakts; ihre Wortlaut- und Strukturähnlichkeit zum externen
-Guardrail wird beim Cognitive Pretest und beim Study Freeze weiterhin geprüft.
+Die korrekte Passwortmanager-Recognition-Antwort ist bewusst ähnlich lang wie die Distraktoren.
+Szenarien stehen vor Recognition. Die drei Szenarien werden über sechs Formen in allen möglichen
+Reihenfolgen gezeigt; die substantive Antwortposition wird ebenfalls vollständig balanciert.
+`Weiß ich nicht` bleibt immer letzte Option.
 
-## Cognitive-Pretest-Kriterien
+## Klassifikationsgrenzen
 
-- Stem wird wie beabsichtigt verstanden.
-- Richtige Option ist nicht nur durch Länge oder Sprachstil erkennbar.
-- Distraktoren werden aus dem vorgesehenen Fehlmodell gewählt und sind nicht absurd.
-- `unvollständig` und `unsafe` sind eindeutig trennbar.
-- Keine Aufgabe verlangt Wissen außerhalb des gemeinsamen Scope.
-- Keine externe Aufgabe ist wortgleich oder strukturell nahezu identisch zu einer
-  PassWo-internen Lernfrage, insbesondere nicht zur Abschlussfrage in S17.
+- `SC_BREACH_REUSE`: eine angemessene und zwei unsichere Antworten.
+- `SC_PM_MANY_ACCOUNTS`: eine angemessene und zwei unsichere Antworten.
+- `SC_LAYERED_PROTECTION`: eine angemessene, eine unvollständige und eine unsichere Antwort.
+- Recognition: korrekt, falscher Mechanismus oder unsichere Antwort; Unsicherheit bleibt eigene
+  Kategorie.
+- Es gibt keinen Gesamtscore, keine Pass/Fail-Grenze und keinen Unsafe-Summenwert.
+- Eine Itemantwort wird nicht als stabiler persönlicher Glaube interpretiert.
 
-Nach Beginn der Hauptstudie wird der Guardrail nicht anhand sichtbarer Gruppenunterschiede
-erschwert oder umklassifiziert.
+## Letzte Freigabekontrolle
+
+Vor dem ersten Hauptstudienfall werden einmalig geprüft:
+
+1. die oben referenzierten Inhalte sind im tatsächlich ausgelieferten PassWo- und SecAware-Build
+   weiterhin explizit vorhanden;
+2. keine PassWo-interne Lernfrage kopiert Stem und Antwortmuster des externen Guardrails nahezu
+   wortgleich;
+3. Interface, Export und Runtime verwenden dieselben IDs, Optionen, Formzuweisungen und
+   Klassifikationen;
+4. der Cognitive Pretest zeigt keinen dominanten Längen-, Sprachstil- oder Absurdity-Cue.
+
+Nach Studienbeginn werden Wortlaut und Klassifikation nicht anhand sichtbarer Gruppenunterschiede
+verändert.
