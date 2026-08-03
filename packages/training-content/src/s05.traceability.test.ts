@@ -3,7 +3,7 @@ import { S05_CONTENT_VERSION, s05Content } from './s05.js';
 
 describe('S05 content traceability', () => {
   it('keeps the participant copy bounded and separate from internal terminology', () => {
-    expect(S05_CONTENT_VERSION).toBe('2.10.0');
+    expect(S05_CONTENT_VERSION).toBe('2.12.0');
     expect(s05Content.source).toMatchObject({
       document: 'research/private/training-script.pdf',
       internalPages: [
@@ -11,7 +11,7 @@ describe('S05 content traceability', () => {
         35,
       ],
       copyReference:
-        'docs/design/S00-S05-COPY-AUDIT.md#copy-delta-s05-wiederhergestellte-einleitung-3-august-2026',
+        'docs/design/S00-S05-COPY-AUDIT.md#copy-delta-s05-bausteinmodell-und-kategoriefluss-3-august-2026',
     });
     expect(s05Content.segment.id).toBe('S05');
     expect(s05Content.page.fixtureNotice).toBe(
@@ -27,8 +27,13 @@ describe('S05 content traceability', () => {
       'Kontakte',
       'Beiträge',
     ]);
-    expect(s05Content.intro.componentFrames.map(({ count }) => count)).toEqual([
-      3, 7, 1, 5, 8, 2, 6, 4,
+    expect(s05Content.intro.componentFrames.map(({ partLengths }) => partLengths.length)).toEqual([
+      3, 7, 4, 5, 8, 3, 6, 4,
+    ]);
+    expect(s05Content.intro.strategyAnnotations.probability).toBe('sehr häufig');
+    expect(s05Content.intro.narration.componentCategoryOverview).toEqual([
+      'Bestimmte Bestandteile – und sehr häufige vollständige Passwörter wie „123456789“ – kann er früh abgleichen.',
+      'Somit kommen wir zur 1. von 4 Kategorien: Die häufigen Kerne.',
     ]);
     expect(s05Content.intro.narration.componentStartQuestion).toEqual([
       'Die Strategie beginnt mit der Frage: Bei welchen Bestandteilen soll der Angreifer anfangen?',

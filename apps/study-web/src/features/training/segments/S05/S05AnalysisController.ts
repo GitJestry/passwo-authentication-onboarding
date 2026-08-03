@@ -34,7 +34,6 @@ export type S05AnalysisStep =
   | 'component-start-question'
   | 'component-frequency'
   | 'component-category-overview'
-  | 'common-cores-intro'
   | 'common-cores-definition'
   | 'common-cores-variants'
   | 'common-cores-application'
@@ -108,7 +107,6 @@ const stepByMissionId: Readonly<Record<string, S05AnalysisStep>> = {
   's05-component-start-question': 'component-start-question',
   's05-component-frequency': 'component-frequency',
   's05-component-category-overview': 'component-category-overview',
-  's05-common-cores-intro': 'common-cores-intro',
   's05-common-cores-definition': 'common-cores-definition',
   's05-common-cores-variants': 'common-cores-variants',
   's05-common-cores-application': 'common-cores-application',

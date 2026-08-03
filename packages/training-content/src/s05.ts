@@ -25,7 +25,7 @@ export interface S05DesignLabFixture {
   };
 }
 
-export const S05_CONTENT_VERSION = '2.10.0';
+export const S05_CONTENT_VERSION = '2.12.0';
 
 const commonCoreExamples = ['passwort', 'qwertz', '123456789', '2026', 'sommer', 'admin'] as const;
 
@@ -44,9 +44,9 @@ export const s05Content = {
       35,
     ] as const,
     revision:
-      'Userauftrag vom 2026-08-03 · Wiederherstellung der S05-Einleitung vor den naheliegenden Bestandteilen',
+      'Userauftrag vom 2026-08-03 · Blaue Kandidaten vor festem häufigem Kern und bereinigter Kategorieübergang',
     copyReference:
-      'docs/design/S00-S05-COPY-AUDIT.md#copy-delta-s05-wiederhergestellte-einleitung-3-august-2026',
+      'docs/design/S00-S05-COPY-AUDIT.md#copy-delta-s05-bausteinmodell-und-kategoriefluss-3-august-2026',
   },
   segment: {
     id: 'S05',
@@ -89,21 +89,25 @@ export const s05Content = {
     memorablePasswordParts: ['Mein', 'Starkes', 'Uni', 'Passwort', '2005', '!'],
     strategyAnnotations: {
       sentenceStructure: 'Satzbau',
-      probability: 'Wahrscheinlichkeit ↑',
+      probability: 'sehr häufig',
       personalDetail: 'Persönliche Angaben',
       typicalEnding: 'Typische Endung',
     },
     strategies: s05StrategyCards,
     componentFrames: [
-      { count: 3, highlightedIndex: 1 },
-      { count: 7, highlightedIndex: 5 },
-      { count: 1, highlightedIndex: 0 },
-      { count: 5, highlightedIndex: 3 },
-      { count: 8, highlightedIndex: 6 },
-      { count: 2, highlightedIndex: 0 },
-      { count: 6, highlightedIndex: 4 },
-      { count: 4, highlightedIndex: 2 },
+      { partLengths: [4, 8, 3] },
+      { partLengths: [2, 6, 4, 9, 3, 5, 7] },
+      { partLengths: [10, 3, 6, 4] },
+      { partLengths: [5, 3, 8, 4, 6] },
+      { partLengths: [2, 7, 3, 5, 9, 4, 6, 3] },
+      { partLengths: [11, 4, 7] },
+      { partLengths: [3, 8, 5, 2, 7, 4] },
+      { partLengths: [6, 3, 9, 5] },
     ] as const,
+    fixedCommonPasswordFrame: {
+      parts: ['•••••', '123456789', '••••'] as const,
+      highlightedIndex: 1,
+    },
     commonCores: {
       examples: commonCoreExamples,
       replacementRules: [
@@ -145,10 +149,8 @@ export const s05Content = {
         'Er könnte alle Zeichenfolgen, Wörter und Begriffe der Welt ausprobieren. Aber nicht alle Bestandteile werden in Passwörtern gleich häufig verwendet.',
       ],
       componentCategoryOverview: [
-        'Bestimmte Bestandteile – und sehr häufige vollständige Passwörter wie „123456789“ – kann er früh abgleichen. Diese Idee lässt sich in vier Kategorien aufteilen.',
-      ],
-      commonCoresIntro: [
-        'Die erste Kategorie sind häufige Kerne.',
+        'Bestimmte Bestandteile – und sehr häufige vollständige Passwörter wie „123456789“ – kann er früh abgleichen.',
+        'Somit kommen wir zur 1. von 4 Kategorien: Die häufigen Kerne.',
       ],
       commonCoresDefinition: [
         'Zu häufigen Kernen gehören bekannte Passwörter, Tastaturfolgen, Zahlenfolgen und häufig verwendete Jahreszahlen.',
@@ -466,7 +468,6 @@ export const s05Content = {
     ['s05-component-start-question', 'component-start', 'info'],
     ['s05-component-frequency', 'component-start', 'info'],
     ['s05-component-category-overview', 'component-start', 'info'],
-    ['s05-common-cores-intro', 'common-cores', 'info'],
     ['s05-common-cores-definition', 'common-core-machine', 'info'],
     ['s05-common-cores-variants', 'common-core-machine', 'info'],
     ['s05-common-cores-application', 'common-core-application', 'warning'],

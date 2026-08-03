@@ -8,6 +8,8 @@ export interface PasswordBuildingBlocksProps {
   readonly labels?: readonly string[];
   readonly ariaLabel: string;
   readonly animate?: boolean;
+  readonly appearance?: 'authored' | 'candidate';
+  readonly highlightedIndex?: number;
   readonly annotations?: {
     readonly sentenceStructure: string;
     readonly probability: string;
@@ -27,6 +29,8 @@ export function PasswordBuildingBlocks({
   labels,
   ariaLabel,
   animate = true,
+  appearance = 'authored',
+  highlightedIndex,
   annotations,
 }: PasswordBuildingBlocksProps) {
   if (display === 'assembled') {
@@ -74,9 +78,18 @@ export function PasswordBuildingBlocks({
   }
 
   return (
-    <div className={styles.blocks} data-display="separated" aria-label={ariaLabel}>
+    <div
+      className={styles.blocks}
+      data-display="separated"
+      data-appearance={appearance}
+      aria-label={ariaLabel}
+    >
       {parts.map((part, index) => (
-        <span key={`${part}-${index}`} className={styles.block}>
+        <span
+          key={`${part}-${index}`}
+          className={styles.block}
+          data-highlighted={index === highlightedIndex || undefined}
+        >
           <code>{part}</code>
           {labels?.[index] === undefined ? null : <small>{labels[index]}</small>}
         </span>

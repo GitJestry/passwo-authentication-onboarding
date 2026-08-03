@@ -43,20 +43,28 @@ export interface S05AnalysisTrainingProps {
   readonly completionPort?: S05CompletionPort;
 }
 
-interface StrategyTransitionRect {
+interface CategoryTransitionRect {
   readonly top: number;
   readonly left: number;
   readonly width: number;
   readonly height: number;
 }
 
-function strategyTransitionStyle(rect: StrategyTransitionRect | null): CSSProperties | undefined {
-  if (rect === null) return undefined;
+function categoryTransitionStyle(rect: CategoryTransitionRect): CSSProperties {
+  const translateX = window.innerWidth / 2 - (rect.left + rect.width / 2);
+  const translateY = window.innerHeight / 2 - (rect.top + rect.height / 2);
+  const scale = Math.min(
+    (window.innerWidth * 0.7) / rect.width,
+    (window.innerHeight * 0.32) / rect.height,
+  );
   return {
-    '--strategy-transition-top': `${rect.top}px`,
-    '--strategy-transition-left': `${rect.left}px`,
-    '--strategy-transition-width': `${rect.width}px`,
-    '--strategy-transition-height': `${rect.height}px`,
+    '--category-start-top': `${rect.top}px`,
+    '--category-start-left': `${rect.left}px`,
+    '--category-start-width': `${rect.width}px`,
+    '--category-start-height': `${rect.height}px`,
+    '--category-translate-x': `${translateX}px`,
+    '--category-translate-y': `${translateY}px`,
+    '--category-scale': scale,
   } as CSSProperties;
 }
 
@@ -140,18 +148,53 @@ function CandidateCheckScene({ subject }: { readonly subject: S05AnalysisSubject
   );
 }
 
-function RandomSequenceScene() {
+function GeneratedSequence() {
+  const [frameIndex, setFrameIndex] = useState(0);
+
+  useEffect(() => {
+    setFrameIndex(0);
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return undefined;
+    const interval = window.setInterval(() => setFrameIndex((index) => index + 1), 110);
+    return () => window.clearInterval(interval);
+  }, []);
+
   return (
-    <div className={styles.memorabilityStage} data-s05-target="random-sequence">
-      <section className={styles.generatedSequence} aria-label="Zufällig erzeugte Zeichenfolge">
-        <code>
-          {[...s05Content.intro.generatedPassword].map((character, index) => (
-            <i key={`${character}-${index}`} style={{ '--character-index': index } as CSSProperties}>
-              {character}
-            </i>
-          ))}
-        </code>
-      </section>
+    <section
+      className={styles.generatedSequence}
+      data-s05-target="random-sequence"
+      aria-label="Zufällig erzeugte Zeichenfolge"
+      aria-live="off"
+    >
+      <code>
+        {[...s05Content.intro.generatedPassword].map((character, index) => (
+          <i key={index}>
+            {frameIndex === 0
+              ? character
+              : candidateAlphabet[
+                  (frameIndex * (index + 3) + index * 11) % candidateAlphabet.length
+                ]}
+          </i>
+        ))}
+      </code>
+    </section>
+  );
+}
+
+function RandomSequenceScene({ subject }: { readonly subject: S05AnalysisSubject }) {
+  return (
+    <div className={styles.attackerStage}>
+      <CampusgramPassword password={subject.fictionalPassword} />
+      <div className={styles.attackerAttempt}>
+        <GeneratedSequence />
+      </div>
+      <div className={styles.attackerConnection} aria-hidden="true">
+        <span />
+      </div>
+      <img
+        className={styles.attackerPortrait}
+        src={attackerAsset}
+        alt="Symbolische Darstellung eines Angreifers am Computer"
+      />
     </div>
   );
 }
@@ -214,21 +257,9 @@ function StrategyPreview({
   );
 }
 
-function StrategyOverviewScene({
-  transitioning,
-  transitionStyle,
-  onTransitionEnd,
-}: {
-  readonly transitioning: boolean;
-  readonly transitionStyle: CSSProperties | undefined;
-  readonly onTransitionEnd: () => void;
-}) {
+function StrategyOverviewScene() {
   return (
-    <div
-      className={styles.strategyOverview}
-      data-s05-target="strategy-overview"
-      data-transitioning={transitioning || undefined}
-    >
+    <div className={styles.strategyOverview} data-s05-target="strategy-overview">
       <div className={styles.strategyCards}>
         {s05Content.intro.strategies.map((strategy, index) => (
           <article
@@ -251,56 +282,70 @@ function StrategyOverviewScene({
           ariaLabel={`${s05Content.intro.memorablePassword}: ${Object.values(s05Content.intro.strategyAnnotations).join(', ')}`}
         />
       </div>
-      {transitioning ? (
-        <article
-          className={styles.strategyTransitionCard}
-          style={transitionStyle}
-          onAnimationEnd={(event) => {
-            if (event.currentTarget === event.target) onTransitionEnd();
-          }}
-        >
-          <StrategyPreview strategyId="components" />
-          <h2>{`1. ${s05Content.intro.strategies[0].title}`}</h2>
-        </article>
-      ) : null}
     </div>
   );
 }
 
-function ComponentSequence() {
+function ComponentSequence({ fixed }: { readonly fixed: boolean }) {
+  const fixedFrame = s05Content.intro.fixedCommonPasswordFrame;
   return (
     <div
       className={styles.componentSequence}
       role="img"
-      aria-label="Wechselnde Folge aus einem bis acht verdeckten Bestandteilen; jeweils ein Bestandteil ist hervorgehoben."
+      aria-label={
+        fixed
+          ? 'Dreiteiliges Passwort: verdeckter Bestandteil, hervorgehobener häufiger Kern 123456789, verdeckter Bestandteil.'
+          : 'Wechselnde Folge aus drei bis acht unterschiedlich langen verdeckten blauen Bestandteilen.'
+      }
     >
       <div aria-hidden="true">
-        {s05Content.intro.componentFrames.map((frame, frameIndex) => (
-          <div
-            key={`${frame.count}-${frame.highlightedIndex}`}
-            className={styles.componentFrame}
-            style={{ '--frame-index': frameIndex } as CSSProperties}
-          >
-            {Array.from({ length: frame.count }, (_, blockIndex) => (
-              <span
-                key={blockIndex}
-                data-highlighted={blockIndex === frame.highlightedIndex || undefined}
-              >
-                •••
-              </span>
-            ))}
+        {fixed ? (
+          <div className={styles.componentFrame} data-fixed="true">
+            <PasswordBuildingBlocks
+              value={fixedFrame.parts.join('')}
+              parts={fixedFrame.parts}
+              display="separated"
+              appearance="candidate"
+              highlightedIndex={fixedFrame.highlightedIndex}
+              ariaLabel=""
+            />
           </div>
-        ))}
+        ) : (
+          s05Content.intro.componentFrames.map((frame, frameIndex) => {
+            const parts = frame.partLengths.map((length) => '•'.repeat(length));
+            return (
+              <div
+                key={frame.partLengths.join('-')}
+                className={styles.componentFrame}
+                style={{ '--frame-index': frameIndex } as CSSProperties}
+              >
+                <PasswordBuildingBlocks
+                  value={parts.join('')}
+                  parts={parts}
+                  display="separated"
+                  appearance="candidate"
+                  ariaLabel=""
+                />
+              </div>
+            );
+          })
+        )}
       </div>
     </div>
   );
 }
 
-function ComponentStartScene({ subject }: { readonly subject: S05AnalysisSubject }) {
+function ComponentStartScene({
+  subject,
+  fixed,
+}: {
+  readonly subject: S05AnalysisSubject;
+  readonly fixed: boolean;
+}) {
   return (
     <div className={styles.attackerStage} data-s05-target="component-start">
       <CampusgramPassword password={subject.fictionalPassword} />
-      <ComponentSequence />
+      <ComponentSequence fixed={fixed} />
       <div className={styles.attackerConnection} aria-hidden="true">
         <span />
       </div>
@@ -319,6 +364,60 @@ const categoryAssets = {
   'account-context': accountContextAsset,
   'typical-changes': typicalChangesAsset,
 } as const;
+
+function CategoryChain({
+  announcing,
+  visible,
+}: {
+  readonly announcing: boolean;
+  readonly visible: boolean;
+}) {
+  return (
+    <div
+      className={styles.categoryChain}
+      data-hidden={visible ? undefined : true}
+      aria-hidden={visible ? undefined : true}
+      aria-label={visible ? 'Erste von vier Kategorien: Häufige Kerne' : undefined}
+    >
+      <article
+        data-active="true"
+        data-announcing={announcing || undefined}
+        data-category-active="common-cores"
+      >
+        <img src={commonCoresAsset} alt="" />
+        <h2>1. Häufige Kerne</h2>
+      </article>
+      {[2, 3, 4].map((number) => (
+        <article key={number} aria-label={`Kategorie ${number} noch verdeckt`}>
+          <strong aria-hidden="true">?</strong>
+        </article>
+      ))}
+    </div>
+  );
+}
+
+function CategoryTransitionOverlay({
+  rect,
+  onComplete,
+}: {
+  readonly rect: CategoryTransitionRect;
+  readonly onComplete: () => void;
+}) {
+  return (
+    <div
+      className={styles.categoryTransitionOverlay}
+      aria-hidden="true"
+      onAnimationEnd={(event) => {
+        if (event.currentTarget === event.target) onComplete();
+      }}
+    >
+      <article className={styles.categoryTransitionCard} style={categoryTransitionStyle(rect)}>
+        <img src={commonCoresAsset} alt="" />
+        <h2>1. Häufige Kerne</h2>
+      </article>
+    </div>
+  );
+}
 
 function CategoryCard({
   title,
@@ -342,23 +441,11 @@ function CategoryCard({
   );
 }
 
-function CommonCoresIntroScene() {
-  return (
-    <div className={styles.commonCoresIntro} data-s05-target="common-cores">
-      <CategoryCard title="Häufige Kerne" image={commonCoresAsset} active />
-      <img className={styles.commonCoresHero} src={commonCoresAsset} alt="" />
-    </div>
-  );
-}
-
 function CommonCoreMachineScene({ variants }: { readonly variants: readonly string[] }) {
   const examples = s05Content.intro.commonCores.examples;
   const visibleVariants = variants.slice(0, 48);
   return (
     <div className={styles.commonCoreWorkspace} data-s05-target="common-core-machine">
-      <div className={styles.categoryRail}>
-        <CategoryCard title="Häufige Kerne" image={commonCoresAsset} active />
-      </div>
       <section className={styles.coreSource} aria-label={`Beispielkerne: ${examples.join(', ')}`}>
         <strong>Häufig verwendete Kerne</strong>
         <div aria-hidden="true">
@@ -473,9 +560,6 @@ function CommonCoreApplicationScene({
   const findings = commonCoreFindings(scene);
   return (
     <div className={styles.commonCoreApplication} data-s05-target="common-core-application">
-      <div className={styles.categoryRail}>
-        <CategoryCard title="Häufige Kerne" image={commonCoresAsset} active />
-      </div>
       <section className={styles.commonCoreResult}>
         <p>{s05Content.intro.commonCores.application}</p>
         <div className={styles.passwordRevealRow}>
@@ -939,14 +1023,12 @@ function renderScene(
   controller: S05AnalysisController,
   passwordRevealed: boolean,
   onTogglePassword: () => void,
-  strategyTransition: StrategyTransitionRect | null,
-  onStrategyTransitionEnd: () => void,
 ) {
   switch (snapshot.step) {
     case 'candidate-check':
       return <CandidateCheckScene subject={subject} />;
     case 'random-sequence':
-      return <RandomSequenceScene />;
+      return <RandomSequenceScene subject={subject} />;
     case 'recognizable-combination':
       return <RecognizableCombinationScene />;
     case 'building-blocks':
@@ -954,19 +1036,12 @@ function renderScene(
     case 'strategy-targeting':
       return <StrategyTargetingScene />;
     case 'strategy-overview':
-      return (
-        <StrategyOverviewScene
-          transitioning={strategyTransition !== null}
-          transitionStyle={strategyTransitionStyle(strategyTransition)}
-          onTransitionEnd={onStrategyTransitionEnd}
-        />
-      );
+      return <StrategyOverviewScene />;
     case 'component-start-question':
     case 'component-frequency':
+      return <ComponentStartScene subject={subject} fixed={false} />;
     case 'component-category-overview':
-      return <ComponentStartScene subject={subject} />;
-    case 'common-cores-intro':
-      return <CommonCoresIntroScene />;
+      return <ComponentStartScene subject={subject} fixed />;
     case 'common-cores-definition':
     case 'common-cores-variants':
       return <CommonCoreMachineScene variants={snapshot.commonCorePresentation.variants} />;
@@ -1053,8 +1128,6 @@ function introNarrationFor(
       return s05Content.intro.narration.componentFrequency;
     case 'component-category-overview':
       return s05Content.intro.narration.componentCategoryOverview;
-    case 'common-cores-intro':
-      return s05Content.intro.narration.commonCoresIntro;
     case 'common-cores-definition':
       return s05Content.intro.narration.commonCoresDefinition;
     case 'common-cores-variants':
@@ -1076,6 +1149,23 @@ function pageTitleFor(step: S05AnalysisControllerSnapshot['step']): string {
     default:
       return s05Content.page.title;
   }
+}
+
+function showsCommonCoreCategoryChain(step: S05AnalysisControllerSnapshot['step']): boolean {
+  return (
+    step === 'component-category-overview' ||
+    step === 'common-cores-definition' ||
+    step === 'common-cores-variants' ||
+    step === 'common-cores-application'
+  );
+}
+
+function reservesCommonCoreCategoryChain(step: S05AnalysisControllerSnapshot['step']): boolean {
+  return (
+    step === 'component-start-question' ||
+    step === 'component-frequency' ||
+    showsCommonCoreCategoryChain(step)
+  );
 }
 
 function StructureApplicationScene({
@@ -1178,7 +1268,7 @@ export function S05AnalysisTraining({
   const [controller, setController] = useState<S05AnalysisController | null>(null);
   const [snapshot, setSnapshot] = useState<S05AnalysisControllerSnapshot | null>(null);
   const [passwordRevealed, setPasswordRevealed] = useState(false);
-  const [strategyTransition, setStrategyTransition] = useState<StrategyTransitionRect | null>(null);
+  const [categoryTransition, setCategoryTransition] = useState<CategoryTransitionRect | null>(null);
   const timingFailure = externalTimingError !== null || timingState === 'endWriteFailed';
 
   useEffect(() => {
@@ -1205,10 +1295,6 @@ export function S05AnalysisTraining({
     controller?.start();
   }, [controller]);
 
-  useEffect(() => {
-    if (snapshot?.step !== 'strategy-overview') setStrategyTransition(null);
-  }, [snapshot?.step]);
-
   if (controller === null || snapshot === null) return null;
 
   const activeController = controller;
@@ -1218,7 +1304,7 @@ export function S05AnalysisTraining({
   const introGuidanceVisible = introNarration !== null;
 
   function continueFromSpeech(): void {
-    if (activeSnapshot.step !== 'strategy-overview') {
+    if (activeSnapshot.step !== 'component-category-overview') {
       activeController.continue();
       return;
     }
@@ -1226,15 +1312,13 @@ export function S05AnalysisTraining({
       activeController.continue();
       return;
     }
-    const componentCard = hostRef.current?.querySelector<HTMLElement>(
-      '[data-strategy="components"]',
-    );
-    if (componentCard === null || componentCard === undefined) {
+    const categoryCard = hostRef.current?.querySelector<HTMLElement>('[data-category-active]');
+    if (categoryCard === null || categoryCard === undefined) {
       activeController.continue();
       return;
     }
-    const rect = componentCard.getBoundingClientRect();
-    setStrategyTransition({
+    const rect = categoryCard.getBoundingClientRect();
+    setCategoryTransition({
       top: rect.top,
       left: rect.left,
       width: rect.width,
@@ -1245,9 +1329,31 @@ export function S05AnalysisTraining({
   return (
     <section ref={hostRef} className={styles.training} aria-label={s05Content.trainingAriaLabel}>
       <article className={styles.page} aria-labelledby="s05-title">
-        <header className={styles.pageHeader}>
+        <header
+          className={styles.pageHeader}
+          data-category-chain={reservesCommonCoreCategoryChain(snapshot.step) || undefined}
+          data-category-transitioning={categoryTransition !== null || undefined}
+          data-component-title={
+            pageTitleFor(snapshot.step) === s05Content.page.title || undefined
+          }
+        >
           <h1 id="s05-title">{pageTitleFor(snapshot.step)}</h1>
+          {reservesCommonCoreCategoryChain(snapshot.step) ? (
+            <CategoryChain
+              announcing={snapshot.step === 'component-category-overview'}
+              visible={showsCommonCoreCategoryChain(snapshot.step)}
+            />
+          ) : null}
         </header>
+        {categoryTransition === null ? null : (
+          <CategoryTransitionOverlay
+            rect={categoryTransition}
+            onComplete={() => {
+              setCategoryTransition(null);
+              controller.continue();
+            }}
+          />
+        )}
         <div
           className={styles.content}
           aria-live="polite"
@@ -1259,8 +1365,6 @@ export function S05AnalysisTraining({
             controller,
             passwordRevealed,
             () => setPasswordRevealed((revealed) => !revealed),
-            strategyTransition,
-            () => controller.continue(),
           )}
         </div>
         {introNarration === null ? null : (
@@ -1284,7 +1388,7 @@ export function S05AnalysisTraining({
                 disabled:
                   !snapshot.controls.canContinue ||
                   externalTimingError !== null ||
-                  strategyTransition !== null,
+                  categoryTransition !== null,
                 onAction: continueFromSpeech,
               }}
               placement="bottom-left"

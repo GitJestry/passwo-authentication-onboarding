@@ -515,3 +515,37 @@ presentation-only Visuals werden nun vor dem weiterhin bestehenden Abschnitt
 
 Die Zeichenfolgen und Bausteine sind weiterhin festgelegte Demonstrationen. Sie analysieren keine
 Teilnehmereingaben und verändern weder Persistenz, Timing noch die begrenzte S05-Auswertung.
+
+### Copy-Delta S05 Bausteinmodell und Kategoriefluss 3. August 2026
+
+Quelle ist der ausdrückliche Nutzerauftrag vom 3. August 2026. Die Änderung vereinheitlicht die
+Darstellung naheliegender Bestandteile mit dem zu Beginn von S05 eingeführten Bausteinmodell,
+entfernt den redundanten Kategorie-Zwischenschritt und führt direkt zur vorhandenen
+Variantenmaschine. `S05_CONTENT_VERSION` wird von `2.10.0` auf `2.11.0` erhöht.
+
+| Segment und Text-ID | Quelle | Aktueller Text | Geplanter Text | Primäre Rolle | Grund | Bedeutungsänderung | Interaktionsziel | Hervorhebung |
+|---|---|---|---|---|---|---|---|---|
+| `S05.intro.strategyAnnotations.probability` | Nutzerauftrag vom 2026-08-03 | `Wahrscheinlichkeit ↑` | `sehr häufig` | Mechanismuserklärung | Das Label benennt die qualitative Häufigkeit direkt und ohne abstrakten Wahrscheinlichkeitsbegriff. | nein | kein | am authored Baustein `Passwort` |
+| `S05.intro.narration.componentCategoryOverview` | Nutzerauftrag vom 2026-08-03 | `Bestimmte Bestandteile – und sehr häufige vollständige Passwörter wie „123456789“ – kann er früh abgleichen. Diese Idee lässt sich in vier Kategorien aufteilen.` | `Bestimmte Bestandteile – und sehr häufige vollständige Passwörter wie „123456789“ – kann er früh abgleichen.` / `Somit kommen wir zur 1. von 4 Kategorien: Die häufigen Kerne.` | Mechanismuserklärung / Orientierung | Der vollständige Beispielwert wird mit dem statischen goldenen Kern verbunden; die vierteilige Kategorieanzeige wird im selben Schritt eingeführt. | ausdrücklich freigegeben | `Weiter` führt direkt zur Variantenmaschine | `123456789` als goldener Baustein |
+| `S05.intro.narration.commonCoresIntro` | Nutzerauftrag vom 2026-08-03 | `Die erste Kategorie sind häufige Kerne.` | entfällt | Orientierung | Der separate Sprechschritt wiederholt die unmittelbar zuvor sichtbare Kategorieansage. | nein | entfällt | keine |
+
+Die wechselnden Kandidaten bestehen aus unterschiedlich vielen und unterschiedlich langen,
+maskierten hellblauen Bausteinen des vorhandenen S05-Bausteinsystems. Erst beim Beispiel
+`123456789` stoppt der Wechsel und der sichtbare Kern leuchtet hellgelb; vorher bleibt jeder
+Baustein blau. Der Kern bleibt
+zwischen zwei maskierten hellblauen Bausteinen stehen. Die Kategorieanzeige zeigt `1. Häufige Kerne` mit dem
+vorhandenen Logo und drei noch verdeckte Kategorien. Beim zugehörigen Sprechschritt pulsiert die
+aktive Karte warmgelb. Ihre wiederverwendbare Übergangsebene beginnt exakt an der tatsächlichen
+Kartenposition und vergrößert eine isolierte Karte proportional und unverzerrt vor einem separat
+einblendenden neutral-dunklen Vollbildhintergrund. Sie hält Logo und Namen zwei Sekunden mittig,
+blendet beides aus und führt erst danach zur
+Variantenmaschine. Es werden keine neuen Bildassets eingeführt. Die zuvor sichtbare, durchgehend
+wechselnde Zufallsfolge bleibt ohne Opacity-Wechsel bis zum Beispiel
+`MeinStarkesUniPasswort2005!` an der festen
+Kandidatenposition in der Angreiferszene. Dessen Bausteinübergang hält Schriftgröße und Position,
+markiert zuerst die Grenzen in derselben Zeichenfolge, trennt danach die Teile und entfernt den
+gemeinsamen Hintergrund. Die Verbindungslinie bei `Satzbau` endet an den Mittelpunkten des ersten
+und vierten Bausteins. Diese Visuals bleiben presentation-only und ändern keine Analyse.
+
+Das ergänzende visuelle Delta vom 3. August 2026 erhöht `S05_CONTENT_VERSION` von `2.11.0` auf
+`2.12.0`. Es verändert keinen Teilnehmertext und keine Analyseentscheidung.
