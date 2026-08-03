@@ -133,6 +133,7 @@ export const researchExportDataDictionaryRecordSchema = z
     maximum: z.number().int().nullable(),
     maxLength: z.number().int().positive().nullable(),
     optionId: z.string().trim().min(1).max(80).nullable(),
+    interpretationNote: z.string().trim().min(1).max(500).nullable(),
   })
   .strict();
 export type ResearchExportDataDictionaryRecord = z.infer<
@@ -158,7 +159,7 @@ export type ResearchExportSessionCount = z.infer<typeof researchExportSessionCou
 
 export const researchExportManifestSchema = z
   .object({
-    schemaVersion: z.literal('research-export-v5'),
+    schemaVersion: z.literal('research-export-v6'),
     profile: researchExportProfileSchema,
     schemaProfileVersion: researchExportSchemaProfileVersionSchema,
     exportedAtIso: z.iso.datetime(),

@@ -26,7 +26,7 @@ type TextItem = Extract<QuestionnaireItem, { readonly type: 'text' }>;
 type Agreement7Item = ScaleItem & { readonly scale: 'agreement7' };
 type Confidence11Item = ScaleItem & { readonly scale: 'confidence11' };
 type FullyLabelled7Item = ScaleItem & {
-  readonly scale: 'durationAppropriateness7' | 'riskPresentation7';
+  readonly scale: 'durationAppropriateness7' | 'perceivedDuration7' | 'riskPresentation7';
 };
 type GuardrailBlock = InstrumentRuntimeManifest['instruments']['guardrail-v2']['blocks'][number];
 type GuardrailItem = GuardrailBlock['items'][number];
@@ -340,19 +340,6 @@ function MatrixRow({
   );
 }
 
-function SharedAnchors({ children }: { readonly children: ReactNode }) {
-  return (
-    <div className={styles.matrixAnchors} aria-label="Skalenanker">
-      <span className={styles.matrixHeaderSpacer} aria-hidden="true" />
-      {children}
-    </div>
-  );
-}
-
-function AnchorLabel({ label }: { readonly label: string }) {
-  return <span className={styles.anchorLabel}>{label}</span>;
-}
-
 function MatrixNumber({ point }: { readonly point: number }) {
   return (
     <span className={styles.matrixNumber} aria-hidden="true">
@@ -444,17 +431,20 @@ function Confidence11Matrix({
           </MatrixRow>
         );
       })}
-      <SharedAnchors>
-        <AnchorLabel label={anchors['0']} />
-        {points11.slice(1, 5).map((point) => (
-          <span key={point} aria-hidden="true" />
-        ))}
-        <AnchorLabel label={anchors['5']} />
-        {points11.slice(6, 10).map((point) => (
-          <span key={point} aria-hidden="true" />
-        ))}
-        <AnchorLabel label={anchors['10']} />
-      </SharedAnchors>
+      <div
+        className={`${styles.matrixAnchors} ${styles.confidenceAnchors}`}
+        aria-label="Skalenanker"
+      >
+        <span className={`${styles.anchorLabel} ${styles.anchorLabelStart}`}>
+          {anchors['0']}
+        </span>
+        <span className={`${styles.anchorLabel} ${styles.anchorLabelCenter}`}>
+          {anchors['5']}
+        </span>
+        <span className={`${styles.anchorLabel} ${styles.anchorLabelEnd}`}>
+          {anchors['10']}
+        </span>
+      </div>
     </div>
   );
 }
@@ -715,7 +705,11 @@ function QuestionnaireItemField({
         />
       );
     case 'scale':
-      return hasScale(item, 'durationAppropriateness7') || hasScale(item, 'riskPresentation7') ? (
+      return (
+        hasScale(item, 'durationAppropriateness7') ||
+        hasScale(item, 'perceivedDuration7') ||
+        hasScale(item, 'riskPresentation7')
+      ) ? (
         <FullyLabelledScale7
           item={item}
           value={typeof value === 'number' ? value : undefined}

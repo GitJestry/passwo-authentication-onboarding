@@ -10,23 +10,24 @@ ist methodisch von der Training Runtime getrennt und kennt keine fiktiven Passwo
 ```text
 Eligibility lokal prüfen
 → gemeinsame Teilnahmeinformation und Einwilligung
-→ optionale Follow-up-Entscheidung
-→ Löschcode lokal erzeugen, Session serverseitig anlegen, Condition verdeckt zuweisen und Löschcode anzeigen
-→ bei Einwilligung Recontact-E-Mail getrennt registrieren
+→ verpflichtende Kontaktbestätigung und validierte E-Mail-Adresse
+→ Löschcode lokal erzeugen; Session, verdeckte Condition-Zuweisung und getrennte
+  Recontact-Registrierung atomar anlegen; Löschcode anzeigen
 → Pre-Fragebogen blockweise speichern
 → nur supportive: flüchtigen Anzeigenamen erfassen
 → supportive oder reference Artefakt
 → Post-Fragebogen
-→ Guardrail Recognition
 → Guardrail Szenarien
+→ Guardrail Recognition
 → optionale offene Rückmeldung als verpflichtende Submission
 → Session Closure
 → Completion
 ```
 
-Eligibility wird nicht persistiert. Die optionale Nachbefragung darf die Hauptstudie nicht
-blockieren. Schlägt ihre Registrierung fehl, kann sie mit demselben Request erneut versucht oder
-aufgegeben werden; die Condition wird dabei nicht neu zugewiesen.
+Eligibility wird nicht persistiert. Ohne gültige E-Mail-Adresse und beide Bestätigungen wird keine
+Sitzung angelegt. Session, Condition-Slot und Recontact-Registrierung bilden einen atomaren
+Vorgang. Ein identischer Retry ist idempotent; ein Fehler hinterlässt weder Sitzung, zugewiesenen
+Slot noch Kontaktdatensatz. Einen Abandon- oder „ohne zweiten Teil fortfahren“-Pfad gibt es nicht.
 
 ## Instrument- und Abschlussreihenfolge
 
@@ -37,11 +38,11 @@ aufgegeben werden; die Condition wird dabei nicht neu zugewiesen.
 - `post-open-v1` wird immer submitted; leere optionale Felder sind `null`.
 - Ein Forschungsdatenfehler blockiert den Übergang und erlaubt idempotenten Retry.
 
-Teilnehmende ohne Follow-up-Einwilligung erhalten bei der Session Closure die vollständige
-Aufklärung. Teilnehmende mit Einwilligung erhalten zunächst die neutrale Bestätigung der
-Hauptsitzung; ihre vollständige Aufklärung erfolgt nach der Follow-up-Antwort oder spätestens nach
-Schließung des Zeitfensters. Öffentliches Follow-up-Formular, Antwortimport und der manuelle
-abschließende Debrief-Versand sind noch vor dem Study Freeze umzusetzen und zu erproben.
+Alle regulär Eingeschlossenen erhalten nach der Hauptsitzung nur die neutrale Bestätigung des
+ersten Studienteils. Die vollständige Aufklärung folgt direkt nach Abgabe des zweiten Teils und
+zusätzlich per E-Mail an alle Eingeschlossenen bei Schließung des Antwortfensters. Öffentliches
+Follow-up-Formular, Antwortimport und der operative abschließende Debrief-Versand sind noch vor dem
+Study Freeze umzusetzen und zu erproben.
 
 ## Teilnahmeinformation und Löschcode
 
@@ -73,14 +74,15 @@ Pretests zulässig. Der Client enthält keinen Condition-Auswahlschalter.
 ## Follow-up-Boundary
 
 Die lokale Runtime versendet keine E-Mails und hostet keinen öffentlichen Fragebogen. Nach
-Completion werden nur für eingewilligte Sessions Einladung nach 240 Stunden, höchstens eine
+Completion werden für alle neuen 2.1-Sessions Einladung nach 240 Stunden, höchstens eine
 Erinnerung nach weiteren 48 Stunden und Schließung nach 336 Stunden geplant. Der Schedule-Export
 wird ausschließlich auf ausdrücklichen Aufruf erzeugt. Einladung, gegebenenfalls Erinnerung und
 Debriefing werden einzeln und manuell über das freigegebene Universitätskonto versandt; Empfänger
 dürfen einander nicht sehen. Die Nachricht enthält nur den neutralen Einladungstext und den
 individuellen Tokenlink, niemals Condition, Forschungs-ID, Antworten oder Löschcode. Recontact-Daten
-dienen keiner Analyse oder Stichprobenbeschreibung. Öffentliches Formular, Antwortimport und
-manueller Debrief-Versand bleiben vom lokalen Runtime-Prozess getrennt.
+dienen keiner Analyse oder Stichprobenbeschreibung. Der Forschungsstichtag bleibt exakt
+`completedAt + 240h`, unabhängig von späterer Abgabe oder Erinnerung. Öffentliches Formular,
+Antwortimport und manueller Debrief-Versand bleiben vom lokalen Runtime-Prozess getrennt.
 
 ## Lokale Datenlöschung
 

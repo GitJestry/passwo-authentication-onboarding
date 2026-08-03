@@ -23,7 +23,6 @@ import {
   researchExportManifestSchema,
   researchExportProfileSchema,
   researchExportSessionRecordSchema,
-  registerRecontactRequestSchema,
   REFERENCE_ARTIFACT_VERSION,
   s07RecommendationIds,
   SUPPORTIVE_ARTIFACT_SEGMENT_IDS,
@@ -40,7 +39,8 @@ describe('research-safe contracts', () => {
     const result = createSessionRequestSchema.safeParse({
       requestId: 'f5d74d44-f700-4dc7-ac00-5e251a8890c3',
       consentAccepted: true,
-      followUpConsent: false,
+      recontactConsentAccepted: true,
+      email: 'person@example.org',
       deletionCodeHash: validDeletionCodeHash,
       [forbiddenPersonalizationField]: 'Alex',
     });
@@ -63,19 +63,21 @@ describe('research-safe contracts', () => {
       createSessionRequestSchema.safeParse({
         requestId: 'f5d74d44-f700-4dc7-ac00-5e251a8890c3',
         consentAccepted: true,
-        followUpConsent: false,
+        recontactConsentAccepted: true,
+        email: 'person@example.org',
         deletionCodeHash: validDeletionCodeHash,
         condition: 'supportive',
       }).success,
     ).toBe(false);
   });
 
-  it('keeps email out of session creation and validates it only for recontact registration', () => {
+  it('requires validated email and recontact consent during atomic session creation', () => {
     expect(
       createSessionRequestSchema.safeParse({
         requestId: 'f5d74d44-f700-4dc7-ac00-5e251a8890c3',
         consentAccepted: true,
-        followUpConsent: false,
+        recontactConsentAccepted: true,
+        email: 'person@example.org',
         deletionCodeHash: validDeletionCodeHash,
       }).success,
     ).toBe(true);
@@ -83,9 +85,26 @@ describe('research-safe contracts', () => {
       createSessionRequestSchema.safeParse({
         requestId: 'f5d74d44-f700-4dc7-ac00-5e251a8890c3',
         consentAccepted: true,
-        followUpConsent: true,
+        recontactConsentAccepted: true,
         deletionCodeHash: validDeletionCodeHash,
+      }).success,
+    ).toBe(false);
+    expect(
+      createSessionRequestSchema.safeParse({
+        requestId: 'f5d74d44-f700-4dc7-ac00-5e251a8890c3',
+        consentAccepted: true,
+        recontactConsentAccepted: false,
         email: 'person@example.org',
+        deletionCodeHash: validDeletionCodeHash,
+      }).success,
+    ).toBe(false);
+    expect(
+      createSessionRequestSchema.safeParse({
+        requestId: 'f5d74d44-f700-4dc7-ac00-5e251a8890c3',
+        consentAccepted: true,
+        recontactConsentAccepted: true,
+        email: 'not-an-email',
+        deletionCodeHash: validDeletionCodeHash,
       }).success,
     ).toBe(false);
     for (const forbiddenField of ['rawToken', 'recontactRequestId']) {
@@ -93,7 +112,8 @@ describe('research-safe contracts', () => {
         createSessionRequestSchema.safeParse({
           requestId: 'f5d74d44-f700-4dc7-ac00-5e251a8890c3',
           consentAccepted: true,
-          followUpConsent: true,
+          recontactConsentAccepted: true,
+          email: 'person@example.org',
           deletionCodeHash: validDeletionCodeHash,
           [forbiddenField]: 'not-allowed',
         }).success,
@@ -105,24 +125,13 @@ describe('research-safe contracts', () => {
         createSessionRequestSchema.safeParse({
           requestId: 'f5d74d44-f700-4dc7-ac00-5e251a8890c3',
           consentAccepted: true,
-          followUpConsent: true,
+          recontactConsentAccepted: true,
+          email: 'person@example.org',
           deletionCodeHash: validDeletionCodeHash,
           [forbiddenIdentityField]: 'not-allowed',
         }).success,
       ).toBe(false);
     }
-    expect(
-      registerRecontactRequestSchema.safeParse({
-        requestId: 'f5d74d44-f700-4dc7-ac00-5e251a8890c3',
-        email: 'person@example.org',
-      }).success,
-    ).toBe(true);
-    expect(
-      registerRecontactRequestSchema.safeParse({
-        requestId: 'f5d74d44-f700-4dc7-ac00-5e251a8890c3',
-        email: 'not-an-email',
-      }).success,
-    ).toBe(false);
   });
 
   it('uses the PW deletion-code format and shared SHA-256 lookup hash', async () => {
@@ -365,7 +374,7 @@ describe('research-safe contracts', () => {
 
   it('keeps researcher exports inside the approved data boundary', () => {
     const manifest = {
-      schemaVersion: 'research-export-v5',
+      schemaVersion: 'research-export-v6',
       profile: 'audit',
       schemaProfileVersion: 'research-audit-v1',
       exportedAtIso: '2026-07-24T12:00:00.000Z',
@@ -430,14 +439,14 @@ describe('research-safe contracts', () => {
     expect(JSON.stringify(instrumentRuntimeManifest)).not.toMatch(
       /"[^"]*(?:classification|scor(?:e|ing)|derivedMetric)[^"]*"\s*:/iu,
     );
-    expect(instrumentRuntimeManifest.procedures.followUpRecontact.optional).toBe(true);
+    expect(instrumentRuntimeManifest.procedures.followUpRecontact.optional).toBe(false);
     expect(instrumentRuntimeManifest).toMatchObject({
-      instrumentVersion: '2.0.0',
-      questionnaireVersion: 'questionnaire-v2',
+      instrumentVersion: '2.1.0',
+      questionnaireVersion: 'questionnaire-v3',
       guardrailVersion: 'guardrail-v4',
-      consentVersion: 'consent-v6-draft',
-      followUpVersion: 'follow-up-v4',
-      runtimeManifestVersion: 'instrument-runtime-v2',
+      consentVersion: 'consent-v7-draft',
+      followUpVersion: 'follow-up-v5',
+      runtimeManifestVersion: 'instrument-runtime-v2.1',
     });
     expect(Object.keys(instrumentRuntimeManifest.instruments)).toEqual([
       'pre-v1',
@@ -474,7 +483,12 @@ describe('research-safe contracts', () => {
       'self_efficacy',
       'secaware_prior_exposure',
     ]);
-    expect(postItemIds).toHaveLength(28);
+    expect(postItemIds).toHaveLength(29);
+    expect(postItemIds.indexOf('PERCEIVED_DURATION')).toBe(
+      postItemIds.indexOf('TIME_FIT') - 1,
+    );
+    expect(postItemIds).toContain('CONSEQUENCE_TANGIBILITY');
+    expect(postItemIds).not.toContain('CONSEQUENCE_VISIBILITY');
     expect(JSON.stringify({ preItemIds, postItemIds })).not.toMatch(
       /PRE_GENDER|PRE_FAM_|TIME_FELT|TIME_VALUE|FOCUS_TF|EMOTION_|CRED_/u,
     );
@@ -569,6 +583,57 @@ describe('research-safe contracts', () => {
         ...selfEfficacyBlock,
         responses: selfEfficacyBlock.responses.map((response, index) =>
           index === 0 ? { ...response, value: 11 } : response,
+        ),
+      }).success,
+    ).toBe(false);
+    const durationBlock = {
+      instrumentId: 'post-v1',
+      sectionId: 'duration',
+      responses: [
+        { itemId: 'PERCEIVED_DURATION', value: 1 },
+        { itemId: 'TIME_FIT', value: 7 },
+      ],
+    };
+    expect(instrumentSubmissionRequestSchema.safeParse(durationBlock).success).toBe(true);
+    expect(
+      instrumentSubmissionRequestSchema.safeParse({
+        ...durationBlock,
+        responses: [
+          { itemId: 'PERCEIVED_DURATION', value: 0 },
+          { itemId: 'TIME_FIT', value: 7 },
+        ],
+      }).success,
+    ).toBe(false);
+    expect(
+      instrumentSubmissionRequestSchema.safeParse({
+        ...durationBlock,
+        responses: [
+          { itemId: 'PERCEIVED_DURATION', value: 1 },
+          { itemId: 'TIME_FIT', value: 8 },
+        ],
+      }).success,
+    ).toBe(false);
+
+    const designBlock = instrumentRuntimeManifest.instruments['post-v1'].sections.find(
+      ({ id }) => id === 'design_diagnostics',
+    );
+    if (designBlock === undefined) throw new Error('missing-design-diagnostics');
+    const validDesignResponses = designBlock.items.map((item) => ({ itemId: item.id, value: 4 }));
+    expect(
+      instrumentSubmissionRequestSchema.safeParse({
+        instrumentId: 'post-v1',
+        sectionId: designBlock.id,
+        responses: validDesignResponses,
+      }).success,
+    ).toBe(true);
+    expect(
+      instrumentSubmissionRequestSchema.safeParse({
+        instrumentId: 'post-v1',
+        sectionId: designBlock.id,
+        responses: validDesignResponses.map((response) =>
+          response.itemId === 'CONSEQUENCE_TANGIBILITY'
+            ? { ...response, itemId: 'CONSEQUENCE_VISIBILITY' }
+            : response,
         ),
       }).success,
     ).toBe(false);

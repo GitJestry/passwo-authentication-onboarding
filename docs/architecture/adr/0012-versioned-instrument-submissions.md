@@ -202,3 +202,29 @@ Die Runtime-Projektion enthält weiterhin keine Guardrail-Klassifikationen. Es w
 Guardrail-Gesamtscore, kein Pass/Fail und kein Unsafe-Summenwert gespeichert oder berechnet. Die
 Erweiterung der zulässigen Form-IDs erfolgt über SQLite-Migration 7. Bestehende Sessions behalten
 ihre frühere Form; neue Formblöcke verwenden alle sechs Formen.
+
+## Revision 2026-08-03 — Instrument 2.1 und verzögerte Handlungsmessung
+
+Die Instrumentversion wird `2.1.0`, die Fragebogenversion `questionnaire-v3`, die Consent-Version
+`consent-v7-draft`, die Follow-up-Version `follow-up-v5` und das Runtime-Manifest
+`instrument-runtime-v2.1`. `guardrail-v4` bleibt unverändert.
+
+Im Abschnitt `duration` wird `PERCEIVED_DURATION` mit der vollständig beschrifteten Skala
+`perceivedDuration7` exakt vor `TIME_FIT` eingefügt. Das erste Item erfasst subjektive Länge, das
+zweite zeitliche Angemessenheit; beide werden einzeln und als vollständige Verteilung ausgewertet,
+ohne höhere Werte als bessere Qualität zu interpretieren.
+
+`CONSEQUENCE_VISIBILITY` wird für 2.1 vollständig durch `CONSEQUENCE_TANGIBILITY` mit dem Wortlaut
+„Durch das Lernangebot konnte ich mir konkret vorstellen, wie sich unterschiedliche Entscheidungen
+auf den Schutz von Konten auswirken können.“ ersetzt. Historische 2.0-Antworten behalten ihre alte
+ID und werden nicht migriert oder umbenannt.
+
+Das getrennte Follow-up-v5 behält seine drei fokalen Handlungen, Kontextfragen,
+Barriereverzweigungen und Sicherheitswarnung inhaltlich bei. Revidiert werden nur Titel,
+Instruktion, Nachrichten und Status als verpflichtender zweiter Studienteil. Die drei fokalen
+Items werden als zentral-sekundäre Familie getrennt ausgewertet. Runtime-Projektion und generierte
+Vertragskopie müssen identisch bleiben.
+
+Weil das Data Dictionary mit `interpretationNote` nun die abweichende Bedeutung von
+`PERCEIVED_DURATION` und `TIME_FIT` maschinenlesbar dokumentiert, wird das Export-Manifest auf
+`research-export-v6` angehoben. Dies ändert keine persistierten Forschungsdaten.

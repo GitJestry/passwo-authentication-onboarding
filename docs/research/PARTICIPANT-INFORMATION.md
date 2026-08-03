@@ -1,4 +1,4 @@
-# Participant Information and Consent v6-draft
+# Participant Information and Consent v7-draft
 
 Dieses Dokument ist die kanonische fachliche Quelle der gemeinsamen Teilnehmertexte. Die
 ausführbare Projektion liegt im versionierten Instrument-Manifest.
@@ -6,14 +6,35 @@ ausführbare Projektion liegt im versionierten Instrument-Manifest.
 ## Status and methodological decision
 
 The common study introduction uses **authorized incomplete disclosure**. It truthfully describes
-the procedure, expected duration, data processing, voluntariness, foreseeable burden, and optional
-follow-up, but does not disclose before the final study part that two artifacts are compared or
-that assignment is randomized. This decision requires the approved ethics protocol and the
-specified debriefing procedure.
+the procedure, expected duration, data processing, voluntariness, foreseeable burden, and required
+second study part, but does not disclose before that final part that two artifacts are compared,
+that assignment is randomized, or that three concrete protection actions are the focus. This
+decision requires the approved ethics protocol and the specified delayed debriefing procedure.
 
 The common introduction must not contain PassWo, SecAware, condition names, comparison language,
 or condition-specific task instructions. The fictional-password safety boundary is shown only in
 the supportive condition immediately before the first fictional password task.
+
+## Recruitment email
+
+**Betreff:** Teilnahme an einer Studie zu einem digitalen Lernangebot
+
+> Hallo,
+>
+> für eine Studie der Universität Bonn suchen wir volljährige Hochschulangehörige, die ein
+> digitales Lernangebot zu Passwörtern und zum Schutz von Online-Konten erproben möchten.
+>
+> Die Teilnahme umfasst eine heutige Sitzung von etwa 20 bis 30 Minuten und einen kurzen zweiten
+> Online-Teil etwa zehn Tage später, der ungefähr ein bis zwei Minuten dauert. Für den zweiten
+> Teil kontaktieren wir dich per E-Mail.
+>
+> Wenn du Interesse hast, kannst du dich unter `[LINK]` unverbindlich über Termin und Teilnahme
+> informieren. Erst nach den vollständigen Teilnahmeinformationen und deiner ausdrücklichen
+> Einwilligung beginnt die Studie. Die Teilnahme ist freiwillig und kann ohne Nachteile beendet
+> werden.
+>
+> Einige Einzelheiten zur genauen Forschungsfrage erläutern wir erst nach Abschluss beider Teile,
+> damit diese Informationen die Bearbeitung nicht vorab beeinflussen.
 
 ## Visible welcome and essential information
 
@@ -30,14 +51,18 @@ Lernangebot beantwortest du einige Fragen.
 The consent screen immediately shows the following essential information. It is not hidden behind
 an accordion or a read-progress gate:
 
-1. The current session is expected to take 20--30 minutes. Participation is voluntary and can be
-   ended at any time without justification or disadvantage.
+1. Die Studie umfasst die heutige Sitzung von etwa 20 bis 30 Minuten und einen kurzen zweiten Teil
+   etwa zehn Tage später. Der zweite Teil dauert ungefähr ein bis zwei Minuten und wird per E-Mail
+   bereitgestellt. Participation is voluntary and can be ended at any time without justification
+   or disadvantage.
 2. Stored research data include questionnaire responses, total and section timing, technical
    completion status, and required information about the completed learning artifact, versions,
    and presentation orders.
    The study does not request real passwords or account credentials.
-3. The ten-day follow-up is optional. An email address is stored only after separate consent and in
-   a registry separated from research responses. No direct personal benefit is promised.
+3. A valid email address and separate contact confirmation are required for the second and final
+   study part. The address is stored in a registry separated from research responses and used only
+   for that part, at most one reminder, and the final debriefing. No direct personal benefit is
+   promised.
 4. Study and data-processing questions can be directed to the contacts in the detailed
    information.
 
@@ -62,9 +87,10 @@ behandelten Themen. Danach bearbeitest du ein digitales Lernangebot. Abschließe
 zu deiner Wahrnehmung des Angebots und zu den vermittelten Inhalten. Die heutige Sitzung dauert
 voraussichtlich 20 bis 30 Minuten.
 
-Optional kannst du etwa zehn Tage später per E-Mail an einer etwa ein- bis zweiminütigen
-Nachbefragung teilnehmen. Die Hauptstudie kann vollständig bearbeitet werden, ohne dieser
-Kontaktaufnahme zuzustimmen.
+Etwa zehn Tage später erhältst du per E-Mail den zweiten und letzten Studienteil. Dieser dauert
+ungefähr ein bis zwei Minuten. Das Zeitfenster für die dort erfragten Angaben endet 240 Stunden
+nach Abschluss der heutigen Sitzung. Der Link bleibt anschließend für die Abgabe bis zum
+angegebenen Schließungszeitpunkt verfügbar.
 
 ### Welche Daten werden verarbeitet?
 
@@ -74,8 +100,8 @@ zu Versionen und Darstellungsreihenfolgen. Die Forschungsdaten werden unter eine
 zufällig erzeugten, nicht angezeigten Forschungs-ID pseudonymisiert gespeichert und ausgewertet.
 Sie enthalten weder deinen Namen noch deine E-Mail-Adresse.
 
-Falls du der Nachbefragung zustimmst, wird deine E-Mail-Adresse getrennt von den Forschungsdaten
-gespeichert und ausschließlich für die Einladung sowie höchstens eine Erinnerung verwendet.
+Deine E-Mail-Adresse wird getrennt von den Forschungsdaten gespeichert und ausschließlich für den
+zweiten Studienteil, höchstens eine Erinnerung und die abschließende Aufklärung verwendet.
 
 ### Freiwilligkeit und Abbruch
 
@@ -120,24 +146,33 @@ die offiziellen Universitätsangaben ersetzt; Rechtsgrundlage und Betroffenenrec
 damit die pseudonymisierte Verarbeitung transparent beschrieben ist. Quelle:
 `https://www.uni-bonn.de/de/datenschutzerklaerung` und `https://www.sid.uni-bonn.de/de`.
 
+Copy delta Revision 2.1: Rekrutierung und Welcome bleiben neutrale Orientierungs- und
+Verfahrenstexte. Teilnahmeinformation, allgemeine Einwilligung und Kontaktbestätigung sind
+Safety-/Consent-Grenzen und nennen beide verpflichtenden Teile sowie die autorisierte
+unvollständige Offenlegung. Die Session Closure ist reine Navigation zum zweiten Teil; das
+Debriefing ist die vollständige Research Disclosure. Geändert wurden ausschließlich diese Rollen,
+um Dauer, Recontact und Freiwilligkeit transparent zu machen, ohne Vergleich, Randomisierung oder
+konkreten Handlungsfokus vor Ablauf des 240-Stunden-Fensters vorwegzunehmen.
+
 ## Consent controls
 
 ### Required consent
 
-Ich habe die Teilnahmeinformationen gelesen und verstanden. Ich weiß, dass einige Einzelheiten
-zur genauen Fragestellung erst nach meinem letzten Studienteil erläutert werden. Ich willige
-freiwillig in die Teilnahme und in die beschriebene pseudonymisierte Verarbeitung meiner
-Forschungsdaten ein.
+Ich habe die Teilnahmeinformationen gelesen und verstanden. Ich weiß, dass die Studie die heutige
+Sitzung und den zweiten und letzten Studienteil etwa zehn Tage später umfasst und dass einige
+Einzelheiten zur genauen Fragestellung erst danach erläutert werden. Ich willige freiwillig in
+beide Studienteile und in die beschriebene pseudonymisierte Verarbeitung meiner Forschungsdaten
+ein.
 
-### Optional recontact consent
+### Required recontact confirmation
 
-Ich möchte etwa zehn Tage später per E-Mail zu einer kurzen Nachbefragung eingeladen werden. Meine
-E-Mail-Adresse wird getrennt von den Forschungsdaten gespeichert und nur für diese
-Kontaktaufnahme verwendet.
+Ich willige ein, dass meine E-Mail-Adresse getrennt von den Forschungsdaten gespeichert und
+ausschließlich für den zweiten Studienteil, höchstens eine Erinnerung und die abschließende
+Aufklärung verwendet wird.
 
-The optional decision is independent from main-study consent and never blocks main-study
-participation. Eligibility errors are shown only after a submission attempt, not while the person
-is still completing the three confirmations.
+A session is created only after both confirmations and a valid email address have been submitted.
+Eligibility errors are shown only after a submission attempt, not while the person is still
+completing the confirmations.
 
 ## Deletion code and continuing access
 
@@ -169,10 +204,54 @@ verarbeitet und nicht als Forschungsantwort gespeichert.
 
 ## Debriefing
 
-Participants without follow-up consent are debriefed after the main session. Participants with
-follow-up consent are debriefed after their response or when the follow-up window closes. Early
-withdrawal handling follows the approved protocol.
+Regularly enrolled participants are not debriefed after the main session. The first-part closure
+reads:
 
-The debrief explains the artifact-level comparison, random assignment, outcome families, and the
-right to request deletion using the deletion code. The exact debrief timing and all deletion
-periods must be approved before recruitment.
+> Der erste Studienteil ist abgeschlossen. Etwa zehn Tage nach deiner heutigen Teilnahme erhältst
+> du per E-Mail den kurzen zweiten und letzten Studienteil. Die vollständige Aufklärung erhältst du
+> nach dessen Abgabe oder spätestens nach Schließung des Antwortfensters.
+
+Directly after submission, the external form shows the complete debriefing. At `closesAt`, the
+same debriefing is additionally emailed to every enrolled participant. Early withdrawal is
+debriefed as early as ethically specified in the approved protocol.
+
+The debrief explains the comparison of two complete learning artifacts, random assignment, the
+withheld focus on three self-reported protection actions within ten days, the reason for incomplete
+disclosure, the limits of self-reported behavior evidence, and the right to request deletion using
+the deletion code and study contact. It closes with this voluntary request:
+
+### Full debrief text
+
+> Vielen Dank für deine Teilnahme. Jetzt möchten wir dich vollständig über den Zweck der Studie
+> aufklären.
+>
+> In der Studie vergleichen wir zwei vollständige digitale Lernangebote zu Passwörtern und zum
+> Schutz von Online-Konten. Welches Lernangebot du erhalten hast, wurde zufällig zugewiesen. Ein
+> weiterer Untersuchungsfokus liegt auf drei selbstberichteten Schutzhandlungen innerhalb von
+> zehn Tagen: dem Ersetzen eines wiederverwendeten oder nur leicht veränderten Passworts, dem
+> Erzeugen und Speichern eines kontospezifischen Passworts mit einem Passwortmanager und der
+> Aktivierung von MFA/2FA bei mindestens einem Konto.
+>
+> Diese Einzelheiten wurden vor Abschluss des zweiten Studienteils nicht genannt, weil das Wissen
+> um den Vergleich und die konkreten Handlungsfragen deine Bearbeitung, deine Antworten oder dein
+> Verhalten im Messzeitraum hätte beeinflussen können. Die unvollständige Offenlegung bezog sich
+> nur auf diese genaue Forschungsfrage; Ablauf, Dauer, Kontaktaufnahme, Freiwilligkeit und
+> Datenverarbeitung wurden vorab beschrieben.
+>
+> Die Angaben des zweiten Teils sind Selbstberichte. Wir haben keine realen Konten beobachtet und
+> keine Passwörter oder Kontozugangsdaten erhoben. Die Ergebnisse erlauben keine Aussage darüber,
+> ob eine Konfiguration objektiv korrekt abgeschlossen wurde, ob sich dasselbe Verhalten gegenüber
+> einem Ausgangswert verändert hat oder ob eine Handlung dauerhaft beibehalten wird. Die drei
+> Handlungen werden getrennt ausgewertet; es wird kein gemeinsamer Verhaltenswert gebildet.
+>
+> Deine Teilnahme bleibt freiwillig. Wenn du die Löschung deiner Forschungsdaten verlangen
+> möchtest, wende dich mit deinem Löschcode an Julian Meyer, s27jmeye@uni-bonn.de. Bei Fragen zur
+> Studie oder zur Aufklärung kannst du dich ebenfalls an diese Adresse wenden.
+>
+> Bis zum Ende der Datenerhebung am `[STUDIENENDE]` bitten wir dich, Personen, die möglicherweise
+> noch teilnehmen, nichts über die zurückgehaltene Fragestellung, die verglichenen Lernangebote
+> oder die Fragen des zweiten Teils zu erzählen. So hilfst du uns, deren Bearbeitung nicht zu
+> beeinflussen. Diese Bitte ist freiwillig und hat keinen Einfluss auf deine Rechte.
+
+The exact debrief timing, withdrawal handling, deletion periods, and voluntary non-disclosure
+request must be approved before recruitment.

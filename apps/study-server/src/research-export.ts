@@ -245,6 +245,12 @@ function dictionaryRowsForItems(
   sectionId: string,
   items: readonly DictionaryItem[],
 ): ResearchExportDataDictionaryRecord[] {
+  const interpretationNotes: Readonly<Record<string, string>> = {
+    PERCEIVED_DURATION:
+      'Subjektiv erlebte Länge; einzeln und als vollständige Verteilung auswerten. Höhere Werte bedeuten länger, nicht bessere Qualität.',
+    TIME_FIT:
+      'Bewertung der zeitlichen Angemessenheit; einzeln und als vollständige Verteilung auswerten. Höhere Werte bedeuten nicht bessere Qualität.',
+  };
   return items.flatMap((item) => {
     const scale = scaleBounds(item.scale);
     const optionIds = item.options?.map((option) => option.id) ?? [null];
@@ -259,6 +265,7 @@ function dictionaryRowsForItems(
         maximum: item.max ?? scale.maximum,
         maxLength: item.maxLength ?? null,
         optionId,
+        interpretationNote: interpretationNotes[item.id] ?? null,
       }),
     );
   });
@@ -391,6 +398,7 @@ export function exportResearchData({
         'maximum',
         'maxLength',
         'optionId',
+        'interpretationNote',
       ],
       dictionary.map((entry) => [
         entry.instrumentId,
@@ -402,6 +410,7 @@ export function exportResearchData({
         entry.maximum,
         entry.maxLength,
         entry.optionId,
+        entry.interpretationNote,
       ]),
     );
     const textResponseKeys = new Set(
@@ -598,7 +607,7 @@ export function exportResearchData({
     }
 
     const manifest = researchExportManifestSchema.parse({
-      schemaVersion: 'research-export-v5',
+      schemaVersion: 'research-export-v6',
       profile,
       schemaProfileVersion:
         profile === 'audit' ? 'research-audit-v1' : 'research-analysis-v1',

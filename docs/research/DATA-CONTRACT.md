@@ -12,7 +12,7 @@
 | Main-session instruments | Pre, unmittelbarer Post, Guardrail, Post-Guardrail-Self-Efficacy, retrospektive SecAware-Frage, optionaler Kommentar | `study.sqlite` |
 | Presentation | Form-ID und tatsächlich angezeigte Guardrail-Option-IDs | `study.sqlite` |
 | Completion | complete, incomplete, technical failure | `study.sqlite` |
-| Follow-up linkage | optionale Einwilligung, Follow-up-Version, optionaler Token-Hash | `study.sqlite` |
+| Follow-up linkage | verpflichtende Kontaktbestätigung, Follow-up-Version, Token-Hash | `study.sqlite` |
 | Recontact | E-Mail, Roh-Token, Token-Hash, Consent-Version, Versand-/Schließzeitpunkte | ausschließlich `recontact.sqlite` |
 | Externes Follow-up | separat ausgelieferte Antworten, später versioniert importierbar | nicht Bestandteil der Training Runtime |
 | Ephemeral participant data | Anzeigename/Kürzel, roher Löschcode | nur flüchtiger Study-Renderer |
@@ -47,7 +47,7 @@ Die Hauptsitzung verwendet:
 
 Die Runtime enthält ausschließlich `pre-v1`, `post-v1`, `guardrail-v2` und `post-open-v1`.
 Follow-up-Fragen sind ausdrücklich ausgeschlossen. Ihr separater Wortlaut liegt in
-`research/derived/follow-up-v4.yaml` und `docs/research/FOLLOW-UP-INSTRUMENT.md`.
+`research/derived/follow-up-v5.yaml` und `docs/research/FOLLOW-UP-INSTRUMENT.md`.
 
 ## Antwort-Submission
 
@@ -85,7 +85,13 @@ Form wählen.
   Zugang, Passwortmanager-Einrichtung, Passwortmanager-Anmeldung und MFA-Aktivierung. Es gibt
   keinen gemeinsamen Score.
 - UEQ-S, UEQ+ Inhaltsseriosität und Custom Items bleiben getrennte Ergebnisfamilien.
-- `TIME_FIT` und `RISK_PRESENTATION` sind Mittelpunkturteile; höhere Werte sind nicht besser.
+- `PERCEIVED_DURATION` steht direkt vor `TIME_FIT` und erfasst subjektive Länge; `TIME_FIT`
+  bewertet die zeitliche Angemessenheit. Beide werden einzeln und als vollständige Verteilung
+  ausgewertet; höhere Werte bedeuten nicht automatisch bessere Qualität.
+- `RISK_PRESENTATION` ist ein Mittelpunkturteil; höhere Werte sind nicht besser.
+- Für Instrument 2.1 ist `CONSEQUENCE_TANGIBILITY` verpflichtend.
+  `CONSEQUENCE_VISIBILITY` bleibt ausschließlich in historischen 2.0-Daten über deren
+  Instrumentversion interpretierbar und wird weder umbenannt noch migriert.
 - Guardrail-Klassifikationen wie `appropriate`, `incomplete`, `unsafe` oder `correct` werden nicht
   an den Client ausgeliefert und nicht mit den Antworten gespeichert.
 - `OPEN_COMMENT` ist optional. Leerer Text wird als `null` gespeichert; ausgefüllter Freitext wird
@@ -97,9 +103,16 @@ Die Forschungs-ID wird serverseitig zufällig erzeugt und enthält keine Initial
 oder Zeitstempel. Sie wird Teilnehmenden nicht angezeigt. Der Löschcode wird unabhängig im Browser
 erzeugt; nur sein SHA-256-Hash wird gespeichert. Rohcode und Hash werden nicht exportiert.
 
-Bei optionaler Follow-up-Einwilligung enthält `recontact.sqlite` ausschließlich die für den
-Versand notwendige Kontaktzuordnung. Der Schedule-Export kann E-Mail, Token-Link und
-Versandzeitpunkte für den getrennten Versand bereitstellen. Die Training Runtime zeigt und
+Für neue 2.1-Sitzungen werden Session, Condition-Slot und Recontact-Registrierung in einem
+atomaren, idempotenten Vorgang angelegt; `followUpConsent` ist dabei immer wahr. E-Mail und
+Roh-Token gelangen ausschließlich in `recontact.sqlite`, während `study.sqlite` nur Consent-
+Status, Follow-up-Version und Token-Hash erhält. Ein Fehler oder konfliktbehafteter Retry darf
+keinen Teilzustand hinterlassen. Historische Sitzungen mit abweichendem Consent-Status bleiben
+versioniert lesbar.
+
+`recontact.sqlite` enthält ausschließlich die für Versand und Aufklärung notwendige
+Kontaktzuordnung. Der Schedule-Export kann E-Mail, Token-Link, Versandzeitpunkte und den aus
+`closesAt` abgeleiteten abschließenden Debrief-Zeitpunkt bereitstellen. Die Training Runtime zeigt und
 speichert keine Follow-up-Frage. Eine spätere Zusammenführung externer Follow-up-Antworten mit der
 Forschungs-ID benötigt einen eigenen dokumentierten Importprozess; E-Mail und Roh-Token dürfen
 nicht in den Forschungsdatensatz gelangen.
@@ -117,10 +130,17 @@ nicht in den Forschungsdatensatz gelangen.
 ## Export
 
 Audit- und Analyseexport schließen Session-ID, E-Mail, Löschcode, Token, Trainingsinputs und
-Passwortdiagnosen aus. Das Data Dictionary enthält nur die Instrumente der Hauptsitzung. Die
+Passwortdiagnosen aus. Das Data Dictionary enthält nur die Instrumente der Hauptsitzung und
+kennzeichnet die unterschiedliche Interpretation von `PERCEIVED_DURATION` und `TIME_FIT`. Die
+zugehörige Schemaänderung ist als `research-export-v6` versioniert. Die
 Sessiondatei darf weiterhin `followUpConsent` und `followUpVersion` enthalten, weil diese die
 separate Recontact-Prozedur versionieren; sie bedeuten nicht, dass Follow-up-Fragen Teil des
 Training-Bundles sind.
+
+Das externe Follow-up ist keine objektive Beobachtung realer Konten und keine Vorher-Nachher-
+Messung desselben Verhaltens. Die drei fokalen Antworten bleiben getrennt; es gibt weder einen
+kombinierten Behavior Score noch eine Aussage über dauerhafte Adoption. Nichtantwort bleibt
+fehlend.
 
 ## Verbotene Datenflüsse
 

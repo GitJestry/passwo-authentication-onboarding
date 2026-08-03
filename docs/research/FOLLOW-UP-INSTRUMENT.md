@@ -1,76 +1,104 @@
-# Separates Follow-up-Instrument nach zehn Tagen
+# Zweiter und letzter Studienteil nach zehn Tagen
 
-Status: **Version `follow-up-v4`, für den Instrument Freeze festgelegt.**
+Status: **Version `follow-up-v5`, für Cognitive Pretest und Freigabe festgelegt.**
 
 ## Runtime-Grenze
 
-Die Nachbefragung ist kein Teil des Trainings und kein Instrument der Hauptsitzung. Ihre Fragen
-werden weder in `instruments-v1.runtime.json` noch im Browser-Bundle der Study Runtime geführt.
-Die Hauptanwendung erhebt nur die gesonderte Einwilligung zur erneuten Kontaktaufnahme und die
-E-Mail-Adresse in der getrennten Recontact-Datenbank. Der versionierte Wortlaut der E-Mail und
-der extern ausgelieferten Nachbefragung liegt ausschließlich in
-`research/derived/follow-up-v4.yaml`.
+Der zweite Studienteil ist kein Teil des Trainings und kein Instrument der Hauptsitzung. Seine
+Fragen werden weder in `instruments-v1.runtime.json` noch im Browser-Bundle der Study Runtime
+geführt. Die Hauptanwendung erhebt die verpflichtende Kontaktbestätigung und übergibt die
+E-Mail-Adresse ausschließlich an die getrennte Recontact-Datenbank. Wortlaut, Verzweigungen und
+Nachrichten liegen in `research/derived/follow-up-v5.yaml`.
 
-Der bestehende Schedule-Export liefert Kontaktadresse, Token-Link und Versandzeitpunkte. Versand
-und Bereitstellung des externen Follow-up-Fragebogens erfolgen getrennt von der Training Runtime.
+Der Schedule-Export liefert Kontaktadresse, Token-Link, Einladung, Erinnerung, Schließung und den
+aus `closesAt` abgeleiteten Zeitpunkt der abschließenden Debrief-Mail. Versand und öffentliches
+Formular bleiben von Training Runtime und Forschungsdatenbank getrennt.
 
-## Versand
+## Messfenster und Versand
 
-- Erste Einladung: 240 Stunden nach Abschluss der Hauptsitzung.
-- Höchstens eine neutrale Erinnerung: 48 Stunden nach der ersten Einladung.
-- Schließung des Links: 336 Stunden nach Abschluss der Hauptsitzung.
+- Forschungsstichtag: exakt `completedAt + 240h`; nur bereits bis dahin abgeschlossene Handlungen
+  zählen.
+- Erste Einladung: `completedAt + 240h`.
+- Höchstens eine neutrale Erinnerung: `completedAt + 288h`.
+- Schließung und zusätzliche Debrief-Mail an alle Eingeschlossenen: `completedAt + 336h`.
 - Geschätzte Bearbeitungszeit: ein bis zwei Minuten.
-- Die E-Mails enthalten keine Authentifizierungsempfehlung und keine Wiederholung des Trainings.
+- Die E-Mails enthalten weder Authentifizierungsempfehlungen noch Condition, Forschungs-ID,
+  Antworten oder Löschcode.
 
 ### Erste Einladung
 
-**Betreff:** Kurze Nachbefragung zur Studie
+**Betreff:** Zweiter Studienteil ist jetzt verfügbar
 
 > Hallo,
 >
-> vor zehn Tagen hast du an unserer Studie zu Passwörtern und dem Schutz von Online-Konten
-> teilgenommen und einer kurzen Nachbefragung zugestimmt.
+> vor zehn Tagen hast du den ersten Teil unserer Studie zu einem digitalen Lernangebot über
+> Passwörter und den Schutz von Online-Konten abgeschlossen. Der kurze zweite und letzte
+> Studienteil ist jetzt verfügbar und dauert etwa ein bis zwei Minuten.
 >
-> Die Nachbefragung dauert etwa ein bis zwei Minuten. Bitte berichte nur Handlungen, die du nach
-> deiner Studienteilnahme und bereits vor dem in der Befragung genannten Stichtag abgeschlossen
-> hattest.
+> Zum zweiten Studienteil: `[TOKEN_LINK]`
 >
-> Zur Nachbefragung: `[TOKEN_LINK]`
->
-> Die Teilnahme ist freiwillig. Der Link ist bis `[CLOSES_AT]` gültig. Bitte leite ihn nicht
-> weiter.
+> Bitte beziehe deine Angaben ausschließlich auf den bereits abgeschlossenen Zeitraum bis
+> `[STICHTAG]`. Der Link ist bis `[CLOSES_AT]` gültig und darf nicht weitergegeben werden. Deine
+> Teilnahme bleibt freiwillig. Nach der Abgabe erhältst du die vollständige Aufklärung zur Studie.
 >
 > Vielen Dank für deine Unterstützung.
 
 ### Einmalige Erinnerung
 
-**Betreff:** Erinnerung: kurze Nachbefragung zur Studie
+**Betreff:** Erinnerung: zweiter Studienteil
 
 > Hallo,
 >
-> dies ist die einmalige Erinnerung an die kurze Nachbefragung zu deiner Studienteilnahme. Falls
-> du bereits geantwortet hast oder nicht teilnehmen möchtest, kannst du diese Nachricht
-> ignorieren.
+> dies ist die einmalige Erinnerung an den zweiten und letzten Teil deiner Studienteilnahme. Falls
+> du bereits teilgenommen hast, kannst du diese Nachricht ignorieren.
 >
-> Zur Nachbefragung: `[TOKEN_LINK]`
+> Zum zweiten Studienteil: `[TOKEN_LINK]`
 >
-> Der Link ist bis `[CLOSES_AT]` gültig.
+> Bitte beziehe deine Angaben ausschließlich auf den bereits abgeschlossenen Zeitraum bis
+> `[STICHTAG]`. Der Link ist bis `[CLOSES_AT]` gültig und darf nicht weitergegeben werden. Deine
+> Teilnahme bleibt freiwillig.
 
 ## Fragebogen und Analyse
 
-Der vollständige Wortlaut, die Verzweigungen, Exklusivitätsregeln und die drei fokalen Outcomes
-stehen in `research/derived/follow-up-v4.yaml`. Zentral ausgewertet werden getrennt:
+Der Formulartitel lautet **„Zweiter und letzter Studienteil“**. Da das 240-Stunden-Messfenster vor
+Versand bereits geschlossen ist, dürfen Formular und Items den konkreten Handlungsfokus nennen.
+Die drei fokalen Handlungen, Kontextfragen, Barriereverzweigungen, Sicherheitswarnung und getrennte
+Auswertung bleiben gegenüber v4 inhaltlich unverändert.
+
+Die drei fokalen Items bilden eine zentral-sekundäre Ergebnisfamilie und werden getrennt als
+**selbstberichtete Schutzhandlungen innerhalb von zehn Tagen** ausgewertet:
 
 1. Ersetzung eines wiederverwendeten oder erkennbar variierten Passworts;
 2. Erzeugung und Speicherung eines kontospezifischen Passworts mit einem Passwortmanager;
 3. Aktivierung von MFA/2FA bei mindestens einem Konto.
 
 Prüfung verfügbarer Funktionen, Abruf beziehungsweise Autofill und Prüfung der MFA-Verfügbarkeit
-sind sekundäre deskriptive Handlungen. Es wird kein kombinierter Verhaltensscore berechnet.
-Nichtantwort wird als fehlender Wert behandelt. Der retrospektive Opportunity-Indikator zur
-Passwortwiederverwendung wird nur als grobe Einordnung verwendet und fragt weder konkrete Konten
-noch Passwörter oder Variationsmuster ab.
+sind sekundäre deskriptive Handlungen. Es wird kein kombinierter Behavior Score berechnet.
+Nichtantwort bleibt fehlend. Der retrospektive Opportunity-Indikator wird nur grob eingeordnet und
+fragt weder konkrete Konten noch Passwörter oder Variationsmuster ab.
 
-Die Ergebnisse sind verzögerte, selbstberichtete Handlungen in einem begrenzten Zeitraum. Sie
-belegen keine korrekt abgeschlossene Konfiguration, keine nachhaltige Nutzung und keine dauerhafte
-Verhaltensänderung.
+Es handelt sich nicht um objektive Beobachtung realer Konten und nicht um eine Vorher-Nachher-
+Messung desselben Verhaltens. Die Ergebnisse belegen weder korrekt abgeschlossene Konfiguration,
+dauerhafte Adoption noch nachhaltige Verhaltensänderung. Direkt nach Abgabe wird das vollständige
+Debriefing aus `PARTICIPANT-INFORMATION.md` angezeigt.
+
+## Methodische Restgrenzen
+
+Die neutrale Ankündigung reduziert Demand Characteristics und Question-Behavior-Reaktivität,
+beseitigt sie aber nicht. Beide Bedingungen erhalten dieselbe Information; eine
+bedingungsspezifische Reaktion auf das Studienwissen kann ohne zusätzliche Kontrollgruppe nicht
+ausgeschlossen werden. Die freiwillige Geheimhaltungsbitte kann Kontamination nur mindern.
+Eine bei vorzeitigem Rückzug ethisch früh erforderliche Aufklärung kann an später Teilnehmende
+weitergegeben werden; dieses Restrisiko wird als Limitation der Bachelorarbeit dokumentiert.
+
+## Entscheidungsgrundlagen
+
+- [DGPs: Berufsethische Richtlinien](https://www.dgps.de/die-dgps/aufgaben-und-ziele/berufsethische-richtlinien/)
+  zu Täuschung, frühestmöglicher Aufklärung und Datenrückzug;
+- [Art. 13 DSGVO](https://eur-lex.europa.eu/legal-content/DE/TXT/?uri=CELEX:32016R0679)
+  zu vorab erforderlicher Transparenz;
+- [Metaanalyse zum Question-Behavior-Effekt](https://pmc.ncbi.nlm.nih.gov/articles/PMC4931712/)
+  als Begründung, Reaktivität als klein und heterogen, aber nicht als beseitigt zu behandeln;
+- [verdecktes Security-Feldexperiment](https://www.usenix.org/system/files/usenixsecurity25-anliker.pdf)
+  und [angekündigter Security-Retest](https://www.usenix.org/system/files/conference/soups2017/soups2017-lastdrager.pdf)
+  als Vergleichspunkte für Consent-, Recontact- und Debriefing-Entscheidungen.

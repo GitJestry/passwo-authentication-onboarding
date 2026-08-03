@@ -13,7 +13,6 @@ import {
   mainInstrumentBlocks,
   normalizeInstrumentSubmission,
   type PersistedSessionRecord,
-  type RegisterRecontactRequest,
   type StudyCondition,
   type StudyTimingEvent,
   SUPPORTIVE_ARTIFACT_SEGMENT_IDS,
@@ -156,11 +155,17 @@ export class StudyRepository {
   createSession(request: CreateSessionRequest): CreateSessionResponse {
     this.recoverStaleArtifactSessions();
     const create = this.#database.transaction(() => {
+      const normalizedEmail = request.email.trim().toLowerCase();
       const existing = this.#findSessionByRequestId(request.requestId);
       if (existing !== null) {
+        const registration = this.#findRecontactRegistration('session_id = ?', existing.sessionId);
         if (
-          existing.followUpConsent !== request.followUpConsent ||
-          existing.deletionCodeHash !== request.deletionCodeHash
+          existing.followUpConsent !== true ||
+          existing.deletionCodeHash !== request.deletionCodeHash ||
+          registration === null ||
+          registration.requestId !== request.requestId ||
+          registration.email !== normalizedEmail ||
+          registration.tokenHash !== existing.followUpTokenHash
         ) {
           throw new StudyRepositoryError('session-create-conflict', 409);
         }
@@ -173,6 +178,8 @@ export class StudyRepository {
       const researchCode = this.#newResearchCode();
       const createdAtIso = this.#nowIso();
       const artifactVersion = artifactVersionForCondition(assignment.condition, this.#versions);
+      const token = this.#newRecontactToken();
+      const tokenHash = createHash('sha256').update(token, 'utf8').digest('hex');
 
       this.#database
         .prepare(
@@ -213,9 +220,9 @@ export class StudyRepository {
             @consentVersion,
             @referenceArtifactVersion,
             1,
-            @followUpConsent,
+            1,
             @followUpVersion,
-            NULL,
+            @followUpTokenHash,
             'in-progress',
             NULL,
             @createdAtIso,
@@ -235,11 +242,38 @@ export class StudyRepository {
           guardrailVersion: this.#versions.guardrail,
           guardrailFormId: guardrailFormAssignment.formId,
           consentVersion: this.#versions.consent,
-          followUpConsent: request.followUpConsent ? 1 : 0,
           followUpVersion: this.#versions.followUp,
+          followUpTokenHash: tokenHash,
           referenceArtifactVersion: assignment.condition === 'reference' ? artifactVersion : null,
           createdAtIso,
         });
+
+      this.#database
+        .prepare(
+          `INSERT INTO recontact.registrations (
+            session_id,
+            registration_request_id,
+            email,
+            raw_token,
+            token_hash,
+            consent_version,
+            registered_at_iso,
+            first_invitation_at_iso,
+            reminder_at_iso,
+            closes_at_iso,
+            first_invitation_sent_at_iso,
+            reminder_sent_at_iso
+          ) VALUES (?, ?, ?, ?, ?, ?, ?, NULL, NULL, NULL, NULL, NULL)`,
+        )
+        .run(
+          sessionId,
+          request.requestId,
+          normalizedEmail,
+          token,
+          tokenHash,
+          this.#versions.consent,
+          createdAtIso,
+        );
 
       if (assignment.blockNumber !== null && assignment.slotIndex !== null) {
         this.#database
@@ -275,96 +309,6 @@ export class StudyRepository {
     });
 
     return create();
-  }
-
-  registerRecontact(sessionId: string, request: RegisterRecontactRequest): void {
-    const normalizedEmail = request.email.trim().toLowerCase();
-    const register = this.#database.transaction(() => {
-      const session = this.#followUpSession(sessionId);
-      if (session.followUpConsent !== 1) {
-        throw new StudyRepositoryError('recontact-consent-required', 409);
-      }
-
-      const existingBySession = this.#findRecontactRegistration('session_id = ?', sessionId);
-      if (existingBySession !== null) {
-        if (
-          existingBySession.requestId !== request.requestId ||
-          existingBySession.email !== normalizedEmail
-        ) {
-          throw new StudyRepositoryError('recontact-registration-conflict', 409);
-        }
-        this.#persistFollowUpTokenHash(sessionId, existingBySession.tokenHash);
-        return;
-      }
-      if (session.completionStatus !== 'in-progress') {
-        throw new StudyRepositoryError('session-not-in-progress', 409);
-      }
-
-      const existingByRequest = this.#findRecontactRegistration(
-        'registration_request_id = ?',
-        request.requestId,
-      );
-      if (existingByRequest !== null) {
-        throw new StudyRepositoryError('recontact-registration-conflict', 409);
-      }
-      if (session.followUpTokenHash !== null) {
-        throw new StudyRepositoryError('recontact-registration-inconsistent', 500);
-      }
-
-      const token = this.#newRecontactToken();
-      const tokenHash = createHash('sha256').update(token, 'utf8').digest('hex');
-      this.#database
-        .prepare(
-          `INSERT INTO recontact.registrations (
-            session_id,
-            registration_request_id,
-            email,
-            raw_token,
-            token_hash,
-            consent_version,
-            registered_at_iso,
-            first_invitation_at_iso,
-            reminder_at_iso,
-            closes_at_iso,
-            first_invitation_sent_at_iso,
-            reminder_sent_at_iso
-          ) VALUES (?, ?, ?, ?, ?, ?, ?, NULL, NULL, NULL, NULL, NULL)`,
-        )
-        .run(
-          sessionId,
-          request.requestId,
-          normalizedEmail,
-          token,
-          tokenHash,
-          instrumentRuntimeManifest.consentVersion,
-          this.#nowIso(),
-        );
-      this.#persistFollowUpTokenHash(sessionId, tokenHash);
-    });
-
-    register();
-  }
-
-  abandonRecontact(sessionId: string): void {
-    const abandon = this.#database.transaction(() => {
-      const session = this.#followUpSession(sessionId);
-      if (session.completionStatus !== 'in-progress') {
-        throw new StudyRepositoryError('session-not-in-progress', 409);
-      }
-      this.#database
-        .prepare(`DELETE FROM recontact.registrations WHERE session_id = ?`)
-        .run(sessionId);
-      this.#database
-        .prepare(
-          `UPDATE study_sessions
-           SET follow_up_consent = 0,
-               follow_up_token_hash = NULL
-           WHERE session_id = ?`,
-        )
-        .run(sessionId);
-    });
-
-    abandon();
   }
 
   saveInstrumentSubmission(sessionId: string, request: InstrumentSubmissionRequest): void {
@@ -733,7 +677,7 @@ export class StudyRepository {
   }
 
   #findRecontactRegistration(
-    whereClause: 'session_id = ?' | 'registration_request_id = ?',
+    whereClause: 'session_id = ?',
     value: string,
   ): z.infer<typeof recontactRegistrationSchema> | null {
     const row = this.#database
@@ -748,20 +692,6 @@ export class StudyRepository {
       )
       .get(value);
     return row === undefined ? null : recontactRegistrationSchema.parse(row);
-  }
-
-  #persistFollowUpTokenHash(sessionId: string, tokenHash: string): void {
-    const session = this.#followUpSession(sessionId);
-    if (session.followUpTokenHash !== null && session.followUpTokenHash !== tokenHash) {
-      throw new StudyRepositoryError('recontact-registration-conflict', 409);
-    }
-    this.#database
-      .prepare(
-        `UPDATE study_sessions
-         SET follow_up_token_hash = ?
-         WHERE session_id = ?`,
-      )
-      .run(tokenHash, sessionId);
   }
 
   #newRecontactToken(): string {

@@ -36,19 +36,7 @@ describe('research export', () => {
       createRecontactToken: () => rawToken,
     });
     servers.push(server);
-    const session = await createSession(server, 1, false, true);
-    expect(
-      (
-        await server.inject({
-          method: 'POST',
-          url: `/api/study/sessions/${session.sessionId}/recontact`,
-          payload: {
-            requestId: 'f5d74d44-f700-4dc7-ac00-5e251a8890c3',
-            email: 'private@example.org',
-          },
-        })
-      ).statusCode,
-    ).toBe(200);
+    const session = await createSession(server, 1);
     await savePreAndStartArtifact(server, session.sessionId);
 
     const outputDirectory = join(temporaryDirectory, 'export');
@@ -94,7 +82,7 @@ describe('research export', () => {
     );
     expect(exportedData).not.toContain(session.sessionId);
     expect(exportedData).not.toContain('1'.padStart(64, '0'));
-    expect(exportedData).not.toContain('private@example.org');
+    expect(exportedData).not.toContain('participant-1@example.org');
     expect(exportedData).not.toContain(rawToken);
     expect(exportedData).not.toContain(
       createHash('sha256').update(rawToken, 'utf8').digest('hex'),
@@ -107,7 +95,13 @@ describe('research export', () => {
     expect(readFileSync(join(outputDirectory, 'data-dictionary.json'), 'utf8')).toContain(
       '"itemId": "MR_REUSE"',
     );
-    expect(result.manifest.schemaVersion).toBe('research-export-v5');
+    expect(readFileSync(join(outputDirectory, 'data-dictionary.json'), 'utf8')).toContain(
+      '"itemId": "PERCEIVED_DURATION"',
+    );
+    expect(readFileSync(join(outputDirectory, 'data-dictionary.json'), 'utf8')).toContain(
+      'Subjektiv erlebte Länge',
+    );
+    expect(result.manifest.schemaVersion).toBe('research-export-v6');
     expect(result.manifest.profile).toBe('audit');
     expect(result.manifest.schemaProfileVersion).toBe('research-audit-v1');
     for (const file of result.manifest.files) {
@@ -134,19 +128,7 @@ describe('research export', () => {
       createRecontactToken: () => rawToken,
     });
     servers.push(server);
-    const session = await createSession(server, 2, false, true);
-    expect(
-      (
-        await server.inject({
-          method: 'POST',
-          url: `/api/study/sessions/${session.sessionId}/recontact`,
-          payload: {
-            requestId: 'e428b02a-7949-4dd0-b906-32942134c661',
-            email: 'analysis-private@example.org',
-          },
-        })
-      ).statusCode,
-    ).toBe(200);
+    const session = await createSession(server, 2);
 
     const database = new Database(databasePath);
     database
@@ -194,7 +176,7 @@ describe('research export', () => {
     const freeTextReview = readFileSync(join(outputDirectory, 'free-text-review.json'), 'utf8');
 
     expect(result.manifest).toMatchObject({
-      schemaVersion: 'research-export-v5',
+      schemaVersion: 'research-export-v6',
       profile: 'analysis',
       schemaProfileVersion: 'research-analysis-v1',
       freeTextReview: { recordCount: 1, status: 'pending-review' },

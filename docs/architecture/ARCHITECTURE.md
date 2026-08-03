@@ -80,13 +80,13 @@ flowchart TD
 
 ## Zustandsverantwortung
 
-- **Study Orchestrator:** Einwilligung, optionale Recontact-Registrierung, Sitzung, Pre,
+- **Study Orchestrator:** Einwilligung, verpflichtende atomare Recontact-Registrierung, Sitzung, Pre,
   Anzeigename, Bedingung, Artefakt, Post, Guardrail, Session Closure und Abschluss.
 - **Training Mission Controller:** Segment- und Schrittfolge innerhalb des eigenen Artefakts.
 - **Scene state:** Browser-Tabs, PassWo-Pose, Netzwerkzustand und Animationssequenz.
 - **React:** Projektion des aktuellen Snapshots; kein versteckter Workflow in Effects.
 - **Server:** Session, getrennte Condition-/Guardrail-Zuweisung, Timing, atomare
-  Instrument-Submissions, Präsentationsreihenfolge, optionale Recontact-Registry und Export; kein
+  Instrument-Submissions, Präsentationsreihenfolge, getrennte Recontact-Registry und Export; kein
   Trainingswissen.
 
 ## Ports und Adapter

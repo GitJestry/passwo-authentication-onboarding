@@ -21,6 +21,7 @@ const scaleIdSchema = z.enum([
   'agreement7',
   'confidence11',
   'durationAppropriateness7',
+  'perceivedDuration7',
   'riskPresentation7',
 ]);
 
@@ -259,6 +260,7 @@ const fullyLabelled7ScaleSchema = z
   })
   .strict();
 const durationAppropriateness7ScaleSchema = fullyLabelled7ScaleSchema;
+const perceivedDuration7ScaleSchema = fullyLabelled7ScaleSchema;
 const riskPresentation7ScaleSchema = fullyLabelled7ScaleSchema;
 const ueqSemanticDifferential7ScaleSchema = z
   .object({
@@ -317,11 +319,11 @@ const sessionClosureContentSchema = z
 export const instrumentRuntimeManifestSchema = z
   .object({
     schemaVersion: z.literal(3),
-    instrumentVersion: z.literal('2.0.0'),
-    questionnaireVersion: z.literal('questionnaire-v2'),
+    instrumentVersion: z.literal('2.1.0'),
+    questionnaireVersion: z.literal('questionnaire-v3'),
     guardrailVersion: z.literal('guardrail-v4'),
-    consentVersion: z.literal('consent-v6-draft'),
-    followUpVersion: z.literal('follow-up-v4'),
+    consentVersion: z.literal('consent-v7-draft'),
+    followUpVersion: z.literal('follow-up-v5'),
     language: z.literal('de-DE'),
     participantTerm: participantTextSchema,
     scales: z
@@ -329,6 +331,7 @@ export const instrumentRuntimeManifestSchema = z
         agreement7: agreement7ScaleSchema,
         confidence11: confidence11ScaleSchema,
         durationAppropriateness7: durationAppropriateness7ScaleSchema,
+        perceivedDuration7: perceivedDuration7ScaleSchema,
         riskPresentation7: riskPresentation7ScaleSchema,
         ueqSemanticDifferential7: ueqSemanticDifferential7ScaleSchema,
       })
@@ -354,7 +357,7 @@ export const instrumentRuntimeManifestSchema = z
         participantInformation: participantInformationSchema,
         followUpRecontact: z
           .object({
-            optional: z.literal(true),
+            optional: z.literal(false),
             consentLegend: participantTextSchema,
             consentStatement: participantTextSchema,
             emailLabel: participantTextSchema,
@@ -369,8 +372,7 @@ export const instrumentRuntimeManifestSchema = z
           .strict(),
         sessionClosure: z
           .object({
-            immediateDebriefWithoutFollowUp: sessionClosureContentSchema,
-            deferredDebriefWithFollowUp: sessionClosureContentSchema,
+            afterFirstStudyPart: sessionClosureContentSchema,
           })
           .strict(),
       })
@@ -383,7 +385,7 @@ export const instrumentRuntimeManifestSchema = z
         'post-open-v1': postOpenInstrumentSchema,
       })
       .strict(),
-    runtimeManifestVersion: z.literal('instrument-runtime-v2'),
+    runtimeManifestVersion: z.literal('instrument-runtime-v2.1'),
   })
   .strict();
 

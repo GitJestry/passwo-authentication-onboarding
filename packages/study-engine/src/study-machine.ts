@@ -9,8 +9,7 @@ import {
   type InstrumentSubmissionFor,
   type InstrumentSubmissionRequest,
   type MainInstrumentId,
-  type RegisterRecontactRequest,
-  registerRecontactRequestSchema,
+  recontactEmailSchema,
   type StudyCondition,
 } from '@passwo/contracts';
 import { assign, fromCallback, fromPromise, setup } from 'xstate';
@@ -24,9 +23,7 @@ const studySessionInitializationSchema = createSessionResponseSchema
   .strict();
 
 export interface StudyRuntimePorts {
-  createSession(followUpConsent: boolean): Promise<StudySessionInitialization>;
-  registerRecontact(sessionId: string, request: RegisterRecontactRequest): Promise<void>;
-  abandonRecontact(sessionId: string): Promise<void>;
+  createSession(email: string): Promise<StudySessionInitialization>;
   saveInstrumentSubmission(
     sessionId: string,
     submission: InstrumentSubmissionRequest,
@@ -53,9 +50,7 @@ export interface StudyContext {
   readonly condition: StudyCondition | null;
   readonly assignmentMode: AssignmentMode | null;
   readonly guardrailFormId: GuardrailFormId | null;
-  readonly followUpConsent: boolean;
   readonly recontactEmail: string | null;
-  readonly recontactRequestId: string | null;
   readonly instrumentBlockCursor: number;
   readonly questionnaireBlockCursor: number;
   readonly questionnaireDrafts: readonly (InstrumentSubmissionRequest | null)[];
@@ -72,11 +67,9 @@ export interface StudyContext {
 export type StudyEvent =
   | {
       readonly type: 'ACCEPT_CONSENT';
-      readonly followUpConsent: boolean;
-      readonly recontact: RegisterRecontactRequest | null;
+      readonly recontactConsentAccepted: true;
+      readonly email: string;
     }
-  | { readonly type: 'RETRY_RECONTACT' }
-  | { readonly type: 'CONTINUE_WITHOUT_FOLLOW_UP' }
   | {
       readonly type: 'SUBMIT_PRE';
       readonly payload: InstrumentSubmissionFor<'pre-v1'>;
@@ -129,9 +122,7 @@ const initialContext: StudyContext = {
   condition: null,
   assignmentMode: null,
   guardrailFormId: null,
-  followUpConsent: false,
   recontactEmail: null,
-  recontactRequestId: null,
   instrumentBlockCursor: 0,
   questionnaireBlockCursor: 0,
   questionnaireDrafts: [],
@@ -166,14 +157,9 @@ function requiredPendingSubmission(context: StudyContext): InstrumentSubmissionR
   return context.pendingSubmission;
 }
 
-function requiredRecontactRequest(context: StudyContext): RegisterRecontactRequest {
-  if (context.recontactEmail === null || context.recontactRequestId === null) {
-    throw new Error('missing-recontact-registration');
-  }
-  return {
-    requestId: context.recontactRequestId,
-    email: context.recontactEmail,
-  };
+function requiredRecontactEmail(context: StudyContext): string {
+  if (context.recontactEmail === null) throw new Error('missing-recontact-email');
+  return context.recontactEmail;
 }
 
 function currentInstrumentId(context: StudyContext): MainInstrumentId | null {
@@ -243,15 +229,8 @@ export function createStudyMachine(ports: StudyRuntimePorts) {
       events: {} as StudyEvent,
     },
     actors: {
-      createSession: fromPromise(async ({ input }: { input: { followUpConsent: boolean } }) =>
-        ports.createSession(input.followUpConsent),
-      ),
-      registerRecontact: fromPromise(
-        async ({ input }: { input: { sessionId: string; request: RegisterRecontactRequest } }) =>
-          ports.registerRecontact(input.sessionId, input.request),
-      ),
-      abandonRecontact: fromPromise(async ({ input }: { input: { sessionId: string } }) =>
-        ports.abandonRecontact(input.sessionId),
+      createSession: fromPromise(async ({ input }: { input: { email: string } }) =>
+        ports.createSession(input.email),
       ),
       saveInstrumentSubmission: fromPromise(
         async ({
@@ -291,12 +270,11 @@ export function createStudyMachine(ports: StudyRuntimePorts) {
     guards: {
       acceptsConsentDecision: ({ event }) => {
         if (event.type !== 'ACCEPT_CONSENT') return false;
-        return event.followUpConsent
-          ? registerRecontactRequestSchema.safeParse(event.recontact).success
-          : event.recontact === null;
+        return (
+          event.recontactConsentAccepted === true &&
+          recontactEmailSchema.safeParse(event.email).success
+        );
       },
-      hasRecontactRegistration: ({ context }) =>
-        context.recontactEmail !== null && context.recontactRequestId !== null,
       acceptsPreSubmission: ({ context, event }) =>
         event.type === 'SUBMIT_PRE' && matchesQuestionnairePage(context, event.payload, 'pre-v1'),
       acceptsPreAdvance: ({ context, event }) =>
@@ -340,16 +318,8 @@ export function createStudyMachine(ports: StudyRuntimePorts) {
     actions: {
       clearResearchError: assign({ researchErrorCode: () => null }),
       storeConsentDecision: assign({
-        followUpConsent: ({ event }) =>
-          event.type === 'ACCEPT_CONSENT' ? event.followUpConsent : false,
         recontactEmail: ({ event }) =>
-          event.type === 'ACCEPT_CONSENT' && event.recontact !== null
-            ? event.recontact.email
-            : null,
-        recontactRequestId: ({ event }) =>
-          event.type === 'ACCEPT_CONSENT' && event.recontact !== null
-            ? event.recontact.requestId
-            : null,
+          event.type === 'ACCEPT_CONSENT' ? event.email.trim() : null,
       }),
       storeSession: assign(({ event }) => {
         const output = studySessionInitializationSchema.parse(
@@ -361,19 +331,9 @@ export function createStudyMachine(ports: StudyRuntimePorts) {
           condition: output.condition,
           assignmentMode: output.assignmentMode,
           guardrailFormId: output.guardrailFormId,
+          recontactEmail: null,
           researchErrorCode: null,
         };
-      }),
-      clearRecontactSecrets: assign({
-        recontactEmail: () => null,
-        recontactRequestId: () => null,
-        researchErrorCode: () => null,
-      }),
-      abandonFollowUpConsent: assign({
-        followUpConsent: () => false,
-        recontactEmail: () => null,
-        recontactRequestId: () => null,
-        researchErrorCode: () => null,
       }),
       storePendingSubmission: assign({
         pendingSubmission: ({ context, event }) => {
@@ -526,9 +486,9 @@ export function createStudyMachine(ports: StudyRuntimePorts) {
         invoke: {
           id: 'createSession',
           src: 'createSession',
-          input: ({ context }) => ({ followUpConsent: context.followUpConsent }),
+          input: ({ context }) => ({ email: requiredRecontactEmail(context) }),
           onDone: {
-            target: 'recontactRegistration',
+            target: 'preQuestionnaire',
             actions: 'storeSession',
           },
           onError: {
@@ -542,66 +502,6 @@ export function createStudyMachine(ports: StudyRuntimePorts) {
       sessionError: {
         on: {
           RETRY_SESSION: { target: 'creatingSession', actions: 'clearResearchError' },
-        },
-      },
-      recontactRegistration: {
-        initial: 'routing',
-        states: {
-          routing: {
-            always: [
-              { guard: 'hasRecontactRegistration', target: 'registering' },
-              { target: '#study.preQuestionnaire' },
-            ],
-          },
-          registering: {
-            invoke: {
-              id: 'registerRecontact',
-              src: 'registerRecontact',
-              input: ({ context }) => ({
-                sessionId: requiredSessionId(context),
-                request: requiredRecontactRequest(context),
-              }),
-              onDone: {
-                target: '#study.preQuestionnaire',
-                actions: 'clearRecontactSecrets',
-              },
-              onError: {
-                target: 'error',
-                actions: assign({
-                  researchErrorCode: ({ event }) => errorCode(event.error),
-                }),
-              },
-            },
-          },
-          error: {
-            on: {
-              RETRY_RECONTACT: {
-                target: 'registering',
-                actions: 'clearResearchError',
-              },
-              CONTINUE_WITHOUT_FOLLOW_UP: {
-                target: 'abandoning',
-                actions: 'clearResearchError',
-              },
-            },
-          },
-          abandoning: {
-            invoke: {
-              id: 'abandonRecontact',
-              src: 'abandonRecontact',
-              input: ({ context }) => ({ sessionId: requiredSessionId(context) }),
-              onDone: {
-                target: '#study.preQuestionnaire',
-                actions: 'abandonFollowUpConsent',
-              },
-              onError: {
-                target: 'error',
-                actions: assign({
-                  researchErrorCode: ({ event }) => errorCode(event.error),
-                }),
-              },
-            },
-          },
         },
       },
       preQuestionnaire: {

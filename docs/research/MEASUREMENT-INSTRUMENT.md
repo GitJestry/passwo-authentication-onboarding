@@ -1,4 +1,4 @@
-# Measurement Instrument 2.0
+# Measurement Instrument 2.1
 
 Status: **inhaltlich für Implementierung und Cognitive Pretest eingefroren.**  
 Geltungsbereich: randomisierter Between-Subjects-Vergleich des Supportive Authentication
@@ -9,7 +9,7 @@ in `research/derived/instruments-v1.yaml`. Die teilnehmerseitige Projektion lieg
 `research/derived/instruments-v1.runtime.json` und wird nach
 `packages/contracts/src/generated/instruments-v1.runtime.json` gespiegelt. Das getrennte
 Follow-up ist ausschließlich in `docs/research/FOLLOW-UP-INSTRUMENT.md` und
-`research/derived/follow-up-v4.yaml` dokumentiert; seine Fragen sind nicht Bestandteil der
+`research/derived/follow-up-v5.yaml` dokumentiert; seine Fragen sind nicht Bestandteil der
 Training Runtime.
 
 ## 1. Messlogik und Claim-Grenzen
@@ -21,8 +21,9 @@ kein Designfokus-Score, kein Guardrail-Gesamtscore, kein Pass/Fail und kein komb
 Follow-up-Score berechnet.
 
 Die Studie misst unmittelbare Artefaktwahrnehmung, objektive Bearbeitungszeit,
-kriteriumsbezogenes Sofortverständnis und explorative task-specific Self-Efficacy. Das optionale
-separate Follow-up ergänzt eng begrenzte selbstberichtete Handlungen nach zehn Tagen. Ohne
+kriteriumsbezogenes Sofortverständnis und explorative task-specific Self-Efficacy. Der
+verpflichtende zweite Studienteil ergänzt eng begrenzte selbstberichtete Schutzhandlungen
+innerhalb von zehn Tagen. Ohne
 Wissens-Pretest können weder individueller Wissenszuwachs noch neu erworbener Wissensanteil
 bestimmt werden. Die Studie belegt keine Äquivalenz, allgemeine Authentifizierungskompetenz,
 langfristige Adoption oder dauerhafte Verhaltensänderung.
@@ -31,15 +32,15 @@ langfristige Adoption oder dauerhafte Verhaltensänderung.
 
 ```text
 Eligibility + Teilnahmeinformation + Einwilligung
-→ optionale Recontact-Einwilligung
+→ verpflichtende Kontaktbestätigung für den zweiten Studienteil
 → Pre: Stichprobe → Vorerfahrung/Ausgangsnutzung → Self-Efficacy
 → zugewiesenes Lernangebot
-→ Post: UEQ-S → UEQ+ Inhaltsseriosität → Duration Fit
+→ Post: UEQ-S → UEQ+ Inhaltsseriosität → wahrgenommene Dauer → Duration Fit
        → Design-Diagnostik → Risikodarstellung + wahrgenommenes Verständnis
 → Guardrail: drei Anwendungsszenarien → drei Recognition-Items
 → Post-Guardrail: wiederholte Self-Efficacy → retrospektive SecAware-Vorerfahrung
 → ein optionaler offener Kommentar
-→ gemeinsame Aufklärung beziehungsweise neutrale Session Closure
+→ neutrale Session Closure; vollständige Aufklärung nach Teil 2 oder Fensterschluss
 ```
 
 Die Szenarien stehen vor Recognition, weil Recognition-Optionen Teile der Regeln benennen und die
@@ -99,12 +100,15 @@ randomisierten Zuweisung.
 
 Objektive Artefaktdauer wird als Wall-Clock-Zeit zwischen vorab definiertem Start und Abschluss
 gespeichert. Segmentzeiten des Prototyps sind nur interne Diagnostik. Die objektive Dauer wird vor
-`TIME_FIT` nicht angezeigt. Eine gefühlte Minutenzahl und ein Zeit-Nutzen-Item werden nicht
-abgefragt, weil ihre analytische Bedeutung für die Forschungsfrage nicht eindeutig wäre.
+den Dauerurteilen nicht angezeigt. `PERCEIVED_DURATION` fragt unmittelbar vor `TIME_FIT`, wie lang
+sich die Bearbeitung angefühlt hat, auf einer vollständig beschrifteten Skala von `1 = sehr kurz`
+bis `7 = sehr lang`.
 
 `TIME_FIT` verwendet sieben vollständig beschriftete Kategorien von `deutlich zu kurz` bis
-`deutlich zu lang`. Ausgewertet werden die vollständige Verteilung und die Richtungen `1–3`, `4`
-und `5–7`; höhere Werte gelten nicht als besser.
+`deutlich zu lang` und beurteilt die Angemessenheit der Dauer. Beide Items werden einzeln und über
+ihre vollständige Verteilung ausgewertet. Höhere Werte bedeuten bei keinem Item automatisch
+bessere Qualität. Der Cognitive Pretest muss prüfen, ob subjektive Länge und Angemessenheit als
+unterschiedliche Fragen verstanden werden.
 
 ### Design-diagnostische Einzelitems
 
@@ -115,7 +119,8 @@ Auf einer vollständig beschrifteten siebenstufigen Zustimmungsskala werden einz
 - persönliche Alltagsrelevanz;
 - Gelegenheit zur Anwendung auf konkrete Kontosituationen;
 - nachvollziehbare Mechanismuserklärung;
-- anschauliche Auswirkungen unterschiedlicher Entscheidungen;
+- konkrete Vorstellbarkeit der Auswirkungen unterschiedlicher Entscheidungen
+  (`CONSEQUENCE_TANGIBILITY`);
 - wahrgenommene Bewältigbarkeit der Informationsmenge;
 - Klarheit konkreter nächster Schritte.
 
@@ -184,20 +189,39 @@ separiert.
 
 - UEQ-S Pragmatic und Hedonic Quality;
 - nicht-vorwurfsvolle Vermittlung und persönliche Relevanz;
-- Mechanismuserklärung und sichtbare Auswirkungen;
+- Mechanismuserklärung und konkrete Vorstellbarkeit von Auswirkungen;
 - UEQ+ Inhaltsseriosität;
 - wahrgenommene Angemessenheit der Risikodarstellung;
 - wahrgenommenes globales Verständnis;
-- Duration Fit.
+- wahrgenommene Dauer und Duration Fit.
 
 ### Explorativ
 
 - drei Recognition-Items;
 - vier baseline-adjustierte Self-Efficacy-Einzeloutcomes;
-- separates Follow-up;
 - offener Kommentar.
 
-## 8. Freeze-Regel
+### Zentral-sekundär
+
+- die drei getrennten selbstberichteten Schutzhandlungen innerhalb von zehn Tagen aus
+  `follow-up-v5`.
+
+## 8. Cognitive-Pretest- und Freigabegate
+
+Der Cognitive Pretest verwendet Think-aloud und anschließende Paraphrasen. Er prüft mindestens:
+
+1. ob `PERCEIVED_DURATION` als erlebte Länge und `TIME_FIT` als Angemessenheit wiedergegeben
+   werden, ohne beide Fragen gleichzusetzen;
+2. ob „zweiter und letzter Studienteil“ in Rekrutierung, Einwilligung, Session Closure und E-Mail
+   keinen konkreten Fokus auf Passwort-, Passwortmanager- oder MFA-Handlungen vorwegnimmt;
+3. ob Stichtag, Freiwilligkeit, Linkgültigkeit und verzögerte Aufklärung verstanden werden;
+4. ob die Geheimhaltungsbitte als freiwillige Bitte und nicht als Verbot wahrgenommen wird.
+
+Vor Rekrutierung müssen die versionierten Endfassungen von `consent-v7-draft`, verpflichtender
+Kontaktbestätigung, verzögertem Debriefing und Geheimhaltungsbitte durch den zuständigen Ethik- und
+Datenschutzprozess bestätigt sein. Bis dahin bleibt `consent-v7-draft` ausdrücklich ein Draft.
+
+## 9. Freeze-Regel
 
 Die in `instruments-v1.yaml` und der Runtime-Projektion festgelegten IDs, Texte, Optionen,
 Blockreihenfolgen und Klassifikationen werden nach dem Cognitive Pretest nur geändert, wenn ein

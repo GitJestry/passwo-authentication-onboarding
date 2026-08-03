@@ -1,10 +1,10 @@
 schemaVersion: 3
-instrumentVersion: 2.0.0
-questionnaireVersion: questionnaire-v2
+instrumentVersion: 2.1.0
+questionnaireVersion: questionnaire-v3
 guardrailVersion: guardrail-v4
-consentVersion: consent-v6-draft
-followUpVersion: follow-up-v4
-runtimeManifestVersion: instrument-runtime-v2
+consentVersion: consent-v7-draft
+followUpVersion: follow-up-v5
+runtimeManifestVersion: instrument-runtime-v2.1
 language: de-DE
 participantTerm: Lernangebot
 scales:
@@ -40,6 +40,18 @@ scales:
       '5': eher zu lang
       '6': zu lang
       '7': deutlich zu lang
+  perceivedDuration7:
+    type: integer
+    min: 1
+    max: 7
+    anchors:
+      '1': sehr kurz
+      '2': kurz
+      '3': eher kurz
+      '4': weder kurz noch lang
+      '5': eher lang
+      '6': lang
+      '7': sehr lang
   ueqSemanticDifferential7:
     type: integer
     min: 1
@@ -82,7 +94,7 @@ analysis:
     - scenarios
     secondaryBlocks:
     - recognition
-  followUpSource: research/derived/follow-up-v4.yaml
+  followUpSource: research/derived/follow-up-v5.yaml
 procedures:
   eligibility:
     persisted: false
@@ -101,7 +113,7 @@ procedures:
     eyebrow: Studie zu Passwörtern und dem Schutz von Online-Konten
     welcomeHeading: Willkommen
     welcomeParagraphs:
-    - Vielen Dank, dass du dir Zeit für diese Studie nimmst. Im Verlauf der Studie bearbeitest du ein digitales Lernangebot
+    - Vielen Dank, dass du dir Zeit für diese Studie nimmst. Im ersten Studienteil bearbeitest du ein digitales Lernangebot
       zu Passwörtern und zum Schutz von Online-Konten. Vor und nach dem Lernangebot beantwortest du einige Fragen.
     readMoreLabel: Ausführliche Teilnahmeinformationen
     informationHeading: Informationen zu deiner Teilnahme
@@ -119,8 +131,10 @@ procedures:
       - Zunächst beantwortest du kurze Fragen zu deiner Person und zu bisherigen Erfahrungen mit den behandelten Themen. Danach
         bearbeitest du ein digitales Lernangebot. Abschließend folgen Fragen zu deiner Wahrnehmung des Angebots und zu den
         vermittelten Inhalten. Die heutige Sitzung dauert voraussichtlich 20 bis 30 Minuten.
-      - Optional kannst du etwa zehn Tage später per E-Mail an einer etwa ein- bis zweiminütigen Nachbefragung teilnehmen.
-        Die Hauptstudie kann vollständig bearbeitet werden, ohne dieser Kontaktaufnahme zuzustimmen.
+      - Die Studie umfasst die heutige Sitzung von etwa 20 bis 30 Minuten und einen kurzen zweiten Teil etwa zehn Tage später.
+        Der zweite Teil dauert ungefähr ein bis zwei Minuten und wird per E-Mail bereitgestellt.
+      - Das Zeitfenster für die dort erfragten Angaben endet 240 Stunden nach Abschluss der heutigen Sitzung. Der Link bleibt
+        anschließend für die Abgabe bis zum angegebenen Schließungszeitpunkt verfügbar.
     - id: data
       heading: Welche Daten werden verarbeitet?
       paragraphs:
@@ -128,8 +142,8 @@ procedures:
         die für die Auswertung erforderlichen Angaben zum bearbeiteten Lernangebot, zu Versionen und Darstellungsreihenfolgen.
         Die Forschungsdaten werden unter einer zufällig erzeugten, nicht angezeigten Forschungs-ID pseudonymisiert gespeichert
         und ausgewertet. Sie enthalten weder deinen Namen noch deine E-Mail-Adresse.
-      - Falls du der Nachbefragung zustimmst, wird deine E-Mail-Adresse getrennt von den Forschungsdaten gespeichert und ausschließlich
-        für die Einladung sowie höchstens eine Erinnerung verwendet.
+      - Deine E-Mail-Adresse wird getrennt von den Forschungsdaten gespeichert und ausschließlich für den zweiten Studienteil,
+        höchstens eine Erinnerung und die abschließende Aufklärung verwendet.
     - id: voluntariness
       heading: Freiwilligkeit und Abbruch
       paragraphs:
@@ -154,8 +168,8 @@ procedures:
     - id: rights
       heading: Rechtsgrundlage und deine Rechte
       paragraphs:
-      - Die Verarbeitung deiner Forschungsdaten und – nur bei gesonderter Zustimmung – deiner E-Mail-Adresse beruht auf deiner
-        Einwilligung gemäß Art. 6 Abs. 1 lit. a DSGVO. Du kannst deine Einwilligung jederzeit mit Wirkung für die Zukunft
+      - Die Verarbeitung deiner Forschungsdaten und deiner getrennt gespeicherten E-Mail-Adresse beruht auf deiner Einwilligung
+        gemäß Art. 6 Abs. 1 lit. a DSGVO. Du kannst deine Einwilligung jederzeit mit Wirkung für die Zukunft
         widerrufen. Die Rechtmäßigkeit der bis zum Widerruf erfolgten Verarbeitung bleibt davon unberührt.
       - Du hast im Rahmen der gesetzlichen Voraussetzungen insbesondere das Recht auf Auskunft, Berichtigung, Löschung, Einschränkung
         der Verarbeitung und Datenübertragbarkeit. Außerdem kannst du dich bei der Landesbeauftragten für Datenschutz und
@@ -163,9 +177,10 @@ procedures:
         verwendest du deinen Löschcode.
     requiredConsent:
       legend: Einwilligung
-      statement: Ich habe die Teilnahmeinformationen gelesen und verstanden. Ich weiß, dass einige Einzelheiten zur genauen
-        Fragestellung erst nach meinem letzten Studienteil erläutert werden. Ich willige freiwillig in die Teilnahme und in
-        die beschriebene pseudonymisierte Verarbeitung meiner Forschungsdaten ein.
+      statement: Ich habe die Teilnahmeinformationen gelesen und verstanden. Ich weiß, dass die Studie aus der heutigen Sitzung
+        und einem kurzen zweiten Teil etwa zehn Tage später besteht und einige Einzelheiten zur genauen Fragestellung erst
+        danach erläutert werden. Ich willige freiwillig in beide Studienteile und in die beschriebene pseudonymisierte Verarbeitung
+        meiner Forschungsdaten ein.
     actions:
       acceptLabel: Teilnahme beginnen
       declineLabel: Nicht teilnehmen
@@ -178,44 +193,32 @@ procedures:
     - Gespeichert werden Fragebogenantworten, Bearbeitungs- und Abschnittszeiten, der technische Abschlussstatus sowie erforderliche
       Angaben zum bearbeiteten Lernangebot, zu Versionen und Darstellungsreihenfolgen. Es werden keine realen Passwörter oder
       Kontozugangsdaten verlangt.
-    - Eine kurze Nachbefragung nach etwa zehn Tagen ist optional. Eine E-Mail-Adresse wird nur mit gesonderter Einwilligung
-      und getrennt von den Forschungsdaten gespeichert. Ein unmittelbarer persönlicher Nutzen kann nicht zugesichert werden.
+    - Die Studie umfasst die heutige Sitzung von etwa 20 bis 30 Minuten und einen kurzen zweiten Teil nach etwa zehn Tagen.
+      Für den zweiten Teil wird eine E-Mail-Adresse mit gesonderter Einwilligung und getrennt von den Forschungsdaten gespeichert.
+      Ein unmittelbarer persönlicher Nutzen kann nicht zugesichert werden.
     - Fragen zur Studie oder Datenverarbeitung können an die in den ausführlichen Teilnahmeinformationen genannten Kontakte
       gerichtet werden.
   followUpRecontact:
-    optional: true
-    consentLegend: Optionale Nachbefragung
-    consentStatement: Ich möchte etwa zehn Tage später per E-Mail zu einer kurzen Nachbefragung eingeladen werden. Meine E-Mail-Adresse
-      wird getrennt von den Forschungsdaten gespeichert und nur für diese Kontaktaufnahme verwendet.
-    emailLabel: E-Mail-Adresse für die Nachbefragung
+    optional: false
+    consentLegend: Kontakt für den zweiten Studienteil
+    consentStatement: Ich willige ein, dass meine E-Mail-Adresse getrennt von den Forschungsdaten gespeichert und ausschließlich
+      für den zweiten Studienteil, höchstens eine Erinnerung und die abschließende Aufklärung verwendet wird.
+    emailLabel: E-Mail-Adresse für den zweiten Studienteil
     emailRequired: true
     emailNeverStoredInResearchDatabase: true
     firstInvitationDelayHours: 240
     reminderDelayAfterFirstInvitationHours: 48
     closeAfterSessionHours: 336
-    emailSubject: Kurze Nachbefragung zur Studie
+    emailSubject: Zweiter Studienteil ist jetzt verfügbar
     emailContainsTrainingAdvice: false
   sessionClosure:
-    immediateDebriefWithoutFollowUp:
-      heading: Aufklärung zur Studie
-      paragraphs:
-      - Zu Beginn wurden nicht alle Einzelheiten des Studiendesigns offengelegt. In der Studie werden zwei deutschsprachige
-        Lernangebote zum Schutz von Online-Konten als vollständige Angebote miteinander verglichen. Die Zuweisung erfolgte
-        zufällig. Diese Information wurde zunächst zurückgehalten, damit Erwartungen an einen Vergleich die Bearbeitung und
-        Bewertung des jeweiligen Lernangebots möglichst wenig beeinflussen.
-      - Untersucht werden insbesondere die Wahrnehmung des Lernangebots, die Bearbeitungsdauer sowie das unmittelbare Verständnis
-        zentraler Aussagen zu Passwortwiederverwendung, Passwortmanagern und MFA/2FA. Die Studie prüft nicht, ob eine einzelne
-        Gestaltungskomponente oder ein einzelnes psychologisches Prinzip die Ergebnisse verursacht hat.
-      - Du kannst nach dieser Aufklärung innerhalb der vor dem Study Freeze festgelegten Aufbewahrungs- und Löschfrist weiterhin
-        die Löschung deiner Forschungsdaten verlangen. Verwende dafür deinen Löschcode und die angegebene Kontaktadresse.
-      actionLabel: Sitzung abschließen
-    deferredDebriefWithFollowUp:
+    afterFirstStudyPart:
       heading: Vielen Dank für deine Teilnahme
       paragraphs:
-      - Die Hauptsitzung ist damit abgeschlossen. Zehn Tage nach deiner Teilnahme erhältst du die kurze Nachbefragung an die
-        angegebene E-Mail-Adresse.
-      - Die vollständige Aufklärung zur Studie erhältst du nach deiner Antwort oder spätestens nach Schließung des Follow-up-Zeitfensters.
-        Du kannst dieses Fenster jetzt schließen.
+      - Der erste Studienteil ist abgeschlossen. Etwa zehn Tage nach deiner heutigen Teilnahme erhältst du per E-Mail den
+        kurzen zweiten und letzten Studienteil.
+      - Die vollständige Aufklärung erhältst du nach dessen Abgabe oder spätestens nach Schließung des Antwortfensters. Du
+        kannst dieses Fenster jetzt schließen.
       actionLabel: Sitzung abschließen
 instruments:
   pre-v1:
@@ -431,6 +434,10 @@ instruments:
     - id: duration
       objectiveDurationHiddenUntilSectionCommitted: true
       items:
+      - id: PERCEIVED_DURATION
+        type: scale
+        scale: perceivedDuration7
+        prompt: Wie lang hat sich die Bearbeitung des Lernangebots für dich angefühlt?
       - id: TIME_FIT
         type: scale
         scale: durationAppropriateness7
@@ -457,11 +464,11 @@ instruments:
         type: scale
         scale: agreement7
         prompt: Das Lernangebot erklärte nachvollziehbar, warum die empfohlenen Maßnahmen Konten besser schützen.
-      - id: CONSEQUENCE_VISIBILITY
+      - id: CONSEQUENCE_TANGIBILITY
         type: scale
         scale: agreement7
-        prompt: Das Lernangebot stellte anschaulich dar, wie sich unterschiedliche Entscheidungen auf den Schutz von Konten
-          auswirken.
+        prompt: Durch das Lernangebot konnte ich mir konkret vorstellen, wie sich unterschiedliche Entscheidungen auf den
+          Schutz von Konten auswirken können.
       - id: INFORMATION_MANAGEABILITY
         type: scale
         scale: agreement7

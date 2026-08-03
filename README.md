@@ -17,7 +17,7 @@ noch offen.
   lokalen S03-/S05-/S06-Befunde im Studienpfad und Design Lab zu genau einem nächsten Schritt je
   Konto.
 - **Instrumente:** Pre, Post, Guardrail und offene Rückmeldung laufen als versionierte,
-  atomare Submissions; das optionale Follow-up besitzt eine getrennte Recontact-Registry und
+  atomare Submissions; der verpflichtende zweite Studienteil besitzt eine getrennte Recontact-Registry und
   Schedule-Export.
 - **Als Nächstes:** S08 bis S11 mit Passwortüberarbeitung und Modulabschluss.
 
@@ -76,7 +76,7 @@ pnpm dev:secaware
 
 ## Study Runtime und Export
 
-Der Runtime-Pfad führt von Eligibility, Einwilligung und optionaler Follow-up-Entscheidung über
+Der Runtime-Pfad führt von Eligibility, Einwilligung und verpflichtender Kontaktbestätigung über
 serverseitige Session, echte Pre-/Post-/Guardrail-Instrumentblöcke und das zugewiesene Artefakt
 zur bedingten Session Closure und zum Abschluss. Anzeigenamen und Trainingsinputs bleiben
 ausschließlich im flüchtigen Arbeitsspeicher des Electron-Renderers. Standardmäßig liegt die
@@ -99,7 +99,7 @@ Versionen, Zählungen und SHA-256-Prüfsummen. Der Analyseexport entfernt exakte
 Kalenderzeitpunkte und separiert ausgefüllte Freitexte zur manuellen Prüfung in
 `free-text-review`.
 
-Der optionale Follow-up-Versand erfolgt nicht automatisch. Die Studienleitung erzeugt den
+Der Versand des zweiten Studienteils erfolgt nicht automatisch. Die Studienleitung erzeugt den
 geschützten Schedule nur bei Bedarf und versendet die neutralen Einladungen einzeln über das
 freigegebene Universitätskonto:
 

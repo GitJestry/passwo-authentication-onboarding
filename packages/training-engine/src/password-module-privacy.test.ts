@@ -13,8 +13,6 @@ function studyRuntimePorts(requestArguments: unknown[][]): StudyRuntimePorts {
       assignmentMode: 'forced-supportive',
       guardrailFormId: 'F1',
     }),
-    registerRecontact: async () => {},
-    abandonRecontact: async () => {},
     saveInstrumentSubmission: async (...arguments_) => {
       requestArguments.push(arguments_);
     },
@@ -126,11 +124,8 @@ describe('password module privacy boundary', () => {
     expect(controller.getSnapshot().matches({ s07: 'active' })).toBe(true);
     studyActor.send({
       type: 'ACCEPT_CONSENT',
-      followUpConsent: true,
-      recontact: {
-        email: 'person@example.org',
-        requestId: 'f5d74d44-f700-4dc7-ac00-5e251a8890c3',
-      },
+      recontactConsentAccepted: true,
+      email: 'person@example.org',
     });
     await flushMicrotasks();
     studyActor.send({

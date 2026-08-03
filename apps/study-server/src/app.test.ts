@@ -99,7 +99,7 @@ describe('study server research core', () => {
 
   it('binds idempotent session creation to the deletion-code hash', async () => {
     const server = createServer('forced-supportive');
-    const request = createSessionBody(1, false);
+    const request = createSessionBody(1);
     const first = await server.inject({
       method: 'POST',
       url: '/api/study/sessions',
@@ -115,11 +115,17 @@ describe('study server research core', () => {
       url: '/api/study/sessions',
       payload: { ...request, deletionCodeHash: 'f'.repeat(64) },
     });
+    const conflictingEmailRetry = await server.inject({
+      method: 'POST',
+      url: '/api/study/sessions',
+      payload: { ...request, email: 'different@example.org' },
+    });
 
     expect(first.statusCode).toBe(201);
     expect(retry.statusCode).toBe(201);
     expect(retry.json()).toEqual(first.json());
     expect(conflictingRetry.statusCode).toBe(409);
+    expect(conflictingEmailRetry.statusCode).toBe(409);
   });
 
   it('persists only approved research session fields and condition-derived versions', async () => {
@@ -216,7 +222,7 @@ describe('study server research core', () => {
     const completion = await server.inject({
       method: 'POST',
       url: `/api/study/sessions/${session.sessionId}/complete`,
-      payload: { debriefAcknowledged: true },
+      payload: { firstStudyPartClosureAcknowledged: true },
     });
     const reload = await server.inject({
       method: 'POST',
@@ -548,7 +554,7 @@ describe('study server research core', () => {
     const completion = await server.inject({
       method: 'POST',
       url: `/api/study/sessions/${session.sessionId}/complete`,
-      payload: { debriefAcknowledged: true },
+      payload: { firstStudyPartClosureAcknowledged: true },
     });
     expect(completion.statusCode).toBe(200);
     expect(completion.json()).toEqual({ completionStatus: 'completed' });

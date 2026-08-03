@@ -80,3 +80,32 @@ Mailserver-Backups werden in die vor dem Study Freeze noch einzutragende Frist e
 Follow-up-Antwort beziehungsweise Fensterschluss und Debriefing wird die Registry gemäß dieser
 Frist entfernt. Die Software behauptet nicht, Postfach- oder Mailserverkopien automatisch gelöscht
 zu haben. Diese Revision ändert weder Registry-Schema noch Tokenformat, Randomisierung oder Timing.
+
+## Revision 2026-08-03 — Verbindliche Zwei-Teil-Studie 2.1
+
+Für neue Instrument-2.1-Sitzungen ersetzt diese Revision die frühere optionale
+Recontact-Entscheidung. Die heutige Hauptsitzung und der ein- bis zweiminütige zweite Studienteil
+nach 240 Stunden werden vorab transparent als verbindliche Studienbestandteile beschrieben. Eine
+gültige E-Mail-Adresse, allgemeine Einwilligung in beide Teile und gesonderte
+Recontact-Bestätigung sind Voraussetzung der Sitzungserstellung.
+
+Sessionerstellung, serverseitige Condition-/Form-Zuweisung und Recontact-Registrierung erfolgen in
+einer gemeinsamen SQLite-Transaktion über die angehängte getrennte Datenbank. E-Mail und Roh-Token
+bleiben ausschließlich in `recontact.sqlite`; `study.sqlite` erhält weiterhin nur Consent-Status,
+Follow-up-Version und Token-Hash. Ein identischer Request ist idempotent. Bei einem Schreibfehler
+werden Session, Condition-Slot, Form-Slot und Recontact-Datensatz gemeinsam zurückgerollt. Die
+Register-/Abandon-Routen und der Pfad „ohne Nachbefragung fortfahren“ entfallen. Historische
+Sessions bleiben unverändert lesbar; es werden keine neuen Persistenzfelder eingeführt.
+
+Die Kommunikation heißt neutral „zweiter und letzter Studienteil“ und nennt vor Ablauf des
+Messfensters weder Schutzhandlungen noch Vergleich oder Randomisierung. Der Forschungsstichtag
+bleibt exakt `completedAt + 240h`; Einladung, Erinnerung und spätere Abgabe verändern ihn nicht.
+Die vollständige Aufklärung erfolgt nach Abgabe und zusätzlich bei `closesAt` per E-Mail an alle
+Eingeschlossenen. Der Schedule-Export leitet diesen Debrief-Zeitpunkt aus `closesAt` ab, ohne einen
+neuen Status zu persistieren.
+
+Die drei fokalen Follow-up-Handlungen bilden eine zentral-sekundäre Ergebnisfamilie
+„selbstberichtete Schutzhandlungen innerhalb von zehn Tagen“. Sie bleiben getrennt; Nichtantwort
+bleibt fehlend. Es werden weder objektive Kontobeobachtung, Vorher-Nachher-Verhaltensmessung,
+dauerhafte Adoption noch ein kombinierter Behavior Score behauptet. Die freiwillige
+Geheimhaltungsbitte mindert mögliche Kontamination, beseitigt sie aber nicht.

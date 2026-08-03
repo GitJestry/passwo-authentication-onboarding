@@ -1,6 +1,6 @@
 import { z } from 'zod';
 import { guardrailFormIdSchema } from './instrument-runtime.js';
-import { followUpTokenHashSchema } from './recontact.js';
+import { followUpTokenHashSchema, recontactEmailSchema } from './recontact.js';
 
 export const studyConditionSchema = z.enum(['supportive', 'reference']);
 export type StudyCondition = z.infer<typeof studyConditionSchema>;
@@ -49,7 +49,8 @@ export const createSessionRequestSchema = z
   .object({
     requestId: z.uuid(),
     consentAccepted: z.literal(true),
-    followUpConsent: z.boolean(),
+    recontactConsentAccepted: z.literal(true),
+    email: recontactEmailSchema,
     deletionCodeHash: deletionCodeHashSchema,
   })
   .strict();
@@ -95,7 +96,7 @@ export const saveResponseResponseSchema = z.object({ saved: z.literal(true) }).s
 export type SaveResponseResponse = z.infer<typeof saveResponseResponseSchema>;
 
 export const completeSessionRequestSchema = z
-  .object({ debriefAcknowledged: z.literal(true) })
+  .object({ firstStudyPartClosureAcknowledged: z.literal(true) })
   .strict();
 export type CompleteSessionRequest = z.infer<typeof completeSessionRequestSchema>;
 

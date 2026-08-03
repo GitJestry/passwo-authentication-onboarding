@@ -65,6 +65,12 @@
   );
 }
 
+.welcomeHeader .eyebrow {
+  max-width: none;
+  justify-self: center;
+  text-align: center;
+}
+
 .eyebrow {
   margin: 0;
   color: var(--color-accent-strong);
@@ -889,7 +895,20 @@
 
 .anchorLabel {
   width: 100%;
-  overflow-wrap: anywhere;
+}
+
+.confidenceAnchors .anchorLabelStart {
+  grid-column: 2 / span 3;
+  text-align: left;
+}
+
+.confidenceAnchors .anchorLabelCenter {
+  grid-column: 6 / span 3;
+}
+
+.confidenceAnchors .anchorLabelEnd {
+  grid-column: 10 / span 3;
+  text-align: right;
 }
 
 .matrixRow .fieldError,

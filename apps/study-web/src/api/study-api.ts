@@ -1,6 +1,4 @@
 import {
-  abandonRecontactRequestSchema,
-  abandonRecontactResponseSchema,
   artifactLeaseResponseSchema,
   completeSessionRequestSchema,
   createSessionRequestSchema,
@@ -10,9 +8,6 @@ import {
   hashDeletionCode,
   type InstrumentSubmissionRequest,
   instrumentSubmissionRequestSchema,
-  type RegisterRecontactRequest,
-  registerRecontactRequestSchema,
-  registerRecontactResponseSchema,
   saveResponseResponseSchema,
   sessionStatusResponseSchema,
   studyTimingEventSchema,
@@ -125,31 +120,18 @@ export function createStudyApi(): StudyApi {
 
   return {
     createSegmentTimingPort,
-    createSession: async (followUpConsent: boolean) => {
+    createSession: async (email: string) => {
       const createRequest = createSessionRequestSchema.parse({
         requestId: createRequestId,
         consentAccepted: true,
-        followUpConsent,
+        recontactConsentAccepted: true,
+        email,
         deletionCodeHash: await deletionCodeHash,
       });
       const response = createSessionResponseSchema.parse(
         await postJson('/api/study/sessions', createRequest),
       );
       return { ...response, deletionCode };
-    },
-
-    registerRecontact: async (sessionId: string, registration: RegisterRecontactRequest) => {
-      const request = registerRecontactRequestSchema.parse(registration);
-      registerRecontactResponseSchema.parse(
-        await postJson(`/api/study/sessions/${sessionId}/recontact`, request),
-      );
-    },
-
-    abandonRecontact: async (sessionId: string) => {
-      const request = abandonRecontactRequestSchema.parse({});
-      abandonRecontactResponseSchema.parse(
-        await postJson(`/api/study/sessions/${sessionId}/recontact/abandon`, request),
-      );
     },
 
     saveInstrumentSubmission: async (
@@ -219,7 +201,7 @@ export function createStudyApi(): StudyApi {
 
     completeSession: async (sessionId: string) => {
       const request = completeSessionRequestSchema.parse({
-        debriefAcknowledged: true,
+        firstStudyPartClosureAcknowledged: true,
       });
       sessionStatusResponseSchema.parse(
         await postJson(`/api/study/sessions/${sessionId}/complete`, request),

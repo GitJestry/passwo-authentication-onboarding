@@ -4,8 +4,8 @@
 
 Verglichen werden zwei vollständige Onboarding-Artefakte. Gemessen werden unmittelbare
 Wahrnehmung, Bearbeitungszeit und kriteriumsbezogenes Sofortverständnis. Explorativ folgen vier
-task-specific Self-Efficacy-Einzelratings und bei freiwilliger Recontact-Einwilligung eine separat
-ausgelieferte Nachbefragung mit selbstberichteten Handlungen nach zehn Tagen. Unterschiede dürfen
+task-specific Self-Efficacy-Einzelratings. Der verpflichtende zweite Studienteil enthält als
+zentral-sekundäre Familie drei selbstberichtete Schutzhandlungen innerhalb von zehn Tagen. Unterschiede dürfen
 nicht einzelnen Translation Foci, Animationen, Quizfragen oder UI-Elementen kausal zugeschrieben
 werden.
 
@@ -52,18 +52,19 @@ werden.
   Correctness Feedback.
 - Es gibt kein Pass/Fail, keinen Guardrail-Gesamtscore und keinen Unsafe-Summenwert.
 
-## Separates Follow-up
+## Zweiter Studienteil
 
-- Die Follow-up-Einwilligung ist getrennt und optional; eine Ablehnung blockiert die Hauptstudie
-  nicht.
+- Kontaktbestätigung und gültige E-Mail-Adresse sind für neue 2.1-Sitzungen verpflichtend.
 - E-Mail und Roh-Token liegen ausschließlich in der getrennten Recontact Registry.
 - Die Follow-up-Fragen sind nicht Bestandteil der Training Runtime. Kanonische Quellen sind
-  `FOLLOW-UP-INSTRUMENT.md` und `research/derived/follow-up-v4.yaml`.
+  `FOLLOW-UP-INSTRUMENT.md` und `research/derived/follow-up-v5.yaml`.
 - Die E-Mail enthält keine Authentifizierungsempfehlung und das Follow-up ist kein erneutes
   Training.
 - Nichtantwort ist fehlend und wird nicht als keine Handlung codiert.
 - Passwort-, Passwortmanager- und MFA-Handlungen bleiben getrennt; es gibt keinen kombinierten
   Behavior Score.
+- Es handelt sich weder um objektive Kontobeobachtung noch um eine Vorher-Nachher-Messung
+  desselben Verhaltens; dauerhafte Adoption und Verhaltensänderung werden nicht behauptet.
 
 ## Technische Datenschutzgrenzen
 
