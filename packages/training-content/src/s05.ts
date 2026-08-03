@@ -25,7 +25,7 @@ export interface S05DesignLabFixture {
   };
 }
 
-export const S05_CONTENT_VERSION = '2.9.0';
+export const S05_CONTENT_VERSION = '2.10.0';
 
 const commonCoreExamples = ['passwort', 'qwertz', '123456789', '2026', 'sommer', 'admin'] as const;
 
@@ -44,9 +44,9 @@ export const s05Content = {
       35,
     ] as const,
     revision:
-      'Userauftrag vom 2026-08-03 · begrenzter vollständiger Rateweg mit zxcvbn-ts und lokale semantische Einordnung',
+      'Userauftrag vom 2026-08-03 · Wiederherstellung der S05-Einleitung vor den naheliegenden Bestandteilen',
     copyReference:
-      'docs/design/S00-S05-COPY-AUDIT.md#copy-delta-s05-begrenzter-rateweg-und-lokale-semantische-einordnung-3-august-2026',
+      'docs/design/S00-S05-COPY-AUDIT.md#copy-delta-s05-wiederhergestellte-einleitung-3-august-2026',
   },
   segment: {
     id: 'S05',
@@ -70,6 +70,7 @@ export const s05Content = {
     ] as const,
   },
   page: {
+    introTitle: 'Wie der Angreifer dein Passwort rät',
     title: 'Naheliegende Bestandteile',
     fixtureNotice:
       'Diese Simulation betrachtet nur das fiktive Passwort und ist keine allgemeine Sicherheitsbewertung.',
@@ -81,6 +82,16 @@ export const s05Content = {
     campusgramPassword: {
       accessibleLabel: 'Campusgram – Passwort',
       visibleSuffix: '– Passwort',
+    },
+    candidateFailure: 'passt nicht',
+    generatedPassword: 'rQ7mL2vX9pK4',
+    memorablePassword: 'MeinStarkesUniPasswort2005!',
+    memorablePasswordParts: ['Mein', 'Starkes', 'Uni', 'Passwort', '2005', '!'],
+    strategyAnnotations: {
+      sentenceStructure: 'Satzbau',
+      probability: 'Wahrscheinlichkeit ↑',
+      personalDetail: 'Persönliche Angaben',
+      typicalEnding: 'Typische Endung',
     },
     strategies: s05StrategyCards,
     componentFrames: [
@@ -108,6 +119,25 @@ export const s05Content = {
         'Die markierten Stellen zeigen, welche häufigen Kerne die Simulation im fiktiven Campusgram-Passwort erkannt hat.',
     },
     narration: {
+      candidateCheck: [
+        'Für den Angreifer ist das Passwort verdeckt. Sein Programm muss mögliche Passwörter erzeugen und prüfen, ob eines davon passt.',
+      ],
+      randomSequence: [
+        'Völlig zufällige Folgen von Zeichen sind aber enorm schwierig für Menschen zu merken. Deswegen nutzen die meisten eine merkbare Kombination.',
+      ],
+      recognizableCombination: [
+        'Bei diesem Passwort erkennt deine eigene Intuition wahrscheinlich schon einen Aufbau.',
+      ],
+      buildingBlocks: [
+        'Vereinfacht kannst du dir Passwörter wie mehrere aneinandergesetzte Bausteine vorstellen.',
+      ],
+      strategyTargeting: [
+        'Angreifer kennen diese Bausteine noch nicht.',
+        'Einige Passwortteile sind aber wahrscheinlicher als andere, da Menschen oft naheliegende Bestandteile verwenden oder ihr Passwort vorhersehbar aufbauen, um es sich leichter zu merken.',
+      ],
+      strategyOverview: [
+        'Und dieses Wissen nutzen Angreifer aus. Wir schauen uns nun drei Strategien an, die Angreifer miteinander kombinieren, um dein Campusgram-Passwort herauszufinden. Als ersten Ausgangspunkt beginnen Angreifer mit Dingen, die bei vielen Menschen schon funktioniert haben.',
+      ],
       componentStartQuestion: [
         'Die Strategie beginnt mit der Frage: Bei welchen Bestandteilen soll der Angreifer anfangen?',
       ],
@@ -427,6 +457,12 @@ export const s05Content = {
     },
   ] as const satisfies readonly S05DesignLabFixture[],
   animations: [
+    ['s05-candidate-check', 'attacker-attempt', 'info'],
+    ['s05-random-sequence', 'random-sequence', 'info'],
+    ['s05-recognizable-combination', 'recognizable-password', 'info'],
+    ['s05-building-blocks', 'building-blocks', 'info'],
+    ['s05-strategy-targeting', 'strategy-targeting', 'info'],
+    ['s05-strategy-overview', 'strategy-overview', 'info'],
     ['s05-component-start-question', 'component-start', 'info'],
     ['s05-component-frequency', 'component-start', 'info'],
     ['s05-component-category-overview', 'component-start', 'info'],

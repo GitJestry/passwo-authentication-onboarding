@@ -133,7 +133,7 @@ export function S04IncidentTraining({
                     disabled: !active || externalTimingError !== null || leavingForAnalysis,
                     onAction: beginAnalysis,
                   }}
-                  placement="incident"
+                  placement="bottom-left"
                   pose="warning"
                   showHelpButton={false}
                 />

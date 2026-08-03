@@ -25,8 +25,11 @@ Seitenangaben beziehen sich auf die im Trainingsdokument ausgewiesene interne Pa
 
 ## Implementierte S05-Version
 
-- Der Einstieg in `Naheliegende Bestandteile` zeigt eine reproduzierbare Folge aus einem bis acht
-  verdeckten Bausteinen. `Häufige Kerne` verwendet eine rein authored, fortlaufende Maschine für
+- Vor `Naheliegende Bestandteile` führt die wiederhergestellte S05-Einleitung von der verdeckten
+  Kandidatenprüfung über Zufallsfolge, merkbare Kombination und Bausteinmodell zur Vorschau der
+  drei Angriffsstrategien. Der anschließende Einstieg in `Naheliegende Bestandteile` zeigt eine
+  reproduzierbare Folge aus einem bis acht verdeckten Bausteinen. `Häufige Kerne` verwendet eine
+  rein authored, fortlaufende Maschine für
   die sechs festgelegten Beispiele und typische sichtbare Varianten; anschließend werden nur
   vorhandene lokale Kern-, Zahlenfolgen- und Jahresbefunde am maskierten fiktiven Passwort
   hervorgehoben. Die Szene übergibt mit kompakter Zusammenfassung an `Persönliche Angaben`.

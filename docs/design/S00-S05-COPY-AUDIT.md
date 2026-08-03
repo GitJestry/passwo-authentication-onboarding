@@ -493,3 +493,25 @@ erhöht. Die Zwischenversion `2.8.0` war ein nicht eingefrorener Implementierung
 Die Teilnehmeroberfläche zeigt weder den zxcvbn-Score noch geschätzte Kandidatenzahlen oder
 Crack-Zeiten. Persönliche Bedeutung, Thema und Satzstruktur werden nur nach lokaler Bestätigung
 angezeigt. Das System verarbeitet ausschließlich fiktive Passwörter im Browser.
+
+### Copy-Delta S05 wiederhergestellte Einleitung 3. August 2026
+
+Quelle sind der ausdrückliche Nutzerauftrag vom 3. August 2026 und die bereits freigegebenen
+S05-Copy-Deltas vom 2. August 2026. Der Commit `05d5380` hatte die Einleitung beim Umbau der
+Bestandteile-Darstellung vollständig ersetzt. Die sechs vorhandenen Sprechschritte und ihre
+presentation-only Visuals werden nun vor dem weiterhin bestehenden Abschnitt
+`Naheliegende Bestandteile` wieder eingesetzt. `S05_CONTENT_VERSION` wird von `2.9.0` auf
+`2.10.0` erhöht.
+
+| Segment und Text-ID | Aktueller Text | Wiederhergestellter Text | Primäre Rolle | Grund | Bedeutungsänderung | Interaktionsziel | Hervorhebung |
+|---|---|---|---|---|---|---|---|
+| `S05.page.introTitle` | kein eigener Einleitungstitel | `Wie der Angreifer dein Passwort rät` | Orientierung | Trennt die wiederhergestellte Perspektiv-Einleitung vom anschließenden Strategiebereich. | nein | kein | keine |
+| `S05.intro.narration.candidateCheck` | entfällt | `Für den Angreifer ist das Passwort verdeckt. Sein Programm muss mögliche Passwörter erzeugen und prüfen, ob eines davon passt.` | Mechanismuserklärung | Stellt den Ausgangspunkt der Angreiferperspektive wieder her. | nein | `Weiter` | keine |
+| `S05.intro.narration.randomSequence` | entfällt | `Völlig zufällige Folgen von Zeichen sind aber enorm schwierig für Menschen zu merken. Deswegen nutzen die meisten eine merkbare Kombination.` | Mechanismuserklärung | Stellt den Kontrast zwischen Zufallsfolge und merkbarer Kombination wieder her. | nein | `Weiter` | keine |
+| `S05.intro.narration.recognizableCombination` | entfällt | `Bei diesem Passwort erkennt deine eigene Intuition wahrscheinlich schon einen Aufbau.` | Kerngedanke | Stellt die authored Beispielkombination wieder her. | nein | `Weiter` | keine |
+| `S05.intro.narration.buildingBlocks` | entfällt | `Vereinfacht kannst du dir Passwörter wie mehrere aneinandergesetzte Bausteine vorstellen.` | Mechanismuserklärung | Stellt das vereinfachte Bausteinmodell wieder her. | nein | `Weiter` | keine |
+| `S05.intro.narration.strategyTargeting` | entfällt | `Angreifer kennen diese Bausteine noch nicht.` / `Einige Passwortteile sind aber wahrscheinlicher als andere, da Menschen oft naheliegende Bestandteile verwenden oder ihr Passwort vorhersehbar aufbauen, um es sich leichter zu merken.` | Mechanismuserklärung | Stellt die Brücke von Bausteinen zu wahrscheinlichen Kandidaten wieder her. | nein | `Weiter` | keine |
+| `S05.intro.narration.strategyOverview` | entfällt | `Und dieses Wissen nutzen Angreifer aus. Wir schauen uns nun drei Strategien an, die Angreifer miteinander kombinieren, um dein Campusgram-Passwort herauszufinden. Als ersten Ausgangspunkt beginnen Angreifer mit Dingen, die bei vielen Menschen schon funktioniert haben.` | Mechanismuserklärung | Stellt die Vorschau der drei Strategien vor dem ersten Strategiebereich wieder her. | nein | `Weiter` startet den Kartenübergang | keine |
+
+Die Zeichenfolgen und Bausteine sind weiterhin festgelegte Demonstrationen. Sie analysieren keine
+Teilnehmereingaben und verändern weder Persistenz, Timing noch die begrenzte S05-Auswertung.

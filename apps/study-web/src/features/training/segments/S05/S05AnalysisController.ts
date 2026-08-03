@@ -25,6 +25,12 @@ import {
 } from '@passwo/visualization';
 
 export type S05AnalysisStep =
+  | 'candidate-check'
+  | 'random-sequence'
+  | 'recognizable-combination'
+  | 'building-blocks'
+  | 'strategy-targeting'
+  | 'strategy-overview'
   | 'component-start-question'
   | 'component-frequency'
   | 'component-category-overview'
@@ -93,6 +99,12 @@ interface S05AnalysisControllerOptions {
 type Listener = (snapshot: S05AnalysisControllerSnapshot) => void;
 
 const stepByMissionId: Readonly<Record<string, S05AnalysisStep>> = {
+  's05-candidate-check': 'candidate-check',
+  's05-random-sequence': 'random-sequence',
+  's05-recognizable-combination': 'recognizable-combination',
+  's05-building-blocks': 'building-blocks',
+  's05-strategy-targeting': 'strategy-targeting',
+  's05-strategy-overview': 'strategy-overview',
   's05-component-start-question': 'component-start-question',
   's05-component-frequency': 'component-frequency',
   's05-component-category-overview': 'component-category-overview',
@@ -227,7 +239,7 @@ export class S05AnalysisController {
     );
     this.#snapshot = {
       phase: 'ready',
-      step: 'component-start-question',
+      step: 'candidate-check',
       findingScene,
       structureScene,
       freeSearchDemonstrationScene: createPasswordFreeSearchDemonstrationScene({

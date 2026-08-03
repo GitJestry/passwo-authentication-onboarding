@@ -199,38 +199,45 @@ const scenarios: Record<DesignLabScenarioId, DesignLabScenario> = {
     dimmed: false,
     showPassWoOverlay: false,
   },
+  s05: {
+    label: 'S04 → S05 Übergang',
+    description:
+      'Vollständiger QA-Einstieg ab der Campusgram-Warnung bis in die naheliegenden Bestandteile.',
+    dimmed: false,
+    showPassWoOverlay: false,
+  },
   's05-common-suffix': {
-    label: 'S05 Kern + Anhang',
+    label: 'S05 Naheliegende Bestandteile · Kern + Anhang',
     description: 'Vollständiger S05-Ablauf mit einem häufigen Kern und typischem Anhang.',
     dimmed: false,
     showPassWoOverlay: false,
   },
   's05-account-year': {
-    label: 'S05 Konto + Jahr',
+    label: 'S05 Naheliegende Bestandteile · Konto + Jahr',
     description: 'Vollständiger S05-Ablauf mit Campusgram-Begriff und Jahreszahl.',
     dimmed: false,
     showPassWoOverlay: false,
   },
   's05-no-simple-component': {
-    label: 'S05 kein Bestandteil',
+    label: 'S05 Naheliegende Bestandteile · kein Treffer',
     description: 'Vollständiger S05-Ablauf ohne erkannten einfachen Bestandteil.',
     dimmed: false,
     showPassWoOverlay: false,
   },
   's05-structure-repetition': {
-    label: 'S05 Aufbau · Wiederholung',
+    label: 'S05 Vorhersehbarer Aufbau · Wiederholung',
     description: 'Vollständiger S05-Ablauf mit einem exakt wiederholten Bestandteil.',
     dimmed: false,
     showPassWoOverlay: false,
   },
   's05-structure-context': {
-    label: 'S05 Aufbau · Kontext',
+    label: 'S05 Vorhersehbarer Aufbau · Kontext',
     description: 'Vollständiger S05-Ablauf mit Campusgram-Kontext, Jahr und Anhang.',
     dimmed: false,
     showPassWoOverlay: false,
   },
   's05-structure-none': {
-    label: 'S05 Aufbau · kein Weg',
+    label: 'S05 Vorhersehbarer Aufbau · kein Weg',
     description: 'Vollständiger S05-Ablauf ohne erkannten einfachen Zusammenhang.',
     dimmed: false,
     showPassWoOverlay: false,
@@ -309,10 +316,10 @@ function DesignLabIntroduction({
 
   return (
     <header className={styles.labHeader}>
-      <nav aria-label="Design-Lab-Szenen">
+      <nav aria-label="Design-Lab-Abschnitte">
         <details className={styles.scenarioMenu}>
           <summary>
-            <span>QA-Szene</span>
+            <span>QA-Abschnitt</span>
             <strong>{scenario.label}</strong>
             <span className={styles.scenarioMenuIndicator} aria-hidden="true" />
           </summary>
@@ -469,7 +476,7 @@ function PasswordModuleSegmentPreview({
   accountId,
   view,
 }: {
-  readonly segment: 's01' | 's03' | 's03-warning' | 's04';
+  readonly segment: 's01' | 's03' | 's03-warning' | 's04' | 's05';
   readonly accountId: S01AccountId;
   readonly view: CampusWebsitePreviewView;
 }) {
@@ -563,15 +570,15 @@ function PasswordModuleSegmentPreview({
   }, [accountId, segment, view]);
 
   if (preparationError !== null) {
-    return <p role="alert">QA-Szene konnte nicht vorbereitet werden: {preparationError}</p>;
+    return <p role="alert">QA-Abschnitt konnte nicht vorbereitet werden: {preparationError}</p>;
   }
 
   if (controller === null || snapshot === null) {
-    return <p>QA-Szene wird vorbereitet …</p>;
+    return <p>QA-Abschnitt wird vorbereitet …</p>;
   }
 
   if (segment === 's01') {
-    if (!snapshot.matches('s01')) return <p>QA-Szene wird vorbereitet …</p>;
+    if (!snapshot.matches('s01')) return <p>QA-Abschnitt wird vorbereitet …</p>;
     return (
       <S01Training
         controller={controller}
@@ -581,7 +588,7 @@ function PasswordModuleSegmentPreview({
     );
   }
   if (segment === 's03' || segment === 's03-warning') {
-    if (!snapshot.matches('s03')) return <p>QA-Szene wird vorbereitet …</p>;
+    if (!snapshot.matches('s03')) return <p>QA-Abschnitt wird vorbereitet …</p>;
     return (
       <S03RetrievalTraining
         controller={controller}
@@ -590,8 +597,13 @@ function PasswordModuleSegmentPreview({
       />
     );
   }
-  if (!snapshot.matches('s04')) return <p>QA-Szene wird vorbereitet …</p>;
-  return <S04IncidentTraining controller={controller} snapshot={snapshot} />;
+  if (snapshot.matches('s04')) {
+    return <S04IncidentTraining controller={controller} snapshot={snapshot} />;
+  }
+  if (segment === 's05' && snapshot.matches({ s05: 'active' })) {
+    return <S05DesignLabTraining fixtureId="common-suffix" />;
+  }
+  return <p>QA-Abschnitt wird vorbereitet …</p>;
 }
 
 export function DesignLab({ scenarioId }: { readonly scenarioId: DesignLabScenarioId }) {
@@ -636,7 +648,8 @@ export function DesignLab({ scenarioId }: { readonly scenarioId: DesignLabScenar
     scenarioId === 's01' ||
     scenarioId === 's03' ||
     scenarioId === 's03-warning' ||
-    scenarioId === 's04'
+    scenarioId === 's04' ||
+    scenarioId === 's05'
   ) {
     const campusWebsitePreview = readCampusWebsitePreview();
     return (

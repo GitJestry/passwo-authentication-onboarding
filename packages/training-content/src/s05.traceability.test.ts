@@ -3,7 +3,7 @@ import { S05_CONTENT_VERSION, s05Content } from './s05.js';
 
 describe('S05 content traceability', () => {
   it('keeps the participant copy bounded and separate from internal terminology', () => {
-    expect(S05_CONTENT_VERSION).toBe('2.9.0');
+    expect(S05_CONTENT_VERSION).toBe('2.10.0');
     expect(s05Content.source).toMatchObject({
       document: 'research/private/training-script.pdf',
       internalPages: [
@@ -11,13 +11,14 @@ describe('S05 content traceability', () => {
         35,
       ],
       copyReference:
-        'docs/design/S00-S05-COPY-AUDIT.md#copy-delta-s05-begrenzter-rateweg-und-lokale-semantische-einordnung-3-august-2026',
+        'docs/design/S00-S05-COPY-AUDIT.md#copy-delta-s05-wiederhergestellte-einleitung-3-august-2026',
     });
     expect(s05Content.segment.id).toBe('S05');
     expect(s05Content.page.fixtureNotice).toBe(
       'Diese Simulation betrachtet nur das fiktive Passwort und ist keine allgemeine Sicherheitsbewertung.',
     );
     expect(s05Content.page.title).toBe('Naheliegende Bestandteile');
+    expect(s05Content.page.introTitle).toBe('Wie der Angreifer dein Passwort rät');
     expect(s05Content.analysis.authoredAccountTerms).toEqual([
       'Campusgram',
       'Campus',
@@ -31,6 +32,9 @@ describe('S05 content traceability', () => {
     ]);
     expect(s05Content.intro.narration.componentStartQuestion).toEqual([
       'Die Strategie beginnt mit der Frage: Bei welchen Bestandteilen soll der Angreifer anfangen?',
+    ]);
+    expect(s05Content.intro.narration.candidateCheck).toEqual([
+      'Für den Angreifer ist das Passwort verdeckt. Sein Programm muss mögliche Passwörter erzeugen und prüfen, ob eines davon passt.',
     ]);
 
     const participantContent = JSON.stringify({
