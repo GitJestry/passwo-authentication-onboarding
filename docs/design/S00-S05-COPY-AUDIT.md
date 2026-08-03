@@ -592,3 +592,26 @@ wiederhergestellt. Die Benennung `Häufige Kerne` kehrt nicht zurück. `S05_CONT
 Der Übergang analysiert keine Teilnehmerdaten und erzeugt keine Kategorienbefunde. Kanonische
 Segmentierung, Reveal und erste Befundspeicherung beginnen weiterhin ausschließlich mit
 `Passwort prüfen` innerhalb von `Häufig gewählte Bestandteile`.
+
+### Copy-Delta S05 querschnittliche Veränderungen und Laufbandmaschine 3. August 2026
+
+Quelle sind der ausdrückliche Nutzerauftrag vom 3. August 2026, das bestehende S05-Bausteinmodell
+und `ADR 0014-Bounded-Password-Guessing`. Typische Veränderungen bleiben als vierter sichtbarer
+Prüfschritt erhalten, werden aber als querschnittliche Veränderung der drei Bestandteilarten
+dargestellt. `S05_CONTENT_VERSION` wird von `2.14.0` auf `2.15.0` erhöht.
+
+| Segment und Text-ID | Aktueller Text / Verhalten | Neuer Text / Verhalten | Primäre Rolle | Grund | Bedeutungsänderung | Interaktionsziel | Hervorhebung |
+|---|---|---|---|---|---|---|---|
+| `S05.intro.campusgramPassword.localNotice` | `Fiktives Passwort · wird nur lokal ausgewertet` erscheint wiederholt am Passwort | entfällt; die bestehende einmalige Simulationsgrenze auf der Seite bleibt erhalten | Safety Boundary | ausdrücklich freigegebene Entfernung redundanter Copy | ausdrücklich freigegeben | kein | keine |
+| `S05.intro.narration.componentCategoryOverview[1]` | `Somit kommen wir zur 1. von 4 Kategorien: Häufig gewählte Bestandteile.` | `Somit kommen wir zur ersten von drei Arten naheliegender Bestandteile: Häufig gewählte Bestandteile.` | Orientierung | trennt drei Quellen von der querschnittlichen Veränderungsprüfung | ausdrücklich freigegeben | `Weiter` | keine |
+| `S05.componentStrategy.commonComponents.explanation` | vier Absätze in einem Sprechschritt | fünf einzelne Sprechschritte; bestehende Absätze bleiben erhalten und der freigegebene Satz zu Großschreibung, ersetzten Zeichen sowie Zahlen- oder Symbolanhängen wird ergänzt | Mechanismuserklärung / Navigation | ein Hauptgedanke und ein sichtbarer Maschinenzustand pro Schritt | ausdrücklich freigegeben | viermal `Weiter`, danach `Passwort prüfen` | jeweils der aktive Laufbandbaustein |
+| `S05.componentStrategy.commonComponents.machine` | keine sichtbare Maschine | `passwort`, `123456789` und `admin` laufen einzeln durch eine Variantenmaschine in eine wachsende Liste typischer Veränderungen | Mechanismuserklärung | bindet die Erklärung an einen deterministischen sichtbaren Ablauf | ausdrücklich freigegeben | kein | aktiver Baustein |
+| `S05.componentStrategy.presentation.categoriesAriaLabel` | `Vier Kategorien naheliegender Bestandteile` | drei Arten naheliegender Bestandteile plus querschnittliche Prüfung typischer Veränderungen | Orientierung | barrierefreie Benennung der neuen Hierarchie | ausdrücklich freigegeben | kein | keine |
+| `S05.componentStrategy.summary.*` | alle vier Prüfschritte werden als gleichartige Kategorien zusammengefasst | drei Bestandteilarten werden zuerst genannt; typische Veränderungen erscheinen gegebenenfalls als gebundener Zusatzbefund | Kerngedanke | verhindert die Gleichsetzung einer Veränderung mit einem Grundbestandteil | ausdrücklich freigegeben | `Weiter zum Aufbau` | keine |
+
+Die vier Karten bleiben ab ihrer gemeinsamen Offenlegung dauerhaft als obere Statusleiste sichtbar.
+Das Campusgram-Passwort bleibt in jeder der vier Prüfungen zentriert. Persönliche Bedeutung wird
+weiterhin ausschließlich lokal eingeordnet und nicht automatisch aus der Zeichenfolge behauptet.
+Das neue QA-Beispiel `s05-all-categories` liefert automatische Befunde für häufige Bestandteile,
+Kontobezug und typische Veränderungen; die vierte Karte wird ausschließlich durch die lokale
+persönliche Einordnung bestätigt.

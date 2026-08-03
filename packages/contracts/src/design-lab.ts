@@ -14,6 +14,7 @@ export const designLabScenarioIdSchema = z.enum([
   's04',
   's05',
   's05-common-suffix',
+  's05-all-categories',
   's05-account-year',
   's05-no-simple-component',
   's05-structure-repetition',

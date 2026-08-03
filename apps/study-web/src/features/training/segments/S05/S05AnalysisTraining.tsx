@@ -21,6 +21,7 @@ import { PasswordBuildingBlocks } from './PasswordBuildingBlocks.js';
 import {
   type S05AnalysisControllerSnapshot,
   type S05AnalysisSubject,
+  type S05InitialSection,
   S05AnalysisController,
 } from './S05AnalysisController.js';
 import { S05AnimationAdapter } from './S05AnimationAdapter.js';
@@ -39,36 +40,12 @@ export interface S05CompletionPort {
 
 export interface S05AnalysisTrainingProps {
   readonly subject: S05AnalysisSubject;
+  readonly initialSection?: S05InitialSection;
   readonly timingState?: S05TimingState;
   readonly timingErrorCode?: string | null;
   readonly externalTimingError?: string | null;
   readonly onRetryTiming?: () => void;
   readonly completionPort?: S05CompletionPort;
-}
-
-interface CategoryTransitionRect {
-  readonly top: number;
-  readonly left: number;
-  readonly width: number;
-  readonly height: number;
-}
-
-function categoryTransitionStyle(rect: CategoryTransitionRect): CSSProperties {
-  const translateX = window.innerWidth / 2 - (rect.left + rect.width / 2);
-  const translateY = window.innerHeight / 2 - (rect.top + rect.height / 2);
-  const scale = Math.min(
-    (window.innerWidth * 0.7) / rect.width,
-    (window.innerHeight * 0.32) / rect.height,
-  );
-  return {
-    '--category-start-top': `${rect.top}px`,
-    '--category-start-left': `${rect.left}px`,
-    '--category-start-width': `${rect.width}px`,
-    '--category-start-height': `${rect.height}px`,
-    '--category-translate-x': `${translateX}px`,
-    '--category-translate-y': `${translateY}px`,
-    '--category-scale': scale,
-  } as CSSProperties;
 }
 
 function findingLabel(kind: PasswordSingleFindingKind): string {
@@ -97,9 +74,6 @@ function CampusgramPassword({
       <code aria-label={s05Content.intro.campusgramPassword.accessibleLabel}>
         {hiddenValue}
       </code>
-      <small className={styles.localPasswordNotice}>
-        {s05Content.intro.campusgramPassword.localNotice}
-      </small>
     </section>
   );
 }
@@ -371,68 +345,71 @@ const categoryAssets = {
   'typical-changes': typicalChangesAsset,
 } as const;
 
-function CategoryChain({ visible, announcing }: { readonly visible: boolean; readonly announcing: boolean }) {
-  const firstCategory = s05Content.componentStrategy.categories[0];
-  return (
-    <div
-      className={styles.categoryChain}
-      data-hidden={visible ? undefined : true}
-      aria-hidden={visible ? undefined : true}
-      aria-label={visible ? s05Content.intro.componentLeadIn.firstCategoryAria : undefined}
-    >
-      <article
-        data-active="true"
-        data-announcing={announcing || undefined}
-        data-category-active="common-components"
-      >
-        <img src={commonCoresAsset} alt="" />
-        <h2>{`1. ${firstCategory.title}`}</h2>
-      </article>
-      {[2, 3, 4].map((number) => (
-        <article
-          key={number}
-          aria-label={s05Content.intro.componentLeadIn.hiddenCategoryAria.replace(
-            '[Nummer]',
-            String(number),
-          )}
-        >
-          <strong aria-hidden="true">?</strong>
-        </article>
-      ))}
-    </div>
-  );
-}
-
-function CategoryTransitionOverlay({
-  rect,
-  onComplete,
-}: {
-  readonly rect: CategoryTransitionRect;
-  readonly onComplete: () => void;
-}) {
-  const firstCategory = s05Content.componentStrategy.categories[0];
-  return (
-    <div
-      className={styles.categoryTransitionOverlay}
-      aria-hidden="true"
-      onAnimationEnd={(event) => {
-        if (event.currentTarget === event.target) onComplete();
-      }}
-    >
-      <article className={styles.categoryTransitionCard} style={categoryTransitionStyle(rect)}>
-        <img src={commonCoresAsset} alt="" />
-        <h2>{`1. ${firstCategory.title}`}</h2>
-      </article>
-    </div>
-  );
-}
-
 const semanticReflectionOrder = [
-  'personal-meaning',
   'shared-theme',
   'sentence-or-familiar-phrase',
   'none-or-unsure',
 ] as const satisfies readonly PasswordSemanticReflectionSelection[];
+
+type CommonComponentMachineStep =
+  | 'common-components-start'
+  | 'common-components-examples'
+  | 'common-components-boundary'
+  | 'common-components-changes';
+
+const commonMachineIndexByStep = {
+  'common-components-start': 0,
+  'common-components-examples': 1,
+  'common-components-boundary': 2,
+  'common-components-changes': 2,
+} as const satisfies Readonly<Record<CommonComponentMachineStep, number>>;
+
+function CommonComponentsMachine({ step }: { readonly step: CommonComponentMachineStep }) {
+  const content = s05Content.componentStrategy.commonComponents.machine;
+  const activeIndex = commonMachineIndexByStep[step];
+  const activeExample = content.examples[activeIndex];
+  if (activeExample === undefined) return null;
+  const releasedVariants = content.examples
+    .slice(0, activeIndex + 1)
+    .flatMap(({ variants }) => variants);
+  return (
+    <section
+      key={step}
+      className={styles.commonComponentMachine}
+      data-s05-target="component-conveyor"
+      data-machine-step={step}
+      aria-label={content.ariaLabel}
+    >
+      <div className={styles.machineInput}>
+        <strong>{content.inputLabel}</strong>
+        <div>
+          {content.examples.map(({ base }, index) => (
+            <code key={base} data-active={index === activeIndex || undefined}>
+              {base}
+            </code>
+          ))}
+        </div>
+      </div>
+      <div className={styles.machineConveyor} aria-hidden="true">
+        <span />
+        <code>{activeExample.base}</code>
+      </div>
+      <div className={styles.machineBody}>
+        <span aria-hidden="true" />
+        <strong>{content.machineLabel}</strong>
+        <i aria-hidden="true" />
+      </div>
+      <div className={styles.machineOutput}>
+        <strong>{content.outputLabel}</strong>
+        <div>
+          {releasedVariants.map((variant) => (
+            <code key={variant}>{variant}</code>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
 
 function PasswordVisibilityIcon({ revealed }: { readonly revealed: boolean }) {
   return (
@@ -490,11 +467,15 @@ function CategoryCards({
             key={category.id}
             data-status={card.status}
             data-focused={focused || undefined}
+            data-cross-cutting={category.id === 'typical-changes' || undefined}
           >
             <div className={styles.componentCategoryHeading}>
               <img src={categoryAssets[category.id]} alt="" />
               <div>
                 <h2>{`${index + 1}. ${category.title}`}</h2>
+                {category.id === 'typical-changes' ? (
+                  <small>{s05Content.componentStrategy.presentation.crossCuttingLabel}</small>
+                ) : null}
                 <span>{s05Content.componentStrategy.statusLabels[card.status]}</span>
               </div>
             </div>
@@ -552,7 +533,12 @@ function CanonicalPasswordView({
       aria-label={s05Content.componentStrategy.presentation.canonicalAriaLabel}
     >
       <header>
-        <span>{s05Content.intro.campusgramPassword.localNotice}</span>
+        <strong className={styles.canonicalAccount}>
+          <span aria-hidden="true">
+            <NetworkSymbol symbolId="campusgram" />
+          </span>
+          <span>{`Campusgram ${s05Content.intro.campusgramPassword.visibleSuffix}`}</span>
+        </strong>
         <button
           type="button"
           className={styles.revealButton}
@@ -725,7 +711,6 @@ function ComponentStrategyScene({
 }) {
   return (
     <div className={styles.componentStrategyLayout} data-s05-target="component-strategy">
-      <CategoryCards snapshot={snapshot} controller={controller} />
       <div className={styles.componentStrategyWorkspace}>
         {snapshot.componentStrategy.canonicalView === null ? (
           <CampusgramPassword password={subject.fictionalPassword} />
@@ -1156,6 +1141,11 @@ function renderScene(
       return <ComponentStartScene subject={subject} fixed={false} />;
     case 'component-category-overview':
       return <ComponentStartScene subject={subject} fixed />;
+    case 'common-components-start':
+    case 'common-components-examples':
+    case 'common-components-boundary':
+    case 'common-components-changes':
+      return <CommonComponentsMachine step={snapshot.step} />;
     case 'common-components-intro':
     case 'common-components-result':
     case 'personal-details-intro':
@@ -1286,12 +1276,18 @@ function typicalChangesResult(snapshot: S05AnalysisControllerSnapshot): readonly
 
 function componentSummaryNarration(snapshot: S05AnalysisControllerSnapshot): readonly string[] {
   const content = s05Content.componentStrategy.summary;
-  const categoryNames = s05Content.componentStrategy.categories
+  const sourceCategoryNames = s05Content.componentStrategy.categories
+    .filter(({ id }) => id !== 'typical-changes')
     .filter(({ id }) => snapshot.componentStrategy.cards[id].status === 'checked-findings')
     .map(({ title }) => title);
-  if (categoryNames.length === 0) return [content.none, content.noneTransition];
+  const hasChanges =
+    snapshot.componentStrategy.cards['typical-changes'].status === 'checked-findings';
+  if (sourceCategoryNames.length === 0 && !hasChanges) return [content.none, content.noneTransition];
   return [
-    content.found.replace('[Kategorienamen]', categoryNames.join(', ')),
+    ...(sourceCategoryNames.length === 0
+      ? []
+      : [content.found.replace('[Kategorienamen]', sourceCategoryNames.join(', '))]),
+    ...(hasChanges ? [content.foundChanges] : []),
     content.foundBoundary,
     content.foundTransition,
   ];
@@ -1320,8 +1316,16 @@ function speechFor(
       return s05Content.intro.narration.componentFrequency;
     case 'component-category-overview':
       return s05Content.intro.narration.componentCategoryOverview;
+    case 'common-components-start':
+      return [s05Content.componentStrategy.commonComponents.explanation[0]];
+    case 'common-components-examples':
+      return [s05Content.componentStrategy.commonComponents.explanation[1]];
+    case 'common-components-boundary':
+      return [s05Content.componentStrategy.commonComponents.explanation[2]];
+    case 'common-components-changes':
+      return [s05Content.componentStrategy.commonComponents.explanation[3]];
     case 'common-components-intro':
-      return s05Content.componentStrategy.commonComponents.explanation;
+      return [s05Content.componentStrategy.commonComponents.explanation[4]];
     case 'common-components-result':
       return commonComponentsResult(snapshot);
     case 'personal-details-intro':
@@ -1357,15 +1361,14 @@ function pageTitleFor(step: S05AnalysisControllerSnapshot['step']): string {
   }
 }
 
-function showsComponentCategoryChain(step: S05AnalysisControllerSnapshot['step']): boolean {
-  return step === 'component-category-overview';
-}
-
-function reservesComponentCategoryChain(step: S05AnalysisControllerSnapshot['step']): boolean {
+function showsComponentCategoryCards(step: S05AnalysisControllerSnapshot['step']): boolean {
   return (
-    step === 'component-start-question' ||
-    step === 'component-frequency' ||
-    showsComponentCategoryChain(step)
+    step === 'component-category-overview' ||
+    step.startsWith('common-components-') ||
+    step.startsWith('personal-details-') ||
+    step.startsWith('account-context-') ||
+    step.startsWith('typical-changes-') ||
+    step === 'components-summary'
   );
 }
 
@@ -1459,6 +1462,7 @@ function StructureApplicationScene({
 
 export function S05AnalysisTraining({
   subject,
+  initialSection = 'intro',
   timingState = 'active',
   timingErrorCode = null,
   externalTimingError = null,
@@ -1469,7 +1473,6 @@ export function S05AnalysisTraining({
   const [controller, setController] = useState<S05AnalysisController | null>(null);
   const [snapshot, setSnapshot] = useState<S05AnalysisControllerSnapshot | null>(null);
   const [passwordRevealed, setPasswordRevealed] = useState(false);
-  const [categoryTransition, setCategoryTransition] = useState<CategoryTransitionRect | null>(null);
   const timingFailure = externalTimingError !== null || timingState === 'endWriteFailed';
 
   useEffect(() => {
@@ -1481,6 +1484,7 @@ export function S05AnalysisTraining({
     const nextController = new S05AnalysisController({
       subject,
       animationPlayer,
+      initialSection,
       onComplete: () => completionPort?.complete(),
     });
     const unsubscribe = nextController.subscribe(setSnapshot);
@@ -1490,7 +1494,7 @@ export function S05AnalysisTraining({
       unsubscribe();
       void nextController.dispose();
     };
-  }, [completionPort, subject]);
+  }, [completionPort, initialSection, subject]);
 
   useEffect(() => {
     controller?.start();
@@ -1506,33 +1510,13 @@ export function S05AnalysisTraining({
   const personalCheckVisible = activeSnapshot.step === 'personal-details-check';
 
   function continueFromSpeech(): void {
-    if (activeSnapshot.step !== 'component-category-overview') {
-      activeController.continue();
-      return;
-    }
-    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
-      activeController.continue();
-      return;
-    }
-    const categoryCard = hostRef.current?.querySelector<HTMLElement>('[data-category-active]');
-    if (categoryCard === null || categoryCard === undefined) {
-      activeController.continue();
-      return;
-    }
-    const rect = categoryCard.getBoundingClientRect();
-    setCategoryTransition({
-      top: rect.top,
-      left: rect.left,
-      width: rect.width,
-      height: rect.height,
-    });
+    activeController.continue();
   }
 
   function speechAction() {
     const disabled =
       !activeSnapshot.controls.canContinue ||
-      externalTimingError !== null ||
-      categoryTransition !== null;
+      externalTimingError !== null;
     switch (activeSnapshot.step) {
       case 'common-components-intro':
         return {
@@ -1586,29 +1570,16 @@ export function S05AnalysisTraining({
       <article className={styles.page} aria-labelledby="s05-title">
         <header
           className={styles.pageHeader}
-          data-category-chain={reservesComponentCategoryChain(snapshot.step) || undefined}
-          data-category-transitioning={categoryTransition !== null || undefined}
+          data-category-chain={showsComponentCategoryCards(snapshot.step) || undefined}
           data-component-title={
             pageTitleFor(snapshot.step) === s05Content.page.title || undefined
           }
         >
           <h1 id="s05-title">{pageTitleFor(snapshot.step)}</h1>
-          {reservesComponentCategoryChain(snapshot.step) ? (
-            <CategoryChain
-              visible={showsComponentCategoryChain(snapshot.step)}
-              announcing={snapshot.step === 'component-category-overview'}
-            />
+          {showsComponentCategoryCards(snapshot.step) ? (
+            <CategoryCards snapshot={snapshot} controller={controller} />
           ) : null}
         </header>
-        {categoryTransition === null ? null : (
-          <CategoryTransitionOverlay
-            rect={categoryTransition}
-            onComplete={() => {
-              setCategoryTransition(null);
-              controller.continue();
-            }}
-          />
-        )}
         <div
           className={styles.content}
           aria-live="polite"

@@ -207,38 +207,45 @@ const scenarios: Record<DesignLabScenarioId, DesignLabScenario> = {
     showPassWoOverlay: false,
   },
   's05-common-suffix': {
-    label: 'S05 Naheliegende Bestandteile · Kern + Anhang',
-    description: 'Vollständiger S05-Ablauf mit einem häufigen Kern und typischem Anhang.',
+    label: 'S05 Bestandteile · Kern + Anhang',
+    description: 'Direkter QA-Einstieg bei den Bestandteilen mit häufigem Kern und Anhang.',
+    dimmed: false,
+    showPassWoOverlay: false,
+  },
+  's05-all-categories': {
+    label: 'S05 Bestandteile · alle vier Prüfungen',
+    description:
+      'Direkter QA-Einstieg mit häufigem Bestandteil, Kontobezug und Veränderung; die persönliche Einordnung erfolgt lokal im Ablauf.',
     dimmed: false,
     showPassWoOverlay: false,
   },
   's05-account-year': {
-    label: 'S05 Naheliegende Bestandteile · Konto + Jahr',
-    description: 'Vollständiger S05-Ablauf mit Campusgram-Begriff und Jahreszahl.',
+    label: 'S05 Bestandteile · Konto + Jahr',
+    description: 'Direkter QA-Einstieg bei den Bestandteilen mit Campusgram-Begriff und Jahr.',
     dimmed: false,
     showPassWoOverlay: false,
   },
   's05-no-simple-component': {
-    label: 'S05 Naheliegende Bestandteile · kein Treffer',
-    description: 'Vollständiger S05-Ablauf ohne erkannten einfachen Bestandteil.',
+    label: 'S05 Bestandteile · kein Treffer',
+    description: 'Direkter QA-Einstieg bei den Bestandteilen ohne erkannten einfachen Treffer.',
     dimmed: false,
     showPassWoOverlay: false,
   },
   's05-structure-repetition': {
     label: 'S05 Vorhersehbarer Aufbau · Wiederholung',
-    description: 'Vollständiger S05-Ablauf mit einem exakt wiederholten Bestandteil.',
+    description: 'Direkter QA-Einstieg beim Aufbau mit einem exakt wiederholten Bestandteil.',
     dimmed: false,
     showPassWoOverlay: false,
   },
   's05-structure-context': {
     label: 'S05 Vorhersehbarer Aufbau · Kontext',
-    description: 'Vollständiger S05-Ablauf mit Campusgram-Kontext, Jahr und Anhang.',
+    description: 'Direkter QA-Einstieg beim Aufbau mit Campusgram-Kontext, Jahr und Anhang.',
     dimmed: false,
     showPassWoOverlay: false,
   },
   's05-structure-none': {
     label: 'S05 Vorhersehbarer Aufbau · kein Weg',
-    description: 'Vollständiger S05-Ablauf ohne erkannten einfachen Zusammenhang.',
+    description: 'Direkter QA-Einstieg beim Aufbau ohne erkannten einfachen Zusammenhang.',
     dimmed: false,
     showPassWoOverlay: false,
   },
@@ -601,7 +608,7 @@ function PasswordModuleSegmentPreview({
     return <S04IncidentTraining controller={controller} snapshot={snapshot} />;
   }
   if (segment === 's05' && snapshot.matches({ s05: 'active' })) {
-    return <S05DesignLabTraining fixtureId="common-suffix" />;
+    return <S05DesignLabTraining fixtureId="common-suffix" initialSection="intro" />;
   }
   return <p>QA-Abschnitt wird vorbereitet …</p>;
 }

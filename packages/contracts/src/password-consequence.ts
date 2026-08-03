@@ -100,6 +100,8 @@ export interface AuthoredStructureDemonstration {
 
 export type RuntimeStructureFindingKind =
   | 'exact-component-repetition'
+  | 'recognized-repetition-pattern'
+  | 'predictable-component-sequence'
   | 'account-context-with-qualifier'
   | 'number-marker-with-typical-suffix'
   | 'no-simple-structure-recognized';

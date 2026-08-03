@@ -45,7 +45,7 @@ export interface S06NarrationContent {
   readonly body: string;
 }
 
-export const S06_CONSEQUENCE_CONTENT_VERSION = '2.3.0';
+export const S06_CONSEQUENCE_CONTENT_VERSION = '2.3.1';
 
 export const s06ConsequenceContent = {
   version: S06_CONSEQUENCE_CONTENT_VERSION,
@@ -53,7 +53,7 @@ export const s06ConsequenceContent = {
     document: 'research/private/training-script.pdf',
     internalPages: [36, 37, 38, 39, 40, 41, 42, 43, 44] as const,
     revision:
-      'Bounded complete guess-path terminology aligned with S05 on 2026-08-03',
+      'Bounded complete guess-path terminology aligned with S05; analysis configuration v2 fixture compatibility on 2026-08-03',
     copyReference:
       'docs/design/S06-S07-COPY-AUDIT.md#copy-delta-vollstaendiger-pruefweg-und-laengenorientierung-3-august-2026',
   },
@@ -272,7 +272,7 @@ const noQuickPathDisposition = {
   estimatedGuesses: 1_000_000,
   quickPathThreshold: 100_000,
   lengthOrientation: 'at-least-15',
-  analysisVersion: 'passwo-bounded-guess-path-v1',
+  analysisVersion: 'passwo-bounded-guess-path-v2',
   explanationId: 's05.disposition.no-quick-path-recognized',
 } as const;
 
@@ -282,7 +282,7 @@ const commonPasswordQuickPathDisposition = {
   estimatedGuesses: 1_000,
   quickPathThreshold: 100_000,
   lengthOrientation: 'below-15',
-  analysisVersion: 'passwo-bounded-guess-path-v1',
+  analysisVersion: 'passwo-bounded-guess-path-v2',
   explanationId: 's05.disposition.bounded-complete-guess-path',
 } as const;
 

@@ -67,7 +67,7 @@ wird beim Verlassen des Segments verworfen.
 | Allgemeines Wörterbuch und Graphen | `@zxcvbn-ts/language-common@4.1.2` |
 | Deutsch | `@zxcvbn-ts/language-de@4.1.1` |
 | Englisch | `@zxcvbn-ts/language-en@4.1.1` |
-| Konfigurations-ID | `passwo-bounded-guess-path-v1` |
+| Konfigurations-ID | `passwo-bounded-guess-path-v2` |
 | Maximale analysierte Länge | HTML-Eingabelimit 128 UTF-16-Codeeinheiten; zxcvbn `maxLength=128`; Längenorientierung nach Unicode-Codepoints |
 | Levenshtein-Option | deaktiviert |
 | Authored S05-Kontext | `Campusgram`, `Campus`, `Nachrichten`, `Gruppen`, `Kontakte`, `Beiträge` |
@@ -119,11 +119,17 @@ Jahreszahlen und typische Endungen. Kategorien dürfen überlappen. Für die Dar
 Dubletten entfernt und Befunde priorisiert; die Guessing-Entscheidung bleibt unverändert der
 vollständigen zxcvbn-Sequenz überlassen.
 
+Ein authored Konto- oder Dienstbegriff darf in der Darstellung auch als veränderter Kontobezug
+erscheinen, wenn zxcvbn denselben Bereich sowohl dem lokalen `userInputs`-Wörterbuch als auch
+einer konkreten typischen Transformation zuordnet. Beliebige Ähnlichkeit und Levenshtein-Abstände
+werden nicht als Kontobezug ausgegeben.
+
 ### 3. Strukturen
 
 Die presentation-only Strukturanalyse erkennt nur:
 
 - ausreichend lange exakte Wiederholungen;
+- weitere von zxcvbn konkret belegte Wiederholungsmuster und vorhersehbare Komponentenfolgen;
 - authored Konto- oder Kontextbegriffe zusammen mit Jahr, Datum, Folge oder Anhang;
 - einen Zahlenmarker zusammen mit einem typischen Anhang.
 

@@ -7,7 +7,7 @@ const copyReference =
 
 describe('S06 and S07 bounded guess-path copy traceability', () => {
   it('keeps S06 consequence wording aligned with the complete bounded path', () => {
-    expect(S06_CONSEQUENCE_CONTENT_VERSION).toBe('2.3.0');
+    expect(S06_CONSEQUENCE_CONTENT_VERSION).toBe('2.3.1');
     expect(s06ConsequenceContent.source.copyReference).toBe(copyReference);
     expect(s06ConsequenceContent.dispositionLabels['quick-path-recognized']).toMatch(
       /vollständiger Prüfweg/u,

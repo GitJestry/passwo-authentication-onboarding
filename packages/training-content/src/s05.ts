@@ -9,6 +9,7 @@ import type {
 
 export type S05DesignLabFixtureId =
   | 'common-suffix'
+  | 'all-categories'
   | 'account-year'
   | 'no-simple-component'
   | 'structure-repetition'
@@ -23,9 +24,10 @@ export interface S05DesignLabFixture {
   readonly analysisContext: {
     readonly accountTerms: readonly string[];
   };
+  readonly startSection: 'intro' | 'components' | 'structure';
 }
 
-export const S05_CONTENT_VERSION = '2.14.0';
+export const S05_CONTENT_VERSION = '2.15.0';
 
 const s05StrategyCards = [
   { id: 'components', title: 'Naheliegende Bestandteile' },
@@ -42,9 +44,9 @@ export const s05Content = {
       35,
     ] as const,
     revision:
-      'Userauftrag vom 2026-08-03 · Wiederhergestellter animierter Übergang zur ersten Unterprüfung',
+      'Userauftrag vom 2026-08-03 · Querschnittliche Veränderungen und schrittweise Laufbandmaschine',
     copyReference:
-      'docs/design/S00-S05-COPY-AUDIT.md#copy-delta-s05-wiederhergestellter-übergang-zu-häufig-gewählten-bestandteilen-3-august-2026',
+      'docs/design/S00-S05-COPY-AUDIT.md#copy-delta-s05-querschnittliche-veränderungen-und-laufbandmaschine-3-august-2026',
   },
   segment: {
     id: 'S05',
@@ -80,7 +82,6 @@ export const s05Content = {
     campusgramPassword: {
       accessibleLabel: 'Campusgram – Passwort',
       visibleSuffix: '– Passwort',
-      localNotice: 'Fiktives Passwort · wird nur lokal ausgewertet',
     },
     candidateFailure: 'passt nicht',
     generatedPassword: 'rQ7mL2vX9pK4',
@@ -112,8 +113,6 @@ export const s05Content = {
         'Wechselnde Folge aus drei bis acht unterschiedlich langen verdeckten blauen Bestandteilen.',
       fixedBlockAria:
         'Dreiteiliges Passwort: verdeckter Bestandteil, hervorgehobener häufig gewählter Bestandteil 123456789, verdeckter Bestandteil.',
-      firstCategoryAria: 'Erste von vier Kategorien: Häufig gewählte Bestandteile',
-      hiddenCategoryAria: 'Kategorie [Nummer] noch verdeckt',
     },
     narration: {
       candidateCheck: [
@@ -143,7 +142,7 @@ export const s05Content = {
       ],
       componentCategoryOverview: [
         'Bestimmte Bestandteile – und sehr häufige vollständige Passwörter wie „123456789“ – kann er früh abgleichen.',
-        'Somit kommen wir zur 1. von 4 Kategorien: Häufig gewählte Bestandteile.',
+        'Somit kommen wir zur ersten von drei Arten naheliegender Bestandteile: Häufig gewählte Bestandteile.',
       ],
     },
   },
@@ -163,7 +162,9 @@ export const s05Content = {
     },
     moreFindings: '+ weitere',
     presentation: {
-      categoriesAriaLabel: 'Vier Kategorien naheliegender Bestandteile',
+      categoriesAriaLabel:
+        'Drei Arten naheliegender Bestandteile und die querschnittliche Prüfung typischer Veränderungen',
+      crossCuttingLabel: 'betrifft alle drei Arten',
       highlightFindings: 'Befunde hervorheben',
       showAllCategories: 'Alle Kategorien zeigen',
       canonicalAriaLabel: 'Stabile Bausteinansicht des fiktiven Passworts',
@@ -201,8 +202,24 @@ export const s05Content = {
         'Angreifer beginnen häufig mit Passwörtern und Bestandteilen, die viele Menschen bereits verwendet haben.',
         'Dazu gehören verbreitete Passwörter, Tastatur- und Zahlenfolgen sowie naheliegende Jahreszahlen.',
         'Wörter sind nicht grundsätzlich ungeeignet. Ein häufig gewähltes Wort kann einem Angreifer aber einen naheliegenden Bestandteil liefern. Ob daraus ein einfacher Weg für die gesamte Zeichenfolge entsteht, prüfen wir erst später.',
+        'Dabei testen Angreifer auch typische Veränderungen, etwa Großschreibung, ersetzte Zeichen sowie angehängte Zahlen oder Symbole.',
         'Prüfen wir nun dein gewähltes Passwort auf häufig gewählte Bestandteile.',
       ],
+      machine: {
+        ariaLabel:
+          'Laufbandmaschine mit häufig gewählten Bestandteilen und daraus abgeleiteten typischen Veränderungen',
+        inputLabel: 'Häufig gewählte Bestandteile',
+        machineLabel: 'Varianten',
+        outputLabel: 'Typische Veränderungen',
+        examples: [
+          { base: 'passwort', variants: ['Passwort', 'p4sswort', 'passwort1', 'passwort!'] },
+          {
+            base: '123456789',
+            variants: ['123456789!', '1234567891', '123456789?'],
+          },
+          { base: 'admin', variants: ['Admin', '4dmin', 'admin1', 'admin!'] },
+        ] as const,
+      },
       check: 'Passwort prüfen',
       results: {
         none: [
@@ -298,12 +315,13 @@ export const s05Content = {
     summary: {
       title: 'Naheliegende Bestandteile',
       found:
-        'Bei der Prüfung wurden Hinweise in den Kategorien [Kategorienamen] erkannt.',
+        'Bei der Prüfung wurden naheliegende Bestandteile in [Kategorienamen] erkannt.',
+      foundChanges: 'Zusätzlich wurden typische Veränderungen erkannt.',
       foundBoundary:
         'Diese Hinweise können einem Angreifer Ausgangspunkte geben. Sie entscheiden aber noch nicht, wie aufwendig die gesamte Zeichenfolge zu erraten ist.',
       foundTransition:
         'Als Nächstes betrachten wir, wie die Bestandteile miteinander zusammenhängen.',
-      none: 'In diesen vier Kategorien wurde kein naheliegender Bestandteil erkannt.',
+      none: 'In den drei Arten wurde kein naheliegender Bestandteil erkannt.',
       noneTransition:
         'Das entscheidet noch nicht über die gesamte Zeichenfolge. Als Nächstes betrachten wir ihren Aufbau.',
       continue: 'Weiter zum Aufbau',
@@ -381,6 +399,8 @@ export const s05Content = {
     ] as const satisfies readonly AuthoredStructureDemonstration[],
     findingLabels: {
       'exact-component-repetition': 'exakte Wiederholung eines Bestandteils',
+      'recognized-repetition-pattern': 'erkanntes Wiederholungsmuster',
+      'predictable-component-sequence': 'vorhersehbare Folge von Bestandteilen',
       'account-context-with-qualifier':
         'Konto- oder Kontextbegriff mit Jahr, Zahlenfolge oder Anhang',
       'number-marker-with-typical-suffix': 'erkannter Zahlenmarker mit typischem Anhang',
@@ -544,6 +564,15 @@ export const s05Content = {
       label: 'Häufig gewählter Bestandteil mit später offengelegten Veränderungen',
       fictionalPassword: 'Passw0rt123!',
       analysisContext: { accountTerms: [] },
+      startSection: 'components',
+    },
+    {
+      id: 'all-categories',
+      routeId: 's05-all-categories',
+      label: 'Alle vier Prüfungen mit lokaler persönlicher Einordnung',
+      fictionalPassword: 'CampusgramPassw0rt123!',
+      analysisContext: { accountTerms: ['Campusgram'] },
+      startSection: 'components',
     },
     {
       id: 'account-year',
@@ -551,6 +580,7 @@ export const s05Content = {
       label: 'Campusgram-Begriff plus Jahreszahl',
       fictionalPassword: 'Campusgram2026',
       analysisContext: { accountTerms: ['Campusgram'] },
+      startSection: 'components',
     },
     {
       id: 'no-simple-component',
@@ -558,6 +588,7 @@ export const s05Content = {
       label: 'Kein einfacher Bestandteil erkannt',
       fictionalPassword: 'rQ7mL2vX9pK4',
       analysisContext: { accountTerms: ['Campusgram'] },
+      startSection: 'components',
     },
     {
       id: 'structure-repetition',
@@ -565,6 +596,7 @@ export const s05Content = {
       label: 'Wiederholter Bestandteil',
       fictionalPassword: 'KaffeeKaffeeKaffee7',
       analysisContext: { accountTerms: ['Campusgram'] },
+      startSection: 'structure',
     },
     {
       id: 'structure-context',
@@ -572,6 +604,7 @@ export const s05Content = {
       label: 'Campusgram-Kontext plus Jahr und Anhang',
       fictionalPassword: 'Campusgram2026!',
       analysisContext: { accountTerms: ['Campusgram'] },
+      startSection: 'structure',
     },
     {
       id: 'structure-none',
@@ -579,6 +612,7 @@ export const s05Content = {
       label: 'Kein einfacher Zusammenhang erkannt',
       fictionalPassword: 'rQ7mL2vX9pK4',
       analysisContext: { accountTerms: ['Campusgram'] },
+      startSection: 'structure',
     },
   ] as const satisfies readonly S05DesignLabFixture[],
   animations: [
@@ -591,6 +625,10 @@ export const s05Content = {
     ['s05-component-start-question', 'component-start', 'info'],
     ['s05-component-frequency', 'component-start', 'info'],
     ['s05-component-category-overview', 'component-start', 'info'],
+    ['s05-common-components-start', 'component-conveyor', 'info'],
+    ['s05-common-components-examples', 'component-conveyor', 'info'],
+    ['s05-common-components-boundary', 'component-conveyor', 'info'],
+    ['s05-common-components-changes', 'component-conveyor', 'info'],
     ['s05-common-components-intro', 'component-strategy', 'info'],
     ['s05-common-components-result', 'component-strategy', 'warning'],
     ['s05-personal-details-intro', 'component-strategy', 'info'],

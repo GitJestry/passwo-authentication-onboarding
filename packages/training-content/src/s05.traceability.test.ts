@@ -3,7 +3,7 @@ import { S05_CONTENT_VERSION, s05Content } from './s05.js';
 
 describe('S05 content traceability', () => {
   it('keeps the participant copy bounded and separate from internal terminology', () => {
-    expect(S05_CONTENT_VERSION).toBe('2.14.0');
+    expect(S05_CONTENT_VERSION).toBe('2.15.0');
     expect(s05Content.source).toMatchObject({
       document: 'research/private/training-script.pdf',
       internalPages: [
@@ -11,7 +11,7 @@ describe('S05 content traceability', () => {
         35,
       ],
       copyReference:
-        'docs/design/S00-S05-COPY-AUDIT.md#copy-delta-s05-wiederhergestellter-übergang-zu-häufig-gewählten-bestandteilen-3-august-2026',
+        'docs/design/S00-S05-COPY-AUDIT.md#copy-delta-s05-querschnittliche-veränderungen-und-laufbandmaschine-3-august-2026',
     });
     expect(s05Content.segment.id).toBe('S05');
     expect(s05Content.page.fixtureNotice).toBe(
@@ -37,15 +37,27 @@ describe('S05 content traceability', () => {
     expect(s05Content.componentStrategy.title).toBe('Naheliegende Bestandteile');
     expect(s05Content.intro.narration.componentCategoryOverview).toEqual([
       'Bestimmte Bestandteile – und sehr häufige vollständige Passwörter wie „123456789“ – kann er früh abgleichen.',
-      'Somit kommen wir zur 1. von 4 Kategorien: Häufig gewählte Bestandteile.',
+      'Somit kommen wir zur ersten von drei Arten naheliegender Bestandteile: Häufig gewählte Bestandteile.',
     ]);
     expect(s05Content.componentStrategy.commonComponents.explanation[0]).toBe(
       'Angreifer beginnen häufig mit Passwörtern und Bestandteilen, die viele Menschen bereits verwendet haben.',
+    );
+    expect(s05Content.componentStrategy.commonComponents.explanation[3]).toBe(
+      'Dabei testen Angreifer auch typische Veränderungen, etwa Großschreibung, ersetzte Zeichen sowie angehängte Zahlen oder Symbole.',
     );
     expect(s05Content.componentStrategy.commonComponents.check).toBe('Passwort prüfen');
     expect(s05Content.componentStrategy.accountContext.check).toBe('Im Passwort prüfen');
     expect(s05Content.componentStrategy.typicalChanges.check).toBe('Veränderungen prüfen');
     expect(s05Content.componentStrategy.summary.continue).toBe('Weiter zum Aufbau');
+    expect(s05Content.fixtures.find(({ id }) => id === 'all-categories')).toMatchObject({
+      fictionalPassword: 'CampusgramPassw0rt123!',
+      startSection: 'components',
+    });
+    expect(
+      s05Content.fixtures
+        .filter(({ id }) => id.startsWith('structure-'))
+        .every(({ startSection }) => startSection === 'structure'),
+    ).toBe(true);
     expect(s05Content.intro.narration.candidateCheck).toEqual([
       'Für den Angreifer ist das Passwort verdeckt. Sein Programm muss mögliche Passwörter erzeugen und prüfen, ob eines davon passt.',
     ]);

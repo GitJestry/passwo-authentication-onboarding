@@ -351,7 +351,7 @@ describe('research-safe contracts', () => {
       estimatedGuesses: 1_000_000,
       quickPathThreshold: 100_000,
       lengthOrientation: 'at-least-15',
-      analysisVersion: 'passwo-bounded-guess-path-v1',
+      analysisVersion: 'passwo-bounded-guess-path-v2',
       explanationId: 's05.disposition.no-quick-path-recognized',
     };
 

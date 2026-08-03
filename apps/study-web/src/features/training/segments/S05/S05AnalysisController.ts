@@ -43,6 +43,10 @@ export type S05AnalysisStep =
   | 'component-start-question'
   | 'component-frequency'
   | 'component-category-overview'
+  | 'common-components-start'
+  | 'common-components-examples'
+  | 'common-components-boundary'
+  | 'common-components-changes'
   | 'common-components-intro'
   | 'common-components-result'
   | 'personal-details-intro'
@@ -83,6 +87,8 @@ export interface S05AnalysisSubject {
   };
 }
 
+export type S05InitialSection = 'intro' | 'components' | 'structure';
+
 export interface S05AnalysisControllerSnapshot {
   readonly phase: 'ready' | 'animating' | 'awaiting-decision' | 'complete';
   readonly step: S05AnalysisStep;
@@ -119,6 +125,7 @@ export interface S05AnalysisControllerSnapshot {
 interface S05AnalysisControllerOptions {
   readonly subject: S05AnalysisSubject;
   readonly animationPlayer: AnimationPlayerPort;
+  readonly initialSection?: S05InitialSection;
   readonly onComplete?: () => void;
 }
 
@@ -134,6 +141,10 @@ const stepByMissionId: Readonly<Record<string, S05AnalysisStep>> = {
   's05-component-start-question': 'component-start-question',
   's05-component-frequency': 'component-frequency',
   's05-component-category-overview': 'component-category-overview',
+  's05-common-components-start': 'common-components-start',
+  's05-common-components-examples': 'common-components-examples',
+  's05-common-components-boundary': 'common-components-boundary',
+  's05-common-components-changes': 'common-components-changes',
   's05-common-components-intro': 'common-components-intro',
   's05-common-components-result': 'common-components-result',
   's05-personal-details-intro': 'personal-details-intro',
@@ -174,6 +185,7 @@ function initialComponentCards(): S05AnalysisControllerSnapshot['componentStrate
 }
 
 function categoryForStep(step: S05AnalysisStep): S05ComponentCategoryId | null {
+  if (step === 'component-category-overview') return 'common-components';
   if (step.startsWith('common-components-')) return 'common-components';
   if (step.startsWith('personal-details-')) return 'personal-details';
   if (step.startsWith('account-context-')) return 'account-context';
@@ -204,8 +216,22 @@ function cardsForStep(
   };
 }
 
-function createMission(subject: S05AnalysisSubject): MissionDefinition {
-  const animations = s05Content.animations.map(([animationId]) => {
+const firstMissionIdBySection = {
+  intro: 's05-candidate-check',
+  components: 's05-component-category-overview',
+  structure: 's05-structure-theme',
+} as const satisfies Readonly<Record<S05InitialSection, string>>;
+
+function createMission(
+  subject: S05AnalysisSubject,
+  initialSection: S05InitialSection,
+): MissionDefinition {
+  const firstMissionId = firstMissionIdBySection[initialSection];
+  const firstAnimationIndex = s05Content.animations.findIndex(
+    ([animationId]) => animationId === firstMissionId,
+  );
+  if (firstAnimationIndex < 0) throw new Error(`Missing S05 section start: ${firstMissionId}`);
+  const animations = s05Content.animations.slice(firstAnimationIndex).map(([animationId]) => {
     const animation = getS05Animation(animationId);
     if (animation === undefined) throw new Error(`Missing authored S05 animation: ${animationId}`);
     return { id: animation.id, narrationId: animation.id, animation };
@@ -237,8 +263,13 @@ export class S05AnalysisController {
   #completionReported = false;
   #disposed = false;
 
-  constructor({ subject, animationPlayer, onComplete }: S05AnalysisControllerOptions) {
-    this.#mission = createMission(subject);
+  constructor({
+    subject,
+    animationPlayer,
+    initialSection = 'intro',
+    onComplete,
+  }: S05AnalysisControllerOptions) {
+    this.#mission = createMission(subject, initialSection);
     this.#fictionalPassword = subject.fictionalPassword;
     this.#onComplete = onComplete;
     const frozenAccountTerms = new Set(
@@ -281,7 +312,7 @@ export class S05AnalysisController {
     );
     this.#snapshot = {
       phase: 'ready',
-      step: 'candidate-check',
+      step: stepForMissionIndex(this.#mission, 0),
       findingScene,
       structureScene,
       freeSearchDemonstrationScene: createPasswordFreeSearchDemonstrationScene({

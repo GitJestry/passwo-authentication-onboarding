@@ -211,6 +211,9 @@ export function createCanonicalPasswordView(
   const typicalSuffixSpans = findingsWithSpans
     .filter(({ finding }) => finding.kind === 'typical-suffix')
     .map(({ span }) => span);
+  const typicalTransformationSpans = findingsWithSpans
+    .filter(({ finding }) => finding.kind === 'typical-transformation')
+    .map(({ span }) => span);
 
   const commonFindings = uniqueFindings(
     findingsWithSpans.flatMap(({ finding, span }) =>
@@ -232,7 +235,12 @@ export function createCanonicalPasswordView(
   );
   const accountFindings = uniqueFindings(
     findingsWithSpans.flatMap(({ finding, span }) =>
-      finding.kind === 'account-or-service-term' && finding.confidence === 'authored-exact-match'
+      finding.kind === 'account-or-service-term' &&
+      (finding.confidence === 'authored-exact-match' ||
+        typicalTransformationSpans.some(
+          (transformationSpan) =>
+            transformationSpan.start === span.start && transformationSpan.end === span.end,
+        ))
         ? [
             {
               id: `account:${finding.id}`,

@@ -21,3 +21,9 @@ ein.
 
 Unzulässig bleiben Teilnehmeraussagen wie `sicher`, `bestanden`, `garantiert stark`, eine exakte
 Crack-Zeit oder die Behauptung, dass kein anderer Angreifer einen weiteren Weg finden könne.
+
+### Technische Kompatibilität zur S05-Analysekonfiguration v2
+
+Die S06-QA-Dispositionen verwenden ab dem 3. August 2026 die Konfigurationskennung
+`passwo-bounded-guess-path-v2`. Schwelle, Dispositionslogik und Teilnehmertexte bleiben
+unverändert. `S06_CONSEQUENCE_CONTENT_VERSION` wird dafür von `2.3.0` auf `2.3.1` erhöht.

@@ -56,7 +56,7 @@ describe('S05 component strategy presentation', () => {
     ]);
   });
 
-  it('projects account findings only from authored exact context matches', () => {
+  it('projects account findings from authored exact context matches', () => {
     const password = 'CampusgramSommer';
     const view = createCanonicalPasswordView(
       password,
@@ -69,6 +69,43 @@ describe('S05 component strategy presentation', () => {
     expect(view.automaticFindings['account-context'].map(({ label }) => label)).toEqual([
       'Campusgram',
     ]);
+  });
+
+  it('projects a bounded changed account term only with matching transformation evidence', () => {
+    const password = 'C4mpusgram';
+    const analysis: PasswordAnalysisResult = {
+      kind: 'fictional-password-analysis',
+      findings: [
+        {
+          id: 'account-changed',
+          kind: 'account-or-service-term',
+          evidence: [{ type: 'span', start: 0, end: password.length, token: password }],
+          explanationId: 's05.account-or-service-term',
+          confidence: 'bounded-heuristic',
+        },
+        {
+          id: 'account-transformation',
+          kind: 'typical-transformation',
+          evidence: [{ type: 'span', start: 0, end: password.length, token: password }],
+          explanationId: 's05.typical-transformation',
+          confidence: 'bounded-heuristic',
+        },
+      ],
+      guessPath: {
+        engineId: 'zxcvbn-ts',
+        configurationVersion: 'test-only',
+        estimatedGuesses: 1,
+        estimatedGuessesLog10: 0,
+        matches: [],
+      },
+      disclaimerId: 'simulation-not-production-strength',
+    };
+
+    const view = createCanonicalPasswordView(password, analysis);
+    expect(view.automaticFindings['account-context'].map(({ label }) => label)).toEqual([
+      password,
+    ]);
+    expect(view.automaticFindings['typical-changes']).not.toHaveLength(0);
   });
 
   it('binds changes to common, personal or account bases and otherwise to the whole password', () => {

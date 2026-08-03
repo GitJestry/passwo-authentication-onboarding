@@ -19,7 +19,7 @@ import {
   originalSpanForNormalizedRange,
 } from './case-insensitive-spans.js';
 
-export const PASSWORD_ANALYSIS_CONFIGURATION_VERSION = 'passwo-bounded-guess-path-v1';
+export const PASSWORD_ANALYSIS_CONFIGURATION_VERSION = 'passwo-bounded-guess-path-v2';
 
 export interface FictionalPasswordAnalysisInput {
   readonly fictionalPassword: string;
@@ -487,6 +487,27 @@ export function analyzeFictionalPasswordStructure({
   const repetitionSpans = findExactRepeatedComponentSpans(fictionalPassword);
   if (repetitionSpans !== null) {
     findings.push(structureFinding('exact-component-repetition', repetitionSpans));
+  }
+
+  const repeatedPatternFindings = concreteComponentFindings.filter(
+    ({ kind }) => kind === 'repeated-component',
+  );
+  if (repetitionSpans === null && repeatedPatternFindings.length > 0) {
+    findings.push(
+      structureFinding('recognized-repetition-pattern', evidenceSpans(repeatedPatternFindings)),
+    );
+  }
+
+  const predictableSequenceFindings = concreteComponentFindings.filter(
+    ({ kind }) => kind === 'predictable-word-sequence',
+  );
+  if (predictableSequenceFindings.length > 0) {
+    findings.push(
+      structureFinding(
+        'predictable-component-sequence',
+        evidenceSpans(predictableSequenceFindings),
+      ),
+    );
   }
 
   const accountFindings = concreteComponentFindings.filter(
