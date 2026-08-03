@@ -4,24 +4,35 @@ import { join } from 'node:path';
 import {
   completionStatusSchema,
   instrumentRuntimeManifest,
+  type ResearchAnalysisPresentationRecord,
+  type ResearchAnalysisResponseRecord,
+  type ResearchAnalysisSessionRecord,
+  type ResearchAnalysisTimingRecord,
   type ResearchExportDataDictionaryRecord,
   type ResearchExportManifest,
+  type ResearchExportProfile,
   type ResearchExportPresentationRecord,
   type ResearchExportResponseRecord,
   type ResearchExportSessionRecord,
+  type ResearchFreeTextReviewRecord,
+  researchAnalysisPresentationRecordSchema,
+  researchAnalysisResponseRecordSchema,
+  researchAnalysisSessionRecordSchema,
+  researchAnalysisTimingRecordSchema,
   researchExportDataDictionaryRecordSchema,
   researchExportManifestSchema,
   researchExportPresentationRecordSchema,
   researchExportResponseRecordSchema,
   researchExportSessionRecordSchema,
   researchExportTimingRecordSchema,
+  researchFreeTextReviewRecordSchema,
   studyConditionSchema,
 } from '@passwo/contracts';
 import Database from 'better-sqlite3';
 import { z } from 'zod';
 import { mapSessionRow, sessionRowSelection } from './session-row.js';
 
-const exportFileNames = [
+const sharedExportFileNames = [
   'sessions.csv',
   'timing.csv',
   'responses.csv',
@@ -33,6 +44,11 @@ const exportFileNames = [
   'response-presentations.json',
   'data-dictionary.json',
 ] as const;
+
+const freeTextReviewFileNames = ['free-text-review.csv', 'free-text-review.json'] as const;
+type ExportFileName =
+  | (typeof sharedExportFileNames)[number]
+  | (typeof freeTextReviewFileNames)[number];
 
 const databaseResponseRowSchema = z.object({
   researchId: z.string(),
@@ -55,7 +71,7 @@ const databasePresentationRowSchema = z.object({
 });
 
 interface ExportFile {
-  readonly fileName: (typeof exportFileNames)[number];
+  readonly fileName: ExportFileName;
   readonly content: string;
 }
 
@@ -80,6 +96,7 @@ export interface ResearchExportOptions {
   readonly databasePath: string;
   readonly outputDirectory: string;
   readonly exportedAtIso?: string;
+  readonly profile?: ResearchExportProfile;
 }
 
 function toResponseRecord(row: unknown): ResearchExportResponseRecord {
@@ -123,6 +140,46 @@ function toSessionRecord(row: unknown): ResearchExportSessionRecord {
   void deletionCodeHash;
   void followUpTokenHash;
   return researchExportSessionRecordSchema.parse({ researchId: researchCode, ...session });
+}
+
+function toAnalysisSession(
+  session: ResearchExportSessionRecord,
+): ResearchAnalysisSessionRecord {
+  const { createdAtIso, completedAtIso, ...analysisSession } = session;
+  void createdAtIso;
+  void completedAtIso;
+  return researchAnalysisSessionRecordSchema.parse(analysisSession);
+}
+
+function toAnalysisTiming(
+  event: z.infer<typeof researchExportTimingRecordSchema>,
+): ResearchAnalysisTimingRecord {
+  const {
+    clientMonotonicMs,
+    clientWallClockIso,
+    serverReceivedAtIso,
+    ...analysisEvent
+  } = event;
+  void clientMonotonicMs;
+  void clientWallClockIso;
+  void serverReceivedAtIso;
+  return researchAnalysisTimingRecordSchema.parse(analysisEvent);
+}
+
+function toAnalysisResponse(
+  response: ResearchExportResponseRecord,
+): ResearchAnalysisResponseRecord {
+  const { createdAtIso, ...analysisResponse } = response;
+  void createdAtIso;
+  return researchAnalysisResponseRecordSchema.parse(analysisResponse);
+}
+
+function toAnalysisPresentation(
+  presentation: ResearchExportPresentationRecord,
+): ResearchAnalysisPresentationRecord {
+  const { createdAtIso, ...analysisPresentation } = presentation;
+  void createdAtIso;
+  return researchAnalysisPresentationRecordSchema.parse(analysisPresentation);
 }
 
 function stableJson(value: unknown): string {
@@ -234,9 +291,12 @@ function dataDictionary(): ResearchExportDataDictionaryRecord[] {
   return [...pre, ...post, ...guardrail, ...postOpen, ...followUp];
 }
 
-function assertEmptyExportTarget(outputDirectory: string): void {
+function assertEmptyExportTarget(
+  outputDirectory: string,
+  fileNames: readonly ExportFileName[],
+): void {
   mkdirSync(outputDirectory, { recursive: true, mode: 0o700 });
-  for (const fileName of [...exportFileNames, 'manifest.json']) {
+  for (const fileName of [...fileNames, 'manifest.json']) {
     if (existsSync(join(outputDirectory, fileName))) {
       throw new Error(`export-target-already-contains-${fileName}`);
     }
@@ -247,6 +307,7 @@ export function exportResearchData({
   databasePath,
   outputDirectory,
   exportedAtIso = new Date().toISOString(),
+  profile = 'audit',
 }: ResearchExportOptions): ResearchExportResult {
   const database = new Database(databasePath, { readonly: true });
   try {
@@ -324,47 +385,146 @@ export function exportResearchData({
       .map(toPresentationRecord);
     const dictionary = dataDictionary();
 
-    const files: readonly ExportFile[] = [
+    const dictionaryCsv = csvFile(
+      [
+        'instrumentId',
+        'sectionId',
+        'itemId',
+        'responseType',
+        'required',
+        'minimum',
+        'maximum',
+        'maxLength',
+        'optionId',
+      ],
+      dictionary.map((entry) => [
+        entry.instrumentId,
+        entry.sectionId,
+        entry.itemId,
+        entry.responseType,
+        entry.required,
+        entry.minimum,
+        entry.maximum,
+        entry.maxLength,
+        entry.optionId,
+      ]),
+    );
+    const textResponseKeys = new Set(
+      dictionary
+        .filter((entry) => entry.responseType === 'text')
+        .map((entry) => `${entry.instrumentId}\u0000${entry.sectionId}\u0000${entry.itemId}`),
+    );
+    const isTextResponse = (response: ResearchExportResponseRecord): boolean =>
+      textResponseKeys.has(
+        `${response.instrumentId}\u0000${response.sectionId}\u0000${response.itemId}`,
+      );
+    const freeTextReview = responses.flatMap<ResearchFreeTextReviewRecord>((response) => {
+      if (!isTextResponse(response) || typeof response.value !== 'string') return [];
+      return [
+        researchFreeTextReviewRecordSchema.parse({
+          researchId: response.researchId,
+          instrumentId: response.instrumentId,
+          instrumentVersion: response.instrumentVersion,
+          sectionId: response.sectionId,
+          itemId: response.itemId,
+          value: response.value,
+          reviewStatus: 'pending-review',
+        }),
+      ];
+    });
+
+    const auditFiles: readonly ExportFile[] = [
       {
         fileName: 'sessions.csv',
         content: csvFile(
           [
-            'researchId',
-            'condition',
-            'assignmentMode',
-            'studyVersion',
-            'contentVersion',
-            'questionnaireVersion',
-            'guardrailVersion',
-            'guardrailFormId',
-            'consentVersion',
-            'referenceArtifactVersion',
-            'consentAccepted',
-            'followUpConsent',
-            'followUpVersion',
-            'completionStatus',
-            'technicalErrorCode',
-            'createdAtIso',
-            'completedAtIso',
+            'researchId', 'condition', 'assignmentMode', 'studyVersion', 'contentVersion',
+            'questionnaireVersion', 'guardrailVersion', 'guardrailFormId', 'consentVersion',
+            'referenceArtifactVersion', 'consentAccepted', 'followUpConsent', 'followUpVersion',
+            'completionStatus', 'technicalErrorCode', 'createdAtIso', 'completedAtIso',
           ],
           sessions.map((session) => [
-            session.researchId,
-            session.condition,
-            session.assignmentMode,
-            session.studyVersion,
-            session.contentVersion,
-            session.questionnaireVersion,
-            session.guardrailVersion,
-            session.guardrailFormId,
-            session.consentVersion,
-            session.referenceArtifactVersion,
-            session.consentAccepted,
-            session.followUpConsent,
-            session.followUpVersion,
-            session.completionStatus,
-            session.technicalErrorCode,
-            session.createdAtIso,
+            session.researchId, session.condition, session.assignmentMode, session.studyVersion,
+            session.contentVersion, session.questionnaireVersion, session.guardrailVersion,
+            session.guardrailFormId, session.consentVersion, session.referenceArtifactVersion,
+            session.consentAccepted, session.followUpConsent, session.followUpVersion,
+            session.completionStatus, session.technicalErrorCode, session.createdAtIso,
             session.completedAtIso,
+          ]),
+        ),
+      },
+      {
+        fileName: 'timing.csv',
+        content: csvFile(
+          [
+            'researchId', 'sequence', 'phase', 'sectionId', 'segmentId', 'eventType',
+            'clientMonotonicMs', 'clientWallClockIso', 'elapsedMs', 'reasonCode',
+            'serverReceivedAtIso',
+          ],
+          timing.map((event) => [
+            event.researchId, event.sequence, event.phase, event.sectionId, event.segmentId,
+            event.eventType, event.clientMonotonicMs, event.clientWallClockIso, event.elapsedMs,
+            event.reasonCode, event.serverReceivedAtIso,
+          ]),
+        ),
+      },
+      {
+        fileName: 'responses.csv',
+        content: csvFile(
+          [
+            'researchId', 'instrumentId', 'instrumentVersion', 'sectionId', 'itemId', 'value',
+            'createdAtIso',
+          ],
+          responses.map((response) => [
+            response.researchId, response.instrumentId, response.instrumentVersion,
+            response.sectionId, response.itemId, compactJson(response.value), response.createdAtIso,
+          ]),
+        ),
+      },
+      {
+        fileName: 'response-presentations.csv',
+        content: csvFile(
+          [
+            'researchId', 'instrumentId', 'instrumentVersion', 'sectionId', 'itemId', 'formId',
+            'displayedOptionIds', 'createdAtIso',
+          ],
+          presentations.map((presentation) => [
+            presentation.researchId, presentation.instrumentId, presentation.instrumentVersion,
+            presentation.sectionId, presentation.itemId, presentation.formId,
+            compactJson(presentation.displayedOptionIds), presentation.createdAtIso,
+          ]),
+        ),
+      },
+      { fileName: 'data-dictionary.csv', content: dictionaryCsv },
+      { fileName: 'sessions.json', content: stableJson(sessions) },
+      { fileName: 'timing.json', content: stableJson(timing) },
+      { fileName: 'responses.json', content: stableJson(responses) },
+      { fileName: 'response-presentations.json', content: stableJson(presentations) },
+      { fileName: 'data-dictionary.json', content: stableJson(dictionary) },
+    ];
+
+    const analysisSessions = sessions.map(toAnalysisSession);
+    const analysisTiming = timing.map(toAnalysisTiming);
+    const analysisResponses = responses
+      .filter((response) => !isTextResponse(response) || response.value === null)
+      .map(toAnalysisResponse);
+    const analysisPresentations = presentations.map(toAnalysisPresentation);
+    const analysisFiles: readonly ExportFile[] = [
+      {
+        fileName: 'sessions.csv',
+        content: csvFile(
+          [
+            'researchId', 'condition', 'assignmentMode', 'studyVersion', 'contentVersion',
+            'questionnaireVersion', 'guardrailVersion', 'guardrailFormId', 'consentVersion',
+            'referenceArtifactVersion', 'consentAccepted', 'followUpConsent', 'followUpVersion',
+            'completionStatus', 'technicalErrorCode',
+          ],
+          analysisSessions.map((session) => [
+            session.researchId, session.condition, session.assignmentMode, session.studyVersion,
+            session.contentVersion, session.questionnaireVersion, session.guardrailVersion,
+            session.guardrailFormId, session.consentVersion, session.referenceArtifactVersion,
+            session.consentAccepted, session.followUpConsent, session.followUpVersion,
+            session.completionStatus, session.technicalErrorCode,
           ]),
         ),
       },
@@ -378,47 +538,22 @@ export function exportResearchData({
             'sectionId',
             'segmentId',
             'eventType',
-            'clientMonotonicMs',
-            'clientWallClockIso',
             'elapsedMs',
             'reasonCode',
-            'serverReceivedAtIso',
           ],
-          timing.map((event) => [
-            event.researchId,
-            event.sequence,
-            event.phase,
-            event.sectionId,
-            event.segmentId,
-            event.eventType,
-            event.clientMonotonicMs,
-            event.clientWallClockIso,
-            event.elapsedMs,
-            event.reasonCode,
-            event.serverReceivedAtIso,
+          analysisTiming.map((event) => [
+            event.researchId, event.sequence, event.phase, event.sectionId, event.segmentId,
+            event.eventType, event.elapsedMs, event.reasonCode,
           ]),
         ),
       },
       {
         fileName: 'responses.csv',
         content: csvFile(
-          [
-            'researchId',
-            'instrumentId',
-            'instrumentVersion',
-            'sectionId',
-            'itemId',
-            'value',
-            'createdAtIso',
-          ],
-          responses.map((response) => [
-            response.researchId,
-            response.instrumentId,
-            response.instrumentVersion,
-            response.sectionId,
-            response.itemId,
-            compactJson(response.value),
-            response.createdAtIso,
+          ['researchId', 'instrumentId', 'instrumentVersion', 'sectionId', 'itemId', 'value'],
+          analysisResponses.map((response) => [
+            response.researchId, response.instrumentId, response.instrumentVersion,
+            response.sectionId, response.itemId, compactJson(response.value),
           ]),
         ),
       },
@@ -426,68 +561,52 @@ export function exportResearchData({
         fileName: 'response-presentations.csv',
         content: csvFile(
           [
-            'researchId',
-            'instrumentId',
-            'instrumentVersion',
-            'sectionId',
-            'itemId',
-            'formId',
+            'researchId', 'instrumentId', 'instrumentVersion', 'sectionId', 'itemId', 'formId',
             'displayedOptionIds',
-            'createdAtIso',
           ],
-          presentations.map((presentation) => [
-            presentation.researchId,
-            presentation.instrumentId,
-            presentation.instrumentVersion,
-            presentation.sectionId,
-            presentation.itemId,
-            presentation.formId,
+          analysisPresentations.map((presentation) => [
+            presentation.researchId, presentation.instrumentId, presentation.instrumentVersion,
+            presentation.sectionId, presentation.itemId, presentation.formId,
             compactJson(presentation.displayedOptionIds),
-            presentation.createdAtIso,
           ]),
         ),
       },
+      { fileName: 'data-dictionary.csv', content: dictionaryCsv },
       {
-        fileName: 'data-dictionary.csv',
+        fileName: 'free-text-review.csv',
         content: csvFile(
           [
-            'instrumentId',
-            'sectionId',
-            'itemId',
-            'responseType',
-            'required',
-            'minimum',
-            'maximum',
-            'maxLength',
-            'optionId',
+            'researchId', 'instrumentId', 'instrumentVersion', 'sectionId', 'itemId', 'value',
+            'reviewStatus',
           ],
-          dictionary.map((entry) => [
-            entry.instrumentId,
-            entry.sectionId,
-            entry.itemId,
-            entry.responseType,
-            entry.required,
-            entry.minimum,
-            entry.maximum,
-            entry.maxLength,
-            entry.optionId,
+          freeTextReview.map((review) => [
+            review.researchId, review.instrumentId, review.instrumentVersion, review.sectionId,
+            review.itemId, review.value, review.reviewStatus,
           ]),
         ),
       },
-      { fileName: 'sessions.json', content: stableJson(sessions) },
-      { fileName: 'timing.json', content: stableJson(timing) },
-      { fileName: 'responses.json', content: stableJson(responses) },
-      { fileName: 'response-presentations.json', content: stableJson(presentations) },
+      { fileName: 'sessions.json', content: stableJson(analysisSessions) },
+      { fileName: 'timing.json', content: stableJson(analysisTiming) },
+      { fileName: 'responses.json', content: stableJson(analysisResponses) },
+      { fileName: 'response-presentations.json', content: stableJson(analysisPresentations) },
       { fileName: 'data-dictionary.json', content: stableJson(dictionary) },
+      { fileName: 'free-text-review.json', content: stableJson(freeTextReview) },
     ];
+    const files = profile === 'audit' ? auditFiles : analysisFiles;
 
-    assertEmptyExportTarget(outputDirectory);
+    assertEmptyExportTarget(
+      outputDirectory,
+      files.map((file) => file.fileName),
+    );
     for (const file of files) {
       writeFileSync(join(outputDirectory, file.fileName), file.content, { mode: 0o600 });
     }
 
     const manifest = researchExportManifestSchema.parse({
-      schemaVersion: 'research-export-v4',
+      schemaVersion: 'research-export-v5',
+      profile,
+      schemaProfileVersion:
+        profile === 'audit' ? 'research-audit-v1' : 'research-analysis-v1',
       exportedAtIso,
       runtimeManifestVersion: instrumentRuntimeManifest.runtimeManifestVersion,
       versions: {
@@ -502,11 +621,15 @@ export function exportResearchData({
         ),
       },
       sessionCounts: sessionCounts(sessions),
+      freeTextReview: {
+        recordCount: freeTextReview.length,
+        status: profile === 'audit' ? 'included-in-audit' : 'pending-review',
+      },
       files: files.map((file) => ({ fileName: file.fileName, sha256: sha256(file.content) })),
     });
     writeFileSync(join(outputDirectory, 'manifest.json'), stableJson(manifest), { mode: 0o600 });
 
-    return { files: [...exportFileNames, 'manifest.json'], manifest };
+    return { files: [...files.map((file) => file.fileName), 'manifest.json'], manifest };
   } finally {
     database.close();
   }

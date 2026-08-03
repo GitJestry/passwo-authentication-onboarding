@@ -12,9 +12,9 @@ Trainingsmodul umgesetzt.
 | M3 — Knotennetzwerk | abgeschlossen | Frameworkfreie Szenenmodelle, React-Flow-Adapter, S02 und S06-Konsequenz-Fixtures stehen. |
 | M4 — Passwortmodul S03–S11 | teilweise | S03 bis S07 einschließlich lokaler Einzelanalyse, dynamischer Konsequenzsimulation und Auswertung sind integriert; S08–S11 fehlen. |
 | M5 — Passwortmanager und MFA S12–S17 | offen | Simulationen, Recovery-Grenzen, MFA und integrierte Abschlusskarte fehlen. |
-| M6 — Instrumente und Referenzartefakt | teilweise | Draft-Instrumente, Guardrail-Formen, eingebettetes Referenzartefakt, PDF-Viewer, Recontact-Registry und Schedule-Export stehen. Cognitive Pretest, Content Audit, öffentliches Follow-up, Import und finaler Debrief-Versand fehlen. |
+| M6 — Instrumente und Referenzartefakt | teilweise | Draft-Instrumente, Guardrail-Formen, eingebettetes Referenzartefakt, PDF-Viewer, Recontact-Registry, Schedule-Export und manueller Einzelversandprozess stehen. Cognitive Pretest, Content Audit, öffentliches Follow-up, Import und manueller finaler Debrief-Versand fehlen. |
 | M7 — Pretest und Hardening | offen | Technischer Smoke-Test am Studiengerät und 3–5 Pilotdurchläufe pro Bedingung stehen aus. |
-| M8 — Study Freeze | offen | Versionen, Commit, Aufbewahrungsfrist, Datenschutzkontakt, Backup und Exportprozedur müssen eingefroren werden. |
+| M8 — Study Freeze | offen | Datenschutzkontakt, technische Schutzmaßnahmen und duale Exportprozedur sind dokumentiert. Versionen und Commit müssen nach Festlegung der konkreten Aufbewahrungs-/Löschfristen eingefroren werden. |
 
 ## Nächste Abnahmetore
 
@@ -22,7 +22,8 @@ Trainingsmodul umgesetzt.
    prüfen.
 2. S12 bis S17 integrieren und den vollständigen supportive Artefaktabschluss herstellen.
 3. Instrumente und Guardrail Content Audit im Cognitive Pretest prüfen.
-4. Follow-up-Formular, Token-Import und abschließenden Debrief-Versand entscheiden und umsetzen.
+4. Follow-up-Formular und Token-Import umsetzen sowie den manuellen abschließenden
+   Debrief-Versand erproben.
 5. Pilotdurchläufe durchführen und anschließend den Study Freeze dokumentieren.
 
 ## Unveränderte Gates

@@ -1,4 +1,4 @@
-# Measurement Instrument v1.7
+# Measurement Instrument v1.9
 
 Status: methodischer Entwurf für Cognitive Pretest und anschließenden Study Freeze.  
 Geltungsbereich: randomisierter Between-Subjects-Vergleich des Supportive Authentication
@@ -219,8 +219,8 @@ Nutzung, reduzierte Passwortwiederverwendung oder langfristige Verhaltensänderu
 
 Vor dem Study Freeze sind verpflichtend:
 
-- offizielle verantwortliche Stelle, Datenschutzkontakt, Rechtsgrundlage und konkrete
-  Aufbewahrungs-/Löschfristen;
+- konkrete Aufbewahrungs-/Löschfristen für Recontact- und Maildaten, Forschungs- und
+  Analysedaten, unvollständige Sessions sowie verschlüsselte Backups;
 - vollständiger Cognitive Pretest aller eigenen Items und Guardrail-Distraktoren;
 - vollständiger Pilot auf dem tatsächlichen Studienlaptop einschließlich Layout und Dauer;
 - erneuter Guardrail-Audit gegen den finalen PassWo-Stand S11--S17;

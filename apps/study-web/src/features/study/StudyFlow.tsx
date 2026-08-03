@@ -128,9 +128,6 @@ function ParticipantInformationAccess({ deletionCode }: { readonly deletionCode:
             die Löschung deiner Forschungsdaten anfragen möchtest.
           </p>
           <ParticipantInformationSections />
-          <button className={styles.secondaryButton} type="button" onClick={() => window.print()}>
-            Informationen drucken
-          </button>
         </div>
       </dialog>
     </div>

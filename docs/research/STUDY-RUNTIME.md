@@ -40,12 +40,19 @@ aufgegeben werden; die Condition wird dabei nicht neu zugewiesen.
 Teilnehmende ohne Follow-up-Einwilligung erhalten bei der Session Closure die vollständige
 Aufklärung. Teilnehmende mit Einwilligung erhalten zunächst die neutrale Bestätigung der
 Hauptsitzung; ihre vollständige Aufklärung erfolgt nach der Follow-up-Antwort oder spätestens nach
-Schließung des Zeitfensters. Versand und externer Follow-up-Import sind noch vor dem Study Freeze
-festzulegen.
+Schließung des Zeitfensters. Öffentliches Follow-up-Formular, Antwortimport und der manuelle
+abschließende Debrief-Versand sind noch vor dem Study Freeze umzusetzen und zu erproben.
 
 ## Teilnahmeinformation und Löschcode
 
-Die Kerninformation ist vor der Einwilligung direkt sichtbar; ausführliche Abschnitte bleiben aufklappbar. Nach Sessionerstellung wird der Löschcode vor dem ersten Pre-Abschnitt angezeigt. Er steht dort neben einem kompakten Zugang zu den Teilnahmeinformationen und wird am Sitzungsende erneut gezeigt. Die Teilnahmeinformationen bleiben über eine unaufdringliche Kontrolle auch während des Artefakts erreichbar und können gedruckt werden. Die Kontrolle zeigt weder Forschungs-ID noch Condition, Antworten oder Timingdaten.
+Die vollständige Teilnahmeinformation wird vor der Einwilligung physisch ausgehändigt. Die
+Kerninformation ist zusätzlich direkt in der Runtime sichtbar; ausführliche Abschnitte bleiben
+aufklappbar. Nach Sessionerstellung wird der Löschcode vor dem ersten Pre-Abschnitt angezeigt. Er
+steht dort neben einem kompakten Zugang zu den Teilnahmeinformationen und wird am Sitzungsende
+erneut gezeigt. Die Teilnahmeinformationen bleiben über eine unaufdringliche Kontrolle auch
+während des Artefakts erreichbar. Eine app-eigene Druckfunktion ist nicht vorgesehen; die Person
+kann den Löschcode notieren. Die Kontrolle zeigt weder Forschungs-ID noch Condition, Antworten
+oder Timingdaten.
 
 Eligibility-Fehler werden erst nach einem Abgabeversuch angezeigt. Das bloße Bearbeiten der drei Bestätigungen löst keine vorzeitige Ausschlussmeldung aus.
 
@@ -67,8 +74,13 @@ Pretests zulässig. Der Client enthält keinen Condition-Auswahlschalter.
 
 Die lokale Runtime versendet keine E-Mails und hostet keinen öffentlichen Fragebogen. Nach
 Completion werden nur für eingewilligte Sessions Einladung nach 240 Stunden, höchstens eine
-Erinnerung nach weiteren 48 Stunden und Schließung nach 336 Stunden geplant. Schedule-Export,
-öffentliches Formular, Import und abschließender Debrief-Versand bleiben getrennte Funktionen.
+Erinnerung nach weiteren 48 Stunden und Schließung nach 336 Stunden geplant. Der Schedule-Export
+wird ausschließlich auf ausdrücklichen Aufruf erzeugt. Einladung, gegebenenfalls Erinnerung und
+Debriefing werden einzeln und manuell über das freigegebene Universitätskonto versandt; Empfänger
+dürfen einander nicht sehen. Die Nachricht enthält nur den neutralen Einladungstext und den
+individuellen Tokenlink, niemals Condition, Forschungs-ID, Antworten oder Löschcode. Recontact-Daten
+dienen keiner Analyse oder Stichprobenbeschreibung. Öffentliches Formular, Antwortimport und
+manueller Debrief-Versand bleiben vom lokalen Runtime-Prozess getrennt.
 
 ## Lokale Datenlöschung
 

@@ -3,6 +3,7 @@ import { existsSync, mkdtempSync, readFileSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { instrumentRuntimeManifest } from '@passwo/contracts';
+import Database from 'better-sqlite3';
 import type { FastifyInstance } from 'fastify';
 import { afterEach, describe, expect, it } from 'vitest';
 import { buildStudyServer } from './app.js';
@@ -95,7 +96,9 @@ describe('research export', () => {
     expect(exportedData).not.toContain('1'.padStart(64, '0'));
     expect(exportedData).not.toContain('private@example.org');
     expect(exportedData).not.toContain(rawToken);
-    expect(exportedData).not.toContain(createHash('sha256').update(rawToken, 'utf8').digest('hex'));
+    expect(exportedData).not.toContain(
+      createHash('sha256').update(rawToken, 'utf8').digest('hex'),
+    );
     expect(existsSync(databasePath)).toBe(true);
     expect(existsSync(recontactDatabasePath)).toBe(true);
     expect(readFileSync(join(outputDirectory, 'response-presentations.json'), 'utf8')).toContain(
@@ -104,7 +107,113 @@ describe('research export', () => {
     expect(readFileSync(join(outputDirectory, 'data-dictionary.json'), 'utf8')).toContain(
       '"itemId": "MR_REUSE"',
     );
-    expect(result.manifest.schemaVersion).toBe('research-export-v4');
+    expect(result.manifest.schemaVersion).toBe('research-export-v5');
+    expect(result.manifest.profile).toBe('audit');
+    expect(result.manifest.schemaProfileVersion).toBe('research-audit-v1');
+    for (const file of result.manifest.files) {
+      expect(
+        createHash('sha256')
+          .update(readFileSync(join(outputDirectory, file.fileName), 'utf8'))
+          .digest('hex'),
+      ).toBe(file.sha256);
+    }
+  });
+
+  it('separates free text and removes calendar timestamps from the analysis profile', async () => {
+    const temporaryDirectory = mkdtempSync(join(tmpdir(), 'passwo-analysis-export-'));
+    temporaryDirectories.push(temporaryDirectory);
+    const databasePath = join(temporaryDirectory, 'study.sqlite');
+    const recontactDatabasePath = join(temporaryDirectory, 'recontact.sqlite');
+    const rawToken = 'E'.repeat(43);
+    const server = buildStudyServer({
+      version: '0.1.2',
+      assignmentMode: 'forced-supportive',
+      databasePath,
+      recontactDatabasePath,
+      nowIso: () => '2026-07-24T12:00:00.000Z',
+      createRecontactToken: () => rawToken,
+    });
+    servers.push(server);
+    const session = await createSession(server, 2, false, true);
+    expect(
+      (
+        await server.inject({
+          method: 'POST',
+          url: `/api/study/sessions/${session.sessionId}/recontact`,
+          payload: {
+            requestId: 'e428b02a-7949-4dd0-b906-32942134c661',
+            email: 'analysis-private@example.org',
+          },
+        })
+      ).statusCode,
+    ).toBe(200);
+
+    const database = new Database(databasePath);
+    database
+      .prepare(
+        `INSERT INTO instrument_submissions (
+          session_id, instrument_id, instrument_version, section_id,
+          payload_fingerprint, submitted_at_iso
+        ) VALUES (?, 'post-open-v1', ?, 'post-open', ?, ?)`,
+      )
+      .run(
+        session.sessionId,
+        instrumentRuntimeManifest.questionnaireVersion,
+        'a'.repeat(64),
+        '2026-07-24T12:00:00.000Z',
+      );
+    database
+      .prepare(
+        `INSERT INTO responses (
+          session_id, instrument_id, instrument_version, section_id,
+          item_id, json_value, created_at_iso
+        ) VALUES (?, 'post-open-v1', ?, 'post-open', 'OPEN_HELPFUL', ?, ?)`,
+      )
+      .run(
+        session.sessionId,
+        instrumentRuntimeManifest.questionnaireVersion,
+        JSON.stringify('Name oder Lehrveranstaltung vor manueller Prüfung'),
+        '2026-07-24T12:00:00.000Z',
+      );
+    database.close();
+
+    const outputDirectory = join(temporaryDirectory, 'analysis');
+    const result = exportResearchData({
+      databasePath,
+      outputDirectory,
+      profile: 'analysis',
+      exportedAtIso: '2026-07-25T10:00:00.000Z',
+    });
+    const sessions = readFileSync(join(outputDirectory, 'sessions.json'), 'utf8');
+    const timing = readFileSync(join(outputDirectory, 'timing.json'), 'utf8');
+    const responses = readFileSync(join(outputDirectory, 'responses.json'), 'utf8');
+    const presentations = readFileSync(
+      join(outputDirectory, 'response-presentations.json'),
+      'utf8',
+    );
+    const freeTextReview = readFileSync(join(outputDirectory, 'free-text-review.json'), 'utf8');
+
+    expect(result.manifest).toMatchObject({
+      schemaVersion: 'research-export-v5',
+      profile: 'analysis',
+      schemaProfileVersion: 'research-analysis-v1',
+      freeTextReview: { recordCount: 1, status: 'pending-review' },
+    });
+    expect(result.files).toEqual(
+      expect.arrayContaining(['free-text-review.csv', 'free-text-review.json']),
+    );
+    expect([sessions, timing, responses, presentations].join('\n')).not.toMatch(
+      /createdAtIso|completedAtIso|clientMonotonicMs|clientWallClockIso|serverReceivedAtIso/u,
+    );
+    expect(responses).not.toContain('Name oder Lehrveranstaltung');
+    expect(freeTextReview).toContain('Name oder Lehrveranstaltung vor manueller Prüfung');
+    expect(freeTextReview).toContain('"reviewStatus": "pending-review"');
+    const exportedData = [sessions, timing, responses, presentations, freeTextReview].join('\n');
+    expect(exportedData).not.toContain(session.sessionId);
+    expect(exportedData).not.toContain('2'.padStart(64, '0'));
+    expect(exportedData).not.toContain('analysis-private@example.org');
+    expect(exportedData).not.toContain(rawToken);
+    expect(exportedData).not.toContain(createHash('sha256').update(rawToken, 'utf8').digest('hex'));
     for (const file of result.manifest.files) {
       expect(
         createHash('sha256')

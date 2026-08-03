@@ -1,11 +1,11 @@
 schemaVersion: 2
 # Kanonische Forschungsquelle; die Browserprojektion liegt zusätzlich unter packages/contracts.
-instrumentVersion: 1.8.0-draft
+instrumentVersion: 1.9.0-draft
 questionnaireVersion: questionnaire-v1.5-draft
 guardrailVersion: guardrail-v3-draft
-consentVersion: consent-v5-draft
+consentVersion: consent-v6-draft
 followUpVersion: follow-up-v3-draft
-runtimeManifestVersion: instrument-runtime-v1.8-draft
+runtimeManifestVersion: instrument-runtime-v1.9-draft
 language: de-DE
 participantTerm: Lernangebot
 scales:
@@ -136,7 +136,18 @@ procedures:
       - "Bei Fragen zur Studie, zur Teilnahme oder zur Verarbeitung deiner Daten kannst du dich an folgende Stelle wenden:"
       - "Studienleitung: Julian Meyer, s27jmeye@uni-bonn.de"
       - "Betreuung: Dr. Christian Tiefenau, tiefenau@cs.uni-bonn.de"
-      - "Verantwortliche Stelle / Datenschutzkontakt: [nach Vorgabe der Universität ergänzen]"
+      - "Verantwortliche Stelle: Rheinische Friedrich-Wilhelms-Universität Bonn, Regina-Pacis-Weg 3, 53113 Bonn, kommunikation@uni-bonn.de, +49 228 73-0"
+      - "Datenschutzbeauftragte: Derya Kartal, Rheinische Friedrich-Wilhelms-Universität Bonn, Adenauerallee 72–74, 53115 Bonn, datenschutz@uni-bonn.de, +49 228 73-4096"
+    - id: rights
+      heading: Rechtsgrundlage und deine Rechte
+      paragraphs:
+      - Die Verarbeitung deiner Forschungsdaten und – nur bei gesonderter Zustimmung – deiner E-Mail-Adresse beruht auf
+        deiner Einwilligung gemäß Art. 6 Abs. 1 lit. a DSGVO. Du kannst deine Einwilligung jederzeit mit Wirkung für die
+        Zukunft widerrufen. Die Rechtmäßigkeit der bis zum Widerruf erfolgten Verarbeitung bleibt davon unberührt.
+      - Du hast im Rahmen der gesetzlichen Voraussetzungen insbesondere das Recht auf Auskunft, Berichtigung, Löschung,
+        Einschränkung der Verarbeitung und Datenübertragbarkeit. Außerdem kannst du dich bei der Landesbeauftragten für
+        Datenschutz und Informationsfreiheit Nordrhein-Westfalen beschweren. Für die Zuordnung einer Löschanfrage zu
+        deinen Forschungsdaten verwendest du deinen Löschcode.
     requiredConsent:
       legend: Einwilligung
       statement: Ich habe die Teilnahmeinformationen gelesen und verstanden. Ich weiß, dass einige Einzelheiten zur

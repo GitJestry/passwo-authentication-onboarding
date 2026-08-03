@@ -1,4 +1,4 @@
-# Participant Information and Consent v5-draft
+# Participant Information and Consent v6-draft
 
 Dieses Dokument ist die kanonische fachliche Quelle der gemeinsamen Teilnehmertexte. Die
 ausführbare Projektion liegt im versionierten Instrument-Manifest.
@@ -93,12 +93,32 @@ nicht zugesichert werden.
 
 - Studienleitung: Julian Meyer, s27jmeye@uni-bonn.de
 - Betreuung: Dr. Christian Tiefenau, tiefenau@cs.uni-bonn.de
-- Verantwortliche Stelle / Datenschutzkontakt: `[nach Vorgabe der Universität ergänzen]`
+- Verantwortliche Stelle: Rheinische Friedrich-Wilhelms-Universität Bonn, Regina-Pacis-Weg 3,
+  53113 Bonn, kommunikation@uni-bonn.de, +49 228 73-0
+- Datenschutzbeauftragte: Derya Kartal, Rheinische Friedrich-Wilhelms-Universität Bonn,
+  Adenauerallee 72–74, 53115 Bonn, datenschutz@uni-bonn.de, +49 228 73-4096
 
-The official responsible entity, data-protection contact, legal basis, data-subject rights, and
-concrete research/recontact retention and deletion periods remain Study Freeze blockers. They
-must be supplied from the approved University of Bonn documentation and must not be invented by
-the implementation.
+### Rechtsgrundlage und deine Rechte
+
+Die Verarbeitung deiner Forschungsdaten und – nur bei gesonderter Zustimmung – deiner
+E-Mail-Adresse beruht auf deiner Einwilligung gemäß Art. 6 Abs. 1 lit. a DSGVO. Du kannst deine
+Einwilligung jederzeit mit Wirkung für die Zukunft widerrufen. Die Rechtmäßigkeit der bis zum
+Widerruf erfolgten Verarbeitung bleibt davon unberührt.
+
+Du hast im Rahmen der gesetzlichen Voraussetzungen insbesondere das Recht auf Auskunft,
+Berichtigung, Löschung, Einschränkung der Verarbeitung und Datenübertragbarkeit. Außerdem kannst du
+dich bei der Landesbeauftragten für Datenschutz und Informationsfreiheit Nordrhein-Westfalen
+beschweren. Für die Zuordnung einer Löschanfrage zu deinen Forschungsdaten verwendest du deinen
+Löschcode.
+
+Verantwortliche Stelle, Datenschutzkontakt, Rechtsgrundlage und Betroffenenrechte stammen aus der
+aktuellen Datenschutzerklärung und Datenschutz-Stabsstelle der Universität Bonn. Vor dem Study
+Freeze bleiben ausschließlich die konkreten Forschungs-, Recontact- und Backupfristen einzutragen.
+
+Copy delta 2026-08-03: Der Platzhalter für Verantwortlichkeit und Datenschutzkontakt wurde durch
+die offiziellen Universitätsangaben ersetzt; Rechtsgrundlage und Betroffenenrechte wurden ergänzt,
+damit die pseudonymisierte Verarbeitung transparent beschrieben ist. Quelle:
+`https://www.uni-bonn.de/de/datenschutzerklaerung` und `https://www.sid.uni-bonn.de/de`.
 
 ## Consent controls
 
@@ -121,10 +141,12 @@ is still completing the three confirmations.
 
 ## Deletion code and continuing access
 
-The deletion code is shown immediately after session creation and remains accessible through the
-compact participant-information control. It is shown again at session closure. The control is also
-available while an artifact is running. The information can be printed. No research ID, condition,
-response, or timing data are exposed through this control.
+The complete participant information is handed out physically before consent. The deletion code is
+shown immediately after session creation and remains accessible through the compact
+participant-information control. It is shown again at session closure. The control is also available
+while an artifact is running, and the participant can write down the code. The runtime provides no
+dedicated print action. No research ID, condition, response, or timing data are exposed through this
+control.
 
 The research ID used in analysis is generated separately, is never shown to participants, and is
 not derivable from the deletion code. Only a cryptographic hash of the deletion code is stored in

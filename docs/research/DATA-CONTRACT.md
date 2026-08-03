@@ -68,6 +68,15 @@ enthält `~/.passwo-study/recontact.sqlite` ausschließlich Token-Hash und Roh-T
 Consent-Version sowie Registrierungs-, Einladungs-, Erinnerungs-, Schließ- und Versandstatus. Die
 Registry enthält keine Condition, Antworten, Timings oder Trainingsdaten.
 
+Die Registry dient ausschließlich Kontaktaufnahme, Terminsteuerung, Tokenzuordnung und
+Debriefing. Sie ist keine Analysequelle und darf weder für Stichprobenbeschreibungen noch durch
+Analysewerkzeuge gelesen werden. Der Schedule-Export wird nur auf ausdrücklichen Aufruf erzeugt.
+Einladung, höchstens eine Erinnerung und das abschließende Debriefing werden einzeln und manuell
+über das freigegebene Universitätskonto versandt. Empfänger dürfen einander nicht sehen. Die
+Nachricht enthält ausschließlich neutralen Einladungstext und den individuellen Tokenlink, niemals
+Condition, Forschungs-ID, Antworten oder Löschcode. Die lokale Runtime besitzt keine SMTP-,
+Gmail- oder sonstige automatische Versandintegration.
+
 Ein Verzicht oder ein abgebrochener Registrierungsversuch setzt Einwilligungsstatus und Token-Hash
 in der Forschungsdatenbank zurück und entfernt einen gegebenenfalls angelegten Registry-Datensatz,
 ohne Session, Forschungs-ID, Löschcode-Hash oder Condition zu verändern.
@@ -89,6 +98,18 @@ Löschprotokoll wird nicht persistiert.
 Bereits erzeugte Exporte, Schedule-Dateien und Backups sind nicht Teil der SQLite-Transaktion. Der
 Workflow verändert sie nicht und darf ihre Löschung nicht behaupten.
 
+Eine Löschanfrage wird deshalb zusätzlich als organisatorischer Kopienabgleich bearbeitet:
+
+1. Löschcode lokal auflösen und aktive Research- und Recontact-Datensätze löschen;
+2. Audit- und Analyseexporte anhand der Forschungs-ID prüfen und die betroffene Zeile entfernen;
+3. Freitext-Review-Dateien prüfen;
+4. Schedule-Dateien und lokale Mailkopien prüfen;
+5. gesendete Follow-up-Nachrichten nach der freigegebenen Regel entfernen;
+6. verschlüsselte Backups gemäß der festgelegten Backupregel auslaufen lassen oder sperren;
+7. bereits an die Betreuung weitergegebene Analysekopien in den Löschprozess einbeziehen.
+
+Der Abschluss dieses organisatorischen Abgleichs wird nicht in den Forschungsdaten persistiert.
+
 ## Speicherort und Rechte
 
 - Standard: `~/.passwo-study/study.sqlite` und getrennt `recontact.sqlite`.
@@ -97,13 +118,42 @@ Workflow verändert sie nicht und darf ihre Löschung nicht behaupten.
 - Browser Storage, IndexedDB und Service Worker sind unzulässig.
 - Exporte werden nur in explizit gewählte lokale Zielverzeichnisse geschrieben.
 
+## Technische und organisatorische Maßnahmen
+
+- Ausschließlich die Studienleitung besitzt Zugriff auf beide Datenbanken, Exporte und Backups.
+- Das Studiengerät verwendet FileVault und ein persönliches, nicht geteiltes Benutzerkonto mit
+  Gerätesperre.
+- Forschungs- und Recontact-Daten bleiben getrennte Dateien. Analysewerkzeuge öffnen
+  `recontact.sqlite` niemals.
+- Weitergaben an die Betreuung erfolgen ausschließlich über den bereinigten Analyseexport.
+- Backups sind verschlüsselt und unterliegen derselben alleinigen Zugriffsbeschränkung.
+- Schedule-Exporte werden nur für den manuellen Versand erzeugt und nicht dauerhaft in
+  Cloud-Sync-Verzeichnissen abgelegt.
+- Verlust, Diebstahl oder unberechtigter Zugriff werden als möglicher Datenschutzvorfall behandelt
+  und unverzüglich an die zuständige universitäre Stelle eskaliert.
+
 ## Export
 
-Der Forschungsdatenexport enthält Sessions, Timing, Responses und Response Presentations unter
-einer gemeinsamen `researchId` als CSV und JSON, ein Data Dictionary sowie ein Manifest mit
-Versionen, Zählungen und SHA-256-Prüfsummen. Er enthält keine interne Session-UUID, keinen
-Löschcode oder Löschcode-Hash, keine E-Mail, Roh-Tokens, Token-Hashes, Trainingsinputs oder
-SecAware-Quizdaten.
+Der gemeinsame Exporter besitzt die Profile `audit` und `analysis`. Beide enthalten Sessions,
+Timing, Responses und Response Presentations unter einer gemeinsamen `researchId` als CSV und JSON,
+ein Data Dictionary sowie ein Manifest mit Profil, Schemaprofilversion, Versionen, Zählungen und
+SHA-256-Prüfsummen. Beide Profile enthalten keine interne Session-UUID, keinen Löschcode oder
+Löschcode-Hash, keine E-Mail, Roh-Tokens, Token-Hashes, Trainingsinputs oder SecAware-Quizdaten.
+Das gemeinsame Manifestformat ist `research-export-v5`; die gekoppelten Schemaprofilversionen sind
+`research-audit-v1` beziehungsweise `research-analysis-v1`.
+
+`audit` ist die ausschließlich intern und geschützt verwendete Nachweisfassung. Sie behält die
+technischen Kalender- und Empfangszeitpunkte. `analysis` ist die einzige Fassung für Analyse und
+Weitergabe. Sie entfernt Session-Erstellungs- und Abschlusszeitpunkt, Client-/Server-Kalenderzeiten,
+technische monotone Startwerte sowie Erstellungszeitpunkte von Antworten und Präsentationen.
+Sequenz, Phase, Segment, Ereignistyp, Dauer, notwendige Fehlercodes, Versionen, Condition,
+Guardrail-Form, Completion-Status und pseudonyme Forschungs-ID bleiben erhalten.
+
+Tatsächlich ausgefüllte Freitextantworten erscheinen im Analyseprofil nicht in `responses`, sondern
+ausschließlich in `free-text-review` mit Status `pending-review`. Leere optionale Freitexte bleiben
+als `null` analysierbar. Vor einer Übernahme in die Analyse müssen Rohtexte manuell auf Namen, Orte,
+Lehrveranstaltungen und andere identifizierende Angaben geprüft und bereinigt werden. Das Manifest
+weist Anzahl und Prüfstatus aus.
 Das native SecAware-Abschlussquiz ist aus dem gemessenen Referenzpfad entfernt; PassWo-interne
 Lernfragen dürfen bestehen, werden aber ebenso wenig als gemeinsamer Outcome exportiert. Beide
 Bedingungen bearbeiten den gemeinsamen externen Guardrail.
@@ -112,6 +162,18 @@ Der getrennte Schedule-Export enthält ausschließlich E-Mail, individuellen Tok
 Einladungs-, Erinnerungs- und Schließzeitpunkte. Er enthält weder Condition noch
 Forschungsantworten.
 
-Aufbewahrungs-, Lösch- und Backup-Fristen sind vor dem Study Freeze festzulegen. Die Runtime führt
-keine automatische Löschung aus; ausschließlich der oben definierte, ausdrücklich bestätigte
-lokale CLI-Workflow kann einzelne Research- und Recontact-Datensätze löschen.
+## Noch einzutragende Fristenmatrix
+
+Die konkrete Frist ist die einzige verbleibende Datenschutzentscheidung und wird vor dem Study
+Freeze einheitlich in Teilnehmerinformation, Instrumentprojektion und Freeze-Dokument ergänzt:
+
+| Datenklasse | Frist / Startpunkt |
+| --- | --- |
+| Recontact, Schedule und Mailkopien | `[vor Study Freeze festlegen]` |
+| Forschungsdaten und Audit-/Analyseexporte | `[vor Study Freeze festlegen]` |
+| unvollständige Sessions | `[vor Study Freeze festlegen]` |
+| verschlüsselte Backups | `[vor Study Freeze festlegen]` |
+
+Die Runtime führt keine automatische fristbasierte Löschung aus; ausschließlich der oben definierte,
+ausdrücklich bestätigte lokale CLI-Workflow kann einzelne aktive Research- und
+Recontact-Datensätze löschen. Externe Kopien folgen dem dokumentierten organisatorischen Abgleich.

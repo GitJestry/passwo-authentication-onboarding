@@ -208,11 +208,6 @@
   line-height: var(--line-height-body);
 }
 
-.participantInformationDialogBody .secondaryButton {
-  width: 100%;
-  margin-top: var(--space-4);
-}
-
 .consentDetails {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -1202,32 +1197,6 @@
 
 .artifactPreparation .button {
   justify-self: center;
-}
-
-@media print {
-  .participantInformationFloating {
-    position: static;
-  }
-
-  .participantInformationTrigger,
-  .participantInformationDialogClose,
-  .participantInformationDialogBody .secondaryButton {
-    display: none;
-  }
-
-  .participantInformationDialog,
-  .participantInformationDialog[open] {
-    position: static;
-    display: block;
-    width: 100%;
-    max-height: none;
-    border: 0;
-    box-shadow: none;
-  }
-
-  .participantInformationDialogBody {
-    overflow: visible;
-  }
 }
 
 @media (max-width: 64rem) {

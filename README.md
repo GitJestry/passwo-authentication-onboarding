@@ -84,15 +84,28 @@ Datenbank unter
 `~/.passwo-study/study.sqlite`; ein anderer lokaler Datenordner kann über `STUDY_DATA_DIR`
 gesetzt werden.
 
-Ein Export benötigt ein leeres oder neues Zielverzeichnis:
+Ein Export benötigt ein leeres oder neues Zielverzeichnis. `audit` ist die geschützte interne
+Nachweisfassung; nur `analysis` ist für Analyse oder Weitergabe vorgesehen:
 
 ```bash
-pnpm study:export -- --output ./study-export
-pnpm study:export -- --database /pfad/study.sqlite --output ./study-export
+pnpm study:export -- --profile audit --output ./study-audit-export
+pnpm study:export -- --profile analysis --output ./study-analysis-export
+pnpm study:export -- --profile analysis --database /pfad/study.sqlite --output ./study-analysis-export
 ```
 
-Er erzeugt Sessions, Timing und Antworten als CSV und JSON sowie ein Manifest mit Versionen,
-Zählungen und SHA-256-Prüfsummen.
+Ohne `--profile` bleibt `audit` der Standard. Beide Profile erzeugen Sessions, Timing und
+Antworten als CSV und JSON sowie ein Manifest mit Profil, gekoppelter Schemaprofilversion,
+Versionen, Zählungen und SHA-256-Prüfsummen. Der Analyseexport entfernt exakte
+Kalenderzeitpunkte und separiert ausgefüllte Freitexte zur manuellen Prüfung in
+`free-text-review`.
+
+Der optionale Follow-up-Versand erfolgt nicht automatisch. Die Studienleitung erzeugt den
+geschützten Schedule nur bei Bedarf und versendet die neutralen Einladungen einzeln über das
+freigegebene Universitätskonto:
+
+```bash
+pnpm followup:export-schedule -- --output ./followup-schedule.csv --base-url https://example.invalid/follow-up
+```
 
 Eine einzelne Session kann ausschließlich lokal über ihren Löschcode geprüft oder gelöscht werden.
 Der Code wird verdeckt über die Standardeingabe gelesen und nie als Kommandozeilenargument

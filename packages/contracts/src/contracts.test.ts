@@ -16,7 +16,12 @@ import {
   instrumentRuntimeManifest,
   instrumentSubmissionRequestSchema,
   persistedSessionRecordSchema,
+  researchAnalysisPresentationRecordSchema,
+  researchAnalysisResponseRecordSchema,
+  researchAnalysisSessionRecordSchema,
+  researchAnalysisTimingRecordSchema,
   researchExportManifestSchema,
+  researchExportProfileSchema,
   researchExportSessionRecordSchema,
   registerRecontactRequestSchema,
   REFERENCE_ARTIFACT_VERSION,
@@ -360,7 +365,9 @@ describe('research-safe contracts', () => {
 
   it('keeps researcher exports inside the approved data boundary', () => {
     const manifest = {
-      schemaVersion: 'research-export-v4',
+      schemaVersion: 'research-export-v5',
+      profile: 'audit',
+      schemaProfileVersion: 'research-audit-v1',
       exportedAtIso: '2026-07-24T12:00:00.000Z',
       runtimeManifestVersion: instrumentRuntimeManifest.runtimeManifestVersion,
       versions: {
@@ -373,6 +380,7 @@ describe('research-safe contracts', () => {
         referenceArtifact: [REFERENCE_ARTIFACT_VERSION],
       },
       sessionCounts: [{ condition: 'supportive', completionStatus: 'completed', count: 1 }],
+      freeTextReview: { recordCount: 0, status: 'included-in-audit' },
       files: [{ fileName: 'sessions.csv', sha256: 'f'.repeat(64) }],
     };
 
@@ -394,6 +402,27 @@ describe('research-safe contracts', () => {
         'followUpTokenHash',
       ]),
     );
+    expect(researchExportProfileSchema.options).toEqual(['audit', 'analysis']);
+    expect(Object.keys(researchAnalysisSessionRecordSchema.shape)).not.toEqual(
+      expect.arrayContaining(['createdAtIso', 'completedAtIso']),
+    );
+    expect(Object.keys(researchAnalysisTimingRecordSchema.shape)).not.toEqual(
+      expect.arrayContaining([
+        'clientMonotonicMs',
+        'clientWallClockIso',
+        'serverReceivedAtIso',
+      ]),
+    );
+    expect(Object.keys(researchAnalysisResponseRecordSchema.shape)).not.toContain('createdAtIso');
+    expect(Object.keys(researchAnalysisPresentationRecordSchema.shape)).not.toContain(
+      'createdAtIso',
+    );
+    expect(
+      researchExportManifestSchema.safeParse({
+        ...manifest,
+        profile: 'analysis',
+      }).success,
+    ).toBe(false);
   });
 
   it('keeps the generated runtime manifest fully synchronized with the reviewed projection', () => {
@@ -403,12 +432,12 @@ describe('research-safe contracts', () => {
     );
     expect(instrumentRuntimeManifest.procedures.followUpRecontact.optional).toBe(true);
     expect(instrumentRuntimeManifest).toMatchObject({
-      instrumentVersion: '1.8.0-draft',
+      instrumentVersion: '1.9.0-draft',
       questionnaireVersion: 'questionnaire-v1.5-draft',
       guardrailVersion: 'guardrail-v3-draft',
-      consentVersion: 'consent-v5-draft',
+      consentVersion: 'consent-v6-draft',
       followUpVersion: 'follow-up-v3-draft',
-      runtimeManifestVersion: 'instrument-runtime-v1.8-draft',
+      runtimeManifestVersion: 'instrument-runtime-v1.9-draft',
     });
     const preItemIds = instrumentRuntimeManifest.instruments['pre-v1'].sections.flatMap((section) =>
       section.items.map((item) => item.id),

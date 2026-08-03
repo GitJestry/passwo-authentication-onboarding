@@ -61,6 +61,22 @@ wird er gehasht und der pseudonymen Session zugeordnet. Roh-Token und E-Mail wer
   Follow-up-Import-/Debrief-Workflow kann sicher feststellen, dass eine Follow-up-Antwort importiert
   und das abschließende Debriefing versandt wurde; dort ist die anschließende Löschung zu
   implementieren.
-- Öffentliche Survey-Infrastruktur und tatsächlicher Mailversand bleiben separat vor dem Study
-  Freeze festzulegen.
+- Öffentliches Follow-up-Formular, Antwortimport und der manuelle abschließende Debrief-Versand
+  bleiben vor dem Study Freeze umzusetzen und zu erproben.
 - Änderungen an Tokenformat, Zeitfenstern oder Registry-Feldern benötigen eine ADR-Revision.
+
+## Revision 2026-08-03 — Manueller Recontact-Betrieb
+
+Der Versandweg ist festgelegt: Die lokale Runtime automatisiert keine E-Mail. Die Studienleitung
+erzeugt den geschützten Schedule-Export ausdrücklich, versendet Einladung, höchstens eine
+Erinnerung und Debriefing einzeln über das freigegebene Universitätskonto und stellt sicher, dass
+Empfänger einander nicht sehen. Nachrichten enthalten ausschließlich neutralen Text und den
+individuellen Tokenlink, niemals Condition, Forschungs-ID, Antworten oder Löschcode.
+
+`recontact.sqlite`, Schedule-Dateien und Mailkopien dienen ausschließlich Kontaktaufnahme,
+Terminsteuerung, Tokenzuordnung und Debriefing. Sie sind keine Analysequelle und dürfen von
+Analysewerkzeugen nicht geöffnet werden. Schedule-Datei, Postfachkopien und gegebenenfalls
+Mailserver-Backups werden in die vor dem Study Freeze noch einzutragende Frist einbezogen. Nach
+Follow-up-Antwort beziehungsweise Fensterschluss und Debriefing wird die Registry gemäß dieser
+Frist entfernt. Die Software behauptet nicht, Postfach- oder Mailserverkopien automatisch gelöscht
+zu haben. Diese Revision ändert weder Registry-Schema noch Tokenformat, Randomisierung oder Timing.

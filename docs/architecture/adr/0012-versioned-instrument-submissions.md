@@ -140,3 +140,34 @@ zugänglichen Dialog erreichbar.
 Gemäß `ADR 0013-Deletion-Code-Separation` wird der bisherige Teilnehmercode als Löschcode
 bezeichnet und von der Forschungs-ID getrennt. Der Löschcode wird nach Sessionerstellung und am
 Sitzungsende angezeigt, aber weder als Forschungs-ID verwendet noch exportiert.
+
+## Revision 2026-08-03 — Getrennte Audit- und Analyseexporte
+
+Der gemeinsame Forschungsdatenexport erhält die Profile `audit` und `analysis`. Das gemeinsame
+Manifestformat wird `research-export-v5`; die gekoppelten Schemaprofilversionen heißen
+`research-audit-v1` und `research-analysis-v1`. Das Auditprofil bleibt die geschützte interne
+Nachweisfassung mit technischen Zeitpunkten. Das Analyseprofil entfernt exakte Kalender-,
+Empfangs-, Erstellungs- und monotone Startzeitpunkte; methodisch notwendige Dauern, Sequenzen,
+Versionen, Condition, Guardrail-Form, Completion-Status und Forschungs-ID bleiben erhalten.
+
+Ausgefüllte Freitextantworten werden im Analyseprofil aus den regulären Responses separiert und in
+einer geschützten `free-text-review`-Datei mit `pending-review` ausgewiesen. Erst eine manuell auf
+identifizierende Angaben geprüfte und bereinigte Fassung darf in die Analyse übernommen werden.
+Leere optionale Freitexte bleiben als `null` analysierbar. Beide Profile schließen Session-ID,
+Kontaktdaten, Löschcodes, Token und Trainingsinputs aus. Das Manifest enthält Profil,
+Schemaprofilversion, Freitextanzahl, Prüfstatus und Prüfsummen. Diese Revision ändert keine
+Persistenzfelder, Instrumentantworten, Randomisierung oder Timing-Erhebung.
+
+## Revision 2026-08-03 — Datenschutzkontakt und Betroffenenrechte v1.9
+
+Die Instrumentversion wird auf `1.9.0-draft`, die Consent-Version auf `consent-v6-draft` und das
+Runtime-Manifest auf `instrument-runtime-v1.9-draft` angehoben. Fragebogen-, Guardrail- und
+Follow-up-Inhaltsversionen bleiben unverändert.
+
+Der bisherige Kontaktplatzhalter wird anhand der offiziellen Datenschutzerklärung und
+Datenschutz-Stabsstelle der Universität Bonn durch verantwortliche Stelle und
+Datenschutzbeauftragte ersetzt. Die ausführliche Teilnehmerinformation nennt zusätzlich
+Einwilligung gemäß Art. 6 Abs. 1 lit. a DSGVO, Widerruf für die Zukunft, die wesentlichen
+Betroffenenrechte und die zuständige Landesaufsicht. Der geschützte Einwilligungssatz bleibt
+unverändert. Konkrete Aufbewahrungs- und Löschfristen bleiben die einzige noch einzutragende
+Datenschutzangabe vor dem Study Freeze.
