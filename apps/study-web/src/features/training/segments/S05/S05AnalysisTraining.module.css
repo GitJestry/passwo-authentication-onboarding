@@ -259,6 +259,11 @@
   text-overflow: ellipsis;
 }
 
+.localPasswordNotice {
+  color: var(--color-ink-muted);
+  font-size: var(--font-size-x-small);
+}
+
 .attackerPortrait {
   position: absolute;
   z-index: 4;
@@ -1464,6 +1469,298 @@
   outline-offset: var(--space-1);
 }
 
+.componentStrategyLayout {
+  display: grid;
+  width: min(100%, 88rem);
+  min-height: 100%;
+  grid-template-columns: minmax(16rem, 20rem) minmax(0, 1fr);
+  gap: clamp(var(--space-4), 4vw, var(--space-8));
+  margin: 0 auto;
+}
+
+.componentCategoryCards {
+  display: grid;
+  align-content: start;
+  gap: var(--space-2);
+}
+
+.componentCategoryCards article {
+  display: grid;
+  gap: var(--space-2);
+  padding: var(--space-2);
+  border: var(--border-width-thin) solid var(--color-border);
+  border-radius: var(--radius-small);
+  color: var(--color-ink-muted);
+  background: color-mix(in srgb, var(--color-surface-primary) 76%, transparent);
+}
+
+.componentCategoryCards article[data-status="current"] {
+  border-color: var(--color-warning);
+  color: var(--color-ink-strong);
+  box-shadow: inset 0.25rem 0 0 var(--color-warning);
+}
+
+.componentCategoryCards article[data-status="checked-findings"] {
+  border-color: var(--color-accent-strong);
+  color: var(--color-ink-strong);
+}
+
+.componentCategoryCards article[data-status="checked-none"] {
+  border-style: dashed;
+  color: var(--color-ink-muted);
+  background: var(--color-surface-muted);
+}
+
+.componentCategoryCards article[data-focused="true"] {
+  outline: var(--border-width-medium) solid var(--color-focus);
+  outline-offset: var(--space-1);
+}
+
+.componentCategoryHeading {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.componentCategoryHeading img,
+.canonicalBlock small img,
+.changeBindings img {
+  width: 2rem;
+  height: 2rem;
+  flex: 0 0 auto;
+  object-fit: contain;
+}
+
+.componentCategoryHeading h2 {
+  margin: 0;
+  color: inherit;
+  font-size: var(--font-size-small);
+  line-height: var(--line-height-tight);
+}
+
+.componentCategoryHeading span {
+  display: block;
+  margin-top: var(--space-1);
+  font-size: var(--font-size-x-small);
+}
+
+.componentCategoryCards ul {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-1);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.componentCategoryCards li {
+  padding: 0.2rem var(--space-2);
+  border: var(--border-width-thin) solid var(--color-border-soft);
+  border-radius: var(--radius-round);
+  background: var(--color-surface-muted);
+  font-size: var(--font-size-x-small);
+}
+
+.componentCategoryCards button,
+.personalComponentCheck > button {
+  width: fit-content;
+  min-height: var(--size-control-medium);
+  padding: var(--space-2) var(--space-3);
+  border: var(--border-width-medium) solid var(--color-accent-strong);
+  border-radius: var(--radius-small);
+  color: var(--color-on-inverse);
+  background: var(--color-accent-strong);
+  font-weight: var(--font-weight-bold);
+  cursor: pointer;
+}
+
+.componentCategoryCards button {
+  min-height: 2rem;
+  padding: var(--space-1) var(--space-2);
+  font-size: var(--font-size-x-small);
+}
+
+.componentStrategyWorkspace {
+  display: grid;
+  min-width: 0;
+  align-content: center;
+  gap: var(--space-5);
+}
+
+.componentStrategyWorkspace .campusgramPassword {
+  position: static;
+  margin: auto;
+  transform: none;
+}
+
+.canonicalPassword {
+  display: grid;
+  min-width: 0;
+  gap: var(--space-4);
+  padding: clamp(var(--space-4), 3vw, var(--space-6));
+  border: var(--border-width-thin) solid var(--color-border);
+  border-radius: var(--radius-medium);
+  background: var(--color-surface-primary);
+  box-shadow: var(--shadow-card);
+}
+
+.canonicalPassword > header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  color: var(--color-ink-muted);
+  font-size: var(--font-size-small);
+}
+
+.canonicalPassword .revealButton {
+  display: inline-flex;
+  width: auto;
+  min-height: var(--size-control-medium);
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-3);
+  border: var(--border-width-thin) solid var(--color-border-soft);
+  border-radius: var(--radius-small);
+}
+
+.canonicalBlocks {
+  display: flex;
+  min-width: 0;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  align-items: start;
+}
+
+.canonicalBlock {
+  display: grid;
+  min-width: 2.7rem;
+  gap: var(--space-2);
+  padding: var(--space-3);
+  border: var(--border-width-medium) solid var(--color-border);
+  border-radius: var(--radius-small);
+  background: var(--color-surface-muted);
+}
+
+.canonicalBlock[data-marked="true"] {
+  border-style: solid;
+  box-shadow: inset 0 -0.22rem 0 var(--color-accent-soft);
+}
+
+.canonicalBlock[data-primary="true"] {
+  border-color: var(--color-warning);
+  box-shadow: inset 0 -0.25rem 0 var(--color-warning);
+}
+
+.canonicalBlock code {
+  color: var(--color-ink-strong);
+  font-size: clamp(1rem, 2vw, 1.45rem);
+  overflow-wrap: anywhere;
+}
+
+.canonicalBlock small {
+  display: flex;
+  max-width: 13rem;
+  align-items: center;
+  gap: var(--space-1);
+  color: var(--color-ink-muted);
+  font-size: var(--font-size-x-small);
+  line-height: var(--line-height-tight);
+}
+
+.canonicalBlock small img,
+.changeBindings img {
+  width: 1.25rem;
+  height: 1.25rem;
+}
+
+.changeBindings {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+}
+
+.changeBindings > span {
+  position: relative;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 0 var(--space-2);
+  padding: var(--space-3) var(--space-3) var(--space-2);
+  border-top: var(--border-width-medium) solid var(--color-border);
+  border-left: var(--border-width-medium) solid var(--color-border);
+  border-radius: var(--radius-small) 0 0;
+  color: var(--color-ink-muted);
+}
+
+.changeBindings > span[data-primary="true"] {
+  border-color: var(--color-warning);
+  color: var(--color-ink-strong);
+}
+
+.changeBindings strong {
+  font-size: var(--font-size-small);
+}
+
+.changeBindings small {
+  grid-column: 2;
+  font-size: var(--font-size-x-small);
+}
+
+.personalComponentCheck {
+  display: grid;
+  gap: var(--space-3);
+  padding: var(--space-4);
+  border: var(--border-width-thin) solid var(--color-border);
+  border-radius: var(--radius-medium);
+  background: var(--color-surface-primary);
+}
+
+.personalComponentCheck h2,
+.personalComponentCheck p {
+  margin: 0;
+}
+
+.personalComponentCheck fieldset {
+  display: grid;
+  gap: var(--space-2);
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.personalComponentCheck label {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.personalBlockOptions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  margin-bottom: var(--space-2);
+}
+
+.personalBlockOptions label {
+  padding: var(--space-2) var(--space-3);
+  border: var(--border-width-thin) solid var(--color-border-soft);
+  border-radius: var(--radius-small);
+  background: var(--color-surface-muted);
+}
+
+.personalComponentCheck button:disabled {
+  border-color: var(--color-border);
+  color: var(--color-ink-muted);
+  background: var(--color-surface-muted);
+  cursor: default;
+}
+
+.componentCategoryCards button:focus-visible,
+.personalComponentCheck button:focus-visible,
+.personalComponentCheck input:focus-visible {
+  outline: var(--border-width-focus) solid var(--color-focus);
+  outline-offset: var(--space-1);
+}
+
 @keyframes attacker-candidate-failure {
   0% {
     opacity: 0;
@@ -1762,6 +2059,19 @@
 
   .pageHeader[data-category-chain="true"] {
     grid-template-columns: minmax(0, 1fr);
+  }
+
+  .componentStrategyLayout {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .componentCategoryCards {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .canonicalPassword > header {
+    align-items: flex-start;
+    flex-direction: column;
   }
 
   .categoryChain {

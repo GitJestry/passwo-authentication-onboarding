@@ -27,12 +27,15 @@ Seitenangaben beziehen sich auf die im Trainingsdokument ausgewiesene interne Pa
 
 - Vor `Naheliegende Bestandteile` führt die wiederhergestellte S05-Einleitung von der verdeckten
   Kandidatenprüfung über Zufallsfolge, merkbare Kombination und Bausteinmodell zur Vorschau der
-  drei Angriffsstrategien. Der anschließende Einstieg in `Naheliegende Bestandteile` zeigt eine
-  reproduzierbare Folge aus einem bis acht verdeckten Bausteinen. `Häufige Kerne` verwendet eine
-  rein authored, fortlaufende Maschine für
-  die sechs festgelegten Beispiele und typische sichtbare Varianten; anschließend werden nur
-  vorhandene lokale Kern-, Zahlenfolgen- und Jahresbefunde am maskierten fiktiven Passwort
-  hervorgehoben. Die Szene übergibt mit kompakter Zusammenfassung an `Persönliche Angaben`.
+  drei Angriffsstrategien. `Naheliegende Bestandteile` zeigt danach dauerhaft die vier Kategorien
+  `Häufig gewählte Bestandteile`, `Persönliche Angaben`, `Kontobezug` und
+  `Typische Veränderungen`. Vor der ersten Unterprüfung führt die wiederhergestellte animierte
+  Bausteinfolge über einen festen häufig gewählten Beispielbestandteil und die vergrößernde erste
+  Kategorienkarte. Erst danach beginnt `Häufig gewählte Bestandteile` mit der eigentlichen
+  Erklärung. Der erste lokale Prüfklick erzeugt einmalig die kanonische
+  Bausteinansicht; die vier Unterprüfungen legen ihre Befunde nacheinander offen und speichern sie
+  ausschließlich im flüchtigen Präsentationszustand der Karten. Eine eigene gemeinsame
+  Abschlussansicht übergibt anschließend an `Vorhersehbarer Aufbau`.
 - S05.0 bis S05.4 verwenden die internen Seiten 12 bis 35 als Inhaltsquelle und sind im Design Lab
   sowie im realen Supportive-Training zwischen S04 und S06 vollständig durchspielbar. Beide Pfade
   verwenden dieselbe Komponente und denselben lokalen Controller.

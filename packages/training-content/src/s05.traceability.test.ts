@@ -3,7 +3,7 @@ import { S05_CONTENT_VERSION, s05Content } from './s05.js';
 
 describe('S05 content traceability', () => {
   it('keeps the participant copy bounded and separate from internal terminology', () => {
-    expect(S05_CONTENT_VERSION).toBe('2.12.0');
+    expect(S05_CONTENT_VERSION).toBe('2.14.0');
     expect(s05Content.source).toMatchObject({
       document: 'research/private/training-script.pdf',
       internalPages: [
@@ -11,7 +11,7 @@ describe('S05 content traceability', () => {
         35,
       ],
       copyReference:
-        'docs/design/S00-S05-COPY-AUDIT.md#copy-delta-s05-bausteinmodell-und-kategoriefluss-3-august-2026',
+        'docs/design/S00-S05-COPY-AUDIT.md#copy-delta-s05-wiederhergestellter-übergang-zu-häufig-gewählten-bestandteilen-3-august-2026',
     });
     expect(s05Content.segment.id).toBe('S05');
     expect(s05Content.page.fixtureNotice).toBe(
@@ -27,17 +27,25 @@ describe('S05 content traceability', () => {
       'Kontakte',
       'Beiträge',
     ]);
-    expect(s05Content.intro.componentFrames.map(({ partLengths }) => partLengths.length)).toEqual([
-      3, 7, 4, 5, 8, 3, 6, 4,
-    ]);
     expect(s05Content.intro.strategyAnnotations.probability).toBe('sehr häufig');
+    expect(s05Content.componentStrategy.categories.map(({ title }) => title)).toEqual([
+      'Häufig gewählte Bestandteile',
+      'Persönliche Angaben',
+      'Kontobezug',
+      'Typische Veränderungen',
+    ]);
+    expect(s05Content.componentStrategy.title).toBe('Naheliegende Bestandteile');
     expect(s05Content.intro.narration.componentCategoryOverview).toEqual([
       'Bestimmte Bestandteile – und sehr häufige vollständige Passwörter wie „123456789“ – kann er früh abgleichen.',
-      'Somit kommen wir zur 1. von 4 Kategorien: Die häufigen Kerne.',
+      'Somit kommen wir zur 1. von 4 Kategorien: Häufig gewählte Bestandteile.',
     ]);
-    expect(s05Content.intro.narration.componentStartQuestion).toEqual([
-      'Die Strategie beginnt mit der Frage: Bei welchen Bestandteilen soll der Angreifer anfangen?',
-    ]);
+    expect(s05Content.componentStrategy.commonComponents.explanation[0]).toBe(
+      'Angreifer beginnen häufig mit Passwörtern und Bestandteilen, die viele Menschen bereits verwendet haben.',
+    );
+    expect(s05Content.componentStrategy.commonComponents.check).toBe('Passwort prüfen');
+    expect(s05Content.componentStrategy.accountContext.check).toBe('Im Passwort prüfen');
+    expect(s05Content.componentStrategy.typicalChanges.check).toBe('Veränderungen prüfen');
+    expect(s05Content.componentStrategy.summary.continue).toBe('Weiter zum Aufbau');
     expect(s05Content.intro.narration.candidateCheck).toEqual([
       'Für den Angreifer ist das Passwort verdeckt. Sein Programm muss mögliche Passwörter erzeugen und prüfen, ob eines davon passt.',
     ]);
@@ -47,7 +55,7 @@ describe('S05 content traceability', () => {
       browser: s05Content.browser,
       page: Object.values(s05Content.page),
       intro: s05Content.intro,
-      componentDemonstrations: s05Content.componentDemonstrations,
+      componentStrategy: s05Content.componentStrategy,
       findingLabels: s05Content.findingLabels,
       result: s05Content.result,
       structure: s05Content.structure,
@@ -59,6 +67,9 @@ describe('S05 content traceability', () => {
       /fixture|laufzeitbefund|produktionsbewertung|gesamtscore|lokale analyse|design-lab|controller|theoretische entropie/iu,
     );
     expect(participantContent.match(/keine allgemeine Sicherheitsbewertung/giu)).toHaveLength(1);
+    expect(JSON.stringify(s05Content.componentStrategy)).not.toMatch(
+      /thematisch|satzstruktur|wiederholung|wortkombination/iu,
+    );
     expect(s05Content.structure.application.reflection.privacyNote).toMatch(/laufenden Übung/u);
     expect(s05Content.structure.application.reflection.privacyNote).toMatch(/verändert nicht/u);
     expect(

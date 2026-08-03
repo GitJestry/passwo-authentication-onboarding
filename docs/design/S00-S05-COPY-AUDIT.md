@@ -549,3 +549,46 @@ und vierten Bausteins. Diese Visuals bleiben presentation-only und ändern keine
 
 Das ergänzende visuelle Delta vom 3. August 2026 erhöht `S05_CONTENT_VERSION` von `2.11.0` auf
 `2.12.0`. Es verändert keinen Teilnehmertext und keine Analyseentscheidung.
+
+### Copy-Delta S05 vierstufige Offenlegung naheliegender Bestandteile 3. August 2026
+
+Quelle ist der ausdrückliche Nutzerauftrag vom 3. August 2026. Die Änderung ersetzt ausschließlich
+die bisherige participant-facing Folge innerhalb der ersten Strategie. Analyse, vollständiger
+Rateweg, Längenorientierung, `simulationDisposition`, Persistenz und die nachfolgende Strategie
+`Vorhersehbarer Aufbau` bleiben unverändert. `S05_CONTENT_VERSION` wird von `2.12.0` auf `2.13.0`
+erhöht.
+
+| Segment und Text-ID | Aktueller Text / Verhalten | Neuer Text / Verhalten | Primäre Rolle | Grund und Bedeutungsänderung | Interaktionsziel / Hervorhebung |
+|---|---|---|---|---|---|
+| `S05.componentStrategy.categories` | `Häufige Kerne`, `Persönliche Angaben`, `Konto-Kontext`, `Typische Veränderungen`; spätere Kategorien zunächst verdeckt | `Häufig gewählte Bestandteile`, `Persönliche Angaben`, `Kontobezug`, `Typische Veränderungen`; vier dauerhaft sichtbare Statuskarten | Orientierung | ausdrücklich freigegebene Hierarchie und feste Reihenfolge | Karten sind nur in der Zusammenfassung als Befundfilter bedienbar; Symbol, Text und Rahmen tragen den Zustand gemeinsam |
+| `S05.componentStrategy.commonComponents.*` | Variantenmaschine erklärt typische Veränderungen bereits vor der ersten lokalen Anwendung | Die vier ausdrücklich vorgegebenen Erklärungs-, Ergebnis- und Übergangstexte; Veränderungen bleiben bis Kategorie 4 verdeckt | Mechanismuserklärung / Ergebnisfeedback / Navigation | fachliche Trennung einzelner häufiger Bestandteile von später offengelegten Veränderungen; ausdrücklich freigegeben | `Passwort prüfen` führt lokale Analyseabrufung, Reveal und einmalige kanonische Segmentierung gemeinsam aus |
+| `S05.intro.campusgramPassword.localNotice` | allgemeine Simulationsgrenze an der Seite | `Fiktives Passwort · wird nur lokal ausgewertet` direkt am Passwort | Safety Boundary | Datenschutzgrenze an der konkreten Offenlegung; begrenzte Bedeutungsänderung | Augen-Umschalter ändert ausschließlich die Zeichenmaskierung |
+| `S05.componentStrategy.personalDetails.*` | persönliche Bedeutung zusammen mit Thema und Satz/Phrase erst in der Strukturanwendung | Die ausdrücklich vorgegebenen Erklärungs-, Auswahl-, Ergebnis- und Übergangstexte; ausschließlich vorhandene Bausteine, `Kein Bestandteil …` oder `Unsicher` | Mechanismuserklärung / Ergebnisfeedback | persönliche Bedeutung darf nur aus lokaler Nutzerzuordnung stammen; Thema und Satzstruktur verbleiben in Strategie 2 | Mehrfachauswahl vorhandener Bausteine; keine Freitexteingabe, kein Export, keine Forschungsvariable |
+| `S05.componentStrategy.accountContext.*` | allgemeine Karte `Konto-Kontext` und spätere Strukturbeziehung | Die ausdrücklich vorgegebenen Campusgram-Erklärungs-, Ergebnis- und Übergangstexte | Mechanismuserklärung / Ergebnisfeedback | exakte Offenlegung ausschließlich aus dem eingefrorenen Kontextlexikon; ausdrücklich freigegeben | `Im Passwort prüfen`; Kontobefunde erhalten Symbol und Textlabel |
+| `S05.componentStrategy.typicalChanges.*` | Veränderungen werden in der ersten Unterkategorie erklärt und zusätzlich später als Bestandteil ausgegeben | Die ausdrücklich vorgegebenen Erklärungs-, Ergebnis- und Übergangstexte; gebundene Overlays für Großschreibung, Ersetzung, Zahlen-/Jahres-/Symbolanhang | Mechanismuserklärung / Ergebnisfeedback | Veränderungen sind keine gleichwertigen Inhaltsbausteine und werden bewusst zuletzt offengelegt; ausdrücklich freigegeben | `Veränderungen prüfen`; Klammer-/Linienmarker bindet die Änderung an Grundbestandteil oder gesamte Zeichenfolge |
+| `S05.componentStrategy.summary.*` | direkte Übergabe von einer kompakten Kernkarte an `Persönliche Angaben` | eigene Abschlussansicht mit vier gespeicherten Karten, gemeinsamer Bausteinansicht und den ausdrücklich vorgegebenen dynamischen Abschlusstexten | Kerngedanke / Navigation | gemeinsame, scorefreie Zusammenführung vor Strategie 2; ausdrücklich freigegeben | Kategorienkarte filtert nur die Hervorhebung; `Weiter zum Aufbau` führt zu `Vorhersehbarer Aufbau` |
+
+Die vier Unterprüfungen erzeugen ausschließlich flüchtigen lokalen Präsentationszustand. Zeichen,
+erkannte Wörter, persönliche Einordnungen, Kontobezüge, Transformationen und Kategorienergebnisse
+werden nicht gespeichert oder exportiert. Mehrere Befunde werden nur als einzelne Ausgangspunkte
+benannt; Thema, Satzstruktur, Wiederholung, sprachliche Fortsetzung und Beziehungen mehrerer Wörter
+werden in dieser Strategie weder erklärt noch bewertet.
+
+### Copy-Delta S05 wiederhergestellter Übergang zu häufig gewählten Bestandteilen 3. August 2026
+
+Quelle ist der ausdrückliche Nutzerauftrag vom 3. August 2026. Vor der tatsächlichen Unterprüfung
+`Häufig gewählte Bestandteile` wird der zuvor entfernte dreistufige Übergang aus wechselnden
+verdeckten Bausteinen, festem häufigem Beispielbestandteil und vergrößernder Kategorienkarte
+wiederhergestellt. Die Benennung `Häufige Kerne` kehrt nicht zurück. `S05_CONTENT_VERSION` wird von
+`2.13.0` auf `2.14.0` erhöht.
+
+| Segment und Text-ID | Aktueller Text / Verhalten | Wiederhergestellter Text / Verhalten | Primäre Rolle | Grund und Bedeutungsänderung | Interaktionsziel / Hervorhebung |
+|---|---|---|---|---|---|
+| `S05.intro.narration.componentStartQuestion` | direkter Einstieg in die erste Unterprüfung | `Die Strategie beginnt mit der Frage: Bei welchen Bestandteilen soll der Angreifer anfangen?` | Mechanismuserklärung | dramaturgische Wiederherstellung; keine fachliche Änderung | `Weiter`; wechselnde verdeckte Bausteine |
+| `S05.intro.narration.componentFrequency` | entfällt | `Er könnte alle Zeichenfolgen, Wörter und Begriffe der Welt ausprobieren. Aber nicht alle Bestandteile werden in Passwörtern gleich häufig verwendet.` | Mechanismuserklärung | erklärt die Auswahl wahrscheinlicher Bestandteile vor der Kategorie | `Weiter`; derselbe stabile Animationsraum |
+| `S05.intro.narration.componentCategoryOverview` | entfällt | `Bestimmte Bestandteile – und sehr häufige vollständige Passwörter wie „123456789“ – kann er früh abgleichen.` / `Somit kommen wir zur 1. von 4 Kategorien: Häufig gewählte Bestandteile.` | Mechanismuserklärung / Orientierung | alte Übergangsfunktion mit neuer freigegebener Benennung | `Weiter` startet den vergrößernden Kartenübergang; `123456789` bleibt der feste hervorgehobene Beispielbestandteil |
+| `S05.componentStrategy.commonComponents.explanation[0]` | erster Satz der Unterprüfung | unverändert `Angreifer beginnen häufig mit Passwörtern und Bestandteilen, die viele Menschen bereits verwendet haben.` | Mechanismuserklärung | markiert weiterhin eindeutig den Beginn der tatsächlichen Unterprüfung nach dem Übergang | `Passwort prüfen` bleibt erst am Ende dieser Erklärung verfügbar |
+
+Der Übergang analysiert keine Teilnehmerdaten und erzeugt keine Kategorienbefunde. Kanonische
+Segmentierung, Reveal und erste Befundspeicherung beginnen weiterhin ausschließlich mit
+`Passwort prüfen` innerhalb von `Häufig gewählte Bestandteile`.

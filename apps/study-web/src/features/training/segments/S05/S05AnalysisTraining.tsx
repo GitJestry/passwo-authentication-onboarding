@@ -1,12 +1,10 @@
 import type {
-  PasswordEvidenceSpan,
   PasswordSemanticReflectionSelection,
   PasswordSingleFindingKind,
   RuntimeStructureFindingKind,
 } from '@passwo/contracts';
 import { s00Content, s05Content } from '@passwo/training-content';
 import type {
-  PasswordFindingSceneSnapshot,
   PasswordFreeSearchApplicationSceneSnapshot,
   PasswordFreeSearchDemonstrationSceneSnapshot,
   PasswordStructureSceneSnapshot,
@@ -26,6 +24,11 @@ import {
   S05AnalysisController,
 } from './S05AnalysisController.js';
 import { S05AnimationAdapter } from './S05AnimationAdapter.js';
+import {
+  maskedCanonicalBlocks,
+  type S05CategoryFinding,
+  type S05ComponentCategoryId,
+} from './S05ComponentStrategy.js';
 import styles from './S05AnalysisTraining.module.css';
 
 export type S05TimingState = 'active' | 'writingEnd' | 'endWriteFailed';
@@ -94,6 +97,9 @@ function CampusgramPassword({
       <code aria-label={s05Content.intro.campusgramPassword.accessibleLabel}>
         {hiddenValue}
       </code>
+      <small className={styles.localPasswordNotice}>
+        {s05Content.intro.campusgramPassword.localNotice}
+      </small>
     </section>
   );
 }
@@ -294,8 +300,8 @@ function ComponentSequence({ fixed }: { readonly fixed: boolean }) {
       role="img"
       aria-label={
         fixed
-          ? 'Dreiteiliges Passwort: verdeckter Bestandteil, hervorgehobener häufiger Kern 123456789, verdeckter Bestandteil.'
-          : 'Wechselnde Folge aus drei bis acht unterschiedlich langen verdeckten blauen Bestandteilen.'
+          ? s05Content.intro.componentLeadIn.fixedBlockAria
+          : s05Content.intro.componentLeadIn.changingBlocksAria
       }
     >
       <div aria-hidden="true">
@@ -360,35 +366,36 @@ function ComponentStartScene({
 
 const categoryAssets = {
   'common-components': commonCoresAsset,
-  'personal-examples': personalDetailsAsset,
+  'personal-details': personalDetailsAsset,
   'account-context': accountContextAsset,
   'typical-changes': typicalChangesAsset,
 } as const;
 
-function CategoryChain({
-  announcing,
-  visible,
-}: {
-  readonly announcing: boolean;
-  readonly visible: boolean;
-}) {
+function CategoryChain({ visible, announcing }: { readonly visible: boolean; readonly announcing: boolean }) {
+  const firstCategory = s05Content.componentStrategy.categories[0];
   return (
     <div
       className={styles.categoryChain}
       data-hidden={visible ? undefined : true}
       aria-hidden={visible ? undefined : true}
-      aria-label={visible ? 'Erste von vier Kategorien: Häufige Kerne' : undefined}
+      aria-label={visible ? s05Content.intro.componentLeadIn.firstCategoryAria : undefined}
     >
       <article
         data-active="true"
         data-announcing={announcing || undefined}
-        data-category-active="common-cores"
+        data-category-active="common-components"
       >
         <img src={commonCoresAsset} alt="" />
-        <h2>1. Häufige Kerne</h2>
+        <h2>{`1. ${firstCategory.title}`}</h2>
       </article>
       {[2, 3, 4].map((number) => (
-        <article key={number} aria-label={`Kategorie ${number} noch verdeckt`}>
+        <article
+          key={number}
+          aria-label={s05Content.intro.componentLeadIn.hiddenCategoryAria.replace(
+            '[Nummer]',
+            String(number),
+          )}
+        >
           <strong aria-hidden="true">?</strong>
         </article>
       ))}
@@ -403,6 +410,7 @@ function CategoryTransitionOverlay({
   readonly rect: CategoryTransitionRect;
   readonly onComplete: () => void;
 }) {
+  const firstCategory = s05Content.componentStrategy.categories[0];
   return (
     <div
       className={styles.categoryTransitionOverlay}
@@ -413,79 +421,11 @@ function CategoryTransitionOverlay({
     >
       <article className={styles.categoryTransitionCard} style={categoryTransitionStyle(rect)}>
         <img src={commonCoresAsset} alt="" />
-        <h2>1. Häufige Kerne</h2>
+        <h2>{`1. ${firstCategory.title}`}</h2>
       </article>
     </div>
   );
 }
-
-function CategoryCard({
-  title,
-  image,
-  active = false,
-  summary,
-}: {
-  readonly title: string;
-  readonly image: string;
-  readonly active?: boolean;
-  readonly summary?: string;
-}) {
-  return (
-    <article className={styles.categoryCard} data-active={active || undefined}>
-      <img src={image} alt="" />
-      <div>
-        <h2>{title}</h2>
-        {summary === undefined ? null : <code>{summary}</code>}
-      </div>
-    </article>
-  );
-}
-
-function CommonCoreMachineScene({ variants }: { readonly variants: readonly string[] }) {
-  const examples = s05Content.intro.commonCores.examples;
-  const visibleVariants = variants.slice(0, 48);
-  return (
-    <div className={styles.commonCoreWorkspace} data-s05-target="common-core-machine">
-      <section className={styles.coreSource} aria-label={`Beispielkerne: ${examples.join(', ')}`}>
-        <strong>Häufig verwendete Kerne</strong>
-        <div aria-hidden="true">
-          {[...examples, ...examples].map((example, index) => (
-            <code key={`${example}-${index}`}>{example}</code>
-          ))}
-        </div>
-      </section>
-      <section className={styles.variantMachine} aria-label="Typische Veränderungen werden erzeugt">
-        <div className={styles.machineHousing}>
-          <span />
-          <strong>Varianten</strong>
-          <span />
-        </div>
-        <div className={styles.conveyor} aria-hidden="true">
-          {examples.map((example) => <i key={example}>{example}</i>)}
-        </div>
-      </section>
-      <section className={styles.variantStream} aria-label="Viele schnell erzeugte Varianten">
-        <strong>Erzeugte Varianten</strong>
-        <div aria-hidden="true">
-          {[...visibleVariants, ...visibleVariants].map((variant, index) => (
-            <code key={`${variant}-${index}`}>{variant}</code>
-          ))}
-        </div>
-      </section>
-    </div>
-  );
-}
-
-const commonCoreFindingKinds = new Set<PasswordSingleFindingKind>([
-  'common-password-core',
-  'common-word',
-  'common-name',
-  'keyboard-pattern',
-  'simple-character-sequence',
-  'predictable-word-sequence',
-  'year',
-  'date',
-]);
 
 const semanticReflectionOrder = [
   'personal-meaning',
@@ -493,10 +433,6 @@ const semanticReflectionOrder = [
   'sentence-or-familiar-phrase',
   'none-or-unsure',
 ] as const satisfies readonly PasswordSemanticReflectionSelection[];
-
-function commonCoreFindings(scene: PasswordFindingSceneSnapshot) {
-  return scene.prioritizedFindings.filter(({ kind }) => commonCoreFindingKinds.has(kind));
-}
 
 function PasswordVisibilityIcon({ revealed }: { readonly revealed: boolean }) {
   return (
@@ -517,111 +453,289 @@ function PasswordVisibilityIcon({ revealed }: { readonly revealed: boolean }) {
   );
 }
 
-function HighlightedCommonCorePassword({
-  password,
-  scene,
-}: {
-  readonly password: string;
-  readonly scene: PasswordFindingSceneSnapshot;
-}) {
-  const spans = commonCoreFindings(scene)
-    .flatMap(({ evidence }) => evidence)
-    .filter((evidence): evidence is PasswordEvidenceSpan => evidence.type === 'span')
-    .sort((left, right) => left.start - right.start);
-  const parts: ReactNode[] = [];
-  let cursor = 0;
-  for (const span of spans) {
-    if (span.start < cursor) continue;
-    if (cursor < span.start) {
-      parts.push(<span key={`plain-${cursor}`}>{password.slice(cursor, span.start)}</span>);
-    }
-    parts.push(
-      <mark key={`core-${span.start}-${span.end}`}>
-        {password.slice(span.start, span.end)}
-      </mark>,
-    );
-    cursor = span.end;
-  }
-  if (cursor < password.length) parts.push(<span key={`plain-${cursor}`}>{password.slice(cursor)}</span>);
-  return <code className={styles.commonCorePassword}>{parts}</code>;
+function categoryForStep(
+  step: S05AnalysisControllerSnapshot['step'],
+): S05ComponentCategoryId | null {
+  if (step.startsWith('common-components-')) return 'common-components';
+  if (step.startsWith('personal-details-')) return 'personal-details';
+  if (step.startsWith('account-context-')) return 'account-context';
+  if (step.startsWith('typical-changes-')) return 'typical-changes';
+  return null;
 }
 
-function CommonCoreApplicationScene({
+function visibleCardChips(findings: readonly S05CategoryFinding[]): readonly string[] {
+  const labels = [...new Set(findings.map(({ label }) => label))];
+  if (labels.length <= 3) return labels;
+  return [...labels.slice(0, 2), s05Content.componentStrategy.moreFindings];
+}
+
+function CategoryCards({
+  snapshot,
+  controller,
+}: {
+  readonly snapshot: S05AnalysisControllerSnapshot;
+  readonly controller: S05AnalysisController;
+}) {
+  const summary = snapshot.step === 'components-summary';
+  return (
+    <aside
+      className={styles.componentCategoryCards}
+      aria-label={s05Content.componentStrategy.presentation.categoriesAriaLabel}
+    >
+      {s05Content.componentStrategy.categories.map((category, index) => {
+        const card = snapshot.componentStrategy.cards[category.id];
+        const focused = summary && snapshot.componentStrategy.summaryFocus === category.id;
+        return (
+          <article
+            key={category.id}
+            data-status={card.status}
+            data-focused={focused || undefined}
+          >
+            <div className={styles.componentCategoryHeading}>
+              <img src={categoryAssets[category.id]} alt="" />
+              <div>
+                <h2>{`${index + 1}. ${category.title}`}</h2>
+                <span>{s05Content.componentStrategy.statusLabels[card.status]}</span>
+              </div>
+            </div>
+            {card.findings.length === 0 ? null : (
+              <ul>
+                {visibleCardChips(card.findings).map((label) => <li key={label}>{label}</li>)}
+              </ul>
+            )}
+            {summary ? (
+              <button
+                type="button"
+                aria-pressed={focused}
+                onClick={() => controller.focusSummaryCategory(category.id)}
+              >
+                {focused
+                  ? s05Content.componentStrategy.presentation.showAllCategories
+                  : s05Content.componentStrategy.presentation.highlightFindings}
+              </button>
+            ) : null}
+          </article>
+        );
+      })}
+    </aside>
+  );
+}
+
+function releasedComponentFindings(
+  snapshot: S05AnalysisControllerSnapshot,
+): readonly S05CategoryFinding[] {
+  return s05Content.componentStrategy.categories.flatMap(({ id }) => {
+    const card = snapshot.componentStrategy.cards[id];
+    return card.status === 'checked-findings' ? card.findings : [];
+  });
+}
+
+function CanonicalPasswordView({
+  snapshot,
+  revealed,
+  onToggle,
+}: {
+  readonly snapshot: S05AnalysisControllerSnapshot;
+  readonly revealed: boolean;
+  readonly onToggle: () => void;
+}) {
+  const view = snapshot.componentStrategy.canonicalView;
+  if (view === null) return null;
+  const blocks = revealed ? view.blocks : maskedCanonicalBlocks(view.blocks);
+  const focus = snapshot.componentStrategy.summaryFocus ?? categoryForStep(snapshot.step);
+  const findings = releasedComponentFindings(snapshot);
+  const blockFindings = findings.filter(({ categoryId }) => categoryId !== 'typical-changes');
+  const changes = findings.filter(({ categoryId }) => categoryId === 'typical-changes');
+  return (
+    <section
+      className={styles.canonicalPassword}
+      aria-label={s05Content.componentStrategy.presentation.canonicalAriaLabel}
+    >
+      <header>
+        <span>{s05Content.intro.campusgramPassword.localNotice}</span>
+        <button
+          type="button"
+          className={styles.revealButton}
+          aria-pressed={revealed}
+          aria-label={
+            revealed
+              ? s05Content.componentStrategy.presentation.hidePassword
+              : s05Content.componentStrategy.presentation.showPassword
+          }
+          onClick={onToggle}
+        >
+          <PasswordVisibilityIcon revealed={revealed} />
+          <span>
+            {revealed
+              ? s05Content.componentStrategy.presentation.hidePassword
+              : s05Content.componentStrategy.presentation.showPassword}
+          </span>
+        </button>
+      </header>
+      <div className={styles.canonicalBlocks} data-revealed={revealed || undefined}>
+        {blocks.map((block, index) => {
+          const labels = blockFindings.filter(({ blockIds }) => blockIds.includes(block.id));
+          const primary = labels.some(({ categoryId }) => categoryId === focus);
+          return (
+            <span
+              key={block.id}
+              className={styles.canonicalBlock}
+              data-marked={labels.length > 0 || undefined}
+              data-primary={primary || undefined}
+            >
+              <code
+                aria-label={
+                  revealed
+                    ? block.value
+                    : `${s05Content.componentStrategy.presentation.blockLabel} ${index + 1}, ${s05Content.componentStrategy.presentation.hiddenBlockLabel}`
+                }
+              >
+                {block.value}
+              </code>
+              {labels.map((finding) => (
+                <small key={finding.id} data-category={finding.categoryId}>
+                  <img src={categoryAssets[finding.categoryId]} alt="" />
+                  {finding.label}
+                </small>
+              ))}
+            </span>
+          );
+        })}
+      </div>
+      {changes.length === 0 ? null : (
+        <div
+          className={styles.changeBindings}
+          aria-label={s05Content.componentStrategy.presentation.changesAriaLabel}
+        >
+          {changes.slice(0, 3).map((finding) => (
+            <span
+              key={finding.id}
+              data-primary={focus === 'typical-changes' || undefined}
+              data-binding={finding.binding}
+            >
+              <img src={typicalChangesAsset} alt="" />
+              <strong>{finding.label}</strong>
+              <small>
+                {finding.binding === 'password'
+                  ? s05Content.componentStrategy.presentation.boundToPassword
+                  : s05Content.componentStrategy.presentation.boundToComponent}
+              </small>
+            </span>
+          ))}
+          {changes.length > 3 ? (
+            <span data-primary={focus === 'typical-changes' || undefined} data-binding="password">
+              <img src={typicalChangesAsset} alt="" />
+              <strong>{s05Content.componentStrategy.typicalChanges.results.overflow}</strong>
+            </span>
+          ) : null}
+        </div>
+      )}
+    </section>
+  );
+}
+
+function PersonalDetailsCheck({
+  snapshot,
+  controller,
+  revealed,
+}: {
+  readonly snapshot: S05AnalysisControllerSnapshot;
+  readonly controller: S05AnalysisController;
+  readonly revealed: boolean;
+}) {
+  const view = snapshot.componentStrategy.canonicalView;
+  if (view === null) return null;
+  const selection = snapshot.componentStrategy.personalSelection;
+  const blocks = revealed ? view.blocks : maskedCanonicalBlocks(view.blocks);
+  const content = s05Content.componentStrategy.personalDetails;
+  return (
+    <section className={styles.personalComponentCheck} aria-labelledby="s05-personal-question">
+      <h2 id="s05-personal-question">{content.question}</h2>
+      <p>{content.privacyNote}</p>
+      <fieldset>
+        <legend className={styles.visuallyHidden}>{content.question}</legend>
+        <div className={styles.personalBlockOptions}>
+          {blocks.map((block, index) => (
+            <label key={block.id}>
+              <input
+                type="checkbox"
+                checked={selection.blockIds.includes(block.id)}
+                onChange={() => controller.togglePersonalBlock(block.id)}
+              />
+              <code
+                aria-label={`${s05Content.componentStrategy.presentation.blockLabel} ${index + 1}`}
+              >
+                {block.value}
+              </code>
+            </label>
+          ))}
+        </div>
+        {selection.blockIds.length > 1 ? (
+          <label>
+            <input
+              type="checkbox"
+              checked={selection.grouped}
+              onChange={() => controller.togglePersonalGrouping()}
+            />
+            <span>{content.groupSelection}</span>
+          </label>
+        ) : null}
+        <label>
+          <input
+            type="radio"
+            name="s05-personal-alternative"
+            checked={selection.alternative === 'none'}
+            onChange={() => controller.selectPersonalAlternative('none')}
+          />
+          <span>{content.none}</span>
+        </label>
+        <label>
+          <input
+            type="radio"
+            name="s05-personal-alternative"
+            checked={selection.alternative === 'unsure'}
+            onChange={() => controller.selectPersonalAlternative('unsure')}
+          />
+          <span>{content.unsure}</span>
+        </label>
+      </fieldset>
+      <button
+        type="button"
+        disabled={selection.blockIds.length === 0 && selection.alternative === null}
+        onClick={() => controller.completePersonalDetailsCheck()}
+      >
+        {content.apply}
+      </button>
+    </section>
+  );
+}
+
+function ComponentStrategyScene({
   subject,
-  scene,
+  snapshot,
+  controller,
   revealed,
   onToggle,
 }: {
   readonly subject: S05AnalysisSubject;
-  readonly scene: PasswordFindingSceneSnapshot;
+  readonly snapshot: S05AnalysisControllerSnapshot;
+  readonly controller: S05AnalysisController;
   readonly revealed: boolean;
   readonly onToggle: () => void;
 }) {
-  const findings = commonCoreFindings(scene);
   return (
-    <div className={styles.commonCoreApplication} data-s05-target="common-core-application">
-      <section className={styles.commonCoreResult}>
-        <p>{s05Content.intro.commonCores.application}</p>
-        <div className={styles.passwordRevealRow}>
-          {revealed ? (
-            <HighlightedCommonCorePassword password={subject.fictionalPassword} scene={scene} />
-          ) : (
-            <code className={styles.commonCorePassword}>
-              {'•'.repeat(Math.max(8, subject.fictionalPassword.length))}
-            </code>
-          )}
-          <button
-            type="button"
-            className={styles.revealButton}
-            aria-pressed={revealed}
-            aria-label={revealed ? 'Fiktives Passwort verbergen' : 'Fiktives Passwort anzeigen'}
-            onClick={onToggle}
-          >
-            <PasswordVisibilityIcon revealed={revealed} />
-          </button>
-        </div>
-        {findings.length === 0 ? (
-          <strong className={styles.noFinding}>{s05Content.intro.commonCores.noFinding}</strong>
+    <div className={styles.componentStrategyLayout} data-s05-target="component-strategy">
+      <CategoryCards snapshot={snapshot} controller={controller} />
+      <div className={styles.componentStrategyWorkspace}>
+        {snapshot.componentStrategy.canonicalView === null ? (
+          <CampusgramPassword password={subject.fictionalPassword} />
         ) : (
-          <ol>
-            {findings.map((finding) => (
-              <li key={finding.id}>
-                <strong>{findingLabel(finding.kind)}</strong>
-                <span>{finding.evidence.map(({ token }) => token).join(' · ')}</span>
-              </li>
-            ))}
-          </ol>
+          <CanonicalPasswordView snapshot={snapshot} revealed={revealed} onToggle={onToggle} />
         )}
-      </section>
-    </div>
-  );
-}
-
-function PersonalDetailsTransitionScene({ scene }: { readonly scene: PasswordFindingSceneSnapshot }) {
-  const firstToken =
-    commonCoreFindings(scene)[0]?.evidence[0]?.token ?? s05Content.intro.commonCores.noFinding;
-  const remainingDemonstrations = s05Content.componentDemonstrations.slice(1);
-  return (
-    <div className={styles.personalTransition} data-s05-target="personal-details">
-      <div className={styles.categoryRail}>
-        <CategoryCard title="Häufige Kerne" image={commonCoresAsset} summary={firstToken} />
-        <CategoryCard title="Persönliche Angaben" image={personalDetailsAsset} active />
+        {snapshot.step === 'personal-details-check' ? (
+          <PersonalDetailsCheck snapshot={snapshot} controller={controller} revealed={revealed} />
+        ) : null}
       </div>
-      <section
-        className={styles.remainingCategories}
-        aria-label="Weitere Kategorien naheliegender Bestandteile"
-      >
-        {remainingDemonstrations.map((demonstration) => (
-          <article key={demonstration.id}>
-            <img src={categoryAssets[demonstration.id]} alt="" />
-            <div>
-              <h3>{demonstration.title}</h3>
-              <p className={styles.exampleLine}>{demonstration.examples.join(' · ')}</p>
-              <p>{demonstration.note}</p>
-            </div>
-          </article>
-        ))}
-      </section>
     </div>
   );
 }
@@ -1042,20 +1156,25 @@ function renderScene(
       return <ComponentStartScene subject={subject} fixed={false} />;
     case 'component-category-overview':
       return <ComponentStartScene subject={subject} fixed />;
-    case 'common-cores-definition':
-    case 'common-cores-variants':
-      return <CommonCoreMachineScene variants={snapshot.commonCorePresentation.variants} />;
-    case 'common-cores-application':
+    case 'common-components-intro':
+    case 'common-components-result':
+    case 'personal-details-intro':
+    case 'personal-details-check':
+    case 'personal-details-result':
+    case 'account-context-intro':
+    case 'account-context-result':
+    case 'typical-changes-intro':
+    case 'typical-changes-result':
+    case 'components-summary':
       return (
-        <CommonCoreApplicationScene
+        <ComponentStrategyScene
           subject={subject}
-          scene={snapshot.findingScene}
+          snapshot={snapshot}
+          controller={controller}
           revealed={passwordRevealed}
           onToggle={onTogglePassword}
         />
       );
-    case 'personal-details-transition':
-      return <PersonalDetailsTransitionScene scene={snapshot.findingScene} />;
     case 'structure-theme':
     case 'structure-sentence':
     case 'structure-repetition':
@@ -1106,9 +1225,82 @@ function renderScene(
   }
 }
 
-function introNarrationFor(
-  step: S05AnalysisControllerSnapshot['step'],
+function commonComponentsResult(snapshot: S05AnalysisControllerSnapshot): readonly string[] {
+  const content = s05Content.componentStrategy.commonComponents;
+  const view = snapshot.componentStrategy.canonicalView;
+  const count = snapshot.componentStrategy.cards['common-components'].findings.length;
+  const result =
+    view?.completeCommonPassword === true
+      ? content.results.complete
+      : count === 0
+        ? content.results.none
+        : count === 1
+          ? content.results.one
+          : content.results.many;
+  return [...result, content.transition];
+}
+
+function personalDetailsResult(snapshot: S05AnalysisControllerSnapshot): readonly string[] {
+  const content = s05Content.componentStrategy.personalDetails;
+  const selection = snapshot.componentStrategy.personalSelection;
+  const count = snapshot.componentStrategy.cards['personal-details'].findings.length;
+  const result =
+    selection.alternative === 'unsure'
+      ? content.results.unsure
+      : selection.alternative === 'none'
+        ? content.results.none
+        : count === 1
+          ? content.results.one
+          : content.results.many;
+  return [
+    result,
+    ...(count > 0 ? [content.results.boundary] : []),
+    content.transition,
+  ];
+}
+
+function accountContextResult(snapshot: S05AnalysisControllerSnapshot): readonly string[] {
+  const content = s05Content.componentStrategy.accountContext;
+  const count = snapshot.componentStrategy.cards['account-context'].findings.length;
+  const result = count === 0 ? content.results.none : count === 1 ? content.results.one : content.results.many;
+  return [...result, content.transition];
+}
+
+function typicalChangesResult(snapshot: S05AnalysisControllerSnapshot): readonly string[] {
+  const content = s05Content.componentStrategy.typicalChanges;
+  const findings = snapshot.componentStrategy.cards['typical-changes'].findings;
+  if (findings.length === 0) return content.results.none;
+  const descriptions = findings.slice(0, 3).map(({ description, label }) => description ?? label);
+  if (findings.length > 3) descriptions.push(content.results.overflowDescription);
+  const lastDescription = descriptions.at(-1);
+  const descriptionList =
+    descriptions.length < 2
+      ? (lastDescription ?? '')
+      : `${descriptions.slice(0, -1).join(', ')} und ${lastDescription ?? ''}`;
+  return [
+    content.results.found,
+    `${content.results.dynamicPrefix} ${descriptionList}${content.results.dynamicSuffix}`,
+    content.results.suffix,
+  ];
+}
+
+function componentSummaryNarration(snapshot: S05AnalysisControllerSnapshot): readonly string[] {
+  const content = s05Content.componentStrategy.summary;
+  const categoryNames = s05Content.componentStrategy.categories
+    .filter(({ id }) => snapshot.componentStrategy.cards[id].status === 'checked-findings')
+    .map(({ title }) => title);
+  if (categoryNames.length === 0) return [content.none, content.noneTransition];
+  return [
+    content.found.replace('[Kategorienamen]', categoryNames.join(', ')),
+    content.foundBoundary,
+    content.foundTransition,
+  ];
+}
+
+function speechFor(
+  snapshot: S05AnalysisControllerSnapshot,
 ): readonly string[] | null {
+  const step = snapshot.step;
   switch (step) {
     case 'candidate-check':
       return s05Content.intro.narration.candidateCheck;
@@ -1128,10 +1320,24 @@ function introNarrationFor(
       return s05Content.intro.narration.componentFrequency;
     case 'component-category-overview':
       return s05Content.intro.narration.componentCategoryOverview;
-    case 'common-cores-definition':
-      return s05Content.intro.narration.commonCoresDefinition;
-    case 'common-cores-variants':
-      return s05Content.intro.narration.commonCoresVariants;
+    case 'common-components-intro':
+      return s05Content.componentStrategy.commonComponents.explanation;
+    case 'common-components-result':
+      return commonComponentsResult(snapshot);
+    case 'personal-details-intro':
+      return s05Content.componentStrategy.personalDetails.explanation;
+    case 'personal-details-result':
+      return personalDetailsResult(snapshot);
+    case 'account-context-intro':
+      return s05Content.componentStrategy.accountContext.explanation;
+    case 'account-context-result':
+      return accountContextResult(snapshot);
+    case 'typical-changes-intro':
+      return s05Content.componentStrategy.typicalChanges.explanation;
+    case 'typical-changes-result':
+      return typicalChangesResult(snapshot);
+    case 'components-summary':
+      return componentSummaryNarration(snapshot);
     default:
       return null;
   }
@@ -1151,20 +1357,15 @@ function pageTitleFor(step: S05AnalysisControllerSnapshot['step']): string {
   }
 }
 
-function showsCommonCoreCategoryChain(step: S05AnalysisControllerSnapshot['step']): boolean {
-  return (
-    step === 'component-category-overview' ||
-    step === 'common-cores-definition' ||
-    step === 'common-cores-variants' ||
-    step === 'common-cores-application'
-  );
+function showsComponentCategoryChain(step: S05AnalysisControllerSnapshot['step']): boolean {
+  return step === 'component-category-overview';
 }
 
-function reservesCommonCoreCategoryChain(step: S05AnalysisControllerSnapshot['step']): boolean {
+function reservesComponentCategoryChain(step: S05AnalysisControllerSnapshot['step']): boolean {
   return (
     step === 'component-start-question' ||
     step === 'component-frequency' ||
-    showsCommonCoreCategoryChain(step)
+    showsComponentCategoryChain(step)
   );
 }
 
@@ -1300,8 +1501,9 @@ export function S05AnalysisTraining({
   const activeController = controller;
   const activeSnapshot = snapshot;
   const writingBoundary = timingState === 'writingEnd';
-  const introNarration = introNarrationFor(snapshot.step);
-  const introGuidanceVisible = introNarration !== null;
+  const speech = speechFor(activeSnapshot);
+  const guidanceVisible = speech !== null;
+  const personalCheckVisible = activeSnapshot.step === 'personal-details-check';
 
   function continueFromSpeech(): void {
     if (activeSnapshot.step !== 'component-category-overview') {
@@ -1326,22 +1528,75 @@ export function S05AnalysisTraining({
     });
   }
 
+  function speechAction() {
+    const disabled =
+      !activeSnapshot.controls.canContinue ||
+      externalTimingError !== null ||
+      categoryTransition !== null;
+    switch (activeSnapshot.step) {
+      case 'common-components-intro':
+        return {
+          kind: 'perform' as const,
+          label: s05Content.componentStrategy.commonComponents.check,
+          disabled,
+          onAction: () => {
+            setPasswordRevealed(true);
+            activeController.completeCommonComponentsCheck();
+          },
+        };
+      case 'personal-details-intro':
+        return {
+          kind: 'advance' as const,
+          label: s05Content.componentStrategy.personalDetails.begin,
+          disabled,
+          onAction: continueFromSpeech,
+        };
+      case 'account-context-intro':
+        return {
+          kind: 'perform' as const,
+          label: s05Content.componentStrategy.accountContext.check,
+          disabled,
+          onAction: () => activeController.completeAccountContextCheck(),
+        };
+      case 'typical-changes-intro':
+        return {
+          kind: 'perform' as const,
+          label: s05Content.componentStrategy.typicalChanges.check,
+          disabled,
+          onAction: () => activeController.completeTypicalChangesCheck(),
+        };
+      case 'components-summary':
+        return {
+          kind: 'advance' as const,
+          label: s05Content.componentStrategy.summary.continue,
+          disabled,
+          onAction: continueFromSpeech,
+        };
+      default:
+        return {
+          kind: 'advance' as const,
+          disabled,
+          onAction: continueFromSpeech,
+        };
+    }
+  }
+
   return (
     <section ref={hostRef} className={styles.training} aria-label={s05Content.trainingAriaLabel}>
       <article className={styles.page} aria-labelledby="s05-title">
         <header
           className={styles.pageHeader}
-          data-category-chain={reservesCommonCoreCategoryChain(snapshot.step) || undefined}
+          data-category-chain={reservesComponentCategoryChain(snapshot.step) || undefined}
           data-category-transitioning={categoryTransition !== null || undefined}
           data-component-title={
             pageTitleFor(snapshot.step) === s05Content.page.title || undefined
           }
         >
           <h1 id="s05-title">{pageTitleFor(snapshot.step)}</h1>
-          {reservesCommonCoreCategoryChain(snapshot.step) ? (
+          {reservesComponentCategoryChain(snapshot.step) ? (
             <CategoryChain
+              visible={showsComponentCategoryChain(snapshot.step)}
               announcing={snapshot.step === 'component-category-overview'}
-              visible={showsCommonCoreCategoryChain(snapshot.step)}
             />
           ) : null}
         </header>
@@ -1357,7 +1612,7 @@ export function S05AnalysisTraining({
         <div
           className={styles.content}
           aria-live="polite"
-          inert={introGuidanceVisible || undefined}
+          inert={guidanceVisible && snapshot.step !== 'components-summary' ? true : undefined}
         >
           {renderScene(
             snapshot,
@@ -1367,7 +1622,7 @@ export function S05AnalysisTraining({
             () => setPasswordRevealed((revealed) => !revealed),
           )}
         </div>
-        {introNarration === null ? null : (
+        {speech === null ? null : (
           <div className={styles.passWoLayer}>
             <PassWoGuide
               guideName={s00Content.narration.guideName}
@@ -1379,18 +1634,11 @@ export function S05AnalysisTraining({
               helpOpen
               helpId="s05-intro-passwo-speech"
               openHelpLabel={s00Content.narration.openGuideLabel}
-              speech={introNarration}
+              speech={speech}
               speechKey={`s05-${snapshot.step}`}
               speechPlacement="above"
               speechObstacleSelector="[data-s05-speech-obstacle]"
-              speechAction={{
-                kind: 'advance',
-                disabled:
-                  !snapshot.controls.canContinue ||
-                  externalTimingError !== null ||
-                  categoryTransition !== null,
-                onAction: continueFromSpeech,
-              }}
+              speechAction={speechAction()}
               placement="bottom-left"
               showHelpButton={false}
             />
@@ -1398,8 +1646,8 @@ export function S05AnalysisTraining({
         )}
         <footer
           className={styles.controls}
-          data-hidden={introGuidanceVisible || undefined}
-          inert={introGuidanceVisible || undefined}
+          data-hidden={guidanceVisible || personalCheckVisible || undefined}
+          inert={guidanceVisible || personalCheckVisible || undefined}
         >
             {writingBoundary && externalTimingError === null ? (
               <p role="status">Segmentgrenze wird bestätigt …</p>

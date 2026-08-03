@@ -25,9 +25,7 @@ export interface S05DesignLabFixture {
   };
 }
 
-export const S05_CONTENT_VERSION = '2.12.0';
-
-const commonCoreExamples = ['passwort', 'qwertz', '123456789', '2026', 'sommer', 'admin'] as const;
+export const S05_CONTENT_VERSION = '2.14.0';
 
 const s05StrategyCards = [
   { id: 'components', title: 'Naheliegende Bestandteile' },
@@ -44,9 +42,9 @@ export const s05Content = {
       35,
     ] as const,
     revision:
-      'Userauftrag vom 2026-08-03 · Blaue Kandidaten vor festem häufigem Kern und bereinigter Kategorieübergang',
+      'Userauftrag vom 2026-08-03 · Wiederhergestellter animierter Übergang zur ersten Unterprüfung',
     copyReference:
-      'docs/design/S00-S05-COPY-AUDIT.md#copy-delta-s05-bausteinmodell-und-kategoriefluss-3-august-2026',
+      'docs/design/S00-S05-COPY-AUDIT.md#copy-delta-s05-wiederhergestellter-übergang-zu-häufig-gewählten-bestandteilen-3-august-2026',
   },
   segment: {
     id: 'S05',
@@ -82,6 +80,7 @@ export const s05Content = {
     campusgramPassword: {
       accessibleLabel: 'Campusgram – Passwort',
       visibleSuffix: '– Passwort',
+      localNotice: 'Fiktives Passwort · wird nur lokal ausgewertet',
     },
     candidateFailure: 'passt nicht',
     generatedPassword: 'rQ7mL2vX9pK4',
@@ -108,19 +107,13 @@ export const s05Content = {
       parts: ['•••••', '123456789', '••••'] as const,
       highlightedIndex: 1,
     },
-    commonCores: {
-      examples: commonCoreExamples,
-      replacementRules: [
-        ['a', '4'],
-        ['e', '3'],
-        ['i', '1'],
-        ['o', '0'],
-        ['s', '5'],
-      ] as const,
-      suffixes: ['1', '12', '123', '!', '?', '2026', '123!'] as const,
-      noFinding: 'Kein häufiger Kern erkannt',
-      application:
-        'Die markierten Stellen zeigen, welche häufigen Kerne die Simulation im fiktiven Campusgram-Passwort erkannt hat.',
+    componentLeadIn: {
+      changingBlocksAria:
+        'Wechselnde Folge aus drei bis acht unterschiedlich langen verdeckten blauen Bestandteilen.',
+      fixedBlockAria:
+        'Dreiteiliges Passwort: verdeckter Bestandteil, hervorgehobener häufig gewählter Bestandteil 123456789, verdeckter Bestandteil.',
+      firstCategoryAria: 'Erste von vier Kategorien: Häufig gewählte Bestandteile',
+      hiddenCategoryAria: 'Kategorie [Nummer] noch verdeckt',
     },
     narration: {
       candidateCheck: [
@@ -150,46 +143,176 @@ export const s05Content = {
       ],
       componentCategoryOverview: [
         'Bestimmte Bestandteile – und sehr häufige vollständige Passwörter wie „123456789“ – kann er früh abgleichen.',
-        'Somit kommen wir zur 1. von 4 Kategorien: Die häufigen Kerne.',
-      ],
-      commonCoresDefinition: [
-        'Zu häufigen Kernen gehören bekannte Passwörter, Tastaturfolgen, Zahlenfolgen und häufig verwendete Jahreszahlen.',
-      ],
-      commonCoresVariants: [
-        'Dabei testen Angreifer nicht nur die ursprüngliche Schreibweise. Sie rechnen auch mit typischen Veränderungen.',
+        'Somit kommen wir zur 1. von 4 Kategorien: Häufig gewählte Bestandteile.',
       ],
     },
   },
-  componentDemonstrations: [
-    {
-      id: 'common-components',
-      title: 'Häufige Kerne',
-      examples: commonCoreExamples,
-      note: 'Beispiele für häufig verwendete Bestandteile.',
+  componentStrategy: {
+    title: 'Naheliegende Bestandteile',
+    categories: [
+      { id: 'common-components', title: 'Häufig gewählte Bestandteile' },
+      { id: 'personal-details', title: 'Persönliche Angaben' },
+      { id: 'account-context', title: 'Kontobezug' },
+      { id: 'typical-changes', title: 'Typische Veränderungen' },
+    ] as const,
+    statusLabels: {
+      pending: 'noch nicht geprüft',
+      current: 'aktuell',
+      'checked-none': 'geprüft, kein Hinweis erkannt',
+      'checked-findings': 'geprüft, Befund vorhanden',
     },
-    {
-      id: 'personal-examples',
-      title: 'Persönliche Angaben',
-      examples: ['Luna', 'BVB', 'Hochzeit2005'],
-      note: 'Diese Beispiele stammen nicht aus persönlichen Angaben.',
+    moreFindings: '+ weitere',
+    presentation: {
+      categoriesAriaLabel: 'Vier Kategorien naheliegender Bestandteile',
+      highlightFindings: 'Befunde hervorheben',
+      showAllCategories: 'Alle Kategorien zeigen',
+      canonicalAriaLabel: 'Stabile Bausteinansicht des fiktiven Passworts',
+      showPassword: 'Passwort anzeigen',
+      hidePassword: 'Passwort verbergen',
+      blockLabel: 'Baustein',
+      hiddenBlockLabel: 'Zeichen verborgen',
+      changesAriaLabel: 'Gebundene typische Veränderungen',
+      boundToComponent: 'an den markierten Grundbestandteil gebunden',
+      boundToPassword: 'an die Zeichenfolge angehängt',
+      findingChips: {
+        commonComponent: 'verbreiteter Passwortbestandteil',
+        keyboardSequence: 'Tastaturfolge',
+        year: 'Jahreszahl',
+        date: 'Datumsfolge',
+        numberSequence: 'Zahlenfolge',
+        characterSequence: 'Zeichenfolge',
+        personalComponent: 'persönlich eingeordneter Bestandteil',
+        replacement: '[Quelle] → [Ziel]',
+        replacementDescription: 'das Zeichen „[Quelle]“ durch „[Ziel]“ ersetzt',
+        changedCapitalization: 'veränderte Großschreibung',
+        changedCapitalizationDescription: 'die Großschreibung verändert',
+        genericChange: 'typische Zeichenveränderung',
+        genericChangeDescription: 'eine typische Zeichenveränderung erkannt',
+        appendedYear: 'Jahreszahl „[Wert]“ angehängt',
+        appendedYearDescription: 'die Jahreszahl „[Wert]“ angehängt',
+        appendedNumberSequence: 'Zahlenfolge „[Wert]“ angehängt',
+        appendedNumberSequenceDescription: 'die Zahlenfolge „[Wert]“ angehängt',
+        appendedSymbol: 'Symbol „[Wert]“ angehängt',
+        appendedSymbolDescription: 'das Symbol „[Wert]“ angehängt',
+      },
     },
-    {
-      id: 'account-context',
-      title: 'Konto-Kontext',
-      examples: ['Campusgram', 'Campus', 'Nachrichten', 'Gruppen', 'Kontakte', 'Beiträge'],
-      note: 'Begriffe, die zum fiktiven Konto passen können.',
+    commonComponents: {
+      explanation: [
+        'Angreifer beginnen häufig mit Passwörtern und Bestandteilen, die viele Menschen bereits verwendet haben.',
+        'Dazu gehören verbreitete Passwörter, Tastatur- und Zahlenfolgen sowie naheliegende Jahreszahlen.',
+        'Wörter sind nicht grundsätzlich ungeeignet. Ein häufig gewähltes Wort kann einem Angreifer aber einen naheliegenden Bestandteil liefern. Ob daraus ein einfacher Weg für die gesamte Zeichenfolge entsteht, prüfen wir erst später.',
+        'Prüfen wir nun dein gewähltes Passwort auf häufig gewählte Bestandteile.',
+      ],
+      check: 'Passwort prüfen',
+      results: {
+        none: [
+          'Hier wurde kein häufig gewählter Bestandteil erkannt.',
+          'Das entscheidet noch nicht über die gesamte Zeichenfolge.',
+        ],
+        one: [
+          'In deinem Passwort wurde ein häufig gewählter Bestandteil erkannt.',
+          'Dieser Bestandteil kann einem Angreifer einen Ausgangspunkt geben. Er entscheidet aber noch nicht über die gesamte Zeichenfolge.',
+        ],
+        many: [
+          'In deinem Passwort wurden mehrere häufig gewählte Bestandteile erkannt.',
+          'Diese Bestandteile können einem Angreifer Ausgangspunkte geben. Wie sie zusammenwirken, prüfen wir erst später.',
+        ],
+        complete: [
+          'Hier besteht die gesamte Zeichenfolge aus einem häufig gewählten Passwort.',
+          'Ein Angreifer kann diesen vollständigen Kandidaten früh ausprobieren.',
+        ],
+      },
+      transition:
+        'Als Nächstes schauen wir, ob Bestandteile für dich eine persönliche Bedeutung haben.',
     },
-    {
-      id: 'typical-changes',
-      title: 'Typische Veränderungen',
-      examples: ['Passwort → Passw0rt1!', 'Campus → C4mpus2026?'],
-      note: 'Großschreibung, Ersetzung sowie Zahlen- oder Symbolanhang.',
+    personalDetails: {
+      explanation: [
+        'Persönliche Angaben können leicht zu merken sein und wirken oft geheim, weil sie für dich eine besondere Bedeutung haben.',
+        'Bei gezielten Angriffen können Namen, Geburtstage, Vereine oder andere persönliche Angaben aber manchmal aus öffentlichen Profilen, früheren Datenlecks oder dem Umfeld ableitbar sein.',
+        'Ordne nun ein, ob einer der Bausteine deiner fiktiven Passwortidee persönlich gemeint war. Du musst nicht angeben, worauf er sich bezieht.',
+      ],
+      begin: 'Bausteine einordnen',
+      question: 'Welche Bausteine waren persönlich gemeint?',
+      groupSelection: 'Ausgewählte Bausteine gemeinsam einordnen.',
+      privacyNote:
+        'Die Auswahl bleibt nur in dieser laufenden Übung und wird nicht als Forschungsangabe gespeichert oder exportiert.',
+      none: 'Kein Bestandteil war persönlich gemeint.',
+      unsure: 'Unsicher.',
+      apply: 'Einordnung übernehmen',
+      results: {
+        one: 'Du hast diesen Bestandteil als persönlich gemeint eingeordnet.',
+        many: 'Du hast mehrere Bestandteile als persönlich gemeint eingeordnet.',
+        none: 'Du hast keinen Bestandteil als persönliche Angabe eingeordnet.',
+        unsure: 'Hier bleibt offen, ob ein Bestandteil eine persönliche Bedeutung hat.',
+        boundary:
+          'Solche Angaben können für einen gezielten Angreifer manchmal ableitbar sein. Sie entscheiden aber noch nicht über die gesamte Zeichenfolge.',
+      },
+      transition: 'Als Nächstes prüfen wir, ob Begriffe direkt zum Konto passen.',
     },
-  ],
+    accountContext: {
+      explanation: [
+        'Auch das Konto selbst kann Ideen für ein Passwort liefern.',
+        'Bei Campusgram wären zum Beispiel Begriffe wie Campus, Nachricht, Gruppe oder der Dienstname naheliegend.',
+        'Ein solcher Begriff entscheidet nicht allein über die gesamte Zeichenfolge. Er ist aber ein Bestandteil, den ein Angreifer früh berücksichtigen kann.',
+        'Prüfen wir nun dein Passwort auf einen möglichen Kontobezug.',
+      ],
+      check: 'Im Passwort prüfen',
+      results: {
+        none: [
+          'Hier wurde kein direkter Bezug zu Campusgram erkannt.',
+          'Das entscheidet noch nicht über die gesamte Zeichenfolge.',
+        ],
+        one: [
+          'In deinem Passwort wurde ein Begriff erkannt, der zu Campusgram passt.',
+          'Solche Begriffe kann ein Angreifer aus dem Kontokontext ableiten und gezielt ausprobieren.',
+        ],
+        many: [
+          'In deinem Passwort wurden mehrere Begriffe erkannt, die zum Konto passen.',
+          'Solche Begriffe kann ein Angreifer aus dem Kontokontext ableiten und gezielt ausprobieren.',
+        ],
+      },
+      transition:
+        'Zum Schluss schauen wir, ob Bestandteile oder die gesamte Zeichenfolge typisch verändert wurden.',
+    },
+    typicalChanges: {
+      explanation: [
+        'Viele Menschen verändern Bestandteile, damit das Passwort weniger vorhersehbar wirkt.',
+        'Dabei testen Angreifer auch typische Veränderungen, etwa Großschreibung, ersetzte Zeichen sowie angehängte Zahlen oder Symbole.',
+        'Eine solche Veränderung macht aus einem naheliegenden Bestandteil nicht automatisch eine völlig neue Idee.',
+        'Prüfen wir nun, ob solche Veränderungen in deinem Passwort vorkommen.',
+      ],
+      check: 'Veränderungen prüfen',
+      results: {
+        none: [
+          'Hier wurde keine der geprüften typischen Veränderungen erkannt.',
+          'Das entscheidet noch nicht über die gesamte Zeichenfolge.',
+        ],
+        found: 'In deinem Passwort wurden typische Veränderungen erkannt.',
+        dynamicPrefix: 'Dabei wurden',
+        dynamicSuffix: '.',
+        suffix: 'Solche Varianten werden von Angreifern häufig mitgeprüft.',
+        overflow: 'weitere typische Veränderung',
+        overflowDescription: 'eine weitere typische Veränderung zusammengefasst',
+      },
+    },
+    summary: {
+      title: 'Naheliegende Bestandteile',
+      found:
+        'Bei der Prüfung wurden Hinweise in den Kategorien [Kategorienamen] erkannt.',
+      foundBoundary:
+        'Diese Hinweise können einem Angreifer Ausgangspunkte geben. Sie entscheiden aber noch nicht, wie aufwendig die gesamte Zeichenfolge zu erraten ist.',
+      foundTransition:
+        'Als Nächstes betrachten wir, wie die Bestandteile miteinander zusammenhängen.',
+      none: 'In diesen vier Kategorien wurde kein naheliegender Bestandteil erkannt.',
+      noneTransition:
+        'Das entscheidet noch nicht über die gesamte Zeichenfolge. Als Nächstes betrachten wir ihren Aufbau.',
+      continue: 'Weiter zum Aufbau',
+    },
+  },
   findingLabels: {
-    'common-password-core': 'häufiger Passwortkern',
-    'common-word': 'häufig verwendetes Wort',
-    'common-name': 'häufig verwendeter Name',
+    'common-password-core': 'verbreiteter Passwortbestandteil',
+    'common-word': 'verbreiteter Passwortbestandteil',
+    'common-name': 'verbreiteter Passwortbestandteil',
     'keyboard-pattern': 'Tastaturmuster',
     year: 'Jahreszahl',
     date: 'Datumsmuster',
@@ -418,8 +541,8 @@ export const s05Content = {
     {
       id: 'common-suffix',
       routeId: 's05-common-suffix',
-      label: 'Häufiger Kern plus typischer Anhang',
-      fictionalPassword: 'Passwort123!',
+      label: 'Häufig gewählter Bestandteil mit später offengelegten Veränderungen',
+      fictionalPassword: 'Passw0rt123!',
       analysisContext: { accountTerms: [] },
     },
     {
@@ -468,10 +591,16 @@ export const s05Content = {
     ['s05-component-start-question', 'component-start', 'info'],
     ['s05-component-frequency', 'component-start', 'info'],
     ['s05-component-category-overview', 'component-start', 'info'],
-    ['s05-common-cores-definition', 'common-core-machine', 'info'],
-    ['s05-common-cores-variants', 'common-core-machine', 'info'],
-    ['s05-common-cores-application', 'common-core-application', 'warning'],
-    ['s05-personal-details-transition', 'personal-details', 'info'],
+    ['s05-common-components-intro', 'component-strategy', 'info'],
+    ['s05-common-components-result', 'component-strategy', 'warning'],
+    ['s05-personal-details-intro', 'component-strategy', 'info'],
+    ['s05-personal-details-check', 'component-strategy', 'info'],
+    ['s05-personal-details-result', 'component-strategy', 'warning'],
+    ['s05-account-context-intro', 'component-strategy', 'info'],
+    ['s05-account-context-result', 'component-strategy', 'warning'],
+    ['s05-typical-changes-intro', 'component-strategy', 'info'],
+    ['s05-typical-changes-result', 'component-strategy', 'warning'],
+    ['s05-components-summary', 'component-strategy', 'info'],
     ['s05-structure-theme', 'structure-theme', 'info'],
     ['s05-structure-sentence', 'structure-sentence', 'info'],
     ['s05-structure-repetition', 'structure-repetition', 'warning'],

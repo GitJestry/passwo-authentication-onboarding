@@ -23,6 +23,15 @@ import {
   createPasswordFreeSearchDemonstrationScene,
   createPasswordStructureScene,
 } from '@passwo/visualization';
+import {
+  bindTypicalChangeFindings,
+  createCanonicalPasswordView,
+  createPersonalFindings,
+  type S05CanonicalPasswordView,
+  type S05CategoryCardStatus,
+  type S05CategoryFinding,
+  type S05ComponentCategoryId,
+} from './S05ComponentStrategy.js';
 
 export type S05AnalysisStep =
   | 'candidate-check'
@@ -34,10 +43,16 @@ export type S05AnalysisStep =
   | 'component-start-question'
   | 'component-frequency'
   | 'component-category-overview'
-  | 'common-cores-definition'
-  | 'common-cores-variants'
-  | 'common-cores-application'
-  | 'personal-details-transition'
+  | 'common-components-intro'
+  | 'common-components-result'
+  | 'personal-details-intro'
+  | 'personal-details-check'
+  | 'personal-details-result'
+  | 'account-context-intro'
+  | 'account-context-result'
+  | 'typical-changes-intro'
+  | 'typical-changes-result'
+  | 'components-summary'
   | 'structure-theme'
   | 'structure-sentence'
   | 'structure-repetition'
@@ -79,8 +94,20 @@ export interface S05AnalysisControllerSnapshot {
     readonly selected: S05Estimate | null;
     readonly confirmed: boolean;
   };
-  readonly commonCorePresentation: {
-    readonly variants: readonly string[];
+  readonly componentStrategy: {
+    readonly canonicalView: S05CanonicalPasswordView | null;
+    readonly cards: Readonly<
+      Record<
+        S05ComponentCategoryId,
+        { readonly status: S05CategoryCardStatus; readonly findings: readonly S05CategoryFinding[] }
+      >
+    >;
+    readonly personalSelection: {
+      readonly blockIds: readonly string[];
+      readonly alternative: 'none' | 'unsure' | null;
+      readonly grouped: boolean;
+    };
+    readonly summaryFocus: S05ComponentCategoryId | null;
   };
   readonly controls: {
     readonly canStart: boolean;
@@ -107,10 +134,16 @@ const stepByMissionId: Readonly<Record<string, S05AnalysisStep>> = {
   's05-component-start-question': 'component-start-question',
   's05-component-frequency': 'component-frequency',
   's05-component-category-overview': 'component-category-overview',
-  's05-common-cores-definition': 'common-cores-definition',
-  's05-common-cores-variants': 'common-cores-variants',
-  's05-common-cores-application': 'common-cores-application',
-  's05-personal-details-transition': 'personal-details-transition',
+  's05-common-components-intro': 'common-components-intro',
+  's05-common-components-result': 'common-components-result',
+  's05-personal-details-intro': 'personal-details-intro',
+  's05-personal-details-check': 'personal-details-check',
+  's05-personal-details-result': 'personal-details-result',
+  's05-account-context-intro': 'account-context-intro',
+  's05-account-context-result': 'account-context-result',
+  's05-typical-changes-intro': 'typical-changes-intro',
+  's05-typical-changes-result': 'typical-changes-result',
+  's05-components-summary': 'components-summary',
   's05-structure-theme': 'structure-theme',
   's05-structure-sentence': 'structure-sentence',
   's05-structure-repetition': 'structure-repetition',
@@ -131,40 +164,44 @@ const stepByMissionId: Readonly<Record<string, S05AnalysisStep>> = {
   's05-summary-memory': 'summary-memory',
 };
 
-function capitalize(value: string): string {
-  const [first = '', ...remaining] = [...value];
-  return `${first.toLocaleUpperCase('de-DE')}${remaining.join('')}`;
+function initialComponentCards(): S05AnalysisControllerSnapshot['componentStrategy']['cards'] {
+  return {
+    'common-components': { status: 'pending', findings: [] },
+    'personal-details': { status: 'pending', findings: [] },
+    'account-context': { status: 'pending', findings: [] },
+    'typical-changes': { status: 'pending', findings: [] },
+  };
 }
 
-function applyTypicalReplacements(value: string): string {
-  return [...value]
-    .map((character) => {
-      const rule = s05Content.intro.commonCores.replacementRules.find(
-        ([source]) => source === character.toLocaleLowerCase('de-DE'),
-      );
-      return rule?.[1] ?? character;
-    })
-    .join('');
+function categoryForStep(step: S05AnalysisStep): S05ComponentCategoryId | null {
+  if (step.startsWith('common-components-')) return 'common-components';
+  if (step.startsWith('personal-details-')) return 'personal-details';
+  if (step.startsWith('account-context-')) return 'account-context';
+  if (step.startsWith('typical-changes-')) return 'typical-changes';
+  return null;
 }
 
-/** Authored presentation stream only; it is not used for runtime password analysis. */
-function createCommonCoreVariants(): readonly string[] {
-  const variants = new Set<string>();
-  for (const core of s05Content.intro.commonCores.examples) {
-    const bases = [
-      core,
-      capitalize(core),
-      core.toLocaleUpperCase('de-DE'),
-      applyTypicalReplacements(core),
-    ];
-    for (const base of bases) {
-      variants.add(base);
-      for (const suffix of s05Content.intro.commonCores.suffixes) {
-        variants.add(`${base}${suffix}`);
-      }
-    }
+function cardsForStep(
+  cards: S05AnalysisControllerSnapshot['componentStrategy']['cards'],
+  step: S05AnalysisStep,
+): S05AnalysisControllerSnapshot['componentStrategy']['cards'] {
+  const currentCategory = categoryForStep(step);
+  function updateCard(categoryId: S05ComponentCategoryId) {
+    const card = cards[categoryId];
+    const status: S05CategoryCardStatus =
+      categoryId === currentCategory && card.status === 'pending'
+        ? 'current'
+        : categoryId !== currentCategory && card.status === 'current'
+          ? 'pending'
+          : card.status;
+    return { ...card, status };
   }
-  return [...variants];
+  return {
+    'common-components': updateCard('common-components'),
+    'personal-details': updateCard('personal-details'),
+    'account-context': updateCard('account-context'),
+    'typical-changes': updateCard('typical-changes'),
+  };
 }
 
 function createMission(subject: S05AnalysisSubject): MissionDefinition {
@@ -193,6 +230,7 @@ export class S05AnalysisController {
   readonly #mission: MissionDefinition;
   readonly #missionController: MissionController;
   readonly #listeners = new Set<Listener>();
+  readonly #fictionalPassword: string;
   readonly #unsubscribe: () => void;
   readonly #onComplete: (() => void) | undefined;
   #snapshot: S05AnalysisControllerSnapshot | null;
@@ -201,10 +239,16 @@ export class S05AnalysisController {
 
   constructor({ subject, animationPlayer, onComplete }: S05AnalysisControllerOptions) {
     this.#mission = createMission(subject);
+    this.#fictionalPassword = subject.fictionalPassword;
     this.#onComplete = onComplete;
+    const frozenAccountTerms = new Set(
+      s05Content.analysis.authoredAccountTerms.map((term) => term.toLocaleLowerCase('de-DE')),
+    );
     const componentAnalysis = analyzeFictionalPassword({
       fictionalPassword: subject.fictionalPassword,
-      authoredAccountTerms: subject.analysisContext.accountTerms,
+      authoredAccountTerms: subject.analysisContext.accountTerms.filter((term) =>
+        frozenAccountTerms.has(term.toLocaleLowerCase('de-DE')),
+      ),
     });
     const structureAnalysis = analyzeFictionalPasswordStructure({
       fictionalPassword: subject.fictionalPassword,
@@ -253,7 +297,12 @@ export class S05AnalysisController {
       }),
       freeSearchApplicationScene,
       estimate: { selected: null, confirmed: false },
-      commonCorePresentation: { variants: createCommonCoreVariants() },
+      componentStrategy: {
+        canonicalView: null,
+        cards: initialComponentCards(),
+        personalSelection: { blockIds: [], alternative: null, grouped: false },
+        summaryFocus: null,
+      },
       controls: { canStart: true, canReplay: false, canContinue: false },
     };
     this.#missionController = new MissionController({
@@ -358,6 +407,200 @@ export class S05AnalysisController {
     this.#emit();
   }
 
+  completeCommonComponentsCheck(): void {
+    const snapshot = this.#snapshot;
+    if (this.#disposed || snapshot === null || snapshot.step !== 'common-components-intro') return;
+    const canonicalView = createCanonicalPasswordView(
+      this.#fictionalPassword,
+      snapshot.findingScene.runtimeAnalysis,
+    );
+    const findings = canonicalView.automaticFindings['common-components'];
+    this.#snapshot = {
+      ...snapshot,
+      componentStrategy: {
+        ...snapshot.componentStrategy,
+        canonicalView,
+        cards: {
+          ...snapshot.componentStrategy.cards,
+          'common-components': {
+            status: findings.length === 0 ? 'checked-none' : 'checked-findings',
+            findings,
+          },
+        },
+      },
+    };
+    this.#emit();
+    void this.#missionController.continue();
+  }
+
+  togglePersonalBlock(blockId: string): void {
+    const snapshot = this.#snapshot;
+    if (this.#disposed || snapshot === null || snapshot.step !== 'personal-details-check') return;
+    const selected = new Set(snapshot.componentStrategy.personalSelection.blockIds);
+    if (selected.has(blockId)) selected.delete(blockId);
+    else selected.add(blockId);
+    this.#snapshot = {
+      ...snapshot,
+      componentStrategy: {
+        ...snapshot.componentStrategy,
+        personalSelection: {
+          blockIds: [...selected],
+          alternative: null,
+          grouped: selected.size > 1 && snapshot.componentStrategy.personalSelection.grouped,
+        },
+      },
+    };
+    this.#emit();
+  }
+
+  selectPersonalAlternative(alternative: 'none' | 'unsure'): void {
+    const snapshot = this.#snapshot;
+    if (this.#disposed || snapshot === null || snapshot.step !== 'personal-details-check') return;
+    this.#snapshot = {
+      ...snapshot,
+      componentStrategy: {
+        ...snapshot.componentStrategy,
+        personalSelection: { blockIds: [], alternative, grouped: false },
+      },
+    };
+    this.#emit();
+  }
+
+  togglePersonalGrouping(): void {
+    const snapshot = this.#snapshot;
+    if (
+      this.#disposed ||
+      snapshot === null ||
+      snapshot.step !== 'personal-details-check' ||
+      snapshot.componentStrategy.personalSelection.blockIds.length < 2
+    ) {
+      return;
+    }
+    this.#snapshot = {
+      ...snapshot,
+      componentStrategy: {
+        ...snapshot.componentStrategy,
+        personalSelection: {
+          ...snapshot.componentStrategy.personalSelection,
+          grouped: !snapshot.componentStrategy.personalSelection.grouped,
+        },
+      },
+    };
+    this.#emit();
+  }
+
+  completePersonalDetailsCheck(): void {
+    const snapshot = this.#snapshot;
+    const view = snapshot?.componentStrategy.canonicalView;
+    if (
+      this.#disposed ||
+      snapshot === null ||
+      view === null ||
+      view === undefined ||
+      snapshot.step !== 'personal-details-check' ||
+      (snapshot.componentStrategy.personalSelection.blockIds.length === 0 &&
+        snapshot.componentStrategy.personalSelection.alternative === null)
+    ) {
+      return;
+    }
+    const findings = createPersonalFindings(
+      view,
+      snapshot.componentStrategy.personalSelection.blockIds,
+      snapshot.componentStrategy.personalSelection.grouped,
+    );
+    this.#snapshot = {
+      ...snapshot,
+      componentStrategy: {
+        ...snapshot.componentStrategy,
+        cards: {
+          ...snapshot.componentStrategy.cards,
+          'personal-details': {
+            status: findings.length === 0 ? 'checked-none' : 'checked-findings',
+            findings,
+          },
+        },
+      },
+    };
+    this.#emit();
+    void this.#missionController.continue();
+  }
+
+  completeAccountContextCheck(): void {
+    const snapshot = this.#snapshot;
+    const view = snapshot?.componentStrategy.canonicalView;
+    if (
+      this.#disposed ||
+      snapshot === null ||
+      view === null ||
+      view === undefined ||
+      snapshot.step !== 'account-context-intro'
+    ) {
+      return;
+    }
+    const findings = view.automaticFindings['account-context'];
+    this.#snapshot = {
+      ...snapshot,
+      componentStrategy: {
+        ...snapshot.componentStrategy,
+        cards: {
+          ...snapshot.componentStrategy.cards,
+          'account-context': {
+            status: findings.length === 0 ? 'checked-none' : 'checked-findings',
+            findings,
+          },
+        },
+      },
+    };
+    this.#emit();
+    void this.#missionController.continue();
+  }
+
+  completeTypicalChangesCheck(): void {
+    const snapshot = this.#snapshot;
+    const view = snapshot?.componentStrategy.canonicalView;
+    if (
+      this.#disposed ||
+      snapshot === null ||
+      view === null ||
+      view === undefined ||
+      snapshot.step !== 'typical-changes-intro'
+    ) {
+      return;
+    }
+    const findings = bindTypicalChangeFindings(
+      view,
+      snapshot.componentStrategy.cards['personal-details'].findings,
+    );
+    this.#snapshot = {
+      ...snapshot,
+      componentStrategy: {
+        ...snapshot.componentStrategy,
+        cards: {
+          ...snapshot.componentStrategy.cards,
+          'typical-changes': {
+            status: findings.length === 0 ? 'checked-none' : 'checked-findings',
+            findings,
+          },
+        },
+      },
+    };
+    this.#emit();
+    void this.#missionController.continue();
+  }
+
+  focusSummaryCategory(categoryId: S05ComponentCategoryId): void {
+    const snapshot = this.#snapshot;
+    if (this.#disposed || snapshot === null || snapshot.step !== 'components-summary') return;
+    this.#snapshot = {
+      ...snapshot,
+      componentStrategy: {
+        ...snapshot.componentStrategy,
+        summaryFocus: snapshot.componentStrategy.summaryFocus === categoryId ? null : categoryId,
+      },
+    };
+    this.#emit();
+  }
+
   selectEstimate(estimate: S05Estimate): void {
     const snapshot = this.#snapshot;
     if (
@@ -421,12 +664,19 @@ export class S05AnalysisController {
       ...currentSnapshot,
       phase: awaitingDecision ? 'awaiting-decision' : 'animating',
       step,
+      componentStrategy: {
+        ...currentSnapshot.componentStrategy,
+        cards: cardsForStep(currentSnapshot.componentStrategy.cards, step),
+      },
       controls: {
         canStart: false,
         canReplay: awaitingDecision,
         canContinue:
           awaitingDecision &&
           (step !== 'estimate' || currentSnapshot.estimate.confirmed) &&
+          (step !== 'personal-details-check' ||
+            currentSnapshot.componentStrategy.personalSelection.blockIds.length > 0 ||
+            currentSnapshot.componentStrategy.personalSelection.alternative !== null) &&
           (step !== 'structure-application' ||
             currentSnapshot.structureScene.semanticReflection.confirmed),
       },
