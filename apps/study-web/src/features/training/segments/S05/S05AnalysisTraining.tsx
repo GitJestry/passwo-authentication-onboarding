@@ -454,50 +454,67 @@ function CategoryCards({
   readonly controller: S05AnalysisController;
 }) {
   const summary = snapshot.step === 'components-summary';
+  const sourceCategories = s05Content.componentStrategy.categories.filter(
+    ({ id }) => id !== 'typical-changes',
+  );
+  const changesCategory = s05Content.componentStrategy.categories.find(
+    ({ id }) => id === 'typical-changes',
+  );
+  const changesCard = snapshot.componentStrategy.cards['typical-changes'];
   return (
     <aside
       className={styles.componentCategoryCards}
       aria-label={s05Content.componentStrategy.presentation.categoriesAriaLabel}
     >
-      {s05Content.componentStrategy.categories.map((category, index) => {
-        const card = snapshot.componentStrategy.cards[category.id];
-        const focused = summary && snapshot.componentStrategy.summaryFocus === category.id;
-        return (
-          <article
-            key={category.id}
-            data-status={card.status}
-            data-focused={focused || undefined}
-            data-cross-cutting={category.id === 'typical-changes' || undefined}
-          >
-            <div className={styles.componentCategoryHeading}>
-              <img src={categoryAssets[category.id]} alt="" />
-              <div>
-                <h2>{`${index + 1}. ${category.title}`}</h2>
-                {category.id === 'typical-changes' ? (
-                  <small>{s05Content.componentStrategy.presentation.crossCuttingLabel}</small>
-                ) : null}
-                <span>{s05Content.componentStrategy.statusLabels[card.status]}</span>
+      {changesCategory === undefined ? null : (
+        <div className={styles.crossCuttingCategory} data-status={changesCard.status}>
+          <strong>{changesCategory.title}</strong>
+          <img src={typicalChangesAsset} alt="" />
+        </div>
+      )}
+      <div className={styles.categoryConnections} aria-hidden="true">
+        <span />
+        <i />
+        <i />
+        <i />
+      </div>
+      <div className={styles.componentCategoryList}>
+        {sourceCategories.map((category, index) => {
+          const card = snapshot.componentStrategy.cards[category.id];
+          const focused = summary && snapshot.componentStrategy.summaryFocus === category.id;
+          return (
+            <article
+              key={category.id}
+              data-status={card.status}
+              data-focused={focused || undefined}
+            >
+              <div className={styles.componentCategoryHeading}>
+                <img src={categoryAssets[category.id]} alt="" />
+                <div>
+                  <h2>{`${index + 1}. ${category.title}`}</h2>
+                  <span>{s05Content.componentStrategy.statusLabels[card.status]}</span>
+                </div>
               </div>
-            </div>
-            {card.findings.length === 0 ? null : (
-              <ul>
-                {visibleCardChips(card.findings).map((label) => <li key={label}>{label}</li>)}
-              </ul>
-            )}
-            {summary ? (
-              <button
-                type="button"
-                aria-pressed={focused}
-                onClick={() => controller.focusSummaryCategory(category.id)}
-              >
-                {focused
-                  ? s05Content.componentStrategy.presentation.showAllCategories
-                  : s05Content.componentStrategy.presentation.highlightFindings}
-              </button>
-            ) : null}
-          </article>
-        );
-      })}
+              {card.findings.length === 0 ? null : (
+                <ul>
+                  {visibleCardChips(card.findings).map((label) => <li key={label}>{label}</li>)}
+                </ul>
+              )}
+              {summary ? (
+                <button
+                  type="button"
+                  aria-pressed={focused}
+                  onClick={() => controller.focusSummaryCategory(category.id)}
+                >
+                  {focused
+                    ? s05Content.componentStrategy.presentation.showAllCategories
+                    : s05Content.componentStrategy.presentation.highlightFindings}
+                </button>
+              ) : null}
+            </article>
+          );
+        })}
+      </div>
     </aside>
   );
 }
@@ -525,8 +542,20 @@ function CanonicalPasswordView({
   const blocks = revealed ? view.blocks : maskedCanonicalBlocks(view.blocks);
   const focus = snapshot.componentStrategy.summaryFocus ?? categoryForStep(snapshot.step);
   const findings = releasedComponentFindings(snapshot);
-  const blockFindings = findings.filter(({ categoryId }) => categoryId !== 'typical-changes');
-  const changes = findings.filter(({ categoryId }) => categoryId === 'typical-changes');
+  const visibleFindings =
+    focus === null ? findings : findings.filter(({ categoryId }) => categoryId === focus);
+  const highlightedIndices = blocks.flatMap((block, index) =>
+    visibleFindings.some(({ blockIds }) => blockIds.includes(block.id)) ? [index] : [],
+  );
+  const blockLabels = blocks.map((block) =>
+    [
+      ...new Set(
+        visibleFindings
+          .filter(({ blockIds }) => blockIds.includes(block.id))
+          .map(({ label }) => label),
+      ),
+    ].join(' · '),
+  );
   return (
     <section
       className={styles.canonicalPassword}
@@ -558,64 +587,20 @@ function CanonicalPasswordView({
           </span>
         </button>
       </header>
-      <div className={styles.canonicalBlocks} data-revealed={revealed || undefined}>
-        {blocks.map((block, index) => {
-          const labels = blockFindings.filter(({ blockIds }) => blockIds.includes(block.id));
-          const primary = labels.some(({ categoryId }) => categoryId === focus);
-          return (
-            <span
-              key={block.id}
-              className={styles.canonicalBlock}
-              data-marked={labels.length > 0 || undefined}
-              data-primary={primary || undefined}
-            >
-              <code
-                aria-label={
-                  revealed
-                    ? block.value
-                    : `${s05Content.componentStrategy.presentation.blockLabel} ${index + 1}, ${s05Content.componentStrategy.presentation.hiddenBlockLabel}`
-                }
-              >
-                {block.value}
-              </code>
-              {labels.map((finding) => (
-                <small key={finding.id} data-category={finding.categoryId}>
-                  <img src={categoryAssets[finding.categoryId]} alt="" />
-                  {finding.label}
-                </small>
-              ))}
-            </span>
-          );
-        })}
+      <div
+        className={styles.canonicalBlocks}
+        data-revealed={revealed || undefined}
+        data-s05-speech-obstacle
+      >
+        <PasswordBuildingBlocks
+          value={view.password}
+          parts={blocks.map(({ value }) => value)}
+          display="decomposed"
+          labels={blockLabels}
+          highlightedIndices={highlightedIndices}
+          ariaLabel={s05Content.componentStrategy.presentation.canonicalAriaLabel}
+        />
       </div>
-      {changes.length === 0 ? null : (
-        <div
-          className={styles.changeBindings}
-          aria-label={s05Content.componentStrategy.presentation.changesAriaLabel}
-        >
-          {changes.slice(0, 3).map((finding) => (
-            <span
-              key={finding.id}
-              data-primary={focus === 'typical-changes' || undefined}
-              data-binding={finding.binding}
-            >
-              <img src={typicalChangesAsset} alt="" />
-              <strong>{finding.label}</strong>
-              <small>
-                {finding.binding === 'password'
-                  ? s05Content.componentStrategy.presentation.boundToPassword
-                  : s05Content.componentStrategy.presentation.boundToComponent}
-              </small>
-            </span>
-          ))}
-          {changes.length > 3 ? (
-            <span data-primary={focus === 'typical-changes' || undefined} data-binding="password">
-              <img src={typicalChangesAsset} alt="" />
-              <strong>{s05Content.componentStrategy.typicalChanges.results.overflow}</strong>
-            </span>
-          ) : null}
-        </div>
-      )}
     </section>
   );
 }

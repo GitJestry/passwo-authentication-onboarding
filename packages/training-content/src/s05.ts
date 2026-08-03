@@ -27,7 +27,7 @@ export interface S05DesignLabFixture {
   readonly startSection: 'intro' | 'components' | 'structure';
 }
 
-export const S05_CONTENT_VERSION = '2.15.0';
+export const S05_CONTENT_VERSION = '2.16.0';
 
 const s05StrategyCards = [
   { id: 'components', title: 'Naheliegende Bestandteile' },
@@ -44,9 +44,9 @@ export const s05Content = {
       35,
     ] as const,
     revision:
-      'Userauftrag vom 2026-08-03 · Querschnittliche Veränderungen und schrittweise Laufbandmaschine',
+      'Userauftrag vom 2026-08-03 · Gemeinsame Bausteinprüfung und verbindende Veränderungsebene',
     copyReference:
-      'docs/design/S00-S05-COPY-AUDIT.md#copy-delta-s05-querschnittliche-veränderungen-und-laufbandmaschine-3-august-2026',
+      'docs/design/S00-S05-COPY-AUDIT.md#copy-delta-s05-gemeinsame-bausteinprüfung-und-verbindende-veränderungsebene-3-august-2026',
   },
   segment: {
     id: 'S05',

@@ -615,3 +615,21 @@ weiterhin ausschließlich lokal eingeordnet und nicht automatisch aus der Zeiche
 Das neue QA-Beispiel `s05-all-categories` liefert automatische Befunde für häufige Bestandteile,
 Kontobezug und typische Veränderungen; die vierte Karte wird ausschließlich durch die lokale
 persönliche Einordnung bestätigt.
+
+### Copy-Delta S05 gemeinsame Bausteinprüfung und verbindende Veränderungsebene 3. August 2026
+
+Quelle ist der ausdrückliche Nutzerauftrag vom 3. August 2026. Die Änderung vereinheitlicht die
+Passwortprüfung mit dem bereits für `MeinStarkesUniPasswort2005!` eingeführten Bausteinsystem und
+ordnet die querschnittlichen Veränderungen oberhalb der drei Bestandteilarten ein.
+`S05_CONTENT_VERSION` wird von `2.15.0` auf `2.16.0` erhöht.
+
+| Segment und Text-ID | Aktueller Text / Verhalten | Neuer Text / Verhalten | Primäre Rolle | Grund | Bedeutungsänderung | Interaktionsziel | Hervorhebung |
+|---|---|---|---|---|---|---|---|
+| `S05.componentStrategy.presentation.canonicalAriaLabel` und Passwortdarstellung | separate umrahmte Overall-Ansicht mit eigenem Baustein- und Markierungssystem | zentriertes Campusgram-Passwort wird beim Prüfen im vorhandenen `PasswordBuildingBlocks`-System offengelegt und segmentiert; betroffene Bausteine leuchten je Prüfart | Ergebnisfeedback | eine gemeinsame visuelle Grammatik für Beispiel und Prüfung; ausdrücklich freigegeben | nein | Augen-Umschalter bleibt am zentralen Passwort | aktive Befunde leuchten zusätzlich zu Farbe über Kontur und Helligkeit |
+| `S05.componentStrategy.categories[0..2]` und `S05.page.title` | Titel oberhalb einer vierteiligen Kartenleiste | `Naheliegende Bestandteile` steht mittig links; die drei Bestandteilkarten stehen rechts daneben | Orientierung | Titel und Statushierarchie werden in einer gemeinsamen oberen Leiste lesbar | nein | Zusammenfassungsfilter bleiben auf den drei Bestandteilkarten | Text, Symbol, Rahmen und Status tragen den Zustand gemeinsam |
+| `S05.componentStrategy.categories[3]`, `presentation.crossCuttingLabel` und Statusdarstellung | vierte umrahmte Karte `Typische Veränderungen` mit Zusatztext `betrifft alle drei Arten`, Status, Befundchips und Zusammenfassungsaktion | keine vierte Karte; nur `Typische Veränderungen` und das große bestehende Symbol liegen mittig über den drei Karten, Verbindungslinien zeigen die Wirkung auf alle drei Arten | Orientierung / Mechanismuserklärung | Veränderungen sind eine querschnittliche Prüfung und keine vierte Bestandteilart; ausdrücklich freigegeben | nein | kein eigenes Kartenziel | Symbol und verbindende Linien visualisieren den Querschnitt |
+
+Die Prüfentscheidung, die vierte zeitliche Prüfphase und ihre flüchtigen lokalen Befunde bleiben
+unverändert. Entfernt werden ausschließlich die parallele Overall-Darstellung und die visuelle
+Gleichordnung der Veränderungsprüfung mit den drei Bestandteilarten. Es werden keine neuen
+persistierten Felder oder Analysebehauptungen eingeführt.

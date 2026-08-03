@@ -10,6 +10,7 @@ export interface PasswordBuildingBlocksProps {
   readonly animate?: boolean;
   readonly appearance?: 'authored' | 'candidate';
   readonly highlightedIndex?: number;
+  readonly highlightedIndices?: readonly number[];
   readonly annotations?: {
     readonly sentenceStructure: string;
     readonly probability: string;
@@ -31,6 +32,7 @@ export function PasswordBuildingBlocks({
   animate = true,
   appearance = 'authored',
   highlightedIndex,
+  highlightedIndices = [],
   annotations,
 }: PasswordBuildingBlocksProps) {
   if (display === 'assembled') {
@@ -59,8 +61,15 @@ export function PasswordBuildingBlocks({
             <strong className={styles.sentenceStructure}>{annotations.sentenceStructure}</strong>
           )}
           {parts.map((part, index) => (
-            <span key={`${part}-${index}`} data-part-index={index}>
+            <span
+              key={`${part}-${index}`}
+              data-part-index={index}
+              data-highlighted={highlightedIndices.includes(index) || undefined}
+            >
               {part}
+              {labels?.[index] === undefined || labels[index] === '' ? null : (
+                <small className={styles.blockLabel}>{labels[index]}</small>
+              )}
               {annotations === undefined || index !== 3 ? null : (
                 <small className={styles.probability}>{annotations.probability}</small>
               )}
@@ -88,7 +97,9 @@ export function PasswordBuildingBlocks({
         <span
           key={`${part}-${index}`}
           className={styles.block}
-          data-highlighted={index === highlightedIndex || undefined}
+          data-highlighted={
+            index === highlightedIndex || highlightedIndices.includes(index) || undefined
+          }
         >
           <code>{part}</code>
           {labels?.[index] === undefined ? null : <small>{labels[index]}</small>}
