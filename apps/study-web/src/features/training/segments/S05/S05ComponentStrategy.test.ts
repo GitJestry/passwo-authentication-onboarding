@@ -8,7 +8,6 @@ import {
   bindTypicalChangeFindings,
   createCanonicalPasswordView,
   createPersonalFindings,
-  maskedCanonicalBlocks,
 } from './S05ComponentStrategy.js';
 
 describe('S05 component strategy presentation', () => {
@@ -48,7 +47,7 @@ describe('S05 component strategy presentation', () => {
     expect(JSON.stringify(view.automaticFindings)).not.toMatch(/persönlich/iu);
     expect(createPersonalFindings(view, [])).toEqual([]);
     expect(createPersonalFindings(view, [view.blocks[0]?.id ?? ''])[0]?.label).toBe(
-      'persönlich eingeordneter Bestandteil',
+      'persönliche Angabe',
     );
     const groupedBlockIds = view.blocks.slice(0, 2).map(({ id }) => id);
     expect(createPersonalFindings(view, groupedBlockIds, true)).toMatchObject([
@@ -164,19 +163,6 @@ describe('S05 component strategy presentation', () => {
     expect(bindTypicalChangeFindings(personalView, []).every(({ binding }) => binding === 'password')).toBe(
       true,
     );
-  });
-
-  it('masks only characters while preserving block identities and findings', () => {
-    const password = 'Passw0rt123!';
-    const view = createCanonicalPasswordView(
-      password,
-      analyzeFictionalPassword({ fictionalPassword: password }),
-    );
-    const masked = maskedCanonicalBlocks(view.blocks);
-
-    expect(masked.map(({ id }) => id)).toEqual(view.blocks.map(({ id }) => id));
-    expect(masked.map(({ value }) => value)).toEqual(view.blocks.map(({ value }) => '•'.repeat(value.length)));
-    expect(view.automaticFindings['typical-changes']).not.toHaveLength(0);
   });
 
   it('does not let category presentation alter the frozen simulation disposition', () => {

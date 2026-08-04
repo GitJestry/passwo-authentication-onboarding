@@ -9,7 +9,7 @@ import type {
   PasswordFreeSearchDemonstrationSceneSnapshot,
   PasswordStructureSceneSnapshot,
 } from '@passwo/visualization';
-import { type CSSProperties, type ReactNode, useEffect, useRef, useState } from 'react';
+import { type ReactNode, useEffect, useRef, useState } from 'react';
 import accountContextAsset from '../../../../assets/s05/category-logos/account-context.png';
 import commonCoresAsset from '../../../../assets/s05/category-logos/common-cores.png';
 import personalDetailsAsset from '../../../../assets/s05/category-logos/personal-details.png';
@@ -17,6 +17,7 @@ import typicalChangesAsset from '../../../../assets/s05/category-logos/typical-c
 import attackerAsset from '../../../../assets/passwo/attacker.png';
 import { NetworkSymbol } from '../../../../adapters/network/NetworkSymbolRegistry.js';
 import { PassWoGuide } from '../../PassWoGuide.js';
+import { passWoSpeechEmphasisFor } from '../../PassWoSpeechEmphasis.js';
 import { PasswordBuildingBlocks } from './PasswordBuildingBlocks.js';
 import {
   type S05AnalysisControllerSnapshot,
@@ -26,7 +27,6 @@ import {
 } from './S05AnalysisController.js';
 import { S05AnimationAdapter } from './S05AnimationAdapter.js';
 import {
-  maskedCanonicalBlocks,
   type S05CategoryFinding,
   type S05ComponentCategoryId,
 } from './S05ComponentStrategy.js';
@@ -78,44 +78,16 @@ function CampusgramPassword({
   );
 }
 
-const candidateAlphabet = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789!?#$%&';
-
-function candidateForIndex(index: number, maximumLength: number): string {
-  const length = 1 + (index % maximumLength);
-  return Array.from(
-    { length },
-    (_, characterIndex) =>
-      candidateAlphabet[(index * 7 + characterIndex * 11) % candidateAlphabet.length] ?? 'x',
-  ).join('');
-}
-
-function AttackerAttempt({ maximumLength }: { readonly maximumLength: number }) {
-  const [candidateIndex, setCandidateIndex] = useState(0);
-
-  useEffect(() => {
-    setCandidateIndex(0);
-    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return undefined;
-    const interval = window.setInterval(() => setCandidateIndex((index) => index + 1), 820);
-    return () => window.clearInterval(interval);
-  }, [maximumLength]);
-
-  const candidate = candidateForIndex(candidateIndex, maximumLength);
-  return (
-    <div className={styles.attackerAttempt} data-s05-target="attacker-attempt" aria-live="off">
-      <code key={candidate}>{candidate}</code>
-      <strong>
-        <span aria-hidden="true">×</span>
-        {s05Content.intro.candidateFailure}
-      </strong>
-    </div>
-  );
-}
+const generatedSequenceAlphabet =
+  'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789!?#$%&';
 
 function CandidateCheckScene({ subject }: { readonly subject: S05AnalysisSubject }) {
   return (
     <div className={styles.attackerStage}>
       <CampusgramPassword password={subject.fictionalPassword} />
-      <AttackerAttempt maximumLength={Math.max(1, subject.fictionalPassword.length + 5)} />
+      <div className={styles.attackerAttempt} data-s05-target="attacker-attempt">
+        <GeneratedSequence />
+      </div>
       <div className={styles.attackerConnection} aria-hidden="true">
         <span />
       </div>
@@ -150,8 +122,8 @@ function GeneratedSequence() {
           <i key={index}>
             {frameIndex === 0
               ? character
-              : candidateAlphabet[
-                  (frameIndex * (index + 3) + index * 11) % candidateAlphabet.length
+              : generatedSequenceAlphabet[
+                  (frameIndex * (index + 3) + index * 11) % generatedSequenceAlphabet.length
                 ]}
           </i>
         ))}
@@ -223,109 +195,35 @@ function StrategyTargetingScene() {
   );
 }
 
-function StrategyPreview({
-  strategyId,
-}: {
-  readonly strategyId: (typeof s05Content.intro.strategies)[number]['id'];
-}) {
-  return (
-    <div className={styles.strategyPreview} data-strategy={strategyId} aria-hidden="true">
-      <span />
-      <span />
-      <span />
-    </div>
-  );
-}
-
-function StrategyOverviewScene() {
-  return (
-    <div className={styles.strategyOverview} data-s05-target="strategy-overview">
-      <div className={styles.strategyCards}>
-        {s05Content.intro.strategies.map((strategy, index) => (
-          <article
-            key={strategy.id}
-            data-strategy={strategy.id}
-            style={{ '--strategy-index': index } as CSSProperties}
-          >
-            <StrategyPreview strategyId={strategy.id} />
-            <h2>{`${index + 1}. ${strategy.title}`}</h2>
-          </article>
-        ))}
-      </div>
-      <div className={styles.strategyBuildingBlocks} data-s05-speech-obstacle>
-        <PasswordBuildingBlocks
-          value={s05Content.intro.memorablePassword}
-          parts={s05Content.intro.memorablePasswordParts}
-          display="decomposed"
-          animate={false}
-          annotations={s05Content.intro.strategyAnnotations}
-          ariaLabel={`${s05Content.intro.memorablePassword}: ${Object.values(s05Content.intro.strategyAnnotations).join(', ')}`}
-        />
-      </div>
-    </div>
-  );
-}
-
-function ComponentSequence({ fixed }: { readonly fixed: boolean }) {
+function ComponentSequence() {
   const fixedFrame = s05Content.intro.fixedCommonPasswordFrame;
   return (
     <div
       className={styles.componentSequence}
       role="img"
-      aria-label={
-        fixed
-          ? s05Content.intro.componentLeadIn.fixedBlockAria
-          : s05Content.intro.componentLeadIn.changingBlocksAria
-      }
+      aria-label={s05Content.intro.componentLeadIn.fixedBlockAria}
     >
       <div aria-hidden="true">
-        {fixed ? (
-          <div className={styles.componentFrame} data-fixed="true">
-            <PasswordBuildingBlocks
-              value={fixedFrame.parts.join('')}
-              parts={fixedFrame.parts}
-              display="separated"
-              appearance="candidate"
-              highlightedIndex={fixedFrame.highlightedIndex}
-              ariaLabel=""
-            />
-          </div>
-        ) : (
-          s05Content.intro.componentFrames.map((frame, frameIndex) => {
-            const parts = frame.partLengths.map((length) => '•'.repeat(length));
-            return (
-              <div
-                key={frame.partLengths.join('-')}
-                className={styles.componentFrame}
-                style={{ '--frame-index': frameIndex } as CSSProperties}
-              >
-                <PasswordBuildingBlocks
-                  value={parts.join('')}
-                  parts={parts}
-                  display="separated"
-                  appearance="candidate"
-                  ariaLabel=""
-                />
-              </div>
-            );
-          })
-        )}
+        <div className={styles.componentFrame} data-fixed="true">
+          <PasswordBuildingBlocks
+            value={fixedFrame.parts.join('')}
+            parts={fixedFrame.parts}
+            display="separated"
+            appearance="candidate"
+            highlightedIndex={fixedFrame.highlightedIndex}
+            ariaLabel=""
+          />
+        </div>
       </div>
     </div>
   );
 }
 
-function ComponentStartScene({
-  subject,
-  fixed,
-}: {
-  readonly subject: S05AnalysisSubject;
-  readonly fixed: boolean;
-}) {
+function ComponentStartScene({ subject }: { readonly subject: S05AnalysisSubject }) {
   return (
     <div className={styles.attackerStage} data-s05-target="component-start">
       <CampusgramPassword password={subject.fictionalPassword} />
-      <ComponentSequence fixed={fixed} />
+      <ComponentSequence />
       <div className={styles.attackerConnection} aria-hidden="true">
         <span />
       </div>
@@ -354,79 +252,148 @@ const semanticReflectionOrder = [
 type CommonComponentMachineStep =
   | 'common-components-start'
   | 'common-components-examples'
-  | 'common-components-boundary'
   | 'common-components-changes';
 
-const commonMachineIndexByStep = {
-  'common-components-start': 0,
-  'common-components-examples': 1,
-  'common-components-boundary': 2,
-  'common-components-changes': 2,
-} as const satisfies Readonly<Record<CommonComponentMachineStep, number>>;
+const typicalCharacterReplacements: Readonly<Record<string, string>> = {
+  a: '4',
+  e: '3',
+  i: '1',
+  o: '0',
+  s: '5',
+};
 
-function CommonComponentsMachine({ step }: { readonly step: CommonComponentMachineStep }) {
+function replaceTypicalCharacters(value: string): string {
+  return [...value]
+    .map(
+      (character) =>
+        typicalCharacterReplacements[character.toLocaleLowerCase('de-DE')] ?? character,
+    )
+    .join('');
+}
+
+function typicalChangeVariants(value: string): readonly string[] {
+  const initial = value.at(0);
+  const capitalized =
+    initial === undefined
+      ? value
+      : `${initial.toLocaleUpperCase('de-DE')}${value.slice(1)}`;
+  return [
+    capitalized,
+    value.toLocaleUpperCase('de-DE'),
+    replaceTypicalCharacters(value),
+    replaceTypicalCharacters(capitalized),
+    `${value}1`,
+    `${value}!`,
+    `${value}12`,
+    `${value}?`,
+    `${value}123`,
+    `${value}#`,
+    `${value}2005`,
+    `${value}.`,
+    `${value}2026`,
+    `${value}_`,
+  ].filter((variant, index, variants) => variant !== value && variants.indexOf(variant) === index);
+}
+
+function CategoryMachine({
+  categoryId,
+  conveyorBlocks,
+  stepKey,
+  showTransition = false,
+}: {
+  readonly categoryId: S05ComponentCategoryId;
+  readonly conveyorBlocks: readonly string[];
+  readonly stepKey: string;
+  readonly showTransition?: boolean;
+}) {
   const content = s05Content.componentStrategy.commonComponents.machine;
-  const activeIndex = commonMachineIndexByStep[step];
-  const activeExample = content.examples[activeIndex];
-  if (activeExample === undefined) return null;
-  const releasedVariants = content.examples
-    .slice(0, activeIndex + 1)
-    .flatMap(({ variants }) => variants);
+  const [travelingIndex, setTravelingIndex] = useState(0);
+  const [arrivedIndex, setArrivedIndex] = useState(0);
+  const travelingBlock = conveyorBlocks[travelingIndex] ?? conveyorBlocks[0] ?? '';
+  const arrivedBlock = conveyorBlocks[arrivedIndex] ?? conveyorBlocks[0] ?? '';
+  const variants = typicalChangeVariants(arrivedBlock);
+  const category = s05Content.componentStrategy.categories.find(({ id }) => id === categoryId);
+
+  function advanceConveyor(): void {
+    setArrivedIndex(travelingIndex);
+    setTravelingIndex((index) => (index + 1) % conveyorBlocks.length);
+  }
+
   return (
     <section
-      key={step}
+      key={stepKey}
       className={styles.commonComponentMachine}
       data-s05-target="component-conveyor"
-      data-machine-step={step}
-      aria-label={content.ariaLabel}
+      data-s05-speech-obstacle
+      data-machine-step={stepKey}
+      aria-label={category?.title ?? content.ariaLabel}
     >
+      {showTransition ? (
+        <div className={styles.categoryTransition} aria-hidden="true">
+          <div className={styles.categoryTransitionPanel}>
+            <img src={categoryAssets[categoryId]} alt="" />
+            <strong>{category?.title ?? s05Content.page.title}</strong>
+          </div>
+        </div>
+      ) : null}
       <div className={styles.machineInput}>
-        <strong>{content.inputLabel}</strong>
-        <div>
-          {content.examples.map(({ base }, index) => (
-            <code key={base} data-active={index === activeIndex || undefined}>
-              {base}
+        <img src={categoryAssets[categoryId]} alt="" />
+        <div aria-hidden="true">
+          {conveyorBlocks.map((block) => (
+            <code key={block} data-active={block === travelingBlock || undefined}>
+              {block}
             </code>
           ))}
         </div>
+        <span className={styles.machineListContinuation} aria-hidden="true">⋮</span>
       </div>
       <div className={styles.machineConveyor} aria-hidden="true">
         <span />
-        <code>{activeExample.base}</code>
+        <code
+          key={travelingBlock}
+          data-transition-delay={
+            showTransition && travelingIndex === 0 && arrivedIndex === 0
+              ? true
+              : undefined
+          }
+          onAnimationEnd={advanceConveyor}
+        >
+          {travelingBlock}
+        </code>
       </div>
       <div className={styles.machineBody}>
-        <span aria-hidden="true" />
-        <strong>{content.machineLabel}</strong>
-        <i aria-hidden="true" />
+        <strong>{content.generatorLabel}</strong>
       </div>
-      <div className={styles.machineOutput}>
-        <strong>{content.outputLabel}</strong>
-        <div>
-          {releasedVariants.map((variant) => (
-            <code key={variant}>{variant}</code>
-          ))}
+      <div className={styles.machineFunnel} aria-hidden="true" />
+      <div
+        className={styles.machineOutput}
+        data-source={arrivedBlock}
+        data-emphasized={stepKey === 'common-components-changes' || undefined}
+      >
+        <img src={typicalChangesAsset} alt="" />
+        <div className={styles.machineOutputViewport} key={arrivedBlock}>
+          <div className={styles.machineOutputStream}>
+            {[...variants, ...variants].map((variant, index) => (
+              <code key={`${variant}-${index}`} aria-hidden={index >= variants.length || undefined}>
+                {variant}
+              </code>
+            ))}
+          </div>
         </div>
+        <span className={styles.machineListContinuation} aria-hidden="true">⋮</span>
       </div>
     </section>
   );
 }
 
-function PasswordVisibilityIcon({ revealed }: { readonly revealed: boolean }) {
+function CommonComponentsMachine({ step }: { readonly step: CommonComponentMachineStep }) {
   return (
-    <svg
-      aria-hidden="true"
-      className={styles.revealIcon}
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="1.8"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    >
-      <path d="M2.5 12s3.5-6 9.5-6 9.5 6 9.5 6-3.5 6-9.5 6-9.5-6-9.5-6Z" />
-      <circle cx="12" cy="12" r="2.5" />
-      {revealed ? <path d="M4 4 20 20" /> : null}
-    </svg>
+    <CategoryMachine
+      categoryId="common-components"
+      conveyorBlocks={s05Content.componentStrategy.commonComponents.machine.conveyorBlocks}
+      stepKey={step}
+      showTransition={step === 'common-components-start'}
+    />
   );
 }
 
@@ -440,20 +407,13 @@ function categoryForStep(
   return null;
 }
 
-function visibleCardChips(findings: readonly S05CategoryFinding[]): readonly string[] {
-  const labels = [...new Set(findings.map(({ label }) => label))];
-  if (labels.length <= 3) return labels;
-  return [...labels.slice(0, 2), s05Content.componentStrategy.moreFindings];
-}
-
 function CategoryCards({
   snapshot,
-  controller,
 }: {
   readonly snapshot: S05AnalysisControllerSnapshot;
-  readonly controller: S05AnalysisController;
 }) {
   const summary = snapshot.step === 'components-summary';
+  const activeCategoryId = categoryForStep(snapshot.step);
   const sourceCategories = s05Content.componentStrategy.categories.filter(
     ({ id }) => id !== 'typical-changes',
   );
@@ -467,7 +427,11 @@ function CategoryCards({
       aria-label={s05Content.componentStrategy.presentation.categoriesAriaLabel}
     >
       {changesCategory === undefined ? null : (
-        <div className={styles.crossCuttingCategory} data-status={changesCard.status}>
+        <div
+          className={styles.crossCuttingCategory}
+          data-status={changesCard.status}
+          data-active={summary || activeCategoryId === 'typical-changes' || undefined}
+        >
           <strong>{changesCategory.title}</strong>
           <img src={typicalChangesAsset} alt="" />
         </div>
@@ -479,42 +443,56 @@ function CategoryCards({
         <i />
       </div>
       <div className={styles.componentCategoryList}>
-        {sourceCategories.map((category, index) => {
+        {sourceCategories.map((category) => {
           const card = snapshot.componentStrategy.cards[category.id];
-          const focused = summary && snapshot.componentStrategy.summaryFocus === category.id;
+          const active = summary || activeCategoryId === category.id;
+          const blockIds = new Set(
+            card.findings.flatMap(({ blockIds: findingBlockIds }) => findingBlockIds),
+          );
+          const findingBlocks =
+            snapshot.componentStrategy.canonicalView?.blocks.filter(({ id }) =>
+              blockIds.has(id),
+            ) ?? [];
           return (
             <article
               key={category.id}
               data-status={card.status}
-              data-focused={focused || undefined}
+              data-active={active || undefined}
             >
               <div className={styles.componentCategoryHeading}>
                 <img src={categoryAssets[category.id]} alt="" />
                 <div>
-                  <h2>{`${index + 1}. ${category.title}`}</h2>
-                  <span>{s05Content.componentStrategy.statusLabels[card.status]}</span>
+                  <h2>{category.title}</h2>
                 </div>
               </div>
-              {card.findings.length === 0 ? null : (
+              {findingBlocks.length === 0 ? null : (
                 <ul>
-                  {visibleCardChips(card.findings).map((label) => <li key={label}>{label}</li>)}
+                  {findingBlocks.map(({ id, value }) => (
+                    <li key={id}>
+                      <code>{value}</code>
+                    </li>
+                  ))}
                 </ul>
               )}
-              {summary ? (
-                <button
-                  type="button"
-                  aria-pressed={focused}
-                  onClick={() => controller.focusSummaryCategory(category.id)}
-                >
-                  {focused
-                    ? s05Content.componentStrategy.presentation.showAllCategories
-                    : s05Content.componentStrategy.presentation.highlightFindings}
-                </button>
-              ) : null}
             </article>
           );
         })}
       </div>
+    </aside>
+  );
+}
+
+function CategoryHeader({ snapshot }: { readonly snapshot: S05AnalysisControllerSnapshot }) {
+  if (showsComponentCategoryCards(snapshot.step)) return <CategoryCards snapshot={snapshot} />;
+  const activeCategoryId = categoryForStep(snapshot.step);
+  const activeCategory = s05Content.componentStrategy.categories.find(
+    ({ id }) => id === activeCategoryId,
+  );
+  if (activeCategory === undefined) return null;
+  return (
+    <aside className={styles.singleCategoryHeader} aria-label={activeCategory.title}>
+      <strong>{activeCategory.title}</strong>
+      <img src={categoryAssets[activeCategory.id]} alt="" />
     </aside>
   );
 }
@@ -530,22 +508,24 @@ function releasedComponentFindings(
 
 function CanonicalPasswordView({
   snapshot,
-  revealed,
-  onToggle,
+  controller,
 }: {
   readonly snapshot: S05AnalysisControllerSnapshot;
-  readonly revealed: boolean;
-  readonly onToggle: () => void;
+  readonly controller: S05AnalysisController;
 }) {
   const view = snapshot.componentStrategy.canonicalView;
   if (view === null) return null;
-  const blocks = revealed ? view.blocks : maskedCanonicalBlocks(view.blocks);
-  const focus = snapshot.componentStrategy.summaryFocus ?? categoryForStep(snapshot.step);
+  const blocks = view.blocks;
+  const focus = snapshot.step === 'components-summary' ? null : categoryForStep(snapshot.step);
   const findings = releasedComponentFindings(snapshot);
   const visibleFindings =
     focus === null ? findings : findings.filter(({ categoryId }) => categoryId === focus);
   const highlightedIndices = blocks.flatMap((block, index) =>
     visibleFindings.some(({ blockIds }) => blockIds.includes(block.id)) ? [index] : [],
+  );
+  const personalSelection = snapshot.componentStrategy.personalSelection;
+  const selectedPersonalIndices = blocks.flatMap((block, index) =>
+    personalSelection.blockIds.includes(block.id) ? [index] : [],
   );
   const blockLabels = blocks.map((block) =>
     [
@@ -566,38 +546,29 @@ function CanonicalPasswordView({
           <span aria-hidden="true">
             <NetworkSymbol symbolId="campusgram" />
           </span>
-          <span>{`Campusgram ${s05Content.intro.campusgramPassword.visibleSuffix}`}</span>
+          <span>Campusgram-Passwort</span>
         </strong>
-        <button
-          type="button"
-          className={styles.revealButton}
-          aria-pressed={revealed}
-          aria-label={
-            revealed
-              ? s05Content.componentStrategy.presentation.hidePassword
-              : s05Content.componentStrategy.presentation.showPassword
-          }
-          onClick={onToggle}
-        >
-          <PasswordVisibilityIcon revealed={revealed} />
-          <span>
-            {revealed
-              ? s05Content.componentStrategy.presentation.hidePassword
-              : s05Content.componentStrategy.presentation.showPassword}
-          </span>
-        </button>
       </header>
-      <div
-        className={styles.canonicalBlocks}
-        data-revealed={revealed || undefined}
-        data-s05-speech-obstacle
-      >
+      <div className={styles.canonicalBlocks} data-s05-speech-obstacle>
         <PasswordBuildingBlocks
           value={view.password}
           parts={blocks.map(({ value }) => value)}
           display="decomposed"
+          appearance="analysis"
           labels={blockLabels}
-          highlightedIndices={highlightedIndices}
+          highlightedIndices={[...highlightedIndices, ...selectedPersonalIndices]}
+          {...(snapshot.step === 'personal-details-check'
+            ? {
+                selection: {
+                  selectedIndices: selectedPersonalIndices,
+                  checkboxLabel: s05Content.componentStrategy.personalDetails.selectionLabel,
+                  onToggle: (index: number) => {
+                    const block = blocks[index];
+                    if (block !== undefined) controller.togglePersonalBlock(block.id);
+                  },
+                },
+              }
+            : {})}
           ariaLabel={s05Content.componentStrategy.presentation.canonicalAriaLabel}
         />
       </div>
@@ -608,74 +579,20 @@ function CanonicalPasswordView({
 function PersonalDetailsCheck({
   snapshot,
   controller,
-  revealed,
 }: {
   readonly snapshot: S05AnalysisControllerSnapshot;
   readonly controller: S05AnalysisController;
-  readonly revealed: boolean;
 }) {
-  const view = snapshot.componentStrategy.canonicalView;
-  if (view === null) return null;
   const selection = snapshot.componentStrategy.personalSelection;
-  const blocks = revealed ? view.blocks : maskedCanonicalBlocks(view.blocks);
   const content = s05Content.componentStrategy.personalDetails;
   return (
-    <section className={styles.personalComponentCheck} aria-labelledby="s05-personal-question">
-      <h2 id="s05-personal-question">{content.question}</h2>
-      <p>{content.privacyNote}</p>
-      <fieldset>
-        <legend className={styles.visuallyHidden}>{content.question}</legend>
-        <div className={styles.personalBlockOptions}>
-          {blocks.map((block, index) => (
-            <label key={block.id}>
-              <input
-                type="checkbox"
-                checked={selection.blockIds.includes(block.id)}
-                onChange={() => controller.togglePersonalBlock(block.id)}
-              />
-              <code
-                aria-label={`${s05Content.componentStrategy.presentation.blockLabel} ${index + 1}`}
-              >
-                {block.value}
-              </code>
-            </label>
-          ))}
-        </div>
-        {selection.blockIds.length > 1 ? (
-          <label>
-            <input
-              type="checkbox"
-              checked={selection.grouped}
-              onChange={() => controller.togglePersonalGrouping()}
-            />
-            <span>{content.groupSelection}</span>
-          </label>
-        ) : null}
-        <label>
-          <input
-            type="radio"
-            name="s05-personal-alternative"
-            checked={selection.alternative === 'none'}
-            onChange={() => controller.selectPersonalAlternative('none')}
-          />
-          <span>{content.none}</span>
-        </label>
-        <label>
-          <input
-            type="radio"
-            name="s05-personal-alternative"
-            checked={selection.alternative === 'unsure'}
-            onChange={() => controller.selectPersonalAlternative('unsure')}
-          />
-          <span>{content.unsure}</span>
-        </label>
-      </fieldset>
+    <section className={styles.personalComponentCheck}>
+      <p className={styles.visuallyHidden}>{content.privacyNote}</p>
       <button
         type="button"
-        disabled={selection.blockIds.length === 0 && selection.alternative === null}
         onClick={() => controller.completePersonalDetailsCheck()}
       >
-        {content.apply}
+        {selection.blockIds.length === 0 ? content.applyNone : content.apply}
       </button>
     </section>
   );
@@ -685,14 +602,10 @@ function ComponentStrategyScene({
   subject,
   snapshot,
   controller,
-  revealed,
-  onToggle,
 }: {
   readonly subject: S05AnalysisSubject;
   readonly snapshot: S05AnalysisControllerSnapshot;
   readonly controller: S05AnalysisController;
-  readonly revealed: boolean;
-  readonly onToggle: () => void;
 }) {
   return (
     <div className={styles.componentStrategyLayout} data-s05-target="component-strategy">
@@ -700,10 +613,10 @@ function ComponentStrategyScene({
         {snapshot.componentStrategy.canonicalView === null ? (
           <CampusgramPassword password={subject.fictionalPassword} />
         ) : (
-          <CanonicalPasswordView snapshot={snapshot} revealed={revealed} onToggle={onToggle} />
+          <CanonicalPasswordView snapshot={snapshot} controller={controller} />
         )}
         {snapshot.step === 'personal-details-check' ? (
-          <PersonalDetailsCheck snapshot={snapshot} controller={controller} revealed={revealed} />
+          <PersonalDetailsCheck snapshot={snapshot} controller={controller} />
         ) : null}
       </div>
     </div>
@@ -1105,8 +1018,6 @@ function renderScene(
   snapshot: S05AnalysisControllerSnapshot,
   subject: S05AnalysisSubject,
   controller: S05AnalysisController,
-  passwordRevealed: boolean,
-  onTogglePassword: () => void,
 ) {
   switch (snapshot.step) {
     case 'candidate-check':
@@ -1119,26 +1030,17 @@ function renderScene(
       return <BuildingBlocksScene />;
     case 'strategy-targeting':
       return <StrategyTargetingScene />;
-    case 'strategy-overview':
-      return <StrategyOverviewScene />;
-    case 'component-start-question':
-    case 'component-frequency':
-      return <ComponentStartScene subject={subject} fixed={false} />;
     case 'component-category-overview':
-      return <ComponentStartScene subject={subject} fixed />;
+      return <ComponentStartScene subject={subject} />;
     case 'common-components-start':
     case 'common-components-examples':
-    case 'common-components-boundary':
     case 'common-components-changes':
       return <CommonComponentsMachine step={snapshot.step} />;
     case 'common-components-intro':
     case 'common-components-result':
-    case 'personal-details-intro':
     case 'personal-details-check':
     case 'personal-details-result':
-    case 'account-context-intro':
     case 'account-context-result':
-    case 'typical-changes-intro':
     case 'typical-changes-result':
     case 'components-summary':
       return (
@@ -1146,8 +1048,35 @@ function renderScene(
           subject={subject}
           snapshot={snapshot}
           controller={controller}
-          revealed={passwordRevealed}
-          onToggle={onTogglePassword}
+        />
+      );
+    case 'personal-details-opening':
+    case 'personal-details-derivation':
+    case 'personal-details-intro':
+      return (
+        <CategoryMachine
+          categoryId="personal-details"
+          conveyorBlocks={s05Content.componentStrategy.personalDetails.machine.conveyorBlocks}
+          stepKey={snapshot.step}
+          showTransition={snapshot.step === 'personal-details-opening'}
+        />
+      );
+    case 'account-context-opening':
+    case 'account-context-intro':
+      return (
+        <CategoryMachine
+          categoryId="account-context"
+          conveyorBlocks={s05Content.componentStrategy.accountContext.machine.conveyorBlocks}
+          stepKey={snapshot.step}
+          showTransition={snapshot.step === 'account-context-opening'}
+        />
+      );
+    case 'typical-changes-intro':
+      return (
+        <CategoryMachine
+          categoryId="typical-changes"
+          conveyorBlocks={s05Content.componentStrategy.typicalChanges.machine.conveyorBlocks}
+          stepKey={snapshot.step}
         />
       );
     case 'structure-theme':
@@ -1203,42 +1132,70 @@ function renderScene(
 function commonComponentsResult(snapshot: S05AnalysisControllerSnapshot): readonly string[] {
   const content = s05Content.componentStrategy.commonComponents;
   const view = snapshot.componentStrategy.canonicalView;
-  const count = snapshot.componentStrategy.cards['common-components'].findings.length;
-  const result =
-    view?.completeCommonPassword === true
+  const findings = snapshot.componentStrategy.cards['common-components'].findings;
+  if (view === null || findings.length === 0) return [...content.results.none, content.transition];
+
+  const foundBlockIds = new Set(findings.flatMap(({ blockIds }) => blockIds));
+  const foundValues = [
+    ...new Set(view.blocks.filter(({ id }) => foundBlockIds.has(id)).map(({ value }) => value)),
+  ];
+  if (foundValues.length === 0) return [...content.results.none, content.transition];
+
+  const quotedValues = foundValues.map((value) => `„${value}“`);
+  const parts =
+    quotedValues.length === 1
+      ? quotedValues[0] ?? ''
+      : `${quotedValues.slice(0, -1).join(', ')} und ${quotedValues.at(-1) ?? ''}`;
+  const finding = (foundValues.length === 1
+    ? content.results.foundOne
+    : content.results.foundMany
+  ).replace('[Teile]', parts);
+  const foundOnlyBlock = view.blocks.length === 1 && foundBlockIds.has(view.blocks[0]?.id ?? '');
+  return [
+    finding,
+    foundOnlyBlock
       ? content.results.complete
-      : count === 0
-        ? content.results.none
-        : count === 1
-          ? content.results.one
-          : content.results.many;
-  return [...result, content.transition];
+      : content.results.boundary,
+    content.transition,
+  ];
 }
 
 function personalDetailsResult(snapshot: S05AnalysisControllerSnapshot): readonly string[] {
   const content = s05Content.componentStrategy.personalDetails;
-  const selection = snapshot.componentStrategy.personalSelection;
-  const count = snapshot.componentStrategy.cards['personal-details'].findings.length;
+  const view = snapshot.componentStrategy.canonicalView;
+  const findings = snapshot.componentStrategy.cards['personal-details'].findings;
+  const selectedBlockIds = new Set(findings.flatMap(({ blockIds }) => blockIds));
+  const selectedValues =
+    view?.blocks.filter(({ id }) => selectedBlockIds.has(id)).map(({ value }) => `„${value}“`) ?? [];
   const result =
-    selection.alternative === 'unsure'
-      ? content.results.unsure
-      : selection.alternative === 'none'
-        ? content.results.none
-        : count === 1
-          ? content.results.one
-          : content.results.many;
+    selectedValues.length === 0
+      ? content.results.none
+      : content.results.selected.replace('[Angaben]', selectedValues.join(', '));
   return [
     result,
-    ...(count > 0 ? [content.results.boundary] : []),
+    ...(selectedValues.length > 0 ? [content.results.boundary] : []),
     content.transition,
   ];
 }
 
 function accountContextResult(snapshot: S05AnalysisControllerSnapshot): readonly string[] {
   const content = s05Content.componentStrategy.accountContext;
-  const count = snapshot.componentStrategy.cards['account-context'].findings.length;
-  const result = count === 0 ? content.results.none : count === 1 ? content.results.one : content.results.many;
-  return [...result, content.transition];
+  const view = snapshot.componentStrategy.canonicalView;
+  const findings = snapshot.componentStrategy.cards['account-context'].findings;
+  if (view === null || findings.length === 0) return [...content.results.none, content.transition];
+
+  const foundBlockIds = new Set(findings.flatMap(({ blockIds }) => blockIds));
+  const foundValues = [
+    ...new Set(view.blocks.filter(({ id }) => foundBlockIds.has(id)).map(({ value }) => value)),
+  ];
+  if (foundValues.length === 0) return [...content.results.none, content.transition];
+
+  const terms = foundValues.map((value) => `„${value}“`).join(', ');
+  const finding = (foundValues.length === 1
+    ? content.results.foundOne
+    : content.results.foundMany
+  ).replace('[Begriffe]', terms);
+  return [finding, content.results.boundary, content.transition];
 }
 
 function typicalChangesResult(snapshot: S05AnalysisControllerSnapshot): readonly string[] {
@@ -1293,30 +1250,28 @@ function speechFor(
       return s05Content.intro.narration.buildingBlocks;
     case 'strategy-targeting':
       return s05Content.intro.narration.strategyTargeting;
-    case 'strategy-overview':
-      return s05Content.intro.narration.strategyOverview;
-    case 'component-start-question':
-      return s05Content.intro.narration.componentStartQuestion;
-    case 'component-frequency':
-      return s05Content.intro.narration.componentFrequency;
     case 'component-category-overview':
       return s05Content.intro.narration.componentCategoryOverview;
     case 'common-components-start':
       return [s05Content.componentStrategy.commonComponents.explanation[0]];
     case 'common-components-examples':
       return [s05Content.componentStrategy.commonComponents.explanation[1]];
-    case 'common-components-boundary':
-      return [s05Content.componentStrategy.commonComponents.explanation[2]];
     case 'common-components-changes':
-      return [s05Content.componentStrategy.commonComponents.explanation[3]];
+      return [s05Content.componentStrategy.commonComponents.explanation[2]];
     case 'common-components-intro':
-      return [s05Content.componentStrategy.commonComponents.explanation[4]];
+      return [s05Content.componentStrategy.commonComponents.explanation[3]];
     case 'common-components-result':
       return commonComponentsResult(snapshot);
+    case 'personal-details-opening':
+      return s05Content.componentStrategy.personalDetails.opening;
+    case 'personal-details-derivation':
+      return s05Content.componentStrategy.personalDetails.derivation;
     case 'personal-details-intro':
       return s05Content.componentStrategy.personalDetails.explanation;
     case 'personal-details-result':
       return personalDetailsResult(snapshot);
+    case 'account-context-opening':
+      return s05Content.componentStrategy.accountContext.opening;
     case 'account-context-intro':
       return s05Content.componentStrategy.accountContext.explanation;
     case 'account-context-result':
@@ -1332,27 +1287,22 @@ function speechFor(
   }
 }
 
-function pageTitleFor(step: S05AnalysisControllerSnapshot['step']): string {
-  switch (step) {
-    case 'candidate-check':
-    case 'random-sequence':
-    case 'recognizable-combination':
-    case 'building-blocks':
-    case 'strategy-targeting':
-    case 'strategy-overview':
-      return s05Content.page.introTitle;
-    default:
-      return s05Content.page.title;
-  }
-}
-
-function showsComponentCategoryCards(step: S05AnalysisControllerSnapshot['step']): boolean {
+function showsComponentCategoryHeader(step: S05AnalysisControllerSnapshot['step']): boolean {
   return (
-    step === 'component-category-overview' ||
     step.startsWith('common-components-') ||
     step.startsWith('personal-details-') ||
     step.startsWith('account-context-') ||
     step.startsWith('typical-changes-') ||
+    step === 'components-summary'
+  );
+}
+
+function showsComponentCategoryCards(step: S05AnalysisControllerSnapshot['step']): boolean {
+  return (
+    step === 'common-components-result' ||
+    step === 'personal-details-result' ||
+    step === 'account-context-result' ||
+    step === 'typical-changes-result' ||
     step === 'components-summary'
   );
 }
@@ -1457,7 +1407,6 @@ export function S05AnalysisTraining({
   const hostRef = useRef<HTMLElement | null>(null);
   const [controller, setController] = useState<S05AnalysisController | null>(null);
   const [snapshot, setSnapshot] = useState<S05AnalysisControllerSnapshot | null>(null);
-  const [passwordRevealed, setPasswordRevealed] = useState(false);
   const timingFailure = externalTimingError !== null || timingState === 'endWriteFailed';
 
   useEffect(() => {
@@ -1508,10 +1457,7 @@ export function S05AnalysisTraining({
           kind: 'perform' as const,
           label: s05Content.componentStrategy.commonComponents.check,
           disabled,
-          onAction: () => {
-            setPasswordRevealed(true);
-            activeController.completeCommonComponentsCheck();
-          },
+          onAction: () => activeController.completeCommonComponentsCheck(),
         };
       case 'personal-details-intro':
         return {
@@ -1550,50 +1496,45 @@ export function S05AnalysisTraining({
     }
   }
 
+  const categoryHeaderVisible = showsComponentCategoryHeader(snapshot.step);
+
   return (
     <section ref={hostRef} className={styles.training} aria-label={s05Content.trainingAriaLabel}>
-      <article className={styles.page} aria-labelledby="s05-title">
-        <header
-          className={styles.pageHeader}
-          data-category-chain={showsComponentCategoryCards(snapshot.step) || undefined}
-          data-component-title={
-            pageTitleFor(snapshot.step) === s05Content.page.title || undefined
-          }
-        >
-          <h1 id="s05-title">{pageTitleFor(snapshot.step)}</h1>
-          {showsComponentCategoryCards(snapshot.step) ? (
-            <CategoryCards snapshot={snapshot} controller={controller} />
-          ) : null}
-        </header>
+      <article
+        className={styles.page}
+        aria-labelledby={categoryHeaderVisible ? 's05-title' : undefined}
+      >
+        {categoryHeaderVisible ? (
+          <header className={styles.pageHeader} data-category-chain>
+            <h1 id="s05-title">{s05Content.page.title}</h1>
+            <CategoryHeader snapshot={snapshot} />
+          </header>
+        ) : null}
         <div
           className={styles.content}
           aria-live="polite"
           inert={guidanceVisible && snapshot.step !== 'components-summary' ? true : undefined}
         >
-          {renderScene(
-            snapshot,
-            subject,
-            controller,
-            passwordRevealed,
-            () => setPasswordRevealed((revealed) => !revealed),
-          )}
+          {renderScene(snapshot, subject, controller)}
         </div>
         {speech === null ? null : (
-          <div className={styles.passWoLayer}>
+          <div
+            className={styles.passWoLayer}
+            data-component-guidance={categoryHeaderVisible || undefined}
+          >
             <PassWoGuide
               guideName={s00Content.narration.guideName}
-              taskLabel={
-                pageTitleFor(snapshot.step) === s05Content.page.introTitle
-                  ? 'Passwortwege'
-                  : 'Bestandteile'
-              }
+              taskLabel={categoryHeaderVisible ? 'Bestandteile' : 'Passwortwege'}
               helpOpen
               helpId="s05-intro-passwo-speech"
               openHelpLabel={s00Content.narration.openGuideLabel}
               speech={speech}
               speechKey={`s05-${snapshot.step}`}
-              speechPlacement="above"
-              speechObstacleSelector="[data-s05-speech-obstacle]"
+              speechEmphasis={passWoSpeechEmphasisFor(`s05-${snapshot.step}`)}
+              speechPlacement={categoryHeaderVisible ? 'right' : 'above'}
+              {...(categoryHeaderVisible
+                ? {}
+                : { speechObstacleSelector: '[data-s05-speech-obstacle]' })}
               speechAction={speechAction()}
               placement="bottom-left"
               showHelpButton={false}

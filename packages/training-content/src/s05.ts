@@ -27,13 +27,7 @@ export interface S05DesignLabFixture {
   readonly startSection: 'intro' | 'components' | 'structure';
 }
 
-export const S05_CONTENT_VERSION = '2.16.0';
-
-const s05StrategyCards = [
-  { id: 'components', title: 'Naheliegende Bestandteile' },
-  { id: 'structure', title: 'Vorhersehbarer Aufbau' },
-  { id: 'free-search', title: 'Freies Ausprobieren' },
-] as const;
+export const S05_CONTENT_VERSION = '2.24.0';
 
 export const s05Content = {
   version: S05_CONTENT_VERSION,
@@ -44,9 +38,9 @@ export const s05Content = {
       35,
     ] as const,
     revision:
-      'Userauftrag vom 2026-08-03 · Gemeinsame Bausteinprüfung und verbindende Veränderungsebene',
+      'Userauftrag vom 2026-08-04 · Einheitliche Kategorienleiste und gestufte Erklärungen',
     copyReference:
-      'docs/design/S00-S05-COPY-AUDIT.md#copy-delta-s05-gemeinsame-bausteinprüfung-und-verbindende-veränderungsebene-3-august-2026',
+      'docs/design/S00-S05-COPY-AUDIT.md#copy-delta-s05-einheitliche-kategorienleiste-und-gestufte-erklärungen-4-august-2026',
   },
   segment: {
     id: 'S05',
@@ -70,8 +64,7 @@ export const s05Content = {
     ] as const,
   },
   page: {
-    introTitle: 'Wie der Angreifer dein Passwort rät',
-    title: 'Naheliegende Bestandteile',
+    title: 'Häufig verwendete Passwörter und Zeichenfolgen',
     fixtureNotice:
       'Diese Simulation betrachtet nur das fiktive Passwort und ist keine allgemeine Sicherheitsbewertung.',
     start: 'Animation starten',
@@ -83,106 +76,75 @@ export const s05Content = {
       accessibleLabel: 'Campusgram – Passwort',
       visibleSuffix: '– Passwort',
     },
-    candidateFailure: 'passt nicht',
     generatedPassword: 'rQ7mL2vX9pK4',
     memorablePassword: 'MeinStarkesUniPasswort2005!',
     memorablePasswordParts: ['Mein', 'Starkes', 'Uni', 'Passwort', '2005', '!'],
     strategyAnnotations: {
       sentenceStructure: 'Satzbau',
       probability: 'sehr häufig',
-      personalDetail: 'Persönliche Angaben',
+      personalDetail: 'Naheliegende Jahreszahl',
       typicalEnding: 'Typische Endung',
     },
-    strategies: s05StrategyCards,
-    componentFrames: [
-      { partLengths: [4, 8, 3] },
-      { partLengths: [2, 6, 4, 9, 3, 5, 7] },
-      { partLengths: [10, 3, 6, 4] },
-      { partLengths: [5, 3, 8, 4, 6] },
-      { partLengths: [2, 7, 3, 5, 9, 4, 6, 3] },
-      { partLengths: [11, 4, 7] },
-      { partLengths: [3, 8, 5, 2, 7, 4] },
-      { partLengths: [6, 3, 9, 5] },
-    ] as const,
     fixedCommonPasswordFrame: {
       parts: ['•••••', '123456789', '••••'] as const,
       highlightedIndex: 1,
     },
     componentLeadIn: {
-      changingBlocksAria:
-        'Wechselnde Folge aus drei bis acht unterschiedlich langen verdeckten blauen Bestandteilen.',
       fixedBlockAria:
-        'Dreiteiliges Passwort: verdeckter Bestandteil, hervorgehobener häufig gewählter Bestandteil 123456789, verdeckter Bestandteil.',
+        'Dreiteiliges Passwort: verdeckter Bestandteil, hervorgehobene häufig verwendete Zahlenfolge 123456789, verdeckter Bestandteil.',
     },
     narration: {
       candidateCheck: [
-        'Für den Angreifer ist das Passwort verdeckt. Sein Programm muss mögliche Passwörter erzeugen und prüfen, ob eines davon passt.',
+        'Für den Angreifer ist dein Passwort verdeckt. Sein Programm erzeugt mögliche Passwörter und prüft, ob eines davon passt.',
+        'Grundsätzlich könnte das Programm jede denkbare Zeichenfolge ausprobieren.',
       ],
       randomSequence: [
-        'Völlig zufällige Folgen von Zeichen sind aber enorm schwierig für Menschen zu merken. Deswegen nutzen die meisten eine merkbare Kombination.',
+        'Zufällige Zeichenfolgen sind für Menschen jedoch schwer zu merken. Selbst gewählte Passwörter enthalten deshalb oft merkbare Elemente, wie Wörter, Zahlen oder Zeichenfolgen.',
       ],
       recognizableCombination: [
-        'Bei diesem Passwort erkennt deine eigene Intuition wahrscheinlich schon einen Aufbau.',
+        'Wahrscheinlich erkennst du darin bereits einzelne Teile und Zusammenhänge.',
       ],
       buildingBlocks: [
-        'Vereinfacht kannst du dir Passwörter wie mehrere aneinandergesetzte Bausteine vorstellen.',
+        'Für die Erklärung betrachten wir diese Teile vereinfacht wie aneinandergesetzte Bausteine.',
       ],
       strategyTargeting: [
-        'Angreifer kennen diese Bausteine noch nicht.',
-        'Einige Passwortteile sind aber wahrscheinlicher als andere, da Menschen oft naheliegende Bestandteile verwenden oder ihr Passwort vorhersehbar aufbauen, um es sich leichter zu merken.',
-      ],
-      strategyOverview: [
-        'Und dieses Wissen nutzen Angreifer aus. Wir schauen uns nun drei Strategien an, die Angreifer miteinander kombinieren, um dein Campusgram-Passwort herauszufinden. Als ersten Ausgangspunkt beginnen Angreifer mit Dingen, die bei vielen Menschen schon funktioniert haben.',
-      ],
-      componentStartQuestion: [
-        'Die Strategie beginnt mit der Frage: Bei welchen Bestandteilen soll der Angreifer anfangen?',
-      ],
-      componentFrequency: [
-        'Er könnte alle Zeichenfolgen, Wörter und Begriffe der Welt ausprobieren. Aber nicht alle Bestandteile werden in Passwörtern gleich häufig verwendet.',
+        'Der Angreifer kennt sie nicht. Bevor er alle Zeichen systematisch durchprobiert, kann er aber Passwortteile kombinieren, um dein Campusgram-Passwort zu erraten.',
       ],
       componentCategoryOverview: [
-        'Bestimmte Bestandteile – und sehr häufige vollständige Passwörter wie „123456789“ – kann er früh abgleichen.',
-        'Somit kommen wir zur ersten von drei Arten naheliegender Bestandteile: Häufig gewählte Bestandteile.',
+        'Als ersten Ausgangspunkt nutzt er, dass manche Passwörter und Zeichenfolgen besonders häufig verwendet werden.',
       ],
     },
   },
   componentStrategy: {
-    title: 'Naheliegende Bestandteile',
+    title: 'Häufig verwendete Passwörter und Zeichenfolgen',
     categories: [
-      { id: 'common-components', title: 'Häufig gewählte Bestandteile' },
+      { id: 'common-components', title: 'Häufig verwendete Passwörter und Zeichenfolgen' },
       { id: 'personal-details', title: 'Persönliche Angaben' },
-      { id: 'account-context', title: 'Kontobezug' },
+      { id: 'account-context', title: 'Bezug zum Konto und Umfeld' },
       { id: 'typical-changes', title: 'Typische Veränderungen' },
     ] as const,
     statusLabels: {
       pending: 'noch nicht geprüft',
-      current: 'aktuell',
+      current: 'wird geprüft',
       'checked-none': 'geprüft, kein Hinweis erkannt',
       'checked-findings': 'geprüft, Befund vorhanden',
     },
     moreFindings: '+ weitere',
     presentation: {
       categoriesAriaLabel:
-        'Drei Arten naheliegender Bestandteile und die querschnittliche Prüfung typischer Veränderungen',
-      crossCuttingLabel: 'betrifft alle drei Arten',
-      highlightFindings: 'Befunde hervorheben',
-      showAllCategories: 'Alle Kategorien zeigen',
+        'Drei Arten von Passwortbestandteilen und die verbindende Prüfung typischer Veränderungen',
       canonicalAriaLabel: 'Stabile Bausteinansicht des fiktiven Passworts',
-      showPassword: 'Passwort anzeigen',
-      hidePassword: 'Passwort verbergen',
       blockLabel: 'Baustein',
-      hiddenBlockLabel: 'Zeichen verborgen',
       changesAriaLabel: 'Gebundene typische Veränderungen',
       boundToComponent: 'an den markierten Grundbestandteil gebunden',
       boundToPassword: 'an die Zeichenfolge angehängt',
       findingChips: {
-        commonComponent: 'verbreiteter Passwortbestandteil',
+        commonPassword: 'häufig verwendetes Passwort',
+        commonWord: 'häufig verwendetes Wort',
         keyboardSequence: 'Tastaturfolge',
-        year: 'Jahreszahl',
-        date: 'Datumsfolge',
         numberSequence: 'Zahlenfolge',
-        characterSequence: 'Zeichenfolge',
-        personalComponent: 'persönlich eingeordneter Bestandteil',
+        nearbyYear: 'naheliegende Jahreszahl',
+        personalComponent: 'persönliche Angabe',
         replacement: '[Quelle] → [Ziel]',
         replacementDescription: 'das Zeichen „[Quelle]“ durch „[Ziel]“ ersetzt',
         changedCapitalization: 'veränderte Großschreibung',
@@ -199,79 +161,97 @@ export const s05Content = {
     },
     commonComponents: {
       explanation: [
-        'Angreifer beginnen häufig mit Passwörtern und Bestandteilen, die viele Menschen bereits verwendet haben.',
-        'Dazu gehören verbreitete Passwörter, Tastatur- und Zahlenfolgen sowie naheliegende Jahreszahlen.',
-        'Wörter sind nicht grundsätzlich ungeeignet. Ein häufig gewähltes Wort kann einem Angreifer aber einen naheliegenden Bestandteil liefern. Ob daraus ein einfacher Weg für die gesamte Zeichenfolge entsteht, prüfen wir erst später.',
-        'Dabei testen Angreifer auch typische Veränderungen, etwa Großschreibung, ersetzte Zeichen sowie angehängte Zahlen oder Symbole.',
-        'Prüfen wir nun dein gewähltes Passwort auf häufig gewählte Bestandteile.',
+        'Dazu gehören häufig verwendete Passwörter und Wörter, einfache Tastatur- und Zahlenfolgen wie „123456“ oder „qwertz“ oder naheliegende Jahreszahlen.',
+        'Ein Wort ist nicht grundsätzlich ungeeignet. Ein häufig verwendetes Wort wird jedoch früh getestet.',
+        'Dabei testet der Angreifer nicht nur die ursprüngliche Schreibweise. Er rechnet auch mit typischen Veränderungen, etwa Großschreibung, Zeichenersetzungen sowie ergänzte Zahlen oder Symbole.\n\nUnd das sowohl bei einzelnen Bestandteilen als auch bei bereits zusammengesetzten Passwortkandidaten.',
+        'Prüfen wir nun dein gewähltes Passwort auf häufig verwendete Passwörter und Zeichenfolgen.',
       ],
       machine: {
         ariaLabel:
-          'Laufbandmaschine mit häufig gewählten Bestandteilen und daraus abgeleiteten typischen Veränderungen',
-        inputLabel: 'Häufig gewählte Bestandteile',
-        machineLabel: 'Varianten',
-        outputLabel: 'Typische Veränderungen',
-        examples: [
-          { base: 'passwort', variants: ['Passwort', 'p4sswort', 'passwort1', 'passwort!'] },
-          {
-            base: '123456789',
-            variants: ['123456789!', '1234567891', '123456789?'],
-          },
-          { base: 'admin', variants: ['Admin', '4dmin', 'admin1', 'admin!'] },
+          'Laufbandmaschine mit häufig verwendeten Passwörtern und Zeichenfolgen sowie typischen Veränderungen',
+        generatorLabel: 'Typische Veränderungen generieren',
+        conveyorBlocks: [
+          'passwort',
+          '123456789',
+          'qwertz',
+          'admin',
+          'willkommen',
+          '2005',
+          'hallo',
+          '111111',
+          'sommer',
+          'campus',
+          'letmein',
+          'abc123',
         ] as const,
       },
       check: 'Passwort prüfen',
       results: {
         none: [
-          'Hier wurde kein häufig gewählter Bestandteil erkannt.',
+          'Hier wurde kein früh geprüfter Bestandteil erkannt.',
           'Das entscheidet noch nicht über die gesamte Zeichenfolge.',
         ],
-        one: [
-          'In deinem Passwort wurde ein häufig gewählter Bestandteil erkannt.',
-          'Dieser Bestandteil kann einem Angreifer einen Ausgangspunkt geben. Er entscheidet aber noch nicht über die gesamte Zeichenfolge.',
-        ],
-        many: [
-          'In deinem Passwort wurden mehrere häufig gewählte Bestandteile erkannt.',
-          'Diese Bestandteile können einem Angreifer Ausgangspunkte geben. Wie sie zusammenwirken, prüfen wir erst später.',
-        ],
-        complete: [
-          'Hier besteht die gesamte Zeichenfolge aus einem häufig gewählten Passwort.',
-          'Ein Angreifer kann diesen vollständigen Kandidaten früh ausprobieren.',
-        ],
+        foundOne: '[Teile] wurde durch die Prüfung erkannt.',
+        foundMany: '[Teile] wurden durch die Prüfung erkannt.',
+        boundary: 'Das kann dem Angreifer einen Ausgangspunkt geben.',
+        complete:
+          'Der Angreifer hätte hier schon dein Passwort gefunden. Wir schauen uns dennoch weiter an, wie der Angreifer vorgeht.',
       },
       transition:
-        'Als Nächstes schauen wir, ob Bestandteile für dich eine persönliche Bedeutung haben.',
+        'Als Nächstes schauen wir, ob im Passwort persönliche Angaben enthalten sind.',
     },
     personalDetails: {
-      explanation: [
+      opening: [
         'Persönliche Angaben können leicht zu merken sein und wirken oft geheim, weil sie für dich eine besondere Bedeutung haben.',
-        'Bei gezielten Angriffen können Namen, Geburtstage, Vereine oder andere persönliche Angaben aber manchmal aus öffentlichen Profilen, früheren Datenlecks oder dem Umfeld ableitbar sein.',
-        'Ordne nun ein, ob einer der Bausteine deiner fiktiven Passwortidee persönlich gemeint war. Du musst nicht angeben, worauf er sich bezieht.',
       ],
-      begin: 'Bausteine einordnen',
-      question: 'Welche Bausteine waren persönlich gemeint?',
-      groupSelection: 'Ausgewählte Bausteine gemeinsam einordnen.',
+      derivation: [
+        'Bei gezielten Angriffen können Namen, Geburtstage, Vereine oder andere persönliche Angaben aber manchmal aus öffentlichen Profilen, früheren Datenlecks oder dem Umfeld ableitbar sein.',
+      ],
+      explanation: [
+        'Ein Angreifer könnte es wissen, aber dieses Trainingsmodul kann das nicht zuverlässig bestimmen. Bitte wähle deine persönlichen Angaben manuell aus.',
+      ],
+      machine: {
+        conveyorBlocks: [
+          'Name',
+          'Geburtstag',
+          'Verein',
+          'Profil',
+          'Umfeld',
+          'Hochzeitstag',
+          'Abschlussjahr',
+        ] as const,
+      },
+      begin: 'Persönliche Angaben markieren',
+      selectionLabel: 'Als persönliche Angabe markieren',
       privacyNote:
         'Die Auswahl bleibt nur in dieser laufenden Übung und wird nicht als Forschungsangabe gespeichert oder exportiert.',
-      none: 'Kein Bestandteil war persönlich gemeint.',
-      unsure: 'Unsicher.',
+      applyNone: 'Keine Persönliche Angabe',
       apply: 'Einordnung übernehmen',
       results: {
-        one: 'Du hast diesen Bestandteil als persönlich gemeint eingeordnet.',
-        many: 'Du hast mehrere Bestandteile als persönlich gemeint eingeordnet.',
-        none: 'Du hast keinen Bestandteil als persönliche Angabe eingeordnet.',
-        unsure: 'Hier bleibt offen, ob ein Bestandteil eine persönliche Bedeutung hat.',
-        boundary:
-          'Solche Angaben können für einen gezielten Angreifer manchmal ableitbar sein. Sie entscheiden aber noch nicht über die gesamte Zeichenfolge.',
+        selected: 'Du hast [Angaben] als persönliche Angabe eingeordnet.',
+        none: 'Du hast keine persönliche Angabe eingeordnet.',
+        boundary: 'Für den Angreifer ist das auch hier erst nur ein Ausgangspunkt.',
       },
       transition: 'Als Nächstes prüfen wir, ob Begriffe direkt zum Konto passen.',
     },
     accountContext: {
-      explanation: [
-        'Auch das Konto selbst kann Ideen für ein Passwort liefern.',
+      machine: {
+        conveyorBlocks: [
+          'campusgram',
+          'campus',
+          'nachricht',
+          'gruppe',
+          'kontakte',
+          'beitrag',
+        ] as const,
+      },
+      opening: [
+        'Der Bezug zum Konto und Umfeld kann dem Angreifer Ideen für dein Passwort liefern.',
         'Bei Campusgram wären zum Beispiel Begriffe wie Campus, Nachricht, Gruppe oder der Dienstname naheliegend.',
-        'Ein solcher Begriff entscheidet nicht allein über die gesamte Zeichenfolge. Er ist aber ein Bestandteil, den ein Angreifer früh berücksichtigen kann.',
-        'Prüfen wir nun dein Passwort auf einen möglichen Kontobezug.',
+      ],
+      explanation: [
+        'Bei einem WLAN könnten es „WLAN“, „Router“ oder „Fritzbox“ sein.',
+        'Prüfen wir deswegen nun dein Passwort auf einen möglichen Bezug zum Konto und Umfeld.',
       ],
       check: 'Im Passwort prüfen',
       results: {
@@ -279,19 +259,27 @@ export const s05Content = {
           'Hier wurde kein direkter Bezug zu Campusgram erkannt.',
           'Das entscheidet noch nicht über die gesamte Zeichenfolge.',
         ],
-        one: [
-          'In deinem Passwort wurde ein Begriff erkannt, der zu Campusgram passt.',
+        foundOne:
+          'In deinem Passwort wurde [Begriffe] als Begriff erkannt, der zu Campusgram passt.',
+        foundMany:
+          'In deinem Passwort wurden [Begriffe] als Begriffe erkannt, die zu Campusgram passen.',
+        boundary:
           'Solche Begriffe kann ein Angreifer aus dem Kontokontext ableiten und gezielt ausprobieren.',
-        ],
-        many: [
-          'In deinem Passwort wurden mehrere Begriffe erkannt, die zum Konto passen.',
-          'Solche Begriffe kann ein Angreifer aus dem Kontokontext ableiten und gezielt ausprobieren.',
-        ],
       },
       transition:
-        'Zum Schluss schauen wir, ob Bestandteile oder die gesamte Zeichenfolge typisch verändert wurden.',
+        'Zum Schluss schauen wir, ob die gesamte Zeichenfolge typisch verändert wurde.',
     },
     typicalChanges: {
+      machine: {
+        conveyorBlocks: [
+          'passwort',
+          'Passwort1',
+          'p4sswort',
+          'campus2005',
+          'qwertz!',
+          'admin123',
+        ] as const,
+      },
       explanation: [
         'Viele Menschen verändern Bestandteile, damit das Passwort weniger vorhersehbar wirkt.',
         'Dabei testen Angreifer auch typische Veränderungen, etwa Großschreibung, ersetzte Zeichen sowie angehängte Zahlen oder Symbole.',
@@ -313,9 +301,9 @@ export const s05Content = {
       },
     },
     summary: {
-      title: 'Naheliegende Bestandteile',
+      title: 'Häufig verwendete Passwörter und Zeichenfolgen',
       found:
-        'Bei der Prüfung wurden naheliegende Bestandteile in [Kategorienamen] erkannt.',
+        'Bei der Prüfung wurden früh geprüfte Bestandteile in [Kategorienamen] erkannt.',
       foundChanges: 'Zusätzlich wurden typische Veränderungen erkannt.',
       foundBoundary:
         'Diese Hinweise können einem Angreifer Ausgangspunkte geben. Sie entscheiden aber noch nicht, wie aufwendig die gesamte Zeichenfolge zu erraten ist.',
@@ -328,13 +316,13 @@ export const s05Content = {
     },
   },
   findingLabels: {
-    'common-password-core': 'verbreiteter Passwortbestandteil',
-    'common-word': 'verbreiteter Passwortbestandteil',
-    'common-name': 'verbreiteter Passwortbestandteil',
-    'keyboard-pattern': 'Tastaturmuster',
-    year: 'Jahreszahl',
-    date: 'Datumsmuster',
-    'simple-character-sequence': 'einfache Zeichenfolge',
+    'common-password-core': 'häufig verwendetes Passwort',
+    'common-word': 'häufig verwendetes Wort',
+    'common-name': 'häufig verwendetes Wort',
+    'keyboard-pattern': 'Tastaturfolge',
+    year: 'naheliegende Jahreszahl',
+    date: 'naheliegende Jahreszahl',
+    'simple-character-sequence': 'Zahlenfolge',
     'predictable-word-sequence': 'bekannte Wortfolge',
     'repeated-component': 'wiederholter Bestandteil',
     'account-or-service-term': 'Konto- oder Dienstbegriff',
@@ -540,15 +528,18 @@ export const s05Content = {
       'Schaue ein Passwort nicht nur wie eine Checkliste aus Länge, Zahlen und Sonderzeichen an.',
     cards: [
       {
-        ...s05StrategyCards[0],
+        id: 'components',
+        title: 'Häufig verwendete Passwörter und Zeichenfolgen',
         body: 'Kein bekannter, persönlicher oder konto-bezogener Kern.',
       },
       {
-        ...s05StrategyCards[1],
+        id: 'structure',
+        title: 'Vorhersehbarer Aufbau',
         body: 'Kein leicht vorhersehbarer Aufbau.',
       },
       {
-        ...s05StrategyCards[2],
+        id: 'free-search',
+        title: 'Freies Ausprobieren',
         body: 'Mindestens 15 Zeichen für selbst erstellte Passwörter.',
       },
     ],
@@ -561,7 +552,7 @@ export const s05Content = {
     {
       id: 'common-suffix',
       routeId: 's05-common-suffix',
-      label: 'Häufig gewählter Bestandteil mit später offengelegten Veränderungen',
+      label: 'Häufig verwendeter Bestandteil mit später offengelegten Veränderungen',
       fictionalPassword: 'Passw0rt123!',
       analysisContext: { accountTerms: [] },
       startSection: 'components',
@@ -621,20 +612,19 @@ export const s05Content = {
     ['s05-recognizable-combination', 'recognizable-password', 'info'],
     ['s05-building-blocks', 'building-blocks', 'info'],
     ['s05-strategy-targeting', 'strategy-targeting', 'info'],
-    ['s05-strategy-overview', 'strategy-overview', 'info'],
-    ['s05-component-start-question', 'component-start', 'info'],
-    ['s05-component-frequency', 'component-start', 'info'],
     ['s05-component-category-overview', 'component-start', 'info'],
     ['s05-common-components-start', 'component-conveyor', 'info'],
     ['s05-common-components-examples', 'component-conveyor', 'info'],
-    ['s05-common-components-boundary', 'component-conveyor', 'info'],
     ['s05-common-components-changes', 'component-conveyor', 'info'],
     ['s05-common-components-intro', 'component-strategy', 'info'],
     ['s05-common-components-result', 'component-strategy', 'warning'],
-    ['s05-personal-details-intro', 'component-strategy', 'info'],
+    ['s05-personal-details-opening', 'component-conveyor', 'info'],
+    ['s05-personal-details-derivation', 'component-conveyor', 'info'],
+    ['s05-personal-details-intro', 'component-conveyor', 'info'],
     ['s05-personal-details-check', 'component-strategy', 'info'],
     ['s05-personal-details-result', 'component-strategy', 'warning'],
-    ['s05-account-context-intro', 'component-strategy', 'info'],
+    ['s05-account-context-opening', 'component-conveyor', 'info'],
+    ['s05-account-context-intro', 'component-conveyor', 'info'],
     ['s05-account-context-result', 'component-strategy', 'warning'],
     ['s05-typical-changes-intro', 'component-strategy', 'info'],
     ['s05-typical-changes-result', 'component-strategy', 'warning'],

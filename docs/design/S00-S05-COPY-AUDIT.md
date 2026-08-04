@@ -633,3 +633,178 @@ Die Prüfentscheidung, die vierte zeitliche Prüfphase und ihre flüchtigen loka
 unverändert. Entfernt werden ausschließlich die parallele Overall-Darstellung und die visuelle
 Gleichordnung der Veränderungsprüfung mit den drei Bestandteilarten. Es werden keine neuen
 persistierten Felder oder Analysebehauptungen eingeführt.
+
+### Copy-Delta S04/S05 neuer Angreiferübergang und häufig verwendete Passwörter 4. August 2026
+
+Quelle ist der ausdrückliche Nutzerauftrag vom 4. August 2026. Er ersetzt die S04-Brücke und den
+Einstieg des ersten S05-Prüfbereichs. Die späteren Prüfbereiche, die fachliche Analyse,
+Persistenz, Timing, `simulationDisposition`, `Vorhersehbarer Aufbau` und `Freies Ausprobieren`
+bleiben unverändert. `S04_CONTENT_VERSION` wird von `1.6.0` auf `1.7.0` und
+`S05_CONTENT_VERSION` von `2.16.0` auf `2.17.0` erhöht.
+
+| Segment und Text-ID | Aktueller Text / Verhalten | Neuer Text / Verhalten | Primäre Rolle | Grund und Bedeutungsänderung | Interaktionsziel / Hervorhebung |
+|---|---|---|---|---|---|
+| `S04.notice.paragraphs`, `continueLabel` | dreiteilige Erklärung mit Offline-Prüfung und `Angreifer Perspektive` | ausdrücklich vorgegebener kurzer Datenleck- und Perspektivübergang; Button `Angreiferperspektive` | Orientierung / Navigation | dramaturgische Straffung; ausdrücklich freigegeben | Button startet S05; `Datenleck` bleibt Warnhervorhebung |
+| `S05.intro.narration.candidateCheck` bis `strategyTargeting` | bisherige Kandidaten-, Merk- und Bausteinerklärung | ausdrücklich vorgegebene Sätze zu verdecktem Passwort, allen denkbaren Zeichenfolgen, merkbaren Elementen, vereinfachten Bausteinen und kombinierenden Angreiferversuchen | Mechanismuserklärung | neuer Skriptablauf; ausdrücklich freigegeben | je `Weiter`; sichtbare Animation trägt den jeweiligen Zustand |
+| `S05.intro.strategyOverview`, `componentStartQuestion`, `componentFrequency` | drei Strategiekarten und zusätzlicher dreistufiger Kategorienvorlauf | entfällt; direkter Sprung von der annotierten Bausteinansicht zur festen Angreiferansicht und zum ersten Ausgangspunkt | Orientierung | nach Nutzerauftrag redundante Zwischenzustände entfernen; ausdrücklich freigegeben | `Weiter` führt direkt zum neuen Ausgangspunkt |
+| `S05.page.title`, `componentStrategy.categories[0]` und zugehörige sichtbare Benennungen | `Naheliegende Bestandteile` / `Häufig gewählte Bestandteile` | `Häufig verwendete Passwörter und Zeichenfolgen` | Orientierung | ausdrücklich verlangte einheitliche Bezeichnung | erste Statuskarte ist sichtbar; spätere Karten zeigen zunächst nur Symbol und `?` |
+| `S05.componentStrategy.commonComponents.explanation` | fünf Erklärungen zur bisherigen Laufbandmaschine | vier ausdrücklich vorgegebene Schritte zu verbreiteten Passwörtern und Folgen, Wörtern, typischen Veränderungen und anschließender Prüfung | Mechanismuserklärung / Navigation | Text und sichtbare Maschinenzustände werden synchronisiert; ausdrücklich freigegeben | dreimal `Weiter`, dann `Passwort prüfen` |
+| `S05.componentStrategy.commonComponents.machine` | drei nacheinander aktive Basen mit durchgehendem Laufband hinter der Box | kontinuierlicher Bausteinstrom, `passwort` in der mittigen Logo-Box, Trichter und umfangreiche feste Variantenliste | Mechanismuserklärung | ausdrücklich verlangte visuelle Neuordnung; keine neue Analyse | aktiver Baustein zusätzlich zu Farbe durch Kontur und Helligkeit markiert |
+| `S05.componentStrategy` Passwortdarstellung | vor dem ersten Prüfklick verdeckt; Befundlabels beeinflussen die Bausteinhöhe | kanonische Bausteine bereits unverdeckt; gleich hohe neutrale Bausteinflächen, Befundtexte darunter, nur betroffene Bausteine leuchten | Ergebnisfeedback | ausdrücklich verlangte gemeinsame Prüfdarstellung; keine neue Analyseentscheidung | `Passwort prüfen`; Kontur und Helligkeit ergänzen Farbe |
+
+Die Systempasswort-Zufallsfolge verwendet für diese Angreiferansicht einen roten statt grünen
+Hintergrund. Die ausblendende Kategorieübergabe ist bei `prefers-reduced-motion` nicht animiert und
+gibt den stabilen Endzustand unmittelbar frei. Zeichenfolgen, Varianten und Befundtexte bleiben
+fest authored beziehungsweise aus der bereits begrenzten lokalen Analyse abgeleitet; es werden
+keine Teilnehmerwerte gespeichert oder exportiert.
+
+### Visuelles Delta S05 synchronisierte Laufbandmaschine und Kreuzbedingung 4. August 2026
+
+Quelle ist der ausdrückliche Nutzerauftrag vom 4. August 2026. Teilnehmertext, fachliche Analyse,
+Persistenz, Timing und die Reihenfolge der vier lokalen Prüfphasen bleiben unverändert.
+`S05_CONTENT_VERSION` wird von `2.17.0` auf `2.18.0` erhöht.
+
+| Betroffener Zustand | Vorher | Nachher | Rolle / Grund |
+|---|---|---|---|
+| erste Kandidatenansicht | eigene kurze Fehlversuchslogik mit wechselnder Länge und `passt nicht` | dieselbe rote, zeichenweise wechselnde Systempasswort-Demonstration wie im folgenden Schritt | einheitliche Mechanismuserklärung; ausdrücklich freigegeben |
+| Kategorieübergabe | 2,4 Sekunden mit kurzer Ausblendung | 5,6 Sekunden mit weichem Einblenden, Haltezustand und langsamer Ausblendung | Orientierung; geringere visuelle Härte |
+| Laufband und Listen | mehrere unverbundene Bausteine laufen nach links; feste `passwort`-Varianten | ein lesbarer Baustein läuft von links zur Mitte; die rechte Liste wechselt bei seiner Ankunft zu deterministisch erzeugten Großschreibungs-, Ersetzungs-, Zahlen- und Symbolvarianten | authored Mechanismuserklärung; keine Passwortbewertung |
+| Maschinenlayout | große gemeinsame Umrandung, breite Ein-/Ausgabelisten und beschriftete mittlere Box | keine gemeinsame Umrandung; höhere schmale Listen mit ausblendender Fortsetzung; kleinere mittlere Box mit größerem, leicht nach rechts versetztem Logo ohne Text | ausdrücklich freigegebene visuelle Hierarchie |
+| Kategorienstatus | vier gleichartige Karten | drei Bestandteilkarten plus `Typische Veränderungen` als verbindende Kreuzbedingung mit Linien | stellt die querschnittliche Funktion wieder her; die bestehende vierte Prüfentscheidung bleibt erhalten |
+
+Die Variantengenerierung ist eine deterministische presentation-only Demonstration für die
+festen Maschinenbausteine. Sie wird nicht für das fiktive Campusgram-Passwort verwendet, erzeugt
+keinen Analysebefund und wird weder gespeichert noch exportiert. Bei `prefers-reduced-motion`
+bleiben jeweils ein stabiler Baustein und seine zugehörige Variantenliste sichtbar.
+
+### Copy-Delta S05 reduzierte Kopfleiste und adaptive Komponentenrückmeldung 4. August 2026
+
+Quelle ist der ausdrückliche Nutzerauftrag vom 4. August 2026. Die Änderung strafft die
+Einleitungs- und Statusdarstellung, präzisiert zwei Mechanismussätze und bindet die Rückmeldung der
+ersten lokalen Prüfung an die tatsächlich erkannten Bausteinwerte. Persistenz, Timing und die
+Analysekategorien bleiben unverändert. `S05_CONTENT_VERSION` wird von `2.18.0` auf `2.19.0`
+erhöht.
+
+| Segment und Text-ID | Vorher | Nachher | Primäre Rolle | Grund und Bedeutungsänderung | Interaktionsziel / Hervorhebung |
+|---|---|---|---|---|---|
+| `S05.page.introTitle` und Kopfbereich | `Wie der Angreifer dein Passwort rät` mit durchgängiger Kopfleiste | Einleitung ohne Seitentitel und Kopfleiste; die Statusleiste erscheint erst mit den Kategorien | Orientierung | ausdrücklich freigegebene visuelle Straffung | kein |
+| `S05.intro.narration.candidateCheck[1]` | `Grundsätzlich könnte es jede denkbare Zeichenfolge ausprobieren.` | `Grundsätzlich könnte das Programm jede denkbare Zeichenfolge ausprobieren.` | Mechanismuserklärung | eindeutiger grammatischer Bezug; keine fachliche Änderung | `Weiter` |
+| `S05.componentStrategy.commonComponents.explanation[2..3]` | Aufzählung einzelner Varianten und Prüfung auf `häufige Teile und typische Veränderungen` | kompakte Erklärung von Großschreibung, Zeichenersetzung, ergänzten Zahlen oder Symbolen und anschließende Prüfung auf häufig verwendete Passwörter und Zeichenfolgen | Mechanismuserklärung / Navigation | ausdrücklich vorgegebene Formulierung und Trennung der späteren querschnittlichen Prüfung | `Weiter`, danach `Passwort prüfen` |
+| `S05.componentStrategy.commonComponents.results` | generische Anzahl früh geprüfter Bestandteile | Rückmeldung nennt die tatsächlich erkannten Bausteine. Bei genau einem Passwortbaustein, der erkannt wurde, wird ausdrücklich erklärt, dass der Angreifer den Passwortkandidaten bereits gefunden hätte; ansonsten bleibt die Einordnung als Ausgangspunkt erhalten. | Ergebnisfeedback / Safety Boundary | unterscheidet Teilbefund und vollständigen lokalen Treffer; ausdrücklich freigegeben | erkannte Bausteine leuchten und tragen ihren Befundtext unterhalb |
+| Kategorienstatus und kanonisches Passwort | `aktuell`, zusätzlicher Querschnittsstatus und Verbergen-Schalter | kein aktueller Statustext, kein Zusatzsatz über dem Kreuz und kein Verbergen-Schalter; `Campusgram-Passwort` steht mittig über den sichtbaren Bausteinen | Orientierung / Ergebnisfeedback | reduziert redundante UI-Texte und verhindert Lagewechsel markierter Bausteine | Kontur, Helligkeit und Befundtext ergänzen Farbe |
+| Laufbandvarianten | längerer Abstand und statische Variantenliste | neuer Baustein alle zwei Sekunden; Varianten beginnen mit Großschreibung und Zeichenersetzung, wechseln anschließend Zahlen und Symbole ab und scrollen fortlaufend | Mechanismuserklärung | macht die Bandbreite der authored Beispielvarianten besser sichtbar | kein |
+
+Die Rückmeldung verwendet ausschließlich die bereits flüchtig im S05-Controller vorliegenden
+Baustein- und Befunddaten. Sie erzeugt keine zusätzliche Passwortbewertung und wird nicht
+gespeichert oder exportiert.
+
+### Visuelles Delta S05 kompakte Maschinen- und Kategorienansicht 4. August 2026
+
+Quelle ist der ausdrückliche Nutzerauftrag vom 4. August 2026. Wortlaut, Analyse, Persistenz,
+Timing und Prüfentscheidungen bleiben unverändert; die Änderungen sind presentation-only und
+erfordern deshalb keine neue Content-Version.
+
+| Betroffener Zustand | Vorher | Nachher | Rolle / Grund |
+|---|---|---|---|
+| Laufband und aktive Bausteine | beschleunigender und abbremsender Lauf; sehr helle Aktivflächen | konstante lineare Geschwindigkeit und dunklere, durch Kontur und Leuchten ergänzte Aktivflächen | Mechanismuserklärung und Lesbarkeit |
+| Maschinenlayout | langer rechter Trichter, nach rechts versetzte Maschinenmitte und überlagernde Sprechblase | kürzerer Trichter, mittige und höher stehende Maschine sowie kollisionsbewusste schmalere Sprechblase | visuelle Zuordnung ohne Überdeckung |
+| Kategorienkopf | große Karten mit seitlichem Symbol, Statustexten und sichtbarem Abstand in den Verbindungslinien | kompakte Karten mit großem zentriertem Symbol, Bezeichnung darunter, geschlossenem Verbindungskreuz und horizontaler Veränderungsmarke | Orientierung und ruhigere Hierarchie |
+| Kategorienbefunde | generische Status- und Befundbezeichnungen | bereits flüchtig erkannte Bausteinwerte erscheinen als kleine leuchtende Chips in der zugehörigen Karte | Ergebnisfeedback ohne neue Analyse |
+| S05-Sprechhervorhebung | keine bildliche Referenzauflösung für die beiden Maschinenbegriffe | `typische Veränderungen` sowie `häufig verwendete Passwörter und Zeichenfolgen` werden bei ihrer Erwähnung blau hervorgehoben und erhalten ihr verkleinertes Kategoriesymbol vor der Phrase | presentation-only Kerngedanke; genau eine Hervorhebung pro betroffenem Sprechschritt |
+
+### Copy-Delta S05 kompakte Kategorienleiste und präzisierte Befundbegriffe 4. August 2026
+
+Quelle ist der ausdrückliche Nutzerauftrag vom 4. August 2026. Die fachlichen Prüfkategorien,
+Analysegrenzen, Persistenz, Timingfolge und Interaktionsziele bleiben unverändert.
+`S05_CONTENT_VERSION` wird von `2.19.0` auf `2.20.0` erhöht.
+
+| Segment und Text-ID | Vorher | Nachher | Primäre Rolle | Grund und Bedeutungsänderung | Interaktionsziel / Hervorhebung |
+|---|---|---|---|---|---|
+| `S05.componentStrategy.commonComponents.explanation[0]` | allgemeine Aufzählung weit verbreiteter Passwörter, Wörter, Folgen und Jahreszahlen | ausdrücklich vorgegebene Erklärung mit den Beispielen `123456` und `qwertz` | Mechanismuserklärung | konkretisiert die sichtbaren authored Laufbandbeispiele; ausdrücklich freigegeben | `Weiter`; keine zusätzliche Hervorhebung |
+| `S05.componentStrategy.commonComponents.explanation[2]` | kurzer Satz zu Veränderungen und allgemeiner zweiter Absatz | ausdrücklich vorgegebene zweigeteilte Erklärung zu ursprünglicher Schreibweise, Großschreibung, Zeichenersetzung, Zahlen oder Symbolen sowie der Anwendung auf Bestandteile, Verbindungen und zusammengesetzte Kandidaten | Mechanismuserklärung | präzisiert die querschnittliche Wirkung der sichtbaren Variantenmaschine; ausdrücklich freigegeben | `Weiter`; `typischen Veränderungen` mit verkleinertem Kategoriesymbol |
+| `S05.componentStrategy.presentation.findingChips` für häufige Bestandteile | generischer Befund `verbreiteter Passwortbestandteil` sowie allgemeine Folgenbezeichnungen | je nach vorhandenem lokalen Befund `häufig verwendetes Passwort`, `häufig verwendetes Wort`, `Tastaturfolge`, `Zahlenfolge` oder `naheliegende Jahreszahl` | Ergebnisfeedback | benennt die bereits erkannte Befundart statt eines Sammelbegriffs; ausdrücklich freigegeben | Text unter dem betroffenen Baustein; keine neue Analyseentscheidung |
+| obere Kategorienleiste während Einzelprüfungen | drei Karten und verbindende Veränderungsebene bleiben gleichzeitig sichtbar | ausschließlich großes aktuelles Kategoriesymbol und Titel ohne Box; die vollständige kompakte Kartenansicht erscheint in der gemeinsamen Übersicht | Orientierung | reduziert visuelle Konkurrenz und schafft mehr Platz für die aktive Prüfung | kein neues Interaktionsziel |
+| Karten- und Maschinenlayout | höhere Karten, kleinere Symbole und mittige Maschine | rund 20 Prozent niedrigere Karten, rund 50 Prozent größere Symbole, nach oben versetzte Kategorien sowie Maschine; Eingabe, Maschinenkörper und anschließender Trichter rücken nach rechts bis zur Variantenliste | Orientierung / Mechanismuserklärung | ausdrücklich verlangte räumliche Neuordnung | bestehende Kontur-, Text- und Symbolzustände bleiben erhalten |
+
+Die neuen Befundtexte werden weiterhin ausschließlich aus den bereits vorhandenen flüchtigen
+S05-Findings abgeleitet. Es werden keine Teilnehmerwerte ergänzt, gespeichert oder exportiert.
+
+### Copy-Delta S05 einheitliche Kategorienleiste und direkte persönliche Einordnung 4. August 2026
+
+Quelle ist der ausdrückliche Nutzerauftrag vom 4. August 2026. Analysegrenzen, Persistenz,
+Timingfolge und die vier bestehenden Prüfentscheidungen bleiben unverändert.
+`S05_CONTENT_VERSION` wird von `2.20.0` auf `2.21.0` erhöht.
+
+| Segment und Text-ID | Vorher | Nachher | Primäre Rolle | Grund und Bedeutungsänderung | Interaktionsziel / Hervorhebung |
+|---|---|---|---|---|---|
+| `S05.componentStrategy.categories[2].title` und zugehörige Prüfung | `Kontobezug` | `Bezug zum Konto und Umfeld` | Orientierung | ausdrücklich verlangte präzisere Kategoriebezeichnung | bestehende automatische lokale Prüfung; keine neue Analyse |
+| `S05.componentStrategy.personalDetails.explanation` | zwei Erklärungen und allgemeine Aufforderung zur Einordnung | drei ausdrücklich vorgegebene Schritte zu Merkbarkeit, möglicher Ableitbarkeit und der Grenze des Trainingsmoduls mit anschließender manueller Auswahl | Mechanismuserklärung / Safety Boundary / Navigation | trennt Angreiferwissen von der begrenzten lokalen Einordnung; ausdrücklich freigegeben | `Bausteine einordnen`; `Persönliche Angaben` erhält das verkleinerte Kategoriesymbol |
+| `S05.componentStrategy.personalDetails.applyNone`, `apply` | Übernahme erst nach Auswahl von `Kein Bestandteil` oder `Unsicher` möglich | immer aktive Aktion; ohne markierten Baustein `Keine Persönliche Angabe`, sonst `Einordnung übernehmen` | Navigation / Ergebnisfeedback | direkte, reversible Auswahl ohne zusätzliche große Fragefläche | Button schließt die lokale Einordnung ab |
+| persönliche Bausteinauswahl | separate umrahmte Fragenfläche mit duplizierten Bausteinen, Gruppierung und Alternativoptionen | kanonische Bausteine selbst sowie ihre darunterliegenden Checkboxen markieren und entmarkieren denselben Zustand | Navigation | reduziert parallele Darstellungen und bindet die Entscheidung direkt an das Passwort | Klick auf Baustein oder Checkbox; Auswahl bleibt flüchtig |
+| Kategorienleiste und Gesamtansicht | Einzelprüfung zeigt nur ein großes Kategoriesymbol; Gesamtansicht besitzt Befundfilter | identische kompakte Kartenansicht in allen Prüfungen; aktuelle Kategorie leuchtet einzeln, am Ende leuchten alle Karten; Befundfilter entfällt | Orientierung / Ergebnisfeedback | stabilisiert die räumliche Zuordnung | keine Kartenaktion |
+| Kategorienmaschine | Laufbandmaschine ausschließlich für häufig verwendete Passwörter und Zeichenfolgen | dieselbe Maschine für alle Kategorien; linke authored Beispieltabelle und großes Kategoriesymbol wechseln mit der aktiven Prüfung | Mechanismuserklärung | ausdrücklich verlangte Wiederverwendung der bestehenden Darstellung | keine neue Analyse oder Teilnehmerableitung |
+| PassWo- und Passwortposition | Sprechblase oberhalb von PassWo; kanonisches Campusgram-Passwort weit oben | Sprechblase nur innerhalb der Kategorien rechts neben PassWo; Passwortgruppe vertikal in der verbleibenden Fläche zentriert | Orientierung / Navigation | verhindert unnötige Leerräume und hält die aktive Darstellung frei | Sprechblasenaktionen bleiben unverändert |
+
+Die neuen Maschinentabellen bestehen ausschließlich aus festen redaktionellen Beispielen. Die
+persönliche Auswahl verbleibt im vorhandenen lokalen Controller und wird weder gespeichert noch
+exportiert.
+
+### Copy-Delta S05 phasenabhängige Kategorienleiste und Generatorbeschriftung 4. August 2026
+
+Quelle ist der ausdrückliche Nutzerauftrag vom 4. August 2026. Analyse, Persistenz, Timing und
+Prüfentscheidungen bleiben unverändert. `S05_CONTENT_VERSION` wird von `2.21.0` auf `2.22.0`
+erhöht.
+
+| Segment und Text-ID | Vorher | Nachher | Primäre Rolle | Grund und Bedeutungsänderung | Interaktionsziel / Hervorhebung |
+|---|---|---|---|---|---|
+| `S05.componentStrategy.commonComponents.machine.generatorLabel` | mittleres Symbol ohne Beschriftung | `Typische Veränderungen generieren` im Maschinenkörper | Mechanismuserklärung | benennt die sichtbare Funktion des mittleren Maschinenteils; ausdrücklich freigegeben | kein |
+| `S05.componentStrategy.personalDetails.machine.conveyorBlocks` | authored Beispiel `2005` | `Hochzeitstag` und zusätzlich `Abschlussjahr` | Mechanismuserklärung | passt die persönliche Beispieltabelle an den ausdrücklich gewünschten Kontext an | keine Teilnehmerableitung |
+| Kategorienleiste während Erklärung und Auswahl | vollständige Drei-Karten-Ansicht in allen Kategoriephasen | aktueller Kategoriename mittig über dem großen Symbol; vollständige Kartenansicht erst im jeweiligen Ergebniszustand und in der Zusammenfassung | Orientierung | trennt Erklärung beziehungsweise Auswahl vom sichtbaren Prüfergebnis | keine Kartenaktion |
+| Karten- und Kreuzlayout | sehr niedrige Karten; Kreuzbegriff durch vertikale Logoanordnung schwer lesbar | etwas höhere Karten; `Typische Veränderungen` und Symbol stehen gemeinsam mittig nebeneinander | Orientierung | verbessert Lesbarkeit und Gruppierung | aktuelle Kategorie beziehungsweise Gesamtzustand leuchtet |
+| Variantenliste und persönliche Übernahme | langsamer Variantenstrom; Übernahme unmittelbar unter den Bausteinen | schnellerer linearer Variantenstrom; Übernahmeaktion erhält größeren vertikalen Abstand | Mechanismuserklärung / Navigation | erhöht sichtbare Dynamik und reduziert versehentliches Auslösen | Button bleibt jederzeit aktiv |
+| persönliche Auswahlmarkierung | ausgewähltes interaktives Label konnte seine Bausteinfarbe verlieren | alle manuell ausgewählten Bausteine verwenden dieselbe Akzentfarbe mit stabiler Kontur | Ergebnisfeedback | Farbe, Kontur, Checkbox und Helligkeit tragen gemeinsam den Zustand | Baustein oder Checkbox schaltet die Auswahl |
+
+`Hochzeitstag` und `Abschlussjahr` sind feste Demonstrationseinträge. Es werden weiterhin keine
+realen persönlichen Angaben abgefragt oder gespeichert.
+
+### Copy-Delta S05 Kategorieübergänge und präzisierte persönliche Einordnung 4. August 2026
+
+Quelle ist der ausdrückliche Nutzerauftrag vom 4. August 2026. Die fachlichen Analysegrenzen,
+Persistenz, bestehenden Auswahlentscheidungen und die Reihenfolge der Prüfkategorien bleiben
+unverändert. `S05_CONTENT_VERSION` wird von `2.22.0` auf `2.23.0` erhöht.
+
+| Segment und Text-ID | Vorher | Nachher | Primäre Rolle | Grund und Bedeutungsänderung | Interaktionsziel / Hervorhebung |
+|---|---|---|---|---|---|
+| `S05.componentStrategy.commonComponents.explanation[2]` | ausführliche Wiederholung der Anwendungsorte typischer Veränderungen | `Und das sowohl bei einzelnen Bestandteilen als auch bei bereits zusammengesetzten Passwortkandidaten.` | Mechanismuserklärung | ausdrücklich verlangte Reduktion kognitiver Last; begrenzte Straffung | `Weiter`; bestehende Hervorhebung `typischen Veränderungen` |
+| `S05.componentStrategy.personalDetails.opening`, `explanation` | drei Absätze in einer Sprechblase | Merk- und Geheimwirkung als eigener erster Sprechschritt; Ableitbarkeit und lokale Einordnungsgrenze im zweiten Schritt | Mechanismuserklärung / Safety Boundary | ausdrücklich verlangte dramaturgische Trennung | `Weiter`, danach `Bausteine einordnen`; `Persönliche Angaben` mit Kategoriesymbol |
+| `S05.componentStrategy.presentation.findingChips.personalComponent`, `personalDetails.results` | Sammelbegriff `persönlich eingeordneter Bestandteil` und rein mengenbezogene Rückmeldung | `persönliche Angabe`; Rückmeldung nennt die flüchtig ausgewählten Werte und ordnet sie als bloßen Ausgangspunkt ein | Ergebnisfeedback | präzisiert die tatsächliche lokale Auswahl; ausdrücklich freigegeben | kein neues Interaktionsziel; Werte bleiben ausschließlich im bestehenden lokalen Zustand |
+| `S05.componentStrategy.accountContext.opening`, `explanation` | allgemeiner Kontoausgangspunkt mit zusätzlicher Bestandteilseinordnung | zwei ausdrücklich vorgegebene Sprechschritte zu Campusgram sowie WLAN/Router/Fritzbox und anschließender Prüfung | Mechanismuserklärung / Navigation | konkretere Kontextbeispiele und echte `Weiter`-Trennung; ausdrücklich freigegeben | `Weiter`, danach `Im Passwort prüfen` |
+| `S05.componentStrategy.accountContext.transition` | `Bestandteile oder die gesamte Zeichenfolge` | `Zum Schluss schauen wir, ob die gesamte Zeichenfolge typisch verändert wurde.` | Navigation | ausdrücklich verlangte Fokussierung der nächsten Prüfung | `Weiter` führt zu typischen Veränderungen |
+
+Das bisherige 5,6-Sekunden-Vollbild-Fade wird durch ein gemeinsames Kategoriepanel ersetzt. Es
+blendet kurz ein, bleibt zwei Sekunden stabil sichtbar und blendet kurz aus. Das Panel erscheint
+vor `Häufig verwendete Passwörter und Zeichenfolgen`, `Persönliche Angaben` und `Bezug zum Konto
+und Umfeld`. Während der Erklärung zeigt eine hohe obere Leiste den aktuellen Titel; das
+Kategoriesymbol steht horizontal über PassWo. In der Drei-Karten-Ansicht rücken alle drei Logos
+tiefer in ihre Karten. Bei `prefers-reduced-motion` wird der stabile Zielzustand weiterhin sofort
+freigegeben.
+
+### Copy-Delta S05 einheitliche Kategorienleiste und gestufte Erklärungen 4. August 2026
+
+Quelle ist der ausdrückliche Nutzerauftrag vom 4. August 2026. Analysegrenzen, Persistenz,
+Auswahlzustand und Reihenfolge der drei Prüfkategorien bleiben unverändert.
+`S05_CONTENT_VERSION` wird von `2.23.0` auf `2.24.0` erhöht.
+
+| Segment und Text-ID | Vorher | Nachher | Primäre Rolle | Grund und Bedeutungsänderung | Interaktionsziel / Hervorhebung |
+|---|---|---|---|---|---|
+| `S05.intro.strategyAnnotations.personalDetail` | Annotation `Persönliche Angaben` | `Naheliegende Jahreszahl` | Orientierung | korrigiert die ausdrücklich benannte Annotation der sichtbaren Passwortdarstellung; ausdrücklich freigegeben | keine Interaktion |
+| `S05.componentStrategy.personalDetails.derivation`, `explanation` | Ableitbarkeit und lokale Einordnungsgrenze gemeinsam in der zweiten Sprechblase | Ableitbarkeit als eigener zweiter Sprechschritt; lokale Einordnungsgrenze als dritter Schritt | Mechanismuserklärung / Safety Boundary | ein Hauptgedanke pro Sprechblase; ausdrücklich verlangt | zweimal `Weiter`, danach `Persönliche Angaben markieren`; im letzten Schritt werden `persönlichen Angaben` mit Kategoriesymbol hervorgehoben |
+| `S05.componentStrategy.accountContext.opening`, `explanation` | Kategoriebegriff nur im zweiten Prüfsatz | beide Sprechschritte lösen den `Bezug zum Konto und Umfeld` ausdrücklich auf und heben ihn mit dem Kategoriesymbol hervor | Mechanismuserklärung / Navigation | stabile Referenz zwischen Titel, Symbol und Erklärung; begrenzte Umformulierung | `Weiter`, danach `Im Passwort prüfen` |
+| `S05.componentStrategy.accountContext.results` | allgemeine Rückmeldung über einen oder mehrere erkannte Begriffe | nennt die tatsächlich flüchtig erkannten Passwortwerte und passt Singular beziehungsweise Plural an | Ergebnisfeedback | entspricht der sichtbaren lokalen Prüfung; ausdrücklich verlangt | keine neue Interaktion und keine Persistenz |
+| `S05.componentStrategy.personalDetails.begin` | `Bausteine einordnen` | `Persönliche Angaben markieren` | Navigation | benennt die unmittelbar folgende Auswahl präzise | Button öffnet die vorhandene lokale Auswahl |
+
+Die obere Einzelkategorienleiste besitzt nun unabhängig von Logo und Titellänge eine feste Höhe.
+Der zentrierte Titel wird vergrößert dargestellt; das Logo bleibt auf PassWos horizontaler
+Achse. Während `S05.commonComponents.explanation[2]` sichtbar ist, pulsiert ausschließlich die
+rechte Box für typische Veränderungen mit einer klaren weißen Kontur und einem deutlich
+sichtbaren weißen Leuchten. Bei `prefers-reduced-motion` bleibt die Box statisch hervorgehoben.

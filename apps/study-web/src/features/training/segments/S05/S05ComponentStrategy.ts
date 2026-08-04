@@ -40,7 +40,6 @@ export interface S05CanonicalPasswordView {
   readonly automaticFindings: Readonly<
     Record<Exclude<S05ComponentCategoryId, 'personal-details'>, readonly S05CategoryFinding[]>
   >;
-  readonly completeCommonPassword: boolean;
 }
 
 const commonComponentKinds = new Set<PasswordSingleFindingKind>([
@@ -96,16 +95,20 @@ function blocksForSpan(
 function commonLabel(kind: PasswordSingleFindingKind, token: string): string {
   const labels = s05Content.componentStrategy.presentation.findingChips;
   switch (kind) {
+    case 'common-password-core':
+      return labels.commonPassword;
+    case 'common-word':
+    case 'common-name':
+      return labels.commonWord;
     case 'keyboard-pattern':
-      return labels.keyboardSequence;
+      return /^\p{N}+$/u.test(token) ? labels.numberSequence : labels.keyboardSequence;
     case 'year':
-      return labels.year;
     case 'date':
-      return labels.date;
+      return labels.nearbyYear;
     case 'simple-character-sequence':
-      return /^\p{N}+$/u.test(token) ? labels.numberSequence : labels.characterSequence;
+      return /^\p{N}+$/u.test(token) ? labels.numberSequence : labels.keyboardSequence;
     default:
-      return labels.commonComponent;
+      return labels.commonWord;
   }
 }
 
@@ -276,16 +279,6 @@ export function createCanonicalPasswordView(
       }));
     }),
   );
-  const hasUndisclosedChange = analysis.findings.some(
-    ({ kind }) => kind === 'typical-transformation' || kind === 'typical-suffix',
-  );
-  const completeCommonPassword =
-    !hasUndisclosedChange &&
-    findingsWithSpans.some(
-      ({ finding, span }) =>
-        finding.kind === 'common-password-core' && span.start === 0 && span.end === password.length,
-    );
-
   return {
     password,
     blocks,
@@ -294,7 +287,6 @@ export function createCanonicalPasswordView(
       'account-context': accountFindings,
       'typical-changes': typicalChanges,
     },
-    completeCommonPassword,
   };
 }
 
@@ -363,10 +355,4 @@ export function bindTypicalChangeFindings(
     );
   }
   return boundChanges;
-}
-
-export function maskedCanonicalBlocks(
-  blocks: readonly S05CanonicalBlock[],
-): readonly S05CanonicalBlock[] {
-  return blocks.map((block) => ({ ...block, value: '•'.repeat(block.value.length) }));
 }

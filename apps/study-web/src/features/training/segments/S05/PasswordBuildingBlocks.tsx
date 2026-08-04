@@ -8,9 +8,14 @@ export interface PasswordBuildingBlocksProps {
   readonly labels?: readonly string[];
   readonly ariaLabel: string;
   readonly animate?: boolean;
-  readonly appearance?: 'authored' | 'candidate';
+  readonly appearance?: 'authored' | 'candidate' | 'analysis';
   readonly highlightedIndex?: number;
   readonly highlightedIndices?: readonly number[];
+  readonly selection?: {
+    readonly selectedIndices: readonly number[];
+    readonly checkboxLabel: string;
+    readonly onToggle: (index: number) => void;
+  };
   readonly annotations?: {
     readonly sentenceStructure: string;
     readonly probability: string;
@@ -20,8 +25,8 @@ export interface PasswordBuildingBlocksProps {
 }
 
 /**
- * A shared S05 representation for a password as one phrase or as its memorable building blocks.
- * It stays presentation-only: the supplied parts are authored examples, never an analysis result.
+ * Shared S05 representation for authored examples and the local canonical password view.
+ * Optional selection only reports a block index; persistence and interpretation stay outside UI.
  */
 export function PasswordBuildingBlocks({
   value,
@@ -33,6 +38,7 @@ export function PasswordBuildingBlocks({
   appearance = 'authored',
   highlightedIndex,
   highlightedIndices = [],
+  selection,
   annotations,
 }: PasswordBuildingBlocksProps) {
   if (display === 'assembled') {
@@ -52,6 +58,7 @@ export function PasswordBuildingBlocks({
       <div
         className={styles.blocks}
         data-display="decomposed"
+        data-appearance={appearance}
         data-animate={animate || undefined}
         data-annotated={annotations === undefined ? undefined : true}
         aria-label={ariaLabel}
@@ -60,27 +67,47 @@ export function PasswordBuildingBlocks({
           {annotations === undefined ? null : (
             <strong className={styles.sentenceStructure}>{annotations.sentenceStructure}</strong>
           )}
-          {parts.map((part, index) => (
-            <span
-              key={`${part}-${index}`}
-              data-part-index={index}
-              data-highlighted={highlightedIndices.includes(index) || undefined}
-            >
-              {part}
-              {labels?.[index] === undefined || labels[index] === '' ? null : (
-                <small className={styles.blockLabel}>{labels[index]}</small>
-              )}
-              {annotations === undefined || index !== 3 ? null : (
-                <small className={styles.probability}>{annotations.probability}</small>
-              )}
-              {annotations === undefined || index !== 4 ? null : (
-                <small className={styles.personalDetail}>{annotations.personalDetail}</small>
-              )}
-              {annotations === undefined || index !== 5 ? null : (
-                <small className={styles.typicalEnding}>{annotations.typicalEnding}</small>
-              )}
-            </span>
-          ))}
+          {parts.map((part, index) => {
+            const selected = selection?.selectedIndices.includes(index) ?? false;
+            const content = (
+              <>
+                <b className={styles.blockValue}>{part}</b>
+                {selection === undefined ? null : (
+                  <input
+                    type="checkbox"
+                    checked={selected}
+                    aria-label={`${selection.checkboxLabel}: ${part}`}
+                    onChange={() => selection.onToggle(index)}
+                  />
+                )}
+                {labels?.[index] === undefined || labels[index] === '' ? null : (
+                  <small className={styles.blockLabel}>{labels[index]}</small>
+                )}
+                {annotations === undefined || index !== 3 ? null : (
+                  <small className={styles.probability}>{annotations.probability}</small>
+                )}
+                {annotations === undefined || index !== 4 ? null : (
+                  <small className={styles.personalDetail}>{annotations.personalDetail}</small>
+                )}
+                {annotations === undefined || index !== 5 ? null : (
+                  <small className={styles.typicalEnding}>{annotations.typicalEnding}</small>
+                )}
+              </>
+            );
+            const sharedProps = {
+              'data-part-index': index,
+              'data-highlighted': highlightedIndices.includes(index) || selected || undefined,
+            } as const;
+            return selection === undefined ? (
+              <span key={`${part}-${index}`} {...sharedProps}>
+                {content}
+              </span>
+            ) : (
+              <label key={`${part}-${index}`} {...sharedProps}>
+                {content}
+              </label>
+            );
+          })}
         </code>
       </div>
     );

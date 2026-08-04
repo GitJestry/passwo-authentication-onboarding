@@ -215,7 +215,7 @@ const scenarios: Record<DesignLabScenarioId, DesignLabScenario> = {
   's05-all-categories': {
     label: 'S05 Bestandteile · alle vier Prüfungen',
     description:
-      'Direkter QA-Einstieg mit häufigem Bestandteil, Kontobezug und Veränderung; die persönliche Einordnung erfolgt lokal im Ablauf.',
+      'Direkter QA-Einstieg mit häufigem Bestandteil, Bezug zum Konto und Umfeld sowie Veränderung; die persönliche Einordnung erfolgt lokal im Ablauf.',
     dimmed: false,
     showPassWoOverlay: false,
   },

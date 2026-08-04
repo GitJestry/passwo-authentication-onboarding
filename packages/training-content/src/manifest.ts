@@ -41,7 +41,7 @@ export const trainingSegments = [
     section: 'passwords',
     sourcePages: '12',
     foci: ['TF4'],
-    learningObjective: 'Datenleck und lokale Offline-Prüfung unterscheiden.',
+    learningObjective: 'Das Datenleck als Ausgangspunkt für die Angreiferperspektive einordnen.',
   },
   {
     id: 'S05',

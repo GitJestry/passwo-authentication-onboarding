@@ -58,7 +58,7 @@ function createParagraphLayout(
   text: string,
   emphasisRules: readonly PassWoSpeechEmphasis[],
 ): readonly SpeechParagraphLayout[] {
-  const shownSymbolIds = new Set<string>();
+  const shownSymbols = new Set<string>();
 
   return visualParagraphs(text).map((paragraph) => {
     const segments: SpeechTextSegment[] = [];
@@ -85,10 +85,10 @@ function createParagraphLayout(
       }
 
       pushPlainText();
-      const showSymbol =
-        matchingRule.symbolId !== undefined && !shownSymbolIds.has(matchingRule.symbolId);
-      if (showSymbol && matchingRule.symbolId !== undefined) {
-        shownSymbolIds.add(matchingRule.symbolId);
+      const symbolKey = matchingRule.symbolId ?? matchingRule.symbolSrc;
+      const showSymbol = symbolKey !== undefined && !shownSymbols.has(symbolKey);
+      if (showSymbol && symbolKey !== undefined) {
+        shownSymbols.add(symbolKey);
       }
       segments.push({ text: matchingRule.phrase, emphasis: { ...matchingRule, showSymbol } });
       textOffset += matchingRule.phrase.length;
@@ -171,13 +171,18 @@ export function PassWoSpeechBubble({
                     data-emphasis-tone={segment.emphasis.tone}
                     key={`${speechKey}-${paragraphIndex}-${segmentIndex}`}
                   >
-                    {segment.text}
-                    {segment.emphasis.symbolId === undefined ||
-                    !segment.emphasis.showSymbol ? null : (
+                    {!segment.emphasis.showSymbol ? null : (
                       <span className={styles.inlineSymbol} aria-hidden="true">
-                        <NetworkSymbol symbolId={segment.emphasis.symbolId} />
+                        {segment.emphasis.symbolSrc === undefined ? (
+                          segment.emphasis.symbolId === undefined ? null : (
+                            <NetworkSymbol symbolId={segment.emphasis.symbolId} />
+                          )
+                        ) : (
+                          <img src={segment.emphasis.symbolSrc} alt="" />
+                        )}
                       </span>
                     )}
+                    {segment.text}
                   </strong>
                 );
               })}

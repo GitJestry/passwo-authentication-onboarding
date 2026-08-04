@@ -3,7 +3,7 @@ import { S05_CONTENT_VERSION, s05Content } from './s05.js';
 
 describe('S05 content traceability', () => {
   it('keeps the participant copy bounded and separate from internal terminology', () => {
-    expect(S05_CONTENT_VERSION).toBe('2.16.0');
+    expect(S05_CONTENT_VERSION).toBe('2.24.0');
     expect(s05Content.source).toMatchObject({
       document: 'research/private/training-script.pdf',
       internalPages: [
@@ -11,14 +11,13 @@ describe('S05 content traceability', () => {
         35,
       ],
       copyReference:
-        'docs/design/S00-S05-COPY-AUDIT.md#copy-delta-s05-querschnittliche-veränderungen-und-laufbandmaschine-3-august-2026',
+        'docs/design/S00-S05-COPY-AUDIT.md#copy-delta-s05-einheitliche-kategorienleiste-und-gestufte-erklärungen-4-august-2026',
     });
     expect(s05Content.segment.id).toBe('S05');
     expect(s05Content.page.fixtureNotice).toBe(
       'Diese Simulation betrachtet nur das fiktive Passwort und ist keine allgemeine Sicherheitsbewertung.',
     );
-    expect(s05Content.page.title).toBe('Naheliegende Bestandteile');
-    expect(s05Content.page.introTitle).toBe('Wie der Angreifer dein Passwort rät');
+    expect(s05Content.page.title).toBe('Häufig verwendete Passwörter und Zeichenfolgen');
     expect(s05Content.analysis.authoredAccountTerms).toEqual([
       'Campusgram',
       'Campus',
@@ -28,24 +27,108 @@ describe('S05 content traceability', () => {
       'Beiträge',
     ]);
     expect(s05Content.intro.strategyAnnotations.probability).toBe('sehr häufig');
+    expect(s05Content.intro.strategyAnnotations.personalDetail).toBe(
+      'Naheliegende Jahreszahl',
+    );
     expect(s05Content.componentStrategy.categories.map(({ title }) => title)).toEqual([
-      'Häufig gewählte Bestandteile',
+      'Häufig verwendete Passwörter und Zeichenfolgen',
       'Persönliche Angaben',
-      'Kontobezug',
+      'Bezug zum Konto und Umfeld',
       'Typische Veränderungen',
     ]);
-    expect(s05Content.componentStrategy.title).toBe('Naheliegende Bestandteile');
+    expect(s05Content.componentStrategy.title).toBe(
+      'Häufig verwendete Passwörter und Zeichenfolgen',
+    );
     expect(s05Content.intro.narration.componentCategoryOverview).toEqual([
-      'Bestimmte Bestandteile – und sehr häufige vollständige Passwörter wie „123456789“ – kann er früh abgleichen.',
-      'Somit kommen wir zur ersten von drei Arten naheliegender Bestandteile: Häufig gewählte Bestandteile.',
+      'Als ersten Ausgangspunkt nutzt er, dass manche Passwörter und Zeichenfolgen besonders häufig verwendet werden.',
     ]);
     expect(s05Content.componentStrategy.commonComponents.explanation[0]).toBe(
-      'Angreifer beginnen häufig mit Passwörtern und Bestandteilen, die viele Menschen bereits verwendet haben.',
+      'Dazu gehören häufig verwendete Passwörter und Wörter, einfache Tastatur- und Zahlenfolgen wie „123456“ oder „qwertz“ oder naheliegende Jahreszahlen.',
     );
-    expect(s05Content.componentStrategy.commonComponents.explanation[3]).toBe(
-      'Dabei testen Angreifer auch typische Veränderungen, etwa Großschreibung, ersetzte Zeichen sowie angehängte Zahlen oder Symbole.',
+    expect(s05Content.componentStrategy.commonComponents.explanation[2]).toBe(
+      'Dabei testet der Angreifer nicht nur die ursprüngliche Schreibweise. Er rechnet auch mit typischen Veränderungen, etwa Großschreibung, Zeichenersetzungen sowie ergänzte Zahlen oder Symbole.\n\nUnd das sowohl bei einzelnen Bestandteilen als auch bei bereits zusammengesetzten Passwortkandidaten.',
     );
+    expect(s05Content.componentStrategy.presentation.findingChips).toMatchObject({
+      commonPassword: 'häufig verwendetes Passwort',
+      commonWord: 'häufig verwendetes Wort',
+      keyboardSequence: 'Tastaturfolge',
+      numberSequence: 'Zahlenfolge',
+      nearbyYear: 'naheliegende Jahreszahl',
+    });
+    expect(s05Content.findingLabels).toMatchObject({
+      'common-password-core': 'häufig verwendetes Passwort',
+      'common-word': 'häufig verwendetes Wort',
+      'keyboard-pattern': 'Tastaturfolge',
+      year: 'naheliegende Jahreszahl',
+      'simple-character-sequence': 'Zahlenfolge',
+    });
     expect(s05Content.componentStrategy.commonComponents.check).toBe('Passwort prüfen');
+    expect(s05Content.componentStrategy.commonComponents.machine.conveyorBlocks).toContain(
+      'passwort',
+    );
+    expect(s05Content.componentStrategy.commonComponents.machine.generatorLabel).toBe(
+      'Typische Veränderungen generieren',
+    );
+    expect(s05Content.componentStrategy.personalDetails.opening).toEqual([
+      'Persönliche Angaben können leicht zu merken sein und wirken oft geheim, weil sie für dich eine besondere Bedeutung haben.',
+    ]);
+    expect(s05Content.componentStrategy.personalDetails.derivation).toEqual([
+      'Bei gezielten Angriffen können Namen, Geburtstage, Vereine oder andere persönliche Angaben aber manchmal aus öffentlichen Profilen, früheren Datenlecks oder dem Umfeld ableitbar sein.',
+    ]);
+    expect(s05Content.componentStrategy.personalDetails.explanation).toEqual([
+      'Ein Angreifer könnte es wissen, aber dieses Trainingsmodul kann das nicht zuverlässig bestimmen. Bitte wähle deine persönlichen Angaben manuell aus.',
+    ]);
+    expect(s05Content.componentStrategy.personalDetails.begin).toBe(
+      'Persönliche Angaben markieren',
+    );
+    expect(s05Content.componentStrategy.presentation.findingChips.personalComponent).toBe(
+      'persönliche Angabe',
+    );
+    expect(s05Content.componentStrategy.personalDetails.applyNone).toBe(
+      'Keine Persönliche Angabe',
+    );
+    expect(s05Content.componentStrategy.personalDetails.results).toMatchObject({
+      selected: 'Du hast [Angaben] als persönliche Angabe eingeordnet.',
+      boundary: 'Für den Angreifer ist das auch hier erst nur ein Ausgangspunkt.',
+    });
+    expect(s05Content.componentStrategy.personalDetails.machine.conveyorBlocks).toContain('Name');
+    expect(s05Content.componentStrategy.personalDetails.machine.conveyorBlocks).toContain(
+      'Hochzeitstag',
+    );
+    expect(s05Content.componentStrategy.personalDetails.machine.conveyorBlocks).toContain(
+      'Abschlussjahr',
+    );
+    expect(s05Content.componentStrategy.personalDetails.machine.conveyorBlocks).not.toContain(
+      '2005',
+    );
+    expect(s05Content.componentStrategy.accountContext.machine.conveyorBlocks).toContain(
+      'campusgram',
+    );
+    expect(s05Content.componentStrategy.accountContext.opening).toEqual([
+      'Der Bezug zum Konto und Umfeld kann dem Angreifer Ideen für dein Passwort liefern.',
+      'Bei Campusgram wären zum Beispiel Begriffe wie Campus, Nachricht, Gruppe oder der Dienstname naheliegend.',
+    ]);
+    expect(s05Content.componentStrategy.accountContext.explanation).toEqual([
+      'Bei einem WLAN könnten es „WLAN“, „Router“ oder „Fritzbox“ sein.',
+      'Prüfen wir deswegen nun dein Passwort auf einen möglichen Bezug zum Konto und Umfeld.',
+    ]);
+    expect(s05Content.componentStrategy.accountContext.transition).toBe(
+      'Zum Schluss schauen wir, ob die gesamte Zeichenfolge typisch verändert wurde.',
+    );
+    expect(s05Content.componentStrategy.accountContext.results).toMatchObject({
+      foundOne:
+        'In deinem Passwort wurde [Begriffe] als Begriff erkannt, der zu Campusgram passt.',
+      foundMany:
+        'In deinem Passwort wurden [Begriffe] als Begriffe erkannt, die zu Campusgram passen.',
+    });
+    expect(s05Content.animations.map(([id]) => id)).toEqual(
+      expect.arrayContaining([
+        's05-personal-details-opening',
+        's05-personal-details-derivation',
+        's05-account-context-opening',
+      ]),
+    );
+    expect(s05Content.animations.map(([id]) => id)).not.toContain('s05-strategy-overview');
     expect(s05Content.componentStrategy.accountContext.check).toBe('Im Passwort prüfen');
     expect(s05Content.componentStrategy.typicalChanges.check).toBe('Veränderungen prüfen');
     expect(s05Content.componentStrategy.summary.continue).toBe('Weiter zum Aufbau');
@@ -59,7 +142,8 @@ describe('S05 content traceability', () => {
         .every(({ startSection }) => startSection === 'structure'),
     ).toBe(true);
     expect(s05Content.intro.narration.candidateCheck).toEqual([
-      'Für den Angreifer ist das Passwort verdeckt. Sein Programm muss mögliche Passwörter erzeugen und prüfen, ob eines davon passt.',
+      'Für den Angreifer ist dein Passwort verdeckt. Sein Programm erzeugt mögliche Passwörter und prüft, ob eines davon passt.',
+      'Grundsätzlich könnte das Programm jede denkbare Zeichenfolge ausprobieren.',
     ]);
 
     const participantContent = JSON.stringify({

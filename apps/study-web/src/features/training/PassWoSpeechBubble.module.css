@@ -128,14 +128,16 @@
   width: 1.12em;
   height: 1.12em;
   place-items: center;
-  margin-left: 0.28em;
+  margin-right: 0.3em;
   vertical-align: -0.18em;
 }
 
-.inlineSymbol svg {
+.inlineSymbol svg,
+.inlineSymbol img {
   display: block;
   width: 100%;
   height: 100%;
+  object-fit: contain;
 }
 
 .bubble[data-tone="dark"] .emphasis {

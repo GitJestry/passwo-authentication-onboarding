@@ -8,7 +8,7 @@ Seitenangaben beziehen sich auf die im Trainingsdokument ausgewiesene interne Pa
 | S01 | Ordinary account setup | 3 | TF2, TF3 | drei fiktive Passwörter, freie Tabreihenfolge |
 | S02 | Konten verstehen | 4–7 | TF2, TF3, TF4 | Knotennetz, Unlock, Vorschaukarten, 0/3–3/3 |
 | S03 | Wieder anmelden | 8–11 | TF1, TF3, TF6 | Abrufbarkeit, Skip ohne Beschämung, Status |
-| S04 | Datenleck bei Campusgram | 12 | TF4 | Warnung im Browser-Tab, Offline-Prüfung, Übergang zur Analyse |
+| S04 | Datenleck bei Campusgram | 12 | TF4 | Warnung im Browser-Tab, kurzer Übergang in die Angreiferperspektive |
 | S05 | Einzelstärke des Passworts | 12–35 | TF3, TF4, TF6 | Bestandteile, Aufbau, freies Ausprobieren, Zusammenführung |
 | S06 | Passwortvergleich und Ausbreitungswege | 36–44 | TF3, TF4 | identisches Passwort / konkret ableitbare Variante / kein ableitbarer Weg erkannt, tatsächliche und hypothetische Pfade |
 | S07 | Auswertung | 44–50 | TF1, TF4, TF6 | drei Kontokarten, priorisierte nächste Handlung |
@@ -25,17 +25,37 @@ Seitenangaben beziehen sich auf die im Trainingsdokument ausgewiesene interne Pa
 
 ## Implementierte S05-Version
 
-- Vor `Naheliegende Bestandteile` führt die wiederhergestellte S05-Einleitung von der verdeckten
-  Kandidatenprüfung über Zufallsfolge, merkbare Kombination und Bausteinmodell zur Vorschau der
-  drei Angriffsstrategien. `Naheliegende Bestandteile` zeigt danach dauerhaft die vier Kategorien
-  `Häufig gewählte Bestandteile`, `Persönliche Angaben`, `Kontobezug` und
-  `Typische Veränderungen`. Vor der ersten Unterprüfung führt die wiederhergestellte animierte
-  Bausteinfolge über einen festen häufig gewählten Beispielbestandteil und die vergrößernde erste
-  Kategorienkarte. Erst danach beginnt `Häufig gewählte Bestandteile` mit der eigentlichen
-  Erklärung. Der erste lokale Prüfklick erzeugt einmalig die kanonische
-  Bausteinansicht; die vier Unterprüfungen legen ihre Befunde nacheinander offen und speichern sie
-  ausschließlich im flüchtigen Präsentationszustand der Karten. Eine eigene gemeinsame
-  Abschlussansicht übergibt anschließend an `Vorhersehbarer Aufbau`.
+- Die S05-Einleitung führt von der verdeckten Kandidatenprüfung über die rot dargestellte
+  Systempasswort-Zufallsfolge, eine merkbare Kombination und das Bausteinmodell direkt zum ersten
+  Ausgangspunkt des Angreifers. Die frühere Vorschau aus drei Strategiekarten und der zusätzliche
+  dreistufige Kategorienvorlauf entfallen.
+- `Häufig verwendete Passwörter und Zeichenfolgen` beginnt mit einer ausblendenden
+  Kategorieübergabe und einer synchronisierten Laufbandmaschine. Eine umfangreiche linke Liste
+  gibt im Zwei-Sekunden-Takt einen lesbaren Baustein auf das von links laufende Band. Erst wenn er
+  die kleine mittlere Logo-Box erreicht, wechselt die schmale rechte Liste zu den deterministisch
+  erzeugten und fortlaufend scrollenden Varianten dieses Bausteins. Beide Listen blenden unten aus
+  und deuten ihre Fortsetzung an.
+- Während einer Erklärung und der manuellen persönlichen Auswahl zeigt die Statusleiste nur den
+  aktuellen Kategorienamen mittig über seinem großen Symbol. Erst nach dem jeweiligen Prüfklick
+  beziehungsweise nach `Einordnung übernehmen` erscheint die kompakte Ansicht mit den drei
+  Bestandteilkarten und `Typische Veränderungen` als mittig verbundener Kreuzbedingung. Dort
+  leuchtet die gerade geprüfte Kategorie; in der gemeinsamen Abschlussansicht leuchten alle Karten.
+  Ein zusätzlicher Befundfilter entfällt.
+- Das fiktive Campusgram-Passwort liegt bereits vor dem ersten Prüfklick unverdeckt in der
+  kanonischen Bausteinansicht ohne Verbergen-Schalter vor. Die vier Prüfungen legen ausschließlich
+  ihre flüchtigen lokalen Befunde frei: nicht betroffene Bausteine bleiben neutral, betroffene
+  Bausteine leuchten ohne Lageänderung und ihre Befundtexte stehen unter gleich hohen
+  Bausteinflächen. Befunde der ersten Prüfung unterscheiden häufig verwendetes Passwort oder Wort,
+  Tastaturfolge, Zahlenfolge und naheliegende Jahreszahl. Die Rückmeldung benennt die erkannten
+  Bausteine; bei einem vollständig erkannten Einzelbaustein weist sie auf den bereits gefundenen
+  Passwortkandidaten hin. Die gemeinsame
+  Abschlussansicht übergibt anschließend unverändert an `Vorhersehbarer Aufbau`.
+- Die Laufbandmaschine wird für alle vier Kategorien wiederverwendet. Ihre linke Beispieltabelle
+  trägt statt einer Textüberschrift das große Symbol der aktuellen Kategorie, verwendet nur fest
+  authored Beispiele und führt über die mittlere Beschriftung `Typische Veränderungen generieren`
+  zur schneller scrollenden Variantenliste. Bei `Persönliche Angaben` werden die kanonischen Bausteine anschließend
+  selbst anklickbar; Checkbox und Baustein schalten denselben lokalen Markierungszustand. Die
+  Übernahme bleibt auch ohne Auswahl möglich und erzeugt dann keinen persönlichen Befund.
 - S05.0 bis S05.4 verwenden die internen Seiten 12 bis 35 als Inhaltsquelle und sind im Design Lab
   sowie im realen Supportive-Training zwischen S04 und S06 vollständig durchspielbar. Beide Pfade
   verwenden dieselbe Komponente und denselben lokalen Controller.

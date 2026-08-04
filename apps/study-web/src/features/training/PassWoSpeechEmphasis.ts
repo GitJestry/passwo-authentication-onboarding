@@ -1,3 +1,8 @@
+import accountContextAsset from '../../assets/s05/category-logos/account-context.png';
+import commonCoresAsset from '../../assets/s05/category-logos/common-cores.png';
+import personalDetailsAsset from '../../assets/s05/category-logos/personal-details.png';
+import typicalChangesAsset from '../../assets/s05/category-logos/typical-changes.png';
+
 export type PassWoSpeechEmphasisTone =
   | 'accent'
   | 'positive'
@@ -11,6 +16,7 @@ export interface PassWoSpeechEmphasis {
   readonly phrase: string;
   readonly tone: PassWoSpeechEmphasisTone;
   readonly symbolId?: string;
+  readonly symbolSrc?: string;
   /** Additional phrases are rendered only when they share this explicit grouped emphasis. */
   readonly contrastId?: string;
 }
@@ -50,6 +56,48 @@ const emphasisBySpeechId: Readonly<Record<string, readonly PassWoSpeechEmphasis[
   's04.incident': [
     { phrase: 'Datenleck', tone: 'warning', contrastId: 'incident-risk' },
     { phrase: 'schwer', tone: 'warning', contrastId: 'incident-risk' },
+  ],
+  's05-common-components-changes': [
+    {
+      phrase: 'typischen Veränderungen',
+      tone: 'accent',
+      symbolSrc: typicalChangesAsset,
+    },
+  ],
+  's05-common-components-intro': [
+    {
+      phrase: 'häufig verwendete Passwörter und Zeichenfolgen',
+      tone: 'accent',
+      symbolSrc: commonCoresAsset,
+    },
+  ],
+  's05-personal-details-opening': [
+    {
+      phrase: 'Persönliche Angaben',
+      tone: 'accent',
+      symbolSrc: personalDetailsAsset,
+    },
+  ],
+  's05-personal-details-intro': [
+    {
+      phrase: 'persönlichen Angaben',
+      tone: 'accent',
+      symbolSrc: personalDetailsAsset,
+    },
+  ],
+  's05-account-context-opening': [
+    {
+      phrase: 'Bezug zum Konto und Umfeld',
+      tone: 'accent',
+      symbolSrc: accountContextAsset,
+    },
+  ],
+  's05-account-context-intro': [
+    {
+      phrase: 'Bezug zum Konto und Umfeld',
+      tone: 'accent',
+      symbolSrc: accountContextAsset,
+    },
   ],
 };
 
