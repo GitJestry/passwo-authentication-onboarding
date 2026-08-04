@@ -27,6 +27,7 @@ import {
 } from './S05AnalysisController.js';
 import { S05AnimationAdapter } from './S05AnimationAdapter.js';
 import {
+  projectCanonicalPasswordBlocks,
   type S05CategoryFinding,
   type S05ComponentCategoryId,
 } from './S05ComponentStrategy.js';
@@ -240,7 +241,6 @@ const categoryAssets = {
   'common-components': commonCoresAsset,
   'personal-details': personalDetailsAsset,
   'account-context': accountContextAsset,
-  'typical-changes': typicalChangesAsset,
 } as const;
 
 const semanticReflectionOrder = [
@@ -403,7 +403,6 @@ function categoryForStep(
   if (step.startsWith('common-components-')) return 'common-components';
   if (step.startsWith('personal-details-')) return 'personal-details';
   if (step.startsWith('account-context-')) return 'account-context';
-  if (step.startsWith('typical-changes-')) return 'typical-changes';
   return null;
 }
 
@@ -414,45 +413,22 @@ function CategoryCards({
 }) {
   const summary = snapshot.step === 'components-summary';
   const activeCategoryId = categoryForStep(snapshot.step);
-  const sourceCategories = s05Content.componentStrategy.categories.filter(
-    ({ id }) => id !== 'typical-changes',
-  );
-  const changesCategory = s05Content.componentStrategy.categories.find(
-    ({ id }) => id === 'typical-changes',
-  );
-  const changesCard = snapshot.componentStrategy.cards['typical-changes'];
   return (
     <aside
       className={styles.componentCategoryCards}
       aria-label={s05Content.componentStrategy.presentation.categoriesAriaLabel}
     >
-      {changesCategory === undefined ? null : (
-        <div
-          className={styles.crossCuttingCategory}
-          data-status={changesCard.status}
-          data-active={summary || activeCategoryId === 'typical-changes' || undefined}
-        >
-          <strong>{changesCategory.title}</strong>
-          <img src={typicalChangesAsset} alt="" />
-        </div>
-      )}
-      <div className={styles.categoryConnections} aria-hidden="true">
-        <span />
-        <i />
-        <i />
-        <i />
-      </div>
       <div className={styles.componentCategoryList}>
-        {sourceCategories.map((category) => {
+        {s05Content.componentStrategy.categories.map((category) => {
           const card = snapshot.componentStrategy.cards[category.id];
           const active = summary || activeCategoryId === category.id;
-          const blockIds = new Set(
-            card.findings.flatMap(({ blockIds: findingBlockIds }) => findingBlockIds),
-          );
+          const view = snapshot.componentStrategy.canonicalView;
           const findingBlocks =
-            snapshot.componentStrategy.canonicalView?.blocks.filter(({ id }) =>
-              blockIds.has(id),
-            ) ?? [];
+            view === null
+              ? []
+              : projectCanonicalPasswordBlocks(view, card.findings, false).filter(
+                  ({ labels }) => labels.length > 0,
+                );
           return (
             <article
               key={category.id}
@@ -515,27 +491,26 @@ function CanonicalPasswordView({
 }) {
   const view = snapshot.componentStrategy.canonicalView;
   if (view === null) return null;
-  const blocks = view.blocks;
   const focus = snapshot.step === 'components-summary' ? null : categoryForStep(snapshot.step);
   const findings = releasedComponentFindings(snapshot);
   const visibleFindings =
     focus === null ? findings : findings.filter(({ categoryId }) => categoryId === focus);
-  const highlightedIndices = blocks.flatMap((block, index) =>
-    visibleFindings.some(({ blockIds }) => blockIds.includes(block.id)) ? [index] : [],
+  const selectingPersonalDetails = snapshot.step === 'personal-details-check';
+  const displayBlocks = selectingPersonalDetails
+    ? view.blocks.map((block) => ({ ...block, labels: [] as readonly string[] }))
+    : projectCanonicalPasswordBlocks(
+        view,
+        visibleFindings,
+        snapshot.step === 'components-summary',
+      );
+  const highlightedIndices = displayBlocks.flatMap(({ labels }, index) =>
+    labels.length > 0 ? [index] : [],
   );
   const personalSelection = snapshot.componentStrategy.personalSelection;
-  const selectedPersonalIndices = blocks.flatMap((block, index) =>
+  const selectedPersonalIndices = view.blocks.flatMap((block, index) =>
     personalSelection.blockIds.includes(block.id) ? [index] : [],
   );
-  const blockLabels = blocks.map((block) =>
-    [
-      ...new Set(
-        visibleFindings
-          .filter(({ blockIds }) => blockIds.includes(block.id))
-          .map(({ label }) => label),
-      ),
-    ].join(' · '),
-  );
+  const blockLabels = displayBlocks.map(({ labels }) => labels.join(' · '));
   return (
     <section
       className={styles.canonicalPassword}
@@ -552,18 +527,18 @@ function CanonicalPasswordView({
       <div className={styles.canonicalBlocks} data-s05-speech-obstacle>
         <PasswordBuildingBlocks
           value={view.password}
-          parts={blocks.map(({ value }) => value)}
+          parts={displayBlocks.map(({ value }) => value)}
           display="decomposed"
           appearance="analysis"
           labels={blockLabels}
           highlightedIndices={[...highlightedIndices, ...selectedPersonalIndices]}
-          {...(snapshot.step === 'personal-details-check'
+          {...(selectingPersonalDetails
             ? {
                 selection: {
                   selectedIndices: selectedPersonalIndices,
                   checkboxLabel: s05Content.componentStrategy.personalDetails.selectionLabel,
                   onToggle: (index: number) => {
-                    const block = blocks[index];
+                    const block = view.blocks[index];
                     if (block !== undefined) controller.togglePersonalBlock(block.id);
                   },
                 },
@@ -1041,7 +1016,6 @@ function renderScene(
     case 'personal-details-check':
     case 'personal-details-result':
     case 'account-context-result':
-    case 'typical-changes-result':
     case 'components-summary':
       return (
         <ComponentStrategyScene
@@ -1069,14 +1043,6 @@ function renderScene(
           conveyorBlocks={s05Content.componentStrategy.accountContext.machine.conveyorBlocks}
           stepKey={snapshot.step}
           showTransition={snapshot.step === 'account-context-opening'}
-        />
-      );
-    case 'typical-changes-intro':
-      return (
-        <CategoryMachine
-          categoryId="typical-changes"
-          conveyorBlocks={s05Content.componentStrategy.typicalChanges.machine.conveyorBlocks}
-          stepKey={snapshot.step}
         />
       );
     case 'structure-theme':
@@ -1135,9 +1101,12 @@ function commonComponentsResult(snapshot: S05AnalysisControllerSnapshot): readon
   const findings = snapshot.componentStrategy.cards['common-components'].findings;
   if (view === null || findings.length === 0) return [...content.results.none, content.transition];
 
-  const foundBlockIds = new Set(findings.flatMap(({ blockIds }) => blockIds));
   const foundValues = [
-    ...new Set(view.blocks.filter(({ id }) => foundBlockIds.has(id)).map(({ value }) => value)),
+    ...new Set(
+      projectCanonicalPasswordBlocks(view, findings, false)
+        .filter(({ labels }) => labels.length > 0)
+        .map(({ value }) => value),
+    ),
   ];
   if (foundValues.length === 0) return [...content.results.none, content.transition];
 
@@ -1150,7 +1119,8 @@ function commonComponentsResult(snapshot: S05AnalysisControllerSnapshot): readon
     ? content.results.foundOne
     : content.results.foundMany
   ).replace('[Teile]', parts);
-  const foundOnlyBlock = view.blocks.length === 1 && foundBlockIds.has(view.blocks[0]?.id ?? '');
+  const foundOnlyBlock =
+    foundValues.length === 1 && foundValues[0] === view.password;
   return [
     finding,
     foundOnlyBlock
@@ -1164,9 +1134,12 @@ function personalDetailsResult(snapshot: S05AnalysisControllerSnapshot): readonl
   const content = s05Content.componentStrategy.personalDetails;
   const view = snapshot.componentStrategy.canonicalView;
   const findings = snapshot.componentStrategy.cards['personal-details'].findings;
-  const selectedBlockIds = new Set(findings.flatMap(({ blockIds }) => blockIds));
   const selectedValues =
-    view?.blocks.filter(({ id }) => selectedBlockIds.has(id)).map(({ value }) => `„${value}“`) ?? [];
+    view === null
+      ? []
+      : projectCanonicalPasswordBlocks(view, findings, false)
+          .filter(({ labels }) => labels.length > 0)
+          .map(({ value }) => `„${value}“`);
   const result =
     selectedValues.length === 0
       ? content.results.none
@@ -1184,9 +1157,12 @@ function accountContextResult(snapshot: S05AnalysisControllerSnapshot): readonly
   const findings = snapshot.componentStrategy.cards['account-context'].findings;
   if (view === null || findings.length === 0) return [...content.results.none, content.transition];
 
-  const foundBlockIds = new Set(findings.flatMap(({ blockIds }) => blockIds));
   const foundValues = [
-    ...new Set(view.blocks.filter(({ id }) => foundBlockIds.has(id)).map(({ value }) => value)),
+    ...new Set(
+      projectCanonicalPasswordBlocks(view, findings, false)
+        .filter(({ labels }) => labels.length > 0)
+        .map(({ value }) => value),
+    ),
   ];
   if (foundValues.length === 0) return [...content.results.none, content.transition];
 
@@ -1198,38 +1174,14 @@ function accountContextResult(snapshot: S05AnalysisControllerSnapshot): readonly
   return [finding, content.results.boundary, content.transition];
 }
 
-function typicalChangesResult(snapshot: S05AnalysisControllerSnapshot): readonly string[] {
-  const content = s05Content.componentStrategy.typicalChanges;
-  const findings = snapshot.componentStrategy.cards['typical-changes'].findings;
-  if (findings.length === 0) return content.results.none;
-  const descriptions = findings.slice(0, 3).map(({ description, label }) => description ?? label);
-  if (findings.length > 3) descriptions.push(content.results.overflowDescription);
-  const lastDescription = descriptions.at(-1);
-  const descriptionList =
-    descriptions.length < 2
-      ? (lastDescription ?? '')
-      : `${descriptions.slice(0, -1).join(', ')} und ${lastDescription ?? ''}`;
-  return [
-    content.results.found,
-    `${content.results.dynamicPrefix} ${descriptionList}${content.results.dynamicSuffix}`,
-    content.results.suffix,
-  ];
-}
-
 function componentSummaryNarration(snapshot: S05AnalysisControllerSnapshot): readonly string[] {
   const content = s05Content.componentStrategy.summary;
   const sourceCategoryNames = s05Content.componentStrategy.categories
-    .filter(({ id }) => id !== 'typical-changes')
     .filter(({ id }) => snapshot.componentStrategy.cards[id].status === 'checked-findings')
     .map(({ title }) => title);
-  const hasChanges =
-    snapshot.componentStrategy.cards['typical-changes'].status === 'checked-findings';
-  if (sourceCategoryNames.length === 0 && !hasChanges) return [content.none, content.noneTransition];
+  if (sourceCategoryNames.length === 0) return [content.none, content.noneTransition];
   return [
-    ...(sourceCategoryNames.length === 0
-      ? []
-      : [content.found.replace('[Kategorienamen]', sourceCategoryNames.join(', '))]),
-    ...(hasChanges ? [content.foundChanges] : []),
+    content.found.replace('[Kategorienamen]', sourceCategoryNames.join(', ')),
     content.foundBoundary,
     content.foundTransition,
   ];
@@ -1276,10 +1228,6 @@ function speechFor(
       return s05Content.componentStrategy.accountContext.explanation;
     case 'account-context-result':
       return accountContextResult(snapshot);
-    case 'typical-changes-intro':
-      return s05Content.componentStrategy.typicalChanges.explanation;
-    case 'typical-changes-result':
-      return typicalChangesResult(snapshot);
     case 'components-summary':
       return componentSummaryNarration(snapshot);
     default:
@@ -1292,7 +1240,6 @@ function showsComponentCategoryHeader(step: S05AnalysisControllerSnapshot['step'
     step.startsWith('common-components-') ||
     step.startsWith('personal-details-') ||
     step.startsWith('account-context-') ||
-    step.startsWith('typical-changes-') ||
     step === 'components-summary'
   );
 }
@@ -1302,7 +1249,6 @@ function showsComponentCategoryCards(step: S05AnalysisControllerSnapshot['step']
     step === 'common-components-result' ||
     step === 'personal-details-result' ||
     step === 'account-context-result' ||
-    step === 'typical-changes-result' ||
     step === 'components-summary'
   );
 }
@@ -1472,13 +1418,6 @@ export function S05AnalysisTraining({
           label: s05Content.componentStrategy.accountContext.check,
           disabled,
           onAction: () => activeController.completeAccountContextCheck(),
-        };
-      case 'typical-changes-intro':
-        return {
-          kind: 'perform' as const,
-          label: s05Content.componentStrategy.typicalChanges.check,
-          disabled,
-          onAction: () => activeController.completeTypicalChangesCheck(),
         };
       case 'components-summary':
         return {

@@ -808,3 +808,20 @@ Der zentrierte Titel wird vergrößert dargestellt; das Logo bleibt auf PassWos 
 Achse. Während `S05.commonComponents.explanation[2]` sichtbar ist, pulsiert ausschließlich die
 rechte Box für typische Veränderungen mit einer klaren weißen Kontur und einem deutlich
 sichtbaren weißen Leuchten. Bei `prefers-reduced-motion` bleibt die Box statisch hervorgehoben.
+
+### Copy-Delta S05 Varianten ohne redundante Kategorie 4. August 2026
+
+Quelle ist der ausdrückliche Nutzerauftrag vom 4. August 2026. Typische Veränderungen bleiben
+innerhalb der vorhandenen Variantenmaschine erklärt, werden im Ergebnis aber nicht länger als
+vierte Kategorie wiederholt. `S05_CONTENT_VERSION` wird von `2.24.0` auf `2.25.0` erhöht.
+
+| Segment und Text-ID | Vorher | Nachher | Primäre Rolle | Grund und Bedeutungsänderung | Interaktionsziel / Hervorhebung |
+|---|---|---|---|---|---|
+| `S05.componentStrategy.categories`, `S05.typicalChanges.*` | drei Bestandteilskategorien plus separate Kategorie, Erklärung und Prüfung `Typische Veränderungen` | ausschließlich die drei Bestandteilskategorien; erkannte Varianten werden direkt an ihren Grundbestandteil gebunden | Orientierung / Ergebnisfeedback | entfernt die ausdrücklich benannte Wiederholung und stellt Variante und Ursprung als einen Befund dar; ausdrücklich freigegeben | die drei bestehenden Prüfaktionen bleiben; die separate Aktion `Veränderungen prüfen` entfällt |
+| `S05.componentStrategy.presentation.findingChips.typicalVariant` | einzelne Labels für Ersetzung, Zahlenfolge und Symbolanhang | `typische Variante: [Details]` | Ergebnisfeedback | fasst alle Veränderungen eines sichtbaren Bausteins genau einmal kompakt zusammen | Label unter dem zusammengefassten Variantenbaustein; keine zusätzliche Hervorhebung |
+| `S05.componentStrategy.presentation.findingChips.typicalEnding` | ungebundene Endung wurde nicht sichtbar eingeordnet | `typische Endung: +[Wert]` | Ergebnisfeedback | kennzeichnet eine begrenzt erkannte Endung ohne einen nicht erkannten Grundbestandteil einer Kategorie zuzuordnen | erscheint erst in der gemeinsamen Zusammenfassung am betroffenen Passwortbereich |
+| `S05.componentStrategy.accountContext.transition` | `Zum Schluss schauen wir, ob die gesamte Zeichenfolge typisch verändert wurde.` | `Damit sind die drei Arten von Passwortbestandteilen geprüft.` | Orientierung | führt nach Wegfall der redundanten vierten Prüfung direkt in die Zusammenfassung | `Weiter`; keine Hervorhebung |
+
+Die zusammengefassten Werte, persönlichen Markierungen und Resthinweise bleiben ausschließlich
+flüchtiger Trainingszustand. Es werden keine neuen Felder gespeichert oder exportiert. Die
+erweiterte Endungserkennung ist eine begrenzte lokale Heuristik und keine Produktionsbewertung.

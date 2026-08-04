@@ -19,7 +19,7 @@ import {
   originalSpanForNormalizedRange,
 } from './case-insensitive-spans.js';
 
-export const PASSWORD_ANALYSIS_CONFIGURATION_VERSION = 'passwo-bounded-guess-path-v2';
+export const PASSWORD_ANALYSIS_CONFIGURATION_VERSION = 'passwo-bounded-guess-path-v3';
 
 export interface FictionalPasswordAnalysisInput {
   readonly fictionalPassword: string;
@@ -298,17 +298,46 @@ function collectYears(input: string): readonly PasswordSingleFinding[] {
   });
 }
 
-function collectTypicalSuffix(
-  input: string,
-  precedingFindings: readonly PasswordSingleFinding[],
-): readonly PasswordSingleFinding[] {
+function collectNumberedWordSequences(input: string): readonly PasswordSingleFinding[] {
+  const candidates = [
+    ...input.matchAll(/\p{L}{3,}\d{1,3}(?:[-_.]\p{L}{3,}\d{1,3}){2,}/gu),
+  ];
+  return candidates.flatMap((match, ordinal) => {
+    const parts = match[0].split(/[-_.]/u).map((part) => {
+      const parsed = /^(\p{L}{3,})(\d{1,3})$/u.exec(part);
+      return parsed === null || parsed[1] === undefined || parsed[2] === undefined
+        ? null
+        : { word: parsed[1].toLocaleLowerCase('de-DE'), number: Number(parsed[2]) };
+    });
+    const first = parts[0];
+    if (
+      first === null ||
+      first === undefined ||
+      parts.some(
+        (part, index) =>
+          part === null || part.word !== first.word || part.number !== first.number + index,
+      )
+    ) {
+      return [];
+    }
+    const start = match.index;
+    return [
+      finding(
+        input,
+        'predictable-word-sequence',
+        start,
+        start + match[0].length,
+        'bounded-heuristic',
+        ordinal,
+      ),
+    ];
+  });
+}
+
+function collectTypicalSuffix(input: string): readonly PasswordSingleFinding[] {
   const match = /(?=.*\p{L})[\p{L}\p{N}]{3,}?((?:\d{1,4})?[!?._-]+|\d{1,3})$/u.exec(input);
   if (match === null || match[1] === undefined) return [];
   const start = input.length - match[1].length;
-  const followsRecognizedComponent = precedingFindings.some((item) =>
-    item.evidence.some((evidence) => evidence.type === 'span' && evidence.end === start),
-  );
-  if (!followsRecognizedComponent) return [];
   return [finding(input, 'typical-suffix', start, input.length)];
 }
 
@@ -345,15 +374,13 @@ export function analyzeFictionalPassword({
     trimmedAccountTerms,
   );
   const yearFindings = collectYears(fictionalPassword);
+  const numberedWordSequenceFindings = collectNumberedWordSequences(fictionalPassword);
   const findings = deduplicateAndSortFindings([
     ...guessPathFindings,
     ...exactAccountTermFindings,
     ...yearFindings,
-    ...collectTypicalSuffix(fictionalPassword, [
-      ...guessPathFindings,
-      ...exactAccountTermFindings,
-      ...yearFindings,
-    ]),
+    ...numberedWordSequenceFindings,
+    ...collectTypicalSuffix(fictionalPassword),
   ]);
 
   return {

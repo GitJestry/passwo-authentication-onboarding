@@ -24,7 +24,6 @@ import {
   createPasswordStructureScene,
 } from '@passwo/visualization';
 import {
-  bindTypicalChangeFindings,
   createCanonicalPasswordView,
   createPersonalFindings,
   type S05CanonicalPasswordView,
@@ -53,8 +52,6 @@ export type S05AnalysisStep =
   | 'account-context-opening'
   | 'account-context-intro'
   | 'account-context-result'
-  | 'typical-changes-intro'
-  | 'typical-changes-result'
   | 'components-summary'
   | 'structure-theme'
   | 'structure-sentence'
@@ -147,8 +144,6 @@ const stepByMissionId: Readonly<Record<string, S05AnalysisStep>> = {
   's05-account-context-opening': 'account-context-opening',
   's05-account-context-intro': 'account-context-intro',
   's05-account-context-result': 'account-context-result',
-  's05-typical-changes-intro': 'typical-changes-intro',
-  's05-typical-changes-result': 'typical-changes-result',
   's05-components-summary': 'components-summary',
   's05-structure-theme': 'structure-theme',
   's05-structure-sentence': 'structure-sentence',
@@ -175,7 +170,6 @@ function initialComponentCards(): S05AnalysisControllerSnapshot['componentStrate
     'common-components': { status: 'pending', findings: [] },
     'personal-details': { status: 'pending', findings: [] },
     'account-context': { status: 'pending', findings: [] },
-    'typical-changes': { status: 'pending', findings: [] },
   };
 }
 
@@ -184,7 +178,6 @@ function categoryForStep(step: S05AnalysisStep): S05ComponentCategoryId | null {
   if (step.startsWith('common-components-')) return 'common-components';
   if (step.startsWith('personal-details-')) return 'personal-details';
   if (step.startsWith('account-context-')) return 'account-context';
-  if (step.startsWith('typical-changes-')) return 'typical-changes';
   return null;
 }
 
@@ -207,7 +200,6 @@ function cardsForStep(
     'common-components': updateCard('common-components'),
     'personal-details': updateCard('personal-details'),
     'account-context': updateCard('account-context'),
-    'typical-changes': updateCard('typical-changes'),
   };
 }
 
@@ -529,39 +521,6 @@ export class S05AnalysisController {
         cards: {
           ...snapshot.componentStrategy.cards,
           'account-context': {
-            status: findings.length === 0 ? 'checked-none' : 'checked-findings',
-            findings,
-          },
-        },
-      },
-    };
-    this.#emit();
-    void this.#missionController.continue();
-  }
-
-  completeTypicalChangesCheck(): void {
-    const snapshot = this.#snapshot;
-    const view = snapshot?.componentStrategy.canonicalView;
-    if (
-      this.#disposed ||
-      snapshot === null ||
-      view === null ||
-      view === undefined ||
-      snapshot.step !== 'typical-changes-intro'
-    ) {
-      return;
-    }
-    const findings = bindTypicalChangeFindings(
-      view,
-      snapshot.componentStrategy.cards['personal-details'].findings,
-    );
-    this.#snapshot = {
-      ...snapshot,
-      componentStrategy: {
-        ...snapshot.componentStrategy,
-        cards: {
-          ...snapshot.componentStrategy.cards,
-          'typical-changes': {
             status: findings.length === 0 ? 'checked-none' : 'checked-findings',
             findings,
           },

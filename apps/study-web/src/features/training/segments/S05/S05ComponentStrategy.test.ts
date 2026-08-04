@@ -1,40 +1,137 @@
-import type { PasswordAnalysisResult } from '@passwo/contracts';
+import type { PasswordAnalysisResult, PasswordSingleFinding } from '@passwo/contracts';
 import {
   analyzeFictionalPassword,
   determinePasswordSimulationDisposition,
 } from '@passwo/password-analysis';
 import { describe, expect, it } from 'vitest';
 import {
-  bindTypicalChangeFindings,
   createCanonicalPasswordView,
   createPersonalFindings,
+  projectCanonicalPasswordBlocks,
 } from './S05ComponentStrategy.js';
 
-describe('S05 component strategy presentation', () => {
-  it('keeps one canonical segmentation while disclosing Passw0rt123! changes only later', () => {
-    const password = 'Passw0rt123!';
-    const analysis = analyzeFictionalPassword({ fictionalPassword: password });
-    const view = createCanonicalPasswordView(password, analysis);
+function analysisWithFindings(findings: readonly PasswordSingleFinding[]): PasswordAnalysisResult {
+  return {
+    kind: 'fictional-password-analysis',
+    findings,
+    guessPath: {
+      engineId: 'zxcvbn-ts',
+      configurationVersion: 'test-only',
+      estimatedGuesses: 1,
+      estimatedGuessesLog10: 0,
+      matches: [],
+    },
+    disclaimerId: 'simulation-not-production-strength',
+  };
+}
 
-    expect(view.blocks.map(({ value }) => value)).toEqual(['Passw0rt', '123', '!']);
-    expect(view.automaticFindings['common-components'].map(({ label }) => label)).not.toEqual(
-      expect.arrayContaining([expect.stringMatching(/→|angehängt|Zahlenfolge/u)]),
+describe('S05 component strategy presentation', () => {
+  it('shows Passw0rt123! once as one common variant block', () => {
+    const password = 'Passw0rt123!';
+    const view = createCanonicalPasswordView(
+      password,
+      analyzeFictionalPassword({ fictionalPassword: password }),
     );
-    expect(view.automaticFindings['typical-changes'].map(({ label }) => label)).toEqual(
+    const displayed = projectCanonicalPasswordBlocks(
+      view,
+      view.automaticFindings['common-components'],
+      false,
+    ).filter(({ labels }) => labels.length > 0);
+
+    expect(displayed.map(({ value }) => value)).toEqual([password]);
+    expect(displayed[0]?.labels).toEqual(
       expect.arrayContaining([
-        'o → 0',
-        'Zahlenfolge „123“ angehängt',
-        'Symbol „!“ angehängt',
+        'häufig verwendetes Passwort',
+        'typische Variante: o → 0, +123!',
+      ]),
+    );
+    expect(displayed[0]?.labels.filter((label) => label.startsWith('typische Variante'))).toHaveLength(
+      1,
+    );
+  });
+
+  it('projects a recognized word sequence as three variant blocks', () => {
+    const password = 'wort1-wort2-wort3';
+    const view = createCanonicalPasswordView(
+      password,
+      analysisWithFindings([
+        {
+          id: 'sequence',
+          kind: 'predictable-word-sequence',
+          evidence: [{ type: 'span', start: 0, end: password.length, token: password }],
+          explanationId: 's05.predictable-word-sequence',
+          confidence: 'bounded-heuristic',
+        },
+      ]),
+    );
+    const displayed = projectCanonicalPasswordBlocks(
+      view,
+      view.automaticFindings['common-components'],
+      false,
+    ).filter(({ labels }) => labels.length > 0);
+
+    expect(displayed.map(({ value }) => value)).toEqual(['wort1-', 'wort2-', 'wort3']);
+    expect(displayed.map(({ labels }) => labels.at(-1))).toEqual([
+      'typische Variante: +1-',
+      'typische Variante: +2-',
+      'typische Variante: +3',
+    ]);
+  });
+
+  it('keeps personal selection atomic and groups its directly adjacent suffix afterwards', () => {
+    const password = 'Idee123!';
+    const view = createCanonicalPasswordView(
+      password,
+      analysisWithFindings([
+        {
+          id: 'suffix-only',
+          kind: 'typical-suffix',
+          evidence: [{ type: 'span', start: 4, end: password.length, token: '123!' }],
+          explanationId: 's05.typical-suffix',
+          confidence: 'bounded-heuristic',
+        },
+      ]),
+    );
+    expect(view.blocks.map(({ value }) => value)).toEqual(['Idee', '123!']);
+
+    const personal = createPersonalFindings(view, [view.blocks[0]?.id ?? '']);
+    const displayed = projectCanonicalPasswordBlocks(view, personal, false).filter(
+      ({ labels }) => labels.length > 0,
+    );
+    expect(displayed).toMatchObject([
+      {
+        value: password,
+        labels: ['persönliche Angabe', 'typische Variante: +123!'],
+      },
+    ]);
+  });
+
+  it('shows an unbound typical ending only when residual changes are requested', () => {
+    const password = 'Fantasiebegriff123!';
+    const view = createCanonicalPasswordView(
+      password,
+      analysisWithFindings([
+        {
+          id: 'suffix-only',
+          kind: 'typical-suffix',
+          evidence: [{ type: 'span', start: 15, end: password.length, token: '123!' }],
+          explanationId: 's05.typical-suffix',
+          confidence: 'bounded-heuristic',
+        },
       ]),
     );
 
-    const originalBlockIds = view.blocks.map(({ id }) => id);
-    const personal = createPersonalFindings(view, [originalBlockIds[0] ?? '']);
-    bindTypicalChangeFindings(view, personal);
-    expect(view.blocks.map(({ id }) => id)).toEqual(originalBlockIds);
+    expect(projectCanonicalPasswordBlocks(view, [], false).flatMap(({ labels }) => labels)).toEqual(
+      [],
+    );
+    expect(
+      projectCanonicalPasswordBlocks(view, [], true)
+        .filter(({ labels }) => labels.length > 0)
+        .map(({ value, labels }) => ({ value, labels })),
+    ).toEqual([{ value: '123!', labels: ['typische Endung: +123!'] }]);
   });
 
-  it('calls a block personal only after a local user selection', () => {
+  it('binds an account suffix to the account block without duplicating its variant label', () => {
     const password = 'Campusgram2026!';
     const view = createCanonicalPasswordView(
       password,
@@ -43,125 +140,15 @@ describe('S05 component strategy presentation', () => {
         authoredAccountTerms: ['Campusgram'],
       }),
     );
+    const displayed = projectCanonicalPasswordBlocks(
+      view,
+      view.automaticFindings['account-context'],
+      false,
+    ).filter(({ labels }) => labels.length > 0);
 
-    expect(JSON.stringify(view.automaticFindings)).not.toMatch(/persönlich/iu);
-    expect(createPersonalFindings(view, [])).toEqual([]);
-    expect(createPersonalFindings(view, [view.blocks[0]?.id ?? ''])[0]?.label).toBe(
-      'persönliche Angabe',
-    );
-    const groupedBlockIds = view.blocks.slice(0, 2).map(({ id }) => id);
-    expect(createPersonalFindings(view, groupedBlockIds, true)).toMatchObject([
-      { blockIds: groupedBlockIds },
-    ]);
-  });
-
-  it('projects account findings from authored exact context matches', () => {
-    const password = 'CampusgramSommer';
-    const view = createCanonicalPasswordView(
-      password,
-      analyzeFictionalPassword({
-        fictionalPassword: password,
-        authoredAccountTerms: ['Campusgram'],
-      }),
-    );
-
-    expect(view.automaticFindings['account-context'].map(({ label }) => label)).toEqual([
-      'Campusgram',
-    ]);
-  });
-
-  it('projects a bounded changed account term only with matching transformation evidence', () => {
-    const password = 'C4mpusgram';
-    const analysis: PasswordAnalysisResult = {
-      kind: 'fictional-password-analysis',
-      findings: [
-        {
-          id: 'account-changed',
-          kind: 'account-or-service-term',
-          evidence: [{ type: 'span', start: 0, end: password.length, token: password }],
-          explanationId: 's05.account-or-service-term',
-          confidence: 'bounded-heuristic',
-        },
-        {
-          id: 'account-transformation',
-          kind: 'typical-transformation',
-          evidence: [{ type: 'span', start: 0, end: password.length, token: password }],
-          explanationId: 's05.typical-transformation',
-          confidence: 'bounded-heuristic',
-        },
-      ],
-      guessPath: {
-        engineId: 'zxcvbn-ts',
-        configurationVersion: 'test-only',
-        estimatedGuesses: 1,
-        estimatedGuessesLog10: 0,
-        matches: [],
-      },
-      disclaimerId: 'simulation-not-production-strength',
-    };
-
-    const view = createCanonicalPasswordView(password, analysis);
-    expect(view.automaticFindings['account-context'].map(({ label }) => label)).toEqual([
-      password,
-    ]);
-    expect(view.automaticFindings['typical-changes']).not.toHaveLength(0);
-  });
-
-  it('binds changes to common, personal or account bases and otherwise to the whole password', () => {
-    const commonPassword = 'Passw0rt123!';
-    const commonView = createCanonicalPasswordView(
-      commonPassword,
-      analyzeFictionalPassword({ fictionalPassword: commonPassword }),
-    );
-    expect(bindTypicalChangeFindings(commonView, []).every(({ binding }) => binding === 'blocks')).toBe(
-      true,
-    );
-
-    const accountPassword = 'Campusgram2026!';
-    const accountView = createCanonicalPasswordView(
-      accountPassword,
-      analyzeFictionalPassword({
-        fictionalPassword: accountPassword,
-        authoredAccountTerms: ['Campusgram'],
-      }),
-    );
-    expect(bindTypicalChangeFindings(accountView, []).some(({ binding }) => binding === 'blocks')).toBe(
-      true,
-    );
-
-    const analysisWithoutBase: PasswordAnalysisResult = {
-      kind: 'fictional-password-analysis',
-      findings: [
-        {
-          id: 'suffix-only',
-          kind: 'typical-suffix',
-          evidence: [{ type: 'span', start: 4, end: 8, token: '123!' }],
-          explanationId: 's05.typical-suffix',
-          confidence: 'bounded-heuristic',
-        },
-      ],
-      guessPath: {
-        engineId: 'zxcvbn-ts',
-        configurationVersion: 'test-only',
-        estimatedGuesses: 1,
-        estimatedGuessesLog10: 0,
-        matches: [],
-      },
-      disclaimerId: 'simulation-not-production-strength',
-    };
-    const personalView = createCanonicalPasswordView('Idee123!', analysisWithoutBase);
-    const baseBlockId = personalView.blocks.find(({ end }) => end === 4)?.id;
-    const personalFindings = createPersonalFindings(
-      personalView,
-      baseBlockId === undefined ? [] : [baseBlockId],
-    );
-    expect(
-      bindTypicalChangeFindings(personalView, personalFindings).every(
-        ({ binding }) => binding === 'blocks',
-      ),
-    ).toBe(true);
-    expect(bindTypicalChangeFindings(personalView, []).every(({ binding }) => binding === 'password')).toBe(
-      true,
+    expect(displayed.map(({ value }) => value)).toEqual([password]);
+    expect(displayed[0]?.labels.filter((label) => label.startsWith('typische Variante'))).toHaveLength(
+      1,
     );
   });
 
@@ -175,7 +162,7 @@ describe('S05 component strategy presentation', () => {
     const before = structuredClone(disposition);
 
     const view = createCanonicalPasswordView(password, analysis);
-    bindTypicalChangeFindings(view, createPersonalFindings(view, [view.blocks[0]?.id ?? '']));
+    projectCanonicalPasswordBlocks(view, view.automaticFindings['common-components'], true);
 
     expect(disposition).toEqual(before);
   });

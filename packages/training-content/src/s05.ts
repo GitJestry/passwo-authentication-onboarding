@@ -27,7 +27,7 @@ export interface S05DesignLabFixture {
   readonly startSection: 'intro' | 'components' | 'structure';
 }
 
-export const S05_CONTENT_VERSION = '2.24.0';
+export const S05_CONTENT_VERSION = '2.25.0';
 
 export const s05Content = {
   version: S05_CONTENT_VERSION,
@@ -37,10 +37,9 @@ export const s05Content = {
       12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34,
       35,
     ] as const,
-    revision:
-      'Userauftrag vom 2026-08-04 · Einheitliche Kategorienleiste und gestufte Erklärungen',
+    revision: 'Userauftrag vom 2026-08-04 · Varianten ohne redundante Kategorie',
     copyReference:
-      'docs/design/S00-S05-COPY-AUDIT.md#copy-delta-s05-einheitliche-kategorienleiste-und-gestufte-erklärungen-4-august-2026',
+      'docs/design/S00-S05-COPY-AUDIT.md#copy-delta-s05-varianten-ohne-redundante-kategorie-4-august-2026',
   },
   segment: {
     id: 'S05',
@@ -121,7 +120,6 @@ export const s05Content = {
       { id: 'common-components', title: 'Häufig verwendete Passwörter und Zeichenfolgen' },
       { id: 'personal-details', title: 'Persönliche Angaben' },
       { id: 'account-context', title: 'Bezug zum Konto und Umfeld' },
-      { id: 'typical-changes', title: 'Typische Veränderungen' },
     ] as const,
     statusLabels: {
       pending: 'noch nicht geprüft',
@@ -131,13 +129,9 @@ export const s05Content = {
     },
     moreFindings: '+ weitere',
     presentation: {
-      categoriesAriaLabel:
-        'Drei Arten von Passwortbestandteilen und die verbindende Prüfung typischer Veränderungen',
+      categoriesAriaLabel: 'Drei Arten von Passwortbestandteilen',
       canonicalAriaLabel: 'Stabile Bausteinansicht des fiktiven Passworts',
       blockLabel: 'Baustein',
-      changesAriaLabel: 'Gebundene typische Veränderungen',
-      boundToComponent: 'an den markierten Grundbestandteil gebunden',
-      boundToPassword: 'an die Zeichenfolge angehängt',
       findingChips: {
         commonPassword: 'häufig verwendetes Passwort',
         commonWord: 'häufig verwendetes Wort',
@@ -145,18 +139,8 @@ export const s05Content = {
         numberSequence: 'Zahlenfolge',
         nearbyYear: 'naheliegende Jahreszahl',
         personalComponent: 'persönliche Angabe',
-        replacement: '[Quelle] → [Ziel]',
-        replacementDescription: 'das Zeichen „[Quelle]“ durch „[Ziel]“ ersetzt',
-        changedCapitalization: 'veränderte Großschreibung',
-        changedCapitalizationDescription: 'die Großschreibung verändert',
-        genericChange: 'typische Zeichenveränderung',
-        genericChangeDescription: 'eine typische Zeichenveränderung erkannt',
-        appendedYear: 'Jahreszahl „[Wert]“ angehängt',
-        appendedYearDescription: 'die Jahreszahl „[Wert]“ angehängt',
-        appendedNumberSequence: 'Zahlenfolge „[Wert]“ angehängt',
-        appendedNumberSequenceDescription: 'die Zahlenfolge „[Wert]“ angehängt',
-        appendedSymbol: 'Symbol „[Wert]“ angehängt',
-        appendedSymbolDescription: 'das Symbol „[Wert]“ angehängt',
+        typicalVariant: 'typische Variante: [Details]',
+        typicalEnding: 'typische Endung: +[Wert]',
       },
     },
     commonComponents: {
@@ -266,45 +250,12 @@ export const s05Content = {
         boundary:
           'Solche Begriffe kann ein Angreifer aus dem Kontokontext ableiten und gezielt ausprobieren.',
       },
-      transition:
-        'Zum Schluss schauen wir, ob die gesamte Zeichenfolge typisch verändert wurde.',
-    },
-    typicalChanges: {
-      machine: {
-        conveyorBlocks: [
-          'passwort',
-          'Passwort1',
-          'p4sswort',
-          'campus2005',
-          'qwertz!',
-          'admin123',
-        ] as const,
-      },
-      explanation: [
-        'Viele Menschen verändern Bestandteile, damit das Passwort weniger vorhersehbar wirkt.',
-        'Dabei testen Angreifer auch typische Veränderungen, etwa Großschreibung, ersetzte Zeichen sowie angehängte Zahlen oder Symbole.',
-        'Eine solche Veränderung macht aus einem naheliegenden Bestandteil nicht automatisch eine völlig neue Idee.',
-        'Prüfen wir nun, ob solche Veränderungen in deinem Passwort vorkommen.',
-      ],
-      check: 'Veränderungen prüfen',
-      results: {
-        none: [
-          'Hier wurde keine der geprüften typischen Veränderungen erkannt.',
-          'Das entscheidet noch nicht über die gesamte Zeichenfolge.',
-        ],
-        found: 'In deinem Passwort wurden typische Veränderungen erkannt.',
-        dynamicPrefix: 'Dabei wurden',
-        dynamicSuffix: '.',
-        suffix: 'Solche Varianten werden von Angreifern häufig mitgeprüft.',
-        overflow: 'weitere typische Veränderung',
-        overflowDescription: 'eine weitere typische Veränderung zusammengefasst',
-      },
+      transition: 'Damit sind die drei Arten von Passwortbestandteilen geprüft.',
     },
     summary: {
       title: 'Häufig verwendete Passwörter und Zeichenfolgen',
       found:
         'Bei der Prüfung wurden früh geprüfte Bestandteile in [Kategorienamen] erkannt.',
-      foundChanges: 'Zusätzlich wurden typische Veränderungen erkannt.',
       foundBoundary:
         'Diese Hinweise können einem Angreifer Ausgangspunkte geben. Sie entscheiden aber noch nicht, wie aufwendig die gesamte Zeichenfolge zu erraten ist.',
       foundTransition:
@@ -626,8 +577,6 @@ export const s05Content = {
     ['s05-account-context-opening', 'component-conveyor', 'info'],
     ['s05-account-context-intro', 'component-conveyor', 'info'],
     ['s05-account-context-result', 'component-strategy', 'warning'],
-    ['s05-typical-changes-intro', 'component-strategy', 'info'],
-    ['s05-typical-changes-result', 'component-strategy', 'warning'],
     ['s05-components-summary', 'component-strategy', 'info'],
     ['s05-structure-theme', 'structure-theme', 'info'],
     ['s05-structure-sentence', 'structure-sentence', 'info'],

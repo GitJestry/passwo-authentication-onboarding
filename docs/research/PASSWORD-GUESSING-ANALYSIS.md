@@ -67,7 +67,7 @@ wird beim Verlassen des Segments verworfen.
 | Allgemeines Wörterbuch und Graphen | `@zxcvbn-ts/language-common@4.1.2` |
 | Deutsch | `@zxcvbn-ts/language-de@4.1.1` |
 | Englisch | `@zxcvbn-ts/language-en@4.1.1` |
-| Konfigurations-ID | `passwo-bounded-guess-path-v2` |
+| Konfigurations-ID | `passwo-bounded-guess-path-v3` |
 | Maximale analysierte Länge | HTML-Eingabelimit 128 UTF-16-Codeeinheiten; zxcvbn `maxLength=128`; Längenorientierung nach Unicode-Codepoints |
 | Levenshtein-Option | deaktiviert |
 | Authored S05-Kontext | `Campusgram`, `Campus`, `Nachrichten`, `Gruppen`, `Kontakte`, `Beiträge` |
@@ -115,9 +115,11 @@ Die optimale Sequenz wird in stabile PassWo-Kategorien projiziert:
 - typischer Zahlen- oder Symbolanhang.
 
 Zusätzliche deterministische Regeln ergänzen ausschließlich konkret belegte authored Konto-Treffer,
-Jahreszahlen und typische Endungen. Kategorien dürfen überlappen. Für die Darstellung werden
-Dubletten entfernt und Befunde priorisiert; die Guessing-Entscheidung bleibt unverändert der
-vollständigen zxcvbn-Sequenz überlassen.
+Jahreszahlen, typische Endungen und nummerierte Wiederholungen desselben Wortes mit mindestens
+drei aufeinanderfolgenden Markern. Eine typische Endung setzt Buchstaben im vorangehenden
+fiktiven Passwort voraus, aber keinen weiteren Komponentenbefund. Kategorien dürfen überlappen.
+Für die Darstellung werden Dubletten entfernt und Befunde priorisiert; die Guessing-Entscheidung
+bleibt unverändert der vollständigen zxcvbn-Sequenz überlassen.
 
 Ein authored Konto- oder Dienstbegriff darf in der Darstellung auch als veränderter Kontobezug
 erscheinen, wenn zxcvbn denselben Bereich sowohl dem lokalen `userInputs`-Wörterbuch als auch

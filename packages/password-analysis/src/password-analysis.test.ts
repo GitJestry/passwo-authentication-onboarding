@@ -292,7 +292,7 @@ function passwordAnalysisWithEstimatedGuesses(estimatedGuesses: number): Passwor
     ],
     guessPath: {
       engineId: 'zxcvbn-ts',
-      configurationVersion: 'passwo-bounded-guess-path-v2',
+      configurationVersion: 'passwo-bounded-guess-path-v3',
       estimatedGuesses,
       estimatedGuessesLog10: Math.log10(estimatedGuesses),
       matches: [],
@@ -302,6 +302,37 @@ function passwordAnalysisWithEstimatedGuesses(estimatedGuesses: number): Passwor
 }
 
 describe('local fictional password analysis', () => {
+  it('reports a bounded trailing variant even without another recognized component', () => {
+    const result = analyzeFictionalPassword({ fictionalPassword: 'Fantasiebegriff123!' });
+
+    expect(result.findings).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          kind: 'typical-suffix',
+          evidence: [
+            { type: 'span', start: 15, end: 19, token: '123!' },
+          ],
+        }),
+      ]),
+    );
+  });
+
+  it.each(['123!', '!!!', '123456'])('does not treat %s as a letter-based typical ending', (input) => {
+    const result = analyzeFictionalPassword({ fictionalPassword: input });
+
+    expect(result.findings.some(({ kind }) => kind === 'typical-suffix')).toBe(false);
+  });
+
+  it('recognizes a bounded numbered repetition as a predictable word sequence', () => {
+    const result = analyzeFictionalPassword({ fictionalPassword: 'wort1-wort2-wort3' });
+
+    expect(result.findings).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ kind: 'predictable-word-sequence' }),
+      ]),
+    );
+  });
+
   it.each([
     ['Passwort123!', [], ['common-password-core']],
     ['Campusgram2026', ['Campusgram'], ['account-or-service-term']],
@@ -319,7 +350,7 @@ describe('local fictional password analysis', () => {
       expect(expectedKinds.some((expectedKind) => actualKinds.includes(expectedKind))).toBe(true);
       expect(result.guessPath).toMatchObject({
         engineId: 'zxcvbn-ts',
-        configurationVersion: 'passwo-bounded-guess-path-v2',
+        configurationVersion: 'passwo-bounded-guess-path-v3',
       });
       expect(result.guessPath.estimatedGuesses).toBeGreaterThan(0);
       for (const finding of result.findings) {
@@ -387,7 +418,7 @@ describe('local fictional password analysis', () => {
       expect(disposition).toMatchObject({
         kind: expectedKind,
         quickPathThreshold: 100_000,
-        analysisVersion: 'passwo-bounded-guess-path-v2',
+        analysisVersion: 'passwo-bounded-guess-path-v3',
       });
       if (disposition.kind === 'quick-path-recognized') {
         expect(disposition.ruleId).toBe('bounded-complete-guess-path');
@@ -409,7 +440,7 @@ describe('local fictional password analysis', () => {
       kind: 'no-quick-path-recognized',
       quickPathThreshold: 100_000,
       lengthOrientation: 'below-15',
-      analysisVersion: 'passwo-bounded-guess-path-v2',
+      analysisVersion: 'passwo-bounded-guess-path-v3',
       explanationId: 's05.disposition.no-quick-path-recognized',
     });
     expect(disposition.estimatedGuesses).toBeGreaterThan(disposition.quickPathThreshold);

@@ -3,7 +3,7 @@ import { S05_CONTENT_VERSION, s05Content } from './s05.js';
 
 describe('S05 content traceability', () => {
   it('keeps the participant copy bounded and separate from internal terminology', () => {
-    expect(S05_CONTENT_VERSION).toBe('2.24.0');
+    expect(S05_CONTENT_VERSION).toBe('2.25.0');
     expect(s05Content.source).toMatchObject({
       document: 'research/private/training-script.pdf',
       internalPages: [
@@ -11,7 +11,7 @@ describe('S05 content traceability', () => {
         35,
       ],
       copyReference:
-        'docs/design/S00-S05-COPY-AUDIT.md#copy-delta-s05-einheitliche-kategorienleiste-und-gestufte-erklärungen-4-august-2026',
+        'docs/design/S00-S05-COPY-AUDIT.md#copy-delta-s05-varianten-ohne-redundante-kategorie-4-august-2026',
     });
     expect(s05Content.segment.id).toBe('S05');
     expect(s05Content.page.fixtureNotice).toBe(
@@ -34,7 +34,6 @@ describe('S05 content traceability', () => {
       'Häufig verwendete Passwörter und Zeichenfolgen',
       'Persönliche Angaben',
       'Bezug zum Konto und Umfeld',
-      'Typische Veränderungen',
     ]);
     expect(s05Content.componentStrategy.title).toBe(
       'Häufig verwendete Passwörter und Zeichenfolgen',
@@ -54,6 +53,8 @@ describe('S05 content traceability', () => {
       keyboardSequence: 'Tastaturfolge',
       numberSequence: 'Zahlenfolge',
       nearbyYear: 'naheliegende Jahreszahl',
+      typicalVariant: 'typische Variante: [Details]',
+      typicalEnding: 'typische Endung: +[Wert]',
     });
     expect(s05Content.findingLabels).toMatchObject({
       'common-password-core': 'häufig verwendetes Passwort',
@@ -113,7 +114,7 @@ describe('S05 content traceability', () => {
       'Prüfen wir deswegen nun dein Passwort auf einen möglichen Bezug zum Konto und Umfeld.',
     ]);
     expect(s05Content.componentStrategy.accountContext.transition).toBe(
-      'Zum Schluss schauen wir, ob die gesamte Zeichenfolge typisch verändert wurde.',
+      'Damit sind die drei Arten von Passwortbestandteilen geprüft.',
     );
     expect(s05Content.componentStrategy.accountContext.results).toMatchObject({
       foundOne:
@@ -130,7 +131,9 @@ describe('S05 content traceability', () => {
     );
     expect(s05Content.animations.map(([id]) => id)).not.toContain('s05-strategy-overview');
     expect(s05Content.componentStrategy.accountContext.check).toBe('Im Passwort prüfen');
-    expect(s05Content.componentStrategy.typicalChanges.check).toBe('Veränderungen prüfen');
+    expect(s05Content.animations.map(([id]) => id).some((id) => id.includes('typical-changes'))).toBe(
+      false,
+    );
     expect(s05Content.componentStrategy.summary.continue).toBe('Weiter zum Aufbau');
     expect(s05Content.fixtures.find(({ id }) => id === 'all-categories')).toMatchObject({
       fictionalPassword: 'CampusgramPassw0rt123!',
