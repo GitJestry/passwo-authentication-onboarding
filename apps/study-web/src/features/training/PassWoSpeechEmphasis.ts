@@ -99,18 +99,7 @@ const emphasisBySpeechId: Readonly<Record<string, readonly PassWoSpeechEmphasis[
       symbolSrc: accountContextAsset,
     },
   ],
-  's05-components-summary': [
-    {
-      phrase: 'häufig verwendeten Passwörter und Zeichenfolgen',
-      tone: 'accent',
-      contrastId: 'recognized-component-categories',
-    },
-    {
-      phrase: 'persönliche Angaben',
-      tone: 'accent',
-      contrastId: 'recognized-component-categories',
-    },
-  ],
+  's05-components-summary': [],
 };
 
 export function passWoSpeechEmphasisFor(

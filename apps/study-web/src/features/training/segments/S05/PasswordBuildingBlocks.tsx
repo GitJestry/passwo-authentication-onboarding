@@ -83,6 +83,8 @@ export function PasswordBuildingBlocks({
                 <b
                   className={styles.blockValue}
                   data-joining={joiningSegments.length > 1 || undefined}
+                  data-block-value
+                  data-obscured={'•'.repeat([...part].length)}
                 >
                   {joiningSegments.length === 1
                     ? part

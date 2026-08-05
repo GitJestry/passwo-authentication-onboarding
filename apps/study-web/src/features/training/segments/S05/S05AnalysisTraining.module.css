@@ -52,9 +52,10 @@
 }
 
 .pageHeader[data-category-chain="true"] {
+  display: contents;
   grid-template-columns: minmax(0, 1fr);
-  height: 5.75rem;
-  min-height: 5.75rem;
+  height: 5.25rem;
+  min-height: 5.25rem;
   box-sizing: border-box;
   align-items: center;
   gap: 0;
@@ -62,7 +63,7 @@
   overflow: visible;
   padding-bottom: 0;
   border-bottom: 0;
-  background: var(--color-surface-analysis);
+  background: transparent;
   box-shadow: none;
   text-align: left;
 }
@@ -629,6 +630,139 @@
 
 .buildingBlocksVisual > div {
   justify-content: center;
+}
+
+.strategyCandidateScene {
+  overflow: hidden;
+}
+
+.strategyTargetingSource {
+  position: absolute;
+  z-index: 3;
+  top: 50%;
+  left: 50%;
+  width: min(100%, 52rem);
+  transform: translate(-50%, -50%);
+  animation: strategy-source-collapse 720ms var(--motion-ease-out) 1.28s both;
+}
+
+.strategyTargetingSource [data-block-value] {
+  position: relative;
+  color: var(--building-block-ink);
+  animation: strategy-block-redaction 160ms linear both;
+  animation-delay: calc(440ms + var(--block-index) * 90ms);
+}
+
+.strategyTargetingSource [data-block-value]::after {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  color: var(--building-block-ink);
+  content: attr(data-obscured);
+  opacity: 0;
+  animation: strategy-bullet-arrival 160ms linear both;
+  animation-delay: calc(440ms + var(--block-index) * 90ms);
+}
+
+.strategyTargetingPassword,
+.strategyTargetingAttacker,
+.strategyCandidateScene .attackerConnection {
+  opacity: 0;
+  animation: strategy-attacker-scene-arrival 520ms var(--motion-ease-out) 1.34s both;
+}
+
+.strategyCandidateAttempts {
+  position: absolute;
+  z-index: 2;
+  top: 45%;
+  right: 0;
+  left: 0;
+  height: 3rem;
+}
+
+.strategyCandidateAttempt {
+  position: absolute;
+  right: 0;
+  left: 0;
+  display: flex;
+  gap: clamp(0.16rem, 0.55vw, var(--space-2));
+  justify-content: center;
+  opacity: 0;
+  animation: strategy-candidate-cycle 6.5s var(--motion-ease-out) infinite both;
+}
+
+.strategyCandidateAttempt:nth-child(1) {
+  animation-delay: 1.62s;
+}
+
+.strategyCandidateAttempt:nth-child(2) {
+  animation-delay: 2.92s;
+}
+
+.strategyCandidateAttempt:nth-child(3) {
+  animation-delay: 4.22s;
+}
+
+.strategyCandidateAttempt:nth-child(4) {
+  animation-delay: 5.52s;
+}
+
+.strategyCandidateAttempt:nth-child(5) {
+  animation-delay: 6.82s;
+}
+
+.strategyCandidateBlock {
+  display: grid;
+  min-width: clamp(1.7rem, 3.8vw, 2.65rem);
+  min-height: clamp(1.55rem, 3.2vw, 2.15rem);
+  place-items: center;
+  padding: 0.15rem clamp(0.14rem, 0.45vw, var(--space-2));
+  border: var(--border-width-medium) solid var(--building-block-border);
+  border-radius: 0.3rem;
+  color: var(--building-block-ink);
+  background: var(--building-block-surface);
+  box-shadow: 0 0.5rem 1rem color-mix(in srgb, var(--building-block-border) 20%, transparent);
+  font-family: ui-monospace, monospace;
+  font-size: clamp(0.65rem, 1.2vw, 0.9rem);
+  font-weight: var(--font-weight-heavy);
+  letter-spacing: 0.08em;
+}
+
+.strategyCandidateBlock[data-origin="0"] {
+  --building-block-border: #55b6ac;
+  --building-block-ink: #d8fff9;
+  --building-block-surface: #123d40;
+}
+
+.strategyCandidateBlock[data-origin="1"] {
+  --building-block-border: #7aa7e5;
+  --building-block-ink: #e3efff;
+  --building-block-surface: #173456;
+}
+
+.strategyCandidateBlock[data-origin="2"] {
+  --building-block-border: #b68cde;
+  --building-block-ink: #f2e7ff;
+  --building-block-surface: #432661;
+}
+
+.strategyCandidateBlock[data-origin="3"] {
+  --building-block-border: #e29b73;
+  --building-block-ink: #fff0e8;
+  --building-block-surface: #61341f;
+}
+
+.strategyCandidateBlock[data-origin="4"] {
+  --building-block-border: #d8bc67;
+  --building-block-ink: #fff7d9;
+  --building-block-surface: #554514;
+}
+
+.strategyCandidateBlock[data-origin="5"] {
+  --building-block-border: #e27a98;
+  --building-block-ink: #ffe8f0;
+  --building-block-surface: #5a1f34;
 }
 
 .strategyFocus h2 {
@@ -1236,6 +1370,7 @@
   font-size: clamp(1.55rem, 2.3vw, 2.35rem);
   font-weight: var(--font-weight-heavy);
   line-height: var(--line-height-tight);
+  transform: translateY(0.55rem);
 }
 
 .componentMachineWorkspace {
@@ -1245,14 +1380,14 @@
   min-width: 0;
   place-items: center;
   margin: 0 auto;
-  transform: translateY(-3rem);
+  transform: translateY(-4rem);
 }
 
 .componentReviewCard {
   position: absolute;
   z-index: 3;
-  top: 50%;
-  right: 0;
+  top: 25%;
+  left: 0;
   display: grid;
   width: clamp(14.5rem, 19vw, 18rem);
   min-height: 19rem;
@@ -1462,7 +1597,7 @@
   margin: 0 auto;
   padding: 0;
   overflow: visible;
-  transform: translateY(-5%);
+  transform: translateY(-10%);
 }
 
 .categoryTransition {
@@ -1904,6 +2039,72 @@
   }
 }
 
+@keyframes strategy-block-redaction {
+  from {
+    color: var(--building-block-ink);
+  }
+
+  to {
+    color: transparent;
+  }
+}
+
+@keyframes strategy-bullet-arrival {
+  from {
+    opacity: 0;
+    transform: scale(0.72);
+  }
+
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes strategy-source-collapse {
+  from {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+  }
+
+  to {
+    opacity: 0;
+    transform: translate(-50%, -10%) scale(0.42);
+  }
+}
+
+@keyframes strategy-attacker-scene-arrival {
+  from {
+    opacity: 0;
+    filter: blur(0.45rem);
+  }
+
+  to {
+    opacity: 1;
+    filter: blur(0);
+  }
+}
+
+@keyframes strategy-candidate-cycle {
+  0%,
+  6% {
+    opacity: 0;
+    transform: translateY(-1.2rem) scale(1.45);
+  }
+
+  15%,
+  28% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+
+  40%,
+  100% {
+    opacity: 0;
+    transform: translateY(0.9rem) scale(0.84);
+  }
+}
+
 @media (max-width: 760px) {
   .pageHeader,
   .controls {
@@ -1917,8 +2118,8 @@
   }
 
   .pageHeader[data-category-chain="true"] {
-    height: 5.75rem;
-    min-height: 5.75rem;
+    height: 5.25rem;
+    min-height: 5.25rem;
     grid-template-columns: minmax(0, 1fr);
   }
 
@@ -2073,13 +2274,31 @@
   .machineOutputViewport,
   .machineOutputStream,
   .machineOutput[data-emphasized="true"],
-  .categoryTransition {
+  .categoryTransition,
+  .strategyTargetingSource,
+  .strategyTargetingSource [data-block-value],
+  .strategyTargetingSource [data-block-value]::after,
+  .strategyTargetingPassword,
+  .strategyTargetingAttacker,
+  .strategyCandidateScene .attackerConnection,
+  .strategyCandidateAttempt {
     animation: none;
   }
 
   .categoryTransition {
     opacity: 0;
     visibility: hidden;
+  }
+
+  .strategyTargetingSource {
+    display: none;
+  }
+
+  .strategyTargetingPassword,
+  .strategyTargetingAttacker,
+  .strategyCandidateScene .attackerConnection,
+  .strategyCandidateAttempt {
+    opacity: 1;
   }
 
   .machineConveyor code {

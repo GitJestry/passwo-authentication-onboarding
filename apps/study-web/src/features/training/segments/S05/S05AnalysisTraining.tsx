@@ -181,7 +181,68 @@ function BuildingBlocksScene() {
   );
 }
 
-function StrategyTargetingScene() {
+const strategyCandidateOrders = [
+  [0, 3],
+  [4, 1, 5],
+  [2, 5, 3, 0],
+  [3, 0, 1, 5, 4],
+  [2, 5, 1],
+] as const satisfies readonly (readonly number[])[];
+
+function StrategyTargetingScene({ subject }: { readonly subject: S05AnalysisSubject }) {
+  const parts = s05Content.intro.memorablePasswordParts;
+  return (
+    <div
+      className={`${styles.attackerStage} ${styles.strategyCandidateScene}`}
+      data-s05-target="strategy-targeting"
+      data-s05-speech-obstacle
+      role="img"
+      aria-label="Die sichtbaren Passwortbausteine werden verdeckt und als unterschiedliche Kandidaten kombiniert."
+    >
+      <div className={styles.strategyTargetingSource} aria-hidden="true">
+        <PasswordBuildingBlocks
+          value={s05Content.intro.memorablePassword}
+          parts={parts}
+          display="decomposed"
+          animate={false}
+          ariaLabel=""
+        />
+      </div>
+      <CampusgramPassword
+        password={subject.fictionalPassword}
+        className={styles.strategyTargetingPassword ?? ''}
+      />
+      <div className={styles.strategyCandidateAttempts} aria-hidden="true">
+        {strategyCandidateOrders.map((order, rowIndex) => (
+          <div className={styles.strategyCandidateAttempt} key={rowIndex}>
+            {order.map((partIndex) => {
+              const part = parts[partIndex] ?? '';
+              return (
+                <span
+                  className={styles.strategyCandidateBlock}
+                  data-origin={partIndex}
+                  key={`${rowIndex}-${partIndex}`}
+                >
+                  {'•'.repeat([...part].length)}
+                </span>
+              );
+            })}
+          </div>
+        ))}
+      </div>
+      <div className={styles.attackerConnection} aria-hidden="true">
+        <span />
+      </div>
+      <img
+        className={`${styles.attackerPortrait} ${styles.strategyTargetingAttacker}`}
+        src={attackerAsset}
+        alt=""
+      />
+    </div>
+  );
+}
+
+function StructureIntroScene() {
   return (
     <div className={styles.strategyTargeting} data-s05-target="strategy-targeting">
       <div className={styles.buildingBlocksVisual} data-s05-speech-obstacle>
@@ -1087,7 +1148,7 @@ function renderScene(
     case 'building-blocks':
       return <BuildingBlocksScene />;
     case 'strategy-targeting':
-      return <StrategyTargetingScene />;
+      return <StrategyTargetingScene subject={subject} />;
     case 'component-category-overview':
       return <ComponentStartScene subject={subject} />;
     case 'common-components-start':
@@ -1136,7 +1197,7 @@ function renderScene(
         </ComponentMachineScene>
       );
     case 'structure-intro':
-      return <StrategyTargetingScene />;
+      return <StructureIntroScene />;
     case 'structure-theme':
     case 'structure-sentence':
     case 'structure-repetition':

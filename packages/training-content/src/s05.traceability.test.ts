@@ -3,7 +3,7 @@ import { S05_CONTENT_VERSION, s05Content } from './s05.js';
 
 describe('S05 content traceability', () => {
   it('keeps the participant copy bounded and separate from internal terminology', () => {
-    expect(S05_CONTENT_VERSION).toBe('2.29.0');
+    expect(S05_CONTENT_VERSION).toBe('2.30.0');
     expect(s05Content.source).toMatchObject({
       document: 'research/private/training-script.pdf',
       internalPages: [
@@ -11,7 +11,7 @@ describe('S05 content traceability', () => {
         35,
       ],
       copyReference:
-        'docs/design/S00-S05-COPY-AUDIT.md#copy-delta-s05-kontextidentifikatoren-und-zweite-prüfungskarte-5-august-2026',
+        'docs/design/S00-S05-COPY-AUDIT.md#copy-delta-s05-kartenposition-titel-und-kontextcopy-5-august-2026',
     });
     expect(s05Content.segment.id).toBe('S05');
     expect(s05Content.page.fixtureNotice).toBe(
@@ -45,7 +45,7 @@ describe('S05 content traceability', () => {
       'Dazu gehören häufig verwendete Passwörter und Wörter, einfache Tastatur- und Zahlenfolgen wie „123456“ oder „qwertz“ oder naheliegende Jahreszahlen.',
     );
     expect(s05Content.componentStrategy.commonComponents.explanation[2]).toBe(
-      'Das Programm testet vermutete Bestandteile nicht nur unverändert. Es erzeugt auch typische Varianten, etwa durch veränderte Groß- und Kleinschreibung, Zeichenersetzungen sowie ergänzte Zahlen oder Symbole. Das kann es sowohl auf einzelne Bestandteile als auch auf bereits zusammengesetzte Passwortkandidaten anwenden',
+      'Viele Menschen verändern Wörter oder andere Bestandteile, damit ihr Passwort stärker wirkt. Das Programm des Angreifers erzeugt deshalb typische Varianten, etwa mit Großschreibung, Zeichenersetzungen oder zusätzlichen Zahlen und Symbolen. Solche Veränderungen wendet es auch auf bereits zusammengesetzte Passwortkandidaten an.',
     );
     expect(s05Content.componentStrategy.presentation.findingChips).toMatchObject({
       commonPassword: 'häufig verwendetes Passwort',
@@ -76,10 +76,10 @@ describe('S05 content traceability', () => {
       'Persönliche Angaben können leicht zu merken sein und wirken oft geheim, weil sie für dich eine besondere Bedeutung haben.',
     ]);
     expect(s05Content.componentStrategy.personalDetails.derivation).toEqual([
-      'Bei gezielten Angriffen können Namen, Geburtstage, Vereine oder andere persönliche Angaben aber manchmal aus öffentlichen Profilen, früheren Datenlecks oder dem Umfeld ableitbar sein.',
+      'Kann der Angreifer die Passwortdaten einer bestimmten Person zuordnen, kann er auch persönliche Angaben in seine Versuche einbeziehen. Namen, Geburtstage, Vereine oder ähnliche Informationen lassen sich manchmal aus öffentlichen Profilen, früheren Datenlecks oder dem Umfeld ableiten.',
     ]);
     expect(s05Content.componentStrategy.personalDetails.explanation).toEqual([
-      'Ein Angreifer könnte es wissen, aber dieses Trainingsmodul kann das nicht zuverlässig bestimmen. Bitte wähle deine persönlichen Angaben manuell aus.',
+      'Ein Angreifer könnte einige dieser Angaben kennen oder ableiten. Das Trainingsmodul kann jedoch nicht zuverlässig bestimmen, welche davon auf dich zutreffen. Bitte wähle deshalb selbst die persönlichen Angaben aus.',
     ]);
     expect(s05Content.componentStrategy.personalDetails.begin).toBe(
       'Persönliche Angaben markieren',

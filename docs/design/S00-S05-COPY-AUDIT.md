@@ -921,3 +921,19 @@ dieser kompakten Zusammenfassung kleinere Innenabstände und eine Höhe nahe der
 drei Aufbaukarten sammeln sich fortlaufend in `Prüfungskarte 2`; in ihrer Mitte wird keine
 Passwortmaschine gerendert. Die bisherige sichtbare vierte Demonstration `Passwortkontext`
 entfällt aus dieser Sequenz, die begrenzte lokale Kontextanalyse bleibt jedoch erhalten.
+
+### Copy-Delta S05 Kartenposition, Titel und Kontextcopy 5. August 2026
+
+Quelle ist der ausdrückliche Nutzerauftrag vom 5. August 2026. Die drei lokalen Prüfungen,
+Analysegrenzen, flüchtigen Auswahlzustände und Hervorhebungsgrenzen bleiben unverändert.
+`S05_CONTENT_VERSION` wird von `2.29.0` auf `2.30.0` erhöht.
+
+| Segment und Text-ID | Vorher | Nachher | Primäre Rolle | Grund und Bedeutungsänderung | Interaktionsziel / Hervorhebung |
+|---|---|---|---|---|---|
+| `S05.componentStrategy.commonComponents.explanation[2]` | Erklärung zu unveränderten Bestandteilen und typischen Varianten | vorgegebene Erklärung zur Wirkung typischer Varianten, einschließlich Großschreibung, Zeichenersetzungen sowie zusätzlicher Zahlen und Symbole | Mechanismuserklärung | formuliert den Angreifer als handelndes Programm und bindet die Varianten ausdrücklich an zusammengesetzte Passwortkandidaten | `typische Varianten` bleibt mit der bestehenden Varianten-Markierung hervorgehoben |
+| `S05.componentStrategy.personalDetails.derivation` | allgemeine Ableitbarkeit persönlicher Angaben | vorgegebene Erklärung zur Zuordnung einer Person und zur anschließenden Ableitung aus öffentlichen Profilen, Datenlecks oder dem Umfeld | Mechanismuserklärung | macht den möglichen Zuordnungsschritt explizit, ohne eine konkrete Ableitung für die teilnehmende Person zu behaupten | keine zusätzliche Hervorhebung |
+| `S05.componentStrategy.personalDetails.explanation` | unbestimmtes mögliches Angreiferwissen und manuelle Auswahl | vorgegebene Erklärung zur Unsicherheit des Trainingsmoduls mit eigener Auswahl durch die teilnehmende Person | Safety Boundary / Navigation | trennt mögliche Kenntnis oder Ableitung von der begrenzten lokalen Einordnung | keine zusätzliche Hervorhebung |
+| S05-Kategorieüberschrift und Maschinenposition | Titel zentriert in einer eigenen dunklen Kopfleiste; Maschine in ihrer bisherigen Position | Titel geringfügig tiefer ohne eigene Kopfleiste; Maschine um weitere 5 % höher | Orientierung | entfernt die überlagernde Leiste über der Prüfungskarte und gleicht die visuelle Gewichtung zwischen Titel und Maschinenansicht aus | keine neue Analyseentscheidung |
+| `S05.componentStrategy.presentation.reviewCardTitle`-Ansicht | Prüfungskarte am rechten Rand auf halber Höhe | Prüfungskarte am linken Rand bei 75 % Abstand zur unteren Kante | Orientierung | spiegelt die bestehende Randdistanz horizontal und verschiebt die Karte an die ausdrücklich gewünschte obere Position | bestehende Karteninhalte und Befunde bleiben unverändert |
+| `S05.intro.narration.strategyTargeting`-Ansicht | annotierte Darstellung des Beispielpassworts mit Satzaufbau | die bekannten Bausteine werden nacheinander mit Punkten verdeckt, verkleinert und als farbstabile Kandidatenversuche unterschiedlicher Länge und Reihenfolge zwischen Campusgram-Passwort und Angreifer gezeigt | Mechanismuserklärung | verbindet die Bausteinansicht mit der folgenden Kandidatenbildung, ohne Bestandteile des fiktiven Passworts offenzulegen | keine neue Analyseentscheidung; `prefers-reduced-motion` zeigt unmittelbar die Kandidatenansicht |
+| `s05-components-summary` | Kategoriebegriffe im Satz `Erkannt wurden Bestandteile aus ...` hervorgehoben | Kategoriebegriffe bleiben unmarkiert | Ergebnisfeedback | reduziert die konkurrierende zweite Leseschicht in der abschließenden Auswertung | keine Hervorhebung im Auswertungssatz |

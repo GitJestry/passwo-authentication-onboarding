@@ -27,7 +27,7 @@ export interface S05DesignLabFixture {
   readonly startSection: 'intro' | 'components' | 'structure';
 }
 
-export const S05_CONTENT_VERSION = '2.29.0';
+export const S05_CONTENT_VERSION = '2.30.0';
 
 export const s05Content = {
   version: S05_CONTENT_VERSION,
@@ -38,9 +38,9 @@ export const s05Content = {
       35,
     ] as const,
     revision:
-      'Userauftrag vom 2026-08-05 · Kontextidentifikatoren, kompakte Prüfungskarten und Aufbauübergang',
+      'Userauftrag vom 2026-08-05 · Prüfungskartenposition, S05-Titel und Varianten-/Kontextcopy',
     copyReference:
-      'docs/design/S00-S05-COPY-AUDIT.md#copy-delta-s05-kontextidentifikatoren-und-zweite-prüfungskarte-5-august-2026',
+      'docs/design/S00-S05-COPY-AUDIT.md#copy-delta-s05-kartenposition-titel-und-kontextcopy-5-august-2026',
   },
   segment: {
     id: 'S05',
@@ -149,7 +149,7 @@ export const s05Content = {
       explanation: [
         'Dazu gehören häufig verwendete Passwörter und Wörter, einfache Tastatur- und Zahlenfolgen wie „123456“ oder „qwertz“ oder naheliegende Jahreszahlen.',
         'Ein Wort ist nicht grundsätzlich ungeeignet. Ein häufig verwendetes Wort wird jedoch früh getestet.',
-        'Das Programm testet vermutete Bestandteile nicht nur unverändert. Es erzeugt auch typische Varianten, etwa durch veränderte Groß- und Kleinschreibung, Zeichenersetzungen sowie ergänzte Zahlen oder Symbole. Das kann es sowohl auf einzelne Bestandteile als auch auf bereits zusammengesetzte Passwortkandidaten anwenden',
+        'Viele Menschen verändern Wörter oder andere Bestandteile, damit ihr Passwort stärker wirkt. Das Programm des Angreifers erzeugt deshalb typische Varianten, etwa mit Großschreibung, Zeichenersetzungen oder zusätzlichen Zahlen und Symbolen. Solche Veränderungen wendet es auch auf bereits zusammengesetzte Passwortkandidaten an.',
         'Prüfen wir nun dein gewähltes Passwort auf häufig verwendete Passwörter und Zeichenfolgen.',
       ],
       machine: {
@@ -192,10 +192,10 @@ export const s05Content = {
         'Persönliche Angaben können leicht zu merken sein und wirken oft geheim, weil sie für dich eine besondere Bedeutung haben.',
       ],
       derivation: [
-        'Bei gezielten Angriffen können Namen, Geburtstage, Vereine oder andere persönliche Angaben aber manchmal aus öffentlichen Profilen, früheren Datenlecks oder dem Umfeld ableitbar sein.',
+        'Kann der Angreifer die Passwortdaten einer bestimmten Person zuordnen, kann er auch persönliche Angaben in seine Versuche einbeziehen. Namen, Geburtstage, Vereine oder ähnliche Informationen lassen sich manchmal aus öffentlichen Profilen, früheren Datenlecks oder dem Umfeld ableiten.',
       ],
       explanation: [
-        'Ein Angreifer könnte es wissen, aber dieses Trainingsmodul kann das nicht zuverlässig bestimmen. Bitte wähle deine persönlichen Angaben manuell aus.',
+        'Ein Angreifer könnte einige dieser Angaben kennen oder ableiten. Das Trainingsmodul kann jedoch nicht zuverlässig bestimmen, welche davon auf dich zutreffen. Bitte wähle deshalb selbst die persönlichen Angaben aus.',
       ],
       machine: {
         conveyorBlocks: [
