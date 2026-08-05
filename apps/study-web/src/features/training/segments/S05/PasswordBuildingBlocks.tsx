@@ -5,7 +5,8 @@ export interface PasswordBuildingBlocksProps {
   readonly value: string;
   readonly parts: readonly string[];
   readonly display: 'assembled' | 'separated' | 'decomposed';
-  readonly labels?: readonly string[];
+  readonly labels?: readonly (string | readonly string[])[];
+  readonly segmentGroups?: readonly (readonly string[])[];
   readonly ariaLabel: string;
   readonly animate?: boolean;
   readonly appearance?: 'authored' | 'candidate' | 'analysis';
@@ -24,6 +25,11 @@ export interface PasswordBuildingBlocksProps {
   };
 }
 
+function normalizeLabels(label: string | readonly string[] | undefined): readonly string[] {
+  if (label === undefined || label === '') return [];
+  return typeof label === 'string' ? [label] : label;
+}
+
 /**
  * Shared S05 representation for authored examples and the local canonical password view.
  * Optional selection only reports a block index; persistence and interpretation stay outside UI.
@@ -33,6 +39,7 @@ export function PasswordBuildingBlocks({
   parts,
   display,
   labels,
+  segmentGroups,
   ariaLabel,
   animate = true,
   appearance = 'authored',
@@ -69,9 +76,25 @@ export function PasswordBuildingBlocks({
           )}
           {parts.map((part, index) => {
             const selected = selection?.selectedIndices.includes(index) ?? false;
+            const partLabels = normalizeLabels(labels?.[index]);
+            const joiningSegments = segmentGroups?.[index] ?? [part];
             const content = (
               <>
-                <b className={styles.blockValue}>{part}</b>
+                <b
+                  className={styles.blockValue}
+                  data-joining={joiningSegments.length > 1 || undefined}
+                >
+                  {joiningSegments.length === 1
+                    ? part
+                    : joiningSegments.map((segment, segmentIndex) => (
+                        <span
+                          className={styles.joiningSegment}
+                          key={`${segment}-${segmentIndex}`}
+                        >
+                          {segment}
+                        </span>
+                      ))}
+                </b>
                 {selection === undefined ? null : (
                   <input
                     type="checkbox"
@@ -80,8 +103,12 @@ export function PasswordBuildingBlocks({
                     onChange={() => selection.onToggle(index)}
                   />
                 )}
-                {labels?.[index] === undefined || labels[index] === '' ? null : (
-                  <small className={styles.blockLabel}>{labels[index]}</small>
+                {partLabels.length === 0 ? null : (
+                  <small className={styles.blockLabel}>
+                    {partLabels.map((label) => (
+                      <span key={label}>{label}</span>
+                    ))}
+                  </small>
                 )}
                 {annotations === undefined || index !== 3 ? null : (
                   <small className={styles.probability}>{annotations.probability}</small>
@@ -129,7 +156,13 @@ export function PasswordBuildingBlocks({
           }
         >
           <code>{part}</code>
-          {labels?.[index] === undefined ? null : <small>{labels[index]}</small>}
+          {normalizeLabels(labels?.[index]).length === 0 ? null : (
+            <small>
+              {normalizeLabels(labels?.[index]).map((label) => (
+                <span key={label}>{label}</span>
+              ))}
+            </small>
+          )}
         </span>
       ))}
     </div>

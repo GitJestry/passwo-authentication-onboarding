@@ -3,7 +3,7 @@ import { S05_CONTENT_VERSION, s05Content } from './s05.js';
 
 describe('S05 content traceability', () => {
   it('keeps the participant copy bounded and separate from internal terminology', () => {
-    expect(S05_CONTENT_VERSION).toBe('2.25.0');
+    expect(S05_CONTENT_VERSION).toBe('2.29.0');
     expect(s05Content.source).toMatchObject({
       document: 'research/private/training-script.pdf',
       internalPages: [
@@ -11,7 +11,7 @@ describe('S05 content traceability', () => {
         35,
       ],
       copyReference:
-        'docs/design/S00-S05-COPY-AUDIT.md#copy-delta-s05-varianten-ohne-redundante-kategorie-4-august-2026',
+        'docs/design/S00-S05-COPY-AUDIT.md#copy-delta-s05-kontextidentifikatoren-und-zweite-prüfungskarte-5-august-2026',
     });
     expect(s05Content.segment.id).toBe('S05');
     expect(s05Content.page.fixtureNotice).toBe(
@@ -33,19 +33,19 @@ describe('S05 content traceability', () => {
     expect(s05Content.componentStrategy.categories.map(({ title }) => title)).toEqual([
       'Häufig verwendete Passwörter und Zeichenfolgen',
       'Persönliche Angaben',
-      'Bezug zum Konto und Umfeld',
+      'Bezug zum Konto, Dienst oder Umfeld',
     ]);
     expect(s05Content.componentStrategy.title).toBe(
       'Häufig verwendete Passwörter und Zeichenfolgen',
     );
     expect(s05Content.intro.narration.componentCategoryOverview).toEqual([
-      'Als ersten Ausgangspunkt nutzt er, dass manche Passwörter und Zeichenfolgen besonders häufig verwendet werden.',
+      'Dabei beginnt er mit Passwörtern und Zeichenfolgen, die besonders häufig verwendet werden.',
     ]);
     expect(s05Content.componentStrategy.commonComponents.explanation[0]).toBe(
       'Dazu gehören häufig verwendete Passwörter und Wörter, einfache Tastatur- und Zahlenfolgen wie „123456“ oder „qwertz“ oder naheliegende Jahreszahlen.',
     );
     expect(s05Content.componentStrategy.commonComponents.explanation[2]).toBe(
-      'Dabei testet der Angreifer nicht nur die ursprüngliche Schreibweise. Er rechnet auch mit typischen Veränderungen, etwa Großschreibung, Zeichenersetzungen sowie ergänzte Zahlen oder Symbole.\n\nUnd das sowohl bei einzelnen Bestandteilen als auch bei bereits zusammengesetzten Passwortkandidaten.',
+      'Das Programm testet vermutete Bestandteile nicht nur unverändert. Es erzeugt auch typische Varianten, etwa durch veränderte Groß- und Kleinschreibung, Zeichenersetzungen sowie ergänzte Zahlen oder Symbole. Das kann es sowohl auf einzelne Bestandteile als auch auf bereits zusammengesetzte Passwortkandidaten anwenden',
     );
     expect(s05Content.componentStrategy.presentation.findingChips).toMatchObject({
       commonPassword: 'häufig verwendetes Passwort',
@@ -62,14 +62,16 @@ describe('S05 content traceability', () => {
       'keyboard-pattern': 'Tastaturfolge',
       year: 'naheliegende Jahreszahl',
       'simple-character-sequence': 'Zahlenfolge',
+      'typical-transformation': 'typische Variante',
     });
     expect(s05Content.componentStrategy.commonComponents.check).toBe('Passwort prüfen');
     expect(s05Content.componentStrategy.commonComponents.machine.conveyorBlocks).toContain(
       'passwort',
     );
     expect(s05Content.componentStrategy.commonComponents.machine.generatorLabel).toBe(
-      'Typische Veränderungen generieren',
+      'Typische Varianten generieren',
     );
+    expect(s05Content.componentStrategy.presentation.reviewCardTitle).toBe('Prüfungskarte 1');
     expect(s05Content.componentStrategy.personalDetails.opening).toEqual([
       'Persönliche Angaben können leicht zu merken sein und wirken oft geheim, weil sie für dich eine besondere Bedeutung haben.',
     ]);
@@ -90,7 +92,10 @@ describe('S05 content traceability', () => {
     );
     expect(s05Content.componentStrategy.personalDetails.results).toMatchObject({
       selected: 'Du hast [Angaben] als persönliche Angabe eingeordnet.',
-      boundary: 'Für den Angreifer ist das auch hier erst nur ein Ausgangspunkt.',
+      completeSingleCandidate:
+        'In dieser Prüfung konnte die gesamte Zeichenfolge als ein Kandidat erkannt werden.',
+      completeMultipleCandidates:
+        'In dieser Prüfung konnten alle Bestandteile des Passworts erkannt werden. Sie bilden jedoch mehrere Kandidaten.',
     });
     expect(s05Content.componentStrategy.personalDetails.machine.conveyorBlocks).toContain('Name');
     expect(s05Content.componentStrategy.personalDetails.machine.conveyorBlocks).toContain(
@@ -106,12 +111,12 @@ describe('S05 content traceability', () => {
       'campusgram',
     );
     expect(s05Content.componentStrategy.accountContext.opening).toEqual([
-      'Der Bezug zum Konto und Umfeld kann dem Angreifer Ideen für dein Passwort liefern.',
-      'Bei Campusgram wären zum Beispiel Begriffe wie Campus, Nachricht, Gruppe oder der Dienstname naheliegend.',
+      'Der Bezug zum Konto, Dienst oder Umfeld kann dem Angreifer Ideen für dein Passwort liefern.',
+      'Bei Campusgram wären zum Beispiel Begriffe wie Campus, Nachricht, dein Benutzername oder der Dienstname naheliegend.',
     ]);
     expect(s05Content.componentStrategy.accountContext.explanation).toEqual([
       'Bei einem WLAN könnten es „WLAN“, „Router“ oder „Fritzbox“ sein.',
-      'Prüfen wir deswegen nun dein Passwort auf einen möglichen Bezug zum Konto und Umfeld.',
+      'Prüfen wir deswegen nun dein Passwort auf einen möglichen Bezug zum Konto, Dienst oder Umfeld.',
     ]);
     expect(s05Content.componentStrategy.accountContext.transition).toBe(
       'Damit sind die drei Arten von Passwortbestandteilen geprüft.',
@@ -127,6 +132,7 @@ describe('S05 content traceability', () => {
         's05-personal-details-opening',
         's05-personal-details-derivation',
         's05-account-context-opening',
+        's05-account-context-examples',
       ]),
     );
     expect(s05Content.animations.map(([id]) => id)).not.toContain('s05-strategy-overview');
@@ -134,9 +140,26 @@ describe('S05 content traceability', () => {
     expect(s05Content.animations.map(([id]) => id).some((id) => id.includes('typical-changes'))).toBe(
       false,
     );
-    expect(s05Content.componentStrategy.summary.continue).toBe('Weiter zum Aufbau');
+    expect(s05Content.componentStrategy.summary.continue).toBe('Weiter');
+    expect(s05Content.componentStrategy.summary).toMatchObject({
+      startingPoints:
+        'Das waren alles nur Ausgangspunkte. Sie zeigen, welche Bestandteile der Angreifer früh ausprobieren könnte.',
+      singleCandidateMatch:
+        'Dein Passwort wurde bereits unter einen einzigen frühen Kandidaten gefunden. Wir verfolgen den Angriff trotzdem weiter, denn es kann auch über andere Anhaltspunkte erraten werden.',
+      nothingFound: 'Nichts gefunden',
+    });
+    expect(s05Content.intro.strategyAnnotations.sentenceStructure).toBe('Satzaufbau');
+    expect(s05Content.structure.reviewCardTitle).toBe('Prüfungskarte 2');
+    expect(s05Content.structure.demonstrations.slice(0, 3).map(({ title }) => title)).toEqual([
+      'Inhaltliche Zusammenhänge',
+      'Vorhersehbare Satz- und Phrasenstrukturen',
+      'Wiederholungsmuster',
+    ]);
+    expect(s05Content.animations.map(([id]) => id)).toContain('s05-structure-intro');
+    expect(s05Content.animations.map(([id]) => id)).not.toContain('s05-structure-context');
     expect(s05Content.fixtures.find(({ id }) => id === 'all-categories')).toMatchObject({
-      fictionalPassword: 'CampusgramPassw0rt123!',
+      fictionalPassword: 'CampusPassw0rt123!',
+      analysisContext: { accountTerms: ['Campus'] },
       startSection: 'components',
     });
     expect(
@@ -147,6 +170,9 @@ describe('S05 content traceability', () => {
     expect(s05Content.intro.narration.candidateCheck).toEqual([
       'Für den Angreifer ist dein Passwort verdeckt. Sein Programm erzeugt mögliche Passwörter und prüft, ob eines davon passt.',
       'Grundsätzlich könnte das Programm jede denkbare Zeichenfolge ausprobieren.',
+    ]);
+    expect(s05Content.intro.narration.strategyTargeting).toEqual([
+      'Der Angreifer sieht diese Bestandteile nicht. Sein Programm kann aber mögliche Bestandteile auswählen, kombinieren und daraus vollständige Passwortkandidaten bilden.',
     ]);
 
     const participantContent = JSON.stringify({

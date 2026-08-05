@@ -26,6 +26,7 @@ export interface S05CanonicalBlock {
 
 export interface S05CategoryFinding {
   readonly id: string;
+  readonly candidateId: string;
   readonly categoryId: S05ComponentCategoryId;
   readonly label: string;
   readonly blockIds: readonly string[];
@@ -55,6 +56,12 @@ export interface S05CanonicalPasswordView {
 
 export interface S05DisplayBlock extends S05CanonicalBlock {
   readonly labels: readonly string[];
+}
+
+export interface S05CategoryCandidateSummary {
+  readonly candidateCount: number;
+  readonly coversWholePassword: boolean;
+  readonly hasSingleCandidateMatch: boolean;
 }
 
 const commonComponentKinds = new Set<PasswordSingleFindingKind>([
@@ -291,6 +298,7 @@ export function createCanonicalPasswordView(
           finding.kind === 'predictable-word-sequence' ? sequenceChangeLabel(part) : undefined;
         return {
           id: `common:${finding.id}:${index}`,
+          candidateId: `common:${finding.id}:${index}`,
           categoryId: 'common-components' as const,
           label: commonLabel(finding.kind, part.token),
           blockIds: blocksForSpan(blocks, part),
@@ -311,6 +319,7 @@ export function createCanonicalPasswordView(
         ? [
             {
               id: `account:${finding.id}`,
+              candidateId: `account:${finding.id}`,
               categoryId: 'account-context' as const,
               label: span.token,
               blockIds: blocksForSpan(blocks, span),
@@ -345,6 +354,7 @@ export function createPersonalFindings(
       ? [
           {
             id: `personal:group:${validBlockIds.join(':')}`,
+            candidateId: `personal:group:${validBlockIds.join(':')}`,
             categoryId: 'personal-details' as const,
             label: s05Content.componentStrategy.presentation.findingChips.personalComponent,
             blockIds: validBlockIds,
@@ -353,12 +363,38 @@ export function createPersonalFindings(
         ]
       : validBlockIds.map((blockId, index) => ({
           id: `personal:${blockId}:${index}`,
+          candidateId: `personal:${blockId}:${index}`,
           categoryId: 'personal-details' as const,
           label: s05Content.componentStrategy.presentation.findingChips.personalComponent,
           blockIds: [blockId],
           changeIds: [],
         }));
   return attachTypicalChanges(view, findings);
+}
+
+export function summarizeCategoryCandidates(
+  view: S05CanonicalPasswordView,
+  findings: readonly S05CategoryFinding[],
+): S05CategoryCandidateSummary {
+  const candidateIds = [...new Set(findings.map(({ candidateId }) => candidateId))];
+  const coveredBlockIds = new Set(findings.flatMap(({ blockIds }) => blockIds));
+  const coversWholePassword =
+    view.blocks.length > 0 && view.blocks.every(({ id }) => coveredBlockIds.has(id));
+  const singleCandidateBlockIds = new Set(
+    candidateIds.length === 1
+      ? findings
+          .filter(({ candidateId }) => candidateId === candidateIds[0])
+          .flatMap(({ blockIds }) => blockIds)
+      : [],
+  );
+  return {
+    candidateCount: candidateIds.length,
+    coversWholePassword,
+    hasSingleCandidateMatch:
+      candidateIds.length === 1 &&
+      view.blocks.length > 0 &&
+      view.blocks.every(({ id }) => singleCandidateBlockIds.has(id)),
+  };
 }
 
 export function projectCanonicalPasswordBlocks(

@@ -36,21 +36,23 @@ vorliegt. Der Angreifer kombiniert:
 2. vorhersehbare Strukturen und Transformationen;
 3. freies Ausprobieren für die verbleibenden Bereiche.
 
-Der bekannte Name des fiktiven Kontos darf als Kontext verwendet werden. Reale persönliche Daten,
-reale Kontonamen, zusätzliche Leak-Daten, Phishing, Malware, Hardwareleistung und der konkrete
-Hashalgorithmus sind nicht Teil des Modells.
+Der bekannte Name des fiktiven Kontos sowie die lokal erzeugten fiktiven Kontoidentifikatoren
+dürfen als Kontext verwendet werden. Reale Konten, zusätzliche Leak-Daten, Phishing, Malware,
+Hardwareleistung und der konkrete Hashalgorithmus sind nicht Teil des Modells.
 
 ## Eingaben und Datenschutz
 
 Zulässige Eingaben sind ausschließlich:
 
 - das im Training erzeugte fiktive Passwort;
-- wenige authored Begriffe des aktuell dargestellten fiktiven Kontos.
+- wenige authored Begriffe des aktuell dargestellten fiktiven Kontos;
+- der aus dem flüchtigen Trainingsnamen lokal abgeleitete fiktive Benutzername und die fiktive
+  Konto-Mail des jeweils analysierten Kontos.
 
 Nicht zulässig sind:
 
 - reale Passwörter oder Varianten;
-- persönliche Profilinformationen;
+- weitere persönliche Profilinformationen;
 - externe Leak-Abfragen;
 - Netzwerk-, Storage-, Logging- oder Telemetrieausgaben;
 - Übernahme der Analyse in den Forschungsdatenexport.
@@ -67,10 +69,11 @@ wird beim Verlassen des Segments verworfen.
 | Allgemeines Wörterbuch und Graphen | `@zxcvbn-ts/language-common@4.1.2` |
 | Deutsch | `@zxcvbn-ts/language-de@4.1.1` |
 | Englisch | `@zxcvbn-ts/language-en@4.1.1` |
-| Konfigurations-ID | `passwo-bounded-guess-path-v3` |
+| Konfigurations-ID | `passwo-bounded-guess-path-v4` |
 | Maximale analysierte Länge | HTML-Eingabelimit 128 UTF-16-Codeeinheiten; zxcvbn `maxLength=128`; Längenorientierung nach Unicode-Codepoints |
 | Levenshtein-Option | deaktiviert |
 | Authored S05-Kontext | `Campusgram`, `Campus`, `Nachrichten`, `Gruppen`, `Kontakte`, `Beiträge` |
+| Lokale Kontoidentifikatoren | fiktiver Benutzername und fiktive Konto-Mail des aktuellen Kontos |
 | Externe Matcher | keine |
 | Quick-Path-Budget | 100000 Kandidaten |
 | Längenorientierung | 15 Zeichen für selbst erstellte Passwörter |
@@ -91,8 +94,9 @@ Disposition nicht.
 
 ### 1. Vollständiger Rateweg
 
-`analyzeFictionalPassword` ruft zxcvbn-ts einmal mit der vollständigen Zeichenfolge und den
-authored Konto-Begriffen als `userInputs` auf. Verwendet werden:
+`analyzeFictionalPassword` ruft zxcvbn-ts einmal mit der vollständigen Zeichenfolge, den authored
+Konto-Begriffen und den flüchtigen fiktiven Kontoidentifikatoren als `userInputs` auf. Verwendet
+werden:
 
 - `result.guesses` als geschätzte Kandidatenzahl des vollständigen günstigsten Wegs;
 - `result.guessesLog10` ausschließlich als interne Diagnose;
@@ -114,17 +118,18 @@ Die optimale Sequenz wird in stabile PassWo-Kategorien projiziert:
 - authored Konto- oder Dienstbegriff;
 - typischer Zahlen- oder Symbolanhang.
 
-Zusätzliche deterministische Regeln ergänzen ausschließlich konkret belegte authored Konto-Treffer,
-Jahreszahlen, typische Endungen und nummerierte Wiederholungen desselben Wortes mit mindestens
-drei aufeinanderfolgenden Markern. Eine typische Endung setzt Buchstaben im vorangehenden
-fiktiven Passwort voraus, aber keinen weiteren Komponentenbefund. Kategorien dürfen überlappen.
-Für die Darstellung werden Dubletten entfernt und Befunde priorisiert; die Guessing-Entscheidung
-bleibt unverändert der vollständigen zxcvbn-Sequenz überlassen.
+Zusätzliche deterministische Regeln ergänzen ausschließlich konkret belegte authored
+Konto-Treffer, exakte Treffer der lokalen fiktiven Kontoidentifikatoren, Jahreszahlen, typische
+Endungen und nummerierte Wiederholungen desselben Wortes mit mindestens drei aufeinanderfolgenden
+Markern. Eine typische Endung setzt Buchstaben im vorangehenden fiktiven Passwort voraus, aber
+keinen weiteren Komponentenbefund. Kategorien dürfen überlappen. Für die Darstellung werden
+Dubletten entfernt und Befunde priorisiert; die Guessing-Entscheidung bleibt unverändert der
+vollständigen zxcvbn-Sequenz überlassen.
 
-Ein authored Konto- oder Dienstbegriff darf in der Darstellung auch als veränderter Kontobezug
-erscheinen, wenn zxcvbn denselben Bereich sowohl dem lokalen `userInputs`-Wörterbuch als auch
-einer konkreten typischen Transformation zuordnet. Beliebige Ähnlichkeit und Levenshtein-Abstände
-werden nicht als Kontobezug ausgegeben.
+Ein authored Konto- oder Dienstbegriff oder ein lokaler fiktiver Kontoidentifikator darf in der
+Darstellung auch als veränderter Kontobezug erscheinen, wenn zxcvbn denselben Bereich sowohl dem
+lokalen `userInputs`-Wörterbuch als auch einer konkreten typischen Transformation zuordnet.
+Beliebige Ähnlichkeit und Levenshtein-Abstände werden nicht als Kontobezug ausgegeben.
 
 ### 3. Strukturen
 
@@ -250,7 +255,8 @@ keine externe Validierungsstudie eines neuen Password Strength Meters.
 - zxcvbn-ts approximiert ausgewählte Guessing-Strategien; andere Angreifer können andere Wege
   finden.
 - Wörterbücher sind sprach- und versionsabhängig.
-- `userInputs` enthalten nur authored Kontokontext und keine realen zielgerichteten Informationen.
+- `userInputs` enthalten authored Kontokontext sowie ausschließlich lokal abgeleitete fiktive
+  Kontoidentifikatoren und keine Daten realer Konten oder fremder Datenlecks.
 - Die optimierte Sequenz zeigt nicht zwingend jeden semantisch denkbaren Teilstring.
 - `no-quick-path-recognized` ist eine Enthaltung von einer positiven Trefferbehauptung, kein
   Sicherheitsnachweis.

@@ -28,6 +28,7 @@ import {
 import { S05AnimationAdapter } from './S05AnimationAdapter.js';
 import {
   projectCanonicalPasswordBlocks,
+  summarizeCategoryCandidates,
   type S05CategoryFinding,
   type S05ComponentCategoryId,
 } from './S05ComponentStrategy.js';
@@ -299,12 +300,10 @@ function CategoryMachine({
   categoryId,
   conveyorBlocks,
   stepKey,
-  showTransition = false,
 }: {
   readonly categoryId: S05ComponentCategoryId;
   readonly conveyorBlocks: readonly string[];
   readonly stepKey: string;
-  readonly showTransition?: boolean;
 }) {
   const content = s05Content.componentStrategy.commonComponents.machine;
   const [travelingIndex, setTravelingIndex] = useState(0);
@@ -328,14 +327,6 @@ function CategoryMachine({
       data-machine-step={stepKey}
       aria-label={category?.title ?? content.ariaLabel}
     >
-      {showTransition ? (
-        <div className={styles.categoryTransition} aria-hidden="true">
-          <div className={styles.categoryTransitionPanel}>
-            <img src={categoryAssets[categoryId]} alt="" />
-            <strong>{category?.title ?? s05Content.page.title}</strong>
-          </div>
-        </div>
-      ) : null}
       <div className={styles.machineInput}>
         <img src={categoryAssets[categoryId]} alt="" />
         <div aria-hidden="true">
@@ -352,7 +343,9 @@ function CategoryMachine({
         <code
           key={travelingBlock}
           data-transition-delay={
-            showTransition && travelingIndex === 0 && arrivedIndex === 0
+            (stepKey.endsWith('-start') || stepKey.endsWith('-opening')) &&
+            travelingIndex === 0 &&
+            arrivedIndex === 0
               ? true
               : undefined
           }
@@ -392,8 +385,23 @@ function CommonComponentsMachine({ step }: { readonly step: CommonComponentMachi
       categoryId="common-components"
       conveyorBlocks={s05Content.componentStrategy.commonComponents.machine.conveyorBlocks}
       stepKey={step}
-      showTransition={step === 'common-components-start'}
     />
+  );
+}
+
+function CategoryTransition({
+  categoryId,
+}: {
+  readonly categoryId: S05ComponentCategoryId;
+}) {
+  const category = s05Content.componentStrategy.categories.find(({ id }) => id === categoryId);
+  return (
+    <div className={styles.categoryTransition} aria-hidden="true">
+      <div className={styles.categoryTransitionPanel}>
+        <img src={categoryAssets[categoryId]} alt="" />
+        <strong>{category?.title ?? s05Content.page.title}</strong>
+      </div>
+    </div>
   );
 }
 
@@ -406,22 +414,23 @@ function categoryForStep(
   return null;
 }
 
-function CategoryCards({
+function ComponentReviewCard({
   snapshot,
 }: {
   readonly snapshot: S05AnalysisControllerSnapshot;
 }) {
-  const summary = snapshot.step === 'components-summary';
-  const activeCategoryId = categoryForStep(snapshot.step);
+  const completedCategories = s05Content.componentStrategy.categories.filter(({ id }) =>
+    snapshot.componentStrategy.cards[id].status.startsWith('checked-'),
+  );
   return (
     <aside
-      className={styles.componentCategoryCards}
+      className={styles.componentReviewCard}
       aria-label={s05Content.componentStrategy.presentation.categoriesAriaLabel}
     >
-      <div className={styles.componentCategoryList}>
-        {s05Content.componentStrategy.categories.map((category) => {
+      <h2>{s05Content.componentStrategy.presentation.reviewCardTitle}</h2>
+      <div className={styles.componentReviewEntries}>
+        {completedCategories.map((category) => {
           const card = snapshot.componentStrategy.cards[category.id];
-          const active = summary || activeCategoryId === category.id;
           const view = snapshot.componentStrategy.canonicalView;
           const findingBlocks =
             view === null
@@ -433,22 +442,25 @@ function CategoryCards({
             <article
               key={category.id}
               data-status={card.status}
-              data-active={active || undefined}
             >
-              <div className={styles.componentCategoryHeading}>
+              <div className={styles.componentReviewHeading}>
                 <img src={categoryAssets[category.id]} alt="" />
-                <div>
-                  <h2>{category.title}</h2>
-                </div>
+                <h3>{category.title}</h3>
               </div>
-              {findingBlocks.length === 0 ? null : (
-                <ul>
-                  {findingBlocks.map(({ id, value }) => (
-                    <li key={id}>
-                      <code>{value}</code>
-                    </li>
-                  ))}
-                </ul>
+              {findingBlocks.length === 0 ? (
+                <strong className={styles.nothingFound}>
+                  {s05Content.componentStrategy.summary.nothingFound}
+                </strong>
+              ) : (
+                <PasswordBuildingBlocks
+                  value={findingBlocks.map(({ value }) => value).join('')}
+                  parts={findingBlocks.map(({ value }) => value)}
+                  display="decomposed"
+                  appearance="analysis"
+                  animate={false}
+                  highlightedIndices={findingBlocks.map((_, index) => index)}
+                  ariaLabel={`${category.title}: ${findingBlocks.map(({ value }) => value).join(', ')}`}
+                />
               )}
             </article>
           );
@@ -459,17 +471,29 @@ function CategoryCards({
 }
 
 function CategoryHeader({ snapshot }: { readonly snapshot: S05AnalysisControllerSnapshot }) {
-  if (showsComponentCategoryCards(snapshot.step)) return <CategoryCards snapshot={snapshot} />;
   const activeCategoryId = categoryForStep(snapshot.step);
   const activeCategory = s05Content.componentStrategy.categories.find(
     ({ id }) => id === activeCategoryId,
   );
   if (activeCategory === undefined) return null;
   return (
-    <aside className={styles.singleCategoryHeader} aria-label={activeCategory.title}>
+    <aside
+      className={styles.singleCategoryHeader}
+      data-category={activeCategory.id}
+      aria-label={activeCategory.title}
+    >
       <strong>{activeCategory.title}</strong>
-      <img src={categoryAssets[activeCategory.id]} alt="" />
     </aside>
+  );
+}
+
+function ComponentMachineScene({
+  children,
+}: {
+  readonly children: ReactNode;
+}) {
+  return (
+    <div className={styles.componentMachineWorkspace}>{children}</div>
   );
 }
 
@@ -503,14 +527,23 @@ function CanonicalPasswordView({
         visibleFindings,
         snapshot.step === 'components-summary',
       );
-  const highlightedIndices = displayBlocks.flatMap(({ labels }, index) =>
-    labels.length > 0 ? [index] : [],
-  );
   const personalSelection = snapshot.componentStrategy.personalSelection;
   const selectedPersonalIndices = view.blocks.flatMap((block, index) =>
     personalSelection.blockIds.includes(block.id) ? [index] : [],
   );
-  const blockLabels = displayBlocks.map(({ labels }) => labels.join(' · '));
+  const renderedBlocks = selectingPersonalDetails ? view.blocks : displayBlocks;
+  const blockLabels = selectingPersonalDetails
+    ? view.blocks.map(() => '')
+    : displayBlocks.map(({ labels }) => labels);
+  const segmentGroups = renderedBlocks.map(({ start, end, value }) => {
+    const segments = view.blocks
+      .filter((block) => block.start >= start && block.end <= end)
+      .map((block) => block.value);
+    return segments.length === 0 ? [value] : segments;
+  });
+  const highlightedIndices = selectingPersonalDetails
+    ? []
+    : displayBlocks.flatMap(({ labels }, index) => (labels.length > 0 ? [index] : []));
   return (
     <section
       className={styles.canonicalPassword}
@@ -527,11 +560,17 @@ function CanonicalPasswordView({
       <div className={styles.canonicalBlocks} data-s05-speech-obstacle>
         <PasswordBuildingBlocks
           value={view.password}
-          parts={displayBlocks.map(({ value }) => value)}
+          parts={renderedBlocks.map(({ value }) => value)}
           display="decomposed"
           appearance="analysis"
+          animate={false}
           labels={blockLabels}
-          highlightedIndices={[...highlightedIndices, ...selectedPersonalIndices]}
+          segmentGroups={segmentGroups}
+          highlightedIndices={
+            selectingPersonalDetails
+              ? selectedPersonalIndices
+              : highlightedIndices
+          }
           {...(selectingPersonalDetails
             ? {
                 selection: {
@@ -583,17 +622,20 @@ function ComponentStrategyScene({
   readonly controller: S05AnalysisController;
 }) {
   return (
-    <div className={styles.componentStrategyLayout} data-s05-target="component-strategy">
-      <div className={styles.componentStrategyWorkspace}>
-        {snapshot.componentStrategy.canonicalView === null ? (
-          <CampusgramPassword password={subject.fictionalPassword} />
-        ) : (
-          <CanonicalPasswordView snapshot={snapshot} controller={controller} />
-        )}
-        {snapshot.step === 'personal-details-check' ? (
-          <PersonalDetailsCheck snapshot={snapshot} controller={controller} />
-        ) : null}
+    <div className={styles.componentReviewLayout}>
+      <div className={styles.componentStrategyLayout} data-s05-target="component-strategy">
+        <div className={styles.componentStrategyWorkspace}>
+          {snapshot.componentStrategy.canonicalView === null ? (
+            <CampusgramPassword password={subject.fictionalPassword} />
+          ) : (
+            <CanonicalPasswordView snapshot={snapshot} controller={controller} />
+          )}
+          {snapshot.step === 'personal-details-check' ? (
+            <PersonalDetailsCheck snapshot={snapshot} controller={controller} />
+          ) : null}
+        </div>
       </div>
+      <ComponentReviewCard snapshot={snapshot} />
     </div>
   );
 }
@@ -639,30 +681,71 @@ function StructureDemonstrationScene({
   );
   if (demonstration === undefined) return null;
   return (
-    <div
-      className={styles.structureWorkspace}
-      aria-label={`${demonstration.title}. ${demonstration.passWoExplanation}`}
-    >
-      <section className={styles.passWoExplanation}>
-        <p className={styles.cardLabel}>PassWo erklärt</p>
-        <p>{demonstration.passWoExplanation}</p>
-      </section>
-      <article
-        className={styles.structureDemonstration}
-        data-s05-target={snapshot.step}
-        aria-label={`${demonstration.title}, Beispiel`}
+    <div className={styles.componentReviewLayout}>
+      <div
+        className={styles.structureWorkspace}
+        aria-label={`${demonstration.title}. ${demonstration.passWoExplanation}`}
       >
-        <p className={styles.authoredBadge}>Beispiel</p>
-        <h2>{demonstration.title}</h2>
-        <div className={styles.structureTokens} aria-label={demonstration.tokens.join(', ')}>
-          {demonstration.tokens.map((token, index) => (
-            <span key={`${token}-${index}`}>{token}</span>
-          ))}
-        </div>
-        <strong className={styles.connectionLabel}>{demonstration.connectionLabel}</strong>
-        <p className={styles.boundaryNote}>{demonstration.boundaryNote}</p>
-      </article>
+        <section className={styles.passWoExplanation}>
+          <p className={styles.cardLabel}>PassWo erklärt</p>
+          <p>{demonstration.passWoExplanation}</p>
+        </section>
+        <article
+          className={styles.structureDemonstration}
+          data-s05-target={snapshot.step}
+          aria-label={`${demonstration.title}, Beispiel`}
+        >
+          <p className={styles.authoredBadge}>Beispiel</p>
+          <h2>{demonstration.title}</h2>
+          <div className={styles.structureTokens} aria-label={demonstration.tokens.join(', ')}>
+            {demonstration.tokens.map((token, index) => (
+              <span key={`${token}-${index}`}>{token}</span>
+            ))}
+          </div>
+          <strong className={styles.connectionLabel}>{demonstration.connectionLabel}</strong>
+          <p className={styles.boundaryNote}>{demonstration.boundaryNote}</p>
+        </article>
+      </div>
+      <StructureReviewCard snapshot={snapshot} />
     </div>
+  );
+}
+
+const structureReviewSteps = [
+  'structure-theme',
+  'structure-sentence',
+  'structure-repetition',
+] as const satisfies readonly S05AnalysisControllerSnapshot['step'][];
+
+function StructureReviewCard({ snapshot }: { readonly snapshot: S05AnalysisControllerSnapshot }) {
+  const currentIndex = structureReviewSteps.findIndex((step) => step === snapshot.step);
+  const visibleSteps = currentIndex < 0 ? [] : structureReviewSteps.slice(0, currentIndex + 1);
+  return (
+    <aside
+      className={`${styles.componentReviewCard} ${styles.structureReviewCard}`}
+      aria-label={s05Content.structure.reviewCardTitle}
+    >
+      <h2>{s05Content.structure.reviewCardTitle}</h2>
+      <ol className={styles.structureReviewEntries}>
+        {visibleSteps.map((step, index) => {
+          const demonstration = s05Content.structure.demonstrations.find(
+            ({ id }) => id === `s05-${step}`,
+          );
+          if (demonstration === undefined) return null;
+          const current = index === currentIndex;
+          return (
+            <li
+              key={step}
+              data-current={current || undefined}
+              aria-current={current ? 'step' : undefined}
+            >
+              <span aria-hidden="true">{index + 1}</span>
+              <h3>{demonstration.title}</h3>
+            </li>
+          );
+        })}
+      </ol>
+    </aside>
   );
 }
 
@@ -1010,11 +1093,16 @@ function renderScene(
     case 'common-components-start':
     case 'common-components-examples':
     case 'common-components-changes':
-      return <CommonComponentsMachine step={snapshot.step} />;
+      return (
+        <ComponentMachineScene>
+          <CommonComponentsMachine step={snapshot.step} />
+        </ComponentMachineScene>
+      );
     case 'common-components-intro':
     case 'common-components-result':
     case 'personal-details-check':
     case 'personal-details-result':
+    case 'account-context-intro':
     case 'account-context-result':
     case 'components-summary':
       return (
@@ -1028,23 +1116,27 @@ function renderScene(
     case 'personal-details-derivation':
     case 'personal-details-intro':
       return (
-        <CategoryMachine
-          categoryId="personal-details"
-          conveyorBlocks={s05Content.componentStrategy.personalDetails.machine.conveyorBlocks}
-          stepKey={snapshot.step}
-          showTransition={snapshot.step === 'personal-details-opening'}
-        />
+        <ComponentMachineScene>
+          <CategoryMachine
+            categoryId="personal-details"
+            conveyorBlocks={s05Content.componentStrategy.personalDetails.machine.conveyorBlocks}
+            stepKey={snapshot.step}
+          />
+        </ComponentMachineScene>
       );
     case 'account-context-opening':
-    case 'account-context-intro':
+    case 'account-context-examples':
       return (
-        <CategoryMachine
-          categoryId="account-context"
-          conveyorBlocks={s05Content.componentStrategy.accountContext.machine.conveyorBlocks}
-          stepKey={snapshot.step}
-          showTransition={snapshot.step === 'account-context-opening'}
-        />
+        <ComponentMachineScene>
+          <CategoryMachine
+            categoryId="account-context"
+            conveyorBlocks={s05Content.componentStrategy.accountContext.machine.conveyorBlocks}
+            stepKey={snapshot.step}
+          />
+        </ComponentMachineScene>
       );
+    case 'structure-intro':
+      return <StrategyTargetingScene />;
     case 'structure-theme':
     case 'structure-sentence':
     case 'structure-repetition':
@@ -1119,13 +1211,14 @@ function commonComponentsResult(snapshot: S05AnalysisControllerSnapshot): readon
     ? content.results.foundOne
     : content.results.foundMany
   ).replace('[Teile]', parts);
-  const foundOnlyBlock =
-    foundValues.length === 1 && foundValues[0] === view.password;
+  const candidateSummary = summarizeCategoryCandidates(view, findings);
   return [
     finding,
-    foundOnlyBlock
-      ? content.results.complete
-      : content.results.boundary,
+    ...(candidateSummary.hasSingleCandidateMatch
+      ? [content.results.completeSingleCandidate]
+      : candidateSummary.coversWholePassword
+        ? [content.results.completeMultipleCandidates]
+        : []),
     content.transition,
   ];
 }
@@ -1144,9 +1237,15 @@ function personalDetailsResult(snapshot: S05AnalysisControllerSnapshot): readonl
     selectedValues.length === 0
       ? content.results.none
       : content.results.selected.replace('[Angaben]', selectedValues.join(', '));
+  const candidateSummary =
+    view === null ? null : summarizeCategoryCandidates(view, findings);
   return [
     result,
-    ...(selectedValues.length > 0 ? [content.results.boundary] : []),
+    ...(candidateSummary?.hasSingleCandidateMatch
+      ? [content.results.completeSingleCandidate]
+      : candidateSummary?.coversWholePassword
+        ? [content.results.completeMultipleCandidates]
+        : []),
     content.transition,
   ];
 }
@@ -1171,19 +1270,45 @@ function accountContextResult(snapshot: S05AnalysisControllerSnapshot): readonly
     ? content.results.foundOne
     : content.results.foundMany
   ).replace('[Begriffe]', terms);
-  return [finding, content.results.boundary, content.transition];
+  const candidateSummary = summarizeCategoryCandidates(view, findings);
+  return [
+    finding,
+    ...(candidateSummary.hasSingleCandidateMatch
+      ? [content.results.completeSingleCandidate]
+      : candidateSummary.coversWholePassword
+        ? [content.results.completeMultipleCandidates]
+        : []),
+    content.transition,
+  ];
 }
 
 function componentSummaryNarration(snapshot: S05AnalysisControllerSnapshot): readonly string[] {
   const content = s05Content.componentStrategy.summary;
-  const sourceCategoryNames = s05Content.componentStrategy.categories
+  const view = snapshot.componentStrategy.canonicalView;
+  const sourceCategoryIds = s05Content.componentStrategy.categories
     .filter(({ id }) => snapshot.componentStrategy.cards[id].status === 'checked-findings')
-    .map(({ title }) => title);
-  if (sourceCategoryNames.length === 0) return [content.none, content.noneTransition];
+    .map(({ id }) => id);
+  const sourceCategoryNames = sourceCategoryIds.map((id) => content.categoryNames[id]);
+  if (view === null) return [content.startingPoints, content.none, content.noneTransition];
+  const matchedCategoryIds = s05Content.componentStrategy.categories
+    .filter(({ id }) =>
+      summarizeCategoryCandidates(view, snapshot.componentStrategy.cards[id].findings)
+        .hasSingleCandidateMatch,
+    )
+    .map(({ id }) => id);
+  const verdict =
+    matchedCategoryIds.length > 0 ? content.singleCandidateMatch : content.startingPoints;
+  if (sourceCategoryNames.length === 0) return [verdict, content.none, content.noneTransition];
+  const finalCategory = sourceCategoryNames.at(-1);
+  const categoryList =
+    finalCategory === undefined
+      ? ''
+      : sourceCategoryNames.length === 1
+        ? finalCategory
+        : `${sourceCategoryNames.slice(0, -1).join(', ')} sowie ${finalCategory}`;
   return [
-    content.found.replace('[Kategorienamen]', sourceCategoryNames.join(', ')),
-    content.foundBoundary,
-    content.foundTransition,
+    verdict,
+    content.found.replace('[Kategorienamen]', categoryList),
   ];
 }
 
@@ -1224,12 +1349,16 @@ function speechFor(
       return personalDetailsResult(snapshot);
     case 'account-context-opening':
       return s05Content.componentStrategy.accountContext.opening;
+    case 'account-context-examples':
+      return [s05Content.componentStrategy.accountContext.explanation[0]];
     case 'account-context-intro':
-      return s05Content.componentStrategy.accountContext.explanation;
+      return [s05Content.componentStrategy.accountContext.explanation[1]];
     case 'account-context-result':
       return accountContextResult(snapshot);
     case 'components-summary':
       return componentSummaryNarration(snapshot);
+    case 'structure-intro':
+      return s05Content.structure.intro;
     default:
       return null;
   }
@@ -1239,18 +1368,21 @@ function showsComponentCategoryHeader(step: S05AnalysisControllerSnapshot['step'
   return (
     step.startsWith('common-components-') ||
     step.startsWith('personal-details-') ||
-    step.startsWith('account-context-') ||
-    step === 'components-summary'
+    step.startsWith('account-context-')
   );
 }
 
-function showsComponentCategoryCards(step: S05AnalysisControllerSnapshot['step']): boolean {
-  return (
-    step === 'common-components-result' ||
-    step === 'personal-details-result' ||
-    step === 'account-context-result' ||
-    step === 'components-summary'
-  );
+function showsComponentGuidance(step: S05AnalysisControllerSnapshot['step']): boolean {
+  return showsComponentCategoryHeader(step) || step === 'components-summary';
+}
+
+function transitionCategoryForStep(
+  step: S05AnalysisControllerSnapshot['step'],
+): S05ComponentCategoryId | null {
+  if (step === 'common-components-start') return 'common-components';
+  if (step === 'personal-details-opening') return 'personal-details';
+  if (step === 'account-context-opening') return 'account-context';
+  return null;
 }
 
 function StructureApplicationScene({
@@ -1436,6 +1568,8 @@ export function S05AnalysisTraining({
   }
 
   const categoryHeaderVisible = showsComponentCategoryHeader(snapshot.step);
+  const componentGuidanceVisible = showsComponentGuidance(snapshot.step);
+  const transitionCategoryId = transitionCategoryForStep(snapshot.step);
 
   return (
     <section ref={hostRef} className={styles.training} aria-label={s05Content.trainingAriaLabel}>
@@ -1449,6 +1583,9 @@ export function S05AnalysisTraining({
             <CategoryHeader snapshot={snapshot} />
           </header>
         ) : null}
+        {transitionCategoryId === null ? null : (
+          <CategoryTransition categoryId={transitionCategoryId} />
+        )}
         <div
           className={styles.content}
           aria-live="polite"
@@ -1459,19 +1596,19 @@ export function S05AnalysisTraining({
         {speech === null ? null : (
           <div
             className={styles.passWoLayer}
-            data-component-guidance={categoryHeaderVisible || undefined}
+            data-component-guidance={componentGuidanceVisible || undefined}
           >
             <PassWoGuide
               guideName={s00Content.narration.guideName}
-              taskLabel={categoryHeaderVisible ? 'Bestandteile' : 'Passwortwege'}
+              taskLabel={componentGuidanceVisible ? 'Bestandteile' : 'Passwortwege'}
               helpOpen
               helpId="s05-intro-passwo-speech"
               openHelpLabel={s00Content.narration.openGuideLabel}
               speech={speech}
               speechKey={`s05-${snapshot.step}`}
               speechEmphasis={passWoSpeechEmphasisFor(`s05-${snapshot.step}`)}
-              speechPlacement={categoryHeaderVisible ? 'right' : 'above'}
-              {...(categoryHeaderVisible
+              speechPlacement={componentGuidanceVisible ? 'right' : 'above'}
+              {...(componentGuidanceVisible
                 ? {}
                 : { speechObstacleSelector: '[data-s05-speech-obstacle]' })}
               speechAction={speechAction()}

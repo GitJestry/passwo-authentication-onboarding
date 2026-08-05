@@ -8,6 +8,7 @@ import {
   createCanonicalPasswordView,
   createPersonalFindings,
   projectCanonicalPasswordBlocks,
+  summarizeCategoryCandidates,
 } from './S05ComponentStrategy.js';
 
 function analysisWithFindings(findings: readonly PasswordSingleFinding[]): PasswordAnalysisResult {
@@ -48,6 +49,44 @@ describe('S05 component strategy presentation', () => {
     expect(displayed[0]?.labels.filter((label) => label.startsWith('typische Variante'))).toHaveLength(
       1,
     );
+    expect(
+      summarizeCategoryCandidates(view, view.automaticFindings['common-components']),
+    ).toMatchObject({
+      candidateCount: 1,
+      coversWholePassword: true,
+      hasSingleCandidateMatch: true,
+    });
+  });
+
+  it('does not treat two candidates covering the password as a single-candidate match', () => {
+    const password = 'Passw0rtSommer';
+    const view = createCanonicalPasswordView(
+      password,
+      analysisWithFindings([
+        {
+          id: 'first-word',
+          kind: 'common-word',
+          evidence: [{ type: 'span', start: 0, end: 8, token: 'Passw0rt' }],
+          explanationId: 's05.common-word',
+          confidence: 'bounded-heuristic',
+        },
+        {
+          id: 'second-word',
+          kind: 'common-word',
+          evidence: [{ type: 'span', start: 8, end: password.length, token: 'Sommer' }],
+          explanationId: 's05.common-word',
+          confidence: 'bounded-heuristic',
+        },
+      ]),
+    );
+
+    expect(
+      summarizeCategoryCandidates(view, view.automaticFindings['common-components']),
+    ).toMatchObject({
+      candidateCount: 2,
+      coversWholePassword: true,
+      hasSingleCandidateMatch: false,
+    });
   });
 
   it('projects a recognized word sequence as three variant blocks', () => {
@@ -104,6 +143,7 @@ describe('S05 component strategy presentation', () => {
         labels: ['persönliche Angabe', 'typische Variante: +123!'],
       },
     ]);
+    expect(summarizeCategoryCandidates(view, personal).hasSingleCandidateMatch).toBe(true);
   });
 
   it('shows an unbound typical ending only when residual changes are requested', () => {
@@ -150,6 +190,10 @@ describe('S05 component strategy presentation', () => {
     expect(displayed[0]?.labels.filter((label) => label.startsWith('typische Variante'))).toHaveLength(
       1,
     );
+    expect(
+      summarizeCategoryCandidates(view, view.automaticFindings['account-context'])
+        .hasSingleCandidateMatch,
+    ).toBe(true);
   });
 
   it('does not let category presentation alter the frozen simulation disposition', () => {

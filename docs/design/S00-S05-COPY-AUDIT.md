@@ -825,3 +825,99 @@ vierte Kategorie wiederholt. `S05_CONTENT_VERSION` wird von `2.24.0` auf `2.25.0
 Die zusammengefassten Werte, persönlichen Markierungen und Resthinweise bleiben ausschließlich
 flüchtiger Trainingszustand. Es werden keine neuen Felder gespeichert oder exportiert. Die
 erweiterte Endungserkennung ist eine begrenzte lokale Heuristik und keine Produktionsbewertung.
+
+### Copy-Delta S05 stabile Karten und eindeutige Kandidatentreffer 4. August 2026
+
+Quelle ist der ausdrückliche Nutzerauftrag vom 4. August 2026. Die lokale Analyse, Persistenz,
+Reihenfolge der späteren Struktur- und Durchprobierabschnitte sowie die Forschungsgrenzen bleiben
+unverändert. `S05_CONTENT_VERSION` wird von `2.25.0` auf `2.26.0` erhöht.
+
+| Segment und Text-ID | Vorher | Nachher | Primäre Rolle | Grund und Bedeutungsänderung | Interaktionsziel / Hervorhebung |
+|---|---|---|---|---|---|
+| `S05.componentStrategy.*.results` | häufige und persönliche Ergebnisse wurden jeweils als `Ausgangspunkt` eingeordnet; ein häufiger Volltreffer wurde sofort als gefunden bezeichnet | Einzelergebnisse nennen nur erkannte Werte und gegebenenfalls die vollständige Abdeckung als einen oder mehrere Kandidaten | Ergebnisfeedback | verschiebt das adaptive Urteil ausdrücklich in die gemeinsame Drei-Karten-Auswertung; dramaturgische Änderung ausdrücklich freigegeben | kein neues Interaktionsziel; betroffene Bausteine bleiben sichtbar |
+| `S05.componentStrategy.summary.startingPoints` | Ausgangspunkt-Grenze wurde bereits in den Einzelresultaten wiederholt | `Das waren alles nur Ausgangspunkte. Sie zeigen, welche Bestandteile der Angreifer früh ausprobieren könnte.` | Ergebnisfeedback / Safety Boundary | bündelt die begrenzte Einordnung an einer stabilen Stelle | `Weiter zum Aufbau`; keine Hervorhebung |
+| `S05.componentStrategy.summary.singleCandidateMatch` | kein gemeinsames Urteil für einen vollständig abdeckenden Einzelkandidaten | `Da dein Passwort nur einem einzigen Kandidaten entspricht, konnte der Angreifer es hier bereits herausfinden. Wir schauen uns dennoch weiter an, wie der Angreifer vorgeht. Es kann nämlich sein, dass dieses Passwort auch auf einem anderen Weg erraten werden kann.` | Ergebnisfeedback / Navigation | unterscheidet einen vollständigen Einzelkandidaten von mehreren nur gemeinsam abdeckenden Kandidaten; ausdrücklich freigegeben | `Weiter zum Aufbau`; keine Hervorhebung |
+| `S05.componentStrategy.summary.accountCandidateMatch` | Kontobezug nannte nur ableitbare Begriffe | `Der Angreifer hätte hier schon dein Passwort gefunden. Wir schauen uns dennoch weiter an, wie der Angreifer vorgeht.` | Ergebnisfeedback / Navigation | verwendet für den zuletzt geprüften Kontobezug die ausdrücklich verlangte kürzere Trefferfolge | `Weiter zum Aufbau`; keine Hervorhebung |
+| `S05.componentStrategy.summary.nothingFound` | leere Karten besaßen keinen sichtbaren Befundtext | `Nichts gefunden` | Ergebnisfeedback | macht ein leeres Ergebnis ohne Farbcodierung verständlich | kein |
+
+Die längere Einzelkandidaten-Rückmeldung überschreitet das normale PassWo-Zielbudget bewusst,
+weil der Nutzer den Treffer, die Fortsetzung und den möglichen weiteren Angriffsweg gemeinsam
+freigegeben hat. Ein Grundkandidat mit direkt gebundener Großschreibung, Zeichenersetzung, Zahl
+oder Endung bleibt genau ein Kandidat. Zwei verschiedene Grundkandidaten werden auch bei
+lückenloser gemeinsamer Abdeckung nicht als bereits gefunden bezeichnet.
+
+Visuell zeigt jede Erklärung und Einzelprüfung nur die aktuelle Karte. Die Einzelkategorienleiste
+wird um 25 Prozent reduziert; das Kontobezugslogo sitzt in dieser Leiste leicht tiefer. Erst die
+Zusammenfassung zeigt alle drei tiefer gesetzten Karten. Befunde erscheinen darin als rechteckige
+Passwortbausteine statt als Pills. Die Kategorieübergänge füllen den gesamten S05-Bildschirm und
+geben die Zielszene ohne Ausblenden frei. Die kanonischen Passwortbausteine bleiben zwischen
+Auswahl und Ergebnis stabil montiert; zusammengehörige Teile schließen ihre Zwischenräume, ohne
+ihre Position sprunghaft neu aufzubauen. `prefers-reduced-motion` zeigt unmittelbar den jeweiligen
+Endzustand.
+
+### Copy-Delta S05 Vollbildübergänge und fortlaufende Prüfungskarte 4. August 2026
+
+Quelle ist der ausdrückliche Nutzerauftrag vom 4. August 2026. Die drei vorhandenen lokalen
+Prüfungen, ihre Reihenfolge, Analysegrenzen und flüchtigen Auswahlzustände bleiben unverändert.
+`S05_CONTENT_VERSION` wird von `2.26.0` auf `2.27.0` erhöht.
+
+| Segment und Text-ID | Vorher | Nachher | Primäre Rolle | Grund und Bedeutungsänderung | Interaktionsziel / Hervorhebung |
+|---|---|---|---|---|---|
+| `S05.intro.narration.strategyTargeting` | `Der Angreifer kennt sie nicht. Bevor er alle Zeichen systematisch durchprobiert, kann er aber Passwortteile kombinieren, um dein Campusgram-Passwort zu erraten.` | `Der Angreifer sieht diese Bestandteile nicht. Sein Programm kann aber mögliche Bestandteile auswählen, kombinieren und daraus vollständige Passwortkandidaten bilden.` | Mechanismuserklärung | beschreibt die programmgesteuerte Kandidatenbildung präziser; ausdrücklich freigegebene Bedeutungspräzisierung | `Weiter`; keine Hervorhebung |
+| `S05.intro.narration.componentCategoryOverview` | `Als ersten Ausgangspunkt nutzt er, dass manche Passwörter und Zeichenfolgen besonders häufig verwendet werden.` | `Dabei beginnt er mit Passwörtern und Zeichenfolgen, die besonders häufig verwendet werden.` | Orientierung | vom Nutzer vorgegebener, direkter Übergang zur ersten Prüfung; begrenzte Bedeutungsänderung | `Weiter`; keine Hervorhebung |
+| `S05.componentStrategy.commonComponents.explanation[2]` | Angreifer als handelndes Subjekt; Begriff `typische Veränderungen`; zweiter Absatz | Programm als handelndes Subjekt; `typische Varianten`; Anwendung auf einzelne und zusammengesetzte Kandidaten in einem Absatz | Mechanismuserklärung | vom Nutzer vorgegebene technische Präzisierung und einheitliche Benennung; ausdrücklich freigegeben | `Weiter`; `typische Varianten` bleibt mit dem bestehenden Variantensymbol hervorgehoben |
+| `S05.componentStrategy.commonComponents.machine.generatorLabel`, `findingLabels.typical-transformation` | `Typische Veränderungen generieren`, `typische Veränderung` | `Typische Varianten generieren`, `typische Variante` | Orientierung / Ergebnisfeedback | einheitliche, ausdrücklich verlangte Terminologie | kein neues Interaktionsziel; bestehendes Variantensymbol bleibt |
+| `S05.componentStrategy.presentation.reviewCardTitle` | keine fortlaufende Prüfungskarte | `Prüfungskarte 1` | Orientierung | benennt die neue, rechts platzierte und nach jeder Prüfung ergänzte Zusammenfassung | kein Interaktionsziel; Kategorie wird durch Symbol, Titel und Bausteinbefund getragen |
+
+Die Kategorieübergänge werden außerhalb des transformierten Maschinencontainers auf der
+obersten S05-Seitenebene gerendert und bedecken dadurch Header, Inhalt und PassWo-Layer vollständig.
+Die obere Leiste zeigt keine Ergebniskarte mehr, sondern den großen Kategorietitel mit einem
+größeren, zentrierten Symbol darunter. Rechts bleibt `Prüfungskarte 1` zunächst leer und erhält
+nach jeder abgeschlossenen Prüfung Symbol, Kategorienamen und die erkannten Werte im vorhandenen
+Bausteinlook. Direkt gebundene Varianten wie Wort, Zahlenfolge und Symbol werden als ein
+einheitlich gefärbter Baustein gerendert. Es werden keine neuen Forschungsfelder gespeichert oder
+exportiert.
+
+### Copy-Delta S05 getrennte Erklärung und animierte Bausteinprüfung 5. August 2026
+
+Quelle ist der ausdrückliche Nutzerauftrag vom 5. August 2026. Der Wortlaut der bestehenden
+Kontobezugserklärung bleibt unverändert; geändert werden ihre Schrittgrenze, das sichtbare Ziel und
+die Handlung. Die drei lokalen Prüfungen, Analysegrenzen und flüchtigen Auswahlzustände bleiben
+unverändert. `S05_CONTENT_VERSION` wird von `2.27.0` auf `2.28.0` erhöht.
+
+| Segment und Text-ID | Vorher | Nachher | Primäre Rolle | Grund und Bedeutungsänderung | Interaktionsziel / Hervorhebung |
+|---|---|---|---|---|---|
+| `S05.componentStrategy.accountContext.explanation[0]` | WLAN-Beispiele und anschließende Prüfaufforderung erscheinen in einem gemeinsamen Maschinenschritt | `Bei einem WLAN könnten es „WLAN“, „Router“ oder „Fritzbox“ sein.` erhält den eigenen Schritt `account-context-examples` | Mechanismuserklärung | trennt Beispiel und Handlung sichtbar; keine Bedeutungsänderung | `Weiter` wechselt von der Maschine zur mittigen Passwortansicht; keine Hervorhebung |
+| `S05.componentStrategy.accountContext.explanation[1]` | Prüfaufforderung bleibt vor der Maschine sichtbar | Wortlaut unverändert vor der mittigen Passwortansicht | Navigation | die Aufforderung benennt nun das tatsächlich sichtbare Prüfziel | `Im Passwort prüfen`; `Bezug zum Konto und Umfeld` bleibt hervorgehoben |
+| `S05.fixtures.all-categories` | `CampusgramPassw0rt123!` | `CampusPassw0rt123!` | interne Design-Lab-Metadaten | stellt die verlangte Zusammenführung von `Passw0rt`, `123` und `!` in einem kompakten Beispiel dar | kein Teilnehmertext; keine Persistenz |
+
+Das mittige Kategoriesymbol entfällt aus der Kopfleiste. Die Maschine rückt nach oben und die
+kürzere `Prüfungskarte 1` wird nur in den eigentlichen Passwortprüfungs- und Ergebnisansichten
+gerendert. Sie beeinflusst nicht mehr die horizontale Zentrierung des Passworts, sondern liegt
+rechts außerhalb seines Layoutflusses. Mehrere Eigenschaften eines Bausteins stehen vertikal
+untereinander. Beim Prüfergebnis beginnen direkt gebundene Teilsegmente sichtbar getrennt und
+rücken mit abklingenden Einzelrahmen in den finalen, einheitlich gefärbten Baustein ein.
+`prefers-reduced-motion` zeigt unmittelbar den verbundenen Endzustand.
+
+### Copy-Delta S05 Kontextidentifikatoren und zweite Prüfungskarte 5. August 2026
+
+Quelle ist der ausdrückliche Nutzerauftrag vom 5. August 2026. Die Änderung bleibt auf S05 und
+die bereits vorhandene lokale zxcvbn-Adaptergrenze beschränkt. Benutzername und fiktive
+Konto-Mail werden ausschließlich aus der flüchtigen Campusidentität abgeleitet, im Arbeitsspeicher
+an die jeweilige lokale Analyse übergeben und weder persistiert noch exportiert.
+`S05_CONTENT_VERSION` wird von `2.28.0` auf `2.29.0` und die lokale Analysekonfiguration von
+`passwo-bounded-guess-path-v3` auf `passwo-bounded-guess-path-v4` erhöht.
+
+| Segment und Text-ID | Vorher | Nachher | Primäre Rolle | Grund und Bedeutungsänderung | Interaktionsziel / Hervorhebung |
+|---|---|---|---|---|---|
+| `S05.componentStrategy.categories.account-context`, `accountContext.opening`, `accountContext.explanation[1]` | `Bezug zum Konto und Umfeld` | `Bezug zum Konto, Dienst oder Umfeld` | Orientierung / Mechanismuserklärung / Navigation | erweitert den freigegebenen Kontext ausdrücklich um den Dienst; begrenzte Bedeutungsänderung | bestehende Prüfung; Kategoriephrase mit bestehendem Symbol |
+| `S05.componentStrategy.accountContext.opening[1]` | Campus, Nachricht, Gruppe oder Dienstname | `Bei Campusgram wären zum Beispiel Begriffe wie Campus, Nachricht, dein Benutzername oder der Dienstname naheliegend.` | Mechanismuserklärung | Benutzername wird als verlangter lokaler Kontoanhaltspunkt benannt; ausdrücklich freigegeben | `Weiter`; keine zusätzliche Hervorhebung |
+| `S05.componentStrategy.summary.*` | lange Treffererklärung, technische Fundformulierung und vorweggenommener Aufbauübergang | kurzer situativer Trefferhinweis und `Erkannt wurden Bestandteile aus [Kategorienamen].` | Ergebnisfeedback | reduziert die ausdrücklich benannte kognitive Last und hält die adaptive Kategorienliste bei | `Weiter`; häufige Bestandteile und persönliche Angaben bilden die freigegebene gemeinsame Hervorhebung |
+| `S05.structure.intro` | direkter Eintritt in vier Demonstrationskarten | neue Erklärung zu vorhersehbaren Kombinationsmustern vor der erneut sichtbaren annotierten Beispielkombination | Mechanismuserklärung | setzt den gewünschten eigenen Übergang vor die Aufbaukarten | `Weiter`; keine Hervorhebung |
+| `S05.structure.demonstrations[0..2]` | `Thematischer Zusammenhang`, `Satzstruktur`, `Wiederholung` | `Inhaltliche Zusammenhänge`, `Vorhersehbare Satz- und Phrasenstrukturen`, `Wiederholungsmuster` | Orientierung | übernimmt die ausdrücklich benannten Kategorien der zweiten Prüfungskarte | bestehender Kartenfortschritt; keine Hervorhebung |
+
+`Prüfungskarte 1` wird geringfügig höher und breiter. Ihre Bausteine erhalten ausschließlich in
+dieser kompakten Zusammenfassung kleinere Innenabstände und eine Höhe nahe der Textzeile. Die
+drei Aufbaukarten sammeln sich fortlaufend in `Prüfungskarte 2`; in ihrer Mitte wird keine
+Passwortmaschine gerendert. Die bisherige sichtbare vierte Demonstration `Passwortkontext`
+entfällt aus dieser Sequenz, die begrenzte lokale Kontextanalyse bleibt jedoch erhalten.

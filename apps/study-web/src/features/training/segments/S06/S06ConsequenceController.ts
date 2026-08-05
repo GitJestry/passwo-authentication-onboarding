@@ -60,6 +60,7 @@ export type S06ConsequenceAccountInputs = Readonly<
     {
       readonly fictionalPassword: string;
       readonly retrievalStatus: S06LocalAccountAnalysis['retrievalStatus'];
+      readonly transientAccountIdentifiers?: readonly string[];
     }
   >
 >;
@@ -90,6 +91,9 @@ export function createS06ConsequenceScenePlan(
     const componentAnalysis = analyzeFictionalPassword({
       fictionalPassword: account.fictionalPassword,
       authoredAccountTerms: definition.accountTerms,
+      ...(account.transientAccountIdentifiers === undefined
+        ? {}
+        : { transientAccountIdentifiers: account.transientAccountIdentifiers }),
     });
     return {
       accountId,

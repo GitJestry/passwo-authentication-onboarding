@@ -1,5 +1,6 @@
 import { s00Content, s01Content, s05Content } from '@passwo/training-content';
 import {
+  deriveCampusIdentity,
   PasswordModuleController,
   type PasswordModuleSnapshot,
   type RetrievalResult,
@@ -75,14 +76,21 @@ export function PasswordModuleTraining({
   const passwordValues = snapshot?.context.passwordValues;
   const retrievalResults = snapshot?.context.retrievalResults;
   const campusgramPassword = snapshot?.context.passwordValues['campusgram'] ?? '';
+  const campusIdentity = useMemo(
+    () => deriveCampusIdentity(snapshot?.context.displayName ?? ''),
+    [snapshot?.context.displayName],
+  );
   const s05Subject = useMemo(
     () => ({
       id: 'supportive-campusgram',
       label: 'Fiktives Campusgram-Passwort',
       fictionalPassword: campusgramPassword,
-      analysisContext: { accountTerms: s05Content.analysis.authoredAccountTerms },
+      analysisContext: {
+        accountTerms: s05Content.analysis.authoredAccountTerms,
+        transientAccountIdentifiers: campusIdentity.assessmentTerms.campusgram,
+      },
     }),
-    [campusgramPassword],
+    [campusIdentity.assessmentTerms.campusgram, campusgramPassword],
   );
   const s05CompletionPort = useMemo<S05CompletionPort>(
     () => ({
@@ -117,18 +125,21 @@ export function PasswordModuleTraining({
         'master-campus': {
           fictionalPassword: masterCampusPassword,
           retrievalStatus: masterCampusRetrieval,
+          transientAccountIdentifiers: campusIdentity.assessmentTerms['master-campus'],
         },
         'campus-email': {
           fictionalPassword: campusEmailPassword,
           retrievalStatus: campusEmailRetrieval,
+          transientAccountIdentifiers: campusIdentity.assessmentTerms['campus-email'],
         },
         campusgram: {
           fictionalPassword: campusgramPasswordValue,
           retrievalStatus: campusgramRetrieval,
+          transientAccountIdentifiers: campusIdentity.assessmentTerms.campusgram,
         },
       },
     };
-  }, [passwordValues, retrievalResults]);
+  }, [campusIdentity.assessmentTerms, passwordValues, retrievalResults]);
   const completeS06 = useCallback(() => controllerRef.current?.completeS06(), []);
   const storeS06EvaluationInput = useCallback(
     (input: Parameters<PasswordModuleController['setS06EvaluationInput']>[0]) =>

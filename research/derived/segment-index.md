@@ -59,8 +59,13 @@ Seitenangaben beziehen sich auf die im Trainingsdokument ausgewiesene interne Pa
 - S05.0 bis S05.4 verwenden die internen Seiten 12 bis 35 als Inhaltsquelle und sind im Design Lab
   sowie im realen Supportive-Training zwischen S04 und S06 vollständig durchspielbar. Beide Pfade
   verwenden dieselbe Komponente und denselben lokalen Controller.
-- S05.2 zeigt Thema, Satzstruktur, Wiederholung und Passwortkontext nacheinander. Thema und
-  Satzstruktur bleiben ausschließlich feste redaktionelle Demonstrationen.
+- S05.2 beginnt mit der erneut sichtbaren annotierten Beispielkombination und erklärt
+  vorhersehbare Kombinationsmuster. Danach sammelt `Prüfungskarte 2` die drei festen
+  Demonstrationen `Inhaltliche Zusammenhänge`, `Vorhersehbare Satz- und Phrasenstrukturen` und
+  `Wiederholungsmuster`; eine Passwortmaschine wird in diesem Teil nicht gerendert.
+- Der aus der flüchtigen Campusidentität abgeleitete Benutzername und die fiktive Konto-Mail
+  werden der lokalen zxcvbn-Auswertung als zusätzliche Kontoanhaltspunkte übergeben. Sie bleiben
+  im Arbeitsspeicher und werden weder persistiert noch exportiert.
 - Die lokale Laufzeitanalyse benennt nur exakte Wiederholung, eine feste Konto-/Kontextbeziehung
   mit erkanntem Zahlenmarker oder Anhang sowie eine begrenzte Beziehung bereits erkannter
   Bestandteile. Andernfalls lautet der Befund ausschließlich „kein einfacher Zusammenhang

@@ -59,7 +59,7 @@ const emphasisBySpeechId: Readonly<Record<string, readonly PassWoSpeechEmphasis[
   ],
   's05-common-components-changes': [
     {
-      phrase: 'typischen Veränderungen',
+      phrase: 'typische Varianten',
       tone: 'accent',
       symbolSrc: typicalChangesAsset,
     },
@@ -87,16 +87,28 @@ const emphasisBySpeechId: Readonly<Record<string, readonly PassWoSpeechEmphasis[
   ],
   's05-account-context-opening': [
     {
-      phrase: 'Bezug zum Konto und Umfeld',
+      phrase: 'Bezug zum Konto, Dienst oder Umfeld',
       tone: 'accent',
       symbolSrc: accountContextAsset,
     },
   ],
   's05-account-context-intro': [
     {
-      phrase: 'Bezug zum Konto und Umfeld',
+      phrase: 'Bezug zum Konto, Dienst oder Umfeld',
       tone: 'accent',
       symbolSrc: accountContextAsset,
+    },
+  ],
+  's05-components-summary': [
+    {
+      phrase: 'häufig verwendeten Passwörter und Zeichenfolgen',
+      tone: 'accent',
+      contrastId: 'recognized-component-categories',
+    },
+    {
+      phrase: 'persönliche Angaben',
+      tone: 'accent',
+      contrastId: 'recognized-component-categories',
     },
   ],
 };

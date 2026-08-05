@@ -19,12 +19,14 @@ import {
   originalSpanForNormalizedRange,
 } from './case-insensitive-spans.js';
 
-export const PASSWORD_ANALYSIS_CONFIGURATION_VERSION = 'passwo-bounded-guess-path-v3';
+export const PASSWORD_ANALYSIS_CONFIGURATION_VERSION = 'passwo-bounded-guess-path-v4';
 
 export interface FictionalPasswordAnalysisInput {
   readonly fictionalPassword: string;
-  /** Authored account terms only. Personal or participant data is not accepted. */
+  /** Versioned service and account terms from the authored training content. */
   readonly authoredAccountTerms?: readonly string[];
+  /** Transient fictional identifiers derived for this training session; never persisted. */
+  readonly transientAccountIdentifiers?: readonly string[];
 }
 
 export interface FictionalPasswordStructureAnalysisInput {
@@ -363,10 +365,13 @@ function deduplicateAndSortFindings(
 export function analyzeFictionalPassword({
   fictionalPassword,
   authoredAccountTerms = [],
+  transientAccountIdentifiers = [],
 }: FictionalPasswordAnalysisInput): PasswordAnalysisResult {
-  const trimmedAccountTerms = [...new Set(authoredAccountTerms.map((term) => term.trim()))].filter(
-    (term) => term.length >= 3,
-  );
+  const trimmedAccountTerms = [
+    ...new Set(
+      [...authoredAccountTerms, ...transientAccountIdentifiers].map((term) => term.trim()),
+    ),
+  ].filter((term) => term.length >= 3);
   const result = zxcvbnFactory.check(fictionalPassword, trimmedAccountTerms);
   const guessPathFindings = findingsFromGuessPath(fictionalPassword, result.sequence);
   const exactAccountTermFindings = collectExactAccountTermFindings(

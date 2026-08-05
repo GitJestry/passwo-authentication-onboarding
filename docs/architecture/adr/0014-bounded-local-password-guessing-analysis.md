@@ -2,6 +2,7 @@
 
 - **Status:** Accepted
 - **Datum:** 2026-08-03
+- **Ergänzt am:** 2026-08-05 um flüchtige fiktive Kontoidentifikatoren
 - **Citation label:** `ADR 0014-Bounded-Password-Guessing`
 - **Ergänzt:** ADR 0002, ADR 0003 und ADR 0007
 
@@ -26,9 +27,12 @@ Teilnehmeroberfläche deterministisch, lokal und erklärbar bleiben.
 `@passwo/password-analysis` verwendet `zxcvbn-ts` in einer eingefrorenen lokalen Konfiguration
 als etablierte Pattern- und Guessing-Basis. Eingebunden werden die Pakete `core`,
 `language-common`, `language-de` und `language-en` sowie die allgemeinen Tastaturgraphen. Die
-jeweilige Kontobezeichnung und wenige authored Kontextbegriffe werden ausschließlich als lokale
-`userInputs` übergeben. Es werden weder Netzwerkmatcher noch externe Kompromittierungsdienste,
-KI-Modelle oder dynamisch geladene Wörterbücher verwendet.
+jeweilige Kontobezeichnung, wenige authored Kontextbegriffe sowie der lokal aus der flüchtigen
+Trainingsidentität abgeleitete fiktive Benutzername und die fiktive Konto-Mail werden
+ausschließlich als lokale `userInputs` übergeben. Diese Identifikatoren werden für jedes der drei
+fiktiven Konten separat abgeleitet und weder persistiert noch exportiert. Es werden weder
+Netzwerkmatcher noch externe Kompromittierungsdienste, KI-Modelle oder dynamisch geladene
+Wörterbücher verwendet.
 
 Die Entscheidung für S06 beruht ausschließlich auf der von zxcvbn-ts geschätzten Kandidatenzahl
 des günstigsten **vollständigen** Ratewegs für die gesamte Zeichenfolge:
@@ -52,9 +56,10 @@ eine kürzere nicht erkannte Zeichenfolge wird umgekehrt nicht als sicher zertif
 
 Die automatische Darstellung darf ausschließlich belegte Pattern benennen, etwa häufige
 Passwortkerne, Wörter, Namen, Tastaturmuster, Folgen, Daten, Wiederholungen, typische
-Transformationen und authored Konto- oder Dienstbegriffe. Persönliche Bedeutung, gemeinsames
-Thema und Satz- oder Phrasenstruktur werden nicht aus der Zeichenfolge behauptet. Dafür enthält
-S05 eine lokale Selbsteinordnung mit der ausdrücklichen Ausweichoption
+Transformationen, authored Konto- oder Dienstbegriffe und exakte Treffer der lokalen fiktiven
+Kontoidentifikatoren. Persönliche Bedeutung, gemeinsames Thema und Satz- oder Phrasenstruktur
+werden nicht aus der Zeichenfolge behauptet. Dafür enthält S05 eine lokale Selbsteinordnung mit
+der ausdrücklichen Ausweichoption
 `Nichts davon oder unsicher`. Sie bleibt flüchtig, verlangt keine inhaltlichen Details und
 verändert die binäre Simulationsentscheidung nicht.
 
@@ -65,10 +70,10 @@ Ihre Begründung beruht auf dem bekannten, versionierten Erzeugungsprozess.
 
 Die Darstellung nimmt einen fiktiven Offline-Prüfkontext nach einem Datenleck an. Der Angreifer
 kann Kandidaten aus allgemeinen Wörterbüchern, typischen Transformationen, Folgen,
-Tastaturmustern, Wiederholungen und dem bekannten fiktiven Kontokontext kombinieren. Nicht
-modelliert werden insbesondere der konkrete Hashalgorithmus, Hardwareleistung, Phishing,
-Malware, reale persönliche Daten, zielgerichtete Informationen aus fremden Datenlecks oder eine
-exakte Crack-Zeit.
+Tastaturmustern, Wiederholungen, dem bekannten fiktiven Kontokontext und den lokal erzeugten
+fiktiven Kontoidentifikatoren kombinieren. Nicht modelliert werden insbesondere der konkrete
+Hashalgorithmus, Hardwareleistung, Phishing, Malware, Daten realer Konten, zielgerichtete
+Informationen aus fremden Datenlecks oder eine exakte Crack-Zeit.
 
 Die Aussage `quick-path-recognized` bedeutet daher nur, dass die eingefrorene begrenzte
 Konfiguration einen vollständigen Kandidatenweg innerhalb des festgelegten Budgets erkannt hat.
@@ -89,8 +94,9 @@ wurde.
 
 - `@zxcvbn-ts/*` ist eine neue Core-Abhängigkeit und wird mit exakter Version im Manifest und im
   Lockfile eingefroren.
-- Änderungen an Schwelle, Wörterbüchern, Konto-Kontexten, Match-Projektion oder Teilnehmertexten
-  benötigen eine neue Analyse- beziehungsweise Content-Version.
+- Änderungen an Schwelle, Wörterbüchern, Konto-Kontexten, lokalen Kontoidentifikatoren,
+  Match-Projektion oder Teilnehmertexten benötigen eine neue Analyse- beziehungsweise
+  Content-Version.
 - Ein synthetischer, versionierter Testkorpus prüft repräsentative häufige Passwörter,
   Transformationen, Konto-Kontexte, Wiederholungen, freie Zeichenfolgen, Unicode-Grenzen und
   die Trennung von Rateweg und Länge. Dieser Korpus belegt Reproduzierbarkeit der begrenzten

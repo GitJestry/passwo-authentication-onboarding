@@ -27,6 +27,9 @@ export class S05AnimationAdapter implements AnimationPlayerPort {
 
     for (const step of sequence.steps) {
       if (step.type !== 'highlight' && step.type !== 'reveal') continue;
+      if (step.targetId === 'component-conveyor' || step.targetId === 'component-strategy') {
+        continue;
+      }
       await new Promise<void>((resolve) => requestAnimationFrame(() => resolve()));
       if (this.#cancelled) return { status: 'cancelled' };
       const element = this.#getElement(step.targetId);

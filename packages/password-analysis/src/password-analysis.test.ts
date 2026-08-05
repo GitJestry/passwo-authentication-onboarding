@@ -292,7 +292,7 @@ function passwordAnalysisWithEstimatedGuesses(estimatedGuesses: number): Passwor
     ],
     guessPath: {
       engineId: 'zxcvbn-ts',
-      configurationVersion: 'passwo-bounded-guess-path-v3',
+      configurationVersion: 'passwo-bounded-guess-path-v4',
       estimatedGuesses,
       estimatedGuessesLog10: Math.log10(estimatedGuesses),
       matches: [],
@@ -333,6 +333,22 @@ describe('local fictional password analysis', () => {
     );
   });
 
+  it('uses transient fictional account identifiers as local zxcvbn inputs', () => {
+    const result = analyzeFictionalPassword({
+      fictionalPassword: 'mira.campusgram',
+      transientAccountIdentifiers: ['mira.campusgram', 'mira@mail.campus.example'],
+    });
+
+    expect(result.findings).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          kind: 'account-or-service-term',
+          confidence: 'authored-exact-match',
+        }),
+      ]),
+    );
+  });
+
   it.each([
     ['Passwort123!', [], ['common-password-core']],
     ['Campusgram2026', ['Campusgram'], ['account-or-service-term']],
@@ -350,7 +366,7 @@ describe('local fictional password analysis', () => {
       expect(expectedKinds.some((expectedKind) => actualKinds.includes(expectedKind))).toBe(true);
       expect(result.guessPath).toMatchObject({
         engineId: 'zxcvbn-ts',
-        configurationVersion: 'passwo-bounded-guess-path-v3',
+        configurationVersion: 'passwo-bounded-guess-path-v4',
       });
       expect(result.guessPath.estimatedGuesses).toBeGreaterThan(0);
       for (const finding of result.findings) {
@@ -418,7 +434,7 @@ describe('local fictional password analysis', () => {
       expect(disposition).toMatchObject({
         kind: expectedKind,
         quickPathThreshold: 100_000,
-        analysisVersion: 'passwo-bounded-guess-path-v3',
+        analysisVersion: 'passwo-bounded-guess-path-v4',
       });
       if (disposition.kind === 'quick-path-recognized') {
         expect(disposition.ruleId).toBe('bounded-complete-guess-path');
@@ -440,7 +456,7 @@ describe('local fictional password analysis', () => {
       kind: 'no-quick-path-recognized',
       quickPathThreshold: 100_000,
       lengthOrientation: 'below-15',
-      analysisVersion: 'passwo-bounded-guess-path-v3',
+      analysisVersion: 'passwo-bounded-guess-path-v4',
       explanationId: 's05.disposition.no-quick-path-recognized',
     });
     expect(disposition.estimatedGuesses).toBeGreaterThan(disposition.quickPathThreshold);

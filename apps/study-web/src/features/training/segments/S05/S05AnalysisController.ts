@@ -50,9 +50,11 @@ export type S05AnalysisStep =
   | 'personal-details-check'
   | 'personal-details-result'
   | 'account-context-opening'
+  | 'account-context-examples'
   | 'account-context-intro'
   | 'account-context-result'
   | 'components-summary'
+  | 'structure-intro'
   | 'structure-theme'
   | 'structure-sentence'
   | 'structure-repetition'
@@ -80,6 +82,7 @@ export interface S05AnalysisSubject {
   readonly fictionalPassword: string;
   readonly analysisContext: {
     readonly accountTerms: readonly string[];
+    readonly transientAccountIdentifiers?: readonly string[];
   };
 }
 
@@ -142,9 +145,11 @@ const stepByMissionId: Readonly<Record<string, S05AnalysisStep>> = {
   's05-personal-details-check': 'personal-details-check',
   's05-personal-details-result': 'personal-details-result',
   's05-account-context-opening': 'account-context-opening',
+  's05-account-context-examples': 'account-context-examples',
   's05-account-context-intro': 'account-context-intro',
   's05-account-context-result': 'account-context-result',
   's05-components-summary': 'components-summary',
+  's05-structure-intro': 'structure-intro',
   's05-structure-theme': 'structure-theme',
   's05-structure-sentence': 'structure-sentence',
   's05-structure-repetition': 'structure-repetition',
@@ -206,7 +211,7 @@ function cardsForStep(
 const firstMissionIdBySection = {
   intro: 's05-candidate-check',
   components: 's05-component-category-overview',
-  structure: 's05-structure-theme',
+  structure: 's05-structure-intro',
 } as const satisfies Readonly<Record<S05InitialSection, string>>;
 
 function createMission(
@@ -265,6 +270,12 @@ export class S05AnalysisController {
       authoredAccountTerms: subject.analysisContext.accountTerms.filter((term) =>
         frozenAccountTerms.has(term.toLocaleLowerCase('de-DE')),
       ),
+      ...(subject.analysisContext.transientAccountIdentifiers === undefined
+        ? {}
+        : {
+            transientAccountIdentifiers:
+              subject.analysisContext.transientAccountIdentifiers,
+          }),
     });
     const structureAnalysis = analyzeFictionalPasswordStructure({
       fictionalPassword: subject.fictionalPassword,

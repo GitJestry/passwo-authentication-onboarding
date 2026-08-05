@@ -53,9 +53,17 @@
 
 .pageHeader[data-category-chain="true"] {
   grid-template-columns: minmax(0, 1fr);
+  height: 5.75rem;
+  min-height: 5.75rem;
+  box-sizing: border-box;
   align-items: center;
   gap: 0;
   justify-items: start;
+  overflow: visible;
+  padding-bottom: 0;
+  border-bottom: 0;
+  background: var(--color-surface-analysis);
+  box-shadow: none;
   text-align: left;
 }
 
@@ -1192,170 +1200,197 @@
 
 .componentStrategyLayout {
   display: block;
+  width: 100%;
+  height: 100%;
+  min-height: 100%;
+}
+
+.componentReviewLayout {
+  position: relative;
+  display: grid;
   width: min(100%, 88rem);
   height: 100%;
   min-height: 100%;
+  grid-template-columns: minmax(0, 1fr);
+  align-items: stretch;
   margin: 0 auto;
-}
-
-.componentCategoryCards {
-  position: relative;
-  display: grid;
-  width: 100%;
-  align-content: start;
-  justify-self: stretch;
-  grid-template-rows: auto;
-  transform: translateY(-0.45rem);
 }
 
 .singleCategoryHeader {
   position: relative;
   display: grid;
   width: 100%;
-  height: 8.25rem;
-  min-height: 8.25rem;
+  height: 5.25rem;
+  min-height: 5.25rem;
   box-sizing: border-box;
   align-content: center;
-  gap: 0;
+  gap: 0.15rem;
   justify-items: center;
   color: var(--color-ink-strong);
   text-align: center;
-  transform: translateY(-0.45rem);
 }
 
 .singleCategoryHeader strong {
   z-index: 1;
-  max-width: min(58rem, calc(100% - 18rem));
+  max-width: min(58rem, calc(100% - var(--space-8)));
   font-size: clamp(1.55rem, 2.3vw, 2.35rem);
   font-weight: var(--font-weight-heavy);
   line-height: var(--line-height-tight);
 }
 
-.singleCategoryHeader img {
-  position: absolute;
-  top: 50%;
-  left: clamp(var(--space-2), 1.4vw, var(--space-4));
-  width: clamp(7rem, min(10.5vw, 15vh), 10.08rem);
-  height: clamp(7rem, min(10.5vw, 15vh), 10.08rem);
-  object-fit: contain;
-  transform: translateY(-50%);
-}
-
-.componentCategoryList {
+.componentMachineWorkspace {
   display: grid;
-  gap: var(--space-2);
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-}
-
-.componentCategoryCards article {
-  position: relative;
-  display: grid;
-  height: 6.55rem;
-  min-height: 0;
-  gap: var(--space-1);
+  width: min(100%, 72rem);
+  height: 100%;
   min-width: 0;
   place-items: center;
-  padding: 0.35rem var(--space-2) 0.5rem;
-  border: var(--border-width-thin) solid var(--color-border);
-  border-radius: var(--radius-small);
-  color: var(--color-ink-muted);
-  background: color-mix(in srgb, var(--color-surface-primary) 76%, transparent);
+  margin: 0 auto;
+  transform: translateY(-3rem);
 }
 
-.componentCategoryCards article[data-status="current"] {
-  color: var(--color-ink-strong);
-}
-
-.componentCategoryCards article[data-status="current"] .componentCategoryHeading img {
-  width: 7.7rem;
-  height: 7.7rem;
-}
-
-.componentCategoryCards article[data-status="checked-findings"] {
-  color: var(--color-ink-strong);
-}
-
-.componentCategoryCards article[data-status="checked-none"] {
-  border-style: dashed;
-  color: var(--color-ink-muted);
-  background: var(--color-surface-muted);
-}
-
-.componentCategoryCards article[data-active="true"] {
-  border-color: var(--color-accent-strong);
-  border-style: solid;
-  color: var(--color-ink-strong);
-  box-shadow:
-    inset 0.2rem 0 0 var(--color-accent-strong),
-    0 0 0.8rem color-mix(in srgb, var(--color-accent) 24%, transparent);
-}
-
-.componentCategoryCards article[data-active="true"][data-status="current"] {
-  border-color: var(--color-warning);
-  box-shadow:
-    inset 0.2rem 0 0 var(--color-warning),
-    0 0 0.8rem color-mix(in srgb, var(--color-warning) 28%, transparent);
-}
-
-.componentCategoryHeading {
+.componentReviewCard {
   position: absolute;
-  inset: 0;
-  display: block;
+  z-index: 3;
+  top: 50%;
+  right: 0;
+  display: grid;
+  width: clamp(14.5rem, 19vw, 18rem);
+  min-height: 19rem;
+  max-height: min(28rem, calc(100% - var(--space-4)));
+  align-content: start;
+  gap: var(--space-3);
+  min-width: 0;
+  padding: var(--space-4);
+  border: var(--border-width-medium) solid
+    color-mix(in srgb, var(--color-accent) 62%, var(--color-border));
+  border-radius: var(--radius-medium);
+  color: var(--color-ink-strong);
+  background: color-mix(in srgb, var(--color-surface-primary) 90%, transparent);
+  box-shadow:
+    0 1.2rem 2.8rem rgb(0 0 0 / 24%),
+    inset 0.18rem 0 0 color-mix(in srgb, var(--color-accent) 72%, transparent);
+  transform: translateY(-50%);
+  overflow: auto;
 }
 
-.componentCategoryHeading img {
-  position: absolute;
-  top: -0.8rem;
-  left: 50%;
-  width: 7.05rem;
-  height: 7.05rem;
+.componentReviewCard > h2 {
+  margin: 0;
+  font-size: clamp(1.15rem, 1.8vw, 1.45rem);
+  text-align: center;
+}
+
+.componentReviewEntries {
+  display: grid;
+  gap: var(--space-4);
+}
+
+.componentReviewEntries article {
+  display: grid;
+  gap: var(--space-2);
+  padding-top: var(--space-3);
+  border-top: var(--border-width-thin) solid var(--color-border);
+}
+
+.componentReviewHeading {
+  display: grid;
+  grid-template-columns: 3.8rem minmax(0, 1fr);
+  gap: var(--space-2);
+  align-items: center;
+}
+
+.componentReviewHeading img {
+  width: 3.8rem;
+  height: 3.8rem;
   object-fit: contain;
-  transform: translateX(-50%);
 }
 
-.componentCategoryHeading > div {
-  position: absolute;
-  right: var(--space-2);
-  bottom: 0.3rem;
-  left: var(--space-2);
-}
-
-.componentCategoryHeading h2 {
+.componentReviewHeading h3 {
   margin: 0;
   color: inherit;
   font-size: var(--font-size-small);
   line-height: var(--line-height-tight);
-  text-align: center;
 }
 
-.componentCategoryCards ul {
-  position: absolute;
-  z-index: 2;
-  top: 0.35rem;
-  right: 0.4rem;
-  display: flex;
+.componentReviewCard [data-display="decomposed"] {
+  width: 100%;
+  justify-content: start;
+}
+
+.componentReviewCard [data-display="decomposed"] > code {
+  max-width: 100%;
+  gap: 0.3rem;
   flex-wrap: wrap;
-  max-width: 46%;
-  gap: var(--space-1);
-  justify-content: flex-end;
-  margin: 0;
+  justify-content: start;
+  font-size: clamp(0.72rem, 1vw, 0.92rem);
+}
+
+.componentReviewCard [data-display="decomposed"] > code > span {
+  grid-template-rows: auto;
+}
+
+.componentReviewCard [data-display="decomposed"] b {
+  min-height: 1.75rem;
+  padding: 0.2rem 0.42rem;
+  border-width: var(--border-width-thin);
+  border-radius: 0.3rem;
+  box-shadow: 0 0.35rem 0.65rem color-mix(in srgb, var(--building-block-border) 15%, transparent);
+  font-size: clamp(0.7rem, 0.9vw, 0.88rem);
+  line-height: 1.1;
+}
+
+.structureReviewCard {
+  border-color: color-mix(in srgb, var(--color-warning) 58%, var(--color-border));
+  box-shadow:
+    0 1.2rem 2.8rem rgb(0 0 0 / 24%),
+    inset 0.18rem 0 0 color-mix(in srgb, var(--color-warning) 68%, transparent);
+}
+
+.structureReviewEntries {
+  display: grid;
+  gap: var(--space-3);
   padding: 0;
+  margin: 0;
   list-style: none;
 }
 
-.componentCategoryCards li {
-  padding: 0.18rem 0.4rem;
-  border: var(--border-width-thin) solid var(--color-accent-strong);
-  border-radius: var(--radius-round);
-  color: var(--color-ink-strong);
-  background: color-mix(in srgb, var(--color-accent) 18%, var(--color-surface-primary));
-  box-shadow: 0 0 0.65rem color-mix(in srgb, var(--color-accent) 34%, transparent);
-  font-size: var(--font-size-x-small);
+.structureReviewEntries li {
+  display: grid;
+  grid-template-columns: 1.8rem minmax(0, 1fr);
+  gap: var(--space-2);
+  align-items: center;
+  padding-top: var(--space-3);
+  border-top: var(--border-width-thin) solid var(--color-border);
 }
 
-.componentCategoryCards li code {
-  color: inherit;
-  font-size: inherit;
+.structureReviewEntries li > span {
+  display: grid;
+  width: 1.8rem;
+  height: 1.8rem;
+  place-items: center;
+  border: var(--border-width-thin) solid var(--color-border);
+  border-radius: var(--radius-round);
+  color: var(--color-ink-muted);
+  font-size: var(--font-size-x-small);
+  font-weight: var(--font-weight-heavy);
+}
+
+.structureReviewEntries li[data-current="true"] > span {
+  border-color: var(--color-warning);
+  color: var(--color-ink-strong);
+  background: var(--color-warning-soft);
+}
+
+.structureReviewEntries h3 {
+  margin: 0;
+  color: var(--color-ink-strong);
+  font-size: var(--font-size-small);
+  line-height: var(--line-height-tight);
+}
+
+.nothingFound {
+  color: var(--color-ink-muted);
+  font-size: var(--font-size-small);
+  line-height: var(--line-height-tight);
 }
 
 .personalComponentCheck > button {
@@ -1379,6 +1414,7 @@
   align-content: center;
   justify-items: center;
   gap: var(--space-5);
+  transform: translateY(-4.2rem);
 }
 
 .componentStrategyWorkspace .campusgramPassword {
@@ -1418,7 +1454,7 @@
 .commonComponentMachine {
   position: relative;
   display: grid;
-  width: min(72%, 60rem);
+  width: min(100%, 60rem);
   min-height: 27rem;
   grid-template-columns: minmax(10.5rem, 12.5rem) minmax(12rem, 1fr) minmax(10.5rem, 12.25rem);
   gap: clamp(var(--space-2), 1.7vw, var(--space-4));
@@ -1430,15 +1466,14 @@
 }
 
 .categoryTransition {
-  position: fixed;
+  position: absolute;
   z-index: 8;
   inset: 0;
   display: grid;
   place-items: center;
-  padding: var(--space-7);
+  padding: 0;
   color: var(--color-ink-strong);
-  background: rgb(4 10 14 / 72%);
-  backdrop-filter: blur(0.3rem);
+  background: var(--color-surface-analysis);
   text-align: center;
   pointer-events: auto;
   animation: category-transition 2.6s linear forwards;
@@ -1446,18 +1481,16 @@
 
 .categoryTransitionPanel {
   display: grid;
-  width: min(34rem, calc(100vw - 2 * var(--space-7)));
-  min-height: 18rem;
+  width: 100%;
+  min-height: 100%;
   gap: var(--space-3);
   place-content: center;
   justify-items: center;
   padding: var(--space-7);
-  border: var(--border-width-medium) solid color-mix(in srgb, var(--color-accent) 72%, white);
-  border-radius: var(--radius-large);
-  background: color-mix(in srgb, var(--color-surface-analysis-raised) 96%, #071018);
-  box-shadow:
-    0 1.6rem 4rem rgb(0 0 0 / 48%),
-    0 0 2.4rem color-mix(in srgb, var(--color-accent) 24%, transparent);
+  border: 0;
+  border-radius: 0;
+  background: var(--color-surface-analysis);
+  box-shadow: none;
   animation: category-transition-content 2.6s cubic-bezier(0.22, 1, 0.36, 1) forwards;
 }
 
@@ -1736,37 +1769,35 @@
 
 @keyframes category-transition {
   0% {
-    opacity: 0;
+    opacity: 1;
     visibility: visible;
   }
 
-  11.5%,
-  88.5% {
+  99.9% {
     opacity: 1;
     visibility: visible;
   }
 
   to {
-    opacity: 0;
+    opacity: 1;
     visibility: hidden;
   }
 }
 
 @keyframes category-transition-content {
   0% {
-    opacity: 0;
-    transform: translateY(1.2rem) scale(0.96);
+    opacity: 1;
+    transform: none;
   }
 
-  11.5%,
-  88.5% {
+  99.9% {
     opacity: 1;
-    transform: translateY(0) scale(1);
+    transform: none;
   }
 
   to {
-    opacity: 0;
-    transform: translateY(-0.5rem) scale(0.985);
+    opacity: 1;
+    transform: none;
   }
 }
 
@@ -1886,31 +1917,45 @@
   }
 
   .pageHeader[data-category-chain="true"] {
+    height: 5.75rem;
+    min-height: 5.75rem;
     grid-template-columns: minmax(0, 1fr);
   }
 
   .singleCategoryHeader {
-    height: 7.25rem;
-    min-height: 7.25rem;
+    height: 5.25rem;
+    min-height: 5.25rem;
   }
 
   .singleCategoryHeader strong {
-    max-width: calc(100% - 9rem);
-    margin-left: 8rem;
+    max-width: calc(100% - var(--space-6));
     font-size: clamp(1.15rem, 4.5vw, 1.55rem);
-  }
-
-  .singleCategoryHeader img {
-    width: 7rem;
-    height: 7rem;
   }
 
   .componentStrategyLayout {
     width: 100%;
   }
 
-  .componentCategoryList {
+  .componentReviewLayout {
+    height: auto;
+    min-height: 100%;
     grid-template-columns: minmax(0, 1fr);
+  }
+
+  .componentReviewCard {
+    position: static;
+    width: 100%;
+    min-height: 12rem;
+    max-height: none;
+    transform: none;
+  }
+
+  .componentStrategyWorkspace {
+    transform: none;
+  }
+
+  .componentMachineWorkspace {
+    transform: none;
   }
 
   .commonComponentMachine {

@@ -2,6 +2,11 @@ export interface CampusIdentity {
   readonly masterCampus: string;
   readonly campusEmail: string;
   readonly campusgram: string;
+  readonly assessmentTerms: {
+    readonly 'master-campus': readonly [username: string, email: string];
+    readonly 'campus-email': readonly [username: string, email: string];
+    readonly campusgram: readonly [username: string, email: string];
+  };
 }
 
 function toCampusStringId(displayName: string): string {
@@ -20,9 +25,17 @@ function toCampusStringId(displayName: string): string {
 /** Creates fictional, local-only identifiers from the transient training name. */
 export function deriveCampusIdentity(displayName: string): CampusIdentity {
   const stringId = toCampusStringId(displayName);
+  const masterCampusEmail = `${stringId}@campus.example`;
+  const campusEmail = `${stringId}@mail.campus.example`;
+  const campusgramUsername = `${stringId}.campusgram`;
   return {
-    masterCampus: `${stringId}@campus.example`,
-    campusEmail: `${stringId}@mail.campus.example`,
-    campusgram: `${stringId}.campusgram`,
+    masterCampus: masterCampusEmail,
+    campusEmail,
+    campusgram: campusgramUsername,
+    assessmentTerms: {
+      'master-campus': [stringId, masterCampusEmail],
+      'campus-email': [stringId, campusEmail],
+      campusgram: [campusgramUsername, campusEmail],
+    },
   };
 }
