@@ -109,3 +109,25 @@ Die drei fokalen Follow-up-Handlungen bilden eine zentral-sekundäre Ergebnisfam
 bleibt fehlend. Es werden weder objektive Kontobeobachtung, Vorher-Nachher-Verhaltensmessung,
 dauerhafte Adoption noch ein kombinierter Behavior Score behauptet. Die freiwillige
 Geheimhaltungsbitte mindert mögliche Kontamination, beseitigt sie aber nicht.
+
+## Revision 2026-08-05 — Optionale Nachbefragung und Löschgrenze
+
+Diese Revision ersetzt die Revision „Verbindliche Zwei-Teil-Studie 2.1“ für neue
+`3.0.0-pilot`-Sitzungen. Die Hauptstudie kann ohne E-Mail-Adresse vollständig durchgeführt werden.
+Die Nachbefragung wird durch eine gesonderte freiwillige Auswahl aktiviert. Die Session wird mit
+`followUpConsent = false` oder `true` angelegt; nur bei `true` registriert der Client anschließend
+die E-Mail-Adresse über die getrennte Recontact-Route. Ein Registrierungsfehler erlaubt Retry oder
+das Fortsetzen ohne Nachbefragung. Condition- und Guardrail-Zuweisung bleiben unabhängig von der
+Follow-up-Entscheidung.
+
+Das gemeinsame Debriefing erfolgt nach allen unmittelbaren Messungen in der Hauptsitzung. Eine
+verzögerte Debrief-Mail entfällt. Der Schedule-Export enthält nur E-Mail, individuellen Tokenlink,
+Einladungs-, Erinnerungs- und Schließzeitpunkt.
+
+Die E-Mail-Adresse ist unmittelbar nach Abschluss der Follow-up-Phase und dem letzten vorgesehenen
+Versand zu löschen. Die bestehende lokale Runtime versendet Nachrichten nicht selbst und
+protokolliert den letzten erfolgreichen Versand nicht zuverlässig. Deshalb wird in dieser Revision
+keine scheinbar automatische Löschung implementiert. Vor der Hauptstudie ist entweder ein
+kontrollierter manueller Löschprozess mit dokumentierter Bestätigung oder eine zuverlässig
+quittierte Versand-/Löschlogik festzulegen. Diese Revision ändert keine Registry-Felder, Tokenformate,
+Randomisierung oder Timingfenster.

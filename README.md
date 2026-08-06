@@ -2,7 +2,7 @@
 
 Dieses pnpm-Monorepo enthält das **Supportive Authentication Onboarding** und die lokale Runtime
 für die gekoppelte Between-Subjects-Studie. Der technische Studienpfad, die visuelle
-Trainingsplattform, die Segmente S00 bis S07 und die draft-versionierten Forschungsinstrumente
+Trainingsplattform, die Segmente S00 bis S07 und die pilot-versionierten Forschungsinstrumente
 sind integriert. S08 bis S17, das externe Follow-up-Formular mit Import und der Study Freeze sind
 noch offen.
 
@@ -16,9 +16,9 @@ noch offen.
 - **Training:** S00 bis S07 bilden den integrierten Lauf. S07 verdichtet die bereits vorhandenen
   lokalen S03-/S05-/S06-Befunde im Studienpfad und Design Lab zu genau einem nächsten Schritt je
   Konto.
-- **Instrumente:** Pre, Post, Guardrail und offene Rückmeldung laufen als versionierte,
-  atomare Submissions; der verpflichtende zweite Studienteil besitzt eine getrennte Recontact-Registry und
-  Schedule-Export.
+- **Instrumente:** Pre, unmittelbarer Post-Fragebogen, gemeinsamer Guardrail, post-guardrail
+  Self-Efficacy und retrospektive SecAware-Vorerfahrung laufen als versionierte atomare Submissions.
+  Die freiwillige Nachbefragung besitzt eine getrennte Recontact-Registry und einen Schedule-Export.
 - **Als Nächstes:** S08 bis S11 mit Passwortüberarbeitung und Modulabschluss.
 
 `apps/study-desktop` verpackt die Anwendung für Apple Silicon ohne Adresszeile und startet die
@@ -76,9 +76,10 @@ pnpm dev:secaware
 
 ## Study Runtime und Export
 
-Der Runtime-Pfad führt von Eligibility, Einwilligung und verpflichtender Kontaktbestätigung über
-serverseitige Session, echte Pre-/Post-/Guardrail-Instrumentblöcke und das zugewiesene Artefakt
-zur bedingten Session Closure und zum Abschluss. Anzeigenamen und Trainingsinputs bleiben
+Der Runtime-Pfad führt von Eligibility und Einwilligung über eine serverseitige Session, die
+optionale getrennte Recontact-Registrierung, die versionierten Pre-/Post-/Guardrail-Blöcke und das
+zugewiesene Artefakt zum gemeinsamen Debriefing und Abschluss. Eine E-Mail-Adresse ist keine
+Voraussetzung für die Hauptstudie. Anzeigenamen und Trainingsinputs bleiben
 ausschließlich im flüchtigen Arbeitsspeicher des Electron-Renderers. Standardmäßig liegt die
 Datenbank unter
 `~/.passwo-study/study.sqlite`; ein anderer lokaler Datenordner kann über `STUDY_DATA_DIR`
@@ -95,11 +96,11 @@ pnpm study:export -- --profile analysis --database /pfad/study.sqlite --output .
 
 Ohne `--profile` bleibt `audit` der Standard. Beide Profile erzeugen Sessions, Timing und
 Antworten als CSV und JSON sowie ein Manifest mit Profil, gekoppelter Schemaprofilversion,
-Versionen, Zählungen und SHA-256-Prüfsummen. Der Analyseexport entfernt exakte
-Kalenderzeitpunkte und separiert ausgefüllte Freitexte zur manuellen Prüfung in
-`free-text-review`.
+Versionen, Zählungen und SHA-256-Prüfsummen. Der Analyseexport entfernt exakte Kalenderzeitpunkte. Die defensive Ausgabe
+`free-text-review` bleibt für mögliche Altbestände erhalten; das aktuelle Pilotinstrument erhebt
+keinen Freitext.
 
-Der Versand des zweiten Studienteils erfolgt nicht automatisch. Die Studienleitung erzeugt den
+Der Versand der optionalen Nachbefragung erfolgt nicht automatisch. Die Studienleitung erzeugt den
 geschützten Schedule nur bei Bedarf und versendet die neutralen Einladungen einzeln über das
 freigegebene Universitätskonto:
 

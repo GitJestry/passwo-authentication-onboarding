@@ -4,151 +4,142 @@
 
 | Klasse | Beispiele | Persistenz |
 |---|---|---|
-| Study identity | interne Session-UUID, nicht angezeigte Forschungs-ID | `study.sqlite` |
+| Study identity | interne Session-UUID, zufällige nicht angezeigte Forschungs-/Studien-ID | `study.sqlite` |
 | Deletion lookup | ausschließlich SHA-256-Hash des flüchtigen Löschcodes | `study.sqlite` |
 | Assignment | Bedingung, Zuweisungsmodus, Guardrail-Form `F1` bis `F6` | `study.sqlite` |
 | Versioning | Study-, Content-, Fragebogen-, Guardrail-, Consent-, Follow-up- und Referenzversion | `study.sqlite` |
-| Timing | Phase, Segment-ID, Start/Ende, monotone Dauer | `study.sqlite` |
-| Main-session instruments | Pre, unmittelbarer Post, Guardrail, Post-Guardrail-Self-Efficacy, retrospektive SecAware-Frage, optionaler Kommentar | `study.sqlite` |
+| Timing | Phase, Abschnitt/Segment, Start/Ende, Dauer, technische Reason Codes | `study.sqlite` |
+| Main-session instruments | Pre, Post, Guardrail, Post-Guardrail-Self-Efficacy, retrospektive SecAware-Frage | `study.sqlite` |
 | Presentation | Form-ID und tatsächlich angezeigte Guardrail-Option-IDs | `study.sqlite` |
-| Completion | complete, incomplete, technical failure | `study.sqlite` |
-| Follow-up linkage | verpflichtende Kontaktbestätigung, Follow-up-Version, Token-Hash | `study.sqlite` |
-| Recontact | E-Mail, Roh-Token, Token-Hash, Consent-Version, Versand-/Schließzeitpunkte | ausschließlich `recontact.sqlite` |
-| Externes Follow-up | separat ausgelieferte Antworten, später versioniert importierbar | nicht Bestandteil der Training Runtime |
-| Ephemeral participant data | Anzeigename/Kürzel, roher Löschcode | nur flüchtiger Study-Renderer |
-| Training input/diagnosis | fiktive Passwörter, Loginversuche, Findings, Ähnlichkeit | nie persistieren |
-| Sensitive real-world data | reale Konten, Passwörter, Tokens, Vorfälle | nie erheben |
-| Passive metadata | IP, User-Agent, Request-Bodies | nicht persistieren |
+| Completion | completed, incomplete-reload, technische Fehlerzustände | `study.sqlite` |
+| Follow-up linkage | optionale Einwilligung, Follow-up-Version, Token-Hash | `study.sqlite` |
+| Recontact | E-Mail, Raw Token, Token-Hash, Consent-Version, geplante Einladungs-/Erinnerungs-/Schließzeitpunkte | ausschließlich `recontact.sqlite` |
+| Externes Follow-up | getrennt ausgelieferte Antworten, später nur über zufällige Studien-ID pseudonym verknüpfbar | außerhalb der Haupt-Runtime |
+| Ephemeral participant data | Anzeigename, roher Löschcode | ausschließlich flüchtiger Rendererzustand |
+| Training input/diagnosis | fiktive Passwörter, Loginversuche, Findings, Ähnlichkeit | nie persistieren oder senden |
+| Sensitive real-world data | reale Konten, Passwörter, Tokens, Wiederherstellungscodes, Vorfälle | nie erheben |
+| Passive metadata | IP, User-Agent, Request-Bodies | nicht persistieren oder loggen |
 
 ## Forschungsdatenbank
 
 `study.sqlite` enthält:
 
-- `study_sessions` für interne Session-UUID, Forschungs-ID, Löschcode-Hash, Zuweisung,
-  Instrumentversionen, Follow-up-Einwilligung und Status;
+- `study_sessions` für Session-UUID, Forschungs-ID, Löschcode-Hash, Zuweisung, Versionen,
+  optionale Follow-up-Einwilligung und Abschlussstatus;
 - `assignment_slots` und `guardrail_form_slots` für getrennte serverseitige Blockzuweisungen;
-- `timing_events` für idempotente Zeitereignisse;
-- `artifact_leases` ausschließlich für operative Reload-Erkennung;
+- `timing_events` für idempotente Timingwrites;
+- `artifact_leases` nur für operative Reload-Erkennung;
 - `instrument_submissions` für atomare Blockabgaben und Payload-Fingerprints;
 - `responses` für validierte Antworten der Hauptsitzung;
-- `response_presentations` für die tatsächlich dargestellten Guardrail-Optionen.
+- `response_presentations` für tatsächlich dargestellte Guardrail-Optionen.
 
-`artifact_leases` sind weder Forschungstiming noch Bestandteil des Exports. E-Mail,
-Roh-Token und Recontact-Request-ID sind in `study.sqlite` verboten.
+E-Mail, Raw Token und Recontact-Request-ID sind in `study.sqlite` verboten. `artifact_leases` sind
+keine Forschungsdaten und werden nicht exportiert.
+
+## Getrenntes Kontaktregister
+
+`recontact.sqlite` wird nur angelegt beziehungsweise befüllt, wenn die Person die optionale
+Nachbefragung auswählt und eine gültige E-Mail-Adresse angibt. Es enthält ausschließlich die für
+den Kontaktprozess erforderliche Zuordnung. Eine Person kann ohne E-Mail-Adresse vollständig an
+der Hauptstudie teilnehmen.
+
+Die Hauptdatenbank speichert nur den Token-Hash. Antworten aus Haupt- und Nachbefragung dürfen nur
+über die zufällige Studien-ID pseudonym zusammengeführt werden; die E-Mail-Adresse darf nie in den
+Forschungsdatensatz oder Analyseexport gelangen.
+
+Die E-Mail-Adresse ist nach Abschluss der Follow-up-Phase und dem letzten vorgesehenen Versand zu
+löschen. Der aktuelle manuelle Schedule-Export bestätigt keinen letzten erfolgreichen Versand.
+Automatische Löschung ist deshalb noch nicht implementiert; vor der Hauptstudie ist ein
+kontrollierter manueller Löschprozess oder eine zuverlässig quittierte Versand-/Löschlogik
+verbindlich festzulegen.
 
 ## Kanonische Instrumentquellen
 
-Die Hauptsitzung verwendet:
+- `research/derived/instruments-v1.yaml`: Forschungs- und Analysespezifikation;
+- `research/derived/instruments-v1.runtime.json`: geprüfte Teilnehmer-Runtime;
+- `packages/contracts/src/generated/instruments-v1.runtime.json`: identische eingebundene Kopie;
+- `research/derived/follow-up-v6.yaml`: getrenntes Follow-up-Instrument und Nachrichten.
 
-- `research/derived/instruments-v1.yaml` als Forschungs- und Analysespezifikation;
-- `research/derived/instruments-v1.runtime.json` als teilnehmerseitige Runtime-Projektion;
-- `packages/contracts/src/generated/instruments-v1.runtime.json` als identische eingebundene
-  Projektion.
+Die Haupt-Runtime enthält nur `pre-v1`, `post-v1` und `guardrail-v2`. Es gibt keinen
+`post-open-v1`-Block und keinen offenen Kommentar. Follow-up-Fragen werden nicht in das
+Hauptstudien-Bundle importiert.
 
-Die Runtime enthält ausschließlich `pre-v1`, `post-v1`, `guardrail-v2` und `post-open-v1`.
-Follow-up-Fragen sind ausdrücklich ausgeschlossen. Ihr separater Wortlaut liegt in
-`research/derived/follow-up-v5.yaml` und `docs/research/FOLLOW-UP-INSTRUMENT.md`.
-
-## Antwort-Submission
-
-Der Client sendet einen vollständigen Instrumentblock mit `instrumentId`, `sectionId` und der
-exakt erwarteten Itemmenge. Der Server validiert IDs, Itemmenge, Wertebereiche,
-Mehrfachauswahl-Exklusivität und Textlängen anhand der versionierten Runtime-Definition.
-
-Die erste gültige Submission wird transaktional gespeichert. Eine identische Wiederholung ist
-idempotent. Ein abweichender zweiter Payload für denselben Block erzeugt einen Konflikt und
-überschreibt keine Daten. Rohantworten und Präsentationsreihenfolge werden exportiert; Scoring und
-Klassifikation finden ausschließlich im reproduzierbaren Analyseprozess statt.
-
-Die Hauptsitzung verwendet folgende Blockreihenfolge:
+## Hauptstudienblöcke
 
 ```text
-Pre-Abschnitte
-→ unmittelbare Post-Abschnitte
+Pre sample
+→ Pre experience
+→ Artefakt
+→ PANAS
+→ perceived duration / duration fit
+→ UEQ-S
+→ UEQ+ Trustworthiness of Content
+→ design diagnostics
+→ risk proportionality / perceived understanding
 → Guardrail scenarios
 → Guardrail recognition
-→ Post-Guardrail Self-Efficacy
-→ retrospektive SecAware-Vorerfahrung
-→ post-open
+→ post-guardrail self-efficacy
+→ retrospective SecAware exposure
+→ common debriefing
+→ completion
 ```
 
-Die sechs Guardrail-Formen werden serverseitig innerhalb jeder Bedingung in kleinen permutierten
-Sechserblöcken zugewiesen. Form und dargestellte Option-IDs werden vor der ersten Antwort
-persistiert und bleiben über Navigation oder Reload stabil. Der Client kann weder Condition noch
-Form wählen.
+Der Client sendet jeweils einen vollständigen Block mit `instrumentId`, `sectionId` und der exakt
+erwarteten Itemmenge. Der Server validiert IDs, Typen, Wertebereiche, Pflichtfelder,
+Mehrfachauswahl-Exklusivität und Guardrail-Präsentation anhand der versionierten Runtime.
 
-## Item- und Analysegrenzen
+Die erste gültige Submission wird transaktional gespeichert. Identische Wiederholung ist
+idempotent; ein abweichender zweiter Payload erzeugt einen Konflikt und überschreibt keine Daten.
+Klassifikationen und Scoring-Rubriken werden nicht an den Client ausgeliefert oder mit Antworten
+gespeichert.
 
-- `PRE_SECAWARE_RETROSPECTIVE` wird erst nach Guardrail und Post-Self-Efficacy gespeichert. Die
-  primäre Vergleichsanalyse schließt aufgrund dieser retrospektiven Angabe niemanden aus.
-- Die vier Pre-/Post-Self-Efficacy-Paare verwenden getrennte stabile IDs für kontospezifischen
-  Zugang, Passwortmanager-Einrichtung, Passwortmanager-Anmeldung und MFA-Aktivierung. Es gibt
-  keinen gemeinsamen Score.
-- UEQ-S, UEQ+ Inhaltsseriosität und Custom Items bleiben getrennte Ergebnisfamilien.
-- `PERCEIVED_DURATION` steht direkt vor `TIME_FIT` und erfasst subjektive Länge; `TIME_FIT`
-  bewertet die zeitliche Angemessenheit. Beide werden einzeln und als vollständige Verteilung
-  ausgewertet; höhere Werte bedeuten nicht automatisch bessere Qualität.
-- `RISK_PRESENTATION` ist ein Mittelpunkturteil; höhere Werte sind nicht besser.
-- Für Instrument 2.1 ist `CONSEQUENCE_TANGIBILITY` verpflichtend.
-  `CONSEQUENCE_VISIBILITY` bleibt ausschließlich in historischen 2.0-Daten über deren
-  Instrumentversion interpretierbar und wird weder umbenannt noch migriert.
-- Guardrail-Klassifikationen wie `appropriate`, `incomplete`, `unsafe` oder `correct` werden nicht
-  an den Client ausgeliefert und nicht mit den Antworten gespeichert.
-- `OPEN_COMMENT` ist optional. Leerer Text wird als `null` gespeichert; ausgefüllter Freitext wird
-  im Analyseexport bis zur manuellen Prüfung separiert.
+## Guardrail-Formen
 
-## Pseudonymisierung und Recontact
+Die Formen `F1` bis `F6` werden innerhalb jeder Bedingung in kleinen zufällig permutierten
+Sechserblöcken serverseitig zugewiesen. Form und tatsächliche Optionreihenfolge werden vor der
+Antwort persistiert und bleiben stabil. Der Client kann weder Condition noch Form bestimmen.
 
-Die Forschungs-ID wird serverseitig zufällig erzeugt und enthält keine Initialen, Matrikelnummer
-oder Zeitstempel. Sie wird Teilnehmenden nicht angezeigt. Der Löschcode wird unabhängig im Browser
-erzeugt; nur sein SHA-256-Hash wird gespeichert. Rohcode und Hash werden nicht exportiert.
+## Pseudonymisierung, Anonymisierung und Löschung
 
-Für neue 2.1-Sitzungen werden Session, Condition-Slot und Recontact-Registrierung in einem
-atomaren, idempotenten Vorgang angelegt; `followUpConsent` ist dabei immer wahr. E-Mail und
-Roh-Token gelangen ausschließlich in `recontact.sqlite`, während `study.sqlite` nur Consent-
-Status, Follow-up-Version und Token-Hash erhält. Ein Fehler oder konfliktbehafteter Retry darf
-keinen Teilzustand hinterlassen. Historische Sitzungen mit abweichendem Consent-Status bleiben
-versioniert lesbar.
+Solange Haupt- und Follow-up-Antworten über die zufällige Studien-ID zugeordnet werden können,
+sind die Forschungsdaten pseudonymisiert, nicht anonym. Der Zeitpunkt der tatsächlichen,
+unumkehrbaren Anonymisierung ist vor Beginn der Hauptstudie festzulegen und derzeit offen. Bis
+dahin kann eine Person unter Angabe des Löschcodes die zuordenbaren Daten löschen lassen. Nach
+der Anonymisierung ist eine individuelle Zuordnung und Löschung nicht mehr möglich.
 
-`recontact.sqlite` enthält ausschließlich die für Versand und Aufklärung notwendige
-Kontaktzuordnung. Der Schedule-Export kann E-Mail, Token-Link, Versandzeitpunkte und den aus
-`closesAt` abgeleiteten abschließenden Debrief-Zeitpunkt bereitstellen. Die Training Runtime zeigt und
-speichert keine Follow-up-Frage. Eine spätere Zusammenführung externer Follow-up-Antworten mit der
-Forschungs-ID benötigt einen eigenen dokumentierten Importprozess; E-Mail und Roh-Token dürfen
-nicht in den Forschungsdatensatz gelangen.
+Der rohe Löschcode wird clientseitig erzeugt und nicht gespeichert; in `study.sqlite` liegt nur
+sein SHA-256-Hash. Die zufällige Forschungs-ID wird der Person nicht angezeigt.
+
+Die aufzubewahrenden Forschungsdaten werden geschützt in Sciebo gespeichert und nach zehn Jahren
+endgültig gelöscht. Vor Anonymisierung sind sie als pseudonymisierte Forschungsdaten zu
+bezeichnen; nach nachweislich irreversibler Anonymisierung nur noch als anonymisierte Daten.
 
 ## Timing
 
-- Artefaktbeginn und -ende werden über serverseitig idempotente Boundary Events erfasst.
-- Die zentrale Dauer ist Wall-Clock-Zeit; sie wird nicht als ununterbrochene aktive Beschäftigung
-  interpretiert.
-- Reloads, technische Fehler und längere Unsichtbarkeit werden über vorab festgelegte technische
-  Regeln markiert.
-- Segmentzeiten des Prototyps sind nur interne Diagnostik, weil sie für das Referenzartefakt nicht
-  äquivalent vorliegen.
+- zentrale Artefaktdauer: Wall-Clock zwischen vorab definiertem Start- und Endereignis;
+- nicht als ununterbrochene aktive Beschäftigung interpretieren;
+- Reloads, technische Fehler und längere Unsichtbarkeit nach vorab festgelegten Regeln markieren;
+- Prototype-Segmentzeiten nur intern diagnostisch verwenden.
+
+Für die Referenzbedingung endet der gemessene administrierte Instruktionspfad unmittelbar vor dem
+ausgelassenen terminalen Knowledge Quiz.
 
 ## Export
 
-Audit- und Analyseexport schließen Session-ID, E-Mail, Löschcode, Token, Trainingsinputs und
-Passwortdiagnosen aus. Das Data Dictionary enthält nur die Instrumente der Hauptsitzung und
-kennzeichnet die unterschiedliche Interpretation von `PERCEIVED_DURATION` und `TIME_FIT`. Die
-zugehörige Schemaänderung ist als `research-export-v6` versioniert. Die
-Sessiondatei darf weiterhin `followUpConsent` und `followUpVersion` enthalten, weil diese die
-separate Recontact-Prozedur versionieren; sie bedeuten nicht, dass Follow-up-Fragen Teil des
-Training-Bundles sind.
-
-Das externe Follow-up ist keine objektive Beobachtung realer Konten und keine Vorher-Nachher-
-Messung desselben Verhaltens. Die drei fokalen Antworten bleiben getrennt; es gibt weder einen
-kombinierten Behavior Score noch eine Aussage über dauerhafte Adoption. Nichtantwort bleibt
-fehlend.
+Audit- und Analyseexporte schließen Session-ID, E-Mail, Löschcode, Raw Token, Trainingsinputs und
+Passwortdiagnosen aus. Der Analyseexport enthält nur erlaubte pseudonymisierte Forschungsfelder
+und die tatsächlich präsentierten Guardrail-Reihenfolgen. Follow-up-Einwilligung und
+Follow-up-Version dürfen als Verfahrensvariablen enthalten sein; sie machen die E-Mail-Adresse
+nicht zu einem Forschungsfeld.
 
 ## Verbotene Datenflüsse
 
 Unzulässig sind insbesondere:
 
-- Persistenz realer oder fiktiver Passwortwerte, Passwortteile oder lokaler Findings;
+- Persistenz oder Übertragung realer oder fiktiver Passwortwerte, Passwortteile oder Findings;
 - Logging von Request-Bodies, Eingabewerten, IP-Adressen oder User-Agents;
-- Aufnahme von E-Mail oder Roh-Token in Forschungsantworten oder Exporte;
-- clientseitige Wahl von Bedingung oder Guardrail-Form;
-- Auslieferung von Scoring-Rubriken an den Teilnehmerclient;
-- Bündelung der Follow-up-Fragen mit Training oder Hauptfragebogen.
+- E-Mail oder Raw Token in Forschungsantworten oder Exporten;
+- clientseitige Condition- oder Guardrail-Form-Wahl;
+- Auslieferung von Scoring-/Klassifikationsrubriken an Teilnehmende;
+- Bündelung der Follow-up-Fragen mit Training oder Hauptfragebogen;
+- Bezeichnung pseudonym verknüpfbarer Daten als anonym.

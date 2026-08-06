@@ -24,6 +24,7 @@ import {
   researchExportProfileSchema,
   researchExportSessionRecordSchema,
   REFERENCE_ARTIFACT_VERSION,
+  registerRecontactRequestSchema,
   s07RecommendationIds,
   SUPPORTIVE_ARTIFACT_SEGMENT_IDS,
   SUPPORTIVE_ARTIFACT_VERSION,
@@ -39,8 +40,7 @@ describe('research-safe contracts', () => {
     const result = createSessionRequestSchema.safeParse({
       requestId: 'f5d74d44-f700-4dc7-ac00-5e251a8890c3',
       consentAccepted: true,
-      recontactConsentAccepted: true,
-      email: 'person@example.org',
+      followUpConsent: false,
       deletionCodeHash: validDeletionCodeHash,
       [forbiddenPersonalizationField]: 'Alex',
     });
@@ -63,70 +63,60 @@ describe('research-safe contracts', () => {
       createSessionRequestSchema.safeParse({
         requestId: 'f5d74d44-f700-4dc7-ac00-5e251a8890c3',
         consentAccepted: true,
-        recontactConsentAccepted: true,
-        email: 'person@example.org',
+        followUpConsent: false,
         deletionCodeHash: validDeletionCodeHash,
         condition: 'supportive',
       }).success,
     ).toBe(false);
   });
 
-  it('requires validated email and recontact consent during atomic session creation', () => {
-    expect(
-      createSessionRequestSchema.safeParse({
-        requestId: 'f5d74d44-f700-4dc7-ac00-5e251a8890c3',
-        consentAccepted: true,
-        recontactConsentAccepted: true,
-        email: 'person@example.org',
-        deletionCodeHash: validDeletionCodeHash,
-      }).success,
-    ).toBe(true);
-    expect(
-      createSessionRequestSchema.safeParse({
-        requestId: 'f5d74d44-f700-4dc7-ac00-5e251a8890c3',
-        consentAccepted: true,
-        recontactConsentAccepted: true,
-        deletionCodeHash: validDeletionCodeHash,
-      }).success,
-    ).toBe(false);
-    expect(
-      createSessionRequestSchema.safeParse({
-        requestId: 'f5d74d44-f700-4dc7-ac00-5e251a8890c3',
-        consentAccepted: true,
-        recontactConsentAccepted: false,
-        email: 'person@example.org',
-        deletionCodeHash: validDeletionCodeHash,
-      }).success,
-    ).toBe(false);
-    expect(
-      createSessionRequestSchema.safeParse({
-        requestId: 'f5d74d44-f700-4dc7-ac00-5e251a8890c3',
-        consentAccepted: true,
-        recontactConsentAccepted: true,
-        email: 'not-an-email',
-        deletionCodeHash: validDeletionCodeHash,
-      }).success,
-    ).toBe(false);
-    for (const forbiddenField of ['rawToken', 'recontactRequestId']) {
+  it('keeps optional recontact separate from session creation', () => {
+    for (const followUpConsent of [false, true]) {
       expect(
         createSessionRequestSchema.safeParse({
           requestId: 'f5d74d44-f700-4dc7-ac00-5e251a8890c3',
           consentAccepted: true,
-          recontactConsentAccepted: true,
-          email: 'person@example.org',
+          followUpConsent,
           deletionCodeHash: validDeletionCodeHash,
-          [forbiddenField]: 'not-allowed',
         }).success,
-      ).toBe(false);
+      ).toBe(true);
     }
+
+    expect(
+      createSessionRequestSchema.safeParse({
+        requestId: 'f5d74d44-f700-4dc7-ac00-5e251a8890c3',
+        consentAccepted: true,
+        followUpConsent: true,
+        deletionCodeHash: validDeletionCodeHash,
+        email: 'person@example.org',
+      }).success,
+    ).toBe(false);
+    expect(
+      registerRecontactRequestSchema.safeParse({
+        requestId: '741030de-7eb7-4686-8d23-b463114f8c7d',
+        email: 'person@example.org',
+      }).success,
+    ).toBe(true);
+    expect(
+      registerRecontactRequestSchema.safeParse({
+        requestId: '741030de-7eb7-4686-8d23-b463114f8c7d',
+        email: 'not-an-email',
+      }).success,
+    ).toBe(false);
+    expect(
+      registerRecontactRequestSchema.safeParse({
+        requestId: '741030de-7eb7-4686-8d23-b463114f8c7d',
+        email: 'person@example.org',
+        rawToken: 'not-allowed',
+      }).success,
+    ).toBe(false);
 
     for (const forbiddenIdentityField of ['deletionCode', 'researchCode', 'researchId']) {
       expect(
         createSessionRequestSchema.safeParse({
           requestId: 'f5d74d44-f700-4dc7-ac00-5e251a8890c3',
           consentAccepted: true,
-          recontactConsentAccepted: true,
-          email: 'person@example.org',
+          followUpConsent: false,
           deletionCodeHash: validDeletionCodeHash,
           [forbiddenIdentityField]: 'not-allowed',
         }).success,
@@ -434,25 +424,25 @@ describe('research-safe contracts', () => {
     ).toBe(false);
   });
 
-  it('keeps the generated runtime manifest fully synchronized with the frozen projection', () => {
+  it('keeps the generated runtime manifest fully synchronized with the reviewed projection', () => {
     expect(instrumentRuntimeManifest).toEqual(reviewedInstrumentRuntimeManifest);
     expect(JSON.stringify(instrumentRuntimeManifest)).not.toMatch(
       /"[^"]*(?:classification|scor(?:e|ing)|derivedMetric)[^"]*"\s*:/iu,
     );
-    expect(instrumentRuntimeManifest.procedures.followUpRecontact.optional).toBe(false);
+    expect(instrumentRuntimeManifest.procedures.followUpRecontact.optional).toBe(true);
     expect(instrumentRuntimeManifest).toMatchObject({
-      instrumentVersion: '2.1.0',
-      questionnaireVersion: 'questionnaire-v3',
-      guardrailVersion: 'guardrail-v4',
-      consentVersion: 'consent-v7-draft',
-      followUpVersion: 'follow-up-v5',
-      runtimeManifestVersion: 'instrument-runtime-v2.1',
+      schemaVersion: 4,
+      instrumentVersion: '3.0.0-pilot',
+      questionnaireVersion: 'questionnaire-v4-pilot',
+      guardrailVersion: 'guardrail-v5-pilot',
+      consentVersion: 'consent-v8-pilot',
+      followUpVersion: 'follow-up-v6-pilot',
+      runtimeManifestVersion: 'instrument-runtime-v3-pilot',
     });
     expect(Object.keys(instrumentRuntimeManifest.instruments)).toEqual([
       'pre-v1',
       'post-v1',
       'guardrail-v2',
-      'post-open-v1',
     ]);
 
     const preItemIds = instrumentRuntimeManifest.instruments['pre-v1'].sections.flatMap((section) =>
@@ -469,32 +459,52 @@ describe('research-safe contracts', () => {
       'PRE_TRAINING',
       'PRE_PM_USE',
       'PRE_MFA_USE',
-      'SE_DISTINCT_ACCESS_PRE',
-      'SE_PM_NEW_ACCOUNT_PRE',
-      'SE_PM_LOGIN_PRE',
-      'SE_MFA_ENABLE_PRE',
     ]);
     expect(postInstrument.order).toEqual([
+      'panas',
+      'duration',
       'ueqs',
       'content_trustworthiness',
-      'duration',
       'design_diagnostics',
       'risk_understanding',
       'self_efficacy',
       'secaware_prior_exposure',
     ]);
-    expect(postItemIds).toHaveLength(29);
+    expect(postItemIds).toHaveLength(53);
+    expect(postItemIds.slice(0, 20)).toEqual(
+      Array.from({ length: 20 }, (_, index) => `PANAS_${String(index + 1).padStart(2, '0')}`),
+    );
     expect(postItemIds.indexOf('PERCEIVED_DURATION')).toBe(
       postItemIds.indexOf('TIME_FIT') - 1,
     );
-    expect(postItemIds).toContain('CONSEQUENCE_TANGIBILITY');
-    expect(postItemIds).not.toContain('CONSEQUENCE_VISIBILITY');
+    expect(postItemIds).toEqual(
+      expect.arrayContaining([
+        'APPROACH_FRAMING',
+        'REFLECTIVE_ENGAGEMENT',
+        'CONSEQUENCE_RISK',
+        'CONSEQUENCE_PROTECTION',
+        'INFORMATION_PACING',
+        'ACTION_CLARITY',
+        'SE_DISTINCT_ACCESS',
+        'SE_PM_NEW_ACCOUNT',
+        'SE_PM_LOGIN',
+        'SE_MFA_ENABLE',
+      ]),
+    );
     expect(JSON.stringify({ preItemIds, postItemIds })).not.toMatch(
-      /PRE_GENDER|PRE_FAM_|TIME_FELT|TIME_VALUE|FOCUS_TF|EMOTION_|CRED_/u,
+      /PRE_GENDER|SE_.*_PRE|CONSEQUENCE_(?:VISIBILITY|TANGIBILITY)|OPEN_COMMENT|post-open/u,
     );
 
     const guardrail = instrumentRuntimeManifest.instruments['guardrail-v2'];
     expect(guardrail.blocks.map((block) => block.id)).toEqual(['scenarios', 'recognition']);
+    expect(guardrail.questionOrder).toEqual([
+      'SC_DISTINCT_PASSWORDS',
+      'SC_PM_MANY_ACCOUNTS',
+      'SC_LAYERED_PROTECTION',
+      'MR_DISTINCT_PASSWORDS',
+      'MR_PASSWORD_MANAGER',
+      'MR_MFA',
+    ]);
     expect(guardrail.nativeArtifactCheckPolicy).toEqual({
       passwoNativeLearningChecksRetained: true,
       secAwareNativeQuizIncludedInMeasuredPath: false,
@@ -502,30 +512,34 @@ describe('research-safe contracts', () => {
       externalItemsMustBeNovelAndTransferOriented: true,
     });
     const forms = guardrail.optionPresentation.forms;
-    const correctOptionIds = [
-      'new_distinct_both',
-      'own_with_pm',
+    const appropriateOptionIds = [
+      'own_strong_each',
+      'pm_generate_store_organize',
       'unique_and_mfa',
-      'same_tried_elsewhere',
-      'account_specific_store_use',
-      'additional_barrier',
+      'own_strong_each',
+      'generate_store_organize',
+      'password_plus_other_category',
     ];
     const formIds = ['F1', 'F2', 'F3', 'F4', 'F5', 'F6'] as const;
     for (const itemIndex of guardrail.questionOrder.keys()) {
       const itemId = guardrail.questionOrder[itemIndex];
-      const correctOptionId = correctOptionIds[itemIndex];
-      if (itemId === undefined || correctOptionId === undefined) throw new Error('test-fixture');
+      const appropriateOptionId = appropriateOptionIds[itemIndex];
+      if (itemId === undefined || appropriateOptionId === undefined) throw new Error('test-fixture');
       expect(
-        formIds.map((formId) => forms[formId][itemId]?.indexOf(correctOptionId) ?? -1).sort(),
+        formIds.map((formId) => forms[formId][itemId]?.indexOf(appropriateOptionId) ?? -1).sort(),
       ).toEqual([0, 0, 1, 1, 2, 2]);
       expect(formIds.every((formId) => forms[formId][itemId]?.at(-1) === 'unsure')).toBe(true);
     }
     expect(
       new Set(Object.values(guardrail.questionPresentation.scenarioOrderByForm).map(String)).size,
     ).toBe(6);
-    expect(JSON.stringify(instrumentRuntimeManifest.procedures.participantInformation)).not.toMatch(
-      /zufällig zugeordnet|zwei deutschsprachige Lernangebote werden verglichen/u,
+    const participantInformation = JSON.stringify(
+      instrumentRuntimeManifest.procedures.participantInformation,
     );
+    expect(participantInformation).toContain('Dauer heute etwa 30 Minuten.');
+    expect(participantInformation).toContain('pseudonymisiert und nicht anonym');
+    expect(participantInformation).toContain('[OFFEN – vor Beginn der Hauptstudie festzulegen]');
+    expect(participantInformation).not.toMatch(/20 bis 30 Minuten|verpflichtender zweiter Teil/u);
   });
 
   it('validates complete item-specific instrument blocks without arbitrary JSON values', () => {
@@ -538,26 +552,21 @@ describe('research-safe contracts', () => {
         { itemId: 'PRE_AGE', value: 'age_18_25' },
       ],
     };
-    const experienceBlock = {
+    const invalidExperienceBlock = {
       instrumentId: 'pre-v1',
       sectionId: 'experience',
       responses: [
         { itemId: 'PRE_TRAINING', value: 'never' },
-        {
-          itemId: 'PRE_PM_USE',
-          value: ['none', 'browser_or_device_integrated'],
-        },
+        { itemId: 'PRE_PM_USE', value: ['none', 'browser_or_device_integrated'] },
         { itemId: 'PRE_MFA_USE', value: 'none' },
       ],
     };
-    const selfEfficacyBlock = {
-      instrumentId: 'pre-v1',
-      sectionId: 'self_efficacy',
+    const validExperienceBlock = {
+      ...invalidExperienceBlock,
       responses: [
-        { itemId: 'SE_DISTINCT_ACCESS_PRE', value: 0 },
-        { itemId: 'SE_PM_NEW_ACCOUNT_PRE', value: 5 },
-        { itemId: 'SE_PM_LOGIN_PRE', value: 5 },
-        { itemId: 'SE_MFA_ENABLE_PRE', value: 10 },
+        { itemId: 'PRE_TRAINING', value: 'never' },
+        { itemId: 'PRE_PM_USE', value: ['browser_or_device_integrated'] },
+        { itemId: 'PRE_MFA_USE', value: 'none' },
       ],
     };
 
@@ -576,16 +585,34 @@ describe('research-safe contracts', () => {
         ),
       }).success,
     ).toBe(false);
-    expect(instrumentSubmissionRequestSchema.safeParse(experienceBlock).success).toBe(false);
-    expect(instrumentSubmissionRequestSchema.safeParse(selfEfficacyBlock).success).toBe(true);
+    expect(instrumentSubmissionRequestSchema.safeParse(invalidExperienceBlock).success).toBe(false);
+    expect(instrumentSubmissionRequestSchema.safeParse(validExperienceBlock).success).toBe(true);
+
+    const panasSection = instrumentRuntimeManifest.instruments['post-v1'].sections.find(
+      ({ id }) => id === 'panas',
+    );
+    if (panasSection === undefined) throw new Error('missing-panas');
+    const panasResponses = panasSection.items.map((item, index) => ({
+      itemId: item.id,
+      value: (index % 5) + 1,
+    }));
     expect(
       instrumentSubmissionRequestSchema.safeParse({
-        ...selfEfficacyBlock,
-        responses: selfEfficacyBlock.responses.map((response, index) =>
-          index === 0 ? { ...response, value: 11 } : response,
+        instrumentId: 'post-v1',
+        sectionId: 'panas',
+        responses: panasResponses,
+      }).success,
+    ).toBe(true);
+    expect(
+      instrumentSubmissionRequestSchema.safeParse({
+        instrumentId: 'post-v1',
+        sectionId: 'panas',
+        responses: panasResponses.map((response, index) =>
+          index === 0 ? { ...response, value: 6 } : response,
         ),
       }).success,
     ).toBe(false);
+
     const durationBlock = {
       instrumentId: 'post-v1',
       sectionId: 'duration',
@@ -601,15 +628,6 @@ describe('research-safe contracts', () => {
         responses: [
           { itemId: 'PERCEIVED_DURATION', value: 0 },
           { itemId: 'TIME_FIT', value: 7 },
-        ],
-      }).success,
-    ).toBe(false);
-    expect(
-      instrumentSubmissionRequestSchema.safeParse({
-        ...durationBlock,
-        responses: [
-          { itemId: 'PERCEIVED_DURATION', value: 1 },
-          { itemId: 'TIME_FIT', value: 8 },
         ],
       }).success,
     ).toBe(false);
@@ -631,9 +649,29 @@ describe('research-safe contracts', () => {
         instrumentId: 'post-v1',
         sectionId: designBlock.id,
         responses: validDesignResponses.map((response) =>
-          response.itemId === 'CONSEQUENCE_TANGIBILITY'
-            ? { ...response, itemId: 'CONSEQUENCE_VISIBILITY' }
+          response.itemId === 'CONSEQUENCE_RISK'
+            ? { ...response, itemId: 'CONSEQUENCE_TANGIBILITY' }
             : response,
+        ),
+      }).success,
+    ).toBe(false);
+
+    const selfEfficacyBlock = {
+      instrumentId: 'post-v1',
+      sectionId: 'self_efficacy',
+      responses: [
+        { itemId: 'SE_DISTINCT_ACCESS', value: 0 },
+        { itemId: 'SE_PM_NEW_ACCOUNT', value: 5 },
+        { itemId: 'SE_PM_LOGIN', value: 5 },
+        { itemId: 'SE_MFA_ENABLE', value: 10 },
+      ],
+    };
+    expect(instrumentSubmissionRequestSchema.safeParse(selfEfficacyBlock).success).toBe(true);
+    expect(
+      instrumentSubmissionRequestSchema.safeParse({
+        ...selfEfficacyBlock,
+        responses: selfEfficacyBlock.responses.map((response, index) =>
+          index === 0 ? { ...response, value: 11 } : response,
         ),
       }).success,
     ).toBe(false);
@@ -643,6 +681,6 @@ describe('research-safe contracts', () => {
         sectionId: 'post-open',
         responses: [{ itemId: 'OPEN_COMMENT', value: null }],
       }).success,
-    ).toBe(true);
+    ).toBe(false);
   });
 });

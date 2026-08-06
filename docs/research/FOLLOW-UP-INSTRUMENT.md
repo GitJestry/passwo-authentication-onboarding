@@ -1,104 +1,70 @@
-# Zweiter und letzter Studienteil nach zehn Tagen
+# Freiwillige Nachbefragung nach ungefähr zehn Tagen
 
-Status: **Version `follow-up-v5`, für Cognitive Pretest und Freigabe festgelegt.**
+Status: **Pilotkandidat `follow-up-v6-pilot`.** Der verbindliche Wortlaut liegt in
+`research/derived/follow-up-v6.yaml`. Die Nachbefragung ist eine ancillary exploratory extension
+und nicht erforderlich, um die Hauptforschungsfrage zu beantworten.
 
 ## Runtime-Grenze
 
-Der zweite Studienteil ist kein Teil des Trainings und kein Instrument der Hauptsitzung. Seine
-Fragen werden weder in `instruments-v1.runtime.json` noch im Browser-Bundle der Study Runtime
-geführt. Die Hauptanwendung erhebt die verpflichtende Kontaktbestätigung und übergibt die
-E-Mail-Adresse ausschließlich an die getrennte Recontact-Datenbank. Wortlaut, Verzweigungen und
-Nachrichten liegen in `research/derived/follow-up-v5.yaml`.
+Die Nachbefragung ist kein Bestandteil des Trainings und wird nicht in das Browser-Bundle der
+Hauptstudie importiert. Die Hauptanwendung speichert eine E-Mail-Adresse nur nach gesonderter,
+freiwilliger Auswahl in einer getrennten Recontact-Datenbank. Die Forschungsdatenbank enthält nur
+die zufällige Studien-ID, die Follow-up-Einwilligung, die Follow-up-Version und einen Hash des
+zufälligen Verknüpfungstokens; sie enthält weder E-Mail-Adresse noch Raw Token.
 
-Der Schedule-Export liefert Kontaktadresse, Token-Link, Einladung, Erinnerung, Schließung und den
-aus `closesAt` abgeleiteten Zeitpunkt der abschließenden Debrief-Mail. Versand und öffentliches
-Formular bleiben von Training Runtime und Forschungsdatenbank getrennt.
+## Zeitplan
 
-## Messfenster und Versand
+- erste Einladung: `completedAt + 240h`;
+- höchstens eine Erinnerung: 48 Stunden nach der ersten Einladung;
+- Schließung: `completedAt + 336h`;
+- geschätzte Bearbeitungszeit: etwa zwei Minuten;
+- berichteter Handlungszeitraum endet vor dem Zeitpunkt der ersten Einladung.
 
-- Forschungsstichtag: exakt `completedAt + 240h`; nur bereits bis dahin abgeschlossene Handlungen
-  zählen.
-- Erste Einladung: `completedAt + 240h`.
-- Höchstens eine neutrale Erinnerung: `completedAt + 288h`.
-- Schließung und zusätzliche Debrief-Mail an alle Eingeschlossenen: `completedAt + 336h`.
-- Geschätzte Bearbeitungszeit: ein bis zwei Minuten.
-- Die E-Mails enthalten weder Authentifizierungsempfehlungen noch Condition, Forschungs-ID,
-  Antworten oder Löschcode.
+Einladung und Erinnerung enthalten keine Authentifizierungsempfehlung. Das gemeinsame in-session
+Debriefing findet bereits vor Studienabschluss statt; es gibt keine zusätzliche verzögerte
+Debrief-Mail.
 
-### Erste Einladung
+## Offenlegung beim Follow-up
 
-**Betreff:** Zweiter Studienteil ist jetzt verfügbar
+Vor jeder verzögerten Antwort wird angezeigt:
 
-> Hallo,
->
-> vor zehn Tagen hast du den ersten Teil unserer Studie zu einem digitalen Lernangebot über
-> Passwörter und den Schutz von Online-Konten abgeschlossen. Der kurze zweite und letzte
-> Studienteil ist jetzt verfügbar und dauert etwa ein bis zwei Minuten.
->
-> Zum zweiten Studienteil: `[TOKEN_LINK]`
->
-> Bitte beziehe deine Angaben ausschließlich auf den bereits abgeschlossenen Zeitraum bis
-> `[STICHTAG]`. Der Link ist bis `[CLOSES_AT]` gültig und darf nicht weitergegeben werden. Deine
-> Teilnahme bleibt freiwillig. Nach der Abgabe erhältst du die vollständige Aufklärung zur Studie.
->
-> Vielen Dank für deine Unterstützung.
+> Dieser freiwillige Folgefragebogen untersucht, ob du seit deiner Teilnahme konkrete Schritte
+> zum Schutz deiner Online-Konten unternommen hast und welche Gründe eine Umsetzung erleichtert
+> oder verhindert haben. Die Bearbeitung dauert etwa zwei Minuten. Deine Teilnahme ist freiwillig.
+> Wenn du nicht teilnimmst, entstehen dir keine Nachteile.
 
-### Einmalige Erinnerung
+Danach ist eine ausdrückliche freiwillige Teilnahmebestätigung erforderlich.
 
-**Betreff:** Erinnerung: zweiter Studienteil
+## Instrument
 
-> Hallo,
->
-> dies ist die einmalige Erinnerung an den zweiten und letzten Teil deiner Studienteilnahme. Falls
-> du bereits teilgenommen hast, kannst du diese Nachricht ignorieren.
->
-> Zum zweiten Studienteil: `[TOKEN_LINK]`
->
-> Bitte beziehe deine Angaben ausschließlich auf den bereits abgeschlossenen Zeitraum bis
-> `[STICHTAG]`. Der Link ist bis `[CLOSES_AT]` gültig und darf nicht weitergegeben werden. Deine
-> Teilnahme bleibt freiwillig.
+Die zwei Mehrfachauswahlfragen erfassen getrennt Passwort-/Passwortmanagerhandlungen und
+MFA-Handlungen. `Keine dieser Handlungen` ist jeweils exklusiv. Bei Auswahl dieser Option erscheint
+ein domänenspezifisches, freiwilliges Einzelwahl-Item zum wichtigsten Grund. Es wird kein Freitext
+erhoben.
 
-## Fragebogen und Analyse
+Fokale verzögerte Outcomes:
 
-Der Formulartitel lautet **„Zweiter und letzter Studienteil“**. Da das 240-Stunden-Messfenster vor
-Versand bereits geschlossen ist, dürfen Formular und Items den konkreten Handlungsfokus nennen.
-Die drei fokalen Handlungen, Kontextfragen, Barriereverzweigungen, Sicherheitswarnung und getrennte
-Auswertung bleiben gegenüber v4 inhaltlich unverändert.
+1. Ersetzen eines wiederverwendeten oder erkennbar variierten Passworts;
+2. Erzeugen und Speichern eines kontospezifischen Passworts mit einem Passwortmanager;
+3. Aktivieren von MFA/2FA bei mindestens einem Konto.
 
-Die drei fokalen Items bilden eine zentral-sekundäre Ergebnisfamilie und werden getrennt als
-**selbstberichtete Schutzhandlungen innerhalb von zehn Tagen** ausgewertet:
+Prüfung verfügbarer Funktionen, bewusster Abruf beziehungsweise Autofill, Prüfung des
+Wiederherstellungswegs und MFA-Wartung sind sekundäre deskriptive Handlungen. Es wird kein
+kombinierter Verhaltenswert gebildet. Nichtantwort ist fehlend und keine Inaktivität.
 
-1. Ersetzung eines wiederverwendeten oder erkennbar variierten Passworts;
-2. Erzeugung und Speicherung eines kontospezifischen Passworts mit einem Passwortmanager;
-3. Aktivierung von MFA/2FA bei mindestens einem Konto.
+## Interpretation
 
-Prüfung verfügbarer Funktionen, Abruf beziehungsweise Autofill und Prüfung der MFA-Verfügbarkeit
-sind sekundäre deskriptive Handlungen. Es wird kein kombinierter Behavior Score berechnet.
-Nichtantwort bleibt fehlend. Der retrospektive Opportunity-Indikator wird nur grob eingeordnet und
-fragt weder konkrete Konten noch Passwörter oder Variationsmuster ab.
+Die Angaben sind Selbstberichte, gelegenheits- und ausgangslagenabhängig und werden nur unter
+Follow-up-Respondierenden ausgewertet. Sie belegen weder korrekt abgeschlossene Konfigurationen,
+noch dauerhafte Adoption, Wissenszuwachs, Gewohnheitsbildung oder langfristige Verhaltensänderung.
+Sie folgen dem zugewiesenen Artefakt, dem gemeinsamen Guardrail, den übrigen Messungen und dem
+gemeinsamen korrektiven Debriefing.
 
-Es handelt sich nicht um objektive Beobachtung realer Konten und nicht um eine Vorher-Nachher-
-Messung desselben Verhaltens. Die Ergebnisse belegen weder korrekt abgeschlossene Konfiguration,
-dauerhafte Adoption noch nachhaltige Verhaltensänderung. Direkt nach Abgabe wird das vollständige
-Debriefing aus `PARTICIPANT-INFORMATION.md` angezeigt.
+## Datenschutz und offener Betriebsprozess
 
-## Methodische Restgrenzen
-
-Die neutrale Ankündigung reduziert Demand Characteristics und Question-Behavior-Reaktivität,
-beseitigt sie aber nicht. Beide Bedingungen erhalten dieselbe Information; eine
-bedingungsspezifische Reaktion auf das Studienwissen kann ohne zusätzliche Kontrollgruppe nicht
-ausgeschlossen werden. Die freiwillige Geheimhaltungsbitte kann Kontamination nur mindern.
-Eine bei vorzeitigem Rückzug ethisch früh erforderliche Aufklärung kann an später Teilnehmende
-weitergegeben werden; dieses Restrisiko wird als Limitation der Bachelorarbeit dokumentiert.
-
-## Entscheidungsgrundlagen
-
-- [DGPs: Berufsethische Richtlinien](https://www.dgps.de/die-dgps/aufgaben-und-ziele/berufsethische-richtlinien/)
-  zu Täuschung, frühestmöglicher Aufklärung und Datenrückzug;
-- [Art. 13 DSGVO](https://eur-lex.europa.eu/legal-content/DE/TXT/?uri=CELEX:32016R0679)
-  zu vorab erforderlicher Transparenz;
-- [Metaanalyse zum Question-Behavior-Effekt](https://pmc.ncbi.nlm.nih.gov/articles/PMC4931712/)
-  als Begründung, Reaktivität als klein und heterogen, aber nicht als beseitigt zu behandeln;
-- [verdecktes Security-Feldexperiment](https://www.usenix.org/system/files/usenixsecurity25-anliker.pdf)
-  und [angekündigter Security-Retest](https://www.usenix.org/system/files/conference/soups2017/soups2017-lastdrager.pdf)
-  als Vergleichspunkte für Consent-, Recontact- und Debriefing-Entscheidungen.
+Die E-Mail-Adresse wird getrennt gespeichert und nur für Einladung sowie höchstens eine Erinnerung
+verwendet. Sie ist nach Abschluss der Follow-up-Phase und dem letzten vorgesehenen Versand zu
+löschen. Der aktuelle lokale Schedule-Export versendet nicht selbst und kann den letzten
+erfolgreichen Versand nicht zuverlässig bestätigen. Deshalb ist die automatische Löschung noch
+nicht implementiert. Vor der Hauptstudie ist ein dokumentierter manueller Löschprozess oder eine
+quittierte Versand-/Löschlogik erforderlich.

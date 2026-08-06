@@ -285,12 +285,7 @@ function dataDictionary(): ResearchExportDataDictionaryRecord[] {
       block.items.map((item) => ({ ...item, type: 'singleChoice' })),
     ),
   );
-  const postOpen = dictionaryRowsForItems(
-    'post-open-v1',
-    'post-open',
-    instrumentRuntimeManifest.instruments['post-open-v1'].items,
-  );
-  return [...pre, ...post, ...guardrail, ...postOpen];
+  return [...pre, ...post, ...guardrail];
 }
 
 function assertEmptyExportTarget(

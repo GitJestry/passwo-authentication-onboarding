@@ -3,7 +3,6 @@ import { existsSync, mkdtempSync, readFileSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { instrumentRuntimeManifest } from '@passwo/contracts';
-import Database from 'better-sqlite3';
 import type { FastifyInstance } from 'fastify';
 import { afterEach, describe, expect, it } from 'vitest';
 import { buildStudyServer } from './app.js';
@@ -36,7 +35,19 @@ describe('research export', () => {
       createRecontactToken: () => rawToken,
     });
     servers.push(server);
-    const session = await createSession(server, 1);
+    const session = await createSession(server, 1, false, true);
+    expect(
+      (
+        await server.inject({
+          method: 'POST',
+          url: `/api/study/sessions/${session.sessionId}/recontact`,
+          payload: {
+            requestId: 'f5d74d44-f700-4dc7-ac00-5e251a8890c3',
+            email: 'private@example.org',
+          },
+        })
+      ).statusCode,
+    ).toBe(200);
     await savePreAndStartArtifact(server, session.sessionId);
 
     const outputDirectory = join(temporaryDirectory, 'export');
@@ -82,7 +93,7 @@ describe('research export', () => {
     );
     expect(exportedData).not.toContain(session.sessionId);
     expect(exportedData).not.toContain('1'.padStart(64, '0'));
-    expect(exportedData).not.toContain('participant-1@example.org');
+    expect(exportedData).not.toContain('private@example.org');
     expect(exportedData).not.toContain(rawToken);
     expect(exportedData).not.toContain(
       createHash('sha256').update(rawToken, 'utf8').digest('hex'),
@@ -93,13 +104,7 @@ describe('research export', () => {
       '"displayedOptionIds"',
     );
     expect(readFileSync(join(outputDirectory, 'data-dictionary.json'), 'utf8')).toContain(
-      '"itemId": "MR_REUSE"',
-    );
-    expect(readFileSync(join(outputDirectory, 'data-dictionary.json'), 'utf8')).toContain(
-      '"itemId": "PERCEIVED_DURATION"',
-    );
-    expect(readFileSync(join(outputDirectory, 'data-dictionary.json'), 'utf8')).toContain(
-      'Subjektiv erlebte Länge',
+      '"itemId": "MR_DISTINCT_PASSWORDS"',
     );
     expect(result.manifest.schemaVersion).toBe('research-export-v6');
     expect(result.manifest.profile).toBe('audit');
@@ -113,7 +118,7 @@ describe('research export', () => {
     }
   });
 
-  it('separates free text and removes calendar timestamps from the analysis profile', async () => {
+  it('emits an analysis profile without active free-text responses or calendar timestamps', async () => {
     const temporaryDirectory = mkdtempSync(join(tmpdir(), 'passwo-analysis-export-'));
     temporaryDirectories.push(temporaryDirectory);
     const databasePath = join(temporaryDirectory, 'study.sqlite');
@@ -128,36 +133,20 @@ describe('research export', () => {
       createRecontactToken: () => rawToken,
     });
     servers.push(server);
-    const session = await createSession(server, 2);
-
-    const database = new Database(databasePath);
-    database
-      .prepare(
-        `INSERT INTO instrument_submissions (
-          session_id, instrument_id, instrument_version, section_id,
-          payload_fingerprint, submitted_at_iso
-        ) VALUES (?, 'post-open-v1', ?, 'post-open', ?, ?)`,
-      )
-      .run(
-        session.sessionId,
-        instrumentRuntimeManifest.questionnaireVersion,
-        'a'.repeat(64),
-        '2026-07-24T12:00:00.000Z',
-      );
-    database
-      .prepare(
-        `INSERT INTO responses (
-          session_id, instrument_id, instrument_version, section_id,
-          item_id, json_value, created_at_iso
-        ) VALUES (?, 'post-open-v1', ?, 'post-open', 'OPEN_COMMENT', ?, ?)`,
-      )
-      .run(
-        session.sessionId,
-        instrumentRuntimeManifest.questionnaireVersion,
-        JSON.stringify('Name oder Lehrveranstaltung vor manueller Prüfung'),
-        '2026-07-24T12:00:00.000Z',
-      );
-    database.close();
+    const session = await createSession(server, 2, false, true);
+    expect(
+      (
+        await server.inject({
+          method: 'POST',
+          url: `/api/study/sessions/${session.sessionId}/recontact`,
+          payload: {
+            requestId: 'e428b02a-7949-4dd0-b906-32942134c661',
+            email: 'analysis-private@example.org',
+          },
+        })
+      ).statusCode,
+    ).toBe(200);
+    await savePreAndStartArtifact(server, session.sessionId);
 
     const outputDirectory = join(temporaryDirectory, 'analysis');
     const result = exportResearchData({
@@ -179,7 +168,7 @@ describe('research export', () => {
       schemaVersion: 'research-export-v6',
       profile: 'analysis',
       schemaProfileVersion: 'research-analysis-v1',
-      freeTextReview: { recordCount: 1, status: 'pending-review' },
+      freeTextReview: { recordCount: 0, status: 'pending-review' },
     });
     expect(result.files).toEqual(
       expect.arrayContaining(['free-text-review.csv', 'free-text-review.json']),
@@ -187,9 +176,7 @@ describe('research export', () => {
     expect([sessions, timing, responses, presentations].join('\n')).not.toMatch(
       /createdAtIso|completedAtIso|clientMonotonicMs|clientWallClockIso|serverReceivedAtIso/u,
     );
-    expect(responses).not.toContain('Name oder Lehrveranstaltung');
-    expect(freeTextReview).toContain('Name oder Lehrveranstaltung vor manueller Prüfung');
-    expect(freeTextReview).toContain('"reviewStatus": "pending-review"');
+    expect(freeTextReview).toBe('[]\n');
     const exportedData = [sessions, timing, responses, presentations, freeTextReview].join('\n');
     expect(exportedData).not.toContain(session.sessionId);
     expect(exportedData).not.toContain('2'.padStart(64, '0'));

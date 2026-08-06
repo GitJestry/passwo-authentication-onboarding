@@ -24,6 +24,7 @@ type SemanticDifferentialItem = Extract<
 type IntegerItem = Extract<QuestionnaireItem, { readonly type: 'integer' }>;
 type TextItem = Extract<QuestionnaireItem, { readonly type: 'text' }>;
 type Agreement7Item = ScaleItem & { readonly scale: 'agreement7' };
+type PanasIntensity5Item = ScaleItem & { readonly scale: 'panasIntensity5' };
 type Confidence11Item = ScaleItem & { readonly scale: 'confidence11' };
 type FullyLabelled7Item = ScaleItem & {
   readonly scale: 'durationAppropriateness7' | 'perceivedDuration7' | 'riskPresentation7';
@@ -277,6 +278,7 @@ function NativeRadioControl({
   );
 }
 
+const points5 = [1, 2, 3, 4, 5] as const;
 const points7 = [1, 2, 3, 4, 5, 6, 7] as const;
 const points11 = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10] as const;
 
@@ -345,6 +347,56 @@ function MatrixNumber({ point }: { readonly point: number }) {
     <span className={styles.matrixNumber} aria-hidden="true">
       {point}
     </span>
+  );
+}
+
+function PanasIntensity5Matrix({
+  items,
+  draft,
+  invalidItemIds,
+  onChange,
+}: MatrixProps<PanasIntensity5Item>) {
+  const anchors = instrumentRuntimeManifest.scales.panasIntensity5.anchors;
+  return (
+    <div className={styles.agreementList} aria-label="Intensitätsskala von 1 bis 5">
+      {items.map((item) => {
+        const label = item.label ?? item.prompt ?? item.id;
+        const value = typeof draft[item.id] === 'number' ? draft[item.id] : undefined;
+        const invalid = invalidItemIds.has(item.id);
+        return (
+          <fieldset
+            className={`${styles.agreementItem ?? ''} ${
+              invalid ? (styles.matrixRowInvalid ?? '') : ''
+            }`.trim()}
+            aria-describedby={invalid ? `${item.id}-error` : undefined}
+            aria-invalid={invalid}
+            key={item.id}
+          >
+            <legend>{label}</legend>
+            <div className={`${styles.agreementOptions} ${styles.panasOptions}`.trim()}>
+              {points5.map((point) => (
+                <label className={styles.agreementOption} key={point}>
+                  <input
+                    type="radio"
+                    name={item.id}
+                    value={point}
+                    checked={value === point}
+                    required
+                    aria-label={`${label}: ${point}, ${requiredAnchor(anchors, point)}`}
+                    onChange={() => onChange(item.id, point)}
+                  />
+                  <span className={styles.agreementPoint} aria-hidden="true">
+                    {point}
+                  </span>
+                  <span>{requiredAnchor(anchors, point)}</span>
+                </label>
+              ))}
+            </div>
+            <FieldError invalid={invalid} itemId={item.id} />
+          </fieldset>
+        );
+      })}
+    </div>
   );
 }
 
@@ -543,7 +595,10 @@ function UeqSemanticDifferential7({
                 />
               ))}
             </div>
-            <span className={`${styles.ueqTerm ?? ''} ${styles.ueqTermRight ?? ''}`.trim()}>
+            <span
+              className={`${styles.ueqTerm ?? ''} ${styles.ueqTermRight ?? ''}`.trim()}
+              aria-hidden="true"
+            >
               {item.right}
             </span>
             <FieldError invalid={invalid} itemId={item.id} />
@@ -803,6 +858,25 @@ function questionnaireSectionFieldGroups({
         key,
         content: (
           <UeqSemanticDifferential7
+            key={key}
+            items={matrixItems}
+            draft={draft}
+            invalidItemIds={invalidItemIds}
+            onChange={onChange}
+          />
+        ),
+      });
+      itemIndex += matrixItems.length;
+      continue;
+    }
+
+    if (hasScale(item, 'panasIntensity5')) {
+      const matrixItems = scaleItemsFrom(items, itemIndex, 'panasIntensity5', 5);
+      const key = `panas:${matrixItems[0]?.id ?? item.id}`;
+      fieldGroups.push({
+        key,
+        content: (
+          <PanasIntensity5Matrix
             key={key}
             items={matrixItems}
             draft={draft}
@@ -1135,78 +1209,6 @@ export function GuardrailBlockForm({
           <div className={styles.instrumentActions}>
             <button className={styles.button} type="submit">
               Antworten verbindlich abgeben
-              <ForwardIcon />
-            </button>
-          </div>
-        </form>
-      </div>
-    </section>
-  );
-}
-
-export function PostOpenForm({
-  onSubmit,
-}: {
-  readonly onSubmit: (submission: InstrumentSubmissionFor<'post-open-v1'>) => void;
-}) {
-  const instrument = instrumentRuntimeManifest.instruments['post-open-v1'];
-  const [draft, setDraft] = useState<Draft>({});
-  const [invalidItemIds, setInvalidItemIds] = useState<ReadonlySet<string>>(new Set<string>());
-
-  function submit(event: FormEvent<HTMLFormElement>): void {
-    event.preventDefault();
-    const submission: InstrumentSubmissionFor<'post-open-v1'> = {
-      instrumentId: 'post-open-v1',
-      sectionId: 'post-open',
-      responses: instrument.items.map((item) => {
-        const value = draft[item.id];
-        return {
-          itemId: item.id,
-          value: typeof value === 'string' && value.trim().length > 0 ? value : null,
-        };
-      }),
-    };
-    const invalid = invalidSubmissionItems(submission);
-    if (invalid !== null) {
-      setInvalidItemIds(invalid);
-      return;
-    }
-    onSubmit(submission);
-  }
-
-  return (
-    <section aria-labelledby="post-open-title">
-      <InstrumentHeader headingId="post-open-title" title="Deine Rückmeldung" />
-      <div className={styles.instrumentCard}>
-        <form className={styles.instrumentForm} noValidate onSubmit={submit}>
-          <div className={styles.notice}>{instrument.warning}</div>
-          <div className={styles.instrumentFields}>
-            {instrument.items.map((item) => (
-              <OptionalTextField
-                key={item.id}
-                item={item}
-                value={stringDraftValue(draft[item.id]) ?? ''}
-                invalid={invalidItemIds.has(item.id)}
-                onChange={(value) => {
-                  setDraft((current) => ({ ...current, [item.id]: value }));
-                  setInvalidItemIds((current) => {
-                    if (!current.has(item.id)) return current;
-                    const next = new Set(current);
-                    next.delete(item.id);
-                    return next;
-                  });
-                }}
-              />
-            ))}
-            {invalidItemIds.size === 0 ? null : (
-              <div className={styles.validationSummary} role="alert">
-                Die Rückmeldung konnte noch nicht vorbereitet werden.
-              </div>
-            )}
-          </div>
-          <div className={styles.instrumentActions}>
-            <button className={styles.button} type="submit">
-              Rückmeldung abgeben
               <ForwardIcon />
             </button>
           </div>

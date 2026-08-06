@@ -20,6 +20,7 @@ const displayWhenSchema = z
 const scaleIdSchema = z.enum([
   'agreement7',
   'confidence11',
+  'panasIntensity5',
   'durationAppropriateness7',
   'perceivedDuration7',
   'riskPresentation7',
@@ -201,14 +202,6 @@ const guardrailInstrumentSchema = z
   })
   .strict();
 
-const postOpenInstrumentSchema = z
-  .object({
-    alwaysSubmit: z.literal(true),
-    blankOptionalTextValue: z.null(),
-    warning: participantTextSchema,
-    items: z.array(textItemSchema).min(1).max(10),
-  })
-  .strict();
 const agreement7ScaleSchema = z
   .object({
     type: z.literal('integer'),
@@ -237,6 +230,22 @@ const confidence11ScaleSchema = z
         0: participantTextSchema,
         5: participantTextSchema,
         10: participantTextSchema,
+      })
+      .strict(),
+  })
+  .strict();
+const fullyLabelled5ScaleSchema = z
+  .object({
+    type: z.literal('integer'),
+    min: z.literal(1),
+    max: z.literal(5),
+    anchors: z
+      .object({
+        1: participantTextSchema,
+        2: participantTextSchema,
+        3: participantTextSchema,
+        4: participantTextSchema,
+        5: participantTextSchema,
       })
       .strict(),
   })
@@ -318,18 +327,19 @@ const sessionClosureContentSchema = z
 
 export const instrumentRuntimeManifestSchema = z
   .object({
-    schemaVersion: z.literal(3),
-    instrumentVersion: z.literal('2.1.0'),
-    questionnaireVersion: z.literal('questionnaire-v3'),
-    guardrailVersion: z.literal('guardrail-v4'),
-    consentVersion: z.literal('consent-v7-draft'),
-    followUpVersion: z.literal('follow-up-v5'),
+    schemaVersion: z.literal(4),
+    instrumentVersion: z.literal('3.0.0-pilot'),
+    questionnaireVersion: z.literal('questionnaire-v4-pilot'),
+    guardrailVersion: z.literal('guardrail-v5-pilot'),
+    consentVersion: z.literal('consent-v8-pilot'),
+    followUpVersion: z.literal('follow-up-v6-pilot'),
     language: z.literal('de-DE'),
     participantTerm: participantTextSchema,
     scales: z
       .object({
         agreement7: agreement7ScaleSchema,
         confidence11: confidence11ScaleSchema,
+        panasIntensity5: fullyLabelled5ScaleSchema,
         durationAppropriateness7: durationAppropriateness7ScaleSchema,
         perceivedDuration7: perceivedDuration7ScaleSchema,
         riskPresentation7: riskPresentation7ScaleSchema,
@@ -357,7 +367,7 @@ export const instrumentRuntimeManifestSchema = z
         participantInformation: participantInformationSchema,
         followUpRecontact: z
           .object({
-            optional: z.literal(false),
+            optional: z.literal(true),
             consentLegend: participantTextSchema,
             consentStatement: participantTextSchema,
             emailLabel: participantTextSchema,
@@ -372,7 +382,8 @@ export const instrumentRuntimeManifestSchema = z
           .strict(),
         sessionClosure: z
           .object({
-            afterFirstStudyPart: sessionClosureContentSchema,
+            withoutFollowUp: sessionClosureContentSchema,
+            withFollowUp: sessionClosureContentSchema,
           })
           .strict(),
       })
@@ -382,10 +393,9 @@ export const instrumentRuntimeManifestSchema = z
         'pre-v1': sectionedInstrumentSchema,
         'post-v1': sectionedInstrumentSchema,
         'guardrail-v2': guardrailInstrumentSchema,
-        'post-open-v1': postOpenInstrumentSchema,
       })
       .strict(),
-    runtimeManifestVersion: z.literal('instrument-runtime-v2.1'),
+    runtimeManifestVersion: z.literal('instrument-runtime-v3-pilot'),
   })
   .strict();
 
@@ -397,7 +407,7 @@ export const instrumentRuntimeManifest = instrumentRuntimeManifestSchema.parse(
 export const guardrailFormIdSchema = z.enum(['F1', 'F2', 'F3', 'F4', 'F5', 'F6']);
 export type GuardrailFormId = z.infer<typeof guardrailFormIdSchema>;
 
-export const mainInstrumentIdSchema = z.enum(['pre-v1', 'post-v1', 'guardrail-v2', 'post-open-v1']);
+export const mainInstrumentIdSchema = z.enum(['pre-v1', 'post-v1', 'guardrail-v2']);
 export type MainInstrumentId = z.infer<typeof mainInstrumentIdSchema>;
 
 export const instrumentSectionIdSchema = stableIdSchema;
@@ -440,12 +450,12 @@ export interface InstrumentSubmissionBlock {
 const preInstrument = instrumentRuntimeManifest.instruments['pre-v1'];
 const postInstrument = instrumentRuntimeManifest.instruments['post-v1'];
 const guardrailInstrument = instrumentRuntimeManifest.instruments['guardrail-v2'];
-const postOpenInstrument = instrumentRuntimeManifest.instruments['post-open-v1'];
 
 export const immediatePostSectionIds = [
+  'panas',
+  'duration',
   'ueqs',
   'content_trustworthiness',
-  'duration',
   'design_diagnostics',
   'risk_understanding',
 ] as const;
@@ -476,11 +486,6 @@ export const mainInstrumentBlocks: readonly InstrumentSubmissionBlock[] = [
     items: block.items,
   })),
   ...postBlocksFor(postGuardrailSectionIds),
-  {
-    instrumentId: 'post-open-v1',
-    sectionId: 'post-open',
-    items: postOpenInstrument.items,
-  },
 ];
 
 function submissionBlock(

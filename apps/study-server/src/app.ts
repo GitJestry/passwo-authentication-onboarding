@@ -1,4 +1,6 @@
 import {
+  abandonRecontactRequestSchema,
+  abandonRecontactResponseSchema,
   type AssignmentMode,
   artifactLeaseResponseSchema,
   completeSessionRequestSchema,
@@ -7,6 +9,8 @@ import {
   instrumentRuntimeManifest,
   instrumentSubmissionRequestSchema,
   REFERENCE_ARTIFACT_VERSION,
+  registerRecontactRequestSchema,
+  registerRecontactResponseSchema,
   SUPPORTIVE_ARTIFACT_VERSION,
   saveResponseResponseSchema,
   sessionStatusResponseSchema,
@@ -122,6 +126,26 @@ export function buildStudyServer({
     const session = createSessionResponseSchema.parse(repository.createSession(body));
     return reply.status(201).send(session);
   });
+
+  server.post<{ Params: { sessionId: string } }>(
+    '/api/study/sessions/:sessionId/recontact',
+    async (request, reply) => {
+      const { sessionId } = sessionParamsSchema.parse(request.params);
+      const body = registerRecontactRequestSchema.parse(request.body);
+      repository.registerRecontact(sessionId, body);
+      return reply.send(registerRecontactResponseSchema.parse({ registered: true }));
+    },
+  );
+
+  server.post<{ Params: { sessionId: string } }>(
+    '/api/study/sessions/:sessionId/recontact/abandon',
+    async (request, reply) => {
+      const { sessionId } = sessionParamsSchema.parse(request.params);
+      abandonRecontactRequestSchema.parse(request.body);
+      repository.abandonRecontact(sessionId);
+      return reply.send(abandonRecontactResponseSchema.parse({ abandoned: true }));
+    },
+  );
 
   server.post<{ Params: { sessionId: string } }>(
     '/api/study/sessions/:sessionId/instrument-submissions',

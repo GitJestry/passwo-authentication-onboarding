@@ -56,13 +56,24 @@ describe('local study-data deletion repository', () => {
       payload: {
         requestId: '10000000-0000-4000-8000-000000000001',
         consentAccepted: true,
-        recontactConsentAccepted: true,
-        email: 'participant@example.org',
+        followUpConsent: true,
         deletionCodeHash,
       },
     });
     expect(created.statusCode).toBe(201);
     const session = created.json<{ readonly sessionId: string }>();
+    expect(
+      (
+        await server.inject({
+          method: 'POST',
+          url: `/api/study/sessions/${session.sessionId}/recontact`,
+          payload: {
+            requestId: '20000000-0000-4000-8000-000000000001',
+            email: 'participant@example.org',
+          },
+        })
+      ).statusCode,
+    ).toBe(200);
     await savePreAndStartArtifact(server, session.sessionId);
 
     const dryRun = runStudyDataDeletion({

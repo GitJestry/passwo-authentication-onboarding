@@ -13,7 +13,7 @@ import { BrowserSegmentTimingAdapter } from '../../adapters/timing/BrowserSegmen
 import { createStudyApi } from '../../api/study-api.js';
 import { ReferenceArtifact } from '../reference/ReferenceArtifact.js';
 import { PasswordModuleTraining } from '../training/PasswordModuleTraining.js';
-import { GuardrailBlockForm, PostOpenForm, QuestionnaireSectionForm } from './InstrumentForm.js';
+import { GuardrailBlockForm, QuestionnaireSectionForm } from './InstrumentForm.js';
 import styles from './StudyFlow.module.css';
 
 const preInstrument = instrumentRuntimeManifest.instruments['pre-v1'];
@@ -40,8 +40,11 @@ function ArrowIcon() {
 }
 
 interface ConsentDecision {
-  readonly recontactConsentAccepted: true;
-  readonly email: string;
+  readonly followUpConsent: boolean;
+  readonly recontact: {
+    readonly email: string;
+    readonly requestId: string;
+  } | null;
 }
 
 function DisclosureSection({
@@ -138,16 +141,16 @@ function Consent({ onAccept }: { readonly onAccept: (decision: ConsentDecision) 
   const [eligibilityDraft, setEligibilityDraft] = useState<Readonly<Record<string, boolean>>>({});
   const [accepted, setAccepted] = useState(false);
   const [declined, setDeclined] = useState(false);
-  const [recontactAccepted, setRecontactAccepted] = useState(false);
+  const [wantsRecontact, setWantsRecontact] = useState(false);
   const [email, setEmail] = useState('');
   const [eligibilitySubmitted, setEligibilitySubmitted] = useState(false);
   const [emailTouched, setEmailTouched] = useState(false);
   const eligible = eligibilityItems.every(
     (item) => eligibilityDraft[item.id] === item.requiredValue,
   );
-  const emailValid = recontactEmailSchema.safeParse(email).success;
+  const emailValid = !wantsRecontact || recontactEmailSchema.safeParse(email).success;
   const showEligibilityNotice = eligibilitySubmitted && !eligible;
-  const showEmailError = emailTouched && !emailValid;
+  const showEmailError = wantsRecontact && emailTouched && !emailValid;
 
   if (declined) {
     return (
@@ -181,10 +184,15 @@ function Consent({ onAccept }: { readonly onAccept: (decision: ConsentDecision) 
         onSubmit={(event) => {
           event.preventDefault();
           setEligibilitySubmitted(true);
-          if (accepted && recontactAccepted && eligible && emailValid) {
+          if (accepted && eligible && emailValid) {
             onAccept({
-              recontactConsentAccepted: true,
-              email: email.trim(),
+              followUpConsent: wantsRecontact,
+              recontact: wantsRecontact
+                ? {
+                    email: email.trim(),
+                    requestId: globalThis.crypto.randomUUID(),
+                  }
+                : null,
             });
           }
         }}
@@ -204,50 +212,6 @@ function Consent({ onAccept }: { readonly onAccept: (decision: ConsentDecision) 
             </h2>
             <ParticipantInformationSections />
           </section>
-        </div>
-
-        <div className={styles.consentColumn}>
-          <fieldset className={styles.consentPanel}>
-            <legend>{participantInformation.requiredConsent.legend}</legend>
-            <label className={styles.check}>
-              <input
-                type="checkbox"
-                checked={accepted}
-                onChange={(event) => setAccepted(event.currentTarget.checked)}
-              />
-              <span>{participantInformation.requiredConsent.statement}</span>
-            </label>
-          </fieldset>
-
-          <fieldset className={styles.consentPanel}>
-            <legend>{recontactProcedure.consentLegend}</legend>
-            <label className={styles.check}>
-              <input
-                type="checkbox"
-                checked={recontactAccepted}
-                onChange={(event) => setRecontactAccepted(event.currentTarget.checked)}
-              />
-              <span>{recontactProcedure.consentStatement}</span>
-            </label>
-            <label className={styles.emailField}>
-              <span>{recontactProcedure.emailLabel}</span>
-              <input
-                type="email"
-                autoComplete="email"
-                value={email}
-                aria-invalid={showEmailError}
-                aria-describedby={showEmailError ? 'recontact-email-error' : undefined}
-                onBlur={() => setEmailTouched(true)}
-                onChange={(event) => setEmail(event.currentTarget.value)}
-                required
-              />
-              {showEmailError ? (
-                <span className={styles.fieldError} id="recontact-email-error" role="alert">
-                  Bitte gib eine gültige E-Mail-Adresse ein.
-                </span>
-              ) : null}
-            </label>
-          </fieldset>
 
           <fieldset
             className={
@@ -293,12 +257,61 @@ function Consent({ onAccept }: { readonly onAccept: (decision: ConsentDecision) 
           </fieldset>
         </div>
 
+        <div className={styles.consentColumn}>
+          <fieldset className={styles.consentPanel}>
+            <legend>{participantInformation.requiredConsent.legend}</legend>
+            <label className={styles.check}>
+              <input
+                type="checkbox"
+                checked={accepted}
+                onChange={(event) => setAccepted(event.currentTarget.checked)}
+              />
+              <span>{participantInformation.requiredConsent.statement}</span>
+            </label>
+          </fieldset>
+
+          <fieldset className={styles.consentPanel}>
+            <legend>{recontactProcedure.consentLegend}</legend>
+            <label className={styles.check}>
+              <input
+                type="checkbox"
+                checked={wantsRecontact}
+                onChange={(event) => {
+                  const checked = event.currentTarget.checked;
+                  setWantsRecontact(checked);
+                  if (!checked) {
+                    setEmail('');
+                    setEmailTouched(false);
+                  }
+                }}
+              />
+              <span>{recontactProcedure.consentStatement}</span>
+            </label>
+            {wantsRecontact ? (
+              <label className={styles.emailField}>
+                <span>{recontactProcedure.emailLabel}</span>
+                <input
+                  type="email"
+                  autoComplete="email"
+                  value={email}
+                  aria-invalid={showEmailError}
+                  aria-describedby={showEmailError ? 'recontact-email-error' : undefined}
+                  onBlur={() => setEmailTouched(true)}
+                  onChange={(event) => setEmail(event.currentTarget.value)}
+                  required
+                />
+                {showEmailError ? (
+                  <span className={styles.fieldError} id="recontact-email-error" role="alert">
+                    Bitte gib eine gültige E-Mail-Adresse ein.
+                  </span>
+                ) : null}
+              </label>
+            ) : null}
+          </fieldset>
+        </div>
+
         <div className={styles.consentActions}>
-          <button
-            className={styles.button}
-            type="submit"
-            disabled={!accepted || !recontactAccepted || !emailValid}
-          >
+          <button className={styles.button} type="submit" disabled={!accepted || !emailValid}>
             {participantInformation.actions.acceptLabel}
             <ArrowIcon />
           </button>
@@ -311,6 +324,41 @@ function Consent({ onAccept }: { readonly onAccept: (decision: ConsentDecision) 
           </button>
         </div>
       </form>
+    </section>
+  );
+}
+
+function RecontactError({
+  errorCode,
+  onRetry,
+  onContinueWithoutFollowUp,
+}: {
+  readonly errorCode: string | null;
+  readonly onRetry: () => void;
+  readonly onContinueWithoutFollowUp: () => void;
+}) {
+  return (
+    <section aria-labelledby="recontact-error-title" role="alert">
+      <h1 id="recontact-error-title" tabIndex={-1} autoFocus>
+        Registrierung nicht möglich
+      </h1>
+      <p>
+        Die E-Mail-Adresse konnte nicht für die optionale Nachbefragung registriert werden. Du
+        kannst es erneut versuchen oder die Hauptstudie ohne Nachbefragung fortsetzen.
+      </p>
+      <p className={styles.errorCode}>Fehlercode: {errorCode ?? 'recontact-registration-failed'}</p>
+      <div className={styles.form}>
+        <button className={styles.button} type="button" onClick={onRetry}>
+          Erneut versuchen
+        </button>
+        <button
+          className={styles.secondaryButton}
+          type="button"
+          onClick={onContinueWithoutFollowUp}
+        >
+          Ohne Nachbefragung fortfahren
+        </button>
+      </div>
     </section>
   );
 }
@@ -348,7 +396,7 @@ function ArtifactPreparation({ onStart }: { readonly onStart: () => void }) {
         </p>
         <p>
           Bearbeite die Inhalte aus dieser Perspektive aufmerksam und vollständig in deinem eigenen
-          Tempo. Die Zusätzliche Informationen können dir helfen, die Inhalte genauer einzuordnen
+          Tempo. Die Zusatzinformationen können dir helfen, die Inhalte genauer einzuordnen
           und zu vertiefen.
         </p>
       </div>
@@ -415,8 +463,7 @@ export function StudyFlow() {
   const questionnaireVisible =
     snapshot.matches({ preQuestionnaire: 'editing' }) ||
     snapshot.matches({ postQuestionnaire: 'editing' }) ||
-    snapshot.matches({ guardrails: 'editing' }) ||
-    snapshot.matches({ postOpen: 'editing' });
+    snapshot.matches({ guardrails: 'editing' });
 
   let content: ReactNode;
 
@@ -428,6 +475,14 @@ export function StudyFlow() {
         titleId="session-error-title"
         errorCode={context.researchErrorCode}
         onRetry={() => send({ type: 'RETRY_SESSION' })}
+      />
+    );
+  } else if (snapshot.matches({ recontactRegistration: 'error' })) {
+    content = (
+      <RecontactError
+        errorCode={context.researchErrorCode}
+        onRetry={() => send({ type: 'RETRY_RECONTACT' })}
+        onContinueWithoutFollowUp={() => send({ type: 'CONTINUE_WITHOUT_FOLLOW_UP' })}
       />
     );
   } else if (snapshot.matches({ preQuestionnaire: 'error' })) {
@@ -570,26 +625,10 @@ export function StudyFlow() {
           onSubmit={(payload) => send({ type: 'SUBMIT_GUARDRAILS', payload })}
         />
       );
-  } else if (snapshot.matches({ postOpen: 'error' })) {
-    content = (
-      <ResearchDataError
-        titleId="post-open-error-title"
-        errorCode={context.researchErrorCode}
-        onRetry={() => send({ type: 'RETRY_POST_OPEN' })}
-      />
-    );
-  } else if (snapshot.matches({ postOpen: 'editing' })) {
-    content =
-      currentBlock?.instrumentId !== 'post-open-v1' || currentBlock.sectionId !== 'post-open' ? (
-        <ConfigurationError errorCode="post-open-instrument-cursor-invalid" />
-      ) : (
-        <PostOpenForm
-          key="post-open-v1:post-open"
-          onSubmit={(payload) => send({ type: 'SUBMIT_POST_OPEN', payload })}
-        />
-      );
   } else if (snapshot.matches('sessionClosure')) {
-    const closureContent = sessionClosure.afterFirstStudyPart;
+    const closureContent = context.followUpConsent
+      ? sessionClosure.withFollowUp
+      : sessionClosure.withoutFollowUp;
     content = (
       <section className={styles.sessionClosure} aria-labelledby="session-closure-title">
         <h1 id="session-closure-title" tabIndex={-1} autoFocus>
@@ -636,12 +675,6 @@ export function StudyFlow() {
         <p>
           Löschcode: <strong>{context.deletionCode}</strong>
         </p>
-        {context.artifactWallClockMs === null ? null : (
-          <p>
-            Gesamtzeit im Lernangebot:{' '}
-            <strong>{Math.round(context.artifactWallClockMs / 1000)} s</strong>
-          </p>
-        )}
       </section>
     );
   } else if (snapshot.matches('fatalError')) {
@@ -662,7 +695,7 @@ export function StudyFlow() {
   }
 
   const participantInformationAccess =
-    context.deletionCode === null || !questionnaireVisible ? null : (
+    context.deletionCode === null || (!questionnaireVisible && !artifactVisible) ? null : (
       <ParticipantInformationAccess deletionCode={context.deletionCode} />
     );
 

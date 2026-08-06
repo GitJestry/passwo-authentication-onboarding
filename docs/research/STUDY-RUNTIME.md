@@ -1,91 +1,109 @@
 # Study Runtime
 
-## Zweck
+## Zweck und Architektur
 
-Die Study Runtime umschließt beide Artefaktbedingungen mit demselben neutralen Studienablauf. Sie
-ist methodisch von der Training Runtime getrennt und kennt keine fiktiven Passwortwerte.
+Die Study Runtime umschließt beide Artefaktbedingungen mit demselben Studienablauf. Sie ist als
+eigene XState-Maschine von der Training Runtime getrennt und kennt keine fiktiven Passwortwerte.
+React rendert den Statechartzustand; Zuweisung, Persistenz und Timing liegen im lokalen
+Fastify-/SQLite-Server.
 
-## Verbindlicher Hauptablauf
+## Verbindlicher Ablauf
 
 ```text
 Eligibility lokal prüfen
-→ gemeinsame Teilnahmeinformation und Einwilligung
-→ verpflichtende Kontaktbestätigung und validierte E-Mail-Adresse
-→ Löschcode lokal erzeugen; Session, verdeckte Condition-Zuweisung und getrennte
-  Recontact-Registrierung atomar anlegen; Löschcode anzeigen
-→ Pre-Fragebogen blockweise speichern
-→ nur supportive: flüchtigen Anzeigenamen erfassen
-→ supportive oder reference Artefakt
-→ Post-Fragebogen
-→ Guardrail Szenarien
-→ Guardrail Recognition
-→ optionale offene Rückmeldung als verpflichtende Submission
-→ Session Closure
+→ gemeinsame Teilnahmeinformation
+→ erforderliche Hauptstudien-Einwilligung
+→ optional: Nachbefragung auswählen und E-Mail-Adresse angeben
+→ Löschcode lokal erzeugen
+→ Session serverseitig anlegen; Condition und Guardrail-Form verdeckt zuweisen
+→ nur bei Opt-in: E-Mail getrennt registrieren
+→ Pre sample
+→ Pre experience
+→ zugewiesenes Artefakt
+→ PANAS
+→ Zeiturteile
+→ UEQ-S
+→ UEQ+ Inhaltsseriosität
+→ Design-Diagnostik
+→ Risikoproportionalität und wahrgenommenes Verständnis
+→ Guardrail-Szenarien
+→ Guardrail-Recognition
+→ Post-Guardrail-Self-Efficacy
+→ retrospektive SecAware-Vorerfahrung
+→ gemeinsames Debriefing
 → Completion
 ```
 
-Eligibility wird nicht persistiert. Ohne gültige E-Mail-Adresse und beide Bestätigungen wird keine
-Sitzung angelegt. Session, Condition-Slot und Recontact-Registrierung bilden einen atomaren
-Vorgang. Ein identischer Retry ist idempotent; ein Fehler hinterlässt weder Sitzung, zugewiesenen
-Slot noch Kontaktdatensatz. Einen Abandon- oder „ohne zweiten Teil fortfahren“-Pfad gibt es nicht.
+Eligibility wird nicht persistiert. Die E-Mail-Adresse ist keine Voraussetzung. Bei fehlender oder
+fehlgeschlagener Recontact-Registrierung kann die Hauptstudie ohne Nachbefragung fortgesetzt
+werden; der Server entfernt dann jede angefangene Kontaktregistrierung und setzt die
+Follow-up-Einwilligung zurück.
 
-## Instrument- und Abschlussreihenfolge
+## Instrumentreihenfolge und Writes
 
-- Pre muss vollständig gespeichert sein, bevor das Artefakt startet.
-- Post läuft in der eingefrorenen Reihenfolge Zeit → UEQ-S → Design-Diagnostik → Glaubwürdigkeit/Verständnis → Self-Efficacy und muss vollständig gespeichert sein, bevor der Guardrail beginnt.
-- Recognition wird vor den Szenarien abgegeben und gesperrt.
-- Szenarien müssen gespeichert sein, bevor offene Rückmeldung und Session Closure folgen.
-- `post-open-v1` wird immer submitted; leere optionale Felder sind `null`.
-- Ein Forschungsdatenfehler blockiert den Übergang und erlaubt idempotenten Retry.
+Jeder Fragebogenabschnitt wird als atomare, idempotente Submission gespeichert. Ein
+Forschungsdatenfehler blockiert den Übergang und erlaubt denselben Retry. Pre muss vollständig
+vor dem Artefakt vorliegen. Die ersten sechs Post-Abschnitte müssen vor den Guardrail-Szenarien
+gespeichert sein. Recognition folgt erst nach allen Szenarien. Self-Efficacy und die retrospektive
+SecAware-Frage folgen nach dem no-feedback Guardrail. Erst danach wird das gemeinsame Debriefing
+angezeigt.
 
-Alle regulär Eingeschlossenen erhalten nach der Hauptsitzung nur die neutrale Bestätigung des
-ersten Studienteils. Die vollständige Aufklärung folgt direkt nach Abgabe des zweiten Teils und
-zusätzlich per E-Mail an alle Eingeschlossenen bei Schließung des Antwortfensters. Öffentliches
-Follow-up-Formular, Antwortimport und der operative abschließende Debrief-Versand sind noch vor dem
-Study Freeze umzusetzen und zu erproben.
+Es gibt keinen offenen Post-Kommentar und kein condition-spezifisches terminales Knowledge Quiz
+vor dem gemeinsamen Guardrail. Instruktive Fragen innerhalb der Lernpfade bleiben Bestandteil des
+jeweiligen Artefakts.
 
-## Teilnahmeinformation und Löschcode
+## Referenzpfad
 
-Die vollständige Teilnahmeinformation wird vor der Einwilligung physisch ausgehändigt. Die
-Kerninformation ist zusätzlich direkt in der Runtime sichtbar; ausführliche Abschnitte bleiben
-aufklappbar. Nach Sessionerstellung wird der Löschcode vor dem ersten Pre-Abschnitt angezeigt. Er
-steht dort neben einem kompakten Zugang zu den Teilnahmeinformationen und wird am Sitzungsende
-erneut gezeigt. Die Teilnahmeinformationen bleiben über eine unaufdringliche Kontrolle auch
-während des Artefakts erreichbar. Eine app-eigene Druckfunktion ist nicht vorgesehen; die Person
-kann den Löschcode notieren. Die Kontrolle zeigt weder Forschungs-ID noch Condition, Antworten
-oder Timingdaten.
+Der lokale deterministische SecAware-V9-Build wird bis unmittelbar vor das terminale Knowledge
+Quiz administriert. Das Quiz und dessen Lösungshinweise werden ausgelassen; der Referenz-
+Completion-Event liegt an dieser Grenze. Diese Adaptation ist im Artefaktmanifest und
+Shared-Content-Audit dokumentiert.
 
-Eligibility-Fehler werden erst nach einem Abgabeversuch angezeigt. Das bloße Bearbeiten der drei Bestätigungen löst keine vorzeitige Ausschlussmeldung aus.
+## Teilnahmeinformationen und Löschcode
 
-## Zustandsgrenzen
+Die wesentlichen Informationen und die ausführliche Fassung sind vor Einwilligung sichtbar. Nach
+Sessionerstellung wird der Löschcode angezeigt und bleibt über eine kompakte
+`Teilnahmeinformationen`-Kontrolle während Fragebogen und Artefakt erreichbar. Die Kontrolle zeigt
+keine Forschungs-ID, Condition, Antworten oder Timingdaten.
 
-- `displayName` existiert ausschließlich flüchtig in der supportive Bedingung.
-- Fiktive Passwörter und Analysen bleiben im Arbeitsspeicher der Training Runtime.
-- Condition, Forschungs-ID, Löschcode-Hash, Versionen, Antworten, Timing und Abschlussstatus liegen serverseitig; der rohe Löschcode bleibt flüchtig im Renderer.
-- Reload während eines Artefakts verwirft temporären Zustand und markiert den Durchlauf
-  unvollständig.
-- Browser Storage, IndexedDB und Service Worker sind unzulässig.
+## Zustands- und Datenschutzgrenzen
+
+- Anzeigename und Trainingsinputs bleiben flüchtig;
+- Browser Storage, IndexedDB und Service Worker sind unzulässig;
+- Session, Zuweisung, Versionen, Antworten, Timing und Abschluss liegen serverseitig;
+- E-Mail und Raw Token liegen ausschließlich in `recontact.sqlite`;
+- Reload während des Artefakts verwirft temporären Trainingszustand und markiert die Session
+  unvollständig;
+- Server bindet standardmäßig nur an `127.0.0.1` und loggt keine Request-Bodies oder passive
+  Metadaten.
+
+## Follow-up-Boundary
+
+Nach Opt-in und Completion werden erste Einladung nach 240 Stunden, höchstens eine Erinnerung nach
+weiteren 48 Stunden und Schließung nach 336 Stunden geplant. Die lokale Runtime versendet keine
+E-Mails und hostet keinen öffentlichen Follow-up-Fragebogen. Der Schedule-Export enthält nur
+Kontaktadresse, Tokenlink und die drei Zeitpunkte, niemals Condition, Forschungs-ID, Antworten
+oder Löschcode.
+
+Ein automatischer Löschlauf für E-Mail-Adressen ist noch nicht zulässig, weil der aktuelle manuelle
+Versand keinen letzten erfolgreichen Versand zuverlässig quittiert. Vor der Hauptstudie ist ein
+kontrollierter Löschprozess festzulegen.
 
 ## Researcher-Konfiguration
 
 Die Hauptstudie nutzt `permuted-block`. `forced-supportive` und `forced-reference` sind nur für
-Pretests zulässig. Der Client enthält keinen Condition-Auswahlschalter.
+Cognitive Pretest und End-to-End-Pilot zulässig. Der Client besitzt keinen Condition-Schalter.
 
-## Follow-up-Boundary
+## Pilot- und Freeze-Grenze
 
-Die lokale Runtime versendet keine E-Mails und hostet keinen öffentlichen Fragebogen. Nach
-Completion werden für alle neuen 2.1-Sessions Einladung nach 240 Stunden, höchstens eine
-Erinnerung nach weiteren 48 Stunden und Schließung nach 336 Stunden geplant. Der Schedule-Export
-wird ausschließlich auf ausdrücklichen Aufruf erzeugt. Einladung, gegebenenfalls Erinnerung und
-Debriefing werden einzeln und manuell über das freigegebene Universitätskonto versandt; Empfänger
-dürfen einander nicht sehen. Die Nachricht enthält nur den neutralen Einladungstext und den
-individuellen Tokenlink, niemals Condition, Forschungs-ID, Antworten oder Löschcode. Recontact-Daten
-dienen keiner Analyse oder Stichprobenbeschreibung. Der Forschungsstichtag bleibt exakt
-`completedAt + 240h`, unabhängig von späterer Abgabe oder Erinnerung. Öffentliches Formular,
-Antwortimport und manueller Debrief-Versand bleiben vom lokalen Runtime-Prozess getrennt.
+Cognitive-Pretest- und End-to-End-Pilotpersonen werden nicht in die Hauptstudie aufgenommen;
+Pilotdaten werden nicht mit Hauptstudiendaten kombiniert. Nach dokumentierter Pilotierung,
+zweiter Inhaltsprüfung und Festlegung der offenen Datenschutzpunkte werden Manifest,
+Formularmatrix, Audit, Implementierung und Analysecode als Hauptstudienversion eingefroren.
 
 ## Lokale Datenlöschung
 
-Die Runtime stellt keine Teilnehmeroberfläche und keine HTTP-Route für Löschungen bereit. Ein
-lokaler, explizit bestätigter CLI-Workflow kann ausschließlich über den Löschcode eine Session und
-ihre abhängigen Daten auflösen; sein Standardmodus bleibt ein schreibgeschützter Dry-Run.
+Eine explizite CLI kann über den Löschcode eine pseudonymisierte Session und alle abhängigen
+Datensätze in Forschungs- und Kontaktregister auflösen. Standard ist Dry-Run; Schreiben erfordert
+`--confirm`. Exporte und Backups werden nicht automatisch verändert und müssen im Betriebsprozess
+separat berücksichtigt werden.

@@ -28,15 +28,11 @@ const supportiveSegmentTimingBounds = {
   }
 >;
 
-export function createSessionBody(
-  identity: number,
-  email = `participant-${identity}@example.org`,
-) {
+export function createSessionBody(identity: number, followUpConsent = true) {
   return {
     requestId: `10000000-0000-4000-8000-${identity.toString().padStart(12, '0')}`,
     consentAccepted: true,
-    recontactConsentAccepted: true,
-    email,
+    followUpConsent,
     deletionCodeHash: identity.toString(16).padStart(64, '0'),
   };
 }
@@ -44,14 +40,28 @@ export function createSessionBody(
 export async function createSession(
   server: FastifyInstance,
   identity = 1,
+  registerRecontact = true,
+  followUpConsent = registerRecontact,
 ): Promise<CreateSessionResponse> {
   const response = await server.inject({
     method: 'POST',
     url: '/api/study/sessions',
-    payload: createSessionBody(identity),
+    payload: createSessionBody(identity, followUpConsent),
   });
   expect(response.statusCode).toBe(201);
-  return response.json<CreateSessionResponse>();
+  const session = response.json<CreateSessionResponse>();
+  if (registerRecontact) {
+    const registration = await server.inject({
+      method: 'POST',
+      url: `/api/study/sessions/${session.sessionId}/recontact`,
+      payload: {
+        requestId: `20000000-0000-4000-8000-${identity.toString().padStart(12, '0')}`,
+        email: `participant-${identity}@example.org`,
+      },
+    });
+    expect(registration.statusCode).toBe(200);
+  }
+  return session;
 }
 
 function validValue(item: InstrumentRuntimeItem): InstrumentResponseValue {

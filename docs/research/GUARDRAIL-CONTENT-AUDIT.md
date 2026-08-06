@@ -1,57 +1,85 @@
-# Guardrail Content and Fairness Audit
+# Shared-Content-Audit des Understanding Guardrails
 
-Status: **Inhalt für `guardrail-v4` festgelegt; vor dem ersten Hauptstudienfall ist nur noch die
-Implementierungsparität mit den finalen Artefaktversionen zu bestätigen.**
+Status: **Pilotkandidat `guardrail-v5-pilot`.** Referenzartefakt:
+`SecAware.NRW, Passwörter & Authentifizierung, V9, 27.03.2026`.
 
-## Gemeinsamer Mechanismenkern
+## Administrierter Referenzpfad
 
-| Claim-ID | Gemeinsamer Claim | PassWo-Evidence | SecAware-Evidence aus dem eingefrorenen Study-Build | Entscheidung |
-|---|---|---|---|---|
-| `CORE_REUSE` | Ein bekannt gewordenes wiederverwendetes Passwort kann bei weiteren Konten ausprobiert werden; kontospezifische Passwörter begrenzen diesen Weg. | Segmente 6 und 17 | Lektion `cCLcBEovpLj72dCgZ6HsfeQV4xIR2_Lv`, Item `clcyqrhi30b8h1v5j7zqv53ip`; Lektion `8s5ZF8ravaGthNGdmPcOMPOpdjLwXR-O`, Item `cld0fg028001v356ougo22jb1` | gemeinsamer Kern belegt |
-| `CORE_PM` | Passwortmanager unterstützen Erzeugen, Speichern, Organisieren und spätere Bereitstellung kontospezifischer Passwörter. | Segmente 11 bis 13 | Items `cld0fg028001v356ougo22jb1` und `cld0fpnok002r356ofxxnq3hq` | gemeinsamer Kern belegt |
-| `CORE_MFA` | MFA bildet eine zusätzliche Anmeldebarriere; sie verhindert keine Passwortoffenlegung und macht Wiederverwendung nicht sicher. | Segmente 14 bis 17 | Lektion `zbxeD7QUdMnDlBWKvVsxMy5G8ghjnDRt`, Items `cld8n4a3c001v356o04q4t2ws` und `cld8niho705jh1s5h4qe44nob` | gemeinsamer Kern belegt |
+Der standardisierte Pfad enthält die zwingend gezeigten instruktiven Text-, Video- und
+Interaktionsinhalte von V9 bis unmittelbar vor dem terminalen Knowledge Quiz. Das terminale Quiz
+und dessen Lösungshinweise werden vor dem gemeinsamen Guardrail ausgelassen, weil es nur die
+Referenzbedingung unmittelbar vor der gemeinsamen Messung zusätzlich testen und instruieren würde.
+Die Ergebnisse beziehen sich deshalb auf den **SecAware.NRW-V9-Instruktionspfad wie in der Studie
+administriert**, nicht auf das vollständige unveränderte Modul.
 
-Bewusst ausgeschlossen sind konkrete Mindestlängen, Zeichenraummodelle, die Sechs-Wort-Methode,
-PassWo-Metaphern, produktspezifische Einrichtung, Produktvergleiche und detaillierte Recovery-
-oder Incident-Response-Schritte.
+Optionale Zusatzlinks sind nicht erforderlich und begründen keinen gemeinsamen Claim.
 
-## Finaler Item-Audit
+## Gemeinsame Claims
 
-| Item-ID | Geprüfter Claim | Antwortlogik | Status |
-|---|---|---|---|
-| `SC_BREACH_REUSE` | `CORE_REUSE` | angemessen: beide kompromittierten Wiederverwendungsstellen durch neue unterschiedliche Passwörter ersetzen; unsicher: nur Quellkonto ändern oder gemeinsames Passwort mit MFA beibehalten | freigegeben |
-| `SC_PM_MANY_ACCOUNTS` | `CORE_PM` | angemessen: kontospezifische Passwörter mit Passwortmanager erzeugen, speichern und verwenden; unsicher: Wiederverwendung bei Neben- oder allen Konten | freigegeben |
-| `SC_LAYERED_PROTECTION` | `CORE_REUSE` + `CORE_MFA` | angemessen: kontospezifische starke Passwörter plus MFA; unvollständig: kontospezifisch ohne MFA; unsicher: Wiederverwendung wegen MFA | freigegeben |
-| `MR_REUSE` | `CORE_REUSE` | erkennt kontoübergreifendes Ausprobieren; Distraktoren bilden automatische Leak- beziehungsweise E-Mail-Verknüpfungsmodelle | freigegeben |
-| `MR_PASSWORD_MANAGER` | `CORE_PM` | erkennt kontospezifisches Speichern und passendes Einsetzen; Distraktoren bilden gemeinsames Passwort beziehungsweise automatische MFA-Aktivierung | freigegeben |
-| `MR_MFA` | `CORE_MFA` | erkennt zusätzliche Anmeldebarriere; Distraktoren bilden rückwirkende Geheimhaltung beziehungsweise sichere Wiederverwendung | freigegeben |
+| Claim | Gemeinsame Claim-Ebene | Guardrail-Evidenz |
+|---|---|---|
+| Eigenes starkes Passwort pro Konto/Dienst | explizite Empfehlung | `SC_DISTINCT_PASSWORDS`, `MR_DISTINCT_PASSWORDS` |
+| Passwortmanager erzeugt starke Passwörter | explizite Funktion | `SC_PM_MANY_ACCOUNTS`, `MR_PASSWORD_MANAGER` |
+| Passwortmanager speichert und organisiert Passwörter | explizite Funktion | `SC_PM_MANY_ACCOUNTS`, `MR_PASSWORD_MANAGER` |
+| MFA ergänzt das Passwort um mindestens einen Faktor anderer Kategorie | explizites Konzept | `MR_MFA` |
+| Account-spezifische starke Passwörter und MFA werden kombiniert | Zusammenführung zweier explizit präsentierter Empfehlungen | `SC_LAYERED_PROTECTION` |
 
-Die korrekte Passwortmanager-Recognition-Antwort ist bewusst ähnlich lang wie die Distraktoren.
-Szenarien stehen vor Recognition. Die drei Szenarien werden über sechs Formen in allen möglichen
-Reihenfolgen gezeigt; die substantive Antwortposition wird ebenfalls vollständig balanciert.
-`Weiß ich nicht` bleibt immer letzte Option.
+Nicht als separater gemeinsamer Outcome-Claim verwendet werden Credential-Stuffing-Mechanik,
+die Reaktion auf ein bereits bekanntes Passwort, eine nachträgliche Wiederherstellung der
+Passwortgeheimhaltung oder die explizite Aussage, MFA könne Wiederverwendung nicht kompensieren.
+Diese Inhalte sind technisch relevant und im Prototyp teilweise ausführlicher, wurden aber nicht
+als identischer obligatorischer Wortlaut im administrierten V9-Pfad dokumentiert.
 
-## Klassifikationsgrenzen
+## A-priori-Klassifikationen
 
-- `SC_BREACH_REUSE`: eine angemessene und zwei unsichere Antworten.
-- `SC_PM_MANY_ACCOUNTS`: eine angemessene und zwei unsichere Antworten.
-- `SC_LAYERED_PROTECTION`: eine angemessene, eine unvollständige und eine unsichere Antwort.
-- Recognition: korrekt, falscher Mechanismus oder unsichere Antwort; Unsicherheit bleibt eigene
-  Kategorie.
-- Es gibt keinen Gesamtscore, keine Pass/Fail-Grenze und keinen Unsafe-Summenwert.
-- Eine Itemantwort wird nicht als stabiler persönlicher Glaube interpretiert.
+### `SC_DISTINCT_PASSWORDS`
 
-## Letzte Freigabekontrolle
+- angemessen: für jedes Konto ein eigenes starkes Passwort;
+- unsicher: dasselbe besonders starke Passwort bei beiden Konten;
+- unsicher: eigenes Passwort nur für E-Mail, Wiederverwendung beim Shopping-Konto;
+- unsicher/keine Aussage: `Weiß ich nicht` wird separat als Unsicherheit berichtet.
 
-Vor dem ersten Hauptstudienfall werden einmalig geprüft:
+### `SC_PM_MANY_ACCOUNTS`
 
-1. die oben referenzierten Inhalte sind im tatsächlich ausgelieferten PassWo- und SecAware-Build
-   weiterhin explizit vorhanden;
-2. keine PassWo-interne Lernfrage kopiert Stem und Antwortmuster des externen Guardrails nahezu
-   wortgleich;
-3. Interface, Export und Runtime verwenden dieselben IDs, Optionen, Formzuweisungen und
-   Klassifikationen;
-4. der Cognitive Pretest zeigt keinen dominanten Längen-, Sprachstil- oder Absurdity-Cue.
+- angemessen: Passwortmanager erzeugt starke Passwörter und speichert/organisiert sie;
+- unsicher: eigene Passwörter nur für wichtige Konten;
+- unsicher: ein besonders starkes Passwort für alle Konten;
+- Unsicherheit separat.
 
-Nach Studienbeginn werden Wortlaut und Klassifikation nicht anhand sichtbarer Gruppenunterschiede
-verändert.
+### `SC_LAYERED_PROTECTION`
+
+- angemessen: eigenes starkes Passwort pro Konto plus MFA bei beiden Konten;
+- unvollständig: eigene starke Passwörter, aber verfügbare MFA nicht aktiviert;
+- unsicher: gemeinsames starkes Passwort trotz MFA;
+- Unsicherheit separat.
+
+Die unsafe-Klassifikation der gemeinsamen Passwortoption beruht auf der expliziten Empfehlung für
+ein eigenes Passwort pro Konto. Das Item wird nicht als Nachweis eines separat vermittelten
+MFA-Limit-Mechanismus interpretiert.
+
+### Recognition
+
+- `MR_DISTINCT_PASSWORDS`: Empfehlung für eigenes starkes Passwort pro Konto;
+- `MR_PASSWORD_MANAGER`: Erzeugen, Speichern und Organisieren;
+- `MR_MFA`: Passwort plus mindestens ein zusätzlicher Faktor anderer Kategorie.
+
+## Formbalancierung
+
+Formen `F1` bis `F6` verwenden alle sechs Reihenfolgen der drei Anwendungsszenarien. Für jedes
+Item erscheinen die drei inhaltlichen Optionen über die sechs Formen genau zweimal an jeder der
+drei Positionen. `Weiß ich nicht` bleibt immer zuletzt. Die Form wird serverseitig innerhalb jeder
+Bedingung in zufällig permutierten Sechserblöcken vergeben und zusammen mit der tatsächlich
+angezeigten Optionfolge persistiert.
+
+## Verbindliche Shared-Content-Matrix
+
+Vor der Hauptstudie muss für jeden Claim festgehalten werden:
+
+- exakter Prototyp-Segment-/Screen-Beleg;
+- exakter V9-Ort und Teilnehmerwortlaut beziehungsweise eindeutige Paraphrase;
+- Bestätigung, dass der Inhalt im standardisierten Pfad zwingend gezeigt wird;
+- Bestätigung, dass er nicht nur im ausgelassenen Quiz oder einem optionalen Link vorkommt.
+
+Die Matrix, das Artefaktaudit und alle Klassifikationen werden von einer zweiten qualifizierten
+Usable-Security-Person geprüft. Abweichungen und Auflösung werden dokumentiert. Diese Prüfung ist
+Content Review, keine psychometrische Validierung oder Interrater-Reliabilitätsstudie.

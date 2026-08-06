@@ -3,6 +3,23 @@ import { z } from 'zod';
 export const recontactEmailSchema = z.string().trim().min(3).max(254).email();
 export type RecontactEmail = z.infer<typeof recontactEmailSchema>;
 
+export const registerRecontactRequestSchema = z
+  .object({
+    requestId: z.uuid(),
+    email: recontactEmailSchema,
+  })
+  .strict();
+export type RegisterRecontactRequest = z.infer<typeof registerRecontactRequestSchema>;
+
+export const registerRecontactResponseSchema = z.object({ registered: z.literal(true) }).strict();
+export type RegisterRecontactResponse = z.infer<typeof registerRecontactResponseSchema>;
+
+export const abandonRecontactRequestSchema = z.object({}).strict();
+export type AbandonRecontactRequest = z.infer<typeof abandonRecontactRequestSchema>;
+
+export const abandonRecontactResponseSchema = z.object({ abandoned: z.literal(true) }).strict();
+export type AbandonRecontactResponse = z.infer<typeof abandonRecontactResponseSchema>;
+
 export const followUpTokenHashSchema = z.string().regex(/^[a-f0-9]{64}$/u);
 export type FollowUpTokenHash = z.infer<typeof followUpTokenHashSchema>;
 

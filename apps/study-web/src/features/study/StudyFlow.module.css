@@ -65,12 +65,6 @@
   );
 }
 
-.welcomeHeader .eyebrow {
-  max-width: none;
-  justify-self: center;
-  text-align: center;
-}
-
 .eyebrow {
   margin: 0;
   color: var(--color-accent-strong);
@@ -792,6 +786,10 @@
   margin-top: var(--space-4);
 }
 
+.panasOptions {
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+}
+
 .agreementOption {
   display: grid;
   min-width: 0;
@@ -895,6 +893,7 @@
 
 .anchorLabel {
   width: 100%;
+  overflow-wrap: anywhere;
 }
 
 .confidenceAnchors .anchorLabelStart {

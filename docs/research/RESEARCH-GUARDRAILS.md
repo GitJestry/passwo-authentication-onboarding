@@ -4,8 +4,8 @@
 
 Verglichen werden zwei vollständige Onboarding-Artefakte. Gemessen werden unmittelbare
 Wahrnehmung, Bearbeitungszeit und kriteriumsbezogenes Sofortverständnis. Explorativ folgen vier
-task-specific Self-Efficacy-Einzelratings. Der verpflichtende zweite Studienteil enthält als
-zentral-sekundäre Familie drei selbstberichtete Schutzhandlungen innerhalb von zehn Tagen. Unterschiede dürfen
+post-guardrail task-specific Self-Efficacy-Einzelratings. Eine optionale Nachbefragung enthält als
+ancillary exploratory extension drei getrennte selbstberichtete Schutzhandlungen innerhalb von zehn Tagen. Unterschiede dürfen
 nicht einzelnen Translation Foci, Animationen, Quizfragen oder UI-Elementen kausal zugeschrieben
 werden.
 
@@ -52,17 +52,19 @@ werden.
   Correctness Feedback.
 - Es gibt kein Pass/Fail, keinen Guardrail-Gesamtscore und keinen Unsafe-Summenwert.
 
-## Zweiter Studienteil
+## Optionale Nachbefragung
 
-- Kontaktbestätigung und gültige E-Mail-Adresse sind für neue 2.1-Sitzungen verpflichtend.
-- E-Mail und Roh-Token liegen ausschließlich in der getrennten Recontact Registry.
+- Die E-Mail-Adresse ist freiwillig und keine Voraussetzung für die Hauptstudie.
+- E-Mail und Raw Token liegen ausschließlich in der getrennten Recontact Registry.
 - Die Follow-up-Fragen sind nicht Bestandteil der Training Runtime. Kanonische Quellen sind
-  `FOLLOW-UP-INSTRUMENT.md` und `research/derived/follow-up-v5.yaml`.
-- Die E-Mail enthält keine Authentifizierungsempfehlung und das Follow-up ist kein erneutes
-  Training.
+  `FOLLOW-UP-INSTRUMENT.md` und `research/derived/follow-up-v6.yaml`.
+- Einladung und Erinnerung enthalten keine Authentifizierungsempfehlung; das Follow-up ist kein
+  erneutes Training.
 - Nichtantwort ist fehlend und wird nicht als keine Handlung codiert.
 - Passwort-, Passwortmanager- und MFA-Handlungen bleiben getrennt; es gibt keinen kombinierten
   Behavior Score.
+- Das Follow-up folgt Artefakt, gemeinsamem Guardrail, weiteren Messungen und korrektivem
+  Debriefing; absolute Handlungsraten werden nicht dem Artefakt allein zugeschrieben.
 - Es handelt sich weder um objektive Kontobeobachtung noch um eine Vorher-Nachher-Messung
   desselben Verhaltens; dauerhafte Adoption und Verhaltensänderung werden nicht behauptet.
 

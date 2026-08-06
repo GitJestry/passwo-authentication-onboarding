@@ -19,6 +19,8 @@ function runtimePorts(
       assignmentMode: condition === 'supportive' ? 'forced-supportive' : 'forced-reference',
       guardrailFormId: 'F1',
     }),
+    registerRecontact: async () => {},
+    abandonRecontact: async () => {},
     saveInstrumentSubmission,
     startArtifact: async () => {},
     endArtifact: async () => 325,
@@ -50,8 +52,11 @@ async function startAtPreQuestionnaire(ports: StudyRuntimePorts): Promise<StudyA
   actor.start();
   actor.send({
     type: 'ACCEPT_CONSENT',
-    recontactConsentAccepted: true,
-    email: 'person@example.org',
+    followUpConsent: true,
+    recontact: {
+      email: 'person@example.org',
+      requestId: 'f5d74d44-f700-4dc7-ac00-5e251a8890c3',
+    },
   });
   await waitForState(actor, () => actor.getSnapshot().matches({ preQuestionnaire: 'editing' }));
   return actor;
@@ -84,11 +89,6 @@ function submitEvent(submission: InstrumentSubmissionRequest): StudyEvent {
         type: 'SUBMIT_GUARDRAILS',
         payload: { ...payload, instrumentId: 'guardrail-v2' },
       };
-    case 'post-open-v1':
-      return {
-        type: 'SUBMIT_POST_OPEN',
-        payload: { ...payload, instrumentId: 'post-open-v1' },
-      };
   }
 }
 
@@ -119,76 +119,105 @@ async function completeQuestionnaire(
 }
 
 describe('studyMachine', () => {
-  it('keeps the email only for an atomic session retry and clears it after success', async () => {
-    let creationAttempts = 0;
-    const creationEmails: string[] = [];
+  it('keeps recontact data only for retry and clears it after success', async () => {
+    let registrationAttempts = 0;
+    const registrationRequests: unknown[] = [];
     const retryPorts = runtimePorts('supportive');
-    const createSession = retryPorts.createSession;
-    retryPorts.createSession = async (email) => {
-      creationEmails.push(email);
-      creationAttempts += 1;
-      if (creationAttempts === 1) throw new Error('atomic-session-write-failed');
-      return createSession(email);
+    retryPorts.registerRecontact = async (_sessionId, request) => {
+      registrationRequests.push(request);
+      registrationAttempts += 1;
+      if (registrationAttempts === 1) throw new Error('recontact-write-failed');
     };
     const retryActor = createActor(createStudyMachine(retryPorts));
     retryActor.start();
     retryActor.send({
       type: 'ACCEPT_CONSENT',
-      recontactConsentAccepted: true,
-      email: 'person@example.org',
+      followUpConsent: true,
+      recontact: {
+        email: 'person@example.org',
+        requestId: 'f5d74d44-f700-4dc7-ac00-5e251a8890c3',
+      },
     });
-    await waitForState(retryActor, () => retryActor.getSnapshot().matches('sessionError'));
+    await waitForState(retryActor, () =>
+      retryActor.getSnapshot().matches({ recontactRegistration: 'error' }),
+    );
 
-    expect(retryActor.getSnapshot().context.sessionId).toBeNull();
+    expect(retryActor.getSnapshot().context.condition).toBe('supportive');
     expect(retryActor.getSnapshot().context.recontactEmail).toBe('person@example.org');
-    retryActor.send({ type: 'RETRY_SESSION' });
+    retryActor.send({ type: 'RETRY_RECONTACT' });
     await waitForState(retryActor, () =>
       retryActor.getSnapshot().matches({ preQuestionnaire: 'editing' }),
     );
-    expect(creationEmails).toEqual(['person@example.org', 'person@example.org']);
+    expect(registrationRequests).toEqual([
+      {
+        email: 'person@example.org',
+        requestId: 'f5d74d44-f700-4dc7-ac00-5e251a8890c3',
+      },
+      {
+        email: 'person@example.org',
+        requestId: 'f5d74d44-f700-4dc7-ac00-5e251a8890c3',
+      },
+    ]);
     expect(retryActor.getSnapshot().context.recontactEmail).toBeNull();
+    expect(retryActor.getSnapshot().context.recontactRequestId).toBeNull();
     retryActor.stop();
   });
 
-  it('does not create a session without valid required contact data', () => {
-    let creationAttempts = 0;
+  it('continues without a recontact registration when it was not requested', async () => {
+    let registrationAttempts = 0;
+    let createdWithFollowUpConsent: boolean | null = null;
     const ports = runtimePorts('reference');
-    ports.createSession = async () => {
-      creationAttempts += 1;
-      throw new Error('must-not-run');
+    const createSession = ports.createSession;
+    ports.createSession = async (followUpConsent) => {
+      createdWithFollowUpConsent = followUpConsent;
+      return createSession(followUpConsent);
+    };
+    ports.registerRecontact = async () => {
+      registrationAttempts += 1;
     };
     const actor = createActor(createStudyMachine(ports));
     actor.start();
-    actor.send({
-      type: 'ACCEPT_CONSENT',
-      recontactConsentAccepted: true,
-      email: 'not-an-email',
-    });
+    actor.send({ type: 'ACCEPT_CONSENT', followUpConsent: false, recontact: null });
 
-    expect(actor.getSnapshot().matches('consent')).toBe(true);
-    expect(creationAttempts).toBe(0);
+    await waitForState(actor, () => actor.getSnapshot().matches({ preQuestionnaire: 'editing' }));
+
+    expect(registrationAttempts).toBe(0);
+    expect(createdWithFollowUpConsent).toBe(false);
     expect(actor.getSnapshot().context.recontactEmail).toBeNull();
+    expect(actor.getSnapshot().context.recontactRequestId).toBeNull();
     actor.stop();
   });
 
-  it('cannot bypass an atomic session error', async () => {
+  it('continues without follow-up after a registration error and clears recontact data', async () => {
     const ports = runtimePorts('supportive');
-    ports.createSession = async () => {
-      throw new Error('atomic-session-write-failed');
+    let abandonedSessionId: string | null = null;
+    ports.registerRecontact = async () => {
+      throw new Error('recontact-write-failed');
+    };
+    ports.abandonRecontact = async (sessionId) => {
+      abandonedSessionId = sessionId;
     };
     const actor = createActor(createStudyMachine(ports));
     actor.start();
     actor.send({
       type: 'ACCEPT_CONSENT',
-      recontactConsentAccepted: true,
-      email: 'person@example.org',
+      followUpConsent: true,
+      recontact: {
+        email: 'person@example.org',
+        requestId: 'f5d74d44-f700-4dc7-ac00-5e251a8890c3',
+      },
     });
-    await waitForState(actor, () => actor.getSnapshot().matches('sessionError'));
+    await waitForState(actor, () =>
+      actor.getSnapshot().matches({ recontactRegistration: 'error' }),
+    );
 
-    actor.send({ type: 'START_ARTIFACT' });
-    expect(actor.getSnapshot().matches('sessionError')).toBe(true);
-    expect(actor.getSnapshot().context.sessionId).toBeNull();
-    expect(actor.getSnapshot().context.recontactEmail).toBe('person@example.org');
+    actor.send({ type: 'CONTINUE_WITHOUT_FOLLOW_UP' });
+    await waitForState(actor, () => actor.getSnapshot().matches({ preQuestionnaire: 'editing' }));
+
+    expect(abandonedSessionId).toBe('a185bbd8-2088-47d2-b45a-924c8d8778ea');
+    expect(actor.getSnapshot().context.followUpConsent).toBe(false);
+    expect(actor.getSnapshot().context.recontactEmail).toBeNull();
+    expect(actor.getSnapshot().context.recontactRequestId).toBeNull();
     actor.stop();
   });
 
@@ -215,7 +244,6 @@ describe('studyMachine', () => {
     expect(actor.getSnapshot().context.guardrailFormId).toBe('F1');
     actor.send({ type: 'SUBMIT_PRE', payload: submission });
     actor.send(submitEvent(submissionAt(1)));
-    actor.send(submitEvent(submissionAt(2)));
     await waitForState(actor, () => actor.getSnapshot().matches({ preQuestionnaire: 'error' }));
 
     expect(actor.getSnapshot().context.pendingSubmission).toBe(submission);
@@ -228,7 +256,7 @@ describe('studyMachine', () => {
       () => actor.getSnapshot().matches({ artifactLifecycle: 'preparing' }),
     );
 
-    expect(savedSubmissions).toHaveLength(4);
+    expect(savedSubmissions).toHaveLength(3);
     expect(savedSubmissions[1]).toBe(submission);
     expect(actor.getSnapshot().context.pendingSubmission).toBeNull();
     expect(actor.getSnapshot().context.questionnaireDrafts).toEqual([]);
@@ -284,7 +312,6 @@ describe('studyMachine', () => {
 
     actor.send(submitEvent(revisedSample));
     actor.send(submitEvent(submissionAt(1)));
-    actor.send(submitEvent(submissionAt(2)));
     await waitForState(actor, () =>
       actor.getSnapshot().matches({ artifactLifecycle: 'preparing' }),
     );
@@ -292,14 +319,13 @@ describe('studyMachine', () => {
     expect(savedSubmissions.map(({ sectionId }) => sectionId)).toEqual([
       'sample',
       'experience',
-      'self_efficacy',
     ]);
     expect(savedSubmissions[0]).toEqual(revisedSample);
     expect(actor.getSnapshot().context.questionnaireDrafts).toEqual([]);
     actor.stop();
   });
 
-  it('requires scenarios, recognition, post-guardrail items, and post-open before closure', async () => {
+  it('requires scenarios, recognition, and post-guardrail items before the common debriefing', async () => {
     const savedSubmissions: InstrumentSubmissionRequest[] = [];
     const actor = await startAtPreQuestionnaire(
       runtimePorts('reference', async (_sessionId, submission) => {
@@ -324,28 +350,13 @@ describe('studyMachine', () => {
       'scenarios',
     );
 
+    actor.send({ type: 'SESSION_CLOSURE_ACKNOWLEDGED' });
+    expect(actor.getSnapshot().matches({ guardrails: 'editing' })).toBe(true);
+
     await submitCurrentBlock(actor);
     expect(mainInstrumentBlocks[actor.getSnapshot().context.instrumentBlockCursor]?.sectionId).toBe(
       'recognition',
     );
-
-    const postOpen = mainInstrumentBlocks.find(
-      ({ instrumentId }) => instrumentId === 'post-open-v1',
-    );
-    if (postOpen === undefined) throw new Error('Missing post-open block');
-    actor.send(
-      submitEvent({
-        instrumentId: postOpen.instrumentId,
-        sectionId: postOpen.sectionId,
-        responses: postOpen.items.map((item) => ({ itemId: item.id, value: null })),
-      }),
-    );
-
-    expect(actor.getSnapshot().matches({ guardrails: 'editing' })).toBe(true);
-    expect(mainInstrumentBlocks[actor.getSnapshot().context.instrumentBlockCursor]?.sectionId).toBe(
-      'recognition',
-    );
-
     await submitCurrentBlock(actor);
     await waitForState(actor, () => actor.getSnapshot().matches({ postQuestionnaire: 'editing' }));
     expect(mainInstrumentBlocks[actor.getSnapshot().context.instrumentBlockCursor]?.sectionId).toBe(
@@ -353,15 +364,12 @@ describe('studyMachine', () => {
     );
 
     await completeQuestionnaire(actor, 'post-v1');
-    await waitForState(actor, () => actor.getSnapshot().matches({ postOpen: 'editing' }));
-    actor.send({ type: 'SESSION_CLOSURE_ACKNOWLEDGED' });
-    expect(actor.getSnapshot().matches({ postOpen: 'editing' })).toBe(true);
-
-    await submitCurrentBlock(actor);
     await waitForState(actor, () => actor.getSnapshot().matches('sessionClosure'));
 
     expect(actor.getSnapshot().context.pendingSubmission).toBeNull();
-    expect(savedSubmissions.at(-1)?.instrumentId).toBe('post-open-v1');
+    expect(savedSubmissions.at(-1)?.sectionId).toBe('secaware_prior_exposure');
+    actor.send({ type: 'SESSION_CLOSURE_ACKNOWLEDGED' });
+    await waitForState(actor, () => actor.getSnapshot().matches('complete'));
     actor.stop();
   });
 });

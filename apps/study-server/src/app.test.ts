@@ -99,7 +99,7 @@ describe('study server research core', () => {
 
   it('binds idempotent session creation to the deletion-code hash', async () => {
     const server = createServer('forced-supportive');
-    const request = createSessionBody(1);
+    const request = createSessionBody(1, false);
     const first = await server.inject({
       method: 'POST',
       url: '/api/study/sessions',
@@ -115,17 +115,11 @@ describe('study server research core', () => {
       url: '/api/study/sessions',
       payload: { ...request, deletionCodeHash: 'f'.repeat(64) },
     });
-    const conflictingEmailRetry = await server.inject({
-      method: 'POST',
-      url: '/api/study/sessions',
-      payload: { ...request, email: 'different@example.org' },
-    });
 
     expect(first.statusCode).toBe(201);
     expect(retry.statusCode).toBe(201);
     expect(retry.json()).toEqual(first.json());
     expect(conflictingRetry.statusCode).toBe(409);
-    expect(conflictingEmailRetry.statusCode).toBe(409);
   });
 
   it('persists only approved research session fields and condition-derived versions', async () => {
@@ -222,7 +216,7 @@ describe('study server research core', () => {
     const completion = await server.inject({
       method: 'POST',
       url: `/api/study/sessions/${session.sessionId}/complete`,
-      payload: { firstStudyPartClosureAcknowledged: true },
+      payload: { debriefAcknowledged: true },
     });
     const reload = await server.inject({
       method: 'POST',
@@ -494,7 +488,7 @@ describe('study server research core', () => {
     expect(responseCount).toEqual({ count: submission.responses.length });
   });
 
-  it('enforces pre, artifact end, post, recognition, scenarios, open, and completion order', async () => {
+  it('enforces pre, artifact end, immediate post, scenarios, recognition, post-guardrail, and completion order', async () => {
     const server = createServer('forced-reference');
     const session = await createSession(server);
     const earlyPost = await submitBlock(server, session.sessionId, 'post-v1', 'ueqs');
@@ -554,7 +548,7 @@ describe('study server research core', () => {
     const completion = await server.inject({
       method: 'POST',
       url: `/api/study/sessions/${session.sessionId}/complete`,
-      payload: { firstStudyPartClosureAcknowledged: true },
+      payload: { debriefAcknowledged: true },
     });
     expect(completion.statusCode).toBe(200);
     expect(completion.json()).toEqual({ completionStatus: 'completed' });

@@ -58,8 +58,7 @@ describe('Study Runtime restart compatibility', () => {
       body: JSON.stringify({
         requestId: randomUUID(),
         consentAccepted: true,
-        recontactConsentAccepted: true,
-        email: 'participant@example.org',
+        followUpConsent: true,
         deletionCodeHash: 'a'.repeat(64),
       }),
     });

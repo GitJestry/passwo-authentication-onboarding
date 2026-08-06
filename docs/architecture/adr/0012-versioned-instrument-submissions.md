@@ -228,3 +228,33 @@ Vertragskopie müssen identisch bleiben.
 Weil das Data Dictionary mit `interpretationNote` nun die abweichende Bedeutung von
 `PERCEIVED_DURATION` und `TIME_FIT` maschinenlesbar dokumentiert, wird das Export-Manifest auf
 `research-export-v6` angehoben. Dies ändert keine persistierten Forschungsdaten.
+
+## Revision 2026-08-05 — Pilotkandidat Instrument 3.0
+
+Diese Revision ersetzt die Instrumententscheidungen 2.0 und 2.1 für neue Pilot-Sitzungen. Die
+Versionen lauten `3.0.0-pilot`, `questionnaire-v4-pilot`, `guardrail-v5-pilot`,
+`consent-v8-pilot`, `follow-up-v6-pilot` und `instrument-runtime-v3-pilot`.
+
+Die Haupt-Runtime enthält nur `pre-v1`, `post-v1` und `guardrail-v2`; `post-open-v1` und der offene
+Kommentar werden entfernt. Der Pre-Fragebogen enthält keine Self-Efficacy-Baseline. Der Post-Pfad
+besteht aus PANAS, zwei Zeiturteilen, UEQ-S, UEQ+ Inhaltsseriosität, zwölf design-diagnostischen
+Einzelitems, Risikoproportionalität, wahrgenommenem Verständnis, dem gemeinsamen Guardrail,
+vier post-guardrail Self-Efficacy-Einzelitems und retrospektiver SecAware-Vorerfahrung.
+
+Die PANAS erhält eine eigene vollständig beschriftete Fünfpunkt-Skala. Standardisierte PANAS-,
+UEQ-S- und UEQ+-Wortlaute, Reihenfolgen und Polaritäten bleiben unverändert. Die Custom Items sind
+keine Skalen und werden nicht aggregiert.
+
+`guardrail-v5-pilot` beschränkt sich auf fünf explizit in beiden administrierten Artefaktpfaden
+dokumentierte Claim-Ebenen. Die sechs serverseitig ausbalancierten Formen bleiben erhalten, ihre
+Item- und Option-IDs werden jedoch auf die neuen Distinct-Password-, Password-Manager- und
+MFA-Fragen aktualisiert. Klassifikationen bleiben außerhalb der Client-Runtime.
+
+Der terminale SecAware-V9-Knowledge-Quizpfad und dessen Lösungshinweise bleiben vor dem gemeinsamen
+Guardrail ausgelassen. Der gemessene Referenzpfad endet unmittelbar davor. Diese Adaptation und die
+Shared-Content-Matrix müssen vor der Hauptstudie von einer zweiten qualifizierten Person geprüft
+werden.
+
+Die Nachbefragung ist wieder optional und wird getrennt in `follow-up-v6.yaml` versioniert. Diese
+Revision führt keine neuen persistierten Forschungsfelder ein; bestehende Tabellen und atomare
+Submission-Grenzen werden weiterverwendet.

@@ -28,7 +28,6 @@ interface FollowUpScheduleRecord {
   readonly firstInvitationAtIso: string;
   readonly reminderAtIso: string;
   readonly closesAtIso: string;
-  readonly finalDebriefAtIso: string;
 }
 
 function protectedOutputDirectory(outputPath: string): void {
@@ -65,13 +64,12 @@ function csvContent(records: readonly FollowUpScheduleRecord[]): string {
       record.firstInvitationAtIso,
       record.reminderAtIso,
       record.closesAtIso,
-      record.finalDebriefAtIso,
     ]
       .map(csvCell)
       .join(','),
   );
   return [
-    'email,tokenLink,firstInvitationAtIso,reminderAtIso,closesAtIso,finalDebriefAtIso',
+    'email,tokenLink,firstInvitationAtIso,reminderAtIso,closesAtIso',
     ...rows,
     '',
   ].join('\n');
@@ -114,7 +112,6 @@ export function exportFollowUpSchedule({
       firstInvitationAtIso: row.firstInvitationAtIso,
       reminderAtIso: row.reminderAtIso,
       closesAtIso: row.closesAtIso,
-      finalDebriefAtIso: row.closesAtIso,
     }));
     const content =
       extension === '.json' ? `${JSON.stringify(records, null, 2)}\n` : csvContent(records);

@@ -1,10 +1,10 @@
-schemaVersion: 3
-instrumentVersion: 2.1.0
-questionnaireVersion: questionnaire-v3
-guardrailVersion: guardrail-v4
-consentVersion: consent-v7-draft
-followUpVersion: follow-up-v5
-runtimeManifestVersion: instrument-runtime-v2.1
+schemaVersion: 4
+instrumentVersion: 3.0.0-pilot
+questionnaireVersion: questionnaire-v4-pilot
+guardrailVersion: guardrail-v5-pilot
+consentVersion: consent-v8-pilot
+followUpVersion: follow-up-v6-pilot
+runtimeManifestVersion: instrument-runtime-v3-pilot
 language: de-DE
 participantTerm: Lernangebot
 scales:
@@ -28,6 +28,16 @@ scales:
       '0': überhaupt nicht zuversichtlich
       '5': mäßig zuversichtlich
       '10': völlig zuversichtlich
+  panasIntensity5:
+    type: integer
+    min: 1
+    max: 5
+    anchors:
+      '1': gar nicht
+      '2': ein bisschen
+      '3': einigermaßen
+      '4': erheblich
+      '5': äußerst
   durationAppropriateness7:
     type: integer
     min: 1
@@ -72,20 +82,12 @@ scales:
 analysis:
   selfEfficacy:
     aggregateScore: false
-    scale: confidence11
-    topics:
-      distinctAccess:
-        preItemId: SE_DISTINCT_ACCESS_PRE
-        postItemId: SE_DISTINCT_ACCESS_POST
-      passwordManagerNewAccount:
-        preItemId: SE_PM_NEW_ACCOUNT_PRE
-        postItemId: SE_PM_NEW_ACCOUNT_POST
-      passwordManagerLogin:
-        preItemId: SE_PM_LOGIN_PRE
-        postItemId: SE_PM_LOGIN_POST
-      mfaActivation:
-        preItemId: SE_MFA_ENABLE_PRE
-        postItemId: SE_MFA_ENABLE_POST
+    measurementTiming: post_guardrail_only
+    itemIds:
+    - SE_DISTINCT_ACCESS
+    - SE_PM_NEW_ACCOUNT
+    - SE_PM_LOGIN
+    - SE_MFA_ENABLE
   guardrail:
     aggregateScore: false
     passFailThreshold: null
@@ -94,7 +96,7 @@ analysis:
     - scenarios
     secondaryBlocks:
     - recognition
-  followUpSource: research/derived/follow-up-v5.yaml
+  followUpSource: research/derived/follow-up-v6.yaml
 procedures:
   eligibility:
     persisted: false
@@ -113,74 +115,84 @@ procedures:
     eyebrow: Studie zu Passwörtern und dem Schutz von Online-Konten
     welcomeHeading: Willkommen
     welcomeParagraphs:
-    - Vielen Dank, dass du dir Zeit für diese Studie nimmst. Im ersten Studienteil bearbeitest du ein digitales Lernangebot
-      zu Passwörtern und zum Schutz von Online-Konten. Vor und nach dem Lernangebot beantwortest du einige Fragen.
+    - Vielen Dank, dass du dir Zeit für diese Studie nimmst. Du bearbeitest gleich ein digitales Lernangebot zu
+      Passwörtern und zum Schutz von Online-Konten und beantwortest davor und danach einige Fragen.
     readMoreLabel: Ausführliche Teilnahmeinformationen
     informationHeading: Informationen zu deiner Teilnahme
     sections:
     - id: purpose
       heading: Worum geht es?
       paragraphs:
-      - Wir untersuchen, wie ein digitales Lernangebot zu Passwörtern und Kontoschutz genutzt, wahrgenommen und verstanden
-        wird.
-      - Einige Details zur genauen Forschungsfrage erläutern wir dir erst nach Abschluss aller Studienteile. Dadurch soll
-        vermieden werden, dass diese Informationen deine Bearbeitung oder deine Antworten vorab beeinflussen.
+      - Wir untersuchen, wie ein digitales Lernangebot zu Passwörtern und zum Schutz von Online-Konten genutzt,
+        wahrgenommen und verstanden wird.
+      - Einige Einzelheiten zum Vergleich und zum konkreteren Untersuchungszweck erläutern wir erst nach den unmittelbaren
+        Messungen. Dadurch soll vermieden werden, dass diese Informationen deine Bearbeitung oder deine Antworten
+        vorab beeinflussen.
     - id: procedure
       heading: Was erwartet dich?
       paragraphs:
-      - Zunächst beantwortest du kurze Fragen zu deiner Person und zu bisherigen Erfahrungen mit den behandelten Themen. Danach
-        bearbeitest du ein digitales Lernangebot. Abschließend folgen Fragen zu deiner Wahrnehmung des Angebots und zu den
-        vermittelten Inhalten. Die heutige Sitzung dauert voraussichtlich 20 bis 30 Minuten.
-      - Die Studie umfasst die heutige Sitzung von etwa 20 bis 30 Minuten und einen kurzen zweiten Teil etwa zehn Tage später.
-        Der zweite Teil dauert ungefähr ein bis zwei Minuten und wird per E-Mail bereitgestellt.
-      - Das Zeitfenster für die dort erfragten Angaben endet 240 Stunden nach Abschluss der heutigen Sitzung. Der Link bleibt
-        anschließend für die Abgabe bis zum angegebenen Schließungszeitpunkt verfügbar.
+      - Zunächst beantwortest du kurze Fragen zu deiner Person und zu bisherigen Erfahrungen mit den behandelten
+        Themen. Danach bearbeitest du ein digitales Lernangebot. Anschließend folgen Fragen zu deiner Wahrnehmung
+        des Angebots und zu den vermittelten Inhalten.
+      - Dauer heute etwa 30 Minuten.
+      - Unabhängig von der zugewiesenen Bedingung gilt dieselbe ungefähre Dauerangabe. Optional kannst du eine E-Mail-Adresse
+        hinterlegen und ungefähr zehn Tage später an einer freiwilligen Nachbefragung teilnehmen. Sie dauert etwa
+        zwei Minuten. Die Angabe einer E-Mail-Adresse ist keine Voraussetzung für die heutige Studienteilnahme.
     - id: data
       heading: Welche Daten werden verarbeitet?
       paragraphs:
-      - Gespeichert werden deine Fragebogenantworten, Bearbeitungs- und Abschnittszeiten, der technische Abschlussstatus sowie
-        die für die Auswertung erforderlichen Angaben zum bearbeiteten Lernangebot, zu Versionen und Darstellungsreihenfolgen.
-        Die Forschungsdaten werden unter einer zufällig erzeugten, nicht angezeigten Forschungs-ID pseudonymisiert gespeichert
-        und ausgewertet. Sie enthalten weder deinen Namen noch deine E-Mail-Adresse.
-      - Deine E-Mail-Adresse wird getrennt von den Forschungsdaten gespeichert und ausschließlich für den zweiten Studienteil,
-        höchstens eine Erinnerung und die abschließende Aufklärung verwendet.
-    - id: voluntariness
-      heading: Freiwilligkeit und Abbruch
+      - Gespeichert werden deine Fragebogenantworten, Bearbeitungs- und Abschnittszeiten, der technische Abschlussstatus
+        sowie die für die Auswertung erforderlichen Angaben zum bearbeiteten Lernangebot, zu Versionen und Darstellungsreihenfolgen.
+        Es werden keine realen Passwörter, Kontonamen, Sicherheitscodes oder Zugangsdaten erhoben.
+      - Die Antworten aus Hauptstudie und freiwilliger Nachbefragung werden ausschließlich über eine zufällige Studien-ID
+        pseudonym miteinander verknüpft. Solange diese Zuordnung besteht, sind die Forschungsdaten pseudonymisiert
+        und nicht anonym.
+      - Eine freiwillig angegebene E-Mail-Adresse wird in einem getrennten Kontaktregister gespeichert und ausschließlich
+        für die Einladung zur freiwilligen Nachbefragung sowie höchstens eine Erinnerung verwendet. Sie wird nicht
+        in den Forschungsdatensatz übernommen und unmittelbar nach Abschluss der Follow-up-Phase und dem letzten
+        vorgesehenen Versand gelöscht.
+    - id: storage
+      heading: Speicherung und Aufbewahrung
       paragraphs:
-      - Die Teilnahme ist freiwillig. Du kannst sie jederzeit ohne Begründung und ohne Nachteile beenden. Innerhalb der vor
-        dem Study Freeze festgelegten Aufbewahrungs- und Löschfrist kannst du unter Angabe deines Löschcodes die Löschung
-        deiner Forschungsdaten verlangen.
+      - Die aufzubewahrenden Forschungsdaten werden geschützt in einem Sciebo-Ordner gespeichert und nach zehn Jahren
+        endgültig gelöscht.
+      - Bis zu einer tatsächlichen, unumkehrbaren Anonymisierung werden diese Daten pseudonymisiert aufbewahrt.
+        Wenn die Anonymisierung früher erfolgt, liegen die danach aufbewahrten Forschungsdaten nur noch anonymisiert
+        vor.
+      - 'Zeitpunkt der unumkehrbaren Anonymisierung: [OFFEN – vor Beginn der Hauptstudie festzulegen].'
+    - id: voluntariness
+      heading: Freiwilligkeit, Widerruf und Löschung
+      paragraphs:
+      - Die Teilnahme ist freiwillig. Du kannst sie jederzeit ohne Begründung und ohne Nachteile beenden.
+      - Bis zur späteren unumkehrbaren Anonymisierung kannst du unter Angabe deines Löschcodes die Löschung deiner
+        zuordenbaren Forschungsdaten verlangen. Nach der Anonymisierung ist eine individuelle Zuordnung und damit
+        auch eine individuelle Löschung nicht mehr möglich.
+      - Du kannst deine Einwilligung jederzeit mit Wirkung für die Zukunft widerrufen. Die Rechtmäßigkeit der bis
+        zum Widerruf erfolgten Verarbeitung bleibt davon unberührt.
     - id: burden
       heading: Mögliche Belastungen und Nutzen
       paragraphs:
-      - Es sind keine besonderen Risiken zu erwarten, die über alltägliche Belastungen bei der Nutzung digitaler Lernangebote
-        und Fragebögen hinausgehen. Ein unmittelbarer persönlicher Nutzen kann nicht zugesichert werden.
+      - Es sind keine besonderen Risiken zu erwarten, die über alltägliche Belastungen bei der Nutzung digitaler
+        Lernangebote und Fragebögen hinausgehen. Ein unmittelbarer persönlicher Nutzen kann nicht zugesichert werden.
     - id: contact
-      heading: Fragen und Kontakt
+      heading: Verantwortliche und Kontakt
       paragraphs:
-      - 'Bei Fragen zur Studie, zur Teilnahme oder zur Verarbeitung deiner Daten kannst du dich an folgende Stelle wenden:'
-      - 'Studienleitung: Julian Meyer, s27jmeye@uni-bonn.de'
-      - 'Betreuung: Dr. Christian Tiefenau, tiefenau@cs.uni-bonn.de'
-      - 'Verantwortliche Stelle: Rheinische Friedrich-Wilhelms-Universität Bonn, Regina-Pacis-Weg 3, 53113 Bonn, kommunikation@uni-bonn.de,
-        +49 228 73-0'
-      - 'Datenschutzbeauftragte: Derya Kartal, Rheinische Friedrich-Wilhelms-Universität Bonn, Adenauerallee 72–74, 53115
-        Bonn, datenschutz@uni-bonn.de, +49 228 73-4096'
+      - Verantwortlich für die Studie sind Julian Meyer und Christian Tiefenau.
+      - 'Kontakt zur Studie: Julian Meyer, s27jmeye@uni-bonn.de; Christian Tiefenau, tiefenau@cs.uni-bonn.de.'
+      - 'Datenschutzkontakt: datenschutz@uni-bonn.de.'
     - id: rights
       heading: Rechtsgrundlage und deine Rechte
       paragraphs:
-      - Die Verarbeitung deiner Forschungsdaten und deiner getrennt gespeicherten E-Mail-Adresse beruht auf deiner Einwilligung
-        gemäß Art. 6 Abs. 1 lit. a DSGVO. Du kannst deine Einwilligung jederzeit mit Wirkung für die Zukunft
-        widerrufen. Die Rechtmäßigkeit der bis zum Widerruf erfolgten Verarbeitung bleibt davon unberührt.
-      - Du hast im Rahmen der gesetzlichen Voraussetzungen insbesondere das Recht auf Auskunft, Berichtigung, Löschung, Einschränkung
-        der Verarbeitung und Datenübertragbarkeit. Außerdem kannst du dich bei der Landesbeauftragten für Datenschutz und
-        Informationsfreiheit Nordrhein-Westfalen beschweren. Für die Zuordnung einer Löschanfrage zu deinen Forschungsdaten
-        verwendest du deinen Löschcode.
+      - Die Verarbeitung erfolgt auf Grundlage deiner freiwilligen Einwilligung gemäß Art. 6 Abs. 1 lit. a DSGVO.
+      - Im Rahmen der gesetzlichen Voraussetzungen bestehen insbesondere Rechte auf Auskunft, Berichtigung, Löschung,
+        Einschränkung der Verarbeitung und Datenübertragbarkeit sowie ein Beschwerderecht bei einer Datenschutzaufsichtsbehörde.
+        Für die Zuordnung einer Löschanfrage zu deinen Forschungsdaten verwendest du deinen Löschcode.
     requiredConsent:
-      legend: Einwilligung
-      statement: Ich habe die Teilnahmeinformationen gelesen und verstanden. Ich weiß, dass die Studie aus der heutigen Sitzung
-        und einem kurzen zweiten Teil etwa zehn Tage später besteht und einige Einzelheiten zur genauen Fragestellung erst
-        danach erläutert werden. Ich willige freiwillig in beide Studienteile und in die beschriebene pseudonymisierte Verarbeitung
-        meiner Forschungsdaten ein.
+      legend: Einwilligung in die Hauptstudie
+      statement: Ich habe die Teilnahmeinformationen gelesen und verstanden. Ich willige freiwillig in die heutige
+        Studienteilnahme und in die beschriebene pseudonymisierte Verarbeitung meiner Forschungsdaten ein. Mir ist
+        bekannt, dass die freiwillige Angabe einer E-Mail-Adresse und die spätere Nachbefragung keine Voraussetzung
+        für die Hauptstudie sind.
     actions:
       acceptLabel: Teilnahme beginnen
       declineLabel: Nicht teilnehmen
@@ -188,37 +200,68 @@ procedures:
       declineBody: Du nimmst nicht an der Studie teil. Es wurde keine Sitzung angelegt.
     essentialSummaryHeading: Das Wichtigste zur Teilnahme
     essentialSummaryParagraphs:
-    - Die heutige Sitzung dauert voraussichtlich 20 bis 30 Minuten. Die Teilnahme ist freiwillig und kann jederzeit ohne Begründung
-      und ohne Nachteile beendet werden.
-    - Gespeichert werden Fragebogenantworten, Bearbeitungs- und Abschnittszeiten, der technische Abschlussstatus sowie erforderliche
-      Angaben zum bearbeiteten Lernangebot, zu Versionen und Darstellungsreihenfolgen. Es werden keine realen Passwörter oder
-      Kontozugangsdaten verlangt.
-    - Die Studie umfasst die heutige Sitzung von etwa 20 bis 30 Minuten und einen kurzen zweiten Teil nach etwa zehn Tagen.
-      Für den zweiten Teil wird eine E-Mail-Adresse mit gesonderter Einwilligung und getrennt von den Forschungsdaten gespeichert.
-      Ein unmittelbarer persönlicher Nutzen kann nicht zugesichert werden.
-    - Fragen zur Studie oder Datenverarbeitung können an die in den ausführlichen Teilnahmeinformationen genannten Kontakte
-      gerichtet werden.
+    - Dauer heute etwa 30 Minuten. Die Teilnahme ist freiwillig und kann jederzeit ohne Begründung und ohne Nachteile
+      beendet werden.
+    - Gespeichert werden Fragebogenantworten, Bearbeitungs- und Abschnittszeiten, der technische Abschlussstatus
+      sowie erforderliche Angaben zum Lernangebot, zu Versionen und Darstellungsreihenfolgen. Es werden keine realen
+      Passwörter oder Kontozugangsdaten verlangt.
+    - Die Forschungsdaten sind über eine zufällige Studien-ID pseudonymisiert. Bis zur späteren unumkehrbaren Anonymisierung
+      kannst du mit deinem Löschcode ihre Löschung verlangen. Der genaue Anonymisierungszeitpunkt ist noch offen
+      und muss vor Beginn der Hauptstudie festgelegt werden.
+    - Eine freiwillige Nachbefragung findet ungefähr zehn Tage später statt und dauert etwa zwei Minuten. Die E-Mail-Adresse
+      ist freiwillig, wird getrennt gespeichert, nur für Einladung und höchstens eine Erinnerung genutzt und nach
+      Abschluss der Follow-up-Phase und dem letzten vorgesehenen Versand gelöscht.
+    - Die aufzubewahrenden Forschungsdaten werden geschützt in einem Sciebo-Ordner gespeichert und nach zehn Jahren
+      endgültig gelöscht.
   followUpRecontact:
-    optional: false
-    consentLegend: Kontakt für den zweiten Studienteil
-    consentStatement: Ich willige ein, dass meine E-Mail-Adresse getrennt von den Forschungsdaten gespeichert und ausschließlich
-      für den zweiten Studienteil, höchstens eine Erinnerung und die abschließende Aufklärung verwendet wird.
-    emailLabel: E-Mail-Adresse für den zweiten Studienteil
+    optional: true
+    consentLegend: Optionale Nachbefragung
+    consentStatement: Ich möchte ungefähr zehn Tage später per E-Mail zu einer freiwilligen Nachbefragung eingeladen
+      werden. Die Bearbeitung dauert etwa zwei Minuten. Meine E-Mail-Adresse wird getrennt von den Forschungsdaten
+      gespeichert, nur für die Einladung und höchstens eine Erinnerung verwendet und unmittelbar nach Abschluss
+      der Follow-up-Phase und dem letzten vorgesehenen Versand gelöscht.
+    emailLabel: E-Mail-Adresse für die freiwillige Nachbefragung
     emailRequired: true
     emailNeverStoredInResearchDatabase: true
     firstInvitationDelayHours: 240
     reminderDelayAfterFirstInvitationHours: 48
     closeAfterSessionHours: 336
-    emailSubject: Zweiter Studienteil ist jetzt verfügbar
+    emailSubject: Freiwillige Nachbefragung zur Studie
     emailContainsTrainingAdvice: false
   sessionClosure:
-    afterFirstStudyPart:
-      heading: Vielen Dank für deine Teilnahme
+    withoutFollowUp:
+      heading: Aufklärung zur Studie
       paragraphs:
-      - Der erste Studienteil ist abgeschlossen. Etwa zehn Tage nach deiner heutigen Teilnahme erhältst du per E-Mail den
-        kurzen zweiten und letzten Studienteil.
-      - Die vollständige Aufklärung erhältst du nach dessen Abgabe oder spätestens nach Schließung des Antwortfensters. Du
-        kannst dieses Fenster jetzt schließen.
+      - Diese Studie vergleicht zwei unterschiedliche digitale Trainingsangebote zu Passwörtern und zum Schutz von
+        Online-Konten. Untersucht wird, wie die beiden Angebote wahrgenommen werden und ob zentrale Zusammenhänge
+        zu Passwortwiederverwendung, Passwortmanagern und MFA/2FA erkannt und auf Kontosituationen angewendet werden.
+      - Die Information über den Vergleich wurde zu Beginn noch nicht offengelegt, damit Erwartungen an die beiden
+        Angebote die Bearbeitung und die unmittelbaren Bewertungen möglichst wenig beeinflussen.
+      - 'Die zentralen Empfehlungen lauten: Für jedes Online-Konto sollte ein eigenes starkes Passwort verwendet
+        werden. Ein Passwortmanager kann starke Passwörter erzeugen, speichern und organisieren. Bei einer passwortbasierten
+        Anmeldung ergänzt MFA/2FA das Passwort um mindestens einen weiteren Faktor aus einer anderen Kategorie.'
+      - Dasselbe starke Passwort bei mehreren Konten zu verwenden, entspricht auch bei aktivierter MFA/2FA nicht
+        der Empfehlung. Das gemeinsame Debriefing zeigt keine persönliche Punktzahl und bewertet dich nicht als
+        bestanden oder nicht bestanden.
+      - Du hast keine E-Mail-Adresse für die freiwillige Nachbefragung hinterlegt. Deine heutige Teilnahme ist damit
+        vollständig abgeschlossen.
+      actionLabel: Sitzung abschließen
+    withFollowUp:
+      heading: Aufklärung zur Studie
+      paragraphs:
+      - Diese Studie vergleicht zwei unterschiedliche digitale Trainingsangebote zu Passwörtern und zum Schutz von
+        Online-Konten. Untersucht wird, wie die beiden Angebote wahrgenommen werden und ob zentrale Zusammenhänge
+        zu Passwortwiederverwendung, Passwortmanagern und MFA/2FA erkannt und auf Kontosituationen angewendet werden.
+      - Die Information über den Vergleich wurde zu Beginn noch nicht offengelegt, damit Erwartungen an die beiden
+        Angebote die Bearbeitung und die unmittelbaren Bewertungen möglichst wenig beeinflussen.
+      - 'Die zentralen Empfehlungen lauten: Für jedes Online-Konto sollte ein eigenes starkes Passwort verwendet
+        werden. Ein Passwortmanager kann starke Passwörter erzeugen, speichern und organisieren. Bei einer passwortbasierten
+        Anmeldung ergänzt MFA/2FA das Passwort um mindestens einen weiteren Faktor aus einer anderen Kategorie.'
+      - Dasselbe starke Passwort bei mehreren Konten zu verwenden, entspricht auch bei aktivierter MFA/2FA nicht
+        der Empfehlung. Das gemeinsame Debriefing zeigt keine persönliche Punktzahl und bewertet dich nicht als
+        bestanden oder nicht bestanden.
+      - Da du freiwillig eine E-Mail-Adresse hinterlegt hast, erhältst du ungefähr zehn Tage nach der heutigen Teilnahme
+        eine Einladung zur kurzen Nachbefragung. Ob du sie dann ausfüllst, entscheidest du erneut freiwillig.
       actionLabel: Sitzung abschließen
 instruments:
   pre-v1:
@@ -285,7 +328,8 @@ instruments:
       items:
       - id: PRE_TRAINING
         type: singleChoice
-        prompt: Wie oft hast du bereits ein Training oder Lernmodul zu Passwörtern, Passwortmanagern oder MFA/2FA bearbeitet?
+        prompt: Wie oft hast du bereits ein Training oder Lernmodul zu Passwörtern, Passwortmanagern oder MFA/2FA
+          bearbeitet?
         options:
         - id: never
           label: Nie
@@ -301,8 +345,8 @@ instruments:
         instruction: Mehrfachauswahl ist möglich.
         options:
         - id: browser_or_device_integrated
-          label: Die im Browser, Betriebssystem oder Gerät integrierte Funktion verwenden, um Passwörter zu speichern oder
-            automatisch ausfüllen zu lassen.
+          label: Die im Browser, Betriebssystem oder Gerät integrierte Funktion verwenden, um Passwörter zu speichern
+            oder automatisch ausfüllen zu lassen.
         - id: separate_app_or_extension
           label: Eine separate Passwortmanager-App oder deren Browser-Erweiterung verwenden.
         - id: none
@@ -314,8 +358,8 @@ instruments:
         - unsure
       - id: PRE_MFA_USE
         type: singleChoice
-        prompt: Bei wie vielen Konten, die dir persönlich wichtig sind, ist nach deinem Wissen eine Mehrfaktor- oder Zwei-Faktor-Authentifizierung
-          (MFA/2FA) aktiviert?
+        prompt: Bei wie vielen Konten, die dir persönlich wichtig sind, ist nach deinem Wissen eine Mehrfaktor-
+          oder Zwei-Faktor-Authentifizierung (MFA/2FA) aktiviert?
         options:
         - id: none
           label: Bei keinem.
@@ -329,42 +373,121 @@ instruments:
           label: Bei allen.
         - id: unsure
           label: Unsicher.
-    - id: self_efficacy
-      instruction: Wie zuversichtlich bist du derzeit, die folgenden Aufgaben selbstständig durchführen zu können?
-      items:
-      - id: SE_DISTINCT_ACCESS_PRE
-        type: scale
-        scale: confidence11
-        prompt: Für mehrere Konten unterschiedliche Passwörter so verwalten, dass ich mich später bei jedem Konto wieder anmelden
-          kann.
-      - id: SE_PM_NEW_ACCOUNT_PRE
-        type: scale
-        scale: confidence11
-        prompt: Mit einem Passwortmanager für ein neues Konto ein nur dort verwendetes Passwort erzeugen und speichern.
-      - id: SE_PM_LOGIN_PRE
-        type: scale
-        scale: confidence11
-        prompt: Ein im Passwortmanager gespeichertes Passwort bei einer späteren Anmeldung abrufen oder automatisch ausfüllen
-          lassen.
-      - id: SE_MFA_ENABLE_PRE
-        type: scale
-        scale: confidence11
-        prompt: MFA/2FA in den Einstellungen eines wichtigen Kontos aktivieren.
   post-v1:
     order:
+    - panas
+    - duration
     - ueqs
     - content_trustworthiness
-    - duration
     - design_diagnostics
     - risk_understanding
     - self_efficacy
     - secaware_prior_exposure
     sections:
+    - id: panas
+      source: German PANAS, documented item wording and order
+      preserveItemOrder: true
+      instruction: Dieser Fragebogen enthält eine Reihe von Wörtern, die unterschiedliche Gefühle und Empfindungen
+        beschreiben. Lesen Sie jedes Wort und tragen Sie dann in die Skala neben jedem Wort die Intensität ein.
+        Sie haben die Möglichkeit, zwischen fünf Abstufungen zu wählen. Geben Sie bitte an, wie Sie sich während
+        der Bearbeitung des Lernangebots gefühlt haben.
+      items:
+      - id: PANAS_01
+        type: scale
+        scale: panasIntensity5
+        label: aktiv
+      - id: PANAS_02
+        type: scale
+        scale: panasIntensity5
+        label: bekümmert
+      - id: PANAS_03
+        type: scale
+        scale: panasIntensity5
+        label: interessiert
+      - id: PANAS_04
+        type: scale
+        scale: panasIntensity5
+        label: freudig erregt
+      - id: PANAS_05
+        type: scale
+        scale: panasIntensity5
+        label: verärgert
+      - id: PANAS_06
+        type: scale
+        scale: panasIntensity5
+        label: stark
+      - id: PANAS_07
+        type: scale
+        scale: panasIntensity5
+        label: schuldig
+      - id: PANAS_08
+        type: scale
+        scale: panasIntensity5
+        label: erschrocken
+      - id: PANAS_09
+        type: scale
+        scale: panasIntensity5
+        label: feindselig
+      - id: PANAS_10
+        type: scale
+        scale: panasIntensity5
+        label: angeregt
+      - id: PANAS_11
+        type: scale
+        scale: panasIntensity5
+        label: stolz
+      - id: PANAS_12
+        type: scale
+        scale: panasIntensity5
+        label: gereizt
+      - id: PANAS_13
+        type: scale
+        scale: panasIntensity5
+        label: begeistert
+      - id: PANAS_14
+        type: scale
+        scale: panasIntensity5
+        label: beschämt
+      - id: PANAS_15
+        type: scale
+        scale: panasIntensity5
+        label: wach
+      - id: PANAS_16
+        type: scale
+        scale: panasIntensity5
+        label: nervös
+      - id: PANAS_17
+        type: scale
+        scale: panasIntensity5
+        label: entschlossen
+      - id: PANAS_18
+        type: scale
+        scale: panasIntensity5
+        label: aufmerksam
+      - id: PANAS_19
+        type: scale
+        scale: panasIntensity5
+        label: durcheinander
+      - id: PANAS_20
+        type: scale
+        scale: panasIntensity5
+        label: ängstlich
+    - id: duration
+      objectiveDurationHiddenUntilSectionCommitted: true
+      items:
+      - id: PERCEIVED_DURATION
+        type: scale
+        scale: perceivedDuration7
+        prompt: Wie lang kam dir die Bearbeitung des Lernangebots insgesamt vor?
+      - id: TIME_FIT
+        type: scale
+        scale: durationAppropriateness7
+        prompt: Wie passend war die Dauer des Lernangebots für dich?
     - id: ueqs
       source: UEQ-S official German items
       preserveItemOrder: true
-      instruction: Bitte bewerte deinen unmittelbaren Gesamteindruck des gerade bearbeiteten Lernangebots. Markiere jeweils
-        eine Position zwischen den beiden Begriffen.
+      instruction: Bitte bewerte deinen unmittelbaren Gesamteindruck des gerade bearbeiteten Lernangebots. Markiere
+        jeweils eine Position zwischen den beiden Begriffen.
       items:
       - id: UEQS_PQ1
         type: semanticDifferential
@@ -431,23 +554,16 @@ instruments:
         scale: ueqSemanticDifferential7
         left: ungenau
         right: genau
-    - id: duration
-      objectiveDurationHiddenUntilSectionCommitted: true
-      items:
-      - id: PERCEIVED_DURATION
-        type: scale
-        scale: perceivedDuration7
-        prompt: Wie lang hat sich die Bearbeitung des Lernangebots für dich angefühlt?
-      - id: TIME_FIT
-        type: scale
-        scale: durationAppropriateness7
-        prompt: Wie passend war die Dauer des Lernangebots für dich?
     - id: design_diagnostics
       items:
       - id: USEFULNESS_PRACTICAL
         type: scale
         scale: agreement7
         prompt: Die Inhalte waren nützlich, um Entscheidungen zum Schutz meiner Konten zu treffen.
+      - id: APPROACH_FRAMING
+        type: scale
+        scale: agreement7
+        prompt: Das Lernangebot stellte in den Vordergrund, was ich zum Schutz meiner Konten tun kann.
       - id: NONBLAMING_COMMUNICATION
         type: scale
         scale: agreement7
@@ -460,24 +576,37 @@ instruments:
         type: scale
         scale: agreement7
         prompt: Das Lernangebot gab mir Gelegenheit, die Inhalte auf konkrete Kontosituationen anzuwenden.
+      - id: REFLECTIVE_ENGAGEMENT
+        type: scale
+        scale: agreement7
+        prompt: Das Lernangebot brachte mich dazu, selbst über die Gründe für unterschiedliche Entscheidungen zum
+          Schutz von Konten nachzudenken.
       - id: MECHANISM_EXPLANATION
         type: scale
         scale: agreement7
-        prompt: Das Lernangebot erklärte nachvollziehbar, warum die empfohlenen Maßnahmen Konten besser schützen.
-      - id: CONSEQUENCE_TANGIBILITY
+        prompt: Die Erklärungen machten nachvollziehbar, wie die empfohlenen Maßnahmen zum Schutz von Konten beitragen.
+      - id: CONSEQUENCE_RISK
         type: scale
         scale: agreement7
-        prompt: Durch das Lernangebot konnte ich mir konkret vorstellen, wie sich unterschiedliche Entscheidungen auf den
-          Schutz von Konten auswirken können.
+        prompt: Das Lernangebot machte mögliche negative Folgen unterschiedlicher Entscheidungen zum Schutz von
+          Konten für mich konkret vorstellbar.
+      - id: CONSEQUENCE_PROTECTION
+        type: scale
+        scale: agreement7
+        prompt: Das Lernangebot machte für mich konkret vorstellbar, wie geeignete Entscheidungen zum Schutz von
+          Konten mögliche Schäden begrenzen können.
       - id: INFORMATION_MANAGEABILITY
         type: scale
         scale: agreement7
         prompt: Die Informationsmenge war für mich gut zu bewältigen.
+      - id: INFORMATION_PACING
+        type: scale
+        scale: agreement7
+        prompt: Das Tempo, in dem neue Informationen eingeführt wurden, war für mich gut zu bewältigen.
       - id: ACTION_CLARITY
         type: scale
         scale: agreement7
-        prompt: Nach dem Lernangebot war mir klar, welche konkreten Schritte ich als Nächstes zum Schutz eigener Konten unternehmen
-          könnte.
+        prompt: Das Lernangebot machte mindestens einen konkreten nächsten Schritt zum Schutz eigener Konten deutlich.
     - id: risk_understanding
       items:
       - id: RISK_PRESENTATION
@@ -491,24 +620,23 @@ instruments:
     - id: self_efficacy
       instruction: Wie zuversichtlich bist du derzeit, die folgenden Aufgaben selbstständig durchführen zu können?
       items:
-      - id: SE_DISTINCT_ACCESS_POST
+      - id: SE_DISTINCT_ACCESS
         type: scale
         scale: confidence11
-        prompt: Für mehrere Konten unterschiedliche Passwörter so verwalten, dass ich mich später bei jedem Konto wieder anmelden
-          kann.
-      - id: SE_PM_NEW_ACCOUNT_POST
+        prompt: Für mehrere Konten unterschiedliche Passwörter so verwalten, dass ich mich später bei jedem Konto
+          wieder anmelden kann.
+      - id: SE_PM_NEW_ACCOUNT
         type: scale
         scale: confidence11
         prompt: Mit einem Passwortmanager für ein neues Konto ein nur dort verwendetes Passwort erzeugen und speichern.
-      - id: SE_PM_LOGIN_POST
+      - id: SE_PM_LOGIN
         type: scale
         scale: confidence11
-        prompt: Ein im Passwortmanager gespeichertes Passwort bei einer späteren Anmeldung abrufen oder automatisch ausfüllen
-          lassen.
-      - id: SE_MFA_ENABLE_POST
+        prompt: Ein im Passwortmanager gespeichertes Passwort bei einer späteren Anmeldung wiederfinden und verwenden.
+      - id: SE_MFA_ENABLE
         type: scale
         scale: confidence11
-        prompt: MFA/2FA in den Einstellungen eines wichtigen Kontos aktivieren.
+        prompt: MFA/2FA bei einem Konto, das diese Funktion anbietet, in den Einstellungen aktivieren.
     - id: secaware_prior_exposure
       items:
       - id: PRE_SECAWARE_RETROSPECTIVE
@@ -529,7 +657,7 @@ instruments:
     participantTitle: Fragen zu den Inhalten
     purpose: immediate_understanding_guardrail
     comparisonScope:
-    - password_reuse
+    - distinct_passwords
     - password_manager
     - mfa
     excludedFromPrimaryComparison:
@@ -545,42 +673,42 @@ instruments:
       fixedUnsureOption: true
       multipleResponseUsed: false
     questionOrder:
-    - SC_BREACH_REUSE
+    - SC_DISTINCT_PASSWORDS
     - SC_PM_MANY_ACCOUNTS
     - SC_LAYERED_PROTECTION
-    - MR_REUSE
+    - MR_DISTINCT_PASSWORDS
     - MR_PASSWORD_MANAGER
     - MR_MFA
     questionPresentation:
       fixedRecognitionOrder:
-      - MR_REUSE
+      - MR_DISTINCT_PASSWORDS
       - MR_PASSWORD_MANAGER
       - MR_MFA
       scenarioOrderByForm:
         F1:
-        - SC_BREACH_REUSE
+        - SC_DISTINCT_PASSWORDS
         - SC_PM_MANY_ACCOUNTS
         - SC_LAYERED_PROTECTION
         F2:
-        - SC_BREACH_REUSE
+        - SC_DISTINCT_PASSWORDS
         - SC_LAYERED_PROTECTION
         - SC_PM_MANY_ACCOUNTS
         F3:
         - SC_PM_MANY_ACCOUNTS
-        - SC_BREACH_REUSE
+        - SC_DISTINCT_PASSWORDS
         - SC_LAYERED_PROTECTION
         F4:
         - SC_PM_MANY_ACCOUNTS
         - SC_LAYERED_PROTECTION
-        - SC_BREACH_REUSE
+        - SC_DISTINCT_PASSWORDS
         F5:
         - SC_LAYERED_PROTECTION
-        - SC_BREACH_REUSE
+        - SC_DISTINCT_PASSWORDS
         - SC_PM_MANY_ACCOUNTS
         F6:
         - SC_LAYERED_PROTECTION
         - SC_PM_MANY_ACCOUNTS
-        - SC_BREACH_REUSE
+        - SC_DISTINCT_PASSWORDS
     optionPresentation:
       strategy: balanced_predefined_forms
       formIds:
@@ -600,13 +728,13 @@ instruments:
       - displayedOptionIdsByItem
       forms:
         F1:
-          SC_BREACH_REUSE:
-          - new_distinct_both
-          - change_shop_only
-          - mfa_email_keep_shared
+          SC_DISTINCT_PASSWORDS:
+          - own_strong_each
+          - same_strong_both
+          - unique_email_reuse_shopping
           - unsure
           SC_PM_MANY_ACCOUNTS:
-          - own_with_pm
+          - pm_generate_store_organize
           - unique_important_reuse_others
           - one_strong_everywhere
           - unsure
@@ -615,61 +743,61 @@ instruments:
           - unique_without_mfa
           - shared_strong_with_mfa
           - unsure
-          MR_REUSE:
-          - same_tried_elsewhere
-          - leak_contains_all
-          - same_email_auto_connected
+          MR_DISTINCT_PASSWORDS:
+          - own_strong_each
+          - one_strong_all
+          - unique_important_reuse_others
           - unsure
           MR_PASSWORD_MANAGER:
-          - account_specific_store_use
+          - generate_store_organize
           - same_strong_everywhere
           - auto_mfa
           - unsure
           MR_MFA:
-          - additional_barrier
-          - reverses_exposure
-          - reuse_safe
+          - password_plus_other_category
+          - two_passwords
+          - long_password_factor
           - unsure
         F2:
-          SC_BREACH_REUSE:
-          - change_shop_only
-          - mfa_email_keep_shared
-          - new_distinct_both
+          SC_DISTINCT_PASSWORDS:
+          - same_strong_both
+          - unique_email_reuse_shopping
+          - own_strong_each
           - unsure
           SC_PM_MANY_ACCOUNTS:
           - unique_important_reuse_others
           - one_strong_everywhere
-          - own_with_pm
+          - pm_generate_store_organize
           - unsure
           SC_LAYERED_PROTECTION:
           - unique_without_mfa
           - shared_strong_with_mfa
           - unique_and_mfa
           - unsure
-          MR_REUSE:
-          - leak_contains_all
-          - same_email_auto_connected
-          - same_tried_elsewhere
+          MR_DISTINCT_PASSWORDS:
+          - one_strong_all
+          - unique_important_reuse_others
+          - own_strong_each
           - unsure
           MR_PASSWORD_MANAGER:
           - same_strong_everywhere
           - auto_mfa
-          - account_specific_store_use
+          - generate_store_organize
           - unsure
           MR_MFA:
-          - reverses_exposure
-          - reuse_safe
-          - additional_barrier
+          - two_passwords
+          - long_password_factor
+          - password_plus_other_category
           - unsure
         F3:
-          SC_BREACH_REUSE:
-          - mfa_email_keep_shared
-          - new_distinct_both
-          - change_shop_only
+          SC_DISTINCT_PASSWORDS:
+          - unique_email_reuse_shopping
+          - own_strong_each
+          - same_strong_both
           - unsure
           SC_PM_MANY_ACCOUNTS:
           - one_strong_everywhere
-          - own_with_pm
+          - pm_generate_store_organize
           - unique_important_reuse_others
           - unsure
           SC_LAYERED_PROTECTION:
@@ -677,29 +805,29 @@ instruments:
           - unique_and_mfa
           - unique_without_mfa
           - unsure
-          MR_REUSE:
-          - same_email_auto_connected
-          - same_tried_elsewhere
-          - leak_contains_all
+          MR_DISTINCT_PASSWORDS:
+          - unique_important_reuse_others
+          - own_strong_each
+          - one_strong_all
           - unsure
           MR_PASSWORD_MANAGER:
           - auto_mfa
-          - account_specific_store_use
+          - generate_store_organize
           - same_strong_everywhere
           - unsure
           MR_MFA:
-          - reuse_safe
-          - additional_barrier
-          - reverses_exposure
+          - long_password_factor
+          - password_plus_other_category
+          - two_passwords
           - unsure
         F4:
-          SC_BREACH_REUSE:
-          - new_distinct_both
-          - mfa_email_keep_shared
-          - change_shop_only
+          SC_DISTINCT_PASSWORDS:
+          - own_strong_each
+          - unique_email_reuse_shopping
+          - same_strong_both
           - unsure
           SC_PM_MANY_ACCOUNTS:
-          - own_with_pm
+          - pm_generate_store_organize
           - one_strong_everywhere
           - unique_important_reuse_others
           - unsure
@@ -708,30 +836,30 @@ instruments:
           - shared_strong_with_mfa
           - unique_without_mfa
           - unsure
-          MR_REUSE:
-          - same_tried_elsewhere
-          - same_email_auto_connected
-          - leak_contains_all
+          MR_DISTINCT_PASSWORDS:
+          - own_strong_each
+          - unique_important_reuse_others
+          - one_strong_all
           - unsure
           MR_PASSWORD_MANAGER:
-          - account_specific_store_use
+          - generate_store_organize
           - auto_mfa
           - same_strong_everywhere
           - unsure
           MR_MFA:
-          - additional_barrier
-          - reuse_safe
-          - reverses_exposure
+          - password_plus_other_category
+          - long_password_factor
+          - two_passwords
           - unsure
         F5:
-          SC_BREACH_REUSE:
-          - change_shop_only
-          - new_distinct_both
-          - mfa_email_keep_shared
+          SC_DISTINCT_PASSWORDS:
+          - same_strong_both
+          - own_strong_each
+          - unique_email_reuse_shopping
           - unsure
           SC_PM_MANY_ACCOUNTS:
           - unique_important_reuse_others
-          - own_with_pm
+          - pm_generate_store_organize
           - one_strong_everywhere
           - unsure
           SC_LAYERED_PROTECTION:
@@ -739,51 +867,51 @@ instruments:
           - unique_and_mfa
           - shared_strong_with_mfa
           - unsure
-          MR_REUSE:
-          - leak_contains_all
-          - same_tried_elsewhere
-          - same_email_auto_connected
+          MR_DISTINCT_PASSWORDS:
+          - one_strong_all
+          - own_strong_each
+          - unique_important_reuse_others
           - unsure
           MR_PASSWORD_MANAGER:
           - same_strong_everywhere
-          - account_specific_store_use
+          - generate_store_organize
           - auto_mfa
           - unsure
           MR_MFA:
-          - reverses_exposure
-          - additional_barrier
-          - reuse_safe
+          - two_passwords
+          - password_plus_other_category
+          - long_password_factor
           - unsure
         F6:
-          SC_BREACH_REUSE:
-          - mfa_email_keep_shared
-          - change_shop_only
-          - new_distinct_both
+          SC_DISTINCT_PASSWORDS:
+          - unique_email_reuse_shopping
+          - same_strong_both
+          - own_strong_each
           - unsure
           SC_PM_MANY_ACCOUNTS:
           - one_strong_everywhere
           - unique_important_reuse_others
-          - own_with_pm
+          - pm_generate_store_organize
           - unsure
           SC_LAYERED_PROTECTION:
           - shared_strong_with_mfa
           - unique_without_mfa
           - unique_and_mfa
           - unsure
-          MR_REUSE:
-          - same_email_auto_connected
-          - leak_contains_all
-          - same_tried_elsewhere
+          MR_DISTINCT_PASSWORDS:
+          - unique_important_reuse_others
+          - one_strong_all
+          - own_strong_each
           - unsure
           MR_PASSWORD_MANAGER:
           - auto_mfa
           - same_strong_everywhere
-          - account_specific_store_use
+          - generate_store_organize
           - unsure
           MR_MFA:
-          - reuse_safe
-          - reverses_exposure
-          - additional_barrier
+          - long_password_factor
+          - two_passwords
+          - password_plus_other_category
           - unsure
     nativeArtifactCheckPolicy:
       passwoNativeLearningChecksRetained: true
@@ -794,113 +922,78 @@ instruments:
     - id: scenarios
       submitLocksBlock: true
       items:
-      - id: SC_BREACH_REUSE
-        prompt: Das bei einem Onlineshop verwendete Passwort ist nach einem Datenleck bekannt geworden. Eine Person hat dasselbe
-          Passwort auch für ihr E-Mail-Konto verwendet. Welche Änderung an den Passwörtern begrenzt das Risiko für beide Konten
-          am direktesten?
+      - id: SC_DISTINCT_PASSWORDS
+        prompt: Eine Person richtet ein E-Mail-Konto und ein Shopping-Konto ein. Welche Passwortwahl entspricht
+          den Empfehlungen für mehrere Online-Konten am besten?
         options:
-        - id: new_distinct_both
-          label: Für beide Konten jeweils ein neues und voneinander unterschiedliches Passwort festlegen.
-          classification: appropriate
-        - id: change_shop_only
-          label: Nur beim Onlineshop ein neues Passwort festlegen und das Passwort des E-Mail-Kontos beibehalten.
-          classification: unsafe
-        - id: mfa_email_keep_shared
-          label: Beim E-Mail-Konto MFA/2FA aktivieren und das bisherige gemeinsame Passwort ansonsten beibehalten.
-          classification: unsafe
+        - id: own_strong_each
+          label: Für jedes Konto ein eigenes starkes Passwort verwenden.
+        - id: same_strong_both
+          label: Bei beiden Konten dasselbe besonders starke Passwort verwenden.
+        - id: unique_email_reuse_shopping
+          label: Für das E-Mail-Konto ein eigenes Passwort verwenden und beim Shopping-Konto ein Passwort nutzen,
+            das auch für andere Konten verwendet wird.
         - id: unsure
           label: Weiß ich nicht.
-          classification: uncertainty
       - id: SC_PM_MANY_ACCOUNTS
-        prompt: Eine Person möchte für viele Konten unterschiedliche Passwörter verwenden, kann sie aber nicht alle im Kopf
-          behalten. Welche Vorgehensweise löst dieses Problem am direktesten?
+        prompt: Eine Person möchte für viele Konten unterschiedliche Passwörter verwenden, kann sie aber nicht alle
+          im Kopf behalten. Welche Vorgehensweise unterstützt dieses Ziel am direktesten?
         options:
-        - id: own_with_pm
-          label: Für jedes Konto ein eigenes Passwort mit einem Passwortmanager erzeugen, speichern und beim Anmelden verwenden.
-          classification: appropriate
+        - id: pm_generate_store_organize
+          label: Mit einem Passwort-Manager für die Konten starke Passwörter erzeugen sowie die Passwörter speichern
+            und organisieren.
         - id: unique_important_reuse_others
           label: Nur für wichtige Konten eigene Passwörter verwenden und bei den übrigen dasselbe Passwort wiederverwenden.
-          classification: unsafe
         - id: one_strong_everywhere
           label: Ein besonders starkes Passwort festlegen und dieses anschließend bei allen Konten verwenden.
-          classification: unsafe
         - id: unsure
           label: Weiß ich nicht.
-          classification: uncertainty
       - id: SC_LAYERED_PROTECTION
-        prompt: Eine Person schützt ihr E-Mail-Konto und ein Shopping-Konto. Für beide Konten stehen starke Passwörter und
-          MFA/2FA zur Verfügung. Welche Konfiguration schützt beide Konten am umfassendsten, falls eines der Passwörter bekannt
-          wird?
+        prompt: Eine Person richtet den Schutz für ihr E-Mail-Konto und ein Shopping-Konto ein. Bei beiden Konten
+          ist Multi-Faktor-Authentifizierung (MFA) verfügbar. Welche Konfiguration entspricht den Empfehlungen aus
+          dem Lernangebot am besten?
         options:
         - id: unique_and_mfa
-          label: Für jedes Konto ein eigenes starkes Passwort verwenden und MFA/2FA aktivieren.
-          classification: appropriate
+          label: Für jedes Konto ein eigenes starkes Passwort verwenden und bei beiden Konten MFA aktivieren.
         - id: unique_without_mfa
-          label: Für jedes Konto ein eigenes starkes Passwort verwenden, aber MFA/2FA nicht aktivieren.
-          classification: incomplete
+          label: Für jedes Konto ein eigenes starkes Passwort verwenden, aber MFA bei beiden Konten nicht aktivieren.
         - id: shared_strong_with_mfa
-          label: Dasselbe starke Passwort bei beiden Konten verwenden, weil MFA/2FA aktiviert ist.
-          classification: unsafe
+          label: Bei beiden Konten dasselbe starke Passwort verwenden und bei beiden Konten MFA aktivieren.
         - id: unsure
           label: Weiß ich nicht.
-          classification: uncertainty
     - id: recognition
       submitLocksBlock: true
       items:
-      - id: MR_REUSE
-        prompt: Warum kann ein bei einem Dienst bekannt gewordenes Passwort auch andere Konten gefährden?
+      - id: MR_DISTINCT_PASSWORDS
+        prompt: Welche Aussage beschreibt die empfohlene Passwortverwendung bei mehreren Online-Konten?
         options:
-        - id: same_tried_elsewhere
-          label: Angreifer können dasselbe Passwort bei anderen Diensten ausprobieren.
-          classification: correct
-        - id: leak_contains_all
-          label: Ein Datenleck bei einem Dienst enthält automatisch auch die Passwörter aller anderen Dienste.
-          classification: incorrect_mechanism
-        - id: same_email_auto_connected
-          label: Konten mit derselben E-Mail-Adresse sind technisch automatisch miteinander verbunden.
-          classification: incorrect_mechanism
+        - id: own_strong_each
+          label: Für jedes Konto ein eigenes starkes Passwort verwenden.
+        - id: one_strong_all
+          label: Dasselbe besonders starke Passwort bei allen Konten verwenden.
+        - id: unique_important_reuse_others
+          label: Nur für wichtige Konten eigene Passwörter verwenden und bei den übrigen dasselbe Passwort verwenden.
         - id: unsure
           label: Weiß ich nicht.
-          classification: uncertainty
       - id: MR_PASSWORD_MANAGER
-        prompt: Welche Aufgabe kann ein Passwortmanager beim Schutz vieler Konten übernehmen?
+        prompt: Welche Aufgaben kann ein Passwort-Manager übernehmen?
         options:
-        - id: account_specific_store_use
-          label: Für verschiedene Konten jeweils eigene Passwörter speichern und beim passenden Konto einsetzen.
-          classification: correct
+        - id: generate_store_organize
+          label: Er kann starke Passwörter erzeugen sowie Passwörter speichern und organisieren.
         - id: same_strong_everywhere
-          label: Für verschiedene Konten dasselbe starke Passwort speichern und bei allen Konten einsetzen.
-          classification: unsafe
+          label: Er kann die verschiedenen Kontopasswörter durch ein gemeinsames besonders starkes Passwort ersetzen.
         - id: auto_mfa
-          label: Für verschiedene Konten MFA/2FA ohne weitere Einrichtung automatisch aktivieren.
-          classification: incorrect_mechanism
+          label: Er kann bei allen gespeicherten Konten ohne weitere Schritte automatisch MFA einrichten.
         - id: unsure
           label: Weiß ich nicht.
-          classification: uncertainty
       - id: MR_MFA
-        prompt: Ein Angreifer kennt bereits das richtige Passwort eines Kontos. Was kann aktivierte MFA/2FA in dieser Situation
-          bewirken?
+        prompt: Welche Aussage beschreibt Multi-Faktor-Authentifizierung (MFA) bei einer Anmeldung mit Passwort?
         options:
-        - id: additional_barrier
-          label: Sie kann eine zusätzliche Anmeldebarriere bilden.
-          classification: correct
-        - id: reverses_exposure
-          label: Sie verhindert nachträglich, dass das Passwort bekannt geworden ist.
-          classification: incorrect_mechanism
-        - id: reuse_safe
-          label: Sie macht die Verwendung desselben Passworts bei anderen Konten sicher.
-          classification: unsafe
+        - id: password_plus_other_category
+          label: Zusätzlich zum Passwort wird mindestens ein weiterer Faktor aus einer anderen Kategorie verwendet.
+        - id: two_passwords
+          label: Bei der Anmeldung werden zwei unterschiedliche Passwörter nacheinander eingegeben.
+        - id: long_password_factor
+          label: Ein besonders langes Passwort gilt allein bereits als zusätzlicher Faktor.
         - id: unsure
           label: Weiß ich nicht.
-          classification: uncertainty
-  post-open-v1:
-    alwaysSubmit: true
-    blankOptionalTextValue: null
-    warning: Bitte nenne in deinem Kommentar keine echten Passwörter, Kontonamen, Sicherheitscodes oder anderen personenbezogenen
-      Angaben.
-    items:
-    - id: OPEN_COMMENT
-      type: text
-      participantOptional: true
-      maxLength: 500
-      prompt: Möchtest du uns noch etwas zum Lernangebot mitteilen?
