@@ -35,6 +35,12 @@ type ChoiceOption = SingleChoiceItem['options'][number];
 type QuestionnaireInstrumentId = 'pre-v1' | 'post-v1';
 type Draft = Record<string, InstrumentResponseValue | undefined>;
 
+interface InstrumentProgressStep {
+  readonly label: string;
+  readonly pageCount: number;
+  readonly pageLabels?: readonly string[];
+}
+
 function draftFromSubmission(submission: InstrumentSubmissionRequest | null): Draft {
   const draft: Draft = {};
   if (submission === null) return draft;
@@ -44,62 +50,173 @@ function draftFromSubmission(submission: InstrumentSubmissionRequest | null): Dr
   return draft;
 }
 
+function polarPoint(angle: number, radius: number): readonly [number, number] {
+  const radians = ((angle - 90) * Math.PI) / 180;
+  return [50 + radius * Math.cos(radians), 50 + radius * Math.sin(radians)];
+}
+
+function progressArcPath(pageIndex: number, pageCount: number): string {
+  const stepAngle = 360 / pageCount;
+  const gapAngle = Math.min(8, stepAngle * 0.18);
+  const startAngle = pageIndex * stepAngle + gapAngle / 2;
+  const endAngle = (pageIndex + 1) * stepAngle - gapAngle / 2;
+  const [startX, startY] = polarPoint(startAngle, 39);
+  const [endX, endY] = polarPoint(endAngle, 39);
+  const largeArcFlag = endAngle - startAngle > 180 ? 1 : 0;
+
+  return `M ${startX} ${startY} A 39 39 0 ${largeArcFlag} 1 ${endX} ${endY}`;
+}
+
+function SectionProgressRing({
+  pageCount,
+  filledPageCount,
+}: {
+  readonly pageCount: number;
+  readonly filledPageCount: number;
+}) {
+  return (
+    <svg
+      aria-hidden="true"
+      className={styles.sectionProgressRing}
+      viewBox="0 0 100 100"
+    >
+      {Array.from({ length: pageCount }, (_, pageIndex) => (
+        <path
+          className={`${styles.sectionProgressBar} ${
+            pageIndex < filledPageCount ? styles.sectionProgressBarFilled : ''
+          }`.trim()}
+          d={progressArcPath(pageIndex, pageCount)}
+          key={pageIndex}
+        />
+      ))}
+    </svg>
+  );
+}
+
 function InstrumentHeader({
   headingId,
   title,
   currentStep,
   totalSteps,
   stepNoun,
+  progressSteps,
+  currentPage,
+  progressCurrent,
 }: {
   readonly headingId: string;
   readonly title: string;
   readonly currentStep?: number;
   readonly totalSteps?: number;
   readonly stepNoun?: string;
+  readonly progressSteps: readonly InstrumentProgressStep[];
+  readonly currentPage?: number;
+  readonly progressCurrent?: number;
 }) {
-  const heading = (
-    <h1 id={headingId} tabIndex={-1} autoFocus>
-      {title}
-    </h1>
-  );
-
-  if (currentStep === undefined || totalSteps === undefined || stepNoun === undefined) {
-    return <header className={styles.instrumentHeader}>{heading}</header>;
+  const resolvedTotal = progressSteps?.length ?? totalSteps;
+  const resolvedCurrent = progressCurrent ?? currentStep;
+  const showProgress =
+    (progressSteps !== undefined && progressSteps.length > 0) ||
+    (resolvedTotal !== undefined && resolvedCurrent !== undefined);
+  if (!showProgress) {
+    return (
+      <header className={styles.instrumentHeader}>
+        <h1 id={headingId} tabIndex={-1} autoFocus>
+          {title}
+        </h1>
+      </header>
+    );
   }
+
+  const normalizedTotal = Math.max(1, resolvedTotal ?? 1);
+  const normalizedCurrent = Math.min(
+    normalizedTotal,
+    Math.max(1, resolvedCurrent ?? 1),
+  );
+  const steps: readonly InstrumentProgressStep[] =
+    progressSteps ??
+    Array.from({ length: normalizedTotal }, (_, index) => ({
+      label: `${stepNoun ?? 'Abschnitt'} ${index + 1}`,
+      pageCount: 1,
+    }));
+  const activeStep = steps[normalizedCurrent - 1] ?? steps[0];
+  const activePageTotal = Math.max(1, activeStep?.pageCount ?? 1);
+  const normalizedCurrentPage = Math.min(
+    activePageTotal,
+    Math.max(1, currentPage ?? 1),
+  );
+  const activePageLabel = activeStep?.pageLabels?.[normalizedCurrentPage - 1];
+  const liveStatus = `${activeStep?.label ?? `${stepNoun ?? 'Abschnitt'} ${normalizedCurrent}`}, Seite ${normalizedCurrentPage} von ${activePageTotal}${
+    activePageLabel === undefined ? '' : `, ${activePageLabel}`
+  }`;
 
   return (
     <header className={styles.instrumentHeader}>
-      {heading}
+      <h1 id={headingId} tabIndex={-1} autoFocus>
+        {title}
+      </h1>
       <ol
-        className={styles.sectionProgressLine}
-        aria-label={`${stepNoun} ${currentStep} von ${totalSteps}`}
+        className={`${styles.sectionProgressLine} ${
+          normalizedTotal <= 2 ? styles.sectionProgressLineCompact : ''
+        }`.trim()}
+        aria-label="Fragebogenfortschritt"
       >
-        {Array.from({ length: totalSteps }, (_, index) => {
+        {Array.from({ length: normalizedTotal }, (_, index) => {
           const step = index + 1;
           const state =
-            step < currentStep ? 'completed' : step === currentStep ? 'current' : 'upcoming';
+            step < normalizedCurrent
+              ? 'completed'
+              : step === normalizedCurrent
+                ? 'current'
+                : 'upcoming';
           const progressClassName =
             state === 'completed'
               ? styles.sectionProgressCompleted
               : state === 'current'
                 ? styles.sectionProgressCurrent
                 : '';
+          const progressStep = steps[index] ?? {
+            label: `${stepNoun ?? 'Abschnitt'} ${step}`,
+            pageCount: 1,
+          };
+          const pageCount = Math.max(1, progressStep.pageCount);
+          const filledPageCount =
+            state === 'completed' ? pageCount : state === 'current' ? normalizedCurrentPage : 0;
+          const progressNodeClassName =
+            state === 'completed'
+              ? `${styles.sectionProgressNode} ${styles.sectionProgressCompleted}`
+              : state === 'current'
+                ? `${styles.sectionProgressNode} ${styles.sectionProgressCurrent}`
+                : styles.sectionProgressNode;
+          const stateText =
+            state === 'current'
+              ? `aktuell, Seite ${normalizedCurrentPage} von ${activePageTotal}`
+              : state === 'completed'
+                ? 'abgeschlossen'
+                : 'folgt später';
+
           return (
             <li
-              aria-current={step === currentStep ? 'step' : undefined}
+              aria-current={step === normalizedCurrent ? 'step' : undefined}
               className={progressClassName}
               key={step}
             >
-              <span className={styles.sectionProgressNode} aria-hidden="true">
+              <span className={progressNodeClassName} aria-hidden="true">
+                <SectionProgressRing
+                  pageCount={pageCount}
+                  filledPageCount={filledPageCount}
+                />
                 {step}
               </span>
               <span className={styles.visuallyHidden}>
-                {step === currentStep ? `${stepNoun} ${step}, aktuell` : `${stepNoun} ${step}`}
+                {`${stepNoun ?? 'Abschnitt'} ${step}: ${progressStep.label}, ${stateText}, ${pageCount} Seiten`}
               </span>
             </li>
           );
         })}
       </ol>
+      <p className={styles.visuallyHidden} aria-live="polite">
+        {liveStatus}
+      </p>
     </header>
   );
 }
@@ -951,6 +1068,11 @@ export function QuestionnaireSectionForm<TInstrumentId extends QuestionnaireInst
   title,
   currentSection,
   sectionCount,
+  sectionHeading,
+  submitLabel,
+  progressSteps,
+  progressCurrent,
+  progressStepNoun,
   initialSubmission,
   onBack,
   onSubmit,
@@ -960,6 +1082,11 @@ export function QuestionnaireSectionForm<TInstrumentId extends QuestionnaireInst
   readonly title: string;
   readonly currentSection: number;
   readonly sectionCount: number;
+  readonly sectionHeading?: string;
+  readonly submitLabel?: string;
+  readonly progressSteps: readonly InstrumentProgressStep[];
+  readonly progressCurrent?: number;
+  readonly progressStepNoun?: string;
   readonly initialSubmission: InstrumentSubmissionRequest | null;
   readonly onBack: (submission: InstrumentSubmissionFor<TInstrumentId>) => void;
   readonly onSubmit: (submission: InstrumentSubmissionFor<TInstrumentId>) => void;
@@ -979,6 +1106,7 @@ export function QuestionnaireSectionForm<TInstrumentId extends QuestionnaireInst
     invalidItemIds,
     onChange: updateDraft,
   });
+  const normalizedProgressCurrent = progressCurrent ?? currentSection;
 
   function updateDraft(itemId: string, value: InstrumentResponseValue | undefined): void {
     setDraft((current) => ({ ...current, [itemId]: value }));
@@ -1023,10 +1151,16 @@ export function QuestionnaireSectionForm<TInstrumentId extends QuestionnaireInst
         title={title}
         currentStep={currentSection}
         totalSteps={sectionCount}
-        stepNoun="Abschnitt"
+        stepNoun={progressStepNoun ?? 'Abschnitt'}
+        progressSteps={progressSteps}
+        currentPage={currentSection}
+        progressCurrent={normalizedProgressCurrent}
       />
       <div className={styles.instrumentCard}>
         <form className={styles.instrumentForm} ref={formRef} noValidate onSubmit={submit}>
+          {sectionHeading === undefined ? null : (
+            <h2 className={styles.instrumentSectionHeading}>{sectionHeading}</h2>
+          )}
           {section.instruction === undefined ? null : (
             <div className={styles.sectionInstruction}>
               <FormInformationIcon />
@@ -1061,7 +1195,7 @@ export function QuestionnaireSectionForm<TInstrumentId extends QuestionnaireInst
               </button>
             ) : null}
             <button className={styles.button} type="submit">
-              Weiter
+              {submitLabel ?? 'Weiter'}
               <ForwardIcon />
             </button>
           </div>
@@ -1099,14 +1233,20 @@ function orderedGuardrailOptions(
 export function GuardrailBlockForm({
   block,
   formId,
-  blockNumber,
-  blockCount,
+  title,
+  sectionHeading,
+  submitLabel,
+  progressSteps,
+  progressCurrent,
   onSubmit,
 }: {
   readonly block: GuardrailBlock;
   readonly formId: GuardrailFormId;
-  readonly blockNumber: number;
-  readonly blockCount: number;
+  readonly title: string;
+  readonly sectionHeading: string;
+  readonly submitLabel: string;
+  readonly progressSteps: readonly InstrumentProgressStep[];
+  readonly progressCurrent: number;
   readonly onSubmit: (submission: InstrumentSubmissionFor<'guardrail-v2'>) => void;
 }) {
   const [draft, setDraft] = useState<Draft>({});
@@ -1180,13 +1320,17 @@ export function GuardrailBlockForm({
     <section aria-labelledby="guardrail-title">
       <InstrumentHeader
         headingId="guardrail-title"
-        title={instrumentRuntimeManifest.instruments['guardrail-v2'].participantTitle}
-        currentStep={blockNumber}
-        totalSteps={blockCount}
-        stepNoun="Teil"
+        title={title}
+        currentStep={progressCurrent}
+        totalSteps={progressSteps.length}
+        stepNoun="Abschnitt"
+        progressSteps={progressSteps}
+        currentPage={1}
+        progressCurrent={progressCurrent}
       />
       <div className={styles.instrumentCard}>
         <form className={styles.instrumentForm} ref={formRef} noValidate onSubmit={submit}>
+          <h2 className={styles.instrumentSectionHeading}>{sectionHeading}</h2>
           <div className={styles.instrumentFields}>
             {presentedItems.map(({ item, options }) => (
               <SingleChoiceList
@@ -1208,7 +1352,7 @@ export function GuardrailBlockForm({
           </div>
           <div className={styles.instrumentActions}>
             <button className={styles.button} type="submit">
-              Antworten verbindlich abgeben
+              {submitLabel}
               <ForwardIcon />
             </button>
           </div>

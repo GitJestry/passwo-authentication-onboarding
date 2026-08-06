@@ -434,10 +434,10 @@ describe('research-safe contracts', () => {
       schemaVersion: 4,
       instrumentVersion: '3.0.0-pilot',
       questionnaireVersion: 'questionnaire-v4-pilot',
-      guardrailVersion: 'guardrail-v5-pilot',
-      consentVersion: 'consent-v9-pilot',
+      guardrailVersion: 'guardrail-v6-pilot',
+      consentVersion: 'consent-v10-pilot',
       followUpVersion: 'follow-up-v6-pilot',
-      runtimeManifestVersion: 'instrument-runtime-v4-pilot',
+      runtimeManifestVersion: 'instrument-runtime-v6-pilot',
     });
     expect(Object.keys(instrumentRuntimeManifest.instruments)).toEqual([
       'pre-v1',
@@ -520,11 +520,52 @@ describe('research-safe contracts', () => {
       'generate_store_organize',
       'password_plus_other_category',
     ];
+    const substantiveOptionIds = [
+      ['own_strong_each', 'same_strong_both', 'unique_email_reuse_shopping'],
+      ['pm_generate_store_organize', 'unique_important_reuse_others', 'one_strong_everywhere'],
+      ['unique_and_mfa', 'unique_without_mfa', 'shared_strong_with_mfa'],
+      ['own_strong_each', 'one_strong_all', 'unique_important_reuse_others'],
+      ['generate_store_organize', 'same_strong_everywhere', 'auto_mfa'],
+      ['password_plus_other_category', 'two_passwords', 'long_password_factor'],
+    ] as const;
+    const expectedPermutationCodesByForm = {
+      F1: ['ABC', 'BAC', 'BAC', 'CBA', 'BAC', 'CBA'],
+      F2: ['ACB', 'ACB', 'CAB', 'BCA', 'ABC', 'BAC'],
+      F3: ['BAC', 'CBA', 'BCA', 'ACB', 'CAB', 'ACB'],
+      F4: ['CBA', 'BCA', 'ACB', 'CAB', 'CBA', 'ABC'],
+      F5: ['BCA', 'ABC', 'ABC', 'BAC', 'ACB', 'BCA'],
+      F6: ['CAB', 'CAB', 'CBA', 'ABC', 'BCA', 'CAB'],
+    } as const;
     const formIds = ['F1', 'F2', 'F3', 'F4', 'F5', 'F6'] as const;
     for (const itemIndex of guardrail.questionOrder.keys()) {
       const itemId = guardrail.questionOrder[itemIndex];
       const appropriateOptionId = appropriateOptionIds[itemIndex];
-      if (itemId === undefined || appropriateOptionId === undefined) throw new Error('test-fixture');
+      const canonicalOptionIds = substantiveOptionIds[itemIndex];
+      if (
+        itemId === undefined ||
+        appropriateOptionId === undefined ||
+        canonicalOptionIds === undefined
+      ) {
+        throw new Error('test-fixture');
+      }
+
+      const optionCodeById = Object.fromEntries(
+        canonicalOptionIds.map((optionId, optionIndex) => [
+          optionId,
+          String.fromCharCode('A'.charCodeAt(0) + optionIndex),
+        ]),
+      ) as Record<string, string>;
+      const permutationCodes = formIds.map((formId) =>
+        (forms[formId][itemId] ?? [])
+          .slice(0, 3)
+          .map((optionId) => optionCodeById[optionId] ?? '?')
+          .join(''),
+      );
+
+      expect(permutationCodes).toEqual(
+        formIds.map((formId) => expectedPermutationCodesByForm[formId][itemIndex]),
+      );
+      expect(new Set(permutationCodes).size).toBe(6);
       expect(
         formIds.map((formId) => forms[formId][itemId]?.indexOf(appropriateOptionId) ?? -1).sort(),
       ).toEqual([0, 0, 1, 1, 2, 2]);

@@ -2,10 +2,10 @@
   "schemaVersion": 4,
   "instrumentVersion": "3.0.0-pilot",
   "questionnaireVersion": "questionnaire-v4-pilot",
-  "guardrailVersion": "guardrail-v5-pilot",
-  "consentVersion": "consent-v9-pilot",
+  "guardrailVersion": "guardrail-v6-pilot",
+  "consentVersion": "consent-v10-pilot",
   "followUpVersion": "follow-up-v6-pilot",
-  "runtimeManifestVersion": "instrument-runtime-v4-pilot",
+  "runtimeManifestVersion": "instrument-runtime-v6-pilot",
   "language": "de-DE",
   "participantTerm": "Lernangebot",
   "scales": {
@@ -117,8 +117,8 @@
     },
     "participantInformation": {
       "source": "docs/research/PARTICIPANT-INFORMATION.md",
-      "eyebrow": "Studie zu Passwörtern und dem Schutz von Online-Konten",
-      "welcomeHeading": "Willkommen",
+      "eyebrow": "Eine Studie im Rahmen einer Bachelorarbeit an der Universität Bonn",
+      "welcomeHeading": "Studie zu Passwörtern und dem Schutz von Online-Konten",
       "welcomeParagraphs": [
         "Vielen Dank, dass du dir Zeit für diese Studie nimmst. Du bearbeitest ein digitales Lernangebot zu Passwörtern und zum Schutz von Online-Konten und beantwortest davor und danach einige Fragen."
       ],
@@ -165,7 +165,7 @@
           "id": "voluntariness",
           "heading": "Freiwilligkeit, Widerruf und deine Rechte",
           "paragraphs": [
-            "Die Teilnahme ist freiwillig. Du kannst sie jederzeit ohne Begründung und ohne Nachteile beenden. Ein Abbruch beendet die weitere Datenerhebung.",
+            "Die Teilnahme ist freiwillig. Du kannst sie jederzeit ohne Begründung und ohne Nachteile beenden, auch indem du das Browserfenster schließt. Ein Abbruch beendet die weitere Datenerhebung.",
             "Du kannst deine Einwilligung jederzeit mit Wirkung für die Zukunft widerrufen. Die Rechtmäßigkeit der bis dahin erfolgten Verarbeitung bleibt davon unberührt. Bis zur Anonymisierung kannst du unter Angabe deines Löschcodes die Löschung deiner Forschungsdaten bei Julian Meyer unter s27jmeye@uni-bonn.de verlangen.",
             "Die Verarbeitung beruht auf deiner freiwilligen Einwilligung gemäß Art. 6 Abs. 1 lit. a DSGVO. Im Rahmen der gesetzlichen Voraussetzungen hast du insbesondere Rechte auf Auskunft, Berichtigung, Löschung, Einschränkung der Verarbeitung und Datenübertragbarkeit sowie ein Beschwerderecht bei einer Datenschutzaufsichtsbehörde."
           ]
@@ -181,8 +181,8 @@
           "id": "contact",
           "heading": "Verantwortliche und Kontakt",
           "paragraphs": [
-            "Verantwortlich für die Studie sind Julian Meyer und Christian Tiefenau.",
-            "Kontakt zur Studie: Julian Meyer, s27jmeye@uni-bonn.de; Christian Tiefenau, tiefenau@cs.uni-bonn.de.",
+            "Verantwortlich für die Studie sind Julian Meyer und Dr. Christian Tiefenau.",
+            "Kontakt zur Studie: Julian Meyer, s27jmeye@uni-bonn.de; Dr. Christian Tiefenau, tiefenau@cs.uni-bonn.de.",
             "Datenschutzkontakt: datenschutz@uni-bonn.de."
           ]
         }
@@ -200,7 +200,7 @@
       "essentialSummaryHeading": "Das Wichtigste zur Teilnahme",
       "essentialSummaryParagraphs": [
         "Dauer: Die heutige Teilnahme dauert etwa 30 Minuten.",
-        "Freiwilligkeit: Du kannst die Teilnahme jederzeit ohne Begründung und ohne Nachteile beenden.",
+        "Freiwilligkeit: Du kannst die Teilnahme jederzeit ohne Begründung und ohne Nachteile beenden, auch indem du das Browserfenster schließt.",
         "Datenschutz: Deine Angaben werden zunächst unter einer zufälligen Studien-ID ausgewertet. Reale Passwörter oder Zugangsdaten werden nicht abgefragt; fiktive Passwörter werden nicht gespeichert oder übertragen.",
         "Optionale Nachbefragung: Du kannst freiwillig eine E-Mail-Adresse angeben und ungefähr zehn Tage später an einer etwa zweiminütigen Nachbefragung teilnehmen."
       ]
@@ -208,7 +208,7 @@
     "followUpRecontact": {
       "optional": true,
       "consentLegend": "Optionale Nachbefragung",
-      "consentStatement": "Ich möchte ungefähr zehn Tage später per E-Mail zu einer freiwilligen, etwa zweiminütigen Nachbefragung eingeladen werden. Ich willige ein, dass meine E-Mail-Adresse getrennt von den Forschungsdaten gespeichert und ausschließlich für die Einladung und höchstens eine Erinnerung verwendet wird. Sie wird nach dem letzten vorgesehenen Versand, spätestens mit Abschluss der Nachbefragung, gelöscht. Diese Zustimmung ist freiwillig und keine Voraussetzung für die heutige Studienteilnahme.",
+      "consentStatement": "Ich möchte ungefähr zehn Tage später per E-Mail zu einer freiwilligen, etwa zweiminütigen Nachbefragung eingeladen werden. Ich willige ein, dass meine E-Mail-Adresse getrennt von den Forschungsdaten gespeichert und ausschließlich für die Einladung und höchstens eine Erinnerung verwendet wird.",
       "emailLabel": "E-Mail-Adresse für die freiwillige Nachbefragung",
       "emailRequired": true,
       "emailNeverStoredInResearchDatabase": true,
@@ -220,24 +220,21 @@
     },
     "sessionClosure": {
       "withoutFollowUp": {
-        "heading": "Aufklärung zur Studie",
+        "heading": "Damit ist deine Teilnahme abgeschlossen. Vielen Dank für deine Unterstützung.",
         "paragraphs": [
-          "Diese Studie vergleicht zwei unterschiedliche digitale Trainingsangebote zu Passwörtern und zum Schutz von Online-Konten. Untersucht wird, wie die beiden Angebote wahrgenommen werden und ob zentrale Zusammenhänge zu Passwortwiederverwendung, Passwortmanagern und MFA/2FA erkannt und auf Kontosituationen angewendet werden.",
-          "Die Information über den Vergleich wurde zu Beginn noch nicht offengelegt, damit Erwartungen an die beiden Angebote die Bearbeitung und die unmittelbaren Bewertungen möglichst wenig beeinflussen.",
-          "Die zentralen Empfehlungen lauten: Für jedes Online-Konto sollte ein eigenes starkes Passwort verwendet werden. Ein Passwortmanager kann starke Passwörter erzeugen, speichern und organisieren. Bei einer passwortbasierten Anmeldung ergänzt MFA/2FA das Passwort um mindestens einen weiteren Faktor aus einer anderen Kategorie.",
-          "Dasselbe starke Passwort bei mehreren Konten zu verwenden, entspricht auch bei aktivierter MFA/2FA nicht der Empfehlung. Das gemeinsame Debriefing zeigt keine persönliche Punktzahl und bewertet dich nicht als bestanden oder nicht bestanden.",
-          "Du hast keine E-Mail-Adresse für die freiwillige Nachbefragung hinterlegt. Deine heutige Teilnahme ist damit vollständig abgeschlossen."
+          "Diese Studie vergleicht zwei digitale Lernangebote zu Passwörtern und zum Schutz von Online-Konten. Untersucht wird, wie sie wahrgenommen werden und wie zentrale Inhalte verstanden und auf Kontosituationen angewendet werden.",
+          "Dass zwei Lernangebote verglichen werden, wurde zu Beginn nicht genannt, damit diese Information deine Bearbeitung und deine unmittelbaren Bewertungen möglichst wenig beeinflusst.",
+          "Zur Auflösung der letzten Fragen: Für jedes Konto wird ein eigenes starkes Passwort empfohlen. Passwortmanager können solche Passwörter erzeugen und verwalten. MFA/2FA ergänzt das Passwort um mindestens einen weiteren Faktor aus einer anderen Kategorie, ersetzt diese Empfehlung aber nicht."
         ],
         "actionLabel": "Sitzung abschließen"
       },
       "withFollowUp": {
-        "heading": "Aufklärung zur Studie",
+        "heading": "Damit ist deine Teilnahme abgeschlossen. Vielen Dank für deine Unterstützung.",
         "paragraphs": [
-          "Diese Studie vergleicht zwei unterschiedliche digitale Trainingsangebote zu Passwörtern und zum Schutz von Online-Konten. Untersucht wird, wie die beiden Angebote wahrgenommen werden und ob zentrale Zusammenhänge zu Passwortwiederverwendung, Passwortmanagern und MFA/2FA erkannt und auf Kontosituationen angewendet werden.",
-          "Die Information über den Vergleich wurde zu Beginn noch nicht offengelegt, damit Erwartungen an die beiden Angebote die Bearbeitung und die unmittelbaren Bewertungen möglichst wenig beeinflussen.",
-          "Die zentralen Empfehlungen lauten: Für jedes Online-Konto sollte ein eigenes starkes Passwort verwendet werden. Ein Passwortmanager kann starke Passwörter erzeugen, speichern und organisieren. Bei einer passwortbasierten Anmeldung ergänzt MFA/2FA das Passwort um mindestens einen weiteren Faktor aus einer anderen Kategorie.",
-          "Dasselbe starke Passwort bei mehreren Konten zu verwenden, entspricht auch bei aktivierter MFA/2FA nicht der Empfehlung. Das gemeinsame Debriefing zeigt keine persönliche Punktzahl und bewertet dich nicht als bestanden oder nicht bestanden.",
-          "Da du freiwillig eine E-Mail-Adresse hinterlegt hast, erhältst du ungefähr zehn Tage nach der heutigen Teilnahme eine Einladung zur kurzen Nachbefragung. Ob du sie dann ausfüllst, entscheidest du erneut freiwillig."
+          "Diese Studie vergleicht zwei digitale Lernangebote zu Passwörtern und zum Schutz von Online-Konten. Untersucht wird, wie sie wahrgenommen werden und wie zentrale Inhalte verstanden und auf Kontosituationen angewendet werden.",
+          "Dass zwei Lernangebote verglichen werden, wurde zu Beginn nicht genannt, damit diese Information deine Bearbeitung und deine unmittelbaren Bewertungen möglichst wenig beeinflusst.",
+          "Zur Auflösung der letzten Fragen: Für jedes Konto wird ein eigenes starkes Passwort empfohlen. Passwortmanager können solche Passwörter erzeugen und verwalten. MFA/2FA ergänzt das Passwort um mindestens einen weiteren Faktor aus einer anderen Kategorie, ersetzt diese Empfehlung aber nicht.",
+          "Vielen Dank für deine Teilnahme. Da du eine Einladung zur freiwilligen Nachbefragung gewählt hast, erhältst du ungefähr zehn Tage später eine E-Mail. Ob du dann teilnimmst, entscheidest du erneut freiwillig."
         ],
         "actionLabel": "Sitzung abschließen"
       }
@@ -962,53 +959,53 @@
               "unsure"
             ],
             "SC_PM_MANY_ACCOUNTS": [
-              "pm_generate_store_organize",
               "unique_important_reuse_others",
+              "pm_generate_store_organize",
               "one_strong_everywhere",
               "unsure"
             ],
             "SC_LAYERED_PROTECTION": [
-              "unique_and_mfa",
               "unique_without_mfa",
+              "unique_and_mfa",
               "shared_strong_with_mfa",
               "unsure"
             ],
             "MR_DISTINCT_PASSWORDS": [
-              "own_strong_each",
-              "one_strong_all",
               "unique_important_reuse_others",
+              "one_strong_all",
+              "own_strong_each",
               "unsure"
             ],
             "MR_PASSWORD_MANAGER": [
-              "generate_store_organize",
               "same_strong_everywhere",
+              "generate_store_organize",
               "auto_mfa",
               "unsure"
             ],
             "MR_MFA": [
-              "password_plus_other_category",
-              "two_passwords",
               "long_password_factor",
+              "two_passwords",
+              "password_plus_other_category",
               "unsure"
             ]
           },
           "F2": {
             "SC_DISTINCT_PASSWORDS": [
-              "same_strong_both",
-              "unique_email_reuse_shopping",
               "own_strong_each",
+              "unique_email_reuse_shopping",
+              "same_strong_both",
               "unsure"
             ],
             "SC_PM_MANY_ACCOUNTS": [
-              "unique_important_reuse_others",
-              "one_strong_everywhere",
               "pm_generate_store_organize",
+              "one_strong_everywhere",
+              "unique_important_reuse_others",
               "unsure"
             ],
             "SC_LAYERED_PROTECTION": [
-              "unique_without_mfa",
               "shared_strong_with_mfa",
               "unique_and_mfa",
+              "unique_without_mfa",
               "unsure"
             ],
             "MR_DISTINCT_PASSWORDS": [
@@ -1018,40 +1015,40 @@
               "unsure"
             ],
             "MR_PASSWORD_MANAGER": [
+              "generate_store_organize",
               "same_strong_everywhere",
               "auto_mfa",
-              "generate_store_organize",
               "unsure"
             ],
             "MR_MFA": [
               "two_passwords",
-              "long_password_factor",
               "password_plus_other_category",
+              "long_password_factor",
               "unsure"
             ]
           },
           "F3": {
             "SC_DISTINCT_PASSWORDS": [
-              "unique_email_reuse_shopping",
-              "own_strong_each",
               "same_strong_both",
+              "own_strong_each",
+              "unique_email_reuse_shopping",
               "unsure"
             ],
             "SC_PM_MANY_ACCOUNTS": [
               "one_strong_everywhere",
-              "pm_generate_store_organize",
               "unique_important_reuse_others",
+              "pm_generate_store_organize",
               "unsure"
             ],
             "SC_LAYERED_PROTECTION": [
+              "unique_without_mfa",
               "shared_strong_with_mfa",
               "unique_and_mfa",
-              "unique_without_mfa",
               "unsure"
             ],
             "MR_DISTINCT_PASSWORDS": [
-              "unique_important_reuse_others",
               "own_strong_each",
+              "unique_important_reuse_others",
               "one_strong_all",
               "unsure"
             ],
@@ -1062,23 +1059,23 @@
               "unsure"
             ],
             "MR_MFA": [
-              "long_password_factor",
               "password_plus_other_category",
+              "long_password_factor",
               "two_passwords",
               "unsure"
             ]
           },
           "F4": {
             "SC_DISTINCT_PASSWORDS": [
-              "own_strong_each",
               "unique_email_reuse_shopping",
               "same_strong_both",
+              "own_strong_each",
               "unsure"
             ],
             "SC_PM_MANY_ACCOUNTS": [
-              "pm_generate_store_organize",
-              "one_strong_everywhere",
               "unique_important_reuse_others",
+              "one_strong_everywhere",
+              "pm_generate_store_organize",
               "unsure"
             ],
             "SC_LAYERED_PROTECTION": [
@@ -1088,40 +1085,40 @@
               "unsure"
             ],
             "MR_DISTINCT_PASSWORDS": [
-              "own_strong_each",
               "unique_important_reuse_others",
+              "own_strong_each",
               "one_strong_all",
               "unsure"
             ],
             "MR_PASSWORD_MANAGER": [
-              "generate_store_organize",
               "auto_mfa",
               "same_strong_everywhere",
+              "generate_store_organize",
               "unsure"
             ],
             "MR_MFA": [
               "password_plus_other_category",
-              "long_password_factor",
               "two_passwords",
+              "long_password_factor",
               "unsure"
             ]
           },
           "F5": {
             "SC_DISTINCT_PASSWORDS": [
               "same_strong_both",
-              "own_strong_each",
               "unique_email_reuse_shopping",
+              "own_strong_each",
               "unsure"
             ],
             "SC_PM_MANY_ACCOUNTS": [
-              "unique_important_reuse_others",
               "pm_generate_store_organize",
+              "unique_important_reuse_others",
               "one_strong_everywhere",
               "unsure"
             ],
             "SC_LAYERED_PROTECTION": [
-              "unique_without_mfa",
               "unique_and_mfa",
+              "unique_without_mfa",
               "shared_strong_with_mfa",
               "unsure"
             ],
@@ -1132,29 +1129,29 @@
               "unsure"
             ],
             "MR_PASSWORD_MANAGER": [
-              "same_strong_everywhere",
               "generate_store_organize",
               "auto_mfa",
+              "same_strong_everywhere",
               "unsure"
             ],
             "MR_MFA": [
               "two_passwords",
-              "password_plus_other_category",
               "long_password_factor",
+              "password_plus_other_category",
               "unsure"
             ]
           },
           "F6": {
             "SC_DISTINCT_PASSWORDS": [
               "unique_email_reuse_shopping",
-              "same_strong_both",
               "own_strong_each",
+              "same_strong_both",
               "unsure"
             ],
             "SC_PM_MANY_ACCOUNTS": [
               "one_strong_everywhere",
-              "unique_important_reuse_others",
               "pm_generate_store_organize",
+              "unique_important_reuse_others",
               "unsure"
             ],
             "SC_LAYERED_PROTECTION": [
@@ -1164,21 +1161,21 @@
               "unsure"
             ],
             "MR_DISTINCT_PASSWORDS": [
-              "unique_important_reuse_others",
-              "one_strong_all",
               "own_strong_each",
+              "one_strong_all",
+              "unique_important_reuse_others",
               "unsure"
             ],
             "MR_PASSWORD_MANAGER": [
-              "auto_mfa",
               "same_strong_everywhere",
+              "auto_mfa",
               "generate_store_organize",
               "unsure"
             ],
             "MR_MFA": [
               "long_password_factor",
-              "two_passwords",
               "password_plus_other_category",
+              "two_passwords",
               "unsure"
             ]
           }

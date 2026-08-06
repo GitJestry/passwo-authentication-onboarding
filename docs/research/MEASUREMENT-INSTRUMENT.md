@@ -10,10 +10,10 @@ bytegleich sein.
 
 - Instrument: `3.0.0-pilot`
 - Fragebogen: `questionnaire-v4-pilot`
-- Guardrail: `guardrail-v5-pilot`
-- Einwilligung: `consent-v9-pilot`
+- Guardrail: `guardrail-v6-pilot`
+- Einwilligung: `consent-v10-pilot`
 - Follow-up: `follow-up-v6-pilot`
-- Runtime-Manifest: `instrument-runtime-v4-pilot`
+- Runtime-Manifest: `instrument-runtime-v6-pilot`
 
 ## Evidenzarchitektur
 
@@ -141,10 +141,12 @@ Recognition-Fragen:
 - `MR_PASSWORD_MANAGER`
 - `MR_MFA`
 
-Jede Frage enthält drei inhaltliche Optionen und `Weiß ich nicht` fest an letzter Position. Sechs
-vorab generierte Formen balancieren Szenariofolge und Positionen der drei inhaltlichen Optionen.
-Die Form wird serverseitig, innerhalb jeder Bedingung in kleinen permutierten Sechserblöcken,
-zugewiesen und persistiert.
+Jede Frage enthält drei inhaltliche Optionen und `Weiß ich nicht` fest an letzter Position. Für
+jedes Item kommen über `F1` bis `F6` alle sechs Permutationen der drei inhaltlichen Optionen genau
+einmal vor. Die Zuordnung ist für jedes Item separat eingefroren; innerhalb einer einzelnen Form
+wird keine zusätzliche Verteilung der richtigen Antwortpositionen erzwungen. Die sechs Formen
+balancieren weiterhin alle sechs Reihenfolgen der Anwendungsszenarien. Die Form wird serverseitig,
+innerhalb jeder Bedingung in kleinen permutierten Sechserblöcken, zugewiesen und persistiert.
 
 Es gibt keinen Guardrail-Gesamtscore, keine Pass-Fail-Schwelle und keine Reliabilitätsanalyse.
 Anwendungsszenarien bilden den zentralen empirischen Security Safeguard; Recognition-Fragen sind

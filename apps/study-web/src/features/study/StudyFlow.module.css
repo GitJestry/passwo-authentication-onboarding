@@ -45,7 +45,7 @@
 }
 
 .consentPage {
-  width: min(100%, 72rem);
+  width: min(100%, 76rem);
   margin: 0 auto;
   overflow: hidden;
   border: var(--border-width-thin) solid var(--color-border);
@@ -56,8 +56,11 @@
 
 .welcomeHeader {
   display: grid;
-  gap: var(--space-3);
-  padding: clamp(var(--space-6), 5vw, var(--space-9));
+  justify-items: center;
+  text-align: center;
+  gap: var(--space-2);
+  padding: clamp(var(--space-5), 4vw, var(--space-7))
+    clamp(var(--space-6), 5vw, var(--space-9));
   background: linear-gradient(
     145deg,
     rgb(255 255 255 / 94%),
@@ -74,8 +77,21 @@
   text-transform: uppercase;
 }
 
+.welcomeEyebrow {
+  margin: 0;
+  color: var(--color-ink-muted);
+  font-size: var(--font-size-x-small);
+  font-weight: var(--font-weight-medium);
+  letter-spacing: var(--letter-spacing-normal);
+  text-transform: none;
+}
+
+.welcomeHeader h1 {
+  max-width: 66rem;
+}
+
 .studyContent .welcomeCopy {
-  max-width: 64rem;
+  max-width: 58rem;
   margin: 0;
   color: var(--color-ink);
   font-size: clamp(1rem, 1.6vw, 1.125rem);
@@ -90,9 +106,9 @@
 
 .essentialInformation {
   padding: var(--space-5);
-  border: var(--border-width-thin) solid rgb(28 146 151 / 24%);
+  border: var(--border-width-thin) solid rgb(28 146 151 / 22%);
   border-radius: var(--radius-small);
-  background: rgb(223 245 243 / 28%);
+  background: linear-gradient(145deg, rgb(247 252 252 / 96%), rgb(236 248 247 / 72%));
 }
 
 .essentialInformation p,
@@ -104,17 +120,34 @@
   display: grid;
   gap: var(--space-3);
   margin: var(--space-4) 0 0;
-  padding-left: 1.15rem;
+  padding: 0;
   color: var(--color-ink);
   line-height: var(--line-height-body);
+  list-style: none;
 }
 
-.essentialSummaryList li::marker {
-  color: var(--color-accent-strong);
+.essentialSummaryList li {
+  display: grid;
+  grid-template-columns: 0.55rem minmax(6.75rem, auto) minmax(0, 1fr);
+  align-items: start;
+  column-gap: var(--space-2);
+}
+
+.essentialSummaryList li::before {
+  width: 0.45rem;
+  height: 0.45rem;
+  border-radius: var(--radius-round);
+  margin-top: 0.55rem;
+  background: var(--color-accent-strong);
+  content: "";
+}
+
+.essentialSummaryList strong {
+  color: var(--color-ink-strong);
 }
 
 .detailedInformationHeading {
-  margin-top: var(--space-6) !important;
+  margin-top: var(--space-5) !important;
 }
 
 .closingDeletionCode strong {
@@ -223,17 +256,17 @@
 
 .consentDetails {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  column-gap: clamp(var(--space-6), 5vw, var(--space-9));
-  padding: 0 clamp(var(--space-6), 5vw, var(--space-9))
-    clamp(var(--space-6), 5vw, var(--space-9));
+  grid-template-columns: minmax(0, 1.05fr) minmax(0, 0.95fr);
+  column-gap: clamp(var(--space-5), 4vw, var(--space-8));
+  padding: 0 clamp(var(--space-5), 4vw, var(--space-8))
+    clamp(var(--space-6), 5vw, var(--space-8));
 }
 
 .consentColumn {
   display: grid;
   min-width: 0;
   align-content: start;
-  gap: var(--space-6);
+  gap: var(--space-5);
 }
 
 .disclosureList {
@@ -327,25 +360,77 @@
 .consentPanel {
   min-width: 0;
   margin: 0;
-  padding: 0;
-  border: 0;
+  position: relative;
+  padding: var(--space-5);
+  border: var(--border-width-thin) solid var(--color-border);
+  border-radius: var(--radius-small);
+  background: var(--color-surface-primary);
+  transition: border-color 120ms ease, box-shadow 180ms ease;
 }
 
 .consentPanel legend {
-  padding: 0;
+  display: inline-flex;
+  margin: 0;
+  padding: 0 var(--space-2);
   color: var(--color-ink-strong);
+  font-weight: var(--font-weight-bold);
+  line-height: var(--line-height-body);
+  background: var(--color-surface-primary);
+}
+
+.recontactConsentBlock {
+  min-width: 0;
+  padding: var(--space-5);
+  border: var(--border-width-thin) solid var(--color-border-soft);
+  border-radius: var(--radius-small);
+  background: rgb(247 249 250 / 82%);
+}
+
+.recontactConsentTitleRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  margin-bottom: var(--space-3);
+}
+
+.recontactConsentHeading {
+  margin: 0;
+  color: var(--color-ink-strong);
+  font-size: var(--font-size-small);
   font-weight: var(--font-weight-bold);
   line-height: var(--line-height-body);
 }
 
-.consentPanel .check {
-  margin-top: var(--space-4);
+.optionalBadge {
+  flex: none;
+  padding: 0.15rem var(--space-2);
+  border: var(--border-width-thin) solid var(--color-border);
+  border-radius: var(--radius-round);
+  color: var(--color-ink-muted);
+  background: var(--color-surface-primary);
+  font-size: var(--font-size-x-small);
+  font-weight: var(--font-weight-semibold);
 }
 
-.consentPanel.fieldInvalid {
-  padding: var(--space-3);
-  border: var(--border-width-medium) solid var(--color-warning);
-  border-radius: var(--radius-small);
+.consentPanel .check {
+  margin-top: var(--space-3);
+}
+
+.consentStatementCheck {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  align-items: start;
+  gap: var(--space-3);
+  margin: 0;
+  line-height: var(--line-height-body);
+}
+
+.consentStatementCheck input {
+  width: 1.25rem;
+  height: 1.25rem;
+  margin-top: var(--space-1);
+  accent-color: var(--color-accent-strong);
 }
 
 .consentActions {
@@ -353,6 +438,7 @@
   grid-column: 1 / -1;
   flex-wrap: wrap;
   align-items: center;
+  justify-content: space-between;
   gap: var(--space-3);
   padding-top: var(--space-6);
   border-top: var(--border-width-thin) solid var(--color-border-soft);
@@ -498,6 +584,13 @@
   font-size: clamp(2rem, 4vw, 2.8rem);
 }
 
+.instrumentSectionHeading {
+  margin: clamp(var(--space-5), 4vw, var(--space-7)) clamp(var(--space-5), 4vw, var(--space-8)) 0;
+  color: var(--color-ink-strong);
+  font-size: var(--font-size-heading-small);
+  line-height: var(--line-height-tight);
+}
+
 .instrumentCard {
   width: min(100%, 72rem);
   overflow: hidden;
@@ -534,10 +627,16 @@
 
 .sectionProgressLine {
   display: flex;
-  width: min(100%, 46rem);
+  width: min(100%, 52rem);
   padding: 0;
   margin: var(--space-2) auto 0;
   list-style: none;
+  cursor: default;
+  pointer-events: none;
+}
+
+.sectionProgressLineCompact {
+  width: min(100%, 30rem);
 }
 
 .sectionProgressLine li {
@@ -545,8 +644,9 @@
   display: grid;
   flex: 1;
   min-width: 0;
-  min-height: 2rem;
+  min-height: clamp(3.25rem, 8vw, 3.75rem);
   place-items: center;
+  text-align: center;
 }
 
 .sectionProgressLine li::before,
@@ -554,7 +654,7 @@
   position: absolute;
   z-index: 0;
   width: 50%;
-  height: var(--border-width-medium);
+  height: var(--border-width-thin);
   background: var(--color-border);
   content: "";
 }
@@ -565,6 +665,12 @@
 
 .sectionProgressLine li::after {
   left: 50%;
+}
+
+.sectionProgressLine li::before,
+.sectionProgressLine li::after {
+  top: 50%;
+  transform: translateY(-50%);
 }
 
 .sectionProgressLine li:first-child::before {
@@ -582,23 +688,55 @@
 }
 
 .sectionProgressNode {
+  position: relative;
   display: grid;
   z-index: 1;
-  width: 2rem;
-  height: 2rem;
+  width: clamp(3.25rem, 8vw, 3.75rem);
+  height: clamp(3.25rem, 8vw, 3.75rem);
+  overflow: hidden;
   border: var(--border-width-thin) solid var(--color-border);
   border-radius: var(--radius-round);
   background: var(--color-surface-primary);
   place-items: center;
   color: var(--color-ink-muted);
-  font-size: var(--font-size-small);
-  font-weight: var(--font-weight-bold);
+  font-size: var(--font-size-heading-small);
+  font-weight: var(--font-weight-heavy);
+  line-height: 1;
+}
+
+.sectionProgressRing {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+.sectionProgressBar {
+  fill: none;
+  stroke: var(--color-border);
+  stroke-linecap: butt;
+  stroke-width: 7;
+}
+
+.sectionProgressBarFilled {
+  stroke: var(--color-accent-strong);
 }
 
 .sectionProgressLine li.sectionProgressCompleted .sectionProgressNode {
   border-color: var(--color-accent-strong);
   background: var(--color-accent-strong);
   color: var(--color-on-inverse);
+}
+
+.sectionProgressLine li.sectionProgressCompleted .sectionProgressBar,
+.sectionProgressLine li.sectionProgressCurrent .sectionProgressBar {
+  stroke: rgb(255 255 255 / 28%);
+}
+
+.sectionProgressLine li.sectionProgressCompleted .sectionProgressBarFilled,
+.sectionProgressLine li.sectionProgressCurrent .sectionProgressBarFilled {
+  stroke: var(--color-on-inverse);
 }
 
 .sectionProgressLine li.sectionProgressCurrent .sectionProgressNode {
@@ -806,16 +944,15 @@
 .agreementOption {
   display: grid;
   min-width: 0;
-  min-height: 6.75rem;
   align-content: start;
   justify-items: center;
-  gap: var(--space-2);
-  padding: var(--space-3) var(--space-2);
+  gap: var(--space-1);
+  padding: var(--space-2) var(--space-2);
   border: var(--border-width-thin) solid var(--color-border-soft);
   border-radius: var(--radius-small);
   color: var(--color-ink);
   background: var(--color-surface-primary);
-  font-size: var(--font-size-x-small);
+  font-size: var(--font-size-small);
   line-height: var(--line-height-body);
   text-align: center;
   cursor: pointer;
@@ -1116,6 +1253,17 @@
   margin-inline: auto;
 }
 
+.sessionClosureEmoji {
+  margin: 0 0 var(--space-4);
+  font-size: clamp(3.25rem, 10vw, 5.5rem);
+  line-height: 1;
+}
+
+.sessionClosure h1 {
+  max-width: 48rem;
+  font-size: clamp(2rem, 5vw, 3.4rem);
+}
+
 .sessionClosure .form {
   justify-items: center;
 }
@@ -1189,7 +1337,9 @@
   display: grid;
   width: min(100%, 62rem);
   min-height: 100%;
-  grid-template-rows: auto minmax(0, 1fr) auto;
+  grid-template-rows: auto auto auto;
+  align-content: center;
+  row-gap: clamp(var(--space-4), 4vw, var(--space-6));
   margin: 0 auto;
   padding: clamp(var(--space-7), 8vw, 8rem)
     clamp(var(--space-5), 6vw, var(--space-9));
@@ -1275,6 +1425,15 @@
     padding-inline: var(--space-3);
   }
 
+  .essentialSummaryList li {
+    grid-template-columns: 0.55rem minmax(0, 1fr);
+  }
+
+  .essentialSummaryList strong,
+  .essentialSummaryList span {
+    grid-column: 2;
+  }
+
   .consentDetails {
     grid-template-columns: 1fr;
     row-gap: var(--space-7);
@@ -1318,7 +1477,19 @@
   }
 
   .sectionProgressLine {
-    width: min(100%, 20rem);
+    width: min(100%, 32rem);
+    margin-top: var(--space-1);
+  }
+
+  .sectionProgressNode {
+    width: 3rem;
+    height: 3rem;
+    font-size: var(--font-size-body);
+  }
+
+  .sectionProgressLine li::before,
+  .sectionProgressLine li::after {
+    top: 50%;
   }
 
   .ueqRow {

@@ -1,6 +1,6 @@
 # Shared-Content-Audit des Understanding Guardrails
 
-Status: **Pilotkandidat `guardrail-v5-pilot`.** Referenzartefakt:
+Status: **Pilotkandidat `guardrail-v6-pilot`.** Referenzartefakt:
 `SecAware.NRW, Passwörter & Authentifizierung, V9, 27.03.2026`.
 
 ## Administrierter Referenzpfad

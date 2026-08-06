@@ -46,8 +46,11 @@ werden.
   Response.
 - `F1` bis `F6` werden serverseitig, unabhängig von der Bedingung und innerhalb jeder Bedingung in
   kleinen permutierten Sechserblöcken zugewiesen.
-- Die sechs Formen balancieren alle sechs Szenarioreihenfolgen. Für jedes Item erscheint jede
-  substantive Option genau zweimal auf jeder der drei Positionen; `Weiß ich nicht` bleibt zuletzt.
+- Die sechs Formen balancieren alle sechs Szenarioreihenfolgen. Für jedes Item kommen alle sechs
+  Permutationen der drei substantiven Optionen genau einmal vor. Dadurch erscheint jede Option
+  genau zweimal auf jeder Position; `Weiß ich nicht` bleibt zuletzt.
+- Die Permutationen sind für jedes Item separat festgelegt. Innerhalb einer einzelnen Form wird
+  keine zusätzliche Verteilung der richtigen Antwortpositionen erzwungen.
 - Der Client erhält keine Scoring-Klassifikationen und zeigt vor Abschluss aller Outcomes kein
   Correctness Feedback.
 - Es gibt kein Pass/Fail, keinen Guardrail-Gesamtscore und keinen Unsafe-Summenwert.

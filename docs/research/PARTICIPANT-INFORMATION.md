@@ -1,4 +1,4 @@
-# Teilnahmeinformation und Einwilligung — Pilotkandidat v9
+# Teilnahmeinformation und Einwilligung — Pilotkandidat v10
 
 Status: **verbindliche Teilnehmertextquelle für den Cognitive Pretest und den End-to-End-Pilot.**
 Die ausführbare Projektion liegt in `research/derived/instruments-v1.runtime.json`.
@@ -8,10 +8,15 @@ Die ausführbare Projektion liegt in `research/derived/instruments-v1.runtime.js
 - **Textrolle:** Teilnahmeinformation, Einwilligung und optionale Kontaktaufnahme.
 - **Freigabegrundlage:** bestätigte Studiendauer von etwa 30 Minuten, freiwilliges Follow-up,
   pseudonymisierte Analysephase und anschließende Anonymisierung vor der zehnjährigen Aufbewahrung.
-- **Änderung:** Der sichtbare Einstieg wurde auf vier Kerninformationen verkürzt. Hinweise auf
-  Bedingungen und den Vergleich wurden aus der Vorabinformation entfernt. Der offene
-  Anonymisierungsplatzhalter und der Produktname des Speicherorts wurden entfernt. Die lokale
-  Nicht-Speicherung fiktiver Passwörter wird ausdrücklich genannt.
+- **Änderung:** Der sichtbare Einstieg wurde auf vier Kerninformationen verkürzt. Die kleine
+  Kontextzeile nennt die Bachelorarbeit an der Universität Bonn, während der Studienname als
+  Haupttitel erscheint. Die Freiwilligkeitsinformation nennt das Schließen des Browserfensters als
+  unmittelbare Abbruchmöglichkeit. Hinweise auf Bedingungen und den Vergleich bleiben aus der
+  Vorabinformation entfernt. Der offene Anonymisierungsplatzhalter und der Produktname des
+  Speicherorts entfallen. Die lokale Nicht-Speicherung fiktiver Passwörter wird ausdrücklich
+  genannt.
+- **Debriefing:** Die verzögerte Offenlegung wird knapp erklärt. Die letzten Wissensfragen werden
+  in einem kurzen Absatz aufgelöst; Aussagen zu Punktzahl, Bestehen oder Nichtbestehen entfallen.
 
 ## Methodische Offenlegung
 
@@ -23,9 +28,9 @@ Nachbefragung werden vor der Einwilligung beschrieben.
 
 ## Sichtbarer Einstieg
 
-**Titel:** Studie zu Passwörtern und dem Schutz von Online-Konten
+**Kontextzeile:** Eine Studie im Rahmen einer Bachelorarbeit an der Universität Bonn
 
-**Willkommen**
+**Titel:** Studie zu Passwörtern und dem Schutz von Online-Konten
 
 > Vielen Dank, dass du dir Zeit für diese Studie nimmst. Du bearbeitest ein digitales Lernangebot
 > zu Passwörtern und zum Schutz von Online-Konten und beantwortest davor und danach einige Fragen.
@@ -33,7 +38,7 @@ Nachbefragung werden vor der Einwilligung beschrieben.
 ### Das Wichtigste zur Teilnahme
 
 - **Dauer:** Die heutige Teilnahme dauert etwa 30 Minuten.
-- **Freiwilligkeit:** Du kannst die Teilnahme jederzeit ohne Begründung und ohne Nachteile beenden.
+- **Freiwilligkeit:** Du kannst die Teilnahme jederzeit ohne Begründung und ohne Nachteile beenden, auch indem du das Browserfenster schließt.
 - **Datenschutz:** Deine Angaben werden zunächst unter einer zufälligen Studien-ID ausgewertet.
   Reale Passwörter oder Zugangsdaten werden nicht abgefragt; fiktive Passwörter werden nicht
   gespeichert oder übertragen.
@@ -93,8 +98,8 @@ anschließend gelöscht.
 
 ### Freiwilligkeit, Widerruf und deine Rechte
 
-Die Teilnahme ist freiwillig. Du kannst sie jederzeit ohne Begründung und ohne Nachteile beenden.
-Ein Abbruch beendet die weitere Datenerhebung.
+Die Teilnahme ist freiwillig. Du kannst sie jederzeit ohne Begründung und ohne Nachteile beenden,
+auch indem du das Browserfenster schließt. Ein Abbruch beendet die weitere Datenerhebung.
 
 Du kannst deine Einwilligung jederzeit mit Wirkung für die Zukunft widerrufen. Die Rechtmäßigkeit
 der bis dahin erfolgten Verarbeitung bleibt davon unberührt. Bis zur Anonymisierung kannst du
@@ -114,9 +119,9 @@ nicht zugesichert werden.
 
 ### Verantwortliche und Kontakt
 
-- Verantwortlich für die Studie: Julian Meyer und Christian Tiefenau
+- Verantwortlich für die Studie: Julian Meyer und Dr. Christian Tiefenau
 - Studienkontakt: Julian Meyer, `s27jmeye@uni-bonn.de`
-- Betreuung: Christian Tiefenau, `tiefenau@cs.uni-bonn.de`
+- Betreuung: Dr. Christian Tiefenau, `tiefenau@cs.uni-bonn.de`
 - Datenschutzkontakt: `datenschutz@uni-bonn.de`
 
 ## Einwilligungsfelder
@@ -140,15 +145,25 @@ wurde. Ohne Auswahl wird die Hauptstudie ohne Kontaktregistrierung angelegt.
 
 ## Gemeinsames Debriefing nach allen unmittelbaren Messungen
 
-> Diese Studie vergleicht zwei unterschiedliche digitale Trainingsangebote zu Passwörtern und zum
-> Schutz von Online-Konten. Untersucht wird, wie die beiden Angebote wahrgenommen werden und ob
-> zentrale Zusammenhänge zu Passwortwiederverwendung, Passwortmanagern und MFA/2FA erkannt und auf
-> Kontosituationen angewendet werden.
+**Überschrift:** Damit ist deine Teilnahme abgeschlossen. Vielen Dank für deine Unterstützung.
 
-Danach werden in beiden Bedingungen dieselben zentralen Empfehlungen zusammengefasst, unsichere
-Alternativen korrigiert und keine persönliche Punktzahl oder Pass-Fail-Bewertung angezeigt. Personen
-mit freiwilliger Kontaktregistrierung werden nur daran erinnert, dass ungefähr zehn Tage später
-eine Einladung eintreffen kann; über die Teilnahme entscheiden sie erneut freiwillig.
+> Diese Studie vergleicht zwei digitale Lernangebote zu Passwörtern und zum Schutz von
+> Online-Konten. Untersucht wird, wie sie wahrgenommen werden und wie zentrale Inhalte verstanden
+> und auf Kontosituationen angewendet werden.
+>
+> Dass zwei Lernangebote verglichen werden, wurde zu Beginn nicht genannt, damit diese Information
+> deine Bearbeitung und deine unmittelbaren Bewertungen möglichst wenig beeinflusst.
+>
+> Zur Auflösung der letzten Fragen: Für jedes Konto wird ein eigenes starkes Passwort empfohlen.
+> Passwortmanager können solche Passwörter erzeugen und verwalten. MFA/2FA ergänzt das Passwort um
+> mindestens einen weiteren Faktor aus einer anderen Kategorie, ersetzt diese Empfehlung aber
+> nicht.
+
+Mit freiwilliger Kontaktregistrierung endet sie mit:
+
+> Vielen Dank für deine Teilnahme. Da du eine Einladung zur freiwilligen Nachbefragung gewählt hast,
+> erhältst du ungefähr zehn Tage später eine E-Mail. Ob du dann teilnimmst, entscheidest du erneut
+> freiwillig.
 
 ## Technischer und organisatorischer Restpunkt vor der Hauptstudie
 

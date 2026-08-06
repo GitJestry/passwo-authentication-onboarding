@@ -22,6 +22,31 @@ const guardrailInstrument = instrumentRuntimeManifest.instruments['guardrail-v2'
 const participantInformation = instrumentRuntimeManifest.procedures.participantInformation;
 const recontactProcedure = instrumentRuntimeManifest.procedures.followUpRecontact;
 const sessionClosure = instrumentRuntimeManifest.procedures.sessionClosure;
+const preQuestionnaireProgressSteps = [
+  {
+    label: 'Vorfragebogen',
+    pageCount: preInstrument.sections.length,
+    pageLabels: ['Hintergrund', 'Vorerfahrungen'],
+  },
+] as const;
+const postQuestionnaireProgressSteps = [
+  { label: 'Rückblick', pageCount: immediatePostSectionIds.length },
+  { label: 'Kontosituationen', pageCount: 1 },
+  { label: 'Inhaltsfragen', pageCount: 1 },
+  { label: 'Abschluss', pageCount: postGuardrailSectionIds.length },
+] as const;
+const guardrailProgressByBlock = {
+  scenarios: {
+    progressCurrent: 2,
+    sectionHeading: 'Fragen zu Kontosituationen',
+    submitLabel: 'Weiter zu den Inhaltsfragen',
+  },
+  recognition: {
+    progressCurrent: 3,
+    sectionHeading: 'Fragen zu den Inhalten',
+    submitLabel: 'Weiter zu den Abschlussfragen',
+  },
+} as const;
 
 function InformationIcon() {
   return (
@@ -36,6 +61,30 @@ function ArrowIcon() {
     <svg aria-hidden="true" className={styles.buttonIcon} viewBox="0 0 24 24">
       <path d="M5 12h14m-5-5 5 5-5 5" />
     </svg>
+  );
+}
+
+function EssentialSummaryItem({ text }: { readonly text: string }) {
+  const separatorIndex = text.indexOf(':');
+  if (separatorIndex < 1) return <>{text}</>;
+
+  const label = text.slice(0, separatorIndex).trim();
+  const body = text.slice(separatorIndex + 1).trim();
+
+  if (label === 'Optionale Nachbefragung') {
+    return (
+      <>
+        <strong>{label}:</strong>
+        <span>{body}</span>
+      </>
+    );
+  }
+
+  return (
+    <>
+      <strong>{label}:</strong>{' '}
+      <span>{body}</span>
+    </>
   );
 }
 
@@ -143,13 +192,11 @@ function Consent({ onAccept }: { readonly onAccept: (decision: ConsentDecision) 
   const [declined, setDeclined] = useState(false);
   const [wantsRecontact, setWantsRecontact] = useState(false);
   const [email, setEmail] = useState('');
-  const [eligibilitySubmitted, setEligibilitySubmitted] = useState(false);
   const [emailTouched, setEmailTouched] = useState(false);
   const eligible = eligibilityItems.every(
     (item) => eligibilityDraft[item.id] === item.requiredValue,
   );
   const emailValid = !wantsRecontact || recontactEmailSchema.safeParse(email).success;
-  const showEligibilityNotice = eligibilitySubmitted && !eligible;
   const showEmailError = wantsRecontact && emailTouched && !emailValid;
 
   if (declined) {
@@ -167,7 +214,7 @@ function Consent({ onAccept }: { readonly onAccept: (decision: ConsentDecision) 
   return (
     <section className={styles.consentPage} aria-labelledby="consent-title">
       <header className={styles.welcomeHeader}>
-        <p className={styles.eyebrow}>{participantInformation.eyebrow}</p>
+        <p className={styles.welcomeEyebrow}>{participantInformation.eyebrow}</p>
         <h1 id="consent-title" tabIndex={-1} autoFocus>
           {participantInformation.welcomeHeading}
         </h1>
@@ -183,7 +230,6 @@ function Consent({ onAccept }: { readonly onAccept: (decision: ConsentDecision) 
         noValidate
         onSubmit={(event) => {
           event.preventDefault();
-          setEligibilitySubmitted(true);
           if (accepted && eligible && emailValid) {
             onAccept({
               followUpConsent: wantsRecontact,
@@ -205,7 +251,9 @@ function Consent({ onAccept }: { readonly onAccept: (decision: ConsentDecision) 
               </h2>
               <ul className={styles.essentialSummaryList}>
                 {participantInformation.essentialSummaryParagraphs.map((paragraph) => (
-                  <li key={paragraph}>{paragraph}</li>
+                  <li key={paragraph}>
+                    <EssentialSummaryItem text={paragraph} />
+                  </li>
                 ))}
               </ul>
             </div>
@@ -215,17 +263,10 @@ function Consent({ onAccept }: { readonly onAccept: (decision: ConsentDecision) 
             <ParticipantInformationSections />
           </section>
 
-          <fieldset
-            className={
-              showEligibilityNotice
-                ? `${styles.consentPanel} ${styles.fieldInvalid}`
-                : styles.consentPanel
-            }
-            aria-describedby={
-              showEligibilityNotice ? 'eligibility-error' : 'eligibility-description'
-            }
-            aria-invalid={showEligibilityNotice}
-          >
+        </div>
+
+        <div className={styles.consentColumn}>
+          <fieldset className={styles.consentPanel} aria-describedby="eligibility-description">
             <legend>Teilnahmevoraussetzungen</legend>
             <p className={styles.fieldHint} id="eligibility-description">
               Bitte bestätige, dass alle Voraussetzungen erfüllt sind.
@@ -250,19 +291,11 @@ function Consent({ onAccept }: { readonly onAccept: (decision: ConsentDecision) 
                 </label>
               ))}
             </div>
-            {showEligibilityNotice ? (
-              <p className={styles.fieldError} id="eligibility-error" role="alert">
-                Eine Teilnahme ist nicht möglich, wenn eine Voraussetzung nicht erfüllt ist. Es
-                wurde keine Sitzung angelegt.
-              </p>
-            ) : null}
           </fieldset>
-        </div>
 
-        <div className={styles.consentColumn}>
           <fieldset className={styles.consentPanel}>
             <legend>{participantInformation.requiredConsent.legend}</legend>
-            <label className={styles.check}>
+            <label className={styles.consentStatementCheck}>
               <input
                 type="checkbox"
                 checked={accepted}
@@ -272,8 +305,16 @@ function Consent({ onAccept }: { readonly onAccept: (decision: ConsentDecision) 
             </label>
           </fieldset>
 
-          <fieldset className={styles.consentPanel}>
-            <legend>{recontactProcedure.consentLegend}</legend>
+          <section
+            className={styles.recontactConsentBlock}
+            aria-labelledby="recontact-consent-title"
+          >
+            <div className={styles.recontactConsentTitleRow}>
+              <h2 className={styles.recontactConsentHeading} id="recontact-consent-title">
+                {recontactProcedure.consentLegend}
+              </h2>
+              <span className={styles.optionalBadge}>Optional</span>
+            </div>
             <label className={styles.check}>
               <input
                 type="checkbox"
@@ -309,20 +350,24 @@ function Consent({ onAccept }: { readonly onAccept: (decision: ConsentDecision) 
                 ) : null}
               </label>
             ) : null}
-          </fieldset>
+          </section>
         </div>
 
         <div className={styles.consentActions}>
-          <button className={styles.button} type="submit" disabled={!accepted || !emailValid}>
-            {participantInformation.actions.acceptLabel}
-            <ArrowIcon />
-          </button>
           <button
             className={styles.secondaryButton}
             type="button"
             onClick={() => setDeclined(true)}
           >
             {participantInformation.actions.declineLabel}
+          </button>
+          <button
+            className={styles.button}
+            type="submit"
+            disabled={!accepted || !eligible || !emailValid}
+          >
+            {participantInformation.actions.acceptLabel}
+            <ArrowIcon />
           </button>
         </div>
       </form>
@@ -515,9 +560,14 @@ export function StudyFlow() {
           instrumentId="pre-v1"
           section={section}
           title="Fragebogen vor dem Lernangebot"
+          progressSteps={preQuestionnaireProgressSteps}
+          progressCurrent={1}
+          progressStepNoun="Abschnitt"
           currentSection={sectionIndex + 1}
           sectionCount={preInstrument.sections.length}
-          initialSubmission={context.questionnaireDrafts[context.questionnaireBlockCursor] ?? null}
+          initialSubmission={
+            context.questionnaireDrafts[context.questionnaireBlockCursor] ?? null
+          }
           onBack={(payload) => send({ type: 'BACK_PRE', payload })}
           onSubmit={(payload) => send({ type: 'SUBMIT_PRE', payload })}
         />
@@ -575,28 +625,56 @@ export function StudyFlow() {
             (candidate) => candidate.id === currentQuestionnaireBlock.sectionId,
           )
         : undefined;
-    const sectionGroup =
-      section !== undefined && immediatePostSectionIds.some((sectionId) => sectionId === section.id)
-        ? immediatePostSectionIds
-        : postGuardrailSectionIds;
-    const sectionIndex =
-      section === undefined ? -1 : sectionGroup.findIndex((sectionId) => sectionId === section.id);
-    content =
-      section === undefined || sectionIndex < 0 ? (
-        <ConfigurationError errorCode="post-instrument-cursor-invalid" />
-      ) : (
+    const immediateSectionIndex =
+      section === undefined
+        ? -1
+        : immediatePostSectionIds.findIndex((sectionId) => sectionId === section.id);
+    const closingSectionIndex =
+      section === undefined
+        ? -1
+        : postGuardrailSectionIds.findIndex((sectionId) => sectionId === section.id);
+    const progressCurrent = immediateSectionIndex >= 0 ? 1 : closingSectionIndex >= 0 ? 4 : -1;
+    const localSectionIndex =
+      immediateSectionIndex >= 0 ? immediateSectionIndex : closingSectionIndex;
+    const localSectionCount =
+      immediateSectionIndex >= 0 ? immediatePostSectionIds.length : postGuardrailSectionIds.length;
+    const sectionHeading =
+      immediateSectionIndex >= 0 ? 'Rückblick auf das Lernangebot' : 'Abschlussfragen';
+    const submitLabel =
+      immediateSectionIndex === immediatePostSectionIds.length - 1
+        ? 'Weiter zu den Kontosituationen'
+        : closingSectionIndex === postGuardrailSectionIds.length - 1
+          ? 'Antworten abschließen'
+          : 'Weiter';
+
+    if (
+      section === undefined ||
+      progressCurrent < 0 ||
+      localSectionIndex < 0 ||
+      localSectionCount < 1
+    ) {
+      content = <ConfigurationError errorCode="post-instrument-cursor-invalid" />;
+    } else {
+      content = (
         <QuestionnaireSectionForm
           key={`post-v1:${section.id}`}
           instrumentId="post-v1"
           section={section}
           title="Fragebogen nach dem Lernangebot"
-          currentSection={sectionIndex + 1}
-          sectionCount={sectionGroup.length}
-          initialSubmission={context.questionnaireDrafts[context.questionnaireBlockCursor] ?? null}
+          sectionHeading={sectionHeading}
+          submitLabel={submitLabel}
+          progressSteps={postQuestionnaireProgressSteps}
+          progressCurrent={progressCurrent}
+          currentSection={localSectionIndex + 1}
+          sectionCount={localSectionCount}
+          initialSubmission={
+            context.questionnaireDrafts[context.questionnaireBlockCursor] ?? null
+          }
           onBack={(payload) => send({ type: 'BACK_POST', payload })}
           onSubmit={(payload) => send({ type: 'SUBMIT_POST', payload })}
         />
       );
+    }
   } else if (snapshot.matches({ guardrails: 'error' })) {
     content = (
       <ResearchDataError
@@ -614,16 +692,28 @@ export function StudyFlow() {
       block === undefined
         ? -1
         : guardrailInstrument.blocks.findIndex((candidate) => candidate.id === block.id);
+    const progress =
+      block?.id === 'scenarios'
+        ? guardrailProgressByBlock.scenarios
+        : block?.id === 'recognition'
+          ? guardrailProgressByBlock.recognition
+          : undefined;
     content =
-      block === undefined || blockIndex < 0 || context.guardrailFormId === null ? (
+      block === undefined ||
+      blockIndex < 0 ||
+      context.guardrailFormId === null ||
+      progress === undefined ? (
         <ConfigurationError errorCode="guardrail-instrument-cursor-invalid" />
       ) : (
         <GuardrailBlockForm
           key={`guardrail-v2:${block.id}`}
           block={block}
           formId={context.guardrailFormId}
-          blockNumber={blockIndex + 1}
-          blockCount={guardrailInstrument.blocks.length}
+          title="Fragebogen nach dem Lernangebot"
+          sectionHeading={progress.sectionHeading}
+          submitLabel={progress.submitLabel}
+          progressSteps={postQuestionnaireProgressSteps}
+          progressCurrent={progress.progressCurrent}
           onSubmit={(payload) => send({ type: 'SUBMIT_GUARDRAILS', payload })}
         />
       );
@@ -633,6 +723,9 @@ export function StudyFlow() {
       : sessionClosure.withoutFollowUp;
     content = (
       <section className={styles.sessionClosure} aria-labelledby="session-closure-title">
+        <span className={styles.sessionClosureEmoji} aria-hidden="true">
+          🎉
+        </span>
         <h1 id="session-closure-title" tabIndex={-1} autoFocus>
           {closureContent.heading}
         </h1>
@@ -697,7 +790,7 @@ export function StudyFlow() {
   }
 
   const participantInformationAccess =
-    context.deletionCode === null || (!questionnaireVisible && !artifactVisible) ? null : (
+    context.deletionCode === null || !questionnaireVisible ? null : (
       <ParticipantInformationAccess deletionCode={context.deletionCode} />
     );
 

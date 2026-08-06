@@ -144,7 +144,7 @@ describe('follow-up recontact boundary', () => {
       email: 'person@example.org',
       rawToken: token,
       tokenHash: expectedHash,
-      consentVersion: 'consent-v9-pilot',
+      consentVersion: 'consent-v10-pilot',
       requestId,
     });
     expect(JSON.stringify(recontactSchema)).not.toMatch(

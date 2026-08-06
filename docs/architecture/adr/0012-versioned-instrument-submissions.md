@@ -276,3 +276,39 @@ der verbleibende Datensatz anonymisiert; nur dieser anonymisierte Datensatz wird
 Jahre universitätsseitig aufbewahrt. Diese Revision legt die Verarbeitungsgrenze und den
 Teilnehmertext fest, implementiert jedoch noch keine neue technische Anonymisierungsroutine oder
 einen automatisch quittierten E-Mail-Löschprozess.
+
+## Revision 2026-08-06 — Verdichtetes gemeinsames Debriefing
+
+Das Runtime-Manifest wird auf `instrument-runtime-v5-pilot` angehoben; Einwilligungs-, Instrument-,
+Fragebogen-, Guardrail- und Follow-up-Version bleiben unverändert.
+
+Das gemeinsame Debriefing legt weiterhin den Vergleich der beiden Lernangebote und den Grund für
+die verzögerte Offenlegung offen. Die Korrektur der zuvor präsentierten unsicheren Alternativen wird
+auf einen kurzen Auflösungsabsatz verdichtet. Aussagen zu einer persönlichen Punktzahl oder zu
+Bestehen und Nichtbestehen entfallen, weil im Studienablauf keine entsprechende Bewertung erfolgt.
+
+## Revision 2026-08-06 — Einstiegshierarchie, globale Post-Navigation und Guardrail-Matrix
+
+Die Consent-Version wird auf `consent-v10-pilot`, die Guardrail-Version auf
+`guardrail-v6-pilot` und das Runtime-Manifest auf `instrument-runtime-v6-pilot` angehoben.
+Instrument-, Fragebogen- und Follow-up-Version bleiben unverändert. Es werden keine Messitems,
+Skalen, Antwortoptionen oder Erhebungsreihenfolgen verändert.
+
+Auf der Einwilligungsseite erscheint die Bachelorarbeitszuordnung als zurückhaltende Kontextzeile
+und der Studienname als Haupttitel. Der sichtbare Kurzüberblick bleibt auf vier Kerninformationen
+begrenzt und nennt das Schließen des Browserfensters als unmittelbare Möglichkeit, die weitere
+Teilnahme zu beenden. Eine Wiederaufnahme wird nicht zugesichert, solange dafür keine eigene
+Runtime- und Persistenzentscheidung implementiert ist.
+
+Der Post-Pfad erhält eine durchgängige, nicht interaktive Navigation mit den vier übergeordneten
+Abschnitten `Rückblick`, `Kontosituationen`, `Inhaltsfragen` und `Abschluss`. Die sechs unmittelbaren
+Post-Seiten gehören vollständig zum Rückblick, die Szenarien zu Kontosituationen, die
+Recognition-Fragen zu Inhaltsfragen und Self-Efficacy plus retrospektive SecAware-Vorerfahrung zum
+Abschluss. Lokale Seitenstände werden zusätzlich und deutlich sichtbar ausgewiesen. Diese
+Darstellung ändert weder Reihenfolge noch Submission-Grenzen.
+
+Für jedes der sechs Guardrail-Items werden die drei substantiven Antwortoptionen über `F1` bis
+`F6` in allen sechs möglichen Permutationen genau einmal dargestellt. Die Zuordnung ist für jedes
+Item separat eingefroren. Innerhalb einer einzelnen Form wird keine zusätzliche Balance der
+richtigen Antwortpositionen erzwungen. `Weiß ich nicht` bleibt bei jedem Item fest an vierter und
+letzter Position; die sechs Reihenfolgen der Anwendungsszenarien bleiben unverändert ausbalanciert.
