@@ -102,17 +102,23 @@ Antwort persistiert und bleiben stabil. Der Client kann weder Condition noch For
 ## Pseudonymisierung, Anonymisierung und Löschung
 
 Solange Haupt- und Follow-up-Antworten über die zufällige Studien-ID zugeordnet werden können,
-sind die Forschungsdaten pseudonymisiert, nicht anonym. Der Zeitpunkt der tatsächlichen,
-unumkehrbaren Anonymisierung ist vor Beginn der Hauptstudie festzulegen und derzeit offen. Bis
-dahin kann eine Person unter Angabe des Löschcodes die zuordenbaren Daten löschen lassen. Nach
-der Anonymisierung ist eine individuelle Zuordnung und Löschung nicht mehr möglich.
+sind die Forschungsdaten pseudonymisiert, nicht anonym. Sie bleiben bis zum Abschluss der
+Datenauswertung und der abschließenden Prüfung des Datensatzes pseudonymisiert. Bis dahin kann eine
+Person unter Angabe des Löschcodes die zuordenbaren Daten löschen lassen.
 
-Der rohe Löschcode wird clientseitig erzeugt und nicht gespeichert; in `study.sqlite` liegt nur
-sein SHA-256-Hash. Die zufällige Forschungs-ID wird der Person nicht angezeigt.
+Anschließend werden alle für eine individuelle Zuordnung verfügbaren Zusatzinformationen dauerhaft
+gelöscht und der verbleibende Forschungsdatensatz anonymisiert. Dazu gehören mindestens das
+Kontaktregister, Follow-up-Zuordnungen, Löschcode-Hashes und weitere technische oder inhaltliche
+Merkmale, die im konkreten Datensatz eine Zuordnung ermöglichen könnten. Die bereits verbundenen
+Haupt- und Follow-up-Antworten dürfen innerhalb eines anonymen Falls zusammenbleiben. Nach diesem
+Schritt ist eine individuelle Zuordnung und Löschung nicht mehr möglich.
 
-Die aufzubewahrenden Forschungsdaten werden geschützt in Sciebo gespeichert und nach zehn Jahren
-endgültig gelöscht. Vor Anonymisierung sind sie als pseudonymisierte Forschungsdaten zu
-bezeichnen; nach nachweislich irreversibler Anonymisierung nur noch als anonymisierte Daten.
+Der rohe Löschcode wird clientseitig erzeugt und nicht gespeichert; in `study.sqlite` liegt bis zur
+Anonymisierung nur sein SHA-256-Hash. Die zufällige Forschungs-ID wird der Person nicht angezeigt.
+
+Der anonymisierte Forschungsdatensatz wird geschützt auf universitären Systemen zehn Jahre
+aufbewahrt und anschließend endgültig gelöscht. Die technische Anonymisierungsprozedur ist vor der
+Hauptstudie als kontrollierter und überprüfbarer Verarbeitungsschritt zu dokumentieren.
 
 ## Timing
 

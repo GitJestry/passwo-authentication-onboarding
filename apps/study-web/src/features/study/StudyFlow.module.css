@@ -100,6 +100,19 @@
   max-width: none;
 }
 
+.essentialSummaryList {
+  display: grid;
+  gap: var(--space-3);
+  margin: var(--space-4) 0 0;
+  padding-left: 1.15rem;
+  color: var(--color-ink);
+  line-height: var(--line-height-body);
+}
+
+.essentialSummaryList li::marker {
+  color: var(--color-accent-strong);
+}
+
 .detailedInformationHeading {
   margin-top: var(--space-6) !important;
 }

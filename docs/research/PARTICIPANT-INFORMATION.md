@@ -1,9 +1,17 @@
-# Teilnahmeinformation und Einwilligung — Pilotkandidat v8
+# Teilnahmeinformation und Einwilligung — Pilotkandidat v9
 
 Status: **verbindliche Teilnehmertextquelle für den Cognitive Pretest und den End-to-End-Pilot.**
-Der endgültige Hauptstudien-Freeze erfolgt erst nach dokumentierter Pilotierung, zweiter
-Inhaltsprüfung und Festlegung des offenen Anonymisierungszeitpunkts. Die ausführbare Projektion
-liegt in `research/derived/instruments-v1.runtime.json`.
+Die ausführbare Projektion liegt in `research/derived/instruments-v1.runtime.json`.
+
+## Copy-Delta 2026-08-06
+
+- **Textrolle:** Teilnahmeinformation, Einwilligung und optionale Kontaktaufnahme.
+- **Freigabegrundlage:** bestätigte Studiendauer von etwa 30 Minuten, freiwilliges Follow-up,
+  pseudonymisierte Analysephase und anschließende Anonymisierung vor der zehnjährigen Aufbewahrung.
+- **Änderung:** Der sichtbare Einstieg wurde auf vier Kerninformationen verkürzt. Hinweise auf
+  Bedingungen und den Vergleich wurden aus der Vorabinformation entfernt. Der offene
+  Anonymisierungsplatzhalter und der Produktname des Speicherorts wurden entfernt. Die lokale
+  Nicht-Speicherung fiktiver Passwörter wird ausdrücklich genannt.
 
 ## Methodische Offenlegung
 
@@ -19,75 +27,90 @@ Nachbefragung werden vor der Einwilligung beschrieben.
 
 **Willkommen**
 
-> Vielen Dank, dass du dir Zeit für diese Studie nimmst. Du bearbeitest gleich ein digitales
-> Lernangebot zu Passwörtern und zum Schutz von Online-Konten und beantwortest davor und danach
-> einige Fragen.
+> Vielen Dank, dass du dir Zeit für diese Studie nimmst. Du bearbeitest ein digitales Lernangebot
+> zu Passwörtern und zum Schutz von Online-Konten und beantwortest davor und danach einige Fragen.
+
+### Das Wichtigste zur Teilnahme
+
+- **Dauer:** Die heutige Teilnahme dauert etwa 30 Minuten.
+- **Freiwilligkeit:** Du kannst die Teilnahme jederzeit ohne Begründung und ohne Nachteile beenden.
+- **Datenschutz:** Deine Angaben werden zunächst unter einer zufälligen Studien-ID ausgewertet.
+  Reale Passwörter oder Zugangsdaten werden nicht abgefragt; fiktive Passwörter werden nicht
+  gespeichert oder übertragen.
+- **Optionale Nachbefragung:** Du kannst freiwillig eine E-Mail-Adresse angeben und ungefähr zehn
+  Tage später an einer etwa zweiminütigen Nachbefragung teilnehmen.
 
 ## Ausführliche Teilnahmeinformationen
 
-### Worum geht es?
+### Worum geht es und was erwartet dich?
 
 Wir untersuchen, wie ein digitales Lernangebot zu Passwörtern und zum Schutz von Online-Konten
 genutzt, wahrgenommen und verstanden wird.
 
-Einige Einzelheiten zum Vergleich und zum konkreteren Untersuchungszweck erläutern wir erst nach
-den unmittelbaren Messungen. Dadurch soll vermieden werden, dass diese Informationen die
-Bearbeitung oder die Antworten vorab beeinflussen.
+Zunächst beantwortest du einige Fragen zu deiner Person und deinen bisherigen Erfahrungen. Danach
+bearbeitest du das Lernangebot. Abschließend folgen Fragen zu deiner Wahrnehmung und zu den
+vermittelten Inhalten. Die heutige Teilnahme dauert etwa 30 Minuten.
 
-### Was erwartet dich?
-
-Zunächst beantwortest du kurze Fragen zu deiner Person und zu bisherigen Erfahrungen mit den
-behandelten Themen. Danach bearbeitest du ein digitales Lernangebot. Anschließend folgen Fragen zu
-deiner Wahrnehmung des Angebots und zu den vermittelten Inhalten.
-
-**Dauer heute etwa 30 Minuten.** Diese ungefähre Dauer gilt für beide Bedingungen.
-
-Optional kannst du eine E-Mail-Adresse hinterlegen und ungefähr zehn Tage später an einer
-freiwilligen Nachbefragung teilnehmen. Sie dauert etwa zwei Minuten. Die Angabe einer
-E-Mail-Adresse ist keine Voraussetzung für die heutige Studienteilnahme.
+Einige Details zur genauen Fragestellung erläutern wir am Ende der heutigen Befragung, damit sie
+deine Bearbeitung nicht vorab beeinflussen.
 
 ### Welche Daten werden verarbeitet?
 
-Gespeichert werden Fragebogenantworten, Bearbeitungs- und Abschnittszeiten, der technische
-Abschlussstatus sowie die für die Auswertung erforderlichen Angaben zum bearbeiteten Lernangebot,
-zu Versionen und Darstellungsreihenfolgen. Es werden keine realen Passwörter, Kontonamen,
-Sicherheitscodes oder Zugangsdaten erhoben.
+Gespeichert werden deine Fragebogenantworten und technische Angaben zum Studienablauf, etwa
+Bearbeitungszeiten und Abschlussstatus.
 
-Antworten aus Hauptstudie und freiwilliger Nachbefragung werden ausschließlich über eine zufällige
-Studien-ID pseudonym miteinander verknüpft. Solange diese Zuordnung besteht, sind die
-Forschungsdaten pseudonymisiert und nicht anonym.
+Es werden keine realen Passwörter, Kontonamen, Sicherheitscodes oder Zugangsdaten erhoben. Fiktive
+Passwörter aus dem Lernangebot werden weder gespeichert noch übertragen.
 
-Eine freiwillig angegebene E-Mail-Adresse wird in einem getrennten Kontaktregister gespeichert und
-ausschließlich für die Einladung zur freiwilligen Nachbefragung sowie höchstens eine Erinnerung
-verwendet. Sie wird nicht in den Forschungsdatensatz übernommen und unmittelbar nach Abschluss
-der Follow-up-Phase und dem letzten vorgesehenen Versand gelöscht.
+Die Forschungsdaten werden unter einer zufälligen Studien-ID gespeichert. Name und E-Mail-Adresse
+stehen nicht im Forschungsdatensatz. Zugriff erhalten nur die für Durchführung, Auswertung und
+Aufbewahrung zuständigen Personen an der Universität Bonn.
 
-### Speicherung und Aufbewahrung
+### Freiwillige Nachbefragung und E-Mail-Adresse
 
-Die aufzubewahrenden Forschungsdaten werden geschützt in einem Sciebo-Ordner gespeichert und nach
-zehn Jahren endgültig gelöscht.
+Du kannst freiwillig eine E-Mail-Adresse angeben. Dann erhältst du ungefähr zehn Tage später eine
+Einladung zu einer etwa zweiminütigen Nachbefragung und gegebenenfalls eine einmalige Erinnerung.
 
-Bis zu einer tatsächlichen, unumkehrbaren Anonymisierung werden sie pseudonymisiert aufbewahrt.
-Wenn die Anonymisierung früher erfolgt, liegen die danach aufzubewahrenden Forschungsdaten nur
-noch anonymisiert vor.
+Die E-Mail-Adresse wird getrennt von den Forschungsdaten gespeichert und ausschließlich für diese
+Kontaktaufnahme verwendet. Sie wird nach dem letzten vorgesehenen Versand, spätestens mit
+Abschluss der Nachbefragung, gelöscht.
 
-**Zeitpunkt der unumkehrbaren Anonymisierung: [OFFEN – vor Beginn der Hauptstudie festzulegen].**
+Die Angabe einer E-Mail-Adresse und die Teilnahme an der Nachbefragung sind keine Voraussetzungen
+für die heutige Studie.
 
-### Freiwilligkeit, Widerruf und Löschung
+### Pseudonymisierung, Anonymisierung und Aufbewahrung
 
-Die Teilnahme ist freiwillig und kann jederzeit ohne Begründung und ohne Nachteile beendet werden.
-Bis zur späteren unumkehrbaren Anonymisierung kann unter Angabe des Löschcodes die Löschung der
-zuordenbaren Forschungsdaten verlangt werden. Nach der Anonymisierung ist eine individuelle
-Zuordnung und damit auch eine individuelle Löschung nicht mehr möglich.
+Die Forschungsdaten bleiben bis zum Abschluss der Datenauswertung und der abschließenden Prüfung
+des Datensatzes pseudonymisiert. Bis dahin kannst du mit deinem Löschcode die Löschung deiner
+zuordenbaren Forschungsdaten verlangen.
 
-Die Einwilligung kann jederzeit mit Wirkung für die Zukunft widerrufen werden. Die Rechtmäßigkeit
-der bis zum Widerruf erfolgten Verarbeitung bleibt davon unberührt.
+Anschließend werden alle Zuordnungsinformationen dauerhaft gelöscht und der verbleibende
+Forschungsdatensatz anonymisiert. Danach kann er keiner einzelnen Person mehr zugeordnet oder auf
+individuellen Wunsch gelöscht werden.
+
+Der anonymisierte Forschungsdatensatz wird universitätsseitig zehn Jahre aufbewahrt und
+anschließend gelöscht.
+
+### Freiwilligkeit, Widerruf und deine Rechte
+
+Die Teilnahme ist freiwillig. Du kannst sie jederzeit ohne Begründung und ohne Nachteile beenden.
+Ein Abbruch beendet die weitere Datenerhebung.
+
+Du kannst deine Einwilligung jederzeit mit Wirkung für die Zukunft widerrufen. Die Rechtmäßigkeit
+der bis dahin erfolgten Verarbeitung bleibt davon unberührt. Bis zur Anonymisierung kannst du
+unter Angabe deines Löschcodes die Löschung deiner Forschungsdaten bei Julian Meyer unter
+`s27jmeye@uni-bonn.de` verlangen.
+
+Die Verarbeitung beruht auf deiner freiwilligen Einwilligung gemäß Art. 6 Abs. 1 lit. a DSGVO. Im
+Rahmen der gesetzlichen Voraussetzungen hast du insbesondere Rechte auf Auskunft, Berichtigung,
+Löschung, Einschränkung der Verarbeitung und Datenübertragbarkeit sowie ein Beschwerderecht bei
+einer Datenschutzaufsichtsbehörde.
 
 ### Mögliche Belastungen und Nutzen
 
 Es sind keine besonderen Risiken zu erwarten, die über alltägliche Belastungen bei der Nutzung
-digitaler Lernangebote und Fragebögen hinausgehen. Ein unmittelbarer persönlicher Nutzen kann nicht
-zugesichert werden.
+digitaler Lernangebote und Fragebögen hinausgehen. Ein unmittelbarer persönlicher Nutzen kann
+nicht zugesichert werden.
 
 ### Verantwortliche und Kontakt
 
@@ -96,29 +119,21 @@ zugesichert werden.
 - Betreuung: Christian Tiefenau, `tiefenau@cs.uni-bonn.de`
 - Datenschutzkontakt: `datenschutz@uni-bonn.de`
 
-### Rechtsgrundlage und Rechte
-
-Die Verarbeitung erfolgt auf Grundlage einer freiwilligen Einwilligung gemäß Art. 6 Abs. 1 lit. a
-DSGVO. Im Rahmen der gesetzlichen Voraussetzungen bestehen insbesondere Rechte auf Auskunft,
-Berichtigung, Löschung, Einschränkung der Verarbeitung und Datenübertragbarkeit sowie ein
-Beschwerderecht bei einer Datenschutzaufsichtsbehörde. Der Löschcode dient der Zuordnung einer
-Löschanfrage zu den pseudonymisierten Forschungsdaten.
-
 ## Einwilligungsfelder
 
 ### Erforderliche Einwilligung in die Hauptstudie
 
 > Ich habe die Teilnahmeinformationen gelesen und verstanden. Ich willige freiwillig in die
-> heutige Studienteilnahme und in die beschriebene pseudonymisierte Verarbeitung meiner
-> Forschungsdaten ein. Mir ist bekannt, dass die freiwillige Angabe einer E-Mail-Adresse und die
-> spätere Nachbefragung keine Voraussetzung für die Hauptstudie sind.
+> Teilnahme und in die beschriebene pseudonymisierte Verarbeitung meiner Forschungsdaten ein.
 
 ### Optionale Nachbefragung
 
-> Ich möchte ungefähr zehn Tage später per E-Mail zu einer freiwilligen Nachbefragung eingeladen
-> werden. Die Bearbeitung dauert etwa zwei Minuten. Meine E-Mail-Adresse wird getrennt von den
-> Forschungsdaten gespeichert, nur für die Einladung und höchstens eine Erinnerung verwendet und
-> unmittelbar nach Abschluss der Follow-up-Phase und dem letzten vorgesehenen Versand gelöscht.
+> Ich möchte ungefähr zehn Tage später per E-Mail zu einer freiwilligen, etwa zweiminütigen
+> Nachbefragung eingeladen werden. Ich willige ein, dass meine E-Mail-Adresse getrennt von den
+> Forschungsdaten gespeichert und ausschließlich für die Einladung und höchstens eine Erinnerung
+> verwendet wird. Sie wird nach dem letzten vorgesehenen Versand, spätestens mit Abschluss der
+> Nachbefragung, gelöscht. Diese Zustimmung ist freiwillig und keine Voraussetzung für die heutige
+> Studienteilnahme.
 
 Die E-Mail-Adresse wird nur eingeblendet und validiert, wenn diese optionale Auswahl aktiviert
 wurde. Ohne Auswahl wird die Hauptstudie ohne Kontaktregistrierung angelegt.
@@ -142,3 +157,8 @@ Schedule-Export versendet Nachrichten nicht selbst und protokolliert den letzten
 Versand nicht zuverlässig. Die fristgerechte Löschung aller E-Mail-Adressen muss deshalb vor der
 Hauptstudie als kontrollierter manueller Betriebsprozess mit dokumentierter Bestätigung festgelegt
 werden oder durch eine spätere, zuverlässig quittierte Versand- und Löschlogik ersetzt werden.
+
+Die spätere Anonymisierung ist als verbindlicher Verarbeitungsschritt festgelegt. Ihre technische
+Prozedur muss vor der Hauptstudie dokumentieren, welche Zuordnungsinformationen, Kontaktregister,
+Löschcode-Hashes, präzisen Zeitbezüge und sonstigen potenziellen Identifikatoren entfernt oder
+vergröbert werden. Dieser Text-Freeze implementiert diese Prozedur noch nicht.

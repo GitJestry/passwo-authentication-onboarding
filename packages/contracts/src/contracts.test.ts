@@ -435,9 +435,9 @@ describe('research-safe contracts', () => {
       instrumentVersion: '3.0.0-pilot',
       questionnaireVersion: 'questionnaire-v4-pilot',
       guardrailVersion: 'guardrail-v5-pilot',
-      consentVersion: 'consent-v8-pilot',
+      consentVersion: 'consent-v9-pilot',
       followUpVersion: 'follow-up-v6-pilot',
-      runtimeManifestVersion: 'instrument-runtime-v3-pilot',
+      runtimeManifestVersion: 'instrument-runtime-v4-pilot',
     });
     expect(Object.keys(instrumentRuntimeManifest.instruments)).toEqual([
       'pre-v1',
@@ -536,10 +536,16 @@ describe('research-safe contracts', () => {
     const participantInformation = JSON.stringify(
       instrumentRuntimeManifest.procedures.participantInformation,
     );
-    expect(participantInformation).toContain('Dauer heute etwa 30 Minuten.');
-    expect(participantInformation).toContain('pseudonymisiert und nicht anonym');
-    expect(participantInformation).toContain('[OFFEN – vor Beginn der Hauptstudie festzulegen]');
-    expect(participantInformation).not.toMatch(/20 bis 30 Minuten|verpflichtender zweiter Teil/u);
+    expect(participantInformation).toContain('Die heutige Teilnahme dauert etwa 30 Minuten.');
+    expect(participantInformation).toContain(
+      'bis zum Abschluss der Datenauswertung und der abschließenden Prüfung des Datensatzes pseudonymisiert',
+    );
+    expect(participantInformation).toContain(
+      'Fiktive Passwörter aus dem Lernangebot werden weder gespeichert noch übertragen.',
+    );
+    expect(participantInformation).not.toMatch(
+      /\[OFFEN|Sciebo|zugewiesenen Bedingung|Einzelheiten zum Vergleich|20 bis 30 Minuten|verpflichtender zweiter Teil/u,
+    );
   });
 
   it('validates complete item-specific instrument blocks without arbitrary JSON values', () => {

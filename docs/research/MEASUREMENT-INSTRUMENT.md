@@ -11,9 +11,9 @@ bytegleich sein.
 - Instrument: `3.0.0-pilot`
 - Fragebogen: `questionnaire-v4-pilot`
 - Guardrail: `guardrail-v5-pilot`
-- Einwilligung: `consent-v8-pilot`
+- Einwilligung: `consent-v9-pilot`
 - Follow-up: `follow-up-v6-pilot`
-- Runtime-Manifest: `instrument-runtime-v3-pilot`
+- Runtime-Manifest: `instrument-runtime-v4-pilot`
 
 ## Evidenzarchitektur
 

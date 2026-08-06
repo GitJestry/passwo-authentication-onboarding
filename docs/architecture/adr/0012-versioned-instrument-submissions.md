@@ -258,3 +258,21 @@ werden.
 Die Nachbefragung ist wieder optional und wird getrennt in `follow-up-v6.yaml` versioniert. Diese
 Revision führt keine neuen persistierten Forschungsfelder ein; bestehende Tabellen und atomare
 Submission-Grenzen werden weiterverwendet.
+
+## Revision 2026-08-06 — Verkürzte Teilnahmeinformation und festgelegte Anonymisierungsgrenze
+
+Die Consent-Version wird auf `consent-v9-pilot` und das Runtime-Manifest auf
+`instrument-runtime-v4-pilot` angehoben. Instrument-, Fragebogen-, Guardrail- und Follow-up-Version
+bleiben unverändert.
+
+Der sichtbare Einstieg wird auf Dauer, Freiwilligkeit, pseudonymisierte Verarbeitung und die
+optionale Nachbefragung verdichtet. Interne Metadaten, der konkrete Speicherproduktname und der
+offene Anonymisierungsplatzhalter entfallen aus dem Teilnehmertext. Hinweise auf mehrere
+Bedingungen oder den Vergleich werden vor den unmittelbaren Messungen nicht angezeigt.
+
+Die Forschungsdaten bleiben bis zum Abschluss der Datenauswertung und der abschließenden Prüfung
+des Datensatzes pseudonymisiert. Danach werden die Zuordnungsinformationen dauerhaft gelöscht und
+der verbleibende Datensatz anonymisiert; nur dieser anonymisierte Datensatz wird anschließend zehn
+Jahre universitätsseitig aufbewahrt. Diese Revision legt die Verarbeitungsgrenze und den
+Teilnehmertext fest, implementiert jedoch noch keine neue technische Anonymisierungsroutine oder
+einen automatisch quittierten E-Mail-Löschprozess.

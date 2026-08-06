@@ -203,9 +203,11 @@ function Consent({ onAccept }: { readonly onAccept: (decision: ConsentDecision) 
               <h2 id="participant-information-summary-title">
                 {participantInformation.essentialSummaryHeading}
               </h2>
-              {participantInformation.essentialSummaryParagraphs.map((paragraph) => (
-                <p key={paragraph}>{paragraph}</p>
-              ))}
+              <ul className={styles.essentialSummaryList}>
+                {participantInformation.essentialSummaryParagraphs.map((paragraph) => (
+                  <li key={paragraph}>{paragraph}</li>
+                ))}
+              </ul>
             </div>
             <h2 className={styles.detailedInformationHeading}>
               {participantInformation.readMoreLabel}
@@ -226,7 +228,7 @@ function Consent({ onAccept }: { readonly onAccept: (decision: ConsentDecision) 
           >
             <legend>Teilnahmevoraussetzungen</legend>
             <p className={styles.fieldHint} id="eligibility-description">
-              Bitte bestätige jede Voraussetzung, die auf dich zutrifft.
+              Bitte bestätige, dass alle Voraussetzungen erfüllt sind.
             </p>
             <div className={styles.optionList}>
               {eligibilityItems.map((item) => (

@@ -192,7 +192,7 @@ describe('research export', () => {
     }
   });
 
-  it('keeps production consent text free of mandatory anonymization promises', () => {
+  it('keeps production consent text aligned with the approved anonymization boundary', () => {
     const studyFlowSource = readFileSync(
       new URL('../../study-web/src/features/study/StudyFlow.tsx', import.meta.url),
       'utf8',
@@ -202,8 +202,14 @@ describe('research export', () => {
       JSON.stringify(instrumentRuntimeManifest.procedures.participantInformation),
     ].join('\n');
 
+    expect(productionConsentText).toContain(
+      'bis zum Abschluss der Datenauswertung und der abschließenden Prüfung des Datensatzes pseudonymisiert',
+    );
+    expect(productionConsentText).toContain(
+      'Anschließend werden alle Zuordnungsinformationen dauerhaft gelöscht',
+    );
     expect(productionConsentText).not.toMatch(
-      /irreversibel anonymisiert|nach Studienende anonymisiert|einschließlich der Nachbefragung/u,
+      /\[OFFEN|Sciebo|nach Studienende anonymisiert|einschließlich der Nachbefragung/u,
     );
   });
 });
