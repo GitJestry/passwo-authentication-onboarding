@@ -1052,3 +1052,62 @@ erhöht.
 |---|---|---|---|---|---|
 | `S05.componentStrategy.commonComponents.transition` | `Als Nächstes schauen wir, ob dein fiktives Passwort persönliche Angaben enthält.` | `Als Nächstes schauen wir, ob dein Campusgram-Passwort persönliche Angaben enthält.` | Navigation | ausdrücklich verlangte Anpassung an das sichtbare Kontopasswort; begrenzte Referenzpräzisierung | `Weiter`; keine Hervorhebung |
 | `S05.componentStrategy.accountContext.results.none[1]` | `Das sagt noch nichts über die gesamte Zeichenfolge aus.` | entfällt | Ergebnisfeedback | ausdrücklich verlangte Entfernung der zusätzlichen Einordnung | kein Interaktionsziel / keine Hervorhebung |
+
+### Copy-Delta S05 Vorhersehbarer Aufbau, Passphrasen und Längenschätzung 7. August 2026
+
+Quelle ist der ausdrückliche Nutzerauftrag vom 7. August 2026. Er ersetzt im Abschnitt
+`Vorhersehbarer Aufbau` die bisherigen Einzelkarten samt Prüfungskarte durch drei schrittweise
+aufgebaute, ungerahmte Beispielspalten, eine gezielte Wiederholungsprüfung, die vorgegebene
+Passphrasen-Generator-Ansicht, den Vergleich zweier gleich langer Zeichenmischungen und die
+Schätzung von 12 bis 20 Zeichen. Jeder zitierte Absatz ist ein eigener Sprechschritt. Die lokale
+Analyse bleibt auf das fiktive Campusgram-Passwort begrenzt; es entstehen keine neuen
+persistierten Felder. `S05_CONTENT_VERSION` wird von `2.38.0` auf `2.39.0` erhöht.
+
+| Segment und Text-ID | Vorher | Nachher | Primäre Rolle | Grund und Bedeutungsänderung | Interaktionsziel / Hervorhebung |
+|---|---|---|---|---|---|
+| `S05.structure.presentationExamples.*` | drei Einzelbeispiele und zusätzliche Karte `Passwortkontext` | drei vorgegebene Reihen je `Inhaltliche Zusammenhänge`, `Vorhersehbare Satz- und Phrasenstrukturen` und `Wiederholungsmuster` | Orientierung | ausdrücklich vorgegebene visuelle und dramaturgische Erweiterung | kein Interaktionsziel; Bausteine nutzen Form, Farbe und Kontur |
+| `S05.structure.narration.theme[0..2]` | eine kurze allgemeine Themenerklärung | drei vorgegebene Erklärungen zu verbundenen Begriffen, Guessing-Verfahren und Auswahlzusammenhang | Mechanismuserklärung / Kerngedanke | ausdrücklich freigegebene inhaltliche Vertiefung | jeweils `Weiter`; `naheliegenden Zusammenhang` im dritten Schritt hervorgehoben |
+| `S05.structure.narration.sentence[0..1]` | eine kurze Satzstrukturerklärung | zwei vorgegebene Erklärungen zu sprachlich naheliegenden Folgen | Mechanismuserklärung | ausdrücklich freigegebene inhaltliche Vertiefung | jeweils `Weiter`; `Redewendungen`, `Liedzeilen` und `naheliegende Formulierungen` als ausdrücklich verlangte Gruppe hervorgehoben |
+| `S05.structure.narration.repetition[0..1]` | eine kurze Wiederholungserklärung | zwei vorgegebene Erklärungen zu Länge, Grundbaustein und gezieltem Ausprobieren | Mechanismuserklärung | ausdrücklich freigegebene inhaltliche Vertiefung | jeweils `Weiter`; `Wiederholungsmuster` im zweiten Schritt hervorgehoben |
+| `S05.structure.application.*` | allgemeine Strukturbefunde plus lokale semantische Selbsteinordnung | adaptive Aussage, ob im fiktiven Campusgram-Passwort eine Wiederholung erkannt wurde | Ergebnisfeedback | bindet die sichtbare Markierung an die ausdrücklich verlangte Wiederholungsfrage; begrenzte Ergebnisfokussierung | `Weiter`; erkannte Spannen zusätzlich durch Unterstreichung und Hintergrund markiert |
+| `S05.freeSearch.passphraseGenerator.narration[0..1]` | spätere getrennte Wortbeispiele | zwei vorgegebene Erklärungen zu Passphrasen und zufälliger Wortwahl | Mechanismuserklärung | ausdrücklich freigegebene neue Reihenfolge und Generatoranschauung | jeweils `Weiter`; `Wichtig` im ersten Schritt hervorgehoben |
+| `S05.freeSearch.transition.explanation` | kurzer Übergang `Freies Ausprobieren` | vorgegebener Übergang von wahrscheinlichen Mustern zum systematischen Durchprobieren | Mechanismuserklärung | ausdrücklich vorgegebene dramaturgische Brücke | `Weiter`; keine Hervorhebung |
+| `S05.freeSearch.characterMix.narration[0..4]` | getrennte Ansichten zu zufälligen Zeichen und vorhersehbarem Zeichenmix | fünf vorgegebene Sprechschritte zum Vergleich `Passw0rt123!` und `rQ7!m2vX9?pK` | Mechanismuserklärung / Kerngedanke | ausdrücklich freigegebene Vergleichsdarstellung bei gleicher sichtbarer Checkliste | jeweils `Weiter`; Schlussphrase `die Länge und dass dein Passwort nicht leicht vorhersehbar gewählt` hervorgehoben |
+| `S05.freeSearch.estimate.explanation`, `question` | gemeinsame Szenenerklärung und Auswahl 8 bis 16+ | zwei eigene Sprechschritte, Auswahl 12 bis 20 und dauerhafte weiße Messlatte | Mechanismuserklärung / Navigation | ausdrücklich vorgegebene Längenschätzung und getrennte Sprechblasen | `Weiter`, danach `Schätzung bestätigen`; `vollständige Durchprobieren` in der Frage hervorgehoben |
+
+### Copy-Delta S05 Ergebnisdirektheit, Zusammenhangslisten und Zeichenmix-Anzeige 7. August 2026
+
+Quelle ist der ausdrückliche Nutzerauftrag vom 7. August 2026. Er entfernt die beiden
+vorgelagerten Prüfankündigungen, sodass die automatischen lokalen Prüfungen unmittelbar in ihr
+Ergebnis übergehen, ersetzt die ausdrücklich benannten Erklär- und Ergebnisformulierungen und
+führt die drei Zusammenhangslisten während der Wiederholungsanwendung sichtbar fort. Die
+Zeichenmix-Anzeige folgt der mitgelieferten visuellen Referenz, ohne deren Rasterbild in die
+Runtime zu übernehmen. Der NIST-Hinweis wurde gegen NIST SP 800-63B, Appendix A, Abschnitt
+`Complexity`, geprüft. Es entstehen keine neuen Analyseentscheidungen oder persistierten Felder.
+`S05_CONTENT_VERSION` wird von `2.39.0` auf `2.40.0` erhöht.
+
+| Segment und Text-ID | Vorher | Nachher | Primäre Rolle | Grund und Bedeutungsänderung | Interaktionsziel / Hervorhebung |
+|---|---|---|---|---|---|
+| `S05.componentStrategy.commonComponents.explanation[3]`, `accountContext.explanation[1]` | zwei Ankündigungen `Prüfen wir …` mit eigener Prüfaktion | entfällt; die lokale Prüfung geht automatisch in den Ergebniszustand über | Ergebnisfeedback | ausdrücklich verlangte Ergebnisdirektheit und Entfernung redundanter Navigation; begrenzt | kein zusätzliches Interaktionsziel; vorhandene Ergebnisbausteine bleiben markiert |
+| `S05.componentStrategy.commonComponents.results.foundOne`, `foundMany` | `[Teile] wurde/wurden durch die Prüfung erkannt.` | `[Teile] ist ein häufig verwendetes Wort oder eine Zeichenfolge.` / `[Teile] sind häufig verwendete Wörter oder Zeichenfolgen.` | Ergebnisfeedback | ausdrücklich vorgegebene konkrete Befundbezeichnung; begrenzt | kein Interaktionsziel; erkannte Bausteine bleiben hervorgehoben |
+| `S05.componentStrategy.personalDetails.derivation[0]` | längere Formulierung zu gespeicherten Passwortdaten und wahrscheinlichen Kandidaten | vorgegebene Erklärung zu Passwortdaten, Kontozuordnung und gezielt geprüften persönlichen Angaben | Mechanismuserklärung | ausdrücklich freigegebene Präzisierung und Straffung; begrenzt | `Weiter`; keine zusätzliche Hervorhebung |
+| `S05.componentStrategy.personalDetails.examples[0]` | `beispielsweise` und ausführliche Ableitungsformulierung | vorgegebene kürzere Aufzählung mit öffentlichen Profilen, Datenlecks und Umfeld | Mechanismuserklärung | ausdrücklich freigegebene Reduktion kognitiver Last; nein | `Weiter`; keine zusätzliche Hervorhebung |
+| `S05.structure.demonstrations[0].title`, `presentationExamples.theme` | `Inhaltliche Zusammenhänge`; Harry-Potter- und See/Feuerwerk-Beispiele | `Naheliegende Zusammenhänge`; `Uni · Campus · Mensa · 2026`; Hochzeitsreihe mit `Schloss` ohne Feuerwerk | Orientierung | ausdrücklich vorgegebene Umbenennung und Beispielersetzung; ausdrücklich freigegeben | kein Interaktionsziel; Bausteinform bleibt erhalten |
+| `S05.structure.presentationExamples.*` | sichtbare, aber ungerahmte Listen; spätere Passwort-Einzelseite | die zur Erklärung gehörende Liste einschließlich Titel blinkt mit weißer Kontur; bei der Wiederholungsanwendung bleiben alle Listen sichtbar und das Campusgram-Passwort erscheint mittig unten | Orientierung / Ergebnisfeedback | stellt den aktuellen Erklärbezug und die gemeinsame visuelle Bausteingrammatik her | keine Aktion; aktive Liste und Wiederholungsbausteine nutzen Kontur, Form und Helligkeit |
+| `S05.freeSearch.characterMix.narration[0..6]` | fünf allgemeinere Sprechschritte | sieben ausdrücklich vorgegebene Schritte zu Regelanzeige, Zufall, frühem Treffer, Zeichentypen, NIST-Beispiel, ungeeigneter Überraschungsstrategie und Kerngedanken | Mechanismuserklärung / Kerngedanke | ausdrücklich freigegebene dramaturgische und fachliche Präzisierung; ausdrücklich freigegeben | jeweils `Weiter`; Schlussphrase zur Länge und Vorhersehbarkeit bleibt Carry-forward-Kerngedanke |
+| `S05.freeSearch.characterMix` | zwei einfache Checklisten-Karten | zwei Passwort-erstellen-Anzeigen mit Stärkezeile und Checkliste; die linke Anzeige erhält beim Angriff graue Überlagerung, rote Kontur, Angreifersymbol und `Früher Treffer` | Ergebnisfeedback | setzt die gelieferte visuelle Referenz und den Unterschied zwischen Anzeige und Angreiferperspektive um | kein Interaktionsziel; Status wird zusätzlich zu Farbe mit Text, Kontur und Symbol vermittelt |
+| PassWo-Platzierung bei `character-mix-*` und `estimate*` | Sprechblase oberhalb der Figur | Sprechblase rechts neben PassWo | Orientierung | ausdrücklich verlangte Freihaltung der Anzeige und Messskala; nein | bestehende `Weiter`- und Schätzaktionen bleiben unverändert |
+
+### Copy-Delta S05 Wiederhergestellte Prüfankündigung und Prüfaktion 7. August 2026
+
+Quelle ist der ausdrückliche Nutzerauftrag vom 7. August 2026. Die zuletzt entfernte
+Prüfankündigung wird vor den automatischen lokalen Prüfungen wiederhergestellt und jeweils mit
+der tatsächlich auslösenden Prüfaktion verbunden. Dadurch bleibt der Ergebnisübergang an eine
+eindeutige, handlungsspezifische Bedienhandlung gebunden. Es entstehen keine neuen
+Analyseentscheidungen oder persistierten Felder. `S05_CONTENT_VERSION` wird von `2.40.0` auf
+`2.41.0` erhöht.
+
+| Segment und Text-ID | Vorher | Nachher | Primäre Rolle | Grund und Bedeutungsänderung | Interaktionsziel / Hervorhebung |
+|---|---|---|---|---|---|
+| `S05.componentStrategy.commonComponents.explanation[3]` | entfällt; Prüfung startet automatisch | `Prüfen wir nun dein gewähltes Passwort auf häufig verwendete Passwörter und Zeichenfolgen.` | Navigation | ausdrückliche Wiederherstellung der entfernten Prüfankündigung; begrenzt | `Passwort prüfen`; keine Hervorhebung |
+| `S05.componentStrategy.accountContext.explanation[1]` | entfällt; Prüfung startet automatisch | `Prüfen wir nun dein gewähltes Passwort auf einen möglichen Bezug zu Campusgram.` | Navigation | gleiche Wiederherstellung für die zweite automatische Prüfung; begrenzt | `Im Passwort prüfen`; keine Hervorhebung |

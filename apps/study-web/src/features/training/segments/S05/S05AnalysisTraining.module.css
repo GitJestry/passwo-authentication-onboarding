@@ -960,6 +960,418 @@
   border: 0;
 }
 
+.structurePatterns {
+  display: grid;
+  width: min(100%, 86rem);
+  min-height: 100%;
+  margin: 0 auto;
+  padding: clamp(3rem, 8vh, 5.5rem) 0 clamp(10rem, 24vh, 15rem);
+  gap: clamp(var(--space-5), 4vw, var(--space-8));
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  align-items: start;
+}
+
+.structurePattern {
+  min-width: 0;
+  padding: clamp(var(--space-3), 1.8vw, var(--space-5));
+  border: var(--border-width-medium) solid transparent;
+  border-radius: var(--radius-medium);
+  animation: structure-pattern-arrival 520ms var(--motion-ease-out) both;
+}
+
+.structurePattern[data-active="true"] {
+  border-color: rgb(255 255 255 / 92%);
+  background: rgb(255 255 255 / 4%);
+  animation:
+    structure-pattern-arrival 520ms var(--motion-ease-out) both,
+    structure-pattern-emphasis 1.15s ease-in-out 520ms infinite;
+}
+
+.structurePattern h2 {
+  min-height: 3.2em;
+  margin: 0 0 var(--space-5);
+  color: var(--color-ink-strong);
+  font-size: clamp(1rem, 1.65vw, 1.35rem);
+  line-height: var(--line-height-tight);
+}
+
+.structureExampleRows {
+  display: grid;
+  gap: clamp(var(--space-4), 3.6vh, var(--space-7));
+}
+
+.structureExampleRow {
+  display: flex;
+  min-width: 0;
+  flex-wrap: wrap;
+  gap: clamp(0.2rem, 0.42vw, var(--space-2));
+}
+
+.structureExampleRow span {
+  display: inline-grid;
+  min-height: 2rem;
+  place-items: center;
+  padding: 0.28rem clamp(0.38rem, 0.75vw, 0.7rem);
+  border: var(--border-width-medium) solid #55b6ac;
+  border-radius: 0.35rem;
+  color: #d8fff9;
+  background: #123d40;
+  box-shadow: 0 0.35rem 0.85rem rgb(0 0 0 / 22%);
+  font-family: ui-monospace, monospace;
+  font-size: clamp(0.66rem, 1vw, 0.88rem);
+  font-weight: var(--font-weight-heavy);
+  white-space: nowrap;
+}
+
+.structureExampleRow span:nth-child(2) {
+  border-color: #7aa7e5;
+  color: #e3efff;
+  background: #173456;
+}
+
+.structureExampleRow span:nth-child(3) {
+  border-color: #b68cde;
+  color: #f2e7ff;
+  background: #432661;
+}
+
+.structureExampleRow span:nth-child(4) {
+  border-color: #e29b73;
+  color: #fff0e8;
+  background: #61341f;
+}
+
+.structureExampleRow span:nth-child(5) {
+  border-color: #d8bc67;
+  color: #fff7d9;
+  background: #554514;
+}
+
+.structurePasswordCheck {
+  display: grid;
+  width: min(100%, 52rem);
+  margin: 0 auto;
+  justify-items: center;
+  gap: var(--space-3);
+}
+
+.structurePasswordCheck .canonicalAccount {
+  font-size: var(--font-size-body);
+}
+
+.structurePasswordCheck .canonicalAccount span {
+  display: inline-grid;
+  width: 3.4rem;
+  height: 3.4rem;
+}
+
+.structureApplication {
+  position: relative;
+  display: grid;
+  width: min(100%, 86rem);
+  min-height: 100%;
+  margin: 0 auto;
+  padding-bottom: clamp(11rem, 22vh, 14rem);
+}
+
+.structureApplication .structurePatterns {
+  width: 100%;
+  min-height: 0;
+  padding: var(--space-3) 0 var(--space-5);
+}
+
+.structureApplication .structurePasswordCheck {
+  position: absolute;
+  right: 0;
+  bottom: clamp(7rem, 14vh, 9rem);
+  left: 0;
+}
+
+.passphraseScene {
+  display: grid;
+  width: min(100%, 54rem);
+  min-height: 100%;
+  margin: 0 auto;
+  padding-bottom: clamp(10rem, 24vh, 15rem);
+  place-content: center;
+  gap: var(--space-4);
+}
+
+.passphraseScene h2 {
+  margin: 0;
+  color: var(--color-ink-strong);
+  font-size: clamp(1.35rem, 2.4vw, 1.9rem);
+}
+
+.passphraseGenerator {
+  display: grid;
+  gap: var(--space-4);
+  justify-items: center;
+  padding: clamp(var(--space-5), 3vw, var(--space-7));
+  border-radius: var(--radius-medium);
+  color: #172033;
+  background: #f7f8fa;
+  box-shadow: 0 1rem 2.4rem rgb(0 0 0 / 28%);
+}
+
+.passphraseGenerator > strong {
+  justify-self: start;
+}
+
+.generatorAction,
+.copyAction {
+  display: inline-flex;
+  min-height: var(--size-control-medium);
+  align-items: center;
+  padding: var(--space-2) var(--space-5);
+  border-radius: var(--radius-small);
+  color: white;
+  background: #c95706;
+  font-weight: var(--font-weight-bold);
+}
+
+.passphraseGenerator output {
+  width: 100%;
+  padding: var(--space-3);
+  overflow-wrap: anywhere;
+  border: var(--border-width-thin) solid #aab0ba;
+  border-radius: var(--radius-small);
+  background: white;
+  font-family: ui-monospace, monospace;
+  font-size: clamp(0.78rem, 1.6vw, 1.08rem);
+}
+
+.strengthBar {
+  width: 100%;
+  height: 0.7rem;
+  border-radius: var(--radius-round);
+  background: #16820e;
+}
+
+.characterMixScene {
+  display: grid;
+  width: min(100%, 72rem);
+  min-height: 100%;
+  margin: 0 auto;
+  padding-bottom: clamp(10rem, 24vh, 15rem);
+  gap: clamp(var(--space-5), 5vw, var(--space-8));
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  place-content: center;
+}
+
+.characterMixScene > :only-child {
+  width: min(31rem, 100%);
+  grid-column: 1 / -1;
+  justify-self: center;
+}
+
+.characterChecklist {
+  position: relative;
+  display: grid;
+  min-width: 0;
+  gap: var(--space-3);
+  align-content: center;
+  padding: clamp(var(--space-4), 2.4vw, var(--space-6));
+  border: var(--border-width-thin) solid var(--color-border-soft);
+  border-radius: var(--radius-medium);
+  color: #172033;
+  background: #f7f8fa;
+  box-shadow: 0 1rem 2.4rem rgb(0 0 0 / 22%);
+  animation: structure-pattern-arrival 520ms var(--motion-ease-out) both;
+}
+
+.characterChecklist[data-early-hit="true"] {
+  border-color: #cf3138;
+  box-shadow:
+    0 0 0 var(--border-width-medium) #cf3138,
+    0 1rem 2.4rem rgb(0 0 0 / 28%);
+}
+
+.characterChecklist h2 {
+  margin: 0 0 var(--space-1);
+  padding-bottom: var(--space-3);
+  border-bottom: var(--border-width-thin) solid #d4d7dc;
+  color: #172033;
+  font-size: clamp(1.15rem, 2.2vw, 1.65rem);
+  text-align: center;
+}
+
+.passwordField {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  border: var(--border-width-thin) solid #c9ccd2;
+  border-radius: var(--radius-small);
+  background: white;
+}
+
+.passwordField code {
+  min-width: 0;
+  overflow: hidden;
+  color: #172033;
+  font-size: clamp(0.92rem, 1.7vw, 1.18rem);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.passwordField > span {
+  color: #3d4657;
+  font-size: var(--font-size-body);
+}
+
+.strengthHeading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  color: #172033;
+}
+
+.strengthHeading strong:last-child {
+  color: #158526;
+  font-size: var(--font-size-body);
+}
+
+.passwordStrength {
+  display: block;
+  width: 100%;
+  height: 0.72rem;
+  border-radius: 0.18rem;
+  background:
+    repeating-linear-gradient(
+      90deg,
+      #22a936 0,
+      #22a936 calc(14.285% - 0.18rem),
+      #f7f8fa calc(14.285% - 0.18rem),
+      #f7f8fa 14.285%
+    );
+}
+
+.characterChecklist ul {
+  display: grid;
+  gap: var(--space-2);
+  margin: 0;
+  padding: 0;
+  color: #172033;
+  list-style: none;
+}
+
+.characterChecklist li {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.characterChecklist li span {
+  display: inline-grid;
+  width: 1.55rem;
+  height: 1.55rem;
+  flex: 0 0 auto;
+  place-items: center;
+  border-radius: var(--radius-round);
+  color: white;
+  background: #22a936;
+  font-weight: var(--font-weight-heavy);
+}
+
+.earlyHitHeader {
+  position: absolute;
+  z-index: 4;
+  bottom: calc(100% + var(--space-2));
+  left: 50%;
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  color: #ffb3b7;
+  font-size: var(--font-size-body);
+  text-transform: uppercase;
+  transform: translateX(-50%);
+  white-space: nowrap;
+}
+
+.earlyHitHeader img {
+  width: 4.6rem;
+  height: 4.6rem;
+  object-fit: contain;
+  filter: drop-shadow(0 0.45rem 0.8rem rgb(0 0 0 / 34%));
+}
+
+.earlyHitOverlay {
+  position: absolute;
+  z-index: 2;
+  inset: 0;
+  border-radius: inherit;
+  background: rgb(47 51 58 / 54%);
+  pointer-events: none;
+}
+
+.estimateScene {
+  display: grid;
+  width: min(100%, 68rem);
+  min-height: 100%;
+  margin: 0 auto;
+  padding: clamp(4rem, 12vh, 8rem) 0 clamp(10rem, 24vh, 15rem);
+  align-content: center;
+}
+
+.estimateRuler {
+  display: grid;
+  gap: var(--space-2);
+  margin-bottom: var(--space-3);
+}
+
+.estimateMarkerRow,
+.estimateTicks {
+  display: grid;
+  grid-template-columns: repeat(9, minmax(0, 1fr));
+}
+
+.estimateMarkerRow span {
+  min-height: 2.5rem;
+  color: white;
+  font-size: var(--font-size-x-small);
+  font-weight: var(--font-weight-bold);
+  text-align: center;
+}
+
+.estimateTicks {
+  height: 1rem;
+  border-top: var(--border-width-medium) solid white;
+}
+
+.estimateTicks i {
+  justify-self: center;
+  width: var(--border-width-medium);
+  height: 1rem;
+  background: white;
+}
+
+@keyframes structure-pattern-arrival {
+  from {
+    opacity: 0;
+    transform: translateY(1rem);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes structure-pattern-emphasis {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 rgb(255 255 255 / 8%);
+  }
+  50% {
+    box-shadow:
+      0 0 0 0.16rem rgb(255 255 255 / 88%),
+      0 0 1.2rem rgb(255 255 255 / 30%);
+  }
+}
+
 .focusScene,
 .applicationScene,
 .summaryScene {
@@ -2252,6 +2664,27 @@
     grid-template-columns: minmax(0, 1fr);
   }
 
+  .structurePatterns,
+  .characterMixScene {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .structurePatterns {
+    padding-top: var(--space-5);
+  }
+
+  .structureApplication {
+    padding-bottom: 15rem;
+  }
+
+  .structureApplication .structurePasswordCheck {
+    bottom: 7rem;
+  }
+
+  .structurePattern h2 {
+    min-height: 0;
+  }
+
   .commonCorePassword {
     min-width: 0;
   }
@@ -2275,6 +2708,9 @@
   .machineOutputStream,
   .machineOutput[data-emphasized="true"],
   .categoryTransition,
+  .structurePattern,
+  .structurePattern[data-active="true"],
+  .characterChecklist,
   .strategyTargetingSource,
   .strategyTargetingSource [data-block-value],
   .strategyTargetingSource [data-block-value]::after,

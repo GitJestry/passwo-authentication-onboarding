@@ -1,5 +1,4 @@
 import type {
-  PasswordSemanticReflectionSelection,
   PasswordSingleFindingKind,
   RuntimeStructureFindingKind,
 } from '@passwo/contracts';
@@ -7,7 +6,6 @@ import { s00Content, s05Content } from '@passwo/training-content';
 import type {
   PasswordFreeSearchApplicationSceneSnapshot,
   PasswordFreeSearchDemonstrationSceneSnapshot,
-  PasswordStructureSceneSnapshot,
 } from '@passwo/visualization';
 import { type ReactNode, useEffect, useRef, useState } from 'react';
 import accountContextAsset from '../../../../assets/s05/category-logos/account-context.png';
@@ -305,12 +303,6 @@ const categoryAssets = {
   'account-context': accountContextAsset,
 } as const;
 
-const semanticReflectionOrder = [
-  'shared-theme',
-  'sentence-or-familiar-phrase',
-  'none-or-unsure',
-] as const satisfies readonly PasswordSemanticReflectionSelection[];
-
 type CommonComponentMachineStep =
   | 'common-components-start'
   | 'common-components-examples'
@@ -553,6 +545,7 @@ function ComponentMachineScene({
 }: {
   readonly children: ReactNode;
 }) {
+  const content = s05Content.freeSearch.characterMix;
   return (
     <div className={styles.componentMachineWorkspace}>{children}</div>
   );
@@ -705,150 +698,194 @@ function structureFindingLabel(kind: RuntimeStructureFindingKind): string {
   return s05Content.structure.findingLabels[kind];
 }
 
-function FictionalPasswordWithEvidence({
-  password,
-  scene,
-}: {
-  readonly password: string;
-  readonly scene: PasswordStructureSceneSnapshot;
-}) {
-  const parts: ReactNode[] = [];
-  let cursor = 0;
-  for (const span of scene.highlightedSpans) {
-    if (cursor < span.start) {
-      parts.push(<span key={`plain-${cursor}`}>{password.slice(cursor, span.start)}</span>);
-    }
-    parts.push(
-      <mark key={`evidence-${span.start}-${span.end}`}>
-        {password.slice(span.start, span.end)}
-      </mark>,
-    );
-    cursor = span.end;
-  }
-  if (cursor < password.length) {
-    parts.push(<span key={`plain-${cursor}`}>{password.slice(cursor)}</span>);
-  }
-  return <code className={styles.structuredPassword}>{parts}</code>;
+const structurePatternKeys = ['theme', 'sentence', 'repetition'] as const;
+
+function visibleStructurePatternCount(step: S05AnalysisControllerSnapshot['step']): number {
+  if (step.startsWith('structure-repetition')) return 3;
+  if (step.startsWith('structure-sentence')) return 2;
+  return 1;
 }
 
-function StructureDemonstrationScene({
-  snapshot,
-}: {
-  readonly snapshot: S05AnalysisControllerSnapshot;
-}) {
-  const scene = snapshot.structureScene;
-  const demonstration = scene?.authoredDemonstrations.find(
-    ({ id }) => id === `s05-${snapshot.step}`,
-  );
-  if (demonstration === undefined) return null;
+function StructurePatternsScene({ step }: { readonly step: S05AnalysisControllerSnapshot['step'] }) {
+  const visiblePatterns = structurePatternKeys.slice(0, visibleStructurePatternCount(step));
+  const activePattern = step.startsWith('structure-theme')
+    ? 'theme'
+    : step.startsWith('structure-sentence')
+      ? 'sentence'
+      : 'repetition';
   return (
-    <div className={styles.componentReviewLayout}>
-      <div
-        className={styles.structureWorkspace}
-        aria-label={`${demonstration.title}. ${demonstration.passWoExplanation}`}
-      >
-        <section className={styles.passWoExplanation}>
-          <p className={styles.cardLabel}>PassWo erklärt</p>
-          <p>{demonstration.passWoExplanation}</p>
-        </section>
-        <article
-          className={styles.structureDemonstration}
-          data-s05-target={snapshot.step}
-          aria-label={`${demonstration.title}, Beispiel`}
-        >
-          <p className={styles.authoredBadge}>Beispiel</p>
-          <h2>{demonstration.title}</h2>
-          <div className={styles.structureTokens} aria-label={demonstration.tokens.join(', ')}>
-            {demonstration.tokens.map((token, index) => (
-              <span key={`${token}-${index}`}>{token}</span>
-            ))}
-          </div>
-          <strong className={styles.connectionLabel}>{demonstration.connectionLabel}</strong>
-          <p className={styles.boundaryNote}>{demonstration.boundaryNote}</p>
-        </article>
-      </div>
-      <StructureReviewCard snapshot={snapshot} />
-    </div>
-  );
-}
-
-const structureReviewSteps = [
-  'structure-theme',
-  'structure-sentence',
-  'structure-repetition',
-] as const satisfies readonly S05AnalysisControllerSnapshot['step'][];
-
-function StructureReviewCard({ snapshot }: { readonly snapshot: S05AnalysisControllerSnapshot }) {
-  const currentIndex = structureReviewSteps.findIndex((step) => step === snapshot.step);
-  const visibleSteps = currentIndex < 0 ? [] : structureReviewSteps.slice(0, currentIndex + 1);
-  return (
-    <aside
-      className={`${styles.componentReviewCard} ${styles.structureReviewCard}`}
-      aria-label={s05Content.structure.reviewCardTitle}
+    <div
+      className={styles.structurePatterns}
+      data-s05-target={step.startsWith('structure-theme') ? 'structure-theme' : step.startsWith('structure-sentence') ? 'structure-sentence' : 'structure-repetition'}
+      data-s05-speech-obstacle
     >
-      <h2>{s05Content.structure.reviewCardTitle}</h2>
-      <ol className={styles.structureReviewEntries}>
-        {visibleSteps.map((step, index) => {
-          const demonstration = s05Content.structure.demonstrations.find(
-            ({ id }) => id === `s05-${step}`,
-          );
-          if (demonstration === undefined) return null;
-          const current = index === currentIndex;
-          return (
-            <li
-              key={step}
-              data-current={current || undefined}
-              aria-current={current ? 'step' : undefined}
-            >
-              <span aria-hidden="true">{index + 1}</span>
-              <h3>{demonstration.title}</h3>
-            </li>
-          );
-        })}
-      </ol>
-    </aside>
-  );
-}
-
-function ShortExplanationScene({
-  targetId,
-  title,
-  explanation,
-}: {
-  readonly targetId: string;
-  readonly title: string;
-  readonly explanation: string;
-}) {
-  return (
-    <div className={styles.focusScene} data-s05-target={targetId}>
-      <p className={styles.cardLabel}>PassWo erklärt</p>
-      <h2>{title}</h2>
-      <p>{explanation}</p>
-    </div>
-  );
-}
-
-function SameLengthScene() {
-  const content = s05Content.freeSearch.sameLength;
-  return (
-    <div className={styles.focusScene} data-s05-target="same-length">
-      <p className={styles.cardLabel}>Beispiel</p>
-      <h2>{content.title}</h2>
-      <div className={styles.passwordComparison}>
-        {[content.predictable, content.independentlyRandom].map((example) => (
-          <article key={example.password}>
-            <code>{example.password}</code>
-            <strong>15 Zeichen</strong>
-            <div className={styles.tokenRow} aria-label={example.parts.join(', ')}>
-              {example.parts.map((part, index) => (
-                <span key={`${part}-${index}`}>{part}</span>
+      {visiblePatterns.map((patternKey) => {
+        const pattern = s05Content.structure.presentationExamples[patternKey];
+        return (
+          <section
+            className={styles.structurePattern}
+            data-active={patternKey === activePattern || undefined}
+            key={patternKey}
+          >
+            <h2>{pattern.title}</h2>
+            <div className={styles.structureExampleRows}>
+              {pattern.rows.map((row, rowIndex) => (
+                <div
+                  className={styles.structureExampleRow}
+                  aria-label={row.join(', ')}
+                  key={`${patternKey}-${rowIndex}`}
+                >
+                  {row.map((part, partIndex) => (
+                    <span data-block-index={partIndex} key={`${part}-${partIndex}`}>
+                      {part}
+                    </span>
+                  ))}
+                </div>
               ))}
             </div>
-            <p>{example.label}</p>
-          </article>
+          </section>
+        );
+      })}
+    </div>
+  );
+}
+
+function StructureApplicationScene({
+  subject,
+  snapshot,
+}: {
+  readonly subject: S05AnalysisSubject;
+  readonly snapshot: S05AnalysisControllerSnapshot;
+}) {
+  const repetitionFindings = snapshot.structureScene.runtimeAnalysis.findings.filter(
+    ({ findingKind }) =>
+      findingKind === 'exact-component-repetition' ||
+      findingKind === 'recognized-repetition-pattern',
+  );
+  const repetitionSpans = repetitionFindings
+    .flatMap(({ evidence }) => evidence)
+    .filter((evidence) => evidence.type === 'span')
+    .sort((left, right) => left.start - right.start);
+  const passwordParts: string[] = [];
+  const highlightedIndices: number[] = [];
+  let cursor = 0;
+  for (const span of repetitionSpans) {
+    if (span.start < cursor) continue;
+    if (cursor < span.start) {
+      passwordParts.push(subject.fictionalPassword.slice(cursor, span.start));
+    }
+    highlightedIndices.push(passwordParts.length);
+    passwordParts.push(subject.fictionalPassword.slice(span.start, span.end));
+    cursor = span.end;
+  }
+  if (cursor < subject.fictionalPassword.length) {
+    passwordParts.push(subject.fictionalPassword.slice(cursor));
+  }
+  if (passwordParts.length === 0) passwordParts.push(subject.fictionalPassword);
+
+  return (
+    <div className={styles.structureApplication} data-s05-target="structure-application" data-s05-speech-obstacle>
+      <StructurePatternsScene step="structure-repetition" />
+      <section className={styles.structurePasswordCheck}>
+        <strong className={styles.canonicalAccount}>
+          <span aria-hidden="true"><NetworkSymbol symbolId="campusgram" /></span>
+          {s05Content.structure.application.passwordLabel}
+        </strong>
+        <PasswordBuildingBlocks
+          value={subject.fictionalPassword}
+          parts={passwordParts}
+          display="decomposed"
+          appearance="analysis"
+          animate={false}
+          highlightedIndices={highlightedIndices}
+          ariaLabel={`${s05Content.structure.application.passwordLabel}: ${subject.fictionalPassword}`}
+        />
+      </section>
+    </div>
+  );
+}
+
+function PassphraseGeneratorScene() {
+  const content = s05Content.freeSearch.passphraseGenerator;
+  return (
+    <section className={styles.passphraseScene} data-s05-target="passphrase-generator" data-s05-speech-obstacle>
+      <h2>{content.title}</h2>
+      <div className={styles.passphraseGenerator} aria-label="Beispiel eines Passphrasen-Generators">
+        <strong>{content.wordCount}</strong>
+        <span className={styles.generatorAction}>{content.generate}</span>
+        <output>{content.password}</output>
+        <span className={styles.strengthBar} aria-label={content.strengthLabel} />
+        <span className={styles.copyAction}>▣ {content.copy}</span>
+      </div>
+    </section>
+  );
+}
+
+function CharacterChecklist({
+  password,
+  earlyHit,
+}: {
+  readonly password: string;
+  readonly earlyHit: boolean;
+}) {
+  const content = s05Content.freeSearch.characterMix;
+  return (
+    <article className={styles.characterChecklist} data-early-hit={earlyHit || undefined}>
+      {earlyHit ? (
+        <div className={styles.earlyHitHeader}>
+          <img src={attackerAsset} alt="Symbolische Darstellung eines Angreifers am Computer" />
+          <strong>{content.earlyHit}</strong>
+        </div>
+      ) : null}
+      <h2>{content.panelTitle}</h2>
+      <div className={styles.passwordField}>
+        <code>{password}</code>
+        <span aria-hidden="true">◉</span>
+      </div>
+      <div className={styles.strengthHeading}>
+        <strong>{content.strengthTitle}</strong>
+        <strong>{content.strengthRating}</strong>
+      </div>
+      <span className={styles.passwordStrength} aria-label={content.strengthBarLabel} />
+      <ul>
+        {content.checks.map((check) => (
+          <li key={check}><span aria-hidden="true">✓</span>{check}</li>
+        ))}
+      </ul>
+      {earlyHit ? <span className={styles.earlyHitOverlay} aria-hidden="true" /> : null}
+    </article>
+  );
+}
+
+function CharacterMixScene({ step }: { readonly step: S05AnalysisControllerSnapshot['step'] }) {
+  const content = s05Content.freeSearch.characterMix;
+  const showComparison = step !== 'character-mix-first' && step !== 'free-search-transition';
+  const showEarlyHit =
+    step === 'character-mix-difference' ||
+    step === 'character-mix-types' ||
+    step === 'character-mix-nist' ||
+    step === 'character-mix-strategy' ||
+    step === 'character-mix-takeaway';
+  return (
+    <div className={styles.characterMixScene} data-s05-target="character-mix" data-s05-speech-obstacle>
+      <CharacterChecklist password={content.predictablePassword} earlyHit={showEarlyHit} />
+      {showComparison ? <CharacterChecklist password={content.randomPassword} earlyHit={false} /> : null}
+    </div>
+  );
+}
+
+function EstimateRuler({ selected }: { readonly selected: S05AnalysisControllerSnapshot['estimate']['selected'] }) {
+  const content = s05Content.freeSearch.estimate;
+  return (
+    <div className={styles.estimateRuler} data-s05-target="estimate-ruler">
+      <div className={styles.estimateMarkerRow}>
+        {content.options.map((option) => (
+          <span key={option}>{selected === option ? content.marker : ''}</span>
         ))}
       </div>
-      <p>{content.explanation}</p>
+      <div className={styles.estimateTicks} aria-hidden="true">
+        {content.options.map((option) => <i key={option} />)}
+      </div>
     </div>
   );
 }
@@ -862,12 +899,10 @@ function EstimateScene({
 }) {
   const content = s05Content.freeSearch.estimate;
   return (
-    <div className={styles.focusScene} data-s05-target="estimate">
-      <p className={styles.cardLabel}>Deine Schätzung</p>
-      <h2>{content.title}</h2>
-      <p>{content.explanation}</p>
+    <div className={styles.estimateScene} data-s05-target="estimate" data-s05-speech-obstacle>
+      <EstimateRuler selected={snapshot.estimate.selected} />
       <fieldset className={styles.estimateScale} disabled={snapshot.estimate.confirmed}>
-        <legend>{content.question}</legend>
+        <legend className={styles.visuallyHidden}>{content.question}</legend>
         <div>
           {content.options.map((option) => (
             <label key={option}>
@@ -877,7 +912,7 @@ function EstimateScene({
                 checked={snapshot.estimate.selected === option}
                 onChange={() => controller.selectEstimate(option)}
               />
-              <span>{option === 16 ? content.overflowLabel : option}</span>
+              <span>{option}</span>
             </label>
           ))}
         </div>
@@ -899,8 +934,10 @@ function EstimateScene({
 
 function LowercaseClockScene({
   scene,
+  selected,
 }: {
   readonly scene: PasswordFreeSearchDemonstrationSceneSnapshot;
+  readonly selected: S05AnalysisControllerSnapshot['estimate']['selected'];
 }) {
   const content = s05Content.freeSearch.theoreticalModel;
   return (
@@ -911,6 +948,7 @@ function LowercaseClockScene({
     >
       <p className={styles.cardLabel}>Beispiel mit festgelegten Annahmen</p>
       <h2>{content.title}</h2>
+      <EstimateRuler selected={selected} />
       <ul className={styles.assumptions}>
         {content.assumptions.map((assumption) => (
           <li key={assumption}>{assumption}</li>
@@ -926,113 +964,6 @@ function LowercaseClockScene({
       </div>
       <p>{content.lowercaseExplanation}</p>
       <p className={styles.boundaryCallout}>{content.boundary}</p>
-    </div>
-  );
-}
-
-function GeneratedCharactersScene({
-  scene,
-}: {
-  readonly scene: PasswordFreeSearchDemonstrationSceneSnapshot;
-}) {
-  const content = s05Content.freeSearch.generatedCharacters;
-  const model = scene.generatedCharacterModel;
-  return (
-    <div className={styles.focusScene} data-s05-target="generated-characters">
-      <p className={styles.cardLabel}>Beispiel: zufällig erzeugte Zeichen</p>
-      <h2>{content.title}</h2>
-      <div
-        className={styles.generatedPassword}
-        aria-label="Jede Stelle unabhängig zufällig gezogen"
-      >
-        {[...content.example].map((character, index) => (
-          <span key={`${character}-${index}`}>{character}</span>
-        ))}
-      </div>
-      <p>
-        {model.alphabetSize} mögliche Zeichen pro Stelle · {model.length} Stellen
-      </p>
-      <p>{content.alphabetParts.join(' · ')}</p>
-      <strong>
-        {content.durationLabel}
-        {scene.generatedModelHasLargerSearchSpace
-          ? ' · größerer theoretischer Suchraum als bei 15 zufälligen Kleinbuchstaben'
-          : ''}
-      </strong>
-      <p>{content.explanation}</p>
-      <p className={styles.boundaryCallout}>{s05Content.freeSearch.theoreticalModel.boundary}</p>
-    </div>
-  );
-}
-
-function PasswordPartsScene({
-  targetId,
-  title,
-  password,
-  parts,
-  labels,
-  explanation,
-}: {
-  readonly targetId: string;
-  readonly title: string;
-  readonly password: string;
-  readonly parts: readonly string[];
-  readonly labels: readonly string[];
-  readonly explanation: string;
-}) {
-  return (
-    <div className={styles.focusScene} data-s05-target={targetId}>
-      <p className={styles.cardLabel}>Beispiel</p>
-      <h2>{title}</h2>
-      <PasswordBuildingBlocks
-        value={password}
-        parts={parts}
-        labels={labels}
-        display="separated"
-        ariaLabel={`${password}: ${parts.join(', ')}`}
-      />
-      <p>{explanation}</p>
-    </div>
-  );
-}
-
-function ChosenWordsScene() {
-  const content = s05Content.freeSearch.chosenWords;
-  return (
-    <div className={styles.focusScene} data-s05-target="chosen-words">
-      <p className={styles.cardLabel}>Beispiel</p>
-      <h2>{content.title}</h2>
-      <div className={styles.wordExamples}>
-        {content.examples.map((example) => (
-          <code key={example}>
-            {example}
-            <small>{[...example].length} Zeichen</small>
-          </code>
-        ))}
-      </div>
-      <p>{content.explanation}</p>
-    </div>
-  );
-}
-
-function AuthoredWordsScene() {
-  const content = s05Content.freeSearch.authoredWords;
-  return (
-    <div className={styles.focusScene} data-s05-target="authored-words">
-      <p className={styles.cardLabel}>{content.badge}</p>
-      <h2>{content.title}</h2>
-      <div className={styles.wordCards} aria-label={content.words.join(', ')}>
-        {content.words.map((word) => (
-          <span key={word}>
-            <small>unabhängig gezogen</small>
-            {word}
-          </span>
-        ))}
-      </div>
-      <code className={styles.joinedWords}>{content.joined}</code>
-      <p>{content.explanation}</p>
-      <p>{content.hyphenNote}</p>
-      <p className={styles.boundaryCallout}>{content.outlook}</p>
     </div>
   );
 }
@@ -1200,41 +1131,39 @@ function renderScene(
     case 'structure-intro':
       return <StructureIntroScene />;
     case 'structure-theme':
+    case 'structure-theme-guessing':
+    case 'structure-theme-takeaway':
     case 'structure-sentence':
+    case 'structure-sentence-guessing':
     case 'structure-repetition':
-    case 'structure-context':
-      return <StructureDemonstrationScene snapshot={snapshot} />;
+    case 'structure-repetition-guessing':
+      return <StructurePatternsScene step={snapshot.step} />;
     case 'structure-application':
-      return (
-        <StructureApplicationScene
-          subject={subject}
-          snapshot={snapshot}
-          controller={controller}
-        />
-      );
+      return <StructureApplicationScene subject={subject} snapshot={snapshot} />;
+    case 'passphrase-generator':
+    case 'passphrase-randomness':
+      return <PassphraseGeneratorScene />;
     case 'free-search-transition':
-      return (
-        <ShortExplanationScene
-          targetId="free-search-transition"
-          {...s05Content.freeSearch.transition}
-        />
-      );
-    case 'same-length':
-      return <SameLengthScene />;
+    case 'character-mix-first':
+      return <CharacterMixScene step={snapshot.step} />;
+    case 'character-mix-comparison':
+    case 'character-mix-difference':
+    case 'character-mix-types':
+    case 'character-mix-nist':
+    case 'character-mix-strategy':
+    case 'character-mix-takeaway':
+      return <CharacterMixScene step={snapshot.step} />;
+    case 'estimate-intro':
+      return <div className={styles.estimateScene} data-s05-speech-obstacle><EstimateRuler selected={null} /></div>;
     case 'estimate':
       return <EstimateScene snapshot={snapshot} controller={controller} />;
     case 'lowercase-clock':
-      return <LowercaseClockScene scene={snapshot.freeSearchDemonstrationScene} />;
-    case 'generated-characters':
-      return <GeneratedCharactersScene scene={snapshot.freeSearchDemonstrationScene} />;
-    case 'predictable-mix':
       return (
-        <PasswordPartsScene targetId="predictable-mix" {...s05Content.freeSearch.predictableMix} />
+        <LowercaseClockScene
+          scene={snapshot.freeSearchDemonstrationScene}
+          selected={snapshot.estimate.selected}
+        />
       );
-    case 'chosen-words':
-      return <ChosenWordsScene />;
-    case 'authored-words':
-      return <AuthoredWordsScene />;
     case 'free-search-application':
       return (
         <FreeSearchApplicationScene subject={subject} scene={snapshot.freeSearchApplicationScene} />
@@ -1409,6 +1338,56 @@ function speechFor(
       return componentSummaryNarration(snapshot);
     case 'structure-intro':
       return s05Content.structure.intro;
+    case 'structure-theme':
+      return [s05Content.structure.narration.theme[0]];
+    case 'structure-theme-guessing':
+      return [s05Content.structure.narration.theme[1]];
+    case 'structure-theme-takeaway':
+      return [s05Content.structure.narration.theme[2]];
+    case 'structure-sentence':
+      return [s05Content.structure.narration.sentence[0]];
+    case 'structure-sentence-guessing':
+      return [s05Content.structure.narration.sentence[1]];
+    case 'structure-repetition':
+      return [s05Content.structure.narration.repetition[0]];
+    case 'structure-repetition-guessing':
+      return [s05Content.structure.narration.repetition[1]];
+    case 'structure-application': {
+      const hasRepetition = snapshot.structureScene.runtimeAnalysis.findings.some(
+        ({ findingKind }) =>
+          findingKind === 'exact-component-repetition' ||
+          findingKind === 'recognized-repetition-pattern',
+      );
+      return [
+        hasRepetition
+          ? s05Content.structure.application.repetitionFound
+          : s05Content.structure.application.repetitionNotFound,
+      ];
+    }
+    case 'passphrase-generator':
+      return [s05Content.freeSearch.passphraseGenerator.narration[0]];
+    case 'passphrase-randomness':
+      return [s05Content.freeSearch.passphraseGenerator.narration[1]];
+    case 'free-search-transition':
+      return [s05Content.freeSearch.transition.explanation];
+    case 'character-mix-first':
+      return [s05Content.freeSearch.characterMix.narration[0]];
+    case 'character-mix-comparison':
+      return [s05Content.freeSearch.characterMix.narration[1]];
+    case 'character-mix-difference':
+      return [s05Content.freeSearch.characterMix.narration[2]];
+    case 'character-mix-types':
+      return [s05Content.freeSearch.characterMix.narration[3]];
+    case 'character-mix-nist':
+      return [s05Content.freeSearch.characterMix.narration[4]];
+    case 'character-mix-strategy':
+      return [s05Content.freeSearch.characterMix.narration[5]];
+    case 'character-mix-takeaway':
+      return [s05Content.freeSearch.characterMix.narration[6]];
+    case 'estimate-intro':
+      return [s05Content.freeSearch.estimate.explanation];
+    case 'estimate':
+      return [s05Content.freeSearch.estimate.question];
     default:
       return null;
   }
@@ -1433,94 +1412,6 @@ function transitionCategoryForStep(
   if (step === 'personal-details-opening') return 'personal-details';
   if (step === 'account-context-opening') return 'account-context';
   return null;
-}
-
-function StructureApplicationScene({
-  subject,
-  snapshot,
-  controller,
-}: {
-  readonly subject: S05AnalysisSubject;
-  readonly snapshot: S05AnalysisControllerSnapshot;
-  readonly controller: S05AnalysisController;
-}) {
-  const scene = snapshot.structureScene;
-  const reflection = scene.semanticReflection;
-  const substantiveSelections = reflection.selected.filter(
-    (selection) => selection !== 'none-or-unsure',
-  );
-  const noSimpleStructure =
-    scene.prioritizedRuntimeFindings.length === 1 &&
-    scene.prioritizedRuntimeFindings[0]?.findingKind === 'no-simple-structure-recognized';
-  const recognizedSomething = !noSimpleStructure || substantiveSelections.length > 0;
-  const reflectionContent = s05Content.structure.application.reflection;
-  const reflectionOptions = semanticReflectionOrder.map(
-    (selection) => [selection, reflectionContent.options[selection]] as const,
-  );
-
-  return (
-    <div className={styles.structureWorkspace} aria-label={scene.accessibleSummary}>
-      <section className={styles.passWoExplanation}>
-        <p className={styles.cardLabel}>PassWo erklärt</p>
-        <p>
-          {recognizedSomething
-            ? s05Content.structure.application.recognizedExplanation
-            : s05Content.structure.application.noneExplanation}
-        </p>
-      </section>
-      <article className={styles.structureResult} data-s05-target="structure-application">
-        <p className={styles.cardLabel}>Was die Übung erkannt hat</p>
-        <h2>{s05Content.structure.application.title}</h2>
-        <FictionalPasswordWithEvidence password={subject.fictionalPassword} scene={scene} />
-        <ol>
-          {scene.prioritizedRuntimeFindings.map((finding) => (
-            <li key={finding.id}>
-              <strong>{structureFindingLabel(finding.findingKind)}</strong>
-              {finding.evidence.length === 0 ? null : (
-                <span>{finding.evidence.map(({ token }) => token).join(' · ')}</span>
-              )}
-            </li>
-          ))}
-        </ol>
-        <p>{s05Content.structure.application.boundedNotice}</p>
-      </article>
-      <section className={styles.semanticReflection} aria-labelledby="s05-reflection-title">
-        <p className={styles.cardLabel}>{reflectionContent.title}</p>
-        <h2 id="s05-reflection-title">{reflectionContent.question}</h2>
-        <p>{reflectionContent.privacyNote}</p>
-        <fieldset disabled={reflection.confirmed}>
-          <legend className={styles.visuallyHidden}>{reflectionContent.question}</legend>
-          {reflectionOptions.map(([selection, label]) => (
-            <label key={selection}>
-              <input
-                type="checkbox"
-                checked={reflection.selected.includes(selection)}
-                onChange={() => controller.toggleSemanticReflection(selection)}
-              />
-              <span>{label}</span>
-            </label>
-          ))}
-        </fieldset>
-        <button
-          type="button"
-          disabled={reflection.confirmed || reflection.selected.length === 0}
-          onClick={() => controller.confirmSemanticReflection()}
-        >
-          {reflectionContent.confirm}
-        </button>
-        {reflection.confirmed ? (
-          <div className={styles.semanticReflectionResult} role="status">
-            <strong>{reflectionContent.confirmed}</strong>
-            <ul>
-              {reflection.selected.map((selection) => (
-                <li key={selection}>{reflectionContent.options[selection]}</li>
-              ))}
-            </ul>
-          </div>
-        ) : null}
-      </section>
-    </div>
-  );
 }
 
 export function S05AnalysisTraining({
@@ -1582,7 +1473,7 @@ export function S05AnalysisTraining({
     switch (activeSnapshot.step) {
       case 'common-components-intro':
         return {
-          kind: 'perform' as const,
+          kind: 'advance' as const,
           label: s05Content.componentStrategy.commonComponents.check,
           disabled,
           onAction: () => activeController.completeCommonComponentsCheck(),
@@ -1594,13 +1485,6 @@ export function S05AnalysisTraining({
           disabled,
           onAction: continueFromSpeech,
         };
-      case 'account-context-intro':
-        return {
-          kind: 'perform' as const,
-          label: s05Content.componentStrategy.accountContext.check,
-          disabled,
-          onAction: () => activeController.completeAccountContextCheck(),
-        };
       case 'components-summary':
         return {
           kind: 'advance' as const,
@@ -1608,6 +1492,21 @@ export function S05AnalysisTraining({
           disabled,
           onAction: continueFromSpeech,
         };
+      case 'account-context-intro':
+        return {
+          kind: 'advance' as const,
+          label: s05Content.componentStrategy.accountContext.check,
+          disabled,
+          onAction: () => activeController.completeAccountContextCheck(),
+        };
+      case 'estimate':
+        return activeSnapshot.estimate.confirmed
+          ? {
+              kind: 'advance' as const,
+              disabled,
+              onAction: continueFromSpeech,
+            }
+          : undefined;
       default:
         return {
           kind: 'advance' as const,
@@ -1620,6 +1519,7 @@ export function S05AnalysisTraining({
   const categoryHeaderVisible = showsComponentCategoryHeader(snapshot.step);
   const componentGuidanceVisible = showsComponentGuidance(snapshot.step);
   const transitionCategoryId = transitionCategoryForStep(snapshot.step);
+  const currentSpeechAction = speechAction();
 
   return (
     <section ref={hostRef} className={styles.training} aria-label={s05Content.trainingAriaLabel}>
@@ -1639,7 +1539,13 @@ export function S05AnalysisTraining({
         <div
           className={styles.content}
           aria-live="polite"
-          inert={guidanceVisible && snapshot.step !== 'components-summary' ? true : undefined}
+          inert={
+            guidanceVisible &&
+            snapshot.step !== 'components-summary' &&
+            snapshot.step !== 'estimate'
+              ? true
+              : undefined
+          }
         >
           {renderScene(snapshot, subject, controller)}
         </div>
@@ -1657,11 +1563,19 @@ export function S05AnalysisTraining({
               speech={speech}
               speechKey={`s05-${snapshot.step}`}
               speechEmphasis={passWoSpeechEmphasisFor(`s05-${snapshot.step}`)}
-              speechPlacement={componentGuidanceVisible ? 'right' : 'above'}
+              speechPlacement={
+                componentGuidanceVisible ||
+                activeSnapshot.step.startsWith('character-mix-') ||
+                activeSnapshot.step.startsWith('estimate')
+                  ? 'right'
+                  : 'above'
+              }
               {...(componentGuidanceVisible
                 ? {}
                 : { speechObstacleSelector: '[data-s05-speech-obstacle]' })}
-              speechAction={speechAction()}
+              {...(currentSpeechAction === undefined
+                ? {}
+                : { speechAction: currentSpeechAction })}
               placement="bottom-left"
               showHelpButton={false}
             />

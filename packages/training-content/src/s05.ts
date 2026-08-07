@@ -1,7 +1,6 @@
 import type {
   AuthoredStructureDemonstration,
   DesignLabScenarioId,
-  PasswordSemanticReflectionSelection,
   PasswordSingleFindingKind,
   RuntimeStructureFindingKind,
   SimulationQuickPathRuleId,
@@ -28,7 +27,7 @@ export interface S05DesignLabFixture {
   readonly startSection: 'intro' | 'components' | 'structure';
 }
 
-export const S05_CONTENT_VERSION = '2.38.0';
+export const S05_CONTENT_VERSION = '2.41.0';
 
 export const s05Content = {
   version: S05_CONTENT_VERSION,
@@ -39,9 +38,9 @@ export const s05Content = {
       35,
     ] as const,
     revision:
-      'Userauftrag vom 2026-08-06 · Campusgram-Passwort und gekürztes Ergebnisfeedback',
+      'Userauftrag vom 2026-08-07 · Wiederhergestellte Prüfankündigung und Prüfaktion',
     copyReference:
-      'docs/design/S00-S05-COPY-AUDIT.md#copy-delta-s05-campusgram-passwort-und-gekuerztes-ergebnisfeedback-6-august-2026',
+      'docs/design/S00-S05-COPY-AUDIT.md#copy-delta-s05-wiederhergestellte-prüfankündigung-und-prüfaktion-7-august-2026',
   },
   segment: {
     id: 'S05',
@@ -168,8 +167,8 @@ export const s05Content = {
       check: 'Passwort prüfen',
       results: {
         none: ['Hier wurde kein früh geprüfter Bestandteil erkannt.'],
-        foundOne: '[Teile] wurde durch die Prüfung erkannt.',
-        foundMany: '[Teile] wurden durch die Prüfung erkannt.',
+        foundOne: '[Teile] ist ein häufig verwendetes Wort oder eine Zeichenfolge.',
+        foundMany: '[Teile] sind häufig verwendete Wörter oder Zeichenfolgen.',
         completeSingleCandidate:
           'Die gefundene Übereinstimmung deckt bereits die gesamte Zeichenfolge ab.',
         completeCombinedMatches:
@@ -183,10 +182,10 @@ export const s05Content = {
         'Persönliche Angaben sind leicht zu merken und wirken oft geheim. Es ist deshalb nachvollziehbar, sie für etwas zu halten, das andere nur schwer erraten können.',
       ],
       derivation: [
-        'Bei einem Datenleck liegen deine gespeicherten Passwortdaten jedoch häufig zusammen mit deinem Benutzernamen, deiner E-Mail-Adresse oder weiteren Kontohinweisen vor. Angreifer wissen dadurch bereits, zu welchem Konto deine Passwortdaten gehören, und können gezielt wahrscheinliche Passwortkandidaten testen.',
+        'Bei einem Datenleck liegen deine Passwortdaten oft zusammen mit deinem Benutzernamen, deiner E-Mail-Adresse oder Kontohinweisen vor. Angreifer wissen dadurch, zu welchem Konto sie gehören, und können gezielt persönliche Angaben als Passwortkandidaten testen.',
       ],
       examples: [
-        'Dafür nutzen sie beispielsweise Namen, Geburtsdaten, Vereine, Haustiere, Hobbys oder andere persönliche Bezüge, die sich aus öffentlichen Profilen, früheren Datenlecks oder Informationen aus deinem Umfeld ableiten lassen.',
+        'Dafür nutzen sie etwa Namen, Geburtsdaten, Vereine, Haustiere, Hobbys oder andere persönliche Bezüge aus öffentlichen Profilen, früheren Datenlecks oder deinem Umfeld.',
       ],
       explanation: [
         'Dieses Trainingsmodul kann nicht zuverlässig erkennen, welche Angaben auf dich zutreffen. Wähle deshalb selbst die persönlichen Angaben aus, die für dein Beispiel realistisch wären.',
@@ -244,7 +243,7 @@ export const s05Content = {
       ],
       explanation: [
         'Bei einem WLAN-Passwort könnten es „WLAN“, „Router“ oder „Fritzbox“ sein.',
-        'Prüfen wir deswegen nun dein Passwort auf einen möglichen Bezug zum Konto, Dienst oder Umfeld.',
+        'Prüfen wir nun dein gewähltes Passwort auf einen möglichen Bezug zu Campusgram.',
       ],
       check: 'Im Passwort prüfen',
       results: {
@@ -295,17 +294,16 @@ export const s05Content = {
     intro: [
       'Angreifer prüfen nämlich nicht nur häufig gewählte Zeichenfolgen, persönliche Angaben oder Bezüge zum Konto. Sie berücksichtigen auch typische Muster, mit denen Menschen solche Elemente zu leichter merkbaren Passwörtern anordnen und kombinieren.',
     ],
-    reviewCardTitle: 'Prüfungskarte 2',
     demonstrations: [
       {
         kind: 'authoredStructureDemonstration',
         id: 's05-structure-theme',
         relation: 'thematic-relation',
-        title: 'Inhaltliche Zusammenhänge',
-        tokens: ['Kaffee', 'Tasse', 'Morgen'],
-        connectionLabel: 'Morgenroutine',
+        title: 'Naheliegende Zusammenhänge',
+        tokens: ['WLAN', 'W0hnzimmer', 'Familie', '5'],
+        connectionLabel: 'inhaltlich verbundene Bestandteile',
         passWoExplanation:
-          'Ein gemeinsames Thema kann mehrere Bestandteile leichter merkbar verbinden.',
+          'Mehrere verschiedene Wörter können durch einen naheliegenden Zusammenhang vorhersehbar bleiben.',
         boundaryNote:
           'Das Beispiel zeigt einen möglichen Zusammenhang. Es leitet keine Bedeutung aus dem fiktiven Passwort ab.',
       },
@@ -314,10 +312,10 @@ export const s05Content = {
         id: 's05-structure-sentence',
         relation: 'sentence-structure',
         title: 'Vorhersehbare Satz- und Phrasenstrukturen',
-        tokens: ['Ich', 'trinke', 'morgens', 'Kaffee'],
+        tokens: ['Ohne', 'Kaffee', 'geht', 'nichts'],
         connectionLabel: 'sprachlich passende Folge',
         passWoExplanation:
-          'Sätze lassen sich gut merken, weil ihre Teile sprachlich zusammenpassen.',
+          'Bekannte oder sprachlich naheliegende Formulierungen machen ihre Fortsetzung wahrscheinlicher.',
         boundaryNote: 'Das Beispiel prüft nicht, ob das fiktive Passwort eine Satzstruktur hat.',
       },
       {
@@ -325,26 +323,55 @@ export const s05Content = {
         id: 's05-structure-repetition',
         relation: 'exact-repetition',
         title: 'Wiederholungsmuster',
-        tokens: ['Kaffee', 'Kaffee', 'Kaffee'],
-        connectionLabel: 'derselbe Bestandteil · 3×',
+        tokens: ['1213', '1213', '1213', '1213'],
+        connectionLabel: 'derselbe Bestandteil mehrfach',
         passWoExplanation:
-          'Nach dem ersten Treffer muss ein exakt wiederholter Bestandteil nicht neu erraten werden.',
+          'Wiederholungen machen ein Passwort länger, ohne dass jeder Teil neu gewählt wurde.',
         boundaryNote:
           'Die Übung markiert nur ausreichend lange, exakt wiederholte Bestandteile.',
       },
-      {
-        kind: 'authoredStructureDemonstration',
-        id: 's05-structure-context',
-        relation: 'password-context',
-        title: 'Passwortkontext',
-        tokens: ['Campusgram', 'Campus', '2026', '!'],
-        connectionLabel: 'Konto · Campusbezug · Jahr · Anhang',
-        passWoExplanation:
-          'Zum Konto passende Teile können gemeinsam einen gezielteren Suchweg bilden.',
-        boundaryNote:
-          'Die Übung nutzt nur festgelegte Begriffe zum fiktiven Konto.',
-      },
     ] as const satisfies readonly AuthoredStructureDemonstration[],
+    presentationExamples: {
+      theme: {
+        title: 'Naheliegende Zusammenhänge',
+        rows: [
+          ['WLAN', 'W0hnzimmer', 'Familie', '5'],
+          ['Uni', 'Campus', 'Mensa', '2026'],
+          ['Hochz3it', 'Schloss', '1995', '!!'],
+        ],
+      },
+      sentence: {
+        title: 'Vorhersehbare Satz- und Phrasenstrukturen',
+        rows: [
+          ['An', 'Tagen', 'wie', 'diesen'],
+          ['Ohne', 'Kaffee', 'geht', 'nichts'],
+          ['Home', 'Sweet', 'Home'],
+        ],
+      },
+      repetition: {
+        title: 'Wiederholungsmuster',
+        rows: [
+          ['1213', '1213', '1213', '1213'],
+          ['F3rien#27', 'F3rien#27'],
+          ['D7!kP2?', 'D7!kP2?'],
+        ],
+      },
+    },
+    narration: {
+      theme: [
+        'Auch mehrere verschiedene Wörter können zusammen vorhersehbar bleiben. Begriffe wie „WLAN“, „Wohnzimmer“ und „Familie“ wurden nicht völlig unabhängig voneinander gewählt, sondern passen inhaltlich zusammen.',
+        'Solche Regelmäßigkeiten können Angreifer ausnutzen: Guessing-Verfahren behandeln nicht alle Kombinationen gleich, sondern probieren eher Kandidaten aus, die zu menschlichen Wahlmustern passen. Moderne Verfahren können dabei auch Abhängigkeiten zwischen verschiedenen Bestandteilen berücksichtigen.',
+        'Je mehr deine Auswahl einem naheliegenden Zusammenhang folgt, desto mehr verrät sie darüber, welche Kombinationen zuerst ausprobiert werden sollte.',
+      ],
+      sentence: [
+        'Menschen setzen Wörter außerdem häufig zu bekannten oder sprachlich naheliegenden Formulierungen zusammen. Auch dadurch sind die Bestandteile nicht unabhängig voneinander gewählt.',
+        'Nach „Ohne Kaffee geht“ ist zum Beispiel „nichts“ viel naheliegender als die meisten anderen Wörter. Guessing-Verfahren können solche Regelmäßigkeiten berücksichtigen und wahrscheinlichere Zeichen- oder Wortfolgen früher ausprobieren. Dazu gehören etwa Redewendungen, Liedzeilen oder andere naheliegende Formulierungen.',
+      ],
+      repetition: [
+        'Auch Wiederholungen können ein Passwort lang wirken lassen, obwohl nicht jeder Teil neu gewählt wurde.',
+        'Hat ein Guessing-Verfahren den Grundbaustein erkannt oder vermutet, muss es die Wiederholung nicht wie unabhängig gewählte Zeichen behandeln. Solche Wiederholungsmuster können deshalb gezielt ausprobiert werden.',
+      ],
+    },
     findingLabels: {
       'exact-component-repetition': 'exakte Wiederholung eines Bestandteils',
       'recognized-repetition-pattern': 'erkanntes Wiederholungsmuster',
@@ -355,60 +382,58 @@ export const s05Content = {
       'no-simple-structure-recognized': 'kein einfacher Zusammenhang erkannt',
     } satisfies Readonly<Record<RuntimeStructureFindingKind, string>>,
     application: {
-      title: 'Anwendung auf das fiktive Passwort',
-      recognizedExplanation:
-        'Markiert sind nur konkret erkannte Stellen. Die Übung zeigt höchstens zwei Wege zugleich.',
-      noneExplanation:
-        'Die Übung hat hier keinen einfachen Zusammenhang erkannt. Das bedeutet nicht, dass das Passwort zufällig, stark oder sicher ist.',
-      boundedNotice: 'Die Markierungen zeigen konkrete Zusammenhänge im fiktiven Passwort.',
-      reflection: {
-        title: 'Deine lokale Einordnung',
-        question: 'Trifft etwas davon auf deine fiktive Passwortidee zu?',
-        privacyNote:
-          'Du musst nicht angeben, um welche Information es geht. Die Auswahl bleibt nur in der laufenden Übung und verändert nicht die Simulationsentscheidung.',
-        options: {
-          'personal-meaning': 'Mindestens ein Bestandteil war als persönliche Angabe gedacht.',
-          'shared-theme': 'Mehrere Bestandteile gehören für mich zu demselben Thema.',
-          'sentence-or-familiar-phrase':
-            'Mehrere Bestandteile bilden einen Satz oder eine vertraute Formulierung.',
-          'none-or-unsure': 'Nichts davon oder unsicher.',
-        } satisfies Readonly<Record<PasswordSemanticReflectionSelection, string>>,
-        confirm: 'Einordnung bestätigen',
-        confirmed: 'Für diese Übung bestätigt',
-      },
+      passwordLabel: 'Campusgram-Passwort',
+      repetitionFound:
+        'Dein Campusgram-Passwort hatte beispielsweise solch eine Wiederholung.',
+      repetitionNotFound: 'Dein Campusgram-Passwort hatte diese Wiederholung nicht.',
     },
   },
   freeSearch: {
-    transition: {
-      title: 'Freies Ausprobieren',
-      explanation:
-        'Bekannte Bestandteile und vorhersehbare Zusammenhänge geben einfachere Wege. Für dadurch nicht erklärte Bereiche bleibt freies Ausprobieren.',
+    passphraseGenerator: {
+      title: 'Passphrasen-Generator',
+      wordCount: '6 Wörter',
+      generate: '↻ Generieren',
+      password: 'Kaktus-Fenster-Regen-Komet-Wodurch-Knochen',
+      strengthLabel: 'Vollständig gefüllter grüner Beispielbalken',
+      copy: 'Kopieren',
+      narration: [
+        'Wichtig: Passphrasen, also Passwörter aus mehreren Wörtern, können sehr stark sein. Entscheidend ist, wie vorhersehbar die Wörter und ihre Kombination sind.',
+        'Werden genug Wörter zufällig gewählt, fehlen dem Angreifer genau die Zusammenhänge, die ihm eben noch geholfen haben. Wie das praktisch geht, schauen wir uns später an.',
+      ],
     },
-    sameLength: {
-      title: 'Gleiche Länge, unterschiedliche Arbeit',
-      predictable: {
-        password: 'CampusBoard2026',
-        parts: ['CampusBoard', '2026'],
-        label: 'Dienstname und Jahreszahl',
-      },
-      independentlyRandom: {
-        password: 'ruevokdampzqitl',
-        parts: ['r', 'u', 'e', 'v', 'o', 'k', 'd', 'a', 'm', 'p', 'z', 'q', 'i', 't', 'l'],
-        label: '15 unabhängig zufällig erzeugte Kleinbuchstaben',
-      },
+    transition: {
       explanation:
-        'Beide Beispiele haben 15 Zeichen. Länge schützt vor freiem Ausprobieren, gleicht einen bekannten Aufbau aber nicht automatisch aus.',
+        'Wir haben gesehen, dass Angreifer zuerst wahrscheinliche Passwörter und typische menschliche Muster ausprobieren. Fehlen solche Anhaltspunkte, können sie aber immer noch systematisch immer mehr Zeichenfolgen durchprobieren.',
+    },
+    characterMix: {
+      panelTitle: 'Passwort erstellen',
+      strengthTitle: 'Passwortstärke',
+      strengthRating: 'Stark',
+      strengthBarLabel: 'Vollständig gefüllte grüne Stärkeanzeige',
+      earlyHit: 'Früher Treffer',
+      checks: ['12 Zeichen', 'Großbuchstabe', 'Kleinbuchstabe', 'Zahl', 'Sonderzeichen'],
+      predictablePassword: 'Passw0rt123!',
+      randomPassword: 'rQ7!m2vX9?pK',
+      narration: [
+        'Solche Anzeigen kennst du vielleicht aus deinem Alltag. Hier erfüllt Passw0rt123! alle angezeigten Regeln und wird als stark bewertet.',
+        'Beide Passwörter sind gleich lang und enthalten alle vier Zeichentypen. Das rechte Passwort besteht dagegen aus zwölf zufällig erzeugten Zeichen.',
+        'Solche Anzeigen prüfen häufig nur, ob die gezeigten Regeln erfüllt sind. Für den Angreifer macht die Art der Wahl aber einen großen Unterschied: Passw0rt123! folgt mehreren menschlichen Mustern. Beim rechten Passwort fehlen ihm solche Anhaltspunkte.',
+        'Verschiedene Zeichentypen sind trotzdem nicht nutzlos: Werden sie wirklich zufällig erzeugt, wird das Durchprobieren für den Angreifer schwieriger. Menschen setzen solche Zeichen aber oft vorhersehbar ein, wie du es bei den typischen Veränderungen schon gesehen hast.',
+        'NIST führt genau „Password1!“ als Beispiel dafür an, wie Menschen Regeln für bestimmte Zeichentypen vorhersehbar erfüllen.',
+        'Darauf zu setzen, den Angreifer mit einer selbst gewählten Mischung aus Zeichentypen zu überraschen wie mEin!Pa55w0rt?, ist deshalb keine gute Strategie.',
+        'Das musst du auch nicht. Entscheidend ist vor allem die Länge und dass dein Passwort nicht leicht vorhersehbar gewählt ist.',
+      ],
     },
     estimate: {
       title: 'Deine Schätzung',
       explanation:
-        'Wir betrachten absichtlich nur den Längeneffekt: Jede Stelle wird unabhängig zufällig aus 26 Kleinbuchstaben gewählt.',
+        'Um zu sehen, wie lang dein Passwort sein sollte, machen wir es ganz einfach: Jede Stelle wird zufällig aus nur 26 Kleinbuchstaben gewählt.',
       question:
-        'Ab welcher Länge wird das vollständige Durchprobieren für einen sehr schnellen Angreifer zu aufwendig?',
-      options: [8, 9, 10, 11, 12, 13, 14, 15, 16] as const,
-      overflowLabel: '16+',
+        'Was glaubst du: Ab welcher Länge wird das vollständige Durchprobieren für einen sehr schnellen Angreifer zu aufwendig?',
+      options: [12, 13, 14, 15, 16, 17, 18, 19, 20] as const,
+      marker: 'Deine Schätzung',
       confirm: 'Schätzung bestätigen',
-      confirmed: 'Schätzung bestätigt. Sie bleibt in dieser Übung.',
+      confirmed: 'Schätzung bestätigt',
     },
     theoreticalModel: {
       title: 'Angreifer-Uhr',
@@ -428,38 +453,6 @@ export const s05Content = {
       ],
       lowercaseExplanation:
         'Für selbst erstellte Passwörter gilt deshalb: mindestens 15 Zeichen. Zahlen oder Sonderzeichen sind dafür keine Pflicht.',
-    },
-    generatedCharacters: {
-      title: 'Zufällig erzeugt — nicht nur gemischt',
-      example: 'rQ7!m2vX9?pK',
-      alphabetParts: ['26 Kleinbuchstaben', '26 Großbuchstaben', '10 Ziffern', '10 Sonderzeichen'],
-      durationLabel: 'ungefähr 615 Jahre',
-      explanation:
-        'Zwölf unabhängig aus 72 Zeichen gezogene Stellen haben hier einen größeren theoretischen Suchraum als 15 zufällige Kleinbuchstaben.',
-    },
-    predictableMix: {
-      title: 'Zeichenmix als vorhersehbare Veränderung',
-      password: 'Passwort123!',
-      parts: ['passwort', '123', '!'],
-      labels: ['bekannter Kern', 'Zahlenfolge', 'typischer Anhang'],
-      explanation:
-        'Alle Zeichenarten sind vorhanden, aber nicht unabhängig gewählt. Der bekannte Kern kann gemeinsam mit Zahlenfolge und Anhang getestet werden.',
-    },
-    chosenWords: {
-      title: 'Selbst gewählte Wörter',
-      examples: ['Datensicherheit', 'DatensicherheitFantasie'],
-      explanation:
-        'Mehr Länge hilft. Ein oder zwei selbst ausgewählte Wörter sind aber nicht dasselbe wie viele unabhängig zufällig ausgewählte Wörter.',
-    },
-    authoredWords: {
-      title: 'Sechs unabhängig gezogene Beispielwörter',
-      words: ['Kaktus', 'Fenster', 'Regen', 'Komet', 'Lampe', 'Knochen'],
-      joined: 'Kaktus-Fenster-Regen-Komet-Lampe-Knochen',
-      badge: 'Beispiel für zufällig ausgewählte Wörter',
-      explanation:
-        'Die Stärke stammt aus der unabhängigen zufälligen Auswahl. Einzelne Wörter müssen nicht selten sein.',
-      hyphenNote: 'Bindestriche unterstützen die Lesbarkeit. Sie erzeugen nicht die Stärke.',
-      outlook: 'Den echten Wortgenerator und die Methode üben wir erst in S08.',
     },
     application: {
       title: 'Was die Übung beim fiktiven Passwort zeigt',
@@ -591,17 +584,26 @@ export const s05Content = {
     ['s05-components-summary', 'component-strategy', 'info'],
     ['s05-structure-intro', 'strategy-targeting', 'info'],
     ['s05-structure-theme', 'structure-theme', 'info'],
+    ['s05-structure-theme-guessing', 'structure-theme', 'info'],
+    ['s05-structure-theme-takeaway', 'structure-theme', 'info'],
     ['s05-structure-sentence', 'structure-sentence', 'info'],
+    ['s05-structure-sentence-guessing', 'structure-sentence', 'info'],
     ['s05-structure-repetition', 'structure-repetition', 'warning'],
+    ['s05-structure-repetition-guessing', 'structure-repetition', 'warning'],
     ['s05-structure-application', 'structure-application', 'warning'],
-    ['s05-free-search-transition', 'free-search-transition', 'info'],
-    ['s05-same-length', 'same-length', 'info'],
+    ['s05-passphrase-generator', 'passphrase-generator', 'info'],
+    ['s05-passphrase-randomness', 'passphrase-generator', 'info'],
+    ['s05-free-search-transition', 'character-mix', 'info'],
+    ['s05-character-mix-first', 'character-mix', 'info'],
+    ['s05-character-mix-comparison', 'character-mix', 'info'],
+    ['s05-character-mix-difference', 'character-mix', 'warning'],
+    ['s05-character-mix-types', 'character-mix', 'info'],
+    ['s05-character-mix-nist', 'character-mix', 'info'],
+    ['s05-character-mix-strategy', 'character-mix', 'warning'],
+    ['s05-character-mix-takeaway', 'character-mix', 'info'],
+    ['s05-estimate-intro', 'estimate-ruler', 'info'],
     ['s05-estimate', 'estimate', 'info'],
     ['s05-lowercase-clock', 'lowercase-clock', 'info'],
-    ['s05-generated-characters', 'generated-characters', 'info'],
-    ['s05-predictable-mix', 'predictable-mix', 'warning'],
-    ['s05-chosen-words', 'chosen-words', 'warning'],
-    ['s05-authored-words', 'authored-words', 'info'],
     ['s05-free-search-application', 'free-search-application', 'warning'],
     ['s05-summary-components', 'summary-components', 'info'],
     ['s05-summary-structure', 'summary-structure', 'info'],

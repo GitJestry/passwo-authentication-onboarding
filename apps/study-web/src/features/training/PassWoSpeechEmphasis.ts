@@ -100,6 +100,29 @@ const emphasisBySpeechId: Readonly<Record<string, readonly PassWoSpeechEmphasis[
     },
   ],
   's05-components-summary': [],
+  's05-structure-theme-takeaway': [
+    { phrase: 'naheliegenden Zusammenhang', tone: 'accent' },
+  ],
+  's05-structure-sentence-guessing': [
+    { phrase: 'Redewendungen', tone: 'accent', contrastId: 'familiar-phrases' },
+    { phrase: 'Liedzeilen', tone: 'accent', contrastId: 'familiar-phrases' },
+    {
+      phrase: 'naheliegende Formulierungen',
+      tone: 'accent',
+      contrastId: 'familiar-phrases',
+    },
+  ],
+  's05-structure-repetition-guessing': [
+    { phrase: 'Wiederholungsmuster', tone: 'accent' },
+  ],
+  's05-passphrase-generator': [{ phrase: 'Wichtig', tone: 'accent' }],
+  's05-character-mix-takeaway': [
+    {
+      phrase: 'die Länge und dass dein Passwort nicht leicht vorhersehbar gewählt',
+      tone: 'accent',
+    },
+  ],
+  's05-estimate': [{ phrase: 'vollständige Durchprobieren', tone: 'accent' }],
 };
 
 export function passWoSpeechEmphasisFor(

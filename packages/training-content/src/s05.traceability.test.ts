@@ -4,7 +4,7 @@ import { S05_CONTENT_VERSION, s05Content } from './s05.js';
 
 describe('S05 content traceability', () => {
   it('keeps the participant copy bounded and separate from internal terminology', () => {
-    expect(S05_CONTENT_VERSION).toBe('2.38.0');
+    expect(S05_CONTENT_VERSION).toBe('2.41.0');
     expect(s05Content.source).toMatchObject({
       document: 'research/private/training-script.pdf',
       internalPages: [
@@ -12,7 +12,7 @@ describe('S05 content traceability', () => {
         35,
       ],
       copyReference:
-        'docs/design/S00-S05-COPY-AUDIT.md#copy-delta-s05-campusgram-passwort-und-gekuerztes-ergebnisfeedback-6-august-2026',
+        'docs/design/S00-S05-COPY-AUDIT.md#copy-delta-s05-wiederhergestellte-prüfankündigung-und-prüfaktion-7-august-2026',
     });
     expect(s05Content.segment.id).toBe('S05');
     expect(s05Content.page.fixtureNotice).toBe(
@@ -59,6 +59,9 @@ describe('S05 content traceability', () => {
       'typical-transformation': 'typische Variante',
     });
     expect(s05Content.componentStrategy.commonComponents.check).toBe('Passwort prüfen');
+    expect(s05Content.componentStrategy.commonComponents.explanation[3]).toBe(
+      'Prüfen wir nun dein gewähltes Passwort auf häufig verwendete Passwörter und Zeichenfolgen.',
+    );
     expect(s05Content.componentStrategy.commonComponents.transition).toBe(
       'Als Nächstes schauen wir, ob dein Campusgram-Passwort persönliche Angaben enthält.',
     );
@@ -116,7 +119,6 @@ describe('S05 content traceability', () => {
     ]);
     expect(s05Content.componentStrategy.accountContext.explanation).toEqual([
       'Bei einem WLAN-Passwort könnten es „WLAN“, „Router“ oder „Fritzbox“ sein.',
-      'Prüfen wir deswegen nun dein Passwort auf einen möglichen Bezug zum Konto, Dienst oder Umfeld.',
     ]);
     expect(s05Content.componentStrategy.accountContext.results).toMatchObject({
       none: ['Hier wurde kein direkter Bezug zu Campusgram erkannt.'],
@@ -140,6 +142,9 @@ describe('S05 content traceability', () => {
     );
     expect(s05Content.animations.map(([id]) => id)).not.toContain('s05-strategy-overview');
     expect(s05Content.componentStrategy.accountContext.check).toBe('Im Passwort prüfen');
+    expect(s05Content.componentStrategy.accountContext.explanation[1]).toBe(
+      'Prüfen wir nun dein gewähltes Passwort auf einen möglichen Bezug zu Campusgram.',
+    );
     expect(s05Content.animations.map(([id]) => id).some((id) => id.includes('typical-changes'))).toBe(
       false,
     );
@@ -155,17 +160,23 @@ describe('S05 content traceability', () => {
       nothingFound: 'Nichts gefunden',
     });
     expect(s05Content.intro.strategyAnnotations.sentenceStructure).toBe('Satzaufbau');
-    expect(s05Content.structure.reviewCardTitle).toBe('Prüfungskarte 2');
     expect(s05Content.structure.intro).toEqual([
       'Angreifer prüfen nämlich nicht nur häufig gewählte Zeichenfolgen, persönliche Angaben oder Bezüge zum Konto. Sie berücksichtigen auch typische Muster, mit denen Menschen solche Elemente zu leichter merkbaren Passwörtern anordnen und kombinieren.',
     ]);
     expect(s05Content.structure.demonstrations.slice(0, 3).map(({ title }) => title)).toEqual([
-      'Inhaltliche Zusammenhänge',
+      'Naheliegende Zusammenhänge',
       'Vorhersehbare Satz- und Phrasenstrukturen',
       'Wiederholungsmuster',
     ]);
     expect(s05Content.animations.map(([id]) => id)).toContain('s05-structure-intro');
     expect(s05Content.animations.map(([id]) => id)).not.toContain('s05-structure-context');
+    expect(s05Content.structure.presentationExamples.theme.rows).toHaveLength(3);
+    expect(s05Content.structure.presentationExamples.sentence.rows).toHaveLength(3);
+    expect(s05Content.structure.presentationExamples.repetition.rows).toHaveLength(3);
+    expect(s05Content.freeSearch.passphraseGenerator.password).toBe(
+      'Kaktus-Fenster-Regen-Komet-Wodurch-Knochen',
+    );
+    expect(s05Content.freeSearch.estimate.options).toEqual([12, 13, 14, 15, 16, 17, 18, 19, 20]);
     expect(s05Content.fixtures.find(({ id }) => id === 'all-categories')).toMatchObject({
       fictionalPassword: 'CampusPassw0rt123!',
       analysisContext: { accountTerms: ['Campus'] },
@@ -204,8 +215,6 @@ describe('S05 content traceability', () => {
     expect(JSON.stringify(s05Content.componentStrategy)).not.toMatch(
       /thematisch|satzstruktur|wiederholung|wortkombination/iu,
     );
-    expect(s05Content.structure.application.reflection.privacyNote).toMatch(/laufenden Übung/u);
-    expect(s05Content.structure.application.reflection.privacyNote).toMatch(/verändert nicht/u);
     expect(
       s05Content.freeSearch.theoreticalModel.lowercaseMeasurements.map(({ length }) => length),
     ).toEqual([8, 12, 14, 15, 16]);

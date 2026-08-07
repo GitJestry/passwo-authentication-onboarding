@@ -36,8 +36,9 @@ Seitenangaben beziehen sich auf die im Trainingsdokument ausgewiesene interne Pa
   erzeugten und fortlaufend scrollenden Varianten dieses Bausteins. Beide Listen blenden unten aus
   und deuten ihre Fortsetzung an.
 - Während einer Erklärung und der manuellen persönlichen Auswahl zeigt die Statusleiste nur den
-  aktuellen Kategorienamen mittig über seinem großen Symbol. Erst nach dem jeweiligen Prüfklick
-  beziehungsweise nach `Einordnung übernehmen` erscheint die kompakte Ansicht mit den drei
+  aktuellen Kategorienamen mittig über seinem großen Symbol. Die automatischen Prüfungen werden
+  durch die jeweilige Prüfankündigung und eine handlungsspezifische Prüfaktion ausgelöst; nach
+  `Einordnung übernehmen` erscheint ebenfalls die kompakte Ansicht mit den drei
   Bestandteilkarten und `Typische Veränderungen` als mittig verbundener Kreuzbedingung. Dort
   leuchtet die gerade geprüfte Kategorie; in der gemeinsamen Abschlussansicht leuchten alle Karten.
   Ein zusätzlicher Befundfilter entfällt.
@@ -60,9 +61,12 @@ Seitenangaben beziehen sich auf die im Trainingsdokument ausgewiesene interne Pa
   sowie im realen Supportive-Training zwischen S04 und S06 vollständig durchspielbar. Beide Pfade
   verwenden dieselbe Komponente und denselben lokalen Controller.
 - S05.2 beginnt mit der erneut sichtbaren annotierten Beispielkombination und erklärt
-  vorhersehbare Kombinationsmuster. Danach sammelt `Prüfungskarte 2` die drei festen
-  Demonstrationen `Inhaltliche Zusammenhänge`, `Vorhersehbare Satz- und Phrasenstrukturen` und
-  `Wiederholungsmuster`; eine Passwortmaschine wird in diesem Teil nicht gerendert.
+  vorhersehbare Kombinationsmuster. Danach erscheinen die drei festen Demonstrationsgruppen
+  `Naheliegende Zusammenhänge`, `Vorhersehbare Satz- und Phrasenstrukturen` und
+  `Wiederholungsmuster` schrittweise als linke, mittlere und rechte Bausteinlisten. Die jeweils
+  erklärte Liste einschließlich Titel wird weiß pulsierend umrahmt. Bei der anschließenden lokalen
+  Wiederholungsprüfung bleiben alle drei Listen sichtbar; das fiktive Campusgram-Passwort steht
+  mittig darunter und markiert erkannte Wiederholungen mit denselben Bausteinen.
 - Der aus der flüchtigen Campusidentität abgeleitete Benutzername und die fiktive Konto-Mail
   werden der lokalen zxcvbn-Auswertung als zusätzliche Kontoanhaltspunkte übergeben. Sie bleiben
   im Arbeitsspeicher und werden weder persistiert noch exportiert.
@@ -70,10 +74,15 @@ Seitenangaben beziehen sich auf die im Trainingsdokument ausgewiesene interne Pa
   mit erkanntem Zahlenmarker oder Anhang sowie eine begrenzte Beziehung bereits erkannter
   Bestandteile. Andernfalls lautet der Befund ausschließlich „kein einfacher Zusammenhang
   erkannt“.
-- S05.3 berechnet theoretische Suchräume ausschließlich für deklarierte Demonstrationen mit
-  unabhängiger Zufallsauswahl, festem Zeichenvorrat, vollständigem Durchprobieren und einer
-  Billion Versuchen pro Sekunde. Kandidatenzahlen bleiben exakte Ganzzahlen; für das fiktive
-  Passwort werden keine Zeit, effektive Länge, Entropie oder Gesamtstärke berechnet.
+- S05.3 ordnet zunächst eine authored Passphrasen-Generator-Anschauung und zwei gleich lange
+  Zeichenmix-Beispiele in zwei gleich aufgebauten Passwort-erstellen-Anzeigen ein. Der
+  vorhersehbare linke Kandidat wird mit Angreifersymbol, Textstatus `Früher Treffer`, grauer
+  Überlagerung und roter Kontur von der reinen Regelanzeige getrennt. Danach berechnet das Segment theoretische Suchräume ausschließlich für
+  deklarierte Demonstrationen mit unabhängiger Zufallsauswahl, festem Zeichenvorrat,
+  vollständigem Durchprobieren und einer Billion Versuchen pro Sekunde. Die Längenschätzung
+  umfasst 12 bis 20 Kleinbuchstaben; ihre Messlatte bleibt in der folgenden Auswertung sichtbar.
+  Kandidatenzahlen bleiben exakte Ganzzahlen; für das fiktive Passwort werden keine Zeit,
+  effektive Länge, Entropie oder Gesamtstärke berechnet.
 - Die Simulationsdisposition benennt entweder eine konkrete erkannte Regel als schnelleren Weg
   oder ausschließlich: „Mit den begrenzten Wegen dieser Simulation wurde kein schnellerer Weg
   erkannt.“ Der zweite Befund bedeutet nicht stark, sicher, zufällig oder unangreifbar.

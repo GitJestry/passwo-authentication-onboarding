@@ -1,4 +1,3 @@
-import type { PasswordSemanticReflectionSelection } from '@passwo/contracts';
 import {
   analyzeFictionalPassword,
   analyzeFictionalPasswordStructure,
@@ -57,18 +56,26 @@ export type S05AnalysisStep =
   | 'components-summary'
   | 'structure-intro'
   | 'structure-theme'
+  | 'structure-theme-guessing'
+  | 'structure-theme-takeaway'
   | 'structure-sentence'
+  | 'structure-sentence-guessing'
   | 'structure-repetition'
-  | 'structure-context'
+  | 'structure-repetition-guessing'
   | 'structure-application'
+  | 'passphrase-generator'
+  | 'passphrase-randomness'
   | 'free-search-transition'
-  | 'same-length'
+  | 'character-mix-first'
+  | 'character-mix-comparison'
+  | 'character-mix-difference'
+  | 'character-mix-types'
+  | 'character-mix-nist'
+  | 'character-mix-strategy'
+  | 'character-mix-takeaway'
+  | 'estimate-intro'
   | 'estimate'
   | 'lowercase-clock'
-  | 'generated-characters'
-  | 'predictable-mix'
-  | 'chosen-words'
-  | 'authored-words'
   | 'free-search-application'
   | 'summary-components'
   | 'summary-structure'
@@ -153,18 +160,26 @@ const stepByMissionId: Readonly<Record<string, S05AnalysisStep>> = {
   's05-components-summary': 'components-summary',
   's05-structure-intro': 'structure-intro',
   's05-structure-theme': 'structure-theme',
+  's05-structure-theme-guessing': 'structure-theme-guessing',
+  's05-structure-theme-takeaway': 'structure-theme-takeaway',
   's05-structure-sentence': 'structure-sentence',
+  's05-structure-sentence-guessing': 'structure-sentence-guessing',
   's05-structure-repetition': 'structure-repetition',
-  's05-structure-context': 'structure-context',
+  's05-structure-repetition-guessing': 'structure-repetition-guessing',
   's05-structure-application': 'structure-application',
+  's05-passphrase-generator': 'passphrase-generator',
+  's05-passphrase-randomness': 'passphrase-randomness',
   's05-free-search-transition': 'free-search-transition',
-  's05-same-length': 'same-length',
+  's05-character-mix-first': 'character-mix-first',
+  's05-character-mix-comparison': 'character-mix-comparison',
+  's05-character-mix-difference': 'character-mix-difference',
+  's05-character-mix-types': 'character-mix-types',
+  's05-character-mix-nist': 'character-mix-nist',
+  's05-character-mix-strategy': 'character-mix-strategy',
+  's05-character-mix-takeaway': 'character-mix-takeaway',
+  's05-estimate-intro': 'estimate-intro',
   's05-estimate': 'estimate',
   's05-lowercase-clock': 'lowercase-clock',
-  's05-generated-characters': 'generated-characters',
-  's05-predictable-mix': 'predictable-mix',
-  's05-chosen-words': 'chosen-words',
-  's05-authored-words': 'authored-words',
   's05-free-search-application': 'free-search-application',
   's05-summary-components': 'summary-components',
   's05-summary-structure': 'summary-structure',
@@ -378,67 +393,6 @@ export class S05AnalysisController {
     void this.#missionController.start(this.#mission);
   }
 
-  toggleSemanticReflection(selection: PasswordSemanticReflectionSelection): void {
-    const snapshot = this.#snapshot;
-    if (
-      this.#disposed ||
-      snapshot === null ||
-      snapshot.step !== 'structure-application' ||
-      snapshot.structureScene.semanticReflection.confirmed
-    ) {
-      return;
-    }
-    const selected = new Set(snapshot.structureScene.semanticReflection.selected);
-    if (selection === 'none-or-unsure') {
-      selected.clear();
-      selected.add(selection);
-    } else {
-      selected.delete('none-or-unsure');
-      if (selected.has(selection)) selected.delete(selection);
-      else selected.add(selection);
-    }
-    this.#snapshot = {
-      ...snapshot,
-      structureScene: {
-        ...snapshot.structureScene,
-        semanticReflection: {
-          ...snapshot.structureScene.semanticReflection,
-          selected: [...selected],
-        },
-      },
-      controls: { ...snapshot.controls, canContinue: false },
-    };
-    this.#emit();
-  }
-
-  confirmSemanticReflection(): void {
-    const snapshot = this.#snapshot;
-    if (
-      this.#disposed ||
-      snapshot === null ||
-      snapshot.step !== 'structure-application' ||
-      snapshot.structureScene.semanticReflection.confirmed ||
-      snapshot.structureScene.semanticReflection.selected.length === 0
-    ) {
-      return;
-    }
-    const semanticReflection = {
-      ...snapshot.structureScene.semanticReflection,
-      confirmed: true,
-    } as const;
-    this.#snapshot = {
-      ...snapshot,
-      structureScene: createPasswordStructureScene(
-        snapshot.structureScene.id,
-        snapshot.structureScene.authoredDemonstrations,
-        snapshot.structureScene.runtimeAnalysis,
-        semanticReflection,
-      ),
-      controls: { ...snapshot.controls, canContinue: true },
-    };
-    this.#emit();
-  }
-
   completeCommonComponentsCheck(): void {
     const snapshot = this.#snapshot;
     if (this.#disposed || snapshot === null || snapshot.step !== 'common-components-intro') return;
@@ -616,9 +570,7 @@ export class S05AnalysisController {
         canReplay: awaitingDecision,
         canContinue:
           awaitingDecision &&
-          (step !== 'estimate' || currentSnapshot.estimate.confirmed) &&
-          (step !== 'structure-application' ||
-            currentSnapshot.structureScene.semanticReflection.confirmed),
+          (step !== 'estimate' || currentSnapshot.estimate.confirmed),
       },
     };
     this.#emit();
