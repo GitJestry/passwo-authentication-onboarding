@@ -3,6 +3,7 @@ import type {
   S06ResolvedConsequenceResult,
   TrainingSectionId,
 } from '@passwo/contracts';
+import { accountContextTerms } from './account-context-terms.js';
 
 export type S06ConsequenceFixtureId =
   | 'reuse-and-derived'
@@ -45,7 +46,7 @@ export interface S06NarrationContent {
   readonly body: string;
 }
 
-export const S06_CONSEQUENCE_CONTENT_VERSION = '2.3.1';
+export const S06_CONSEQUENCE_CONTENT_VERSION = '2.3.3';
 
 export const s06ConsequenceContent = {
   version: S06_CONSEQUENCE_CONTENT_VERSION,
@@ -53,9 +54,9 @@ export const s06ConsequenceContent = {
     document: 'research/private/training-script.pdf',
     internalPages: [36, 37, 38, 39, 40, 41, 42, 43, 44] as const,
     revision:
-      'Bounded complete guess-path terminology aligned with S05; analysis configuration v2 fixture compatibility on 2026-08-03',
+      'Userauftrag vom 2026-08-06 · Konto-/Dienstbegriffe und begrenzte Fuzzy-Erkennung',
     copyReference:
-      'docs/design/S06-S07-COPY-AUDIT.md#copy-delta-vollstaendiger-pruefweg-und-laengenorientierung-3-august-2026',
+      'docs/design/S06-S07-COPY-AUDIT.md#copy-delta-s06-authored-kontextbegriffe-und-begrenzte-fuzzy-erkennung-6-august-2026',
   },
   segment: {
     id: 'S06',
@@ -99,7 +100,7 @@ export const s06ConsequenceContent = {
       label: 'Master Campus',
       roleSummary: 'Campus Workspace, Campus Services und Campus Cloud',
       details: ['Campus Workspace', 'Campus Services', 'Campus Cloud'],
-      accountTerms: ['MasterCampus', 'Master Campus', 'Campus'],
+      accountTerms: accountContextTerms['master-campus'],
     },
     'campus-email': {
       label: 'Campus E-Mail',
@@ -111,13 +112,13 @@ export const s06ConsequenceContent = {
         'Zurücksetzungslinks',
         'Kommunikation in deinem Namen',
       ],
-      accountTerms: ['CampusMail', 'Campus E-Mail', 'Mail', 'E-Mail'],
+      accountTerms: accountContextTerms['campus-email'],
     },
     campusgram: {
       label: 'Campusgram',
       roleSummary: 'Direktnachrichten, Gruppen und Kontakte sowie Beiträge und Reaktionen',
       details: ['Direktnachrichten', 'Gruppen und Kontakte', 'Beiträge und Reaktionen'],
-      accountTerms: ['Campusgram', 'Gram'],
+      accountTerms: accountContextTerms.campusgram,
     },
   } as const satisfies Readonly<Record<S06AccountId, unknown>>,
   relationLabels: {

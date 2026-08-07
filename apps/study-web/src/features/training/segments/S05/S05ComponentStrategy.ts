@@ -138,6 +138,23 @@ function uniqueFindings(findings: readonly S05CategoryFinding[]): readonly S05Ca
   return [...byLabelAndBlocks.values()];
 }
 
+function excludesNestedCalendarFinding(
+  entries: readonly {
+    readonly finding: PasswordSingleFinding;
+    readonly span: PasswordEvidenceSpan;
+  }[],
+  entry: { readonly finding: PasswordSingleFinding; readonly span: PasswordEvidenceSpan },
+): boolean {
+  if (entry.finding.kind !== 'year' && entry.finding.kind !== 'date') return false;
+  return entries.some(
+    ({ finding, span }) =>
+      (finding.kind === 'year' || finding.kind === 'date') &&
+      span.start <= entry.span.start &&
+      span.end >= entry.span.end &&
+      (span.start < entry.span.start || span.end > entry.span.end),
+  );
+}
+
 function transformationDetails(span: PasswordEvidenceSpan): readonly string[] {
   const details = [...span.token]
     .map((character) => {
@@ -221,8 +238,11 @@ export function createCanonicalPasswordView(
       ? evidenceSpans(finding).map((span) => ({ finding, span }))
       : [],
   );
+  const canonicalFindingsWithSpans = findingsWithSpans.filter(
+    (entry) => !excludesNestedCalendarFinding(findingsWithSpans, entry),
+  );
   const boundaries = new Set<number>([0, password.length]);
-  for (const { finding, span } of findingsWithSpans) {
+  for (const { finding, span } of canonicalFindingsWithSpans) {
     boundaries.add(span.start);
     boundaries.add(span.end);
     if (finding.kind === 'predictable-word-sequence') {
@@ -238,14 +258,14 @@ export function createCanonicalPasswordView(
     if (end === undefined || start === end) return [];
     return [{ id: `block-${start}-${end}`, start, end, value: password.slice(start, end) }];
   });
-  const typicalSuffixSpans = findingsWithSpans
+  const typicalSuffixSpans = canonicalFindingsWithSpans
     .filter(({ finding }) => finding.kind === 'typical-suffix')
     .map(({ span }) => span);
-  const typicalTransformationSpans = findingsWithSpans
+  const typicalTransformationSpans = canonicalFindingsWithSpans
     .filter(({ finding }) => finding.kind === 'typical-transformation')
     .map(({ span }) => span);
 
-  const typicalChanges = findingsWithSpans.flatMap<S05TypicalChange>(
+  const typicalChanges = canonicalFindingsWithSpans.flatMap<S05TypicalChange>(
     ({ finding, span }) => {
       if (finding.kind === 'typical-transformation') {
         return transformationDetails(span).map((detail, index) => ({
@@ -282,12 +302,13 @@ export function createCanonicalPasswordView(
   );
 
   const rawCommonFindings = uniqueFindings(
-    findingsWithSpans.flatMap(({ finding, span }) => {
+    canonicalFindingsWithSpans.flatMap(({ finding, span }) => {
       if (
         !commonComponentKinds.has(finding.kind) ||
-        typicalSuffixSpans.some(
-          (suffixSpan) => span.start >= suffixSpan.start && span.end <= suffixSpan.end,
-        )
+        ((finding.kind !== 'year' && finding.kind !== 'date') &&
+          typicalSuffixSpans.some(
+            (suffixSpan) => span.start >= suffixSpan.start && span.end <= suffixSpan.end,
+          ))
       ) {
         return [];
       }
@@ -309,7 +330,7 @@ export function createCanonicalPasswordView(
     }),
   );
   const rawAccountFindings = uniqueFindings(
-    findingsWithSpans.flatMap(({ finding, span }) =>
+    canonicalFindingsWithSpans.flatMap(({ finding, span }) =>
       finding.kind === 'account-or-service-term' &&
       (finding.confidence === 'authored-exact-match' ||
         typicalTransformationSpans.some(
@@ -380,20 +401,18 @@ export function summarizeCategoryCandidates(
   const coveredBlockIds = new Set(findings.flatMap(({ blockIds }) => blockIds));
   const coversWholePassword =
     view.blocks.length > 0 && view.blocks.every(({ id }) => coveredBlockIds.has(id));
-  const singleCandidateBlockIds = new Set(
-    candidateIds.length === 1
-      ? findings
-          .filter(({ candidateId }) => candidateId === candidateIds[0])
-          .flatMap(({ blockIds }) => blockIds)
-      : [],
-  );
+  const hasSingleCandidateMatch = candidateIds.some((candidateId) => {
+    const candidateBlockIds = new Set(
+      findings
+        .filter((finding) => finding.candidateId === candidateId)
+        .flatMap(({ blockIds }) => blockIds),
+    );
+    return view.blocks.length > 0 && view.blocks.every(({ id }) => candidateBlockIds.has(id));
+  });
   return {
     candidateCount: candidateIds.length,
     coversWholePassword,
-    hasSingleCandidateMatch:
-      candidateIds.length === 1 &&
-      view.blocks.length > 0 &&
-      view.blocks.every(({ id }) => singleCandidateBlockIds.has(id)),
+    hasSingleCandidateMatch,
   };
 }
 

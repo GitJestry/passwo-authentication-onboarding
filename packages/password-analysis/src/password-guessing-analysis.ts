@@ -19,7 +19,7 @@ import {
   originalSpanForNormalizedRange,
 } from './case-insensitive-spans.js';
 
-export const PASSWORD_ANALYSIS_CONFIGURATION_VERSION = 'passwo-bounded-guess-path-v4';
+export const PASSWORD_ANALYSIS_CONFIGURATION_VERSION = 'passwo-bounded-guess-path-v5';
 
 export interface FictionalPasswordAnalysisInput {
   readonly fictionalPassword: string;
@@ -293,6 +293,205 @@ function collectExactAccountTermFindings(
   return findings;
 }
 
+interface FuzzyInputCharacter {
+  readonly value: string;
+  readonly start: number;
+  readonly end: number;
+}
+
+interface FuzzySpanCandidate {
+  readonly start: number;
+  readonly end: number;
+  readonly distance: number;
+  readonly lengthDelta: number;
+  readonly termIndex: number;
+}
+
+const fuzzyCharacterAliases: Readonly<Record<string, string>> = {
+  '0': 'o',
+  '1': 'i',
+  '3': 'e',
+  '4': 'a',
+  '5': 's',
+  '6': 'g',
+  '7': 't',
+  '8': 'b',
+  '9': 'g',
+  '@': 'a',
+  $: 's',
+  '|': 'i',
+  '+': 't',
+};
+
+function fuzzyCharacterValue(character: string): string | null {
+  const lower = character.toLocaleLowerCase('de-DE');
+  const decomposed = lower.normalize('NFD').replace(/\p{Mark}/gu, '');
+  if (decomposed.length !== 1) return null;
+  const alias = fuzzyCharacterAliases[decomposed];
+  if (alias !== undefined) return alias;
+  return /[\p{L}\p{N}]/u.test(decomposed) ? decomposed : null;
+}
+
+function fuzzyInputRuns(input: string): readonly (readonly FuzzyInputCharacter[])[] {
+  const runs: FuzzyInputCharacter[][] = [];
+  let currentRun: FuzzyInputCharacter[] = [];
+  let offset = 0;
+  for (const character of input) {
+    const start = offset;
+    offset += character.length;
+    const value = fuzzyCharacterValue(character);
+    if (value === null) {
+      if (currentRun.length > 0) runs.push(currentRun);
+      currentRun = [];
+      continue;
+    }
+    currentRun.push({ value, start, end: offset });
+  }
+  if (currentRun.length > 0) runs.push(currentRun);
+  return runs;
+}
+
+function fuzzyTokenValues(token: string): readonly string[] | null {
+  const values: string[] = [];
+  for (const character of token) {
+    const value = fuzzyCharacterValue(character);
+    if (value === null) return null;
+    values.push(value);
+  }
+  return values;
+}
+
+function boundedDamerauDistance(
+  left: readonly string[],
+  right: readonly string[],
+  maximum: number,
+): number | null {
+  if (Math.abs(left.length - right.length) > maximum) return null;
+  const distances = Array.from({ length: left.length + 1 }, () =>
+    Array.from({ length: right.length + 1 }, () => 0),
+  );
+  const getDistance = (leftIndex: number, rightIndex: number): number => {
+    const row = distances[leftIndex];
+    const value = row?.[rightIndex];
+    if (value === undefined) {
+      throw new Error('Damerau distance matrix invariant violated.');
+    }
+    return value;
+  };
+  const setDistance = (leftIndex: number, rightIndex: number, value: number): void => {
+    const row = distances[leftIndex];
+    if (row === undefined) {
+      throw new Error('Damerau distance matrix invariant violated.');
+    }
+    row[rightIndex] = value;
+  };
+  for (let leftIndex = 0; leftIndex <= left.length; leftIndex += 1) {
+    setDistance(leftIndex, 0, leftIndex);
+  }
+  for (let rightIndex = 0; rightIndex <= right.length; rightIndex += 1) {
+    setDistance(0, rightIndex, rightIndex);
+  }
+  for (let leftIndex = 1; leftIndex <= left.length; leftIndex += 1) {
+    for (let rightIndex = 1; rightIndex <= right.length; rightIndex += 1) {
+      const substitutionCost = left[leftIndex - 1] === right[rightIndex - 1] ? 0 : 1;
+      let distance = Math.min(
+        getDistance(leftIndex - 1, rightIndex) + 1,
+        getDistance(leftIndex, rightIndex - 1) + 1,
+        getDistance(leftIndex - 1, rightIndex - 1) + substitutionCost,
+      );
+      if (
+        leftIndex > 1 &&
+        rightIndex > 1 &&
+        left[leftIndex - 1] === right[rightIndex - 2] &&
+        left[leftIndex - 2] === right[rightIndex - 1]
+      ) {
+        distance = Math.min(distance, getDistance(leftIndex - 2, rightIndex - 2) + 1);
+      }
+      setDistance(leftIndex, rightIndex, distance);
+    }
+  }
+  const distance = getDistance(left.length, right.length);
+  return distance <= maximum ? distance : null;
+}
+
+function spansOverlap(
+  left: readonly [number, number],
+  right: readonly [number, number],
+): boolean {
+  return left[0] < right[1] && right[0] < left[1];
+}
+
+function collectFuzzyAccountTermFindings(
+  input: string,
+  authoredAccountTerms: readonly string[],
+  occupiedSpans: readonly (readonly [number, number])[],
+): readonly PasswordSingleFinding[] {
+  const uniqueTerms = [
+    ...new Map(
+      authoredAccountTerms
+        .map((authoredTerm) => authoredTerm.trim())
+        .filter((term) => term.length >= 4)
+        .map((term) => [term.toLocaleLowerCase('de-DE'), term] as const),
+    ).values(),
+  ];
+  const candidates: FuzzySpanCandidate[] = [];
+  for (const [termIndex, term] of uniqueTerms.entries()) {
+    const token = fuzzyTokenValues(term);
+    if (token === null || token.length < 4) continue;
+    const maximumDistance = token.length >= 5 ? 1 : 0;
+    for (const run of fuzzyInputRuns(input)) {
+      for (let start = 0; start < run.length; start += 1) {
+        for (const lengthDelta of [-1, 0, 1]) {
+          const candidateLength = token.length + lengthDelta;
+          const end = start + candidateLength;
+          if (candidateLength < 1 || end > run.length) continue;
+          const distance = boundedDamerauDistance(
+            token,
+            run.slice(start, end).map(({ value }) => value),
+            maximumDistance,
+          );
+          if (distance === null) continue;
+          candidates.push({
+            start: run[start]?.start ?? 0,
+            end: run[end - 1]?.end ?? 0,
+            distance,
+            lengthDelta,
+            termIndex,
+          });
+        }
+      }
+    }
+  }
+
+  candidates.sort(
+    (left, right) =>
+      left.distance - right.distance ||
+      Math.abs(left.lengthDelta) - Math.abs(right.lengthDelta) ||
+      right.end - right.start - (left.end - left.start) ||
+      left.start - right.start ||
+      left.termIndex - right.termIndex,
+  );
+
+  const findings: PasswordSingleFinding[] = [];
+  const occupied = [...occupiedSpans];
+  for (const candidate of candidates) {
+    const span: readonly [number, number] = [candidate.start, candidate.end];
+    if (occupied.some((occupiedSpan) => spansOverlap(occupiedSpan, span))) continue;
+    occupied.push(span);
+    findings.push(
+      finding(
+        input,
+        'account-or-service-term',
+        candidate.start,
+        candidate.end,
+        'bounded-heuristic',
+        findings.length,
+      ),
+    );
+  }
+  return findings;
+}
+
 function collectYears(input: string): readonly PasswordSingleFinding[] {
   return [...input.matchAll(/(?:19|20)\d{2}/gu)].map((match, ordinal) => {
     const start = match.index;
@@ -378,11 +577,23 @@ export function analyzeFictionalPassword({
     fictionalPassword,
     trimmedAccountTerms,
   );
+  const exactAccountTermSpans: Array<readonly [number, number]> = [];
+  for (const item of exactAccountTermFindings) {
+    for (const evidence of item.evidence) {
+      if (evidence.type === 'span') exactAccountTermSpans.push([evidence.start, evidence.end]);
+    }
+  }
+  const fuzzyAccountTermFindings = collectFuzzyAccountTermFindings(
+    fictionalPassword,
+    trimmedAccountTerms,
+    exactAccountTermSpans,
+  );
   const yearFindings = collectYears(fictionalPassword);
   const numberedWordSequenceFindings = collectNumberedWordSequences(fictionalPassword);
   const findings = deduplicateAndSortFindings([
     ...guessPathFindings,
     ...exactAccountTermFindings,
+    ...fuzzyAccountTermFindings,
     ...yearFindings,
     ...numberedWordSequenceFindings,
     ...collectTypicalSuffix(fictionalPassword),

@@ -320,7 +320,7 @@ const participantInformationSchema = z
 const sessionClosureContentSchema = z
   .object({
     heading: participantTextSchema,
-    paragraphs: z.array(participantTextSchema).min(1).max(5),
+    paragraphs: z.array(participantTextSchema).min(1).max(7),
     actionLabel: participantTextSchema,
   })
   .strict();

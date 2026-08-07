@@ -89,6 +89,77 @@ describe('S05 component strategy presentation', () => {
     });
   });
 
+  it('keeps a complete candidate decisive when another candidate covers only part', () => {
+    const password = 'Passwort123!';
+    const view = createCanonicalPasswordView(
+      password,
+      analysisWithFindings([
+        {
+          id: 'complete',
+          kind: 'common-password-core',
+          evidence: [{ type: 'span', start: 0, end: password.length, token: password }],
+          explanationId: 's05.common-password-core',
+          confidence: 'bounded-heuristic',
+        },
+        {
+          id: 'partial',
+          kind: 'simple-character-sequence',
+          evidence: [{ type: 'span', start: 8, end: 11, token: '123' }],
+          explanationId: 's05.simple-character-sequence',
+          confidence: 'bounded-heuristic',
+        },
+      ]),
+    );
+
+    expect(
+      summarizeCategoryCandidates(view, view.automaticFindings['common-components']),
+    ).toMatchObject({
+      candidateCount: 2,
+      coversWholePassword: true,
+      hasSingleCandidateMatch: true,
+    });
+  });
+
+  it('keeps a date atomic when it contains a separately recognized year', () => {
+    const password = 'melinda01012005!';
+    const view = createCanonicalPasswordView(
+      password,
+      analysisWithFindings([
+        {
+          id: 'date',
+          kind: 'date',
+          evidence: [{ type: 'span', start: 7, end: 15, token: '01012005' }],
+          explanationId: 's05.date',
+          confidence: 'bounded-heuristic',
+        },
+        {
+          id: 'year',
+          kind: 'year',
+          evidence: [{ type: 'span', start: 11, end: 15, token: '2005' }],
+          explanationId: 's05.year',
+          confidence: 'bounded-heuristic',
+        },
+        {
+          id: 'suffix',
+          kind: 'typical-suffix',
+          evidence: [{ type: 'span', start: 7, end: password.length, token: '01012005!' }],
+          explanationId: 's05.typical-suffix',
+          confidence: 'bounded-heuristic',
+        },
+      ]),
+    );
+
+    expect(view.blocks.map(({ value }) => value)).toEqual(['melinda', '01012005', '!']);
+    expect(view.automaticFindings['common-components']).toHaveLength(1);
+    expect(
+      projectCanonicalPasswordBlocks(
+        view,
+        view.automaticFindings['common-components'],
+        false,
+      ).filter(({ labels }) => labels.length > 0),
+    ).toMatchObject([{ value: '01012005', labels: ['naheliegende Jahreszahl'] }]);
+  });
+
   it('projects a recognized word sequence as three variant blocks', () => {
     const password = 'wort1-wort2-wort3';
     const view = createCanonicalPasswordView(
@@ -118,20 +189,20 @@ describe('S05 component strategy presentation', () => {
   });
 
   it('keeps personal selection atomic and groups its directly adjacent suffix afterwards', () => {
-    const password = 'Idee123!';
+    const password = 'melinda123!';
     const view = createCanonicalPasswordView(
       password,
       analysisWithFindings([
         {
           id: 'suffix-only',
           kind: 'typical-suffix',
-          evidence: [{ type: 'span', start: 4, end: password.length, token: '123!' }],
+          evidence: [{ type: 'span', start: 7, end: password.length, token: '123!' }],
           explanationId: 's05.typical-suffix',
           confidence: 'bounded-heuristic',
         },
       ]),
     );
-    expect(view.blocks.map(({ value }) => value)).toEqual(['Idee', '123!']);
+    expect(view.blocks.map(({ value }) => value)).toEqual(['melinda', '123!']);
 
     const personal = createPersonalFindings(view, [view.blocks[0]?.id ?? '']);
     const displayed = projectCanonicalPasswordBlocks(view, personal, false).filter(

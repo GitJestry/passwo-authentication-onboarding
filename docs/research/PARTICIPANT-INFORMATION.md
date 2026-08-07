@@ -158,6 +158,17 @@ wurde. Ohne Auswahl wird die Hauptstudie ohne Kontaktregistrierung angelegt.
 > Passwortmanager können solche Passwörter erzeugen und verwalten. MFA/2FA ergänzt das Passwort um
 > mindestens einen weiteren Faktor aus einer anderen Kategorie, ersetzt diese Empfehlung aber
 > nicht.
+>
+> **Studie weiterempfehlen**
+>
+> Du kennst weitere Personen aus dem Hochschulbereich, die möglicherweise an der Studie
+> teilnehmen möchten? Dann kannst du ihnen gerne den allgemeinen Studienaufruf oder den
+> folgenden Link weiterleiten.
+>
+> Die Weitergabe ist vollständig freiwillig. Bitte übermittle uns keine Namen oder
+> Kontaktdaten anderer Personen. Damit ihre Bearbeitung nicht beeinflusst wird, erzähle ihnen
+> bitte noch keine Einzelheiten zu den Aufgaben, Antwortmöglichkeiten oder der genauen
+> Forschungsfrage.
 
 Mit freiwilliger Kontaktregistrierung endet sie mit:
 

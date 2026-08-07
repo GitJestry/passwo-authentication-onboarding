@@ -1175,6 +1175,7 @@ function renderScene(
       );
     case 'personal-details-opening':
     case 'personal-details-derivation':
+    case 'personal-details-examples':
     case 'personal-details-intro':
       return (
         <ComponentMachineScene>
@@ -1278,7 +1279,7 @@ function commonComponentsResult(snapshot: S05AnalysisControllerSnapshot): readon
     ...(candidateSummary.hasSingleCandidateMatch
       ? [content.results.completeSingleCandidate]
       : candidateSummary.coversWholePassword
-        ? [content.results.completeMultipleCandidates]
+        ? [content.results.completeCombinedMatches]
         : []),
     content.transition,
   ];
@@ -1305,7 +1306,7 @@ function personalDetailsResult(snapshot: S05AnalysisControllerSnapshot): readonl
     ...(candidateSummary?.hasSingleCandidateMatch
       ? [content.results.completeSingleCandidate]
       : candidateSummary?.coversWholePassword
-        ? [content.results.completeMultipleCandidates]
+        ? [content.results.completeCombinedMatches]
         : []),
     content.transition,
   ];
@@ -1315,7 +1316,7 @@ function accountContextResult(snapshot: S05AnalysisControllerSnapshot): readonly
   const content = s05Content.componentStrategy.accountContext;
   const view = snapshot.componentStrategy.canonicalView;
   const findings = snapshot.componentStrategy.cards['account-context'].findings;
-  if (view === null || findings.length === 0) return [...content.results.none, content.transition];
+  if (view === null || findings.length === 0) return [...content.results.none];
 
   const foundValues = [
     ...new Set(
@@ -1324,7 +1325,7 @@ function accountContextResult(snapshot: S05AnalysisControllerSnapshot): readonly
         .map(({ value }) => value),
     ),
   ];
-  if (foundValues.length === 0) return [...content.results.none, content.transition];
+  if (foundValues.length === 0) return [...content.results.none];
 
   const terms = foundValues.map((value) => `„${value}“`).join(', ');
   const finding = (foundValues.length === 1
@@ -1337,9 +1338,8 @@ function accountContextResult(snapshot: S05AnalysisControllerSnapshot): readonly
     ...(candidateSummary.hasSingleCandidateMatch
       ? [content.results.completeSingleCandidate]
       : candidateSummary.coversWholePassword
-        ? [content.results.completeMultipleCandidates]
+        ? [content.results.completeCombinedMatches]
         : []),
-    content.transition,
   ];
 }
 
@@ -1349,28 +1349,15 @@ function componentSummaryNarration(snapshot: S05AnalysisControllerSnapshot): rea
   const sourceCategoryIds = s05Content.componentStrategy.categories
     .filter(({ id }) => snapshot.componentStrategy.cards[id].status === 'checked-findings')
     .map(({ id }) => id);
-  const sourceCategoryNames = sourceCategoryIds.map((id) => content.categoryNames[id]);
-  if (view === null) return [content.startingPoints, content.none, content.noneTransition];
-  const matchedCategoryIds = s05Content.componentStrategy.categories
-    .filter(({ id }) =>
-      summarizeCategoryCandidates(view, snapshot.componentStrategy.cards[id].findings)
-        .hasSingleCandidateMatch,
-    )
-    .map(({ id }) => id);
-  const verdict =
-    matchedCategoryIds.length > 0 ? content.singleCandidateMatch : content.startingPoints;
-  if (sourceCategoryNames.length === 0) return [verdict, content.none, content.noneTransition];
-  const finalCategory = sourceCategoryNames.at(-1);
-  const categoryList =
-    finalCategory === undefined
-      ? ''
-      : sourceCategoryNames.length === 1
-        ? finalCategory
-        : `${sourceCategoryNames.slice(0, -1).join(', ')} sowie ${finalCategory}`;
-  return [
-    verdict,
-    content.found.replace('[Kategorienamen]', categoryList),
-  ];
+  if (view === null || sourceCategoryIds.length === 0) {
+    return [content.none];
+  }
+  const findings = sourceCategoryIds.flatMap((id) => snapshot.componentStrategy.cards[id].findings);
+  const candidateSummary = summarizeCategoryCandidates(view, findings);
+  if (candidateSummary.candidateCount === 0) return [content.none];
+  if (candidateSummary.hasSingleCandidateMatch) return [content.singleCandidateMatch];
+  if (candidateSummary.coversWholePassword) return [content.combinedMatches];
+  return [content.partialMatches];
 }
 
 function speechFor(
@@ -1404,6 +1391,8 @@ function speechFor(
       return s05Content.componentStrategy.personalDetails.opening;
     case 'personal-details-derivation':
       return s05Content.componentStrategy.personalDetails.derivation;
+    case 'personal-details-examples':
+      return s05Content.componentStrategy.personalDetails.examples;
     case 'personal-details-intro':
       return s05Content.componentStrategy.personalDetails.explanation;
     case 'personal-details-result':

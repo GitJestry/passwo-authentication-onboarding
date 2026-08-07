@@ -1611,7 +1611,7 @@
   background: var(--color-surface-analysis);
   text-align: center;
   pointer-events: auto;
-  animation: category-transition 2.6s linear forwards;
+  animation: category-transition 2s linear forwards;
 }
 
 .categoryTransitionPanel {
@@ -1626,7 +1626,7 @@
   border-radius: 0;
   background: var(--color-surface-analysis);
   box-shadow: none;
-  animation: category-transition-content 2.6s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  animation: category-transition-content 2s cubic-bezier(0.22, 1, 0.36, 1) forwards;
 }
 
 .categoryTransitionPanel img {

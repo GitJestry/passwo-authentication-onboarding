@@ -2,7 +2,7 @@
 
 - **Status:** Accepted
 - **Datum:** 2026-08-03
-- **Ergänzt am:** 2026-08-05 um flüchtige fiktive Kontoidentifikatoren
+- **Ergänzt am:** 2026-08-06 um flüchtige fiktive Kontoidentifikatoren und begrenzte authored Fuzzy-Erkennung
 - **Citation label:** `ADR 0014-Bounded-Password-Guessing`
 - **Ergänzt:** ADR 0002, ADR 0003 und ADR 0007
 
@@ -56,9 +56,12 @@ eine kürzere nicht erkannte Zeichenfolge wird umgekehrt nicht als sicher zertif
 
 Die automatische Darstellung darf ausschließlich belegte Pattern benennen, etwa häufige
 Passwortkerne, Wörter, Namen, Tastaturmuster, Folgen, Daten, Wiederholungen, typische
-Transformationen, authored Konto- oder Dienstbegriffe und exakte Treffer der lokalen fiktiven
-Kontoidentifikatoren. Persönliche Bedeutung, gemeinsames Thema und Satz- oder Phrasenstruktur
-werden nicht aus der Zeichenfolge behauptet. Dafür enthält S05 eine lokale Selbsteinordnung mit
+Transformationen, authored Konto- oder Dienstbegriffe und Treffer der lokalen fiktiven
+Kontoidentifikatoren. Authored Kontextbegriffe dürfen zusätzlich case-insensitive, über die
+festgelegten Leetspeak-Ersetzungen und mit höchstens einer einzelnen Damerau-Levenshtein-
+Abweichung für Tokens ab fünf Zeichen erkannt werden. Diese begrenzte Matcherweiterung beeinflusst
+nicht die vollständige zxcvbn-Guessing-Entscheidung. Persönliche Bedeutung, gemeinsames Thema und
+Satz- oder Phrasenstruktur werden nicht aus der Zeichenfolge behauptet. Dafür enthält S05 eine lokale Selbsteinordnung mit
 der ausdrücklichen Ausweichoption
 `Nichts davon oder unsicher`. Sie bleibt flüchtig, verlangt keine inhaltlichen Details und
 verändert die binäre Simulationsentscheidung nicht.

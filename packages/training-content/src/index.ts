@@ -1,4 +1,5 @@
 export * from './manifest.js';
+export * from './account-context-terms.js';
 export * from './s00.js';
 export * from './s01.js';
 export * from './s02.js';

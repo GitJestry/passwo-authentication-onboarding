@@ -937,3 +937,118 @@ Analysegrenzen, flüchtigen Auswahlzustände und Hervorhebungsgrenzen bleiben un
 | `S05.componentStrategy.presentation.reviewCardTitle`-Ansicht | Prüfungskarte am rechten Rand auf halber Höhe | Prüfungskarte am linken Rand bei 75 % Abstand zur unteren Kante | Orientierung | spiegelt die bestehende Randdistanz horizontal und verschiebt die Karte an die ausdrücklich gewünschte obere Position | bestehende Karteninhalte und Befunde bleiben unverändert |
 | `S05.intro.narration.strategyTargeting`-Ansicht | annotierte Darstellung des Beispielpassworts mit Satzaufbau | die bekannten Bausteine werden nacheinander mit Punkten verdeckt, verkleinert und als farbstabile Kandidatenversuche unterschiedlicher Länge und Reihenfolge zwischen Campusgram-Passwort und Angreifer gezeigt | Mechanismuserklärung | verbindet die Bausteinansicht mit der folgenden Kandidatenbildung, ohne Bestandteile des fiktiven Passworts offenzulegen | keine neue Analyseentscheidung; `prefers-reduced-motion` zeigt unmittelbar die Kandidatenansicht |
 | `s05-components-summary` | Kategoriebegriffe im Satz `Erkannt wurden Bestandteile aus ...` hervorgehoben | Kategoriebegriffe bleiben unmarkiert | Ergebnisfeedback | reduziert die konkurrierende zweite Leseschicht in der abschließenden Auswertung | keine Hervorhebung im Auswertungssatz |
+
+### Copy-Delta S05 authored Kontextbegriffe und begrenzte Fuzzy-Erkennung 6. August 2026
+
+Quelle ist der ausdrückliche Nutzerauftrag vom 6. August 2026. Die Änderung erweitert die bereits
+vorhandenen authored Konto-, Dienst- und Umfeldbegriffe und ergänzt die lokale Darstellung um
+eine begrenzte, deterministische Erkennung üblicher Leetspeak-Schreibweisen sowie höchstens einer
+einzelnen Zeichenabweichung. Teilnehmertexte, Persistenz, Export und die vollständige
+Quick-Path-Entscheidung bleiben unverändert. `S05_CONTENT_VERSION` wird von `2.31.0` auf `2.32.0`
+und die lokale Analysekonfiguration von `passwo-bounded-guess-path-v4` auf
+`passwo-bounded-guess-path-v5` erhöht.
+
+| Segment und Text-ID | Vorher | Nachher | Primäre Rolle | Grund und Bedeutungsänderung | Interaktionsziel / Hervorhebung |
+|---|---|---|---|---|---|
+| `S05.analysis.authoredAccountTerms` und `accountContext.machine.conveyorBlocks` | begrenzte Campusgram-Begriffe mit exakter Trefferprüfung | erweiterter authored Kontext mit expliziten Varianten und fuzzy erkannten Formen wie `Chat`/`ch4t!` | fachlicher Kontext / Ergebnisfeedback | deckt passende Konto-, Dienst- und Umfeldbezüge sowie übliche veränderte Schreibweisen ab, ohne freie semantische Ähnlichkeit zu behaupten | bestehende lokale Prüfung; erkannter Originalspan wird markiert |
+| authored Konto-/Dienst-Matcher | ausschließlich case-insensitive exakte Spans | Case-Folding, begrenzte Leetspeak-Normalisierung und maximal eine Damerau-Levenshtein-Abweichung für Tokens ab fünf Zeichen | Analysegrenze | deterministische Erweiterung der bestehenden lokalen Heuristik; keine externe Suche und keine Änderung des vollständigen Ratewegs | keine neue Interaktion |
+
+### Copy-Delta S05 persönliche Relevanz und Zusammenfassungstitel 6. August 2026
+
+Quelle ist der ausdrückliche Nutzerauftrag vom 6. August 2026. Die drei bestehenden Sprechschritte
+für persönliche Angaben, ihre bestehenden Hervorhebungen, die lokale Auswahl sowie Analyse- und
+Persistenzgrenzen bleiben erhalten. Die Änderung ergänzt die persönliche Relevanz der Erklärung,
+präzisiert den WLAN-Kontext und benennt die erste Prüfungskarte als Zusammenfassung.
+`S05_CONTENT_VERSION` wird von `2.32.0` auf `2.33.0` erhöht.
+
+| Segment und Text-ID | Vorher | Nachher | Primäre Rolle | Grund und Bedeutungsänderung | Interaktionsziel / Hervorhebung |
+|---|---|---|---|---|---|
+| `S05.componentStrategy.personalDetails.opening` | allgemeine Erklärung zu Merkbarkeit und besonderer Bedeutung für die teilnehmende Person | Erklärung zu Merkbarkeit, Geheimwirkung und nachvollziehbarer Einschätzung möglicher Erratbarkeit | Mechanismuserklärung | ausdrücklich vorgegebene persönlich relevante Formulierung; keine Aussage über ein reales Passwort | bestehende Hervorhebung `Persönliche Angaben` bleibt erhalten |
+| `S05.componentStrategy.personalDetails.derivation` | mögliche Zuordnung einer Person und Ableitung aus Profilen, Datenlecks oder Umfeld | persönlicher Konto-/Datenleckkontext mit Benutzernamen, E-Mail-Adresse und weiteren Kontohinweisen sowie Beispielen für ableitbare Bezüge | Mechanismuserklärung | macht den möglichen Zuordnungsschritt für die teilnehmende Person nachvollziehbar, ohne reale Angaben abzufragen | keine zusätzliche Hervorhebung |
+| `S05.componentStrategy.personalDetails.explanation` | begrenzte Trainingsmodul-Erkennung und eigene Auswahl | ausdrückliche eigene Auswahl realistischer Angaben für das fiktive Beispiel | Safety Boundary / Navigation | verbindet die Geltungsgrenze mit der konkreten lokalen Handlung | bestehende Hervorhebung `persönlichen Angaben` bleibt erhalten |
+| `S05.componentStrategy.commonComponents.transition` | `Als Nächstes schauen wir, ob im Passwort persönliche Angaben enthalten sind.` | `Als Nächstes schauen wir, ob dein fiktives Passwort persönliche Angaben enthält.` | Navigation | bindet den Kategorieübergang an das sichtbare fiktive Passwort | keine zusätzliche Hervorhebung |
+| `S05.componentStrategy.accountContext.explanation[0]` | `Bei einem WLAN könnten es „WLAN“, „Router“ oder „Fritzbox“ sein.` | `Bei einem WLAN-Passwort könnten es „WLAN“, „Router“ oder „Fritzbox“ sein.` | Mechanismuserklärung | präzisiert den Bezug der Beispiele | keine zusätzliche Hervorhebung |
+| `S05.componentStrategy.presentation.reviewCardTitle` | `Prüfungskarte 1` | `Zusammenfassung` | Orientierung | benennt die fortlaufende Karte nach ihrer sichtbaren Funktion | bestehende Befundmarkierungen bleiben unverändert |
+
+### Copy-Delta S05 Ergebnisübergänge und zweisekündige Übergangskarten 6. August 2026
+
+Quelle ist der ausdrückliche Nutzerauftrag vom 6. August 2026. Die Ergebnisformulierungen
+unterscheiden nun einen vollständigen Einzelkandidaten von mehreren zusammengeführten
+Übereinstimmungen. Die Kategorieübergangskarten bleiben zwei Sekunden sichtbar. Die
+Erkennungslogik, Reihenfolge, Persistenz und Analysegrenzen bleiben unverändert.
+`S05_CONTENT_VERSION` wird von `2.34.0` auf `2.35.0` erhöht.
+
+| Segment und Text-ID | Vorher | Nachher | Primäre Rolle | Grund und Bedeutungsänderung | Interaktionsziel / Hervorhebung |
+|---|---|---|---|---|---|
+| `S05.componentStrategy.*.results.completeSingleCandidate` | frühere Einzelkandidatenformulierung | `Die gefundene Übereinstimmung deckt bereits die gesamte Zeichenfolge ab.` plus anschließende Erklärung des gefundenen vollständigen Passwortkandidaten | Ergebnisfeedback | ausdrücklich vorgegebene Differenzierung und Einordnung des weiteren Angriffswegs; begrenzte Bedeutungspräzisierung | kein Interaktionsziel / keine Hervorhebung |
+| `S05.componentStrategy.*.results.completeCombinedMatches` | `completeMultipleCandidates` mit mehreren Kandidaten | `Mehrere gefundene Übereinstimmungen decken gemeinsam die gesamte Zeichenfolge ab.` plus anschließende Erklärung der nötigen Reihenfolge und Form | Ergebnisfeedback | ersetzt die frühere Kandidatenzählung durch die sichtbare Zusammensetzung; begrenzte Bedeutungspräzisierung | kein Interaktionsziel / keine Hervorhebung |
+| `S05.componentStrategy.accountContext.transition` | `Damit sind die drei Arten von Passwortbestandteilen geprüft.` | entfällt; der gemeinsame Übergang erscheint einmal in der abschließenden Zusammenfassung | Orientierung | entfernt den ausdrücklich zu löschenden Satz und vermeidet eine vorgezogene Wiederholung | kein Interaktionsziel / keine Hervorhebung |
+| `S05.componentStrategy.summary.transition` | nicht vorhanden | gemeinsamer Übergang zu typischen Anordnungs- und Kombinationsmustern | Orientierung / Mechanismuserklärung | verbindet die drei geprüften Bestandteilarten mit dem nächsten S05-Abschnitt | `Weiter`; keine Hervorhebung |
+| S05-Kategorieübergangskarten | `2.6s` CSS-Animationsdauer | `2s` CSS-Animationsdauer | Orientierung | ausdrücklich verlangte kürzere Sichtbarkeit | keine zusätzliche Interaktion |
+
+### Copy-Delta S05 Ergebnisformulierungen der Passwortbestandteilprüfung 6. August 2026
+
+Quelle ist der ausdrückliche Nutzerauftrag vom 6. August 2026. Die fünf Ergebnisfälle der
+Passwortbestandteilprüfung werden sprachlich präzisiert; Erkennungslogik, Reihenfolge,
+Persistenz und Analysegrenzen bleiben unverändert. `S05_CONTENT_VERSION` wird von `2.33.0`
+auf `2.34.0` erhöht.
+
+| Segment und Text-ID | Vorher | Nachher | Primäre Rolle | Grund und Bedeutungsänderung | Interaktionsziel / Hervorhebung |
+|---|---|---|---|---|---|
+| `S05.componentStrategy.accountContext.results.none` | `Das entscheidet noch nicht über die gesamte Zeichenfolge.` | `Das sagt noch nichts über die gesamte Zeichenfolge aus.` | Ergebnisfeedback | ausdrücklich gewählte, natürlichere Einordnung ohne Bedeutungsänderung | kein Interaktionsziel / keine Hervorhebung |
+| `S05.componentStrategy.accountContext.results.foundOne` | Formulierung über einen Begriff, der zu Campusgram passt | `[Begriffe] wurde in deinem Passwort als Begriff mit Bezug zu Campusgram erkannt.` | Ergebnisfeedback | ausdrücklich gewählte, zusammenfassende Ergebnisformulierung; keine Bedeutungsänderung | kein Interaktionsziel / keine Hervorhebung |
+| `S05.componentStrategy.accountContext.results.foundMany` | Formulierung über mehrere Begriffe, die zu Campusgram passen | `[Begriffe] wurden in deinem Passwort als Begriffe mit Bezug zu Campusgram erkannt.` | Ergebnisfeedback | ausdrücklich gewählte Pluralformulierung; keine Bedeutungsänderung | kein Interaktionsziel / keine Hervorhebung |
+| `S05.componentStrategy.*.results.completeSingleCandidate` | `In dieser Prüfung konnte die gesamte Zeichenfolge als ein Kandidat erkannt werden.` | `Der erkannte Bezug erklärt bereits die gesamte Zeichenfolge als einen möglichen Kandidaten.` | Ergebnisfeedback | ausdrücklich gewählte Erklärung des vollständigen Einzelkandidaten; begrenzte Bedeutungspräzisierung durch `möglichen` | kein Interaktionsziel / keine Hervorhebung |
+| `S05.componentStrategy.*.results.completeMultipleCandidates` | `In dieser Prüfung konnten alle Bestandteile des Passworts erkannt werden. Sie bilden jedoch mehrere Kandidaten.` | `Die gesamte Zeichenfolge konnte aus bekannten Bestandteilen zusammengesetzt werden. Dafür gibt es jedoch mehrere Kandidaten.` | Ergebnisfeedback | ausdrücklich gewählte zusammengefasste Formulierung; keine Bedeutungsänderung | kein Interaktionsziel / keine Hervorhebung |
+
+### Copy-Delta S05 Ergebnisrückmeldungen und Zusammenfassung 6. August 2026
+
+Quelle ist der ausdrückliche Nutzerauftrag vom 6. August 2026. Einzelprüfungen nennen nur noch
+ihre unmittelbar erkannten Bestandteile; die Einordnung der vollständigen oder teilweisen
+Abdeckung erfolgt ausschließlich in der abschließenden Zusammenfassung. `S05_CONTENT_VERSION`
+wird von `2.35.0` auf `2.36.0` erhöht.
+
+| Segment und Text-ID | Vorher | Nachher | Primäre Rolle | Grund und Bedeutungsänderung | Interaktionsziel / Hervorhebung |
+|---|---|---|---|---|---|
+| `S05.componentStrategy.*.results.completeSingleCandidateExplanation` | Einzelprüfung erklärte zusätzlich, dass das vollständige Passwort bereits als Kandidat gefunden wurde | entfällt aus den Einzelprüfungen | Ergebnisfeedback | ausdrücklich verlangte Verlagerung der vollständigen Einordnung in die Zusammenfassung | kein Interaktionsziel / keine Hervorhebung |
+| `S05.componentStrategy.*.results.completeCombinedMatchesExplanation` | Einzelprüfung erklärte die Zusammensetzung mehrerer Treffer | `Die gefundenen Übereinstimmungen zeigen bereits, aus welchen Teilen dein Passwort gebildet wurde. Gefunden ist es dadurch noch nicht. Das Programm muss sie erst in der passenden Reihenfolge und Form zu einem vollständigen Passwortkandidaten verbinden.` erscheint nur in der Zusammenfassung | Ergebnisfeedback | ausdrücklich verlangte zeitliche Bündelung am Ende der drei Prüfungen; begrenzte Bedeutungsänderung | kein Interaktionsziel / keine Hervorhebung |
+| `S05.componentStrategy.summary.partialMatches` | kein eigener Fall für mindestens einen, aber noch nicht vollständige Abdeckung | `Die gefundenen Übereinstimmungen decken bislang nur einen Teil der Zeichenfolge ab. Das Programm erzeugt daraus weitere vollständige Passwortkandidaten, indem es zusätzliche Zeichenfolgen, Anordnungen und Veränderungen ausprobiert.` | Ergebnisfeedback | unterscheidet partielle Abdeckung von vollständiger Mehrfachabdeckung; ausdrücklich freigegeben | kein Interaktionsziel / keine Hervorhebung |
+| `S05.componentStrategy.summary.found`, `categoryNames` | gesprochene Auflistung `Erkannt wurden Bestandteile aus ...` | entfällt aus der Zusammenfassung | Ergebnisfeedback | ausdrücklich verlangte Entfernung der Kategorienliste aus dem gesprochenen Abschluss | kein Interaktionsziel / keine Hervorhebung |
+| `S05.componentStrategy.summary.startingPoints` | `Das waren alles nur Ausgangspunkte. Sie zeigen, welche Bestandteile der Angreifer früh ausprobieren könnte.` | entfällt; die Zusammenfassung unterscheidet nun keinen Treffer, partielle Abdeckung, vollständige Einzelabdeckung und vollständige Mehrfachabdeckung | Ergebnisfeedback / Safety Boundary | ersetzt durch die ausdrücklich vorgegebenen, fallbezogenen Rückmeldungen | kein Interaktionsziel / keine Hervorhebung |
+| `S05.componentStrategy.personalDetails.derivation` | Zuordnung und mögliche persönliche Ableitungen in einem Sprechschritt | der Satz zu möglichen persönlichen Bezügen erhält einen eigenen nächsten Sprechschritt | Mechanismuserklärung | trennt Zuordnung vom Beispielkatalog und reduziert die Textlast pro Sprechblase | `Weiter`; keine Hervorhebung |
+| `S05.componentStrategy.summary.transition` | `Angreifer prüfen nämlich nicht nur häufig gewählte Zeichenfolgen, persönliche Angaben oder Bezüge zum Konto. Sie berücksichtigen auch typische Muster, mit denen Menschen solche Elemente zu leichter merkbaren Passwörtern anordnen und kombinieren.` | entfällt aus der Zusammenfassung; der anschließende Schritt verwendet den bestehenden Text `Der Angreifer aber, prüft nicht nur Wörter und andere Bestandteile, die Menschen häufig wählen. Er nutzt auch aus, dass Menschen diese oft nach vorhersehbaren Mustern miteinander kombinieren, um sie sich besser merken zu können.` | Mechanismuserklärung | vermeidet die doppelte Ansage und hält den Aufbauübergang als eigenen nächsten Sprechschritt | `Weiter`; keine Hervorhebung |
+
+### Copy-Delta S05 Sprechschritte, Ergebnisgrenzen und Komponentenstatus 6. August 2026
+
+Quelle ist der ausdrückliche Nutzerauftrag vom 6. August 2026. Der Beispielkatalog zu
+persönlichen Angaben wird technisch als eigener nachfolgender Sprechschritt umgesetzt. Die
+Rückmeldung ohne Treffer und der Übergang zu Anordnungsmustern erhalten den vorgegebenen
+Wortlaut. Die gleichzeitig beauftragten Logikkorrekturen verändern keine weiteren
+Teilnehmertexte, keine Persistenz und keine Analysegrenze. `S05_CONTENT_VERSION` wird von
+`2.36.0` auf `2.37.0` erhöht.
+
+| Segment und Text-ID | Vorher | Nachher | Primäre Rolle | Grund und Bedeutungsänderung | Interaktionsziel / Hervorhebung |
+|---|---|---|---|---|---|
+| `S05.componentStrategy.personalDetails.derivation[1]` | zweiter Absatz derselben Sprechblase | unveränderter Wortlaut in `personalDetails.examples[0]` als eigener nächster Sprechschritt | Mechanismuserklärung | ausdrücklich verlangte Trennung; keine Bedeutungsänderung | `Weiter`; keine Hervorhebung |
+| `S05.componentStrategy.commonComponents.results.none[1]` | `Das entscheidet noch nicht über die gesamte Zeichenfolge.` | entfällt | Ergebnisfeedback | ausdrücklich verlangte Entfernung aus der Einzelprüfung | kein Interaktionsziel / keine Hervorhebung |
+| `S05.componentStrategy.summary.none`, `noneTransition` | `In den drei Arten wurde kein naheliegender Bestandteil erkannt.` plus `Das entscheidet noch nicht über die gesamte Zeichenfolge.` | `Bei den bisherigen Prüfungen wurde keine Übereinstimmung gefunden. Der Angreifer hat damit aber noch nicht alle Möglichkeiten ausgeschöpft.` | Ergebnisfeedback | ausdrücklich vorgegebene Ersatzformulierung; begrenzte Bedeutungspräzisierung | `Weiter`; keine Hervorhebung |
+| `S05.structure.intro[0]` | `Der Angreifer aber, prüft nicht nur Wörter und andere Bestandteile, die Menschen häufig wählen. Er nutzt auch aus, dass Menschen diese oft nach vorhersehbaren Mustern miteinander kombinieren, um sie sich besser merken zu können.` | `Angreifer prüfen nämlich nicht nur häufig gewählte Zeichenfolgen, persönliche Angaben oder Bezüge zum Konto. Sie berücksichtigen auch typische Muster, mit denen Menschen solche Elemente zu leichter merkbaren Passwörtern anordnen und kombinieren.` | Mechanismuserklärung | ausdrücklich vorgegebene Präzisierung des Übergangs; begrenzte Bedeutungsänderung | `Weiter`; keine Hervorhebung |
+
+Die Komponentenlogik priorisiert einen vollständigen Kandidaten nun vor zusätzlichen
+Teilfunden. Dadurch bleibt ein bereits vollständig erkannter Kandidat auch in der gemeinsamen
+Zusammenfassung vollständig. An eine markierte persönliche Angabe angehängte typische Endungen
+gehören weiterhin zu demselben Kandidaten. Strikt in einem vollständigen Datumsbefund enthaltene
+Jahresbefunde werden für die Bausteindarstellung entfernt, sodass das Datum atomar bleibt.
+
+### Copy-Delta S05 Campusgram-Passwort und gekürztes Ergebnisfeedback 6. August 2026
+
+Quelle ist der ausdrückliche Nutzerauftrag vom 6. August 2026. Der Übergang zur Prüfung
+persönlicher Angaben benennt das sichtbare Campusgram-Passwort. Die zusätzliche Einordnung nach
+einem ergebnislosen Konto-Kontext-Abgleich entfällt. Ablauf, Erkennungslogik, Persistenz und
+Hervorhebungen bleiben unverändert. `S05_CONTENT_VERSION` wird von `2.37.0` auf `2.38.0`
+erhöht.
+
+| Segment und Text-ID | Vorher | Nachher | Primäre Rolle | Grund und Bedeutungsänderung | Interaktionsziel / Hervorhebung |
+|---|---|---|---|---|---|
+| `S05.componentStrategy.commonComponents.transition` | `Als Nächstes schauen wir, ob dein fiktives Passwort persönliche Angaben enthält.` | `Als Nächstes schauen wir, ob dein Campusgram-Passwort persönliche Angaben enthält.` | Navigation | ausdrücklich verlangte Anpassung an das sichtbare Kontopasswort; begrenzte Referenzpräzisierung | `Weiter`; keine Hervorhebung |
+| `S05.componentStrategy.accountContext.results.none[1]` | `Das sagt noch nichts über die gesamte Zeichenfolge aus.` | entfällt | Ergebnisfeedback | ausdrücklich verlangte Entfernung der zusätzlichen Einordnung | kein Interaktionsziel / keine Hervorhebung |

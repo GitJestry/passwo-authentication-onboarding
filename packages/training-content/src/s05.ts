@@ -6,6 +6,7 @@ import type {
   RuntimeStructureFindingKind,
   SimulationQuickPathRuleId,
 } from '@passwo/contracts';
+import { accountContextTerms } from './account-context-terms.js';
 
 export type S05DesignLabFixtureId =
   | 'common-suffix'
@@ -27,7 +28,7 @@ export interface S05DesignLabFixture {
   readonly startSection: 'intro' | 'components' | 'structure';
 }
 
-export const S05_CONTENT_VERSION = '2.30.0';
+export const S05_CONTENT_VERSION = '2.38.0';
 
 export const s05Content = {
   version: S05_CONTENT_VERSION,
@@ -38,9 +39,9 @@ export const s05Content = {
       35,
     ] as const,
     revision:
-      'Userauftrag vom 2026-08-05 · Prüfungskartenposition, S05-Titel und Varianten-/Kontextcopy',
+      'Userauftrag vom 2026-08-06 · Campusgram-Passwort und gekürztes Ergebnisfeedback',
     copyReference:
-      'docs/design/S00-S05-COPY-AUDIT.md#copy-delta-s05-kartenposition-titel-und-kontextcopy-5-august-2026',
+      'docs/design/S00-S05-COPY-AUDIT.md#copy-delta-s05-campusgram-passwort-und-gekuerztes-ergebnisfeedback-6-august-2026',
   },
   segment: {
     id: 'S05',
@@ -54,14 +55,7 @@ export const s05Content = {
     tab: { id: 'analysis', label: 'Passwortwege', enabled: true },
   },
   analysis: {
-    authoredAccountTerms: [
-      'Campusgram',
-      'Campus',
-      'Nachrichten',
-      'Gruppen',
-      'Kontakte',
-      'Beiträge',
-    ] as const,
+    authoredAccountTerms: accountContextTerms.campusgram,
   },
   page: {
     title: 'Häufig verwendete Passwörter und Zeichenfolgen',
@@ -132,7 +126,7 @@ export const s05Content = {
     presentation: {
       categoriesAriaLabel: 'Drei Arten von Passwortbestandteilen',
       canonicalAriaLabel: 'Stabile Bausteinansicht des fiktiven Passworts',
-      reviewCardTitle: 'Prüfungskarte 1',
+      reviewCardTitle: 'Zusammenfassung',
       blockLabel: 'Baustein',
       findingChips: {
         commonPassword: 'häufig verwendetes Passwort',
@@ -173,29 +167,29 @@ export const s05Content = {
       },
       check: 'Passwort prüfen',
       results: {
-        none: [
-          'Hier wurde kein früh geprüfter Bestandteil erkannt.',
-          'Das entscheidet noch nicht über die gesamte Zeichenfolge.',
-        ],
+        none: ['Hier wurde kein früh geprüfter Bestandteil erkannt.'],
         foundOne: '[Teile] wurde durch die Prüfung erkannt.',
         foundMany: '[Teile] wurden durch die Prüfung erkannt.',
         completeSingleCandidate:
-          'In dieser Prüfung konnte die gesamte Zeichenfolge als ein Kandidat erkannt werden.',
-        completeMultipleCandidates:
-          'In dieser Prüfung konnten alle Bestandteile des Passworts erkannt werden. Sie bilden jedoch mehrere Kandidaten.',
+          'Die gefundene Übereinstimmung deckt bereits die gesamte Zeichenfolge ab.',
+        completeCombinedMatches:
+          'Mehrere gefundene Übereinstimmungen decken gemeinsam die gesamte Zeichenfolge ab.',
       },
       transition:
-        'Als Nächstes schauen wir, ob im Passwort persönliche Angaben enthalten sind.',
+        'Als Nächstes schauen wir, ob dein Campusgram-Passwort persönliche Angaben enthält.',
     },
     personalDetails: {
       opening: [
-        'Persönliche Angaben können leicht zu merken sein und wirken oft geheim, weil sie für dich eine besondere Bedeutung haben.',
+        'Persönliche Angaben sind leicht zu merken und wirken oft geheim. Es ist deshalb nachvollziehbar, sie für etwas zu halten, das andere nur schwer erraten können.',
       ],
       derivation: [
-        'Kann der Angreifer die Passwortdaten einer bestimmten Person zuordnen, kann er auch persönliche Angaben in seine Versuche einbeziehen. Namen, Geburtstage, Vereine oder ähnliche Informationen lassen sich manchmal aus öffentlichen Profilen, früheren Datenlecks oder dem Umfeld ableiten.',
+        'Bei einem Datenleck liegen deine gespeicherten Passwortdaten jedoch häufig zusammen mit deinem Benutzernamen, deiner E-Mail-Adresse oder weiteren Kontohinweisen vor. Angreifer wissen dadurch bereits, zu welchem Konto deine Passwortdaten gehören, und können gezielt wahrscheinliche Passwortkandidaten testen.',
+      ],
+      examples: [
+        'Dafür nutzen sie beispielsweise Namen, Geburtsdaten, Vereine, Haustiere, Hobbys oder andere persönliche Bezüge, die sich aus öffentlichen Profilen, früheren Datenlecks oder Informationen aus deinem Umfeld ableiten lassen.',
       ],
       explanation: [
-        'Ein Angreifer könnte einige dieser Angaben kennen oder ableiten. Das Trainingsmodul kann jedoch nicht zuverlässig bestimmen, welche davon auf dich zutreffen. Bitte wähle deshalb selbst die persönlichen Angaben aus.',
+        'Dieses Trainingsmodul kann nicht zuverlässig erkennen, welche Angaben auf dich zutreffen. Wähle deshalb selbst die persönlichen Angaben aus, die für dein Beispiel realistisch wären.',
       ],
       machine: {
         conveyorBlocks: [
@@ -218,9 +212,9 @@ export const s05Content = {
         selected: 'Du hast [Angaben] als persönliche Angabe eingeordnet.',
         none: 'Du hast keine persönliche Angabe eingeordnet.',
         completeSingleCandidate:
-          'In dieser Prüfung konnte die gesamte Zeichenfolge als ein Kandidat erkannt werden.',
-        completeMultipleCandidates:
-          'In dieser Prüfung konnten alle Bestandteile des Passworts erkannt werden. Sie bilden jedoch mehrere Kandidaten.',
+          'Die gefundene Übereinstimmung deckt bereits die gesamte Zeichenfolge ab.',
+        completeCombinedMatches:
+          'Mehrere gefundene Übereinstimmungen decken gemeinsam die gesamte Zeichenfolge ab.',
       },
       transition: 'Als Nächstes prüfen wir, ob Begriffe direkt zum Konto passen.',
     },
@@ -233,6 +227,15 @@ export const s05Content = {
           'gruppe',
           'kontakte',
           'beitrag',
+          'chat',
+          'instagram',
+          'socials',
+          'soziale',
+          'uni',
+          'hochschule',
+          'profil',
+          'community',
+          'netzwerk',
         ] as const,
       },
       opening: [
@@ -240,43 +243,32 @@ export const s05Content = {
         'Bei Campusgram wären zum Beispiel Begriffe wie Campus, Nachricht, dein Benutzername oder der Dienstname naheliegend.',
       ],
       explanation: [
-        'Bei einem WLAN könnten es „WLAN“, „Router“ oder „Fritzbox“ sein.',
+        'Bei einem WLAN-Passwort könnten es „WLAN“, „Router“ oder „Fritzbox“ sein.',
         'Prüfen wir deswegen nun dein Passwort auf einen möglichen Bezug zum Konto, Dienst oder Umfeld.',
       ],
       check: 'Im Passwort prüfen',
       results: {
-        none: [
-          'Hier wurde kein direkter Bezug zu Campusgram erkannt.',
-          'Das entscheidet noch nicht über die gesamte Zeichenfolge.',
-        ],
+        none: ['Hier wurde kein direkter Bezug zu Campusgram erkannt.'],
         foundOne:
-          'In deinem Passwort wurde [Begriffe] als Begriff erkannt, der zu Campusgram passt.',
+          '[Begriffe] wurde in deinem Passwort als Begriff mit Bezug zu Campusgram erkannt.',
         foundMany:
-          'In deinem Passwort wurden [Begriffe] als Begriffe erkannt, die zu Campusgram passen.',
+          '[Begriffe] wurden in deinem Passwort als Begriffe mit Bezug zu Campusgram erkannt.',
         completeSingleCandidate:
-          'In dieser Prüfung konnte die gesamte Zeichenfolge als ein Kandidat erkannt werden.',
-        completeMultipleCandidates:
-          'In dieser Prüfung konnten alle Bestandteile des Passworts erkannt werden. Sie bilden jedoch mehrere Kandidaten.',
+          'Die gefundene Übereinstimmung deckt bereits die gesamte Zeichenfolge ab.',
+        completeCombinedMatches:
+          'Mehrere gefundene Übereinstimmungen decken gemeinsam die gesamte Zeichenfolge ab.',
       },
-      transition: 'Damit sind die drei Arten von Passwortbestandteilen geprüft.',
     },
     summary: {
       title: 'Häufig verwendete Passwörter und Zeichenfolgen',
-      found:
-        'Erkannt wurden Bestandteile aus [Kategorienamen].',
-      categoryNames: {
-        'common-components': 'häufig verwendeten Passwörter und Zeichenfolgen',
-        'personal-details': 'persönliche Angaben',
-        'account-context': 'Bezug zum Konto, Dienst oder Umfeld',
-      },
-      startingPoints:
-        'Das waren alles nur Ausgangspunkte. Sie zeigen, welche Bestandteile der Angreifer früh ausprobieren könnte.',
       singleCandidateMatch:
         'Dein Passwort wurde bereits unter einen einzigen frühen Kandidaten gefunden. Wir verfolgen den Angriff trotzdem weiter, denn es kann auch über andere Anhaltspunkte erraten werden.',
-      none: 'In den drei Arten wurde kein naheliegender Bestandteil erkannt.',
+      combinedMatches:
+        'Die gefundenen Übereinstimmungen zeigen bereits, aus welchen Teilen dein Passwort gebildet wurde. Gefunden ist es dadurch noch nicht. Das Programm muss sie erst in der passenden Reihenfolge und Form zu einem vollständigen Passwortkandidaten verbinden.',
+      partialMatches:
+        'Die gefundenen Übereinstimmungen decken bislang nur einen Teil der Zeichenfolge ab. Das Programm erzeugt daraus weitere vollständige Passwortkandidaten, indem es zusätzliche Zeichenfolgen, Anordnungen und Veränderungen ausprobiert.',
+      none: 'Bei den bisherigen Prüfungen wurde keine Übereinstimmung gefunden. Der Angreifer hat damit aber noch nicht alle Möglichkeiten ausgeschöpft.',
       nothingFound: 'Nichts gefunden',
-      noneTransition:
-        'Das entscheidet noch nicht über die gesamte Zeichenfolge.',
       continue: 'Weiter',
     },
   },
@@ -301,7 +293,7 @@ export const s05Content = {
   },
   structure: {
     intro: [
-      'Der Angreifer aber, prüft nicht nur Wörter und andere Bestandteile, die Menschen häufig wählen. Er nutzt auch aus, dass Menschen diese oft nach vorhersehbaren Mustern miteinander kombinieren, um sie sich besser merken zu können.',
+      'Angreifer prüfen nämlich nicht nur häufig gewählte Zeichenfolgen, persönliche Angaben oder Bezüge zum Konto. Sie berücksichtigen auch typische Muster, mit denen Menschen solche Elemente zu leichter merkbaren Passwörtern anordnen und kombinieren.',
     ],
     reviewCardTitle: 'Prüfungskarte 2',
     demonstrations: [
@@ -588,6 +580,7 @@ export const s05Content = {
     ['s05-common-components-result', 'component-strategy', 'warning'],
     ['s05-personal-details-opening', 'component-conveyor', 'info'],
     ['s05-personal-details-derivation', 'component-conveyor', 'info'],
+    ['s05-personal-details-examples', 'component-conveyor', 'info'],
     ['s05-personal-details-intro', 'component-conveyor', 'info'],
     ['s05-personal-details-check', 'component-strategy', 'info'],
     ['s05-personal-details-result', 'component-strategy', 'warning'],
