@@ -1111,3 +1111,19 @@ Analyseentscheidungen oder persistierten Felder. `S05_CONTENT_VERSION` wird von 
 |---|---|---|---|---|---|
 | `S05.componentStrategy.commonComponents.explanation[3]` | entfällt; Prüfung startet automatisch | `Prüfen wir nun dein gewähltes Passwort auf häufig verwendete Passwörter und Zeichenfolgen.` | Navigation | ausdrückliche Wiederherstellung der entfernten Prüfankündigung; begrenzt | `Passwort prüfen`; keine Hervorhebung |
 | `S05.componentStrategy.accountContext.explanation[1]` | entfällt; Prüfung startet automatisch | `Prüfen wir nun dein gewähltes Passwort auf einen möglichen Bezug zu Campusgram.` | Navigation | gleiche Wiederherstellung für die zweite automatische Prüfung; begrenzt | `Im Passwort prüfen`; keine Hervorhebung |
+
+### Copy-Delta S05 Straffung der Erklärtexte 8. August 2026
+
+Quelle ist der ausdrückliche Nutzerauftrag vom 8. August 2026. Er strafft die
+Mechanismuserklärungen zu Passwortbestandteilen, Zusammenhängen, Wiederholungen und
+Zeichenvariationen, ohne Analyse oder Persistenz zu verändern. Die Hervorhebungen folgen
+den beiden ausdrücklich benannten Carry-forward-Phrasen. `S05_CONTENT_VERSION` wird von
+`2.41.0` auf `2.42.0` erhöht.
+
+| Segment und Text-ID | Vorher | Nachher | Primäre Rolle | Grund und Bedeutungsänderung | Interaktionsziel / Hervorhebung |
+|---|---|---|---|---|---|
+| `S05.componentStrategy.personalDetails.derivation[0]` | Kontozuordnung und Kandidatenprüfung in einem Satz | Kontozuordnung entfällt; gezielte Kandidatenprüfung bleibt | Mechanismuserklärung | ausdrücklich verlangte Straffung; begrenzt | `Weiter`; keine Hervorhebung |
+| `S05.structure.intro[0]`, `narration.theme[0..1]`, `sentence[0..1]`, `repetition[0..1]` | längere Erklärungen zu Zusammenhängen, Formulierungen und Wiederholungen | vorgegebene kürzere Formulierungen | Mechanismuserklärung | ausdrücklich vorgegebene Straffung; begrenzt | jeweils `Weiter`; `naheliegender der Zusammenhang` im zweiten Themenschritt hervorgehoben |
+| `S05.structure.application.repetitionFound`, `repetitionNotFound` | Formulierung mit `hatte` | vorgegebene Formulierung mit `enthielt` | Ergebnisfeedback | ausdrücklich verlangte sprachliche Präzisierung; nein | `Weiter`; erkannte Spannen bleiben markiert |
+| `S05.freeSearch.characterMix.narration[3..5]` | Hinweis auf typische Veränderungen, NIST-Beispiel und Kerngedanke | `typischen Variationen`, NIST-Hinweis entfällt, vorgegebener Kerngedanke | Mechanismuserklärung / Kerngedanke | ausdrücklich verlangte Straffung; begrenzt | jeweils `Weiter`; bestehende Kerngedanken-Hervorhebung bleibt |
+| `S05.componentStrategy.accountContext.explanation[1]` | unmarkierte Prüfankündigung | unveränderter Wortlaut | Navigation | ausdrücklich verlangte Hervorhebung | `Im Passwort prüfen`; `möglichen Bezug zu Campusgram.` hervorgehoben |

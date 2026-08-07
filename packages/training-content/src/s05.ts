@@ -27,7 +27,7 @@ export interface S05DesignLabFixture {
   readonly startSection: 'intro' | 'components' | 'structure';
 }
 
-export const S05_CONTENT_VERSION = '2.41.0';
+export const S05_CONTENT_VERSION = '2.42.0';
 
 export const s05Content = {
   version: S05_CONTENT_VERSION,
@@ -37,10 +37,9 @@ export const s05Content = {
       12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34,
       35,
     ] as const,
-    revision:
-      'Userauftrag vom 2026-08-07 · Wiederhergestellte Prüfankündigung und Prüfaktion',
+    revision: 'Userauftrag vom 2026-08-08 · Straffung der S05-Erklärtexte',
     copyReference:
-      'docs/design/S00-S05-COPY-AUDIT.md#copy-delta-s05-wiederhergestellte-prüfankündigung-und-prüfaktion-7-august-2026',
+      'docs/design/S00-S05-COPY-AUDIT.md#copy-delta-s05-straffung-der-erklaertexte-8-august-2026',
   },
   segment: {
     id: 'S05',
@@ -182,7 +181,7 @@ export const s05Content = {
         'Persönliche Angaben sind leicht zu merken und wirken oft geheim. Es ist deshalb nachvollziehbar, sie für etwas zu halten, das andere nur schwer erraten können.',
       ],
       derivation: [
-        'Bei einem Datenleck liegen deine Passwortdaten oft zusammen mit deinem Benutzernamen, deiner E-Mail-Adresse oder Kontohinweisen vor. Angreifer wissen dadurch, zu welchem Konto sie gehören, und können gezielt persönliche Angaben als Passwortkandidaten testen.',
+        'Bei einem Datenleck liegen deine Passwortdaten oft zusammen mit deinem Benutzernamen, deiner E-Mail-Adresse oder Kontohinweisen vor. Dadurch können Angreifer gezielt persönliche Angaben als Passwortkandidaten testen.',
       ],
       examples: [
         'Dafür nutzen sie etwa Namen, Geburtsdaten, Vereine, Haustiere, Hobbys oder andere persönliche Bezüge aus öffentlichen Profilen, früheren Datenlecks oder deinem Umfeld.',
@@ -292,7 +291,7 @@ export const s05Content = {
   },
   structure: {
     intro: [
-      'Angreifer prüfen nämlich nicht nur häufig gewählte Zeichenfolgen, persönliche Angaben oder Bezüge zum Konto. Sie berücksichtigen auch typische Muster, mit denen Menschen solche Elemente zu leichter merkbaren Passwörtern anordnen und kombinieren.',
+      'Angreifer prüfen nämlich nicht nur häufige Zeichenfolgen, persönliche Angaben oder Kontobezüge. Sie berücksichtigen auch typische Muster, mit denen Menschen solche Elemente zu leichter merkbaren Passwörtern kombinieren.',
     ],
     demonstrations: [
       {
@@ -359,17 +358,16 @@ export const s05Content = {
     },
     narration: {
       theme: [
-        'Auch mehrere verschiedene Wörter können zusammen vorhersehbar bleiben. Begriffe wie „WLAN“, „Wohnzimmer“ und „Familie“ wurden nicht völlig unabhängig voneinander gewählt, sondern passen inhaltlich zusammen.',
-        'Solche Regelmäßigkeiten können Angreifer ausnutzen: Guessing-Verfahren behandeln nicht alle Kombinationen gleich, sondern probieren eher Kandidaten aus, die zu menschlichen Wahlmustern passen. Moderne Verfahren können dabei auch Abhängigkeiten zwischen verschiedenen Bestandteilen berücksichtigen.',
-        'Je mehr deine Auswahl einem naheliegenden Zusammenhang folgt, desto mehr verrät sie darüber, welche Kombinationen zuerst ausprobiert werden sollte.',
+        'Auch verschiedene Wörter können zusammen vorhersehbar sein. „WLAN“, „Wohnzimmer“ und „Familie“ passen beispielsweise inhaltlich zusammen.',
+        'Guessing-Verfahren können solche Zusammenhänge nutzen und wahrscheinlichere Kombinationen früher ausprobieren. Je naheliegender der Zusammenhang, desto mehr verrät er darüber, welche Kandidaten zuerst getestet werden.',
       ],
       sentence: [
-        'Menschen setzen Wörter außerdem häufig zu bekannten oder sprachlich naheliegenden Formulierungen zusammen. Auch dadurch sind die Bestandteile nicht unabhängig voneinander gewählt.',
-        'Nach „Ohne Kaffee geht“ ist zum Beispiel „nichts“ viel naheliegender als die meisten anderen Wörter. Guessing-Verfahren können solche Regelmäßigkeiten berücksichtigen und wahrscheinlichere Zeichen- oder Wortfolgen früher ausprobieren. Dazu gehören etwa Redewendungen, Liedzeilen oder andere naheliegende Formulierungen.',
+        'Menschen setzen außerdem Wörter häufig zu bekannten oder sprachlich naheliegenden Formulierungen zusammen. Dadurch werden auch ihre Bestandteile vorhersehbarer.',
+        'Nach „Ohne Kaffee geht“ ist etwa „nichts“ viel wahrscheinlicher als die meisten anderen Wörter. Guessing-Verfahren können solche Muster nutzen und wahrscheinlichere Folgen früher ausprobieren, etwa Redewendungen, Liedzeilen oder andere naheliegende Formulierungen.',
       ],
       repetition: [
-        'Auch Wiederholungen können ein Passwort lang wirken lassen, obwohl nicht jeder Teil neu gewählt wurde.',
-        'Hat ein Guessing-Verfahren den Grundbaustein erkannt oder vermutet, muss es die Wiederholung nicht wie unabhängig gewählte Zeichen behandeln. Solche Wiederholungsmuster können deshalb gezielt ausprobiert werden.',
+        'Auch Wiederholungen können ein Passwort lang wirken lassen, obwohl sich Teile nur wiederholen.',
+        'Erkennt oder vermutet ein Guessing-Verfahren den Grundbaustein, muss es nicht jedes Zeichen unabhängig erraten. Solche Wiederholungsmuster können gezielt ausprobiert werden.',
       ],
     },
     findingLabels: {
@@ -384,8 +382,8 @@ export const s05Content = {
     application: {
       passwordLabel: 'Campusgram-Passwort',
       repetitionFound:
-        'Dein Campusgram-Passwort hatte beispielsweise solch eine Wiederholung.',
-      repetitionNotFound: 'Dein Campusgram-Passwort hatte diese Wiederholung nicht.',
+        'Dein Campusgram-Passwort enthielt genau so eine Wiederholung.',
+      repetitionNotFound: 'Dein Campusgram-Passwort enthielt so eine Wiederholung nicht.',
     },
   },
   freeSearch: {
@@ -418,10 +416,9 @@ export const s05Content = {
         'Solche Anzeigen kennst du vielleicht aus deinem Alltag. Hier erfüllt Passw0rt123! alle angezeigten Regeln und wird als stark bewertet.',
         'Beide Passwörter sind gleich lang und enthalten alle vier Zeichentypen. Das rechte Passwort besteht dagegen aus zwölf zufällig erzeugten Zeichen.',
         'Solche Anzeigen prüfen häufig nur, ob die gezeigten Regeln erfüllt sind. Für den Angreifer macht die Art der Wahl aber einen großen Unterschied: Passw0rt123! folgt mehreren menschlichen Mustern. Beim rechten Passwort fehlen ihm solche Anhaltspunkte.',
-        'Verschiedene Zeichentypen sind trotzdem nicht nutzlos: Werden sie wirklich zufällig erzeugt, wird das Durchprobieren für den Angreifer schwieriger. Menschen setzen solche Zeichen aber oft vorhersehbar ein, wie du es bei den typischen Veränderungen schon gesehen hast.',
-        'NIST führt genau „Password1!“ als Beispiel dafür an, wie Menschen Regeln für bestimmte Zeichentypen vorhersehbar erfüllen.',
+        'Verschiedene Zeichentypen sind trotzdem nicht nutzlos: Werden sie wirklich zufällig erzeugt, wird das Durchprobieren für den Angreifer schwieriger. Menschen setzen solche Zeichen aber oft vorhersehbar ein, wie du es bei den typischen Variationen schon gesehen hast.',
         'Darauf zu setzen, den Angreifer mit einer selbst gewählten Mischung aus Zeichentypen zu überraschen wie mEin!Pa55w0rt?, ist deshalb keine gute Strategie.',
-        'Das musst du auch nicht. Entscheidend ist vor allem die Länge und dass dein Passwort nicht leicht vorhersehbar gewählt ist.',
+        'Keine Sorge, das musst du auch nicht. Entscheidend ist vor allem die Länge und dass dein Passwort nicht leicht vorhersehbar gewählt ist.',
       ],
     },
     estimate: {
@@ -585,7 +582,6 @@ export const s05Content = {
     ['s05-structure-intro', 'strategy-targeting', 'info'],
     ['s05-structure-theme', 'structure-theme', 'info'],
     ['s05-structure-theme-guessing', 'structure-theme', 'info'],
-    ['s05-structure-theme-takeaway', 'structure-theme', 'info'],
     ['s05-structure-sentence', 'structure-sentence', 'info'],
     ['s05-structure-sentence-guessing', 'structure-sentence', 'info'],
     ['s05-structure-repetition', 'structure-repetition', 'warning'],
@@ -598,7 +594,6 @@ export const s05Content = {
     ['s05-character-mix-comparison', 'character-mix', 'info'],
     ['s05-character-mix-difference', 'character-mix', 'warning'],
     ['s05-character-mix-types', 'character-mix', 'info'],
-    ['s05-character-mix-nist', 'character-mix', 'info'],
     ['s05-character-mix-strategy', 'character-mix', 'warning'],
     ['s05-character-mix-takeaway', 'character-mix', 'info'],
     ['s05-estimate-intro', 'estimate-ruler', 'info'],

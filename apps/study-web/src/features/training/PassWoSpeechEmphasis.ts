@@ -94,14 +94,14 @@ const emphasisBySpeechId: Readonly<Record<string, readonly PassWoSpeechEmphasis[
   ],
   's05-account-context-intro': [
     {
-      phrase: 'Bezug zum Konto, Dienst oder Umfeld',
+      phrase: 'möglichen Bezug zu Campusgram.',
       tone: 'accent',
       symbolSrc: accountContextAsset,
     },
   ],
   's05-components-summary': [],
-  's05-structure-theme-takeaway': [
-    { phrase: 'naheliegenden Zusammenhang', tone: 'accent' },
+  's05-structure-theme-guessing': [
+    { phrase: 'naheliegender der Zusammenhang', tone: 'accent' },
   ],
   's05-structure-sentence-guessing': [
     { phrase: 'Redewendungen', tone: 'accent', contrastId: 'familiar-phrases' },

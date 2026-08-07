@@ -4,7 +4,7 @@ import { S05_CONTENT_VERSION, s05Content } from './s05.js';
 
 describe('S05 content traceability', () => {
   it('keeps the participant copy bounded and separate from internal terminology', () => {
-    expect(S05_CONTENT_VERSION).toBe('2.41.0');
+    expect(S05_CONTENT_VERSION).toBe('2.42.0');
     expect(s05Content.source).toMatchObject({
       document: 'research/private/training-script.pdf',
       internalPages: [
@@ -12,7 +12,7 @@ describe('S05 content traceability', () => {
         35,
       ],
       copyReference:
-        'docs/design/S00-S05-COPY-AUDIT.md#copy-delta-s05-wiederhergestellte-prüfankündigung-und-prüfaktion-7-august-2026',
+        'docs/design/S00-S05-COPY-AUDIT.md#copy-delta-s05-straffung-der-erklaertexte-8-august-2026',
     });
     expect(s05Content.segment.id).toBe('S05');
     expect(s05Content.page.fixtureNotice).toBe(
@@ -161,7 +161,7 @@ describe('S05 content traceability', () => {
     });
     expect(s05Content.intro.strategyAnnotations.sentenceStructure).toBe('Satzaufbau');
     expect(s05Content.structure.intro).toEqual([
-      'Angreifer prüfen nämlich nicht nur häufig gewählte Zeichenfolgen, persönliche Angaben oder Bezüge zum Konto. Sie berücksichtigen auch typische Muster, mit denen Menschen solche Elemente zu leichter merkbaren Passwörtern anordnen und kombinieren.',
+      'Angreifer prüfen nämlich nicht nur häufige Zeichenfolgen, persönliche Angaben oder Kontobezüge. Sie berücksichtigen auch typische Muster, mit denen Menschen solche Elemente zu leichter merkbaren Passwörtern kombinieren.',
     ]);
     expect(s05Content.structure.demonstrations.slice(0, 3).map(({ title }) => title)).toEqual([
       'Naheliegende Zusammenhänge',

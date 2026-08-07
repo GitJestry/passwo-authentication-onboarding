@@ -863,7 +863,6 @@ function CharacterMixScene({ step }: { readonly step: S05AnalysisControllerSnaps
   const showEarlyHit =
     step === 'character-mix-difference' ||
     step === 'character-mix-types' ||
-    step === 'character-mix-nist' ||
     step === 'character-mix-strategy' ||
     step === 'character-mix-takeaway';
   return (
@@ -1132,7 +1131,6 @@ function renderScene(
       return <StructureIntroScene />;
     case 'structure-theme':
     case 'structure-theme-guessing':
-    case 'structure-theme-takeaway':
     case 'structure-sentence':
     case 'structure-sentence-guessing':
     case 'structure-repetition':
@@ -1149,7 +1147,6 @@ function renderScene(
     case 'character-mix-comparison':
     case 'character-mix-difference':
     case 'character-mix-types':
-    case 'character-mix-nist':
     case 'character-mix-strategy':
     case 'character-mix-takeaway':
       return <CharacterMixScene step={snapshot.step} />;
@@ -1342,8 +1339,6 @@ function speechFor(
       return [s05Content.structure.narration.theme[0]];
     case 'structure-theme-guessing':
       return [s05Content.structure.narration.theme[1]];
-    case 'structure-theme-takeaway':
-      return [s05Content.structure.narration.theme[2]];
     case 'structure-sentence':
       return [s05Content.structure.narration.sentence[0]];
     case 'structure-sentence-guessing':
@@ -1378,12 +1373,10 @@ function speechFor(
       return [s05Content.freeSearch.characterMix.narration[2]];
     case 'character-mix-types':
       return [s05Content.freeSearch.characterMix.narration[3]];
-    case 'character-mix-nist':
-      return [s05Content.freeSearch.characterMix.narration[4]];
     case 'character-mix-strategy':
-      return [s05Content.freeSearch.characterMix.narration[5]];
+      return [s05Content.freeSearch.characterMix.narration[4]];
     case 'character-mix-takeaway':
-      return [s05Content.freeSearch.characterMix.narration[6]];
+      return [s05Content.freeSearch.characterMix.narration[5]];
     case 'estimate-intro':
       return [s05Content.freeSearch.estimate.explanation];
     case 'estimate':

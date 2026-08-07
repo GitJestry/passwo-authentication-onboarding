@@ -57,7 +57,6 @@ export type S05AnalysisStep =
   | 'structure-intro'
   | 'structure-theme'
   | 'structure-theme-guessing'
-  | 'structure-theme-takeaway'
   | 'structure-sentence'
   | 'structure-sentence-guessing'
   | 'structure-repetition'
@@ -70,7 +69,6 @@ export type S05AnalysisStep =
   | 'character-mix-comparison'
   | 'character-mix-difference'
   | 'character-mix-types'
-  | 'character-mix-nist'
   | 'character-mix-strategy'
   | 'character-mix-takeaway'
   | 'estimate-intro'
@@ -161,7 +159,6 @@ const stepByMissionId: Readonly<Record<string, S05AnalysisStep>> = {
   's05-structure-intro': 'structure-intro',
   's05-structure-theme': 'structure-theme',
   's05-structure-theme-guessing': 'structure-theme-guessing',
-  's05-structure-theme-takeaway': 'structure-theme-takeaway',
   's05-structure-sentence': 'structure-sentence',
   's05-structure-sentence-guessing': 'structure-sentence-guessing',
   's05-structure-repetition': 'structure-repetition',
@@ -174,7 +171,6 @@ const stepByMissionId: Readonly<Record<string, S05AnalysisStep>> = {
   's05-character-mix-comparison': 'character-mix-comparison',
   's05-character-mix-difference': 'character-mix-difference',
   's05-character-mix-types': 'character-mix-types',
-  's05-character-mix-nist': 'character-mix-nist',
   's05-character-mix-strategy': 'character-mix-strategy',
   's05-character-mix-takeaway': 'character-mix-takeaway',
   's05-estimate-intro': 'estimate-intro',
