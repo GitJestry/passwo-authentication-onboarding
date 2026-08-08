@@ -1127,3 +1127,20 @@ den beiden ausdrücklich benannten Carry-forward-Phrasen. `S05_CONTENT_VERSION` 
 | `S05.structure.application.repetitionFound`, `repetitionNotFound` | Formulierung mit `hatte` | vorgegebene Formulierung mit `enthielt` | Ergebnisfeedback | ausdrücklich verlangte sprachliche Präzisierung; nein | `Weiter`; erkannte Spannen bleiben markiert |
 | `S05.freeSearch.characterMix.narration[3..5]` | Hinweis auf typische Veränderungen, NIST-Beispiel und Kerngedanke | `typischen Variationen`, NIST-Hinweis entfällt, vorgegebener Kerngedanke | Mechanismuserklärung / Kerngedanke | ausdrücklich verlangte Straffung; begrenzt | jeweils `Weiter`; bestehende Kerngedanken-Hervorhebung bleibt |
 | `S05.componentStrategy.accountContext.explanation[1]` | unmarkierte Prüfankündigung | unveränderter Wortlaut | Navigation | ausdrücklich verlangte Hervorhebung | `Im Passwort prüfen`; `möglichen Bezug zu Campusgram.` hervorgehoben |
+
+### Copy-Delta S05 Leerer Übergang, Messskala und Augen-Symbol 8. August 2026
+
+Quelle ist der ausdrückliche Nutzerauftrag vom 8. August 2026. Der Übergang zur
+Zeichenmix-Anzeige bleibt während seiner Erklärung visuell leer; die beiden folgenden
+Anzeigen erscheinen erst im nächsten Schritt. Die Ergänzung bleibt in derselben
+Sprechblase und setzt den geänderten Längentext direkt an die Messskala. Das verwendete
+Augen-Symbol wird aus der bestehenden Passwortanzeige wiederverwendet. Ablauf, Analyse,
+Persistenz und Forschungsgrenzen bleiben unverändert. `S05_CONTENT_VERSION` wird von
+`2.42.0` auf `2.43.0` erhöht.
+
+| Segment und Text-ID | Vorher | Nachher | Primäre Rolle | Grund und Bedeutungsänderung | Interaktionsziel / Hervorhebung |
+|---|---|---|---|---|---|
+| `S05.freeSearch.transition.explanation` | `Wir haben gesehen, dass Angreifer zuerst wahrscheinliche Passwörter und typische menschliche Muster ausprobieren. Fehlen solche Anhaltspunkte, können sie aber immer noch systematisch immer mehr Zeichenfolgen durchprobieren.` | Derselbe Satz; in der nächsten Zeile ergänzt: `Genau hier setzen viele bekannte Passwortregeln an: Sie sollen dafür sorgen, dass der Angreifer mehr Möglichkeiten ausprobieren muss.` | Mechanismuserklärung | ausdrücklich verlangte Ergänzung der dramaturgischen Brücke; begrenzt | `Weiter`; keine Hervorhebung |
+| `S05.freeSearch.transition` | Zeichenmix-Anzeige bereits während des Übergangstexts sichtbar | visuell leerer Bildschirm während des Übergangstexts; Anzeige startet erst bei `character-mix-first` | Orientierung | ausdrücklich verlangte zeitliche Trennung von Erklärung und Anzeige; nein | `Weiter`; keine Hervorhebung |
+| `S05.freeSearch.characterMix.passwordField` | Punktzeichen `◉` neben den Beispielpasswörtern | bestehendes Augen-Symbol der Passwortanzeige | Orientierung | ausdrücklich verlangte Symbolkonsistenz; nein | kein Interaktionsziel; keine Hervorhebung |
+| `S05.freeSearch.estimate.explanation` | `Um zu sehen, wie lang dein Passwort sein sollte, machen wir es ganz einfach: Jede Stelle wird zufällig aus nur 26 Kleinbuchstaben gewählt.` als Sprechblasentext | `Um zum Abschluss zu sehen, wie lang dein Passwort sein sollte, machen wir es ganz einfach: Jede Stelle wird zufällig aus nur 26 Kleinbuchstaben gewählt.` direkt über der Messskala | Mechanismuserklärung | ausdrücklich verlangte Platzierung an der Messskala und Wortlautpräzisierung; begrenzt | `Weiter`; keine Hervorhebung |

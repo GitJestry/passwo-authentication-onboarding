@@ -16,6 +16,7 @@ import attackerAsset from '../../../../assets/passwo/attacker.png';
 import { NetworkSymbol } from '../../../../adapters/network/NetworkSymbolRegistry.js';
 import { PassWoGuide } from '../../PassWoGuide.js';
 import { passWoSpeechEmphasisFor } from '../../PassWoSpeechEmphasis.js';
+import { PasswordVisibilityIcon } from '../../PasswordVisibilityIcon.js';
 import { PasswordBuildingBlocks } from './PasswordBuildingBlocks.js';
 import {
   type S05AnalysisControllerSnapshot,
@@ -840,7 +841,7 @@ function CharacterChecklist({
       <h2>{content.panelTitle}</h2>
       <div className={styles.passwordField}>
         <code>{password}</code>
-        <span aria-hidden="true">◉</span>
+        <PasswordVisibilityIcon className={styles.passwordVisibilityIcon} revealed />
       </div>
       <div className={styles.strengthHeading}>
         <strong>{content.strengthTitle}</strong>
@@ -859,7 +860,7 @@ function CharacterChecklist({
 
 function CharacterMixScene({ step }: { readonly step: S05AnalysisControllerSnapshot['step'] }) {
   const content = s05Content.freeSearch.characterMix;
-  const showComparison = step !== 'character-mix-first' && step !== 'free-search-transition';
+  const showComparison = step !== 'character-mix-first';
   const showEarlyHit =
     step === 'character-mix-difference' ||
     step === 'character-mix-types' ||
@@ -873,10 +874,17 @@ function CharacterMixScene({ step }: { readonly step: S05AnalysisControllerSnaps
   );
 }
 
-function EstimateRuler({ selected }: { readonly selected: S05AnalysisControllerSnapshot['estimate']['selected'] }) {
+function EstimateRuler({
+  selected,
+  showExplanation = false,
+}: {
+  readonly selected: S05AnalysisControllerSnapshot['estimate']['selected'];
+  readonly showExplanation?: boolean;
+}) {
   const content = s05Content.freeSearch.estimate;
   return (
     <div className={styles.estimateRuler} data-s05-target="estimate-ruler">
+      {showExplanation ? <p className={styles.estimateExplanation}>{content.explanation}</p> : null}
       <div className={styles.estimateMarkerRow}>
         {content.options.map((option) => (
           <span key={option}>{selected === option ? content.marker : ''}</span>
@@ -899,7 +907,7 @@ function EstimateScene({
   const content = s05Content.freeSearch.estimate;
   return (
     <div className={styles.estimateScene} data-s05-target="estimate" data-s05-speech-obstacle>
-      <EstimateRuler selected={snapshot.estimate.selected} />
+      <EstimateRuler selected={snapshot.estimate.selected} showExplanation />
       <fieldset className={styles.estimateScale} disabled={snapshot.estimate.confirmed}>
         <legend className={styles.visuallyHidden}>{content.question}</legend>
         <div>
@@ -1142,8 +1150,8 @@ function renderScene(
     case 'passphrase-randomness':
       return <PassphraseGeneratorScene />;
     case 'free-search-transition':
+      return <div aria-hidden="true" data-s05-target="character-mix" />;
     case 'character-mix-first':
-      return <CharacterMixScene step={snapshot.step} />;
     case 'character-mix-comparison':
     case 'character-mix-difference':
     case 'character-mix-types':
@@ -1151,7 +1159,11 @@ function renderScene(
     case 'character-mix-takeaway':
       return <CharacterMixScene step={snapshot.step} />;
     case 'estimate-intro':
-      return <div className={styles.estimateScene} data-s05-speech-obstacle><EstimateRuler selected={null} /></div>;
+      return (
+        <div className={styles.estimateScene} data-s05-speech-obstacle>
+          <EstimateRuler selected={null} showExplanation />
+        </div>
+      );
     case 'estimate':
       return <EstimateScene snapshot={snapshot} controller={controller} />;
     case 'lowercase-clock':
@@ -1378,7 +1390,7 @@ function speechFor(
     case 'character-mix-takeaway':
       return [s05Content.freeSearch.characterMix.narration[5]];
     case 'estimate-intro':
-      return [s05Content.freeSearch.estimate.explanation];
+      return null;
     case 'estimate':
       return [s05Content.freeSearch.estimate.question];
     default:

@@ -7,6 +7,8 @@ import {
   designLabPathForTrainingQaSegment,
   referenceSupplementLinkForId,
   referenceSupplementLinkIdSchema,
+  type TrainingQaAccountId,
+  type TrainingQaPasswordOverrides,
   trainingQaSegmentSchema,
   type TrainingQaSegment,
 } from '@passwo/contracts';
@@ -32,6 +34,7 @@ const maximumPdfBytes = 10 * 1024 * 1024;
 const pdfFetchTimeoutMilliseconds = 15_000;
 const openReferenceSupplementChannel = 'passwo:desktop:open-reference-supplement';
 const closeReferenceSupplementChannel = 'passwo:desktop:close-reference-supplement';
+const getQaPasswordOverridesChannel = 'passwo:desktop:get-qa-password-overrides';
 const pdfViewerMessageChannel = 'passwo:desktop:pdf-viewer-message';
 const currentDirectory = dirname(fileURLToPath(import.meta.url));
 const packagedViewerErrorUrl = `data:text/html;charset=utf-8,${encodeURIComponent(`<!doctype html>
@@ -65,6 +68,7 @@ let studyRuntime: StudyRuntime | null = null;
 let supplementView: WebContentsView | null = null;
 let supplementPdfAbortController: AbortController | null = null;
 let shuttingDown = false;
+let qaPasswordOverrides: TrainingQaPasswordOverrides | null = null;
 
 function qaTrainingSegmentFromEnvironment(): TrainingQaSegment | null {
   const configuredSegment = process.env.PASSWO_QA_SEGMENT;
@@ -76,6 +80,30 @@ function qaTrainingSegmentFromEnvironment(): TrainingQaSegment | null {
   const parsedSegment = trainingQaSegmentSchema.safeParse(configuredSegment);
   if (parsedSegment.success) return parsedSegment.data;
   throw new Error('Ungültiger PASSWO_QA_SEGMENT-Wert. Erlaubt sind: s00, s01, s02, s03, s05.');
+}
+
+function qaPasswordOverridesFromEnvironment(
+  qaTrainingSegment: TrainingQaSegment | null,
+): TrainingQaPasswordOverrides | null {
+  const configuredPasswords: ReadonlyArray<readonly [TrainingQaAccountId, string | undefined]> = [
+    ['master-campus', process.env.PASSWO_QA_PASSWORD_MASTER],
+    ['campus-email', process.env.PASSWO_QA_PASSWORD_EMAIL],
+    ['campusgram', process.env.PASSWO_QA_PASSWORD_CAMPUSGRAM],
+  ];
+  const hasPasswordConfiguration = configuredPasswords.some(([, value]) => value !== undefined);
+  if (!hasPasswordConfiguration) return qaTrainingSegment === null ? null : {};
+  if (app.isPackaged) {
+    throw new Error('PASSWO_QA_PASSWORD_* ist nur beim Entwicklungsstart verfügbar.');
+  }
+  if (qaTrainingSegment === null) {
+    throw new Error('PASSWO_QA_PASSWORD_* benötigt PASSWO_QA_SEGMENT.');
+  }
+
+  const overrides: TrainingQaPasswordOverrides = {};
+  for (const [accountId, value] of configuredPasswords) {
+    if (value !== undefined && value.length > 0) overrides[accountId] = value;
+  }
+  return overrides;
 }
 
 function runtimeResourcePath(developmentPath: string, packagedName: string): string {
@@ -374,6 +402,7 @@ async function startApplication(): Promise<void> {
     process.env.STUDY_ASSIGNMENT_MODE ?? 'permuted-block',
   );
   const qaTrainingSegment = qaTrainingSegmentFromEnvironment();
+  qaPasswordOverrides = qaPasswordOverridesFromEnvironment(qaTrainingSegment);
   studyRuntime = await startStudyRuntime({
     version: applicationVersion,
     assignmentMode,
@@ -451,6 +480,10 @@ if (!hasSingleInstanceLock) {
     requireTrustedRenderer(event);
     closeReferenceSupplement();
   });
+  ipcMain.handle(getQaPasswordOverridesChannel, (event) => {
+    requireTrustedRenderer(event);
+    return qaPasswordOverrides;
+  });
   app.on('window-all-closed', () => app.quit());
   app.on('before-quit', (event) => {
     if (shuttingDown || studyRuntime === null) return;
@@ -466,6 +499,7 @@ if (!hasSingleInstanceLock) {
       const developmentHint =
         error instanceof Error &&
         (error.message.startsWith('PASSWO_QA_SEGMENT') ||
+          error.message.startsWith('PASSWO_QA_PASSWORD') ||
           error.message.startsWith('Ungültiger PASSWO_QA_SEGMENT'))
           ? `\n\n${error.message}`
           : '';

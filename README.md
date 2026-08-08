@@ -146,6 +146,19 @@ PASSWO_QA_SEGMENT=s03 pnpm dev
 PASSWO_QA_SEGMENT=s05 pnpm dev
 ```
 
+Die fiktiven QA-Passwörter können für denselben Start optional überschrieben werden. Nicht
+angegebene Werte behalten die jeweiligen Vorschau-Defaults (`preview-master-campus`,
+`preview-campus-email` und `preview-campusgram`); bei S05 bleibt ohne Überschreibung das
+bestehende Fixture-Passwort aktiv:
+
+```bash
+PASSWO_QA_SEGMENT=s03 \
+PASSWO_QA_PASSWORD_MASTER='Master-Testpasswort' \
+PASSWO_QA_PASSWORD_EMAIL='E-Mail-Testpasswort' \
+PASSWO_QA_PASSWORD_CAMPUSGRAM='Campusgram-Testpasswort' \
+pnpm dev
+```
+
 S05 startet bei der Campusgram-Warnung aus S04 und zeigt den vollständigen Übergang bis in die
 deterministische S05-Variante „Häufiger Kern plus typischer Anhang“.
 

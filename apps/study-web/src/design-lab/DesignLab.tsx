@@ -1,7 +1,9 @@
 import {
+  defaultTrainingQaPasswords,
   type DesignLabScenarioId,
   designLabPathForScenario,
   designLabScenarioIds,
+  type TrainingQaPasswordOverrides,
 } from '@passwo/contracts';
 import {
   getS05DesignLabFixtureByRouteId,
@@ -75,6 +77,32 @@ function readDesktopPlatform(): DesktopPlatform {
   return requestedPlatform === 'windows' || requestedPlatform === 'linux'
     ? requestedPlatform
     : 'mac';
+}
+
+function passwordForAccount(
+  accountId: S01AccountId,
+  overrides: TrainingQaPasswordOverrides,
+): string {
+  return overrides[accountId] ?? defaultTrainingQaPasswords[accountId];
+}
+
+function useQaPasswordOverrides(): TrainingQaPasswordOverrides {
+  const [overrides, setOverrides] = useState<TrainingQaPasswordOverrides>({});
+
+  useEffect(() => {
+    const loadOverrides = window.passwoDesktop?.getQaPasswordOverrides;
+    if (loadOverrides === undefined) return undefined;
+
+    let cancelled = false;
+    void loadOverrides().then((loadedOverrides) => {
+      if (!cancelled && loadedOverrides !== null) setOverrides(loadedOverrides);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  return overrides;
 }
 
 const overviewTab: BrowserTabModel = {
@@ -482,10 +510,12 @@ function PasswordModuleSegmentPreview({
   segment,
   accountId,
   view,
+  passwordOverrides,
 }: {
   readonly segment: 's01' | 's03' | 's03-warning' | 's04' | 's05';
   readonly accountId: S01AccountId;
   readonly view: CampusWebsitePreviewView;
+  readonly passwordOverrides: TrainingQaPasswordOverrides;
 }) {
   const [controller, setController] = useState<PasswordModuleController | null>(null);
   const [snapshot, setSnapshot] = useState<PasswordModuleSnapshot | null>(null);
@@ -513,14 +543,20 @@ function PasswordModuleSegmentPreview({
       previewController.selectAccount(accountId);
       if (segment === 's01') {
         if (view === 'dashboard') {
-          previewController.setPasswordValue(accountId, `preview-${accountId}`);
+          previewController.setPasswordValue(
+            accountId,
+            passwordForAccount(accountId, passwordOverrides),
+          );
           previewController.configureAccount(accountId);
         }
         return;
       }
 
       for (const accountId of previewController.getSnapshot().context.accountIds) {
-        previewController.setPasswordValue(accountId, `preview-${accountId}`);
+        previewController.setPasswordValue(
+          accountId,
+          passwordForAccount(accountId as S01AccountId, passwordOverrides),
+        );
         previewController.configureAccount(accountId);
       }
       previewController.closeS01Browser();
@@ -574,7 +610,7 @@ function PasswordModuleSegmentPreview({
       unsubscribe();
       previewController.dispose();
     };
-  }, [accountId, segment, view]);
+  }, [accountId, passwordOverrides, segment, view]);
 
   if (preparationError !== null) {
     return <p role="alert">QA-Abschnitt konnte nicht vorbereitet werden: {preparationError}</p>;
@@ -608,12 +644,21 @@ function PasswordModuleSegmentPreview({
     return <S04IncidentTraining controller={controller} snapshot={snapshot} />;
   }
   if (segment === 's05' && snapshot.matches({ s05: 'active' })) {
-    return <S05DesignLabTraining fixtureId="common-suffix" initialSection="intro" />;
+    return (
+      <S05DesignLabTraining
+        fixtureId="common-suffix"
+        initialSection="intro"
+        {...(passwordOverrides.campusgram === undefined
+          ? {}
+          : { passwordOverride: passwordOverrides.campusgram })}
+      />
+    );
   }
   return <p>QA-Abschnitt wird vorbereitet …</p>;
 }
 
 export function DesignLab({ scenarioId }: { readonly scenarioId: DesignLabScenarioId }) {
+  const passwordOverrides = useQaPasswordOverrides();
   const scenario = scenarios[scenarioId];
   const [activeTabScene, setActiveTabScene] = useState(preparationTabScene);
   const [replayCount, setReplayCount] = useState(0);
@@ -667,6 +712,7 @@ export function DesignLab({ scenarioId }: { readonly scenarioId: DesignLabScenar
           segment={scenarioId}
           accountId={campusWebsitePreview.accountId}
           view={campusWebsitePreview.view}
+          passwordOverrides={passwordOverrides}
         />
       </main>
     );

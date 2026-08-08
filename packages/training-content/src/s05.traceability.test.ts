@@ -4,7 +4,7 @@ import { S05_CONTENT_VERSION, s05Content } from './s05.js';
 
 describe('S05 content traceability', () => {
   it('keeps the participant copy bounded and separate from internal terminology', () => {
-    expect(S05_CONTENT_VERSION).toBe('2.42.0');
+    expect(S05_CONTENT_VERSION).toBe('2.43.0');
     expect(s05Content.source).toMatchObject({
       document: 'research/private/training-script.pdf',
       internalPages: [
@@ -12,7 +12,7 @@ describe('S05 content traceability', () => {
         35,
       ],
       copyReference:
-        'docs/design/S00-S05-COPY-AUDIT.md#copy-delta-s05-straffung-der-erklaertexte-8-august-2026',
+        'docs/design/S00-S05-COPY-AUDIT.md#copy-delta-s05-leerer-uebergang-messskala-und-augen-symbol-8-august-2026',
     });
     expect(s05Content.segment.id).toBe('S05');
     expect(s05Content.page.fixtureNotice).toBe(
@@ -175,6 +175,12 @@ describe('S05 content traceability', () => {
     expect(s05Content.structure.presentationExamples.repetition.rows).toHaveLength(3);
     expect(s05Content.freeSearch.passphraseGenerator.password).toBe(
       'Kaktus-Fenster-Regen-Komet-Wodurch-Knochen',
+    );
+    expect(s05Content.freeSearch.transition.explanation).toBe(
+      'Wir haben gesehen, dass Angreifer zuerst wahrscheinliche Passwörter und typische menschliche Muster ausprobieren. Fehlen solche Anhaltspunkte, können sie aber immer noch systematisch immer mehr Zeichenfolgen durchprobieren.\nGenau hier setzen viele bekannte Passwortregeln an: Sie sollen dafür sorgen, dass der Angreifer mehr Möglichkeiten ausprobieren muss.',
+    );
+    expect(s05Content.freeSearch.estimate.explanation).toBe(
+      'Um zum Abschluss zu sehen, wie lang dein Passwort sein sollte, machen wir es ganz einfach: Jede Stelle wird zufällig aus nur 26 Kleinbuchstaben gewählt.',
     );
     expect(s05Content.freeSearch.estimate.options).toEqual([12, 13, 14, 15, 16, 17, 18, 19, 20]);
     expect(s05Content.fixtures.find(({ id }) => id === 'all-categories')).toMatchObject({

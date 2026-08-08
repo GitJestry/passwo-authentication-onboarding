@@ -37,6 +37,16 @@ export const designLabScenarioIds = designLabScenarioIdSchema.options;
 export const trainingQaSegmentSchema = z.enum(['s00', 's01', 's02', 's03', 's05']);
 export type TrainingQaSegment = z.infer<typeof trainingQaSegmentSchema>;
 
+export const trainingQaAccountIds = ['master-campus', 'campus-email', 'campusgram'] as const;
+export type TrainingQaAccountId = (typeof trainingQaAccountIds)[number];
+export type TrainingQaPasswordOverrides = Partial<Record<TrainingQaAccountId, string>>;
+
+export const defaultTrainingQaPasswords: Readonly<Record<TrainingQaAccountId, string>> = {
+  'master-campus': 'preview-master-campus',
+  'campus-email': 'preview-campus-email',
+  campusgram: 'preview-campusgram',
+};
+
 const designLabScenarioByTrainingQaSegment = {
   s00: 's00',
   s01: 's01',

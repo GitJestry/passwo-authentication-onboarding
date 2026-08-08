@@ -16,6 +16,7 @@ import { AccountSuccessOverlay } from './AccountSuccessOverlay.js';
 import { CampusWebsiteBackdrop } from './CampusWebsiteBackdrop.js';
 import { PassWoGuide } from './PassWoGuide.js';
 import { passWoSpeechEmphasisFor } from './PassWoSpeechEmphasis.js';
+import { PasswordVisibilityIcon } from './PasswordVisibilityIcon.js';
 import styles from './S01Training.module.css';
 
 function isReadyToContinue(snapshot: PasswordModuleSnapshot): boolean {
@@ -28,25 +29,6 @@ function isReadyToContinue(snapshot: PasswordModuleSnapshot): boolean {
 
 function isLocalTimingFailure(snapshot: PasswordModuleSnapshot): boolean {
   return snapshot.matches({ s01: 'startFailed' }) || snapshot.matches({ s01: 'endFailed' });
-}
-
-function PasswordVisibilityIcon({ revealed }: { readonly revealed: boolean }) {
-  return (
-    <svg
-      aria-hidden="true"
-      className={styles.revealIcon}
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="1.8"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    >
-      <path d="M2.5 12s3.5-6 9.5-6 9.5 6 9.5 6-3.5 6-9.5 6-9.5-6-9.5-6Z" />
-      <circle cx="12" cy="12" r="2.5" />
-      {revealed ? <path d="M4 4 20 20" /> : null}
-    </svg>
-  );
 }
 
 export interface S01TrainingProps {
@@ -353,7 +335,10 @@ export function S01Training({
                     disabled={interactionBlocked}
                     onClick={() => toggleReveal(account.id)}
                   >
-                    <PasswordVisibilityIcon revealed={revealedAccountIds.has(account.id)} />
+                    <PasswordVisibilityIcon
+                      className={styles.revealIcon}
+                      revealed={revealedAccountIds.has(account.id)}
+                    />
                   </button>
                 </span>
                 <div className={styles.buttonRow}>
