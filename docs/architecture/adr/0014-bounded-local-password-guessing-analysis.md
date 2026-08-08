@@ -34,6 +34,14 @@ fiktiven Konten separat abgeleitet und weder persistiert noch exportiert. Es wer
 Netzwerkmatcher noch externe Kompromittierungsdienste, KI-Modelle oder dynamisch geladene
 Wörterbücher verwendet.
 
+Wenn zxcvbn den vollständigen Kandidatenweg als Wiederholung modelliert, wird die von zxcvbn
+belegte, strikt kürzere Basiskomponente zusätzlich mit derselben lokalen Konfiguration analysiert.
+Eine zusätzliche zxcvbn-Projektion der Basis ohne Wörterbücher hält belegte Tastatur-, Datums- und
+Folgenmuster sichtbar, wenn sie sonst innerhalb der Basis von einem Wörterbuchtreffer verdrängt
+würden. Ihre Komponentenbefunde bleiben dadurch neben dem Wiederholungsbefund sichtbar.
+Kandidatenzahl, optimale Sequenz und S06-Disposition stammen weiterhin ausschließlich aus der
+Auswertung der vollständigen Zeichenfolge.
+
 Die Entscheidung für S06 beruht ausschließlich auf der von zxcvbn-ts geschätzten Kandidatenzahl
 des günstigsten **vollständigen** Ratewegs für die gesamte Zeichenfolge:
 

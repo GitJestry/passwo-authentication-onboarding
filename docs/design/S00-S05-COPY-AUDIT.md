@@ -1313,6 +1313,18 @@ vollständige zxcvbn-Quick-Path-Entscheidung bleiben unverändert. `S05_CONTENT_
 | `S05.componentStrategy.personalDetails.selection` | sichtbare Einzelkästchen als Auswahlziele | nahtlose, weiterhin fokussierbare Textintervalle mit lila Hover-, Fokus- und Auswahlzustand | Navigation | erhält Bedienbarkeit ohne künstliche Wortgrenzen | bestehender Selbstcheck; Tastaturfokus bleibt sichtbar |
 | begrenzte Wörterbuchprojektion | einzelne Wörter nur am Rand eines Verbindungszeichens ergänzt | deterministische lückenlose Kompositzerlegung vollständiger alphabetischer Läufe | Ergebnisfeedback | macht belegte aneinandergereihte Wörter konsistent sichtbar; beeinflusst den Rateweg nicht | keine neue Interaktion; keine Teilnehmertextänderung |
 
+### Analysedelta S05 überlappende Wiederholungsbasis 9. August 2026
+
+Quelle ist der ausdrückliche Nutzerauftrag vom 9. August 2026. Wenn zxcvbn den vollständigen
+Rateweg als Wiederholung modelliert, bleiben die von zxcvbn erkannten Befunde der wiederholten
+Basiskomponente zusätzlich sichtbar. Teilnehmertexte, Interaktion, Persistenz, Export und die
+vollständige zxcvbn-Quick-Path-Entscheidung bleiben unverändert. Die Analysekonfiguration wird
+von `passwo-bounded-guess-path-v7` auf `passwo-bounded-guess-path-v8` erhöht.
+
+| Segment und Text-ID | Vorher | Nachher | Primäre Rolle | Grund und Bedeutungsänderung | Interaktionsziel / Hervorhebung |
+|---|---|---|---|---|---|
+| zxcvbn-Wiederholungsprojektion | vollständiger Wiederholungsbefund konnte Wörterbuch-, Passwort- oder Folgenbefunde der Basis verdecken | Wiederholungsbefund und belegte Basisbefunde werden überlappend projiziert | Ergebnisfeedback | macht beispielsweise `wort1wort1` zugleich als Wiederholung und als enthaltenes häufiges Wort sichtbar; der vollständige Rateweg bleibt unverändert | bestehende Kategorien für häufige Bestandteile und Wiederholungsmuster |
+
 ### Copy-Delta S05 Analysebausteine ohne Befundtexte 8. August 2026
 
 Quelle ist der ausdrückliche Nutzerauftrag vom 8. August 2026. Erkannte Bereiche werden wieder

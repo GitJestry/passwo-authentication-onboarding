@@ -19,7 +19,7 @@ import {
   originalSpanForNormalizedRange,
 } from './case-insensitive-spans.js';
 
-export const PASSWORD_ANALYSIS_CONFIGURATION_VERSION = 'passwo-bounded-guess-path-v7';
+export const PASSWORD_ANALYSIS_CONFIGURATION_VERSION = 'passwo-bounded-guess-path-v8';
 
 export interface FictionalPasswordAnalysisInput {
   readonly fictionalPassword: string;
@@ -58,6 +58,14 @@ const zxcvbnFactory = new ZxcvbnFactory({
   translations: zxcvbnDePackage.translations,
   graphs: zxcvbnCommonPackage.adjacencyGraphs,
   dictionary: zxcvbnDictionary,
+  maxLength: 128,
+  useLevenshteinDistance: false,
+});
+
+const zxcvbnPatternFactory = new ZxcvbnFactory({
+  translations: zxcvbnDePackage.translations,
+  graphs: zxcvbnCommonPackage.adjacencyGraphs,
+  dictionary: {},
   maxLength: 128,
   useLevenshteinDistance: false,
 });
@@ -382,11 +390,12 @@ function collectDictionaryPartitionFindings(
 function findingsFromGuessPath(
   input: string,
   sequence: readonly ZxcvbnMatch[],
+  offset = 0,
 ): readonly PasswordSingleFinding[] {
   const findings: PasswordSingleFinding[] = [];
   for (const [ordinal, match] of sequence.entries()) {
-    const start = match.i;
-    const end = match.j + 1;
+    const start = offset + match.i;
+    const end = offset + match.j + 1;
     switch (match.pattern) {
       case 'dictionary': {
         findings.push(
@@ -450,6 +459,32 @@ function findingsFromGuessPath(
         break;
       default:
         break;
+    }
+  }
+  return findings;
+}
+
+function findingsFromRepeatedBases(
+  input: string,
+  sequence: readonly ZxcvbnMatch[],
+  userInputs: string[],
+  offset = 0,
+): readonly PasswordSingleFinding[] {
+  const findings: PasswordSingleFinding[] = [];
+  for (const match of sequence) {
+    if (match.pattern !== 'repeat' || typeof match.baseToken !== 'string') continue;
+    const baseToken = match.baseToken;
+    if (baseToken.length === 0 || baseToken.length >= match.token.length) continue;
+
+    const baseResult = zxcvbnFactory.check(baseToken, userInputs);
+    const basePatternResult = zxcvbnPatternFactory.check(baseToken, userInputs);
+    for (let repetition = 0; repetition < match.repeatCount; repetition += 1) {
+      const baseOffset = offset + match.i + repetition * baseToken.length;
+      findings.push(...findingsFromGuessPath(input, baseResult.sequence, baseOffset));
+      findings.push(...findingsFromGuessPath(input, basePatternResult.sequence, baseOffset));
+      findings.push(
+        ...findingsFromRepeatedBases(input, baseResult.sequence, userInputs, baseOffset),
+      );
     }
   }
   return findings;
@@ -710,8 +745,8 @@ function collectFuzzyAccountTermFindings(
   candidates.sort(
     (left, right) =>
       left.distance - right.distance ||
-      Math.abs(left.lengthDelta) - Math.abs(right.lengthDelta) ||
       right.end - right.start - (left.end - left.start) ||
+      Math.abs(left.lengthDelta) - Math.abs(right.lengthDelta) ||
       left.start - right.start ||
       left.termIndex - right.termIndex,
   );
@@ -857,9 +892,14 @@ export function analyzeFictionalPassword({
   ].filter((term) => term.length >= 3);
   const result = zxcvbnFactory.check(fictionalPassword, trimmedAccountTerms);
   const guessPathFindings = findingsFromGuessPath(fictionalPassword, result.sequence);
+  const repeatedBaseFindings = findingsFromRepeatedBases(
+    fictionalPassword,
+    result.sequence,
+    trimmedAccountTerms,
+  );
   const dictionaryPartitionFindings = collectDictionaryPartitionFindings(
     fictionalPassword,
-    guessPathFindings,
+    [...guessPathFindings, ...repeatedBaseFindings],
   );
   const exactAccountTermFindings = collectExactAccountTermFindings(
     fictionalPassword,
@@ -880,6 +920,7 @@ export function analyzeFictionalPassword({
   const numberedWordSequenceFindings = collectNumberedWordSequences(fictionalPassword);
   const findings = deduplicateAndSortFindings([
     ...guessPathFindings,
+    ...repeatedBaseFindings,
     ...dictionaryPartitionFindings,
     ...exactAccountTermFindings,
     ...fuzzyAccountTermFindings,

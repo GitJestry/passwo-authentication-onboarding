@@ -331,6 +331,7 @@ export function PasswordBuildingBlocks({
         >
           <code
             className={styles.continuousPassword}
+            data-selecting={pointerSelection === null ? undefined : true}
             onPointerMove={(event) => {
               if (pointerSelection === null || event.pointerId !== pointerSelection.pointerId) return;
               const index = characterIndexAtPointer(event.clientX, event.clientY);

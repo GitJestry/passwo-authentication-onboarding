@@ -1,6 +1,7 @@
 import type { PasswordAnalysisResult, PasswordSingleFinding } from '@passwo/contracts';
 import {
   analyzeFictionalPassword,
+  analyzeFictionalPasswordStructure,
   determinePasswordSimulationDisposition,
 } from '@passwo/password-analysis';
 import { describe, expect, it } from 'vitest';
@@ -27,6 +28,46 @@ function analysisWithFindings(findings: readonly PasswordSingleFinding[]): Passw
 }
 
 describe('S05 component strategy presentation', () => {
+  it.each([
+    ['wort1wort1', 'common-word', 'häufiges Wort'],
+    ['password1password1', 'common-password-core', 'häufiges Passwort'],
+    ['zümra1zümra1', 'common-name', 'häufiges Wort'],
+    ['qwertz9876xqwertz9876x', 'keyboard-pattern', 'häufige Tastaturfolge'],
+    ['2026-2026-', 'year', 'häufiges Datum'],
+    ['12.03.2012-12.03.2012-', 'date', 'häufiges Datum'],
+    ['abcd1abcd1', 'simple-character-sequence', 'häufige Zeichenfolge'],
+    ['einszweidrei-einszweidrei-', 'predictable-word-sequence', 'häufige Zeichenfolge'],
+  ] as const)(
+    'shows repeated %s as %s in common parts and as a repetition pattern',
+    (password, findingKind, matchCategory) => {
+      const analysis = analyzeFictionalPassword({ fictionalPassword: password });
+      const view = createCanonicalPasswordView(password, analysis);
+      const structureAnalysis = analyzeFictionalPasswordStructure({
+        fictionalPassword: password,
+        componentAnalysis: analysis,
+      });
+
+      expect(analysis.findings).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({ kind: findingKind }),
+          expect.objectContaining({ kind: 'repeated-component' }),
+        ]),
+      );
+      expect(view.automaticFindings['common-components']).toEqual(
+        expect.arrayContaining([expect.objectContaining({ matchCategory })]),
+      );
+      expect(structureAnalysis.findings).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({
+            findingKind: expect.stringMatching(
+              /^(?:exact-component-repetition|recognized-repetition-pattern)$/u,
+            ),
+          }),
+        ]),
+      );
+    },
+  );
+
   it('shows P4ssw0rt123! once as one common variant block', () => {
     const password = 'P4ssw0rt123!';
     const view = createCanonicalPasswordView(
@@ -94,7 +135,7 @@ describe('S05 component strategy presentation', () => {
     });
   });
 
-  it('keeps a complete candidate decisive when another candidate covers only part', () => {
+  it('keeps only a complete candidate when it fully covers another candidate', () => {
     const password = 'Passwort123!';
     const view = createCanonicalPasswordView(
       password,
@@ -119,7 +160,7 @@ describe('S05 component strategy presentation', () => {
     expect(
       summarizeCategoryCandidates(view, view.automaticFindings['common-components']),
     ).toMatchObject({
-      candidateCount: 2,
+      candidateCount: 1,
       coversWholePassword: true,
       hasSingleCandidateMatch: true,
     });

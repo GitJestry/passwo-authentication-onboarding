@@ -292,7 +292,7 @@ function passwordAnalysisWithEstimatedGuesses(estimatedGuesses: number): Passwor
     ],
     guessPath: {
       engineId: 'zxcvbn-ts',
-      configurationVersion: 'passwo-bounded-guess-path-v7',
+      configurationVersion: 'passwo-bounded-guess-path-v8',
       estimatedGuesses,
       estimatedGuessesLog10: Math.log10(estimatedGuesses),
       matches: [],
@@ -332,6 +332,29 @@ describe('local fictional password analysis', () => {
       ]),
     );
   });
+
+  it.each([
+    ['wort1wort1', 'common-word'],
+    ['password1password1', 'common-password-core'],
+    ['zümra1zümra1', 'common-name'],
+    ['qwertz9876xqwertz9876x', 'keyboard-pattern'],
+    ['2026-2026-', 'year'],
+    ['12.03.2012-12.03.2012-', 'date'],
+    ['abcd1abcd1', 'simple-character-sequence'],
+    ['einszweidrei-einszweidrei-', 'predictable-word-sequence'],
+  ] as const)(
+    'keeps the zxcvbn base finding for %s beside its repeated-component finding',
+    (fictionalPassword, baseKind) => {
+      const result = analyzeFictionalPassword({ fictionalPassword });
+
+      expect(result.findings).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({ kind: 'repeated-component' }),
+          expect.objectContaining({ kind: baseKind }),
+        ]),
+      );
+    },
+  );
 
   it('uses transient fictional account identifiers as local zxcvbn inputs', () => {
     const result = analyzeFictionalPassword({
@@ -573,7 +596,7 @@ describe('local fictional password analysis', () => {
     ['Campusgram2026', ['Campusgram'], ['account-or-service-term']],
     ['qwertz9876x', [], ['keyboard-pattern', 'common-password-core', 'simple-character-sequence']],
     ['KaffeeKaffee7', [], ['repeated-component', 'common-word']],
-    ['rQ7mL2vX9pK4', [], ['no-simple-component-recognized']],
+    ['rQ7mL2vX9pK4', [], ['typical-suffix']],
   ] as const)(
     'returns grounded bounded evidence for %s',
     (fictionalPassword, authoredAccountTerms, expectedKinds) => {
@@ -585,7 +608,7 @@ describe('local fictional password analysis', () => {
       expect(expectedKinds.some((expectedKind) => actualKinds.includes(expectedKind))).toBe(true);
       expect(result.guessPath).toMatchObject({
         engineId: 'zxcvbn-ts',
-        configurationVersion: 'passwo-bounded-guess-path-v7',
+        configurationVersion: 'passwo-bounded-guess-path-v8',
       });
       expect(result.guessPath.estimatedGuesses).toBeGreaterThan(0);
       for (const finding of result.findings) {
@@ -653,7 +676,7 @@ describe('local fictional password analysis', () => {
       expect(disposition).toMatchObject({
         kind: expectedKind,
         quickPathThreshold: 100_000,
-        analysisVersion: 'passwo-bounded-guess-path-v7',
+        analysisVersion: 'passwo-bounded-guess-path-v8',
       });
       if (disposition.kind === 'quick-path-recognized') {
         expect(disposition.ruleId).toBe('bounded-complete-guess-path');
@@ -675,7 +698,7 @@ describe('local fictional password analysis', () => {
       kind: 'no-quick-path-recognized',
       quickPathThreshold: 100_000,
       lengthOrientation: 'below-15',
-      analysisVersion: 'passwo-bounded-guess-path-v7',
+      analysisVersion: 'passwo-bounded-guess-path-v8',
       explanationId: 's05.disposition.no-quick-path-recognized',
     });
     expect(disposition.estimatedGuesses).toBeGreaterThan(disposition.quickPathThreshold);

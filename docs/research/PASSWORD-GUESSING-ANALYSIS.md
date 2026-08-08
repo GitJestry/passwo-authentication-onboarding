@@ -69,7 +69,7 @@ wird beim Verlassen des Segments verworfen.
 | Allgemeines Wörterbuch und Graphen | `@zxcvbn-ts/language-common@4.1.2` |
 | Deutsch | `@zxcvbn-ts/language-de@4.1.1` |
 | Englisch | `@zxcvbn-ts/language-en@4.1.1` |
-| Konfigurations-ID | `passwo-bounded-guess-path-v7` |
+| Konfigurations-ID | `passwo-bounded-guess-path-v8` |
 | Maximale analysierte Länge | HTML-Eingabelimit 128 UTF-16-Codeeinheiten; zxcvbn `maxLength=128`; Längenorientierung nach Unicode-Codepoints |
 | Levenshtein-Option | zxcvbn-Option deaktiviert; authored Kontextmatch auf höchstens eine begrenzte Abweichung beschränkt |
 | Authored Konto-Kontext | kanonische kontospezifische Kataloge für Master Campus, Campus E-Mail und Campusgram; S05 verwendet den Campusgram-Katalog |
@@ -94,9 +94,13 @@ Disposition nicht.
 
 ### 1. Vollständiger Rateweg
 
-`analyzeFictionalPassword` ruft zxcvbn-ts einmal mit der vollständigen Zeichenfolge, den authored
-Konto-Begriffen und den flüchtigen fiktiven Kontoidentifikatoren als `userInputs` auf. Verwendet
-werden:
+`analyzeFictionalPassword` ruft zxcvbn-ts mit der vollständigen Zeichenfolge, den authored
+Konto-Begriffen und den flüchtigen fiktiven Kontoidentifikatoren als `userInputs` auf. Für eine
+von zxcvbn belegte Wiederholung wird zusätzlich deren strikt kürzere Basiskomponente mit derselben
+lokalen Konfiguration ausgewertet. Eine zweite lokale Projektion ohne Wörterbücher verhindert,
+dass ein Wörterbuchtreffer innerhalb dieser Basis belegte Tastatur-, Datums- oder Folgenmuster
+verdeckt. So bleiben Befunde der Basis neben dem Wiederholungsbefund sichtbar; der vollständige
+Rateweg wird dadurch nicht ersetzt. Verwendet werden:
 
 - `result.guesses` als geschätzte Kandidatenzahl des vollständigen günstigsten Wegs;
 - `result.guessesLog10` ausschließlich als interne Diagnose;
@@ -127,9 +131,10 @@ einzelnen Damerau-Levenshtein-Abweichung für Tokens ab fünf Zeichen. Die Prüf
 weiterhin den tatsächlich erkannten Originalspan;
 angehängte Satzzeichen bleiben außerhalb des Begriffs, sofern der kürzere Treffer eindeutig ist.
 Eine typische Endung setzt Buchstaben im vorangehenden fiktiven Passwort voraus, aber keinen
-weiteren Komponentenbefund. Kategorien dürfen überlappen. Für die Darstellung werden Dubletten
-entfernt und Befunde priorisiert; die Guessing-Entscheidung bleibt unverändert der vollständigen
-zxcvbn-Sequenz überlassen.
+weiteren Komponentenbefund. Kategorien dürfen überlappen. Insbesondere verdrängt ein
+zxcvbn-Wiederholungsmatch die von zxcvbn erkannten Wörterbuch-, Passwort- und Folgenbefunde seiner
+Basis nicht. Für die Darstellung werden Dubletten entfernt und Befunde priorisiert; die
+Guessing-Entscheidung bleibt unverändert der vollständigen zxcvbn-Sequenz überlassen.
 
 Damit die optimale Gesamtsequenz alternative belegte Wörter nicht verdeckt, werden vollständige
 alphabetische Läufe zusätzlich deterministisch gegen die eingefrorenen Passwort-, Wort- und
