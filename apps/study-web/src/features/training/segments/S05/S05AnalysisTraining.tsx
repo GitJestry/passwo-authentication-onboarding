@@ -58,25 +58,17 @@ const CAMPUSGRAM_PASSWORD_REFERENCE_LENGTH = 18;
 
 interface CampusgramPasswordVisualStyle extends CSSProperties {
   readonly '--s05-campusgram-password-scale': string;
-  readonly '--s05-campusgram-password-field-width': string;
 }
 
 function campusgramPasswordVisualStyle(password: string): CampusgramPasswordVisualStyle {
   const characterCount = Math.max([...password].length, 1);
-  const referenceCharacterCount = Math.min(
-    characterCount,
-    CAMPUSGRAM_PASSWORD_REFERENCE_LENGTH,
-  );
   const scale =
     characterCount <= CAMPUSGRAM_PASSWORD_REFERENCE_LENGTH
       ? 1
       : CAMPUSGRAM_PASSWORD_REFERENCE_LENGTH / characterCount;
-  const fieldWidth =
-    10 + (27 * referenceCharacterCount) / CAMPUSGRAM_PASSWORD_REFERENCE_LENGTH;
 
   return {
     '--s05-campusgram-password-scale': String(scale),
-    '--s05-campusgram-password-field-width': `${fieldWidth}rem`,
   };
 }
 
@@ -768,14 +760,44 @@ function StructurePatternsScene({ step }: { readonly step: S05AnalysisController
               {pattern.rows.map((row, rowIndex) => (
                 <div
                   className={styles.structureExampleRow}
+                  data-pattern={patternKey}
                   aria-label={row.join(', ')}
                   key={`${patternKey}-${rowIndex}`}
                 >
-                  {row.map((part, partIndex) => (
-                    <span data-block-index={partIndex} key={`${part}-${partIndex}`}>
-                      {part}
-                    </span>
-                  ))}
+                  <div className={styles.structureExampleBlocks}>
+                    {patternKey === 'theme' ? (
+                      <span className={styles.structureConnectionGroup} aria-hidden="true">
+                        {row.slice(0, rowIndex === 1 ? 4 : 3).map((part, partIndex) => (
+                          <span data-block-index={partIndex} key={`${part}-${partIndex}`}>
+                            {part}
+                          </span>
+                        ))}
+                      </span>
+                    ) : null}
+                    {patternKey === 'theme'
+                      ? row.slice(rowIndex === 1 ? 4 : 3).map((part, trailingIndex) => {
+                          const partIndex = trailingIndex + (rowIndex === 1 ? 4 : 3);
+                          return (
+                            <span data-block-index={partIndex} key={`${part}-${partIndex}`}>
+                              {part}
+                            </span>
+                          );
+                        })
+                      : patternKey === 'repetition'
+                        ? (
+                            <>
+                              <span data-block-index={0}>{row[0]}</span>
+                              <span className={styles.structureRepetitionMultiplier} aria-hidden="true">
+                                ×{row.length}
+                              </span>
+                            </>
+                          )
+                        : row.map((part, partIndex) => (
+                            <span data-block-index={partIndex} key={`${part}-${partIndex}`}>
+                              {part}
+                            </span>
+                          ))}
+                  </div>
                 </div>
               ))}
             </div>
