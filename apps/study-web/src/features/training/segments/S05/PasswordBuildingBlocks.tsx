@@ -1,4 +1,5 @@
 import type { CSSProperties } from 'react';
+import type { S05VisualCategoryId } from './S05ComponentStrategy.js';
 import styles from './PasswordBuildingBlocks.module.css';
 
 export interface PasswordBuildingBlocksProps {
@@ -6,6 +7,8 @@ export interface PasswordBuildingBlocksProps {
   readonly parts: readonly string[];
   readonly display: 'assembled' | 'separated' | 'decomposed';
   readonly labels?: readonly (string | readonly string[])[];
+  readonly categoryIds?: readonly (readonly S05VisualCategoryId[])[];
+  readonly continuous?: boolean;
   readonly segmentGroups?: readonly (readonly string[])[];
   readonly ariaLabel: string;
   readonly animate?: boolean;
@@ -39,6 +42,8 @@ export function PasswordBuildingBlocks({
   parts,
   display,
   labels,
+  categoryIds,
+  continuous = false,
   segmentGroups,
   ariaLabel,
   animate = true,
@@ -57,6 +62,44 @@ export function PasswordBuildingBlocks({
   }
 
   if (display === 'decomposed') {
+    if (continuous) {
+      return (
+        <div
+          className={styles.blocks}
+          data-display="continuous"
+          data-appearance={appearance}
+          aria-label={ariaLabel}
+        >
+          <code className={styles.continuousPassword}>
+            {parts.map((part, index) => {
+              const selected = selection?.selectedIndices.includes(index) ?? false;
+              const categories = categoryIds?.[index] ?? [];
+              const sharedProps = {
+                'data-part-index': index,
+                'data-categories': categories.join(' '),
+                'data-highlighted': selected || undefined,
+              } as const;
+              return selection === undefined ? (
+                <span key={`${part}-${index}`} {...sharedProps}>
+                  {part}
+                </span>
+              ) : (
+                <label key={`${part}-${index}`} {...sharedProps}>
+                  <input
+                    className={styles.continuousSelection}
+                    type="checkbox"
+                    checked={selected}
+                    aria-label={`${selection.checkboxLabel}: ${part}`}
+                    onChange={() => selection.onToggle(index)}
+                  />
+                  <span>{part}</span>
+                </label>
+              );
+            })}
+          </code>
+        </div>
+      );
+    }
     const gridStyle = {
       gridTemplateColumns: `repeat(${parts.length}, minmax(0, auto))`,
     } satisfies CSSProperties;

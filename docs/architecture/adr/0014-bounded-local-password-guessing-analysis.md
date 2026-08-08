@@ -2,7 +2,7 @@
 
 - **Status:** Accepted
 - **Datum:** 2026-08-03
-- **Ergänzt am:** 2026-08-06 um flüchtige fiktive Kontoidentifikatoren und begrenzte authored Fuzzy-Erkennung
+- **Ergänzt am:** 2026-08-08 um flüchtige fiktive Kontoidentifikatoren, begrenzte authored Fuzzy-Erkennung und eine presentation-only Kompositzerlegung
 - **Citation label:** `ADR 0014-Bounded-Password-Guessing`
 - **Ergänzt:** ADR 0002, ADR 0003 und ADR 0007
 
@@ -65,6 +65,16 @@ Satz- oder Phrasenstruktur werden nicht aus der Zeichenfolge behauptet. Dafür e
 der ausdrücklichen Ausweichoption
 `Nichts davon oder unsicher`. Sie bleibt flüchtig, verlangt keine inhaltlichen Details und
 verändert die binäre Simulationsentscheidung nicht.
+
+Für die erklärende Darstellung dürfen vollständige alphabetische Läufe zusätzlich exakt und
+case-insensitive aus den eingefrorenen zxcvbn-Wörterbüchern zerlegt werden. Die Zerlegung muss den
+gesamten Lauf abdecken; ergänzte Wörter haben mindestens vier Buchstaben, außer zxcvbn belegt
+einen kürzeren Span bereits selbst. Eine eindeutige Sortierung bevorzugt weniger Teile, die
+bestehende Wörterbuchpriorität und längere frühere Teile. Leetspeak, Tippfehler, beliebige innere
+Teilstrings und semantische Sprachmodelle sind für diese Ergänzung ausgeschlossen. Sichtbare
+Trennzeichen zwischen belegten Bereichen dürfen als reine Verbindung markiert werden, erzeugen
+aber keinen Finding- oder Ratewegtyp. Weder Zerlegung noch Verbindung verändern Kandidatenzahl,
+optimale zxcvbn-Sequenz oder S06-Disposition.
 
 Systemgenerierte Sechs-Wort-Folgen aus S08 werden nicht durch die S05-Heuristik zertifiziert.
 Ihre Begründung beruht auf dem bekannten, versionierten Erzeugungsprozess.

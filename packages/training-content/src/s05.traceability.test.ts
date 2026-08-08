@@ -4,7 +4,7 @@ import { S05_CONTENT_VERSION, s05Content } from './s05.js';
 
 describe('S05 content traceability', () => {
   it('keeps the participant copy bounded and separate from internal terminology', () => {
-    expect(S05_CONTENT_VERSION).toBe('2.46.6');
+    expect(S05_CONTENT_VERSION).toBe('2.47.1');
     expect(s05Content.source).toMatchObject({
       document: 'research/private/training-script.pdf',
       internalPages: [
@@ -12,7 +12,7 @@ describe('S05 content traceability', () => {
         35,
       ],
       copyReference:
-        'docs/design/S00-S05-COPY-AUDIT.md#copy-delta-s05-strategieuebergaenge-8-august-2026',
+        'docs/design/S00-S05-COPY-AUDIT.md#copy-delta-s05-analysebausteine-ohne-befundtexte-8-august-2026',
     });
     expect(s05Content.segment.id).toBe('S05');
     expect(s05Content.page.fixtureNotice).toBe(
@@ -20,6 +20,14 @@ describe('S05 content traceability', () => {
     );
     expect(s05Content.page.title).toBe('Häufig verwendete Passwörter und Zeichenfolgen');
     expect(s05Content.analysis.authoredAccountTerms).toEqual(accountContextTerms.campusgram);
+    expect(s05Content.componentStrategy.accountContext.machine.conveyorBlocks).toEqual([
+      ...new Map(
+        accountContextTerms.campusgram.map((term) => {
+          const normalized = term.trim().normalize('NFKC').toLocaleLowerCase('de-DE');
+          return [normalized, normalized] as const;
+        }),
+      ).values(),
+    ]);
     expect(s05Content.intro.strategyAnnotations.probability).toBe('sehr häufig');
     expect(s05Content.intro.strategyAnnotations.personalDetail).toBe(
       'Naheliegende Jahreszahl',

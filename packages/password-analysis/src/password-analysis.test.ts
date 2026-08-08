@@ -292,7 +292,7 @@ function passwordAnalysisWithEstimatedGuesses(estimatedGuesses: number): Passwor
     ],
     guessPath: {
       engineId: 'zxcvbn-ts',
-      configurationVersion: 'passwo-bounded-guess-path-v5',
+      configurationVersion: 'passwo-bounded-guess-path-v7',
       estimatedGuesses,
       estimatedGuessesLog10: Math.log10(estimatedGuesses),
       matches: [],
@@ -370,6 +370,205 @@ describe('local fictional password analysis', () => {
   });
 
   it.each([
+    ['C4mpus', 'Campus'],
+    ['C4ampus', 'Campus'],
+    ['M4sterC4mpus', 'MasterCampus'],
+    ['C4mpusM4il', 'CampusMail'],
+    ['C4mpusgr4m', 'Campusgram'],
+    ['Ca^^pus', 'Campus'],
+    ['Cmapus', 'Campus'],
+  ] as const)(
+    'recognizes the bounded account-context variant %s for %s',
+    (fictionalPassword, authoredAccountTerm) => {
+      const result = analyzeFictionalPassword({
+        fictionalPassword,
+        authoredAccountTerms: [authoredAccountTerm],
+      });
+
+      expect(result.findings).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({
+            kind: 'account-or-service-term',
+            evidence: [
+              {
+                type: 'span',
+                start: 0,
+                end: fictionalPassword.length,
+                token: fictionalPassword,
+              },
+            ],
+          }),
+          expect.objectContaining({
+            kind: 'typical-transformation',
+            evidence: [
+              {
+                type: 'span',
+                start: 0,
+                end: fictionalPassword.length,
+                token: fictionalPassword,
+              },
+            ],
+          }),
+        ]),
+      );
+    },
+  );
+
+  it.each([
+    ['Chqt', 'Chat'],
+    ['Cxxpus', 'Campus'],
+  ] as const)(
+    'does not broaden authored matching beyond the bounded rule for %s',
+    (fictionalPassword, authoredAccountTerm) => {
+      const result = analyzeFictionalPassword({
+        fictionalPassword,
+        authoredAccountTerms: [authoredAccountTerm],
+      });
+
+      expect(result.findings.some(({ kind }) => kind === 'account-or-service-term')).toBe(false);
+    },
+  );
+
+  it.each([
+    'ichliebe-Campusgram4',
+    'ichliebe_Campusgram4',
+    'ichliebe#Campusgram4',
+  ] as const)('keeps connector-bound common words visible in %s', (fictionalPassword) => {
+    const result = analyzeFictionalPassword({
+      fictionalPassword,
+      authoredAccountTerms: ['Campusgram'],
+    });
+
+    expect(
+      result.findings.some(
+        ({ kind, evidence }) =>
+          (kind === 'common-word' || kind === 'common-password-core') &&
+          evidence.some((item) => item.type === 'span' && item.token === 'liebe'),
+      ),
+    ).toBe(true);
+    expect(result.findings).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          kind: 'account-or-service-term',
+          evidence: [expect.objectContaining({ token: 'Campusgram' })],
+        }),
+      ]),
+    );
+  });
+
+  it('projects a complete concatenated dictionary partition without changing the guess path', () => {
+    const fictionalPassword = 'ichliebe-Campusgram4';
+    const result = analyzeFictionalPassword({
+      fictionalPassword,
+      authoredAccountTerms: ['Campusgram'],
+    });
+    const tokens = result.findings.flatMap(({ evidence }) =>
+      evidence.flatMap((item) => (item.type === 'span' ? [item.token] : [])),
+    );
+
+    expect(tokens).toEqual(expect.arrayContaining(['ich', 'liebe', 'Campusgram', '4']));
+    expect(
+      result.guessPath.matches.every(
+        ({ start, end }) => start >= 0 && end <= fictionalPassword.length,
+      ),
+    ).toBe(true);
+  });
+
+  it.each(['-', '_', ';', '#'] as const)(
+    'keeps complete dictionary words around the %s connector visible',
+    (connector) => {
+      const fictionalPassword = ['Kaktus', 'Fenster', 'Regen', 'Komet', 'Wodurch', 'Knochen'].join(
+        connector,
+      );
+      const result = analyzeFictionalPassword({ fictionalPassword });
+      const tokens = result.findings.flatMap(({ evidence }) =>
+        evidence.flatMap((item) => (item.type === 'span' ? [item.token] : [])),
+      );
+
+      expect(tokens).toEqual(
+        expect.arrayContaining(['Kaktus', 'Fenster', 'Regen', 'Komet', 'Wodurch', 'Knochen']),
+      );
+      expect(tokens).not.toContain(connector);
+    },
+  );
+
+  it('keeps year and punctuation spans intact beside account context', () => {
+    const result = analyzeFictionalPassword({
+      fictionalPassword: 'Campusgram2026',
+      authoredAccountTerms: ['Campusgram'],
+    });
+
+    expect(result.findings).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          kind: 'account-or-service-term',
+          evidence: [expect.objectContaining({ token: 'Campusgram' })],
+        }),
+        expect.objectContaining({
+          kind: 'year',
+          evidence: [{ type: 'span', start: 10, end: 14, token: '2026' }],
+        }),
+      ]),
+    );
+  });
+
+  it.each([
+    ['Passw0rt123!', ['123!']],
+    ['mEin!Pa55w0rt?', ['!', '?']],
+    ['Wort!Fenster?Regen_', ['!', '?', '_']],
+    ['Wort#', ['#']],
+    ['Wort$', ['$']],
+  ] as const)('assigns typical endings to every bounded component in %s', (input, endings) => {
+    const result = analyzeFictionalPassword({ fictionalPassword: input });
+    const actualEndings = result.findings.flatMap(({ kind, evidence }) =>
+      kind === 'typical-suffix'
+        ? evidence.flatMap((item) => (item.type === 'span' ? [item.token] : []))
+        : [],
+    );
+
+    expect(actualEndings).toEqual(endings);
+  });
+
+  it('preserves original UTF-16 offsets for a complete Unicode dictionary partition', () => {
+    const result = analyzeFictionalPassword({ fictionalPassword: 'ÄpfelStraße' });
+    const spans = result.findings.flatMap(({ evidence }) =>
+      evidence.flatMap((item) => (item.type === 'span' ? [item] : [])),
+    );
+
+    expect(spans).toEqual(
+      expect.arrayContaining([
+        { type: 'span', start: 0, end: 5, token: 'Äpfel' },
+        { type: 'span', start: 5, end: 11, token: 'Straße' },
+      ]),
+    );
+  });
+
+  it('keeps every projected span inside the 128-code-unit analysis boundary', () => {
+    const fictionalPassword = 'Kaktus-Fenster-Regen-'.repeat(8).slice(0, 128);
+    const result = analyzeFictionalPassword({ fictionalPassword });
+
+    expect(fictionalPassword).toHaveLength(128);
+    for (const evidence of result.findings.flatMap(({ evidence }) => evidence)) {
+      if (evidence.type !== 'span') continue;
+      expect(evidence.start).toBeGreaterThanOrEqual(0);
+      expect(evidence.end).toBeLessThanOrEqual(128);
+      expect(fictionalPassword.slice(evidence.start, evidence.end)).toBe(evidence.token);
+    }
+  });
+
+  it('does not add a free inner dictionary substring to an otherwise complete word', () => {
+    const result = analyzeFictionalPassword({ fictionalPassword: 'Liebling' });
+    const tokens = result.findings.flatMap(({ evidence }) =>
+      evidence.flatMap((item) =>
+        item.type === 'span' ? [item.token.toLocaleLowerCase('de-DE')] : [],
+      ),
+    );
+
+    expect(tokens).toContain('liebling');
+    expect(tokens).not.toContain('lieb');
+  });
+
+  it.each([
     ['Passwort123!', [], ['common-password-core']],
     ['Campusgram2026', ['Campusgram'], ['account-or-service-term']],
     ['qwertz9876x', [], ['keyboard-pattern', 'common-password-core', 'simple-character-sequence']],
@@ -386,7 +585,7 @@ describe('local fictional password analysis', () => {
       expect(expectedKinds.some((expectedKind) => actualKinds.includes(expectedKind))).toBe(true);
       expect(result.guessPath).toMatchObject({
         engineId: 'zxcvbn-ts',
-        configurationVersion: 'passwo-bounded-guess-path-v5',
+        configurationVersion: 'passwo-bounded-guess-path-v7',
       });
       expect(result.guessPath.estimatedGuesses).toBeGreaterThan(0);
       for (const finding of result.findings) {
@@ -454,7 +653,7 @@ describe('local fictional password analysis', () => {
       expect(disposition).toMatchObject({
         kind: expectedKind,
         quickPathThreshold: 100_000,
-        analysisVersion: 'passwo-bounded-guess-path-v5',
+        analysisVersion: 'passwo-bounded-guess-path-v7',
       });
       if (disposition.kind === 'quick-path-recognized') {
         expect(disposition.ruleId).toBe('bounded-complete-guess-path');
@@ -476,7 +675,7 @@ describe('local fictional password analysis', () => {
       kind: 'no-quick-path-recognized',
       quickPathThreshold: 100_000,
       lengthOrientation: 'below-15',
-      analysisVersion: 'passwo-bounded-guess-path-v5',
+      analysisVersion: 'passwo-bounded-guess-path-v7',
       explanationId: 's05.disposition.no-quick-path-recognized',
     });
     expect(disposition.estimatedGuesses).toBeGreaterThan(disposition.quickPathThreshold);

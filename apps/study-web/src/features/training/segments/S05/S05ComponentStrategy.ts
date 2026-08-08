@@ -11,6 +11,8 @@ export type S05ComponentCategoryId =
   | 'personal-details'
   | 'account-context';
 
+export type S05VisualCategoryId = S05ComponentCategoryId | 'repetition';
+
 export type S05CategoryCardStatus =
   | 'pending'
   | 'current'
@@ -29,6 +31,7 @@ export interface S05CategoryFinding {
   readonly candidateId: string;
   readonly categoryId: S05ComponentCategoryId;
   readonly label: string;
+  readonly evidenceBlockIds: readonly string[];
   readonly blockIds: readonly string[];
   readonly changeIds: readonly string[];
   readonly changeLabel?: string;
@@ -56,6 +59,8 @@ export interface S05CanonicalPasswordView {
 
 export interface S05DisplayBlock extends S05CanonicalBlock {
   readonly labels: readonly string[];
+  readonly categoryIds: readonly S05VisualCategoryId[];
+  readonly groupIds: readonly string[];
 }
 
 export interface S05CategoryCandidateSummary {
@@ -76,11 +81,47 @@ const commonComponentKinds = new Set<PasswordSingleFindingKind>([
 ]);
 
 const replacementSources: ReadonlyMap<string, string> = new Map([
+  ['/\\\\/\\\\', 'm'],
+  ['\\\\/\\\\/', 'w'],
+  ['|-|', 'h'],
+  ['|_|', 'u'],
+  ['^^', 'm'],
+  ['nn', 'm'],
+  ['2n', 'm'],
+  ['//', 'n'],
+  ['()', 'o'],
+  ['|<', 'k'],
+  ['^/', 'w'],
+  ['uu', 'w'],
+  ['vv', 'w'],
+  ['2u', 'w'],
+  ['2v', 'w'],
+  ['><', 'x'],
+  ['|)', 'd'],
   ['4', 'a'],
+  ['@', 'a'],
+  ['8', 'b'],
+  ['(', 'c'],
+  ['{', 'c'],
+  ['[', 'c'],
+  ['<', 'c/k/v'],
+  ['#', 'f/h'],
+  ['&', 'g'],
   ['3', 'e'],
-  ['1', 'i'],
+  ['1', 'i/l'],
+  ['!', 'i/l'],
+  ['|', 'i/l'],
   ['0', 'o'],
+  ['$', 's'],
   ['5', 's'],
+  ['+', 't'],
+  ['7', 'l/t'],
+  ['6', 'd/g'],
+  ['9', 'g/q'],
+  ['>', 'v'],
+  ['/', 'v'],
+  ['%', 'x'],
+  ['2', 'z'],
 ] as const);
 
 function evidenceSpans(finding: PasswordSingleFinding): readonly PasswordEvidenceSpan[] {
@@ -138,6 +179,68 @@ function uniqueFindings(findings: readonly S05CategoryFinding[]): readonly S05Ca
   return [...byLabelAndBlocks.values()];
 }
 
+function removeCoveredFindings(
+  findings: readonly S05CategoryFinding[],
+): readonly S05CategoryFinding[] {
+  return findings.filter(
+    (finding, findingIndex) =>
+      !findings.some((candidate, candidateIndex) => {
+        if (candidateIndex === findingIndex) return false;
+        const coversFinding = finding.blockIds.every((blockId) =>
+          candidate.blockIds.includes(blockId),
+        );
+        if (!coversFinding) return false;
+        return (
+          candidate.blockIds.length > finding.blockIds.length ||
+          (candidate.blockIds.length === finding.blockIds.length &&
+            candidateIndex < findingIndex)
+        );
+      }),
+  );
+}
+
+interface BlockRange {
+  readonly start: number;
+  readonly end: number;
+}
+
+function blockRange(
+  blocks: readonly S05CanonicalBlock[],
+  blockIds: readonly string[],
+): BlockRange | null {
+  const matchingBlocks = blocks.filter(({ id }) => blockIds.includes(id));
+  const first = matchingBlocks[0];
+  const last = matchingBlocks.at(-1);
+  return first === undefined || last === undefined
+    ? null
+    : { start: first.start, end: last.end };
+}
+
+function partiallyOverlaps(left: BlockRange, right: BlockRange): boolean {
+  if (left.start >= right.end || right.start >= left.end) return false;
+  const leftContainsRight = left.start <= right.start && left.end >= right.end;
+  const rightContainsLeft = right.start <= left.start && right.end >= left.end;
+  return !leftContainsRight && !rightContainsLeft;
+}
+
+function excludeCrossBoundaryFindings(
+  blocks: readonly S05CanonicalBlock[],
+  findings: readonly S05CategoryFinding[],
+  boundaryFindings: readonly S05CategoryFinding[],
+): readonly S05CategoryFinding[] {
+  const boundaryRanges = boundaryFindings.flatMap((finding) => {
+    const range = blockRange(blocks, finding.evidenceBlockIds);
+    return range === null ? [] : [range];
+  });
+  return findings.filter((finding) => {
+    const range = blockRange(blocks, finding.evidenceBlockIds);
+    return (
+      range === null ||
+      !boundaryRanges.some((boundary) => partiallyOverlaps(range, boundary))
+    );
+  });
+}
+
 function excludesNestedCalendarFinding(
   entries: readonly {
     readonly finding: PasswordSingleFinding;
@@ -156,12 +259,21 @@ function excludesNestedCalendarFinding(
 }
 
 function transformationDetails(span: PasswordEvidenceSpan): readonly string[] {
-  const details = [...span.token]
-    .map((character) => {
-      const source = replacementSources.get(character);
-      return source === undefined ? null : `${source} → ${character}`;
-    })
-    .filter((detail): detail is string => detail !== null);
+  const details: string[] = [];
+  const replacements = [...replacementSources.entries()].sort(
+    ([left], [right]) => right.length - left.length,
+  );
+  for (let index = 0; index < span.token.length; ) {
+    const replacement = replacements.find(([value]) => span.token.startsWith(value, index));
+    if (replacement === undefined) {
+      const codePoint = span.token.codePointAt(index);
+      index += codePoint !== undefined && codePoint > 0xffff ? 2 : 1;
+      continue;
+    }
+    const [value, source] = replacement;
+    details.push(`${source} → ${value}`);
+    index += value.length;
+  }
   if (details.length === 0 && /\p{Lu}/u.test(span.token)) details.push('Großschreibung');
   if (details.length === 0) details.push('Zeichen verändert');
   return [...new Set(details)];
@@ -261,10 +373,6 @@ export function createCanonicalPasswordView(
   const typicalSuffixSpans = canonicalFindingsWithSpans
     .filter(({ finding }) => finding.kind === 'typical-suffix')
     .map(({ span }) => span);
-  const typicalTransformationSpans = canonicalFindingsWithSpans
-    .filter(({ finding }) => finding.kind === 'typical-transformation')
-    .map(({ span }) => span);
-
   const typicalChanges = canonicalFindingsWithSpans.flatMap<S05TypicalChange>(
     ({ finding, span }) => {
       if (finding.kind === 'typical-transformation') {
@@ -322,6 +430,7 @@ export function createCanonicalPasswordView(
           candidateId: `common:${finding.id}:${index}`,
           categoryId: 'common-components' as const,
           label: commonLabel(finding.kind, part.token),
+          evidenceBlockIds: blocksForSpan(blocks, part),
           blockIds: blocksForSpan(blocks, part),
           changeIds: [],
           ...(sequenceLabel === undefined ? {} : { changeLabel: sequenceLabel }),
@@ -331,18 +440,14 @@ export function createCanonicalPasswordView(
   );
   const rawAccountFindings = uniqueFindings(
     canonicalFindingsWithSpans.flatMap(({ finding, span }) =>
-      finding.kind === 'account-or-service-term' &&
-      (finding.confidence === 'authored-exact-match' ||
-        typicalTransformationSpans.some(
-          (transformationSpan) =>
-            transformationSpan.start === span.start && transformationSpan.end === span.end,
-        ))
+      finding.kind === 'account-or-service-term'
         ? [
             {
               id: `account:${finding.id}`,
               candidateId: `account:${finding.id}`,
               categoryId: 'account-context' as const,
               label: span.token,
+              evidenceBlockIds: blocksForSpan(blocks, span),
               blockIds: blocksForSpan(blocks, span),
               changeIds: [],
             },
@@ -351,13 +456,23 @@ export function createCanonicalPasswordView(
     ),
   );
   const partialView = { blocks, typicalChanges };
+  const commonFindings = removeCoveredFindings(
+    attachTypicalChanges(partialView, rawCommonFindings),
+  );
+  const boundaryCompatibleAccountFindings = excludeCrossBoundaryFindings(
+    blocks,
+    rawAccountFindings,
+    rawCommonFindings,
+  );
   return {
     password,
     blocks,
     typicalChanges,
     automaticFindings: {
-      'common-components': attachTypicalChanges(partialView, rawCommonFindings),
-      'account-context': attachTypicalChanges(partialView, rawAccountFindings),
+      'common-components': commonFindings,
+      'account-context': removeCoveredFindings(
+        attachTypicalChanges(partialView, boundaryCompatibleAccountFindings),
+      ),
     },
   };
 }
@@ -378,6 +493,7 @@ export function createPersonalFindings(
             candidateId: `personal:group:${validBlockIds.join(':')}`,
             categoryId: 'personal-details' as const,
             label: s05Content.componentStrategy.presentation.findingChips.personalComponent,
+            evidenceBlockIds: validBlockIds,
             blockIds: validBlockIds,
             changeIds: [],
           },
@@ -387,6 +503,7 @@ export function createPersonalFindings(
           candidateId: `personal:${blockId}:${index}`,
           categoryId: 'personal-details' as const,
           label: s05Content.componentStrategy.presentation.findingChips.personalComponent,
+          evidenceBlockIds: [blockId],
           blockIds: [blockId],
           changeIds: [],
         }));
@@ -419,79 +536,83 @@ export function summarizeCategoryCandidates(
 export function projectCanonicalPasswordBlocks(
   view: S05CanonicalPasswordView,
   findings: readonly S05CategoryFinding[],
-  includeResidualChanges: boolean,
 ): readonly S05DisplayBlock[] {
-  const indexById = new Map(view.blocks.map(({ id }, index) => [id, index] as const));
   const representedChangeIds = new Set(findings.flatMap(({ changeIds }) => changeIds));
-  const ranges: Array<{ start: number; end: number; residualLabel?: string }> = [];
-  for (const finding of findings) {
-    const indices = finding.blockIds.flatMap((id) => {
-      const index = indexById.get(id);
-      return index === undefined ? [] : [index];
-    });
-    if (indices.length > 0) ranges.push({ start: Math.min(...indices), end: Math.max(...indices) });
-  }
-  if (includeResidualChanges) {
-    for (const change of view.typicalChanges) {
-      if (representedChangeIds.has(change.id)) continue;
-      const indices = change.blockIds.flatMap((id) => {
-        const index = indexById.get(id);
-        return index === undefined ? [] : [index];
-      });
-      if (indices.length > 0) {
-        ranges.push({
-          start: Math.min(...indices),
-          end: Math.max(...indices),
-          residualLabel: change.residualLabel,
-        });
-      }
-    }
-  }
-
-  const mergedRanges = ranges
-    .sort((left, right) => left.start - right.start || left.end - right.end)
-    .reduce<Array<{ start: number; end: number; residualLabels: string[] }>>((merged, range) => {
-      const previous = merged.at(-1);
-      if (previous !== undefined && range.start <= previous.end) {
-        previous.end = Math.max(previous.end, range.end);
-        if (range.residualLabel !== undefined) previous.residualLabels.push(range.residualLabel);
-        return merged;
-      }
-      merged.push({
-        start: range.start,
-        end: range.end,
-        residualLabels: range.residualLabel === undefined ? [] : [range.residualLabel],
-      });
-      return merged;
-    }, []);
-
-  const displayBlocks: S05DisplayBlock[] = [];
-  for (let index = 0; index < view.blocks.length; ) {
-    const range = mergedRanges.find(({ start }) => start === index);
-    const endIndex = range?.end ?? index;
-    const groupedBlocks = view.blocks.slice(index, endIndex + 1);
-    const first = groupedBlocks[0];
-    const last = groupedBlocks.at(-1);
-    if (first === undefined || last === undefined) break;
-    const groupedIds = new Set(groupedBlocks.map(({ id }) => id));
-    const labels = [
-      ...new Set([
-        ...findings.flatMap((finding) =>
-          finding.blockIds.some((id) => groupedIds.has(id))
-            ? [finding.label, ...(finding.changeLabel === undefined ? [] : [finding.changeLabel])]
-            : [],
-        ),
-        ...(range?.residualLabels ?? []),
+  const visibleChanges = view.typicalChanges.filter(
+    (change) => representedChangeIds.has(change.id),
+  );
+  const directBlocks = view.blocks.map((block): S05DisplayBlock => {
+    const directFindings = findings.filter((finding) =>
+      finding.evidenceBlockIds.includes(block.id),
+    );
+    const coveringFindings = findings.filter((finding) => finding.blockIds.includes(block.id));
+    const changes = visibleChanges.filter((change) => change.blockIds.includes(block.id));
+    const annotations = [
+      ...directFindings.flatMap((finding) => [
+        {
+          label: finding.label,
+          categoryId: finding.categoryId as S05VisualCategoryId,
+        },
+        ...(finding.changeLabel === undefined || finding.changeIds.length > 0
+          ? []
+          : [
+              {
+                label: finding.changeLabel,
+                categoryId: 'common-components' as const,
+              },
+            ]),
       ]),
-    ];
-    displayBlocks.push({
-      id: `display-${first.start}-${last.end}`,
-      start: first.start,
-      end: last.end,
-      value: view.password.slice(first.start, last.end),
-      labels,
-    });
-    index = endIndex + 1;
-  }
-  return displayBlocks;
+      ...changes.map((change) => ({
+        label:
+          findings.find(({ changeIds }) => changeIds.includes(change.id))?.changeLabel ??
+          change.residualLabel,
+        categoryId: 'common-components' as const,
+      })),
+    ].filter(
+      (annotation, index, all) =>
+        all.findIndex(
+          (candidate) =>
+            candidate.label === annotation.label && candidate.categoryId === annotation.categoryId,
+        ) === index,
+    );
+    return {
+      ...block,
+      labels: annotations.map(({ label }) => label),
+      categoryIds: [
+        ...new Set(coveringFindings.map(({ categoryId }) => categoryId as S05VisualCategoryId)),
+      ],
+      groupIds: [...new Set(coveringFindings.map(({ id }) => id))],
+    };
+  });
+
+  return directBlocks.reduce<S05DisplayBlock[]>((merged, block) => {
+    const previous = merged.at(-1);
+    const sameCategories =
+      previous !== undefined &&
+      previous.categoryIds.length === block.categoryIds.length &&
+      previous.categoryIds.every((categoryId, index) => categoryId === block.categoryIds[index]);
+    const sameGroups =
+      previous !== undefined &&
+      previous.groupIds.length === block.groupIds.length &&
+      previous.groupIds.every((groupId, index) => groupId === block.groupIds[index]);
+    if (
+      previous === undefined ||
+      previous.end !== block.start ||
+      !sameCategories ||
+      !sameGroups
+    ) {
+      merged.push(block);
+      return merged;
+    }
+    merged[merged.length - 1] = {
+      id: `display-${previous.start}-${block.end}`,
+      start: previous.start,
+      end: block.end,
+      value: view.password.slice(previous.start, block.end),
+      labels: [...new Set([...previous.labels, ...block.labels])],
+      categoryIds: previous.categoryIds,
+      groupIds: previous.groupIds,
+    };
+    return merged;
+  }, []);
 }

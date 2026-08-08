@@ -269,14 +269,9 @@ export class S05AnalysisController {
   }: S05AnalysisControllerOptions) {
     this.#mission = createMission(subject, initialSection);
     this.#onComplete = onComplete;
-    const frozenAccountTerms = new Set(
-      s05Content.analysis.authoredAccountTerms.map((term) => term.toLocaleLowerCase('de-DE')),
-    );
     const componentAnalysis = analyzeFictionalPassword({
       fictionalPassword: subject.fictionalPassword,
-      authoredAccountTerms: subject.analysisContext.accountTerms.filter((term) =>
-        frozenAccountTerms.has(term.toLocaleLowerCase('de-DE')),
-      ),
+      authoredAccountTerms: s05Content.analysis.authoredAccountTerms,
       ...(subject.analysisContext.transientAccountIdentifiers === undefined
         ? {}
         : {

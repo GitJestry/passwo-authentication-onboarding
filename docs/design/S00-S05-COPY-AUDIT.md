@@ -1279,3 +1279,50 @@ unverändert. `S05_CONTENT_VERSION` wird von `2.46.5` auf `2.46.6` erhöht.
 | `S05.componentStrategy.summary.partialMatches` | Erklärung zu Teilabdeckung und zusätzlichen erzeugten Kandidaten | `Dein Passwort besteht zum Teil aus frühen Anhaltspunkten. Erraten ist es dadurch noch nicht. Wir verfolgen den Angriff weiter.` | Ergebnisfeedback | ausdrücklich verlangte Ersetzung | begrenzt | `Weiter` | keine |
 | `S05.componentStrategy.commonComponents.transition` | `Als Nächstes schauen wir, ob dein Campusgram-Passwort persönliche Angaben enthält.` | entfällt | Navigation | ausdrücklich verlangte Entfernung | nein | `Weiter` | keine |
 | `S05.componentStrategy.personalDetails.transition` | `Als Nächstes prüfen wir, ob Begriffe direkt zum Konto passen.` | entfällt | Navigation | ausdrücklich verlangte Entfernung | nein | `Weiter` | keine |
+
+### Copy-Delta S05 kanonischer Kontextkatalog und Variantenbefunde 8. August 2026
+
+Quelle ist der ausdrückliche Nutzerauftrag vom 8. August 2026. Die sichtbare Campusgram-Liste
+verwendet nun denselben kanonischen Katalog wie die lokale Analyse. Begrenzt erkannte authored
+Varianten werden mit ihrem Originalspan in der Konto-, Dienst- und Umfeldprüfung gezeigt. Die
+Teilnehmertexte, Persistenz, der Export und die vollständige zxcvbn-Quick-Path-Entscheidung bleiben
+unverändert. `S05_CONTENT_VERSION` wird von `2.46.6` auf `2.46.7` und die
+Analysekonfiguration von `passwo-bounded-guess-path-v5` auf `passwo-bounded-guess-path-v6`
+erhöht.
+
+| Segment und Text-ID | Vorher | Nachher | Primäre Rolle | Grund und Bedeutungsänderung | Interaktionsziel / Hervorhebung |
+|---|---|---|---|---|---|
+| `S05.componentStrategy.accountContext.machine.conveyorBlocks` | separate Auswahl von 15 Campusgram-Begriffen | normalisierte, deduplizierte Werte aus dem kanonischen Campusgram-Katalog | fachlicher Kontext | verhindert Abweichungen zwischen sichtbarer Liste und Analysebegriffen | bestehende Laufbanddarstellung |
+| authored Konto-/Dienstprojektion | Fuzzy-Treffer nur mit zusätzlichem deckungsgleichem zxcvbn-Transformationsbefund sichtbar | jeder begrenzt belegte authored Treffer erscheint mit Originalspan und gegebenenfalls Variantenlabel | Ergebnisfeedback | macht Formen wie `C4mpus` konsistent sichtbar | bestehende lokale Prüfung; keine neue Interaktion |
+| S05-Analyseinput | im Studienpfad vollständiger Katalog, in Design-Lab-Fixtures eine szenarioabhängige Teilmenge | kanonischer Campusgram-Katalog in jeder S05-Ausführung | Analysegrenze | verhindert, dass Passwortüberschreibungen Begriffe wie `Campusgram` oder `C4ampus` unbeabsichtigt aus der Prüfung entfernen | keine sichtbare Ablaufänderung |
+| Wörter an Verbindungen | nur Treffer der optimalen zxcvbn-Gesamtsequenz | zusätzliche exakte Wörterbuchprüfung für mindestens vierbuchstabige Präfixe oder Suffixe direkt an `-`, `_` oder anderen nicht-alphanumerischen Verbindungen | Ergebnisfeedback | verhindert verdeckte belegte Wörter wie `liebe` in `ichliebe-Campusgram4` | Originalspan ohne Verbindungszeichen; keine neue Interaktion |
+
+### Darstellungsdelta S05 kontinuierliche Passwortanalyse 8. August 2026
+
+Quelle ist der ausdrückliche Nutzerauftrag vom 8. August 2026. Die sichtbare Analyse zeigt das
+fiktive Passwort als zusammenhängende, umbrechbare Zeichenfolge und ordnet Befunde über stabile
+Kategoriespuren zu. Bestehende Teilnehmertexte, Interaktionsziele, Persistenz, Export und die
+vollständige zxcvbn-Quick-Path-Entscheidung bleiben unverändert. `S05_CONTENT_VERSION` wird von
+`2.46.7` auf `2.47.0` und die Analysekonfiguration von `passwo-bounded-guess-path-v6` auf
+`passwo-bounded-guess-path-v7` erhöht.
+
+| Segment und Text-ID | Vorher | Nachher | Primäre Rolle | Grund und Bedeutungsänderung | Interaktionsziel / Hervorhebung |
+|---|---|---|---|---|---|
+| `S05.componentStrategy.presentation.canonicalPassword` | einzelne farbwechselnde Kästchen aus allen überlappenden Span-Grenzen | eine kontinuierliche Passwortzeile mit gestapelten semantischen Spuren | Ergebnisfeedback | verhindert irreführende Worttrennungen; keine fachliche Bedeutungsänderung | bestehende Analyse; häufige Bestandteile Blau, persönliche Angaben Lila, Kontobezug Gelb, Wiederholung Türkis |
+| `S05.componentStrategy.presentation.reviewCard` | farbige Fragmente nach Position | kompakte Liste der je Kategorie tatsächlich belegten Trefferwerte | Ergebnisfeedback | hält sichtbare Liste und gesprochene Ergebnisrückmeldung konsistent | bestehende Zusammenfassung; Kategorie zusätzlich durch Überschrift und Symbol benannt |
+| `S05.componentStrategy.personalDetails.selection` | sichtbare Einzelkästchen als Auswahlziele | nahtlose, weiterhin fokussierbare Textintervalle mit lila Hover-, Fokus- und Auswahlzustand | Navigation | erhält Bedienbarkeit ohne künstliche Wortgrenzen | bestehender Selbstcheck; Tastaturfokus bleibt sichtbar |
+| begrenzte Wörterbuchprojektion | einzelne Wörter nur am Rand eines Verbindungszeichens ergänzt | deterministische lückenlose Kompositzerlegung vollständiger alphabetischer Läufe | Ergebnisfeedback | macht belegte aneinandergereihte Wörter konsistent sichtbar; beeinflusst den Rateweg nicht | keine neue Interaktion; keine Teilnehmertextänderung |
+
+### Copy-Delta S05 Analysebausteine ohne Befundtexte 8. August 2026
+
+Quelle ist der ausdrückliche Nutzerauftrag vom 8. August 2026. Erkannte Bereiche werden wieder
+als kompakte semantische Bausteine dargestellt. Die bisherigen Befundtexte unter diesen
+Bausteinen entfallen; Kategorieüberschrift, Symbol und stabile Kategorienfarbe bleiben sichtbar.
+Analyse, Interaktion, Persistenz, Export und die zxcvbn-Quick-Path-Entscheidung bleiben
+unverändert. `S05_CONTENT_VERSION` wird von `2.47.0` auf `2.47.1` erhöht.
+
+| Segment und Text-ID | Aktueller Text | Geplanter Text | Primäre Rolle | Grund | Bedeutungsänderung | Interaktionsziel | Hervorhebung |
+|---|---|---|---|---|---|---|---|
+| `S05.componentStrategy.presentation.findingChips.*` unter Analysebereichen | sichtbare Hinweise wie `häufig verwendetes Wort`, `typische Variante: …` oder `typische Endung: …` | unter den Bausteinen nicht mehr sichtbar | Ergebnisfeedback | ausdrücklich verlangte visuelle Entlastung; Kategorie bleibt durch Überschrift, Symbol und Farbe eindeutig | nein | kein | feste Kategorienfarbe am Baustein |
+| `S05.componentStrategy.presentation.canonicalPassword` | kontinuierliche Zeichenfolge mit Kategoriespuren | zusammenhängende neutrale Zeichen bleiben Text; erkannte Bereiche erscheinen als farbige Bausteine | Ergebnisfeedback | ausdrücklich verlangte Rückkehr zu Bausteinen ohne erneute Ableitung künstlicher Grenzen | nein | bestehende Analyse und persönlicher Selbstcheck | Blau häufige Bestandteile, Lila persönliche Angaben, Gelb Kontobezug, Türkis Wiederholung |
+| `S05.componentStrategy.presentation.reviewCard` | vollständige Passwortprojektion einschließlich neutraler Zeichen und automatisch eingefärbter Verbindungszeichen | kompakte Bausteinliste ausschließlich aus den auch gesprochenen Trefferwerten | Ergebnisfeedback | Nutzerkorrektur: visuelle Zusammenfassung und Ergebnistext müssen dieselben Teile nennen | nein | kein | feste Kategorienfarbe ohne zusätzliche Unterstreichung |

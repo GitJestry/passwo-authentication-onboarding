@@ -7,6 +7,15 @@ import type {
 } from '@passwo/contracts';
 import { accountContextTerms } from './account-context-terms.js';
 
+const campusgramContextConveyorBlocks = [
+  ...new Map(
+    accountContextTerms.campusgram.map((term) => {
+      const normalized = term.trim().normalize('NFKC').toLocaleLowerCase('de-DE');
+      return [normalized, normalized] as const;
+    }),
+  ).values(),
+];
+
 export type S05DesignLabFixtureId =
   | 'common-suffix'
   | 'all-categories'
@@ -27,7 +36,7 @@ export interface S05DesignLabFixture {
   readonly startSection: 'intro' | 'components' | 'structure';
 }
 
-export const S05_CONTENT_VERSION = '2.46.6';
+export const S05_CONTENT_VERSION = '2.47.1';
 
 export const s05Content = {
   version: S05_CONTENT_VERSION,
@@ -38,9 +47,9 @@ export const s05Content = {
       35,
     ] as const,
     revision:
-      'Userauftrag vom 2026-08-08 · Passphrasen, Zeichensuche, Längenskala, Textstraffung, entfernte Freisuche-Überschrift, Programmperspektive, einfache Zeichenfolgen, getrennte Sprechschritte, Selbstcheck zu persönlichen Angaben und gestraffte Strategieübergänge',
+      'Userauftrag vom 2026-08-08 · semantische Analysebausteine ohne Befundtexte',
     copyReference:
-      'docs/design/S00-S05-COPY-AUDIT.md#copy-delta-s05-strategieuebergaenge-8-august-2026',
+      'docs/design/S00-S05-COPY-AUDIT.md#copy-delta-s05-analysebausteine-ohne-befundtexte-8-august-2026',
   },
   segment: {
     id: 'S05',
@@ -213,23 +222,7 @@ export const s05Content = {
     },
     accountContext: {
       machine: {
-        conveyorBlocks: [
-          'campusgram',
-          'campus',
-          'nachricht',
-          'gruppe',
-          'kontakte',
-          'beitrag',
-          'chat',
-          'instagram',
-          'socials',
-          'soziale',
-          'uni',
-          'hochschule',
-          'profil',
-          'community',
-          'netzwerk',
-        ] as const,
+        conveyorBlocks: campusgramContextConveyorBlocks,
       },
       opening: [
         'Der Bezug zum Konto, Dienst oder Umfeld kann dem Angreifer Ideen für dein Passwort liefern.',

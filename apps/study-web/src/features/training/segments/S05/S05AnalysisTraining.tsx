@@ -509,34 +509,32 @@ function ComponentReviewCard({
         {completedCategories.map((category) => {
           const card = snapshot.componentStrategy.cards[category.id];
           const view = snapshot.componentStrategy.canonicalView;
-          const findingBlocks =
-            view === null
-              ? []
-              : projectCanonicalPasswordBlocks(view, card.findings, false).filter(
-                  ({ labels }) => labels.length > 0,
-                );
+          const findingValues =
+            view === null ? [] : categoryFindingValues(view, card.findings);
           return (
             <article
               key={category.id}
               data-status={card.status}
+              data-category={category.id}
             >
               <div className={styles.componentReviewHeading}>
                 <img src={categoryAssets[category.id]} alt="" />
                 <h3>{category.title}</h3>
               </div>
-              {findingBlocks.length === 0 ? (
+              {findingValues.length === 0 ? (
                 <strong className={styles.nothingFound}>
                   {s05Content.componentStrategy.summary.nothingFound}
                 </strong>
               ) : (
                 <PasswordBuildingBlocks
-                  value={findingBlocks.map(({ value }) => value).join('')}
-                  parts={findingBlocks.map(({ value }) => value)}
+                  value={findingValues.join('')}
+                  parts={findingValues}
                   display="decomposed"
                   appearance="analysis"
+                  continuous
                   animate={false}
-                  highlightedIndices={findingBlocks.map((_, index) => index)}
-                  ariaLabel={`${category.title}: ${findingBlocks.map(({ value }) => value).join(', ')}`}
+                  categoryIds={findingValues.map(() => [category.id])}
+                  ariaLabel={`${category.title}: ${findingValues.join(', ')}`}
                 />
               )}
             </article>
@@ -598,30 +596,19 @@ function CanonicalPasswordView({
   const visibleFindings =
     focus === null ? findings : findings.filter(({ categoryId }) => categoryId === focus);
   const selectingPersonalDetails = snapshot.step === 'personal-details-check';
-  const displayBlocks = selectingPersonalDetails
-    ? view.blocks.map((block) => ({ ...block, labels: [] as readonly string[] }))
-    : projectCanonicalPasswordBlocks(
-        view,
-        visibleFindings,
-        snapshot.step === 'components-summary',
-      );
   const personalSelection = snapshot.componentStrategy.personalSelection;
   const selectedPersonalIndices = view.blocks.flatMap((block, index) =>
     personalSelection.blockIds.includes(block.id) ? [index] : [],
   );
-  const renderedBlocks = selectingPersonalDetails ? view.blocks : displayBlocks;
-  const blockLabels = selectingPersonalDetails
-    ? view.blocks.map(() => '')
-    : displayBlocks.map(({ labels }) => labels);
-  const segmentGroups = renderedBlocks.map(({ start, end, value }) => {
-    const segments = view.blocks
-      .filter((block) => block.start >= start && block.end <= end)
-      .map((block) => block.value);
-    return segments.length === 0 ? [value] : segments;
-  });
-  const highlightedIndices = selectingPersonalDetails
-    ? []
-    : displayBlocks.flatMap(({ labels }, index) => (labels.length > 0 ? [index] : []));
+  const displayBlocks = selectingPersonalDetails
+    ? view.blocks.map((block, index) => ({
+        ...block,
+        labels: [] as readonly string[],
+        categoryIds: selectedPersonalIndices.includes(index)
+          ? (['personal-details'] as const)
+          : [],
+      }))
+    : projectCanonicalPasswordBlocks(view, visibleFindings);
   return (
     <section
       className={styles.canonicalPassword}
@@ -638,17 +625,12 @@ function CanonicalPasswordView({
       <div className={styles.canonicalBlocks} data-s05-speech-obstacle>
         <PasswordBuildingBlocks
           value={view.password}
-          parts={renderedBlocks.map(({ value }) => value)}
+          parts={displayBlocks.map(({ value }) => value)}
           display="decomposed"
           appearance="analysis"
+          continuous
           animate={false}
-          labels={blockLabels}
-          segmentGroups={segmentGroups}
-          highlightedIndices={
-            selectingPersonalDetails
-              ? selectedPersonalIndices
-              : highlightedIndices
-          }
+          categoryIds={displayBlocks.map(({ categoryIds }) => categoryIds)}
           {...(selectingPersonalDetails
             ? {
                 selection: {
@@ -820,8 +802,11 @@ function StructureApplicationScene({
           parts={passwordParts}
           display="decomposed"
           appearance="analysis"
+          continuous
           animate={false}
-          highlightedIndices={highlightedIndices}
+          categoryIds={passwordParts.map((_, index) =>
+            highlightedIndices.includes(index) ? (['repetition'] as const) : [],
+          )}
           ariaLabel={`${s05Content.structure.application.passwordLabel}: ${subject.fictionalPassword}`}
         />
       </section>
@@ -1205,19 +1190,36 @@ function renderScene(
   }
 }
 
+function categoryFindingValues(
+  view: NonNullable<S05AnalysisControllerSnapshot['componentStrategy']['canonicalView']>,
+  findings: readonly S05CategoryFinding[],
+): readonly string[] {
+  const positionedValues = findings
+    .flatMap((finding) => {
+      const blocks = view.blocks.filter(({ id }) => finding.blockIds.includes(id));
+      const first = blocks[0];
+      const last = blocks.at(-1);
+      return first === undefined || last === undefined
+        ? []
+        : [
+            {
+              start: first.start,
+              end: last.end,
+              value: view.password.slice(first.start, last.end),
+            },
+          ];
+    })
+    .sort((left, right) => left.start - right.start || left.end - right.end);
+  return [...new Map(positionedValues.map((item) => [item.value, item.value] as const)).values()];
+}
+
 function commonComponentsResult(snapshot: S05AnalysisControllerSnapshot): readonly string[] {
   const content = s05Content.componentStrategy.commonComponents;
   const view = snapshot.componentStrategy.canonicalView;
   const findings = snapshot.componentStrategy.cards['common-components'].findings;
   if (view === null || findings.length === 0) return [...content.results.none];
 
-  const foundValues = [
-    ...new Set(
-      projectCanonicalPasswordBlocks(view, findings, false)
-        .filter(({ labels }) => labels.length > 0)
-        .map(({ value }) => value),
-    ),
-  ];
+  const foundValues = categoryFindingValues(view, findings);
   if (foundValues.length === 0) return [...content.results.none];
 
   const quotedValues = foundValues.map((value) => `„${value}“`);
@@ -1247,9 +1249,7 @@ function personalDetailsResult(snapshot: S05AnalysisControllerSnapshot): readonl
   const selectedValues =
     view === null
       ? []
-      : projectCanonicalPasswordBlocks(view, findings, false)
-          .filter(({ labels }) => labels.length > 0)
-          .map(({ value }) => `„${value}“`);
+      : categoryFindingValues(view, findings).map((value) => `„${value}“`);
   const result =
     selectedValues.length === 0
       ? content.results.none
@@ -1272,13 +1272,7 @@ function accountContextResult(snapshot: S05AnalysisControllerSnapshot): readonly
   const findings = snapshot.componentStrategy.cards['account-context'].findings;
   if (view === null || findings.length === 0) return [...content.results.none];
 
-  const foundValues = [
-    ...new Set(
-      projectCanonicalPasswordBlocks(view, findings, false)
-        .filter(({ labels }) => labels.length > 0)
-        .map(({ value }) => value),
-    ),
-  ];
+  const foundValues = categoryFindingValues(view, findings);
   if (foundValues.length === 0) return [...content.results.none];
 
   const terms = foundValues.map((value) => `„${value}“`).join(', ');

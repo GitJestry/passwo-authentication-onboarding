@@ -8,7 +8,7 @@ import type {
   PasswordStructureAnalysisResult,
   RuntimeStructureFinding,
 } from '@passwo/contracts';
-import { type OptionsDictionary, ZxcvbnFactory } from '@zxcvbn-ts/core';
+import { Options, type OptionsDictionary, ZxcvbnFactory } from '@zxcvbn-ts/core';
 import * as zxcvbnCommonPackage from '@zxcvbn-ts/language-common';
 import * as zxcvbnDePackage from '@zxcvbn-ts/language-de';
 import * as zxcvbnEnPackage from '@zxcvbn-ts/language-en';
@@ -19,7 +19,7 @@ import {
   originalSpanForNormalizedRange,
 } from './case-insensitive-spans.js';
 
-export const PASSWORD_ANALYSIS_CONFIGURATION_VERSION = 'passwo-bounded-guess-path-v5';
+export const PASSWORD_ANALYSIS_CONFIGURATION_VERSION = 'passwo-bounded-guess-path-v7';
 
 export interface FictionalPasswordAnalysisInput {
   readonly fictionalPassword: string;
@@ -48,17 +48,26 @@ function mergeDictionaries(...dictionaries: readonly Dictionary[]): OptionsDicti
   return merged;
 }
 
+const zxcvbnDictionary = mergeDictionaries(
+  zxcvbnCommonPackage.dictionary,
+  zxcvbnDePackage.dictionary,
+  zxcvbnEnPackage.dictionary,
+);
+
 const zxcvbnFactory = new ZxcvbnFactory({
   translations: zxcvbnDePackage.translations,
   graphs: zxcvbnCommonPackage.adjacencyGraphs,
-  dictionary: mergeDictionaries(
-    zxcvbnCommonPackage.dictionary,
-    zxcvbnDePackage.dictionary,
-    zxcvbnEnPackage.dictionary,
-  ),
+  dictionary: zxcvbnDictionary,
   maxLength: 128,
   useLevenshteinDistance: false,
 });
+
+// The authored matcher deliberately shares the frozen zxcvbn substitution vocabulary. It still
+// produces presentation evidence only and never changes zxcvbn's complete-path estimate.
+const zxcvbnLeetTable = new Options().l33tTable;
+const zxcvbnSubstitutionsByCharacter: ReadonlyMap<string, readonly string[]> = new Map(
+  Object.entries(zxcvbnLeetTable),
+);
 
 type ZxcvbnResult = ReturnType<typeof zxcvbnFactory.check>;
 type ZxcvbnMatch = ZxcvbnResult['sequence'][number];
@@ -164,6 +173,12 @@ function dictionaryFindingKind(
   match: ZxcvbnMatch,
 ): Exclude<PasswordSingleFindingKind, 'no-simple-component-recognized'> {
   const dictionaryName = (stringProperty(match, 'dictionaryName') ?? '').toLocaleLowerCase('en-US');
+  return dictionaryNameFindingKind(dictionaryName);
+}
+
+function dictionaryNameFindingKind(
+  dictionaryName: string,
+): Exclude<PasswordSingleFindingKind, 'no-simple-component-recognized'> {
   if (dictionaryName === 'userinputs') return 'account-or-service-term';
   if (dictionaryName.includes('password')) return 'common-password-core';
   if (
@@ -175,6 +190,193 @@ function dictionaryFindingKind(
     return 'common-name';
   }
   return 'common-word';
+}
+
+const supplementalDictionaryPriority: Readonly<Record<PasswordSingleFindingKind, number>> = {
+  ...findingPriority,
+  'common-password-core': 0,
+  'common-word': 1,
+  'common-name': 2,
+};
+
+const supplementalDictionaryKinds: ReadonlyMap<
+  string,
+  Exclude<PasswordSingleFindingKind, 'no-simple-component-recognized'>
+> = (() => {
+  const kinds = new Map<
+    string,
+    Exclude<PasswordSingleFindingKind, 'no-simple-component-recognized'>
+  >();
+  for (const [dictionaryName, values] of Object.entries(zxcvbnDictionary)) {
+    const normalizedDictionaryName = dictionaryName.toLocaleLowerCase('en-US');
+    if (
+      !normalizedDictionaryName.includes('password') &&
+      !normalizedDictionaryName.includes('commonword') &&
+      !normalizedDictionaryName.includes('name')
+    ) {
+      continue;
+    }
+    const kind = dictionaryNameFindingKind(normalizedDictionaryName);
+    for (const value of values) {
+      if (typeof value !== 'string') continue;
+      const normalized = value.toLocaleLowerCase('de-DE');
+      if ([...normalized].length < 4 || !/^\p{L}+$/u.test(normalized)) continue;
+      const existing = kinds.get(normalized);
+      if (
+        existing === undefined ||
+        supplementalDictionaryPriority[kind] < supplementalDictionaryPriority[existing]
+      ) {
+        kinds.set(normalized, kind);
+      }
+    }
+  }
+  return kinds;
+})();
+
+function isConnector(character: string | undefined): boolean {
+  return character !== undefined && !/[\p{L}\p{N}]/u.test(character);
+}
+
+interface DictionaryPartitionPart {
+  readonly start: number;
+  readonly end: number;
+  readonly kind: Exclude<PasswordSingleFindingKind, 'no-simple-component-recognized'>;
+}
+
+interface GuessPathDictionarySpan {
+  readonly kind: 'common-password-core' | 'common-word' | 'common-name';
+  readonly span: PasswordEvidenceSpan;
+}
+
+function compareDictionaryPartitions(
+  left: readonly DictionaryPartitionPart[],
+  right: readonly DictionaryPartitionPart[],
+): number {
+  if (left.length !== right.length) return left.length - right.length;
+  const leftPriority = left.reduce(
+    (total, part) => total + supplementalDictionaryPriority[part.kind],
+    0,
+  );
+  const rightPriority = right.reduce(
+    (total, part) => total + supplementalDictionaryPriority[part.kind],
+    0,
+  );
+  if (leftPriority !== rightPriority) return leftPriority - rightPriority;
+  for (let index = 0; index < left.length; index += 1) {
+    const leftLength = (left[index]?.end ?? 0) - (left[index]?.start ?? 0);
+    const rightLength = (right[index]?.end ?? 0) - (right[index]?.start ?? 0);
+    if (leftLength !== rightLength) return rightLength - leftLength;
+  }
+  return 0;
+}
+
+function collectDictionaryPartitionFindings(
+  input: string,
+  guessPathFindings: readonly PasswordSingleFinding[],
+): readonly PasswordSingleFinding[] {
+  const findings: PasswordSingleFinding[] = [];
+  const guessPathSpans: GuessPathDictionarySpan[] = [];
+  for (const item of guessPathFindings) {
+    if (
+      item.kind !== 'common-password-core' &&
+      item.kind !== 'common-word' &&
+      item.kind !== 'common-name'
+    ) {
+      continue;
+    }
+    const kind = item.kind;
+    for (const evidence of item.evidence) {
+      if (evidence.type === 'span') guessPathSpans.push({ kind, span: evidence });
+    }
+  }
+
+  for (const runMatch of input.matchAll(/\p{L}+/gu)) {
+    const run = runMatch[0];
+    const runStart = runMatch.index;
+    const runEnd = runStart + run.length;
+    const normalizedRun = normalizeCaseWithOriginalOffsets(run);
+    const before = runStart === 0 ? undefined : input.slice(0, runStart).at(-1);
+    const after = runEnd === input.length ? undefined : input.slice(runEnd)[0];
+    const normalizedStarts = new Set<number>([0]);
+    const normalizedEnds = new Set<number>([normalizedRun.value.length]);
+    for (let index = 1; index < normalizedRun.value.length; index += 1) {
+      if (
+        normalizedRun.originalStartByCodeUnit[index] !==
+        normalizedRun.originalStartByCodeUnit[index - 1]
+      ) {
+        normalizedStarts.add(index);
+      }
+      if (
+        normalizedRun.originalEndByCodeUnit[index] !==
+        normalizedRun.originalEndByCodeUnit[index - 1]
+      ) {
+        normalizedEnds.add(index);
+      }
+    }
+    const candidatesByStart = new Map<number, DictionaryPartitionPart[]>();
+    const addCandidate = (candidate: DictionaryPartitionPart): void => {
+      const candidates = candidatesByStart.get(candidate.start) ?? [];
+      if (
+        !candidates.some(
+          (existing) =>
+            existing.end === candidate.end && existing.kind === candidate.kind,
+        )
+      ) {
+        candidates.push(candidate);
+        candidatesByStart.set(candidate.start, candidates);
+      }
+    };
+
+    for (const start of normalizedStarts) {
+      for (const end of normalizedEnds) {
+        if (end <= start) continue;
+        const token = normalizedRun.value.slice(start, end);
+        if ([...token].length < 4) continue;
+        const kind = supplementalDictionaryKinds.get(token);
+        if (kind !== undefined) addCandidate({ start, end, kind });
+      }
+    }
+    for (const { kind, span } of guessPathSpans) {
+      if (span.start < runStart || span.end > runEnd) continue;
+      const normalizedStart = normalizedRun.originalStartByCodeUnit.findIndex(
+        (originalStart) => originalStart === span.start - runStart,
+      );
+      const normalizedEnd =
+        normalizedRun.originalEndByCodeUnit.lastIndexOf(span.end - runStart) + 1;
+      if (normalizedStart < 0 || normalizedEnd <= normalizedStart) continue;
+      addCandidate({ start: normalizedStart, end: normalizedEnd, kind });
+    }
+
+    const bestFrom = new Map<number, readonly DictionaryPartitionPart[] | null>();
+    const partitionFrom = (start: number): readonly DictionaryPartitionPart[] | null => {
+      if (start === normalizedRun.value.length) return [];
+      const cached = bestFrom.get(start);
+      if (cached !== undefined) return cached;
+      let best: readonly DictionaryPartitionPart[] | null = null;
+      for (const candidate of candidatesByStart.get(start) ?? []) {
+        const remainder = partitionFrom(candidate.end);
+        if (remainder === null) continue;
+        const partition = [candidate, ...remainder];
+        if (best === null || compareDictionaryPartitions(partition, best) < 0) best = partition;
+      }
+      bestFrom.set(start, best);
+      return best;
+    };
+
+    const partition = partitionFrom(0);
+    const connectorBound = isConnector(before) || isConnector(after);
+    if (partition === null || (partition.length < 2 && !connectorBound)) continue;
+    for (const [ordinal, part] of partition.entries()) {
+      const originalSpan = originalSpanForNormalizedRange(normalizedRun, part.start, part.end);
+      if (originalSpan === null) continue;
+      const start = runStart + originalSpan[0];
+      const end = runStart + originalSpan[1];
+      findings.push(
+        finding(input, part.kind, start, end, 'bounded-heuristic', ordinal),
+      );
+    }
+  }
+  return findings;
 }
 
 function findingsFromGuessPath(
@@ -305,23 +507,63 @@ interface FuzzySpanCandidate {
   readonly distance: number;
   readonly lengthDelta: number;
   readonly termIndex: number;
+  readonly transformed: boolean;
 }
 
-const fuzzyCharacterAliases: Readonly<Record<string, string>> = {
-  '0': 'o',
-  '1': 'i',
-  '3': 'e',
-  '4': 'a',
-  '5': 's',
-  '6': 'g',
-  '7': 't',
-  '8': 'b',
-  '9': 'g',
-  '@': 'a',
-  $: 's',
-  '|': 'i',
-  '+': 't',
-};
+const fuzzyCharacterAliases: Readonly<Record<string, string>> = (() => {
+  const aliases: Record<string, string> = {};
+  for (const [letter, substitutions] of zxcvbnSubstitutionsByCharacter) {
+    for (const substitution of substitutions) {
+      if ([...substitution].length === 1 && aliases[substitution] === undefined) {
+        aliases[substitution] = letter;
+      }
+    }
+  }
+  return aliases;
+})();
+
+function escapeRegularExpression(value: string): string {
+  return value.replace(/[.*+?^${}()|[\]\\]/gu, '\\$&');
+}
+
+function substitutionsForCharacter(character: string): readonly string[] {
+  return zxcvbnSubstitutionsByCharacter.get(character) ?? [];
+}
+
+function collectZxcvbnLeetCandidates(
+  input: string,
+  term: string,
+  termIndex: number,
+): readonly FuzzySpanCandidate[] {
+  const termCharacters = [...term.toLocaleLowerCase('de-DE')];
+  if (termCharacters.length < 4) return [];
+  const alternatives = termCharacters.map((character) => {
+    const substitutions = substitutionsForCharacter(character);
+    return [character, ...substitutions]
+      .sort((left, right) => right.length - left.length)
+      .map(escapeRegularExpression);
+  });
+  const pattern = alternatives.map((values) => `(${values.join('|')})`).join('');
+  const matcher = new RegExp(pattern, 'giu');
+  return [...input.matchAll(matcher)].map((match) => {
+    const start = match.index;
+    const transformed = termCharacters.some((character, index) => {
+      const matchedValue = match[index + 1];
+      return (
+        matchedValue !== undefined &&
+        matchedValue.toLocaleLowerCase('de-DE') !== character
+      );
+    });
+    return {
+      start,
+      end: start + match[0].length,
+      distance: 0,
+      lengthDelta: match[0].length - term.length,
+      termIndex,
+      transformed,
+    };
+  });
+}
 
 function fuzzyCharacterValue(character: string): string | null {
   const lower = character.toLocaleLowerCase('de-DE');
@@ -436,6 +678,7 @@ function collectFuzzyAccountTermFindings(
   ];
   const candidates: FuzzySpanCandidate[] = [];
   for (const [termIndex, term] of uniqueTerms.entries()) {
+    candidates.push(...collectZxcvbnLeetCandidates(input, term, termIndex));
     const token = fuzzyTokenValues(term);
     if (token === null || token.length < 4) continue;
     const maximumDistance = token.length >= 5 ? 1 : 0;
@@ -457,6 +700,7 @@ function collectFuzzyAccountTermFindings(
             distance,
             lengthDelta,
             termIndex,
+            transformed: distance > 0,
           });
         }
       }
@@ -488,6 +732,18 @@ function collectFuzzyAccountTermFindings(
         findings.length,
       ),
     );
+    if (candidate.transformed) {
+      findings.push(
+        finding(
+          input,
+          'typical-transformation',
+          candidate.start,
+          candidate.end,
+          'bounded-heuristic',
+          findings.length,
+        ),
+      );
+    }
   }
   return findings;
 }
@@ -535,11 +791,39 @@ function collectNumberedWordSequences(input: string): readonly PasswordSingleFin
   });
 }
 
-function collectTypicalSuffix(input: string): readonly PasswordSingleFinding[] {
-  const match = /(?=.*\p{L})[\p{L}\p{N}]{3,}?((?:\d{1,4})?[!?._-]+|\d{1,3})$/u.exec(input);
-  if (match === null || match[1] === undefined) return [];
-  const start = input.length - match[1].length;
-  return [finding(input, 'typical-suffix', start, input.length)];
+function collectTypicalSuffixes(input: string): readonly PasswordSingleFinding[] {
+  const findings: PasswordSingleFinding[] = [];
+  for (const componentMatch of input.matchAll(/[\p{L}\p{N}]+/gu)) {
+    const component = componentMatch[0];
+    const componentStart = componentMatch.index;
+    const componentEnd = componentStart + component.length;
+    const punctuation = /^[!?#$._-]+/u.exec(input.slice(componentEnd))?.[0] ?? '';
+    const punctuationEnd = componentEnd + punctuation.length;
+    const punctuationIsTypicalEnding =
+      punctuation.length > 0 &&
+      (punctuationEnd === input.length || /[!?]/u.test(punctuation));
+    const trailingDigits = /\d+$/u.exec(component)?.[0] ?? '';
+    const boundedDigitEnding =
+      trailingDigits.length > 0 &&
+      trailingDigits.length <= (punctuationIsTypicalEnding ? 4 : 3) &&
+      (punctuationIsTypicalEnding || componentEnd === input.length);
+    if (!punctuationIsTypicalEnding && !boundedDigitEnding) continue;
+
+    const suffixStart = componentEnd - (boundedDigitEnding ? trailingDigits.length : 0);
+    const base = input.slice(componentStart, suffixStart);
+    if ([...base].length < 3 || !/\p{L}/u.test(base)) continue;
+    findings.push(
+      finding(
+        input,
+        'typical-suffix',
+        suffixStart,
+        punctuationIsTypicalEnding ? punctuationEnd : componentEnd,
+        'bounded-heuristic',
+        findings.length,
+      ),
+    );
+  }
+  return findings;
 }
 
 function deduplicateAndSortFindings(
@@ -573,6 +857,10 @@ export function analyzeFictionalPassword({
   ].filter((term) => term.length >= 3);
   const result = zxcvbnFactory.check(fictionalPassword, trimmedAccountTerms);
   const guessPathFindings = findingsFromGuessPath(fictionalPassword, result.sequence);
+  const dictionaryPartitionFindings = collectDictionaryPartitionFindings(
+    fictionalPassword,
+    guessPathFindings,
+  );
   const exactAccountTermFindings = collectExactAccountTermFindings(
     fictionalPassword,
     trimmedAccountTerms,
@@ -592,11 +880,12 @@ export function analyzeFictionalPassword({
   const numberedWordSequenceFindings = collectNumberedWordSequences(fictionalPassword);
   const findings = deduplicateAndSortFindings([
     ...guessPathFindings,
+    ...dictionaryPartitionFindings,
     ...exactAccountTermFindings,
     ...fuzzyAccountTermFindings,
     ...yearFindings,
     ...numberedWordSequenceFindings,
-    ...collectTypicalSuffix(fictionalPassword),
+    ...collectTypicalSuffixes(fictionalPassword),
   ]);
 
   return {

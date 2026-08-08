@@ -69,10 +69,10 @@ wird beim Verlassen des Segments verworfen.
 | Allgemeines Wörterbuch und Graphen | `@zxcvbn-ts/language-common@4.1.2` |
 | Deutsch | `@zxcvbn-ts/language-de@4.1.1` |
 | Englisch | `@zxcvbn-ts/language-en@4.1.1` |
-| Konfigurations-ID | `passwo-bounded-guess-path-v5` |
+| Konfigurations-ID | `passwo-bounded-guess-path-v7` |
 | Maximale analysierte Länge | HTML-Eingabelimit 128 UTF-16-Codeeinheiten; zxcvbn `maxLength=128`; Längenorientierung nach Unicode-Codepoints |
 | Levenshtein-Option | zxcvbn-Option deaktiviert; authored Kontextmatch auf höchstens eine begrenzte Abweichung beschränkt |
-| Authored S05-Kontext | `Campusgram`, `Campus`, `Nachrichten`, `Gruppen`, `Kontakte`, `Beiträge` |
+| Authored Konto-Kontext | kanonische kontospezifische Kataloge für Master Campus, Campus E-Mail und Campusgram; S05 verwendet den Campusgram-Katalog |
 | Lokale Kontoidentifikatoren | fiktiver Benutzername und fiktive Konto-Mail des aktuellen Kontos |
 | Externe Matcher | keine |
 | Quick-Path-Budget | 100000 Kandidaten |
@@ -121,20 +121,39 @@ Die optimale Sequenz wird in stabile PassWo-Kategorien projiziert:
 Zusätzliche deterministische Regeln ergänzen authored Konto-Treffer, exakte Treffer der lokalen
 fiktiven Kontoidentifikatoren, Jahreszahlen, typische Endungen und nummerierte Wiederholungen
 desselben Wortes mit mindestens drei aufeinanderfolgenden Markern. Authored Konto- und
-Dienstbegriffe werden zusätzlich begrenzt fuzzy geprüft: case-insensitive, mit üblichen
-Leetspeak-Ersetzungen wie `4 -> a` und höchstens einer einzelnen Damerau-Levenshtein-Abweichung
-für Tokens ab fünf Zeichen. Die Prüfung liefert weiterhin den tatsächlich erkannten Originalspan;
+Dienstbegriffe werden zusätzlich begrenzt fuzzy geprüft: case-insensitive, mit der eingefrorenen
+zxcvbn-Leetspeak-Tabelle einschließlich ein- und mehrzeichiger Ersetzungen sowie höchstens einer
+einzelnen Damerau-Levenshtein-Abweichung für Tokens ab fünf Zeichen. Die Prüfung liefert
+weiterhin den tatsächlich erkannten Originalspan;
 angehängte Satzzeichen bleiben außerhalb des Begriffs, sofern der kürzere Treffer eindeutig ist.
 Eine typische Endung setzt Buchstaben im vorangehenden fiktiven Passwort voraus, aber keinen
 weiteren Komponentenbefund. Kategorien dürfen überlappen. Für die Darstellung werden Dubletten
 entfernt und Befunde priorisiert; die Guessing-Entscheidung bleibt unverändert der vollständigen
 zxcvbn-Sequenz überlassen.
 
+Damit die optimale Gesamtsequenz alternative belegte Wörter nicht verdeckt, werden vollständige
+alphabetische Läufe zusätzlich deterministisch gegen die eingefrorenen Passwort-, Wort- und
+Namenswörterbücher zerlegt. Eine Ergänzung ist nur zulässig, wenn der gesamte Lauf lückenlos aus
+belegten Wörtern besteht oder ein einzelnes vollständiges Wörterbuchwort unmittelbar an ein
+nicht-alphanumerisches Verbindungszeichen grenzt. Ergänzte Wörter haben mindestens vier
+Buchstaben; kürzere Teile sind nur zulässig, wenn zxcvbn selbst genau diesen Span belegt. Bei
+mehreren vollständigen Zerlegungen werden zuerst weniger Teile, danach die bestehende
+Wörterbuchpriorität und schließlich längere frühere Teile bevorzugt. Die Ergänzung ist exakt und
+case-insensitive; Leetspeak, Tippfehler und beliebige innere Teilstrings werden nicht zusätzlich
+segmentiert. So bleiben etwa `ich` und `liebe` in `ichliebe-Campusgram4` belegbar, ohne eine freie
+sprachliche Tokenisierung einzuführen.
+
+Nicht-alphanumerische Zeichen zwischen zwei belegten Bereichen dürfen in der Oberfläche als
+reine Verbindung markiert werden. Sie werden dadurch weder zum Wörterbuchtreffer noch zu einem
+neuen Rateweg-Match. Diese Darstellungsbefunde und Verbindungen verändern weder zxcvbns optimale
+Sequenz noch die Kandidatenzahl oder Simulationsentscheidung.
+
 Ein authored Konto- oder Dienstbegriff oder ein lokaler fiktiver Kontoidentifikator darf in der
-Darstellung auch als veränderter Kontobezug erscheinen, wenn zxcvbn denselben Bereich sowohl dem
-lokalen `userInputs`-Wörterbuch als auch einer konkreten typischen Transformation zuordnet. Die
-Fuzzy-Regel ist auf die oben genannte Zeichen- und Distanzgrenze beschränkt; beliebige semantische
-Ähnlichkeit oder unbeschränkte Levenshtein-Suche werden nicht als Kontobezug ausgegeben.
+Darstellung auch als veränderter Kontobezug erscheinen, sobald der begrenzte authored Matcher den
+Originalspan belegt. Ein zusätzlicher deckungsgleicher zxcvbn-Transformationsbefund ist dafür nicht
+erforderlich. Die Fuzzy-Regel ist auf die oben genannte Zeichen- und Distanzgrenze beschränkt;
+beliebige semantische Ähnlichkeit oder unbeschränkte Levenshtein-Suche werden nicht als Kontobezug
+ausgegeben.
 
 ### 3. Strukturen
 
@@ -235,6 +254,8 @@ Der synthetische Testkorpus enthält mindestens:
 - häufige vollständige Passwörter;
 - typische Großschreibung, Leetspeak-Varianten wie `ch4t!` für `Chat` und eine einzelne
   begrenzte Zeichenabweichung;
+- lückenlos belegte aneinandergereihte Wörter sowie vollständige Wörter an `-`, `_`, `;` und
+  anderen nicht-alphanumerischen Verbindungen;
 - Konto-Begriff plus Jahr/Anhang;
 - Tastatur- und Zeichenfolgen;
 - exakte Wiederholungen;
@@ -249,6 +270,8 @@ Metamorphe Invarianten:
 - Großschreibung oder `o -> 0` darf einen bekannten Kern nicht automatisch verbergen.
 - Ein einzelnes `!` oder eine Zeichenklasse erzeugt kein Sicherheitsurteil.
 - Ein einzelner erkannter Teil macht die vollständige Zeichenfolge nicht automatisch zum Treffer.
+- Ein Wörterbuchwort innerhalb eines nicht vollständig zerlegbaren alphabetischen Laufs erzeugt
+  durch die Zusatzprojektion keinen freien inneren Teiltreffer.
 - Länge allein bestimmt die Quick-Path-Disposition nicht.
 - Semantische Selbsteinordnung verändert die Disposition nicht.
 - Kein Ergebnis darf `sicher`, `garantiert`, `bestanden` oder eine exakte Crack-Zeit behaupten.
@@ -264,5 +287,7 @@ keine externe Validierungsstudie eines neuen Password Strength Meters.
 - `userInputs` enthalten authored Kontokontext sowie ausschließlich lokal abgeleitete fiktive
   Kontoidentifikatoren und keine Daten realer Konten oder fremder Datenlecks.
 - Die optimierte Sequenz zeigt nicht zwingend jeden semantisch denkbaren Teilstring.
+- Die begrenzte Kompositzerlegung findet nur lückenlos durch die eingefrorenen Wörterbücher oder
+  bereits vorhandene zxcvbn-Spans belegte alphabetische Läufe.
 - `no-quick-path-recognized` ist eine Enthaltung von einer positiven Trefferbehauptung, kein
   Sicherheitsnachweis.

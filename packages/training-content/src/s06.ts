@@ -46,7 +46,7 @@ export interface S06NarrationContent {
   readonly body: string;
 }
 
-export const S06_CONSEQUENCE_CONTENT_VERSION = '2.3.3';
+export const S06_CONSEQUENCE_CONTENT_VERSION = '2.3.4';
 
 export const s06ConsequenceContent = {
   version: S06_CONSEQUENCE_CONTENT_VERSION,
@@ -54,9 +54,9 @@ export const s06ConsequenceContent = {
     document: 'research/private/training-script.pdf',
     internalPages: [36, 37, 38, 39, 40, 41, 42, 43, 44] as const,
     revision:
-      'Userauftrag vom 2026-08-06 · Konto-/Dienstbegriffe und begrenzte Fuzzy-Erkennung',
+      'Userauftrag vom 2026-08-08 · gemeinsame Konto-/Dienstkataloge und zxcvbn-synchrone Varianten',
     copyReference:
-      'docs/design/S06-S07-COPY-AUDIT.md#copy-delta-s06-authored-kontextbegriffe-und-begrenzte-fuzzy-erkennung-6-august-2026',
+      'docs/design/S06-S07-COPY-AUDIT.md#copy-delta-s06-gemeinsame-kontextkataloge-und-variantenabdeckung-8-august-2026',
   },
   segment: {
     id: 'S06',

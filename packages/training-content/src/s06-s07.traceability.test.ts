@@ -4,13 +4,13 @@ import { S06_CONSEQUENCE_CONTENT_VERSION, s06ConsequenceContent } from './s06.js
 import { S07_EVALUATION_CONTENT_VERSION, s07EvaluationContent } from './s07.js';
 
 const s06CopyReference =
-  'docs/design/S06-S07-COPY-AUDIT.md#copy-delta-s06-authored-kontextbegriffe-und-begrenzte-fuzzy-erkennung-6-august-2026';
+  'docs/design/S06-S07-COPY-AUDIT.md#copy-delta-s06-gemeinsame-kontextkataloge-und-variantenabdeckung-8-august-2026';
 const s07CopyReference =
   'docs/design/S06-S07-COPY-AUDIT.md#copy-delta-vollstaendiger-pruefweg-und-laengenorientierung-3-august-2026';
 
 describe('S06 and S07 bounded guess-path copy traceability', () => {
   it('keeps S06 consequence wording aligned with the complete bounded path', () => {
-    expect(S06_CONSEQUENCE_CONTENT_VERSION).toBe('2.3.3');
+    expect(S06_CONSEQUENCE_CONTENT_VERSION).toBe('2.3.4');
     expect(s06ConsequenceContent.source.copyReference).toBe(s06CopyReference);
     expect(s06ConsequenceContent.dispositionLabels['quick-path-recognized']).toMatch(
       /vollständiger Prüfweg/u,

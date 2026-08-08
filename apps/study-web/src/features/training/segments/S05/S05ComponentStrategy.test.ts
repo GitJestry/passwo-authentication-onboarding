@@ -27,8 +27,8 @@ function analysisWithFindings(findings: readonly PasswordSingleFinding[]): Passw
 }
 
 describe('S05 component strategy presentation', () => {
-  it('shows Passw0rt123! once as one common variant block', () => {
-    const password = 'Passw0rt123!';
+  it('shows P4ssw0rt123! once as one common variant block', () => {
+    const password = 'P4ssw0rt123!';
     const view = createCanonicalPasswordView(
       password,
       analyzeFictionalPassword({ fictionalPassword: password }),
@@ -36,19 +36,24 @@ describe('S05 component strategy presentation', () => {
     const displayed = projectCanonicalPasswordBlocks(
       view,
       view.automaticFindings['common-components'],
-      false,
     ).filter(({ labels }) => labels.length > 0);
 
     expect(displayed.map(({ value }) => value)).toEqual([password]);
-    expect(displayed[0]?.labels).toEqual(
+    expect(displayed.flatMap(({ labels }) => labels)).toEqual(
       expect.arrayContaining([
         'häufig verwendetes Passwort',
-        'typische Variante: o → 0, +123!',
+        'typische Variante: a → 4, o → 0, +123!',
       ]),
     );
-    expect(displayed[0]?.labels.filter((label) => label.startsWith('typische Variante'))).toHaveLength(
-      1,
-    );
+    expect(
+      [
+        ...new Set(
+          displayed
+            .flatMap(({ labels }) => labels)
+            .filter((label) => label.startsWith('typische Variante')),
+        ),
+      ],
+    ).toHaveLength(1);
     expect(
       summarizeCategoryCandidates(view, view.automaticFindings['common-components']),
     ).toMatchObject({
@@ -155,7 +160,6 @@ describe('S05 component strategy presentation', () => {
       projectCanonicalPasswordBlocks(
         view,
         view.automaticFindings['common-components'],
-        false,
       ).filter(({ labels }) => labels.length > 0),
     ).toMatchObject([{ value: '01012005', labels: ['naheliegende Jahreszahl'] }]);
   });
@@ -177,7 +181,6 @@ describe('S05 component strategy presentation', () => {
     const displayed = projectCanonicalPasswordBlocks(
       view,
       view.automaticFindings['common-components'],
-      false,
     ).filter(({ labels }) => labels.length > 0);
 
     expect(displayed.map(({ value }) => value)).toEqual(['wort1-', 'wort2-', 'wort3']);
@@ -205,19 +208,18 @@ describe('S05 component strategy presentation', () => {
     expect(view.blocks.map(({ value }) => value)).toEqual(['melinda', '123!']);
 
     const personal = createPersonalFindings(view, [view.blocks[0]?.id ?? '']);
-    const displayed = projectCanonicalPasswordBlocks(view, personal, false).filter(
+    const displayed = projectCanonicalPasswordBlocks(view, personal).filter(
       ({ labels }) => labels.length > 0,
     );
-    expect(displayed).toMatchObject([
-      {
-        value: password,
-        labels: ['persönliche Angabe', 'typische Variante: +123!'],
-      },
-    ]);
+    expect(displayed.map(({ value }) => value)).toEqual([password]);
+    expect(displayed.flatMap(({ labels }) => labels)).toEqual(
+      expect.arrayContaining(['persönliche Angabe', 'typische Variante: +123!']),
+    );
+    expect(displayed[0]?.categoryIds).toEqual(['personal-details']);
     expect(summarizeCategoryCandidates(view, personal).hasSingleCandidateMatch).toBe(true);
   });
 
-  it('shows an unbound typical ending only when residual changes are requested', () => {
+  it('does not show an unbound typical ending as an independent finding', () => {
     const password = 'Fantasiebegriff123!';
     const view = createCanonicalPasswordView(
       password,
@@ -232,14 +234,9 @@ describe('S05 component strategy presentation', () => {
       ]),
     );
 
-    expect(projectCanonicalPasswordBlocks(view, [], false).flatMap(({ labels }) => labels)).toEqual(
+    expect(projectCanonicalPasswordBlocks(view, []).flatMap(({ labels }) => labels)).toEqual(
       [],
     );
-    expect(
-      projectCanonicalPasswordBlocks(view, [], true)
-        .filter(({ labels }) => labels.length > 0)
-        .map(({ value, labels }) => ({ value, labels })),
-    ).toEqual([{ value: '123!', labels: ['typische Endung: +123!'] }]);
   });
 
   it('binds an account suffix to the account block without duplicating its variant label', () => {
@@ -254,17 +251,42 @@ describe('S05 component strategy presentation', () => {
     const displayed = projectCanonicalPasswordBlocks(
       view,
       view.automaticFindings['account-context'],
-      false,
     ).filter(({ labels }) => labels.length > 0);
 
-    expect(displayed.map(({ value }) => value)).toEqual([password]);
-    expect(displayed[0]?.labels.filter((label) => label.startsWith('typische Variante'))).toHaveLength(
-      1,
-    );
+    expect(displayed.map(({ value }) => value).join('')).toBe(password);
+    expect(
+      [
+        ...new Set(
+          displayed
+            .flatMap(({ labels }) => labels)
+            .filter((label) => label.startsWith('typische Variante')),
+        ),
+      ],
+    ).toHaveLength(1);
     expect(
       summarizeCategoryCandidates(view, view.automaticFindings['account-context'])
         .hasSingleCandidateMatch,
     ).toBe(true);
+  });
+
+  it('shows a bounded authored leetspeak match in the account-context category', () => {
+    const password = 'C4mpus';
+    const analysis = analyzeFictionalPassword({
+      fictionalPassword: password,
+      authoredAccountTerms: ['Campus'],
+    });
+    const view = createCanonicalPasswordView(password, analysis);
+    const displayed = projectCanonicalPasswordBlocks(
+      view,
+      view.automaticFindings['account-context'],
+    ).filter(({ labels }) => labels.length > 0);
+
+    expect(displayed).toEqual([
+      expect.objectContaining({
+        value: password,
+        labels: expect.arrayContaining(['C4mpus', 'typische Variante: a → 4']),
+      }),
+    ]);
   });
 
   it('does not let category presentation alter the frozen simulation disposition', () => {
@@ -277,7 +299,7 @@ describe('S05 component strategy presentation', () => {
     const before = structuredClone(disposition);
 
     const view = createCanonicalPasswordView(password, analysis);
-    projectCanonicalPasswordBlocks(view, view.automaticFindings['common-components'], true);
+    projectCanonicalPasswordBlocks(view, view.automaticFindings['common-components']);
 
     expect(disposition).toEqual(before);
   });
