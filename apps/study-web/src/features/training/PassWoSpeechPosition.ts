@@ -180,8 +180,6 @@ export function usePassWoSpeechPosition({
     const speech = speechRef.current;
     if (owner === null || character === null || speech === null) return;
 
-    setPosition(null);
-
     const boundary =
       owner.closest<HTMLElement>('[data-browser-layer="passwo"]') ?? owner.parentElement;
     if (boundary === null) return;
@@ -254,7 +252,9 @@ export function usePassWoSpeechPosition({
     character.addEventListener('animationstart', startTrackingMotion);
     character.addEventListener('animationend', stopTrackingMotion);
     character.addEventListener('animationcancel', stopTrackingMotion);
-    scheduleUpdate();
+    // A new speech step can change the bubble's size. Measure it during this layout effect so
+    // the previous position is never visibly cleared between consecutive "Weiter" steps.
+    update();
 
     return () => {
       observer.disconnect();

@@ -4,7 +4,7 @@ import { S05_CONTENT_VERSION, s05Content } from './s05.js';
 
 describe('S05 content traceability', () => {
   it('keeps the participant copy bounded and separate from internal terminology', () => {
-    expect(S05_CONTENT_VERSION).toBe('2.43.0');
+    expect(S05_CONTENT_VERSION).toBe('2.46.0');
     expect(s05Content.source).toMatchObject({
       document: 'research/private/training-script.pdf',
       internalPages: [
@@ -12,7 +12,7 @@ describe('S05 content traceability', () => {
         35,
       ],
       copyReference:
-        'docs/design/S00-S05-COPY-AUDIT.md#copy-delta-s05-leerer-uebergang-messskala-und-augen-symbol-8-august-2026',
+        'docs/design/S00-S05-COPY-AUDIT.md#copy-delta-s05-textstraffung-und-freie-suche-8-august-2026',
     });
     expect(s05Content.segment.id).toBe('S05');
     expect(s05Content.page.fixtureNotice).toBe(
@@ -39,7 +39,7 @@ describe('S05 content traceability', () => {
       'Dazu gehören häufig verwendete Passwörter und Wörter, einfache Tastatur- und Zahlenfolgen wie „123456“ oder „qwertz“ oder naheliegende Jahreszahlen.',
     );
     expect(s05Content.componentStrategy.commonComponents.explanation[2]).toBe(
-      'Viele Menschen verändern Wörter oder andere Bestandteile, damit ihr Passwort stärker wirkt. Das Programm des Angreifers erzeugt deshalb typische Varianten, etwa mit Großschreibung, Zeichenersetzungen oder zusätzlichen Zahlen und Symbolen. Solche Veränderungen wendet es auch auf bereits zusammengesetzte Passwortkandidaten an.',
+      'Viele Menschen verändern Bestandteile, damit Passwörter stärker wirken. Angreiferprogramme erzeugen deshalb typische Varianten mit Großschreibung, Zeichenersetzungen, Zahlen oder Symbolen, auch für bereits zusammengesetzte Kandidaten.',
     );
     expect(s05Content.componentStrategy.presentation.findingChips).toMatchObject({
       commonPassword: 'häufig verwendetes Passwort',
@@ -76,10 +76,7 @@ describe('S05 content traceability', () => {
       'Persönliche Angaben sind leicht zu merken und wirken oft geheim. Es ist deshalb nachvollziehbar, sie für etwas zu halten, das andere nur schwer erraten können.',
     ]);
     expect(s05Content.componentStrategy.personalDetails.derivation).toEqual([
-      'Bei einem Datenleck liegen deine gespeicherten Passwortdaten jedoch häufig zusammen mit deinem Benutzernamen, deiner E-Mail-Adresse oder weiteren Kontohinweisen vor. Angreifer wissen dadurch bereits, zu welchem Konto deine Passwortdaten gehören, und können gezielt wahrscheinliche Passwortkandidaten testen.',
-    ]);
-    expect(s05Content.componentStrategy.personalDetails.examples).toEqual([
-      'Dafür nutzen sie beispielsweise Namen, Geburtsdaten, Vereine, Haustiere, Hobbys oder andere persönliche Bezüge, die sich aus öffentlichen Profilen, früheren Datenlecks oder Informationen aus deinem Umfeld ableiten lassen.',
+      'Bei einem Datenleck liegen deine Passwortdaten oft zusammen mit deinem Benutzernamen, deiner E-Mail-Adresse oder Kontohinweisen vor. Angreifer können dadurch persönliche Angaben wie Namen, Geburtsdaten oder dem Lieblingsverein aus öffentlichen Profilen oder deinem Umfeld gezielt als Passwortkandidaten testen.',
     ]);
     expect(s05Content.componentStrategy.personalDetails.explanation).toEqual([
       'Dieses Trainingsmodul kann nicht zuverlässig erkennen, welche Angaben auf dich zutreffen. Wähle deshalb selbst die persönlichen Angaben aus, die für dein Beispiel realistisch wären.',
@@ -135,7 +132,6 @@ describe('S05 content traceability', () => {
       expect.arrayContaining([
         's05-personal-details-opening',
         's05-personal-details-derivation',
-        's05-personal-details-examples',
         's05-account-context-opening',
         's05-account-context-examples',
       ]),
@@ -176,11 +172,20 @@ describe('S05 content traceability', () => {
     expect(s05Content.freeSearch.passphraseGenerator.password).toBe(
       'Kaktus-Fenster-Regen-Komet-Wodurch-Knochen',
     );
-    expect(s05Content.freeSearch.transition.explanation).toBe(
-      'Wir haben gesehen, dass Angreifer zuerst wahrscheinliche Passwörter und typische menschliche Muster ausprobieren. Fehlen solche Anhaltspunkte, können sie aber immer noch systematisch immer mehr Zeichenfolgen durchprobieren.\nGenau hier setzen viele bekannte Passwortregeln an: Sie sollen dafür sorgen, dass der Angreifer mehr Möglichkeiten ausprobieren muss.',
+    expect(s05Content.freeSearch.passphraseGenerator.narration).toBe(
+      'Wichtig: Passphrasen, also Passwörter aus mehreren Wörtern, können sehr stark sein. Werden genug Wörter zufällig erzeugt, fehlen dem Angreifer genau die Zusammenhänge, die ihm eben noch geholfen haben. Wie das praktisch geht, schauen wir uns später an.',
     );
-    expect(s05Content.freeSearch.estimate.explanation).toBe(
-      'Um zum Abschluss zu sehen, wie lang dein Passwort sein sollte, machen wir es ganz einfach: Jede Stelle wird zufällig aus nur 26 Kleinbuchstaben gewählt.',
+    expect(s05Content.freeSearch.title).toBe('Alle Zeichenkombinationen durchprobieren');
+    expect(s05Content.freeSearch.estimate.alphabetLabel).toBe('zufällig gewählt');
+    expect(s05Content.freeSearch.transition.explanation).toBe(
+      'Ohne die gelernten Anhaltspunkte kann der Angreifer immer noch alle möglichen Zeichenkombinationen durchprobieren. Viele bekannte Passwortregeln sollen genau das erschweren.',
+    );
+    expect(s05Content.freeSearch.characterMix.checks[0]).toBe('mindestens 12 Zeichen');
+    expect(s05Content.freeSearch.characterMix.narration[3]).toBe(
+      'Verschiedene Zeichentypen können ein Passwort stärker machen, wenn die Zeichen wirklich zufällig gewählt werden. Bei selbst gewählten Passwörtern entstehen daraus jedoch typischerweise vorhersehbare Variationen.',
+    );
+    expect(s05Content.freeSearch.estimate.question).toBe(
+      'Schauen wir uns deshalb zum Abschluss an, was allein die Länge bewirken kann. Dafür wird jede Stelle im Passwort zufällig aus Kleinbuchstaben gewählt. Was glaubst du: Ab welcher Länge wird es selbst mit nur Kleinbuchstaben für einen Angreifer zu aufwendig, alle möglichen Zeichenfolgen durchzuprobieren?',
     );
     expect(s05Content.freeSearch.estimate.options).toEqual([12, 13, 14, 15, 16, 17, 18, 19, 20]);
     expect(s05Content.fixtures.find(({ id }) => id === 'all-categories')).toMatchObject({

@@ -159,6 +159,7 @@ export interface S02SegmentContent {
     readonly introReadyId: string;
     readonly completeId: string;
     readonly messages: Readonly<Record<string, string>>;
+    readonly completion: (platform: S02DesktopPlatform) => string;
   };
   readonly scene: {
     readonly id: string;
@@ -176,7 +177,9 @@ export interface S02SegmentContent {
   readonly animations: readonly S02AnimationSequence[];
 }
 
-export const S02_CONTENT_VERSION = '4.3.2';
+export type S02DesktopPlatform = 'mac' | 'linux' | 'windows';
+
+export const S02_CONTENT_VERSION = '4.3.3';
 
 const introId = 's02.accounts.intro';
 const introReadyId = 's02.accounts.intro-ready';
@@ -493,12 +496,12 @@ export const s02Content: S02SegmentContent = {
     characterLabel: 'PassWo, Begleiter im Training',
   },
   page: {
-    eyebrow: 'Konten kennenlernen',
+    eyebrow: 'Konten erkundet',
     title: 'Drei Konten erkunden',
-    globalProgress: (viewed) => `Konten kennenlernen: ${viewed}/3 angesehen`,
+    globalProgress: (viewed) => `Konten erkundet: ${viewed}/3 angesehen`,
     openTaskHelp: 'Aufgabe noch einmal anzeigen',
     previewTitle: 'Optionale Vorschau',
-    completion: 'Konten erkundet',
+    completion: 'Konto erkundet',
   },
   controls: {
     timingFailure:
@@ -593,14 +596,22 @@ export const s02Content: S02SegmentContent = {
         'Im Alltag ist nicht immer sichtbar, welche Funktionen mit einem Konto verbunden sind. Deshalb habe ich die drei Konten als Netzwerk dargestellt.',
       [introReadyId]:
         'Du musst dir keine Einzelheiten merken – vieles kommt dir wahrscheinlich bekannt vor. Wähle einen Kontoknoten aus, den du zuerst erkunden möchtest.',
-      [completeId]:
-        'Du hast alle drei Konten angesehen. Klicke unten im Dock auf den Browser, wenn du weitergehen möchtest.',
       's02.master-campus':
         'Öffne einen Dienst über die sichtbare Master-Campus-Anmeldung.',
       's02.campus-email':
         'Starte die kurze Beispielsimulation über den Zurücksetzungslink im Postfach.',
       's02.campusgram':
         'Öffne die Direktnachricht in der persönlichen Kommunikationsansicht.',
+    },
+    completion: (platform) => {
+      switch (platform) {
+        case 'mac':
+          return 'Du hast dir alle drei Konten angesehen. Klicke unten im Dock auf den Browser, um dich wieder anzumelden.';
+        case 'linux':
+          return 'Du hast dir alle drei Konten angesehen. Klicke links in der Taskleiste auf den Browser, um dich wieder anzumelden.';
+        case 'windows':
+          return 'Du hast dir alle drei Konten angesehen. Klicke unten in der Taskleiste auf den Browser, um dich wieder anzumelden.';
+      }
     },
   },
   scene: {

@@ -1144,3 +1144,67 @@ Persistenz und Forschungsgrenzen bleiben unverändert. `S05_CONTENT_VERSION` wir
 | `S05.freeSearch.transition` | Zeichenmix-Anzeige bereits während des Übergangstexts sichtbar | visuell leerer Bildschirm während des Übergangstexts; Anzeige startet erst bei `character-mix-first` | Orientierung | ausdrücklich verlangte zeitliche Trennung von Erklärung und Anzeige; nein | `Weiter`; keine Hervorhebung |
 | `S05.freeSearch.characterMix.passwordField` | Punktzeichen `◉` neben den Beispielpasswörtern | bestehendes Augen-Symbol der Passwortanzeige | Orientierung | ausdrücklich verlangte Symbolkonsistenz; nein | kein Interaktionsziel; keine Hervorhebung |
 | `S05.freeSearch.estimate.explanation` | `Um zu sehen, wie lang dein Passwort sein sollte, machen wir es ganz einfach: Jede Stelle wird zufällig aus nur 26 Kleinbuchstaben gewählt.` als Sprechblasentext | `Um zum Abschluss zu sehen, wie lang dein Passwort sein sollte, machen wir es ganz einfach: Jede Stelle wird zufällig aus nur 26 Kleinbuchstaben gewählt.` direkt über der Messskala | Mechanismuserklärung | ausdrücklich verlangte Platzierung an der Messskala und Wortlautpräzisierung; begrenzt | `Weiter`; keine Hervorhebung |
+
+### Copy-Delta S05 Beispielpasswort, Zeichentypen und Längenskala 8. August 2026
+
+Quelle ist der ausdrückliche Nutzerauftrag vom 8. August 2026. Die zufällige
+Zeichenfolge wird durch das bereits verwendete Beispielpasswort ersetzt; der
+anschließende Schritt bleibt als eigene Ansicht erhalten. Die genannten Mechanismustexte,
+Regelanzeige und Hervorhebungen werden genau nach Auftrag angepasst. Ablauf, Analyse,
+Persistenz und Forschungsgrenzen bleiben unverändert. `S05_CONTENT_VERSION` wird von
+`2.43.0` auf `2.44.0` erhöht.
+
+| Segment und Text-ID | Vorher | Nachher | Primäre Rolle | Grund und Bedeutungsänderung | Interaktionsziel / Hervorhebung |
+|---|---|---|---|---|---|
+| `S05.intro.randomSequence`, `recognizableCombination` | Zufallsfolge neben dem Angreifer; anschließender Satz `Wahrscheinlich erkennst du darin bereits einzelne Teile und Zusammenhänge.` | Beispielpasswort bereits bei der Erklärung zu zufälligen Zeichenfolgen; der anschließende Schritt zeigt die aufgeteilten Bausteine und erklärt sie | Orientierung / Mechanismuserklärung | ausdrücklich verlangter Darstellungswechsel und Entfernung der Wiedererkennungsbehauptung; begrenzt | `Weiter`; keine Hervorhebung |
+| `S05.structure.intro[0]` | unmarkierte Erklärung zu Kombinationsmustern | Wortlaut unverändert | Mechanismuserklärung | ausdrücklich verlangte Hervorhebung; nein | `Weiter`; `typische Muster` in Akzentfarbe |
+| `S05.freeSearch.transition.explanation` | Erklärung zu wahrscheinlichen Passwörtern und systematischem Durchprobieren | `Ohne die gelernten Anhaltspunkte kann der Angreifer immer noch alle möglichen Zeichenkombinationen durchprobieren. Viele bekannte Passwortregeln sollen genau das erschweren.` | Mechanismuserklärung | ausdrücklich vorgegebene Ersetzung; begrenzt | `Weiter`; `alle möglichen Zeichenkombinationen durchprobieren` in Akzentfarbe |
+| `S05.freeSearch.characterMix.checks[0]`, `narration[1,3..5]` | `12 Zeichen`; bisherige Zeichentyp-Erklärung und breite Längen-Hervorhebung | `mindestens 12 Zeichen`; vorgegebene Zeichentyp-Erklärung; getrennte Markierungen für Länge, Zufall und Strategie | Mechanismuserklärung / Kerngedanke | ausdrücklich vorgegebene Text- und Hervorhebungsänderungen; begrenzt | `Weiter`; `zufällig erzeugten`, `die Länge`, `nicht leicht vorhersehbar`; `keine gute Strategie.` als Warnung |
+| `S05.freeSearch.estimate.explanation`, `question` | bisherige Formulierung zu Passwortlänge und vollständigem Durchprobieren | vorgegebene Längen-Erklärung und Frage mit Kleinbuchstaben | Mechanismuserklärung / Navigation | ausdrücklich vorgegebene Ersetzung; begrenzt | `Weiter`, danach `Schätzung bestätigen`; `welcher Länge` und `zu aufwendig` in Akzentfarbe |
+
+### Copy-Delta S05 Passphrasen, Zeichensuche und Längenskala 8. August 2026
+
+Quelle ist der ausdrückliche Nutzerauftrag vom 8. August 2026. Die Änderungen betreffen nur die
+Passphrasen- und freie-Suche-Folge. Ablauf, Analyse, Persistenz und Forschungsgrenzen bleiben
+unverändert. `S05_CONTENT_VERSION` wird von `2.44.0` auf `2.45.0` erhöht.
+
+| Segment und Text-ID | Aktueller Text | Geplanter Text | Primäre Rolle | Grund | Bedeutungsänderung | Interaktionsziel | Hervorhebung |
+|---|---|---|---|---|---|---|---|
+| `S05.freeSearch.passphraseGenerator.narration` | zwei nacheinander gezeigte Erklärungen zu Passphrasen und zufällig gewählten Wörtern | `Wichtig: Passphrasen, also Passwörter aus mehreren Wörtern, können sehr stark sein. Werden genug Wörter zufällig erzeugt, fehlen dem Angreifer genau die Zusammenhänge, die ihm eben noch geholfen haben. Wie das praktisch geht, schauen wir uns später an.` | Mechanismuserklärung | ausdrücklich verlangte Zusammenführung in eine Sprechblase | begrenzt | `Weiter` | `Wichtig` in Akzentfarbe |
+| `S05.freeSearch.title` | kein Titel in der freien-Suche-Folge | `alle Zeichenkombinationen durchprobieren` | Orientierung | ausdrücklich verlangter Titel ab dem Übergang zur freien Suche | begrenzt | kein | keine |
+| `S05.freeSearch.estimate.explanation` | Erklärung direkt an der Messskala | bestehender Wortlaut in einer PassWo-Sprechblase | Mechanismuserklärung | PassWo soll die Erklärung geben; die Messskala bleibt frei von wiederholtem Text und ihren Steuerungen | nein | `Weiter` | keine |
+| `S05.freeSearch.estimate.alphabetLabel`, Alphabetbild | kein Alphabetbild und kein Label über der Messskala | beigefügtes Alphabetbild mit `zufällig gewählt` direkt darunter | Orientierung | ausdrücklich verlangte visuelle Zuordnung der zufälligen Auswahl zur Messskala | nein | kein | keine |
+
+### Copy-Delta S00--S02 Studienstart, Passwortaufgabe und Browserrückkehr 8. August 2026
+
+Quelle ist der ausdrückliche Nutzerauftrag vom 8. August 2026. Die Änderungen präzisieren die
+Studienorientierung und die sichtbaren Navigationsziele, ohne Ablauf, Persistenz oder
+Forschungsgrenzen zu verändern. Die S02-Abschlussblase bleibt bis zum tatsächlichen Klick auf
+den Browser sichtbar; sie besitzt keine konkurrierende Schließen-Aktion. `S00_CONTENT_VERSION`
+wird von `1.17.1` auf `1.17.2`, `S01_CONTENT_VERSION` von `2.16.0` auf `2.16.1` und
+`S02_CONTENT_VERSION` von `4.3.2` auf `4.3.3` erhöht.
+
+| Segment und Text-ID | Aktueller Text | Geplanter Text | Primäre Rolle | Grund | Bedeutungsänderung | Interaktionsziel | Hervorhebung |
+|---|---|---|---|---|---|---|---|
+| Studienstart `ArtifactPreparation` | bisherige Hochschul- und Zusatzinformationsorientierung | vorgegebene Orientierung einschließlich Verlassen und Wiederaufnehmen der Studie | Orientierung | ausdrücklich vorgegebene Ersetzung | begrenzt | `Lernangebot beginnen` | keine |
+| `S00.entry.paragraphs[2]` | `... schützen würdest ...` | `... sicher schützen würdest ...` | Orientierung | ausdrücklich verlangte Wortergänzung | begrenzt | kein | keine |
+| `S01.quest.guideMessage` | `starkes Passwort` hervorgehoben | Wortlaut unverändert; zusätzlich `merken` hervorgehoben | Kerngedanke | ausdrücklich verlangte Hervorhebung | nein | kein | `starkes Passwort`, `merken` |
+| `S02.narration.completion` | einheitlicher Dock-Hinweis mit Schließen-Aktion | systemspezifischer Browser-Hinweis für Mac, Linux und Windows ohne Sprechblasenaktion | Navigation | sichtbares Interaktionsziel muss exakt benannt sein | begrenzt | Browser im Dock beziehungsweise in der Taskleiste | keine |
+| `S02.page.eyebrow`, `completion` | `Konten kennenlernen`; `Konten erkundet` | `Konten erkundet`; `Konto erkundet` | Ergebnisfeedback | ausdrücklich vorgegebene Statusbeschriftung | begrenzt | kein | keine |
+
+### Copy-Delta S05 Textstraffung und freie Suche 8. August 2026
+
+Quelle ist der ausdrückliche Nutzerauftrag vom 8. August 2026. Die Änderungen straffen die
+benannten Mechanismuserklärungen, verbinden die zwei Sprechschritte zu persönlichen Angaben
+und zeigen die Längenschätzung unmittelbar mit ihrer Frage. Analyse, Persistenz und die
+ausgewählte Länge bleiben unverändert. `S05_CONTENT_VERSION` wird von `2.45.0` auf `2.46.0`
+erhöht.
+
+| Segment und Text-ID | Aktueller Text | Geplanter Text | Primäre Rolle | Grund | Bedeutungsänderung | Interaktionsziel | Hervorhebung |
+|---|---|---|---|---|---|---|---|
+| `S05.componentStrategy.commonComponents.explanation[2]` | längere Erklärung zu veränderten Wörtern und Bestandteilen | vorgegebene Kurzfassung zu typischen Varianten für einzelne und zusammengesetzte Kandidaten | Mechanismuserklärung | ausdrücklich verlangte Straffung | begrenzt | `Weiter` | `typische Varianten` bleibt markiert |
+| `S05.componentStrategy.personalDetails.derivation[0]`, `examples` | zwei Sprechschritte zu Kontohinweisen und persönlichen Bezügen | eine vorgegebene Erklärung mit Namen, Geburtsdaten und Lieblingsverein | Mechanismuserklärung | ausdrücklich verlangte Zusammenführung | begrenzt | `Weiter` | `persönliche Angaben` in Akzentfarbe mit bestehendem Symbol |
+| `S05.structure.narration.theme[1]`, `sentence[1]`, `repetition[1]` | Erklärungen mit Guessing-Verfahren | vorgegebene Formulierungen mit Angreifern als handelndem Subjekt | Mechanismuserklärung | ausdrücklich verlangte Straffung | begrenzt | jeweils `Weiter` | bestehende Markierungen bleiben: Zusammenhang, Redewendungen/Liedzeilen/Formulierungen und Wiederholungsmuster |
+| `S05.freeSearch.title` | `alle Zeichenkombinationen durchprobieren` | `Alle Zeichenkombinationen durchprobieren` | Orientierung | ausdrücklich verlangte Umbenennung | nein | kein | keine |
+| `S05.freeSearch.characterMix.narration[3..5]` | Zeichentypen-Erklärung und Kerngedanke zu Länge und Vorhersehbarkeit | vorgegebene kürzere Fassungen | Mechanismuserklärung / Kerngedanke | ausdrücklich verlangte Straffung | begrenzt | jeweils `Weiter` | nur `wirklich zufällig` in der Zeichentypen-Erklärung; `die Länge` im Kerngedanken |
+| `S05.freeSearch.estimate.explanation`, `question` | getrennte Sprechblasen vor und bei der Auswahl | eine vorgegebene Sprechblase, während die Schätzung bereits sichtbar ist | Mechanismuserklärung / Navigation | ausdrücklich verlangte Zusammenführung | begrenzt | Auswahl und `Schätzung bestätigen` | `zufällig`, `welcher Länge`, `zu aufwendig` in Akzentfarbe |

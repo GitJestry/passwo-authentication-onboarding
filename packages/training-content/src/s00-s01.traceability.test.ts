@@ -7,7 +7,7 @@ const canonicalAccountIds = ['master-campus', 'campus-email', 'campusgram'] as c
 
 describe('S00 to S02 training-content traceability', () => {
   it('keeps S00 linked to its named source page and canonical accounts', () => {
-    expect(S00_CONTENT_VERSION).toBe('1.17.1');
+    expect(S00_CONTENT_VERSION).toBe('1.17.2');
     expect(s00Content.source).toMatchObject({
       document: 'research/private/training-script.pdf',
       internalPage: 2,
@@ -19,6 +19,7 @@ describe('S00 to S02 training-content traceability', () => {
     expect(s00Content.entry.paragraphs[0]).toBe(
       'Aloha! Ich bin PassWo und begleite dich heute durch das Training.',
     );
+    expect(s00Content.entry.paragraphs[2]).toContain('sicher schützen würdest');
     expect(s00Content.narration.greeting).toBe(
       'Das ist dein virtueller Browser: Oben wechselst du zwischen drei Konten und richtest alle drei ein.',
     );
@@ -32,7 +33,7 @@ describe('S00 to S02 training-content traceability', () => {
   });
 
   it('keeps S01 linked to its named source page and canonical account order', () => {
-    expect(S01_CONTENT_VERSION).toBe('2.16.0');
+    expect(S01_CONTENT_VERSION).toBe('2.16.1');
     expect(s01Content.source).toMatchObject({
       document: 'research/private/training-script.pdf',
       internalPage: 3,
@@ -46,10 +47,11 @@ describe('S00 to S02 training-content traceability', () => {
     );
     expect(s01Content.completion.guideMessage).not.toMatch(/Knoten|Dienste|Funktionen/u);
     expect(s01Content.quest).not.toHaveProperty('readyToContinue');
+    expect(s01Content.quest.guideMessage).toContain('merken kannst');
   });
 
   it('keeps S02 linked to its named pages and essential account-node structure', () => {
-    expect(S02_CONTENT_VERSION).toBe('4.3.2');
+    expect(S02_CONTENT_VERSION).toBe('4.3.3');
     expect(s02Content.source).toEqual({
       document: 'research/private/training-script.pdf',
       internalPages: [4, 5, 6, 7],
@@ -76,7 +78,18 @@ describe('S00 to S02 training-content traceability', () => {
         'campusgram-posts-reactions',
       ],
     ]);
-    expect(s02Content.page.globalProgress(2)).toBe('Konten kennenlernen: 2/3 angesehen');
+    expect(s02Content.page.globalProgress(2)).toBe('Konten erkundet: 2/3 angesehen');
+    expect(s02Content.page.eyebrow).toBe('Konten erkundet');
+    expect(s02Content.page.completion).toBe('Konto erkundet');
+    expect(s02Content.narration.completion('mac')).toBe(
+      'Du hast dir alle drei Konten angesehen. Klicke unten im Dock auf den Browser, um dich wieder anzumelden.',
+    );
+    expect(s02Content.narration.completion('linux')).toBe(
+      'Du hast dir alle drei Konten angesehen. Klicke links in der Taskleiste auf den Browser, um dich wieder anzumelden.',
+    );
+    expect(s02Content.narration.completion('windows')).toBe(
+      'Du hast dir alle drei Konten angesehen. Klicke unten in der Taskleiste auf den Browser, um dich wieder anzumelden.',
+    );
     expect(s02Content.narration.messages[s02Content.narration.introId]).toBe(
       'Im Alltag ist nicht immer sichtbar, welche Funktionen mit einem Konto verbunden sind. Deshalb habe ich die drei Konten als Netzwerk dargestellt.',
     );

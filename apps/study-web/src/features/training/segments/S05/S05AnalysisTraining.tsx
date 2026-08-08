@@ -14,6 +14,7 @@ import personalDetailsAsset from '../../../../assets/s05/category-logos/personal
 import typicalChangesAsset from '../../../../assets/s05/category-logos/typical-changes.png';
 import attackerAsset from '../../../../assets/passwo/attacker.png';
 import { NetworkSymbol } from '../../../../adapters/network/NetworkSymbolRegistry.js';
+import lowercaseAlphabetAsset from '../../../../assets/s05/lowercase-alphabet.png';
 import { PassWoGuide } from '../../PassWoGuide.js';
 import { passWoSpeechEmphasisFor } from '../../PassWoSpeechEmphasis.js';
 import { PasswordVisibilityIcon } from '../../PasswordVisibilityIcon.js';
@@ -133,20 +134,14 @@ function GeneratedSequence() {
   );
 }
 
-function RandomSequenceScene({ subject }: { readonly subject: S05AnalysisSubject }) {
+function RandomSequenceScene() {
   return (
-    <div className={styles.attackerStage}>
-      <CampusgramPassword password={subject.fictionalPassword} />
-      <div className={styles.attackerAttempt}>
-        <GeneratedSequence />
-      </div>
-      <div className={styles.attackerConnection} aria-hidden="true">
-        <span />
-      </div>
-      <img
-        className={styles.attackerPortrait}
-        src={attackerAsset}
-        alt="Symbolische Darstellung eines Angreifers am Computer"
+    <div className={styles.recognizableStage} data-s05-target="random-sequence">
+      <PasswordBuildingBlocks
+        value={s05Content.intro.memorablePassword}
+        parts={s05Content.intro.memorablePasswordParts}
+        display="assembled"
+        ariaLabel={s05Content.intro.memorablePassword}
       />
     </div>
   );
@@ -158,24 +153,9 @@ function RecognizableCombinationScene() {
       <PasswordBuildingBlocks
         value={s05Content.intro.memorablePassword}
         parts={s05Content.intro.memorablePasswordParts}
-        display="assembled"
-        ariaLabel={s05Content.intro.memorablePassword}
+        display="decomposed"
+        ariaLabel={`${s05Content.intro.memorablePassword} in Bausteinen`}
       />
-    </div>
-  );
-}
-
-function BuildingBlocksScene() {
-  return (
-    <div className={styles.buildingBlocksStage} data-s05-target="building-blocks">
-      <div className={styles.buildingBlocksVisual} data-s05-speech-obstacle>
-        <PasswordBuildingBlocks
-          value={s05Content.intro.memorablePassword}
-          parts={s05Content.intro.memorablePasswordParts}
-          display="decomposed"
-          ariaLabel={`${s05Content.intro.memorablePassword} in Bausteinen`}
-        />
-      </div>
     </div>
   );
 }
@@ -816,7 +796,10 @@ function PassphraseGeneratorScene() {
         <span className={styles.generatorAction}>{content.generate}</span>
         <output>{content.password}</output>
         <span className={styles.strengthBar} aria-label={content.strengthLabel} />
-        <span className={styles.copyAction}>▣ {content.copy}</span>
+        <span className={styles.copyAction}>
+          <span className={styles.copyIcon} aria-hidden="true" />
+          {content.copy}
+        </span>
       </div>
     </section>
   );
@@ -876,15 +859,16 @@ function CharacterMixScene({ step }: { readonly step: S05AnalysisControllerSnaps
 
 function EstimateRuler({
   selected,
-  showExplanation = false,
 }: {
   readonly selected: S05AnalysisControllerSnapshot['estimate']['selected'];
-  readonly showExplanation?: boolean;
 }) {
   const content = s05Content.freeSearch.estimate;
   return (
     <div className={styles.estimateRuler} data-s05-target="estimate-ruler">
-      {showExplanation ? <p className={styles.estimateExplanation}>{content.explanation}</p> : null}
+      <div className={styles.lowercaseAlphabet}>
+        <img src={lowercaseAlphabetAsset} alt="Buntes Alphabet aus Kleinbuchstaben" />
+        <span>{content.alphabetLabel}</span>
+      </div>
       <div className={styles.estimateMarkerRow}>
         {content.options.map((option) => (
           <span key={option}>{selected === option ? content.marker : ''}</span>
@@ -907,7 +891,7 @@ function EstimateScene({
   const content = s05Content.freeSearch.estimate;
   return (
     <div className={styles.estimateScene} data-s05-target="estimate" data-s05-speech-obstacle>
-      <EstimateRuler selected={snapshot.estimate.selected} showExplanation />
+      <EstimateRuler selected={snapshot.estimate.selected} />
       <fieldset className={styles.estimateScale} disabled={snapshot.estimate.confirmed}>
         <legend className={styles.visuallyHidden}>{content.question}</legend>
         <div>
@@ -1080,11 +1064,9 @@ function renderScene(
     case 'candidate-check':
       return <CandidateCheckScene subject={subject} />;
     case 'random-sequence':
-      return <RandomSequenceScene subject={subject} />;
+      return <RandomSequenceScene />;
     case 'recognizable-combination':
       return <RecognizableCombinationScene />;
-    case 'building-blocks':
-      return <BuildingBlocksScene />;
     case 'strategy-targeting':
       return <StrategyTargetingScene subject={subject} />;
     case 'component-category-overview':
@@ -1113,7 +1095,6 @@ function renderScene(
       );
     case 'personal-details-opening':
     case 'personal-details-derivation':
-    case 'personal-details-examples':
     case 'personal-details-intro':
       return (
         <ComponentMachineScene>
@@ -1147,7 +1128,6 @@ function renderScene(
     case 'structure-application':
       return <StructureApplicationScene subject={subject} snapshot={snapshot} />;
     case 'passphrase-generator':
-    case 'passphrase-randomness':
       return <PassphraseGeneratorScene />;
     case 'free-search-transition':
       return <div aria-hidden="true" data-s05-target="character-mix" />;
@@ -1158,12 +1138,6 @@ function renderScene(
     case 'character-mix-strategy':
     case 'character-mix-takeaway':
       return <CharacterMixScene step={snapshot.step} />;
-    case 'estimate-intro':
-      return (
-        <div className={styles.estimateScene} data-s05-speech-obstacle>
-          <EstimateRuler selected={null} showExplanation />
-        </div>
-      );
     case 'estimate':
       return <EstimateScene snapshot={snapshot} controller={controller} />;
     case 'lowercase-clock':
@@ -1308,8 +1282,6 @@ function speechFor(
     case 'random-sequence':
       return s05Content.intro.narration.randomSequence;
     case 'recognizable-combination':
-      return s05Content.intro.narration.recognizableCombination;
-    case 'building-blocks':
       return s05Content.intro.narration.buildingBlocks;
     case 'strategy-targeting':
       return s05Content.intro.narration.strategyTargeting;
@@ -1329,8 +1301,6 @@ function speechFor(
       return s05Content.componentStrategy.personalDetails.opening;
     case 'personal-details-derivation':
       return s05Content.componentStrategy.personalDetails.derivation;
-    case 'personal-details-examples':
-      return s05Content.componentStrategy.personalDetails.examples;
     case 'personal-details-intro':
       return s05Content.componentStrategy.personalDetails.explanation;
     case 'personal-details-result':
@@ -1372,9 +1342,7 @@ function speechFor(
       ];
     }
     case 'passphrase-generator':
-      return [s05Content.freeSearch.passphraseGenerator.narration[0]];
-    case 'passphrase-randomness':
-      return [s05Content.freeSearch.passphraseGenerator.narration[1]];
+      return [s05Content.freeSearch.passphraseGenerator.narration];
     case 'free-search-transition':
       return [s05Content.freeSearch.transition.explanation];
     case 'character-mix-first':
@@ -1389,8 +1357,6 @@ function speechFor(
       return [s05Content.freeSearch.characterMix.narration[4]];
     case 'character-mix-takeaway':
       return [s05Content.freeSearch.characterMix.narration[5]];
-    case 'estimate-intro':
-      return null;
     case 'estimate':
       return [s05Content.freeSearch.estimate.question];
     default:
@@ -1522,6 +1488,12 @@ export function S05AnalysisTraining({
   }
 
   const categoryHeaderVisible = showsComponentCategoryHeader(snapshot.step);
+  const freeSearchTitleVisible =
+    snapshot.step === 'free-search-transition' ||
+    snapshot.step.startsWith('character-mix-') ||
+    snapshot.step.startsWith('estimate') ||
+    snapshot.step === 'lowercase-clock' ||
+    snapshot.step === 'free-search-application';
   const componentGuidanceVisible = showsComponentGuidance(snapshot.step);
   const transitionCategoryId = transitionCategoryForStep(snapshot.step);
   const currentSpeechAction = speechAction();
@@ -1530,7 +1502,7 @@ export function S05AnalysisTraining({
     <section ref={hostRef} className={styles.training} aria-label={s05Content.trainingAriaLabel}>
       <article
         className={styles.page}
-        aria-labelledby={categoryHeaderVisible ? 's05-title' : undefined}
+        aria-labelledby={categoryHeaderVisible || freeSearchTitleVisible ? 's05-title' : undefined}
       >
         {categoryHeaderVisible ? (
           <header className={styles.pageHeader} data-category-chain>
@@ -1541,6 +1513,9 @@ export function S05AnalysisTraining({
         {transitionCategoryId === null ? null : (
           <CategoryTransition categoryId={transitionCategoryId} />
         )}
+        {freeSearchTitleVisible ? (
+          <h1 id="s05-title" className={styles.freeSearchTitle}>{s05Content.freeSearch.title}</h1>
+        ) : null}
         <div
           className={styles.content}
           aria-live="polite"

@@ -118,7 +118,7 @@ export interface S01SegmentContent {
   };
 }
 
-export const S01_CONTENT_VERSION = '2.16.0';
+export const S01_CONTENT_VERSION = '2.16.1';
 
 const readyToContinueMessage =
   'Die drei Konten sind eingerichtet. Schließe jetzt das Browserfenster. Bevor du dich wieder anmeldest, schauen wir uns kurz an, was hinter den Konten steckt.';

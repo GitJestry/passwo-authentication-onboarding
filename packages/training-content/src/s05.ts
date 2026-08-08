@@ -27,7 +27,7 @@ export interface S05DesignLabFixture {
   readonly startSection: 'intro' | 'components' | 'structure';
 }
 
-export const S05_CONTENT_VERSION = '2.43.0';
+export const S05_CONTENT_VERSION = '2.46.0';
 
 export const s05Content = {
   version: S05_CONTENT_VERSION,
@@ -37,9 +37,9 @@ export const s05Content = {
       12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34,
       35,
     ] as const,
-    revision: 'Userauftrag vom 2026-08-08 · Übergang, Messskala und Anzeigen',
+    revision: 'Userauftrag vom 2026-08-08 · Passphrasen, Zeichensuche, Längenskala und Textstraffung',
     copyReference:
-      'docs/design/S00-S05-COPY-AUDIT.md#copy-delta-s05-leerer-uebergang-messskala-und-augen-symbol-8-august-2026',
+      'docs/design/S00-S05-COPY-AUDIT.md#copy-delta-s05-textstraffung-und-freie-suche-8-august-2026',
   },
   segment: {
     id: 'S05',
@@ -93,9 +93,6 @@ export const s05Content = {
       randomSequence: [
         'Zufällige Zeichenfolgen sind für Menschen jedoch schwer zu merken. Selbst gewählte Passwörter enthalten deshalb oft merkbare Elemente, wie Wörter, Zahlen oder Zeichenfolgen.',
       ],
-      recognizableCombination: [
-        'Wahrscheinlich erkennst du darin bereits einzelne Teile und Zusammenhänge.',
-      ],
       buildingBlocks: [
         'Für die Erklärung betrachten wir diese Teile vereinfacht wie aneinandergesetzte Bausteine.',
       ],
@@ -141,7 +138,7 @@ export const s05Content = {
       explanation: [
         'Dazu gehören häufig verwendete Passwörter und Wörter, einfache Tastatur- und Zahlenfolgen wie „123456“ oder „qwertz“ oder naheliegende Jahreszahlen.',
         'Ein Wort ist nicht grundsätzlich ungeeignet. Ein häufig verwendetes Wort wird jedoch früh getestet.',
-        'Viele Menschen verändern Wörter oder andere Bestandteile, damit ihr Passwort stärker wirkt. Das Programm des Angreifers erzeugt deshalb typische Varianten, etwa mit Großschreibung, Zeichenersetzungen oder zusätzlichen Zahlen und Symbolen. Solche Veränderungen wendet es auch auf bereits zusammengesetzte Passwortkandidaten an.',
+        'Viele Menschen verändern Bestandteile, damit Passwörter stärker wirken. Angreiferprogramme erzeugen deshalb typische Varianten mit Großschreibung, Zeichenersetzungen, Zahlen oder Symbolen, auch für bereits zusammengesetzte Kandidaten.',
         'Prüfen wir nun dein gewähltes Passwort auf häufig verwendete Passwörter und Zeichenfolgen.',
       ],
       machine: {
@@ -181,10 +178,7 @@ export const s05Content = {
         'Persönliche Angaben sind leicht zu merken und wirken oft geheim. Es ist deshalb nachvollziehbar, sie für etwas zu halten, das andere nur schwer erraten können.',
       ],
       derivation: [
-        'Bei einem Datenleck liegen deine Passwortdaten oft zusammen mit deinem Benutzernamen, deiner E-Mail-Adresse oder Kontohinweisen vor. Dadurch können Angreifer gezielt persönliche Angaben als Passwortkandidaten testen.',
-      ],
-      examples: [
-        'Dafür nutzen sie etwa Namen, Geburtsdaten, Vereine, Haustiere, Hobbys oder andere persönliche Bezüge aus öffentlichen Profilen, früheren Datenlecks oder deinem Umfeld.',
+        'Bei einem Datenleck liegen deine Passwortdaten oft zusammen mit deinem Benutzernamen, deiner E-Mail-Adresse oder Kontohinweisen vor. Angreifer können dadurch persönliche Angaben wie Namen, Geburtsdaten oder dem Lieblingsverein aus öffentlichen Profilen oder deinem Umfeld gezielt als Passwortkandidaten testen.',
       ],
       explanation: [
         'Dieses Trainingsmodul kann nicht zuverlässig erkennen, welche Angaben auf dich zutreffen. Wähle deshalb selbst die persönlichen Angaben aus, die für dein Beispiel realistisch wären.',
@@ -359,15 +353,15 @@ export const s05Content = {
     narration: {
       theme: [
         'Auch verschiedene Wörter können zusammen vorhersehbar sein. „WLAN“, „Wohnzimmer“ und „Familie“ passen beispielsweise inhaltlich zusammen.',
-        'Guessing-Verfahren können solche Zusammenhänge nutzen und wahrscheinlichere Kombinationen früher ausprobieren. Je naheliegender der Zusammenhang, desto mehr verrät er darüber, welche Kandidaten zuerst getestet werden.',
+        'Angreifer können solche Zusammenhänge nutzen und dadurch wahrscheinlichere Kombinationen zuerst ausprobieren. Je naheliegender der Zusammenhang, desto besser können sie einschätzen, welche Kombinationen sich zuerst zu testen lohnen.',
       ],
       sentence: [
         'Menschen setzen außerdem Wörter häufig zu bekannten oder sprachlich naheliegenden Formulierungen zusammen. Dadurch werden auch ihre Bestandteile vorhersehbarer.',
-        'Nach „Ohne Kaffee geht“ ist etwa „nichts“ viel wahrscheinlicher als die meisten anderen Wörter. Guessing-Verfahren können solche Muster nutzen und wahrscheinlichere Folgen früher ausprobieren, etwa Redewendungen, Liedzeilen oder andere naheliegende Formulierungen.',
+        'Nach „Ohne Kaffee geht“ ist etwa „nichts“ viel wahrscheinlicher als die meisten anderen Wörter. Angreifer können solche Muster nutzen und wahrscheinlichere Fortsetzungen zuerst ausprobieren, etwa bei Redewendungen, Liedzeilen oder anderen naheliegenden Formulierungen.',
       ],
       repetition: [
         'Auch Wiederholungen können ein Passwort lang wirken lassen, obwohl sich Teile nur wiederholen.',
-        'Erkennt oder vermutet ein Guessing-Verfahren den Grundbaustein, muss es nicht jedes Zeichen unabhängig erraten. Solche Wiederholungsmuster können gezielt ausprobiert werden.',
+        'Erkennt oder vermutet der Angreifer den wiederholten Grundbaustein, muss er nicht jedes Zeichen einzeln erraten. Solche Wiederholungsmuster kann er gezielt ausprobieren.',
       ],
     },
     findingLabels: {
@@ -387,6 +381,7 @@ export const s05Content = {
     },
   },
   freeSearch: {
+    title: 'Alle Zeichenkombinationen durchprobieren',
     passphraseGenerator: {
       title: 'Passphrasen-Generator',
       wordCount: '6 Wörter',
@@ -394,14 +389,12 @@ export const s05Content = {
       password: 'Kaktus-Fenster-Regen-Komet-Wodurch-Knochen',
       strengthLabel: 'Vollständig gefüllter grüner Beispielbalken',
       copy: 'Kopieren',
-      narration: [
-        'Wichtig: Passphrasen, also Passwörter aus mehreren Wörtern, können sehr stark sein. Entscheidend ist, wie vorhersehbar die Wörter und ihre Kombination sind.',
-        'Werden genug Wörter zufällig gewählt, fehlen dem Angreifer genau die Zusammenhänge, die ihm eben noch geholfen haben. Wie das praktisch geht, schauen wir uns später an.',
-      ],
+      narration:
+        'Wichtig: Passphrasen, also Passwörter aus mehreren Wörtern, können sehr stark sein. Werden genug Wörter zufällig erzeugt, fehlen dem Angreifer genau die Zusammenhänge, die ihm eben noch geholfen haben. Wie das praktisch geht, schauen wir uns später an.',
     },
     transition: {
       explanation:
-        'Wir haben gesehen, dass Angreifer zuerst wahrscheinliche Passwörter und typische menschliche Muster ausprobieren. Fehlen solche Anhaltspunkte, können sie aber immer noch systematisch immer mehr Zeichenfolgen durchprobieren.\nGenau hier setzen viele bekannte Passwortregeln an: Sie sollen dafür sorgen, dass der Angreifer mehr Möglichkeiten ausprobieren muss.',
+        'Ohne die gelernten Anhaltspunkte kann der Angreifer immer noch alle möglichen Zeichenkombinationen durchprobieren. Viele bekannte Passwortregeln sollen genau das erschweren.',
     },
     characterMix: {
       panelTitle: 'Passwort erstellen',
@@ -409,24 +402,23 @@ export const s05Content = {
       strengthRating: 'Stark',
       strengthBarLabel: 'Vollständig gefüllte grüne Stärkeanzeige',
       earlyHit: 'Früher Treffer',
-      checks: ['12 Zeichen', 'Großbuchstabe', 'Kleinbuchstabe', 'Zahl', 'Sonderzeichen'],
+      checks: ['mindestens 12 Zeichen', 'Großbuchstabe', 'Kleinbuchstabe', 'Zahl', 'Sonderzeichen'],
       predictablePassword: 'Passw0rt123!',
       randomPassword: 'rQ7!m2vX9?pK',
       narration: [
         'Solche Anzeigen kennst du vielleicht aus deinem Alltag. Hier erfüllt Passw0rt123! alle angezeigten Regeln und wird als stark bewertet.',
         'Beide Passwörter sind gleich lang und enthalten alle vier Zeichentypen. Das rechte Passwort besteht dagegen aus zwölf zufällig erzeugten Zeichen.',
         'Solche Anzeigen prüfen häufig nur, ob die gezeigten Regeln erfüllt sind. Für den Angreifer macht die Art der Wahl aber einen großen Unterschied: Passw0rt123! folgt mehreren menschlichen Mustern. Beim rechten Passwort fehlen ihm solche Anhaltspunkte.',
-        'Verschiedene Zeichentypen sind trotzdem nicht nutzlos: Werden sie wirklich zufällig erzeugt, wird das Durchprobieren für den Angreifer schwieriger. Menschen setzen solche Zeichen aber oft vorhersehbar ein, wie du es bei den typischen Variationen schon gesehen hast.',
+        'Verschiedene Zeichentypen können ein Passwort stärker machen, wenn die Zeichen wirklich zufällig gewählt werden. Bei selbst gewählten Passwörtern entstehen daraus jedoch typischerweise vorhersehbare Variationen.',
         'Darauf zu setzen, den Angreifer mit einer selbst gewählten Mischung aus Zeichentypen zu überraschen wie mEin!Pa55w0rt?, ist deshalb keine gute Strategie.',
-        'Keine Sorge, das musst du auch nicht. Entscheidend ist vor allem die Länge und dass dein Passwort nicht leicht vorhersehbar gewählt ist.',
+        'Keine Sorge, das musst du auch nicht. Für die Stärke deines Passworts ist die Länge der primäre Faktor.',
       ],
     },
     estimate: {
       title: 'Deine Schätzung',
-      explanation:
-        'Um zum Abschluss zu sehen, wie lang dein Passwort sein sollte, machen wir es ganz einfach: Jede Stelle wird zufällig aus nur 26 Kleinbuchstaben gewählt.',
+      alphabetLabel: 'zufällig gewählt',
       question:
-        'Was glaubst du: Ab welcher Länge wird das vollständige Durchprobieren für einen sehr schnellen Angreifer zu aufwendig?',
+        'Schauen wir uns deshalb zum Abschluss an, was allein die Länge bewirken kann. Dafür wird jede Stelle im Passwort zufällig aus Kleinbuchstaben gewählt. Was glaubst du: Ab welcher Länge wird es selbst mit nur Kleinbuchstaben für einen Angreifer zu aufwendig, alle möglichen Zeichenfolgen durchzuprobieren?',
       options: [12, 13, 14, 15, 16, 17, 18, 19, 20] as const,
       marker: 'Deine Schätzung',
       confirm: 'Schätzung bestätigen',
@@ -560,7 +552,6 @@ export const s05Content = {
     ['s05-candidate-check', 'attacker-attempt', 'info'],
     ['s05-random-sequence', 'random-sequence', 'info'],
     ['s05-recognizable-combination', 'recognizable-password', 'info'],
-    ['s05-building-blocks', 'building-blocks', 'info'],
     ['s05-strategy-targeting', 'strategy-targeting', 'info'],
     ['s05-component-category-overview', 'component-start', 'info'],
     ['s05-common-components-start', 'component-conveyor', 'info'],
@@ -570,7 +561,6 @@ export const s05Content = {
     ['s05-common-components-result', 'component-strategy', 'warning'],
     ['s05-personal-details-opening', 'component-conveyor', 'info'],
     ['s05-personal-details-derivation', 'component-conveyor', 'info'],
-    ['s05-personal-details-examples', 'component-conveyor', 'info'],
     ['s05-personal-details-intro', 'component-conveyor', 'info'],
     ['s05-personal-details-check', 'component-strategy', 'info'],
     ['s05-personal-details-result', 'component-strategy', 'warning'],
@@ -588,7 +578,6 @@ export const s05Content = {
     ['s05-structure-repetition-guessing', 'structure-repetition', 'warning'],
     ['s05-structure-application', 'structure-application', 'warning'],
     ['s05-passphrase-generator', 'passphrase-generator', 'info'],
-    ['s05-passphrase-randomness', 'passphrase-generator', 'info'],
     ['s05-free-search-transition', 'character-mix', 'info'],
     ['s05-character-mix-first', 'character-mix', 'info'],
     ['s05-character-mix-comparison', 'character-mix', 'info'],
@@ -596,7 +585,6 @@ export const s05Content = {
     ['s05-character-mix-types', 'character-mix', 'info'],
     ['s05-character-mix-strategy', 'character-mix', 'warning'],
     ['s05-character-mix-takeaway', 'character-mix', 'info'],
-    ['s05-estimate-intro', 'estimate-ruler', 'info'],
     ['s05-estimate', 'estimate', 'info'],
     ['s05-lowercase-clock', 'lowercase-clock', 'info'],
     ['s05-free-search-application', 'free-search-application', 'warning'],

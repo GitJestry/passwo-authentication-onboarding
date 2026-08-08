@@ -328,6 +328,10 @@ export function S02AccountExplorationTraining({
   }, [externalTimingError, returningToBrowser, timingState]);
 
   useEffect(() => {
+    if (snapshot?.scene.isComplete) setGuideOpen(true);
+  }, [snapshot?.scene.isComplete]);
+
+  useEffect(() => {
     let controller: S02AccountExplorationController | null = null;
     const animationPlayer = new NetworkMotionAdapter({
       initialNodeId: definition.accounts[0]?.id ?? '',
@@ -526,7 +530,9 @@ export function S02AccountExplorationTraining({
     : introReady
       ? s02Content.narration.introReadyId
       : scene.narrationId;
-  const narration = s02Content.narration.messages[narrationId] ?? '';
+  const narration = complete
+    ? s02Content.narration.completion(platform)
+    : (s02Content.narration.messages[narrationId] ?? '');
   const speechKey = `${narrationId}-${complete}`;
   const animationAnnouncement =
     presentation.announcedMessageId === null
@@ -741,17 +747,24 @@ export function S02AccountExplorationTraining({
                   speechKey={speechKey}
                   emphasis={passWoSpeechEmphasisFor(narrationId)}
                   placement={guideSpeechPosition?.side ?? 'right'}
-                  action={
-                    snapshot.introState === 'ready'
-                      ? {
-                          kind: 'advance',
-                          disabled: interactionBlocked,
-                          onAction: () => controller.startIntro(),
-                        }
-                      : snapshot.introState === 'playing'
-                        ? { kind: 'advance', disabled: true, onAction: () => undefined }
-                      : { kind: 'dismiss', onAction: () => setGuideOpen(false) }
-                  }
+                  {...(complete
+                    ? {}
+                    : {
+                        action:
+                          snapshot.introState === 'ready'
+                            ? {
+                                kind: 'advance' as const,
+                                disabled: interactionBlocked,
+                                onAction: () => controller.startIntro(),
+                              }
+                            : snapshot.introState === 'playing'
+                              ? {
+                                  kind: 'advance' as const,
+                                  disabled: true,
+                                  onAction: () => undefined,
+                                }
+                              : { kind: 'dismiss' as const, onAction: () => setGuideOpen(false) },
+                      })}
                   {...(guideSpeechPosition === null
                     ? {}
                     : { arrowOffset: guideSpeechPosition.arrowOffset })}

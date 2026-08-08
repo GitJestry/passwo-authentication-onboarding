@@ -35,7 +35,10 @@ const emphasisBySpeechId: Readonly<Record<string, readonly PassWoSpeechEmphasis[
   ],
   's00.browser': [{ phrase: 'alle drei ein', tone: 'action' }],
   's00.safety': [{ phrase: 'keine echten Passwörter oder Varianten davon', tone: 'warning' }],
-  's01.quest': [{ phrase: 'starkes Passwort', tone: 'positive' }],
+  's01.quest': [
+    { phrase: 'starkes Passwort', tone: 'positive', contrastId: 'password-memory' },
+    { phrase: 'merken', tone: 'accent', contrastId: 'password-memory' },
+  ],
   's01.ready': [{ phrase: 'Schließen-Schaltfläche', tone: 'action' }],
   's02.master-campus': [{ phrase: 'Master-Campus-Anmeldung', tone: 'action' }],
   's02.campus-email': [{ phrase: 'Zurücksetzungslink', tone: 'action' }],
@@ -78,6 +81,13 @@ const emphasisBySpeechId: Readonly<Record<string, readonly PassWoSpeechEmphasis[
       symbolSrc: personalDetailsAsset,
     },
   ],
+  's05-personal-details-derivation': [
+    {
+      phrase: 'persönliche Angaben',
+      tone: 'accent',
+      symbolSrc: personalDetailsAsset,
+    },
+  ],
   's05-personal-details-intro': [
     {
       phrase: 'persönlichen Angaben',
@@ -115,14 +125,24 @@ const emphasisBySpeechId: Readonly<Record<string, readonly PassWoSpeechEmphasis[
   's05-structure-repetition-guessing': [
     { phrase: 'Wiederholungsmuster', tone: 'accent' },
   ],
+  's05-structure-intro': [{ phrase: 'typische Muster', tone: 'accent' }],
   's05-passphrase-generator': [{ phrase: 'Wichtig', tone: 'accent' }],
-  's05-character-mix-takeaway': [
-    {
-      phrase: 'die Länge und dass dein Passwort nicht leicht vorhersehbar gewählt',
-      tone: 'accent',
-    },
+  's05-free-search-transition': [
+    { phrase: 'alle möglichen Zeichenkombinationen durchprobieren', tone: 'accent' },
   ],
-  's05-estimate': [{ phrase: 'vollständige Durchprobieren', tone: 'accent' }],
+  's05-character-mix-comparison': [{ phrase: 'zufällig erzeugten', tone: 'accent' }],
+  's05-character-mix-strategy': [{ phrase: 'keine gute Strategie.', tone: 'warning' }],
+  's05-character-mix-takeaway': [
+    { phrase: 'die Länge', tone: 'accent' },
+  ],
+  's05-character-mix-types': [
+    { phrase: 'wirklich zufällig', tone: 'accent' },
+  ],
+  's05-estimate': [
+    { phrase: 'zufällig', tone: 'accent', contrastId: 'estimate-threshold' },
+    { phrase: 'welcher Länge', tone: 'accent', contrastId: 'estimate-threshold' },
+    { phrase: 'zu aufwendig', tone: 'accent', contrastId: 'estimate-threshold' },
+  ],
 };
 
 export function passWoSpeechEmphasisFor(

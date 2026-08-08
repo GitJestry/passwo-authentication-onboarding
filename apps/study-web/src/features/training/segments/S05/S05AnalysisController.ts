@@ -35,7 +35,6 @@ export type S05AnalysisStep =
   | 'candidate-check'
   | 'random-sequence'
   | 'recognizable-combination'
-  | 'building-blocks'
   | 'strategy-targeting'
   | 'component-category-overview'
   | 'common-components-start'
@@ -45,7 +44,6 @@ export type S05AnalysisStep =
   | 'common-components-result'
   | 'personal-details-opening'
   | 'personal-details-derivation'
-  | 'personal-details-examples'
   | 'personal-details-intro'
   | 'personal-details-check'
   | 'personal-details-result'
@@ -63,7 +61,6 @@ export type S05AnalysisStep =
   | 'structure-repetition-guessing'
   | 'structure-application'
   | 'passphrase-generator'
-  | 'passphrase-randomness'
   | 'free-search-transition'
   | 'character-mix-first'
   | 'character-mix-comparison'
@@ -71,7 +68,6 @@ export type S05AnalysisStep =
   | 'character-mix-types'
   | 'character-mix-strategy'
   | 'character-mix-takeaway'
-  | 'estimate-intro'
   | 'estimate'
   | 'lowercase-clock'
   | 'free-search-application'
@@ -137,7 +133,6 @@ const stepByMissionId: Readonly<Record<string, S05AnalysisStep>> = {
   's05-candidate-check': 'candidate-check',
   's05-random-sequence': 'random-sequence',
   's05-recognizable-combination': 'recognizable-combination',
-  's05-building-blocks': 'building-blocks',
   's05-strategy-targeting': 'strategy-targeting',
   's05-component-category-overview': 'component-category-overview',
   's05-common-components-start': 'common-components-start',
@@ -147,7 +142,6 @@ const stepByMissionId: Readonly<Record<string, S05AnalysisStep>> = {
   's05-common-components-result': 'common-components-result',
   's05-personal-details-opening': 'personal-details-opening',
   's05-personal-details-derivation': 'personal-details-derivation',
-  's05-personal-details-examples': 'personal-details-examples',
   's05-personal-details-intro': 'personal-details-intro',
   's05-personal-details-check': 'personal-details-check',
   's05-personal-details-result': 'personal-details-result',
@@ -165,7 +159,6 @@ const stepByMissionId: Readonly<Record<string, S05AnalysisStep>> = {
   's05-structure-repetition-guessing': 'structure-repetition-guessing',
   's05-structure-application': 'structure-application',
   's05-passphrase-generator': 'passphrase-generator',
-  's05-passphrase-randomness': 'passphrase-randomness',
   's05-free-search-transition': 'free-search-transition',
   's05-character-mix-first': 'character-mix-first',
   's05-character-mix-comparison': 'character-mix-comparison',
@@ -173,7 +166,6 @@ const stepByMissionId: Readonly<Record<string, S05AnalysisStep>> = {
   's05-character-mix-types': 'character-mix-types',
   's05-character-mix-strategy': 'character-mix-strategy',
   's05-character-mix-takeaway': 'character-mix-takeaway',
-  's05-estimate-intro': 'estimate-intro',
   's05-estimate': 'estimate',
   's05-lowercase-clock': 'lowercase-clock',
   's05-free-search-application': 'free-search-application',

@@ -312,3 +312,14 @@ Für jedes der sechs Guardrail-Items werden die drei substantiven Antwortoptione
 Item separat eingefroren. Innerhalb einer einzelnen Form wird keine zusätzliche Balance der
 richtigen Antwortpositionen erzwungen. `Weiß ich nicht` bleibt bei jedem Item fest an vierter und
 letzter Position; die sechs Reihenfolgen der Anwendungsszenarien bleiben unverändert ausbalanciert.
+
+## Revision 2026-08-08 — Teilnehmerinformation und Follow-up-Einwilligung
+
+Die Consent-Version wird auf `consent-v11-pilot` und das Runtime-Manifest auf
+`instrument-runtime-v7-pilot` angehoben. Instrument-, Fragebogen-, Guardrail- und
+Follow-up-Version bleiben unverändert.
+
+Die Kontextzeile, die sichtbaren Kerninformationen, die sieben einzeln erreichbaren Abschnitte der
+Teilnahmeinformation und der Wortlaut der optionalen Follow-up-Einwilligung werden gemäß der
+ausdrücklichen Nutzerentscheidung aktualisiert. Datenfelder, Einwilligungsstruktur,
+Follow-up-Timing, Persistenz, Randomisierung und Messinstrumente bleiben unverändert.

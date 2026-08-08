@@ -73,7 +73,7 @@ export interface S00SegmentContent {
   };
 }
 
-export const S00_CONTENT_VERSION = '1.17.1';
+export const S00_CONTENT_VERSION = '1.17.2';
 
 export const s00Content: S00SegmentContent = {
   version: S00_CONTENT_VERSION,
@@ -83,7 +83,7 @@ export const s00Content: S00SegmentContent = {
     paragraphs: [
       'Aloha! Ich bin PassWo und begleite dich heute durch das Training.',
       'Stell dir vor, du hast an einer Hochschule gerade neue Campuszugänge erhalten und musst nun drei Campuskonten einrichten.',
-      'In der ersten Sektion entscheidest du selbst, welche Passwörter du für diese Konten verwendest. Überlege wie du die Konten in so einer Situation schützen würdest, und erstelle dafür starke Passwörter, die du dir gut merken kannst.',
+      'In der ersten Sektion entscheidest du selbst, welche Passwörter du für diese Konten verwendest. Überlege wie du die Konten in so einer Situation sicher schützen würdest, und erstelle dafür starke Passwörter, die du dir gut merken kannst.',
       'Nach einem kurzen Zwischenschritt meldest du dich noch einmal bei allen drei Konten an. Wähle deine Passwörter deshalb so, dass du sie später wieder abrufen kannst.',
       'Du arbeitest gleich in einem virtuellen PC. Wähle gerne das Betriebssystem, das deinem Alltag am nächsten kommt.',
     ],

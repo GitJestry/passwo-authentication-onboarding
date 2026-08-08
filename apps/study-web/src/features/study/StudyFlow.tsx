@@ -438,13 +438,18 @@ function ArtifactPreparation({ onStart }: { readonly onStart: () => void }) {
       </header>
       <div className={styles.artifactPreparationContent}>
         <p>
-          Stelle dir vor, deine Hochschule hat dir dieses Lernangebot bereitgestellt und dich
-          gebeten, es zu bearbeiten.
+          Stell dir vor, deine Hochschule stellt dir dieses Lernangebot zur Verfügung und bittet
+          dich, es zu bearbeiten.
         </p>
         <p>
-          Bearbeite die Inhalte aus dieser Perspektive aufmerksam und vollständig in deinem eigenen
-          Tempo. Die Zusatzinformationen können dir helfen, die Inhalte genauer einzuordnen
-          und zu vertiefen.
+          Bearbeite die Inhalte aus dieser Perspektive aufmerksam und in deinem eigenen Tempo.
+          Zusatzinformationen kannst du nutzen, wenn du einzelne Inhalte genauer einordnen oder
+          vertiefen möchtest.
+        </p>
+        <p>
+          Du kannst die Studie jederzeit verlassen, indem du den Browser-Tab schließt. Falls du
+          ihn versehentlich schließt, kannst du die Studie erneut öffnen und an der Stelle
+          weitermachen, an der du aufgehört hast.
         </p>
       </div>
       <button className={styles.button} type="button" onClick={onStart}>
