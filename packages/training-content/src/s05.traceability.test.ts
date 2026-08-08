@@ -4,7 +4,7 @@ import { S05_CONTENT_VERSION, s05Content } from './s05.js';
 
 describe('S05 content traceability', () => {
   it('keeps the participant copy bounded and separate from internal terminology', () => {
-    expect(S05_CONTENT_VERSION).toBe('2.46.0');
+    expect(S05_CONTENT_VERSION).toBe('2.46.6');
     expect(s05Content.source).toMatchObject({
       document: 'research/private/training-script.pdf',
       internalPages: [
@@ -12,7 +12,7 @@ describe('S05 content traceability', () => {
         35,
       ],
       copyReference:
-        'docs/design/S00-S05-COPY-AUDIT.md#copy-delta-s05-textstraffung-und-freie-suche-8-august-2026',
+        'docs/design/S00-S05-COPY-AUDIT.md#copy-delta-s05-strategieuebergaenge-8-august-2026',
     });
     expect(s05Content.segment.id).toBe('S05');
     expect(s05Content.page.fixtureNotice).toBe(
@@ -33,7 +33,10 @@ describe('S05 content traceability', () => {
       'Häufig verwendete Passwörter und Zeichenfolgen',
     );
     expect(s05Content.intro.narration.componentCategoryOverview).toEqual([
-      'Dabei beginnt er mit Passwörtern und Zeichenfolgen, die besonders häufig verwendet werden.',
+      'Dabei probiert es zuerst Passwörter und Zeichenfolgen aus, die besonders häufig verwendet werden.',
+    ]);
+    expect(s05Content.intro.narration.randomSequence).toEqual([
+      'Zufällige Zeichenfolgen sind für Menschen jedoch schwer zu merken. Selbst gewählte Passwörter enthalten deshalb oft merkbare Elemente, wie Wörter, Zahlen oder einfache Zeichenfolgen.',
     ]);
     expect(s05Content.componentStrategy.commonComponents.explanation[0]).toBe(
       'Dazu gehören häufig verwendete Passwörter und Wörter, einfache Tastatur- und Zahlenfolgen wie „123456“ oder „qwertz“ oder naheliegende Jahreszahlen.',
@@ -62,9 +65,6 @@ describe('S05 content traceability', () => {
     expect(s05Content.componentStrategy.commonComponents.explanation[3]).toBe(
       'Prüfen wir nun dein gewähltes Passwort auf häufig verwendete Passwörter und Zeichenfolgen.',
     );
-    expect(s05Content.componentStrategy.commonComponents.transition).toBe(
-      'Als Nächstes schauen wir, ob dein Campusgram-Passwort persönliche Angaben enthält.',
-    );
     expect(s05Content.componentStrategy.commonComponents.machine.conveyorBlocks).toContain(
       'passwort',
     );
@@ -76,10 +76,13 @@ describe('S05 content traceability', () => {
       'Persönliche Angaben sind leicht zu merken und wirken oft geheim. Es ist deshalb nachvollziehbar, sie für etwas zu halten, das andere nur schwer erraten können.',
     ]);
     expect(s05Content.componentStrategy.personalDetails.derivation).toEqual([
-      'Bei einem Datenleck liegen deine Passwortdaten oft zusammen mit deinem Benutzernamen, deiner E-Mail-Adresse oder Kontohinweisen vor. Angreifer können dadurch persönliche Angaben wie Namen, Geburtsdaten oder dem Lieblingsverein aus öffentlichen Profilen oder deinem Umfeld gezielt als Passwortkandidaten testen.',
+      'Bei einem Datenleck liegen deine Passwortdaten oft zusammen mit deinem Benutzernamen, deiner E-Mail-Adresse oder Kontohinweisen vor.',
+    ]);
+    expect(s05Content.componentStrategy.personalDetails.examples).toEqual([
+      'Angreifer können dadurch persönliche Angaben wie Namen, Geburtsdaten oder dem Lieblingsverein aus öffentlichen Profilen oder deinem Umfeld gezielt als Passwortkandidaten testen.',
     ]);
     expect(s05Content.componentStrategy.personalDetails.explanation).toEqual([
-      'Dieses Trainingsmodul kann nicht zuverlässig erkennen, welche Angaben auf dich zutreffen. Wähle deshalb selbst die persönlichen Angaben aus, die für dein Beispiel realistisch wären.',
+      'Für den Selbstcheck: Wähle die persönlichen Angaben aus, die für dein Beispiel in Frage kommen.',
     ]);
     expect(s05Content.componentStrategy.personalDetails.begin).toBe(
       'Persönliche Angaben markieren',
@@ -147,11 +150,11 @@ describe('S05 content traceability', () => {
     expect(s05Content.componentStrategy.summary.continue).toBe('Weiter');
     expect(s05Content.componentStrategy.summary).toMatchObject({
       singleCandidateMatch:
-        'Dein Passwort wurde bereits unter einen einzigen frühen Kandidaten gefunden. Wir verfolgen den Angriff trotzdem weiter, denn es kann auch über andere Anhaltspunkte erraten werden.',
+        'Dein Passwort wurde bereits unter einen einzigen frühen Kandidaten gefunden. Wir verfolgen den Angriff trotzdem weiter.',
       combinedMatches:
-        'Die gefundenen Übereinstimmungen zeigen bereits, aus welchen Teilen dein Passwort gebildet wurde. Gefunden ist es dadurch noch nicht. Das Programm muss sie erst in der passenden Reihenfolge und Form zu einem vollständigen Passwortkandidaten verbinden.',
+        'Dein Passwort besteht komplett aus frühen Anhaltspunkten. Erraten ist es dadurch noch nicht. Wir verfolgen den Angriff deshalb weiter.',
       partialMatches:
-        'Die gefundenen Übereinstimmungen decken bislang nur einen Teil der Zeichenfolge ab. Das Programm erzeugt daraus weitere vollständige Passwortkandidaten, indem es zusätzliche Zeichenfolgen, Anordnungen und Veränderungen ausprobiert.',
+        'Dein Passwort besteht zum Teil aus frühen Anhaltspunkten. Erraten ist es dadurch noch nicht. Wir verfolgen den Angriff weiter.',
       none: 'Bei den bisherigen Prüfungen wurde keine Übereinstimmung gefunden. Der Angreifer hat damit aber noch nicht alle Möglichkeiten ausgeschöpft.',
       nothingFound: 'Nichts gefunden',
     });
@@ -175,7 +178,6 @@ describe('S05 content traceability', () => {
     expect(s05Content.freeSearch.passphraseGenerator.narration).toBe(
       'Wichtig: Passphrasen, also Passwörter aus mehreren Wörtern, können sehr stark sein. Werden genug Wörter zufällig erzeugt, fehlen dem Angreifer genau die Zusammenhänge, die ihm eben noch geholfen haben. Wie das praktisch geht, schauen wir uns später an.',
     );
-    expect(s05Content.freeSearch.title).toBe('Alle Zeichenkombinationen durchprobieren');
     expect(s05Content.freeSearch.estimate.alphabetLabel).toBe('zufällig gewählt');
     expect(s05Content.freeSearch.transition.explanation).toBe(
       'Ohne die gelernten Anhaltspunkte kann der Angreifer immer noch alle möglichen Zeichenkombinationen durchprobieren. Viele bekannte Passwortregeln sollen genau das erschweren.',
@@ -200,7 +202,7 @@ describe('S05 content traceability', () => {
     ).toBe(true);
     expect(s05Content.intro.narration.candidateCheck).toEqual([
       'Für den Angreifer ist dein Passwort verdeckt. Sein Programm erzeugt mögliche Passwörter und prüft, ob eines davon passt.',
-      'Grundsätzlich könnte das Programm jede denkbare Zeichenfolge ausprobieren.',
+      'Grundsätzlich könnte es dabei jede denkbare Zeichenfolge ausprobieren.',
     ]);
     expect(s05Content.intro.narration.strategyTargeting).toEqual([
       'Der Angreifer sieht diese Bestandteile nicht. Sein Programm kann aber mögliche Bestandteile auswählen, kombinieren und daraus vollständige Passwortkandidaten bilden.',

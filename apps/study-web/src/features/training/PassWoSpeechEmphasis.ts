@@ -81,7 +81,7 @@ const emphasisBySpeechId: Readonly<Record<string, readonly PassWoSpeechEmphasis[
       symbolSrc: personalDetailsAsset,
     },
   ],
-  's05-personal-details-derivation': [
+  's05-personal-details-examples': [
     {
       phrase: 'persönliche Angaben',
       tone: 'accent',

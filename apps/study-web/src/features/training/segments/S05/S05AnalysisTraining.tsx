@@ -289,44 +289,87 @@ type CommonComponentMachineStep =
   | 'common-components-examples'
   | 'common-components-changes';
 
-const typicalCharacterReplacements: Readonly<Record<string, string>> = {
-  a: '4',
-  e: '3',
-  i: '1',
-  o: '0',
-  s: '5',
+const typicalCharacterReplacements: Readonly<Record<string, readonly string[]>> = {
+  a: ['4', '@'],
+  b: ['8'],
+  e: ['3'],
+  g: ['9'],
+  i: ['1', '!'],
+  l: ['1'],
+  o: ['0'],
+  s: ['5', '$'],
+  t: ['7'],
+  z: ['2'],
 };
 
-function replaceTypicalCharacters(value: string): string {
+interface CharacterReplacement {
+  readonly index: number;
+  readonly replacement: string;
+}
+
+function replaceCharacters(
+  value: string,
+  replacements: readonly CharacterReplacement[],
+): string {
   return [...value]
-    .map(
-      (character) =>
-        typicalCharacterReplacements[character.toLocaleLowerCase('de-DE')] ?? character,
-    )
+    .map((character, index) => {
+      const replacement = replacements.find((entry) => entry.index === index);
+      return replacement?.replacement ?? character;
+    })
     .join('');
+}
+
+function characterReplacementVariants(value: string): readonly string[] {
+  const possibleReplacements = [...value].flatMap((character, index) =>
+    (typicalCharacterReplacements[character.toLocaleLowerCase('de-DE')] ?? []).map(
+      (replacement) => ({ index, replacement }),
+    ),
+  );
+  const primaryReplacements = possibleReplacements.filter(
+    (replacement, index, replacements) =>
+      !replacements.slice(0, index).some((entry) => entry.index === replacement.index),
+  );
+  const combinedVariants = [2, 3]
+    .filter((count) => primaryReplacements.length >= count)
+    .map((count) => replaceCharacters(value, primaryReplacements.slice(0, count)));
+
+  return [
+    ...possibleReplacements.map((replacement) => replaceCharacters(value, [replacement])),
+    ...combinedVariants,
+  ];
 }
 
 function typicalChangeVariants(value: string): readonly string[] {
   const initial = value.at(0);
+  const final = value.at(-1);
   const capitalized =
     initial === undefined
       ? value
       : `${initial.toLocaleUpperCase('de-DE')}${value.slice(1)}`;
+  const firstAndLastCapitalized =
+    initial === undefined || final === undefined
+      ? value
+      : `${initial.toLocaleUpperCase('de-DE')}${value.slice(1, -1)}${final.toLocaleUpperCase('de-DE')}`;
+  const alternatingCase = [...value]
+    .map((character, index) =>
+      index % 2 === 0 ? character.toLocaleUpperCase('de-DE') : character.toLocaleLowerCase('de-DE'),
+    )
+    .join('');
+  const replacementVariants = characterReplacementVariants(value);
+  const typicalEndings = ['1', '12', '123', '01', '99', '2005', '2026', '!', '?', '#', '$', '_', '.'];
   return [
     capitalized,
     value.toLocaleUpperCase('de-DE'),
-    replaceTypicalCharacters(value),
-    replaceTypicalCharacters(capitalized),
-    `${value}1`,
-    `${value}!`,
-    `${value}12`,
-    `${value}?`,
-    `${value}123`,
-    `${value}#`,
-    `${value}2005`,
-    `${value}.`,
-    `${value}2026`,
-    `${value}_`,
+    firstAndLastCapitalized,
+    alternatingCase,
+    ...replacementVariants,
+    ...typicalEndings.map((ending) => `${value}${ending}`),
+    `${capitalized}1`,
+    `${capitalized}!`,
+    `${value}1!`,
+    `${value}123!`,
+    `${value}2026#`,
+    `${replacementVariants[0] ?? value}!`,
   ].filter((variant, index, variants) => variant !== value && variants.indexOf(variant) === index);
 }
 
@@ -1095,6 +1138,7 @@ function renderScene(
       );
     case 'personal-details-opening':
     case 'personal-details-derivation':
+    case 'personal-details-examples':
     case 'personal-details-intro':
       return (
         <ComponentMachineScene>
@@ -1165,7 +1209,7 @@ function commonComponentsResult(snapshot: S05AnalysisControllerSnapshot): readon
   const content = s05Content.componentStrategy.commonComponents;
   const view = snapshot.componentStrategy.canonicalView;
   const findings = snapshot.componentStrategy.cards['common-components'].findings;
-  if (view === null || findings.length === 0) return [...content.results.none, content.transition];
+  if (view === null || findings.length === 0) return [...content.results.none];
 
   const foundValues = [
     ...new Set(
@@ -1174,7 +1218,7 @@ function commonComponentsResult(snapshot: S05AnalysisControllerSnapshot): readon
         .map(({ value }) => value),
     ),
   ];
-  if (foundValues.length === 0) return [...content.results.none, content.transition];
+  if (foundValues.length === 0) return [...content.results.none];
 
   const quotedValues = foundValues.map((value) => `„${value}“`);
   const parts =
@@ -1193,7 +1237,6 @@ function commonComponentsResult(snapshot: S05AnalysisControllerSnapshot): readon
       : candidateSummary.coversWholePassword
         ? [content.results.completeCombinedMatches]
         : []),
-    content.transition,
   ];
 }
 
@@ -1220,7 +1263,6 @@ function personalDetailsResult(snapshot: S05AnalysisControllerSnapshot): readonl
       : candidateSummary?.coversWholePassword
         ? [content.results.completeCombinedMatches]
         : []),
-    content.transition,
   ];
 }
 
@@ -1301,6 +1343,8 @@ function speechFor(
       return s05Content.componentStrategy.personalDetails.opening;
     case 'personal-details-derivation':
       return s05Content.componentStrategy.personalDetails.derivation;
+    case 'personal-details-examples':
+      return s05Content.componentStrategy.personalDetails.examples;
     case 'personal-details-intro':
       return s05Content.componentStrategy.personalDetails.explanation;
     case 'personal-details-result':
@@ -1488,12 +1532,6 @@ export function S05AnalysisTraining({
   }
 
   const categoryHeaderVisible = showsComponentCategoryHeader(snapshot.step);
-  const freeSearchTitleVisible =
-    snapshot.step === 'free-search-transition' ||
-    snapshot.step.startsWith('character-mix-') ||
-    snapshot.step.startsWith('estimate') ||
-    snapshot.step === 'lowercase-clock' ||
-    snapshot.step === 'free-search-application';
   const componentGuidanceVisible = showsComponentGuidance(snapshot.step);
   const transitionCategoryId = transitionCategoryForStep(snapshot.step);
   const currentSpeechAction = speechAction();
@@ -1502,7 +1540,7 @@ export function S05AnalysisTraining({
     <section ref={hostRef} className={styles.training} aria-label={s05Content.trainingAriaLabel}>
       <article
         className={styles.page}
-        aria-labelledby={categoryHeaderVisible || freeSearchTitleVisible ? 's05-title' : undefined}
+        aria-labelledby={categoryHeaderVisible ? 's05-title' : undefined}
       >
         {categoryHeaderVisible ? (
           <header className={styles.pageHeader} data-category-chain>
@@ -1513,9 +1551,6 @@ export function S05AnalysisTraining({
         {transitionCategoryId === null ? null : (
           <CategoryTransition categoryId={transitionCategoryId} />
         )}
-        {freeSearchTitleVisible ? (
-          <h1 id="s05-title" className={styles.freeSearchTitle}>{s05Content.freeSearch.title}</h1>
-        ) : null}
         <div
           className={styles.content}
           aria-live="polite"

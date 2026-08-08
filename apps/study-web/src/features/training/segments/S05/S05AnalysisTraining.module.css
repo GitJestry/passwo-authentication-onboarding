@@ -1369,19 +1369,6 @@
   height: auto;
 }
 
-.freeSearchTitle {
-  position: absolute;
-  top: clamp(2.5rem, 5vh, 4rem);
-  left: 50%;
-  z-index: 1;
-  width: min(100% - var(--space-6), 68rem);
-  margin: 0;
-  color: white;
-  font-size: clamp(1.2rem, 2.5vw, 1.8rem);
-  text-align: center;
-  transform: translateX(-50%);
-}
-
 .estimateMarkerRow,
 .estimateTicks {
   display: grid;
@@ -2152,6 +2139,11 @@
   object-fit: contain;
 }
 
+.machineOutput > img {
+  width: 13.6rem;
+  height: 13.6rem;
+}
+
 .machineInput > div,
 .machineOutputStream {
   display: grid;
@@ -2170,7 +2162,7 @@
 }
 
 .machineOutputStream {
-  animation: machine-output-scroll 8.5s linear infinite;
+  animation: machine-output-scroll 5.667s linear infinite;
 }
 
 .machineInput code,

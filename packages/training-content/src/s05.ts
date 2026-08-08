@@ -27,7 +27,7 @@ export interface S05DesignLabFixture {
   readonly startSection: 'intro' | 'components' | 'structure';
 }
 
-export const S05_CONTENT_VERSION = '2.46.0';
+export const S05_CONTENT_VERSION = '2.46.6';
 
 export const s05Content = {
   version: S05_CONTENT_VERSION,
@@ -37,9 +37,10 @@ export const s05Content = {
       12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34,
       35,
     ] as const,
-    revision: 'Userauftrag vom 2026-08-08 · Passphrasen, Zeichensuche, Längenskala und Textstraffung',
+    revision:
+      'Userauftrag vom 2026-08-08 · Passphrasen, Zeichensuche, Längenskala, Textstraffung, entfernte Freisuche-Überschrift, Programmperspektive, einfache Zeichenfolgen, getrennte Sprechschritte, Selbstcheck zu persönlichen Angaben und gestraffte Strategieübergänge',
     copyReference:
-      'docs/design/S00-S05-COPY-AUDIT.md#copy-delta-s05-textstraffung-und-freie-suche-8-august-2026',
+      'docs/design/S00-S05-COPY-AUDIT.md#copy-delta-s05-strategieuebergaenge-8-august-2026',
   },
   segment: {
     id: 'S05',
@@ -88,10 +89,10 @@ export const s05Content = {
     narration: {
       candidateCheck: [
         'Für den Angreifer ist dein Passwort verdeckt. Sein Programm erzeugt mögliche Passwörter und prüft, ob eines davon passt.',
-        'Grundsätzlich könnte das Programm jede denkbare Zeichenfolge ausprobieren.',
+        'Grundsätzlich könnte es dabei jede denkbare Zeichenfolge ausprobieren.',
       ],
       randomSequence: [
-        'Zufällige Zeichenfolgen sind für Menschen jedoch schwer zu merken. Selbst gewählte Passwörter enthalten deshalb oft merkbare Elemente, wie Wörter, Zahlen oder Zeichenfolgen.',
+        'Zufällige Zeichenfolgen sind für Menschen jedoch schwer zu merken. Selbst gewählte Passwörter enthalten deshalb oft merkbare Elemente, wie Wörter, Zahlen oder einfache Zeichenfolgen.',
       ],
       buildingBlocks: [
         'Für die Erklärung betrachten wir diese Teile vereinfacht wie aneinandergesetzte Bausteine.',
@@ -100,7 +101,7 @@ export const s05Content = {
         'Der Angreifer sieht diese Bestandteile nicht. Sein Programm kann aber mögliche Bestandteile auswählen, kombinieren und daraus vollständige Passwortkandidaten bilden.',
       ],
       componentCategoryOverview: [
-        'Dabei beginnt er mit Passwörtern und Zeichenfolgen, die besonders häufig verwendet werden.',
+        'Dabei probiert es zuerst Passwörter und Zeichenfolgen aus, die besonders häufig verwendet werden.',
       ],
     },
   },
@@ -170,18 +171,19 @@ export const s05Content = {
         completeCombinedMatches:
           'Mehrere gefundene Übereinstimmungen decken gemeinsam die gesamte Zeichenfolge ab.',
       },
-      transition:
-        'Als Nächstes schauen wir, ob dein Campusgram-Passwort persönliche Angaben enthält.',
     },
     personalDetails: {
       opening: [
         'Persönliche Angaben sind leicht zu merken und wirken oft geheim. Es ist deshalb nachvollziehbar, sie für etwas zu halten, das andere nur schwer erraten können.',
       ],
       derivation: [
-        'Bei einem Datenleck liegen deine Passwortdaten oft zusammen mit deinem Benutzernamen, deiner E-Mail-Adresse oder Kontohinweisen vor. Angreifer können dadurch persönliche Angaben wie Namen, Geburtsdaten oder dem Lieblingsverein aus öffentlichen Profilen oder deinem Umfeld gezielt als Passwortkandidaten testen.',
+        'Bei einem Datenleck liegen deine Passwortdaten oft zusammen mit deinem Benutzernamen, deiner E-Mail-Adresse oder Kontohinweisen vor.',
+      ],
+      examples: [
+        'Angreifer können dadurch persönliche Angaben wie Namen, Geburtsdaten oder dem Lieblingsverein aus öffentlichen Profilen oder deinem Umfeld gezielt als Passwortkandidaten testen.',
       ],
       explanation: [
-        'Dieses Trainingsmodul kann nicht zuverlässig erkennen, welche Angaben auf dich zutreffen. Wähle deshalb selbst die persönlichen Angaben aus, die für dein Beispiel realistisch wären.',
+        'Für den Selbstcheck: Wähle die persönlichen Angaben aus, die für dein Beispiel in Frage kommen.',
       ],
       machine: {
         conveyorBlocks: [
@@ -208,7 +210,6 @@ export const s05Content = {
         completeCombinedMatches:
           'Mehrere gefundene Übereinstimmungen decken gemeinsam die gesamte Zeichenfolge ab.',
       },
-      transition: 'Als Nächstes prüfen wir, ob Begriffe direkt zum Konto passen.',
     },
     accountContext: {
       machine: {
@@ -254,11 +255,11 @@ export const s05Content = {
     summary: {
       title: 'Häufig verwendete Passwörter und Zeichenfolgen',
       singleCandidateMatch:
-        'Dein Passwort wurde bereits unter einen einzigen frühen Kandidaten gefunden. Wir verfolgen den Angriff trotzdem weiter, denn es kann auch über andere Anhaltspunkte erraten werden.',
+        'Dein Passwort wurde bereits unter einen einzigen frühen Kandidaten gefunden. Wir verfolgen den Angriff trotzdem weiter.',
       combinedMatches:
-        'Die gefundenen Übereinstimmungen zeigen bereits, aus welchen Teilen dein Passwort gebildet wurde. Gefunden ist es dadurch noch nicht. Das Programm muss sie erst in der passenden Reihenfolge und Form zu einem vollständigen Passwortkandidaten verbinden.',
+        'Dein Passwort besteht komplett aus frühen Anhaltspunkten. Erraten ist es dadurch noch nicht. Wir verfolgen den Angriff deshalb weiter.',
       partialMatches:
-        'Die gefundenen Übereinstimmungen decken bislang nur einen Teil der Zeichenfolge ab. Das Programm erzeugt daraus weitere vollständige Passwortkandidaten, indem es zusätzliche Zeichenfolgen, Anordnungen und Veränderungen ausprobiert.',
+        'Dein Passwort besteht zum Teil aus frühen Anhaltspunkten. Erraten ist es dadurch noch nicht. Wir verfolgen den Angriff weiter.',
       none: 'Bei den bisherigen Prüfungen wurde keine Übereinstimmung gefunden. Der Angreifer hat damit aber noch nicht alle Möglichkeiten ausgeschöpft.',
       nothingFound: 'Nichts gefunden',
       continue: 'Weiter',
@@ -381,7 +382,6 @@ export const s05Content = {
     },
   },
   freeSearch: {
-    title: 'Alle Zeichenkombinationen durchprobieren',
     passphraseGenerator: {
       title: 'Passphrasen-Generator',
       wordCount: '6 Wörter',
@@ -561,6 +561,7 @@ export const s05Content = {
     ['s05-common-components-result', 'component-strategy', 'warning'],
     ['s05-personal-details-opening', 'component-conveyor', 'info'],
     ['s05-personal-details-derivation', 'component-conveyor', 'info'],
+    ['s05-personal-details-examples', 'component-conveyor', 'info'],
     ['s05-personal-details-intro', 'component-conveyor', 'info'],
     ['s05-personal-details-check', 'component-strategy', 'info'],
     ['s05-personal-details-result', 'component-strategy', 'warning'],

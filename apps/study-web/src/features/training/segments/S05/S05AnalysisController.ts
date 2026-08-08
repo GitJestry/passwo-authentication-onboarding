@@ -44,6 +44,7 @@ export type S05AnalysisStep =
   | 'common-components-result'
   | 'personal-details-opening'
   | 'personal-details-derivation'
+  | 'personal-details-examples'
   | 'personal-details-intro'
   | 'personal-details-check'
   | 'personal-details-result'
@@ -142,6 +143,7 @@ const stepByMissionId: Readonly<Record<string, S05AnalysisStep>> = {
   's05-common-components-result': 'common-components-result',
   's05-personal-details-opening': 'personal-details-opening',
   's05-personal-details-derivation': 'personal-details-derivation',
+  's05-personal-details-examples': 'personal-details-examples',
   's05-personal-details-intro': 'personal-details-intro',
   's05-personal-details-check': 'personal-details-check',
   's05-personal-details-result': 'personal-details-result',

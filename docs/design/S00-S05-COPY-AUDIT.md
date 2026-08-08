@@ -1208,3 +1208,74 @@ erhöht.
 | `S05.freeSearch.title` | `alle Zeichenkombinationen durchprobieren` | `Alle Zeichenkombinationen durchprobieren` | Orientierung | ausdrücklich verlangte Umbenennung | nein | kein | keine |
 | `S05.freeSearch.characterMix.narration[3..5]` | Zeichentypen-Erklärung und Kerngedanke zu Länge und Vorhersehbarkeit | vorgegebene kürzere Fassungen | Mechanismuserklärung / Kerngedanke | ausdrücklich verlangte Straffung | begrenzt | jeweils `Weiter` | nur `wirklich zufällig` in der Zeichentypen-Erklärung; `die Länge` im Kerngedanken |
 | `S05.freeSearch.estimate.explanation`, `question` | getrennte Sprechblasen vor und bei der Auswahl | eine vorgegebene Sprechblase, während die Schätzung bereits sichtbar ist | Mechanismuserklärung / Navigation | ausdrücklich verlangte Zusammenführung | begrenzt | Auswahl und `Schätzung bestätigen` | `zufällig`, `welcher Länge`, `zu aufwendig` in Akzentfarbe |
+
+### Copy-Delta S05 Entfernte Freisuche-Überschrift 8. August 2026
+
+Quelle ist der ausdrückliche Nutzerauftrag vom 8. August 2026. Die Überschrift der freien Suche
+wird entfernt; der Ablauf, die übrigen Teilnehmertexte, Persistenz und Forschungsgrenzen bleiben
+unverändert. `S05_CONTENT_VERSION` wird von `2.46.0` auf `2.46.1` erhöht.
+
+| Segment und Text-ID | Aktueller Text | Geplanter Text | Primäre Rolle | Grund | Bedeutungsänderung | Interaktionsziel | Hervorhebung |
+|---|---|---|---|---|---|---|---|
+| `S05.freeSearch.title` | `Alle Zeichenkombinationen durchprobieren` | entfällt | Orientierung | ausdrücklich verlangte Entfernung | nein | kein | keine |
+
+### Copy-Delta S05 Programmperspektive 8. August 2026
+
+Quelle ist der ausdrückliche Nutzerauftrag vom 8. August 2026. Die beiden benannten
+Mechanismuserklärungen verwenden durchgängig das Programm als handelndes Subjekt. Ablauf,
+Interaktion, Analyse, Persistenz und Forschungsgrenzen bleiben unverändert.
+`S05_CONTENT_VERSION` wird von `2.46.1` auf `2.46.2` erhöht.
+
+| Segment und Text-ID | Aktueller Text | Geplanter Text | Primäre Rolle | Grund | Bedeutungsänderung | Interaktionsziel | Hervorhebung |
+|---|---|---|---|---|---|---|---|
+| `S05.intro.narration.componentCategoryOverview` | `Dabei beginnt er mit Passwörtern und Zeichenfolgen, die besonders häufig verwendet werden.` | `Dabei probiert es zuerst Passwörter und Zeichenfolgen aus, die besonders häufig verwendet werden.` | Orientierung | ausdrücklich vorgegebene Perspektivpräzisierung | begrenzt | `Weiter` | keine |
+| `S05.intro.narration.candidateCheck[1]` | `Grundsätzlich könnte das Programm jede denkbare Zeichenfolge ausprobieren.` | `Grundsätzlich könnte es dabei jede denkbare Zeichenfolge ausprobieren.` | Mechanismuserklärung | ausdrücklich vorgegebene Perspektivpräzisierung | nein | `Weiter` | keine |
+
+### Copy-Delta S05 Einfache Zeichenfolgen 8. August 2026
+
+Quelle ist der ausdrückliche Nutzerauftrag vom 8. August 2026. Die benannte
+Mechanismuserklärung grenzt die genannten Zeichenfolgen als einfach ein. Ablauf, Interaktion,
+Analyse, Persistenz und Forschungsgrenzen bleiben unverändert. `S05_CONTENT_VERSION` wird von
+`2.46.2` auf `2.46.3` erhöht.
+
+| Segment und Text-ID | Aktueller Text | Geplanter Text | Primäre Rolle | Grund | Bedeutungsänderung | Interaktionsziel | Hervorhebung |
+|---|---|---|---|---|---|---|---|
+| `S05.intro.narration.randomSequence[0]` | `Zufällige Zeichenfolgen sind für Menschen jedoch schwer zu merken. Selbst gewählte Passwörter enthalten deshalb oft merkbare Elemente, wie Wörter, Zahlen oder Zeichenfolgen.` | `Zufällige Zeichenfolgen sind für Menschen jedoch schwer zu merken. Selbst gewählte Passwörter enthalten deshalb oft merkbare Elemente, wie Wörter, Zahlen oder einfache Zeichenfolgen.` | Mechanismuserklärung | ausdrücklich vorgegebene Präzisierung | begrenzt | `Weiter` | keine |
+
+### Copy-Delta S05 Persönliche Angaben in zwei Sprechschritten 8. August 2026
+
+Quelle ist der ausdrückliche Nutzerauftrag vom 8. August 2026. Die bestehende
+Mechanismuserklärung wird wortgleich in zwei aufeinanderfolgende PassWo-Sprechschritte geteilt,
+damit Kontohinweise und das gezielte Testen persönlicher Angaben getrennt vermittelt werden.
+Ablauf, Analyse, Persistenz und Forschungsgrenzen bleiben unverändert. `S05_CONTENT_VERSION` wird
+von `2.46.3` auf `2.46.4` erhöht.
+
+| Segment und Text-ID | Aktueller Text | Geplanter Text | Primäre Rolle | Grund | Bedeutungsänderung | Interaktionsziel | Hervorhebung |
+|---|---|---|---|---|---|---|---|
+| `S05.componentStrategy.personalDetails.derivation[0]`, `examples[0]` | `Bei einem Datenleck liegen deine Passwortdaten oft zusammen mit deinem Benutzernamen, deiner E-Mail-Adresse oder Kontohinweisen vor. Angreifer können dadurch persönliche Angaben wie Namen, Geburtsdaten oder dem Lieblingsverein aus öffentlichen Profilen oder deinem Umfeld gezielt als Passwortkandidaten testen.` | Erster Sprechschritt: `Bei einem Datenleck liegen deine Passwortdaten oft zusammen mit deinem Benutzernamen, deiner E-Mail-Adresse oder Kontohinweisen vor.` Zweiter Sprechschritt: `Angreifer können dadurch persönliche Angaben wie Namen, Geburtsdaten oder dem Lieblingsverein aus öffentlichen Profilen oder deinem Umfeld gezielt als Passwortkandidaten testen.` | Mechanismuserklärung | ausdrücklich verlangte Aufteilung in zwei Sprechblasen | nein | `Weiter` | `persönliche Angaben` in Akzentfarbe mit bestehendem Symbol |
+
+### Copy-Delta S05 Selbstcheck persönliche Angaben 8. August 2026
+
+Quelle ist der ausdrückliche Nutzerauftrag vom 8. August 2026. Der Hinweis zur persönlichen
+Einordnung wird als direkter Selbstcheck formuliert. Ablauf, Analyse, Persistenz und
+Forschungsgrenzen bleiben unverändert. `S05_CONTENT_VERSION` wird von `2.46.4` auf `2.46.5`
+erhöht.
+
+| Segment und Text-ID | Aktueller Text | Geplanter Text | Primäre Rolle | Grund | Bedeutungsänderung | Interaktionsziel | Hervorhebung |
+|---|---|---|---|---|---|---|---|
+| `S05.componentStrategy.personalDetails.explanation[0]` | `Dieses Trainingsmodul kann nicht zuverlässig erkennen, welche Angaben auf dich zutreffen. Wähle deshalb selbst die persönlichen Angaben aus, die für dein Beispiel realistisch wären.` | `Für den Selbstcheck: Wähle die persönlichen Angaben aus, die für dein Beispiel in Frage kommen.` | Navigation | ausdrücklich verlangte Kürzung und Selbstcheck-Formulierung | begrenzt | `Persönliche Angaben markieren` | `persönlichen Angaben` in Akzentfarbe mit bestehendem Symbol |
+
+### Copy-Delta S05 Strategieübergänge 8. August 2026
+
+Quelle ist der ausdrückliche Nutzerauftrag vom 8. August 2026. Die Abschlussrückmeldungen der
+ersten Strategie werden gestrafft; die zwei benannten Navigationssätze zwischen ihren
+Unterprüfungen entfallen. Ablauf, Interaktion, Analyse, Persistenz und Forschungsgrenzen bleiben
+unverändert. `S05_CONTENT_VERSION` wird von `2.46.5` auf `2.46.6` erhöht.
+
+| Segment und Text-ID | Aktueller Text | Geplanter Text | Primäre Rolle | Grund | Bedeutungsänderung | Interaktionsziel | Hervorhebung |
+|---|---|---|---|---|---|---|---|
+| `S05.componentStrategy.summary.singleCandidateMatch` | Ein früher Kandidatenfund mit zusätzlicher Einordnung zu weiteren Anhaltspunkten | `Dein Passwort wurde bereits unter einen einzigen frühen Kandidaten gefunden. Wir verfolgen den Angriff trotzdem weiter.` | Ergebnisfeedback | ausdrücklich verlangte Straffung | begrenzt | `Weiter` | keine |
+| `S05.componentStrategy.summary.combinedMatches` | Erklärung zu mehreren Bestandteilen und ihrer Verbindung zu einem vollständigen Kandidaten | `Dein Passwort besteht komplett aus frühen Anhaltspunkten. Erraten ist es dadurch noch nicht. Wir verfolgen den Angriff deshalb weiter.` | Ergebnisfeedback | ausdrücklich verlangte Ersetzung | begrenzt | `Weiter` | keine |
+| `S05.componentStrategy.summary.partialMatches` | Erklärung zu Teilabdeckung und zusätzlichen erzeugten Kandidaten | `Dein Passwort besteht zum Teil aus frühen Anhaltspunkten. Erraten ist es dadurch noch nicht. Wir verfolgen den Angriff weiter.` | Ergebnisfeedback | ausdrücklich verlangte Ersetzung | begrenzt | `Weiter` | keine |
+| `S05.componentStrategy.commonComponents.transition` | `Als Nächstes schauen wir, ob dein Campusgram-Passwort persönliche Angaben enthält.` | entfällt | Navigation | ausdrücklich verlangte Entfernung | nein | `Weiter` | keine |
+| `S05.componentStrategy.personalDetails.transition` | `Als Nächstes prüfen wir, ob Begriffe direkt zum Konto passen.` | entfällt | Navigation | ausdrücklich verlangte Entfernung | nein | `Weiter` | keine |
