@@ -2,6 +2,7 @@ import { s01Content, type S01AccountId } from '@passwo/training-content';
 import {
   deriveCampusIdentity,
   getConfiguredAccountCount,
+  MAX_FICTIONAL_PASSWORD_LENGTH,
   type PasswordModuleController,
   type PasswordModuleSnapshot,
 } from '@passwo/training-engine';
@@ -18,6 +19,7 @@ import { PassWoGuide } from './PassWoGuide.js';
 import { passWoSpeechEmphasisFor } from './PassWoSpeechEmphasis.js';
 import { PasswordVisibilityIcon } from './PasswordVisibilityIcon.js';
 import styles from './S01Training.module.css';
+import { useFictionalPasswordInput } from './useFictionalPasswordInput.js';
 
 function isReadyToContinue(snapshot: PasswordModuleSnapshot): boolean {
   return (
@@ -66,6 +68,15 @@ export function S01Training({
   );
   const [browserOpen, setBrowserOpen] = useState(true);
   const [desktopTransitioning, setDesktopTransitioning] = useState(false);
+  const activeAccountId = snapshot.context.activeAccountId ?? '';
+  const activePasswordValue = snapshot.context.passwordValues[activeAccountId] ?? '';
+  const passwordInput = useFictionalPasswordInput({
+    value: activePasswordValue,
+    feedbackKey: activeAccountId,
+    onAccepted: (value) => {
+      if (activeAccountId !== '') controller.setPasswordValue(activeAccountId, value);
+    },
+  });
   const account = s01Content.browser.accounts.find(
     ({ id }) => id === snapshot.context.activeAccountId,
   );
@@ -108,7 +119,7 @@ export function S01Training({
   const interactionBlocked =
     externalTimingError !== null || localTimingFailure || initialTimingPending;
   const timingFailure = externalTimingError !== null || localTimingFailure;
-  const activeValue = snapshot.context.passwordValues[account.id] ?? '';
+  const activeValue = activePasswordValue;
   const campusIdentity = deriveCampusIdentity(snapshot.context.displayName ?? '');
   const accountIdentifier =
     account.id === 'master-campus'
@@ -127,8 +138,8 @@ export function S01Training({
     websiteView === 'authentication'
       ? `${account.address}/register`
       : websiteView === 'dashboard'
-        ? `${account.address}/dashboard`
-        : account.address;
+      ? `${account.address}/dashboard`
+      : account.address;
   const snapshotForBrowser: BrowserShellSnapshot = {
     tabs: s01Content.browser.accounts.map((tabAccount) => ({
       id: tabAccount.id,
@@ -303,25 +314,47 @@ export function S01Training({
                   if (canConfigure) controller.configureAccount(account.id);
                 }}
               >
-                <label
-                  className={styles.passwordLabel}
-                  htmlFor={`fictional-password-${account.id}`}
+                <div className={styles.passwordFieldHeader}>
+                  <label
+                    className={styles.passwordLabel}
+                    htmlFor={`fictional-password-${account.id}`}
+                  >
+                    {s01Content.controls.passwordLabel}
+                  </label>
+                  {passwordInput.tooLong ? (
+                    <p
+                      className={styles.passwordLimitWarning}
+                      id={`fictional-password-limit-${account.id}`}
+                      role="alert"
+                    >
+                      {s01Content.controls.passwordTooLong}
+                    </p>
+                  ) : null}
+                </div>
+                <span
+                  className={styles.passwordInputGroup}
+                  data-limit-feedback={
+                    passwordInput.limitFeedbackAttempt === undefined
+                      ? undefined
+                      : String(passwordInput.limitFeedbackAttempt % 2)
+                  }
                 >
-                  {s01Content.controls.passwordLabel}
-                </label>
-                <span className={styles.passwordInputGroup}>
                   <input
                     id={`fictional-password-${account.id}`}
                     name={`fictional-password-${account.id}`}
                     type={revealedAccountIds.has(account.id) ? 'text' : 'password'}
-                    autoComplete="off"
-                    maxLength={128}
+                    autoComplete="new-password"
+                    maxLength={MAX_FICTIONAL_PASSWORD_LENGTH}
                     spellCheck={false}
                     disabled={!editing || interactionBlocked}
                     value={activeValue}
-                    onChange={(event) =>
-                      controller.setPasswordValue(account.id, event.currentTarget.value)
+                    aria-describedby={
+                      passwordInput.tooLong ? `fictional-password-limit-${account.id}` : undefined
                     }
+                    aria-invalid={passwordInput.tooLong || undefined}
+                    onBeforeInput={passwordInput.onBeforeInput}
+                    onPaste={passwordInput.onPaste}
+                    onChange={passwordInput.onChange}
                   />
                   <button
                     type="button"

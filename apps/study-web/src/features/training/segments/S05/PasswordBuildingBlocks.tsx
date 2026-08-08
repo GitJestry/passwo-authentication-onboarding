@@ -2,6 +2,30 @@ import { type CSSProperties, type ReactNode, useRef, useState } from 'react';
 import type { S05PersonalCandidate, S05VisualCategoryId } from './S05ComponentStrategy.js';
 import styles from './PasswordBuildingBlocks.module.css';
 
+const PASSWORD_VISUAL_REFERENCE_LENGTH = 32;
+
+interface PasswordVisualStyle extends CSSProperties {
+  readonly '--s05-password-visual-scale': string;
+  readonly '--s05-password-visual-character-count': string;
+}
+
+export function passwordVisualStyleFor(
+  value: string,
+  fixedScale?: number,
+): PasswordVisualStyle {
+  const characterCount = Math.max([...value].length, 1);
+  const scale =
+    fixedScale ??
+    (characterCount <= PASSWORD_VISUAL_REFERENCE_LENGTH
+      ? 1
+      : PASSWORD_VISUAL_REFERENCE_LENGTH / characterCount);
+
+  return {
+    '--s05-password-visual-scale': String(scale),
+    '--s05-password-visual-character-count': String(fixedScale === undefined ? characterCount : 1),
+  };
+}
+
 export interface PasswordBuildingBlocksProps {
   readonly value: string;
   readonly parts: readonly string[];
@@ -11,6 +35,10 @@ export interface PasswordBuildingBlocksProps {
   readonly categoryIds?: readonly (readonly S05VisualCategoryId[])[];
   readonly continuous?: boolean;
   readonly segmentGroups?: readonly (readonly string[])[];
+  /** Full value that determines the visual size when this view shows only a subset. */
+  readonly visualReferenceValue?: string;
+  /** Fixed scale for compact lists that must not respond to password length. */
+  readonly visualScale?: number;
   readonly ariaLabel: string;
   readonly animate?: boolean;
   readonly appearance?: 'authored' | 'candidate' | 'analysis';
@@ -32,7 +60,6 @@ export interface PasswordBuildingBlocksProps {
     readonly sentenceStructure: string;
     readonly probability: string;
     readonly personalDetail: string;
-    readonly typicalEnding: string;
   };
 }
 
@@ -54,6 +81,8 @@ export function PasswordBuildingBlocks({
   categoryIds,
   continuous = false,
   segmentGroups,
+  visualReferenceValue,
+  visualScale,
   ariaLabel,
   animate = true,
   appearance = 'authored',
@@ -78,6 +107,7 @@ export function PasswordBuildingBlocks({
   const [keyboardAnchor, setKeyboardAnchor] = useState<number | null>(null);
   const [activeCharacterIndex, setActiveCharacterIndex] = useState(0);
   const [selectionStatus, setSelectionStatus] = useState('');
+  const visualStyle = passwordVisualStyleFor(visualReferenceValue ?? value, visualScale);
 
   function candidateAtIndex(index: number): S05PersonalCandidate | undefined {
     const offset = characterOffsets[index];
@@ -122,7 +152,12 @@ export function PasswordBuildingBlocks({
 
   if (display === 'assembled') {
     return (
-      <div className={styles.blocks} data-display="assembled" aria-label={ariaLabel}>
+      <div
+        className={styles.blocks}
+        data-display="assembled"
+        aria-label={ariaLabel}
+        style={visualStyle}
+      >
         <code>{value}</code>
       </div>
     );
@@ -290,7 +325,9 @@ export function PasswordBuildingBlocks({
           className={styles.blocks}
           data-display="continuous"
           data-appearance={appearance}
+          data-animate={animate || undefined}
           aria-label={ariaLabel}
+          style={visualStyle}
         >
           <code
             className={styles.continuousPassword}
@@ -340,6 +377,7 @@ export function PasswordBuildingBlocks({
         data-animate={animate || undefined}
         data-annotated={annotations === undefined ? undefined : true}
         aria-label={ariaLabel}
+        style={visualStyle}
       >
         <code className={styles.decomposedPassword} style={gridStyle}>
           {annotations === undefined ? null : (
@@ -347,6 +385,7 @@ export function PasswordBuildingBlocks({
           )}
           {parts.map((part, index) => {
             const partLabels = normalizeLabels(labels?.[index]);
+            const categories = categoryIds?.[index] ?? [];
             const joiningSegments = segmentGroups?.[index] ?? [part];
             const content = (
               <>
@@ -380,14 +419,13 @@ export function PasswordBuildingBlocks({
                 {annotations === undefined || index !== 4 ? null : (
                   <small className={styles.personalDetail}>{annotations.personalDetail}</small>
                 )}
-                {annotations === undefined || index !== 5 ? null : (
-                  <small className={styles.typicalEnding}>{annotations.typicalEnding}</small>
-                )}
               </>
             );
             const sharedProps = {
               'data-part-index': index,
-              'data-highlighted': highlightedIndices.includes(index) || undefined,
+              'data-categories': categories.join(' '),
+              'data-highlighted':
+                categories.length > 0 || highlightedIndices.includes(index) || undefined,
             } as const;
             return (
               <span key={`${part}-${index}`} {...sharedProps}>
@@ -406,6 +444,7 @@ export function PasswordBuildingBlocks({
       data-display="separated"
       data-appearance={appearance}
       aria-label={ariaLabel}
+      style={visualStyle}
     >
       {parts.map((part, index) => (
         <span

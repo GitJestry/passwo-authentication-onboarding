@@ -193,22 +193,25 @@ function commonLabel(kind: PasswordSingleFindingKind, token: string): string {
   }
 }
 
-function zxcvbnMatchCategory(kind: PasswordSingleFindingKind): string {
+function zxcvbnMatchCategory(kind: PasswordSingleFindingKind, token: string): string {
+  const categories = s05Content.componentStrategy.presentation.findingCategories;
   switch (kind) {
     case 'common-password-core':
+      return categories.password;
     case 'common-word':
     case 'common-name':
-      return 'Wörterbuch';
+      return categories.word;
     case 'keyboard-pattern':
-      return 'Tastatur';
+      return /^\p{N}+$/u.test(token) ? categories.numberSequence : categories.keyboard;
     case 'year':
     case 'date':
-      return 'Datum';
+      return categories.date;
     case 'simple-character-sequence':
+      return /^\p{N}+$/u.test(token) ? categories.numberSequence : categories.sequence;
     case 'predictable-word-sequence':
-      return 'Sequenz';
+      return categories.sequence;
     default:
-      return 'Muster';
+      return categories.sequence;
   }
 }
 
@@ -456,7 +459,7 @@ export function createCanonicalPasswordView(
           candidateId: `common:${finding.id}:${index}`,
           categoryId: 'common-components' as const,
           label: commonLabel(finding.kind, part.token),
-          matchCategory: zxcvbnMatchCategory(finding.kind),
+          matchCategory: zxcvbnMatchCategory(finding.kind, part.token),
           start: part.start,
           end: part.end,
           evidenceBlockIds: blocksForSpan(blocks, part),

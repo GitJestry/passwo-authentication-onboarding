@@ -69,6 +69,30 @@ describe('passwordModuleMachine', () => {
     expect(actor.getSnapshot().matches({ s01: 'ending' })).toBe(true);
   });
 
+  it('keeps passwords within the local Unicode, emoji-free and 128-character input boundary', () => {
+    const actor = createModuleActor();
+
+    actor.send({ type: 'SET_PASSWORD_VALUE', accountId: 'campusgram', value: 'a'.repeat(128) });
+    expect(actor.getSnapshot().context.passwordValues.campusgram).toBe('a'.repeat(128));
+
+    actor.send({ type: 'SET_PASSWORD_VALUE', accountId: 'campusgram', value: 'a'.repeat(129) });
+    expect(actor.getSnapshot().context.passwordValues.campusgram).toBe('a'.repeat(128));
+
+    actor.send({ type: 'SET_PASSWORD_VALUE', accountId: 'campusgram', value: 'zulässig🙂' });
+    expect(actor.getSnapshot().context.passwordValues.campusgram).toBe('a'.repeat(128));
+
+    actor.send({ type: 'SET_PASSWORD_VALUE', accountId: 'campusgram', value: 'zulässig' });
+    expect(actor.getSnapshot().context.passwordValues.campusgram).toBe('zulässig');
+
+    actor.send({ type: 'SET_PASSWORD_VALUE', accountId: 'campusgram', value: '🇩🇪' });
+    actor.send({ type: 'SET_PASSWORD_VALUE', accountId: 'campusgram', value: '🏳️‍🌈' });
+    actor.send({ type: 'SET_PASSWORD_VALUE', accountId: 'campusgram', value: '1️⃣' });
+    expect(actor.getSnapshot().context.passwordValues.campusgram).toBe('zulässig');
+
+    actor.send({ type: 'SET_PASSWORD_VALUE', accountId: 'campusgram', value: 'a'.repeat(129) });
+    expect(actor.getSnapshot().context.passwordValues.campusgram).toBe('zulässig');
+  });
+
   it('shows the Campusgram warning in an explicit state after the time lapse', () => {
     const actor = createModuleActor();
     configureAllAccounts(actor);

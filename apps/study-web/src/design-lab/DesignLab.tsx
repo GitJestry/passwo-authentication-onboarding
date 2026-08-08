@@ -540,6 +540,7 @@ function PasswordModuleSegmentPreview({
         (currentSnapshot) => currentSnapshot.matches({ s01: 'editing' }),
         abortController.signal,
       );
+      if (abortController.signal.aborted) return;
       previewController.selectAccount(accountId);
       if (segment === 's01') {
         if (view === 'dashboard') {
@@ -566,6 +567,7 @@ function PasswordModuleSegmentPreview({
         (currentSnapshot) => currentSnapshot.matches({ s02: 'active' }),
         abortController.signal,
       );
+      if (abortController.signal.aborted) return;
       previewController.completeS02Content();
       previewController.continue();
       await waitForPreviewState(
@@ -573,6 +575,7 @@ function PasswordModuleSegmentPreview({
         (currentSnapshot) => currentSnapshot.matches({ s03: 'active' }),
         abortController.signal,
       );
+      if (abortController.signal.aborted) return;
       previewController.selectAccount(accountId);
       if (segment === 's03' && view === 'dashboard') {
         const password = previewController.getSnapshot().context.passwordValues[accountId] ?? '';
@@ -643,7 +646,7 @@ function PasswordModuleSegmentPreview({
   if (snapshot.matches('s04')) {
     return <S04IncidentTraining controller={controller} snapshot={snapshot} />;
   }
-  if (segment === 's05' && snapshot.matches({ s05: 'active' })) {
+  if ((segment === 's04' || segment === 's05') && snapshot.matches({ s05: 'active' })) {
     return (
       <S05DesignLabTraining
         fixtureId="common-suffix"

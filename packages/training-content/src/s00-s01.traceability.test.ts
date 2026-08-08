@@ -33,21 +33,22 @@ describe('S00 to S02 training-content traceability', () => {
   });
 
   it('keeps S01 linked to its named source page and canonical account order', () => {
-    expect(S01_CONTENT_VERSION).toBe('2.16.1');
+    expect(S01_CONTENT_VERSION).toBe('2.16.4');
     expect(s01Content.source).toMatchObject({
       document: 'research/private/training-script.pdf',
       internalPage: 3,
       copyReference:
-        'docs/design/S00-S05-COPY-AUDIT.md#s01----konten-einrichten-und-browser-verlassen',
+        'docs/design/S00-S05-COPY-AUDIT.md#copy-delta-s01-simuliertes-browserfenster-8-august-2026',
     });
     expect(s01Content.segment.id).toBe('S01');
     expect(s01Content.browser.accounts.map(({ id }) => id)).toEqual(canonicalAccountIds);
     expect(s01Content.completion.guideMessage).toBe(
-      'Die drei Konten sind eingerichtet. Schließe jetzt das Browserfenster. Bevor du dich wieder anmeldest, schauen wir uns kurz an, was hinter den Konten steckt.',
+      'Die drei Konten sind eingerichtet. Schließe jetzt das simulierte Browserfenster. Bevor du dich wieder anmeldest, schauen wir uns kurz an, was hinter den Konten steckt.',
     );
     expect(s01Content.completion.guideMessage).not.toMatch(/Knoten|Dienste|Funktionen/u);
     expect(s01Content.quest).not.toHaveProperty('readyToContinue');
     expect(s01Content.quest.guideMessage).toContain('merken kannst');
+    expect(s01Content.controls.passwordTooLong).toBe('max. 128 Zeichen');
   });
 
   it('keeps S02 linked to its named pages and essential account-node structure', () => {

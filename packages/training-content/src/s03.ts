@@ -47,6 +47,7 @@ export interface S03SegmentContent {
   readonly controls: {
     readonly accountDataLabel: string;
     readonly passwordLabel: string;
+    readonly passwordTooLong: string;
     readonly incorrectPassword: string;
     readonly showPassword: (accountLabel: string) => string;
     readonly hidePassword: (accountLabel: string) => string;
@@ -94,7 +95,7 @@ export interface S03SegmentContent {
   readonly animations: readonly S03AnimationSequence[];
 }
 
-export const S03_CONTENT_VERSION = '1.18.0';
+export const S03_CONTENT_VERSION = '1.18.2';
 
 const resultAnimation = (
   accountId: S01AccountId,
@@ -148,9 +149,9 @@ export const s03Content: S03SegmentContent = {
     document: 'research/private/training-script.pdf',
     internalPages: [8, 9, 10, 11],
     revision:
-      'Userauftrag vom 2026-08-02: Retrieval-Feedback gekürzt, Campusgram-Warnübergang an den Tab gebunden und Abschlusswiederholung entfernt.',
+      'Userauftrag vom 2026-08-08: Eingabegrenze für fiktive Passwörter auf 128 Zeichen erweitert.',
     copyReference:
-      'docs/design/S00-S05-COPY-AUDIT.md#copy-delta-abschlusswiederholung-2-august-2026',
+      'docs/design/S00-S05-COPY-AUDIT.md#copy-delta-s01-und-s03-passwortlänge-8-august-2026',
   },
   segment: {
     id: 'S03',
@@ -168,6 +169,7 @@ export const s03Content: S03SegmentContent = {
   controls: {
     accountDataLabel: 'Benutzername',
     passwordLabel: 'Passwort',
+    passwordTooLong: 'max. 128 Zeichen',
     incorrectPassword: 'Das Passwort ist nicht korrekt.',
     showPassword: (accountLabel) => `Passwort für ${accountLabel} anzeigen`,
     hidePassword: (accountLabel) => `Passwort für ${accountLabel} verbergen`,

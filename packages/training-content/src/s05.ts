@@ -36,7 +36,7 @@ export interface S05DesignLabFixture {
   readonly startSection: 'intro' | 'components' | 'structure';
 }
 
-export const S05_CONTENT_VERSION = '2.48.2';
+export const S05_CONTENT_VERSION = '2.48.6';
 
 export const s05Content = {
   version: S05_CONTENT_VERSION,
@@ -47,9 +47,9 @@ export const s05Content = {
       35,
     ] as const,
     revision:
-      'Userauftrag vom 2026-08-08 · Hinweis zur Einordnung der Trainingsauswertung als eigener Absatz',
+      'Userauftrag vom 2026-08-08 · konkret benannte Befundkategorien, gekürztes Ergebnisfeedback und einheitliche Kontoidentität',
     copyReference:
-      'docs/design/S00-S05-COPY-AUDIT.md#copy-delta-s05-einordnung-der-trainingsauswertung-8-august-2026',
+      'docs/design/S00-S05-COPY-AUDIT.md#copy-delta-s05-befundkategorien-8-august-2026',
   },
   segment: {
     id: 'S05',
@@ -75,8 +75,8 @@ export const s05Content = {
   },
   intro: {
     campusgramPassword: {
-      accessibleLabel: 'Campusgram – Passwort',
-      visibleSuffix: '– Passwort',
+      accessibleLabel: 'Campusgram-Passwort',
+      visibleSuffix: 'Campusgram-Passwort',
     },
     generatedPassword: 'rQ7mL2vX9pK4',
     memorablePassword: 'MeinStarkesUniPasswort2005!',
@@ -85,7 +85,6 @@ export const s05Content = {
       sentenceStructure: 'Satzaufbau',
       probability: 'sehr häufig',
       personalDetail: 'Naheliegende Jahreszahl',
-      typicalEnding: 'Typische Endung',
     },
     fixedCommonPasswordFrame: {
       parts: ['•••••', '123456789', '••••'] as const,
@@ -144,6 +143,14 @@ export const s05Content = {
         typicalVariant: 'typische Variante: [Details]',
         typicalEnding: 'typische Endung: +[Wert]',
       },
+      findingCategories: {
+        password: 'häufiges Passwort',
+        word: 'häufiges Wort',
+        keyboard: 'häufige Tastaturfolge',
+        numberSequence: 'häufige Zahlenfolge',
+        date: 'häufiges Datum',
+        sequence: 'häufige Zeichenfolge',
+      },
     },
     commonComponents: {
       explanation: [
@@ -174,8 +181,8 @@ export const s05Content = {
       check: 'Passwort prüfen',
       results: {
         none: ['Hier wurde kein früh geprüfter Bestandteil erkannt.'],
-        foundOne: '[Teile] ist ein häufig verwendetes Wort oder eine Zeichenfolge.',
-        foundMany: '[Teile] sind häufig verwendete Wörter oder Zeichenfolgen.',
+        foundOne: '[Teile] wird häufig verwendet.',
+        foundMany: '[Teile] werden häufig verwendet.',
         completeSingleCandidate:
           'Die gefundene Übereinstimmung deckt bereits die gesamte Zeichenfolge ab.',
         completeCombinedMatches:

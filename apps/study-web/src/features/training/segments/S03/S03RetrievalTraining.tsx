@@ -7,6 +7,7 @@ import {
   deriveCampusIdentity,
   getRememberedAccountCount,
   getRetrievedAccountCount,
+  MAX_FICTIONAL_PASSWORD_LENGTH,
   type PasswordModuleController,
   type PasswordModuleSnapshot,
 } from '@passwo/training-engine';
@@ -22,6 +23,7 @@ import { CampusWebsiteBackdrop } from '../../CampusWebsiteBackdrop.js';
 import { PassWoGuide } from '../../PassWoGuide.js';
 import type { PassWoSpeechAction } from '../../PassWoSpeechBubble.js';
 import { passWoSpeechEmphasisFor } from '../../PassWoSpeechEmphasis.js';
+import { useFictionalPasswordInput } from '../../useFictionalPasswordInput.js';
 import styles from './S03RetrievalTraining.module.css';
 
 export interface S03RetrievalTrainingProps {
@@ -275,15 +277,27 @@ export function S03RetrievalTraining({
     campusStartActive || timeLapsePhaseActive || campusgramWarningActive
       ? 'master-campus'
       : snapshot.context.activeAccountId;
-  const account =
+  const presentedAccount =
     s01Content.browser.accounts.find(({ id }) => id === presentedAccountId) ??
     s01Content.browser.accounts[0];
+  const activeAccountId = presentedAccount?.id ?? '';
+  const activePasswordValue = snapshot.context.retrievalPasswordValues[activeAccountId] ?? '';
+  const passwordInput = useFictionalPasswordInput({
+    value: activePasswordValue,
+    feedbackKey: activeAccountId,
+    onAccepted: (value) => {
+      if (activeAccountId === '') return;
+      setInvalidLoginFeedback(null);
+      controller.setRetrievalPasswordValue(activeAccountId, value);
+    },
+  });
+  const account = presentedAccount;
   if (account === undefined) return null;
 
   const completedCount = getRetrievedAccountCount(snapshot.context);
   const rememberedCount = getRememberedAccountCount(snapshot.context);
   const result = snapshot.context.retrievalResults[account.id] ?? 'pending';
-  const activeValue = snapshot.context.retrievalPasswordValues[account.id] ?? '';
+  const activeValue = activePasswordValue;
   const autofillTargetValue = snapshot.context.passwordValues[account.id] ?? '';
   const invalidLoginActive = invalidLoginFeedback?.accountId === account.id;
   const thirdAttemptGuideActive =
@@ -678,46 +692,72 @@ export function S03RetrievalTraining({
                         className={styles.usernameInput}
                         name={`s03-username-${account.id}`}
                         type="text"
+                        autoComplete="username"
                         value={accountIdentifier}
                         readOnly
                         aria-readonly="true"
                       />
-                      <label
-                        className={styles.passwordLabel}
-                        htmlFor={`s03-password-${account.id}`}
-                      >
-                        {s03Content.controls.passwordLabel}
-                      </label>
+                      <div className={styles.passwordFieldHeader}>
+                        <label
+                          className={styles.passwordLabel}
+                          htmlFor={`s03-password-${account.id}`}
+                        >
+                          {s03Content.controls.passwordLabel}
+                        </label>
+                        {passwordInput.tooLong ? (
+                          <p
+                            className={styles.passwordLimitWarning}
+                            id={`s03-password-limit-${account.id}`}
+                            role="alert"
+                          >
+                            {s03Content.controls.passwordTooLong}
+                          </p>
+                        ) : null}
+                      </div>
                       <span
                         className={styles.passwordInputGroup}
                         data-autofill={
                           autofillingActive ? 'running' : assistedLoginActive ? 'ready' : undefined
+                        }
+                        data-limit-feedback={
+                          passwordInput.limitFeedbackAttempt === undefined
+                            ? undefined
+                            : String(passwordInput.limitFeedbackAttempt % 2)
                         }
                       >
                         <input
                           id={`s03-password-${account.id}`}
                           name={`s03-password-${account.id}`}
                           type={revealedAccountIds.has(account.id) ? 'text' : 'password'}
-                          autoComplete="off"
-                          maxLength={128}
+                          autoComplete="current-password"
+                          maxLength={MAX_FICTIONAL_PASSWORD_LENGTH}
                           spellCheck={false}
                           value={autofillingActive ? autofillTargetValue : activeValue}
                           readOnly={autofillingActive || assistedLoginActive}
                           aria-readonly={autofillingActive || assistedLoginActive || undefined}
-                          aria-invalid={invalidLoginActive || undefined}
-                          aria-describedby={
-                            invalidLoginActive ? `s03-password-error-${account.id}` : undefined
+                          aria-invalid={invalidLoginActive || passwordInput.tooLong || undefined}
+                          aria-describedby={[
+                            invalidLoginActive ? `s03-password-error-${account.id}` : undefined,
+                            passwordInput.tooLong
+                              ? `s03-password-limit-${account.id}`
+                              : undefined,
+                          ]
+                            .filter((descriptionId): descriptionId is string => descriptionId !== undefined)
+                            .join(' ') || undefined}
+                          onBeforeInput={
+                            autofillingActive || assistedLoginActive
+                              ? undefined
+                              : passwordInput.onBeforeInput
+                          }
+                          onPaste={
+                            autofillingActive || assistedLoginActive
+                              ? undefined
+                              : passwordInput.onPaste
                           }
                           onChange={
                             assistedLoginActive
                               ? undefined
-                              : (event) => {
-                                  setInvalidLoginFeedback(null);
-                                  controller.setRetrievalPasswordValue(
-                                    account.id,
-                                    event.currentTarget.value,
-                                  );
-                                }
+                              : passwordInput.onChange
                           }
                           onAnimationEnd={
                             autofillingActive

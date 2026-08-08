@@ -5,7 +5,7 @@ import {
   type PasswordModuleSnapshot,
 } from '@passwo/training-engine';
 import { BrowserShell, type BrowserShellSnapshot, type DesktopPlatform } from '@passwo/ui';
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import attackerAsset from '../../../../assets/passwo/attacker.png';
 import { NetworkSymbol } from '../../../../adapters/network/NetworkSymbolRegistry.js';
 import { CampusWebsiteBackdrop } from '../../CampusWebsiteBackdrop.js';
@@ -48,6 +48,7 @@ export function S04IncidentTraining({
   onRetryExternalTiming,
 }: S04IncidentTrainingProps) {
   const [leavingForAnalysis, setLeavingForAnalysis] = useState(false);
+  const analysisTransitionRef = useRef<HTMLSpanElement>(null);
   const writingStart = snapshot.matches({ s04: 'writingStart' });
   const startWriteFailed = snapshot.matches({ s04: 'startWriteFailed' });
   const active = snapshot.matches({ s04: 'active' });
@@ -90,6 +91,20 @@ export function S04IncidentTraining({
     setLeavingForAnalysis(true);
   }
 
+  useEffect(() => {
+    const transition = analysisTransitionRef.current;
+    if (!leavingForAnalysis || transition === null) return;
+
+    const completeAnalysisTransition = () => controller.completeS04();
+    transition.addEventListener('animationend', completeAnalysisTransition, { once: true });
+    transition.addEventListener('animationcancel', completeAnalysisTransition, { once: true });
+
+    return () => {
+      transition.removeEventListener('animationend', completeAnalysisTransition);
+      transition.removeEventListener('animationcancel', completeAnalysisTransition);
+    };
+  }, [controller, leavingForAnalysis]);
+
   return (
     <section className={styles.training} aria-label={s04Content.trainingAriaLabel}>
       <BrowserShell
@@ -102,7 +117,7 @@ export function S04IncidentTraining({
             <span
               className={styles.analysisTransition}
               aria-hidden="true"
-              onAnimationEnd={() => controller.completeS04()}
+              ref={analysisTransitionRef}
             />
           ) : undefined,
           passWo: (

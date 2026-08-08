@@ -1,4 +1,5 @@
 import { assign, setup } from 'xstate';
+import { isPermittedFictionalPassword } from './fictional-password-input.js';
 
 export type RetrievalResult = 'pending' | 'retrievable' | 'not-remembered' | 'assisted';
 
@@ -159,7 +160,8 @@ export const passwordModuleMachine = setup({
     canEditAccount: ({ context, event }) =>
       event.type === 'SET_PASSWORD_VALUE' &&
       isKnownAccount(context, event.accountId) &&
-      !isConfiguredAccount(context, event.accountId),
+      !isConfiguredAccount(context, event.accountId) &&
+      isPermittedFictionalPassword(event.value),
     canConfigureAccount: ({ context, event }) =>
       event.type === 'CONFIGURE_ACCOUNT' && canConfigureAccount(context, event.accountId),
     configuresLastAccount: ({ context, event }) =>
@@ -169,7 +171,8 @@ export const passwordModuleMachine = setup({
     hasCompletedS02Content: ({ context }) => context.s02ContentCompleted,
     canEditRetrieval: ({ context, event }) =>
       event.type === 'SET_RETRIEVAL_PASSWORD_VALUE' &&
-      canProcessRetrieval(context, event.accountId),
+      canProcessRetrieval(context, event.accountId) &&
+      isPermittedFictionalPassword(event.value),
     matchesRetrievalPassword: ({ context, event }) =>
       event.type === 'SUBMIT_RETRIEVAL_LOGIN' && matchesRetrievalPassword(context, event.accountId),
     canStartAssistedLogin: ({ context, event }) =>

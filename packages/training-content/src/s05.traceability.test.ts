@@ -4,7 +4,7 @@ import { S05_CONTENT_VERSION, s05Content } from './s05.js';
 
 describe('S05 content traceability', () => {
   it('keeps the participant copy bounded and separate from internal terminology', () => {
-    expect(S05_CONTENT_VERSION).toBe('2.48.2');
+    expect(S05_CONTENT_VERSION).toBe('2.48.6');
     expect(s05Content.source).toMatchObject({
       document: 'research/private/training-script.pdf',
       internalPages: [
@@ -12,13 +12,14 @@ describe('S05 content traceability', () => {
         35,
       ],
       copyReference:
-        'docs/design/S00-S05-COPY-AUDIT.md#copy-delta-s05-einordnung-der-trainingsauswertung-8-august-2026',
+        'docs/design/S00-S05-COPY-AUDIT.md#copy-delta-s05-befundkategorien-8-august-2026',
     });
     expect(s05Content.segment.id).toBe('S05');
     expect(s05Content.page.fixtureNotice).toBe(
       'Diese Simulation betrachtet nur das fiktive Passwort und ist keine allgemeine Sicherheitsbewertung.',
     );
     expect(s05Content.page.title).toBe('Häufig verwendete Passwörter und Zeichenfolgen');
+    expect(s05Content.intro.campusgramPassword.visibleSuffix).toBe('Campusgram-Passwort');
     expect(s05Content.analysis.authoredAccountTerms).toEqual(accountContextTerms.campusgram);
     expect(s05Content.componentStrategy.accountContext.machine.conveyorBlocks).toEqual([
       ...new Map(
@@ -62,6 +63,14 @@ describe('S05 content traceability', () => {
       typicalVariant: 'typische Variante: [Details]',
       typicalEnding: 'typische Endung: +[Wert]',
     });
+    expect(s05Content.componentStrategy.presentation.findingCategories).toEqual({
+      password: 'häufiges Passwort',
+      word: 'häufiges Wort',
+      keyboard: 'häufige Tastaturfolge',
+      numberSequence: 'häufige Zahlenfolge',
+      date: 'häufiges Datum',
+      sequence: 'häufige Zeichenfolge',
+    });
     expect(s05Content.findingLabels).toMatchObject({
       'common-password-core': 'häufig verwendetes Passwort',
       'common-word': 'häufig verwendetes Wort',
@@ -71,6 +80,10 @@ describe('S05 content traceability', () => {
       'typical-transformation': 'typische Variante',
     });
     expect(s05Content.componentStrategy.commonComponents.check).toBe('Passwort prüfen');
+    expect(s05Content.componentStrategy.commonComponents.results).toMatchObject({
+      foundOne: '[Teile] wird häufig verwendet.',
+      foundMany: '[Teile] werden häufig verwendet.',
+    });
     expect(s05Content.componentStrategy.commonComponents.explanation[3]).toBe(
       'Prüfen wir nun dein gewähltes Passwort auf häufig verwendete Passwörter und Zeichenfolgen.',
     );

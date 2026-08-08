@@ -7,7 +7,7 @@ import type {
   PasswordFreeSearchApplicationSceneSnapshot,
   PasswordFreeSearchDemonstrationSceneSnapshot,
 } from '@passwo/visualization';
-import { type ReactNode, useEffect, useRef, useState } from 'react';
+import { type CSSProperties, type ReactNode, useEffect, useRef, useState } from 'react';
 import accountContextAsset from '../../../../assets/s05/category-logos/account-context.png';
 import commonCoresAsset from '../../../../assets/s05/category-logos/common-cores.png';
 import personalDetailsAsset from '../../../../assets/s05/category-logos/personal-details.png';
@@ -18,7 +18,7 @@ import lowercaseAlphabetAsset from '../../../../assets/s05/lowercase-alphabet.pn
 import { PassWoGuide } from '../../PassWoGuide.js';
 import { passWoSpeechEmphasisFor } from '../../PassWoSpeechEmphasis.js';
 import { PasswordVisibilityIcon } from '../../PasswordVisibilityIcon.js';
-import { PasswordBuildingBlocks } from './PasswordBuildingBlocks.js';
+import { PasswordBuildingBlocks, passwordVisualStyleFor } from './PasswordBuildingBlocks.js';
 import {
   type S05AnalysisControllerSnapshot,
   type S05AnalysisSubject,
@@ -54,6 +54,32 @@ function findingLabel(kind: PasswordSingleFindingKind): string {
   return s05Content.findingLabels[kind];
 }
 
+const CAMPUSGRAM_PASSWORD_REFERENCE_LENGTH = 18;
+
+interface CampusgramPasswordVisualStyle extends CSSProperties {
+  readonly '--s05-campusgram-password-scale': string;
+  readonly '--s05-campusgram-password-field-width': string;
+}
+
+function campusgramPasswordVisualStyle(password: string): CampusgramPasswordVisualStyle {
+  const characterCount = Math.max([...password].length, 1);
+  const referenceCharacterCount = Math.min(
+    characterCount,
+    CAMPUSGRAM_PASSWORD_REFERENCE_LENGTH,
+  );
+  const scale =
+    characterCount <= CAMPUSGRAM_PASSWORD_REFERENCE_LENGTH
+      ? 1
+      : CAMPUSGRAM_PASSWORD_REFERENCE_LENGTH / characterCount;
+  const fieldWidth =
+    10 + (27 * referenceCharacterCount) / CAMPUSGRAM_PASSWORD_REFERENCE_LENGTH;
+
+  return {
+    '--s05-campusgram-password-scale': String(scale),
+    '--s05-campusgram-password-field-width': `${fieldWidth}rem`,
+  };
+}
+
 function CampusgramPassword({
   password,
   className,
@@ -61,9 +87,12 @@ function CampusgramPassword({
   readonly password: string;
   readonly className?: string;
 }) {
-  const hiddenValue = '•'.repeat(Math.max(8, password.length));
+  const hiddenValue = '•'.repeat(Math.max([...password].length, 1));
   return (
-    <section className={`${styles.campusgramPassword}${className === undefined ? '' : ` ${className}`}`}>
+    <section
+      className={`${styles.campusgramPassword}${className === undefined ? '' : ` ${className}`}`}
+      style={campusgramPasswordVisualStyle(password)}
+    >
       <span
         className={styles.campusgramPasswordTitle}
         aria-label={s05Content.intro.campusgramPassword.accessibleLabel}
@@ -533,6 +562,7 @@ function ComponentReviewCard({
                   appearance="analysis"
                   continuous
                   animate={false}
+                  visualScale={0.75}
                   categoryIds={findingValues.map(() => [category.id])}
                   ariaLabel={`${category.title}: ${findingValues.join(', ')}`}
                 />
@@ -541,23 +571,6 @@ function ComponentReviewCard({
           );
         })}
       </div>
-    </aside>
-  );
-}
-
-function CategoryHeader({ snapshot }: { readonly snapshot: S05AnalysisControllerSnapshot }) {
-  const activeCategoryId = categoryForStep(snapshot.step);
-  const activeCategory = s05Content.componentStrategy.categories.find(
-    ({ id }) => id === activeCategoryId,
-  );
-  if (activeCategory === undefined) return null;
-  return (
-    <aside
-      className={styles.singleCategoryHeader}
-      data-category={activeCategory.id}
-      aria-label={activeCategory.title}
-    >
-      <strong>{activeCategory.title}</strong>
     </aside>
   );
 }
@@ -598,6 +611,12 @@ function CanonicalPasswordView({
   const selectingPersonalDetails = snapshot.step === 'personal-details-check';
   const displayBlocks = projectCanonicalPasswordBlocks(view, visibleFindings);
   const selectionCharacters = [...view.password];
+  const hasReleasedFindings = visibleFindings.length > 0;
+  const parts = selectingPersonalDetails
+    ? selectionCharacters
+    : hasReleasedFindings
+      ? displayBlocks.map(({ value }) => value)
+      : [view.password];
   return (
     <section
       className={styles.canonicalPassword}
@@ -614,22 +633,32 @@ function CanonicalPasswordView({
       <div className={styles.canonicalBlocks} data-s05-speech-obstacle>
         <PasswordBuildingBlocks
           value={view.password}
-          parts={
-            selectingPersonalDetails ? selectionCharacters : displayBlocks.map(({ value }) => value)
-          }
+          visualReferenceValue={view.password}
+          parts={parts}
           display="decomposed"
           appearance="analysis"
-          continuous
-          animate={false}
+          continuous={selectingPersonalDetails}
+          animate={hasReleasedFindings}
           categoryIds={
             selectingPersonalDetails
               ? selectionCharacters.map(() => [])
-              : displayBlocks.map(({ categoryIds }) => categoryIds)
+              : hasReleasedFindings
+                ? displayBlocks.map(({ categoryIds }) => categoryIds)
+                : [[]]
           }
           matchCategories={
             selectingPersonalDetails
               ? selectionCharacters.map(() => [])
-              : displayBlocks.map(({ matchCategories }) => matchCategories)
+              : hasReleasedFindings
+                ? displayBlocks.map(({ matchCategories }) => matchCategories)
+                : [[]]
+          }
+          labels={
+            selectingPersonalDetails
+              ? selectionCharacters.map(() => [])
+              : hasReleasedFindings
+                ? displayBlocks.map(({ matchCategories }) => matchCategories)
+                : [[]]
           }
           {...(selectingPersonalDetails
             ? {
@@ -800,11 +829,12 @@ function StructureApplicationScene({
         </strong>
         <PasswordBuildingBlocks
           value={subject.fictionalPassword}
+          visualReferenceValue={subject.fictionalPassword}
           parts={passwordParts}
           display="decomposed"
           appearance="analysis"
-          continuous
-          animate={false}
+          animate
+          highlightedIndices={highlightedIndices}
           categoryIds={passwordParts.map((_, index) =>
             highlightedIndices.includes(index) ? (['repetition'] as const) : [],
           )}
@@ -1004,7 +1034,16 @@ function FreeSearchApplicationScene({
     >
       <p className={styles.cardLabel}>Was die Übung erkannt hat</p>
       <h2>{content.title}</h2>
-      <code className={styles.largePassword}>{subject.fictionalPassword}</code>
+      <strong className={`${styles.canonicalAccount} ${styles.applicationAccount}`}>
+        <span aria-hidden="true"><NetworkSymbol symbolId="campusgram" /></span>
+        <span>{s05Content.intro.campusgramPassword.visibleSuffix}</span>
+      </strong>
+      <code
+        className={styles.largePassword}
+        style={passwordVisualStyleFor(subject.fictionalPassword)}
+      >
+        {subject.fictionalPassword}
+      </code>
       <div className={styles.applicationGrid}>
         <article>
           <strong>{content.visibleLength}</strong>
@@ -1394,16 +1433,13 @@ function speechFor(
   }
 }
 
-function showsComponentCategoryHeader(step: S05AnalysisControllerSnapshot['step']): boolean {
+function showsComponentGuidance(step: S05AnalysisControllerSnapshot['step']): boolean {
   return (
     step.startsWith('common-components-') ||
     step.startsWith('personal-details-') ||
-    step.startsWith('account-context-')
+    step.startsWith('account-context-') ||
+    step === 'components-summary'
   );
-}
-
-function showsComponentGuidance(step: S05AnalysisControllerSnapshot['step']): boolean {
-  return showsComponentCategoryHeader(step) || step === 'components-summary';
 }
 
 function transitionCategoryForStep(
@@ -1517,23 +1553,13 @@ export function S05AnalysisTraining({
     }
   }
 
-  const categoryHeaderVisible = showsComponentCategoryHeader(snapshot.step);
   const componentGuidanceVisible = showsComponentGuidance(snapshot.step);
   const transitionCategoryId = transitionCategoryForStep(snapshot.step);
   const currentSpeechAction = speechAction();
 
   return (
     <section ref={hostRef} className={styles.training} aria-label={s05Content.trainingAriaLabel}>
-      <article
-        className={styles.page}
-        aria-labelledby={categoryHeaderVisible ? 's05-title' : undefined}
-      >
-        {categoryHeaderVisible ? (
-          <header className={styles.pageHeader} data-category-chain>
-            <h1 id="s05-title">{s05Content.page.title}</h1>
-            <CategoryHeader snapshot={snapshot} />
-          </header>
-        ) : null}
+      <article className={styles.page}>
         {transitionCategoryId === null ? null : (
           <CategoryTransition categoryId={transitionCategoryId} />
         )}

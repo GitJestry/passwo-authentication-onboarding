@@ -1353,3 +1353,135 @@ Analyse bleiben unverändert. `S05_CONTENT_VERSION` wird von `2.48.0` auf `2.48.
 
 Die Absatztrennung erhöht `S05_CONTENT_VERSION` von `2.48.1` auf `2.48.2`; Wortlaut und
 Interaktionsziel bleiben unverändert.
+
+### Copy-Delta S01 Passwortlänge 8. August 2026
+
+Quelle ist der ausdrückliche Nutzerauftrag vom 8. August 2026. Die sichtbare Eingabegrenze für
+fiktive Passwörter wird direkt am Passwortfeld angezeigt. Ablauf, Persistenz, Export und
+Forschungsgrenzen bleiben unverändert. `S01_CONTENT_VERSION` wird von `2.16.1` auf `2.16.2`
+erhöht.
+
+| Segment und Text-ID | Aktueller Text | Geplanter Text | Primäre Rolle | Grund | Bedeutungsänderung | Interaktionsziel | Hervorhebung |
+|---|---|---|---|---|---|---|---|
+| `S01.controls.passwordTooLong` | kein sichtbarer Hinweis | `max. 64 Zeichen` | Orientierung | ausdrücklich vorgegebene Eingabegrenze | begrenzt | Passwortfeld | keine |
+
+### Copy-Delta S03 Passwortlänge 8. August 2026
+
+Quelle ist der ausdrückliche Nutzerauftrag vom 8. August 2026. Die bereits für die
+Registrierung verwendete sichtbare Eingabegrenze wird an der Anmeldung mit demselben Wortlaut
+ergänzt. Ablauf, Persistenz, Export und Forschungsgrenzen bleiben unverändert.
+`S03_CONTENT_VERSION` wird von `1.18.0` auf `1.18.1` erhöht.
+
+| Segment und Text-ID | Aktueller Text | Geplanter Text | Primäre Rolle | Grund | Bedeutungsänderung | Interaktionsziel | Hervorhebung |
+|---|---|---|---|---|---|---|---|
+| `S03.controls.passwordTooLong` | kein sichtbarer Hinweis | `max. 64 Zeichen` | Orientierung | ausdrücklich vorgegebene Eingabegrenze an der Anmeldung | begrenzt | Passwortfeld | keine |
+
+### Copy-Delta S05 Campusgram-Passwort 8. August 2026
+
+Quelle ist der ausdrückliche Nutzerauftrag vom 8. August 2026. Die sichtbare Kontokennung am
+verdeckten Passwort benennt Logo und Konto eindeutig. Ablauf, Interaktion, Persistenz, Export
+und Analyse bleiben unverändert. `S05_CONTENT_VERSION` wird von `2.48.2` auf `2.48.3` erhöht.
+
+| Segment und Text-ID | Aktueller Text | Geplanter Text | Primäre Rolle | Grund | Bedeutungsänderung | Interaktionsziel | Hervorhebung |
+|---|---|---|---|---|---|---|---|
+| `S05.intro.campusgramPassword.visibleSuffix` | `– Passwort` | `Campusgram-Passwort` | Orientierung | ausdrücklich vorgegebene, eindeutige sichtbare Kontokennung neben dem Logo | nein | kein | keine |
+
+### Copy-Delta S01 und S03 Passwortlänge 8. August 2026
+
+Quelle ist der ausdrückliche Nutzerauftrag vom 8. August 2026. Die lokale Eingabegrenze für das
+fiktive Passwort wird von 64 auf 128 Zeichen erweitert. Der Hinweis bleibt klein und erscheint
+erst, wenn bei bereits erreichter Grenze ein weiteres Zeichen eingesetzt werden soll. Autofill,
+Persistenz, Export und Studienablauf erhalten keine neuen Felder. `S01_CONTENT_VERSION` wird von
+`2.16.2` auf `2.16.3`, `S03_CONTENT_VERSION` von `1.18.1` auf `1.18.2` erhöht.
+
+| Segment und Text-ID | Aktueller Text | Geplanter Text | Primäre Rolle | Grund | Bedeutungsänderung | Interaktionsziel | Hervorhebung |
+|---|---|---|---|---|---|---|---|
+| `S01.controls.passwordTooLong` | `max. 64 Zeichen` | `max. 128 Zeichen` | Orientierung | ausdrücklich vorgegebene erweiterte Eingabegrenze | begrenzt | Passwortfeld der Registrierung | keine |
+| `S03.controls.passwordTooLong` | `max. 64 Zeichen` | `max. 128 Zeichen` | Orientierung | dieselbe Grenze und Rückmeldung bei der Anmeldung | begrenzt | Passwortfeld der Anmeldung | keine |
+
+### Copy-Delta S05 Befundkategorien und Ergebnisfeedback 8. August 2026
+
+Quelle ist der ausdrückliche Nutzerauftrag vom 8. August 2026. Unter erkannten Bausteinen stehen
+kurze Befundkategorien statt Varianten- oder Einordnungstexten. Der bisherige Hinweis auf eine
+typische Endung unter dem authored Baustein entfällt ebenfalls. Die gesprochene Rückmeldung wird
+auf die beobachtete häufige Verwendung gekürzt. Analyse, Interaktion, Persistenz, Export und
+Simulationsgrenze bleiben unverändert. `S05_CONTENT_VERSION` wird von `2.48.3` auf `2.48.4`
+erhöht.
+
+| Segment und Text-ID | Aktueller Text | Geplanter Text | Primäre Rolle | Grund | Bedeutungsänderung | Interaktionsziel | Hervorhebung |
+|---|---|---|---|---|---|---|---|
+| `S05.componentStrategy.presentation.findingChips.*` unter Analysebausteinen | längere Einordnungen und Variantenhinweise, etwa `häufig verwendetes Wort` oder `typische Variante: …` | kompakte Kategorien `Passwort`, `Wort`, `Tastatur`, `Zahlenfolge`, `Datum` oder `Zeichenfolge` | Ergebnisfeedback | hält die Bausteinzeile kurz und benennt nur die Art des sichtbaren Befunds | nein | kein | Kategorienfarbe und Bausteinkontur bleiben bestehen |
+| `S05.intro.strategyAnnotations.typicalEnding` | `Typische Endung` unter einem Baustein | entfällt | Mechanismuserklärung | ausdrücklich verlangte Entfernung von Veränderungstext direkt unter Bausteinen | nein | kein | keine |
+| `S05.componentStrategy.commonComponents.results.foundOne` | `[Teile] ist ein häufig verwendetes Wort oder eine Zeichenfolge.` | `[Teile] wird häufig verwendet.` | Ergebnisfeedback | ausdrücklich verlangte Straffung ohne erneute sichtbare Kategorienauflistung | nein | `Weiter` | keine |
+| `S05.componentStrategy.commonComponents.results.foundMany` | `[Teile] sind häufig verwendete Wörter oder Zeichenfolgen.` | `[Teile] werden häufig verwendet.` | Ergebnisfeedback | ausdrücklich verlangte Straffung ohne erneute sichtbare Kategorienauflistung | nein | `Weiter` | keine |
+
+### Darstellungsdelta S05 flächengebundene Passwortbausteine 8. August 2026
+
+Quelle ist der ausdrückliche Nutzerauftrag vom 8. August 2026 samt den zwei bereitgestellten
+Screenshots. Zusammenfassung und Passwortprüfung erhalten getrennte Layoutspalten. Sichtbare
+Passwortbausteine skalieren Schrift, Innenabstand und Zwischenraum ab einer Referenzlänge von 48
+Zeichen weiter bis zur Eingabegrenze, dürfen innerhalb ihrer Fläche umbrechen und überlagern die
+Zusammenfassung nicht. Das verdeckte Campusgram-Passwort bleibt in einer begrenzten Fläche und
+zeigt abgeschnittene lange Werte mit Ellipse. Logo und Titel verwenden in verdeckter Ansicht,
+Bestandteilprüfung und Strukturauswertung dieselbe Größe. Bei `prefers-reduced-motion` bleibt der
+Endzustand ohne Zerlegungsanimation vollständig sichtbar.
+
+### Copy-Delta S05 Kontoidentität 8. August 2026
+
+Quelle ist der ausdrückliche Nutzerauftrag vom 8. August 2026. Die Auswertung zum freien
+Ausprobieren zeigt dieselbe Campusgram-Kontoidentität mit Logo wie die verdeckte Darstellung,
+Bestandteilprüfung und Strukturauswertung. Es wird kein neuer Wortlaut eingeführt. Ablauf,
+Interaktion, Persistenz, Export und Analyse bleiben unverändert. `S05_CONTENT_VERSION` wird von
+`2.48.4` auf `2.48.5` erhöht.
+
+| Segment und Text-ID | Aktueller Text | Geplanter Text | Primäre Rolle | Grund | Bedeutungsänderung | Interaktionsziel | Hervorhebung |
+|---|---|---|---|---|---|---|---|
+| `S05.freeSearch.application.identity` | keine sichtbare Kontokennung | Campusgram-Logo und `Campusgram-Passwort` aus `S05.intro.campusgramPassword.visibleSuffix` | Orientierung | ausdrücklich vorgegebene einheitliche Kontoidentität in jeder Passwortdarstellung | nein | kein | keine |
+
+### Copy-Delta S05 Befundkategorien 8. August 2026
+
+Quelle ist der ausdrückliche Nutzerauftrag vom 8. August 2026. Die Kategorien unter
+„Häufig verwendete Passwörter und Zeichenfolgen“ benennen wieder die konkrete Art des jeweils
+erkannten Befunds. Analyse, Interaktion, Persistenz, Export und Simulationsgrenze bleiben
+unverändert. `S05_CONTENT_VERSION` wird von `2.48.5` auf `2.48.6` erhöht.
+
+| Segment und Text-ID | Aktueller Text | Geplanter Text | Primäre Rolle | Grund | Bedeutungsänderung | Interaktionsziel | Hervorhebung |
+|---|---|---|---|---|---|---|---|
+| `S05.componentStrategy.presentation.findingCategories.*` | `Passwort`, `Wort`, `Tastatur`, `Zahlenfolge`, `Datum`, `Zeichenfolge` | `häufiges Passwort`, `häufiges Wort`, `häufige Tastaturfolge`, `häufige Zahlenfolge`, `häufiges Datum`, `häufige Zeichenfolge` | Ergebnisfeedback | ausdrücklich freigegebene Konkretisierung der sichtbaren Befundarten | nein | kein | keine |
+
+### Darstellungsdelta S05 Bausteinreferenz und Komponentenübersicht 8. August 2026
+
+Quelle ist der ausdrückliche Nutzerauftrag vom 8. August 2026. Bausteine und Schrift bleiben bis
+zu 32 Passwortzeichen unverändert groß. Bei längeren Passwörtern skaliert die Darstellung mit
+`32 / Zeichenanzahl`, sodass sie dieselbe Referenzfläche nutzt. In der Komponentenübersicht sind
+die Trefferbausteine unabhängig von Passwortlänge und Anzahl der Treffer immer fest auf 75 % ihrer
+bisherigen Größe gesetzt, linksbündig und mit engerem Abstand zeilenweise umbrochen. Die drei
+Kategorietitel werden ausschließlich aus der oberen Leiste entfernt; sie bleiben in der
+Zusammenfassungsliste sichtbar. Dies ist presentation-only: Teilnehmertext, Ablauf, Interaktion,
+Persistenz, Export und Analyse bleiben unverändert; kein Content-Versionssprung ist erforderlich.
+
+### Darstellungsdelta S05 Ausrichtung und Übergangskarten 8. August 2026
+
+Quelle ist der ausdrückliche Nutzerauftrag vom 8. August 2026. Die Komponentenübersicht wird auf
+der X-Achse näher an der Mitte der Sprechblase ausgerichtet, ohne ihre vertikale Position zu
+verändern. Das verdeckte Campusgram-Passwort nutzt eine feste visuelle Referenz von 18 Zeichen:
+Bei kürzeren fiktiven Passwörtern wird nur das Feld schmaler, bei längeren werden Punkte,
+Zeichenabstand und der horizontale Innenabstand proportional verkleinert; die Feldhöhe bleibt
+stabil. Die geprüften Bausteine in der
+Angreiferanimation erhalten eine kleine visuelle Vergrößerung. Übergangskarten verwenden wieder
+die zentrierte Gesamtkomposition, zeigen das Logo noch größer oberhalb und behalten für den Titel
+25 % mehr Schriftgröße und ausreichend Breite für weniger Zeilen. Das Logo für typische Varianten
+verwendet das vom Nutzer bereitgestellte Ersatzbild. Die Übergangsanimation dauert 3 Sekunden.
+Dies ist presentation-only: Teilnehmertext, Ablauf, Interaktion, Persistenz,
+Export und Analyse bleiben unverändert; kein Content-Versionssprung ist erforderlich.
+
+### Copy-Delta S01 simuliertes Browserfenster 8. August 2026
+
+Quelle ist der ausdrückliche Nutzerauftrag vom 8. August 2026. Der vorhandene
+Navigationssatz benennt das sichtbare Ziel nun ausdrücklich als simuliertes Browserfenster.
+Interaktion, Ablauf, Persistenz und Forschungsgrenzen bleiben unverändert.
+`S01_CONTENT_VERSION` wird von `2.16.3` auf `2.16.4` erhöht.
+
+| Segment und Text-ID | Quelle | Aktueller Text | Geplanter Text | Primäre Rolle | Grund | Bedeutungsänderung | Interaktionsziel | Hervorhebung |
+|---|---|---|---|---|---|---|---|---|
+| `S01.completion.guideMessage` | Nutzerauftrag vom 2026-08-08; S01-Skriptseite 3; dieser Audit | `Die drei Konten sind eingerichtet. Schließe jetzt das Browserfenster. Bevor du dich wieder anmeldest, schauen wir uns kurz an, was hinter den Konten steckt.` | `Die drei Konten sind eingerichtet. Schließe jetzt das simulierte Browserfenster. Bevor du dich wieder anmeldest, schauen wir uns kurz an, was hinter den Konten steckt.` | Navigation | Das sichtbare, fiktive UI-Ziel wird ausdrücklich und eindeutig benannt. | nein | simuliertes Browserfenster | keine |

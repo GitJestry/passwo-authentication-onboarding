@@ -4,6 +4,7 @@ import type {
   S07RecommendationProjectionInput,
 } from '@passwo/contracts';
 import type { SegmentTimingEvent, SegmentTimingPort } from './mission-controller.js';
+import { isPermittedFictionalPassword } from './fictional-password-input.js';
 import { passwordModuleMachine } from './password-module-machine.js';
 import {
   passwordSegmentTimingPlan,
@@ -76,12 +77,14 @@ export class PasswordModuleController {
   setPasswordValue(accountId: string, value: string): void {
     if (!this.#actor.getSnapshot().matches({ s01: 'editing' })) return;
     if (!this.#actor.getSnapshot().context.accountIds.includes(accountId)) return;
+    if (!isPermittedFictionalPassword(value)) return;
     this.#actor.send({ type: 'SET_PASSWORD_VALUE', accountId, value });
   }
 
   setRetrievalPasswordValue(accountId: string, value: string): void {
     if (!this.#actor.getSnapshot().matches({ s03: 'active' })) return;
     if (!this.#actor.getSnapshot().context.accountIds.includes(accountId)) return;
+    if (!isPermittedFictionalPassword(value)) return;
     this.#actor.send({ type: 'SET_RETRIEVAL_PASSWORD_VALUE', accountId, value });
   }
 

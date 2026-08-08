@@ -26,56 +26,11 @@
   background: var(--color-surface-muted);
 }
 
-.pageHeader {
-  position: relative;
-  z-index: 2;
-  display: grid;
-  justify-items: center;
-  gap: var(--space-1);
-  padding: var(--space-1) var(--space-5) var(--space-2);
-  border-bottom: var(--border-width-thin) solid color-mix(in srgb, var(--color-border) 82%, transparent);
-  background: color-mix(in srgb, var(--color-surface-analysis) 90%, transparent);
-  box-shadow: 0 0.75rem 1.5rem rgb(0 0 0 / 14%);
-  text-align: center;
-}
-
-.pageHeader h1,
 .resultCard h2,
 .structureDemonstration h2,
 .structureResult h2 {
   margin: 0;
   color: var(--color-ink-strong);
-}
-
-.pageHeader h1 {
-  font-size: var(--font-size-heading-small);
-}
-
-.pageHeader[data-category-chain="true"] {
-  display: contents;
-  grid-template-columns: minmax(0, 1fr);
-  height: 5.25rem;
-  min-height: 5.25rem;
-  box-sizing: border-box;
-  align-items: center;
-  gap: 0;
-  justify-items: start;
-  overflow: visible;
-  padding-bottom: 0;
-  border-bottom: 0;
-  background: transparent;
-  box-shadow: none;
-  text-align: left;
-}
-
-.pageHeader[data-category-chain="true"] > h1 {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  overflow: hidden;
-  clip: rect(0 0 0 0);
-  clip-path: inset(50%);
-  white-space: nowrap;
 }
 
 .cardLabel,
@@ -120,11 +75,18 @@
 }
 
 .campusgramPassword {
+  --s05-campusgram-password-scale: 1;
+
   position: absolute;
   top: 27%;
   left: 50%;
   display: grid;
-  min-width: min(19rem, calc(100vw - var(--space-8)));
+  width: min(
+    var(--s05-campusgram-password-field-width),
+    calc(100vw - var(--space-8))
+  );
+  max-width: 100%;
+  min-width: 0;
   gap: var(--space-2);
   justify-items: center;
   text-align: center;
@@ -132,23 +94,20 @@
 }
 
 .campusgramPasswordTitle {
-  color: var(--color-ink-muted);
-  font-size: var(--font-size-x-small);
-  font-weight: var(--font-weight-bold);
-  letter-spacing: var(--letter-spacing-wide);
-  text-transform: uppercase;
-}
-
-.campusgramPasswordTitle {
   display: inline-flex;
+  min-width: 0;
+  max-width: 100%;
   align-items: center;
   gap: var(--space-2);
+  color: var(--color-ink-muted);
+  font-size: clamp(1rem, 1.5vw, 1.2rem);
+  font-weight: var(--font-weight-bold);
 }
 
 .campusgramSymbol {
   display: inline-grid;
-  width: clamp(3.8rem, 6vw, 5.2rem);
-  height: clamp(3.8rem, 6vw, 5.2rem);
+  width: clamp(2.25rem, 3vw, 2.75rem);
+  height: clamp(2.25rem, 3vw, 2.75rem);
 }
 
 .campusgramSymbol svg {
@@ -159,9 +118,14 @@
 
 .campusgramPassword code {
   display: block;
+  box-sizing: border-box;
+  min-width: 0;
   width: 100%;
+  max-width: 100%;
   overflow: hidden;
-  padding: clamp(var(--space-4), 2vw, var(--space-5)) clamp(var(--space-5), 3vw, var(--space-7));
+  padding:
+    clamp(var(--space-4), 2vw, var(--space-5))
+    calc(clamp(var(--space-5), 3vw, var(--space-7)) * var(--s05-campusgram-password-scale));
   border: var(--border-width-thin) solid color-mix(in srgb, var(--color-campusgram) 58%, var(--color-border));
   border-radius: var(--radius-medium);
   color: #f5eaf0;
@@ -169,9 +133,10 @@
     linear-gradient(135deg, rgb(198 45 112 / 20%), transparent 54%),
     #111720;
   box-shadow: 0 1.3rem 3.5rem rgb(0 0 0 / 34%);
-  font-size: clamp(1.3rem, 3vw, 2.35rem);
-  letter-spacing: 0.12em;
-  text-overflow: ellipsis;
+  font-size: calc(clamp(1.65rem, 3.5vw, 2.85rem) * var(--s05-campusgram-password-scale));
+  letter-spacing: calc(0.12em * var(--s05-campusgram-password-scale));
+  text-overflow: clip;
+  white-space: nowrap;
 }
 
 .localPasswordNotice {
@@ -267,6 +232,8 @@
   justify-content: center;
   gap: clamp(0.25rem, 0.7vw, var(--space-2));
   opacity: 1;
+  transform: scale(1.08);
+  transform-origin: center;
 }
 
 .commonCoreWorkspace,
@@ -1056,13 +1023,12 @@
 }
 
 .structurePasswordCheck .canonicalAccount {
-  font-size: var(--font-size-body);
+  font-size: clamp(1rem, 1.5vw, 1.2rem);
 }
 
 .structurePasswordCheck .canonicalAccount span {
-  display: inline-grid;
-  width: 3.4rem;
-  height: 3.4rem;
+  width: clamp(2.25rem, 3vw, 2.75rem);
+  height: clamp(2.25rem, 3vw, 2.75rem);
 }
 
 .structureApplication {
@@ -1464,13 +1430,22 @@
 .passwordComparison code,
 .largePassword,
 .joinedWords {
+  --s05-password-visual-scale: 1;
+
   display: block;
   width: fit-content;
-  padding: var(--space-2) var(--space-3);
+  padding:
+    calc(var(--space-2) * var(--s05-password-visual-scale))
+    calc(var(--space-3) * var(--s05-password-visual-scale));
   border-radius: var(--radius-small);
   color: var(--color-ink-strong);
   background: var(--color-accent-soft);
-  font-size: var(--font-size-body);
+  font-size: calc(var(--font-size-body) * var(--s05-password-visual-scale));
+}
+
+.largePassword {
+  max-width: 100%;
+  overflow-wrap: anywhere;
 }
 
 .passwordComparison strong,
@@ -1668,12 +1643,30 @@
 }
 
 .summaryCards {
+  align-items: stretch;
   margin: var(--space-5) 0;
   grid-template-columns: repeat(3, minmax(0, 1fr));
 }
 
 .summaryCards article {
+  display: grid;
+  min-height: 100%;
+  align-content: start;
   border-width: var(--border-width-medium);
+  border-top-width: 0.32rem;
+  box-shadow: 0 0.7rem 1.4rem rgb(0 0 0 / 12%);
+}
+
+.summaryCards article:nth-child(1) {
+  border-top-color: #6fa8ff;
+}
+
+.summaryCards article:nth-child(2) {
+  border-top-color: #bd83ee;
+}
+
+.summaryCards article:nth-child(3) {
+  border-top-color: #55cfc4;
 }
 
 .summaryCards article[data-active="true"] {
@@ -1795,6 +1788,8 @@
   width: 100%;
   height: 100%;
   min-height: 100%;
+  grid-column: 2;
+  grid-row: 1;
 }
 
 .componentReviewLayout {
@@ -1803,32 +1798,10 @@
   width: min(100%, 88rem);
   height: 100%;
   min-height: 100%;
-  grid-template-columns: minmax(0, 1fr);
+  grid-template-columns: clamp(17rem, 22vw, 21rem) minmax(0, 1fr);
+  gap: clamp(var(--space-4), 2.5vw, var(--space-7));
   align-items: stretch;
   margin: 0 auto;
-}
-
-.singleCategoryHeader {
-  position: relative;
-  display: grid;
-  width: 100%;
-  height: 5.25rem;
-  min-height: 5.25rem;
-  box-sizing: border-box;
-  align-content: center;
-  gap: 0.15rem;
-  justify-items: center;
-  color: var(--color-ink-strong);
-  text-align: center;
-}
-
-.singleCategoryHeader strong {
-  z-index: 1;
-  max-width: min(58rem, calc(100% - var(--space-8)));
-  font-size: clamp(1.55rem, 2.3vw, 2.35rem);
-  font-weight: var(--font-weight-heavy);
-  line-height: var(--line-height-tight);
-  transform: translateY(0.55rem);
 }
 
 .componentMachineWorkspace {
@@ -1838,16 +1811,16 @@
   min-width: 0;
   place-items: center;
   margin: 0 auto;
-  transform: translateY(-4rem);
 }
 
 .componentReviewCard {
-  position: absolute;
+  position: relative;
   z-index: 3;
-  top: 25%;
-  left: 0;
+  grid-column: 1;
+  grid-row: 1;
+  align-self: start;
   display: grid;
-  width: clamp(14.5rem, 19vw, 18rem);
+  width: 100%;
   min-height: 19rem;
   max-height: min(28rem, calc(100% - var(--space-4)));
   align-content: start;
@@ -1862,8 +1835,8 @@
   box-shadow:
     0 1.2rem 2.8rem rgb(0 0 0 / 24%),
     inset 0.18rem 0 0 color-mix(in srgb, var(--color-accent) 72%, transparent);
-  transform: translateY(-50%);
   overflow: auto;
+  transform: translateX(clamp(2.5rem, 5vw, 5rem));
 }
 
 .componentReviewCard > h2 {
@@ -1919,6 +1892,7 @@
 .componentReviewCard [data-display="decomposed"] {
   width: 100%;
   justify-content: start;
+  justify-items: start;
 }
 
 .componentReviewCard [data-display="continuous"] {
@@ -1931,36 +1905,46 @@
   display: flex;
   width: 100%;
   flex-wrap: wrap;
-  gap: 0.3rem;
+  gap: calc(0.2rem * var(--s05-password-visual-scale));
+  justify-content: flex-start;
   padding: 0;
   border: 0;
   border-radius: 0;
   background: transparent;
   box-shadow: none;
-  font-size: clamp(0.7rem, 0.9vw, 0.88rem);
+  font-size: calc(clamp(0.7rem, 0.9vw, 0.88rem) * var(--s05-password-visual-scale));
   line-height: 1.75;
   text-align: start;
 }
 
 .componentReviewCard [data-display="decomposed"] > code {
+  display: flex;
+  width: 100%;
   max-width: 100%;
-  gap: 0.3rem;
+  gap: calc(0.2rem * var(--s05-password-visual-scale));
   flex-wrap: wrap;
-  justify-content: start;
-  font-size: clamp(0.72rem, 1vw, 0.92rem);
+  justify-content: flex-start;
+  font-size: calc(clamp(0.72rem, 1vw, 0.92rem) * var(--s05-password-visual-scale));
 }
 
 .componentReviewCard [data-display="decomposed"] > code > span {
+  max-width: 100%;
+  flex: 0 0 auto;
   grid-template-rows: auto;
 }
 
 .componentReviewCard [data-display="decomposed"] b {
-  min-height: 1.75rem;
-  padding: 0.2rem 0.42rem;
+  min-height: calc(1.75rem * var(--s05-password-visual-scale));
+  padding:
+    calc(0.2rem * var(--s05-password-visual-scale))
+    calc(0.42rem * var(--s05-password-visual-scale));
   border-width: var(--border-width-thin);
   border-radius: 0.3rem;
   box-shadow: 0 0.35rem 0.65rem color-mix(in srgb, var(--building-block-border) 15%, transparent);
-  font-size: clamp(0.7rem, 0.9vw, 0.88rem);
+  font-size: min(
+    calc(clamp(0.7rem, 0.9vw, 0.88rem) * var(--s05-password-visual-scale)),
+    calc(180cqi / var(--s05-password-visual-character-count))
+  );
   line-height: 1.1;
 }
 
@@ -2040,7 +2024,6 @@
   align-content: center;
   justify-items: center;
   gap: var(--space-5);
-  transform: translateY(-4.2rem);
 }
 
 .componentStrategyWorkspace .campusgramPassword {
@@ -2062,12 +2045,14 @@
   align-items: center;
   gap: var(--space-2);
   color: var(--color-ink-strong);
+  font-size: clamp(1rem, 1.5vw, 1.2rem);
+  font-weight: var(--font-weight-bold);
 }
 
 .canonicalAccount > span:first-child {
   display: inline-grid;
-  width: 2rem;
-  height: 2rem;
+  width: clamp(2.25rem, 3vw, 2.75rem);
+  height: clamp(2.25rem, 3vw, 2.75rem);
   place-items: center;
   color: var(--color-campusgram);
 }
@@ -2075,6 +2060,10 @@
 .canonicalAccount svg {
   width: 100%;
   height: 100%;
+}
+
+.applicationAccount {
+  margin: 0 0 var(--space-3);
 }
 
 .commonComponentMachine {
@@ -2102,7 +2091,7 @@
   background: var(--color-surface-analysis);
   text-align: center;
   pointer-events: auto;
-  animation: category-transition 2s linear forwards;
+  animation: category-transition 3s linear forwards;
 }
 
 .categoryTransitionPanel {
@@ -2117,19 +2106,21 @@
   border-radius: 0;
   background: var(--color-surface-analysis);
   box-shadow: none;
-  animation: category-transition-content 2s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  animation: category-transition-content 3s cubic-bezier(0.22, 1, 0.36, 1) forwards;
 }
 
 .categoryTransitionPanel img {
-  width: clamp(7rem, 14vw, 11rem);
-  height: clamp(7rem, 14vw, 11rem);
+  width: clamp(16rem, 30vw, 24rem);
+  height: clamp(16rem, 30vw, 24rem);
   object-fit: contain;
 }
 
 .categoryTransitionPanel strong {
-  max-width: 38rem;
-  font-size: clamp(1.45rem, 3.2vw, 2.75rem);
+  width: min(72rem, calc(100vw - var(--space-8)));
+  max-width: 100%;
+  font-size: clamp(1.75rem, 3.125vw, 3rem);
   line-height: var(--line-height-tight);
+  text-align: center;
 }
 
 .machineInput,
@@ -2614,7 +2605,6 @@
 }
 
 @media (max-width: 760px) {
-  .pageHeader,
   .controls {
     align-items: flex-start;
     flex-direction: column;
@@ -2625,24 +2615,10 @@
     flex-direction: column;
   }
 
-  .pageHeader[data-category-chain="true"] {
-    height: 5.25rem;
-    min-height: 5.25rem;
-    grid-template-columns: minmax(0, 1fr);
-  }
-
-  .singleCategoryHeader {
-    height: 5.25rem;
-    min-height: 5.25rem;
-  }
-
-  .singleCategoryHeader strong {
-    max-width: calc(100% - var(--space-6));
-    font-size: clamp(1.15rem, 4.5vw, 1.55rem);
-  }
-
   .componentStrategyLayout {
     width: 100%;
+    grid-column: 1;
+    grid-row: auto;
   }
 
   .componentReviewLayout {
@@ -2653,6 +2629,8 @@
 
   .componentReviewCard {
     position: static;
+    grid-column: 1;
+    grid-row: auto;
     width: 100%;
     min-height: 12rem;
     max-height: none;

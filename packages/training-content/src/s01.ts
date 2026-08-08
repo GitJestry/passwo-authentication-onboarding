@@ -104,6 +104,7 @@ export interface S01SegmentContent {
   readonly controls: {
     readonly registrationTitle: string;
     readonly passwordLabel: string;
+    readonly passwordTooLong: string;
     readonly showPassword: (accountLabel: string) => string;
     readonly hidePassword: (accountLabel: string) => string;
     readonly configure: string;
@@ -118,10 +119,10 @@ export interface S01SegmentContent {
   };
 }
 
-export const S01_CONTENT_VERSION = '2.16.1';
+export const S01_CONTENT_VERSION = '2.16.4';
 
 const readyToContinueMessage =
-  'Die drei Konten sind eingerichtet. Schließe jetzt das Browserfenster. Bevor du dich wieder anmeldest, schauen wir uns kurz an, was hinter den Konten steckt.';
+  'Die drei Konten sind eingerichtet. Schließe jetzt das simulierte Browserfenster. Bevor du dich wieder anmeldest, schauen wir uns kurz an, was hinter den Konten steckt.';
 
 export const s01Content: S01SegmentContent = {
   version: S01_CONTENT_VERSION,
@@ -130,7 +131,8 @@ export const s01Content: S01SegmentContent = {
     document: 'research/private/training-script.pdf',
     internalPage: 3,
     uxReference: 'Vom Nutzer bereitgestellte UX-Konzeptboards, 2026-07-31',
-    copyReference: 'docs/design/S00-S05-COPY-AUDIT.md#s01----konten-einrichten-und-browser-verlassen',
+    copyReference:
+      'docs/design/S00-S05-COPY-AUDIT.md#copy-delta-s01-simuliertes-browserfenster-8-august-2026',
   },
   segment: {
     id: 'S01',
@@ -372,6 +374,7 @@ export const s01Content: S01SegmentContent = {
   controls: {
     registrationTitle: 'Konto registrieren',
     passwordLabel: 'Passwort',
+    passwordTooLong: 'max. 128 Zeichen',
     showPassword: (accountLabel) => `Passwort für ${accountLabel} anzeigen`,
     hidePassword: (accountLabel) => `Passwort für ${accountLabel} verbergen`,
     configure: 'Konto erstellen',
