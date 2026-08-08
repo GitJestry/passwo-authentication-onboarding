@@ -191,7 +191,7 @@ describe('S05 component strategy presentation', () => {
     ]);
   });
 
-  it('keeps personal selection atomic and groups its directly adjacent suffix afterwards', () => {
+  it('keeps a freely selected personal range exact without absorbing its suffix', () => {
     const password = 'melinda123!';
     const view = createCanonicalPasswordView(
       password,
@@ -207,16 +207,48 @@ describe('S05 component strategy presentation', () => {
     );
     expect(view.blocks.map(({ value }) => value)).toEqual(['melinda', '123!']);
 
-    const personal = createPersonalFindings(view, [view.blocks[0]?.id ?? '']);
+    const personal = createPersonalFindings(view, [
+      { id: 'personal:2-7', start: 2, end: 7 },
+    ]);
     const displayed = projectCanonicalPasswordBlocks(view, personal).filter(
       ({ labels }) => labels.length > 0,
     );
-    expect(displayed.map(({ value }) => value)).toEqual([password]);
-    expect(displayed.flatMap(({ labels }) => labels)).toEqual(
-      expect.arrayContaining(['persönliche Angabe', 'typische Variante: +123!']),
-    );
+    expect(personal).toMatchObject([{ start: 2, end: 7 }]);
+    expect(displayed.map(({ value }) => value)).toEqual(['linda']);
+    expect(displayed.flatMap(({ labels }) => labels)).toEqual(['persönliche Angabe']);
     expect(displayed[0]?.categoryIds).toEqual(['personal-details']);
-    expect(summarizeCategoryCandidates(view, personal).hasSingleCandidateMatch).toBe(true);
+    expect(summarizeCategoryCandidates(view, personal).hasSingleCandidateMatch).toBe(false);
+  });
+
+  it('keeps multiple adjacent personal candidates distinct while covering the password', () => {
+    const password = 'EventHobby';
+    const view = createCanonicalPasswordView(password, analysisWithFindings([]));
+    const personal = createPersonalFindings(view, [
+      { id: 'personal:0-5', start: 0, end: 5 },
+      { id: 'personal:5-10', start: 5, end: 10 },
+    ]);
+
+    expect(projectCanonicalPasswordBlocks(view, personal).map(({ value }) => value)).toEqual([
+      'Event',
+      'Hobby',
+    ]);
+    expect(summarizeCategoryCandidates(view, personal)).toMatchObject({
+      candidateCount: 2,
+      coversWholePassword: true,
+      hasSingleCandidateMatch: false,
+    });
+  });
+
+  it('ignores overlapping personal candidates while retaining disjoint ranges', () => {
+    const password = 'EventHobby';
+    const view = createCanonicalPasswordView(password, analysisWithFindings([]));
+    const personal = createPersonalFindings(view, [
+      { id: 'personal:0-5', start: 0, end: 5 },
+      { id: 'personal:2-4', start: 2, end: 4 },
+      { id: 'personal:5-10', start: 5, end: 10 },
+    ]);
+
+    expect(personal.map(({ id }) => id)).toEqual(['personal:0-5', 'personal:5-10']);
   });
 
   it('does not show an unbound typical ending as an independent finding', () => {

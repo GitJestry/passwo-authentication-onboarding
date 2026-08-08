@@ -36,7 +36,7 @@ export interface S05DesignLabFixture {
   readonly startSection: 'intro' | 'components' | 'structure';
 }
 
-export const S05_CONTENT_VERSION = '2.47.1';
+export const S05_CONTENT_VERSION = '2.48.0';
 
 export const s05Content = {
   version: S05_CONTENT_VERSION,
@@ -47,9 +47,9 @@ export const s05Content = {
       35,
     ] as const,
     revision:
-      'Userauftrag vom 2026-08-08 · semantische Analysebausteine ohne Befundtexte',
+      'Userauftrag vom 2026-08-08 · freie Kandidatenauswahl für persönliche Angaben',
     copyReference:
-      'docs/design/S00-S05-COPY-AUDIT.md#copy-delta-s05-analysebausteine-ohne-befundtexte-8-august-2026',
+      'docs/design/S00-S05-COPY-AUDIT.md#copy-delta-s05-freie-kandidatenauswahl-8-august-2026',
   },
   segment: {
     id: 'S05',
@@ -206,7 +206,15 @@ export const s05Content = {
         ] as const,
       },
       begin: 'Persönliche Angaben markieren',
-      selectionLabel: 'Als persönliche Angabe markieren',
+      selectionHint:
+        'Ziehe über zusammenhängende Zeichen, um eine persönliche Angabe zu markieren. Wiederhole dies für weitere Angaben. Tippe eine Markierung an, um sie zu entfernen.',
+      selectionStatus: {
+        started: 'Auswahl gestartet. Wähle das letzte Zeichen des Bereichs.',
+        added: 'Persönliche Angabe markiert.',
+        removed: 'Markierung entfernt.',
+        invalid: 'Dieser Bereich überschneidet sich mit einer bestehenden Markierung.',
+        cancelled: 'Auswahl abgebrochen.',
+      },
       privacyNote:
         'Die Auswahl bleibt nur in dieser laufenden Übung und wird nicht als Forschungsangabe gespeichert oder exportiert.',
       applyNone: 'Keine Persönliche Angabe',

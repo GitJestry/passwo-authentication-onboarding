@@ -4,7 +4,7 @@ import { S05_CONTENT_VERSION, s05Content } from './s05.js';
 
 describe('S05 content traceability', () => {
   it('keeps the participant copy bounded and separate from internal terminology', () => {
-    expect(S05_CONTENT_VERSION).toBe('2.47.1');
+    expect(S05_CONTENT_VERSION).toBe('2.48.0');
     expect(s05Content.source).toMatchObject({
       document: 'research/private/training-script.pdf',
       internalPages: [
@@ -12,7 +12,7 @@ describe('S05 content traceability', () => {
         35,
       ],
       copyReference:
-        'docs/design/S00-S05-COPY-AUDIT.md#copy-delta-s05-analysebausteine-ohne-befundtexte-8-august-2026',
+        'docs/design/S00-S05-COPY-AUDIT.md#copy-delta-s05-freie-kandidatenauswahl-8-august-2026',
     });
     expect(s05Content.segment.id).toBe('S05');
     expect(s05Content.page.fixtureNotice).toBe(
@@ -95,6 +95,14 @@ describe('S05 content traceability', () => {
     expect(s05Content.componentStrategy.personalDetails.begin).toBe(
       'Persönliche Angaben markieren',
     );
+    expect(s05Content.componentStrategy.personalDetails.selectionHint).toBe(
+      'Ziehe über zusammenhängende Zeichen, um eine persönliche Angabe zu markieren. Wiederhole dies für weitere Angaben. Tippe eine Markierung an, um sie zu entfernen.',
+    );
+    expect(s05Content.componentStrategy.personalDetails.selectionStatus).toMatchObject({
+      started: 'Auswahl gestartet. Wähle das letzte Zeichen des Bereichs.',
+      added: 'Persönliche Angabe markiert.',
+      removed: 'Markierung entfernt.',
+    });
     expect(s05Content.componentStrategy.presentation.findingChips.personalComponent).toBe(
       'persönliche Angabe',
     );

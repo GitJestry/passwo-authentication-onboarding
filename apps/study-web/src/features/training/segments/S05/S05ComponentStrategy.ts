@@ -26,11 +26,31 @@ export interface S05CanonicalBlock {
   readonly value: string;
 }
 
+/** A participant-defined, transient interval in the fictional password. */
+export interface S05PersonalCandidate {
+  readonly id: string;
+  readonly start: number;
+  readonly end: number;
+}
+
+export function isS05CharacterBoundary(value: string, offset: number): boolean {
+  let cursor = 0;
+  if (offset === 0 || offset === value.length) return true;
+  for (const character of value) {
+    cursor += character.length;
+    if (cursor === offset) return true;
+    if (cursor > offset) return false;
+  }
+  return false;
+}
+
 export interface S05CategoryFinding {
   readonly id: string;
   readonly candidateId: string;
   readonly categoryId: S05ComponentCategoryId;
   readonly label: string;
+  readonly start: number;
+  readonly end: number;
   readonly evidenceBlockIds: readonly string[];
   readonly blockIds: readonly string[];
   readonly changeIds: readonly string[];
@@ -171,12 +191,12 @@ function commonLabel(kind: PasswordSingleFindingKind, token: string): string {
 }
 
 function uniqueFindings(findings: readonly S05CategoryFinding[]): readonly S05CategoryFinding[] {
-  const byLabelAndBlocks = new Map<string, S05CategoryFinding>();
+  const byLabelAndRange = new Map<string, S05CategoryFinding>();
   for (const finding of findings) {
-    const key = `${finding.label}:${finding.blockIds.join(',')}`;
-    if (!byLabelAndBlocks.has(key)) byLabelAndBlocks.set(key, finding);
+    const key = `${finding.label}:${finding.start}:${finding.end}`;
+    if (!byLabelAndRange.has(key)) byLabelAndRange.set(key, finding);
   }
-  return [...byLabelAndBlocks.values()];
+  return [...byLabelAndRange.values()];
 }
 
 function removeCoveredFindings(
@@ -186,13 +206,11 @@ function removeCoveredFindings(
     (finding, findingIndex) =>
       !findings.some((candidate, candidateIndex) => {
         if (candidateIndex === findingIndex) return false;
-        const coversFinding = finding.blockIds.every((blockId) =>
-          candidate.blockIds.includes(blockId),
-        );
+        const coversFinding = candidate.start <= finding.start && candidate.end >= finding.end;
         if (!coversFinding) return false;
         return (
-          candidate.blockIds.length > finding.blockIds.length ||
-          (candidate.blockIds.length === finding.blockIds.length &&
+          candidate.end - candidate.start > finding.end - finding.start ||
+          (candidate.end - candidate.start === finding.end - finding.start &&
             candidateIndex < findingIndex)
         );
       }),
@@ -204,16 +222,8 @@ interface BlockRange {
   readonly end: number;
 }
 
-function blockRange(
-  blocks: readonly S05CanonicalBlock[],
-  blockIds: readonly string[],
-): BlockRange | null {
-  const matchingBlocks = blocks.filter(({ id }) => blockIds.includes(id));
-  const first = matchingBlocks[0];
-  const last = matchingBlocks.at(-1);
-  return first === undefined || last === undefined
-    ? null
-    : { start: first.start, end: last.end };
+function findingRange(finding: S05CategoryFinding): BlockRange {
+  return { start: finding.start, end: finding.end };
 }
 
 function partiallyOverlaps(left: BlockRange, right: BlockRange): boolean {
@@ -224,20 +234,13 @@ function partiallyOverlaps(left: BlockRange, right: BlockRange): boolean {
 }
 
 function excludeCrossBoundaryFindings(
-  blocks: readonly S05CanonicalBlock[],
   findings: readonly S05CategoryFinding[],
   boundaryFindings: readonly S05CategoryFinding[],
 ): readonly S05CategoryFinding[] {
-  const boundaryRanges = boundaryFindings.flatMap((finding) => {
-    const range = blockRange(blocks, finding.evidenceBlockIds);
-    return range === null ? [] : [range];
-  });
+  const boundaryRanges = boundaryFindings.map(findingRange);
   return findings.filter((finding) => {
-    const range = blockRange(blocks, finding.evidenceBlockIds);
-    return (
-      range === null ||
-      !boundaryRanges.some((boundary) => partiallyOverlaps(range, boundary))
-    );
+    const range = findingRange(finding);
+    return !boundaryRanges.some((boundary) => partiallyOverlaps(range, boundary));
   });
 }
 
@@ -325,6 +328,7 @@ function attachTypicalChanges(
     const details = [...new Set(changes.map(({ detail }) => detail))];
     return {
       ...finding,
+      end,
       blockIds: view.blocks
         .filter((block) => block.start >= start && block.end <= end)
         .map(({ id }) => id),
@@ -430,6 +434,8 @@ export function createCanonicalPasswordView(
           candidateId: `common:${finding.id}:${index}`,
           categoryId: 'common-components' as const,
           label: commonLabel(finding.kind, part.token),
+          start: part.start,
+          end: part.end,
           evidenceBlockIds: blocksForSpan(blocks, part),
           blockIds: blocksForSpan(blocks, part),
           changeIds: [],
@@ -447,6 +453,8 @@ export function createCanonicalPasswordView(
               candidateId: `account:${finding.id}`,
               categoryId: 'account-context' as const,
               label: span.token,
+              start: span.start,
+              end: span.end,
               evidenceBlockIds: blocksForSpan(blocks, span),
               blockIds: blocksForSpan(blocks, span),
               changeIds: [],
@@ -460,7 +468,6 @@ export function createCanonicalPasswordView(
     attachTypicalChanges(partialView, rawCommonFindings),
   );
   const boundaryCompatibleAccountFindings = excludeCrossBoundaryFindings(
-    blocks,
     rawAccountFindings,
     rawCommonFindings,
   );
@@ -479,35 +486,40 @@ export function createCanonicalPasswordView(
 
 export function createPersonalFindings(
   view: S05CanonicalPasswordView,
-  selectedBlockIds: readonly string[],
-  grouped = false,
+  candidates: readonly S05PersonalCandidate[],
 ): readonly S05CategoryFinding[] {
-  const validBlockIds = selectedBlockIds.filter((blockId) =>
-    view.blocks.some(({ id }) => id === blockId),
-  );
-  const findings =
-    grouped && validBlockIds.length > 1
-      ? [
-          {
-            id: `personal:group:${validBlockIds.join(':')}`,
-            candidateId: `personal:group:${validBlockIds.join(':')}`,
-            categoryId: 'personal-details' as const,
-            label: s05Content.componentStrategy.presentation.findingChips.personalComponent,
-            evidenceBlockIds: validBlockIds,
-            blockIds: validBlockIds,
-            changeIds: [],
-          },
-        ]
-      : validBlockIds.map((blockId, index) => ({
-          id: `personal:${blockId}:${index}`,
-          candidateId: `personal:${blockId}:${index}`,
-          categoryId: 'personal-details' as const,
-          label: s05Content.componentStrategy.presentation.findingChips.personalComponent,
-          evidenceBlockIds: [blockId],
-          blockIds: [blockId],
-          changeIds: [],
-        }));
-  return attachTypicalChanges(view, findings);
+  const validCandidates = candidates
+    .filter(
+      ({ start, end }) =>
+        start >= 0 &&
+        start < end &&
+        end <= view.password.length &&
+        isS05CharacterBoundary(view.password, start) &&
+        isS05CharacterBoundary(view.password, end),
+    )
+    .sort((left, right) => left.start - right.start || left.end - right.end)
+    .reduce<S05PersonalCandidate[]>((accepted, candidate) => {
+      const previous = accepted.at(-1);
+      return previous === undefined || previous.end <= candidate.start
+        ? [...accepted, candidate]
+        : accepted;
+    }, []);
+  return validCandidates.map((candidate) => {
+    const blockIds = view.blocks
+      .filter((block) => block.start < candidate.end && block.end > candidate.start)
+      .map(({ id }) => id);
+    return {
+      id: candidate.id,
+      candidateId: candidate.id,
+      categoryId: 'personal-details' as const,
+      label: s05Content.componentStrategy.presentation.findingChips.personalComponent,
+      start: candidate.start,
+      end: candidate.end,
+      evidenceBlockIds: blockIds,
+      blockIds,
+      changeIds: [],
+    };
+  });
 }
 
 export function summarizeCategoryCandidates(
@@ -515,16 +527,19 @@ export function summarizeCategoryCandidates(
   findings: readonly S05CategoryFinding[],
 ): S05CategoryCandidateSummary {
   const candidateIds = [...new Set(findings.map(({ candidateId }) => candidateId))];
-  const coveredBlockIds = new Set(findings.flatMap(({ blockIds }) => blockIds));
-  const coversWholePassword =
-    view.blocks.length > 0 && view.blocks.every(({ id }) => coveredBlockIds.has(id));
+  function coversPassword(ranges: readonly BlockRange[]): boolean {
+    let cursor = 0;
+    for (const range of [...ranges].sort((left, right) => left.start - right.start)) {
+      if (range.start > cursor) return false;
+      cursor = Math.max(cursor, range.end);
+    }
+    return view.password.length > 0 && cursor >= view.password.length;
+  }
+  const coversWholePassword = coversPassword(findings.map(findingRange));
   const hasSingleCandidateMatch = candidateIds.some((candidateId) => {
-    const candidateBlockIds = new Set(
-      findings
-        .filter((finding) => finding.candidateId === candidateId)
-        .flatMap(({ blockIds }) => blockIds),
+    return coversPassword(
+      findings.filter((finding) => finding.candidateId === candidateId).map(findingRange),
     );
-    return view.blocks.length > 0 && view.blocks.every(({ id }) => candidateBlockIds.has(id));
   });
   return {
     candidateCount: candidateIds.length,
@@ -541,12 +556,32 @@ export function projectCanonicalPasswordBlocks(
   const visibleChanges = view.typicalChanges.filter(
     (change) => representedChangeIds.has(change.id),
   );
-  const directBlocks = view.blocks.map((block): S05DisplayBlock => {
-    const directFindings = findings.filter((finding) =>
-      finding.evidenceBlockIds.includes(block.id),
+  const boundaries = new Set<number>([0, view.password.length]);
+  for (const block of view.blocks) {
+    boundaries.add(block.start);
+    boundaries.add(block.end);
+  }
+  for (const finding of findings) {
+    boundaries.add(finding.start);
+    boundaries.add(finding.end);
+  }
+  const sortedBoundaries = [...boundaries].sort((left, right) => left - right);
+  const displayBlocks = sortedBoundaries
+    .slice(0, -1)
+    .flatMap((start, index) => {
+      const end = sortedBoundaries[index + 1];
+      return end === undefined || start === end
+        ? []
+        : [{ id: `display-${start}-${end}`, start, end, value: view.password.slice(start, end) }];
+    });
+  const directBlocks = displayBlocks.map((block): S05DisplayBlock => {
+    const directFindings = findings.filter(
+      (finding) => finding.start <= block.start && finding.end >= block.end,
     );
-    const coveringFindings = findings.filter((finding) => finding.blockIds.includes(block.id));
-    const changes = visibleChanges.filter((change) => change.blockIds.includes(block.id));
+    const coveringFindings = directFindings;
+    const changes = visibleChanges.filter(
+      (change) => change.start <= block.start && change.end >= block.end,
+    );
     const annotations = [
       ...directFindings.flatMap((finding) => [
         {

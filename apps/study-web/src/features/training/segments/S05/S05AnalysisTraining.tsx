@@ -596,19 +596,8 @@ function CanonicalPasswordView({
   const visibleFindings =
     focus === null ? findings : findings.filter(({ categoryId }) => categoryId === focus);
   const selectingPersonalDetails = snapshot.step === 'personal-details-check';
-  const personalSelection = snapshot.componentStrategy.personalSelection;
-  const selectedPersonalIndices = view.blocks.flatMap((block, index) =>
-    personalSelection.blockIds.includes(block.id) ? [index] : [],
-  );
-  const displayBlocks = selectingPersonalDetails
-    ? view.blocks.map((block, index) => ({
-        ...block,
-        labels: [] as readonly string[],
-        categoryIds: selectedPersonalIndices.includes(index)
-          ? (['personal-details'] as const)
-          : [],
-      }))
-    : projectCanonicalPasswordBlocks(view, visibleFindings);
+  const displayBlocks = projectCanonicalPasswordBlocks(view, visibleFindings);
+  const selectionCharacters = [...view.password];
   return (
     <section
       className={styles.canonicalPassword}
@@ -625,21 +614,27 @@ function CanonicalPasswordView({
       <div className={styles.canonicalBlocks} data-s05-speech-obstacle>
         <PasswordBuildingBlocks
           value={view.password}
-          parts={displayBlocks.map(({ value }) => value)}
+          parts={
+            selectingPersonalDetails ? selectionCharacters : displayBlocks.map(({ value }) => value)
+          }
           display="decomposed"
           appearance="analysis"
           continuous
           animate={false}
-          categoryIds={displayBlocks.map(({ categoryIds }) => categoryIds)}
+          categoryIds={
+            selectingPersonalDetails
+              ? selectionCharacters.map(() => [])
+              : displayBlocks.map(({ categoryIds }) => categoryIds)
+          }
           {...(selectingPersonalDetails
             ? {
-                selection: {
-                  selectedIndices: selectedPersonalIndices,
-                  checkboxLabel: s05Content.componentStrategy.personalDetails.selectionLabel,
-                  onToggle: (index: number) => {
-                    const block = view.blocks[index];
-                    if (block !== undefined) controller.togglePersonalBlock(block.id);
-                  },
+                rangeSelection: {
+                  candidates: snapshot.componentStrategy.personalSelection.candidates,
+                  onCreate: (start: number, end: number) =>
+                    controller.addPersonalCandidate(start, end),
+                  onRemove: (candidateId: string) =>
+                    controller.removePersonalCandidate(candidateId),
+                  status: s05Content.componentStrategy.personalDetails.selectionStatus,
                 },
               }
             : {})}
@@ -661,12 +656,13 @@ function PersonalDetailsCheck({
   const content = s05Content.componentStrategy.personalDetails;
   return (
     <section className={styles.personalComponentCheck}>
+      <p>{content.selectionHint}</p>
       <p className={styles.visuallyHidden}>{content.privacyNote}</p>
       <button
         type="button"
         onClick={() => controller.completePersonalDetailsCheck()}
       >
-        {selection.blockIds.length === 0 ? content.applyNone : content.apply}
+        {selection.candidates.length === 0 ? content.applyNone : content.apply}
       </button>
     </section>
   );
@@ -1195,20 +1191,11 @@ function categoryFindingValues(
   findings: readonly S05CategoryFinding[],
 ): readonly string[] {
   const positionedValues = findings
-    .flatMap((finding) => {
-      const blocks = view.blocks.filter(({ id }) => finding.blockIds.includes(id));
-      const first = blocks[0];
-      const last = blocks.at(-1);
-      return first === undefined || last === undefined
-        ? []
-        : [
-            {
-              start: first.start,
-              end: last.end,
-              value: view.password.slice(first.start, last.end),
-            },
-          ];
-    })
+    .map((finding) => ({
+      start: finding.start,
+      end: finding.end,
+      value: view.password.slice(finding.start, finding.end),
+    }))
     .sort((left, right) => left.start - right.start || left.end - right.end);
   return [...new Map(positionedValues.map((item) => [item.value, item.value] as const)).values()];
 }

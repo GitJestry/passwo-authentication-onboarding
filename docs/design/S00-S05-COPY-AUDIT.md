@@ -1326,3 +1326,16 @@ unverändert. `S05_CONTENT_VERSION` wird von `2.47.0` auf `2.47.1` erhöht.
 | `S05.componentStrategy.presentation.findingChips.*` unter Analysebereichen | sichtbare Hinweise wie `häufig verwendetes Wort`, `typische Variante: …` oder `typische Endung: …` | unter den Bausteinen nicht mehr sichtbar | Ergebnisfeedback | ausdrücklich verlangte visuelle Entlastung; Kategorie bleibt durch Überschrift, Symbol und Farbe eindeutig | nein | kein | feste Kategorienfarbe am Baustein |
 | `S05.componentStrategy.presentation.canonicalPassword` | kontinuierliche Zeichenfolge mit Kategoriespuren | zusammenhängende neutrale Zeichen bleiben Text; erkannte Bereiche erscheinen als farbige Bausteine | Ergebnisfeedback | ausdrücklich verlangte Rückkehr zu Bausteinen ohne erneute Ableitung künstlicher Grenzen | nein | bestehende Analyse und persönlicher Selbstcheck | Blau häufige Bestandteile, Lila persönliche Angaben, Gelb Kontobezug, Türkis Wiederholung |
 | `S05.componentStrategy.presentation.reviewCard` | vollständige Passwortprojektion einschließlich neutraler Zeichen und automatisch eingefärbter Verbindungszeichen | kompakte Bausteinliste ausschließlich aus den auch gesprochenen Trefferwerten | Ergebnisfeedback | Nutzerkorrektur: visuelle Zusammenfassung und Ergebnistext müssen dieselben Teile nennen | nein | kein | feste Kategorienfarbe ohne zusätzliche Unterstreichung |
+
+### Copy-Delta S05 freie Kandidatenauswahl 8. August 2026
+
+Quelle ist der ausdrückliche Nutzerauftrag vom 8. August 2026. Der Selbstcheck für persönliche
+Angaben lässt nun frei gewählte, zusammenhängende Zeichenbereiche als mehrere getrennte Kandidaten
+markieren und wieder entfernen. Die Navigation benennt die sichtbare Bedienung. Analyse,
+Persistenz, Export und Studienablauf bleiben unverändert; die Auswahl ist nur lokaler
+Trainingszustand. `S05_CONTENT_VERSION` wird von `2.47.1` auf `2.48.0` erhöht.
+
+| Segment und Text-ID | Aktueller Text | Geplanter Text | Primäre Rolle | Grund | Bedeutungsänderung | Interaktionsziel | Hervorhebung |
+|---|---|---|---|---|---|---|---|
+| `S05.componentStrategy.personalDetails.selectionHint` | kein sichtbarer Bedienhinweis; die Auswahl war auf vorgegebene Analyseblöcke beschränkt | `Ziehe über zusammenhängende Zeichen, um eine persönliche Angabe zu markieren. Wiederhole dies für weitere Angaben. Tippe eine Markierung an, um sie zu entfernen.` | Navigation | ausdrücklich verlangte freie Bereichsauswahl mit eindeutiger Handlungszuordnung | begrenzt | zusammenhängende Passwortzeile | keine |
+| `S05.componentStrategy.personalDetails.selectionStatus.*` | keine Live-Rückmeldung zur Bereichsauswahl | kurze Statusmeldungen zum Beginnen, Markieren, Entfernen, Überschneiden und Abbrechen | Navigation | Tastaturbedienung und Statuswechsel müssen ohne Farbe verständlich bleiben | nein | Zeichenbereich | keine |

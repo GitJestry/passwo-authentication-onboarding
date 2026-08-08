@@ -25,10 +25,12 @@ import {
 import {
   createCanonicalPasswordView,
   createPersonalFindings,
+  isS05CharacterBoundary,
   type S05CanonicalPasswordView,
   type S05CategoryCardStatus,
   type S05CategoryFinding,
   type S05ComponentCategoryId,
+  type S05PersonalCandidate,
 } from './S05ComponentStrategy.js';
 
 export type S05AnalysisStep =
@@ -111,7 +113,7 @@ export interface S05AnalysisControllerSnapshot {
       >
     >;
     readonly personalSelection: {
-      readonly blockIds: readonly string[];
+      readonly candidates: readonly S05PersonalCandidate[];
     };
   };
   readonly controls: {
@@ -333,7 +335,7 @@ export class S05AnalysisController {
       componentStrategy: {
         canonicalView,
         cards: initialComponentCards(),
-        personalSelection: { blockIds: [] },
+        personalSelection: { candidates: [] },
       },
       controls: { canStart: true, canReplay: false, canContinue: false },
     };
@@ -402,19 +404,55 @@ export class S05AnalysisController {
     void this.#missionController.continue();
   }
 
-  togglePersonalBlock(blockId: string): void {
+  addPersonalCandidate(start: number, end: number): boolean {
     const snapshot = this.#snapshot;
-    if (this.#disposed || snapshot === null || snapshot.step !== 'personal-details-check') return;
-    const selected = new Set(snapshot.componentStrategy.personalSelection.blockIds);
-    if (selected.has(blockId)) selected.delete(blockId);
-    else selected.add(blockId);
+    const password = snapshot?.componentStrategy.canonicalView?.password;
+    if (
+      this.#disposed ||
+      snapshot === null ||
+      password === undefined ||
+      snapshot.step !== 'personal-details-check' ||
+      !Number.isInteger(start) ||
+      !Number.isInteger(end) ||
+      start < 0 ||
+      start >= end ||
+      end > password.length ||
+      !isS05CharacterBoundary(password, start) ||
+      !isS05CharacterBoundary(password, end)
+    ) {
+      return false;
+    }
+    const candidates = snapshot.componentStrategy.personalSelection.candidates;
+    if (candidates.some((candidate) => start < candidate.end && candidate.start < end)) {
+      return false;
+    }
+    const candidate = { id: `personal:${start}-${end}`, start, end };
     this.#snapshot = {
       ...snapshot,
       componentStrategy: {
         ...snapshot.componentStrategy,
         personalSelection: {
-          blockIds: [...selected],
+          candidates: [...candidates, candidate].sort(
+            (left, right) => left.start - right.start || left.end - right.end,
+          ),
         },
+      },
+    };
+    this.#emit();
+    return true;
+  }
+
+  removePersonalCandidate(candidateId: string): void {
+    const snapshot = this.#snapshot;
+    if (this.#disposed || snapshot === null || snapshot.step !== 'personal-details-check') return;
+    const candidates = snapshot.componentStrategy.personalSelection.candidates;
+    const remaining = candidates.filter(({ id }) => id !== candidateId);
+    if (remaining.length === candidates.length) return;
+    this.#snapshot = {
+      ...snapshot,
+      componentStrategy: {
+        ...snapshot.componentStrategy,
+        personalSelection: { candidates: remaining },
       },
     };
     this.#emit();
@@ -434,7 +472,7 @@ export class S05AnalysisController {
     }
     const findings = createPersonalFindings(
       view,
-      snapshot.componentStrategy.personalSelection.blockIds,
+      snapshot.componentStrategy.personalSelection.candidates,
     );
     this.#snapshot = {
       ...snapshot,
