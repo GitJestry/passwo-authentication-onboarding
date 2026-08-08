@@ -4,7 +4,7 @@ import { S05_CONTENT_VERSION, s05Content } from './s05.js';
 
 describe('S05 content traceability', () => {
   it('keeps the participant copy bounded and separate from internal terminology', () => {
-    expect(S05_CONTENT_VERSION).toBe('2.48.0');
+    expect(S05_CONTENT_VERSION).toBe('2.48.2');
     expect(s05Content.source).toMatchObject({
       document: 'research/private/training-script.pdf',
       internalPages: [
@@ -12,7 +12,7 @@ describe('S05 content traceability', () => {
         35,
       ],
       copyReference:
-        'docs/design/S00-S05-COPY-AUDIT.md#copy-delta-s05-freie-kandidatenauswahl-8-august-2026',
+        'docs/design/S00-S05-COPY-AUDIT.md#copy-delta-s05-einordnung-der-trainingsauswertung-8-august-2026',
     });
     expect(s05Content.segment.id).toBe('S05');
     expect(s05Content.page.fixtureNotice).toBe(
@@ -41,7 +41,8 @@ describe('S05 content traceability', () => {
       'Häufig verwendete Passwörter und Zeichenfolgen',
     );
     expect(s05Content.intro.narration.componentCategoryOverview).toEqual([
-      'Dabei probiert es zuerst Passwörter und Zeichenfolgen aus, die besonders häufig verwendet werden.',
+      'Dabei probiert das Programm zunächst Passwörter und Zeichenfolgen aus, die besonders häufig verwendet werden.',
+      'Bitte beachte: Dieses Trainingsmodul kann dein Passwort möglicherweise nicht immer korrekt einordnen. Die Auswertung soll dir dennoch dabei helfen, typische Angriffsmuster besser nachzuvollziehen.',
     ]);
     expect(s05Content.intro.narration.randomSequence).toEqual([
       'Zufällige Zeichenfolgen sind für Menschen jedoch schwer zu merken. Selbst gewählte Passwörter enthalten deshalb oft merkbare Elemente, wie Wörter, Zahlen oder einfache Zeichenfolgen.',

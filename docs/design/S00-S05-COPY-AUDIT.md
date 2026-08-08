@@ -1339,3 +1339,17 @@ Trainingszustand. `S05_CONTENT_VERSION` wird von `2.47.1` auf `2.48.0` erhöht.
 |---|---|---|---|---|---|---|---|
 | `S05.componentStrategy.personalDetails.selectionHint` | kein sichtbarer Bedienhinweis; die Auswahl war auf vorgegebene Analyseblöcke beschränkt | `Ziehe über zusammenhängende Zeichen, um eine persönliche Angabe zu markieren. Wiederhole dies für weitere Angaben. Tippe eine Markierung an, um sie zu entfernen.` | Navigation | ausdrücklich verlangte freie Bereichsauswahl mit eindeutiger Handlungszuordnung | begrenzt | zusammenhängende Passwortzeile | keine |
 | `S05.componentStrategy.personalDetails.selectionStatus.*` | keine Live-Rückmeldung zur Bereichsauswahl | kurze Statusmeldungen zum Beginnen, Markieren, Entfernen, Überschneiden und Abbrechen | Navigation | Tastaturbedienung und Statuswechsel müssen ohne Farbe verständlich bleiben | nein | Zeichenbereich | keine |
+
+### Copy-Delta S05 Einordnung der Trainingsauswertung 8. August 2026
+
+Quelle ist der ausdrückliche Nutzerauftrag vom 8. August 2026. Die benannte
+Mechanismuserklärung verwendet das Programm als handelndes Subjekt und ergänzt die ausdrücklich
+vorgegebene Einordnungsgrenze der Trainingsauswertung. Ablauf, Interaktion, Persistenz, Export und
+Analyse bleiben unverändert. `S05_CONTENT_VERSION` wird von `2.48.0` auf `2.48.1` erhöht.
+
+| Segment und Text-ID | Aktueller Text | Geplanter Text | Primäre Rolle | Grund | Bedeutungsänderung | Interaktionsziel | Hervorhebung |
+|---|---|---|---|---|---|---|---|
+| `S05.intro.narration.componentCategoryOverview` | `Dabei probiert es zuerst Passwörter und Zeichenfolgen aus, die besonders häufig verwendet werden.` | `Dabei probiert das Programm zunächst Passwörter und Zeichenfolgen aus, die besonders häufig verwendet werden.` gefolgt von der vorgegebenen Einordnungsgrenze als eigenem Absatz | Mechanismuserklärung | ausdrücklich vorgegebene Perspektivpräzisierung und Einordnungsgrenze; der Hinweis steht in der nächsten Zeile derselben Sprechblase | begrenzt | `Weiter` | `Bitte beachte:` in Akzentfarbe |
+
+Die Absatztrennung erhöht `S05_CONTENT_VERSION` von `2.48.1` auf `2.48.2`; Wortlaut und
+Interaktionsziel bleiben unverändert.

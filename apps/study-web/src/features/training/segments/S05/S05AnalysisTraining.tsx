@@ -626,6 +626,11 @@ function CanonicalPasswordView({
               ? selectionCharacters.map(() => [])
               : displayBlocks.map(({ categoryIds }) => categoryIds)
           }
+          matchCategories={
+            selectingPersonalDetails
+              ? selectionCharacters.map(() => [])
+              : displayBlocks.map(({ matchCategories }) => matchCategories)
+          }
           {...(selectingPersonalDetails
             ? {
                 rangeSelection: {

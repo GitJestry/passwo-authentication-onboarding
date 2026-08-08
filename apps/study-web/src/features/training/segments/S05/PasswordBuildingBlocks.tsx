@@ -7,6 +7,7 @@ export interface PasswordBuildingBlocksProps {
   readonly parts: readonly string[];
   readonly display: 'assembled' | 'separated' | 'decomposed';
   readonly labels?: readonly (string | readonly string[])[];
+  readonly matchCategories?: readonly (string | readonly string[])[];
   readonly categoryIds?: readonly (readonly S05VisualCategoryId[])[];
   readonly continuous?: boolean;
   readonly segmentGroups?: readonly (readonly string[])[];
@@ -49,6 +50,7 @@ export function PasswordBuildingBlocks({
   parts,
   display,
   labels,
+  matchCategories,
   categoryIds,
   continuous = false,
   segmentGroups,
@@ -235,13 +237,26 @@ export function PasswordBuildingBlocks({
         activeRangeSelection === undefined
           ? parts.map((part, index) => {
               const categories = categoryIds?.[index] ?? [];
+              const partMatchCategories = normalizeLabels(matchCategories?.[index]);
               return (
                 <span
+                  className={styles.continuousPart}
                   key={`${part}-${index}`}
-                  data-part-index={index}
-                  data-categories={categories.join(' ')}
                 >
-                  {part}
+                  <span
+                    className={styles.continuousBlock}
+                    data-part-index={index}
+                    data-categories={categories.join(' ')}
+                  >
+                    {part}
+                  </span>
+                  {partMatchCategories.length === 0 ? null : (
+                    <small className={styles.continuousCategory}>
+                      {partMatchCategories.map((category) => (
+                        <span key={category}>{category}</span>
+                      ))}
+                    </small>
+                  )}
                 </span>
               );
             })

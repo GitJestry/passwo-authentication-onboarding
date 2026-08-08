@@ -49,6 +49,8 @@ export interface S05CategoryFinding {
   readonly candidateId: string;
   readonly categoryId: S05ComponentCategoryId;
   readonly label: string;
+  /** Concise category derived from the local zxcvbn match type for the block display. */
+  readonly matchCategory?: string;
   readonly start: number;
   readonly end: number;
   readonly evidenceBlockIds: readonly string[];
@@ -79,6 +81,7 @@ export interface S05CanonicalPasswordView {
 
 export interface S05DisplayBlock extends S05CanonicalBlock {
   readonly labels: readonly string[];
+  readonly matchCategories: readonly string[];
   readonly categoryIds: readonly S05VisualCategoryId[];
   readonly groupIds: readonly string[];
 }
@@ -187,6 +190,25 @@ function commonLabel(kind: PasswordSingleFindingKind, token: string): string {
       return s05Content.findingLabels['predictable-word-sequence'];
     default:
       return labels.commonWord;
+  }
+}
+
+function zxcvbnMatchCategory(kind: PasswordSingleFindingKind): string {
+  switch (kind) {
+    case 'common-password-core':
+    case 'common-word':
+    case 'common-name':
+      return 'Wörterbuch';
+    case 'keyboard-pattern':
+      return 'Tastatur';
+    case 'year':
+    case 'date':
+      return 'Datum';
+    case 'simple-character-sequence':
+    case 'predictable-word-sequence':
+      return 'Sequenz';
+    default:
+      return 'Muster';
   }
 }
 
@@ -434,6 +456,7 @@ export function createCanonicalPasswordView(
           candidateId: `common:${finding.id}:${index}`,
           categoryId: 'common-components' as const,
           label: commonLabel(finding.kind, part.token),
+          matchCategory: zxcvbnMatchCategory(finding.kind),
           start: part.start,
           end: part.end,
           evidenceBlockIds: blocksForSpan(blocks, part),
@@ -613,6 +636,13 @@ export function projectCanonicalPasswordBlocks(
     return {
       ...block,
       labels: annotations.map(({ label }) => label),
+      matchCategories: [
+        ...new Set(
+          directFindings.flatMap(({ matchCategory }) =>
+            matchCategory === undefined ? [] : [matchCategory],
+          ),
+        ),
+      ],
       categoryIds: [
         ...new Set(coveringFindings.map(({ categoryId }) => categoryId as S05VisualCategoryId)),
       ],
@@ -645,6 +675,7 @@ export function projectCanonicalPasswordBlocks(
       end: block.end,
       value: view.password.slice(previous.start, block.end),
       labels: [...new Set([...previous.labels, ...block.labels])],
+      matchCategories: [...new Set([...previous.matchCategories, ...block.matchCategories])],
       categoryIds: previous.categoryIds,
       groupIds: previous.groupIds,
     };

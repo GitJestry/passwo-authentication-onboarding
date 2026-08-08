@@ -60,6 +60,7 @@ const emphasisBySpeechId: Readonly<Record<string, readonly PassWoSpeechEmphasis[
     { phrase: 'Datenleck', tone: 'warning', contrastId: 'incident-risk' },
     { phrase: 'schwer', tone: 'warning', contrastId: 'incident-risk' },
   ],
+  's05-component-category-overview': [{ phrase: 'Bitte beachte:', tone: 'accent' }],
   's05-common-components-changes': [
     {
       phrase: 'typische Varianten',

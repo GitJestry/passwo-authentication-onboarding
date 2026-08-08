@@ -36,7 +36,7 @@ export interface S05DesignLabFixture {
   readonly startSection: 'intro' | 'components' | 'structure';
 }
 
-export const S05_CONTENT_VERSION = '2.48.0';
+export const S05_CONTENT_VERSION = '2.48.2';
 
 export const s05Content = {
   version: S05_CONTENT_VERSION,
@@ -47,9 +47,9 @@ export const s05Content = {
       35,
     ] as const,
     revision:
-      'Userauftrag vom 2026-08-08 · freie Kandidatenauswahl für persönliche Angaben',
+      'Userauftrag vom 2026-08-08 · Hinweis zur Einordnung der Trainingsauswertung als eigener Absatz',
     copyReference:
-      'docs/design/S00-S05-COPY-AUDIT.md#copy-delta-s05-freie-kandidatenauswahl-8-august-2026',
+      'docs/design/S00-S05-COPY-AUDIT.md#copy-delta-s05-einordnung-der-trainingsauswertung-8-august-2026',
   },
   segment: {
     id: 'S05',
@@ -110,7 +110,8 @@ export const s05Content = {
         'Der Angreifer sieht diese Bestandteile nicht. Sein Programm kann aber mögliche Bestandteile auswählen, kombinieren und daraus vollständige Passwortkandidaten bilden.',
       ],
       componentCategoryOverview: [
-        'Dabei probiert es zuerst Passwörter und Zeichenfolgen aus, die besonders häufig verwendet werden.',
+        'Dabei probiert das Programm zunächst Passwörter und Zeichenfolgen aus, die besonders häufig verwendet werden.',
+        'Bitte beachte: Dieses Trainingsmodul kann dein Passwort möglicherweise nicht immer korrekt einordnen. Die Auswertung soll dir dennoch dabei helfen, typische Angriffsmuster besser nachzuvollziehen.',
       ],
     },
   },
