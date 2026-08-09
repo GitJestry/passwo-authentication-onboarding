@@ -184,7 +184,6 @@ export function PassWoGuide({
           <PassWoSpeechBubble
             speaker={guideName}
             paragraphs={speech}
-            speechKey={speechKey}
             {...(speechEmphasis === undefined ? {} : { emphasis: speechEmphasis })}
             footer={speechFooter}
             placement={speechPosition?.side ?? speechPlacement}

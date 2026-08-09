@@ -1,5 +1,28 @@
 # S00--S05 Copy and Interaction Audit
 
+## Copy-Delta Fortschrittskarte in Sektion 1, 9. August 2026
+
+Quelle ist der ausdrückliche Nutzerauftrag vom 9. August 2026. Die bisherige reine
+Sektionsankündigung wird innerhalb der Sektion `Starke Passwörter` an den vier fachlichen
+Teilübergängen erneut gezeigt. Die Karte orientiert vor S00, beim Eintritt in die
+Angreiferperspektive vor S05, vor der Einzigartigkeitsbetrachtung in S06 und vor der
+Passwortüberarbeitung in S08. Sie löst keine fachliche Handlung aus. Die Übergangszeit liegt
+außerhalb der Segment-Timinggrenzen. `S00_CONTENT_VERSION` wird von `1.19.0` auf `1.20.0`
+erhöht.
+
+| Segment und Text-ID | Aktueller Text | Freigegebener Text | Primäre Rolle | Interaktionsziel | Grund und Bedeutungsänderung | Hervorhebung |
+|---|---|---|---|---|---|---|
+| `sectionTransition.label` | `Sektion 1` | `Sektion 1 von 3` | Orientierung | kein | Fortschritt zwischen den drei Trainingssektionen sichtbar machen; begrenzt | keine |
+| `sectionTransition.account-setup` | nicht vorhanden | `Konten einrichten` | Orientierung | kein | benennt den ersten Teil am Start von Sektion 1; ausdrücklich freigegeben | aktiver Punkt |
+| `sectionTransition.password-strength` | nicht vorhanden | `Passwortstärke verstehen` | Orientierung | kein | benennt den Teil beim Eintritt in die Angreiferperspektive vor S05; ausdrücklich freigegeben | aktiver Punkt |
+| `sectionTransition.unique-passwords` | nicht vorhanden | `Passwörter einzigartig halten` | Orientierung | kein | kündigt die Einzigartigkeitsbetrachtung vor S06 an; ausdrücklich freigegeben | aktiver Punkt |
+| `sectionTransition.change-passwords` | nicht vorhanden | `Passwörter ändern` | Orientierung | kein | kündigt die Passwortüberarbeitung vor S08 an; ausdrücklich freigegeben | aktiver Punkt |
+
+Abgeschlossene Teile erhalten zusätzlich ein Häkchen; zukünftige Teile bleiben als unbeschriftete
+Kreise sichtbar. Der bestehende Sektionstitel `Starke Passwörter` bleibt unverändert. Die spätere
+Karte `Sektion 2 von 3` / `Passwortmanager` wird erst mit dem entsprechenden implementierten
+Übergang ab S12 ergänzt.
+
 ## Status und Zweck
 
 Dieser Audit beschreibt den Stand des Repositorys vom 2. August 2026 bis einschließlich S05.
@@ -1579,3 +1602,47 @@ typografische Stufen; zusammengesetzte Darstellung, Bausteinzerlegung, Kandidate
 Muster-Veranschaulichung bleiben untereinander konsistent. Dies ist presentation-only:
 Teilnehmertext, Ablauf, Interaktion, Analyse, Persistenz und Export bleiben unverändert; kein
 Content-Versionssprung ist erforderlich.
+
+### Copy-Delta S05 Zeichenmix und Längenfolge 9. August 2026
+
+Quelle ist der ausdrückliche Nutzerauftrag vom 9. August 2026. Der Passphrasen-Zwischenschritt
+wird aus dem S05-Ablauf entfernt; sein vorhandenes Generator-UI bleibt als exportierter, derzeit
+nicht eingebundener S05-Baustein erhalten. Ab der ersten Passwortstärkeanzeige ersetzen acht
+ausdrücklich getrennte Sprechblasen den bisherigen Wortlaut. Die beiden Absätze zur
+Kleinbuchstaben-Skala bleiben auf ausdrücklichen Wunsch in einer gemeinsamen Sprechblase, weil sie
+dieselbe sichtbare Modellannahme erklären. Analyse, Schätzung, Persistenz und Export bleiben
+unverändert. `S05_CONTENT_VERSION` wird von `2.49.1` auf `2.50.0` erhöht.
+
+| Segment und Text-ID | Quelle | Aktueller Text | Geplanter Text | Primäre Rolle | Grund | Bedeutungsänderung | Interaktionsziel | Hervorhebung |
+|---|---|---|---|---|---|---|---|---|
+| `S05.freeSearch.passphraseGenerator.narration`, Mission `s05-passphrase-generator` | Nutzerauftrag vom 2026-08-09 | Passphrasen-Erklärung und sichtbarer Generator zwischen Strukturprüfung und Zeichenmix | entfällt aus dem Ablauf; Generator-UI bleibt nicht eingebunden erhalten | Orientierung | ausdrücklich verlangte Entfernung des Zwischenschritts bei Erhalt der UI für spätere Verwendung | begrenzt | kein | keine |
+| `S05.freeSearch.transition.explanation` | Nutzerauftrag vom 2026-08-09 | allgemeiner Übergang zum vollständigen Durchprobieren | `Solche Anzeigen kennst du vielleicht aus deinem Alltag. Hier erfüllt Passw0rt123! alle angezeigten Regeln und wird als stark bewertet.` | Orientierung | bindet den Einstieg unmittelbar an die erste sichtbare Anzeige | ausdrücklich freigegeben | `Weiter` | keine |
+| `S05.freeSearch.characterMix.narration[0]` | Nutzerauftrag vom 2026-08-09 | bisheriger Einstieg zur Regelanzeige | `Beide Passwörter sind gleich lang und enthalten alle vier Zeichentypen. Das rechte Passwort besteht dagegen aus zwölf zufällig erzeugten Zeichen.` | Mechanismuserklärung | ordnet die zweite Anzeige und den Zufallsunterschied ein | ausdrücklich freigegeben | `Weiter` | `zufällig erzeugten` in Akzentfarbe |
+| `S05.freeSearch.characterMix.narration[1]` | Nutzerauftrag vom 2026-08-09 | ausführlicher Mustervergleich | `Da sie häufig nur prüfen, ob die gezeigten Regeln erfüllt sind. Deshalb kann ein Passwort als stark gelten und trotzdem früh gefunden werden.` | Ergebnisfeedback | erklärt die gleichzeitig sichtbare Angreifer-Trefferanimation | ausdrücklich freigegeben | `Weiter` | keine |
+| `S05.freeSearch.characterMix.narration[2]` | Nutzerauftrag vom 2026-08-09 | allgemeine Erklärung zufälliger Zeichentypen | `Die verschiedenen Zeichentypen könnten ein Passwort stärker machen, sind aber bei selbst gewählten Passwörtern schwer unvorhersehbar einzusetzen.` | Mechanismuserklärung | begleitet die nacheinander sichtbaren selbst gewählten Variationen | ausdrücklich freigegeben | `Weiter` | keine |
+| `S05.freeSearch.characterMix.narration[3]` | Nutzerauftrag vom 2026-08-09 | ungeeignete Überraschungsstrategie | `Darauf zu setzen, mit einer komplizierten Mischung wie „mEin!Pa55w0rt?“ eine Variante zu finden, die der Angreifer nicht prüft, ist deshalb riskant.` | Kerngedanke | bindet die Risikoeinordnung an die stehenbleibende Endvariation | ausdrücklich freigegeben | `Weiter` | `riskant` in Warnfarbe |
+| `S05.freeSearch.characterMix.narration[4]` | Nutzerauftrag vom 2026-08-09 | Länge als primärer Faktor | `Keine Sorge, darauf musst du dich nicht verlassen. Für ein starkes Passwort brauchst du vor allem genügend Länge.` | Kerngedanke | unterstützende Brücke zur sich aufbauenden Skala | ausdrücklich freigegeben | `Weiter` | `Länge` in Akzentfarbe |
+| `S05.freeSearch.characterMix.narration[5..6]` | Nutzerauftrag vom 2026-08-09 | kein eigener vorbereitender Sprechschritt zur Modellannahme | `Die bisherigen Beispiele haben aber auch gezeigt: Gleiche Länge bedeutet nicht automatisch gleiche Sicherheit.` / `Um also ein Gefühl dafür zu bekommen, welche Mindestlänge dein Passwort haben sollte, gehen wir von einem Passwort aus, das nur aus zufällig gewählten Kleinbuchstaben besteht.` | Mechanismuserklärung | führt die sichtbare Kleinbuchstaben-Veranschaulichung und ihre Annahme gemeinsam ein | ausdrücklich freigegeben | `Weiter` | `Mindestlänge` in Akzentfarbe |
+| `S05.freeSearch.estimate.question` | Nutzerauftrag vom 2026-08-09 | längere Wiederholung von Länge, Zufall und Kleinbuchstaben vor der Schätzung | `Was glaubst du: Ab welcher Länge wird es für einen Angreifer zu aufwendig, alle Möglichkeiten durchzuprobieren?` | Navigation | stellt die Schätzfrage nach der bereits sichtbaren Modellannahme ohne Wiederholung | ausdrücklich freigegeben | Schätzskala und `Schätzung bestätigen` | `welcher Länge` und `zu aufwendig` als ausdrücklich verlangte gekoppelte Hervorhebung |
+
+Die Visualfolge verwendet zuerst eine, dann zwei vorhandene Passwortstärkeanzeigen. Beim dritten
+Schritt markiert die bestehende Angreiferdarstellung den frühen Treffer. Danach wechselt
+`meinPasswort` rein visuell durch mehrere Varianten und bleibt im Folgeschritt bei
+`mEin!Pa55w0rt?` stehen. Auf der dunklen Fläche zeichnet sich anschließend zunächst nur die
+Längenskala; im nächsten Schritt erscheint die vorhandene Kleinbuchstaben-Veranschaulichung. Erst
+mit der eigenen Frageblase werden die vorhandenen Schätzoptionen eingeblendet. Die
+Variantenanimation zeigt bei `prefers-reduced-motion` direkt ihren Endzustand.
+
+#### Korrektur Zeichenmix-Feedback und Variantenwechsel 9. August 2026
+
+Quelle ist der ausdrückliche Nutzerauftrag vom 9. August 2026. Das Ergebnisfeedback verwendet
+nun `stark markiert` statt `stark gelten`, damit es sich eindeutig auf die sichtbare Anzeige
+bezieht. Die Variantenansicht wechselt ohne Überblendung alle 80 Millisekunden an derselben
+Position durch genau 100 deterministisch erzeugte Schreibvarianten. Die nächste Sprechblase zeigt
+weiterhin ausschließlich `mEin!Pa55w0rt?`. Bei `prefers-reduced-motion` bleibt unmittelbar diese
+Endvariation sichtbar. Analyse, Interaktion, Persistenz und Export bleiben unverändert.
+`S05_CONTENT_VERSION` wird von `2.50.0` auf `2.50.1` erhöht.
+
+| Segment und Text-ID | Quelle | Aktueller Text | Geplanter Text | Primäre Rolle | Grund | Bedeutungsänderung | Interaktionsziel | Hervorhebung |
+|---|---|---|---|---|---|---|---|---|
+| `S05.freeSearch.characterMix.narration[1]` | Nutzerauftrag vom 2026-08-09 | `Da sie häufig nur prüfen, ob die gezeigten Regeln erfüllt sind. Deshalb kann ein Passwort als stark gelten und trotzdem früh gefunden werden.` | `Sie prüfen häufig nur, ob die gezeigten Regeln erfüllt sind. Deshalb kann ein Passwort als stark markiert werden und trotzdem früh gefunden werden.` | Ergebnisfeedback | ausdrücklich vorgegebene Präzisierung des Bezugs auf die sichtbare Markierung | begrenzt | `Weiter` | keine |

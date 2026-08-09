@@ -4,7 +4,7 @@ import { S05_CONTENT_VERSION, s05Content } from './s05.js';
 
 describe('S05 content traceability', () => {
   it('keeps the participant copy bounded and separate from internal terminology', () => {
-    expect(S05_CONTENT_VERSION).toBe('2.49.1');
+    expect(S05_CONTENT_VERSION).toBe('2.50.1');
     expect(s05Content.source).toMatchObject({
       document: 'research/private/training-script.pdf',
       internalPages: [
@@ -218,14 +218,19 @@ describe('S05 content traceability', () => {
     );
     expect(s05Content.freeSearch.estimate.alphabetLabel).toBe('zufällig gewählt');
     expect(s05Content.freeSearch.transition.explanation).toBe(
-      'Ohne die gelernten Anhaltspunkte kann der Angreifer immer noch alle möglichen Zeichenkombinationen durchprobieren. Viele bekannte Passwortregeln sollen genau das erschweren.',
+      'Solche Anzeigen kennst du vielleicht aus deinem Alltag. Hier erfüllt Passw0rt123! alle angezeigten Regeln und wird als stark bewertet.',
     );
+    expect(s05Content.animations.map(([id]) => id)).not.toContain('s05-passphrase-generator');
     expect(s05Content.freeSearch.characterMix.checks[0]).toBe('mindestens 12 Zeichen');
+    expect(s05Content.freeSearch.characterMix.variations).toHaveLength(100);
+    expect(s05Content.freeSearch.characterMix.narration[1]).toBe(
+      'Sie prüfen häufig nur, ob die gezeigten Regeln erfüllt sind. Deshalb kann ein Passwort als stark markiert werden und trotzdem früh gefunden werden.',
+    );
     expect(s05Content.freeSearch.characterMix.narration[3]).toBe(
-      'Verschiedene Zeichentypen können ein Passwort stärker machen, wenn die Zeichen wirklich zufällig gewählt werden. Bei selbst gewählten Passwörtern entstehen daraus jedoch typischerweise vorhersehbare Variationen.',
+      'Darauf zu setzen, mit einer komplizierten Mischung wie „mEin!Pa55w0rt?“ eine Variante zu finden, die der Angreifer nicht prüft, ist deshalb riskant.',
     );
     expect(s05Content.freeSearch.estimate.question).toBe(
-      'Schauen wir uns deshalb zum Abschluss an, was allein die Länge bewirken kann. Dafür wird jede Stelle im Passwort zufällig aus Kleinbuchstaben gewählt. Was glaubst du: Ab welcher Länge wird es selbst mit nur Kleinbuchstaben für einen Angreifer zu aufwendig, alle möglichen Zeichenfolgen durchzuprobieren?',
+      'Was glaubst du: Ab welcher Länge wird es für einen Angreifer zu aufwendig, alle Möglichkeiten durchzuprobieren?',
     );
     expect(s05Content.freeSearch.estimate.options).toEqual([12, 13, 14, 15, 16, 17, 18, 19, 20]);
     expect(s05Content.fixtures.find(({ id }) => id === 'all-categories')).toMatchObject({

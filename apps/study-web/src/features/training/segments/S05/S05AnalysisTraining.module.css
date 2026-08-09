@@ -1108,6 +1108,7 @@
 }
 
 .structurePattern {
+  position: relative;
   min-width: 0;
   padding: clamp(var(--space-3), 1.8vw, var(--space-5));
   border: var(--border-width-medium) solid transparent;
@@ -1118,9 +1119,15 @@
 .structurePattern[data-active="true"] {
   border-color: rgb(255 255 255 / 92%);
   background: rgb(255 255 255 / 4%);
-  animation:
-    structure-pattern-arrival 520ms var(--motion-ease-out) both,
-    structure-pattern-emphasis 1.15s ease-in-out 520ms infinite;
+}
+
+.structurePattern[data-active="true"]::after {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  animation: structure-pattern-emphasis 1.15s ease-in-out 520ms infinite;
+  content: '';
 }
 
 .structurePattern h2 {
@@ -1285,6 +1292,10 @@
 .structurePasswordCheck .canonicalAccount span {
   width: clamp(2.25rem, 3vw, 2.75rem);
   height: clamp(2.25rem, 3vw, 2.75rem);
+}
+
+.structureSequence {
+  display: contents;
 }
 
 .structureApplication {
@@ -1572,6 +1583,66 @@
   pointer-events: none;
 }
 
+.passwordVariationScene,
+.lengthScaleScene {
+  display: grid;
+  width: min(100%, 68rem);
+  min-height: 100%;
+  margin: 0 auto;
+  padding-bottom: clamp(10rem, 24vh, 15rem);
+  place-content: center;
+}
+
+.passwordVariationScene {
+  gap: clamp(var(--space-5), 6vw, var(--space-8));
+  justify-items: center;
+  color: white;
+}
+
+.variationSequence code {
+  padding: var(--space-3) var(--space-5);
+  border: var(--border-width-thin) solid rgb(255 255 255 / 42%);
+  border-radius: var(--radius-small);
+  background: rgb(255 255 255 / 8%);
+  font-family: ui-monospace, monospace;
+  font-size: clamp(1.35rem, 4vw, 2.8rem);
+  letter-spacing: 0.04em;
+}
+
+.variationSequence {
+  position: relative;
+  display: grid;
+  min-width: min(90vw, 30rem);
+  min-height: 5.5rem;
+  place-items: center;
+}
+
+.variationSequence code {
+  position: absolute;
+  opacity: 0;
+  animation: password-variation-cycle 8s steps(1, end) infinite;
+  animation-delay: calc(var(--variation-index) * 80ms);
+}
+
+.variationSequence[data-final="true"] code {
+  opacity: 1;
+  border-color: rgb(255 255 255 / 72%);
+  animation: none;
+}
+
+.lengthScaleScene .estimateRuler {
+  width: min(90vw, 62rem);
+}
+
+.estimateRuler[data-animate="true"] .estimateTicks {
+  transform-origin: left center;
+  animation: length-scale-draw 1.2s var(--motion-ease-out) both;
+}
+
+.estimateRuler[data-animate="true"] .estimateMarkerRow {
+  animation: length-scale-reveal 700ms var(--motion-ease-out) 700ms both;
+}
+
 .estimateScene {
   display: grid;
   width: min(100%, 68rem);
@@ -1637,6 +1708,35 @@
   to {
     opacity: 1;
     transform: translateY(0);
+  }
+}
+
+@keyframes password-variation-cycle {
+  0%,
+  1% {
+    opacity: 1;
+  }
+  1.01%,
+  100% {
+    opacity: 0;
+  }
+}
+
+@keyframes length-scale-draw {
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: scaleX(1);
+  }
+}
+
+@keyframes length-scale-reveal {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
   }
 }
 
@@ -3105,7 +3205,11 @@
   .categoryTransition,
   .structurePattern,
   .structurePattern[data-active="true"],
+  .structurePattern[data-active="true"]::after,
   .characterChecklist,
+  .variationSequence code,
+  .estimateRuler[data-animate="true"] .estimateTicks,
+  .estimateRuler[data-animate="true"] .estimateMarkerRow,
   .strategyTargetingSource,
   .strategyTargetingSource [data-block-value],
   .strategyTargetingSource [data-block-value]::after,
@@ -3114,6 +3218,23 @@
   .strategyCandidateScene .attackerConnection,
   .strategyCandidateAttempt {
     animation: none;
+  }
+
+  .variationSequence code {
+    display: none;
+  }
+
+  .variationSequence code:last-child {
+    display: block;
+    opacity: 1;
+  }
+
+  .estimateRuler[data-animate="true"] .estimateTicks {
+    transform: none;
+  }
+
+  .estimateRuler[data-animate="true"] .estimateMarkerRow {
+    opacity: 1;
   }
 
   .categoryTransition {

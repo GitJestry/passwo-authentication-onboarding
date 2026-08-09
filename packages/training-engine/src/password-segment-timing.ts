@@ -68,7 +68,7 @@ export const passwordSegmentTimingPlan = {
   },
   S04: {
     scope: { segmentId: 'S04', sectionId: 'passwords' },
-    nextSegmentId: 'S05',
+    nextSegmentId: null,
     boundaries: {
       'segment-start': {
         recordedEvent: { type: 'S04_START_RECORDED' },
@@ -84,7 +84,7 @@ export const passwordSegmentTimingPlan = {
   },
   S05: {
     scope: { segmentId: 'S05', sectionId: 'passwords' },
-    nextSegmentId: 'S06',
+    nextSegmentId: null,
     boundaries: {
       'segment-start': {
         recordedEvent: { type: 'S05_START_RECORDED' },

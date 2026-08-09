@@ -63,7 +63,6 @@ export type S05AnalysisStep =
   | 'structure-repetition'
   | 'structure-repetition-guessing'
   | 'structure-application'
-  | 'passphrase-generator'
   | 'free-search-transition'
   | 'character-mix-first'
   | 'character-mix-comparison'
@@ -162,7 +161,6 @@ const stepByMissionId: Readonly<Record<string, S05AnalysisStep>> = {
   's05-structure-repetition': 'structure-repetition',
   's05-structure-repetition-guessing': 'structure-repetition-guessing',
   's05-structure-application': 'structure-application',
-  's05-passphrase-generator': 'passphrase-generator',
   's05-free-search-transition': 'free-search-transition',
   's05-character-mix-first': 'character-mix-first',
   's05-character-mix-comparison': 'character-mix-comparison',

@@ -7,7 +7,7 @@ const canonicalAccountIds = ['master-campus', 'campus-email', 'campusgram'] as c
 
 describe('S00 to S02 training-content traceability', () => {
   it('keeps S00 linked to its named source page and canonical accounts', () => {
-    expect(S00_CONTENT_VERSION).toBe('1.19.0');
+    expect(S00_CONTENT_VERSION).toBe('1.20.0');
     expect(s00Content.source).toMatchObject({
       document: 'research/private/training-script.pdf',
       internalPage: 2,
@@ -15,6 +15,16 @@ describe('S00 to S02 training-content traceability', () => {
         'docs/design/S00-S05-COPY-AUDIT.md#s00----einstieg-und-browserorientierung',
     });
     expect(s00Content.segment.id).toBe('S00');
+    expect(s00Content.sectionTransition).toMatchObject({
+      label: 'Sektion 1 von 3',
+      title: 'Starke Passwörter',
+      parts: [
+        { id: 'account-setup', label: 'Konten einrichten' },
+        { id: 'password-strength', label: 'Passwortstärke verstehen' },
+        { id: 'unique-passwords', label: 'Passwörter einzigartig halten' },
+        { id: 'change-passwords', label: 'Passwörter ändern' },
+      ],
+    });
     expect(s00Content.browser.tabs.map(({ id }) => id)).toEqual(canonicalAccountIds);
     expect(s00Content.entry.paragraphs[0]).toBe(
       'Aloha! Ich bin PassWo und begleite dich heute durch das Training.',

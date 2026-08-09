@@ -127,20 +127,11 @@ const emphasisBySpeechId: Readonly<Record<string, readonly PassWoSpeechEmphasis[
     { phrase: 'Wiederholungsmuster', tone: 'accent' },
   ],
   's05-structure-intro': [{ phrase: 'typische Muster', tone: 'accent' }],
-  's05-passphrase-generator': [{ phrase: 'Wichtig', tone: 'accent' }],
-  's05-free-search-transition': [
-    { phrase: 'alle möglichen Zeichenkombinationen durchprobieren', tone: 'accent' },
-  ],
-  's05-character-mix-comparison': [{ phrase: 'zufällig erzeugten', tone: 'accent' }],
-  's05-character-mix-strategy': [{ phrase: 'keine gute Strategie.', tone: 'warning' }],
-  's05-character-mix-takeaway': [
-    { phrase: 'die Länge', tone: 'accent' },
-  ],
-  's05-character-mix-types': [
-    { phrase: 'wirklich zufällig', tone: 'accent' },
-  ],
+  's05-character-mix-first': [{ phrase: 'zufällig erzeugten', tone: 'accent' }],
+  's05-character-mix-types': [{ phrase: 'riskant', tone: 'warning' }],
+  's05-character-mix-strategy': [{ phrase: 'Länge', tone: 'accent' }],
+  's05-character-mix-takeaway': [{ phrase: 'Mindestlänge', tone: 'accent' }],
   's05-estimate': [
-    { phrase: 'zufällig', tone: 'accent', contrastId: 'estimate-threshold' },
     { phrase: 'welcher Länge', tone: 'accent', contrastId: 'estimate-threshold' },
     { phrase: 'zu aufwendig', tone: 'accent', contrastId: 'estimate-threshold' },
   ],

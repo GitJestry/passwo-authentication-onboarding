@@ -169,11 +169,15 @@ describe('passwordModuleMachine', () => {
     startS04(actor);
     actor.send({ type: 'S04_COMPLETED' });
     actor.send({ type: 'S04_END_RECORDED' });
+    expect(actor.getSnapshot().matches('strengthTransition')).toBe(true);
+    actor.send({ type: 'SECTION_TRANSITION_COMPLETED' });
     actor.send({ type: 'S05_START_RECORDED' });
     actor.send({ type: 'S05_COMPLETED' });
 
     expect(actor.getSnapshot().matches({ s05: 'writingEnd' })).toBe(true);
     actor.send({ type: 'S05_END_RECORDED' });
+    expect(actor.getSnapshot().matches('uniquenessTransition')).toBe(true);
+    actor.send({ type: 'SECTION_TRANSITION_COMPLETED' });
     expect(actor.getSnapshot().matches({ s06: 'writingStart' })).toBe(true);
     actor.send({ type: 'S06_START_RECORDED' });
     expect(actor.getSnapshot().matches({ s06: 'active' })).toBe(true);
@@ -186,6 +190,8 @@ describe('passwordModuleMachine', () => {
     actor.send({ type: 'S07_COMPLETED' });
     expect(actor.getSnapshot().matches({ s07: 'writingEnd' })).toBe(true);
     actor.send({ type: 'S07_END_RECORDED' });
+    expect(actor.getSnapshot().matches('changeTransition')).toBe(true);
+    actor.send({ type: 'SECTION_TRANSITION_COMPLETED' });
     expect(actor.getSnapshot().matches('awaiting-s08')).toBe(true);
   });
 
@@ -210,6 +216,7 @@ describe('passwordModuleMachine', () => {
     expect(actor.getSnapshot().matches({ s04: 'endWriteFailed' })).toBe(true);
     actor.send({ type: 'RETRY_S04_END' });
     actor.send({ type: 'S04_END_RECORDED' });
+    actor.send({ type: 'SECTION_TRANSITION_COMPLETED' });
     actor.send({ type: 'S05_START_FAILED', errorCode: 's05-start-failed' });
     expect(actor.getSnapshot().matches({ s05: 'startWriteFailed' })).toBe(true);
     actor.send({ type: 'RETRY_S05_START' });
@@ -219,6 +226,7 @@ describe('passwordModuleMachine', () => {
     expect(actor.getSnapshot().matches({ s05: 'endWriteFailed' })).toBe(true);
     actor.send({ type: 'RETRY_S05_END' });
     actor.send({ type: 'S05_END_RECORDED' });
+    actor.send({ type: 'SECTION_TRANSITION_COMPLETED' });
     actor.send({ type: 'S06_START_FAILED', errorCode: 's06-start-failed' });
     expect(actor.getSnapshot().matches({ s06: 'startWriteFailed' })).toBe(true);
     actor.send({ type: 'RETRY_S06_START' });
@@ -237,6 +245,7 @@ describe('passwordModuleMachine', () => {
     expect(actor.getSnapshot().matches({ s07: 'endWriteFailed' })).toBe(true);
     actor.send({ type: 'RETRY_S07_END' });
     actor.send({ type: 'S07_END_RECORDED' });
+    actor.send({ type: 'SECTION_TRANSITION_COMPLETED' });
 
     expect(actor.getSnapshot().matches('awaiting-s08')).toBe(true);
     expect(actor.getSnapshot().context).not.toHaveProperty('s05Result');
@@ -267,9 +276,11 @@ describe('passwordModuleMachine', () => {
     startS04(actor);
     actor.send({ type: 'S04_COMPLETED' });
     actor.send({ type: 'S04_END_RECORDED' });
+    actor.send({ type: 'SECTION_TRANSITION_COMPLETED' });
     actor.send({ type: 'S05_START_RECORDED' });
     actor.send({ type: 'S05_COMPLETED' });
     actor.send({ type: 'S05_END_RECORDED' });
+    actor.send({ type: 'SECTION_TRANSITION_COMPLETED' });
     actor.send({ type: 'S06_START_RECORDED' });
     actor.send({ type: 'S06_COMPLETED' });
     actor.send({ type: 'S06_END_RECORDED' });

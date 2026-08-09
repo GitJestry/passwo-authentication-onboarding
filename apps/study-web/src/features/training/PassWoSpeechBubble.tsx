@@ -29,7 +29,6 @@ export type PassWoSpeechAction =
 export interface PassWoSpeechBubbleProps {
   readonly speaker: string;
   readonly paragraphs: readonly string[];
-  readonly speechKey: string;
   readonly placement?: PassWoSpeechPlacement;
   readonly tone?: PassWoSpeechTone;
   readonly emphasis?: readonly PassWoSpeechEmphasis[];
@@ -125,7 +124,6 @@ function actionLabel(action: PassWoSpeechAction): string {
 export function PassWoSpeechBubble({
   speaker,
   paragraphs,
-  speechKey,
   placement = 'right',
   tone = 'light',
   emphasis = noSpeechEmphasis,
@@ -157,19 +155,19 @@ export function PassWoSpeechBubble({
       <span id={headingId} className={styles.speaker}>
         {speaker}
       </span>
-      <div className={styles.textLayout} key={speechKey}>
+      <div className={styles.textLayout}>
         {paragraphLayout.map(({ segments }, paragraphIndex) => (
-            <span className={styles.paragraph} key={`${speechKey}-${paragraphIndex}`}>
+            <span className={styles.paragraph} key={paragraphIndex}>
               {segments.map((segment, segmentIndex) => {
                 if (segment.emphasis === undefined) {
-                  return <span key={`${speechKey}-${paragraphIndex}-${segmentIndex}`}>{segment.text}</span>;
+                  return <span key={segmentIndex}>{segment.text}</span>;
                 }
 
                 return (
                   <strong
                     className={styles.emphasis}
                     data-emphasis-tone={segment.emphasis.tone}
-                    key={`${speechKey}-${paragraphIndex}-${segmentIndex}`}
+                    key={segmentIndex}
                   >
                     {!segment.emphasis.showSymbol ? null : (
                       <span className={styles.inlineSymbol} aria-hidden="true">

@@ -16,6 +16,41 @@ const campusgramContextConveyorBlocks = [
   ).values(),
 ];
 
+const characterMixVariationStems = [
+  'meinPasswort',
+  'MeinPasswort',
+  'MEINPasswort',
+  'meinpasswort',
+  'mEinPasswort',
+  'meinPaSSwort',
+  'meinPassw0rt',
+  'me1nPasswort',
+  'm3inPa55wort',
+  'mEinPa55w0rt',
+] as const;
+
+const characterMixVariationSuffixes = [
+  '',
+  '1',
+  '!',
+  '?',
+  '12',
+  '123',
+  '2026',
+  '!1',
+  '?1',
+  '!?',
+] as const;
+
+const characterMixFinalVariation = 'mEin!Pa55w0rt?';
+
+const characterMixVariations = [
+  ...characterMixVariationStems.flatMap((stem) =>
+    characterMixVariationSuffixes.map((suffix) => `${stem}${suffix}`),
+  ).slice(0, 99),
+  characterMixFinalVariation,
+] as const;
+
 export type S05DesignLabFixtureId =
   | 'common-suffix'
   | 'all-categories'
@@ -36,7 +71,7 @@ export interface S05DesignLabFixture {
   readonly startSection: 'intro' | 'components' | 'structure';
 }
 
-export const S05_CONTENT_VERSION = '2.49.1';
+export const S05_CONTENT_VERSION = '2.50.1';
 
 export const s05Content = {
   version: S05_CONTENT_VERSION,
@@ -47,9 +82,9 @@ export const s05Content = {
       35,
     ] as const,
     revision:
-      'Userauftrag vom 2026-08-09 · sofort sichtbare, schrittweise enthüllte Fortschrittsleiste für S05',
+      'Userauftrag vom 2026-08-09 · schneller Wechsel durch 100 Zeichenmix-Variationen',
     copyReference:
-      'docs/design/S00-S05-COPY-AUDIT.md#copy-delta-s05-fortschrittsleiste-9-august-2026',
+      'docs/design/S00-S05-COPY-AUDIT.md#copy-delta-s05-zeichenmix-und-längenfolge-9-august-2026',
   },
   segment: {
     id: 'S05',
@@ -412,7 +447,7 @@ export const s05Content = {
     },
     transition: {
       explanation:
-        'Ohne die gelernten Anhaltspunkte kann der Angreifer immer noch alle möglichen Zeichenkombinationen durchprobieren. Viele bekannte Passwortregeln sollen genau das erschweren.',
+        'Solche Anzeigen kennst du vielleicht aus deinem Alltag. Hier erfüllt Passw0rt123! alle angezeigten Regeln und wird als stark bewertet.',
     },
     characterMix: {
       panelTitle: 'Passwort erstellen',
@@ -423,20 +458,23 @@ export const s05Content = {
       checks: ['mindestens 12 Zeichen', 'Großbuchstabe', 'Kleinbuchstabe', 'Zahl', 'Sonderzeichen'],
       predictablePassword: 'Passw0rt123!',
       randomPassword: 'rQ7!m2vX9?pK',
+      finalVariation: characterMixFinalVariation,
+      variations: characterMixVariations,
       narration: [
-        'Solche Anzeigen kennst du vielleicht aus deinem Alltag. Hier erfüllt Passw0rt123! alle angezeigten Regeln und wird als stark bewertet.',
         'Beide Passwörter sind gleich lang und enthalten alle vier Zeichentypen. Das rechte Passwort besteht dagegen aus zwölf zufällig erzeugten Zeichen.',
-        'Solche Anzeigen prüfen häufig nur, ob die gezeigten Regeln erfüllt sind. Für den Angreifer macht die Art der Wahl aber einen großen Unterschied: Passw0rt123! folgt mehreren menschlichen Mustern. Beim rechten Passwort fehlen ihm solche Anhaltspunkte.',
-        'Verschiedene Zeichentypen können ein Passwort stärker machen, wenn die Zeichen wirklich zufällig gewählt werden. Bei selbst gewählten Passwörtern entstehen daraus jedoch typischerweise vorhersehbare Variationen.',
-        'Darauf zu setzen, den Angreifer mit einer selbst gewählten Mischung aus Zeichentypen zu überraschen wie mEin!Pa55w0rt?, ist deshalb keine gute Strategie.',
-        'Keine Sorge, das musst du auch nicht. Für die Stärke deines Passworts ist die Länge der primäre Faktor.',
+        'Sie prüfen häufig nur, ob die gezeigten Regeln erfüllt sind. Deshalb kann ein Passwort als stark markiert werden und trotzdem früh gefunden werden.',
+        'Die verschiedenen Zeichentypen könnten ein Passwort stärker machen, sind aber bei selbst gewählten Passwörtern schwer unvorhersehbar einzusetzen.',
+        'Darauf zu setzen, mit einer komplizierten Mischung wie „mEin!Pa55w0rt?“ eine Variante zu finden, die der Angreifer nicht prüft, ist deshalb riskant.',
+        'Keine Sorge, darauf musst du dich nicht verlassen. Für ein starkes Passwort brauchst du vor allem genügend Länge.',
+        'Die bisherigen Beispiele haben aber auch gezeigt: Gleiche Länge bedeutet nicht automatisch gleiche Sicherheit.',
+        'Um also ein Gefühl dafür zu bekommen, welche Mindestlänge dein Passwort haben sollte, gehen wir von einem Passwort aus, das nur aus zufällig gewählten Kleinbuchstaben besteht.',
       ],
     },
     estimate: {
       title: 'Deine Schätzung',
       alphabetLabel: 'zufällig gewählt',
       question:
-        'Schauen wir uns deshalb zum Abschluss an, was allein die Länge bewirken kann. Dafür wird jede Stelle im Passwort zufällig aus Kleinbuchstaben gewählt. Was glaubst du: Ab welcher Länge wird es selbst mit nur Kleinbuchstaben für einen Angreifer zu aufwendig, alle möglichen Zeichenfolgen durchzuprobieren?',
+        'Was glaubst du: Ab welcher Länge wird es für einen Angreifer zu aufwendig, alle Möglichkeiten durchzuprobieren?',
       options: [12, 13, 14, 15, 16, 17, 18, 19, 20] as const,
       marker: 'Deine Schätzung',
       confirm: 'Schätzung bestätigen',
@@ -596,7 +634,6 @@ export const s05Content = {
     ['s05-structure-repetition', 'structure-repetition', 'warning'],
     ['s05-structure-repetition-guessing', 'structure-repetition', 'warning'],
     ['s05-structure-application', 'structure-application', 'warning'],
-    ['s05-passphrase-generator', 'passphrase-generator', 'info'],
     ['s05-free-search-transition', 'character-mix', 'info'],
     ['s05-character-mix-first', 'character-mix', 'info'],
     ['s05-character-mix-comparison', 'character-mix', 'info'],

@@ -1,5 +1,14 @@
 # S06--S07 Copy Audit
 
+## Copy-Delta Fortschrittskarte vor S06 und nach S07, 9. August 2026
+
+Quelle ist der ausdrückliche Nutzerauftrag vom 9. August 2026. Die segmentübergreifende
+Fortschrittskarte wird vor S06 mit `Passwörter einzigartig halten` als aktivem Teil und nach S07
+mit `Passwörter ändern` als aktivem Teil gezeigt. Beide Textflächen dienen ausschließlich der
+Orientierung, haben kein Interaktionsziel und führen keine neue Sicherheitsbehauptung ein. Das
+vollständige Copy-Delta einschließlich Content-Version ist im
+`S00--S05 Copy and Interaction Audit` dokumentiert.
+
 ## Copy-Delta vollständiger Prüfweg und Längenorientierung 3. August 2026
 
 Quelle sind das Trainingsskript, `ADR 0014-Bounded-Password-Guessing` und die technische

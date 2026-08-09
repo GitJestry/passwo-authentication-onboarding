@@ -10,6 +10,7 @@ import {
   getS06ConsequenceFixtureByRouteId,
   getS06PreparedS07EvaluationFixtureByRouteId,
   type S01AccountId,
+  s00Content,
   s01AccountIds,
   s01Content,
 } from '@passwo/training-content';
@@ -24,6 +25,7 @@ import {
 import { useEffect, useState } from 'react';
 import { S00Training } from '../features/training/S00Training.js';
 import { S01Training } from '../features/training/S01Training.js';
+import { SectionTransition } from '../features/training/SectionTransition.js';
 import { S02AccountExplorationTraining } from '../features/training/segments/S02/S02AccountExplorationTraining.js';
 import { S03RetrievalTraining } from '../features/training/segments/S03/S03RetrievalTraining.js';
 import { S04IncidentTraining } from '../features/training/segments/S04/S04IncidentTraining.js';
@@ -640,6 +642,20 @@ function PasswordModuleSegmentPreview({
         controller={controller}
         snapshot={snapshot}
         {...(view === 'auth' ? { initialLoginAccountId: accountId } : {})}
+      />
+    );
+  }
+  if (snapshot.matches('strengthTransition')) {
+    return (
+      <SectionTransition
+        sectionLabel={s00Content.sectionTransition.label}
+        title={s00Content.sectionTransition.title}
+        currentSection={1}
+        totalSections={3}
+        parts={s00Content.sectionTransition.parts}
+        currentPart={2}
+        holdDurationMs={s00Content.sectionTransition.holdDurationMs}
+        onComplete={() => controller.completeSectionTransition()}
       />
     );
   }

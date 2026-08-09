@@ -176,13 +176,25 @@ export function PasswordModuleTraining({
   const controller = controllerRef.current;
   if (controller === null) return null;
 
-  if (snapshot.matches('sectionTransition')) {
+  const transitionPart = snapshot.matches('sectionTransition')
+    ? 1
+    : snapshot.matches('strengthTransition')
+      ? 2
+      : snapshot.matches('uniquenessTransition')
+        ? 3
+        : snapshot.matches('changeTransition')
+          ? 4
+          : null;
+
+  if (transitionPart !== null) {
     return (
       <SectionTransition
         sectionLabel={s00Content.sectionTransition.label}
         title={s00Content.sectionTransition.title}
         currentSection={1}
         totalSections={3}
+        parts={s00Content.sectionTransition.parts}
+        currentPart={transitionPart}
         holdDurationMs={s00Content.sectionTransition.holdDurationMs}
         onComplete={() => controller.completeSectionTransition()}
       />
@@ -213,7 +225,6 @@ export function PasswordModuleTraining({
               className={styles.entrySpeech}
               speaker={s00Content.narration.guideName}
               paragraphs={s00Content.entry.paragraphs}
-              speechKey="module-entry"
               emphasis={passWoSpeechEmphasisFor('module-entry')}
               placement={entrySpeechPosition?.side ?? 'right'}
               {...(entrySpeechPosition === null

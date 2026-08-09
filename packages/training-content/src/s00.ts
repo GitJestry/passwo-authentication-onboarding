@@ -25,6 +25,14 @@ export interface S00SegmentContent {
     readonly label: string;
     readonly title: string;
     readonly holdDurationMs: number;
+    readonly parts: readonly {
+      readonly id:
+        | 'account-setup'
+        | 'password-strength'
+        | 'unique-passwords'
+        | 'change-passwords';
+      readonly label: string;
+    }[];
   };
   readonly source: {
     readonly document: string;
@@ -73,7 +81,7 @@ export interface S00SegmentContent {
   };
 }
 
-export const S00_CONTENT_VERSION = '1.19.0';
+export const S00_CONTENT_VERSION = '1.20.0';
 
 export const s00Content: S00SegmentContent = {
   version: S00_CONTENT_VERSION,
@@ -90,9 +98,15 @@ export const s00Content: S00SegmentContent = {
     startLabel: 'Training starten',
   },
   sectionTransition: {
-    label: 'Sektion 1',
+    label: 'Sektion 1 von 3',
     title: 'Starke Passwörter',
     holdDurationMs: 3500,
+    parts: [
+      { id: 'account-setup', label: 'Konten einrichten' },
+      { id: 'password-strength', label: 'Passwortstärke verstehen' },
+      { id: 'unique-passwords', label: 'Passwörter einzigartig halten' },
+      { id: 'change-passwords', label: 'Passwörter ändern' },
+    ],
   },
   source: {
     document: 'research/private/training-script.pdf',

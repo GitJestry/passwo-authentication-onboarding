@@ -126,9 +126,13 @@ describe('PasswordModuleController', () => {
     controller.completeS04();
     await flushMicrotasks();
     await flushMicrotasks();
+    controller.completeSectionTransition();
+    await flushMicrotasks();
     controller.completeS05();
     controller.completeS05();
     await flushMicrotasks();
+    await flushMicrotasks();
+    controller.completeSectionTransition();
     await flushMicrotasks();
     controller.setS06EvaluationInput(evaluationInput);
     controller.completeS06();
@@ -138,6 +142,7 @@ describe('PasswordModuleController', () => {
     controller.setS07Recommendations(recommendationProjection);
     controller.completeS07();
     await flushMicrotasks();
+    controller.completeSectionTransition();
 
     expect(timingEvents).toEqual([
       { eventType: 'segment-start', segmentId: 'S01', sectionId: 'passwords' },
@@ -212,6 +217,7 @@ describe('PasswordModuleController', () => {
     await flushMicrotasks();
     controller.retryTiming();
     await flushMicrotasks();
+    controller.completeSectionTransition();
     await flushMicrotasks();
     controller.retryTiming();
     await flushMicrotasks();
@@ -219,6 +225,7 @@ describe('PasswordModuleController', () => {
     await flushMicrotasks();
     controller.retryTiming();
     await flushMicrotasks();
+    controller.completeSectionTransition();
     await flushMicrotasks();
     controller.retryTiming();
     await flushMicrotasks();
@@ -234,6 +241,7 @@ describe('PasswordModuleController', () => {
     await flushMicrotasks();
     controller.retryTiming();
     await flushMicrotasks();
+    controller.completeSectionTransition();
 
     expect(
       timingEvents.filter(

@@ -15,6 +15,11 @@ export interface SectionTransitionProps {
   readonly title: string;
   readonly currentSection: number;
   readonly totalSections: number;
+  readonly parts: readonly {
+    readonly id: string;
+    readonly label: string;
+  }[];
+  readonly currentPart: number;
   readonly holdDurationMs: number;
   readonly onComplete: () => void;
 }
@@ -28,15 +33,14 @@ export function SectionTransition({
   title,
   currentSection,
   totalSections,
+  parts,
+  currentPart,
   holdDurationMs,
   onComplete,
 }: SectionTransitionProps) {
   const normalizedTotal = Math.max(1, totalSections);
   const normalizedCurrent = Math.min(normalizedTotal, Math.max(1, currentSection));
-  const sectionProgress =
-    normalizedTotal === 1
-      ? '100%'
-      : `${((normalizedCurrent - 1) / (normalizedTotal - 1)) * 100}%`;
+  const normalizedPart = Math.min(parts.length, Math.max(1, currentPart));
   const animationStyle: SectionTransitionStyle = {
     '--section-transition-arrival-duration': `${arrivalDurationMs}ms`,
     '--section-transition-hold-duration': `${holdDurationMs}ms`,
@@ -63,32 +67,32 @@ export function SectionTransition({
         <div
           className={styles.roadmap}
           role="group"
-          aria-label={`Trainingsfortschritt: Sektion ${normalizedCurrent} von ${normalizedTotal}`}
+          aria-label={`Trainingsfortschritt: Sektion ${normalizedCurrent} von ${normalizedTotal}, Teil ${normalizedPart} von ${parts.length}`}
         >
-          <span className={styles.progressTrack} aria-hidden="true">
-            <span style={{ width: sectionProgress }} />
-          </span>
           <ol>
-            {Array.from({ length: normalizedTotal }, (_, index) => {
-              const sectionNumber = index + 1;
+            {parts.map((part, index) => {
+              const partNumber = index + 1;
               const state =
-                sectionNumber < normalizedCurrent
+                partNumber < normalizedPart
                   ? 'complete'
-                  : sectionNumber === normalizedCurrent
+                  : partNumber === normalizedPart
                     ? 'active'
                     : 'future';
 
               return (
-                <li data-state={state} key={sectionNumber}>
+                <li data-state={state} key={part.id}>
                   <span className={styles.point} aria-hidden="true">
-                    {state === 'active' ? '' : state === 'complete' ? '✓' : sectionNumber}
+                    {state === 'complete' ? '✓' : ''}
                   </span>
+                  {state === 'future' ? null : (
+                    <span className={styles.stepLabel}>{part.label}</span>
+                  )}
                   <span className={styles.screenReaderOnly}>
                     {state === 'active'
-                      ? `Sektion ${sectionNumber}: ${title}, aktuell`
+                      ? `Teil ${partNumber}: ${part.label}, aktuell`
                       : state === 'complete'
-                        ? `Sektion ${sectionNumber}: abgeschlossen`
-                        : `Sektion ${sectionNumber}: folgt später`}
+                        ? `Teil ${partNumber}: ${part.label}, abgeschlossen`
+                        : `Teil ${partNumber}: ${part.label}, folgt später`}
                   </span>
                 </li>
               );

@@ -120,8 +120,12 @@ describe('password module privacy boundary', () => {
     controller.completeS04();
     await flushMicrotasks();
     await flushMicrotasks();
+    controller.completeSectionTransition();
+    await flushMicrotasks();
     controller.completeS05();
     await flushMicrotasks();
+    await flushMicrotasks();
+    controller.completeSectionTransition();
     await flushMicrotasks();
     expect(controller.getSnapshot().matches({ s06: 'active' })).toBe(true);
     controller.completeS06();

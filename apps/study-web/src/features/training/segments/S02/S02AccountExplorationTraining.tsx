@@ -533,7 +533,6 @@ export function S02AccountExplorationTraining({
   const narration = complete
     ? s02Content.narration.completion(platform)
     : (s02Content.narration.messages[narrationId] ?? '');
-  const speechKey = `${narrationId}-${complete}`;
   const animationAnnouncement =
     presentation.announcedMessageId === null
       ? ''
@@ -645,7 +644,7 @@ export function S02AccountExplorationTraining({
               style={previewStyle}
               aria-label={`Visuelle Vorschau für ${activePreview.label}`}
             >
-              <VisualPreview key={activePreview.id} kind={activePreview.preview.kind} />
+              <VisualPreview kind={activePreview.preview.kind} />
               {activeAccountViewed && activeAccount !== undefined ? (
                 <p className={styles.takeaway}>{activeAccount.coreAction.takeaway}</p>
               ) : null}
@@ -744,7 +743,6 @@ export function S02AccountExplorationTraining({
                   className={styles.narration}
                   speaker={s02Content.narration.guideName}
                   paragraphs={[narration]}
-                  speechKey={speechKey}
                   emphasis={passWoSpeechEmphasisFor(narrationId)}
                   placement={guideSpeechPosition?.side ?? 'right'}
                   {...(complete

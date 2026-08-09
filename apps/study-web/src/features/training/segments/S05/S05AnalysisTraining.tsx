@@ -402,11 +402,11 @@ function typicalChangeVariants(value: string): readonly string[] {
 function CategoryMachine({
   categoryId,
   conveyorBlocks,
-  stepKey,
+  step,
 }: {
   readonly categoryId: S05ComponentCategoryId;
   readonly conveyorBlocks: readonly string[];
-  readonly stepKey: string;
+  readonly step: string;
 }) {
   const content = s05Content.componentStrategy.commonComponents.machine;
   const [travelingIndex, setTravelingIndex] = useState(0);
@@ -423,11 +423,10 @@ function CategoryMachine({
 
   return (
     <section
-      key={stepKey}
       className={styles.commonComponentMachine}
       data-s05-target="component-conveyor"
       data-s05-speech-obstacle
-      data-machine-step={stepKey}
+      data-machine-step={step}
       aria-label={category?.title ?? content.ariaLabel}
     >
       <div className={styles.machineInput}>
@@ -446,7 +445,7 @@ function CategoryMachine({
         <code
           key={travelingBlock}
           data-transition-delay={
-            (stepKey.endsWith('-start') || stepKey.endsWith('-opening')) &&
+            (step.endsWith('-start') || step.endsWith('-opening')) &&
             travelingIndex === 0 &&
             arrivedIndex === 0
               ? true
@@ -464,7 +463,7 @@ function CategoryMachine({
       <div
         className={styles.machineOutput}
         data-source={arrivedBlock}
-        data-emphasized={stepKey === 'common-components-changes' || undefined}
+        data-emphasized={step === 'common-components-changes' || undefined}
       >
         <img src={typicalChangesAsset} alt="" />
         <div className={styles.machineOutputViewport} key={arrivedBlock}>
@@ -487,7 +486,7 @@ function CommonComponentsMachine({ step }: { readonly step: CommonComponentMachi
     <CategoryMachine
       categoryId="common-components"
       conveyorBlocks={s05Content.componentStrategy.commonComponents.machine.conveyorBlocks}
-      stepKey={step}
+      step={step}
     />
   );
 }
@@ -834,7 +833,7 @@ function StructurePatternsScene({ step }: { readonly step: S05AnalysisController
   );
 }
 
-function StructureApplicationScene({
+function StructurePasswordCheck({
   subject,
   snapshot,
 }: {
@@ -868,32 +867,57 @@ function StructureApplicationScene({
   if (passwordParts.length === 0) passwordParts.push(subject.fictionalPassword);
 
   return (
-    <div className={styles.structureApplication} data-s05-target="structure-application" data-s05-speech-obstacle>
-      <StructurePatternsScene step="structure-repetition" />
-      <section className={styles.structurePasswordCheck}>
-        <strong className={styles.canonicalAccount}>
-          <span aria-hidden="true"><NetworkSymbol symbolId="campusgram" /></span>
-          {s05Content.structure.application.passwordLabel}
-        </strong>
-        <PasswordBuildingBlocks
-          value={subject.fictionalPassword}
-          visualReferenceValue={subject.fictionalPassword}
-          parts={passwordParts}
-          display="decomposed"
-          appearance="analysis"
-          animate
-          highlightedIndices={highlightedIndices}
-          categoryIds={passwordParts.map((_, index) =>
-            highlightedIndices.includes(index) ? (['repetition'] as const) : [],
-          )}
-          ariaLabel={`${s05Content.structure.application.passwordLabel}: ${subject.fictionalPassword}`}
-        />
-      </section>
+    <section className={styles.structurePasswordCheck}>
+      <strong className={styles.canonicalAccount}>
+        <span aria-hidden="true"><NetworkSymbol symbolId="campusgram" /></span>
+        {s05Content.structure.application.passwordLabel}
+      </strong>
+      <PasswordBuildingBlocks
+        value={subject.fictionalPassword}
+        visualReferenceValue={subject.fictionalPassword}
+        parts={passwordParts}
+        display="decomposed"
+        appearance="analysis"
+        animate
+        highlightedIndices={highlightedIndices}
+        categoryIds={passwordParts.map((_, index) =>
+          highlightedIndices.includes(index) ? (['repetition'] as const) : [],
+        )}
+        ariaLabel={`${s05Content.structure.application.passwordLabel}: ${subject.fictionalPassword}`}
+      />
+    </section>
+  );
+}
+
+function StructureSequenceScene({
+  step,
+  subject,
+  snapshot,
+}: {
+  readonly step: S05AnalysisControllerSnapshot['step'];
+  readonly subject: S05AnalysisSubject;
+  readonly snapshot: S05AnalysisControllerSnapshot;
+}) {
+  const applicationVisible = step === 'structure-application';
+
+  return (
+    <div
+      className={`${styles.structureSequence}${
+        applicationVisible ? ` ${styles.structureApplication}` : ''
+      }`}
+      data-s05-target={applicationVisible ? 'structure-application' : undefined}
+      data-s05-speech-obstacle={applicationVisible || undefined}
+    >
+      <StructurePatternsScene step={applicationVisible ? 'structure-repetition' : step} />
+      {applicationVisible ? (
+        <StructurePasswordCheck subject={subject} snapshot={snapshot} />
+      ) : null}
     </div>
   );
 }
 
-function PassphraseGeneratorScene() {
+/** Saved for a later training segment; intentionally not part of the current S05 mission. */
+export function SavedPassphraseGeneratorScene() {
   const content = s05Content.freeSearch.passphraseGenerator;
   return (
     <section className={styles.passphraseScene} data-s05-target="passphrase-generator" data-s05-speech-obstacle>
@@ -950,12 +974,8 @@ function CharacterChecklist({
 
 function CharacterMixScene({ step }: { readonly step: S05AnalysisControllerSnapshot['step'] }) {
   const content = s05Content.freeSearch.characterMix;
-  const showComparison = step !== 'character-mix-first';
-  const showEarlyHit =
-    step === 'character-mix-difference' ||
-    step === 'character-mix-types' ||
-    step === 'character-mix-strategy' ||
-    step === 'character-mix-takeaway';
+  const showComparison = step !== 'free-search-transition';
+  const showEarlyHit = step === 'character-mix-comparison';
   return (
     <div className={styles.characterMixScene} data-s05-target="character-mix" data-s05-speech-obstacle>
       <CharacterChecklist password={content.predictablePassword} earlyHit={showEarlyHit} />
@@ -964,18 +984,62 @@ function CharacterMixScene({ step }: { readonly step: S05AnalysisControllerSnaps
   );
 }
 
+interface PasswordVariationStyle extends CSSProperties {
+  readonly '--variation-index': number;
+}
+
+function passwordVariationStyle(index: number): PasswordVariationStyle {
+  return { '--variation-index': index };
+}
+
+function PasswordVariationScene({ final }: { readonly final: boolean }) {
+  const content = s05Content.freeSearch.characterMix;
+  const variations = content.variations;
+  const finalVariation = content.finalVariation;
+  return (
+    <section
+      className={styles.passwordVariationScene}
+      data-s05-target="character-mix"
+      data-s05-speech-obstacle
+      aria-label={
+        final
+          ? `Die Variation ${finalVariation} bleibt sichtbar.`
+          : `Das Passwort meinPasswort wechselt schnell durch ${variations.length} Variationen.`
+      }
+    >
+      <div className={styles.variationSequence} aria-hidden="true" data-final={final || undefined}>
+        {(final ? [finalVariation] : variations).map((variation, index) => (
+          <code key={variation} style={passwordVariationStyle(index)}>
+            {variation}
+          </code>
+        ))}
+      </div>
+    </section>
+  );
+}
+
 function EstimateRuler({
   selected,
+  showAlphabet = true,
+  animate = false,
 }: {
   readonly selected: S05AnalysisControllerSnapshot['estimate']['selected'];
+  readonly showAlphabet?: boolean;
+  readonly animate?: boolean;
 }) {
   const content = s05Content.freeSearch.estimate;
   return (
-    <div className={styles.estimateRuler} data-s05-target="estimate-ruler">
-      <div className={styles.lowercaseAlphabet}>
-        <img src={lowercaseAlphabetAsset} alt="Buntes Alphabet aus Kleinbuchstaben" />
-        <span>{content.alphabetLabel}</span>
-      </div>
+    <div
+      className={styles.estimateRuler}
+      data-s05-target="estimate-ruler"
+      data-animate={animate || undefined}
+    >
+      {showAlphabet ? (
+        <div className={styles.lowercaseAlphabet}>
+          <img src={lowercaseAlphabetAsset} alt="Buntes Alphabet aus Kleinbuchstaben" />
+          <span>{content.alphabetLabel}</span>
+        </div>
+      ) : null}
       <div className={styles.estimateMarkerRow}>
         {content.options.map((option) => (
           <span key={option}>{selected === option ? content.marker : ''}</span>
@@ -984,6 +1048,18 @@ function EstimateRuler({
       <div className={styles.estimateTicks} aria-hidden="true">
         {content.options.map((option) => <i key={option} />)}
       </div>
+    </div>
+  );
+}
+
+function LengthScaleScene({ showAlphabet }: { readonly showAlphabet: boolean }) {
+  return (
+    <div
+      className={styles.lengthScaleScene}
+      data-s05-target="character-mix"
+      data-s05-speech-obstacle
+    >
+      <EstimateRuler selected={null} showAlphabet={showAlphabet} animate={!showAlphabet} />
     </div>
   );
 }
@@ -1278,8 +1354,7 @@ function progressForStep(
   }
   if (
     step.startsWith('structure-repetition') ||
-    step === 'structure-application' ||
-    step === 'passphrase-generator'
+    step === 'structure-application'
   ) {
     return {
       percent: 87.5,
@@ -1442,7 +1517,7 @@ function renderScene(
           <CategoryMachine
             categoryId="personal-details"
             conveyorBlocks={s05Content.componentStrategy.personalDetails.machine.conveyorBlocks}
-            stepKey={snapshot.step}
+            step={snapshot.step}
           />
         </ComponentMachineScene>
       );
@@ -1453,7 +1528,7 @@ function renderScene(
           <CategoryMachine
             categoryId="account-context"
             conveyorBlocks={s05Content.componentStrategy.accountContext.machine.conveyorBlocks}
-            stepKey={snapshot.step}
+            step={snapshot.step}
           />
         </ComponentMachineScene>
       );
@@ -1465,20 +1540,26 @@ function renderScene(
     case 'structure-sentence-guessing':
     case 'structure-repetition':
     case 'structure-repetition-guessing':
-      return <StructurePatternsScene step={snapshot.step} />;
     case 'structure-application':
-      return <StructureApplicationScene subject={subject} snapshot={snapshot} />;
-    case 'passphrase-generator':
-      return <PassphraseGeneratorScene />;
+      return (
+        <StructureSequenceScene
+          step={snapshot.step}
+          subject={subject}
+          snapshot={snapshot}
+        />
+      );
     case 'free-search-transition':
-      return <div aria-hidden="true" data-s05-target="character-mix" />;
     case 'character-mix-first':
     case 'character-mix-comparison':
-    case 'character-mix-difference':
-    case 'character-mix-types':
-    case 'character-mix-strategy':
-    case 'character-mix-takeaway':
       return <CharacterMixScene step={snapshot.step} />;
+    case 'character-mix-difference':
+      return <PasswordVariationScene final={false} />;
+    case 'character-mix-types':
+      return <PasswordVariationScene final />;
+    case 'character-mix-strategy':
+      return <LengthScaleScene showAlphabet={false} />;
+    case 'character-mix-takeaway':
+      return <LengthScaleScene showAlphabet />;
     case 'estimate':
       return <EstimateScene snapshot={snapshot} controller={controller} />;
     case 'lowercase-clock':
@@ -1682,8 +1763,6 @@ function speechFor(
           : s05Content.structure.application.repetitionNotFound,
       ];
     }
-    case 'passphrase-generator':
-      return [s05Content.freeSearch.passphraseGenerator.narration];
     case 'free-search-transition':
       return [s05Content.freeSearch.transition.explanation];
     case 'character-mix-first':
@@ -1697,7 +1776,10 @@ function speechFor(
     case 'character-mix-strategy':
       return [s05Content.freeSearch.characterMix.narration[4]];
     case 'character-mix-takeaway':
-      return [s05Content.freeSearch.characterMix.narration[5]];
+      return [
+        s05Content.freeSearch.characterMix.narration[5],
+        s05Content.freeSearch.characterMix.narration[6],
+      ];
     case 'estimate':
       return [s05Content.freeSearch.estimate.question];
     default:
@@ -1865,6 +1947,7 @@ export function S05AnalysisTraining({
               speechEmphasis={passWoSpeechEmphasisFor(`s05-${snapshot.step}`)}
               speechPlacement={
                 componentGuidanceVisible ||
+                activeSnapshot.step === 'free-search-transition' ||
                 activeSnapshot.step.startsWith('character-mix-') ||
                 activeSnapshot.step.startsWith('estimate')
                   ? 'right'

@@ -59,8 +59,24 @@ export class PasswordModuleController {
   }
 
   completeSectionTransition(): void {
-    if (!this.#actor.getSnapshot().matches('sectionTransition')) return;
+    const snapshot = this.#actor.getSnapshot();
+    const nextSegmentId = snapshot.matches('strengthTransition')
+      ? 'S05'
+      : snapshot.matches('uniquenessTransition')
+        ? 'S06'
+        : null;
+    if (
+      !snapshot.matches('sectionTransition') &&
+      !snapshot.matches('strengthTransition') &&
+      !snapshot.matches('uniquenessTransition') &&
+      !snapshot.matches('changeTransition')
+    ) {
+      return;
+    }
     this.#actor.send({ type: 'SECTION_TRANSITION_COMPLETED' });
+    if (nextSegmentId !== null) {
+      void this.#writeSegmentBoundary(nextSegmentId, 'segment-start');
+    }
   }
 
   completeS00(): void {
