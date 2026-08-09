@@ -810,26 +810,26 @@ export function S03RetrievalTraining({
                         >
                           {s03Content.controls.login}
                         </button>
-                        {result === 'pending' ? (
-                          <a
-                            href="#passwort-vergessen"
-                            className={styles.forgotPassword}
-                            aria-disabled={interactionBlocked || undefined}
-                            tabIndex={interactionBlocked ? -1 : undefined}
-                            onClick={(event) => {
-                              event.preventDefault();
-                              if (!interactionBlocked) {
-                                setInvalidLoginFeedback(null);
-                                setThirdAttemptGuideAccountId(null);
-                                controller.skipRetrieval(account.id);
-                              }
-                            }}
-                          >
-                            {s03Content.controls.forgotPassword}
-                          </a>
-                        ) : null}
                       </div>
                     </form>
+                    {result === 'pending' ? (
+                      <a
+                        href="#passwort-vergessen"
+                        className={styles.forgotPassword}
+                        aria-disabled={interactionBlocked || undefined}
+                        tabIndex={interactionBlocked ? -1 : undefined}
+                        onClick={(event) => {
+                          event.preventDefault();
+                          if (!interactionBlocked) {
+                            setInvalidLoginFeedback(null);
+                            setThirdAttemptGuideAccountId(null);
+                            controller.skipRetrieval(account.id);
+                          }
+                        }}
+                      >
+                        {s03Content.controls.forgotPassword}
+                      </a>
+                    ) : null}
                   </div>
                 ) : (
                   <div
