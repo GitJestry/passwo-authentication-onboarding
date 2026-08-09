@@ -1,5 +1,9 @@
 import { type CSSProperties, type ReactNode, useRef, useState } from 'react';
-import type { S05PersonalCandidate, S05VisualCategoryId } from './S05ComponentStrategy.js';
+import type {
+  S05DisplayFinding,
+  S05PersonalCandidate,
+  S05VisualCategoryId,
+} from './S05ComponentStrategy.js';
 import styles from './PasswordBuildingBlocks.module.css';
 
 const PASSWORD_VISUAL_REFERENCE_LENGTH = 32;
@@ -31,6 +35,7 @@ export interface PasswordBuildingBlocksProps {
   readonly parts: readonly string[];
   readonly display: 'assembled' | 'separated' | 'decomposed';
   readonly labels?: readonly (string | readonly string[])[];
+  readonly findings?: readonly (readonly S05DisplayFinding[])[];
   readonly matchCategories?: readonly (string | readonly string[])[];
   readonly categoryIds?: readonly (readonly S05VisualCategoryId[])[];
   readonly continuous?: boolean;
@@ -77,6 +82,7 @@ export function PasswordBuildingBlocks({
   parts,
   display,
   labels,
+  findings,
   matchCategories,
   categoryIds,
   continuous = false,
@@ -386,6 +392,7 @@ export function PasswordBuildingBlocks({
           )}
           {parts.map((part, index) => {
             const partLabels = normalizeLabels(labels?.[index]);
+            const partFindings = findings?.[index] ?? [];
             const categories = categoryIds?.[index] ?? [];
             const joiningSegments = segmentGroups?.[index] ?? [part];
             const content = (
@@ -407,7 +414,17 @@ export function PasswordBuildingBlocks({
                         </span>
                       ))}
                 </b>
-                {partLabels.length === 0 ? null : (
+                {partFindings.length === 0 ? null : (
+                  <small className={styles.blockFindings}>
+                    {partFindings.map(({ categoryId, label }) => (
+                      <span data-category={categoryId} key={`${categoryId}-${label}`}>
+                        <i aria-hidden="true" />
+                        <span>{label}</span>
+                      </span>
+                    ))}
+                  </small>
+                )}
+                {partFindings.length > 0 || partLabels.length === 0 ? null : (
                   <small className={styles.blockLabel}>
                     {partLabels.map((label) => (
                       <span key={label}>{label}</span>

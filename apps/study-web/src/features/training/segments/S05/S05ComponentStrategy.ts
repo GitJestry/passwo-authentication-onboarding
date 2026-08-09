@@ -81,9 +81,15 @@ export interface S05CanonicalPasswordView {
 
 export interface S05DisplayBlock extends S05CanonicalBlock {
   readonly labels: readonly string[];
+  readonly findings: readonly S05DisplayFinding[];
   readonly matchCategories: readonly string[];
   readonly categoryIds: readonly S05VisualCategoryId[];
   readonly groupIds: readonly string[];
+}
+
+export interface S05DisplayFinding {
+  readonly label: string;
+  readonly categoryId: S05VisualCategoryId;
 }
 
 export interface S05CategoryCandidateSummary {
@@ -102,6 +108,81 @@ const commonComponentKinds = new Set<PasswordSingleFindingKind>([
   'simple-character-sequence',
   'predictable-word-sequence',
 ]);
+
+const visualCategoryOrder = [
+  'account-context',
+  'personal-details',
+  'common-components',
+  'repetition',
+] as const satisfies readonly S05VisualCategoryId[];
+
+const componentCategoryPriority = {
+  'common-components': 0,
+  'personal-details': 1,
+  'account-context': 2,
+} as const satisfies Readonly<Record<S05ComponentCategoryId, number>>;
+
+interface S05FindingCluster {
+  readonly start: number;
+  readonly end: number;
+  readonly categoryId: S05ComponentCategoryId;
+  readonly findings: readonly S05CategoryFinding[];
+}
+
+function higherPriorityCategory(
+  left: S05ComponentCategoryId,
+  right: S05ComponentCategoryId,
+): S05ComponentCategoryId {
+  return componentCategoryPriority[right] > componentCategoryPriority[left] ? right : left;
+}
+
+function clusterOverlappingFindings(
+  findings: readonly S05CategoryFinding[],
+): readonly S05FindingCluster[] {
+  return [...findings]
+    .sort((left, right) => left.start - right.start || right.end - left.end)
+    .reduce<S05FindingCluster[]>((clusters, finding) => {
+      const previous = clusters.at(-1);
+      if (previous === undefined || finding.start >= previous.end) {
+        clusters.push({
+          start: finding.start,
+          end: finding.end,
+          categoryId: finding.categoryId,
+          findings: [finding],
+        });
+        return clusters;
+      }
+      clusters[clusters.length - 1] = {
+        start: previous.start,
+        end: Math.max(previous.end, finding.end),
+        categoryId: higherPriorityCategory(previous.categoryId, finding.categoryId),
+        findings: [...previous.findings, finding],
+      };
+      return clusters;
+    }, []);
+}
+
+function containedFindingLabel(label: string): string {
+  return s05Content.componentStrategy.presentation.findingChips.containedFinding.replace(
+    '[Befund]',
+    label,
+  );
+}
+
+function uniqueDisplayFindings(
+  findings: readonly S05DisplayFinding[],
+): readonly S05DisplayFinding[] {
+  return visualCategoryOrder.flatMap((categoryId) =>
+    findings.filter(
+      (finding, index, all) =>
+        finding.categoryId === categoryId &&
+        all.findIndex(
+          (candidate) =>
+            candidate.categoryId === finding.categoryId && candidate.label === finding.label,
+        ) === index,
+    ),
+  );
+}
 
 const replacementSources: ReadonlyMap<string, string> = new Map([
   ['/\\\\/\\\\', 'm'],
@@ -582,37 +663,41 @@ export function projectCanonicalPasswordBlocks(
   const visibleChanges = view.typicalChanges.filter(
     (change) => representedChangeIds.has(change.id),
   );
-  const boundaries = new Set<number>([0, view.password.length]);
-  for (const block of view.blocks) {
-    boundaries.add(block.start);
-    boundaries.add(block.end);
+  const clusters = clusterOverlappingFindings(findings);
+  const displayRanges: Array<{
+    readonly start: number;
+    readonly end: number;
+    readonly categoryId?: S05ComponentCategoryId;
+    readonly findings: readonly S05CategoryFinding[];
+  }> = [];
+  let cursor = 0;
+  for (const cluster of clusters) {
+    if (cursor < cluster.start) {
+      displayRanges.push({ start: cursor, end: cluster.start, findings: [] });
+    }
+    displayRanges.push(cluster);
+    cursor = cluster.end;
   }
-  for (const finding of findings) {
-    boundaries.add(finding.start);
-    boundaries.add(finding.end);
+  if (cursor < view.password.length) {
+    displayRanges.push({ start: cursor, end: view.password.length, findings: [] });
   }
-  const sortedBoundaries = [...boundaries].sort((left, right) => left - right);
-  const displayBlocks = sortedBoundaries
-    .slice(0, -1)
-    .flatMap((start, index) => {
-      const end = sortedBoundaries[index + 1];
-      return end === undefined || start === end
-        ? []
-        : [{ id: `display-${start}-${end}`, start, end, value: view.password.slice(start, end) }];
-    });
-  const directBlocks = displayBlocks.map((block): S05DisplayBlock => {
-    const directFindings = findings.filter(
-      (finding) => finding.start <= block.start && finding.end >= block.end,
-    );
-    const coveringFindings = directFindings;
+
+  return displayRanges.map((range): S05DisplayBlock => {
+    const block = {
+      id: `display-${range.start}-${range.end}`,
+      start: range.start,
+      end: range.end,
+      value: view.password.slice(range.start, range.end),
+    };
+    const directFindings = range.findings;
     const changes = visibleChanges.filter(
-      (change) => change.start <= block.start && change.end >= block.end,
+      (change) => change.start < block.end && change.end > block.start,
     );
-    const annotations = [
+    const annotations = uniqueDisplayFindings([
       ...directFindings.flatMap((finding) => [
         {
           label: finding.label,
-          categoryId: finding.categoryId as S05VisualCategoryId,
+          categoryId: finding.categoryId,
         },
         ...(finding.changeLabel === undefined || finding.changeIds.length > 0
           ? []
@@ -629,16 +714,33 @@ export function projectCanonicalPasswordBlocks(
           change.residualLabel,
         categoryId: 'common-components' as const,
       })),
-    ].filter(
-      (annotation, index, all) =>
-        all.findIndex(
-          (candidate) =>
-            candidate.label === annotation.label && candidate.categoryId === annotation.categoryId,
-        ) === index,
-    );
+    ]);
     return {
       ...block,
       labels: annotations.map(({ label }) => label),
+      findings: uniqueDisplayFindings(
+        directFindings.map((finding) => {
+          const evidenceBlocks = view.blocks.filter(({ id }) =>
+            finding.evidenceBlockIds.includes(id),
+          );
+          const evidenceStart = evidenceBlocks[0]?.start ?? finding.start;
+          const evidenceEnd = evidenceBlocks.at(-1)?.end ?? finding.end;
+          const baseLabel =
+            finding.categoryId === 'common-components'
+              ? finding.matchCategory ?? finding.label
+              : finding.categoryId === 'personal-details'
+                ? s05Content.componentStrategy.presentation.findingChips.personalComponent
+                : s05Content.findingLabels['account-or-service-term'];
+          const isContained = evidenceStart > block.start || evidenceEnd < block.end;
+          return {
+            categoryId: finding.categoryId,
+            label:
+              isContained && finding.categoryId !== 'account-context'
+                ? containedFindingLabel(baseLabel)
+                : baseLabel,
+          };
+        }),
+      ),
       matchCategories: [
         ...new Set(
           directFindings.flatMap(({ matchCategory }) =>
@@ -646,42 +748,8 @@ export function projectCanonicalPasswordBlocks(
           ),
         ),
       ],
-      categoryIds: [
-        ...new Set(coveringFindings.map(({ categoryId }) => categoryId as S05VisualCategoryId)),
-      ],
-      groupIds: [...new Set(coveringFindings.map(({ id }) => id))],
+      categoryIds: range.categoryId === undefined ? [] : [range.categoryId],
+      groupIds: [...new Set(directFindings.map(({ id }) => id))],
     };
   });
-
-  return directBlocks.reduce<S05DisplayBlock[]>((merged, block) => {
-    const previous = merged.at(-1);
-    const sameCategories =
-      previous !== undefined &&
-      previous.categoryIds.length === block.categoryIds.length &&
-      previous.categoryIds.every((categoryId, index) => categoryId === block.categoryIds[index]);
-    const sameGroups =
-      previous !== undefined &&
-      previous.groupIds.length === block.groupIds.length &&
-      previous.groupIds.every((groupId, index) => groupId === block.groupIds[index]);
-    if (
-      previous === undefined ||
-      previous.end !== block.start ||
-      !sameCategories ||
-      !sameGroups
-    ) {
-      merged.push(block);
-      return merged;
-    }
-    merged[merged.length - 1] = {
-      id: `display-${previous.start}-${block.end}`,
-      start: previous.start,
-      end: block.end,
-      value: view.password.slice(previous.start, block.end),
-      labels: [...new Set([...previous.labels, ...block.labels])],
-      matchCategories: [...new Set([...previous.matchCategories, ...block.matchCategories])],
-      categoryIds: previous.categoryIds,
-      groupIds: previous.groupIds,
-    };
-    return merged;
-  }, []);
 }

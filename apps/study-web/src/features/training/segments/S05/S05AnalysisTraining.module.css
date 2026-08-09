@@ -964,6 +964,14 @@
   min-width: 0;
 }
 
+.structureExampleRow[data-pattern="repetition"] {
+  display: grid;
+  width: 100%;
+  grid-template-columns: minmax(0, 1fr) 2.25rem;
+  gap: var(--space-2);
+  align-items: center;
+}
+
 .structureExampleBlocks {
   display: flex;
   min-width: 0;
@@ -972,7 +980,7 @@
 }
 
 .structureExampleRow[data-pattern="sentence"] .structureExampleBlocks {
-  gap: clamp(0.2rem, 0.32vw, 0.3rem);
+  gap: clamp(0.72rem, 1vw, 0.9rem);
 }
 
 .structureExampleBlocks [data-block-index] {
@@ -1016,8 +1024,25 @@
   background: #554514;
 }
 
+.structureExampleRow[data-pattern="sentence"]
+  .structureExampleBlocks
+  [data-block-index]:not(:last-child)::after {
+  position: absolute;
+  top: 50%;
+  left: calc(100% + clamp(0.18rem, 0.3vw, 0.28rem));
+  color: color-mix(in srgb, var(--color-accent) 86%, white);
+  content: '→';
+  font-family: var(--font-family-sans);
+  font-size: 0.66rem;
+  font-weight: var(--font-weight-heavy);
+  line-height: 1;
+  pointer-events: none;
+  transform: translateY(-50%);
+}
+
 .structureRepetitionMultiplier {
   display: inline-grid;
+  width: 2.25rem;
   min-height: 2rem;
   place-items: center;
   color: var(--color-accent);
@@ -1154,8 +1179,11 @@
 }
 
 .copyAction {
+  --copy-action-surface: #c95706;
+
   gap: var(--space-2);
   border: var(--border-width-thin) solid rgb(255 255 255 / 70%);
+  background: var(--copy-action-surface);
   box-shadow: inset 0 -0.125rem rgb(0 0 0 / 16%);
 }
 
@@ -1164,19 +1192,28 @@
   display: inline-block;
   width: 1rem;
   height: 1rem;
-  border: var(--border-width-thin) solid currentcolor;
-  border-radius: 0.125rem;
 }
 
-.copyIcon::before {
+.copyIcon::before,
+.copyIcon::after {
   position: absolute;
-  top: -0.25rem;
-  right: -0.25rem;
-  width: 0.625rem;
-  height: 0.625rem;
+  box-sizing: border-box;
+  width: 0.72rem;
+  height: 0.72rem;
   border: var(--border-width-thin) solid currentcolor;
   border-radius: 0.125rem;
   content: '';
+}
+
+.copyIcon::before {
+  top: 0;
+  right: 0;
+}
+
+.copyIcon::after {
+  bottom: 0;
+  left: 0;
+  background: var(--copy-action-surface);
 }
 
 .passphraseGenerator output {

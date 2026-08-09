@@ -1472,6 +1472,23 @@ Kategorietitel werden ausschließlich aus der oberen Leiste entfernt; sie bleibe
 Zusammenfassungsliste sichtbar. Dies ist presentation-only: Teilnehmertext, Ablauf, Interaktion,
 Persistenz, Export und Analyse bleiben unverändert; kein Content-Versionssprung ist erforderlich.
 
+### Copy-Delta S05 hierarchische Befundbausteine 9. August 2026
+
+Quelle ist der ausdrückliche Nutzerauftrag vom 9. August 2026. Überlappende Befunde werden in
+der sichtbaren Campusgram-Passwortansicht nicht mehr durch jede einzelne Fundgrenze geteilt und
+mehrfach eingefärbt. Stattdessen bestimmt eine feste Hierarchie die eine Primärkategorie des
+gesamten zusammenhängenden Bausteins: Kontobezug vor persönlicher Angabe vor häufigem
+Bestandteil. Niedriger priorisierte Teilbefunde bleiben in der Auflistung sichtbar und erhalten
+bei teilweiser Abdeckung den Zusatz `enthalten`. Analyse, Interaktion, Persistenz, Export und
+Simulationsgrenze bleiben unverändert. `S05_CONTENT_VERSION` wird von `2.48.6` auf `2.48.7`
+erhöht.
+
+| Segment und Text-ID | Aktueller Text | Geplanter Text | Primäre Rolle | Grund | Bedeutungsänderung | Interaktionsziel | Hervorhebung |
+|---|---|---|---|---|---|---|---|
+| `S05.componentStrategy.presentation.findingChips.personalComponent` | `persönliche Angabe` | `Persönliche Angabe` | Ergebnisfeedback | einheitliche eigenständige Befundbezeichnung in der Bausteinauflistung | nein | kein | Farbe nur nach Primärkategorie |
+| `S05.componentStrategy.presentation.findingChips.containedFinding` | kein eigener Teilbefund-Wortlaut | `[Befund] enthalten`, etwa `häufiges Wort enthalten` oder `Persönliche Angabe enthalten` | Ergebnisfeedback | macht einen niedriger priorisierten Teilbefund lesbar, ohne den höher priorisierten Baustein zu teilen oder mehrfach einzufärben | begrenzt | kein | Farbe nur nach Primärkategorie |
+| `S05.componentStrategy.presentation.canonicalPassword` | überlappende Kategorien können denselben Baustein in mehrere Farbflächen teilen | genau eine Bausteinfarbe nach `Kontobezug > persönliche Angabe > häufiger Bestandteil`; weitere Befunde stehen als Text darunter | Ergebnisfeedback | verhindert widersprüchliche Farbcodierung und unnötige Teilstring-Grenzen | nein | kein | eine stabile Kategorienfarbe pro Baustein |
+
 ### Darstellungsdelta S05 Ausrichtung und Übergangskarten 8. August 2026
 
 Quelle ist der ausdrückliche Nutzerauftrag vom 8. August 2026. Die Komponentenübersicht wird auf

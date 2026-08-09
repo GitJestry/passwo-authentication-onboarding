@@ -256,7 +256,7 @@ describe('S05 component strategy presentation', () => {
     );
     expect(personal).toMatchObject([{ start: 2, end: 7 }]);
     expect(displayed.map(({ value }) => value)).toEqual(['linda']);
-    expect(displayed.flatMap(({ labels }) => labels)).toEqual(['persönliche Angabe']);
+    expect(displayed.flatMap(({ labels }) => labels)).toEqual(['Persönliche Angabe']);
     expect(displayed[0]?.categoryIds).toEqual(['personal-details']);
     expect(summarizeCategoryCandidates(view, personal).hasSingleCandidateMatch).toBe(false);
   });

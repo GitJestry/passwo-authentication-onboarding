@@ -36,7 +36,7 @@ export interface S05DesignLabFixture {
   readonly startSection: 'intro' | 'components' | 'structure';
 }
 
-export const S05_CONTENT_VERSION = '2.48.6';
+export const S05_CONTENT_VERSION = '2.48.7';
 
 export const s05Content = {
   version: S05_CONTENT_VERSION,
@@ -47,9 +47,9 @@ export const s05Content = {
       35,
     ] as const,
     revision:
-      'Userauftrag vom 2026-08-08 · konkret benannte Befundkategorien, gekürztes Ergebnisfeedback und einheitliche Kontoidentität',
+      'Userauftrag vom 2026-08-09 · hierarchische Befundbausteine mit eindeutiger Primärkategorie',
     copyReference:
-      'docs/design/S00-S05-COPY-AUDIT.md#copy-delta-s05-befundkategorien-8-august-2026',
+      'docs/design/S00-S05-COPY-AUDIT.md#copy-delta-s05-hierarchische-befundbausteine-9-august-2026',
   },
   segment: {
     id: 'S05',
@@ -139,7 +139,8 @@ export const s05Content = {
         keyboardSequence: 'Tastaturfolge',
         numberSequence: 'Zahlenfolge',
         nearbyYear: 'naheliegende Jahreszahl',
-        personalComponent: 'persönliche Angabe',
+        personalComponent: 'Persönliche Angabe',
+        containedFinding: '[Befund] enthalten',
         typicalVariant: 'typische Variante: [Details]',
         typicalEnding: 'typische Endung: +[Wert]',
       },

@@ -602,6 +602,13 @@ function CanonicalPasswordView({
     focus === null ? findings : findings.filter(({ categoryId }) => categoryId === focus);
   const selectingPersonalDetails = snapshot.step === 'personal-details-check';
   const displayBlocks = projectCanonicalPasswordBlocks(view, visibleFindings);
+  const displayBlockFindings = displayBlocks.map(({ findings: blockFindings }) => blockFindings);
+  const accessibleFindings = displayBlocks
+    .map(({ value }, index) => ({ value, findings: displayBlockFindings[index] ?? [] }))
+    .filter(({ findings: blockFindings }) => blockFindings.length > 0)
+    .map(({ value, findings: blockFindings }) =>
+      `${value}: ${blockFindings.map(({ label }) => label).join(', ')}`,
+    );
   const selectionCharacters = [...view.password];
   const hasReleasedFindings = visibleFindings.length > 0;
   const parts = selectingPersonalDetails
@@ -652,6 +659,13 @@ function CanonicalPasswordView({
                 ? displayBlocks.map(({ matchCategories }) => matchCategories)
                 : [[]]
           }
+          findings={
+            selectingPersonalDetails
+              ? selectionCharacters.map(() => [])
+              : hasReleasedFindings
+                ? displayBlockFindings
+                : [[]]
+          }
           {...(selectingPersonalDetails
             ? {
                 rangeSelection: {
@@ -664,7 +678,11 @@ function CanonicalPasswordView({
                 },
               }
             : {})}
-          ariaLabel={s05Content.componentStrategy.presentation.canonicalAriaLabel}
+          ariaLabel={
+            accessibleFindings.length === 0
+              ? s05Content.componentStrategy.presentation.canonicalAriaLabel
+              : `${s05Content.componentStrategy.presentation.canonicalAriaLabel}. ${accessibleFindings.join('; ')}`
+          }
         />
       </div>
     </section>
@@ -783,21 +801,17 @@ function StructurePatternsScene({ step }: { readonly step: S05AnalysisController
                             </span>
                           );
                         })
-                      : patternKey === 'repetition'
-                        ? (
-                            <>
-                              <span data-block-index={0}>{row[0]}</span>
-                              <span className={styles.structureRepetitionMultiplier} aria-hidden="true">
-                                ×{row.length}
-                              </span>
-                            </>
-                          )
-                        : row.map((part, partIndex) => (
-                            <span data-block-index={partIndex} key={`${part}-${partIndex}`}>
-                              {part}
-                            </span>
-                          ))}
+                      : row.map((part, partIndex) => (
+                          <span data-block-index={partIndex} key={`${part}-${partIndex}`}>
+                            {part}
+                          </span>
+                        ))}
                   </div>
+                  {patternKey === 'repetition' ? (
+                    <span className={styles.structureRepetitionMultiplier} aria-hidden="true">
+                      ×{row.length}
+                    </span>
+                  ) : null}
                 </div>
               ))}
             </div>
