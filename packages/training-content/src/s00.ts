@@ -73,7 +73,7 @@ export interface S00SegmentContent {
   };
 }
 
-export const S00_CONTENT_VERSION = '1.17.2';
+export const S00_CONTENT_VERSION = '1.19.0';
 
 export const s00Content: S00SegmentContent = {
   version: S00_CONTENT_VERSION,
@@ -82,12 +82,11 @@ export const s00Content: S00SegmentContent = {
     title: 'Passwörter & Authentifizierung',
     paragraphs: [
       'Aloha! Ich bin PassWo und begleite dich heute durch das Training.',
-      'Stell dir vor, du hast an einer Hochschule gerade neue Campuszugänge erhalten und musst nun drei Campuskonten einrichten.',
-      'In der ersten Sektion entscheidest du selbst, welche Passwörter du für diese Konten verwendest. Überlege wie du die Konten in so einer Situation sicher schützen würdest, und erstelle dafür starke Passwörter, die du dir gut merken kannst.',
-      'Nach einem kurzen Zwischenschritt meldest du dich noch einmal bei allen drei Konten an. Wähle deine Passwörter deshalb so, dass du sie später wieder abrufen kannst.',
-      'Du arbeitest gleich in einem virtuellen PC. Wähle gerne das Betriebssystem, das deinem Alltag am nächsten kommt.',
+      'Stell dir vor, du hast an einer Hochschule drei neue Campuskonten erhalten. Überlege, wie du solche Konten sicher schützen würdest, und wähle für jedes ein starkes Passwort, das du dir gut merken kannst.',
+      'Später meldest du dich wie gewohnt noch einmal bei allen drei Konten an. Wähle die Passwörter daher so, dass du sie wieder abrufen kannst.',
+      'Du arbeitest gleich in einem virtuellen PC. Wähle dafür das Betriebssystem, das deinem Alltag am nächsten kommt.',
     ],
-    nameLabel: 'Wie soll PassWo dich ansprechen?',
+    nameLabel: 'Welchen fiktiven Benutzernamen möchtest du verwenden?',
     startLabel: 'Training starten',
   },
   sectionTransition: {
@@ -119,7 +118,7 @@ export const s00Content: S00SegmentContent = {
     greeting:
       'Das ist dein virtueller Browser: Oben wechselst du zwischen drei Konten und richtest alle drei ein.',
     safetyWarning:
-      'Verwende bitte nur neue, ausgedachte Passwörter. Nutze keine echten Passwörter oder Varianten davon. Die Eingaben werden nur lokal für diese fiktive Übung ausgewertet und nicht dauerhaft gespeichert. Viel Erfolg!',
+      'Bitte verwende keine echten Passwörter oder Varianten davon. Deine ausgedachten Passwörter werden nur für diese Übung verarbeitet und nicht dauerhaft gespeichert. Viel Erfolg!',
     openGuideLabel: 'PassWo-Hilfe öffnen',
   },
   controls: {

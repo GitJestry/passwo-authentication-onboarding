@@ -1074,6 +1074,7 @@ export function QuestionnaireSectionForm<TInstrumentId extends QuestionnaireInst
   progressCurrent,
   progressStepNoun,
   initialSubmission,
+  footer,
   onBack,
   onSubmit,
 }: {
@@ -1088,6 +1089,7 @@ export function QuestionnaireSectionForm<TInstrumentId extends QuestionnaireInst
   readonly progressCurrent?: number;
   readonly progressStepNoun?: string;
   readonly initialSubmission: InstrumentSubmissionRequest | null;
+  readonly footer?: ReactNode;
   readonly onBack: (submission: InstrumentSubmissionFor<TInstrumentId>) => void;
   readonly onSubmit: (submission: InstrumentSubmissionFor<TInstrumentId>) => void;
 }) {
@@ -1184,6 +1186,7 @@ export function QuestionnaireSectionForm<TInstrumentId extends QuestionnaireInst
               currentSection === 1 ? styles.instrumentActionsForwardOnly : ''
             }`.trim()}
           >
+            {footer}
             {currentSection > 1 ? (
               <button
                 className={styles.secondaryButton}
@@ -1238,6 +1241,7 @@ export function GuardrailBlockForm({
   submitLabel,
   progressSteps,
   progressCurrent,
+  footer,
   onSubmit,
 }: {
   readonly block: GuardrailBlock;
@@ -1247,6 +1251,7 @@ export function GuardrailBlockForm({
   readonly submitLabel: string;
   readonly progressSteps: readonly InstrumentProgressStep[];
   readonly progressCurrent: number;
+  readonly footer?: ReactNode;
   readonly onSubmit: (submission: InstrumentSubmissionFor<'guardrail-v2'>) => void;
 }) {
   const [draft, setDraft] = useState<Draft>({});
@@ -1351,6 +1356,7 @@ export function GuardrailBlockForm({
             )}
           </div>
           <div className={styles.instrumentActions}>
+            {footer}
             <button className={styles.button} type="submit">
               {submitLabel}
               <ForwardIcon />

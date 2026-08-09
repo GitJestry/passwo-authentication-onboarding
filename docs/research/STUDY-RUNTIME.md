@@ -62,9 +62,9 @@ Shared-Content-Audit dokumentiert.
 ## Teilnahmeinformationen und Löschcode
 
 Die wesentlichen Informationen und die ausführliche Fassung sind vor Einwilligung sichtbar. Nach
-Sessionerstellung wird der Löschcode angezeigt und bleibt über eine kompakte
-`Teilnahmeinformationen`-Kontrolle während Fragebogen und Artefakt erreichbar. Die Kontrolle zeigt
-keine Forschungs-ID, Condition, Antworten oder Timingdaten.
+Sessionerstellung wird der Löschcode angezeigt. Im Fragebogen bleibt die ausführliche Fassung über
+`© Universität Bonn · Teilnahmeinformationen` als unauffälligen Textlink im Footer erreichbar.
+Die Kontrolle zeigt keine Forschungs-ID, Condition, Antworten oder Timingdaten.
 
 ## Zustands- und Datenschutzgrenzen
 

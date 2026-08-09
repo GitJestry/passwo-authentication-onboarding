@@ -3,9 +3,9 @@
   "instrumentVersion": "3.0.0-pilot",
   "questionnaireVersion": "questionnaire-v4-pilot",
   "guardrailVersion": "guardrail-v6-pilot",
-  "consentVersion": "consent-v11-pilot",
+  "consentVersion": "consent-v12-pilot",
   "followUpVersion": "follow-up-v6-pilot",
-  "runtimeManifestVersion": "instrument-runtime-v7-pilot",
+  "runtimeManifestVersion": "instrument-runtime-v8-pilot",
   "language": "de-DE",
   "participantTerm": "Lernangebot",
   "scales": {
@@ -122,7 +122,7 @@
       "welcomeParagraphs": [
         "Vielen Dank, dass du dir Zeit für diese Studie nimmst. Du bearbeitest ein digitales Lernangebot zu Passwörtern und zum Schutz von Online-Konten und beantwortest davor und danach einige Fragen."
       ],
-      "readMoreLabel": "Ausführliche Teilnahmeinformationen",
+      "readMoreLabel": "Ausführliche Teilnahmeinformationen öffnen",
       "informationHeading": "Informationen zu deiner Teilnahme",
       "sections": [
         {
@@ -200,15 +200,15 @@
       "essentialSummaryHeading": "Das Wichtigste zur Teilnahme",
       "essentialSummaryParagraphs": [
         "Dauer: etwa 30 Minuten",
-        "Freiwilligkeit: Du kannst die Teilnahme jederzeit ohne Begründung und ohne Nachteile beenden.",
-        "Datenschutz: Deine Angaben werden pseudonymisiert verarbeitet. Reale Passwörter oder Zugangsdaten werden nicht abgefragt; fiktive Passwörter werden nicht gespeichert oder übertragen.",
-        "Optionale Nachbefragung: Zur zusätzlichen Unterstützung der Studie, kannst du etwa zehn Tage später an einer ungefähr zweiminütigen Nachbefragung per Mail teilnehmen."
+        "Freiwilligkeit: jederzeit ohne Nachteile abbrechbar",
+        "Datenschutz: pseudonymisierte Forschungsdaten; keine realen Passwörter oder Zugangsdaten; fiktive Passwörter werden nicht gespeichert",
+        "Optionale Nachbefragung: etwa zwei Minuten nach ca. zehn Tagen"
       ]
     },
     "followUpRecontact": {
       "optional": true,
       "consentLegend": "Optionale Nachbefragung",
-      "consentStatement": "Ich möchte etwa zehn Tage später per E-Mail zu einer freiwilligen, ungefähr zweiminütigen Nachbefragung eingeladen werden. Meine E-Mail-Adresse darf dafür getrennt von den Forschungsdaten gespeichert und ausschließlich für die Einladung und höchstens eine Erinnerung verwendet werden.",
+      "consentStatement": "Ich möchte etwa zehn Tage später per E-Mail zu einer freiwilligen, ungefähr zweiminütigen Nachbefragung eingeladen werden. Meine E-Mail-Adresse darf dafür getrennt von den Forschungsdaten gespeichert und ausschließlich für diese Einladung verwendet werden.",
       "emailLabel": "E-Mail-Adresse für die freiwillige Nachbefragung",
       "emailRequired": true,
       "emailNeverStoredInResearchDatabase": true,

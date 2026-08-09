@@ -26,6 +26,182 @@
   background: var(--color-surface-muted);
 }
 
+.progressBar {
+  --progress-category-marker-size: 3.4rem;
+
+  position: relative;
+  z-index: 6;
+  flex: 0 0 auto;
+  padding: 0.3rem clamp(var(--space-4), 4vw, var(--space-7));
+  border-bottom: var(--border-width-thin) solid
+    color-mix(in srgb, var(--color-border-soft) 58%, transparent);
+  background: color-mix(in srgb, var(--color-surface-muted) 92%, transparent);
+}
+
+.progressTrack {
+  position: relative;
+  width: min(100%, 72rem);
+  height: 2.25rem;
+  margin: 0 auto;
+}
+
+.progressLine {
+  position: absolute;
+  top: 50%;
+  right: 1rem;
+  left: 1rem;
+  height: 0.22rem;
+  border-radius: var(--radius-round);
+  background: color-mix(in srgb, var(--color-ink-muted) 28%, transparent);
+  transform: translateY(-50%);
+}
+
+.progressLineFill {
+  position: absolute;
+  z-index: 1;
+  inset: 0 auto 0 0;
+  width: var(--s05-progress);
+  background: color-mix(in srgb, var(--color-accent-strong) 72%, white);
+  transition: width 420ms ease;
+}
+
+.progressCategoryMarker,
+.progressPatternMarker {
+  position: absolute;
+  z-index: 2;
+  top: 50%;
+  left: var(--s05-marker-position);
+  color: var(--color-ink-muted);
+  transform: translate(-50%, -50%);
+}
+
+.progressCategoryMarker {
+  display: grid;
+  width: var(--progress-category-marker-size);
+  height: var(--progress-category-marker-size);
+  place-items: center;
+  border-radius: var(--radius-round);
+  background: transparent;
+  font-size: 0.74rem;
+  font-weight: var(--font-weight-bold);
+  line-height: 1;
+}
+
+.progressCategoryMarker::before {
+  position: absolute;
+  width: 1.35rem;
+  height: 1.35rem;
+  box-sizing: border-box;
+  border: 0.1rem solid
+    color-mix(in srgb, var(--color-ink-muted) 42%, transparent);
+  border-radius: var(--radius-round);
+  background: var(--color-surface-muted);
+  content: '';
+}
+
+.progressCategoryMarker[data-reached="true"]::before {
+  display: none;
+}
+
+.progressCategoryMarker img {
+  position: absolute;
+  inset: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  filter: drop-shadow(0 0.12rem 0.22rem rgb(0 0 0 / 34%));
+}
+
+.progressPatternMarker {
+  display: grid;
+  width: 1.05rem;
+  height: 1.05rem;
+  place-items: center;
+  border: 0.1rem solid color-mix(in srgb, var(--color-ink-muted) 42%, transparent);
+  border-radius: var(--radius-round);
+  background: var(--color-surface-muted);
+  font-size: 0.68rem;
+  font-weight: var(--font-weight-bold);
+  line-height: 1;
+}
+
+.progressPatternMarker[data-reached="true"] {
+  border-color: color-mix(in srgb, var(--color-accent-strong) 76%, white);
+  color: var(--color-on-inverse);
+  background: color-mix(in srgb, var(--color-accent-strong) 72%, var(--color-surface-muted));
+}
+
+.progressCheckpoint {
+  position: absolute;
+  top: 0;
+  z-index: 3;
+  display: flex;
+  width: min(12rem, 32vw);
+  height: 2.25rem;
+  align-items: center;
+  color: color-mix(in srgb, var(--color-ink-muted) 78%, transparent);
+  font-size: clamp(0.62rem, 0.9vw, var(--font-size-x-small));
+  line-height: 1.15;
+}
+
+.progressCheckpoint[data-position="start"] {
+  left: 0;
+  justify-content: flex-start;
+  text-align: left;
+}
+
+.progressCheckpoint[data-position="middle"] {
+  left: 50%;
+  justify-content: center;
+  text-align: center;
+  transform: translateX(-50%);
+}
+
+.progressCheckpoint[data-position="end"] {
+  right: 0;
+  justify-content: flex-end;
+  text-align: right;
+}
+
+.progressCheckpointBox {
+  display: inline-flex;
+  box-sizing: border-box;
+  min-width: 2.25rem;
+  min-height: 2.25rem;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+  padding: 0.35rem 0.65rem;
+  border: 0.1rem solid
+    color-mix(in srgb, var(--color-ink-muted) 38%, transparent);
+  border-radius: var(--radius-small);
+  background: var(--color-surface-muted);
+}
+
+.progressCheckpoint[data-state="active"] {
+  color: var(--color-ink-strong);
+}
+
+.progressCheckpoint[data-state="active"] .progressCheckpointBox {
+  border-color: color-mix(in srgb, var(--color-accent-strong) 76%, white);
+  box-shadow: 0 0 0 0.14rem color-mix(in srgb, var(--color-accent-strong) 10%, transparent);
+}
+
+.progressCheckpoint[data-state="complete"] {
+  color: var(--color-on-inverse);
+}
+
+.progressCheckpoint[data-state="complete"] .progressCheckpointBox {
+  border-color: color-mix(in srgb, var(--color-accent-strong) 76%, white);
+  background: color-mix(in srgb, var(--color-accent-strong) 72%, var(--color-surface-muted));
+}
+
+.progressCheckpointBox strong {
+  max-width: 100%;
+  font-weight: var(--font-weight-bold);
+}
+
 .resultCard h2,
 .structureDemonstration h2,
 .structureResult h2 {
@@ -1880,7 +2056,7 @@
   width: 100%;
   height: 100%;
   min-height: 100%;
-  grid-column: 2;
+  grid-column: 1;
   grid-row: 1;
 }
 
@@ -1890,10 +2066,18 @@
   width: min(100%, 88rem);
   height: 100%;
   min-height: 100%;
-  grid-template-columns: clamp(17rem, 22vw, 21rem) minmax(0, 1fr);
+  grid-template-columns: minmax(0, 1fr);
   gap: clamp(var(--space-4), 2.5vw, var(--space-7));
   align-items: stretch;
   margin: 0 auto;
+}
+
+.componentReviewLayout[data-review-visible="true"] {
+  grid-template-columns: clamp(17rem, 22vw, 21rem) minmax(0, 1fr);
+}
+
+.componentReviewLayout[data-review-visible="true"] .componentStrategyLayout {
+  grid-column: 2;
 }
 
 .componentMachineWorkspace {
@@ -2116,6 +2300,10 @@
   align-content: center;
   justify-items: center;
   gap: var(--space-5);
+}
+
+.componentStrategyWorkspace[data-summary="true"] {
+  transform: translateY(2vh);
 }
 
 .componentStrategyWorkspace .campusgramPassword {
@@ -2705,6 +2893,27 @@
 }
 
 @media (max-width: 760px) {
+  .progressBar {
+    --progress-category-marker-size: 2.8rem;
+
+    padding-inline: var(--space-3);
+  }
+
+  .progressTrack {
+    height: 2.5rem;
+  }
+
+  .progressCheckpoint {
+    width: 31vw;
+    font-size: 0.6rem;
+  }
+
+  .progressCheckpointBox {
+    max-width: 31vw;
+    min-height: 2.1rem;
+    padding-inline: 0.45rem;
+  }
+
   .controls {
     align-items: flex-start;
     flex-direction: column;
@@ -2725,6 +2934,14 @@
     height: auto;
     min-height: 100%;
     grid-template-columns: minmax(0, 1fr);
+  }
+
+  .componentReviewLayout[data-review-visible="true"] {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .componentReviewLayout[data-review-visible="true"] .componentStrategyLayout {
+    grid-column: 1;
   }
 
   .componentReviewCard {
@@ -2869,6 +3086,10 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .progressLineFill {
+    transition: none;
+  }
+
   .generatedSequence i,
   .strategyFocus,
   .recognizableStage [data-display="assembled"],

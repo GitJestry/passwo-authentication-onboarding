@@ -9,33 +9,23 @@ export interface CampusIdentity {
   };
 }
 
-function toCampusStringId(displayName: string): string {
-  const normalized = displayName
-    .trim()
-    .toLocaleLowerCase('de-DE')
-    .replace(/ß/gu, 'ss')
-    .normalize('NFKD')
-    .replace(/\p{Mark}/gu, '')
-    .replace(/[^a-z0-9]+/gu, '.')
-    .replace(/^\.+|\.+$/gu, '');
-
-  return normalized.slice(0, 32) || 'campus-user';
+function selectedUsername(displayName: string): string {
+  return displayName.trim() || 'benutzername';
 }
 
 /** Creates fictional, local-only identifiers from the transient training name. */
 export function deriveCampusIdentity(displayName: string): CampusIdentity {
-  const stringId = toCampusStringId(displayName);
-  const masterCampusEmail = `${stringId}@campus.example`;
-  const campusEmail = `${stringId}@mail.campus.example`;
-  const campusgramUsername = `${stringId}.campusgram`;
+  const username = selectedUsername(displayName);
+  const masterCampusEmail = `${username}@campus.example`;
+  const campusEmail = `${username}@mail.campus.example`;
   return {
     masterCampus: masterCampusEmail,
     campusEmail,
-    campusgram: campusgramUsername,
+    campusgram: username,
     assessmentTerms: {
-      'master-campus': [stringId, masterCampusEmail],
-      'campus-email': [stringId, campusEmail],
-      campusgram: [campusgramUsername, campusEmail],
+      'master-campus': [username, masterCampusEmail],
+      'campus-email': [username, campusEmail],
+      campusgram: [username, campusEmail],
     },
   };
 }

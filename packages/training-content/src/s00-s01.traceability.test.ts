@@ -7,7 +7,7 @@ const canonicalAccountIds = ['master-campus', 'campus-email', 'campusgram'] as c
 
 describe('S00 to S02 training-content traceability', () => {
   it('keeps S00 linked to its named source page and canonical accounts', () => {
-    expect(S00_CONTENT_VERSION).toBe('1.17.2');
+    expect(S00_CONTENT_VERSION).toBe('1.19.0');
     expect(s00Content.source).toMatchObject({
       document: 'research/private/training-script.pdf',
       internalPage: 2,
@@ -19,16 +19,19 @@ describe('S00 to S02 training-content traceability', () => {
     expect(s00Content.entry.paragraphs[0]).toBe(
       'Aloha! Ich bin PassWo und begleite dich heute durch das Training.',
     );
-    expect(s00Content.entry.paragraphs[2]).toContain('sicher schützen würdest');
+    expect(s00Content.entry.paragraphs[1]).toContain('sicher schützen würdest');
+    expect(s00Content.entry.nameLabel).toBe(
+      'Welchen fiktiven Benutzernamen möchtest du verwenden?',
+    );
     expect(s00Content.narration.greeting).toBe(
       'Das ist dein virtueller Browser: Oben wechselst du zwischen drei Konten und richtest alle drei ein.',
     );
     expect(s00Content.narration).not.toHaveProperty('accountExplanations');
     expect(s00Content.narration.safetyWarning).toContain(
-      'Nutze keine echten Passwörter oder Varianten davon.',
+      'Bitte verwende keine echten Passwörter oder Varianten davon.',
     );
     expect(s00Content.narration.safetyWarning).toContain(
-      'nur lokal für diese fiktive Übung ausgewertet und nicht dauerhaft gespeichert',
+      'nur für diese Übung verarbeitet und nicht dauerhaft gespeichert',
     );
   });
 

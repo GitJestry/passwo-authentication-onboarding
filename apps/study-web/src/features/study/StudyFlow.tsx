@@ -143,18 +143,32 @@ function ParticipantInformationSections() {
   );
 }
 
-function ParticipantInformationAccess({ deletionCode }: { readonly deletionCode: DeletionCode }) {
+function ParticipantInformationAccess({
+  deletionCode,
+  placement,
+}: {
+  readonly deletionCode: DeletionCode | null;
+  readonly placement: 'footer' | 'inline';
+}) {
   const dialogRef = useRef<HTMLDialogElement>(null);
 
   return (
-    <div className={styles.participantInformationFloating}>
+    <div
+      className={
+        placement === 'footer'
+          ? styles.questionnaireFooter
+          : styles.participantInformationInline
+      }
+    >
+      {placement === 'footer' ? <>© Universität Bonn · </> : null}
       <button
         className={styles.participantInformationTrigger}
         type="button"
         aria-haspopup="dialog"
+        aria-label={placement === 'footer' ? 'Teilnahmeinformationen öffnen' : undefined}
         onClick={() => dialogRef.current?.showModal()}
       >
-        Teilnahmeinformationen
+        {placement === 'footer' ? 'Teilnahmeinformationen' : participantInformation.readMoreLabel}
       </button>
       <dialog
         ref={dialogRef}
@@ -174,10 +188,12 @@ function ParticipantInformationAccess({ deletionCode }: { readonly deletionCode:
           </button>
         </div>
         <div className={styles.participantInformationDialogBody}>
-          <p>
-            Dein Löschcode lautet <strong>{deletionCode}</strong>. Bewahre ihn auf, wenn du später
-            die Löschung deiner Forschungsdaten anfragen möchtest.
-          </p>
+          {deletionCode === null ? null : (
+            <p>
+              Dein Löschcode lautet <strong>{deletionCode}</strong>. Bewahre ihn auf, wenn du
+              später die Löschung deiner Forschungsdaten anfragen möchtest.
+            </p>
+          )}
           <ParticipantInformationSections />
         </div>
       </dialog>
@@ -214,7 +230,6 @@ function Consent({ onAccept }: { readonly onAccept: (decision: ConsentDecision) 
   return (
     <section className={styles.consentPage} aria-labelledby="consent-title">
       <header className={styles.welcomeHeader}>
-        <p className={styles.welcomeEyebrow}>{participantInformation.eyebrow}</p>
         <h1 id="consent-title" tabIndex={-1} autoFocus>
           {participantInformation.welcomeHeading}
         </h1>
@@ -257,20 +272,13 @@ function Consent({ onAccept }: { readonly onAccept: (decision: ConsentDecision) 
                 ))}
               </ul>
             </div>
-            <h2 className={styles.detailedInformationHeading}>
-              {participantInformation.readMoreLabel}
-            </h2>
-            <ParticipantInformationSections />
+            <ParticipantInformationAccess deletionCode={null} placement="inline" />
           </section>
-
         </div>
 
-        <div className={styles.consentColumn}>
-          <fieldset className={styles.consentPanel} aria-describedby="eligibility-description">
+        <div className={`${styles.consentColumn} ${styles.consentColumnRight}`}>
+          <fieldset className={styles.consentPanel}>
             <legend>Teilnahmevoraussetzungen</legend>
-            <p className={styles.fieldHint} id="eligibility-description">
-              Bitte bestätige, dass alle Voraussetzungen erfüllt sind.
-            </p>
             <div className={styles.optionList}>
               {eligibilityItems.map((item) => (
                 <label className={styles.option} key={item.id}>
@@ -353,7 +361,8 @@ function Consent({ onAccept }: { readonly onAccept: (decision: ConsentDecision) 
           </section>
         </div>
 
-        <div className={styles.consentActions}>
+        <footer className={styles.consentFooter}>
+          <p>Bachelorarbeitsstudie · Universität Bonn · Julian Meyer</p>
           <button
             className={styles.secondaryButton}
             type="button"
@@ -369,7 +378,7 @@ function Consent({ onAccept }: { readonly onAccept: (decision: ConsentDecision) 
             {participantInformation.actions.acceptLabel}
             <ArrowIcon />
           </button>
-        </div>
+        </footer>
       </form>
     </section>
   );
@@ -512,11 +521,10 @@ export function StudyFlow() {
     snapshot.matches({ artifactLifecycle: 'preparing' }) ||
     snapshot.matches({ artifactLifecycle: { artifact: 'supportive' } }) ||
     snapshot.matches({ artifactLifecycle: { artifact: 'reference' } });
-  const questionnaireVisible =
-    snapshot.matches({ preQuestionnaire: 'editing' }) ||
-    snapshot.matches({ postQuestionnaire: 'editing' }) ||
-    snapshot.matches({ guardrails: 'editing' });
-
+  const participantInformationFooter =
+    context.deletionCode === null ? null : (
+      <ParticipantInformationAccess deletionCode={context.deletionCode} placement="footer" />
+    );
   let content: ReactNode;
 
   if (snapshot.matches('consent')) {
@@ -573,6 +581,7 @@ export function StudyFlow() {
           initialSubmission={
             context.questionnaireDrafts[context.questionnaireBlockCursor] ?? null
           }
+          footer={participantInformationFooter}
           onBack={(payload) => send({ type: 'BACK_PRE', payload })}
           onSubmit={(payload) => send({ type: 'SUBMIT_PRE', payload })}
         />
@@ -675,6 +684,7 @@ export function StudyFlow() {
           initialSubmission={
             context.questionnaireDrafts[context.questionnaireBlockCursor] ?? null
           }
+          footer={participantInformationFooter}
           onBack={(payload) => send({ type: 'BACK_POST', payload })}
           onSubmit={(payload) => send({ type: 'SUBMIT_POST', payload })}
         />
@@ -719,6 +729,7 @@ export function StudyFlow() {
           submitLabel={progress.submitLabel}
           progressSteps={postQuestionnaireProgressSteps}
           progressCurrent={progress.progressCurrent}
+          footer={participantInformationFooter}
           onSubmit={(payload) => send({ type: 'SUBMIT_GUARDRAILS', payload })}
         />
       );
@@ -794,15 +805,9 @@ export function StudyFlow() {
     );
   }
 
-  const participantInformationAccess =
-    context.deletionCode === null || !questionnaireVisible ? null : (
-      <ParticipantInformationAccess deletionCode={context.deletionCode} />
-    );
-
   if (artifactVisible) {
     return (
       <main className={styles.artifactSurface} data-artifact-surface="">
-        {participantInformationAccess}
         {content}
       </main>
     );
@@ -810,14 +815,9 @@ export function StudyFlow() {
 
   return (
     <main
-      className={
-        participantInformationAccess === null
-          ? styles.studyPage
-          : `${styles.studyPage} ${styles.studyPageWithParticipantInformation}`
-      }
+      className={styles.studyPage}
       data-study-surface=""
     >
-      {participantInformationAccess}
       <div className={styles.studyShell}>
         <div className={styles.studyContent}>{content}</div>
       </div>

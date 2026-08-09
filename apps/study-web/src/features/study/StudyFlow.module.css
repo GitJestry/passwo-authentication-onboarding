@@ -1,4 +1,5 @@
 .studyPage {
+  position: relative;
   display: grid;
   min-height: 100dvh;
   background:
@@ -10,9 +11,33 @@
     #f7f9fa;
 }
 
+.studyPage::before,
+.studyPage::after {
+  position: fixed;
+  z-index: 0;
+  top: 0;
+  bottom: 0;
+  width: clamp(1.25rem, 5vw, 4.5rem);
+  background-color: #073e73;
+  box-shadow: inset 0 0 1.25rem rgb(0 23 52 / 20%);
+  content: "";
+  pointer-events: none;
+}
+
+.studyPage::before {
+  left: 0;
+}
+
+.studyPage::after {
+  right: 0;
+}
+
 .studyShell {
+  position: relative;
+  z-index: 1;
   width: 100%;
   min-height: 100dvh;
+  padding-inline: clamp(1.25rem, 5vw, 4.5rem);
 }
 
 .studyContent {
@@ -23,10 +48,6 @@
   margin: 0 auto;
   padding: clamp(var(--space-5), 4vh, var(--space-9))
     clamp(var(--space-4), 4vw, var(--space-7));
-}
-
-.studyPageWithParticipantInformation .studyContent {
-  padding-top: calc(clamp(var(--space-5), 4vh, var(--space-9)) + 3.25rem);
 }
 
 .studyContent h1 {
@@ -75,15 +96,6 @@
   font-weight: var(--font-weight-heavy);
   letter-spacing: var(--letter-spacing-wide);
   text-transform: uppercase;
-}
-
-.welcomeEyebrow {
-  margin: 0;
-  color: var(--color-ink-muted);
-  font-size: var(--font-size-x-small);
-  font-weight: var(--font-weight-medium);
-  letter-spacing: var(--letter-spacing-normal);
-  text-transform: none;
 }
 
 .welcomeHeader h1 {
@@ -146,27 +158,57 @@
   color: var(--color-ink-strong);
 }
 
-.detailedInformationHeading {
-  margin-top: var(--space-5) !important;
-}
-
 .closingDeletionCode strong {
   font-family: ui-monospace, "SFMono-Regular", Consolas, monospace;
   font-variant-numeric: tabular-nums;
   letter-spacing: 0.025em;
 }
 
-.participantInformationFloating {
-  position: fixed;
-  z-index: 120;
-  top: var(--space-3);
-  right: var(--space-3);
-  min-width: 0 !important;
-  flex: none !important;
+.participantInformationInline {
+  display: flex;
+  margin-top: var(--space-5);
+}
+
+.participantInformationInline .participantInformationTrigger {
+  width: 100%;
+  justify-content: center;
+  border-color: rgb(17 111 118 / 35%);
+  color: var(--color-accent-strong);
+  background: var(--color-accent-soft);
+  box-shadow: none;
+}
+
+.questionnaireFooter {
+  display: flex;
+  align-items: center;
+  margin-right: auto;
+  color: var(--color-ink-muted);
+  font-size: var(--font-size-x-small);
+}
+
+.questionnaireFooter .participantInformationTrigger {
+  min-height: auto;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  color: inherit;
+  background: transparent;
+  box-shadow: none;
+  font-size: inherit;
+  font-weight: var(--font-weight-medium);
+  text-decoration: underline;
+  text-underline-offset: 0.15em;
+}
+
+.questionnaireFooter .participantInformationTrigger:hover {
+  color: var(--color-accent-strong);
+  background: transparent;
 }
 
 .participantInformationTrigger {
+  display: inline-flex;
   min-height: 2.75rem;
+  align-items: center;
   padding: var(--space-2) var(--space-4);
   border: var(--border-width-thin) solid var(--color-border);
   border-radius: var(--radius-small);
@@ -178,6 +220,19 @@
   font-weight: var(--font-weight-bold);
   white-space: nowrap;
   cursor: pointer;
+}
+
+@media (min-width: 64rem) {
+  .studyPage::before,
+  .studyPage::after {
+    background-image:
+      url("../../assets/study/participant-shield.png"),
+      url("../../assets/study/participant-shield.png"),
+      url("../../assets/study/participant-shield.png");
+    background-position: center 12%, center 50%, center 88%;
+    background-repeat: no-repeat;
+    background-size: clamp(4.5rem, 7vw, 6rem) auto;
+  }
 }
 
 .participantInformationTrigger:hover {
@@ -267,6 +322,10 @@
   min-width: 0;
   align-content: start;
   gap: var(--space-5);
+}
+
+.consentColumnRight {
+  transform: translateY(calc(-1 * var(--space-3)));
 }
 
 .disclosureList {
@@ -378,6 +437,10 @@
   background: var(--color-surface-primary);
 }
 
+.consentPanel > .optionList {
+  margin-top: var(--space-2);
+}
+
 .recontactConsentBlock {
   min-width: 0;
   padding: var(--space-5);
@@ -433,15 +496,21 @@
   accent-color: var(--color-accent-strong);
 }
 
-.consentActions {
+.consentFooter {
   display: flex;
   grid-column: 1 / -1;
   flex-wrap: wrap;
   align-items: center;
-  justify-content: space-between;
   gap: var(--space-3);
   padding-top: var(--space-6);
   border-top: var(--border-width-thin) solid var(--color-border-soft);
+  color: var(--color-ink-muted);
+  font-size: var(--font-size-x-small);
+  line-height: var(--line-height-body);
+}
+
+.consentFooter p {
+  margin: 0 auto 0 0;
 }
 
 .secondaryButton {
@@ -1399,6 +1468,16 @@
     padding: 0;
   }
 
+  .studyPage::before,
+  .studyPage::after {
+    width: 0.75rem;
+    background-image: none;
+  }
+
+  .studyShell {
+    padding-inline: 0.75rem;
+  }
+
   .artifactPreparation {
     padding: var(--space-6) var(--space-5);
   }
@@ -1407,17 +1486,13 @@
     padding: var(--space-4) var(--space-3) var(--space-6);
   }
 
-  .studyPageWithParticipantInformation .studyContent {
-    padding-top: calc(var(--space-4) + 3rem);
-  }
-
   .welcomeHeader {
     padding: var(--space-6) var(--space-4);
   }
 
-  .participantInformationFloating {
-    top: var(--space-2);
-    right: var(--space-2);
+  .questionnaireFooter {
+    margin-right: 0;
+    justify-content: center;
   }
 
   .participantInformationTrigger {
@@ -1440,12 +1515,16 @@
     padding: 0 var(--space-4) var(--space-5);
   }
 
-  .consentActions {
+  .consentColumnRight {
+    transform: none;
+  }
+
+  .consentFooter {
     grid-column: auto;
     align-items: stretch;
   }
 
-  .consentActions .button,
+  .consentFooter .button,
   .secondaryButton {
     width: 100%;
     text-align: center;

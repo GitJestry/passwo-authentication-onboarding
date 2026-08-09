@@ -103,6 +103,7 @@ function CampusgramPassword({
 
 const generatedSequenceAlphabet =
   'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789!?#$%&';
+const MEMORABLE_PASSWORD_VISUAL_SCALE = 0.78;
 
 function CandidateCheckScene({ subject }: { readonly subject: S05AnalysisSubject }) {
   return (
@@ -162,6 +163,7 @@ function RandomSequenceScene() {
         value={s05Content.intro.memorablePassword}
         parts={s05Content.intro.memorablePasswordParts}
         display="assembled"
+        visualScale={MEMORABLE_PASSWORD_VISUAL_SCALE}
         ariaLabel={s05Content.intro.memorablePassword}
       />
     </div>
@@ -175,6 +177,7 @@ function RecognizableCombinationScene() {
         value={s05Content.intro.memorablePassword}
         parts={s05Content.intro.memorablePasswordParts}
         display="decomposed"
+        visualScale={MEMORABLE_PASSWORD_VISUAL_SCALE}
         ariaLabel={`${s05Content.intro.memorablePassword} in Bausteinen`}
       />
     </div>
@@ -205,6 +208,7 @@ function StrategyTargetingScene({ subject }: { readonly subject: S05AnalysisSubj
           parts={parts}
           display="decomposed"
           animate={false}
+          visualScale={MEMORABLE_PASSWORD_VISUAL_SCALE}
           ariaLabel=""
         />
       </div>
@@ -251,6 +255,7 @@ function StructureIntroScene() {
           parts={s05Content.intro.memorablePasswordParts}
           display="decomposed"
           annotations={s05Content.intro.strategyAnnotations}
+          visualScale={MEMORABLE_PASSWORD_VISUAL_SCALE}
           ariaLabel={`${s05Content.intro.memorablePassword}: ${Object.values(s05Content.intro.strategyAnnotations).join(', ')}`}
         />
       </div>
@@ -721,10 +726,17 @@ function ComponentStrategyScene({
   readonly snapshot: S05AnalysisControllerSnapshot;
   readonly controller: S05AnalysisController;
 }) {
+  const reviewVisible = snapshot.step === 'components-summary';
   return (
-    <div className={styles.componentReviewLayout}>
+    <div
+      className={styles.componentReviewLayout}
+      data-review-visible={reviewVisible || undefined}
+    >
       <div className={styles.componentStrategyLayout} data-s05-target="component-strategy">
-        <div className={styles.componentStrategyWorkspace}>
+        <div
+          className={styles.componentStrategyWorkspace}
+          data-summary={reviewVisible || undefined}
+        >
           {snapshot.componentStrategy.canonicalView === null ? (
             <CampusgramPassword password={subject.fictionalPassword} />
           ) : (
@@ -735,7 +747,7 @@ function ComponentStrategyScene({
           ) : null}
         </div>
       </div>
-      <ComponentReviewCard snapshot={snapshot} />
+      {reviewVisible ? <ComponentReviewCard snapshot={snapshot} /> : null}
     </div>
   );
 }
@@ -1156,6 +1168,230 @@ function SummaryScene({ step }: { readonly step: S05AnalysisControllerSnapshot['
       <p className={styles.generatedNote}>{content.generatedNote}</p>
       <p>{content.noScore}</p>
     </div>
+  );
+}
+
+interface S05ProgressSnapshot {
+  readonly percent: number;
+  readonly activeCheckpoint: 0 | 1 | 2;
+  readonly categoryMarkersReached: 0 | 1 | 2 | 3;
+  readonly patternMarkersReached: 0 | 1 | 2 | 3;
+}
+
+interface S05ProgressLineStyle extends CSSProperties {
+  readonly '--s05-progress': string;
+}
+
+interface S05ProgressMarkerStyle extends CSSProperties {
+  readonly '--s05-marker-position': string;
+}
+
+const progressCategoryMarkerInterval = 12.5;
+const progressCategoryMarkers = [commonCoresAsset, personalDetailsAsset, accountContextAsset].map(
+  (asset, index) => ({
+    position: progressCategoryMarkerInterval * (index + 1),
+    asset,
+  }),
+);
+
+function progressLineStyle(percent: number): S05ProgressLineStyle {
+  return { '--s05-progress': `${percent}%` };
+}
+
+function progressMarkerStyle(position: number): S05ProgressMarkerStyle {
+  return { '--s05-marker-position': `${position}%` };
+}
+
+function progressForStep(
+  step: S05AnalysisControllerSnapshot['step'],
+): S05ProgressSnapshot {
+  if (
+    step === 'candidate-check' ||
+    step === 'random-sequence' ||
+    step === 'recognizable-combination' ||
+    step === 'strategy-targeting' ||
+    step === 'component-category-overview'
+  ) {
+    return {
+      percent: 0,
+      activeCheckpoint: 0,
+      categoryMarkersReached: 0,
+      patternMarkersReached: 0,
+    };
+  }
+
+  if (step.startsWith('common-components-')) {
+    return {
+      percent: 12.5,
+      activeCheckpoint: 0,
+      categoryMarkersReached: 1,
+      patternMarkersReached: 0,
+    };
+  }
+  if (step.startsWith('personal-details-')) {
+    return {
+      percent: 25,
+      activeCheckpoint: 0,
+      categoryMarkersReached: 2,
+      patternMarkersReached: 0,
+    };
+  }
+  if (step.startsWith('account-context-')) {
+    return {
+      percent: 37.5,
+      activeCheckpoint: 0,
+      categoryMarkersReached: 3,
+      patternMarkersReached: 0,
+    };
+  }
+  if (step === 'components-summary') {
+    return {
+      percent: 43.75,
+      activeCheckpoint: 0,
+      categoryMarkersReached: 3,
+      patternMarkersReached: 0,
+    };
+  }
+  if (step === 'structure-intro') {
+    return {
+      percent: 50,
+      activeCheckpoint: 1,
+      categoryMarkersReached: 3,
+      patternMarkersReached: 0,
+    };
+  }
+  if (step.startsWith('structure-theme')) {
+    return {
+      percent: 62.5,
+      activeCheckpoint: 1,
+      categoryMarkersReached: 3,
+      patternMarkersReached: 1,
+    };
+  }
+  if (step.startsWith('structure-sentence')) {
+    return {
+      percent: 75,
+      activeCheckpoint: 1,
+      categoryMarkersReached: 3,
+      patternMarkersReached: 2,
+    };
+  }
+  if (
+    step.startsWith('structure-repetition') ||
+    step === 'structure-application' ||
+    step === 'passphrase-generator'
+  ) {
+    return {
+      percent: 87.5,
+      activeCheckpoint: 1,
+      categoryMarkersReached: 3,
+      patternMarkersReached: 3,
+    };
+  }
+
+  return {
+    percent: 100,
+    activeCheckpoint: 2,
+    categoryMarkersReached: 3,
+    patternMarkersReached: 3,
+  };
+}
+
+function S05ProgressBar({ step }: { readonly step: S05AnalysisControllerSnapshot['step'] }) {
+  const progress = progressForStep(step);
+  const checkpoints = s05Content.progress.checkpoints;
+  const activeLabel =
+    progress.activeCheckpoint === 0
+      ? checkpoints.early
+      : progress.activeCheckpoint === 1
+        ? checkpoints.patterns
+        : checkpoints.exhaustive;
+
+  return (
+    <nav
+      className={styles.progressBar}
+      aria-label={s05Content.progress.ariaLabel}
+      aria-valuemin={0}
+      aria-valuemax={100}
+      aria-valuenow={Math.round(progress.percent)}
+      aria-valuetext={`Checkpoint ${progress.activeCheckpoint + 1} von 3: ${activeLabel}`}
+      role="progressbar"
+    >
+      <div className={styles.progressTrack}>
+        <div className={styles.progressLine} aria-hidden="true">
+          <span
+            className={styles.progressLineFill}
+            style={progressLineStyle(progress.percent)}
+          />
+          {progressCategoryMarkers.map(({ position, asset }, index) => (
+            <span
+              className={styles.progressCategoryMarker}
+              data-reached={index < progress.categoryMarkersReached || undefined}
+              style={progressMarkerStyle(position)}
+              key={position}
+            >
+              {index < progress.categoryMarkersReached ? (
+                <img src={asset} alt="" />
+              ) : (
+                '?'
+              )}
+            </span>
+          ))}
+          {[62.5, 75, 87.5].map((position, index) => (
+            <span
+              className={styles.progressPatternMarker}
+              data-reached={index < progress.patternMarkersReached || undefined}
+              style={progressMarkerStyle(position)}
+              key={position}
+            >
+              {index < progress.patternMarkersReached ? '✓' : null}
+            </span>
+          ))}
+        </div>
+
+        <div
+          className={styles.progressCheckpoint}
+          data-position="start"
+          data-state={progress.activeCheckpoint === 0 ? 'active' : 'complete'}
+        >
+          <span className={styles.progressCheckpointBox}>
+            <strong>{checkpoints.early}</strong>
+          </span>
+        </div>
+        <div
+          className={styles.progressCheckpoint}
+          data-position="middle"
+          data-state={
+            progress.activeCheckpoint === 0
+              ? 'pending'
+              : progress.activeCheckpoint === 1
+                ? 'active'
+                : 'complete'
+          }
+        >
+          <span className={styles.progressCheckpointBox}>
+            {progress.activeCheckpoint === 0 ? (
+              <strong aria-label="Noch nicht enthüllt">?</strong>
+            ) : (
+              <strong>{checkpoints.patterns}</strong>
+            )}
+          </span>
+        </div>
+        <div
+          className={styles.progressCheckpoint}
+          data-position="end"
+          data-state={progress.activeCheckpoint === 2 ? 'active' : 'pending'}
+        >
+          <span className={styles.progressCheckpointBox}>
+            {progress.activeCheckpoint < 2 ? (
+              <strong aria-label="Noch nicht enthüllt">?</strong>
+            ) : (
+              <strong>{checkpoints.exhaustive}</strong>
+            )}
+          </span>
+        </div>
+      </div>
+    </nav>
   );
 }
 
@@ -1599,6 +1835,7 @@ export function S05AnalysisTraining({
         {transitionCategoryId === null ? null : (
           <CategoryTransition categoryId={transitionCategoryId} />
         )}
+        <S05ProgressBar step={snapshot.step} />
         <div
           className={styles.content}
           aria-live="polite"

@@ -36,7 +36,7 @@ export interface S05DesignLabFixture {
   readonly startSection: 'intro' | 'components' | 'structure';
 }
 
-export const S05_CONTENT_VERSION = '2.48.7';
+export const S05_CONTENT_VERSION = '2.49.1';
 
 export const s05Content = {
   version: S05_CONTENT_VERSION,
@@ -47,9 +47,9 @@ export const s05Content = {
       35,
     ] as const,
     revision:
-      'Userauftrag vom 2026-08-09 · hierarchische Befundbausteine mit eindeutiger Primärkategorie',
+      'Userauftrag vom 2026-08-09 · sofort sichtbare, schrittweise enthüllte Fortschrittsleiste für S05',
     copyReference:
-      'docs/design/S00-S05-COPY-AUDIT.md#copy-delta-s05-hierarchische-befundbausteine-9-august-2026',
+      'docs/design/S00-S05-COPY-AUDIT.md#copy-delta-s05-fortschrittsleiste-9-august-2026',
   },
   segment: {
     id: 'S05',
@@ -72,6 +72,14 @@ export const s05Content = {
     start: 'Animation starten',
     replay: 'Animation wiederholen',
     continue: 'Weiter',
+  },
+  progress: {
+    ariaLabel: 'Fortschritt durch die drei Prüfwege',
+    checkpoints: {
+      early: 'früh ausprobiert',
+      patterns: 'Muster',
+      exhaustive: 'alle durchprobieren',
+    },
   },
   intro: {
     campusgramPassword: {

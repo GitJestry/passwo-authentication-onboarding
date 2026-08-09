@@ -4,7 +4,7 @@ import { S05_CONTENT_VERSION, s05Content } from './s05.js';
 
 describe('S05 content traceability', () => {
   it('keeps the participant copy bounded and separate from internal terminology', () => {
-    expect(S05_CONTENT_VERSION).toBe('2.48.7');
+    expect(S05_CONTENT_VERSION).toBe('2.49.1');
     expect(s05Content.source).toMatchObject({
       document: 'research/private/training-script.pdf',
       internalPages: [
@@ -12,13 +12,18 @@ describe('S05 content traceability', () => {
         35,
       ],
       copyReference:
-        'docs/design/S00-S05-COPY-AUDIT.md#copy-delta-s05-hierarchische-befundbausteine-9-august-2026',
+        'docs/design/S00-S05-COPY-AUDIT.md#copy-delta-s05-fortschrittsleiste-9-august-2026',
     });
     expect(s05Content.segment.id).toBe('S05');
     expect(s05Content.page.fixtureNotice).toBe(
       'Diese Simulation betrachtet nur das fiktive Passwort und ist keine allgemeine Sicherheitsbewertung.',
     );
     expect(s05Content.page.title).toBe('Häufig verwendete Passwörter und Zeichenfolgen');
+    expect(s05Content.progress.checkpoints).toEqual({
+      early: 'früh ausprobiert',
+      patterns: 'Muster',
+      exhaustive: 'alle durchprobieren',
+    });
     expect(s05Content.intro.campusgramPassword.visibleSuffix).toBe('Campusgram-Passwort');
     expect(s05Content.analysis.authoredAccountTerms).toEqual(accountContextTerms.campusgram);
     expect(s05Content.componentStrategy.accountContext.machine.conveyorBlocks).toEqual([

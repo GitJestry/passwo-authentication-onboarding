@@ -260,7 +260,7 @@ export function PasswordModuleTraining({
               type="text"
               autoComplete="off"
               maxLength={40}
-              required
+              placeholder="benutzername"
               autoFocus
             />
           </label>

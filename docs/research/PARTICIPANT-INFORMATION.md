@@ -30,6 +30,44 @@ Die ausführbare Projektion liegt in `research/derived/instruments-v1.runtime.js
 - **Bedeutungsänderung:** ausdrücklich freigegeben. Es werden keine Datenfelder, Interaktionsziele,
   Hervorhebungen, Persistenz-, Randomisierungs- oder Timingregeln geändert.
 
+## Copy-Delta 2026-08-09
+
+- **Textfläche:** Detailzugang auf dem Einwilligungs-Screen.
+- **Quelle:** ausdrückliche Nutzerentscheidung vom 2026-08-09.
+- **Textrolle:** Navigation.
+- **Aktueller Text:** `Ausführliche Teilnahmeinformationen`.
+- **Geplanter Text:** `Ausführliche Teilnahmeinformationen öffnen`.
+- **Grund:** Der Auslöser benennt die tatsächlich ausgelöste Dialogöffnung eindeutig und bleibt als
+  bedienbares Element erkennbar.
+- **Bedeutungsänderung:** nein.
+- **Interaktionsziel:** Dialog mit den ausführlichen Teilnahmeinformationen.
+- **Hervorhebung:** keine.
+- **Versionsänderung:** `consent-v12-pilot`, `instrument-runtime-v8-pilot`.
+- **Textfläche:** Fragebogen-Footer.
+- **Quelle:** ausdrückliche Nutzerentscheidung vom 2026-08-09.
+- **Aktueller Text:** keiner.
+- **Geplanter Text:** `© Universität Bonn · Teilnahmeinformationen`.
+- **Textrolle:** Orientierung.
+- **Grund:** Die Teilnahmeinformationen bleiben erreichbar, ohne die Bearbeitung des Fragebogens
+  visuell zu überlagern.
+- **Bedeutungsänderung:** nein.
+- **Interaktionsziel:** Dialog mit den ausführlichen Teilnahmeinformationen.
+- **Hervorhebung:** keine.
+
+- **Textflächen:** vier sichtbare Kerninformationen auf dem Einwilligungs-Screen.
+- **Quelle:** ausdrückliche Nutzerentscheidung vom 2026-08-09.
+- **Textrolle:** Safety Boundary.
+- **Änderung:** Die bestehenden Kerninformationen werden auf Dauer, freiwillige Beendigung,
+  pseudonymisierte Forschungsdaten und Zeitpunkt sowie Dauer der optionalen Nachbefragung
+  verdichtet. Die vollständigen Angaben bleiben über den Detailinformationen-Button erreichbar.
+- **Bedeutungsänderung:** begrenzt; die vier Kernaussagen bleiben erhalten. Es werden keine
+  Datenfelder, Persistenz-, Randomisierungs- oder Timingregeln geändert.
+- **Interaktionsziel:** Button `Ausführliche Teilnahmeinformationen öffnen`.
+- **Hervorhebung:** keine zusätzliche Hervorhebung.
+- **Ergänzung:** Die Freiwilligkeits-Kurzinfo verwendet `abbrechbar`, die Datenschutz-Kurzinfo
+  nennt die Nicht-Speicherung fiktiver Passwörter und der optionale Einwilligungstext beschränkt
+  die E-Mail-Verwendung auf die Einladung.
+
 ## Methodische Offenlegung
 
 Zu Beginn wird wahrheitsgemäß erklärt, dass ein digitales Lernangebot zu Passwörtern und zum
@@ -50,11 +88,10 @@ Nachbefragung werden vor der Einwilligung beschrieben.
 ### Das Wichtigste zur Teilnahme
 
 - **Dauer:** etwa 30 Minuten
-- **Freiwilligkeit:** Du kannst die Teilnahme jederzeit ohne Begründung und ohne Nachteile beenden.
-- **Datenschutz:** Deine Angaben werden pseudonymisiert verarbeitet. Reale Passwörter oder
-  Zugangsdaten werden nicht abgefragt; fiktive Passwörter werden nicht gespeichert oder übertragen.
-- **Optionale Nachbefragung:** Zur zusätzlichen Unterstützung der Studie, kannst du etwa zehn Tage
-  später an einer ungefähr zweiminütigen Nachbefragung per Mail teilnehmen.
+- **Freiwilligkeit:** jederzeit ohne Nachteile abbrechbar
+- **Datenschutz:** pseudonymisierte Forschungsdaten; keine realen Passwörter oder Zugangsdaten;
+  fiktive Passwörter werden nicht gespeichert
+- **Optionale Nachbefragung:** etwa zwei Minuten nach ca. zehn Tagen
 
 ## Ausführliche Teilnahmeinformationen
 
@@ -146,7 +183,7 @@ Datenschutzkontakt:<br>
 
 > Ich möchte etwa zehn Tage später per E-Mail zu einer freiwilligen, ungefähr zweiminütigen
 > Nachbefragung eingeladen werden. Meine E-Mail-Adresse darf dafür getrennt von den Forschungsdaten
-> gespeichert und ausschließlich für die Einladung und höchstens eine Erinnerung verwendet werden.
+> gespeichert und ausschließlich für diese Einladung verwendet werden.
 
 Die E-Mail-Adresse wird nur eingeblendet und validiert, wenn diese optionale Auswahl aktiviert
 wurde. Ohne Auswahl wird die Hauptstudie ohne Kontaktregistrierung angelegt.

@@ -153,8 +153,6 @@ export const passwordModuleMachine = setup({
     input: {} as PasswordModuleInput,
   },
   guards: {
-    hasDisplayName: ({ event }) =>
-      event.type === 'DISPLAY_NAME_ENTERED' && event.displayName.trim().length > 0,
     isKnownAccount: ({ context, event }) =>
       event.type === 'SELECT_ACCOUNT' && isKnownAccount(context, event.accountId),
     canEditAccount: ({ context, event }) =>
@@ -320,7 +318,6 @@ export const passwordModuleMachine = setup({
     entry: {
       on: {
         DISPLAY_NAME_ENTERED: {
-          guard: 'hasDisplayName',
           target: 'sectionTransition',
           actions: 'storeDisplayName',
         },

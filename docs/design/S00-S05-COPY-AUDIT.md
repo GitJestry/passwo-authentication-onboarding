@@ -1209,6 +1209,29 @@ erhöht.
 | `S05.freeSearch.characterMix.narration[3..5]` | Zeichentypen-Erklärung und Kerngedanke zu Länge und Vorhersehbarkeit | vorgegebene kürzere Fassungen | Mechanismuserklärung / Kerngedanke | ausdrücklich verlangte Straffung | begrenzt | jeweils `Weiter` | nur `wirklich zufällig` in der Zeichentypen-Erklärung; `die Länge` im Kerngedanken |
 | `S05.freeSearch.estimate.explanation`, `question` | getrennte Sprechblasen vor und bei der Auswahl | eine vorgegebene Sprechblase, während die Schätzung bereits sichtbar ist | Mechanismuserklärung / Navigation | ausdrücklich verlangte Zusammenführung | begrenzt | Auswahl und `Schätzung bestätigen` | `zufällig`, `welcher Länge`, `zu aufwendig` in Akzentfarbe |
 
+### Copy-Delta S00 Benutzername und Einstiegstext 9. August 2026
+
+Quelle ist der ausdrückliche Nutzerauftrag vom 9. August 2026. Der fiktive Benutzername bleibt
+flüchtig und wird weder persistiert noch an die Study Runtime übertragen. `S00_CONTENT_VERSION`
+wird von `1.17.2` auf `1.18.0` erhöht.
+
+| Segment und Text-ID | Aktueller Text | Geplanter Text | Primäre Rolle | Grund | Bedeutungsänderung | Interaktionsziel | Hervorhebung |
+|---|---|---|---|---|---|---|---|
+| `S00.entry.paragraphs[1..3]` | bisherige Orientierung mit drei separaten Passwort- und Abrufsätzen | vorgegebener, gestraffter Einstiegstext | Orientierung | ausdrücklich vorgegebene Ersetzung und Verringerung der kognitiven Last | begrenzt | kein | `starkes Passwort`, `gut merken`, `wieder abrufen` |
+| `S00.entry.nameLabel` | `Wie soll PassWo dich ansprechen?` | `Welchen fiktiven Benutzernamen möchtest du verwenden?` | Orientierung | ausdrücklich vorgegebene Benennung des flüchtigen Eingabewerts | begrenzt | optionales Benutzernamenfeld | keine |
+
+### Copy-Delta S00 Passwort-Hinweise 9. August 2026
+
+Quelle ist der ausdrückliche Nutzerauftrag vom 9. August 2026. Der Auftrag präzisiert ausschließlich
+den Einstieg und die Safety Boundary; Ablauf, Interaktionsziel und die bestehende Hervorhebung
+bleiben unverändert. `S00_CONTENT_VERSION` wird von `1.18.0` auf `1.19.0` erhöht.
+
+| Segment und Text-ID | Aktueller Text | Geplanter Text | Primäre Rolle | Grund | Bedeutungsänderung | Interaktionsziel | Hervorhebung |
+|---|---|---|---|---|---|---|---|
+| `S00.entry.paragraphs[2]` | `Später meldest du dich noch einmal bei allen drei Konten an. Wähle die Passwörter daher so, dass du sie wieder abrufen kannst.` | `Später meldest du dich wie gewohnt noch einmal bei allen drei Konten an. Wähle die Passwörter daher so, dass du sie wieder abrufen kannst.` | Orientierung | ausdrücklich vorgegebene Präzisierung des gewohnten späteren Anmeldens | begrenzt | kein | `wieder abrufen` in Akzentfarbe |
+| `S00.narration.safetyWarning` | `Verwende bitte nur neue, ausgedachte Passwörter. Nutze keine echten Passwörter oder Varianten davon. Die Eingaben werden nur lokal für diese fiktive Übung ausgewertet und nicht dauerhaft gespeichert. Viel Erfolg!` | `Bitte verwende keine echten Passwörter oder Varianten davon. Deine ausgedachten Passwörter werden nur für diese Übung verarbeitet und nicht dauerhaft gespeichert. Viel Erfolg!` | Safety Boundary | ausdrücklich vorgegebene Straffung bei vollständiger Daten- und Fiktionsgrenze | begrenzt | kein | `keine echten Passwörter oder Varianten davon` in Warnfarbe |
+| `PasswordModuleTraining.entryForm` | Pflichtfeld ohne Platzhalter | optionales Feld mit dem Platzhalter `benutzername` | Navigation | Training soll jederzeit starten können; der Platzhalter verschwindet bei Eingabe nativ | begrenzt | `Training starten` | keine |
+
 ### Copy-Delta S05 Entfernte Freisuche-Überschrift 8. August 2026
 
 Quelle ist der ausdrückliche Nutzerauftrag vom 8. August 2026. Die Überschrift der freien Suche
@@ -1514,3 +1537,45 @@ Interaktion, Ablauf, Persistenz und Forschungsgrenzen bleiben unverändert.
 | Segment und Text-ID | Quelle | Aktueller Text | Geplanter Text | Primäre Rolle | Grund | Bedeutungsänderung | Interaktionsziel | Hervorhebung |
 |---|---|---|---|---|---|---|---|---|
 | `S01.completion.guideMessage` | Nutzerauftrag vom 2026-08-08; S01-Skriptseite 3; dieser Audit | `Die drei Konten sind eingerichtet. Schließe jetzt das Browserfenster. Bevor du dich wieder anmeldest, schauen wir uns kurz an, was hinter den Konten steckt.` | `Die drei Konten sind eingerichtet. Schließe jetzt das simulierte Browserfenster. Bevor du dich wieder anmeldest, schauen wir uns kurz an, was hinter den Konten steckt.` | Navigation | Das sichtbare, fiktive UI-Ziel wird ausdrücklich und eindeutig benannt. | nein | simuliertes Browserfenster | keine |
+
+### Copy-Delta S05 Fortschrittsleiste 9. August 2026
+
+Quelle ist der ausdrückliche Nutzerauftrag vom 9. August 2026. Die dreistufige
+Fortschrittsleiste ist sofort beim Einstieg in die Angreiferperspektive sichtbar. Der aktuelle
+Hauptcheckpoint steht als kompakter, nur umrandeter Kasten auf der kräftigeren Fortschrittslinie;
+abgeschlossene Hauptcheckpoints werden gefüllt und erhalten ein Häkchen. Spätere
+Hauptcheckpoint-Texte bleiben bis zu ihrem Erreichen als `?` verdeckt.
+
+Zwischen `früh ausprobiert` und `Muster` liegen drei Zwischenstopps. Sie zeigen zunächst ein
+Fragezeichen und beim Erreichen das jeweilige vorhandene Kategorienlogo, kein Häkchen. Die drei
+Muster-Zwischenstopps verwenden dagegen kleine Kreise, die beim Erreichen ein Häkchen erhalten.
+Bestehende Sprechblasen, Interaktionen, Analyse, Persistenz und Export bleiben unverändert.
+`S05_CONTENT_VERSION` wird von `2.48.7` über `2.49.0` auf `2.49.1` erhöht.
+
+| Segment und Text-ID | Quelle | Aktueller Text | Geplanter Text | Primäre Rolle | Grund | Bedeutungsänderung | Interaktionsziel | Hervorhebung |
+|---|---|---|---|---|---|---|---|---|
+| `S05.progress.checkpoints.early` | Nutzerauftrag vom 2026-08-09; dieser Audit | kein Text | `früh ausprobiert` | Orientierung | benennt den beim Einstieg sichtbaren ersten Prüfweg kompakt | nein | kein | aktiver Kasten nur umrandet; nach Abschluss gefüllt mit Häkchen |
+| `S05.progress.checkpoints.patterns` | Nutzerauftrag vom 2026-08-09; dieser Audit | kein Text | `Muster`, vorher `?` | Orientierung | enthüllt den zweiten Prüfweg erst bei dessen erster Sprechblase | nein | kein | aktiver Kasten nur umrandet; nach Abschluss gefüllt mit Häkchen |
+| `S05.progress.checkpoints.exhaustive` | Nutzerauftrag vom 2026-08-09; dieser Audit | kein Text | `alle durchprobieren`, vorher `?` | Orientierung | enthüllt den verkürzten dritten Prüfweg erst beim Übergang | begrenzt | kein | aktiver Kasten nur umrandet |
+
+### Darstellungsdelta S05 Check-Zentrierung und Fortschrittslogos 9. August 2026
+
+Quelle ist der ausdrückliche Nutzerauftrag vom 9. August 2026. Die drei Kategorienlogos in der
+Fortschrittsleiste werden verdoppelt und leicht oberhalb der Linie ausgerichtet. Die seitliche
+Zusammenfassung bereits geprüfter Kategorien bleibt während der Einzelchecks ausgeblendet und
+erscheint erst in der Gesamtauswertung nach `Kontobezug`. Dadurch steht das Campusgram-Passwort
+während der Checks horizontal und vertikal in der Bildschirmmitte. In der Gesamtauswertung
+bleibt die bestehende Anordnung aus Zusammenfassung und Passwort erhalten; das Passwort wird
+auf der Y-Achse leicht zur Mitte versetzt. Dies ist presentation-only: Teilnehmertext, Ablauf,
+Interaktion, Analyse, Persistenz und Export bleiben unverändert; kein Content-Versionssprung ist
+erforderlich.
+
+### Darstellungsdelta S05 Beispielpasswort-Schriftgröße 9. August 2026
+
+Quelle ist der ausdrückliche Nutzerauftrag vom 9. August 2026. Das authored Beispielpasswort
+`MeinStarkesUniPasswort2005!` wird in allen vier S05-Veranschaulichungen mit einem gemeinsamen
+Skalierungswert von `0.78` dargestellt. Dadurch sinkt seine Schriftgröße ungefähr um zwei
+typografische Stufen; zusammengesetzte Darstellung, Bausteinzerlegung, Kandidatenquelle und
+Muster-Veranschaulichung bleiben untereinander konsistent. Dies ist presentation-only:
+Teilnehmertext, Ablauf, Interaktion, Analyse, Persistenz und Export bleiben unverändert; kein
+Content-Versionssprung ist erforderlich.

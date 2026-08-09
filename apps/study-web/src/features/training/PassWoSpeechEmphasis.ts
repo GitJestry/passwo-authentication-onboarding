@@ -29,7 +29,7 @@ const noEmphasis = [] as const satisfies readonly PassWoSpeechEmphasis[];
  */
 const emphasisBySpeechId: Readonly<Record<string, readonly PassWoSpeechEmphasis[]>> = {
   'module-entry': [
-    { phrase: 'starke Passwörter', tone: 'positive', contrastId: 'password-memory' },
+    { phrase: 'starkes Passwort', tone: 'positive', contrastId: 'password-memory' },
     { phrase: 'gut merken', tone: 'accent', contrastId: 'password-memory' },
     { phrase: 'wieder abrufen', tone: 'accent', contrastId: 'password-memory' },
   ],

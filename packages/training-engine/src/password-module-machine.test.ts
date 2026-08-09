@@ -58,6 +58,15 @@ function startS04(actor: ReturnType<typeof createModuleActor>): void {
 }
 
 describe('passwordModuleMachine', () => {
+  it('starts the training without a fictional username', () => {
+    const actor = createActor(passwordModuleMachine, { input: { accountIds } });
+    actor.start();
+    actor.send({ type: 'DISPLAY_NAME_ENTERED', displayName: '' });
+
+    expect(actor.getSnapshot().matches('sectionTransition')).toBe(true);
+    expect(actor.getSnapshot().context.displayName).toBe('');
+  });
+
   it('starts the S01 end boundary only after the browser-close event', () => {
     const actor = createModuleActor();
     configureAllAccounts(actor);
