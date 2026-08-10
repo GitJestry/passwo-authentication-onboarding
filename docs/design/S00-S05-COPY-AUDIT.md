@@ -1783,3 +1783,88 @@ die positive Hervorhebung umfasst in der Hilfe zur Anmeldung nun das vollständi
 | Segment und Text-ID | Quelle | Aktueller Text | Geplanter Text | Primäre Rolle | Grund | Bedeutungsänderung | Interaktionsziel | Hervorhebung |
 |---|---|---|---|---|---|---|---|---|
 | `S03.narration.retrievalHelp` | Nutzerauftrag vom 2026-08-10 | `Kein Problem. Ein starkes Passwort sollte sich später auch zuverlässig wieder verwenden lassen. Ich unterstütze dich jetzt bei der Anmeldung.`; `stark` positiv hervorgehoben | sichtbarer Wortlaut unverändert; `starkes` positiv hervorgehoben | Ergebnisfeedback | ausdrücklich vorgegebene barrierefreie Auszeichnung | nein | `Für mich anmelden` | `starkes` positiv; `wieder verwenden` Akzent als Kontrast |
+
+### Copy-Delta S05 interaktive Messskala 10. August 2026
+
+Quelle ist der ausdrückliche Nutzerauftrag vom 10. August 2026. Nach der Schätzung ersetzt eine
+interaktive Messskala die statische Angreifer-Uhr. Die Person verändert ein ausschließlich lokal
+erzeugtes Kleinbuchstabenbeispiel zwischen 8 und 16 Zeichen. Der Abschluss wird erst nach dem
+erstmaligen Ansehen von 16 Zeichen freigegeben. Analyse des fiktiven Campusgram-Passworts,
+Persistenz, Export und Timing bleiben unverändert. Die nachfolgende visuelle Angleichung an den
+vom Nutzer benannten Referenzprototyp übernimmt dessen gemeinsame Kamera für Kugeln, Texte,
+Abstände und Skala. `S05_CONTENT_VERSION` wird zunächst von `2.54.2` auf `2.55.0`, mit dem ersten
+Copy- und Darstellungsdelta auf `2.55.1` und mit der vollflächigen UI-Angleichung auf `2.55.2`
+erhöht. Die anschließende Korrektur nach dem Referenzabgleich stellt die Schätzspanne 12 bis 20
+wieder her, fasst Schätzungen von 16 bis 20 in der Auswertung bei `16+` zusammen und erhöht die
+Version auf `2.55.3`.
+
+| Segment und Text-ID | Quelle | Aktueller Text | Geplanter Text | Primäre Rolle | Grund | Bedeutungsänderung | Interaktionsziel | Hervorhebung |
+|---|---|---|---|---|---|---|---|---|
+| `S05.freeSearch.estimate.options` | Nutzerauftrag vom 2026-08-10 | `12` bis `20` | `8` bis `15` sowie `16+` | Navigation | Schätzung an die sichtbare Skala 8–16 angleichen | begrenzt | Schätzoptionen | ausgewählte Option |
+| `S05.freeSearch.theoreticalModel.interactiveScale.finish` | Nutzerauftrag vom 2026-08-10 | nicht vorhanden | `Ansicht abschließen` | Navigation | bezeichnet den tatsächlichen Abschluss der Skalenansicht | ausdrücklich freigegeben | Abschlussbutton | Freigabepuls nach 16 |
+| `S05.freeSearch.theoreticalModel.interactiveScale.locked*` | Nutzerauftrag vom 2026-08-10 | nicht vorhanden | `Mindestens 16 Zeichen ansehen`; erläuternder Satz; `Weiter ansehen` | Ergebnisfeedback | erklärt die noch nicht erfüllte Abschlussbedingung ohne Fortschritt auszulösen | ausdrücklich freigegeben | Dialog und Rückkehr zur Skala | graues Warnsymbol |
+| `S05.freeSearch.theoreticalModel.interactiveScale.information` | Nutzerauftrag vom 2026-08-10 | vier dauerhaft sichtbare Annahmen | `Passwortlänge`, `Zeichenraumgröße`, `Mögliche Kombinationen`, `Berechnungen pro Sekunde` | Optionaler Hinweis | stellt die Annahmen platzsparend direkt an der Zeitangabe bereit | begrenzt | `(i)` an der Zeitangabe | keine |
+| `S05.freeSearch.theoreticalModel.title` und sichtbare Szenenlabels | Nutzerauftrag vom 2026-08-10 | `Beispiel mit festgelegten Annahmen`; `Angreifer-Uhr` | entfällt | Orientierung | ausdrücklich vorgegebene Entfernung der redundanten Szenenüberschrift | begrenzt | kein | keine |
+| `S05.freeSearch.theoreticalModel.boundary` | Nutzerauftrag vom 2026-08-10 | `Die Uhr vergleicht nur die gezeigten Zeichenfolgen.` | entfällt | Safety Boundary | ausdrücklich vorgegebene Entfernung aus dieser Darstellung; die Modellannahmen bleiben im Informationshinweis verfügbar | begrenzt | kein | keine |
+| `S05.freeSearch.theoreticalModel.lowercaseExplanation` | Nutzerauftrag vom 2026-08-10 | `Für selbst erstellte Passwörter gilt deshalb: mindestens 15 Zeichen. Zahlen oder Sonderzeichen sind dafür keine Pflicht.` | entfällt | Kerngedanke | ausdrücklich vorgegebene Entfernung; die Mindestlänge bleibt unmittelbar an der Skala sichtbar | begrenzt | kein | keine |
+| `S05.freeSearch.theoreticalModel.interactiveScale.passwordLabel` | Nutzerauftrag vom 2026-08-10 | `Zufällig erzeugtes Beispiel`, danach `zufällig erzeugt` | `Passwort` | Orientierung | ausdrücklich vorgegebene Bezeichnung oberhalb der allein umrandeten Passwortfläche | nein | links angeordnete Minus- und Plusbuttons | keine |
+| `S05.freeSearch.theoreticalModel.interactiveScale.minimumOrientation` | Nutzerauftrag vom 2026-08-10 | `15-Zeichen-Orientierung` | `mindestens 15 Zeichen` | Orientierung | ausdrücklich vorgegebene Bezeichnung an der Skala | nein | kein | grüne Messlatte bis zur Kugelspitze |
+| `S05.freeSearch.theoreticalModel.lowercaseMeasurements` | Nutzerauftrag vom 2026-08-10 und vorhandene Modellannahmen | Zeitwerte mit `ungefähr` | Zeitwerte mit `ca.` | Ergebnisfeedback | ausdrücklich vorgegebene Kurzform; Bedeutung unverändert | nein | kein | aktive und vorherige Kugel |
+| `S05.freeSearch.theoreticalModel.interactiveScale.lengthUnit` | Nutzerauftrag vom 2026-08-10 | Länge und `Zeichen` neben dem Beispielpasswort | entfällt; `Länge` steht links an der Messskala und die aktuelle Zahl am farbigen Skalenstrich | Orientierung | ordnet die Länge der Skala statt der Passwortbox zu | nein | kein | aktuelle Zahl und Strich in Kugelfarbe |
+
+#### Korrekturdelta nach Referenzabgleich
+
+| Segment und Text-ID | Quelle | Aktueller Text | Geplanter Text | Primäre Rolle | Grund | Bedeutungsänderung | Interaktionsziel | Hervorhebung |
+|---|---|---|---|---|---|---|---|---|
+| `S05.freeSearch.estimate.options` | Nutzerauftrag und Referenzbild vom 2026-08-10 | `8` bis `15` sowie `16+` | `12` bis `20`; Schätzungen von `16` bis `20` erscheinen in der Auswertung bei `16+` | Navigation | ausdrücklich verlangte Schätzspanne bei gemeinsamer Auswertungsposition | begrenzt | Schätzoptionen | ausgewählte Option |
+| `S05.freeSearch.theoreticalModel.interactiveScale.minimumOrientation` | Nutzerauftrag vom 2026-08-10 | `mindestens 15 Zeichen` | `Mindeststandard` | Orientierung | ausdrücklich verlangte kompakte Beschriftung der grünen Messlatte | begrenzt | kein | grüne Messlatte |
+| `S05.freeSearch.theoreticalModel.lowercaseMeasurements[16]` | Nutzerauftrag vom 2026-08-10 | `mehr als 1.000 Jahre` | `über 1000 Jahre` | Ergebnisfeedback | ausdrücklich verlangter Wortlaut ohne Tausenderpunkt | nein | kein | aktive Kugel |
+| aktive Skalenbeschriftung | Nutzerauftrag und Referenzbild vom 2026-08-10 | `Länge` links sowie aktuelle Zahl | kein `Länge`; immer `[x] Stellen`, bei 16 `16+ Stellen` | Orientierung | ordnet Einheit und aktuellen Wert direkt dem aktiven Skalenstrich zu | nein | kein | aktuelle Zahl und Strich in Kugelfarbe |
+
+### Copy-Delta S05 Zeichentypen und Hervorhebung 10. August 2026
+
+Quelle ist der ausdrückliche Nutzerauftrag vom 10. August 2026. Der Mechanismussatz zu
+Zeichentypen wird wie vorgegeben präzisiert. Im folgenden Kerngedanken bleibt der Wortlaut
+unverändert; die einzige Akzenthervorhebung umfasst nun die zusammenhängende Carry-forward-Phrase
+`genügend Länge`. Interaktion, Analyse, Persistenz, Export und Timing bleiben unverändert.
+`S05_CONTENT_VERSION` wird von `2.55.3` auf `2.55.4` erhöht.
+
+| Segment und Text-ID | Quelle | Aktueller Text | Geplanter Text | Primäre Rolle | Grund | Bedeutungsänderung | Interaktionsziel | Hervorhebung |
+|---|---|---|---|---|---|---|---|---|
+| `S05.freeSearch.characterMix.narration[2]` | Nutzerauftrag vom 2026-08-10 | `Die verschiedenen Zeichentypen könnten ein Passwort stärker machen, sind aber bei selbst gewählten Passwörtern schwer unvorhersehbar einzusetzen.` | `Verschiedene Zeichentypen können ein Passwort stärker machen, werden bei selbst gewählten Passwörtern aber oft vorhersehbar eingesetzt.` | Mechanismuserklärung | ausdrücklich vorgegebene Präzisierung | ausdrücklich freigegeben | `Weiter` | keine |
+| `S05.freeSearch.characterMix.narration[4]` | Nutzerauftrag vom 2026-08-10 | Wortlaut unverändert; `Länge` in Akzentfarbe | Wortlaut unverändert; `genügend Länge` in Akzentfarbe | Kerngedanke | ausdrücklich vorgegebene Ausweitung auf die vollständige Kernaussage | nein | `Weiter` | `genügend Länge` in Akzentfarbe |
+
+### Copy- und Darstellungsdelta S05 Messskala ab 12 Stellen 10. August 2026
+
+Quelle ist der ausdrückliche Nutzerauftrag vom 10. August 2026; die narrative Absicht stammt
+weiterhin aus `research/private/training-script.pdf`, S05.3 auf den internen Seiten 27–30. Die
+Messskala beginnt nun bei 12 statt bei 8 Stellen. Bereits erreichte Kugeln bleiben sichtbar; nur
+die unmittelbar vorherige Kugel trägt zusätzlich weiterhin ihre Zeitangabe. Der feste
+Informationszugang oben links kombiniert Angreifersymbol und `(i)`. Die Mindeststandard-Linie
+bleibt dauerhaft sichtbar und verwendet größere Strichabstände. Die Änderungen betreffen nur
+flüchtigen Präsentations- und Controllerzustand; Persistenz, Export, Timing und die Analyse des
+fiktiven Campusgram-Passworts bleiben unverändert. `S05_CONTENT_VERSION` wird von `2.55.4` auf
+`2.56.0` erhöht.
+
+| Segment und Text-ID | Quelle | Aktueller Text | Geplanter Text | Primäre Rolle | Grund | Bedeutungsänderung | Interaktionsziel | Hervorhebung |
+|---|---|---|---|---|---|---|---|---|
+| `S05.freeSearch.theoreticalModel.interactiveScale.title` | Nutzerauftrag vom 2026-08-10 | nicht vorhanden | `Zeit, bis alle Möglichkeiten geprüft wären` | Orientierung | unaufdringlicher, dauerhafter Szenentitel | nein | kein | keine |
+| `S05.freeSearch.theoreticalModel.interactiveScale.introduction` | Nutzerauftrag vom 2026-08-10 | keine Sprechblase beim Eintritt in die Skala | `Die Zeit in den Kreisen zeigt, wie lange es dauern würde, alle Möglichkeiten zu prüfen.` | Mechanismuserklärung | ordnet die Zeitwerte vor der Interaktion eindeutig zu | begrenzt | `Weiter` gibt die Skala frei | keine |
+| `S05.freeSearch.theoreticalModel.interactiveScale.informationLabel` | Nutzerauftrag vom 2026-08-10 | `Berechnungsannahmen anzeigen` | `Berechnungsannahmen des Angreifers anzeigen` | Optionaler Hinweis | barrierefreie Zuordnung des festen `(i)` zum Angreifersymbol | nein | `(i)` oben links | keine |
+| `S05.freeSearch.theoreticalModel.lowercaseMeasurements[8..15]` | Nutzerauftrag vom 2026-08-10 | Zahlwörter wie `fünf`, `zwei` und `ein` | Ziffern wie `5`, `2` und `1` | Ergebnisfeedback | Zahlen in allen Kugelwerten konsistent darstellen | nein | aktive und unmittelbar vorherige Kugel | keine |
+
+Der PassWo-Einstieg verwendet einen vorhandenen S05-Missionsschritt und einen expliziten lokalen
+Controllerzustand. Bis `Weiter` ist die Skala abgedunkelt und nicht bedienbar; danach verschwindet
+PassWo. Der Mindeststandard selbst bleibt bei 15 Stellen unverändert. Die Skala erlaubt nur 12
+bis 16 Stellen und verlangt weiterhin, 16 Stellen mindestens einmal anzusehen.
+
+### Copy-Delta S05 kurze vorhersehbare Formulierung 10. August 2026
+
+Quelle ist der ausdrückliche Nutzerauftrag vom 10. August 2026. Die Beschriftung in der
+Muster-Übergangsansicht benennt die gezeigte Eigenschaft präziser. Ablauf, Interaktion, Analyse,
+Persistenz, Export und Timing bleiben unverändert. `S05_CONTENT_VERSION` wird von `2.56.0` auf
+`2.56.1` erhöht.
+
+| Segment und Text-ID | Quelle | Aktueller Text | Geplanter Text | Primäre Rolle | Grund | Bedeutungsänderung | Interaktionsziel | Hervorhebung |
+|---|---|---|---|---|---|---|---|---|
+| `S05.intro.strategyAnnotations.sentenceStructure` | Nutzerauftrag vom 2026-08-10 | `Satzaufbau` | `Kurze vorhersehbare Formulierung` | Mechanismuserklärung | ausdrücklich vorgegebene Präzisierung der Beschriftung in der Muster-Übergangsansicht | begrenzt | kein | keine |

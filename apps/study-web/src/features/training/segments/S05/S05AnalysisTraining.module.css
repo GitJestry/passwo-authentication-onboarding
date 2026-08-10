@@ -63,6 +63,11 @@
   padding: var(--space-4) clamp(var(--space-5), 5cqi, var(--space-8));
 }
 
+.content:has(.lowercaseScaleScene) {
+  padding: 0;
+  overflow: hidden;
+}
+
 .attackerStage,
 .recognizableStage,
 .buildingBlocksStage,
@@ -170,6 +175,15 @@
 
 .passWoLayer > * {
   pointer-events: auto;
+}
+
+.passWoLayer[data-scale-introduction="true"]::before {
+  position: absolute;
+  z-index: -1;
+  inset: 0;
+  background: rgb(2 5 12 / 68%);
+  backdrop-filter: blur(0.18rem);
+  content: '';
 }
 
 .page:has(.passWoLayer [data-speaking="true"]) .content {
@@ -1829,6 +1843,522 @@
   font-size: var(--font-size-x-small);
 }
 
+.lowercaseScaleScene {
+  position: relative;
+  display: grid;
+  width: 100%;
+  height: 100%;
+  min-height: 100%;
+  padding: 0 clamp(var(--space-3), 2cqi, var(--space-5)) var(--space-3);
+  grid-template-rows: minmax(28rem, 1fr) auto;
+  color: #f5f8ff;
+  background: transparent;
+  overflow: hidden;
+}
+
+.lowercaseScaleTitle {
+  position: absolute;
+  z-index: 11;
+  top: clamp(var(--space-3), 2cqi, var(--space-5));
+  left: 50%;
+  width: min(34rem, 62%);
+  margin: 0;
+  color: rgb(245 248 255 / 78%);
+  font-size: clamp(var(--font-size-small), 1.6cqi, var(--font-size-body));
+  font-weight: var(--font-weight-bold);
+  letter-spacing: 0.01em;
+  text-align: center;
+  text-wrap: balance;
+  transform: translateX(-50%);
+}
+
+.lowercaseScaleScene::before {
+  position: absolute;
+  z-index: 0;
+  inset: 0;
+  background-image:
+    linear-gradient(rgb(255 255 255 / 3.5%) 1px, transparent 1px),
+    linear-gradient(90deg, rgb(255 255 255 / 3.5%) 1px, transparent 1px);
+  background-size: clamp(3rem, 8cqi, 6rem) clamp(3rem, 8cqi, 6rem);
+  content: '';
+  pointer-events: none;
+}
+
+.lowercaseScaleGraph {
+  position: relative;
+  z-index: 1;
+  min-width: 0;
+  min-height: 28rem;
+  overflow: hidden;
+}
+
+.scaleInformationControl {
+  position: absolute;
+  z-index: 14;
+  top: clamp(var(--space-3), 2cqi, var(--space-5));
+  left: clamp(var(--space-3), 2cqi, var(--space-5));
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+}
+
+.scaleInformationControl > img {
+  width: 2.65rem;
+  height: 2.65rem;
+  object-fit: contain;
+  filter: saturate(0.78) drop-shadow(0 0.4rem 0.7rem rgb(0 0 0 / 44%));
+}
+
+.scaleInformationControl > button {
+  display: grid;
+  width: 1.75rem;
+  height: 1.75rem;
+  padding: 0;
+  place-items: center;
+  border: var(--border-width-thin) solid rgb(245 248 255 / 34%);
+  border-radius: var(--radius-round);
+  color: #eaf1ff;
+  background: rgb(7 11 19 / 76%);
+  box-shadow: 0 0.35rem 1rem rgb(0 0 0 / 28%);
+  font: inherit;
+  font-size: var(--font-size-small);
+  font-weight: var(--font-weight-heavy);
+  cursor: help;
+}
+
+.scaleInformationControl > button:focus-visible {
+  outline: var(--border-width-focus) solid var(--color-focus);
+  outline-offset: var(--space-1);
+}
+
+.lowercaseScaleAxis {
+  position: absolute;
+  z-index: 5;
+  height: 0.1rem;
+  border-radius: var(--radius-round);
+  background: linear-gradient(90deg, rgb(255 255 255 / 16%), rgb(255 255 255 / 58%), rgb(255 255 255 / 18%));
+  box-shadow: 0 0 0.5rem rgb(106 168 255 / 12%);
+  transition: inset 680ms cubic-bezier(0.22, 1, 0.36, 1), width 680ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.scaleTick {
+  position: absolute;
+  z-index: 7;
+  top: var(--scale-y);
+  left: var(--scale-x);
+  display: grid;
+  justify-items: center;
+  gap: var(--space-1);
+  color: rgb(245 248 255 / 82%);
+  font-size: var(--font-size-small);
+  font-weight: var(--font-weight-heavy);
+  transform: translateX(-50%);
+  transition:
+    top 680ms cubic-bezier(0.22, 1, 0.36, 1),
+    left 680ms cubic-bezier(0.22, 1, 0.36, 1),
+    color 180ms ease,
+    transform 180ms ease;
+}
+
+.scaleTick i {
+  width: 0.1rem;
+  height: 1.25rem;
+  border-radius: var(--radius-round);
+  background: currentColor;
+}
+
+.scaleTick[data-reached="true"] {
+  color: rgb(245 248 255 / 82%);
+}
+
+.scaleTick[data-active="true"] {
+  color: var(--tick-color);
+  font-size: clamp(1.3rem, 2.3cqi, 1.7rem);
+  text-shadow: 0 0 1rem color-mix(in srgb, var(--tick-color) 70%, transparent);
+  transform: translateX(-50%);
+}
+
+.scaleTick[data-active="true"] i {
+  width: 0.14rem;
+  height: 1.5rem;
+  box-shadow: 0 0 0.65rem currentColor;
+}
+
+.scaleTick[data-future="true"] {
+  opacity: 0;
+}
+
+.scaleSphere {
+  position: absolute;
+  z-index: 3;
+  top: var(--scale-y);
+  left: var(--scale-x);
+  width: var(--sphere-size);
+  height: var(--sphere-size);
+  border: 1px solid color-mix(in srgb, var(--sphere-color) 22%, rgb(255 255 255 / 12%));
+  border-radius: var(--radius-round);
+  background:
+    radial-gradient(circle at 35% 28%, rgb(255 255 255 / 62%), transparent 6%),
+    radial-gradient(circle at 34% 29%, color-mix(in srgb, var(--sphere-color) 54%, white), transparent 19%),
+    radial-gradient(circle at 62% 72%, color-mix(in srgb, var(--sphere-color) 72%, #050810), color-mix(in srgb, var(--sphere-color) 30%, #02040a) 72%);
+  box-shadow:
+    inset calc(var(--sphere-size) * -0.045) calc(var(--sphere-size) * -0.065) calc(var(--sphere-size) * 0.13) rgb(0 0 0 / 26%),
+    0 calc(var(--sphere-size) * 0.025) calc(var(--sphere-size) * 0.09) rgb(0 0 0 / 34%),
+    0 0 calc(var(--sphere-size) * 0.1) color-mix(in srgb, var(--sphere-color) 30%, transparent);
+  opacity: 0.68;
+  transform: translateX(-50%);
+  transition:
+    top 680ms cubic-bezier(0.22, 1, 0.36, 1),
+    left 680ms cubic-bezier(0.22, 1, 0.36, 1),
+    width 680ms cubic-bezier(0.22, 1, 0.36, 1),
+    height 680ms cubic-bezier(0.22, 1, 0.36, 1),
+    opacity 240ms ease,
+    box-shadow 680ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.scaleSphere[data-active="true"] {
+  z-index: 4;
+  opacity: 1;
+  filter: saturate(1.06) brightness(1.03);
+}
+
+.scaleSphere[data-previous="true"] {
+  opacity: 0.78;
+}
+
+.scaleSphere[data-future="true"] {
+  opacity: 0;
+}
+
+.scaleMilestone {
+  position: absolute;
+  z-index: 8;
+  left: 1.1rem;
+  height: 0.12rem;
+  color: rgb(245 248 255 / 84%);
+  background: repeating-linear-gradient(
+    90deg,
+    currentColor 0 0.7rem,
+    transparent 0.7rem 1.9rem
+  );
+  filter: drop-shadow(0 0 0.4rem rgb(245 248 255 / 24%));
+  pointer-events: none;
+  transition: top 680ms cubic-bezier(0.22, 1, 0.36, 1), width 680ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.scaleMilestone[data-minimum="true"] {
+  color: #65d68d;
+}
+
+.scaleMilestone[data-minimum="true"][data-pending="true"] {
+  opacity: 0.72;
+}
+
+.scaleMilestone span {
+  position: absolute;
+  top: 50%;
+  left: 0;
+  padding: 0.24rem 0.58rem;
+  border: var(--border-width-thin) solid currentColor;
+  border-radius: var(--radius-round);
+  color: currentColor;
+  background: color-mix(in srgb, currentColor 12%, rgb(7 11 19 / 96%));
+  box-shadow: 0 0 0 0.18rem rgb(7 11 19 / 68%), 0 0 0.8rem color-mix(in srgb, currentColor 24%, transparent);
+  font-size: var(--font-size-x-small);
+  font-weight: var(--font-weight-bold);
+  white-space: nowrap;
+  transform: translateY(-50%);
+}
+
+.scaleTimeBubble {
+  position: absolute;
+  z-index: 6;
+  top: calc(var(--scale-y) + var(--sphere-size) / 2);
+  left: var(--scale-x);
+  width: calc(var(--sphere-size) * 0.76);
+  color: #f5f8ff;
+  opacity: 0.84;
+  transform: translate(-50%, -50%);
+  transition:
+    top 680ms cubic-bezier(0.22, 1, 0.36, 1),
+    left 680ms cubic-bezier(0.22, 1, 0.36, 1),
+    width 680ms cubic-bezier(0.22, 1, 0.36, 1),
+    opacity 180ms ease;
+}
+
+.scaleTimeBubble[data-active="true"] {
+  z-index: 9;
+  opacity: 1;
+}
+
+.scaleTimeBubble[data-previous="true"] {
+  width: calc(var(--sphere-size) * 0.88);
+}
+
+.scaleTimeInformation {
+  display: grid;
+  gap: clamp(0.12rem, calc(var(--sphere-size) * 0.012), var(--space-2));
+  place-items: center;
+  text-align: center;
+  text-shadow: 0 0.15rem 0.65rem rgb(0 0 0 / 88%);
+}
+
+.scaleClock {
+  position: relative;
+  display: grid;
+  width: clamp(1.2rem, calc(var(--sphere-size) * 0.14), 3.75rem);
+  aspect-ratio: 1;
+  place-items: center;
+  border-radius: var(--radius-round);
+  background: radial-gradient(circle, rgb(106 168 255 / 18%), transparent 68%);
+  box-shadow: 0 0 1rem rgb(106 168 255 / 22%);
+}
+
+.scaleClock::before {
+  position: absolute;
+  inset: -12%;
+  border: 1px solid rgb(220 233 255 / 16%);
+  border-radius: inherit;
+  content: '';
+}
+
+.scaleClock > img {
+  width: 100%;
+  height: auto;
+  filter: drop-shadow(0 0 0.55rem rgb(106 168 255 / 46%));
+}
+
+.scaleTimeInformation > strong {
+  font-size: clamp(0.72rem, calc(var(--sphere-size) * 0.105), 3.6rem);
+  line-height: var(--line-height-tight);
+  text-wrap: balance;
+}
+
+.scaleTimeBubble[data-previous="true"] .scaleTimeInformation > strong {
+  font-size: clamp(0.48rem, calc(var(--sphere-size) * 0.095), 1rem);
+}
+
+.scaleInformationTooltip {
+  position: absolute;
+  z-index: 20;
+  top: calc(100% + var(--space-2));
+  left: 0;
+  display: grid;
+  width: max-content;
+  max-width: min(24rem, calc(100vw - 2 * var(--space-5)));
+  gap: var(--space-1);
+  padding: var(--space-3);
+  border: var(--border-width-thin) solid rgb(255 255 255 / 18%);
+  border-radius: var(--radius-small);
+  color: #eaf1ff;
+  background: rgb(7 11 19 / 96%);
+  box-shadow: 0 1rem 3rem rgb(0 0 0 / 46%);
+  font-size: var(--font-size-small);
+  line-height: var(--line-height-body);
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(0.35rem);
+  transition: opacity 160ms ease, transform 160ms ease;
+}
+
+.scaleInformationControl:has(button:hover) .scaleInformationTooltip,
+.scaleInformationControl:has(button:focus) .scaleInformationTooltip {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.lowercaseScaleControls {
+  position: relative;
+  z-index: 12;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-3);
+  padding: 0 clamp(10rem, 18vw, 15rem) var(--space-1);
+}
+
+.lowercasePasswordControl {
+  display: grid;
+  min-width: 0;
+  place-items: center;
+}
+
+.lowercasePasswordButtons {
+  display: flex;
+  justify-content: center;
+  gap: var(--space-1);
+  margin-top: var(--space-2);
+}
+
+.lowercasePasswordButtons button {
+  display: grid;
+  width: 2.75rem;
+  min-height: 2.75rem;
+  padding: 0;
+  place-items: center;
+  border: var(--border-width-thin) solid rgb(106 168 255 / 42%);
+  border-radius: var(--radius-small);
+  color: #f5f8ff;
+  background: rgb(106 168 255 / 13%);
+  font-size: 2rem;
+  font-weight: var(--font-weight-heavy);
+  cursor: pointer;
+}
+
+.lowercasePasswordButtons button:disabled {
+  border-color: rgb(255 255 255 / 10%);
+  color: rgb(245 248 255 / 28%);
+  background: rgb(255 255 255 / 4%);
+  cursor: default;
+}
+
+.lowercasePasswordButtons button:focus-visible,
+.finishScale:focus-visible,
+.lowercaseScaleDialog button:focus-visible {
+  outline: var(--border-width-focus) solid var(--color-focus);
+  outline-offset: var(--space-1);
+}
+
+.lowercasePasswordField {
+  display: grid;
+  min-width: 0;
+  justify-items: center;
+}
+
+.lowercasePasswordField > span {
+  display: block;
+  margin-bottom: var(--space-1);
+  color: #a7b2c6;
+  font-size: var(--font-size-x-small);
+  font-weight: var(--font-weight-bold);
+}
+
+.lowercasePasswordControl code {
+  display: flex;
+  width: 18.2ch;
+  max-width: calc(100vw - 2 * var(--space-5));
+  box-sizing: content-box;
+  overflow: hidden;
+  padding: var(--space-2) var(--space-3);
+  border: var(--border-width-thin) solid rgb(255 255 255 / 16%);
+  border-radius: var(--radius-small);
+  color: #8792a6;
+  background: rgb(3 7 14 / 76%);
+  box-shadow: 0 0.75rem 2rem rgb(0 0 0 / 26%);
+  font-size: clamp(var(--font-size-body), 2cqi, var(--font-size-heading-small));
+  font-weight: var(--font-weight-heavy);
+  letter-spacing: 0.11em;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.lowercasePasswordControl code > span,
+.lowercasePasswordControl code > mark {
+  flex: 0 0 auto;
+  color: inherit;
+  background: transparent;
+}
+
+.lowercasePasswordControl code > mark {
+  color: #6aa8ff;
+  text-shadow: 0 0 0.7rem rgb(106 168 255 / 34%);
+}
+
+.finishScale {
+  position: absolute;
+  z-index: 14;
+  right: clamp(var(--space-3), 2cqi, var(--space-5));
+  bottom: var(--space-3);
+  display: inline-flex;
+  min-height: var(--size-control-medium);
+  padding: var(--space-3) var(--space-5);
+  align-items: center;
+  gap: var(--space-2);
+  border: var(--border-width-medium) solid rgb(167 176 189 / 24%);
+  border-radius: var(--radius-small);
+  color: rgb(245 248 255 / 42%);
+  background: rgb(255 255 255 / 4%);
+  font: inherit;
+  font-weight: var(--font-weight-heavy);
+  cursor: pointer;
+  transition: color 180ms ease, border-color 180ms ease, background 180ms ease, opacity 180ms ease;
+}
+
+.finishScale img {
+  width: 1.35rem;
+  opacity: 0;
+  transition: opacity 160ms ease;
+}
+
+.finishScale:not([data-unlocked="true"]):hover,
+.finishScale:not([data-unlocked="true"]):focus-visible {
+  border-color: rgb(167 176 189 / 48%);
+  color: rgb(245 248 255 / 64%);
+  background: rgb(143 153 168 / 9%);
+}
+
+.finishScale:not([data-unlocked="true"]):hover img,
+.finishScale:not([data-unlocked="true"]):focus-visible img {
+  opacity: 1;
+}
+
+.finishScale[data-unlocked="true"] {
+  border-color: var(--color-accent-strong);
+  color: var(--color-on-inverse);
+  background: var(--color-accent-strong);
+  animation: s05-scale-unlocked 900ms var(--motion-ease-out) both;
+}
+
+.lowercaseScaleDialog {
+  width: min(28rem, calc(100vw - 2 * var(--space-4)));
+  max-width: none;
+  padding: var(--space-6);
+  border: var(--border-width-thin) solid rgb(167 176 189 / 28%);
+  border-radius: var(--radius-medium);
+  color: #f5f8ff;
+  background: #0b1120;
+  box-shadow: 0 1.5rem 5rem rgb(0 0 0 / 58%);
+  text-align: center;
+}
+
+.lowercaseScaleDialog::backdrop {
+  background: rgb(3 7 14 / 72%);
+  backdrop-filter: blur(0.3rem);
+}
+
+.lowercaseScaleDialog > img {
+  width: 3rem;
+}
+
+.lowercaseScaleDialog h2 {
+  margin: var(--space-3) 0 var(--space-2);
+  color: #f5f8ff;
+  font-size: var(--font-size-heading-small);
+}
+
+.lowercaseScaleDialog p {
+  margin: 0 0 var(--space-5);
+  color: #a7b2c6;
+  line-height: var(--line-height-body);
+}
+
+.lowercaseScaleDialog button {
+  min-height: var(--size-control-medium);
+  padding: var(--space-2) var(--space-5);
+  border: var(--border-width-medium) solid var(--color-accent-strong);
+  border-radius: var(--radius-small);
+  color: var(--color-on-inverse);
+  background: var(--color-accent-strong);
+  font: inherit;
+  font-weight: var(--font-weight-heavy);
+  cursor: pointer;
+}
+
+@keyframes s05-scale-unlocked {
+  0%, 100% { box-shadow: 0 0 0 rgb(106 168 255 / 0%); }
+  40% { box-shadow: 0 0 0 0.3rem rgb(106 168 255 / 22%), 0 0 2.2rem rgb(106 168 255 / 38%); }
+}
+
 .generatedPassword span {
   font-family: ui-monospace, monospace;
   font-weight: var(--font-weight-bold);
@@ -3106,8 +3636,17 @@
   .strategyTargetingPassword,
   .strategyTargetingAttacker,
   .strategyCandidateScene .attackerConnection,
-  .strategyCandidateAttempt {
+  .strategyCandidateAttempt,
+  .finishScale[data-unlocked="true"] {
     animation: none;
+  }
+
+  .lowercaseScaleAxis,
+  .scaleMilestone,
+  .scaleTick,
+  .scaleSphere,
+  .scaleTimeBubble {
+    transition: none;
   }
 
   .variationSequence code {
@@ -3159,5 +3698,44 @@
   .applicationScene,
   .summaryScene {
     scroll-behavior: auto;
+  }
+}
+
+@media (max-width: 54rem) {
+  .lowercaseScaleScene {
+    grid-template-rows: minmax(25rem, 1fr) auto;
+    overflow: auto;
+  }
+
+  .lowercaseScaleTitle {
+    top: 4.75rem;
+    width: calc(100% - 2 * var(--space-5));
+  }
+
+  .lowercaseScaleControls {
+    align-items: stretch;
+    flex-direction: column;
+    padding: 0 11rem var(--space-1) 0;
+  }
+
+  .lowercaseScaleGraph {
+    min-height: 25rem;
+  }
+
+  .lowercasePasswordControl {
+    min-width: 0;
+  }
+
+  .lowercasePasswordField {
+    flex: 1;
+  }
+
+  .finishScale {
+    justify-content: center;
+  }
+
+  .scaleMilestone span {
+    max-width: 7.5rem;
+    white-space: normal;
   }
 }

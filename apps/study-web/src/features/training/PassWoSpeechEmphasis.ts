@@ -119,7 +119,7 @@ const emphasisBySpeechId: Readonly<Record<string, readonly PassWoSpeechEmphasis[
   's05-structure-intro': [{ phrase: 'typische Muster', tone: 'accent' }],
   's05-character-mix-first': [{ phrase: 'zufällig erzeugten', tone: 'accent' }],
   's05-character-mix-types': [{ phrase: 'riskant', tone: 'warning' }],
-  's05-character-mix-strategy': [{ phrase: 'Länge', tone: 'accent' }],
+  's05-character-mix-strategy': [{ phrase: 'genügend Länge', tone: 'accent' }],
   's05-character-mix-takeaway': [{ phrase: 'Mindestlänge', tone: 'accent' }],
   's05-estimate': [
     { phrase: 'welcher Länge', tone: 'accent', contrastId: 'estimate-threshold' },

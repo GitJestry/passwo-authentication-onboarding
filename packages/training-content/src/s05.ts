@@ -71,7 +71,7 @@ export interface S05DesignLabFixture {
   readonly startSection: 'intro' | 'components' | 'structure';
 }
 
-export const S05_CONTENT_VERSION = '2.54.2';
+export const S05_CONTENT_VERSION = '2.56.1';
 
 export const s05Content = {
   version: S05_CONTENT_VERSION,
@@ -81,9 +81,9 @@ export const s05Content = {
       12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34,
       35,
     ] as const,
-    revision: 'Userauftrag vom 2026-08-10 · Präzisierter Bedienhinweis zur Auswahl persönlicher Angaben',
+    revision: 'Userauftrag vom 2026-08-10 · Kurze vorhersehbare Formulierung',
     copyReference:
-      'docs/design/S00-S05-COPY-AUDIT.md#copy-delta-s05-bedienhinweis-persönliche-angaben-10-august-2026',
+      'docs/design/S00-S05-COPY-AUDIT.md#copy-delta-s05-kurze-vorhersehbare-formulierung-10-august-2026',
   },
   segment: {
     id: 'S05',
@@ -116,7 +116,7 @@ export const s05Content = {
     memorablePassword: 'MeinStarkesUniPasswort2005!',
     memorablePasswordParts: ['Mein', 'Starkes', 'Uni', 'Passwort', '2005', '!'],
     strategyAnnotations: {
-      sentenceStructure: 'Satzaufbau',
+      sentenceStructure: 'Kurze vorhersehbare Formulierung',
       probability: 'sehr häufig',
       personalDetail: 'Naheliegende Jahreszahl',
     },
@@ -455,7 +455,7 @@ export const s05Content = {
       narration: [
         'Das rechte Passwort ist genauso lang und enthält ebenfalls alle vier Zeichentypen, besteht aber aus zwölf zufällig erzeugten Zeichen.',
         'Deshalb kann ein Passwort als stark markiert werden, obwohl es typischen Mustern folgt und vom Angreifer früh ausprobiert wird.',
-        'Die verschiedenen Zeichentypen könnten ein Passwort stärker machen, sind aber bei selbst gewählten Passwörtern schwer unvorhersehbar einzusetzen.',
+        'Verschiedene Zeichentypen können ein Passwort stärker machen, werden bei selbst gewählten Passwörtern aber oft vorhersehbar eingesetzt.',
         'Darauf zu setzen, mit einer komplizierten Mischung wie „mEin!Pa55w0rt?“ eine Variante zu finden, die der Angreifer nicht prüft, ist deshalb riskant.',
         'Keine Sorge, darauf musst du dich nicht verlassen. Für ein starkes Passwort brauchst du vor allem genügend Länge.',
         'Die bisherigen Beispiele haben aber auch gezeigt: Gleiche Länge bedeutet nicht automatisch gleiche Sicherheit.',
@@ -473,23 +473,46 @@ export const s05Content = {
       confirmed: 'Schätzung bestätigt',
     },
     theoreticalModel: {
-      title: 'Angreifer-Uhr',
       assumptions: [
         'Jede Stelle unabhängig und zufällig ausgewählt',
         'Festgelegter Zeichenvorrat',
         'Vollständiges Durchprobieren',
         'Eine Billion Versuche pro Sekunde',
       ],
-      boundary: 'Die Uhr vergleicht nur die gezeigten Zeichenfolgen.',
       lowercaseMeasurements: [
-        { length: 8, durationLabel: 'unter einer Sekunde' },
-        { length: 12, durationLabel: 'ungefähr ein Tag' },
-        { length: 14, durationLabel: 'ungefähr zwei Jahre' },
-        { length: 15, durationLabel: 'ungefähr 53 Jahre' },
-        { length: 16, durationLabel: 'mehr als 1.000 Jahre' },
+        { length: 8, durationLabel: 'unter 1 Sekunde' },
+        { length: 9, durationLabel: 'ca. 5 Sekunden' },
+        { length: 10, durationLabel: 'ca. 2 Minuten' },
+        { length: 11, durationLabel: 'ca. 1 Stunde' },
+        { length: 12, durationLabel: 'ca. 1 Tag' },
+        { length: 13, durationLabel: 'ca. 29 Tage' },
+        { length: 14, durationLabel: 'ca. 2 Jahre' },
+        { length: 15, durationLabel: 'ca. 53 Jahre' },
+        { length: 16, durationLabel: 'über 1000 Jahre' },
       ],
-      lowercaseExplanation:
-        'Für selbst erstellte Passwörter gilt deshalb: mindestens 15 Zeichen. Zahlen oder Sonderzeichen sind dafür keine Pflicht.',
+      interactiveScale: {
+        accessibleLabel: 'Interaktive Messskala für zufällig erzeugte Kleinbuchstaben',
+        title: 'Zeit, bis alle Möglichkeiten geprüft wären',
+        introduction:
+          'Die Zeit in den Kreisen zeigt, wie lange es dauern würde, alle Möglichkeiten zu prüfen.',
+        passwordLabel: 'Passwort',
+        minimumOrientation: 'Mindeststandard',
+        removeCharacter: 'Zufälligen Kleinbuchstaben entfernen',
+        addCharacter: 'Zufälligen Kleinbuchstaben hinzufügen',
+        finish: 'Ansicht abschließen',
+        lockedTitle: 'Mindestens 16 Zeichen ansehen',
+        lockedBody:
+          'Erhöhe das Beispielpasswort auf 16 Zeichen, bevor du diese Ansicht abschließt.',
+        keepViewing: 'Weiter ansehen',
+        informationLabel: 'Berechnungsannahmen des Angreifers anzeigen',
+        information: {
+          passwordLength: 'Passwortlänge',
+          alphabetSize: 'Zeichenraumgröße',
+          combinations: 'Mögliche Kombinationen',
+          attemptsPerSecond: 'Berechnungen pro Sekunde',
+          attemptsPerSecondValue: '1 Billion',
+        },
+      },
     },
     application: {
       title: 'Was die Übung beim fiktiven Passwort zeigt',

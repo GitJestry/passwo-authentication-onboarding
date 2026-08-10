@@ -287,7 +287,7 @@
   display: grid;
   min-height: 0;
   flex: 1;
-  grid-template-columns: minmax(14rem, 0.65fr) minmax(20rem, 1fr);
+  grid-template-columns: minmax(12rem, 1fr) minmax(20rem, 42rem) minmax(12rem, 1fr);
   align-items: center;
   gap: clamp(var(--space-6), 6cqi, var(--space-9));
   padding: clamp(var(--space-5), 4cqi, var(--space-7)) clamp(var(--space-6), 7cqi, 7rem);
@@ -548,7 +548,11 @@
 @container campus-site (max-width: 65rem) {
   .siteNavigation span:nth-child(n + 3) { display: none; }
   .landingHero { grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr); }
-  .authentication { padding-inline: var(--space-6); }
+  .authentication {
+    grid-template-columns: 1fr;
+    padding-inline: var(--space-6);
+  }
+  .authInteraction { justify-items: center; }
   .dashboard { grid-template-columns: 12rem minmax(0, 1fr); }
   .masterSummary { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .masterSummary article:last-child { grid-column: 1 / -1; }

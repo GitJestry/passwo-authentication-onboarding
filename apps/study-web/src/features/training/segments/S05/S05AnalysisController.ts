@@ -103,6 +103,13 @@ export interface S05AnalysisControllerSnapshot {
     readonly selected: S05Estimate | null;
     readonly confirmed: boolean;
   };
+  readonly lowercaseScale: {
+    readonly password: string;
+    readonly reachedSixteen: boolean;
+    readonly maximumLengthSeen: number;
+    readonly previousLength: number | null;
+    readonly introductionDismissed: boolean;
+  };
   readonly componentStrategy: {
     readonly canonicalView: S05CanonicalPasswordView | null;
     readonly cards: Readonly<
@@ -127,6 +134,7 @@ interface S05AnalysisControllerOptions {
   readonly animationPlayer: AnimationPlayerPort;
   readonly initialSection?: S05InitialSection;
   readonly onComplete?: () => void;
+  readonly nextLowercaseCharacter: () => string;
 }
 
 type Listener = (snapshot: S05AnalysisControllerSnapshot) => void;
@@ -257,6 +265,7 @@ export class S05AnalysisController {
   readonly #listeners = new Set<Listener>();
   readonly #unsubscribe: () => void;
   readonly #onComplete: (() => void) | undefined;
+  readonly #nextLowercaseCharacter: () => string;
   #snapshot: S05AnalysisControllerSnapshot | null;
   #completionReported = false;
   #disposed = false;
@@ -266,9 +275,14 @@ export class S05AnalysisController {
     animationPlayer,
     initialSection = 'intro',
     onComplete,
+    nextLowercaseCharacter,
   }: S05AnalysisControllerOptions) {
     this.#mission = createMission(subject, initialSection);
     this.#onComplete = onComplete;
+    this.#nextLowercaseCharacter = nextLowercaseCharacter;
+    const initialLowercasePassword = Array.from({ length: 12 }, () =>
+      this.#createLowercaseCharacter(),
+    ).join('');
     const componentAnalysis = analyzeFictionalPassword({
       fictionalPassword: subject.fictionalPassword,
       authoredAccountTerms: s05Content.analysis.authoredAccountTerms,
@@ -330,6 +344,13 @@ export class S05AnalysisController {
       }),
       freeSearchApplicationScene,
       estimate: { selected: null, confirmed: false },
+      lowercaseScale: {
+        password: initialLowercasePassword,
+        reachedSixteen: false,
+        maximumLengthSeen: 12,
+        previousLength: null,
+        introductionDismissed: false,
+      },
       componentStrategy: {
         canonicalView,
         cards: initialComponentCards(),
@@ -546,9 +567,90 @@ export class S05AnalysisController {
     this.#snapshot = {
       ...snapshot,
       estimate: { ...snapshot.estimate, confirmed: true },
-      controls: { ...snapshot.controls, canContinue: true },
+      controls: { ...snapshot.controls, canContinue: false },
     };
     this.#emit();
+    void this.#missionController.continue();
+  }
+
+  addLowercaseCharacter(): void {
+    const snapshot = this.#snapshot;
+    if (
+      this.#disposed ||
+      snapshot === null ||
+      snapshot.step !== 'lowercase-clock' ||
+      snapshot.lowercaseScale.password.length >= 16
+    ) {
+      return;
+    }
+    const password = `${snapshot.lowercaseScale.password}${this.#createLowercaseCharacter()}`;
+    this.#snapshot = {
+      ...snapshot,
+      lowercaseScale: {
+        ...snapshot.lowercaseScale,
+        password,
+        reachedSixteen: snapshot.lowercaseScale.reachedSixteen || password.length === 16,
+        maximumLengthSeen: Math.max(snapshot.lowercaseScale.maximumLengthSeen, password.length),
+        previousLength: snapshot.lowercaseScale.password.length,
+      },
+    };
+    this.#emit();
+  }
+
+  dismissLowercaseScaleIntroduction(): void {
+    const snapshot = this.#snapshot;
+    if (
+      this.#disposed ||
+      snapshot === null ||
+      snapshot.step !== 'lowercase-clock' ||
+      snapshot.phase !== 'awaiting-decision' ||
+      snapshot.lowercaseScale.introductionDismissed
+    ) {
+      return;
+    }
+    this.#snapshot = {
+      ...snapshot,
+      lowercaseScale: {
+        ...snapshot.lowercaseScale,
+        introductionDismissed: true,
+      },
+    };
+    this.#emit();
+  }
+
+  removeLowercaseCharacter(): void {
+    const snapshot = this.#snapshot;
+    if (
+      this.#disposed ||
+      snapshot === null ||
+      snapshot.step !== 'lowercase-clock' ||
+      snapshot.lowercaseScale.password.length <= 12
+    ) {
+      return;
+    }
+    this.#snapshot = {
+      ...snapshot,
+      lowercaseScale: {
+        ...snapshot.lowercaseScale,
+        password: snapshot.lowercaseScale.password.slice(0, -1),
+        previousLength: snapshot.lowercaseScale.password.length,
+      },
+    };
+    this.#emit();
+  }
+
+  completeLowercaseScale(): boolean {
+    const snapshot = this.#snapshot;
+    if (
+      this.#disposed ||
+      snapshot === null ||
+      snapshot.step !== 'lowercase-clock' ||
+      !snapshot.lowercaseScale.reachedSixteen
+    ) {
+      return false;
+    }
+    void this.#missionController.continue();
+    return true;
   }
 
   replay(): void {
@@ -591,6 +693,7 @@ export class S05AnalysisController {
         canReplay: awaitingDecision,
         canContinue:
           awaitingDecision &&
+          step !== 'lowercase-clock' &&
           (step !== 'estimate' || currentSnapshot.estimate.confirmed),
       },
     };
@@ -601,5 +704,11 @@ export class S05AnalysisController {
     const snapshot = this.#snapshot;
     if (snapshot === null) return;
     for (const listener of this.#listeners) listener(snapshot);
+  }
+
+  #createLowercaseCharacter(): string {
+    const character = this.#nextLowercaseCharacter();
+    if (!/^[a-z]$/.test(character)) throw new Error('invalid-s05-lowercase-character');
+    return character;
   }
 }

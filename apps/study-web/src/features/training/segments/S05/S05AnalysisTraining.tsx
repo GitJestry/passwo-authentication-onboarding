@@ -5,9 +5,14 @@ import type {
 import { s00Content, s05Content } from '@passwo/training-content';
 import type {
   PasswordFreeSearchApplicationSceneSnapshot,
-  PasswordFreeSearchDemonstrationSceneSnapshot,
 } from '@passwo/visualization';
-import { type CSSProperties, type ReactNode, useEffect, useRef, useState } from 'react';
+import {
+  type CSSProperties,
+  type ReactNode,
+  useEffect,
+  useRef,
+  useState,
+} from 'react';
 import accountContextAsset from '../../../../assets/s05/category-logos/account-context.png';
 import commonCoresAsset from '../../../../assets/s05/category-logos/common-cores.png';
 import personalDetailsAsset from '../../../../assets/s05/category-logos/personal-details.png';
@@ -15,6 +20,8 @@ import typicalChangesAsset from '../../../../assets/s05/category-logos/typical-c
 import attackerAsset from '../../../../assets/passwo/attacker.png';
 import { NetworkSymbol } from '../../../../adapters/network/NetworkSymbolRegistry.js';
 import lowercaseAlphabetAsset from '../../../../assets/s05/lowercase-alphabet.png';
+import scaleClockAsset from '../../../../assets/s05/scale-clock.svg';
+import scaleWarningAsset from '../../../../assets/s05/scale-warning.svg';
 import { PassWoGuide } from '../../PassWoGuide.js';
 import { passWoSpeechEmphasisFor } from '../../PassWoSpeechEmphasis.js';
 import { PasswordVisibilityIcon } from '../../PasswordVisibilityIcon.js';
@@ -103,7 +110,18 @@ function CampusgramPassword({
 
 const generatedSequenceAlphabet =
   'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789!?#$%&';
+const lowercaseScaleAlphabet = 'abcdefghijklmnopqrstuvwxyz';
 const MEMORABLE_PASSWORD_VISUAL_SCALE = 0.9;
+
+function createCryptoLowercaseCharacter(): string {
+  const bytes = new Uint8Array(1);
+  let value = 255;
+  do {
+    globalThis.crypto.getRandomValues(bytes);
+    value = bytes[0] ?? 255;
+  } while (value >= 234);
+  return lowercaseScaleAlphabet.charAt(value % lowercaseScaleAlphabet.length);
+}
 
 function CandidateCheckScene({ subject }: { readonly subject: S05AnalysisSubject }) {
   return (
@@ -1112,38 +1130,366 @@ function EstimateScene({
   );
 }
 
+const lowercaseScaleLengths = [12, 13, 14, 15, 16] as const;
+const LOWERCASE_SCALE_MINIMUM_LENGTH = lowercaseScaleLengths[0];
+const germanNumberGroups = [
+  [21, 'Trilliarde', 'Trilliarden'],
+  [18, 'Trillion', 'Trillionen'],
+  [15, 'Billiarde', 'Billiarden'],
+  [12, 'Billion', 'Billionen'],
+  [9, 'Milliarde', 'Milliarden'],
+  [6, 'Million', 'Millionen'],
+  [3, 'Tausend', 'Tausend'],
+] as const;
+
+function formatGermanCompact(value: bigint): string {
+  for (const [exponent, singular, plural] of germanNumberGroups) {
+    const divisor = 10n ** BigInt(exponent);
+    if (value < divisor) continue;
+    const tenths = (value * 10n) / divisor;
+    const amount = Number(tenths) / 10;
+    const label = amount === 1 ? singular : plural;
+    return `${amount.toLocaleString('de-DE', { maximumFractionDigits: 1 })} ${label}`;
+  }
+  return value.toLocaleString('de-DE');
+}
+
+function durationLabelFor(length: number): string {
+  return s05Content.freeSearch.theoreticalModel.lowercaseMeasurements.find(
+    (measurement) => measurement.length === length,
+  )?.durationLabel ?? '';
+}
+
+function useScaleViewport(ref: { readonly current: HTMLElement | null }) {
+  const [size, setSize] = useState({ width: 960, height: 520 });
+  useEffect(() => {
+    const element = ref.current;
+    if (element === null) return undefined;
+    const updateSize = ({ width, height }: DOMRectReadOnly) =>
+      setSize({ width: Math.max(width, 320), height: Math.max(height, 320) });
+    updateSize(element.getBoundingClientRect());
+    const observer = new ResizeObserver((entries) => {
+      const entry = entries[0];
+      if (entry !== undefined) updateSize(entry.contentRect);
+    });
+    observer.observe(element);
+    return () => observer.disconnect();
+  }, [ref]);
+  return size;
+}
+
+interface ScaleItemStyle extends CSSProperties {
+  readonly '--scale-x': string;
+  readonly '--scale-y'?: string;
+  readonly '--sphere-size'?: string;
+  readonly '--sphere-color'?: string;
+  readonly '--tick-color'?: string;
+}
+
+function scaleColor(length: number): string {
+  const interpolate = (from: readonly [number, number, number], to: readonly [number, number, number], amount: number) =>
+    `rgb(${from.map((channel, index) => Math.round(channel + ((to[index] ?? channel) - channel) * amount)).join(' ')})`;
+  if (length <= 12) return interpolate([255, 92, 100], [242, 193, 78], (length - 8) / 4);
+  if (length <= 15) return interpolate([242, 193, 78], [101, 214, 141], (length - 12) / 3);
+  return '#6aa8ff';
+}
+
+function scaleSphereDiameter(length: number): number {
+  const exponent = length - 8;
+  const perStepGrowth = 26 ** (0.36 * 1.05);
+  let diameter = exponent === 0 ? 30 : 30 * perStepGrowth ** exponent * 1.8;
+  if (length >= 12) diameter *= 1.5 ** (length - 11);
+  if (length === 15) diameter *= 1.2;
+  if (length >= 16) diameter *= 1.4;
+  return diameter;
+}
+
+function scaleLabelAllowance(length: number): number {
+  return 140 + String(length).length * 18 + durationLabelFor(length).length * 9;
+}
+
+interface ScaleLayout {
+  readonly positions: ReadonlyMap<number, number>;
+  readonly axisTop: number;
+  readonly sphereLift: number;
+  readonly left: number;
+  readonly right: number;
+  readonly top: number;
+  readonly bottom: number;
+}
+
+function buildScaleLayout(currentLength: number): ScaleLayout {
+  const positions = new Map<number, number>([[LOWERCASE_SCALE_MINIMUM_LENGTH, 110]]);
+  const currentDiameter = scaleSphereDiameter(currentLength);
+  for (let length = LOWERCASE_SCALE_MINIMUM_LENGTH + 1; length <= currentLength; length += 1) {
+    const previousLength = length - 1;
+    const previousDiameter = scaleSphereDiameter(previousLength);
+    const diameter = scaleSphereDiameter(length);
+    const textAllowance = Math.max(scaleLabelAllowance(previousLength), scaleLabelAllowance(length));
+    const gap = Math.max(
+      160,
+      Math.sqrt(previousDiameter * diameter) * 0.18,
+      Math.max(previousDiameter, diameter) * 0.1,
+      textAllowance * 1.15,
+      currentDiameter * Math.min(
+        0.145,
+        0.022 + (currentLength - LOWERCASE_SCALE_MINIMUM_LENGTH) * 0.0075,
+      ) +
+        currentDiameter * Math.min(0.135, (currentLength - previousLength) * 0.011),
+    );
+    positions.set(
+      length,
+      (positions.get(previousLength) ?? 110) + previousDiameter / 2 + diameter / 2 + gap,
+    );
+  }
+  const sphereLift = Math.max(28, currentDiameter * 0.026);
+  const axisTop = currentDiameter + sphereLift + Math.max(96, currentDiameter * 0.06);
+  const scalePadding = Math.max(46, currentDiameter * 0.036);
+  let minimumX = Number.POSITIVE_INFINITY;
+  let maximumX = Number.NEGATIVE_INFINITY;
+  let minimumY = Number.POSITIVE_INFINITY;
+  for (let length = LOWERCASE_SCALE_MINIMUM_LENGTH; length <= currentLength; length += 1) {
+    const diameter = scaleSphereDiameter(length);
+    const x = positions.get(length) ?? 110;
+    minimumX = Math.min(minimumX, x - diameter / 2);
+    maximumX = Math.max(maximumX, x + diameter / 2);
+    minimumY = Math.min(minimumY, axisTop - sphereLift - diameter);
+  }
+  const worldPaddingX = Math.max(92, currentDiameter * 0.03);
+  const worldPaddingTop = Math.max(92, currentDiameter * 0.03);
+  const tickReach = Math.max(
+    108,
+    currentDiameter * 0.175,
+    92 + (currentLength - LOWERCASE_SCALE_MINIMUM_LENGTH) * 24,
+  );
+  return {
+    positions,
+    axisTop,
+    sphereLift,
+    left: minimumX - scalePadding - worldPaddingX,
+    right: maximumX + scalePadding + worldPaddingX,
+    top: Math.min(minimumY - worldPaddingTop, axisTop - tickReach * 0.78),
+    bottom: axisTop + tickReach * 1.55 + Math.max(72, currentDiameter * 0.018),
+  };
+}
+
+interface ScaleProjection {
+  readonly scale: number;
+  readonly translateX: number;
+  readonly translateY: number;
+  readonly axisY: number;
+}
+
+function projectScale(layout: ScaleLayout, currentLength: number, width: number, height: number): ScaleProjection {
+  const spanX = layout.right - layout.left;
+  const spanY = layout.bottom - layout.top;
+  const largeViewProgress = Math.max(0, Math.min(1, (currentLength - 13) / 3));
+  const widthRatio = 0.982 + (0.91 - 0.982) * largeViewProgress;
+  const heightRatio = 0.93 + (0.8 - 0.93) * largeViewProgress;
+  const scale = Math.min((width * widthRatio) / spanX, (height * heightRatio) / spanY);
+  const axisY = height * (0.76 + (0.8 - 0.76) * largeViewProgress);
+  return {
+    scale,
+    translateX: width / 2 - ((layout.left + layout.right) / 2) * scale,
+    translateY: axisY - layout.axisTop * scale,
+    axisY,
+  };
+}
+
+function ScaleInformationControl({ length }: { readonly length: number }) {
+  const content = s05Content.freeSearch.theoreticalModel.interactiveScale;
+  const tooltipId = 's05-scale-information';
+  return (
+    <aside className={styles.scaleInformationControl}>
+      <img src={attackerAsset} alt="" />
+      <button type="button" aria-label={content.informationLabel} aria-describedby={tooltipId}>i</button>
+      <span className={styles.scaleInformationTooltip} id={tooltipId} role="tooltip">
+        <span><strong>{content.information.passwordLength}:</strong> {length}</span>
+        <span><strong>{content.information.alphabetSize}:</strong> 26</span>
+        <span><strong>{content.information.combinations}:</strong> {formatGermanCompact(26n ** BigInt(length))}</span>
+        <span><strong>{content.information.attemptsPerSecond}:</strong> {content.information.attemptsPerSecondValue}</span>
+      </span>
+    </aside>
+  );
+}
+
+function ScaleTimeInformation({ length }: { readonly length: number }) {
+  return (
+    <span className={styles.scaleTimeInformation}>
+      <strong>{durationLabelFor(length)}</strong>
+      <span className={styles.scaleClock} aria-hidden="true">
+        <img src={scaleClockAsset} alt="" />
+      </span>
+    </span>
+  );
+}
+
 function LowercaseClockScene({
-  scene,
-  selected,
+  snapshot,
+  controller,
 }: {
-  readonly scene: PasswordFreeSearchDemonstrationSceneSnapshot;
-  readonly selected: S05AnalysisControllerSnapshot['estimate']['selected'];
+  readonly snapshot: S05AnalysisControllerSnapshot;
+  readonly controller: S05AnalysisController;
 }) {
   const content = s05Content.freeSearch.theoreticalModel;
+  const scaleContent = content.interactiveScale;
+  const graphRef = useRef<HTMLDivElement | null>(null);
+  const dialogRef = useRef<HTMLDialogElement | null>(null);
+  const viewport = useScaleViewport(graphRef);
+  const currentLength = snapshot.lowercaseScale.password.length;
+  const layout = buildScaleLayout(currentLength);
+  const projection = projectScale(layout, currentLength, viewport.width, viewport.height);
+  const estimateLength = snapshot.estimate.selected === null
+    ? null
+    : Math.min(snapshot.estimate.selected, 16);
+  const screenX = (length: number): number =>
+    (layout.positions.get(Math.min(length, currentLength)) ?? 110) * projection.scale + projection.translateX;
+  const screenDiameter = (length: number): number =>
+    Math.max(10, scaleSphereDiameter(Math.min(length, currentLength)) * projection.scale);
+  const screenTop = (length: number): number =>
+    (layout.axisTop - layout.sphereLift) * projection.scale +
+    projection.translateY -
+    screenDiameter(length);
+
+  function sphereStyle(length: number): ScaleItemStyle {
+    const visible = length <= currentLength;
+    const projectedLength = visible ? length : currentLength;
+    return {
+      '--scale-x': `${screenX(projectedLength)}px`,
+      '--scale-y': `${screenTop(projectedLength)}px`,
+      '--sphere-size': `${screenDiameter(projectedLength)}px`,
+      '--sphere-color': scaleColor(length),
+    };
+  }
+
+  function attemptFinish(): void {
+    if (!controller.completeLowercaseScale()) dialogRef.current?.showModal();
+  }
+
   return (
     <div
-      className={styles.focusScene}
+      className={styles.lowercaseScaleScene}
       data-s05-target="lowercase-clock"
-      aria-label={scene.accessibleSummary}
+      aria-label={scaleContent.accessibleLabel}
     >
-      <p className={styles.cardLabel}>Beispiel mit festgelegten Annahmen</p>
-      <h2>{content.title}</h2>
-      <EstimateRuler selected={selected} />
-      <ul className={styles.assumptions}>
-        {content.assumptions.map((assumption) => (
-          <li key={assumption}>{assumption}</li>
-        ))}
-      </ul>
-      <div className={styles.clockScale}>
-        {scene.lowercaseMeasurements.map(({ model, durationLabel }) => (
-          <article key={model.length}>
-            <strong>{model.length} Zeichen</strong>
-            <span>{durationLabel}</span>
-          </article>
-        ))}
+      <h2 className={styles.lowercaseScaleTitle}>{scaleContent.title}</h2>
+      <ScaleInformationControl length={currentLength} />
+      <div className={styles.lowercaseScaleGraph} ref={graphRef}>
+        <div
+          className={styles.lowercaseScaleAxis}
+          style={{ top: projection.axisY, left: 6, width: viewport.width - 12 }}
+        />
+        {estimateLength === null || estimateLength > currentLength ? null : (
+          <div
+            className={styles.scaleMilestone}
+            style={{
+              top: screenTop(estimateLength),
+              width: Math.max(0, screenX(estimateLength) - 18),
+            }}
+          >
+            <span>{s05Content.freeSearch.estimate.marker}</span>
+          </div>
+        )}
+        <div
+          className={styles.scaleMilestone}
+          data-minimum="true"
+          data-pending={currentLength < 15 || undefined}
+          style={{
+            top: currentLength < 15
+              ? Math.max(viewport.width <= 864 ? 132 : 84, screenTop(currentLength) - 72)
+              : screenTop(15),
+            width: Math.max(0, screenX(Math.min(15, currentLength)) - 18),
+          }}
+        >
+          <span>{scaleContent.minimumOrientation}</span>
+        </div>
+        {lowercaseScaleLengths.map((length) => {
+          const visible = length <= currentLength;
+          const active = length === currentLength;
+          const previous = length === currentLength - 1;
+          const tickStyle: ScaleItemStyle = {
+            '--scale-x': `${screenX(length)}px`,
+            '--scale-y': `${projection.axisY + 10}px`,
+            '--tick-color': scaleColor(length),
+          };
+          return (
+            <div key={length}>
+              <div
+                className={styles.scaleTick}
+                data-reached={visible || undefined}
+                data-active={active || undefined}
+                data-future={!visible || undefined}
+                style={tickStyle}
+              >
+                <i />
+                <span>{active ? `${length === 16 ? '16+' : length} Stellen` : length === 16 ? '16+' : length}</span>
+              </div>
+              <div
+                className={styles.scaleSphere}
+                data-active={active || undefined}
+                data-previous={previous || undefined}
+                data-future={!visible || undefined}
+                style={sphereStyle(length)}
+              />
+              {active || previous ? (
+                <div
+                  className={styles.scaleTimeBubble}
+                  data-active={active || undefined}
+                  data-previous={previous || undefined}
+                  style={sphereStyle(length)}
+                >
+                  <ScaleTimeInformation length={length} />
+                </div>
+              ) : null}
+            </div>
+          );
+        })}
       </div>
-      <p>{content.lowercaseExplanation}</p>
-      <p className={styles.boundaryCallout}>{content.boundary}</p>
+      <footer className={styles.lowercaseScaleControls}>
+        <div className={styles.lowercasePasswordControl}>
+          <div className={styles.lowercasePasswordField}>
+            <span>{scaleContent.passwordLabel}</span>
+            <code aria-label={`${currentLength} zufällig erzeugte Kleinbuchstaben`}>
+              <span>{snapshot.lowercaseScale.password.slice(0, LOWERCASE_SCALE_MINIMUM_LENGTH)}</span>
+              <mark>{snapshot.lowercaseScale.password.slice(LOWERCASE_SCALE_MINIMUM_LENGTH)}</mark>
+            </code>
+            <div className={styles.lowercasePasswordButtons}>
+              <button
+                type="button"
+                aria-label={scaleContent.removeCharacter}
+                disabled={currentLength === LOWERCASE_SCALE_MINIMUM_LENGTH}
+                onClick={() => controller.removeLowercaseCharacter()}
+              >−</button>
+              <button
+                type="button"
+                aria-label={scaleContent.addCharacter}
+                disabled={currentLength === 16}
+                onClick={() => controller.addLowercaseCharacter()}
+              >+</button>
+            </div>
+          </div>
+        </div>
+        <button
+          className={styles.finishScale}
+          data-unlocked={snapshot.lowercaseScale.reachedSixteen || undefined}
+          type="button"
+          aria-disabled={!snapshot.lowercaseScale.reachedSixteen || undefined}
+          onClick={attemptFinish}
+        >
+          {!snapshot.lowercaseScale.reachedSixteen ? <img src={scaleWarningAsset} alt="" /> : null}
+          {scaleContent.finish}
+        </button>
+      </footer>
+      <dialog
+        ref={dialogRef}
+        className={styles.lowercaseScaleDialog}
+        aria-labelledby="s05-lowercase-scale-dialog-title"
+      >
+        <img src={scaleWarningAsset} alt="" />
+        <h2 id="s05-lowercase-scale-dialog-title">{scaleContent.lockedTitle}</h2>
+        <p>{scaleContent.lockedBody}</p>
+        <button type="button" onClick={() => dialogRef.current?.close()}>{scaleContent.keepViewing}</button>
+      </dialog>
     </div>
   );
 }
@@ -1348,8 +1694,8 @@ function renderScene(
     case 'lowercase-clock':
       return (
         <LowercaseClockScene
-          scene={snapshot.freeSearchDemonstrationScene}
-          selected={snapshot.estimate.selected}
+          snapshot={snapshot}
+          controller={controller}
         />
       );
     case 'free-search-application':
@@ -1565,6 +1911,10 @@ function speechFor(
       ];
     case 'estimate':
       return [s05Content.freeSearch.estimate.question];
+    case 'lowercase-clock':
+      return snapshot.lowercaseScale.introductionDismissed
+        ? null
+        : [s05Content.freeSearch.theoreticalModel.interactiveScale.introduction];
     default:
       return null;
   }
@@ -1612,6 +1962,7 @@ export function S05AnalysisTraining({
       subject,
       animationPlayer,
       initialSection,
+      nextLowercaseCharacter: createCryptoLowercaseCharacter,
       onComplete: () => completionPort?.complete(),
     });
     const unsubscribe = nextController.subscribe(setSnapshot);
@@ -1681,6 +2032,12 @@ export function S05AnalysisTraining({
               onAction: continueFromSpeech,
             }
           : undefined;
+      case 'lowercase-clock':
+        return {
+          kind: 'advance' as const,
+          disabled: externalTimingError !== null,
+          onAction: () => activeController.dismissLowercaseScaleIntroduction(),
+        };
       default:
         return {
           kind: 'advance' as const,
@@ -1717,6 +2074,9 @@ export function S05AnalysisTraining({
           <div
             className={styles.passWoLayer}
             data-component-guidance={componentGuidanceVisible || undefined}
+            data-scale-introduction={
+              (activeSnapshot.step === 'lowercase-clock' && guidanceVisible) || undefined
+            }
           >
             <PassWoGuide
               guideName={s00Content.narration.guideName}
@@ -1751,8 +2111,8 @@ export function S05AnalysisTraining({
         )}
         <footer
           className={styles.controls}
-          data-hidden={guidanceVisible || personalCheckVisible || undefined}
-          inert={guidanceVisible || personalCheckVisible || undefined}
+          data-hidden={guidanceVisible || personalCheckVisible || snapshot.step === 'lowercase-clock' || undefined}
+          inert={guidanceVisible || personalCheckVisible || snapshot.step === 'lowercase-clock' || undefined}
         >
             {writingBoundary && externalTimingError === null ? (
               <p role="status">Segmentgrenze wird bestätigt …</p>

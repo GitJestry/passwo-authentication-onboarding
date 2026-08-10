@@ -4,7 +4,7 @@ import { S05_CONTENT_VERSION, s05Content } from './s05.js';
 
 describe('S05 content traceability', () => {
   it('keeps the participant copy bounded and separate from internal terminology', () => {
-    expect(S05_CONTENT_VERSION).toBe('2.54.2');
+    expect(S05_CONTENT_VERSION).toBe('2.56.1');
     expect(s05Content.source).toMatchObject({
       document: 'research/private/training-script.pdf',
       internalPages: [
@@ -12,7 +12,7 @@ describe('S05 content traceability', () => {
         35,
       ],
       copyReference:
-        'docs/design/S00-S05-COPY-AUDIT.md#copy-delta-s05-bedienhinweis-persönliche-angaben-10-august-2026',
+        'docs/design/S00-S05-COPY-AUDIT.md#copy-delta-s05-kurze-vorhersehbare-formulierung-10-august-2026',
     });
     expect(s05Content.segment.id).toBe('S05');
     expect(s05Content.page.fixtureNotice).toBe(
@@ -191,7 +191,9 @@ describe('S05 content traceability', () => {
       none: 'Bei den bisherigen Prüfungen wurde keine Übereinstimmung gefunden. Der Angreifer hat damit aber noch nicht alle Möglichkeiten ausgeschöpft.',
       nothingFound: 'Nichts gefunden',
     });
-    expect(s05Content.intro.strategyAnnotations.sentenceStructure).toBe('Satzaufbau');
+    expect(s05Content.intro.strategyAnnotations.sentenceStructure).toBe(
+      'Kurze vorhersehbare Formulierung',
+    );
     expect(s05Content.structure.intro).toEqual([
       'Angreifer prüfen nämlich nicht nur häufige Zeichenfolgen, persönliche Angaben oder Kontobezüge. Sie berücksichtigen auch typische Muster, mit denen solche Elemente zu leichter merkbaren Passwörtern kombiniert werden.',
     ]);
@@ -245,6 +247,9 @@ describe('S05 content traceability', () => {
     expect(s05Content.freeSearch.characterMix.narration[1]).toBe(
       'Deshalb kann ein Passwort als stark markiert werden, obwohl es typischen Mustern folgt und vom Angreifer früh ausprobiert wird.',
     );
+    expect(s05Content.freeSearch.characterMix.narration[2]).toBe(
+      'Verschiedene Zeichentypen können ein Passwort stärker machen, werden bei selbst gewählten Passwörtern aber oft vorhersehbar eingesetzt.',
+    );
     expect(s05Content.freeSearch.characterMix.finalVariationStatus).toBe('(Variation getestet)');
     expect(s05Content.freeSearch.characterMix.narration[3]).toBe(
       'Darauf zu setzen, mit einer komplizierten Mischung wie „mEin!Pa55w0rt?“ eine Variante zu finden, die der Angreifer nicht prüft, ist deshalb riskant.',
@@ -253,6 +258,23 @@ describe('S05 content traceability', () => {
       'Was glaubst du: Ab welcher Länge wird es für einen Angreifer zu aufwendig, alle Möglichkeiten durchzuprobieren?',
     );
     expect(s05Content.freeSearch.estimate.options).toEqual([12, 13, 14, 15, 16, 17, 18, 19, 20]);
+    expect(s05Content.freeSearch.theoreticalModel.interactiveScale.minimumOrientation).toBe(
+      'Mindeststandard',
+    );
+    expect(s05Content.freeSearch.theoreticalModel.interactiveScale.title).toBe(
+      'Zeit, bis alle Möglichkeiten geprüft wären',
+    );
+    expect(s05Content.freeSearch.theoreticalModel.interactiveScale.introduction).toBe(
+      'Die Zeit in den Kreisen zeigt, wie lange es dauern würde, alle Möglichkeiten zu prüfen.',
+    );
+    expect(s05Content.freeSearch.theoreticalModel.lowercaseMeasurements).toContainEqual({
+      length: 12,
+      durationLabel: 'ca. 1 Tag',
+    });
+    expect(s05Content.freeSearch.theoreticalModel.lowercaseMeasurements.at(-1)).toEqual({
+      length: 16,
+      durationLabel: 'über 1000 Jahre',
+    });
     expect(s05Content.fixtures.find(({ id }) => id === 'all-categories')).toMatchObject({
       fictionalPassword: 'CampusPassw0rt123!',
       analysisContext: { accountTerms: ['Campus'] },
@@ -293,6 +315,6 @@ describe('S05 content traceability', () => {
     );
     expect(
       s05Content.freeSearch.theoreticalModel.lowercaseMeasurements.map(({ length }) => length),
-    ).toEqual([8, 12, 14, 15, 16]);
+    ).toEqual([8, 9, 10, 11, 12, 13, 14, 15, 16]);
   });
 });
