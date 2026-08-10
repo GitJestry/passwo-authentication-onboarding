@@ -71,7 +71,7 @@ export interface S05DesignLabFixture {
   readonly startSection: 'intro' | 'components' | 'structure';
 }
 
-export const S05_CONTENT_VERSION = '2.56.1';
+export const S05_CONTENT_VERSION = '2.57.3';
 
 export const s05Content = {
   version: S05_CONTENT_VERSION,
@@ -81,9 +81,9 @@ export const s05Content = {
       12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34,
       35,
     ] as const,
-    revision: 'Userauftrag vom 2026-08-10 · Kurze vorhersehbare Formulierung',
+    revision: 'Userauftrag vom 2026-08-10 · S05-Skalenende und Abschlussgrenze präzisiert',
     copyReference:
-      'docs/design/S00-S05-COPY-AUDIT.md#copy-delta-s05-kurze-vorhersehbare-formulierung-10-august-2026',
+      'docs/design/S00-S05-COPY-AUDIT.md#copy--interaktionsdelta-s05-skalenende-und-abschlussgrenze-10-august-2026',
   },
   segment: {
     id: 'S05',
@@ -130,8 +130,7 @@ export const s05Content = {
     },
     narration: {
       candidateCheck: [
-        'Für den Angreifer ist dein Passwort verdeckt. Sein Programm erzeugt mögliche Passwörter und prüft, ob eines davon passt.',
-        'Grundsätzlich könnte es dabei jede denkbare Zeichenfolge ausprobieren.',
+        'Für den Angreifer ist dein Passwort verdeckt. Er probiert mögliche Passwörter aus und prüft, ob eines davon passt. Dabei könnte er grundsätzlich jede denkbare Zeichenfolge testen.',
       ],
       randomSequence: [
         'Zufällige Zeichenfolgen sind jedoch schwer zu merken. Selbst gewählte Passwörter enthalten deshalb oft merkbare Elemente wie Wörter, Zahlen oder einfache Zeichenfolgen.',
@@ -140,10 +139,10 @@ export const s05Content = {
         'Für die Erklärung betrachten wir diese Teile vereinfacht wie aneinandergesetzte Bausteine.',
       ],
       strategyTargeting: [
-        'Der Angreifer sieht diese Bestandteile nicht. Sein Programm kann aber mögliche Bestandteile auswählen, kombinieren und daraus vollständige Passwortkandidaten bilden.',
+        'Der Angreifer sieht diese Bestandteile nicht. Er kann aber mögliche Bestandteile auswählen, kombinieren und daraus vollständige Passwörter ausprobieren.',
       ],
       componentCategoryOverview: [
-        'Dabei probiert das Programm zunächst Passwörter und Zeichenfolgen aus, die besonders häufig verwendet werden.',
+        'Dabei beginnt der Angreifer mit Passwörtern und Zeichenfolgen, die besonders häufig verwendet werden.',
         'Bitte beachte: Das Modul kann Bestandteile im Passwort übersehen oder falsch einordnen. Es dient nur zum Verständnis und ist keine Sicherheitsbewertung.',
       ],
     },
@@ -190,8 +189,8 @@ export const s05Content = {
     commonComponents: {
       explanation: [
         'Dazu gehören häufig verwendete Passwörter und Wörter, einfache Tastatur- und Zahlenfolgen wie „123456“ oder „qwertz“ oder naheliegende Jahreszahlen.',
-        'Ein Wort ist nicht grundsätzlich ungeeignet. Ein häufig verwendetes Wort wird jedoch früh getestet.',
-        'Bei selbst gewählten Passwörtern kommen häufig Veränderungen wie Großschreibung, Zeichenersetzungen, Zahlen oder Symbole vor. Angreiferprogramme erzeugen deshalb typische Varianten sowohl einzelner Bestandteile als auch bereits zusammengesetzter Passwörter.',
+        'Wörter sind nicht grundsätzlich unsicher. Wörter, die häufig als Passwort gewählt werden, probieren Angreifer jedoch früh aus.',
+        'Bei selbst gewählten Passwörtern kommen häufig Veränderungen wie Großschreibung, Zeichenersetzungen, Zahlen oder Symbole vor. Angreifer probieren deshalb typische Varianten einzelner Bestandteile und ganzer Passwörter aus.',
         'Prüfen wir nun dein gewähltes Passwort auf häufig verwendete Passwörter und Zeichenfolgen.',
       ],
       machine: {
@@ -226,13 +225,13 @@ export const s05Content = {
     },
     personalDetails: {
       opening: [
-        'Persönliche Angaben sind leicht zu merken und wirken oft geheim. Es ist deshalb nachvollziehbar, sie für etwas zu halten, das andere nur schwer erraten können.',
+        'Deine Persönliche Angaben sind leicht zu merken und wirken oft geheim. Deshalb ist es nachvollziehbar, sie für schwer erratbar zu halten.',
       ],
       derivation: [
-        'Bei einem Datenleck liegen deine Passwortdaten oft zusammen mit deinem Benutzernamen, deiner E-Mail-Adresse oder Kontohinweisen vor.',
+        'Mit deinen gespeicherten Passwortdaten sind aber häufig auch Kontohinweise wie Benutzername oder E-Mail-Adresse verknüpft.',
       ],
       examples: [
-        'Angreifer können dadurch persönliche Angaben wie Namen, Geburtsdaten oder dem Lieblingsverein aus öffentlichen Profilen oder deinem Umfeld gezielt als Passwortkandidaten testen.',
+        'Auch wenn du online eher privat unterwegs bist, können solche Hinweise reichen, um persönliche Angaben zuzuordnen. Angreifer können dann etwa Namen, Geburtsdaten oder den Lieblingsverein gezielt ausprobieren.',
       ],
       explanation: [
         'Für den Selbstcheck: Wähle die persönlichen Angaben aus, die für dein Beispiel in Frage kommen.',
@@ -250,7 +249,7 @@ export const s05Content = {
       },
       begin: 'Persönliche Angaben markieren',
       selectionHint:
-        'Wenn du eine persönliche Angabe erkennst, ziehe über die zugehörigen Zeichen, um sie zu markieren. Weitere Angaben kannst du genauso markieren. Tippe auf eine Markierung, um sie wieder zu entfernen.',
+        'Wenn du eine persönliche Angabe erkennst, ziehe über die zugehörigen Zeichen, um sie zu markieren. Tippe auf eine Markierung, um sie wieder zu entfernen.',
       selectionStatus: {
         started: 'Auswahl gestartet. Wähle das letzte Zeichen des Bereichs.',
         added: 'Persönliche Angabe markiert.',
@@ -276,11 +275,10 @@ export const s05Content = {
         conveyorBlocks: campusgramContextConveyorBlocks,
       },
       opening: [
-        'Der Bezug zum Konto, Dienst oder Umfeld kann dem Angreifer Ideen für dein Passwort liefern.',
-        'Bei Campusgram wären zum Beispiel Begriffe wie Campus, Nachricht, dein Benutzername oder der Dienstname naheliegend.',
+        'Um sich leichter zu merken, welches Passwort zu welchem Konto gehört, werden oft Begriffe aus dem Dienst oder seinem Umfeld eingebaut. Solche Bezüge kann ein Angreifer gezielt mitprüfen.',
       ],
       explanation: [
-        'Bei einem WLAN-Passwort könnten es „WLAN“, „Router“ oder „Fritzbox“ sein.',
+        'Bei Campusgram wären das zum Beispiel „Campus“, „Nachricht“, dein Benutzername oder der Dienstname, bei einem WLAN-Passwort etwa „WLAN“, „Router“ oder „Fritzbox“.',
         'Prüfen wir nun dein gewähltes Passwort auf einen möglichen Bezug zu Campusgram.',
       ],
       check: 'Im Passwort prüfen',
@@ -488,22 +486,20 @@ export const s05Content = {
         { length: 13, durationLabel: 'ca. 29 Tage' },
         { length: 14, durationLabel: 'ca. 2 Jahre' },
         { length: 15, durationLabel: 'ca. 53 Jahre' },
-        { length: 16, durationLabel: 'über 1000 Jahre' },
+        { length: 16, durationLabel: 'ca. 1.380 Jahre' },
+        { length: 17, durationLabel: 'ca. 36.000 Jahre' },
+        { length: 18, durationLabel: 'ca. 940.000 Jahre' },
+        { length: 19, durationLabel: 'ca. 24 Millionen Jahre' },
+        { length: 20, durationLabel: 'über 635 Millionen Jahre' },
       ],
       interactiveScale: {
         accessibleLabel: 'Interaktive Messskala für zufällig erzeugte Kleinbuchstaben',
         title: 'Zeit, bis alle Möglichkeiten geprüft wären',
-        introduction:
-          'Die Zeit in den Kreisen zeigt, wie lange es dauern würde, alle Möglichkeiten zu prüfen.',
-        passwordLabel: 'Passwort',
         minimumOrientation: 'Mindeststandard',
         removeCharacter: 'Zufälligen Kleinbuchstaben entfernen',
         addCharacter: 'Zufälligen Kleinbuchstaben hinzufügen',
         finish: 'Ansicht abschließen',
-        lockedTitle: 'Mindestens 16 Zeichen ansehen',
-        lockedBody:
-          'Erhöhe das Beispielpasswort auf 16 Zeichen, bevor du diese Ansicht abschließt.',
-        keepViewing: 'Weiter ansehen',
+        lockedHint: 'Bitte erkunde es bis 16 Zeichen.',
         informationLabel: 'Berechnungsannahmen des Angreifers anzeigen',
         information: {
           passwordLength: 'Passwortlänge',

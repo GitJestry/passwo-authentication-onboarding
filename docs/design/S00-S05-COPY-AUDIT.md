@@ -1,5 +1,20 @@
 # S00--S05 Copy and Interaction Audit
 
+## Copy- und Interaktionsdelta S05: Skalenende und Abschlussgrenze, 10. August 2026
+
+Quelle ist der ausdrückliche Nutzerauftrag vom 10. August 2026. Die letzte Skalenmarke wird als
+offene Orientierung dargestellt und die Ansicht darf nach dem sichtbaren Erreichen von 16
+Zeichen abgeschlossen werden. `S05_CONTENT_VERSION` wird von `2.57.2` auf `2.57.3` erhöht.
+
+| Segment und Text-ID | Aktueller Text | Freigegebener Text | Primäre Rolle | Interaktionsziel | Grund und Bedeutungsänderung | Hervorhebung |
+|---|---|---|---|---|---|---|
+| `S05.freeSearch.theoreticalModel.scaleMark[20]` | `20` | `20+` | Mechanismuserklärung | kein | Die letzte sichtbare Marke deutet die Fortsetzung der Größenordnung an; begrenzt | keine |
+| `S05.freeSearch.theoreticalModel.lowercaseMeasurements[20].durationLabel` | `ca. 635 Millionen Jahre` | `über 635 Millionen Jahre` | Mechanismuserklärung | kein | Zeitangabe an die offene Endmarke anpassen; ausdrücklich freigegeben | keine |
+| `S05.freeSearch.theoreticalModel.interactiveScale.lockedHint` | `Bitte erkunde es bis 20 Zeichen.` | `Bitte erkunde es bis 16 Zeichen.` | Navigation | `Ansicht abschließen` | Wortlaut an die freigegebene Abschlussgrenze der Interaktion anpassen; begrenzt | keine |
+
+Die Schätzung und der Mindeststandard behalten ihren Wortlaut. Ihre Messlatten werden bei einer
+Kollision rein visuell verkürzt und versetzt; dies verändert weder Inhalt noch Interaktion.
+
 ## Copy-Delta Fortschrittskarte in Sektion 1, 9. August 2026
 
 Quelle ist der ausdrückliche Nutzerauftrag vom 9. August 2026. Die bisherige reine
@@ -1868,3 +1883,90 @@ Persistenz, Export und Timing bleiben unverändert. `S05_CONTENT_VERSION` wird v
 | Segment und Text-ID | Quelle | Aktueller Text | Geplanter Text | Primäre Rolle | Grund | Bedeutungsänderung | Interaktionsziel | Hervorhebung |
 |---|---|---|---|---|---|---|---|---|
 | `S05.intro.strategyAnnotations.sentenceStructure` | Nutzerauftrag vom 2026-08-10 | `Satzaufbau` | `Kurze vorhersehbare Formulierung` | Mechanismuserklärung | ausdrücklich vorgegebene Präzisierung der Beschriftung in der Muster-Übergangsansicht | begrenzt | kein | keine |
+
+### Copy- & Darstellungsdelta S05 Messskala-Verfeinerung 10. August 2026
+
+Quelle ist der ausdrückliche Nutzerauftrag vom 10. August 2026. Die Skala bleibt bei 12 Zeichen
+bedienbar und verlangt weiterhin, dass 16 Zeichen mindestens einmal angesehen werden. Der bisherige
+wegklickbare Abschlussdialog entfällt zugunsten eines optionalen Hinweises direkt am gesperrten
+Abschlussbutton. Die Formulierung benennt ausschließlich die noch notwendige Erkundung. Die
+Anpassungen an Kugelgrößen, Glühen, Informationsposition, Messgrenze, Titel und Beispielpasswort
+sind reine Darstellung. Persistenz, Export, Timing, Ablauf und die Analyse des fiktiven
+Campusgram-Passworts bleiben unverändert. `S05_CONTENT_VERSION` wird von `2.56.1` auf `2.56.2`
+erhöht.
+
+| Segment und Text-ID | Quelle | Aktueller Text | Geplanter Text | Primäre Rolle | Grund | Bedeutungsänderung | Interaktionsziel | Hervorhebung |
+|---|---|---|---|---|---|---|---|---|
+| `S05.freeSearch.theoreticalModel.interactiveScale.passwordLabel` | Nutzerauftrag vom 2026-08-10 | `Passwort` über dem lokalen Beispiel | entfällt | Orientierung | ausdrücklich verlangte Entfernung der redundanten Beschriftung | nein | kein | keine |
+| `S05.freeSearch.theoreticalModel.interactiveScale.locked*` | Nutzerauftrag vom 2026-08-10 | Dialog: `Mindestens 16 Zeichen ansehen`; `Erhöhe das Beispielpasswort auf 16 Zeichen, bevor du diese Ansicht abschließt.`; `Weiter ansehen` | optionaler Hinweis: `Bitte erkunde es bis 16 Zeichen.` | Optionaler Hinweis | der Abschluss soll keinen wegklickbaren Dialog auslösen; der Hinweis erscheint wie die vorhandenen Berechnungsannahmen nur auf Nachfrage | begrenzt | gesperrter Abschlussbutton mit Stoppsymbol | keine |
+
+### Copy- & Darstellungsdelta S05 Messskala ohne Einstieg 10. August 2026
+
+Quelle ist der ausdrückliche Nutzerauftrag vom 10. August 2026. PassWo spricht beim Eintritt in
+die Skala nicht mehr. Die sichtbare Skala zeigt wieder alle Werte von 8 bis 16, während die
+Bedienung des Beispielpassworts weiterhin bei 12 beginnt und dort ihre Untergrenze behält. Die
+Kugelgrößen verwenden wieder eine deutlich exponentielle Kurve; ein geringerer Leuchtrand erhält
+ihre räumliche Wirkung. Persistenz, Export, Timing, Ablauf und die Analyse des fiktiven
+Campusgram-Passworts bleiben unverändert. `S05_CONTENT_VERSION` wird von `2.56.2` auf `2.56.3`
+erhöht.
+
+| Segment und Text-ID | Quelle | Aktueller Text | Geplanter Text | Primäre Rolle | Grund | Bedeutungsänderung | Interaktionsziel | Hervorhebung |
+|---|---|---|---|---|---|---|---|---|
+| `S05.freeSearch.theoreticalModel.interactiveScale.introduction` | Nutzerauftrag vom 2026-08-10 | `Die Zeit in den Kreisen zeigt, wie lange es dauern würde, alle Möglichkeiten zu prüfen.` in einer PassWo-Sprechblase beim Skaleneintritt | entfällt | Mechanismuserklärung | ausdrücklich verlangte Entfernung des PassWo-Einstiegs; Zeitwerte und Informationshinweis bleiben sichtbar | begrenzt | kein | keine |
+
+### Copy- & Darstellungsdelta S05 Messskala bis 20 Stellen 10. August 2026
+
+Quelle ist der ausdrückliche Nutzerauftrag vom 10. August 2026. Das lokale Beispiel startet
+weiterhin bei 12 Stellen, besitzt acht feste graue Basiszeichen und lässt sich zwischen 8 und 20
+Stellen verändern. Die gemeinsame Kamera hält die Kugeln unterhalb des Titels und bewahrt ihre
+berechneten Größenverhältnisse ohne Mindestgröße. Angreifer, Informationszugang und Leuchtrand
+werden ausschließlich visuell angepasst. Persistenz, Export, Timing und die Analyse des fiktiven
+Campusgram-Passworts bleiben unverändert. `S05_CONTENT_VERSION` wird von `2.56.3` auf `2.57.0`
+erhöht.
+
+| Segment und Text-ID | Quelle | Aktueller Text | Geplanter Text | Primäre Rolle | Grund | Bedeutungsänderung | Interaktionsziel | Hervorhebung |
+|---|---|---|---|---|---|---|---|---|
+| `S05.freeSearch.theoreticalModel.interactiveScale.lockedHint` | Nutzerauftrag vom 2026-08-10 | `Bitte erkunde es bis 16 Zeichen.` | `Bitte erkunde es bis 20 Zeichen.` | Optionaler Hinweis | Abschlussbedingung an den ausdrücklich verlangten neuen Endpunkt anpassen | begrenzt | gesperrter Abschlussbutton | keine |
+| `S05.freeSearch.theoreticalModel.lowercaseMeasurements[17..20]` | Nutzerauftrag vom 2026-08-10 und vorhandene Modellannahmen | nicht vorhanden | berechnete Zeitangaben von `ca. 36.000 Jahre` bis `ca. 635 Millionen Jahre` | Ergebnisfeedback | neue sichtbare Skalenstufen vollständig beschriften | ausdrücklich freigegeben | aktive und unmittelbar vorherige Kugel | keine |
+
+### Copy- & Darstellungsdelta S05 skalierte Messmarken 10. August 2026
+
+Quelle ist der ausdrückliche Nutzerauftrag vom 10. August 2026. Die Zeitangabe bei 16 Stellen
+wird konkretisiert; Schätz- und Mindeststandardmarke skalieren gemeinsam mit dem Herauszoomen der
+Skalenkamera kompakter. Andere Zeitwerte, Ablauf, Persistenz, Export und Timing bleiben
+unverändert. `S05_CONTENT_VERSION` wird von `2.57.0` auf `2.57.1` erhöht.
+
+| Segment und Text-ID | Quelle | Aktueller Text | Geplanter Text | Primäre Rolle | Grund | Bedeutungsänderung | Interaktionsziel | Hervorhebung |
+|---|---|---|---|---|---|---|---|---|
+| `S05.freeSearch.theoreticalModel.lowercaseMeasurements[16]` | Nutzerauftrag vom 2026-08-10 | `über 1000 Jahre` | `ca. 1.380 Jahre` | Ergebnisfeedback | ausdrücklich verlangte genauere sichtbare Zeitangabe | begrenzt | aktive und unmittelbar vorherige Kugel | keine |
+
+### Copy- & Darstellungsdelta S05 Sprechblasen präzisiert 10. August 2026
+
+Quelle ist der ausdrückliche Nutzerauftrag vom 10. August 2026. Die Änderungen kürzen und
+präzisieren die Erklärungen innerhalb der bestehenden S05-Schritte. Interaktionsziele, Ablauf,
+Persistenz, Export, Timing und Analyse bleiben unverändert. Der bestehende Safety-Hinweis wird
+kleiner dargestellt. `S05_CONTENT_VERSION` wird von `2.57.1` auf `2.57.2` erhöht.
+
+| Segment und Text-ID | Quelle | Aktueller Text | Geplanter Text | Primäre Rolle | Grund | Bedeutungsänderung | Interaktionsziel | Hervorhebung |
+|---|---|---|---|---|---|---|---|---|
+| `S05.intro.narration.candidateCheck` | Nutzerauftrag vom 2026-08-10 | zwei Absätze ab `Für den Angreifer ist dein Passwort verdeckt.` | `Für den Angreifer ist dein Passwort verdeckt. Er probiert mögliche Passwörter aus und prüft, ob eines davon passt. Dabei könnte er grundsätzlich jede denkbare Zeichenfolge testen.` | Mechanismuserklärung | ausdrücklich vorgegebene Vereinfachung der Angreiferperspektive | begrenzt | `Weiter` | keine |
+| `S05.intro.narration.strategyTargeting` | Nutzerauftrag vom 2026-08-10 | `Der Angreifer sieht diese Bestandteile nicht. Sein Programm kann aber mögliche Bestandteile auswählen, kombinieren und daraus vollständige Passwortkandidaten bilden.` | `Der Angreifer sieht diese Bestandteile nicht. Er kann aber mögliche Bestandteile auswählen, kombinieren und daraus vollständige Passwörter ausprobieren.` | Mechanismuserklärung | ausdrücklich vorgegebene Vereinfachung | begrenzt | `Weiter` | keine |
+| `S05.intro.narration.componentCategoryOverview[0]` | Nutzerauftrag vom 2026-08-10 | `Dabei probiert das Programm zunächst Passwörter und Zeichenfolgen aus, die besonders häufig verwendet werden.` | `Dabei beginnt der Angreifer mit Passwörtern und Zeichenfolgen, die besonders häufig verwendet werden.` | Mechanismuserklärung | ausdrücklich vorgegebene Perspektivpräzisierung | begrenzt | `Weiter` | keine |
+| `S05.intro.narration.componentCategoryOverview[1]` | Nutzerauftrag vom 2026-08-10 | bestehender Safety-Hinweis in gedämpfter Schrift | Wortlaut unverändert, kleinere Schrift | Safety Boundary | ausdrücklich verlangte visuelle Abstufung | nein | `Weiter` | `Bitte beachte:` in Akzentfarbe |
+| `S05.componentStrategy.commonComponents.explanation[1..2]` | Nutzerauftrag vom 2026-08-10 | Erklärungen ab `Ein Wort ist nicht grundsätzlich ungeeignet.` | `Wörter sind nicht grundsätzlich unsicher. Wörter, die häufig als Passwort gewählt werden, probieren Angreifer jedoch früh aus.` sowie die vorgegebene kürzere Erklärung typischer Varianten | Mechanismuserklärung | ausdrücklich vorgegebene Präzisierung und Reduktion kognitiver Last | begrenzt | `Weiter` | `typische Varianten` in Akzentfarbe mit bestehendem Symbol |
+| `S05.componentStrategy.personalDetails.opening/derivation/examples` | Nutzerauftrag vom 2026-08-10 | drei bisherige Erklärungen zu persönlichen Angaben, Datenleck und öffentlichen Profilen | drei ausdrücklich vorgegebene Sprechblasen ab `Deine Persönliche Angaben sind leicht zu merken` | Mechanismuserklärung | ausdrücklich vorgegebene dramaturgische und fachliche Präzisierung | begrenzt | jeweils `Weiter` | `Persönliche Angaben`; anschließend gruppiert `Namen`, `Geburtsdaten`, `Lieblingsverein` |
+| `S05.componentStrategy.personalDetails.selectionHint` | Nutzerauftrag vom 2026-08-10 | Handlungsanweisung einschließlich `Weitere Angaben kannst du genauso markieren.` | gleiche Handlungsanweisung ohne diesen Satz | Navigation | nachweisbare Redundanz entfernen | nein | Passwortzeichen und bestehende Markierung | keine |
+| `S05.componentStrategy.accountContext.opening/explanation[0]` | Nutzerauftrag vom 2026-08-10 | bisherige zwei Schritte ab `Der Bezug zum Konto, Dienst oder Umfeld` | zwei ausdrücklich vorgegebene Sprechblasen ab `Um sich leichter zu merken` | Mechanismuserklärung | ausdrücklich vorgegebene dramaturgische Präzisierung | begrenzt | jeweils `Weiter` | gruppiert `Dienst` und `Umfeld` |
+
+### Copy- & Darstellungsdelta S05 Schätzungsauswahl 10. August 2026
+
+Quelle ist der ausdrückliche Nutzerauftrag vom 10. August 2026. Die Beschriftung `Deine Schätzung`
+entfällt ausschließlich während der Abgabe, weil der ausgewählte Wert bereits eindeutig im
+Auswahlfeld markiert ist. An der späteren Messskala bleibt dieselbe Beschriftung zur räumlichen
+Zuordnung des zuvor gewählten Werts erhalten. Die vergrößerte Informationsschaltfläche und die
+visuelle Überarbeitung der Auswahl sind reine Darstellung. Ablauf, Persistenz, Export, Timing
+und versionierte Content-Daten bleiben unverändert.
+
+| Segment und Text-ID | Quelle | Aktueller Text | Geplanter Text | Primäre Rolle | Grund | Bedeutungsänderung | Interaktionsziel | Hervorhebung |
+|---|---|---|---|---|---|---|---|---|
+| `S05.freeSearch.estimate.marker` in der Abgabeansicht | Nutzerauftrag vom 2026-08-10 | `Deine Schätzung` über dem gewählten Skalenwert | entfällt in der Abgabeansicht; bleibt an der späteren Messskala erhalten | Orientierung | redundante Beschriftung entfernen; die Auswahl selbst zeigt den gewählten Wert eindeutig | nein | Schätzungsauswahl | ausgewählter Wert durch Kontrast, Rahmen und Häkchen |

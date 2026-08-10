@@ -107,8 +107,6 @@ export interface S05AnalysisControllerSnapshot {
     readonly password: string;
     readonly reachedSixteen: boolean;
     readonly maximumLengthSeen: number;
-    readonly previousLength: number | null;
-    readonly introductionDismissed: boolean;
   };
   readonly componentStrategy: {
     readonly canonicalView: S05CanonicalPasswordView | null;
@@ -348,8 +346,6 @@ export class S05AnalysisController {
         password: initialLowercasePassword,
         reachedSixteen: false,
         maximumLengthSeen: 12,
-        previousLength: null,
-        introductionDismissed: false,
       },
       componentStrategy: {
         canonicalView,
@@ -579,7 +575,7 @@ export class S05AnalysisController {
       this.#disposed ||
       snapshot === null ||
       snapshot.step !== 'lowercase-clock' ||
-      snapshot.lowercaseScale.password.length >= 16
+      snapshot.lowercaseScale.password.length >= 20
     ) {
       return;
     }
@@ -589,30 +585,8 @@ export class S05AnalysisController {
       lowercaseScale: {
         ...snapshot.lowercaseScale,
         password,
-        reachedSixteen: snapshot.lowercaseScale.reachedSixteen || password.length === 16,
+        reachedSixteen: snapshot.lowercaseScale.reachedSixteen || password.length >= 16,
         maximumLengthSeen: Math.max(snapshot.lowercaseScale.maximumLengthSeen, password.length),
-        previousLength: snapshot.lowercaseScale.password.length,
-      },
-    };
-    this.#emit();
-  }
-
-  dismissLowercaseScaleIntroduction(): void {
-    const snapshot = this.#snapshot;
-    if (
-      this.#disposed ||
-      snapshot === null ||
-      snapshot.step !== 'lowercase-clock' ||
-      snapshot.phase !== 'awaiting-decision' ||
-      snapshot.lowercaseScale.introductionDismissed
-    ) {
-      return;
-    }
-    this.#snapshot = {
-      ...snapshot,
-      lowercaseScale: {
-        ...snapshot.lowercaseScale,
-        introductionDismissed: true,
       },
     };
     this.#emit();
@@ -624,7 +598,7 @@ export class S05AnalysisController {
       this.#disposed ||
       snapshot === null ||
       snapshot.step !== 'lowercase-clock' ||
-      snapshot.lowercaseScale.password.length <= 12
+      snapshot.lowercaseScale.password.length <= 8
     ) {
       return;
     }
@@ -633,7 +607,6 @@ export class S05AnalysisController {
       lowercaseScale: {
         ...snapshot.lowercaseScale,
         password: snapshot.lowercaseScale.password.slice(0, -1),
-        previousLength: snapshot.lowercaseScale.password.length,
       },
     };
     this.#emit();

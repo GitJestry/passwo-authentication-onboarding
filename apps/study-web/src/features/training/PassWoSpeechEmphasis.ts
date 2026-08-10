@@ -78,11 +78,9 @@ const emphasisBySpeechId: Readonly<Record<string, readonly PassWoSpeechEmphasis[
     },
   ],
   's05-personal-details-examples': [
-    {
-      phrase: 'persönliche Angaben',
-      tone: 'accent',
-      symbolSrc: personalDetailsAsset,
-    },
+    { phrase: 'Namen', tone: 'accent', contrastId: 'personal-detail-examples' },
+    { phrase: 'Geburtsdaten', tone: 'accent', contrastId: 'personal-detail-examples' },
+    { phrase: 'Lieblingsverein', tone: 'accent', contrastId: 'personal-detail-examples' },
   ],
   's05-personal-details-intro': [
     {
@@ -92,11 +90,8 @@ const emphasisBySpeechId: Readonly<Record<string, readonly PassWoSpeechEmphasis[
     },
   ],
   's05-account-context-opening': [
-    {
-      phrase: 'Bezug zum Konto, Dienst oder Umfeld',
-      tone: 'accent',
-      symbolSrc: accountContextAsset,
-    },
+    { phrase: 'Dienst', tone: 'accent', contrastId: 'account-context-source' },
+    { phrase: 'Umfeld', tone: 'accent', contrastId: 'account-context-source' },
   ],
   's05-account-context-intro': [
     {

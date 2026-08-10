@@ -177,15 +177,6 @@
   pointer-events: auto;
 }
 
-.passWoLayer[data-scale-introduction="true"]::before {
-  position: absolute;
-  z-index: -1;
-  inset: 0;
-  background: rgb(2 5 12 / 68%);
-  backdrop-filter: blur(0.18rem);
-  content: '';
-}
-
 .page:has(.passWoLayer [data-speaking="true"]) .content {
   --passwo-safe-block-end: calc(var(--artifact-unit, 1rem) * 11);
 }
@@ -1545,10 +1536,33 @@
   text-align: center;
 }
 
-.lowercaseAlphabet img {
-  display: block;
-  width: min(10rem, 48cqi);
-  height: auto;
+.lowercaseAlphabetMark {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.08em;
+  font-size: clamp(5rem, 13cqi, 9rem);
+  font-weight: var(--font-weight-heavy);
+  line-height: 0.85;
+  letter-spacing: -0.09em;
+  text-shadow: 0 0.12em 0.28em rgb(0 0 0 / 34%);
+}
+
+.lowercaseAlphabetMark strong,
+.lowercaseAlphabetMark b,
+.lowercaseAlphabetMark i {
+  font: inherit;
+}
+
+.lowercaseAlphabetMark strong {
+  color: #ff5c64;
+}
+
+.lowercaseAlphabetMark i {
+  color: rgb(245 248 255 / 72%);
+}
+
+.lowercaseAlphabetMark b {
+  color: #65d68d;
 }
 
 .estimateMarkerRow,
@@ -1719,9 +1733,12 @@
 }
 
 .estimateScale {
-  margin: var(--space-5) 0;
-  padding: 0;
-  border: 0;
+  margin: var(--space-5) 0 var(--space-4);
+  padding: var(--space-3);
+  border: var(--border-width-thin) solid rgb(255 255 255 / 12%);
+  border-radius: var(--radius-medium);
+  background: linear-gradient(180deg, rgb(255 255 255 / 7%), rgb(255 255 255 / 2%));
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 7%), 0 1rem 2.5rem rgb(0 0 0 / 16%);
 }
 
 .estimateScale legend {
@@ -1732,11 +1749,12 @@
 
 .estimateScale > div {
   display: grid;
-  gap: var(--space-2);
+  gap: clamp(var(--space-1), 1cqi, var(--space-3));
   grid-template-columns: repeat(9, minmax(2.75rem, 1fr));
 }
 
 .estimateScale label {
+  min-width: 0;
   cursor: pointer;
 }
 
@@ -1746,20 +1764,44 @@
 }
 
 .estimateScale span {
+  position: relative;
   display: grid;
-  min-height: var(--size-control-medium);
+  min-height: calc(var(--size-control-medium) + var(--space-2));
   place-items: center;
-  border: var(--border-width-medium) solid var(--color-border);
-  border-radius: var(--radius-round);
-  color: var(--color-ink-strong);
-  background: var(--color-surface-primary);
-  font-weight: var(--font-weight-bold);
+  border: var(--border-width-medium) solid rgb(245 248 255 / 28%);
+  border-radius: var(--radius-small);
+  color: rgb(245 248 255 / 78%);
+  background: rgb(7 11 19 / 58%);
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 7%);
+  font-size: var(--font-size-body);
+  font-weight: var(--font-weight-heavy);
+  transition: transform 160ms ease, color 160ms ease, border-color 160ms ease, background 160ms ease, box-shadow 160ms ease;
+}
+
+.estimateScale label:hover span {
+  border-color: rgb(106 168 255 / 72%);
+  color: #f5f8ff;
+  background: rgb(106 168 255 / 13%);
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 10%), 0 0.4rem 1.2rem rgb(0 0 0 / 24%);
+  transform: translateY(-0.12rem);
 }
 
 .estimateScale input:checked + span {
-  border-color: var(--color-accent-strong);
-  color: var(--color-on-inverse);
-  background: var(--color-accent-strong);
+  border-color: #8bbaff;
+  color: #fff;
+  background: linear-gradient(145deg, #315fca, #163a8e);
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 22%), 0 0 0 0.16rem rgb(106 168 255 / 20%), 0 0.65rem 1.5rem rgb(17 50 123 / 38%);
+  transform: translateY(-0.12rem);
+}
+
+.estimateScale input:checked + span::after {
+  position: absolute;
+  top: 0.24rem;
+  right: 0.34rem;
+  color: #fff;
+  content: '✓';
+  font-size: 0.62rem;
+  line-height: 1;
 }
 
 .estimateScale input:focus-visible + span {
@@ -1863,9 +1905,9 @@
   left: 50%;
   width: min(34rem, 62%);
   margin: 0;
-  color: rgb(245 248 255 / 78%);
-  font-size: clamp(var(--font-size-small), 1.6cqi, var(--font-size-body));
-  font-weight: var(--font-weight-bold);
+  color: rgb(245 248 255 / 62%);
+  font-size: clamp(var(--font-size-x-small), 1.35cqi, var(--font-size-small));
+  font-weight: var(--font-weight-medium);
   letter-spacing: 0.01em;
   text-align: center;
   text-wrap: balance;
@@ -1895,7 +1937,7 @@
 .scaleInformationControl {
   position: absolute;
   z-index: 14;
-  top: clamp(var(--space-3), 2cqi, var(--space-5));
+  bottom: var(--space-3);
   left: clamp(var(--space-3), 2cqi, var(--space-5));
   display: inline-flex;
   align-items: center;
@@ -1903,16 +1945,18 @@
 }
 
 .scaleInformationControl > img {
-  width: 2.65rem;
-  height: 2.65rem;
+  width: 6.7rem;
+  height: 6.7rem;
   object-fit: contain;
   filter: saturate(0.78) drop-shadow(0 0.4rem 0.7rem rgb(0 0 0 / 44%));
 }
 
 .scaleInformationControl > button {
   display: grid;
-  width: 1.75rem;
-  height: 1.75rem;
+  width: 2.35rem;
+  height: 2.35rem;
+  margin-top: 0.45rem;
+  margin-left: -1.45rem;
   padding: 0;
   place-items: center;
   border: var(--border-width-thin) solid rgb(245 248 255 / 34%);
@@ -1924,6 +1968,15 @@
   font-size: var(--font-size-small);
   font-weight: var(--font-weight-heavy);
   cursor: help;
+  transition: border-color 160ms ease, background 160ms ease, box-shadow 160ms ease, transform 160ms ease;
+}
+
+.scaleInformationControl > button:hover,
+.scaleInformationControl > button:focus-visible {
+  border-color: rgb(245 248 255 / 72%);
+  background: rgb(15 24 40 / 96%);
+  box-shadow: 0 0.45rem 1.2rem rgb(0 0 0 / 38%), 0 0 0 0.2rem rgb(106 168 255 / 16%);
+  transform: scale(1.06);
 }
 
 .scaleInformationControl > button:focus-visible {
@@ -1998,14 +2051,15 @@
   border: 1px solid color-mix(in srgb, var(--sphere-color) 22%, rgb(255 255 255 / 12%));
   border-radius: var(--radius-round);
   background:
-    radial-gradient(circle at 35% 28%, rgb(255 255 255 / 62%), transparent 6%),
-    radial-gradient(circle at 34% 29%, color-mix(in srgb, var(--sphere-color) 54%, white), transparent 19%),
+    radial-gradient(circle at 35% 28%, rgb(255 255 255 / 22%), transparent 3.5%),
+    radial-gradient(circle at 34% 29%, color-mix(in srgb, var(--sphere-color) 34%, white), transparent 13%),
     radial-gradient(circle at 62% 72%, color-mix(in srgb, var(--sphere-color) 72%, #050810), color-mix(in srgb, var(--sphere-color) 30%, #02040a) 72%);
   box-shadow:
     inset calc(var(--sphere-size) * -0.045) calc(var(--sphere-size) * -0.065) calc(var(--sphere-size) * 0.13) rgb(0 0 0 / 26%),
     0 calc(var(--sphere-size) * 0.025) calc(var(--sphere-size) * 0.09) rgb(0 0 0 / 34%),
-    0 0 calc(var(--sphere-size) * 0.1) color-mix(in srgb, var(--sphere-color) 30%, transparent);
-  opacity: 0.68;
+    0 0 calc(var(--sphere-size) * 0.09) color-mix(in srgb, var(--sphere-color) 28%, transparent),
+    0 0 calc(var(--sphere-size) * 0.2) color-mix(in srgb, var(--sphere-color) 8%, transparent);
+  opacity: 0.72;
   transform: translateX(-50%);
   transition:
     top 680ms cubic-bezier(0.22, 1, 0.36, 1),
@@ -2019,7 +2073,12 @@
 .scaleSphere[data-active="true"] {
   z-index: 4;
   opacity: 1;
-  filter: saturate(1.06) brightness(1.03);
+  filter: saturate(1.08) brightness(1.05);
+  box-shadow:
+    inset calc(var(--sphere-size) * -0.045) calc(var(--sphere-size) * -0.065) calc(var(--sphere-size) * 0.13) rgb(0 0 0 / 26%),
+    0 calc(var(--sphere-size) * 0.025) calc(var(--sphere-size) * 0.09) rgb(0 0 0 / 34%),
+    0 0 calc(var(--sphere-size) * 0.12) color-mix(in srgb, var(--sphere-color) 42%, transparent),
+    0 0 calc(var(--sphere-size) * 0.27) color-mix(in srgb, var(--sphere-color) 13%, transparent);
 }
 
 .scaleSphere[data-previous="true"] {
@@ -2030,11 +2089,15 @@
   opacity: 0;
 }
 
+.scaleSphere[data-preview="true"] {
+  opacity: 0.38;
+  filter: saturate(0.9) brightness(0.82);
+}
+
 .scaleMilestone {
   position: absolute;
   z-index: 8;
-  left: 1.1rem;
-  height: 0.12rem;
+  height: 0.07rem;
   color: rgb(245 248 255 / 84%);
   background: repeating-linear-gradient(
     90deg,
@@ -2050,13 +2113,9 @@
   color: #65d68d;
 }
 
-.scaleMilestone[data-minimum="true"][data-pending="true"] {
-  opacity: 0.72;
-}
-
 .scaleMilestone span {
   position: absolute;
-  top: 50%;
+  bottom: calc(var(--space-1) + 0.06rem);
   left: 0;
   padding: 0.24rem 0.58rem;
   border: var(--border-width-thin) solid currentColor;
@@ -2067,7 +2126,8 @@
   font-size: var(--font-size-x-small);
   font-weight: var(--font-weight-bold);
   white-space: nowrap;
-  transform: translateY(-50%);
+  transform: scale(var(--annotation-scale));
+  transform-origin: left bottom;
 }
 
 .scaleTimeBubble {
@@ -2096,30 +2156,26 @@
 }
 
 .scaleTimeInformation {
+  position: relative;
   display: grid;
-  gap: clamp(0.12rem, calc(var(--sphere-size) * 0.012), var(--space-2));
+  min-height: calc(var(--sphere-size) * 0.7);
   place-items: center;
   text-align: center;
   text-shadow: 0 0.15rem 0.65rem rgb(0 0 0 / 88%);
 }
 
 .scaleClock {
-  position: relative;
+  position: absolute;
+  top: 0;
+  left: 50%;
   display: grid;
-  width: clamp(1.2rem, calc(var(--sphere-size) * 0.14), 3.75rem);
+  width: clamp(1.8rem, calc(var(--sphere-size) * 0.2), 5.25rem);
   aspect-ratio: 1;
   place-items: center;
   border-radius: var(--radius-round);
   background: radial-gradient(circle, rgb(106 168 255 / 18%), transparent 68%);
   box-shadow: 0 0 1rem rgb(106 168 255 / 22%);
-}
-
-.scaleClock::before {
-  position: absolute;
-  inset: -12%;
-  border: 1px solid rgb(220 233 255 / 16%);
-  border-radius: inherit;
-  content: '';
+  transform: translate(-50%, -38%);
 }
 
 .scaleClock > img {
@@ -2129,19 +2185,26 @@
 }
 
 .scaleTimeInformation > strong {
-  font-size: clamp(0.72rem, calc(var(--sphere-size) * 0.105), 3.6rem);
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  display: grid;
+  place-items: center;
+  width: 88%;
+  font-size: clamp(1rem, calc(var(--sphere-size) * 0.13), 4.6rem);
   line-height: var(--line-height-tight);
   text-wrap: balance;
+  transform: translate(-50%, -50%);
 }
 
 .scaleTimeBubble[data-previous="true"] .scaleTimeInformation > strong {
-  font-size: clamp(0.48rem, calc(var(--sphere-size) * 0.095), 1rem);
+  font-size: clamp(0.48rem, calc(var(--sphere-size) * 0.085), 1rem);
 }
 
 .scaleInformationTooltip {
   position: absolute;
   z-index: 20;
-  top: calc(100% + var(--space-2));
+  bottom: calc(100% + var(--space-2));
   left: 0;
   display: grid;
   width: max-content;
@@ -2157,7 +2220,7 @@
   line-height: var(--line-height-body);
   opacity: 0;
   pointer-events: none;
-  transform: translateY(0.35rem);
+  transform: translateY(-0.35rem);
   transition: opacity 160ms ease, transform 160ms ease;
 }
 
@@ -2185,24 +2248,30 @@
 
 .lowercasePasswordButtons {
   display: flex;
+  width: 100%;
   justify-content: center;
-  gap: var(--space-1);
-  margin-top: var(--space-2);
+  gap: 0;
+  margin-top: -1px;
 }
 
 .lowercasePasswordButtons button {
   display: grid;
-  width: 2.75rem;
+  width: 50%;
   min-height: 2.75rem;
   padding: 0;
   place-items: center;
   border: var(--border-width-thin) solid rgb(106 168 255 / 42%);
-  border-radius: var(--radius-small);
+  border-radius: 0 0 0 var(--radius-small);
   color: #f5f8ff;
   background: rgb(106 168 255 / 13%);
   font-size: 2rem;
   font-weight: var(--font-weight-heavy);
   cursor: pointer;
+}
+
+.lowercasePasswordButtons button + button {
+  margin-left: -1px;
+  border-radius: 0 0 var(--radius-small) 0;
 }
 
 .lowercasePasswordButtons button:disabled {
@@ -2213,8 +2282,7 @@
 }
 
 .lowercasePasswordButtons button:focus-visible,
-.finishScale:focus-visible,
-.lowercaseScaleDialog button:focus-visible {
+.finishScale:focus-visible {
   outline: var(--border-width-focus) solid var(--color-focus);
   outline-offset: var(--space-1);
 }
@@ -2225,27 +2293,19 @@
   justify-items: center;
 }
 
-.lowercasePasswordField > span {
-  display: block;
-  margin-bottom: var(--space-1);
-  color: #a7b2c6;
-  font-size: var(--font-size-x-small);
-  font-weight: var(--font-weight-bold);
-}
-
 .lowercasePasswordControl code {
   display: flex;
-  width: 18.2ch;
+  width: 25ch;
   max-width: calc(100vw - 2 * var(--space-5));
   box-sizing: content-box;
   overflow: hidden;
   padding: var(--space-2) var(--space-3);
   border: var(--border-width-thin) solid rgb(255 255 255 / 16%);
-  border-radius: var(--radius-small);
+  border-radius: var(--radius-small) var(--radius-small) 0 0;
   color: #8792a6;
   background: rgb(3 7 14 / 76%);
   box-shadow: 0 0.75rem 2rem rgb(0 0 0 / 26%);
-  font-size: clamp(var(--font-size-body), 2cqi, var(--font-size-heading-small));
+  font-size: clamp(var(--font-size-small), 1.55cqi, var(--font-size-body));
   font-weight: var(--font-weight-heavy);
   letter-spacing: 0.11em;
   text-overflow: ellipsis;
@@ -2264,11 +2324,14 @@
   text-shadow: 0 0 0.7rem rgb(106 168 255 / 34%);
 }
 
-.finishScale {
+.scaleCompletionControl {
   position: absolute;
   z-index: 14;
   right: clamp(var(--space-3), 2cqi, var(--space-5));
   bottom: var(--space-3);
+}
+
+.finishScale {
   display: inline-flex;
   min-height: var(--size-control-medium);
   padding: var(--space-3) var(--space-5);
@@ -2286,8 +2349,7 @@
 
 .finishScale img {
   width: 1.35rem;
-  opacity: 0;
-  transition: opacity 160ms ease;
+  opacity: 0.78;
 }
 
 .finishScale:not([data-unlocked="true"]):hover,
@@ -2297,66 +2359,49 @@
   background: rgb(143 153 168 / 9%);
 }
 
-.finishScale:not([data-unlocked="true"]):hover img,
-.finishScale:not([data-unlocked="true"]):focus-visible img {
-  opacity: 1;
-}
-
 .finishScale[data-unlocked="true"] {
-  border-color: var(--color-accent-strong);
-  color: var(--color-on-inverse);
-  background: var(--color-accent-strong);
-  animation: s05-scale-unlocked 900ms var(--motion-ease-out) both;
-}
-
-.lowercaseScaleDialog {
-  width: min(28rem, calc(100vw - 2 * var(--space-4)));
-  max-width: none;
-  padding: var(--space-6);
-  border: var(--border-width-thin) solid rgb(167 176 189 / 28%);
-  border-radius: var(--radius-medium);
+  border-color: rgb(245 248 255 / 72%);
   color: #f5f8ff;
-  background: #0b1120;
-  box-shadow: 0 1.5rem 5rem rgb(0 0 0 / 58%);
-  text-align: center;
+  background: rgb(7 11 19 / 86%);
+  box-shadow: inset 0 0 0 1px rgb(106 168 255 / 20%);
+  animation: s05-scale-unlocked 1.15s ease-in-out infinite;
 }
 
-.lowercaseScaleDialog::backdrop {
-  background: rgb(3 7 14 / 72%);
-  backdrop-filter: blur(0.3rem);
-}
-
-.lowercaseScaleDialog > img {
-  width: 3rem;
-}
-
-.lowercaseScaleDialog h2 {
-  margin: var(--space-3) 0 var(--space-2);
-  color: #f5f8ff;
-  font-size: var(--font-size-heading-small);
-}
-
-.lowercaseScaleDialog p {
-  margin: 0 0 var(--space-5);
-  color: #a7b2c6;
-  line-height: var(--line-height-body);
-}
-
-.lowercaseScaleDialog button {
-  min-height: var(--size-control-medium);
-  padding: var(--space-2) var(--space-5);
-  border: var(--border-width-medium) solid var(--color-accent-strong);
+.scaleCompletionHint {
+  position: absolute;
+  right: 0;
+  bottom: calc(100% + var(--space-2));
+  width: max-content;
+  max-width: min(20rem, calc(100vw - 2 * var(--space-5)));
+  padding: var(--space-3);
+  border: var(--border-width-thin) solid rgb(255 255 255 / 18%);
   border-radius: var(--radius-small);
-  color: var(--color-on-inverse);
-  background: var(--color-accent-strong);
-  font: inherit;
-  font-weight: var(--font-weight-heavy);
-  cursor: pointer;
+  color: #eaf1ff;
+  background: rgb(7 11 19 / 96%);
+  box-shadow: 0 1rem 3rem rgb(0 0 0 / 46%);
+  font-size: var(--font-size-small);
+  line-height: var(--line-height-body);
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(0.35rem);
+  transition: opacity 160ms ease, transform 160ms ease;
+}
+
+.scaleCompletionControl:has(button:hover) .scaleCompletionHint,
+.scaleCompletionControl:has(button:focus) .scaleCompletionHint {
+  opacity: 1;
+  transform: translateY(0);
 }
 
 @keyframes s05-scale-unlocked {
-  0%, 100% { box-shadow: 0 0 0 rgb(106 168 255 / 0%); }
-  40% { box-shadow: 0 0 0 0.3rem rgb(106 168 255 / 22%), 0 0 2.2rem rgb(106 168 255 / 38%); }
+  0%, 100% {
+    border-color: rgb(245 248 255 / 48%);
+    box-shadow: inset 0 0 0 1px rgb(106 168 255 / 16%), 0 0 0 rgb(255 255 255 / 0%);
+  }
+  50% {
+    border-color: #fff;
+    box-shadow: inset 0 0 1rem rgb(255 255 255 / 12%), 0 0 0 0.22rem rgb(255 255 255 / 16%), 0 0 1.6rem rgb(255 255 255 / 58%);
+  }
 }
 
 .generatedPassword span {
@@ -2874,7 +2919,7 @@
   background: var(--color-surface-analysis);
   text-align: center;
   pointer-events: auto;
-  animation: category-transition 3s linear forwards;
+  animation: category-transition 2s linear forwards;
 }
 
 .categoryTransitionPanel {
@@ -2895,7 +2940,7 @@
   border-radius: 0;
   background: var(--color-surface-analysis);
   box-shadow: none;
-  animation: category-transition-content 3s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  animation: category-transition-content 2s cubic-bezier(0.22, 1, 0.36, 1) forwards;
 }
 
 .categoryTransitionPanel img {
