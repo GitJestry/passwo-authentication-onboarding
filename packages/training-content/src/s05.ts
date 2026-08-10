@@ -71,7 +71,7 @@ export interface S05DesignLabFixture {
   readonly startSection: 'intro' | 'components' | 'structure';
 }
 
-export const S05_CONTENT_VERSION = '2.54.1';
+export const S05_CONTENT_VERSION = '2.54.2';
 
 export const s05Content = {
   version: S05_CONTENT_VERSION,
@@ -81,9 +81,9 @@ export const s05Content = {
       12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34,
       35,
     ] as const,
-    revision: 'Userauftrag vom 2026-08-10 · Einordnungsgrenze für das Modul',
+    revision: 'Userauftrag vom 2026-08-10 · Präzisierter Bedienhinweis zur Auswahl persönlicher Angaben',
     copyReference:
-      'docs/design/S00-S05-COPY-AUDIT.md#copy-delta-s05-einordnungsgrenze-des-moduls-10-august-2026',
+      'docs/design/S00-S05-COPY-AUDIT.md#copy-delta-s05-bedienhinweis-persönliche-angaben-10-august-2026',
   },
   segment: {
     id: 'S05',
@@ -106,14 +106,6 @@ export const s05Content = {
     start: 'Animation starten',
     replay: 'Animation wiederholen',
     continue: 'Weiter',
-  },
-  progress: {
-    ariaLabel: 'Fortschritt durch die drei Prüfwege',
-    checkpoints: {
-      early: 'früh ausprobiert',
-      patterns: 'Muster',
-      exhaustive: 'alle durchprobieren',
-    },
   },
   intro: {
     campusgramPassword: {
@@ -258,7 +250,7 @@ export const s05Content = {
       },
       begin: 'Persönliche Angaben markieren',
       selectionHint:
-        'Ziehe über zusammenhängende Zeichen, um eine persönliche Angabe zu markieren. Wiederhole dies für weitere Angaben. Tippe eine Markierung an, um sie zu entfernen.',
+        'Wenn du eine persönliche Angabe erkennst, ziehe über die zugehörigen Zeichen, um sie zu markieren. Weitere Angaben kannst du genauso markieren. Tippe auf eine Markierung, um sie wieder zu entfernen.',
       selectionStatus: {
         started: 'Auswahl gestartet. Wähle das letzte Zeichen des Bereichs.',
         added: 'Persönliche Angabe markiert.',

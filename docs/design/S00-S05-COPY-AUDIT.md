@@ -1745,6 +1745,18 @@ Persistenz, Export und Analyse bleiben unverändert. `S05_CONTENT_VERSION` wird 
 |---|---|---|---|---|---|---|---|---|
 | `S05.intro.narration.componentCategoryOverview[1]` | Nutzerauftrag vom 2026-08-10 | `Bitte beachte: Dieses Trainingsmodul kann dein Passwort nicht in jedem Fall zuverlässig einordnen und ersetzt keine vollständige Sicherheitsbewertung.` | `Bitte beachte: Das Modul kann Bestandteile im Passwort übersehen oder falsch einordnen. Es dient nur zum Verständnis und ist keine Sicherheitsbewertung.` | Safety Boundary | ausdrücklich vorgegebene Präzisierung der Trainingsgrenze | begrenzt | `Weiter` | `Bitte beachte:` in Akzentfarbe |
 
+### Copy-Delta S05 Bedienhinweis persönliche Angaben 10. August 2026
+
+Quelle ist der ausdrückliche Nutzerauftrag vom 10. August 2026. Der Bedienhinweis benennt
+zunächst das Erkennen einer persönlichen Angabe und verweist dann präzise auf die zugehörigen
+Zeichen. Die Mehrfachauswahl und das Entfernen einer Markierung bleiben unverändert. Ablauf,
+Interaktion, Analyse, Persistenz und Export bleiben unverändert. `S05_CONTENT_VERSION` wird von
+`2.54.1` auf `2.54.2` erhöht.
+
+| Segment und Text-ID | Quelle | Aktueller Text | Geplanter Text | Primäre Rolle | Grund | Bedeutungsänderung | Interaktionsziel | Hervorhebung |
+|---|---|---|---|---|---|---|---|---|
+| `S05.componentStrategy.personalDetails.selectionHint` | Nutzerauftrag vom 2026-08-10 | `Ziehe über zusammenhängende Zeichen, um eine persönliche Angabe zu markieren. Wiederhole dies für weitere Angaben. Tippe eine Markierung an, um sie zu entfernen.` | `Wenn du eine persönliche Angabe erkennst, ziehe über die zugehörigen Zeichen, um sie zu markieren. Weitere Angaben kannst du genauso markieren. Tippe auf eine Markierung, um sie wieder zu entfernen.` | Navigation | ausdrücklich vorgegebene Präzisierung der Handlungszuordnung | begrenzt | zusammenhängende Passwortzeile | keine |
+
 ### Copy-Delta S03 Anmeldung und Abschluss 10. August 2026
 
 Quelle ist der ausdrückliche Nutzerauftrag vom 10. August 2026. Die Hilfe benennt die

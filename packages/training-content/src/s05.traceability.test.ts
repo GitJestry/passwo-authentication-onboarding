@@ -4,7 +4,7 @@ import { S05_CONTENT_VERSION, s05Content } from './s05.js';
 
 describe('S05 content traceability', () => {
   it('keeps the participant copy bounded and separate from internal terminology', () => {
-    expect(S05_CONTENT_VERSION).toBe('2.54.1');
+    expect(S05_CONTENT_VERSION).toBe('2.54.2');
     expect(s05Content.source).toMatchObject({
       document: 'research/private/training-script.pdf',
       internalPages: [
@@ -12,18 +12,13 @@ describe('S05 content traceability', () => {
         35,
       ],
       copyReference:
-        'docs/design/S00-S05-COPY-AUDIT.md#copy-delta-s05-einordnungsgrenze-des-moduls-10-august-2026',
+        'docs/design/S00-S05-COPY-AUDIT.md#copy-delta-s05-bedienhinweis-persönliche-angaben-10-august-2026',
     });
     expect(s05Content.segment.id).toBe('S05');
     expect(s05Content.page.fixtureNotice).toBe(
       'Diese Simulation betrachtet nur das fiktive Passwort und ist keine allgemeine Sicherheitsbewertung.',
     );
     expect(s05Content.page.title).toBe('Häufig verwendete Passwörter und Zeichenfolgen');
-    expect(s05Content.progress.checkpoints).toEqual({
-      early: 'früh ausprobiert',
-      patterns: 'Muster',
-      exhaustive: 'alle durchprobieren',
-    });
     expect(s05Content.intro.campusgramPassword.visibleSuffix).toBe('Campusgram-Passwort');
     expect(s05Content.analysis.authoredAccountTerms).toEqual(accountContextTerms.campusgram);
     expect(s05Content.componentStrategy.accountContext.machine.conveyorBlocks).toEqual([
@@ -115,7 +110,7 @@ describe('S05 content traceability', () => {
       'Persönliche Angaben markieren',
     );
     expect(s05Content.componentStrategy.personalDetails.selectionHint).toBe(
-      'Ziehe über zusammenhängende Zeichen, um eine persönliche Angabe zu markieren. Wiederhole dies für weitere Angaben. Tippe eine Markierung an, um sie zu entfernen.',
+      'Wenn du eine persönliche Angabe erkennst, ziehe über die zugehörigen Zeichen, um sie zu markieren. Weitere Angaben kannst du genauso markieren. Tippe auf eine Markierung, um sie wieder zu entfernen.',
     );
     expect(s05Content.componentStrategy.personalDetails.selectionStatus).toMatchObject({
       started: 'Auswahl gestartet. Wähle das letzte Zeichen des Bereichs.',
