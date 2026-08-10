@@ -6,16 +6,16 @@
   --bubble-arrow-size: 1.15rem;
 
   position: relative;
-  min-width: min(16rem, 72vw);
-  max-width: min(30rem, calc(100vw - var(--space-6)));
-  padding: clamp(var(--space-3), min(1.6vw, 2vh), var(--space-5));
+  min-width: min(calc(var(--artifact-unit, 1rem) * 16), 72cqi);
+  max-width: min(calc(var(--artifact-unit, 1rem) * 30), calc(100cqi - var(--space-6)));
+  padding: clamp(var(--space-3), min(1.6cqi, 2cqb), calc(var(--artifact-unit, 1rem) * 1.25));
   border: var(--border-width-thin) solid var(--bubble-border);
-  border-radius: clamp(1.8rem, 4vw, 3rem);
+  border-radius: clamp(1.8rem, 4cqi, 3rem);
   color: var(--bubble-text);
   background: var(--bubble-surface);
   box-shadow: 0 1.25rem 3.25rem color-mix(in srgb, #051421 18%, transparent);
   backdrop-filter: blur(10px);
-  font-size: clamp(0.8rem, min(1.15vw, 1.75vh), 0.95rem);
+  font-size: var(--font-size-small);
 }
 
 .bubble[data-tone="dark"] {
@@ -184,4 +184,12 @@
 .primaryAction:disabled {
   cursor: not-allowed;
   opacity: 0.58;
+}
+
+:global([data-artifact-layout="compact"]) .bubble {
+  max-height: calc(100cqb - (2 * var(--space-4)));
+  overflow: auto;
+  padding: var(--space-4);
+  border-radius: var(--radius-large);
+  font-size: 1rem;
 }

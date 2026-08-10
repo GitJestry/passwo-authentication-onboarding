@@ -95,8 +95,14 @@ fokussierbare Hinweis-Markierung erreicht werden.
   verlieren.
 - Dimming verringert den Kontrast der Bühne nur so weit, dass der Seitenkontext weiter lesbar
   bleibt; es blendet keine Information aus.
-- Die Inhaltsfläche erhält den überwiegenden Teil der Höhe; bei `1440 × 900` und `1280 × 720`
-  bleiben Hauptaktionen innerhalb des Viewports erreichbar.
+- Die Inhaltsfläche erhält den überwiegenden Teil der Höhe. Im Standardmodus bleibt die authored
+  Dichte von `1440 × 900` die Referenz, während BrowserShell, DesktopSurface und alle Layer gemäß
+  `ADR 0015-Artifact-Viewport` die tatsächliche Containerfläche ohne Gesamttransformation füllen.
+  Im kompakten Desktopmodus bleiben Hauptaktionen durch Umordnung oder Scrollen erreichbar;
+  PassWo-Sprechflächen dürfen sichtbare Handlungsziele nicht überdecken.
+- Landingpage-Aktionszeilen berücksichtigen die lokale PassWo-Safe-Space-Zone. Die Inhaltsgruppe
+  hält ausreichend Blockraum frei, damit Aktionen oberhalb des unteren PassWo-Docks und der
+  seitlich anschließenden Sprechblase bleiben; schmale Flächen dürfen dafür nativ scrollen.
 
 ## Übergang zur Desktop-Bühne
 

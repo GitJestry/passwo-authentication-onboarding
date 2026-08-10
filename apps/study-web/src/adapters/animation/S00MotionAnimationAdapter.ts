@@ -4,6 +4,7 @@ import type {
   AnimationSequence,
   AnimationStep,
 } from '@passwo/training-engine';
+import { artifactStageFor } from '@passwo/ui';
 import {
   type AnimationPlaybackControlsWithThen,
   animate,
@@ -23,8 +24,16 @@ function nextFrame(): Promise<void> {
   return new Promise((resolve) => requestAnimationFrame(() => resolve()));
 }
 
-function moveTransform(step: Extract<AnimationStep, { readonly type: 'move-character' }>): string {
-  return step.to === 'center' ? 'translate3d(120vw, 0, 0)' : 'translate3d(46vw, -34vh, 0)';
+function moveTransform(
+  step: Extract<AnimationStep, { readonly type: 'move-character' }>,
+  element: HTMLElement,
+): string {
+  const stage = artifactStageFor(element);
+  const width = stage?.clientWidth ?? element.ownerDocument.documentElement.clientWidth;
+  const height = stage?.clientHeight ?? element.ownerDocument.documentElement.clientHeight;
+  return step.to === 'center'
+    ? `translate3d(${Math.round(width * 1.2)}px, 0, 0)`
+    : `translate3d(${Math.round(width * 0.46)}px, ${Math.round(height * -0.34)}px, 0)`;
 }
 
 export class S00MotionAnimationAdapter implements AnimationPlayerPort {
@@ -97,7 +106,7 @@ export class S00MotionAnimationAdapter implements AnimationPlayerPort {
         if (character === null) throw new Error('missing-character-element');
         await this.#animate(character, step.durationMs, {
           opacity: [0, 1],
-          transform: [moveTransform(step), 'translate3d(0, 0, 0)'],
+          transform: [moveTransform(step, character), 'translate3d(0, 0, 0)'],
         });
         character.style.removeProperty('opacity');
         character.style.removeProperty('transform');

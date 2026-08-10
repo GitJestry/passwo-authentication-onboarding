@@ -30,7 +30,7 @@
   justify-content: space-between;
   gap: var(--space-5);
   margin: var(--space-4);
-  padding: var(--space-4) clamp(var(--space-5), 4vw, var(--space-8));
+  padding: var(--space-4) clamp(var(--space-5), 4cqi, var(--space-8));
   border: var(--border-width-thin) solid var(--color-border-soft);
   border-radius: var(--radius-medium);
   background: var(--color-surface-float);
@@ -370,7 +370,7 @@
   cursor: default;
 }
 
-@media (max-width: 760px) {
+@container artifact-stage (max-width: 760px) {
   .pageHeader {
     align-items: flex-start;
     flex-direction: column;

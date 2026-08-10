@@ -23,7 +23,7 @@
 .networkPanel {
   position: absolute;
   z-index: 1;
-  inset: 0 0 clamp(12.5rem, 23vh, 13rem);
+  inset: 0 0 clamp(12.5rem, 23cqb, 13rem);
   min-width: 0;
 }
 
@@ -34,7 +34,7 @@
 .preview {
   position: absolute;
   z-index: 4;
-  width: clamp(18rem, 27vw, 23rem);
+  width: clamp(18rem, 27cqi, 23rem);
   padding: 0.55rem;
   border: 1px solid rgb(255 255 255 / 88%);
   border-radius: 1.3rem;
@@ -65,7 +65,7 @@
 .coreActionOverlay {
   position: absolute;
   z-index: 4;
-  width: clamp(18rem, 27vw, 23rem);
+  width: clamp(18rem, 27cqi, 23rem);
   padding: 0.55rem;
   border: 1px solid rgb(255 255 255 / 88%);
   border-radius: 1.3rem;
@@ -224,7 +224,7 @@
 .visualPreview {
   position: relative;
   display: grid;
-  height: clamp(12.5rem, 27vh, 15rem);
+  height: clamp(12.5rem, 27cqb, 15rem);
   grid-template-rows: 1.55rem 2.35rem minmax(0, 1fr);
   overflow: hidden;
   border: 1px solid #cbd8e5;
@@ -597,7 +597,7 @@
   position: absolute;
   z-index: 6;
   bottom: 2.25rem;
-  left: clamp(var(--space-4), 3vw, var(--space-7));
+  left: clamp(var(--space-4), 3cqi, var(--space-7));
   width: 10.08rem;
   pointer-events: none;
 }
@@ -733,7 +733,7 @@
 .narration {
   position: relative;
   z-index: 1;
-  width: clamp(20rem, 28vw, 22rem);
+  width: clamp(20rem, 28cqi, 22rem);
   min-width: 0;
   pointer-events: auto;
 }
@@ -741,7 +741,7 @@
 .speechSlot {
   position: absolute;
   z-index: 2;
-  width: clamp(20rem, 28vw, 22rem);
+  width: clamp(20rem, 28cqi, 22rem);
   pointer-events: auto;
   opacity: 0;
 }
@@ -753,7 +753,7 @@
 .characterAnimationAnchor {
   position: absolute;
   bottom: 2.25rem;
-  left: clamp(var(--space-4), 3vw, var(--space-7));
+  left: clamp(var(--space-4), 3cqi, var(--space-7));
   width: 1px;
   height: 1px;
   opacity: 0;
@@ -1044,7 +1044,7 @@
   }
 }
 
-@media (max-width: 760px) {
+@container artifact-stage (max-width: 760px) {
   .networkPanel {
     top: 0;
     height: 30rem;
@@ -1067,11 +1067,11 @@
   }
 
   .narration {
-    width: min(21rem, calc(100vw - var(--space-6)));
+    width: min(21rem, calc(100cqi - var(--space-6)));
   }
 
   .speechSlot {
-    width: min(21rem, calc(100vw - var(--space-6)));
+    width: min(21rem, calc(100cqi - var(--space-6)));
   }
 
   .preview {

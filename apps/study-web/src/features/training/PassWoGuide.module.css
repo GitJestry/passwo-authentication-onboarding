@@ -1,10 +1,21 @@
 .guide {
+  --passwo-character-width: clamp(
+    calc(var(--artifact-unit, 1rem) * 7),
+    min(10.5cqi, 15cqb),
+    calc(var(--artifact-unit, 1rem) * 10.08)
+  );
+  --passwo-character-height: clamp(
+    calc(var(--artifact-unit, 1rem) * 6.5),
+    min(9.75cqi, 14cqb),
+    calc(var(--artifact-unit, 1rem) * 9.36)
+  );
+
   position: absolute;
   z-index: 1;
   top: auto;
   bottom: 0;
-  left: clamp(var(--space-2), 1.4vw, var(--space-4));
-  width: clamp(7rem, min(10.5vw, 15vh), 10.08rem);
+  left: clamp(var(--space-2), 1.4cqi, var(--space-4));
+  width: var(--passwo-character-width);
   pointer-events: none;
   transition:
     top 580ms var(--motion-ease-out),
@@ -19,15 +30,15 @@
 }
 
 .guide[data-guided-account="master-campus"] {
-  left: clamp(15rem, 25vw, 23rem);
+  left: clamp(15rem, 25cqi, 23rem);
 }
 
 .guide[data-guided-account="campus-email"] {
-  left: clamp(21rem, 38vw, 33rem);
+  left: clamp(21rem, 38cqi, 33rem);
 }
 
 .guide[data-guided-account="campusgram"] {
-  left: clamp(26rem, 51vw, 42rem);
+  left: clamp(26rem, 51cqi, 42rem);
 }
 
 .guide[data-speaking="true"][data-placement="bottom-left"] {
@@ -39,41 +50,41 @@
   top: 50%;
   bottom: auto;
   left: 50%;
-  width: 11.4rem;
+  width: calc(var(--artifact-unit, 1rem) * 11.4);
   transform: translate(-50%, -50%);
 }
 
 .guide[data-placement="center"] .guideDock {
-  width: min(11.4rem, 100%);
+  width: min(calc(var(--artifact-unit, 1rem) * 11.4), 100%);
 }
 
 .guide[data-placement="center"] .character[data-pose="warning"] {
   width: min(var(--passwo-character-width), 100%);
-  height: min(var(--passwo-character-height), 54vh);
+  height: min(var(--passwo-character-height), 54cqb);
 }
 
 .guide[data-placement="center"] .character[data-speaking="true"] {
   width: min(var(--size-passwo-speaking-width), 200%);
-  height: min(var(--size-passwo-speaking-height), 108vh);
+  height: min(var(--size-passwo-speaking-height), 108cqb);
 }
 
 .guide[data-placement="incident"] {
   top: auto;
-  right: clamp(var(--space-3), 2.4vw, var(--space-6));
-  bottom: clamp(var(--space-3), 2.4vh, var(--space-6));
+  right: clamp(var(--space-3), 2.4cqi, var(--space-6));
+  bottom: clamp(var(--space-3), 2.4cqb, var(--space-6));
   left: auto;
-  width: min(10.08rem, 100%);
+  width: min(calc(var(--artifact-unit, 1rem) * 10.08), 100%);
 }
 
 .guide[data-placement="incident"] .guideDock {
-  width: min(10.08rem, 100%);
+  width: min(calc(var(--artifact-unit, 1rem) * 10.08), 100%);
 }
 
 .speechSlot {
   position: absolute;
   z-index: 3;
-  width: min(28rem, calc(100vw - var(--space-6)));
-  min-width: min(16rem, calc(100vw - var(--space-6)));
+  width: min(calc(var(--artifact-unit, 1rem) * 30), calc(100cqi - var(--space-6)));
+  min-width: min(calc(var(--artifact-unit, 1rem) * 16), calc(100cqi - var(--space-6)));
   pointer-events: auto;
   opacity: 0;
 }
@@ -83,12 +94,9 @@
 }
 
 .guideDock {
-  --passwo-character-width: clamp(7rem, min(10.5vw, 15vh), 10.08rem);
-  --passwo-character-height: clamp(6.5rem, min(9.75vw, 14vh), 9.36rem);
-
   position: relative;
   display: grid;
-  width: 8.4rem;
+  width: var(--passwo-character-width);
   justify-items: center;
   align-items: end;
   pointer-events: none;
@@ -97,7 +105,7 @@
 .guideToolbar {
   position: absolute;
   z-index: 2;
-  top: -2.25rem;
+  top: calc(var(--artifact-unit, 1rem) * -2.25);
   left: 0;
   display: flex;
   align-items: center;
@@ -107,8 +115,8 @@
 
 .infoButton {
   display: grid;
-  width: 1.45rem;
-  height: 1.45rem;
+  width: calc(var(--artifact-unit, 1rem) * 1.45);
+  height: calc(var(--artifact-unit, 1rem) * 1.45);
   place-items: center;
   padding: 0;
   border: var(--border-width-thin) solid var(--color-border);
@@ -118,7 +126,7 @@
   box-shadow: var(--shadow-card);
   font: inherit;
   font-family: ui-serif, Georgia, serif;
-  font-size: 0.74rem;
+  font-size: calc(var(--artifact-unit, 1rem) * 0.74);
   font-weight: var(--font-weight-heavy);
   cursor: pointer;
 }
@@ -131,7 +139,7 @@
 
 .guideStatus {
   display: grid;
-  min-width: 4.65rem;
+  min-width: calc(var(--artifact-unit, 1rem) * 4.65);
   gap: 0.18rem;
   padding: 0.22rem 0.5rem 0.3rem;
   border: var(--border-width-thin) solid var(--color-border-soft);
@@ -146,20 +154,20 @@
   display: inline-flex;
   align-items: center;
   gap: 0.28rem;
-  font-size: 0.7rem;
+  font-size: calc(var(--artifact-unit, 1rem) * 0.7);
   font-weight: var(--font-weight-heavy);
   line-height: 1;
 }
 
 .completeMark {
   display: inline-grid;
-  width: 0.9rem;
-  height: 0.9rem;
+  width: calc(var(--artifact-unit, 1rem) * 0.9);
+  height: calc(var(--artifact-unit, 1rem) * 0.9);
   place-items: center;
   border-radius: var(--radius-round);
   color: var(--color-on-inverse);
   background: var(--color-positive);
-  font-size: 0.63rem;
+  font-size: calc(var(--artifact-unit, 1rem) * 0.63);
   line-height: 1;
 }
 
@@ -183,7 +191,7 @@
   align-items: center;
   gap: 0.3rem;
   color: var(--color-ink-muted);
-  font-size: 0.55rem;
+  font-size: calc(var(--artifact-unit, 1rem) * 0.55);
   font-variant-numeric: tabular-nums;
   font-weight: var(--font-weight-heavy);
   line-height: 1;
@@ -205,7 +213,7 @@
   transition: width var(--motion-standard) var(--motion-ease-out);
 }
 
-@media (max-width: 760px) {
+@container artifact-stage (max-width: 760px) {
   .guide {
     top: auto;
     bottom: 0;
@@ -236,6 +244,41 @@
 
     width: 7.25rem;
   }
+}
+
+:global([data-artifact-layout="compact"]) .guide {
+  --passwo-character-width: min(7.25rem, 14cqi);
+  --passwo-character-height: min(7rem, 18cqb);
+  --size-passwo-speaking-width: min(7.25rem, 14cqi);
+  --size-passwo-speaking-height: min(9rem, 18cqb);
+
+  width: 7.25rem;
+}
+
+:global([data-artifact-layout="compact"]) .guide[data-guided-account="master-campus"],
+:global([data-artifact-layout="compact"]) .guide[data-guided-account="campus-email"],
+:global([data-artifact-layout="compact"]) .guide[data-guided-account="campusgram"] {
+  top: calc(100% - 7rem);
+  bottom: auto;
+  left: var(--space-2);
+}
+
+:global([data-artifact-layout="compact"]) .guide[data-placement="center"] {
+  width: 7.25rem;
+}
+
+:global([data-artifact-layout="compact"]) .guide[data-placement="incident"] {
+  right: var(--space-2);
+  bottom: var(--space-2);
+  width: 7.25rem;
+}
+
+:global([data-artifact-layout="compact"]) .guideDock {
+  width: 7.25rem;
+}
+
+:global([data-artifact-layout="compact"]) .speechSlot {
+  width: min(24rem, calc(100cqi - var(--space-6)));
 }
 
 @media (prefers-reduced-motion: reduce) {

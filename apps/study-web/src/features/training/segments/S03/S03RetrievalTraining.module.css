@@ -57,7 +57,7 @@
 .resultCard {
   position: relative;
   z-index: 2;
-  padding: clamp(var(--space-4), 3vw, var(--space-6));
+  padding: clamp(var(--space-4), 3cqi, var(--space-6));
   border: var(--border-width-thin) solid var(--color-border);
   border-radius: 1.2rem;
   background: var(--color-surface-primary);
@@ -339,7 +339,7 @@
   display: grid;
   justify-items: center;
   gap: var(--space-3);
-  padding-block: clamp(var(--space-6), 5vw, var(--space-8));
+  padding-block: clamp(var(--space-6), 5cqi, var(--space-8));
   text-align: center;
 }
 
@@ -410,7 +410,7 @@
   grid-template-columns: auto minmax(0, 1fr);
   align-items: center;
   justify-items: center;
-  gap: clamp(var(--space-4), 4vw, var(--space-7));
+  gap: clamp(var(--space-4), 4cqi, var(--space-7));
   margin: 0 auto;
   color: var(--color-on-inverse);
   filter: drop-shadow(0 0.8rem 1.6rem rgb(1 13 25 / 42%));
@@ -418,7 +418,7 @@
 
 .timeLapseClock {
   display: grid;
-  width: clamp(12rem, 22vw, 18rem);
+  width: clamp(12rem, 22cqi, 18rem);
   aspect-ratio: 1;
   place-items: center;
   border: var(--border-width-thin) solid color-mix(in srgb, currentColor 56%, transparent);
@@ -472,7 +472,7 @@
   justify-content: center;
   padding: 0.3rem 0.15rem 0.45rem;
   color: currentColor;
-  font-size: clamp(3.7rem, 6.2vw, 5.5rem);
+  font-size: clamp(3.7rem, 6.2cqi, 5.5rem);
   font-weight: var(--font-weight-heavy);
   letter-spacing: -0.06em;
   line-height: 0.94;
@@ -659,7 +659,7 @@
   }
 }
 
-@media (max-width: 760px) {
+@container artifact-stage (max-width: 760px) {
   .relationshipStage {
     min-height: 31rem;
   }
@@ -671,7 +671,7 @@
   }
 
   .timeLapseClock {
-    width: clamp(9rem, 38vw, 13rem);
+    width: clamp(9rem, 38cqi, 13rem);
   }
 }
 

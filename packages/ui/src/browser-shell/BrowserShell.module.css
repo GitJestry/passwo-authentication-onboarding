@@ -185,7 +185,7 @@
 .tab,
 .activeTab {
   display: inline-flex;
-  min-width: min(10.5rem, 32vw);
+  min-width: min(10.5rem, 32cqi);
   align-items: center;
   justify-content: space-between;
   gap: var(--space-2);
@@ -552,6 +552,22 @@ button.activeTab[aria-disabled="true"] {
   pointer-events: auto;
 }
 
+.window:has(.passWoLayer [data-placement="bottom-left"]) .content,
+.window:has(.passWoLayer [data-placement="bottom-left"]) .dimmedContent {
+  --passwo-safe-inline-start: calc(var(--artifact-unit, 1rem) * 11.5);
+  --passwo-safe-block-end: calc(var(--artifact-unit, 1rem) * 15);
+}
+
+:global([data-artifact-layout="compact"])
+  .window:has(.passWoLayer [data-placement="bottom-left"])
+  .content,
+:global([data-artifact-layout="compact"])
+  .window:has(.passWoLayer [data-placement="bottom-left"])
+  .dimmedContent {
+  --passwo-safe-inline-start: 8rem;
+  --passwo-safe-block-end: 10rem;
+}
+
 .window[data-window-state="closing"] {
   pointer-events: none;
   will-change: transform, opacity, border-radius, box-shadow;
@@ -836,7 +852,7 @@ button.activeTab[aria-disabled="true"] {
   }
 }
 
-@media (max-width: 760px) {
+@container artifact-stage (max-width: 760px) {
   .window {
     bottom: 4.6rem;
   }

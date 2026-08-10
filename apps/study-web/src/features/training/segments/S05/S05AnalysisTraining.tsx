@@ -103,7 +103,7 @@ function CampusgramPassword({
 
 const generatedSequenceAlphabet =
   'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789!?#$%&';
-const MEMORABLE_PASSWORD_VISUAL_SCALE = 0.78;
+const MEMORABLE_PASSWORD_VISUAL_SCALE = 0.9;
 
 function CandidateCheckScene({ subject }: { readonly subject: S05AnalysisSubject }) {
   return (

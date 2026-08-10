@@ -136,6 +136,10 @@
   max-width: 34rem;
   align-content: center;
   padding: clamp(var(--space-6), 5cqi, 5.5rem) clamp(var(--space-5), 4cqi, 4.5rem);
+  padding-block-end: max(
+    clamp(var(--space-6), 5cqi, 5.5rem),
+    var(--passwo-safe-block-end, 0px)
+  );
 }
 
 .eyebrow {
@@ -337,7 +341,9 @@
 .dashboardSidebar {
   z-index: 6;
   display: flex;
+  height: 100%;
   min-height: 0;
+  align-self: stretch;
   flex-direction: column;
   padding: var(--space-6) var(--space-4);
   color: var(--color-on-inverse);
@@ -562,11 +568,15 @@
   .authentication { grid-template-columns: 1fr; }
   .landingHero { min-height: 0; }
   .heroCopy { padding: var(--space-7) var(--space-5); }
+  .heroActions {
+    padding-inline-start: 0;
+    padding-block-end: var(--passwo-safe-block-end, 0px);
+  }
   .heroVisual { min-height: 20rem; height: 20rem; }
   .authIntro { gap: var(--space-6); }
   .authInteraction { justify-items: center; }
   .dashboard { display: block; }
-  .dashboardSidebar { min-height: 0; }
+  .dashboardSidebar { height: auto; min-height: 0; }
   .dashboardSidebar nav { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .masterSummary,
   .masterLower,

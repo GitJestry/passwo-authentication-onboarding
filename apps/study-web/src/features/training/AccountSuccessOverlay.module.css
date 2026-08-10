@@ -9,7 +9,7 @@
   background: rgb(236 239 238 / 91%);
   backdrop-filter: grayscale(1) blur(0.18rem);
   pointer-events: none;
-  animation: account-success-overlay 2000ms var(--motion-ease-out) both;
+  animation: account-success-overlay 1000ms var(--motion-ease-out) both;
 }
 
 .overlay > span {

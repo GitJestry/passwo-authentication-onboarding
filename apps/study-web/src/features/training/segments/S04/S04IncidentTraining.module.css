@@ -30,7 +30,7 @@
   align-items: center;
   gap: var(--space-4);
   margin-bottom: var(--space-4);
-  padding: var(--space-4) clamp(var(--space-4), 2vw, var(--space-6));
+  padding: var(--space-4) clamp(var(--space-4), 2cqi, var(--space-6));
   border: var(--border-width-thin) solid color-mix(in srgb, var(--color-danger) 36%, transparent);
   border-radius: var(--radius-large);
   color: var(--color-ink-strong);
@@ -59,7 +59,7 @@
 .serviceNotice h2 {
   margin: 0;
   color: var(--color-danger);
-  font-size: clamp(1.05rem, 1.8vw, 1.45rem);
+  font-size: clamp(1.05rem, 1.8cqi, 1.45rem);
   line-height: var(--line-height-tight);
 }
 
@@ -82,9 +82,9 @@
   top: 50%;
   left: 50%;
   display: block;
-  width: clamp(21rem, 46vw, 42rem);
+  width: clamp(21rem, 46cqi, 42rem);
   max-width: calc(100% - var(--space-8));
-  max-height: min(70vh, 42rem);
+  max-height: min(70cqb, 42rem);
   object-fit: contain;
   transform: translate(-50%, -50%);
   filter: drop-shadow(0 1.2rem 2rem rgb(49 7 35 / 28%));
@@ -159,13 +159,13 @@
   }
 }
 
-@media (max-width: 940px) {
+@container artifact-stage (max-width: 940px) {
   .attacker {
-    width: clamp(18rem, 50vw, 34rem);
+    width: clamp(18rem, 50cqi, 34rem);
   }
 }
 
-@media (max-width: 760px) {
+@container artifact-stage (max-width: 760px) {
   .serviceNotice {
     grid-template-columns: auto minmax(0, 1fr);
   }
@@ -176,8 +176,8 @@
   }
 
   .attacker {
-    width: min(68vw, 21rem);
-    max-height: 48vh;
+    width: min(68cqi, 21rem);
+    max-height: 48cqb;
   }
 }
 

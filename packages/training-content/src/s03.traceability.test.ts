@@ -3,7 +3,7 @@ import { S03_CONTENT_VERSION, s03Content } from './s03.js';
 
 describe('S03 content traceability', () => {
   it('keeps S03 linked to its named pages and canonical account structure', () => {
-    expect(S03_CONTENT_VERSION).toBe('1.19.0');
+    expect(S03_CONTENT_VERSION).toBe('1.19.1');
     expect(s03Content.source).toMatchObject({
       document: 'research/private/training-script.pdf',
       internalPages: [8, 9, 10, 11],

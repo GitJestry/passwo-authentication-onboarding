@@ -7,6 +7,7 @@ import {
   recontactEmailSchema,
 } from '@passwo/contracts';
 import { createStudyMachine } from '@passwo/study-engine';
+import { ArtifactViewport } from '@passwo/ui';
 import { useMachine } from '@xstate/react';
 import { type ReactNode, useCallback, useMemo, useRef, useState } from 'react';
 import { BrowserSegmentTimingAdapter } from '../../adapters/timing/BrowserSegmentTimingAdapter.js';
@@ -521,6 +522,9 @@ export function StudyFlow() {
     snapshot.matches({ artifactLifecycle: 'preparing' }) ||
     snapshot.matches({ artifactLifecycle: { artifact: 'supportive' } }) ||
     snapshot.matches({ artifactLifecycle: { artifact: 'reference' } });
+  const artifactActive =
+    snapshot.matches({ artifactLifecycle: { artifact: 'supportive' } }) ||
+    snapshot.matches({ artifactLifecycle: { artifact: 'reference' } });
   const participantInformationFooter =
     context.deletionCode === null ? null : (
       <ParticipantInformationAccess deletionCode={context.deletionCode} placement="footer" />
@@ -808,7 +812,7 @@ export function StudyFlow() {
   if (artifactVisible) {
     return (
       <main className={styles.artifactSurface} data-artifact-surface="">
-        {content}
+        {artifactActive ? <ArtifactViewport>{content}</ArtifactViewport> : content}
       </main>
     );
   }

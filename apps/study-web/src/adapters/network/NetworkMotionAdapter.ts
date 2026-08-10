@@ -5,6 +5,7 @@ import type {
   AnimationSequence,
   AnimationStep,
 } from '@passwo/training-engine';
+import { artifactStageRenderedBounds } from '@passwo/ui';
 import {
   type AnimationPlaybackControlsWithThen,
   animate,
@@ -333,14 +334,15 @@ export class NetworkMotionAdapter implements AnimationPlayerPort {
 
     key.dataset.animating = 'true';
     key.style.opacity = '1';
+    const stageBounds = artifactStageRenderedBounds(key);
     let keyRect = keyGraphic.getBoundingClientRect();
     let current = currentTranslation(key);
     if (
       keyRect.width === 0 ||
-      keyRect.right < 0 ||
-      keyRect.bottom < 0 ||
-      keyRect.left > window.innerWidth ||
-      keyRect.top > window.innerHeight
+      keyRect.right < stageBounds.left ||
+      keyRect.bottom < stageBounds.top ||
+      keyRect.left > stageBounds.right ||
+      keyRect.top > stageBounds.bottom
     ) {
       const nodeRect = node.getBoundingClientRect();
       const startX = nodeRect.right + 48;
@@ -427,8 +429,10 @@ export class NetworkMotionAdapter implements AnimationPlayerPort {
       character.querySelector<HTMLElement>('[data-passwo-character]') ?? character;
     const characterRect = characterAnchor.getBoundingClientRect();
     const nodeRect = activeNode.getBoundingClientRect();
+    const stageBounds = artifactStageRenderedBounds(character);
     const current = currentTranslation(character);
-    const placeOnRight = nodeRect.left + nodeRect.width / 2 < window.innerWidth / 2;
+    const placeOnRight =
+      nodeRect.left + nodeRect.width / 2 < stageBounds.left + stageBounds.width / 2;
     const targetX = placeOnRight
       ? nodeRect.right + characterRect.width * 0.3
       : nodeRect.left - characterRect.width * 0.3;

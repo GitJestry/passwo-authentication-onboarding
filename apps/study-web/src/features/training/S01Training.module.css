@@ -11,7 +11,7 @@
 
 .setupPanel {
   width: min(100%, 42rem);
-  padding: clamp(var(--space-6), 4vw, var(--space-8));
+  padding: clamp(var(--space-6), 4cqi, var(--space-8));
   border: var(--border-width-thin) solid var(--color-border-soft);
   border-radius: var(--radius-large);
   background: color-mix(in srgb, var(--color-surface-primary) 97%, transparent);
@@ -243,7 +243,7 @@
   }
 }
 
-@media (max-width: 760px) {
+@container artifact-stage (max-width: 760px) {
   .setupPanel {
     width: 100%;
   }

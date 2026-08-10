@@ -16,13 +16,14 @@ import {
 } from '@passwo/training-content';
 import { PasswordModuleController, type PasswordModuleSnapshot } from '@passwo/training-engine';
 import {
+  ArtifactViewport,
   BrowserShell,
   type BrowserShellLayers,
   type BrowserShellSnapshot,
   type BrowserTabModel,
   type DesktopPlatform,
 } from '@passwo/ui';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, type ReactNode } from 'react';
 import { S00Training } from '../features/training/S00Training.js';
 import { S01Training } from '../features/training/S01Training.js';
 import { SectionTransition } from '../features/training/SectionTransition.js';
@@ -39,6 +40,14 @@ interface DesignLabScenario {
   readonly description: string;
   readonly dimmed: boolean;
   readonly showPassWoOverlay: boolean;
+}
+
+function ArtifactPreview({ children }: { readonly children: ReactNode }) {
+  return (
+    <div className={styles.artifactPreview}>
+      <ArtifactViewport>{children}</ArtifactViewport>
+    </div>
+  );
 }
 
 interface FictionalPageSnapshot {
@@ -704,12 +713,14 @@ export function DesignLab({ scenarioId }: { readonly scenarioId: DesignLabScenar
     return (
       <main className={styles.labPage}>
         <DesignLabIntroduction scenarioId={scenarioId} scenario={scenario} />
-        <S00Training
-          displayName="Vorschau"
-          onComplete={() => undefined}
-          forceAnimationFailure={forceAnimationFailure}
-          previewAccountId={campusWebsitePreview.accountId}
-        />
+        <ArtifactPreview>
+          <S00Training
+            displayName="Vorschau"
+            onComplete={() => undefined}
+            forceAnimationFailure={forceAnimationFailure}
+            previewAccountId={campusWebsitePreview.accountId}
+          />
+        </ArtifactPreview>
       </main>
     );
   }
@@ -725,13 +736,15 @@ export function DesignLab({ scenarioId }: { readonly scenarioId: DesignLabScenar
     return (
       <main className={styles.labPage}>
         <DesignLabIntroduction scenarioId={scenarioId} scenario={scenario} />
-        <PasswordModuleSegmentPreview
-          key={`${scenarioId}:${campusWebsitePreview.accountId}:${campusWebsitePreview.view}`}
-          segment={scenarioId}
-          accountId={campusWebsitePreview.accountId}
-          view={campusWebsitePreview.view}
-          passwordOverrides={passwordOverrides}
-        />
+        <ArtifactPreview>
+          <PasswordModuleSegmentPreview
+            key={`${scenarioId}:${campusWebsitePreview.accountId}:${campusWebsitePreview.view}`}
+            segment={scenarioId}
+            accountId={campusWebsitePreview.accountId}
+            view={campusWebsitePreview.view}
+            passwordOverrides={passwordOverrides}
+          />
+        </ArtifactPreview>
       </main>
     );
   }
@@ -740,7 +753,9 @@ export function DesignLab({ scenarioId }: { readonly scenarioId: DesignLabScenar
     return (
       <main className={styles.labPage}>
         <DesignLabIntroduction scenarioId={scenarioId} scenario={scenario} />
-        <S02AccountExplorationTraining platform={readDesktopPlatform()} />
+        <ArtifactPreview>
+          <S02AccountExplorationTraining platform={readDesktopPlatform()} />
+        </ArtifactPreview>
       </main>
     );
   }
@@ -750,7 +765,9 @@ export function DesignLab({ scenarioId }: { readonly scenarioId: DesignLabScenar
     return (
       <main className={styles.labPage}>
         <DesignLabIntroduction scenarioId={scenarioId} scenario={scenario} />
-        <S05DesignLabTraining fixtureId={s05Fixture.id} />
+        <ArtifactPreview>
+          <S05DesignLabTraining fixtureId={s05Fixture.id} />
+        </ArtifactPreview>
       </main>
     );
   }
@@ -760,7 +777,9 @@ export function DesignLab({ scenarioId }: { readonly scenarioId: DesignLabScenar
     return (
       <main className={styles.labPage}>
         <DesignLabIntroduction scenarioId={scenarioId} scenario={scenario} />
-        <S06ConsequenceTraining source={{ kind: 'fixture', fixtureId: s06Fixture.id }} />
+        <ArtifactPreview>
+          <S06ConsequenceTraining source={{ kind: 'fixture', fixtureId: s06Fixture.id }} />
+        </ArtifactPreview>
       </main>
     );
   }
@@ -770,7 +789,9 @@ export function DesignLab({ scenarioId }: { readonly scenarioId: DesignLabScenar
     return (
       <main className={styles.labPage}>
         <DesignLabIntroduction scenarioId={scenarioId} scenario={scenario} />
-        <S07DesignLabTraining routeId={s07Fixture.routeId} />
+        <ArtifactPreview>
+          <S07DesignLabTraining routeId={s07Fixture.routeId} />
+        </ArtifactPreview>
       </main>
     );
   }
@@ -783,14 +804,16 @@ export function DesignLab({ scenarioId }: { readonly scenarioId: DesignLabScenar
   return (
     <main className={styles.labPage}>
       <DesignLabIntroduction scenarioId={scenarioId} scenario={scenario} />
-      <BrowserShell
-        snapshot={snapshot}
-        ariaLabel={`Fiktive Browseranwendung, Szene ${scenario.label}`}
-        onTabSelect={selectTab}
-        {...(layers === undefined ? {} : { layers })}
-      >
-        <FictionalPageScene page={activeTabScene.page} />
-      </BrowserShell>
+      <ArtifactPreview>
+        <BrowserShell
+          snapshot={snapshot}
+          ariaLabel={`Fiktive Browseranwendung, Szene ${scenario.label}`}
+          onTabSelect={selectTab}
+          {...(layers === undefined ? {} : { layers })}
+        >
+          <FictionalPageScene page={activeTabScene.page} />
+        </BrowserShell>
+      </ArtifactPreview>
     </main>
   );
 }

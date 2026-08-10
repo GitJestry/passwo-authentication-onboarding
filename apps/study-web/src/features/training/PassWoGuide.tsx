@@ -15,6 +15,9 @@ import {
 } from './PassWoSpeechPosition.js';
 import styles from './PassWoGuide.module.css';
 
+const defaultSpeechObstacleSelector =
+  'button, input, select, textarea, [role="button"], [role="tab"], [data-passwo-speech-obstacle]';
+
 export interface PassWoGuideProps {
   readonly guideName: string;
   readonly taskLabel: string;
@@ -86,6 +89,10 @@ export function PassWoGuide({
   const characterRef = useRef<HTMLImageElement | null>(null);
   const speechSlotRef = useRef<HTMLDivElement | null>(null);
   const sides = useMemo(() => preferredSides(speechPlacement), [speechPlacement]);
+  const resolvedSpeechObstacleSelector =
+    speechObstacleSelector === undefined
+      ? defaultSpeechObstacleSelector
+      : `${defaultSpeechObstacleSelector}, ${speechObstacleSelector}`;
   const speechPosition = usePassWoSpeechPosition({
     ownerRef: guideRef,
     characterRef,
@@ -93,7 +100,7 @@ export function PassWoGuide({
     enabled: helpOpen,
     positionKey: `${speechKey}-${placement}-${pose}`,
     preferredSides: sides,
-    ...(speechObstacleSelector === undefined ? {} : { obstacleSelector: speechObstacleSelector }),
+    obstacleSelector: resolvedSpeechObstacleSelector,
   });
   const progressPercent =
     progress === undefined || progress.total <= 0

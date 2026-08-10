@@ -1,0 +1,93 @@
+.viewport {
+  position: relative;
+  isolation: isolate;
+  width: 100%;
+  height: 100%;
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+  background: var(--color-surface-primary);
+}
+
+.stage {
+  position: relative;
+  z-index: 1;
+  isolation: isolate;
+  display: flex;
+  width: 100%;
+  height: 100%;
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+  container-name: artifact-stage;
+  container-type: size;
+  background: var(--color-surface-primary);
+}
+
+.stage > * {
+  --artifact-unit: 1rem;
+  --passwo-safe-inline-start: 0px;
+  --passwo-safe-block-end: 0px;
+
+  min-width: 0;
+  min-height: 0;
+  flex: 1;
+}
+
+.stage[data-artifact-layout="compact"] {
+  overflow: auto;
+}
+
+@container artifact-stage (min-width: 1152px) and (min-height: 720px) {
+  .stage > * {
+    /*
+     * One authored rem equals 16px at 1440x900. The shorter normalized axis controls
+     * growth so wide or shallow windows never outgrow their available height.
+     */
+    --artifact-unit: clamp(1rem, min(1.1111cqw, 1.7778cqh), 1.35rem);
+    --font-size-x-small: calc(var(--artifact-unit) * 0.75);
+    --font-size-small: calc(var(--artifact-unit) * 0.875);
+    --font-size-body: var(--artifact-unit);
+    --font-size-heading-small: calc(var(--artifact-unit) * 1.125);
+    --font-size-heading-medium: calc(var(--artifact-unit) * 2.55);
+    --space-1: calc(var(--artifact-unit) * 0.25);
+    --space-2: calc(var(--artifact-unit) * 0.5);
+    --space-3: calc(var(--artifact-unit) * 0.75);
+    --space-4: var(--artifact-unit);
+    --space-5: calc(var(--artifact-unit) * 1.25);
+    --space-6: calc(var(--artifact-unit) * 1.5);
+    --space-7: calc(var(--artifact-unit) * 2);
+    --space-8: calc(var(--artifact-unit) * 2.5);
+    --space-9: calc(var(--artifact-unit) * 3);
+    --size-control-medium: calc(var(--artifact-unit) * 2.25);
+    --size-control-large: calc(var(--artifact-unit) * 2.875);
+    --size-window-control: calc(var(--artifact-unit) * 0.7);
+    --size-window-control-mac: calc(var(--artifact-unit) * 0.82);
+    --size-status-marker: calc(var(--artifact-unit) * 1.35);
+    --size-browser-tab-min: calc(var(--artifact-unit) * 9.75);
+    --size-browser-shell-min-height: calc(var(--artifact-unit) * 34);
+    --size-content-narrow: calc(var(--artifact-unit) * 18);
+    --size-copy-measure: calc(var(--artifact-unit) * 42);
+    --size-illustration-medium: clamp(
+      calc(var(--artifact-unit) * 7.5),
+      14cqw,
+      calc(var(--artifact-unit) * 10.5)
+    );
+    --size-passwo-speaking-width: clamp(
+      calc(var(--artifact-unit) * 7.6),
+      min(12cqw, 18cqh),
+      calc(var(--artifact-unit) * 11.23)
+    );
+    --size-passwo-speaking-height: clamp(
+      calc(var(--artifact-unit) * 10.8),
+      22cqh,
+      calc(var(--artifact-unit) * 14)
+    );
+    --size-overlay-content-max: calc(var(--artifact-unit) * 31);
+    --size-password-assembled-font: calc(var(--artifact-unit) * 1.9);
+    --size-password-building-block-font: calc(var(--artifact-unit) * 2);
+    --size-password-continuous-font: calc(var(--artifact-unit) * 2.05);
+
+    font-size: var(--font-size-body);
+  }
+}

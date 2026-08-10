@@ -47,7 +47,7 @@ const emphasisBySpeechId: Readonly<Record<string, readonly PassWoSpeechEmphasis[
   's03.success': [{ phrase: 'wieder geöffnet', tone: 'positive' }],
   's03.third-failed-login': [{ phrase: '„Passwort vergessen?“', tone: 'action' }],
   's03.retrieval-help': [
-    { phrase: 'stark', tone: 'positive', contrastId: 'password-memory' },
+    { phrase: 'starkes', tone: 'positive', contrastId: 'password-memory' },
     { phrase: 'wieder verwenden', tone: 'accent', contrastId: 'password-memory' },
   ],
   's03.warning': [{ phrase: 'Sicherheitsmeldung', tone: 'warning' }],

@@ -19,6 +19,13 @@
   gap: var(--space-6);
 }
 
+.artifactPreview {
+  display: flex;
+  width: 100%;
+  min-height: 0;
+  flex: 1;
+}
+
 .labHeader nav {
   position: relative;
   flex: 0 0 auto;

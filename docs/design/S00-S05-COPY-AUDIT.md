@@ -1772,3 +1772,14 @@ konkretes sichtbares UI-Ziel hervorgehoben. Persistenz und Export bleiben unver�
 | `S03.narration.retrievalHelp` | Nutzerauftrag vom 2026-08-10 | `Kein Problem. Das zeigt: Ein Passwort muss nicht nur stark, sondern später auch wieder abrufbar sein. Ich unterstütze dich jetzt bei der Anmeldung.` | `Kein Problem. Ein starkes Passwort sollte sich später auch zuverlässig wieder verwenden lassen. Ich unterstütze dich jetzt bei der Anmeldung.` | Ergebnisfeedback | ausdrücklich vorgegebene Einordnung der Unterstützung | begrenzt | `Für mich anmelden` | `stark` und `wieder verwenden` als Kontrast |
 | `S03.narration.accountSuccess.*` bei unterstützter Anmeldung | Nutzerauftrag vom 2026-08-10 | `X ist mit Unterstützung wieder geöffnet.` | `X ist wieder geöffnet.` | Ergebnisfeedback | Unterstützung wird nicht im Ergebnistext wiederholt | begrenzt | kein | `wieder geöffnet` in positiver Farbe |
 | `S03.narration.completion` und Abschlussübergang | Nutzerauftrag vom 2026-08-10 | vier abrufbarkeitsabhängige Abschlussblasen, anschließend separate Campusalltag-Blase | `Alle drei Konten sind wieder geöffnet. Wir können unseren Campusalltag jetzt fortsetzen.` in einer Blase | Ergebnisfeedback und Navigation | ausdrücklich freigegebene Zusammenführung; der Button startet direkt den bestehenden Zeitsprung | ausdrücklich freigegeben | `Campusalltag fortsetzen` | keine |
+
+### Copy-Delta S03 Hervorhebung Abrufbarkeit 10. August 2026
+
+Quelle ist der ausdrückliche Nutzerauftrag vom 10. August 2026. Der Wortlaut bleibt unverändert;
+die positive Hervorhebung umfasst in der Hilfe zur Anmeldung nun das vollständige Adjektiv
+`starkes`. Der Kontrast zur weiterhin akzentuierten Phrase `wieder verwenden` bleibt bestehen.
+`S03_CONTENT_VERSION` wird von `1.19.0` auf `1.19.1` erhöht.
+
+| Segment und Text-ID | Quelle | Aktueller Text | Geplanter Text | Primäre Rolle | Grund | Bedeutungsänderung | Interaktionsziel | Hervorhebung |
+|---|---|---|---|---|---|---|---|---|
+| `S03.narration.retrievalHelp` | Nutzerauftrag vom 2026-08-10 | `Kein Problem. Ein starkes Passwort sollte sich später auch zuverlässig wieder verwenden lassen. Ich unterstütze dich jetzt bei der Anmeldung.`; `stark` positiv hervorgehoben | sichtbarer Wortlaut unverändert; `starkes` positiv hervorgehoben | Ergebnisfeedback | ausdrücklich vorgegebene barrierefreie Auszeichnung | nein | `Für mich anmelden` | `starkes` positiv; `wieder verwenden` Akzent als Kontrast |

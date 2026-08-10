@@ -93,7 +93,7 @@ export interface S03SegmentContent {
   readonly animations: readonly S03AnimationSequence[];
 }
 
-export const S03_CONTENT_VERSION = '1.19.0';
+export const S03_CONTENT_VERSION = '1.19.1';
 
 const resultAnimation = (
   accountId: S01AccountId,
