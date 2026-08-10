@@ -263,9 +263,6 @@ describe('S05 content traceability', () => {
     expect(s05Content.freeSearch.theoreticalModel.interactiveScale.minimumOrientation).toBe(
       'Mindeststandard',
     );
-    expect(s05Content.freeSearch.theoreticalModel.interactiveScale.title).toBe(
-      'Zeit, bis alle Möglichkeiten geprüft wären',
-    );
     expect(s05Content.freeSearch.theoreticalModel.lowercaseMeasurements).toContainEqual({
       length: 12,
       durationLabel: 'ca. 1 Tag',

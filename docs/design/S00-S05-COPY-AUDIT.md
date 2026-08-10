@@ -1970,3 +1970,53 @@ und versionierte Content-Daten bleiben unverändert.
 | Segment und Text-ID | Quelle | Aktueller Text | Geplanter Text | Primäre Rolle | Grund | Bedeutungsänderung | Interaktionsziel | Hervorhebung |
 |---|---|---|---|---|---|---|---|---|
 | `S05.freeSearch.estimate.marker` in der Abgabeansicht | Nutzerauftrag vom 2026-08-10 | `Deine Schätzung` über dem gewählten Skalenwert | entfällt in der Abgabeansicht; bleibt an der späteren Messskala erhalten | Orientierung | redundante Beschriftung entfernen; die Auswahl selbst zeigt den gewählten Wert eindeutig | nein | Schätzungsauswahl | ausgewählter Wert durch Kontrast, Rahmen und Häkchen |
+
+### Copy- & Darstellungsdelta S05 Zeitwerte mit Längenbezug 10. August 2026
+
+Quelle ist der ausdrückliche Nutzerauftrag vom 10. August 2026. Der allgemeine Skalentitel
+entfällt. Stattdessen erhält jeder eingeblendete Zeitwert direkt darunter eine kleine graue
+Erläuterung, die den Wert eindeutig auf das vollständige Prüfen aller Zeichenfolgen der jeweils
+angezeigten Länge bezieht. Berechnung, Interaktion, Ablauf, Persistenz, Export und Timing bleiben
+unverändert. `S05_CONTENT_VERSION` wird von `2.57.3` auf `2.57.4` erhöht.
+
+| Segment und Text-ID | Quelle | Aktueller Text | Geplanter Text | Primäre Rolle | Grund | Bedeutungsänderung | Interaktionsziel | Hervorhebung |
+|---|---|---|---|---|---|---|---|---|
+| `S05.freeSearch.theoreticalModel.interactiveScale.title` | Nutzerauftrag vom 2026-08-10 | `Zeit, bis alle Möglichkeiten geprüft wären` | entfällt | Orientierung | ausdrücklich verlangte Entfernung des allgemeinen Titels | nein | kein | keine |
+| `S05.freeSearch.theoreticalModel.interactiveScale.durationExplanation` | Nutzerauftrag vom 2026-08-10 | nicht vorhanden | `bis alle Zeichenfolgen der Länge X geprüft wären` | Mechanismuserklärung | ordnet jeden Zeitwert unmittelbar und eindeutig seiner Zeichenlänge zu | begrenzt | aktive und unmittelbar vorherige Kugel | kleine graue Schrift unter dem Zeitwert |
+
+### Darstellungsdelta S05 Uhr und adaptive Messkugeln 10. August 2026
+
+Quelle ist der ausdrückliche Nutzerauftrag vom 10. August 2026. Die Uhr steht nicht mehr in den
+Messkugeln, sondern doppelt so groß oben links in der Skalenansicht. Nur die aktive Kugel zeigt
+unter ihrem Zeitwert den vorhandenen erklärenden Längenbezug; die unmittelbar vorherige Kugel
+zeigt ausschließlich ihren Zeitwert. Beide Texte fließen untereinander, damit mehrzeilige
+Zeitwerte nicht mit der Erläuterung kollidieren. Auf weniger als ungefähr zwei Bildschirmpixel
+projizierte Kugeln und ihre Beschriftungen werden ausgeblendet. Die exponentielle
+Größenzunahme wird um zwei Prozent verstärkt. Teilnehmertext, Interaktion, Berechnungsmodell,
+Ablauf, Persistenz, Export und Timing bleiben unverändert; kein Content-Versionssprung ist
+erforderlich.
+
+### Darstellungsdelta S05 Zeichenmix vertikal zentriert 10. August 2026
+
+Quelle ist der ausdrückliche Nutzerauftrag vom 10. August 2026. Die Ansichten `Passwort
+erstellen`, die schnell wechselnden `meinPasswort`-Varianten und die anschließende Messskala
+werden innerhalb der verfügbaren Höhe deutlich tiefer und damit näher an der vertikalen Mitte
+platziert. Teilnehmertext, Interaktion, Animation, Ablauf, Persistenz, Export und Timing bleiben
+unverändert; kein Content-Versionssprung ist erforderlich.
+
+### Darstellungsdelta S05 Skalensteuerung und Zeitumbruch 10. August 2026
+
+Quelle ist der ausdrückliche Nutzerauftrag vom 10. August 2026. Die Uhr übernimmt die bisherige
+Position des Informationszeichens neben dem Angreifer; der Informationszugang sitzt sehr klein
+oben rechts über der Uhr. Die Uhr wird anschließend um 75 Prozent verkleinert. Zeitwerte verwenden ihre verfügbare Breite, bevor sie umbrechen. Das
+lokale Beispielpasswortfeld einschließlich Plus- und Minussteuerung wird um 50 Prozent
+vergrößert. Teilnehmertext, Interaktion, Berechnung, Ablauf, Persistenz, Export und Timing bleiben
+unverändert; kein Content-Versionssprung ist erforderlich.
+
+### Darstellungsdelta S05 Alphabet in der Messkugel 10. August 2026
+
+Quelle ist der ausdrückliche Nutzerauftrag vom 10. August 2026. In der Erklärung des aktiven
+Zeitwerts steht nach `bis alle` die bereits in der Längenschätzung verwendete farbige
+`a–z`-Darstellung. Danach läuft der bestehende Text mit `Zeichenfolgen der …` in normaler
+Schrift weiter. Der zugängliche Wortlaut, das Berechnungsmodell, die Interaktion, der Ablauf,
+Persistenz, Export und Timing bleiben unverändert; kein Content-Versionssprung ist erforderlich.

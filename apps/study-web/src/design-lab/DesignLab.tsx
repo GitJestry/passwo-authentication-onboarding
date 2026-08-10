@@ -288,6 +288,12 @@ const scenarios: Record<DesignLabScenarioId, DesignLabScenario> = {
     dimmed: false,
     showPassWoOverlay: false,
   },
+  's05-free-search': {
+    label: 'S05 Alle Möglichkeiten durchprobieren',
+    description: 'Direkter QA-Einstieg beim systematischen Durchprobieren aller Möglichkeiten.',
+    dimmed: false,
+    showPassWoOverlay: false,
+  },
   's06-reuse-and-derived': {
     label: 'S06 Wiederverwendung + Ableitung',
     description:
@@ -769,6 +775,17 @@ export function DesignLab({ scenarioId }: { readonly scenarioId: DesignLabScenar
           <S05DesignLabTraining fixtureId={s05Fixture.id} />
         </ArtifactPreview>
       </main>
+    );
+  }
+
+  if (scenarioId === 's05-free-search') {
+    return (
+      <>
+        <DesignLabIntroduction scenarioId={scenarioId} scenario={scenario} />
+        <main className={styles.trainingStage}>
+          <S05DesignLabTraining fixtureId="common-suffix" initialSection="free-search" />
+        </main>
+      </>
     );
   }
 

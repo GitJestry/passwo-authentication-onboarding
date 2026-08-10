@@ -1278,7 +1278,7 @@
   width: min(100%, 72rem);
   min-height: 100%;
   margin: 0 auto;
-  padding-bottom: clamp(10rem, 24cqb, 15rem);
+  padding-bottom: clamp(2rem, 6cqb, 4rem);
   gap: clamp(var(--space-5), 5cqi, var(--space-8));
   grid-template-columns: repeat(2, minmax(0, 1fr));
   place-content: center;
@@ -1441,7 +1441,7 @@
   width: min(100%, 68rem);
   min-height: 100%;
   margin: 0 auto;
-  padding-bottom: clamp(10rem, 24cqb, 15rem);
+  padding-bottom: clamp(2rem, 6cqb, 4rem);
   place-content: center;
 }
 
@@ -1526,6 +1526,12 @@
   margin-bottom: var(--space-3);
 }
 
+.estimateScene .estimateRuler {
+  position: relative;
+  z-index: 2;
+  margin-bottom: 0;
+}
+
 .lowercaseAlphabet {
   display: grid;
   justify-items: center;
@@ -1563,6 +1569,15 @@
 
 .lowercaseAlphabetMark b {
   color: #65d68d;
+}
+
+.lowercaseAlphabetMarkInline {
+  flex: 0 0 auto;
+  gap: 0.08em;
+  font-size: 1em;
+  line-height: inherit;
+  letter-spacing: -0.04em;
+  text-shadow: inherit;
 }
 
 .estimateMarkerRow,
@@ -1733,12 +1748,10 @@
 }
 
 .estimateScale {
-  margin: var(--space-5) 0 var(--space-4);
-  padding: var(--space-3);
-  border: var(--border-width-thin) solid rgb(255 255 255 / 12%);
-  border-radius: var(--radius-medium);
-  background: linear-gradient(180deg, rgb(255 255 255 / 7%), rgb(255 255 255 / 2%));
-  box-shadow: inset 0 1px 0 rgb(255 255 255 / 7%), 0 1rem 2.5rem rgb(0 0 0 / 16%);
+  min-width: 0;
+  margin: 0 0 var(--space-4);
+  padding: 0;
+  border: 0;
 }
 
 .estimateScale legend {
@@ -1898,22 +1911,6 @@
   overflow: hidden;
 }
 
-.lowercaseScaleTitle {
-  position: absolute;
-  z-index: 11;
-  top: clamp(var(--space-3), 2cqi, var(--space-5));
-  left: 50%;
-  width: min(34rem, 62%);
-  margin: 0;
-  color: rgb(245 248 255 / 62%);
-  font-size: clamp(var(--font-size-x-small), 1.35cqi, var(--font-size-small));
-  font-weight: var(--font-weight-medium);
-  letter-spacing: 0.01em;
-  text-align: center;
-  text-wrap: balance;
-  transform: translateX(-50%);
-}
-
 .lowercaseScaleScene::before {
   position: absolute;
   z-index: 0;
@@ -1939,9 +1936,8 @@
   z-index: 14;
   bottom: var(--space-3);
   left: clamp(var(--space-3), 2cqi, var(--space-5));
-  display: inline-flex;
-  align-items: center;
-  gap: var(--space-1);
+  width: 6.7rem;
+  height: 6.7rem;
 }
 
 .scaleInformationControl > img {
@@ -1952,11 +1948,13 @@
 }
 
 .scaleInformationControl > button {
+  position: absolute;
+  z-index: 2;
+  top: 0.1rem;
+  right: 2.55rem;
   display: grid;
-  width: 2.35rem;
-  height: 2.35rem;
-  margin-top: 0.45rem;
-  margin-left: -1.45rem;
+  width: 1.15rem;
+  height: 1.15rem;
   padding: 0;
   place-items: center;
   border: var(--border-width-thin) solid rgb(245 248 255 / 34%);
@@ -1965,7 +1963,7 @@
   background: rgb(7 11 19 / 76%);
   box-shadow: 0 0.35rem 1rem rgb(0 0 0 / 28%);
   font: inherit;
-  font-size: var(--font-size-small);
+  font-size: 0.58rem;
   font-weight: var(--font-weight-heavy);
   cursor: help;
   transition: border-color 160ms ease, background 160ms ease, box-shadow 160ms ease, transform 160ms ease;
@@ -2158,47 +2156,95 @@
 .scaleTimeInformation {
   position: relative;
   display: grid;
+  box-sizing: border-box;
+  width: 100%;
   min-height: calc(var(--sphere-size) * 0.7);
-  place-items: center;
+  align-content: center;
+  justify-items: center;
+  gap: clamp(0.1rem, calc(var(--sphere-size) * 0.012), 0.55rem);
+  padding: 6%;
   text-align: center;
   text-shadow: 0 0.15rem 0.65rem rgb(0 0 0 / 88%);
 }
 
-.scaleClock {
+.scaleSceneClock {
   position: absolute;
+  z-index: 1;
   top: 0;
-  left: 50%;
+  right: -0.1rem;
   display: grid;
-  width: clamp(1.8rem, calc(var(--sphere-size) * 0.2), 5.25rem);
+  width: clamp(0.9rem, 2.5cqi, 2.625rem);
   aspect-ratio: 1;
   place-items: center;
   border-radius: var(--radius-round);
   background: radial-gradient(circle, rgb(106 168 255 / 18%), transparent 68%);
   box-shadow: 0 0 1rem rgb(106 168 255 / 22%);
-  transform: translate(-50%, -38%);
 }
 
-.scaleClock > img {
+.scaleSceneClock > img {
   width: 100%;
   height: auto;
   filter: drop-shadow(0 0 0.55rem rgb(106 168 255 / 46%));
 }
 
 .scaleTimeInformation > strong {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  display: grid;
-  place-items: center;
-  width: 88%;
-  font-size: clamp(1rem, calc(var(--sphere-size) * 0.13), 4.6rem);
+  display: block;
+  box-sizing: border-box;
+  width: 100%;
+  min-width: 0;
+  justify-self: stretch;
+  font-size: clamp(1.1rem, calc(var(--sphere-size) * 0.145), 5rem);
+  line-height: var(--line-height-tight);
+  text-align: center;
+  white-space: normal;
+}
+
+.scaleTimeValue {
+  display: block;
+  min-width: 0;
+  text-align: center;
+  text-wrap: balance;
+  white-space: normal;
+}
+
+.scaleTimeApproximateNumber {
+  display: inline-flex;
+  align-items: baseline;
+  column-gap: 0.18em;
+  white-space: nowrap;
+}
+
+.scaleTimeApproximateNumber > small {
+  color: inherit;
+  font-size: 0.5em;
+  font-weight: inherit;
+  line-height: 1;
+}
+
+.scaleTimeInformation > small {
+  display: block;
+  width: 82%;
+  color: rgb(245 248 255 / 58%);
+  font-size: clamp(0.34rem, calc(var(--sphere-size) * 0.026), 0.72rem);
+  font-weight: var(--font-weight-medium);
   line-height: var(--line-height-tight);
   text-wrap: balance;
-  transform: translate(-50%, -50%);
+}
+
+.scaleTimeInformation > .scaleTimeExplanation {
+  display: flex;
+  align-items: baseline;
+  justify-content: center;
+  column-gap: 0.28em;
+  flex-wrap: wrap;
 }
 
 .scaleTimeBubble[data-previous="true"] .scaleTimeInformation > strong {
-  font-size: clamp(0.48rem, calc(var(--sphere-size) * 0.085), 1rem);
+  font-size: clamp(0.42rem, calc(var(--sphere-size) * 0.095), 1.1rem);
+}
+
+.scaleTimeBubble[data-previous="true"] .scaleTimeInformation > small {
+  font-size: clamp(0.26rem, calc(var(--sphere-size) * 0.02), 0.48rem);
 }
 
 .scaleInformationTooltip {
@@ -2257,14 +2303,14 @@
 .lowercasePasswordButtons button {
   display: grid;
   width: 50%;
-  min-height: 2.75rem;
+  min-height: 4.125rem;
   padding: 0;
   place-items: center;
   border: var(--border-width-thin) solid rgb(106 168 255 / 42%);
   border-radius: 0 0 0 var(--radius-small);
   color: #f5f8ff;
   background: rgb(106 168 255 / 13%);
-  font-size: 2rem;
+  font-size: 3rem;
   font-weight: var(--font-weight-heavy);
   cursor: pointer;
 }
@@ -2299,13 +2345,17 @@
   max-width: calc(100vw - 2 * var(--space-5));
   box-sizing: content-box;
   overflow: hidden;
-  padding: var(--space-2) var(--space-3);
+  padding: calc(var(--space-2) * 1.5) calc(var(--space-3) * 1.5);
   border: var(--border-width-thin) solid rgb(255 255 255 / 16%);
   border-radius: var(--radius-small) var(--radius-small) 0 0;
   color: #8792a6;
   background: rgb(3 7 14 / 76%);
   box-shadow: 0 0.75rem 2rem rgb(0 0 0 / 26%);
-  font-size: clamp(var(--font-size-small), 1.55cqi, var(--font-size-body));
+  font-size: clamp(
+    calc(var(--font-size-small) * 1.5),
+    2.325cqi,
+    calc(var(--font-size-body) * 1.5)
+  );
   font-weight: var(--font-weight-heavy);
   letter-spacing: 0.11em;
   text-overflow: ellipsis;
@@ -3750,11 +3800,6 @@
   .lowercaseScaleScene {
     grid-template-rows: minmax(25rem, 1fr) auto;
     overflow: auto;
-  }
-
-  .lowercaseScaleTitle {
-    top: 4.75rem;
-    width: calc(100% - 2 * var(--space-5));
   }
 
   .lowercaseScaleControls {

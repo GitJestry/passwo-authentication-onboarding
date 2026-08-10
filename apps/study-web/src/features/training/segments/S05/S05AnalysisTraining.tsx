@@ -1041,6 +1041,24 @@ function PasswordVariationScene({ final }: { readonly final: boolean }) {
   );
 }
 
+function LowercaseAlphabetMark({
+  inline = false,
+  decorative = false,
+}: {
+  readonly inline?: boolean;
+  readonly decorative?: boolean;
+}) {
+  return (
+    <span
+      className={`${styles.lowercaseAlphabetMark}${inline ? ` ${styles.lowercaseAlphabetMarkInline}` : ''}`}
+      aria-hidden={decorative || undefined}
+      aria-label={decorative ? undefined : 'Kleinbuchstaben von a bis z'}
+    >
+      <strong>a</strong><i>–</i><b>z</b>
+    </span>
+  );
+}
+
 function EstimateRuler({
   selected,
   showAlphabet = true,
@@ -1059,9 +1077,7 @@ function EstimateRuler({
     >
       {showAlphabet ? (
         <div className={styles.lowercaseAlphabet}>
-          <span className={styles.lowercaseAlphabetMark} aria-label="Kleinbuchstaben von a bis z">
-            <strong>a</strong><i>–</i><b>z</b>
-          </span>
+          <LowercaseAlphabetMark />
           <span>{content.alphabetLabel}</span>
         </div>
       ) : null}
@@ -1203,7 +1219,7 @@ function scaleColor(length: number): string {
 
 function scaleSphereDiameter(length: number): number {
   const exponent = length - LOWERCASE_SCALE_VISIBLE_MINIMUM_LENGTH;
-  const perStepGrowth = 26 ** (0.36 * 1.05);
+  const perStepGrowth = 26 ** (0.36 * 1.05 * 1.02);
   let diameter = exponent === 0 ? 30 : 30 * perStepGrowth ** exponent * 1.8;
   if (length >= 12) diameter *= 1.5 ** (length - 11);
   if (length === 15) diameter *= 1.2;
@@ -1212,7 +1228,8 @@ function scaleSphereDiameter(length: number): number {
 }
 
 function scaleLabelAllowance(length: number): number {
-  return 140 + String(length).length * 18 + durationLabelFor(length).length * 9;
+  const durationLabel = durationLabelFor(length).replace(/^ca\.\s*/, '');
+  return 140 + String(length).length * 18 + durationLabel.length * 9;
 }
 
 interface ScaleLayout {
@@ -1294,10 +1311,24 @@ function projectScale(layout: ScaleLayout, currentLength: number, width: number,
   const largeViewProgress = Math.max(0, Math.min(1, (currentLength - 13) / 7));
   const widthRatio = 0.982 + (0.91 - 0.982) * largeViewProgress;
   const heightRatio = 0.93 + (0.8 - 0.93) * largeViewProgress;
-  const titleClearance = 72;
-  const availableHeight = Math.max(1, height - titleClearance);
+  const availableHeight = Math.max(1, height);
   const scale = Math.min((width * widthRatio) / spanX, (availableHeight * heightRatio) / spanY);
-  const translateY = titleClearance + (availableHeight - spanY * scale) / 2 - layout.top * scale;
+  if (currentLength === LOWERCASE_SCALE_VISIBLE_MINIMUM_LENGTH) {
+    const focusedDiameter = Math.min(120, width * 0.16, availableHeight * 0.24);
+    const focusedScale = Math.max(scale, focusedDiameter / scaleSphereDiameter(currentLength));
+    const activeCenterY =
+      layout.axisTop - layout.sphereLift - scaleSphereDiameter(currentLength) / 2;
+    const translateY = availableHeight * 0.38 - activeCenterY * focusedScale;
+    const activeX = layout.positions.get(currentLength) ?? 110;
+    return {
+      scale: focusedScale,
+      translateX: width / 2 - activeX * focusedScale,
+      translateY,
+      axisY: layout.axisTop * focusedScale + translateY,
+      annotationScale: 1,
+    };
+  }
+  const translateY = (availableHeight - spanY * scale) / 2 - layout.top * scale;
   const axisY = layout.axisTop * scale + translateY;
   return {
     scale,
@@ -1314,6 +1345,9 @@ function ScaleInformationControl({ length }: { readonly length: number }) {
   return (
     <aside className={styles.scaleInformationControl}>
       <img src={attackerAsset} alt="" />
+      <span className={styles.scaleSceneClock} aria-hidden="true">
+        <img src={scaleClockAsset} alt="" />
+      </span>
       <button type="button" aria-label={content.informationLabel} aria-describedby={tooltipId}>i</button>
       <span className={styles.scaleInformationTooltip} id={tooltipId} role="tooltip">
         <span><strong>{content.information.passwordLength}:</strong> {length}</span>
@@ -1325,13 +1359,43 @@ function ScaleInformationControl({ length }: { readonly length: number }) {
   );
 }
 
-function ScaleTimeInformation({ length }: { readonly length: number }) {
+function ScaleTimeInformation({
+  length,
+  showExplanation,
+}: {
+  readonly length: number;
+  readonly showExplanation: boolean;
+}) {
+  const durationLabel = durationLabelFor(length);
+  const approximatePrefix = durationLabel.startsWith('ca. ') ? 'ca.' : null;
+  const durationValue = approximatePrefix === null ? durationLabel : durationLabel.slice(4);
+  const [durationNumber = durationValue, ...durationUnitParts] = durationValue.split(' ');
+  const durationUnit = durationUnitParts.join(' ');
+  const explanation = s05Content.freeSearch.theoreticalModel.interactiveScale.durationExplanation
+    .replace('[Länge]', String(length));
+  const [explanationStart = explanation, explanationEnd = ''] = explanation.split('Zeichenfolgen');
   return (
     <span className={styles.scaleTimeInformation}>
-      <span className={styles.scaleClock}>
-        <img src={scaleClockAsset} alt="" />
-      </span>
-      <strong>{durationLabelFor(length)}</strong>
+      <strong>
+        <span className={styles.scaleTimeValue}>
+          {approximatePrefix === null ? durationValue : (
+            <>
+              <span className={styles.scaleTimeApproximateNumber}>
+                <small>{approximatePrefix}</small>
+                <span>{durationNumber}</span>
+              </span>
+              {durationUnit.length > 0 ? ` ${durationUnit}` : null}
+            </>
+          )}
+        </span>
+      </strong>
+      {showExplanation ? (
+        <small className={styles.scaleTimeExplanation} aria-label={explanation}>
+          <span>{explanationStart.trim()}</span>
+          <LowercaseAlphabetMark inline decorative />
+          <span>{`Zeichenfolgen${explanationEnd}`}</span>
+        </small>
+      ) : null}
     </span>
   );
 }
@@ -1406,7 +1470,6 @@ function LowercaseClockScene({
       data-s05-target="lowercase-clock"
       aria-label={scaleContent.accessibleLabel}
     >
-      <h2 className={styles.lowercaseScaleTitle}>{scaleContent.title}</h2>
       <ScaleInformationControl length={currentLength} />
       <div className={styles.lowercaseScaleGraph} ref={graphRef}>
         <div
@@ -1435,6 +1498,7 @@ function LowercaseClockScene({
           const preview = length === currentLength + 1;
           const active = length === currentLength;
           const previous = length === currentLength - 1;
+          const sphereIsLargeEnough = screenDiameter(length) >= 2;
           const tickStyle: ScaleItemStyle = {
             '--scale-x': `${screenX(length)}px`,
             '--scale-y': `${projection.axisY + 10}px`,
@@ -1452,7 +1516,7 @@ function LowercaseClockScene({
                 <i />
                 <span>{active ? `${length === 20 ? '20+' : length} Stellen` : length === 20 ? '20+' : length}</span>
               </div>
-              {visible || preview ? (
+              {(visible || preview) && sphereIsLargeEnough ? (
                 <div
                   className={styles.scaleSphere}
                   data-active={active || undefined}
@@ -1462,14 +1526,14 @@ function LowercaseClockScene({
                   style={sphereStyle(length)}
                 />
               ) : null}
-              {active || previous ? (
+              {(active || previous) && sphereIsLargeEnough ? (
                 <div
                   className={styles.scaleTimeBubble}
                   data-active={active || undefined}
                   data-previous={previous || undefined}
                   style={sphereStyle(length)}
                 >
-                  <ScaleTimeInformation length={length} />
+                  <ScaleTimeInformation length={length} showExplanation={active} />
                 </div>
               ) : null}
             </div>

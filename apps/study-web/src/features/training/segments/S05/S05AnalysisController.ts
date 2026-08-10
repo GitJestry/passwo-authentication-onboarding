@@ -90,7 +90,7 @@ export interface S05AnalysisSubject {
   };
 }
 
-export type S05InitialSection = 'intro' | 'components' | 'structure';
+export type S05InitialSection = 'intro' | 'components' | 'structure' | 'free-search';
 
 export interface S05AnalysisControllerSnapshot {
   readonly phase: 'ready' | 'animating' | 'awaiting-decision' | 'complete';
@@ -225,6 +225,7 @@ const firstMissionIdBySection = {
   intro: 's05-candidate-check',
   components: 's05-component-category-overview',
   structure: 's05-structure-intro',
+  'free-search': 's05-free-search-transition',
 } as const satisfies Readonly<Record<S05InitialSection, string>>;
 
 function createMission(

@@ -71,7 +71,7 @@ export interface S05DesignLabFixture {
   readonly startSection: 'intro' | 'components' | 'structure';
 }
 
-export const S05_CONTENT_VERSION = '2.57.3';
+export const S05_CONTENT_VERSION = '2.57.4';
 
 export const s05Content = {
   version: S05_CONTENT_VERSION,
@@ -81,9 +81,9 @@ export const s05Content = {
       12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34,
       35,
     ] as const,
-    revision: 'Userauftrag vom 2026-08-10 · S05-Skalenende und Abschlussgrenze präzisiert',
+    revision: 'Userauftrag vom 2026-08-10 · S05-Zeitwerte um Längenbezug ergänzt',
     copyReference:
-      'docs/design/S00-S05-COPY-AUDIT.md#copy--interaktionsdelta-s05-skalenende-und-abschlussgrenze-10-august-2026',
+      'docs/design/S00-S05-COPY-AUDIT.md#copy--darstellungsdelta-s05-zeitwerte-mit-längenbezug-10-august-2026',
   },
   segment: {
     id: 'S05',
@@ -494,7 +494,7 @@ export const s05Content = {
       ],
       interactiveScale: {
         accessibleLabel: 'Interaktive Messskala für zufällig erzeugte Kleinbuchstaben',
-        title: 'Zeit, bis alle Möglichkeiten geprüft wären',
+        durationExplanation: 'bis alle Zeichenfolgen der Länge [Länge] geprüft wären',
         minimumOrientation: 'Mindeststandard',
         removeCharacter: 'Zufälligen Kleinbuchstaben entfernen',
         addCharacter: 'Zufälligen Kleinbuchstaben hinzufügen',
