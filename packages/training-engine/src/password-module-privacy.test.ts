@@ -112,7 +112,6 @@ describe('password module privacy boundary', () => {
       controller.submitRetrievalLogin(accountId);
     }
     controller.continueS03CompletionFeedback();
-    controller.continueS03CampusStart();
     controller.completeS03TimeLapse();
     controller.openIncidentAccount('campusgram');
     await flushMicrotasks();

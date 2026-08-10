@@ -32,6 +32,7 @@ export interface PassWoSpeechBubbleProps {
   readonly placement?: PassWoSpeechPlacement;
   readonly tone?: PassWoSpeechTone;
   readonly emphasis?: readonly PassWoSpeechEmphasis[];
+  readonly mutedParagraphIndexes?: readonly number[];
   readonly footer?: ReactNode;
   readonly className?: string | undefined;
   readonly action?: PassWoSpeechAction;
@@ -127,6 +128,7 @@ export function PassWoSpeechBubble({
   placement = 'right',
   tone = 'light',
   emphasis = noSpeechEmphasis,
+  mutedParagraphIndexes = [],
   footer,
   className,
   action,
@@ -157,7 +159,11 @@ export function PassWoSpeechBubble({
       </span>
       <div className={styles.textLayout}>
         {paragraphLayout.map(({ segments }, paragraphIndex) => (
-            <span className={styles.paragraph} key={paragraphIndex}>
+            <span
+              className={styles.paragraph}
+              data-muted={mutedParagraphIndexes.includes(paragraphIndex) || undefined}
+              key={paragraphIndex}
+            >
               {segments.map((segment, segmentIndex) => {
                 if (segment.emphasis === undefined) {
                   return <span key={segmentIndex}>{segment.text}</span>;

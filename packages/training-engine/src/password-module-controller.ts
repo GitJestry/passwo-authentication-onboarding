@@ -139,11 +139,6 @@ export class PasswordModuleController {
     this.#actor.send({ type: 'S03_COMPLETION_FEEDBACK_CONTINUED' });
   }
 
-  continueS03CampusStart(): void {
-    if (!this.#actor.getSnapshot().matches({ s03: { completionSequence: 'campusStart' } })) return;
-    this.#actor.send({ type: 'S03_CAMPUS_START_CONTINUED' });
-  }
-
   completeS03TimeLapse(): void {
     if (!this.#actor.getSnapshot().matches({ s03: { completionSequence: 'timeLapseRunning' } })) {
       return;

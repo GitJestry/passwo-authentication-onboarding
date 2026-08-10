@@ -43,7 +43,6 @@ function completeAssistedLogin(
 
 function reachS03TimeLapse(actor: ReturnType<typeof createModuleActor>): void {
   actor.send({ type: 'S03_COMPLETION_FEEDBACK_CONTINUED' });
-  actor.send({ type: 'S03_CAMPUS_START_CONTINUED' });
 }
 
 function reachAwaitingIncidentOpen(actor: ReturnType<typeof createModuleActor>): void {

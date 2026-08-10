@@ -593,7 +593,6 @@ function PasswordModuleSegmentPreview({
         previewController.submitRetrievalLogin(retrievalAccountId);
       }
       previewController.continueS03CompletionFeedback();
-      previewController.continueS03CampusStart();
       previewController.completeS03TimeLapse();
       if (segment === 's03-warning') return;
 

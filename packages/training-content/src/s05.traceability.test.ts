@@ -4,7 +4,7 @@ import { S05_CONTENT_VERSION, s05Content } from './s05.js';
 
 describe('S05 content traceability', () => {
   it('keeps the participant copy bounded and separate from internal terminology', () => {
-    expect(S05_CONTENT_VERSION).toBe('2.50.1');
+    expect(S05_CONTENT_VERSION).toBe('2.54.1');
     expect(s05Content.source).toMatchObject({
       document: 'research/private/training-script.pdf',
       internalPages: [
@@ -12,7 +12,7 @@ describe('S05 content traceability', () => {
         35,
       ],
       copyReference:
-        'docs/design/S00-S05-COPY-AUDIT.md#copy-delta-s05-fortschrittsleiste-9-august-2026',
+        'docs/design/S00-S05-COPY-AUDIT.md#copy-delta-s05-einordnungsgrenze-des-moduls-10-august-2026',
     });
     expect(s05Content.segment.id).toBe('S05');
     expect(s05Content.page.fixtureNotice).toBe(
@@ -48,16 +48,16 @@ describe('S05 content traceability', () => {
     );
     expect(s05Content.intro.narration.componentCategoryOverview).toEqual([
       'Dabei probiert das Programm zunächst Passwörter und Zeichenfolgen aus, die besonders häufig verwendet werden.',
-      'Bitte beachte: Dieses Trainingsmodul kann dein Passwort möglicherweise nicht immer korrekt einordnen. Die Auswertung soll dir dennoch dabei helfen, typische Angriffsmuster besser nachzuvollziehen.',
+      'Bitte beachte: Das Modul kann Bestandteile im Passwort übersehen oder falsch einordnen. Es dient nur zum Verständnis und ist keine Sicherheitsbewertung.',
     ]);
     expect(s05Content.intro.narration.randomSequence).toEqual([
-      'Zufällige Zeichenfolgen sind für Menschen jedoch schwer zu merken. Selbst gewählte Passwörter enthalten deshalb oft merkbare Elemente, wie Wörter, Zahlen oder einfache Zeichenfolgen.',
+      'Zufällige Zeichenfolgen sind jedoch schwer zu merken. Selbst gewählte Passwörter enthalten deshalb oft merkbare Elemente wie Wörter, Zahlen oder einfache Zeichenfolgen.',
     ]);
     expect(s05Content.componentStrategy.commonComponents.explanation[0]).toBe(
       'Dazu gehören häufig verwendete Passwörter und Wörter, einfache Tastatur- und Zahlenfolgen wie „123456“ oder „qwertz“ oder naheliegende Jahreszahlen.',
     );
     expect(s05Content.componentStrategy.commonComponents.explanation[2]).toBe(
-      'Viele Menschen verändern Bestandteile, damit Passwörter stärker wirken. Angreiferprogramme erzeugen deshalb typische Varianten mit Großschreibung, Zeichenersetzungen, Zahlen oder Symbolen, auch für bereits zusammengesetzte Kandidaten.',
+      'Bei selbst gewählten Passwörtern kommen häufig Veränderungen wie Großschreibung, Zeichenersetzungen, Zahlen oder Symbole vor. Angreiferprogramme erzeugen deshalb typische Varianten sowohl einzelner Bestandteile als auch bereits zusammengesetzter Passwörter.',
     );
     expect(s05Content.componentStrategy.presentation.findingChips).toMatchObject({
       commonPassword: 'häufig verwendetes Passwort',
@@ -198,7 +198,7 @@ describe('S05 content traceability', () => {
     });
     expect(s05Content.intro.strategyAnnotations.sentenceStructure).toBe('Satzaufbau');
     expect(s05Content.structure.intro).toEqual([
-      'Angreifer prüfen nämlich nicht nur häufige Zeichenfolgen, persönliche Angaben oder Kontobezüge. Sie berücksichtigen auch typische Muster, mit denen Menschen solche Elemente zu leichter merkbaren Passwörtern kombinieren.',
+      'Angreifer prüfen nämlich nicht nur häufige Zeichenfolgen, persönliche Angaben oder Kontobezüge. Sie berücksichtigen auch typische Muster, mit denen solche Elemente zu leichter merkbaren Passwörtern kombiniert werden.',
     ]);
     expect(s05Content.structure.demonstrations.slice(0, 3).map(({ title }) => title)).toEqual([
       'Naheliegende Zusammenhänge',
@@ -210,6 +210,27 @@ describe('S05 content traceability', () => {
     expect(s05Content.structure.presentationExamples.theme.rows).toHaveLength(3);
     expect(s05Content.structure.presentationExamples.sentence.rows).toHaveLength(3);
     expect(s05Content.structure.presentationExamples.repetition.rows).toHaveLength(3);
+    expect(s05Content.structure.narration).toEqual({
+      theme: [
+        'Auch verschiedene Wörter können zusammen vorhersehbar sein. „WLAN“, „Wohnzimmer“ und „Familie“ passen beispielsweise inhaltlich zusammen.',
+        'Je naheliegender der Zusammenhang, desto besser kann der Angreifer einschätzen, welche Kombinationen sich zuerst zu testen lohnen.',
+      ],
+      sentence: [
+        'Auch bekannte oder sprachlich naheliegende Formulierungen machen Bestandteile vorhersagbarer.',
+        'Nach „Ohne Kaffee geht“ liegt etwa „nichts“ als Fortsetzung nahe. Solche Muster kommen zum Beispiel bei Redewendungen, Liedzeilen oder anderen geläufigen Formulierungen vor.',
+      ],
+      repetition: [
+        'Auch Wiederholungen können ein Passwort länger wirken lassen, obwohl sich Teile nur wiederholen.',
+        'Erkennt oder vermutet ein Angreifer den wiederholten Grundbaustein, kann er gezielt solche Wiederholungsmuster prüfen.',
+      ],
+    });
+    expect(s05Content.animations.map(([id]) => id)).toEqual(
+      expect.arrayContaining([
+        's05-structure-theme',
+        's05-structure-sentence',
+        's05-structure-repetition',
+      ]),
+    );
     expect(s05Content.freeSearch.passphraseGenerator.password).toBe(
       'Kaktus-Fenster-Regen-Komet-Wodurch-Knochen',
     );
@@ -223,9 +244,13 @@ describe('S05 content traceability', () => {
     expect(s05Content.animations.map(([id]) => id)).not.toContain('s05-passphrase-generator');
     expect(s05Content.freeSearch.characterMix.checks[0]).toBe('mindestens 12 Zeichen');
     expect(s05Content.freeSearch.characterMix.variations).toHaveLength(100);
-    expect(s05Content.freeSearch.characterMix.narration[1]).toBe(
-      'Sie prüfen häufig nur, ob die gezeigten Regeln erfüllt sind. Deshalb kann ein Passwort als stark markiert werden und trotzdem früh gefunden werden.',
+    expect(s05Content.freeSearch.characterMix.narration[0]).toBe(
+      'Das rechte Passwort ist genauso lang und enthält ebenfalls alle vier Zeichentypen, besteht aber aus zwölf zufällig erzeugten Zeichen.',
     );
+    expect(s05Content.freeSearch.characterMix.narration[1]).toBe(
+      'Deshalb kann ein Passwort als stark markiert werden, obwohl es typischen Mustern folgt und vom Angreifer früh ausprobiert wird.',
+    );
+    expect(s05Content.freeSearch.characterMix.finalVariationStatus).toBe('(Variation getestet)');
     expect(s05Content.freeSearch.characterMix.narration[3]).toBe(
       'Darauf zu setzen, mit einer komplizierten Mischung wie „mEin!Pa55w0rt?“ eine Variante zu finden, die der Angreifer nicht prüft, ist deshalb riskant.',
     );

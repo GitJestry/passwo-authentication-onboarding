@@ -29,6 +29,7 @@ export interface PassWoGuideProps {
   readonly speech: readonly string[];
   readonly speechKey: string;
   readonly speechEmphasis?: readonly PassWoSpeechEmphasis[];
+  readonly mutedSpeechParagraphIndexes?: readonly number[];
   readonly speechFooter?: ReactNode;
   readonly speechPlacement?: PassWoSpeechPlacement;
   readonly speechObstacleSelector?: string;
@@ -68,6 +69,7 @@ export function PassWoGuide({
   speech,
   speechKey,
   speechEmphasis,
+  mutedSpeechParagraphIndexes,
   speechFooter,
   speechPlacement = 'right',
   speechObstacleSelector,
@@ -185,6 +187,9 @@ export function PassWoGuide({
             speaker={guideName}
             paragraphs={speech}
             {...(speechEmphasis === undefined ? {} : { emphasis: speechEmphasis })}
+            {...(mutedSpeechParagraphIndexes === undefined
+              ? {}
+              : { mutedParagraphIndexes: mutedSpeechParagraphIndexes })}
             footer={speechFooter}
             placement={speechPosition?.side ?? speechPlacement}
             {...(speechPosition === null ? {} : { arrowOffset: speechPosition.arrowOffset })}

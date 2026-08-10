@@ -31,16 +31,16 @@ export interface S04SegmentContent {
   };
 }
 
-export const S04_CONTENT_VERSION = '1.7.0';
+export const S04_CONTENT_VERSION = '1.9.0';
 
 export const s04Content: S04SegmentContent = {
   version: S04_CONTENT_VERSION,
   source: {
     document: 'research/private/training-script.pdf',
     internalPages: [12],
-    revision: 'Userauftrag vom 2026-08-04 · Verkürzter Übergang in die Angreiferperspektive',
+    revision: 'Userauftrag vom 2026-08-10 · Angreiferperspektive als Übergang',
     copyReference:
-      'docs/design/S00-S05-COPY-AUDIT.md#copy-delta-s04s05-neuer-angreiferübergang-und-häufig-verwendete-passwörter-4-august-2026',
+      'docs/design/S00-S05-COPY-AUDIT.md#copy-delta-s04-angreiferperspektive-10-august-2026',
   },
   segment: {
     id: 'S04',
@@ -56,8 +56,8 @@ export const s04Content: S04SegmentContent = {
     title: 'Datenleck bei Campusgram',
     paragraphs: [
       'Bei Campusgram gab es ein Datenleck. Eine alte Datei mit gespeicherten Passwortdaten ist in fremde Hände geraten.',
-      'Wie schwer wäre es für den Angreifer, dein Passwort herauszufinden?',
-      'Dafür nehmen wir jetzt die Angreiferperspektive ein.',
+      'Wie schwer wäre es für einen Angreifer, dein Passwort herauszufinden?',
+      'Dafür schauen wir uns an, wie der Angreifer dabei vorgeht.',
     ],
     continueLabel: 'Angreiferperspektive',
     completedLabel: 'Die Erklärung zum Datenleck ist abgeschlossen.',

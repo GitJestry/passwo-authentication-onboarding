@@ -59,7 +59,6 @@ export type PasswordModuleEvent =
   | { readonly type: 'S03_ASSISTED_AUTOFILL_COMPLETED'; readonly accountId: string }
   | { readonly type: 'SUBMIT_ASSISTED_LOGIN'; readonly accountId: string }
   | { readonly type: 'S03_COMPLETION_FEEDBACK_CONTINUED' }
-  | { readonly type: 'S03_CAMPUS_START_CONTINUED' }
   | { readonly type: 'S03_TIMELAPSE_COMPLETED' }
   | { readonly type: 'OPEN_INCIDENT_ACCOUNT'; readonly accountId: string }
   | { readonly type: 'S03_END_RECORDED' }
@@ -496,12 +495,7 @@ export const passwordModuleMachine = setup({
           states: {
             feedback: {
               on: {
-                S03_COMPLETION_FEEDBACK_CONTINUED: { target: 'campusStart' },
-              },
-            },
-            campusStart: {
-              on: {
-                S03_CAMPUS_START_CONTINUED: { target: 'timeLapseRunning' },
+                S03_COMPLETION_FEEDBACK_CONTINUED: { target: 'timeLapseRunning' },
               },
             },
             timeLapseRunning: {

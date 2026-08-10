@@ -45,16 +45,11 @@ const emphasisBySpeechId: Readonly<Record<string, readonly PassWoSpeechEmphasis[
   's02.campusgram': [{ phrase: 'Direktnachricht', tone: 'action' }],
   's03.intro': [{ phrase: 'Melde dich jetzt', tone: 'action' }],
   's03.success': [{ phrase: 'wieder geöffnet', tone: 'positive' }],
-  's03.assisted': [{ phrase: 'mit Unterstützung wieder geöffnet', tone: 'positive' }],
   's03.third-failed-login': [{ phrase: '„Passwort vergessen?“', tone: 'action' }],
   's03.retrieval-help': [
     { phrase: 'stark', tone: 'positive', contrastId: 'password-memory' },
-    { phrase: 'wieder abrufbar', tone: 'accent', contrastId: 'password-memory' },
+    { phrase: 'wieder verwenden', tone: 'accent', contrastId: 'password-memory' },
   ],
-  's03.completion.0': [{ phrase: 'ohne Unterstützung abrufbar', tone: 'accent' }],
-  's03.completion.1': [{ phrase: 'ohne Unterstützung abrufbar', tone: 'accent' }],
-  's03.completion.2': [{ phrase: 'ohne Unterstützung abrufbar', tone: 'accent' }],
-  's03.completion.3': [{ phrase: 'ohne Unterstützung abrufbar', tone: 'accent' }],
   's03.warning': [{ phrase: 'Sicherheitsmeldung', tone: 'warning' }],
   's04.incident': [
     { phrase: 'Datenleck', tone: 'warning', contrastId: 'incident-risk' },
@@ -117,11 +112,6 @@ const emphasisBySpeechId: Readonly<Record<string, readonly PassWoSpeechEmphasis[
   's05-structure-sentence-guessing': [
     { phrase: 'Redewendungen', tone: 'accent', contrastId: 'familiar-phrases' },
     { phrase: 'Liedzeilen', tone: 'accent', contrastId: 'familiar-phrases' },
-    {
-      phrase: 'naheliegende Formulierungen',
-      tone: 'accent',
-      contrastId: 'familiar-phrases',
-    },
   ],
   's05-structure-repetition-guessing': [
     { phrase: 'Wiederholungsmuster', tone: 'accent' },

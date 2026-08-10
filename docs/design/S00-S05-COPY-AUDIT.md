@@ -1646,3 +1646,117 @@ Endvariation sichtbar. Analyse, Interaktion, Persistenz und Export bleiben unver
 | Segment und Text-ID | Quelle | Aktueller Text | Geplanter Text | Primäre Rolle | Grund | Bedeutungsänderung | Interaktionsziel | Hervorhebung |
 |---|---|---|---|---|---|---|---|---|
 | `S05.freeSearch.characterMix.narration[1]` | Nutzerauftrag vom 2026-08-09 | `Da sie häufig nur prüfen, ob die gezeigten Regeln erfüllt sind. Deshalb kann ein Passwort als stark gelten und trotzdem früh gefunden werden.` | `Sie prüfen häufig nur, ob die gezeigten Regeln erfüllt sind. Deshalb kann ein Passwort als stark markiert werden und trotzdem früh gefunden werden.` | Ergebnisfeedback | ausdrücklich vorgegebene Präzisierung des Bezugs auf die sichtbare Markierung | begrenzt | `Weiter` | keine |
+
+### Copy-Delta S04 und S05 verdichtete Mustererklärungen 9. August 2026
+
+Quelle ist der ausdrückliche Nutzerauftrag vom 9. August 2026. Die drei
+Mustererklärungen werden jeweils von zwei auf einen Sprechschritt verdichtet. Der
+Datenleck-Übergang benennt einen Angreifer allgemein und führt direkt zu starken und
+vorhersehbaren Passwortmerkmalen. Analyse, Persistenz und Export bleiben unverändert.
+`S04_CONTENT_VERSION` wird von `1.7.0` auf `1.8.0` und `S05_CONTENT_VERSION` von `2.50.1`
+auf `2.51.0` erhöht.
+
+| Segment und Text-ID | Quelle | Aktueller Text | Geplanter Text | Primäre Rolle | Grund | Bedeutungsänderung | Interaktionsziel | Hervorhebung |
+|---|---|---|---|---|---|---|---|---|
+| `S04.notice.paragraphs[1..2]` | Nutzerauftrag vom 2026-08-09 | Frage nach `dem Angreifer`; anschließend Ankündigung der Angreiferperspektive | Frage nach `einem Angreifer`; anschließend direkte Brücke zu starken und vorhersehbaren Passwortmerkmalen | Orientierung | ausdrücklich vorgegebene Ersetzung | begrenzt | `Angreiferperspektive` | `Datenleck` und `schwer` in Warnfarbe |
+| `S05.structure.narration.theme` | Nutzerauftrag vom 2026-08-09 | zwei Sprechschritte zu inhaltlichen Zusammenhängen und wahrscheinlichen Kombinationen | ein vorgegebener Sprechschritt zu naheliegenden Zusammenhängen | Mechanismuserklärung | Redundanz und kognitive Last ausdrücklich reduzieren | begrenzt | `Weiter` | `naheliegender der Zusammenhang` in Akzentfarbe |
+| `S05.structure.narration.sentence` | Nutzerauftrag vom 2026-08-09 | zwei Sprechschritte zu sprachlich naheliegenden Formulierungen | ein vorgegebener Sprechschritt mit der Fortsetzung `nichts` und geläufigen Formulierungen | Mechanismuserklärung | Redundanz und kognitive Last ausdrücklich reduzieren | begrenzt | `Weiter` | `Redewendungen` und `Liedzeilen` als gekoppelter Akzent |
+| `S05.structure.narration.repetition` | Nutzerauftrag vom 2026-08-09 | zwei Sprechschritte zu wiederholten Grundbausteinen | ein vorgegebener Sprechschritt zum gezielten Prüfen von Wiederholungsmustern | Mechanismuserklärung | Redundanz und kognitive Last ausdrücklich reduzieren | begrenzt | `Weiter` | `Wiederholungsmuster` in Akzentfarbe |
+| `S05.freeSearch.characterMix.narration[0]` | Nutzerauftrag vom 2026-08-09 | Gleichheit beider Passwörter zuerst, Zufallsunterschied anschließend | das rechte Passwort als direkter Vergleich mit gleicher Länge und denselben Zeichentypen | Mechanismuserklärung | ausdrücklich vorgegebene Straffung | nein | `Weiter` | `zufällig erzeugten` in Akzentfarbe |
+
+### Copy-Delta S05 getestete Zeichenmix-Variation 9. August 2026
+
+Quelle ist der ausdrückliche Nutzerauftrag vom 9. August 2026. Das Ergebnisfeedback wird um ein
+Hilfsverb gestrafft. Im Kerngedanken zur ungeeigneten Überraschungsstrategie markiert die
+bestehende Angreiferdarstellung die stehenbleibende Variation `mEin!Pa55w0rt?`: Der Angreifer
+steht oberhalb der rot umrandeten Passwortbox; direkt unter ihm erscheint der rote Status
+`(Variation getestet)`. Ablauf, Interaktion, Analyse, Persistenz und Export bleiben unverändert.
+`S05_CONTENT_VERSION` wird von `2.51.0` auf `2.52.0` erhöht.
+
+| Segment und Text-ID | Quelle | Aktueller Text | Geplanter Text | Primäre Rolle | Grund | Bedeutungsänderung | Interaktionsziel | Hervorhebung |
+|---|---|---|---|---|---|---|---|---|
+| `S05.freeSearch.characterMix.narration[1]` | Nutzerauftrag vom 2026-08-09 | `Sie prüfen häufig nur, ob die gezeigten Regeln erfüllt sind. Deshalb kann ein Passwort als stark markiert werden und trotzdem früh gefunden werden.` | `Sie prüfen häufig nur, ob die gezeigten Regeln erfüllt sind. Deshalb kann ein Passwort als stark markiert und trotzdem früh gefunden werden.` | Ergebnisfeedback | ausdrücklich vorgegebene sprachliche Straffung | nein | `Weiter` | keine |
+| `S05.freeSearch.characterMix.finalVariationStatus` | Nutzerauftrag vom 2026-08-09 | kein Text | `(Variation getestet)` | Ergebnisfeedback | benennt die gleichzeitig rot markierte Endvariation und ordnet sie der sichtbaren Angreiferdarstellung zu | begrenzt | kein | gesamter Status in Warnfarbe |
+
+### Copy-Delta S04 Angreiferperspektive 10. August 2026
+
+Quelle ist der ausdrückliche Nutzerauftrag vom 10. August 2026. Der Übergang vom
+Datenleck in die Angreiferperspektive benennt unmittelbar den folgenden Lernfokus.
+Analyse, Interaktion, Persistenz und Export bleiben unverändert.
+`S04_CONTENT_VERSION` wird von `1.8.0` auf `1.9.0` erhöht.
+
+| Segment und Text-ID | Quelle | Aktueller Text | Geplanter Text | Primäre Rolle | Grund | Bedeutungsänderung | Interaktionsziel | Hervorhebung |
+|---|---|---|---|---|---|---|---|---|
+| `S04.notice.paragraphs[2]` | Nutzerauftrag vom 2026-08-10 | `Genau dafür schauen wir uns jetzt an, was ein Passwort stark oder vorhersehbar macht.` | `Dafür schauen wir uns an, wie der Angreifer dabei vorgeht.` | Orientierung | ausdrücklich vorgegebene dramaturgische Änderung | begrenzt | `Angreiferperspektive` | keine |
+
+### Copy-Delta S05 Einordnungsgrenze 10. August 2026
+
+Quelle ist der ausdrückliche Nutzerauftrag vom 10. August 2026. Die Einordnungsgrenze
+präzisiert die begrenzte Aussagekraft des Trainingsmoduls und grenzt sie ausdrücklich von einer
+vollständigen Sicherheitsbewertung ab. Ablauf, Interaktion, Persistenz, Export und Analyse bleiben
+unverändert. `S05_CONTENT_VERSION` wird von `2.52.0` auf `2.52.1` erhöht.
+
+| Segment und Text-ID | Quelle | Aktueller Text | Geplanter Text | Primäre Rolle | Grund | Bedeutungsänderung | Interaktionsziel | Hervorhebung |
+|---|---|---|---|---|---|---|---|---|
+| `S05.intro.narration.componentCategoryOverview[1]` | Nutzerauftrag vom 2026-08-10 | `Bitte beachte: Dieses Trainingsmodul kann dein Passwort möglicherweise nicht immer korrekt einordnen. Die Auswertung soll dir dennoch dabei helfen, typische Angriffsmuster besser nachzuvollziehen.` | `Bitte beachte: Dieses Trainingsmodul kann dein Passwort nicht in jedem Fall zuverlässig einordnen und ersetzt keine vollständige Sicherheitsbewertung.` | Safety Boundary | ausdrücklich vorgegebene Präzisierung der Trainingsgrenze | begrenzt | `Weiter` | `Bitte beachte:` in Akzentfarbe |
+
+### Copy-Delta S05 geteilte Mustererklärungen und Zeichenmix-Feedback 10. August 2026
+
+Quelle ist der ausdrückliche Nutzerauftrag vom 10. August 2026. Die drei
+Mustererklärungen werden jeweils an der vorgegebenen Satzgrenze in zwei Sprechblasen geteilt;
+die sichtbaren Beispiele und die bestehenden Hervorhebungen bleiben beim jeweiligen zweiten
+Schritt erhalten. Das Zeichenmix-Feedback benennt statt einer allgemeinen Regelprüfung, dass
+typische Muster trotz sichtbarer starker Markierung früh ausprobiert werden können. Ablauf,
+Interaktion, Persistenz, Export und Analyse bleiben unverändert. `S05_CONTENT_VERSION` wird von
+`2.52.1` auf `2.53.0` erhöht.
+
+| Segment und Text-ID | Quelle | Aktueller Text | Geplanter Text | Primäre Rolle | Grund | Bedeutungsänderung | Interaktionsziel | Hervorhebung |
+|---|---|---|---|---|---|---|---|---|
+| `S05.structure.narration.theme[0..1]` | Nutzerauftrag vom 2026-08-10 | ein Sprechschritt mit Zusammenhang und Angreiferhandlung | erster Schritt bis `inhaltlich zusammen`; zweiter Schritt ab `Je naheliegender` | Mechanismuserklärung | ausdrücklich vorgegebene Segmentierung zur besseren Lesbarkeit | nein | `Weiter` | `naheliegender der Zusammenhang` im zweiten Schritt in Akzentfarbe |
+| `S05.structure.narration.sentence[0..1]` | Nutzerauftrag vom 2026-08-10 | ein Sprechschritt mit Formulierungen, Fortsetzung und Beispielen | erster Schritt bis `vorhersagbarer`; zweiter Schritt ab `Nach „Ohne Kaffee geht“` | Mechanismuserklärung | ausdrücklich vorgegebene Segmentierung zur besseren Lesbarkeit | nein | `Weiter` | `Redewendungen` und `Liedzeilen` im zweiten Schritt als gekoppelter Akzent |
+| `S05.structure.narration.repetition[0..1]` | Nutzerauftrag vom 2026-08-10 | ein Sprechschritt mit Wiederholung und Angreiferhandlung | erster Schritt bis `wiederholen`; zweiter Schritt ab `Erkennt oder vermutet` | Mechanismuserklärung | ausdrücklich vorgegebene Segmentierung zur besseren Lesbarkeit | nein | `Weiter` | `Wiederholungsmuster` im zweiten Schritt in Akzentfarbe |
+| `S05.freeSearch.characterMix.narration[1]` | Nutzerauftrag vom 2026-08-10 | `Sie prüfen häufig nur, ob die gezeigten Regeln erfüllt sind. Deshalb kann ein Passwort als stark markiert und trotzdem früh gefunden werden.` | `Deshalb kann ein Passwort als stark markiert werden, obwohl es typischen Mustern folgt und vom Angreifer früh ausprobiert wird.` | Ergebnisfeedback | ausdrücklich vorgegebene Präzisierung der sichtbaren Angreiferhandlung | begrenzt | `Weiter` | keine |
+
+### Copy-Delta S05 Varianten, Zufallsfolgen und Kombinationsmuster 10. August 2026
+
+Quelle ist der ausdrückliche Nutzerauftrag vom 10. August 2026. Die Erklärung zu typischen
+Varianten benennt selbst gewählte Passwörter und die Erzeugung von Varianten für einzelne wie
+zusammengesetzte Passwörter. Die Erklärung zu zufälligen Zeichenfolgen wird gestrafft. Die
+Mustererklärung verwendet eine unpersönliche Formulierung für das Kombinieren. Die bestehenden
+Hervorhebungen `typische Varianten` und `typische Muster` bleiben erhalten. Ablauf, Interaktion,
+Persistenz, Export und Analyse bleiben unverändert. `S05_CONTENT_VERSION` wird von `2.53.0` auf
+`2.54.0` erhöht.
+
+| Segment und Text-ID | Quelle | Aktueller Text | Geplanter Text | Primäre Rolle | Grund | Bedeutungsänderung | Interaktionsziel | Hervorhebung |
+|---|---|---|---|---|---|---|---|---|
+| `S05.componentStrategy.commonComponents.explanation[2]` | Nutzerauftrag vom 2026-08-10 | `Viele Menschen verändern Bestandteile, damit Passwörter stärker wirken. Angreiferprogramme erzeugen deshalb typische Varianten mit Großschreibung, Zeichenersetzungen, Zahlen oder Symbolen, auch für bereits zusammengesetzte Kandidaten.` | `Bei selbst gewählten Passwörtern kommen häufig Veränderungen wie Großschreibung, Zeichenersetzungen, Zahlen oder Symbole vor. Angreiferprogramme erzeugen deshalb typische Varianten sowohl einzelner Bestandteile als auch bereits zusammengesetzter Passwörter.` | Mechanismuserklärung | ausdrücklich vorgegebene Präzisierung | begrenzt | `Weiter` | `typische Varianten` in Akzentfarbe mit bestehendem Symbol |
+| `S05.intro.narration.randomSequence[0]` | Nutzerauftrag vom 2026-08-10 | `Zufällige Zeichenfolgen sind für Menschen jedoch schwer zu merken. Selbst gewählte Passwörter enthalten deshalb oft merkbare Elemente, wie Wörter, Zahlen oder einfache Zeichenfolgen.` | `Zufällige Zeichenfolgen sind jedoch schwer zu merken. Selbst gewählte Passwörter enthalten deshalb oft merkbare Elemente wie Wörter, Zahlen oder einfache Zeichenfolgen.` | Mechanismuserklärung | ausdrücklich vorgegebene sprachliche Straffung | nein | `Weiter` | keine |
+| `S05.structure.intro[0]` | Nutzerauftrag vom 2026-08-10 | `Angreifer prüfen nämlich nicht nur häufige Zeichenfolgen, persönliche Angaben oder Kontobezüge. Sie berücksichtigen auch typische Muster, mit denen Menschen solche Elemente zu leichter merkbaren Passwörtern kombinieren.` | `Angreifer prüfen nämlich nicht nur häufige Zeichenfolgen, persönliche Angaben oder Kontobezüge. Sie berücksichtigen auch typische Muster, mit denen solche Elemente zu leichter merkbaren Passwörtern kombiniert werden.` | Mechanismuserklärung | ausdrücklich vorgegebene unpersönliche Formulierung | begrenzt | `Weiter` | `typische Muster` in Akzentfarbe |
+
+### Copy-Delta S05 Einordnungsgrenze des Moduls 10. August 2026
+
+Quelle ist der ausdrückliche Nutzerauftrag vom 10. August 2026. Die Einordnungsgrenze benennt
+konkret mögliche übersehene oder falsch eingeordnete Bestandteile und begrenzt das Modul auf das
+Verständnis. Die bestehende Hervorhebung `Bitte beachte:` bleibt erhalten. Ablauf, Interaktion,
+Persistenz, Export und Analyse bleiben unverändert. `S05_CONTENT_VERSION` wird von `2.54.0` auf
+`2.54.1` erhöht.
+
+| Segment und Text-ID | Quelle | Aktueller Text | Geplanter Text | Primäre Rolle | Grund | Bedeutungsänderung | Interaktionsziel | Hervorhebung |
+|---|---|---|---|---|---|---|---|---|
+| `S05.intro.narration.componentCategoryOverview[1]` | Nutzerauftrag vom 2026-08-10 | `Bitte beachte: Dieses Trainingsmodul kann dein Passwort nicht in jedem Fall zuverlässig einordnen und ersetzt keine vollständige Sicherheitsbewertung.` | `Bitte beachte: Das Modul kann Bestandteile im Passwort übersehen oder falsch einordnen. Es dient nur zum Verständnis und ist keine Sicherheitsbewertung.` | Safety Boundary | ausdrücklich vorgegebene Präzisierung der Trainingsgrenze | begrenzt | `Weiter` | `Bitte beachte:` in Akzentfarbe |
+
+### Copy-Delta S03 Anmeldung und Abschluss 10. August 2026
+
+Quelle ist der ausdrückliche Nutzerauftrag vom 10. August 2026. Die Hilfe benennt die
+Wiederverwendbarkeit als Erinnerungskriterium, alle erfolgreichen Anmeldungen erhalten denselben
+neutralen Ergebnistext und der Abschluss wird zu einer Blase zusammengeführt. Ihr Button startet
+direkt den bestehenden Zeitsprung zum Master Campus. `Passwort vergessen?` bleibt als einziges
+konkretes sichtbares UI-Ziel hervorgehoben. Persistenz und Export bleiben unverändert.
+`S03_CONTENT_VERSION` wird von `1.18.2` auf `1.19.0` erhöht.
+
+| Segment und Text-ID | Quelle | Aktueller Text | Geplanter Text | Primäre Rolle | Grund | Bedeutungsänderung | Interaktionsziel | Hervorhebung |
+|---|---|---|---|---|---|---|---|---|
+| `S03.narration.thirdFailedLogin` | Nutzerauftrag vom 2026-08-10 | `Wenn du dich nicht an das richtige Passwort erinnern kannst, klicke als Lösung auf „Passwort vergessen?“.` | `Wenn du das Passwort nicht mehr sicher weißt, kannst du unten „Passwort vergessen?“ nutzen.` | Navigation | ausdrücklich vorgegebene sprachliche Änderung mit eindeutigem sichtbaren Ziel | begrenzt | sichtbares `Passwort vergessen?` | `Passwort vergessen?` in Aktionsfarbe |
+| `S03.narration.retrievalHelp` | Nutzerauftrag vom 2026-08-10 | `Kein Problem. Das zeigt: Ein Passwort muss nicht nur stark, sondern später auch wieder abrufbar sein. Ich unterstütze dich jetzt bei der Anmeldung.` | `Kein Problem. Ein starkes Passwort sollte sich später auch zuverlässig wieder verwenden lassen. Ich unterstütze dich jetzt bei der Anmeldung.` | Ergebnisfeedback | ausdrücklich vorgegebene Einordnung der Unterstützung | begrenzt | `Für mich anmelden` | `stark` und `wieder verwenden` als Kontrast |
+| `S03.narration.accountSuccess.*` bei unterstützter Anmeldung | Nutzerauftrag vom 2026-08-10 | `X ist mit Unterstützung wieder geöffnet.` | `X ist wieder geöffnet.` | Ergebnisfeedback | Unterstützung wird nicht im Ergebnistext wiederholt | begrenzt | kein | `wieder geöffnet` in positiver Farbe |
+| `S03.narration.completion` und Abschlussübergang | Nutzerauftrag vom 2026-08-10 | vier abrufbarkeitsabhängige Abschlussblasen, anschließend separate Campusalltag-Blase | `Alle drei Konten sind wieder geöffnet. Wir können unseren Campusalltag jetzt fortsetzen.` in einer Blase | Ergebnisfeedback und Navigation | ausdrücklich freigegebene Zusammenführung; der Button startet direkt den bestehenden Zeitsprung | ausdrücklich freigegeben | `Campusalltag fortsetzen` | keine |

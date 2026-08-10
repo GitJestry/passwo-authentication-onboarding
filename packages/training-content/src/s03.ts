@@ -64,11 +64,9 @@ export interface S03SegmentContent {
     readonly guideName: string;
     readonly intro: string;
     readonly accountSuccess: Readonly<Record<S01AccountId, string>>;
-    readonly accountAssisted: Readonly<Record<S01AccountId, string>>;
     readonly thirdFailedLogin: string;
     readonly retrievalHelp: string;
-    readonly completionByRememberedCount: Readonly<Record<0 | 1 | 2 | 3, string>>;
-    readonly campusStart: string;
+    readonly completion: string;
     readonly warning: string;
   };
   readonly accountLoginTitles: Readonly<Record<S01AccountId, string>>;
@@ -95,7 +93,7 @@ export interface S03SegmentContent {
   readonly animations: readonly S03AnimationSequence[];
 }
 
-export const S03_CONTENT_VERSION = '1.18.2';
+export const S03_CONTENT_VERSION = '1.19.0';
 
 const resultAnimation = (
   accountId: S01AccountId,
@@ -149,9 +147,9 @@ export const s03Content: S03SegmentContent = {
     document: 'research/private/training-script.pdf',
     internalPages: [8, 9, 10, 11],
     revision:
-      'Userauftrag vom 2026-08-08: Eingabegrenze für fiktive Passwörter auf 128 Zeichen erweitert.',
+      'Userauftrag vom 2026-08-10: Anmeldungstexte und Abschlussblase zusammengeführt.',
     copyReference:
-      'docs/design/S00-S05-COPY-AUDIT.md#copy-delta-s01-und-s03-passwortlänge-8-august-2026',
+      'docs/design/S00-S05-COPY-AUDIT.md#copy-delta-s03-anmeldung-und-abschluss-10-august-2026',
   },
   segment: {
     id: 'S03',
@@ -191,23 +189,11 @@ export const s03Content: S03SegmentContent = {
       'campus-email': 'Campus E-Mail ist wieder geöffnet.',
       'campusgram': 'Campusgram ist wieder geöffnet.',
     },
-    accountAssisted: {
-      'master-campus': 'Master Campus ist mit Unterstützung wieder geöffnet.',
-      'campus-email': 'Campus E-Mail ist mit Unterstützung wieder geöffnet.',
-      'campusgram': 'Campusgram ist mit Unterstützung wieder geöffnet.',
-    },
     thirdFailedLogin:
-      'Wenn du dich nicht an das richtige Passwort erinnern kannst, klicke als Lösung auf „Passwort vergessen?“.',
+      'Wenn du das Passwort nicht mehr sicher weißt, kannst du unten „Passwort vergessen?“ nutzen.',
     retrievalHelp:
-      'Kein Problem. Das zeigt: Ein Passwort muss nicht nur stark, sondern später auch wieder abrufbar sein. Ich unterstütze dich jetzt bei der Anmeldung.',
-    completionByRememberedCount: {
-      0: 'Alle drei Konten sind wieder geöffnet.\n\nKeines der drei Passwörter war ohne Unterstützung abrufbar.',
-      1: 'Alle drei Konten sind wieder geöffnet.\n\nEin Passwort war ohne Unterstützung abrufbar.',
-      2: 'Alle drei Konten sind wieder geöffnet.\n\nZwei Passwörter waren ohne Unterstützung abrufbar.',
-      3: 'Alle drei Konten sind wieder geöffnet.\n\nAlle drei Passwörter waren ohne Unterstützung abrufbar.',
-    },
-    campusStart:
-      'Wir können unseren Campusalltag jetzt fortsetzen.',
+      'Kein Problem. Ein starkes Passwort sollte sich später auch zuverlässig wieder verwenden lassen. Ich unterstütze dich jetzt bei der Anmeldung.',
+    completion: 'Alle drei Konten sind wieder geöffnet. Wir können unseren Campusalltag jetzt fortsetzen.',
     warning: 'Bei Campusgram ist eine Sicherheitsmeldung erschienen. Schau bitte nach.',
   },
   accountLoginTitles: {

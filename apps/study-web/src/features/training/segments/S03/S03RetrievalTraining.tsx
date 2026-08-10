@@ -5,7 +5,6 @@ import {
 } from '@passwo/training-content';
 import {
   deriveCampusIdentity,
-  getRememberedAccountCount,
   getRetrievedAccountCount,
   MAX_FICTIONAL_PASSWORD_LENGTH,
   type PasswordModuleController,
@@ -59,13 +58,6 @@ function PasswordVisibilityIcon({ revealed }: { readonly revealed: boolean }) {
       {revealed ? <path d="M4 4 20 20" /> : null}
     </svg>
   );
-}
-
-function completionNarration(rememberedCount: number): string {
-  if (rememberedCount <= 0) return s03Content.narration.completionByRememberedCount[0];
-  if (rememberedCount === 1) return s03Content.narration.completionByRememberedCount[1];
-  if (rememberedCount === 2) return s03Content.narration.completionByRememberedCount[2];
-  return s03Content.narration.completionByRememberedCount[3];
 }
 
 const timeLapseDays = Array.from({ length: 100 }, (_, index) => index + 1);
@@ -222,9 +214,6 @@ export function S03RetrievalTraining({
   const completionFeedbackActive = snapshot.matches({
     s03: { completionSequence: 'feedback' },
   });
-  const campusStartActive = snapshot.matches({
-    s03: { completionSequence: 'campusStart' },
-  });
   const timeLapsePhaseActive = snapshot.matches({
     s03: { completionSequence: 'timeLapseRunning' },
   });
@@ -274,7 +263,7 @@ export function S03RetrievalTraining({
   }, [snapshot.context.retrievalResults]);
 
   const presentedAccountId =
-    campusStartActive || timeLapsePhaseActive || campusgramWarningActive
+    timeLapsePhaseActive || campusgramWarningActive
       ? 'master-campus'
       : snapshot.context.activeAccountId;
   const presentedAccount =
@@ -295,7 +284,6 @@ export function S03RetrievalTraining({
   if (account === undefined) return null;
 
   const completedCount = getRetrievedAccountCount(snapshot.context);
-  const rememberedCount = getRememberedAccountCount(snapshot.context);
   const result = snapshot.context.retrievalResults[account.id] ?? 'pending';
   const activeValue = activePasswordValue;
   const autofillTargetValue = snapshot.context.passwordValues[account.id] ?? '';
@@ -330,7 +318,6 @@ export function S03RetrievalTraining({
   const guidedPhaseOpen =
     assistanceActive ||
     completionFeedbackActive ||
-    campusStartActive ||
     campusgramWarningActive;
   const guideVisible = guidedPhaseOpen || guideOpen;
   const websiteView =
@@ -356,20 +343,18 @@ export function S03RetrievalTraining({
           }
         : completionFeedbackActive
           ? {
-              message: completionNarration(rememberedCount),
-              emphasisId: `s03.completion.${Math.min(3, Math.max(0, rememberedCount))}`,
+              message: s03Content.narration.completion,
+              emphasisId: 's03.completion',
             }
-          : campusStartActive
-            ? { message: s03Content.narration.campusStart, emphasisId: 's03.campus-start' }
-            : result === 'retrievable'
+          : result === 'retrievable'
               ? {
                   message: s03Content.narration.accountSuccess[account.id],
                   emphasisId: 's03.success',
                 }
               : result === 'assisted'
                 ? {
-                    message: s03Content.narration.accountAssisted[account.id],
-                    emphasisId: 's03.assisted',
+                    message: s03Content.narration.accountSuccess[account.id],
+                    emphasisId: 's03.success',
                   }
                 : result === 'not-remembered'
                   ? {
@@ -386,9 +371,7 @@ export function S03RetrievalTraining({
         ? 'third-failed-login'
         : completionFeedbackActive
           ? 'completion-feedback'
-          : campusStartActive
-            ? 'campus-start'
-            : autofillingActive
+          : autofillingActive
               ? 'autofilling'
               : assistedLoginActive
                 ? 'assisted-login'
@@ -407,21 +390,13 @@ export function S03RetrievalTraining({
     : completionFeedbackActive
       ? {
           kind: 'advance',
+          label: s03Content.controls.campusStartContinue,
           onAction: () => {
             setSuccessOverlayAccountId(null);
             controller.continueS03CompletionFeedback();
           },
         }
-    : campusStartActive
-        ? {
-            kind: 'advance',
-            label: s03Content.controls.campusStartContinue,
-            onAction: () => {
-              setGuideOpen(false);
-              controller.continueS03CampusStart();
-            },
-          }
-        : campusgramWarningActive
+    : campusgramWarningActive
           ? undefined
           : {
               kind: 'dismiss',
@@ -430,16 +405,10 @@ export function S03RetrievalTraining({
                 setGuideOpen(false);
               },
             };
-  const successOverlayResult =
-    successOverlayAccountId === null
-      ? undefined
-      : snapshot.context.retrievalResults[successOverlayAccountId];
   const successOverlayLabel =
     successOverlayAccountId === null
       ? null
-      : successOverlayResult === 'assisted'
-        ? s03Content.narration.accountAssisted[successOverlayAccountId]
-        : s03Content.narration.accountSuccess[successOverlayAccountId];
+      : s03Content.narration.accountSuccess[successOverlayAccountId];
   const browserSnapshot: BrowserShellSnapshot = {
     tabs: s01Content.browser.accounts.map((tabAccount) => ({
       id: tabAccount.id,

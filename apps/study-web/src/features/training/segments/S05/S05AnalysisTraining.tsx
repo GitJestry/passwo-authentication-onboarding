@@ -1007,6 +1007,12 @@ function PasswordVariationScene({ final }: { readonly final: boolean }) {
           : `Das Passwort meinPasswort wechselt schnell durch ${variations.length} Variationen.`
       }
     >
+      {final ? (
+        <div className={styles.finalVariationMarker}>
+          <img src={attackerAsset} alt="Symbolische Darstellung eines Angreifers am Computer" />
+          <strong>{content.finalVariationStatus}</strong>
+        </div>
+      ) : null}
       <div className={styles.variationSequence} aria-hidden="true" data-final={final || undefined}>
         {(final ? [finalVariation] : variations).map((variation, index) => (
           <code key={variation} style={passwordVariationStyle(index)}>
@@ -1945,6 +1951,9 @@ export function S05AnalysisTraining({
               speech={speech}
               speechKey={`s05-${snapshot.step}`}
               speechEmphasis={passWoSpeechEmphasisFor(`s05-${snapshot.step}`)}
+              {...(snapshot.step === 'component-category-overview'
+                ? { mutedSpeechParagraphIndexes: [1] }
+                : {})}
               speechPlacement={
                 componentGuidanceVisible ||
                 activeSnapshot.step === 'free-search-transition' ||

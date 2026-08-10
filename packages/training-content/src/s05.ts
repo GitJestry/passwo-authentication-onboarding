@@ -71,7 +71,7 @@ export interface S05DesignLabFixture {
   readonly startSection: 'intro' | 'components' | 'structure';
 }
 
-export const S05_CONTENT_VERSION = '2.50.1';
+export const S05_CONTENT_VERSION = '2.54.1';
 
 export const s05Content = {
   version: S05_CONTENT_VERSION,
@@ -81,10 +81,9 @@ export const s05Content = {
       12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34,
       35,
     ] as const,
-    revision:
-      'Userauftrag vom 2026-08-09 · schneller Wechsel durch 100 Zeichenmix-Variationen',
+    revision: 'Userauftrag vom 2026-08-10 · Einordnungsgrenze für das Modul',
     copyReference:
-      'docs/design/S00-S05-COPY-AUDIT.md#copy-delta-s05-zeichenmix-und-längenfolge-9-august-2026',
+      'docs/design/S00-S05-COPY-AUDIT.md#copy-delta-s05-einordnungsgrenze-des-moduls-10-august-2026',
   },
   segment: {
     id: 'S05',
@@ -143,7 +142,7 @@ export const s05Content = {
         'Grundsätzlich könnte es dabei jede denkbare Zeichenfolge ausprobieren.',
       ],
       randomSequence: [
-        'Zufällige Zeichenfolgen sind für Menschen jedoch schwer zu merken. Selbst gewählte Passwörter enthalten deshalb oft merkbare Elemente, wie Wörter, Zahlen oder einfache Zeichenfolgen.',
+        'Zufällige Zeichenfolgen sind jedoch schwer zu merken. Selbst gewählte Passwörter enthalten deshalb oft merkbare Elemente wie Wörter, Zahlen oder einfache Zeichenfolgen.',
       ],
       buildingBlocks: [
         'Für die Erklärung betrachten wir diese Teile vereinfacht wie aneinandergesetzte Bausteine.',
@@ -153,7 +152,7 @@ export const s05Content = {
       ],
       componentCategoryOverview: [
         'Dabei probiert das Programm zunächst Passwörter und Zeichenfolgen aus, die besonders häufig verwendet werden.',
-        'Bitte beachte: Dieses Trainingsmodul kann dein Passwort möglicherweise nicht immer korrekt einordnen. Die Auswertung soll dir dennoch dabei helfen, typische Angriffsmuster besser nachzuvollziehen.',
+        'Bitte beachte: Das Modul kann Bestandteile im Passwort übersehen oder falsch einordnen. Es dient nur zum Verständnis und ist keine Sicherheitsbewertung.',
       ],
     },
   },
@@ -200,7 +199,7 @@ export const s05Content = {
       explanation: [
         'Dazu gehören häufig verwendete Passwörter und Wörter, einfache Tastatur- und Zahlenfolgen wie „123456“ oder „qwertz“ oder naheliegende Jahreszahlen.',
         'Ein Wort ist nicht grundsätzlich ungeeignet. Ein häufig verwendetes Wort wird jedoch früh getestet.',
-        'Viele Menschen verändern Bestandteile, damit Passwörter stärker wirken. Angreiferprogramme erzeugen deshalb typische Varianten mit Großschreibung, Zeichenersetzungen, Zahlen oder Symbolen, auch für bereits zusammengesetzte Kandidaten.',
+        'Bei selbst gewählten Passwörtern kommen häufig Veränderungen wie Großschreibung, Zeichenersetzungen, Zahlen oder Symbole vor. Angreiferprogramme erzeugen deshalb typische Varianten sowohl einzelner Bestandteile als auch bereits zusammengesetzter Passwörter.',
         'Prüfen wir nun dein gewähltes Passwort auf häufig verwendete Passwörter und Zeichenfolgen.',
       ],
       machine: {
@@ -339,7 +338,7 @@ export const s05Content = {
   },
   structure: {
     intro: [
-      'Angreifer prüfen nämlich nicht nur häufige Zeichenfolgen, persönliche Angaben oder Kontobezüge. Sie berücksichtigen auch typische Muster, mit denen Menschen solche Elemente zu leichter merkbaren Passwörtern kombinieren.',
+      'Angreifer prüfen nämlich nicht nur häufige Zeichenfolgen, persönliche Angaben oder Kontobezüge. Sie berücksichtigen auch typische Muster, mit denen solche Elemente zu leichter merkbaren Passwörtern kombiniert werden.',
     ],
     demonstrations: [
       {
@@ -407,15 +406,15 @@ export const s05Content = {
     narration: {
       theme: [
         'Auch verschiedene Wörter können zusammen vorhersehbar sein. „WLAN“, „Wohnzimmer“ und „Familie“ passen beispielsweise inhaltlich zusammen.',
-        'Angreifer können solche Zusammenhänge nutzen und dadurch wahrscheinlichere Kombinationen zuerst ausprobieren. Je naheliegender der Zusammenhang, desto besser können sie einschätzen, welche Kombinationen sich zuerst zu testen lohnen.',
+        'Je naheliegender der Zusammenhang, desto besser kann der Angreifer einschätzen, welche Kombinationen sich zuerst zu testen lohnen.',
       ],
       sentence: [
-        'Menschen setzen außerdem Wörter häufig zu bekannten oder sprachlich naheliegenden Formulierungen zusammen. Dadurch werden auch ihre Bestandteile vorhersehbarer.',
-        'Nach „Ohne Kaffee geht“ ist etwa „nichts“ viel wahrscheinlicher als die meisten anderen Wörter. Angreifer können solche Muster nutzen und wahrscheinlichere Fortsetzungen zuerst ausprobieren, etwa bei Redewendungen, Liedzeilen oder anderen naheliegenden Formulierungen.',
+        'Auch bekannte oder sprachlich naheliegende Formulierungen machen Bestandteile vorhersagbarer.',
+        'Nach „Ohne Kaffee geht“ liegt etwa „nichts“ als Fortsetzung nahe. Solche Muster kommen zum Beispiel bei Redewendungen, Liedzeilen oder anderen geläufigen Formulierungen vor.',
       ],
       repetition: [
-        'Auch Wiederholungen können ein Passwort lang wirken lassen, obwohl sich Teile nur wiederholen.',
-        'Erkennt oder vermutet der Angreifer den wiederholten Grundbaustein, muss er nicht jedes Zeichen einzeln erraten. Solche Wiederholungsmuster kann er gezielt ausprobieren.',
+        'Auch Wiederholungen können ein Passwort länger wirken lassen, obwohl sich Teile nur wiederholen.',
+        'Erkennt oder vermutet ein Angreifer den wiederholten Grundbaustein, kann er gezielt solche Wiederholungsmuster prüfen.',
       ],
     },
     findingLabels: {
@@ -459,10 +458,11 @@ export const s05Content = {
       predictablePassword: 'Passw0rt123!',
       randomPassword: 'rQ7!m2vX9?pK',
       finalVariation: characterMixFinalVariation,
+      finalVariationStatus: '(Variation getestet)',
       variations: characterMixVariations,
       narration: [
-        'Beide Passwörter sind gleich lang und enthalten alle vier Zeichentypen. Das rechte Passwort besteht dagegen aus zwölf zufällig erzeugten Zeichen.',
-        'Sie prüfen häufig nur, ob die gezeigten Regeln erfüllt sind. Deshalb kann ein Passwort als stark markiert werden und trotzdem früh gefunden werden.',
+        'Das rechte Passwort ist genauso lang und enthält ebenfalls alle vier Zeichentypen, besteht aber aus zwölf zufällig erzeugten Zeichen.',
+        'Deshalb kann ein Passwort als stark markiert werden, obwohl es typischen Mustern folgt und vom Angreifer früh ausprobiert wird.',
         'Die verschiedenen Zeichentypen könnten ein Passwort stärker machen, sind aber bei selbst gewählten Passwörtern schwer unvorhersehbar einzusetzen.',
         'Darauf zu setzen, mit einer komplizierten Mischung wie „mEin!Pa55w0rt?“ eine Variante zu finden, die der Angreifer nicht prüft, ist deshalb riskant.',
         'Keine Sorge, darauf musst du dich nicht verlassen. Für ein starkes Passwort brauchst du vor allem genügend Länge.',

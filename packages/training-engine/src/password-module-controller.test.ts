@@ -30,7 +30,6 @@ function reachAwaitingIncidentOpen(controller: PasswordModuleController): void {
     controller.submitAssistedLogin(accountId);
   }
   controller.continueS03CompletionFeedback();
-  controller.continueS03CampusStart();
   controller.completeS03TimeLapse();
 }
 

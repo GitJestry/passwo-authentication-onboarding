@@ -1594,9 +1594,24 @@
 }
 
 .passwordVariationScene {
-  gap: clamp(var(--space-5), 6vw, var(--space-8));
+  gap: var(--space-3);
   justify-items: center;
   color: white;
+}
+
+.finalVariationMarker {
+  display: grid;
+  justify-items: center;
+  gap: var(--space-1);
+  color: #ff7f86;
+  font-size: var(--font-size-body);
+}
+
+.finalVariationMarker img {
+  width: clamp(5.5rem, 12vw, 8rem);
+  height: clamp(5.5rem, 12vw, 8rem);
+  object-fit: contain;
+  filter: drop-shadow(0 0.45rem 0.8rem rgb(0 0 0 / 34%));
 }
 
 .variationSequence code {
@@ -1626,7 +1641,8 @@
 
 .variationSequence[data-final="true"] code {
   opacity: 1;
-  border-color: rgb(255 255 255 / 72%);
+  border-color: #e5434b;
+  box-shadow: 0 0 0 var(--border-width-medium) #e5434b;
   animation: none;
 }
 
