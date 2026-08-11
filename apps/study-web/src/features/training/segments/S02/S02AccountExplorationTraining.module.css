@@ -89,7 +89,41 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  gap: var(--space-3);
   padding-top: 0.85rem;
+}
+
+.previewReplayButton {
+  display: inline-flex;
+  min-height: calc(var(--size-control-medium) + var(--space-2));
+  padding: var(--space-3) var(--space-4);
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  border: var(--border-width-medium) solid var(--color-border);
+  border-radius: var(--radius-small);
+  color: var(--color-ink);
+  background: var(--color-surface-primary);
+  font: inherit;
+  font-size: var(--font-size-body);
+  font-weight: var(--font-weight-heavy);
+  cursor: pointer;
+}
+
+.previewReplayButton:hover:not(:disabled) {
+  border-color: var(--color-accent-strong);
+  background: var(--color-surface-muted);
+}
+
+.previewReplayButton:disabled {
+  cursor: wait;
+  opacity: 0.5;
+}
+
+.previewReplayButton:focus-visible {
+  outline: var(--border-width-focus) solid var(--color-focus);
+  outline-offset: var(--space-1);
+  box-shadow: var(--shadow-focus);
 }
 
 .previewAdvanceButton {
@@ -234,6 +268,7 @@
 }
 
 .loginCard {
+  position: relative;
   display: grid;
   width: 72%;
   gap: 0.45rem;
@@ -242,6 +277,63 @@
   border-radius: 0.75rem;
   background: rgb(255 255 255 / 92%);
   box-shadow: 0 0.65rem 1.4rem rgb(54 85 119 / 14%);
+  opacity: 0;
+}
+
+.previewMouseCursor {
+  position: absolute;
+  right: 24%;
+  bottom: 0.72rem;
+  z-index: 3;
+  width: 1.2rem;
+  height: 1.5rem;
+  color: #172335;
+  filter: drop-shadow(0 0.12rem 0.1rem rgb(255 255 255 / 90%));
+  opacity: 0;
+  pointer-events: none;
+}
+
+.previewMouseCursor svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+  fill: #ffffff;
+  stroke: currentColor;
+  stroke-linejoin: round;
+  stroke-width: 1.5;
+}
+
+.loginProgress {
+  position: absolute;
+  inset: auto 1rem 0.9rem;
+  z-index: 2;
+  display: flex;
+  min-height: 1.55rem;
+  align-items: center;
+  justify-content: center;
+  gap: 0.45rem;
+  border-radius: 0.36rem;
+  color: #6f2947;
+  background: rgb(255 247 250 / 96%);
+  box-shadow: 0 0.25rem 0.7rem rgb(81 29 52 / 16%);
+  opacity: 0;
+  font-size: 0.54rem;
+  font-weight: 760;
+}
+
+.loginProgress > i {
+  width: 0.72rem;
+  height: 0.72rem;
+  border: 0.12rem solid #e2b7c8;
+  border-top-color: #94204c;
+  border-radius: 50%;
+  animation: login-progress-spin 700ms linear infinite;
+}
+
+@keyframes login-progress-spin {
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 .loginCard small {
@@ -278,15 +370,21 @@
 
 .masterCampusButton > i {
   display: grid;
-  width: 1rem;
-  height: 1rem;
+  width: 1.22rem;
+  height: 1.22rem;
   place-items: center;
   border-radius: 0.28rem;
   color: #94204c;
   background: #ffffff;
-  font-size: 0.36rem;
   font-style: normal;
-  font-weight: 850;
+}
+
+.masterCampusButton > i svg {
+  display: block;
+  width: 1.05rem;
+  height: 1.05rem;
+  color: #94204c;
+  transform: translateY(-0.01rem);
 }
 
 .loginDestination {
@@ -297,6 +395,7 @@
   grid-template-rows: 3.2rem minmax(0, 1fr);
   overflow: hidden;
   background: #ffffff;
+  opacity: 0;
 }
 
 .destinationTopbar {
@@ -1623,6 +1722,11 @@
   .preview {
     transition: none;
     will-change: auto;
+  }
+
+  .loginProgress > i {
+    animation: none;
+    border-color: #94204c;
   }
 
 }

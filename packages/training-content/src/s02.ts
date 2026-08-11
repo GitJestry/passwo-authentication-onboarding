@@ -152,6 +152,7 @@ export interface S02SegmentContent {
     readonly openTaskHelp: string;
     readonly previewTitle: string;
     readonly completion: string;
+    readonly previewReplay: string;
     readonly previewNext: string;
     readonly previewFinish: string;
   };
@@ -164,6 +165,7 @@ export interface S02SegmentContent {
   readonly previewSimulation: {
     readonly address: string;
     readonly welcomeLabel: string;
+    readonly authProgressLabel: string;
     readonly variants: Readonly<Record<S02VisualPreviewKind, S02VisualPreview>>;
   };
   readonly narration: {
@@ -196,7 +198,7 @@ export interface S02SegmentContent {
 
 export type S02DesktopPlatform = 'mac' | 'linux' | 'windows';
 
-export const S02_CONTENT_VERSION = '5.3.0';
+export const S02_CONTENT_VERSION = '5.4.1';
 
 function formatGermanList(labels: readonly string[]): string {
   if (labels.length <= 1) return labels[0] ?? '';
@@ -466,6 +468,20 @@ function previewAnimation(
   detail: S02AccountContent['details'][number],
 ): S02AnimationSequence {
   const target = (part: string) => `${detail.id}:${part}`;
+  if (detail.id.startsWith('master-campus-')) {
+    return {
+      id: detail.preview.animationId,
+      steps: [
+        { type: 'reveal', targetId: target('surface'), durationMs: 250 },
+        { type: 'reveal', targetId: target('cursor'), durationMs: 800 },
+        { type: 'highlight', targetId: target('primary'), emphasis: 'positive', durationMs: 250 },
+        { type: 'reveal', targetId: target('auth-status'), durationMs: 1200 },
+        { type: 'reveal', targetId: target('result'), durationMs: 500 },
+      ],
+      reducedMotion: { strategy: 'instant-end-state', maxDurationMs: 0 },
+      maxDurationMs: 3000,
+    };
+  }
   return {
     id: detail.preview.animationId,
     steps: [
@@ -513,7 +529,7 @@ export const s02Content: S02SegmentContent = {
     document: 'research/private/training-script.pdf',
     internalPages: [4, 5, 6, 7],
     copyReference:
-      'docs/design/S00-S05-COPY-AUDIT.md#darstellungsdelta-s02-schnellere-kontoerkundung-11-august-2026',
+      'docs/design/S00-S05-COPY-AUDIT.md#copy-delta-s02-entlastender-auswahlhinweis-11-august-2026',
   },
   segment: {
     id: 'S02',
@@ -533,6 +549,7 @@ export const s02Content: S02SegmentContent = {
     openTaskHelp: 'Aufgabe noch einmal anzeigen',
     previewTitle: 'Vorschau',
     completion: 'Konten erkundet',
+    previewReplay: 'Wiederholen',
     previewNext: 'Nächstes',
     previewFinish: 'Fertig',
   },
@@ -546,6 +563,7 @@ export const s02Content: S02SegmentContent = {
   previewSimulation: {
     address: 'campus.local',
     welcomeLabel: 'Willkommen bei',
+    authProgressLabel: 'Anmeldung läuft …',
     variants: {
       'campus-workspace': {
         app: 'Campus Workspace',
@@ -705,7 +723,7 @@ export const s02Content: S02SegmentContent = {
       [introModelId]:
         'Du kannst dir jedes Konto als Knoten in einem Netzwerk vorstellen. Die Verbindungen zeigen, was dazugehört.',
       [introReadyId]:
-        'Du musst dir nichts zwingend merken – manches kommt dir vielleicht aus deinem Alltag bekannt vor. Wähle einen Kontoknoten aus, den du zuerst erkunden möchtest.',
+        'Du musst dir dabei keine Einzelheiten merken. Wähle aus, welches Konto du zuerst erkunden möchtest.',
       's02.master-campus':
         'Sieh dir nacheinander an, welche Campusdienste du mit Master Campus öffnest.',
       's02.campus-email':

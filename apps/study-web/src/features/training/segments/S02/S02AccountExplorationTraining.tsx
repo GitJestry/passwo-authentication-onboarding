@@ -215,8 +215,26 @@ function VisualPreview({
               className={styles.masterCampusButton}
               data-preview-target={target('primary')}
             >
-              <i>MC</i>
+              <i aria-hidden="true">
+                <NetworkSymbol symbolId="master-campus" />
+              </i>
               {preview.primaryLabel}
+            </span>
+            <span
+              className={styles.previewMouseCursor}
+              data-preview-target={target('cursor')}
+              aria-hidden="true"
+            >
+              <svg viewBox="0 0 24 30">
+                <path d="M3 2.5v21.2l5.3-5.1 3.7 8.2 4.1-1.9-3.8-8h7.5z" />
+              </svg>
+            </span>
+            <span
+              className={styles.loginProgress}
+              data-preview-target={target('auth-status')}
+            >
+              <i aria-hidden="true" />
+              {previewContent.authProgressLabel}
             </span>
           </span>
           <span
@@ -582,6 +600,7 @@ export function S02AccountExplorationTraining({
     });
     const previewAnimationPlayer = new S02PreviewMotionAdapter({
       getPreviewElement: () => previewRef.current,
+      prefersReducedMotion,
     });
     controller = new S02AccountExplorationController({
       animationPlayer,
@@ -770,6 +789,10 @@ export function S02AccountExplorationTraining({
       ? -1
       : activeAccount.previewSequence.indexOf(activePreview.id);
   const activePreviewReady = scene.previewPlayback === 'ready';
+  const activePreviewCategory =
+    activePreview === undefined
+      ? undefined
+      : s02Content.previewSimulation.variants[activePreview.preview.kind].category;
   const activePreviewIsLast =
     activeAccount !== undefined && activePreviewIndex === activeAccount.previewSequence.length - 1;
   const viewedCount = scene.viewedAccountIds.length;
@@ -940,6 +963,7 @@ export function S02AccountExplorationTraining({
               aria-label={`${s02Content.page.previewTitle}: ${activePreview.label}`}
             >
               <VisualPreview
+                key={activePreview.id}
                 detailId={activePreview.id}
                 kind={activePreview.preview.kind}
                 username={resolvedUsername}
@@ -953,6 +977,17 @@ export function S02AccountExplorationTraining({
                 )}
               </p>
               <footer className={styles.previewFooter}>
+                {activePreviewCategory === 'login' ? (
+                  <button
+                    type="button"
+                    className={styles.previewReplayButton}
+                    disabled={!activePreviewReady || interactionBlocked}
+                    onClick={() => controller.replayPreview()}
+                  >
+                    <span aria-hidden="true">↻</span>
+                    {s02Content.page.previewReplay}
+                  </button>
+                ) : null}
                 <button
                   ref={previewPrimaryActionRef}
                   type="button"

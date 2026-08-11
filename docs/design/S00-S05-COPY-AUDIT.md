@@ -184,6 +184,18 @@ unverändert. `S05_CONTENT_VERSION` wird von `2.64.0` auf `2.65.0` erhöht.
 |---|---|---|---|---|---|---|---|---|
 | `S05.freeSearch.theoreticalModel.lowercaseModelExplanation` | Nutzerauftrag vom 2026-08-11 | `Kleinbuchstaben` | `bis alle kleinbuchstaben Zeichenfolgen geprüft sind` | Mechanismuserklärung | Zeichenvorrat und Abschlussbedingung direkt über der zugehörigen Modellkugel benennen | begrenzt | kein | `kleinbuchstaben` mit buchstabenstabiler, gedämpfter Farbcodierung |
 
+## Copy-Delta S02 entlastender Auswahlhinweis 11. August 2026
+
+Quelle ist der ausdrückliche Nutzerauftrag vom 11. August 2026. Der Hinweis vor der ersten
+Kontowahl behält die entlastende Aussage zur geringen Gedächtnislast, entfernt aber den
+behaupteten Alltagsbezug. Die Navigation benennt die freie Kontowahl, ohne den zuvor erklärten
+Begriff `Kontoknoten` zu wiederholen. Interaktion, Ablauf, Persistenz, Export und Timing bleiben
+unverändert. `S02_CONTENT_VERSION` wird von `5.4.0` auf `5.4.1` erhöht.
+
+| Segment und Text-ID | Quelle | Aktueller Text | Geplanter Text | Primäre Rolle | Grund | Bedeutungsänderung | Interaktionsziel | Hervorhebung |
+|---|---|---|---|---|---|---|---|---|
+| `S02.narration.messages[s02.accounts.intro-ready]` | Nutzerauftrag vom 2026-08-11 | `Du musst dir nichts zwingend merken – manches kommt dir vielleicht aus deinem Alltag bekannt vor. Wähle einen Kontoknoten aus, den du zuerst erkunden möchtest.` | `Du musst dir dabei keine Einzelheiten merken. Wähle aus, welches Konto du zuerst erkunden möchtest.` | Navigation | künstlichen Alltagsbezug und wiederholte Modellsprache entfernen; entlastenden Mini-Hinweis und freie Auswahl erhalten | begrenzt | frei wählbares Hauptkonto im Netzwerk | keine |
+
 ## Darstellungsdelta S02 schnellere Kontoerkundung 11. August 2026
 
 Quelle ist der ausdrückliche Nutzerauftrag vom 11. August 2026. Die Öffnungsanimation eines
@@ -2486,6 +2498,21 @@ Serviceportal mit Servicekacheln und Vorgangsstatus. Campus Cloud erscheint als 
 Dateiablage mit Navigation, Ordnern und einer Notizdatei. Bestehender Teilnehmertext,
 Interaktion, Ablauf, Persistenz, Export und Timing bleiben unverändert; kein
 Content-Versionssprung ist erforderlich.
+
+### Copy-, Interaktions- und Darstellungsdelta S02 Master-Campus-Anmeldevorspann 11. August 2026
+
+Quelle ist der ausdrückliche Nutzerauftrag vom 11. August 2026. Den drei über Master Campus
+erreichbaren Zielvorschauen geht jeweils eine exakt drei Sekunden lange, wiederholbare
+Anmeldesimulation voraus. Sie zeigt eine Mausbewegung zur bestehenden Aktion `Mit Master Campus
+anmelden`, einen begrenzten Ladestatus und anschließend den Übergang in die bisherige statische
+Zielansicht. Campus-E-Mail- und Campusgram-Vorschauen bleiben statisch. Ablauf, Persistenz,
+Export und Studien-Timing bleiben unverändert. `S02_CONTENT_VERSION` wird von `5.3.0` auf `5.4.0`
+erhöht.
+
+| Segment und Text-ID | Quelle | Aktueller Text | Geplanter Text | Primäre Rolle | Grund | Bedeutungsänderung | Interaktionsziel | Hervorhebung |
+|---|---|---|---|---|---|---|---|---|
+| `S02.page.previewReplay` | Nutzerauftrag vom 2026-08-11 | nicht vorhanden | `Wiederholen` | Navigation | ausdrücklich verlangte Wiederholung ausschließlich der sichtbaren Master-Campus-Anmeldevorschau | ausdrücklich freigegeben | Vorschauanimation | keine |
+| `S02.previewSimulation.authProgressLabel` | Nutzerauftrag vom 2026-08-11 | nicht vorhanden | `Anmeldung läuft …` | Ergebnisfeedback | den ausdrücklich verlangten dreisekündigen Anmeldezeitraum sichtbar und alltagsnah kennzeichnen | ausdrücklich freigegeben | kein | animierter Ladekreis |
 
 ### Darstellungsdelta S05 Zeichenmix vertikal zentriert 10. August 2026
 

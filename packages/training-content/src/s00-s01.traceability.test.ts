@@ -7,7 +7,7 @@ const canonicalAccountIds = ['master-campus', 'campus-email', 'campusgram'] as c
 
 describe('S00 to S02 training-content traceability', () => {
   it('keeps S00 linked to its named source page and canonical accounts', () => {
-    expect(S00_CONTENT_VERSION).toBe('1.20.0');
+    expect(S00_CONTENT_VERSION).toBe('1.22.0');
     expect(s00Content.source).toMatchObject({
       document: 'research/private/training-script.pdf',
       internalPage: 2,
@@ -18,6 +18,7 @@ describe('S00 to S02 training-content traceability', () => {
     expect(s00Content.sectionTransition).toMatchObject({
       label: 'Sektion 1 von 3',
       title: 'Starke Passwörter',
+      holdDurationMs: 3500,
       parts: [
         { id: 'account-setup', label: 'Konten einrichten' },
         { id: 'password-strength', label: 'Passwortstärke verstehen' },
@@ -65,12 +66,12 @@ describe('S00 to S02 training-content traceability', () => {
   });
 
   it('keeps S02 linked to its named pages and essential account-node structure', () => {
-    expect(S02_CONTENT_VERSION).toBe('5.3.0');
+    expect(S02_CONTENT_VERSION).toBe('5.4.1');
     expect(s02Content.source).toEqual({
       document: 'research/private/training-script.pdf',
       internalPages: [4, 5, 6, 7],
       copyReference:
-        'docs/design/S00-S05-COPY-AUDIT.md#darstellungsdelta-s02-schnellere-kontoerkundung-11-august-2026',
+        'docs/design/S00-S05-COPY-AUDIT.md#copy-delta-s02-entlastender-auswahlhinweis-11-august-2026',
     });
     expect(s02Content.segment.id).toBe('S02');
     expect(s02Content.scene.accounts.map(({ id }) => id)).toEqual(canonicalAccountIds);
@@ -111,7 +112,7 @@ describe('S00 to S02 training-content traceability', () => {
       'Du kannst dir jedes Konto als Knoten in einem Netzwerk vorstellen. Die Verbindungen zeigen, was dazugehört.',
     );
     expect(s02Content.narration.messages[s02Content.narration.introReadyId]).toBe(
-      'Du musst dir nichts zwingend merken – manches kommt dir vielleicht aus deinem Alltag bekannt vor. Wähle einen Kontoknoten aus, den du zuerst erkunden möchtest.',
+      'Du musst dir dabei keine Einzelheiten merken. Wähle aus, welches Konto du zuerst erkunden möchtest.',
     );
     expect(s02Content.narration.remainingDetails(['Bestätigungen', 'Zurücksetzungslinks'])).toBe(
       'Sieh dir noch Bestätigungen und Zurücksetzungslinks an.',
