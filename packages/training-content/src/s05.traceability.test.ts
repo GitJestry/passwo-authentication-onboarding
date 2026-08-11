@@ -4,7 +4,7 @@ import { S05_CONTENT_VERSION, s05Content } from './s05.js';
 
 describe('S05 content traceability', () => {
   it('keeps the participant copy bounded and separate from internal terminology', () => {
-    expect(S05_CONTENT_VERSION).toBe('2.62.1');
+    expect(S05_CONTENT_VERSION).toBe('2.72.0');
     expect(s05Content.source).toMatchObject({
       document: 'research/private/training-script.pdf',
       internalPages: [
@@ -12,7 +12,7 @@ describe('S05 content traceability', () => {
         35,
       ],
       copyReference:
-        'docs/design/S00-S05-COPY-AUDIT.md#copy--darstellungsdelta-s05-vergleichsskala-bis-20-11-august-2026',
+        'docs/design/S00-S05-COPY-AUDIT.md#copy--darstellungsdelta-s05-gelbe-modellkugel-vergrößert-11-august-2026',
     });
     expect(s05Content.segment.id).toBe('S05');
     expect(s05Content.page.fixtureNotice).toBe(
@@ -260,7 +260,7 @@ describe('S05 content traceability', () => {
       'Keine Sorge, darauf musst du dich nicht verlassen. Deshalb setzt die aktuelle Empfehlung bei selbstgewählten Passwörtern vor allem auf Länge.',
     );
     expect(s05Content.freeSearch.characterMix.narration[5]).toBe(
-      'Um ein Gefühl dafür zu bekommen, welche Mindestlänge für deine selbst gewählten Passwörter empfohlen wird und warum, bleiben zusätzliche Zeichentypen bewusst außen vor: Jede Stelle ist ein zufällig gewählter Kleinbuchstabe.',
+      'Damit du siehst, welche Mindestlänge empfohlen wird und warum, lassen wir zusätzliche Zeichentypen bewusst weg und verwenden nur zufällig gewählte Kleinbuchstaben.',
     );
     expect(s05Content.freeSearch.characterMix.narration).toHaveLength(6);
     expect(s05Content.freeSearch.estimate.question).toBe(
@@ -299,7 +299,7 @@ describe('S05 content traceability', () => {
     });
     expect(s05Content.freeSearch.theoreticalModel.mixedCharacterMeasurement).toEqual({
       length: 12,
-      alphabetLabel: 'alle Zeichentypen',
+      alphabetLabel: 'alle Ze1chentypen!',
       durationLabel: 'ca. 615 Jahre',
     });
     const comparisonStepIndex = s05Content.animations.findIndex(
@@ -308,8 +308,19 @@ describe('S05 content traceability', () => {
     const orientationStepIndex = s05Content.animations.findIndex(
       ([id]) => id === 's05-length-orientation',
     );
+    const campusgramTransitionStepIndex = s05Content.animations.findIndex(
+      ([id]) => id === 's05-length-campusgram-transition',
+    );
     expect(comparisonStepIndex).toBeGreaterThan(-1);
     expect(orientationStepIndex).toBe(comparisonStepIndex + 1);
+    expect(campusgramTransitionStepIndex).toBe(orientationStepIndex + 1);
+    expect(s05Content.animations.map(([id]) => id)).not.toEqual(
+      expect.arrayContaining([
+        's05-length-word-core',
+        's05-length-additional-word-question',
+        's05-length-practical-outlook',
+      ]),
+    );
     expect(s05Content.freeSearch.theoreticalModel.lowercaseMeasurements).toContainEqual({
       length: 16,
       durationLabel: 'ca. 1.380 Jahre',

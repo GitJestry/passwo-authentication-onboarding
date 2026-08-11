@@ -1,5 +1,140 @@
 # S00--S05 Copy and Interaction Audit
 
+## Darstellungsdelta S05 gelbe Modellkugel halb so groß wie 16 Stellen 11. August 2026
+
+Quelle ist der ausdrückliche Nutzerauftrag vom 11. August 2026. Der Durchmesser der gelben
+12-Stellen-Modellkugel beträgt im abschließenden Vergleich exakt 50 Prozent des Durchmessers der
+16-Stellen-Kleinbuchstaben-Kugel. Ihr Abstand rechts neben der 15-Stellen-Kugel wird passend zur
+neuen Größe reduziert, sodass Kugeln, Pills und Zeitangaben als kompakter Vergleich gerahmt
+bleiben. Die nur für diese Ansicht ausgeblendeten Messlatten bleiben ausgeblendet.
+Berechnungsmodell, Interaktion, Ablauf, Persistenz, Export und Timing bleiben unverändert.
+`S05_CONTENT_VERSION` wird von `2.69.0` auf `2.70.0` erhöht.
+
+## Darstellungsdelta S05 Modellvergleich im Verhältnis elf zu eins 11. August 2026
+
+Quelle ist der ausdrückliche Nutzerauftrag vom 11. August 2026. Im abschließenden
+Modellvergleich besitzt die gelbe 12-Stellen-Kugel exakt den elffachen Durchmesser der
+15-Stellen-Kleinbuchstaben-Kugel und erhält rechts von ihr einen etwas größeren Abstand. Diese
+Darstellung ordnet die sichtbaren Zeitangaben `ca. 615 Jahre` und `ca. 53 Jahre` im ausdrücklich
+vorgegebenen Größenverhältnis ein. Ausschließlich in dieser Vergleichsansicht werden die
+Messlatten `Mindeststandard` und `Deine Einschätzung` ausgeblendet; in der laufenden Skala und
+der anschließenden Orientierung bleiben sie unverändert. Berechnungsmodell, Interaktion, Ablauf,
+Persistenz, Export und Timing bleiben unverändert. `S05_CONTENT_VERSION` wird von `2.68.0` auf
+`2.69.0` erhöht.
+
+## Copy- & Darstellungsdelta S05 direkter Modellvergleich bei 15 Stellen 11. August 2026
+
+Quelle ist der ausdrückliche Nutzerauftrag vom 11. August 2026. In der laufenden
+Kleinbuchstaben-Skala steht `bis alle kleinbuchstaben Zeichenfolgen geprüft sind` nur noch in der
+aktiven Kugel; die vorherige Kugel behält ausschließlich ihre Zeitangabe. Im abschließenden
+Modellvergleich entfällt diese Erklärung auch innerhalb der 15-Stellen-Kugel. Stattdessen steht
+darüber die Kennzeichnung `kleinbuchstaben` als Pill analog zu `alle Zeichentypen` über der
+gelben Kugel.
+
+Die gelbe 12-Stellen-Modellkugel steht wieder unmittelbar rechts neben der 15-Stellen-Kugel. Die
+nachfolgenden Kleinbuchstaben-Kugeln werden dafür im Vergleich nach rechts versetzt und bleiben
+als gedämpfter Skalenkontext erhalten, ohne die gelbe Kugel zu überlagern. Berechnungsmodell,
+Interaktion, Ablauf, Persistenz, Export und Timing bleiben unverändert. `S05_CONTENT_VERSION`
+wird von `2.67.0` auf `2.68.0` erhöht.
+
+| Segment und Text-ID | Quelle | Aktueller Text | Geplanter Text | Primäre Rolle | Grund | Bedeutungsänderung | Interaktionsziel | Hervorhebung |
+|---|---|---|---|---|---|---|---|---|
+| `S05.freeSearch.theoreticalModel.lowercaseTimeExplanation` | Nutzerauftrag vom 2026-08-11 | Erklärung in aktiver und vorheriger Kugel sowie innerhalb der 15-Stellen-Vergleichskugel | `bis alle kleinbuchstaben Zeichenfolgen geprüft sind` nur in der aktuell erkundeten Kugel; im Vergleich `kleinbuchstaben` als Pill oberhalb der 15-Stellen-Kugel | Mechanismuserklärung / Orientierung | redundanten Text aus sekundären Kugeln entfernen und die beiden Zeichenvorräte direkt vergleichbar kennzeichnen | begrenzt | kein | `kleinbuchstaben` mit buchstabenstabiler, gedämpfter Farbcodierung |
+
+## Darstellungsdelta S05 gelbe Modellkugel relativ zu 16 Stellen 11. August 2026
+
+Quelle ist der ausdrückliche Nutzerauftrag vom 11. August 2026. Die zuletzt eingeführte
+2,5-fache Größenberechnung der gelben 12-Stellen-Modellkugel entfällt. Ihr Durchmesser beträgt
+nun stabil 45 Prozent des Durchmessers der 16-Stellen-Kleinbuchstaben-Kugel innerhalb derselben
+Skalenprojektion. Ihre eigene Position rechts von 16 sowie Modell, Berechnung, Interaktion,
+Persistenz, Export und Timing bleiben unverändert. `S05_CONTENT_VERSION` wird von `2.66.0` auf
+`2.67.0` erhöht.
+
+## Copy- & Darstellungsdelta S05 Zeitkugeltext und sichtbarer Vergleich 11. August 2026
+
+Quelle ist der ausdrückliche Nutzerauftrag vom 11. August 2026. Der Informationsbutton kehrt an
+seine vorherige Position am Angreifersymbol zurück. Jede sichtbare Kleinbuchstaben-Zeitkugel zeigt
+dauerhaft `bis alle Kleinbuchstaben Zeichenfolgen geprüft sind`; dies gilt auch für die zuvor nur
+sekundär beschriftete Vergleichskugel. Die 615-Jahre-Kugel behält den Faktor 2,5, der
+Vergleichsausschnitt berücksichtigt nun jedoch ihren vollständigen Durchmesser und die gemeinsame
+Breite von 15, 16 und gelber 12-Stellen-Modellkugel. Dadurch wird die Vergrößerung sichtbar, ohne
+die abgedunkelte 16-Stellen-Kugel zu überdecken. Modell, Berechnung, Interaktion, Persistenz,
+Export und Timing bleiben unverändert. `S05_CONTENT_VERSION` wird von `2.65.0` auf `2.66.0`
+erhöht.
+
+| Segment und Text-ID | Quelle | Aktueller Text | Geplanter Text | Primäre Rolle | Grund | Bedeutungsänderung | Interaktionsziel | Hervorhebung |
+|---|---|---|---|---|---|---|---|---|
+| `S05.freeSearch.theoreticalModel.lowercaseTimeExplanation` | Nutzerauftrag vom 2026-08-11 | Erklärung nur an der aktiven Kugel; Vergleichsbeschriftung außerhalb | `bis alle Kleinbuchstaben Zeichenfolgen geprüft sind` dauerhaft in jeder sichtbaren Kleinbuchstaben-Zeitkugel | Mechanismuserklärung | Prüfmodell in allen Kugelzuständen stabil zuordnen | begrenzt | kein | `Kleinbuchstaben` mit buchstabenstabiler, gedämpfter Farbcodierung |
+
+## Copy- & Darstellungsdelta S05 Suchraumvergleich und Infozuordnung 11. August 2026
+
+Quelle ist der ausdrückliche Nutzerauftrag vom 11. August 2026. Die Kleinbuchstabenkennzeichnung
+verwendet gedämpftere, klar unterscheidbare Farben und schreibt `kleinbuchstaben` klein. Über der
+zugehörigen Kugel steht nun `bis alle kleinbuchstaben Zeichenfolgen geprüft sind`; über der gelben
+Kugel bleibt ausschließlich `alle Zeichentypen` stehen. Die flüchtige Passwortfolge unter der
+Skala kehrt zur bisherigen grauen Grundfarbe mit blauer Markierung neu ergänzter Stellen zurück.
+
+Der Informationsbutton steht nicht mehr am Angreifersymbol, sondern unmittelbar oben rechts an
+der jeweils aktiven Zeitangabe. Die gelbe Kugel für `ca. 615 Jahre` wird um Faktor 2,5 vergrößert
+und auf die nächste Skalenposition verschoben. Dadurch bleibt die abgedunkelte 16-Stellen-Kugel
+einschließlich Skalenstrich sichtbar zwischen der grünen 15-Stellen-Kugel und der gelben
+12-Stellen-Modellkugel. Modell, Berechnung, Interaktion, Persistenz, Export und Timing bleiben
+unverändert. `S05_CONTENT_VERSION` wird von `2.64.0` auf `2.65.0` erhöht.
+
+| Segment und Text-ID | Quelle | Aktueller Text | Geplanter Text | Primäre Rolle | Grund | Bedeutungsänderung | Interaktionsziel | Hervorhebung |
+|---|---|---|---|---|---|---|---|---|
+| `S05.freeSearch.theoreticalModel.lowercaseModelExplanation` | Nutzerauftrag vom 2026-08-11 | `Kleinbuchstaben` | `bis alle kleinbuchstaben Zeichenfolgen geprüft sind` | Mechanismuserklärung | Zeichenvorrat und Abschlussbedingung direkt über der zugehörigen Modellkugel benennen | begrenzt | kein | `kleinbuchstaben` mit buchstabenstabiler, gedämpfter Farbcodierung |
+
+## Darstellungsdelta S02 schnellere Kontoerkundung 11. August 2026
+
+Quelle ist der ausdrückliche Nutzerauftrag vom 11. August 2026. Die Öffnungsanimation eines
+Hauptkontos läuft 1,5-mal so schnell. Die zugehörigen Unterknoten erscheinen nach der Auswahl
+doppelt so schnell. Der vorhandene Vorschaufortschritt `Nächstes` beziehungsweise `Fertig` erhält
+eine größere, kontrastreichere Primäraktion mit Richtungssymbol, Hover-, Fokus- und
+Betätigungszustand. Wortlaut, Interaktion, Reihenfolge, Persistenz, Export und Timing bleiben
+unverändert. `S02_CONTENT_VERSION` wird von `5.2.1` auf `5.3.0` erhöht.
+
+## Copy- & Darstellungsdelta S05 kompakter Modellvergleich 11. August 2026
+
+Quelle ist der ausdrückliche Nutzerauftrag vom 11. August 2026. Status und Angreifersymbol der
+abschließend getesteten Zeichenmix-Variation stehen etwas höher; der Kandidat selbst bleibt an
+der Position der animierten Variationen. Schätzoptionen und Bestätigungsaktion rücken bis direkt
+an die unverändert positionierte Messskala. Der gelbe Modellvergleich zoomt näher auf die
+15-Zeichen-Kleinbuchstaben-Kugel und die gelbe 12-Zeichen-Kugel. Oberhalb stehen nur noch die
+beiden Zeichenvorräte `Kleinbuchstaben` und `alle Zeichentypen`.
+
+Die bisherige sichtbare Kurzform `a–z` wird in dieser S05-Darstellung durch `Kleinbuchstaben`
+ersetzt. In der Kennzeichnung und der flüchtigen Kleinbuchstabenfolge erhält jeder Buchstabe eine
+stabile eigene Farbe; gleiche Buchstaben verwenden dieselbe Farbe. Modell, Berechnung,
+Interaktion, Persistenz, Export und Timing bleiben unverändert. `S05_CONTENT_VERSION` wird von
+`2.63.0` auf `2.64.0` erhöht.
+
+| Segment und Text-ID | Quelle | Aktueller Text | Geplanter Text | Primäre Rolle | Grund | Bedeutungsänderung | Interaktionsziel | Hervorhebung |
+|---|---|---|---|---|---|---|---|---|
+| `S05.freeSearch.theoreticalModel.lowercaseAlphabetMark` | Nutzerauftrag vom 2026-08-11 | `a–z` | `Kleinbuchstaben` | Orientierung | Zeichenvorrat im Vergleich ausdrücklich benennen | nein | kein | buchstabenstabile Farbcodierung; Farbe ist nicht alleiniger Bedeutungsträger |
+
+## Copy- & Darstellungsdelta S05 stabile Ansichten und gekürzter Abschluss 11. August 2026
+
+Quelle ist der ausdrückliche Nutzerauftrag vom 11. August 2026. Die drei Musterlisten bleiben
+beim anschließenden lokalen Wiederholungsbefund geometrisch unverändert. Die Zeichenmix-Variation
+läuft 1,5-mal so schnell; der abschließend markierte Kandidat liegt an derselben Position wie die
+animierten Kandidaten. Die Messskala behält beim Einblenden des Alphabets und der Schätzung ihre
+Position. Im Modellvergleich bleiben die abgedunkelten Kugeln und Skalenlinien deutlicher sichtbar.
+Über den beiden verglichenen Kugeln steht jeweils die vollständige Prüfmodellbeschreibung mit
+`a–z` beziehungsweise `alle Zeichentypen`.
+
+Nach der 15-Zeichen-Orientierung führt S05 direkt zur lokalen Campusgram-Auswertung. Das authored
+Wortbeispiel und der Passphrasen-Generator-Einschub werden nicht mehr als Missionsschritte
+ausgespielt; ihre vorhandenen Daten, Komponenten und Logik bleiben für eine spätere Verwendung
+erhalten. Analyse, Persistenz, Export und Timing bleiben unverändert. `S05_CONTENT_VERSION` wird
+von `2.62.1` auf `2.63.0` erhöht.
+
+| Segment und Text-ID | Quelle | Aktueller Text | Geplanter Text | Primäre Rolle | Grund | Bedeutungsänderung | Interaktionsziel | Hervorhebung |
+|---|---|---|---|---|---|---|---|---|
+| `S05.freeSearch.lengthExamples.wordExamplesIntroduction` | Nutzerauftrag vom 2026-08-11 | `Kommen wir kurz noch einmal auf Wörter zurück. Diese beiden Passwörter erfüllen die Mindestlänge, bestehen aber jeweils nur aus einem häufigen Wort und ein paar zusätzlichen Zeichen. Dadurch werden sie zu früh geprüften Variationen.` | in S05 nicht mehr ausgespielt | Mechanismuserklärung | ausdrücklich verlangte Kürzung nach der Längenorientierung | ausdrücklich freigegeben | kein | keine |
+| `S05.freeSearch.lengthExamples.additionalWordQuestion` | Nutzerauftrag vom 2026-08-11 | `Mit mehreren Wörtern erreicht man die Mindestlänge schnell. Aber reicht es, einfach ein weiteres Wort hinzuzunehmen?` | in S05 nicht mehr ausgespielt | Orientierung | ausdrücklich verlangte Entfernung des Wortbeispiels | ausdrücklich freigegeben | kein | keine |
+| `S05.freeSearch.lengthExamples.practicalOutlook` | Nutzerauftrag vom 2026-08-11 | `Dafür gibt es eine einfache Methode, mit der sich lange und trotzdem gut merkbare Passwörter aus Wörtern bilden lassen. Die probieren wir später selbst aus.` | in S05 nicht mehr ausgespielt | Navigation | ausdrücklich verlangte Entfernung des Passphrasen-Generator-Einschubs | ausdrücklich freigegeben | kein | keine |
+
 ## Copy- & Darstellungsdelta S02 kompakte statische Vorschauen, 11. August 2026
 
 Quelle ist der ausdrückliche Nutzerauftrag vom 11. August 2026. Die Vorschauen sollen nicht mehr
@@ -428,6 +563,18 @@ Passwort bleibt eine zulässige Beobachtung und blockiert das Training nicht.
 
 Die vorhandene Warnformulierung ist grundsätzlich passend und kann gezielt zu
 `Öffne den markierten Campusgram-Tab.` präzisiert werden, ohne die Szene weiter zu erklären.
+
+### Darstellungsdelta S03 selbstständiger Warnübergang 11. August 2026
+
+Quelle ist der ausdrückliche Nutzerauftrag vom 11. August 2026. Im Zustand der
+Campusgram-Warnung werden PassWo und seine Sprechblase nicht mehr gerendert. Der Browser bleibt
+abgedunkelt; ausschließlich der obere Campusgram-Tab ist freigegeben und öffnet durch die
+selbst ausgeführte Aktivierung weiterhin S04. Der vorhandene Warntext und die Content-Version
+bleiben unverändert, weil kein Teilnehmertext umformuliert oder neu eingeführt wird.
+
+| Segment und Text-ID | Aktuelle Darstellung | Geplante Darstellung | Primäre Rolle | Grund | Bedeutungsänderung | Interaktionsziel | Hervorhebung |
+|---|---|---|---|---|---|---|---|
+| `S03.narration.warning` im Zustand `awaitingIncidentOpen` | PassWo mit Warnsprechblase vor abgedunkeltem Browser | keine PassWo- oder Sprechblasendarstellung; Browser bleibt abgedunkelt | Navigation | ausdrücklich verlangte Entfernung des Hinweises bei unveränderter externer Bedienhandlung | nein | ausschließlich der Campusgram-Tab | bestehender Warnstatus des Tabs bleibt erhalten |
 
 ## S04 -- Datenleck als Brücke zur Passwortanalyse
 
@@ -1787,6 +1934,45 @@ Muster-Veranschaulichung bleiben untereinander konsistent. Dies ist presentation
 Teilnehmertext, Ablauf, Interaktion, Analyse, Persistenz und Export bleiben unverändert; kein
 Content-Versionssprung ist erforderlich.
 
+### Copy- & Interaktionsdelta S02 fortschrittsbezogene Knotenhilfe 11. August 2026
+
+Quelle ist der ausdrückliche Nutzerauftrag vom 11. August 2026. Der PassWo-Hilfetext unter
+`Konten erkundet` wiederholt nicht länger die allgemeine Beschreibung eines bereits geöffneten
+Kontos. Innerhalb eines Kontos nennt er ausschließlich die noch offenen Unterknoten; nach deren
+Abschluss verweist er auf `Fertig`. Außerhalb eines Kontos nennt er ausschließlich die noch
+offenen Konten. Nach jedem abgeschlossenen Konto öffnet sich die Hilfe wieder und der Schlüssel
+bleibt am Mauszeiger sichtbar. Die erste doppelte App-Zeile der drei Master-Campus-Ziele entfällt.
+Mailadressfelder werden kleiner und einzeln gerahmt; die Sendeaktion des Entwurfs sitzt an der
+oberen rechten Kante. Persistenz, Export und Timing bleiben unverändert.
+`S02_CONTENT_VERSION` wird von `5.1.1` auf `5.2.0` erhöht.
+
+| Segment und Text-ID | Quelle | Aktueller Text | Geplanter Text | Primäre Rolle | Grund | Bedeutungsänderung | Interaktionsziel | Hervorhebung |
+|---|---|---|---|---|---|---|---|---|
+| `S02.narration.messages[s02.master-campus|campus-email|campusgram]` | Nutzerauftrag vom 2026-08-11 | allgemeiner kontoabhängiger Hinweis während und nach der Erkundung | `Sieh dir noch {offene Unterknoten} an.` | Navigation | Hilfe am tatsächlichen Restfortschritt ausrichten | begrenzt | nächster Vorschauknoten | keine |
+| `S02.narration.finishAccount` | Nutzerauftrag vom 2026-08-11 | allgemeiner kontoabhängiger Hinweis | `Alles in {Konto} angesehen. Wähle „Fertig“.` | Navigation | sichtbare Abschlussaktion eindeutig benennen | begrenzt | `Fertig` | keine |
+| `S02.narration.remainingAccounts` | Nutzerauftrag vom 2026-08-11 | zuletzt geöffneter kontobezogener Hinweis | `Wähle noch {offene Konten} aus.` | Navigation | nur noch offene Konten nennen | begrenzt | offener Kontoknoten | keine |
+
+### Copy-Delta S02 Alltagsbezug vor der Knotenauswahl 11. August 2026
+
+Quelle ist die ausdrückliche Nutzerfreigabe vom 11. August 2026. Der Auswahlhinweis verbindet
+die geringe Gedächtnislast mit einem vorsichtig formulierten Alltagsbezug. `manches` und
+`vielleicht` vermeiden eine vorausgesetzte Vorerfahrung. Die Handlungszuordnung bleibt mit
+`Wähle` eingabemodalitätsneutral. Interaktion, Ablauf, Persistenz, Export und Timing bleiben
+unverändert. `S02_CONTENT_VERSION` wird von `5.2.0` auf `5.2.1` erhöht.
+
+| Segment und Text-ID | Quelle | Aktueller Text | Geplanter Text | Primäre Rolle | Grund | Bedeutungsänderung | Interaktionsziel | Hervorhebung |
+|---|---|---|---|---|---|---|---|---|
+| `S02.narration.messages[s02.accounts.intro-ready]` | Nutzerfreigabe vom 2026-08-11 | `Du musst dir nichts zwingend merken. Wähle einfach einen Kontoknoten aus, den du zuerst erkunden möchtest.` | `Du musst dir nichts zwingend merken – manches kommt dir vielleicht aus deinem Alltag bekannt vor. Wähle einen Kontoknoten aus, den du zuerst erkunden möchtest.` | Navigation | unterstützenden Alltagsbezug ergänzen, ohne Vertrautheit vorauszusetzen | begrenzt | Kontoknoten | keine |
+
+### Interaktionsdelta S02 optionale Fortschrittshinweise 11. August 2026
+
+Quelle ist der ausdrückliche Nutzerauftrag vom 11. August 2026. Nach der verpflichtenden
+Einführung öffnet PassWo fortschrittsbezogene Hinweise nicht mehr automatisch. Während der
+Kontenerkundung erscheint ein Hinweis ausschließlich nach Betätigung des Fragezeichen-Buttons
+und schließt wieder, sobald ein Kontoknoten ausgewählt wird. Die verpflichtende Einführung und
+die abschließende Navigation zum Browser bleiben sichtbar. Teilnehmertext, Ablauf, Persistenz,
+Export und Timing bleiben unverändert; kein Content-Versionssprung ist erforderlich.
+
 ### Copy-Delta S05 Zeichenmix und Längenfolge 9. August 2026
 
 Quelle ist der ausdrückliche Nutzerauftrag vom 9. August 2026. Der Passphrasen-Zwischenschritt
@@ -2165,6 +2351,43 @@ Größenzunahme wird um zwei Prozent verstärkt. Teilnehmertext, Interaktion, Be
 Ablauf, Persistenz, Export und Timing bleiben unverändert; kein Content-Versionssprung ist
 erforderlich.
 
+### Copy-Delta S05 Modellannahme kürzer formuliert 11. August 2026
+
+Quelle ist der ausdrückliche Nutzerauftrag vom 11. August 2026. Die bestehende
+Mechanismuserklärung wird gekürzt; der Bezug zur empfohlenen Mindestlänge und das bewusste
+Weglassen zusätzlicher Zeichentypen bleiben erhalten. Interaktion, Berechnungsmodell,
+Persistenz, Export und Timing bleiben unverändert. `S05_CONTENT_VERSION` wird von `2.70.0` auf
+`2.71.0` erhöht.
+
+| Segment und Text-ID | Quelle | Aktueller Text | Geplanter Text | Primäre Rolle | Grund | Bedeutungsänderung | Interaktionsziel | Hervorhebung |
+|---|---|---|---|---|---|---|---|---|
+| `S05.freeSearch.characterMix.narration[5]` | Nutzerauftrag vom 2026-08-11 | `Um ein Gefühl dafür zu bekommen, welche Mindestlänge für deine selbst gewählten Passwörter empfohlen wird und warum, bleiben zusätzliche Zeichentypen bewusst außen vor: Jede Stelle ist ein zufällig gewählter Kleinbuchstabe.` | `Damit du siehst, welche Mindestlänge empfohlen wird und warum, lassen wir zusätzliche Zeichentypen bewusst weg und verwenden nur zufällig gewählte Kleinbuchstaben.` | Mechanismuserklärung | ausdrücklich verlangte Kürzung bei erhaltener Modellgrenze | nein | `Weiter` | `zufällig gewählte Kleinbuchstaben` in Akzentfarbe |
+
+### Copy- & Darstellungsdelta S05 gelbe Modellkugel vergrößert 11. August 2026
+
+Quelle ist der ausdrückliche Nutzerauftrag vom 11. August 2026. Der Durchmesser der gelben
+12-Stellen-Modellkugel wird gegenüber dem aktuellen Stand um zehn Prozent vergrößert: von 50 auf
+55 Prozent des Durchmessers der 16-Stellen-Kleinbuchstaben-Kugel. Ihre vorhandene kantenbasierte
+Positionierung verschiebt den Mittelpunkt mit dem größeren Radius etwas nach rechts. Die obere
+Beschriftung lautet sichtbar `alle Ze1chentypen!`; ihr zugänglicher Name bleibt
+`alle Zeichentypen`. Berechnungsmodell, Interaktion, Ablauf, Persistenz, Export und Timing bleiben
+unverändert. `S05_CONTENT_VERSION` wird von `2.71.0` auf `2.72.0` erhöht.
+
+| Segment und Text-ID | Quelle | Aktueller Text | Geplanter Text | Primäre Rolle | Grund | Bedeutungsänderung | Interaktionsziel | Hervorhebung |
+|---|---|---|---|---|---|---|---|---|
+| `S05.freeSearch.theoreticalModel.mixedCharacterMeasurement.alphabetLabel` | Nutzerauftrag vom 2026-08-11 | `alle Zeichentypen` | `alle Ze1chentypen!` | Orientierung | ausdrücklich vorgegebene sichtbare Beschriftung der gelben Vergleichskugel | ausdrücklich freigegeben | kein | gelbe Pill oberhalb der Kugel; zugänglicher Name `alle Zeichentypen` |
+
+### Darstellungsdelta S02 differenzierte Campus-Zielanwendungen 11. August 2026
+
+Quelle ist der ausdrückliche Nutzerauftrag vom 11. August 2026. Die drei über Master Campus
+erreichbaren Zielvorschauen verwenden keine gemeinsame generische Kachelansicht mehr. Campus
+Workspace erscheint als kollaborative Arbeitsoberfläche mit Seitenleiste, Bereichen,
+Gesprächsverlauf und geteilter Datei. Campus Services erscheint als hochschulspezifisches
+Serviceportal mit Servicekacheln und Vorgangsstatus. Campus Cloud erscheint als typische
+Dateiablage mit Navigation, Ordnern und einer Notizdatei. Bestehender Teilnehmertext,
+Interaktion, Ablauf, Persistenz, Export und Timing bleiben unverändert; kein
+Content-Versionssprung ist erforderlich.
+
 ### Darstellungsdelta S05 Zeichenmix vertikal zentriert 10. August 2026
 
 Quelle ist der ausdrückliche Nutzerauftrag vom 10. August 2026. Die Ansichten `Passwort
@@ -2230,3 +2453,38 @@ Persistenz, Export und Timing bleiben unverändert. `S02_CONTENT_VERSION` wird v
 | `S02.narration.messages[s02.accounts.intro]` | Nutzerauftrag vom 2026-08-11; S02-Skriptseiten 4–7 | `Im Alltag ist nicht immer sichtbar, welche Funktionen und Dienste mit einem Konto verbunden sind. Du kannst dir jedes Konto als Knoten in einem Netzwerk vorstellen. Die Verbindungen zeigen, was jeweils dazugehört.` | `Im Alltag ist oft nicht sichtbar, was alles mit einem Konto verbunden ist.` | Orientierung | ausdrücklich vorgegebene Trennung entlang des noch leeren Netzwerks | begrenzt | `Weiter` startet den Knotenaufbau | keine |
 | `S02.narration.messages[s02.accounts.intro-model]` | Nutzerauftrag vom 2026-08-11; S02-Skriptseiten 4–7 | nicht vorhanden; zuvor Teil von `s02.accounts.intro` | `Du kannst dir jedes Konto als Knoten in einem Netzwerk vorstellen. Die Verbindungen zeigen, was dazugehört.` | Mechanismuserklärung | ausdrücklich vorgegebene Zuordnung zum sichtbaren Knotennetz | nein | `Weiter` zeigt Schlüssel und Auswahlhinweis | keine |
 | `S02.narration.messages[s02.accounts.intro-ready]` | Nutzerauftrag vom 2026-08-11; S02-Skriptseiten 4–7 | `Du musst dir keine Einzelheiten merken – vieles kommt dir wahrscheinlich bekannt vor. Wähle einen Kontoknoten aus, den du zuerst erkunden möchtest.` | `Du musst dir nichts zwingend merken. Wähle einfach einen Kontoknoten aus, den du zuerst erkunden möchtest.` | Navigation | ausdrücklich vorgegebene geringe Gedächtnislast und eindeutige Handlungszuordnung | begrenzt | Kontoknoten; kein Sprechblasenbutton | keine |
+
+### Copy- & Darstellungsdelta S02 realistische Campus-E-Mail-Vorschauen 11. August 2026
+
+Quelle ist der ausdrückliche Nutzerauftrag vom 11. August 2026. Die vier vorhandenen Mailtexte
+bleiben wortgleich. Ergänzt werden realistische Kopfzeilen mit fiktivem Absender, Empfänger, CC
+und Sendezeit; die gesendete Nachricht nennt ihren Empfänger ausdrücklich. Diese Angaben dienen
+der Orientierung und eindeutigen Handlungszuordnung innerhalb der bestehenden lokalen Simulation.
+Die Vorschauen verwenden wieder das lokale Campus-E-Mail-Symbol, eine größere Schrift und je
+Mailtyp unterscheidbare Typografie und Gestaltung. Ablauf, Persistenz, Export und Timing bleiben
+unverändert. `S02_CONTENT_VERSION` wird von `5.0.2` auf `5.1.0` erhöht.
+
+| Segment und Text-ID | Quelle | Aktueller Text | Geplanter Text | Primäre Rolle | Grund | Bedeutungsänderung | Interaktionsziel | Hervorhebung |
+|---|---|---|---|---|---|---|---|---|
+| `S02.previewSimulation.variants[mail].header` | Nutzerauftrag vom 2026-08-11 | generische Zeile `Projektteam · an mich` | fiktive Felder `Von`, `An`, `CC` und Sendezeit je Mailtyp | Orientierung | echte Mailstruktur und Adressat der gesendeten Nachricht sichtbar machen | begrenzt | bestehende Vorschauaktion | keine |
+| `S02.previewSimulation.variants[mail].items`, `primaryLabel`, `resultLabel` | Nutzerauftrag vom 2026-08-11 | bestehender Wortlaut | unverändert | Mechanismuserklärung | Mailarten nur visuell differenzieren | nein | bestehende Vorschauaktion | bestehende Hervorhebung |
+
+### Darstellungsdelta S02 kompakte Mailkopfzeilen und Vorschauposition 11. August 2026
+
+Quelle ist der ausdrückliche Nutzerauftrag vom 11. August 2026. Campus-E-Mail-Balken,
+Betreffbereich sowie Von-, An- und CC-Angaben werden kompakter. Die Vorschau wird schmaler und
+erhält rechts einen größeren sicheren Innenabstand zur Bühnenkante. Der bereits flüchtig
+abgeleitete Benutzername und die zugehörige Campus-E-Mail-Adresse ersetzen nun alle passenden
+Platzhalter in Vorschau und zugänglicher Zusammenfassung. Mailtexte, Ablauf, Persistenz, Export
+und Timing bleiben unverändert. `S02_CONTENT_VERSION` wird von `5.1.0` auf `5.1.1` erhöht.
+
+### Darstellungsdelta S02 realistische Campusgram-Vorschauen 11. August 2026
+
+Quelle ist der ausdrückliche Nutzerauftrag vom 11. August 2026. Die Projektionsfläche zwischen
+Knoten und Vorschau wird bewusst dunkler, damit darunterliegende Netzelemente visuell
+zurücktreten. Campusgram verwendet in der Vorschau wieder das lokale Markensymbol.
+Direktnachrichten erscheinen als links/rechts angeordneter Chat mit Medienvorschau, Gruppen und
+Kontakte als Such- und Kontaktliste sowie Beiträge und Reaktionen als großer Feed-Post mit
+angedeuteten Reaktions- und Kommentarhandlungen. Bestehender Teilnehmertext, Interaktion,
+Ablauf, Persistenz, Export und Timing bleiben unverändert; kein Content-Versionssprung ist
+erforderlich.

@@ -335,4 +335,24 @@ describe('passwordModuleMachine', () => {
     expect(actor.getSnapshot().context.retrievalResults['campusgram']).toBe('retrievable');
     expect(getRetrievedAccountCount(actor.getSnapshot().context)).toBe(2);
   });
+
+  it('skips repeated retrieval help and starts autofilling immediately', () => {
+    const actor = createModuleActor();
+    configureAllAccounts(actor);
+    startS03(actor);
+
+    actor.send({ type: 'SELECT_ACCOUNT', accountId: 'campus-email' });
+    actor.send({ type: 'SKIP_RETRIEVAL', accountId: 'campus-email' });
+    expect(actor.getSnapshot().matches({ s03: 'assistance' })).toBe(true);
+
+    actor.send({ type: 'START_ASSISTED_LOGIN', accountId: 'campus-email' });
+    actor.send({ type: 'S03_ASSISTED_AUTOFILL_COMPLETED', accountId: 'campus-email' });
+    actor.send({ type: 'SUBMIT_ASSISTED_LOGIN', accountId: 'campus-email' });
+
+    actor.send({ type: 'SELECT_ACCOUNT', accountId: 'master-campus' });
+    actor.send({ type: 'SKIP_RETRIEVAL', accountId: 'master-campus' });
+
+    expect(actor.getSnapshot().matches({ s03: 'autofilling' })).toBe(true);
+    expect(actor.getSnapshot().context.retrievalResults['master-campus']).toBe('not-remembered');
+  });
 });

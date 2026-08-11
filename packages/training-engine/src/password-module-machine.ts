@@ -145,6 +145,10 @@ function isActiveNotRememberedAccount(context: PasswordModuleContext, accountId:
   );
 }
 
+function hasCompletedAssistedRetrieval(context: PasswordModuleContext): boolean {
+  return Object.values(context.retrievalResults).some((result) => result === 'assisted');
+}
+
 export const passwordModuleMachine = setup({
   types: {
     context: {} as PasswordModuleContext,
@@ -448,6 +452,14 @@ export const passwordModuleMachine = setup({
               { guard: 'matchesRetrievalPassword', actions: 'markRetrievable' },
             ],
             SKIP_RETRIEVAL: [
+              {
+                guard: ({ context, event }) =>
+                  event.type === 'SKIP_RETRIEVAL' &&
+                  canProcessRetrieval(context, event.accountId) &&
+                  hasCompletedAssistedRetrieval(context),
+                target: 'autofilling',
+                actions: 'markNotRemembered',
+              },
               {
                 guard: ({ context, event }) =>
                   event.type === 'SKIP_RETRIEVAL' && canProcessRetrieval(context, event.accountId),

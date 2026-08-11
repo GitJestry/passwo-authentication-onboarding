@@ -1041,20 +1041,42 @@ function PasswordVariationScene({ final }: { readonly final: boolean }) {
   );
 }
 
+interface LowercaseCharacterStyle extends CSSProperties {
+  readonly '--lowercase-character-color': string;
+}
+
+function lowercaseCharacterStyle(character: string): LowercaseCharacterStyle {
+  const characterIndex = character.toLocaleLowerCase('de-DE').charCodeAt(0) - 97;
+  const hue = ((characterIndex * 137.508) % 360 + 360) % 360;
+  const lightness = 57 + (characterIndex % 3) * 3;
+  return { '--lowercase-character-color': `hsl(${hue} 38% ${lightness}%)` };
+}
+
 function LowercaseAlphabetMark({
   inline = false,
   decorative = false,
+  lowercase = false,
 }: {
   readonly inline?: boolean;
   readonly decorative?: boolean;
+  readonly lowercase?: boolean;
 }) {
+  const label = lowercase ? 'kleinbuchstaben' : 'Kleinbuchstaben';
   return (
     <span
       className={`${styles.lowercaseAlphabetMark}${inline ? ` ${styles.lowercaseAlphabetMarkInline}` : ''}`}
       aria-hidden={decorative || undefined}
-      aria-label={decorative ? undefined : 'Kleinbuchstaben von a bis z'}
+      aria-label={decorative ? undefined : label}
     >
-      <strong>a</strong><i>–</i><b>z</b>
+      {Array.from(label).map((character, index) => (
+        <span
+          className={styles.lowercaseCharacter}
+          style={lowercaseCharacterStyle(character)}
+          key={`${character}-${index}`}
+        >
+          {character}
+        </span>
+      ))}
     </span>
   );
 }
@@ -1080,7 +1102,12 @@ function EstimateRuler({
           <LowercaseAlphabetMark />
           <span>{content.alphabetLabel}</span>
         </div>
-      ) : null}
+      ) : (
+        <div className={styles.lowercaseAlphabet} data-hidden="true" aria-hidden="true">
+          <LowercaseAlphabetMark decorative />
+          <span>{content.alphabetLabel}</span>
+        </div>
+      )}
       <div className={styles.estimateMarkerRow}>
         {content.options.map((option) => (
           <span key={option}>{selected === option ? content.marker : ''}</span>
@@ -1116,33 +1143,35 @@ function EstimateScene({
   return (
     <div className={styles.estimateScene} data-s05-target="estimate" data-s05-speech-obstacle>
       <EstimateRuler selected={null} />
-      <fieldset className={styles.estimateScale} disabled={snapshot.estimate.confirmed}>
-        <legend className={styles.visuallyHidden}>{content.question}</legend>
-        <div>
-          {content.options.map((option) => (
-            <label key={option}>
-              <input
-                type="radio"
-                name="s05-estimate"
-                checked={snapshot.estimate.selected === option}
-                onChange={() => controller.selectEstimate(option)}
-              />
-              <span>{option}</span>
-            </label>
-          ))}
-        </div>
-      </fieldset>
-      <button
-        className={styles.confirmEstimate}
-        type="button"
-        disabled={snapshot.estimate.selected === null || snapshot.estimate.confirmed}
-        onClick={() => controller.confirmEstimate()}
-      >
-        {content.confirm}
-      </button>
-      {snapshot.estimate.confirmed ? (
-        <p className={styles.localNotice}>{content.confirmed}</p>
-      ) : null}
+      <div className={styles.estimateInteraction}>
+        <fieldset className={styles.estimateScale} disabled={snapshot.estimate.confirmed}>
+          <legend className={styles.visuallyHidden}>{content.question}</legend>
+          <div>
+            {content.options.map((option) => (
+              <label key={option}>
+                <input
+                  type="radio"
+                  name="s05-estimate"
+                  checked={snapshot.estimate.selected === option}
+                  onChange={() => controller.selectEstimate(option)}
+                />
+                <span>{option}</span>
+              </label>
+            ))}
+          </div>
+        </fieldset>
+        <button
+          className={styles.confirmEstimate}
+          type="button"
+          disabled={snapshot.estimate.selected === null || snapshot.estimate.confirmed}
+          onClick={() => controller.confirmEstimate()}
+        >
+          {content.confirm}
+        </button>
+        {snapshot.estimate.confirmed ? (
+          <p className={styles.localNotice}>{content.confirmed}</p>
+        ) : null}
+      </div>
     </div>
   );
 }
@@ -1388,29 +1417,29 @@ function ScaleTimeInformation({
   const durationValue = approximatePrefix === null ? durationLabel : durationLabel.slice(4);
   const [durationNumber = durationValue, ...durationUnitParts] = durationValue.split(' ');
   const durationUnit = durationUnitParts.join(' ');
-  const explanation = s05Content.freeSearch.theoreticalModel.interactiveScale.durationExplanation
-    .replace('[Länge]', String(length));
-  const [explanationStart = explanation, explanationEnd = ''] = explanation.split('Zeichenfolgen');
+  const explanation = 'bis alle kleinbuchstaben Zeichenfolgen geprüft sind';
   return (
     <span className={styles.scaleTimeInformation}>
       <strong>
-        <span className={styles.scaleTimeValue}>
-          {approximatePrefix === null ? durationValue : (
-            <>
-              <span className={styles.scaleTimeApproximateNumber}>
-                <small>{approximatePrefix}</small>
-                <span>{durationNumber}</span>
-              </span>
-              {durationUnit.length > 0 ? ` ${durationUnit}` : null}
-            </>
-          )}
+        <span className={styles.scaleTimeValueRow}>
+          <span className={styles.scaleTimeValue}>
+            {approximatePrefix === null ? durationValue : (
+              <>
+                <span className={styles.scaleTimeApproximateNumber}>
+                  <small>{approximatePrefix}</small>
+                  <span>{durationNumber}</span>
+                </span>
+                {durationUnit.length > 0 ? ` ${durationUnit}` : null}
+              </>
+            )}
+          </span>
         </span>
       </strong>
       {showExplanation ? (
         <small className={styles.scaleTimeExplanation} aria-label={explanation}>
-          <span>{explanationStart.trim()}</span>
-          <LowercaseAlphabetMark inline decorative />
-          <span>{`Zeichenfolgen${explanationEnd}`}</span>
+          <span>bis alle</span>
+          <LowercaseAlphabetMark inline decorative lowercase />
+          <span>Zeichenfolgen geprüft sind</span>
         </small>
       ) : null}
     </span>
@@ -1431,8 +1460,26 @@ function MixedCharacterTimeInformation() {
           </span>{` ${durationUnitParts.join(' ')}`}
         </span>
       </strong>
-      <small className={styles.mixedCharacterAlphabet}>{measurement.alphabetLabel}</small>
-      <small>bis alle Zeichenfolgen der Länge {measurement.length} geprüft wären</small>
+    </span>
+  );
+}
+
+function MixedCharacterModelLabel({ style }: { readonly style: ScaleItemStyle }) {
+  return (
+    <span className={styles.scaleModelExplanation} style={style}>
+      <strong className={styles.mixedCharacterAlphabet} aria-label="alle Zeichentypen">
+        {s05Content.freeSearch.theoreticalModel.mixedCharacterMeasurement.alphabetLabel}
+      </strong>
+    </span>
+  );
+}
+
+function LowercaseModelLabel({ style }: { readonly style: ScaleItemStyle }) {
+  return (
+    <span className={styles.scaleModelExplanation} style={style}>
+      <strong className={styles.lowercaseModelAlphabet} aria-label="kleinbuchstaben">
+        <LowercaseAlphabetMark inline decorative lowercase />
+      </strong>
     </span>
   );
 }
@@ -1456,24 +1503,74 @@ function LowercaseClockScene({
     comparesLengthModels ? 16 : currentLength,
     comparesLengthModels ? LOWERCASE_SCALE_MAXIMUM_LENGTH : currentLength,
   );
-  const generatedModel = snapshot.freeSearchDemonstrationScene.generatedCharacterModel;
-  const lowercaseAlphabetSize =
-    snapshot.freeSearchDemonstrationScene.lowercaseReferenceModel.alphabetSize;
-  // Keep sphere size on the existing lowercase scale while preserving the generated model's search space.
-  const generatedEquivalentLowercaseLength =
-    generatedModel.length * Math.log(generatedModel.alphabetSize) / Math.log(lowercaseAlphabetSize);
-  const generatedSphereDiameter = scaleSphereDiameter(generatedEquivalentLowercaseLength);
-  const projection = projectScale(
+  const generatedSphereDiameter = scaleSphereDiameter(16) * 0.55;
+  const comparisonGap = Math.max(200, generatedSphereDiameter * 0.12);
+  const generatedSphereWorldX =
+    (layout.positions.get(15) ?? 110) +
+    scaleSphereDiameter(15) / 2 +
+    generatedSphereDiameter / 2 +
+    comparisonGap;
+  const comparisonTrailingShift = Math.max(
+    0,
+    generatedSphereWorldX +
+      generatedSphereDiameter / 2 +
+      scaleSphereDiameter(16) / 2 +
+      comparisonGap -
+      (layout.positions.get(16) ?? 110),
+  );
+  const comparisonWorldX = (length: number): number =>
+    (layout.positions.get(length) ?? 110) +
+    (comparesLengthModels && length >= 16 ? comparisonTrailingShift : 0);
+  const baseProjection = projectScale(
     layout,
     comparesLengthModels ? 16 : currentLength,
     viewport.width,
     viewport.height,
   );
+  const projection = comparesLengthModels
+    ? (() => {
+        const zoom = 1.28;
+        const comparisonLeft =
+          (layout.positions.get(15) ?? 110) - scaleSphereDiameter(15) / 2;
+        const shiftedSixteenLeft =
+          comparisonWorldX(16) - scaleSphereDiameter(16) / 2;
+        const comparisonRight = Math.max(
+          generatedSphereWorldX + generatedSphereDiameter / 2,
+          shiftedSixteenLeft + Math.min(
+            scaleSphereDiameter(16) * 0.06,
+            generatedSphereDiameter * 0.12,
+          ),
+        );
+        const comparisonTop =
+          layout.axisTop -
+          layout.sphereLift -
+          Math.max(scaleSphereDiameter(15), generatedSphereDiameter) -
+          Math.max(110, generatedSphereDiameter * 0.035);
+        const comparisonBottom = layout.axisTop + Math.max(160, generatedSphereDiameter * 0.04);
+        const scale = Math.min(
+          baseProjection.scale * zoom,
+          (viewport.width * 0.94) / (comparisonRight - comparisonLeft),
+          (viewport.height * 0.9) / (comparisonBottom - comparisonTop),
+        );
+        const comparisonCenterX =
+          (comparisonLeft + comparisonRight) / 2;
+        const translateY =
+          (viewport.height - (comparisonBottom - comparisonTop) * scale) / 2 -
+          comparisonTop * scale;
+        return {
+          ...baseProjection,
+          scale,
+          translateX: viewport.width / 2 - comparisonCenterX * scale,
+          translateY,
+          axisY: layout.axisTop * scale + translateY,
+        };
+      })()
+    : baseProjection;
   const estimateLength = snapshot.estimate.selected === null
     ? null
     : Math.min(snapshot.estimate.selected, LOWERCASE_SCALE_MAXIMUM_LENGTH);
   const screenX = (length: number): number =>
-    (layout.positions.get(comparesLengthModels ? length : Math.min(length, currentLength)) ?? 110) *
+    comparisonWorldX(comparesLengthModels ? length : Math.min(length, currentLength)) *
       projection.scale + projection.translateX;
   const screenDiameter = (length: number): number =>
     scaleSphereDiameter(length) * projection.scale;
@@ -1518,9 +1615,8 @@ function LowercaseClockScene({
   }
 
   function generatedSphereStyle(): ScaleItemStyle {
-    const x = layout.positions.get(16) ?? 110;
     return {
-      '--scale-x': `${x * projection.scale + projection.translateX}px`,
+      '--scale-x': `${generatedSphereWorldX * projection.scale + projection.translateX}px`,
       '--scale-y': `${(layout.axisTop - layout.sphereLift - generatedSphereDiameter) * projection.scale + projection.translateY}px`,
       '--sphere-size': `${generatedSphereDiameter * projection.scale}px`,
       '--sphere-color': '#f2c14e',
@@ -1563,7 +1659,9 @@ function LowercaseClockScene({
           className={styles.lowercaseScaleAxis}
           style={{ top: projection.axisY, left: 6, width: viewport.width - 12 }}
         />
-        {estimateLength === null || estimateLength > currentLength ? null : (
+        {comparesLengthModels ||
+        estimateLength === null ||
+        estimateLength > currentLength ? null : (
           <div
             className={styles.scaleMilestone}
             style={milestoneStyle(estimateLength)}
@@ -1571,7 +1669,7 @@ function LowercaseClockScene({
             <span>{s05Content.freeSearch.estimate.marker}</span>
           </div>
         )}
-        {currentLength < 15 ? null : (
+        {comparesLengthModels || currentLength < 15 ? null : (
             <div
               className={styles.scaleMilestone}
               data-minimum="true"
@@ -1626,7 +1724,10 @@ function LowercaseClockScene({
                   data-previous={previous || undefined}
                   style={sphereStyle(length)}
                 >
-                  <ScaleTimeInformation length={length} showExplanation={active} />
+                  <ScaleTimeInformation
+                    length={length}
+                    showExplanation={active && !comparesLengthModels}
+                  />
                 </div>
               ) : null}
             </div>
@@ -1657,6 +1758,8 @@ function LowercaseClockScene({
             >
               <MixedCharacterTimeInformation />
             </div>
+            <LowercaseModelLabel style={sphereStyle(15)} />
+            <MixedCharacterModelLabel style={generatedSphereStyle()} />
           </>
         ) : null}
       </div>
@@ -1665,8 +1768,16 @@ function LowercaseClockScene({
           <div className={styles.lowercasePasswordControl}>
             <div className={styles.lowercasePasswordField}>
               <code aria-label={`${currentLength} zufällig erzeugte Kleinbuchstaben`}>
-                <span>{snapshot.lowercaseScale.password.slice(0, LOWERCASE_SCALE_VISIBLE_MINIMUM_LENGTH)}</span>
-                <mark>{snapshot.lowercaseScale.password.slice(LOWERCASE_SCALE_VISIBLE_MINIMUM_LENGTH)}</mark>
+                {Array.from(snapshot.lowercaseScale.password).map((character, index) => (
+                  <span
+                    className={styles.lowercaseCharacter}
+                    data-added={index >= LOWERCASE_SCALE_VISIBLE_MINIMUM_LENGTH || undefined}
+                    style={lowercaseCharacterStyle(character)}
+                    key={`${index}-${character}`}
+                  >
+                    {character}
+                  </span>
+                ))}
               </code>
               <div className={styles.lowercasePasswordButtons}>
                 <button

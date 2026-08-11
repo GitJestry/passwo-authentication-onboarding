@@ -12,6 +12,7 @@ import {
 import passWoThinkAsset from '../../../../assets/passwo/passwo-dock.png';
 import passWoWaitingAsset from '../../../../assets/passwo/passwo-waiting.png';
 import { NetworkMotionAdapter } from '../../../../adapters/network/NetworkMotionAdapter.js';
+import { NetworkSymbol } from '../../../../adapters/network/NetworkSymbolRegistry.js';
 import {
   ReactFlowNetwork,
   ReactFlowNetworkAdapter,
@@ -41,6 +42,7 @@ export interface S02AccountExplorationTrainingProps {
   readonly onRetryTiming?: () => void;
   readonly platform?: DesktopPlatform;
   readonly fictionalUsername?: string;
+  readonly fictionalCampusEmail?: string;
 }
 
 const definition = s02Content.scene;
@@ -126,25 +128,41 @@ function samePosition(
   );
 }
 
-function interpolateUsername(value: string, username: string): string {
-  return value.replaceAll('{username}', username || 'benutzername');
+function interpolateIdentity(value: string, username: string, campusEmail: string): string {
+  return value
+    .replaceAll('{username}', username)
+    .replaceAll('{campusEmail}', campusEmail);
 }
 
-function previewAccessibleSummary(kind: S02VisualPreviewKind, username: string): string {
+function previewAccessibleSummary(
+  kind: S02VisualPreviewKind,
+  username: string,
+  campusEmail: string,
+): string {
   const preview = s02Content.previewSimulation.variants[kind];
   if (preview.category === 'social') {
     return [
       preview.title,
       preview.primaryItem.label,
       preview.primaryItem.text,
-      interpolateUsername(preview.replyItem.label, username),
+      interpolateIdentity(preview.replyItem.label, username, campusEmail),
       preview.replyItem.text,
+      preview.resultLabel,
+    ].join('. ');
+  }
+  if (preview.category === 'login') {
+    return [
+      preview.title,
+      ...preview.items.map((item) => interpolateIdentity(item, username, campusEmail)),
       preview.resultLabel,
     ].join('. ');
   }
   return [
     preview.title,
-    ...preview.items.map((item) => interpolateUsername(item, username)),
+    interpolateIdentity(preview.header.from, username, campusEmail),
+    interpolateIdentity(preview.header.to, username, campusEmail),
+    interpolateIdentity(preview.header.cc, username, campusEmail),
+    ...preview.items.map((item) => interpolateIdentity(item, username, campusEmail)),
     preview.resultLabel,
   ].join('. ');
 }
@@ -153,10 +171,12 @@ function VisualPreview({
   detailId,
   kind,
   username,
+  campusEmail,
 }: {
   readonly detailId: string;
   readonly kind: S02VisualPreviewKind;
   readonly username: string;
+  readonly campusEmail: string;
 }) {
   const previewContent = s02Content.previewSimulation;
   const preview = previewContent.variants[kind];
@@ -170,18 +190,18 @@ function VisualPreview({
       data-preview-ready
       aria-hidden="true"
     >
-      <span className={styles.previewChrome}>
-        <span className={styles.previewWindowControls}>
-          <i />
-          <i />
-          <i />
-        </span>
-        <span className={styles.previewAddress}>{previewContent.address}</span>
-      </span>
-      <span className={styles.previewAppBar}>
-        <strong>{preview.app}</strong>
-        <i />
-      </span>
+      {preview.category === 'login' ? (
+        <>
+          <span className={styles.previewChrome}>
+            <span className={styles.previewWindowControls}>
+              <i />
+              <i />
+              <i />
+            </span>
+            <span className={styles.previewAddress}>{previewContent.address}</span>
+          </span>
+        </>
+      ) : null}
       {preview.category === 'login' ? (
         <span className={styles.loginPreview}>
           <span className={styles.loginCard} data-preview-target={target('surface')}>
@@ -199,37 +219,130 @@ function VisualPreview({
               {preview.primaryLabel}
             </span>
           </span>
-          <span className={styles.loginDestination} data-preview-target={target('result')}>
-            <strong>{preview.app}</strong>
-            <span className={styles.destinationGrid}>
-              {preview.items.map((item) => (
-                <span key={item}>{item}</span>
-              ))}
+          <span
+            className={styles.loginDestination}
+            data-destination-kind={kind}
+            data-preview-target={target('result')}
+          >
+            <span className={styles.destinationTopbar}>
+              <NetworkSymbol symbolId={kind} />
+              <span>
+                <strong>{preview.app}</strong>
+                <small>{preview.title}</small>
+              </span>
+              <i aria-hidden="true" />
             </span>
-            <b data-preview-target={target('secondary')}>{preview.resultLabel}</b>
+            {kind === 'campus-workspace' ? (
+              <span className={styles.workspaceSurface}>
+                <span className={styles.workspaceRail} aria-hidden="true">
+                  <i /><i /><i /><i />
+                </span>
+                <span className={styles.workspaceChannels}>
+                  {preview.items.slice(0, 3).map((item) => (
+                    <span key={item}>{item}</span>
+                  ))}
+                </span>
+                <span className={styles.workspaceConversation}>
+                  <span className={styles.workspaceMessages} aria-hidden="true">
+                    <i /><span /><i /><span />
+                  </span>
+                  {preview.items.slice(3).map((item) => (
+                    <strong className={styles.workspaceFile} key={item}>{item}</strong>
+                  ))}
+                  <b data-preview-target={target('secondary')}>{preview.resultLabel}</b>
+                </span>
+              </span>
+            ) : null}
+            {kind === 'campus-services' ? (
+              <span className={styles.servicesSurface}>
+                <span className={styles.servicesHero} aria-hidden="true">
+                  <i /><span /><span />
+                </span>
+                <span className={styles.servicesGrid}>
+                  {preview.items.map((item, index) => (
+                    <span key={item}>
+                      <i aria-hidden="true">{index + 1}</i>
+                      <b>{item}</b>
+                      <small aria-hidden="true" />
+                    </span>
+                  ))}
+                </span>
+                <b className={styles.servicesStatus} data-preview-target={target('secondary')}>
+                  {preview.resultLabel}
+                </b>
+              </span>
+            ) : null}
+            {kind === 'campus-cloud' ? (
+              <span className={styles.cloudSurface}>
+                <span className={styles.cloudSidebar}>
+                  <i aria-hidden="true" />
+                  {preview.items.slice(0, 3).map((item) => (
+                    <span key={item}>{item}</span>
+                  ))}
+                </span>
+                <span className={styles.cloudFiles}>
+                  <span className={styles.cloudFolders} aria-hidden="true">
+                    <i /><i /><i />
+                  </span>
+                  {preview.items.slice(3).map((item) => (
+                    <span className={styles.cloudNote} key={item}>
+                      <i aria-hidden="true" />
+                      <b>{item}</b>
+                      <small aria-hidden="true" />
+                    </span>
+                  ))}
+                  <b className={styles.cloudStatus} data-preview-target={target('secondary')}>
+                    {preview.resultLabel}
+                  </b>
+                </span>
+              </span>
+            ) : null}
           </span>
         </span>
       ) : null}
       {preview.category === 'mail' ? (
         <span className={styles.mailPreview} data-preview-target={target('surface')}>
-          <span className={styles.mailSidebar}>
-            <i />
-            <i />
-            <i />
+          <span className={styles.mailHeader}>
+            <span className={styles.mailBrandMark}>
+              <NetworkSymbol symbolId="campus-email" />
+            </span>
+            <span>
+              <strong>{preview.app}</strong>
+              <small>Postfach</small>
+            </span>
+            <span className={styles.mailHeaderActions} aria-hidden="true">
+              <i />
+              <i />
+              <i />
+            </span>
           </span>
-          <span className={styles.mailList}>
-            <strong>{preview.title}</strong>
-            <span className={styles.mailDetail} data-preview-target={target('result')}>
-              <span className={styles.mailHeading} data-preview-target={target('primary')}>
-                <b>{preview.primaryLabel}</b>
-                <small>{previewContent.projectSender} · an mich</small>
+          <span className={styles.mailDetail} data-preview-target={target('result')}>
+            <span className={styles.mailHeading} data-preview-target={target('primary')}>
+              <small>{preview.title}</small>
+              <b>{preview.primaryLabel}</b>
+            </span>
+            <span className={styles.mailMetadata}>
+              <span>
+                <small>Von</small>
+                <b>{interpolateIdentity(preview.header.from, username, campusEmail)}</b>
               </span>
+              <span>
+                <small>An</small>
+                <b>{interpolateIdentity(preview.header.to, username, campusEmail)}</b>
+              </span>
+              <span>
+                <small>CC</small>
+                <b>{interpolateIdentity(preview.header.cc, username, campusEmail)}</b>
+              </span>
+              <time>{preview.header.sentAt}</time>
+            </span>
+            <span className={styles.mailBody}>
               {preview.items.map((item, index) => (
                 <span
                   key={`${item}-${index}`}
                   data-emphasized={kind === 'reset-link' && index === preview.items.length - 1}
                 >
-                  {interpolateUsername(item, username)}
+                  {interpolateIdentity(item, username, campusEmail)}
                 </span>
               ))}
               <strong
@@ -245,35 +358,114 @@ function VisualPreview({
       ) : null}
       {preview.category === 'social' ? (
         <span className={styles.socialPreview} data-preview-target={target('surface')}>
-          <span className={styles.socialNavigation}>
-            <i />
-            <i />
-            <i />
-          </span>
-          <span className={styles.socialFeed}>
-            <strong>{preview.primaryLabel}</strong>
-            <span className={styles.socialPost} data-preview-target={target('primary')}>
-              <i className={styles.socialAvatar}>{preview.primaryItem.authorInitial}</i>
-              <span>
-                <b>{preview.primaryItem.label}</b>
-                <small>{preview.primaryItem.text}</small>
-              </span>
-            </span>
-            <span className={styles.socialReply} data-preview-target={target('result')}>
-              <i className={styles.socialAvatar}>{preview.replyItem.authorInitial}</i>
-              <span>
-                <b>{interpolateUsername(preview.replyItem.label, username)}</b>
-                <small>{preview.replyItem.text}</small>
-              </span>
-            </span>
-            <span
-              className={styles.socialResult}
-              data-preview-target={target('secondary')}
-              data-kind={kind}
-            >
-              {preview.resultLabel}
+          <span className={styles.socialHeader}>
+            <NetworkSymbol symbolId="campusgram" className={styles.socialBrandMark} />
+            <strong>{preview.app}</strong>
+            <span className={styles.socialHeaderActions}>
+              <i />
+              <i />
+              <i />
             </span>
           </span>
+          {kind === 'direct-messages' ? (
+            <span className={styles.chatShell}>
+              <span className={styles.chatPeer}>
+                <i className={styles.socialAvatar}>{preview.primaryItem.authorInitial}</i>
+                <span>
+                  <b>{preview.primaryItem.label}</b>
+                  <small>{preview.primaryLabel}</small>
+                </span>
+                <i className={styles.chatPeerAction} aria-hidden="true" />
+              </span>
+              <span className={styles.chatThread}>
+                <span className={styles.incomingMessage} data-preview-target={target('primary')}>
+                  <i className={styles.socialAvatar}>{preview.primaryItem.authorInitial}</i>
+                  <span>{preview.primaryItem.text}</span>
+                </span>
+                <span className={styles.chatMedia} data-preview-target={target('secondary')}>
+                  <i aria-hidden="true" />
+                  <b>{preview.resultLabel}</b>
+                </span>
+                <span className={styles.outgoingMessage} data-preview-target={target('result')}>
+                  <small>{interpolateIdentity(preview.replyItem.label, username, campusEmail)}</small>
+                  <span>{preview.replyItem.text}</span>
+                </span>
+              </span>
+              <span className={styles.chatComposer} aria-hidden="true">
+                <i>+</i>
+                <span />
+                <i>♡</i>
+              </span>
+            </span>
+          ) : null}
+          {kind === 'groups-contacts' ? (
+            <span className={styles.groupsPanel}>
+              <span className={styles.socialTitle}>
+                <strong>{preview.title}</strong>
+                <small>{preview.primaryLabel}</small>
+              </span>
+              <span className={styles.contactSearch} aria-hidden="true">
+                <i />
+                <span />
+              </span>
+              <span className={styles.contactList}>
+                <span className={styles.contactRow} data-preview-target={target('primary')}>
+                  <i className={styles.socialAvatar}>{preview.primaryItem.authorInitial}</i>
+                  <span>
+                    <b>{preview.primaryItem.label}</b>
+                    <small>{preview.primaryItem.text}</small>
+                  </span>
+                  <i className={styles.contactChevron} aria-hidden="true" />
+                </span>
+                <span className={styles.contactRow} data-preview-target={target('result')}>
+                  <i className={styles.socialAvatar}>{preview.replyItem.authorInitial}</i>
+                  <span>
+                    <b>{preview.replyItem.label}</b>
+                    <small>{preview.replyItem.text}</small>
+                  </span>
+                  <i className={styles.contactChevron} aria-hidden="true" />
+                </span>
+                <span className={styles.contactPeople} data-preview-target={target('secondary')}>
+                  <span className={styles.contactAvatarStack} aria-hidden="true">
+                    <i>L</i><i>T</i><i>M</i>
+                  </span>
+                  <b>{preview.resultLabel}</b>
+                </span>
+              </span>
+            </span>
+          ) : null}
+          {kind === 'posts-reactions' ? (
+            <span className={styles.postFeed}>
+              <span className={styles.socialTitle}>
+                <strong>{preview.title}</strong>
+                <small>{preview.primaryLabel}</small>
+              </span>
+              <span className={styles.postCard}>
+                <span className={styles.postAuthor}>
+                  <i className={styles.socialAvatar}>{preview.primaryItem.authorInitial}</i>
+                  <b>{preview.primaryItem.label}</b>
+                  <i className={styles.postMenu} aria-hidden="true" />
+                </span>
+                <span className={styles.postContent} data-preview-target={target('primary')}>
+                  <span className={styles.postVisual} aria-hidden="true">
+                    <i />
+                    <span />
+                  </span>
+                  <span className={styles.postActions} aria-hidden="true">
+                    <i>♡</i><i>◯</i><i>↗</i><i>◇</i>
+                  </span>
+                  <b>{preview.primaryItem.text}</b>
+                </span>
+                <span className={styles.postComment} data-preview-target={target('result')}>
+                  <b>{interpolateIdentity(preview.replyItem.label, username, campusEmail)}</b>
+                  <span>{preview.replyItem.text}</span>
+                </span>
+                <small className={styles.postStatus} data-preview-target={target('secondary')}>
+                  {preview.resultLabel}
+                </small>
+              </span>
+            </span>
+          ) : null}
         </span>
       ) : null}
     </div>
@@ -289,6 +481,7 @@ export function S02AccountExplorationTraining({
   onRetryTiming,
   platform = 'mac',
   fictionalUsername = 'benutzername',
+  fictionalCampusEmail = '',
 }: S02AccountExplorationTrainingProps) {
   const characterAnimationAnchorRef = useRef<HTMLSpanElement | null>(null);
   const guideRef = useRef<HTMLDivElement | null>(null);
@@ -398,10 +591,8 @@ export function S02AccountExplorationTraining({
   }, []);
 
   useEffect(() => {
-    if (snapshot?.scene.isComplete || snapshot?.introState === 'complete') {
-      setGuideOpen(true);
-    }
-  }, [snapshot?.introState, snapshot?.scene.isComplete]);
+    if (snapshot?.scene.isComplete) setGuideOpen(true);
+  }, [snapshot?.scene.isComplete]);
 
   useLayoutEffect(() => {
     const cursorKey = cursorKeyRef.current;
@@ -434,6 +625,7 @@ export function S02AccountExplorationTraining({
         .querySelector<HTMLElement>('nav[aria-label="Desktop-Apps"]')
         ?.getBoundingClientRect();
       const margin = 22;
+      const rightInset = 36;
       const availableBottom =
         dockRect === undefined
           ? layoutRect.height - margin
@@ -458,7 +650,7 @@ export function S02AccountExplorationTraining({
           narrow ? 'below' : activeAccountId === 'campusgram' ? 'left' : 'right';
         const anchorCenterX = (previewAnchorBounds.left + previewAnchorBounds.right) / 2;
         const anchorCenterY = (previewAnchorBounds.top + previewAnchorBounds.bottom) / 2;
-        const maxLeft = Math.max(margin, layoutRect.width - previewRect.width - margin);
+        const maxLeft = Math.max(margin, layoutRect.width - previewRect.width - rightInset);
         const maxTop = Math.max(margin, availableBottom - previewRect.height);
         const left = narrow
           ? clampNumber(
@@ -572,6 +764,22 @@ export function S02AccountExplorationTraining({
     activeAccount !== undefined && activePreviewIndex === activeAccount.previewSequence.length - 1;
   const viewedCount = scene.viewedAccountIds.length;
   const complete = scene.isComplete;
+  const activeAccountProgress =
+    activeAccount === undefined
+      ? undefined
+      : scene.accountProgress.find(({ accountId }) => accountId === activeAccount.id);
+  const remainingDetailLabels =
+    activeAccount === undefined
+      ? []
+      : activeAccount.details
+          .filter(({ id }) => !activeAccountProgress?.viewedDetailIds.includes(id))
+          .map(({ label }) => label);
+  const remainingAccountLabels = definition.accounts
+    .filter(({ id }) => !scene.viewedAccountIds.includes(id))
+    .map(({ label }) => label);
+  const resolvedUsername = fictionalUsername.trim() || 'benutzername';
+  const resolvedCampusEmail =
+    fictionalCampusEmail.trim() || `${resolvedUsername}@mail.campus.example`;
   const introAnnouncementActive = scene.activeAccountId === null && viewedCount === 0;
   const introModel =
     introAnnouncementActive &&
@@ -586,9 +794,17 @@ export function S02AccountExplorationTraining({
       : introModel
         ? s02Content.narration.introModelId
         : scene.narrationId;
+  const progressNarration =
+    activeAccount === undefined
+      ? s02Content.narration.remainingAccounts(remainingAccountLabels)
+      : remainingDetailLabels.length > 0
+        ? s02Content.narration.remainingDetails(remainingDetailLabels)
+        : s02Content.narration.finishAccount(activeAccount.label);
   const narration = complete
     ? s02Content.narration.completion(platform)
-    : (s02Content.narration.messages[narrationId] ?? '');
+    : snapshot.introState !== 'complete' || introReady
+      ? (s02Content.narration.messages[narrationId] ?? '')
+      : progressNarration;
   const animationAnnouncement =
     presentation.announcedMessageId === null
       ? ''
@@ -611,8 +827,7 @@ export function S02AccountExplorationTraining({
   const keyVisible =
     !returningToBrowser &&
     snapshot.introState === 'complete' &&
-    scene.activeAccountId === null &&
-    (!guideOpen || awaitingFirstAccount);
+    scene.activeAccountId === null;
 
   function moveCursorKey(event: PointerEvent<HTMLElement>): void {
     if (event.pointerType !== 'touch') {
@@ -664,7 +879,7 @@ export function S02AccountExplorationTraining({
               presentation={presentation}
               onNodeSelect={(nodeId) => {
                 controller.selectNode(nodeId);
-                if (awaitingFirstAccount) setGuideOpen(false);
+                setGuideOpen(false);
               }}
               ariaLabel={s02Content.accessibility.networkLabel}
               canvasAriaLabel={s02Content.accessibility.canvasLabel}
@@ -717,10 +932,15 @@ export function S02AccountExplorationTraining({
               <VisualPreview
                 detailId={activePreview.id}
                 kind={activePreview.preview.kind}
-                username={fictionalUsername}
+                username={resolvedUsername}
+                campusEmail={resolvedCampusEmail}
               />
               <p className={styles.screenReaderOnly}>
-                {previewAccessibleSummary(activePreview.preview.kind, fictionalUsername)}
+                {previewAccessibleSummary(
+                  activePreview.preview.kind,
+                  resolvedUsername,
+                  resolvedCampusEmail,
+                )}
               </p>
               <footer className={styles.previewFooter}>
                 <button
@@ -733,6 +953,7 @@ export function S02AccountExplorationTraining({
                   {activePreviewIsLast
                     ? s02Content.page.previewFinish
                     : s02Content.page.previewNext}
+                  <span aria-hidden="true">{activePreviewIsLast ? '✓' : '→'}</span>
                 </button>
               </footer>
             </section>

@@ -317,8 +317,7 @@ export function S03RetrievalTraining({
   const timingFailure = externalTimingError !== null || localTimingFailure;
   const guidedPhaseOpen =
     assistanceActive ||
-    completionFeedbackActive ||
-    campusgramWarningActive;
+    completionFeedbackActive;
   const guideVisible = guidedPhaseOpen || guideOpen;
   const websiteView =
     result === 'retrievable' || result === 'assisted'
@@ -428,8 +427,9 @@ export function S03RetrievalTraining({
             : 'Dieser Tab ist in der aktuellen Szene nicht freigegeben.',
       ...(campusgramWarningActive && tabAccount.id === 'campusgram'
         ? { status: 'danger' as const }
-        : snapshot.context.retrievalResults[tabAccount.id] === 'retrievable' ||
-            snapshot.context.retrievalResults[tabAccount.id] === 'assisted'
+        : !timeLapsePhaseActive &&
+            (snapshot.context.retrievalResults[tabAccount.id] === 'retrievable' ||
+              snapshot.context.retrievalResults[tabAccount.id] === 'assisted')
           ? { status: 'complete' as const }
           : {}),
     })),
@@ -437,7 +437,7 @@ export function S03RetrievalTraining({
     address: pageAddress,
     accountIdentifier,
     scrollKey: `s03:${account.id}:${websiteView}`,
-    dimmed: guideVisible,
+    dimmed: guideVisible || campusgramWarningActive,
     dimStrength: 'soft',
     ...(incidentTabAvailable
       ? { allowTabInteractionWhenDimmed: true, tabActivation: 'manual' as const }
@@ -511,7 +511,7 @@ export function S03RetrievalTraining({
                   onComplete={() => setSuccessOverlayAccountId(null)}
                 />
               )}
-              {timeLapsePhaseActive ? null : (
+              {timeLapsePhaseActive || campusgramWarningActive ? null : (
                 <PassWoGuide
                   guideName={s03Content.narration.guideName}
                   taskLabel="Anmelden"

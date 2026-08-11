@@ -116,7 +116,7 @@ const emphasisBySpeechId: Readonly<Record<string, readonly PassWoSpeechEmphasis[
   's05-character-mix-types': [{ phrase: 'riskant', tone: 'warning' }],
   's05-character-mix-strategy': [{ phrase: 'Länge', tone: 'accent' }],
   's05-character-mix-takeaway': [
-    { phrase: 'zufällig gewählter Kleinbuchstabe', tone: 'accent' },
+    { phrase: 'zufällig gewählte Kleinbuchstaben', tone: 'accent' },
   ],
   's05-estimate': [
     { phrase: 'welcher Länge', tone: 'accent', contrastId: 'estimate-threshold' },

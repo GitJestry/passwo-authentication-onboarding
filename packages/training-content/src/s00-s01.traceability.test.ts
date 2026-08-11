@@ -65,12 +65,12 @@ describe('S00 to S02 training-content traceability', () => {
   });
 
   it('keeps S02 linked to its named pages and essential account-node structure', () => {
-    expect(S02_CONTENT_VERSION).toBe('5.0.2');
+    expect(S02_CONTENT_VERSION).toBe('5.3.0');
     expect(s02Content.source).toEqual({
       document: 'research/private/training-script.pdf',
       internalPages: [4, 5, 6, 7],
       copyReference:
-        'docs/design/S00-S05-COPY-AUDIT.md#copy--interaktionsdelta-s02-dreistufiger-netzwerkeinstieg-11-august-2026',
+        'docs/design/S00-S05-COPY-AUDIT.md#darstellungsdelta-s02-schnellere-kontoerkundung-11-august-2026',
     });
     expect(s02Content.segment.id).toBe('S02');
     expect(s02Content.scene.accounts.map(({ id }) => id)).toEqual(canonicalAccountIds);
@@ -111,7 +111,16 @@ describe('S00 to S02 training-content traceability', () => {
       'Du kannst dir jedes Konto als Knoten in einem Netzwerk vorstellen. Die Verbindungen zeigen, was dazugehört.',
     );
     expect(s02Content.narration.messages[s02Content.narration.introReadyId]).toBe(
-      'Du musst dir nichts zwingend merken. Wähle einfach einen Kontoknoten aus, den du zuerst erkunden möchtest.',
+      'Du musst dir nichts zwingend merken – manches kommt dir vielleicht aus deinem Alltag bekannt vor. Wähle einen Kontoknoten aus, den du zuerst erkunden möchtest.',
+    );
+    expect(s02Content.narration.remainingDetails(['Bestätigungen', 'Zurücksetzungslinks'])).toBe(
+      'Sieh dir noch Bestätigungen und Zurücksetzungslinks an.',
+    );
+    expect(s02Content.narration.finishAccount('Campus E-Mail')).toBe(
+      'Alles in Campus E-Mail angesehen. Wähle „Fertig“.',
+    );
+    expect(s02Content.narration.remainingAccounts(['Campus E-Mail', 'Campusgram'])).toBe(
+      'Wähle noch Campus E-Mail und Campusgram aus.',
     );
     expect(s02Content.scene.accounts.map(({ previewSequence }) => previewSequence)).toEqual([
       [
@@ -133,9 +142,21 @@ describe('S00 to S02 training-content traceability', () => {
     ]);
     const resetLink = s02Content.previewSimulation.variants['reset-link'];
     expect(resetLink.category).toBe('mail');
-    if (resetLink.category === 'social') throw new Error('missing mail preview');
+    if (resetLink.category !== 'mail') throw new Error('missing mail preview');
     expect(resetLink.items).toContain(
       'Wenn du das nicht angefordert hast, ignoriere diese E-Mail. Dein Passwort bleibt unverändert.',
+    );
+    expect(resetLink.header).toEqual({
+      from: 'Master Campus <konto@campus.example>',
+      to: '{campusEmail}',
+      cc: 'Campus IT-Service <it-service@campus.example>',
+      sentAt: 'Heute, 12:07 Uhr',
+    });
+    const composedMail = s02Content.previewSimulation.variants.compose;
+    expect(composedMail.category).toBe('mail');
+    if (composedMail.category !== 'mail') throw new Error('missing composed mail preview');
+    expect(composedMail.header.to).toBe(
+      'Max Mustermann <max.mustermann@campus.example>',
     );
     const directMessages = s02Content.previewSimulation.variants['direct-messages'];
     expect(directMessages.category).toBe('social');

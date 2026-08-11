@@ -14,14 +14,30 @@ export type S02VisualPreviewKind =
   | 'groups-contacts'
   | 'posts-reactions';
 
+interface S02MailHeader {
+  readonly from: string;
+  readonly to: string;
+  readonly cc: string;
+  readonly sentAt: string;
+}
+
 export type S02VisualPreview =
   | {
       readonly app: string;
       readonly title: string;
-      readonly category: 'login' | 'mail';
+      readonly category: 'login';
       readonly primaryLabel: string;
       readonly items: readonly string[];
       readonly resultLabel: string;
+    }
+  | {
+      readonly app: string;
+      readonly title: string;
+      readonly category: 'mail';
+      readonly primaryLabel: string;
+      readonly items: readonly string[];
+      readonly resultLabel: string;
+      readonly header: S02MailHeader;
     }
   | {
       readonly app: string;
@@ -148,8 +164,6 @@ export interface S02SegmentContent {
   readonly previewSimulation: {
     readonly address: string;
     readonly welcomeLabel: string;
-    readonly projectSender: string;
-    readonly projectMessage: string;
     readonly variants: Readonly<Record<S02VisualPreviewKind, S02VisualPreview>>;
   };
   readonly narration: {
@@ -159,6 +173,9 @@ export interface S02SegmentContent {
     readonly introReadyId: string;
     readonly completeId: string;
     readonly messages: Readonly<Record<string, string>>;
+    readonly remainingDetails: (labels: readonly string[]) => string;
+    readonly finishAccount: (accountLabel: string) => string;
+    readonly remainingAccounts: (labels: readonly string[]) => string;
     readonly completion: (platform: S02DesktopPlatform) => string;
   };
   readonly scene: {
@@ -179,7 +196,12 @@ export interface S02SegmentContent {
 
 export type S02DesktopPlatform = 'mac' | 'linux' | 'windows';
 
-export const S02_CONTENT_VERSION = '5.0.2';
+export const S02_CONTENT_VERSION = '5.3.0';
+
+function formatGermanList(labels: readonly string[]): string {
+  if (labels.length <= 1) return labels[0] ?? '';
+  return `${labels.slice(0, -1).join(', ')} und ${labels.at(-1) ?? ''}`;
+}
 
 const introId = 's02.accounts.intro';
 const introModelId = 's02.accounts.intro-model';
@@ -417,12 +439,12 @@ function unlockAnimation(account: S02AccountContent): S02AnimationSequence {
         pose: 'flight',
         from: 'bottom-left',
         to: 'focused-node',
-        durationMs: 520,
+        durationMs: 347,
       },
-      { type: 'highlight', targetId: account.id, emphasis: 'positive', durationMs: 640 },
+      { type: 'highlight', targetId: account.id, emphasis: 'positive', durationMs: 427 },
     ],
     reducedMotion: { strategy: 'instant-end-state', maxDurationMs: 0 },
-    maxDurationMs: 1160,
+    maxDurationMs: 774,
   };
 }
 
@@ -430,13 +452,13 @@ function revealDetailsAnimation(account: S02AccountContent): S02AnimationSequenc
   return {
     id: account.detailRevealAnimationId,
     steps: account.details.flatMap((detail, index) => [
-      { type: 'reveal' as const, targetId: detail.id, durationMs: 420 },
+      { type: 'reveal' as const, targetId: detail.id, durationMs: 210 },
       ...(index === account.details.length - 1
         ? []
-        : [{ type: 'pause' as const, durationMs: 120 }]),
+        : [{ type: 'pause' as const, durationMs: 60 }]),
     ]),
     reducedMotion: { strategy: 'instant-end-state', maxDurationMs: 0 },
-    maxDurationMs: account.details.length * 540,
+    maxDurationMs: account.details.length * 270,
   };
 }
 
@@ -491,7 +513,7 @@ export const s02Content: S02SegmentContent = {
     document: 'research/private/training-script.pdf',
     internalPages: [4, 5, 6, 7],
     copyReference:
-      'docs/design/S00-S05-COPY-AUDIT.md#copy--interaktionsdelta-s02-dreistufiger-netzwerkeinstieg-11-august-2026',
+      'docs/design/S00-S05-COPY-AUDIT.md#darstellungsdelta-s02-schnellere-kontoerkundung-11-august-2026',
   },
   segment: {
     id: 'S02',
@@ -524,8 +546,6 @@ export const s02Content: S02SegmentContent = {
   previewSimulation: {
     address: 'campus.local',
     welcomeLabel: 'Willkommen bei',
-    projectSender: 'Projektteam',
-    projectMessage: 'Neue Nachricht im Verlauf',
     variants: {
       'campus-workspace': {
         app: 'Campus Workspace',
@@ -556,6 +576,12 @@ export const s02Content: S02SegmentContent = {
         title: 'Benachrichtigungen',
         category: 'mail',
         primaryLabel: 'Terminänderung für deine Campus-Beratung',
+        header: {
+          from: 'Campus Beratung <beratung@campus.example>',
+          to: '{campusEmail}',
+          cc: 'Studierendenservice <service@campus.example>',
+          sentAt: 'Heute, 10:18 Uhr',
+        },
         items: [
           'Campus Beratung',
           'Dein Termin am Donnerstag beginnt um 14:30 Uhr statt um 14:00 Uhr.',
@@ -567,6 +593,12 @@ export const s02Content: S02SegmentContent = {
         title: 'Bestätigungen',
         category: 'mail',
         primaryLabel: 'Bestätige deine Anmeldung',
+        header: {
+          from: 'Campus Veranstaltungen <events@campus.example>',
+          to: '{campusEmail}',
+          cc: 'Veranstaltungsbüro <veranstaltungen@campus.example>',
+          sentAt: 'Heute, 11:42 Uhr',
+        },
         items: ['Fast geschafft …', 'Bestätige deine Anmeldung'],
         resultLabel: 'Ja, ich möchte mich anmelden',
       },
@@ -575,6 +607,12 @@ export const s02Content: S02SegmentContent = {
         title: 'Passwort zurücksetzen',
         category: 'mail',
         primaryLabel: 'Passwort für Master Campus zurücksetzen',
+        header: {
+          from: 'Master Campus <konto@campus.example>',
+          to: '{campusEmail}',
+          cc: 'Campus IT-Service <it-service@campus.example>',
+          sentAt: 'Heute, 12:07 Uhr',
+        },
         items: [
           'Jemand hat das Zurücksetzen deines Passworts für das folgende Konto angefordert:',
           'Dienst: Master Campus',
@@ -588,6 +626,12 @@ export const s02Content: S02SegmentContent = {
         title: 'Neue Nachricht',
         category: 'mail',
         primaryLabel: 'Nachricht schreiben',
+        header: {
+          from: '{campusEmail}',
+          to: 'Max Mustermann <max.mustermann@campus.example>',
+          cc: 'Prüfungsamt <pruefungsamt@campus.example>',
+          sentAt: 'Entwurf · heute, 14:26 Uhr',
+        },
         items: [
           'Sehr geehrter Herr Mustermann,',
           'ich wollte Sie wegen der vertraulichen Unterlagen kontaktieren.',
@@ -661,7 +705,7 @@ export const s02Content: S02SegmentContent = {
       [introModelId]:
         'Du kannst dir jedes Konto als Knoten in einem Netzwerk vorstellen. Die Verbindungen zeigen, was dazugehört.',
       [introReadyId]:
-        'Du musst dir nichts zwingend merken. Wähle einfach einen Kontoknoten aus, den du zuerst erkunden möchtest.',
+        'Du musst dir nichts zwingend merken – manches kommt dir vielleicht aus deinem Alltag bekannt vor. Wähle einen Kontoknoten aus, den du zuerst erkunden möchtest.',
       's02.master-campus':
         'Sieh dir nacheinander an, welche Campusdienste du mit Master Campus öffnest.',
       's02.campus-email':
@@ -669,6 +713,10 @@ export const s02Content: S02SegmentContent = {
       's02.campusgram':
         'Sieh dir nacheinander persönliche Nachrichten, Kontakte und Beiträge an.',
     },
+    remainingDetails: (labels) => `Sieh dir noch ${formatGermanList(labels)} an.`,
+    finishAccount: (accountLabel) =>
+      `Alles in ${accountLabel} angesehen. Wähle „Fertig“.`,
+    remainingAccounts: (labels) => `Wähle noch ${formatGermanList(labels)} aus.`,
     completion: (platform) => {
       switch (platform) {
         case 'mac':

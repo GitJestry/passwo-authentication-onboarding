@@ -71,7 +71,7 @@ export interface S05DesignLabFixture {
   readonly startSection: 'intro' | 'components' | 'structure';
 }
 
-export const S05_CONTENT_VERSION = '2.62.1';
+export const S05_CONTENT_VERSION = '2.72.0';
 
 export const s05Content = {
   version: S05_CONTENT_VERSION,
@@ -81,9 +81,9 @@ export const s05Content = {
       12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34,
       35,
     ] as const,
-    revision: 'Userauftrag vom 2026-08-11 · S05-Vergleichsskala bis 20',
+    revision: 'Userauftrag vom 2026-08-11 · S05-gelbe Modellkugel vergrößert',
     copyReference:
-      'docs/design/S00-S05-COPY-AUDIT.md#copy--darstellungsdelta-s05-vergleichsskala-bis-20-11-august-2026',
+      'docs/design/S00-S05-COPY-AUDIT.md#copy--darstellungsdelta-s05-gelbe-modellkugel-vergrößert-11-august-2026',
   },
   segment: {
     id: 'S05',
@@ -456,7 +456,7 @@ export const s05Content = {
         'Verschiedene Zeichentypen können ein Passwort stärker machen, werden bei selbst gewählten Passwörtern aber oft vorhersehbar eingesetzt.',
         'Darauf zu setzen, mit einer komplizierten Mischung wie „mEin!Pa55w0rt?“ eine Variante zu finden, die der Angreifer nicht prüft, ist deshalb riskant.',
         'Keine Sorge, darauf musst du dich nicht verlassen. Deshalb setzt die aktuelle Empfehlung bei selbstgewählten Passwörtern vor allem auf Länge.',
-        'Um ein Gefühl dafür zu bekommen, welche Mindestlänge für deine selbst gewählten Passwörter empfohlen wird und warum, bleiben zusätzliche Zeichentypen bewusst außen vor: Jede Stelle ist ein zufällig gewählter Kleinbuchstabe.',
+        'Damit du siehst, welche Mindestlänge empfohlen wird und warum, lassen wir zusätzliche Zeichentypen bewusst weg und verwenden nur zufällig gewählte Kleinbuchstaben.',
       ],
     },
     estimate: {
@@ -493,7 +493,7 @@ export const s05Content = {
       ],
       mixedCharacterMeasurement: {
         length: 12,
-        alphabetLabel: 'alle Zeichentypen',
+        alphabetLabel: 'alle Ze1chentypen!',
         durationLabel: 'ca. 615 Jahre',
       },
       interactiveScale: {
@@ -686,9 +686,6 @@ export const s05Content = {
     ['s05-lowercase-clock', 'lowercase-clock', 'info'],
     ['s05-length-model-comparison', 'length-model-comparison', 'info'],
     ['s05-length-orientation', 'length-orientation', 'info'],
-    ['s05-length-word-core', 'length-example-word', 'warning'],
-    ['s05-length-additional-word-question', 'length-example-comparison', 'info'],
-    ['s05-length-practical-outlook', 'passphrase-generator', 'info'],
     ['s05-length-campusgram-transition', 'campusgram-password', 'info'],
     ['s05-free-search-application', 'free-search-application', 'warning'],
     ['s05-summary-components', 'summary-components', 'info'],

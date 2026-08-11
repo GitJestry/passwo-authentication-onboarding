@@ -1156,13 +1156,12 @@
   width: min(100%, 86rem);
   min-height: 100%;
   margin: 0 auto;
-  padding-bottom: clamp(11rem, 22cqb, 14rem);
+  padding-bottom: 0;
 }
 
 .structureApplication .structurePatterns {
   width: 100%;
-  min-height: 0;
-  padding: var(--space-3) 0 var(--space-5);
+  min-height: 100%;
 }
 
 .structureApplication .structurePasswordCheck {
@@ -1446,17 +1445,22 @@
 }
 
 .passwordVariationScene {
+  position: relative;
   gap: var(--space-3);
   justify-items: center;
   color: white;
 }
 
 .finalVariationMarker {
+  position: absolute;
+  bottom: calc(50% + 6rem);
+  left: 50%;
   display: grid;
   justify-items: center;
   gap: var(--space-1);
   color: #ff7f86;
   font-size: var(--font-size-body);
+  transform: translateX(-50%);
 }
 
 .finalVariationMarker img {
@@ -1487,8 +1491,8 @@
 .variationSequence code {
   position: absolute;
   opacity: 0;
-  animation: password-variation-cycle 8s steps(1, end) infinite;
-  animation-delay: calc(var(--variation-index) * 80ms);
+  animation: password-variation-cycle 5.333s steps(1, end) infinite;
+  animation-delay: calc(var(--variation-index) * 53.333ms);
 }
 
 .variationSequence[data-final="true"] code {
@@ -1498,8 +1502,19 @@
   animation: none;
 }
 
-.lengthScaleScene .estimateRuler {
+.lengthScaleScene,
+.estimateScene {
+  position: relative;
+}
+
+.lengthScaleScene .estimateRuler,
+.estimateScene .estimateRuler {
+  position: absolute;
+  top: 50%;
+  left: 50%;
   width: min(90cqi, 62rem);
+  margin: 0;
+  transform: translate(-50%, -50%);
 }
 
 .estimateRuler[data-animate="true"] .estimateTicks {
@@ -1516,8 +1531,7 @@
   width: min(100%, 68rem);
   min-height: 100%;
   margin: 0 auto;
-  padding: clamp(4rem, 12cqb, 8rem) 0 clamp(10rem, 24cqb, 15rem);
-  align-content: center;
+  padding: 0;
 }
 
 .estimateRuler {
@@ -1527,9 +1541,18 @@
 }
 
 .estimateScene .estimateRuler {
-  position: relative;
   z-index: 2;
-  margin-bottom: 0;
+}
+
+.estimateInteraction {
+  position: absolute;
+  z-index: 3;
+  top: calc(50% + clamp(6.75rem, 14cqb, 8rem));
+  left: 50%;
+  display: grid;
+  width: min(90cqi, 62rem);
+  justify-items: stretch;
+  transform: translateX(-50%);
 }
 
 .lowercaseAlphabet {
@@ -1542,38 +1565,29 @@
   text-align: center;
 }
 
+.lowercaseAlphabet[data-hidden="true"] {
+  visibility: hidden;
+}
+
 .lowercaseAlphabetMark {
   display: inline-flex;
   align-items: baseline;
-  gap: 0.08em;
-  font-size: clamp(5rem, 13cqi, 9rem);
+  gap: 0;
+  font-size: clamp(2.25rem, 7cqi, 4.75rem);
   font-weight: var(--font-weight-heavy);
   line-height: 0.85;
-  letter-spacing: -0.09em;
+  letter-spacing: -0.035em;
   text-shadow: 0 0.12em 0.28em rgb(0 0 0 / 34%);
 }
 
-.lowercaseAlphabetMark strong,
-.lowercaseAlphabetMark b,
-.lowercaseAlphabetMark i {
-  font: inherit;
-}
-
-.lowercaseAlphabetMark strong {
-  color: #ff5c64;
-}
-
-.lowercaseAlphabetMark i {
-  color: rgb(245 248 255 / 72%);
-}
-
-.lowercaseAlphabetMark b {
-  color: #65d68d;
+.lowercaseCharacter {
+  color: var(--lowercase-character-color);
+  text-shadow: 0 0 0.55em color-mix(in srgb, var(--lowercase-character-color) 28%, transparent);
 }
 
 .lowercaseAlphabetMarkInline {
   flex: 0 0 auto;
-  gap: 0.08em;
+  gap: 0;
   font-size: 1em;
   line-height: inherit;
   letter-spacing: -0.04em;
@@ -1943,8 +1957,8 @@
 
 .lowercaseScaleScene[data-model-comparison="true"] .scaleSphere[data-comparison-muted="true"],
 .lowercaseScaleScene[data-model-comparison="true"] .scaleTick[data-comparison-muted="true"] {
-  opacity: 0.28;
-  filter: grayscale(0.82) brightness(0.56);
+  opacity: 0.44;
+  filter: grayscale(0.68) brightness(0.72);
 }
 
 .lowercaseScaleScene[data-model-comparison="true"] .scaleSphere[data-active="true"] {
@@ -2250,6 +2264,14 @@
   white-space: normal;
 }
 
+.scaleTimeValueRow {
+  position: relative;
+  display: inline-flex;
+  align-items: flex-start;
+  justify-content: center;
+  column-gap: 0.18em;
+}
+
 .scaleTimeApproximateNumber {
   display: inline-flex;
   align-items: baseline;
@@ -2291,6 +2313,49 @@
   background: rgb(242 193 78 / 14%);
   font-size: clamp(0.42rem, calc(var(--sphere-size) * 0.034), 0.92rem);
   font-weight: var(--font-weight-heavy);
+}
+
+.scaleModelExplanation {
+  position: absolute;
+  z-index: 11;
+  top: var(--scale-y);
+  left: var(--scale-x);
+  display: flex;
+  width: min(15rem, 28cqi);
+  align-items: baseline;
+  justify-content: center;
+  column-gap: 0.28em;
+  flex-wrap: wrap;
+  color: rgb(245 248 255 / 88%);
+  font-size: clamp(0.7rem, 1.2cqi, 1rem);
+  font-weight: var(--font-weight-medium);
+  line-height: var(--line-height-tight);
+  text-align: center;
+  text-shadow: 0 0.15rem 0.65rem rgb(0 0 0 / 92%);
+  transform: translate(-50%, calc(-100% - var(--space-3)));
+  pointer-events: none;
+}
+
+.scaleModelExplanation > .mixedCharacterAlphabet {
+  padding: 0.15em 0.48em;
+  border: 1px solid rgb(255 224 132 / 56%);
+  border-radius: var(--radius-round);
+  color: #ffe084;
+  background: rgb(242 193 78 / 18%);
+  white-space: nowrap;
+}
+
+.scaleModelExplanation > .lowercaseModelAlphabet {
+  padding: 0.15em 0.48em;
+  border: 1px solid rgb(132 225 169 / 56%);
+  border-radius: var(--radius-round);
+  background: rgb(101 214 141 / 14%);
+  white-space: nowrap;
+}
+
+.lowercaseModelAlphabet .lowercaseAlphabetMarkInline {
+  font-weight: var(--font-weight-heavy);
+  letter-spacing: -0.035em;
 }
 
 .scaleTimeBubble[data-previous="true"] .scaleTimeInformation > strong {
@@ -2423,7 +2488,12 @@
   background: transparent;
 }
 
-.lowercasePasswordControl code > mark {
+.lowercasePasswordControl code > .lowercaseCharacter {
+  color: #8792a6;
+  text-shadow: none;
+}
+
+.lowercasePasswordControl code > .lowercaseCharacter[data-added="true"] {
   color: #6aa8ff;
   text-shadow: 0 0 0.7rem rgb(106 168 255 / 34%);
 }
@@ -3813,7 +3883,7 @@
   }
 
   .structureApplication {
-    padding-bottom: 15rem;
+    padding-bottom: 0;
   }
 
   .structureApplication .structurePasswordCheck {
