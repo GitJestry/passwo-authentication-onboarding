@@ -1,5 +1,41 @@
 # S00--S05 Copy and Interaction Audit
 
+## Copy-Delta Studienstart ohne Zusatzinformationen-Hinweis, 11. August 2026
+
+Quelle ist der ausdrückliche Nutzerauftrag vom 11. August 2026. Der Hinweis auf optionale
+Zusatzinformationen entfällt aus der Orientierung vor dem Lernangebot. Der übrige Wortlaut,
+die Schließen-/Wiederaufnehmen-Information und die Startaktion bleiben unverändert.
+
+| Segment und Text-ID | Quelle | Aktueller Text | Geplanter Text | Primäre Rolle | Grund | Bedeutungsänderung | Interaktionsziel | Hervorhebung |
+|---|---|---|---|---|---|---|---|---|
+| Studienstart `ArtifactPreparation` | Nutzerauftrag 2026-08-11 | `Zusatzinformationen kannst du nutzen, wenn du einzelne Inhalte genauer einordnen oder vertiefen möchtest.` | entfällt | Orientierung | ausdrücklich verlangte Straffung des Einleitungstextes | begrenzt | kein | keine |
+
+## Copy- & Interaktionsdelta S05 kompakte Abschlussauswertung, 11. August 2026
+
+Quelle ist der ausdrückliche Nutzerauftrag vom 11. August 2026. Die ausführliche zweiachsige
+Anwendungsfläche und die vier nachfolgenden Zusammenfassungsschritte entfallen. Nach der
+Passwortprüfung erscheint nur noch eine kompakte Auswertung in der bereits vorhandenen
+S05-Zusammenfassungsdarstellung. Sie nennt zuerst den Vollpasswort-Status, darunter ausschließlich
+die für den Treffer verwendeten automatischen Befunde beziehungsweise klar bezeichnete
+Teilbefunde und daneben die kurze, unabhängige Längeninformation. Danach endet S05 direkt; S06
+übernimmt Wiederverwendung und Ähnlichkeit im Kontonetzwerk.
+
+Die Disposition führt dafür flüchtig die IDs der Befunde mit, die den modellierten Volltreffer
+begründen. Diese IDs werden weder persistiert noch exportiert. Die UI filtert nur anhand dieser
+bereits bestimmten Evidenz und enthält keine eigene Bewertungslogik. Die Analysekonfiguration wird
+für den erweiterten lokalen Output von `passwo-bounded-whole-recognition-v9` auf
+`passwo-bounded-whole-recognition-v10` und `S05_CONTENT_VERSION` von `2.73.0` auf `2.74.0`
+erhöht.
+
+| Segment und Text-ID | Quelle | Aktueller Text | Geplanter Text | Primäre Rolle | Grund | Bedeutungsänderung | Interaktionsziel | Hervorhebung |
+|---|---|---|---|---|---|---|---|---|
+| `S05.freeSearch.application.dispositionLabels.*` | Nutzerauftrag 2026-08-11 | ausführliche Volltrefferkarte mit Regel- und Abdeckungserklärung | `Fiktives Campusgram-Passwort gefunden` plus ein kurzer Begründungssatz | Ergebnisfeedback | Ergebnis zuerst und ohne erneute Angriffserklärung zeigen | begrenzt | kein | Ergebnisüberschrift |
+| `S05.freeSearch.application.notFound` | Nutzerauftrag 2026-08-11 | mehrere Gegenkategorien und Abdeckungslegende | `Fiktives Campusgram-Passwort nicht gefunden` plus Hinweis auf fehlende vollständige Abdeckung | Ergebnisfeedback | Gegenkategorie knapp und eindeutig benennen | begrenzt | kein | Ergebnisüberschrift |
+| `S05.freeSearch.application.findings.*` | Nutzerauftrag 2026-08-11 | getrennte Komponenten- und Strukturlisten | `Das wurde erkannt` beziehungsweise `Erkannte Teilbefunde`; mehrere kausale Befunde werden als gemeinsamer Variantenpfad erklärt | Mechanismuserklärung | nur Evidenz zeigen, die das Ergebnis tatsächlich trägt; Teilbefunde nicht als Volltreffer darstellen | ja, Darstellung reduziert | kein | vorhandene Zusammenfassungskarte |
+| `S05.freeSearch.application.lengthOrientationLabels.*` | Nutzerauftrag 2026-08-11 | eigener ausführlicher Ergebnisblock | `unter 15 Zeichen` beziehungsweise `mindestens 15 Zeichen` | Orientierung | Länge als kurze unabhängige Zusatzinformation erhalten | nein | kein | zweite Zusammenfassungskarte |
+| `S05.freeSearch.application.boundary` | Forschungsgrenze und Nutzerauftrag | allgemeine Grenze gegen Crack-Zeit und Sicherheitsurteil | `„Nicht gefunden“ bedeutet nicht, dass das Passwort sicher ist. Die Übung zeigt nur die simulierten Prüfungen.` | Safety Boundary | Nicht-Erkennung darf nicht als Sicherheit verstanden werden | nein | kein | Abschluss unter den Karten |
+| S05-Schritte nach `s05-free-search-application` | Nutzerauftrag 2026-08-11 | vier ausführliche Summary-Schritte | entfallen; `Weiter` beendet S05 unmittelbar | Navigation | Wiederverwendung und Ähnlichkeit beginnen erst in S06 | ja, Ablauf gekürzt | `Weiter` zu S06 | keine |
+
 ## Copy- & Darstellungsdelta S05 Blocklistenartige Volltreffer-Auswertung, 11. August 2026
 
 Quelle ist der ausdrückliche Nutzerauftrag vom 11. August 2026 sowie die technische Grenze aus

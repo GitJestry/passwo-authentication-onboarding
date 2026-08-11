@@ -271,15 +271,16 @@ export interface S06PreparedS07EvaluationFixture {
 const noWholePasswordRecognitionDisposition = {
   kind: 'no-whole-password-recognized',
   lengthOrientation: 'at-least-15',
-  analysisVersion: 'passwo-bounded-whole-recognition-v9',
+  analysisVersion: 'passwo-bounded-whole-recognition-v10',
   explanationId: 's05.disposition.no-whole-password-recognized',
 } as const;
 
 const commonPasswordWholeRecognitionDisposition = {
   kind: 'whole-password-recognized',
   ruleId: 'whole-password-recognized-value',
+  findingIds: ['fixture:common-password'],
   lengthOrientation: 'below-15',
-  analysisVersion: 'passwo-bounded-whole-recognition-v9',
+  analysisVersion: 'passwo-bounded-whole-recognition-v10',
   explanationId: 's05.disposition.whole-password-recognized-value',
 } as const;
 

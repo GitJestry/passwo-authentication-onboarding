@@ -1877,152 +1877,53 @@ function LengthExamplesScene({
 }
 
 function FreeSearchApplicationScene({
-  subject,
   scene,
 }: {
-  readonly subject: S05AnalysisSubject;
   readonly scene: PasswordFreeSearchApplicationSceneSnapshot;
 }) {
   const content = s05Content.freeSearch.application;
-  const recognitionCopy =
+  const resultCopy =
     scene.disposition.kind === 'whole-password-recognized'
       ? content.dispositionLabels[scene.disposition.ruleId]
-      : scene.recognitionState === 'components-recognized'
-        ? content.partialRecognition
-        : content.noRecognition;
-  const lengthCopy = content.lengthOrientationLabels[scene.disposition.lengthOrientation];
+      : content.notFound;
+  const findingLabels = [
+    ...new Set(scene.explanatoryFindings.map(({ kind }) => findingLabel(kind))),
+  ];
+  const hasWholePasswordRecognition = scene.disposition.kind === 'whole-password-recognized';
   return (
     <div
-      className={styles.applicationScene}
+      className={styles.summaryScene}
       data-s05-target="free-search-application"
       aria-label={scene.accessibleSummary}
     >
       <p className={styles.cardLabel}>{content.eyebrow}</p>
-      <h2>{content.title}</h2>
-      <div className={styles.applicationPasswordHeader}>
-        <strong className={`${styles.canonicalAccount} ${styles.applicationAccount}`}>
-          <span aria-hidden="true"><NetworkSymbol symbolId="campusgram" /></span>
-          <span>{s05Content.intro.campusgramPassword.visibleSuffix}</span>
-        </strong>
-        <code
-          className={styles.largePassword}
-          style={passwordVisualStyleFor(subject.fictionalPassword)}
-        >
-          {subject.fictionalPassword}
-        </code>
-      </div>
-
-      <article
-        className={styles.recognitionResult}
-        data-status={scene.recognitionState}
-        aria-labelledby="s05-whole-password-result"
-      >
-        <div className={styles.resultHeadingRow}>
-          <div>
-            <span className={styles.resultStep}>{content.wholePasswordHeading}</span>
-            <h3 id="s05-whole-password-result">{recognitionCopy.title}</h3>
-          </div>
-          <span className={styles.resultStateBadge}>
-            {scene.recognitionState === 'whole-password-recognized'
-              ? content.statusLabels.found
-              : content.statusLabels.notFound}
-          </span>
-        </div>
-        <p>{recognitionCopy.body}</p>
-        <p className={styles.ruleExplanation}>{content.wholePasswordRule}</p>
-
-        <div className={styles.coveragePanel}>
-          <strong>{content.coverage.title}</strong>
-          <div className={styles.coverageTrack} aria-hidden="true">
-            {scene.coverageAreas.map((area) => (
-              <span
-                key={`${area.status}:${area.start}-${area.end}`}
-                data-status={area.status}
-                style={{ flexGrow: Math.max(1, [...area.token].length) }}
-              >
-                {area.token}
-              </span>
-            ))}
-          </div>
-          <div className={styles.coverageLegend}>
-            <span data-status="recognized">{content.coverage.recognized}</span>
-            <span data-status="unexplained">{content.coverage.unexplained}</span>
-          </div>
-        </div>
-
-        <div className={styles.applicationEvidenceGrid}>
-          <div>
-            <strong>{content.evidence.componentFindings}</strong>
-            <span>
-              {scene.componentAnalysis.findings.map(({ kind }) => findingLabel(kind)).join(' · ')}
-            </span>
-          </div>
-          <div>
-            <strong>{content.evidence.structureFindings}</strong>
-            <span>
-              {scene.structureAnalysis.findings
-                .map(({ findingKind }) => structureFindingLabel(findingKind))
-                .join(' · ')}
-            </span>
-          </div>
-        </div>
-      </article>
-
-      <article
-        className={styles.lengthResult}
-        data-status={scene.disposition.lengthOrientation}
-        aria-labelledby="s05-length-result"
-      >
-        <div className={styles.resultHeadingRow}>
-          <div>
-            <span className={styles.resultStep}>{content.lengthHeading}</span>
-            <h3 id="s05-length-result">{lengthCopy.title}</h3>
-          </div>
-          <span className={styles.lengthMetric}>
-            <strong>{scene.visibleLength}</strong>
-            <small>{content.visibleLength}</small>
-          </span>
-        </div>
-        <p>{lengthCopy.body}</p>
-      </article>
-
-      <p className={styles.boundaryCallout}>{content.boundary}</p>
-    </div>
-  );
-}
-
-function SummaryScene({ step }: { readonly step: S05AnalysisControllerSnapshot['step'] }) {
-  const content = s05Content.summary;
-  const activeId =
-    step === 'summary-components'
-      ? 'components'
-      : step === 'summary-structure'
-        ? 'structure'
-        : step === 'summary-free-search'
-          ? 'free-search'
-          : null;
-  return (
-    <div
-      className={styles.summaryScene}
-      data-s05-target={step === 'summary-memory' ? 'summary-memory' : undefined}
-    >
-      <p className={styles.cardLabel}>Zusammenfassung</p>
-      <h2>{content.title}</h2>
-      <p>{content.intro}</p>
+      <h2>{resultCopy.title}</h2>
+      <p>{resultCopy.body}</p>
       <div className={styles.summaryCards}>
-        {content.cards.map((card) => (
-          <article
-            key={card.id}
-            data-s05-target={`summary-${card.id}`}
-            data-active={card.id === activeId}
-          >
-            <h3>{card.title}</h3>
-            <p>{card.body}</p>
-          </article>
-        ))}
+        <article data-active="true">
+          <h3>
+            {hasWholePasswordRecognition
+              ? content.findings.foundHeading
+              : findingLabels.length > 0
+                ? content.findings.partialHeading
+                : content.findings.noneHeading}
+          </h3>
+          <p>{findingLabels.length > 0 ? findingLabels.join(' + ') : content.findings.none}</p>
+          {hasWholePasswordRecognition && findingLabels.length > 1 ? (
+            <p>{content.findings.combinedPath}</p>
+          ) : null}
+        </article>
+        <article>
+          <h3>{content.lengthHeading}</h3>
+          <p>
+            {scene.visibleLength} Zeichen ·{' '}
+            {content.lengthOrientationLabels[scene.disposition.lengthOrientation]}
+          </p>
+        </article>
       </div>
-      <p className={styles.generatedNote}>{content.generatedNote}</p>
-      <p>{content.noScore}</p>
+      {hasWholePasswordRecognition ? null : (
+        <p className={styles.generatedNote}>{content.boundary}</p>
+      )}
     </div>
   );
 }
@@ -2141,14 +2042,7 @@ function renderScene(
         </div>
       );
     case 'free-search-application':
-      return (
-        <FreeSearchApplicationScene subject={subject} scene={snapshot.freeSearchApplicationScene} />
-      );
-    case 'summary-components':
-    case 'summary-structure':
-    case 'summary-free-search':
-    case 'summary-memory':
-      return <SummaryScene step={snapshot.step} />;
+      return <FreeSearchApplicationScene scene={snapshot.freeSearchApplicationScene} />;
     default:
       throw new Error(`Unbekannter S05-Schritt: ${snapshot.step}`);
   }

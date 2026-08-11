@@ -315,6 +315,14 @@ function VisualPreview({
               <i />
               <i />
             </span>
+            {kind === 'compose' ? (
+              <strong
+                className={styles.mailAction}
+                data-preview-target={target('secondary')}
+              >
+                {preview.resultLabel}
+              </strong>
+            ) : null}
           </span>
           <span className={styles.mailDetail} data-preview-target={target('result')}>
             <span className={styles.mailHeading} data-preview-target={target('primary')}>
@@ -345,13 +353,15 @@ function VisualPreview({
                   {interpolateIdentity(item, username, campusEmail)}
                 </span>
               ))}
-              <strong
-                className={styles.mailAction}
-                data-preview-target={target('secondary')}
-                data-link={kind === 'reset-link'}
-              >
-                {preview.resultLabel}
-              </strong>
+              {kind === 'compose' ? null : (
+                <strong
+                  className={styles.mailAction}
+                  data-preview-target={target('secondary')}
+                  data-link={kind === 'reset-link'}
+                >
+                  {preview.resultLabel}
+                </strong>
+              )}
             </span>
           </span>
         </span>

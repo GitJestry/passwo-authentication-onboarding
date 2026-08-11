@@ -163,6 +163,9 @@ solcher Volltreffer belegt wurde. Die Gegenkategorie ist kein `strong`, `secure`
 - `PasswordGuessPathAnalysis` exportiert keine geschätzte Kandidatenzahl mehr; die numerischen
   zxcvbn-Werte können daher nicht versehentlich zur Teilnehmerentscheidung oder zu einem
   Forschungsoutcome werden.
+- Ein Volltreffer führt die IDs seiner kausalen automatischen Befunde ausschließlich im
+  flüchtigen lokalen Dispositionszustand. Die UI darf damit die Begründung filtern, aber keine
+  eigene Trefferlogik ableiten; die IDs werden weder persistiert noch exportiert.
 - Ein synthetischer, versionierter Testkorpus schützt Volltreffer, begrenzte Varianten,
   Teiltreffer, zufällig wirkende Zeichenfolgen, Unicode-Grenzen und die Unabhängigkeit der
   15-Zeichen-Orientierung. Dieser Korpus belegt Reproduzierbarkeit der Trainingslogik, keine

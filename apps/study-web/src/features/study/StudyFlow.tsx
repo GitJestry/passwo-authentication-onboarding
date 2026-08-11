@@ -453,8 +453,6 @@ function ArtifactPreparation({ onStart }: { readonly onStart: () => void }) {
         </p>
         <p>
           Bearbeite die Inhalte aus dieser Perspektive aufmerksam und in deinem eigenen Tempo.
-          Zusatzinformationen kannst du nutzen, wenn du einzelne Inhalte genauer einordnen oder
-          vertiefen möchtest.
         </p>
         <p>
           Du kannst die Studie jederzeit verlassen, indem du den Browser-Tab schließt. Falls du

@@ -101,13 +101,14 @@ function s07Disposition(
 ): LocalPasswordDisposition {
   const base = {
     lengthOrientation: belowLengthOrientation ? 'below-15' : 'at-least-15',
-    analysisVersion: 'passwo-bounded-whole-recognition-v9',
+    analysisVersion: 'passwo-bounded-whole-recognition-v10',
   } as const;
   return wholeRecognition
     ? {
         ...base,
         kind: 'whole-password-recognized',
         ruleId: 'whole-password-recognized-value',
+        findingIds: ['fixture:whole-password'],
         explanationId: 's05.disposition.whole-password-recognized-value',
       }
     : {
@@ -284,7 +285,7 @@ function passwordAnalysisWithFindings(
     findings,
     guessPath: {
       engineId: 'zxcvbn-ts',
-      configurationVersion: 'passwo-bounded-whole-recognition-v9',
+      configurationVersion: 'passwo-bounded-whole-recognition-v10',
       matches: [],
     },
     disclaimerId: 'simulation-not-production-strength',
@@ -610,7 +611,7 @@ describe('local fictional password analysis', () => {
       expect(expectedKinds.some((expectedKind) => actualKinds.includes(expectedKind))).toBe(true);
       expect(result.guessPath).toMatchObject({
         engineId: 'zxcvbn-ts',
-        configurationVersion: 'passwo-bounded-whole-recognition-v9',
+        configurationVersion: 'passwo-bounded-whole-recognition-v10',
       });
       for (const finding of result.findings) {
         expect(finding.id).toMatch(/^single:/u);
@@ -636,7 +637,7 @@ describe('local fictional password analysis', () => {
     expect(disposition).toEqual({
       kind: 'no-whole-password-recognized',
       lengthOrientation: 'at-least-15',
-      analysisVersion: 'passwo-bounded-whole-recognition-v9',
+      analysisVersion: 'passwo-bounded-whole-recognition-v10',
       explanationId: 's05.disposition.no-whole-password-recognized',
     });
   });
@@ -663,7 +664,7 @@ describe('local fictional password analysis', () => {
 
       expect(disposition).toMatchObject({
         kind: 'whole-password-recognized',
-        analysisVersion: 'passwo-bounded-whole-recognition-v9',
+        analysisVersion: 'passwo-bounded-whole-recognition-v10',
       });
     },
   );
@@ -685,6 +686,7 @@ describe('local fictional password analysis', () => {
     ).toMatchObject({
       kind: 'whole-password-recognized',
       ruleId: 'whole-password-recognized-value',
+      findingIds: ['single:account-or-service-term:0-10:0'],
     });
   });
 
@@ -712,6 +714,10 @@ describe('local fictional password analysis', () => {
     ).toMatchObject({
       kind: 'whole-password-recognized',
       ruleId: 'whole-password-recognized-bounded-variant',
+      findingIds: [
+        'single:account-or-service-term:0-10:0',
+        'single:typical-suffix:10-14:1',
+      ],
     });
   });
 
@@ -840,7 +846,7 @@ describe('local fictional password analysis', () => {
         ],
         guessPath: {
           engineId: 'zxcvbn-ts',
-          configurationVersion: 'passwo-bounded-whole-recognition-v9',
+          configurationVersion: 'passwo-bounded-whole-recognition-v10',
           matches: [],
         },
         disclaimerId: 'simulation-not-production-strength',
@@ -886,7 +892,7 @@ describe('local fictional password analysis', () => {
       ],
       guessPath: {
         engineId: 'zxcvbn-ts',
-        configurationVersion: 'passwo-bounded-whole-recognition-v9',
+        configurationVersion: 'passwo-bounded-whole-recognition-v10',
         matches: [],
       },
       disclaimerId: 'simulation-not-production-strength',

@@ -78,11 +78,7 @@ export type S05AnalysisStep =
   | 'length-additional-word-question'
   | 'length-practical-outlook'
   | 'length-campusgram-transition'
-  | 'free-search-application'
-  | 'summary-components'
-  | 'summary-structure'
-  | 'summary-free-search'
-  | 'summary-memory';
+  | 'free-search-application';
 
 export type S05Estimate = (typeof s05Content.freeSearch.estimate.options)[number];
 
@@ -189,10 +185,6 @@ const stepByMissionId: Readonly<Record<string, S05AnalysisStep>> = {
   's05-length-practical-outlook': 'length-practical-outlook',
   's05-length-campusgram-transition': 'length-campusgram-transition',
   's05-free-search-application': 'free-search-application',
-  's05-summary-components': 'summary-components',
-  's05-summary-structure': 'summary-structure',
-  's05-summary-free-search': 'summary-free-search',
-  's05-summary-memory': 'summary-memory',
 };
 
 function initialComponentCards(): S05AnalysisControllerSnapshot['componentStrategy']['cards'] {
@@ -334,7 +326,6 @@ export class S05AnalysisController {
       `s05-free-search-application-${subject.id}`,
       subject.fictionalPassword,
       componentAnalysis,
-      structureAnalysis,
       disposition,
     );
     this.#snapshot = {

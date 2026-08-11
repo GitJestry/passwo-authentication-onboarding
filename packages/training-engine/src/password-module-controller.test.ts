@@ -42,7 +42,7 @@ const evaluationInput: S07RecommendationProjectionInput = {
         disposition: {
           kind: 'no-whole-password-recognized',
           lengthOrientation: 'at-least-15',
-          analysisVersion: 'passwo-bounded-whole-recognition-v9',
+          analysisVersion: 'passwo-bounded-whole-recognition-v10',
           explanationId: 's05.disposition.no-whole-password-recognized',
         },
         retrievalStatus: 'retrievable',
@@ -73,7 +73,7 @@ const recommendationProjection: S07RecommendationProjection = {
         disposition: {
           kind: 'no-whole-password-recognized',
           lengthOrientation: 'at-least-15',
-          analysisVersion: 'passwo-bounded-whole-recognition-v9',
+          analysisVersion: 'passwo-bounded-whole-recognition-v10',
           explanationId: 's05.disposition.no-whole-password-recognized',
         },
         connections: [],

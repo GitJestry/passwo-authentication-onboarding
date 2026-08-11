@@ -60,7 +60,10 @@ function spansWholePassword(span: PasswordEvidenceSpan, fictionalPassword: strin
 function directWholePasswordRecognition(
   fictionalPassword: string,
   findings: readonly PasswordSingleFinding[],
-): SimulationWholePasswordRecognitionRuleId | null {
+): {
+  readonly ruleId: SimulationWholePasswordRecognitionRuleId;
+  readonly findingIds: readonly string[];
+} | null {
   const wholeCandidate = findings.find(
     (finding) =>
       wholeCandidateKinds.has(finding.kind) &&
@@ -68,14 +71,20 @@ function directWholePasswordRecognition(
   );
   if (wholeCandidate === undefined) return null;
 
-  const hasWholeTransformation = findings.some(
+  const transformation = findings.find(
     (finding) =>
       finding.kind === 'typical-transformation' &&
       findingSpans(finding).some((span) => spansWholePassword(span, fictionalPassword)),
   );
-  return hasWholeTransformation
-    ? 'whole-password-recognized-bounded-variant'
-    : 'whole-password-recognized-value';
+  return {
+    ruleId: transformation !== undefined
+      ? 'whole-password-recognized-bounded-variant'
+      : 'whole-password-recognized-value',
+    findingIds:
+      transformation === undefined
+        ? [wholeCandidate.id]
+        : [wholeCandidate.id, transformation.id],
+  };
 }
 
 function exactConnectorEnd(fictionalPassword: string, start: number): number {
@@ -91,44 +100,63 @@ function hasOnlyTypicalTerminalPunctuation(fictionalPassword: string, start: num
 function boundedVariantRecognition(
   fictionalPassword: string,
   findings: readonly PasswordSingleFinding[],
-): SimulationWholePasswordRecognitionRuleId | null {
+): {
+  readonly ruleId: SimulationWholePasswordRecognitionRuleId;
+  readonly findingIds: readonly string[];
+} | null {
   if (fictionalPassword.length === 0) return null;
 
-  const anchors = findings
-    .filter((finding) => boundedVariantAnchorKinds.has(finding.kind))
-    .flatMap((finding) => findingSpans(finding))
-    .filter((span) => span.start === 0 && span.end < fictionalPassword.length);
-  const suffixes = findings
-    .filter((finding) => finding.kind === 'typical-suffix')
-    .flatMap((finding) => findingSpans(finding));
-  const calendarParts = findings
-    .filter((finding) => finding.kind === 'year' || finding.kind === 'date')
-    .flatMap((finding) => findingSpans(finding));
+  const anchors = findings.flatMap((finding) =>
+    boundedVariantAnchorKinds.has(finding.kind)
+      ? findingSpans(finding)
+          .filter((span) => span.start === 0 && span.end < fictionalPassword.length)
+          .map((span) => ({ finding, span }))
+      : [],
+  );
+  const suffixes = findings.flatMap((finding) =>
+    finding.kind === 'typical-suffix'
+      ? findingSpans(finding).map((span) => ({ finding, span }))
+      : [],
+  );
+  const calendarParts = findings.flatMap((finding) =>
+    finding.kind === 'year' || finding.kind === 'date'
+      ? findingSpans(finding).map((span) => ({ finding, span }))
+      : [],
+  );
 
   for (const anchor of anchors) {
-    if (
-      suffixes.some(
-        (suffix) => suffix.start === anchor.end && suffix.end === fictionalPassword.length,
-      )
-    ) {
-      return 'whole-password-recognized-bounded-variant';
+    const terminalSuffix = suffixes.find(
+      ({ span }) =>
+        span.start === anchor.span.end && span.end === fictionalPassword.length,
+    );
+    if (terminalSuffix !== undefined) {
+      return {
+        ruleId: 'whole-password-recognized-bounded-variant',
+        findingIds: [anchor.finding.id, terminalSuffix.finding.id],
+      };
     }
 
-    const calendarStart = exactConnectorEnd(fictionalPassword, anchor.end);
+    const calendarStart = exactConnectorEnd(fictionalPassword, anchor.span.end);
     for (const calendar of calendarParts) {
-      if (calendar.start !== calendarStart) continue;
+      if (calendar.span.start !== calendarStart) continue;
       if (
-        calendar.end === fictionalPassword.length ||
-        hasOnlyTypicalTerminalPunctuation(fictionalPassword, calendar.end)
+        calendar.span.end === fictionalPassword.length ||
+        hasOnlyTypicalTerminalPunctuation(fictionalPassword, calendar.span.end)
       ) {
-        return 'whole-password-recognized-bounded-variant';
+        return {
+          ruleId: 'whole-password-recognized-bounded-variant',
+          findingIds: [anchor.finding.id, calendar.finding.id],
+        };
       }
-      if (
-        suffixes.some(
-          (suffix) => suffix.start === calendar.end && suffix.end === fictionalPassword.length,
-        )
-      ) {
-        return 'whole-password-recognized-bounded-variant';
+      const calendarSuffix = suffixes.find(
+        ({ span }) =>
+          span.start === calendar.span.end && span.end === fictionalPassword.length,
+      );
+      if (calendarSuffix !== undefined) {
+        return {
+          ruleId: 'whole-password-recognized-bounded-variant',
+          findingIds: [anchor.finding.id, calendar.finding.id, calendarSuffix.finding.id],
+        };
       }
     }
   }
@@ -143,16 +171,17 @@ export function determinePasswordSimulationDisposition({
     lengthOrientation: lengthOrientationFor(fictionalPassword),
     analysisVersion: PASSWORD_ANALYSIS_CONFIGURATION_VERSION,
   } as const;
-  const recognitionRule =
+  const recognition =
     directWholePasswordRecognition(fictionalPassword, componentAnalysis.findings) ??
     boundedVariantRecognition(fictionalPassword, componentAnalysis.findings);
 
-  if (recognitionRule !== null) {
+  if (recognition !== null) {
     return {
       ...base,
       kind: 'whole-password-recognized',
-      ruleId: recognitionRule,
-      explanationId: `s05.disposition.${recognitionRule}`,
+      ruleId: recognition.ruleId,
+      findingIds: recognition.findingIds,
+      explanationId: `s05.disposition.${recognition.ruleId}`,
     };
   }
 

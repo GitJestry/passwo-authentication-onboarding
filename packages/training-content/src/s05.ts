@@ -71,7 +71,7 @@ export interface S05DesignLabFixture {
   readonly startSection: 'intro' | 'components' | 'structure';
 }
 
-export const S05_CONTENT_VERSION = '2.73.0';
+export const S05_CONTENT_VERSION = '2.74.0';
 
 export const s05Content = {
   version: S05_CONTENT_VERSION,
@@ -81,10 +81,9 @@ export const s05Content = {
       12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34,
       35,
     ] as const,
-    revision:
-      'Userauftrag vom 2026-08-11 · blocklistenartige Volltreffer-Auswertung und getrennte Längenorientierung',
+    revision: 'Userauftrag vom 2026-08-11 · kompakte didaktische Abschlussauswertung',
     copyReference:
-      'docs/design/S00-S05-COPY-AUDIT.md#copy--darstellungsdelta-s05-blocklistenartige-volltreffer-auswertung-11-august-2026',
+      'docs/design/S00-S05-COPY-AUDIT.md#copy--interaktionsdelta-s05-kompakte-abschlussauswertung-11-august-2026',
   },
   segment: {
     id: 'S05',
@@ -543,22 +542,14 @@ export const s05Content = {
     },
     application: {
       eyebrow: 'Auswertung',
-      title: 'Zwei getrennte Fragen',
-      wholePasswordHeading: '1. Deckt ein früher Kandidat das ganze Passwort ab?',
-      wholePasswordRule:
-        'Für „gefunden“ muss ein einzelner früher Kandidat oder eine begrenzte typische Variante das vollständige fiktive Passwort abdecken.',
-      statusLabels: {
-        found: 'Gefunden',
-        notFound: 'Kein Volltreffer',
-      },
       dispositionLabels: {
         'whole-password-recognized-value': {
-          title: 'Vollständiger Treffer',
-          body: 'Ein einzelner früh geprüfter Kandidat deckt dein ganzes fiktives Passwort ab.',
+          title: 'Fiktives Campusgram-Passwort gefunden',
+          body: 'Ein früher Kandidat deckt das vollständige Passwort ab.',
         },
         'whole-password-recognized-bounded-variant': {
-          title: 'Vollständiger Treffer über typische Variante',
-          body: 'Ein früher Kandidat plus eine begrenzte typische Veränderung deckt dein ganzes fiktives Passwort ab.',
+          title: 'Fiktives Campusgram-Passwort gefunden',
+          body: 'Ein begrenzter typischer Variantenpfad deckt das vollständige Passwort ab.',
         },
       } satisfies Readonly<
         Record<
@@ -566,64 +557,25 @@ export const s05Content = {
           { readonly title: string; readonly body: string }
         >
       >,
-      partialRecognition: {
-        title: 'Bestandteile erkannt, kein Volltreffer',
-        body: 'Erkannte Teile ergeben nicht automatisch ein gefundenes Passwort. Reihenfolge, Verbindung oder weitere Bereiche können weiterhin offen sein.',
+      notFound: {
+        title: 'Fiktives Campusgram-Passwort nicht gefunden',
+        body: 'Kein dargestellter Kandidat oder Variantenpfad deckt das vollständige Passwort ab.',
       },
-      noRecognition: {
-        title: 'Kein Volltreffer in diesen Prüfungen',
-        body: 'Keiner der hier dargestellten frühen Kandidaten deckt das ganze fiktive Passwort ab. Das ist kein Sicherheitsnachweis.',
+      findings: {
+        foundHeading: 'Das wurde erkannt',
+        partialHeading: 'Erkannte Teilbefunde',
+        noneHeading: 'Keine Befunde erkannt',
+        combinedPath: 'Zusammen erklären diese Befunde den vollständigen Treffer.',
+        none: 'Kein passender Befund',
       },
-      coverage: {
-        title: 'Was in den bisherigen Prüfungen sichtbar wurde',
-        recognized: 'früh erkannter Bereich',
-        unexplained: 'hier nicht erklärter Bereich',
-      },
-      evidence: {
-        componentFindings: 'Erkannte Bestandteile',
-        structureFindings: 'Erkannte Zusammenhänge',
-      },
-      lengthHeading: '2. Erreicht das Passwort die Längenorientierung?',
+      lengthHeading: 'Länge',
       lengthOrientationLabels: {
-        'below-15': {
-          title: 'Noch unter 15 Zeichen',
-          body: 'Die Längenorientierung ist noch nicht erreicht. Ein fehlender Volltreffer wird dadurch nicht zu einer positiven Bewertung.',
-        },
-        'at-least-15': {
-          title: 'Mindestens 15 Zeichen erreicht',
-          body: 'Die Längenorientierung ist erfüllt. Sie sagt allein nicht, dass das Passwort unvorhersehbar ist.',
-        },
+        'below-15': 'unter 15 Zeichen',
+        'at-least-15': 'mindestens 15 Zeichen',
       },
-      visibleLength: 'Sichtbare Länge',
       boundary:
-        'Keine Crack-Zeit und kein allgemeines Sicherheitsurteil. Die Übung zeigt nur die hier dargestellten Prüfwege.',
+        '„Nicht gefunden“ bedeutet nicht, dass das Passwort sicher ist. Die Übung zeigt nur die simulierten Prüfungen.',
     },
-  },
-  summary: {
-    title: 'Drei gleichrangige Blickwinkel',
-    intro:
-      'Schaue ein Passwort nicht nur wie eine Checkliste aus Länge, Zahlen und Sonderzeichen an.',
-    cards: [
-      {
-        id: 'components',
-        title: 'Häufig verwendete Passwörter und Zeichenfolgen',
-        body: 'Kein bekannter, persönlicher oder konto-bezogener Kern.',
-      },
-      {
-        id: 'structure',
-        title: 'Vorhersehbarer Aufbau',
-        body: 'Kein leicht vorhersehbarer Aufbau.',
-      },
-      {
-        id: 'free-search',
-        title: 'Freies Ausprobieren',
-        body: 'Mindestens 15 Zeichen für selbst erstellte Passwörter.',
-      },
-    ],
-    generatedNote:
-      'Systemseitig zufällig erzeugte Zeichenfolgen werden nach ihrem Erzeugungsprozess eingeordnet, nicht nach Zeichenarten-Häkchen.',
-    noScore:
-      '„Gefunden“ heißt hier: Ein früher Kandidat oder eine begrenzte typische Variante deckt das ganze Passwort ab. Die 15-Zeichen-Orientierung bleibt davon getrennt.',
   },
   fixtures: [
     {
@@ -726,10 +678,6 @@ export const s05Content = {
     ['s05-length-orientation', 'length-orientation', 'info'],
     ['s05-length-campusgram-transition', 'campusgram-password', 'info'],
     ['s05-free-search-application', 'free-search-application', 'warning'],
-    ['s05-summary-components', 'summary-components', 'info'],
-    ['s05-summary-structure', 'summary-structure', 'info'],
-    ['s05-summary-free-search', 'summary-free-search', 'info'],
-    ['s05-summary-memory', 'summary-memory', 'info'],
   ] as const,
 } as const;
 

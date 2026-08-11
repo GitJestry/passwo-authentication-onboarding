@@ -843,14 +843,9 @@
 }
 
 .visualPreview[data-preview-kind="compose"] .mailAction {
-  position: absolute;
-  z-index: 3;
-  top: 3.15rem;
-  right: 1rem;
-  margin: 0;
+  margin: 0 0 0 0.35rem;
   background: #6e3108;
   box-shadow: 0 0.3rem 0.7rem rgb(70 34 10 / 24%);
-  transform: translateY(-50%);
 }
 
 .socialPreview {

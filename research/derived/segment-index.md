@@ -109,14 +109,16 @@ Seitenangaben beziehen sich auf die im Trainingsdokument ausgewiesene interne Pa
   24 Zeichen trennen einen vorhersehbaren Wortbestandteil, einen zusätzlichen Zeichenanhang und
   zwei Wortbausteine sichtbar voneinander. Sie führen in getrennten Sprechschritten zur bereits
   bestehenden lokalen Campusgram-Auswertung und werden weder analysiert noch persistiert.
-- Die S05-Simulationsdisposition (`S05_CONTENT_VERSION 2.73.0`, Analysekonfiguration
-  `passwo-bounded-whole-recognition-v9`) ist blocklistenartig auf den vollständigen fiktiven Wert
+- Die S05-Simulationsdisposition (`S05_CONTENT_VERSION 2.74.0`, Analysekonfiguration
+  `passwo-bounded-whole-recognition-v10`) ist blocklistenartig auf den vollständigen fiktiven Wert
   begrenzt: `whole-password-recognized` entsteht nur, wenn ein einzelner früher Kandidat oder eine
   begrenzte typische Variante das gesamte Passwort abdeckt. Mehrere Teilbefunde werden nicht zu
-  einem Volltreffer addiert. Die Auswertung visualisiert Volltreffer/Teilbefunde und die
-  15-Zeichen-Orientierung als zwei getrennte Fragen; eine fehlende Vollerkennung bedeutet nicht
-  stark, sicher, zufällig oder unangreifbar. Numerische zxcvbn-Guess-Werte werden weder angezeigt
-  noch für diese Disposition verwendet.
+  einem Volltreffer addiert. Die kompakte Abschlussauswertung nennt zuerst den Vollpasswort-Status,
+  zeigt nur dessen kausale Befunde beziehungsweise klar bezeichnete Teilbefunde und ergänzt die
+  15-Zeichen-Orientierung kurz und getrennt. Danach endet S05 direkt; Wiederverwendung und
+  Ähnlichkeit folgen in S06. Eine fehlende Vollerkennung bedeutet nicht stark, sicher, zufällig
+  oder unangreifbar. Numerische zxcvbn-Guess-Werte werden weder angezeigt noch für diese
+  Disposition verwendet.
 - Die sechs Beispielwörter sind ein festes Demonstrationsbeispiel. Wortliste und produktiver
   Generator bleiben ausschließlich S08 vorbehalten.
 

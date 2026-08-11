@@ -154,6 +154,7 @@ export type LocalPasswordDisposition =
   | (LocalPasswordDispositionBase & {
       readonly kind: 'whole-password-recognized';
       readonly ruleId: SimulationWholePasswordRecognitionRuleId;
+      readonly findingIds: readonly string[];
       readonly explanationId:
         | 's05.disposition.whole-password-recognized-value'
         | 's05.disposition.whole-password-recognized-bounded-variant';

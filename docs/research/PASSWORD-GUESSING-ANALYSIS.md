@@ -70,7 +70,7 @@ Kategorie-Rückmeldung erklären, wird aber nicht als objektiver S06-Befund tran
 | Allgemeines Wörterbuch und Graphen | `@zxcvbn-ts/language-common@4.1.2` |
 | Deutsch | `@zxcvbn-ts/language-de@4.1.1` |
 | Englisch | `@zxcvbn-ts/language-en@4.1.1` |
-| Konfigurations-ID | `passwo-bounded-whole-recognition-v9` |
+| Konfigurations-ID | `passwo-bounded-whole-recognition-v10` |
 | Maximale analysierte Länge | HTML-Eingabelimit 128 UTF-16-Codeeinheiten; zxcvbn `maxLength=128`; Längenorientierung nach Unicode-Codepoints |
 | Levenshtein-Option | zxcvbn-Option deaktiviert; authored Kontextmatch auf höchstens eine begrenzte Abweichung beschränkt |
 | Authored Konto-Kontext | kanonische kontospezifische Kataloge für Master Campus, Campus E-Mail und Campusgram; S05 verwendet den Campusgram-Katalog |
@@ -95,6 +95,11 @@ begrenzt authored Variante muss das **gesamte fiktive Passwort** abdecken, bevor
 segmentübergreifende Disposition `whole-password-recognized` lautet. Teilbefunde dürfen weiterhin
 sichtbar sein, bestimmen die Disposition aber nicht allein. Das ist keine NIST-Konformitäts- oder
 Verifier-Implementierung.
+
+Für die kompakte S05-Abschlussauswertung trägt ein Volltreffer zusätzlich ausschließlich die IDs
+der automatischen Befunde, die diesen Treffer begründen. Sie dienen nur der lokalen
+Darstellungsprojektion, werden nicht persistiert oder exportiert und verändern die Trefferregel
+nicht. Bei Nicht-Erkennung bleiben vorhandene Befunde ausdrücklich als Teilbefunde bezeichnet.
 
 ## Verarbeitung
 
