@@ -168,7 +168,7 @@
 
 .passWoLayer {
   position: absolute;
-  z-index: 5;
+  z-index: 50;
   inset: 0;
   pointer-events: none;
 }
@@ -1923,6 +1923,24 @@
   pointer-events: none;
 }
 
+.lowercaseScaleScene[data-focused="true"]::after {
+  position: absolute;
+  z-index: 2;
+  inset: 0;
+  background: rgb(2 4 10 / 64%);
+  box-shadow: inset 0 0 14rem 7rem #02040a;
+  content: '';
+  pointer-events: none;
+}
+
+.lowercaseScaleScene[data-focused="true"] .lowercaseScaleGraph {
+  z-index: 3;
+}
+
+.lowercaseScaleScene[data-focused="true"] .scaleSphere[data-active="true"] {
+  animation: s05-scale-background-pulse 1.35s ease-in-out infinite;
+}
+
 .lowercaseScaleGraph {
   position: relative;
   z-index: 1;
@@ -2452,6 +2470,72 @@
     border-color: #fff;
     box-shadow: inset 0 0 1rem rgb(255 255 255 / 12%), 0 0 0 0.22rem rgb(255 255 255 / 16%), 0 0 1.6rem rgb(255 255 255 / 58%);
   }
+}
+
+@keyframes s05-scale-background-pulse {
+  0%, 100% {
+    opacity: 0.3;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+.lengthExamplesScene {
+  display: grid;
+  width: min(100%, 76rem);
+  min-height: 100%;
+  margin: 0 auto;
+  align-content: center;
+  justify-items: center;
+  gap: clamp(var(--space-7), 9cqb, 7rem);
+}
+
+.lengthExamplePassword {
+  display: grid;
+  width: fit-content;
+  max-width: 100%;
+  justify-items: center;
+  gap: var(--space-2);
+  color: #f8fbff;
+}
+
+.lengthExamplePassword > div {
+  flex-wrap: nowrap;
+  gap: clamp(0.15rem, 0.5cqi, var(--space-2));
+}
+
+.lengthRay {
+  position: relative;
+  display: block;
+  width: 100%;
+  height: 1px;
+  margin-top: 0;
+  background: rgb(255 255 255 / 88%);
+  box-shadow: 0 0 0.65rem rgb(255 255 255 / 34%);
+}
+
+.lengthRay::before,
+.lengthRay::after {
+  position: absolute;
+  top: -0.28rem;
+  width: 1px;
+  height: 0.56rem;
+  background: inherit;
+  content: '';
+}
+
+.lengthRay::before {
+  left: 0;
+}
+
+.lengthRay::after {
+  right: 0;
+}
+
+.lengthExamplePassword strong {
+  font-size: clamp(var(--font-size-small), 1.5cqi, var(--font-size-body));
+  letter-spacing: var(--letter-spacing-wide);
 }
 
 .generatedPassword span {
@@ -3733,6 +3817,10 @@
   .strategyCandidateScene .attackerConnection,
   .strategyCandidateAttempt,
   .finishScale[data-unlocked="true"] {
+    animation: none;
+  }
+
+  .lowercaseScaleScene[data-focused="true"] .scaleSphere[data-active="true"] {
     animation: none;
   }
 

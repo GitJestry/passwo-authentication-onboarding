@@ -115,11 +115,14 @@ const emphasisBySpeechId: Readonly<Record<string, readonly PassWoSpeechEmphasis[
   's05-character-mix-first': [{ phrase: 'zufällig erzeugten', tone: 'accent' }],
   's05-character-mix-types': [{ phrase: 'riskant', tone: 'warning' }],
   's05-character-mix-strategy': [{ phrase: 'genügend Länge', tone: 'accent' }],
-  's05-character-mix-takeaway': [{ phrase: 'Mindestlänge', tone: 'accent' }],
+  's05-character-mix-takeaway': [
+    { phrase: 'zufällig gewählter Kleinbuchstabe', tone: 'accent' },
+  ],
   's05-estimate': [
     { phrase: 'welcher Länge', tone: 'accent', contrastId: 'estimate-threshold' },
     { phrase: 'zu aufwendig', tone: 'accent', contrastId: 'estimate-threshold' },
   ],
+  's05-length-orientation': [{ phrase: 'mindestens 15 Zeichen', tone: 'accent' }],
 };
 
 export function passWoSpeechEmphasisFor(

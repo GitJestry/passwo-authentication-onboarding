@@ -4,7 +4,7 @@ import { S05_CONTENT_VERSION, s05Content } from './s05.js';
 
 describe('S05 content traceability', () => {
   it('keeps the participant copy bounded and separate from internal terminology', () => {
-    expect(S05_CONTENT_VERSION).toBe('2.57.2');
+    expect(S05_CONTENT_VERSION).toBe('2.60.2');
     expect(s05Content.source).toMatchObject({
       document: 'research/private/training-script.pdf',
       internalPages: [
@@ -12,7 +12,7 @@ describe('S05 content traceability', () => {
         35,
       ],
       copyReference:
-        'docs/design/S00-S05-COPY-AUDIT.md#copy--darstellungsdelta-s05-sprechblasen-präzisiert-10-august-2026',
+        'docs/design/S00-S05-COPY-AUDIT.md#copy-delta-s05-modellannahme-zur-mindestlänge-11-august-2026',
     });
     expect(s05Content.segment.id).toBe('S05');
     expect(s05Content.page.fixtureNotice).toBe(
@@ -256,9 +256,29 @@ describe('S05 content traceability', () => {
     expect(s05Content.freeSearch.characterMix.narration[3]).toBe(
       'Darauf zu setzen, mit einer komplizierten Mischung wie „mEin!Pa55w0rt?“ eine Variante zu finden, die der Angreifer nicht prüft, ist deshalb riskant.',
     );
+    expect(s05Content.freeSearch.characterMix.narration[5]).toBe(
+      'Um ein Gefühl dafür zu bekommen, welche Mindestlänge für deine selbst gewählten Passwörter empfohlen wird und warum, bleiben zusätzliche Zeichentypen bewusst außen vor: Jede Stelle ist ein zufällig gewählter Kleinbuchstabe.',
+    );
+    expect(s05Content.freeSearch.characterMix.narration).toHaveLength(6);
     expect(s05Content.freeSearch.estimate.question).toBe(
       'Was glaubst du: Ab welcher Länge wird es für einen Angreifer zu aufwendig, alle Möglichkeiten durchzuprobieren?',
     );
+    expect(s05Content.freeSearch.lengthExamples).toMatchObject({
+      orientation:
+        'Als Orientierung für deine selbst gewählten Passwörter gilt also: mindestens 15 Zeichen.',
+      wordCore: { password: 'Datensicherheit!', parts: ['Datensicherheit', '!'], length: 16 },
+      extraCharacters: {
+        password: 'Datensicherheit-?KmL',
+        parts: ['Datensicherheit', '-?KmL'],
+        length: 20,
+      },
+      wordExamplesIntroduction:
+        'Kommen wir kurz noch einmal auf Wörter zurück. Diese beiden Passwörter erfüllen die Mindestlänge, bestehen aber jeweils nur aus einem häufigen Wort und ein paar zusätzlichen Zeichen. Dadurch werden sie zu früh geprüften Variationen.',
+      additionalWordQuestion:
+        'Mit mehreren Wörtern erreicht man die Mindestlänge schnell. Aber reicht es, einfach ein weiteres Wort hinzuzunehmen?',
+      practicalOutlook:
+        'Dafür gibt es eine einfache Methode, mit der sich lange und trotzdem gut merkbare Passwörter aus Wörtern bilden lassen. Die probieren wir später selbst aus.',
+    });
     expect(s05Content.freeSearch.estimate.options).toEqual([12, 13, 14, 15, 16, 17, 18, 19, 20]);
     expect(s05Content.freeSearch.theoreticalModel.interactiveScale.minimumOrientation).toBe(
       'Mindeststandard',

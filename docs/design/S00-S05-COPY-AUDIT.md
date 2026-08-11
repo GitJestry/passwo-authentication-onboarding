@@ -1,5 +1,54 @@
 # S00--S05 Copy and Interaction Audit
 
+## Copy- & Darstellungsdelta S05 Wortbeispiele und Passphrasen-Ausblick 11. August 2026
+
+Quelle ist der ausdrückliche Nutzerauftrag vom 11. August 2026. Die drei bisherigen
+Erklärschritte zu Wortkern, zusätzlichen Zeichen und der Frage nach einem weiteren Wort werden
+zu zwei PassWo-Sprechblasen zusammengeführt; beide authored Beispielpasswörter sind dabei sofort
+sichtbar. Die eigene Segmentdarstellung mit Trennwand entfällt zugunsten der bestehenden
+Baustein-Visuals. Der Längenstrahl sitzt direkt darunter und deckt deren vollständige Breite ab.
+`DatensicherheitUnbekannt` entfällt. Der abschließende Ausblick nutzt stattdessen das bereits
+vorhandene Passphrasen-Generator-Visual. Analyse, Persistenz, Export und Campusgram-Auswertung
+bleiben unverändert. Beim Campusgram-Übergang verschwindet das Passphrasen-Visual wieder und
+das lokale fiktive Campusgram-Passwort erscheint. `S05_CONTENT_VERSION` wird nach den ergänzenden
+Nutzeraufträgen vom 11. August 2026 zuletzt von `2.60.1` auf `2.60.2` erhöht.
+
+| Segment und Text-ID | Aktueller Text | Freigegebener Text | Primäre Rolle | Interaktionsziel | Grund und Bedeutungsänderung | Hervorhebung |
+|---|---|---|---|---|---|---|
+| `S05.freeSearch.lengthExamples.orientation` | `Als Orientierung für deine selbst gewählten Passwörter gilt also: mindestens 15 Zeichen.` | unverändert | Kerngedanke | `Weiter` | ausdrücklich verlangte visuelle Markierung; nein | `mindestens 15 Zeichen`, Akzent |
+| `S05.freeSearch.lengthExamples.wordExamplesIntroduction` | `Kommen wir kurz noch auf Wörter zurück. Diese beiden Passwörter erfüllen die Mindestlänge, bestehen aber aus nur einem häufigen Wort und paar zusätzliche Zeichen, was es zu einer früh geprüften Variation macht.` | `Kommen wir kurz noch einmal auf Wörter zurück. Diese beiden Passwörter erfüllen die Mindestlänge, bestehen aber jeweils nur aus einem häufigen Wort und ein paar zusätzlichen Zeichen. Dadurch werden sie zu früh geprüften Variationen.` | Mechanismuserklärung | `Weiter` | ausdrücklich freigegebene sprachliche Präzisierung bei gleichzeitig sichtbaren Beispielen; begrenzt | keine |
+| `S05.freeSearch.lengthExamples.additionalWordQuestion` | `Hilft dann einfach noch ein weiteres Wort?` | `Mit mehreren Wörtern erreicht man die Mindestlänge schnell. Aber reicht es, einfach ein weiteres Wort hinzuzunehmen?` | Orientierung | `Weiter` | ausdrücklich verlangte zweite Sprechblase; ausdrücklich freigegeben | keine |
+| `S05.freeSearch.lengthExamples.practicalOutlook` | zwei getrennte Schritte mit `DatensicherheitUnbekannt` und späterem Ausblick | `Dafür gibt es eine einfache Methode, mit der sich lange und trotzdem gut merkbare Passwörter aus Wörtern bilden lassen. Die probieren wir später selbst aus.` | Navigation | `Weiter` | Beispiel entfernt und auf das sichtbare Passphrasen-Visual bezogen; ausdrücklich freigegeben | keine |
+| `S05.freeSearch.lengthExamples.campusgramTransition` | Wortlaut unverändert; Passphrasen-Visual sichtbar | Wortlaut unverändert; fiktives Campusgram-Passwort sichtbar | Navigation | `Weiter` | sichtbares Ziel an die angekündigte Campusgram-Auswertung angepasst; nein | keine |
+
+## Copy- & Darstellungsdelta S05 Abschluss mit Längenbeispielen 10. August 2026
+
+Quelle ist der ausdrückliche Nutzerauftrag vom 10. August 2026; die narrative Einordnung stammt
+weiterhin aus `research/private/training-script.pdf`, S05.3 auf den internen Seiten 27 bis 35.
+Jeder in Anführungszeichen gesetzte Nutzertext bildet einen eigenen PassWo-Sprechschritt. Nach
+`Ansicht abschließen` verschwindet der Button, das flüchtige Kleinbuchstabenbeispiel wird für die
+Orientierung auf 15 Zeichen gesetzt und die Skala stark abgedunkelt. PassWo bleibt unten links;
+die aktive Kugel pulsiert im Hintergrund. Danach erscheinen auf einer ansonsten leeren Fläche
+drei feste, rein didaktische Beispielpasswörter mit dünnem weißem Längenstrahl. Das erste wird in
+`Datensicherheit` und `!`, das zweite in `Datensicherheit` und `-?KmL` und das dritte in
+`Datensicherheit` und `Unbekannt` geteilt. Die Beispiele werden weder analysiert noch persistiert
+oder exportiert. Die bestehende lokale Campusgram-Auswertung, Segmentgrenze und Timinglogik
+bleiben unverändert. `S05_CONTENT_VERSION` wird von `2.57.4` auf `2.58.0` erhöht.
+
+| Segment und Text-ID | Quelle | Aktueller Text | Geplanter Text | Primäre Rolle | Grund | Bedeutungsänderung | Interaktionsziel | Hervorhebung |
+|---|---|---|---|---|---|---|---|---|
+| `S05.freeSearch.lengthExamples.orientation` | Nutzerauftrag vom 2026-08-10 | nicht vorhanden | `Als Orientierung für deine selbst gewählten Passwörter gilt also: mindestens 15 Zeichen.` | Kerngedanke | ausdrücklich freigegebene Orientierung nach Abschluss der Skala | ausdrücklich freigegeben | `Weiter` | keine; Skala als abgedunkelte visuelle Referenz |
+| `S05.freeSearch.lengthExamples.wordCore.narration` | Nutzerauftrag vom 2026-08-10 | nicht vorhanden | `Das Problem erkennst du jetzt wahrscheinlich schon: Der Wortbestandteil bleibt vorhersehbar, obwohl die Mindestlänge erreicht ist.` | Mechanismuserklärung | zeigt die Grenze einer bloßen Mindestlängenerfüllung am sichtbaren 16-Zeichen-Beispiel | ausdrücklich freigegeben | `Weiter` | keine; Bausteingrenze zusätzlich durch Form und Trennlinie sichtbar |
+| `S05.freeSearch.lengthExamples.extraCharacters.narration` | Nutzerauftrag vom 2026-08-10 | nicht vorhanden | `Auch ein paar zusätzliche Zeichen ändern daran nichts. Der Angreifer kann vom Wortbestandteil ausgehen und passende Varianten dazu prüfen.` | Mechanismuserklärung | ordnet den sichtbaren 20-Zeichen-Anhang als weiterhin ableitbare Variante ein | ausdrücklich freigegeben | `Weiter` | keine; Bausteingrenze zusätzlich durch Form und Trennlinie sichtbar |
+| `S05.freeSearch.lengthExamples.additionalWordQuestion` | Nutzerauftrag vom 2026-08-10 | nicht vorhanden | `Hilft dann einfach noch ein weiteres Wort?` | Orientierung | eigener dramaturgischer Frageschritt bei weiterhin sichtbaren 16- und 20-Zeichen-Beispielen | ausdrücklich freigegeben | `Weiter` | keine |
+| `S05.freeSearch.lengthExamples.wordPair.narration` | Nutzerauftrag vom 2026-08-10 | nicht vorhanden | `Mehrere Wörter können eine gute Grundlage sein. Entscheidend ist, dass sie nicht als bekannte oder naheliegende Formulierung zusammengehören.` | Mechanismuserklärung | begrenzt die positive Einordnung mehrerer Wörter auf nicht naheliegende Zusammenhänge | ausdrücklich freigegeben | `Weiter` | keine; beide Wortbausteine bleiben getrennt erkennbar |
+| `S05.freeSearch.lengthExamples.practicalOutlook` | Nutzerauftrag vom 2026-08-10 | nicht vorhanden | `Wie du lange und trotzdem gut merkbare Passwörter aus Wörtern praktisch bilden kannst, schauen wir uns später an.` | Navigation | verweist auf die spätere praktische Passphrasenbildung, ohne sie in S05 vorwegzunehmen | ausdrücklich freigegeben | `Weiter` | keine |
+| `S05.freeSearch.lengthExamples.campusgramTransition` | Nutzerauftrag vom 2026-08-10 | nicht vorhanden | `Schauen wir jetzt, wie dein Campusgram-Passwort bei diesen Angriffsmöglichkeiten abschneidet.` | Navigation | führt eindeutig in die bereits bestehende lokale Campusgram-Auswertung | ausdrücklich freigegeben | `Weiter` | keine |
+
+Die sichtbaren Passwortbeispiele lauten `Datensicherheit!` mit `16 Zeichen`,
+`Datensicherheit-?KmL` mit `20 Zeichen` und `DatensicherheitUnbekannt` mit `24 Zeichen`.
+Sie sind authored Anschauungsmaterial und keine Produktions-Passwortbewertung.
+
 ## Copy- und Interaktionsdelta S05: Skalenende und Abschlussgrenze, 10. August 2026
 
 Quelle ist der ausdrückliche Nutzerauftrag vom 10. August 2026. Die letzte Skalenmarke wird als
@@ -2020,3 +2069,17 @@ Zeitwerts steht nach `bis alle` die bereits in der Längenschätzung verwendete 
 `a–z`-Darstellung. Danach läuft der bestehende Text mit `Zeichenfolgen der …` in normaler
 Schrift weiter. Der zugängliche Wortlaut, das Berechnungsmodell, die Interaktion, der Ablauf,
 Persistenz, Export und Timing bleiben unverändert; kein Content-Versionssprung ist erforderlich.
+
+### Copy-Delta S05 Modellannahme zur Mindestlänge 11. August 2026
+
+Quelle ist der ausdrückliche Nutzerauftrag vom 11. August 2026. Der einleitende Satz zum
+Vergleich gleicher Längen entfällt. Die verbleibende Mechanismuserklärung bezieht die Empfehlung
+ausdrücklich auf selbst gewählte Passwörter und benennt die bewusst vereinfachte Modellannahme
+unmittelbar. Schätzfrage, Interaktionsziel, Berechnung, Persistenz, Export und Timing bleiben
+unverändert. `S05_CONTENT_VERSION` wird von `2.58.0` auf `2.59.0` erhöht.
+
+| Segment und Text-ID | Quelle | Aktueller Text | Geplanter Text | Primäre Rolle | Grund | Bedeutungsänderung | Interaktionsziel | Hervorhebung |
+|---|---|---|---|---|---|---|---|---|
+| `S05.freeSearch.characterMix.narration[5]` | Nutzerauftrag vom 2026-08-11 | `Die bisherigen Beispiele haben aber auch gezeigt: Gleiche Länge bedeutet nicht automatisch gleiche Sicherheit.` | entfällt | Mechanismuserklärung | ausdrücklich verlangte Entfernung nachweisbarer Redundanz | begrenzt | `Weiter` | keine |
+| `S05.freeSearch.characterMix.narration[6]`, anschließend `[5]` | Nutzerauftrag vom 2026-08-11 | `Um also ein Gefühl dafür zu bekommen, welche Mindestlänge dein Passwort haben sollte, gehen wir von einem Passwort aus, das nur aus zufällig gewählten Kleinbuchstaben besteht.` | `Um ein Gefühl dafür zu bekommen, welche Mindestlänge für deine selbst gewählten Passwörter empfohlen wird und warum, bleiben zusätzliche Zeichentypen bewusst außen vor: Jede Stelle ist ein zufällig gewählter Kleinbuchstabe.` | Mechanismuserklärung | ausdrücklich vorgegebene fachliche Präzisierung und Reduktion kognitiver Last | ausdrücklich freigegeben | `Weiter` | `zufällig gewählter Kleinbuchstabe` in Akzentfarbe |
+| `S05.freeSearch.estimate.question` | Nutzerauftrag vom 2026-08-11 | `Was glaubst du: Ab welcher Länge wird es für einen Angreifer zu aufwendig, alle Möglichkeiten durchzuprobieren?` | unverändert | Navigation | ausdrücklich bestätigter Wortlaut | nein | Schätzskala und `Schätzung bestätigen` | `welcher Länge` und `zu aufwendig` als gekoppelte Hervorhebung |

@@ -72,6 +72,11 @@ export type S05AnalysisStep =
   | 'character-mix-takeaway'
   | 'estimate'
   | 'lowercase-clock'
+  | 'length-orientation'
+  | 'length-word-core'
+  | 'length-additional-word-question'
+  | 'length-practical-outlook'
+  | 'length-campusgram-transition'
   | 'free-search-application'
   | 'summary-components'
   | 'summary-structure'
@@ -176,6 +181,11 @@ const stepByMissionId: Readonly<Record<string, S05AnalysisStep>> = {
   's05-character-mix-takeaway': 'character-mix-takeaway',
   's05-estimate': 'estimate',
   's05-lowercase-clock': 'lowercase-clock',
+  's05-length-orientation': 'length-orientation',
+  's05-length-word-core': 'length-word-core',
+  's05-length-additional-word-question': 'length-additional-word-question',
+  's05-length-practical-outlook': 'length-practical-outlook',
+  's05-length-campusgram-transition': 'length-campusgram-transition',
   's05-free-search-application': 'free-search-application',
   's05-summary-components': 'summary-components',
   's05-summary-structure': 'summary-structure',
@@ -623,6 +633,22 @@ export class S05AnalysisController {
     ) {
       return false;
     }
+    const currentPassword = snapshot.lowercaseScale.password;
+    const orientationPassword =
+      currentPassword.length >= 15
+        ? currentPassword.slice(0, 15)
+        : `${currentPassword}${Array.from(
+            { length: 15 - currentPassword.length },
+            () => this.#createLowercaseCharacter(),
+          ).join('')}`;
+    this.#snapshot = {
+      ...snapshot,
+      lowercaseScale: {
+        ...snapshot.lowercaseScale,
+        password: orientationPassword,
+      },
+    };
+    this.#emit();
     void this.#missionController.continue();
     return true;
   }

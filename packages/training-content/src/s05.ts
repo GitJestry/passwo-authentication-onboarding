@@ -71,7 +71,7 @@ export interface S05DesignLabFixture {
   readonly startSection: 'intro' | 'components' | 'structure';
 }
 
-export const S05_CONTENT_VERSION = '2.57.4';
+export const S05_CONTENT_VERSION = '2.60.2';
 
 export const s05Content = {
   version: S05_CONTENT_VERSION,
@@ -81,9 +81,9 @@ export const s05Content = {
       12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34,
       35,
     ] as const,
-    revision: 'Userauftrag vom 2026-08-10 · S05-Zeitwerte um Längenbezug ergänzt',
+    revision: 'Userauftrag vom 2026-08-11 · S05-Wortbeispiele und Passphrasen-Ausblick',
     copyReference:
-      'docs/design/S00-S05-COPY-AUDIT.md#copy--darstellungsdelta-s05-zeitwerte-mit-längenbezug-10-august-2026',
+      'docs/design/S00-S05-COPY-AUDIT.md#copy--darstellungsdelta-s05-wortbeispiele-und-passphrasen-ausblick-11-august-2026',
   },
   segment: {
     id: 'S05',
@@ -456,8 +456,7 @@ export const s05Content = {
         'Verschiedene Zeichentypen können ein Passwort stärker machen, werden bei selbst gewählten Passwörtern aber oft vorhersehbar eingesetzt.',
         'Darauf zu setzen, mit einer komplizierten Mischung wie „mEin!Pa55w0rt?“ eine Variante zu finden, die der Angreifer nicht prüft, ist deshalb riskant.',
         'Keine Sorge, darauf musst du dich nicht verlassen. Für ein starkes Passwort brauchst du vor allem genügend Länge.',
-        'Die bisherigen Beispiele haben aber auch gezeigt: Gleiche Länge bedeutet nicht automatisch gleiche Sicherheit.',
-        'Um also ein Gefühl dafür zu bekommen, welche Mindestlänge dein Passwort haben sollte, gehen wir von einem Passwort aus, das nur aus zufällig gewählten Kleinbuchstaben besteht.',
+        'Um ein Gefühl dafür zu bekommen, welche Mindestlänge für deine selbst gewählten Passwörter empfohlen wird und warum, bleiben zusätzliche Zeichentypen bewusst außen vor: Jede Stelle ist ein zufällig gewählter Kleinbuchstabe.',
       ],
     },
     estimate: {
@@ -509,6 +508,28 @@ export const s05Content = {
           attemptsPerSecondValue: '1 Billion',
         },
       },
+    },
+    lengthExamples: {
+      orientation:
+        'Als Orientierung für deine selbst gewählten Passwörter gilt also: mindestens 15 Zeichen.',
+      wordCore: {
+        password: 'Datensicherheit!',
+        parts: ['Datensicherheit', '!'],
+        length: 16,
+      },
+      extraCharacters: {
+        password: 'Datensicherheit-?KmL',
+        parts: ['Datensicherheit', '-?KmL'],
+        length: 20,
+      },
+      wordExamplesIntroduction:
+        'Kommen wir kurz noch einmal auf Wörter zurück. Diese beiden Passwörter erfüllen die Mindestlänge, bestehen aber jeweils nur aus einem häufigen Wort und ein paar zusätzlichen Zeichen. Dadurch werden sie zu früh geprüften Variationen.',
+      additionalWordQuestion:
+        'Mit mehreren Wörtern erreicht man die Mindestlänge schnell. Aber reicht es, einfach ein weiteres Wort hinzuzunehmen?',
+      practicalOutlook:
+        'Dafür gibt es eine einfache Methode, mit der sich lange und trotzdem gut merkbare Passwörter aus Wörtern bilden lassen. Die probieren wir später selbst aus.',
+      campusgramTransition:
+        'Schauen wir jetzt, wie dein Campusgram-Passwort bei diesen Angriffsmöglichkeiten abschneidet.',
     },
     application: {
       title: 'Was die Übung beim fiktiven Passwort zeigt',
@@ -654,6 +675,11 @@ export const s05Content = {
     ['s05-character-mix-takeaway', 'character-mix', 'info'],
     ['s05-estimate', 'estimate', 'info'],
     ['s05-lowercase-clock', 'lowercase-clock', 'info'],
+    ['s05-length-orientation', 'length-orientation', 'info'],
+    ['s05-length-word-core', 'length-example-word', 'warning'],
+    ['s05-length-additional-word-question', 'length-example-comparison', 'info'],
+    ['s05-length-practical-outlook', 'passphrase-generator', 'info'],
+    ['s05-length-campusgram-transition', 'campusgram-password', 'info'],
     ['s05-free-search-application', 'free-search-application', 'warning'],
     ['s05-summary-components', 'summary-components', 'info'],
     ['s05-summary-structure', 'summary-structure', 'info'],

@@ -1403,9 +1403,11 @@ function ScaleTimeInformation({
 function LowercaseClockScene({
   snapshot,
   controller,
+  focused = false,
 }: {
   readonly snapshot: S05AnalysisControllerSnapshot;
   readonly controller: S05AnalysisController;
+  readonly focused?: boolean;
 }) {
   const content = s05Content.freeSearch.theoreticalModel;
   const scaleContent = content.interactiveScale;
@@ -1467,10 +1469,11 @@ function LowercaseClockScene({
   return (
     <div
       className={styles.lowercaseScaleScene}
-      data-s05-target="lowercase-clock"
+      data-s05-target={focused ? 'length-orientation' : 'lowercase-clock'}
+      data-focused={focused || undefined}
       aria-label={scaleContent.accessibleLabel}
     >
-      <ScaleInformationControl length={currentLength} />
+      {focused ? null : <ScaleInformationControl length={currentLength} />}
       <div className={styles.lowercaseScaleGraph} ref={graphRef}>
         <div
           className={styles.lowercaseScaleAxis}
@@ -1540,48 +1543,107 @@ function LowercaseClockScene({
           );
         })}
       </div>
-      <footer className={styles.lowercaseScaleControls}>
-        <div className={styles.lowercasePasswordControl}>
-          <div className={styles.lowercasePasswordField}>
-            <code aria-label={`${currentLength} zufällig erzeugte Kleinbuchstaben`}>
-              <span>{snapshot.lowercaseScale.password.slice(0, LOWERCASE_SCALE_VISIBLE_MINIMUM_LENGTH)}</span>
-              <mark>{snapshot.lowercaseScale.password.slice(LOWERCASE_SCALE_VISIBLE_MINIMUM_LENGTH)}</mark>
-            </code>
-            <div className={styles.lowercasePasswordButtons}>
-              <button
-                type="button"
-                aria-label={scaleContent.removeCharacter}
-                disabled={currentLength === LOWERCASE_SCALE_VISIBLE_MINIMUM_LENGTH}
-                onClick={() => controller.removeLowercaseCharacter()}
-              >−</button>
-              <button
-                type="button"
-                aria-label={scaleContent.addCharacter}
-                disabled={currentLength === LOWERCASE_SCALE_MAXIMUM_LENGTH}
-                onClick={() => controller.addLowercaseCharacter()}
-              >+</button>
+      {focused ? null : (
+        <footer className={styles.lowercaseScaleControls}>
+          <div className={styles.lowercasePasswordControl}>
+            <div className={styles.lowercasePasswordField}>
+              <code aria-label={`${currentLength} zufällig erzeugte Kleinbuchstaben`}>
+                <span>{snapshot.lowercaseScale.password.slice(0, LOWERCASE_SCALE_VISIBLE_MINIMUM_LENGTH)}</span>
+                <mark>{snapshot.lowercaseScale.password.slice(LOWERCASE_SCALE_VISIBLE_MINIMUM_LENGTH)}</mark>
+              </code>
+              <div className={styles.lowercasePasswordButtons}>
+                <button
+                  type="button"
+                  aria-label={scaleContent.removeCharacter}
+                  disabled={currentLength === LOWERCASE_SCALE_VISIBLE_MINIMUM_LENGTH}
+                  onClick={() => controller.removeLowercaseCharacter()}
+                >−</button>
+                <button
+                  type="button"
+                  aria-label={scaleContent.addCharacter}
+                  disabled={currentLength === LOWERCASE_SCALE_MAXIMUM_LENGTH}
+                  onClick={() => controller.addLowercaseCharacter()}
+                >+</button>
+              </div>
             </div>
           </div>
-        </div>
-        <aside className={styles.scaleCompletionControl}>
-          <button
-            className={styles.finishScale}
-            data-unlocked={snapshot.lowercaseScale.reachedSixteen || undefined}
-            type="button"
-            aria-describedby={snapshot.lowercaseScale.reachedSixteen ? undefined : 's05-scale-completion-hint'}
-            aria-disabled={!snapshot.lowercaseScale.reachedSixteen || undefined}
-            onClick={attemptFinish}
-          >
-            {!snapshot.lowercaseScale.reachedSixteen ? <img src={scaleWarningAsset} alt="" /> : null}
-            {scaleContent.finish}
-          </button>
-          {snapshot.lowercaseScale.reachedSixteen ? null : (
-            <span className={styles.scaleCompletionHint} id="s05-scale-completion-hint" role="tooltip">
-              {scaleContent.lockedHint}
-            </span>
-          )}
-        </aside>
-      </footer>
+          <aside className={styles.scaleCompletionControl}>
+            <button
+              className={styles.finishScale}
+              data-unlocked={snapshot.lowercaseScale.reachedSixteen || undefined}
+              type="button"
+              aria-describedby={snapshot.lowercaseScale.reachedSixteen ? undefined : 's05-scale-completion-hint'}
+              aria-disabled={!snapshot.lowercaseScale.reachedSixteen || undefined}
+              onClick={attemptFinish}
+            >
+              {!snapshot.lowercaseScale.reachedSixteen ? <img src={scaleWarningAsset} alt="" /> : null}
+              {scaleContent.finish}
+            </button>
+            {snapshot.lowercaseScale.reachedSixteen ? null : (
+              <span className={styles.scaleCompletionHint} id="s05-scale-completion-hint" role="tooltip">
+                {scaleContent.lockedHint}
+              </span>
+            )}
+          </aside>
+        </footer>
+      )}
+    </div>
+  );
+}
+
+type LengthExample = (typeof s05Content.freeSearch.lengthExamples)[
+  'wordCore' | 'extraCharacters'
+];
+
+function LengthExamplePassword({
+  example,
+  targetId,
+}: {
+  readonly example: LengthExample;
+  readonly targetId: string;
+}) {
+  return (
+    <article
+      className={styles.lengthExamplePassword}
+      data-s05-target={targetId}
+      aria-label={`${example.password}, ${example.length} Zeichen`}
+    >
+      <PasswordBuildingBlocks
+        value={example.password}
+        parts={example.parts}
+        display="separated"
+        animate={false}
+        ariaLabel=""
+      />
+      <span className={styles.lengthRay} aria-hidden="true" />
+      <strong>{example.length} Zeichen</strong>
+    </article>
+  );
+}
+
+function LengthExamplesScene({
+  step,
+}: {
+  readonly step: S05AnalysisControllerSnapshot['step'];
+}) {
+  const examples = s05Content.freeSearch.lengthExamples;
+  const showsWordExamples =
+    step === 'length-word-core' || step === 'length-additional-word-question';
+
+  return (
+    <div
+      className={styles.lengthExamplesScene}
+      data-s05-target={showsWordExamples ? 'length-example-comparison' : undefined}
+    >
+      {showsWordExamples ? (
+        <LengthExamplePassword example={examples.wordCore} targetId="length-example-word" />
+      ) : null}
+      {showsWordExamples ? (
+        <LengthExamplePassword
+          example={examples.extraCharacters}
+          targetId="length-example-suffix"
+        />
+      ) : null}
     </div>
   );
 }
@@ -1790,6 +1852,19 @@ function renderScene(
           controller={controller}
         />
       );
+    case 'length-orientation':
+      return <LowercaseClockScene snapshot={snapshot} controller={controller} focused />;
+    case 'length-word-core':
+    case 'length-additional-word-question':
+      return <LengthExamplesScene step={snapshot.step} />;
+    case 'length-practical-outlook':
+      return <SavedPassphraseGeneratorScene />;
+    case 'length-campusgram-transition':
+      return (
+        <div className={styles.recognizableStage} data-s05-target="campusgram-password">
+          <CampusgramPassword password={subject.fictionalPassword} />
+        </div>
+      );
     case 'free-search-application':
       return (
         <FreeSearchApplicationScene subject={subject} scene={snapshot.freeSearchApplicationScene} />
@@ -1997,14 +2072,21 @@ function speechFor(
     case 'character-mix-strategy':
       return [s05Content.freeSearch.characterMix.narration[4]];
     case 'character-mix-takeaway':
-      return [
-        s05Content.freeSearch.characterMix.narration[5],
-        s05Content.freeSearch.characterMix.narration[6],
-      ];
+      return [s05Content.freeSearch.characterMix.narration[5]];
     case 'estimate':
       return [s05Content.freeSearch.estimate.question];
     case 'lowercase-clock':
       return null;
+    case 'length-orientation':
+      return [s05Content.freeSearch.lengthExamples.orientation];
+    case 'length-word-core':
+      return [s05Content.freeSearch.lengthExamples.wordExamplesIntroduction];
+    case 'length-additional-word-question':
+      return [s05Content.freeSearch.lengthExamples.additionalWordQuestion];
+    case 'length-practical-outlook':
+      return [s05Content.freeSearch.lengthExamples.practicalOutlook];
+    case 'length-campusgram-transition':
+      return [s05Content.freeSearch.lengthExamples.campusgramTransition];
     default:
       return null;
   }

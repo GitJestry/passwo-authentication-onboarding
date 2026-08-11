@@ -83,6 +83,11 @@ Seitenangaben beziehen sich auf die im Trainingsdokument ausgewiesene interne Pa
   umfasst 12 bis 20 Kleinbuchstaben; ihre Messlatte bleibt in der folgenden Auswertung sichtbar.
   Kandidatenzahlen bleiben exakte Ganzzahlen; für das fiktive Passwort werden keine Zeit,
   effektive Länge, Entropie oder Gesamtstärke berechnet.
+- Nach Abschluss der Kleinbuchstaben-Skala bleibt die 15-Zeichen-Orientierung als stark
+  abgedunkelte Referenz mit PassWo unten links sichtbar. Drei authored Beispiele mit 16, 20 und
+  24 Zeichen trennen einen vorhersehbaren Wortbestandteil, einen zusätzlichen Zeichenanhang und
+  zwei Wortbausteine sichtbar voneinander. Sie führen in getrennten Sprechschritten zur bereits
+  bestehenden lokalen Campusgram-Auswertung und werden weder analysiert noch persistiert.
 - Die Simulationsdisposition benennt entweder eine konkrete erkannte Regel als schnelleren Weg
   oder ausschließlich: „Mit den begrenzten Wegen dieser Simulation wurde kein schnellerer Weg
   erkannt.“ Der zweite Befund bedeutet nicht stark, sicher, zufällig oder unangreifbar.
