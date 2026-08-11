@@ -3,7 +3,7 @@ import type {
   DesignLabScenarioId,
   PasswordSingleFindingKind,
   RuntimeStructureFindingKind,
-  SimulationQuickPathRuleId,
+  SimulationWholePasswordRecognitionRuleId,
 } from '@passwo/contracts';
 import { accountContextTerms } from './account-context-terms.js';
 
@@ -71,7 +71,7 @@ export interface S05DesignLabFixture {
   readonly startSection: 'intro' | 'components' | 'structure';
 }
 
-export const S05_CONTENT_VERSION = '2.72.0';
+export const S05_CONTENT_VERSION = '2.73.0';
 
 export const s05Content = {
   version: S05_CONTENT_VERSION,
@@ -81,9 +81,10 @@ export const s05Content = {
       12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34,
       35,
     ] as const,
-    revision: 'Userauftrag vom 2026-08-11 · S05-gelbe Modellkugel vergrößert',
+    revision:
+      'Userauftrag vom 2026-08-11 · blocklistenartige Volltreffer-Auswertung und getrennte Längenorientierung',
     copyReference:
-      'docs/design/S00-S05-COPY-AUDIT.md#copy--darstellungsdelta-s05-gelbe-modellkugel-vergrößert-11-august-2026',
+      'docs/design/S00-S05-COPY-AUDIT.md#copy--darstellungsdelta-s05-blocklistenartige-volltreffer-auswertung-11-august-2026',
   },
   segment: {
     id: 'S05',
@@ -541,24 +542,61 @@ export const s05Content = {
         'Schauen wir jetzt, wie dein Campusgram-Passwort bei diesen Angriffsmöglichkeiten abschneidet.',
     },
     application: {
-      title: 'Was die Übung beim fiktiven Passwort zeigt',
-      visibleLength: 'Sichtbare Länge',
-      componentFindings: 'Erkannte Bestandteile',
-      structureFindings: 'Erkannte Zusammenhänge',
-      unexplainedAreas: 'Bereiche ohne erkannte einfachere Erklärung',
-      noUnexplainedArea: 'Kein weiterer Bereich',
-      boundary: 'Die Übersicht zeigt keine Crack-Zeit und keine Sicherheitsgarantie.',
-      dispositionLabels: {
-        'bounded-complete-guess-path':
-          'Die erkannten Hinweise ergeben zusammen einen entsprechend kurzen vollständigen Prüfweg.',
-      } satisfies Readonly<Record<SimulationQuickPathRuleId, string>>,
-      noQuickPath:
-        'Die erkannten Hinweise ergaben in dieser begrenzten Analyse keinen entsprechend kurzen vollständigen Prüfweg.',
-      noQuickPathBoundary: 'Das bedeutet nicht stark, sicher, zufällig oder unangreifbar.',
-      lengthOrientationLabels: {
-        'below-15': 'unter der 15-Zeichen-Orientierung für selbst erstellte Passwörter',
-        'at-least-15': 'mindestens 15 sichtbare Zeichen',
+      eyebrow: 'Auswertung',
+      title: 'Zwei getrennte Fragen',
+      wholePasswordHeading: '1. Deckt ein früher Kandidat das ganze Passwort ab?',
+      wholePasswordRule:
+        'Für „gefunden“ muss ein einzelner früher Kandidat oder eine begrenzte typische Variante das vollständige fiktive Passwort abdecken.',
+      statusLabels: {
+        found: 'Gefunden',
+        notFound: 'Kein Volltreffer',
       },
+      dispositionLabels: {
+        'whole-password-recognized-value': {
+          title: 'Vollständiger Treffer',
+          body: 'Ein einzelner früh geprüfter Kandidat deckt dein ganzes fiktives Passwort ab.',
+        },
+        'whole-password-recognized-bounded-variant': {
+          title: 'Vollständiger Treffer über typische Variante',
+          body: 'Ein früher Kandidat plus eine begrenzte typische Veränderung deckt dein ganzes fiktives Passwort ab.',
+        },
+      } satisfies Readonly<
+        Record<
+          SimulationWholePasswordRecognitionRuleId,
+          { readonly title: string; readonly body: string }
+        >
+      >,
+      partialRecognition: {
+        title: 'Bestandteile erkannt, kein Volltreffer',
+        body: 'Erkannte Teile ergeben nicht automatisch ein gefundenes Passwort. Reihenfolge, Verbindung oder weitere Bereiche können weiterhin offen sein.',
+      },
+      noRecognition: {
+        title: 'Kein Volltreffer in diesen Prüfungen',
+        body: 'Keiner der hier dargestellten frühen Kandidaten deckt das ganze fiktive Passwort ab. Das ist kein Sicherheitsnachweis.',
+      },
+      coverage: {
+        title: 'Was in den bisherigen Prüfungen sichtbar wurde',
+        recognized: 'früh erkannter Bereich',
+        unexplained: 'hier nicht erklärter Bereich',
+      },
+      evidence: {
+        componentFindings: 'Erkannte Bestandteile',
+        structureFindings: 'Erkannte Zusammenhänge',
+      },
+      lengthHeading: '2. Erreicht das Passwort die Längenorientierung?',
+      lengthOrientationLabels: {
+        'below-15': {
+          title: 'Noch unter 15 Zeichen',
+          body: 'Die Längenorientierung ist noch nicht erreicht. Ein fehlender Volltreffer wird dadurch nicht zu einer positiven Bewertung.',
+        },
+        'at-least-15': {
+          title: 'Mindestens 15 Zeichen erreicht',
+          body: 'Die Längenorientierung ist erfüllt. Sie sagt allein nicht, dass das Passwort unvorhersehbar ist.',
+        },
+      },
+      visibleLength: 'Sichtbare Länge',
+      boundary:
+        'Keine Crack-Zeit und kein allgemeines Sicherheitsurteil. Die Übung zeigt nur die hier dargestellten Prüfwege.',
     },
   },
   summary: {
@@ -585,7 +623,7 @@ export const s05Content = {
     generatedNote:
       'Systemseitig zufällig erzeugte Zeichenfolgen werden nach ihrem Erzeugungsprozess eingeordnet, nicht nach Zeichenarten-Häkchen.',
     noScore:
-      'Der Angreifer kombiniert die drei Blickwinkel zu vollständigen Kandidatenwegen. Die 15-Zeichen-Orientierung bleibt davon getrennt.',
+      '„Gefunden“ heißt hier: Ein früher Kandidat oder eine begrenzte typische Variante deckt das ganze Passwort ab. Die 15-Zeichen-Orientierung bleibt davon getrennt.',
   },
   fixtures: [
     {

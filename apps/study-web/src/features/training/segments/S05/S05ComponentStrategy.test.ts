@@ -19,8 +19,6 @@ function analysisWithFindings(findings: readonly PasswordSingleFinding[]): Passw
     guessPath: {
       engineId: 'zxcvbn-ts',
       configurationVersion: 'test-only',
-      estimatedGuesses: 1,
-      estimatedGuessesLog10: 0,
       matches: [],
     },
     disclaimerId: 'simulation-not-production-strength',

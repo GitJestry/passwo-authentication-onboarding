@@ -40,12 +40,10 @@ const evaluationInput: S07RecommendationProjectionInput = {
       ({
         accountId,
         disposition: {
-          kind: 'no-quick-path-recognized',
-          estimatedGuesses: 1_000_000,
-          quickPathThreshold: 100_000,
+          kind: 'no-whole-password-recognized',
           lengthOrientation: 'at-least-15',
-          analysisVersion: 'passwo-bounded-guess-path-v2',
-          explanationId: 's05.disposition.no-quick-path-recognized',
+          analysisVersion: 'passwo-bounded-whole-recognition-v9',
+          explanationId: 's05.disposition.no-whole-password-recognized',
         },
         retrievalStatus: 'retrievable',
       }) as const,
@@ -73,12 +71,10 @@ const recommendationProjection: S07RecommendationProjection = {
       ({
         accountId,
         disposition: {
-          kind: 'no-quick-path-recognized',
-          estimatedGuesses: 1_000_000,
-          quickPathThreshold: 100_000,
+          kind: 'no-whole-password-recognized',
           lengthOrientation: 'at-least-15',
-          analysisVersion: 'passwo-bounded-guess-path-v2',
-          explanationId: 's05.disposition.no-quick-path-recognized',
+          analysisVersion: 'passwo-bounded-whole-recognition-v9',
+          explanationId: 's05.disposition.no-whole-password-recognized',
         },
         connections: [],
         incidentStatus: accountId === 'campusgram' ? 'source-of-incident' : 'not-reached',
@@ -87,7 +83,7 @@ const recommendationProjection: S07RecommendationProjection = {
       }) as const,
   ),
   summary: {
-    noQuickPathCount: 3,
+    noWholePasswordRecognitionCount: 3,
     noPasswordConnectionCount: 3,
     rememberedCount: 3,
     problemClasses: [],

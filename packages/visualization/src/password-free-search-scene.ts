@@ -20,13 +20,25 @@ export interface PasswordFreeSearchDemonstrationSceneSnapshot {
   readonly accessibleSummary: string;
 }
 
+export type PasswordApplicationRecognitionState =
+  | 'whole-password-recognized'
+  | 'components-recognized'
+  | 'no-component-recognized';
+
+export interface PasswordApplicationCoverageArea extends PasswordEvidenceSpan {
+  readonly status: 'recognized' | 'unexplained';
+}
+
 export interface PasswordFreeSearchApplicationSceneSnapshot {
   readonly id: string;
   readonly visibleLength: number;
   readonly componentAnalysis: PasswordAnalysisResult;
   readonly structureAnalysis: PasswordStructureAnalysisResult;
   readonly disposition: PasswordSimulationDisposition;
+  readonly recognitionState: PasswordApplicationRecognitionState;
+  readonly recognizedAreas: readonly PasswordEvidenceSpan[];
   readonly areasWithoutRecognizedSimplerExplanation: readonly PasswordEvidenceSpan[];
+  readonly coverageAreas: readonly PasswordApplicationCoverageArea[];
   readonly accessibleSummary: string;
 }
 
@@ -91,6 +103,16 @@ function unexplainedSpans(
   return spans;
 }
 
+function coverageAreas(
+  recognizedAreas: readonly PasswordEvidenceSpan[],
+  unexplainedAreas: readonly PasswordEvidenceSpan[],
+): readonly PasswordApplicationCoverageArea[] {
+  return [
+    ...recognizedAreas.map((span) => ({ ...span, status: 'recognized' as const })),
+    ...unexplainedAreas.map((span) => ({ ...span, status: 'unexplained' as const })),
+  ].sort((left, right) => left.start - right.start || left.end - right.end);
+}
+
 export function createPasswordFreeSearchDemonstrationScene({
   id,
   lowercaseMeasurements,
@@ -116,18 +138,34 @@ export function createPasswordFreeSearchApplicationScene(
   structureAnalysis: PasswordStructureAnalysisResult,
   disposition: PasswordSimulationDisposition,
 ): PasswordFreeSearchApplicationSceneSnapshot {
-  const recognizedSpans = concreteEvidenceSpans(componentAnalysis, structureAnalysis);
-  const dispositionSummary =
-    disposition.kind === 'quick-path-recognized'
-      ? 'Die erkannten Hinweise ergeben zusammen einen entsprechend kurzen vollständigen Prüfweg.'
-      : 'Die erkannten Hinweise ergaben keinen entsprechend kurzen vollständigen Prüfweg. Das bedeutet nicht stark, sicher, zufällig oder unangreifbar.';
+  const recognizedAreas = concreteEvidenceSpans(componentAnalysis, structureAnalysis);
+  const unexplainedAreas = unexplainedSpans(fictionalPassword, recognizedAreas);
+  const recognitionState: PasswordApplicationRecognitionState =
+    disposition.kind === 'whole-password-recognized'
+      ? 'whole-password-recognized'
+      : recognizedAreas.length > 0
+        ? 'components-recognized'
+        : 'no-component-recognized';
+  const recognitionSummary =
+    recognitionState === 'whole-password-recognized'
+      ? 'Ein einzelner früher Kandidat oder eine begrenzte typische Variante deckt das vollständige fiktive Passwort ab.'
+      : recognitionState === 'components-recognized'
+        ? 'Die Übung erkennt Bestandteile, aber keinen einzelnen frühen Kandidaten oder begrenzten Variantenweg für das vollständige Passwort.'
+        : 'Die Übung erkennt in den dargestellten Prüfungen keinen frühen Kandidaten für das vollständige Passwort.';
+  const lengthSummary =
+    disposition.lengthOrientation === 'below-15'
+      ? 'Die Zeichenfolge liegt zusätzlich unter der Orientierung von mindestens 15 Zeichen für selbst erstellte Passwörter.'
+      : 'Die Zeichenfolge erreicht zusätzlich die Orientierung von mindestens 15 Zeichen für selbst erstellte Passwörter.';
   return {
     id,
     visibleLength: [...fictionalPassword].length,
     componentAnalysis,
     structureAnalysis,
     disposition,
-    areasWithoutRecognizedSimplerExplanation: unexplainedSpans(fictionalPassword, recognizedSpans),
-    accessibleSummary: `Was die Übung beim fiktiven Passwort zeigt: sichtbare Länge, erkannte Bestandteile, erkannte Zusammenhänge und Bereiche ohne erkannte einfachere Erklärung. ${dispositionSummary} Keine Zeitprognose und kein einzelnes Gesamturteil.`,
+    recognitionState,
+    recognizedAreas,
+    areasWithoutRecognizedSimplerExplanation: unexplainedAreas,
+    coverageAreas: coverageAreas(recognizedAreas, unexplainedAreas),
+    accessibleSummary: `${recognitionSummary} ${lengthSummary} Die beiden Aussagen bleiben getrennt. Keine Crack-Zeit und keine Sicherheitsgarantie.`,
   };
 }

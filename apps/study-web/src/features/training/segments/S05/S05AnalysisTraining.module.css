@@ -4032,3 +4032,224 @@
     white-space: normal;
   }
 }
+
+/* S05 application evaluation: whole-password recognition and length remain separate axes. */
+.applicationPasswordHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+  margin-bottom: var(--space-5);
+}
+
+.applicationPasswordHeader .largePassword {
+  margin: 0;
+}
+
+.recognitionResult,
+.lengthResult {
+  display: grid;
+  gap: var(--space-3);
+  padding: clamp(var(--space-4), 3cqi, var(--space-5));
+  border: var(--border-width-medium) solid var(--color-border-soft);
+  border-radius: var(--radius-medium);
+  background: var(--color-surface-muted);
+}
+
+.recognitionResult[data-status='whole-password-recognized'] {
+  border-color: var(--color-danger);
+  background: color-mix(in srgb, var(--color-danger) 10%, var(--color-surface-primary));
+}
+
+.recognitionResult[data-status='components-recognized'] {
+  border-color: var(--color-warning);
+  background: color-mix(in srgb, var(--color-warning) 10%, var(--color-surface-primary));
+}
+
+.recognitionResult[data-status='no-component-recognized'] {
+  border-color: var(--color-border);
+}
+
+.resultHeadingRow {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-4);
+}
+
+.resultHeadingRow h3 {
+  margin: var(--space-1) 0 0;
+  color: var(--color-ink-strong);
+}
+
+.resultStep {
+  display: block;
+  color: var(--color-ink-muted);
+  font-size: var(--font-size-x-small);
+  font-weight: var(--font-weight-bold);
+}
+
+.resultStateBadge {
+  flex: 0 0 auto;
+  padding: var(--space-1) var(--space-2);
+  border: var(--border-width-thin) solid currentColor;
+  border-radius: 999px;
+  color: var(--color-ink-muted);
+  font-size: var(--font-size-x-small);
+  font-weight: var(--font-weight-bold);
+}
+
+.recognitionResult[data-status='whole-password-recognized'] .resultStateBadge {
+  color: var(--color-danger);
+}
+
+.recognitionResult[data-status='components-recognized'] .resultStateBadge {
+  color: var(--color-warning);
+}
+
+.recognitionResult > p,
+.lengthResult > p,
+.ruleExplanation {
+  margin: 0;
+  line-height: var(--line-height-body);
+}
+
+.ruleExplanation {
+  padding-left: var(--space-3);
+  border-left: var(--border-width-medium) solid var(--color-border);
+  color: var(--color-ink-muted);
+  font-size: var(--font-size-small);
+}
+
+.coveragePanel {
+  display: grid;
+  gap: var(--space-2);
+  margin-top: var(--space-1);
+}
+
+.coverageTrack {
+  display: flex;
+  min-height: 3rem;
+  overflow: hidden;
+  border: var(--border-width-thin) solid var(--color-border-soft);
+  border-radius: var(--radius-small);
+  background: var(--color-surface-primary);
+}
+
+.coverageTrack span {
+  display: grid;
+  min-width: 0;
+  place-items: center;
+  padding: var(--space-2) var(--space-1);
+  overflow: hidden;
+  font-family: ui-monospace, monospace;
+  font-size: var(--font-size-x-small);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.coverageTrack span[data-status='recognized'] {
+  color: var(--color-ink-strong);
+  background: color-mix(in srgb, var(--color-warning) 24%, var(--color-surface-primary));
+}
+
+.coverageTrack span[data-status='unexplained'] {
+  color: var(--color-ink-muted);
+  background: var(--color-surface-primary);
+}
+
+.coverageLegend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  color: var(--color-ink-muted);
+  font-size: var(--font-size-x-small);
+}
+
+.coverageLegend span::before {
+  display: inline-block;
+  width: 0.7rem;
+  height: 0.7rem;
+  margin-right: var(--space-1);
+  border: var(--border-width-thin) solid var(--color-border);
+  border-radius: 0.18rem;
+  content: '';
+  vertical-align: -0.05rem;
+}
+
+.coverageLegend span[data-status='recognized']::before {
+  border-color: var(--color-warning);
+  background: color-mix(in srgb, var(--color-warning) 36%, var(--color-surface-primary));
+}
+
+.coverageLegend span[data-status='unexplained']::before {
+  background: var(--color-surface-primary);
+}
+
+.applicationEvidenceGrid {
+  display: grid;
+  gap: var(--space-2);
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.applicationEvidenceGrid > div {
+  display: grid;
+  gap: var(--space-1);
+  padding: var(--space-3);
+  border: var(--border-width-thin) solid var(--color-border-soft);
+  border-radius: var(--radius-small);
+  background: var(--color-surface-primary);
+}
+
+.applicationEvidenceGrid span {
+  color: var(--color-ink-muted);
+  font-size: var(--font-size-x-small);
+  line-height: var(--line-height-body);
+}
+
+.lengthResult {
+  margin-top: var(--space-4);
+}
+
+.lengthResult[data-status='below-15'] {
+  border-color: var(--color-warning);
+}
+
+.lengthResult[data-status='at-least-15'] {
+  border-color: var(--color-positive);
+}
+
+.lengthMetric {
+  display: grid;
+  min-width: 5.5rem;
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-small);
+  text-align: center;
+  background: var(--color-surface-primary);
+}
+
+.lengthMetric strong {
+  color: var(--color-ink-strong);
+  font-size: var(--font-size-heading-small);
+}
+
+.lengthMetric small {
+  color: var(--color-ink-muted);
+}
+
+@media (max-width: 44rem) {
+  .applicationPasswordHeader,
+  .resultHeadingRow {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .resultStateBadge,
+  .lengthMetric {
+    width: fit-content;
+  }
+
+  .applicationEvidenceGrid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}

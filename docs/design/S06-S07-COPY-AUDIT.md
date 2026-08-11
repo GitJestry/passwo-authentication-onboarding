@@ -1,5 +1,31 @@
 # S06--S07 Copy Audit
 
+## Copy-Delta S06/S07 Vollpasswort-Treffer statt Guess-Schwelle, 11. August 2026
+
+Quelle ist der ausdrückliche Nutzerauftrag vom 11. August 2026 sowie die in ADR 0014
+festgelegte blocklistenartige Vollpasswort-Semantik. Dieses Delta **ersetzt für den aktuellen
+Stand** die frühere Copy-Interpretation `kurzer vollständiger Prüfweg`: Die numerische
+`estimatedGuesses <= 100000`-Schwelle wird nicht mehr als Simulationsentscheidung verwendet.
+S06 und S07 übernehmen nur den bereits in S05 bestimmten Zustand `whole-password-recognized`
+oder `no-whole-password-recognized` sowie die davon getrennte Längenorientierung.
+
+`S06_CONSEQUENCE_CONTENT_VERSION` wird von `2.3.4` auf `2.4.0` und
+`S07_EVALUATION_CONTENT_VERSION` von `1.1.0` auf `1.2.0` erhöht. Persistenz, Export,
+Timinggrenzen und die S06-Paarableitung bleiben unverändert.
+
+| Segment / Textbereich | Bisherige Aussage | Freigegebene Aussage | Primäre Rolle | Grund |
+|---|---|---|---|---|
+| `S06.dispositionLabels.whole-password-recognized` | entsprechend kurzer vollständiger Prüfweg | ein früher Kandidat deckt das vollständige fiktive Passwort ab | Ergebnisfeedback | synchronisiert die Konsequenzdarstellung mit der neuen Vollpasswort-Regel statt einer Guess-Schwelle |
+| `S06.dispositionLabels.no-whole-password-recognized` | kein entsprechend kurzer vollständiger Prüfweg | kein vollständiger früher Kandidat in den begrenzten Prüfungen erkannt | Safety Boundary | Gegenkategorie bleibt Nicht-Erkennung, kein Sicherheitsurteil |
+| S06 Found-/Blocked-Narrationen | `kurzer vollständiger Prüfweg` | vollständiger früher Kandidat beziehungsweise kein solcher Kandidat in diesen Prüfungen | Mechanismuserklärung | entfernt verbliebene quantitative Implikation |
+| `S07.dispositionLabels` | kurzer vollständiger Prüfweg / konkrete Regel | vollständiger früher Kandidat, begrenzte typische Variante oder kein vollständiger früher Kandidat | Diagnose | hält die Kontokarten mit S05/S06 konsistent |
+| `S07.problemStatements.local-whole-password-recognized` | lokaler schneller/kurzer Weg | mindestens ein vollständiges Passwort wurde als früher Kandidat erkannt | Diagnose | benennt genau die Evidenzgrenze |
+| `S07.page.overviewLabels.noWholePasswordRecognition` | `Kein schnellerer Weg erkannt` | `Kein vollständiger früher Kandidat erkannt` | Orientierung | macht die Gegenkategorie in der Gesamtauswertung sichtbar ohne Stärkeurteil |
+
+Die S07-Längenorientierung bleibt ein eigener Problemtyp. Weder `< 15`, `< 12` noch eine reine
+Kleinbuchstabenwahl erzeugen einen Vollpasswort-Treffer. Ebenso bedeutet
+`no-whole-password-recognized` nicht `sicher`, `stark`, `bestanden` oder `unangreifbar`.
+
 ## Copy-Delta Fortschrittskarte vor S06 und nach S07, 9. August 2026
 
 Quelle ist der ausdrückliche Nutzerauftrag vom 9. August 2026. Die segmentübergreifende

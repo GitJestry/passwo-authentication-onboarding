@@ -14,7 +14,7 @@ import type {
 
 const accountOrder = ['master-campus', 'campus-email', 'campusgram'] as const;
 const problemClassOrder = [
-  'local-quick-path',
+  'local-whole-password-recognized',
   'below-length-orientation',
   'exact-reuse',
   'derived-variant',
@@ -96,7 +96,7 @@ function recommendationFor(
   if (connections.some(({ relationKind }) => relationKind === 'exact-match')) {
     return 'separate-exact-reuse';
   }
-  if (disposition.kind === 'quick-path-recognized') return 'rebuild-predictable-password';
+  if (disposition.kind === 'whole-password-recognized') return 'rebuild-predictable-password';
   if (connections.some(({ relationKind }) => relationKind === 'derived-variant-match')) {
     return 'replace-derived-pattern';
   }
@@ -149,13 +149,13 @@ export function projectS07Recommendations(
         connections,
         incidentStatus,
         retrievability,
-        accountId === input.incidentSource && source.disposition.kind === 'quick-path-recognized',
+        accountId === input.incidentSource && source.disposition.kind === 'whole-password-recognized',
       ),
     };
   });
   const detectedProblemClasses = new Set<S07ProblemClass>();
-  if (accounts.some(({ disposition }) => disposition.kind === 'quick-path-recognized')) {
-    detectedProblemClasses.add('local-quick-path');
+  if (accounts.some(({ disposition }) => disposition.kind === 'whole-password-recognized')) {
+    detectedProblemClasses.add('local-whole-password-recognized');
   }
   if (accounts.some(({ disposition }) => disposition.lengthOrientation === 'below-15')) {
     detectedProblemClasses.add('below-length-orientation');
@@ -181,8 +181,8 @@ export function projectS07Recommendations(
     kind: 's07-recommendation-projection',
     accounts,
     summary: {
-      noQuickPathCount: accounts.filter(
-        ({ disposition }) => disposition.kind === 'no-quick-path-recognized',
+      noWholePasswordRecognitionCount: accounts.filter(
+        ({ disposition }) => disposition.kind === 'no-whole-password-recognized',
       ).length,
       noPasswordConnectionCount: accounts.filter(({ connections }) =>
         connections.every(({ relationKind }) => relationKind === 'no-derived-path-recognized'),

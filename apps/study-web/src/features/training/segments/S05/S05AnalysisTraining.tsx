@@ -1884,62 +1884,108 @@ function FreeSearchApplicationScene({
   readonly scene: PasswordFreeSearchApplicationSceneSnapshot;
 }) {
   const content = s05Content.freeSearch.application;
+  const recognitionCopy =
+    scene.disposition.kind === 'whole-password-recognized'
+      ? content.dispositionLabels[scene.disposition.ruleId]
+      : scene.recognitionState === 'components-recognized'
+        ? content.partialRecognition
+        : content.noRecognition;
+  const lengthCopy = content.lengthOrientationLabels[scene.disposition.lengthOrientation];
   return (
     <div
       className={styles.applicationScene}
       data-s05-target="free-search-application"
       aria-label={scene.accessibleSummary}
     >
-      <p className={styles.cardLabel}>Was die Übung erkannt hat</p>
+      <p className={styles.cardLabel}>{content.eyebrow}</p>
       <h2>{content.title}</h2>
-      <strong className={`${styles.canonicalAccount} ${styles.applicationAccount}`}>
-        <span aria-hidden="true"><NetworkSymbol symbolId="campusgram" /></span>
-        <span>{s05Content.intro.campusgramPassword.visibleSuffix}</span>
-      </strong>
-      <code
-        className={styles.largePassword}
-        style={passwordVisualStyleFor(subject.fictionalPassword)}
+      <div className={styles.applicationPasswordHeader}>
+        <strong className={`${styles.canonicalAccount} ${styles.applicationAccount}`}>
+          <span aria-hidden="true"><NetworkSymbol symbolId="campusgram" /></span>
+          <span>{s05Content.intro.campusgramPassword.visibleSuffix}</span>
+        </strong>
+        <code
+          className={styles.largePassword}
+          style={passwordVisualStyleFor(subject.fictionalPassword)}
+        >
+          {subject.fictionalPassword}
+        </code>
+      </div>
+
+      <article
+        className={styles.recognitionResult}
+        data-status={scene.recognitionState}
+        aria-labelledby="s05-whole-password-result"
       >
-        {subject.fictionalPassword}
-      </code>
-      <div className={styles.applicationGrid}>
-        <article>
-          <strong>{content.visibleLength}</strong>
-          <span>{scene.visibleLength} Zeichen</span>
-        </article>
-        <article>
-          <strong>{content.componentFindings}</strong>
-          <span>
-            {scene.componentAnalysis.findings.map(({ kind }) => findingLabel(kind)).join(' · ')}
+        <div className={styles.resultHeadingRow}>
+          <div>
+            <span className={styles.resultStep}>{content.wholePasswordHeading}</span>
+            <h3 id="s05-whole-password-result">{recognitionCopy.title}</h3>
+          </div>
+          <span className={styles.resultStateBadge}>
+            {scene.recognitionState === 'whole-password-recognized'
+              ? content.statusLabels.found
+              : content.statusLabels.notFound}
           </span>
-        </article>
-        <article>
-          <strong>{content.structureFindings}</strong>
-          <span>
-            {scene.structureAnalysis.findings
-              .map(({ findingKind }) => structureFindingLabel(findingKind))
-              .join(' · ')}
+        </div>
+        <p>{recognitionCopy.body}</p>
+        <p className={styles.ruleExplanation}>{content.wholePasswordRule}</p>
+
+        <div className={styles.coveragePanel}>
+          <strong>{content.coverage.title}</strong>
+          <div className={styles.coverageTrack} aria-hidden="true">
+            {scene.coverageAreas.map((area) => (
+              <span
+                key={`${area.status}:${area.start}-${area.end}`}
+                data-status={area.status}
+                style={{ flexGrow: Math.max(1, [...area.token].length) }}
+              >
+                {area.token}
+              </span>
+            ))}
+          </div>
+          <div className={styles.coverageLegend}>
+            <span data-status="recognized">{content.coverage.recognized}</span>
+            <span data-status="unexplained">{content.coverage.unexplained}</span>
+          </div>
+        </div>
+
+        <div className={styles.applicationEvidenceGrid}>
+          <div>
+            <strong>{content.evidence.componentFindings}</strong>
+            <span>
+              {scene.componentAnalysis.findings.map(({ kind }) => findingLabel(kind)).join(' · ')}
+            </span>
+          </div>
+          <div>
+            <strong>{content.evidence.structureFindings}</strong>
+            <span>
+              {scene.structureAnalysis.findings
+                .map(({ findingKind }) => structureFindingLabel(findingKind))
+                .join(' · ')}
+            </span>
+          </div>
+        </div>
+      </article>
+
+      <article
+        className={styles.lengthResult}
+        data-status={scene.disposition.lengthOrientation}
+        aria-labelledby="s05-length-result"
+      >
+        <div className={styles.resultHeadingRow}>
+          <div>
+            <span className={styles.resultStep}>{content.lengthHeading}</span>
+            <h3 id="s05-length-result">{lengthCopy.title}</h3>
+          </div>
+          <span className={styles.lengthMetric}>
+            <strong>{scene.visibleLength}</strong>
+            <small>{content.visibleLength}</small>
           </span>
-        </article>
-        <article>
-          <strong>{content.unexplainedAreas}</strong>
-          <span>
-            {scene.areasWithoutRecognizedSimplerExplanation.map(({ token }) => token).join(' · ') ||
-              content.noUnexplainedArea}
-          </span>
-        </article>
-      </div>
-      <div className={styles.disposition}>
-        {scene.disposition.kind === 'quick-path-recognized' ? (
-          <strong>{content.dispositionLabels[scene.disposition.ruleId]}</strong>
-        ) : (
-          <>
-            <strong>{content.noQuickPath}</strong>
-            <span>{content.noQuickPathBoundary}</span>
-          </>
-        )}
-        <span>{content.lengthOrientationLabels[scene.disposition.lengthOrientation]}</span>
-      </div>
+        </div>
+        <p>{lengthCopy.body}</p>
+      </article>
+
       <p className={styles.boundaryCallout}>{content.boundary}</p>
     </div>
   );

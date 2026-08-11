@@ -57,8 +57,7 @@ export interface PasswordGuessPathMatch {
 export interface PasswordGuessPathAnalysis {
   readonly engineId: 'zxcvbn-ts';
   readonly configurationVersion: string;
-  readonly estimatedGuesses: number;
-  readonly estimatedGuessesLog10: number;
+  /** Pattern path retained only for bounded explanatory projection; no numerical score is exposed. */
   readonly matches: readonly PasswordGuessPathMatch[];
 }
 
@@ -141,25 +140,27 @@ export interface TheoreticalSearchSpaceModel {
   };
 }
 
-export type SimulationQuickPathRuleId = 'bounded-complete-guess-path';
+export type SimulationWholePasswordRecognitionRuleId =
+  | 'whole-password-recognized-value'
+  | 'whole-password-recognized-bounded-variant';
 export type PasswordLengthOrientation = 'below-15' | 'at-least-15';
 
 interface LocalPasswordDispositionBase {
-  readonly estimatedGuesses: number;
-  readonly quickPathThreshold: number;
   readonly lengthOrientation: PasswordLengthOrientation;
   readonly analysisVersion: string;
 }
 
 export type LocalPasswordDisposition =
   | (LocalPasswordDispositionBase & {
-      readonly kind: 'quick-path-recognized';
-      readonly ruleId: SimulationQuickPathRuleId;
-      readonly explanationId: 's05.disposition.bounded-complete-guess-path';
+      readonly kind: 'whole-password-recognized';
+      readonly ruleId: SimulationWholePasswordRecognitionRuleId;
+      readonly explanationId:
+        | 's05.disposition.whole-password-recognized-value'
+        | 's05.disposition.whole-password-recognized-bounded-variant';
     })
   | (LocalPasswordDispositionBase & {
-      readonly kind: 'no-quick-path-recognized';
-      readonly explanationId: 's05.disposition.no-quick-path-recognized';
+      readonly kind: 'no-whole-password-recognized';
+      readonly explanationId: 's05.disposition.no-whole-password-recognized';
     });
 
 /** @deprecated Use LocalPasswordDisposition for new local simulation code. */
@@ -270,7 +271,7 @@ export type S07IncidentStatus =
 export type S07Retrievability = 'remembered' | 'not-remembered' | 'skipped';
 
 export type S07ProblemClass =
-  | 'local-quick-path'
+  | 'local-whole-password-recognized'
   | 'below-length-orientation'
   | 'exact-reuse'
   | 'derived-variant'
@@ -291,7 +292,7 @@ export interface S07AccountRecommendation {
 }
 
 export interface S07RecommendationSummary {
-  readonly noQuickPathCount: number;
+  readonly noWholePasswordRecognitionCount: number;
   readonly noPasswordConnectionCount: number;
   readonly rememberedCount: number;
   readonly problemClasses: readonly S07ProblemClass[];

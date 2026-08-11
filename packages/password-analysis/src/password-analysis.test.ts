@@ -96,32 +96,30 @@ const s07Pairs = [
 ] as const;
 
 function s07Disposition(
-  quickPath: boolean,
+  wholeRecognition: boolean,
   belowLengthOrientation = false,
 ): LocalPasswordDisposition {
   const base = {
-    estimatedGuesses: quickPath ? 1_000 : 1_000_000,
-    quickPathThreshold: 100_000,
     lengthOrientation: belowLengthOrientation ? 'below-15' : 'at-least-15',
-    analysisVersion: 'passwo-bounded-guess-path-v2',
+    analysisVersion: 'passwo-bounded-whole-recognition-v9',
   } as const;
-  return quickPath
+  return wholeRecognition
     ? {
         ...base,
-        kind: 'quick-path-recognized',
-        ruleId: 'bounded-complete-guess-path',
-        explanationId: 's05.disposition.bounded-complete-guess-path',
+        kind: 'whole-password-recognized',
+        ruleId: 'whole-password-recognized-value',
+        explanationId: 's05.disposition.whole-password-recognized-value',
       }
     : {
         ...base,
-        kind: 'no-quick-path-recognized',
-        explanationId: 's05.disposition.no-quick-path-recognized',
+        kind: 'no-whole-password-recognized',
+        explanationId: 's05.disposition.no-whole-password-recognized',
       };
 }
 
 function s07Input(
   options: {
-    readonly quickPathAccounts?: readonly S06AccountId[];
+    readonly wholeRecognitionAccounts?: readonly S06AccountId[];
     readonly belowLengthAccounts?: readonly S06AccountId[];
     readonly retrieval?: Partial<
       Readonly<Record<S06AccountId, 'retrievable' | 'not-remembered' | 'assisted'>>
@@ -149,7 +147,7 @@ function s07Input(
     accounts: s07AccountIds.map((accountId) => ({
       accountId,
       disposition: s07Disposition(
-        options.quickPathAccounts?.includes(accountId) ?? false,
+        options.wholeRecognitionAccounts?.includes(accountId) ?? false,
         options.belowLengthAccounts?.includes(accountId) ?? false,
       ),
       retrievalStatus: options.retrieval?.[accountId] ?? 'retrievable',
@@ -183,7 +181,7 @@ describe('S07 recommendation projection', () => {
     expect(
       recommendationFor(
         s07Input({
-          quickPathAccounts: ['campusgram'],
+          wholeRecognitionAccounts: ['campusgram'],
           relations: ['exact-match', 'no-derived-path-recognized', 'no-derived-path-recognized'],
         }),
         'campusgram',
@@ -198,7 +196,7 @@ describe('S07 recommendation projection', () => {
       ),
     ).toBe('separate-exact-reuse');
     expect(
-      recommendationFor(s07Input({ quickPathAccounts: ['campus-email'] }), 'campus-email'),
+      recommendationFor(s07Input({ wholeRecognitionAccounts: ['campus-email'] }), 'campus-email'),
     ).toBe('rebuild-predictable-password');
     expect(
       recommendationFor(
@@ -260,7 +258,7 @@ describe('S07 recommendation projection', () => {
   it('creates one recommendation per account and only present adaptive problem classes', () => {
     const projection = projectS07Recommendations(
       s07Input({
-        quickPathAccounts: ['campusgram'],
+        wholeRecognitionAccounts: ['campusgram'],
         belowLengthAccounts: ['campusgram'],
         retrieval: { 'master-campus': 'not-remembered' },
         relations: ['exact-match', 'derived-variant-match', 'no-derived-path-recognized'],
@@ -269,7 +267,7 @@ describe('S07 recommendation projection', () => {
     expect(projection.accounts).toHaveLength(3);
     expect(new Set(projection.accounts.map(({ accountId }) => accountId)).size).toBe(3);
     expect(projection.summary.problemClasses).toEqual([
-      'local-quick-path',
+      'local-whole-password-recognized',
       'below-length-orientation',
       'exact-reuse',
       'derived-variant',
@@ -278,27 +276,31 @@ describe('S07 recommendation projection', () => {
   });
 });
 
-function passwordAnalysisWithEstimatedGuesses(estimatedGuesses: number): PasswordAnalysisResult {
+function passwordAnalysisWithFindings(
+  findings: PasswordAnalysisResult['findings'],
+): PasswordAnalysisResult {
   return {
     kind: 'fictional-password-analysis',
-    findings: [
-      {
-        id: 'single:no-simple-component-recognized',
-        kind: 'no-simple-component-recognized',
-        evidence: [],
-        explanationId: 's05.no-simple-component-recognized',
-        confidence: 'bounded-heuristic',
-      },
-    ],
+    findings,
     guessPath: {
       engineId: 'zxcvbn-ts',
-      configurationVersion: 'passwo-bounded-guess-path-v8',
-      estimatedGuesses,
-      estimatedGuessesLog10: Math.log10(estimatedGuesses),
+      configurationVersion: 'passwo-bounded-whole-recognition-v9',
       matches: [],
     },
     disclaimerId: 'simulation-not-production-strength',
   };
+}
+
+function passwordAnalysisWithoutRecognizedCandidate(): PasswordAnalysisResult {
+  return passwordAnalysisWithFindings([
+    {
+      id: 'single:no-simple-component-recognized',
+      kind: 'no-simple-component-recognized',
+      evidence: [],
+      explanationId: 's05.no-simple-component-recognized',
+      confidence: 'bounded-heuristic',
+    },
+  ]);
 }
 
 describe('local fictional password analysis', () => {
@@ -608,9 +610,8 @@ describe('local fictional password analysis', () => {
       expect(expectedKinds.some((expectedKind) => actualKinds.includes(expectedKind))).toBe(true);
       expect(result.guessPath).toMatchObject({
         engineId: 'zxcvbn-ts',
-        configurationVersion: 'passwo-bounded-guess-path-v8',
+        configurationVersion: 'passwo-bounded-whole-recognition-v9',
       });
-      expect(result.guessPath.estimatedGuesses).toBeGreaterThan(0);
       for (const finding of result.findings) {
         expect(finding.id).toMatch(/^single:/u);
         expect(finding.explanationId).toMatch(/^s05\./u);
@@ -624,47 +625,33 @@ describe('local fictional password analysis', () => {
     },
   );
 
-  it.each([
-    [100_000, 'quick-path-recognized'],
-    [100_001, 'no-quick-path-recognized'],
-  ] as const)(
-    'applies the frozen complete-path boundary at %i guesses',
-    (estimatedGuesses, expectedKind) => {
-      const disposition = determinePasswordSimulationDisposition({
-        fictionalPassword: 'fiktives-passwort',
-        componentAnalysis: passwordAnalysisWithEstimatedGuesses(estimatedGuesses),
-      });
-      expect(disposition.kind).toBe(expectedKind);
-    },
-  );
-
-  it('keeps the length orientation separate from the complete-path decision', () => {
-    const shortNoQuickPath = determinePasswordSimulationDisposition({
-      fictionalPassword: 'kurz',
-      componentAnalysis: passwordAnalysisWithEstimatedGuesses(100_001),
-    });
-    const longQuickPath = determinePasswordSimulationDisposition({
-      fictionalPassword: 'fuenfzehnzeichen',
-      componentAnalysis: passwordAnalysisWithEstimatedGuesses(100_000),
+  it('does not turn a random-looking 15-letter lowercase string into a full recognition', () => {
+    const fictionalPassword = 'kfxqztmpvlbwhrd';
+    const componentAnalysis = analyzeFictionalPassword({ fictionalPassword });
+    const disposition = determinePasswordSimulationDisposition({
+      fictionalPassword,
+      componentAnalysis,
     });
 
-    expect(shortNoQuickPath).toMatchObject({
-      kind: 'no-quick-path-recognized',
-      lengthOrientation: 'below-15',
-    });
-    expect(longQuickPath).toMatchObject({
-      kind: 'quick-path-recognized',
+    expect(disposition).toEqual({
+      kind: 'no-whole-password-recognized',
       lengthOrientation: 'at-least-15',
+      analysisVersion: 'passwo-bounded-whole-recognition-v9',
+      explanationId: 's05.disposition.no-whole-password-recognized',
     });
   });
 
   it.each([
-    ['kurz', [], 'quick-path-recognized'],
-    ['Passwort123!', [], 'no-quick-path-recognized'],
-    ['Campusgram2026!', ['Campusgram'], 'no-quick-path-recognized'],
+    ['passwort', []],
+    ['qwertz', []],
+    ['Campusgram', ['Campusgram']],
+    ['C4mpusgr4m', ['Campusgram']],
+    ['Campusgram2026', ['Campusgram']],
+    ['Campusgram-2026!', ['Campusgram']],
+    ['Passwort123!', []],
   ] as const)(
-    'uses only the complete bounded guess path for a quick-path decision for %s',
-    (fictionalPassword, authoredAccountTerms, expectedKind) => {
+    'recognizes one complete early candidate or bounded variant for %s',
+    (fictionalPassword, authoredAccountTerms) => {
       const componentAnalysis = analyzeFictionalPassword({
         fictionalPassword,
         authoredAccountTerms,
@@ -673,35 +660,113 @@ describe('local fictional password analysis', () => {
         fictionalPassword,
         componentAnalysis,
       });
+
       expect(disposition).toMatchObject({
-        kind: expectedKind,
-        quickPathThreshold: 100_000,
-        analysisVersion: 'passwo-bounded-guess-path-v8',
+        kind: 'whole-password-recognized',
+        analysisVersion: 'passwo-bounded-whole-recognition-v9',
       });
-      if (disposition.kind === 'quick-path-recognized') {
-        expect(disposition.ruleId).toBe('bounded-complete-guess-path');
-        expect(disposition.estimatedGuesses).toBeLessThanOrEqual(disposition.quickPathThreshold);
-      } else {
-        expect(disposition.estimatedGuesses).toBeGreaterThan(disposition.quickPathThreshold);
-      }
     },
   );
 
-  it('keeps length as a separate orientation when no short complete path is recognized', () => {
-    const fictionalPassword = 'rQ7mL2vX9pK4';
-    const componentAnalysis = analyzeFictionalPassword({ fictionalPassword });
-    const disposition = determinePasswordSimulationDisposition({
-      fictionalPassword,
-      componentAnalysis,
+  it('classifies an exact full candidate as a direct whole-password recognition', () => {
+    const fictionalPassword = 'Campusgram';
+    const componentAnalysis = passwordAnalysisWithFindings([
+      {
+        id: 'single:account-or-service-term:0-10:0',
+        kind: 'account-or-service-term',
+        evidence: [{ type: 'span', start: 0, end: 10, token: fictionalPassword }],
+        explanationId: 's05.account-or-service-term',
+        confidence: 'authored-exact-match',
+      },
+    ]);
+
+    expect(
+      determinePasswordSimulationDisposition({ fictionalPassword, componentAnalysis }),
+    ).toMatchObject({
+      kind: 'whole-password-recognized',
+      ruleId: 'whole-password-recognized-value',
     });
-    expect(disposition).toMatchObject({
-      kind: 'no-quick-path-recognized',
-      quickPathThreshold: 100_000,
+  });
+
+  it('classifies one known anchor plus an authored typical suffix as a bounded variant', () => {
+    const fictionalPassword = 'Campusgram123!';
+    const componentAnalysis = passwordAnalysisWithFindings([
+      {
+        id: 'single:account-or-service-term:0-10:0',
+        kind: 'account-or-service-term',
+        evidence: [{ type: 'span', start: 0, end: 10, token: 'Campusgram' }],
+        explanationId: 's05.account-or-service-term',
+        confidence: 'authored-exact-match',
+      },
+      {
+        id: 'single:typical-suffix:10-14:1',
+        kind: 'typical-suffix',
+        evidence: [{ type: 'span', start: 10, end: 14, token: '123!' }],
+        explanationId: 's05.typical-suffix',
+        confidence: 'bounded-heuristic',
+      },
+    ]);
+
+    expect(
+      determinePasswordSimulationDisposition({ fictionalPassword, componentAnalysis }),
+    ).toMatchObject({
+      kind: 'whole-password-recognized',
+      ruleId: 'whole-password-recognized-bounded-variant',
+    });
+  });
+
+  it('does not combine independent component findings into a synthetic whole-password hit', () => {
+    const fictionalPassword = 'KaffeeMorgen';
+    const componentAnalysis = passwordAnalysisWithFindings([
+      {
+        id: 'single:common-word:0-6:0',
+        kind: 'common-word',
+        evidence: [{ type: 'span', start: 0, end: 6, token: 'Kaffee' }],
+        explanationId: 's05.common-word',
+        confidence: 'bounded-heuristic',
+      },
+      {
+        id: 'single:common-word:6-12:1',
+        kind: 'common-word',
+        evidence: [{ type: 'span', start: 6, end: 12, token: 'Morgen' }],
+        explanationId: 's05.common-word',
+        confidence: 'bounded-heuristic',
+      },
+    ]);
+
+    expect(
+      determinePasswordSimulationDisposition({ fictionalPassword, componentAnalysis }),
+    ).toMatchObject({ kind: 'no-whole-password-recognized' });
+  });
+
+  it('keeps the 15-character orientation separate from whole-password recognition', () => {
+    const shortRandom = 'kfxqztmpvlb';
+    const shortDisposition = determinePasswordSimulationDisposition({
+      fictionalPassword: shortRandom,
+      componentAnalysis: passwordAnalysisWithoutRecognizedCandidate(),
+    });
+    const longKnown = 'passwortpasswort';
+    const longDisposition = determinePasswordSimulationDisposition({
+      fictionalPassword: longKnown,
+      componentAnalysis: passwordAnalysisWithFindings([
+        {
+          id: 'single:repeated-component:0-16:0',
+          kind: 'repeated-component',
+          evidence: [{ type: 'span', start: 0, end: 16, token: longKnown }],
+          explanationId: 's05.repeated-component',
+          confidence: 'bounded-heuristic',
+        },
+      ]),
+    });
+
+    expect(shortDisposition).toMatchObject({
+      kind: 'no-whole-password-recognized',
       lengthOrientation: 'below-15',
-      analysisVersion: 'passwo-bounded-guess-path-v8',
-      explanationId: 's05.disposition.no-quick-path-recognized',
     });
-    expect(disposition.estimatedGuesses).toBeGreaterThan(disposition.quickPathThreshold);
+    expect(longDisposition).toMatchObject({
+      kind: 'whole-password-recognized',
+      lengthOrientation: 'at-least-15',
+    });
   });
 
   it.each([
@@ -775,9 +840,7 @@ describe('local fictional password analysis', () => {
         ],
         guessPath: {
           engineId: 'zxcvbn-ts',
-          configurationVersion: 'passwo-bounded-guess-path-v2',
-          estimatedGuesses: 1_000,
-          estimatedGuessesLog10: 3,
+          configurationVersion: 'passwo-bounded-whole-recognition-v9',
           matches: [],
         },
         disclaimerId: 'simulation-not-production-strength',
@@ -823,9 +886,7 @@ describe('local fictional password analysis', () => {
       ],
       guessPath: {
         engineId: 'zxcvbn-ts',
-        configurationVersion: 'passwo-bounded-guess-path-v2',
-        estimatedGuesses: 1_000_000,
-        estimatedGuessesLog10: 6,
+        configurationVersion: 'passwo-bounded-whole-recognition-v9',
         matches: [],
       },
       disclaimerId: 'simulation-not-production-strength',

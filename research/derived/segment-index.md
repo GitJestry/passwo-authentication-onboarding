@@ -109,9 +109,14 @@ Seitenangaben beziehen sich auf die im Trainingsdokument ausgewiesene interne Pa
   24 Zeichen trennen einen vorhersehbaren Wortbestandteil, einen zusätzlichen Zeichenanhang und
   zwei Wortbausteine sichtbar voneinander. Sie führen in getrennten Sprechschritten zur bereits
   bestehenden lokalen Campusgram-Auswertung und werden weder analysiert noch persistiert.
-- Die Simulationsdisposition benennt entweder eine konkrete erkannte Regel als schnelleren Weg
-  oder ausschließlich: „Mit den begrenzten Wegen dieser Simulation wurde kein schnellerer Weg
-  erkannt.“ Der zweite Befund bedeutet nicht stark, sicher, zufällig oder unangreifbar.
+- Die S05-Simulationsdisposition (`S05_CONTENT_VERSION 2.73.0`, Analysekonfiguration
+  `passwo-bounded-whole-recognition-v9`) ist blocklistenartig auf den vollständigen fiktiven Wert
+  begrenzt: `whole-password-recognized` entsteht nur, wenn ein einzelner früher Kandidat oder eine
+  begrenzte typische Variante das gesamte Passwort abdeckt. Mehrere Teilbefunde werden nicht zu
+  einem Volltreffer addiert. Die Auswertung visualisiert Volltreffer/Teilbefunde und die
+  15-Zeichen-Orientierung als zwei getrennte Fragen; eine fehlende Vollerkennung bedeutet nicht
+  stark, sicher, zufällig oder unangreifbar. Numerische zxcvbn-Guess-Werte werden weder angezeigt
+  noch für diese Disposition verwendet.
 - Die sechs Beispielwörter sind ein festes Demonstrationsbeispiel. Wortliste und produktiver
   Generator bleiben ausschließlich S08 vorbehalten.
 
@@ -135,6 +140,9 @@ Seitenangaben beziehen sich auf die im Trainingsdokument ausgewiesene interne Pa
   Transformationsweg, dessen erzeugter Kandidat den vollständigen Zielwert trifft.
 - Gemeinsame Teilstrings, allgemeine Ähnlichkeit und Edit-Distance begründen keinen Treffer. Ein
   nicht erkannter Weg bedeutet nur, dass diese Simulation keinen direkten Weg erkannt hat.
+- `S06_CONSEQUENCE_CONTENT_VERSION 2.4.0` übernimmt die S05-Vollpasswort-Disposition ohne eigene
+  Guess-Schwelle. Nur `whole-password-recognized` öffnet den tatsächlichen lokalen Vorfallspfad;
+  `no-whole-password-recognized` bleibt eine begrenzte Nicht-Erkennung und kein Stärkeurteil.
 - Vier deterministische Design-Lab-Fixtures decken exakte Wiederverwendung plus Ableitung, einen
   gestoppten ersten Vorfall, zwei blockierte Folgewege und eine gemischte
   tatsächliche/hypothetische Darstellung ab.
@@ -153,6 +161,9 @@ Seitenangaben beziehen sich auf die im Trainingsdokument ausgewiesene interne Pa
 - Der Timing-Handshake lautet S06 segment-end, S07 segment-start, S07 segment-end und endet im
   stabilen Zustand `awaiting-s08`. Empfehlungen bleiben danach nur im flüchtigen lokalen
   Laufzeitobjekt für S08 verfügbar.
+- `S07_EVALUATION_CONTENT_VERSION 1.2.0` benennt dieselbe Evidenz als vollständigen frühen
+  Kandidaten und hält sie in Problemtyp und Übersicht ausdrücklich von der 15-Zeichen-Orientierung
+  getrennt.
 - Fünf Design-Lab-Fixtures decken ein tatsächlich erreichtes Konto, exakte Wiederverwendung, eine
   konkret abgeleitete Variante, ausschließlich ein Abrufbarkeitsproblem und keinen erkannten
   Änderungsbedarf ab.

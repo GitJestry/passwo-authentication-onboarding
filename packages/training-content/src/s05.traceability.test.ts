@@ -4,7 +4,7 @@ import { S05_CONTENT_VERSION, s05Content } from './s05.js';
 
 describe('S05 content traceability', () => {
   it('keeps the participant copy bounded and separate from internal terminology', () => {
-    expect(S05_CONTENT_VERSION).toBe('2.72.0');
+    expect(S05_CONTENT_VERSION).toBe('2.73.0');
     expect(s05Content.source).toMatchObject({
       document: 'research/private/training-script.pdf',
       internalPages: [
@@ -12,7 +12,7 @@ describe('S05 content traceability', () => {
         35,
       ],
       copyReference:
-        'docs/design/S00-S05-COPY-AUDIT.md#copy--darstellungsdelta-s05-gelbe-modellkugel-vergrößert-11-august-2026',
+        'docs/design/S00-S05-COPY-AUDIT.md#copy--darstellungsdelta-s05-blocklistenartige-volltreffer-auswertung-11-august-2026',
     });
     expect(s05Content.segment.id).toBe('S05');
     expect(s05Content.page.fixtureNotice).toBe(
@@ -284,6 +284,27 @@ describe('S05 content traceability', () => {
       practicalOutlook:
         'Dafür gibt es eine einfache Methode, mit der sich lange und trotzdem gut merkbare Passwörter aus Wörtern bilden lassen. Die probieren wir später selbst aus.',
     });
+    expect(s05Content.freeSearch.application.statusLabels).toEqual({
+      found: 'Gefunden',
+      notFound: 'Kein Volltreffer',
+    });
+    expect(s05Content.freeSearch.application.dispositionLabels).toMatchObject({
+      'whole-password-recognized-value': expect.objectContaining({
+        title: 'Vollständiger Treffer',
+      }),
+      'whole-password-recognized-bounded-variant': expect.objectContaining({
+        title: 'Vollständiger Treffer über typische Variante',
+      }),
+    });
+    expect(s05Content.freeSearch.application.partialRecognition.body).toMatch(
+      /nicht automatisch/u,
+    );
+    expect(s05Content.freeSearch.application.lengthOrientationLabels['below-15'].body).toMatch(
+      /fehlender Volltreffer/u,
+    );
+    expect(s05Content.freeSearch.application.boundary).toMatch(
+      /Keine Crack-Zeit.*kein allgemeines Sicherheitsurteil/u,
+    );
     expect(s05Content.freeSearch.estimate.options).toEqual([12, 13, 14, 15, 16, 17, 18, 19, 20]);
     expect(s05Content.freeSearch.theoreticalModel.interactiveScale.minimumOrientation).toBe(
       'Mindeststandard',

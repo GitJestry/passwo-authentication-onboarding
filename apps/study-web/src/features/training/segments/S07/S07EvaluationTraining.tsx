@@ -31,7 +31,7 @@ const accountDefinitions = (
 }));
 
 function dispositionLabel(disposition: LocalPasswordDisposition): string {
-  return disposition.kind === 'quick-path-recognized'
+  return disposition.kind === 'whole-password-recognized'
     ? s07EvaluationContent.dispositionLabels[disposition.ruleId]
     : s07EvaluationContent.dispositionLabels.none;
 }
@@ -177,17 +177,17 @@ export function S07EvaluationTraining({
               <h1 id="s07-title">{s07EvaluationContent.page.title}</h1>
               <p>{s07EvaluationContent.page.instruction}</p>
             </div>
-            <dl className={styles.overview} aria-label="Kompakte Übersicht">
+            <dl className={styles.overview} aria-label={s07EvaluationContent.page.overviewAriaLabel}>
               <div>
-                <dt>Kein schnellerer Weg erkannt</dt>
-                <dd>{overview.noQuickPathCount}/3</dd>
+                <dt>{s07EvaluationContent.page.overviewLabels.noWholePasswordRecognition}</dt>
+                <dd>{overview.noWholePasswordRecognitionCount}/3</dd>
               </div>
               <div>
-                <dt>Ohne exakte oder abgeleitete Passwortverbindung</dt>
+                <dt>{s07EvaluationContent.page.overviewLabels.noPasswordConnection}</dt>
                 <dd>{overview.noPasswordConnectionCount}/3</dd>
               </div>
               <div>
-                <dt>Im Login erinnert</dt>
+                <dt>{s07EvaluationContent.page.overviewLabels.remembered}</dt>
                 <dd>{overview.rememberedCount}/3</dd>
               </div>
             </dl>

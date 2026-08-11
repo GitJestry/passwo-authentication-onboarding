@@ -46,7 +46,7 @@ export interface S06NarrationContent {
   readonly body: string;
 }
 
-export const S06_CONSEQUENCE_CONTENT_VERSION = '2.3.4';
+export const S06_CONSEQUENCE_CONTENT_VERSION = '2.4.0';
 
 export const s06ConsequenceContent = {
   version: S06_CONSEQUENCE_CONTENT_VERSION,
@@ -54,9 +54,9 @@ export const s06ConsequenceContent = {
     document: 'research/private/training-script.pdf',
     internalPages: [36, 37, 38, 39, 40, 41, 42, 43, 44] as const,
     revision:
-      'Userauftrag vom 2026-08-08 · gemeinsame Konto-/Dienstkataloge und zxcvbn-synchrone Varianten',
+      'Userauftrag vom 2026-08-11 · Vollpasswort-Treffer statt numerischer Guess-Schwelle',
     copyReference:
-      'docs/design/S06-S07-COPY-AUDIT.md#copy-delta-s06-gemeinsame-kontextkataloge-und-variantenabdeckung-8-august-2026',
+      'docs/design/S06-S07-COPY-AUDIT.md#copy-delta-s06-s07-vollpasswort-treffer-statt-guess-schwelle-11-august-2026',
   },
   segment: {
     id: 'S06',
@@ -140,10 +140,10 @@ export const s06ConsequenceContent = {
       'Konto- oder Dienstbegriff, Jahreszahl und typischer Anhang wurden begrenzt verändert.',
   },
   dispositionLabels: {
-    'quick-path-recognized':
-      'Entsprechend kurzer vollständiger Prüfweg in dieser begrenzten Simulation erkannt',
-    'no-quick-path-recognized':
-      'Kein entsprechend kurzer vollständiger Prüfweg in dieser begrenzten Simulation erkannt',
+    'whole-password-recognized':
+      'Vollständiges Passwort als frühen Kandidaten in dieser begrenzten Simulation erkannt',
+    'no-whole-password-recognized':
+      'Kein vollständiger früher Kandidat in dieser begrenzten Simulation erkannt',
   },
   retrievalLabels: {
     retrievable: 'direkt abrufbar',
@@ -153,7 +153,7 @@ export const s06ConsequenceContent = {
   narrations: {
     's06.incident.campusgram-found': {
       heading: 'Erster Vorfall: Campusgram',
-      body: 'Die begrenzte Analyse erkannte für das Campusgram-Passwort einen entsprechend kurzen vollständigen Prüfweg.',
+      body: 'Die begrenzte Prüfung erkannte das vollständige Campusgram-Passwort als frühen Kandidaten.',
     },
     's06.incident.campusgram-blocked': {
       heading: 'Erster Vorfall: Campusgram',
@@ -173,7 +173,7 @@ export const s06ConsequenceContent = {
     },
     's06.perspective.master-campus-found': {
       heading: 'Perspektivwechsel zu Master Campus',
-      body: 'Auch Master Campus kann Ausgangspunkt eines Vorfalls sein. Die begrenzte Analyse erkennt hier einen entsprechend kurzen vollständigen Prüfweg.',
+      body: 'Auch Master Campus kann Ausgangspunkt eines Vorfalls sein. Die begrenzte Prüfung erkennt hier das vollständige Passwort als frühen Kandidaten.',
     },
     's06.perspective.master-campus-blocked': {
       heading: 'Perspektivwechsel zu Master Campus',
@@ -181,11 +181,11 @@ export const s06ConsequenceContent = {
     },
     's06.local-check.campus-email-found': {
       heading: 'Lokaler Einzelcheck von Campus E-Mail',
-      body: 'Die begrenzte Analyse erkennt bei diesem fiktiven Passwort einen entsprechend kurzen vollständigen Prüfweg.',
+      body: 'Die begrenzte Prüfung erkennt dieses vollständige fiktive Passwort als frühen Kandidaten.',
     },
     's06.local-check.campus-email-blocked': {
       heading: 'Lokaler Einzelcheck von Campus E-Mail',
-      body: 'Die begrenzte Analyse erkannte hier keinen entsprechend kurzen vollständigen Prüfweg.',
+      body: 'Die begrenzte Prüfung erkannte hier keinen vollständigen frühen Kandidaten. Das ist keine allgemeine Sicherheitsgarantie.',
     },
     's06.summary': {
       heading: 'Gemeinsame Endübersicht',
@@ -268,23 +268,19 @@ export interface S06PreparedS07EvaluationFixture {
   readonly resolvedResult: S06ResolvedConsequenceResult;
 }
 
-const noQuickPathDisposition = {
-  kind: 'no-quick-path-recognized',
-  estimatedGuesses: 1_000_000,
-  quickPathThreshold: 100_000,
+const noWholePasswordRecognitionDisposition = {
+  kind: 'no-whole-password-recognized',
   lengthOrientation: 'at-least-15',
-  analysisVersion: 'passwo-bounded-guess-path-v2',
-  explanationId: 's05.disposition.no-quick-path-recognized',
+  analysisVersion: 'passwo-bounded-whole-recognition-v9',
+  explanationId: 's05.disposition.no-whole-password-recognized',
 } as const;
 
-const commonPasswordQuickPathDisposition = {
-  kind: 'quick-path-recognized',
-  ruleId: 'bounded-complete-guess-path',
-  estimatedGuesses: 1_000,
-  quickPathThreshold: 100_000,
+const commonPasswordWholeRecognitionDisposition = {
+  kind: 'whole-password-recognized',
+  ruleId: 'whole-password-recognized-value',
   lengthOrientation: 'below-15',
-  analysisVersion: 'passwo-bounded-guess-path-v2',
-  explanationId: 's05.disposition.bounded-complete-guess-path',
+  analysisVersion: 'passwo-bounded-whole-recognition-v9',
+  explanationId: 's05.disposition.whole-password-recognized-value',
 } as const;
 
 export const s06PreparedS07EvaluationFixtures = [
@@ -296,17 +292,17 @@ export const s06PreparedS07EvaluationFixtures = [
       accounts: [
         {
           accountId: 'master-campus',
-          disposition: commonPasswordQuickPathDisposition,
+          disposition: commonPasswordWholeRecognitionDisposition,
           retrievalStatus: 'retrievable',
         },
         {
           accountId: 'campus-email',
-          disposition: noQuickPathDisposition,
+          disposition: noWholePasswordRecognitionDisposition,
           retrievalStatus: 'retrievable',
         },
         {
           accountId: 'campusgram',
-          disposition: commonPasswordQuickPathDisposition,
+          disposition: commonPasswordWholeRecognitionDisposition,
           retrievalStatus: 'retrievable',
         },
       ],
@@ -344,17 +340,17 @@ export const s06PreparedS07EvaluationFixtures = [
       accounts: [
         {
           accountId: 'master-campus',
-          disposition: noQuickPathDisposition,
+          disposition: noWholePasswordRecognitionDisposition,
           retrievalStatus: 'retrievable',
         },
         {
           accountId: 'campus-email',
-          disposition: noQuickPathDisposition,
+          disposition: noWholePasswordRecognitionDisposition,
           retrievalStatus: 'retrievable',
         },
         {
           accountId: 'campusgram',
-          disposition: noQuickPathDisposition,
+          disposition: noWholePasswordRecognitionDisposition,
           retrievalStatus: 'retrievable',
         },
       ],
@@ -392,17 +388,17 @@ export const s06PreparedS07EvaluationFixtures = [
       accounts: [
         {
           accountId: 'master-campus',
-          disposition: noQuickPathDisposition,
+          disposition: noWholePasswordRecognitionDisposition,
           retrievalStatus: 'retrievable',
         },
         {
           accountId: 'campus-email',
-          disposition: noQuickPathDisposition,
+          disposition: noWholePasswordRecognitionDisposition,
           retrievalStatus: 'retrievable',
         },
         {
           accountId: 'campusgram',
-          disposition: noQuickPathDisposition,
+          disposition: noWholePasswordRecognitionDisposition,
           retrievalStatus: 'retrievable',
         },
       ],
@@ -440,17 +436,17 @@ export const s06PreparedS07EvaluationFixtures = [
       accounts: [
         {
           accountId: 'master-campus',
-          disposition: noQuickPathDisposition,
+          disposition: noWholePasswordRecognitionDisposition,
           retrievalStatus: 'assisted',
         },
         {
           accountId: 'campus-email',
-          disposition: noQuickPathDisposition,
+          disposition: noWholePasswordRecognitionDisposition,
           retrievalStatus: 'retrievable',
         },
         {
           accountId: 'campusgram',
-          disposition: noQuickPathDisposition,
+          disposition: noWholePasswordRecognitionDisposition,
           retrievalStatus: 'retrievable',
         },
       ],
@@ -488,17 +484,17 @@ export const s06PreparedS07EvaluationFixtures = [
       accounts: [
         {
           accountId: 'master-campus',
-          disposition: noQuickPathDisposition,
+          disposition: noWholePasswordRecognitionDisposition,
           retrievalStatus: 'retrievable',
         },
         {
           accountId: 'campus-email',
-          disposition: noQuickPathDisposition,
+          disposition: noWholePasswordRecognitionDisposition,
           retrievalStatus: 'retrievable',
         },
         {
           accountId: 'campusgram',
-          disposition: noQuickPathDisposition,
+          disposition: noWholePasswordRecognitionDisposition,
           retrievalStatus: 'retrievable',
         },
       ],

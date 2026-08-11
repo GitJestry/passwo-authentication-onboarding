@@ -7,7 +7,7 @@ import type {
   TrainingSectionId,
 } from '@passwo/contracts';
 
-export const S07_EVALUATION_CONTENT_VERSION = '1.1.0';
+export const S07_EVALUATION_CONTENT_VERSION = '1.2.0';
 
 export const s07EvaluationContent = {
   version: S07_EVALUATION_CONTENT_VERSION,
@@ -15,9 +15,9 @@ export const s07EvaluationContent = {
     document: 'research/private/training-script.pdf',
     internalPages: [44, 45, 46, 47, 48, 49, 50] as const,
     revision:
-      'Bounded complete guess-path and separate length-orientation wording aligned on 2026-08-03',
+      'Userauftrag vom 2026-08-11 · Vollpasswort-Treffer statt numerischer Guess-Schwelle',
     copyReference:
-      'docs/design/S06-S07-COPY-AUDIT.md#copy-delta-vollstaendiger-pruefweg-und-laengenorientierung-3-august-2026',
+      'docs/design/S06-S07-COPY-AUDIT.md#copy-delta-s06-s07-vollpasswort-treffer-statt-guess-schwelle-11-august-2026',
   },
   segment: {
     id: 'S07',
@@ -38,6 +38,12 @@ export const s07EvaluationContent = {
     nextAccount: 'Nächste Kontokarte',
     showSummary: 'Gesamtauswertung ansehen',
     continue: 'Weiter zur Überarbeitung',
+    overviewAriaLabel: 'Kompakte Übersicht',
+    overviewLabels: {
+      noWholePasswordRecognition: 'Kein vollständiger früher Kandidat erkannt',
+      noPasswordConnection: 'Ohne exakte oder abgeleitete Passwortverbindung',
+      remembered: 'Im Login erinnert',
+    },
   },
   accounts: {
     'master-campus': {
@@ -56,10 +62,12 @@ export const s07EvaluationContent = {
     },
   } as const satisfies Readonly<Record<S06AccountId, unknown>>,
   dispositionLabels: {
-    'bounded-complete-guess-path':
-      'Die erkannten Hinweise ergaben zusammen einen entsprechend kurzen vollständigen Prüfweg.',
+    'whole-password-recognized-value':
+      'Ein einzelner früher Kandidat deckte das vollständige Passwort ab.',
+    'whole-password-recognized-bounded-variant':
+      'Ein früher Kandidat mit begrenzter typischer Veränderung deckte das vollständige Passwort ab.',
     none:
-      'Die begrenzte Analyse erkannte keinen entsprechend kurzen vollständigen Prüfweg.',
+      'Die begrenzte Prüfung erkannte keinen vollständigen frühen Kandidaten.',
   },
   relationLabels: {
     'exact-match': 'exakt wiederverwendet',
@@ -95,8 +103,8 @@ export const s07EvaluationContent = {
       'Wende die neue Methode nur an einem zusätzlichen Übungsbeispiel an.',
   } as const satisfies Readonly<Record<S07RecommendationId, string>>,
   problemStatements: {
-    'local-quick-path':
-      'Mindestens ein Passwort ergab in der begrenzten Analyse einen entsprechend kurzen vollständigen Prüfweg.',
+    'local-whole-password-recognized':
+      'Mindestens ein vollständiges Passwort wurde in der begrenzten Prüfung als früher Kandidat erkannt.',
     'below-length-orientation':
       'Mindestens ein selbst erstelltes Passwort lag unter der 15-Zeichen-Orientierung.',
     'exact-reuse': 'Zwischen mindestens zwei Konten besteht eine exakte Passwortwiederverwendung.',

@@ -126,8 +126,8 @@ function comparisonByPair(
   return comparison;
 }
 
-function quickPathRecognized(disposition: LocalPasswordDisposition): boolean {
-  return disposition.kind === 'quick-path-recognized';
+function wholePasswordRecognized(disposition: LocalPasswordDisposition): boolean {
+  return disposition.kind === 'whole-password-recognized';
 }
 
 function targetReachedFor(mode: PasswordConsequenceSceneMode, relation: PasswordRelation): boolean {
@@ -226,7 +226,7 @@ function localCheckStep(
   mode: PasswordConsequenceSceneMode,
 ): PasswordConsequencePlanStep {
   const account = accountById(input.accounts, accountId);
-  const found = quickPathRecognized(account.disposition);
+  const found = wholePasswordRecognized(account.disposition);
   const base = createBaseNetwork(stepId, input.accounts, input.accountDefinitions);
   let nodes = withNodeStatus(base.nodes, accountId, found ? 'exposed' : 'protected');
   if (!found) nodes = addShield(nodes, accountId, stepId);
@@ -343,7 +343,7 @@ function summaryStep(
       account.accountId,
       targetReached
         ? 'affected'
-        : quickPathRecognized(account.disposition)
+        : wholePasswordRecognized(account.disposition)
           ? 'exposed'
           : 'protected',
     );
@@ -389,10 +389,10 @@ export function projectPasswordConsequenceScenePlan(
   input: PasswordConsequenceProjectionInput,
 ): PasswordConsequenceScenePlan {
   validateInput(input);
-  const campusgramFound = quickPathRecognized(
+  const campusgramFound = wholePasswordRecognized(
     accountById(input.accounts, 'campusgram').disposition,
   );
-  const masterCampusFound = quickPathRecognized(
+  const masterCampusFound = wholePasswordRecognized(
     accountById(input.accounts, 'master-campus').disposition,
   );
   const campusgramComparisonMode: PasswordConsequenceSceneMode = campusgramFound

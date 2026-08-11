@@ -31,7 +31,7 @@ export interface S07CardDeckModel {
   readonly id: 's07-account-card-deck';
   readonly cards: readonly S07AccountCardModel[];
   readonly overview: {
-    readonly noQuickPathCount: number;
+    readonly noWholePasswordRecognitionCount: number;
     readonly noPasswordConnectionCount: number;
     readonly rememberedCount: number;
     readonly totalAccountCount: 3;
@@ -65,7 +65,7 @@ export function projectS07CardDeck(
     id: 's07-account-card-deck',
     cards,
     overview: {
-      noQuickPathCount: projection.summary.noQuickPathCount,
+      noWholePasswordRecognitionCount: projection.summary.noWholePasswordRecognitionCount,
       noPasswordConnectionCount: projection.summary.noPasswordConnectionCount,
       rememberedCount: projection.summary.rememberedCount,
       totalAccountCount: 3,

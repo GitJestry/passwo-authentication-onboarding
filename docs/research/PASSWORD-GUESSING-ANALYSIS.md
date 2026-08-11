@@ -1,4 +1,4 @@
-# Begrenzte Passwort-Rateweganalyse in S05
+# Begrenzte Passwort-Kandidatenanalyse in S05
 
 ## Zweck
 
@@ -11,13 +11,13 @@ Kanonische Architekturentscheidung: `ADR 0014-Bounded-Password-Guessing`.
 
 ## Wissenschaftliche Einordnung
 
-Die Implementierung verwendet zxcvbn-ts als lokale Pattern- und Guessing-Basis. zxcvbn wurde als
-Low-Budget-Schätzer entwickelt und kombiniert Wörterbuchtreffer, Transformationen,
-Tastaturmuster, Folgen, Wiederholungen, Daten und nicht anderweitig erklärte Bereiche zu einem
-günstigen vollständigen Kandidatenweg. Die aktuelle Forschung warnt zugleich davor, einen
-Password Strength Meter unabhängig vom Angreifermodell als universelle Wahrheit zu behandeln.
-Die PassWo-Implementierung verwendet deshalb weder einen allgemeinen `stark/schwach`-Score noch
-eine Crack-Zeit.
+Die Implementierung verwendet zxcvbn-ts als lokale Pattern-Basis. zxcvbn kombiniert
+Wörterbuchtreffer, Transformationen, Tastaturmuster, Folgen, Wiederholungen, Daten und nicht
+anderweitig erklärte Bereiche zu einer intern bewerteten Sequenz. PassWo übernimmt aus dieser
+Sequenz erklärbare Pattern-Spans, aber keine numerische Guessability-Aussage. Die aktuelle
+Forschung warnt davor, einen Password Strength Meter unabhängig vom Angreifermodell als
+universelle Wahrheit zu behandeln. Die PassWo-Implementierung verwendet deshalb weder einen
+allgemeinen `stark/schwach`-Score noch eine Crack-Zeit oder eine Guess-Schwelle.
 
 Technische Referenzen:
 
@@ -57,8 +57,9 @@ Nicht zulässig sind:
 - Netzwerk-, Storage-, Logging- oder Telemetrieausgaben;
 - Übernahme der Analyse in den Forschungsdatenexport.
 
-Die semantische Selbsteinordnung mit Ausweichoption bleibt ausschließlich im S05-Controllerzustand und
-wird beim Verlassen des Segments verworfen.
+Die semantische Selbsteinordnung mit Ausweichoption bleibt ausschließlich im
+S05-Controllerzustand und wird beim Verlassen des Segments verworfen. Sie kann die unmittelbare
+Kategorie-Rückmeldung erklären, wird aber nicht als objektiver S06-Befund transportiert.
 
 ## Eingefrorene Konfiguration
 
@@ -69,44 +70,48 @@ wird beim Verlassen des Segments verworfen.
 | Allgemeines Wörterbuch und Graphen | `@zxcvbn-ts/language-common@4.1.2` |
 | Deutsch | `@zxcvbn-ts/language-de@4.1.1` |
 | Englisch | `@zxcvbn-ts/language-en@4.1.1` |
-| Konfigurations-ID | `passwo-bounded-guess-path-v8` |
+| Konfigurations-ID | `passwo-bounded-whole-recognition-v9` |
 | Maximale analysierte Länge | HTML-Eingabelimit 128 UTF-16-Codeeinheiten; zxcvbn `maxLength=128`; Längenorientierung nach Unicode-Codepoints |
 | Levenshtein-Option | zxcvbn-Option deaktiviert; authored Kontextmatch auf höchstens eine begrenzte Abweichung beschränkt |
 | Authored Konto-Kontext | kanonische kontospezifische Kataloge für Master Campus, Campus E-Mail und Campusgram; S05 verwendet den Campusgram-Katalog |
 | Lokale Kontoidentifikatoren | fiktiver Benutzername und fiktive Konto-Mail des aktuellen Kontos |
 | Externe Matcher | keine |
-| Quick-Path-Budget | 100000 Kandidaten |
+| Vollpasswort-Treffer | einzelner früher Kandidat oder begrenzte typische Variante deckt die vollständige Zeichenfolge ab |
 | Längenorientierung | 15 Zeichen für selbst erstellte Passwörter |
 
 Das Lockfile muss vor dem Study Freeze exakt dieselben Paketversionen enthalten.
 
-## Abgrenzung von einer produktiven Blocklist
+## Blocklistenartige Vollpasswort-Semantik
 
 Die zxcvbn-Wörterbücher und authored Kontextbegriffe sind Erkennungshilfen für die didaktische
-Zerlegung und den begrenzten vollständigen Rateweg. Sie sind keine produktive NIST-Blocklist und
-lehnen keine Teilnehmerwahl ab. Bei einem realen Verifier betrifft der NIST-Vergleich bekannte,
-erwartbare oder kompromittierte Werte das vollständige Passwort. S05 verarbeitet dagegen
-ausschließlich fiktive Eingaben, darf Teilmuster sichtbar machen und verwendet diese Befunde nur
-für die lokale Trainingssimulation. Ein einzelner Wörterbuch- oder Kontexttreffer bestimmt die
-Disposition nicht.
+Zerlegung. Sie sind keine produktive NIST-Blocklist und lehnen keine Teilnehmerwahl ab. Die
+Treffersemantik übernimmt jedoch bewusst eine zentrale Vollwert-Idee: Beim NIST-Blocklistenabgleich
+wird das vollständige prospektive Passwort mit bekannten, häufig verwendeten, erwartbaren oder
+kontextspezifischen Werten und Ableitungen verglichen, nicht jeder beliebige Teilstring als
+Blocklist-Treffer behandelt.
+
+PassWo verwendet diese Idee nur als didaktische Grenze: Ein einzelner früher Kandidat oder eine
+begrenzt authored Variante muss das **gesamte fiktive Passwort** abdecken, bevor die
+segmentübergreifende Disposition `whole-password-recognized` lautet. Teilbefunde dürfen weiterhin
+sichtbar sein, bestimmen die Disposition aber nicht allein. Das ist keine NIST-Konformitäts- oder
+Verifier-Implementierung.
 
 ## Verarbeitung
 
-### 1. Vollständiger Rateweg
+### 1. zxcvbn-Patternpfad
 
 `analyzeFictionalPassword` ruft zxcvbn-ts mit der vollständigen Zeichenfolge, den authored
 Konto-Begriffen und den flüchtigen fiktiven Kontoidentifikatoren als `userInputs` auf. Für eine
 von zxcvbn belegte Wiederholung wird zusätzlich deren strikt kürzere Basiskomponente mit derselben
 lokalen Konfiguration ausgewertet. Eine zweite lokale Projektion ohne Wörterbücher verhindert,
 dass ein Wörterbuchtreffer innerhalb dieser Basis belegte Tastatur-, Datums- oder Folgenmuster
-verdeckt. So bleiben Befunde der Basis neben dem Wiederholungsbefund sichtbar; der vollständige
-Rateweg wird dadurch nicht ersetzt. Verwendet werden:
+verdeckt.
 
-- `result.guesses` als geschätzte Kandidatenzahl des vollständigen günstigsten Wegs;
-- `result.guessesLog10` ausschließlich als interne Diagnose;
-- `result.sequence` zur Projektion erklärbarer Pattern.
-
-Der Bibliotheksscore `0` bis `4` und `crackTimes` werden nicht verwendet.
+PassWo übernimmt ausschließlich `result.sequence` zur Projektion erklärbarer Pattern.
+`result.guesses`, `result.guessesLog10`, der Bibliotheksscore `0` bis `4` und `crackTimes` werden
+nicht in den Domain-Contract übernommen, nicht angezeigt und nicht für die Disposition verwendet.
+zxcvbn darf diese Werte intern zur Auswahl seiner Sequenz berechnen; PassWo macht daraus keine
+eigene numerische Sicherheitsbewertung.
 
 ### 2. Komponenten
 
@@ -133,8 +138,9 @@ angehängte Satzzeichen bleiben außerhalb des Begriffs, sofern der kürzere Tre
 Eine typische Endung setzt Buchstaben im vorangehenden fiktiven Passwort voraus, aber keinen
 weiteren Komponentenbefund. Kategorien dürfen überlappen. Insbesondere verdrängt ein
 zxcvbn-Wiederholungsmatch die von zxcvbn erkannten Wörterbuch-, Passwort- und Folgenbefunde seiner
-Basis nicht. Für die Darstellung werden Dubletten entfernt und Befunde priorisiert; die
-Guessing-Entscheidung bleibt unverändert der vollständigen zxcvbn-Sequenz überlassen.
+Basis nicht. Für die Darstellung werden Dubletten entfernt und Befunde priorisiert. Die
+Vollpasswort-Disposition wird anschließend ausschließlich aus den konkret belegten PassWo-Befunden
+nach der unten definierten Trefferregel abgeleitet.
 
 Damit die optimale Gesamtsequenz alternative belegte Wörter nicht verdeckt, werden vollständige
 alphabetische Läufe zusätzlich deterministisch gegen die eingefrorenen Passwort-, Wort- und
@@ -150,8 +156,8 @@ sprachliche Tokenisierung einzuführen.
 
 Nicht-alphanumerische Zeichen zwischen zwei belegten Bereichen dürfen in der Oberfläche als
 reine Verbindung markiert werden. Sie werden dadurch weder zum Wörterbuchtreffer noch zu einem
-neuen Rateweg-Match. Diese Darstellungsbefunde und Verbindungen verändern weder zxcvbns optimale
-Sequenz noch die Kandidatenzahl oder Simulationsentscheidung.
+neuen Rateweg-Match. Diese Darstellungsbefunde und Verbindungen verändern weder zxcvbns Pattern-Sequenz noch die
+Vollpasswort-Disposition.
 
 Ein authored Konto- oder Dienstbegriff oder ein lokaler fiktiver Kontoidentifikator darf in der
 Darstellung auch als veränderter Kontobezug erscheinen, sobald der begrenzte authored Matcher den
@@ -169,8 +175,8 @@ Die presentation-only Strukturanalyse erkennt nur:
 - authored Konto- oder Kontextbegriffe zusammen mit Jahr, Datum, Folge oder Anhang;
 - einen Zahlenmarker zusammen mit einem typischen Anhang.
 
-Sie erfindet keine thematische oder sprachliche Beziehung und beeinflusst nicht die
-Quick-Path-Entscheidung.
+Sie erfindet keine thematische oder sprachliche Beziehung und erzeugt nicht durch das
+Zusammenaddieren unabhängiger Teilbefunde einen Vollpasswort-Treffer.
 
 ### 4. Lokale semantische Einordnung
 
@@ -180,26 +186,45 @@ mehrere Bestandteile für sie zu demselben Thema gehören oder eine Satz-/Phrase
 - bleibt lokal und flüchtig;
 - verlangt keine Details;
 - wird nicht exportiert;
-- beeinflusst weder Kandidatenzahl noch Disposition.
+- beeinflusst die segmentübergreifende Disposition nicht.
 
 ## Simulationsentscheidung
 
-Die Entscheidung ist exakt:
+Die Entscheidung ist absichtlich kategorial statt numerisch:
 
 ```text
-quick-path-recognized
-    iff estimatedGuesses <= QUICK_PATH_GUESS_THRESHOLD
+whole-password-recognized-value
+    iff ein einzelner zulässiger früher Kandidat die gesamte Zeichenfolge abdeckt
 
-QUICK_PATH_GUESS_THRESHOLD = 100000
+whole-password-recognized-bounded-variant
+    iff ein einzelner erkannter Kern plus eine explizit begrenzte typische Variante
+        die gesamte Zeichenfolge abdeckt
+
+no-whole-password-recognized
+    andernfalls
 ```
 
-Die Schwelle ist absichtlich niedrig und an den Bereich gebunden, für den die ursprüngliche
-zxcvbn-Evaluation besonders belastbare Low-Budget-Aussagen berichtet. In einem fiktiven
-Offline-Szenario bedeutet sie nur, dass ein sehr kurzer vollständiger Kandidatenweg erkannt wurde.
-Sie wird nicht in Sekunden umgerechnet und nicht als Sicherheitsgrenze dargestellt.
+Als direkte Vollwert-Kandidaten gelten die bereits modellierten Kategorien häufiger
+Passwortkern/Wort/Name, Tastaturmuster, Jahr/Datum, einfache Zeichen- oder Wortfolge,
+Wiederholung und authored Konto-/Dienstbegriff. Eine deckungsgleiche typische Transformation
+kennzeichnet den Treffer als begrenzte Variante.
 
-Die Gegenkategorie lautet `no-quick-path-recognized`, nicht `strong` oder `secure`. Ein nicht
-erkannter Weg kann an den Grenzen von Wörterbuch, Sprache, Kontext oder Guessing-Modell liegen.
+Für einen Variantenweg darf ein einzelner am Anfang erkannter Passwort-/Wort-/Name- oder
+Konto-Kern durch einen typischen Zahlen-/Symbolanhang oder ein direkt anschließendes Jahr/Datum
+ergänzt werden. Zwischen Kern und Kalenderteil ist höchstens ein einzelnes `-`, `_` oder `.`
+zulässig; direkt anschließende typische Endinterpunktion darf den Kalenderteil abschließen.
+
+**Mehrere unabhängige Teilbefunde werden nicht zu einem Volltreffer addiert.** Wenn etwa zwei
+Wörter gemeinsam die sichtbare Zeichenfolge abdecken, zeigt die Oberfläche beide Bestandteile;
+die konkrete Reihenfolge und Verbindung gelten dadurch noch nicht automatisch als ein einzelner
+früh geprüfter Kandidat.
+
+Ein vollständiger authored Konto-/Dienstbegriff oder lokaler fiktiver Kontoidentifikator kann
+unmittelbar einen Volltreffer bilden. Dafür wird keine künstliche numerische Gewichtung
+eingeführt.
+
+Die Gegenkategorie `no-whole-password-recognized` ist eine Enthaltung von einer positiven
+Trefferbehauptung, kein `strong`, `secure` oder `uncrackable`.
 
 ## Rolle der Länge
 
@@ -213,12 +238,16 @@ Die 15-Zeichen-Orientierung folgt der aktuellen NIST-Anforderung für Passwörte
 Faktor. Sie ist eine Handlungsempfehlung für selbst erstellte Passwörter, keine mathematische
 Zertifizierung. Deshalb gilt:
 
-- ein langes, vorhersehbares Passwort kann `quick-path-recognized` sein;
-- ein kurzes, nicht erkanntes Passwort bleibt `no-quick-path-recognized` plus `below-15`;
+- ein langes Passwort kann trotz erfüllter Längenorientierung `whole-password-recognized` sein,
+  wenn ein früher Kandidat das vollständige Passwort abdeckt;
+- ein kurzes, in diesen Prüfungen nicht vollständig erkanntes Passwort bleibt
+  `no-whole-password-recognized` plus `below-15`;
+- `< 12`, `< 15` oder ausschließlich Kleinbuchstaben erzeugen **keinen** Volltreffer;
 - Zeichenklassen werden nicht als Pflicht oder Sicherheitsbeweis verwendet.
 
 Die authored Angreifer-Uhr in S05.3 ist ein separates theoretisches Modell mit ausdrücklich
-unabhängig zufällig gezogenen Zeichen. Ihre Suchräume werden nicht mit zxcvbn-Werten vermischt.
+unabhängig zufällig gezogenen Zeichen. Ihre Suchräume werden nicht mit zxcvbn-Werten oder der
+Vollpasswort-Disposition vermischt.
 
 ## Einbindung in S05 bis S07
 
@@ -231,7 +260,7 @@ unabhängig zufällig gezogenen Zeichen. Ihre Suchräume werden nicht mit zxcvbn
 
 ### S06
 
-Nur `quick-path-recognized` öffnet den tatsächlichen roten Vorfallspfad. Die Gegenkategorie führt
+Nur `whole-password-recognized` öffnet den tatsächlichen roten Vorfallspfad. Die Gegenkategorie führt
 zum blockierten tatsächlichen Pfad und anschließend gegebenenfalls zur klar gekennzeichneten
 hypothetischen Darstellung. Beide Texte bleiben auf die begrenzte Simulation beschränkt.
 
@@ -239,7 +268,7 @@ hypothetischen Darstellung. Beide Texte bleiben auf die begrenzte Simulation bes
 
 Die Diagnose trennt:
 
-- kurzen vollständigen Rateweg;
+- vollständigen frühen Kandidatentreffer;
 - Längenorientierung;
 - exakte Wiederverwendung;
 - abgeleitete Variante;
@@ -267,8 +296,10 @@ Der synthetische Testkorpus enthält mindestens:
 - lange vorhersehbare Zeichenfolgen;
 - nicht erklärte zufällig wirkende Zeichenfolgen;
 - Umlaute und Unicode-Offsetfälle;
-- Fälle unmittelbar unter und über dem Quick-Path-Budget;
-- Trennung von Quick Path und 15-Zeichen-Orientierung.
+- ein einzelner Vollwert-Kandidat;
+- ein begrenzter Kern-plus-Anhang/Jahr-Variantenweg;
+- mehrere Teilbefunde, die gemeinsam den String abdecken, aber keinen einzelnen Kandidaten bilden;
+- Trennung von Vollpasswort-Treffer und 15-Zeichen-Orientierung.
 
 Metamorphe Invarianten:
 
@@ -277,7 +308,7 @@ Metamorphe Invarianten:
 - Ein einzelner erkannter Teil macht die vollständige Zeichenfolge nicht automatisch zum Treffer.
 - Ein Wörterbuchwort innerhalb eines nicht vollständig zerlegbaren alphabetischen Laufs erzeugt
   durch die Zusatzprojektion keinen freien inneren Teiltreffer.
-- Länge allein bestimmt die Quick-Path-Disposition nicht.
+- Länge allein bestimmt die Vollpasswort-Disposition nicht.
 - Semantische Selbsteinordnung verändert die Disposition nicht.
 - Kein Ergebnis darf `sicher`, `garantiert`, `bestanden` oder eine exakte Crack-Zeit behaupten.
 
@@ -294,5 +325,8 @@ keine externe Validierungsstudie eines neuen Password Strength Meters.
 - Die optimierte Sequenz zeigt nicht zwingend jeden semantisch denkbaren Teilstring.
 - Die begrenzte Kompositzerlegung findet nur lückenlos durch die eingefrorenen Wörterbücher oder
   bereits vorhandene zxcvbn-Spans belegte alphabetische Läufe.
-- `no-quick-path-recognized` ist eine Enthaltung von einer positiven Trefferbehauptung, kein
+- `no-whole-password-recognized` ist eine Enthaltung von einer positiven Trefferbehauptung, kein
   Sicherheitsnachweis.
+- Die manuelle S05-Markierung persönlicher Angaben bleibt absichtlich flüchtig und wird nicht als
+  scheinbar objektiver Befund nach S06 transportiert; automatisch abgeleitete fiktive
+  Kontoidentifikatoren bleiben dagegen reproduzierbare Kontextkandidaten.

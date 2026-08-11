@@ -346,19 +346,17 @@ describe('research-safe contracts', () => {
       },
     };
     const disposition: LocalPasswordDisposition = {
-      kind: 'no-quick-path-recognized',
-      estimatedGuesses: 1_000_000,
-      quickPathThreshold: 100_000,
+      kind: 'no-whole-password-recognized',
       lengthOrientation: 'at-least-15',
-      analysisVersion: 'passwo-bounded-guess-path-v2',
-      explanationId: 's05.disposition.no-quick-path-recognized',
+      analysisVersion: 'passwo-bounded-whole-recognition-v9',
+      explanationId: 's05.disposition.no-whole-password-recognized',
     };
 
     expect(typeof model.totalCandidateCount).toBe('bigint');
     expect(model.exhaustiveSearchDuration.wholeSeconds).toBe(1_677_259_342n);
-    expect(disposition.kind).toBe('no-quick-path-recognized');
+    expect(disposition.kind).toBe('no-whole-password-recognized');
     expect(Object.keys(disposition)).not.toEqual(
-      expect.arrayContaining(['score', 'crackTime', 'effectiveLength', 'entropy']),
+      expect.arrayContaining(['score', 'crackTime', 'effectiveLength', 'entropy', 'estimatedGuesses', 'quickPathThreshold']),
     );
   });
 

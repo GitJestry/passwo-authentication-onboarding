@@ -1,5 +1,68 @@
 # S00--S05 Copy and Interaction Audit
 
+## Copy- & Darstellungsdelta S05 Blocklistenartige Volltreffer-Auswertung, 11. August 2026
+
+Quelle ist der ausdrückliche Nutzerauftrag vom 11. August 2026 sowie die technische Grenze aus
+NIST SP 800-63B-4, Abschnitt 3.1.1.2: Beim Blocklistenabgleich wird das vollständige zukünftige
+Passwort verglichen; beliebige enthaltene Teilstrings gelten nicht bereits als Blocklistentreffer.
+Kontextspezifische Werte wie Dienstname, Benutzername und begrenzte Ableitungen können dagegen
+Vergleichswerte sein. PassWo übernimmt davon ausschließlich die **Vollpasswort-Semantik** als
+didaktische Grenze. Die Trainingssimulation ist keine produktive NIST-Blocklist, keine
+Konformitätsimplementierung und lehnt kein Teilnehmerpasswort ab.
+
+Die bisherige `estimatedGuesses <= 100000`-Entscheidung entfällt vollständig aus der
+segmentübergreifenden Disposition. zxcvbn-ts bleibt lokale Pattern-Basis, aber numerische
+`guesses`, `guessesLog10`, Score und Crack-Time werden weder in den Domain-Contract übernommen
+noch für die Teilnehmerauswertung verwendet. Ein Volltreffer entsteht nur noch, wenn ein einzelner
+früh geprüfter Kandidat oder ein eng begrenzter authored Variantenweg das **gesamte fiktive
+Passwort** abdeckt. Mehrere Teilbefunde dürfen sichtbar werden, werden aber nicht zu einem
+Volltreffer addiert.
+
+Die Längenorientierung bleibt orthogonal: `< 15` und `>= 15` sind eigene Auswertungszustände und
+können keinen Vollpasswort-Treffer erzeugen oder aufheben. Insbesondere gibt es keine Regel
+`< 12 => gefunden`, `< 15 => gefunden` oder `nur Kleinbuchstaben => gefunden`. Damit kann eine
+kurze, in den dargestellten Wegen nicht vollständig erkannte Zufallsfolge gleichzeitig
+`kein Volltreffer` und `unter 15 Zeichen` sein. Umgekehrt kann ein langes, vollständig erkanntes
+Muster die Längenorientierung erfüllen und trotzdem einen Volltreffer bilden.
+
+Die bisherige S05-Anwendungsfläche mit zusammenfassenden Platzhalterkacheln wird durch eine
+zweiachsige Auswertung ersetzt: oben Vollpasswort-Treffer inklusive sichtbarer Abdeckung und
+konkreter Komponenten-/Strukturbefunde, darunter die getrennte Längenorientierung. Ein
+Teiltreffer erhält ausdrücklich den Status `Bestandteile erkannt, kein Volltreffer`. Die
+Oberfläche zeigt weder Crack-Zeit noch allgemeines Sicherheitsurteil. Persistenz, Export und
+Study-Messvariablen bleiben unverändert. `S05_CONTENT_VERSION` wird von `2.72.0` auf `2.73.0`
+erhöht.
+
+| Segment und Text-ID | Quelle | Aktueller Text | Geplanter Text | Primäre Rolle | Grund | Bedeutungsänderung | Interaktionsziel | Hervorhebung |
+|---|---|---|---|---|---|---|---|---|
+| `S05.freeSearch.application.title` | Nutzerauftrag 2026-08-11 | bisherige zusammenfassende Auswertung | `Zwei getrennte Fragen` | Orientierung | Treffersemantik und Längenorientierung sichtbar auseinanderziehen | ja, präzisiert Auswertungslogik | kein | Abschnittsüberschrift |
+| `S05.freeSearch.application.wholePasswordRule` | Nutzerauftrag + NIST-Vollwert-Idee | numerische Guess-Schwelle war interne Entscheidung | `Für „gefunden“ muss ein einzelner früher Kandidat oder eine begrenzte typische Variante das vollständige fiktive Passwort abdecken.` | Safety Boundary / Mechanismuserklärung | verhindert, dass Teilstrings oder eine Modellzahl als Volltreffer ausgegeben werden | ja | kein | direkt unter Trefferstatus |
+| `S05.freeSearch.application.statusLabels` | Nutzerauftrag | nicht vorhanden | `Gefunden` / `Kein Volltreffer` | Ergebnisfeedback | Status benennt nur vollständige Abdeckung | ja | kein | Statusbadge plus Text, Farbe nicht allein |
+| `S05.freeSearch.application.dispositionLabels.*` | Nutzerauftrag | schneller Weg auf Basis `<=100000` Guesses | vollständiger früher Kandidat beziehungsweise begrenzte typische Variante deckt das ganze fiktive Passwort ab | Ergebnisfeedback | ersetzt pseudo-präzise Schwellenentscheidung | ja | kein | Trefferkarte |
+| `S05.freeSearch.application.partialRecognition` | bestehende S05-Bausteinlogik | Teilbefunde ohne eigenen finalen Zustand | `Bestandteile erkannt, kein Volltreffer` plus Hinweis auf weiterhin offene Reihenfolge, Verbindung oder Bereiche | Mechanismuserklärung | erkannte Teilbereiche werden nicht automatisch zu einem vollständigen Kandidaten zusammenaddiert | ja | kein | Abdeckungsleiste und Befundliste |
+| `S05.freeSearch.application.noRecognition` | Nutzerauftrag | `kein schnellerer Weg erkannt` | `Kein Volltreffer in diesen Prüfungen` plus `Das ist kein Sicherheitsnachweis.` | Safety Boundary | Gegenkategorie ist Enthaltung von einer Trefferbehauptung | ja | kein | neutrale Ergebnisdarstellung |
+| `S05.freeSearch.application.lengthOrientationLabels.*` | NIST-orientierte bestehende 15-Zeichen-Regel | Längenstatus in der bisherigen Disposition nur beigefügt | eigener zweiter Auswertungsblock `Noch unter 15 Zeichen` / `Mindestens 15 Zeichen erreicht` | Handlungsempfehlung / Safety Boundary | Länge darf die Mustererkennung weder ersetzen noch überstimmen | ja, Darstellung getrennt | kein | eigener Ergebnisblock |
+| `S05.freeSearch.application.boundary` | Forschungs- und Trainingsguardrails | kein eigener Abschluss unter der Auswertung | `Keine Crack-Zeit und kein allgemeines Sicherheitsurteil. Die Übung zeigt nur die hier dargestellten Prüfwege.` | Safety Boundary | begrenzt die sichtbare Auswertung gegen einen Password-Strength-Meter | ja | kein | Abschluss-Callout |
+| `S05.summary.noScore` | Nutzerauftrag | allgemeine Begrenzung gegen Score | `„Gefunden“ heißt hier: Ein früher Kandidat oder eine begrenzte typische Variante deckt das ganze Passwort ab. Die 15-Zeichen-Orientierung bleibt davon getrennt.` | Zusammenfassung / Safety Boundary | fixiert dieselbe Semantik am Segmentende | ja | `Weiter` | keine |
+
+### Technische Darstellungsentscheidung
+
+Die Abdeckungsleiste visualisiert ausschließlich bereits lokal belegte Spans. Erkannte Bereiche
+und in diesen Prüfungen nicht erklärte Bereiche erhalten zusätzlich lesbare Legendentexte; Farbe
+ist nicht die einzige Kodierung. Komponenten- und Strukturbefunde bleiben erklärende Evidenz und
+werden nicht zu einem neuen Score verdichtet. Die React-Oberfläche projiziert nur den bereits in
+`@passwo/password-analysis` bestimmten Zustand; die Vollpasswort-Entscheidung liegt nicht in der
+UI.
+
+### Persönliche Angaben und Kontobezug
+
+Ein vom System tatsächlich bekannter **fiktiver** Konto-/Dienstbegriff oder lokal abgeleiteter
+fiktiver Kontoidentifikator kann als früher Vollpasswort-Kandidat gelten, wenn er den vollständigen
+Wert abdeckt; begrenzte authored Varianten bleiben möglich. Dafür wird keine künstliche
+numerische Gewichtung eingeführt. Die manuelle S05-Selbsteinordnung `persönliche Angabe` bleibt
+hingegen flüchtige didaktische Reflexion und wird nicht als scheinbar objektiver Befund nach S06
+transportiert. Dadurch bleiben Selbstbericht und automatisierte Kandidatenanalyse getrennt.
+
 ## Darstellungsdelta S05 gelbe Modellkugel halb so groß wie 16 Stellen 11. August 2026
 
 Quelle ist der ausdrückliche Nutzerauftrag vom 11. August 2026. Der Durchmesser der gelben

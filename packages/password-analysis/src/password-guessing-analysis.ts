@@ -19,7 +19,7 @@ import {
   originalSpanForNormalizedRange,
 } from './case-insensitive-spans.js';
 
-export const PASSWORD_ANALYSIS_CONFIGURATION_VERSION = 'passwo-bounded-guess-path-v8';
+export const PASSWORD_ANALYSIS_CONFIGURATION_VERSION = 'passwo-bounded-whole-recognition-v9';
 
 export interface FictionalPasswordAnalysisInput {
   readonly fictionalPassword: string;
@@ -70,8 +70,8 @@ const zxcvbnPatternFactory = new ZxcvbnFactory({
   useLevenshteinDistance: false,
 });
 
-// The authored matcher deliberately shares the frozen zxcvbn substitution vocabulary. It still
-// produces presentation evidence only and never changes zxcvbn's complete-path estimate.
+// The authored matcher deliberately shares the frozen zxcvbn substitution vocabulary. It adds
+// bounded explanatory evidence without turning the training into a numerical strength estimator.
 const zxcvbnLeetTable = new Options().l33tTable;
 const zxcvbnSubstitutionsByCharacter: ReadonlyMap<string, readonly string[]> = new Map(
   Object.entries(zxcvbnLeetTable),
@@ -114,11 +114,6 @@ function stringProperty(value: unknown, name: string): string | null {
 
 function booleanProperty(value: unknown, name: string): boolean {
   return asRecord(value)[name] === true;
-}
-
-function normalizedGuessCount(value: number): number {
-  if (!Number.isFinite(value)) return Number.MAX_SAFE_INTEGER;
-  return Math.max(1, Math.min(Number.MAX_SAFE_INTEGER, Math.ceil(value)));
 }
 
 function matchPattern(match: ZxcvbnMatch): PasswordGuessPathPattern {
@@ -946,10 +941,6 @@ export function analyzeFictionalPassword({
     guessPath: {
       engineId: 'zxcvbn-ts',
       configurationVersion: PASSWORD_ANALYSIS_CONFIGURATION_VERSION,
-      estimatedGuesses: normalizedGuessCount(result.guesses),
-      estimatedGuessesLog10: Number.isFinite(result.guessesLog10)
-        ? result.guessesLog10
-        : Math.log10(Number.MAX_SAFE_INTEGER),
       matches: result.sequence.map(projectGuessPathMatch),
     },
     disclaimerId: 'simulation-not-production-strength',
