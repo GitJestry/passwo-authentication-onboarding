@@ -25,11 +25,7 @@ const definition = {
       edgeLabel: 'verbunden',
       unlockAnimationId: 'unlock-master',
       detailRevealAnimationId: 'reveal-master',
-      coreAction: {
-        id: 'open-master-service',
-        animationId: 'complete-master',
-        targetDetailIds: ['master-service'],
-      },
+      previewSequence: ['master-service', 'master-option'],
       narrationId: 'master',
       descriptions: {
         locked: 'geschlossen',
@@ -50,6 +46,7 @@ const definition = {
           label: 'Dienst',
           symbolId: 'service',
           position: { x: 0.1, y: 0.4 },
+          preview: { animationId: 'preview-master-service' },
           descriptions: { available: 'Vorschau öffnen', opened: 'Vorschau erneut öffnen' },
         },
         {
@@ -57,6 +54,7 @@ const definition = {
           label: 'Option',
           symbolId: 'service',
           position: { x: 0.2, y: 0.6 },
+          preview: { animationId: 'preview-master-option' },
           descriptions: { available: 'Vorschau öffnen', opened: 'Vorschau erneut öffnen' },
         },
       ],
@@ -71,11 +69,7 @@ const definition = {
       edgeLabel: 'enthält',
       unlockAnimationId: 'unlock-email',
       detailRevealAnimationId: 'reveal-email',
-      coreAction: {
-        id: 'open-email-link',
-        animationId: 'complete-email',
-        targetDetailIds: ['email-link'],
-      },
+      previewSequence: ['email-link'],
       narrationId: 'email',
       descriptions: {
         locked: 'geschlossen',
@@ -96,6 +90,7 @@ const definition = {
           label: 'Link',
           symbolId: 'function',
           position: { x: 0.7, y: 0.4 },
+          preview: { animationId: 'preview-email-link' },
           descriptions: { available: 'Vorschau öffnen', opened: 'Vorschau erneut öffnen' },
         },
       ],
@@ -110,11 +105,7 @@ const definition = {
       edgeLabel: 'enthält',
       unlockAnimationId: 'unlock-campusgram',
       detailRevealAnimationId: 'reveal-campusgram',
-      coreAction: {
-        id: 'open-campusgram-message',
-        animationId: 'complete-campusgram',
-        targetDetailIds: ['campusgram-message'],
-      },
+      previewSequence: ['campusgram-message'],
       narrationId: 'campusgram',
       descriptions: {
         locked: 'geschlossen',
@@ -135,6 +126,7 @@ const definition = {
           label: 'Nachricht',
           symbolId: 'content',
           position: { x: 0.4, y: 0.7 },
+          preview: { animationId: 'preview-campusgram-message' },
           descriptions: { available: 'Vorschau öffnen', opened: 'Vorschau erneut öffnen' },
         },
       ],
@@ -142,7 +134,7 @@ const definition = {
   ],
 } as const satisfies AccountExplorationSceneDefinition;
 
-function settleAccountOpening(
+function openAccount(
   snapshot: AccountExplorationSceneSnapshot,
   accountId: string,
 ): AccountExplorationSceneSnapshot {
@@ -162,31 +154,37 @@ function settleAccountOpening(
   }).snapshot;
 }
 
-function completeCoreAction(
+function settleActivePreview(
+  snapshot: AccountExplorationSceneSnapshot,
+): AccountExplorationSceneSnapshot {
+  if (snapshot.pendingAnimationId === null) throw new Error('missing active preview animation');
+  return transitionAccountExplorationScene(definition, snapshot, {
+    type: 'animation-settled',
+    animationId: snapshot.pendingAnimationId,
+  }).snapshot;
+}
+
+function completeAccount(
   snapshot: AccountExplorationSceneSnapshot,
   accountId: string,
 ): AccountExplorationSceneSnapshot {
+  let current = openAccount(snapshot, accountId);
   const account = definition.accounts.find(({ id }) => id === accountId);
-  const targetDetailId = account?.coreAction.targetDetailIds[0];
-  if (account === undefined || targetDetailId === undefined) {
-    throw new Error(`missing core action: ${accountId}`);
+  if (account === undefined) throw new Error(`missing account: ${accountId}`);
+  for (let index = 0; index < account.previewSequence.length; index += 1) {
+    current = settleActivePreview(current);
+    current = transitionAccountExplorationScene(definition, current, {
+      type: 'preview-advance-requested',
+    }).snapshot;
   }
-  const started = transitionAccountExplorationScene(definition, snapshot, {
-    type: 'core-action-started',
-    accountId,
-    targetDetailId,
-  }).snapshot;
-  return transitionAccountExplorationScene(definition, started, {
-    type: 'animation-settled',
-    animationId: account.coreAction.animationId,
-  }).snapshot;
+  return current;
 }
 
 describe('account exploration scene', () => {
   it('allows accounts to be opened in a free order', () => {
     const initial = createAccountExplorationScene(definition);
-    const campusgramReady = settleAccountOpening(initial, 'campusgram');
-    const masterSelected = transitionAccountExplorationScene(definition, campusgramReady, {
+    const campusgramComplete = completeAccount(initial, 'campusgram');
+    const masterSelected = transitionAccountExplorationScene(definition, campusgramComplete, {
       type: 'node-selected',
       nodeId: 'master',
     }).snapshot;
@@ -195,31 +193,53 @@ describe('account exploration scene', () => {
     expect(masterSelected.pendingAnimationId).toBe('unlock-master');
   });
 
-  it('keeps optional detail previews out of the required account progress', () => {
-    const masterReady = settleAccountOpening(createAccountExplorationScene(definition), 'master');
-    const optionalPreview = transitionAccountExplorationScene(definition, masterReady, {
+  it('locks other accounts and detail-node clicks while a guided account tour is active', () => {
+    const masterTour = openAccount(createAccountExplorationScene(definition), 'master');
+    const otherAccount = transitionAccountExplorationScene(definition, masterTour, {
+      type: 'node-selected',
+      nodeId: 'email',
+    }).snapshot;
+    const detailClick = transitionAccountExplorationScene(definition, masterTour, {
       type: 'node-selected',
       nodeId: 'master-option',
     }).snapshot;
 
-    expect(optionalPreview.activePreviewDetailId).toBe('master-option');
-    expect(optionalPreview.viewedAccountIds).toEqual([]);
-    expect(optionalPreview.isComplete).toBe(false);
+    expect(masterTour.activePreviewDetailId).toBe('master-service');
+    expect(otherAccount).toBe(masterTour);
+    expect(detailClick).toBe(masterTour);
   });
 
-  it('requires one core action per account before completing', () => {
-    const masterViewed = completeCoreAction(
-      settleAccountOpening(createAccountExplorationScene(definition), 'master'),
-      'master',
-    );
-    const campusgramViewed = completeCoreAction(
-      settleAccountOpening(masterViewed, 'campusgram'),
-      'campusgram',
-    );
-    const complete = completeCoreAction(
-      settleAccountOpening(campusgramViewed, 'email'),
-      'email',
-    );
+  it('enables advancing only after playback and visits previews in authored order', () => {
+    const playingFirst = openAccount(createAccountExplorationScene(definition), 'master');
+    const blockedAdvance = transitionAccountExplorationScene(definition, playingFirst, {
+      type: 'preview-advance-requested',
+    }).snapshot;
+    const readyFirst = settleActivePreview(playingFirst);
+    const playingSecond = transitionAccountExplorationScene(definition, readyFirst, {
+      type: 'preview-advance-requested',
+    }).snapshot;
+
+    expect(blockedAdvance).toBe(playingFirst);
+    expect(readyFirst.previewPlayback).toBe('ready');
+    expect(playingSecond.activePreviewDetailId).toBe('master-option');
+    expect(playingSecond.previewPlayback).toBe('playing');
+  });
+
+  it('replays the active preview without clearing completed detail progress', () => {
+    const ready = settleActivePreview(openAccount(createAccountExplorationScene(definition), 'master'));
+    const replaying = transitionAccountExplorationScene(definition, ready, {
+      type: 'preview-replay-requested',
+    }).snapshot;
+
+    expect(replaying.activePreviewDetailId).toBe('master-service');
+    expect(replaying.previewPlayback).toBe('playing');
+    expect(replaying.accountProgress[0]?.viewedDetailIds).toEqual(['master-service']);
+  });
+
+  it('requires every preview in all three accounts before completing', () => {
+    const masterViewed = completeAccount(createAccountExplorationScene(definition), 'master');
+    const campusgramViewed = completeAccount(masterViewed, 'campusgram');
+    const complete = completeAccount(campusgramViewed, 'email');
 
     expect(masterViewed.viewedAccountIds).toEqual(['master']);
     expect(campusgramViewed.viewedAccountIds).toEqual(['master', 'campusgram']);

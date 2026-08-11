@@ -1242,10 +1242,17 @@ interface ScaleLayout {
   readonly bottom: number;
 }
 
-function buildScaleLayout(currentLength: number): ScaleLayout {
+function buildScaleLayout(
+  currentLength: number,
+  maximumPositionLength = currentLength,
+): ScaleLayout {
   const positions = new Map<number, number>([[LOWERCASE_SCALE_VISIBLE_MINIMUM_LENGTH, 110]]);
   const currentDiameter = scaleSphereDiameter(currentLength);
-  for (let length = LOWERCASE_SCALE_VISIBLE_MINIMUM_LENGTH + 1; length <= currentLength; length += 1) {
+  for (
+    let length = LOWERCASE_SCALE_VISIBLE_MINIMUM_LENGTH + 1;
+    length <= maximumPositionLength;
+    length += 1
+  ) {
     const previousLength = length - 1;
     const previousDiameter = scaleSphereDiameter(previousLength);
     const diameter = scaleSphereDiameter(length);
@@ -1330,6 +1337,16 @@ function projectScale(layout: ScaleLayout, currentLength: number, width: number,
   }
   const translateY = (availableHeight - spanY * scale) / 2 - layout.top * scale;
   const axisY = layout.axisTop * scale + translateY;
+  if (currentLength === LOWERCASE_SCALE_STARTING_LENGTH) {
+    const activeX = layout.positions.get(currentLength) ?? 110;
+    return {
+      scale,
+      translateX: width / 2 - activeX * scale,
+      translateY,
+      axisY,
+      annotationScale: 1,
+    };
+  }
   return {
     scale,
     translateX: width / 2 - ((layout.left + layout.right) / 2) * scale,
@@ -1400,6 +1417,26 @@ function ScaleTimeInformation({
   );
 }
 
+function MixedCharacterTimeInformation() {
+  const measurement = s05Content.freeSearch.theoreticalModel.mixedCharacterMeasurement;
+  const durationValue = measurement.durationLabel.slice(4);
+  const [durationNumber = durationValue, ...durationUnitParts] = durationValue.split(' ');
+  return (
+    <span className={styles.scaleTimeInformation}>
+      <strong>
+        <span className={styles.scaleTimeValue}>
+          <span className={styles.scaleTimeApproximateNumber}>
+            <small>ca.</small>
+            <span>{durationNumber}</span>
+          </span>{` ${durationUnitParts.join(' ')}`}
+        </span>
+      </strong>
+      <small className={styles.mixedCharacterAlphabet}>{measurement.alphabetLabel}</small>
+      <small>bis alle Zeichenfolgen der Länge {measurement.length} geprüft wären</small>
+    </span>
+  );
+}
+
 function LowercaseClockScene({
   snapshot,
   controller,
@@ -1414,13 +1451,30 @@ function LowercaseClockScene({
   const graphRef = useRef<HTMLDivElement | null>(null);
   const viewport = useScaleViewport(graphRef);
   const currentLength = snapshot.lowercaseScale.password.length;
-  const layout = buildScaleLayout(currentLength);
-  const projection = projectScale(layout, currentLength, viewport.width, viewport.height);
+  const comparesLengthModels = snapshot.step === 'length-model-comparison';
+  const layout = buildScaleLayout(
+    comparesLengthModels ? 16 : currentLength,
+    comparesLengthModels ? LOWERCASE_SCALE_MAXIMUM_LENGTH : currentLength,
+  );
+  const generatedModel = snapshot.freeSearchDemonstrationScene.generatedCharacterModel;
+  const lowercaseAlphabetSize =
+    snapshot.freeSearchDemonstrationScene.lowercaseReferenceModel.alphabetSize;
+  // Keep sphere size on the existing lowercase scale while preserving the generated model's search space.
+  const generatedEquivalentLowercaseLength =
+    generatedModel.length * Math.log(generatedModel.alphabetSize) / Math.log(lowercaseAlphabetSize);
+  const generatedSphereDiameter = scaleSphereDiameter(generatedEquivalentLowercaseLength);
+  const projection = projectScale(
+    layout,
+    comparesLengthModels ? 16 : currentLength,
+    viewport.width,
+    viewport.height,
+  );
   const estimateLength = snapshot.estimate.selected === null
     ? null
     : Math.min(snapshot.estimate.selected, LOWERCASE_SCALE_MAXIMUM_LENGTH);
   const screenX = (length: number): number =>
-    (layout.positions.get(Math.min(length, currentLength)) ?? 110) * projection.scale + projection.translateX;
+    (layout.positions.get(comparesLengthModels ? length : Math.min(length, currentLength)) ?? 110) *
+      projection.scale + projection.translateX;
   const screenDiameter = (length: number): number =>
     scaleSphereDiameter(length) * projection.scale;
   const screenTop = (length: number): number =>
@@ -1436,6 +1490,7 @@ function LowercaseClockScene({
   });
 
   function sphereX(length: number): number {
+    if (comparesLengthModels) return screenX(length);
     if (length <= currentLength) return screenX(length);
     const currentRadius = screenDiameter(currentLength) / 2;
     const previewRadius = previewSphereDiameter(length) / 2;
@@ -1451,7 +1506,7 @@ function LowercaseClockScene({
   }
 
   function sphereStyle(length: number): ScaleItemStyle {
-    const preview = length === currentLength + 1;
+    const preview = !comparesLengthModels && length === currentLength + 1;
     return {
       '--scale-x': `${sphereX(length)}px`,
       '--scale-y': `${preview
@@ -1462,16 +1517,45 @@ function LowercaseClockScene({
     };
   }
 
+  function generatedSphereStyle(): ScaleItemStyle {
+    const x = layout.positions.get(16) ?? 110;
+    return {
+      '--scale-x': `${x * projection.scale + projection.translateX}px`,
+      '--scale-y': `${(layout.axisTop - layout.sphereLift - generatedSphereDiameter) * projection.scale + projection.translateY}px`,
+      '--sphere-size': `${generatedSphereDiameter * projection.scale}px`,
+      '--sphere-color': '#f2c14e',
+      '--tick-color': '#f2c14e',
+    };
+  }
+
+  function generatedTickStyle(): ScaleItemStyle {
+    return {
+      ...generatedSphereStyle(),
+      '--scale-y': `${projection.axisY + 10}px`,
+    };
+  }
+
   function attemptFinish(): void {
     controller.completeLowercaseScale();
   }
 
+  const targetId = snapshot.step === 'length-model-comparison'
+    ? 'length-model-comparison'
+    : focused
+      ? 'length-orientation'
+      : 'lowercase-clock';
+
   return (
     <div
       className={styles.lowercaseScaleScene}
-      data-s05-target={focused ? 'length-orientation' : 'lowercase-clock'}
+      data-s05-target={targetId}
       data-focused={focused || undefined}
-      aria-label={scaleContent.accessibleLabel}
+      data-model-comparison={comparesLengthModels || undefined}
+      aria-label={
+        comparesLengthModels
+          ? scaleContent.comparisonAccessibleLabel
+          : scaleContent.accessibleLabel
+      }
     >
       {focused ? null : <ScaleInformationControl length={currentLength} />}
       <div className={styles.lowercaseScaleGraph} ref={graphRef}>
@@ -1498,10 +1582,11 @@ function LowercaseClockScene({
         )}
         {lowercaseScaleLengths.map((length) => {
           const visible = length <= currentLength;
-          const preview = length === currentLength + 1;
+          const visibleInComparison = comparesLengthModels;
+          const preview = !comparesLengthModels && length === currentLength + 1;
           const active = length === currentLength;
-          const previous = length === currentLength - 1;
-          const sphereIsLargeEnough = screenDiameter(length) >= 2;
+          const previous = !comparesLengthModels && length === currentLength - 1;
+          const sphereIsLargeEnough = comparesLengthModels || screenDiameter(length) >= 2;
           const tickStyle: ScaleItemStyle = {
             '--scale-x': `${screenX(length)}px`,
             '--scale-y': `${projection.axisY + 10}px`,
@@ -1509,22 +1594,27 @@ function LowercaseClockScene({
           };
           return (
             <div key={length}>
-              <div
-                className={styles.scaleTick}
-                data-reached={visible || undefined}
-                data-active={active || undefined}
-                data-future={!visible || undefined}
-                style={tickStyle}
-              >
-                <i />
-                <span>{active ? `${length === 20 ? '20+' : length} Stellen` : length === 20 ? '20+' : length}</span>
-              </div>
-              {(visible || preview) && sphereIsLargeEnough ? (
+              {visible || !comparesLengthModels ? (
+                <div
+                  className={styles.scaleTick}
+                  data-reached={visible || undefined}
+                  data-active={active || undefined}
+                  data-comparison-muted={comparesLengthModels && !active || undefined}
+                  data-future={(!visible && !visibleInComparison) || undefined}
+                  style={tickStyle}
+                >
+                  <i />
+                  <span>{active ? `${length === 20 ? '20+' : length} Stellen` : length === 20 ? '20+' : length}</span>
+                </div>
+              ) : null}
+              {(visible || visibleInComparison || preview) && sphereIsLargeEnough ? (
                 <div
                   className={styles.scaleSphere}
+                  data-reached={visible || undefined}
                   data-active={active || undefined}
                   data-previous={previous || undefined}
-                  data-future={!visible || undefined}
+                  data-comparison-muted={comparesLengthModels && !active || undefined}
+                  data-future={(!visible && !visibleInComparison) || undefined}
                   data-preview={preview || undefined}
                   style={sphereStyle(length)}
                 />
@@ -1542,6 +1632,33 @@ function LowercaseClockScene({
             </div>
           );
         })}
+        {comparesLengthModels ? (
+          <>
+            <div
+              className={styles.scaleTick}
+              data-active="true"
+              data-generated="true"
+              style={generatedTickStyle()}
+            >
+              <i />
+              <span>{content.mixedCharacterMeasurement.length} Stellen</span>
+            </div>
+            <div
+              className={styles.scaleSphere}
+              data-active="true"
+              data-generated="true"
+              style={generatedSphereStyle()}
+            />
+            <div
+              className={styles.scaleTimeBubble}
+              data-active="true"
+              data-generated="true"
+              style={generatedSphereStyle()}
+            >
+              <MixedCharacterTimeInformation />
+            </div>
+          </>
+        ) : null}
       </div>
       {focused ? null : (
         <footer className={styles.lowercaseScaleControls}>
@@ -1852,6 +1969,7 @@ function renderScene(
           controller={controller}
         />
       );
+    case 'length-model-comparison':
     case 'length-orientation':
       return <LowercaseClockScene snapshot={snapshot} controller={controller} focused />;
     case 'length-word-core':
@@ -2077,6 +2195,8 @@ function speechFor(
       return [s05Content.freeSearch.estimate.question];
     case 'lowercase-clock':
       return null;
+    case 'length-model-comparison':
+      return [s05Content.freeSearch.lengthExamples.mixedCharacterComparison];
     case 'length-orientation':
       return [s05Content.freeSearch.lengthExamples.orientation];
     case 'length-word-core':

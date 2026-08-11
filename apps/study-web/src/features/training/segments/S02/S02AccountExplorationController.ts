@@ -21,11 +21,12 @@ const definition = {
 export interface S02AccountExplorationControllerSnapshot {
   readonly scene: AccountExplorationSceneSnapshot;
   readonly presentation: NetworkPresentationSnapshot;
-  readonly introState: 'ready' | 'playing' | 'complete';
+  readonly introState: 'ready' | 'playing' | 'explaining' | 'complete';
 }
 
 export interface S02AccountExplorationControllerOptions {
   readonly animationPlayer: AnimationPlayerPort;
+  readonly previewAnimationPlayer: AnimationPlayerPort;
   readonly onAllAccountsViewed?: () => void;
 }
 
@@ -33,16 +34,14 @@ type ControllerListener = (snapshot: S02AccountExplorationControllerSnapshot) =>
 
 interface PendingAnimation {
   readonly animationId: string;
+  readonly player: 'network' | 'preview';
   readonly runId: number;
 }
 
 type ControllerEvent =
   | { readonly type: 'node-selected'; readonly nodeId: string }
-  | {
-      readonly type: 'core-action-started';
-      readonly accountId: string;
-      readonly targetDetailId: string;
-    }
+  | { readonly type: 'preview-replay-requested' }
+  | { readonly type: 'preview-advance-requested' }
   | {
       readonly type: 'animation-finished' | 'animation-recovered';
       readonly animationId: string;
@@ -74,6 +73,7 @@ function revealSceneNodes(
 
 export class S02AccountExplorationController {
   readonly #animationPlayer: AnimationPlayerPort;
+  readonly #previewAnimationPlayer: AnimationPlayerPort;
   readonly #onAllAccountsViewed: () => void;
   #renderer: NetworkRendererPort | null = null;
   readonly #listeners = new Set<ControllerListener>();
@@ -86,9 +86,11 @@ export class S02AccountExplorationController {
 
   constructor({
     animationPlayer,
+    previewAnimationPlayer,
     onAllAccountsViewed = () => undefined,
   }: S02AccountExplorationControllerOptions) {
     this.#animationPlayer = animationPlayer;
+    this.#previewAnimationPlayer = previewAnimationPlayer;
     this.#onAllAccountsViewed = onAllAccountsViewed;
     this.#snapshot = {
       scene: createAccountExplorationScene(definition),
@@ -109,16 +111,28 @@ export class S02AccountExplorationController {
     this.#send({ type: 'node-selected', nodeId });
   }
 
-  performCoreAction(accountId: string, targetDetailId: string): void {
+  replayPreview(): void {
     if (this.#snapshot.introState !== 'complete') return;
-    this.#send({ type: 'core-action-started', accountId, targetDetailId });
+    this.#send({ type: 'preview-replay-requested' });
+  }
+
+  advancePreview(): void {
+    if (this.#snapshot.introState !== 'complete') return;
+    this.#send({ type: 'preview-advance-requested' });
   }
 
   startIntro(): void {
     if (this.#disposed || this.#snapshot.introState !== 'ready') return;
     const animation = getS02Animation(definition.introAnimationId);
     if (animation === undefined) {
-      this.#snapshot = { ...this.#snapshot, introState: 'complete' };
+      this.#snapshot = {
+        ...this.#snapshot,
+        introState: 'explaining',
+        presentation: {
+          ...this.#snapshot.presentation,
+          announcedMessageId: s02Content.narration.introModelId,
+        },
+      };
       this.#emit();
       return;
     }
@@ -128,6 +142,19 @@ export class S02AccountExplorationController {
     this.#snapshot = { ...this.#snapshot, introState: 'playing' };
     this.#emit();
     void this.#runIntroAnimation(animation, runId);
+  }
+
+  continueIntro(): void {
+    if (this.#disposed || this.#snapshot.introState !== 'explaining') return;
+    this.#snapshot = {
+      ...this.#snapshot,
+      introState: 'complete',
+      presentation: {
+        ...this.#snapshot.presentation,
+        announcedMessageId: s02Content.narration.introReadyId,
+      },
+    };
+    this.#emit();
   }
 
   attachRenderer(renderer: NetworkRendererPort): void {
@@ -146,14 +173,21 @@ export class S02AccountExplorationController {
     this.#disposed = true;
     this.#pendingAnimation = null;
     this.#introRunId = null;
-    await this.#animationPlayer.cancel();
+    await Promise.all([
+      this.#animationPlayer.cancel(),
+      this.#previewAnimationPlayer.cancel(),
+    ]);
     this.#listeners.clear();
   }
 
   #send(event: ControllerEvent): void {
     if (this.#disposed) return;
 
-    if (event.type === 'node-selected' || event.type === 'core-action-started') {
+    if (
+      event.type === 'node-selected' ||
+      event.type === 'preview-replay-requested' ||
+      event.type === 'preview-advance-requested'
+    ) {
       this.#applySceneEvent(event);
       return;
     }
@@ -185,16 +219,19 @@ export class S02AccountExplorationController {
     for (const effect of transition.effects) {
       if (effect.type === 'focus-node') {
         this.#renderer?.focusNode(effect.nodeId);
+      } else if (effect.type === 'play-preview-animation') {
+        this.#playAnimation(effect.animationId, 'preview');
       } else {
-        this.#playAnimation(effect.animationId);
+        this.#playAnimation(effect.animationId, 'network');
       }
     }
   }
 
-  #playAnimation(animationId: string): void {
+  #playAnimation(animationId: string, player: PendingAnimation['player']): void {
     const animation = getS02Animation(animationId);
     const pendingAnimation = {
       animationId,
+      player,
       runId: this.#nextRunId,
     };
     this.#nextRunId += 1;
@@ -204,7 +241,11 @@ export class S02AccountExplorationController {
       this.#recoverAnimation(pendingAnimation);
       return;
     }
-    void this.#runAnimation(pendingAnimation, animation);
+    void this.#runAnimation(
+      pendingAnimation,
+      animation,
+      player === 'preview' ? this.#previewAnimationPlayer : this.#animationPlayer,
+    );
   }
 
   async #runIntroAnimation(animation: AnimationSequence, runId: number): Promise<void> {
@@ -219,16 +260,17 @@ export class S02AccountExplorationController {
   #completeIntro(runId: number): void {
     if (this.#disposed || this.#introRunId !== runId) return;
     this.#introRunId = null;
-    this.#snapshot = { ...this.#snapshot, introState: 'complete' };
+    this.#snapshot = { ...this.#snapshot, introState: 'explaining' };
     this.#emit();
   }
 
   async #runAnimation(
     pendingAnimation: PendingAnimation,
     animation: AnimationSequence,
+    player: AnimationPlayerPort,
   ): Promise<void> {
     try {
-      const result = await this.#animationPlayer.play(animation);
+      const result = await player.play(animation);
       this.#handleAnimationResult(pendingAnimation, result);
     } catch {
       this.#recoverAnimation(pendingAnimation);

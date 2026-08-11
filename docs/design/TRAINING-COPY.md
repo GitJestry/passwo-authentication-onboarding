@@ -170,12 +170,12 @@ müssen nicht alle späteren Sicherheitsfolgen vorwegnehmen.
 
 Für S02 gilt als Zielregel:
 
-- eine Pflichtinteraktion pro Hauptkonto;
+- eine geführte Pflichtsequenz pro Hauptkonto;
 - höchstens ein PassWo-Satz pro Hauptkonto;
 - ein dauerhaft sichtbarer Kerngedanke;
-- optionale zusätzliche Vorschauen;
+- alle verbundenen Vorschauen werden innerhalb des gewählten Kontos nacheinander angesehen;
 - keine Wissensfrage und kein `verstanden`-Status;
-- freie Reihenfolge und Rückkehrmöglichkeit innerhalb des Segments.
+- freie Reihenfolge der Hauptkonten und Rückkehrmöglichkeit nach einem Kontoabschluss.
 
 ## 7. Teilnehmertext und interne Forschungsgrenzen trennen
 

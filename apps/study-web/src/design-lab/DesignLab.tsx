@@ -216,7 +216,7 @@ const scenarios: Record<DesignLabScenarioId, DesignLabScenario> = {
   },
   's02-master-campus': {
     label: 'S02 Konten',
-    description: 'Vollständige Kontenerkundung mit drei Konten und ihrem freien Fortschritt.',
+    description: 'Freie Kontowahl mit vollständigen geführten Vorschausequenzen pro Konto.',
     dimmed: false,
     showPassWoOverlay: false,
   },

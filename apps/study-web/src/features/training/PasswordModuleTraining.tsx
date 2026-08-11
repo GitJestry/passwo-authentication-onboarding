@@ -321,6 +321,7 @@ export function PasswordModuleTraining({
     return (
       <S02AccountExplorationTraining
         platform={platform}
+        fictionalUsername={campusIdentity.campusgram}
         timingState={timingState}
         timingErrorCode={snapshot.context.timingErrorCode}
         externalTimingError={externalTimingError}

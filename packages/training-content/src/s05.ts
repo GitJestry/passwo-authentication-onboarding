@@ -71,7 +71,7 @@ export interface S05DesignLabFixture {
   readonly startSection: 'intro' | 'components' | 'structure';
 }
 
-export const S05_CONTENT_VERSION = '2.60.2';
+export const S05_CONTENT_VERSION = '2.62.1';
 
 export const s05Content = {
   version: S05_CONTENT_VERSION,
@@ -81,9 +81,9 @@ export const s05Content = {
       12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34,
       35,
     ] as const,
-    revision: 'Userauftrag vom 2026-08-11 · S05-Wortbeispiele und Passphrasen-Ausblick',
+    revision: 'Userauftrag vom 2026-08-11 · S05-Vergleichsskala bis 20',
     copyReference:
-      'docs/design/S00-S05-COPY-AUDIT.md#copy--darstellungsdelta-s05-wortbeispiele-und-passphrasen-ausblick-11-august-2026',
+      'docs/design/S00-S05-COPY-AUDIT.md#copy--darstellungsdelta-s05-vergleichsskala-bis-20-11-august-2026',
   },
   segment: {
     id: 'S05',
@@ -455,7 +455,7 @@ export const s05Content = {
         'Deshalb kann ein Passwort als stark markiert werden, obwohl es typischen Mustern folgt und vom Angreifer früh ausprobiert wird.',
         'Verschiedene Zeichentypen können ein Passwort stärker machen, werden bei selbst gewählten Passwörtern aber oft vorhersehbar eingesetzt.',
         'Darauf zu setzen, mit einer komplizierten Mischung wie „mEin!Pa55w0rt?“ eine Variante zu finden, die der Angreifer nicht prüft, ist deshalb riskant.',
-        'Keine Sorge, darauf musst du dich nicht verlassen. Für ein starkes Passwort brauchst du vor allem genügend Länge.',
+        'Keine Sorge, darauf musst du dich nicht verlassen. Deshalb setzt die aktuelle Empfehlung bei selbstgewählten Passwörtern vor allem auf Länge.',
         'Um ein Gefühl dafür zu bekommen, welche Mindestlänge für deine selbst gewählten Passwörter empfohlen wird und warum, bleiben zusätzliche Zeichentypen bewusst außen vor: Jede Stelle ist ein zufällig gewählter Kleinbuchstabe.',
       ],
     },
@@ -491,8 +491,15 @@ export const s05Content = {
         { length: 19, durationLabel: 'ca. 24 Millionen Jahre' },
         { length: 20, durationLabel: 'über 635 Millionen Jahre' },
       ],
+      mixedCharacterMeasurement: {
+        length: 12,
+        alphabetLabel: 'alle Zeichentypen',
+        durationLabel: 'ca. 615 Jahre',
+      },
       interactiveScale: {
         accessibleLabel: 'Interaktive Messskala für zufällig erzeugte Kleinbuchstaben',
+        comparisonAccessibleLabel:
+          'Vergleich von 15 zufälligen Kleinbuchstaben mit 12 zufälligen Zeichen aus allen Zeichentypen',
         durationExplanation: 'bis alle Zeichenfolgen der Länge [Länge] geprüft wären',
         minimumOrientation: 'Mindeststandard',
         removeCharacter: 'Zufälligen Kleinbuchstaben entfernen',
@@ -510,8 +517,10 @@ export const s05Content = {
       },
     },
     lengthExamples: {
+      mixedCharacterComparison:
+        'Die gelbe Kugel zeigt, warum 12 Zeichen mit mehreren Zeichentypen im mathematischen Modell so vielversprechend wirken.',
       orientation:
-        'Als Orientierung für deine selbst gewählten Passwörter gilt also: mindestens 15 Zeichen.',
+        'Bei selbstgewählten Passwörtern sollst du dich auf solche zusätzlichen Zeichentypen aber nicht verlassen müssen. Deshalb liegt die aktuelle Orientierung bei mindestens 15 Zeichen.',
       wordCore: {
         password: 'Datensicherheit!',
         parts: ['Datensicherheit', '!'],
@@ -675,6 +684,7 @@ export const s05Content = {
     ['s05-character-mix-takeaway', 'character-mix', 'info'],
     ['s05-estimate', 'estimate', 'info'],
     ['s05-lowercase-clock', 'lowercase-clock', 'info'],
+    ['s05-length-model-comparison', 'length-model-comparison', 'info'],
     ['s05-length-orientation', 'length-orientation', 'info'],
     ['s05-length-word-core', 'length-example-word', 'warning'],
     ['s05-length-additional-word-question', 'length-example-comparison', 'info'],

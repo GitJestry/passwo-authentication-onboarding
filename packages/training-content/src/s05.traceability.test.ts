@@ -4,7 +4,7 @@ import { S05_CONTENT_VERSION, s05Content } from './s05.js';
 
 describe('S05 content traceability', () => {
   it('keeps the participant copy bounded and separate from internal terminology', () => {
-    expect(S05_CONTENT_VERSION).toBe('2.60.2');
+    expect(S05_CONTENT_VERSION).toBe('2.62.1');
     expect(s05Content.source).toMatchObject({
       document: 'research/private/training-script.pdf',
       internalPages: [
@@ -12,7 +12,7 @@ describe('S05 content traceability', () => {
         35,
       ],
       copyReference:
-        'docs/design/S00-S05-COPY-AUDIT.md#copy-delta-s05-modellannahme-zur-mindestlänge-11-august-2026',
+        'docs/design/S00-S05-COPY-AUDIT.md#copy--darstellungsdelta-s05-vergleichsskala-bis-20-11-august-2026',
     });
     expect(s05Content.segment.id).toBe('S05');
     expect(s05Content.page.fixtureNotice).toBe(
@@ -256,6 +256,9 @@ describe('S05 content traceability', () => {
     expect(s05Content.freeSearch.characterMix.narration[3]).toBe(
       'Darauf zu setzen, mit einer komplizierten Mischung wie „mEin!Pa55w0rt?“ eine Variante zu finden, die der Angreifer nicht prüft, ist deshalb riskant.',
     );
+    expect(s05Content.freeSearch.characterMix.narration[4]).toBe(
+      'Keine Sorge, darauf musst du dich nicht verlassen. Deshalb setzt die aktuelle Empfehlung bei selbstgewählten Passwörtern vor allem auf Länge.',
+    );
     expect(s05Content.freeSearch.characterMix.narration[5]).toBe(
       'Um ein Gefühl dafür zu bekommen, welche Mindestlänge für deine selbst gewählten Passwörter empfohlen wird und warum, bleiben zusätzliche Zeichentypen bewusst außen vor: Jede Stelle ist ein zufällig gewählter Kleinbuchstabe.',
     );
@@ -264,8 +267,10 @@ describe('S05 content traceability', () => {
       'Was glaubst du: Ab welcher Länge wird es für einen Angreifer zu aufwendig, alle Möglichkeiten durchzuprobieren?',
     );
     expect(s05Content.freeSearch.lengthExamples).toMatchObject({
+      mixedCharacterComparison:
+        'Die gelbe Kugel zeigt, warum 12 Zeichen mit mehreren Zeichentypen im mathematischen Modell so vielversprechend wirken.',
       orientation:
-        'Als Orientierung für deine selbst gewählten Passwörter gilt also: mindestens 15 Zeichen.',
+        'Bei selbstgewählten Passwörtern sollst du dich auf solche zusätzlichen Zeichentypen aber nicht verlassen müssen. Deshalb liegt die aktuelle Orientierung bei mindestens 15 Zeichen.',
       wordCore: { password: 'Datensicherheit!', parts: ['Datensicherheit', '!'], length: 16 },
       extraCharacters: {
         password: 'Datensicherheit-?KmL',
@@ -283,10 +288,28 @@ describe('S05 content traceability', () => {
     expect(s05Content.freeSearch.theoreticalModel.interactiveScale.minimumOrientation).toBe(
       'Mindeststandard',
     );
+    expect(
+      s05Content.freeSearch.theoreticalModel.interactiveScale.comparisonAccessibleLabel,
+    ).toBe(
+      'Vergleich von 15 zufälligen Kleinbuchstaben mit 12 zufälligen Zeichen aus allen Zeichentypen',
+    );
     expect(s05Content.freeSearch.theoreticalModel.lowercaseMeasurements).toContainEqual({
       length: 12,
       durationLabel: 'ca. 1 Tag',
     });
+    expect(s05Content.freeSearch.theoreticalModel.mixedCharacterMeasurement).toEqual({
+      length: 12,
+      alphabetLabel: 'alle Zeichentypen',
+      durationLabel: 'ca. 615 Jahre',
+    });
+    const comparisonStepIndex = s05Content.animations.findIndex(
+      ([id]) => id === 's05-length-model-comparison',
+    );
+    const orientationStepIndex = s05Content.animations.findIndex(
+      ([id]) => id === 's05-length-orientation',
+    );
+    expect(comparisonStepIndex).toBeGreaterThan(-1);
+    expect(orientationStepIndex).toBe(comparisonStepIndex + 1);
     expect(s05Content.freeSearch.theoreticalModel.lowercaseMeasurements).toContainEqual({
       length: 16,
       durationLabel: 'ca. 1.380 Jahre',

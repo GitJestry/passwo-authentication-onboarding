@@ -23,12 +23,11 @@ import {
 import { PassWoSpeechBubble } from '../../PassWoSpeechBubble.js';
 import { passWoSpeechEmphasisFor } from '../../PassWoSpeechEmphasis.js';
 import {
-  calculatePassWoSpeechPosition,
   passWoSpeechPositionStyle,
   usePassWoSpeechPosition,
-  type PassWoSpeechSide,
 } from '../../PassWoSpeechPosition.js';
 import { S02DesktopSurface } from './S02DesktopSurface.js';
+import { S02PreviewMotionAdapter } from './S02PreviewMotionAdapter.js';
 import styles from './S02AccountExplorationTraining.module.css';
 
 export type S02TimingState = 'starting' | 'startFailed' | 'active' | 'ending' | 'endFailed';
@@ -41,6 +40,7 @@ export interface S02AccountExplorationTrainingProps {
   readonly onContinue?: () => void;
   readonly onRetryTiming?: () => void;
   readonly platform?: DesktopPlatform;
+  readonly fictionalUsername?: string;
 }
 
 const definition = s02Content.scene;
@@ -58,7 +58,13 @@ interface OverlayPosition {
   readonly anchorId: string;
   readonly left: number;
   readonly top: number;
-  readonly side: PassWoSpeechSide;
+  readonly side: 'left' | 'right' | 'below';
+  readonly projection: {
+    readonly startA: readonly [number, number];
+    readonly startB: readonly [number, number];
+    readonly endA: readonly [number, number];
+    readonly endB: readonly [number, number];
+  };
 }
 
 interface OverlayLayout {
@@ -99,6 +105,10 @@ function relativeBounds(rect: DOMRect, containerRect: DOMRect, padding = 0): Bou
   };
 }
 
+function clampNumber(value: number, minimum: number, maximum: number): number {
+  return Math.min(maximum, Math.max(minimum, value));
+}
+
 function samePosition(
   current: OverlayPosition | null,
   next: OverlayPosition | null,
@@ -108,13 +118,49 @@ function samePosition(
     current.anchorId === next.anchorId &&
     current.left === next.left &&
     current.top === next.top &&
-    current.side === next.side
+    current.side === next.side &&
+    current.projection.startA[0] === next.projection.startA[0] &&
+    current.projection.startA[1] === next.projection.startA[1] &&
+    current.projection.endB[0] === next.projection.endB[0] &&
+    current.projection.endB[1] === next.projection.endB[1]
   );
 }
 
-function VisualPreview({ kind }: { readonly kind: S02VisualPreviewKind }) {
+function interpolateUsername(value: string, username: string): string {
+  return value.replaceAll('{username}', username || 'benutzername');
+}
+
+function previewAccessibleSummary(kind: S02VisualPreviewKind, username: string): string {
+  const preview = s02Content.previewSimulation.variants[kind];
+  if (preview.category === 'social') {
+    return [
+      preview.title,
+      preview.primaryItem.label,
+      preview.primaryItem.text,
+      interpolateUsername(preview.replyItem.label, username),
+      preview.replyItem.text,
+      preview.resultLabel,
+    ].join('. ');
+  }
+  return [
+    preview.title,
+    ...preview.items.map((item) => interpolateUsername(item, username)),
+    preview.resultLabel,
+  ].join('. ');
+}
+
+function VisualPreview({
+  detailId,
+  kind,
+  username,
+}: {
+  readonly detailId: string;
+  readonly kind: S02VisualPreviewKind;
+  readonly username: string;
+}) {
   const previewContent = s02Content.previewSimulation;
   const preview = previewContent.variants[kind];
+  const target = (part: string) => `${detailId}:${part}`;
 
   return (
     <div
@@ -138,24 +184,34 @@ function VisualPreview({ kind }: { readonly kind: S02VisualPreviewKind }) {
       </span>
       {preview.category === 'login' ? (
         <span className={styles.loginPreview}>
-          <span className={styles.loginCard}>
+          <span className={styles.loginCard} data-preview-target={target('surface')}>
             <small>
               {previewContent.welcomeLabel} {preview.app}
             </small>
             <strong>{preview.title}</strong>
             <i className={styles.loginField} />
             <i className={styles.loginField} />
-            <span className={styles.masterCampusButton}>
+            <span
+              className={styles.masterCampusButton}
+              data-preview-target={target('primary')}
+            >
               <i>MC</i>
-              {previewContent.masterCampusSignInLabel}
+              {preview.primaryLabel}
             </span>
           </span>
-          <span className={styles.previewPointer} />
-          <span className={styles.previewClickPulse} />
+          <span className={styles.loginDestination} data-preview-target={target('result')}>
+            <strong>{preview.app}</strong>
+            <span className={styles.destinationGrid}>
+              {preview.items.map((item) => (
+                <span key={item}>{item}</span>
+              ))}
+            </span>
+            <b data-preview-target={target('secondary')}>{preview.resultLabel}</b>
+          </span>
         </span>
       ) : null}
       {preview.category === 'mail' ? (
-        <span className={styles.mailPreview}>
+        <span className={styles.mailPreview} data-preview-target={target('surface')}>
           <span className={styles.mailSidebar}>
             <i />
             <i />
@@ -163,99 +219,64 @@ function VisualPreview({ kind }: { readonly kind: S02VisualPreviewKind }) {
           </span>
           <span className={styles.mailList}>
             <strong>{preview.title}</strong>
-            <span className={styles.mailRow}>
-              <i />
-              <span>
-                <b>{previewContent.serviceSender}</b>
-                <small>{previewContent.serviceMessage}</small>
+            <span className={styles.mailDetail} data-preview-target={target('result')}>
+              <span className={styles.mailHeading} data-preview-target={target('primary')}>
+                <b>{preview.primaryLabel}</b>
+                <small>{previewContent.projectSender} · an mich</small>
               </span>
-            </span>
-            <span className={styles.mailRow}>
-              <i />
-              <span>
-                <b>{previewContent.projectSender}</b>
-                <small>{previewContent.projectMessage}</small>
-              </span>
-            </span>
-            <span className={styles.mailDetail}>
-              <b>{kind === 'compose' ? previewContent.sendMessageLabel : preview.title}</b>
-              <i />
-              <i />
+              {preview.items.map((item, index) => (
+                <span
+                  key={`${item}-${index}`}
+                  data-emphasized={kind === 'reset-link' && index === preview.items.length - 1}
+                >
+                  {interpolateUsername(item, username)}
+                </span>
+              ))}
+              <strong
+                className={styles.mailAction}
+                data-preview-target={target('secondary')}
+                data-link={kind === 'reset-link'}
+              >
+                {preview.resultLabel}
+              </strong>
             </span>
           </span>
-          <span className={styles.previewPointer} />
-          <span className={styles.previewClickPulse} />
         </span>
       ) : null}
       {preview.category === 'social' ? (
-        <span className={styles.socialPreview}>
+        <span className={styles.socialPreview} data-preview-target={target('surface')}>
           <span className={styles.socialNavigation}>
             <i />
             <i />
             <i />
           </span>
           <span className={styles.socialFeed}>
-            <strong>{preview.title}</strong>
-            <span className={styles.socialPost}>
+            <strong>{preview.primaryLabel}</strong>
+            <span className={styles.socialPost} data-preview-target={target('primary')}>
               <i className={styles.socialAvatar}>{preview.primaryItem.authorInitial}</i>
               <span>
                 <b>{preview.primaryItem.label}</b>
                 <small>{preview.primaryItem.text}</small>
               </span>
             </span>
-            <span className={styles.socialReply}>
+            <span className={styles.socialReply} data-preview-target={target('result')}>
               <i className={styles.socialAvatar}>{preview.replyItem.authorInitial}</i>
               <span>
-                <b>{preview.replyItem.label}</b>
+                <b>{interpolateUsername(preview.replyItem.label, username)}</b>
                 <small>{preview.replyItem.text}</small>
               </span>
             </span>
+            <span
+              className={styles.socialResult}
+              data-preview-target={target('secondary')}
+              data-kind={kind}
+            >
+              {preview.resultLabel}
+            </span>
           </span>
-          <span className={styles.previewPointer} />
-          <span className={styles.previewClickPulse} />
         </span>
       ) : null}
     </div>
-  );
-}
-
-function CoreActionWebsite({
-  account,
-  pending,
-  onPerform,
-}: {
-  readonly account: (typeof definition.accounts)[number];
-  readonly pending: boolean;
-  readonly onPerform: (targetDetailId: string) => void;
-}) {
-  const targets = account.details.filter(({ id }) => account.coreAction.targetDetailIds.includes(id));
-
-  return (
-    <section className={styles.coreActionWebsite} aria-label={`${account.label}: Kontovorgang`}>
-      <span className={styles.previewChrome} aria-hidden="true">
-        <span className={styles.previewWindowControls}>
-          <i />
-          <i />
-          <i />
-        </span>
-        <span className={styles.previewAddress}>{s02Content.previewSimulation.address}</span>
-      </span>
-      <div className={styles.coreActionBody} data-account={account.id}>
-        <strong>{account.label}</strong>
-        {targets.map((detail) => (
-          <button
-            type="button"
-            key={detail.id}
-            className={styles.coreActionButton}
-            disabled={pending}
-            onClick={() => onPerform(detail.id)}
-          >
-            <span>{detail.label}</span>
-            <span>{pending ? account.coreAction.checkingLabel : account.coreAction.actionLabel}</span>
-          </button>
-        ))}
-      </div>
-    </section>
   );
 }
 
@@ -267,6 +288,7 @@ export function S02AccountExplorationTraining({
   onContinue,
   onRetryTiming,
   platform = 'mac',
+  fictionalUsername = 'benutzername',
 }: S02AccountExplorationTrainingProps) {
   const characterAnimationAnchorRef = useRef<HTMLSpanElement | null>(null);
   const guideRef = useRef<HTMLDivElement | null>(null);
@@ -279,6 +301,7 @@ export function S02AccountExplorationTraining({
   const networkHostRef = useRef<HTMLDivElement | null>(null);
   const sceneRef = useRef<HTMLDivElement | null>(null);
   const previewRef = useRef<HTMLElement | null>(null);
+  const previewPrimaryActionRef = useRef<HTMLButtonElement | null>(null);
   const onAllAccountsViewedRef = useRef(onAllAccountsViewed);
   onAllAccountsViewedRef.current = onAllAccountsViewed;
   const [runtime, setRuntime] = useState<Runtime | null>(null);
@@ -354,8 +377,12 @@ export function S02AccountExplorationTraining({
         ) ?? null,
       prefersReducedMotion,
     });
+    const previewAnimationPlayer = new S02PreviewMotionAdapter({
+      getPreviewElement: () => previewRef.current,
+    });
     controller = new S02AccountExplorationController({
       animationPlayer,
+      previewAnimationPlayer,
       onAllAccountsViewed: () => onAllAccountsViewedRef.current?.(),
     });
     const renderer = new ReactFlowNetworkAdapter(controller.getSnapshot().scene.network);
@@ -393,15 +420,7 @@ export function S02AccountExplorationTraining({
 
   useLayoutEffect(() => {
     const activeAccountId = snapshot?.scene.activeAccountId ?? null;
-    const activeAccountProgress =
-      activeAccountId === null
-        ? undefined
-        : snapshot?.scene.accountProgress.find(({ accountId }) => accountId === activeAccountId);
-    const previewId =
-      snapshot?.scene.activePreviewDetailId ??
-      (activeAccountProgress?.unlocked === true && snapshot?.scene.pendingAnimationId === null
-        ? activeAccountId
-        : null);
+    const previewId = snapshot?.scene.activePreviewDetailId ?? null;
     const sceneElement = sceneRef.current;
     const networkElement = networkHostRef.current;
     if (sceneElement === null || networkElement === null) return;
@@ -419,18 +438,6 @@ export function S02AccountExplorationTraining({
         dockRect === undefined
           ? layoutRect.height - margin
           : Math.min(layoutRect.height - margin, dockRect.top - layoutRect.top - 18);
-      const visibleElements = [
-        ...networkElement.querySelectorAll<HTMLElement>(
-          '[data-scene-node-button], [data-scene-node-label]',
-        ),
-      ].filter(
-        (element) => element.closest<HTMLElement>('[data-visible="true"]') !== null,
-      );
-      const nodeObstacles = visibleElements.map((element) =>
-        relativeBounds(element.getBoundingClientRect(), layoutRect, 10),
-      );
-      const guideElement = guideRef.current;
-
       let preview: OverlayPosition | null = null;
       const previewElement = previewRef.current;
       const previewAnchor =
@@ -444,27 +451,59 @@ export function S02AccountExplorationTraining({
         const previewAnchorBounds = relativeBounds(
           previewAnchor.getBoundingClientRect(),
           layoutRect,
-          14,
+          0,
         );
-        const guideObstacle =
-          guideElement === null
-            ? []
-            : [
-                relativeBounds(guideElement.getBoundingClientRect(), layoutRect, 14),
-              ];
-        const candidate = calculatePassWoSpeechPosition({
-          anchor: previewAnchorBounds,
-          bubble: { width: previewRect.width, height: previewRect.height },
-          boundary: { left: 0, top: 0, right: layoutRect.width, bottom: availableBottom },
-          obstacles: [...nodeObstacles, ...guideObstacle],
-          gap: 24,
-          margin,
-        });
+        const narrow = layoutRect.width < 760;
+        const preferredSide =
+          narrow ? 'below' : activeAccountId === 'campusgram' ? 'left' : 'right';
+        const anchorCenterX = (previewAnchorBounds.left + previewAnchorBounds.right) / 2;
+        const anchorCenterY = (previewAnchorBounds.top + previewAnchorBounds.bottom) / 2;
+        const maxLeft = Math.max(margin, layoutRect.width - previewRect.width - margin);
+        const maxTop = Math.max(margin, availableBottom - previewRect.height);
+        const left = narrow
+          ? clampNumber(
+              (layoutRect.width - previewRect.width) / 2,
+              margin,
+              maxLeft,
+            )
+          : preferredSide === 'right'
+            ? clampNumber(
+                Math.max(layoutRect.width * 0.53, previewAnchorBounds.right + 36),
+                margin,
+                maxLeft,
+              )
+            : clampNumber(
+                Math.min(layoutRect.width * 0.06, previewAnchorBounds.left - previewRect.width - 36),
+                margin,
+                maxLeft,
+              );
+        const top = narrow
+          ? clampNumber(previewAnchorBounds.bottom + 24, margin, maxTop)
+          : activeAccountId === 'campusgram'
+            ? clampNumber(layoutRect.height * 0.05, margin, maxTop)
+            : clampNumber(anchorCenterY - previewRect.height / 2, margin, maxTop);
+        const previewNearX = preferredSide === 'left' ? left + previewRect.width : left;
+        const previewTopY = top + previewRect.height * 0.24;
+        const previewBottomY = top + previewRect.height * 0.76;
+        const nodeNearX =
+          preferredSide === 'left'
+            ? previewAnchorBounds.left
+            : preferredSide === 'right'
+              ? previewAnchorBounds.right
+              : anchorCenterX;
+        const nodeNearY =
+          preferredSide === 'below' ? previewAnchorBounds.bottom : anchorCenterY;
         preview = {
           anchorId: previewId,
-          left: candidate.left,
-          top: candidate.top,
-          side: candidate.side,
+          left,
+          top,
+          side: preferredSide,
+          projection: {
+            startA: [nodeNearX, nodeNearY - 5],
+            startB: [nodeNearX, nodeNearY + 5],
+            endA: [preferredSide === 'below' ? left + previewRect.width * 0.28 : previewNearX, preferredSide === 'below' ? top : previewTopY],
+            endB: [preferredSide === 'below' ? left + previewRect.width * 0.72 : previewNearX, preferredSide === 'below' ? top : previewBottomY],
+          },
         };
       }
 
@@ -482,6 +521,7 @@ export function S02AccountExplorationTraining({
     };
     const observer = new ResizeObserver(scheduleGeometryUpdate);
     observer.observe(sceneElement);
+    if (previewRef.current !== null) observer.observe(previewRef.current);
     scheduleGeometryUpdate();
     return () => {
       observer.disconnect();
@@ -495,6 +535,12 @@ export function S02AccountExplorationTraining({
     snapshot?.scene.pendingAnimationId,
     snapshot?.scene.viewedAccountIds,
   ]);
+
+  useEffect(() => {
+    if (snapshot?.scene.previewPlayback === 'ready') {
+      previewPrimaryActionRef.current?.focus();
+    }
+  }, [snapshot?.scene.activePreviewDetailId, snapshot?.scene.previewPlayback]);
 
   if (runtime === null || snapshot === null) {
     return (
@@ -516,20 +562,30 @@ export function S02AccountExplorationTraining({
   const { controller, renderer } = runtime;
   const { scene, presentation } = snapshot;
   const activeAccount = definition.accounts.find(({ id }) => id === scene.activeAccountId);
-  const activeAccountProgress =
-    activeAccount === undefined
-      ? undefined
-      : scene.accountProgress.find(({ accountId }) => accountId === activeAccount.id);
-  const activeAccountViewed = activeAccountProgress?.viewed === true;
   const activePreview = activeAccount?.details.find(({ id }) => id === scene.activePreviewDetailId);
+  const activePreviewIndex =
+    activeAccount === undefined || activePreview === undefined
+      ? -1
+      : activeAccount.previewSequence.indexOf(activePreview.id);
+  const activePreviewReady = scene.previewPlayback === 'ready';
+  const activePreviewIsLast =
+    activeAccount !== undefined && activePreviewIndex === activeAccount.previewSequence.length - 1;
   const viewedCount = scene.viewedAccountIds.length;
   const complete = scene.isComplete;
-  const introReady = presentation.announcedMessageId === s02Content.narration.introReadyId;
+  const introAnnouncementActive = scene.activeAccountId === null && viewedCount === 0;
+  const introModel =
+    introAnnouncementActive &&
+    presentation.announcedMessageId === s02Content.narration.introModelId;
+  const introReady =
+    introAnnouncementActive &&
+    presentation.announcedMessageId === s02Content.narration.introReadyId;
   const narrationId = complete
     ? s02Content.narration.completeId
     : introReady
       ? s02Content.narration.introReadyId
-      : scene.narrationId;
+      : introModel
+        ? s02Content.narration.introModelId
+        : scene.narrationId;
   const narration = complete
     ? s02Content.narration.completion(platform)
     : (s02Content.narration.messages[narrationId] ?? '');
@@ -540,15 +596,7 @@ export function S02AccountExplorationTraining({
   const timingFailure =
     externalTimingError !== null || timingState === 'startFailed' || timingState === 'endFailed';
   const interactionBlocked = timingState !== 'active' || externalTimingError !== null;
-  const coreActionVisible =
-    activeAccount !== undefined &&
-    activeAccountProgress?.unlocked === true &&
-    !activeAccountViewed &&
-    activePreview === undefined &&
-    (scene.phase === 'exploring' || scene.phase === 'performing-core-action');
-  const coreActionPending = scene.phase === 'performing-core-action';
-  const overlayAnchorId =
-    activePreview?.id ?? (coreActionVisible && activeAccount !== undefined ? activeAccount.id : null);
+  const overlayAnchorId = activePreview?.id ?? null;
   const positionedPreview =
     overlayAnchorId !== null && overlayLayout.preview?.anchorId === overlayAnchorId
       ? overlayLayout.preview
@@ -556,28 +604,20 @@ export function S02AccountExplorationTraining({
   const previewStyle: CSSProperties | undefined = positionedPreview
     ? { left: positionedPreview.left, top: positionedPreview.top }
     : undefined;
+  const awaitingFirstAccount =
+    snapshot.introState === 'complete' &&
+    scene.activeAccountId === null &&
+    scene.viewedAccountIds.length === 0;
   const keyVisible =
     !returningToBrowser &&
-    !guideOpen &&
     snapshot.introState === 'complete' &&
-    (scene.activeAccountId === null || activeAccountViewed);
+    scene.activeAccountId === null &&
+    (!guideOpen || awaitingFirstAccount);
 
   function moveCursorKey(event: PointerEvent<HTMLElement>): void {
     if (event.pointerType !== 'touch') {
       lastPointerPositionRef.current = { clientX: event.clientX, clientY: event.clientY };
     }
-    const preview = previewRef.current;
-    if (preview !== null) {
-      const previewRect = preview.getBoundingClientRect();
-      const pointerOverPreview =
-        event.pointerType !== 'touch' &&
-        event.clientX >= previewRect.left &&
-        event.clientX <= previewRect.right &&
-        event.clientY >= previewRect.top &&
-        event.clientY <= previewRect.bottom;
-      preview.dataset.pointerOver = String(pointerOverPreview);
-    }
-
     const cursorKey = cursorKeyRef.current;
     if (cursorKey === null || event.pointerType === 'touch') return;
     if (cursorKey.dataset.animating === 'true') return;
@@ -614,11 +654,18 @@ export function S02AccountExplorationTraining({
             onClick: returnToBrowser,
           }}
         >
-          <div ref={networkHostRef} className={styles.networkPanel}>
+          <div
+            ref={networkHostRef}
+            className={styles.networkPanel}
+            data-preview-account={activePreview === undefined ? undefined : activeAccount?.id}
+          >
             <ReactFlowNetwork
               adapter={renderer}
               presentation={presentation}
-              onNodeSelect={(nodeId) => controller.selectNode(nodeId)}
+              onNodeSelect={(nodeId) => {
+                controller.selectNode(nodeId);
+                if (awaitingFirstAccount) setGuideOpen(false);
+              }}
               ariaLabel={s02Content.accessibility.networkLabel}
               canvasAriaLabel={s02Content.accessibility.canvasLabel}
               interactionDisabled={
@@ -633,39 +680,61 @@ export function S02AccountExplorationTraining({
             />
           </div>
 
+          {positionedPreview !== null ? (
+            <svg className={styles.previewProjection} aria-hidden="true">
+              <polygon
+                points={`${positionedPreview.projection.startA.join(',')} ${positionedPreview.projection.endA.join(',')} ${positionedPreview.projection.endB.join(',')} ${positionedPreview.projection.startB.join(',')}`}
+              />
+              <line
+                x1={positionedPreview.projection.startA[0]}
+                y1={positionedPreview.projection.startA[1]}
+                x2={positionedPreview.projection.endA[0]}
+                y2={positionedPreview.projection.endA[1]}
+              />
+              <line
+                x1={positionedPreview.projection.startB[0]}
+                y1={positionedPreview.projection.startB[1]}
+                x2={positionedPreview.projection.endB[0]}
+                y2={positionedPreview.projection.endB[1]}
+              />
+            </svg>
+          ) : null}
+
           {activePreview !== undefined ? (
             <section
               ref={previewRef}
               className={styles.preview}
               data-positioned={positionedPreview !== null}
-              data-pointer-over="false"
               data-side={positionedPreview?.side ?? 'right'}
               data-phase={scene.phase}
+              data-preview-playback={scene.previewPlayback}
+              data-preview-category={
+                s02Content.previewSimulation.variants[activePreview.preview.kind].category
+              }
               style={previewStyle}
-              aria-label={`Visuelle Vorschau für ${activePreview.label}`}
+              aria-label={`${s02Content.page.previewTitle}: ${activePreview.label}`}
             >
-              <VisualPreview kind={activePreview.preview.kind} />
-              {activeAccountViewed && activeAccount !== undefined ? (
-                <p className={styles.takeaway}>{activeAccount.coreAction.takeaway}</p>
-              ) : null}
-            </section>
-          ) : null}
-
-          {coreActionVisible && activeAccount !== undefined ? (
-            <section
-              ref={previewRef}
-              className={styles.coreActionOverlay}
-              data-positioned={positionedPreview !== null}
-              data-side={positionedPreview?.side ?? 'right'}
-              style={previewStyle}
-            >
-              <CoreActionWebsite
-                account={activeAccount}
-                pending={coreActionPending}
-                onPerform={(targetDetailId) =>
-                  controller.performCoreAction(activeAccount.id, targetDetailId)
-                }
+              <VisualPreview
+                detailId={activePreview.id}
+                kind={activePreview.preview.kind}
+                username={fictionalUsername}
               />
+              <p className={styles.screenReaderOnly}>
+                {previewAccessibleSummary(activePreview.preview.kind, fictionalUsername)}
+              </p>
+              <footer className={styles.previewFooter}>
+                <button
+                  ref={previewPrimaryActionRef}
+                  type="button"
+                  className={styles.previewAdvanceButton}
+                  disabled={!activePreviewReady || interactionBlocked}
+                  onClick={() => controller.advancePreview()}
+                >
+                  {activePreviewIsLast
+                    ? s02Content.page.previewFinish
+                    : s02Content.page.previewNext}
+                </button>
+              </footer>
             </section>
           ) : null}
 
@@ -694,30 +763,29 @@ export function S02AccountExplorationTraining({
                 </button>
               )}
               <div className={styles.guideStatus}>
-                <strong>{s02Content.page.eyebrow}</strong>
                 {complete ? (
                   <div className={styles.completionStatus} aria-live="polite">
                     <CompletionCheckIcon />
                     <span>{s02Content.page.completion}</span>
                   </div>
                 ) : (
-                  <div className={styles.taskProgress} aria-live="polite">
-                    <span aria-hidden="true">
-                      {viewedCount}/{definition.accounts.length}
-                    </span>
-                    <span
-                      className={styles.progressTrack}
-                      role="progressbar"
-                      aria-label={s02Content.page.globalProgress(viewedCount)}
-                      aria-valuemin={0}
-                      aria-valuemax={definition.accounts.length}
-                      aria-valuenow={viewedCount}
-                    >
+                  <>
+                    <strong>{s02Content.page.eyebrow}</strong>
+                    <div className={styles.taskProgress} aria-live="polite">
                       <span
-                        style={{ width: `${(viewedCount / definition.accounts.length) * 100}%` }}
-                      />
-                    </span>
-                  </div>
+                        className={styles.progressTrack}
+                        role="progressbar"
+                        aria-label={s02Content.page.globalProgress(viewedCount)}
+                        aria-valuemin={0}
+                        aria-valuemax={definition.accounts.length}
+                        aria-valuenow={viewedCount}
+                      >
+                        <span
+                          style={{ width: `${(viewedCount / definition.accounts.length) * 100}%` }}
+                        />
+                      </span>
+                    </div>
+                  </>
                 )}
               </div>
             </div>
@@ -745,7 +813,7 @@ export function S02AccountExplorationTraining({
                   paragraphs={[narration]}
                   emphasis={passWoSpeechEmphasisFor(narrationId)}
                   placement={guideSpeechPosition?.side ?? 'right'}
-                  {...(complete
+                  {...(complete || awaitingFirstAccount
                     ? {}
                     : {
                         action:
@@ -761,7 +829,16 @@ export function S02AccountExplorationTraining({
                                   disabled: true,
                                   onAction: () => undefined,
                                 }
-                              : { kind: 'dismiss' as const, onAction: () => setGuideOpen(false) },
+                              : snapshot.introState === 'explaining'
+                                ? {
+                                    kind: 'advance' as const,
+                                    disabled: interactionBlocked,
+                                    onAction: () => controller.continueIntro(),
+                                  }
+                                : {
+                                    kind: 'dismiss' as const,
+                                    onAction: () => setGuideOpen(false),
+                                  },
                       })}
                   {...(guideSpeechPosition === null
                     ? {}

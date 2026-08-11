@@ -19,11 +19,15 @@ export type S02VisualPreview =
       readonly app: string;
       readonly title: string;
       readonly category: 'login' | 'mail';
+      readonly primaryLabel: string;
+      readonly items: readonly string[];
+      readonly resultLabel: string;
     }
   | {
       readonly app: string;
       readonly title: string;
       readonly category: 'social';
+      readonly primaryLabel: string;
       readonly primaryItem: {
         readonly authorInitial: string;
         readonly label: string;
@@ -34,6 +38,7 @@ export type S02VisualPreview =
         readonly label: string;
         readonly text: string;
       };
+      readonly resultLabel: string;
     };
 
 export type S02AnimationStep =
@@ -51,6 +56,7 @@ export type S02AnimationStep =
       readonly emphasis: 'positive';
       readonly durationMs: number;
     }
+  | { readonly type: 'pause'; readonly durationMs: number }
   | { readonly type: 'announce'; readonly messageId: string };
 
 export interface S02AnimationSequence {
@@ -73,14 +79,8 @@ export interface S02AccountContent {
   readonly edgeLabel: string | null;
   readonly unlockAnimationId: string;
   readonly detailRevealAnimationId: string;
-  readonly coreAction: {
-    readonly id: string;
-    readonly animationId: string;
-    readonly targetDetailIds: readonly string[];
-    readonly actionLabel: string;
-    readonly checkingLabel: string;
-    readonly takeaway: string;
-  };
+  readonly previewSequence: readonly string[];
+  readonly takeaway: string;
   readonly narrationId: string;
   readonly descriptions: {
     readonly locked: string;
@@ -101,6 +101,7 @@ export interface S02AccountContent {
     readonly symbolId: string;
     readonly preview: {
       readonly kind: S02VisualPreviewKind;
+      readonly animationId: string;
     };
     readonly position: { readonly x: number; readonly y: number };
     readonly descriptions: {
@@ -135,6 +136,8 @@ export interface S02SegmentContent {
     readonly openTaskHelp: string;
     readonly previewTitle: string;
     readonly completion: string;
+    readonly previewNext: string;
+    readonly previewFinish: string;
   };
   readonly controls: {
     readonly timingFailure: string;
@@ -145,17 +148,14 @@ export interface S02SegmentContent {
   readonly previewSimulation: {
     readonly address: string;
     readonly welcomeLabel: string;
-    readonly masterCampusSignInLabel: string;
-    readonly serviceSender: string;
-    readonly serviceMessage: string;
     readonly projectSender: string;
     readonly projectMessage: string;
-    readonly sendMessageLabel: string;
     readonly variants: Readonly<Record<S02VisualPreviewKind, S02VisualPreview>>;
   };
   readonly narration: {
     readonly guideName: string;
     readonly introId: string;
+    readonly introModelId: string;
     readonly introReadyId: string;
     readonly completeId: string;
     readonly messages: Readonly<Record<string, string>>;
@@ -179,9 +179,10 @@ export interface S02SegmentContent {
 
 export type S02DesktopPlatform = 'mac' | 'linux' | 'windows';
 
-export const S02_CONTENT_VERSION = '4.3.3';
+export const S02_CONTENT_VERSION = '5.0.2';
 
 const introId = 's02.accounts.intro';
+const introModelId = 's02.accounts.intro-model';
 const introReadyId = 's02.accounts.intro-ready';
 const completeId = 's02.accounts.complete';
 
@@ -196,60 +197,67 @@ const accounts = [
     edgeLabel: 'Mit Master Campus geöffnet',
     unlockAnimationId: 's02-unlock-master-campus',
     detailRevealAnimationId: 's02-reveal-master-campus-details',
-    coreAction: {
-      id: 's02-master-campus-open-service',
-      animationId: 's02-open-master-campus-service',
-      targetDetailIds: ['master-campus-workspace'],
-      actionLabel: 'Mit Master Campus öffnen',
-      checkingLabel: 'Master Campus wird geprüft …',
-      takeaway: 'Ein Master-Campus-Zugang kann mehrere verbundene Campusdienste öffnen.',
-    },
+    previewSequence: [
+      'master-campus-workspace',
+      'master-campus-services',
+      'master-campus-campus-cloud',
+    ],
+    takeaway: 'Ein Master-Campus-Zugang kann mehrere verbundene Campusdienste öffnen.',
     narrationId: 's02.master-campus',
     descriptions: {
       locked: 'Konto zum Kennenlernen öffnen',
       opening: 'Master Campus wird geöffnet …',
-      ready: 'Einen verbundenen Dienst über Master Campus öffnen',
+      ready: 'Verbundene Campusdienste nacheinander ansehen',
       viewed: 'Master Campus angesehen',
     },
     summaries: {
       locked: 'Master Campus ist noch geschlossen.',
       opening: 'Master Campus wird geöffnet. Die verbundenen Dienste erscheinen.',
-      ready: 'Wähle einen Dienst und öffne ihn mit Master Campus.',
-      checking: '{detail} wird mit Master Campus geprüft.',
-      viewed: 'Master Campus wurde angesehen. Weitere Dienste bleiben optional.',
+      ready: 'Sieh dir die verbundenen Campusdienste nacheinander an.',
+      checking: '{detail} wird in der Vorschau gezeigt.',
+      viewed: 'Master Campus und seine verbundenen Dienste wurden angesehen.',
     },
     details: [
       {
         id: 'master-campus-workspace',
         label: 'Campus Workspace',
         symbolId: 'campus-workspace',
-        preview: { kind: 'campus-workspace' },
+        preview: {
+          kind: 'campus-workspace',
+          animationId: 's02-preview-master-campus-workspace',
+        },
         position: { x: 0.25, y: 0.1 },
         descriptions: {
-          available: 'Optionale Vorschau öffnen',
-          opened: 'Vorschau erneut öffnen',
+          available: 'Vorschau noch nicht angesehen',
+          opened: 'Vorschau angesehen',
         },
       },
       {
         id: 'master-campus-services',
         label: 'Campus Services',
         symbolId: 'campus-services',
-        preview: { kind: 'campus-services' },
+        preview: {
+          kind: 'campus-services',
+          animationId: 's02-preview-master-campus-services',
+        },
         position: { x: 0.26, y: 0.31 },
         descriptions: {
-          available: 'Optionale Vorschau öffnen',
-          opened: 'Vorschau erneut öffnen',
+          available: 'Vorschau noch nicht angesehen',
+          opened: 'Vorschau angesehen',
         },
       },
       {
         id: 'master-campus-campus-cloud',
         label: 'Campus Cloud',
         symbolId: 'campus-cloud',
-        preview: { kind: 'campus-cloud' },
+        preview: {
+          kind: 'campus-cloud',
+          animationId: 's02-preview-master-campus-cloud',
+        },
         position: { x: 0.18, y: 0.36 },
         descriptions: {
-          available: 'Optionale Vorschau öffnen',
-          opened: 'Vorschau erneut öffnen',
+          available: 'Vorschau noch nicht angesehen',
+          opened: 'Vorschau angesehen',
         },
       },
     ],
@@ -264,71 +272,70 @@ const accounts = [
     edgeLabel: 'In Campus E-Mail',
     unlockAnimationId: 's02-unlock-campus-email',
     detailRevealAnimationId: 's02-reveal-campus-email-details',
-    coreAction: {
-      id: 's02-campus-email-open-reset-link',
-      animationId: 's02-open-campus-email-reset-link',
-      targetDetailIds: ['campus-email-reset-links'],
-      actionLabel: 'Zurücksetzungslink im Postfach öffnen',
-      checkingLabel: 'Kontovorgang wird im Postfach geöffnet …',
-      takeaway: 'Über Campus E-Mail laufen Nachrichten, Bestätigungen und wichtige Kontovorgänge.',
-    },
+    previewSequence: [
+      'campus-email-notifications',
+      'campus-email-confirmations',
+      'campus-email-reset-links',
+      'campus-email-impersonation',
+    ],
+    takeaway: 'Über Campus E-Mail laufen Nachrichten, Bestätigungen und wichtige Kontovorgänge.',
     narrationId: 's02.campus-email',
     descriptions: {
       locked: 'Konto zum Kennenlernen öffnen',
       opening: 'Campus E-Mail wird geöffnet …',
-      ready: 'Beispielvorgang im Postfach starten',
+      ready: 'Nachrichten und Kontovorgänge nacheinander ansehen',
       viewed: 'Campus E-Mail angesehen',
     },
     summaries: {
       locked: 'Campus E-Mail ist noch geschlossen.',
       opening: 'Campus E-Mail wird geöffnet. Vier Funktionen erscheinen.',
-      ready: 'Starte den Beispielvorgang über den Zurücksetzungslink im Postfach.',
-      checking: '{detail} wird im Postfach geöffnet.',
-      viewed: 'Campus E-Mail wurde angesehen. Weitere Funktionen bleiben optional.',
+      ready: 'Sieh dir typische Nachrichten und Kontovorgänge nacheinander an.',
+      checking: '{detail} wird im Postfach gezeigt.',
+      viewed: 'Campus E-Mail und die zugehörigen Kontovorgänge wurden angesehen.',
     },
     details: [
       {
         id: 'campus-email-notifications',
         label: 'Benachrichtigungen',
         symbolId: 'notifications',
-        preview: { kind: 'mail-list' },
+        preview: { kind: 'mail-list', animationId: 's02-preview-campus-email-notifications' },
         position: { x: 0.18, y: 0.58 },
         descriptions: {
-          available: 'Optionale Vorschau öffnen',
-          opened: 'Vorschau erneut öffnen',
+          available: 'Vorschau noch nicht angesehen',
+          opened: 'Vorschau angesehen',
         },
       },
       {
         id: 'campus-email-confirmations',
         label: 'Bestätigungen',
         symbolId: 'confirmations',
-        preview: { kind: 'confirmation' },
+        preview: { kind: 'confirmation', animationId: 's02-preview-campus-email-confirmations' },
         position: { x: 0.32, y: 0.58 },
         descriptions: {
-          available: 'Optionale Vorschau öffnen',
-          opened: 'Vorschau erneut öffnen',
+          available: 'Vorschau noch nicht angesehen',
+          opened: 'Vorschau angesehen',
         },
       },
       {
         id: 'campus-email-reset-links',
         label: 'Zurücksetzungslinks',
         symbolId: 'reset-links',
-        preview: { kind: 'reset-link' },
+        preview: { kind: 'reset-link', animationId: 's02-preview-campus-email-reset-links' },
         position: { x: 0.18, y: 0.81 },
         descriptions: {
-          available: 'Optionale Vorschau öffnen',
-          opened: 'Vorschau erneut öffnen',
+          available: 'Vorschau noch nicht angesehen',
+          opened: 'Vorschau angesehen',
         },
       },
       {
         id: 'campus-email-impersonation',
         label: 'Nachrichten schreiben',
         symbolId: 'compose-message',
-        preview: { kind: 'compose' },
+        preview: { kind: 'compose', animationId: 's02-preview-campus-email-compose' },
         position: { x: 0.32, y: 0.81 },
         descriptions: {
-          available: 'Optionale Vorschau öffnen',
-          opened: 'Vorschau erneut öffnen',
+          available: 'Vorschau noch nicht angesehen',
+          opened: 'Vorschau angesehen',
         },
       },
     ],
@@ -343,60 +350,58 @@ const accounts = [
     edgeLabel: 'In Campusgram',
     unlockAnimationId: 's02-unlock-campusgram',
     detailRevealAnimationId: 's02-reveal-campusgram-details',
-    coreAction: {
-      id: 's02-campusgram-open-direct-message',
-      animationId: 's02-open-campusgram-direct-message',
-      targetDetailIds: ['campusgram-direct-messages'],
-      actionLabel: 'Direktnachricht öffnen',
-      checkingLabel: 'Direktnachricht wird geöffnet …',
-      takeaway: 'Campusgram enthält persönliche Beiträge und Kommunikation mit anderen Personen.',
-    },
+    previewSequence: [
+      'campusgram-direct-messages',
+      'campusgram-groups-contacts',
+      'campusgram-posts-reactions',
+    ],
+    takeaway: 'Campusgram enthält persönliche Beiträge und Kommunikation mit anderen Personen.',
     narrationId: 's02.campusgram',
     descriptions: {
       locked: 'Konto zum Kennenlernen öffnen',
       opening: 'Campusgram wird geöffnet …',
-      ready: 'Persönliche Kommunikationsansicht öffnen',
+      ready: 'Persönliche Kommunikation und Beiträge nacheinander ansehen',
       viewed: 'Campusgram angesehen',
     },
     summaries: {
       locked: 'Campusgram ist noch geschlossen.',
       opening: 'Campusgram wird geöffnet. Die Kommunikationsbereiche erscheinen.',
-      ready: 'Öffne die Direktnachricht in der persönlichen Kommunikationsansicht.',
-      checking: '{detail} wird geöffnet.',
-      viewed: 'Campusgram wurde angesehen. Weitere Bereiche bleiben optional.',
+      ready: 'Sieh dir persönliche Nachrichten, Kontakte und Beiträge nacheinander an.',
+      checking: '{detail} wird in der Vorschau gezeigt.',
+      viewed: 'Campusgram und seine Kommunikationsbereiche wurden angesehen.',
     },
     details: [
       {
         id: 'campusgram-direct-messages',
         label: 'Direktnachrichten',
         symbolId: 'direct-messages',
-        preview: { kind: 'direct-messages' },
+        preview: { kind: 'direct-messages', animationId: 's02-preview-campusgram-messages' },
         position: { x: 0.66, y: 0.82 },
         descriptions: {
-          available: 'Optionale Vorschau öffnen',
-          opened: 'Vorschau erneut öffnen',
+          available: 'Vorschau noch nicht angesehen',
+          opened: 'Vorschau angesehen',
         },
       },
       {
         id: 'campusgram-groups-contacts',
         label: 'Gruppen und Kontakte',
         symbolId: 'groups-contacts',
-        preview: { kind: 'groups-contacts' },
+        preview: { kind: 'groups-contacts', animationId: 's02-preview-campusgram-contacts' },
         position: { x: 0.8, y: 0.82 },
         descriptions: {
-          available: 'Optionale Vorschau öffnen',
-          opened: 'Vorschau erneut öffnen',
+          available: 'Vorschau noch nicht angesehen',
+          opened: 'Vorschau angesehen',
         },
       },
       {
         id: 'campusgram-posts-reactions',
         label: 'Beiträge und Reaktionen',
         symbolId: 'posts-reactions',
-        preview: { kind: 'posts-reactions' },
+        preview: { kind: 'posts-reactions', animationId: 's02-preview-campusgram-posts' },
         position: { x: 0.94, y: 0.82 },
         descriptions: {
-          available: 'Optionale Vorschau öffnen',
-          opened: 'Vorschau erneut öffnen',
+          available: 'Vorschau noch nicht angesehen',
+          opened: 'Vorschau angesehen',
         },
       },
     ],
@@ -424,29 +429,34 @@ function unlockAnimation(account: S02AccountContent): S02AnimationSequence {
 function revealDetailsAnimation(account: S02AccountContent): S02AnimationSequence {
   return {
     id: account.detailRevealAnimationId,
-    steps: account.details.map((detail) => ({
-      type: 'reveal',
-      targetId: detail.id,
-      durationMs: 420,
-    })),
+    steps: account.details.flatMap((detail, index) => [
+      { type: 'reveal' as const, targetId: detail.id, durationMs: 420 },
+      ...(index === account.details.length - 1
+        ? []
+        : [{ type: 'pause' as const, durationMs: 120 }]),
+    ]),
     reducedMotion: { strategy: 'instant-end-state', maxDurationMs: 0 },
-    maxDurationMs: 420,
+    maxDurationMs: account.details.length * 540,
   };
 }
 
-function coreActionAnimation(account: S02AccountContent): S02AnimationSequence {
-  const targetId = account.coreAction.targetDetailIds[0];
-  if (targetId === undefined) {
-    throw new Error(`S02 core action requires a target detail: ${account.id}`);
-  }
+function previewAnimation(
+  detail: S02AccountContent['details'][number],
+): S02AnimationSequence {
+  const target = (part: string) => `${detail.id}:${part}`;
   return {
-    id: account.coreAction.animationId,
+    id: detail.preview.animationId,
     steps: [
-      { type: 'highlight', targetId, emphasis: 'positive', durationMs: 420 },
-      { type: 'reveal', targetId, durationMs: 440 },
+      { type: 'reveal', targetId: target('surface'), durationMs: 320 },
+      { type: 'pause', durationMs: 180 },
+      { type: 'highlight', targetId: target('primary'), emphasis: 'positive', durationMs: 520 },
+      { type: 'reveal', targetId: target('result'), durationMs: 620 },
+      { type: 'reveal', targetId: target('secondary'), durationMs: 300 },
+      { type: 'highlight', targetId: target('secondary'), emphasis: 'positive', durationMs: 420 },
+      { type: 'pause', durationMs: 240 },
     ],
     reducedMotion: { strategy: 'instant-end-state', maxDurationMs: 0 },
-    maxDurationMs: 860,
+    maxDurationMs: 2600,
   };
 }
 
@@ -454,13 +464,12 @@ function introAnimation(): S02AnimationSequence {
   return {
     id: 's02-reveal-accounts',
     steps: [
-      { type: 'announce', messageId: introId },
       ...accounts.map((account) => ({
         type: 'reveal' as const,
         targetId: account.id,
         durationMs: 340,
       })),
-      { type: 'announce', messageId: introReadyId },
+      { type: 'announce', messageId: introModelId },
     ],
     reducedMotion: { strategy: 'instant-end-state', maxDurationMs: 0 },
     maxDurationMs: 340,
@@ -472,7 +481,7 @@ const animations = [
   ...accounts.flatMap((account) => [
     unlockAnimation(account),
     revealDetailsAnimation(account),
-    coreActionAnimation(account),
+    ...account.details.map((detail) => previewAnimation(detail)),
   ]),
 ];
 
@@ -482,7 +491,7 @@ export const s02Content: S02SegmentContent = {
     document: 'research/private/training-script.pdf',
     internalPages: [4, 5, 6, 7],
     copyReference:
-      'docs/design/S00-S05-COPY-AUDIT.md#copy-delta-s02-netzwerk-orientierung-3-august-2026',
+      'docs/design/S00-S05-COPY-AUDIT.md#copy--interaktionsdelta-s02-dreistufiger-netzwerkeinstieg-11-august-2026',
   },
   segment: {
     id: 'S02',
@@ -500,8 +509,10 @@ export const s02Content: S02SegmentContent = {
     title: 'Drei Konten erkunden',
     globalProgress: (viewed) => `Konten erkundet: ${viewed}/3 angesehen`,
     openTaskHelp: 'Aufgabe noch einmal anzeigen',
-    previewTitle: 'Optionale Vorschau',
-    completion: 'Konto erkundet',
+    previewTitle: 'Vorschau',
+    completion: 'Konten erkundet',
+    previewNext: 'Nächstes',
+    previewFinish: 'Fertig',
   },
   controls: {
     timingFailure:
@@ -513,95 +524,150 @@ export const s02Content: S02SegmentContent = {
   previewSimulation: {
     address: 'campus.local',
     welcomeLabel: 'Willkommen bei',
-    masterCampusSignInLabel: 'Mit Master Campus öffnen',
-    serviceSender: 'Campus Service',
-    serviceMessage: 'Informationen zu deinem Konto',
     projectSender: 'Projektteam',
     projectMessage: 'Neue Nachricht im Verlauf',
-    sendMessageLabel: 'Nachricht senden',
     variants: {
-      'campus-workspace': { app: 'Campus Workspace', title: 'Arbeitsräume', category: 'login' },
+      'campus-workspace': {
+        app: 'Campus Workspace',
+        title: 'Projekte und Arbeitsräume',
+        category: 'login',
+        primaryLabel: 'Mit Master Campus anmelden',
+        items: ['Campus-App', 'Planung', 'Arbeitsgruppe', 'Projektplan.pdf'],
+        resultLabel: 'Projektplan.pdf wurde für die Arbeitsgruppe freigegeben.',
+      },
       'campus-services': {
         app: 'Campus Services',
-        title: 'Persönliche Vorgänge',
+        title: 'Persönliche Vorgänge und Dokumente',
         category: 'login',
+        primaryLabel: 'Mit Master Campus anmelden',
+        items: ['Persönliche Angaben', 'Anträge', 'Termine', 'Dokumente'],
+        resultLabel: 'Semesterticket – eingereicht',
       },
       'campus-cloud': {
         app: 'Campus Cloud',
         title: 'Persönliche Dateien, Notizen und Entwürfe',
         category: 'login',
+        primaryLabel: 'Mit Master Campus anmelden',
+        items: ['Persönliche Dateien', 'Notizen', 'Entwürfe', 'Ideen Seminar'],
+        resultLabel: 'Ideen Seminar – gespeichert',
       },
-      'mail-list': { app: 'Campus E-Mail', title: 'Benachrichtigungen', category: 'mail' },
-      confirmation: { app: 'Campus E-Mail', title: 'Bestätigungen', category: 'mail' },
+      'mail-list': {
+        app: 'Campus E-Mail',
+        title: 'Benachrichtigungen',
+        category: 'mail',
+        primaryLabel: 'Terminänderung für deine Campus-Beratung',
+        items: [
+          'Campus Beratung',
+          'Dein Termin am Donnerstag beginnt um 14:30 Uhr statt um 14:00 Uhr.',
+        ],
+        resultLabel: 'Terminänderung geöffnet',
+      },
+      confirmation: {
+        app: 'Campus E-Mail',
+        title: 'Bestätigungen',
+        category: 'mail',
+        primaryLabel: 'Bestätige deine Anmeldung',
+        items: ['Fast geschafft …', 'Bestätige deine Anmeldung'],
+        resultLabel: 'Ja, ich möchte mich anmelden',
+      },
       'reset-link': {
         app: 'Campus E-Mail',
-        title: 'Zurücksetzungslink im Postfach',
+        title: 'Passwort zurücksetzen',
         category: 'mail',
+        primaryLabel: 'Passwort für Master Campus zurücksetzen',
+        items: [
+          'Jemand hat das Zurücksetzen deines Passworts für das folgende Konto angefordert:',
+          'Dienst: Master Campus',
+          'Benutzername: {username}',
+          'Wenn du das nicht angefordert hast, ignoriere diese E-Mail. Dein Passwort bleibt unverändert.',
+        ],
+        resultLabel: 'Passwort zurücksetzen',
       },
-      compose: { app: 'Campus E-Mail', title: 'Neue Nachricht', category: 'mail' },
+      compose: {
+        app: 'Campus E-Mail',
+        title: 'Neue Nachricht',
+        category: 'mail',
+        primaryLabel: 'Nachricht schreiben',
+        items: [
+          'Sehr geehrter Herr Mustermann,',
+          'ich wollte Sie wegen der vertraulichen Unterlagen kontaktieren.',
+          'Viele Grüße',
+          '{username}',
+        ],
+        resultLabel: 'Nachricht senden',
+      },
       'direct-messages': {
         app: 'Campusgram',
         title: 'Direktnachrichten',
         category: 'social',
+        primaryLabel: 'Chat mit Lea',
         primaryItem: {
           authorInitial: 'L',
-          label: 'Private Nachricht',
-          text: 'Kannst du die Datei heute noch freigeben?',
+          label: 'Lea',
+          text: 'Hi, hast du das neue Video vom Campusfest gesehen?',
         },
         replyItem: {
-          authorInitial: 'M',
-          label: 'Antwort',
-          text: 'Ja, ich teile sie gleich mit dem Team.',
+          authorInitial: 'B',
+          label: '{username}',
+          text: 'Ja, das mit der Band war richtig gut!',
         },
+        resultLabel: 'Videovorschau vom Campusfest',
       },
       'groups-contacts': {
         app: 'Campusgram',
         title: 'Gruppen und Kontakte',
         category: 'social',
+        primaryLabel: 'Kontakte',
         primaryItem: {
-          authorInitial: 'T',
-          label: 'Team Nachhaltigkeit',
-          text: '12 Kontakte und zwei gemeinsame Initiativen.',
+          authorInitial: 'P',
+          label: 'Projekt Nachhaltigkeit',
+          text: '12 Mitglieder · 3 neue Beiträge',
         },
         replyItem: {
-          authorInitial: 'R',
-          label: 'Kontakt aktualisiert',
-          text: 'Neue Verbindung in der Arbeitsgruppe.',
+          authorInitial: 'T',
+          label: 'Tutorium Informatik',
+          text: '8 Kontakte · Treffen am Freitag',
         },
+        resultLabel: 'Lea Sommer · Tobias Kern · Mina Yilmaz',
       },
       'posts-reactions': {
         app: 'Campusgram',
         title: 'Beiträge und Reaktionen',
         category: 'social',
+        primaryLabel: 'Campus-Feed',
         primaryItem: {
-          authorInitial: 'V',
-          label: 'Beitrag zur Veranstaltung',
-          text: 'Die Rückmeldung zur gemeinsamen Veranstaltung ist veröffentlicht.',
+          authorInitial: 'C',
+          label: 'Video vom Campusfest',
+          text: 'Live-Musik auf dem Innenhof · 18 Reaktionen',
         },
         replyItem: {
-          authorInitial: 'K',
-          label: 'Neue Reaktion',
-          text: 'Kommentar und Reaktion wurden hinzugefügt.',
+          authorInitial: 'B',
+          label: 'Neuer Beitrag',
+          text: 'Hat jemand Tipps für die Projektpräsentation am Freitag?',
         },
+        resultLabel: 'Beitrag veröffentlicht',
       },
     },
   },
   narration: {
     guideName: 'PassWo',
     introId,
+    introModelId,
     introReadyId,
     completeId,
     messages: {
       [introId]:
-        'Im Alltag ist nicht immer sichtbar, welche Funktionen mit einem Konto verbunden sind. Deshalb habe ich die drei Konten als Netzwerk dargestellt.',
+        'Im Alltag ist oft nicht sichtbar, was alles mit einem Konto verbunden ist.',
+      [introModelId]:
+        'Du kannst dir jedes Konto als Knoten in einem Netzwerk vorstellen. Die Verbindungen zeigen, was dazugehört.',
       [introReadyId]:
-        'Du musst dir keine Einzelheiten merken – vieles kommt dir wahrscheinlich bekannt vor. Wähle einen Kontoknoten aus, den du zuerst erkunden möchtest.',
+        'Du musst dir nichts zwingend merken. Wähle einfach einen Kontoknoten aus, den du zuerst erkunden möchtest.',
       's02.master-campus':
-        'Öffne einen Dienst über die sichtbare Master-Campus-Anmeldung.',
+        'Sieh dir nacheinander an, welche Campusdienste du mit Master Campus öffnest.',
       's02.campus-email':
-        'Starte die kurze Beispielsimulation über den Zurücksetzungslink im Postfach.',
+        'Sieh dir nacheinander typische Nachrichten und Kontovorgänge im Postfach an.',
       's02.campusgram':
-        'Öffne die Direktnachricht in der persönlichen Kommunikationsansicht.',
+        'Sieh dir nacheinander persönliche Nachrichten, Kontakte und Beiträge an.',
     },
     completion: (platform) => {
       switch (platform) {
@@ -619,7 +685,7 @@ export const s02Content: S02SegmentContent = {
     introAnimationId: 's02-reveal-accounts',
     summaries: {
       initial: 'Drei Konten sind sichtbar und können in beliebiger Reihenfolge angesehen werden.',
-      complete: 'Alle drei Konten wurden angesehen. Optionale Vorschauen bleiben verfügbar.',
+      complete: 'Alle drei Konten und ihre Vorschauen wurden angesehen.',
     },
     accounts,
   },

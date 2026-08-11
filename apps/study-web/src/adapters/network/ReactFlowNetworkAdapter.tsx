@@ -344,8 +344,8 @@ function statusLabel(node: SceneNode): string {
         : node.kind === 'service' || node.kind === 'function' || node.kind === 'content'
           ? 'Noch nicht angesehen'
           : 'Offen',
-    viewed: node.kind === 'account' ? 'Angesehen' : 'Vorschau geöffnet',
-    understood: node.kind === 'account' ? 'Verstanden' : 'Vorschau geöffnet',
+    viewed: node.kind === 'account' ? 'Angesehen' : 'Vorschau angesehen',
+    understood: node.kind === 'account' ? 'Verstanden' : 'Vorschau angesehen',
     retrievable: 'Abrufbar',
     'not-remembered': 'Nicht erinnert',
     exposed: 'Passwort bekannt',

@@ -1941,6 +1941,26 @@
   animation: s05-scale-background-pulse 1.35s ease-in-out infinite;
 }
 
+.lowercaseScaleScene[data-model-comparison="true"] .scaleSphere[data-comparison-muted="true"],
+.lowercaseScaleScene[data-model-comparison="true"] .scaleTick[data-comparison-muted="true"] {
+  opacity: 0.28;
+  filter: grayscale(0.82) brightness(0.56);
+}
+
+.lowercaseScaleScene[data-model-comparison="true"] .scaleSphere[data-active="true"] {
+  animation: none;
+}
+
+.lowercaseScaleScene[data-model-comparison="true"] .scaleSphere[data-generated="true"] {
+  border-color: rgb(255 224 132 / 70%);
+  filter: saturate(1.2) brightness(1.08);
+  animation: s05-scale-comparison-pulse 1.55s ease-in-out infinite;
+}
+
+.lowercaseScaleScene[data-model-comparison="true"] .scaleTick[data-generated="true"] {
+  color: #f2c14e;
+}
+
 .lowercaseScaleGraph {
   position: relative;
   z-index: 1;
@@ -2095,6 +2115,11 @@
     0 calc(var(--sphere-size) * 0.025) calc(var(--sphere-size) * 0.09) rgb(0 0 0 / 34%),
     0 0 calc(var(--sphere-size) * 0.12) color-mix(in srgb, var(--sphere-color) 42%, transparent),
     0 0 calc(var(--sphere-size) * 0.27) color-mix(in srgb, var(--sphere-color) 13%, transparent);
+}
+
+.scaleSphere[data-reached="true"]:not([data-active="true"]) {
+  opacity: 0.56;
+  filter: saturate(0.8) brightness(0.82);
 }
 
 .scaleSphere[data-previous="true"] {
@@ -2255,6 +2280,17 @@
   justify-content: center;
   column-gap: 0.28em;
   flex-wrap: wrap;
+}
+
+.scaleTimeInformation > .mixedCharacterAlphabet {
+  width: auto;
+  padding: 0.18em 0.55em;
+  border: 1px solid rgb(255 224 132 / 48%);
+  border-radius: var(--radius-round);
+  color: #ffe084;
+  background: rgb(242 193 78 / 14%);
+  font-size: clamp(0.42rem, calc(var(--sphere-size) * 0.034), 0.92rem);
+  font-weight: var(--font-weight-heavy);
 }
 
 .scaleTimeBubble[data-previous="true"] .scaleTimeInformation > strong {
@@ -2475,6 +2511,15 @@
 @keyframes s05-scale-background-pulse {
   0%, 100% {
     opacity: 0.3;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+@keyframes s05-scale-comparison-pulse {
+  0%, 100% {
+    opacity: 0.72;
   }
   50% {
     opacity: 1;
@@ -3044,7 +3089,7 @@
 
 .categoryTransition {
   position: absolute;
-  z-index: 8;
+  z-index: 60;
   inset: 0;
   display: grid;
   place-items: center;

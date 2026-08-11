@@ -21,11 +21,11 @@ export const trainingSegments = [
   },
   {
     id: 'S02',
-    title: 'Konten verstehen',
+    title: 'Konten kennenlernen',
     section: 'passwords',
     sourcePages: '4-7',
     foci: ['TF2', 'TF3', 'TF4'],
-    learningObjective: 'Abhängige Dienste und Folgen der drei Konten verstehen.',
+    learningObjective: 'Verbundene Dienste, Kontovorgänge und Kommunikationsbereiche erkunden.',
   },
   {
     id: 'S03',

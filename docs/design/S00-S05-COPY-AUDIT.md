@@ -1,5 +1,125 @@
 # S00--S05 Copy and Interaction Audit
 
+## Copy- & Darstellungsdelta S02 kompakte statische Vorschauen, 11. August 2026
+
+Quelle ist der ausdrückliche Nutzerauftrag vom 11. August 2026. Die Vorschauen sollen nicht mehr
+wie ein vollständiges Browserfenster wirken, sondern den jeweiligen Inhalt kompakt und lesbar
+zeigen. Die Zähler, der wiederholende Kerngedanke unter der Vorschau und die Vorschauanimation
+entfallen; Inhalt, Reihenfolge und Abschlusslogik bleiben erhalten. `S02_CONTENT_VERSION` wird
+von `5.0.0` auf `5.0.1` erhöht.
+
+| Segment und Text-ID | Quelle | Aktueller Text | Geplanter Text | Primäre Rolle | Grund | Bedeutungsänderung | Interaktionsziel | Hervorhebung |
+|---|---|---|---|---|---|---|---|---|
+| `S02.page.previewProgress` | Nutzerauftrag vom 2026-08-11 | `x von y` | entfällt | Orientierung | unnötige visuelle Last entfernen | nein | kein | keine |
+| `S02.page.previewReplay` | Nutzerauftrag vom 2026-08-11 | `Animation wiederholen` | entfällt | Navigation | statische Vorschau benötigt keine Wiederholungsaktion | begrenzt | kein | keine |
+| `S02.scene.accounts[*].takeaway` in der Vorschau | Nutzerauftrag vom 2026-08-11 | kontoabhängiger Kerngedanke, z. B. `Über Campus E-Mail laufen Nachrichten, Bestätigungen und wichtige Kontovorgänge.` | unter der Vorschau nicht mehr sichtbar | Kerngedanke | Redundanz zur konkret sichtbaren Vorschau entfernen | begrenzt | kein | keine |
+| `S02.page.globalProgress` als sichtbarer Zähler | Nutzerauftrag vom 2026-08-11 | `x/3` neben dem Fortschrittsbalken | nur Fortschrittsbalken; zugängliche Statusbeschreibung bleibt | Ergebnisfeedback | numerischen Zähler aus der Oberfläche entfernen | nein | kein | keine |
+
+Die Mail-Vorschau zeigt jeweils eine einzelne geöffnete fiktive Nachricht. Campusgram verwendet
+dieselbe Oberflächen-, Rahmen- und Akzentlogik wie die Website. Während eine Vorschausequenz
+geöffnet ist, werden die anderen Kontozweige presentation-only ausgeblendet und mit `Fertig`
+wieder eingeblendet. Persistenz, Export, Timing und Forschungsfelder bleiben unverändert.
+
+## Copy- & Darstellungsdelta S02 geführte Kontenerkundung, 11. August 2026
+
+Quelle ist der ausdrückliche Nutzerauftrag vom 11. August 2026 sowie das S02-Skript auf den
+internen Seiten 4--7. Die freie Wahl der drei Hauptkonten bleibt erhalten. Innerhalb eines
+Kontos werden nun alle verbundenen Vorschauen in einer festen Reihenfolge automatisch
+abgespielt und mit `Nächstes` beziehungsweise `Fertig` bestätigt. Damit überschreibt dieser
+Auftrag für S02 die frühere Zielregel einer einzigen Pflichtinteraktion mit optionalen
+Zusatzvorschauen. Die Vorschauen bleiben vollständig fiktiv und flüchtig; Persistenz, Export,
+Segment-Timing und spätere Konsequenzsimulationen bleiben unverändert. `S02_CONTENT_VERSION`
+wird wegen des neuen Ablaufs und der freigegebenen Copy von `4.3.4` auf `5.0.0` erhöht.
+
+| Segment und Text-ID | Quelle | Aktueller Text | Geplanter Text | Primäre Rolle | Grund | Bedeutungsänderung | Interaktionsziel | Hervorhebung |
+|---|---|---|---|---|---|---|---|---|
+| `S02.page.completion` | Nutzerauftrag vom 2026-08-11 | `Konto erkundet` unter `Konten erkundet` | `Konten erkundet` einmalig neben einem Häkchen | Ergebnisfeedback | doppelte Abschlussanzeige entfernen | nein | Browser im Dock / in der Taskleiste | Häkchen und Textstatus |
+| `S02.page.previewReplay`, `previewNext`, `previewFinish` | Nutzerauftrag vom 2026-08-11 | nicht vorhanden | `Animation wiederholen`; `Nächstes`; `Fertig` | Navigation | sichtbare Vorschausequenz steuerbar und eindeutig abschließbar machen | ausdrücklich freigegeben | jeweiliger Button in der Vorschau | keine |
+| `S02.narration.messages[s02.master-campus]` | Nutzerauftrag vom 2026-08-11 | `Öffne einen Dienst über die sichtbare Master-Campus-Anmeldung.` | `Sieh dir nacheinander an, welche Campusdienste du mit Master Campus öffnest.` | Navigation | Wortlaut an den automatischen Rundgang anpassen | begrenzt | automatisch gestartete Vorschau | keine |
+| `S02.narration.messages[s02.campus-email]` | Nutzerauftrag vom 2026-08-11 | `Starte die kurze Beispielsimulation über den Zurücksetzungslink im Postfach.` | `Sieh dir nacheinander typische Nachrichten und Kontovorgänge im Postfach an.` | Navigation | alle vier Pflichtvorschauen statt einer Einzelaktion benennen | begrenzt | automatisch gestartete Vorschau | keine |
+| `S02.narration.messages[s02.campusgram]` | Nutzerauftrag vom 2026-08-11 | `Öffne die Direktnachricht in der persönlichen Kommunikationsansicht.` | `Sieh dir nacheinander persönliche Nachrichten, Kontakte und Beiträge an.` | Navigation | alle drei Pflichtvorschauen statt einer Einzelaktion benennen | begrenzt | automatisch gestartete Vorschau | keine |
+| `S02.preview.master-campus[*]` | Nutzerauftrag vom 2026-08-11 | abstrakte Anmeldekarte | `Mit Master Campus anmelden` mit Workspace-Projekt und geteilter Datei, Services-Vorgang sowie Cloud-Notiz | Mechanismuserklärung | verbundene Dienste in einer alltagsnahen Handlung zeigen | ausdrücklich freigegeben | `Animation wiederholen`, `Nächstes` / `Fertig` | aktives UI-Ergebnis |
+| `S02.preview.campus-email.notifications` | Nutzerauftrag vom 2026-08-11 | generische Mailzeilen | `Terminänderung für deine Campus-Beratung`; geänderte Uhrzeit am Donnerstag | Orientierung | konkrete alltägliche Benachrichtigung statt Platzhalter | ausdrücklich freigegeben | Vorschauaktionen | keine |
+| `S02.preview.campus-email.confirmation` | Nutzerauftrag vom 2026-08-11 | generische Mailzeilen | `Fast geschafft …`; `Bestätige deine Anmeldung`; `Ja, ich möchte mich anmelden` | Mechanismuserklärung | Bestätigungsvorgang sichtbar machen | ausdrücklich freigegeben | Vorschauaktionen | Bestätigungsaktion |
+| `S02.preview.campus-email.reset-link` | Nutzerauftrag vom 2026-08-11 | generische Mailzeilen | Zurücksetzungsanforderung für Master Campus, fiktiver Benutzername, blauer Link und fett gesetzter Hinweis zum Ignorieren | Mechanismuserklärung | Kontovorgang konkret und ohne Sicherheitsgarantie darstellen | ausdrücklich freigegeben | Vorschauaktionen | Link und Safety-Hinweis |
+| `S02.preview.campus-email.compose` | Nutzerauftrag vom 2026-08-11 | generische neue Nachricht | fiktive Nachricht an Herrn Mustermann über vertrauliche Unterlagen, signiert mit dem flüchtigen Benutzernamen | Mechanismuserklärung | Nachrichtenfunktion in einer konkreten Mini-Szene zeigen | ausdrücklich freigegeben | Vorschauaktionen | Sendeaktion |
+| `S02.preview.campusgram.direct-messages` | Nutzerauftrag vom 2026-08-11 | abstrakter Dateidialog | Chat mit Lea über ein Campusfest-Video einschließlich abstrakter Videovorschau | Orientierung | alltagsnahe Direktnachricht zeigen | ausdrücklich freigegeben | Vorschauaktionen | Videovorschau |
+| `S02.preview.campusgram.groups-contacts` | Nutzerauftrag vom 2026-08-11 | zwei statische Karten | scrollende fiktive Kontakt- und Gruppenliste | Orientierung | soziales Umfeld als Handlung statt Beschreibung zeigen | ausdrücklich freigegeben | Vorschauaktionen | Bewegungszustand plus Text |
+| `S02.preview.campusgram.posts-reactions` | Nutzerauftrag vom 2026-08-11 | zwei statische Karten | Feedbewegung und Veröffentlichung der fiktiven Frage zur Projektpräsentation | Mechanismuserklärung | Beiträge und Reaktionen als konkrete Handlung zeigen | ausdrücklich freigegeben | Vorschauaktionen | Veröffentlichungsstatus |
+
+Der dauerhaft sichtbare Kerngedanke pro Konto bleibt wortgleich. Animationen wiederholen keine
+zusätzliche PassWo-Erklärung. Reduced Motion zeigt denselben Endzustand unmittelbar.
+
+## Copy- & Darstellungsdelta S05 Vergleichsskala bis 20, 11. August 2026
+
+Quelle ist der ausdrückliche Nutzerauftrag vom 11. August 2026. Im 12-Zeichen-Vergleich werden
+zusätzlich die bereits vorhandenen Kleinbuchstaben-Kugeln 16 bis 20 gezeichnet. Der bestehende
+Zoom bleibt unverändert; der Viewport beschneidet deshalb weiterhin alle Teile, die außerhalb
+des aktuellen Ausschnitts liegen. Die gelbe 12-Zeichen-Kugel für alle Zeichentypen und die
+15-Kleinbuchstaben-Kugel bleiben hervorgehoben, alle anderen sichtbaren Kugeln bleiben
+abgedunkelt. Im anschließenden Schritt kehrt die Kamera weiterhin auf die fokussierte
+15-Zeichen-Ansicht zurück. Berechnung, Ablauf, Persistenz, Export und Timing bleiben
+unverändert. `S05_CONTENT_VERSION` wird wegen der freigegebenen Copy-Präzisierung von `2.62.0`
+auf `2.62.1` erhöht.
+
+| Segment und Text-ID | Quelle | Aktueller Text | Geplanter Text | Primäre Rolle | Grund | Bedeutungsänderung | Interaktionsziel | Hervorhebung |
+|---|---|---|---|---|---|---|---|---|
+| `S05.freeSearch.lengthExamples.orientation` | Nutzerauftrag vom 2026-08-11 | `Bei selbstgewählten Passwörtern sollst du dich auf solche zusätzlichen Zeichentypen aber nicht verlassen müssen. Deshalb liegt die heutige Orientierung bei mindestens 15 Zeichen.` | `Bei selbstgewählten Passwörtern sollst du dich auf solche zusätzlichen Zeichentypen aber nicht verlassen müssen. Deshalb liegt die aktuelle Orientierung bei mindestens 15 Zeichen.` | Kerngedanke | ausdrücklich freigegebene zeitliche Präzisierung | nein | `Weiter` | `mindestens 15 Zeichen`, Akzent |
+
+### Darstellungsdelta S05 Skalenfokus ab 12 Stellen 11. August 2026
+
+Quelle ist der ausdrückliche Nutzerauftrag vom 11. August 2026. Beim Einstieg in die
+interaktive Skala liegt die aktive 12-Stellen-Kugel horizontal in der Mitte; die kleineren,
+bereits erreichten Kugeln stehen weiter links. Erreichte, aber nicht aktive Kugeln werden in der
+gesamten Skaleninteraktion leicht entsättigt und abgedunkelt. Die stärkere Transparenz im
+anschließenden gelben Modellvergleich bleibt davon unberührt. In diesem Vergleich zoomt die
+Kamera auf die tatsächliche Skala heraus: Die gelbe 12-Zeichen-Kugel für alle Zeichentypen und
+die 15-Kleinbuchstaben-Kugel bleiben hervorgehoben, während die übrigen Kugeln erkennbar
+abgedunkelt werden. Während PassWo die 12-Zeichen-Kugel erklärt, pulsiert nur diese Kugel. Beim
+anschließenden 15-Zeichen-Sprechschritt kehrt die Kamera zur bisherigen fokussierten
+15-Zeichen-Ansicht zurück. Bei `prefers-reduced-motion` entfallen Puls und Zoomtransition.
+Teilnehmertext, Interaktion, Berechnung, Ablauf, Persistenz, Export und Timing bleiben
+unverändert; kein Content-Versionssprung ist erforderlich.
+
+## Copy- & Darstellungsdelta S05 Zweiteiliger Modellvergleich 11. August 2026
+
+Quelle ist der ausdrückliche Nutzerauftrag vom 11. August 2026. Die bisherige längere
+Vergleichserklärung und die anschließende Orientierung werden durch zwei ausdrücklich
+vorgegebene PassWo-Sprechblasen ersetzt. Im ersten Schritt bleibt die vollständige Skala
+sichtbar: Die gelbe 12-Zeichen-Kugel und die 15-Kleinbuchstaben-Kugel bleiben deckend, alle
+übrigen vorhandenen Kugeln und Skalenwerte werden abgedunkelt, bleiben aber erkennbar. Die
+Kamera umfasst die Skala bis zur Position der gelben Kugel, damit deren Größe mit den übrigen
+Kugeln vergleichbar bleibt; während der Erklärung pulsiert ausschließlich die gelbe Kugel. Im
+zweiten Schritt fährt die Kamera wieder auf die bisherige fokussierte 15-Zeichen-Ansicht zurück.
+Modell, Berechnung, Persistenz, Export und Timing bleiben unverändert. `S05_CONTENT_VERSION`
+wird von `2.61.0` auf `2.62.0` erhöht.
+
+| Segment und Text-ID | Quelle | Aktueller Text | Geplanter Text | Primäre Rolle | Grund | Bedeutungsänderung | Interaktionsziel | Hervorhebung |
+|---|---|---|---|---|---|---|---|---|
+| `S05.freeSearch.lengthExamples.mixedCharacterComparison` | Nutzerauftrag vom 2026-08-11 | `Als Vergleich: Der Zeitaufwand in der gelben Kugel zeigt die Idee hinter der 12-Zeichen-Regel mit mehreren Zeichentypen. Bei selbstgewählten Passwörtern entspricht die Auswahl aber nicht der Zufälligkeit dieses mathematischen Modells.` | `Die gelbe Kugel zeigt, warum 12 Zeichen mit mehreren Zeichentypen im mathematischen Modell so vielversprechend wirken.` | Mechanismuserklärung | ausdrücklich verlangte Aufteilung auf den sichtbaren Modellvergleich | begrenzt | `Weiter` | keine |
+| `S05.freeSearch.lengthExamples.orientation` | Nutzerauftrag vom 2026-08-11 | `Als Orientierung für deine selbst gewählten Passwörter gilt also: mindestens 15 Zeichen.` | `Bei selbstgewählten Passwörtern sollst du dich auf solche zusätzlichen Zeichentypen aber nicht verlassen müssen. Deshalb liegt die heutige Orientierung bei mindestens 15 Zeichen.` | Kerngedanke | ausdrücklich verlangte zweite Einordnung bei unverändert sichtbarer Vergleichsskala | ausdrücklich freigegeben | `Weiter` | `mindestens 15 Zeichen`, Akzent |
+
+## Copy- & Darstellungsdelta S05 Vergleich der Längenmodelle 11. August 2026
+
+Quelle ist der ausdrückliche Nutzerauftrag vom 11. August 2026. Nach Abschluss der
+Kleinbuchstaben-Skala erscheint vor der bestehenden 15-Zeichen-Empfehlung ein eigener
+Vergleichsschritt. Die unveränderte lokale Modellfunktion berechnet für 12 unabhängig zufällige
+Zeichen aus dem festgelegten 72-Zeichen-Raum bei einer Billion Versuchen pro Sekunde
+`19.408.409.961.765.342.806.016` Kombinationen und damit rund `615 Jahre`. Diese Demonstration
+erscheint als gelbe Kugel an der sonst für 16 Kleinbuchstaben verwendeten Position. Die Kamera
+rahmt nur die 15-Kleinbuchstaben-Kugel, die gelbe Vergleichskugel und Padding; die übrigen Kugeln
+werden abgedunkelt. Das Modell bleibt ausdrücklich eine Zufallsannahme und wird nicht auf
+selbstgewählte oder reale Passwörter angewendet. Persistenz, Export und Timing bleiben
+unverändert. `S05_CONTENT_VERSION` wird von `2.60.2` auf `2.61.0` erhöht.
+
+| Segment und Text-ID | Quelle | Aktueller Text | Geplanter Text | Primäre Rolle | Grund | Bedeutungsänderung | Interaktionsziel | Hervorhebung |
+|---|---|---|---|---|---|---|---|---|
+| `S05.freeSearch.characterMix.narration[4]` | Nutzerauftrag vom 2026-08-11 | `Keine Sorge, darauf musst du dich nicht verlassen. Für ein starkes Passwort brauchst du vor allem genügend Länge.` | `Keine Sorge, darauf musst du dich nicht verlassen. Deshalb setzt die aktuelle Empfehlung bei selbstgewählten Passwörtern vor allem auf Länge.` | Kerngedanke | ausdrücklich vorgegebene fachliche Präzisierung der Empfehlung | begrenzt | `Weiter` | `Länge`, Akzent |
+| `S05.freeSearch.theoreticalModel.mixedCharacterMeasurement` | Nutzerauftrag vom 2026-08-11 und vorhandenes 72-Zeichen-Modell | nicht sichtbar | 12 Stellen, `alle Zeichentypen`, `ca. 615 Jahre` | Ergebnisfeedback | ausdrücklich verlangter Modellvergleich; vorhandene deterministische Berechnung wird sichtbar gemacht | ausdrücklich freigegeben | kein | gelbe Vergleichskugel |
+| `S05.freeSearch.theoreticalModel.interactiveScale.comparisonAccessibleLabel` | Nutzerauftrag vom 2026-08-11 | nicht vorhanden | `Vergleich von 15 zufälligen Kleinbuchstaben mit 12 zufälligen Zeichen aus allen Zeichentypen` | Orientierung | macht den rein visuellen Kugelvergleich barrierefrei eindeutig | begrenzt | Vergleichsansicht | keine |
+| `S05.freeSearch.lengthExamples.mixedCharacterComparison` | Nutzerauftrag vom 2026-08-11 | nicht vorhanden | `Als Vergleich: Der Zeitaufwand in der gelben Kugel zeigt die Idee hinter der 12-Zeichen-Regel mit mehreren Zeichentypen. Bei selbstgewählten Passwörtern entspricht die Auswahl aber nicht der Zufälligkeit dieses mathematischen Modells.` | Safety Boundary | begrenzt den sichtbaren mathematischen Vergleich ausdrücklich gegen selbstgewählte Passwörter; die vom Nutzer vorgegebene vollständige Grenze rechtfertigt die Überschreitung des normalen Wortbudgets | ausdrücklich freigegeben | `Weiter` | `12-Zeichen-Regel`, Akzent |
+| `S05.freeSearch.lengthExamples.orientation` | vorhandener freigegebener Content | unverändert | unverändert; folgt direkt auf den Vergleichsschritt | Kerngedanke | ausdrücklich verlangte Reihenfolge | nein | `Weiter` | `mindestens 15 Zeichen`, Akzent |
+
 ## Copy- & Darstellungsdelta S05 Wortbeispiele und Passphrasen-Ausblick 11. August 2026
 
 Quelle ist der ausdrückliche Nutzerauftrag vom 11. August 2026. Die drei bisherigen
@@ -228,7 +348,7 @@ Erkundung unterstützen soll.
 Titel und Fortschritt verwenden `kennenlernen`, `ansehen` oder `erkunden`, nicht `verstehen`.
 Vor der Exploration führen zwei getrennte Sprechschritte in die Darstellung und die freie Wahl ein:
 
-> Im Alltag ist nicht immer sichtbar, welche Funktionen mit einem Konto verbunden sind. Deshalb habe ich die drei Konten als Netzwerk dargestellt.
+> Im Alltag ist nicht immer sichtbar, welche Funktionen und Dienste mit einem Konto verbunden sind. Du kannst dir jedes Konto als Knoten in einem Netzwerk vorstellen. Die Verbindungen zeigen, was jeweils dazugehört.
 
 > Du musst dir keine Einzelheiten merken – vieles kommt dir wahrscheinlich bekannt vor. Wähle einen Kontoknoten aus, den du zuerst erkunden möchtest.
 
@@ -394,7 +514,7 @@ Er betrifft nur die genannten Sprechschritte und ihre unmittelbar zugehörigen A
 |---|---|---|---|---|
 | `S00.entry.paragraphs[2..3]` | bestehender Wortlaut | Orientierung | `starke Passwörter`, `gut merken` und `wieder abrufen` sind markiert | Die drei handlungsleitenden Formulierungen sollen in der Einstiegsorientierung sichtbar hervortreten. |
 | `S01.completion.guideMessage` | `Die drei Konten sind eingerichtet. Schließe jetzt das Browserfenster. Bevor du dich wieder anmeldest, schauen wir uns kurz an, was hinter den Konten steckt.` | Navigation | Browserfenster schließen; keine Hervorhebung | Der sichtbaren Bedienhandlung und dem nächsten Abschnitt zugeordnet. |
-| `S02.narration.messages[s02.accounts.intro]` | `Im Alltag ist nicht immer sichtbar, welche Funktionen mit einem Konto verbunden sind. Deshalb habe ich die drei Konten als Netzwerk dargestellt.` | Orientierung | erster Schritt der Einführungsanimation | Die Darstellung wird aus einer alltagsnahen, nicht wertenden Perspektive begründet. |
+| `S02.narration.messages[s02.accounts.intro]` | `Im Alltag ist nicht immer sichtbar, welche Funktionen und Dienste mit einem Konto verbunden sind. Du kannst dir jedes Konto als Knoten in einem Netzwerk vorstellen. Die Verbindungen zeigen, was jeweils dazugehört.` | Orientierung | erster Schritt der Einführungsanimation | Die Darstellung wird als alltagsnahes mentales Modell eingeführt; Knoten und Verbindungen werden knapp erklärt. |
 | `S02.narration.messages[s02.accounts.intro-ready]` | `Du musst dir keine Einzelheiten merken – vieles kommt dir wahrscheinlich bekannt vor. Wähle einen Kontoknoten aus, den du zuerst erkunden möchtest.` | Navigation | freie Kontowahl nach dem Einblenden | Die freie Reihenfolge, geringe Gedächtnislast und der sichtbare Kontoknoten werden direkt vor der Interaktion benannt. |
 | `S03.narration.retrievalHelp` | `Kein Problem. Das zeigt: Ein Passwort muss nicht nur stark, sondern später auch wieder abrufbar sein. Ich unterstütze dich jetzt bei der Anmeldung.` | Ergebnisfeedback | `stark` und `wieder abrufbar` sind markiert; `Für mich anmelden` | Die zulässige Nicht-Erinnerung wird eingeordnet und die Hilfe bleibt handlungsnah. |
 | `S03.narration.campusStart`, `S03.controls.campusStartContinue` | `Alle drei Konten sind wieder geöffnet. Wir können unseren Campusalltag jetzt fortsetzen.` / `Campusalltag fortsetzen` | Ergebnisfeedback / Navigation | Button führt ausschließlich zum nächsten S03-Schritt | Abschlusszustand und tatsächliche Buttonwirkung verwenden denselben Begriff. |
@@ -2083,3 +2203,30 @@ unverändert. `S05_CONTENT_VERSION` wird von `2.58.0` auf `2.59.0` erhöht.
 | `S05.freeSearch.characterMix.narration[5]` | Nutzerauftrag vom 2026-08-11 | `Die bisherigen Beispiele haben aber auch gezeigt: Gleiche Länge bedeutet nicht automatisch gleiche Sicherheit.` | entfällt | Mechanismuserklärung | ausdrücklich verlangte Entfernung nachweisbarer Redundanz | begrenzt | `Weiter` | keine |
 | `S05.freeSearch.characterMix.narration[6]`, anschließend `[5]` | Nutzerauftrag vom 2026-08-11 | `Um also ein Gefühl dafür zu bekommen, welche Mindestlänge dein Passwort haben sollte, gehen wir von einem Passwort aus, das nur aus zufällig gewählten Kleinbuchstaben besteht.` | `Um ein Gefühl dafür zu bekommen, welche Mindestlänge für deine selbst gewählten Passwörter empfohlen wird und warum, bleiben zusätzliche Zeichentypen bewusst außen vor: Jede Stelle ist ein zufällig gewählter Kleinbuchstabe.` | Mechanismuserklärung | ausdrücklich vorgegebene fachliche Präzisierung und Reduktion kognitiver Last | ausdrücklich freigegeben | `Weiter` | `zufällig gewählter Kleinbuchstabe` in Akzentfarbe |
 | `S05.freeSearch.estimate.question` | Nutzerauftrag vom 2026-08-11 | `Was glaubst du: Ab welcher Länge wird es für einen Angreifer zu aufwendig, alle Möglichkeiten durchzuprobieren?` | unverändert | Navigation | ausdrücklich bestätigter Wortlaut | nein | Schätzskala und `Schätzung bestätigen` | `welcher Länge` und `zu aufwendig` als gekoppelte Hervorhebung |
+
+### Copy-Delta S02 Netzwerk als mentales Kontomodell 11. August 2026
+
+Quelle ist die ausdrückliche Nutzerentscheidung vom 11. August 2026. Der Einstieg benennt neben
+Funktionen nun auch Dienste und erklärt Kontoknoten und Verbindungen als mentales Modell. Die
+alltagsnahe, nicht wertende Orientierung bleibt erhalten; Interaktion, Ablauf, Persistenz, Export
+und Timing bleiben unverändert. `S02_CONTENT_VERSION` wird von `4.3.3` auf `4.3.4` erhöht.
+
+| Segment und Text-ID | Quelle | Aktueller Text | Geplanter Text | Primäre Rolle | Grund | Bedeutungsänderung | Interaktionsziel | Hervorhebung |
+|---|---|---|---|---|---|---|---|---|
+| `S02.narration.messages[s02.accounts.intro]` | Nutzerentscheidung vom 2026-08-11 | `Im Alltag ist nicht immer sichtbar, welche Funktionen mit einem Konto verbunden sind. Deshalb habe ich die drei Konten als Netzwerk dargestellt.` | `Im Alltag ist nicht immer sichtbar, welche Funktionen und Dienste mit einem Konto verbunden sind. Du kannst dir jedes Konto als Knoten in einem Netzwerk vorstellen. Die Verbindungen zeigen, was jeweils dazugehört.` | Orientierung | ausdrücklich freigegebene Präzisierung des mentalen Kontomodells und der sichtbaren Netzwerkdarstellung | begrenzt | kein | keine |
+
+### Copy- & Interaktionsdelta S02 dreistufiger Netzwerkeinstieg 11. August 2026
+
+Quelle ist der ausdrückliche Nutzerauftrag vom 11. August 2026 sowie die benannten
+S02-Skriptseiten 4–7. Der bisher kombinierte Einstieg wird entlang der sichtbaren
+Zustandsänderungen in drei Sprechschritte getrennt: Orientierung vor dem Aufbau, Erklärung nach
+dem Aufmalen der Kontoknoten und Navigation bei sichtbarem Schlüssel am Zeiger. Der letzte
+Hinweis besitzt keine eigene Aktion und verschwindet erst mit der Auswahl eines Kontoknotens.
+Persistenz, Export und Timing bleiben unverändert. `S02_CONTENT_VERSION` wird von `5.0.1` auf
+`5.0.2` erhöht.
+
+| Segment und Text-ID | Quelle | Aktueller Text | Geplanter Text | Primäre Rolle | Grund | Bedeutungsänderung | Interaktionsziel | Hervorhebung |
+|---|---|---|---|---|---|---|---|---|
+| `S02.narration.messages[s02.accounts.intro]` | Nutzerauftrag vom 2026-08-11; S02-Skriptseiten 4–7 | `Im Alltag ist nicht immer sichtbar, welche Funktionen und Dienste mit einem Konto verbunden sind. Du kannst dir jedes Konto als Knoten in einem Netzwerk vorstellen. Die Verbindungen zeigen, was jeweils dazugehört.` | `Im Alltag ist oft nicht sichtbar, was alles mit einem Konto verbunden ist.` | Orientierung | ausdrücklich vorgegebene Trennung entlang des noch leeren Netzwerks | begrenzt | `Weiter` startet den Knotenaufbau | keine |
+| `S02.narration.messages[s02.accounts.intro-model]` | Nutzerauftrag vom 2026-08-11; S02-Skriptseiten 4–7 | nicht vorhanden; zuvor Teil von `s02.accounts.intro` | `Du kannst dir jedes Konto als Knoten in einem Netzwerk vorstellen. Die Verbindungen zeigen, was dazugehört.` | Mechanismuserklärung | ausdrücklich vorgegebene Zuordnung zum sichtbaren Knotennetz | nein | `Weiter` zeigt Schlüssel und Auswahlhinweis | keine |
+| `S02.narration.messages[s02.accounts.intro-ready]` | Nutzerauftrag vom 2026-08-11; S02-Skriptseiten 4–7 | `Du musst dir keine Einzelheiten merken – vieles kommt dir wahrscheinlich bekannt vor. Wähle einen Kontoknoten aus, den du zuerst erkunden möchtest.` | `Du musst dir nichts zwingend merken. Wähle einfach einen Kontoknoten aus, den du zuerst erkunden möchtest.` | Navigation | ausdrücklich vorgegebene geringe Gedächtnislast und eindeutige Handlungszuordnung | begrenzt | Kontoknoten; kein Sprechblasenbutton | keine |

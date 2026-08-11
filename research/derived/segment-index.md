@@ -6,7 +6,7 @@ Seitenangaben beziehen sich auf die im Trainingsdokument ausgewiesene interne Pa
 |---|---|---:|---|---|
 | S00 | Entry and safety boundary | 2 | TF1, TF2, TF6 | Display name, Safety Note, Pflichtbestätigung, PassWo-Flug |
 | S01 | Ordinary account setup | 3 | TF2, TF3 | drei fiktive Passwörter, freie Tabreihenfolge |
-| S02 | Konten verstehen | 4–7 | TF2, TF3, TF4 | Knotennetz, Unlock, Vorschaukarten, 0/3–3/3 |
+| S02 | Konten kennenlernen | 4–7 | TF2, TF3, TF4 | freie Kontowahl, Unlock, geführte Vorschausequenzen, 0/3–3/3 |
 | S03 | Wieder anmelden | 8–11 | TF1, TF3, TF6 | Abrufbarkeit, Skip ohne Beschämung, Status |
 | S04 | Datenleck bei Campusgram | 12 | TF4 | Warnung im Browser-Tab, kurzer Übergang in die Angreiferperspektive |
 | S05 | Einzelstärke des Passworts | 12–35 | TF3, TF4, TF6 | Bestandteile, Aufbau, freies Ausprobieren, Zusammenführung |
@@ -22,6 +22,22 @@ Seitenangaben beziehen sich auf die im Trainingsdokument ausgewiesene interne Pa
 | S15 | Recovery-Hinweis | 67–68 | TF6 | geschützter Wiederherstellungscode, Grenzen |
 | S16 | Priorisierung/Ausweitung | 68 | TF1, TF6 | wichtige Konten zuerst, MFA wo verfügbar |
 | S17 | Integrierte Zusammenfassung | 69–71 | TF4, TF6 | vier Schutzebenen, letzter Guardrail |
+
+## Implementierte S02-Version
+
+- Die drei Hauptkonten bleiben frei wählbar. Nach einer Auswahl werden Entsperren,
+  Einzelaufbau der verbundenen Knoten und die erste Vorschau automatisch gestartet; bis zum
+  Kontoabschluss sind andere Konten und Detailknoten gesperrt.
+- Master Campus zeigt Workspace, Services und Cloud, Campus E-Mail vier konkrete Nachrichten-
+  und Kontovorgänge und Campusgram Direktnachrichten, Kontakte sowie Beiträge. Jede Vorschau
+  erscheint direkt und bietet `Nächstes`; der letzte Knoten verwendet `Fertig`.
+- Die kompakte responsive Vorschau liegt abhängig vom Konto rechts beziehungsweise links über
+  dem Netzwerk und wird durch zwei Projektionslinien mit dem aktiven Detailknoten verbunden.
+  Während der Vorschausequenz bleibt nur der aktive Kontozweig sichtbar; mit `Fertig` erscheint
+  das vollständige Netzwerk wieder.
+- Ein Konto gilt erst nach allen seinen Vorschauen als angesehen. Der globale Abschluss zeigt
+  einmalig ein Häkchen mit `Konten erkundet`; Vorschauinhalte und der fiktive Benutzername bleiben
+  vollständig flüchtig.
 
 ## Implementierte S05-Version
 
@@ -83,8 +99,13 @@ Seitenangaben beziehen sich auf die im Trainingsdokument ausgewiesene interne Pa
   umfasst 12 bis 20 Kleinbuchstaben; ihre Messlatte bleibt in der folgenden Auswertung sichtbar.
   Kandidatenzahlen bleiben exakte Ganzzahlen; für das fiktive Passwort werden keine Zeit,
   effektive Länge, Entropie oder Gesamtstärke berechnet.
-- Nach Abschluss der Kleinbuchstaben-Skala bleibt die 15-Zeichen-Orientierung als stark
-  abgedunkelte Referenz mit PassWo unten links sichtbar. Drei authored Beispiele mit 16, 20 und
+- Nach Abschluss der Kleinbuchstaben-Skala vergleicht eine gelbe Kugel das vorhandene Modell für
+  12 zufällige Zeichen aus allen vier Zeichentypen mit der 15-Kleinbuchstaben-Kugel. Der
+  unveränderte Vergleichszoom zeichnet zusätzlich die Kleinbuchstaben-Kugeln bis 20 und zeigt
+  davon den in den Viewport passenden Ausschnitt; nur die gelbe und die 15-Kleinbuchstaben-Kugel
+  bleiben deckend, alle anderen Kugeln sind abgedunkelt. PassWo begrenzt den Vergleich gegen die
+  Auswahl selbstgewählter Passwörter. Beim anschließenden 15-Zeichen-Sprechschritt kehrt die
+  Kamera zur fokussierten 15-Zeichen-Ansicht zurück. Drei authored Beispiele mit 16, 20 und
   24 Zeichen trennen einen vorhersehbaren Wortbestandteil, einen zusätzlichen Zeichenanhang und
   zwei Wortbausteine sichtbar voneinander. Sie führen in getrennten Sprechschritten zur bereits
   bestehenden lokalen Campusgram-Auswertung und werden weder analysiert noch persistiert.

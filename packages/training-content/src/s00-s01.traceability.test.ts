@@ -65,12 +65,12 @@ describe('S00 to S02 training-content traceability', () => {
   });
 
   it('keeps S02 linked to its named pages and essential account-node structure', () => {
-    expect(S02_CONTENT_VERSION).toBe('4.3.3');
+    expect(S02_CONTENT_VERSION).toBe('5.0.2');
     expect(s02Content.source).toEqual({
       document: 'research/private/training-script.pdf',
       internalPages: [4, 5, 6, 7],
       copyReference:
-        'docs/design/S00-S05-COPY-AUDIT.md#copy-delta-s02-netzwerk-orientierung-3-august-2026',
+        'docs/design/S00-S05-COPY-AUDIT.md#copy--interaktionsdelta-s02-dreistufiger-netzwerkeinstieg-11-august-2026',
     });
     expect(s02Content.segment.id).toBe('S02');
     expect(s02Content.scene.accounts.map(({ id }) => id)).toEqual(canonicalAccountIds);
@@ -94,7 +94,7 @@ describe('S00 to S02 training-content traceability', () => {
     ]);
     expect(s02Content.page.globalProgress(2)).toBe('Konten erkundet: 2/3 angesehen');
     expect(s02Content.page.eyebrow).toBe('Konten erkundet');
-    expect(s02Content.page.completion).toBe('Konto erkundet');
+    expect(s02Content.page.completion).toBe('Konten erkundet');
     expect(s02Content.narration.completion('mac')).toBe(
       'Du hast dir alle drei Konten angesehen. Klicke unten im Dock auf den Browser, um dich wieder anzumelden.',
     );
@@ -105,15 +105,43 @@ describe('S00 to S02 training-content traceability', () => {
       'Du hast dir alle drei Konten angesehen. Klicke unten in der Taskleiste auf den Browser, um dich wieder anzumelden.',
     );
     expect(s02Content.narration.messages[s02Content.narration.introId]).toBe(
-      'Im Alltag ist nicht immer sichtbar, welche Funktionen mit einem Konto verbunden sind. Deshalb habe ich die drei Konten als Netzwerk dargestellt.',
+      'Im Alltag ist oft nicht sichtbar, was alles mit einem Konto verbunden ist.',
+    );
+    expect(s02Content.narration.messages[s02Content.narration.introModelId]).toBe(
+      'Du kannst dir jedes Konto als Knoten in einem Netzwerk vorstellen. Die Verbindungen zeigen, was dazugehört.',
     );
     expect(s02Content.narration.messages[s02Content.narration.introReadyId]).toBe(
-      'Du musst dir keine Einzelheiten merken – vieles kommt dir wahrscheinlich bekannt vor. Wähle einen Kontoknoten aus, den du zuerst erkunden möchtest.',
+      'Du musst dir nichts zwingend merken. Wähle einfach einen Kontoknoten aus, den du zuerst erkunden möchtest.',
     );
-    expect(s02Content.scene.accounts.map(({ coreAction }) => coreAction.targetDetailIds)).toEqual([
-      ['master-campus-workspace'],
-      ['campus-email-reset-links'],
-      ['campusgram-direct-messages'],
+    expect(s02Content.scene.accounts.map(({ previewSequence }) => previewSequence)).toEqual([
+      [
+        'master-campus-workspace',
+        'master-campus-services',
+        'master-campus-campus-cloud',
+      ],
+      [
+        'campus-email-notifications',
+        'campus-email-confirmations',
+        'campus-email-reset-links',
+        'campus-email-impersonation',
+      ],
+      [
+        'campusgram-direct-messages',
+        'campusgram-groups-contacts',
+        'campusgram-posts-reactions',
+      ],
     ]);
+    const resetLink = s02Content.previewSimulation.variants['reset-link'];
+    expect(resetLink.category).toBe('mail');
+    if (resetLink.category === 'social') throw new Error('missing mail preview');
+    expect(resetLink.items).toContain(
+      'Wenn du das nicht angefordert hast, ignoriere diese E-Mail. Dein Passwort bleibt unverändert.',
+    );
+    const directMessages = s02Content.previewSimulation.variants['direct-messages'];
+    expect(directMessages.category).toBe('social');
+    if (directMessages.category !== 'social') throw new Error('missing social preview');
+    expect(directMessages.primaryItem.text).toBe(
+      'Hi, hast du das neue Video vom Campusfest gesehen?',
+    );
   });
 });

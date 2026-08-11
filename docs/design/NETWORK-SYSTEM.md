@@ -52,37 +52,38 @@ Das Netzwerk zeigt Konten, abhängige Dienste, Funktionen, Passwortbeziehungen u
 
 ## S02-Kontenerkundung
 
-S02 „Konten verstehen“ bildet die erste vollständige Kontenerkundung:
+S02 „Konten kennenlernen“ bildet die erste vollständige Kontenerkundung:
 
 1. Master Campus, Campus E-Mail und Campusgram sind gleichzeitig als unterschiedliche
    Symbolkreise in festen Positionen sichtbar;
-2. ausschließlich die drei Hauptkonten sind auswählbar; das zuerst gewählte unvollständige Konto
-   sperrt die Auswahl der beiden anderen Konten, bis alle seine Details geöffnet sind;
+2. ausschließlich die drei Hauptkonten sind auswählbar; das gewählte Konto sperrt die beiden
+   anderen, bis seine vollständige geführte Vorschausequenz mit `Fertig` abgeschlossen ist;
 3. PassWo fliegt beim erstmaligen Öffnen zum Ziel, steht dort seitlich vom Knoten und kehrt nach
    Abschluss dieses Kontos an seinen Platz unten links zurück;
-4. das aktive Konto vergrößert sich leicht; seine Detailknoten erscheinen gemeinsam in einer
-   weichen Animation und bleiben zusammen mit bereits geöffneten Konten und Kanten bei späteren
-   Wechseln sichtbar;
+4. das aktive Konto vergrößert sich leicht; seine Detailknoten und Kanten erscheinen einzeln in
+   der authored Reihenfolge und bleiben bei späteren Wechseln sichtbar;
 5. Master-Campus-Dienste verwenden `service`/`dependency`, Campus-E-Mail-Funktionen
    `function`/`association`;
 6. Campusgram-Inhalte verwenden `content`/`association`; diese Kanten bilden ausschließlich
    lokale Inhaltszuordnungen in einem eigenständigen Community-Konto ab, keine SSO- oder
    Dienstverbindungen. Die drei Bereiche sind Direktnachrichten, Gruppen und Kontakte sowie
    Beiträge und Reaktionen;
-7. nach dem Unlock existieren alle Details und Kanten des Kontos; die Kanten sind zunächst
-   `neutral`, während der Prüfung `checking` und danach `opened`;
+7. nach dem Unlock startet die erste große Vorschau automatisch; während ihrer Wiedergabe ist
+   ausschließlich ihre Kante `checking`, nach dem vollständigen Ablauf ist sie `opened`;
 8. `opened` bezeichnet ausschließlich die abgeschlossene Detailöffnung und ist weder
    `protected` noch `blocked`;
-9. die Detailknoten werden nicht direkt angeklickt: `Nächste` in PassWos Sprechblase öffnet sie
-   in der festgelegten Reihenfolge; nach dem letzten Detail bleibt zunächst dessen Beschreibung
-   sichtbar und erst ein weiterer `Nächste`-Schritt markiert das Konto als `verstanden`;
-10. jedes verstandene Konto erhält einen klar sichtbaren grünen Statusmarker; gleichzeitig
-   bleiben alle Knoten voll sichtbar und die abgeschlossene Karte ist nicht mehr auswählbar;
-11. der Segmentabschluss ist erst nach allen drei verstandenen Konten verfügbar.
+9. Detailknoten werden nicht direkt angeklickt. Nach jeder vollständig abgespielten Vorschau
+   stehen `Animation wiederholen` und `Nächstes`, beim letzten Detail `Fertig`, in einem stabilen
+   Kartenfooter bereit. Erst `Fertig` markiert das Konto als angesehen;
+10. jedes angesehene Konto erhält einen grünen Statusmarker mit Häkchen und bleibt für eine
+    vollständige Wiederholung auswählbar; die Wiederholung löscht keinen Fortschritt;
+11. der Segmentabschluss ist erst verfügbar, wenn alle zehn Detailvorschauen und anschließend
+    alle drei Kontoabschlüsse bestätigt wurden.
 
-Die Detailvorschau bleibt eine separate Karte neben dem Graphen. Sie ist eine kleine visuelle
-Seitenminiatur ohne wiederholenden Erklärungstext, ist kein Bestandteil eines Nodes und beeinflusst
-weder Positionen noch den Trainingsablauf.
+Die Detailvorschau bleibt eine separate responsive UI-Karte über dem Graphen. Master Campus und
+Campus E-Mail projizieren rechts, Campusgram links. Zwei Linien und eine schwache Projektionsfläche
+verbinden den aktiven Detailknoten mit der Karte. Die Karte darf inaktive Knoten überdecken, enthält
+keinen duplizierenden PassWo-Text und bleibt bei Reduced Motion im vollständigen Endzustand.
 
 Danach wird in S06 derselbe Graph um Angriffs- und Schutzstatus erweitert. So wird der Adapter
 früh mit den wichtigsten Zuständen validiert, bevor alle Segmente umgesetzt werden.

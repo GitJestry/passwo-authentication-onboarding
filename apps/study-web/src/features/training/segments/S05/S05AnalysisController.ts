@@ -72,6 +72,7 @@ export type S05AnalysisStep =
   | 'character-mix-takeaway'
   | 'estimate'
   | 'lowercase-clock'
+  | 'length-model-comparison'
   | 'length-orientation'
   | 'length-word-core'
   | 'length-additional-word-question'
@@ -181,6 +182,7 @@ const stepByMissionId: Readonly<Record<string, S05AnalysisStep>> = {
   's05-character-mix-takeaway': 'character-mix-takeaway',
   's05-estimate': 'estimate',
   's05-lowercase-clock': 'lowercase-clock',
+  's05-length-model-comparison': 'length-model-comparison',
   's05-length-orientation': 'length-orientation',
   's05-length-word-core': 'length-word-core',
   's05-length-additional-word-question': 'length-additional-word-question',
