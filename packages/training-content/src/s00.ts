@@ -81,7 +81,7 @@ export interface S00SegmentContent {
   };
 }
 
-export const S00_CONTENT_VERSION = '1.22.0';
+export const S00_CONTENT_VERSION = '1.22.1';
 
 export const s00Content: S00SegmentContent = {
   version: S00_CONTENT_VERSION,
@@ -91,7 +91,7 @@ export const s00Content: S00SegmentContent = {
     paragraphs: [
       'Aloha! Ich bin PassWo und begleite dich heute durch das Training.',
       'Stell dir vor, du hast an einer Hochschule drei neue Campuskonten erhalten. Überlege, wie du solche Konten sicher schützen würdest, und wähle für jedes ein starkes Passwort, das du dir gut merken kannst.',
-      'Später meldest du dich wie gewohnt noch einmal bei allen drei Konten an. Wähle die Passwörter daher so, dass du sie wieder abrufen kannst.',
+      'Später meldest du dich noch einmal bei allen drei Konten an. Wähle die Passwörter daher so, dass du sie wieder abrufen kannst.',
       'Du arbeitest gleich in einem virtuellen PC. Wähle dafür das Betriebssystem, das deinem Alltag am nächsten kommt.',
     ],
     nameLabel: 'Welchen fiktiven Benutzernamen möchtest du verwenden?',
@@ -112,7 +112,8 @@ export const s00Content: S00SegmentContent = {
     document: 'research/private/training-script.pdf',
     internalPage: 2,
     uxReference: 'Vom Nutzer bereitgestellte UX-Konzeptboards, 2026-07-31',
-    copyReference: 'docs/design/S00-S05-COPY-AUDIT.md#s00----einstieg-und-browserorientierung',
+    copyReference:
+      'docs/design/S00-S05-COPY-AUDIT.md#copy-delta-s00-und-s05-direktes-framing-11-august-2026',
   },
   segment: {
     id: 'S00',

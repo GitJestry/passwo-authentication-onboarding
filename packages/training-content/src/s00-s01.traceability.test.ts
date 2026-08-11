@@ -7,12 +7,12 @@ const canonicalAccountIds = ['master-campus', 'campus-email', 'campusgram'] as c
 
 describe('S00 to S02 training-content traceability', () => {
   it('keeps S00 linked to its named source page and canonical accounts', () => {
-    expect(S00_CONTENT_VERSION).toBe('1.22.0');
+    expect(S00_CONTENT_VERSION).toBe('1.22.1');
     expect(s00Content.source).toMatchObject({
       document: 'research/private/training-script.pdf',
       internalPage: 2,
       copyReference:
-        'docs/design/S00-S05-COPY-AUDIT.md#s00----einstieg-und-browserorientierung',
+        'docs/design/S00-S05-COPY-AUDIT.md#copy-delta-s00-und-s05-direktes-framing-11-august-2026',
     });
     expect(s00Content.segment.id).toBe('S00');
     expect(s00Content.sectionTransition).toMatchObject({
@@ -31,6 +31,9 @@ describe('S00 to S02 training-content traceability', () => {
       'Aloha! Ich bin PassWo und begleite dich heute durch das Training.',
     );
     expect(s00Content.entry.paragraphs[1]).toContain('sicher schützen würdest');
+    expect(s00Content.entry.paragraphs[2]).toBe(
+      'Später meldest du dich noch einmal bei allen drei Konten an. Wähle die Passwörter daher so, dass du sie wieder abrufen kannst.',
+    );
     expect(s00Content.entry.nameLabel).toBe(
       'Welchen fiktiven Benutzernamen möchtest du verwenden?',
     );

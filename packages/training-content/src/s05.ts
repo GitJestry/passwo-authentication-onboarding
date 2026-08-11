@@ -71,7 +71,7 @@ export interface S05DesignLabFixture {
   readonly startSection: 'intro' | 'components' | 'structure';
 }
 
-export const S05_CONTENT_VERSION = '2.74.0';
+export const S05_CONTENT_VERSION = '2.76.0';
 
 export const s05Content = {
   version: S05_CONTENT_VERSION,
@@ -81,9 +81,9 @@ export const s05Content = {
       12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34,
       35,
     ] as const,
-    revision: 'Userauftrag vom 2026-08-11 · kompakte didaktische Abschlussauswertung',
+    revision: 'Userauftrag vom 2026-08-11 · direktes Szenarioframing',
     copyReference:
-      'docs/design/S00-S05-COPY-AUDIT.md#copy--interaktionsdelta-s05-kompakte-abschlussauswertung-11-august-2026',
+      'docs/design/S00-S05-COPY-AUDIT.md#copy-delta-s03-bis-s05-direktes-szenarioframing-11-august-2026',
   },
   segment: {
     id: 'S05',
@@ -130,10 +130,10 @@ export const s05Content = {
     },
     narration: {
       candidateCheck: [
-        'Für den Angreifer ist dein Passwort verdeckt. Er probiert mögliche Passwörter aus und prüft, ob eines davon passt. Dabei könnte er grundsätzlich jede denkbare Zeichenfolge testen.',
+        'Für den Angreifer ist dein Passwort verdeckt. Er probiert mögliche Passwörter aus und prüft, ob eines davon passt. Grundsätzlich kann er jede denkbare Zeichenfolge testen.',
       ],
       randomSequence: [
-        'Zufällige Zeichenfolgen sind jedoch schwer zu merken. Selbst gewählte Passwörter enthalten deshalb oft merkbare Elemente wie Wörter, Zahlen oder einfache Zeichenfolgen.',
+        'Solche zufällig erzeugten Zeichenfolgen können allerdings schwer zu merken sein. Selbst gewählte Passwörter enthalten deshalb oft merkbare Elemente wie Wörter, Zahlen oder einfache Zeichenfolgen.',
       ],
       buildingBlocks: [
         'Für die Erklärung betrachten wir diese Teile vereinfacht wie aneinandergesetzte Bausteine.',
@@ -225,16 +225,16 @@ export const s05Content = {
     },
     personalDetails: {
       opening: [
-        'Deine Persönliche Angaben sind leicht zu merken und wirken oft geheim. Deshalb ist es nachvollziehbar, sie für schwer erratbar zu halten.',
+        'Persönliche Angaben können leicht zu merken sein und wirken oft privat. Deshalb ist es nachvollziehbar, sie für schwer erratbar zu halten.',
       ],
       derivation: [
-        'Mit deinen gespeicherten Passwortdaten sind aber häufig auch Kontohinweise wie Benutzername oder E-Mail-Adresse verknüpft.',
+        'Doch beim Campusgram-Datenleck sind mit den Passwortdaten auch Kontohinweise wie Benutzername oder E-Mail-Adresse in fremde Hände geraten.',
       ],
       examples: [
-        'Auch wenn du online eher privat unterwegs bist, können solche Hinweise reichen, um persönliche Angaben zuzuordnen. Angreifer können dann etwa Namen, Geburtsdaten oder den Lieblingsverein gezielt ausprobieren.',
+        'Viele persönliche Angaben erfahren oder erraten Angreifer leicht aus solchen Hinweisen und öffentlichen Profilen. Namen, Geburtsdaten oder den Lieblingsverein probieren sie gezielt aus.',
       ],
       explanation: [
-        'Für den Selbstcheck: Wähle die persönlichen Angaben aus, die für dein Beispiel in Frage kommen.',
+        'Die Auswahl bleibt in dieser Übung und wird weder gespeichert noch exportiert. Markiere im fiktiven Passwort die Stellen, die für das Beispiel persönliche Angaben sein könnten.',
       ],
       machine: {
         conveyorBlocks: [
@@ -257,9 +257,7 @@ export const s05Content = {
         invalid: 'Dieser Bereich überschneidet sich mit einer bestehenden Markierung.',
         cancelled: 'Auswahl abgebrochen.',
       },
-      privacyNote:
-        'Die Auswahl bleibt nur in dieser laufenden Übung und wird nicht als Forschungsangabe gespeichert oder exportiert.',
-      applyNone: 'Keine Persönliche Angabe',
+      applyNone: 'Keine persönliche Angabe',
       apply: 'Einordnung übernehmen',
       results: {
         selected: 'Du hast [Angaben] als persönliche Angabe eingeordnet.',
@@ -278,7 +276,7 @@ export const s05Content = {
         'Um sich leichter zu merken, welches Passwort zu welchem Konto gehört, werden oft Begriffe aus dem Dienst oder seinem Umfeld eingebaut. Solche Bezüge kann ein Angreifer gezielt mitprüfen.',
       ],
       explanation: [
-        'Bei Campusgram wären das zum Beispiel „Campus“, „Nachricht“, dein Benutzername oder der Dienstname, bei einem WLAN-Passwort etwa „WLAN“, „Router“ oder „Fritzbox“.',
+        'Bei Campusgram wären das zum Beispiel „Campus“, „Nachricht“, der Benutzername oder der Dienstname, bei einem WLAN-Passwort etwa „WLAN“, „Router“ oder „Fritzbox“.',
         'Prüfen wir nun dein gewähltes Passwort auf einen möglichen Bezug zu Campusgram.',
       ],
       check: 'Im Passwort prüfen',
@@ -297,7 +295,7 @@ export const s05Content = {
     summary: {
       title: 'Häufig verwendete Passwörter und Zeichenfolgen',
       singleCandidateMatch:
-        'Dein Passwort wurde bereits unter einen einzigen frühen Kandidaten gefunden. Wir verfolgen den Angriff trotzdem weiter.',
+        'Das Campusgram-Passwort wurde bei dieser Prüfung bereits gefunden.',
       combinedMatches:
         'Dein Passwort besteht komplett aus frühen Anhaltspunkten. Erraten ist es dadurch noch nicht. Wir verfolgen den Angriff deshalb weiter.',
       partialMatches:
@@ -436,7 +434,7 @@ export const s05Content = {
     },
     transition: {
       explanation:
-        'Solche Anzeigen kennst du vielleicht aus deinem Alltag. Hier erfüllt Passw0rt123! alle angezeigten Regeln und wird als stark bewertet.',
+        'Hier erfüllt Passw0rt123! alle angezeigten Regeln und wird als stark bewertet.',
     },
     characterMix: {
       panelTitle: 'Passwort erstellen',
@@ -455,8 +453,8 @@ export const s05Content = {
         'Deshalb kann ein Passwort als stark markiert werden, obwohl es typischen Mustern folgt und vom Angreifer früh ausprobiert wird.',
         'Verschiedene Zeichentypen können ein Passwort stärker machen, werden bei selbst gewählten Passwörtern aber oft vorhersehbar eingesetzt.',
         'Darauf zu setzen, mit einer komplizierten Mischung wie „mEin!Pa55w0rt?“ eine Variante zu finden, die der Angreifer nicht prüft, ist deshalb riskant.',
-        'Keine Sorge, darauf musst du dich nicht verlassen. Deshalb setzt die aktuelle Empfehlung bei selbstgewählten Passwörtern vor allem auf Länge.',
-        'Damit du siehst, welche Mindestlänge empfohlen wird und warum, lassen wir zusätzliche Zeichentypen bewusst weg und verwenden nur zufällig gewählte Kleinbuchstaben.',
+        'Das musst du auch nicht. Deshalb setzt die aktuelle Empfehlung bei selbst gewählten Passwörtern vor allem auf Länge.',
+        'Wie lang sollte ein solches Passwort mindestens sein? Dafür lassen wir andere Zeichentypen zunächst bewusst weg und verwenden nur zufällig erzeugte Kleinbuchstaben.',
       ],
     },
     estimate: {

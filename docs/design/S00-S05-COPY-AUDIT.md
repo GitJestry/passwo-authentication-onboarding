@@ -1,5 +1,77 @@
 # S00--S05 Copy and Interaction Audit
 
+## Copy-Delta S03 bis S05 direktes Szenarioframing, 11. August 2026
+
+Quelle ist der ausdrückliche Nutzerauftrag vom 11. August 2026. S03 formuliert eine fehlgeschlagene
+Eingabe ohne Richtigkeitsurteil. S04 fragt direkt nach dem Vorgehen des Angreifers. S05 entfernt
+einen unnötigen Konjunktiv, hält den Benutzernamen im fiktiven Szenario, formuliert den
+Einzelkandidatenfund als Ergebnis der gezeigten Prüfung und korrigiert die Schaltflächenorthografie.
+Die zwei nicht beauftragten Review-Befunde zum allgemeinen Bewertungsframing und zur Modellgrenze
+bleiben unverändert. Interaktion, Ablauf, Persistenz, Export und Analyse bleiben unverändert.
+`S03_CONTENT_VERSION` wird von `1.19.2` auf `1.19.3`, `S04_CONTENT_VERSION` von `1.9.1` auf
+`1.9.2` und `S05_CONTENT_VERSION` von `2.75.0` auf `2.76.0` erhöht.
+
+| Segment und Text-ID | Quelle | Aktueller Text | Geplanter Text | Primäre Rolle | Grund | Bedeutungsänderung | Interaktionsziel | Hervorhebung |
+|---|---|---|---|---|---|---|---|---|
+| `S03.controls.incorrectPassword` | Nutzerauftrag vom 2026-08-11 | `Das Passwort ist nicht korrekt.` | `Dieses Passwort passt nicht zum Konto.` | Ergebnisfeedback | fehlgeschlagene Zuordnung ohne allgemeines Richtigkeitsurteil benennen | nein | erneute Passworteingabe | keine |
+| `S04.notice.paragraphs[1]` | Nutzerauftrag vom 2026-08-11 | `Wie könnte ein Angreifer versuchen, das fiktive Campusgram-Passwort herauszufinden?` | `Wie geht ein Angreifer vor, um das Campusgram-Passwort herauszufinden?` | Mechanismuserklärung | unnötige doppelte Möglichkeitsform entfernen und das Szenariokonto direkt benennen | begrenzt | `Angreiferperspektive` | `Datenleck` im vorherigen Satz als einzige Warnhervorhebung |
+| `S05.intro.narration.candidateCheck[0]` | Nutzerauftrag vom 2026-08-11 | `Dabei könnte er grundsätzlich jede denkbare Zeichenfolge testen.` | `Grundsätzlich kann er jede denkbare Zeichenfolge testen.` | Mechanismuserklärung | unnötigen Konjunktiv entfernen | nein | `Weiter` | keine |
+| `S05.componentStrategy.personalDetails.applyNone` | Nutzerauftrag vom 2026-08-11 | `Keine Persönliche Angabe` | `Keine persönliche Angabe` | Navigation | Orthografie korrigieren | nein | lokale Einordnung ohne Auswahl abschließen | keine |
+| `S05.componentStrategy.accountContext.explanation[0]` | Nutzerauftrag vom 2026-08-11 | `dein Benutzername` | `der Benutzername` | Mechanismuserklärung | keinen realen Benutzernamen der teilnehmenden Person nahelegen | nein | `Weiter` | keine |
+| `S05.componentStrategy.summary.singleCandidateMatch` | Nutzerauftrag vom 2026-08-11 | `Dein Passwort wurde bereits unter einen einzigen frühen Kandidaten gefunden. Wir verfolgen den Angriff trotzdem weiter.` | `Das Campusgram-Passwort wurde bei dieser Prüfung bereits gefunden.` | Ergebnisfeedback | Fund auf Szenariopasswort und gezeigte Prüfung begrenzen | begrenzt | `Weiter` | keine |
+
+## Copy-Delta S05 Framing persönlicher Angaben, 11. August 2026
+
+Quelle ist der ausdrückliche Nutzerauftrag vom 11. August 2026. Die vier bestehenden
+Sprechschritte führen von der nachvollziehbaren Geheimwirkung persönlicher Angaben über das
+konkrete Campusgram-Datenleck und öffentliche Profile zum begrenzten lokalen Selbstcheck. Der
+Datenschutzhinweis wird aus der rein visuell verborgenen Zusatzzeile in den sichtbaren
+Sprechschritt vor der Auswahl übernommen. Interaktion, Ablauf, Persistenz, Export und Analyse
+bleiben unverändert. `S05_CONTENT_VERSION` wird von `2.74.2` auf `2.75.0` erhöht.
+
+| Segment und Text-ID | Quelle | Aktueller Text | Geplanter Text | Primäre Rolle | Grund | Bedeutungsänderung | Interaktionsziel | Hervorhebung |
+|---|---|---|---|---|---|---|---|---|
+| `S05.componentStrategy.personalDetails.opening[0]` | Nutzerauftrag vom 2026-08-11 | `Deine Persönliche Angaben sind leicht zu merken und wirken oft geheim. Deshalb ist es nachvollziehbar, sie für schwer erratbar zu halten.` | `Persönliche Angaben können leicht zu merken sein und wirken oft privat. Deshalb ist es nachvollziehbar, sie für schwer erratbar zu halten.` | Mechanismuserklärung | private Wirkung ohne Bezug auf reale Angaben der teilnehmenden Person benennen | begrenzt | `Weiter` | `Persönliche Angaben` in Akzentfarbe mit bestehendem Symbol |
+| `S05.componentStrategy.personalDetails.derivation[0]` | Nutzerauftrag vom 2026-08-11 | `Mit deinen gespeicherten Passwortdaten sind aber häufig auch Kontohinweise wie Benutzername oder E-Mail-Adresse verknüpft.` | `Doch beim Campusgram-Datenleck sind mit den Passwortdaten auch Kontohinweise wie Benutzername oder E-Mail-Adresse in fremde Hände geraten.` | Mechanismuserklärung | den Zusammenhang am sichtbaren fiktiven Datenleck statt an allgemeinen gespeicherten Daten erklären | begrenzt | `Weiter` | keine |
+| `S05.componentStrategy.personalDetails.examples[0]` | Nutzerauftrag vom 2026-08-11 | `Auch wenn du online eher privat unterwegs bist, können solche Hinweise reichen, um persönliche Angaben zuzuordnen. Angreifer können dann etwa Namen, Geburtsdaten oder den Lieblingsverein gezielt ausprobieren.` | `Viele persönliche Angaben erfahren oder erraten Angreifer leicht aus solchen Hinweisen und öffentlichen Profilen. Namen, Geburtsdaten oder den Lieblingsverein probieren sie gezielt aus.` | Mechanismuserklärung | Angriffsweg direkt und ohne Bewertung des persönlichen Onlineverhaltens formulieren | begrenzt | `Weiter` | gruppiert `Namen`, `Geburtsdaten`, `Lieblingsverein` in Akzentfarbe |
+| `S05.componentStrategy.personalDetails.explanation[0]`, `privacyNote` | Nutzerauftrag vom 2026-08-11 | `Für den Selbstcheck: Wähle die persönlichen Angaben aus, die für dein Beispiel in Frage kommen.`; nur assistiv ausgegeben: `Die Auswahl bleibt nur in dieser laufenden Übung und wird nicht als Forschungsangabe gespeichert oder exportiert.` | `Die Auswahl bleibt in dieser Übung und wird weder gespeichert noch exportiert. Markiere im fiktiven Passwort die Stellen, die für das Beispiel persönliche Angaben sein könnten.` | Safety Boundary und Navigation | Datenschutzgrenze für alle Teilnehmenden sichtbar machen und die Handlung zuletzt eindeutig benennen | begrenzt | `Persönliche Angaben markieren` | `persönliche Angaben` in Akzentfarbe mit bestehendem Symbol |
+
+## Copy-Delta S03 bis S05 präzisiertes Framing, 11. August 2026
+
+Quelle ist der ausdrückliche Nutzerauftrag vom 11. August 2026. S03 benennt die erneute
+Abrufbarkeit eines Passworts eindeutig und vermeidet die missverständliche Formulierung
+`wieder verwenden`. S04 fragt nach dem begrenzten Vorgehen eines Angreifers statt nach einer
+nicht bestimmten allgemeinen Schwierigkeit. S05 formuliert die Merkbarkeit zufällig erzeugter
+Zeichenfolgen vorsichtiger und teilt die Überleitung zur Mindestlänge in Entlastung und Leitfrage.
+Der Abschnitt zu persönlichen Angaben bleibt unverändert. Interaktion, Ablauf, Persistenz, Export
+und Timing bleiben unverändert. `S03_CONTENT_VERSION` wird von `1.19.1` auf `1.19.2`,
+`S04_CONTENT_VERSION` von `1.9.0` auf `1.9.1` und `S05_CONTENT_VERSION` von `2.74.1` auf `2.74.2`
+erhöht.
+
+| Segment und Text-ID | Quelle | Aktueller Text | Geplanter Text | Primäre Rolle | Grund | Bedeutungsänderung | Interaktionsziel | Hervorhebung |
+|---|---|---|---|---|---|---|---|---|
+| `S03.narration.retrievalHelp` | Nutzerauftrag vom 2026-08-11 | `Kein Problem. Ein starkes Passwort sollte sich später auch zuverlässig wieder verwenden lassen. Ich unterstütze dich jetzt bei der Anmeldung.` | `Kein Problem. Ein starkes Passwort sollte sich für dieses Konto auch später wieder abrufen lassen. Ich unterstütze dich jetzt bei der Anmeldung.` | Ergebnisfeedback | Abrufbarkeit eindeutig von kontoübergreifender Passwortwiederverwendung trennen | begrenzt | `Für mich anmelden` | `starkes` positiv und `wieder abrufen` Akzent als Kontrast |
+| `S04.notice.paragraphs[1..2]` | Nutzerauftrag vom 2026-08-11 | `Wie schwer wäre es für einen Angreifer, dein Passwort herauszufinden?` / `Dafür schauen wir uns an, wie der Angreifer dabei vorgeht.` | `Wie könnte ein Angreifer versuchen, das fiktive Campusgram-Passwort herauszufinden?` | Mechanismuserklärung | nicht bestimmte allgemeine Schwierigkeit durch die tatsächlich folgende begrenzte Angreiferperspektive ersetzen | begrenzt | `Angreiferperspektive` | `Datenleck` im vorherigen Satz als einzige Warnhervorhebung |
+| `S05.intro.narration.randomSequence[0]` | Nutzerauftrag vom 2026-08-11 | `Zufällige Zeichenfolgen sind jedoch schwer zu merken. Selbst gewählte Passwörter enthalten deshalb oft merkbare Elemente wie Wörter, Zahlen oder einfache Zeichenfolgen.` | `Solche zufällig erzeugten Zeichenfolgen können allerdings schwer zu merken sein. Selbst gewählte Passwörter enthalten deshalb oft merkbare Elemente wie Wörter, Zahlen oder einfache Zeichenfolgen.` | Mechanismuserklärung | absolute Merkbarkeitsaussage begrenzen und an die sichtbare Zeichenfolge rückbinden | begrenzt | `Weiter` | keine |
+| `S05.freeSearch.characterMix.narration[4]` | Nutzerauftrag vom 2026-08-11 | `Darauf musst du dich nicht verlassen. Deshalb setzt die aktuelle Empfehlung bei selbstgewählten Passwörtern vor allem auf Länge.` | `Das musst du auch nicht. Deshalb setzt die aktuelle Empfehlung bei selbst gewählten Passwörtern vor allem auf Länge.` | Kerngedanke | entlastende Antwort direkt auf den vorherigen Risikosatz beziehen | nein | `Weiter` | `Länge` in Akzentfarbe |
+| `S05.freeSearch.characterMix.narration[5]` | Nutzerauftrag vom 2026-08-11 | `Damit du siehst, welche Mindestlänge empfohlen wird und warum, lassen wir zusätzliche Zeichentypen bewusst weg und verwenden nur zufällig gewählte Kleinbuchstaben.` | `Wie lang sollte ein solches Passwort mindestens sein? Dafür lassen wir andere Zeichentypen zunächst bewusst weg und verwenden nur zufällig erzeugte Kleinbuchstaben.` | Mechanismuserklärung | Leitfrage und vereinfachte Modellannahme direkt verbinden | begrenzt | `Weiter` | `zufällig erzeugte Kleinbuchstaben` in Akzentfarbe |
+
+## Copy-Delta S00 und S05 direktes Framing, 11. August 2026
+
+Quelle ist der ausdrückliche Nutzerauftrag vom 11. August 2026. Drei Formulierungen werden
+gestrafft, ohne den Abschnitt zu persönlichen Angaben zu verändern: S00 setzt keine gewohnte
+Anmelderoutine voraus, die S05-Stärkeanzeige erklärt den sichtbaren Zustand ohne behauptete
+Alltagsvertrautheit, und der entlastende Hinweis kommt ohne das vorangestellte `Keine Sorge` aus.
+Interaktion, Ablauf, Persistenz, Export und Timing bleiben unverändert.
+`S00_CONTENT_VERSION` wird von `1.22.0` auf `1.22.1`, `S05_CONTENT_VERSION` von `2.74.0` auf
+`2.74.1` erhöht.
+
+| Segment und Text-ID | Quelle | Aktueller Text | Geplanter Text | Primäre Rolle | Grund | Bedeutungsänderung | Interaktionsziel | Hervorhebung |
+|---|---|---|---|---|---|---|---|---|
+| `S00.entry.paragraphs[2]` | Nutzerauftrag vom 2026-08-11 | `Später meldest du dich wie gewohnt noch einmal bei allen drei Konten an. Wähle die Passwörter daher so, dass du sie wieder abrufen kannst.` | `Später meldest du dich noch einmal bei allen drei Konten an. Wähle die Passwörter daher so, dass du sie wieder abrufen kannst.` | Orientierung | vorausgesetzte Anmelderoutine entfernen | nein | kein | keine |
+| `S05.freeSearch.transition.explanation` | Nutzerauftrag vom 2026-08-11 | `Solche Anzeigen kennst du vielleicht aus deinem Alltag. Hier erfüllt Passw0rt123! alle angezeigten Regeln und wird als stark bewertet.` | `Hier erfüllt Passw0rt123! alle angezeigten Regeln und wird als stark bewertet.` | Orientierung | behauptete Vertrautheit entfernen; sichtbare Anzeige direkt einordnen | nein | `Weiter` | keine |
+| `S05.freeSearch.characterMix.narration[4]` | Nutzerauftrag vom 2026-08-11 | `Keine Sorge, darauf musst du dich nicht verlassen. Deshalb setzt die aktuelle Empfehlung bei selbstgewählten Passwörtern vor allem auf Länge.` | `Darauf musst du dich nicht verlassen. Deshalb setzt die aktuelle Empfehlung bei selbstgewählten Passwörtern vor allem auf Länge.` | Mechanismuserklärung | Sorge nicht sprachlich vorwegnehmen; entlastende Aussage erhalten | nein | `Weiter` | keine |
+
 ## Copy-Delta Studienstart ohne Zusatzinformationen-Hinweis, 11. August 2026
 
 Quelle ist der ausdrückliche Nutzerauftrag vom 11. August 2026. Der Hinweis auf optionale

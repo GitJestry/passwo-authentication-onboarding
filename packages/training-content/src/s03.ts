@@ -93,7 +93,7 @@ export interface S03SegmentContent {
   readonly animations: readonly S03AnimationSequence[];
 }
 
-export const S03_CONTENT_VERSION = '1.19.1';
+export const S03_CONTENT_VERSION = '1.19.3';
 
 const resultAnimation = (
   accountId: S01AccountId,
@@ -146,10 +146,9 @@ export const s03Content: S03SegmentContent = {
   source: {
     document: 'research/private/training-script.pdf',
     internalPages: [8, 9, 10, 11],
-    revision:
-      'Userauftrag vom 2026-08-10: Anmeldungstexte und Abschlussblase zusammengeführt.',
+    revision: 'Userauftrag vom 2026-08-11 · neutrale Fehlermeldung',
     copyReference:
-      'docs/design/S00-S05-COPY-AUDIT.md#copy-delta-s03-anmeldung-und-abschluss-10-august-2026',
+      'docs/design/S00-S05-COPY-AUDIT.md#copy-delta-s03-bis-s05-direktes-szenarioframing-11-august-2026',
   },
   segment: {
     id: 'S03',
@@ -168,7 +167,7 @@ export const s03Content: S03SegmentContent = {
     accountDataLabel: 'Benutzername',
     passwordLabel: 'Passwort',
     passwordTooLong: 'max. 128 Zeichen',
-    incorrectPassword: 'Das Passwort ist nicht korrekt.',
+    incorrectPassword: 'Dieses Passwort passt nicht zum Konto.',
     showPassword: (accountLabel) => `Passwort für ${accountLabel} anzeigen`,
     hidePassword: (accountLabel) => `Passwort für ${accountLabel} verbergen`,
     openLogin: (accountLabel) => `Anmelden mit ${accountLabel}`,
@@ -192,7 +191,7 @@ export const s03Content: S03SegmentContent = {
     thirdFailedLogin:
       'Wenn du das Passwort nicht mehr sicher weißt, kannst du unten „Passwort vergessen?“ nutzen.',
     retrievalHelp:
-      'Kein Problem. Ein starkes Passwort sollte sich später auch zuverlässig wieder verwenden lassen. Ich unterstütze dich jetzt bei der Anmeldung.',
+      'Kein Problem. Ein starkes Passwort sollte sich für dieses Konto auch später wieder abrufen lassen. Ich unterstütze dich jetzt bei der Anmeldung.',
     completion: 'Alle drei Konten sind wieder geöffnet. Wir können unseren Campusalltag jetzt fortsetzen.',
     warning: 'Bei Campusgram ist eine Sicherheitsmeldung erschienen. Schau bitte nach.',
   },

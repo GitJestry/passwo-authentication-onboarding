@@ -722,7 +722,6 @@ function PersonalDetailsCheck({
   return (
     <section className={styles.personalComponentCheck}>
       <p>{content.selectionHint}</p>
-      <p className={styles.visuallyHidden}>{content.privacyNote}</p>
       <button
         type="button"
         onClick={() => controller.completePersonalDetailsCheck()}

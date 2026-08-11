@@ -4,7 +4,7 @@ import { S05_CONTENT_VERSION, s05Content } from './s05.js';
 
 describe('S05 content traceability', () => {
   it('keeps the participant copy bounded and separate from internal terminology', () => {
-    expect(S05_CONTENT_VERSION).toBe('2.74.0');
+    expect(S05_CONTENT_VERSION).toBe('2.76.0');
     expect(s05Content.source).toMatchObject({
       document: 'research/private/training-script.pdf',
       internalPages: [
@@ -12,7 +12,7 @@ describe('S05 content traceability', () => {
         35,
       ],
       copyReference:
-        'docs/design/S00-S05-COPY-AUDIT.md#copy--interaktionsdelta-s05-kompakte-abschlussauswertung-11-august-2026',
+        'docs/design/S00-S05-COPY-AUDIT.md#copy-delta-s03-bis-s05-direktes-szenarioframing-11-august-2026',
     });
     expect(s05Content.segment.id).toBe('S05');
     expect(s05Content.page.fixtureNotice).toBe(
@@ -46,7 +46,7 @@ describe('S05 content traceability', () => {
       'Bitte beachte: Das Modul kann Bestandteile im Passwort übersehen oder falsch einordnen. Es dient nur zum Verständnis und ist keine Sicherheitsbewertung.',
     ]);
     expect(s05Content.intro.narration.randomSequence).toEqual([
-      'Zufällige Zeichenfolgen sind jedoch schwer zu merken. Selbst gewählte Passwörter enthalten deshalb oft merkbare Elemente wie Wörter, Zahlen oder einfache Zeichenfolgen.',
+      'Solche zufällig erzeugten Zeichenfolgen können allerdings schwer zu merken sein. Selbst gewählte Passwörter enthalten deshalb oft merkbare Elemente wie Wörter, Zahlen oder einfache Zeichenfolgen.',
     ]);
     expect(s05Content.componentStrategy.commonComponents.explanation[0]).toBe(
       'Dazu gehören häufig verwendete Passwörter und Wörter, einfache Tastatur- und Zahlenfolgen wie „123456“ oder „qwertz“ oder naheliegende Jahreszahlen.',
@@ -98,16 +98,16 @@ describe('S05 content traceability', () => {
     );
     expect(s05Content.componentStrategy.presentation.reviewCardTitle).toBe('Zusammenfassung');
     expect(s05Content.componentStrategy.personalDetails.opening).toEqual([
-      'Deine Persönliche Angaben sind leicht zu merken und wirken oft geheim. Deshalb ist es nachvollziehbar, sie für schwer erratbar zu halten.',
+      'Persönliche Angaben können leicht zu merken sein und wirken oft privat. Deshalb ist es nachvollziehbar, sie für schwer erratbar zu halten.',
     ]);
     expect(s05Content.componentStrategy.personalDetails.derivation).toEqual([
-      'Mit deinen gespeicherten Passwortdaten sind aber häufig auch Kontohinweise wie Benutzername oder E-Mail-Adresse verknüpft.',
+      'Doch beim Campusgram-Datenleck sind mit den Passwortdaten auch Kontohinweise wie Benutzername oder E-Mail-Adresse in fremde Hände geraten.',
     ]);
     expect(s05Content.componentStrategy.personalDetails.examples).toEqual([
-      'Auch wenn du online eher privat unterwegs bist, können solche Hinweise reichen, um persönliche Angaben zuzuordnen. Angreifer können dann etwa Namen, Geburtsdaten oder den Lieblingsverein gezielt ausprobieren.',
+      'Viele persönliche Angaben erfahren oder erraten Angreifer leicht aus solchen Hinweisen und öffentlichen Profilen. Namen, Geburtsdaten oder den Lieblingsverein probieren sie gezielt aus.',
     ]);
     expect(s05Content.componentStrategy.personalDetails.explanation).toEqual([
-      'Für den Selbstcheck: Wähle die persönlichen Angaben aus, die für dein Beispiel in Frage kommen.',
+      'Die Auswahl bleibt in dieser Übung und wird weder gespeichert noch exportiert. Markiere im fiktiven Passwort die Stellen, die für das Beispiel persönliche Angaben sein könnten.',
     ]);
     expect(s05Content.componentStrategy.personalDetails.begin).toBe(
       'Persönliche Angaben markieren',
@@ -127,7 +127,7 @@ describe('S05 content traceability', () => {
       '[Befund] enthalten',
     );
     expect(s05Content.componentStrategy.personalDetails.applyNone).toBe(
-      'Keine Persönliche Angabe',
+      'Keine persönliche Angabe',
     );
     expect(s05Content.componentStrategy.personalDetails.results).toMatchObject({
       selected: 'Du hast [Angaben] als persönliche Angabe eingeordnet.',
@@ -153,7 +153,7 @@ describe('S05 content traceability', () => {
       'Um sich leichter zu merken, welches Passwort zu welchem Konto gehört, werden oft Begriffe aus dem Dienst oder seinem Umfeld eingebaut. Solche Bezüge kann ein Angreifer gezielt mitprüfen.',
     ]);
     expect(s05Content.componentStrategy.accountContext.explanation).toEqual([
-      'Bei Campusgram wären das zum Beispiel „Campus“, „Nachricht“, dein Benutzername oder der Dienstname, bei einem WLAN-Passwort etwa „WLAN“, „Router“ oder „Fritzbox“.',
+      'Bei Campusgram wären das zum Beispiel „Campus“, „Nachricht“, der Benutzername oder der Dienstname, bei einem WLAN-Passwort etwa „WLAN“, „Router“ oder „Fritzbox“.',
     ]);
     expect(s05Content.componentStrategy.accountContext.results).toMatchObject({
       none: ['Hier wurde kein direkter Bezug zu Campusgram erkannt.'],
@@ -185,7 +185,7 @@ describe('S05 content traceability', () => {
     expect(s05Content.componentStrategy.summary.continue).toBe('Weiter');
     expect(s05Content.componentStrategy.summary).toMatchObject({
       singleCandidateMatch:
-        'Dein Passwort wurde bereits unter einen einzigen frühen Kandidaten gefunden. Wir verfolgen den Angriff trotzdem weiter.',
+        'Das Campusgram-Passwort wurde bei dieser Prüfung bereits gefunden.',
       combinedMatches:
         'Dein Passwort besteht komplett aus frühen Anhaltspunkten. Erraten ist es dadurch noch nicht. Wir verfolgen den Angriff deshalb weiter.',
       partialMatches:
@@ -238,7 +238,7 @@ describe('S05 content traceability', () => {
     );
     expect(s05Content.freeSearch.estimate.alphabetLabel).toBe('zufällig gewählt');
     expect(s05Content.freeSearch.transition.explanation).toBe(
-      'Solche Anzeigen kennst du vielleicht aus deinem Alltag. Hier erfüllt Passw0rt123! alle angezeigten Regeln und wird als stark bewertet.',
+      'Hier erfüllt Passw0rt123! alle angezeigten Regeln und wird als stark bewertet.',
     );
     expect(s05Content.animations.map(([id]) => id)).not.toContain('s05-passphrase-generator');
     expect(s05Content.freeSearch.characterMix.checks[0]).toBe('mindestens 12 Zeichen');
@@ -257,10 +257,10 @@ describe('S05 content traceability', () => {
       'Darauf zu setzen, mit einer komplizierten Mischung wie „mEin!Pa55w0rt?“ eine Variante zu finden, die der Angreifer nicht prüft, ist deshalb riskant.',
     );
     expect(s05Content.freeSearch.characterMix.narration[4]).toBe(
-      'Keine Sorge, darauf musst du dich nicht verlassen. Deshalb setzt die aktuelle Empfehlung bei selbstgewählten Passwörtern vor allem auf Länge.',
+      'Das musst du auch nicht. Deshalb setzt die aktuelle Empfehlung bei selbst gewählten Passwörtern vor allem auf Länge.',
     );
     expect(s05Content.freeSearch.characterMix.narration[5]).toBe(
-      'Damit du siehst, welche Mindestlänge empfohlen wird und warum, lassen wir zusätzliche Zeichentypen bewusst weg und verwenden nur zufällig gewählte Kleinbuchstaben.',
+      'Wie lang sollte ein solches Passwort mindestens sein? Dafür lassen wir andere Zeichentypen zunächst bewusst weg und verwenden nur zufällig erzeugte Kleinbuchstaben.',
     );
     expect(s05Content.freeSearch.characterMix.narration).toHaveLength(6);
     expect(s05Content.freeSearch.estimate.question).toBe(
@@ -355,7 +355,7 @@ describe('S05 content traceability', () => {
         .every(({ startSection }) => startSection === 'structure'),
     ).toBe(true);
     expect(s05Content.intro.narration.candidateCheck).toEqual([
-      'Für den Angreifer ist dein Passwort verdeckt. Er probiert mögliche Passwörter aus und prüft, ob eines davon passt. Dabei könnte er grundsätzlich jede denkbare Zeichenfolge testen.',
+      'Für den Angreifer ist dein Passwort verdeckt. Er probiert mögliche Passwörter aus und prüft, ob eines davon passt. Grundsätzlich kann er jede denkbare Zeichenfolge testen.',
     ]);
     expect(s05Content.intro.narration.strategyTargeting).toEqual([
       'Der Angreifer sieht diese Bestandteile nicht. Er kann aber mögliche Bestandteile auswählen, kombinieren und daraus vollständige Passwörter ausprobieren.',

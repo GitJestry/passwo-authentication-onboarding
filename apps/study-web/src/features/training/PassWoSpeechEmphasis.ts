@@ -48,13 +48,10 @@ const emphasisBySpeechId: Readonly<Record<string, readonly PassWoSpeechEmphasis[
   's03.third-failed-login': [{ phrase: '„Passwort vergessen?“', tone: 'action' }],
   's03.retrieval-help': [
     { phrase: 'starkes', tone: 'positive', contrastId: 'password-memory' },
-    { phrase: 'wieder verwenden', tone: 'accent', contrastId: 'password-memory' },
+    { phrase: 'wieder abrufen', tone: 'accent', contrastId: 'password-memory' },
   ],
   's03.warning': [{ phrase: 'Sicherheitsmeldung', tone: 'warning' }],
-  's04.incident': [
-    { phrase: 'Datenleck', tone: 'warning', contrastId: 'incident-risk' },
-    { phrase: 'schwer', tone: 'warning', contrastId: 'incident-risk' },
-  ],
+  's04.incident': [{ phrase: 'Datenleck', tone: 'warning' }],
   's05-component-category-overview': [{ phrase: 'Bitte beachte:', tone: 'accent' }],
   's05-common-components-changes': [
     {
@@ -84,7 +81,7 @@ const emphasisBySpeechId: Readonly<Record<string, readonly PassWoSpeechEmphasis[
   ],
   's05-personal-details-intro': [
     {
-      phrase: 'persönlichen Angaben',
+      phrase: 'persönliche Angaben',
       tone: 'accent',
       symbolSrc: personalDetailsAsset,
     },
@@ -116,7 +113,7 @@ const emphasisBySpeechId: Readonly<Record<string, readonly PassWoSpeechEmphasis[
   's05-character-mix-types': [{ phrase: 'riskant', tone: 'warning' }],
   's05-character-mix-strategy': [{ phrase: 'Länge', tone: 'accent' }],
   's05-character-mix-takeaway': [
-    { phrase: 'zufällig gewählte Kleinbuchstaben', tone: 'accent' },
+    { phrase: 'zufällig erzeugte Kleinbuchstaben', tone: 'accent' },
   ],
   's05-estimate': [
     { phrase: 'welcher Länge', tone: 'accent', contrastId: 'estimate-threshold' },
