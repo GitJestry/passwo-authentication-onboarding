@@ -46,7 +46,7 @@ export interface S06NarrationContent {
   readonly body: string;
 }
 
-export const S06_CONSEQUENCE_CONTENT_VERSION = '2.4.0';
+export const S06_CONSEQUENCE_CONTENT_VERSION = '2.6.0';
 
 export const s06ConsequenceContent = {
   version: S06_CONSEQUENCE_CONTENT_VERSION,
@@ -54,9 +54,9 @@ export const s06ConsequenceContent = {
     document: 'research/private/training-script.pdf',
     internalPages: [36, 37, 38, 39, 40, 41, 42, 43, 44] as const,
     revision:
-      'Userauftrag vom 2026-08-11 · Vollpasswort-Treffer statt numerischer Guess-Schwelle',
+      'Userauftrag vom 2026-08-12 · S06-Preview-Reihenfolge Ähnlichkeit und Wiederverwendung',
     copyReference:
-      'docs/design/S06-S07-COPY-AUDIT.md#copy-delta-s06-s07-vollpasswort-treffer-statt-guess-schwelle-11-august-2026',
+      'docs/design/S06-S07-COPY-AUDIT.md#content-delta-s06-preview-beispielreihenfolge-12-august-2026',
   },
   segment: {
     id: 'S06',
@@ -77,6 +77,7 @@ export const s06ConsequenceContent = {
     fixtureNotice: 'Fiktive Übungswerte · nur lokal im Design Lab',
     runtimeNotice: 'Deine drei fiktiven Übungswerte · bleiben nur lokal',
     start: 'Simulation starten',
+    attackStart: 'Angriff starten',
     replay: 'Animation wiederholen',
     continue: 'Weiter',
     complete: 'Endübersicht erreicht',
@@ -128,6 +129,11 @@ export const s06ConsequenceContent = {
     'no-derived-path-recognized':
       'Mit den begrenzten Transformationswegen wurde kein direkter Weg erkannt',
     blockedShield: 'Dieser Angriffsweg ist blockiert.',
+  },
+  comparisonResultLabels: {
+    'exact-match': 'Wiederverwendet',
+    'derived-variant-match': 'Ähnlich',
+    'no-derived-path-recognized': 'Keine Übereinstimmung',
   },
   transformationLabels: {
     'account-or-service-term-replaced': 'Konto- oder Dienstbegriff wurde ausgetauscht.',
@@ -199,10 +205,13 @@ export const s06ConsequenceContent = {
       accounts: {
         campusgram: { fictionalPassword: 'LunaCampusgram2026!', retrievalStatus: 'retrievable' },
         'master-campus': {
-          fictionalPassword: 'LunaCampusgram2026!',
+          fictionalPassword: 'LunaMasterCampus2027?',
           retrievalStatus: 'retrievable',
         },
-        'campus-email': { fictionalPassword: 'LunaMail2027?', retrievalStatus: 'assisted' },
+        'campus-email': {
+          fictionalPassword: 'LunaCampusgram2026!',
+          retrievalStatus: 'assisted',
+        },
       },
     },
     {

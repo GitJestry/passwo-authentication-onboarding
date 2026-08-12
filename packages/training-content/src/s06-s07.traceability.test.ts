@@ -5,11 +5,27 @@ import { S07_EVALUATION_CONTENT_VERSION, s07EvaluationContent } from './s07.js';
 
 const recognitionCopyReference =
   'docs/design/S06-S07-COPY-AUDIT.md#copy-delta-s06-s07-vollpasswort-treffer-statt-guess-schwelle-11-august-2026';
+const s06AttackPreviewCopyReference =
+  'docs/design/S06-S07-COPY-AUDIT.md#content-delta-s06-preview-beispielreihenfolge-12-august-2026';
 
 describe('S06 and S07 whole-password recognition copy traceability', () => {
   it('keeps S06 consequence wording aligned with bounded whole-password recognition', () => {
-    expect(S06_CONSEQUENCE_CONTENT_VERSION).toBe('2.4.0');
-    expect(s06ConsequenceContent.source.copyReference).toBe(recognitionCopyReference);
+    expect(S06_CONSEQUENCE_CONTENT_VERSION).toBe('2.6.0');
+    expect(s06ConsequenceContent.source.copyReference).toBe(s06AttackPreviewCopyReference);
+    expect(s06ConsequenceContent.page.attackStart).toBe('Angriff starten');
+    expect(s06ConsequenceContent.comparisonResultLabels).toEqual({
+      'exact-match': 'Wiederverwendet',
+      'derived-variant-match': 'Ähnlich',
+      'no-derived-path-recognized': 'Keine Übereinstimmung',
+    });
+    const previewFixture = s06ConsequenceContent.fixtures.find(
+      ({ id }) => id === 'reuse-and-derived',
+    );
+    expect(previewFixture?.accounts).toMatchObject({
+      campusgram: { fictionalPassword: 'LunaCampusgram2026!' },
+      'master-campus': { fictionalPassword: 'LunaMasterCampus2027?' },
+      'campus-email': { fictionalPassword: 'LunaCampusgram2026!' },
+    });
     expect(s06ConsequenceContent.dispositionLabels['whole-password-recognized']).toMatch(
       /vollständige(?:s|r) Passwort|vollständiger früher Kandidat/u,
     );

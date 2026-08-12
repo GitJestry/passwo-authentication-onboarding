@@ -46,8 +46,8 @@ export type TrainingQaAccountId = (typeof trainingQaAccountIds)[number];
 export type TrainingQaPasswordOverrides = Partial<Record<TrainingQaAccountId, string>>;
 
 export const defaultTrainingQaPasswords: Readonly<Record<TrainingQaAccountId, string>> = {
-  'master-campus': 'preview-master-campus',
-  'campus-email': 'preview-campus-email',
+  'master-campus': 'preview-campusgram-master',
+  'campus-email': 'preview-campusgram',
   campusgram: 'preview-campusgram',
 };
 

@@ -18,10 +18,13 @@ import {
   type MissionSnapshot,
 } from '@passwo/training-engine';
 import {
+  type NetworkSceneSnapshot,
   type NetworkRendererPort,
   type PasswordConsequencePlanStep,
   type PasswordConsequenceScenePlan,
   projectPasswordConsequenceScenePlan,
+  type SceneEdge,
+  type SceneNode,
   type S06LocalAccountAnalysis,
 } from '@passwo/visualization';
 import type { NetworkPresentationSnapshot } from '../../../../adapters/network/NetworkMotionAdapter.js';
@@ -41,6 +44,7 @@ export interface S06ConsequenceControllerSnapshot {
   readonly step: PasswordConsequencePlanStep;
   readonly presentation: NetworkPresentationSnapshot;
   readonly participant: S06ConsequenceParticipantSnapshot;
+  readonly attackPhase: 'found' | 'attacking' | 'preview-ready' | 'resolving';
   readonly controls: {
     readonly canStart: boolean;
     readonly canReplay: boolean;
@@ -157,15 +161,13 @@ function createMission(plan: PasswordConsequenceScenePlan): MissionDefinition {
     segmentId: 'S06',
     sectionId: 'passwords',
     requiresSafetyAcknowledgement: false,
-    steps: plan.steps.map((step, stepIndex) => {
+    steps: plan.steps.slice(0, 3).map((step, stepIndex) => {
       const isInitialStep = stepIndex === 0;
       return {
         id: step.id,
         narrationId: step.narrationId,
         animation: {
           id: `${step.id}-animation`,
-          // Later snapshots already carry the visible status change. Replaying the entrance
-          // emphasis after every "Weiter" made the mounted network appear to reload.
           steps: isInitialStep
             ? [
                 {
@@ -175,12 +177,100 @@ function createMission(plan: PasswordConsequenceScenePlan): MissionDefinition {
                   durationMs: 420,
                 },
               ]
-            : [],
+            : [
+                {
+                  type: 'reveal' as const,
+                  targetId: step.visibleChange.targetId,
+                  durationMs: 900,
+                },
+              ],
           reducedMotion: { strategy: 'instant-end-state', maxDurationMs: 0 },
-          maxDurationMs: isInitialStep ? 420 : 0,
+          maxDurationMs: isInitialStep ? 420 : 900,
         },
       };
     }),
+  };
+}
+
+function isAccountBranchNode(node: SceneNode, accountId: S06AccountId): boolean {
+  return node.id === accountId || node.id.startsWith(`${accountId}-detail-`);
+}
+
+function isAttackEdge(edge: SceneEdge): boolean {
+  return (
+    edge.kind === 'identical-reuse' ||
+    edge.kind === 'similar-pattern' ||
+    edge.kind === 'blocked-path'
+  );
+}
+
+function attackPreviewNetwork(
+  step: PasswordConsequencePlanStep,
+  settledNetwork: NetworkSceneSnapshot,
+): NetworkSceneSnapshot {
+  const targetAccountId = step.targetAccountId;
+  if (targetAccountId === null) return step.network;
+  const settledNodes = new Map(settledNetwork.nodes.map((node) => [node.id, node]));
+  const priorAttackEdges = settledNetwork.edges.filter(isAttackEdge);
+  const currentAttackEdge = step.network.edges.find(isAttackEdge);
+  return {
+    ...step.network,
+    id: `${step.network.id}-attack-preview`,
+    nodes: step.network.nodes.flatMap((node): readonly SceneNode[] => {
+      if (node.kind === 'shield') return [];
+      if (isAccountBranchNode(node, targetAccountId)) return [{ ...node, status: 'neutral' }];
+      const settledNode = settledNodes.get(node.id);
+      return [
+        settledNode?.status === 'affected' || settledNode?.status === 'exposed'
+          ? { ...node, status: settledNode.status }
+          : node,
+      ];
+    }),
+    edges: [
+      ...step.network.edges.filter((edge) => !isAttackEdge(edge)),
+      ...priorAttackEdges,
+      ...(currentAttackEdge === undefined
+        ? []
+        : [{ ...currentAttackEdge, status: 'direct' as const }]),
+    ],
+    accessibleSummary: `Die Angriffslinie läuft zu ${targetAccountId}; das Vergleichsergebnis ist noch offen.`,
+  };
+}
+
+function resolvedNetwork(
+  step: PasswordConsequencePlanStep,
+  attackNetwork: NetworkSceneSnapshot,
+): NetworkSceneSnapshot {
+  const targetAccountId = step.targetAccountId;
+  const relation = step.relation;
+  if (targetAccountId === null || relation === null) return step.network;
+  if (relation.kind === 'no-derived-path-recognized' || step.mode !== 'actual') {
+    return {
+      ...attackNetwork,
+      id: `${step.network.id}-blocked-resolved`,
+      edges: attackNetwork.edges.filter(
+        (edge) => !(isAttackEdge(edge) && edge.targetId === targetAccountId),
+      ),
+      accessibleSummary: `Der Angriff auf ${targetAccountId} wurde abgewehrt; der Knoten bleibt unverändert.`,
+    };
+  }
+  const attackNodes = new Map(attackNetwork.nodes.map((node) => [node.id, node]));
+  const priorAttackEdges = attackNetwork.edges.filter(
+    (edge) => isAttackEdge(edge) && edge.targetId !== targetAccountId,
+  );
+  return {
+    ...step.network,
+    id: `${step.network.id}-resolved`,
+    nodes: step.network.nodes.flatMap((node): readonly SceneNode[] => {
+      if (node.kind === 'shield') return [];
+      const prior = attackNodes.get(node.id);
+      return [
+        prior?.status === 'affected' || prior?.status === 'exposed'
+          ? { ...node, status: prior.status }
+          : node,
+      ];
+    }),
+    edges: [...step.network.edges, ...priorAttackEdges],
   };
 }
 
@@ -205,6 +295,8 @@ export class S06ConsequenceController {
   readonly #listeners = new Set<ControllerListener>();
   readonly #unsubscribeMission: () => void;
   #renderer: NetworkRendererPort | null = null;
+  #settledNetwork: NetworkSceneSnapshot;
+  #displayedAttackNetwork: NetworkSceneSnapshot | null = null;
   #snapshot: S06ConsequenceControllerSnapshot;
   #disposed = false;
 
@@ -212,6 +304,7 @@ export class S06ConsequenceController {
     const firstStep = plan.steps[0];
     if (firstStep === undefined) throw new Error('S06 scene plan requires at least one step.');
     this.#plan = plan;
+    this.#settledNetwork = firstStep.network;
     this.#mission = createMission(plan);
     const allNodeIds = [
       ...new Set(plan.steps.flatMap(({ network }) => network.nodes.map(({ id }) => id))),
@@ -229,6 +322,7 @@ export class S06ConsequenceController {
       step: firstStep,
       presentation,
       participant: participantSnapshot(firstStep),
+      attackPhase: 'found',
       controls: { canStart: true, canReplay: false, canContinue: false },
     };
     this.#missionController = new MissionController({
@@ -271,7 +365,55 @@ export class S06ConsequenceController {
 
   continue(): Promise<void> {
     if (this.#disposed || !this.#snapshot.controls.canContinue) return Promise.resolve();
+    if (this.#snapshot.step.relation !== null) {
+      this.#snapshot = {
+        ...this.#snapshot,
+        phase: 'animating',
+        attackPhase: 'resolving',
+        controls: { canStart: false, canReplay: false, canContinue: false },
+      };
+      this.#emit();
+      return Promise.resolve();
+    }
     return this.#missionController.continue();
+  }
+
+  previewCompleted(stepId: PasswordConsequencePlanStep['id']): void {
+    if (
+      this.#disposed ||
+      this.#snapshot.step.id !== stepId ||
+      this.#snapshot.step.relation === null ||
+      this.#snapshot.attackPhase === 'resolving'
+    ) {
+      return;
+    }
+    const isSecondPreview = this.#snapshot.stepIndex === 2;
+    this.#snapshot = {
+      ...this.#snapshot,
+      phase: 'awaiting-decision',
+      attackPhase: 'preview-ready',
+      controls: {
+        canStart: false,
+        canReplay: false,
+        canContinue: !isSecondPreview,
+      },
+    };
+    this.#emit();
+  }
+
+  resolutionCompleted(stepId: PasswordConsequencePlanStep['id']): void {
+    if (
+      this.#disposed ||
+      this.#snapshot.step.id !== stepId ||
+      this.#snapshot.attackPhase !== 'resolving' ||
+      this.#displayedAttackNetwork === null
+    ) {
+      return;
+    }
+    this.#settledNetwork = resolvedNetwork(this.#snapshot.step, this.#displayedAttackNetwork);
+    this.#renderer?.render(this.#settledNetwork);
+    this.#displayedAttackNetwork = null;
+    void this.#missionController.continue();
   }
 
   updatePresentation(presentation: NetworkPresentationSnapshot): void {
@@ -302,7 +444,8 @@ export class S06ConsequenceController {
     const step = this.#plan.steps[stepIndex];
     if (step === undefined) return;
     if (stepIndex !== this.#snapshot.stepIndex) {
-      this.#renderer?.render(step.network);
+      this.#displayedAttackNetwork = attackPreviewNetwork(step, this.#settledNetwork);
+      this.#renderer?.render(this.#displayedAttackNetwork);
     }
     const awaitingDecision = missionSnapshot.matches({ active: 'awaitingDecision' });
     this.#snapshot = {
@@ -311,10 +454,11 @@ export class S06ConsequenceController {
       stepIndex,
       step,
       participant: participantSnapshot(step),
+      attackPhase: stepIndex === 0 ? 'found' : 'attacking',
       controls: {
         canStart: false,
-        canReplay: awaitingDecision,
-        canContinue: awaitingDecision,
+        canReplay: stepIndex === 0 && awaitingDecision,
+        canContinue: stepIndex === 0 && awaitingDecision,
       },
     };
     this.#emit();

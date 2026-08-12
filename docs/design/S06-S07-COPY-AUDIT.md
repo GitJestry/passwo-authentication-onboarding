@@ -1,5 +1,39 @@
 # S06--S07 Copy Audit
 
+## Content-Delta S06 Preview-Beispielreihenfolge, 12. August 2026
+
+Quelle ist der ausdrückliche Nutzerauftrag vom 12. August 2026. Das lokale Fixture
+`reuse-and-derived` zeigt beim ersten Ziel Master Campus eine begrenzte Ähnlichkeit zu Campusgram
+und beim zweiten Ziel Campus E-Mail eine exakte Wiederverwendung des Campusgram-Werts.
+`S06_CONSEQUENCE_CONTENT_VERSION` wird von `2.5.0` auf `2.6.0` erhöht.
+
+| Segment und Content-ID | Vorher | Nachher | Primäre Rolle | Interaktionsziel | Grund und Bedeutungsänderung |
+|---|---|---|---|---|---|
+| `S06.fixtures.reuse-and-derived.accounts.master-campus.fictionalPassword` | identisch zu Campusgram | `LunaMasterCampus2027?` | fachlicher Beispielwert | kein | macht die erste Preview zum Ergebnis `Ähnlich`; ausdrücklich freigegebene Beispieländerung |
+| `S06.fixtures.reuse-and-derived.accounts.campus-email.fictionalPassword` | `LunaMail2027?` | identisch zu Campusgram | fachlicher Beispielwert | kein | macht die zweite Preview zum Ergebnis `Wiederverwendet`; ausdrücklich freigegebene Beispieländerung |
+
+Die Werte bleiben fiktiv und flüchtig. Persistenz, Export, Analysegrenzen und sichtbare
+Ergebnislabels ändern sich nicht.
+
+## Copy-Delta S06 sequenzierte Angriffsvorschau, 12. August 2026
+
+Quelle ist der ausdrückliche Nutzerauftrag vom 12. August 2026. Die vorhandene
+Wiederverwendungs-/Ähnlichkeits-Vorschau wird in die ersten beiden Ziele des S06-Angriffsablaufs
+eingebunden. Das Delta ändert keine Analyseentscheidung, Persistenz oder Sicherheitsbehauptung.
+`S06_CONSEQUENCE_CONTENT_VERSION` wird von `2.4.0` auf `2.5.0` erhöht.
+
+| Segment und Text-ID | Vorher | Nachher | Primäre Rolle | Interaktionsziel | Grund und Bedeutungsänderung |
+|---|---|---|---|---|---|
+| `S06.page.attackStart` | generisches `Weiter` nach dem gefundenen Ausgangskonto | `Angriff starten` | Navigation | Sprechblasenaktion startet die sichtbare Angriffslinie zum ersten Zielkonto | passt die Buttonsemantik an die tatsächlich ausgelöste Fachaktion an; Bedeutung begrenzt |
+| `S06.comparisonResultLabels.exact-match` | ausführliches Beziehungslabel | `Wiederverwendet` | Ergebnisfeedback | kein | zeigt genau ein kompaktes Ergebnis am Ende der vollständig abgespielten Vorschau; Bedeutung unverändert |
+| `S06.comparisonResultLabels.derived-variant-match` | ausführliches Beziehungslabel | `Ähnlich` | Ergebnisfeedback | kein | zeigt genau ein kompaktes Ergebnis am Ende der vollständig abgespielten Vorschau; Bedeutung unverändert |
+| `S06.comparisonResultLabels.no-derived-path-recognized` | ausführliches Beziehungslabel | `Keine Übereinstimmung` | Ergebnisfeedback | kein | benennt ausschließlich das Ergebnis des begrenzten Vergleichs; keine Sicherheitsgarantie, Bedeutung begrenzt |
+
+Die drei Ergebnislabels erhalten keine zusätzliche Hervorhebungsphrase; ihr eigener Statusstil
+trägt die Ergebnisrolle. Der Weiterklick nach der ersten Vorschau löst ausschließlich deren
+sichtbare Auflösung aus. Die zweite Vorschau endet im aktuellen Implementierungsumfang beim
+fertig sichtbaren Ergebnis.
+
 ## Copy-Delta S06/S07 Vollpasswort-Treffer statt Guess-Schwelle, 11. August 2026
 
 Quelle ist der ausdrückliche Nutzerauftrag vom 11. August 2026 sowie die in ADR 0014

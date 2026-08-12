@@ -1,5 +1,9 @@
 import type { S06AccountId, S07RecommendationProjectionInput } from '@passwo/contracts';
-import { s00Content, type S06ConsequenceFixtureId } from '@passwo/training-content';
+import {
+  s00Content,
+  s06ConsequenceContent,
+  type S06ConsequenceFixtureId,
+} from '@passwo/training-content';
 import type { DesktopPlatform } from '@passwo/ui';
 import type { NetworkSceneSnapshot, PasswordConsequenceScenePlan } from '@passwo/visualization';
 import { useEffect, useRef, useState } from 'react';
@@ -8,6 +12,7 @@ import { ReactFlowNetworkAdapter } from '../../../../adapters/network/ReactFlowN
 import { PassWoGuide } from '../../PassWoGuide.js';
 import { passWoSpeechEmphasisFor } from '../../PassWoSpeechEmphasis.js';
 import { AccountAssessmentNetwork } from '../AccountAssessmentNetwork.js';
+import { S06PasswordComparisonProjection } from './S06PasswordComparisonProjection.js';
 import {
   type S06ConsequenceControllerSnapshot,
   type S06ConsequenceAccountInputs,
@@ -71,6 +76,7 @@ export function S06ConsequenceTraining({
   onEvaluationInputReady,
   onSummaryNetworkReady,
 }: S06ConsequenceTrainingProps) {
+  const sceneRef = useRef<HTMLElement | null>(null);
   const networkHostRef = useRef<HTMLDivElement | null>(null);
   const planCacheRef = useRef<PlanCache | null>(null);
   const [runtime, setRuntime] = useState<Runtime | null>(null);
@@ -106,6 +112,10 @@ export function S06ConsequenceTraining({
       getNodeElement: (nodeId) =>
         networkHostRef.current?.querySelector<HTMLElement>(
           `[data-scene-node-button="${nodeId}"]`,
+        ) ?? null,
+      getEdgeElement: (targetNodeId) =>
+        networkHostRef.current?.querySelector<SVGPathElement>(
+          `[data-network-edge-target="${targetNodeId}"] .react-flow__edge-path`,
         ) ?? null,
       prefersReducedMotion,
     });
@@ -149,10 +159,16 @@ export function S06ConsequenceTraining({
           onAction: () => runtime.controller.start(),
         }
       : snapshot.controls.canContinue
-        ? {
-            kind: 'advance' as const,
-            onAction: () => void runtime.controller.continue(),
-          }
+        ? snapshot.stepIndex === 0
+          ? {
+              kind: 'perform' as const,
+              label: s06ConsequenceContent.page.attackStart,
+              onAction: () => void runtime.controller.continue(),
+            }
+          : {
+              kind: 'advance' as const,
+              onAction: () => void runtime.controller.continue(),
+            }
         : undefined;
   const speech = timingFailure
     ? [
@@ -162,16 +178,57 @@ export function S06ConsequenceTraining({
     : timingState === 'writingEnd'
       ? ['Segmentabschluss wird bestätigt …']
       : [snapshot.participant.narration.body];
+  const comparison =
+    snapshot.step.sourceAccountId === null ||
+    snapshot.step.targetAccountId === null ||
+    snapshot.step.relation === null
+      ? null
+      : {
+          sourceAccountId: snapshot.step.sourceAccountId,
+          targetAccountId: snapshot.step.targetAccountId,
+          relation: snapshot.step.relation,
+          sourcePassword:
+            runtime.plan.accounts.find(
+              ({ accountId }) => accountId === snapshot.step.sourceAccountId,
+            )?.fictionalPassword ?? '',
+          targetPassword:
+            runtime.plan.accounts.find(
+              ({ accountId }) => accountId === snapshot.step.targetAccountId,
+            )?.fictionalPassword ?? '',
+        };
 
   return (
     <section className={styles.training} aria-label="PassWo, Segment S06, Passwortfolgen">
-      <article className={styles.page} data-scene-mode={snapshot.step.mode}>
+      <article ref={sceneRef} className={styles.page} data-scene-mode={snapshot.step.mode}>
         <div ref={networkHostRef} className={styles.networkPanel}>
           <AccountAssessmentNetwork
             adapter={runtime.renderer}
             presentation={snapshot.presentation}
+            attackPhase={snapshot.attackPhase}
+            attackTargetId={snapshot.step.targetAccountId}
+            attackBlocked={
+              snapshot.step.relation?.kind === 'no-derived-path-recognized' ||
+              snapshot.step.mode !== 'actual'
+            }
           />
         </div>
+        {comparison === null ? null : (
+          <S06PasswordComparisonProjection
+            key={snapshot.step.id}
+            sceneRef={sceneRef}
+            networkHostRef={networkHostRef}
+            sourceAccountId={comparison.sourceAccountId}
+            targetAccountId={comparison.targetAccountId}
+            sourcePassword={comparison.sourcePassword}
+            targetPassword={comparison.targetPassword}
+            relation={comparison.relation}
+            phase={
+              snapshot.attackPhase === 'found' ? 'attacking' : snapshot.attackPhase
+            }
+            onPreviewComplete={() => runtime.controller.previewCompleted(snapshot.step.id)}
+            onResolutionComplete={() => runtime.controller.resolutionCompleted(snapshot.step.id)}
+          />
+        )}
         <div className={styles.passWoLayer} role={timingFailure ? 'alert' : undefined}>
           <PassWoGuide
             guideName={s00Content.narration.guideName}

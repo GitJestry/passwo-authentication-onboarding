@@ -1,3 +1,4 @@
+import type { S06AccountId } from '@passwo/contracts';
 import type { NetworkSceneSnapshot } from '@passwo/visualization';
 import attackerAsset from '../../../assets/passwo/attacker.png';
 import passwordFactorShieldAsset from '../../../assets/s05/password-factor-shield.png';
@@ -50,14 +51,25 @@ export function AccountAssessmentNetwork({
   presentation,
   ariaLabel,
   canvasAriaLabel,
+  attackPhase,
+  attackTargetId,
+  attackBlocked = false,
 }: {
   readonly adapter: ReactFlowNetworkAdapter;
   readonly presentation: NetworkPresentationSnapshot;
   readonly ariaLabel?: string;
   readonly canvasAriaLabel?: string;
+  readonly attackPhase?: 'found' | 'attacking' | 'preview-ready' | 'resolving';
+  readonly attackTargetId?: S06AccountId | null;
+  readonly attackBlocked?: boolean;
 }) {
   return (
-    <div className={styles.network}>
+    <div
+      className={styles.network}
+      data-attack-phase={attackPhase}
+      data-attack-target={attackTargetId ?? undefined}
+      data-attack-blocked={attackBlocked || undefined}
+    >
       <ReactFlowNetwork
         adapter={adapter}
         presentation={presentation}
