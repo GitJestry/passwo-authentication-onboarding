@@ -1,7 +1,4 @@
-import type {
-  PasswordSingleFindingKind,
-  RuntimeStructureFindingKind,
-} from '@passwo/contracts';
+import type { RuntimeStructureFindingKind } from '@passwo/contracts';
 import { s00Content, s05Content } from '@passwo/training-content';
 import { DesktopSurface, type DesktopPlatform } from '@passwo/ui';
 import type { SceneNode } from '@passwo/visualization';
@@ -62,10 +59,6 @@ export interface S05AnalysisTrainingProps {
   readonly externalTimingError?: string | null;
   readonly onRetryTiming?: () => void;
   readonly completionPort?: S05CompletionPort;
-}
-
-function findingLabel(kind: PasswordSingleFindingKind): string {
-  return s05Content.findingLabels[kind];
 }
 
 const CAMPUSGRAM_PASSWORD_REFERENCE_LENGTH = 18;
@@ -2045,6 +2038,7 @@ function FinalAssessmentScene({
               ) : null}
               {!recognized &&
               (snapshot.step === 'final-result' ||
+                snapshot.step === 'final-length' ||
                 snapshot.step === 'final-spread' ||
                 snapshot.step === 'final-takeaway') ? (
                 <p className={styles.assessmentShieldMeaning}>
@@ -2293,17 +2287,6 @@ function componentSummaryNarration(snapshot: S05AnalysisControllerSnapshot): rea
   return [content.partialMatches];
 }
 
-function finalRecognitionNarration(snapshot: S05AnalysisControllerSnapshot): readonly string[] {
-  const content = s05Content.freeSearch.application;
-  const labels = [
-    ...snapshot.assessmentScene.explanatoryFindings.map(({ kind }) => findingLabel(kind)),
-    ...finalRepetitionAnnotations(snapshot).map(({ label }) => label),
-  ].filter((label, index, all) => all.indexOf(label) === index);
-  return labels.length === 0
-    ? [content.noneRecognized]
-    : [content.recognized.replace('[Befunde]', labels.join(', '))];
-}
-
 function speechFor(
   snapshot: S05AnalysisControllerSnapshot,
 ): readonly string[] | null {
@@ -2406,20 +2389,25 @@ function speechFor(
     case 'length-campusgram-transition':
       return [s05Content.freeSearch.lengthExamples.campusgramTransition];
     case 'final-components':
-      return finalRecognitionNarration(snapshot);
-    case 'final-length':
+      return [s05Content.freeSearch.application.assessmentIntroduction];
+    case 'final-result': {
+      const disposition = snapshot.assessmentScene.disposition;
+      if (disposition.kind === 'no-whole-password-recognized') {
+        return [s05Content.freeSearch.application.result.notRecognized];
+      }
       return [
-        s05Content.freeSearch.application.length.replace(
-          '[Anzahl]',
-          String(snapshot.assessmentScene.visibleLength),
-        ),
+        disposition.ruleId === 'whole-password-recognized-value'
+          ? s05Content.freeSearch.application.result.recognizedValue
+          : s05Content.freeSearch.application.result.recognizedBoundedVariant,
       ];
-    case 'final-result':
-      return [
-        snapshot.assessmentScene.disposition.kind === 'whole-password-recognized'
-          ? s05Content.freeSearch.application.found
-          : s05Content.freeSearch.application.notFound,
-      ];
+    }
+    case 'final-length': {
+      const copy =
+        snapshot.assessmentScene.disposition.lengthOrientation === 'below-15'
+          ? s05Content.freeSearch.application.length.belowOrientation
+          : s05Content.freeSearch.application.length.reachesOrientation;
+      return [copy.replace('[Anzahl]', String(snapshot.assessmentScene.visibleLength))];
+    }
     case 'final-spread':
       return snapshot.phase === 'animating'
         ? null

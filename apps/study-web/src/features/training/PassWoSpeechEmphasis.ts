@@ -120,6 +120,9 @@ const emphasisBySpeechId: Readonly<Record<string, readonly PassWoSpeechEmphasis[
     { phrase: 'zu aufwendig', tone: 'accent', contrastId: 'estimate-threshold' },
   ],
   's05-length-orientation': [{ phrase: 'mindestens 15 Zeichen', tone: 'accent' }],
+  's05-final-components': [{ phrase: 'gesamte Zeichenfolge', tone: 'accent' }],
+  's05-final-result': [{ phrase: 'gesamte Zeichenfolge', tone: 'warning' }],
+  's05-final-length': [{ phrase: 'mindestens 15 Zeichen', tone: 'accent' }],
 };
 
 export function passWoSpeechEmphasisFor(

@@ -70,7 +70,7 @@ export interface S05DesignLabFixture {
   readonly startSection: 'intro' | 'components' | 'structure';
 }
 
-export const S05_CONTENT_VERSION = '2.79.4';
+export const S05_CONTENT_VERSION = '2.80.0';
 
 export const s05Content = {
   version: S05_CONTENT_VERSION,
@@ -80,9 +80,9 @@ export const s05Content = {
       12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34,
       35,
     ] as const,
-    revision: 'Userauftrag vom 2026-08-12 · S05 Ergebnisframing',
+    revision: 'Userauftrag vom 2026-08-12 · S05 didaktischer Abschlussweg',
     copyReference:
-      'docs/design/S00-S05-COPY-AUDIT.md#copy-delta-s05-ergebnisframing-12-august-2026',
+      'docs/design/S00-S05-COPY-AUDIT.md#copy--und-ablaufdelta-s05-didaktischer-abschlussweg-12-august-2026',
   },
   segment: {
     id: 'S05',
@@ -536,14 +536,22 @@ export const s05Content = {
         'Schauen wir jetzt, wie dein Campusgram-Passwort bei diesen Angriffsmöglichkeiten abschneidet.',
     },
     application: {
-      recognized: 'Im Campusgram-Passwort wurden diese Bestandteile oder Muster erkannt: [Befunde].',
-      noneRecognized:
-        'In den simulierten Prüfungen wurden keine bekannten Bestandteile oder Muster erkannt.',
-      length: 'Das Campusgram-Passwort hat [Anzahl] Zeichen.',
-      found:
-        'Das vollständige Campusgram-Passwort wurde in den simulierten Prüfungen gefunden.',
-      notFound:
-        'Das vollständige Campusgram-Passwort wurde in den simulierten Prüfungen nicht gefunden. Das ist kein Nachweis dafür, dass es sicher ist.',
+      assessmentIntroduction:
+        'Die Zusammenfassung zeigt die Ansatzpunkte. Für das Ergebnis zählen zwei getrennte Fragen: Deckt ein früh geprüfter Passwortkandidat die gesamte Zeichenfolge ab? Und erreicht das Passwort die Längenorientierung?',
+      result: {
+        recognizedValue:
+          'Zur ersten Frage: Ein früh geprüfter Passwortkandidat deckt die gesamte Zeichenfolge ab. Deshalb gilt das Campusgram-Passwort in dieser begrenzten Simulation als gefunden.',
+        recognizedBoundedVariant:
+          'Zur ersten Frage: Eine begrenzte typische Variante deckt die gesamte Zeichenfolge ab. Deshalb gilt das Campusgram-Passwort in dieser begrenzten Simulation als gefunden.',
+        notRecognized:
+          'Zur ersten Frage: Keiner der dargestellten frühen Kandidaten oder begrenzten Variantenwege deckt die gesamte Zeichenfolge ab. Deshalb wurde das Campusgram-Passwort in diesen Prüfungen nicht gefunden. Das ist kein Sicherheitsnachweis.',
+      },
+      length: {
+        belowOrientation:
+          'Die zweite Frage bleibt davon getrennt: Mit [Anzahl] Zeichen liegt das Campusgram-Passwort unter der Orientierung von mindestens 15 Zeichen für selbst gewählte Passwörter.',
+        reachesOrientation:
+          'Die zweite Frage bleibt davon getrennt: Mit [Anzahl] Zeichen erreicht das Campusgram-Passwort die Orientierung von mindestens 15 Zeichen für selbst gewählte Passwörter.',
+      },
       shieldMeaning:
         'Das Schild steht für den Schutz durch das Passwort als einen Faktor, nicht für absolute Kontosicherheit.',
       reuseTakeaway:
@@ -659,8 +667,8 @@ export const s05Content = {
     ['s05-length-orientation', 'length-orientation', 'info'],
     ['s05-length-campusgram-transition', 'campusgram-password', 'info'],
     ['s05-final-components', 'final-components', 'info'],
-    ['s05-final-length', 'final-length', 'info'],
     ['s05-final-result', 'final-result', 'warning'],
+    ['s05-final-length', 'final-length', 'info'],
     ['s05-final-spread', 'final-spread', 'warning'],
     ['s05-final-takeaway', 'final-takeaway', 'info'],
   ] as const,

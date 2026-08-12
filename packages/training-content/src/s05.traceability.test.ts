@@ -4,7 +4,7 @@ import { S05_CONTENT_VERSION, s05Content } from './s05.js';
 
 describe('S05 content traceability', () => {
   it('keeps the participant copy bounded and separate from internal terminology', () => {
-    expect(S05_CONTENT_VERSION).toBe('2.79.4');
+    expect(S05_CONTENT_VERSION).toBe('2.80.0');
     expect(s05Content.source).toMatchObject({
       document: 'research/private/training-script.pdf',
       internalPages: [
@@ -12,7 +12,7 @@ describe('S05 content traceability', () => {
         35,
       ],
       copyReference:
-        'docs/design/S00-S05-COPY-AUDIT.md#copy-und-darstellungsdelta-s05-wortlaut-und-kleinbuchstaben-12-august-2026',
+        'docs/design/S00-S05-COPY-AUDIT.md#copy--und-ablaufdelta-s05-didaktischer-abschlussweg-12-august-2026',
     });
     expect(s05Content.segment.id).toBe('S05');
     expect(s05Content.page.fixtureNotice).toBe(
@@ -285,13 +285,22 @@ describe('S05 content traceability', () => {
         'Dafür gibt es eine einfache Methode, mit der sich lange und trotzdem gut merkbare Passwörter aus Wörtern bilden lassen. Die probieren wir später selbst aus.',
     });
     expect(s05Content.freeSearch.application).toMatchObject({
-      recognized:
-        'Im Campusgram-Passwort wurden diese Bestandteile oder Muster erkannt: [Befunde].',
-      length: 'Das Campusgram-Passwort hat [Anzahl] Zeichen.',
-      found:
-        'Das vollständige Campusgram-Passwort wurde in den simulierten Prüfungen gefunden.',
-      notFound:
-        'Das vollständige Campusgram-Passwort wurde in den simulierten Prüfungen nicht gefunden. Das ist kein Nachweis dafür, dass es sicher ist.',
+      assessmentIntroduction:
+        'Die Zusammenfassung zeigt die Ansatzpunkte. Für das Ergebnis zählen zwei getrennte Fragen: Deckt ein früh geprüfter Passwortkandidat die gesamte Zeichenfolge ab? Und erreicht das Passwort die Längenorientierung?',
+      result: {
+        recognizedValue:
+          'Zur ersten Frage: Ein früh geprüfter Passwortkandidat deckt die gesamte Zeichenfolge ab. Deshalb gilt das Campusgram-Passwort in dieser begrenzten Simulation als gefunden.',
+        recognizedBoundedVariant:
+          'Zur ersten Frage: Eine begrenzte typische Variante deckt die gesamte Zeichenfolge ab. Deshalb gilt das Campusgram-Passwort in dieser begrenzten Simulation als gefunden.',
+        notRecognized:
+          'Zur ersten Frage: Keiner der dargestellten frühen Kandidaten oder begrenzten Variantenwege deckt die gesamte Zeichenfolge ab. Deshalb wurde das Campusgram-Passwort in diesen Prüfungen nicht gefunden. Das ist kein Sicherheitsnachweis.',
+      },
+      length: {
+        belowOrientation:
+          'Die zweite Frage bleibt davon getrennt: Mit [Anzahl] Zeichen liegt das Campusgram-Passwort unter der Orientierung von mindestens 15 Zeichen für selbst gewählte Passwörter.',
+        reachesOrientation:
+          'Die zweite Frage bleibt davon getrennt: Mit [Anzahl] Zeichen erreicht das Campusgram-Passwort die Orientierung von mindestens 15 Zeichen für selbst gewählte Passwörter.',
+      },
       reuseTakeaway:
         'Selbst gewählte Passwörter werden häufig bei mehreren Konten wiederverwendet oder leicht verändert, weil man sich so weniger Passwörter merken muss oder sie für sich bereits stark wirken.',
       attackerTakeaway:
@@ -327,6 +336,17 @@ describe('S05 content traceability', () => {
     expect(comparisonStepIndex).toBeGreaterThan(-1);
     expect(orientationStepIndex).toBe(comparisonStepIndex + 1);
     expect(campusgramTransitionStepIndex).toBe(orientationStepIndex + 1);
+    expect(
+      s05Content.animations
+        .map(([id]) => id)
+        .filter((id) => id.startsWith('s05-final-')),
+    ).toEqual([
+      's05-final-components',
+      's05-final-result',
+      's05-final-length',
+      's05-final-spread',
+      's05-final-takeaway',
+    ]);
     expect(s05Content.animations.map(([id]) => id)).not.toEqual(
       expect.arrayContaining([
         's05-length-word-core',

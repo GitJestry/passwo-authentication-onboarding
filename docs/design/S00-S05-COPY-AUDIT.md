@@ -1,5 +1,30 @@
 # S00--S05 Copy and Interaction Audit
 
+## Copy- und Ablaufdelta S05 didaktischer Abschlussweg, 12. August 2026
+
+Quelle ist der ausdrückliche Nutzerauftrag vom 12. August 2026. Die mittige Zusammenfassung
+bleibt als visuelle Wiederholung der bereits vermittelten Bestandteile bestehen; PassWo liest
+diese Befunde nicht mehr vor. Stattdessen führt PassWo durch zwei getrennte Fragen: die
+vollständige Abdeckung durch einen früh geprüften Passwortkandidaten oder eine begrenzte typische
+Variante und die davon unabhängige Längenorientierung. Der Fundstatus folgt unmittelbar aus der
+ersten Antwort; die zweite Antwort kann ihn weder herstellen noch aufheben. Die Reihenfolge der
+Abschlussschritte wechselt deshalb von Bestandteile, Länge, Ergebnis zu Einstieg, Ergebnis,
+Länge. Analyse, Fundregel, Contracts, Persistenz, Export und Timing bleiben unverändert.
+`S05_CONTENT_VERSION` wird von `2.79.4` auf `2.80.0` erhöht.
+
+| Segment und Text-ID | Quelle | Aktueller Text | Geplanter Text | Primäre Rolle | Grund | Bedeutungsänderung | Interaktionsziel | Hervorhebung |
+|---|---|---|---|---|---|---|---|---|
+| `S05.freeSearch.application.assessmentIntroduction` | Nutzerauftrag vom 2026-08-12 | Befundliste aus `recognized` beziehungsweise `noneRecognized` | `Die Zusammenfassung zeigt die Ansatzpunkte. Für das Ergebnis zählen zwei getrennte Fragen: Deckt ein früh geprüfter Passwortkandidat die gesamte Zeichenfolge ab? Und erreicht das Passwort die Längenorientierung?` | Orientierung | sichtbare Befunde nicht vorlesen, sondern den folgenden Argumentationsweg eröffnen | ja | `Weiter` | `gesamte Zeichenfolge`, Akzent |
+| `S05.freeSearch.application.result.recognizedValue` | Nutzerauftrag vom 2026-08-12 | `Das vollständige Campusgram-Passwort wurde in den simulierten Prüfungen gefunden.` | `Zur ersten Frage: Ein früh geprüfter Passwortkandidat deckt die gesamte Zeichenfolge ab. Deshalb gilt das Campusgram-Passwort in dieser begrenzten Simulation als gefunden.` | Mechanismuserklärung und Ergebnisfeedback | direkten Fund kausal aus der vollständigen Abdeckung ableiten | ja | `Weiter` | `gesamte Zeichenfolge`, Warnfarbe |
+| `S05.freeSearch.application.result.recognizedBoundedVariant` | Nutzerauftrag vom 2026-08-12 | gemeinsamer abstrakter Fundtext | `Zur ersten Frage: Eine begrenzte typische Variante deckt die gesamte Zeichenfolge ab. Deshalb gilt das Campusgram-Passwort in dieser begrenzten Simulation als gefunden.` | Mechanismuserklärung und Ergebnisfeedback | begrenzten Variantenfund mit der vorhandenen `ruleId` konkret begründen | ja | `Weiter` | `gesamte Zeichenfolge`, Warnfarbe |
+| `S05.freeSearch.application.result.notRecognized` | Nutzerauftrag vom 2026-08-12 | `Das vollständige Campusgram-Passwort wurde in den simulierten Prüfungen nicht gefunden. Das ist kein Nachweis dafür, dass es sicher ist.` | `Zur ersten Frage: Keiner der dargestellten frühen Kandidaten oder begrenzten Variantenwege deckt die gesamte Zeichenfolge ab. Deshalb wurde das Campusgram-Passwort in diesen Prüfungen nicht gefunden. Das ist kein Sicherheitsnachweis.` | Mechanismuserklärung, Ergebnisfeedback und Safety Boundary | Nichtfund aus der fehlenden Vollabdeckung ableiten und begrenzen | begrenzt | `Weiter` | `gesamte Zeichenfolge`, Warnfarbe |
+| `S05.freeSearch.application.length.belowOrientation` | Nutzerauftrag vom 2026-08-12 | `Das Campusgram-Passwort hat [Anzahl] Zeichen.` | `Die zweite Frage bleibt davon getrennt: Mit [Anzahl] Zeichen liegt das Campusgram-Passwort unter der Orientierung von mindestens 15 Zeichen für selbst gewählte Passwörter.` | Orientierung | Länge als unabhängige zweite Antwort einordnen | ja | `Weiter` | `mindestens 15 Zeichen`, Akzent |
+| `S05.freeSearch.application.length.reachesOrientation` | Nutzerauftrag vom 2026-08-12 | gemeinsamer abstrakter Längentext | `Die zweite Frage bleibt davon getrennt: Mit [Anzahl] Zeichen erreicht das Campusgram-Passwort die Orientierung von mindestens 15 Zeichen für selbst gewählte Passwörter.` | Orientierung | Erreichen der Längenorientierung adaptiv benennen, ohne den Fundstatus zu überstimmen | ja | `Weiter` | `mindestens 15 Zeichen`, Akzent |
+
+Die Texte `shieldMeaning`, `reuseTakeaway` und `attackerTakeaway` bleiben wortgleich. Die
+visuelle Bausteinzusammenfassung, ihre Animation und die bestehende adaptive Disposition bleiben
+unverändert.
+
 ## Copy-Delta S05 Ergebnisframing, 12. August 2026
 
 Quelle ist der ausdrückliche Nutzerauftrag vom 12. August 2026. Die vier abhängigen

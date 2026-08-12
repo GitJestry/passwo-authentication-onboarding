@@ -2,7 +2,6 @@ import {
   defaultTrainingQaPasswords,
   type DesignLabScenarioId,
   designLabPathForScenario,
-  designLabScenarioIds,
   type TrainingQaPasswordOverrides,
 } from '@passwo/contracts';
 import {
@@ -40,6 +39,11 @@ interface DesignLabScenario {
   readonly description: string;
   readonly dimmed: boolean;
   readonly showPassWoOverlay: boolean;
+}
+
+interface DesignLabScenarioGroup {
+  readonly label: string;
+  readonly scenarioIds: readonly DesignLabScenarioId[];
 }
 
 function ArtifactPreview({ children }: { readonly children: ReactNode }) {
@@ -366,6 +370,50 @@ const scenarios: Record<DesignLabScenarioId, DesignLabScenario> = {
   },
 };
 
+const scenarioGroups = [
+  {
+    label: 'Browserzustände',
+    scenarioIds: ['normal', 'dimmed', 'passwo-overlay'],
+  },
+  {
+    label: 'S00–S04',
+    scenarioIds: ['s00', 's01', 's02-master-campus', 's03', 's03-warning', 's04'],
+  },
+  { label: 'S05 · Übergang', scenarioIds: ['s05'] },
+  {
+    label: 'S05 · Bestandteile',
+    scenarioIds: [
+      's05-common-suffix',
+      's05-all-categories',
+      's05-account-year',
+      's05-no-simple-component',
+    ],
+  },
+  {
+    label: 'S05 · Vorhersehbarer Aufbau',
+    scenarioIds: ['s05-structure-repetition', 's05-structure-context', 's05-structure-none'],
+  },
+  { label: 'S05 · Alle Möglichkeiten', scenarioIds: ['s05-free-search'] },
+  {
+    label: 'S05 · Abschluss',
+    scenarioIds: ['s05-application-found', 's05-application-protected'],
+  },
+  {
+    label: 'S06/S07',
+    scenarioIds: [
+      's06-reuse-and-derived',
+      's06-incident-not-found',
+      's06-incident-found-blocked',
+      's06-mixed-actual-hypothetical',
+      's07-directly-reached',
+      's07-exact-reuse',
+      's07-derived-variant',
+      's07-retrievability-only',
+      's07-no-change',
+    ],
+  },
+] as const satisfies readonly DesignLabScenarioGroup[];
+
 function DesignLabIntroduction({
   scenarioId,
   scenario,
@@ -373,11 +421,6 @@ function DesignLabIntroduction({
   readonly scenarioId: DesignLabScenarioId;
   readonly scenario: DesignLabScenario;
 }) {
-  const scenarioMenuIds = [
-    scenarioId,
-    ...designLabScenarioIds.filter((id) => id !== scenarioId),
-  ];
-
   return (
     <header className={styles.labHeader}>
       <nav aria-label="Design-Lab-Abschnitte">
@@ -387,15 +430,22 @@ function DesignLabIntroduction({
             <strong>{scenario.label}</strong>
             <span className={styles.scenarioMenuIndicator} aria-hidden="true" />
           </summary>
-          <ul>
-            {scenarioMenuIds.map((id) => (
-              <li key={id}>
-                <a
-                  href={designLabPathForScenario(id)}
-                  aria-current={id === scenarioId ? 'page' : undefined}
-                >
-                  {scenarios[id].label}
-                </a>
+          <ul className={styles.scenarioMenuList}>
+            {scenarioGroups.map((group) => (
+              <li className={styles.scenarioMenuGroup} key={group.label}>
+                <span className={styles.scenarioMenuGroupLabel}>{group.label}</span>
+                <ul className={styles.scenarioMenuItems}>
+                  {group.scenarioIds.map((id) => (
+                    <li key={id}>
+                      <a
+                        href={designLabPathForScenario(id)}
+                        aria-current={id === scenarioId ? 'page' : undefined}
+                      >
+                        {scenarios[id].label}
+                      </a>
+                    </li>
+                  ))}
+                </ul>
               </li>
             ))}
           </ul>
@@ -779,40 +829,29 @@ export function DesignLab({ scenarioId }: { readonly scenarioId: DesignLabScenar
   }
 
   const s05Fixture = getS05DesignLabFixtureByRouteId(scenarioId);
-  if (s05Fixture !== undefined) {
+  const s05DirectEntry =
+    s05Fixture !== undefined
+      ? ({ fixtureId: s05Fixture.id } as const)
+      : scenarioId === 's05-free-search'
+        ? ({ fixtureId: 'common-suffix', initialSection: 'free-search' } as const)
+        : scenarioId === 's05-application-found' || scenarioId === 's05-application-protected'
+          ? ({
+              fixtureId:
+                scenarioId === 's05-application-found'
+                  ? 'common-suffix'
+                  : 'no-simple-component',
+              initialSection: 'application',
+            } as const)
+          : undefined;
+
+  if (s05DirectEntry !== undefined) {
     return (
       <main className={styles.labPage}>
         <DesignLabIntroduction scenarioId={scenarioId} scenario={scenario} />
         <ArtifactPreview>
-          <S05DesignLabTraining fixtureId={s05Fixture.id} />
+          <S05DesignLabTraining {...s05DirectEntry} platform={readDesktopPlatform()} />
         </ArtifactPreview>
       </main>
-    );
-  }
-
-  if (scenarioId === 's05-free-search') {
-    return (
-      <>
-        <DesignLabIntroduction scenarioId={scenarioId} scenario={scenario} />
-        <main className={styles.trainingStage}>
-          <S05DesignLabTraining fixtureId="common-suffix" initialSection="free-search" />
-        </main>
-      </>
-    );
-  }
-
-  if (scenarioId === 's05-application-found' || scenarioId === 's05-application-protected') {
-    return (
-      <>
-        <DesignLabIntroduction scenarioId={scenarioId} scenario={scenario} />
-        <main className={styles.trainingStage}>
-          <S05DesignLabTraining
-            fixtureId={scenarioId === 's05-application-found' ? 'common-suffix' : 'no-simple-component'}
-            initialSection="application"
-            platform={readDesktopPlatform()}
-          />
-        </main>
-      </>
     );
   }
 
