@@ -13,26 +13,36 @@ function AccountStatusOverlay({
 }: {
   readonly node: NetworkSceneSnapshot['nodes'][number];
 }) {
-  if (node.id === 'campusgram' && node.status === 'exposed') {
-    return (
-      <span className={styles.attacker} data-account-attacker aria-hidden="true">
-        <img src={attackerAsset} alt="" />
-      </span>
-    );
-  }
-  if (node.status === 'protected' && node.kind !== 'shield') {
-    return (
-      <img
-        className={styles.shield}
-        data-account-shield
-        data-main={node.kind === 'account' || undefined}
-        src={passwordFactorShieldAsset}
-        alt=""
-        aria-hidden="true"
-      />
-    );
-  }
-  return null;
+  const showsCampusgramAttempt = node.id === 'campusgram';
+  const showsShield = node.status === 'protected' && node.kind !== 'shield';
+  if (!showsCampusgramAttempt && !showsShield) return null;
+
+  return (
+    <>
+      {showsCampusgramAttempt ? (
+        <span
+          className={styles.attackAttempt}
+          data-account-attack-attempt={node.status}
+          aria-hidden="true"
+        >
+          <span className={styles.attackConnection} />
+          <span className={styles.attacker} data-account-attacker>
+            <img src={attackerAsset} alt="" />
+          </span>
+        </span>
+      ) : null}
+      {showsShield ? (
+        <img
+          className={styles.shield}
+          data-account-shield
+          data-main={node.kind === 'account' || undefined}
+          src={passwordFactorShieldAsset}
+          alt=""
+          aria-hidden="true"
+        />
+      ) : null}
+    </>
+  );
 }
 
 export function AccountAssessmentNetwork({

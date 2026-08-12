@@ -1,5 +1,64 @@
 # S00--S05 Copy and Interaction Audit
 
+## Darstellungsdelta S05 Berechnungshinweise an Zeitangaben, 12. August 2026
+
+Quelle ist der ausdrückliche Nutzerauftrag vom 12. August 2026. Der optionale Hinweis zu den
+Berechnungsannahmen steht nicht mehr absolut in der Kugel, sondern als größeres grau-weißes
+Zahnradsymbol unmittelbar hinter der vollständigen Zeiteinheit. Dadurch bleibt er auch bei
+unterschiedlich langen Angaben wie `Minuten` oder `Jahre` an deren letztem Zeichen gebunden.
+Die nachfolgende Verfeinerung entfernt die zusätzliche runde Buttonfläche, rückt das Zahnrad
+enger an die Zeiteinheit und leicht nach oben. Bei den langen Angaben für 19 und 20 Stellen darf
+der Wert vor dem letzten `Jahre` umbrechen; nur das letzte Wort und das Zahnrad bleiben
+zusammen, damit die Beschriftung vollständig innerhalb der Kugel bleibt.
+
+Während des Modellvergleichs sind die Hinweise gleichzeitig an der grünen 15-Stellen-Kugel und
+an der gelben 12-Stellen-Kugel verfügbar. Der bestehende Hinweis zeigt für zufällige
+Kleinbuchstaben weiterhin eine Zeichenraumgröße von 26; für die gelbe Kugel zeigt er die bereits
+verwendete Modellannahme von 72 Zeichen und die daraus berechnete Kombinationszahl. Die
+Hinweise bleiben während PassWos Erklärung per Hover und Tastaturfokus erreichbar. Der übrige
+Ablauf sowie die vorhandenen Teilnehmertexte, Berechnungen, Persistenz, Export und Timing bleiben
+unverändert; deshalb ändert sich die Content-Version nicht.
+
+## Copy-, Interaktions- und Darstellungsdelta S05 Kontenprüfung, 12. August 2026
+
+Quelle ist der ausdrückliche Nutzerauftrag vom 12. August 2026. Sobald die erste Ergebnisfrage
+den Fund oder die Blockierung des Campusgram-Passworts erklärt, erhalten Campusgram und alle
+direkt angebundenen Knoten und Verbindungen gemeinsam den roten Treffer- beziehungsweise blauen
+Schutzstatus. Beim Kerngedanken zur kontenübergreifenden Prüfung erscheinen zusätzlich Master
+Campus, Campus E-Mail und ihre angebundenen Knoten ohne abgeleiteten Treffer- oder Schutzstatus.
+Die Darstellung leitet weiterhin keine Bewertung der beiden anderen fiktiven Passwörter ab.
+
+Der bisherige zusätzliche Navigationsschritt `Wie Angreifer dabei von einem Konto zum nächsten
+vorgehen können, schauen wir uns jetzt an.` entfällt. Die Aktion direkt am Kerngedanken heißt
+`Andere Konten prüfen`, schließt S05 ab und öffnet über den bestehenden Statechart-Übergang die
+Teilsektionskarte vor S06. Die QA-Einstiege für beide S05-Abschlussvarianten verwenden denselben
+Übergangspfad. Analyse, Persistenz, Export, Timinggrenzen und Condition bleiben unverändert.
+`S05_CONTENT_VERSION` wird von `2.83.0` auf `2.84.0` erhöht.
+
+| Segment und Text-ID | Quelle | Aktueller Text | Freigegebener Text | Primäre Rolle | Grund | Bedeutungsänderung | Interaktionsziel | Hervorhebung |
+|---|---|---|---|---|---|---|---|---|
+| `S05.freeSearch.application.otherAccountsAction` | Nutzerauftrag vom 2026-08-12 | `Weiter` am Kerngedanken; danach `Angriff anschauen` in einem zusätzlichen Navigationsschritt | `Andere Konten prüfen`; zusätzlicher Navigationsschritt entfällt | Navigation | ausdrücklich verlangte eindeutige Handlungszuordnung und direkter Übergang zur Teilsektionskarte vor S06 | ja | S05 abschließen und vorhandene Übergangskarte zu S06 öffnen | keine |
+
+## Copy- und Ablaufdelta S05 verzögerter S06-Übergang, 12. August 2026
+
+Quelle ist der ausdrückliche Nutzerauftrag vom 12. August 2026. Die beiden abschließenden
+Erklärungen werden auf den vorgegebenen Wortlaut gekürzt und um einen eigenen Navigationsschritt
+ergänzt. Während aller drei Schritte bleibt ausschließlich der Campusgram-Cluster sichtbar. Die
+anderen Konten erscheinen nicht mehr im vorletzten S05-Sprechschritt; erst die Aktion `Angriff
+anschauen` schließt S05 ab und übergibt an S06. Analyse, Persistenz, Export und Timinggrenzen
+bleiben unverändert. `S05_CONTENT_VERSION` wird von `2.82.0` auf `2.83.0` erhöht.
+
+Im Angreifer-Sprechschritt werden die bereits vorhandenen roten Spread-Animationen auf die
+Campusgram-Unterknoten und ihre Verbindungen angewendet. Diese Darstellung bleibt im folgenden
+Navigationsschritt erhalten. Der Quick-Access-Adapter wartet nun denselben tatsächlichen
+Animationsschritt ab. Andere Kontocluster bleiben bis zum Start von S06 ausgeblendet.
+
+| Segment und Text-ID | Quelle | Aktueller Text | Freigegebener Text | Primäre Rolle | Grund | Bedeutungsänderung | Interaktionsziel | Hervorhebung |
+|---|---|---|---|---|---|---|---|---|
+| `S05.freeSearch.application.reuseTakeaway` | Nutzerauftrag vom 2026-08-12 | `Selbst gewählte Passwörter werden oft für mehrere Konten wiederverwendet oder nur leicht verändert, weil das leichter zu merken ist und sie für sich betrachtet stark wirken können.` | `Selbst gewählte Passwörter werden oft für mehrere Konten wiederverwendet oder nur leicht verändert, weil man sich so weniger merken muss.` | Mechanismuserklärung | ausdrücklich vorgegebene Kürzung und Begründung | begrenzt | `Weiter` | `wiederverwendet oder nur leicht verändert`, Warnfarbe |
+| `S05.freeSearch.application.attackerTakeaway` | Nutzerauftrag vom 2026-08-12 | `Wird eines davon herausgefunden, können Angreifer dasselbe oder ähnliche Passwörter auch anderen Konten ausprobieren.` | `Wird eines davon herausgefunden, können Angreifer diese Varianten auch bei anderen Konten ausprobieren.` | Kerngedanke | ausdrücklich vorgegebener Wortlaut | begrenzt | `Weiter` | keine |
+| `S05.freeSearch.application.consequenceTransition` | Nutzerauftrag vom 2026-08-12 | nicht vorhanden | `Wie Angreifer dabei von einem Konto zum nächsten vorgehen können, schauen wir uns jetzt an.` | Navigation | eigener sichtbarer Übergang zu S06, bevor weitere Konten erscheinen | ja | `Angriff anschauen` schließt S05 ab und öffnet S06 | keine |
+
 ## Copy- und Ablaufdelta S05 Campusgram-Abschluss und S06-Übergang, 12. August 2026
 
 Quelle ist der ausdrückliche Nutzerauftrag vom 12. August 2026. Der S05-Abschluss übernimmt die

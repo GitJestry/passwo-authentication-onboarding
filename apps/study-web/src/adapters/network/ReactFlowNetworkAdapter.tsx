@@ -38,6 +38,7 @@ import styles from './ReactFlowNetworkAdapter.module.css';
 
 interface RendererState {
   readonly snapshot: NetworkSceneSnapshot;
+  readonly settledInfectionNodeIds: ReadonlySet<string>;
   readonly announcement: string;
 }
 
@@ -52,6 +53,7 @@ export class ReactFlowNetworkAdapter implements NetworkRendererPort {
   constructor(initialSnapshot: NetworkSceneSnapshot) {
     this.#state = {
       snapshot: initialSnapshot,
+      settledInfectionNodeIds: new Set(),
       announcement: initialSnapshot.accessibleSummary,
     };
   }
@@ -63,9 +65,34 @@ export class ReactFlowNetworkAdapter implements NetworkRendererPort {
 
   readonly getSnapshot = (): RendererState => this.#state;
 
+  readonly completeInfectionCascade = (nodeId: string): void => {
+    const node = this.#state.snapshot.nodes.find(({ id }) => id === nodeId);
+    if (
+      (node?.status !== 'affected' && node?.status !== 'exposed') ||
+      this.#state.settledInfectionNodeIds.has(nodeId)
+    ) {
+      return;
+    }
+    this.#state = {
+      ...this.#state,
+      settledInfectionNodeIds: new Set([...this.#state.settledInfectionNodeIds, nodeId]),
+    };
+    this.#emit();
+  };
+
   render(snapshot: NetworkSceneSnapshot): void {
+    const settledInfectionNodeIds =
+      snapshot.id === this.#state.snapshot.id
+        ? this.#state.settledInfectionNodeIds
+        : new Set([
+            ...this.#state.settledInfectionNodeIds,
+            ...this.#state.snapshot.nodes
+              .filter(({ status }) => status === 'affected' || status === 'exposed')
+              .map(({ id }) => id),
+          ]);
     this.#state = {
       snapshot,
+      settledInfectionNodeIds,
       announcement: snapshot.accessibleSummary,
     };
     this.#emit();
@@ -108,11 +135,31 @@ interface SceneNodeData extends Record<string, unknown> {
   readonly nodeShape: NetworkNodeShape;
   readonly showNodeLabels: boolean;
   readonly showStatusMarkers: boolean;
+  readonly infectionCascadeStage: InfectionCascadeStage | null;
+  readonly onInfectionCascadeEnd: (nodeId: string) => void;
   readonly onSelect: (nodeId: string) => void;
   readonly renderNodeOverlay: ((node: SceneNode) => ReactNode) | undefined;
 }
 
 type SceneFlowNode = Node<SceneNodeData, 'scene-node'>;
+
+type InfectionCascadeStage = 'first' | 'second' | 'third' | 'fourth';
+
+const infectionCascadeStages: readonly InfectionCascadeStage[] = [
+  'first',
+  'second',
+  'third',
+  'fourth',
+];
+
+const infectionCascadeTiming: Readonly<
+  Record<InfectionCascadeStage, { readonly durationMs: number; readonly arrivalMs: number }>
+> = {
+  first: { durationMs: 520, arrivalMs: 1_370 },
+  second: { durationMs: 670, arrivalMs: 1_520 },
+  third: { durationMs: 820, arrivalMs: 1_670 },
+  fourth: { durationMs: 940, arrivalMs: 1_790 },
+};
 
 export type NetworkVisualVariant = 'default' | 'account-map';
 export type NetworkNodeShape = 'circle' | 'rounded-rectangle';
@@ -276,7 +323,8 @@ export function layoutSceneNode(
     ? authoredLayout
     : { ...authoredLayout, height: authoredLayout.shapeHeight };
   return {
-    position: positionAuthoredNode(node.position, layout, canvas, visualVariant),
+    // Hidden labels must not move the visible node circle away from its authored S02 position.
+    position: positionAuthoredNode(node.position, authoredLayout, canvas, visualVariant),
     layout,
     compact,
   };
@@ -386,6 +434,8 @@ function SceneNodeCircle({ data }: NodeProps<SceneFlowNode>) {
     nodeShape,
     showNodeLabels,
     showStatusMarkers,
+    infectionCascadeStage,
+    onInfectionCascadeEnd,
     onSelect,
     renderNodeOverlay,
   } = data;
@@ -393,6 +443,8 @@ function SceneNodeCircle({ data }: NodeProps<SceneFlowNode>) {
   const lockedAccount = sceneNode.kind === 'account' && sceneNode.locked === true;
   const showStatusMarker =
     showStatusMarkers && !lockedAccount && sceneNode.status !== 'neutral';
+  const infectionTiming =
+    infectionCascadeStage === null ? null : infectionCascadeTiming[infectionCascadeStage];
 
   return (
     <div
@@ -403,6 +455,7 @@ function SceneNodeCircle({ data }: NodeProps<SceneFlowNode>) {
       data-focused={focused}
       data-highlighted={highlighted}
       data-kind={sceneNode.kind}
+      data-infection-cascade-stage={infectionCascadeStage ?? undefined}
       data-locked={sceneNode.locked === true}
       data-node-shape={nodeShape}
       data-scene-node={sceneNode.id}
@@ -427,7 +480,21 @@ function SceneNodeCircle({ data }: NodeProps<SceneFlowNode>) {
         aria-label={`${sceneNode.label}. Status: ${statusLabel(sceneNode)}. ${sceneNode.description}`}
         onClick={() => onSelect(sceneNode.id)}
       >
-        <span className={styles.nodeCircle} data-scene-node-visual aria-hidden="true">
+        <span
+          className={styles.nodeCircle}
+          data-scene-node-visual
+          aria-hidden="true"
+          style={
+            infectionTiming === null
+              ? undefined
+              : { animationDelay: `${infectionTiming.arrivalMs}ms` }
+          }
+          onAnimationEnd={(event) => {
+            if (event.target === event.currentTarget && infectionCascadeStage !== null) {
+              onInfectionCascadeEnd(sceneNode.id);
+            }
+          }}
+        >
           <NetworkSymbol symbolId={symbolId} className={styles.nodeSymbol} />
           {renderNodeOverlay?.(sceneNode)}
           {lockedAccount ? (
@@ -484,6 +551,8 @@ interface NodeEdgeData extends Record<string, unknown> {
   readonly visible: boolean;
   readonly drawing: boolean;
   readonly dimmed: boolean;
+  readonly infectionCascadeStage: InfectionCascadeStage | null;
+  readonly infectionSettled: boolean;
 }
 
 type NodeFlowEdge = Edge<NodeEdgeData, 'node-edge'>;
@@ -504,6 +573,17 @@ function NodeEdge({
 }: EdgeProps<NodeFlowEdge>) {
   if (data === undefined) return null;
   const edge = createNodeEdgePath(data.sourceGeometry, data.targetGeometry);
+  const infectionTiming =
+    data.infectionCascadeStage === null
+      ? null
+      : infectionCascadeTiming[data.infectionCascadeStage];
+  const infectionThreadStyle =
+    infectionTiming === null
+      ? undefined
+      : {
+          animationDelay: `${infectionTiming.arrivalMs - infectionTiming.durationMs}ms`,
+          animationDuration: `${infectionTiming.durationMs}ms`,
+        };
   const optionalEdgeProps = {
     ...(interactionWidth === undefined ? {} : { interactionWidth }),
     ...(label === undefined ? {} : { label }),
@@ -522,6 +602,8 @@ function NodeEdge({
       data-network-edge-visible={data.visible || data.drawing}
       data-network-edge-drawing={data.drawing}
       data-network-edge-dimmed={data.dimmed}
+      data-network-edge-infection-stage={data.infectionCascadeStage ?? undefined}
+      data-network-edge-infection-settled={data.infectionSettled || undefined}
     >
       <BaseEdge
         id={id}
@@ -530,6 +612,17 @@ function NodeEdge({
         labelY={edge.labelY}
         {...optionalEdgeProps}
       />
+      {data.infectionCascadeStage === null && !data.infectionSettled ? null : (
+        <path
+          className={`${styles.infectionThread} ${
+            data.infectionSettled ? styles.infectionThreadSettled : ''
+          }`}
+          d={edge.path}
+          pathLength={1}
+          aria-hidden="true"
+          style={infectionThreadStyle}
+        />
+      )}
     </g>
   );
 }
@@ -550,6 +643,7 @@ const edgeClassByStatus: Record<SceneEdgeStatus, string> = {
 
 function toReactFlowElements(
   snapshot: NetworkSceneSnapshot,
+  settledInfectionNodeIds: ReadonlySet<string>,
   presentation: NetworkPresentationSnapshot,
   onNodeSelect: (nodeId: string) => void,
   interactionDisabled: boolean,
@@ -562,6 +656,7 @@ function toReactFlowElements(
   showStatusMarkers: boolean,
   renderNodeOverlay: ((node: SceneNode) => ReactNode) | undefined,
   dimInactiveNodes: boolean,
+  onInfectionCascadeEnd: (nodeId: string) => void,
 ): { readonly nodes: readonly SceneFlowNode[]; readonly edges: readonly NodeFlowEdge[] } {
   const revealed = new Set(presentation.revealedNodeIds);
   const drawingTargetNodeId = presentation.drawingTargetNodeId ?? null;
@@ -572,6 +667,34 @@ function toReactFlowElements(
   const geometriesByNodeId = new Map(
     positionedNodes.map(({ node, position, layout }) => [node.id, geometryForNode(position, layout)]),
   );
+  const nodesById = new Map(snapshot.nodes.map((node) => [node.id, node]));
+  const infectionStagesByTargetId = new Map<string, InfectionCascadeStage>();
+  const settledInfectionTargetIds = new Set<string>();
+  const infectionEdgeCountBySourceId = new Map<string, number>();
+  // The scene already contains the deterministic affected end state. These stages only
+  // stagger how its directly bound detail nodes visually arrive in that state.
+  for (const edge of snapshot.edges) {
+    const source = nodesById.get(edge.sourceId);
+    const target = nodesById.get(edge.targetId);
+    if (
+      source?.kind !== 'account' ||
+      (source.status !== 'exposed' && source.status !== 'affected') ||
+      target?.kind === 'account' ||
+      (target?.status !== 'affected' && target?.status !== 'exposed')
+    ) {
+      continue;
+    }
+    const sourceEdgeIndex = infectionEdgeCountBySourceId.get(edge.sourceId) ?? 0;
+    const stage =
+      infectionCascadeStages[Math.min(sourceEdgeIndex, infectionCascadeStages.length - 1)];
+    if (stage === undefined) continue;
+    infectionEdgeCountBySourceId.set(edge.sourceId, sourceEdgeIndex + 1);
+    if (target.status === 'exposed' || settledInfectionNodeIds.has(edge.targetId)) {
+      settledInfectionTargetIds.add(edge.targetId);
+      continue;
+    }
+    infectionStagesByTargetId.set(edge.targetId, stage);
+  }
   const activeAccount = snapshot.nodes.find(({ id }) => id === activeNodeId);
   const choosingAccount = activeAccount === undefined;
   const activeBranchNodeIds = new Set<string>(
@@ -610,6 +733,8 @@ function toReactFlowElements(
         nodeShape: layout.shape,
         showNodeLabels,
         showStatusMarkers,
+        infectionCascadeStage: infectionStagesByTargetId.get(node.id) ?? null,
+        onInfectionCascadeEnd,
         onSelect: onNodeSelect,
         renderNodeOverlay,
       },
@@ -645,6 +770,8 @@ function toReactFlowElements(
             visible: revealed.has(edge.targetId),
             drawing: drawingTargetNodeId === edge.targetId,
             dimmed: dimInactiveNodes && (choosingAccount || edge.sourceId !== activeNodeId),
+            infectionCascadeStage: infectionStagesByTargetId.get(edge.targetId) ?? null,
+            infectionSettled: settledInfectionTargetIds.has(edge.targetId),
           },
           ariaLabel: edge.label ?? `${edge.sourceId} mit ${edge.targetId} verbunden`,
         },
@@ -697,6 +824,7 @@ export function ReactFlowNetwork({
     () =>
       toReactFlowElements(
         rendererState.snapshot,
+        rendererState.settledInfectionNodeIds,
         presentation,
         onNodeSelect,
         interactionDisabled,
@@ -709,14 +837,17 @@ export function ReactFlowNetwork({
         showStatusMarkers,
         renderNodeOverlay,
         dimInactiveNodes,
+        adapter.completeInfectionCascade,
       ),
     [
       activeNodeId,
       activePreviewNodeId,
+      adapter,
       canvas,
       interactionDisabled,
       onNodeSelect,
       presentation,
+      rendererState.settledInfectionNodeIds,
       rendererState.snapshot,
       showEdgeLabels,
       showNodeLabels,

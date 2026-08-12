@@ -19,6 +19,7 @@ import {
   PasswordModuleController,
   type PasswordModuleSnapshot,
 } from '@passwo/training-engine';
+import type { NetworkSceneSnapshot } from '@passwo/visualization';
 import {
   ArtifactViewport,
   BrowserShell,
@@ -27,7 +28,7 @@ import {
   type BrowserTabModel,
   type DesktopPlatform,
 } from '@passwo/ui';
-import { useCallback, useEffect, useState, type ReactNode } from 'react';
+import { useCallback, useEffect, useMemo, useState, type ReactNode } from 'react';
 import { S00Training } from '../features/training/S00Training.js';
 import { S01Training } from '../features/training/S01Training.js';
 import { SectionTransition } from '../features/training/SectionTransition.js';
@@ -38,6 +39,7 @@ import {
   S06ConsequenceTraining,
   type S06ConsequenceSource,
 } from '../features/training/segments/S06/S06ConsequenceTraining.js';
+import { S07EvaluationTraining } from '../features/training/segments/S07/S07EvaluationTraining.js';
 import styles from './DesignLab.module.css';
 import { S05DesignLabTraining } from './S05DesignLabTraining.js';
 import { S07DesignLabTraining } from './S07DesignLabTraining.js';
@@ -318,6 +320,13 @@ const scenarios: Record<DesignLabScenarioId, DesignLabScenario> = {
     dimmed: false,
     showPassWoOverlay: false,
   },
+  's05-s06-transition': {
+    label: 'S05 → S06 Übergang',
+    description:
+      'QA-Einstieg beim S05-Abschluss mit PassWo, anschließender Übergangskarte und S06.',
+    dimmed: false,
+    showPassWoOverlay: false,
+  },
   's06-reuse-and-derived': {
     label: 'S06 Wiederverwendung + Ableitung',
     description:
@@ -406,6 +415,7 @@ const scenarioGroups = [
     label: 'S05 · Abschluss',
     scenarioIds: ['s05-application-found', 's05-application-protected'],
   },
+  { label: 'S06 · Übergang', scenarioIds: ['s05-s06-transition'] },
   {
     label: 'S06/S07',
     scenarioIds: [
@@ -632,7 +642,15 @@ function PasswordModuleSegmentPreview({
   view,
   passwordOverrides,
 }: {
-  readonly segment: 's01' | 's03' | 's03-warning' | 's04' | 's05';
+  readonly segment:
+    | 's01'
+    | 's03'
+    | 's03-warning'
+    | 's04'
+    | 's05'
+    | 's05-s06-transition'
+    | 's05-application-found'
+    | 's05-application-protected';
   readonly accountId: S01AccountId;
   readonly view: CampusWebsitePreviewView;
   readonly passwordOverrides: TrainingQaPasswordOverrides;
@@ -640,7 +658,22 @@ function PasswordModuleSegmentPreview({
   const [controller, setController] = useState<PasswordModuleController | null>(null);
   const [snapshot, setSnapshot] = useState<PasswordModuleSnapshot | null>(null);
   const [preparationError, setPreparationError] = useState<string | null>(null);
+  const [s06SummaryNetwork, setS06SummaryNetwork] = useState<NetworkSceneSnapshot | null>(null);
+  const continuesThroughS06 =
+    segment === 's05-s06-transition' ||
+    segment === 's05-application-found' ||
+    segment === 's05-application-protected';
   const completeS05 = useCallback(() => controller?.completeS05(), [controller]);
+  const completeS06 = useCallback(() => controller?.completeS06(), [controller]);
+  const storeS06EvaluationInput = useCallback(
+    (input: Parameters<PasswordModuleController['setS06EvaluationInput']>[0]) =>
+      controller?.setS06EvaluationInput(input),
+    [controller],
+  );
+  const s06Source = useMemo(
+    () => (snapshot === null ? null : s06SourceForPreview(snapshot)),
+    [snapshot],
+  );
 
   useEffect(() => {
     const previewController = new PasswordModuleController({
@@ -676,8 +709,12 @@ function PasswordModuleSegmentPreview({
 
       for (const accountId of previewController.getSnapshot().context.accountIds) {
         const fixturePassword =
-          segment === 's05' && accountId === 'campusgram'
-            ? getS05DesignLabFixture('common-suffix').fictionalPassword
+          (segment === 's05' || continuesThroughS06) && accountId === 'campusgram'
+            ? getS05DesignLabFixture(
+                segment === 's05-application-protected'
+                  ? 'no-simple-component'
+                  : 'common-suffix',
+              ).fictionalPassword
             : undefined;
         previewController.setPasswordValue(
           accountId,
@@ -727,6 +764,21 @@ function PasswordModuleSegmentPreview({
         (currentSnapshot) => currentSnapshot.matches({ s04: 'active' }),
         abortController.signal,
       );
+      if (!continuesThroughS06) return;
+
+      previewController.completeS04();
+      await waitForPreviewState(
+        previewController,
+        (currentSnapshot) => currentSnapshot.matches('strengthTransition'),
+        abortController.signal,
+      );
+      if (abortController.signal.aborted) return;
+      previewController.completeSectionTransition();
+      await waitForPreviewState(
+        previewController,
+        (currentSnapshot) => currentSnapshot.matches({ s05: 'active' }),
+        abortController.signal,
+      );
     }
 
     void preparePreview().catch((error: unknown) => {
@@ -739,7 +791,7 @@ function PasswordModuleSegmentPreview({
       unsubscribe();
       previewController.dispose();
     };
-  }, [accountId, passwordOverrides, segment, view]);
+  }, [accountId, continuesThroughS06, passwordOverrides, segment, view]);
 
   if (preparationError !== null) {
     return <p role="alert">QA-Abschnitt konnte nicht vorbereitet werden: {preparationError}</p>;
@@ -800,24 +852,52 @@ function PasswordModuleSegmentPreview({
   if (snapshot.matches('s04')) {
     return <S04IncidentTraining controller={controller} snapshot={snapshot} />;
   }
-  if ((segment === 's04' || segment === 's05') && snapshot.matches({ s05: 'active' })) {
+  if (
+    (segment === 's04' || segment === 's05' || continuesThroughS06) &&
+    snapshot.matches({ s05: 'active' })
+  ) {
+    const applicationPasswordOverride =
+      passwordOverrides.campusgram ??
+      (segment === 's05-application-protected'
+        ? getS05DesignLabFixture('no-simple-component').fictionalPassword
+        : continuesThroughS06
+          ? getS05DesignLabFixture('common-suffix').fictionalPassword
+          : undefined);
     return (
       <S05DesignLabTraining
         fixtureId="common-suffix"
-        initialSection="intro"
-        {...(passwordOverrides.campusgram === undefined
+        initialSection={continuesThroughS06 ? 'application' : 'intro'}
+        {...(applicationPasswordOverride === undefined
           ? {}
-          : { passwordOverride: passwordOverrides.campusgram })}
-        {...(segment === 's05' ? { onComplete: completeS05 } : {})}
+          : { passwordOverride: applicationPasswordOverride })}
+        {...(segment === 's05' || continuesThroughS06
+          ? { onComplete: completeS05 }
+          : {})}
       />
     );
   }
-  if (segment === 's05' && snapshot.matches({ s06: 'active' })) {
-    const source = s06SourceForPreview(snapshot);
-    if (source === null) {
+  if (
+    (segment === 's05' || continuesThroughS06) &&
+    snapshot.matches({ s06: 'active' })
+  ) {
+    if (s06Source === null) {
       return <p role="alert">S06-QA-Daten sind unvollständig.</p>;
     }
-    return <S06ConsequenceTraining source={source} />;
+    return (
+      <S06ConsequenceTraining
+        source={s06Source}
+        onComplete={completeS06}
+        onEvaluationInputReady={storeS06EvaluationInput}
+        onSummaryNetworkReady={setS06SummaryNetwork}
+      />
+    );
+  }
+  if (segment === 's05-s06-transition' && snapshot.matches({ s07: 'active' })) {
+    const input = controller.getS06EvaluationInput();
+    if (input === null) {
+      return <p role="alert">S07-QA-Daten sind unvollständig.</p>;
+    }
+    return <S07EvaluationTraining input={input} network={s06SummaryNetwork} />;
   }
   return <p>QA-Abschnitt wird vorbereitet …</p>;
 }
@@ -868,7 +948,10 @@ export function DesignLab({ scenarioId }: { readonly scenarioId: DesignLabScenar
     scenarioId === 's03' ||
     scenarioId === 's03-warning' ||
     scenarioId === 's04' ||
-    scenarioId === 's05'
+    scenarioId === 's05' ||
+    scenarioId === 's05-s06-transition' ||
+    scenarioId === 's05-application-found' ||
+    scenarioId === 's05-application-protected'
   ) {
     const campusWebsitePreview = readCampusWebsitePreview();
     return (
@@ -904,15 +987,7 @@ export function DesignLab({ scenarioId }: { readonly scenarioId: DesignLabScenar
       ? ({ fixtureId: s05Fixture.id } as const)
       : scenarioId === 's05-free-search'
         ? ({ fixtureId: 'common-suffix', initialSection: 'free-search' } as const)
-        : scenarioId === 's05-application-found' || scenarioId === 's05-application-protected'
-          ? ({
-              fixtureId:
-                scenarioId === 's05-application-found'
-                  ? 'common-suffix'
-                  : 'no-simple-component',
-              initialSection: 'application',
-            } as const)
-          : undefined;
+        : undefined;
 
   if (s05DirectEntry !== undefined) {
     return (

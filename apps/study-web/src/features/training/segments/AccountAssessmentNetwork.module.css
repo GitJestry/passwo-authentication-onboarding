@@ -25,14 +25,23 @@
   max-height: 118%;
 }
 
-.attacker {
+.attackAttempt {
   position: absolute;
   z-index: 8;
-  inset: -22%;
+  inset: 0;
   overflow: visible;
+  pointer-events: none;
+}
+
+.attacker {
+  position: absolute;
+  z-index: 1;
+  top: -128%;
+  left: 12%;
+  width: 76%;
+  aspect-ratio: 1;
   border-radius: 50%;
   filter: drop-shadow(0 0 0.7rem rgb(255 57 112 / 82%));
-  pointer-events: none;
 }
 
 .attacker img {
@@ -43,12 +52,42 @@
   border-radius: 50%;
 }
 
+.attackConnection {
+  position: absolute;
+  z-index: 0;
+  bottom: 94%;
+  left: calc(50% - 0.125rem);
+  width: 0.25rem;
+  height: 56%;
+  border-radius: 999px;
+  background: repeating-linear-gradient(
+    to bottom,
+    #ff315e 0 0.45rem,
+    transparent 0.45rem 0.8rem
+  );
+  filter: drop-shadow(0 0 0.35rem rgb(255 49 94 / 82%));
+  animation: account-attack-connection 0.8s linear infinite;
+  transform-origin: bottom;
+}
+
+.attackAttempt[data-account-attack-attempt="exposed"] .attacker {
+  animation: account-attacker-capture 1.35s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.attackAttempt[data-account-attack-attempt="exposed"] .attackConnection {
+  animation: account-attack-connection-capture 1.35s ease-out both;
+}
+
 .network :global([data-status="exposed"] [data-scene-node-visual]),
 .network :global([data-status="affected"] [data-scene-node-visual]) {
   border-color: #ff315e;
   color: white;
   background: #70031e;
   box-shadow: 0 0 0 0.25rem rgb(255 49 94 / 22%), 0 0 1.4rem rgb(255 49 94 / 72%);
+}
+
+.network :global([data-status="affected"][data-infection-cascade-stage] [data-scene-node-visual]) {
+  animation: account-infection-node-arrival 170ms cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 
 .network :global([data-status="protected"] [data-scene-node-visual]) {
@@ -78,15 +117,96 @@
   filter: drop-shadow(0 0 5px rgb(255 49 94 / 70%));
 }
 
+.network :global([data-network-edge-infection-stage] .react-flow__edge-path),
+.network :global([data-network-edge-infection-settled="true"] .react-flow__edge-path) {
+  stroke: #758fa7;
+  stroke-width: var(--border-width-medium);
+  stroke-dasharray: 3 10;
+  opacity: 0.78;
+  filter: none;
+  animation: none;
+}
+
 @keyframes account-assessment-edge-drift {
   to {
     stroke-dashoffset: -26;
   }
 }
 
+@keyframes account-attack-connection {
+  to {
+    background-position-y: 0.8rem;
+  }
+}
+
+@keyframes account-attacker-capture {
+  0%, 24% {
+    top: -128%;
+    left: 12%;
+    width: 76%;
+  }
+  100% {
+    top: -22%;
+    left: -22%;
+    width: 144%;
+  }
+}
+
+@keyframes account-attack-connection-capture {
+  0%, 48% {
+    opacity: 1;
+    transform: scaleY(1);
+  }
+  100% {
+    opacity: 0;
+    transform: scaleY(0);
+  }
+}
+
+@keyframes account-infection-node-arrival {
+  from {
+    border-color: #758fa7;
+    color: #426889;
+    background: #fff;
+    box-shadow: 0 0.45rem 1rem rgb(40 83 119 / 18%);
+    transform: scale(1);
+  }
+
+  62% {
+    transform: scale(1.12);
+  }
+
+  to {
+    border-color: #ff315e;
+    color: white;
+    background: #70031e;
+    box-shadow: 0 0 0 0.25rem rgb(255 49 94 / 22%), 0 0 1.4rem rgb(255 49 94 / 72%);
+    transform: scale(1);
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .network :global(.edge-kind-dependency .react-flow__edge-path),
   .network :global(.edge-kind-association .react-flow__edge-path) {
+    animation: none;
+  }
+
+  .attackConnection {
+    animation: none;
+  }
+
+  .attackAttempt[data-account-attack-attempt="exposed"] .attacker {
+    top: -22%;
+    left: -22%;
+    width: 144%;
+    animation: none;
+  }
+
+  .attackAttempt[data-account-attack-attempt="exposed"] .attackConnection {
+    display: none;
+  }
+
+  .network :global([data-status="affected"][data-infection-cascade-stage] [data-scene-node-visual]) {
     animation: none;
   }
 }

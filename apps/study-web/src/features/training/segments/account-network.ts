@@ -71,7 +71,7 @@ export function createCompletedS02Network(): NetworkSceneSnapshot {
   };
 }
 
-export type S05AssessmentNetworkPhase = 'focus' | 'result' | 'spread';
+export type S05AssessmentNetworkPhase = 'focus' | 'campusgram-result' | 'other-accounts';
 
 function belongsToCampusgramCluster(nodeId: string): boolean {
   return nodeId.startsWith('campusgram-');
@@ -87,56 +87,70 @@ export function createS05AssessmentNetwork(
   phase: S05AssessmentNetworkPhase,
 ): NetworkSceneSnapshot {
   const base = createCompletedS02Network();
-  const showsResult = phase === 'result' || phase === 'spread';
-  const showsSpread = phase === 'spread';
+  const showsCampusgramResult = phase !== 'focus';
+  const showsOtherAccounts = phase === 'other-accounts';
   const resultStatus = wholePasswordRecognized ? 'exposed' : 'protected';
-  const spreadStatus = wholePasswordRecognized ? 'affected' : 'protected';
-  const spreadEdgeStatus = wholePasswordRecognized ? 'direct' : 'blocked';
-  const spreadEdgeKind = wholePasswordRecognized ? 'check' : 'blocked-path';
-  const nodes = base.nodes.map((node): SceneNode => {
-    if (node.id === 'campusgram' && showsResult) {
-      return {
-        ...node,
-        locked: false,
-        selectable: false,
-        status: resultStatus,
-        description: wholePasswordRecognized
-          ? 'Das vollständige fiktive Campusgram-Passwort wurde in den simulierten Prüfungen gefunden.'
-          : 'Der dargestellte Prüfweg wurde durch den Passwortfaktor blockiert; das ist keine allgemeine Sicherheitsgarantie.',
-      };
+  const clusterStatus = wholePasswordRecognized ? 'affected' : 'protected';
+  const clusterEdgeStatus = wholePasswordRecognized ? 'direct' : 'blocked';
+  const clusterEdgeKind = wholePasswordRecognized ? 'check' : 'blocked-path';
+  const nodes = base.nodes.flatMap((node): SceneNode[] => {
+    if (node.id !== 'campusgram' && !belongsToCampusgramCluster(node.id)) {
+      return showsOtherAccounts
+        ? [{ ...node, locked: false, selectable: false, status: 'neutral' }]
+        : [];
     }
-    if (belongsToCampusgramCluster(node.id) && showsSpread) {
-      return {
-        ...node,
-        locked: false,
-        selectable: false,
-        status: spreadStatus,
-        description: wholePasswordRecognized
-          ? 'Dieser Bereich ist direkt mit dem gefundenen Campusgram-Konto verbunden.'
-          : 'Ein Schild kennzeichnet hier den Passwortschutz als einen Faktor.',
-      };
+    if (node.id === 'campusgram' && showsCampusgramResult) {
+      return [
+        {
+          ...node,
+          locked: false,
+          selectable: false,
+          status: resultStatus,
+          description: wholePasswordRecognized
+            ? 'Das vollständige fiktive Campusgram-Passwort wurde in den simulierten Prüfungen gefunden.'
+            : 'Der dargestellte Prüfweg wurde durch den Passwortfaktor blockiert; das ist keine allgemeine Sicherheitsgarantie.',
+        },
+      ];
     }
-    return { ...node, locked: false, selectable: false, status: 'neutral' };
+    if (belongsToCampusgramCluster(node.id) && showsCampusgramResult) {
+      return [
+        {
+          ...node,
+          locked: false,
+          selectable: false,
+          status: clusterStatus,
+          description: wholePasswordRecognized
+            ? 'Dieser Bereich ist direkt mit dem gefundenen Campusgram-Konto verbunden.'
+            : 'Ein Schild kennzeichnet hier den Passwortschutz als einen Faktor.',
+        },
+      ];
+    }
+    return [{ ...node, locked: false, selectable: false, status: 'neutral' }];
   });
-  const edges = base.edges.map((edge): SceneEdge =>
-    showsSpread && edge.sourceId === 'campusgram'
-      ? { ...edge, kind: spreadEdgeKind, status: spreadEdgeStatus }
-      : { ...edge, status: 'neutral' },
-  );
+  const edges = base.edges.flatMap((edge): SceneEdge[] => {
+    if (edge.sourceId !== 'campusgram') {
+      return showsOtherAccounts ? [{ ...edge, status: 'neutral' }] : [];
+    }
+    return [
+      showsCampusgramResult
+        ? { ...edge, kind: clusterEdgeKind, status: clusterEdgeStatus }
+        : { ...edge, status: 'neutral' },
+    ];
+  });
   return {
     id: `s05-assessment-${phase}-${wholePasswordRecognized ? 'found' : 'protected'}`,
     nodes,
     edges,
     accessibleSummary:
       phase === 'focus'
-        ? 'Alle Konten und verbundenen Bereiche sind sichtbar und entsperrt. Campusgram ist für die Auswertung hervorgehoben.'
-        : phase === 'result'
+        ? 'Campusgram und seine direkt verbundenen Bereiche sind sichtbar. Die übrigen Konten sind noch ausgeblendet.'
+        : phase === 'campusgram-result'
           ? wholePasswordRecognized
-            ? 'Das vollständige Campusgram-Passwort wurde in der Simulation gefunden. Campusgram ist dunkelrot markiert und wird vom Angreifer verdeckt.'
-            : 'Der simulierte Prüfweg zu Campusgram wurde blockiert. Ein Schild markiert den Passwortschutz als einen Faktor.'
+            ? 'Das vollständige Campusgram-Passwort wurde in der Simulation gefunden. Campusgram und seine direkt angebundenen Knoten und Verbindungen sind rot markiert.'
+            : 'Der simulierte Prüfweg zu Campusgram wurde blockiert. Schilde und blaue Schutzlinien markieren Campusgram und seine direkt angebundenen Knoten.'
           : wholePasswordRecognized
-            ? 'Campusgram wurde in der Simulation gefunden. Nur die direkt angebundenen Campusgram-Knoten und Verbindungen werden rot markiert.'
-            : 'Der simulierte Prüfweg zu Campusgram wurde blockiert. Schilde und blaue Schutzlinien markieren nur die direkt angebundenen Campusgram-Knoten.',
+            ? 'Campusgram und seine direkt angebundenen Knoten sind rot markiert. Master Campus, Campus E-Mail und ihre verbundenen Bereiche sind nun zusätzlich sichtbar.'
+            : 'Campusgram und seine direkt angebundenen Knoten sind als blockiert markiert. Master Campus, Campus E-Mail und ihre verbundenen Bereiche sind nun zusätzlich sichtbar.',
   };
 }
 

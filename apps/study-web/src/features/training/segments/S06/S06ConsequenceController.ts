@@ -145,7 +145,7 @@ export function createS06ConsequenceScenePlan(
       ...step,
       network:
         index === 0
-          ? createS05AssessmentNetwork(campusgramFound, 'spread')
+          ? createS05AssessmentNetwork(campusgramFound, 'other-accounts')
           : alignNetworkSceneToS02(step.network),
     })),
   };
@@ -157,23 +157,30 @@ function createMission(plan: PasswordConsequenceScenePlan): MissionDefinition {
     segmentId: 'S06',
     sectionId: 'passwords',
     requiresSafetyAcknowledgement: false,
-    steps: plan.steps.map((step) => ({
-      id: step.id,
-      narrationId: step.narrationId,
-      animation: {
-        id: `${step.id}-animation`,
-        steps: [
-          {
-            type: 'highlight',
-            targetId: step.visibleChange.targetId,
-            emphasis: step.visibleChange.emphasis,
-            durationMs: 420,
-          },
-        ],
-        reducedMotion: { strategy: 'instant-end-state', maxDurationMs: 0 },
-        maxDurationMs: 420,
-      },
-    })),
+    steps: plan.steps.map((step, stepIndex) => {
+      const isInitialStep = stepIndex === 0;
+      return {
+        id: step.id,
+        narrationId: step.narrationId,
+        animation: {
+          id: `${step.id}-animation`,
+          // Later snapshots already carry the visible status change. Replaying the entrance
+          // emphasis after every "Weiter" made the mounted network appear to reload.
+          steps: isInitialStep
+            ? [
+                {
+                  type: 'highlight' as const,
+                  targetId: step.visibleChange.targetId,
+                  emphasis: step.visibleChange.emphasis,
+                  durationMs: 420,
+                },
+              ]
+            : [],
+          reducedMotion: { strategy: 'instant-end-state', maxDurationMs: 0 },
+          maxDurationMs: isInitialStep ? 420 : 0,
+        },
+      };
+    }),
   };
 }
 

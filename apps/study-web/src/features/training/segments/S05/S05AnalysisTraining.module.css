@@ -84,7 +84,7 @@
 
 .assessmentStage {
   position: absolute;
-  inset: 0;
+  inset: 1.6rem 0 clamp(12.5rem, 23cqb, 13rem);
   overflow: hidden;
   background: #000;
 }
@@ -94,7 +94,8 @@
 }
 
 .assessmentDesktop :global([data-scene-node="campusgram"][data-highlighted="true"] [data-scene-node-visual]) {
-  animation: assessment-campusgram-pulse 1.35s ease-in-out infinite;
+  border-color: #ff315e;
+  box-shadow: 0 0 0 0.24rem rgb(255 49 94 / 24%), 0 0 1.1rem rgb(255 49 94 / 58%);
 }
 
 .assessmentDesktop[data-assessment-step="final-result"][data-assessment-outcome="protected"]
@@ -102,35 +103,25 @@
   animation: assessment-campusgram-blocked 1.35s ease-out both;
 }
 
-.assessmentDesktop[data-assessment-step="final-result"] :global([data-account-shield]),
-.assessmentDesktop[data-assessment-step="final-result"] :global([data-account-attacker]) {
+.assessmentDesktop[data-assessment-step="final-result"] :global([data-account-shield]) {
   animation: assessment-result-mark 1.35s ease-out both;
 }
 
-.assessmentDesktop[data-assessment-step="final-spread"]
-  :global([data-status="affected"]),
-.assessmentDesktop[data-assessment-step="final-spread"]
-  :global([data-status="protected"]) {
+.assessmentDesktop[data-assessment-step="final-takeaway"]
+  :global([data-status="neutral"]:not([data-scene-node="campusgram"])) {
   animation: assessment-node-spread 480ms var(--motion-ease-out) both;
 }
 
-.assessmentDesktop[data-assessment-step="final-spread"]
-  :global([data-network-edge-target]) {
+.assessmentDesktop[data-assessment-step="final-takeaway"]
+  :global([data-network-edge-target]:not([data-network-edge-target^="campusgram-"])) {
   animation: assessment-edge-spread 760ms cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
-.assessmentDesktop[data-assessment-step="final-spread"]
-  :global([data-scene-node^="campusgram-"]),
-.assessmentDesktop[data-assessment-step="final-spread"]
-  :global([data-network-edge-target^="campusgram-"]) {
+.assessmentDesktop[data-assessment-step="final-takeaway"]
+  :global([data-status="neutral"]:not([data-scene-node="campusgram"])),
+.assessmentDesktop[data-assessment-step="final-takeaway"]
+  :global([data-network-edge-target]:not([data-network-edge-target^="campusgram-"])) {
   animation-delay: 180ms;
-}
-
-@keyframes assessment-campusgram-pulse {
-  50% {
-    box-shadow: 0 0 0 0.42rem rgb(255 255 255 / 26%), 0 0 2rem rgb(83 185 255 / 86%);
-    transform: scale(1.08);
-  }
 }
 
 @keyframes assessment-campusgram-blocked {
@@ -2077,7 +2068,7 @@
   overflow: hidden;
 }
 
-.scaleInformationControl {
+.scaleSceneAttacker {
   position: absolute;
   z-index: 14;
   bottom: var(--space-3);
@@ -2086,40 +2077,60 @@
   height: 6.7rem;
 }
 
-.scaleInformationControl > img {
+.scaleSceneAttacker > img {
   width: 6.7rem;
   height: 6.7rem;
   object-fit: contain;
   filter: saturate(0.78) drop-shadow(0 0.4rem 0.7rem rgb(0 0 0 / 44%));
 }
 
+.scaleInformationControl {
+  position: relative;
+  z-index: 12;
+  display: inline-block;
+  width: 0.9em;
+  height: 0.9em;
+  flex: 0 0 auto;
+  font-size: clamp(0.72rem, calc(var(--sphere-size) * 0.052), 1.15rem);
+  line-height: 1;
+  text-shadow: none;
+  transform: translateY(-0.16em);
+  vertical-align: middle;
+}
+
 .scaleInformationControl > button {
-  position: absolute;
+  position: relative;
   z-index: 2;
-  top: 0.1rem;
-  right: 2.55rem;
   display: grid;
-  width: 1.15rem;
-  height: 1.15rem;
+  width: 0.9em;
+  height: 0.9em;
   padding: 0;
   place-items: center;
-  border: var(--border-width-thin) solid rgb(245 248 255 / 34%);
-  border-radius: var(--radius-round);
-  color: #eaf1ff;
-  background: rgb(7 11 19 / 76%);
-  box-shadow: 0 0.35rem 1rem rgb(0 0 0 / 28%);
+  border: 0;
+  border-radius: 0;
+  color: #d9dee7;
+  background: transparent;
+  box-shadow: none;
   font: inherit;
-  font-size: 0.58rem;
-  font-weight: var(--font-weight-heavy);
   cursor: help;
-  transition: border-color 160ms ease, background 160ms ease, box-shadow 160ms ease, transform 160ms ease;
+  transition: color 160ms ease, filter 160ms ease, transform 160ms ease;
+}
+
+.scaleInformationControl > button svg {
+  width: 0.9em;
+  height: 0.9em;
+  overflow: visible;
+  fill: none;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 1.7;
 }
 
 .scaleInformationControl > button:hover,
 .scaleInformationControl > button:focus-visible {
-  border-color: rgb(245 248 255 / 72%);
-  background: rgb(15 24 40 / 96%);
-  box-shadow: 0 0.45rem 1.2rem rgb(0 0 0 / 38%), 0 0 0 0.2rem rgb(106 168 255 / 16%);
+  color: #f5f8ff;
+  filter: drop-shadow(0 0.18rem 0.3rem rgb(0 0 0 / 54%));
   transform: scale(1.06);
 }
 
@@ -2359,11 +2370,7 @@
 }
 
 .scaleTimeValueRow {
-  position: relative;
-  display: inline-flex;
-  align-items: flex-start;
-  justify-content: center;
-  column-gap: 0.18em;
+  display: inline;
 }
 
 .scaleTimeApproximateNumber {
@@ -2378,6 +2385,13 @@
   font-size: 0.5em;
   font-weight: inherit;
   line-height: 1;
+}
+
+.scaleTimeUnitWithInformation {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.03em;
+  white-space: nowrap;
 }
 
 .scaleTimeInformation > small {
@@ -2464,8 +2478,8 @@
 .scaleInformationTooltip {
   position: absolute;
   z-index: 20;
-  bottom: calc(100% + var(--space-2));
-  left: 0;
+  top: calc(100% + var(--space-2));
+  right: 0;
   display: grid;
   width: max-content;
   max-width: min(24rem, calc(100vw - 2 * var(--space-5)));
@@ -2480,7 +2494,9 @@
   line-height: var(--line-height-body);
   opacity: 0;
   pointer-events: none;
-  transform: translateY(-0.35rem);
+  text-align: left;
+  text-shadow: none;
+  transform: translateY(0.35rem);
   transition: opacity 160ms ease, transform 160ms ease;
 }
 

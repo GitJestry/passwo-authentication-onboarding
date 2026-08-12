@@ -115,6 +115,11 @@ export function S06ConsequenceTraining({
       ...(onComplete === undefined ? {} : { onComplete }),
     });
     const renderer = new ReactFlowNetworkAdapter(controller.getSnapshot().step.network);
+    for (const node of controller.getSnapshot().step.network.nodes) {
+      if (node.status === 'affected' || node.status === 'exposed') {
+        renderer.completeInfectionCascade(node.id);
+      }
+    }
     controller.attachRenderer(renderer);
     const unsubscribe = controller.subscribe(setSnapshot);
     setRuntime({ controller, renderer, plan });
@@ -179,7 +184,7 @@ export function S06ConsequenceTraining({
             speechEmphasis={passWoSpeechEmphasisFor(snapshot.step.narrationId)}
             {...(speechAction === undefined ? {} : { speechAction })}
             speechObstacleSelector="[data-scene-node]"
-            speechPlacement="above"
+            speechPlacement="right"
             placement="bottom-left"
             pose={snapshot.step.mode === 'actual' ? 'warning' : 'default'}
             showHelpButton={false}

@@ -36,10 +36,13 @@ Das Netzwerk zeigt Konten, abhängige Dienste, Funktionen, Passwortbeziehungen u
 - Jeder Node führt eine semantische `symbolId`. Der Renderer löst diese ID ausschließlich über
   eine lokale Inline-SVG-Registry auf; Emojis und externe Icon-Abhängigkeiten werden nicht
   verwendet.
-- Knoten besitzen eine weiße Innenfläche und zeigen ihr Symbol in der Mitte. S02 zeigt das
-  kompakte Label unterhalb des Knotens; in S05-Netzwerkszenen und S06 entfällt es. Label,
-  Beschreibung und Textstatus bleiben unabhängig davon für die zugängliche Benennung sowie für
-  separate Kontextkarten erhalten.
+- Hauptknoten besitzen eine sehr helle graue Innenfläche, zugehörige Teilknoten eine leicht
+  dunklere helle Innenfläche. Ihre etwas kräftigeren weißen Grundränder bleiben gleich, damit
+  beide Knotentypen klar erkennbar sind; Form und Größe tragen die zusätzliche Unterscheidung.
+  Alle Knoten zeigen ihr Symbol in der Mitte.
+  S02 zeigt das kompakte Label unterhalb des Knotens; in S05-Netzwerkszenen und S06 entfällt es.
+  Label, Beschreibung und Textstatus bleiben unabhängig davon für die zugängliche Benennung sowie
+  für separate Kontextkarten erhalten.
 - Ein kleiner Statusmarker überlagert den Kreis: offen, verstanden, betroffen oder geschützt.
   Farbe ergänzt dabei Symbol und zugänglichen Status, ersetzt sie aber nicht.
 - Die gemeinsame S05-/S06-Auswertungsdarstellung ersetzt den generischen SVG-Statusmarker: Bei

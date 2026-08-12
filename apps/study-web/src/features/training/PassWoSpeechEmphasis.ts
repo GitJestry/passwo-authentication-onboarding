@@ -123,6 +123,9 @@ const emphasisBySpeechId: Readonly<Record<string, readonly PassWoSpeechEmphasis[
   's05-final-components': [{ phrase: 'gesamte Zeichenfolge', tone: 'accent' }],
   's05-final-result': [{ phrase: 'gesamte Zeichenfolge', tone: 'warning' }],
   's05-final-length': [{ phrase: 'mindestens 15 Zeichen', tone: 'accent' }],
+  's05-final-spread': [
+    { phrase: 'wiederverwendet oder nur leicht verändert', tone: 'warning' },
+  ],
 };
 
 export function passWoSpeechEmphasisFor(

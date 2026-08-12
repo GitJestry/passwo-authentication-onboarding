@@ -36,7 +36,7 @@ export class S05AnimationAdapter implements AnimationPlayerPort {
       if (this.#cancelled) return { status: 'cancelled' };
       const element = this.#getElement(step.targetId);
       if (element === null) return { status: 'failed', reasonCode: 's05-animation-target-missing' };
-      if (step.targetId === 'final-result' || step.targetId === 'final-spread') {
+      if (step.targetId === 'final-result' || step.targetId === 'final-takeaway') {
         await new Promise<void>((resolve) => requestAnimationFrame(() => resolve()));
         const animations = element
           .getAnimations({ subtree: true })
@@ -63,7 +63,7 @@ export class S05AnimationAdapter implements AnimationPlayerPort {
       this.#previousSequenceId = sequence.id;
       this.#previousTarget = element;
 
-      if (sharesVisibleScene && advancesWithinScene && !step.targetId.startsWith('final-')) continue;
+      if (sharesVisibleScene && advancesWithinScene) continue;
 
       this.#activeAnimation = element.animate(
         [

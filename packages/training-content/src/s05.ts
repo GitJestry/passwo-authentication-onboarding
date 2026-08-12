@@ -70,7 +70,7 @@ export interface S05DesignLabFixture {
   readonly startSection: 'intro' | 'components' | 'structure';
 }
 
-export const S05_CONTENT_VERSION = '2.81.0';
+export const S05_CONTENT_VERSION = '2.84.0';
 
 export const s05Content = {
   version: S05_CONTENT_VERSION,
@@ -80,9 +80,9 @@ export const s05Content = {
       12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34,
       35,
     ] as const,
-    revision: 'Userauftrag vom 2026-08-12 · S05 Campusgram-Abschluss und S06-Übergang',
+    revision: 'Userauftrag vom 2026-08-12 · S05 Kontenprüfung und S06-Übergang',
     copyReference:
-      'docs/design/S00-S05-COPY-AUDIT.md#copy--und-ablaufdelta-s05-campusgram-abschluss-und-s06-übergang-12-august-2026',
+      'docs/design/S00-S05-COPY-AUDIT.md#copy--interaktions--und-darstellungsdelta-s05-kontenprüfung-12-august-2026',
   },
   segment: {
     id: 'S05',
@@ -555,9 +555,10 @@ export const s05Content = {
       shieldMeaning:
         'Das Schild steht für den Schutz durch das Passwort als einen Faktor, nicht für absolute Kontosicherheit.',
       reuseTakeaway:
-        'Selbst gewählte Passwörter werden oft für mehrere Konten wiederverwendet oder nur leicht verändert, weil das leichter zu merken ist und sie für sich betrachtet stark wirken können.',
+        'Selbst gewählte Passwörter werden oft für mehrere Konten wiederverwendet oder nur leicht verändert, weil man sich so weniger merken muss.',
       attackerTakeaway:
-        'Wird eines davon herausgefunden, können Angreifer dasselbe oder ähnliche Passwörter auch anderen Konten ausprobieren.',
+        'Wird eines davon herausgefunden, können Angreifer diese Varianten auch bei anderen Konten ausprobieren.',
+      otherAccountsAction: 'Andere Konten prüfen',
       network: {
         foundSummary:
           'Campusgram wurde gefunden. Nur seine direkt angebundenen Knoten und Verbindungen werden rot.',
@@ -688,7 +689,7 @@ export function getS05Animation(animationId: string) {
   const authored = s05Content.animations.find(([id]) => id === animationId);
   if (authored === undefined) return undefined;
   const [id, targetId, emphasis] = authored;
-  const durationMs = id === 's05-final-spread' ? 3200 : id === 's05-final-result' ? 1400 : 520;
+  const durationMs = id === 's05-final-takeaway' ? 3200 : id === 's05-final-result' ? 1400 : 520;
   return {
     id,
     steps: [{ type: 'highlight' as const, targetId, emphasis, durationMs }],

@@ -247,8 +247,10 @@ const firstMissionIdBySection = {
 } as const satisfies Readonly<Record<S05InitialSection, string>>;
 
 function assessmentNetworkPhase(step: S05AnalysisStep): S05AssessmentNetworkPhase {
-  if (step === 'final-result' || step === 'final-length') return 'result';
-  if (step === 'final-spread' || step === 'final-takeaway') return 'spread';
+  if (step === 'final-takeaway') return 'other-accounts';
+  if (step === 'final-result' || step === 'final-length' || step === 'final-spread') {
+    return 'campusgram-result';
+  }
   return 'focus';
 }
 

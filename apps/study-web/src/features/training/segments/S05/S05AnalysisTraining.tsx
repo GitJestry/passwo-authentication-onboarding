@@ -1380,53 +1380,91 @@ function projectScale(layout: ScaleLayout, currentLength: number, width: number,
   };
 }
 
-function ScaleInformationControl({ length }: { readonly length: number }) {
-  const content = s05Content.freeSearch.theoreticalModel.interactiveScale;
-  const tooltipId = 's05-scale-information';
+function ScaleSceneAttacker() {
   return (
-    <aside className={styles.scaleInformationControl}>
+    <aside className={styles.scaleSceneAttacker} aria-hidden="true">
       <img src={attackerAsset} alt="" />
-      <span className={styles.scaleSceneClock} aria-hidden="true">
+      <span className={styles.scaleSceneClock}>
         <img src={scaleClockAsset} alt="" />
       </span>
-      <button type="button" aria-label={content.informationLabel} aria-describedby={tooltipId}>i</button>
+    </aside>
+  );
+}
+
+function ScaleInformationControl({
+  length,
+  alphabetSize,
+  modelId,
+}: {
+  readonly length: number;
+  readonly alphabetSize: number;
+  readonly modelId: 'lowercase' | 'mixed-characters';
+}) {
+  const content = s05Content.freeSearch.theoreticalModel.interactiveScale;
+  const tooltipId = `s05-scale-information-${modelId}-${length}`;
+  return (
+    <span className={styles.scaleInformationControl}>
+      <button type="button" aria-label={content.informationLabel} aria-describedby={tooltipId}>
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M9.6 2.75h4.8l.54 2.15c.43.18.84.42 1.22.7l2.08-.64 2.4 4.16-1.56 1.51a7 7 0 0 1 0 1.74l1.56 1.51-2.4 4.16-2.08-.64c-.38.28-.79.52-1.22.7l-.54 2.15H9.6l-.54-2.15a7 7 0 0 1-1.22-.7l-2.08.64-2.4-4.16 1.56-1.51a7 7 0 0 1 0-1.74L3.36 9.12l2.4-4.16 2.08.64c.38-.28.79-.52 1.22-.7L9.6 2.75Z" />
+          <circle cx="12" cy="11.5" r="2.65" />
+        </svg>
+      </button>
       <span className={styles.scaleInformationTooltip} id={tooltipId} role="tooltip">
         <span><strong>{content.information.passwordLength}:</strong> {length}</span>
-        <span><strong>{content.information.alphabetSize}:</strong> 26</span>
-        <span><strong>{content.information.combinations}:</strong> {formatGermanCompact(26n ** BigInt(length))}</span>
+        <span><strong>{content.information.alphabetSize}:</strong> {alphabetSize}</span>
+        <span><strong>{content.information.combinations}:</strong> {formatGermanCompact(BigInt(alphabetSize) ** BigInt(length))}</span>
         <span><strong>{content.information.attemptsPerSecond}:</strong> {content.information.attemptsPerSecondValue}</span>
       </span>
-    </aside>
+    </span>
   );
 }
 
 function ScaleTimeInformation({
   length,
   showExplanation,
+  showInformation,
 }: {
   readonly length: number;
   readonly showExplanation: boolean;
+  readonly showInformation: boolean;
 }) {
   const durationLabel = durationLabelFor(length);
   const approximatePrefix = durationLabel.startsWith('ca. ') ? 'ca.' : null;
   const durationValue = approximatePrefix === null ? durationLabel : durationLabel.slice(4);
   const [durationNumber = durationValue, ...durationUnitParts] = durationValue.split(' ');
-  const durationUnit = durationUnitParts.join(' ');
+  const durationUnitLeading = durationUnitParts.slice(0, -1).join(' ');
+  const durationFinalUnit = durationUnitParts.at(-1) ?? '';
   const explanation = 'bis alle kleinbuchstaben Zeichenfolgen geprüft sind';
   return (
     <span className={styles.scaleTimeInformation}>
       <strong>
         <span className={styles.scaleTimeValueRow}>
           <span className={styles.scaleTimeValue}>
-            {approximatePrefix === null ? durationValue : (
-              <>
-                <span className={styles.scaleTimeApproximateNumber}>
-                  <small>{approximatePrefix}</small>
-                  <span>{durationNumber}</span>
-                </span>
-                {durationUnit.length > 0 ? ` ${durationUnit}` : null}
-              </>
+            {approximatePrefix === null ? (
+              durationNumber
+            ) : (
+              <span className={styles.scaleTimeApproximateNumber}>
+                <small>{approximatePrefix}</small>
+                <span>{durationNumber}</span>
+              </span>
             )}
+            {durationUnitLeading.length > 0 ? ` ${durationUnitLeading}` : null}
+            {durationFinalUnit.length > 0 ? (
+              <>
+                {' '}
+                <span className={styles.scaleTimeUnitWithInformation}>
+                  <span>{durationFinalUnit}</span>
+                  {showInformation ? (
+                    <ScaleInformationControl
+                      alphabetSize={26}
+                      length={length}
+                      modelId="lowercase"
+                    />
+                  ) : null}
+                </span>
+              </>
+            ) : null}
           </span>
         </span>
       </strong>
@@ -1452,7 +1490,15 @@ function MixedCharacterTimeInformation() {
           <span className={styles.scaleTimeApproximateNumber}>
             <small>ca.</small>
             <span>{durationNumber}</span>
-          </span>{` ${durationUnitParts.join(' ')}`}
+          </span>{' '}
+          <span className={styles.scaleTimeUnitWithInformation}>
+            <span>{durationUnitParts.join(' ')}</span>
+            <ScaleInformationControl
+              alphabetSize={72}
+              length={measurement.length}
+              modelId="mixed-characters"
+            />
+          </span>
         </span>
       </strong>
     </span>
@@ -1648,7 +1694,7 @@ function LowercaseClockScene({
           : scaleContent.accessibleLabel
       }
     >
-      {focused ? null : <ScaleInformationControl length={currentLength} />}
+      {focused ? null : <ScaleSceneAttacker />}
       <div className={styles.lowercaseScaleGraph} ref={graphRef}>
         <div
           className={styles.lowercaseScaleAxis}
@@ -1722,6 +1768,7 @@ function LowercaseClockScene({
                   <ScaleTimeInformation
                     length={length}
                     showExplanation={active && !comparesLengthModels}
+                    showInformation={active}
                   />
                 </div>
               ) : null}
@@ -1883,11 +1930,9 @@ function FinalAssessmentScene({ snapshot }: { readonly snapshot: S05AnalysisCont
     () => ({
       ...staticNetworkPresentation(snapshot.assessmentNetwork),
       highlightedNodeId:
-        snapshot.step === 'final-components' || snapshot.step === 'final-length'
-          ? 'campusgram'
-          : null,
+        snapshot.step === 'final-components' ? 'campusgram' : null,
       emphasis:
-        snapshot.step === 'final-result' || snapshot.step === 'final-spread'
+        snapshot.step === 'final-result' || snapshot.step === 'final-takeaway'
           ? ('warning' as const)
           : ('info' as const),
     }),
@@ -1909,7 +1954,7 @@ function FinalAssessmentScene({ snapshot }: { readonly snapshot: S05AnalysisCont
           adapter={networkAdapter}
           presentation={presentation}
           ariaLabel="Konten und verbundene Bereiche in der Campusgram-Prüfung"
-          canvasAriaLabel="Alle Kontoknoten sind sichtbar und entsperrt"
+          canvasAriaLabel="Campusgram und seine verbundenen Knoten sind sichtbar und entsperrt"
         />
       </article>
     </div>
@@ -2395,6 +2440,13 @@ export function S05AnalysisTraining({
               onAction: continueFromSpeech,
             }
           : undefined;
+      case 'final-takeaway':
+        return {
+          kind: 'advance' as const,
+          label: s05Content.freeSearch.application.otherAccountsAction,
+          disabled,
+          onAction: continueFromSpeech,
+        };
       default:
         return {
           kind: 'advance' as const,
@@ -2420,7 +2472,8 @@ export function S05AnalysisTraining({
           inert={
             guidanceVisible &&
             snapshot.step !== 'components-summary' &&
-            snapshot.step !== 'estimate'
+            snapshot.step !== 'estimate' &&
+            snapshot.step !== 'length-model-comparison'
               ? true
               : undefined
           }
@@ -2450,7 +2503,8 @@ export function S05AnalysisTraining({
                 activeSnapshot.step.startsWith('character-mix-') ||
                 activeSnapshot.step.startsWith('estimate') ||
                 activeSnapshot.step === 'length-model-comparison' ||
-                activeSnapshot.step === 'length-orientation'
+                activeSnapshot.step === 'length-orientation' ||
+                activeSnapshot.step.startsWith('final-')
                   ? 'right'
                   : 'above'
               }

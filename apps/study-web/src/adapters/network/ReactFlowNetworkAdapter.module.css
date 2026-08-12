@@ -184,6 +184,17 @@
   border-color: #e681aa;
 }
 
+.nodeFrame[data-variant="account-map"] .nodeCircle {
+  border-width: 3px;
+  border-color: #ffffff;
+  border-style: solid;
+  background: #edf0f2;
+}
+
+.nodeFrame[data-variant="account-map"][data-size="detail"]:not([data-status="exposed"]):not([data-status="affected"]):not([data-status="protected"]) .nodeCircle {
+  background: #dfe5e9;
+}
+
 .nodeFrame[data-highlighted="true"] .nodeCircle {
   border-color: #00c870;
   box-shadow:
@@ -441,6 +452,26 @@
   stroke-linejoin: round;
 }
 
+.infectionThread {
+  fill: none;
+  stroke: var(--color-danger);
+  stroke-width: 4px;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+  filter: drop-shadow(0 0 5px color-mix(in srgb, var(--color-danger) 72%, transparent));
+  animation-name: infection-thread-arrival;
+  animation-timing-function: cubic-bezier(0.32, 0, 0.18, 1);
+  animation-fill-mode: both;
+  pointer-events: none;
+}
+
+.infectionThreadSettled {
+  stroke-dashoffset: 0;
+  animation: none;
+}
+
 .edge :global([data-network-edge-drawing="true"] .react-flow__edge-path) {
   animation: none;
 }
@@ -581,6 +612,12 @@
   }
 }
 
+@keyframes infection-thread-arrival {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .nodeFrame,
   .nodeFrame .nodeCircle,
@@ -592,6 +629,11 @@
 
   :global(.edge-kind-association) :global(.react-flow__edge-path),
   .edgeChecking :global(.react-flow__edge-path) {
+    animation: none;
+  }
+
+  .infectionThread {
+    stroke-dashoffset: 0;
     animation: none;
   }
 }
