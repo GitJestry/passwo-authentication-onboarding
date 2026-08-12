@@ -1,5 +1,25 @@
 # S00--S05 Copy and Interaction Audit
 
+## Copy- und Ablaufdelta S05 Campusgram-Abschluss und S06-Übergang, 12. August 2026
+
+Quelle ist der ausdrückliche Nutzerauftrag vom 12. August 2026. Der S05-Abschluss übernimmt die
+bereits in S02 festgelegten Desktop-Positionen der Konten und verbundenen Knoten, zeigt sie aber
+ohne Desktop-, Browser- oder Ergebnisflächen auf vollständig schwarzem Hintergrund. Bei einem
+Fund sitzt die Angreiferfigur direkt auf dem dunkelroten Campusgram-Knoten und verdeckt dessen
+Logo; anschließend werden ausschließlich die direkt an Campusgram angebundenen Knoten und
+Verbindungen rot. Bei einem Nichtfund erscheinen Schutzstatus und Schilde ausschließlich im
+Campusgram-Cluster. Die anderen beiden Kontocluster erhalten in diesem S05-Abschluss keinen
+abgeleiteten Treffer- oder Schutzstatus. Nach dem zweiten Sprechschritt löst `Weiter` weiterhin
+die vorhandene Teilsektionskarte vor S06 aus; S06 übernimmt danach dieselbe Netzwerkansicht.
+
+`S05_CONTENT_VERSION` wird von `2.80.0` auf `2.81.0` erhöht. Persistenz, Analyseentscheidung,
+Timinggrenzen und die Condition bleiben unverändert.
+
+| Segment und Text-ID | Quelle | Aktueller Text | Freigegebener Text | Primäre Rolle | Grund | Bedeutungsänderung | Interaktionsziel | Hervorhebung |
+|---|---|---|---|---|---|---|---|---|
+| `S05.freeSearch.application.reuseTakeaway` | Nutzerauftrag vom 2026-08-12 | `Selbst gewählte Passwörter werden häufig bei mehreren Konten wiederverwendet oder leicht verändert, weil man sich so weniger Passwörter merken muss oder sie für sich bereits stark wirken.` | `Selbst gewählte Passwörter werden oft für mehrere Konten wiederverwendet oder nur leicht verändert, weil das leichter zu merken ist und sie für sich betrachtet stark wirken können.` | Mechanismuserklärung | ausdrücklich vorgegebener Wortlaut passend zur abgeschlossenen Netzwerkreaktion | ja | `Weiter` | keine |
+| `S05.freeSearch.application.attackerTakeaway` | Nutzerauftrag vom 2026-08-12 | `Wird das Passwort eines Kontos herausgefunden, kann der Angreifer gleiche oder ähnliche Passwörter direkt auch bei deinen anderen Konten testen.` | `Wird eines davon herausgefunden, können Angreifer dasselbe oder ähnliche Passwörter auch anderen Konten ausprobieren.` | Kerngedanke | ausdrücklich vorgegebener Abschluss vor der Teilsektionskarte | ja | `Weiter` zur vorhandenen S06-Übergangskarte | `dasselbe oder ähnliche Passwörter`, Warnung |
+
 ## Copy- und Ablaufdelta S05 didaktischer Abschlussweg, 12. August 2026
 
 Quelle ist der ausdrückliche Nutzerauftrag vom 12. August 2026. Die mittige Zusammenfassung

@@ -70,7 +70,7 @@ export interface S05DesignLabFixture {
   readonly startSection: 'intro' | 'components' | 'structure';
 }
 
-export const S05_CONTENT_VERSION = '2.80.0';
+export const S05_CONTENT_VERSION = '2.81.0';
 
 export const s05Content = {
   version: S05_CONTENT_VERSION,
@@ -80,9 +80,9 @@ export const s05Content = {
       12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34,
       35,
     ] as const,
-    revision: 'Userauftrag vom 2026-08-12 · S05 didaktischer Abschlussweg',
+    revision: 'Userauftrag vom 2026-08-12 · S05 Campusgram-Abschluss und S06-Übergang',
     copyReference:
-      'docs/design/S00-S05-COPY-AUDIT.md#copy--und-ablaufdelta-s05-didaktischer-abschlussweg-12-august-2026',
+      'docs/design/S00-S05-COPY-AUDIT.md#copy--und-ablaufdelta-s05-campusgram-abschluss-und-s06-übergang-12-august-2026',
   },
   segment: {
     id: 'S05',
@@ -555,14 +555,14 @@ export const s05Content = {
       shieldMeaning:
         'Das Schild steht für den Schutz durch das Passwort als einen Faktor, nicht für absolute Kontosicherheit.',
       reuseTakeaway:
-        'Selbst gewählte Passwörter werden häufig bei mehreren Konten wiederverwendet oder leicht verändert, weil man sich so weniger Passwörter merken muss oder sie für sich bereits stark wirken.',
+        'Selbst gewählte Passwörter werden oft für mehrere Konten wiederverwendet oder nur leicht verändert, weil das leichter zu merken ist und sie für sich betrachtet stark wirken können.',
       attackerTakeaway:
-        'Wird das Passwort eines Kontos herausgefunden, kann der Angreifer gleiche oder ähnliche Passwörter direkt auch bei deinen anderen Konten testen.',
+        'Wird eines davon herausgefunden, können Angreifer dasselbe oder ähnliche Passwörter auch anderen Konten ausprobieren.',
       network: {
         foundSummary:
-          'Campusgram wurde gefunden. Rote Prüfwege erreichen Master Campus und Campus E-Mail sowie deren verbundene Bereiche.',
+          'Campusgram wurde gefunden. Nur seine direkt angebundenen Knoten und Verbindungen werden rot.',
         protectedSummary:
-          'Der simulierte Prüfweg zu Campusgram wurde durch den Passwortfaktor blockiert. Blaue Schutzlinien und Schilde markieren die verbundenen Konten und Bereiche.',
+          'Der simulierte Prüfweg zu Campusgram wurde durch den Passwortfaktor blockiert. Blaue Schutzlinien und Schilde markieren nur die direkt angebundenen Campusgram-Knoten.',
       },
     },
   },

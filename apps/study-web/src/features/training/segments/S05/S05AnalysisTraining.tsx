@@ -1,7 +1,6 @@
 import type { RuntimeStructureFindingKind } from '@passwo/contracts';
 import { s00Content, s05Content } from '@passwo/training-content';
-import { DesktopSurface, type DesktopPlatform } from '@passwo/ui';
-import type { SceneNode } from '@passwo/visualization';
+import type { DesktopPlatform } from '@passwo/ui';
 import {
   type CSSProperties,
   type ReactNode,
@@ -15,11 +14,7 @@ import commonCoresAsset from '../../../../assets/s05/category-logos/common-cores
 import personalDetailsAsset from '../../../../assets/s05/category-logos/personal-details.png';
 import typicalChangesAsset from '../../../../assets/s05/category-logos/typical-changes.png';
 import attackerAsset from '../../../../assets/passwo/attacker.png';
-import passwordFactorShieldAsset from '../../../../assets/s05/password-factor-shield.png';
-import {
-  ReactFlowNetwork,
-  ReactFlowNetworkAdapter,
-} from '../../../../adapters/network/ReactFlowNetworkAdapter.js';
+import { ReactFlowNetworkAdapter } from '../../../../adapters/network/ReactFlowNetworkAdapter.js';
 import { NetworkSymbol } from '../../../../adapters/network/NetworkSymbolRegistry.js';
 import scaleClockAsset from '../../../../assets/s05/scale-clock.svg';
 import scaleWarningAsset from '../../../../assets/s05/scale-warning.svg';
@@ -39,8 +34,8 @@ import {
   summarizeCategoryCandidates,
   type S05CategoryFinding,
   type S05ComponentCategoryId,
-  type S05RepetitionAnnotation,
 } from './S05ComponentStrategy.js';
+import { AccountAssessmentNetwork } from '../AccountAssessmentNetwork.js';
 import { staticNetworkPresentation } from '../account-network.js';
 import styles from './S05AnalysisTraining.module.css';
 
@@ -1876,65 +1871,7 @@ function LengthExamplesScene({
   );
 }
 
-function finalRepetitionAnnotations(
-  snapshot: S05AnalysisControllerSnapshot,
-): readonly S05RepetitionAnnotation[] {
-  return snapshot.structureScene.runtimeAnalysis.findings.flatMap(({ findingKind, evidence }) => {
-    if (
-      findingKind !== 'exact-component-repetition' &&
-      findingKind !== 'recognized-repetition-pattern'
-    ) {
-      return [];
-    }
-    const label = s05Content.structure.findingLabels[findingKind];
-    return evidence.flatMap((entry) =>
-      entry.type === 'span' ? [{ start: entry.start, end: entry.end, label }] : [],
-    );
-  });
-}
-
-function finalComponentFindings(
-  snapshot: S05AnalysisControllerSnapshot,
-): readonly S05CategoryFinding[] {
-  const view = snapshot.componentStrategy.canonicalView;
-  if (view === null) return [];
-  const released = releasedComponentFindings(snapshot);
-  const automatic = [
-    ...view.automaticFindings['common-components'],
-    ...view.automaticFindings['account-context'],
-  ];
-  return [...new Map([...released, ...automatic].map((finding) => [finding.id, finding])).values()];
-}
-
-function AssessmentNodeOverlay({ node }: { readonly node: SceneNode }) {
-  if (node.status === 'protected') {
-    return (
-      <img
-        className={styles.assessmentShield}
-        src={passwordFactorShieldAsset}
-        alt=""
-        data-main={node.kind === 'account' || undefined}
-      />
-    );
-  }
-  if (node.id === 'campusgram' && node.status === 'exposed') {
-    return (
-      <span className={styles.assessmentBug}>
-        <img src={attackerAsset} alt="" />
-      </span>
-    );
-  }
-  return null;
-}
-
-function FinalAssessmentScene({
-  snapshot,
-  platform,
-}: {
-  readonly snapshot: S05AnalysisControllerSnapshot;
-  readonly platform: DesktopPlatform;
-}) {
-  const view = snapshot.componentStrategy.canonicalView;
+function FinalAssessmentScene({ snapshot }: { readonly snapshot: S05AnalysisControllerSnapshot }) {
   const [networkAdapter] = useState(
     () => new ReactFlowNetworkAdapter(snapshot.assessmentNetwork),
   );
@@ -1956,10 +1893,6 @@ function FinalAssessmentScene({
     }),
     [snapshot.assessmentNetwork, snapshot.step],
   );
-  const findings = finalComponentFindings(snapshot);
-  const repetitions = finalRepetitionAnnotations(snapshot);
-  const displayBlocks =
-    view === null ? [] : projectCanonicalPasswordBlocks(view, findings, repetitions);
   const targetId = `final-${snapshot.step.slice('final-'.length)}`;
   const recognized = snapshot.assessmentScene.disposition.kind === 'whole-password-recognized';
 
@@ -1971,84 +1904,14 @@ function FinalAssessmentScene({
       data-s05-target={targetId}
       aria-label={snapshot.assessmentNetwork.accessibleSummary}
     >
-      <DesktopSurface
-        platform={platform}
-        browserDock={{ active: false, enabled: false, label: 'Browser geschlossen' }}
-      >
-        <article className={styles.assessmentStage}>
-          <div className={styles.assessmentNetwork}>
-            <ReactFlowNetwork
-              adapter={networkAdapter}
-              presentation={presentation}
-              onNodeSelect={() => undefined}
-              interactionDisabled
-              visualVariant="account-map"
-              showEdgeLabels={false}
-              dimInactiveNodes={false}
-              renderNodeOverlay={(node) => <AssessmentNodeOverlay node={node} />}
-              ariaLabel="Konten und verbundene Bereiche in der Campusgram-Prüfung"
-              canvasAriaLabel="Alle Kontoknoten sind sichtbar und entsperrt"
-            />
-          </div>
-          <div className={styles.assessmentDim} aria-hidden="true" />
-          <div className={styles.assessmentAttackerLink} aria-hidden="true" />
-          <img
-            className={styles.assessmentAttacker}
-            src={attackerAsset}
-            alt="Symbolische Darstellung eines Angreifers am Computer"
-          />
-          {view === null ? null : (
-            <section className={styles.assessmentPassword} data-s05-speech-obstacle>
-              <strong className={styles.canonicalAccount}>
-                <span aria-hidden="true"><NetworkSymbol symbolId="campusgram" /></span>
-                Campusgram-Passwort
-              </strong>
-              <PasswordBuildingBlocks
-                value={view.password}
-                visualReferenceValue={view.password}
-                parts={
-                  displayBlocks.length === 0
-                    ? [view.password]
-                    : displayBlocks.map(({ value }) => value)
-                }
-                display="decomposed"
-                appearance="analysis"
-                animate
-                categoryIds={
-                  displayBlocks.length === 0
-                    ? [[]]
-                    : displayBlocks.map(({ categoryIds }) => categoryIds)
-                }
-                matchCategories={
-                  displayBlocks.length === 0
-                    ? [[]]
-                    : displayBlocks.map(({ matchCategories }) => matchCategories)
-                }
-                findings={
-                  displayBlocks.length === 0
-                    ? [[]]
-                    : displayBlocks.map(({ findings: blockFindings }) => blockFindings)
-                }
-                ariaLabel={s05Content.componentStrategy.presentation.canonicalAriaLabel}
-              />
-              {snapshot.step === 'final-length' ? (
-                <output className={styles.assessmentLength}>
-                  {snapshot.assessmentScene.visibleLength} Zeichen
-                </output>
-              ) : null}
-              {!recognized &&
-              (snapshot.step === 'final-result' ||
-                snapshot.step === 'final-length' ||
-                snapshot.step === 'final-spread' ||
-                snapshot.step === 'final-takeaway') ? (
-                <p className={styles.assessmentShieldMeaning}>
-                  {s05Content.freeSearch.application.shieldMeaning}
-                </p>
-              ) : null}
-            </section>
-          )}
-        </article>
-      </DesktopSurface>
+      <article className={styles.assessmentStage}>
+        <AccountAssessmentNetwork
+          adapter={networkAdapter}
+          presentation={presentation}
+          ariaLabel="Konten und verbundene Bereiche in der Campusgram-Prüfung"
+          canvasAriaLabel="Alle Kontoknoten sind sichtbar und entsperrt"
+        />
+      </article>
     </div>
   );
 }
@@ -2172,7 +2035,7 @@ function renderScene(
     case 'final-result':
     case 'final-spread':
     case 'final-takeaway':
-      return <FinalAssessmentScene snapshot={snapshot} platform={platform} />;
+      return <FinalAssessmentScene snapshot={snapshot} />;
     default:
       throw new Error(`Unbekannter S05-Schritt: ${snapshot.step}`);
   }

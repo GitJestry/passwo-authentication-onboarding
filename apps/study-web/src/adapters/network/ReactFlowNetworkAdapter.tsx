@@ -106,6 +106,8 @@ interface SceneNodeData extends Record<string, unknown> {
   readonly compact: boolean;
   readonly nodeSize: 'main' | 'detail';
   readonly nodeShape: NetworkNodeShape;
+  readonly showNodeLabels: boolean;
+  readonly showStatusMarkers: boolean;
   readonly onSelect: (nodeId: string) => void;
   readonly renderNodeOverlay: ((node: SceneNode) => ReactNode) | undefined;
 }
@@ -262,13 +264,17 @@ export function layoutSceneNode(
   node: Pick<SceneNode, 'kind' | 'position'>,
   canvas: NetworkCanvasSize,
   visualVariant: NetworkVisualVariant = 'default',
+  showNodeLabels = true,
 ): Readonly<{
   position: { readonly x: number; readonly y: number };
   layout: NetworkNodeLayout;
   compact: boolean;
 }> {
   const compact = visualVariant === 'account-map' && canvas.height < 520;
-  const layout = layoutForNode(node, visualVariant, compact);
+  const authoredLayout = layoutForNode(node, visualVariant, compact);
+  const layout = showNodeLabels
+    ? authoredLayout
+    : { ...authoredLayout, height: authoredLayout.shapeHeight };
   return {
     position: positionAuthoredNode(node.position, layout, canvas, visualVariant),
     layout,
@@ -378,12 +384,15 @@ function SceneNodeCircle({ data }: NodeProps<SceneFlowNode>) {
     compact,
     nodeSize,
     nodeShape,
+    showNodeLabels,
+    showStatusMarkers,
     onSelect,
     renderNodeOverlay,
   } = data;
   const symbolId = resolveNetworkSymbolId(sceneNode);
   const lockedAccount = sceneNode.kind === 'account' && sceneNode.locked === true;
-  const showStatusMarker = !lockedAccount && sceneNode.status !== 'neutral';
+  const showStatusMarker =
+    showStatusMarkers && !lockedAccount && sceneNode.status !== 'neutral';
 
   return (
     <div
@@ -413,6 +422,7 @@ function SceneNodeCircle({ data }: NodeProps<SceneFlowNode>) {
         type="button"
         className={styles.nodeButton}
         data-scene-node-button={sceneNode.id}
+        data-show-node-labels={showNodeLabels}
         disabled={interactionDisabled || !sceneNode.selectable || !visible}
         aria-label={`${sceneNode.label}. Status: ${statusLabel(sceneNode)}. ${sceneNode.description}`}
         onClick={() => onSelect(sceneNode.id)}
@@ -447,9 +457,11 @@ function SceneNodeCircle({ data }: NodeProps<SceneFlowNode>) {
             </span>
           ) : null}
         </span>
-        <span className={styles.nodeLabel} data-scene-node-label={sceneNode.id}>
-          {sceneNode.label}
-        </span>
+        {showNodeLabels ? (
+          <span className={styles.nodeLabel} data-scene-node-label={sceneNode.id}>
+            {sceneNode.label}
+          </span>
+        ) : null}
       </button>
       <Handle
         type="source"
@@ -546,6 +558,8 @@ function toReactFlowElements(
   activeNodeId: string | null,
   activePreviewNodeId: string | null,
   showEdgeLabels: boolean,
+  showNodeLabels: boolean,
+  showStatusMarkers: boolean,
   renderNodeOverlay: ((node: SceneNode) => ReactNode) | undefined,
   dimInactiveNodes: boolean,
 ): { readonly nodes: readonly SceneFlowNode[]; readonly edges: readonly NodeFlowEdge[] } {
@@ -553,7 +567,7 @@ function toReactFlowElements(
   const drawingTargetNodeId = presentation.drawingTargetNodeId ?? null;
   const positionedNodes = snapshot.nodes.map((node) => ({
     node,
-    ...layoutSceneNode(node, canvas, visualVariant),
+    ...layoutSceneNode(node, canvas, visualVariant, showNodeLabels),
   }));
   const geometriesByNodeId = new Map(
     positionedNodes.map(({ node, position, layout }) => [node.id, geometryForNode(position, layout)]),
@@ -594,6 +608,8 @@ function toReactFlowElements(
         compact,
         nodeSize: node.kind === 'account' ? 'main' : 'detail',
         nodeShape: layout.shape,
+        showNodeLabels,
+        showStatusMarkers,
         onSelect: onNodeSelect,
         renderNodeOverlay,
       },
@@ -648,6 +664,8 @@ export interface ReactFlowNetworkProps {
   readonly activeNodeId?: string | null;
   readonly activePreviewNodeId?: string | null;
   readonly showEdgeLabels?: boolean;
+  readonly showNodeLabels?: boolean;
+  readonly showStatusMarkers?: boolean;
   readonly renderNodeOverlay?: (node: SceneNode) => ReactNode;
   readonly dimInactiveNodes?: boolean;
 }
@@ -663,6 +681,8 @@ export function ReactFlowNetwork({
   activeNodeId = null,
   activePreviewNodeId = null,
   showEdgeLabels = true,
+  showNodeLabels = true,
+  showStatusMarkers = true,
   renderNodeOverlay,
   dimInactiveNodes = true,
 }: ReactFlowNetworkProps) {
@@ -685,6 +705,8 @@ export function ReactFlowNetwork({
         activeNodeId,
         activePreviewNodeId,
         showEdgeLabels,
+        showNodeLabels,
+        showStatusMarkers,
         renderNodeOverlay,
         dimInactiveNodes,
       ),
@@ -697,6 +719,8 @@ export function ReactFlowNetwork({
       presentation,
       rendererState.snapshot,
       showEdgeLabels,
+      showNodeLabels,
+      showStatusMarkers,
       renderNodeOverlay,
       dimInactiveNodes,
       visualVariant,

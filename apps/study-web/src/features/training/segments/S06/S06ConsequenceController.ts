@@ -25,7 +25,7 @@ import {
   type S06LocalAccountAnalysis,
 } from '@passwo/visualization';
 import type { NetworkPresentationSnapshot } from '../../../../adapters/network/NetworkMotionAdapter.js';
-import { alignNetworkSceneToS02 } from '../account-network.js';
+import { alignNetworkSceneToS02, createS05AssessmentNetwork } from '../account-network.js';
 
 export interface S06ConsequenceParticipantSnapshot {
   readonly narration: S06NarrationContent;
@@ -136,11 +136,17 @@ export function createS06ConsequenceScenePlan(
       details: s06ConsequenceContent.accounts[accountId].details,
     })),
   });
+  const campusgramFound =
+    plan.accounts.find(({ accountId }) => accountId === 'campusgram')?.disposition.kind ===
+    'whole-password-recognized';
   return {
     ...plan,
-    steps: plan.steps.map((step) => ({
+    steps: plan.steps.map((step, index) => ({
       ...step,
-      network: alignNetworkSceneToS02(step.network),
+      network:
+        index === 0
+          ? createS05AssessmentNetwork(campusgramFound, 'spread')
+          : alignNetworkSceneToS02(step.network),
     })),
   };
 }

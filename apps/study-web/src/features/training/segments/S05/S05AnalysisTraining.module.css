@@ -71,6 +71,7 @@
 .content:has(.assessmentDesktop) {
   padding: 0;
   overflow: hidden;
+  background: #000;
 }
 
 .assessmentDesktop,
@@ -78,127 +79,14 @@
   width: 100%;
   height: 100%;
   min-height: 0;
+  background: #000;
 }
 
 .assessmentStage {
   position: absolute;
-  inset: 0 0 4.8rem;
-  overflow: hidden;
-}
-
-.assessmentNetwork {
-  position: absolute;
-  z-index: 1;
   inset: 0;
-}
-
-.assessmentDim {
-  position: absolute;
-  z-index: 0;
-  inset: 0;
-  background: rgb(4 12 24 / 54%);
-  backdrop-filter: saturate(0.72) brightness(0.82);
-  pointer-events: none;
-}
-
-.assessmentPassword {
-  position: absolute;
-  z-index: 6;
-  top: 39%;
-  left: 50%;
-  display: grid;
-  width: min(48rem, 58cqi);
-  max-width: calc(100% - 27rem);
-  gap: var(--space-3);
-  justify-items: center;
-  padding: clamp(var(--space-3), 2cqi, var(--space-5));
-  border: 1px solid rgb(255 255 255 / 24%);
-  border-radius: var(--radius-medium);
-  color: white;
-  background: rgb(7 18 34 / 84%);
-  box-shadow: 0 1.2rem 3rem rgb(0 0 0 / 42%);
-  backdrop-filter: blur(0.8rem);
-  transform: translate(-50%, -50%);
-}
-
-.assessmentPassword .canonicalAccount {
-  color: white;
-}
-
-.assessmentLength {
-  padding: var(--space-2) var(--space-4);
-  border: 1px solid rgb(255 255 255 / 48%);
-  border-radius: var(--radius-round);
-  color: white;
-  background: rgb(16 45 74 / 92%);
-  font-weight: var(--font-weight-heavy);
-}
-
-.assessmentShieldMeaning {
-  max-width: 38rem;
-  margin: 0;
-  color: #dceeff;
-  font-size: var(--font-size-small);
-  line-height: var(--line-height-body);
-  text-align: center;
-}
-
-.assessmentAttacker {
-  position: absolute;
-  z-index: 5;
-  top: 43%;
-  right: 0.7%;
-  width: clamp(7rem, 12cqi, 11rem);
-  border-radius: 1.5rem;
-  filter: drop-shadow(0 1rem 1.8rem rgb(0 0 0 / 46%));
-  transform: translateY(-50%);
-}
-
-.assessmentAttackerLink {
-  position: absolute;
-  z-index: 4;
-  top: 44%;
-  right: 10%;
-  width: 10%;
-  height: 0.22rem;
-  background: linear-gradient(90deg, rgb(232 60 95 / 28%), #ed3e64 72%, #ff9bb1);
-  box-shadow: 0 0 0.8rem rgb(237 62 100 / 74%);
-  transform-origin: right center;
-  animation: assessment-attacker-signal 1.15s linear infinite;
-}
-
-.assessmentShield {
-  position: absolute;
-  z-index: 6;
-  width: 76%;
-  max-height: 96%;
-  object-fit: contain;
-  filter: drop-shadow(0 0 0.8rem rgb(34 143 255 / 78%));
-  pointer-events: none;
-}
-
-.assessmentShield[data-main="true"] {
-  width: 112%;
-  max-height: 118%;
-}
-
-.assessmentBug {
-  position: absolute;
-  z-index: 6;
-  top: -32%;
-  right: -24%;
-  width: 66%;
-  height: 64%;
   overflow: hidden;
-  border-radius: 50%;
-  filter: drop-shadow(0 0 0.7rem rgb(255 57 112 / 82%));
-  pointer-events: none;
-}
-
-.assessmentBug img {
-  width: 230%;
-  max-width: none;
-  transform: translate(-29%, -4%);
+  background: #000;
 }
 
 .assessmentDesktop :global([data-scene-node-button]) {
@@ -209,39 +97,13 @@
   animation: assessment-campusgram-pulse 1.35s ease-in-out infinite;
 }
 
-.assessmentDesktop :global([data-status="exposed"] [data-scene-node-visual]),
-.assessmentDesktop :global([data-status="affected"] [data-scene-node-visual]) {
-  border-color: #ff315e;
-  color: white;
-  background: #a80c31;
-  box-shadow: 0 0 0 0.25rem rgb(255 49 94 / 22%), 0 0 1.4rem rgb(255 49 94 / 72%);
-}
-
-.assessmentDesktop :global([data-status="protected"] [data-scene-node-visual]) {
-  border-color: #2497ff;
-  color: #dff3ff;
-  background: #073f91;
-  box-shadow: 0 0 0 0.24rem rgb(36 151 255 / 22%), 0 0 1.35rem rgb(36 151 255 / 68%);
-}
-
-.assessmentDesktop :global(.edge-status-blocked .react-flow__edge-path) {
-  stroke: #2c9dff;
-  stroke-width: 4px;
-  stroke-dasharray: 3 8;
-  filter: drop-shadow(0 0 5px rgb(44 157 255 / 70%));
-}
-
-.assessmentDesktop :global(.edge-status-direct .react-flow__edge-path) {
-  filter: drop-shadow(0 0 5px rgb(255 49 94 / 70%));
-}
-
 .assessmentDesktop[data-assessment-step="final-result"][data-assessment-outcome="protected"]
   :global([data-scene-node="campusgram"] [data-scene-node-visual]) {
   animation: assessment-campusgram-blocked 1.35s ease-out both;
 }
 
-.assessmentDesktop[data-assessment-step="final-result"] .assessmentShield,
-.assessmentDesktop[data-assessment-step="final-result"] .assessmentBug {
+.assessmentDesktop[data-assessment-step="final-result"] :global([data-account-shield]),
+.assessmentDesktop[data-assessment-step="final-result"] :global([data-account-attacker]) {
   animation: assessment-result-mark 1.35s ease-out both;
 }
 
@@ -254,28 +116,14 @@
 
 .assessmentDesktop[data-assessment-step="final-spread"]
   :global([data-network-edge-target]) {
-  animation: assessment-edge-spread 620ms ease-out both;
+  animation: assessment-edge-spread 760ms cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
 .assessmentDesktop[data-assessment-step="final-spread"]
-  :global([data-scene-node="master-campus"]),
+  :global([data-scene-node^="campusgram-"]),
 .assessmentDesktop[data-assessment-step="final-spread"]
-  :global([data-network-edge-target="master-campus"]) { animation-delay: 120ms; }
-.assessmentDesktop[data-assessment-step="final-spread"]
-  :global([data-scene-node="campus-email"]),
-.assessmentDesktop[data-assessment-step="final-spread"]
-  :global([data-network-edge-target="campus-email"]) { animation-delay: 480ms; }
-.assessmentDesktop[data-assessment-step="final-spread"]
-  :global([data-scene-node^="master-campus-"]),
-.assessmentDesktop[data-assessment-step="final-spread"]
-  :global([data-network-edge-target^="master-campus-"]) { animation-delay: 940ms; }
-.assessmentDesktop[data-assessment-step="final-spread"]
-  :global([data-scene-node^="campus-email-"]),
-.assessmentDesktop[data-assessment-step="final-spread"]
-  :global([data-network-edge-target^="campus-email-"]) { animation-delay: 1480ms; }
-
-@keyframes assessment-attacker-signal {
-  50% { opacity: 0.48; transform: scaleX(0.92); }
+  :global([data-network-edge-target^="campusgram-"]) {
+  animation-delay: 180ms;
 }
 
 @keyframes assessment-campusgram-pulse {
@@ -315,40 +163,17 @@
   to { opacity: 1; }
 }
 
-@media (max-width: 58rem), (max-height: 42rem) {
-  .assessmentPassword {
-    top: 35%;
-    width: min(38rem, 54cqi);
-    max-width: calc(100% - 18rem);
-    padding: var(--space-3);
-  }
-
-  .assessmentAttacker {
-    right: 0.25%;
-    width: clamp(5.5rem, 10cqi, 8rem);
-  }
-
-  .assessmentAttackerLink {
-    right: 8%;
-    width: 11%;
-  }
-}
-
 @media (prefers-reduced-motion: reduce) {
-  .assessmentAttackerLink,
   .assessmentDesktop :global([data-scene-node]),
   .assessmentDesktop :global([data-network-edge-target]),
   .assessmentDesktop :global([data-scene-node-visual]),
-  .assessmentShield,
-  .assessmentBug {
+  .assessmentDesktop :global([data-account-shield]),
+  .assessmentDesktop :global([data-account-attacker]) {
     opacity: 1;
     animation: none !important;
     transform: none;
   }
 
-  .assessmentBug img {
-    transform: translate(-29%, -4%);
-  }
 }
 
 .attackerStage,

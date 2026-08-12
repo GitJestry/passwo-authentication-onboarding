@@ -73,12 +73,8 @@ export function createCompletedS02Network(): NetworkSceneSnapshot {
 
 export type S05AssessmentNetworkPhase = 'focus' | 'result' | 'spread';
 
-const s05AssessmentTargetAccountIds = ['master-campus', 'campus-email'] as const;
-
-function belongsToS05AssessmentTarget(nodeId: string): boolean {
-  return s05AssessmentTargetAccountIds.some(
-    (accountId) => nodeId === accountId || nodeId.startsWith(`${accountId}-`),
-  );
+function belongsToCampusgramCluster(nodeId: string): boolean {
+  return nodeId.startsWith('campusgram-');
 }
 
 /**
@@ -109,36 +105,24 @@ export function createS05AssessmentNetwork(
           : 'Der dargestellte Prüfweg wurde durch den Passwortfaktor blockiert; das ist keine allgemeine Sicherheitsgarantie.',
       };
     }
-    if (belongsToS05AssessmentTarget(node.id) && showsSpread) {
+    if (belongsToCampusgramCluster(node.id) && showsSpread) {
       return {
         ...node,
         locked: false,
         selectable: false,
         status: spreadStatus,
         description: wholePasswordRecognized
-          ? 'Ein vom Campusgram-Konto ausgehender simulierter Prüfweg erreicht diesen Bereich.'
+          ? 'Dieser Bereich ist direkt mit dem gefundenen Campusgram-Konto verbunden.'
           : 'Ein Schild kennzeichnet hier den Passwortschutz als einen Faktor.',
       };
     }
     return { ...node, locked: false, selectable: false, status: 'neutral' };
   });
   const edges = base.edges.map((edge): SceneEdge =>
-    showsSpread && belongsToS05AssessmentTarget(edge.sourceId)
+    showsSpread && edge.sourceId === 'campusgram'
       ? { ...edge, kind: spreadEdgeKind, status: spreadEdgeStatus }
       : { ...edge, status: 'neutral' },
   );
-  if (showsSpread) {
-    for (const accountId of s05AssessmentTargetAccountIds) {
-      edges.push({
-        id: `s05-campusgram--${accountId}`,
-        sourceId: 'campusgram',
-        targetId: accountId,
-        kind: spreadEdgeKind,
-        status: spreadEdgeStatus,
-        label: null,
-      });
-    }
-  }
   return {
     id: `s05-assessment-${phase}-${wholePasswordRecognized ? 'found' : 'protected'}`,
     nodes,
@@ -148,11 +132,11 @@ export function createS05AssessmentNetwork(
         ? 'Alle Konten und verbundenen Bereiche sind sichtbar und entsperrt. Campusgram ist für die Auswertung hervorgehoben.'
         : phase === 'result'
           ? wholePasswordRecognized
-            ? 'Das vollständige Campusgram-Passwort wurde in der Simulation gefunden. Campusgram ist rot markiert und trägt den Käfer.'
+            ? 'Das vollständige Campusgram-Passwort wurde in der Simulation gefunden. Campusgram ist dunkelrot markiert und wird vom Angreifer verdeckt.'
             : 'Der simulierte Prüfweg zu Campusgram wurde blockiert. Ein Schild markiert den Passwortschutz als einen Faktor.'
           : wholePasswordRecognized
-            ? 'Campusgram wurde in der Simulation gefunden. Rote Prüfwege führen zu den beiden anderen Kontoclustern.'
-            : 'Der simulierte Prüfweg zu Campusgram wurde blockiert. Blaue Schutzlinien und Schilde markieren die Kontocluster.',
+            ? 'Campusgram wurde in der Simulation gefunden. Nur die direkt angebundenen Campusgram-Knoten und Verbindungen werden rot markiert.'
+            : 'Der simulierte Prüfweg zu Campusgram wurde blockiert. Schilde und blaue Schutzlinien markieren nur die direkt angebundenen Campusgram-Knoten.',
   };
 }
 

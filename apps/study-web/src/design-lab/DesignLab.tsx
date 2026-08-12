@@ -5,6 +5,7 @@ import {
   type TrainingQaPasswordOverrides,
 } from '@passwo/contracts';
 import {
+  getS05DesignLabFixture,
   getS05DesignLabFixtureByRouteId,
   getS06ConsequenceFixtureByRouteId,
   getS06PreparedS07EvaluationFixtureByRouteId,
@@ -13,7 +14,11 @@ import {
   s01AccountIds,
   s01Content,
 } from '@passwo/training-content';
-import { PasswordModuleController, type PasswordModuleSnapshot } from '@passwo/training-engine';
+import {
+  deriveCampusIdentity,
+  PasswordModuleController,
+  type PasswordModuleSnapshot,
+} from '@passwo/training-engine';
 import {
   ArtifactViewport,
   BrowserShell,
@@ -22,14 +27,17 @@ import {
   type BrowserTabModel,
   type DesktopPlatform,
 } from '@passwo/ui';
-import { useEffect, useState, type ReactNode } from 'react';
+import { useCallback, useEffect, useState, type ReactNode } from 'react';
 import { S00Training } from '../features/training/S00Training.js';
 import { S01Training } from '../features/training/S01Training.js';
 import { SectionTransition } from '../features/training/SectionTransition.js';
 import { S02AccountExplorationTraining } from '../features/training/segments/S02/S02AccountExplorationTraining.js';
 import { S03RetrievalTraining } from '../features/training/segments/S03/S03RetrievalTraining.js';
 import { S04IncidentTraining } from '../features/training/segments/S04/S04IncidentTraining.js';
-import { S06ConsequenceTraining } from '../features/training/segments/S06/S06ConsequenceTraining.js';
+import {
+  S06ConsequenceTraining,
+  type S06ConsequenceSource,
+} from '../features/training/segments/S06/S06ConsequenceTraining.js';
 import styles from './DesignLab.module.css';
 import { S05DesignLabTraining } from './S05DesignLabTraining.js';
 import { S07DesignLabTraining } from './S07DesignLabTraining.js';
@@ -585,6 +593,39 @@ function waitForPreviewState(
   });
 }
 
+function s06SourceForPreview(snapshot: PasswordModuleSnapshot): S06ConsequenceSource | null {
+  const assessmentTerms = deriveCampusIdentity('Vorschau').assessmentTerms;
+  const accountInput = (accountId: S01AccountId) => {
+    const fictionalPassword = snapshot.context.passwordValues[accountId];
+    const retrievalStatus = snapshot.context.retrievalResults[accountId];
+    if (
+      fictionalPassword === undefined ||
+      fictionalPassword.length === 0 ||
+      retrievalStatus === undefined ||
+      retrievalStatus === 'pending'
+    ) {
+      return null;
+    }
+    return {
+      fictionalPassword,
+      retrievalStatus,
+      transientAccountIdentifiers: assessmentTerms[accountId],
+    };
+  };
+  const masterCampus = accountInput('master-campus');
+  const campusEmail = accountInput('campus-email');
+  const campusgram = accountInput('campusgram');
+  if (masterCampus === null || campusEmail === null || campusgram === null) return null;
+  return {
+    kind: 'runtime',
+    accounts: {
+      'master-campus': masterCampus,
+      'campus-email': campusEmail,
+      campusgram,
+    },
+  };
+}
+
 function PasswordModuleSegmentPreview({
   segment,
   accountId,
@@ -599,6 +640,7 @@ function PasswordModuleSegmentPreview({
   const [controller, setController] = useState<PasswordModuleController | null>(null);
   const [snapshot, setSnapshot] = useState<PasswordModuleSnapshot | null>(null);
   const [preparationError, setPreparationError] = useState<string | null>(null);
+  const completeS05 = useCallback(() => controller?.completeS05(), [controller]);
 
   useEffect(() => {
     const previewController = new PasswordModuleController({
@@ -633,9 +675,15 @@ function PasswordModuleSegmentPreview({
       }
 
       for (const accountId of previewController.getSnapshot().context.accountIds) {
+        const fixturePassword =
+          segment === 's05' && accountId === 'campusgram'
+            ? getS05DesignLabFixture('common-suffix').fictionalPassword
+            : undefined;
         previewController.setPasswordValue(
           accountId,
-          passwordForAccount(accountId as S01AccountId, passwordOverrides),
+          passwordOverrides[accountId as S01AccountId] ??
+            fixturePassword ??
+            defaultTrainingQaPasswords[accountId as S01AccountId],
         );
         previewController.configureAccount(accountId);
       }
@@ -735,6 +783,20 @@ function PasswordModuleSegmentPreview({
       />
     );
   }
+  if (snapshot.matches('uniquenessTransition')) {
+    return (
+      <SectionTransition
+        sectionLabel={s00Content.sectionTransition.label}
+        title={s00Content.sectionTransition.title}
+        currentSection={1}
+        totalSections={3}
+        parts={s00Content.sectionTransition.parts}
+        currentPart={3}
+        holdDurationMs={s00Content.sectionTransition.holdDurationMs}
+        onComplete={() => controller.completeSectionTransition()}
+      />
+    );
+  }
   if (snapshot.matches('s04')) {
     return <S04IncidentTraining controller={controller} snapshot={snapshot} />;
   }
@@ -746,8 +808,16 @@ function PasswordModuleSegmentPreview({
         {...(passwordOverrides.campusgram === undefined
           ? {}
           : { passwordOverride: passwordOverrides.campusgram })}
+        {...(segment === 's05' ? { onComplete: completeS05 } : {})}
       />
     );
+  }
+  if (segment === 's05' && snapshot.matches({ s06: 'active' })) {
+    const source = s06SourceForPreview(snapshot);
+    if (source === null) {
+      return <p role="alert">S06-QA-Daten sind unvollständig.</p>;
+    }
+    return <S06ConsequenceTraining source={source} />;
   }
   return <p>QA-Abschnitt wird vorbereitet …</p>;
 }

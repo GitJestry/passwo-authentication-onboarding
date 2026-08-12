@@ -106,6 +106,11 @@
   text-align: center;
 }
 
+.nodeButton[data-show-node-labels="false"] {
+  grid-template-rows: var(--node-visual-height);
+  gap: 0;
+}
+
 .nodeButton:not(:disabled) {
   cursor: pointer;
 }
@@ -136,7 +141,7 @@
   border: var(--border-width-medium) solid var(--color-border);
   border-radius: var(--radius-round);
   color: var(--color-accent-strong);
-  background: color-mix(in srgb, var(--color-surface-elevated) 94%, #edf6ff);
+  background: #ffffff;
   box-shadow: 0 0.8rem 1.8rem color-mix(in srgb, #285377 16%, transparent);
   transition:
     border-color var(--motion-standard) var(--motion-ease-out),
@@ -169,17 +174,14 @@
 
 .nodeFrame[data-symbol-id="master-campus"] .nodeCircle {
   border-color: #6f8eaa;
-  background: #eef5fa;
 }
 
 .nodeFrame[data-symbol-id="campus-email"] .nodeCircle {
   border-color: #eea15c;
-  background: #fff3e6;
 }
 
 .nodeFrame[data-symbol-id="campusgram"] .nodeCircle {
   border-color: #e681aa;
-  background: #fff0f6;
 }
 
 .nodeFrame[data-highlighted="true"] .nodeCircle {
@@ -212,7 +214,6 @@
 .nodeFrame[data-status="understood"] .nodeCircle,
 .nodeFrame[data-status="protected"] .nodeCircle {
   border-color: #08c978;
-  background: color-mix(in srgb, #e9fff3 74%, var(--color-surface-elevated));
   box-shadow:
     0 0 0 3px color-mix(in srgb, #08c978 14%, transparent),
     0 0 1.5rem color-mix(in srgb, #08c978 30%, transparent),
@@ -223,19 +224,16 @@
 .nodeFrame[data-status="affected"] .nodeCircle {
   border-color: var(--color-danger);
   color: var(--color-danger);
-  background: var(--color-danger-soft);
 }
 
 .nodeFrame[data-status="protected"] .nodeCircle {
   color: var(--color-positive);
-  background: var(--color-positive-soft);
 }
 
 .nodeFrame[data-status="hypothetical"] .nodeCircle {
   border-style: dashed;
   border-color: var(--color-hypothetical);
   color: var(--color-hypothetical);
-  background: var(--color-hypothetical-soft);
 }
 
 .nodeSymbol,

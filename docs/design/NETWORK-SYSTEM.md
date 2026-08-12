@@ -36,10 +36,16 @@ Das Netzwerk zeigt Konten, abhängige Dienste, Funktionen, Passwortbeziehungen u
 - Jeder Node führt eine semantische `symbolId`. Der Renderer löst diese ID ausschließlich über
   eine lokale Inline-SVG-Registry auf; Emojis und externe Icon-Abhängigkeiten werden nicht
   verwendet.
-- Im Kreis steht nur das Symbol. Das kompakte Label sitzt unterhalb des Kreises; Beschreibung und
-  Textstatus bleiben für die zugängliche Benennung sowie für separate Kontextkarten reserviert.
+- Knoten besitzen eine weiße Innenfläche und zeigen ihr Symbol in der Mitte. S02 zeigt das
+  kompakte Label unterhalb des Knotens; in S05-Netzwerkszenen und S06 entfällt es. Label,
+  Beschreibung und Textstatus bleiben unabhängig davon für die zugängliche Benennung sowie für
+  separate Kontextkarten erhalten.
 - Ein kleiner Statusmarker überlagert den Kreis: offen, verstanden, betroffen oder geschützt.
   Farbe ergänzt dabei Symbol und zugänglichen Status, ersetzt sie aber nicht.
+- Die gemeinsame S05-/S06-Auswertungsdarstellung ersetzt den generischen SVG-Statusmarker: Bei
+  blockierten Knoten liegt das Schutzlogo groß und mittig im Knoten; beim gefundenen
+  Campusgram-Knoten erscheint kein Warnmarker, weil der Angreifer den Zustand bereits sichtbar
+  markiert.
 - Das Schloss eines geschlossenen Hauptkontos liegt als eigener Marker oberhalb des Knotenkreises,
   damit Kontosymbol, Schlüsselweg und geöffneter Bügel gleichzeitig sichtbar bleiben. Der
   Cursor-Schlüssel bleibt nach einem abgeschlossenen Konto am Mauszeiger sichtbar; die Vorschau
@@ -85,5 +91,7 @@ Campus E-Mail projizieren rechts, Campusgram links. Zwei Linien und eine schwach
 verbinden den aktiven Detailknoten mit der Karte. Die Karte darf inaktive Knoten überdecken, enthält
 keinen duplizierenden PassWo-Text und bleibt bei Reduced Motion im vollständigen Endzustand.
 
-Danach wird in S06 derselbe Graph um Angriffs- und Schutzstatus erweitert. So wird der Adapter
-früh mit den wichtigsten Zuständen validiert, bevor alle Segmente umgesetzt werden.
+Danach wird in S06 derselbe Graph um Angriffs- und Schutzstatus erweitert. Der erste S06-Frame ist
+der unveränderte letzte S05-Netzwerkstand; beide Segmente verwenden dieselbe
+Auswertungskomponente. Master-Campus- und Campus-E-Mail-Detailkanten erhalten in dieser
+Auswertungsdarstellung denselben neutralen Linienstil.
