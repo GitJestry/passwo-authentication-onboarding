@@ -221,6 +221,8 @@ export function S06PasswordComparisonProjection({
   relation,
   phase,
   onPreviewComplete,
+  onAdvance,
+  finishLabel,
   onResolutionComplete,
 }: {
   readonly sceneRef: RefObject<HTMLElement | null>;
@@ -232,9 +234,12 @@ export function S06PasswordComparisonProjection({
   readonly relation: PasswordRelation;
   readonly phase: 'attacking' | 'preview-ready' | 'resolving';
   readonly onPreviewComplete: () => void;
+  readonly onAdvance: () => void;
+  readonly finishLabel: string;
   readonly onResolutionComplete: () => void;
 }) {
   const cardRef = useRef<HTMLDivElement | null>(null);
+  const advanceButtonRef = useRef<HTMLButtonElement | null>(null);
   const [layout, setLayout] = useState<ProjectionLayout | null>(null);
   const parts = pairedComparisonParts(sourcePassword, targetPassword, relation);
   const sourceCommonIndices = parts.source.flatMap(({ kind }, index) =>
@@ -254,6 +259,10 @@ export function S06PasswordComparisonProjection({
     });
     return () => cancelAnimationFrame(frame);
   }, [onPreviewComplete, onResolutionComplete, phase]);
+
+  useEffect(() => {
+    if (phase === 'preview-ready') advanceButtonRef.current?.focus();
+  }, [phase]);
 
   useLayoutEffect(() => {
     const scene = sceneRef.current;
@@ -361,58 +370,72 @@ export function S06PasswordComparisonProjection({
           />
         </svg>
       )}
-      <div
-        ref={cardRef}
-        className={styles.card}
-        style={projectionStyle}
-        aria-label={s06ConsequenceContent.relationLabels[relation.kind]}
-      >
-        <CommonCoreLinks hostRef={cardRef} />
-        <div className={styles.passwordRow} data-comparison-row="source">
-          <span className={styles.accountSymbol} aria-hidden="true">
-            <NetworkSymbol symbolId={sourceAccountId} />
-          </span>
-          <PasswordBuildingBlocks
-            value={sourcePassword}
-            parts={parts.source.map(({ value }) => value)}
-            display="decomposed"
-            appearance="analysis"
-            animate
-            highlightedIndices={sourceCommonIndices}
-            categoryIds={parts.source.map(({ kind }) =>
-              kind === 'common' ? ['common-components'] : [],
-            )}
-            ariaLabel={`${s06ConsequenceContent.accounts[sourceAccountId].label}: ${sourcePassword}`}
-          />
-        </div>
-        <div className={styles.passwordRow} data-comparison-row="target">
-          <span className={styles.accountSymbol} aria-hidden="true">
-            <NetworkSymbol symbolId={targetAccountId} />
-          </span>
-          <PasswordBuildingBlocks
-            value={targetPassword}
-            parts={parts.target.map(({ value }) => value)}
-            display="decomposed"
-            appearance="analysis"
-            animate
-            highlightedIndices={targetCommonIndices}
-            categoryIds={parts.target.map(({ kind }) =>
-              kind === 'common' ? ['common-components'] : [],
-            )}
-            ariaLabel={`${s06ConsequenceContent.accounts[targetAccountId].label}: ${targetPassword}`}
-          />
-        </div>
-        <strong
-          className={styles.result}
-          role="status"
-          onAnimationEnd={(event) => {
-            if (event.target === event.currentTarget && phase === 'attacking') {
-              onPreviewComplete();
-            }
-          }}
+      <div className={styles.preview} style={projectionStyle}>
+        <div
+          ref={cardRef}
+          className={styles.card}
+          aria-label={s06ConsequenceContent.relationLabels[relation.kind]}
         >
-          {s06ConsequenceContent.comparisonResultLabels[relation.kind]}
-        </strong>
+          <CommonCoreLinks hostRef={cardRef} />
+          <div className={styles.passwordRow} data-comparison-row="source">
+            <span className={styles.accountSymbol} aria-hidden="true">
+              <NetworkSymbol symbolId={sourceAccountId} />
+            </span>
+            <PasswordBuildingBlocks
+              value={sourcePassword}
+              parts={parts.source.map(({ value }) => value)}
+              display="decomposed"
+              appearance="analysis"
+              animate
+              highlightedIndices={sourceCommonIndices}
+              categoryIds={parts.source.map(({ kind }) =>
+                kind === 'common' ? ['common-components'] : [],
+              )}
+              ariaLabel={`${s06ConsequenceContent.accounts[sourceAccountId].label}: ${sourcePassword}`}
+            />
+          </div>
+          <div className={styles.passwordRow} data-comparison-row="target">
+            <span className={styles.accountSymbol} aria-hidden="true">
+              <NetworkSymbol symbolId={targetAccountId} />
+            </span>
+            <PasswordBuildingBlocks
+              value={targetPassword}
+              parts={parts.target.map(({ value }) => value)}
+              display="decomposed"
+              appearance="analysis"
+              animate
+              highlightedIndices={targetCommonIndices}
+              categoryIds={parts.target.map(({ kind }) =>
+                kind === 'common' ? ['common-components'] : [],
+              )}
+              ariaLabel={`${s06ConsequenceContent.accounts[targetAccountId].label}: ${targetPassword}`}
+            />
+          </div>
+          <strong
+            className={styles.result}
+            role="status"
+            onAnimationEnd={(event) => {
+              if (event.target === event.currentTarget && phase === 'attacking') {
+                onPreviewComplete();
+              }
+            }}
+          >
+            {s06ConsequenceContent.comparisonResultLabels[relation.kind]}
+          </strong>
+        </div>
+        {phase === 'preview-ready' ? (
+          <footer className={styles.previewFooter}>
+            <button
+              ref={advanceButtonRef}
+              type="button"
+              className={styles.previewAdvanceButton}
+              onClick={onAdvance}
+            >
+              {finishLabel}
+              <span aria-hidden="true">{finishLabel === s06ConsequenceContent.page.finish ? '✓' : '→'}</span>
+            </button>
+          </footer>
+        ) : null}
       </div>
       {successful ? (
         <div className={styles.candidateFlight} style={candidateStyle} aria-hidden="true">

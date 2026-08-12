@@ -59,7 +59,12 @@ export function AccountAssessmentNetwork({
   readonly presentation: NetworkPresentationSnapshot;
   readonly ariaLabel?: string;
   readonly canvasAriaLabel?: string;
-  readonly attackPhase?: 'found' | 'attacking' | 'preview-ready' | 'resolving';
+  readonly attackPhase?:
+    | 'found'
+    | 'hypothetical-intro'
+    | 'attacking'
+    | 'preview-ready'
+    | 'resolving';
   readonly attackTargetId?: S06AccountId | null;
   readonly attackBlocked?: boolean;
 }) {

@@ -32,6 +32,7 @@ export interface S06ConsequenceFixture {
 export type S06NarrationId =
   | 's06.incident.campusgram-found'
   | 's06.incident.campusgram-blocked'
+  | 's06.incident.campusgram-hypothetical'
   | 's06.compare.exact-match'
   | 's06.compare.derived-variant-match'
   | 's06.compare.no-derived-path-recognized'
@@ -39,14 +40,21 @@ export type S06NarrationId =
   | 's06.perspective.master-campus-blocked'
   | 's06.local-check.campus-email-found'
   | 's06.local-check.campus-email-blocked'
-  | 's06.summary';
+  | 's06.summary'
+  | 's06.summary.actual-none'
+  | 's06.summary.actual-one'
+  | 's06.summary.actual-both'
+  | 's06.summary.hypothetical-none'
+  | 's06.summary.hypothetical-one'
+  | 's06.summary.hypothetical-both'
+  | 's06.transition';
 
 export interface S06NarrationContent {
   readonly heading: string;
   readonly body: string;
 }
 
-export const S06_CONSEQUENCE_CONTENT_VERSION = '2.6.0';
+export const S06_CONSEQUENCE_CONTENT_VERSION = '2.7.0';
 
 export const s06ConsequenceContent = {
   version: S06_CONSEQUENCE_CONTENT_VERSION,
@@ -54,9 +62,9 @@ export const s06ConsequenceContent = {
     document: 'research/private/training-script.pdf',
     internalPages: [36, 37, 38, 39, 40, 41, 42, 43, 44] as const,
     revision:
-      'Userauftrag vom 2026-08-12 · S06-Preview-Reihenfolge Ähnlichkeit und Wiederverwendung',
+      'Userauftrag vom 2026-08-12 · S06-Ablauf ab Campusgram mit realem und hypothetischem Pfad',
     copyReference:
-      'docs/design/S06-S07-COPY-AUDIT.md#content-delta-s06-preview-beispielreihenfolge-12-august-2026',
+      'docs/design/S06-S07-COPY-AUDIT.md#copy-und-ablaufdelta-s06-real-und-hypothetisch-ab-campusgram-12-august-2026',
   },
   segment: {
     id: 'S06',
@@ -80,6 +88,7 @@ export const s06ConsequenceContent = {
     attackStart: 'Angriff starten',
     replay: 'Animation wiederholen',
     continue: 'Weiter',
+    finish: 'Fertig',
     complete: 'Endübersicht erreicht',
     showPassword: 'Fiktives Passwort anzeigen',
     hidePassword: 'Fiktives Passwort verbergen',
@@ -93,7 +102,7 @@ export const s06ConsequenceContent = {
     hypothetical: {
       heading: 'Was wäre, wenn das Ausgangspasswort bekannt wäre?',
       status: 'Hypothetischer Simulationspfad',
-      overlay: 'Hypothetisches Beispiel · nicht als tatsächlicher Vorfall dargestellt',
+      overlay: 'Was wäre, wenn?',
     },
   },
   accounts: {
@@ -159,11 +168,15 @@ export const s06ConsequenceContent = {
   narrations: {
     's06.incident.campusgram-found': {
       heading: 'Erster Vorfall: Campusgram',
-      body: 'Die begrenzte Prüfung erkannte das vollständige Campusgram-Passwort als frühen Kandidaten.',
+      body: 'Da der Angreifer nun das Campusgram-Passwort kennt, probiert er dieses oder ähnliche Varianten davon bei den anderen Konten aus.',
     },
     's06.incident.campusgram-blocked': {
       heading: 'Erster Vorfall: Campusgram',
-      body: 'Das Datenleck allein reicht hier nicht aus. Dieser tatsächliche Weg stoppt zunächst.',
+      body: 'Da der Angreifer das Campusgram-Passwort nicht herausfinden konnte, stellt sich die Frage: Was wäre passiert, wenn doch?',
+    },
+    's06.incident.campusgram-hypothetical': {
+      heading: 'Erster Vorfall: Campusgram',
+      body: 'Angenommen, der Angreifer hätte das Campusgram-Passwort gekannt. Dann hätte er dieses oder ähnliche Varianten bei den anderen Konten ausprobiert.',
     },
     's06.compare.exact-match': {
       heading: 'Vollständige Werte stimmen überein',
@@ -196,6 +209,34 @@ export const s06ConsequenceContent = {
     's06.summary': {
       heading: 'Gemeinsame Endübersicht',
       body: 'Ein Passwort wirkt für sich und durch seine konkrete Beziehung zu anderen Passwörtern.',
+    },
+    's06.summary.actual-none': {
+      heading: 'Gemeinsame Endübersicht',
+      body: 'Der Angriff blieb auf Campusgram begrenzt. Die beiden anderen Konten blieben in dieser Prüfung geschützt.',
+    },
+    's06.summary.actual-one': {
+      heading: 'Gemeinsame Endübersicht',
+      body: 'Der Angriff konnte sich von Campusgram auf ein weiteres Konto ausbreiten. Das andere Konto blieb in dieser Prüfung geschützt.',
+    },
+    's06.summary.actual-both': {
+      heading: 'Gemeinsame Endübersicht',
+      body: 'Der Angriff konnte sich von Campusgram auf beide anderen Konten ausbreiten.',
+    },
+    's06.summary.hypothetical-none': {
+      heading: 'Gemeinsame Endübersicht',
+      body: 'Selbst wenn das Campusgram-Passwort bekannt gewesen wäre, wäre der Angriff in dieser Simulation auf Campusgram begrenzt geblieben. Die anderen Konten wären geschützt geblieben.',
+    },
+    's06.summary.hypothetical-one': {
+      heading: 'Gemeinsame Endübersicht',
+      body: 'Wäre das Campusgram-Passwort bekannt gewesen, hätte sich der Angriff auf ein weiteres Konto ausbreiten können. Das andere wäre in dieser Prüfung geschützt geblieben.',
+    },
+    's06.summary.hypothetical-both': {
+      heading: 'Gemeinsame Endübersicht',
+      body: 'Wäre das Campusgram-Passwort bekannt gewesen, hätte sich der Angriff auf beide anderen Konten ausbreiten können.',
+    },
+    's06.transition': {
+      heading: 'Gemeinsame Endübersicht',
+      body: 'Bislang begann der Angriff bei Campusgram. Welches Konto zuerst bekannt wird, lässt sich aber nicht vorhersagen. Deshalb schauen wir uns die Konten jetzt noch einmal aus einer anderen Ausgangslage an.',
     },
   } as const satisfies Readonly<Record<S06NarrationId, S06NarrationContent>>,
   fixtures: [

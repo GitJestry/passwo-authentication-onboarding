@@ -122,6 +122,7 @@ export function S06ConsequenceTraining({
     controller = new S06ConsequenceController({
       plan,
       animationPlayer,
+      prefersReducedMotion,
       ...(onComplete === undefined ? {} : { onComplete }),
     });
     const renderer = new ReactFlowNetworkAdapter(controller.getSnapshot().step.network);
@@ -132,10 +133,16 @@ export function S06ConsequenceTraining({
     }
     controller.attachRenderer(renderer);
     const unsubscribe = controller.subscribe(setSnapshot);
+    const unsubscribeInfectionCascade = renderer.subscribe(() => {
+      controller?.infectionCascadeSettled([
+        ...renderer.getSnapshot().settledInfectionNodeIds,
+      ]);
+    });
     setRuntime({ controller, renderer, plan });
     setSnapshot(controller.getSnapshot());
 
     return () => {
+      unsubscribeInfectionCascade();
       unsubscribe();
       void controller?.dispose();
     };
@@ -152,24 +159,19 @@ export function S06ConsequenceTraining({
           label: 'Erneut versuchen',
           onAction: onRetryTiming,
         }
-    : snapshot.controls.canStart
-      ? {
-          kind: 'perform' as const,
-          label: 'Simulation starten',
-          onAction: () => runtime.controller.start(),
-        }
-      : snapshot.controls.canContinue
-        ? snapshot.stepIndex === 0
-          ? {
-              kind: 'perform' as const,
-              label: s06ConsequenceContent.page.attackStart,
-              onAction: () => void runtime.controller.continue(),
-            }
-          : {
-              kind: 'advance' as const,
-              onAction: () => void runtime.controller.continue(),
-            }
-        : undefined;
+    : snapshot.showGuide && snapshot.controls.canContinue
+      ? snapshot.stage === 'initial-found' || snapshot.stage === 'hypothetical-ready'
+        ? {
+            kind: 'perform' as const,
+            label: s06ConsequenceContent.page.attackStart,
+            onAction: () => void runtime.controller.continue(),
+          }
+        : {
+            kind: 'advance' as const,
+            label: s06ConsequenceContent.page.continue,
+            onAction: () => void runtime.controller.continue(),
+          }
+      : undefined;
   const speech = timingFailure
     ? [
         'Die Segmentgrenze konnte nicht bestätigt werden.',
@@ -179,6 +181,7 @@ export function S06ConsequenceTraining({
       ? ['Segmentabschluss wird bestätigt …']
       : [snapshot.participant.narration.body];
   const comparison =
+    !snapshot.comparisonVisible ||
     snapshot.step.sourceAccountId === null ||
     snapshot.step.targetAccountId === null ||
     snapshot.step.relation === null
@@ -199,7 +202,11 @@ export function S06ConsequenceTraining({
 
   return (
     <section className={styles.training} aria-label="PassWo, Segment S06, Passwortfolgen">
-      <article ref={sceneRef} className={styles.page} data-scene-mode={snapshot.step.mode}>
+      <article
+        ref={sceneRef}
+        className={styles.page}
+        data-scene-mode={snapshot.isHypothetical ? 'hypothetical' : snapshot.step.mode}
+      >
         <div ref={networkHostRef} className={styles.networkPanel}>
           <AccountAssessmentNetwork
             adapter={runtime.renderer}
@@ -207,11 +214,16 @@ export function S06ConsequenceTraining({
             attackPhase={snapshot.attackPhase}
             attackTargetId={snapshot.step.targetAccountId}
             attackBlocked={
-              snapshot.step.relation?.kind === 'no-derived-path-recognized' ||
-              snapshot.step.mode !== 'actual'
+              snapshot.step.relation?.kind === 'no-derived-path-recognized'
             }
           />
         </div>
+        {snapshot.isHypothetical ? (
+          <>
+            <div className={styles.hypotheticalShade} aria-hidden="true" />
+            <p className={styles.hypotheticalLabel}>{s06ConsequenceContent.modes.hypothetical.overlay}</p>
+          </>
+        ) : null}
         {comparison === null ? null : (
           <S06PasswordComparisonProjection
             key={snapshot.step.id}
@@ -223,30 +235,40 @@ export function S06ConsequenceTraining({
             targetPassword={comparison.targetPassword}
             relation={comparison.relation}
             phase={
-              snapshot.attackPhase === 'found' ? 'attacking' : snapshot.attackPhase
+              snapshot.attackPhase === 'preview-ready' || snapshot.attackPhase === 'resolving'
+                ? snapshot.attackPhase
+                : 'attacking'
             }
             onPreviewComplete={() => runtime.controller.previewCompleted(snapshot.step.id)}
+            onAdvance={() => runtime.controller.resolvePreview(snapshot.step.id)}
+            finishLabel={
+              snapshot.stepIndex === 2
+                ? s06ConsequenceContent.page.finish
+                : s06ConsequenceContent.page.continue
+            }
             onResolutionComplete={() => runtime.controller.resolutionCompleted(snapshot.step.id)}
           />
         )}
-        <div className={styles.passWoLayer} role={timingFailure ? 'alert' : undefined}>
-          <PassWoGuide
-            guideName={s00Content.narration.guideName}
-            taskLabel={snapshot.participant.narration.heading}
-            helpOpen
-            helpId="s06-passwo-speech"
-            openHelpLabel={s00Content.narration.openGuideLabel}
-            speech={speech}
-            speechKey={`s06-${snapshot.step.id}-${timingState}`}
-            speechEmphasis={passWoSpeechEmphasisFor(snapshot.step.narrationId)}
-            {...(speechAction === undefined ? {} : { speechAction })}
-            speechObstacleSelector="[data-scene-node]"
-            speechPlacement="right"
-            placement="bottom-left"
-            pose={snapshot.step.mode === 'actual' ? 'warning' : 'default'}
-            showHelpButton={false}
-          />
-        </div>
+        {timingFailure || snapshot.showGuide ? (
+          <div className={styles.passWoLayer} role={timingFailure ? 'alert' : undefined}>
+            <PassWoGuide
+              guideName={s00Content.narration.guideName}
+              taskLabel={snapshot.participant.narration.heading}
+              helpOpen
+              helpId="s06-passwo-speech"
+              openHelpLabel={s00Content.narration.openGuideLabel}
+              speech={speech}
+              speechKey={`s06-${snapshot.stage}-${snapshot.step.id}-${timingState}`}
+              speechEmphasis={passWoSpeechEmphasisFor(snapshot.step.narrationId)}
+              {...(speechAction === undefined ? {} : { speechAction })}
+              speechObstacleSelector="[data-scene-node]"
+              speechPlacement="right"
+              placement="bottom-left"
+              pose={snapshot.isHypothetical ? 'default' : 'warning'}
+              showHelpButton={false}
+            />
+          </div>
+        ) : null}
       </article>
     </section>
   );

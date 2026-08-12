@@ -5,14 +5,42 @@ import { S07_EVALUATION_CONTENT_VERSION, s07EvaluationContent } from './s07.js';
 
 const recognitionCopyReference =
   'docs/design/S06-S07-COPY-AUDIT.md#copy-delta-s06-s07-vollpasswort-treffer-statt-guess-schwelle-11-august-2026';
-const s06AttackPreviewCopyReference =
-  'docs/design/S06-S07-COPY-AUDIT.md#content-delta-s06-preview-beispielreihenfolge-12-august-2026';
+const s06AttackFlowCopyReference =
+  'docs/design/S06-S07-COPY-AUDIT.md#copy-und-ablaufdelta-s06-real-und-hypothetisch-ab-campusgram-12-august-2026';
 
 describe('S06 and S07 whole-password recognition copy traceability', () => {
   it('keeps S06 consequence wording aligned with bounded whole-password recognition', () => {
-    expect(S06_CONSEQUENCE_CONTENT_VERSION).toBe('2.6.0');
-    expect(s06ConsequenceContent.source.copyReference).toBe(s06AttackPreviewCopyReference);
+    expect(S06_CONSEQUENCE_CONTENT_VERSION).toBe('2.7.0');
+    expect(s06ConsequenceContent.source.copyReference).toBe(s06AttackFlowCopyReference);
     expect(s06ConsequenceContent.page.attackStart).toBe('Angriff starten');
+    expect(s06ConsequenceContent.page.finish).toBe('Fertig');
+    expect(s06ConsequenceContent.modes.hypothetical.overlay).toBe('Was wäre, wenn?');
+    expect(s06ConsequenceContent.narrations['s06.incident.campusgram-found'].body).toBe(
+      'Da der Angreifer nun das Campusgram-Passwort kennt, probiert er dieses oder ähnliche Varianten davon bei den anderen Konten aus.',
+    );
+    expect(s06ConsequenceContent.narrations['s06.transition'].body).toBe(
+      'Bislang begann der Angriff bei Campusgram. Welches Konto zuerst bekannt wird, lässt sich aber nicht vorhersagen. Deshalb schauen wir uns die Konten jetzt noch einmal aus einer anderen Ausgangslage an.',
+    );
+    expect(s06ConsequenceContent.narrations).toMatchObject({
+      's06.summary.actual-none': {
+        body: 'Der Angriff blieb auf Campusgram begrenzt. Die beiden anderen Konten blieben in dieser Prüfung geschützt.',
+      },
+      's06.summary.actual-one': {
+        body: 'Der Angriff konnte sich von Campusgram auf ein weiteres Konto ausbreiten. Das andere Konto blieb in dieser Prüfung geschützt.',
+      },
+      's06.summary.actual-both': {
+        body: 'Der Angriff konnte sich von Campusgram auf beide anderen Konten ausbreiten.',
+      },
+      's06.summary.hypothetical-none': {
+        body: 'Selbst wenn das Campusgram-Passwort bekannt gewesen wäre, wäre der Angriff in dieser Simulation auf Campusgram begrenzt geblieben. Die anderen Konten wären geschützt geblieben.',
+      },
+      's06.summary.hypothetical-one': {
+        body: 'Wäre das Campusgram-Passwort bekannt gewesen, hätte sich der Angriff auf ein weiteres Konto ausbreiten können. Das andere wäre in dieser Prüfung geschützt geblieben.',
+      },
+      's06.summary.hypothetical-both': {
+        body: 'Wäre das Campusgram-Passwort bekannt gewesen, hätte sich der Angriff auf beide anderen Konten ausbreiten können.',
+      },
+    });
     expect(s06ConsequenceContent.comparisonResultLabels).toEqual({
       'exact-match': 'Wiederverwendet',
       'derived-variant-match': 'Ähnlich',

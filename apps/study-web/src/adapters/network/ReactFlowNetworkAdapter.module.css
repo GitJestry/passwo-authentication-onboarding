@@ -195,6 +195,30 @@
   background: #dfe5e9;
 }
 
+.nodeFrame[data-variant="account-map"][data-scene-node^="master-campus"]:not([data-status="exposed"]):not([data-status="affected"]):not([data-status="protected"]):not([data-status="hypothetical"]) .nodeCircle {
+  background: #c9e3f3;
+}
+
+.nodeFrame[data-variant="account-map"][data-scene-node^="campus-email"]:not([data-status="exposed"]):not([data-status="affected"]):not([data-status="protected"]):not([data-status="hypothetical"]) .nodeCircle {
+  background: #f6cc9f;
+}
+
+.nodeFrame[data-variant="account-map"][data-scene-node^="campusgram"]:not([data-status="exposed"]):not([data-status="affected"]):not([data-status="protected"]):not([data-status="hypothetical"]) .nodeCircle {
+  background: #f2f4f5;
+}
+
+.nodeFrame[data-variant="account-map"][data-size="main"][data-scene-node^="master-campus"]:not([data-status="exposed"]):not([data-status="affected"]):not([data-status="protected"]):not([data-status="hypothetical"]) .nodeCircle {
+  background: #dbeef9;
+}
+
+.nodeFrame[data-variant="account-map"][data-size="main"][data-scene-node^="campus-email"]:not([data-status="exposed"]):not([data-status="affected"]):not([data-status="protected"]):not([data-status="hypothetical"]) .nodeCircle {
+  background: #ffe0c2;
+}
+
+.nodeFrame[data-variant="account-map"][data-size="main"][data-scene-node^="campusgram"]:not([data-status="exposed"]):not([data-status="affected"]):not([data-status="protected"]):not([data-status="hypothetical"]) .nodeCircle {
+  background: #ffffff;
+}
+
 .nodeFrame[data-highlighted="true"] .nodeCircle {
   border-color: #00c870;
   box-shadow:

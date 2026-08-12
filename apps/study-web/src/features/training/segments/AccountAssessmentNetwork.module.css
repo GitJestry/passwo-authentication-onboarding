@@ -71,10 +71,23 @@
 }
 
 .attackAttempt[data-account-attack-attempt="exposed"] .attacker {
-  animation: account-attacker-capture 1.35s cubic-bezier(0.22, 1, 0.36, 1) both;
+  top: -22%;
+  left: -22%;
+  width: 144%;
 }
 
 .attackAttempt[data-account-attack-attempt="exposed"] .attackConnection {
+  display: none;
+}
+
+.network[data-attack-phase="hypothetical-intro"]
+  .attackAttempt[data-account-attack-attempt="exposed"] .attacker {
+  animation: account-attacker-capture 1.35s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.network[data-attack-phase="hypothetical-intro"]
+  .attackAttempt[data-account-attack-attempt="exposed"] .attackConnection {
+  display: block;
   animation: account-attack-connection-capture 1.35s ease-out both;
 }
 

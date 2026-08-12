@@ -51,11 +51,32 @@
   position: absolute;
   z-index: 4;
   width: clamp(36rem, 50cqi, 46rem);
+  --preview-action: #2f638f;
+  --preview-action-strong: #204d76;
+  --preview-action-soft: #edf5fc;
+  --preview-action-border: #b7cfe3;
+  --preview-action-shadow: rgb(47 99 143 / 20%);
   pointer-events: auto;
 }
 
 .preview[data-preview-category="login"] {
   width: clamp(38rem, 52cqi, 48rem);
+}
+
+.preview[data-preview-category="mail"] {
+  --preview-action: #9a5924;
+  --preview-action-strong: #793e16;
+  --preview-action-soft: #fff6ec;
+  --preview-action-border: #e5c29f;
+  --preview-action-shadow: rgb(122 62 22 / 18%);
+}
+
+.preview[data-preview-category="social"] {
+  --preview-action: #70519c;
+  --preview-action-strong: #543879;
+  --preview-action-soft: #f6f1ff;
+  --preview-action-border: #c8b7e4;
+  --preview-action-shadow: rgb(84 56 121 / 20%);
 }
 
 .previewProjection {
@@ -88,9 +109,14 @@
 .previewFooter {
   display: flex;
   align-items: center;
-  justify-content: center;
+  justify-content: flex-end;
   gap: var(--space-3);
-  padding-top: 0.85rem;
+  margin-top: var(--space-3);
+  padding: var(--space-2);
+  border: var(--border-width-thin) solid var(--preview-action-border);
+  border-radius: var(--radius-medium);
+  background: var(--preview-action-soft);
+  box-shadow: 0 0.5rem 1.15rem var(--preview-action-shadow);
 }
 
 .previewReplayButton {
@@ -111,8 +137,9 @@
 }
 
 .previewReplayButton:hover:not(:disabled) {
-  border-color: var(--color-accent-strong);
-  background: var(--color-surface-muted);
+  border-color: var(--preview-action);
+  color: var(--preview-action-strong);
+  background: color-mix(in srgb, var(--preview-action-soft) 70%, white);
 }
 
 .previewReplayButton:disabled {
@@ -134,11 +161,11 @@
   align-items: center;
   justify-content: center;
   gap: var(--space-3);
-  border: var(--border-width-medium) solid color-mix(in srgb, var(--color-accent-strong) 72%, white);
+  border: var(--border-width-medium) solid color-mix(in srgb, var(--preview-action) 72%, white);
   border-radius: var(--radius-small);
   color: var(--color-on-inverse);
-  background: linear-gradient(145deg, color-mix(in srgb, var(--color-accent-strong) 88%, white), var(--color-accent-strong));
-  box-shadow: 0 0.65rem 1.4rem color-mix(in srgb, var(--color-accent-strong) 28%, transparent), inset 0 1px 0 rgb(255 255 255 / 24%);
+  background: var(--preview-action);
+  box-shadow: 0 0.45rem 0.9rem var(--preview-action-shadow), inset 0 1px 0 rgb(255 255 255 / 24%);
   font: inherit;
   font-size: var(--font-size-body);
   font-weight: var(--font-weight-heavy);
@@ -152,8 +179,8 @@
 }
 
 .previewAdvanceButton:hover:not(:disabled) {
-  filter: brightness(1.08);
-  box-shadow: 0 0.85rem 1.8rem color-mix(in srgb, var(--color-accent-strong) 38%, transparent), inset 0 1px 0 rgb(255 255 255 / 30%);
+  background: var(--preview-action-strong);
+  box-shadow: 0 0.65rem 1.1rem var(--preview-action-shadow), inset 0 1px 0 rgb(255 255 255 / 30%);
   transform: translateY(-0.12rem);
 }
 

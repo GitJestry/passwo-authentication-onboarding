@@ -144,6 +144,7 @@ PASSWO_QA_SEGMENT=s01 pnpm dev
 PASSWO_QA_SEGMENT=s02 pnpm dev
 PASSWO_QA_SEGMENT=s03 pnpm dev
 PASSWO_QA_SEGMENT=s05 pnpm dev
+PASSWO_QA_SEGMENT=s06 pnpm dev
 ```
 
 Die fiktiven QA-Passwörter können für denselben Start optional überschrieben werden. Nicht
@@ -161,6 +162,7 @@ pnpm dev
 
 S05 startet bei der Campusgram-Warnung aus S04 und zeigt den vollständigen Übergang bis in die
 deterministische S05-Variante „Häufiger Kern plus typischer Anhang“.
+S06 startet bei der S05-Abschlussszene und führt von dort in die Konsequenzsimulation.
 
 Der Schalter ist nur im ungepackten Entwicklungsstart verfügbar. Ohne ihn bleibt `pnpm dev` im
 normalen Studienpfad.

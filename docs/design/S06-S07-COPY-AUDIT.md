@@ -1,5 +1,35 @@
 # S06--S07 Copy Audit
 
+## Copy- und Ablaufdelta S06 real und hypothetisch ab Campusgram, 12. August 2026
+
+Quelle ist der ausdrückliche Nutzerauftrag vom 12. August 2026. S06 beginnt nach dem
+Campusgram-Ergebnis direkt mit dem realen Angriff oder, wenn dieser Weg nicht erkannt wurde,
+mit einer klar gekennzeichneten hypothetischen Campusgram-Simulation. Die vorhandenen
+Knoten-, Angriffs-, Befallen-, Schild- und Vergleichsmechaniken bleiben die einzigen
+Darstellungsmechaniken. Persistenz, Export, Analyse, Vergleichsentscheidung und die spätere
+Auswertung ändern sich nicht. `S06_CONSEQUENCE_CONTENT_VERSION` wird von `2.6.0` auf `2.7.0`
+erhöht.
+
+| Segment und Text-ID | Aktueller Text | Geplanter Text | Primäre Rolle | Interaktionsziel | Grund und Bedeutungsänderung | Hervorhebung |
+|---|---|---|---|---|---|---|
+| `S06.narrations.s06.incident.campusgram-found` | Begrenzte Vollpasswort-Erkennung | „Da der Angreifer nun das Campusgram-Passwort kennt, probiert er dieses oder ähnliche Varianten davon bei den anderen Konten aus.“ | Mechanismuserklärung | `Angriff starten` | ausdrücklich vorgegebener Einstieg für den realen Pfad; begrenzt | keine |
+| `S06.narrations.s06.incident.campusgram-blocked` | „Das Datenleck allein reicht hier nicht aus. Dieser tatsächliche Weg stoppt zunächst.“ | „Da der Angreifer das Campusgram-Passwort nicht herausfinden konnte, stellt sich die Frage: Was wäre passiert, wenn doch?“ | Orientierung | `Weiter` | trennt tatsächliche Nicht-Erkennung und hypothetische Annahme; ausdrücklich freigegeben | keine |
+| `S06.narrations.s06.incident.campusgram-hypothetical` | nicht vorhanden | „Angenommen, der Angreifer hätte das Campusgram-Passwort gekannt. Dann hätte er dieses oder ähnliche Varianten bei den anderen Konten ausprobiert.“ | Mechanismuserklärung | `Angriff starten` | folgt erst der sichtbaren Befallen-Animation im hypothetischen Pfad; ausdrücklich freigegeben | keine |
+| `S06.modes.hypothetical.overlay` | hypothetisches Beispiel | „Was wäre, wenn?“ | Orientierung | kein | dauerhaft sichtbare Kennzeichnung der hypothetischen Szene; ausdrücklich freigegeben | keine |
+| `S06.page.continue`, `S06.page.finish` | kein eigener Vergleichsabschluss | `Weiter`, abschließend `Fertig` | Navigation | öffnet die vorhandene Auflösung der jeweiligen Vergleichsvorschau | ordnet die bestehenden Vorschau-Controls den beiden Angriffen zu; Bedeutung begrenzt | keine |
+| `S06.narrations.s06.summary.actual-none` | allgemeine Endübersicht | „Der Angriff blieb auf Campusgram begrenzt. Die beiden anderen Konten blieben in dieser Prüfung geschützt.“ | Ergebnisfeedback | `Weiter` | ausdrücklich vorgegebene tatsächliche Null-Ausbreitung; begrenzt | keine |
+| `S06.narrations.s06.summary.actual-one` | allgemeine Endübersicht | „Der Angriff konnte sich von Campusgram auf ein weiteres Konto ausbreiten. Das andere Konto blieb in dieser Prüfung geschützt.“ | Ergebnisfeedback | `Weiter` | ausdrücklich vorgegebene tatsächliche Einzelausbreitung; begrenzt | keine |
+| `S06.narrations.s06.summary.actual-both` | allgemeine Endübersicht | „Der Angriff konnte sich von Campusgram auf beide anderen Konten ausbreiten.“ | Ergebnisfeedback | `Weiter` | ausdrücklich vorgegebene tatsächliche Ausbreitung auf beide Konten; begrenzt | keine |
+| `S06.narrations.s06.summary.hypothetical-none` | allgemeine Endübersicht | „Selbst wenn das Campusgram-Passwort bekannt gewesen wäre, wäre der Angriff in dieser Simulation auf Campusgram begrenzt geblieben. Die anderen Konten wären geschützt geblieben.“ | Ergebnisfeedback | `Weiter` | ausdrücklich vorgegebene hypothetische Null-Ausbreitung; begrenzt | keine |
+| `S06.narrations.s06.summary.hypothetical-one` | allgemeine Endübersicht | „Wäre das Campusgram-Passwort bekannt gewesen, hätte sich der Angriff auf ein weiteres Konto ausbreiten können. Das andere wäre in dieser Prüfung geschützt geblieben.“ | Ergebnisfeedback | `Weiter` | ausdrücklich vorgegebene hypothetische Einzelausbreitung; begrenzt | keine |
+| `S06.narrations.s06.summary.hypothetical-both` | allgemeine Endübersicht | „Wäre das Campusgram-Passwort bekannt gewesen, hätte sich der Angriff auf beide anderen Konten ausbreiten können.“ | Ergebnisfeedback | `Weiter` | ausdrücklich vorgegebene hypothetische Ausbreitung auf beide Konten; begrenzt | keine |
+| `S06.narrations.s06.transition` | kein eigener Übergang | „Bislang begann der Angriff bei Campusgram. Welches Konto zuerst bekannt wird, lässt sich aber nicht vorhersagen. Deshalb schauen wir uns die Konten jetzt noch einmal aus einer anderen Ausgangslage an.“ | Orientierung | `Weiter` zur nächsten Ausgangslage | ausdrücklich vorgegebene Überleitung nach vollständig aufgelösten Angriffen; ja | keine |
+
+Die Vergleichsvorschau erhält keinen zusätzlichen PassWo-Text. Ihre erste vorhandene
+`Weiter`-Steuerung löst ausschließlich die sichtbare Auflösung aus; der zweite Durchlauf endet
+mit `Fertig`. Die Folgekarte erscheint erst, nachdem die jeweilige Befallen- oder
+Schild-/Linienauflösung abgeschlossen ist.
+
 ## Content-Delta S06 Preview-Beispielreihenfolge, 12. August 2026
 
 Quelle ist der ausdrückliche Nutzerauftrag vom 12. August 2026. Das lokale Fixture
