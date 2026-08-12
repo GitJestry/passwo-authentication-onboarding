@@ -7,12 +7,12 @@ const canonicalAccountIds = ['master-campus', 'campus-email', 'campusgram'] as c
 
 describe('S00 to S02 training-content traceability', () => {
   it('keeps S00 linked to its named source page and canonical accounts', () => {
-    expect(S00_CONTENT_VERSION).toBe('1.22.1');
+    expect(S00_CONTENT_VERSION).toBe('1.22.2');
     expect(s00Content.source).toMatchObject({
       document: 'research/private/training-script.pdf',
       internalPage: 2,
       copyReference:
-        'docs/design/S00-S05-COPY-AUDIT.md#copy-delta-s00-und-s05-direktes-framing-11-august-2026',
+        'docs/design/S00-S05-COPY-AUDIT.md#copy-delta-s00-explorativer-safety-einstieg-12-august-2026',
     });
     expect(s00Content.segment.id).toBe('S00');
     expect(s00Content.sectionTransition).toMatchObject({
@@ -42,10 +42,10 @@ describe('S00 to S02 training-content traceability', () => {
     );
     expect(s00Content.narration).not.toHaveProperty('accountExplanations');
     expect(s00Content.narration.safetyWarning).toContain(
-      'Bitte verwende keine echten Passwörter oder Varianten davon.',
+      'Bitte keine echten Passwörter oder Varianten davon verwenden.',
     );
     expect(s00Content.narration.safetyWarning).toContain(
-      'nur für diese Übung verarbeitet und nicht dauerhaft gespeichert',
+      'nur für diese Übung verarbeitet und nicht gespeichert',
     );
   });
 

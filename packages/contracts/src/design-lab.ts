@@ -21,6 +21,8 @@ export const designLabScenarioIdSchema = z.enum([
   's05-structure-context',
   's05-structure-none',
   's05-free-search',
+  's05-application-found',
+  's05-application-protected',
   's06-reuse-and-derived',
   's06-incident-not-found',
   's06-incident-found-blocked',

@@ -262,9 +262,201 @@
 
 .loginPreview {
   place-items: center;
+  background: #f3f5f8;
+}
+
+.loginServiceBackdrop {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.loginServiceBrand,
+.loginServiceNavigation,
+.loginServiceContent {
+  position: absolute;
+  display: grid;
+}
+
+.loginServiceBrand {
+  place-items: center;
+}
+
+.loginServiceBrand svg {
+  width: 100%;
+  height: 100%;
+}
+
+.loginServiceNavigation i,
+.loginServiceContent i {
+  display: block;
+}
+
+.visualPreview[data-preview-kind="campus-workspace"] .loginPreview {
+  place-items: center end;
+  padding-right: 8%;
   background:
-    radial-gradient(circle at 16% 22%, rgb(112 214 233 / 24%), transparent 34%),
-    linear-gradient(145deg, #edf8ff, #f5f0ff);
+    linear-gradient(90deg, rgb(34 29 62 / 98%) 0 29%, transparent 29%),
+    linear-gradient(145deg, #625b91, #39345d);
+}
+
+.visualPreview[data-preview-kind="campus-workspace"] .loginServiceBackdrop {
+  grid-template-columns: 29% 1fr;
+}
+
+.visualPreview[data-preview-kind="campus-workspace"] .loginServiceBrand {
+  top: 1.25rem;
+  left: 1.25rem;
+  width: 2.4rem;
+  height: 2.4rem;
+  padding: 0.38rem;
+  border-radius: 0.62rem;
+  color: #4f487b;
+  background: #ffffff;
+  box-shadow: 0 0.35rem 0.9rem rgb(15 12 31 / 25%);
+}
+
+.visualPreview[data-preview-kind="campus-workspace"] .loginServiceNavigation {
+  top: 4.8rem;
+  left: 1.25rem;
+  width: 16%;
+  gap: 0.78rem;
+}
+
+.visualPreview[data-preview-kind="campus-workspace"] .loginServiceNavigation i {
+  height: 0.46rem;
+  border-radius: 999px;
+  background: rgb(255 255 255 / 23%);
+}
+
+.visualPreview[data-preview-kind="campus-workspace"] .loginServiceNavigation i:first-child {
+  width: 118%;
+  background: rgb(255 255 255 / 72%);
+}
+
+.visualPreview[data-preview-kind="campus-workspace"] .loginServiceContent {
+  inset: 1.35rem 1.35rem 1.35rem 34%;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.7rem;
+  opacity: 0.34;
+}
+
+.visualPreview[data-preview-kind="campus-workspace"] .loginServiceContent i {
+  border: 1px solid rgb(255 255 255 / 55%);
+  border-radius: 0.7rem;
+  background: rgb(255 255 255 / 18%);
+}
+
+.visualPreview[data-preview-kind="campus-workspace"] .loginServiceContent i:first-child {
+  grid-column: 1 / -1;
+}
+
+.visualPreview[data-preview-kind="campus-services"] .loginPreview {
+  padding-top: 2.8rem;
+  background:
+    linear-gradient(180deg, #8b214a 0 2.8rem, transparent 2.8rem),
+    #f4f1ef;
+}
+
+.visualPreview[data-preview-kind="campus-services"] .loginServiceBrand {
+  top: 0.52rem;
+  left: 1rem;
+  width: 1.75rem;
+  height: 1.75rem;
+  padding: 0.22rem;
+  border-radius: 50%;
+  color: #8b214a;
+  background: #ffffff;
+}
+
+.visualPreview[data-preview-kind="campus-services"] .loginServiceNavigation {
+  top: 1.1rem;
+  right: 1.1rem;
+  grid-template-columns: repeat(3, 2.7rem);
+  gap: 0.65rem;
+}
+
+.visualPreview[data-preview-kind="campus-services"] .loginServiceNavigation i {
+  height: 0.35rem;
+  border-radius: 999px;
+  background: rgb(255 255 255 / 58%);
+}
+
+.visualPreview[data-preview-kind="campus-services"] .loginServiceContent {
+  inset: 4rem 1.2rem 1.2rem;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0.65rem;
+  opacity: 0.42;
+}
+
+.visualPreview[data-preview-kind="campus-services"] .loginServiceContent i {
+  height: 3rem;
+  border: 1px solid #d6c7cb;
+  border-top: 0.3rem solid #9c4264;
+  border-radius: 0.35rem;
+  background: #ffffff;
+  box-shadow: 0 0.25rem 0.65rem rgb(80 46 58 / 8%);
+}
+
+.visualPreview[data-preview-kind="campus-services"] .loginServiceContent i:first-child {
+  grid-column: 1 / -1;
+  height: 2.35rem;
+  border-top: 1px solid #d6c7cb;
+}
+
+.visualPreview[data-preview-kind="campus-cloud"] .loginPreview {
+  place-items: center start;
+  padding-left: 8%;
+  background:
+    radial-gradient(circle at 82% 22%, rgb(255 255 255 / 76%) 0 8%, transparent 8.2%),
+    radial-gradient(circle at 91% 30%, rgb(255 255 255 / 64%) 0 11%, transparent 11.2%),
+    radial-gradient(circle at 72% 33%, rgb(255 255 255 / 58%) 0 10%, transparent 10.2%),
+    linear-gradient(145deg, #d8efff, #83bae0);
+}
+
+.visualPreview[data-preview-kind="campus-cloud"] .loginServiceBrand {
+  top: 1rem;
+  right: 1.2rem;
+  width: 3rem;
+  height: 3rem;
+  color: #2f719e;
+  filter: drop-shadow(0 0.25rem 0.45rem rgb(48 101 138 / 18%));
+}
+
+.visualPreview[data-preview-kind="campus-cloud"] .loginServiceNavigation {
+  right: 1.25rem;
+  bottom: 1.1rem;
+  width: 26%;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.45rem;
+}
+
+.visualPreview[data-preview-kind="campus-cloud"] .loginServiceNavigation i {
+  height: 2.6rem;
+  border-radius: 0.28rem 0.45rem 0.45rem;
+  background: rgb(255 255 255 / 54%);
+  box-shadow: 0 0.25rem 0.55rem rgb(55 102 135 / 13%);
+}
+
+.visualPreview[data-preview-kind="campus-cloud"] .loginServiceContent {
+  right: 4%;
+  bottom: 5.5rem;
+  width: 31%;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.55rem;
+}
+
+.visualPreview[data-preview-kind="campus-cloud"] .loginServiceContent i {
+  height: 0.42rem;
+  border-radius: 999px;
+  background: rgb(47 113 158 / 28%);
+}
+
+.visualPreview[data-preview-kind="campus-cloud"] .loginServiceContent i:first-child {
+  grid-column: 1 / -1;
+  width: 74%;
 }
 
 .loginCard {
@@ -278,6 +470,34 @@
   background: rgb(255 255 255 / 92%);
   box-shadow: 0 0.65rem 1.4rem rgb(54 85 119 / 14%);
   opacity: 0;
+}
+
+.visualPreview[data-preview-kind="campus-workspace"] .loginCard,
+.visualPreview[data-preview-kind="campus-cloud"] .loginCard {
+  width: 54%;
+}
+
+.visualPreview[data-preview-kind="campus-workspace"] .loginCard {
+  border-color: rgb(255 255 255 / 28%);
+  background: rgb(255 255 255 / 96%);
+  box-shadow: 0 1rem 2.4rem rgb(18 14 39 / 32%);
+}
+
+.visualPreview[data-preview-kind="campus-services"] .loginCard {
+  width: 58%;
+  border-radius: 0.25rem;
+  border-top: 0.28rem solid #8b214a;
+  box-shadow: 0 0.65rem 1.5rem rgb(67 43 50 / 16%);
+}
+
+.visualPreview[data-preview-kind="campus-cloud"] .loginCard {
+  border-color: rgb(81 142 183 / 25%);
+  border-radius: 1.1rem;
+  background: rgb(255 255 255 / 78%);
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 80%),
+    0 1rem 2.4rem rgb(39 100 141 / 22%);
+  backdrop-filter: blur(0.8rem);
 }
 
 .previewMouseCursor {
@@ -334,6 +554,48 @@
   to {
     transform: rotate(360deg);
   }
+}
+
+.loginCardHeading {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  gap: 0.6rem;
+  margin-bottom: 0.15rem;
+}
+
+.loginCardHeading > i {
+  display: grid;
+  width: 2rem;
+  height: 2rem;
+  place-items: center;
+  border-radius: 0.52rem;
+  color: #625b91;
+  background: #eeedf5;
+  font-style: normal;
+}
+
+.loginCardHeading > i svg {
+  width: 1.45rem;
+  height: 1.45rem;
+}
+
+.loginCardHeading > span {
+  display: grid;
+  gap: 0.12rem;
+  min-width: 0;
+}
+
+.visualPreview[data-preview-kind="campus-services"] .loginCardHeading > i {
+  border-radius: 50%;
+  color: #8b214a;
+  background: #f8e8ee;
+}
+
+.visualPreview[data-preview-kind="campus-cloud"] .loginCardHeading > i {
+  border-radius: 0.7rem;
+  color: #3279a8;
+  background: #e0f2fd;
 }
 
 .loginCard small {
@@ -436,10 +698,66 @@
   background: #edf0f3;
 }
 
+.loginDestination[data-destination-kind="campus-workspace"] .destinationTopbar {
+  border-bottom-color: #cbc7dc;
+  background: #f8f7fc;
+  box-shadow: inset 0 -0.18rem #625b91;
+}
+
+.loginDestination[data-destination-kind="campus-workspace"] .destinationTopbar > svg {
+  color: #5a5388;
+}
+
+.loginDestination[data-destination-kind="campus-services"] .destinationTopbar {
+  border-bottom-color: #d8bcc7;
+  background: #fff8fa;
+  box-shadow: inset 0 -0.18rem #8b214a;
+}
+
+.loginDestination[data-destination-kind="campus-services"] .destinationTopbar > svg {
+  color: #8b214a;
+}
+
+.loginDestination[data-destination-kind="campus-workspace"] .destinationTopbar > i,
+.loginDestination[data-destination-kind="campus-services"] .destinationTopbar > i {
+  position: relative;
+  width: 1.8rem;
+  height: 1.8rem;
+  border: 0.12rem solid #ffffff;
+  border-radius: 50%;
+  background:
+    radial-gradient(circle at 50% 34%, #ffffff 0 18%, transparent 19%),
+    radial-gradient(circle at 50% 105%, #ffffff 0 42%, transparent 43%),
+    #756e9f;
+  box-shadow: 0 0.15rem 0.4rem rgb(50 43 82 / 18%);
+}
+
+.loginDestination[data-destination-kind="campus-services"] .destinationTopbar > i {
+  background:
+    radial-gradient(circle at 50% 34%, #ffffff 0 18%, transparent 19%),
+    radial-gradient(circle at 50% 105%, #ffffff 0 42%, transparent 43%),
+    #9b365d;
+  box-shadow: 0 0.15rem 0.4rem rgb(99 30 57 / 18%);
+}
+
+.loginDestination[data-destination-kind="campus-workspace"] .destinationTopbar > i::after,
+.loginDestination[data-destination-kind="campus-services"] .destinationTopbar > i::after {
+  position: absolute;
+  right: -0.08rem;
+  bottom: -0.08rem;
+  width: 0.48rem;
+  height: 0.48rem;
+  border: 0.1rem solid #ffffff;
+  border-radius: 50%;
+  background: #328061;
+  content: "";
+}
+
 .workspaceSurface {
   display: grid;
   min-height: 0;
   grid-template-columns: 3.3rem 10.5rem minmax(0, 1fr);
+  border-top: 0.28rem solid #d9d6e6;
   background: #f5f4f8;
 }
 
@@ -536,8 +854,11 @@
   grid-template-rows: 4.8rem minmax(0, 1fr) auto;
   gap: 0.75rem;
   padding: 0.8rem 1rem 1rem;
+  border-top: 0.28rem solid #ead8df;
   overflow: auto;
-  background: #f7f3f4;
+  background:
+    linear-gradient(180deg, #fffafb, #f7f1f3 48%),
+    #f7f3f4;
 }
 
 .servicesHero {
@@ -1487,7 +1808,7 @@
 
 .taskProgress {
   display: grid;
-  grid-template-columns: minmax(4rem, 1fr);
+  grid-template-columns: auto minmax(2.5rem, 1fr);
   align-items: center;
   gap: 0.3rem;
   color: var(--color-ink-muted);

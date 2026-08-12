@@ -403,6 +403,7 @@ export function PasswordModuleTraining({
     return (
       <S05AnalysisTraining
         subject={s05Subject}
+        platform={platform}
         timingState={timingState}
         timingErrorCode={snapshot.context.timingErrorCode}
         externalTimingError={externalTimingError}
@@ -425,6 +426,7 @@ export function PasswordModuleTraining({
       return (
         <S05AnalysisTraining
           subject={s05Subject}
+          platform={platform}
           timingState={startWriteFailed ? 'endWriteFailed' : 'writingEnd'}
           timingErrorCode={snapshot.context.timingErrorCode}
           externalTimingError={externalTimingError}

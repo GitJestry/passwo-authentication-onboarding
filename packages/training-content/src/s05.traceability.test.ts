@@ -4,7 +4,7 @@ import { S05_CONTENT_VERSION, s05Content } from './s05.js';
 
 describe('S05 content traceability', () => {
   it('keeps the participant copy bounded and separate from internal terminology', () => {
-    expect(S05_CONTENT_VERSION).toBe('2.76.0');
+    expect(S05_CONTENT_VERSION).toBe('2.79.4');
     expect(s05Content.source).toMatchObject({
       document: 'research/private/training-script.pdf',
       internalPages: [
@@ -12,7 +12,7 @@ describe('S05 content traceability', () => {
         35,
       ],
       copyReference:
-        'docs/design/S00-S05-COPY-AUDIT.md#copy-delta-s03-bis-s05-direktes-szenarioframing-11-august-2026',
+        'docs/design/S00-S05-COPY-AUDIT.md#copy-und-darstellungsdelta-s05-wortlaut-und-kleinbuchstaben-12-august-2026',
     });
     expect(s05Content.segment.id).toBe('S05');
     expect(s05Content.page.fixtureNotice).toBe(
@@ -43,19 +43,19 @@ describe('S05 content traceability', () => {
     );
     expect(s05Content.intro.narration.componentCategoryOverview).toEqual([
       'Dabei beginnt der Angreifer mit Passwörtern und Zeichenfolgen, die besonders häufig verwendet werden.',
-      'Bitte beachte: Das Modul kann Bestandteile im Passwort übersehen oder falsch einordnen. Es dient nur zum Verständnis und ist keine Sicherheitsbewertung.',
+      'Bitte beachte: Das Modul kann Bestandteile übersehen oder falsch einordnen. Es dient nur zum Verständnis, nicht zur Sicherheitsbewertung.',
     ]);
     expect(s05Content.intro.narration.randomSequence).toEqual([
-      'Solche zufällig erzeugten Zeichenfolgen können allerdings schwer zu merken sein. Selbst gewählte Passwörter enthalten deshalb oft merkbare Elemente wie Wörter, Zahlen oder einfache Zeichenfolgen.',
+      'Zufällige Zeichenfolgen sind jedoch schwer zu merken. Selbst gewählte Passwörter enthalten deshalb oft merkbare Elemente wie Wörter, Zahlen oder einfache Zeichenfolgen.',
     ]);
     expect(s05Content.componentStrategy.commonComponents.explanation[0]).toBe(
       'Dazu gehören häufig verwendete Passwörter und Wörter, einfache Tastatur- und Zahlenfolgen wie „123456“ oder „qwertz“ oder naheliegende Jahreszahlen.',
     );
     expect(s05Content.componentStrategy.commonComponents.explanation[1]).toBe(
-      'Wörter sind nicht grundsätzlich unsicher. Wörter, die häufig als Passwort gewählt werden, probieren Angreifer jedoch früh aus.',
+      'Wörter sind nicht grundsätzlich unsicher. Geläufige Wörter, etwa aus Wörterbüchern, können Angreifer jedoch früh ausprobieren.',
     );
     expect(s05Content.componentStrategy.commonComponents.explanation[2]).toBe(
-      'Bei selbst gewählten Passwörtern kommen häufig Veränderungen wie Großschreibung, Zeichenersetzungen, Zahlen oder Symbole vor. Angreifer probieren deshalb typische Varianten einzelner Bestandteile und ganzer Passwörter aus.',
+      'Bei selbst gewählten Passwörtern kommen außerdem oft Veränderungen wie Großschreibung, Zeichenersetzungen, Zahlen oder Symbole vor. Auch solche typischen Varianten werden ausprobiert.',
     );
     expect(s05Content.componentStrategy.presentation.findingChips).toMatchObject({
       commonPassword: 'häufig verwendetes Passwort',
@@ -98,16 +98,16 @@ describe('S05 content traceability', () => {
     );
     expect(s05Content.componentStrategy.presentation.reviewCardTitle).toBe('Zusammenfassung');
     expect(s05Content.componentStrategy.personalDetails.opening).toEqual([
-      'Persönliche Angaben können leicht zu merken sein und wirken oft privat. Deshalb ist es nachvollziehbar, sie für schwer erratbar zu halten.',
+      'Persönliche Angaben sind vertraut und meist leicht zu merken. Gerade weil sie persönlich sind, können sie schwer erratbar wirken.',
     ]);
     expect(s05Content.componentStrategy.personalDetails.derivation).toEqual([
-      'Doch beim Campusgram-Datenleck sind mit den Passwortdaten auch Kontohinweise wie Benutzername oder E-Mail-Adresse in fremde Hände geraten.',
+      'Mit den Passwortdaten eines Kontos sind jedoch oft auch ein Benutzername oder eine E-Mail-Adresse verknüpft. Bei einem Datenleck können solche Kontohinweise offengelegt werden.',
     ]);
     expect(s05Content.componentStrategy.personalDetails.examples).toEqual([
-      'Viele persönliche Angaben erfahren oder erraten Angreifer leicht aus solchen Hinweisen und öffentlichen Profilen. Namen, Geburtsdaten oder den Lieblingsverein probieren sie gezielt aus.',
+      'Mit diesen Hinweisen können Angreifer nach öffentlichen Profilen suchen und dort Angaben wie Namen, Geburtsdaten oder den Lieblingsverein finden und als Passwortbestandteile ausprobieren.',
     ]);
     expect(s05Content.componentStrategy.personalDetails.explanation).toEqual([
-      'Die Auswahl bleibt in dieser Übung und wird weder gespeichert noch exportiert. Markiere im fiktiven Passwort die Stellen, die für das Beispiel persönliche Angaben sein könnten.',
+      'Deine Auswahl wird weder gespeichert noch exportiert. Markiere für den Selbstcheck mögliche persönliche Angaben im fiktiven Passwort.',
     ]);
     expect(s05Content.componentStrategy.personalDetails.begin).toBe(
       'Persönliche Angaben markieren',
@@ -185,12 +185,12 @@ describe('S05 content traceability', () => {
     expect(s05Content.componentStrategy.summary.continue).toBe('Weiter');
     expect(s05Content.componentStrategy.summary).toMatchObject({
       singleCandidateMatch:
-        'Das Campusgram-Passwort wurde bei dieser Prüfung bereits gefunden.',
+        'Das Campusgram-Passwort wurde bei dieser Prüfung bereits gefunden. Die Simulation zeigt dennoch weitere typische Vorgehensweisen.',
       combinedMatches:
-        'Dein Passwort besteht komplett aus frühen Anhaltspunkten. Erraten ist es dadurch noch nicht. Wir verfolgen den Angriff deshalb weiter.',
+        'Mehrere frühe Übereinstimmungen decken zusammen das ganze Passwort ab. Erraten ist es dadurch noch nicht. Die Simulation zeigt noch weitere typische Vorgehensweisen.',
       partialMatches:
-        'Dein Passwort besteht zum Teil aus frühen Anhaltspunkten. Erraten ist es dadurch noch nicht. Wir verfolgen den Angriff weiter.',
-      none: 'Bei den bisherigen Prüfungen wurde keine Übereinstimmung gefunden. Der Angreifer hat damit aber noch nicht alle Möglichkeiten ausgeschöpft.',
+        'Bei den bisherigen Prüfungen wurden Teile des Passworts erkannt. Erraten ist es dadurch noch nicht. Die Simulation zeigt noch weitere typische Vorgehensweisen.',
+      none: 'Bei den bisherigen Prüfungen wurde keine Übereinstimmung gefunden. Das bedeutet jedoch nicht, dass bereits alle Angriffsmöglichkeiten geprüft wurden.',
       nothingFound: 'Nichts gefunden',
     });
     expect(s05Content.intro.strategyAnnotations.sentenceStructure).toBe(
@@ -268,9 +268,9 @@ describe('S05 content traceability', () => {
     );
     expect(s05Content.freeSearch.lengthExamples).toMatchObject({
       mixedCharacterComparison:
-        'Die gelbe Kugel zeigt, warum 12 Zeichen mit mehreren Zeichentypen im mathematischen Modell so vielversprechend wirken.',
+        'Die gelbe Kugel zeigt, warum zwölf Zeichen aus mehreren Zeichentypen bei wirklich zufälliger Auswahl so vielversprechend sind.',
       orientation:
-        'Bei selbstgewählten Passwörtern sollst du dich auf solche zusätzlichen Zeichentypen aber nicht verlassen müssen. Deshalb liegt die aktuelle Orientierung bei mindestens 15 Zeichen.',
+        'Bei selbstgewählten Passwörtern lässt sich diese Zufälligkeit jedoch nicht voraussetzen. Deshalb liegt die aktuelle Orientierung bei mindestens 15 Zeichen.',
       wordCore: { password: 'Datensicherheit!', parts: ['Datensicherheit', '!'], length: 16 },
       extraCharacters: {
         password: 'Datensicherheit-?KmL',
@@ -284,21 +284,19 @@ describe('S05 content traceability', () => {
       practicalOutlook:
         'Dafür gibt es eine einfache Methode, mit der sich lange und trotzdem gut merkbare Passwörter aus Wörtern bilden lassen. Die probieren wir später selbst aus.',
     });
-    expect(s05Content.freeSearch.application.dispositionLabels).toMatchObject({
-      'whole-password-recognized-value': expect.objectContaining({
-        title: 'Fiktives Campusgram-Passwort gefunden',
-      }),
-      'whole-password-recognized-bounded-variant': expect.objectContaining({
-        title: 'Fiktives Campusgram-Passwort gefunden',
-      }),
+    expect(s05Content.freeSearch.application).toMatchObject({
+      recognized:
+        'Im Campusgram-Passwort wurden diese Bestandteile oder Muster erkannt: [Befunde].',
+      length: 'Das Campusgram-Passwort hat [Anzahl] Zeichen.',
+      found:
+        'Das vollständige Campusgram-Passwort wurde in den simulierten Prüfungen gefunden.',
+      notFound:
+        'Das vollständige Campusgram-Passwort wurde in den simulierten Prüfungen nicht gefunden. Das ist kein Nachweis dafür, dass es sicher ist.',
+      reuseTakeaway:
+        'Selbst gewählte Passwörter werden häufig bei mehreren Konten wiederverwendet oder leicht verändert, weil man sich so weniger Passwörter merken muss oder sie für sich bereits stark wirken.',
+      attackerTakeaway:
+        'Wird das Passwort eines Kontos herausgefunden, kann der Angreifer gleiche oder ähnliche Passwörter direkt auch bei deinen anderen Konten testen.',
     });
-    expect(s05Content.freeSearch.application.notFound).toMatchObject({
-      title: 'Fiktives Campusgram-Passwort nicht gefunden',
-    });
-    expect(s05Content.freeSearch.application.findings.combinedPath).toMatch(
-      /gemeinsam.*vollständigen Treffer/u,
-    );
-    expect(s05Content.freeSearch.application.boundary).toMatch(/nicht.*sicher/u);
     expect(s05Content.freeSearch.estimate.options).toEqual([12, 13, 14, 15, 16, 17, 18, 19, 20]);
     expect(s05Content.freeSearch.theoreticalModel.interactiveScale.minimumOrientation).toBe(
       'Mindeststandard',

@@ -204,11 +204,34 @@ function VisualPreview({
       ) : null}
       {preview.category === 'login' ? (
         <span className={styles.loginPreview}>
+          <span className={styles.loginServiceBackdrop} aria-hidden="true">
+            <span className={styles.loginServiceBrand}>
+              <NetworkSymbol symbolId={kind} />
+            </span>
+            <span className={styles.loginServiceNavigation}>
+              <i />
+              <i />
+              <i />
+            </span>
+            <span className={styles.loginServiceContent}>
+              <i />
+              <i />
+              <i />
+              <i />
+            </span>
+          </span>
           <span className={styles.loginCard} data-preview-target={target('surface')}>
-            <small>
-              {previewContent.welcomeLabel} {preview.app}
-            </small>
-            <strong>{preview.title}</strong>
+            <span className={styles.loginCardHeading}>
+              <i aria-hidden="true">
+                <NetworkSymbol symbolId={kind} />
+              </i>
+              <span>
+                <small>
+                  {previewContent.welcomeLabel} {preview.app}
+                </small>
+                <strong>{preview.title}</strong>
+              </span>
+            </span>
             <i className={styles.loginField} />
             <i className={styles.loginField} />
             <span
@@ -1038,6 +1061,9 @@ export function S02AccountExplorationTraining({
                   <>
                     <strong>{s02Content.page.eyebrow}</strong>
                     <div className={styles.taskProgress} aria-live="polite">
+                      <span aria-hidden="true">
+                        {viewedCount}/{definition.accounts.length}
+                      </span>
                       <span
                         className={styles.progressTrack}
                         role="progressbar"

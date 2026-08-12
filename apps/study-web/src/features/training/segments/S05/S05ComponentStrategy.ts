@@ -92,6 +92,12 @@ export interface S05DisplayFinding {
   readonly categoryId: S05VisualCategoryId;
 }
 
+export interface S05RepetitionAnnotation {
+  readonly start: number;
+  readonly end: number;
+  readonly label: string;
+}
+
 export interface S05CategoryCandidateSummary {
   readonly candidateCount: number;
   readonly coversWholePassword: boolean;
@@ -658,6 +664,7 @@ export function summarizeCategoryCandidates(
 export function projectCanonicalPasswordBlocks(
   view: S05CanonicalPasswordView,
   findings: readonly S05CategoryFinding[],
+  repetitionAnnotations: readonly S05RepetitionAnnotation[] = [],
 ): readonly S05DisplayBlock[] {
   const representedChangeIds = new Set(findings.flatMap(({ changeIds }) => changeIds));
   const visibleChanges = view.typicalChanges.filter(
@@ -715,11 +722,18 @@ export function projectCanonicalPasswordBlocks(
         categoryId: 'common-components' as const,
       })),
     ]);
+    const repetitions = repetitionAnnotations.filter(
+      (annotation) => annotation.start < block.end && annotation.end > block.start,
+    );
+    const repetitionFindings = repetitions.map(({ label }) => ({
+      categoryId: 'repetition' as const,
+      label,
+    }));
     return {
       ...block,
       labels: annotations.map(({ label }) => label),
-      findings: uniqueDisplayFindings(
-        directFindings.map((finding) => {
+      findings: uniqueDisplayFindings([
+        ...directFindings.map((finding) => {
           const evidenceBlocks = view.blocks.filter(({ id }) =>
             finding.evidenceBlockIds.includes(id),
           );
@@ -740,7 +754,8 @@ export function projectCanonicalPasswordBlocks(
                 : baseLabel,
           };
         }),
-      ),
+        ...repetitionFindings,
+      ]),
       matchCategories: [
         ...new Set(
           directFindings.flatMap(({ matchCategory }) =>
@@ -748,7 +763,10 @@ export function projectCanonicalPasswordBlocks(
           ),
         ),
       ],
-      categoryIds: range.categoryId === undefined ? [] : [range.categoryId],
+      categoryIds: [
+        ...(range.categoryId === undefined ? [] : [range.categoryId]),
+        ...(repetitions.length === 0 ? [] : (['repetition'] as const)),
+      ],
       groupIds: [...new Set(directFindings.map(({ id }) => id))],
     };
   });

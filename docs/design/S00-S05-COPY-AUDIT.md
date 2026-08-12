@@ -1,5 +1,111 @@
 # S00--S05 Copy and Interaction Audit
 
+## Copy-Delta S05 Ergebnisframing, 12. August 2026
+
+Quelle ist der ausdrückliche Nutzerauftrag vom 12. August 2026. Die vier abhängigen
+Ergebnisrückmeldungen benennen nun den jeweiligen Erkennungsumfang direkt. In den drei
+Trefferfällen wird die Simulation statt eines gemeinsamen `Wir` mit dem Angreifer zum handelnden
+Subjekt; der Fall ohne Übereinstimmung wahrt die begrenzte Aussagekraft der bisherigen
+Prüfungen. Interaktion, Darstellung, Analyse, Persistenz, Export und Timing bleiben unverändert.
+`S05_CONTENT_VERSION` wird von `2.79.3` auf `2.79.4` erhöht.
+
+| Segment und Text-ID | Quelle | Aktueller Text | Geplanter Text | Primäre Rolle | Grund | Bedeutungsänderung | Interaktionsziel | Hervorhebung |
+|---|---|---|---|---|---|---|---|---|
+| `S05.componentStrategy.summary.singleCandidateMatch` | Nutzerauftrag vom 2026-08-12 | `Das Campusgram-Passwort wurde bei dieser Prüfung bereits gefunden. Wir verfolgen den Angriff dennoch weiter.` | `Das Campusgram-Passwort wurde bei dieser Prüfung bereits gefunden. Die Simulation zeigt dennoch weitere typische Vorgehensweisen.` | Ergebnisfeedback | ausdrücklich vorgegebenes neutrales Simulationsframing | begrenzt | `Weiter` | keine |
+| `S05.componentStrategy.summary.combinedMatches` | Nutzerauftrag vom 2026-08-12 | `Dein Passwort besteht komplett aus frühen Anhaltspunkten. Erraten ist es dadurch noch nicht. Wir verfolgen den Angriff deshalb weiter.` | `Mehrere frühe Übereinstimmungen decken zusammen das ganze Passwort ab. Erraten ist es dadurch noch nicht. Die Simulation zeigt noch weitere typische Vorgehensweisen.` | Ergebnisfeedback | Erkennungsumfang direkt benennen und neutrales Simulationsframing verwenden | begrenzt | `Weiter` | keine |
+| `S05.componentStrategy.summary.partialMatches` | Nutzerauftrag vom 2026-08-12 | `Dein Passwort besteht zum Teil aus frühen Anhaltspunkten. Erraten ist es dadurch noch nicht. Wir verfolgen den Angriff weiter.` | `Bei den bisherigen Prüfungen wurden Teile des Passworts erkannt. Erraten ist es dadurch noch nicht. Die Simulation zeigt noch weitere typische Vorgehensweisen.` | Ergebnisfeedback | Teilbefund direkt benennen und neutrales Simulationsframing verwenden | begrenzt | `Weiter` | keine |
+| `S05.componentStrategy.summary.none` | Nutzerauftrag vom 2026-08-12 | `Bei den bisherigen Prüfungen wurde keine Übereinstimmung gefunden. Der Angreifer hat damit aber noch nicht alle Möglichkeiten ausgeschöpft.` | `Bei den bisherigen Prüfungen wurde keine Übereinstimmung gefunden. Das bedeutet jedoch nicht, dass bereits alle Angriffsmöglichkeiten geprüft wurden.` | Ergebnisfeedback | ausdrücklich vorgegebene neutrale Begrenzung des Nichtfunds | begrenzt | `Weiter` | keine |
+
+## Copy-Delta S05 Angriffsfortsetzung, 12. August 2026
+
+Quelle ist der ausdrückliche Nutzerauftrag vom 12. August 2026. Die Ergebnisrückmeldung erklärt
+nun, dass die Angriffssimulation nach dem bereits gefundenen Campusgram-Passwort bewusst
+fortgesetzt wird. Interaktion, Darstellung, Analyse, Persistenz, Export und Timing bleiben
+unverändert. `S05_CONTENT_VERSION` wird von `2.79.2` auf `2.79.3` erhöht.
+
+| Segment und Text-ID | Quelle | Aktueller Text | Geplanter Text | Primäre Rolle | Grund | Bedeutungsänderung | Interaktionsziel | Hervorhebung |
+|---|---|---|---|---|---|---|---|---|
+| `S05.componentStrategy.summary.singleCandidateMatch` | Nutzerauftrag vom 2026-08-12 | `Das Campusgram-Passwort wurde bei dieser Prüfung bereits gefunden.` | `Das Campusgram-Passwort wurde bei dieser Prüfung bereits gefunden. Wir verfolgen den Angriff dennoch weiter.` | Ergebnisfeedback | Fortsetzung der sichtbaren Angriffssimulation trotz bereits gefundenem Passwort ausdrücklich begründen | begrenzt | `Weiter` | keine |
+
+## Copy-Delta S05 typische Varianten, 12. August 2026
+
+Quelle ist der ausdrückliche Nutzerauftrag vom 12. August 2026. Die Mechanismuserklärung
+kehrt zum selbst gewählten Passwort als Bezugspunkt zurück und fasst das Ausprobieren typischer
+Varianten kurz zusammen. Die bestehende Hervorhebung `typische Varianten` bleibt erhalten.
+Interaktion, Darstellung, Analyse, Persistenz, Export und Timing bleiben unverändert.
+`S05_CONTENT_VERSION` wird von `2.79.1` auf `2.79.2` erhöht.
+
+| Segment und Text-ID | Quelle | Aktueller Text | Geplanter Text | Primäre Rolle | Grund | Bedeutungsänderung | Interaktionsziel | Hervorhebung |
+|---|---|---|---|---|---|---|---|---|
+| `S05.componentStrategy.commonComponents.explanation[2]` | Nutzerauftrag vom 2026-08-12 | `Häufige Passwörter und Wörter werden oft durch Großschreibung, Zeichenersetzungen, Zahlen oder Symbole verändert. Angreifer probieren deshalb auch solche typischen Varianten aus.` | `Bei selbst gewählten Passwörtern kommen außerdem oft Veränderungen wie Großschreibung, Zeichenersetzungen, Zahlen oder Symbole vor. Auch solche typischen Varianten werden ausprobiert.` | Mechanismuserklärung | ausdrücklich vorgegebene Rückkehr zum Bezug auf selbst gewählte Passwörter und Kürzung des zweiten Satzes | begrenzt | `Weiter` | `typische Varianten` in Akzentfarbe mit bestehendem Symbol |
+
+## Copy-Delta S05 Zufallsannahme im Modellvergleich, 12. August 2026
+
+Quelle ist der ausdrückliche Nutzerauftrag vom 12. August 2026. Die Erklärung der gelben
+12-Zeichen-Kugel benennt die wirklich zufällige Auswahl nun als Voraussetzung ihrer starken
+Modellwirkung. Der anschließende Schritt an der grünen 15-Zeichen-Kugel grenzt diese Annahme
+gegenüber selbstgewählten Passwörtern ab und behält die bestehende Längenorientierung bei.
+Interaktion, Darstellung, Berechnung, Ablauf, Persistenz, Export und Timing bleiben unverändert.
+`S05_CONTENT_VERSION` wird von `2.78.1` auf `2.79.0` erhöht.
+
+| Segment und Text-ID | Quelle | Aktueller Text | Geplanter Text | Primäre Rolle | Grund | Bedeutungsänderung | Interaktionsziel | Hervorhebung |
+|---|---|---|---|---|---|---|---|---|
+| `S05.freeSearch.lengthExamples.mixedCharacterComparison` | Nutzerauftrag vom 2026-08-12 | `Die gelbe Kugel zeigt, warum 12 Zeichen mit mehreren Zeichentypen im mathematischen Modell so vielversprechend wirken.` | `Die gelbe Kugel zeigt, warum zwölf Zeichen aus mehreren Zeichentypen bei wirklich zufälliger Auswahl so vielversprechend sind.` | Mechanismuserklärung | Zufallsannahme des sichtbaren Modellvergleichs alltagsnah und eindeutig benennen | begrenzt | `Weiter` | keine |
+| `S05.freeSearch.lengthExamples.orientation` | Nutzerauftrag vom 2026-08-12 | `Bei selbstgewählten Passwörtern sollst du dich auf solche zusätzlichen Zeichentypen aber nicht verlassen müssen. Deshalb liegt die aktuelle Orientierung bei mindestens 15 Zeichen.` | `Bei selbstgewählten Passwörtern lässt sich diese Zufälligkeit jedoch nicht voraussetzen. Deshalb liegt die aktuelle Orientierung bei mindestens 15 Zeichen.` | Kerngedanke | Modellgrenze für selbstgewählte Passwörter direkt benennen, ohne zwölf Zeichen pauschal abzuwerten | begrenzt | `Weiter` | `mindestens 15 Zeichen`, Akzent |
+
+## Copy-Delta S05 Merkbarkeit zufälliger Zeichenfolgen, 12. August 2026
+
+Quelle ist der ausdrückliche Nutzerauftrag vom 12. August 2026. Die Mechanismuserklärung
+kehrt zum früheren direkten Wortlaut zurück, weil die Möglichkeitsform die erhebliche
+Merkschwierigkeit zufälliger Zeichenfolgen unnötig abschwächt. Interaktion, Ablauf, Analyse,
+Persistenz, Export und Timing bleiben unverändert. `S05_CONTENT_VERSION` wird von `2.78.0` auf
+`2.78.1` erhöht.
+
+| Segment und Text-ID | Quelle | Aktueller Text | Geplanter Text | Primäre Rolle | Grund | Bedeutungsänderung | Interaktionsziel | Hervorhebung |
+|---|---|---|---|---|---|---|---|---|
+| `S05.intro.narration.randomSequence[0]` | Nutzerauftrag vom 2026-08-12 | `Solche zufällig erzeugten Zeichenfolgen können allerdings schwer zu merken sein. Selbst gewählte Passwörter enthalten deshalb oft merkbare Elemente wie Wörter, Zahlen oder einfache Zeichenfolgen.` | `Zufällige Zeichenfolgen sind jedoch schwer zu merken. Selbst gewählte Passwörter enthalten deshalb oft merkbare Elemente wie Wörter, Zahlen oder einfache Zeichenfolgen.` | Mechanismuserklärung | ausdrücklich verlangte Rückkehr zum direkten Wortlaut ohne abschwächende Möglichkeitsform | begrenzt | `Weiter` | keine |
+
+## Copy-Delta S05 persönliche Angaben, 12. August 2026
+
+Quelle ist der ausdrückliche Nutzerauftrag vom 12. August 2026. Die vier bestehenden
+Sprechschritte führen nun von der nachvollziehbaren Wirkung persönlicher Angaben über die
+Verknüpfung mit Kontohinweisen und die Suche in öffentlichen Profilen zum lokalen Selbstcheck.
+Der Datenschutzhinweis steht vor der konkreten Handlung. Ablauf, Interaktion, Analyse,
+Persistenz, Export und Timing bleiben unverändert. `S05_CONTENT_VERSION` wird von `2.77.0` auf
+`2.78.0` erhöht.
+
+| Segment und Text-ID | Quelle | Aktueller Text | Geplanter Text | Primäre Rolle | Grund | Bedeutungsänderung | Interaktionsziel | Hervorhebung |
+|---|---|---|---|---|---|---|---|---|
+| `S05.componentStrategy.personalDetails.opening[0]` | Nutzerauftrag vom 2026-08-12 | `Persönliche Angaben können leicht zu merken sein und wirken oft privat. Deshalb ist es nachvollziehbar, sie für schwer erratbar zu halten.` | `Persönliche Angaben sind vertraut und meist leicht zu merken. Gerade weil sie persönlich sind, können sie schwer erratbar wirken.` | Mechanismuserklärung | ausdrücklich freigegebener empathischer Einstieg ohne Tatsachenbehauptung zur Erratbarkeit | begrenzt | `Weiter` | `Persönliche Angaben` in Akzentfarbe mit bestehendem Symbol |
+| `S05.componentStrategy.personalDetails.derivation[0]` | Nutzerauftrag vom 2026-08-12 | `Doch beim Campusgram-Datenleck sind mit den Passwortdaten auch Kontohinweise wie Benutzername oder E-Mail-Adresse in fremde Hände geraten.` | `Mit den Passwortdaten eines Kontos sind jedoch oft auch ein Benutzername oder eine E-Mail-Adresse verknüpft. Bei einem Datenleck können solche Kontohinweise offengelegt werden.` | Mechanismuserklärung | Kontozuordnung und Offenlegung fachlich direkt benennen | begrenzt | `Weiter` | keine |
+| `S05.componentStrategy.personalDetails.examples[0]` | Nutzerauftrag vom 2026-08-12 | `Viele persönliche Angaben erfahren oder erraten Angreifer leicht aus solchen Hinweisen und öffentlichen Profilen. Namen, Geburtsdaten oder den Lieblingsverein probieren sie gezielt aus.` | `Mit diesen Hinweisen können Angreifer nach öffentlichen Profilen suchen und dort Angaben wie Namen, Geburtsdaten oder den Lieblingsverein finden und als Passwortbestandteile ausprobieren.` | Mechanismuserklärung | Rechercheweg und Verwendung der gefundenen Angaben eindeutig verbinden | begrenzt | `Weiter` | gruppiert `Namen`, `Geburtsdaten`, `Lieblingsverein` in Akzentfarbe |
+| `S05.componentStrategy.personalDetails.explanation[0]` | Nutzerauftrag vom 2026-08-12 | `Die Auswahl bleibt in dieser Übung und wird weder gespeichert noch exportiert. Markiere im fiktiven Passwort die Stellen, die für das Beispiel persönliche Angaben sein könnten.` | `Deine Auswahl wird weder gespeichert noch exportiert. Markiere für den Selbstcheck mögliche persönliche Angaben im fiktiven Passwort.` | Safety Boundary und Navigation | Datenschutzgrenze voranstellen und die lokale Handlung kürzen | begrenzt | `Persönliche Angaben markieren` | `persönliche Angaben` in Akzentfarbe mit bestehendem Symbol |
+
+## Copy- und Darstellungsdelta S05 geführte Desktop-Abschlussszene, 11. August 2026
+
+Quelle ist der ausdrückliche Nutzerauftrag vom 11. August 2026. Die bisherige kompakte
+Auswertungsfläche mit Ergebnisboxen sowie die sichtbaren Aktionen `Animation starten` und
+`Animation wiederholen` entfallen. An ihrer Stelle beginnt automatisch eine geführte
+Desktop-Szene. PassWo nennt nacheinander lokale Befunde, Länge und den begrenzten
+Vollpasswort-Status. Danach zeigt das Kontennetz entweder einen roten Prüfpfad oder einen durch
+den Passwortfaktor blockierten blauen Pfad. Ein Schild bezeichnet dabei einen Schutzfaktor und
+keine absolute Kontosicherheit. Persistenz, Export, Timing und die bestehende
+Vollpasswort-Entscheidung bleiben unverändert. `S05_CONTENT_VERSION` wird von `2.76.0` auf
+`2.77.0` erhöht.
+
+| Segment und Text-ID | Quelle | Aktueller Text | Geplanter Text | Primäre Rolle | Grund | Bedeutungsänderung | Interaktionsziel | Hervorhebung |
+|---|---|---|---|---|---|---|---|---|
+| `S05.freeSearch.application.recognized` | Nutzerauftrag 2026-08-11 | Befundliste in Ergebnisbox | `Im Campusgram-Passwort wurden diese Bestandteile oder Muster erkannt: [Befunde].` | Ergebnisfeedback | PassWo vermittelt die sichtbaren lokalen Befunde schrittweise | begrenzt | `Weiter` | erkannte Bausteine |
+| `S05.freeSearch.application.noneRecognized` | Nutzerauftrag 2026-08-11 | `Keine Befunde erkannt` | `In den simulierten Prüfungen wurden keine bekannten Bestandteile oder Muster erkannt.` | Ergebnisfeedback | Gegenkategorie ohne Sicherheitsurteil formulieren | nein | `Weiter` | keine |
+| `S05.freeSearch.application.length` | Nutzerauftrag 2026-08-11 | Längenkarte | `Das Campusgram-Passwort hat [Anzahl] Zeichen.` | Orientierung | Länge als eigenen PassWo-Schritt erhalten | nein | `Weiter` | Längenanzeige |
+| `S05.freeSearch.application.found` | Nutzerauftrag 2026-08-11 | Ergebnisüberschrift und Begründung | `Das vollständige Campusgram-Passwort wurde in den simulierten Prüfungen gefunden.` | Ergebnisfeedback | Vollpasswort-Status direkt und begrenzt benennen | nein | `Weiter` | Campusgram rot mit Käfer |
+| `S05.freeSearch.application.notFound` | Nutzerauftrag und bestehende Forschungsgrenze | Ergebnisüberschrift, Begründung und separater Grenztext | `Das vollständige Campusgram-Passwort wurde in den simulierten Prüfungen nicht gefunden. Das ist kein Nachweis dafür, dass es sicher ist.` | Ergebnisfeedback / Safety Boundary | Nichtfund und notwendige Grenze gemeinsam verständlich machen | nein | `Weiter` | Campusgram blinkt, danach Schild |
+| `S05.freeSearch.application.reuseTakeaway` | Nutzerauftrag 2026-08-11 | nicht in S05 vorhanden | `Selbst gewählte Passwörter werden häufig bei mehreren Konten wiederverwendet oder leicht verändert, weil man sich so weniger Passwörter merken muss oder sie für sich bereits stark wirken.` | Mechanismuserklärung | ausdrücklich freigegebener Übergang zur Einzigartigkeit | ja | `Weiter` | keine |
+| `S05.freeSearch.application.attackerTakeaway` | Nutzerauftrag 2026-08-11 | nicht in S05 vorhanden | `Wird das Passwort eines Kontos herausgefunden, kann der Angreifer gleiche oder ähnliche Passwörter direkt auch bei deinen anderen Konten testen.` | Kerngedanke | ausdrücklich freigegebener Abschluss der Szene | ja | `Weiter` zu S06 | `gleiche oder ähnliche Passwörter` |
+
+Die zwei abschließenden Nutzerformulierungen bleiben wortgleich. Ihre Länge ist begründet,
+weil sie den freigegebenen dramaturgischen Übergang in zwei getrennten Sprechschritten bilden.
+
 ## Copy-Delta S03 bis S05 direktes Szenarioframing, 11. August 2026
 
 Quelle ist der ausdrückliche Nutzerauftrag vom 11. August 2026. S03 formuliert eine fehlgeschlagene
@@ -2686,3 +2792,31 @@ Kontakte als Such- und Kontaktliste sowie Beiträge und Reaktionen als großer F
 angedeuteten Reaktions- und Kommentarhandlungen. Bestehender Teilnehmertext, Interaktion,
 Ablauf, Persistenz, Export und Timing bleiben unverändert; kein Content-Versionssprung ist
 erforderlich.
+### Copy- und Darstellungsdelta S05 Wortlaut und Kleinbuchstaben 12. August 2026
+
+Quelle ist der ausdrückliche Nutzerauftrag vom 12. August 2026. Die Erklärungen zu geläufigen
+Wörtern und typischen Varianten werden fachlich präzisiert und gekürzt. Die Safety Boundary
+vermeidet die unnötige Einschränkung auf Bestandteile „im Passwort“. Die bestehenden
+Hervorhebungen `typische Varianten` und `Bitte beachte:` bleiben erhalten. In der
+Längenschätzungsvisualisierung beginnt `kleinbuchstaben` mit einem kleinen `k`; die Erklärung
+`bis alle kleinbuchstaben Zeichenfolgen geprüft sind` wird in der aktiven Zeitkugel größer
+dargestellt. Interaktion, Ablauf, Analyse, Persistenz, Export und Timing bleiben unverändert.
+`S05_CONTENT_VERSION` wird von `2.79.0` auf `2.79.1` erhöht.
+
+| Segment und Text-ID | Quelle | Aktueller Text | Geplanter Text | Primäre Rolle | Grund | Bedeutungsänderung | Interaktionsziel | Hervorhebung |
+|---|---|---|---|---|---|---|---|---|
+| `S05.componentStrategy.commonComponents.explanation[1]` | Nutzerauftrag vom 2026-08-12 | `Wörter sind nicht grundsätzlich unsicher. Wörter, die häufig als Passwort gewählt werden, probieren Angreifer jedoch früh aus.` | `Wörter sind nicht grundsätzlich unsicher. Geläufige Wörter, etwa aus Wörterbüchern, können Angreifer jedoch früh ausprobieren.` | Mechanismuserklärung | ausdrücklich vorgegebene fachliche Präzisierung | begrenzt | `Weiter` | keine |
+| `S05.componentStrategy.commonComponents.explanation[2]` | Nutzerauftrag vom 2026-08-12 | `Bei selbst gewählten Passwörtern kommen häufig Veränderungen wie Großschreibung, Zeichenersetzungen, Zahlen oder Symbole vor. Angreifer probieren deshalb typische Varianten einzelner Bestandteile und ganzer Passwörter aus.` | `Häufige Passwörter und Wörter werden oft durch Großschreibung, Zeichenersetzungen, Zahlen oder Symbole verändert. Angreifer probieren deshalb auch solche typischen Varianten aus.` | Mechanismuserklärung | ausdrücklich vorgegebene Präzisierung und Kürzung | begrenzt | `Weiter` | `typische Varianten` in Akzentfarbe mit bestehendem Symbol |
+| `S05.intro.narration.componentCategoryOverview[1]` | Nutzerauftrag vom 2026-08-12 | `Bitte beachte: Das Modul kann Bestandteile im Passwort übersehen oder falsch einordnen. Es dient nur zum Verständnis und ist keine Sicherheitsbewertung.` | `Bitte beachte: Das Modul kann Bestandteile übersehen oder falsch einordnen. Es dient nur zum Verständnis, nicht zur Sicherheitsbewertung.` | Safety Boundary | ausdrücklich vorgegebene Kürzung bei erhaltener Geltungsgrenze | nein | `Weiter` | `Bitte beachte:` in Akzentfarbe |
+
+### Copy-Delta S00 explorativer Safety-Einstieg 12. August 2026
+
+Quelle ist der ausdrückliche Nutzerauftrag vom 12. August 2026. Der Safety-Hinweis wird gekürzt,
+bezeichnet die flüchtige Verarbeitung weiterhin eindeutig und ersetzt den leistungsorientierten
+Abschluss durch eine Einladung zum sicheren Ausprobieren. Interaktion, Ablauf, Persistenz, Export
+und Timing bleiben unverändert. Die bestehende Warnmarkierung bleibt wortgleich auf `keine echten
+Passwörter oder Varianten davon`. `S00_CONTENT_VERSION` wird von `1.22.1` auf `1.22.2` erhöht.
+
+| Segment und Text-ID | Quelle | Aktueller Text | Geplanter Text | Primäre Rolle | Grund | Bedeutungsänderung | Interaktionsziel | Hervorhebung |
+|---|---|---|---|---|---|---|---|---|
+| `S00.narration.safetyWarning` | Nutzerauftrag vom 2026-08-12 | `Bitte verwende keine echten Passwörter oder Varianten davon. Deine ausgedachten Passwörter werden nur für diese Übung verarbeitet und nicht dauerhaft gespeichert. Viel Erfolg!` | `Bitte keine echten Passwörter oder Varianten davon verwenden. Deine Eingaben werden nur für diese Übung verarbeitet und nicht gespeichert. Viel Spaß beim Ausprobieren!` | Safety Boundary | ausdrücklich freigegebene Kürzung und dramaturgische Änderung zu einem explorativen, weniger leistungsorientierten Abschluss | begrenzt | kein | `keine echten Passwörter oder Varianten davon` in Warnfarbe |

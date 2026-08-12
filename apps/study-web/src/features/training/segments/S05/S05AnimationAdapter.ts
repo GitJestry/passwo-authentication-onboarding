@@ -36,6 +36,21 @@ export class S05AnimationAdapter implements AnimationPlayerPort {
       if (this.#cancelled) return { status: 'cancelled' };
       const element = this.#getElement(step.targetId);
       if (element === null) return { status: 'failed', reasonCode: 's05-animation-target-missing' };
+      if (step.targetId === 'final-result' || step.targetId === 'final-spread') {
+        await new Promise<void>((resolve) => requestAnimationFrame(() => resolve()));
+        const animations = element
+          .getAnimations({ subtree: true })
+          .filter(
+            (animation) =>
+              animation.playState !== 'finished' &&
+              animation.effect?.getTiming().iterations !== Number.POSITIVE_INFINITY,
+          );
+        if (animations.length > 0) {
+          await Promise.allSettled(animations.map((animation) => animation.finished));
+          if (this.#cancelled) return { status: 'cancelled' };
+          continue;
+        }
+      }
       // Consecutive narration steps can retarget the same persistent scene. Replaying the
       // whole-scene entrance in that case makes already visible cards appear to reload.
       const sharesVisibleScene =
@@ -48,7 +63,7 @@ export class S05AnimationAdapter implements AnimationPlayerPort {
       this.#previousSequenceId = sequence.id;
       this.#previousTarget = element;
 
-      if (sharesVisibleScene && advancesWithinScene) continue;
+      if (sharesVisibleScene && advancesWithinScene && !step.targetId.startsWith('final-')) continue;
 
       this.#activeAnimation = element.animate(
         [

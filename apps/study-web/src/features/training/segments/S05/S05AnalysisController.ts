@@ -14,13 +14,14 @@ import {
 } from '@passwo/training-engine';
 import {
   type PasswordFindingSceneSnapshot,
-  type PasswordFreeSearchApplicationSceneSnapshot,
+  type PasswordAssessmentSceneSnapshot,
   type PasswordFreeSearchDemonstrationSceneSnapshot,
   type PasswordStructureSceneSnapshot,
   createPasswordFindingScene,
-  createPasswordFreeSearchApplicationScene,
+  createPasswordAssessmentScene,
   createPasswordFreeSearchDemonstrationScene,
   createPasswordStructureScene,
+  type NetworkSceneSnapshot,
 } from '@passwo/visualization';
 import {
   createCanonicalPasswordView,
@@ -32,6 +33,10 @@ import {
   type S05ComponentCategoryId,
   type S05PersonalCandidate,
 } from './S05ComponentStrategy.js';
+import {
+  createS05AssessmentNetwork,
+  type S05AssessmentNetworkPhase,
+} from '../account-network.js';
 
 export type S05AnalysisStep =
   | 'candidate-check'
@@ -78,7 +83,11 @@ export type S05AnalysisStep =
   | 'length-additional-word-question'
   | 'length-practical-outlook'
   | 'length-campusgram-transition'
-  | 'free-search-application';
+  | 'final-components'
+  | 'final-length'
+  | 'final-result'
+  | 'final-spread'
+  | 'final-takeaway';
 
 export type S05Estimate = (typeof s05Content.freeSearch.estimate.options)[number];
 
@@ -92,7 +101,7 @@ export interface S05AnalysisSubject {
   };
 }
 
-export type S05InitialSection = 'intro' | 'components' | 'structure' | 'free-search';
+export type S05InitialSection = 'intro' | 'components' | 'structure' | 'free-search' | 'application';
 
 export interface S05AnalysisControllerSnapshot {
   readonly phase: 'ready' | 'animating' | 'awaiting-decision' | 'complete';
@@ -100,7 +109,8 @@ export interface S05AnalysisControllerSnapshot {
   readonly findingScene: PasswordFindingSceneSnapshot;
   readonly structureScene: PasswordStructureSceneSnapshot;
   readonly freeSearchDemonstrationScene: PasswordFreeSearchDemonstrationSceneSnapshot;
-  readonly freeSearchApplicationScene: PasswordFreeSearchApplicationSceneSnapshot;
+  readonly assessmentScene: PasswordAssessmentSceneSnapshot;
+  readonly assessmentNetwork: NetworkSceneSnapshot;
   readonly estimate: {
     readonly selected: S05Estimate | null;
     readonly confirmed: boolean;
@@ -124,7 +134,6 @@ export interface S05AnalysisControllerSnapshot {
   };
   readonly controls: {
     readonly canStart: boolean;
-    readonly canReplay: boolean;
     readonly canContinue: boolean;
   };
 }
@@ -184,7 +193,11 @@ const stepByMissionId: Readonly<Record<string, S05AnalysisStep>> = {
   's05-length-additional-word-question': 'length-additional-word-question',
   's05-length-practical-outlook': 'length-practical-outlook',
   's05-length-campusgram-transition': 'length-campusgram-transition',
-  's05-free-search-application': 'free-search-application',
+  's05-final-components': 'final-components',
+  's05-final-length': 'final-length',
+  's05-final-result': 'final-result',
+  's05-final-spread': 'final-spread',
+  's05-final-takeaway': 'final-takeaway',
 };
 
 function initialComponentCards(): S05AnalysisControllerSnapshot['componentStrategy']['cards'] {
@@ -230,7 +243,14 @@ const firstMissionIdBySection = {
   components: 's05-component-category-overview',
   structure: 's05-structure-intro',
   'free-search': 's05-free-search-transition',
+  application: 's05-final-components',
 } as const satisfies Readonly<Record<S05InitialSection, string>>;
+
+function assessmentNetworkPhase(step: S05AnalysisStep): S05AssessmentNetworkPhase {
+  if (step === 'final-result') return 'result';
+  if (step === 'final-spread' || step === 'final-takeaway') return 'spread';
+  return 'focus';
+}
 
 function createMission(
   subject: S05AnalysisSubject,
@@ -322,8 +342,8 @@ export class S05AnalysisController {
         confirmed: false,
       },
     );
-    const freeSearchApplicationScene = createPasswordFreeSearchApplicationScene(
-      `s05-free-search-application-${subject.id}`,
+    const assessmentScene = createPasswordAssessmentScene(
+      `s05-assessment-${subject.id}`,
       subject.fictionalPassword,
       componentAnalysis,
       disposition,
@@ -344,7 +364,11 @@ export class S05AnalysisController {
         generatedCharacterModel: createSystemGeneratedSearchSpaceModel(12),
         lowercaseReferenceModel: createLowercaseSearchSpaceModel(15),
       }),
-      freeSearchApplicationScene,
+      assessmentScene,
+      assessmentNetwork: createS05AssessmentNetwork(
+        assessmentScene.disposition.kind === 'whole-password-recognized',
+        'focus',
+      ),
       estimate: { selected: null, confirmed: false },
       lowercaseScale: {
         password: initialLowercasePassword,
@@ -356,7 +380,7 @@ export class S05AnalysisController {
         cards: initialComponentCards(),
         personalSelection: { candidates: [] },
       },
-      controls: { canStart: true, canReplay: false, canContinue: false },
+      controls: { canStart: true, canContinue: false },
     };
     this.#missionController = new MissionController({
       animationPlayer,
@@ -367,7 +391,7 @@ export class S05AnalysisController {
         this.#snapshot = {
           ...snapshot,
           phase: 'complete',
-          controls: { canStart: false, canReplay: false, canContinue: false },
+          controls: { canStart: false, canContinue: false },
         };
         this.#emit();
         this.#onComplete?.();
@@ -393,7 +417,7 @@ export class S05AnalysisController {
     if (this.#disposed || snapshot === null || !snapshot.controls.canStart) return;
     this.#snapshot = {
       ...snapshot,
-      controls: { canStart: false, canReplay: false, canContinue: false },
+      controls: { canStart: false, canContinue: false },
     };
     this.#emit();
     void this.#missionController.start(this.#mission);
@@ -646,11 +670,6 @@ export class S05AnalysisController {
     return true;
   }
 
-  replay(): void {
-    if (this.#disposed || this.#snapshot === null || !this.#snapshot.controls.canReplay) return;
-    this.#missionController.replay();
-  }
-
   continue(): void {
     if (this.#disposed || this.#snapshot === null || !this.#snapshot.controls.canContinue) return;
     void this.#missionController.continue();
@@ -681,9 +700,12 @@ export class S05AnalysisController {
         ...currentSnapshot.componentStrategy,
         cards: cardsForStep(currentSnapshot.componentStrategy.cards, step),
       },
+      assessmentNetwork: createS05AssessmentNetwork(
+        currentSnapshot.assessmentScene.disposition.kind === 'whole-password-recognized',
+        assessmentNetworkPhase(step),
+      ),
       controls: {
         canStart: false,
-        canReplay: awaitingDecision,
         canContinue:
           awaitingDecision &&
           step !== 'lowercase-clock' &&

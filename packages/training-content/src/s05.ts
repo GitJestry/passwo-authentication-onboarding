@@ -3,7 +3,6 @@ import type {
   DesignLabScenarioId,
   PasswordSingleFindingKind,
   RuntimeStructureFindingKind,
-  SimulationWholePasswordRecognitionRuleId,
 } from '@passwo/contracts';
 import { accountContextTerms } from './account-context-terms.js';
 
@@ -71,7 +70,7 @@ export interface S05DesignLabFixture {
   readonly startSection: 'intro' | 'components' | 'structure';
 }
 
-export const S05_CONTENT_VERSION = '2.76.0';
+export const S05_CONTENT_VERSION = '2.79.4';
 
 export const s05Content = {
   version: S05_CONTENT_VERSION,
@@ -81,9 +80,9 @@ export const s05Content = {
       12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34,
       35,
     ] as const,
-    revision: 'Userauftrag vom 2026-08-11 · direktes Szenarioframing',
+    revision: 'Userauftrag vom 2026-08-12 · S05 Ergebnisframing',
     copyReference:
-      'docs/design/S00-S05-COPY-AUDIT.md#copy-delta-s03-bis-s05-direktes-szenarioframing-11-august-2026',
+      'docs/design/S00-S05-COPY-AUDIT.md#copy-delta-s05-ergebnisframing-12-august-2026',
   },
   segment: {
     id: 'S05',
@@ -103,8 +102,6 @@ export const s05Content = {
     title: 'Häufig verwendete Passwörter und Zeichenfolgen',
     fixtureNotice:
       'Diese Simulation betrachtet nur das fiktive Passwort und ist keine allgemeine Sicherheitsbewertung.',
-    start: 'Animation starten',
-    replay: 'Animation wiederholen',
     continue: 'Weiter',
   },
   intro: {
@@ -133,7 +130,7 @@ export const s05Content = {
         'Für den Angreifer ist dein Passwort verdeckt. Er probiert mögliche Passwörter aus und prüft, ob eines davon passt. Grundsätzlich kann er jede denkbare Zeichenfolge testen.',
       ],
       randomSequence: [
-        'Solche zufällig erzeugten Zeichenfolgen können allerdings schwer zu merken sein. Selbst gewählte Passwörter enthalten deshalb oft merkbare Elemente wie Wörter, Zahlen oder einfache Zeichenfolgen.',
+        'Zufällige Zeichenfolgen sind jedoch schwer zu merken. Selbst gewählte Passwörter enthalten deshalb oft merkbare Elemente wie Wörter, Zahlen oder einfache Zeichenfolgen.',
       ],
       buildingBlocks: [
         'Für die Erklärung betrachten wir diese Teile vereinfacht wie aneinandergesetzte Bausteine.',
@@ -143,7 +140,7 @@ export const s05Content = {
       ],
       componentCategoryOverview: [
         'Dabei beginnt der Angreifer mit Passwörtern und Zeichenfolgen, die besonders häufig verwendet werden.',
-        'Bitte beachte: Das Modul kann Bestandteile im Passwort übersehen oder falsch einordnen. Es dient nur zum Verständnis und ist keine Sicherheitsbewertung.',
+        'Bitte beachte: Das Modul kann Bestandteile übersehen oder falsch einordnen. Es dient nur zum Verständnis, nicht zur Sicherheitsbewertung.',
       ],
     },
   },
@@ -189,8 +186,8 @@ export const s05Content = {
     commonComponents: {
       explanation: [
         'Dazu gehören häufig verwendete Passwörter und Wörter, einfache Tastatur- und Zahlenfolgen wie „123456“ oder „qwertz“ oder naheliegende Jahreszahlen.',
-        'Wörter sind nicht grundsätzlich unsicher. Wörter, die häufig als Passwort gewählt werden, probieren Angreifer jedoch früh aus.',
-        'Bei selbst gewählten Passwörtern kommen häufig Veränderungen wie Großschreibung, Zeichenersetzungen, Zahlen oder Symbole vor. Angreifer probieren deshalb typische Varianten einzelner Bestandteile und ganzer Passwörter aus.',
+        'Wörter sind nicht grundsätzlich unsicher. Geläufige Wörter, etwa aus Wörterbüchern, können Angreifer jedoch früh ausprobieren.',
+        'Bei selbst gewählten Passwörtern kommen außerdem oft Veränderungen wie Großschreibung, Zeichenersetzungen, Zahlen oder Symbole vor. Auch solche typischen Varianten werden ausprobiert.',
         'Prüfen wir nun dein gewähltes Passwort auf häufig verwendete Passwörter und Zeichenfolgen.',
       ],
       machine: {
@@ -225,16 +222,16 @@ export const s05Content = {
     },
     personalDetails: {
       opening: [
-        'Persönliche Angaben können leicht zu merken sein und wirken oft privat. Deshalb ist es nachvollziehbar, sie für schwer erratbar zu halten.',
+        'Persönliche Angaben sind vertraut und meist leicht zu merken. Gerade weil sie persönlich sind, können sie schwer erratbar wirken.',
       ],
       derivation: [
-        'Doch beim Campusgram-Datenleck sind mit den Passwortdaten auch Kontohinweise wie Benutzername oder E-Mail-Adresse in fremde Hände geraten.',
+        'Mit den Passwortdaten eines Kontos sind jedoch oft auch ein Benutzername oder eine E-Mail-Adresse verknüpft. Bei einem Datenleck können solche Kontohinweise offengelegt werden.',
       ],
       examples: [
-        'Viele persönliche Angaben erfahren oder erraten Angreifer leicht aus solchen Hinweisen und öffentlichen Profilen. Namen, Geburtsdaten oder den Lieblingsverein probieren sie gezielt aus.',
+        'Mit diesen Hinweisen können Angreifer nach öffentlichen Profilen suchen und dort Angaben wie Namen, Geburtsdaten oder den Lieblingsverein finden und als Passwortbestandteile ausprobieren.',
       ],
       explanation: [
-        'Die Auswahl bleibt in dieser Übung und wird weder gespeichert noch exportiert. Markiere im fiktiven Passwort die Stellen, die für das Beispiel persönliche Angaben sein könnten.',
+        'Deine Auswahl wird weder gespeichert noch exportiert. Markiere für den Selbstcheck mögliche persönliche Angaben im fiktiven Passwort.',
       ],
       machine: {
         conveyorBlocks: [
@@ -295,12 +292,12 @@ export const s05Content = {
     summary: {
       title: 'Häufig verwendete Passwörter und Zeichenfolgen',
       singleCandidateMatch:
-        'Das Campusgram-Passwort wurde bei dieser Prüfung bereits gefunden.',
+        'Das Campusgram-Passwort wurde bei dieser Prüfung bereits gefunden. Die Simulation zeigt dennoch weitere typische Vorgehensweisen.',
       combinedMatches:
-        'Dein Passwort besteht komplett aus frühen Anhaltspunkten. Erraten ist es dadurch noch nicht. Wir verfolgen den Angriff deshalb weiter.',
+        'Mehrere frühe Übereinstimmungen decken zusammen das ganze Passwort ab. Erraten ist es dadurch noch nicht. Die Simulation zeigt noch weitere typische Vorgehensweisen.',
       partialMatches:
-        'Dein Passwort besteht zum Teil aus frühen Anhaltspunkten. Erraten ist es dadurch noch nicht. Wir verfolgen den Angriff weiter.',
-      none: 'Bei den bisherigen Prüfungen wurde keine Übereinstimmung gefunden. Der Angreifer hat damit aber noch nicht alle Möglichkeiten ausgeschöpft.',
+        'Bei den bisherigen Prüfungen wurden Teile des Passworts erkannt. Erraten ist es dadurch noch nicht. Die Simulation zeigt noch weitere typische Vorgehensweisen.',
+      none: 'Bei den bisherigen Prüfungen wurde keine Übereinstimmung gefunden. Das bedeutet jedoch nicht, dass bereits alle Angriffsmöglichkeiten geprüft wurden.',
       nothingFound: 'Nichts gefunden',
       continue: 'Weiter',
     },
@@ -516,9 +513,9 @@ export const s05Content = {
     },
     lengthExamples: {
       mixedCharacterComparison:
-        'Die gelbe Kugel zeigt, warum 12 Zeichen mit mehreren Zeichentypen im mathematischen Modell so vielversprechend wirken.',
+        'Die gelbe Kugel zeigt, warum zwölf Zeichen aus mehreren Zeichentypen bei wirklich zufälliger Auswahl so vielversprechend sind.',
       orientation:
-        'Bei selbstgewählten Passwörtern sollst du dich auf solche zusätzlichen Zeichentypen aber nicht verlassen müssen. Deshalb liegt die aktuelle Orientierung bei mindestens 15 Zeichen.',
+        'Bei selbstgewählten Passwörtern lässt sich diese Zufälligkeit jedoch nicht voraussetzen. Deshalb liegt die aktuelle Orientierung bei mindestens 15 Zeichen.',
       wordCore: {
         password: 'Datensicherheit!',
         parts: ['Datensicherheit', '!'],
@@ -539,40 +536,26 @@ export const s05Content = {
         'Schauen wir jetzt, wie dein Campusgram-Passwort bei diesen Angriffsmöglichkeiten abschneidet.',
     },
     application: {
-      eyebrow: 'Auswertung',
-      dispositionLabels: {
-        'whole-password-recognized-value': {
-          title: 'Fiktives Campusgram-Passwort gefunden',
-          body: 'Ein früher Kandidat deckt das vollständige Passwort ab.',
-        },
-        'whole-password-recognized-bounded-variant': {
-          title: 'Fiktives Campusgram-Passwort gefunden',
-          body: 'Ein begrenzter typischer Variantenpfad deckt das vollständige Passwort ab.',
-        },
-      } satisfies Readonly<
-        Record<
-          SimulationWholePasswordRecognitionRuleId,
-          { readonly title: string; readonly body: string }
-        >
-      >,
-      notFound: {
-        title: 'Fiktives Campusgram-Passwort nicht gefunden',
-        body: 'Kein dargestellter Kandidat oder Variantenpfad deckt das vollständige Passwort ab.',
+      recognized: 'Im Campusgram-Passwort wurden diese Bestandteile oder Muster erkannt: [Befunde].',
+      noneRecognized:
+        'In den simulierten Prüfungen wurden keine bekannten Bestandteile oder Muster erkannt.',
+      length: 'Das Campusgram-Passwort hat [Anzahl] Zeichen.',
+      found:
+        'Das vollständige Campusgram-Passwort wurde in den simulierten Prüfungen gefunden.',
+      notFound:
+        'Das vollständige Campusgram-Passwort wurde in den simulierten Prüfungen nicht gefunden. Das ist kein Nachweis dafür, dass es sicher ist.',
+      shieldMeaning:
+        'Das Schild steht für den Schutz durch das Passwort als einen Faktor, nicht für absolute Kontosicherheit.',
+      reuseTakeaway:
+        'Selbst gewählte Passwörter werden häufig bei mehreren Konten wiederverwendet oder leicht verändert, weil man sich so weniger Passwörter merken muss oder sie für sich bereits stark wirken.',
+      attackerTakeaway:
+        'Wird das Passwort eines Kontos herausgefunden, kann der Angreifer gleiche oder ähnliche Passwörter direkt auch bei deinen anderen Konten testen.',
+      network: {
+        foundSummary:
+          'Campusgram wurde gefunden. Rote Prüfwege erreichen Master Campus und Campus E-Mail sowie deren verbundene Bereiche.',
+        protectedSummary:
+          'Der simulierte Prüfweg zu Campusgram wurde durch den Passwortfaktor blockiert. Blaue Schutzlinien und Schilde markieren die verbundenen Konten und Bereiche.',
       },
-      findings: {
-        foundHeading: 'Das wurde erkannt',
-        partialHeading: 'Erkannte Teilbefunde',
-        noneHeading: 'Keine Befunde erkannt',
-        combinedPath: 'Zusammen erklären diese Befunde den vollständigen Treffer.',
-        none: 'Kein passender Befund',
-      },
-      lengthHeading: 'Länge',
-      lengthOrientationLabels: {
-        'below-15': 'unter 15 Zeichen',
-        'at-least-15': 'mindestens 15 Zeichen',
-      },
-      boundary:
-        '„Nicht gefunden“ bedeutet nicht, dass das Passwort sicher ist. Die Übung zeigt nur die simulierten Prüfungen.',
     },
   },
   fixtures: [
@@ -675,7 +658,11 @@ export const s05Content = {
     ['s05-length-model-comparison', 'length-model-comparison', 'info'],
     ['s05-length-orientation', 'length-orientation', 'info'],
     ['s05-length-campusgram-transition', 'campusgram-password', 'info'],
-    ['s05-free-search-application', 'free-search-application', 'warning'],
+    ['s05-final-components', 'final-components', 'info'],
+    ['s05-final-length', 'final-length', 'info'],
+    ['s05-final-result', 'final-result', 'warning'],
+    ['s05-final-spread', 'final-spread', 'warning'],
+    ['s05-final-takeaway', 'final-takeaway', 'info'],
   ] as const,
 } as const;
 
@@ -693,10 +680,11 @@ export function getS05Animation(animationId: string) {
   const authored = s05Content.animations.find(([id]) => id === animationId);
   if (authored === undefined) return undefined;
   const [id, targetId, emphasis] = authored;
+  const durationMs = id === 's05-final-spread' ? 3200 : id === 's05-final-result' ? 1400 : 520;
   return {
     id,
-    steps: [{ type: 'highlight' as const, targetId, emphasis, durationMs: 520 }],
+    steps: [{ type: 'highlight' as const, targetId, emphasis, durationMs }],
     reducedMotion: { strategy: 'instant-end-state' as const, maxDurationMs: 0 },
-    maxDurationMs: 520,
+    maxDurationMs: durationMs,
   };
 }

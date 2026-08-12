@@ -294,6 +294,18 @@ const scenarios: Record<DesignLabScenarioId, DesignLabScenario> = {
     dimmed: false,
     showPassWoOverlay: false,
   },
+  's05-application-found': {
+    label: 'S05 Abschluss · Passwort gefunden',
+    description: 'Direkter QA-Einstieg in die rote geführte Campusgram-Abschlussszene.',
+    dimmed: false,
+    showPassWoOverlay: false,
+  },
+  's05-application-protected': {
+    label: 'S05 Abschluss · Prüfweg blockiert',
+    description: 'Direkter QA-Einstieg in die blaue Schild-Variante der Abschlussszene.',
+    dimmed: false,
+    showPassWoOverlay: false,
+  },
   's06-reuse-and-derived': {
     label: 'S06 Wiederverwendung + Ableitung',
     description:
@@ -784,6 +796,21 @@ export function DesignLab({ scenarioId }: { readonly scenarioId: DesignLabScenar
         <DesignLabIntroduction scenarioId={scenarioId} scenario={scenario} />
         <main className={styles.trainingStage}>
           <S05DesignLabTraining fixtureId="common-suffix" initialSection="free-search" />
+        </main>
+      </>
+    );
+  }
+
+  if (scenarioId === 's05-application-found' || scenarioId === 's05-application-protected') {
+    return (
+      <>
+        <DesignLabIntroduction scenarioId={scenarioId} scenario={scenario} />
+        <main className={styles.trainingStage}>
+          <S05DesignLabTraining
+            fixtureId={scenarioId === 's05-application-found' ? 'common-suffix' : 'no-simple-component'}
+            initialSection="application"
+            platform={readDesktopPlatform()}
+          />
         </main>
       </>
     );

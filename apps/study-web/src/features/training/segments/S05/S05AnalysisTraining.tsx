@@ -3,13 +3,13 @@ import type {
   RuntimeStructureFindingKind,
 } from '@passwo/contracts';
 import { s00Content, s05Content } from '@passwo/training-content';
-import type {
-  PasswordFreeSearchApplicationSceneSnapshot,
-} from '@passwo/visualization';
+import { DesktopSurface, type DesktopPlatform } from '@passwo/ui';
+import type { SceneNode } from '@passwo/visualization';
 import {
   type CSSProperties,
   type ReactNode,
   useEffect,
+  useMemo,
   useRef,
   useState,
 } from 'react';
@@ -18,6 +18,11 @@ import commonCoresAsset from '../../../../assets/s05/category-logos/common-cores
 import personalDetailsAsset from '../../../../assets/s05/category-logos/personal-details.png';
 import typicalChangesAsset from '../../../../assets/s05/category-logos/typical-changes.png';
 import attackerAsset from '../../../../assets/passwo/attacker.png';
+import passwordFactorShieldAsset from '../../../../assets/s05/password-factor-shield.png';
+import {
+  ReactFlowNetwork,
+  ReactFlowNetworkAdapter,
+} from '../../../../adapters/network/ReactFlowNetworkAdapter.js';
 import { NetworkSymbol } from '../../../../adapters/network/NetworkSymbolRegistry.js';
 import scaleClockAsset from '../../../../assets/s05/scale-clock.svg';
 import scaleWarningAsset from '../../../../assets/s05/scale-warning.svg';
@@ -37,7 +42,9 @@ import {
   summarizeCategoryCandidates,
   type S05CategoryFinding,
   type S05ComponentCategoryId,
+  type S05RepetitionAnnotation,
 } from './S05ComponentStrategy.js';
+import { staticNetworkPresentation } from '../account-network.js';
 import styles from './S05AnalysisTraining.module.css';
 
 export type S05TimingState = 'active' | 'writingEnd' | 'endWriteFailed';
@@ -49,6 +56,7 @@ export interface S05CompletionPort {
 export interface S05AnalysisTrainingProps {
   readonly subject: S05AnalysisSubject;
   readonly initialSection?: S05InitialSection;
+  readonly platform?: DesktopPlatform;
   readonly timingState?: S05TimingState;
   readonly timingErrorCode?: string | null;
   readonly externalTimingError?: string | null;
@@ -1098,12 +1106,12 @@ function EstimateRuler({
     >
       {showAlphabet ? (
         <div className={styles.lowercaseAlphabet}>
-          <LowercaseAlphabetMark />
+          <LowercaseAlphabetMark lowercase />
           <span>{content.alphabetLabel}</span>
         </div>
       ) : (
         <div className={styles.lowercaseAlphabet} data-hidden="true" aria-hidden="true">
-          <LowercaseAlphabetMark decorative />
+          <LowercaseAlphabetMark decorative lowercase />
           <span>{content.alphabetLabel}</span>
         </div>
       )}
@@ -1875,54 +1883,178 @@ function LengthExamplesScene({
   );
 }
 
-function FreeSearchApplicationScene({
-  scene,
-}: {
-  readonly scene: PasswordFreeSearchApplicationSceneSnapshot;
-}) {
-  const content = s05Content.freeSearch.application;
-  const resultCopy =
-    scene.disposition.kind === 'whole-password-recognized'
-      ? content.dispositionLabels[scene.disposition.ruleId]
-      : content.notFound;
-  const findingLabels = [
-    ...new Set(scene.explanatoryFindings.map(({ kind }) => findingLabel(kind))),
+function finalRepetitionAnnotations(
+  snapshot: S05AnalysisControllerSnapshot,
+): readonly S05RepetitionAnnotation[] {
+  return snapshot.structureScene.runtimeAnalysis.findings.flatMap(({ findingKind, evidence }) => {
+    if (
+      findingKind !== 'exact-component-repetition' &&
+      findingKind !== 'recognized-repetition-pattern'
+    ) {
+      return [];
+    }
+    const label = s05Content.structure.findingLabels[findingKind];
+    return evidence.flatMap((entry) =>
+      entry.type === 'span' ? [{ start: entry.start, end: entry.end, label }] : [],
+    );
+  });
+}
+
+function finalComponentFindings(
+  snapshot: S05AnalysisControllerSnapshot,
+): readonly S05CategoryFinding[] {
+  const view = snapshot.componentStrategy.canonicalView;
+  if (view === null) return [];
+  const released = releasedComponentFindings(snapshot);
+  const automatic = [
+    ...view.automaticFindings['common-components'],
+    ...view.automaticFindings['account-context'],
   ];
-  const hasWholePasswordRecognition = scene.disposition.kind === 'whole-password-recognized';
+  return [...new Map([...released, ...automatic].map((finding) => [finding.id, finding])).values()];
+}
+
+function AssessmentNodeOverlay({ node }: { readonly node: SceneNode }) {
+  if (node.status === 'protected') {
+    return (
+      <img
+        className={styles.assessmentShield}
+        src={passwordFactorShieldAsset}
+        alt=""
+        data-main={node.kind === 'account' || undefined}
+      />
+    );
+  }
+  if (node.id === 'campusgram' && node.status === 'exposed') {
+    return (
+      <span className={styles.assessmentBug}>
+        <img src={attackerAsset} alt="" />
+      </span>
+    );
+  }
+  return null;
+}
+
+function FinalAssessmentScene({
+  snapshot,
+  platform,
+}: {
+  readonly snapshot: S05AnalysisControllerSnapshot;
+  readonly platform: DesktopPlatform;
+}) {
+  const view = snapshot.componentStrategy.canonicalView;
+  const [networkAdapter] = useState(
+    () => new ReactFlowNetworkAdapter(snapshot.assessmentNetwork),
+  );
+  useEffect(() => {
+    networkAdapter.render(snapshot.assessmentNetwork);
+    networkAdapter.announce(snapshot.assessmentNetwork.accessibleSummary);
+  }, [networkAdapter, snapshot.assessmentNetwork]);
+  const presentation = useMemo(
+    () => ({
+      ...staticNetworkPresentation(snapshot.assessmentNetwork),
+      highlightedNodeId:
+        snapshot.step === 'final-components' || snapshot.step === 'final-length'
+          ? 'campusgram'
+          : null,
+      emphasis:
+        snapshot.step === 'final-result' || snapshot.step === 'final-spread'
+          ? ('warning' as const)
+          : ('info' as const),
+    }),
+    [snapshot.assessmentNetwork, snapshot.step],
+  );
+  const findings = finalComponentFindings(snapshot);
+  const repetitions = finalRepetitionAnnotations(snapshot);
+  const displayBlocks =
+    view === null ? [] : projectCanonicalPasswordBlocks(view, findings, repetitions);
+  const targetId = `final-${snapshot.step.slice('final-'.length)}`;
+  const recognized = snapshot.assessmentScene.disposition.kind === 'whole-password-recognized';
+
   return (
     <div
-      className={styles.summaryScene}
-      data-s05-target="free-search-application"
-      aria-label={scene.accessibleSummary}
+      className={styles.assessmentDesktop}
+      data-assessment-outcome={recognized ? 'found' : 'protected'}
+      data-assessment-step={snapshot.step}
+      data-s05-target={targetId}
+      aria-label={snapshot.assessmentNetwork.accessibleSummary}
     >
-      <p className={styles.cardLabel}>{content.eyebrow}</p>
-      <h2>{resultCopy.title}</h2>
-      <p>{resultCopy.body}</p>
-      <div className={styles.summaryCards}>
-        <article data-active="true">
-          <h3>
-            {hasWholePasswordRecognition
-              ? content.findings.foundHeading
-              : findingLabels.length > 0
-                ? content.findings.partialHeading
-                : content.findings.noneHeading}
-          </h3>
-          <p>{findingLabels.length > 0 ? findingLabels.join(' + ') : content.findings.none}</p>
-          {hasWholePasswordRecognition && findingLabels.length > 1 ? (
-            <p>{content.findings.combinedPath}</p>
-          ) : null}
+      <DesktopSurface
+        platform={platform}
+        browserDock={{ active: false, enabled: false, label: 'Browser geschlossen' }}
+      >
+        <article className={styles.assessmentStage}>
+          <div className={styles.assessmentNetwork}>
+            <ReactFlowNetwork
+              adapter={networkAdapter}
+              presentation={presentation}
+              onNodeSelect={() => undefined}
+              interactionDisabled
+              visualVariant="account-map"
+              showEdgeLabels={false}
+              dimInactiveNodes={false}
+              renderNodeOverlay={(node) => <AssessmentNodeOverlay node={node} />}
+              ariaLabel="Konten und verbundene Bereiche in der Campusgram-Prüfung"
+              canvasAriaLabel="Alle Kontoknoten sind sichtbar und entsperrt"
+            />
+          </div>
+          <div className={styles.assessmentDim} aria-hidden="true" />
+          <div className={styles.assessmentAttackerLink} aria-hidden="true" />
+          <img
+            className={styles.assessmentAttacker}
+            src={attackerAsset}
+            alt="Symbolische Darstellung eines Angreifers am Computer"
+          />
+          {view === null ? null : (
+            <section className={styles.assessmentPassword} data-s05-speech-obstacle>
+              <strong className={styles.canonicalAccount}>
+                <span aria-hidden="true"><NetworkSymbol symbolId="campusgram" /></span>
+                Campusgram-Passwort
+              </strong>
+              <PasswordBuildingBlocks
+                value={view.password}
+                visualReferenceValue={view.password}
+                parts={
+                  displayBlocks.length === 0
+                    ? [view.password]
+                    : displayBlocks.map(({ value }) => value)
+                }
+                display="decomposed"
+                appearance="analysis"
+                animate
+                categoryIds={
+                  displayBlocks.length === 0
+                    ? [[]]
+                    : displayBlocks.map(({ categoryIds }) => categoryIds)
+                }
+                matchCategories={
+                  displayBlocks.length === 0
+                    ? [[]]
+                    : displayBlocks.map(({ matchCategories }) => matchCategories)
+                }
+                findings={
+                  displayBlocks.length === 0
+                    ? [[]]
+                    : displayBlocks.map(({ findings: blockFindings }) => blockFindings)
+                }
+                ariaLabel={s05Content.componentStrategy.presentation.canonicalAriaLabel}
+              />
+              {snapshot.step === 'final-length' ? (
+                <output className={styles.assessmentLength}>
+                  {snapshot.assessmentScene.visibleLength} Zeichen
+                </output>
+              ) : null}
+              {!recognized &&
+              (snapshot.step === 'final-result' ||
+                snapshot.step === 'final-spread' ||
+                snapshot.step === 'final-takeaway') ? (
+                <p className={styles.assessmentShieldMeaning}>
+                  {s05Content.freeSearch.application.shieldMeaning}
+                </p>
+              ) : null}
+            </section>
+          )}
         </article>
-        <article>
-          <h3>{content.lengthHeading}</h3>
-          <p>
-            {scene.visibleLength} Zeichen ·{' '}
-            {content.lengthOrientationLabels[scene.disposition.lengthOrientation]}
-          </p>
-        </article>
-      </div>
-      {hasWholePasswordRecognition ? null : (
-        <p className={styles.generatedNote}>{content.boundary}</p>
-      )}
+      </DesktopSurface>
     </div>
   );
 }
@@ -1931,6 +2063,7 @@ function renderScene(
   snapshot: S05AnalysisControllerSnapshot,
   subject: S05AnalysisSubject,
   controller: S05AnalysisController,
+  platform: DesktopPlatform,
 ) {
   switch (snapshot.step) {
     case 'candidate-check':
@@ -2040,8 +2173,12 @@ function renderScene(
           <CampusgramPassword password={subject.fictionalPassword} />
         </div>
       );
-    case 'free-search-application':
-      return <FreeSearchApplicationScene scene={snapshot.freeSearchApplicationScene} />;
+    case 'final-components':
+    case 'final-length':
+    case 'final-result':
+    case 'final-spread':
+    case 'final-takeaway':
+      return <FinalAssessmentScene snapshot={snapshot} platform={platform} />;
     default:
       throw new Error(`Unbekannter S05-Schritt: ${snapshot.step}`);
   }
@@ -2156,6 +2293,17 @@ function componentSummaryNarration(snapshot: S05AnalysisControllerSnapshot): rea
   return [content.partialMatches];
 }
 
+function finalRecognitionNarration(snapshot: S05AnalysisControllerSnapshot): readonly string[] {
+  const content = s05Content.freeSearch.application;
+  const labels = [
+    ...snapshot.assessmentScene.explanatoryFindings.map(({ kind }) => findingLabel(kind)),
+    ...finalRepetitionAnnotations(snapshot).map(({ label }) => label),
+  ].filter((label, index, all) => all.indexOf(label) === index);
+  return labels.length === 0
+    ? [content.noneRecognized]
+    : [content.recognized.replace('[Befunde]', labels.join(', '))];
+}
+
 function speechFor(
   snapshot: S05AnalysisControllerSnapshot,
 ): readonly string[] | null {
@@ -2257,6 +2405,27 @@ function speechFor(
       return [s05Content.freeSearch.lengthExamples.practicalOutlook];
     case 'length-campusgram-transition':
       return [s05Content.freeSearch.lengthExamples.campusgramTransition];
+    case 'final-components':
+      return finalRecognitionNarration(snapshot);
+    case 'final-length':
+      return [
+        s05Content.freeSearch.application.length.replace(
+          '[Anzahl]',
+          String(snapshot.assessmentScene.visibleLength),
+        ),
+      ];
+    case 'final-result':
+      return [
+        snapshot.assessmentScene.disposition.kind === 'whole-password-recognized'
+          ? s05Content.freeSearch.application.found
+          : s05Content.freeSearch.application.notFound,
+      ];
+    case 'final-spread':
+      return snapshot.phase === 'animating'
+        ? null
+        : [s05Content.freeSearch.application.reuseTakeaway];
+    case 'final-takeaway':
+      return [s05Content.freeSearch.application.attackerTakeaway];
     default:
       return null;
   }
@@ -2283,6 +2452,7 @@ function transitionCategoryForStep(
 export function S05AnalysisTraining({
   subject,
   initialSection = 'intro',
+  platform = 'mac',
   timingState = 'active',
   timingErrorCode = null,
   externalTimingError = null,
@@ -2404,7 +2574,7 @@ export function S05AnalysisTraining({
               : undefined
           }
         >
-          {renderScene(snapshot, subject, controller)}
+          {renderScene(snapshot, subject, controller, platform)}
         </div>
         {speech === null ? null : (
           <div
@@ -2427,7 +2597,9 @@ export function S05AnalysisTraining({
                 componentGuidanceVisible ||
                 activeSnapshot.step === 'free-search-transition' ||
                 activeSnapshot.step.startsWith('character-mix-') ||
-                activeSnapshot.step.startsWith('estimate')
+                activeSnapshot.step.startsWith('estimate') ||
+                activeSnapshot.step === 'length-model-comparison' ||
+                activeSnapshot.step === 'length-orientation'
                   ? 'right'
                   : 'above'
               }
@@ -2444,8 +2616,8 @@ export function S05AnalysisTraining({
         )}
         <footer
           className={styles.controls}
-          data-hidden={guidanceVisible || personalCheckVisible || snapshot.step === 'lowercase-clock' || undefined}
-          inert={guidanceVisible || personalCheckVisible || snapshot.step === 'lowercase-clock' || undefined}
+          data-hidden={guidanceVisible || personalCheckVisible || snapshot.step === 'lowercase-clock' || snapshot.step.startsWith('final-') || undefined}
+          inert={guidanceVisible || personalCheckVisible || snapshot.step === 'lowercase-clock' || snapshot.step.startsWith('final-') || undefined}
         >
             {writingBoundary && externalTimingError === null ? (
               <p role="status">Segmentgrenze wird bestätigt …</p>
@@ -2459,27 +2631,6 @@ export function S05AnalysisTraining({
                 </button>
               </section>
             ) : null}
-            <button
-              type="button"
-              disabled={!snapshot.controls.canStart || externalTimingError !== null}
-              onClick={() => controller.start()}
-            >
-              {s05Content.page.start}
-            </button>
-            <button
-              type="button"
-              disabled={!snapshot.controls.canReplay || externalTimingError !== null}
-              onClick={() => controller.replay()}
-            >
-              {s05Content.page.replay}
-            </button>
-            <button
-              type="button"
-              disabled={!snapshot.controls.canContinue || externalTimingError !== null}
-              onClick={() => controller.continue()}
-            >
-              {s05Content.page.continue}
-            </button>
         </footer>
       </article>
     </section>

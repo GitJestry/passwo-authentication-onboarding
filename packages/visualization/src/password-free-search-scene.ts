@@ -19,7 +19,7 @@ export interface PasswordFreeSearchDemonstrationSceneSnapshot {
   readonly accessibleSummary: string;
 }
 
-export interface PasswordFreeSearchApplicationSceneSnapshot {
+export interface PasswordAssessmentSceneSnapshot {
   readonly id: string;
   readonly visibleLength: number;
   readonly disposition: PasswordSimulationDisposition;
@@ -52,12 +52,12 @@ export function createPasswordFreeSearchDemonstrationScene({
   };
 }
 
-export function createPasswordFreeSearchApplicationScene(
+export function createPasswordAssessmentScene(
   id: string,
   fictionalPassword: string,
   componentAnalysis: PasswordAnalysisResult,
   disposition: PasswordSimulationDisposition,
-): PasswordFreeSearchApplicationSceneSnapshot {
+): PasswordAssessmentSceneSnapshot {
   const explanatoryFindings =
     disposition.kind === 'whole-password-recognized'
       ? componentAnalysis.findings.filter(({ id: findingId }) =>

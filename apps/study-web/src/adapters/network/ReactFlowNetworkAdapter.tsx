@@ -18,7 +18,15 @@ import {
   Position,
   ReactFlow,
 } from '@xyflow/react';
-import { useEffect, useLayoutEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react';
+import {
+  type ReactNode,
+  useEffect,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useState,
+  useSyncExternalStore,
+} from 'react';
 import '@xyflow/react/dist/style.css';
 import type { NetworkPresentationSnapshot } from './NetworkMotionAdapter.js';
 import {
@@ -99,6 +107,7 @@ interface SceneNodeData extends Record<string, unknown> {
   readonly nodeSize: 'main' | 'detail';
   readonly nodeShape: NetworkNodeShape;
   readonly onSelect: (nodeId: string) => void;
+  readonly renderNodeOverlay: ((node: SceneNode) => ReactNode) | undefined;
 }
 
 type SceneFlowNode = Node<SceneNodeData, 'scene-node'>;
@@ -370,6 +379,7 @@ function SceneNodeCircle({ data }: NodeProps<SceneFlowNode>) {
     nodeSize,
     nodeShape,
     onSelect,
+    renderNodeOverlay,
   } = data;
   const symbolId = resolveNetworkSymbolId(sceneNode);
   const lockedAccount = sceneNode.kind === 'account' && sceneNode.locked === true;
@@ -407,8 +417,9 @@ function SceneNodeCircle({ data }: NodeProps<SceneFlowNode>) {
         aria-label={`${sceneNode.label}. Status: ${statusLabel(sceneNode)}. ${sceneNode.description}`}
         onClick={() => onSelect(sceneNode.id)}
       >
-        <span className={styles.nodeCircle} aria-hidden="true">
+        <span className={styles.nodeCircle} data-scene-node-visual aria-hidden="true">
           <NetworkSymbol symbolId={symbolId} className={styles.nodeSymbol} />
+          {renderNodeOverlay?.(sceneNode)}
           {lockedAccount ? (
             <span className={styles.lockOverlay}>
               <NetworkStatusMarker
@@ -535,6 +546,8 @@ function toReactFlowElements(
   activeNodeId: string | null,
   activePreviewNodeId: string | null,
   showEdgeLabels: boolean,
+  renderNodeOverlay: ((node: SceneNode) => ReactNode) | undefined,
+  dimInactiveNodes: boolean,
 ): { readonly nodes: readonly SceneFlowNode[]; readonly edges: readonly NodeFlowEdge[] } {
   const revealed = new Set(presentation.revealedNodeIds);
   const drawingTargetNodeId = presentation.drawingTargetNodeId ?? null;
@@ -569,17 +582,20 @@ function toReactFlowElements(
         highlighted: presentation.highlightedNodeId === node.id,
         focused: activePreviewNodeId === node.id,
         active: activeNodeId === node.id,
-        dimmed: choosingAccount
-          ? node.kind === 'account'
-            ? node.status === 'viewed'
-            : true
-          : !activeBranchNodeIds.has(node.id),
+        dimmed: dimInactiveNodes
+          ? choosingAccount
+            ? node.kind === 'account'
+              ? node.status === 'viewed'
+              : true
+            : !activeBranchNodeIds.has(node.id)
+          : false,
         interactionDisabled,
         visualVariant,
         compact,
         nodeSize: node.kind === 'account' ? 'main' : 'detail',
         nodeShape: layout.shape,
         onSelect: onNodeSelect,
+        renderNodeOverlay,
       },
       draggable: false,
       selectable: false,
@@ -612,7 +628,7 @@ function toReactFlowElements(
             targetNodeId: edge.targetId,
             visible: revealed.has(edge.targetId),
             drawing: drawingTargetNodeId === edge.targetId,
-            dimmed: choosingAccount || edge.sourceId !== activeNodeId,
+            dimmed: dimInactiveNodes && (choosingAccount || edge.sourceId !== activeNodeId),
           },
           ariaLabel: edge.label ?? `${edge.sourceId} mit ${edge.targetId} verbunden`,
         },
@@ -632,6 +648,8 @@ export interface ReactFlowNetworkProps {
   readonly activeNodeId?: string | null;
   readonly activePreviewNodeId?: string | null;
   readonly showEdgeLabels?: boolean;
+  readonly renderNodeOverlay?: (node: SceneNode) => ReactNode;
+  readonly dimInactiveNodes?: boolean;
 }
 
 export function ReactFlowNetwork({
@@ -645,6 +663,8 @@ export function ReactFlowNetwork({
   activeNodeId = null,
   activePreviewNodeId = null,
   showEdgeLabels = true,
+  renderNodeOverlay,
+  dimInactiveNodes = true,
 }: ReactFlowNetworkProps) {
   const containerRef = useRef<HTMLElement | null>(null);
   const [canvas, setCanvas] = useState<NetworkCanvasSize>({ width: 0, height: 0 });
@@ -665,6 +685,8 @@ export function ReactFlowNetwork({
         activeNodeId,
         activePreviewNodeId,
         showEdgeLabels,
+        renderNodeOverlay,
+        dimInactiveNodes,
       ),
     [
       activeNodeId,
@@ -675,6 +697,8 @@ export function ReactFlowNetwork({
       presentation,
       rendererState.snapshot,
       showEdgeLabels,
+      renderNodeOverlay,
+      dimInactiveNodes,
       visualVariant,
     ],
   );
