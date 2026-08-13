@@ -1926,17 +1926,16 @@ function FinalAssessmentScene({ snapshot }: { readonly snapshot: S05AnalysisCont
     networkAdapter.render(snapshot.assessmentNetwork);
     networkAdapter.announce(snapshot.assessmentNetwork.accessibleSummary);
   }, [networkAdapter, snapshot.assessmentNetwork]);
+  const highlightsCampusgram = snapshot.step === 'final-components';
+  const usesWarningEmphasis =
+    snapshot.step === 'final-result' || snapshot.step === 'final-takeaway';
   const presentation = useMemo(
     () => ({
       ...staticNetworkPresentation(snapshot.assessmentNetwork),
-      highlightedNodeId:
-        snapshot.step === 'final-components' ? 'campusgram' : null,
-      emphasis:
-        snapshot.step === 'final-result' || snapshot.step === 'final-takeaway'
-          ? ('warning' as const)
-          : ('info' as const),
+      highlightedNodeId: highlightsCampusgram ? 'campusgram' : null,
+      emphasis: usesWarningEmphasis ? ('warning' as const) : ('info' as const),
     }),
-    [snapshot.assessmentNetwork, snapshot.step],
+    [highlightsCampusgram, snapshot.assessmentNetwork, usesWarningEmphasis],
   );
   const targetId = `final-${snapshot.step.slice('final-'.length)}`;
   const recognized = snapshot.assessmentScene.disposition.kind === 'whole-password-recognized';

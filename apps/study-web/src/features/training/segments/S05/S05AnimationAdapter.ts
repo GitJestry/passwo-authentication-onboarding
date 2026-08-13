@@ -36,6 +36,13 @@ export class S05AnimationAdapter implements AnimationPlayerPort {
       if (this.#cancelled) return { status: 'cancelled' };
       const element = this.#getElement(step.targetId);
       if (element === null) return { status: 'failed', reasonCode: 's05-animation-target-missing' };
+      if (step.targetId === 'final-components') {
+        // The assessment canvas owns its authored node positions. Scaling the complete
+        // canvas during its first frame makes React Flow recompute and visibly shift edges.
+        this.#previousSequenceId = sequence.id;
+        this.#previousTarget = element;
+        continue;
+      }
       if (step.targetId === 'final-result' || step.targetId === 'final-takeaway') {
         await new Promise<void>((resolve) => requestAnimationFrame(() => resolve()));
         const animations = element

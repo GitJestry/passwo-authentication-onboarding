@@ -99,12 +99,30 @@
 }
 
 .assessmentDesktop[data-assessment-step="final-result"][data-assessment-outcome="protected"]
-  :global([data-scene-node="campusgram"] [data-scene-node-visual]) {
-  animation: assessment-campusgram-blocked 1.35s ease-out both;
+  :global([data-scene-node^="campusgram"] [data-scene-node-visual]) {
+  animation: assessment-campusgram-protected 360ms var(--motion-ease-out)
+    var(--assessment-protection-delay, 0ms) both;
 }
 
-.assessmentDesktop[data-assessment-step="final-result"] :global([data-account-shield]) {
-  animation: assessment-result-mark 1.35s ease-out both;
+.assessmentDesktop[data-assessment-step="final-result"][data-assessment-outcome="protected"]
+  :global([data-scene-node^="campusgram"] [data-account-shield]) {
+  animation: assessment-protection-shield-arrival 360ms var(--motion-ease-out)
+    var(--assessment-protection-delay, 0ms) both;
+}
+
+.assessmentDesktop[data-assessment-step="final-result"][data-assessment-outcome="protected"]
+  :global([data-scene-node="campusgram-direct-messages"]) {
+  --assessment-protection-delay: 360ms;
+}
+
+.assessmentDesktop[data-assessment-step="final-result"][data-assessment-outcome="protected"]
+  :global([data-scene-node="campusgram-groups-contacts"]) {
+  --assessment-protection-delay: 720ms;
+}
+
+.assessmentDesktop[data-assessment-step="final-result"][data-assessment-outcome="protected"]
+  :global([data-scene-node="campusgram-posts-reactions"]) {
+  --assessment-protection-delay: 1080ms;
 }
 
 .assessmentDesktop[data-assessment-step="final-takeaway"]
@@ -124,24 +142,26 @@
   animation-delay: 180ms;
 }
 
-@keyframes assessment-campusgram-blocked {
-  0%, 46% {
-    border-color: #ff315e;
-    background: #a80c31;
-    box-shadow: 0 0 1.5rem rgb(255 49 94 / 88%);
+@keyframes assessment-campusgram-protected {
+  from {
+    border-color: #758fa7;
+    color: #426889;
+    background: #fff;
+    box-shadow: 0 0.45rem 1rem rgb(40 83 119 / 18%);
+    transform: scale(0.94);
   }
-  18%, 62% { opacity: 0.5; }
-  100% {
+  to {
     border-color: #2497ff;
+    color: #dff3ff;
     background: #073f91;
-    box-shadow: 0 0 1.5rem rgb(36 151 255 / 76%);
-    opacity: 1;
+    box-shadow: 0 0 0 0.24rem rgb(36 151 255 / 22%), 0 0 1.35rem rgb(36 151 255 / 68%);
+    transform: scale(1);
   }
 }
 
-@keyframes assessment-result-mark {
-  0%, 58% { opacity: 0; transform: translateY(0.65rem) scale(0.7); }
-  100% { opacity: 1; transform: translateY(0) scale(1); }
+@keyframes assessment-protection-shield-arrival {
+  0%, 48% { opacity: 0; transform: scale(0.62); }
+  100% { opacity: 1; transform: scale(1); }
 }
 
 @keyframes assessment-node-spread {

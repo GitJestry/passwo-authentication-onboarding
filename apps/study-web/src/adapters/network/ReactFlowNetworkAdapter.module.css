@@ -476,6 +476,24 @@
   stroke-linejoin: round;
 }
 
+.attackEdgeDrawMask {
+  stroke-dasharray: 100;
+  stroke-dashoffset: 100;
+  animation: attack-edge-draw-reveal 500ms cubic-bezier(0.32, 0, 0.18, 1) both;
+}
+
+.attackEdgeDraw {
+  fill: none;
+  stroke: #ff315e;
+  stroke-width: 4px;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-dasharray: 8 7;
+  filter: drop-shadow(0 0 5px rgb(255 49 94 / 70%));
+  animation: attack-edge-dash-flow 720ms linear infinite;
+  pointer-events: none;
+}
+
 .infectionThread {
   fill: none;
   stroke: var(--color-danger);
@@ -636,6 +654,18 @@
   }
 }
 
+@keyframes attack-edge-draw-reveal {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+@keyframes attack-edge-dash-flow {
+  to {
+    stroke-dashoffset: -30;
+  }
+}
+
 @keyframes infection-thread-arrival {
   to {
     stroke-dashoffset: 0;
@@ -658,6 +688,15 @@
 
   .infectionThread {
     stroke-dashoffset: 0;
+    animation: none;
+  }
+
+  .attackEdgeDrawMask {
+    stroke-dashoffset: 0;
+  }
+
+  .attackEdgeDraw,
+  .attackEdgeDrawMask {
     animation: none;
   }
 }

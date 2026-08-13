@@ -1,4 +1,4 @@
-import type { S06AccountId, S06PairComparison } from '@passwo/contracts';
+import type { PasswordRelation, S06AccountId, S06PairComparison } from '@passwo/contracts';
 import {
   analyzeFictionalPassword,
   compareFictionalPasswords,
@@ -62,6 +62,9 @@ export interface S06ConsequenceControllerSnapshot {
   readonly isHypothetical: boolean;
   readonly showGuide: boolean;
   readonly comparisonVisible: boolean;
+  readonly completedComparisonResults: Readonly<
+    Partial<Record<S06AccountId, PasswordRelation['kind']>>
+  >;
   readonly controls: {
     readonly canStart: boolean;
     readonly canReplay: boolean;
@@ -190,11 +193,11 @@ function createMission(plan: PasswordConsequenceScenePlan): MissionDefinition {
             {
               type: 'reveal' as const,
               targetId: step.visibleChange.targetId,
-              durationMs: 900,
+              durationMs: 500,
             },
           ],
           reducedMotion: { strategy: 'instant-end-state' as const, maxDurationMs: 0 },
-          maxDurationMs: 900,
+          maxDurationMs: 500,
         },
       })),
       {
@@ -230,6 +233,8 @@ function attackPreviewNetwork(
   const targetAccountId = step.targetAccountId;
   if (targetAccountId === null) return step.network;
   const settledNodes = new Map(settledNetwork.nodes.map((node) => [node.id, node]));
+  const settledSourceStatus =
+    step.sourceAccountId === null ? undefined : settledNodes.get(step.sourceAccountId)?.status;
   const priorAttackEdges = settledNetwork.edges.filter(isAttackEdge);
   const currentAttackEdge = step.network.edges.find(isAttackEdge);
   return {
@@ -238,6 +243,13 @@ function attackPreviewNetwork(
     nodes: step.network.nodes.flatMap((node): readonly SceneNode[] => {
       if (node.kind === 'shield') return [];
       if (isAccountBranchNode(node, targetAccountId)) return [{ ...node, status: 'neutral' }];
+      if (
+        step.sourceAccountId !== null &&
+        isAccountBranchNode(node, step.sourceAccountId) &&
+        (settledSourceStatus === 'affected' || settledSourceStatus === 'exposed')
+      ) {
+        return [{ ...node, status: settledSourceStatus }];
+      }
       const settledNode = settledNodes.get(node.id);
       return [
         settledNode?.status === 'affected' || settledNode?.status === 'exposed'
@@ -263,6 +275,9 @@ function resolvedNetwork(
   const targetAccountId = step.targetAccountId;
   const relation = step.relation;
   if (targetAccountId === null || relation === null) return step.network;
+  const targetLabel =
+    step.network.nodes.find(({ id }) => id === targetAccountId)?.label ?? targetAccountId;
+  const resultLabel = s06ConsequenceContent.comparisonResultLabels[relation.kind];
   if (relation.kind === 'no-derived-path-recognized') {
     return {
       ...attackNetwork,
@@ -270,7 +285,7 @@ function resolvedNetwork(
       edges: attackNetwork.edges.filter(
         (edge) => !(isAttackEdge(edge) && edge.targetId === targetAccountId),
       ),
-      accessibleSummary: `Der Angriff auf ${targetAccountId} wurde abgewehrt; der Knoten bleibt unverändert.`,
+      accessibleSummary: `${targetLabel}: ${resultLabel}.`,
     };
   }
   const attackNodes = new Map(attackNetwork.nodes.map((node) => [node.id, node]));
@@ -291,6 +306,7 @@ function resolvedNetwork(
       ];
     }),
     edges: [...step.network.edges, ...priorAttackEdges],
+    accessibleSummary: `${targetLabel}: ${resultLabel}.`,
   };
 }
 
@@ -366,6 +382,7 @@ export class S06ConsequenceController {
       isHypothetical: false,
       showGuide: true,
       comparisonVisible: false,
+      completedComparisonResults: {},
       controls: { canStart: false, canReplay: false, canContinue: true },
     };
     this.#missionController = new MissionController({
@@ -458,7 +475,9 @@ export class S06ConsequenceController {
       this.#disposed ||
       this.#snapshot.step.id !== stepId ||
       this.#snapshot.attackPhase !== 'resolving' ||
-      this.#displayedAttackNetwork === null
+      this.#displayedAttackNetwork === null ||
+      this.#snapshot.step.targetAccountId === null ||
+      this.#snapshot.step.relation === null
     ) {
       return;
     }
@@ -467,6 +486,10 @@ export class S06ConsequenceController {
     this.#snapshot = {
       ...this.#snapshot,
       comparisonVisible: false,
+      completedComparisonResults: {
+        ...this.#snapshot.completedComparisonResults,
+        [this.#snapshot.step.targetAccountId]: this.#snapshot.step.relation.kind,
+      },
     };
     const waitsForInfection = this.#waitForInfectionCascade(
       this.#settledNetwork,

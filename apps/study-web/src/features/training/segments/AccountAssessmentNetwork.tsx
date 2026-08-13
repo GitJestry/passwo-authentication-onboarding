@@ -1,5 +1,7 @@
-import type { S06AccountId } from '@passwo/contracts';
+import type { PasswordRelation, S06AccountId } from '@passwo/contracts';
+import { s06ConsequenceContent } from '@passwo/training-content';
 import type { NetworkSceneSnapshot } from '@passwo/visualization';
+import { useCallback } from 'react';
 import attackerAsset from '../../../assets/passwo/attacker.png';
 import passwordFactorShieldAsset from '../../../assets/s05/password-factor-shield.png';
 import type { NetworkPresentationSnapshot } from '../../../adapters/network/NetworkMotionAdapter.js';
@@ -9,14 +11,36 @@ import {
 } from '../../../adapters/network/ReactFlowNetworkAdapter.js';
 import styles from './AccountAssessmentNetwork.module.css';
 
+export type AccountComparisonResults = Readonly<
+  Partial<Record<S06AccountId, PasswordRelation['kind']>>
+>;
+
+const emptyComparisonResults: AccountComparisonResults = {};
+
+function ignoreNodeSelect(_nodeId: string): void {}
+
+function comparisonResultForNode(
+  nodeId: string,
+  comparisonResults: AccountComparisonResults,
+): PasswordRelation['kind'] | null {
+  if (nodeId === 'campusgram' || nodeId === 'master-campus' || nodeId === 'campus-email') {
+    return comparisonResults[nodeId] ?? null;
+  }
+  return null;
+}
+
 function AccountStatusOverlay({
   node,
+  showDataLeakLabel,
+  comparisonResult,
 }: {
   readonly node: NetworkSceneSnapshot['nodes'][number];
+  readonly showDataLeakLabel: boolean;
+  readonly comparisonResult: PasswordRelation['kind'] | null;
 }) {
   const showsCampusgramAttempt = node.id === 'campusgram';
   const showsShield = node.status === 'protected' && node.kind !== 'shield';
-  if (!showsCampusgramAttempt && !showsShield) return null;
+  if (!showsCampusgramAttempt && !showsShield && comparisonResult === null) return null;
 
   return (
     <>
@@ -28,6 +52,11 @@ function AccountStatusOverlay({
         >
           <span className={styles.attackConnection} />
           <span className={styles.attacker} data-account-attacker>
+            {showDataLeakLabel ? (
+              <strong className={styles.attackerLabel}>
+                {s06ConsequenceContent.page.dataLeak}
+              </strong>
+            ) : null}
             <img src={attackerAsset} alt="" />
           </span>
         </span>
@@ -42,6 +71,14 @@ function AccountStatusOverlay({
           aria-hidden="true"
         />
       ) : null}
+      {comparisonResult === null ? null : (
+        <strong
+          className={styles.comparisonResult}
+          data-comparison-result={comparisonResult}
+        >
+          {s06ConsequenceContent.comparisonResultLabels[comparisonResult]}
+        </strong>
+      )}
     </>
   );
 }
@@ -54,6 +91,7 @@ export function AccountAssessmentNetwork({
   attackPhase,
   attackTargetId,
   attackBlocked = false,
+  comparisonResults = emptyComparisonResults,
 }: {
   readonly adapter: ReactFlowNetworkAdapter;
   readonly presentation: NetworkPresentationSnapshot;
@@ -67,7 +105,23 @@ export function AccountAssessmentNetwork({
     | 'resolving';
   readonly attackTargetId?: S06AccountId | null;
   readonly attackBlocked?: boolean;
+  readonly comparisonResults?: AccountComparisonResults;
 }) {
+  const showDataLeakLabel =
+    attackPhase === undefined ||
+    attackPhase === 'found' ||
+    attackPhase === 'hypothetical-intro';
+  const renderNodeOverlay = useCallback(
+    (node: NetworkSceneSnapshot['nodes'][number]) => (
+      <AccountStatusOverlay
+        node={node}
+        showDataLeakLabel={showDataLeakLabel}
+        comparisonResult={comparisonResultForNode(node.id, comparisonResults)}
+      />
+    ),
+    [comparisonResults, showDataLeakLabel],
+  );
+
   return (
     <div
       className={styles.network}
@@ -78,14 +132,14 @@ export function AccountAssessmentNetwork({
       <ReactFlowNetwork
         adapter={adapter}
         presentation={presentation}
-        onNodeSelect={() => undefined}
+        onNodeSelect={ignoreNodeSelect}
         interactionDisabled
         visualVariant="account-map"
         showEdgeLabels={false}
         showNodeLabels={false}
         showStatusMarkers={false}
         dimInactiveNodes={false}
-        renderNodeOverlay={(node) => <AccountStatusOverlay node={node} />}
+        renderNodeOverlay={renderNodeOverlay}
         {...(ariaLabel === undefined ? {} : { ariaLabel })}
         {...(canvasAriaLabel === undefined ? {} : { canvasAriaLabel })}
       />

@@ -694,6 +694,8 @@ export class S05AnalysisController {
     if (!awaitingDecision && !animating) return;
     const currentSnapshot = this.#snapshot;
     if (currentSnapshot === null) return;
+    const keepsAssessmentNetwork =
+      assessmentNetworkPhase(currentSnapshot.step) === assessmentNetworkPhase(step);
     this.#snapshot = {
       ...currentSnapshot,
       phase: awaitingDecision ? 'awaiting-decision' : 'animating',
@@ -702,10 +704,12 @@ export class S05AnalysisController {
         ...currentSnapshot.componentStrategy,
         cards: cardsForStep(currentSnapshot.componentStrategy.cards, step),
       },
-      assessmentNetwork: createS05AssessmentNetwork(
-        currentSnapshot.assessmentScene.disposition.kind === 'whole-password-recognized',
-        assessmentNetworkPhase(step),
-      ),
+      assessmentNetwork: keepsAssessmentNetwork
+        ? currentSnapshot.assessmentNetwork
+        : createS05AssessmentNetwork(
+            currentSnapshot.assessmentScene.disposition.kind === 'whole-password-recognized',
+            assessmentNetworkPhase(step),
+          ),
       controls: {
         canStart: false,
         canContinue:

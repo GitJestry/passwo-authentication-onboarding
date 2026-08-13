@@ -1,5 +1,33 @@
 # S06--S07 Copy Audit
 
+## Copy- und Darstellungsdelta S06 Datenleck-Kennzeichnung und Angriffstiming, 13. August 2026
+
+Quelle ist der ausdrückliche Nutzerauftrag vom 13. August 2026. Der Angreifer am betroffenen
+Campusgram-Konto erhält die sichtbare Kennzeichnung `Datenleck`, solange die Darstellung noch
+den Ausgangsangriff auf dieses Konto zeigt. Beim Übergang zur Wiederverwendungs- und
+Ähnlichkeitsprüfung verschwindet die Kennzeichnung. Die Angriffslinie zeichnet sich nun als ein
+einziger, flimmerfreier Pfad bis zum Zielknoten und die Vergleichsvorschau öffnet nach 0,7
+Sekunden. Nach dem Schließen bleibt das bereits versionierte Vergleichsergebnis über dem
+jeweiligen Zielknoten sichtbar. Inhaltliche Analyseentscheidung, Persistenz und Auswertung
+bleiben unverändert.
+`S06_CONSEQUENCE_CONTENT_VERSION` wird von `2.7.0` auf `2.8.0` erhöht.
+
+| Segment und Text-ID | Aktueller Text | Geplanter Text | Primäre Rolle | Interaktionsziel | Grund und Bedeutungsänderung | Hervorhebung |
+|---|---|---|---|---|---|---|
+| `S06.page.dataLeak` | nicht vorhanden | `Datenleck` | Orientierung | kein | benennt den sichtbar dargestellten Ausgang des Angriffs; ausdrücklich freigegeben, begrenzt | Warnstatus der vorhandenen Angreiferdarstellung |
+
+## Interaktionsdelta S06 wiederholbare Vergleichsvorschau, 13. August 2026
+
+Quelle ist der ausdrückliche Nutzerauftrag vom 13. August 2026. Der bereits versionierte
+Buttontext `Animation wiederholen` wird in der Vergleichsvorschau sichtbar verwendet. Er startet
+ausschließlich die lokale fachliche Vorschau erneut und verändert weder Angriffsergebnis noch
+Studienablauf, Persistenz oder Auswertung. Da der vorhandene Wortlaut unverändert bleibt, ist
+keine Content-Versionsänderung erforderlich.
+
+| Segment und Text-ID | Aktueller Text | Geplanter Text | Primäre Rolle | Interaktionsziel | Grund und Bedeutungsänderung | Hervorhebung |
+|---|---|---|---|---|---|---|
+| `S06.page.replay` | `Animation wiederholen` ist versioniert, aber in der Vergleichsvorschau nicht sichtbar | Wortlaut unverändert sichtbar neben `Weiter` beziehungsweise `Fertig` | Navigation | wiederholt nur die sichtbare Vergleichsanimation | ausdrücklich verlangte Wiederholbarkeit; keine Bedeutungsänderung | keine |
+
 ## Copy- und Ablaufdelta S06 real und hypothetisch ab Campusgram, 12. August 2026
 
 Quelle ist der ausdrückliche Nutzerauftrag vom 12. August 2026. S06 beginnt nach dem

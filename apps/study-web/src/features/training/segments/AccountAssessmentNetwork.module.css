@@ -52,6 +52,42 @@
   border-radius: 50%;
 }
 
+.attackerLabel {
+  position: absolute;
+  left: 50%;
+  bottom: calc(100% + 0.35rem);
+  padding: 0.2rem 0.45rem;
+  border-radius: var(--radius-small);
+  color: #fff;
+  background: rgb(112 3 30 / 92%);
+  box-shadow: 0 0 0.65rem rgb(255 49 94 / 48%);
+  font-size: clamp(0.62rem, 1.05cqi, 0.78rem);
+  line-height: 1;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+  transform: translateX(-50%);
+}
+
+.comparisonResult {
+  position: absolute;
+  z-index: 10;
+  left: 50%;
+  bottom: calc(100% + 0.5rem);
+  color: #ff668a;
+  text-shadow: 0 0 0.75rem rgb(255 49 94 / 72%);
+  font-size: clamp(0.62rem, 1.05cqi, 0.78rem);
+  font-weight: var(--font-weight-heavy);
+  line-height: 1.08;
+  text-align: center;
+  white-space: nowrap;
+  transform: translateX(-50%);
+}
+
+.comparisonResult[data-comparison-result="no-derived-path-recognized"] {
+  color: #fff;
+  text-shadow: 0 0 0.75rem rgb(255 255 255 / 44%);
+}
+
 .attackConnection {
   position: absolute;
   z-index: 0;
@@ -126,8 +162,48 @@
   filter: drop-shadow(0 0 5px rgb(44 157 255 / 70%));
 }
 
-.network :global(.edge-status-direct .react-flow__edge-path) {
+.network :global(.edge-kind-identical-reuse .react-flow__edge-path),
+.network :global(.edge-kind-similar-pattern .react-flow__edge-path) {
+  stroke: #ff315e;
+  stroke-width: 4px;
+  stroke-dasharray: none;
   filter: drop-shadow(0 0 5px rgb(255 49 94 / 70%));
+  animation: none;
+}
+
+.network :global(.edge-kind-blocked-path.edge-status-direct .react-flow__edge-path),
+.network[data-attack-phase="attacking"][data-attack-target="master-campus"]
+  :global([data-network-edge-target="master-campus"] .react-flow__edge-path),
+.network[data-attack-phase="attacking"][data-attack-target="campus-email"]
+  :global([data-network-edge-target="campus-email"] .react-flow__edge-path) {
+  stroke: #ff315e;
+  stroke-width: 4px;
+  stroke-dasharray: 8 7;
+  filter: drop-shadow(0 0 5px rgb(255 49 94 / 70%));
+  animation: account-attack-edge-flow 720ms linear infinite;
+}
+
+.network[data-attack-phase="attacking"][data-attack-target="master-campus"]
+  :global([data-network-edge-target="master-campus"][data-network-edge-drawing="true"] .react-flow__edge-path),
+.network[data-attack-phase="attacking"][data-attack-target="campus-email"]
+  :global([data-network-edge-target="campus-email"][data-network-edge-drawing="true"] .react-flow__edge-path) {
+  animation: account-attack-edge-flow 720ms linear infinite;
+}
+
+.network[data-attack-phase="attacking"]
+  :global([data-network-edge-attack-drawing="true"] .react-flow__edge-path) {
+  visibility: hidden !important;
+  opacity: 0 !important;
+  animation: none !important;
+}
+
+.network[data-attack-phase="attacking"][data-attack-target="master-campus"]
+  :global([data-network-edge-target="master-campus"]:not([data-network-edge-attack-drawn="true"]) .react-flow__edge-path),
+.network[data-attack-phase="attacking"][data-attack-target="campus-email"]
+  :global([data-network-edge-target="campus-email"]:not([data-network-edge-attack-drawn="true"]) .react-flow__edge-path) {
+  visibility: hidden !important;
+  opacity: 0 !important;
+  animation: none !important;
 }
 
 .network[data-attack-phase="resolving"][data-attack-blocked="true"][data-attack-target="master-campus"]
@@ -156,6 +232,12 @@
 @keyframes account-attack-connection {
   to {
     background-position-y: 0.8rem;
+  }
+}
+
+@keyframes account-attack-edge-flow {
+  to {
+    stroke-dashoffset: -30;
   }
 }
 
@@ -227,8 +309,11 @@
 
 @media (prefers-reduced-motion: reduce) {
   .network :global(.edge-kind-dependency .react-flow__edge-path),
-  .network :global(.edge-kind-association .react-flow__edge-path) {
-    animation: none;
+  .network :global(.edge-kind-association .react-flow__edge-path),
+  .network :global(.edge-kind-identical-reuse .react-flow__edge-path),
+  .network :global(.edge-kind-similar-pattern .react-flow__edge-path),
+  .network :global(.edge-kind-blocked-path.edge-status-direct .react-flow__edge-path) {
+    animation: none !important;
   }
 
   .attackConnection {

@@ -23,6 +23,7 @@ export interface NetworkPresentationSnapshot {
     readonly pose: PassWoPose;
   };
   readonly revealedNodeIds: readonly string[];
+  readonly drawnEdgeTargetNodeIds?: readonly string[];
   readonly drawingTargetNodeId?: string | null;
   readonly highlightedNodeId: string | null;
   readonly emphasis?: NetworkPresentationEmphasis | null;
@@ -51,6 +52,7 @@ export function createInitialNetworkPresentation(
       pose: 'dock',
     },
     revealedNodeIds: [...new Set(initialRevealedNodeIds)],
+    drawnEdgeTargetNodeIds: [],
     drawingTargetNodeId: null,
     highlightedNodeId: null,
     emphasis: null,
@@ -190,6 +192,9 @@ export class NetworkMotionAdapter implements AnimationPlayerPort {
         this.#setSnapshot({
           ...this.#snapshot,
           revealedNodeIds: [...new Set([...this.#snapshot.revealedNodeIds, step.targetId])],
+          drawnEdgeTargetNodeIds: [
+            ...new Set([...(this.#snapshot.drawnEdgeTargetNodeIds ?? []), step.targetId]),
+          ],
           drawingTargetNodeId: null,
         });
         await nextFrame();
@@ -252,6 +257,12 @@ export class NetworkMotionAdapter implements AnimationPlayerPort {
       revealedNodeIds: [
         ...new Set([
           ...this.#snapshot.revealedNodeIds,
+          ...steps.map(({ targetId }) => targetId),
+        ]),
+      ],
+      drawnEdgeTargetNodeIds: [
+        ...new Set([
+          ...(this.#snapshot.drawnEdgeTargetNodeIds ?? []),
           ...steps.map(({ targetId }) => targetId),
         ]),
       ],
@@ -404,6 +415,9 @@ export class NetworkMotionAdapter implements AnimationPlayerPort {
         this.#snapshot = {
           ...this.#snapshot,
           revealedNodeIds: [...new Set([...this.#snapshot.revealedNodeIds, step.targetId])],
+          drawnEdgeTargetNodeIds: [
+            ...new Set([...(this.#snapshot.drawnEdgeTargetNodeIds ?? []), step.targetId]),
+          ],
           drawingTargetNodeId: null,
         };
       } else if (step.type === 'highlight') {

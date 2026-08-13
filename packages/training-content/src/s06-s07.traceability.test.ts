@@ -10,7 +10,7 @@ const s06AttackFlowCopyReference =
 
 describe('S06 and S07 whole-password recognition copy traceability', () => {
   it('keeps S06 consequence wording aligned with bounded whole-password recognition', () => {
-    expect(S06_CONSEQUENCE_CONTENT_VERSION).toBe('2.7.0');
+    expect(S06_CONSEQUENCE_CONTENT_VERSION).toBe('2.8.0');
     expect(s06ConsequenceContent.source.copyReference).toBe(s06AttackFlowCopyReference);
     expect(s06ConsequenceContent.page.attackStart).toBe('Angriff starten');
     expect(s06ConsequenceContent.page.finish).toBe('Fertig');

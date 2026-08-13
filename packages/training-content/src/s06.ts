@@ -54,7 +54,7 @@ export interface S06NarrationContent {
   readonly body: string;
 }
 
-export const S06_CONSEQUENCE_CONTENT_VERSION = '2.7.0';
+export const S06_CONSEQUENCE_CONTENT_VERSION = '2.8.0';
 
 export const s06ConsequenceContent = {
   version: S06_CONSEQUENCE_CONTENT_VERSION,
@@ -62,9 +62,9 @@ export const s06ConsequenceContent = {
     document: 'research/private/training-script.pdf',
     internalPages: [36, 37, 38, 39, 40, 41, 42, 43, 44] as const,
     revision:
-      'Userauftrag vom 2026-08-12 · S06-Ablauf ab Campusgram mit realem und hypothetischem Pfad',
+      'Userauftrag vom 2026-08-13 · Datenleck-Kennzeichnung am Campusgram-Angreifer',
     copyReference:
-      'docs/design/S06-S07-COPY-AUDIT.md#copy-und-ablaufdelta-s06-real-und-hypothetisch-ab-campusgram-12-august-2026',
+      'docs/design/S06-S07-COPY-AUDIT.md#copy-und-darstellungsdelta-s06-datenleck-kennzeichnung-und-angriffstiming-13-august-2026',
   },
   segment: {
     id: 'S06',
@@ -86,6 +86,7 @@ export const s06ConsequenceContent = {
     runtimeNotice: 'Deine drei fiktiven Übungswerte · bleiben nur lokal',
     start: 'Simulation starten',
     attackStart: 'Angriff starten',
+    dataLeak: 'Datenleck',
     replay: 'Animation wiederholen',
     continue: 'Weiter',
     finish: 'Fertig',

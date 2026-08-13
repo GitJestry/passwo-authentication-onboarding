@@ -550,6 +550,8 @@ interface NodeEdgeData extends Record<string, unknown> {
   readonly targetNodeId: string;
   readonly visible: boolean;
   readonly drawing: boolean;
+  readonly drawn: boolean;
+  readonly attackPath: boolean;
   readonly dimmed: boolean;
   readonly infectionCascadeStage: InfectionCascadeStage | null;
   readonly infectionSettled: boolean;
@@ -596,11 +598,32 @@ function NodeEdge({
     ...(markerStart === undefined ? {} : { markerStart }),
     ...(style === undefined ? {} : { style }),
   };
+  const attackDrawMaskId = `${id}-attack-draw-mask`;
+  const attackDrawMaskPadding = 56;
+  const attackDrawMaskLeft = Math.min(
+    data.sourceGeometry.centerX,
+    data.targetGeometry.centerX,
+  ) - attackDrawMaskPadding;
+  const attackDrawMaskTop = Math.min(
+    data.sourceGeometry.centerY,
+    data.targetGeometry.centerY,
+  ) - attackDrawMaskPadding;
+  const attackDrawMaskWidth =
+    Math.abs(data.targetGeometry.centerX - data.sourceGeometry.centerX) +
+    attackDrawMaskPadding * 2;
+  const attackDrawMaskHeight =
+    Math.abs(data.targetGeometry.centerY - data.sourceGeometry.centerY) +
+    attackDrawMaskPadding * 2;
+  const drawsAttackPath = data.attackPath && data.drawing;
   return (
     <g
       data-network-edge-target={data.targetNodeId}
       data-network-edge-visible={data.visible || data.drawing}
       data-network-edge-drawing={data.drawing}
+      data-network-edge-attack-drawing={drawsAttackPath || undefined}
+      data-network-edge-attack-drawn={
+        data.attackPath && data.drawn ? true : undefined
+      }
       data-network-edge-dimmed={data.dimmed}
       data-network-edge-infection-stage={data.infectionCascadeStage ?? undefined}
       data-network-edge-infection-settled={data.infectionSettled || undefined}
@@ -612,6 +635,43 @@ function NodeEdge({
         labelY={edge.labelY}
         {...optionalEdgeProps}
       />
+      {drawsAttackPath ? (
+        <>
+          <defs>
+            <mask
+              id={attackDrawMaskId}
+              maskUnits="userSpaceOnUse"
+              maskContentUnits="userSpaceOnUse"
+              x={attackDrawMaskLeft}
+              y={attackDrawMaskTop}
+              width={attackDrawMaskWidth}
+              height={attackDrawMaskHeight}
+            >
+              <rect
+                x={attackDrawMaskLeft}
+                y={attackDrawMaskTop}
+                width={attackDrawMaskWidth}
+                height={attackDrawMaskHeight}
+                fill="black"
+              />
+              <path
+                className={styles.attackEdgeDrawMask}
+                d={edge.path}
+                fill="none"
+                pathLength={100}
+                stroke="white"
+                strokeWidth={14}
+              />
+            </mask>
+          </defs>
+          <path
+            className={styles.attackEdgeDraw}
+            d={edge.path}
+            fill="none"
+            mask={`url(#${attackDrawMaskId})`}
+          />
+        </>
+      ) : null}
       {data.infectionCascadeStage === null && !data.infectionSettled ? null : (
         <path
           className={`${styles.infectionThread} ${
@@ -659,6 +719,7 @@ function toReactFlowElements(
   onInfectionCascadeEnd: (nodeId: string) => void,
 ): { readonly nodes: readonly SceneFlowNode[]; readonly edges: readonly NodeFlowEdge[] } {
   const revealed = new Set(presentation.revealedNodeIds);
+  const drawnEdgeTargetNodeIds = new Set(presentation.drawnEdgeTargetNodeIds ?? []);
   const drawingTargetNodeId = presentation.drawingTargetNodeId ?? null;
   const positionedNodes = snapshot.nodes.map((node) => ({
     node,
@@ -769,6 +830,11 @@ function toReactFlowElements(
             targetNodeId: edge.targetId,
             visible: revealed.has(edge.targetId),
             drawing: drawingTargetNodeId === edge.targetId,
+            drawn: drawnEdgeTargetNodeIds.has(edge.targetId),
+            attackPath:
+              edge.kind === 'identical-reuse' ||
+              edge.kind === 'similar-pattern' ||
+              edge.kind === 'blocked-path',
             dimmed: dimInactiveNodes && (choosingAccount || edge.sourceId !== activeNodeId),
             infectionCascadeStage: infectionStagesByTargetId.get(edge.targetId) ?? null,
             infectionSettled: settledInfectionTargetIds.has(edge.targetId),

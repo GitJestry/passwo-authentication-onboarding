@@ -1,6 +1,8 @@
 import type { PasswordEvidenceSpan, PasswordRelation, S06AccountId } from '@passwo/contracts';
 import { s06ConsequenceContent } from '@passwo/training-content';
+import { BugStatusIcon } from '@passwo/ui';
 import {
+  Fragment,
   useEffect,
   useLayoutEffect,
   useRef,
@@ -21,11 +23,6 @@ interface ComparisonPart {
 interface ProjectionLayout {
   readonly left: number;
   readonly top: number;
-  readonly candidateTop: number;
-  readonly candidateX: number;
-  readonly candidateY: number;
-  readonly targetX: number;
-  readonly targetY: number;
   readonly projection: {
     readonly startA: readonly [number, number];
     readonly startB: readonly [number, number];
@@ -42,18 +39,13 @@ interface CoreLink {
   readonly caseVariation: boolean;
 }
 
-interface ProjectionStyle extends CSSProperties {
-  readonly '--candidate-x': string;
-  readonly '--candidate-y': string;
-}
-
-interface TargetStyle extends CSSProperties {
-  readonly '--target-x': string;
-  readonly '--target-y': string;
-}
-
 function clamp(value: number, minimum: number, maximum: number): number {
   return Math.min(maximum, Math.max(minimum, value));
+}
+
+function comparisonPasswordScale(value: string): number {
+  const characterCount = Math.max(Array.from(value).length, 1);
+  return Math.min(1, 24 / characterCount);
 }
 
 function sortedEvidence(evidence: readonly PasswordEvidenceSpan[]): readonly PasswordEvidenceSpan[] {
@@ -211,6 +203,35 @@ function CommonCoreLinks({ hostRef }: { readonly hostRef: RefObject<HTMLDivEleme
   );
 }
 
+function PreviewAttackPath({
+  blocked,
+  resultRevealed,
+}: {
+  readonly blocked: boolean;
+  readonly resultRevealed: boolean;
+}) {
+  return (
+    <div
+      className={styles.previewAttack}
+      data-blocked={blocked || undefined}
+      data-result-revealed={resultRevealed || undefined}
+      aria-hidden="true"
+    >
+      <span className={styles.previewAttackLine} />
+      <span className={styles.previewBug}>
+        <BugStatusIcon />
+      </span>
+      {blocked && resultRevealed ? (
+        <img
+          className={styles.previewShield}
+          src={passwordFactorShieldAsset}
+          alt=""
+        />
+      ) : null}
+    </div>
+  );
+}
+
 export function S06PasswordComparisonProjection({
   sceneRef,
   networkHostRef,
@@ -241,6 +262,9 @@ export function S06PasswordComparisonProjection({
   const cardRef = useRef<HTMLDivElement | null>(null);
   const advanceButtonRef = useRef<HTMLButtonElement | null>(null);
   const [layout, setLayout] = useState<ProjectionLayout | null>(null);
+  const [resultRevealed, setResultRevealed] = useState(false);
+  const [playbackIteration, setPlaybackIteration] = useState(0);
+  const [replayInProgress, setReplayInProgress] = useState(false);
   const parts = pairedComparisonParts(sourcePassword, targetPassword, relation);
   const sourceCommonIndices = parts.source.flatMap(({ kind }, index) =>
     kind === 'common' ? [index] : [],
@@ -248,12 +272,12 @@ export function S06PasswordComparisonProjection({
   const targetCommonIndices = parts.target.flatMap(({ kind }, index) =>
     kind === 'common' ? [index] : [],
   );
-  const candidate = relation.kind === 'derived-variant-match' ? relation.candidate : sourcePassword;
   const successful = relation.kind !== 'no-derived-path-recognized';
 
   useEffect(() => {
     if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
     const frame = requestAnimationFrame(() => {
+      setResultRevealed(true);
       if (phase === 'attacking') onPreviewComplete();
       if (phase === 'resolving') onResolutionComplete();
     });
@@ -293,15 +317,9 @@ export function S06PasswordComparisonProjection({
         Math.max(20, networkBottom - cardRect.height - 16),
       );
       const cardNearX = left;
-      const cardCenterY = top + cardRect.height / 2;
       setLayout({
         left,
         top,
-        candidateTop: cardCenterY,
-        candidateX: targetX - (left + cardRect.width / 2),
-        candidateY: targetY - cardCenterY - 18,
-        targetX,
-        targetY,
         projection: {
           startA: [targetX + 3, targetY - 5],
           startB: [targetX + 3, targetY + 5],
@@ -327,29 +345,28 @@ export function S06PasswordComparisonProjection({
     };
   }, [networkHostRef, sceneRef, targetAccountId]);
 
+  const replayPreview = () => {
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      setResultRevealed(true);
+      setPlaybackIteration((iteration) => iteration + 1);
+      return;
+    }
+    setResultRevealed(false);
+    setReplayInProgress(true);
+    setPlaybackIteration((iteration) => iteration + 1);
+  };
+
   const projectionStyle = {
     left: layout?.left ?? 20,
     top: layout?.top ?? 20,
-    '--candidate-x': `${layout?.candidateX ?? 0}px`,
-    '--candidate-y': `${layout?.candidateY ?? 0}px`,
-  } satisfies ProjectionStyle;
-  const targetStyle = {
-    top: 'var(--target-y)',
-    left: 'var(--target-x)',
-    '--target-x': `${layout?.targetX ?? 0}px`,
-    '--target-y': `${layout?.targetY ?? 0}px`,
-  } satisfies TargetStyle;
-  const candidateStyle = {
-    ...projectionStyle,
-    top: layout?.candidateTop ?? 20,
-  } satisfies ProjectionStyle;
-
+  } satisfies CSSProperties;
   return (
     <div
       className={styles.layer}
       data-positioned={layout !== null || undefined}
       data-relation={relation.kind}
       data-phase={phase}
+      data-result-revealed={resultRevealed || undefined}
     >
       {layout === null ? null : (
         <svg className={styles.projection} aria-hidden="true">
@@ -375,60 +392,89 @@ export function S06PasswordComparisonProjection({
           ref={cardRef}
           className={styles.card}
           aria-label={s06ConsequenceContent.relationLabels[relation.kind]}
+          onAnimationEnd={(event) => {
+            if (event.target === event.currentTarget && phase === 'resolving') {
+              onResolutionComplete();
+            }
+          }}
         >
-          <CommonCoreLinks hostRef={cardRef} />
-          <div className={styles.passwordRow} data-comparison-row="source">
-            <span className={styles.accountSymbol} aria-hidden="true">
-              <NetworkSymbol symbolId={sourceAccountId} />
-            </span>
-            <PasswordBuildingBlocks
-              value={sourcePassword}
-              parts={parts.source.map(({ value }) => value)}
-              display="decomposed"
-              appearance="analysis"
-              animate
-              highlightedIndices={sourceCommonIndices}
-              categoryIds={parts.source.map(({ kind }) =>
-                kind === 'common' ? ['common-components'] : [],
-              )}
-              ariaLabel={`${s06ConsequenceContent.accounts[sourceAccountId].label}: ${sourcePassword}`}
-            />
-          </div>
-          <div className={styles.passwordRow} data-comparison-row="target">
-            <span className={styles.accountSymbol} aria-hidden="true">
-              <NetworkSymbol symbolId={targetAccountId} />
-            </span>
-            <PasswordBuildingBlocks
-              value={targetPassword}
-              parts={parts.target.map(({ value }) => value)}
-              display="decomposed"
-              appearance="analysis"
-              animate
-              highlightedIndices={targetCommonIndices}
-              categoryIds={parts.target.map(({ kind }) =>
-                kind === 'common' ? ['common-components'] : [],
-              )}
-              ariaLabel={`${s06ConsequenceContent.accounts[targetAccountId].label}: ${targetPassword}`}
-            />
-          </div>
-          <strong
-            className={styles.result}
-            role="status"
-            onAnimationEnd={(event) => {
-              if (event.target === event.currentTarget && phase === 'attacking') {
-                onPreviewComplete();
-              }
-            }}
-          >
-            {s06ConsequenceContent.comparisonResultLabels[relation.kind]}
-          </strong>
+          <Fragment key={playbackIteration}>
+            <CommonCoreLinks hostRef={cardRef} />
+            <div className={styles.comparisonGrid}>
+              <PreviewAttackPath blocked={!successful} resultRevealed={resultRevealed} />
+              <span className={styles.accountSymbol} data-attack-symbol="source" aria-hidden="true">
+                <NetworkSymbol symbolId={sourceAccountId} />
+              </span>
+              <div className={styles.passwordRow} data-comparison-row="source">
+                <PasswordBuildingBlocks
+                  value={sourcePassword}
+                  parts={parts.source.map(({ value }) => value)}
+                  display="decomposed"
+                  appearance="analysis"
+                  animate
+                  visualScale={comparisonPasswordScale(sourcePassword)}
+                  highlightedIndices={sourceCommonIndices}
+                  categoryIds={parts.source.map(({ kind }) =>
+                    kind === 'common' ? ['common-components'] : [],
+                  )}
+                  ariaLabel={`${s06ConsequenceContent.accounts[sourceAccountId].label}: ${sourcePassword}`}
+                />
+              </div>
+              <span className={styles.accountSymbol} data-attack-symbol="target" aria-hidden="true">
+                <NetworkSymbol symbolId={targetAccountId} />
+              </span>
+              <div className={styles.passwordRow} data-comparison-row="target">
+                <PasswordBuildingBlocks
+                  value={targetPassword}
+                  parts={parts.target.map(({ value }) => value)}
+                  display="decomposed"
+                  appearance="analysis"
+                  animate
+                  visualScale={comparisonPasswordScale(targetPassword)}
+                  highlightedIndices={targetCommonIndices}
+                  categoryIds={parts.target.map(({ kind }) =>
+                    kind === 'common' ? ['common-components'] : [],
+                  )}
+                  ariaLabel={`${s06ConsequenceContent.accounts[targetAccountId].label}: ${targetPassword}`}
+                />
+              </div>
+            </div>
+            <strong
+              className={styles.result}
+              role={resultRevealed ? 'status' : undefined}
+              aria-hidden={resultRevealed ? undefined : true}
+              onAnimationStart={(event) => {
+                if (event.target === event.currentTarget) {
+                  setResultRevealed(true);
+                }
+              }}
+              onAnimationEnd={(event) => {
+                if (event.target === event.currentTarget) {
+                  if (phase === 'attacking') onPreviewComplete();
+                  if (replayInProgress) setReplayInProgress(false);
+                }
+              }}
+            >
+              {s06ConsequenceContent.comparisonResultLabels[relation.kind]}
+            </strong>
+          </Fragment>
         </div>
         {phase === 'preview-ready' ? (
           <footer className={styles.previewFooter}>
             <button
+              type="button"
+              className={styles.previewReplayButton}
+              disabled={replayInProgress}
+              onClick={replayPreview}
+            >
+              {s06ConsequenceContent.page.replay}
+              <span aria-hidden="true">↻</span>
+            </button>
+            <button
               ref={advanceButtonRef}
               type="button"
               className={styles.previewAdvanceButton}
+              disabled={replayInProgress}
               onClick={onAdvance}
             >
               {finishLabel}
@@ -437,40 +483,6 @@ export function S06PasswordComparisonProjection({
           </footer>
         ) : null}
       </div>
-      {successful ? (
-        <div className={styles.candidateFlight} style={candidateStyle} aria-hidden="true">
-          <PasswordBuildingBlocks
-            value={candidate}
-            parts={[candidate]}
-            display="separated"
-            appearance="candidate"
-            highlightedIndices={[0]}
-            visualScale={0.72}
-            ariaLabel=""
-          />
-        </div>
-      ) : null}
-      {!successful && phase === 'resolving' ? (
-        <img
-          className={styles.impactShield}
-          style={targetStyle}
-          src={passwordFactorShieldAsset}
-          alt=""
-          aria-hidden="true"
-          onAnimationEnd={(event) => {
-            if (event.target === event.currentTarget) onResolutionComplete();
-          }}
-        />
-      ) : null}
-      {successful && phase === 'resolving' ? (
-        <span
-          className={styles.resolutionCompletion}
-          aria-hidden="true"
-          onAnimationEnd={(event) => {
-            if (event.target === event.currentTarget) onResolutionComplete();
-          }}
-        />
-      ) : null}
     </div>
   );
 }

@@ -216,13 +216,11 @@ export function S06ConsequenceTraining({
             attackBlocked={
               snapshot.step.relation?.kind === 'no-derived-path-recognized'
             }
+            comparisonResults={snapshot.completedComparisonResults}
           />
         </div>
         {snapshot.isHypothetical ? (
-          <>
-            <div className={styles.hypotheticalShade} aria-hidden="true" />
-            <p className={styles.hypotheticalLabel}>{s06ConsequenceContent.modes.hypothetical.overlay}</p>
-          </>
+          <p className={styles.hypotheticalLabel}>{s06ConsequenceContent.modes.hypothetical.overlay}</p>
         ) : null}
         {comparison === null ? null : (
           <S06PasswordComparisonProjection

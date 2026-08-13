@@ -23,7 +23,7 @@ export interface BrowserTabModel {
   readonly disabledReason?: string;
 }
 
-function BugStatusIcon() {
+export function BugStatusIcon() {
   return (
     <svg
       aria-hidden="true"

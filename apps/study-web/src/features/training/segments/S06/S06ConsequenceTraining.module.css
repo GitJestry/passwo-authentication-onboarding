@@ -19,6 +19,7 @@
 }
 
 .page[data-scene-mode="hypothetical"] {
+  background: #363636;
   box-shadow: none;
 }
 
@@ -189,19 +190,19 @@
   background: #000;
 }
 
-.hypotheticalShade {
-  position: absolute;
-  z-index: 9;
-  inset: 0;
-  background: rgb(132 132 132 / 58%);
-  pointer-events: none;
+.page[data-scene-mode="hypothetical"] .networkPanel,
+.page[data-scene-mode="hypothetical"] .networkPanel > div,
+.page[data-scene-mode="hypothetical"] .networkPanel :global(.react-flow),
+.page[data-scene-mode="hypothetical"] .networkPanel :global(.react-flow__renderer),
+.page[data-scene-mode="hypothetical"] .networkPanel :global(.react-flow__pane) {
+  background: #363636;
 }
 
 .hypotheticalLabel {
   position: absolute;
   z-index: 11;
   top: var(--space-4);
-  left: 50%;
+  left: var(--space-4);
   margin: 0;
   padding: var(--space-2) var(--space-5);
   border: var(--border-width-medium) solid rgb(255 255 255 / 70%);
@@ -211,7 +212,6 @@
   box-shadow: 0 0.6rem 1.2rem rgb(0 0 0 / 42%);
   font-size: var(--font-size-small);
   font-weight: var(--font-weight-heavy);
-  transform: translateX(-50%);
 }
 
 .passWoLayer {
