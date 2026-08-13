@@ -2926,8 +2926,9 @@ erforderlich.
 Quelle ist der ausdrückliche Nutzerauftrag vom 13. August 2026. Die Erklärungen zur
 Bausteinmetapher, zu öffentlich verfügbaren Angaben, zu Kontobezügen und zu vorhersehbaren
 Varianten werden mit dem vorgegebenen Wortlaut präzisiert. Die ausdrücklich angeforderten
-gruppierten Hervorhebungen von `Name`, `Geburtsdatum` und `Interessen` sowie `Konto`, `Dienst`
-und `Umfeld` sind freigegebene Ausnahmen von der üblichen Hervorhebungsgrenze. `riskant` bleibt
+gruppierte Hervorhebung von `Name`, `Geburtsdatum` und `Interessen` ist eine freigegebene
+Ausnahme von der üblichen Hervorhebungsgrenze. Der zusammenhängende Kerngedanke `Bezug zum
+Konto, zum Dienst oder zu dessen Umfeld` wird mit dem Kontobezug-Logo hervorgehoben. `riskant` bleibt
 als einzelner Warnbegriff markiert. Interaktion, Ablauf, Analyse, Persistenz, Export und Timing
 bleiben unverändert. `S05_CONTENT_VERSION` wird von `2.84.1` auf `2.85.0` erhöht.
 
@@ -2938,7 +2939,7 @@ bleiben unverändert. `S05_CONTENT_VERSION` wird von `2.84.1` auf `2.85.0` erhö
 | `S05.intro.narration.componentCategoryOverview[0]` | Nutzerauftrag vom 2026-08-13 | `Dabei beginnt der Angreifer mit Passwörtern und Zeichenfolgen, die besonders häufig verwendet werden.` | `Dabei beginnt er mit Passwörtern und Zeichenfolgen, die besonders häufig verwendet werden.` | Mechanismuserklärung | ausdrücklich vorgegebene Vermeidung der Wiederholung | nein | `Weiter` | keine |
 | `S05.componentStrategy.personalDetails.derivation[0]` | Nutzerauftrag vom 2026-08-13 | `Mit den Passwortdaten eines Kontos sind jedoch oft auch ein Benutzername oder eine E-Mail-Adresse verknüpft. Bei einem Datenleck können solche Kontohinweise offengelegt werden.` | `Bei einem Datenleck können jedoch Kennungen wie Benutzername, E-Mail-Adresse oder Telefonnummer offengelegt werden.` | Mechanismuserklärung | Kennungen und Offenlegung direkt benennen | begrenzt | `Weiter` | keine |
 | `S05.componentStrategy.personalDetails.examples[0]` | Nutzerauftrag vom 2026-08-13 | `Mit diesen Hinweisen können Angreifer nach öffentlichen Profilen suchen und dort Angaben wie Namen, Geburtsdaten oder den Lieblingsverein finden und als Passwortbestandteile ausprobieren.` | `Angreifer können damit nach öffentlich verfügbaren Angaben wie Name, Geburtsdatum oder Interessen suchen und diese als mögliche Passwortbestandteile ausprobieren.` | Mechanismuserklärung | Rechercheweg und Beispiele ausdrücklich präzisieren | begrenzt | `Weiter` | gruppiert `Name`, `Geburtsdatum`, `Interessen` in Akzentfarbe |
-| `S05.componentStrategy.accountContext.opening[0]` | Nutzerauftrag vom 2026-08-13 | `Um sich leichter zu merken, welches Passwort zu welchem Konto gehört, werden oft Begriffe aus dem Dienst oder seinem Umfeld eingebaut. Solche Bezüge kann ein Angreifer gezielt mitprüfen.` | `Um sich leichter zu merken, welches Passwort zu welchem Konto gehört, werden oft Begriffe mit Bezug zum Konto, zum Dienst oder zu dessen Umfeld eingebaut. Solche Bezüge kann ein Angreifer gezielt mitprüfen.` | Mechanismuserklärung | Arten des Kontobezugs vollständig benennen | begrenzt | `Weiter` | gruppiert `Konto`, `Dienst`, `Umfeld` in Akzentfarbe |
+| `S05.componentStrategy.accountContext.opening[0]` | Nutzerauftrag vom 2026-08-13 | `Um sich leichter zu merken, welches Passwort zu welchem Konto gehört, werden oft Begriffe aus dem Dienst oder seinem Umfeld eingebaut. Solche Bezüge kann ein Angreifer gezielt mitprüfen.` | `Um sich leichter zu merken, welches Passwort zu welchem Konto gehört, werden oft Begriffe mit Bezug zum Konto, zum Dienst oder zu dessen Umfeld eingebaut. Solche Bezüge kann ein Angreifer gezielt mitprüfen.` | Mechanismuserklärung | Arten des Kontobezugs vollständig benennen | begrenzt | `Weiter` | `Bezug zum Konto, zum Dienst oder zu dessen Umfeld` zusammenhängend in Akzentfarbe mit Kontobezug-Logo; erstes `Konto` ohne Hervorhebung |
 | `S05.componentStrategy.accountContext.explanation[0]` | Nutzerauftrag vom 2026-08-13 | `Bei Campusgram wären das zum Beispiel „Campus“, „Nachricht“, der Benutzername oder der Dienstname, bei einem WLAN-Passwort etwa „WLAN“, „Router“ oder „Fritzbox“.` | `Bei Campusgram wären das zum Beispiel der Benutzername, ‚Campus‘, ‚Nachricht‘ oder der Dienstname, bei einem WLAN-Passwort etwa ‚WLAN‘, ‚Router‘ oder ‚Fritzbox‘.` | Mechanismuserklärung | Beispiele ausdrücklich neu ordnen und typografisch vereinheitlichen | nein | `Weiter` | keine |
 | `S05.freeSearch.characterMix.narration[3]` | Nutzerauftrag vom 2026-08-13 | `Darauf zu setzen, mit einer komplizierten Mischung wie „mEin!Pa55w0rt?“ eine Variante zu finden, die der Angreifer nicht prüft, ist deshalb riskant.` | `Darauf zu hoffen, dass der Angreifer eine komplizierte Variante wie „mEin!Pa55w0rt?“ nicht prüft, ist riskant.` | Kerngedanke | ausdrücklich vorgegebene Kürzung und direkte Risikoeinordnung | begrenzt | `Weiter` | `riskant` in Warnfarbe |
 
@@ -2970,6 +2971,16 @@ Kandidatenkombinationen. Der mittlere Baustein bleibt als Fokus größer, nach o
 durch einen Leuchteffekt hervorgehoben, behält dabei aber seine bisherige Bausteinfarbe statt
 einer abweichenden gelben Sonderpalette. Teilnehmertext, Interaktion, Ablauf, Analyse,
 Persistenz, Export und Timing bleiben unverändert; kein Content-Versionssprung ist erforderlich.
+
+### Darstellungsdelta S05 goldgelber Fokusbaustein 13. August 2026
+
+Quelle ist der ausdrückliche Nutzerauftrag vom 13. August 2026. Im Sprechschritt
+`s05-component-category-overview` wird der hervorgehobene Baustein `123456789` abweichend von
+der bisherigen blauen Herkunftsfarbe goldgelb dargestellt und erhält einen passenden goldgelben
+Leuchteffekt. Die beiden verdeckten Bausteine behalten ihre bisherigen Farben. Teilnehmertext,
+Interaktion, Ablauf, Analyse, Persistenz, Export und Timing bleiben unverändert; kein
+Content-Versionssprung ist erforderlich.
+
 ### Copy- und Darstellungsdelta S05 Wortlaut und Kleinbuchstaben 12. August 2026
 
 Quelle ist der ausdrückliche Nutzerauftrag vom 12. August 2026. Die Erklärungen zu geläufigen

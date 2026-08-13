@@ -96,9 +96,11 @@ const emphasisBySpeechId: Readonly<Record<string, readonly PassWoSpeechEmphasis[
     },
   ],
   's05-account-context-opening': [
-    { phrase: 'Konto', tone: 'accent', contrastId: 'account-context-source' },
-    { phrase: 'Dienst', tone: 'accent', contrastId: 'account-context-source' },
-    { phrase: 'Umfeld', tone: 'accent', contrastId: 'account-context-source' },
+    {
+      phrase: 'Bezug zum Konto, zum Dienst oder zu dessen Umfeld',
+      tone: 'accent',
+      symbolSrc: accountContextAsset,
+    },
   ],
   's05-account-context-intro': [
     {

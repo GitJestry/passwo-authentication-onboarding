@@ -360,6 +360,19 @@
   transform-origin: center;
 }
 
+.componentSequence
+  :global([data-display="separated"][data-appearance="candidate"] > [data-highlighted="true"]) {
+  --building-block-border: #ffd95a;
+  --building-block-ink: #2b2100;
+  --building-block-surface: #e8b923;
+
+  box-shadow:
+    0 0 0 0.14rem rgb(255 217 90 / 62%),
+    0 0 1.65rem rgb(255 199 36 / 90%),
+    0 0.85rem 1.5rem rgb(133 87 0 / 34%);
+  filter: brightness(1.12) saturate(1.18);
+}
+
 .commonCoreWorkspace,
 .commonCoreApplication,
 .personalTransition {
