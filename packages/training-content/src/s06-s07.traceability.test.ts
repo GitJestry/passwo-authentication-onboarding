@@ -6,11 +6,11 @@ import { S07_EVALUATION_CONTENT_VERSION, s07EvaluationContent } from './s07.js';
 const recognitionCopyReference =
   'docs/design/S06-S07-COPY-AUDIT.md#copy-delta-s06-s07-vollpasswort-treffer-statt-guess-schwelle-11-august-2026';
 const s06AttackFlowCopyReference =
-  'docs/design/S06-S07-COPY-AUDIT.md#copy-und-ablaufdelta-s06-real-und-hypothetisch-ab-campusgram-12-august-2026';
+  'docs/design/S06-S07-COPY-AUDIT.md#copy--und-ablaufdelta-s06-master-campus-campus-e-mail-und-s07-übergang-13-august-2026';
 
 describe('S06 and S07 whole-password recognition copy traceability', () => {
   it('keeps S06 consequence wording aligned with bounded whole-password recognition', () => {
-    expect(S06_CONSEQUENCE_CONTENT_VERSION).toBe('2.8.0');
+    expect(S06_CONSEQUENCE_CONTENT_VERSION).toBe('2.9.0');
     expect(s06ConsequenceContent.source.copyReference).toBe(s06AttackFlowCopyReference);
     expect(s06ConsequenceContent.page.attackStart).toBe('Angriff starten');
     expect(s06ConsequenceContent.page.finish).toBe('Fertig');
@@ -20,6 +20,23 @@ describe('S06 and S07 whole-password recognition copy traceability', () => {
     );
     expect(s06ConsequenceContent.narrations['s06.transition'].body).toBe(
       'Bislang begann der Angriff bei Campusgram. Welches Konto zuerst bekannt wird, lässt sich aber nicht vorhersagen. Deshalb schauen wir uns die Konten jetzt noch einmal aus einer anderen Ausgangslage an.',
+    );
+    expect(s06ConsequenceContent.narrations).toMatchObject({
+      's06.incident.master-campus-hypothetical': {
+        body: 'Angenommen, das Master-Campus-Passwort wäre bekannt geworden. Dann würde es oder eine ähnliche Variante bei Campus E-Mail ausprobiert.',
+      },
+      's06.transition.campus-email': {
+        body: 'Zum Schluss verschieben wir das Datenleck zu Campus E-Mail und prüfen dieses Passwort für sich.',
+      },
+      's06.summary.separated': {
+        body: 'Die gezeigten Vergleiche erkannten weder Wiederverwendung noch eine abgeleitete Variante. In dieser Übung hatte das einen konkreten Schutzeffekt: Ein bekanntes Passwort führte nicht direkt zu einem weiteren Konto.',
+      },
+      's06.summary.connected': {
+        body: 'Zwischen einigen Übungspasswörtern wurde Wiederverwendung oder eine abgeleitete Variante erkannt. Neue, voneinander unabhängige Passwörter würden die Ausbreitung eines bekannten Passworts stärker begrenzen.',
+      },
+    });
+    expect(s06ConsequenceContent.narrations['s06.transition.s07'].body).toMatch(
+      /neues, starkes und einzigartiges Passwort.*Passphrasen/u,
     );
     expect(s06ConsequenceContent.narrations).toMatchObject({
       's06.summary.actual-none': {
@@ -53,6 +70,13 @@ describe('S06 and S07 whole-password recognition copy traceability', () => {
       campusgram: { fictionalPassword: 'LunaCampusgram2026!' },
       'master-campus': { fictionalPassword: 'LunaMasterCampus2027?' },
       'campus-email': { fictionalPassword: 'LunaCampusgram2026!' },
+    });
+    const mixedFixture = s06ConsequenceContent.fixtures.find(
+      ({ id }) => id === 'mixed-actual-hypothetical',
+    );
+    expect(mixedFixture?.accounts).toMatchObject({
+      'master-campus': { fictionalPassword: 'rQ7mL2vX9pK4!' },
+      'campus-email': { fictionalPassword: 'rQ7mL2vX9pK4?' },
     });
     expect(s06ConsequenceContent.dispositionLabels['whole-password-recognized']).toMatch(
       /vollständige(?:s|r) Passwort|vollständiger früher Kandidat/u,

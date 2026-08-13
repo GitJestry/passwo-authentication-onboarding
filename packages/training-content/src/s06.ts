@@ -38,6 +38,8 @@ export type S06NarrationId =
   | 's06.compare.no-derived-path-recognized'
   | 's06.perspective.master-campus-found'
   | 's06.perspective.master-campus-blocked'
+  | 's06.incident.master-campus-hypothetical'
+  | 's06.transition.campus-email'
   | 's06.local-check.campus-email-found'
   | 's06.local-check.campus-email-blocked'
   | 's06.summary'
@@ -47,14 +49,17 @@ export type S06NarrationId =
   | 's06.summary.hypothetical-none'
   | 's06.summary.hypothetical-one'
   | 's06.summary.hypothetical-both'
-  | 's06.transition';
+  | 's06.summary.separated'
+  | 's06.summary.connected'
+  | 's06.transition'
+  | 's06.transition.s07';
 
 export interface S06NarrationContent {
   readonly heading: string;
   readonly body: string;
 }
 
-export const S06_CONSEQUENCE_CONTENT_VERSION = '2.8.0';
+export const S06_CONSEQUENCE_CONTENT_VERSION = '2.9.0';
 
 export const s06ConsequenceContent = {
   version: S06_CONSEQUENCE_CONTENT_VERSION,
@@ -62,9 +67,9 @@ export const s06ConsequenceContent = {
     document: 'research/private/training-script.pdf',
     internalPages: [36, 37, 38, 39, 40, 41, 42, 43, 44] as const,
     revision:
-      'Userauftrag vom 2026-08-13 · Datenleck-Kennzeichnung am Campusgram-Angreifer',
+      'Userauftrag vom 2026-08-13 · vollständiger S06-Perspektivwechsel bis zur S07-Überleitung',
     copyReference:
-      'docs/design/S06-S07-COPY-AUDIT.md#copy-und-darstellungsdelta-s06-datenleck-kennzeichnung-und-angriffstiming-13-august-2026',
+      'docs/design/S06-S07-COPY-AUDIT.md#copy--und-ablaufdelta-s06-master-campus-campus-e-mail-und-s07-übergang-13-august-2026',
   },
   segment: {
     id: 'S06',
@@ -193,19 +198,27 @@ export const s06ConsequenceContent = {
     },
     's06.perspective.master-campus-found': {
       heading: 'Perspektivwechsel zu Master Campus',
-      body: 'Auch Master Campus kann Ausgangspunkt eines Vorfalls sein. Die begrenzte Prüfung erkennt hier das vollständige Passwort als frühen Kandidaten.',
+      body: 'Bei Master Campus wurde das vollständige Passwort in dieser begrenzten Prüfung als früher Kandidat erkannt. Von diesem Konto aus kann es nun bei Campus E-Mail ausprobiert werden.',
     },
     's06.perspective.master-campus-blocked': {
       heading: 'Perspektivwechsel zu Master Campus',
-      body: 'Der tatsächliche Weg stoppt zunächst; der anschließende Vergleich ist klar hypothetisch.',
+      body: 'Bei Master Campus wurde in dieser begrenzten Prüfung kein vollständiger früher Kandidat erkannt. Den möglichen weiteren Weg betrachten wir deshalb als „Was wäre, wenn?“.',
+    },
+    's06.incident.master-campus-hypothetical': {
+      heading: 'Was wäre, wenn?',
+      body: 'Angenommen, das Master-Campus-Passwort wäre bekannt geworden. Dann würde es oder eine ähnliche Variante bei Campus E-Mail ausprobiert.',
+    },
+    's06.transition.campus-email': {
+      heading: 'Noch eine Ausgangslage',
+      body: 'Zum Schluss verschieben wir das Datenleck zu Campus E-Mail und prüfen dieses Passwort für sich.',
     },
     's06.local-check.campus-email-found': {
       heading: 'Lokaler Einzelcheck von Campus E-Mail',
-      body: 'Die begrenzte Prüfung erkennt dieses vollständige fiktive Passwort als frühen Kandidaten.',
+      body: 'Beim Campus-E-Mail-Passwort wurde ein vollständiger früher Kandidat erkannt. Unabhängig von den Verbindungen zu anderen Konten lohnt es sich deshalb, auch dieses Passwort für sich stark zu wählen.',
     },
     's06.local-check.campus-email-blocked': {
       heading: 'Lokaler Einzelcheck von Campus E-Mail',
-      body: 'Die begrenzte Prüfung erkannte hier keinen vollständigen frühen Kandidaten. Das ist keine allgemeine Sicherheitsgarantie.',
+      body: 'Beim Campus-E-Mail-Passwort wurde in dieser begrenzten Prüfung kein vollständiger früher Kandidat erkannt. Das ist ein günstiges Ergebnis dieser Prüfung, aber keine allgemeine Sicherheitsgarantie.',
     },
     's06.summary': {
       heading: 'Gemeinsame Endübersicht',
@@ -235,9 +248,21 @@ export const s06ConsequenceContent = {
       heading: 'Gemeinsame Endübersicht',
       body: 'Wäre das Campusgram-Passwort bekannt gewesen, hätte sich der Angriff auf beide anderen Konten ausbreiten können.',
     },
+    's06.summary.separated': {
+      heading: 'Gemeinsame Endübersicht',
+      body: 'Die gezeigten Vergleiche erkannten weder Wiederverwendung noch eine abgeleitete Variante. In dieser Übung hatte das einen konkreten Schutzeffekt: Ein bekanntes Passwort führte nicht direkt zu einem weiteren Konto.',
+    },
+    's06.summary.connected': {
+      heading: 'Gemeinsame Endübersicht',
+      body: 'Zwischen einigen Übungspasswörtern wurde Wiederverwendung oder eine abgeleitete Variante erkannt. Neue, voneinander unabhängige Passwörter würden die Ausbreitung eines bekannten Passworts stärker begrenzen.',
+    },
     's06.transition': {
       heading: 'Gemeinsame Endübersicht',
       body: 'Bislang begann der Angriff bei Campusgram. Welches Konto zuerst bekannt wird, lässt sich aber nicht vorhersagen. Deshalb schauen wir uns die Konten jetzt noch einmal aus einer anderen Ausgangslage an.',
+    },
+    's06.transition.s07': {
+      heading: 'Was folgt nach einem Datenleck?',
+      body: 'Wenn ein Passwort durch ein Datenleck bekannt geworden sein könnte, sollte es unter anderem durch ein neues, starkes und einzigartiges Passwort ersetzt werden. Als Nächstes schauen wir, wo eine Änderung sinnvoll ist und wie Passphrasen dabei helfen können.',
     },
   } as const satisfies Readonly<Record<S06NarrationId, S06NarrationContent>>,
   fixtures: [
@@ -279,8 +304,8 @@ export const s06ConsequenceContent = {
       routeId: 's06-mixed-actual-hypothetical',
       accounts: {
         campusgram: { fictionalPassword: 'LunaCampusgram2026!', retrievalStatus: 'retrievable' },
-        'master-campus': { fictionalPassword: 'rQ7mL2vX9pK4', retrievalStatus: 'assisted' },
-        'campus-email': { fictionalPassword: 'LunaMail2027?', retrievalStatus: 'retrievable' },
+        'master-campus': { fictionalPassword: 'rQ7mL2vX9pK4!', retrievalStatus: 'assisted' },
+        'campus-email': { fictionalPassword: 'rQ7mL2vX9pK4?', retrievalStatus: 'retrievable' },
       },
     },
   ] as const satisfies readonly S06ConsequenceFixture[],

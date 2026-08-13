@@ -242,8 +242,8 @@ function localCheckStep(
       nodes,
       edges: base.edges,
       accessibleSummary: found
-        ? `${definitionById(input.accountDefinitions, accountId).label}: schneller Weg erkannt.`
-        : `${definitionById(input.accountDefinitions, accountId).label}: tatsächlicher Weg blockiert.`,
+        ? `${definitionById(input.accountDefinitions, accountId).label}: vollständiges Passwort als früher Kandidat erkannt.`
+        : `${definitionById(input.accountDefinitions, accountId).label}: kein vollständiger früher Kandidat in dieser begrenzten Prüfung erkannt.`,
     },
     visibleChange: { targetId: accountId, emphasis: found ? 'danger' : 'positive' },
   };
@@ -333,6 +333,23 @@ function summaryStep(
   paths: readonly S06ResolvedConsequencePath[],
 ): PasswordConsequencePlanStep {
   const base = createBaseNetwork('s06-step-summary', input.accounts, input.accountDefinitions);
+  const relationshipEdges = input.comparisons.flatMap(
+    ({ sourceAccountId, targetAccountId, result }): readonly SceneEdge[] => {
+      const relation = result.relation;
+      if (relation.kind === 'no-derived-path-recognized') return [];
+      const exactReuse = relation.kind === 'exact-match';
+      return [
+        {
+          id: `s06-step-summary-${sourceAccountId}-${targetAccountId}`,
+          sourceId: sourceAccountId,
+          targetId: targetAccountId,
+          kind: exactReuse ? 'identical-reuse' : 'similar-pattern',
+          status: exactReuse ? 'direct' : 'similar',
+          label: null,
+        },
+      ];
+    },
+  );
   const nodes = input.accounts.reduce<SceneNode[]>((current, account) => {
     const targetReached = paths.some(
       ({ targetAccountId, targetReached: reached }) =>
@@ -358,9 +375,11 @@ function summaryStep(
     network: {
       id: `${input.id}-s06-step-summary`,
       nodes,
-      edges: base.edges,
+      edges: [...base.edges, ...relationshipEdges],
       accessibleSummary:
-        'Gemeinsame Endübersicht mit Einzelcheck, Passwortbeziehungen und Abrufbarkeit der drei fiktiven Konten.',
+        relationshipEdges.length === 0
+          ? 'Gemeinsame Endübersicht der lokalen Prüfungen; zwischen den drei fiktiven Konten wurde keine Passwortverbindung erkannt.'
+          : `Gemeinsame Endübersicht der lokalen Prüfungen mit ${relationshipEdges.length} erkannten Passwort${relationshipEdges.length === 1 ? 'verbindung' : 'verbindungen'}.`,
     },
     visibleChange: { targetId: 'campus-email', emphasis: 'info' },
   };

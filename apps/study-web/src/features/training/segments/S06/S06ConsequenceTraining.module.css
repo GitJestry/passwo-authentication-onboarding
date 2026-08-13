@@ -201,7 +201,7 @@
 .hypotheticalLabel {
   position: absolute;
   z-index: 11;
-  bottom: clamp(var(--space-5), 3cqb, var(--space-8));
+  top: clamp(var(--space-3), 2cqb, var(--space-5));
   left: 50%;
   margin: 0;
   padding: var(--space-3) var(--space-6);

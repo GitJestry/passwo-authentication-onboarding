@@ -113,9 +113,9 @@ export function S06ConsequenceTraining({
         networkHostRef.current?.querySelector<HTMLElement>(
           `[data-scene-node-button="${nodeId}"]`,
         ) ?? null,
-      getEdgeElement: (targetNodeId) =>
+      getEdgeElement: () =>
         networkHostRef.current?.querySelector<SVGPathElement>(
-          `[data-network-edge-target="${targetNodeId}"] [data-network-edge-draw-mask]`,
+          '[data-network-edge-current-attack="true"] [data-network-edge-draw-mask]',
         ) ?? null,
       prefersReducedMotion,
     });
@@ -164,7 +164,7 @@ export function S06ConsequenceTraining({
           onAction: onRetryTiming,
         }
     : snapshot.showGuide && snapshot.controls.canContinue
-      ? snapshot.stage === 'initial-found' || snapshot.stage === 'hypothetical-ready'
+      ? snapshot.controls.canStart
         ? {
             kind: 'perform' as const,
             label: s06ConsequenceContent.page.attackStart,
@@ -184,6 +184,11 @@ export function S06ConsequenceTraining({
     : timingState === 'writingEnd'
       ? ['Segmentabschluss wird bestätigt …']
       : [snapshot.participant.narration.body];
+  const attackSourceAccountId = snapshot.attackSourceAccountId;
+  const attackerAttemptStatus =
+    snapshot.attackPhase === 'incident-check' && attackSourceAccountId !== null
+      ? (snapshot.step.network.nodes.find(({ id }) => id === attackSourceAccountId)?.status ?? null)
+      : null;
   const comparison =
     !snapshot.comparisonVisible ||
     snapshot.step.sourceAccountId === null ||
@@ -216,7 +221,10 @@ export function S06ConsequenceTraining({
             adapter={runtime.renderer}
             presentation={snapshot.presentation}
             attackPhase={snapshot.attackPhase}
+            attackerAccountId={snapshot.attackSourceAccountId}
+            attackerAttemptStatus={attackerAttemptStatus}
             attackTargetId={snapshot.step.targetAccountId}
+            attackEdgeId={snapshot.comparisonVisible ? `${snapshot.step.id}-path` : null}
             attackBlocked={
               snapshot.step.relation?.kind === 'no-derived-path-recognized'
             }
@@ -244,9 +252,10 @@ export function S06ConsequenceTraining({
             onPreviewComplete={() => runtime.controller.previewCompleted(snapshot.step.id)}
             onAdvance={() => runtime.controller.resolvePreview(snapshot.step.id)}
             finishLabel={
-              snapshot.stepIndex === 2
-                ? s06ConsequenceContent.page.finish
-                : s06ConsequenceContent.page.continue
+              snapshot.step.sourceAccountId === 'campusgram' &&
+              snapshot.step.targetAccountId === 'master-campus'
+                ? s06ConsequenceContent.page.continue
+                : s06ConsequenceContent.page.finish
             }
             onResolutionComplete={() => runtime.controller.resolutionCompleted(snapshot.step.id)}
           />

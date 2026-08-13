@@ -330,28 +330,28 @@ const scenarios: Record<DesignLabScenarioId, DesignLabScenario> = {
   's06-reuse-and-derived': {
     label: 'S06 Wiederverwendung + Ableitung',
     description:
-      'Campusgram wird gefunden, Master Campus exakt und Campus E-Mail konkret abgeleitet.',
+      'Campusgram wird gefunden, Master Campus konkret abgeleitet und Campus E-Mail exakt wiederverwendet.',
     dimmed: false,
     showPassWoOverlay: false,
   },
   's06-incident-not-found': {
     label: 'S06 Vorfall stoppt',
     description:
-      'Campusgram wird nicht schnell gefunden; alle drei Beziehungen bleiben ohne erkannten Weg.',
+      'Campusgram wird nicht schnell gefunden; Master Campus wird anschließend hypothetisch nur gegen Campus E-Mail geprüft und auch dort bleibt der Weg blockiert.',
     dimmed: false,
     showPassWoOverlay: false,
   },
   's06-incident-found-blocked': {
     label: 'S06 gefunden, Wege blockiert',
     description:
-      'Campusgram wird gefunden; beide weiteren Konten bleiben ohne erkannten Ableitungsweg.',
+      'Campusgram wird gefunden; nach den blockierten Campusgram-Wegen wird Master Campus hypothetisch nur gegen Campus E-Mail geprüft und ebenfalls blockiert.',
     dimmed: false,
     showPassWoOverlay: false,
   },
   's06-mixed-actual-hypothetical': {
     label: 'S06 gemischt',
     description:
-      'Tatsächliche und hypothetische Schritte sind in einem deterministischen Ablauf klar getrennt.',
+      'Campusgram läuft real; Master Campus wird lokal nicht erkannt und anschließend mit einer konkreten Suffixvariante zu Campus E-Mail hypothetisch geprüft.',
     dimmed: false,
     showPassWoOverlay: false,
   },

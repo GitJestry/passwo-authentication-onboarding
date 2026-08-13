@@ -184,6 +184,9 @@ export class NetworkMotionAdapter implements AnimationPlayerPort {
       case 'reveal': {
         this.#setSnapshot({
           ...this.#snapshot,
+          drawnEdgeTargetNodeIds: (this.#snapshot.drawnEdgeTargetNodeIds ?? []).filter(
+            (targetId) => targetId !== step.targetId,
+          ),
           drawingTargetNodeId: step.targetId,
         });
         await nextFrame();
@@ -240,10 +243,16 @@ export class NetworkMotionAdapter implements AnimationPlayerPort {
         this.#setSnapshot({ ...this.#snapshot, announcedMessageId: step.messageId });
         return;
       case 'pause': {
-        const character = this.#getCharacterElement();
-        if (character === null) throw new Error('missing-network-character');
-        await this.#animate(character, step.durationMs, { opacity: [0.99, 1] });
-        character.style.removeProperty('opacity');
+        const animation = animate(0, [0, 1], {
+          duration: step.durationMs / 1000,
+          ease: 'linear',
+        });
+        this.#activeAnimations.add(animation);
+        try {
+          await animation;
+        } finally {
+          this.#activeAnimations.delete(animation);
+        }
         return;
       }
     }

@@ -1,5 +1,60 @@
 # S06--S07 Copy Audit
 
+## Copy- und Ablaufdelta S06 Master Campus, Campus E-Mail und S07-Übergang, 13. August 2026
+
+Quelle ist der ausdrückliche Nutzerauftrag vom 13. August 2026. Nach der bereits implementierten
+Campusgram-Ausbreitungsprüfung wird S06 bis zur Überleitung in S07 vervollständigt. Die vorhandene
+lokale Vollpasswort-Prüfung, Vergleichsvorschau, Angreifer-, Datenleck-, Linien-, Schild- und
+Befallen-Darstellung werden wiederverwendet. Master Campus wird als neuer möglicher Ausgangspunkt
+lokal geprüft und anschließend **immer ausschließlich mit Campus E-Mail verglichen**. Ein
+Vergleich von Master Campus zurück zu Campusgram findet nicht statt. Wurde das Master-Campus-
+Passwort lokal nicht erkannt, wird vor dem Vergleich die vorhandene graue `Was wäre, wenn?`-
+Darstellung mit der Befallen-Animation am Master-Campus-Knoten wiederverwendet. Der Vergleich
+findet auch dann statt, wenn sein Ergebnis `Keine Übereinstimmung` ist, damit die erfolgreiche
+Trennung der beiden Passwörter in der Simulation sichtbar erfahrbar wird. Campus E-Mail wird
+danach nur noch lokal geprüft; ein redundanter dritter Ausbreitungslauf wird nicht wiederholt.
+
+Die adaptive Endrückmeldung beschreibt ausschließlich in der Übung sichtbare Konsequenzen. Sie
+bestätigt getrennte Passwörter als dargestellte Begrenzung der kontoübergreifenden Ausbreitung,
+ohne die Person moralisch zu bewerten oder allgemeine Sicherheit zu behaupten. Bei sichtbarer
+Wiederverwendung oder Ähnlichkeit benennt sie eine vollständig neue Passwortgrundlage als nächsten
+Schutzschritt. Die S07-Überleitung führt anschließend zur Frage, wo nach einem möglichen
+Passwortdatenleck eine Änderung sinnvoll ist, und kündigt Passphrasen als mögliche Methode für
+neue Passwörter an. `S06_CONSEQUENCE_CONTENT_VERSION` wird von `2.8.0` auf `2.9.0` erhöht.
+
+| Segment und Text-ID | Vorher | Nachher | Primäre Rolle | Interaktionsziel | Grund und Bedeutungsänderung | Hervorhebung |
+|---|---|---|---|---|---|---|
+| `S06.narrations.s06.perspective.master-campus-found` | technischer Perspektivhinweis | lokaler Treffer wird als Ausgangspunkt für den nächsten sichtbaren Angriff eingeordnet | Ergebnisfeedback | `Angriff starten` | verbindet lokale Stärkeprüfung und vorhandene Ausbreitungsanimation ohne Ergebnis vorwegzunehmen | keine |
+| `S06.narrations.s06.perspective.master-campus-blocked` | knapper Hinweis auf hypothetischen Vergleich | tatsächlicher Stopp wird benannt; der nächste Weg wird als `Was wäre, wenn?` eingeordnet | Ergebnisfeedback / Orientierung | `Weiter` | trennt tatsächlichen Nicht-Treffer, hypothetische Annahme und anschließenden Angriff in sichtbare Schritte | keine |
+| `S06.narrations.s06.incident.master-campus-hypothetical` | nicht vorhanden | angenommenes Bekanntwerden des Master-Campus-Passworts und anschließendes Ausprobieren bei Campus E-Mail | Mechanismuserklärung | `Angriff starten` | folgt erst nach der sichtbaren hypothetischen Befallen-Animation und nimmt das Vergleichsergebnis nicht vorweg | keine |
+| `S06` Master-Campus-Vergleich | bedingt; bei lokaler Nicht-Erkennung und `Keine Übereinstimmung` ausgelassen | Master Campus wird immer nur gegen Campus E-Mail geprüft, auch bei `Keine Übereinstimmung` | Ergebnisfeedback / Mechanismuserfahrung | Vergleichsvorschau bis `Fertig` | macht auch erfolgreich getrennte Passwörter unmittelbar sichtbar; kein Rückvergleich zu Campusgram | keine |
+| `S06.narrations.s06.transition.campus-email` | nicht vorhanden | „Zum Schluss verschieben wir das Datenleck zu Campus E-Mail und prüfen dieses Passwort für sich.“ | Orientierung | `Weiter` | kündigt nur die lokale Prüfung an, nicht ihr Ergebnis | keine |
+| `S06.narrations.s06.local-check.campus-email-found` | rein technischer Treffertext | lokaler Treffer wird unabhängig von den bereits gezeigten Kontoverbindungen als Anlass für ein für sich starkes Passwort eingeordnet | Ergebnisfeedback | `Weiter` | macht den zusätzlichen Nutzen des E-Mail-Perspektivwechsels sichtbar und formuliert den nächsten Schutzschritt motivierend statt verpflichtend | keine |
+| `S06.narrations.s06.local-check.campus-email-blocked` | technischer Nicht-Treffer | günstiges begrenztes Ergebnis mit expliziter Nicht-Garantie | Ergebnisfeedback / Safety Boundary | `Weiter` | positive Rückmeldung ohne absolute Sicherheitsbehauptung | keine |
+| `S06.narrations.s06.summary.separated` | nicht vorhanden | in den gezeigten Vergleichen keine erkannte Wiederverwendung oder Variante und dadurch begrenzte Ausbreitung | Ergebnisfeedback | `Weiter` | benennt den konkret beobachteten Schutzeffekt des Verhaltens, ohne die Person moralisch zu bewerten oder allgemeine Sicherheit abzuleiten | keine |
+| `S06.narrations.s06.summary.connected` | nicht vorhanden | sichtbare Verbindung wird sachlich benannt und auf eine vollständig neue Grundlage verwiesen | Ergebnisfeedback | `Weiter` | non-blaming, handlungsorientierte Rückmeldung | keine |
+| `S06.narrations.s06.transition.s07` | allgemeiner Segmentabschluss | möglicher Passwortverlust durch Datenleck, notwendige Ersetzung und Passphrasen als mögliche Hilfe | Orientierung / Guidance | `Weiter` nach S07 | schließt die sichtbare Konsequenzkette mit einem umsetzbaren nächsten Schritt, ohne S07-Ergebnisse vorwegzunehmen | keine |
+
+Der Angreifer wird beim Start nur dann bereits an Campusgram dargestellt, wenn das vollständige
+Passwort zuvor erkannt wurde. Bei einem Nicht-Treffer erscheint er erst mit der hypothetischen
+Befallen-Animation. Beim Perspektivwechsel wird er am jeweils lokal geprüften Kontoknoten
+dargestellt. Während der 1,35 Sekunden langen Angreiferbewegung bleibt der lokal geprüfte
+Kontozweig neutral; Ergebnisfarbe und Schild erscheinen erst mit dem Prüfergebnis, bevor PassWo es
+einordnet. Die Kennzeichnung `Was wäre, wenn?` steht im hypothetischen Modus
+oben; die Endübersicht behält erkannte Passwortverbindungen sichtbar. Die Kennzeichnung
+`Datenleck` erscheint nur während der lokalen Ausgangsprüfung; beim anschließenden
+kontoübergreifenden Vergleich verschwindet sie. PassWo ist während der Vergleichsvorschau
+weiterhin nicht sichtbar. `Weiter` beziehungsweise `Fertig` bleiben die einzigen Controls
+innerhalb der Vorschau. Nur die kontoübergreifenden `-path`-Kanten werden zwischen zwei Angriffen
+fortgeführt; lokale blaue Schutzkanten aus S05 werden nicht als frühere Angriffswege übernommen.
+Die aktuell laufende Angriffskante wird über ihre Kanten-ID isoliert. Bereits sichtbare Kanten mit
+demselben Ziel werden dadurch weder erneut gezeichnet noch bei einer blockierten Auflösung
+ausgeblendet; dies gilt auch bei reduzierter Bewegung. Ein verspätetes Ende einer früheren
+Statusanimation darf außerdem keinen inzwischen gewechselten Schutz- oder Befallston als
+abgeschlossen markieren. Im Modus mit reduzierter Bewegung bleibt beim blockierten lokalen Check
+nur der statische Schildzustand sichtbar. Die zugänglichen Kurzbeschreibungen der lokalen Checks
+verwenden dieselbe begrenzte Vollpasswort-Terminologie wie die sichtbaren Texte.
+
 ## Copy- und Darstellungsdelta S06 Datenleck-Kennzeichnung und Angriffstiming, 13. August 2026
 
 Quelle ist der ausdrückliche Nutzerauftrag vom 13. August 2026. Der Angreifer am betroffenen

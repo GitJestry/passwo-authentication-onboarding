@@ -31,23 +31,26 @@ function comparisonResultForNode(
 
 function AccountStatusOverlay({
   node,
+  showAttacker,
+  attackerAttemptStatus,
   showDataLeakLabel,
   comparisonResult,
 }: {
   readonly node: NetworkSceneSnapshot['nodes'][number];
+  readonly showAttacker: boolean;
+  readonly attackerAttemptStatus: NetworkSceneSnapshot['nodes'][number]['status'] | null;
   readonly showDataLeakLabel: boolean;
   readonly comparisonResult: PasswordRelation['kind'] | null;
 }) {
-  const showsCampusgramAttempt = node.id === 'campusgram';
   const showsShield = node.status === 'protected' && node.kind !== 'shield';
-  if (!showsCampusgramAttempt && !showsShield && comparisonResult === null) return null;
+  if (!showAttacker && !showsShield && comparisonResult === null) return null;
 
   return (
     <>
-      {showsCampusgramAttempt ? (
+      {showAttacker ? (
         <span
           className={styles.attackAttempt}
-          data-account-attack-attempt={node.status}
+          data-account-attack-attempt={attackerAttemptStatus ?? node.status}
           aria-hidden="true"
         >
           <span className={styles.attackConnection} />
@@ -89,7 +92,10 @@ export function AccountAssessmentNetwork({
   ariaLabel,
   canvasAriaLabel,
   attackPhase,
+  attackerAccountId = 'campusgram',
+  attackerAttemptStatus = null,
   attackTargetId,
+  attackEdgeId = null,
   attackBlocked = false,
   comparisonResults = emptyComparisonResults,
 }: {
@@ -100,26 +106,33 @@ export function AccountAssessmentNetwork({
   readonly attackPhase?:
     | 'found'
     | 'hypothetical-intro'
+    | 'incident-check'
     | 'attacking'
     | 'preview-ready'
     | 'resolving';
+  readonly attackerAccountId?: S06AccountId | null;
+  readonly attackerAttemptStatus?: NetworkSceneSnapshot['nodes'][number]['status'] | null;
   readonly attackTargetId?: S06AccountId | null;
+  readonly attackEdgeId?: string | null;
   readonly attackBlocked?: boolean;
   readonly comparisonResults?: AccountComparisonResults;
 }) {
   const showDataLeakLabel =
     attackPhase === undefined ||
     attackPhase === 'found' ||
-    attackPhase === 'hypothetical-intro';
+    attackPhase === 'hypothetical-intro' ||
+    attackPhase === 'incident-check';
   const renderNodeOverlay = useCallback(
     (node: NetworkSceneSnapshot['nodes'][number]) => (
       <AccountStatusOverlay
         node={node}
+        showAttacker={node.id === attackerAccountId}
+        attackerAttemptStatus={attackerAttemptStatus}
         showDataLeakLabel={showDataLeakLabel}
         comparisonResult={comparisonResultForNode(node.id, comparisonResults)}
       />
     ),
-    [comparisonResults, showDataLeakLabel],
+    [attackerAccountId, attackerAttemptStatus, comparisonResults, showDataLeakLabel],
   );
 
   return (
@@ -140,6 +153,7 @@ export function AccountAssessmentNetwork({
         showStatusMarkers={false}
         dimInactiveNodes={false}
         renderNodeOverlay={renderNodeOverlay}
+        currentAttackEdgeId={attackEdgeId}
         {...(ariaLabel === undefined ? {} : { ariaLabel })}
         {...(canvasAriaLabel === undefined ? {} : { canvasAriaLabel })}
       />

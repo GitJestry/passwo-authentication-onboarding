@@ -94,10 +94,19 @@ export class ReactFlowNetworkAdapter implements NetworkRendererPort {
 
   readonly getSnapshot = (): RendererState => this.#state;
 
-  readonly completeStatusCascade = (nodeId: string): void => {
+  readonly completeStatusCascade = (
+    nodeId: string,
+    expectedTone?: StatusCascadeTone,
+  ): void => {
     const node = this.#state.snapshot.nodes.find(({ id }) => id === nodeId);
     const tone = statusCascadeToneForNode(node);
-    if (tone === null || this.#state.settledStatusCascadeTonesByNodeId.get(nodeId) === tone) return;
+    if (
+      tone === null ||
+      (expectedTone !== undefined && tone !== expectedTone) ||
+      this.#state.settledStatusCascadeTonesByNodeId.get(nodeId) === tone
+    ) {
+      return;
+    }
     const settledStatusCascadeTonesByNodeId = new Map(
       this.#state.settledStatusCascadeTonesByNodeId,
     );
@@ -127,17 +136,22 @@ export class ReactFlowNetworkAdapter implements NetworkRendererPort {
   };
 
   render(snapshot: NetworkSceneSnapshot): void {
-    const settledStatusCascadeTonesByNodeId =
-      snapshot.id === this.#state.snapshot.id
-        ? this.#state.settledStatusCascadeTonesByNodeId
-        : new Map<string, StatusCascadeTone>([
-            ...this.#state.settledStatusCascadeTonesByNodeId,
-            ...this.#state.snapshot.nodes
-              .flatMap(statusCascadeToneEntryForNode),
-            ...snapshot.nodes
-              .filter(({ kind }) => kind === 'account')
-              .flatMap(statusCascadeToneEntryForNode),
-          ]);
+    const currentStatusCascadeTonesByNodeId = new Map(
+      snapshot.nodes.flatMap(statusCascadeToneEntryForNode),
+    );
+    const retainsCurrentTone = ([nodeId, tone]: readonly [string, StatusCascadeTone]) =>
+      currentStatusCascadeTonesByNodeId.get(nodeId) === tone;
+    const settledStatusCascadeTonesByNodeId = new Map<string, StatusCascadeTone>([
+      ...[...this.#state.settledStatusCascadeTonesByNodeId].filter(retainsCurrentTone),
+      ...(snapshot.id === this.#state.snapshot.id
+        ? []
+        : this.#state.snapshot.nodes
+            .flatMap(statusCascadeToneEntryForNode)
+            .filter(retainsCurrentTone)),
+      ...snapshot.nodes
+        .filter(({ kind }) => kind === 'account')
+        .flatMap(statusCascadeToneEntryForNode),
+    ]);
     this.#state = {
       snapshot,
       settledStatusCascadeTonesByNodeId,
@@ -186,7 +200,10 @@ interface SceneNodeData extends Record<string, unknown> {
   readonly statusCascadeTiming: StatusCascadeTiming | null;
   readonly statusCascadeTone: StatusCascadeTone | null;
   readonly statusCascadeSettled: boolean;
-  readonly onStatusCascadeEnd: (nodeId: string) => void;
+  readonly onStatusCascadeEnd: (
+    nodeId: string,
+    tone: StatusCascadeTone,
+  ) => void;
   readonly onSelect: (nodeId: string) => void;
   readonly renderNodeOverlay: ((node: SceneNode) => ReactNode) | undefined;
 }
@@ -199,7 +216,7 @@ interface StatusCascadeTiming {
 }
 
 const statusCascadeStartDelayMs = 850;
-const statusCascadeSpeedPxPerMs = 0.38;
+const statusCascadeSpeedPxPerMs = 0.475;
 
 interface StatusCascadeNodeStyle extends CSSProperties {
   readonly '--network-status-cascade-arrival-delay': string;
@@ -558,6 +575,7 @@ function SceneNodeCircle({ data }: NodeProps<SceneFlowNode>) {
         onClick={() => onSelect(sceneNode.id)}
       >
         <span
+          key={`${sceneNode.id}-${statusCascadeTone ?? 'neutral'}`}
           className={styles.nodeCircle}
           data-scene-node-visual
           aria-hidden="true"
@@ -565,9 +583,10 @@ function SceneNodeCircle({ data }: NodeProps<SceneFlowNode>) {
             if (
               event.target === event.currentTarget &&
               statusCascadeTiming !== null &&
+              statusCascadeTone !== null &&
               !statusCascadeSettled
             ) {
-              onStatusCascadeEnd(sceneNode.id);
+              onStatusCascadeEnd(sceneNode.id, statusCascadeTone);
             }
           }}
         >
@@ -628,6 +647,7 @@ interface NodeEdgeData extends Record<string, unknown> {
   readonly drawing: boolean;
   readonly drawn: boolean;
   readonly attackPath: boolean;
+  readonly currentAttackPath: boolean;
   readonly dimmed: boolean;
   readonly statusCascadeTiming: StatusCascadeTiming | null;
   readonly statusCascadeTone: StatusCascadeTone | null;
@@ -688,6 +708,7 @@ function NodeEdge({
       data-network-edge-visible={data.visible || data.drawing}
       data-network-edge-drawing={data.drawing}
       data-network-edge-attack-drawing={drawsAttackPath || undefined}
+      data-network-edge-current-attack={data.currentAttackPath || undefined}
       data-network-edge-attack-drawn={
         data.attackPath && data.drawn ? true : undefined
       }
@@ -808,7 +829,11 @@ function toReactFlowElements(
   showStatusMarkers: boolean,
   renderNodeOverlay: ((node: SceneNode) => ReactNode) | undefined,
   dimInactiveNodes: boolean,
-  onStatusCascadeEnd: (nodeId: string) => void,
+  currentAttackEdgeId: string | null,
+  onStatusCascadeEnd: (
+    nodeId: string,
+    tone: StatusCascadeTone,
+  ) => void,
 ): { readonly nodes: readonly SceneFlowNode[]; readonly edges: readonly NodeFlowEdge[] } {
   const revealed = new Set(presentation.revealedNodeIds);
   const drawnEdgeTargetNodeIds = new Set(presentation.drawnEdgeTargetNodeIds ?? []);
@@ -907,6 +932,7 @@ function toReactFlowElements(
       const sourceGeometry = geometriesByNodeId.get(edge.sourceId);
       const targetGeometry = geometriesByNodeId.get(edge.targetId);
       if (sourceGeometry === undefined || targetGeometry === undefined) return [];
+      const currentAttackPath = edge.id === currentAttackEdgeId;
       return [
         {
           id: edge.id,
@@ -924,12 +950,15 @@ function toReactFlowElements(
             targetGeometry,
             targetNodeId: edge.targetId,
             visible: revealed.has(edge.targetId),
-            drawing: drawingTargetNodeId === edge.targetId,
+            drawing:
+              drawingTargetNodeId === edge.targetId &&
+              (currentAttackEdgeId === null || currentAttackPath),
             drawn: drawnEdgeTargetNodeIds.has(edge.targetId),
             attackPath:
               edge.kind === 'identical-reuse' ||
               edge.kind === 'similar-pattern' ||
               edge.kind === 'blocked-path',
+            currentAttackPath,
             dimmed: dimInactiveNodes && (choosingAccount || edge.sourceId !== activeNodeId),
             statusCascadeTiming: statusCascadeTimingsByTargetId.get(edge.targetId) ?? null,
             statusCascadeTone: statusCascadeTonesByTargetId.get(edge.targetId) ?? null,
@@ -957,6 +986,7 @@ export interface ReactFlowNetworkProps {
   readonly showStatusMarkers?: boolean;
   readonly renderNodeOverlay?: (node: SceneNode) => ReactNode;
   readonly dimInactiveNodes?: boolean;
+  readonly currentAttackEdgeId?: string | null;
 }
 
 export function ReactFlowNetwork({
@@ -974,6 +1004,7 @@ export function ReactFlowNetwork({
   showStatusMarkers = true,
   renderNodeOverlay,
   dimInactiveNodes = true,
+  currentAttackEdgeId = null,
 }: ReactFlowNetworkProps) {
   const containerRef = useRef<HTMLElement | null>(null);
   const [canvas, setCanvas] = useState<NetworkCanvasSize>({ width: 0, height: 0 });
@@ -999,6 +1030,7 @@ export function ReactFlowNetwork({
         showStatusMarkers,
         renderNodeOverlay,
         dimInactiveNodes,
+        currentAttackEdgeId,
         adapter.completeStatusCascade,
       ),
     [
@@ -1016,6 +1048,7 @@ export function ReactFlowNetwork({
       showStatusMarkers,
       renderNodeOverlay,
       dimInactiveNodes,
+      currentAttackEdgeId,
       visualVariant,
     ],
   );
