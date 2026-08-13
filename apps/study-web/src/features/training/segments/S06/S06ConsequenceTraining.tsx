@@ -1,4 +1,4 @@
-import type { S06AccountId, S07RecommendationProjectionInput } from '@passwo/contracts';
+import type { S06AccountId } from '@passwo/contracts';
 import {
   s00Content,
   s06ConsequenceContent,
@@ -46,7 +46,6 @@ export interface S06ConsequenceTrainingProps {
   readonly externalTimingError?: string | null;
   readonly onRetryTiming?: () => void;
   readonly onComplete?: () => void;
-  readonly onEvaluationInputReady?: (input: S07RecommendationProjectionInput) => void;
   readonly onSummaryNetworkReady?: (network: NetworkSceneSnapshot) => void;
 }
 
@@ -73,7 +72,6 @@ export function S06ConsequenceTraining({
   externalTimingError = null,
   onRetryTiming,
   onComplete,
-  onEvaluationInputReady,
   onSummaryNetworkReady,
 }: S06ConsequenceTrainingProps) {
   const sceneRef = useRef<HTMLElement | null>(null);
@@ -93,7 +91,6 @@ export function S06ConsequenceTraining({
         ? cachedPlan.plan
         : createScenePlan(fixtureId, runtimeAccounts);
     planCacheRef.current = { sourceIdentity, plan };
-    onEvaluationInputReady?.(plan.resolvedResult);
     const summaryNetwork = plan.steps.at(-1)?.network;
     if (summaryNetwork !== undefined) onSummaryNetworkReady?.(summaryNetwork);
     const allNodeIds = [
@@ -150,7 +147,7 @@ export function S06ConsequenceTraining({
       unsubscribe();
       void controller?.dispose();
     };
-  }, [fixtureId, onComplete, onEvaluationInputReady, onSummaryNetworkReady, runtimeAccounts]);
+  }, [fixtureId, onComplete, onSummaryNetworkReady, runtimeAccounts]);
 
   if (runtime === null || snapshot === null) return null;
 

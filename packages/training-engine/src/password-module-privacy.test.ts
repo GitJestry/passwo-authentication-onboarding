@@ -130,6 +130,8 @@ describe('password module privacy boundary', () => {
     controller.completeS06();
     await flushMicrotasks();
     await flushMicrotasks();
+    controller.completeSectionTransition();
+    await flushMicrotasks();
     expect(controller.getSnapshot().matches({ s07: 'active' })).toBe(true);
     studyActor.send({
       type: 'ACCEPT_CONSENT',

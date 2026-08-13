@@ -81,7 +81,7 @@ export interface S00SegmentContent {
   };
 }
 
-export const S00_CONTENT_VERSION = '1.22.2';
+export const S00_CONTENT_VERSION = '1.23.0';
 
 export const s00Content: S00SegmentContent = {
   version: S00_CONTENT_VERSION,
@@ -105,7 +105,7 @@ export const s00Content: S00SegmentContent = {
       { id: 'account-setup', label: 'Konten einrichten' },
       { id: 'password-strength', label: 'Passwortstärke verstehen' },
       { id: 'unique-passwords', label: 'Passwörter einzigartig halten' },
-      { id: 'change-passwords', label: 'Passwörter ändern' },
+      { id: 'change-passwords', label: 'Passphrase erstellen' },
     ],
   },
   source: {
@@ -113,7 +113,7 @@ export const s00Content: S00SegmentContent = {
     internalPage: 2,
     uxReference: 'Vom Nutzer bereitgestellte UX-Konzeptboards, 2026-07-31',
     copyReference:
-      'docs/design/S00-S05-COPY-AUDIT.md#copy-delta-s00-und-s05-direktes-framing-11-august-2026',
+      'docs/design/S06-S07-COPY-AUDIT.md#copy--und-ablaufdelta-s07-passphrasen-suche-13-august-2026',
   },
   segment: {
     id: 'S00',

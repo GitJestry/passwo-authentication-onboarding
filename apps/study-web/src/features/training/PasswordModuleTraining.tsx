@@ -36,10 +36,7 @@ import {
   type S06ConsequenceSource,
   type S06TimingState,
 } from './segments/S06/S06ConsequenceTraining.js';
-import {
-  S07EvaluationTraining,
-  type S07TimingState,
-} from './segments/S07/S07EvaluationTraining.js';
+import { S07PassphraseSearchTraining } from './segments/S07/S07PassphraseSearchTraining.js';
 import { S08NetworkRewindStage } from './segments/S08/S08NetworkRewindStage.js';
 
 export interface PasswordModuleTrainingProps {
@@ -141,17 +138,6 @@ export function PasswordModuleTraining({
     };
   }, [campusIdentity.assessmentTerms, passwordValues, retrievalResults]);
   const completeS06 = useCallback(() => controllerRef.current?.completeS06(), []);
-  const storeS06EvaluationInput = useCallback(
-    (input: Parameters<PasswordModuleController['setS06EvaluationInput']>[0]) =>
-      controllerRef.current?.setS06EvaluationInput(input),
-    [],
-  );
-  const storeS07Recommendations = useCallback(
-    (projection: Parameters<PasswordModuleController['setS07Recommendations']>[0]) =>
-      controllerRef.current?.setS07Recommendations(projection),
-    [],
-  );
-  const completeS07 = useCallback(() => controllerRef.current?.completeS07(), []);
 
   useEffect(() => {
     const controller = new PasswordModuleController({
@@ -190,7 +176,11 @@ export function PasswordModuleTraining({
     return (
       <SectionTransition
         sectionLabel={s00Content.sectionTransition.label}
-        title={s00Content.sectionTransition.title}
+        title={
+          transitionPart === 4
+            ? (s00Content.sectionTransition.parts[3]?.label ?? s00Content.sectionTransition.title)
+            : s00Content.sectionTransition.title
+        }
         currentSection={1}
         totalSections={3}
         parts={s00Content.sectionTransition.parts}
@@ -459,7 +449,6 @@ export function PasswordModuleTraining({
         timingErrorCode={snapshot.context.timingErrorCode}
         externalTimingError={externalTimingError}
         onComplete={completeS06}
-        onEvaluationInputReady={storeS06EvaluationInput}
         onSummaryNetworkReady={setS06SummaryNetwork}
         onRetryTiming={() => {
           if (externalTimingError !== null) onRetryExternalTiming?.();
@@ -497,34 +486,10 @@ export function PasswordModuleTraining({
         </section>
       );
     }
-    const input = controller.getS06EvaluationInput();
-    if (input === null) {
-      return (
-        <section className={styles.loading} role="alert">
-          <p>S07 kann wegen fehlender lokaler S06-Befunde nicht gestartet werden.</p>
-          <p>Fehlercode: s07-runtime-data-incomplete</p>
-        </section>
-      );
-    }
-    const timingState: S07TimingState = snapshot.matches({ s07: 'writingEnd' })
-      ? 'writingEnd'
-      : snapshot.matches({ s07: 'endWriteFailed' })
-        ? 'endWriteFailed'
-        : 'active';
     return (
-      <S07EvaluationTraining
-        input={input}
-        network={s06SummaryNetwork}
+      <S07PassphraseSearchTraining
+        displayName={snapshot.context.displayName ?? ''}
         platform={platform}
-        timingState={timingState}
-        timingErrorCode={snapshot.context.timingErrorCode}
-        externalTimingError={externalTimingError}
-        onProjectionReady={storeS07Recommendations}
-        onComplete={completeS07}
-        onRetryTiming={() => {
-          if (externalTimingError !== null) onRetryExternalTiming?.();
-          else controller.retryTiming();
-        }}
       />
     );
   }

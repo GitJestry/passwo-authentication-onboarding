@@ -245,12 +245,11 @@ describe('research-safe contracts', () => {
     expect(designLabScenarioForPath('/design-lab/s06-unique')).toBeNull();
   });
 
-  it('exposes the five deterministic S07 Auswertung routes', () => {
-    expect(designLabScenarioForPath('/design-lab/s07-directly-reached')).toBe(
-      's07-directly-reached',
+  it('exposes the S07 passphrase-search route', () => {
+    expect(designLabScenarioForPath('/design-lab/s07-passphrase-search')).toBe(
+      's07-passphrase-search',
     );
-    expect(designLabScenarioForPath('/design-lab/s07-no-change')).toBe('s07-no-change');
-    expect(designLabScenarioForPath('/design-lab/s07-score')).toBeNull();
+    expect(designLabScenarioForPath('/design-lab/s07-directly-reached')).toBeNull();
   });
 
   it('keeps the seven S07 recommendation IDs stable and score-free', () => {

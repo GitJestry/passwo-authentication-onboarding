@@ -1,8 +1,4 @@
 import { describe, expect, it } from 'vitest';
-import type {
-  S07RecommendationProjection,
-  S07RecommendationProjectionInput,
-} from '@passwo/contracts';
 import type { SegmentTimingEvent } from './mission-controller.js';
 import { PasswordModuleController } from './password-module-controller.js';
 
@@ -33,65 +29,8 @@ function reachAwaitingIncidentOpen(controller: PasswordModuleController): void {
   controller.completeS03TimeLapse();
 }
 
-const evaluationInput: S07RecommendationProjectionInput = {
-  incidentSource: 'campusgram',
-  accounts: (['master-campus', 'campus-email', 'campusgram'] as const).map(
-    (accountId) =>
-      ({
-        accountId,
-        disposition: {
-          kind: 'no-whole-password-recognized',
-          lengthOrientation: 'at-least-15',
-          analysisVersion: 'passwo-bounded-whole-recognition-v10',
-          explanationId: 's05.disposition.no-whole-password-recognized',
-        },
-        retrievalStatus: 'retrievable',
-      }) as const,
-  ),
-  paths: (
-    [
-      ['campusgram', 'master-campus'],
-      ['campusgram', 'campus-email'],
-      ['master-campus', 'campus-email'],
-    ] as const
-  ).map(([sourceAccountId, targetAccountId]) => ({
-    sourceAccountId,
-    targetAccountId,
-    mode: 'hypothetical',
-    relationKind: 'no-derived-path-recognized',
-    targetReached: false,
-  })),
-  affectedAccountIds: [],
-};
-
-const recommendationProjection: S07RecommendationProjection = {
-  kind: 's07-recommendation-projection',
-  accounts: (['master-campus', 'campus-email', 'campusgram'] as const).map(
-    (accountId) =>
-      ({
-        accountId,
-        disposition: {
-          kind: 'no-whole-password-recognized',
-          lengthOrientation: 'at-least-15',
-          analysisVersion: 'passwo-bounded-whole-recognition-v10',
-          explanationId: 's05.disposition.no-whole-password-recognized',
-        },
-        connections: [],
-        incidentStatus: accountId === 'campusgram' ? 'source-of-incident' : 'not-reached',
-        retrievability: 'remembered',
-        recommendationId: 'no-change-practice-method',
-      }) as const,
-  ),
-  summary: {
-    noWholePasswordRecognitionCount: 3,
-    noPasswordConnectionCount: 3,
-    rememberedCount: 3,
-    problemClasses: [],
-  },
-};
-
 describe('PasswordModuleController', () => {
-  it('records S01–S07 boundaries and retains recommendations in local runtime only', async () => {
+  it('records S01–S07 boundaries around the transition into S07', async () => {
     const timingEvents: SegmentTimingEvent[] = [];
     const controller = new PasswordModuleController({
       accountIds: ['master-campus', 'campus-email', 'campusgram'],
@@ -129,15 +68,14 @@ describe('PasswordModuleController', () => {
     await flushMicrotasks();
     controller.completeSectionTransition();
     await flushMicrotasks();
-    controller.setS06EvaluationInput(evaluationInput);
     controller.completeS06();
     controller.completeS06();
     await flushMicrotasks();
-    await flushMicrotasks();
-    controller.setS07Recommendations(recommendationProjection);
-    controller.completeS07();
     await flushMicrotasks();
     controller.completeSectionTransition();
+    await flushMicrotasks();
+    controller.completeS07();
+    await flushMicrotasks();
 
     expect(timingEvents).toEqual([
       { eventType: 'segment-start', segmentId: 'S01', sectionId: 'passwords' },
@@ -156,12 +94,9 @@ describe('PasswordModuleController', () => {
       { eventType: 'segment-end', segmentId: 'S07', sectionId: 'passwords' },
     ]);
     expect(controller.getSnapshot().matches('awaiting-s08')).toBe(true);
-    expect(controller.getS07Recommendations()).toBe(recommendationProjection);
-    expect(controller.getS06EvaluationInput()).toBeNull();
     expect(controller.getSnapshot().context).not.toHaveProperty('s05Result');
     expect(controller.getSnapshot().context).not.toHaveProperty('s07Recommendations');
     controller.dispose();
-    expect(controller.getS07Recommendations()).toBeNull();
   });
 
   it('retries only open boundaries without rewriting earlier confirmed events', async () => {
@@ -229,14 +164,14 @@ describe('PasswordModuleController', () => {
     controller.retryTiming();
     await flushMicrotasks();
     await flushMicrotasks();
+    controller.completeSectionTransition();
+    await flushMicrotasks();
     controller.retryTiming();
     await flushMicrotasks();
-    controller.setS07Recommendations(recommendationProjection);
     controller.completeS07();
     await flushMicrotasks();
     controller.retryTiming();
     await flushMicrotasks();
-    controller.completeSectionTransition();
 
     expect(
       timingEvents.filter(

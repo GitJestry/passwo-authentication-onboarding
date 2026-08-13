@@ -100,7 +100,7 @@ export const passwordSegmentTimingPlan = {
   },
   S06: {
     scope: { segmentId: 'S06', sectionId: 'passwords' },
-    nextSegmentId: 'S07',
+    nextSegmentId: null,
     boundaries: {
       'segment-start': {
         recordedEvent: { type: 'S06_START_RECORDED' },

@@ -7,12 +7,12 @@ const canonicalAccountIds = ['master-campus', 'campus-email', 'campusgram'] as c
 
 describe('S00 to S02 training-content traceability', () => {
   it('keeps S00 linked to its named source page and canonical accounts', () => {
-    expect(S00_CONTENT_VERSION).toBe('1.22.2');
+    expect(S00_CONTENT_VERSION).toBe('1.23.0');
     expect(s00Content.source).toMatchObject({
       document: 'research/private/training-script.pdf',
       internalPage: 2,
       copyReference:
-        'docs/design/S00-S05-COPY-AUDIT.md#copy-delta-s00-explorativer-safety-einstieg-12-august-2026',
+        'docs/design/S06-S07-COPY-AUDIT.md#copy--und-ablaufdelta-s07-passphrasen-suche-13-august-2026',
     });
     expect(s00Content.segment.id).toBe('S00');
     expect(s00Content.sectionTransition).toMatchObject({
@@ -23,7 +23,7 @@ describe('S00 to S02 training-content traceability', () => {
         { id: 'account-setup', label: 'Konten einrichten' },
         { id: 'password-strength', label: 'Passwortstärke verstehen' },
         { id: 'unique-passwords', label: 'Passwörter einzigartig halten' },
-        { id: 'change-passwords', label: 'Passwörter ändern' },
+        { id: 'change-passwords', label: 'Passphrase erstellen' },
       ],
     });
     expect(s00Content.browser.tabs.map(({ id }) => id)).toEqual(canonicalAccountIds);

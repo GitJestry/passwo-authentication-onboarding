@@ -8,7 +8,6 @@ import {
   getS05DesignLabFixture,
   getS05DesignLabFixtureByRouteId,
   getS06ConsequenceFixtureByRouteId,
-  getS06PreparedS07EvaluationFixtureByRouteId,
   type S01AccountId,
   s00Content,
   s01AccountIds,
@@ -19,7 +18,6 @@ import {
   PasswordModuleController,
   type PasswordModuleSnapshot,
 } from '@passwo/training-engine';
-import type { NetworkSceneSnapshot } from '@passwo/visualization';
 import {
   ArtifactViewport,
   BrowserShell,
@@ -39,10 +37,9 @@ import {
   S06ConsequenceTraining,
   type S06ConsequenceSource,
 } from '../features/training/segments/S06/S06ConsequenceTraining.js';
-import { S07EvaluationTraining } from '../features/training/segments/S07/S07EvaluationTraining.js';
+import { S07PassphraseSearchTraining } from '../features/training/segments/S07/S07PassphraseSearchTraining.js';
 import styles from './DesignLab.module.css';
 import { S05DesignLabTraining } from './S05DesignLabTraining.js';
-import { S07DesignLabTraining } from './S07DesignLabTraining.js';
 
 interface DesignLabScenario {
   readonly label: string;
@@ -355,33 +352,10 @@ const scenarios: Record<DesignLabScenarioId, DesignLabScenario> = {
     dimmed: false,
     showPassWoOverlay: false,
   },
-  's07-directly-reached': {
-    label: 'S07 direkt erreicht',
-    description: 'Auswertung mit einem in der tatsächlichen Simulation erreichten Konto.',
-    dimmed: false,
-    showPassWoOverlay: false,
-  },
-  's07-exact-reuse': {
-    label: 'S07 exakte Wiederverwendung',
-    description: 'Auswertung mit exakt wiederverwendeten fiktiven Passwörtern.',
-    dimmed: false,
-    showPassWoOverlay: false,
-  },
-  's07-derived-variant': {
-    label: 'S07 abgeleitete Variante',
-    description: 'Auswertung mit einem konkreten abgeleiteten Kandidatenweg.',
-    dimmed: false,
-    showPassWoOverlay: false,
-  },
-  's07-retrievability-only': {
-    label: 'S07 nur Abrufbarkeit',
-    description: 'Auswertung mit ausschließlich einem Abrufbarkeitsproblem.',
-    dimmed: false,
-    showPassWoOverlay: false,
-  },
-  's07-no-change': {
-    label: 'S07 kein Änderungsbedarf',
-    description: 'Auswertung ohne erkannte Problemklasse in der begrenzten Übung.',
+  's07-passphrase-search': {
+    label: 'S07 Passphrase erstellen',
+    description:
+      'Eingeloggte Campus-Websites mit dem zusätzlichen leeren Such-Tab „Passphrase generieren“.',
     dimmed: false,
     showPassWoOverlay: false,
   },
@@ -423,11 +397,7 @@ const scenarioGroups = [
       's06-incident-not-found',
       's06-incident-found-blocked',
       's06-mixed-actual-hypothetical',
-      's07-directly-reached',
-      's07-exact-reuse',
-      's07-derived-variant',
-      's07-retrievability-only',
-      's07-no-change',
+      's07-passphrase-search',
     ],
   },
 ] as const satisfies readonly DesignLabScenarioGroup[];
@@ -658,18 +628,12 @@ function PasswordModuleSegmentPreview({
   const [controller, setController] = useState<PasswordModuleController | null>(null);
   const [snapshot, setSnapshot] = useState<PasswordModuleSnapshot | null>(null);
   const [preparationError, setPreparationError] = useState<string | null>(null);
-  const [s06SummaryNetwork, setS06SummaryNetwork] = useState<NetworkSceneSnapshot | null>(null);
   const continuesThroughS06 =
     segment === 's05-s06-transition' ||
     segment === 's05-application-found' ||
     segment === 's05-application-protected';
   const completeS05 = useCallback(() => controller?.completeS05(), [controller]);
   const completeS06 = useCallback(() => controller?.completeS06(), [controller]);
-  const storeS06EvaluationInput = useCallback(
-    (input: Parameters<PasswordModuleController['setS06EvaluationInput']>[0]) =>
-      controller?.setS06EvaluationInput(input),
-    [controller],
-  );
   const s06Source = useMemo(
     () => (snapshot === null ? null : s06SourceForPreview(snapshot)),
     [snapshot],
@@ -887,17 +851,25 @@ function PasswordModuleSegmentPreview({
       <S06ConsequenceTraining
         source={s06Source}
         onComplete={completeS06}
-        onEvaluationInputReady={storeS06EvaluationInput}
-        onSummaryNetworkReady={setS06SummaryNetwork}
+      />
+    );
+  }
+  if (snapshot.matches('changeTransition')) {
+    return (
+      <SectionTransition
+        sectionLabel={s00Content.sectionTransition.label}
+        title={s00Content.sectionTransition.parts[3]?.label ?? s00Content.sectionTransition.title}
+        currentSection={1}
+        totalSections={3}
+        parts={s00Content.sectionTransition.parts}
+        currentPart={4}
+        holdDurationMs={s00Content.sectionTransition.holdDurationMs}
+        onComplete={() => controller.completeSectionTransition()}
       />
     );
   }
   if (segment === 's05-s06-transition' && snapshot.matches({ s07: 'active' })) {
-    const input = controller.getS06EvaluationInput();
-    if (input === null) {
-      return <p role="alert">S07-QA-Daten sind unvollständig.</p>;
-    }
-    return <S07EvaluationTraining input={input} network={s06SummaryNetwork} />;
+    return <S07PassphraseSearchTraining displayName={snapshot.context.displayName ?? ''} />;
   }
   return <p>QA-Abschnitt wird vorbereitet …</p>;
 }
@@ -1012,13 +984,15 @@ export function DesignLab({ scenarioId }: { readonly scenarioId: DesignLabScenar
     );
   }
 
-  const s07Fixture = getS06PreparedS07EvaluationFixtureByRouteId(scenarioId);
-  if (s07Fixture !== undefined) {
+  if (scenarioId === 's07-passphrase-search') {
     return (
       <main className={styles.labPage}>
         <DesignLabIntroduction scenarioId={scenarioId} scenario={scenario} />
         <ArtifactPreview>
-          <S07DesignLabTraining routeId={s07Fixture.routeId} />
+          <S07PassphraseSearchTraining
+            displayName="Vorschau"
+            platform={readDesktopPlatform()}
+          />
         </ArtifactPreview>
       </main>
     );

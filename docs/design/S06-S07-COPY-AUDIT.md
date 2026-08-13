@@ -1,5 +1,30 @@
 # S06--S07 Copy Audit
 
+## Copy- und Ablaufdelta S07 Passphrasen-Suche, 13. August 2026
+
+Quelle ist der ausdrückliche Nutzerauftrag vom 13. August 2026. Die bisherige S07-Auswertung
+entfällt. Nach dem bestätigten S06-Ende erscheint die vorhandene Fortschrittskarte mit dem
+vierten aktiven Teil `Passphrase erstellen`; erst nach dieser Karte wird der S07-Start erfasst.
+S07 zeigt danach wieder die drei bekannten, bereits angemeldeten Campus-Websites. Rechts neben
+`Campusgram` liegt ein zusätzlicher bedienbarer Tab `Passphrase generieren`. Seine Seite bleibt
+in diesem Ausbauschritt absichtlich leer. Die früheren fünf S07-Auswertungs-Fixtures werden durch
+den direkten QA-Einstieg `s07-passphrase-search` ersetzt. Persistenz, Export und lokale
+Trainingswerte bleiben unverändert.
+
+`S00_CONTENT_VERSION` wird von `1.22.2` auf `1.23.0`,
+`S06_CONSEQUENCE_CONTENT_VERSION` von `2.9.0` auf `2.10.0` und der neue
+`S07_PASSPHRASE_SEARCH_CONTENT_VERSION` auf `2.0.0` gesetzt.
+
+| Segment und Text-ID | Aktueller Text | Geplanter Text | Primäre Rolle | Interaktionsziel | Grund und Bedeutungsänderung | Hervorhebung |
+|---|---|---|---|---|---|---|
+| `sectionTransition.change-passwords` | `Passwörter ändern` | `Passphrase erstellen` | Orientierung | kein | benennt den vom Nutzer neu festgelegten Einstieg in S07; ausdrücklich freigegeben | aktiver Fortschrittspunkt |
+| `S06.narrations.s06.transition.s07.heading` | `Was folgt nach einem Datenleck?` | `Passphrase erstellen` | Navigation | `Weiter` zur Fortschrittskarte | stimmt die Abschlussankündigung auf den neuen direkten S07-Einstieg ab; begrenzt | keine |
+| `S06.narrations.s06.transition.s07.body` | Ankündigung einer Auswertung des Änderungsbedarfs und anschließender Passphrasenhilfe | `Als Nächstes erstellen wir eine neue Passphrase.` | Navigation | `Weiter` zur Fortschrittskarte | entfernt den Verweis auf die gelöschte Auswertung; begrenzt | keine |
+| `S07.browser.searchTab.label` | nicht vorhanden | `Passphrase generieren` | Navigation | sichtbarer Browser-Tab | vom Nutzer benannter zusätzlicher Such-Tab; ausdrücklich freigegeben | keine |
+
+Die neue S07 ergänzt keinen PassWo-Sprechschritt und macht noch keine Aussage zur Erzeugung
+oder Qualität einer Passphrase. Das sichtbare Interaktionsziel ist allein der neue Browser-Tab.
+
 ## Copy- und Ablaufdelta S06 Master Campus, Campus E-Mail und S07-Übergang, 13. August 2026
 
 Quelle ist der ausdrückliche Nutzerauftrag vom 13. August 2026. Nach der bereits implementierten

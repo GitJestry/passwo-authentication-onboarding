@@ -336,7 +336,7 @@ export const passwordModuleMachine = setup({
       on: { SECTION_TRANSITION_COMPLETED: { target: 's06.writingStart' } },
     },
     changeTransition: {
-      on: { SECTION_TRANSITION_COMPLETED: { target: 'awaiting-s08' } },
+      on: { SECTION_TRANSITION_COMPLETED: { target: 's07.writingStart' } },
     },
     s00: {
       on: { S00_COMPLETED: { target: 's01.starting', actions: 'clearTimingError' } },
@@ -625,7 +625,7 @@ export const passwordModuleMachine = setup({
         writingEnd: {
           on: {
             S06_END_RECORDED: {
-              target: '#passwordModule.s07.writingStart',
+              target: '#passwordModule.changeTransition',
               actions: 'clearTimingError',
             },
             S06_END_FAILED: { target: 'endWriteFailed', actions: 'storeTimingError' },
@@ -656,7 +656,7 @@ export const passwordModuleMachine = setup({
         writingEnd: {
           on: {
             S07_END_RECORDED: {
-              target: '#passwordModule.changeTransition',
+              target: '#passwordModule.awaiting-s08',
               actions: 'clearTimingError',
             },
             S07_END_FAILED: { target: 'endWriteFailed', actions: 'storeTimingError' },

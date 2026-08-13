@@ -183,14 +183,14 @@ describe('passwordModuleMachine', () => {
     actor.send({ type: 'S06_COMPLETED' });
     expect(actor.getSnapshot().matches({ s06: 'writingEnd' })).toBe(true);
     actor.send({ type: 'S06_END_RECORDED' });
+    expect(actor.getSnapshot().matches('changeTransition')).toBe(true);
+    actor.send({ type: 'SECTION_TRANSITION_COMPLETED' });
     expect(actor.getSnapshot().matches({ s07: 'writingStart' })).toBe(true);
     actor.send({ type: 'S07_START_RECORDED' });
     expect(actor.getSnapshot().matches({ s07: 'active' })).toBe(true);
     actor.send({ type: 'S07_COMPLETED' });
     expect(actor.getSnapshot().matches({ s07: 'writingEnd' })).toBe(true);
     actor.send({ type: 'S07_END_RECORDED' });
-    expect(actor.getSnapshot().matches('changeTransition')).toBe(true);
-    actor.send({ type: 'SECTION_TRANSITION_COMPLETED' });
     expect(actor.getSnapshot().matches('awaiting-s08')).toBe(true);
   });
 
@@ -235,6 +235,8 @@ describe('passwordModuleMachine', () => {
     expect(actor.getSnapshot().matches({ s06: 'endWriteFailed' })).toBe(true);
     actor.send({ type: 'RETRY_S06_END' });
     actor.send({ type: 'S06_END_RECORDED' });
+    expect(actor.getSnapshot().matches('changeTransition')).toBe(true);
+    actor.send({ type: 'SECTION_TRANSITION_COMPLETED' });
     actor.send({ type: 'S07_START_FAILED', errorCode: 's07-start-failed' });
     expect(actor.getSnapshot().matches({ s07: 'startWriteFailed' })).toBe(true);
     actor.send({ type: 'RETRY_S07_START' });
@@ -244,7 +246,6 @@ describe('passwordModuleMachine', () => {
     expect(actor.getSnapshot().matches({ s07: 'endWriteFailed' })).toBe(true);
     actor.send({ type: 'RETRY_S07_END' });
     actor.send({ type: 'S07_END_RECORDED' });
-    actor.send({ type: 'SECTION_TRANSITION_COMPLETED' });
 
     expect(actor.getSnapshot().matches('awaiting-s08')).toBe(true);
     expect(actor.getSnapshot().context).not.toHaveProperty('s05Result');
@@ -284,6 +285,8 @@ describe('passwordModuleMachine', () => {
     actor.send({ type: 'S06_COMPLETED' });
     actor.send({ type: 'S06_END_RECORDED' });
 
+    expect(actor.getSnapshot().matches('changeTransition')).toBe(true);
+    actor.send({ type: 'SECTION_TRANSITION_COMPLETED' });
     expect(actor.getSnapshot().matches({ s07: 'writingStart' })).toBe(true);
     expect(actor.getSnapshot().context.passwordValues).toEqual(values);
     expect(actor.getSnapshot().context).not.toHaveProperty('s05Result');

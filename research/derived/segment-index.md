@@ -11,7 +11,7 @@ Seitenangaben beziehen sich auf die im Trainingsdokument ausgewiesene interne Pa
 | S04 | Datenleck bei Campusgram | 12 | TF4 | Warnung im Browser-Tab, kurzer Übergang in die Angreiferperspektive |
 | S05 | Einzelstärke des Passworts | 12–35 | TF3, TF4, TF6 | Bestandteile, Aufbau, freies Ausprobieren, Zusammenführung |
 | S06 | Passwortvergleich und Ausbreitungswege | 36–44 | TF3, TF4 | identisches Passwort / konkret ableitbare Variante / kein ableitbarer Weg erkannt, tatsächliche und hypothetische Pfade |
-| S07 | Auswertung | 44–50 | TF1, TF4, TF6 | drei Kontokarten, priorisierte nächste Handlung |
+| S07 | Passphrase erstellen | Nutzerauftrag 2026-08-13 | TF3, TF5 | eingeloggte Campus-Websites, zusätzlicher Passphrasen-Such-Tab |
 | S08 | Passwörter überarbeiten | 50–53 | TF3, TF5, TF6 | sechs zufällige Wörter, adaptive Bearbeitung |
 | S09 | Neue Wirkung ansehen | 53–55 | TF4, TF5 | beschleunigte Konsequenzsimulation |
 | S10 | Zusammenfassung Passwort | 55–57 | TF6 | stark, einzigartig, abrufbar |
@@ -151,24 +151,16 @@ Seitenangaben beziehen sich auf die im Trainingsdokument ausgewiesene interne Pa
 
 ## Implementierte S07-Version
 
-- S07 verwendet die internen Seiten 44 bis 50 als Inhaltsquelle und den teilnehmerseitigen Begriff
-  „Auswertung“. Es führt weder eine neue Passwortanalyse noch eine neue Kandidatengenerierung oder
-  Angriffssimulation durch.
-- Die zentrale reine Recommendation-Projektion verdichtet die bereits in S06 vorhandenen lokalen
-  S03-Abrufbarkeitswerte, S05-Einzeldispositionen und S06-Paar-/Vorfallbefunde zu genau einem
-  priorisierten nächsten Schritt pro Konto.
-- Die drei Kontokarten werden ausschließlich im kleinen lokalen S07-Controller nacheinander
-  geöffnet. Erst danach erscheint die adaptive Gesamtauswertung; die globale Statechart kennt
-  keine Kartenunterzustände.
-- Der Timing-Handshake lautet S06 segment-end, S07 segment-start, S07 segment-end und endet im
-  stabilen Zustand `awaiting-s08`. Empfehlungen bleiben danach nur im flüchtigen lokalen
-  Laufzeitobjekt für S08 verfügbar.
-- `S07_EVALUATION_CONTENT_VERSION 1.2.0` benennt dieselbe Evidenz als vollständigen frühen
-  Kandidaten und hält sie in Problemtyp und Übersicht ausdrücklich von der 15-Zeichen-Orientierung
-  getrennt.
-- Fünf Design-Lab-Fixtures decken ein tatsächlich erreichtes Konto, exakte Wiederverwendung, eine
-  konkret abgeleitete Variante, ausschließlich ein Abrufbarkeitsproblem und keinen erkannten
-  Änderungsbedarf ab.
+- Der Nutzerauftrag vom 13. August 2026 ersetzt die bisherige Auswertung vollständig. Nach S06
+  erscheint zuerst die Fortschrittskarte `Passphrase erstellen`; danach beginnt S07.
+- S07 zeigt Master Campus, Campus E-Mail und Campusgram erneut als bereits angemeldete
+  Dashboard-Websites. Der Browser startet auf Campusgram.
+- Rechts neben Campusgram ist der bedienbare Tab `Passphrase generieren` geöffnet. Seine Seite
+  bleibt vorerst leer; es gibt noch keine Generator-, Such- oder Abschlusslogik.
+- Der direkte QA-Einstieg lautet `s07-passphrase-search`. Die bisherigen fünf
+  Auswertungs-Fixtures und ihre Renderer sind entfernt.
+- `S07_PASSPHRASE_SEARCH_CONTENT_VERSION 2.0.0` beschreibt nur diesen Browserzustand. Es werden
+  keine neuen Teilnehmer- oder Trainingswerte persistiert oder exportiert.
 
 ## Sections
 

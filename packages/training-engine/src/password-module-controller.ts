@@ -1,8 +1,4 @@
 import { createActor, type SnapshotFrom } from 'xstate';
-import type {
-  S07RecommendationProjection,
-  S07RecommendationProjectionInput,
-} from '@passwo/contracts';
 import type { SegmentTimingEvent, SegmentTimingPort } from './mission-controller.js';
 import { isPermittedFictionalPassword } from './fictional-password-input.js';
 import { passwordModuleMachine } from './password-module-machine.js';
@@ -33,8 +29,6 @@ export class PasswordModuleController {
   readonly #actor: ReturnType<typeof createActor<typeof passwordModuleMachine>>;
   readonly #timingPort: SegmentTimingPort | undefined;
   #failedBoundary: FailedBoundary | null = null;
-  #s06EvaluationInput: S07RecommendationProjectionInput | null = null;
-  #s07Recommendations: S07RecommendationProjection | null = null;
   #disposed = false;
 
   constructor({ accountIds, timingPort }: PasswordModuleControllerOptions) {
@@ -64,7 +58,9 @@ export class PasswordModuleController {
       ? 'S05'
       : snapshot.matches('uniquenessTransition')
         ? 'S06'
-        : null;
+        : snapshot.matches('changeTransition')
+          ? 'S07'
+          : null;
     if (
       !snapshot.matches('sectionTransition') &&
       !snapshot.matches('strengthTransition') &&
@@ -171,27 +167,8 @@ export class PasswordModuleController {
     void this.#writeSegmentBoundary('S06', 'segment-end');
   }
 
-  setS06EvaluationInput(input: S07RecommendationProjectionInput): void {
-    if (!this.#actor.getSnapshot().matches('s06')) return;
-    this.#s06EvaluationInput = input;
-  }
-
-  getS06EvaluationInput(): S07RecommendationProjectionInput | null {
-    return this.#s06EvaluationInput;
-  }
-
-  setS07Recommendations(projection: S07RecommendationProjection): void {
-    if (!this.#actor.getSnapshot().matches({ s07: 'active' })) return;
-    this.#s07Recommendations = projection;
-  }
-
-  getS07Recommendations(): S07RecommendationProjection | null {
-    return this.#s07Recommendations;
-  }
-
   completeS07(): void {
     if (!this.#actor.getSnapshot().matches({ s07: 'active' })) return;
-    if (this.#s07Recommendations === null) return;
     this.#actor.send({ type: 'S07_COMPLETED' });
     void this.#writeSegmentBoundary('S07', 'segment-end');
   }
@@ -238,8 +215,6 @@ export class PasswordModuleController {
     if (this.#disposed) return;
     this.#disposed = true;
     this.#failedBoundary = null;
-    this.#s06EvaluationInput = null;
-    this.#s07Recommendations = null;
     if (this.#actor.getSnapshot().status !== 'done') {
       this.#actor.send({ type: 'DISCARD' });
     }
@@ -262,9 +237,6 @@ export class PasswordModuleController {
       if (this.#disposed) return;
 
       this.#failedBoundary = null;
-      if (segmentId === 'S07' && eventType === 'segment-end') {
-        this.#s06EvaluationInput = null;
-      }
       this.#actor.send(boundary.recordedEvent);
       if (eventType === 'segment-end' && segment.nextSegmentId !== null) {
         await this.#writeSegmentBoundary(segment.nextSegmentId, 'segment-start');

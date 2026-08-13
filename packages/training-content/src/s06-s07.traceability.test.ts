@@ -1,16 +1,17 @@
 import { describe, expect, it } from 'vitest';
 import { accountContextTerms } from './account-context-terms.js';
 import { S06_CONSEQUENCE_CONTENT_VERSION, s06ConsequenceContent } from './s06.js';
-import { S07_EVALUATION_CONTENT_VERSION, s07EvaluationContent } from './s07.js';
+import {
+  S07_PASSPHRASE_SEARCH_CONTENT_VERSION,
+  s07PassphraseSearchContent,
+} from './s07.js';
 
-const recognitionCopyReference =
-  'docs/design/S06-S07-COPY-AUDIT.md#copy-delta-s06-s07-vollpasswort-treffer-statt-guess-schwelle-11-august-2026';
 const s06AttackFlowCopyReference =
-  'docs/design/S06-S07-COPY-AUDIT.md#copy--und-ablaufdelta-s06-master-campus-campus-e-mail-und-s07-übergang-13-august-2026';
+  'docs/design/S06-S07-COPY-AUDIT.md#copy--und-ablaufdelta-s07-passphrasen-suche-13-august-2026';
 
-describe('S06 and S07 whole-password recognition copy traceability', () => {
+describe('S06 transition and S07 passphrase-search copy traceability', () => {
   it('keeps S06 consequence wording aligned with bounded whole-password recognition', () => {
-    expect(S06_CONSEQUENCE_CONTENT_VERSION).toBe('2.9.0');
+    expect(S06_CONSEQUENCE_CONTENT_VERSION).toBe('2.10.0');
     expect(s06ConsequenceContent.source.copyReference).toBe(s06AttackFlowCopyReference);
     expect(s06ConsequenceContent.page.attackStart).toBe('Angriff starten');
     expect(s06ConsequenceContent.page.finish).toBe('Fertig');
@@ -35,9 +36,10 @@ describe('S06 and S07 whole-password recognition copy traceability', () => {
         body: 'Zwischen einigen Übungspasswörtern wurde Wiederverwendung oder eine abgeleitete Variante erkannt. Neue, voneinander unabhängige Passwörter würden die Ausbreitung eines bekannten Passworts stärker begrenzen.',
       },
     });
-    expect(s06ConsequenceContent.narrations['s06.transition.s07'].body).toMatch(
-      /neues, starkes und einzigartiges Passwort.*Passphrasen/u,
-    );
+    expect(s06ConsequenceContent.narrations['s06.transition.s07']).toEqual({
+      heading: 'Passphrase erstellen',
+      body: 'Als Nächstes erstellen wir eine neue Passphrase.',
+    });
     expect(s06ConsequenceContent.narrations).toMatchObject({
       's06.summary.actual-none': {
         body: 'Der Angriff blieb auf Campusgram begrenzt. Die beiden anderen Konten blieben in dieser Prüfung geschützt.',
@@ -98,20 +100,11 @@ describe('S06 and S07 whole-password recognition copy traceability', () => {
     );
   });
 
-  it('keeps S07 whole-password recognition and length-orientation findings separate', () => {
-    expect(S07_EVALUATION_CONTENT_VERSION).toBe('1.2.0');
-    expect(s07EvaluationContent.source.copyReference).toBe(recognitionCopyReference);
-    expect(s07EvaluationContent.page.overviewLabels.noWholePasswordRecognition).toBe(
-      'Kein vollständiger früher Kandidat erkannt',
+  it('keeps S07 linked to the passphrase-search browser state', () => {
+    expect(S07_PASSPHRASE_SEARCH_CONTENT_VERSION).toBe('2.0.0');
+    expect(s07PassphraseSearchContent.source.copyReference).toBe(
+      'docs/design/S06-S07-COPY-AUDIT.md#copy--und-ablaufdelta-s07-passphrasen-suche-13-august-2026',
     );
-    expect(s07EvaluationContent.problemStatements['local-whole-password-recognized']).toMatch(
-      /vollständiges Passwort/u,
-    );
-    expect(s07EvaluationContent.problemStatements['below-length-orientation']).toMatch(
-      /15-Zeichen-Orientierung/u,
-    );
-    expect(s07EvaluationContent.recommendationLabels['rebuild-below-length-orientation']).toMatch(
-      /mindestens 15 Zeichen/u,
-    );
+    expect(s07PassphraseSearchContent.browser.searchTab.label).toBe('Passphrase generieren');
   });
 });

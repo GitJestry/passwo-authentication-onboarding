@@ -437,7 +437,8 @@ export function S03RetrievalTraining({
             : 'Dieser Tab ist in der aktuellen Szene nicht freigegeben.',
       ...(campusgramWarningActive && tabAccount.id === 'campusgram'
         ? { status: 'danger' as const }
-        : !timeLapsePhaseActive &&
+        : !campusgramWarningActive &&
+            !timeLapsePhaseActive &&
             (snapshot.context.retrievalResults[tabAccount.id] === 'retrievable' ||
               snapshot.context.retrievalResults[tabAccount.id] === 'assisted')
           ? { status: 'complete' as const }

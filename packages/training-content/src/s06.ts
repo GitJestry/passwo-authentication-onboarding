@@ -1,6 +1,5 @@
 import type {
   S06AccountId,
-  S06ResolvedConsequenceResult,
   TrainingSectionId,
 } from '@passwo/contracts';
 import { accountContextTerms } from './account-context-terms.js';
@@ -59,7 +58,7 @@ export interface S06NarrationContent {
   readonly body: string;
 }
 
-export const S06_CONSEQUENCE_CONTENT_VERSION = '2.9.0';
+export const S06_CONSEQUENCE_CONTENT_VERSION = '2.10.0';
 
 export const s06ConsequenceContent = {
   version: S06_CONSEQUENCE_CONTENT_VERSION,
@@ -67,9 +66,9 @@ export const s06ConsequenceContent = {
     document: 'research/private/training-script.pdf',
     internalPages: [36, 37, 38, 39, 40, 41, 42, 43, 44] as const,
     revision:
-      'Userauftrag vom 2026-08-13 · vollständiger S06-Perspektivwechsel bis zur S07-Überleitung',
+      'Userauftrag vom 2026-08-13 · direkte Überleitung zur neuen S07-Passphrasen-Suche',
     copyReference:
-      'docs/design/S06-S07-COPY-AUDIT.md#copy--und-ablaufdelta-s06-master-campus-campus-e-mail-und-s07-übergang-13-august-2026',
+      'docs/design/S06-S07-COPY-AUDIT.md#copy--und-ablaufdelta-s07-passphrasen-suche-13-august-2026',
   },
   segment: {
     id: 'S06',
@@ -261,8 +260,8 @@ export const s06ConsequenceContent = {
       body: 'Bislang begann der Angriff bei Campusgram. Welches Konto zuerst bekannt wird, lässt sich aber nicht vorhersagen. Deshalb schauen wir uns die Konten jetzt noch einmal aus einer anderen Ausgangslage an.',
     },
     's06.transition.s07': {
-      heading: 'Was folgt nach einem Datenleck?',
-      body: 'Wenn ein Passwort durch ein Datenleck bekannt geworden sein könnte, sollte es unter anderem durch ein neues, starkes und einzigartiges Passwort ersetzt werden. Als Nächstes schauen wir, wo eine Änderung sinnvoll ist und wie Passphrasen dabei helfen können.',
+      heading: 'Passphrase erstellen',
+      body: 'Als Nächstes erstellen wir eine neue Passphrase.',
     },
   } as const satisfies Readonly<Record<S06NarrationId, S06NarrationContent>>,
   fixtures: [
@@ -324,287 +323,4 @@ export function getS06ConsequenceFixtureByRouteId(
   routeId: string,
 ): S06ConsequenceFixture | undefined {
   return s06ConsequenceContent.fixtures.find((fixture) => fixture.routeId === routeId);
-}
-
-export type S06PreparedS07EvaluationFixtureId =
-  | 'directly-reached'
-  | 'exact-reuse'
-  | 'derived-variant'
-  | 'retrievability-only'
-  | 'no-change';
-
-export interface S06PreparedS07EvaluationFixture {
-  readonly id: S06PreparedS07EvaluationFixtureId;
-  readonly routeId:
-    | 's07-directly-reached'
-    | 's07-exact-reuse'
-    | 's07-derived-variant'
-    | 's07-retrievability-only'
-    | 's07-no-change';
-  readonly resolvedResult: S06ResolvedConsequenceResult;
-}
-
-const noWholePasswordRecognitionDisposition = {
-  kind: 'no-whole-password-recognized',
-  lengthOrientation: 'at-least-15',
-  analysisVersion: 'passwo-bounded-whole-recognition-v10',
-  explanationId: 's05.disposition.no-whole-password-recognized',
-} as const;
-
-const commonPasswordWholeRecognitionDisposition = {
-  kind: 'whole-password-recognized',
-  ruleId: 'whole-password-recognized-value',
-  findingIds: ['fixture:common-password'],
-  lengthOrientation: 'below-15',
-  analysisVersion: 'passwo-bounded-whole-recognition-v10',
-  explanationId: 's05.disposition.whole-password-recognized-value',
-} as const;
-
-export const s06PreparedS07EvaluationFixtures = [
-  {
-    id: 'directly-reached',
-    routeId: 's07-directly-reached',
-    resolvedResult: {
-      incidentSource: 'campusgram',
-      accounts: [
-        {
-          accountId: 'master-campus',
-          disposition: commonPasswordWholeRecognitionDisposition,
-          retrievalStatus: 'retrievable',
-        },
-        {
-          accountId: 'campus-email',
-          disposition: noWholePasswordRecognitionDisposition,
-          retrievalStatus: 'retrievable',
-        },
-        {
-          accountId: 'campusgram',
-          disposition: commonPasswordWholeRecognitionDisposition,
-          retrievalStatus: 'retrievable',
-        },
-      ],
-      paths: [
-        {
-          sourceAccountId: 'campusgram',
-          targetAccountId: 'master-campus',
-          mode: 'actual',
-          relationKind: 'exact-match',
-          targetReached: true,
-        },
-        {
-          sourceAccountId: 'campusgram',
-          targetAccountId: 'campus-email',
-          mode: 'actual',
-          relationKind: 'no-derived-path-recognized',
-          targetReached: false,
-        },
-        {
-          sourceAccountId: 'master-campus',
-          targetAccountId: 'campus-email',
-          mode: 'actual',
-          relationKind: 'no-derived-path-recognized',
-          targetReached: false,
-        },
-      ],
-      affectedAccountIds: ['campusgram', 'master-campus'],
-    },
-  },
-  {
-    id: 'exact-reuse',
-    routeId: 's07-exact-reuse',
-    resolvedResult: {
-      incidentSource: 'campusgram',
-      accounts: [
-        {
-          accountId: 'master-campus',
-          disposition: noWholePasswordRecognitionDisposition,
-          retrievalStatus: 'retrievable',
-        },
-        {
-          accountId: 'campus-email',
-          disposition: noWholePasswordRecognitionDisposition,
-          retrievalStatus: 'retrievable',
-        },
-        {
-          accountId: 'campusgram',
-          disposition: noWholePasswordRecognitionDisposition,
-          retrievalStatus: 'retrievable',
-        },
-      ],
-      paths: [
-        {
-          sourceAccountId: 'campusgram',
-          targetAccountId: 'master-campus',
-          mode: 'hypothetical',
-          relationKind: 'exact-match',
-          targetReached: false,
-        },
-        {
-          sourceAccountId: 'campusgram',
-          targetAccountId: 'campus-email',
-          mode: 'hypothetical',
-          relationKind: 'no-derived-path-recognized',
-          targetReached: false,
-        },
-        {
-          sourceAccountId: 'master-campus',
-          targetAccountId: 'campus-email',
-          mode: 'hypothetical',
-          relationKind: 'no-derived-path-recognized',
-          targetReached: false,
-        },
-      ],
-      affectedAccountIds: [],
-    },
-  },
-  {
-    id: 'derived-variant',
-    routeId: 's07-derived-variant',
-    resolvedResult: {
-      incidentSource: 'campusgram',
-      accounts: [
-        {
-          accountId: 'master-campus',
-          disposition: noWholePasswordRecognitionDisposition,
-          retrievalStatus: 'retrievable',
-        },
-        {
-          accountId: 'campus-email',
-          disposition: noWholePasswordRecognitionDisposition,
-          retrievalStatus: 'retrievable',
-        },
-        {
-          accountId: 'campusgram',
-          disposition: noWholePasswordRecognitionDisposition,
-          retrievalStatus: 'retrievable',
-        },
-      ],
-      paths: [
-        {
-          sourceAccountId: 'campusgram',
-          targetAccountId: 'master-campus',
-          mode: 'hypothetical',
-          relationKind: 'no-derived-path-recognized',
-          targetReached: false,
-        },
-        {
-          sourceAccountId: 'campusgram',
-          targetAccountId: 'campus-email',
-          mode: 'hypothetical',
-          relationKind: 'derived-variant-match',
-          targetReached: false,
-        },
-        {
-          sourceAccountId: 'master-campus',
-          targetAccountId: 'campus-email',
-          mode: 'hypothetical',
-          relationKind: 'no-derived-path-recognized',
-          targetReached: false,
-        },
-      ],
-      affectedAccountIds: [],
-    },
-  },
-  {
-    id: 'retrievability-only',
-    routeId: 's07-retrievability-only',
-    resolvedResult: {
-      incidentSource: 'campusgram',
-      accounts: [
-        {
-          accountId: 'master-campus',
-          disposition: noWholePasswordRecognitionDisposition,
-          retrievalStatus: 'assisted',
-        },
-        {
-          accountId: 'campus-email',
-          disposition: noWholePasswordRecognitionDisposition,
-          retrievalStatus: 'retrievable',
-        },
-        {
-          accountId: 'campusgram',
-          disposition: noWholePasswordRecognitionDisposition,
-          retrievalStatus: 'retrievable',
-        },
-      ],
-      paths: [
-        {
-          sourceAccountId: 'campusgram',
-          targetAccountId: 'master-campus',
-          mode: 'hypothetical',
-          relationKind: 'no-derived-path-recognized',
-          targetReached: false,
-        },
-        {
-          sourceAccountId: 'campusgram',
-          targetAccountId: 'campus-email',
-          mode: 'hypothetical',
-          relationKind: 'no-derived-path-recognized',
-          targetReached: false,
-        },
-        {
-          sourceAccountId: 'master-campus',
-          targetAccountId: 'campus-email',
-          mode: 'hypothetical',
-          relationKind: 'no-derived-path-recognized',
-          targetReached: false,
-        },
-      ],
-      affectedAccountIds: [],
-    },
-  },
-  {
-    id: 'no-change',
-    routeId: 's07-no-change',
-    resolvedResult: {
-      incidentSource: 'campusgram',
-      accounts: [
-        {
-          accountId: 'master-campus',
-          disposition: noWholePasswordRecognitionDisposition,
-          retrievalStatus: 'retrievable',
-        },
-        {
-          accountId: 'campus-email',
-          disposition: noWholePasswordRecognitionDisposition,
-          retrievalStatus: 'retrievable',
-        },
-        {
-          accountId: 'campusgram',
-          disposition: noWholePasswordRecognitionDisposition,
-          retrievalStatus: 'retrievable',
-        },
-      ],
-      paths: [
-        {
-          sourceAccountId: 'campusgram',
-          targetAccountId: 'master-campus',
-          mode: 'hypothetical',
-          relationKind: 'no-derived-path-recognized',
-          targetReached: false,
-        },
-        {
-          sourceAccountId: 'campusgram',
-          targetAccountId: 'campus-email',
-          mode: 'hypothetical',
-          relationKind: 'no-derived-path-recognized',
-          targetReached: false,
-        },
-        {
-          sourceAccountId: 'master-campus',
-          targetAccountId: 'campus-email',
-          mode: 'hypothetical',
-          relationKind: 'no-derived-path-recognized',
-          targetReached: false,
-        },
-      ],
-      affectedAccountIds: [],
-    },
-  },
-] as const satisfies readonly S06PreparedS07EvaluationFixture[];
-
-export function getS06PreparedS07EvaluationFixtureByRouteId(
-  routeId: string,
-): S06PreparedS07EvaluationFixture | undefined {
-  return s06PreparedS07EvaluationFixtures.find((fixture) => fixture.routeId === routeId);
 }
