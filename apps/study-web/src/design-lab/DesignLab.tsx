@@ -355,7 +355,7 @@ const scenarios: Record<DesignLabScenarioId, DesignLabScenario> = {
   's07-passphrase-search': {
     label: 'S07 Passphrase erstellen',
     description:
-      'Eingeloggte Campus-Websites mit dem zusätzlichen leeren Such-Tab „Passphrase generieren“.',
+      'Eingeloggte Campus-Websites mit der fiktiven Search-Ergebnisseite für „Passphrase generieren“.',
     dimmed: false,
     showPassWoOverlay: false,
   },

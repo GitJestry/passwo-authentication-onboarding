@@ -1,5 +1,80 @@
 # S06--S07 Copy Audit
 
+## Copy- und Darstellungsdelta S07 Ergebnisabschluss, 13. August 2026
+
+Quelle ist der ausdrückliche Nutzerauftrag vom 13. August 2026. Die stark an eine bekannte
+Suchmaschine erinnernde Paginierung aus wiederholtem `Search`-Schriftzug, zehn Seitenzahlen und
+`Weiter ›` entfällt vollständig. An ihre Stelle tritt eine ruhige PassWo-nahe Orientierungskarte,
+die den vorhandenen Ergebnismix als `Werkzeuge`, `Anleitungen` und `Wissen` zusammenfasst. Die
+Karte ist bewusst kein Bedienelement und täuscht daher weder zusätzliche Ergebnisse noch eine
+nicht implementierte Navigation vor.
+
+`S07_PASSPHRASE_SEARCH_CONTENT_VERSION` wird von `2.2.0` auf `2.3.0` erhöht. Persistenz, Export,
+Timing und der erste verpflichtende Ergebnisklick bleiben unverändert.
+
+| Segment und Text-ID | Vorher | Nachher | Rolle | Interaktionsziel | Grund und Bedeutungsänderung | Hervorhebung |
+|---|---|---|---|---|---|---|
+| `S07.browser.searchPage.pagination` | `Search`, Seitenzahlen `1` bis `10`, `Weiter ›` | entfällt | Orientierung | kein | entfernt das letzte stark anbietercodierte Element und eine vorgetäuschte Navigation; begrenzt | keine |
+| `S07.browser.searchPage.resultCollectionSummary.title` | nicht vorhanden | `Mehr Wege zum Thema` | Orientierung | kein | gibt dem langen Seitenende einen eigenständigen, unterstützenden Abschluss; begrenzt | Teal-Iconfläche |
+| `S07.browser.searchPage.resultCollectionSummary.description` | nicht vorhanden | `Diese Auswahl verbindet praktische Werkzeuge, verständliche Anleitungen und Hintergrundwissen.` | Orientierung | kein | fasst nur den sichtbaren Ergebnismix zusammen, ohne Wirkungs- oder Sicherheitsbehauptung; begrenzt | keine |
+| `S07.browser.searchPage.resultCollectionSummary.topics` | nicht vorhanden | `Werkzeuge`, `Anleitungen`, `Wissen` | Orientierung | kein | übernimmt die bereits eingeführten Search-Kategorien als kompakte Abschlussstruktur; begrenzt | drei neutrale Teal-Flächen |
+
+## Darstellungsdelta S07 eigenständige Search-Gestaltung, 13. August 2026
+
+Quelle ist der ausdrückliche Nutzerauftrag vom 13. August 2026. Die verständliche Metapher aus
+Suchfeld, URL, Titel, Beschreibung und langer Ergebnisliste bleibt erhalten, wird aber von
+Google-spezifischen Darstellungssignalen gelöst. Die Kategorien heißen nun `Ergebnisse`,
+`Anleitungen`, `Wissen` und `Werkzeuge` und erscheinen als eigene Auswahlflächen. Ergebnisanzahl,
+Suchdauer und `Suchfilter` entfallen. Suchkopf, Kategorien und Trefferflächen übernehmen
+PassWo-nahe Teal-, Flächen-, Radius- und Abstandsentscheidungen. Der lindgrüne erste Pflichttreffer
+und die blauen Kontexttreffer bleiben in ihrer Handlungszuordnung unverändert.
+
+`S07_PASSPHRASE_SEARCH_CONTENT_VERSION` wird von `2.1.0` auf `2.2.0` erhöht. Persistenz, Export,
+Timing und Interaktionsablauf ändern sich nicht.
+
+| Segment und Text-ID | Vorher | Nachher | Rolle | Interaktionsziel | Grund und Bedeutungsänderung | Hervorhebung |
+|---|---|---|---|---|---|---|
+| `S07.browser.searchPage.navigation` | `Alle`, `Bilder`, `Videos`, `News`, `Bücher`, `Mehr` | `Ergebnisse`, `Anleitungen`, `Wissen`, `Werkzeuge` | Orientierung | kein | vermeidet eine anbieterspezifische Kategorienfolge; begrenzt | aktive Kategorie in Teal |
+| `S07.browser.searchPage.resultSummary` | fiktive Ergebnisanzahl und Suchdauer | entfällt | Orientierung | kein | entfernt ein unnötiges stark anbietercodiertes Signal; keine fachliche Bedeutungsänderung | keine |
+| `S07.browser.searchPage.searchTools` | `Suchfilter` | entfällt | Orientierung | kein | entfernt eine für die Szene funktionslose Kontrolle; keine fachliche Bedeutungsänderung | keine |
+| `S07.browser.searchPage.layout` | weiße, links ausgerichtete Suchseite mit weitgehend ungerahmten Treffern | Teal-geprägter Suchkopf, eigene Kategorienflächen und weich gerahmte Ergebnisflächen | Orientierung | erster Ergebnistitel | bindet die allgemeine Suchmetapher an die bestehende PassWo-Designsprache; begrenzt | erster Treffer weiterhin Lindgrün, übrige Titel Blau |
+
+## Copy- und Darstellungsdelta S07 Search-Ergebnisse, 13. August 2026
+
+Quelle ist der ausdrückliche Nutzerauftrag vom 13. August 2026. Die bisher leere Seite im Tab
+`Passphrase generieren` wird zu einer langen, realitätsnahen, aber vollständig fiktiven
+Suchergebnisseite ausgebaut. Die Suchmarke heißt ausdrücklich `Search`; alle Dienstnamen und
+Domains sind erfunden und verwenden reservierte `.example`-Adressen. Der erste Treffer ist als
+einziges verpflichtendes Interaktionsziel lindgrün hervorgehoben und beendet S07 beim Anklicken.
+Alle übrigen Treffer bleiben blau dargestellter Suchkontext. Zusätzliche Fragen, verwandte
+Suchanfragen, Seitennavigation und ein Footer erzeugen die für eine Ergebnisseite typische
+Scrolltiefe. Es werden keine externen Seiten geladen und keine Such- oder Eingabewerte gespeichert.
+
+`S07_PASSPHRASE_SEARCH_CONTENT_VERSION` wird von `2.0.0` auf `2.1.0` erhöht.
+
+| Segment und Text-ID | Aktueller Text | Geplanter Text | Primäre Rolle | Interaktionsziel | Grund und Bedeutungsänderung | Hervorhebung |
+|---|---|---|---|---|---|---|
+| `S07.browser.searchPage.brand` | leere Seite | `Search` | Orientierung | kein | vom Nutzer ausdrücklich benannte fiktive Suchmarke; ausdrücklich freigegeben | keine |
+| `S07.browser.searchPage.query` | leere Seite | `passphrase generieren` | Orientierung | kein | bildet die vom Tab benannte Suchabsicht realistisch ab; begrenzt | keine |
+| `S07.browser.searchPage.primaryResult` | nicht vorhanden | fiktive Passphrase-Werkstatt mit Generator-Kurzbeschreibung | Navigation | erster Ergebnistitel | macht das verlangte nächste Klickziel sichtbar und eindeutig; ausdrücklich freigegeben | gesamter Ergebnistitel in Lindgrün plus gleichfarbige Seitenlinie |
+| `S07.browser.searchPage.results.*` | nicht vorhanden | acht weitere fiktive Ergebnisse mit Kurzbeschreibungen | Orientierung | kein | erzeugt realistische Suchkontext- und Scrolltiefe ohne zusätzliche Pflichtaktionen; begrenzt | blaue Ergebnistitel als stabile Suchkonvention |
+| `S07.browser.searchPage.questions` | nicht vorhanden | vier typische Anschlussfragen | Orientierung | kein | gliedert die lange Ergebnisseite realistisch; begrenzt | keine |
+| `S07.browser.searchPage.relatedSearches` | nicht vorhanden | sechs verwandte Suchanfragen | Orientierung | kein | vervollständigt das typische untere Seitenende; begrenzt | keine |
+| `S07.browser.searchPage.footer` | nicht vorhanden | `Deutschland`, `Hilfe`, `Datenschutz`, `Nutzungsbedingungen` | Orientierung | kein | kennzeichnet das fiktive Seitenende ohne reale Anbieteridentität; begrenzt | keine |
+
+## Darstellungsdelta S07 Campusgram-Datenleckinhalt, 13. August 2026
+
+Quelle ist der ausdrückliche Nutzerauftrag vom 13. August 2026. Die drei Konto-Tabs in S07
+zeigen keinen Abschlussstatus und damit keine Häkchen mehr. Der Campusgram-Tab übernimmt den
+bereits vorhandenen Datenleck-Warnhinweis aus S04 unverändert. PassWo, Angreifer und Abdunklung
+werden nicht übernommen; die anderen Kontoansichten und die leere Passphrasen-Suche bleiben
+unverändert. Persistenz, Export, Ablauf und Teilnehmertexte ändern sich nicht.
+
+| Element | Vorher | Nachher | Rolle | Interaktionsziel | Grund und Bedeutungsänderung | Hervorhebung |
+|---|---|---|---|---|---|---|
+| `S07.browser.accountTabs.status` | `complete` mit sichtbarem Häkchen | kein Statussymbol | Orientierung | Konto-Tab | entfernt die nicht beauftragte Abschlussmarkierung | keine |
+| `S07.browser.campusgram.dashboardNotice` | normales Campusgram-Dashboard | unveränderter Datenleck-Warnhinweis aus S04 im Dashboard | Orientierung | kein | stellt den verlangten inhaltlichen Ausgangszustand ohne zusätzliche Figuren oder Abdunklung her | vorhandene Warnfarbgebung |
+
 ## Copy- und Ablaufdelta S07 Passphrasen-Suche, 13. August 2026
 
 Quelle ist der ausdrückliche Nutzerauftrag vom 13. August 2026. Die bisherige S07-Auswertung

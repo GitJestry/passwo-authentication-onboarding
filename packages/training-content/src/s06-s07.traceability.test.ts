@@ -101,10 +101,12 @@ describe('S06 transition and S07 passphrase-search copy traceability', () => {
   });
 
   it('keeps S07 linked to the passphrase-search browser state', () => {
-    expect(S07_PASSPHRASE_SEARCH_CONTENT_VERSION).toBe('2.0.0');
+    expect(S07_PASSPHRASE_SEARCH_CONTENT_VERSION).toBe('2.3.0');
     expect(s07PassphraseSearchContent.source.copyReference).toBe(
-      'docs/design/S06-S07-COPY-AUDIT.md#copy--und-ablaufdelta-s07-passphrasen-suche-13-august-2026',
+      'docs/design/S06-S07-COPY-AUDIT.md#copy--und-darstellungsdelta-s07-ergebnisabschluss-13-august-2026',
     );
     expect(s07PassphraseSearchContent.browser.searchTab.label).toBe('Passphrase generieren');
+    expect(s07PassphraseSearchContent.browser.searchPage.brand).toBe('Search');
+    expect(s07PassphraseSearchContent.browser.searchPage.results).toHaveLength(9);
   });
 });

@@ -490,6 +490,7 @@ export function PasswordModuleTraining({
       <S07PassphraseSearchTraining
         displayName={snapshot.context.displayName ?? ''}
         platform={platform}
+        onPrimaryResultSelect={() => controller.completeS07()}
       />
     );
   }

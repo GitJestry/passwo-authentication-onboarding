@@ -23,53 +23,6 @@
   animation: s04-analysis-darken 420ms var(--motion-ease-out) both;
 }
 
-.serviceNotice {
-  display: grid;
-  width: 100%;
-  grid-template-columns: auto minmax(0, 1fr);
-  align-items: center;
-  gap: var(--space-4);
-  margin-bottom: var(--space-4);
-  padding: var(--space-4) clamp(var(--space-4), 2cqi, var(--space-6));
-  border: var(--border-width-thin) solid color-mix(in srgb, var(--color-danger) 36%, transparent);
-  border-radius: var(--radius-large);
-  color: var(--color-ink-strong);
-  background: linear-gradient(
-    105deg,
-    color-mix(in srgb, var(--color-danger-soft) 94%, white),
-    color-mix(in srgb, var(--color-danger-soft) 76%, var(--color-surface-primary))
-  );
-  box-shadow: 0 0.7rem 1.8rem color-mix(in srgb, var(--color-danger) 12%, transparent);
-}
-
-.incidentIcon {
-  display: grid;
-  width: 3.9rem;
-  height: 3.9rem;
-  flex: none;
-  place-items: center;
-  color: var(--color-danger);
-}
-
-.incidentIcon svg {
-  width: 100%;
-  height: 100%;
-}
-
-.serviceNotice h2 {
-  margin: 0;
-  color: var(--color-danger);
-  font-size: clamp(1.05rem, 1.8cqi, 1.45rem);
-  line-height: var(--line-height-tight);
-}
-
-.serviceNotice p {
-  margin: var(--space-1) 0 0;
-  color: var(--color-ink-muted);
-  font-size: var(--font-size-small);
-  line-height: var(--line-height-body);
-}
-
 .incidentStage {
   position: relative;
   width: 100%;
@@ -166,15 +119,6 @@
 }
 
 @container artifact-stage (max-width: 760px) {
-  .serviceNotice {
-    grid-template-columns: auto minmax(0, 1fr);
-  }
-
-  .incidentIcon {
-    width: 2.8rem;
-    height: 2.8rem;
-  }
-
   .attacker {
     width: min(68cqi, 21rem);
     max-height: 48cqb;
