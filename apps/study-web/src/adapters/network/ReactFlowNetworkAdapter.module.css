@@ -38,6 +38,7 @@
 
 .nodeFrame[data-variant="account-map"] {
   --node-label-surface: transparent;
+  --account-map-node-rest-background: #edf0f2;
 }
 
 .nodeFrame[data-variant="account-map"][data-size="main"] {
@@ -192,31 +193,39 @@
 }
 
 .nodeFrame[data-variant="account-map"][data-size="detail"]:not([data-status="exposed"]):not([data-status="affected"]):not([data-status="protected"]) .nodeCircle {
-  background: #dfe5e9;
+  background: var(--account-map-node-rest-background);
 }
 
-.nodeFrame[data-variant="account-map"][data-scene-node^="master-campus"]:not([data-status="exposed"]):not([data-status="affected"]):not([data-status="protected"]):not([data-status="hypothetical"]) .nodeCircle {
-  background: #c9e3f3;
+.nodeFrame[data-variant="account-map"][data-size="detail"] {
+  --account-map-node-rest-background: #dfe5e9;
 }
 
-.nodeFrame[data-variant="account-map"][data-scene-node^="campus-email"]:not([data-status="exposed"]):not([data-status="affected"]):not([data-status="protected"]):not([data-status="hypothetical"]) .nodeCircle {
-  background: #f6cc9f;
+.nodeFrame[data-variant="account-map"][data-scene-node^="master-campus"] {
+  --account-map-node-rest-background: #c9e3f3;
 }
 
-.nodeFrame[data-variant="account-map"][data-scene-node^="campusgram"]:not([data-status="exposed"]):not([data-status="affected"]):not([data-status="protected"]):not([data-status="hypothetical"]) .nodeCircle {
-  background: #f2f4f5;
+.nodeFrame[data-variant="account-map"][data-scene-node^="campus-email"] {
+  --account-map-node-rest-background: #f6cc9f;
 }
 
-.nodeFrame[data-variant="account-map"][data-size="main"][data-scene-node^="master-campus"]:not([data-status="exposed"]):not([data-status="affected"]):not([data-status="protected"]):not([data-status="hypothetical"]) .nodeCircle {
-  background: #dbeef9;
+.nodeFrame[data-variant="account-map"][data-scene-node^="campusgram"] {
+  --account-map-node-rest-background: #f2f4f5;
 }
 
-.nodeFrame[data-variant="account-map"][data-size="main"][data-scene-node^="campus-email"]:not([data-status="exposed"]):not([data-status="affected"]):not([data-status="protected"]):not([data-status="hypothetical"]) .nodeCircle {
-  background: #ffe0c2;
+.nodeFrame[data-variant="account-map"][data-size="main"][data-scene-node^="master-campus"] {
+  --account-map-node-rest-background: #dbeef9;
 }
 
-.nodeFrame[data-variant="account-map"][data-size="main"][data-scene-node^="campusgram"]:not([data-status="exposed"]):not([data-status="affected"]):not([data-status="protected"]):not([data-status="hypothetical"]) .nodeCircle {
-  background: #ffffff;
+.nodeFrame[data-variant="account-map"][data-size="main"][data-scene-node^="campus-email"] {
+  --account-map-node-rest-background: #ffe0c2;
+}
+
+.nodeFrame[data-variant="account-map"][data-size="main"][data-scene-node^="campusgram"] {
+  --account-map-node-rest-background: #ffffff;
+}
+
+.nodeFrame[data-variant="account-map"]:not([data-status="exposed"]):not([data-status="affected"]):not([data-status="protected"]):not([data-status="hypothetical"]) .nodeCircle {
+  background: var(--account-map-node-rest-background);
 }
 
 .nodeFrame[data-highlighted="true"] .nodeCircle {
@@ -476,12 +485,6 @@
   stroke-linejoin: round;
 }
 
-.attackEdgeDrawMask {
-  stroke-dasharray: 100;
-  stroke-dashoffset: 100;
-  animation: attack-edge-draw-reveal 500ms cubic-bezier(0.32, 0, 0.18, 1) both;
-}
-
 .attackEdgeDraw {
   fill: none;
   stroke: #ff315e;
@@ -490,28 +493,38 @@
   stroke-linejoin: round;
   stroke-dasharray: 8 7;
   filter: drop-shadow(0 0 5px rgb(255 49 94 / 70%));
-  animation: attack-edge-dash-flow 720ms linear infinite;
+  animation: attack-edge-draw-flow 720ms linear infinite;
   pointer-events: none;
 }
 
-.infectionThread {
+.statusCascadeMask {
+  fill: none;
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+  animation-name: status-cascade-arrival;
+  animation-timing-function: linear;
+  animation-fill-mode: both;
+}
+
+.statusCascadeMaskSettled {
+  stroke-dashoffset: 0;
+  animation: none;
+}
+
+.statusCascadeThread {
   fill: none;
   stroke: var(--color-danger);
   stroke-width: 4px;
   stroke-linecap: round;
   stroke-linejoin: round;
-  stroke-dasharray: 1;
-  stroke-dashoffset: 1;
   filter: drop-shadow(0 0 5px color-mix(in srgb, var(--color-danger) 72%, transparent));
-  animation-name: infection-thread-arrival;
-  animation-timing-function: cubic-bezier(0.32, 0, 0.18, 1);
-  animation-fill-mode: both;
   pointer-events: none;
 }
 
-.infectionThreadSettled {
-  stroke-dashoffset: 0;
-  animation: none;
+.statusCascadeThread[data-status-cascade-tone="protection"] {
+  stroke: #2c9dff;
+  stroke-dasharray: 3 8;
+  filter: drop-shadow(0 0 5px rgb(44 157 255 / 70%));
 }
 
 .edge :global([data-network-edge-drawing="true"] .react-flow__edge-path) {
@@ -654,19 +667,13 @@
   }
 }
 
-@keyframes attack-edge-draw-reveal {
-  to {
-    stroke-dashoffset: 0;
-  }
-}
-
-@keyframes attack-edge-dash-flow {
+@keyframes attack-edge-draw-flow {
   to {
     stroke-dashoffset: -30;
   }
 }
 
-@keyframes infection-thread-arrival {
+@keyframes status-cascade-arrival {
   to {
     stroke-dashoffset: 0;
   }
@@ -686,17 +693,13 @@
     animation: none;
   }
 
-  .infectionThread {
+  .statusCascadeMask {
     stroke-dashoffset: 0;
     animation: none;
   }
 
-  .attackEdgeDrawMask {
-    stroke-dashoffset: 0;
-  }
-
-  .attackEdgeDraw,
-  .attackEdgeDrawMask {
+  .attackEdgeDraw {
     animation: none;
   }
+
 }

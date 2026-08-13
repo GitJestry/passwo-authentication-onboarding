@@ -19,6 +19,7 @@ import {
   ReactFlow,
 } from '@xyflow/react';
 import {
+  type CSSProperties,
   type ReactNode,
   useEffect,
   useLayoutEffect,
@@ -36,9 +37,37 @@ import {
 } from './NetworkSymbolRegistry.js';
 import styles from './ReactFlowNetworkAdapter.module.css';
 
+type StatusCascadeTone = 'danger' | 'protection';
+
+function statusCascadeToneForNode(node: SceneNode | undefined): StatusCascadeTone | null {
+  return node?.status === 'affected' || node?.status === 'exposed'
+    ? 'danger'
+    : node?.status === 'protected'
+      ? 'protection'
+      : null;
+}
+
+function statusCascadeToneEntryForNode(
+  node: SceneNode,
+): readonly [string, StatusCascadeTone][] {
+  const tone = statusCascadeToneForNode(node);
+  return tone === null ? [] : [[node.id, tone]];
+}
+
+function statusCascadeToneForEdgeNodes(
+  source: SceneNode | undefined,
+  target: SceneNode | undefined,
+): StatusCascadeTone | null {
+  if (source?.kind !== 'account' || target === undefined || target.kind === 'account') return null;
+  const sourceTone = statusCascadeToneForNode(source);
+  return sourceTone !== null && statusCascadeToneForNode(target) === sourceTone
+    ? sourceTone
+    : null;
+}
+
 interface RendererState {
   readonly snapshot: NetworkSceneSnapshot;
-  readonly settledInfectionNodeIds: ReadonlySet<string>;
+  readonly settledStatusCascadeTonesByNodeId: ReadonlyMap<string, StatusCascadeTone>;
   readonly announcement: string;
 }
 
@@ -53,7 +82,7 @@ export class ReactFlowNetworkAdapter implements NetworkRendererPort {
   constructor(initialSnapshot: NetworkSceneSnapshot) {
     this.#state = {
       snapshot: initialSnapshot,
-      settledInfectionNodeIds: new Set(),
+      settledStatusCascadeTonesByNodeId: new Map(),
       announcement: initialSnapshot.accessibleSummary,
     };
   }
@@ -65,34 +94,53 @@ export class ReactFlowNetworkAdapter implements NetworkRendererPort {
 
   readonly getSnapshot = (): RendererState => this.#state;
 
-  readonly completeInfectionCascade = (nodeId: string): void => {
+  readonly completeStatusCascade = (nodeId: string): void => {
     const node = this.#state.snapshot.nodes.find(({ id }) => id === nodeId);
-    if (
-      (node?.status !== 'affected' && node?.status !== 'exposed') ||
-      this.#state.settledInfectionNodeIds.has(nodeId)
-    ) {
-      return;
-    }
+    const tone = statusCascadeToneForNode(node);
+    if (tone === null || this.#state.settledStatusCascadeTonesByNodeId.get(nodeId) === tone) return;
+    const settledStatusCascadeTonesByNodeId = new Map(
+      this.#state.settledStatusCascadeTonesByNodeId,
+    );
+    settledStatusCascadeTonesByNodeId.set(nodeId, tone);
     this.#state = {
       ...this.#state,
-      settledInfectionNodeIds: new Set([...this.#state.settledInfectionNodeIds, nodeId]),
+      settledStatusCascadeTonesByNodeId,
     };
-    this.#emit();
+    const nodesById = new Map(
+      this.#state.snapshot.nodes.map((sceneNode) => [sceneNode.id, sceneNode]),
+    );
+    const hasRunningCascade = this.#state.snapshot.edges.some((edge) => {
+      const target = nodesById.get(edge.targetId);
+      const edgeTone = statusCascadeToneForEdgeNodes(
+        nodesById.get(edge.sourceId),
+        target,
+      );
+      return (
+        edgeTone !== null &&
+        target?.status !== 'exposed' &&
+        settledStatusCascadeTonesByNodeId.get(edge.targetId) !== edgeTone
+      );
+    });
+    // Updating React Flow for every single arrival rebuilds the still-running SVG masks.
+    // Publish one stable end state only after every concurrently drawn edge has arrived.
+    if (!hasRunningCascade) this.#emit();
   };
 
   render(snapshot: NetworkSceneSnapshot): void {
-    const settledInfectionNodeIds =
+    const settledStatusCascadeTonesByNodeId =
       snapshot.id === this.#state.snapshot.id
-        ? this.#state.settledInfectionNodeIds
-        : new Set([
-            ...this.#state.settledInfectionNodeIds,
+        ? this.#state.settledStatusCascadeTonesByNodeId
+        : new Map<string, StatusCascadeTone>([
+            ...this.#state.settledStatusCascadeTonesByNodeId,
             ...this.#state.snapshot.nodes
-              .filter(({ status }) => status === 'affected' || status === 'exposed')
-              .map(({ id }) => id),
+              .flatMap(statusCascadeToneEntryForNode),
+            ...snapshot.nodes
+              .filter(({ kind }) => kind === 'account')
+              .flatMap(statusCascadeToneEntryForNode),
           ]);
     this.#state = {
       snapshot,
-      settledInfectionNodeIds,
+      settledStatusCascadeTonesByNodeId,
       announcement: snapshot.accessibleSummary,
     };
     this.#emit();
@@ -135,31 +183,27 @@ interface SceneNodeData extends Record<string, unknown> {
   readonly nodeShape: NetworkNodeShape;
   readonly showNodeLabels: boolean;
   readonly showStatusMarkers: boolean;
-  readonly infectionCascadeStage: InfectionCascadeStage | null;
-  readonly onInfectionCascadeEnd: (nodeId: string) => void;
+  readonly statusCascadeTiming: StatusCascadeTiming | null;
+  readonly statusCascadeTone: StatusCascadeTone | null;
+  readonly statusCascadeSettled: boolean;
+  readonly onStatusCascadeEnd: (nodeId: string) => void;
   readonly onSelect: (nodeId: string) => void;
   readonly renderNodeOverlay: ((node: SceneNode) => ReactNode) | undefined;
 }
 
 type SceneFlowNode = Node<SceneNodeData, 'scene-node'>;
 
-type InfectionCascadeStage = 'first' | 'second' | 'third' | 'fourth';
+interface StatusCascadeTiming {
+  readonly durationMs: number;
+  readonly arrivalMs: number;
+}
 
-const infectionCascadeStages: readonly InfectionCascadeStage[] = [
-  'first',
-  'second',
-  'third',
-  'fourth',
-];
+const statusCascadeStartDelayMs = 850;
+const statusCascadeSpeedPxPerMs = 0.38;
 
-const infectionCascadeTiming: Readonly<
-  Record<InfectionCascadeStage, { readonly durationMs: number; readonly arrivalMs: number }>
-> = {
-  first: { durationMs: 520, arrivalMs: 1_370 },
-  second: { durationMs: 670, arrivalMs: 1_520 },
-  third: { durationMs: 820, arrivalMs: 1_670 },
-  fourth: { durationMs: 940, arrivalMs: 1_790 },
-};
+interface StatusCascadeNodeStyle extends CSSProperties {
+  readonly '--network-status-cascade-arrival-delay': string;
+}
 
 export type NetworkVisualVariant = 'default' | 'account-map';
 export type NetworkNodeShape = 'circle' | 'rounded-rectangle';
@@ -189,6 +233,7 @@ export interface NodeEdgePath {
   readonly path: string;
   readonly labelX: number;
   readonly labelY: number;
+  readonly length: number;
 }
 
 const accountNodeLayout: NetworkNodeLayout = {
@@ -390,11 +435,32 @@ export function createNodeEdgePath(
   const control2Y = round(start.y + deltaY * 0.66 + perpendicularY * bend);
   const labelX = round((start.x + 3 * control1X + 3 * control2X + end.x) / 8);
   const labelY = round((start.y + 3 * control1Y + 3 * control2Y + end.y) / 8);
+  let length = 0;
+  let previousX = start.x;
+  let previousY = start.y;
+  for (let step = 1; step <= 12; step += 1) {
+    const progress = step / 12;
+    const inverseProgress = 1 - progress;
+    const pointX =
+      inverseProgress ** 3 * start.x +
+      3 * inverseProgress ** 2 * progress * control1X +
+      3 * inverseProgress * progress ** 2 * control2X +
+      progress ** 3 * end.x;
+    const pointY =
+      inverseProgress ** 3 * start.y +
+      3 * inverseProgress ** 2 * progress * control1Y +
+      3 * inverseProgress * progress ** 2 * control2Y +
+      progress ** 3 * end.y;
+    length += Math.hypot(pointX - previousX, pointY - previousY);
+    previousX = pointX;
+    previousY = pointY;
+  }
 
   return {
     path: `M ${start.x} ${start.y} C ${control1X} ${control1Y} ${control2X} ${control2Y} ${end.x} ${end.y}`,
     labelX,
     labelY,
+    length: round(length),
   };
 }
 
@@ -434,8 +500,10 @@ function SceneNodeCircle({ data }: NodeProps<SceneFlowNode>) {
     nodeShape,
     showNodeLabels,
     showStatusMarkers,
-    infectionCascadeStage,
-    onInfectionCascadeEnd,
+    statusCascadeTiming,
+    statusCascadeTone,
+    statusCascadeSettled,
+    onStatusCascadeEnd,
     onSelect,
     renderNodeOverlay,
   } = data;
@@ -443,8 +511,12 @@ function SceneNodeCircle({ data }: NodeProps<SceneFlowNode>) {
   const lockedAccount = sceneNode.kind === 'account' && sceneNode.locked === true;
   const showStatusMarker =
     showStatusMarkers && !lockedAccount && sceneNode.status !== 'neutral';
-  const infectionTiming =
-    infectionCascadeStage === null ? null : infectionCascadeTiming[infectionCascadeStage];
+  const statusCascadeStyle: StatusCascadeNodeStyle | undefined =
+    statusCascadeTiming === null
+      ? undefined
+      : {
+          '--network-status-cascade-arrival-delay': `${statusCascadeTiming.arrivalMs}ms`,
+        };
 
   return (
     <div
@@ -455,7 +527,11 @@ function SceneNodeCircle({ data }: NodeProps<SceneFlowNode>) {
       data-focused={focused}
       data-highlighted={highlighted}
       data-kind={sceneNode.kind}
-      data-infection-cascade-stage={infectionCascadeStage ?? undefined}
+      data-status-cascade-active={
+        statusCascadeTiming !== null && !statusCascadeSettled ? true : undefined
+      }
+      data-status-cascade-tone={statusCascadeTone ?? undefined}
+      data-status-cascade-settled={statusCascadeSettled || undefined}
       data-locked={sceneNode.locked === true}
       data-node-shape={nodeShape}
       data-scene-node={sceneNode.id}
@@ -464,6 +540,7 @@ function SceneNodeCircle({ data }: NodeProps<SceneFlowNode>) {
       data-symbol-id={symbolId}
       data-variant={visualVariant}
       data-visible={visible}
+      style={statusCascadeStyle}
     >
       <Handle
         type="target"
@@ -484,14 +561,13 @@ function SceneNodeCircle({ data }: NodeProps<SceneFlowNode>) {
           className={styles.nodeCircle}
           data-scene-node-visual
           aria-hidden="true"
-          style={
-            infectionTiming === null
-              ? undefined
-              : { animationDelay: `${infectionTiming.arrivalMs}ms` }
-          }
           onAnimationEnd={(event) => {
-            if (event.target === event.currentTarget && infectionCascadeStage !== null) {
-              onInfectionCascadeEnd(sceneNode.id);
+            if (
+              event.target === event.currentTarget &&
+              statusCascadeTiming !== null &&
+              !statusCascadeSettled
+            ) {
+              onStatusCascadeEnd(sceneNode.id);
             }
           }}
         >
@@ -553,8 +629,9 @@ interface NodeEdgeData extends Record<string, unknown> {
   readonly drawn: boolean;
   readonly attackPath: boolean;
   readonly dimmed: boolean;
-  readonly infectionCascadeStage: InfectionCascadeStage | null;
-  readonly infectionSettled: boolean;
+  readonly statusCascadeTiming: StatusCascadeTiming | null;
+  readonly statusCascadeTone: StatusCascadeTone | null;
+  readonly statusCascadeSettled: boolean;
 }
 
 type NodeFlowEdge = Edge<NodeEdgeData, 'node-edge'>;
@@ -575,16 +652,12 @@ function NodeEdge({
 }: EdgeProps<NodeFlowEdge>) {
   if (data === undefined) return null;
   const edge = createNodeEdgePath(data.sourceGeometry, data.targetGeometry);
-  const infectionTiming =
-    data.infectionCascadeStage === null
-      ? null
-      : infectionCascadeTiming[data.infectionCascadeStage];
-  const infectionThreadStyle =
-    infectionTiming === null
+  const statusCascadeMaskStyle =
+    data.statusCascadeTiming === null
       ? undefined
       : {
-          animationDelay: `${infectionTiming.arrivalMs - infectionTiming.durationMs}ms`,
-          animationDuration: `${infectionTiming.durationMs}ms`,
+          animationDelay: `${data.statusCascadeTiming.arrivalMs - data.statusCascadeTiming.durationMs}ms`,
+          animationDuration: `${data.statusCascadeTiming.durationMs}ms`,
         };
   const optionalEdgeProps = {
     ...(interactionWidth === undefined ? {} : { interactionWidth }),
@@ -598,23 +671,17 @@ function NodeEdge({
     ...(markerStart === undefined ? {} : { markerStart }),
     ...(style === undefined ? {} : { style }),
   };
-  const attackDrawMaskId = `${id}-attack-draw-mask`;
-  const attackDrawMaskPadding = 56;
-  const attackDrawMaskLeft = Math.min(
-    data.sourceGeometry.centerX,
-    data.targetGeometry.centerX,
-  ) - attackDrawMaskPadding;
-  const attackDrawMaskTop = Math.min(
-    data.sourceGeometry.centerY,
-    data.targetGeometry.centerY,
-  ) - attackDrawMaskPadding;
-  const attackDrawMaskWidth =
-    Math.abs(data.targetGeometry.centerX - data.sourceGeometry.centerX) +
-    attackDrawMaskPadding * 2;
-  const attackDrawMaskHeight =
-    Math.abs(data.targetGeometry.centerY - data.sourceGeometry.centerY) +
-    attackDrawMaskPadding * 2;
   const drawsAttackPath = data.attackPath && data.drawing;
+  const attackDrawMaskId = `${id}-attack-draw-mask`;
+  const maskPadding = 56;
+  const maskLeft =
+    Math.min(data.sourceGeometry.centerX, data.targetGeometry.centerX) - maskPadding;
+  const maskTop =
+    Math.min(data.sourceGeometry.centerY, data.targetGeometry.centerY) - maskPadding;
+  const maskWidth =
+    Math.abs(data.targetGeometry.centerX - data.sourceGeometry.centerX) + maskPadding * 2;
+  const maskHeight =
+    Math.abs(data.targetGeometry.centerY - data.sourceGeometry.centerY) + maskPadding * 2;
   return (
     <g
       data-network-edge-target={data.targetNodeId}
@@ -625,8 +692,11 @@ function NodeEdge({
         data.attackPath && data.drawn ? true : undefined
       }
       data-network-edge-dimmed={data.dimmed}
-      data-network-edge-infection-stage={data.infectionCascadeStage ?? undefined}
-      data-network-edge-infection-settled={data.infectionSettled || undefined}
+      data-network-edge-status-cascade-active={
+        data.statusCascadeTiming !== null && !data.statusCascadeSettled ? true : undefined
+      }
+      data-network-edge-status-cascade-tone={data.statusCascadeTone ?? undefined}
+      data-network-edge-status-cascade-settled={data.statusCascadeSettled || undefined}
     >
       <BaseEdge
         id={id}
@@ -642,23 +712,22 @@ function NodeEdge({
               id={attackDrawMaskId}
               maskUnits="userSpaceOnUse"
               maskContentUnits="userSpaceOnUse"
-              x={attackDrawMaskLeft}
-              y={attackDrawMaskTop}
-              width={attackDrawMaskWidth}
-              height={attackDrawMaskHeight}
+              x={maskLeft}
+              y={maskTop}
+              width={maskWidth}
+              height={maskHeight}
             >
               <rect
-                x={attackDrawMaskLeft}
-                y={attackDrawMaskTop}
-                width={attackDrawMaskWidth}
-                height={attackDrawMaskHeight}
+                x={maskLeft}
+                y={maskTop}
+                width={maskWidth}
+                height={maskHeight}
                 fill="black"
               />
               <path
-                className={styles.attackEdgeDrawMask}
+                data-network-edge-draw-mask
                 d={edge.path}
                 fill="none"
-                pathLength={100}
                 stroke="white"
                 strokeWidth={14}
               />
@@ -669,19 +738,42 @@ function NodeEdge({
             d={edge.path}
             fill="none"
             mask={`url(#${attackDrawMaskId})`}
+            aria-hidden="true"
           />
         </>
       ) : null}
-      {data.infectionCascadeStage === null && !data.infectionSettled ? null : (
-        <path
-          className={`${styles.infectionThread} ${
-            data.infectionSettled ? styles.infectionThreadSettled : ''
-          }`}
-          d={edge.path}
-          pathLength={1}
-          aria-hidden="true"
-          style={infectionThreadStyle}
-        />
+      {data.statusCascadeTone === null ? null : (
+        <>
+          <defs>
+            <mask
+              id={`${id}-status-cascade-mask`}
+              maskUnits="userSpaceOnUse"
+              maskContentUnits="userSpaceOnUse"
+              x={maskLeft}
+              y={maskTop}
+              width={maskWidth}
+              height={maskHeight}
+            >
+              <path
+                className={`${styles.statusCascadeMask} ${
+                  data.statusCascadeSettled ? styles.statusCascadeMaskSettled : ''
+                }`}
+                d={edge.path}
+                pathLength={1}
+                stroke="white"
+                strokeWidth={14}
+                style={statusCascadeMaskStyle}
+              />
+            </mask>
+          </defs>
+          <path
+            className={styles.statusCascadeThread}
+            data-status-cascade-tone={data.statusCascadeTone}
+            d={edge.path}
+            mask={`url(#${id}-status-cascade-mask)`}
+            aria-hidden="true"
+          />
+        </>
       )}
     </g>
   );
@@ -703,7 +795,7 @@ const edgeClassByStatus: Record<SceneEdgeStatus, string> = {
 
 function toReactFlowElements(
   snapshot: NetworkSceneSnapshot,
-  settledInfectionNodeIds: ReadonlySet<string>,
+  settledStatusCascadeTonesByNodeId: ReadonlyMap<string, StatusCascadeTone>,
   presentation: NetworkPresentationSnapshot,
   onNodeSelect: (nodeId: string) => void,
   interactionDisabled: boolean,
@@ -716,7 +808,7 @@ function toReactFlowElements(
   showStatusMarkers: boolean,
   renderNodeOverlay: ((node: SceneNode) => ReactNode) | undefined,
   dimInactiveNodes: boolean,
-  onInfectionCascadeEnd: (nodeId: string) => void,
+  onStatusCascadeEnd: (nodeId: string) => void,
 ): { readonly nodes: readonly SceneFlowNode[]; readonly edges: readonly NodeFlowEdge[] } {
   const revealed = new Set(presentation.revealedNodeIds);
   const drawnEdgeTargetNodeIds = new Set(presentation.drawnEdgeTargetNodeIds ?? []);
@@ -729,32 +821,33 @@ function toReactFlowElements(
     positionedNodes.map(({ node, position, layout }) => [node.id, geometryForNode(position, layout)]),
   );
   const nodesById = new Map(snapshot.nodes.map((node) => [node.id, node]));
-  const infectionStagesByTargetId = new Map<string, InfectionCascadeStage>();
-  const settledInfectionTargetIds = new Set<string>();
-  const infectionEdgeCountBySourceId = new Map<string, number>();
-  // The scene already contains the deterministic affected end state. These stages only
-  // stagger how its directly bound detail nodes visually arrive in that state.
+  const statusCascadeTimingsByTargetId = new Map<string, StatusCascadeTiming>();
+  const statusCascadeTonesByTargetId = new Map<string, StatusCascadeTone>();
+  const settledStatusCascadeTargetIds = new Set<string>();
+  // Every outgoing cascade starts together and moves at the same pixel speed. Shorter
+  // authored paths therefore reach and recolor their bound nodes first.
   for (const edge of snapshot.edges) {
     const source = nodesById.get(edge.sourceId);
     const target = nodesById.get(edge.targetId);
+    const tone = statusCascadeToneForEdgeNodes(source, target);
+    if (tone === null) continue;
+    statusCascadeTonesByTargetId.set(edge.targetId, tone);
+    const sourceGeometry = geometriesByNodeId.get(edge.sourceId);
+    const targetGeometry = geometriesByNodeId.get(edge.targetId);
+    if (sourceGeometry === undefined || targetGeometry === undefined) continue;
+    const durationMs = Math.round(
+      createNodeEdgePath(sourceGeometry, targetGeometry).length / statusCascadeSpeedPxPerMs,
+    );
+    statusCascadeTimingsByTargetId.set(edge.targetId, {
+      durationMs,
+      arrivalMs: statusCascadeStartDelayMs + durationMs,
+    });
     if (
-      source?.kind !== 'account' ||
-      (source.status !== 'exposed' && source.status !== 'affected') ||
-      target?.kind === 'account' ||
-      (target?.status !== 'affected' && target?.status !== 'exposed')
+      target?.status === 'exposed' ||
+      settledStatusCascadeTonesByNodeId.get(edge.targetId) === tone
     ) {
-      continue;
+      settledStatusCascadeTargetIds.add(edge.targetId);
     }
-    const sourceEdgeIndex = infectionEdgeCountBySourceId.get(edge.sourceId) ?? 0;
-    const stage =
-      infectionCascadeStages[Math.min(sourceEdgeIndex, infectionCascadeStages.length - 1)];
-    if (stage === undefined) continue;
-    infectionEdgeCountBySourceId.set(edge.sourceId, sourceEdgeIndex + 1);
-    if (target.status === 'exposed' || settledInfectionNodeIds.has(edge.targetId)) {
-      settledInfectionTargetIds.add(edge.targetId);
-      continue;
-    }
-    infectionStagesByTargetId.set(edge.targetId, stage);
   }
   const activeAccount = snapshot.nodes.find(({ id }) => id === activeNodeId);
   const choosingAccount = activeAccount === undefined;
@@ -794,8 +887,10 @@ function toReactFlowElements(
         nodeShape: layout.shape,
         showNodeLabels,
         showStatusMarkers,
-        infectionCascadeStage: infectionStagesByTargetId.get(node.id) ?? null,
-        onInfectionCascadeEnd,
+        statusCascadeTiming: statusCascadeTimingsByTargetId.get(node.id) ?? null,
+        statusCascadeTone: statusCascadeTonesByTargetId.get(node.id) ?? null,
+        statusCascadeSettled: settledStatusCascadeTargetIds.has(node.id),
+        onStatusCascadeEnd,
         onSelect: onNodeSelect,
         renderNodeOverlay,
       },
@@ -836,8 +931,9 @@ function toReactFlowElements(
               edge.kind === 'similar-pattern' ||
               edge.kind === 'blocked-path',
             dimmed: dimInactiveNodes && (choosingAccount || edge.sourceId !== activeNodeId),
-            infectionCascadeStage: infectionStagesByTargetId.get(edge.targetId) ?? null,
-            infectionSettled: settledInfectionTargetIds.has(edge.targetId),
+            statusCascadeTiming: statusCascadeTimingsByTargetId.get(edge.targetId) ?? null,
+            statusCascadeTone: statusCascadeTonesByTargetId.get(edge.targetId) ?? null,
+            statusCascadeSettled: settledStatusCascadeTargetIds.has(edge.targetId),
           },
           ariaLabel: edge.label ?? `${edge.sourceId} mit ${edge.targetId} verbunden`,
         },
@@ -890,7 +986,7 @@ export function ReactFlowNetwork({
     () =>
       toReactFlowElements(
         rendererState.snapshot,
-        rendererState.settledInfectionNodeIds,
+        rendererState.settledStatusCascadeTonesByNodeId,
         presentation,
         onNodeSelect,
         interactionDisabled,
@@ -903,7 +999,7 @@ export function ReactFlowNetwork({
         showStatusMarkers,
         renderNodeOverlay,
         dimInactiveNodes,
-        adapter.completeInfectionCascade,
+        adapter.completeStatusCascade,
       ),
     [
       activeNodeId,
@@ -913,7 +1009,7 @@ export function ReactFlowNetwork({
       interactionDisabled,
       onNodeSelect,
       presentation,
-      rendererState.settledInfectionNodeIds,
+      rendererState.settledStatusCascadeTonesByNodeId,
       rendererState.snapshot,
       showEdgeLabels,
       showNodeLabels,

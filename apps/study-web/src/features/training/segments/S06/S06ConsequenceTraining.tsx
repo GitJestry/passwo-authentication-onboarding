@@ -115,7 +115,7 @@ export function S06ConsequenceTraining({
         ) ?? null,
       getEdgeElement: (targetNodeId) =>
         networkHostRef.current?.querySelector<SVGPathElement>(
-          `[data-network-edge-target="${targetNodeId}"] .react-flow__edge-path`,
+          `[data-network-edge-target="${targetNodeId}"] [data-network-edge-draw-mask]`,
         ) ?? null,
       prefersReducedMotion,
     });
@@ -127,22 +127,26 @@ export function S06ConsequenceTraining({
     });
     const renderer = new ReactFlowNetworkAdapter(controller.getSnapshot().step.network);
     for (const node of controller.getSnapshot().step.network.nodes) {
-      if (node.status === 'affected' || node.status === 'exposed') {
-        renderer.completeInfectionCascade(node.id);
+      if (
+        node.status === 'affected' ||
+        node.status === 'exposed' ||
+        node.status === 'protected'
+      ) {
+        renderer.completeStatusCascade(node.id);
       }
     }
     controller.attachRenderer(renderer);
     const unsubscribe = controller.subscribe(setSnapshot);
-    const unsubscribeInfectionCascade = renderer.subscribe(() => {
+    const unsubscribeStatusCascade = renderer.subscribe(() => {
       controller?.infectionCascadeSettled([
-        ...renderer.getSnapshot().settledInfectionNodeIds,
+        ...renderer.getSnapshot().settledStatusCascadeTonesByNodeId.keys(),
       ]);
     });
     setRuntime({ controller, renderer, plan });
     setSnapshot(controller.getSnapshot());
 
     return () => {
-      unsubscribeInfectionCascade();
+      unsubscribeStatusCascade();
       unsubscribe();
       void controller?.dispose();
     };
