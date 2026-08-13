@@ -1,5 +1,17 @@
 # S00--S05 Copy and Interaction Audit
 
+## Copy-Delta S05 Kandidatenprüfung gekürzt, 13. August 2026
+
+Quelle ist der ausdrückliche Nutzerauftrag vom 13. August 2026. Die Mechanismuserklärung zur
+Kandidatenprüfung wird auf den nicht bereits eindeutig sichtbaren Kerngedanken gekürzt. Dass das
+Passwort verdeckt ist und der Angreifer Kandidaten prüft, zeigt die bestehende Szene bereits.
+Interaktion, Animation, Ablauf, Analyse, Persistenz, Export und Timing bleiben unverändert.
+`S05_CONTENT_VERSION` wird von `2.84.0` auf `2.84.1` erhöht.
+
+| Segment und Text-ID | Quelle | Aktueller Text | Geplanter Text | Primäre Rolle | Grund | Bedeutungsänderung | Interaktionsziel | Hervorhebung |
+|---|---|---|---|---|---|---|---|---|
+| `S05.intro.narration.candidateCheck` | Nutzerauftrag vom 2026-08-13 | `Für den Angreifer ist dein Passwort verdeckt. Er probiert mögliche Passwörter aus und prüft, ob eines davon passt. Grundsätzlich kann er jede denkbare Zeichenfolge testen.` | `Der Angreifer kann grundsätzlich jede denkbare Zeichenfolge ausprobieren.` | Mechanismuserklärung | nachweisbare Redundanz zur sichtbaren Szene und unnötige kognitive Last entfernen | nein | `Weiter` | keine |
+
 ## Darstellungsdelta S05 Berechnungshinweise an Zeitangaben, 12. August 2026
 
 Quelle ist der ausdrückliche Nutzerauftrag vom 12. August 2026. Der optionale Hinweis zu den
@@ -209,6 +221,18 @@ Vollpasswort-Entscheidung bleiben unverändert. `S05_CONTENT_VERSION` wird von `
 
 Die zwei abschließenden Nutzerformulierungen bleiben wortgleich. Ihre Länge ist begründet,
 weil sie den freigegebenen dramaturgischen Übergang in zwei getrennten Sprechschritten bilden.
+
+## Copy-Delta S03 optionale Anmeldehilfe, 13. August 2026
+
+Quelle ist der ausdrückliche Nutzerauftrag vom 13. August 2026. Die optionale Hilfe hinter dem
+PassWo-Fragezeichen ergänzt den bestehenden Anmeldeauftrag um die bereits vorhandene Alternative
+für nicht mehr sicher erinnerte Passwörter. Der Hinweis nach dem dritten Fehlversuch erscheint
+höchstens einmal während S03, auch nach einem Kontowechsel. Ablauf, Persistenz, Export und Timing
+bleiben unverändert. `S03_CONTENT_VERSION` wird von `1.19.3` auf `1.19.4` erhöht.
+
+| Segment und Text-ID | Quelle | Aktueller Text | Geplanter Text | Primäre Rolle | Grund | Bedeutungsänderung | Interaktionsziel | Hervorhebung |
+|---|---|---|---|---|---|---|---|---|
+| `S03.help.intro` | Nutzerauftrag vom 2026-08-13 | `Melde dich jetzt mit den eben gewählten Passwörtern erneut an.` | `Melde dich jetzt mit den eben gewählten Passwörtern erneut an.` / `Wenn du das Passwort nicht mehr sicher weißt, kannst du unten „Passwort vergessen?“ nutzen.` | Optionaler Hinweis | bestehende alternative Anmeldehandlung auf Nachfrage verfügbar machen | begrenzt | sichtbares `Passwort vergessen?` | `Melde dich jetzt` und `Passwort vergessen?` in Aktionsfarbe |
 
 ## Copy-Delta S03 bis S05 direktes Szenarioframing, 11. August 2026
 
@@ -2896,6 +2920,56 @@ Kontakte als Such- und Kontaktliste sowie Beiträge und Reaktionen als großer F
 angedeuteten Reaktions- und Kommentarhandlungen. Bestehender Teilnehmertext, Interaktion,
 Ablauf, Persistenz, Export und Timing bleiben unverändert; kein Content-Versionssprung ist
 erforderlich.
+
+### Copy-Delta S05 Baustein- und Kontexttexte 13. August 2026
+
+Quelle ist der ausdrückliche Nutzerauftrag vom 13. August 2026. Die Erklärungen zur
+Bausteinmetapher, zu öffentlich verfügbaren Angaben, zu Kontobezügen und zu vorhersehbaren
+Varianten werden mit dem vorgegebenen Wortlaut präzisiert. Die ausdrücklich angeforderten
+gruppierten Hervorhebungen von `Name`, `Geburtsdatum` und `Interessen` sowie `Konto`, `Dienst`
+und `Umfeld` sind freigegebene Ausnahmen von der üblichen Hervorhebungsgrenze. `riskant` bleibt
+als einzelner Warnbegriff markiert. Interaktion, Ablauf, Analyse, Persistenz, Export und Timing
+bleiben unverändert. `S05_CONTENT_VERSION` wird von `2.84.1` auf `2.85.0` erhöht.
+
+| Segment und Text-ID | Quelle | Aktueller Text | Geplanter Text | Primäre Rolle | Grund | Bedeutungsänderung | Interaktionsziel | Hervorhebung |
+|---|---|---|---|---|---|---|---|---|
+| `S05.intro.narration.buildingBlocks[0]` | Nutzerauftrag vom 2026-08-13 | `Für die Erklärung betrachten wir diese Teile vereinfacht wie aneinandergesetzte Bausteine.` | `Du kannst dir diese Teile vereinfacht wie einzelne 'Bausteine' vorstellen.` | Mechanismuserklärung | ausdrücklich vorgegebene Vereinfachung und direkte Ansprache | begrenzt | `Weiter` | keine |
+| `S05.intro.narration.strategyTargeting[0]` | Nutzerauftrag vom 2026-08-13 | `Der Angreifer sieht diese Bestandteile nicht. Er kann aber mögliche Bestandteile auswählen, kombinieren und daraus vollständige Passwörter ausprobieren.` | `Der Angreifer kann solche 'Bausteine' kombinieren und die daraus entstehenden Passwörter ausprobieren.` | Mechanismuserklärung | ausdrücklich vorgegebene Kürzung | begrenzt | `Weiter` | keine |
+| `S05.intro.narration.componentCategoryOverview[0]` | Nutzerauftrag vom 2026-08-13 | `Dabei beginnt der Angreifer mit Passwörtern und Zeichenfolgen, die besonders häufig verwendet werden.` | `Dabei beginnt er mit Passwörtern und Zeichenfolgen, die besonders häufig verwendet werden.` | Mechanismuserklärung | ausdrücklich vorgegebene Vermeidung der Wiederholung | nein | `Weiter` | keine |
+| `S05.componentStrategy.personalDetails.derivation[0]` | Nutzerauftrag vom 2026-08-13 | `Mit den Passwortdaten eines Kontos sind jedoch oft auch ein Benutzername oder eine E-Mail-Adresse verknüpft. Bei einem Datenleck können solche Kontohinweise offengelegt werden.` | `Bei einem Datenleck können jedoch Kennungen wie Benutzername, E-Mail-Adresse oder Telefonnummer offengelegt werden.` | Mechanismuserklärung | Kennungen und Offenlegung direkt benennen | begrenzt | `Weiter` | keine |
+| `S05.componentStrategy.personalDetails.examples[0]` | Nutzerauftrag vom 2026-08-13 | `Mit diesen Hinweisen können Angreifer nach öffentlichen Profilen suchen und dort Angaben wie Namen, Geburtsdaten oder den Lieblingsverein finden und als Passwortbestandteile ausprobieren.` | `Angreifer können damit nach öffentlich verfügbaren Angaben wie Name, Geburtsdatum oder Interessen suchen und diese als mögliche Passwortbestandteile ausprobieren.` | Mechanismuserklärung | Rechercheweg und Beispiele ausdrücklich präzisieren | begrenzt | `Weiter` | gruppiert `Name`, `Geburtsdatum`, `Interessen` in Akzentfarbe |
+| `S05.componentStrategy.accountContext.opening[0]` | Nutzerauftrag vom 2026-08-13 | `Um sich leichter zu merken, welches Passwort zu welchem Konto gehört, werden oft Begriffe aus dem Dienst oder seinem Umfeld eingebaut. Solche Bezüge kann ein Angreifer gezielt mitprüfen.` | `Um sich leichter zu merken, welches Passwort zu welchem Konto gehört, werden oft Begriffe mit Bezug zum Konto, zum Dienst oder zu dessen Umfeld eingebaut. Solche Bezüge kann ein Angreifer gezielt mitprüfen.` | Mechanismuserklärung | Arten des Kontobezugs vollständig benennen | begrenzt | `Weiter` | gruppiert `Konto`, `Dienst`, `Umfeld` in Akzentfarbe |
+| `S05.componentStrategy.accountContext.explanation[0]` | Nutzerauftrag vom 2026-08-13 | `Bei Campusgram wären das zum Beispiel „Campus“, „Nachricht“, der Benutzername oder der Dienstname, bei einem WLAN-Passwort etwa „WLAN“, „Router“ oder „Fritzbox“.` | `Bei Campusgram wären das zum Beispiel der Benutzername, ‚Campus‘, ‚Nachricht‘ oder der Dienstname, bei einem WLAN-Passwort etwa ‚WLAN‘, ‚Router‘ oder ‚Fritzbox‘.` | Mechanismuserklärung | Beispiele ausdrücklich neu ordnen und typografisch vereinheitlichen | nein | `Weiter` | keine |
+| `S05.freeSearch.characterMix.narration[3]` | Nutzerauftrag vom 2026-08-13 | `Darauf zu setzen, mit einer komplizierten Mischung wie „mEin!Pa55w0rt?“ eine Variante zu finden, die der Angreifer nicht prüft, ist deshalb riskant.` | `Darauf zu hoffen, dass der Angreifer eine komplizierte Variante wie „mEin!Pa55w0rt?“ nicht prüft, ist riskant.` | Kerngedanke | ausdrücklich vorgegebene Kürzung und direkte Risikoeinordnung | begrenzt | `Weiter` | `riskant` in Warnfarbe |
+
+### Darstellungsdelta S05 schnellere Bausteinkombinationen 13. August 2026
+
+Quelle ist der ausdrückliche Nutzerauftrag vom 13. August 2026. Im Sprechschritt
+`s05-strategy-targeting` werden die verdeckten Bausteinkombinationen nach dem unveränderten
+Szenenaufbau doppelt so schnell nacheinander ausprobiert: Zyklusdauer und Abstand zwischen den
+fünf Kandidaten werden halbiert. Die statische Darstellung für `prefers-reduced-motion`,
+Teilnehmertext, Interaktion, Ablauf, Analyse, Persistenz, Export und Timing bleiben unverändert;
+kein Content-Versionssprung ist erforderlich.
+
+### Darstellungsdelta S05 zusätzliche Bausteinkombinationen 13. August 2026
+
+Quelle ist der ausdrückliche Nutzerauftrag vom 13. August 2026. Die Animation im Sprechschritt
+`s05-strategy-targeting` verwendet nun 20 statt fünf fest definierte Kandidatenkombinationen.
+Der Abstand von 650 Millisekunden zwischen den Versuchen und damit die zuvor verdoppelte
+Abspielgeschwindigkeit bleiben erhalten; lediglich der vollständige Wiederholungszyklus wächst
+entsprechend auf 13 Sekunden. Die Kombinationen bleiben deterministisch und enthalten keine
+Teilnehmereingaben. `prefers-reduced-motion`, Teilnehmertext, Interaktion, Ablauf, Analyse,
+Persistenz, Export und Timing bleiben unverändert; kein Content-Versionssprung ist erforderlich.
+
+### Darstellungsdelta S05 wiedererkennbare Bausteine in der Kategorieüberleitung 13. August 2026
+
+Quelle ist der ausdrückliche Nutzerauftrag vom 13. August 2026. Im Sprechschritt
+`s05-component-category-overview` verwenden die drei Bausteine nun dieselbe Größenbasis, Form,
+Typografie und farbstabile Herkunftslogik wie die unmittelbar zuvor ausprobierten
+Kandidatenkombinationen. Der mittlere Baustein bleibt als Fokus größer, nach oben versetzt und
+durch einen Leuchteffekt hervorgehoben, behält dabei aber seine bisherige Bausteinfarbe statt
+einer abweichenden gelben Sonderpalette. Teilnehmertext, Interaktion, Ablauf, Analyse,
+Persistenz, Export und Timing bleiben unverändert; kein Content-Versionssprung ist erforderlich.
 ### Copy- und Darstellungsdelta S05 Wortlaut und Kleinbuchstaben 12. August 2026
 
 Quelle ist der ausdrückliche Nutzerauftrag vom 12. August 2026. Die Erklärungen zu geläufigen
@@ -2912,6 +2986,19 @@ dargestellt. Interaktion, Ablauf, Analyse, Persistenz, Export und Timing bleiben
 | `S05.componentStrategy.commonComponents.explanation[1]` | Nutzerauftrag vom 2026-08-12 | `Wörter sind nicht grundsätzlich unsicher. Wörter, die häufig als Passwort gewählt werden, probieren Angreifer jedoch früh aus.` | `Wörter sind nicht grundsätzlich unsicher. Geläufige Wörter, etwa aus Wörterbüchern, können Angreifer jedoch früh ausprobieren.` | Mechanismuserklärung | ausdrücklich vorgegebene fachliche Präzisierung | begrenzt | `Weiter` | keine |
 | `S05.componentStrategy.commonComponents.explanation[2]` | Nutzerauftrag vom 2026-08-12 | `Bei selbst gewählten Passwörtern kommen häufig Veränderungen wie Großschreibung, Zeichenersetzungen, Zahlen oder Symbole vor. Angreifer probieren deshalb typische Varianten einzelner Bestandteile und ganzer Passwörter aus.` | `Häufige Passwörter und Wörter werden oft durch Großschreibung, Zeichenersetzungen, Zahlen oder Symbole verändert. Angreifer probieren deshalb auch solche typischen Varianten aus.` | Mechanismuserklärung | ausdrücklich vorgegebene Präzisierung und Kürzung | begrenzt | `Weiter` | `typische Varianten` in Akzentfarbe mit bestehendem Symbol |
 | `S05.intro.narration.componentCategoryOverview[1]` | Nutzerauftrag vom 2026-08-12 | `Bitte beachte: Das Modul kann Bestandteile im Passwort übersehen oder falsch einordnen. Es dient nur zum Verständnis und ist keine Sicherheitsbewertung.` | `Bitte beachte: Das Modul kann Bestandteile übersehen oder falsch einordnen. Es dient nur zum Verständnis, nicht zur Sicherheitsbewertung.` | Safety Boundary | ausdrücklich vorgegebene Kürzung bei erhaltener Geltungsgrenze | nein | `Weiter` | `Bitte beachte:` in Akzentfarbe |
+
+### Darstellungsdelta S05 Hervorhebungen der geläufigen Wörter 13. August 2026
+
+Quelle ist der ausdrückliche Nutzerauftrag vom 13. August 2026. In der Sprechblase zur Erklärung
+der geläufigen Wörter wird `Geläufige Wörter` in Akzentfarbe hervorgehoben. Die bestehende
+Hervorhebung `typische Varianten` bleibt mit dem Symbol für typische Änderungen bestehen.
+Teilnehmertext, Interaktion, Ablauf, Analyse, Persistenz, Export und Timing bleiben unverändert;
+kein Content-Versionssprung ist erforderlich.
+
+| Segment und Text-ID | Quelle | Aktueller Text | Geplanter Text | Primäre Rolle | Grund | Bedeutungsänderung | Interaktionsziel | Hervorhebung |
+|---|---|---|---|---|---|---|---|---|
+| `S05.componentStrategy.commonComponents.explanation[1]` | Nutzerauftrag vom 2026-08-13 | unverändert | unverändert | Mechanismuserklärung | geläufige Wörter als Carry-forward-Kerngedanke markieren | nein | `Weiter` | `Geläufige Wörter` in Akzentfarbe |
+| `S05.componentStrategy.commonComponents.explanation[2]` | Nutzerauftrag vom 2026-08-13 | unverändert | unverändert | Mechanismuserklärung | bestehende visuelle Zuordnung bewahren | nein | `Weiter` | `typische Varianten` in Akzentfarbe mit Symbol für typische Änderungen |
 
 ### Copy-Delta S00 explorativer Safety-Einstieg 12. August 2026
 

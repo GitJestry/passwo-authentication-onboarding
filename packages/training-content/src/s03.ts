@@ -93,7 +93,7 @@ export interface S03SegmentContent {
   readonly animations: readonly S03AnimationSequence[];
 }
 
-export const S03_CONTENT_VERSION = '1.19.3';
+export const S03_CONTENT_VERSION = '1.19.4';
 
 const resultAnimation = (
   accountId: S01AccountId,
@@ -146,9 +146,9 @@ export const s03Content: S03SegmentContent = {
   source: {
     document: 'research/private/training-script.pdf',
     internalPages: [8, 9, 10, 11],
-    revision: 'Userauftrag vom 2026-08-11 · neutrale Fehlermeldung',
+    revision: 'Userauftrag vom 2026-08-13 · einmaliger Anmeldehinweis',
     copyReference:
-      'docs/design/S00-S05-COPY-AUDIT.md#copy-delta-s03-bis-s05-direktes-szenarioframing-11-august-2026',
+      'docs/design/S00-S05-COPY-AUDIT.md#copy-delta-s03-optionale-anmeldehilfe-13-august-2026',
   },
   segment: {
     id: 'S03',

@@ -44,6 +44,14 @@ const emphasisBySpeechId: Readonly<Record<string, readonly PassWoSpeechEmphasis[
   's02.campus-email': [{ phrase: 'Zurücksetzungslink', tone: 'action' }],
   's02.campusgram': [{ phrase: 'Direktnachricht', tone: 'action' }],
   's03.intro': [{ phrase: 'Melde dich jetzt', tone: 'action' }],
+  's03.intro-help': [
+    { phrase: 'Melde dich jetzt', tone: 'action', contrastId: 's03-intro-help-actions' },
+    {
+      phrase: '„Passwort vergessen?“',
+      tone: 'action',
+      contrastId: 's03-intro-help-actions',
+    },
+  ],
   's03.success': [{ phrase: 'wieder geöffnet', tone: 'positive' }],
   's03.third-failed-login': [{ phrase: '„Passwort vergessen?“', tone: 'action' }],
   's03.retrieval-help': [
@@ -60,6 +68,7 @@ const emphasisBySpeechId: Readonly<Record<string, readonly PassWoSpeechEmphasis[
       symbolSrc: typicalChangesAsset,
     },
   ],
+  's05-common-components-examples': [{ phrase: 'Geläufige Wörter', tone: 'accent' }],
   's05-common-components-intro': [
     {
       phrase: 'häufig verwendete Passwörter und Zeichenfolgen',
@@ -75,9 +84,9 @@ const emphasisBySpeechId: Readonly<Record<string, readonly PassWoSpeechEmphasis[
     },
   ],
   's05-personal-details-examples': [
-    { phrase: 'Namen', tone: 'accent', contrastId: 'personal-detail-examples' },
-    { phrase: 'Geburtsdaten', tone: 'accent', contrastId: 'personal-detail-examples' },
-    { phrase: 'Lieblingsverein', tone: 'accent', contrastId: 'personal-detail-examples' },
+    { phrase: 'Name', tone: 'accent', contrastId: 'personal-detail-examples' },
+    { phrase: 'Geburtsdatum', tone: 'accent', contrastId: 'personal-detail-examples' },
+    { phrase: 'Interessen', tone: 'accent', contrastId: 'personal-detail-examples' },
   ],
   's05-personal-details-intro': [
     {
@@ -87,6 +96,7 @@ const emphasisBySpeechId: Readonly<Record<string, readonly PassWoSpeechEmphasis[
     },
   ],
   's05-account-context-opening': [
+    { phrase: 'Konto', tone: 'accent', contrastId: 'account-context-source' },
     { phrase: 'Dienst', tone: 'accent', contrastId: 'account-context-source' },
     { phrase: 'Umfeld', tone: 'accent', contrastId: 'account-context-source' },
   ],

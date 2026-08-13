@@ -56,7 +56,7 @@ export interface S05AnalysisTrainingProps {
   readonly completionPort?: S05CompletionPort;
 }
 
-const CAMPUSGRAM_PASSWORD_REFERENCE_LENGTH = 18;
+const CAMPUSGRAM_PASSWORD_REFERENCE_LENGTH = 17;
 
 interface CampusgramPasswordVisualStyle extends CSSProperties {
   readonly '--s05-campusgram-password-scale': string;
@@ -203,7 +203,25 @@ const strategyCandidateOrders = [
   [2, 5, 3, 0],
   [3, 0, 1, 5, 4],
   [2, 5, 1],
+  [1, 4],
+  [5, 0, 2],
+  [3, 2, 4],
+  [0, 1, 3, 5],
+  [4, 2, 0, 5],
+  [1, 5, 3],
+  [2, 0, 4, 1],
+  [5, 4],
+  [3, 1, 0],
+  [0, 5, 2, 4, 1],
+  [4, 3, 5, 0],
+  [1, 2, 5, 3],
+  [5, 3, 1, 4, 0],
+  [2, 4, 0],
+  [3, 5, 4, 1, 2, 0],
 ] as const satisfies readonly (readonly number[])[];
+
+const STRATEGY_CANDIDATE_DELAY_MS = 650;
+const STRATEGY_CANDIDATE_INITIAL_DELAY_MS = 1620;
 
 function StrategyTargetingScene({ subject }: { readonly subject: S05AnalysisSubject }) {
   const parts = s05Content.intro.memorablePasswordParts;
@@ -231,7 +249,13 @@ function StrategyTargetingScene({ subject }: { readonly subject: S05AnalysisSubj
       />
       <div className={styles.strategyCandidateAttempts} aria-hidden="true">
         {strategyCandidateOrders.map((order, rowIndex) => (
-          <div className={styles.strategyCandidateAttempt} key={rowIndex}>
+          <div
+            className={styles.strategyCandidateAttempt}
+            key={rowIndex}
+            style={{
+              animationDelay: `${STRATEGY_CANDIDATE_INITIAL_DELAY_MS + rowIndex * STRATEGY_CANDIDATE_DELAY_MS}ms`,
+            }}
+          >
             {order.map((partIndex) => {
               const part = parts[partIndex] ?? '';
               return (
@@ -1442,11 +1466,11 @@ function ScaleTimeInformation({
         <span className={styles.scaleTimeValueRow}>
           <span className={styles.scaleTimeValue}>
             {approximatePrefix === null ? (
-              durationNumber
+              <span className={styles.scaleTimeNumber}>{durationNumber}</span>
             ) : (
               <span className={styles.scaleTimeApproximateNumber}>
                 <small>{approximatePrefix}</small>
-                <span>{durationNumber}</span>
+                <span className={styles.scaleTimeNumber}>{durationNumber}</span>
               </span>
             )}
             {durationUnitLeading.length > 0 ? ` ${durationUnitLeading}` : null}
@@ -1489,7 +1513,7 @@ function MixedCharacterTimeInformation() {
         <span className={styles.scaleTimeValue}>
           <span className={styles.scaleTimeApproximateNumber}>
             <small>ca.</small>
-            <span>{durationNumber}</span>
+            <span className={styles.scaleTimeNumber}>{durationNumber}</span>
           </span>{' '}
           <span className={styles.scaleTimeUnitWithInformation}>
             <span>{durationUnitParts.join(' ')}</span>
@@ -1762,6 +1786,7 @@ function LowercaseClockScene({
                 <div
                   className={styles.scaleTimeBubble}
                   data-active={active || undefined}
+                  data-length={length}
                   data-previous={previous || undefined}
                   style={sphereStyle(length)}
                 >

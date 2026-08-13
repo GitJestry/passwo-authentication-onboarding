@@ -4,7 +4,7 @@ import { S05_CONTENT_VERSION, s05Content } from './s05.js';
 
 describe('S05 content traceability', () => {
   it('keeps the participant copy bounded and separate from internal terminology', () => {
-    expect(S05_CONTENT_VERSION).toBe('2.84.0');
+    expect(S05_CONTENT_VERSION).toBe('2.85.0');
     expect(s05Content.source).toMatchObject({
       document: 'research/private/training-script.pdf',
       internalPages: [
@@ -12,7 +12,7 @@ describe('S05 content traceability', () => {
         35,
       ],
       copyReference:
-        'docs/design/S00-S05-COPY-AUDIT.md#copy--und-ablaufdelta-s05-campusgram-abschluss-und-s06-übergang-12-august-2026',
+        'docs/design/S00-S05-COPY-AUDIT.md#copy-delta-s05-baustein-und-kontexttexte-13-august-2026',
     });
     expect(s05Content.segment.id).toBe('S05');
     expect(s05Content.page.fixtureNotice).toBe(
@@ -42,11 +42,14 @@ describe('S05 content traceability', () => {
       'Häufig verwendete Passwörter und Zeichenfolgen',
     );
     expect(s05Content.intro.narration.componentCategoryOverview).toEqual([
-      'Dabei beginnt der Angreifer mit Passwörtern und Zeichenfolgen, die besonders häufig verwendet werden.',
+      'Dabei beginnt er mit Passwörtern und Zeichenfolgen, die besonders häufig verwendet werden.',
       'Bitte beachte: Das Modul kann Bestandteile übersehen oder falsch einordnen. Es dient nur zum Verständnis, nicht zur Sicherheitsbewertung.',
     ]);
     expect(s05Content.intro.narration.randomSequence).toEqual([
       'Zufällige Zeichenfolgen sind jedoch schwer zu merken. Selbst gewählte Passwörter enthalten deshalb oft merkbare Elemente wie Wörter, Zahlen oder einfache Zeichenfolgen.',
+    ]);
+    expect(s05Content.intro.narration.buildingBlocks).toEqual([
+      "Du kannst dir diese Teile vereinfacht wie einzelne 'Bausteine' vorstellen.",
     ]);
     expect(s05Content.componentStrategy.commonComponents.explanation[0]).toBe(
       'Dazu gehören häufig verwendete Passwörter und Wörter, einfache Tastatur- und Zahlenfolgen wie „123456“ oder „qwertz“ oder naheliegende Jahreszahlen.',
@@ -101,10 +104,10 @@ describe('S05 content traceability', () => {
       'Persönliche Angaben sind vertraut und meist leicht zu merken. Gerade weil sie persönlich sind, können sie schwer erratbar wirken.',
     ]);
     expect(s05Content.componentStrategy.personalDetails.derivation).toEqual([
-      'Mit den Passwortdaten eines Kontos sind jedoch oft auch ein Benutzername oder eine E-Mail-Adresse verknüpft. Bei einem Datenleck können solche Kontohinweise offengelegt werden.',
+      'Bei einem Datenleck können jedoch Kennungen wie Benutzername, E-Mail-Adresse oder Telefonnummer offengelegt werden.',
     ]);
     expect(s05Content.componentStrategy.personalDetails.examples).toEqual([
-      'Mit diesen Hinweisen können Angreifer nach öffentlichen Profilen suchen und dort Angaben wie Namen, Geburtsdaten oder den Lieblingsverein finden und als Passwortbestandteile ausprobieren.',
+      'Angreifer können damit nach öffentlich verfügbaren Angaben wie Name, Geburtsdatum oder Interessen suchen und diese als mögliche Passwortbestandteile ausprobieren.',
     ]);
     expect(s05Content.componentStrategy.personalDetails.explanation).toEqual([
       'Deine Auswahl wird weder gespeichert noch exportiert. Markiere für den Selbstcheck mögliche persönliche Angaben im fiktiven Passwort.',
@@ -150,10 +153,10 @@ describe('S05 content traceability', () => {
       'campusgram',
     );
     expect(s05Content.componentStrategy.accountContext.opening).toEqual([
-      'Um sich leichter zu merken, welches Passwort zu welchem Konto gehört, werden oft Begriffe aus dem Dienst oder seinem Umfeld eingebaut. Solche Bezüge kann ein Angreifer gezielt mitprüfen.',
+      'Um sich leichter zu merken, welches Passwort zu welchem Konto gehört, werden oft Begriffe mit Bezug zum Konto, zum Dienst oder zu dessen Umfeld eingebaut. Solche Bezüge kann ein Angreifer gezielt mitprüfen.',
     ]);
     expect(s05Content.componentStrategy.accountContext.explanation).toEqual([
-      'Bei Campusgram wären das zum Beispiel „Campus“, „Nachricht“, der Benutzername oder der Dienstname, bei einem WLAN-Passwort etwa „WLAN“, „Router“ oder „Fritzbox“.',
+      'Bei Campusgram wären das zum Beispiel der Benutzername, ‚Campus‘, ‚Nachricht‘ oder der Dienstname, bei einem WLAN-Passwort etwa ‚WLAN‘, ‚Router‘ oder ‚Fritzbox‘.',
     ]);
     expect(s05Content.componentStrategy.accountContext.results).toMatchObject({
       none: ['Hier wurde kein direkter Bezug zu Campusgram erkannt.'],
@@ -254,7 +257,7 @@ describe('S05 content traceability', () => {
     );
     expect(s05Content.freeSearch.characterMix.finalVariationStatus).toBe('(Variation getestet)');
     expect(s05Content.freeSearch.characterMix.narration[3]).toBe(
-      'Darauf zu setzen, mit einer komplizierten Mischung wie „mEin!Pa55w0rt?“ eine Variante zu finden, die der Angreifer nicht prüft, ist deshalb riskant.',
+      'Darauf zu hoffen, dass der Angreifer eine komplizierte Variante wie „mEin!Pa55w0rt?“ nicht prüft, ist riskant.',
     );
     expect(s05Content.freeSearch.characterMix.narration[4]).toBe(
       'Das musst du auch nicht. Deshalb setzt die aktuelle Empfehlung bei selbst gewählten Passwörtern vor allem auf Länge.',
@@ -374,10 +377,10 @@ describe('S05 content traceability', () => {
         .every(({ startSection }) => startSection === 'structure'),
     ).toBe(true);
     expect(s05Content.intro.narration.candidateCheck).toEqual([
-      'Für den Angreifer ist dein Passwort verdeckt. Er probiert mögliche Passwörter aus und prüft, ob eines davon passt. Grundsätzlich kann er jede denkbare Zeichenfolge testen.',
+      'Der Angreifer kann grundsätzlich jede denkbare Zeichenfolge ausprobieren.',
     ]);
     expect(s05Content.intro.narration.strategyTargeting).toEqual([
-      'Der Angreifer sieht diese Bestandteile nicht. Er kann aber mögliche Bestandteile auswählen, kombinieren und daraus vollständige Passwörter ausprobieren.',
+      "Der Angreifer kann solche 'Bausteine' kombinieren und die daraus entstehenden Passwörter ausprobieren.",
     ]);
 
     const participantContent = JSON.stringify({

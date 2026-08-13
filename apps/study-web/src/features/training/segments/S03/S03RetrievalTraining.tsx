@@ -183,6 +183,7 @@ export function S03RetrievalTraining({
   const loginTitleRef = useRef<HTMLHeadingElement | null>(null);
   const assistedLoginButtonRef = useRef<HTMLButtonElement | null>(null);
   const failedLoginAttemptsRef = useRef<Partial<Record<S01AccountId, number>>>({});
+  const suppressThirdAttemptGuideRef = useRef(false);
   const [revealedAccountIds, setRevealedAccountIds] = useState<ReadonlySet<string>>(
     () => new Set(),
   );
@@ -332,42 +333,51 @@ export function S03RetrievalTraining({
         ? `${account.address}/dashboard`
         : account.address;
   const guideContent = campusgramWarningActive
-    ? { message: s03Content.narration.warning, emphasisId: 's03.warning' }
+    ? { speech: [s03Content.narration.warning], emphasisId: 's03.warning' }
     : assistanceActive
-      ? { message: s03Content.narration.retrievalHelp, emphasisId: 's03.retrieval-help' }
+      ? { speech: [s03Content.narration.retrievalHelp], emphasisId: 's03.retrieval-help' }
       : thirdAttemptGuideActive
         ? {
-            message: s03Content.narration.thirdFailedLogin,
+            speech: [s03Content.narration.thirdFailedLogin],
             emphasisId: 's03.third-failed-login',
           }
         : completionFeedbackActive
           ? {
-              message: s03Content.narration.completion,
+              speech: [s03Content.narration.completion],
               emphasisId: 's03.completion',
             }
           : result === 'retrievable'
               ? {
-                  message: s03Content.narration.accountSuccess[account.id],
+                  speech: [s03Content.narration.accountSuccess[account.id]],
                   emphasisId: 's03.success',
                 }
               : result === 'assisted'
                 ? {
-                    message: s03Content.narration.accountSuccess[account.id],
+                    speech: [s03Content.narration.accountSuccess[account.id]],
                     emphasisId: 's03.success',
                   }
                 : result === 'not-remembered'
                   ? {
-                      message: s03Content.narration.retrievalHelp,
+                      speech: [s03Content.narration.retrievalHelp],
                       emphasisId: 's03.retrieval-help',
                     }
-                  : { message: s03Content.narration.intro, emphasisId: 's03.intro' };
-  const guideMessage = guideContent.message;
+                  : guideOpen
+                    ? {
+                        speech: [
+                          s03Content.narration.intro,
+                          s03Content.narration.thirdFailedLogin,
+                        ],
+                        emphasisId: 's03.intro-help',
+                      }
+                    : { speech: [s03Content.narration.intro], emphasisId: 's03.intro' };
   const guidePhase = campusgramWarningActive
     ? 'warning'
     : assistanceActive
       ? 'assistance'
       : thirdAttemptGuideActive
         ? 'third-failed-login'
+        : guideOpen && result === 'pending'
+          ? 'intro-help'
         : completionFeedbackActive
           ? 'completion-feedback'
           : autofillingActive
@@ -523,7 +533,7 @@ export function S03RetrievalTraining({
                   helpOpen={guideVisible}
                   helpId="s03-guide"
                   openHelpLabel="PassWo-Hinweis öffnen"
-                  speech={[guideMessage]}
+                  speech={guideContent.speech}
                   speechKey={guideSpeechKey}
                   speechEmphasis={passWoSpeechEmphasisFor(guideContent.emphasisId)}
                   speechPlacement="right"
@@ -642,7 +652,8 @@ export function S03RetrievalTraining({
                               accountId: account.id,
                               attempt,
                             });
-                            if (attempt === 3) {
+                            if (attempt === 3 && !suppressThirdAttemptGuideRef.current) {
+                              suppressThirdAttemptGuideRef.current = true;
                               setThirdAttemptGuideAccountId(account.id);
                               setGuideOpen(true);
                             }
@@ -790,6 +801,7 @@ export function S03RetrievalTraining({
                         onClick={(event) => {
                           event.preventDefault();
                           if (!interactionBlocked) {
+                            suppressThirdAttemptGuideRef.current = true;
                             setInvalidLoginFeedback(null);
                             setThirdAttemptGuideAccountId(null);
                             controller.skipRetrieval(account.id);

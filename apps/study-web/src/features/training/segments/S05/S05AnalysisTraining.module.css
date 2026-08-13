@@ -228,12 +228,12 @@
   display: block;
   box-sizing: border-box;
   min-width: 0;
-  width: fit-content;
+  width: 100%;
   max-width: 100%;
   overflow: hidden;
   padding:
     clamp(var(--space-4), 2cqi, var(--space-5))
-    calc(clamp(var(--space-5), 3cqi, var(--space-7)) * var(--s05-campusgram-password-scale));
+    calc(clamp(var(--space-3), 1.25cqi, var(--space-4)) * var(--s05-campusgram-password-scale));
   border: var(--border-width-thin) solid color-mix(in srgb, var(--color-campusgram) 58%, var(--color-border));
   border-radius: var(--radius-medium);
   color: #f5eaf0;
@@ -246,6 +246,7 @@
       ) * var(--s05-campusgram-password-scale)
   );
   letter-spacing: calc(0.12em * var(--s05-campusgram-password-scale));
+  text-align: center;
   text-overflow: clip;
   white-space: nowrap;
 }
@@ -355,7 +356,7 @@
   justify-content: center;
   gap: clamp(0.25rem, 0.7cqi, var(--space-2));
   opacity: 1;
-  transform: scale(1.08);
+  transform: scale(1);
   transform-origin: center;
 }
 
@@ -779,27 +780,7 @@
   gap: clamp(0.16rem, 0.55cqi, var(--space-2));
   justify-content: center;
   opacity: 0;
-  animation: strategy-candidate-cycle 6.5s var(--motion-ease-out) infinite both;
-}
-
-.strategyCandidateAttempt:nth-child(1) {
-  animation-delay: 1.62s;
-}
-
-.strategyCandidateAttempt:nth-child(2) {
-  animation-delay: 2.92s;
-}
-
-.strategyCandidateAttempt:nth-child(3) {
-  animation-delay: 4.22s;
-}
-
-.strategyCandidateAttempt:nth-child(4) {
-  animation-delay: 5.52s;
-}
-
-.strategyCandidateAttempt:nth-child(5) {
-  animation-delay: 6.82s;
+  animation: strategy-candidate-cycle 13s var(--motion-ease-out) infinite both;
 }
 
 .strategyCandidateBlock {
@@ -2206,17 +2187,19 @@
   left: var(--scale-x);
   width: var(--sphere-size);
   height: var(--sphere-size);
-  border: 1px solid color-mix(in srgb, var(--sphere-color) 22%, rgb(255 255 255 / 12%));
+  border: 1px solid color-mix(in srgb, var(--sphere-color) 72%, rgb(255 255 255 / 18%));
   border-radius: var(--radius-round);
-  background:
-    radial-gradient(circle at 35% 28%, rgb(255 255 255 / 22%), transparent 3.5%),
-    radial-gradient(circle at 34% 29%, color-mix(in srgb, var(--sphere-color) 34%, white), transparent 13%),
-    radial-gradient(circle at 62% 72%, color-mix(in srgb, var(--sphere-color) 72%, #050810), color-mix(in srgb, var(--sphere-color) 30%, #02040a) 72%);
+  background: radial-gradient(
+    circle at center,
+    color-mix(in srgb, var(--sphere-color) 66%, #09101d) 0 54%,
+    color-mix(in srgb, var(--sphere-color) 38%, #03060c) 78%,
+    color-mix(in srgb, var(--sphere-color) 74%, #08101b) 100%
+  );
   box-shadow:
-    inset calc(var(--sphere-size) * -0.045) calc(var(--sphere-size) * -0.065) calc(var(--sphere-size) * 0.13) rgb(0 0 0 / 26%),
-    0 calc(var(--sphere-size) * 0.025) calc(var(--sphere-size) * 0.09) rgb(0 0 0 / 34%),
-    0 0 calc(var(--sphere-size) * 0.09) color-mix(in srgb, var(--sphere-color) 28%, transparent),
-    0 0 calc(var(--sphere-size) * 0.2) color-mix(in srgb, var(--sphere-color) 8%, transparent);
+    inset 0 0 calc(var(--sphere-size) * 0.045) color-mix(in srgb, var(--sphere-color) 82%, transparent),
+    inset 0 0 calc(var(--sphere-size) * 0.14) rgb(0 0 0 / 24%),
+    0 0 calc(var(--sphere-size) * 0.025) color-mix(in srgb, var(--sphere-color) 64%, transparent),
+    0 0 calc(var(--sphere-size) * 0.075) color-mix(in srgb, var(--sphere-color) 24%, transparent);
   opacity: 0.72;
   transform: translateX(-50%);
   transition:
@@ -2233,10 +2216,10 @@
   opacity: 1;
   filter: saturate(1.08) brightness(1.05);
   box-shadow:
-    inset calc(var(--sphere-size) * -0.045) calc(var(--sphere-size) * -0.065) calc(var(--sphere-size) * 0.13) rgb(0 0 0 / 26%),
-    0 calc(var(--sphere-size) * 0.025) calc(var(--sphere-size) * 0.09) rgb(0 0 0 / 34%),
-    0 0 calc(var(--sphere-size) * 0.12) color-mix(in srgb, var(--sphere-color) 42%, transparent),
-    0 0 calc(var(--sphere-size) * 0.27) color-mix(in srgb, var(--sphere-color) 13%, transparent);
+    inset 0 0 calc(var(--sphere-size) * 0.05) color-mix(in srgb, var(--sphere-color) 92%, transparent),
+    inset 0 0 calc(var(--sphere-size) * 0.14) rgb(0 0 0 / 20%),
+    0 0 calc(var(--sphere-size) * 0.035) color-mix(in srgb, var(--sphere-color) 76%, transparent),
+    0 0 calc(var(--sphere-size) * 0.1) color-mix(in srgb, var(--sphere-color) 30%, transparent);
 }
 
 .scaleSphere[data-reached="true"]:not([data-active="true"]) {
@@ -2318,6 +2301,10 @@
   width: calc(var(--sphere-size) * 0.88);
 }
 
+.scaleTimeBubble:is([data-length="17"], [data-length="18"])[data-active="true"] {
+  width: calc(var(--sphere-size) * 0.82);
+}
+
 .scaleTimeInformation {
   position: relative;
   display: grid;
@@ -2358,9 +2345,14 @@
   width: 100%;
   min-width: 0;
   justify-self: stretch;
-  font-size: clamp(1.1rem, calc(var(--sphere-size) * 0.145), 5rem);
+  color: #fff;
+  font-size: clamp(1.2rem, calc(var(--sphere-size) * 0.16), 5.5rem);
+  font-weight: var(--font-weight-heavy);
   line-height: var(--line-height-tight);
   text-align: center;
+  text-shadow:
+    0 0.08em 0.12em rgb(0 0 0 / 96%),
+    0 0 0.36em rgb(255 255 255 / 34%);
   white-space: normal;
 }
 
@@ -2374,6 +2366,34 @@
 
 .scaleTimeValueRow {
   display: inline;
+}
+
+.scaleTimeNumber {
+  display: inline-block;
+  color: #fff;
+  font-size: 1.36em;
+  font-weight: var(--font-weight-heavy);
+  letter-spacing: -0.045em;
+  line-height: 0.84;
+  -webkit-text-stroke: 0.012em rgb(255 255 255 / 72%);
+  text-shadow:
+    0 0.07em 0.1em rgb(0 0 0 / 98%),
+    0 0 0.16em rgb(255 255 255 / 78%),
+    0 0 0.38em color-mix(in srgb, var(--sphere-color) 92%, transparent),
+    0 0 0.72em color-mix(in srgb, var(--sphere-color) 48%, transparent);
+  transform: translateY(0.015em) scale(1.1);
+}
+
+.scaleTimeBubble:is([data-length="17"], [data-length="18"])[data-active="true"]
+  .scaleTimeInformation > strong {
+  font-size: clamp(1.15rem, calc(var(--sphere-size) * 0.125), 4.5rem);
+}
+
+.scaleTimeBubble:is([data-length="17"], [data-length="18"])[data-active="true"]
+  .scaleTimeNumber {
+  font-size: 1.24em;
+  letter-spacing: -0.055em;
+  transform: translateY(0.015em) scale(1.04);
 }
 
 .scaleTimeApproximateNumber {
@@ -3768,18 +3788,18 @@
 
 @keyframes strategy-candidate-cycle {
   0%,
-  6% {
+  1.5% {
     opacity: 0;
     transform: translateY(-1.2rem) scale(1.45);
   }
 
-  15%,
-  28% {
+  3.75%,
+  7% {
     opacity: 1;
     transform: translateY(0) scale(1);
   }
 
-  40%,
+  10%,
   100% {
     opacity: 0;
     transform: translateY(0.9rem) scale(0.84);
