@@ -130,21 +130,28 @@ Seitenangaben beziehen sich auf die im Trainingsdokument ausgewiesene interne Pa
   Projektion; nur die Eingabequelle unterscheidet sich zwischen Fixtures und flüchtigen
   Übungswerten.
 - Die Laufzeitwerte werden beim bestätigten Eintritt einmal lokal ausgewertet. Drei
-  Einzelanalysen, vier gerichtete Kontovergleiche und die daraus projizierten Szenen bleiben
+  Einzelanalysen, sechs gerichtete Kontovergleiche und die daraus projizierten Szenen bleiben
   flüchtig und werden weder in den globalen Machine Context kopiert noch an eine Study API
   gesendet.
 - Der Timing-Handshake lautet S05 segment-end, S06 segment-start, S06 segment-end. Ein
   fehlgeschlagener späterer Write wiederholt keine bereits bestätigte Grenze.
 - Die Projektion verwendet die drei fiktiven Konten Master Campus, Campus E-Mail und Campusgram.
-  Campusgram wird gegen beide anderen Konten geprüft; beim Perspektivwechsel wird Master Campus
-  gegen Campusgram und Campus E-Mail geprüft. Campusgram-Inhalte bleiben lokale
+  Jede Datenleckperspektive prüft die beiden gerichteten Beziehungen zu den anderen Konten.
+  Bereits gezeigte Rückwege laufen direkt im Netzwerk, ohne die Vergleichskarte erneut zu öffnen.
+  Campusgram-Inhalte bleiben lokale
   Inhaltszuordnungen und werden nicht als SSO-Dienste modelliert.
+- Nach der Campus-E-Mail-Perspektive kündigt PassWo die Rückkehr an. Erst `Weiter` stellt die
+  tatsächliche Campusgram-Ausgangslage einschließlich ihres ursprünglichen lokalen Prüfergebnisses
+  wieder her.
+- Ein hypothetischer Campus-E-Mail-Befall setzt vor den ausgehenden Prüfpfaden den Angreifer und
+  den gesamten Kontozweig sichtbar auf betroffen. Der anschließende Passphrasen-Übergang bewahrt
+  die wiederhergestellte Campusgram-Schlussansicht unverändert.
 - Eine Beziehung ist ausschließlich `exact-match`, `derived-variant-match` oder
   `no-derived-path-recognized`. Eine abgeleitete Variante benötigt einen konkreten begrenzten
   Transformationsweg, dessen erzeugter Kandidat den vollständigen Zielwert trifft.
 - Gemeinsame Teilstrings, allgemeine Ähnlichkeit und Edit-Distance begründen keinen Treffer. Ein
   nicht erkannter Weg bedeutet nur, dass diese Simulation keinen direkten Weg erkannt hat.
-- `S06_CONSEQUENCE_CONTENT_VERSION 2.4.0` übernimmt die S05-Vollpasswort-Disposition ohne eigene
+- `S06_CONSEQUENCE_CONTENT_VERSION 2.14.0` übernimmt die S05-Vollpasswort-Disposition ohne eigene
   Guess-Schwelle. Nur `whole-password-recognized` öffnet den tatsächlichen lokalen Vorfallspfad;
   `no-whole-password-recognized` bleibt eine begrenzte Nicht-Erkennung und kein Stärkeurteil.
 - Vier deterministische Design-Lab-Fixtures decken exakte Wiederverwendung plus Ableitung, einen

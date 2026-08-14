@@ -10,7 +10,7 @@ import {
   type CSSProperties,
   type RefObject,
 } from 'react';
-import passwordFactorShieldAsset from '../../../../assets/s05/password-factor-shield.png';
+import comparisonPathShieldAsset from '../../../../assets/s06/comparison-path-shield.png';
 import { NetworkSymbol } from '../../../../adapters/network/NetworkSymbolRegistry.js';
 import { PasswordBuildingBlocks } from '../S05/PasswordBuildingBlocks.js';
 import styles from './S06PasswordComparisonProjection.module.css';
@@ -224,7 +224,7 @@ function PreviewAttackPath({
       {blocked && resultRevealed ? (
         <img
           className={styles.previewShield}
-          src={passwordFactorShieldAsset}
+          src={comparisonPathShieldAsset}
           alt=""
         />
       ) : null}

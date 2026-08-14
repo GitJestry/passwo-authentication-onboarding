@@ -51,12 +51,14 @@ export interface S06ConsequenceControllerSnapshot {
     | 'hypothetical-ready'
     | 'master-hypothetical-animating'
     | 'master-hypothetical-ready'
+    | 'email-hypothetical-animating'
     | 'attacking'
     | 'campusgram-summary'
     | 'perspective-transition'
     | 'local-check-animating'
     | 'local-check-result'
     | 'email-transition'
+    | 'return-transition'
     | 'final-summary'
     | 's07-transition'
     | 'complete';
@@ -75,6 +77,7 @@ export interface S06ConsequenceControllerSnapshot {
   readonly isHypothetical: boolean;
   readonly showGuide: boolean;
   readonly comparisonVisible: boolean;
+  readonly comparisonPreviewVisible: boolean;
   readonly completedComparisonResults: Readonly<
     Partial<Record<S06AccountId, PasswordRelation['kind']>>
   >;
@@ -107,6 +110,8 @@ type ControllerListener = (snapshot: S06ConsequenceControllerSnapshot) => void;
 
 type S06MissionPhase =
   | { readonly kind: 'comparison'; readonly step: PasswordConsequencePlanStep }
+  | { readonly kind: 'automatic-comparison'; readonly step: PasswordConsequencePlanStep }
+  | { readonly kind: 'comparison-resolution'; readonly step: PasswordConsequencePlanStep }
   | { readonly kind: 'campusgram-summary' }
   | { readonly kind: 'perspective-transition' }
   | { readonly kind: 'local-check'; readonly step: PasswordConsequencePlanStep }
@@ -114,7 +119,12 @@ type S06MissionPhase =
       readonly kind: 'master-campus-hypothetical-intro';
       readonly step: PasswordConsequencePlanStep;
     }
+  | {
+      readonly kind: 'campus-email-hypothetical-intro';
+      readonly step: PasswordConsequencePlanStep;
+    }
   | { readonly kind: 'email-transition' }
+  | { readonly kind: 'return-transition' }
   | { readonly kind: 'final-summary' }
   | { readonly kind: 's07-transition' };
 
@@ -124,11 +134,16 @@ interface S06MissionSequence {
 }
 
 const accountIds = ['campusgram', 'master-campus', 'campus-email'] as const;
+const infectionDurationMs = 1350;
+const comparisonResolutionDurationMs = 1350;
+const automaticAttackDurationMs = 800;
 const comparisonPairs = [
   ['campusgram', 'master-campus'],
   ['campusgram', 'campus-email'],
   ['master-campus', 'campusgram'],
   ['master-campus', 'campus-email'],
+  ['campus-email', 'master-campus'],
+  ['campus-email', 'campusgram'],
 ] as const satisfies readonly (readonly [S06AccountId, S06AccountId])[];
 
 export function createS06FixtureScenePlan(
@@ -228,8 +243,26 @@ function masterCampusWasFound(plan: PasswordConsequenceScenePlan): boolean {
   );
 }
 
+function campusEmailWasFound(plan: PasswordConsequenceScenePlan): boolean {
+  return (
+    plan.accounts.find(({ accountId }) => accountId === 'campus-email')?.disposition.kind ===
+    'whole-password-recognized'
+  );
+}
+
+function localCheckDurationMs(step: PasswordConsequencePlanStep): number {
+  const sourceAccountId = step.sourceAccountId;
+  if (sourceAccountId === null) return 0;
+  return step.network.nodes.some(
+    ({ id, status }) => id === sourceAccountId && status === 'exposed',
+  )
+    ? infectionDurationMs
+    : 0;
+}
+
 function missionStepForPhase(phase: S06MissionPhase): MissionDefinition['steps'][number] {
-  if (phase.kind === 'comparison') {
+  if (phase.kind === 'comparison' || phase.kind === 'automatic-comparison') {
+    const automatic = phase.kind === 'automatic-comparison';
     return {
       id: phase.step.id,
       narrationId: phase.step.narrationId,
@@ -239,28 +272,59 @@ function missionStepForPhase(phase: S06MissionPhase): MissionDefinition['steps']
           {
             type: 'reveal' as const,
             targetId: phase.step.visibleChange.targetId,
-            durationMs: 500,
+            durationMs: automatic ? 800 : 500,
           },
         ],
         reducedMotion: { strategy: 'instant-end-state' as const, maxDurationMs: 0 },
-        maxDurationMs: 500,
+        maxDurationMs: automatic ? automaticAttackDurationMs : 500,
       },
     };
   }
-  if (phase.kind === 'local-check' || phase.kind === 'master-campus-hypothetical-intro') {
+  if (phase.kind === 'comparison-resolution') {
+    return {
+      id: `${phase.step.id}-resolution`,
+      narrationId: phase.step.narrationId,
+      animation: {
+        id: `${phase.step.id}-resolution-animation`,
+        steps: [{ type: 'pause', durationMs: comparisonResolutionDurationMs }],
+        reducedMotion: { strategy: 'instant-end-state' as const, maxDurationMs: 0 },
+        maxDurationMs: comparisonResolutionDurationMs,
+      },
+    };
+  }
+  if (
+    phase.kind === 'local-check' ||
+    phase.kind === 'master-campus-hypothetical-intro' ||
+    phase.kind === 'campus-email-hypothetical-intro'
+  ) {
     const id =
-      phase.kind === 'local-check' ? phase.step.id : 's06-master-campus-hypothetical-intro';
+      phase.kind === 'local-check'
+        ? phase.step.id
+        : phase.kind === 'master-campus-hypothetical-intro'
+          ? 's06-master-campus-hypothetical-intro'
+          : 's06-campus-email-hypothetical-intro';
     return {
       id,
       narrationId:
-        phase.kind === 'local-check'
-          ? phase.step.narrationId
-          : 's06.incident.master-campus-hypothetical',
+        phase.kind === 'master-campus-hypothetical-intro'
+          ? 's06.incident.master-campus-hypothetical'
+          : phase.step.narrationId,
       animation: {
         id: `${id}-animation`,
-        steps: [{ type: 'pause', durationMs: 1350 }],
+        steps: [
+          {
+            type: 'pause',
+            durationMs:
+              phase.kind === 'local-check'
+                ? localCheckDurationMs(phase.step)
+                : infectionDurationMs,
+          },
+        ],
         reducedMotion: { strategy: 'instant-end-state' as const, maxDurationMs: 0 },
-        maxDurationMs: 1350,
+        maxDurationMs:
+          phase.kind === 'local-check'
+            ? localCheckDurationMs(phase.step)
+            : infectionDurationMs,
       },
     };
   }
@@ -278,9 +342,13 @@ function missionStepForPhase(phase: S06MissionPhase): MissionDefinition['steps']
 }
 
 function createMission(plan: PasswordConsequenceScenePlan): S06MissionSequence {
+  const campusgramMasterStep = planStep(plan, 's06-step-campusgram-master-campus');
+  const campusgramEmailStep = planStep(plan, 's06-step-campusgram-campus-email');
   const phases: S06MissionPhase[] = [
-    { kind: 'comparison', step: planStep(plan, 's06-step-campusgram-master-campus') },
-    { kind: 'comparison', step: planStep(plan, 's06-step-campusgram-campus-email') },
+    { kind: 'comparison', step: campusgramMasterStep },
+    { kind: 'comparison-resolution', step: campusgramMasterStep },
+    { kind: 'comparison', step: campusgramEmailStep },
+    { kind: 'comparison-resolution', step: campusgramEmailStep },
     { kind: 'campusgram-summary' },
     { kind: 'perspective-transition' },
     { kind: 'local-check', step: planStep(plan, 's06-step-master-campus-perspective') },
@@ -291,17 +359,32 @@ function createMission(plan: PasswordConsequenceScenePlan): S06MissionSequence {
       step: planStep(plan, 's06-step-master-campus-perspective'),
     });
   }
-  phases.push({
-    kind: 'comparison',
-    step: planStep(plan, 's06-step-master-campus-campusgram'),
-  });
-  phases.push({
-    kind: 'comparison',
-    step: planStep(plan, 's06-step-master-campus-campus-email'),
-  });
+  const masterCampusgramStep = planStep(plan, 's06-step-master-campus-campusgram');
+  phases.push({ kind: 'automatic-comparison', step: masterCampusgramStep });
+  phases.push({ kind: 'comparison-resolution', step: masterCampusgramStep });
+  const masterEmailStep = planStep(plan, 's06-step-master-campus-campus-email');
+  phases.push(
+    { kind: 'comparison', step: masterEmailStep },
+    { kind: 'comparison-resolution', step: masterEmailStep },
+  );
   phases.push(
     { kind: 'email-transition' },
     { kind: 'local-check', step: planStep(plan, 's06-step-campus-email-local-check') },
+  );
+  if (!campusEmailWasFound(plan)) {
+    phases.push({
+      kind: 'campus-email-hypothetical-intro',
+      step: planStep(plan, 's06-step-campus-email-local-check'),
+    });
+  }
+  const campusEmailMasterStep = planStep(plan, 's06-step-campus-email-master-campus');
+  const campusEmailCampusgramStep = planStep(plan, 's06-step-campus-email-campusgram');
+  phases.push(
+    { kind: 'automatic-comparison', step: campusEmailMasterStep },
+    { kind: 'comparison-resolution', step: campusEmailMasterStep },
+    { kind: 'automatic-comparison', step: campusEmailCampusgramStep },
+    { kind: 'comparison-resolution', step: campusEmailCampusgramStep },
+    { kind: 'return-transition' },
     { kind: 'final-summary' },
     { kind: 's07-transition' },
   );
@@ -389,24 +472,28 @@ function attackPreviewNetwork(
   const targetAccountId = step.targetAccountId;
   if (targetAccountId === null) return step.network;
   const settledNodes = new Map(settledNetwork.nodes.map((node) => [node.id, node]));
+  const priorBlockingShields = settledNetwork.nodes.filter(({ kind }) => kind === 'shield');
   const priorAttackEdges = settledNetwork.edges.filter(isAttackEdge);
   const currentAttackEdge = step.network.edges.find(isAttackEdge);
   const persistentNetwork = preserveSettledAffectedState(step.network, settledNetwork);
   return {
     ...persistentNetwork,
     id: `${step.network.id}-attack-preview`,
-    nodes: persistentNetwork.nodes.flatMap((node): readonly SceneNode[] => {
-      if (node.kind === 'shield') return [];
-      if (isAccountBranchNode(node, targetAccountId)) {
-        const settledNode = settledNodes.get(node.id);
-        return [
-          carriesAffectedStatus(settledNode)
-            ? { ...node, status: settledNode.status }
-            : { ...node, status: 'neutral' },
-        ];
-      }
-      return [node];
-    }),
+    nodes: [
+      ...persistentNetwork.nodes.flatMap((node): readonly SceneNode[] => {
+        if (node.kind === 'shield') return [];
+        if (isAccountBranchNode(node, targetAccountId)) {
+          const settledNode = settledNodes.get(node.id);
+          return [
+            carriesAffectedStatus(settledNode)
+              ? { ...node, status: settledNode.status }
+              : { ...node, status: 'neutral' },
+          ];
+        }
+        return [node];
+      }),
+      ...priorBlockingShields,
+    ],
     edges: [
       ...persistentNetwork.edges.filter((edge) => !isAttackEdge(edge)),
       ...priorAttackEdges,
@@ -425,26 +512,57 @@ function blockedResolutionNetwork(
   retainAttackPath: boolean,
 ): NetworkSceneSnapshot {
   const targetAccountId = step.targetAccountId;
-  if (targetAccountId === null) return attackNetwork;
+  const sourceAccountId = step.sourceAccountId;
+  if (sourceAccountId === null || targetAccountId === null) return attackNetwork;
   const priorNodes = new Map(priorSettledNetwork.nodes.map((node) => [node.id, node]));
+  const sourceNode = attackNetwork.nodes.find(({ id }) => id === sourceAccountId);
+  const targetNode = attackNetwork.nodes.find(({ id }) => id === targetAccountId);
+  const authoredShield = step.network.nodes.find(({ kind }) => kind === 'shield');
+  const blockingShield =
+    sourceNode === undefined || targetNode === undefined || authoredShield === undefined
+      ? null
+      : {
+          ...authoredShield,
+          symbolId: 'comparison-path-shield',
+          position: {
+            x: sourceNode.position.x + (targetNode.position.x - sourceNode.position.x) * 0.78,
+            y:
+              sourceNode.position.y +
+              (targetNode.position.y - sourceNode.position.y) * 0.78 +
+              (sourceAccountId === 'master-campus' && targetAccountId === 'campus-email'
+                ? -0.08
+                : sourceAccountId === 'campus-email' && targetAccountId === 'master-campus'
+                  ? 0.08
+                  : 0),
+          },
+        };
+  const priorBlockingShields = attackNetwork.nodes.filter(
+    (node) => node.kind === 'shield' && node.id !== blockingShield?.id,
+  );
   const targetLabel =
     step.network.nodes.find(({ id }) => id === targetAccountId)?.label ?? targetAccountId;
   return {
     ...attackNetwork,
     id: `${step.network.id}-${retainAttackPath ? 'blocked-resolving' : 'blocked-resolved'}`,
-    nodes: attackNetwork.nodes.flatMap((node): readonly SceneNode[] => {
-      if (node.kind === 'shield') return [];
-      if (!isAccountBranchNode(node, targetAccountId)) return [node];
-      const prior = priorNodes.get(node.id);
-      return [
-        prior?.status === 'affected' || prior?.status === 'exposed'
-          ? { ...node, status: prior.status }
-          : { ...node, status: 'neutral' },
-      ];
-    }),
-    edges: retainAttackPath
-      ? attackNetwork.edges
-      : attackNetwork.edges.filter((edge) => edge.id !== `${step.id}-path`),
+    nodes: [
+      ...attackNetwork.nodes.flatMap((node): readonly SceneNode[] => {
+        if (node.kind === 'shield') return [];
+        if (!isAccountBranchNode(node, targetAccountId)) return [node];
+        const prior = priorNodes.get(node.id);
+        return [
+          prior?.status === 'affected' || prior?.status === 'exposed'
+            ? { ...node, status: prior.status }
+            : { ...node, status: 'neutral' },
+        ];
+      }),
+      ...priorBlockingShields,
+      ...(blockingShield === null ? [] : [blockingShield]),
+    ],
+    edges: attackNetwork.edges.map((edge): SceneEdge =>
+      edge.id === `${step.id}-path` && blockingShield !== null
+        ? { ...edge, targetId: blockingShield.id, status: 'blocked' }
+        : edge,
+    ),
     accessibleSummary: retainAttackPath
       ? `Die aktuelle Angriffslinie wird vor ${targetLabel} blockiert.`
       : `${targetLabel}: ${s06ConsequenceContent.comparisonResultLabels['no-derived-path-recognized']}.`,
@@ -474,14 +592,18 @@ function resolvedNetwork(
     return blockedResolutionNetwork(step, attackNetwork, priorSettledNetwork, false);
   }
   const persistentNetwork = preserveSettledAffectedState(step.network, attackNetwork);
+  const priorBlockingShields = attackNetwork.nodes.filter(({ kind }) => kind === 'shield');
   return {
     ...persistentNetwork,
     id: `${step.network.id}-resolved`,
-    nodes: persistentNetwork.nodes.flatMap((node): readonly SceneNode[] => {
-      if (node.kind === 'shield') return [];
-      if (isAccountBranchNode(node, targetAccountId)) return [{ ...node, status: 'affected' }];
-      return [node];
-    }),
+    nodes: [
+      ...persistentNetwork.nodes.flatMap((node): readonly SceneNode[] => {
+        if (node.kind === 'shield') return [];
+        if (isAccountBranchNode(node, targetAccountId)) return [{ ...node, status: 'affected' }];
+        return [node];
+      }),
+      ...priorBlockingShields,
+    ],
     edges: mergeWithPriorAttackEdges(persistentNetwork.edges),
     accessibleSummary: `${targetLabel}: ${resultLabel}.`,
   };
@@ -501,26 +623,19 @@ function hypotheticalCampusgramNetwork(
 
 function pendingLocalCheckNetwork(
   step: PasswordConsequencePlanStep,
-  settledNetwork: NetworkSceneSnapshot,
 ): NetworkSceneSnapshot {
   const sourceAccountId = step.sourceAccountId;
   if (sourceAccountId === null) return step.network;
-  const persistentNetwork = preserveSettledAffectedState(
-    step.network,
-    settledNetwork,
-    sourceAccountId,
-  );
   return {
-    ...persistentNetwork,
+    ...step.network,
     id: `${step.network.id}-pending-local-check`,
-    nodes: persistentNetwork.nodes.flatMap((node): readonly SceneNode[] => {
+    nodes: step.network.nodes.flatMap((node): readonly SceneNode[] => {
       if (node.kind === 'shield') return [];
-      return [
-        isAccountBranchNode(node, sourceAccountId)
-          ? { ...node, status: 'neutral' }
-          : node,
-      ];
+      return [{ ...node, status: 'neutral' }];
     }),
+    edges: step.network.edges
+      .filter((edge) => !isAttackEdge(edge))
+      .map((edge): SceneEdge => ({ ...edge, status: 'neutral' })),
     accessibleSummary: `${s06ConsequenceContent.accounts[sourceAccountId].label}: Die begrenzte lokale Prüfung läuft; das Ergebnis ist noch offen.`,
   };
 }
@@ -569,14 +684,21 @@ export class S06ConsequenceController {
   readonly #mission: MissionDefinition;
   readonly #missionPhases: readonly S06MissionPhase[];
   readonly #prefersReducedMotion: () => boolean;
+  readonly #onComplete: () => void;
   readonly #listeners = new Set<ControllerListener>();
   readonly #unsubscribeMission: () => void;
   #renderer: NetworkRendererPort | null = null;
   #settledNetwork: NetworkSceneSnapshot;
+  readonly #campusgramInitialNetwork: NetworkSceneSnapshot;
+  #campusgramOutcomeNetwork: NetworkSceneSnapshot;
+  #campusgramComparisonResults: Readonly<
+    Partial<Record<S06AccountId, PasswordRelation['kind']>>
+  > = {};
   #displayedAttackNetwork: NetworkSceneSnapshot | null = null;
-  #pendingInfectionNodeIds = new Set<string>();
-  #pendingInfectionKind: 'hypothetical-intro' | 'attack-resolution' | null = null;
+  #pendingResolutionNodeIds = new Set<string>();
+  #waitingForHypotheticalResolution = false;
   #snapshot: S06ConsequenceControllerSnapshot;
+  #completionNotified = false;
   #disposed = false;
 
   constructor({
@@ -589,7 +711,10 @@ export class S06ConsequenceController {
     if (firstStep === undefined) throw new Error('S06 scene plan requires at least one step.');
     this.#plan = plan;
     this.#prefersReducedMotion = prefersReducedMotion;
+    this.#onComplete = onComplete ?? (() => undefined);
     this.#settledNetwork = firstStep.network;
+    this.#campusgramInitialNetwork = firstStep.network;
+    this.#campusgramOutcomeNetwork = firstStep.network;
     const missionSequence = createMission(plan);
     this.#mission = missionSequence.mission;
     this.#missionPhases = missionSequence.phases;
@@ -615,6 +740,7 @@ export class S06ConsequenceController {
       isHypothetical: false,
       showGuide: true,
       comparisonVisible: false,
+      comparisonPreviewVisible: false,
       completedComparisonResults: {},
       controls: {
         canStart: this.#campusgramWasFound(),
@@ -624,7 +750,7 @@ export class S06ConsequenceController {
     };
     this.#missionController = new MissionController({
       animationPlayer,
-      onComplete: onComplete ?? (() => undefined),
+      onComplete: () => this.#notifyComplete(),
     });
     this.#unsubscribeMission = this.#missionController.subscribe((snapshot) =>
       this.#handleMissionSnapshot(snapshot),
@@ -646,6 +772,11 @@ export class S06ConsequenceController {
 
   continue(): Promise<void> {
     if (this.#disposed || !this.#snapshot.controls.canContinue) return Promise.resolve();
+    if (this.#snapshot.stage === 's07-transition') {
+      const missionCompletion = this.#missionController.continue();
+      this.#notifyComplete();
+      return missionCompletion;
+    }
     if (this.#snapshot.stage === 'initial-blocked') {
       this.#startHypotheticalIntro();
       return Promise.resolve();
@@ -729,44 +860,35 @@ export class S06ConsequenceController {
     this.#snapshot = {
       ...this.#snapshot,
       comparisonVisible: false,
+      comparisonPreviewVisible: false,
       completedComparisonResults: {
         ...this.#snapshot.completedComparisonResults,
         [this.#snapshot.step.targetAccountId]: this.#snapshot.step.relation.kind,
       },
     };
-    const waitsForInfection = this.#waitForInfectionCascade(
-      this.#settledNetwork,
-      this.#snapshot.step.targetAccountId,
-      'attack-resolution',
-    );
     this.#renderer?.render(this.#settledNetwork);
-    if (!waitsForInfection) this.infectionCascadeSettled([]);
     this.#emit();
+    // Progress is owned by the timed resolution phase, not by CSS animation-end events.
+    void this.#missionController.continue();
   }
 
-  infectionCascadeSettled(settledNodeIds: readonly string[]): void {
-    if (this.#disposed || this.#pendingInfectionKind === null) return;
-    for (const nodeId of settledNodeIds) this.#pendingInfectionNodeIds.delete(nodeId);
-    if (this.#pendingInfectionNodeIds.size > 0) return;
+  resolutionVisualSettled(settledNodeIds: readonly string[]): void {
+    if (this.#disposed || !this.#waitingForHypotheticalResolution) return;
+    for (const nodeId of settledNodeIds) this.#pendingResolutionNodeIds.delete(nodeId);
+    if (this.#pendingResolutionNodeIds.size > 0) return;
 
-    const pendingKind = this.#pendingInfectionKind;
-    this.#pendingInfectionKind = null;
-    if (pendingKind === 'hypothetical-intro') {
-      this.#snapshot = {
-        ...this.#snapshot,
-        phase: 'awaiting-decision',
-        stage: 'hypothetical-ready',
-        participant: this.#participantForNarration('s06.incident.campusgram-hypothetical'),
-        attackPhase: 'found',
-        attackSourceAccountId: 'campusgram',
-        showGuide: true,
-        controls: { canStart: true, canReplay: false, canContinue: true },
-      };
-      this.#emit();
-      return;
-    }
-
-    void this.#missionController.continue();
+    this.#waitingForHypotheticalResolution = false;
+    this.#snapshot = {
+      ...this.#snapshot,
+      phase: 'awaiting-decision',
+      stage: 'hypothetical-ready',
+      participant: this.#participantForNarration('s06.incident.campusgram-hypothetical'),
+      attackPhase: 'found',
+      attackSourceAccountId: 'campusgram',
+      showGuide: true,
+      controls: { canStart: true, canReplay: false, canContinue: true },
+    };
+    this.#emit();
   }
 
   updatePresentation(presentation: NetworkPresentationSnapshot): void {
@@ -791,15 +913,53 @@ export class S06ConsequenceController {
         stage: 'complete',
         showGuide: false,
         comparisonVisible: false,
+        comparisonPreviewVisible: false,
         controls: { canStart: false, canReplay: false, canContinue: false },
       };
       this.#emit();
+      this.#notifyComplete();
       return;
     }
     const missionStepIndex = missionSnapshot.context.stepIndex;
     const missionPhase = this.#missionPhases[missionStepIndex];
     if (missionPhase === undefined) return;
     const awaitingDecision = missionSnapshot.matches({ active: 'awaitingDecision' });
+
+    if (missionPhase.kind === 'automatic-comparison') {
+      const step = missionPhase.step;
+      const stepIndex = this.#plan.steps.findIndex(({ id }) => id === step.id);
+      if (stepIndex < 0 || step.targetAccountId === null || step.relation === null) return;
+      if (!awaitingDecision) {
+        this.#displayedAttackNetwork = attackPreviewNetwork(step, this.#settledNetwork);
+        this.#renderer?.render(this.#displayedAttackNetwork);
+        this.#snapshot = {
+          ...this.#snapshot,
+          phase: 'animating',
+          stage: 'attacking',
+          stepIndex,
+          step,
+          participant: participantSnapshot(step),
+          attackPhase: 'attacking',
+          attackSourceAccountId: step.sourceAccountId,
+          isHypothetical: step.mode === 'hypothetical',
+          showGuide: false,
+          comparisonVisible: true,
+          comparisonPreviewVisible: false,
+          controls: { canStart: false, canReplay: false, canContinue: false },
+        };
+        this.#emit();
+        return;
+      }
+
+      this.#resolveAutomaticComparison(step);
+      this.#continueMissionAfterSnapshot();
+      return;
+    }
+
+    if (missionPhase.kind === 'comparison-resolution') {
+      if (awaitingDecision) this.#continueMissionAfterSnapshot();
+      return;
+    }
 
     if (missionPhase.kind === 'comparison') {
       const step = missionPhase.step;
@@ -834,6 +994,7 @@ export class S06ConsequenceController {
         isHypothetical: step.mode === 'hypothetical',
         showGuide: false,
         comparisonVisible: true,
+        comparisonPreviewVisible: true,
         controls: { canStart: false, canReplay: false, canContinue: false },
       };
       this.#emit();
@@ -849,16 +1010,12 @@ export class S06ConsequenceController {
         (this.#snapshot.stage !== 'local-check-animating' &&
           this.#snapshot.stage !== 'local-check-result');
       if (!awaitingDecision && enteredLocalCheck) {
-        const pendingNetwork = pendingLocalCheckNetwork(step, this.#settledNetwork);
+        const pendingNetwork = pendingLocalCheckNetwork(step);
         this.#displayedAttackNetwork = null;
         this.#settledNetwork = pendingNetwork;
         this.#renderer?.render(pendingNetwork);
       } else if (awaitingDecision && this.#snapshot.stage !== 'local-check-result') {
-        const settledLocalCheckNetwork = preserveSettledAffectedState(
-          step.network,
-          this.#settledNetwork,
-          step.sourceAccountId,
-        );
+        const settledLocalCheckNetwork = step.network;
         const sourceWasExposed =
           step.sourceAccountId !== null &&
           settledLocalCheckNetwork.nodes.some(
@@ -879,7 +1036,11 @@ export class S06ConsequenceController {
         this.#renderer?.render(this.#settledNetwork);
       }
       const canStartNextAttack =
-        awaitingDecision && this.#missionPhases[missionStepIndex + 1]?.kind === 'comparison';
+        awaitingDecision &&
+        (this.#missionPhases[missionStepIndex + 1]?.kind === 'comparison' ||
+          this.#missionPhases[missionStepIndex + 1]?.kind === 'automatic-comparison' ||
+          this.#missionPhases[missionStepIndex + 1]?.kind ===
+            'campus-email-hypothetical-intro');
       this.#snapshot = {
         ...this.#snapshot,
         phase: awaitingDecision ? 'awaiting-decision' : 'animating',
@@ -892,6 +1053,7 @@ export class S06ConsequenceController {
         isHypothetical: false,
         showGuide: awaitingDecision,
         comparisonVisible: false,
+        comparisonPreviewVisible: false,
         completedComparisonResults: {},
         controls: {
           canStart: canStartNextAttack,
@@ -934,6 +1096,7 @@ export class S06ConsequenceController {
         isHypothetical: true,
         showGuide: awaitingDecision,
         comparisonVisible: false,
+        comparisonPreviewVisible: false,
         completedComparisonResults: {},
         controls: {
           canStart: awaitingDecision,
@@ -945,9 +1108,42 @@ export class S06ConsequenceController {
       return;
     }
 
+    if (missionPhase.kind === 'campus-email-hypothetical-intro') {
+      const step = missionPhase.step;
+      const stepIndex = this.#plan.steps.findIndex(({ id }) => id === step.id);
+      if (stepIndex < 0) return;
+      if (this.#snapshot.stage !== 'email-hypothetical-animating') {
+        const network = hypotheticalIncidentNetwork(step, 'campus-email', this.#settledNetwork);
+        this.#displayedAttackNetwork = null;
+        this.#settledNetwork = network;
+        this.#renderer?.render(network);
+      }
+      this.#snapshot = {
+        ...this.#snapshot,
+        phase: 'animating',
+        stage: 'email-hypothetical-animating',
+        stepIndex,
+        step,
+        participant: participantSnapshot(step),
+        attackPhase: 'hypothetical-intro',
+        attackSourceAccountId: 'campus-email',
+        isHypothetical: true,
+        showGuide: false,
+        comparisonVisible: false,
+        comparisonPreviewVisible: false,
+        completedComparisonResults: {},
+        controls: { canStart: false, canReplay: false, canContinue: false },
+      };
+      this.#emit();
+      if (awaitingDecision) this.#continueMissionAfterSnapshot();
+      return;
+    }
+
     if (!awaitingDecision) return;
 
     if (missionPhase.kind === 'campusgram-summary') {
+      this.#campusgramOutcomeNetwork = this.#settledNetwork;
+      this.#campusgramComparisonResults = this.#snapshot.completedComparisonResults;
       this.#snapshot = {
         ...this.#snapshot,
         phase: 'awaiting-decision',
@@ -958,6 +1154,7 @@ export class S06ConsequenceController {
         isHypothetical: !this.#campusgramWasFound(),
         showGuide: true,
         comparisonVisible: false,
+        comparisonPreviewVisible: false,
         controls: { canStart: false, canReplay: false, canContinue: true },
       };
       this.#emit();
@@ -975,6 +1172,7 @@ export class S06ConsequenceController {
         isHypothetical: !this.#campusgramWasFound(),
         showGuide: true,
         comparisonVisible: false,
+        comparisonPreviewVisible: false,
         controls: { canStart: false, canReplay: false, canContinue: true },
       };
       this.#emit();
@@ -992,6 +1190,25 @@ export class S06ConsequenceController {
         isHypothetical: false,
         showGuide: true,
         comparisonVisible: false,
+        comparisonPreviewVisible: false,
+        controls: { canStart: false, canReplay: false, canContinue: true },
+      };
+      this.#emit();
+      return;
+    }
+
+    if (missionPhase.kind === 'return-transition') {
+      this.#snapshot = {
+        ...this.#snapshot,
+        phase: 'awaiting-decision',
+        stage: 'return-transition',
+        participant: this.#participantForNarration('s06.transition.return-to-campusgram'),
+        attackPhase: 'preview-ready',
+        attackSourceAccountId: 'campus-email',
+        isHypothetical: this.#snapshot.step.mode === 'hypothetical',
+        showGuide: true,
+        comparisonVisible: false,
+        comparisonPreviewVisible: false,
         controls: { canStart: false, canReplay: false, canContinue: true },
       };
       this.#emit();
@@ -1000,10 +1217,9 @@ export class S06ConsequenceController {
 
     if (missionPhase.kind === 'final-summary') {
       const summaryStep = planStep(this.#plan, 's06-step-summary');
-      this.#settledNetwork = preserveSettledAffectedState(
-        summaryStep.network,
-        this.#settledNetwork,
-      );
+      this.#settledNetwork = this.#campusgramWasFound()
+        ? this.#campusgramOutcomeNetwork
+        : this.#campusgramInitialNetwork;
       this.#renderer?.render(this.#settledNetwork);
       this.#snapshot = {
         ...this.#snapshot,
@@ -1011,13 +1227,18 @@ export class S06ConsequenceController {
         stage: 'final-summary',
         stepIndex: this.#plan.steps.length - 1,
         step: summaryStep,
-        participant: this.#participantForNarration(this.#finalSummaryNarrationId()),
-        attackPhase: 'preview-ready',
-        attackSourceAccountId: null,
+        participant: this.#participantForNarration(
+          this.#campusgramSummaryNarrationId('actual'),
+        ),
+        attackPhase: 'found',
+        attackSourceAccountId: 'campusgram',
         isHypothetical: false,
         showGuide: true,
         comparisonVisible: false,
-        completedComparisonResults: {},
+        comparisonPreviewVisible: false,
+        completedComparisonResults: this.#campusgramWasFound()
+          ? this.#campusgramComparisonResults
+          : {},
         controls: { canStart: false, canReplay: false, canContinue: true },
       };
       this.#emit();
@@ -1029,11 +1250,7 @@ export class S06ConsequenceController {
       phase: 'awaiting-decision',
       stage: 's07-transition',
       participant: this.#participantForNarration('s06.transition.s07'),
-      attackPhase: 'preview-ready',
-      attackSourceAccountId: null,
-      isHypothetical: false,
       showGuide: true,
-      comparisonVisible: false,
       controls: { canStart: false, canReplay: false, canContinue: true },
     };
     this.#emit();
@@ -1053,13 +1270,18 @@ export class S06ConsequenceController {
     };
   }
 
-  #campusgramSummaryNarrationId(): Extract<S06NarrationId, `s06.summary.${string}`> {
+  #campusgramSummaryNarrationId(
+    mode: 'plan' | 'actual' = 'plan',
+  ): Extract<S06NarrationId, `s06.summary.${string}`> {
+    if (mode === 'actual' && !this.#campusgramWasFound()) {
+      return 's06.summary.actual-source-blocked';
+    }
     const affectedTargetCount = this.#plan.comparisons.filter(
       ({ sourceAccountId, result }) =>
         sourceAccountId === 'campusgram' &&
         result.relation.kind !== 'no-derived-path-recognized',
     ).length;
-    if (!this.#campusgramWasFound()) {
+    if (mode === 'plan' && !this.#campusgramWasFound()) {
       return affectedTargetCount === 0
         ? 's06.summary.hypothetical-none'
         : affectedTargetCount === 1
@@ -1071,14 +1293,6 @@ export class S06ConsequenceController {
       : affectedTargetCount === 1
         ? 's06.summary.actual-one'
         : 's06.summary.actual-both';
-  }
-
-  #finalSummaryNarrationId(): 's06.summary.separated' | 's06.summary.connected' {
-    return this.#plan.comparisons.every(
-      ({ result }) => result.relation.kind === 'no-derived-path-recognized',
-    )
-      ? 's06.summary.separated'
-      : 's06.summary.connected';
   }
 
   #startHypotheticalIntro(): void {
@@ -1093,15 +1307,12 @@ export class S06ConsequenceController {
       attackSourceAccountId: 'campusgram',
       showGuide: false,
       comparisonVisible: false,
+      comparisonPreviewVisible: false,
       controls: { canStart: false, canReplay: false, canContinue: false },
     };
-    const waitsForInfection = this.#waitForInfectionCascade(
-      network,
-      'campusgram',
-      'hypothetical-intro',
-    );
+    const waitsForResolution = this.#waitForHypotheticalResolution(network, 'campusgram');
     this.#renderer?.render(network);
-    if (!waitsForInfection) this.infectionCascadeSettled([]);
+    if (!waitsForResolution) this.resolutionVisualSettled([]);
     this.#emit();
   }
 
@@ -1112,16 +1323,57 @@ export class S06ConsequenceController {
       stage: 'attacking',
       showGuide: false,
       comparisonVisible: false,
+      comparisonPreviewVisible: false,
       controls: { canStart: false, canReplay: false, canContinue: false },
     };
     this.#emit();
     void this.#missionController.start(this.#mission);
   }
 
-  #waitForInfectionCascade(
+  #resolveAutomaticComparison(step: PasswordConsequencePlanStep): void {
+    if (step.targetAccountId === null || step.relation === null) return;
+    const attackNetwork =
+      this.#displayedAttackNetwork ?? attackPreviewNetwork(step, this.#settledNetwork);
+    this.#settledNetwork = resolvedNetwork(step, attackNetwork, this.#settledNetwork);
+    this.#displayedAttackNetwork = null;
+    this.#snapshot = {
+      ...this.#snapshot,
+      phase: 'animating',
+      stage: 'attacking',
+      step,
+      participant: participantSnapshot(step),
+      attackPhase: 'resolving',
+      attackSourceAccountId: step.sourceAccountId,
+      isHypothetical: step.mode === 'hypothetical',
+      showGuide: false,
+      comparisonVisible: false,
+      comparisonPreviewVisible: false,
+      completedComparisonResults: {
+        ...this.#snapshot.completedComparisonResults,
+        [step.targetAccountId]: step.relation.kind,
+      },
+      controls: { canStart: false, canReplay: false, canContinue: false },
+    };
+    this.#renderer?.render(this.#settledNetwork);
+    this.#emit();
+  }
+
+  #continueMissionAfterSnapshot(): void {
+    // XState must finish publishing the current awaiting-decision snapshot before the next event.
+    queueMicrotask(() => {
+      if (!this.#disposed) void this.#missionController.continue();
+    });
+  }
+
+  #notifyComplete(): void {
+    if (this.#completionNotified || this.#disposed) return;
+    this.#completionNotified = true;
+    this.#onComplete();
+  }
+
+  #waitForHypotheticalResolution(
     network: NetworkSceneSnapshot,
     accountId: S06AccountId | null,
-    kind: 'hypothetical-intro' | 'attack-resolution',
   ): boolean {
     const pendingNodeIds = new Set(
       accountId === null
@@ -1132,9 +1384,10 @@ export class S06ConsequenceController {
             )
             .map(({ id }) => id),
     );
-    this.#pendingInfectionNodeIds = pendingNodeIds;
-    this.#pendingInfectionKind = kind;
-    return pendingNodeIds.size > 0 && !this.#prefersReducedMotion();
+    const waitsForResolution = pendingNodeIds.size > 0 && !this.#prefersReducedMotion();
+    this.#pendingResolutionNodeIds = waitsForResolution ? pendingNodeIds : new Set();
+    this.#waitingForHypotheticalResolution = true;
+    return waitsForResolution;
   }
 
   #emit(): void {

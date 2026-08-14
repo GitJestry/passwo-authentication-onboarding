@@ -135,7 +135,7 @@ export function S06ConsequenceTraining({
     controller.attachRenderer(renderer);
     const unsubscribe = controller.subscribe(setSnapshot);
     const unsubscribeStatusCascade = renderer.subscribeStatusCascade((settledNodeIds) => {
-      controller?.infectionCascadeSettled(settledNodeIds);
+      controller?.resolutionVisualSettled(settledNodeIds);
     });
     setRuntime({ controller, renderer, plan });
     setSnapshot(controller.getSnapshot());
@@ -182,10 +182,11 @@ export function S06ConsequenceTraining({
   const attackSourceAccountId = snapshot.attackSourceAccountId;
   const attackerAttemptStatus =
     snapshot.attackPhase === 'incident-check' && attackSourceAccountId !== null
-      ? (snapshot.step.network.nodes.find(({ id }) => id === attackSourceAccountId)?.status ?? null)
+      ? (snapshot.step.network.nodes.find(({ id }) => id === attackSourceAccountId)?.status ??
+        null)
       : null;
   const comparison =
-    !snapshot.comparisonVisible ||
+    !snapshot.comparisonPreviewVisible ||
     snapshot.step.sourceAccountId === null ||
     snapshot.step.targetAccountId === null ||
     snapshot.step.relation === null
@@ -224,6 +225,7 @@ export function S06ConsequenceTraining({
               snapshot.step.relation?.kind === 'no-derived-path-recognized'
             }
             comparisonResults={snapshot.completedComparisonResults}
+            statusCascadeStartDelayMs={120}
           />
         </div>
         {snapshot.isHypothetical ? (

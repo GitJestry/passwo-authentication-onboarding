@@ -1,5 +1,117 @@
 # S06--S07 Copy Audit
 
+## Ablaufdelta S06-QA-Abschluss zu S07, 14. August 2026
+
+Quelle ist der ausdrückliche Nutzerauftrag vom 14. August 2026. Die vier direkten
+S06-QA-Szenarien verbinden den letzten vorhandenen PassWo-Button nun mit der bereits bestehenden
+Fortschrittskarte `Passphrase erstellen` und öffnen nach deren Ablauf S07. Zuvor fehlte diesen
+isolierten Fixture-Einstiegen der Abschluss-Callback, sodass der Button keine Folgeaktion hatte.
+Der Study-Runtime-Statechart, Teilnehmertexte, Content-Version, Persistenz, Export und
+Studien-Timing bleiben unverändert.
+
+## Animationsdelta S06 sichtbare Pausen und reaktionsnahe Ausgangslinien, 14. August 2026
+
+Quelle ist der ausdrückliche Nutzerauftrag vom 14. August 2026. Sichtbare Befallsanimationen
+behalten ihre 1,35 Sekunden lange Laufzeit. Ein lokaler Check ohne Befallsergebnis wartet dagegen
+nicht mehr dieselbe unsichtbare Zeit ab. Automatische Netzwerkprüfungen entfernen ihre bisherigen
+verdeckten Vor- und Nachpausen; ihre sichtbare Angriffslinie läuft weiterhin vollständig durch.
+Rote beziehungsweise schützende Ausgangslinien beginnen 120 statt 400 Millisekunden nach der
+Ergebnisauflösung, damit sie dem sichtbaren Kontostatus ohne irritierenden Nachlauf folgen. Die
+Angriffslinie startet maskiert und behält nach dem Zeichnen ihren sichtbaren Endzustand, bis der
+aufgelöste Pfad übernimmt; dadurch entsteht beim Rendererwechsel kein kurzes Ein-/Ausblenden.
+Der letzte sichtbare S06-Weiter-Schritt meldet den Segmentabschluss zusätzlich direkt und
+einmalig geschützt an die äußere Statechart, statt ausschließlich vom nachgelagerten generischen
+Completion-Callback abzuhängen.
+
+Teilnehmertexte, Content-Version, Persistenz, Export und Studien-Timing ändern sich nicht.
+
+## Ablaufdelta S06 vollständige Ergebnisanimationen und Campus-E-Mail-Übergang, 14. August 2026
+
+Quelle ist der ausdrückliche Nutzerauftrag vom 14. August 2026. Nach dem letzten von Master
+Campus ausgehenden Vergleich führt der gemeinsame visuelle Abschlussweg wieder in den bereits
+vorhandenen PassWo-Sprechschritt zum Perspektivwechsel auf Campus E-Mail. Dessen vorhandener
+`Weiter`-Button löst anschließend den tatsächlichen Wechsel des Datenlecks aus. Dieser geführte
+Übergang hängt nicht vom Ende einer CSS-Statuskaskade ab: Das aufgelöste Vergleichsnetz bleibt
+sichtbar, während PassWo den Perspektivwechsel anbietet.
+
+Bei den Prüfpfaden ohne Passwortvergleichskarte wird nur die Karte ausgelassen. Die zugehörige
+Ergebnisanimation bleibt verbindlich: Ein blockierter Weg zeigt den entstehenden grünen Schild,
+ein erfolgreicher Weg lässt den betroffenen Zielzweig vollständig rot werden, bevor der nächste
+Prüfpfad beginnt. Angriffslinie und Ergebnisauflösung liegen dafür gemeinsam in genau einer
+deterministischen Statechart-Sequenz pro Verbindung. Derselbe Ablauf gilt für Master Campus und
+Campus E-Mail und führt ohne kontoabhängige Sonderphase über alle weiteren Prüfpfade, die
+tatsächliche Campusgram-Ausgangslage und den S07-Übergang. In S06 starten die roten
+beziehungsweise schützenden Linien 400 Millisekunden nach der Ergebnisauflösung; das Timing von
+S05 bleibt unverändert.
+
+Teilnehmertexte, Content-Version, Persistenz, Export und Studien-Timing ändern sich nicht.
+
+## Darstellungs- und Ablaufdelta S06 stabiler Campus-E-Mail-Befall und Schlusszustand, 14. August 2026
+
+Quelle ist der ausdrückliche Nutzerauftrag vom 14. August 2026 samt bereitgestelltem Screenshot.
+Wenn die lokale Campus-E-Mail-Prüfung keinen vollständigen frühen Kandidaten erkennt, setzt der
+anschließende hypothetische Befall Campus E-Mail nun wie bei Master Campus sichtbar auf betroffen:
+Der Angreifer bewegt sich in den Hauptknoten, und der gesamte Campus-E-Mail-Zweig wird rot, bevor
+die beiden ausgehenden Wege geprüft werden. Bei einem tatsächlichen Fund bleibt derselbe bereits
+vorhandene Befallszustand bestehen.
+
+Der Sprechschritt `Als Nächstes erstellen wir eine neue Passphrase.` verändert die unmittelbar
+zuvor dargestellte Schlussansicht nicht mehr. Angreifer, Kontostatus, Unterknoten,
+Vergleichsergebnisse und Angriffspfade bleiben bis zum tatsächlichen Abschluss von S06
+unverändert. Die Schilde der vertikalen Master-Campus-/Campus-E-Mail-Wege erhalten
+richtungsabhängige Positionen: vor Campus E-Mail weiter oben, vor Master Campus weiter unten.
+
+Teilnehmertexte, Persistenz, Export und Studien-Timing ändern sich nicht.
+`S06_CONSEQUENCE_CONTENT_VERSION` wird von `2.13.0` auf `2.14.0` erhöht.
+
+## Copy- und Ablaufdelta S06 Campus-E-Mail-Befall und bewusste Rückkehr, 14. August 2026
+
+Quelle ist der ausdrückliche Nutzerauftrag vom 14. August 2026. Bei einer erfolgreichen lokalen
+Prüfung von Campus E-Mail bewegt sich der Angreifer nun während der bestehenden 1,35 Sekunden
+langen Befallen-Animation von außen in den Kontoknoten. Dieselbe bereits vorgesehene Bewegung
+gilt konsistent für Master Campus. Bei einem blockierten Ergebnis bleibt der Angreifer außen.
+
+Nach dem letzten von Campus E-Mail ausgehenden Prüfpfad bleibt die dargestellte Perspektive
+zunächst bestehen. Ein neuer PassWo-Schritt kündigt die Rückkehr zur tatsächlichen
+Campusgram-Ausgangslage an; erst `Weiter` stellt diese Schlussansicht wieder her. Alle fiktiven
+Werte, Analysen und Ergebnisse bleiben flüchtig. Persistenz, Export und Studien-Timing ändern
+sich nicht. `S06_CONSEQUENCE_CONTENT_VERSION` wird von `2.12.0` auf `2.13.0` erhöht.
+
+Die wiederhergestellte Campusgram-Ausgangslage übernimmt auch das ursprüngliche lokale
+Prüfergebnis: Wurde das Campusgram-Passwort nicht gefunden, bleiben Konto und Angreifer im
+geschützten Zustand, statt den roten Befall aus der hypothetischen Betrachtung zu übernehmen.
+
+| Segment und Text-ID | Aktueller Text | Geplanter Text | Primäre Rolle | Interaktionsziel | Grund und Bedeutungsänderung | Hervorhebung |
+|---|---|---|---|---|---|---|
+| `S06.narrations.s06.transition.return-to-campusgram` | nicht vorhanden; die Ansicht wechselte unmittelbar | `Damit sind alle drei Ausgangslagen betrachtet. Als Nächstes kehren wir zur tatsächlichen Ausgangslage mit dem Datenleck bei Campusgram zurück.` | Orientierung | `Weiter` | macht den tatsächlichen Ansichtswechsel vor seiner Ausführung erwartbar; ausdrücklich freigegebene Ablaufänderung | keine |
+| `S06.narrations.s06.summary.actual-source-blocked` | nicht vorhanden; stattdessen wurde fälschlich ein tatsächlicher Campusgram-Befall zusammengefasst | `In der tatsächlichen Ausgangslage wurde das Campusgram-Passwort in dieser begrenzten Prüfung nicht gefunden. Der Angreifer bleibt deshalb außerhalb des Kontos.` | Ergebnisfeedback | `Weiter` | gleicht Text und Schlussansicht mit dem ursprünglichen lokalen Prüfergebnis ab; fachliche Korrektur, begrenzt | keine |
+
+## Copy- und Ablaufdelta S06 direkte Rückwege und Campus-E-Mail-Ausbreitung, 14. August 2026
+
+Quelle ist der ausdrückliche Nutzerauftrag vom 14. August 2026. Die Schlussansicht kehrt immer
+zur tatsächlichen Campusgram-Ausgangslage und ihren Folgen zurück; sie trägt weder den
+`Was wäre, wenn?`-Hinweis noch einen hypothetischen Abschlusstext. Beim Perspektivwechsel zu
+Campus E-Mail werden nun auch die beiden gerichteten Beziehungen zu Master Campus und
+Campusgram geprüft. Diese beiden Prüfpfade sowie der bereits bekannte Rückweg von Master Campus
+zu Campusgram laufen direkt im Netzwerk: Die Angriffslinie wird gezeichnet und der Zielzweig
+anschließend abhängig von `Wiederverwendet`, `Ähnlich` oder `Keine Übereinstimmung` unmittelbar
+aufgelöst. Die Passwortvergleichskarte wird für diese Rückwege nicht erneut geöffnet.
+
+Alle fiktiven Werte, Analysen und Ergebnisse bleiben flüchtig. Persistenz, Export und
+Studien-Timing ändern sich nicht. `S06_CONSEQUENCE_CONTENT_VERSION` wird von `2.11.0` auf
+`2.12.0` erhöht.
+
+| Segment und Text-ID | Aktueller Text | Geplanter Text | Primäre Rolle | Interaktionsziel | Grund und Bedeutungsänderung | Hervorhebung |
+|---|---|---|---|---|---|---|
+| `S06.narrations.s06.transition.campus-email` | `Zum Schluss verschieben wir das Datenleck zu Campus E-Mail und prüfen dieses Passwort für sich.` | `Zum Schluss verschieben wir das Datenleck zu Campus E-Mail und prüfen von dort beide anderen Konten.` | Orientierung | `Weiter` | stimmt die Orientierung mit den zwei neu sichtbaren ausgehenden Prüfpfaden ab; ausdrücklich freigegebene Ablaufänderung | keine |
+| `S06.narrations.s06.local-check.campus-email-found` | `Beim Campus-E-Mail-Passwort wurde ein vollständiger früher Kandidat erkannt. Unabhängig von den Verbindungen zu anderen Konten lohnt es sich deshalb, auch dieses Passwort für sich stark zu wählen.` | `Beim Campus-E-Mail-Passwort wurde ein vollständiger früher Kandidat erkannt. Von diesem Konto aus werden nun die beiden anderen Passwörter direkt im Netzwerk geprüft.` | Ergebnisfeedback | `Angriff starten` | kündigt exakt die anschließend automatisch dargestellten Netzwerkprüfungen an; ausdrücklich freigegebene Bedeutungsänderung | keine |
+| `S06.narrations.s06.local-check.campus-email-blocked` | `Beim Campus-E-Mail-Passwort wurde in dieser begrenzten Prüfung kein vollständiger früher Kandidat erkannt. Das ist ein günstiges Ergebnis dieser Prüfung, aber keine allgemeine Sicherheitsgarantie.` | `Beim Campus-E-Mail-Passwort wurde in dieser begrenzten Prüfung kein vollständiger früher Kandidat erkannt. Die möglichen weiteren Wege betrachten wir deshalb als „Was wäre, wenn?“.` | Ergebnisfeedback | `Angriff starten` | grenzt die beiden folgenden Rückwege bei fehlender Vollerkennung als hypothetisch ab; ausdrücklich freigegebene Bedeutungsänderung | keine |
+
+Die Überschriften der beiden Campus-E-Mail-Ergebnisse wechseln von `Lokaler Einzelcheck von
+Campus E-Mail` zu `Perspektivwechsel zu Campus E-Mail`, weil der Schritt nun nicht mehr lokal
+endet, sondern in zwei kontoübergreifende Prüfpfade überleitet. Textrolle, Interaktionsziel und
+Hervorhebung entsprechen den jeweiligen Tabellenzeilen.
+
 ## Copy- und Ablaufdelta S06 Master Campus prüft beide anderen Konten, 14. August 2026
 
 Quelle ist der ausdrückliche Nutzerauftrag vom 14. August 2026. Beim Perspektivwechsel zu

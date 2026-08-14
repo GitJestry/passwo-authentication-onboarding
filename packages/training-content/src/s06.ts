@@ -41,10 +41,12 @@ export type S06NarrationId =
   | 's06.transition.campus-email'
   | 's06.local-check.campus-email-found'
   | 's06.local-check.campus-email-blocked'
+  | 's06.transition.return-to-campusgram'
   | 's06.summary'
   | 's06.summary.actual-none'
   | 's06.summary.actual-one'
   | 's06.summary.actual-both'
+  | 's06.summary.actual-source-blocked'
   | 's06.summary.hypothetical-none'
   | 's06.summary.hypothetical-one'
   | 's06.summary.hypothetical-both'
@@ -58,7 +60,7 @@ export interface S06NarrationContent {
   readonly body: string;
 }
 
-export const S06_CONSEQUENCE_CONTENT_VERSION = '2.11.0';
+export const S06_CONSEQUENCE_CONTENT_VERSION = '2.14.0';
 
 export const s06ConsequenceContent = {
   version: S06_CONSEQUENCE_CONTENT_VERSION,
@@ -66,9 +68,9 @@ export const s06ConsequenceContent = {
     document: 'research/private/training-script.pdf',
     internalPages: [36, 37, 38, 39, 40, 41, 42, 43, 44] as const,
     revision:
-      'Userauftrag vom 2026-08-14 · Master Campus prüft Campusgram und Campus E-Mail',
+      'Userauftrag vom 2026-08-14 · stabiler Campus-E-Mail-Befall und Schlusszustand',
     copyReference:
-      'docs/design/S06-S07-COPY-AUDIT.md#copy--und-ablaufdelta-s06-master-campus-prüft-beide-anderen-konten-14-august-2026',
+      'docs/design/S06-S07-COPY-AUDIT.md#darstellungs--und-ablaufdelta-s06-stabiler-campus-e-mail-befall-und-schlusszustand-14-august-2026',
   },
   segment: {
     id: 'S06',
@@ -209,15 +211,19 @@ export const s06ConsequenceContent = {
     },
     's06.transition.campus-email': {
       heading: 'Noch eine Ausgangslage',
-      body: 'Zum Schluss verschieben wir das Datenleck zu Campus E-Mail und prüfen dieses Passwort für sich.',
+      body: 'Zum Schluss verschieben wir das Datenleck zu Campus E-Mail und prüfen von dort beide anderen Konten.',
     },
     's06.local-check.campus-email-found': {
-      heading: 'Lokaler Einzelcheck von Campus E-Mail',
-      body: 'Beim Campus-E-Mail-Passwort wurde ein vollständiger früher Kandidat erkannt. Unabhängig von den Verbindungen zu anderen Konten lohnt es sich deshalb, auch dieses Passwort für sich stark zu wählen.',
+      heading: 'Perspektivwechsel zu Campus E-Mail',
+      body: 'Beim Campus-E-Mail-Passwort wurde ein vollständiger früher Kandidat erkannt. Von diesem Konto aus werden nun die beiden anderen Passwörter direkt im Netzwerk geprüft.',
     },
     's06.local-check.campus-email-blocked': {
-      heading: 'Lokaler Einzelcheck von Campus E-Mail',
-      body: 'Beim Campus-E-Mail-Passwort wurde in dieser begrenzten Prüfung kein vollständiger früher Kandidat erkannt. Das ist ein günstiges Ergebnis dieser Prüfung, aber keine allgemeine Sicherheitsgarantie.',
+      heading: 'Perspektivwechsel zu Campus E-Mail',
+      body: 'Beim Campus-E-Mail-Passwort wurde in dieser begrenzten Prüfung kein vollständiger früher Kandidat erkannt. Die möglichen weiteren Wege betrachten wir deshalb als „Was wäre, wenn?“.',
+    },
+    's06.transition.return-to-campusgram': {
+      heading: 'Zurück zur Ausgangslage',
+      body: 'Damit sind alle drei Ausgangslagen betrachtet. Als Nächstes kehren wir zur tatsächlichen Ausgangslage mit dem Datenleck bei Campusgram zurück.',
     },
     's06.summary': {
       heading: 'Gemeinsame Endübersicht',
@@ -234,6 +240,10 @@ export const s06ConsequenceContent = {
     's06.summary.actual-both': {
       heading: 'Gemeinsame Endübersicht',
       body: 'Der Angriff konnte sich von Campusgram auf beide anderen Konten ausbreiten.',
+    },
+    's06.summary.actual-source-blocked': {
+      heading: 'Tatsächliche Ausgangslage',
+      body: 'In der tatsächlichen Ausgangslage wurde das Campusgram-Passwort in dieser begrenzten Prüfung nicht gefunden. Der Angreifer bleibt deshalb außerhalb des Kontos.',
     },
     's06.summary.hypothetical-none': {
       heading: 'Gemeinsame Endübersicht',

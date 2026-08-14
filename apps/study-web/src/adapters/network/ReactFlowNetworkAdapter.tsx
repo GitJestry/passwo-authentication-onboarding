@@ -231,8 +231,8 @@ interface StatusCascadeTiming {
   readonly arrivalMs: number;
 }
 
-const statusCascadeStartDelayMs = 850;
-const statusCascadeSpeedPxPerMs = 0.475;
+const defaultStatusCascadeStartDelayMs = 850;
+const statusCascadeSpeedPxPerMs = 0.475 * 1.25;
 
 interface StatusCascadeNodeStyle extends CSSProperties {
   readonly '--network-status-cascade-arrival-delay': string;
@@ -797,6 +797,7 @@ function NodeEdge({
                 data-network-edge-draw-mask
                 d={edge.path}
                 fill="none"
+                opacity={0}
                 stroke="white"
                 strokeWidth={14}
               />
@@ -878,6 +879,7 @@ function toReactFlowElements(
   renderNodeOverlay: ((node: SceneNode) => ReactNode) | undefined,
   dimInactiveNodes: boolean,
   currentAttackEdgeId: string | null,
+  statusCascadeStartDelayMs: number,
   onStatusCascadeEnd: (
     nodeId: string,
     tone: StatusCascadeTone,
@@ -1035,6 +1037,7 @@ export interface ReactFlowNetworkProps {
   readonly renderNodeOverlay?: (node: SceneNode) => ReactNode;
   readonly dimInactiveNodes?: boolean;
   readonly currentAttackEdgeId?: string | null;
+  readonly statusCascadeStartDelayMs?: number;
 }
 
 export function ReactFlowNetwork({
@@ -1053,6 +1056,7 @@ export function ReactFlowNetwork({
   renderNodeOverlay,
   dimInactiveNodes = true,
   currentAttackEdgeId = null,
+  statusCascadeStartDelayMs = defaultStatusCascadeStartDelayMs,
 }: ReactFlowNetworkProps) {
   const containerRef = useRef<HTMLElement | null>(null);
   const [canvas, setCanvas] = useState<NetworkCanvasSize>({ width: 0, height: 0 });
@@ -1094,6 +1098,7 @@ export function ReactFlowNetwork({
         renderNodeOverlay,
         dimInactiveNodes,
         currentAttackEdgeId,
+        statusCascadeStartDelayMs,
         adapter.completeStatusCascade,
       ),
     [
@@ -1112,6 +1117,7 @@ export function ReactFlowNetwork({
       renderNodeOverlay,
       dimInactiveNodes,
       currentAttackEdgeId,
+      statusCascadeStartDelayMs,
       visualVariant,
     ],
   );

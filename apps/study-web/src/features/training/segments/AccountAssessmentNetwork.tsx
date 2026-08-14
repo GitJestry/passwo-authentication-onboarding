@@ -4,6 +4,7 @@ import type { NetworkSceneSnapshot } from '@passwo/visualization';
 import { useCallback } from 'react';
 import attackerAsset from '../../../assets/passwo/attacker.png';
 import passwordFactorShieldAsset from '../../../assets/s05/password-factor-shield.png';
+import comparisonPathShieldAsset from '../../../assets/s06/comparison-path-shield.png';
 import type { NetworkPresentationSnapshot } from '../../../adapters/network/NetworkMotionAdapter.js';
 import {
   ReactFlowNetwork,
@@ -42,8 +43,12 @@ function AccountStatusOverlay({
   readonly comparisonResult: PasswordRelation['kind'] | null;
 }) {
   const showsShield = node.status === 'protected' && node.kind !== 'shield';
+  const showsComparisonPathShield =
+    node.status === 'protected' && node.symbolId === 'comparison-path-shield';
   const attackerStatus = attackerAttemptStatus ?? node.status;
-  if (!showAttacker && !showsShield && comparisonResult === null) return null;
+  if (!showAttacker && !showsShield && !showsComparisonPathShield && comparisonResult === null) {
+    return null;
+  }
 
   return (
     <>
@@ -74,6 +79,15 @@ function AccountStatusOverlay({
           aria-hidden="true"
         />
       ) : null}
+      {showsComparisonPathShield ? (
+        <img
+          className={styles.comparisonPathShield}
+          data-comparison-path-shield
+          src={comparisonPathShieldAsset}
+          alt=""
+          aria-hidden="true"
+        />
+      ) : null}
       {comparisonResult === null ? null : (
         <strong
           className={styles.comparisonResult}
@@ -98,6 +112,7 @@ export function AccountAssessmentNetwork({
   attackEdgeId = null,
   attackBlocked = false,
   comparisonResults = emptyComparisonResults,
+  statusCascadeStartDelayMs,
 }: {
   readonly adapter: ReactFlowNetworkAdapter;
   readonly presentation: NetworkPresentationSnapshot;
@@ -116,6 +131,7 @@ export function AccountAssessmentNetwork({
   readonly attackEdgeId?: string | null;
   readonly attackBlocked?: boolean;
   readonly comparisonResults?: AccountComparisonResults;
+  readonly statusCascadeStartDelayMs?: number;
 }) {
   const campusgramResult = comparisonResults.campusgram ?? null;
   const masterCampusResult = comparisonResults['master-campus'] ?? null;
@@ -147,6 +163,7 @@ export function AccountAssessmentNetwork({
     <div
       className={styles.network}
       data-attack-phase={attackPhase}
+      data-attack-source={attackerAccountId ?? undefined}
       data-attack-target={attackTargetId ?? undefined}
       data-attack-blocked={attackBlocked || undefined}
     >
@@ -162,6 +179,7 @@ export function AccountAssessmentNetwork({
         dimInactiveNodes={false}
         renderNodeOverlay={renderNodeOverlay}
         currentAttackEdgeId={attackEdgeId}
+        {...(statusCascadeStartDelayMs === undefined ? {} : { statusCascadeStartDelayMs })}
         {...(ariaLabel === undefined ? {} : { ariaLabel })}
         {...(canvasAriaLabel === undefined ? {} : { canvasAriaLabel })}
       />

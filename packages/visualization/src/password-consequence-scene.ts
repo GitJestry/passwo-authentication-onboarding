@@ -26,6 +26,8 @@ export type PasswordConsequenceStepId =
   | 's06-step-master-campus-campusgram'
   | 's06-step-master-campus-campus-email'
   | 's06-step-campus-email-local-check'
+  | 's06-step-campus-email-master-campus'
+  | 's06-step-campus-email-campusgram'
   | 's06-step-summary';
 
 export interface PasswordConsequenceAccountDefinition {
@@ -399,8 +401,8 @@ function summaryStep(
 
 function validateInput(input: PasswordConsequenceProjectionInput): void {
   if (input.accounts.length !== 3) throw new Error('S06 requires exactly three account analyses.');
-  if (input.comparisons.length !== 4)
-    throw new Error('S06 requires exactly four directed account comparisons.');
+  if (input.comparisons.length !== 6)
+    throw new Error('S06 requires exactly six directed account comparisons.');
   const comparisonKeys = new Set(
     input.comparisons.map(
       ({ sourceAccountId, targetAccountId }) => `${sourceAccountId}:${targetAccountId}`,
@@ -411,6 +413,8 @@ function validateInput(input: PasswordConsequenceProjectionInput): void {
     'campusgram:campus-email',
     'master-campus:campusgram',
     'master-campus:campus-email',
+    'campus-email:master-campus',
+    'campus-email:campusgram',
   ];
   if (
     comparisonKeys.size !== requiredComparisonKeys.length ||
@@ -430,10 +434,16 @@ export function projectPasswordConsequenceScenePlan(
   const masterCampusFound = wholePasswordRecognized(
     accountById(input.accounts, 'master-campus').disposition,
   );
+  const campusEmailFound = wholePasswordRecognized(
+    accountById(input.accounts, 'campus-email').disposition,
+  );
   const campusgramComparisonMode: PasswordConsequenceSceneMode = campusgramFound
     ? 'actual'
     : 'hypothetical';
   const masterComparisonMode: PasswordConsequenceSceneMode = masterCampusFound
+    ? 'actual'
+    : 'hypothetical';
+  const campusEmailComparisonMode: PasswordConsequenceSceneMode = campusEmailFound
     ? 'actual'
     : 'hypothetical';
   const consequenceSteps: readonly PasswordConsequencePlanStep[] = [
@@ -485,6 +495,20 @@ export function projectPasswordConsequenceScenePlan(
       'campus-email',
       's06.local-check.campus-email',
       'actual',
+    ),
+    comparisonStep(
+      input,
+      's06-step-campus-email-master-campus',
+      'campus-email',
+      'master-campus',
+      campusEmailComparisonMode,
+    ),
+    comparisonStep(
+      input,
+      's06-step-campus-email-campusgram',
+      'campus-email',
+      'campusgram',
+      campusEmailComparisonMode,
     ),
   ];
   const paths = consequenceSteps.flatMap((step): readonly S06ResolvedConsequencePath[] => {

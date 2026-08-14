@@ -333,9 +333,11 @@ export class NetworkMotionAdapter implements AnimationPlayerPort {
     } finally {
       this.#activeAnimations.delete(animation);
     }
-    edge.style.removeProperty('stroke-dasharray');
-    edge.style.removeProperty('stroke-dashoffset');
-    edge.style.removeProperty('opacity');
+    // Keep the completed mask visible until React replaces the drawing overlay with the
+    // authored settled path. Resetting it here creates a one-frame disappear/reappear flash.
+    edge.style.strokeDasharray = `${length}`;
+    edge.style.strokeDashoffset = '0';
+    edge.style.opacity = '1';
   }
 
   async #moveKeyIntoLock(node: HTMLElement, durationMs: number): Promise<void> {

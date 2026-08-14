@@ -25,6 +25,17 @@
   max-height: 118%;
 }
 
+.comparisonPathShield {
+  position: absolute;
+  z-index: 10;
+  width: 120%;
+  height: 120%;
+  object-fit: contain;
+  filter: drop-shadow(0 0 0.8rem rgb(0 212 119 / 82%));
+  pointer-events: none;
+  animation: comparison-path-shield-arrival 360ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
 .attackAttempt {
   position: absolute;
   z-index: 8;
@@ -116,6 +127,20 @@
   display: none;
 }
 
+.network[data-attack-phase="incident-check"]
+  .attackAttempt[data-account-attack-attempt="exposed"]
+  .attackConnection {
+  display: block;
+}
+
+.network[data-attack-phase="incident-check"][data-attack-source="master-campus"]
+  :global([data-scene-node="master-campus"][data-status="neutral"] [data-scene-node-visual]),
+.network[data-attack-phase="incident-check"][data-attack-source="campus-email"]
+  :global([data-scene-node="campus-email"][data-status="neutral"] [data-scene-node-visual]) {
+  border-color: #ff315e;
+  box-shadow: 0 0 0 0.2rem rgb(255 49 94 / 20%), 0 0 1rem rgb(255 49 94 / 58%);
+}
+
 .network[data-attack-phase="hypothetical-intro"]
   .attackAttempt[data-account-attack-attempt="exposed"] .attacker {
   animation: account-attacker-capture 1.35s cubic-bezier(0.22, 1, 0.36, 1) both;
@@ -170,7 +195,25 @@
   animation: account-attacker-capture-from-right 1.35s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
+.network[data-attack-phase="incident-check"]
+  .attackAttempt:is(
+    [data-account-attack-source="master-campus"],
+    [data-account-attack-source="campus-email"]
+  )[data-account-attack-attempt="exposed"]
+  .attacker {
+  animation: account-attacker-capture-from-right 1.35s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
 .network[data-attack-phase="hypothetical-intro"]
+  .attackAttempt:is(
+    [data-account-attack-source="master-campus"],
+    [data-account-attack-source="campus-email"]
+  )[data-account-attack-attempt="exposed"]
+  .attackConnection {
+  animation: account-attack-connection-capture-from-right 1.35s ease-out both;
+}
+
+.network[data-attack-phase="incident-check"]
   .attackAttempt:is(
     [data-account-attack-source="master-campus"],
     [data-account-attack-source="campus-email"]
@@ -201,6 +244,17 @@
   color: #dff3ff;
   background: #073f91;
   box-shadow: 0 0 0 0.24rem rgb(36 151 255 / 22%), 0 0 1.35rem rgb(36 151 255 / 68%);
+}
+
+.network :global([data-symbol-id="comparison-path-shield"] [data-scene-node-visual]) {
+  border-color: transparent;
+  color: transparent;
+  background: transparent;
+  box-shadow: none;
+}
+
+.network :global([data-symbol-id="comparison-path-shield"] [data-network-symbol="comparison-path-shield"]) {
+  opacity: 0;
 }
 
 .network :global([data-status-cascade-tone="protection"][data-status-cascade-active="true"] [data-scene-node-visual]) {
@@ -237,10 +291,10 @@
 }
 
 .network :global(.edge-status-blocked .react-flow__edge-path) {
-  stroke: #2c9dff;
+  stroke: #08c978;
   stroke-width: 4px;
   stroke-dasharray: 3 8;
-  filter: drop-shadow(0 0 5px rgb(44 157 255 / 70%));
+  filter: drop-shadow(0 0 5px rgb(0 212 119 / 70%));
 }
 
 .network :global(.edge-kind-identical-reuse .react-flow__edge-path),
@@ -266,11 +320,6 @@
   :global([data-network-edge-current-attack="true"][data-network-edge-drawing="true"] .react-flow__edge-path) {
   opacity: 0 !important;
   animation: none !important;
-}
-
-.network[data-attack-phase="resolving"][data-attack-blocked="true"]
-  :global([data-network-edge-current-attack="true"] .react-flow__edge-path) {
-  animation: account-attack-line-dissolve 420ms cubic-bezier(0.32, 0, 0.18, 1) both;
 }
 
 .network :global([data-network-edge-status-cascade-tone] .react-flow__edge-path) {
@@ -433,23 +482,20 @@
   }
 }
 
-@keyframes account-attack-line-dissolve {
-  0% {
-    opacity: 1;
-    stroke-dasharray: 8 4;
-    stroke-dashoffset: 0;
-    filter: drop-shadow(0 0 5px rgb(255 49 94 / 70%));
-  }
-  55% {
-    opacity: 0.72;
-    stroke-dasharray: 3 10;
-    stroke-dashoffset: 24;
-  }
-  100% {
+@keyframes comparison-path-shield-arrival {
+  from {
     opacity: 0;
-    stroke-dasharray: 1 16;
-    stroke-dashoffset: 72;
-    filter: blur(2px);
+    transform: scale(0.58);
+  }
+
+  62% {
+    opacity: 1;
+    transform: scale(1.1);
+  }
+
+  to {
+    opacity: 1;
+    transform: scale(1);
   }
 }
 
@@ -463,22 +509,34 @@
   }
 
   .attackConnection {
-    animation: none;
+    animation: none !important;
   }
 
   .attackAttempt[data-account-attack-attempt="exposed"] .attacker {
     top: -22%;
     left: -22%;
     width: 144%;
-    animation: none;
+    animation: none !important;
   }
 
   .attackAttempt[data-account-attack-attempt="exposed"] .attackConnection {
     display: none;
   }
 
+  .network[data-attack-phase="incident-check"]
+    .attackAttempt[data-account-attack-attempt="exposed"]
+    .attackConnection {
+    display: block;
+  }
+
   .network :global([data-status-cascade-active] [data-scene-node-visual]),
   .network :global([data-status-cascade-active] [data-account-shield]) {
+    animation: none;
+  }
+
+  .comparisonPathShield {
+    opacity: 1;
+    transform: scale(1);
     animation: none;
   }
 
@@ -501,9 +559,4 @@
     transform: scale(1);
   }
 
-  .network[data-attack-phase="resolving"][data-attack-blocked="true"]
-    :global([data-network-edge-current-attack="true"] .react-flow__edge-path) {
-    animation: none;
-    opacity: 0;
-  }
 }

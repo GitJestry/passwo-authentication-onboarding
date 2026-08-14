@@ -8,6 +8,7 @@ import {
   getS05DesignLabFixture,
   getS05DesignLabFixtureByRouteId,
   getS06ConsequenceFixtureByRouteId,
+  type S06ConsequenceFixture,
   type S01AccountId,
   s00Content,
   s01AccountIds,
@@ -58,6 +59,42 @@ function ArtifactPreview({ children }: { readonly children: ReactNode }) {
     <div className={styles.artifactPreview}>
       <ArtifactViewport>{children}</ArtifactViewport>
     </div>
+  );
+}
+
+function S06ToS07FixturePreview({ fixture }: { readonly fixture: S06ConsequenceFixture }) {
+  const [stage, setStage] = useState<'s06' | 'transition' | 's07'>('s06');
+
+  if (stage === 's06') {
+    return (
+      <S06ConsequenceTraining
+        source={{ kind: 'fixture', fixtureId: fixture.id }}
+        onComplete={() => setStage('transition')}
+      />
+    );
+  }
+  if (stage === 'transition') {
+    return (
+      <SectionTransition
+        sectionLabel={s00Content.sectionTransition.label}
+        title={
+          s00Content.sectionTransition.parts[3]?.label ?? s00Content.sectionTransition.title
+        }
+        currentSection={1}
+        totalSections={3}
+        parts={s00Content.sectionTransition.parts}
+        currentPart={4}
+        holdDurationMs={s00Content.sectionTransition.holdDurationMs}
+        onComplete={() => setStage('s07')}
+      />
+    );
+  }
+  return (
+    <S07PassphraseSearchTraining
+      campusgramPassword={fixture.accounts.campusgram.fictionalPassword}
+      displayName="Vorschau"
+      platform={readDesktopPlatform()}
+    />
   );
 }
 
@@ -983,7 +1020,7 @@ export function DesignLab({ scenarioId }: { readonly scenarioId: DesignLabScenar
       <main className={styles.labPage}>
         <DesignLabIntroduction scenarioId={scenarioId} scenario={scenario} />
         <ArtifactPreview>
-          <S06ConsequenceTraining source={{ kind: 'fixture', fixtureId: s06Fixture.id }} />
+          <S06ToS07FixturePreview fixture={s06Fixture} />
         </ArtifactPreview>
       </main>
     );

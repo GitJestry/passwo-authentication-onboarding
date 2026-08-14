@@ -7,11 +7,11 @@ import {
 } from './s07.js';
 
 const s06AttackFlowCopyReference =
-  'docs/design/S06-S07-COPY-AUDIT.md#copy--und-ablaufdelta-s06-master-campus-prüft-beide-anderen-konten-14-august-2026';
+  'docs/design/S06-S07-COPY-AUDIT.md#darstellungs--und-ablaufdelta-s06-stabiler-campus-e-mail-befall-und-schlusszustand-14-august-2026';
 
 describe('S06 transition and S07 passphrase-search copy traceability', () => {
   it('keeps S06 consequence wording aligned with bounded whole-password recognition', () => {
-    expect(S06_CONSEQUENCE_CONTENT_VERSION).toBe('2.11.0');
+    expect(S06_CONSEQUENCE_CONTENT_VERSION).toBe('2.14.0');
     expect(s06ConsequenceContent.source.copyReference).toBe(s06AttackFlowCopyReference);
     expect(s06ConsequenceContent.page.attackStart).toBe('Angriff starten');
     expect(s06ConsequenceContent.page.finish).toBe('Fertig');
@@ -33,7 +33,17 @@ describe('S06 transition and S07 passphrase-search copy traceability', () => {
         body: 'Angenommen, das Master-Campus-Passwort wäre bekannt geworden. Dann würde es oder eine ähnliche Variante bei Campusgram und Campus E-Mail ausprobiert.',
       },
       's06.transition.campus-email': {
-        body: 'Zum Schluss verschieben wir das Datenleck zu Campus E-Mail und prüfen dieses Passwort für sich.',
+        body: 'Zum Schluss verschieben wir das Datenleck zu Campus E-Mail und prüfen von dort beide anderen Konten.',
+      },
+      's06.local-check.campus-email-found': {
+        body: 'Beim Campus-E-Mail-Passwort wurde ein vollständiger früher Kandidat erkannt. Von diesem Konto aus werden nun die beiden anderen Passwörter direkt im Netzwerk geprüft.',
+      },
+      's06.local-check.campus-email-blocked': {
+        body: 'Beim Campus-E-Mail-Passwort wurde in dieser begrenzten Prüfung kein vollständiger früher Kandidat erkannt. Die möglichen weiteren Wege betrachten wir deshalb als „Was wäre, wenn?“.',
+      },
+      's06.transition.return-to-campusgram': {
+        heading: 'Zurück zur Ausgangslage',
+        body: 'Damit sind alle drei Ausgangslagen betrachtet. Als Nächstes kehren wir zur tatsächlichen Ausgangslage mit dem Datenleck bei Campusgram zurück.',
       },
       's06.summary.separated': {
         body: 'Die gezeigten Vergleiche erkannten weder Wiederverwendung noch eine abgeleitete Variante. In dieser Übung hatte das einen konkreten Schutzeffekt: Ein bekanntes Passwort führte nicht direkt zu einem weiteren Konto.',
@@ -55,6 +65,10 @@ describe('S06 transition and S07 passphrase-search copy traceability', () => {
       },
       's06.summary.actual-both': {
         body: 'Der Angriff konnte sich von Campusgram auf beide anderen Konten ausbreiten.',
+      },
+      's06.summary.actual-source-blocked': {
+        heading: 'Tatsächliche Ausgangslage',
+        body: 'In der tatsächlichen Ausgangslage wurde das Campusgram-Passwort in dieser begrenzten Prüfung nicht gefunden. Der Angreifer bleibt deshalb außerhalb des Kontos.',
       },
       's06.summary.hypothetical-none': {
         body: 'Selbst wenn das Campusgram-Passwort bekannt gewesen wäre, wäre der Angriff in dieser Simulation auf Campusgram begrenzt geblieben. Die anderen Konten wären geschützt geblieben.',
