@@ -14,6 +14,7 @@ import { BrowserSegmentTimingAdapter } from '../../adapters/timing/BrowserSegmen
 import { createStudyApi } from '../../api/study-api.js';
 import { ReferenceArtifact } from '../reference/ReferenceArtifact.js';
 import { PasswordModuleTraining } from '../training/PasswordModuleTraining.js';
+import { TrainingClipboardBoundary } from '../training/TrainingClipboardBoundary.js';
 import { GuardrailBlockForm, QuestionnaireSectionForm } from './InstrumentForm.js';
 import styles from './StudyFlow.module.css';
 
@@ -430,11 +431,13 @@ function SupportiveArtifact({
   readonly onRetryTiming: () => void;
 }) {
   return (
-    <PasswordModuleTraining
-      timingPort={timingPort}
-      externalTimingError={timingError}
-      onRetryExternalTiming={onRetryTiming}
-    />
+    <TrainingClipboardBoundary allowCopy={false}>
+      <PasswordModuleTraining
+        timingPort={timingPort}
+        externalTimingError={timingError}
+        onRetryExternalTiming={onRetryTiming}
+      />
+    </TrainingClipboardBoundary>
   );
 }
 

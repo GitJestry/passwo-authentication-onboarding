@@ -11,7 +11,7 @@ import {
   type BrowserShellSnapshot,
   type DesktopPlatform,
 } from '@passwo/ui';
-import { useState, type ClipboardEvent, type KeyboardEvent } from 'react';
+import { useState } from 'react';
 import { NetworkSymbol } from '../../../../adapters/network/NetworkSymbolRegistry.js';
 import { CampusWebsiteBackdrop } from '../../CampusWebsiteBackdrop.js';
 import { CampusgramIncidentNotice } from '../../CampusgramIncidentNotice.js';
@@ -379,6 +379,7 @@ function GeneratorPage({
             <div className={styles.generatorOutputGroup}>
               <output
                 className={styles.generatorOutput}
+                data-training-clipboard-sensitive
                 aria-label={page.outputAriaLabel}
                 aria-live="polite"
                 aria-busy={generating}
@@ -630,25 +631,10 @@ export function S07PassphraseSearchTraining({
     highlightNewTab: state.matches('campusgramSearchIntro'),
   };
 
-  const preventNativeClipboard = (event: ClipboardEvent<HTMLElement>): void => {
-    event.preventDefault();
-  };
-
-  const preventNativeClipboardShortcut = (event: KeyboardEvent<HTMLElement>): void => {
-    if (!(event.metaKey || event.ctrlKey) || !['c', 'v', 'x'].includes(event.key.toLowerCase())) {
-      return;
-    }
-    event.preventDefault();
-  };
-
   return (
     <section
       className={styles.training}
       aria-label={s07PassphraseSearchContent.trainingAriaLabel}
-      onCopy={preventNativeClipboard}
-      onCut={preventNativeClipboard}
-      onPaste={preventNativeClipboard}
-      onKeyDownCapture={preventNativeClipboardShortcut}
     >
       <BrowserShell
         platform={platform}

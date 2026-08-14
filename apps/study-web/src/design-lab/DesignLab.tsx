@@ -31,6 +31,7 @@ import { useCallback, useEffect, useMemo, useState, type ReactNode } from 'react
 import { S00Training } from '../features/training/S00Training.js';
 import { S01Training } from '../features/training/S01Training.js';
 import { SectionTransition } from '../features/training/SectionTransition.js';
+import { TrainingClipboardBoundary } from '../features/training/TrainingClipboardBoundary.js';
 import { S02AccountExplorationTraining } from '../features/training/segments/S02/S02AccountExplorationTraining.js';
 import { S03RetrievalTraining } from '../features/training/segments/S03/S03RetrievalTraining.js';
 import { S04IncidentTraining } from '../features/training/segments/S04/S04IncidentTraining.js';
@@ -57,7 +58,9 @@ interface DesignLabScenarioGroup {
 function ArtifactPreview({ children }: { readonly children: ReactNode }) {
   return (
     <div className={styles.artifactPreview}>
-      <ArtifactViewport>{children}</ArtifactViewport>
+      <TrainingClipboardBoundary allowCopy>
+        <ArtifactViewport>{children}</ArtifactViewport>
+      </TrainingClipboardBoundary>
     </div>
   );
 }
