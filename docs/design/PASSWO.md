@@ -30,8 +30,9 @@ Die Runtime verwendet ausschließlich die IDs von `PassWoPlacement`:
 - `focused-node`: kurze Erklärung direkt an Knoten oder Element;
 - `offscreen-right`: Start- oder Endpunkt einer Flugbewegung.
 
-`offscreen-left` und `bottom-right` bleiben für passende künftige Szenen reservierte
-Placement-IDs; neue Bezeichnungen außerhalb des Contracts werden nicht eingeführt.
+`bottom-right` wird für die geführten Browserhandlungen in S07 und den S08-Rücklauf verwendet.
+`offscreen-left` bleibt für passende künftige Szenen reserviert; neue Bezeichnungen außerhalb
+des Contracts werden nicht eingeführt.
 
 ## Sprechprotokoll
 

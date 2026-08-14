@@ -50,6 +50,14 @@ export interface CampusgramIncidentNoticeProps {
   readonly simulatedPasteLabel?: string | undefined;
   readonly onSimulatedClipboardConsumed?: (() => void) | undefined;
   readonly onSimulatedPasswordChangeCompleted?: (() => void) | undefined;
+  readonly onPasswordChangeSubmitted?: (() => void) | undefined;
+  readonly onSimulatedPaste?: ((target: 'new' | 'confirm') => void) | undefined;
+  readonly allowFreePasswordInput?: boolean | undefined;
+  readonly guidedPasteTarget?: 'new' | 'confirm' | null | undefined;
+  readonly guidedSubmit?: boolean | undefined;
+  readonly showBackAction?: boolean | undefined;
+  readonly showCompletedAction?: boolean | undefined;
+  readonly showPasswordVisibilityActions?: boolean | undefined;
   readonly completedCopy?:
     | {
         readonly title: string;
@@ -67,6 +75,14 @@ export function CampusgramIncidentNotice({
   simulatedPasteLabel,
   onSimulatedClipboardConsumed,
   onSimulatedPasswordChangeCompleted,
+  onPasswordChangeSubmitted,
+  onSimulatedPaste,
+  allowFreePasswordInput = true,
+  guidedPasteTarget,
+  guidedSubmit = false,
+  showBackAction = true,
+  showCompletedAction = true,
+  showPasswordVisibilityActions = true,
   completedCopy,
 }: CampusgramIncidentNoticeProps) {
   const inputId = useId();
@@ -119,6 +135,7 @@ export function CampusgramIncidentNotice({
     setConfirmedPassword(nextConfirmedPassword);
     setValidationError(null);
     setUsedSimulatedClipboard(true);
+    onSimulatedPaste?.(target);
     if (
       nextNewPassword === simulatedClipboardValue &&
       nextConfirmedPassword === simulatedClipboardValue
@@ -151,6 +168,7 @@ export function CampusgramIncidentNotice({
     setConfirmedPasswordRevealed(false);
     setValidationError(null);
     setCompleted(true);
+    onPasswordChangeSubmitted?.();
   }
 
   if (passwordChangeOpen) {
@@ -161,16 +179,18 @@ export function CampusgramIncidentNotice({
         aria-modal="true"
         aria-labelledby={`${inputId}-title`}
         onKeyDown={(event) => {
-          if (event.key !== 'Escape') return;
+          if (event.key !== 'Escape' || !showBackAction) return;
           event.preventDefault();
           closePasswordChange();
         }}
       >
-        <header className={styles.passwordChangeHeader}>
-          <button type="button" onClick={closePasswordChange}>
-            <span aria-hidden="true">←</span>
-            {passwordChange.backLabel}
-          </button>
+        <header className={styles.passwordChangeHeader} data-back-action={showBackAction || undefined}>
+          {showBackAction ? (
+            <button type="button" onClick={closePasswordChange}>
+              <span aria-hidden="true">←</span>
+              {passwordChange.backLabel}
+            </button>
+          ) : null}
           <span className={styles.securityContext}>
             <LockIcon />
             {passwordChange.securityContext}
@@ -192,9 +212,11 @@ export function CampusgramIncidentNotice({
                 {completedCopy?.title ?? passwordChange.completedTitle}
               </h2>
               <p>{completedCopy?.body ?? passwordChange.completedBody}</p>
-              <button type="button" className={styles.submitButton} onClick={closePasswordChange}>
-                {passwordChange.completedAction}
-              </button>
+              {showCompletedAction ? (
+                <button type="button" className={styles.submitButton} onClick={closePasswordChange}>
+                  {passwordChange.completedAction}
+                </button>
+              ) : null}
             </section>
           ) : (
             <form className={styles.passwordChangeCard} onSubmit={submitPasswordChange}>
@@ -219,6 +241,7 @@ export function CampusgramIncidentNotice({
                   <button
                     type="button"
                     className={styles.revealButton}
+                    disabled={!showPasswordVisibilityActions}
                     aria-pressed={currentPasswordRevealed}
                     aria-label={`${
                       currentPasswordRevealed
@@ -246,13 +269,19 @@ export function CampusgramIncidentNotice({
                     type={newPasswordRevealed ? 'text' : 'password'}
                     autoComplete="off"
                     required
+                    readOnly={!allowFreePasswordInput}
                     value={newPassword}
-                    onChange={(event) => setNewPassword(event.currentTarget.value)}
+                    onChange={(event) => {
+                      if (allowFreePasswordInput) setNewPassword(event.currentTarget.value);
+                    }}
                   />
-                  {simulatedClipboardValue === null || simulatedPasteLabel === undefined ? null : (
+                  {simulatedClipboardValue === null ||
+                  simulatedPasteLabel === undefined ||
+                  (guidedPasteTarget !== undefined && guidedPasteTarget !== 'new') ? null : (
                     <button
                       type="button"
                       className={styles.pasteButton}
+                      data-guided-highlight={guidedPasteTarget === 'new' || undefined}
                       onClick={() => pasteSimulatedPassword('new')}
                     >
                       {simulatedPasteLabel}
@@ -261,6 +290,7 @@ export function CampusgramIncidentNotice({
                   <button
                     type="button"
                     className={styles.revealButton}
+                    disabled={!showPasswordVisibilityActions}
                     aria-pressed={newPasswordRevealed}
                     aria-label={`${
                       newPasswordRevealed
@@ -288,13 +318,19 @@ export function CampusgramIncidentNotice({
                     type={confirmedPasswordRevealed ? 'text' : 'password'}
                     autoComplete="off"
                     required
+                    readOnly={!allowFreePasswordInput}
                     value={confirmedPassword}
-                    onChange={(event) => setConfirmedPassword(event.currentTarget.value)}
+                    onChange={(event) => {
+                      if (allowFreePasswordInput) setConfirmedPassword(event.currentTarget.value);
+                    }}
                   />
-                  {simulatedClipboardValue === null || simulatedPasteLabel === undefined ? null : (
+                  {simulatedClipboardValue === null ||
+                  simulatedPasteLabel === undefined ||
+                  (guidedPasteTarget !== undefined && guidedPasteTarget !== 'confirm') ? null : (
                     <button
                       type="button"
                       className={styles.pasteButton}
+                      data-guided-highlight={guidedPasteTarget === 'confirm' || undefined}
                       onClick={() => pasteSimulatedPassword('confirm')}
                     >
                       {simulatedPasteLabel}
@@ -303,6 +339,7 @@ export function CampusgramIncidentNotice({
                   <button
                     type="button"
                     className={styles.revealButton}
+                    disabled={!showPasswordVisibilityActions}
                     aria-pressed={confirmedPasswordRevealed}
                     aria-label={`${
                       confirmedPasswordRevealed
@@ -320,7 +357,12 @@ export function CampusgramIncidentNotice({
                   {validationError}
                 </p>
               )}
-              <button type="submit" className={styles.submitButton}>
+              <button
+                type="submit"
+                className={styles.submitButton}
+                data-guided-highlight={guidedSubmit || undefined}
+                disabled={guidedPasteTarget !== undefined && !guidedSubmit}
+              >
                 {passwordChange.submitLabel}
               </button>
             </form>

@@ -46,6 +46,16 @@
   bottom: 0;
 }
 
+.guide[data-placement="bottom-right"] {
+  right: clamp(var(--space-2), 1.4cqi, var(--space-4));
+  left: auto;
+}
+
+.guide[data-speaking="true"][data-placement="bottom-right"] {
+  top: auto;
+  bottom: 0;
+}
+
 .guide[data-placement="center"] {
   top: 50%;
   bottom: auto;
@@ -236,6 +246,11 @@
     right: var(--space-2);
     bottom: var(--space-2);
     width: 7.25rem;
+  }
+
+  .guide[data-placement="bottom-right"] {
+    right: var(--space-2);
+    left: auto;
   }
 
   .guideDock {

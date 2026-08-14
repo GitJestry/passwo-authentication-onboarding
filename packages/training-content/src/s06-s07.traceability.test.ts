@@ -5,6 +5,7 @@ import {
   S07_PASSPHRASE_SEARCH_CONTENT_VERSION,
   s07PassphraseSearchContent,
 } from './s07.js';
+import { S08_NETWORK_REPLAY_CONTENT_VERSION, s08NetworkReplayContent } from './s08.js';
 
 const s06AttackFlowCopyReference =
   'docs/design/S06-S07-COPY-AUDIT.md#darstellungs--und-ablaufdelta-s06-stabiler-campus-e-mail-befall-und-schlusszustand-14-august-2026';
@@ -121,14 +122,20 @@ describe('S06 transition and S07 passphrase-search copy traceability', () => {
   });
 
   it('keeps S07 linked to the passphrase-search browser state', () => {
-    expect(S07_PASSPHRASE_SEARCH_CONTENT_VERSION).toBe('3.2.0');
+    expect(S07_PASSPHRASE_SEARCH_CONTENT_VERSION).toBe('4.1.0');
     expect(s07PassphraseSearchContent.source.copyReference).toBe(
-      'docs/design/S06-S07-COPY-AUDIT.md#copy-delta-s07-bestätigung-des-campusgram-passwortwechsels-14-august-2026',
+      'docs/design/S06-S07-COPY-AUDIT.md#copy-delta-s07-neuer-tab-vor-der-suche-14-august-2026',
     );
+    expect(s07PassphraseSearchContent.guide).toMatchObject({
+      searchIntro: 'Dafür schauen wir nach einem Passphrase-Generator.',
+      searchAction: 'Suche nach einem Generator für eine Passphrase.',
+      replayAttack: 'Angriff erneut ansehen',
+    });
     expect(s07PassphraseSearchContent.browser.campusgramPasswordChangeCompleted).toEqual({
       title: 'Passwort geändert',
       body: 'Die neue Passphrase wird jetzt für Campusgram verwendet.',
     });
+    expect(s07PassphraseSearchContent.browser.searchTab.landingLabel).toBe('Neuer Tab');
     expect(s07PassphraseSearchContent.browser.searchTab.label).toBe('Passphrase generieren');
     expect(s07PassphraseSearchContent.browser.searchPage.brand).toBe('Search');
     expect(s07PassphraseSearchContent.browser.searchPage.landingAriaLabel).toBe(
@@ -143,7 +150,7 @@ describe('S06 transition and S07 passphrase-search copy traceability', () => {
       { label: 'Leerzeichen', value: ' ' },
     ]);
     expect(s07PassphraseSearchContent.browser.generatorPage.generationDelayMs).toBe(500);
-    expect(s07PassphraseSearchContent.browser.generatorPage.paste).toBe('Einfügen');
+    expect(s07PassphraseSearchContent.browser.generatorPage.paste).toBe('Einsetzen');
     expect(s07PassphraseSearchContent.browser.generatorPage.passphrases).toEqual([
       {
         words: ['Kaktus', 'Fenster', 'Regen', 'Komet', 'Lampe', 'Knochen'],
@@ -171,5 +178,15 @@ describe('S06 transition and S07 passphrase-search copy traceability', () => {
           'Im Nirgendwo versuche ich querzukommen, doch plötzlich wird es finster. Ich höre einen Appell, daraus wird ein Ersuchen, das ich mit einem Bleistift notiere.',
       },
     ]);
+  });
+
+  it('keeps S08 linked to the protected replay wording', () => {
+    expect(S08_NETWORK_REPLAY_CONTENT_VERSION).toBe('1.0.0');
+    expect(s08NetworkReplayContent.source.copyReference).toBe(
+      'docs/design/S06-S07-COPY-AUDIT.md#copy--und-ablaufdelta-s08-geschützter-angriffsrücklauf-14-august-2026',
+    );
+    expect(s08NetworkReplayContent.result).toBe(
+      'Diesmal endet der Angriff bei dem alten geleakten Passwort. Es funktioniert nicht mehr bei Campusgram und kann auch nicht über Wiederverwendung auf deine anderen Konten übertragen werden.',
+    );
   });
 });

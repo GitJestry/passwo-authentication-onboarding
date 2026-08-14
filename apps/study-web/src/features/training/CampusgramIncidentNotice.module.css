@@ -112,6 +112,10 @@
   background: rgb(255 255 255 / 88%);
 }
 
+.passwordChangeHeader:not([data-back-action="true"]) {
+  justify-content: flex-end;
+}
+
 .passwordChangeHeader button {
   display: inline-flex;
   min-height: var(--size-control-medium);
@@ -278,6 +282,31 @@
   color: var(--color-campusgram-ink);
 }
 
+.pasteButton[data-guided-highlight="true"],
+.submitButton[data-guided-highlight="true"] {
+  outline: 0.2rem solid rgb(255 225 112 / 96%);
+  outline-offset: 0.18rem;
+  box-shadow: 0 0 1.35rem 0.35rem rgb(255 181 46 / 64%);
+  animation: guided-password-action 1.8s ease-in-out infinite;
+}
+
+.submitButton:disabled {
+  cursor: not-allowed;
+  filter: grayscale(0.45);
+  opacity: 0.48;
+}
+
+@keyframes guided-password-action {
+  0%,
+  100% {
+    box-shadow: 0 0 0.9rem 0.15rem rgb(255 181 46 / 48%);
+  }
+
+  50% {
+    box-shadow: 0 0 1.55rem 0.45rem rgb(255 181 46 / 76%);
+  }
+}
+
 .revealButton {
   position: absolute;
   top: 50%;
@@ -338,5 +367,12 @@
 
   .passwordChangeBody > aside {
     display: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pasteButton[data-guided-highlight="true"],
+  .submitButton[data-guided-highlight="true"] {
+    animation: none;
   }
 }

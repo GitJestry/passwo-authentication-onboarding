@@ -3819,46 +3819,35 @@
   }
 }
 
-:global([data-artifact-layout="compact"]) .componentReviewLayout,
-:global([data-artifact-layout="constrained"]) .componentReviewLayout {
-  height: auto;
-  min-height: 100%;
-  grid-template-columns: minmax(0, 1fr);
-  align-content: center;
-}
-
 :global([data-artifact-layout="compact"])
-  .componentReviewLayout[data-review-visible="true"],
-:global([data-artifact-layout="constrained"])
   .componentReviewLayout[data-review-visible="true"] {
-  grid-template-columns: minmax(0, 1fr);
+  grid-template-columns:
+    minmax(calc(var(--artifact-unit, 1rem) * 20), 38%)
+    minmax(0, 1fr);
 }
 
-:global([data-artifact-layout="compact"])
-  .componentReviewLayout[data-review-visible="true"]
-  .componentStrategyLayout,
-:global([data-artifact-layout="constrained"])
-  .componentReviewLayout[data-review-visible="true"]
-  .componentStrategyLayout {
-  grid-column: 1;
-  grid-row: 2;
+:global([data-artifact-layout="compact"]) .componentReviewCard {
+  align-self: start;
+  gap: var(--space-2);
+  padding: var(--space-3);
 }
 
-:global([data-artifact-layout="compact"]) .componentReviewCard,
-:global([data-artifact-layout="constrained"]) .componentReviewCard {
-  position: static;
-  grid-column: 1;
-  grid-row: 1;
-  width: min(100%, calc(var(--artifact-unit, 1rem) * 42));
-  min-height: calc(var(--artifact-unit, 1rem) * 12);
-  max-height: none;
-  justify-self: center;
+:global([data-artifact-layout="compact"]) .componentReviewEntries {
+  gap: var(--space-2);
 }
 
-:global([data-artifact-layout="compact"]) .componentStrategyWorkspace,
-:global([data-artifact-layout="constrained"]) .componentStrategyWorkspace {
-  min-height: calc(var(--artifact-unit, 1rem) * 26);
-  transform: none;
+:global([data-artifact-layout="compact"]) .componentReviewEntries article {
+  gap: var(--space-1);
+  padding-top: var(--space-2);
+}
+
+:global([data-artifact-layout="compact"]) .componentReviewHeading {
+  grid-template-columns: 2.75rem minmax(0, 1fr);
+}
+
+:global([data-artifact-layout="compact"]) .componentReviewHeading img {
+  width: 2.75rem;
+  height: 2.75rem;
 }
 
 @container artifact-stage (max-width: 760px) {
@@ -4029,6 +4018,30 @@
 
   .estimateScale > div {
     grid-template-columns: repeat(3, minmax(2.75rem, 1fr));
+  }
+}
+
+@container artifact-stage (min-width: 700px) and (max-width: 760px) {
+  .componentReviewLayout[data-review-visible="true"] {
+    height: 100%;
+    min-height: 100%;
+    grid-template-columns: minmax(18rem, 40%) minmax(0, 1fr);
+  }
+
+  .componentReviewLayout[data-review-visible="true"] .componentStrategyLayout {
+    grid-column: 2;
+    grid-row: 1;
+  }
+
+  .componentReviewCard {
+    position: relative;
+    grid-column: 1;
+    grid-row: 1;
+    min-height: calc(var(--artifact-unit, 1rem) * 19);
+    max-height: min(
+      calc(var(--artifact-unit, 1rem) * 28),
+      calc(100% - var(--space-4))
+    );
   }
 }
 

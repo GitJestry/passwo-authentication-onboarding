@@ -36,6 +36,7 @@ import {
   type S06ConsequenceSource,
   type S06TimingState,
 } from './segments/S06/S06ConsequenceTraining.js';
+import { createS06ConsequenceScenePlan } from './segments/S06/S06ConsequenceController.js';
 import { S07PassphraseSearchTraining } from './segments/S07/S07PassphraseSearchTraining.js';
 import { S08NetworkRewindStage } from './segments/S08/S08NetworkRewindStage.js';
 
@@ -137,6 +138,22 @@ export function PasswordModuleTraining({
       },
     };
   }, [campusIdentity.assessmentTerms, passwordValues, retrievalResults]);
+  const s07RemainingAccountIds = useMemo(() => {
+    if (s06Source?.kind !== 'runtime') return [];
+    const plan = createS06ConsequenceScenePlan(
+      'supportive-runtime-s07-relations',
+      s06Source.accounts,
+    );
+    const remainingRelation = plan.comparisons.some(
+      ({ sourceAccountId, targetAccountId, result }) =>
+        ((sourceAccountId === 'master-campus' && targetAccountId === 'campus-email') ||
+          (sourceAccountId === 'campus-email' && targetAccountId === 'master-campus')) &&
+        result.relation.kind !== 'no-derived-path-recognized',
+    );
+    return remainingRelation
+      ? (['master-campus', 'campus-email'] as const)
+      : [];
+  }, [s06Source]);
   const completeS06 = useCallback(() => controllerRef.current?.completeS06(), []);
 
   useEffect(() => {
@@ -489,9 +506,11 @@ export function PasswordModuleTraining({
     return (
       <S07PassphraseSearchTraining
         campusgramPassword={campusgramPassword}
+        currentPasswords={snapshot.context.passwordValues}
         displayName={snapshot.context.displayName ?? ''}
+        remainingAccountIds={s07RemainingAccountIds}
         platform={platform}
-        onPrimaryResultSelect={() => controller.completeS07()}
+        onComplete={() => controller.completeS07()}
       />
     );
   }

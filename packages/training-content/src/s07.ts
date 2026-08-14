@@ -1,13 +1,13 @@
 import type { TrainingSectionId } from '@passwo/contracts';
 
-export const S07_PASSPHRASE_SEARCH_CONTENT_VERSION = '3.2.0';
+export const S07_PASSPHRASE_SEARCH_CONTENT_VERSION = '4.1.0';
 
 export const s07PassphraseSearchContent = {
   version: S07_PASSPHRASE_SEARCH_CONTENT_VERSION,
   source: {
-    revision: 'Userauftrag vom 2026-08-14 · Ergebnistext nach Campusgram-Passwortwechsel in S07',
+    revision: 'Userauftrag vom 2026-08-14 · neuer Tab vor der Passphrasensuche',
     copyReference:
-      'docs/design/S06-S07-COPY-AUDIT.md#copy-delta-s07-bestätigung-des-campusgram-passwortwechsels-14-august-2026',
+      'docs/design/S06-S07-COPY-AUDIT.md#copy-delta-s07-neuer-tab-vor-der-suche-14-august-2026',
   },
   segment: {
     id: 'S07',
@@ -15,14 +15,61 @@ export const s07PassphraseSearchContent = {
     slice: 'passphrase-search',
   },
   trainingAriaLabel: 'PassWo Training, Segment S07, Passphrase erstellen',
+  guide: {
+    taskLabel: 'Passphrase erstellen',
+    methodIntro:
+      'Wir ersetzen das betroffene Passwort jetzt durch eine starke Passphrase. Dabei werden mehrere zufällig ausgewählte Wörter zu einem langen Passwort kombiniert.',
+    searchIntro: 'Dafür schauen wir nach einem Passphrase-Generator.',
+    searchAction: 'Suche nach einem Generator für eine Passphrase.',
+    generatorExplanation: [
+      'Mit mehreren Wörtern kommt man schnell auf ein langes Passwort. Angreifer können solche Passphrasen aber auch wortweise ausprobieren.',
+      'Bei sechs zufällig ausgewählten Wörtern gibt es sehr viele mögliche Kombinationen. Wichtig ist, dass die Wörter nicht als vorhersehbarer Satz oder nach einem gemeinsamen Thema ausgewählt werden.',
+      'Der Generator wählt sie deshalb zufällig aus. Wenn du Passphrasen selbst bildest, solltest du darauf achten, keinen solchen Zusammenhang hineinzubauen.',
+    ],
+    mnemonicExplanation: [
+      'Sechs zufällige Wörter können erst einmal schwer zu merken wirken. Dafür kannst du dir im Nachhinein einen Merksatz oder ein ungewöhnliches Bild dazu vorstellen.',
+      'Wichtig: Erst kommen die zufälligen Wörter. Der Merksatz hilft nur beim Erinnern und bestimmt nicht, welche Wörter du auswählst.',
+    ],
+    copied:
+      'Die Passphrase ist kopiert. Geh jetzt zurück zu Campusgram und setze sie als neues Passwort ein.',
+    pasteNew: 'Setze deine kopierte Passphrase hier als neues Passwort ein.',
+    pasteConfirm: 'Setze dieselbe Passphrase jetzt zur Bestätigung noch einmal ein.',
+    submitChange: 'Beide Felder stimmen überein. Ändere jetzt das Passwort.',
+    campusgramSuccess:
+      'Du hast das betroffene Campusgram-Passwort durch eine starke, einzigartige Passphrase ersetzt. Das alte Passwort aus der Datenleck-Datei funktioniert jetzt nicht mehr für Campusgram.',
+    allUnique:
+      'Damit hast du gleichzeitig die bestehende Wiederverwendung beendet. Jedes deiner Konten hat jetzt ein eigenes Passwort.',
+    remainingRisk: (accounts: string) =>
+      `Bei ${accounts} sind Passwörter noch gleich oder ähnlich. Das geleakte Passwort könnte dort also weiterhin ausprobiert werden.`,
+    remainingPlan:
+      'Deshalb würden wir auch diese Wiederverwendung beenden und für jedes betroffene Konto eine eigene Passphrase verwenden.',
+    openAccount: (account: string) =>
+      `Wechsle jetzt zum Tab ${account} und öffne dort die Passwortänderung.`,
+    openPasswordChange: 'Öffne jetzt die Passwortänderung.',
+    returnToGenerator:
+      'Wechsle zurück zum geöffneten Tab „Passphrase generieren“ und erzeuge eine neue Passphrase für dieses Konto.',
+    generateForAccount: (account: string) =>
+      `Erzeuge jetzt eine neue Passphrase für ${account}.`,
+    returnToAccount: (account: string) =>
+      `Die neue Passphrase ist kopiert. Geh zurück zu ${account} und setze sie dort ein.`,
+    allResolved:
+      'Jetzt hat jedes Konto ein eigenes starkes Passwort. Schauen wir uns noch einmal an, was beim gleichen Angriff passiert.',
+    replayAttack: 'Angriff erneut ansehen',
+  },
   browser: {
     ariaLabel: 'Fiktive Browseranwendung, Segment S07, Passphrase erstellen',
     campusgramPasswordChangeCompleted: {
       title: 'Passwort geändert',
       body: 'Die neue Passphrase wird jetzt für Campusgram verwendet.',
     },
+    otherAccountPasswordChange: {
+      open: 'Passwort ändern',
+      completedTitle: 'Passwort geändert',
+      completedBody: (account: string) => `Die neue Passphrase wird jetzt für ${account} verwendet.`,
+    },
     searchTab: {
       id: 'passphrase-search',
+      landingLabel: 'Neuer Tab',
       label: 'Passphrase generieren',
       homeAddress: 'search.example',
       address: 'search.example/?q=passphrase+generieren',
@@ -48,7 +95,7 @@ export const s07PassphraseSearchContent = {
       generate: 'Neu generieren',
       copy: 'Kopieren',
       copied: 'Kopiert',
-      paste: 'Einfügen',
+      paste: 'Einsetzen',
       generationDelayMs: 500,
       passphrases: [
         {

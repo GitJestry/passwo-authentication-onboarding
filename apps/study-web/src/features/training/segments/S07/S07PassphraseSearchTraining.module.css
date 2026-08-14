@@ -9,6 +9,13 @@
   background: var(--color-surface-primary);
 }
 
+.accountPage {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  min-height: 100%;
+}
+
 .incidentSpotlight {
   position: relative;
   z-index: 12;
@@ -226,6 +233,46 @@
 .searchSubmit:focus-visible {
   outline: var(--border-width-focus) solid var(--passwo-focus);
   outline-offset: 3px;
+}
+
+.searchSubmit[data-guided-highlight="true"],
+.generateButton[data-guided-highlight="true"],
+.copyButton[data-guided-highlight="true"],
+.passwordChangeLauncher button[data-guided-highlight="true"] {
+  outline: 0.2rem solid rgb(255 225 112 / 96%);
+  outline-offset: 0.18rem;
+  box-shadow: 0 0 1.5rem 0.4rem rgb(255 181 46 / 68%);
+  animation: s07-guided-action 1.8s ease-in-out infinite;
+}
+
+@keyframes s07-guided-action {
+  0%,
+  100% {
+    box-shadow: 0 0 0.9rem 0.18rem rgb(255 181 46 / 48%);
+  }
+
+  50% {
+    box-shadow: 0 0 1.65rem 0.48rem rgb(255 181 46 / 78%);
+  }
+}
+
+.passwordChangeLauncher {
+  position: absolute;
+  z-index: 14;
+  top: clamp(5rem, 12cqb, 7rem);
+  right: clamp(var(--space-5), 5cqi, var(--space-8));
+}
+
+.passwordChangeLauncher button {
+  min-height: var(--size-control-large);
+  padding: var(--space-3) var(--space-5);
+  border: var(--border-width-medium) solid transparent;
+  border-radius: var(--radius-small);
+  color: #fff;
+  background: var(--color-accent-strong);
+  font: inherit;
+  font-weight: var(--font-weight-heavy);
+  cursor: pointer;
 }
 
 .searchFieldIcon svg,
@@ -1017,6 +1064,13 @@
 
 @media (prefers-reduced-motion: reduce) {
   .incidentSpotlight::after {
+    animation: none;
+  }
+
+  .searchSubmit[data-guided-highlight="true"],
+  .generateButton[data-guided-highlight="true"],
+  .copyButton[data-guided-highlight="true"],
+  .passwordChangeLauncher button[data-guided-highlight="true"] {
     animation: none;
   }
 

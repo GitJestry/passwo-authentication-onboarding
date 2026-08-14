@@ -202,7 +202,7 @@
   position: absolute;
   z-index: 11;
   bottom: clamp(var(--space-3), 2cqb, var(--space-5));
-  left: 50%;
+  right: clamp(var(--space-3), 2cqi, var(--space-5));
   margin: 0;
   padding: var(--space-3) var(--space-6);
   border: var(--border-width-medium) solid rgb(255 255 255 / 70%);
@@ -214,7 +214,6 @@
   font-weight: var(--font-weight-heavy);
   line-height: var(--line-height-tight);
   text-align: center;
-  transform: translateX(-50%);
 }
 
 .passWoLayer {

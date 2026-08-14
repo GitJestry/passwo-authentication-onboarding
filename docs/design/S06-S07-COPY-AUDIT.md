@@ -1,5 +1,73 @@
 # S06--S07 Copy Audit
 
+## Copy-Delta S07 neuer Tab vor der Suche, 14. August 2026
+
+Quelle ist der ausdrückliche Nutzerauftrag vom 14. August 2026. Direkt nach dem Öffnen des
+Such-Tabs zeigt dessen Beschriftung `Neuer Tab`, solange die vorbereitete Suche noch nicht
+ausgeführt wurde. Mit dem Auslösen der Suche wechselt die Beschriftung zu
+`Passphrase generieren` und bleibt für Suchergebnisse, Generatorseite und spätere Rückkehrschritte
+unverändert. Ablauf, Persistenz, Export und Timing bleiben unverändert.
+`S07_PASSPHRASE_SEARCH_CONTENT_VERSION` wird von `4.0.0` auf `4.1.0` erhöht.
+
+| Segment und Text-ID | Aktueller Text | Geplanter Text | Primäre Rolle | Interaktionsziel | Grund und Bedeutungsänderung | Hervorhebung |
+|---|---|---|---|---|---|---|
+| `S07.browser.searchTab.landingLabel` | `Passphrase generieren` | `Neuer Tab` | Orientierung | kein | bildet den sichtbaren Zustand vor der noch ausstehenden Suche ab; begrenzt | keine |
+
+## Copy- und Ablaufdelta S08 geschützter Angriffsrücklauf, 14. August 2026
+
+Quelle ist der ausdrückliche Nutzerauftrag vom 14. August 2026. S08 verwendet dieselbe
+Desktop- und Netzwerkdarstellung wie S06, projiziert den erneuten Angriff nach den flüchtigen
+S07-Passwortänderungen jedoch ausschließlich als blockierten Weg. Alle Konten und ihre Bereiche
+bleiben geschützt; die frühere hypothetische Ansicht enthält keine rote Ausbreitungskante.
+Die große nachfolgende Zusammenfassungskarte bleibt außerhalb dieses Deltas.
+
+| Segment und Text-ID | Aktueller Text | Geplanter Text | Primäre Rolle | Interaktionsziel | Grund und Bedeutungsänderung | Hervorhebung |
+|---|---|---|---|---|---|---|
+| `S08.replayLabels.attack` | `Auswertung abgeschlossen.` | `Das alte Campusgram-Passwort wird erneut ausprobiert.` | Orientierung | kein | benennt den sichtbaren erneuten Prüfschritt; ausdrücklich freigegeben | keine |
+| `S08.replayLabels.whatIf` | nicht vorhanden | `Was wäre, wenn? Auch die anderen Konten bleiben geschützt.` | Ergebnisfeedback | kein | bildet den ausdrücklich verlangten geschützten What-if-Zustand ab; ausdrücklich freigegeben | keine |
+| `S08.result` | nicht vorhanden | `Diesmal endet der Angriff bei dem alten geleakten Passwort. Es funktioniert nicht mehr bei Campusgram und kann auch nicht über Wiederverwendung auf deine anderen Konten übertragen werden.` | Ergebnisfeedback | kein | übernimmt die ausdrücklich vorgegebene S08-Einordnung wortgleich | `endet der Angriff bei dem alten geleakten Passwort` als positive Schutzwirkung |
+
+## Copy- und Ablaufdelta S07 vollständiger Passphrasenwechsel, 14. August 2026
+
+Quelle ist der ausdrückliche Nutzerauftrag vom 14. August 2026. Die bereits vorhandenen
+Campusgram-, Search- und Passphrase-Werkstatt-Frames werden zu einem geführten S07-Ablauf
+verbunden. PassWo erklärt jeweils nur den aktuellen Mechanismus oder verweist auf genau das
+sichtbare Browserziel. Die im Auftrag vorgegebenen Texte werden wortgleich übernommen.
+Kurze ergänzende Navigationssätze benennen ausschließlich den Wechsel zu einem tatsächlich
+hervorgehobenen Konto- oder Generator-Tab, die zweite Einsetzen-Handlung und den vorhandenen
+Passwortänderungsbutton.
+
+Die fünf vorhandenen Wortfolgen und Merksätze bleiben unverändert. Ihre Reihenfolge wird pro
+flüchtigem S07-Durchlauf ohne Wiederholung gemischt; insgesamt sind höchstens fünf Ausgaben
+möglich. Der ausgewählte Wert liegt nur im flüchtigen Statechart-Kontext und wird nach dem
+zweiten simulierten Einsetzen gelöscht. Native Zwischenablage, Browser-Speicher, Persistenz und
+Export bleiben ausgeschlossen. `S07_PASSPHRASE_SEARCH_CONTENT_VERSION` wird von `3.2.0` auf
+`4.0.0` erhöht.
+
+| Segment und Text-ID | Aktueller Text | Geplanter Text | Primäre Rolle | Interaktionsziel | Grund und Bedeutungsänderung | Hervorhebung |
+|---|---|---|---|---|---|---|
+| `S07.guide.methodIntro` | nicht vorhanden | `Wir ersetzen das betroffene Passwort jetzt durch eine starke Passphrase. Dabei werden mehrere zufällig ausgewählte Wörter zu einem langen Passwort kombiniert.` | Mechanismuserklärung | `Weiter` | ausdrücklich vorgegebener Methodeneinstieg | `starke Passphrase` positiv |
+| `S07.guide.searchIntro` | nicht vorhanden | `Dafür schauen wir nach einem Passphrase-Generator.` | Navigation | Browser-`+` | ausdrücklich vorgegebene Überleitung zum erst danach freigegebenen sichtbaren Ziel | `Passphrase-Generator` action |
+| `S07.guide.searchAction` | nicht vorhanden | `Suche nach einem Generator für eine Passphrase.` | Navigation | Search-Button | ausdrücklich vorgegebene Handlung | `Generator für eine Passphrase` action |
+| `S07.guide.generatorExplanation[0..2]` | Generatorseite ohne PassWo-Erklärung | drei ausdrücklich vorgegebene Schritte zu Länge, wortweisem Ausprobieren, Zufall und vorhersehbarer Selbstauswahl | Mechanismuserklärung | jeweils `Weiter`, danach `Neu generieren` | trennt die drei Lernpunkte entlang des geführten Ablaufs; ausdrücklich freigegeben | je höchstens eine Kernaussage |
+| `S07.guide.mnemonicExplanation[0..1]` | vorhandene Merksätze nicht sichtbar | zwei ausdrücklich vorgegebene Schritte zur nachträglichen Erinnerungshilfe | Mechanismuserklärung | jeweils `Weiter`, danach Generatoraktionen | stellt klar, dass der Merksatz die Zufallsauswahl nicht bestimmt | je höchstens eine Kernaussage |
+| `S07.browser.generatorPage.passphrases[*].passWoMnemonic` | versioniert, aber nicht sichtbar | Merksatz nach der zugehörigen Generierung sichtbar | Mechanismuserklärung | `Kopieren` oder weitere Generierung | setzt das ausdrücklich vorgegebene Timing um; keine Wortlautänderung | keine |
+| `S07.guide.copied` | nicht vorhanden | `Die Passphrase ist kopiert. Geh jetzt zurück zu Campusgram und setze sie als neues Passwort ein.` | Navigation | Campusgram-Tab | ausdrücklich vorgegebene Rückkehrhandlung | `zurück zu Campusgram` action |
+| `S07.guide.pasteNew` | nicht vorhanden | `Setze deine kopierte Passphrase hier als neues Passwort ein.` | Navigation | `Einsetzen` am neuen Passwort | ausdrücklich vorgegebene Einsetzen-Handlung | `Setze ... ein` action |
+| `S07.guide.pasteConfirm` | nicht vorhanden | `Setze dieselbe Passphrase jetzt zur Bestätigung noch einmal ein.` | Navigation | `Einfügen` an der Bestätigung | notwendige eindeutige Handlungszuordnung; begrenzte Ergänzung | `zur Bestätigung` action |
+| `S07.guide.submitChange` | nicht vorhanden | `Beide Felder stimmen überein. Ändere jetzt das Passwort.` | Navigation | `Passwort ändern` | notwendige eindeutige Handlungszuordnung; begrenzte Ergänzung | `Ändere jetzt das Passwort` action |
+| `S07.guide.campusgramSuccess` | nicht vorhanden | ausdrücklich vorgegebener Campusgram-Erfolgstext | Ergebnisfeedback | `Weiter` | übernimmt Wirkung und Grenze des fiktiven Passwortwechsels | `funktioniert jetzt nicht mehr für Campusgram` positiv |
+| `S07.guide.allUnique` | nicht vorhanden | ausdrücklich vorgegebener Fall-A-Text | Ergebnisfeedback | `Weiter` | dynamische Verzweigung auf den S06-Beziehungszustand | `eigenes Passwort` positiv |
+| `S07.guide.remainingRisk` | nicht vorhanden | ausdrücklich vorgegebener Fall-B-Text mit dynamischen Kontonamen | Ergebnisfeedback | `Weiter` | benennt nur tatsächlich verbleibende S06-Beziehungen | Kontonamen als Identitätsmarkierung |
+| `S07.guide.remainingPlan` | nicht vorhanden | ausdrücklich vorgegebener Plan für eigene Passphrasen | Navigation | `Weiter`, danach hervorgehobener Konto-Tab | erklärt den folgenden Kontenzyklus | `eigene Passphrase` positiv |
+| `S07.guide.openAccount` | nicht vorhanden | `Wechsle jetzt zum Tab [Konto] und öffne dort die Passwortänderung.` | Navigation | hervorgehobener Konto-Tab, danach `Passwort ändern` | notwendige eindeutige Handlungszuordnung | Kontoname als Identitätsmarkierung |
+| `S07.guide.openPasswordChange` | nicht vorhanden | `Öffne jetzt die Passwortänderung.` | Navigation | `Passwort ändern` | benennt das nach dem Tabwechsel sichtbare Ziel | `Passwortänderung` action |
+| `S07.guide.returnToGenerator` | nicht vorhanden | `Wechsle zurück zum geöffneten Tab „Passphrase generieren“ und erzeuge eine neue Passphrase für dieses Konto.` | Navigation | Generator-Tab | notwendige eindeutige Handlungszuordnung | `Passphrase generieren` action |
+| `S07.guide.generateForAccount` | nicht vorhanden | `Erzeuge jetzt eine neue Passphrase für [Konto].` | Navigation | `Neu generieren` | benennt das nach dem Tabwechsel sichtbare Ziel | Kontoname als Identitätsmarkierung |
+| `S07.guide.returnToAccount` | nicht vorhanden | `Die neue Passphrase ist kopiert. Geh zurück zu [Konto] und setze sie dort ein.` | Navigation | Konto-Tab | notwendige eindeutige Handlungszuordnung | Kontoname als Identitätsmarkierung |
+| `S07.guide.allResolved` | nicht vorhanden | `Jetzt hat jedes Konto ein eigenes starkes Passwort. Schauen wir uns noch einmal an, was beim gleichen Angriff passiert.` | Navigation | `Angriff erneut ansehen` | übernimmt die ausdrücklich vorgegebene S08-Überleitung | `eigenes starkes Passwort` positiv |
+| `S07.browser.generatorPage.paste` | `Einfügen` | `Einsetzen` | Navigation | neues beziehungsweise bestätigtes Passwortfeld | gleicht die simulierte Handlung an den ausdrücklich vorgegebenen sichtbaren Aktionsnamen an | `Einsetzen` action |
+
 ## Ablaufdelta S06-QA-Abschluss zu S07, 14. August 2026
 
 Quelle ist der ausdrückliche Nutzerauftrag vom 14. August 2026. Die vier direkten

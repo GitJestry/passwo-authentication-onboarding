@@ -37,7 +37,7 @@ export interface PassWoGuideProps {
   readonly speechPlacement?: PassWoSpeechPlacement;
   readonly speechObstacleSelector?: string;
   readonly speechAction?: PassWoSpeechAction;
-  readonly placement?: 'bottom-left' | 'center' | 'incident';
+  readonly placement?: 'bottom-left' | 'bottom-right' | 'center' | 'incident';
   readonly pose?: 'default' | 'warning';
   /** Keeps the guide aligned with a currently explained browser tab. */
   readonly guidedAccountId?: string | null;

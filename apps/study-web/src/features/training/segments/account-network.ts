@@ -192,6 +192,57 @@ export function createRewoundAccountNetwork(
   };
 }
 
+export type S08ProtectedReplayPhase = 'attack' | 'what-if' | 'complete';
+
+export function createProtectedS08Network(
+  source: NetworkSceneSnapshot,
+  phase: S08ProtectedReplayPhase,
+): NetworkSceneSnapshot {
+  const accountIds = new Set(['master-campus', 'campus-email', 'campusgram']);
+  const protectsAllAccounts = phase !== 'attack';
+  const nodes = source.nodes
+    .filter(({ kind }) => kind !== 'shield')
+    .map((node): SceneNode => {
+      const belongsToCampusgram =
+        node.id === 'campusgram' || node.id.startsWith('campusgram-detail-');
+      const protectedNode = protectsAllAccounts || belongsToCampusgram;
+      return {
+        ...node,
+        status: protectedNode ? 'protected' : 'viewed',
+        selectable: false,
+        locked: false,
+      };
+    });
+  const nodeIds = new Set(nodes.map(({ id }) => id));
+  const protectedNodeIds = new Set(
+    nodes.filter(({ status }) => status === 'protected').map(({ id }) => id),
+  );
+  const edges = source.edges
+    .filter(
+      ({ sourceId, targetId }) =>
+        nodeIds.has(sourceId) &&
+        nodeIds.has(targetId) &&
+        !(accountIds.has(sourceId) && accountIds.has(targetId)),
+    )
+    .map((edge): SceneEdge => {
+      const protectedEdge =
+        protectedNodeIds.has(edge.sourceId) && protectedNodeIds.has(edge.targetId);
+      return protectedEdge
+        ? { ...edge, kind: 'blocked-path', status: 'blocked', label: null }
+        : { ...edge, status: 'opened', label: null };
+    });
+  return {
+    ...source,
+    id: `${source.id}-s08-${phase}`,
+    nodes,
+    edges,
+    accessibleSummary:
+      phase === 'attack'
+        ? 'Das alte geleakte Passwort wird bei Campusgram erneut ausprobiert und dort blockiert.'
+        : 'Campusgram, Master Campus und Campus E-Mail sowie ihre verbundenen Bereiche bleiben geschützt. Es gibt keine Ausbreitung zwischen den Konten.',
+  };
+}
+
 export function staticNetworkPresentation(
   snapshot: NetworkSceneSnapshot,
 ): NetworkPresentationSnapshot {

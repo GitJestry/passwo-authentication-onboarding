@@ -1,24 +1,26 @@
 import {
+  s00Content,
   s01Content,
   s04Content,
   s07PassphraseSearchContent,
   type S01AccountId,
 } from '@passwo/training-content';
+import { useMachine } from '@xstate/react';
 import {
   BrowserShell,
   type BrowserShellSnapshot,
   type DesktopPlatform,
 } from '@passwo/ui';
-import {
-  useEffect,
-  useState,
-  type ClipboardEvent,
-  type KeyboardEvent,
-  type MouseEvent,
-} from 'react';
+import { useState, type ClipboardEvent, type KeyboardEvent } from 'react';
 import { NetworkSymbol } from '../../../../adapters/network/NetworkSymbolRegistry.js';
 import { CampusWebsiteBackdrop } from '../../CampusWebsiteBackdrop.js';
 import { CampusgramIncidentNotice } from '../../CampusgramIncidentNotice.js';
+import { PassWoGuide } from '../../PassWoGuide.js';
+import {
+  type S07RemainingAccountId,
+  s07PassphraseSearchMachine,
+  shuffledPassphraseOrder,
+} from './S07PassphraseSearchMachine.js';
 import styles from './S07PassphraseSearchTraining.module.css';
 
 type S07TabId = S01AccountId | typeof s07PassphraseSearchContent.browser.searchTab.id;
@@ -103,6 +105,7 @@ function SearchField({
         <button
           type="button"
           className={styles.searchSubmit}
+          data-guided-highlight="true"
           aria-label={searchPage.submitLabel}
           onClick={onSubmit}
         >
@@ -277,63 +280,39 @@ function SearchPage({
   );
 }
 
-function GeneratorPage({ onCopy }: { readonly onCopy: (passphrase: string) => void }) {
+interface GeneratorPageProps {
+  readonly allowCopy: boolean;
+  readonly allowGenerate: boolean;
+  readonly allowSeparatorChange: boolean;
+  readonly copied: boolean;
+  readonly generating: boolean;
+  readonly generateHighlighted: boolean;
+  readonly onCopy: (passphrase: string) => void;
+  readonly onGenerate: () => void;
+  readonly onSeparatorChange: (separator: string) => void;
+  readonly passphraseIndex: number | null;
+  readonly separator: string;
+}
+
+function GeneratorPage({
+  allowCopy,
+  allowGenerate,
+  allowSeparatorChange,
+  copied,
+  generating,
+  generateHighlighted,
+  onCopy,
+  onGenerate,
+  onSeparatorChange,
+  passphraseIndex,
+  separator,
+}: GeneratorPageProps) {
   const page = s07PassphraseSearchContent.browser.generatorPage;
-  const [separator, setSeparator] = useState<string>(page.separators[0].value);
-  const [passphraseIndex, setPassphraseIndex] = useState<number | null>(null);
-  const [nextPassphraseIndex, setNextPassphraseIndex] = useState(0);
-  const [isGenerating, setIsGenerating] = useState(false);
-  const [copyToastPosition, setCopyToastPosition] = useState<{
-    readonly x: number;
-    readonly y: number;
-  } | null>(null);
   const selectedPassphrase =
     passphraseIndex === null
       ? null
       : (page.passphrases[passphraseIndex] ?? page.passphrases[0]);
   const passphrase = selectedPassphrase?.words.join(separator) ?? '';
-
-  useEffect(() => {
-    if (!isGenerating) {
-      return undefined;
-    }
-
-    const generationTimeout = window.setTimeout(() => {
-      setPassphraseIndex(nextPassphraseIndex);
-      setNextPassphraseIndex(
-        (currentIndex) => (currentIndex + 1) % page.passphrases.length,
-      );
-      setIsGenerating(false);
-    }, page.generationDelayMs);
-
-    return () => window.clearTimeout(generationTimeout);
-  }, [
-    isGenerating,
-    nextPassphraseIndex,
-    page.generationDelayMs,
-    page.passphrases.length,
-  ]);
-
-  useEffect(() => {
-    if (copyToastPosition === null) {
-      return undefined;
-    }
-
-    const dismissTimeout = window.setTimeout(() => {
-      setCopyToastPosition(null);
-    }, 1800);
-
-    return () => window.clearTimeout(dismissTimeout);
-  }, [copyToastPosition]);
-
-  const showCopyToast = (event: MouseEvent<HTMLButtonElement>) => {
-    const buttonBounds = event.currentTarget.getBoundingClientRect();
-    const x = event.detail === 0 ? buttonBounds.left + buttonBounds.width / 2 : event.clientX;
-    const y = event.detail === 0 ? buttonBounds.top + buttonBounds.height / 2 : event.clientY;
-
-    setCopyToastPosition({ x, y });
-    onCopy(passphrase);
-  };
 
   return (
     <div className={styles.generatorPage} aria-label={page.ariaLabel}>
@@ -374,10 +353,8 @@ function GeneratorPage({ onCopy }: { readonly onCopy: (passphrase: string) => vo
                       name="passphrase-separator"
                       value={option.value}
                       checked={separator === option.value}
-                      onChange={() => {
-                        setSeparator(option.value);
-                        setCopyToastPosition(null);
-                      }}
+                      disabled={!allowSeparatorChange}
+                      onChange={() => onSeparatorChange(option.value)}
                     />
                     <span className={styles.separatorSymbol} aria-hidden="true">
                       {option.value === ' ' ? '⌴' : option.value}
@@ -391,12 +368,9 @@ function GeneratorPage({ onCopy }: { readonly onCopy: (passphrase: string) => vo
             <button
               type="button"
               className={styles.generateButton}
-              disabled={isGenerating}
-              onClick={() => {
-                setPassphraseIndex(null);
-                setIsGenerating(true);
-                setCopyToastPosition(null);
-              }}
+              data-guided-highlight={generateHighlighted || undefined}
+              disabled={!allowGenerate || generating}
+              onClick={onGenerate}
             >
               <span aria-hidden="true">↻</span>
               {page.generate}
@@ -407,9 +381,9 @@ function GeneratorPage({ onCopy }: { readonly onCopy: (passphrase: string) => vo
                 className={styles.generatorOutput}
                 aria-label={page.outputAriaLabel}
                 aria-live="polite"
-                aria-busy={isGenerating}
+                aria-busy={generating}
               >
-                {isGenerating ? (
+                {generating ? (
                   <span className={styles.generatorLoadingIndicator} aria-hidden="true" />
                 ) : (
                   passphrase
@@ -420,26 +394,16 @@ function GeneratorPage({ onCopy }: { readonly onCopy: (passphrase: string) => vo
             <button
               type="button"
               className={styles.copyButton}
-              disabled={passphrase.length === 0}
-              onClick={showCopyToast}
+              data-guided-highlight={allowCopy || undefined}
+              disabled={!allowCopy || passphrase.length === 0 || copied}
+              onClick={() => onCopy(passphrase)}
             >
               <span className={styles.copyButtonIcon} aria-hidden="true" />
-              {page.copy}
+              {copied ? page.copied : page.copy}
             </button>
           </section>
         </div>
       </main>
-
-      {copyToastPosition ? (
-        <div
-          className={styles.copyToast}
-          role="status"
-          style={{ left: copyToastPosition.x, top: copyToastPosition.y }}
-        >
-          <span aria-hidden="true">✓</span>
-          {page.copied}
-        </div>
-      ) : null}
     </div>
   );
 }
@@ -447,65 +411,206 @@ function GeneratorPage({ onCopy }: { readonly onCopy: (passphrase: string) => vo
 export interface S07PassphraseSearchTrainingProps {
   readonly displayName: string;
   readonly campusgramPassword: string;
+  readonly currentPasswords?: Readonly<Partial<Record<S01AccountId, string>>>;
+  readonly remainingAccountIds?: readonly S07RemainingAccountId[];
+  readonly randomValue?: () => number;
   readonly platform?: DesktopPlatform;
-  readonly onPrimaryResultSelect?: () => void;
+  readonly onComplete?: () => void;
+}
+
+function secureRandomValue(): number {
+  const value = new Uint32Array(1);
+  window.crypto.getRandomValues(value);
+  return (value[0] ?? 0) / 4_294_967_296;
+}
+
+function accountLabel(accountId: S01AccountId): string {
+  return s01Content.browser.accounts.find(({ id }) => id === accountId)?.label ?? accountId;
+}
+
+function joinedAccountLabels(accountIds: readonly S07RemainingAccountId[]): string {
+  const labels = accountIds.map(accountLabel);
+  if (labels.length < 2) return labels[0] ?? '';
+  return `${labels.slice(0, -1).join(', ')} und ${labels.at(-1)}`;
 }
 
 export function S07PassphraseSearchTraining({
   displayName,
   campusgramPassword,
+  currentPasswords,
+  remainingAccountIds = [],
+  randomValue = secureRandomValue,
   platform = 'mac',
-  onPrimaryResultSelect = () => undefined,
+  onComplete = () => undefined,
 }: S07PassphraseSearchTrainingProps) {
   const [activeTabId, setActiveTabId] = useState<S07TabId>('campusgram');
-  const [searchTabOpen, setSearchTabOpen] = useState(false);
-  const [searchView, setSearchView] = useState<'landing' | 'loading' | 'results' | 'generator'>(
-    'landing',
+  const [passphraseOrder] = useState(() =>
+    shuffledPassphraseOrder(
+      s07PassphraseSearchContent.browser.generatorPage.passphrases.length,
+      randomValue,
+    ),
   );
-  const [passwordChangeOpen, setPasswordChangeOpen] = useState(false);
-  const [simulatedClipboardValue, setSimulatedClipboardValue] = useState<string | null>(null);
+  const [state, send] = useMachine(s07PassphraseSearchMachine, {
+    input: {
+      generationDelayMs: s07PassphraseSearchContent.browser.generatorPage.generationDelayMs,
+      passphraseOrder,
+      remainingAccountIds,
+      resultsDelayMs: s07PassphraseSearchContent.browser.searchPage.resultsDelayMs,
+    },
+  });
   const activeAccount = s01Content.browser.accounts.find(({ id }) => id === activeTabId);
   const searchTab = s07PassphraseSearchContent.browser.searchTab;
   const generatorPage = s07PassphraseSearchContent.browser.generatorPage;
-  const searchPage = s07PassphraseSearchContent.browser.searchPage;
+  const guide = s07PassphraseSearchContent.guide;
+  const searchTabOpen = !(
+    state.matches('incident') ||
+    state.matches('campusgramMethodIntro') ||
+    state.matches('campusgramSearchIntro')
+  );
+  const searchView = state.matches('searchLanding')
+    ? 'landing'
+    : state.matches('searchLoading')
+      ? 'loading'
+      : state.matches('searchResults')
+        ? 'results'
+        : 'generator';
+  const targetAccountId = state.context.targetAccountId;
+  const targetLabel = accountLabel(targetAccountId);
+  const campusgramChangeOpen =
+    activeTabId === 'campusgram' &&
+    (state.matches('campusgramMethodIntro') ||
+      state.matches('campusgramSearchIntro') ||
+      state.matches('pasteNewPassword') ||
+      state.matches('pasteConfirmedPassword') ||
+      state.matches('passwordChangeReady') ||
+      state.matches('campusgramSuccess') ||
+      state.matches('remainingRisk') ||
+      state.matches('remainingPlan') ||
+      state.matches('allUnique') ||
+      state.matches('readyForReplay'));
+  const otherAccountChangeOpen =
+    activeAccount !== undefined &&
+    activeAccount.id !== 'campusgram' &&
+    activeAccount.id === targetAccountId &&
+    (state.matches('accountPasswordChangeOpen') ||
+      state.matches('pasteNewPassword') ||
+      state.matches('pasteConfirmedPassword') ||
+      state.matches('passwordChangeReady'));
+  const generating = state.matches('generating');
+  const mnemonicVisible = state.matches('mnemonic');
+  const copied = state.matches('copiedCampusgram') || state.matches('copiedOtherAccount');
+  const allowGeneratorControls =
+    state.matches('generatorReady') ||
+    state.matches('generatorAccountReady') ||
+    state.matches('mnemonic');
 
-  useEffect(() => {
-    if (searchView !== 'loading') {
-      return undefined;
+  let highlightedTabId: string | undefined;
+  if (state.matches('copiedCampusgram')) highlightedTabId = 'campusgram';
+  if (state.matches('copiedOtherAccount') || state.matches('accountTabReady')) {
+    highlightedTabId = targetAccountId;
+  }
+  if (state.matches('accountPasswordChangeOpen')) highlightedTabId = searchTab.id;
+
+  function tabEnabled(tabId: S07TabId): boolean {
+    if (state.matches('copiedCampusgram')) return tabId === 'campusgram';
+    if (state.matches('copiedOtherAccount') || state.matches('accountTabReady')) {
+      return tabId === targetAccountId;
     }
+    if (state.matches('accountPasswordChangeOpen')) return tabId === searchTab.id;
+    return false;
+  }
 
-    const resultsTimeout = window.setTimeout(() => {
-      setSearchView('results');
-    }, searchPage.resultsDelayMs);
+  let speech: readonly string[] | null = null;
+  let speechAction: { readonly kind: 'advance'; readonly onAction: () => void } | {
+    readonly kind: 'perform';
+    readonly label: string;
+    readonly onAction: () => void;
+  } | undefined;
+  if (state.matches('campusgramMethodIntro')) speech = [guide.methodIntro];
+  if (state.matches('campusgramSearchIntro')) speech = [guide.searchIntro];
+  if (state.matches('searchLanding')) speech = [guide.searchAction];
+  if (state.matches('generatorExplanationOne')) speech = [guide.generatorExplanation[0]];
+  if (state.matches('generatorExplanationTwo')) speech = [guide.generatorExplanation[1]];
+  if (state.matches('generatorExplanationThree')) speech = [guide.generatorExplanation[2]];
+  if (state.matches('mnemonicExplanationOne')) speech = [guide.mnemonicExplanation[0]];
+  if (state.matches('mnemonicExplanationTwo')) speech = [guide.mnemonicExplanation[1]];
+  if (state.matches('mnemonic')) {
+    const selected =
+      state.context.currentPassphraseIndex === null
+        ? undefined
+        : generatorPage.passphrases[state.context.currentPassphraseIndex];
+    speech = selected === undefined ? null : [selected.passWoMnemonic];
+  }
+  if (state.matches('copiedCampusgram')) speech = [guide.copied];
+  if (state.matches('copiedOtherAccount')) speech = [guide.returnToAccount(targetLabel)];
+  if (state.matches('pasteNewPassword')) speech = [guide.pasteNew];
+  if (state.matches('pasteConfirmedPassword')) speech = [guide.pasteConfirm];
+  if (state.matches('passwordChangeReady')) speech = [guide.submitChange];
+  if (state.matches('campusgramSuccess')) speech = [guide.campusgramSuccess];
+  if (state.matches('allUnique')) speech = [guide.allUnique];
+  if (state.matches('remainingRisk')) {
+    speech = [guide.remainingRisk(joinedAccountLabels(state.context.pendingAccountIds))];
+  }
+  if (state.matches('remainingPlan')) speech = [guide.remainingPlan];
+  if (state.matches('accountTabReady')) speech = [guide.openAccount(targetLabel)];
+  if (state.matches('accountDashboard')) speech = [guide.openPasswordChange];
+  if (state.matches('accountPasswordChangeOpen')) speech = [guide.returnToGenerator];
+  if (state.matches('generatorAccountReady')) speech = [guide.generateForAccount(targetLabel)];
+  if (state.matches('readyForReplay')) speech = [guide.allResolved];
 
-    return () => window.clearTimeout(resultsTimeout);
-  }, [searchPage.resultsDelayMs, searchView]);
+  if (
+    state.matches('campusgramMethodIntro') ||
+    state.matches('generatorExplanationOne') ||
+    state.matches('generatorExplanationTwo') ||
+    state.matches('generatorExplanationThree') ||
+    state.matches('mnemonicExplanationOne') ||
+    state.matches('mnemonicExplanationTwo') ||
+    state.matches('campusgramSuccess') ||
+    state.matches('allUnique') ||
+    state.matches('remainingRisk') ||
+    state.matches('remainingPlan')
+  ) {
+    speechAction = { kind: 'advance', onAction: () => send({ type: 'NEXT' }) };
+  }
+  if (state.matches('readyForReplay')) {
+    speechAction = {
+      kind: 'perform',
+      label: guide.replayAttack,
+      onAction: () => {
+        send({ type: 'START_S08' });
+        onComplete();
+      },
+    };
+  }
 
   const snapshot: BrowserShellSnapshot = {
     tabs: [
       ...s01Content.browser.accounts.map((account) => ({
         id: account.id,
         label:
-          account.id === 'campusgram' && passwordChangeOpen
+          account.id === 'campusgram' && campusgramChangeOpen
             ? `${account.label} · ${s04Content.notice.passwordChange.tabLabel}`
             : account.label,
         icon: <NetworkSymbol symbolId={account.symbolId} />,
-        enabled: true,
+        enabled: tabEnabled(account.id),
+        ...(account.id === 'campusgram' && state.matches('incident')
+          ? { status: 'danger' as const }
+          : {}),
       })),
       ...(searchTabOpen
         ? [
             {
               id: searchTab.id,
-              label: searchTab.label,
+              label: state.matches('searchLanding') ? searchTab.landingLabel : searchTab.label,
               icon: <SearchBrandIcon />,
-              enabled: true,
+              enabled: tabEnabled(searchTab.id),
             },
           ]
         : []),
     ],
     activeTabId,
     address:
-      activeAccount?.id === 'campusgram' && passwordChangeOpen
+      ((activeAccount?.id === 'campusgram' && campusgramChangeOpen) || otherAccountChangeOpen)
         ? s04Content.notice.passwordChange.address
         : activeAccount === undefined
         ? searchView === 'generator'
@@ -515,13 +620,14 @@ export function S07PassphraseSearchTraining({
             : searchTab.address
         : `${activeAccount.address}/dashboard`,
     scrollKey: `s07:${activeTabId}:${
-      activeAccount?.id === 'campusgram' && passwordChangeOpen
+      ((activeAccount?.id === 'campusgram' && campusgramChangeOpen) || otherAccountChangeOpen)
         ? 'password-change'
         : activeAccount === undefined
           ? searchView
           : 'dashboard'
     }`,
-    highlightNewTab: !searchTabOpen,
+    ...(highlightedTabId === undefined ? {} : { highlightedTabId }),
+    highlightNewTab: state.matches('campusgramSearchIntro'),
   };
 
   const preventNativeClipboard = (event: ClipboardEvent<HTMLElement>): void => {
@@ -550,56 +656,153 @@ export function S07PassphraseSearchTraining({
         snapshot={snapshot}
         ariaLabel={s07PassphraseSearchContent.browser.ariaLabel}
         onTabSelect={(tabId) => {
-          if (isS07TabId(tabId)) setActiveTabId(tabId);
+          if (!isS07TabId(tabId)) return;
+          setActiveTabId(tabId);
+          send({ type: 'SELECT_TAB', tabId });
         }}
-        {...(!searchTabOpen
+        layers={{
+          passWo:
+            speech === null ? undefined : (
+              <PassWoGuide
+                guideName={s00Content.narration.guideName}
+                taskLabel={guide.taskLabel}
+                helpOpen
+                helpId="s07-passwo-speech"
+                openHelpLabel={s00Content.narration.openGuideLabel}
+                speech={speech}
+                speechKey={`s07-${String(state.value)}-${String(state.context.currentPassphraseIndex)}`}
+                {...(speechAction === undefined ? {} : { speechAction })}
+                placement="bottom-right"
+                speechPlacement="left"
+                showHelpButton={false}
+              />
+            ),
+        }}
+        {...(state.matches('campusgramSearchIntro')
           ? {
               onNewTab: () => {
-                setSearchTabOpen(true);
-                setSearchView('landing');
                 setActiveTabId(searchTab.id);
+                send({ type: 'OPEN_SEARCH_TAB' });
               },
             }
           : {})}
       >
         {activeAccount === undefined ? (
           searchView === 'generator' ? (
-            <GeneratorPage onCopy={setSimulatedClipboardValue} />
+            <GeneratorPage
+              allowCopy={mnemonicVisible}
+              allowGenerate={allowGeneratorControls && state.can({ type: 'GENERATE' })}
+              allowSeparatorChange={allowGeneratorControls}
+              copied={copied}
+              generating={generating}
+              generateHighlighted={
+                state.matches('generatorReady') || state.matches('generatorAccountReady')
+              }
+              onCopy={(passphrase) => send({ type: 'COPY', passphrase })}
+              onGenerate={() => send({ type: 'GENERATE' })}
+              onSeparatorChange={(separator) =>
+                send({ type: 'CHANGE_SEPARATOR', separator })
+              }
+              passphraseIndex={generating ? null : state.context.currentPassphraseIndex}
+              separator={state.context.separator}
+            />
           ) : searchView === 'landing' ? (
-            <SearchLandingPage onSubmit={() => setSearchView('loading')} />
+            <SearchLandingPage onSubmit={() => send({ type: 'SUBMIT_SEARCH' })} />
           ) : (
             <SearchPage
               loading={searchView === 'loading'}
-              onPrimaryResultSelect={() => setSearchView('generator')}
+              onPrimaryResultSelect={() => send({ type: 'OPEN_GENERATOR' })}
             />
           )
         ) : (
-          <CampusWebsiteBackdrop
-            accountId={activeAccount.id}
-            interactionLabel={`${activeAccount.label}, angemeldet`}
-            view="dashboard"
-            displayName={displayName}
-            dashboardNotice={
-              activeAccount.id === 'campusgram' ? (
+          <div className={styles.accountPage}>
+            <CampusWebsiteBackdrop
+              accountId={activeAccount.id}
+              interactionLabel={`${activeAccount.label}, angemeldet`}
+              view="dashboard"
+              displayName={displayName}
+              dashboardNotice={
+                activeAccount.id === 'campusgram' ? (
                 <CampusgramIncidentNotice
-                  className={styles.incidentSpotlight}
+                  className={state.matches('incident') ? styles.incidentSpotlight : undefined}
                   currentPassword={campusgramPassword}
-                  passwordChangeOpen={passwordChangeOpen}
-                  onPasswordChangeOpenChange={setPasswordChangeOpen}
-                  simulatedClipboardValue={simulatedClipboardValue}
+                  passwordChangeOpen={campusgramChangeOpen}
+                  onPasswordChangeOpenChange={(open) => {
+                    if (open) send({ type: 'OPEN_CAMPUSGRAM_CHANGE' });
+                  }}
+                  simulatedClipboardValue={state.context.copiedPassword}
                   simulatedPasteLabel={generatorPage.paste}
                   completedCopy={
                     s07PassphraseSearchContent.browser.campusgramPasswordChangeCompleted
                   }
-                  onSimulatedClipboardConsumed={() => setSimulatedClipboardValue(null)}
-                  onSimulatedPasswordChangeCompleted={() => {
-                    setSimulatedClipboardValue(null);
-                    onPrimaryResultSelect();
-                  }}
+                  allowFreePasswordInput={false}
+                  guidedPasteTarget={
+                    state.matches('pasteNewPassword')
+                      ? 'new'
+                      : state.matches('pasteConfirmedPassword')
+                        ? 'confirm'
+                        : null
+                  }
+                  guidedSubmit={state.matches('passwordChangeReady')}
+                  showBackAction={false}
+                  showCompletedAction={false}
+                  showPasswordVisibilityActions={false}
+                  onSimulatedPaste={(target) =>
+                    send({ type: target === 'new' ? 'PASTE_NEW' : 'PASTE_CONFIRM' })
+                  }
+                  onPasswordChangeSubmitted={() =>
+                    send({ type: 'SUBMIT_PASSWORD_CHANGE' })
+                  }
                 />
               ) : undefined
-            }
-          />
+              }
+            />
+            {activeAccount.id !== 'campusgram' && state.matches('accountDashboard') ? (
+              <div className={styles.passwordChangeLauncher}>
+                <button
+                  type="button"
+                  data-guided-highlight="true"
+                  onClick={() => send({ type: 'OPEN_OTHER_PASSWORD_CHANGE' })}
+                >
+                  {s07PassphraseSearchContent.browser.otherAccountPasswordChange.open}
+                </button>
+              </div>
+            ) : null}
+            {otherAccountChangeOpen ? (
+              <CampusgramIncidentNotice
+                currentPassword={currentPasswords?.[activeAccount.id] ?? ''}
+                passwordChangeOpen
+                simulatedClipboardValue={state.context.copiedPassword}
+                simulatedPasteLabel={generatorPage.paste}
+                completedCopy={{
+                  title:
+                    s07PassphraseSearchContent.browser.otherAccountPasswordChange.completedTitle,
+                  body:
+                    s07PassphraseSearchContent.browser.otherAccountPasswordChange.completedBody(
+                      activeAccount.label,
+                    ),
+                }}
+                allowFreePasswordInput={false}
+                guidedPasteTarget={
+                  state.matches('pasteNewPassword')
+                    ? 'new'
+                    : state.matches('pasteConfirmedPassword')
+                      ? 'confirm'
+                      : null
+                }
+                guidedSubmit={state.matches('passwordChangeReady')}
+                showBackAction={false}
+                showCompletedAction={false}
+                showPasswordVisibilityActions={false}
+                onSimulatedPaste={(target) =>
+                  send({ type: target === 'new' ? 'PASTE_NEW' : 'PASTE_CONFIRM' })
+                }
+                onPasswordChangeSubmitted={() =>
+                  send({ type: 'SUBMIT_PASSWORD_CHANGE' })
+                }
+              />
+            ) : null}
+          </div>
         )}
       </BrowserShell>
     </section>
