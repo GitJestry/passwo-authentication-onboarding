@@ -1,14 +1,13 @@
 import type { TrainingSectionId } from '@passwo/contracts';
 
-export const S07_PASSPHRASE_SEARCH_CONTENT_VERSION = '3.0.0';
+export const S07_PASSPHRASE_SEARCH_CONTENT_VERSION = '3.2.0';
 
 export const s07PassphraseSearchContent = {
   version: S07_PASSPHRASE_SEARCH_CONTENT_VERSION,
   source: {
-    revision:
-      'Userauftrag vom 2026-08-14 · flüchtiges simuliertes Kopieren und Einfügen in S07',
+    revision: 'Userauftrag vom 2026-08-14 · Ergebnistext nach Campusgram-Passwortwechsel in S07',
     copyReference:
-      'docs/design/S06-S07-COPY-AUDIT.md#interaktionsdelta-s07-simuliertes-kopieren-und-einfügen-14-august-2026',
+      'docs/design/S06-S07-COPY-AUDIT.md#copy-delta-s07-bestätigung-des-campusgram-passwortwechsels-14-august-2026',
   },
   segment: {
     id: 'S07',
@@ -18,9 +17,14 @@ export const s07PassphraseSearchContent = {
   trainingAriaLabel: 'PassWo Training, Segment S07, Passphrase erstellen',
   browser: {
     ariaLabel: 'Fiktive Browseranwendung, Segment S07, Passphrase erstellen',
+    campusgramPasswordChangeCompleted: {
+      title: 'Passwort geändert',
+      body: 'Die neue Passphrase wird jetzt für Campusgram verwendet.',
+    },
     searchTab: {
       id: 'passphrase-search',
       label: 'Passphrase generieren',
+      homeAddress: 'search.example',
       address: 'search.example/?q=passphrase+generieren',
     },
     generatorPage: {
@@ -75,9 +79,13 @@ export const s07PassphraseSearchContent = {
       ],
     },
     searchPage: {
+      landingAriaLabel: 'Fiktive Suchseite für Passphrase generieren',
       ariaLabel: 'Fiktive Suchergebnisse für Passphrase generieren',
       brand: 'Search',
       query: 'passphrase generieren',
+      submitLabel: 'Nach passphrase generieren suchen',
+      resultsLoadingLabel: 'Suchergebnisse werden geladen',
+      resultsDelayMs: 900,
       navigation: ['Ergebnisse', 'Anleitungen', 'Wissen', 'Werkzeuge'],
       primaryResultId: 'passphrase-werkstatt',
       results: [

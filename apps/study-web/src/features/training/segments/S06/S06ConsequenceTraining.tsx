@@ -249,10 +249,9 @@ export function S06ConsequenceTraining({
             onPreviewComplete={() => runtime.controller.previewCompleted(snapshot.step.id)}
             onAdvance={() => runtime.controller.resolvePreview(snapshot.step.id)}
             finishLabel={
-              snapshot.step.sourceAccountId === 'campusgram' &&
-              snapshot.step.targetAccountId === 'master-campus'
-                ? s06ConsequenceContent.page.continue
-                : s06ConsequenceContent.page.finish
+              snapshot.step.targetAccountId === 'campus-email'
+                ? s06ConsequenceContent.page.finish
+                : s06ConsequenceContent.page.continue
             }
             onResolutionComplete={() => runtime.controller.resolutionCompleted(snapshot.step.id)}
           />

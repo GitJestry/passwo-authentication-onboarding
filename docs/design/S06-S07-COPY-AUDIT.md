@@ -1,5 +1,77 @@
 # S06--S07 Copy Audit
 
+## Copy- und Ablaufdelta S06 Master Campus prüft beide anderen Konten, 14. August 2026
+
+Quelle ist der ausdrückliche Nutzerauftrag vom 14. August 2026. Beim Perspektivwechsel zu
+Master Campus wird das fiktive Passwort nun nacheinander bei Campusgram und Campus E-Mail
+geprüft. Damit ist die frühere Festlegung, in dieser Perspektive keinen Rückvergleich zu
+Campusgram zu zeigen, ersetzt. Die beiden Vergleiche verwenden dieselben begrenzten
+Beziehungsarten und dieselbe Vorschau wie die bestehenden S06-Vergleiche. Alle Werte und
+Ergebnisse bleiben flüchtig; Persistenz, Export und Studien-Timing ändern sich nicht.
+
+Bereits betroffene Campusgram-Unterknoten und ihre internen Verbindungen behalten während der
+folgenden Angriffe ihren roten Status. Der neue Vergleich zu Campusgram projiziert seine
+Vorschau links vom rechts liegenden Zielknoten. `S06_CONSEQUENCE_CONTENT_VERSION` wird von
+`2.10.0` auf `2.11.0` erhöht.
+
+| Segment und Text-ID | Aktueller Text | Geplanter Text | Primäre Rolle | Interaktionsziel | Grund und Bedeutungsänderung | Hervorhebung |
+|---|---|---|---|---|---|---|
+| `S06.narrations.s06.perspective.master-campus-found` | `Bei Master Campus wurde das vollständige Passwort in dieser begrenzten Prüfung als früher Kandidat erkannt. Von diesem Konto aus kann es nun bei Campus E-Mail ausprobiert werden.` | `Bei Master Campus wurde das vollständige Passwort in dieser begrenzten Prüfung als früher Kandidat erkannt. Von diesem Konto aus kann es nun bei Campusgram und Campus E-Mail ausprobiert werden.` | Mechanismuserklärung | `Angriff starten` | stimmt die Orientierung mit den zwei tatsächlich folgenden Vergleichen ab; begrenzt | keine |
+| `S06.narrations.s06.perspective.master-campus-blocked` | `Bei Master Campus wurde in dieser begrenzten Prüfung kein vollständiger früher Kandidat erkannt. Den möglichen weiteren Weg betrachten wir deshalb als „Was wäre, wenn?“.` | `Bei Master Campus wurde in dieser begrenzten Prüfung kein vollständiger früher Kandidat erkannt. Die möglichen weiteren Wege betrachten wir deshalb als „Was wäre, wenn?“.` | Orientierung | `Weiter` | bildet die zwei hypothetisch folgenden Vergleiche grammatisch korrekt ab; keine neue Sicherheitsbehauptung | keine |
+| `S06.narrations.s06.incident.master-campus-hypothetical` | `Angenommen, das Master-Campus-Passwort wäre bekannt geworden. Dann würde es oder eine ähnliche Variante bei Campus E-Mail ausprobiert.` | `Angenommen, das Master-Campus-Passwort wäre bekannt geworden. Dann würde es oder eine ähnliche Variante bei Campusgram und Campus E-Mail ausprobiert.` | Mechanismuserklärung | `Angriff starten` | stimmt die hypothetische Orientierung mit beiden sichtbaren Vergleichen ab; begrenzt | keine |
+
+## Copy-Delta S07 Bestätigung des Campusgram-Passwortwechsels, 14. August 2026
+
+Quelle ist der ausdrückliche Nutzerauftrag vom 14. August 2026. Nach dem erfolgreichen lokalen
+Passwortwechsel bestätigt die Campusgram-Ansicht nun die Verwendung der zuvor erzeugten
+Passphrase. Die Änderung gilt ausschließlich für S07; der in S04 verwendete Hinweis auf die
+Simulation und das Verwerfen der dortigen Eingaben bleibt unverändert. Ablauf, flüchtiger
+React-Zustand, Persistenz und Export ändern sich nicht.
+`S07_PASSPHRASE_SEARCH_CONTENT_VERSION` wird von `3.1.0` auf `3.2.0` erhöht.
+
+| Segment und Text-ID | Aktueller Text | Geplanter Text | Primäre Rolle | Interaktionsziel | Grund und Bedeutungsänderung | Hervorhebung |
+|---|---|---|---|---|---|---|
+| `S07.browser.campusgramPasswordChangeCompleted.title` | `Passwortwechsel simuliert` | `Passwort geändert` | Ergebnisfeedback | kein | übernimmt den ausdrücklich verlangten Ergebnisstatus für den S07-Passphrasenablauf; ausdrücklich freigegeben | keine |
+| `S07.browser.campusgramPasswordChangeCompleted.body` | `Die Eingaben wurden verworfen und nicht gespeichert.` | `Die neue Passphrase wird jetzt für Campusgram verwendet.` | Ergebnisfeedback | kein | benennt die sichtbare Folge der zuvor ausgeführten S07-Handlung; ausdrücklich freigegeben | keine |
+
+## Darstellungsdelta S07 Suchstart-Artwork, 14. August 2026
+
+Quelle ist der ausdrückliche Nutzerauftrag vom 14. August 2026. Die freie Suchstartseite erhält
+statt des einfachen Farbverlaufs ein ruhiges, lokal eingebundenes Artwork aus angeschnittenen
+Lupenkreisen, Papierflächen und vierzackigen Sternformen aus der bestehenden Suchmarke. Die
+Bildmotive bleiben auf die äußeren Ecken konzentriert, damit Wortmarke und Suchfeld in der Mitte
+klar lesbar bleiben. Das dekorative `×` im vorausgefüllten Suchfeld wird kleiner und deutlich
+zurückhaltender dargestellt. Teilnehmertexte, Ablauf, Persistenz, Export und Content-Version
+bleiben unverändert.
+
+| Element | Vorher | Nachher | Rolle | Interaktionsziel | Grund und Bedeutungsänderung | Hervorhebung |
+|---|---|---|---|---|---|---|
+| `S07.browser.searchPage.landingBackground` | einfacher heller Farbverlauf | lokales Lupen- und Stern-Artwork | Orientierung | kein | stärkt die eigenständige Suchmarke ohne die zentrale Handlung zu überlagern; keine Bedeutungsänderung | Randmotive in Teal, Mint und Gold |
+| `S07.browser.searchPage.clearQuery` | großes, kontrastreiches dekoratives `×` | kleineres `×` mit reduzierter Deckkraft | Orientierung | kein | ordnet das nicht bedienbare Zeichen der eigentlichen Suchaktion visuell unter; keine Bedeutungsänderung | keine |
+
+## Interaktionsdelta S07 neuer Such-Tab und Ladeablauf, 14. August 2026
+
+Quelle ist der ausdrückliche Nutzerauftrag vom 14. August 2026. S07 zeigt zu Beginn nur die drei
+bereits geöffneten Konto-Tabs. Ein hervorgehobener Plus-Button im Browser-Chrome ist das einzige
+Ziel zum Öffnen des neuen Such-Tabs. Dieser startet mit einer freien, fiktiven Suchseite und dem
+bereits eingetragenen Begriff `passphrase generieren`. Erst das Suchsymbol rechts im Suchfeld
+startet die Suche. Danach erscheint unmittelbar das bestehende Suchergebnis-Interface, während
+die Treffer für 900 Millisekunden als Ladezustand dargestellt und anschließend eingeblendet
+werden. Es werden keine externen Inhalte geladen und keine Eingaben gespeichert.
+
+Die vorhandene Suchanfrage und alle Treffertexte bleiben unverändert. Neu hinzu kommen nur die
+barrierefreien Seiten-, Handlungs- und Statusbezeichnungen `Fiktive Suchseite für Passphrase
+generieren`, `Nach passphrase generieren suchen` und `Suchergebnisse werden geladen`. Persistenz,
+Export und Studien-Timing bleiben unverändert.
+`S07_PASSPHRASE_SEARCH_CONTENT_VERSION` wird von `3.0.0` auf `3.1.0` erhöht.
+
+| Segment und Text-ID | Aktueller Text | Geplanter Text | Primäre Rolle | Interaktionsziel | Grund und Bedeutungsänderung | Hervorhebung |
+|---|---|---|---|---|---|---|
+| `S07.browser.newTab` | Plus-Symbol nur dekorativ | `Neuen Tab öffnen` als zugängliche Bezeichnung | Navigation | Plus-Button im Tab-Chrome | ordnet die ausdrücklich verlangte Öffnung dem sichtbaren Browserziel zu; ausdrücklich freigegeben | Akzentrahmen und Leuchten am Plus-Button |
+| `S07.browser.searchPage.landingAriaLabel` | nicht vorhanden | `Fiktive Suchseite für Passphrase generieren` | Orientierung | kein | grenzt die neue freie Suchseite barrierefrei von der späteren Ergebnisseite ab; begrenzt | keine |
+| `S07.browser.searchPage.submitLabel` | Suchsymbol nur dekorativ | `Nach passphrase generieren suchen` | Navigation | Suchsymbol rechts im Suchfeld | macht das ausdrücklich verlangte Suchziel tastaturbedienbar und eindeutig; ausdrücklich freigegeben | Akzentfläche und Suchsymbol |
+| `S07.browser.searchPage.resultsLoadingLabel` | nicht vorhanden | `Suchergebnisse werden geladen` | Ergebnisfeedback | kein | benennt den sichtbaren, kurzen Ladezustand für assistive Technik; begrenzt | einzelner Ladeindikator, bei Reduced Motion statisch |
+
 ## Interaktionsdelta S07 simuliertes Kopieren und Einfügen, 14. August 2026
 
 Quelle ist der ausdrückliche Nutzerauftrag vom 14. August 2026. `Kopieren` legt die aktuell

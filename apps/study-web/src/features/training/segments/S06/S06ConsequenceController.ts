@@ -124,6 +124,7 @@ const accountIds = ['campusgram', 'master-campus', 'campus-email'] as const;
 const comparisonPairs = [
   ['campusgram', 'master-campus'],
   ['campusgram', 'campus-email'],
+  ['master-campus', 'campusgram'],
   ['master-campus', 'campus-email'],
 ] as const satisfies readonly (readonly [S06AccountId, S06AccountId])[];
 
@@ -285,6 +286,10 @@ function createMission(plan: PasswordConsequenceScenePlan): S06MissionSequence {
   }
   phases.push({
     kind: 'comparison',
+    step: planStep(plan, 's06-step-master-campus-campusgram'),
+  });
+  phases.push({
+    kind: 'comparison',
     step: planStep(plan, 's06-step-master-campus-campus-email'),
   });
   phases.push(
@@ -318,6 +323,58 @@ function isAttackEdge(edge: SceneEdge): boolean {
   );
 }
 
+function carriesAffectedStatus(
+  node: SceneNode | undefined,
+): node is SceneNode & { readonly status: 'affected' | 'exposed' } {
+  return node?.status === 'affected' || node?.status === 'exposed';
+}
+
+function carriesAffectedEdgeStatus(
+  edge: SceneEdge | undefined,
+): edge is SceneEdge & { readonly status: 'direct' | 'similar' } {
+  return edge?.status === 'direct' || edge?.status === 'similar';
+}
+
+function preserveSettledAffectedState(
+  network: NetworkSceneSnapshot,
+  settledNetwork: NetworkSceneSnapshot,
+  resetAccountId: S06AccountId | null = null,
+): NetworkSceneSnapshot {
+  const settledNodes = new Map(settledNetwork.nodes.map((node) => [node.id, node]));
+  const settledEdges = new Map(settledNetwork.edges.map((edge) => [edge.id, edge]));
+  return {
+    ...network,
+    nodes: network.nodes.map((node) => {
+      if (
+        node.kind === 'shield' ||
+        (resetAccountId !== null && isAccountBranchNode(node, resetAccountId))
+      ) {
+        return node;
+      }
+      const settledNode = settledNodes.get(node.id);
+      return carriesAffectedStatus(settledNode)
+        ? { ...node, status: settledNode.status }
+        : node;
+    }),
+    edges: network.edges.map((edge) => {
+      if (
+        isAttackEdge(edge) ||
+        (resetAccountId !== null &&
+          (edge.sourceId === resetAccountId ||
+            edge.targetId === resetAccountId ||
+            edge.sourceId.startsWith(`${resetAccountId}-detail-`) ||
+            edge.targetId.startsWith(`${resetAccountId}-detail-`)))
+      ) {
+        return edge;
+      }
+      const settledEdge = settledEdges.get(edge.id);
+      return carriesAffectedEdgeStatus(settledEdge)
+        ? { ...edge, status: settledEdge.status }
+        : edge;
+    }),
+  };
+}
+
 function attackPreviewNetwork(
   step: PasswordConsequencePlanStep,
   settledNetwork: NetworkSceneSnapshot,
@@ -327,21 +384,24 @@ function attackPreviewNetwork(
   const settledNodes = new Map(settledNetwork.nodes.map((node) => [node.id, node]));
   const priorAttackEdges = settledNetwork.edges.filter(isAttackEdge);
   const currentAttackEdge = step.network.edges.find(isAttackEdge);
+  const persistentNetwork = preserveSettledAffectedState(step.network, settledNetwork);
   return {
-    ...step.network,
+    ...persistentNetwork,
     id: `${step.network.id}-attack-preview`,
-    nodes: step.network.nodes.flatMap((node): readonly SceneNode[] => {
+    nodes: persistentNetwork.nodes.flatMap((node): readonly SceneNode[] => {
       if (node.kind === 'shield') return [];
-      if (isAccountBranchNode(node, targetAccountId)) return [{ ...node, status: 'neutral' }];
-      const settledNode = settledNodes.get(node.id);
-      return [
-        settledNode?.status === 'affected' || settledNode?.status === 'exposed'
-          ? { ...node, status: settledNode.status }
-          : node,
-      ];
+      if (isAccountBranchNode(node, targetAccountId)) {
+        const settledNode = settledNodes.get(node.id);
+        return [
+          carriesAffectedStatus(settledNode)
+            ? { ...node, status: settledNode.status }
+            : { ...node, status: 'neutral' },
+        ];
+      }
+      return [node];
     }),
     edges: [
-      ...step.network.edges.filter((edge) => !isAttackEdge(edge)),
+      ...persistentNetwork.edges.filter((edge) => !isAttackEdge(edge)),
       ...priorAttackEdges,
       ...(currentAttackEdge === undefined
         ? []
@@ -412,21 +472,16 @@ function resolvedNetwork(
   if (relation.kind === 'no-derived-path-recognized') {
     return blockedResolutionNetwork(step, attackNetwork, priorSettledNetwork, false);
   }
-  const attackNodes = new Map(attackNetwork.nodes.map((node) => [node.id, node]));
+  const persistentNetwork = preserveSettledAffectedState(step.network, attackNetwork);
   return {
-    ...step.network,
+    ...persistentNetwork,
     id: `${step.network.id}-resolved`,
-    nodes: step.network.nodes.flatMap((node): readonly SceneNode[] => {
+    nodes: persistentNetwork.nodes.flatMap((node): readonly SceneNode[] => {
       if (node.kind === 'shield') return [];
       if (isAccountBranchNode(node, targetAccountId)) return [{ ...node, status: 'affected' }];
-      const prior = attackNodes.get(node.id);
-      return [
-        prior?.status === 'affected' || prior?.status === 'exposed'
-          ? { ...node, status: prior.status }
-          : node,
-      ];
+      return [node];
     }),
-    edges: mergeWithPriorAttackEdges(step.network.edges),
+    edges: mergeWithPriorAttackEdges(persistentNetwork.edges),
     accessibleSummary: `${targetLabel}: ${resultLabel}.`,
   };
 }
@@ -443,13 +498,19 @@ function hypotheticalCampusgramNetwork(): NetworkSceneSnapshot {
 
 function pendingLocalCheckNetwork(
   step: PasswordConsequencePlanStep,
+  settledNetwork: NetworkSceneSnapshot,
 ): NetworkSceneSnapshot {
   const sourceAccountId = step.sourceAccountId;
   if (sourceAccountId === null) return step.network;
+  const persistentNetwork = preserveSettledAffectedState(
+    step.network,
+    settledNetwork,
+    sourceAccountId,
+  );
   return {
-    ...step.network,
+    ...persistentNetwork,
     id: `${step.network.id}-pending-local-check`,
-    nodes: step.network.nodes.flatMap((node): readonly SceneNode[] => {
+    nodes: persistentNetwork.nodes.flatMap((node): readonly SceneNode[] => {
       if (node.kind === 'shield') return [];
       return [
         isAccountBranchNode(node, sourceAccountId)
@@ -464,11 +525,13 @@ function pendingLocalCheckNetwork(
 function hypotheticalIncidentNetwork(
   step: PasswordConsequencePlanStep,
   accountId: S06AccountId,
+  settledNetwork: NetworkSceneSnapshot,
 ): NetworkSceneSnapshot {
+  const persistentNetwork = preserveSettledAffectedState(step.network, settledNetwork);
   return {
-    ...step.network,
+    ...persistentNetwork,
     id: `${step.network.id}-hypothetical-incident`,
-    nodes: step.network.nodes.flatMap((node): readonly SceneNode[] => {
+    nodes: persistentNetwork.nodes.flatMap((node): readonly SceneNode[] => {
       if (node.kind === 'shield') return [];
       return [
         isAccountBranchNode(node, accountId)
@@ -783,13 +846,17 @@ export class S06ConsequenceController {
         (this.#snapshot.stage !== 'local-check-animating' &&
           this.#snapshot.stage !== 'local-check-result');
       if (!awaitingDecision && enteredLocalCheck) {
-        const pendingNetwork = pendingLocalCheckNetwork(step);
+        const pendingNetwork = pendingLocalCheckNetwork(step, this.#settledNetwork);
         this.#displayedAttackNetwork = null;
         this.#settledNetwork = pendingNetwork;
         this.#renderer?.render(pendingNetwork);
       } else if (awaitingDecision && this.#snapshot.stage !== 'local-check-result') {
-        this.#settledNetwork = step.network;
-        this.#renderer?.render(step.network);
+        this.#settledNetwork = preserveSettledAffectedState(
+          step.network,
+          this.#settledNetwork,
+          step.sourceAccountId,
+        );
+        this.#renderer?.render(this.#settledNetwork);
       }
       const canStartNextAttack =
         awaitingDecision && this.#missionPhases[missionStepIndex + 1]?.kind === 'comparison';
@@ -824,7 +891,7 @@ export class S06ConsequenceController {
         this.#snapshot.stage !== 'master-hypothetical-animating' &&
         this.#snapshot.stage !== 'master-hypothetical-ready'
       ) {
-        const network = hypotheticalIncidentNetwork(step, 'master-campus');
+        const network = hypotheticalIncidentNetwork(step, 'master-campus', this.#settledNetwork);
         this.#displayedAttackNetwork = null;
         this.#settledNetwork = network;
         this.#renderer?.render(network);
@@ -913,8 +980,11 @@ export class S06ConsequenceController {
 
     if (missionPhase.kind === 'final-summary') {
       const summaryStep = planStep(this.#plan, 's06-step-summary');
-      this.#settledNetwork = summaryStep.network;
-      this.#renderer?.render(summaryStep.network);
+      this.#settledNetwork = preserveSettledAffectedState(
+        summaryStep.network,
+        this.#settledNetwork,
+      );
+      this.#renderer?.render(this.#settledNetwork);
       this.#snapshot = {
         ...this.#snapshot,
         phase: 'awaiting-decision',

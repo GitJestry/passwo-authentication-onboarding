@@ -84,7 +84,80 @@ function GeneratorBrandMark() {
   );
 }
 
-function SearchPage({ onPrimaryResultSelect }: { readonly onPrimaryResultSelect: () => void }) {
+function SearchField({
+  interactive = false,
+  onSubmit,
+}: {
+  readonly interactive?: boolean;
+  readonly onSubmit?: () => void;
+}) {
+  const searchPage = s07PassphraseSearchContent.browser.searchPage;
+
+  return (
+    <div className={styles.searchField} role="search" aria-label="Fiktive Suche">
+      <span>{searchPage.query}</span>
+      <span className={styles.clearQuery} aria-hidden="true">
+        ×
+      </span>
+      {interactive ? (
+        <button
+          type="button"
+          className={styles.searchSubmit}
+          aria-label={searchPage.submitLabel}
+          onClick={onSubmit}
+        >
+          <SearchIcon />
+        </button>
+      ) : (
+        <span className={styles.searchFieldIcon} aria-hidden="true">
+          <SearchIcon />
+        </span>
+      )}
+    </div>
+  );
+}
+
+function SearchLandingPage({ onSubmit }: { readonly onSubmit: () => void }) {
+  const searchPage = s07PassphraseSearchContent.browser.searchPage;
+
+  return (
+    <main className={styles.searchLandingPage} aria-label={searchPage.landingAriaLabel}>
+      <div className={styles.searchLandingContent}>
+        <span className={`${styles.searchBrand} ${styles.searchLandingBrand}`}>
+          <SearchBrandIcon />
+          <span className={styles.searchWordmark}>{searchPage.brand}</span>
+        </span>
+        <SearchField interactive onSubmit={onSubmit} />
+      </div>
+    </main>
+  );
+}
+
+function SearchResultsLoading() {
+  const searchPage = s07PassphraseSearchContent.browser.searchPage;
+
+  return (
+    <main
+      className={`${styles.searchMain} ${styles.searchResultsLoading}`}
+      aria-label={searchPage.resultsLoadingLabel}
+      aria-live="polite"
+      aria-busy="true"
+    >
+      <span className={styles.searchLoadingIndicator} aria-hidden="true">
+        <SearchIcon />
+      </span>
+      <span className={styles.visuallyHidden}>{searchPage.resultsLoadingLabel}</span>
+    </main>
+  );
+}
+
+function SearchPage({
+  loading,
+  onPrimaryResultSelect,
+}: {
+  readonly loading: boolean;
+  readonly onPrimaryResultSelect: () => void;
+}) {
   const searchPage = s07PassphraseSearchContent.browser.searchPage;
 
   return (
@@ -95,15 +168,7 @@ function SearchPage({ onPrimaryResultSelect }: { readonly onPrimaryResultSelect:
             <SearchBrandIcon />
             <span className={styles.searchWordmark}>{searchPage.brand}</span>
           </span>
-          <div className={styles.searchField} role="search" aria-label="Fiktive Suche">
-            <span>{searchPage.query}</span>
-            <span className={styles.clearQuery} aria-hidden="true">
-              ×
-            </span>
-            <span className={styles.searchFieldIcon}>
-              <SearchIcon />
-            </span>
-          </div>
+          <SearchField />
         </div>
         <nav className={styles.searchNavigation} aria-label="Suchkategorien">
           {searchPage.navigation.map((item, index) => (
@@ -114,88 +179,100 @@ function SearchPage({ onPrimaryResultSelect }: { readonly onPrimaryResultSelect:
         </nav>
       </header>
 
-      <main className={styles.searchMain}>
-        <ol className={styles.resultsList}>
-          {searchPage.results.map((result, index) => {
-            const isPrimary = result.id === searchPage.primaryResultId;
-            return (
-              <li key={result.id} className={isPrimary ? styles.primaryResult : styles.searchResult}>
-                <div className={styles.resultSource}>
-                  <span className={styles.resultFavicon} aria-hidden="true">
-                    {isPrimary ? <GeneratorBrandMark /> : result.siteName.slice(0, 1)}
-                  </span>
-                  <span>
-                    <strong>{result.siteName}</strong>
-                    <small>{result.domain}</small>
-                  </span>
-                  <span className={styles.resultMenu} aria-hidden="true">
-                    ⋮
-                  </span>
-                </div>
-                {isPrimary ? (
-                  <button
-                    type="button"
-                    className={styles.primaryResultLink}
-                    onClick={onPrimaryResultSelect}
-                  >
-                    {result.title}
-                  </button>
-                ) : (
-                  <span className={styles.resultLink}>{result.title}</span>
-                )}
-                <p>{result.description}</p>
-                {index === 2 ? (
-                  <section className={styles.peopleAlsoAsk} aria-labelledby="people-also-ask-title">
-                    <h2 id="people-also-ask-title">Andere suchten auch</h2>
-                    {searchPage.questions.map((question) => (
-                      <div key={question}>
-                        <span>{question}</span>
-                        <span aria-hidden="true">⌄</span>
-                      </div>
-                    ))}
-                  </section>
-                ) : null}
-              </li>
-            );
-          })}
-        </ol>
+      {loading ? (
+        <SearchResultsLoading />
+      ) : (
+        <main className={styles.searchMain}>
+          <ol className={styles.resultsList}>
+            {searchPage.results.map((result, index) => {
+              const isPrimary = result.id === searchPage.primaryResultId;
+              return (
+                <li
+                  key={result.id}
+                  className={isPrimary ? styles.primaryResult : styles.searchResult}
+                >
+                  <div className={styles.resultSource}>
+                    <span className={styles.resultFavicon} aria-hidden="true">
+                      {isPrimary ? <GeneratorBrandMark /> : result.siteName.slice(0, 1)}
+                    </span>
+                    <span>
+                      <strong>{result.siteName}</strong>
+                      <small>{result.domain}</small>
+                    </span>
+                    <span className={styles.resultMenu} aria-hidden="true">
+                      ⋮
+                    </span>
+                  </div>
+                  {isPrimary ? (
+                    <button
+                      type="button"
+                      className={styles.primaryResultLink}
+                      onClick={onPrimaryResultSelect}
+                    >
+                      {result.title}
+                    </button>
+                  ) : (
+                    <span className={styles.resultLink}>{result.title}</span>
+                  )}
+                  <p>{result.description}</p>
+                  {index === 2 ? (
+                    <section
+                      className={styles.peopleAlsoAsk}
+                      aria-labelledby="people-also-ask-title"
+                    >
+                      <h2 id="people-also-ask-title">Andere suchten auch</h2>
+                      {searchPage.questions.map((question) => (
+                        <div key={question}>
+                          <span>{question}</span>
+                          <span aria-hidden="true">⌄</span>
+                        </div>
+                      ))}
+                    </section>
+                  ) : null}
+                </li>
+              );
+            })}
+          </ol>
 
-        <section className={styles.relatedSearches} aria-labelledby="related-searches-title">
-          <h2 id="related-searches-title">Verwandte Suchanfragen</h2>
-          <div>
-            {searchPage.relatedSearches.map((query) => (
-              <span key={query}>
-                <SearchIcon />
-                {query}
-              </span>
+          <section className={styles.relatedSearches} aria-labelledby="related-searches-title">
+            <h2 id="related-searches-title">Verwandte Suchanfragen</h2>
+            <div>
+              {searchPage.relatedSearches.map((query) => (
+                <span key={query}>
+                  <SearchIcon />
+                  {query}
+                </span>
+              ))}
+            </div>
+          </section>
+
+          <section className={styles.resultCollectionSummary}>
+            <span className={styles.resultCollectionIcon} aria-hidden="true">
+              <SearchIcon />
+            </span>
+            <div>
+              <h2>{searchPage.resultCollectionSummary.title}</h2>
+              <p>{searchPage.resultCollectionSummary.description}</p>
+            </div>
+            <ul aria-label="Enthaltene Themen">
+              {searchPage.resultCollectionSummary.topics.map((topic) => (
+                <li key={topic}>{topic}</li>
+              ))}
+            </ul>
+          </section>
+        </main>
+      )}
+
+      {!loading ? (
+        <footer className={styles.searchFooter}>
+          <div>{searchPage.footerLocation}</div>
+          <nav aria-label="Informationen zur fiktiven Suche">
+            {searchPage.footerLinks.map((link) => (
+              <span key={link}>{link}</span>
             ))}
-          </div>
-        </section>
-
-        <section className={styles.resultCollectionSummary}>
-          <span className={styles.resultCollectionIcon} aria-hidden="true">
-            <SearchIcon />
-          </span>
-          <div>
-            <h2>{searchPage.resultCollectionSummary.title}</h2>
-            <p>{searchPage.resultCollectionSummary.description}</p>
-          </div>
-          <ul aria-label="Enthaltene Themen">
-            {searchPage.resultCollectionSummary.topics.map((topic) => (
-              <li key={topic}>{topic}</li>
-            ))}
-          </ul>
-        </section>
-      </main>
-
-      <footer className={styles.searchFooter}>
-        <div>{searchPage.footerLocation}</div>
-        <nav aria-label="Informationen zur fiktiven Suche">
-          {searchPage.footerLinks.map((link) => (
-            <span key={link}>{link}</span>
-          ))}
-        </nav>
-      </footer>
+          </nav>
+        </footer>
+      ) : null}
     </div>
   );
 }
@@ -381,12 +458,29 @@ export function S07PassphraseSearchTraining({
   onPrimaryResultSelect = () => undefined,
 }: S07PassphraseSearchTrainingProps) {
   const [activeTabId, setActiveTabId] = useState<S07TabId>('campusgram');
-  const [searchView, setSearchView] = useState<'results' | 'generator'>('results');
+  const [searchTabOpen, setSearchTabOpen] = useState(false);
+  const [searchView, setSearchView] = useState<'landing' | 'loading' | 'results' | 'generator'>(
+    'landing',
+  );
   const [passwordChangeOpen, setPasswordChangeOpen] = useState(false);
   const [simulatedClipboardValue, setSimulatedClipboardValue] = useState<string | null>(null);
   const activeAccount = s01Content.browser.accounts.find(({ id }) => id === activeTabId);
   const searchTab = s07PassphraseSearchContent.browser.searchTab;
   const generatorPage = s07PassphraseSearchContent.browser.generatorPage;
+  const searchPage = s07PassphraseSearchContent.browser.searchPage;
+
+  useEffect(() => {
+    if (searchView !== 'loading') {
+      return undefined;
+    }
+
+    const resultsTimeout = window.setTimeout(() => {
+      setSearchView('results');
+    }, searchPage.resultsDelayMs);
+
+    return () => window.clearTimeout(resultsTimeout);
+  }, [searchPage.resultsDelayMs, searchView]);
+
   const snapshot: BrowserShellSnapshot = {
     tabs: [
       ...s01Content.browser.accounts.map((account) => ({
@@ -398,12 +492,16 @@ export function S07PassphraseSearchTraining({
         icon: <NetworkSymbol symbolId={account.symbolId} />,
         enabled: true,
       })),
-      {
-        id: searchTab.id,
-        label: searchTab.label,
-        icon: <SearchBrandIcon />,
-        enabled: true,
-      },
+      ...(searchTabOpen
+        ? [
+            {
+              id: searchTab.id,
+              label: searchTab.label,
+              icon: <SearchBrandIcon />,
+              enabled: true,
+            },
+          ]
+        : []),
     ],
     activeTabId,
     address:
@@ -412,7 +510,9 @@ export function S07PassphraseSearchTraining({
         : activeAccount === undefined
         ? searchView === 'generator'
           ? generatorPage.address
-          : searchTab.address
+          : searchView === 'landing'
+            ? searchTab.homeAddress
+            : searchTab.address
         : `${activeAccount.address}/dashboard`,
     scrollKey: `s07:${activeTabId}:${
       activeAccount?.id === 'campusgram' && passwordChangeOpen
@@ -421,6 +521,7 @@ export function S07PassphraseSearchTraining({
           ? searchView
           : 'dashboard'
     }`,
+    highlightNewTab: !searchTabOpen,
   };
 
   const preventNativeClipboard = (event: ClipboardEvent<HTMLElement>): void => {
@@ -451,12 +552,26 @@ export function S07PassphraseSearchTraining({
         onTabSelect={(tabId) => {
           if (isS07TabId(tabId)) setActiveTabId(tabId);
         }}
+        {...(!searchTabOpen
+          ? {
+              onNewTab: () => {
+                setSearchTabOpen(true);
+                setSearchView('landing');
+                setActiveTabId(searchTab.id);
+              },
+            }
+          : {})}
       >
         {activeAccount === undefined ? (
-          searchView === 'results' ? (
-            <SearchPage onPrimaryResultSelect={() => setSearchView('generator')} />
-          ) : (
+          searchView === 'generator' ? (
             <GeneratorPage onCopy={setSimulatedClipboardValue} />
+          ) : searchView === 'landing' ? (
+            <SearchLandingPage onSubmit={() => setSearchView('loading')} />
+          ) : (
+            <SearchPage
+              loading={searchView === 'loading'}
+              onPrimaryResultSelect={() => setSearchView('generator')}
+            />
           )
         ) : (
           <CampusWebsiteBackdrop
@@ -473,6 +588,9 @@ export function S07PassphraseSearchTraining({
                   onPasswordChangeOpenChange={setPasswordChangeOpen}
                   simulatedClipboardValue={simulatedClipboardValue}
                   simulatedPasteLabel={generatorPage.paste}
+                  completedCopy={
+                    s07PassphraseSearchContent.browser.campusgramPasswordChangeCompleted
+                  }
                   onSimulatedClipboardConsumed={() => setSimulatedClipboardValue(null)}
                   onSimulatedPasswordChangeCompleted={() => {
                     setSimulatedClipboardValue(null);

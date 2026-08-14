@@ -130,13 +130,15 @@ Seitenangaben beziehen sich auf die im Trainingsdokument ausgewiesene interne Pa
   Projektion; nur die Eingabequelle unterscheidet sich zwischen Fixtures und flüchtigen
   Übungswerten.
 - Die Laufzeitwerte werden beim bestätigten Eintritt einmal lokal ausgewertet. Drei
-  Einzelanalysen, drei Paarvergleiche und die daraus projizierten Szenen bleiben flüchtig und
-  werden weder in den globalen Machine Context kopiert noch an eine Study API gesendet.
+  Einzelanalysen, vier gerichtete Kontovergleiche und die daraus projizierten Szenen bleiben
+  flüchtig und werden weder in den globalen Machine Context kopiert noch an eine Study API
+  gesendet.
 - Der Timing-Handshake lautet S05 segment-end, S06 segment-start, S06 segment-end. Ein
   fehlgeschlagener späterer Write wiederholt keine bereits bestätigte Grenze.
-- Die Projektion verwendet die drei fiktiven Konten Master Campus, Campus E-Mail und Campusgram
-  sowie alle drei Konto-Paare genau einmal. Campusgram-Inhalte bleiben lokale Inhaltszuordnungen
-  und werden nicht als SSO-Dienste modelliert.
+- Die Projektion verwendet die drei fiktiven Konten Master Campus, Campus E-Mail und Campusgram.
+  Campusgram wird gegen beide anderen Konten geprüft; beim Perspektivwechsel wird Master Campus
+  gegen Campusgram und Campus E-Mail geprüft. Campusgram-Inhalte bleiben lokale
+  Inhaltszuordnungen und werden nicht als SSO-Dienste modelliert.
 - Eine Beziehung ist ausschließlich `exact-match`, `derived-variant-match` oder
   `no-derived-path-recognized`. Eine abgeleitete Variante benötigt einen konkreten begrenzten
   Transformationsweg, dessen erzeugter Kandidat den vollständigen Zielwert trifft.

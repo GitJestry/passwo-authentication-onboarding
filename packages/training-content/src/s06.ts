@@ -58,7 +58,7 @@ export interface S06NarrationContent {
   readonly body: string;
 }
 
-export const S06_CONSEQUENCE_CONTENT_VERSION = '2.10.0';
+export const S06_CONSEQUENCE_CONTENT_VERSION = '2.11.0';
 
 export const s06ConsequenceContent = {
   version: S06_CONSEQUENCE_CONTENT_VERSION,
@@ -66,9 +66,9 @@ export const s06ConsequenceContent = {
     document: 'research/private/training-script.pdf',
     internalPages: [36, 37, 38, 39, 40, 41, 42, 43, 44] as const,
     revision:
-      'Userauftrag vom 2026-08-13 · direkte Überleitung zur neuen S07-Passphrasen-Suche',
+      'Userauftrag vom 2026-08-14 · Master Campus prüft Campusgram und Campus E-Mail',
     copyReference:
-      'docs/design/S06-S07-COPY-AUDIT.md#copy--und-ablaufdelta-s07-passphrasen-suche-13-august-2026',
+      'docs/design/S06-S07-COPY-AUDIT.md#copy--und-ablaufdelta-s06-master-campus-prüft-beide-anderen-konten-14-august-2026',
   },
   segment: {
     id: 'S06',
@@ -197,15 +197,15 @@ export const s06ConsequenceContent = {
     },
     's06.perspective.master-campus-found': {
       heading: 'Perspektivwechsel zu Master Campus',
-      body: 'Bei Master Campus wurde das vollständige Passwort in dieser begrenzten Prüfung als früher Kandidat erkannt. Von diesem Konto aus kann es nun bei Campus E-Mail ausprobiert werden.',
+      body: 'Bei Master Campus wurde das vollständige Passwort in dieser begrenzten Prüfung als früher Kandidat erkannt. Von diesem Konto aus kann es nun bei Campusgram und Campus E-Mail ausprobiert werden.',
     },
     's06.perspective.master-campus-blocked': {
       heading: 'Perspektivwechsel zu Master Campus',
-      body: 'Bei Master Campus wurde in dieser begrenzten Prüfung kein vollständiger früher Kandidat erkannt. Den möglichen weiteren Weg betrachten wir deshalb als „Was wäre, wenn?“.',
+      body: 'Bei Master Campus wurde in dieser begrenzten Prüfung kein vollständiger früher Kandidat erkannt. Die möglichen weiteren Wege betrachten wir deshalb als „Was wäre, wenn?“.',
     },
     's06.incident.master-campus-hypothetical': {
       heading: 'Was wäre, wenn?',
-      body: 'Angenommen, das Master-Campus-Passwort wäre bekannt geworden. Dann würde es oder eine ähnliche Variante bei Campus E-Mail ausprobiert.',
+      body: 'Angenommen, das Master-Campus-Passwort wäre bekannt geworden. Dann würde es oder eine ähnliche Variante bei Campusgram und Campus E-Mail ausprobiert.',
     },
     's06.transition.campus-email': {
       heading: 'Noch eine Ausgangslage',

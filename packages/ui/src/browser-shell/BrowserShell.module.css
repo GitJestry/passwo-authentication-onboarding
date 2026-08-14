@@ -157,6 +157,7 @@
 }
 
 .newTabHint,
+.newTabButton,
 .bookmarkHint,
 .menuHint {
   display: grid;
@@ -165,13 +166,15 @@
   color: var(--color-ink-muted);
 }
 
-.newTabHint {
+.newTabHint,
+.newTabButton {
   width: 1.85rem;
   height: 1.85rem;
   border-radius: var(--radius-small);
 }
 
 .newTabHint svg,
+.newTabButton svg,
 .bookmarkHint svg,
 .menuHint svg {
   width: 1rem;
@@ -180,6 +183,35 @@
   stroke-linecap: round;
   stroke-linejoin: round;
   stroke-width: 2;
+}
+
+.newTabButton {
+  padding: 0;
+  border: var(--border-width-thin) solid transparent;
+  background: transparent;
+  cursor: pointer;
+  font: inherit;
+}
+
+.newTabButton:hover {
+  color: var(--color-ink-strong);
+  background: var(--browser-tab-hover-surface);
+}
+
+.newTabButton:focus-visible {
+  outline: var(--border-width-focus) solid var(--passwo-focus);
+  outline-offset: 2px;
+}
+
+.newTabButton[data-guided-highlight="true"] {
+  position: relative;
+  z-index: 1;
+  border-color: var(--color-accent-strong);
+  color: var(--color-ink-strong);
+  background: color-mix(in srgb, var(--color-accent-soft) 78%, var(--passwo-surface));
+  box-shadow: 0 0 1rem color-mix(in srgb, var(--color-accent) 42%, transparent);
+  outline: var(--border-width-medium) solid var(--color-accent-strong);
+  outline-offset: 2px;
 }
 
 .tab,
@@ -718,6 +750,7 @@ button.activeTab[aria-disabled="true"] {
 }
 
 .window[data-platform="windows"] .newTabHint,
+.window[data-platform="windows"] .newTabButton,
 .window[data-platform="windows"] .accountInitial,
 .window[data-platform="windows"] .menuHint {
   border-radius: 0.35rem;

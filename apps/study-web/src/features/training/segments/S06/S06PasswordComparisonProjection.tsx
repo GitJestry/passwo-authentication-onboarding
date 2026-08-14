@@ -305,8 +305,11 @@ export function S06PasswordComparisonProjection({
       const targetRect = target.getBoundingClientRect();
       const targetX = targetRect.left + targetRect.width / 2 - sceneRect.left;
       const targetY = targetRect.top + targetRect.height / 2 - sceneRect.top;
+      const projectsLeft = targetAccountId === 'campusgram';
       const left = clamp(
-        Math.max(sceneRect.width * 0.49, targetX + 82),
+        projectsLeft
+          ? Math.min(sceneRect.width * 0.51 - cardRect.width, targetX - cardRect.width - 82)
+          : Math.max(sceneRect.width * 0.49, targetX + 82),
         20,
         Math.max(20, sceneRect.width - cardRect.width - 24),
       );
@@ -316,13 +319,14 @@ export function S06PasswordComparisonProjection({
         20,
         Math.max(20, networkBottom - cardRect.height - 16),
       );
-      const cardNearX = left;
+      const cardNearX = projectsLeft ? left + cardRect.width : left;
+      const targetEdgeX = targetX + (projectsLeft ? -3 : 3);
       setLayout({
         left,
         top,
         projection: {
-          startA: [targetX + 3, targetY - 5],
-          startB: [targetX + 3, targetY + 5],
+          startA: [targetEdgeX, targetY - 5],
+          startB: [targetEdgeX, targetY + 5],
           endA: [cardNearX, top + cardRect.height * 0.22],
           endB: [cardNearX, top + cardRect.height * 0.78],
         },

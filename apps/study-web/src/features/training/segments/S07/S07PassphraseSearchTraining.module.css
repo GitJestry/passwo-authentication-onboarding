@@ -55,6 +55,44 @@
   font-family: var(--font-family-sans);
 }
 
+.searchLandingPage {
+  --search-ink: var(--color-ink);
+  --search-muted: var(--color-ink-muted);
+  --search-border: var(--passwo-border);
+
+  display: grid;
+  width: 100%;
+  min-height: 100%;
+  place-items: center;
+  padding: clamp(2rem, 8vh, 6rem) 2rem clamp(6rem, 18vh, 11rem);
+  color: var(--search-ink);
+  background-color: var(--color-surface-primary);
+  background-image: url('../../../../assets/s07/search-start-artwork.png');
+  background-position: center;
+  background-size: cover;
+  font-family: var(--font-family-sans);
+}
+
+.searchLandingContent {
+  display: grid;
+  width: min(100%, 43rem);
+  justify-items: center;
+  gap: 2rem;
+}
+
+.searchLandingBrand {
+  gap: 0.85rem;
+  transform: scale(1.45);
+}
+
+.searchLandingContent .searchField {
+  width: 100%;
+  min-height: 3.65rem;
+  padding-left: 1.5rem;
+  box-shadow: 0 0.8rem 2.2rem rgb(11 39 67 / 14%);
+  font-size: 1.08rem;
+}
+
 .searchHeader {
   position: sticky;
   z-index: 2;
@@ -140,12 +178,17 @@
 }
 
 .clearQuery {
-  padding-right: 0.85rem;
+  padding-right: 0.72rem;
   border-right: 1px solid var(--search-border);
   color: var(--search-muted);
-  font-size: 1.55rem;
-  font-weight: 300;
+  font-size: 1.08rem;
+  font-weight: 400;
   line-height: 1;
+  opacity: 0.48;
+}
+
+.searchLandingContent .clearQuery {
+  opacity: 0.34;
 }
 
 .searchFieldIcon {
@@ -156,7 +199,37 @@
   color: var(--search-blue);
 }
 
+.searchSubmit {
+  display: grid;
+  width: 2.35rem;
+  height: 2.35rem;
+  flex: none;
+  place-items: center;
+  padding: 0.55rem;
+  border: 0;
+  border-radius: 50%;
+  color: var(--color-on-inverse);
+  background: var(--color-accent-strong);
+  box-shadow: 0 0.3rem 0.8rem rgb(11 39 67 / 18%);
+  cursor: pointer;
+}
+
+.searchSubmit:hover {
+  background: var(--color-accent);
+  transform: translateY(-1px);
+}
+
+.searchSubmit:active {
+  transform: translateY(0);
+}
+
+.searchSubmit:focus-visible {
+  outline: var(--border-width-focus) solid var(--passwo-focus);
+  outline-offset: 3px;
+}
+
 .searchFieldIcon svg,
+.searchSubmit svg,
 .relatedSearches svg {
   width: 100%;
   height: 100%;
@@ -192,6 +265,58 @@
   width: min(calc(100% - 3rem), 50rem);
   margin: 0 auto;
   padding: 1.35rem 0 2.5rem;
+}
+
+.searchResultsLoading {
+  display: grid;
+  min-height: clamp(16rem, 48vh, 27rem);
+  place-items: center;
+}
+
+.searchLoadingIndicator {
+  position: relative;
+  display: grid;
+  width: 3.5rem;
+  height: 3.5rem;
+  place-items: center;
+  border: var(--border-width-medium) solid
+    color-mix(in srgb, var(--color-accent) 22%, transparent);
+  border-radius: 50%;
+  color: var(--color-accent-strong);
+  background: var(--color-surface-primary);
+  box-shadow: 0 0.65rem 1.8rem rgb(11 39 67 / 10%);
+}
+
+.searchLoadingIndicator::after {
+  position: absolute;
+  inset: -0.2rem;
+  border: var(--border-width-medium) solid transparent;
+  border-top-color: var(--color-accent-strong);
+  border-radius: 50%;
+  content: '';
+  animation: search-results-loading 700ms linear infinite;
+}
+
+.searchLoadingIndicator svg {
+  width: 1.4rem;
+  height: 1.4rem;
+}
+
+.resultsList,
+.relatedSearches,
+.resultCollectionSummary,
+.searchFooter {
+  animation: search-results-enter 320ms ease-out both;
+}
+
+.visuallyHidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  clip-path: inset(50%);
+  white-space: nowrap;
 }
 
 .resultsList {
@@ -732,7 +857,7 @@
   color: var(--generator-navy);
   background: #f1f8f6;
   font-family: ui-monospace, monospace;
-  font-size: clamp(0.78rem, 1.5cqi, 1rem);
+  font-size: clamp(0.64rem, 1.2cqi, 0.86rem);
   font-weight: 750;
   letter-spacing: 0.01em;
   text-overflow: ellipsis;
@@ -877,12 +1002,33 @@
   }
 }
 
+@keyframes search-results-loading {
+  to {
+    transform: rotate(1turn);
+  }
+}
+
+@keyframes search-results-enter {
+  from {
+    opacity: 0;
+    transform: translateY(0.45rem);
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .incidentSpotlight::after {
     animation: none;
   }
 
   .generatorLoadingIndicator {
+    animation: none;
+  }
+
+  .searchLoadingIndicator::after,
+  .resultsList,
+  .relatedSearches,
+  .resultCollectionSummary,
+  .searchFooter {
     animation: none;
   }
 

@@ -50,6 +50,12 @@ export interface CampusgramIncidentNoticeProps {
   readonly simulatedPasteLabel?: string | undefined;
   readonly onSimulatedClipboardConsumed?: (() => void) | undefined;
   readonly onSimulatedPasswordChangeCompleted?: (() => void) | undefined;
+  readonly completedCopy?:
+    | {
+        readonly title: string;
+        readonly body: string;
+      }
+    | undefined;
 }
 
 export function CampusgramIncidentNotice({
@@ -61,6 +67,7 @@ export function CampusgramIncidentNotice({
   simulatedPasteLabel,
   onSimulatedClipboardConsumed,
   onSimulatedPasswordChangeCompleted,
+  completedCopy,
 }: CampusgramIncidentNoticeProps) {
   const inputId = useId();
   const actionRef = useRef<HTMLButtonElement>(null);
@@ -182,9 +189,9 @@ export function CampusgramIncidentNotice({
             <section className={styles.passwordChangeCard} role="status">
               <span className={styles.successMark} aria-hidden="true">✓</span>
               <h2 id={`${inputId}-title`} ref={headingRef} tabIndex={-1}>
-                {passwordChange.completedTitle}
+                {completedCopy?.title ?? passwordChange.completedTitle}
               </h2>
-              <p>{passwordChange.completedBody}</p>
+              <p>{completedCopy?.body ?? passwordChange.completedBody}</p>
               <button type="button" className={styles.submitButton} onClick={closePasswordChange}>
                 {passwordChange.completedAction}
               </button>

@@ -7,11 +7,11 @@ import {
 } from './s07.js';
 
 const s06AttackFlowCopyReference =
-  'docs/design/S06-S07-COPY-AUDIT.md#copy--und-ablaufdelta-s07-passphrasen-suche-13-august-2026';
+  'docs/design/S06-S07-COPY-AUDIT.md#copy--und-ablaufdelta-s06-master-campus-prüft-beide-anderen-konten-14-august-2026';
 
 describe('S06 transition and S07 passphrase-search copy traceability', () => {
   it('keeps S06 consequence wording aligned with bounded whole-password recognition', () => {
-    expect(S06_CONSEQUENCE_CONTENT_VERSION).toBe('2.10.0');
+    expect(S06_CONSEQUENCE_CONTENT_VERSION).toBe('2.11.0');
     expect(s06ConsequenceContent.source.copyReference).toBe(s06AttackFlowCopyReference);
     expect(s06ConsequenceContent.page.attackStart).toBe('Angriff starten');
     expect(s06ConsequenceContent.page.finish).toBe('Fertig');
@@ -23,8 +23,14 @@ describe('S06 transition and S07 passphrase-search copy traceability', () => {
       'Bislang begann der Angriff bei Campusgram. Welches Konto zuerst bekannt wird, lässt sich aber nicht vorhersagen. Deshalb schauen wir uns die Konten jetzt noch einmal aus einer anderen Ausgangslage an.',
     );
     expect(s06ConsequenceContent.narrations).toMatchObject({
+      's06.perspective.master-campus-found': {
+        body: 'Bei Master Campus wurde das vollständige Passwort in dieser begrenzten Prüfung als früher Kandidat erkannt. Von diesem Konto aus kann es nun bei Campusgram und Campus E-Mail ausprobiert werden.',
+      },
+      's06.perspective.master-campus-blocked': {
+        body: 'Bei Master Campus wurde in dieser begrenzten Prüfung kein vollständiger früher Kandidat erkannt. Die möglichen weiteren Wege betrachten wir deshalb als „Was wäre, wenn?“.',
+      },
       's06.incident.master-campus-hypothetical': {
-        body: 'Angenommen, das Master-Campus-Passwort wäre bekannt geworden. Dann würde es oder eine ähnliche Variante bei Campus E-Mail ausprobiert.',
+        body: 'Angenommen, das Master-Campus-Passwort wäre bekannt geworden. Dann würde es oder eine ähnliche Variante bei Campusgram und Campus E-Mail ausprobiert.',
       },
       's06.transition.campus-email': {
         body: 'Zum Schluss verschieben wir das Datenleck zu Campus E-Mail und prüfen dieses Passwort für sich.',
@@ -101,13 +107,21 @@ describe('S06 transition and S07 passphrase-search copy traceability', () => {
   });
 
   it('keeps S07 linked to the passphrase-search browser state', () => {
-    expect(S07_PASSPHRASE_SEARCH_CONTENT_VERSION).toBe('3.0.0');
+    expect(S07_PASSPHRASE_SEARCH_CONTENT_VERSION).toBe('3.2.0');
     expect(s07PassphraseSearchContent.source.copyReference).toBe(
-      'docs/design/S06-S07-COPY-AUDIT.md#interaktionsdelta-s07-simuliertes-kopieren-und-einfügen-14-august-2026',
+      'docs/design/S06-S07-COPY-AUDIT.md#copy-delta-s07-bestätigung-des-campusgram-passwortwechsels-14-august-2026',
     );
+    expect(s07PassphraseSearchContent.browser.campusgramPasswordChangeCompleted).toEqual({
+      title: 'Passwort geändert',
+      body: 'Die neue Passphrase wird jetzt für Campusgram verwendet.',
+    });
     expect(s07PassphraseSearchContent.browser.searchTab.label).toBe('Passphrase generieren');
     expect(s07PassphraseSearchContent.browser.searchPage.brand).toBe('Search');
+    expect(s07PassphraseSearchContent.browser.searchPage.landingAriaLabel).toBe(
+      'Fiktive Suchseite für Passphrase generieren',
+    );
     expect(s07PassphraseSearchContent.browser.searchPage.results).toHaveLength(9);
+    expect(s07PassphraseSearchContent.browser.searchPage.resultsDelayMs).toBe(900);
     expect(s07PassphraseSearchContent.browser.generatorPage.separators).toEqual([
       { label: 'Bindestrich', value: '-' },
       { label: 'Punkt', value: '.' },

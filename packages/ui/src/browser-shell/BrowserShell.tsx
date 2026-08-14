@@ -107,6 +107,7 @@ export interface BrowserShellSnapshot {
   readonly allowWindowInteractionWhenDimmed?: boolean;
   readonly tabActivation?: 'automatic' | 'manual';
   readonly highlightedTabId?: string;
+  readonly highlightNewTab?: boolean;
   readonly locked?: boolean;
 }
 
@@ -126,6 +127,7 @@ export interface BrowserShellProps {
   readonly ariaLabel?: string;
   readonly windowOpen?: boolean;
   readonly onTabSelect?: (tabId: string) => void;
+  readonly onNewTab?: () => void;
   readonly onWindowClose?: () => void;
   readonly onWindowOpenChange?: (open: boolean) => void;
   readonly onWindowTransitionEnd?: (state: 'open' | 'closed') => void;
@@ -142,6 +144,7 @@ export function BrowserShell({
   ariaLabel = 'Fiktive Browseranwendung',
   windowOpen,
   onTabSelect,
+  onNewTab,
   onWindowClose,
   onWindowOpenChange,
   onWindowTransitionEnd,
@@ -165,6 +168,7 @@ export function BrowserShell({
   const accountInitials = deriveAccountInitials(snapshot.accountIdentifier);
   const scrollKey = snapshot.scrollKey ?? snapshot.activeTabId;
   const activeScrollKeyRef = useRef(scrollKey);
+  const previousActiveTabIdRef = useRef(snapshot.activeTabId);
   const panelId = `${idPrefix}-tabpanel`;
   const selectedTabIndex = snapshot.tabs.findIndex((tab) => tab.id === snapshot.activeTabId);
   const [focusedTabId, setFocusedTabId] = useState(
@@ -214,6 +218,16 @@ export function BrowserShell({
     activeScrollKeyRef.current = scrollKey;
     contentElement.scrollTop = scrollPositionsRef.current.get(scrollKey) ?? 0;
   }, [scrollKey]);
+
+  useLayoutEffect(() => {
+    if (previousActiveTabIdRef.current === snapshot.activeTabId) return;
+
+    previousActiveTabIdRef.current = snapshot.activeTabId;
+    setFocusedTabId(snapshot.activeTabId);
+    if (document.activeElement === document.body) {
+      tabElements.current.get(snapshot.activeTabId)?.focus();
+    }
+  }, [snapshot.activeTabId]);
 
   function setWindowOpen(open: boolean): void {
     if (windowOpen === undefined) setUncontrolledOpen(open);
@@ -428,9 +442,23 @@ export function BrowserShell({
               >
                 {tabItems}
               </div>
-              <span className={styles.newTabHint} role="img" aria-label="Weiterer Tab">
-                <BrowserChromeIcon kind="add-tab" />
-              </span>
+              {onNewTab ? (
+                <button
+                  type="button"
+                  className={styles.newTabButton}
+                  aria-label="Neuen Tab öffnen"
+                  title="Neuen Tab öffnen"
+                  data-guided-highlight={snapshot.highlightNewTab || undefined}
+                  disabled={tabsInert}
+                  onClick={onNewTab}
+                >
+                  <BrowserChromeIcon kind="add-tab" />
+                </button>
+              ) : (
+                <span className={styles.newTabHint} role="img" aria-label="Weiterer Tab">
+                  <BrowserChromeIcon kind="add-tab" />
+                </span>
+              )}
             </div>
           </div>
           {tabStates.some(({ enabled }) => !enabled) ? (

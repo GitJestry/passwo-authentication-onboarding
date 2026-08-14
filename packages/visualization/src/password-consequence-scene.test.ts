@@ -96,6 +96,11 @@ describe('password consequence scene projection', () => {
       },
       {
         sourceAccountId: 'master-campus',
+        targetAccountId: 'campusgram',
+        result: comparison('no-derived-path-recognized'),
+      },
+      {
+        sourceAccountId: 'master-campus',
         targetAccountId: 'campus-email',
         result: comparison('no-derived-path-recognized'),
       },
@@ -108,6 +113,9 @@ describe('password consequence scene projection', () => {
       accountDefinitions,
     });
     const comparisonStep = plan.steps.find(({ id }) => id === 's06-step-campusgram-master-campus');
+    const reverseComparisonStep = plan.steps.find(
+      ({ id }) => id === 's06-step-master-campus-campusgram',
+    );
     const summaryStep = plan.steps.find(({ id }) => id === 's06-step-summary');
 
     expect(comparisonStep?.network.nodes).toContainEqual(
@@ -115,6 +123,12 @@ describe('password consequence scene projection', () => {
     );
     expect(summaryStep?.network.nodes).toContainEqual(
       expect.objectContaining({ id: 'master-campus', status: 'protected' }),
+    );
+    expect(reverseComparisonStep).toEqual(
+      expect.objectContaining({
+        sourceAccountId: 'master-campus',
+        targetAccountId: 'campusgram',
+      }),
     );
     expect(plan.resolvedResult.paths).toContainEqual(
       expect.objectContaining({

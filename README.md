@@ -192,7 +192,7 @@ Inhaltsaufgaben geöffnet.
 
 ```bash
 git ls-files research/private
-```  
+```  x
 
 Der Befehl muss ohne Ausgabe bleiben. Keine pauschalen Bereinigungsbefehle wie `git clean -X`
 verwenden, weil sie ignorierte private Quellen löschen könnten.

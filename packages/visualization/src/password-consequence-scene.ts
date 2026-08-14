@@ -23,6 +23,7 @@ export type PasswordConsequenceStepId =
   | 's06-step-campusgram-master-campus'
   | 's06-step-campusgram-campus-email'
   | 's06-step-master-campus-perspective'
+  | 's06-step-master-campus-campusgram'
   | 's06-step-master-campus-campus-email'
   | 's06-step-campus-email-local-check'
   | 's06-step-summary';
@@ -135,7 +136,6 @@ function targetReachedFor(mode: PasswordConsequenceSceneMode, relation: Password
 }
 
 function createBaseNetwork(
-  id: string,
   accounts: readonly S06LocalAccountAnalysis[],
   definitions: readonly PasswordConsequenceAccountDefinition[],
 ): { readonly nodes: SceneNode[]; readonly edges: SceneEdge[] } {
@@ -169,7 +169,7 @@ function createBaseNetwork(
         selectable: false,
       });
       edges.push({
-        id: `${id}-${account.accountId}-role-${index + 1}`,
+        id: `${account.accountId}--${detailId}`,
         sourceId: account.accountId,
         targetId: detailId,
         kind: definition.detailKind === 'service' ? 'dependency' : 'association',
@@ -227,7 +227,7 @@ function localCheckStep(
 ): PasswordConsequencePlanStep {
   const account = accountById(input.accounts, accountId);
   const found = wholePasswordRecognized(account.disposition);
-  const base = createBaseNetwork(stepId, input.accounts, input.accountDefinitions);
+  const base = createBaseNetwork(input.accounts, input.accountDefinitions);
   let nodes = withNodeStatus(base.nodes, accountId, found ? 'exposed' : 'protected');
   if (!found) nodes = addShield(nodes, accountId, stepId);
   return {
@@ -258,7 +258,7 @@ function comparisonStep(
 ): PasswordConsequencePlanStep {
   const comparison = comparisonByPair(input.comparisons, sourceAccountId, targetAccountId);
   const relation = comparison.result.relation;
-  const base = createBaseNetwork(stepId, input.accounts, input.accountDefinitions);
+  const base = createBaseNetwork(input.accounts, input.accountDefinitions);
   let nodes = withNodeStatus(
     base.nodes,
     sourceAccountId,
@@ -332,8 +332,20 @@ function summaryStep(
   input: PasswordConsequenceProjectionInput,
   paths: readonly S06ResolvedConsequencePath[],
 ): PasswordConsequencePlanStep {
-  const base = createBaseNetwork('s06-step-summary', input.accounts, input.accountDefinitions);
-  const relationshipEdges = input.comparisons.flatMap(
+  const base = createBaseNetwork(input.accounts, input.accountDefinitions);
+  const summaryComparisons = new Map<string, S06PairComparison>();
+  for (const comparison of input.comparisons) {
+    const pairId = [comparison.sourceAccountId, comparison.targetAccountId].sort().join(':');
+    const current = summaryComparisons.get(pairId);
+    if (
+      current === undefined ||
+      (current.result.relation.kind === 'no-derived-path-recognized' &&
+        comparison.result.relation.kind !== 'no-derived-path-recognized')
+    ) {
+      summaryComparisons.set(pairId, comparison);
+    }
+  }
+  const relationshipEdges = [...summaryComparisons.values()].flatMap(
     ({ sourceAccountId, targetAccountId, result }): readonly SceneEdge[] => {
       const relation = result.relation;
       if (relation.kind === 'no-derived-path-recognized') return [];
@@ -387,20 +399,24 @@ function summaryStep(
 
 function validateInput(input: PasswordConsequenceProjectionInput): void {
   if (input.accounts.length !== 3) throw new Error('S06 requires exactly three account analyses.');
-  if (input.comparisons.length !== 3)
-    throw new Error('S06 requires exactly three pair comparisons.');
-  const pairKeys = new Set(
-    input.comparisons.map(({ sourceAccountId, targetAccountId }) =>
-      [sourceAccountId, targetAccountId].sort().join(':'),
+  if (input.comparisons.length !== 4)
+    throw new Error('S06 requires exactly four directed account comparisons.');
+  const comparisonKeys = new Set(
+    input.comparisons.map(
+      ({ sourceAccountId, targetAccountId }) => `${sourceAccountId}:${targetAccountId}`,
     ),
   );
+  const requiredComparisonKeys = [
+    'campusgram:master-campus',
+    'campusgram:campus-email',
+    'master-campus:campusgram',
+    'master-campus:campus-email',
+  ];
   if (
-    pairKeys.size !== 3 ||
-    !pairKeys.has('campusgram:master-campus') ||
-    !pairKeys.has('campus-email:campusgram') ||
-    !pairKeys.has('campus-email:master-campus')
+    comparisonKeys.size !== requiredComparisonKeys.length ||
+    requiredComparisonKeys.some((key) => !comparisonKeys.has(key))
   ) {
-    throw new Error('S06 comparisons must cover every account pair exactly once.');
+    throw new Error('S06 comparisons must cover both attack sources and their two targets.');
   }
 }
 
@@ -448,6 +464,13 @@ export function projectPasswordConsequenceScenePlan(
       'master-campus',
       's06.perspective.master-campus',
       'actual',
+    ),
+    comparisonStep(
+      input,
+      's06-step-master-campus-campusgram',
+      'master-campus',
+      'campusgram',
+      masterComparisonMode,
     ),
     comparisonStep(
       input,
