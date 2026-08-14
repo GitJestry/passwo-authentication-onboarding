@@ -206,12 +206,43 @@
 .newTabButton[data-guided-highlight="true"] {
   position: relative;
   z-index: 1;
-  border-color: var(--color-accent-strong);
+  border-color: var(--browser-guided-ring, var(--color-accent-strong));
   color: var(--color-ink-strong);
   background: color-mix(in srgb, var(--color-accent-soft) 78%, var(--passwo-surface));
-  box-shadow: 0 0 1rem color-mix(in srgb, var(--color-accent) 42%, transparent);
-  outline: var(--border-width-medium) solid var(--color-accent-strong);
+  box-shadow: 0 0 1rem
+    var(
+      --browser-guided-glow-soft,
+      color-mix(in srgb, var(--color-accent) 42%, transparent)
+    );
+  outline: var(--border-width-medium) solid
+    var(--browser-guided-ring, var(--color-accent-strong));
   outline-offset: 2px;
+  animation: browser-guided-new-tab 1.35s ease-in-out infinite;
+}
+
+@keyframes browser-guided-new-tab {
+  0%,
+  100% {
+    box-shadow:
+      0 0 0 0.05rem var(--browser-guided-ring-bright, var(--color-accent-soft)),
+      0 0 0.65rem
+        var(
+          --browser-guided-glow-soft,
+          color-mix(in srgb, var(--color-accent) 34%, transparent)
+        );
+    opacity: 0.88;
+  }
+
+  50% {
+    box-shadow:
+      0 0 0 0.11rem var(--browser-guided-ring-bright, var(--color-accent-soft)),
+      0 0 1.1rem
+        var(
+          --browser-guided-glow-strong,
+          color-mix(in srgb, var(--color-accent) 58%, transparent)
+        );
+    opacity: 1;
+  }
 }
 
 .tab,
@@ -912,6 +943,10 @@ button.activeTab[aria-disabled="true"] {
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .newTabButton[data-guided-highlight="true"] {
+    animation: none;
+  }
+
   .window[data-window-state="closing"],
   .window[data-window-state="opening"] {
     animation-duration: var(--motion-instant);

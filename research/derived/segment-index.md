@@ -160,25 +160,32 @@ Seitenangaben beziehen sich auf die im Trainingsdokument ausgewiesene interne Pa
 
 ## Implementierte S07-Version
 
-- Der Nutzerauftrag vom 13. August 2026 ersetzt die bisherige Auswertung vollständig. Nach S06
+- Der Nutzerauftrag vom 14. August 2026 ersetzt die bisherige Auswertung vollständig. Nach S06
   erscheint zuerst die Fortschrittskarte `Passphrase erstellen`; danach beginnt S07.
 - S07 zeigt Master Campus, Campus E-Mail und Campusgram erneut als bereits angemeldete
   Dashboard-Websites. Der Browser startet auf Campusgram.
-- Rechts neben Campusgram ist der bedienbare Tab `Passphrase generieren` geöffnet. Er zeigt
-  zunächst die fiktive Search-Ergebnisseite. Der hervorgehobene Pflichttreffer öffnet im selben
-  Tab eine kompakte, nicht scrollende Passphrase-Werkstatt.
+- Nach dem Öffnen der Campusgram-Passwortänderung führen Plus-Symbol, Suchsymbol und erster
+  Ergebnistreffer nacheinander zur kompakten, nicht scrollenden Passphrase-Werkstatt.
 - Die Werkstatt erzeugt deterministisch ausschließlich lokale fiktive Wortfolgen. Bedienbar sind
   nur die neue Wortfolge, vier Trennzeichen und `Kopieren`; Groß-/Kleinschreibung,
   Kapitalisierung, Zahlen und weitere Generatoroptionen werden nicht angeboten. Die Auswahl wird
-  weder persistiert noch exportiert.
+  weder persistiert noch exportiert. Jede Ausgabe erhält unmittelbar die zugeordnete
+  PassWo-Erinnerungshilfe.
 - Der direkte QA-Einstieg lautet `s07-passphrase-search`. Die bisherigen fünf
   Auswertungs-Fixtures und ihre Renderer sind entfernt.
 - Der Campusgram-Datenleckhinweis bietet auch in S07 den bereits in S04 verwendeten lokalen
   `Passwort jetzt ändern`-Ablauf. Die Umgebung wird bis zum Öffnen dieses Ablaufs abgedunkelt,
   während der Hinweis leuchtet; bei Reduced Motion bleibt der Leuchtrahmen statisch. Alle
   Formulareingaben bleiben flüchtig und werden verworfen.
-- `S07_PASSPHRASE_SEARCH_CONTENT_VERSION 2.9.0` beschreibt Datenleckhinweis, lokalen
-  Passwortwechsel, Suchseite und Werkstatt. Es werden
+- Nach dem Campusgram-Wechsel werden nur Master Campus oder Campus E-Mail weiterbehandelt, wenn
+  ihre lokale Analyse einen Volltreffer oder der gerichtete Vergleich zum alten
+  Campusgram-Passwort einen Treffer beziehungsweise eine relevante Variation ergibt. Diese Konten
+  erhalten in S08 jeweils die Knotenaktion `Einzigartige Passphrase erstellen`; nicht betroffene
+  Konten bleiben unverändert. Schutzschild und kurzes Konfetti bestätigen jede ausgeführte Aktion,
+  bevor der abschließende Angriffsrücklauf beginnt.
+- `S07_PASSPHRASE_SEARCH_CONTENT_VERSION 4.6.0` beschreibt Datenleckhinweis, lokalen
+  Passwortwechsel, Suchseite und Werkstatt; `S08_NETWORK_REPLAY_CONTENT_VERSION 1.1.0` beschreibt
+  die Netzabkürzung und den anschließenden Angriffsrücklauf. Es werden
   keine neuen Teilnehmer- oder Trainingswerte persistiert oder exportiert.
 
 ## Sections

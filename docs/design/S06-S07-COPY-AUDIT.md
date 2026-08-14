@@ -1,5 +1,110 @@
 # S06--S07 Copy Audit
 
+## Copy-, Ablauf- und Darstellungsdelta S07 Generierungsbegleitung, 15. August 2026
+
+Quelle ist der ausdrückliche Nutzerauftrag vom 15. August 2026. PassWo bleibt während der ersten
+und jeder weiteren Generierung sichtbar. Seine Sprechblase zeigt dabei den kurzen Status
+`Passphrase wird erstellt …` und eine kleine Drei-Punkt-Ladeanimation. Bei Reduced Motion bleiben
+die Punkte statisch sichtbar. Nach der ersten Generierung folgen weiterhin zuerst die allgemeine
+Merkhilfe und danach der konkrete Merksatz. Bei jeder weiteren Generierung erscheint nach dem
+Ladestatus ausschließlich der neue konkrete Merksatz; die allgemeine Merkhilfe wird nicht
+wiederholt.
+
+Auf Ansichten bis 880 Pixel Breite berücksichtigt die Generatorfläche zusätzlich den bestehenden
+PassWo-Sicherheitsbereich am linken Rand. Der Charakter kann den Generator dadurch nicht mehr
+überdecken; die Sprechblase berücksichtigt den Generator weiterhin als dynamisches Hindernis.
+Persistenz und Export bleiben unverändert. `S07_PASSPHRASE_SEARCH_CONTENT_VERSION` wird von
+`4.5.0` auf `4.6.0` erhöht.
+
+| Segment und Text-ID | Vorher | Nachher | Primäre Rolle | Interaktionsziel | Grund und Bedeutungsänderung | Hervorhebung |
+|---|---|---|---|---|---|---|
+| `S07.guide.generating` | PassWo während der Generierung nicht sichtbar | `Passphrase wird erstellt …` mit Ladepunkten | Ergebnisfeedback | kein | hält die Begleitung während des kurzen Ladezustands sichtbar; begrenzt | animierte Teal-Punkte, bei Reduced Motion statisch |
+| `S07.guide.mnemonicIntro` bei weiterer Generierung | wird nach jeder Generierung wiederholt | erscheint nur nach der ersten Generierung | Mechanismuserklärung | `Weiter` | vermeidet die ausdrücklich benannte Wiederholung | keine |
+| `S07.guide.mnemonic` bei weiterer Generierung | folgt nach wiederholter allgemeiner Merkhilfe | erscheint direkt nach dem Ladestatus | Mechanismuserklärung | Generatoraktionen | zeigt nur den zur neuen Wortfolge gehörenden Merksatz | keine |
+| `S07.browser.generatorPage.compactLayout` | zentrierter Generator kann vom PassWo-Charakter überlagert werden | berücksichtigt auf schmalen Ansichten den reservierten PassWo-Bereich | Orientierung | Generatoraktionen | behebt die sichtbare Überlagerung ohne Ablaufänderung | keine |
+
+## Darstellungsdelta S07 Merkhilfe in zwei Sprechblasen, 15. August 2026
+
+Quelle ist der ausdrückliche Nutzerauftrag vom 15. August 2026. Die allgemeine Merkhilfe und der
+zur sichtbaren Wortfolge gehörende konkrete Merksatz erscheinen nach jeder Generierung nicht mehr
+als zwei Absätze derselben Sprechblase, sondern als zwei aufeinanderfolgende PassWo-Schritte. Die
+erste Sprechblase wird mit `Weiter` abgeschlossen; anschließend erscheint der konkrete Merksatz.
+Der Wortlaut beider Textflächen bleibt unverändert. Generatoraktionen werden erst im zweiten
+Schritt wieder freigegeben. Persistenz, Export und Timing bleiben unverändert.
+`S07_PASSPHRASE_SEARCH_CONTENT_VERSION` wird von `4.4.0` auf `4.5.0` erhöht.
+
+| Segment und Text-ID | Vorher | Nachher | Primäre Rolle | Interaktionsziel | Grund und Bedeutungsänderung | Hervorhebung |
+|---|---|---|---|---|---|---|
+| `S07.guide.mnemonicIntro` | erster Absatz einer gemeinsamen Sprechblase | eigene erste Sprechblase | Mechanismuserklärung | `Weiter` | trennt allgemeinen Merktipp und konkretes Beispiel auf ausdrücklichen Auftrag; keine Textänderung | keine |
+| `S07.guide.mnemonic` | zweiter Absatz derselben Sprechblase | eigene zweite Sprechblase | Mechanismuserklärung | Generatoraktionen | ordnet den konkreten Merksatz als eigenen Schritt der sichtbaren Wortfolge zu; keine Textänderung | keine |
+
+## Copy- und Darstellungsdelta S07 zentrierter Generator, 14. August 2026
+
+Quelle ist der ausdrückliche Nutzerauftrag vom 14. August 2026. Der separate Intro-Block der
+Passphrasen-Werkstatt entfällt vollständig. Die Generatorfläche steht anschließend horizontal
+und vertikal mittig im verfügbaren Website-Bereich. Der gesamte Generator-Workspace wird für die
+bestehende dynamische PassWo-Sprechblasenpositionierung als Hindernis markiert, damit PassWo und
+sein Text die Bedienfläche nicht verdecken. Persistenz, Export, Timing und Generatorlogik bleiben
+unverändert. `S07_PASSPHRASE_SEARCH_CONTENT_VERSION` wird von `4.3.0` auf `4.4.0` erhöht.
+
+| Segment und Text-ID | Aktueller Text | Geplanter Text | Primäre Rolle | Interaktionsziel | Grund und Bedeutungsänderung | Hervorhebung |
+|---|---|---|---|---|---|---|
+| `S07.browser.generatorPage.eyebrow` | `Mehr Länge, weniger Muster` | entfällt | Orientierung | kein | ausdrücklich verlangte Entfernung des separaten Intro-Blocks; begrenzt | keine |
+| `S07.browser.generatorPage.securityMessage` | `Eine lange Passphrase aus zufällig gewählten Wörtern ist schwerer zu erraten und trotzdem gut merkbar.` | entfällt | Mechanismuserklärung | kein | ausdrücklich verlangte Entfernung; die Zufallsauswahl wird weiterhin zuvor durch PassWo erklärt | keine |
+| `S07.browser.generatorPage.layout` | Intro links, Generator rechts | Generator mittig im verfügbaren Website-Bereich | Orientierung | Generatoraktionen | rückt die einzige Bedienfläche in den Mittelpunkt und hält sie von der dynamisch positionierten PassWo-Sprechblase frei; keine Bedeutungsänderung | keine |
+
+## Copy- und Ablaufdelta S07 Passphrasenwechsel und S08-Übergang, 14. August 2026
+
+Quelle ist der ausdrückliche Nutzerauftrag vom 14. August 2026. Die drei vorgegebenen
+PassWo-Schritte ersetzen den bisherigen Methodeneinstieg und führen über das Plus-Symbol, das
+Suchsymbol und den ersten Ergebnistreffer zur Werkstatt. Die längeren Einstiegs- und
+Erfolgstexte überschreiten das normale Copy-Budget auf ausdrückliche Freigabe, bleiben aber als
+getrennte Sprechschritte erhalten. Nach jeder Generierung werden Erinnerungshilfe und zugeordneter
+Merksatz gemeinsam gezeigt. Kopieren, Rückkehr, Einsetzen und Absenden bleiben danach ohne
+PassWo-Text; die lokale simulierte Zwischenablage bleibt flüchtig.
+
+Weitere Konten werden nur übernommen, wenn ihre eigene begrenzte Analyse einen Volltreffer
+ergeben hat oder der gerichtete Vergleich vom alten Campusgram-Passwort einen exakten Treffer
+beziehungsweise eine relevante Variation erkennt. Ihre Passwortänderung wird nicht mehr im
+Browser wiederholt, sondern als Abkürzung in der S08-Netzansicht ausgelöst. Jedes dort betroffene
+Konto besitzt eine eigene einmalige Aktion; es werden weder Passphrasenwerte persistiert noch
+exportiert. `S07_PASSPHRASE_SEARCH_CONTENT_VERSION` wird von `4.2.0` auf `4.3.0` und
+`S08_NETWORK_REPLAY_CONTENT_VERSION` von `1.0.0` auf `1.1.0` erhöht.
+
+| Segment und Text-ID | Aktueller Text | Geplanter Text | Primäre Rolle | Interaktionsziel | Grund und Bedeutungsänderung | Hervorhebung |
+|---|---|---|---|---|---|---|
+| `S07.guide.methodIntro` | `Wir ersetzen das betroffene Passwort jetzt durch eine starke Passphrase. Dabei werden mehrere zufällig ausgewählte Wörter zu einem langen Passwort kombiniert.` | `Für ein starkes Passwort können wir mehrere zufällige Wörter zu einer langen Passphrase verbinden. So erreichen wir schnell mindestens 15 Zeichen, ohne ein selbst gewähltes Muster zu verwenden.` | Mechanismuserklärung | `Weiter` | übernimmt Länge und Mustergrenze wortgleich; ausdrücklich freigegeben | keine |
+| `S07.guide.randomnessIntro` | nicht als eigener Schritt vorhanden | `Wichtig ist, dass die Wörter zufällig gewählt werden. Dafür verwenden wir hier eine Passphrase aus mindestens sechs zufälligen Wörtern.` | Mechanismuserklärung | `Weiter` | trennt Zufall und Mindestwortzahl als eigenen Schritt; ausdrücklich freigegeben | keine |
+| `S07.guide.searchIntro` | `Dafür schauen wir nach einem Passphrase-Generator.` und `Suche nach einem Generator für eine Passphrase.` | `Du musst sie dir für diese Übung nicht merken. Suche nach einem Passphrase-Generator, erzeuge eine Passphrase und verwende sie für Campusgram.` | Navigation | Browser-`+`, danach Suchsymbol | ersetzt die bisherige doppelte Navigation wortgleich; ausdrücklich freigegeben | Plus etwas deutlicher, Suchsymbol und Ergebnistreffer dezent pulsierend |
+| `S07.guide.mnemonicIntro` und `mnemonic` | zwei einmalige Voraberklärungen und anschließend nur der Merksatz | `Eine zufällige Passphrase kann zuerst ungewohnt wirken. Zum Merken kannst du aus den Wörtern ein kleines Bild oder einen Merksatz bauen.` plus `Möglicher Merksatz: [Merksatz]` nach jeder Generierung | Mechanismuserklärung | kein | bindet die Hilfe an jede sichtbare neue Ausgabe; ausdrücklich freigegeben | keine |
+| `S07.guide.copied`, `pasteNew`, `pasteConfirm`, `submitChange` | `Die Passphrase ist kopiert ...`, `Setze deine kopierte Passphrase ...`, `Setze dieselbe Passphrase ...` und `Beide Felder stimmen überein ...` | entfallen | Navigation | Campusgram-Tab, Passwortfelder und Submit bleiben direkte Ziele | entfernt ausdrücklich unerwünschte Begleittexte und Hervorhebungen | nur lokaler `Kopiert`-Toast am Klickpunkt |
+| `S07.guide.campusgramSuccess` | `Du hast das betroffene Campusgram-Passwort durch eine starke, einzigartige Passphrase ersetzt. Das alte Passwort aus der Datenleck-Datei funktioniert jetzt nicht mehr für Campusgram.` | `Sehr gut geschützt. Dein altes Campusgram-Passwort ist ersetzt. Der Angreifer kann den Treffer aus dem Datenleck für dieses Konto jetzt nicht mehr verwenden.` | Ergebnisfeedback | `Weiter` | ersetzt die bisherige Aussage wortgleich durch die freigegebene begrenzte Wirkung | keine |
+| `S07.guide.allUnique` und `allResolved` | `Damit hast du gleichzeitig die bestehende Wiederverwendung beendet. Jedes deiner Konten hat jetzt ein eigenes Passwort.` sowie `Jetzt hat jedes Konto ein eigenes starkes Passwort. Schauen wir uns noch einmal an, was beim gleichen Angriff passiert.` | entfallen | Ergebnisfeedback / Navigation | kein | ausdrücklich verlangte Entfernung der bisherigen Folgesätze | keine |
+| `S07.guide.remainingRisk` | `Bei [Konten] sind Passwörter noch gleich oder ähnlich. Das geleakte Passwort könnte dort also weiterhin ausprobiert werden.` | `Bei [Konto] besteht noch ein Treffer oder eine Verbindung zum alten Passwort. Auch dort ersetzen wir das Passwort durch eine eigene, einzigartige Passphrase.` | Ergebnisfeedback | `Weiter` | benennt nur tatsächlich qualifizierte Konten; ausdrücklich freigegeben | Kontonamen nur zur Referenzauflösung |
+| `S07.guide.remainingPlan` | kontoweiser Browserzyklus | `Dafür können wir wieder die Kontenübersicht als Abkürzung nutzen. Schließe das Browserfenster.` | Navigation | sichtbare Browser-Fenstersteuerung | verlegt weitere Änderungen in die verlangte Netzansicht; ausdrücklich freigegeben | keine |
+| `S08.protectionAction` | nicht vorhanden | `Einzigartige Passphrase erstellen` | Navigation | jeweils betroffener Kontoknoten | eine eigene direkte Aktion pro qualifiziertem Konto; ausdrücklich freigegeben | blau-rotes Schild und dezentes Konfetti nach Aktivierung |
+| `S08.allProtected` | bisher unmittelbarer Angriffsrücklauf | `Damit sind die betroffenen Konten mit eigenen Passphrasen geschützt. Jetzt spielen wir den Angriff ein letztes Mal durch und schauen, was sich verändert hat.` | Ergebnisfeedback / Navigation | `Weiter`, danach Angriffsrücklauf | übernimmt die freigegebene Abschlussüberleitung wortgleich | keine |
+
+Der grüne Haken der Campusgram-Bestätigung wird durch das bereits verwendete
+Teilnehmer-Schild ersetzt. Dasselbe Schild und dieselbe kurze, bei Reduced Motion entfallende
+Konfetti-Rückmeldung werden für die betroffenen S08-Knoten verwendet. Nicht betroffene Konten
+bleiben unverändert und erhalten keine Aktion.
+
+## Copy- und Darstellungsdelta S07 Passwortänderung und Plus-Führung, 14. August 2026
+
+Quelle ist der ausdrückliche Nutzerauftrag vom 14. August 2026. Der Titel der ausschließlich
+fiktiven S07-Passwortänderung wird auf die sichtbare Handlung verkürzt. Die vorhandenen
+Sichtbarkeitsaktionen der Passwortfelder sind in S07 wieder bedienbar. Im Schritt, der zum
+Öffnen eines neuen Tabs auffordert, wird die Campusgram-Seitenfläche abgedunkelt; der bereits
+hervorgehobene Plus-Button im Browser-Chrome bleibt das einzige Fortschrittsziel. Ablauf,
+flüchtige Eingaben, Persistenz, Export und Timing bleiben unverändert.
+`S07_PASSPHRASE_SEARCH_CONTENT_VERSION` wird von `4.1.0` auf `4.2.0` erhöht.
+
+| Segment und Text-ID | Aktueller Text | Geplanter Text | Primäre Rolle | Interaktionsziel | Grund und Bedeutungsänderung | Hervorhebung |
+|---|---|---|---|---|---|---|
+| `S07.browser.passwordChangeTitle` | `Campusgram-Passwort ändern` | `Passwort ändern` | Navigation | Passwortformular | ausdrücklich freigegebene Verkürzung auf die sichtbare Handlung; begrenzt | keine |
+
+
 ## Copy-Delta S07 neuer Tab vor der Suche, 14. August 2026
 
 Quelle ist der ausdrückliche Nutzerauftrag vom 14. August 2026. Direkt nach dem Öffnen des

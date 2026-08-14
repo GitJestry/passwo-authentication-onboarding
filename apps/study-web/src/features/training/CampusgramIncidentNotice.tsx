@@ -1,5 +1,12 @@
 import { s04Content } from '@passwo/training-content';
-import { useEffect, useId, useRef, useState, type FormEvent } from 'react';
+import {
+  useEffect,
+  useId,
+  useRef,
+  useState,
+  type FormEvent,
+  type ReactNode,
+} from 'react';
 import { PasswordVisibilityIcon } from './PasswordVisibilityIcon.js';
 import styles from './CampusgramIncidentNotice.module.css';
 
@@ -55,6 +62,10 @@ export interface CampusgramIncidentNoticeProps {
   readonly allowFreePasswordInput?: boolean | undefined;
   readonly guidedPasteTarget?: 'new' | 'confirm' | null | undefined;
   readonly guidedSubmit?: boolean | undefined;
+  readonly highlightGuidedActions?: boolean | undefined;
+  readonly centerSimulatedPaste?: boolean | undefined;
+  readonly pasteOnPasswordFieldClick?: boolean | undefined;
+  readonly passwordChangeTitle?: string | undefined;
   readonly showBackAction?: boolean | undefined;
   readonly showCompletedAction?: boolean | undefined;
   readonly showPasswordVisibilityActions?: boolean | undefined;
@@ -64,6 +75,7 @@ export interface CampusgramIncidentNoticeProps {
         readonly body: string;
       }
     | undefined;
+  readonly completedVisual?: ReactNode;
 }
 
 export function CampusgramIncidentNotice({
@@ -80,10 +92,15 @@ export function CampusgramIncidentNotice({
   allowFreePasswordInput = true,
   guidedPasteTarget,
   guidedSubmit = false,
+  highlightGuidedActions = true,
+  centerSimulatedPaste = false,
+  pasteOnPasswordFieldClick = false,
+  passwordChangeTitle,
   showBackAction = true,
   showCompletedAction = true,
   showPasswordVisibilityActions = true,
   completedCopy,
+  completedVisual,
 }: CampusgramIncidentNoticeProps) {
   const inputId = useId();
   const actionRef = useRef<HTMLButtonElement>(null);
@@ -207,7 +224,13 @@ export function CampusgramIncidentNotice({
           </aside>
           {completed ? (
             <section className={styles.passwordChangeCard} role="status">
-              <span className={styles.successMark} aria-hidden="true">✓</span>
+              {completedVisual === undefined ? (
+                <span className={styles.successMark} aria-hidden="true">✓</span>
+              ) : (
+                <span className={styles.completedVisual} aria-hidden="true">
+                  {completedVisual}
+                </span>
+              )}
               <h2 id={`${inputId}-title`} ref={headingRef} tabIndex={-1}>
                 {completedCopy?.title ?? passwordChange.completedTitle}
               </h2>
@@ -224,7 +247,7 @@ export function CampusgramIncidentNotice({
                 <LockIcon />
               </span>
               <h2 id={`${inputId}-title`} ref={headingRef} tabIndex={-1}>
-                {passwordChange.title}
+                {passwordChangeTitle ?? passwordChange.title}
               </h2>
               <div className={styles.passwordFieldGroup}>
                 <label htmlFor={`${inputId}-current`}>
@@ -271,6 +294,11 @@ export function CampusgramIncidentNotice({
                     required
                     readOnly={!allowFreePasswordInput}
                     value={newPassword}
+                    onClick={() => {
+                      if (pasteOnPasswordFieldClick && guidedPasteTarget === 'new') {
+                        pasteSimulatedPassword('new');
+                      }
+                    }}
                     onChange={(event) => {
                       if (allowFreePasswordInput) setNewPassword(event.currentTarget.value);
                     }}
@@ -281,7 +309,10 @@ export function CampusgramIncidentNotice({
                     <button
                       type="button"
                       className={styles.pasteButton}
-                      data-guided-highlight={guidedPasteTarget === 'new' || undefined}
+                      data-centered={centerSimulatedPaste || undefined}
+                      data-guided-highlight={
+                        (highlightGuidedActions && guidedPasteTarget === 'new') || undefined
+                      }
                       onClick={() => pasteSimulatedPassword('new')}
                     >
                       {simulatedPasteLabel}
@@ -320,6 +351,11 @@ export function CampusgramIncidentNotice({
                     required
                     readOnly={!allowFreePasswordInput}
                     value={confirmedPassword}
+                    onClick={() => {
+                      if (pasteOnPasswordFieldClick && guidedPasteTarget === 'confirm') {
+                        pasteSimulatedPassword('confirm');
+                      }
+                    }}
                     onChange={(event) => {
                       if (allowFreePasswordInput) setConfirmedPassword(event.currentTarget.value);
                     }}
@@ -330,7 +366,10 @@ export function CampusgramIncidentNotice({
                     <button
                       type="button"
                       className={styles.pasteButton}
-                      data-guided-highlight={guidedPasteTarget === 'confirm' || undefined}
+                      data-centered={centerSimulatedPaste || undefined}
+                      data-guided-highlight={
+                        (highlightGuidedActions && guidedPasteTarget === 'confirm') || undefined
+                      }
                       onClick={() => pasteSimulatedPassword('confirm')}
                     >
                       {simulatedPasteLabel}
@@ -360,7 +399,7 @@ export function CampusgramIncidentNotice({
               <button
                 type="submit"
                 className={styles.submitButton}
-                data-guided-highlight={guidedSubmit || undefined}
+                data-guided-highlight={(highlightGuidedActions && guidedSubmit) || undefined}
                 disabled={guidedPasteTarget !== undefined && !guidedSubmit}
               >
                 {passwordChange.submitLabel}

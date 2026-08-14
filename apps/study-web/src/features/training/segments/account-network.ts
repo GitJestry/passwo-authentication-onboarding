@@ -1,4 +1,5 @@
-import { s02Content } from '@passwo/training-content';
+import type { S06AccountId } from '@passwo/contracts';
+import { s02Content, s08NetworkReplayContent } from '@passwo/training-content';
 import type { NetworkSceneSnapshot, SceneEdge, SceneNode } from '@passwo/visualization';
 import type { NetworkPresentationSnapshot } from '../../../adapters/network/NetworkMotionAdapter.js';
 
@@ -193,6 +194,72 @@ export function createRewoundAccountNetwork(
 }
 
 export type S08ProtectedReplayPhase = 'attack' | 'what-if' | 'complete';
+
+function s08AccountIdForNode(nodeId: string): S06AccountId | null {
+  if (nodeId === 'master-campus' || nodeId.startsWith('master-campus-detail-')) {
+    return 'master-campus';
+  }
+  if (nodeId === 'campus-email' || nodeId.startsWith('campus-email-detail-')) {
+    return 'campus-email';
+  }
+  if (nodeId === 'campusgram' || nodeId.startsWith('campusgram-detail-')) {
+    return 'campusgram';
+  }
+  return null;
+}
+
+export function createS08ProtectionNetwork(
+  source: NetworkSceneSnapshot,
+  affectedAccountIds: readonly S06AccountId[],
+  protectedAccountIds: readonly S06AccountId[],
+): NetworkSceneSnapshot {
+  const affected = new Set(affectedAccountIds);
+  const protectedAccounts = new Set<S06AccountId>(['campusgram', ...protectedAccountIds]);
+  const accountIds = new Set(['master-campus', 'campus-email', 'campusgram']);
+  const nodes = source.nodes
+    .filter(({ kind }) => kind !== 'shield')
+    .map((node): SceneNode => {
+      const accountId = s08AccountIdForNode(node.id);
+      const protectedNode = accountId !== null && protectedAccounts.has(accountId);
+      const affectedNode = accountId !== null && affected.has(accountId);
+      const actionable = node.kind === 'account' && affectedNode && !protectedNode;
+      return {
+        ...node,
+        status: protectedNode ? 'protected' : affectedNode ? 'affected' : 'viewed',
+        selectable: actionable,
+        locked: false,
+        description: actionable
+          ? s08NetworkReplayContent.protectionActionDescription
+          : node.description,
+      };
+    });
+  const nodeIds = new Set(nodes.map(({ id }) => id));
+  const protectedNodeIds = new Set(
+    nodes.filter(({ status }) => status === 'protected').map(({ id }) => id),
+  );
+  const edges = source.edges
+    .filter(
+      ({ sourceId, targetId }) =>
+        nodeIds.has(sourceId) &&
+        nodeIds.has(targetId) &&
+        !(accountIds.has(sourceId) && accountIds.has(targetId)),
+    )
+    .map((edge): SceneEdge =>
+      protectedNodeIds.has(edge.sourceId) && protectedNodeIds.has(edge.targetId)
+        ? { ...edge, kind: 'blocked-path', status: 'blocked', label: null }
+        : { ...edge, status: 'opened', label: null },
+    );
+  return {
+    ...source,
+    id: `${source.id}-s08-protection-${protectedAccountIds.join('-') || 'pending'}`,
+    nodes,
+    edges,
+    accessibleSummary:
+      affectedAccountIds.length === protectedAccountIds.length
+        ? s08NetworkReplayContent.protectionSummaries.complete
+        : s08NetworkReplayContent.protectionSummaries.pending,
+  };
+}
 
 export function createProtectedS08Network(
   source: NetworkSceneSnapshot,

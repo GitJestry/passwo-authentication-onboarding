@@ -122,14 +122,21 @@ describe('S06 transition and S07 passphrase-search copy traceability', () => {
   });
 
   it('keeps S07 linked to the passphrase-search browser state', () => {
-    expect(S07_PASSPHRASE_SEARCH_CONTENT_VERSION).toBe('4.1.0');
+    expect(S07_PASSPHRASE_SEARCH_CONTENT_VERSION).toBe('4.6.0');
     expect(s07PassphraseSearchContent.source.copyReference).toBe(
-      'docs/design/S06-S07-COPY-AUDIT.md#copy-delta-s07-neuer-tab-vor-der-suche-14-august-2026',
+      'docs/design/S06-S07-COPY-AUDIT.md#copy--ablauf--und-darstellungsdelta-s07-generierungsbegleitung-15-august-2026',
     );
+    expect(s07PassphraseSearchContent.browser.passwordChangeTitle).toBe('Passwort ändern');
     expect(s07PassphraseSearchContent.guide).toMatchObject({
-      searchIntro: 'Dafür schauen wir nach einem Passphrase-Generator.',
-      searchAction: 'Suche nach einem Generator für eine Passphrase.',
-      replayAttack: 'Angriff erneut ansehen',
+      methodIntro:
+        'Für ein starkes Passwort können wir mehrere zufällige Wörter zu einer langen Passphrase verbinden. So erreichen wir schnell mindestens 15 Zeichen, ohne ein selbst gewähltes Muster zu verwenden.',
+      randomnessIntro:
+        'Wichtig ist, dass die Wörter zufällig gewählt werden. Dafür verwenden wir hier eine Passphrase aus mindestens sechs zufälligen Wörtern.',
+      searchIntro:
+        'Du musst sie dir für diese Übung nicht merken. Suche nach einem Passphrase-Generator, erzeuge eine Passphrase und verwende sie für Campusgram.',
+      generating: 'Passphrase wird erstellt …',
+      campusgramSuccess:
+        'Sehr gut geschützt. Dein altes Campusgram-Passwort ist ersetzt. Der Angreifer kann den Treffer aus dem Datenleck für dieses Konto jetzt nicht mehr verwenden.',
     });
     expect(s07PassphraseSearchContent.browser.campusgramPasswordChangeCompleted).toEqual({
       title: 'Passwort geändert',
@@ -150,6 +157,8 @@ describe('S06 transition and S07 passphrase-search copy traceability', () => {
       { label: 'Leerzeichen', value: ' ' },
     ]);
     expect(s07PassphraseSearchContent.browser.generatorPage.generationDelayMs).toBe(500);
+    expect(s07PassphraseSearchContent.browser.generatorPage).not.toHaveProperty('eyebrow');
+    expect(s07PassphraseSearchContent.browser.generatorPage).not.toHaveProperty('securityMessage');
     expect(s07PassphraseSearchContent.browser.generatorPage.paste).toBe('Einsetzen');
     expect(s07PassphraseSearchContent.browser.generatorPage.passphrases).toEqual([
       {
@@ -181,9 +190,15 @@ describe('S06 transition and S07 passphrase-search copy traceability', () => {
   });
 
   it('keeps S08 linked to the protected replay wording', () => {
-    expect(S08_NETWORK_REPLAY_CONTENT_VERSION).toBe('1.0.0');
+    expect(S08_NETWORK_REPLAY_CONTENT_VERSION).toBe('1.1.0');
     expect(s08NetworkReplayContent.source.copyReference).toBe(
-      'docs/design/S06-S07-COPY-AUDIT.md#copy--und-ablaufdelta-s08-geschützter-angriffsrücklauf-14-august-2026',
+      'docs/design/S06-S07-COPY-AUDIT.md#copy--und-ablaufdelta-s07-passphrasenwechsel-und-s08-ubergang-14-august-2026',
+    );
+    expect(s08NetworkReplayContent.protectionAction).toBe(
+      'Einzigartige Passphrase erstellen',
+    );
+    expect(s08NetworkReplayContent.allProtected).toBe(
+      'Damit sind die betroffenen Konten mit eigenen Passphrasen geschützt. Jetzt spielen wir den Angriff ein letztes Mal durch und schauen, was sich verändert hat.',
     );
     expect(s08NetworkReplayContent.result).toBe(
       'Diesmal endet der Angriff bei dem alten geleakten Passwort. Es funktioniert nicht mehr bei Campusgram und kann auch nicht über Wiederverwendung auf deine anderen Konten übertragen werden.',

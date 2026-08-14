@@ -1,0 +1,114 @@
+.burst {
+  position: absolute;
+  z-index: 20;
+  top: 50%;
+  left: 50%;
+  width: 1px;
+  height: 1px;
+  overflow: visible;
+  pointer-events: none;
+}
+
+.burst i {
+  --confetti-angle: 0deg;
+  --confetti-distance: 3rem;
+
+  position: absolute;
+  width: 0.36rem;
+  height: 0.68rem;
+  border-radius: 0.12rem;
+  background: #f5a623;
+  opacity: 0;
+  animation: confetti-burst 760ms cubic-bezier(0.16, 1, 0.3, 1) both;
+  transform: rotate(var(--confetti-angle)) translateY(-0.8rem);
+}
+
+.burst i:nth-child(2) {
+  --confetti-angle: 30deg;
+  --confetti-distance: 3.6rem;
+  background: #e95d74;
+}
+
+.burst i:nth-child(3) {
+  --confetti-angle: 60deg;
+  --confetti-distance: 4.1rem;
+  background: #4ab9b0;
+}
+
+.burst i:nth-child(4) {
+  --confetti-angle: 90deg;
+  --confetti-distance: 3.2rem;
+  background: #6b8ee8;
+}
+
+.burst i:nth-child(5) {
+  --confetti-angle: 120deg;
+  --confetti-distance: 3.8rem;
+  background: #f2cd43;
+}
+
+.burst i:nth-child(6) {
+  --confetti-angle: 150deg;
+  --confetti-distance: 4rem;
+  background: #e86d45;
+}
+
+.burst i:nth-child(7) {
+  --confetti-angle: 180deg;
+  --confetti-distance: 3.1rem;
+  background: #36a873;
+}
+
+.burst i:nth-child(8) {
+  --confetti-angle: 210deg;
+  --confetti-distance: 3.7rem;
+  background: #df65c0;
+}
+
+.burst i:nth-child(9) {
+  --confetti-angle: 240deg;
+  --confetti-distance: 4.2rem;
+  background: #47a9df;
+}
+
+.burst i:nth-child(10) {
+  --confetti-angle: 270deg;
+  --confetti-distance: 3.3rem;
+  background: #ee8b35;
+}
+
+.burst i:nth-child(11) {
+  --confetti-angle: 300deg;
+  --confetti-distance: 3.9rem;
+  background: #7a72dc;
+}
+
+.burst i:nth-child(12) {
+  --confetti-angle: 330deg;
+  --confetti-distance: 4.1rem;
+  background: #d94b55;
+}
+
+@keyframes confetti-burst {
+  12% {
+    opacity: 0.9;
+  }
+
+  72% {
+    opacity: 0.78;
+  }
+
+  to {
+    opacity: 0;
+    transform:
+      rotate(var(--confetti-angle))
+      translateY(calc(-1 * var(--confetti-distance)))
+      rotate(150deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .burst {
+    display: none;
+  }
+}

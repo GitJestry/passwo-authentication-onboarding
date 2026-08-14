@@ -144,15 +144,18 @@ export function PasswordModuleTraining({
       'supportive-runtime-s07-relations',
       s06Source.accounts,
     );
-    const remainingRelation = plan.comparisons.some(
-      ({ sourceAccountId, targetAccountId, result }) =>
-        ((sourceAccountId === 'master-campus' && targetAccountId === 'campus-email') ||
-          (sourceAccountId === 'campus-email' && targetAccountId === 'master-campus')) &&
-        result.relation.kind !== 'no-derived-path-recognized',
-    );
-    return remainingRelation
-      ? (['master-campus', 'campus-email'] as const)
-      : [];
+    return (['master-campus', 'campus-email'] as const).filter((accountId) => {
+      const wasFound =
+        plan.accounts.find((account) => account.accountId === accountId)?.disposition.kind ===
+        'whole-password-recognized';
+      const connectedToOldCampusgramPassword = plan.comparisons.some(
+        ({ sourceAccountId, targetAccountId, result }) =>
+          sourceAccountId === 'campusgram' &&
+          targetAccountId === accountId &&
+          result.relation.kind !== 'no-derived-path-recognized',
+      );
+      return wasFound || connectedToOldCampusgramPassword;
+    });
   }, [s06Source]);
   const completeS06 = useCallback(() => controllerRef.current?.completeS06(), []);
 
@@ -506,7 +509,6 @@ export function PasswordModuleTraining({
     return (
       <S07PassphraseSearchTraining
         campusgramPassword={campusgramPassword}
-        currentPasswords={snapshot.context.passwordValues}
         displayName={snapshot.context.displayName ?? ''}
         remainingAccountIds={s07RemainingAccountIds}
         platform={platform}
@@ -516,7 +518,13 @@ export function PasswordModuleTraining({
   }
 
   if (snapshot.matches('awaiting-s08')) {
-    return <S08NetworkRewindStage platform={platform} network={s06SummaryNetwork} />;
+    return (
+      <S08NetworkRewindStage
+        affectedAccountIds={s07RemainingAccountIds}
+        platform={platform}
+        network={s06SummaryNetwork}
+      />
+    );
   }
 
   return null;

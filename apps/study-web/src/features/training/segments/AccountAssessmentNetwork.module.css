@@ -99,6 +99,27 @@
   text-shadow: 0 0 0.75rem rgb(255 255 255 / 44%);
 }
 
+.nodeActionLabel {
+  position: absolute;
+  z-index: 12;
+  left: 50%;
+  bottom: calc(100% + 0.6rem);
+  width: max-content;
+  max-width: 12rem;
+  padding: 0.38rem 0.62rem;
+  border: var(--border-width-thin) solid rgb(86 179 255 / 74%);
+  border-radius: var(--radius-small);
+  color: #eef8ff;
+  background: rgb(4 35 77 / 92%);
+  box-shadow: 0 0 0.85rem rgb(36 151 255 / 32%);
+  font-size: clamp(0.58rem, 0.92cqi, 0.72rem);
+  font-weight: var(--font-weight-heavy);
+  line-height: 1.2;
+  text-align: center;
+  transform: translateX(-50%);
+  pointer-events: none;
+}
+
 .attackConnection {
   position: absolute;
   z-index: 0;

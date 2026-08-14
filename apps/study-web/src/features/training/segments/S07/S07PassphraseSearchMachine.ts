@@ -11,7 +11,6 @@ interface S07PassphraseSearchInput {
 }
 
 export interface S07PassphraseSearchContext {
-  readonly changedAccountIds: readonly S01AccountId[];
   readonly copiedPassword: string | null;
   readonly currentPassphraseIndex: number | null;
   readonly generatedCount: number;
@@ -20,7 +19,6 @@ export interface S07PassphraseSearchContext {
   readonly pendingAccountIds: readonly S07RemainingAccountId[];
   readonly resultsDelayMs: number;
   readonly separator: string;
-  readonly targetAccountId: S01AccountId;
 }
 
 type S07PassphraseSearchEvent =
@@ -33,18 +31,14 @@ type S07PassphraseSearchEvent =
   | { readonly type: 'CHANGE_SEPARATOR'; readonly separator: string }
   | { readonly type: 'COPY'; readonly passphrase: string }
   | { readonly type: 'SELECT_TAB'; readonly tabId: string }
-  | { readonly type: 'OPEN_OTHER_PASSWORD_CHANGE' }
   | { readonly type: 'PASTE_NEW' }
   | { readonly type: 'PASTE_CONFIRM' }
   | { readonly type: 'SUBMIT_PASSWORD_CHANGE' }
-  | { readonly type: 'START_S08' };
+  | { readonly type: 'CLOSE_BROWSER' }
+  | { readonly type: 'WINDOW_CLOSED' };
 
 function canGenerateAnother(context: S07PassphraseSearchContext): boolean {
-  const reservedOutputs =
-    context.targetAccountId === 'campusgram'
-      ? context.pendingAccountIds.length
-      : Math.max(0, context.pendingAccountIds.length - 1);
-  return context.generatedCount < context.passphraseOrder.length - reservedOutputs;
+  return context.generatedCount < context.passphraseOrder.length;
 }
 
 export const s07PassphraseSearchMachine = setup({
@@ -59,16 +53,9 @@ export const s07PassphraseSearchMachine = setup({
   },
   guards: {
     canGenerateAnother: ({ context }) => canGenerateAnother(context),
-    copiedForCampusgram: ({ context }) => context.targetAccountId === 'campusgram',
-    firstCampusgramGeneration: ({ context }) =>
-      context.targetAccountId === 'campusgram' && context.generatedCount === 1,
     hasPendingAccounts: ({ context }) => context.pendingAccountIds.length > 0,
     selectedCampusgram: ({ event }) =>
       event.type === 'SELECT_TAB' && event.tabId === 'campusgram',
-    selectedGenerator: ({ event }) =>
-      event.type === 'SELECT_TAB' && event.tabId === 'passphrase-search',
-    selectedTargetAccount: ({ context, event }) =>
-      event.type === 'SELECT_TAB' && event.tabId === context.targetAccountId,
   },
   actions: {
     changeSeparator: assign({
@@ -82,20 +69,6 @@ export const s07PassphraseSearchMachine = setup({
       generatedCount: ({ context }) => context.generatedCount + 1,
       copiedPassword: () => null,
     }),
-    markCampusgramChanged: assign({
-      changedAccountIds: ({ context }) => [...context.changedAccountIds, 'campusgram'],
-    }),
-    markTargetChanged: assign({
-      changedAccountIds: ({ context }) => [
-        ...context.changedAccountIds,
-        context.targetAccountId,
-      ],
-      pendingAccountIds: ({ context }) => context.pendingAccountIds.slice(1),
-      targetAccountId: ({ context }) => context.pendingAccountIds[1] ?? context.targetAccountId,
-    }),
-    selectFirstPendingAccount: assign({
-      targetAccountId: ({ context }) => context.pendingAccountIds[0] ?? 'campusgram',
-    }),
     storeCopiedPassword: assign({
       copiedPassword: ({ context, event }) =>
         event.type === 'COPY' && context.currentPassphraseIndex !== null
@@ -107,7 +80,6 @@ export const s07PassphraseSearchMachine = setup({
   id: 's07PassphraseSearch',
   initial: 'incident',
   context: ({ input }) => ({
-    changedAccountIds: [],
     copiedPassword: null,
     currentPassphraseIndex: null,
     generatedCount: 0,
@@ -116,13 +88,15 @@ export const s07PassphraseSearchMachine = setup({
     pendingAccountIds: [...input.remainingAccountIds],
     resultsDelayMs: input.resultsDelayMs,
     separator: '-',
-    targetAccountId: 'campusgram',
   }),
   states: {
     incident: {
       on: { OPEN_CAMPUSGRAM_CHANGE: { target: 'campusgramMethodIntro' } },
     },
     campusgramMethodIntro: {
+      on: { NEXT: { target: 'campusgramRandomnessIntro' } },
+    },
+    campusgramRandomnessIntro: {
       on: { NEXT: { target: 'campusgramSearchIntro' } },
     },
     campusgramSearchIntro: {
@@ -135,16 +109,7 @@ export const s07PassphraseSearchMachine = setup({
       after: { resultsDelay: { target: 'searchResults' } },
     },
     searchResults: {
-      on: { OPEN_GENERATOR: { target: 'generatorExplanationOne' } },
-    },
-    generatorExplanationOne: {
-      on: { NEXT: { target: 'generatorExplanationTwo' } },
-    },
-    generatorExplanationTwo: {
-      on: { NEXT: { target: 'generatorExplanationThree' } },
-    },
-    generatorExplanationThree: {
-      on: { NEXT: { target: 'generatorReady' } },
+      on: { OPEN_GENERATOR: { target: 'generatorReady' } },
     },
     generatorReady: {
       on: {
@@ -152,51 +117,29 @@ export const s07PassphraseSearchMachine = setup({
         GENERATE: { guard: 'canGenerateAnother', target: 'generating' },
       },
     },
-    generatorAccountReady: {
-      on: {
-        CHANGE_SEPARATOR: { actions: 'changeSeparator' },
-        GENERATE: { guard: 'canGenerateAnother', target: 'generating' },
-      },
-    },
     generating: {
       after: {
-        generationDelay: { target: 'generatedRouting', actions: 'finishGeneration' },
+        generationDelay: { target: 'mnemonicIntro', actions: 'finishGeneration' },
       },
     },
-    generatedRouting: {
-      always: [
-        { guard: 'firstCampusgramGeneration', target: 'mnemonicExplanationOne' },
-        { target: 'mnemonic' },
-      ],
-    },
-    mnemonicExplanationOne: {
-      on: { NEXT: { target: 'mnemonicExplanationTwo' } },
-    },
-    mnemonicExplanationTwo: {
+    mnemonicIntro: {
       on: { NEXT: { target: 'mnemonic' } },
     },
     mnemonic: {
       on: {
         CHANGE_SEPARATOR: { actions: 'changeSeparator' },
-        GENERATE: { guard: 'canGenerateAnother', target: 'generating' },
-        COPY: [
-          {
-            guard: 'copiedForCampusgram',
-            target: 'copiedCampusgram',
-            actions: 'storeCopiedPassword',
-          },
-          { target: 'copiedOtherAccount', actions: 'storeCopiedPassword' },
-        ],
+        GENERATE: { guard: 'canGenerateAnother', target: 'regenerating' },
+        COPY: { target: 'copiedCampusgram', actions: 'storeCopiedPassword' },
+      },
+    },
+    regenerating: {
+      after: {
+        generationDelay: { target: 'mnemonic', actions: 'finishGeneration' },
       },
     },
     copiedCampusgram: {
       on: {
         SELECT_TAB: { guard: 'selectedCampusgram', target: 'pasteNewPassword' },
-      },
-    },
-    copiedOtherAccount: {
-      on: {
-        SELECT_TAB: { guard: 'selectedTargetAccount', target: 'pasteNewPassword' },
       },
     },
     pasteNewPassword: {
@@ -209,14 +152,9 @@ export const s07PassphraseSearchMachine = setup({
     },
     passwordChangeReady: {
       on: {
-        SUBMIT_PASSWORD_CHANGE: [
-          {
-            guard: 'copiedForCampusgram',
-            target: 'campusgramSuccess',
-            actions: 'markCampusgramChanged',
-          },
-          { target: 'otherAccountChanged', actions: 'markTargetChanged' },
-        ],
+        SUBMIT_PASSWORD_CHANGE: {
+          target: 'campusgramSuccess',
+        },
       },
     },
     campusgramSuccess: {
@@ -225,41 +163,17 @@ export const s07PassphraseSearchMachine = setup({
     postCampusgramRouting: {
       always: [
         { guard: 'hasPendingAccounts', target: 'remainingRisk' },
-        { target: 'allUnique' },
+        { target: 'closingBrowser' },
       ],
-    },
-    allUnique: {
-      on: { NEXT: { target: 'readyForReplay' } },
     },
     remainingRisk: {
       on: { NEXT: { target: 'remainingPlan' } },
     },
     remainingPlan: {
-      on: {
-        NEXT: { target: 'accountTabReady', actions: 'selectFirstPendingAccount' },
-      },
+      on: { CLOSE_BROWSER: { target: 'closingBrowser' } },
     },
-    accountTabReady: {
-      on: {
-        SELECT_TAB: { guard: 'selectedTargetAccount', target: 'accountDashboard' },
-      },
-    },
-    accountDashboard: {
-      on: { OPEN_OTHER_PASSWORD_CHANGE: { target: 'accountPasswordChangeOpen' } },
-    },
-    accountPasswordChangeOpen: {
-      on: {
-        SELECT_TAB: { guard: 'selectedGenerator', target: 'generatorAccountReady' },
-      },
-    },
-    otherAccountChanged: {
-      always: [
-        { guard: 'hasPendingAccounts', target: 'accountTabReady' },
-        { target: 'readyForReplay' },
-      ],
-    },
-    readyForReplay: {
-      on: { START_S08: { target: 'complete' } },
+    closingBrowser: {
+      on: { WINDOW_CLOSED: { target: 'complete' } },
     },
     complete: { type: 'final' },
   },

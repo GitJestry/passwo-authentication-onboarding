@@ -163,16 +163,47 @@
 }
 
 .primaryAction {
+  display: inline-flex;
+  min-width: calc(var(--size-control-large) * 2.5);
   min-height: var(--size-control-large);
-  padding: var(--space-2) var(--space-4);
-  border: var(--border-width-medium) solid var(--color-surface-inverse);
-  border-radius: var(--radius-small);
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-2) var(--space-5);
+  border: var(--border-width-thin) solid var(--color-accent-strong);
+  border-radius: var(--radius-round);
   color: var(--color-on-inverse);
-  background: var(--color-surface-inverse);
+  background: linear-gradient(135deg, var(--color-accent-strong), var(--color-accent));
+  box-shadow:
+    0 0.35rem 0.8rem color-mix(in srgb, var(--color-accent-strong) 24%, transparent),
+    inset 0 1px 0 color-mix(in srgb, var(--color-on-inverse) 32%, transparent);
   font: inherit;
   font-size: 0.92em;
   font-weight: var(--font-weight-heavy);
+  line-height: 1;
   cursor: pointer;
+  transition:
+    transform var(--motion-fast) var(--motion-ease-out),
+    box-shadow var(--motion-fast) var(--motion-ease-out),
+    filter var(--motion-fast) var(--motion-ease-out);
+}
+
+@media (hover: hover) {
+  .primaryAction:hover:not(:disabled) {
+    box-shadow:
+      0 0.55rem 1rem color-mix(in srgb, var(--color-accent-strong) 30%, transparent),
+      inset 0 1px 0 color-mix(in srgb, var(--color-on-inverse) 38%, transparent);
+    filter: saturate(1.08) brightness(1.04);
+    transform: translateY(-0.1rem);
+  }
+}
+
+.primaryAction:active:not(:disabled) {
+  box-shadow:
+    0 0.12rem 0.28rem color-mix(in srgb, var(--color-accent-strong) 24%, transparent),
+    inset 0 2px 0 color-mix(in srgb, var(--color-ink-strong) 18%, transparent);
+  filter: saturate(0.96) brightness(0.96);
+  transform: translateY(0.1rem) scale(0.985);
+  transition-duration: var(--motion-instant);
 }
 
 .primaryAction:focus-visible {
@@ -183,7 +214,20 @@
 
 .primaryAction:disabled {
   cursor: not-allowed;
+  box-shadow: none;
+  filter: saturate(0.45);
   opacity: 0.58;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .primaryAction {
+    transition-duration: var(--motion-instant);
+  }
+
+  .primaryAction:hover:not(:disabled),
+  .primaryAction:active:not(:disabled) {
+    transform: none;
+  }
 }
 
 :global([data-artifact-layout="compact"]) .bubble {

@@ -6,6 +6,7 @@ import attackerAsset from '../../../assets/passwo/attacker.png';
 import passwordFactorShieldAsset from '../../../assets/s05/password-factor-shield.png';
 import comparisonPathShieldAsset from '../../../assets/s06/comparison-path-shield.png';
 import type { NetworkPresentationSnapshot } from '../../../adapters/network/NetworkMotionAdapter.js';
+import { CelebrationConfetti } from '../CelebrationConfetti.js';
 import {
   ReactFlowNetwork,
   type ReactFlowNetworkAdapter,
@@ -31,22 +32,45 @@ function comparisonResultForNode(
   return nodeId === 'campus-email' ? campusEmailResult : null;
 }
 
+function actionLabelForNode(
+  nodeId: string,
+  labels: Readonly<Partial<Record<S06AccountId, string>>>,
+): string | null {
+  if (nodeId === 'campusgram' || nodeId === 'master-campus' || nodeId === 'campus-email') {
+    return labels[nodeId] ?? null;
+  }
+  return null;
+}
+
 function AccountStatusOverlay({
   node,
   showAttacker,
   attackerAttemptStatus,
   comparisonResult,
+  actionLabel,
+  celebrate,
+  shieldAsset,
 }: {
   readonly node: NetworkSceneSnapshot['nodes'][number];
   readonly showAttacker: boolean;
   readonly attackerAttemptStatus: NetworkSceneSnapshot['nodes'][number]['status'] | null;
   readonly comparisonResult: PasswordRelation['kind'] | null;
+  readonly actionLabel: string | null;
+  readonly celebrate: boolean;
+  readonly shieldAsset: string;
 }) {
   const showsShield = node.status === 'protected' && node.kind !== 'shield';
   const showsComparisonPathShield =
     node.status === 'protected' && node.symbolId === 'comparison-path-shield';
   const attackerStatus = attackerAttemptStatus ?? node.status;
-  if (!showAttacker && !showsShield && !showsComparisonPathShield && comparisonResult === null) {
+  if (
+    !showAttacker &&
+    !showsShield &&
+    !showsComparisonPathShield &&
+    comparisonResult === null &&
+    actionLabel === null &&
+    !celebrate
+  ) {
     return null;
   }
 
@@ -74,7 +98,7 @@ function AccountStatusOverlay({
           className={styles.shield}
           data-account-shield
           data-main={node.kind === 'account' || undefined}
-          src={passwordFactorShieldAsset}
+          src={shieldAsset}
           alt=""
           aria-hidden="true"
         />
@@ -96,6 +120,10 @@ function AccountStatusOverlay({
           {s06ConsequenceContent.comparisonResultLabels[comparisonResult]}
         </strong>
       )}
+      {actionLabel === null ? null : (
+        <strong className={styles.nodeActionLabel}>{actionLabel}</strong>
+      )}
+      {celebrate ? <CelebrationConfetti /> : null}
     </>
   );
 }
@@ -113,6 +141,11 @@ export function AccountAssessmentNetwork({
   attackBlocked = false,
   comparisonResults = emptyComparisonResults,
   statusCascadeStartDelayMs,
+  nodeActionLabels = {},
+  celebratingNodeId = null,
+  onNodeSelect = ignoreNodeSelect,
+  interactionDisabled = true,
+  accountShieldAsset = passwordFactorShieldAsset,
 }: {
   readonly adapter: ReactFlowNetworkAdapter;
   readonly presentation: NetworkPresentationSnapshot;
@@ -132,6 +165,11 @@ export function AccountAssessmentNetwork({
   readonly attackBlocked?: boolean;
   readonly comparisonResults?: AccountComparisonResults;
   readonly statusCascadeStartDelayMs?: number;
+  readonly nodeActionLabels?: Readonly<Partial<Record<S06AccountId, string>>>;
+  readonly celebratingNodeId?: S06AccountId | null;
+  readonly onNodeSelect?: (nodeId: string) => void;
+  readonly interactionDisabled?: boolean;
+  readonly accountShieldAsset?: string;
 }) {
   const campusgramResult = comparisonResults.campusgram ?? null;
   const masterCampusResult = comparisonResults['master-campus'] ?? null;
@@ -148,6 +186,9 @@ export function AccountAssessmentNetwork({
           masterCampusResult,
           campusEmailResult,
         )}
+        actionLabel={actionLabelForNode(node.id, nodeActionLabels)}
+        celebrate={node.id === celebratingNodeId}
+        shieldAsset={accountShieldAsset}
       />
     ),
     [
@@ -156,6 +197,9 @@ export function AccountAssessmentNetwork({
       campusEmailResult,
       campusgramResult,
       masterCampusResult,
+      nodeActionLabels,
+      celebratingNodeId,
+      accountShieldAsset,
     ],
   );
 
@@ -170,8 +214,8 @@ export function AccountAssessmentNetwork({
       <ReactFlowNetwork
         adapter={adapter}
         presentation={presentation}
-        onNodeSelect={ignoreNodeSelect}
-        interactionDisabled
+        onNodeSelect={onNodeSelect}
+        interactionDisabled={interactionDisabled}
         visualVariant="account-map"
         showEdgeLabels={false}
         showNodeLabels={false}
