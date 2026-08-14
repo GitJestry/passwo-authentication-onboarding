@@ -82,11 +82,11 @@ function belongsToCampusgramCluster(nodeId: string): boolean {
  * The result remains presentation-only and does not infer relationships between
  * the participant's other fictional passwords.
  */
-export function createS05AssessmentNetwork(
+export function projectS05AssessmentNetwork(
+  base: NetworkSceneSnapshot,
   wholePasswordRecognized: boolean,
   phase: S05AssessmentNetworkPhase,
 ): NetworkSceneSnapshot {
-  const base = createCompletedS02Network();
   const showsCampusgramResult = phase !== 'focus';
   const showsOtherAccounts = phase === 'other-accounts';
   const resultStatus = wholePasswordRecognized ? 'exposed' : 'protected';
@@ -94,6 +94,7 @@ export function createS05AssessmentNetwork(
   const clusterEdgeStatus = wholePasswordRecognized ? 'direct' : 'blocked';
   const clusterEdgeKind = wholePasswordRecognized ? 'check' : 'blocked-path';
   const nodes = base.nodes.flatMap((node): SceneNode[] => {
+    if (node.kind === 'shield') return [];
     if (node.id !== 'campusgram' && !belongsToCampusgramCluster(node.id)) {
       return showsOtherAccounts
         ? [{ ...node, locked: false, selectable: false, status: 'neutral' }]
@@ -152,6 +153,17 @@ export function createS05AssessmentNetwork(
             ? 'Campusgram und seine direkt angebundenen Knoten sind rot markiert. Master Campus, Campus E-Mail und ihre verbundenen Bereiche sind nun zusätzlich sichtbar.'
             : 'Campusgram und seine direkt angebundenen Knoten sind als blockiert markiert. Master Campus, Campus E-Mail und ihre verbundenen Bereiche sind nun zusätzlich sichtbar.',
   };
+}
+
+export function createS05AssessmentNetwork(
+  wholePasswordRecognized: boolean,
+  phase: S05AssessmentNetworkPhase,
+): NetworkSceneSnapshot {
+  return projectS05AssessmentNetwork(
+    createCompletedS02Network(),
+    wholePasswordRecognized,
+    phase,
+  );
 }
 
 export function createRewoundAccountNetwork(

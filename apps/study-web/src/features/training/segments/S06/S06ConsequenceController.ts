@@ -29,7 +29,10 @@ import {
   type S06LocalAccountAnalysis,
 } from '@passwo/visualization';
 import type { NetworkPresentationSnapshot } from '../../../../adapters/network/NetworkMotionAdapter.js';
-import { alignNetworkSceneToS02, createS05AssessmentNetwork } from '../account-network.js';
+import {
+  alignNetworkSceneToS02,
+  projectS05AssessmentNetwork,
+} from '../account-network.js';
 
 export interface S06ConsequenceParticipantSnapshot {
   readonly narration: S06NarrationContent;
@@ -199,7 +202,11 @@ export function createS06ConsequenceScenePlan(
       ...step,
       network:
         index === 0
-          ? createS05AssessmentNetwork(campusgramFound, 'other-accounts')
+          ? projectS05AssessmentNetwork(
+              alignNetworkSceneToS02(step.network),
+              campusgramFound,
+              'other-accounts',
+            )
           : alignNetworkSceneToS02(step.network),
     })),
   };
@@ -415,36 +422,30 @@ function blockedResolutionNetwork(
   step: PasswordConsequencePlanStep,
   attackNetwork: NetworkSceneSnapshot,
   priorSettledNetwork: NetworkSceneSnapshot,
-  showImpactShield: boolean,
+  retainAttackPath: boolean,
 ): NetworkSceneSnapshot {
   const targetAccountId = step.targetAccountId;
   if (targetAccountId === null) return attackNetwork;
   const priorNodes = new Map(priorSettledNetwork.nodes.map((node) => [node.id, node]));
   const targetLabel =
     step.network.nodes.find(({ id }) => id === targetAccountId)?.label ?? targetAccountId;
-  const impactShieldNodes = showImpactShield
-    ? step.network.nodes.filter(({ kind }) => kind === 'shield')
-    : [];
   return {
     ...attackNetwork,
-    id: `${step.network.id}-${showImpactShield ? 'blocked-resolving' : 'blocked-resolved'}`,
-    nodes: [
-      ...attackNetwork.nodes.flatMap((node): readonly SceneNode[] => {
-        if (node.kind === 'shield') return [];
-        if (!isAccountBranchNode(node, targetAccountId)) return [node];
-        const prior = priorNodes.get(node.id);
-        return [
-          prior?.status === 'affected' || prior?.status === 'exposed'
-            ? { ...node, status: prior.status }
-            : { ...node, status: 'neutral' },
-        ];
-      }),
-      ...impactShieldNodes,
-    ],
-    edges: showImpactShield
+    id: `${step.network.id}-${retainAttackPath ? 'blocked-resolving' : 'blocked-resolved'}`,
+    nodes: attackNetwork.nodes.flatMap((node): readonly SceneNode[] => {
+      if (node.kind === 'shield') return [];
+      if (!isAccountBranchNode(node, targetAccountId)) return [node];
+      const prior = priorNodes.get(node.id);
+      return [
+        prior?.status === 'affected' || prior?.status === 'exposed'
+          ? { ...node, status: prior.status }
+          : { ...node, status: 'neutral' },
+      ];
+    }),
+    edges: retainAttackPath
       ? attackNetwork.edges
       : attackNetwork.edges.filter((edge) => edge.id !== `${step.id}-path`),
-    accessibleSummary: showImpactShield
+    accessibleSummary: retainAttackPath
       ? `Die aktuelle Angriffslinie wird vor ${targetLabel} blockiert.`
       : `${targetLabel}: ${s06ConsequenceContent.comparisonResultLabels['no-derived-path-recognized']}.`,
   };
@@ -486,8 +487,10 @@ function resolvedNetwork(
   };
 }
 
-function hypotheticalCampusgramNetwork(): NetworkSceneSnapshot {
-  const network = createS05AssessmentNetwork(true, 'other-accounts');
+function hypotheticalCampusgramNetwork(
+  baseNetwork: NetworkSceneSnapshot,
+): NetworkSceneSnapshot {
+  const network = projectS05AssessmentNetwork(baseNetwork, true, 'other-accounts');
   return {
     ...network,
     id: `${network.id}-hypothetical`,
@@ -608,7 +611,7 @@ export class S06ConsequenceController {
       presentation,
       participant: participantSnapshot(firstStep),
       attackPhase: 'found',
-      attackSourceAccountId: this.#campusgramWasFound() ? 'campusgram' : null,
+      attackSourceAccountId: 'campusgram',
       isHypothetical: false,
       showGuide: true,
       comparisonVisible: false,
@@ -851,11 +854,28 @@ export class S06ConsequenceController {
         this.#settledNetwork = pendingNetwork;
         this.#renderer?.render(pendingNetwork);
       } else if (awaitingDecision && this.#snapshot.stage !== 'local-check-result') {
-        this.#settledNetwork = preserveSettledAffectedState(
+        const settledLocalCheckNetwork = preserveSettledAffectedState(
           step.network,
           this.#settledNetwork,
           step.sourceAccountId,
         );
+        const sourceWasExposed =
+          step.sourceAccountId !== null &&
+          settledLocalCheckNetwork.nodes.some(
+            ({ id, status }) => id === step.sourceAccountId && status === 'exposed',
+          );
+        this.#settledNetwork = {
+          ...settledLocalCheckNetwork,
+          nodes: settledLocalCheckNetwork.nodes.filter(({ kind }) => kind !== 'shield'),
+          edges: sourceWasExposed
+            ? settledLocalCheckNetwork.edges.map((edge): SceneEdge =>
+                edge.sourceId === step.sourceAccountId &&
+                edge.targetId.startsWith(`${step.sourceAccountId}-detail-`)
+                  ? { ...edge, status: 'direct' }
+                  : edge,
+              )
+            : settledLocalCheckNetwork.edges,
+        };
         this.#renderer?.render(this.#settledNetwork);
       }
       const canStartNextAttack =
@@ -1062,7 +1082,7 @@ export class S06ConsequenceController {
   }
 
   #startHypotheticalIntro(): void {
-    const network = hypotheticalCampusgramNetwork();
+    const network = hypotheticalCampusgramNetwork(this.#snapshot.step.network);
     this.#settledNetwork = network;
     this.#snapshot = {
       ...this.#snapshot,

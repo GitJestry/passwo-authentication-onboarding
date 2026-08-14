@@ -73,10 +73,13 @@ interface RendererState {
 
 type FocusHandler = (nodeId: string) => void;
 type RendererListener = () => void;
+type StatusCascadeListener = (settledNodeIds: readonly string[]) => void;
 
 export class ReactFlowNetworkAdapter implements NetworkRendererPort {
   #state: RendererState;
   readonly #listeners = new Set<RendererListener>();
+  readonly #statusCascadeListeners = new Set<StatusCascadeListener>();
+  #unpublishedStatusCascadeTonesByNodeId = new Map<string, StatusCascadeTone>();
   #focusHandler: FocusHandler | null = null;
 
   constructor(initialSnapshot: NetworkSceneSnapshot) {
@@ -94,6 +97,13 @@ export class ReactFlowNetworkAdapter implements NetworkRendererPort {
 
   readonly getSnapshot = (): RendererState => this.#state;
 
+  readonly subscribeStatusCascade = (
+    listener: StatusCascadeListener,
+  ): (() => void) => {
+    this.#statusCascadeListeners.add(listener);
+    return () => this.#statusCascadeListeners.delete(listener);
+  };
+
   readonly completeStatusCascade = (
     nodeId: string,
     expectedTone?: StatusCascadeTone,
@@ -103,18 +113,12 @@ export class ReactFlowNetworkAdapter implements NetworkRendererPort {
     if (
       tone === null ||
       (expectedTone !== undefined && tone !== expectedTone) ||
-      this.#state.settledStatusCascadeTonesByNodeId.get(nodeId) === tone
+      this.#state.settledStatusCascadeTonesByNodeId.get(nodeId) === tone ||
+      this.#unpublishedStatusCascadeTonesByNodeId.get(nodeId) === tone
     ) {
       return;
     }
-    const settledStatusCascadeTonesByNodeId = new Map(
-      this.#state.settledStatusCascadeTonesByNodeId,
-    );
-    settledStatusCascadeTonesByNodeId.set(nodeId, tone);
-    this.#state = {
-      ...this.#state,
-      settledStatusCascadeTonesByNodeId,
-    };
+    this.#unpublishedStatusCascadeTonesByNodeId.set(nodeId, tone);
     const nodesById = new Map(
       this.#state.snapshot.nodes.map((sceneNode) => [sceneNode.id, sceneNode]),
     );
@@ -127,12 +131,15 @@ export class ReactFlowNetworkAdapter implements NetworkRendererPort {
       return (
         edgeTone !== null &&
         target?.status !== 'exposed' &&
-        settledStatusCascadeTonesByNodeId.get(edge.targetId) !== edgeTone
+        this.#state.settledStatusCascadeTonesByNodeId.get(edge.targetId) !== edgeTone &&
+        this.#unpublishedStatusCascadeTonesByNodeId.get(edge.targetId) !== edgeTone
       );
     });
-    // Updating React Flow for every single arrival rebuilds the still-running SVG masks.
-    // Publish one stable end state only after every concurrently drawn edge has arrived.
-    if (!hasRunningCascade) this.#emit();
+    if (hasRunningCascade) return;
+
+    // Keep the completed SVG animation mounted while the controller reveals its next UI.
+    // Publishing renderer state here would rebuild the edge and expose its gray base path.
+    this.#notifyStatusCascade([...this.#unpublishedStatusCascadeTonesByNodeId.keys()]);
   };
 
   render(snapshot: NetworkSceneSnapshot): void {
@@ -143,6 +150,7 @@ export class ReactFlowNetworkAdapter implements NetworkRendererPort {
       currentStatusCascadeTonesByNodeId.get(nodeId) === tone;
     const settledStatusCascadeTonesByNodeId = new Map<string, StatusCascadeTone>([
       ...[...this.#state.settledStatusCascadeTonesByNodeId].filter(retainsCurrentTone),
+      ...[...this.#unpublishedStatusCascadeTonesByNodeId].filter(retainsCurrentTone),
       ...(snapshot.id === this.#state.snapshot.id
         ? []
         : this.#state.snapshot.nodes
@@ -152,12 +160,16 @@ export class ReactFlowNetworkAdapter implements NetworkRendererPort {
         .filter(({ kind }) => kind === 'account')
         .flatMap(statusCascadeToneEntryForNode),
     ]);
+    // A real scene render is the stable boundary where completed CSS overlays may be
+    // replaced by their authored settled edge styles.
+    this.#unpublishedStatusCascadeTonesByNodeId.clear();
     this.#state = {
       snapshot,
       settledStatusCascadeTonesByNodeId,
       announcement: snapshot.accessibleSummary,
     };
     this.#emit();
+    this.#notifyStatusCascade([...settledStatusCascadeTonesByNodeId.keys()]);
   }
 
   focusNode(nodeId: string): void {
@@ -180,6 +192,10 @@ export class ReactFlowNetworkAdapter implements NetworkRendererPort {
 
   #emit(): void {
     for (const listener of this.#listeners) listener();
+  }
+
+  #notifyStatusCascade(settledNodeIds: readonly string[]): void {
+    for (const listener of this.#statusCascadeListeners) listener(settledNodeIds);
   }
 }
 
@@ -656,6 +672,38 @@ interface NodeEdgeData extends Record<string, unknown> {
 
 type NodeFlowEdge = Edge<NodeEdgeData, 'node-edge'>;
 
+type ReactFlowPresentation = Pick<
+  NetworkPresentationSnapshot,
+  | 'revealedNodeIds'
+  | 'drawnEdgeTargetNodeIds'
+  | 'drawingTargetNodeId'
+  | 'highlightedNodeId'
+>;
+
+function sameNodeIds(
+  left: readonly string[] | undefined,
+  right: readonly string[] | undefined,
+): boolean {
+  const leftIds = left ?? [];
+  const rightIds = right ?? [];
+  return (
+    leftIds.length === rightIds.length &&
+    leftIds.every((id, index) => id === rightIds[index])
+  );
+}
+
+function sameReactFlowPresentation(
+  left: ReactFlowPresentation,
+  right: ReactFlowPresentation,
+): boolean {
+  return (
+    sameNodeIds(left.revealedNodeIds, right.revealedNodeIds) &&
+    sameNodeIds(left.drawnEdgeTargetNodeIds, right.drawnEdgeTargetNodeIds) &&
+    (left.drawingTargetNodeId ?? null) === (right.drawingTargetNodeId ?? null) &&
+    left.highlightedNodeId === right.highlightedNodeId
+  );
+}
+
 function NodeEdge({
   id,
   data,
@@ -817,7 +865,7 @@ const edgeClassByStatus: Record<SceneEdgeStatus, string> = {
 function toReactFlowElements(
   snapshot: NetworkSceneSnapshot,
   settledStatusCascadeTonesByNodeId: ReadonlyMap<string, StatusCascadeTone>,
-  presentation: NetworkPresentationSnapshot,
+  presentation: ReactFlowPresentation,
   onNodeSelect: (nodeId: string) => void,
   interactionDisabled: boolean,
   canvas: NetworkCanvasSize,
@@ -1013,12 +1061,27 @@ export function ReactFlowNetwork({
     adapter.getSnapshot,
     adapter.getSnapshot,
   );
+  const nextFlowPresentation: ReactFlowPresentation = {
+    revealedNodeIds: presentation.revealedNodeIds,
+    ...(presentation.drawnEdgeTargetNodeIds === undefined
+      ? {}
+      : { drawnEdgeTargetNodeIds: presentation.drawnEdgeTargetNodeIds }),
+    ...(presentation.drawingTargetNodeId === undefined
+      ? {}
+      : { drawingTargetNodeId: presentation.drawingTargetNodeId }),
+    highlightedNodeId: presentation.highlightedNodeId,
+  };
+  const flowPresentationRef = useRef(nextFlowPresentation);
+  if (!sameReactFlowPresentation(flowPresentationRef.current, nextFlowPresentation)) {
+    flowPresentationRef.current = nextFlowPresentation;
+  }
+  const flowPresentation = flowPresentationRef.current;
   const elements = useMemo(
     () =>
       toReactFlowElements(
         rendererState.snapshot,
         rendererState.settledStatusCascadeTonesByNodeId,
-        presentation,
+        flowPresentation,
         onNodeSelect,
         interactionDisabled,
         canvas,
@@ -1040,7 +1103,7 @@ export function ReactFlowNetwork({
       canvas,
       interactionDisabled,
       onNodeSelect,
-      presentation,
+      flowPresentation,
       rendererState.settledStatusCascadeTonesByNodeId,
       rendererState.snapshot,
       showEdgeLabels,

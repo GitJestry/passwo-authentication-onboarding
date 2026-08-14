@@ -134,10 +134,8 @@ export function S06ConsequenceTraining({
     }
     controller.attachRenderer(renderer);
     const unsubscribe = controller.subscribe(setSnapshot);
-    const unsubscribeStatusCascade = renderer.subscribe(() => {
-      controller?.infectionCascadeSettled([
-        ...renderer.getSnapshot().settledStatusCascadeTonesByNodeId.keys(),
-      ]);
+    const unsubscribeStatusCascade = renderer.subscribeStatusCascade((settledNodeIds) => {
+      controller?.infectionCascadeSettled(settledNodeIds);
     });
     setRuntime({ controller, renderer, plan });
     setSnapshot(controller.getSnapshot());

@@ -117,28 +117,66 @@
 }
 
 .network[data-attack-phase="hypothetical-intro"]
-  .attackAttempt[data-account-attack-attempt="exposed"] .attacker,
-.network[data-attack-phase="incident-check"]
   .attackAttempt[data-account-attack-attempt="exposed"] .attacker {
   animation: account-attacker-capture 1.35s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
 .network[data-attack-phase="hypothetical-intro"]
-  .attackAttempt[data-account-attack-attempt="exposed"] .attackConnection,
-.network[data-attack-phase="incident-check"]
   .attackAttempt[data-account-attack-attempt="exposed"] .attackConnection {
   display: block;
   animation: account-attack-connection-capture 1.35s ease-out both;
 }
 
 .network[data-attack-phase="incident-check"]
-  .attackAttempt[data-account-attack-attempt="protected"] .attacker {
-  animation: account-attacker-blocked-check 1.35s cubic-bezier(0.22, 1, 0.36, 1) both;
+  .attackAttempt:is(
+    [data-account-attack-source="master-campus"],
+    [data-account-attack-source="campus-email"]
+  )
+  .attacker {
+  top: 12%;
+  left: 124%;
+  width: 76%;
 }
 
-.network[data-attack-phase="incident-check"]
-  .attackAttempt[data-account-attack-attempt="protected"] .attackConnection {
-  animation: account-attack-connection-blocked-check 1.35s ease-out both;
+.network:is(
+  [data-attack-phase="incident-check"],
+  [data-attack-phase="hypothetical-intro"]
+)
+  .attackAttempt:is(
+    [data-account-attack-source="master-campus"],
+    [data-account-attack-source="campus-email"]
+  )
+  .attackConnection {
+  top: calc(50% - 0.125rem);
+  bottom: auto;
+  left: 94%;
+  width: 68%;
+  height: 0.25rem;
+  background: repeating-linear-gradient(
+    to right,
+    #ff315e 0 0.45rem,
+    transparent 0.45rem 0.8rem
+  );
+  animation: account-attack-connection-horizontal 0.8s linear infinite;
+  transform-origin: left;
+}
+
+.network[data-attack-phase="hypothetical-intro"]
+  .attackAttempt:is(
+    [data-account-attack-source="master-campus"],
+    [data-account-attack-source="campus-email"]
+  )[data-account-attack-attempt="exposed"]
+  .attacker {
+  animation: account-attacker-capture-from-right 1.35s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.network[data-attack-phase="hypothetical-intro"]
+  .attackAttempt:is(
+    [data-account-attack-source="master-campus"],
+    [data-account-attack-source="campus-email"]
+  )[data-account-attack-attempt="exposed"]
+  .attackConnection {
+  animation: account-attack-connection-capture-from-right 1.35s ease-out both;
 }
 
 .network :global([data-status="exposed"] [data-scene-node-visual]),
@@ -274,6 +312,12 @@
   }
 }
 
+@keyframes account-attack-connection-horizontal {
+  to {
+    background-position-x: -0.8rem;
+  }
+}
+
 @keyframes account-attack-edge-flow {
   to {
     stroke-dashoffset: -30;
@@ -284,6 +328,19 @@
   0%, 24% {
     top: -128%;
     left: 12%;
+    width: 76%;
+  }
+  100% {
+    top: -22%;
+    left: -22%;
+    width: 144%;
+  }
+}
+
+@keyframes account-attacker-capture-from-right {
+  0%, 24% {
+    top: 12%;
+    left: 124%;
     width: 76%;
   }
   100% {
@@ -304,34 +361,14 @@
   }
 }
 
-@keyframes account-attacker-blocked-check {
-  0%, 12%, 100% {
-    top: -128%;
-    left: 12%;
-    width: 76%;
-  }
-
-  56% {
-    top: -72%;
-    left: -2%;
-    width: 104%;
-  }
-}
-
-@keyframes account-attack-connection-blocked-check {
-  0%, 12% {
-    opacity: 0;
-    transform: scaleY(0);
-  }
-
-  28%, 62% {
+@keyframes account-attack-connection-capture-from-right {
+  0%, 48% {
     opacity: 1;
-    transform: scaleY(1);
+    transform: scaleX(1);
   }
-
   100% {
     opacity: 0;
-    transform: scaleY(0);
+    transform: scaleX(0);
   }
 }
 
@@ -438,14 +475,6 @@
 
   .attackAttempt[data-account-attack-attempt="exposed"] .attackConnection {
     display: none;
-  }
-
-  .network[data-attack-phase="incident-check"]
-    .attackAttempt[data-account-attack-attempt="protected"] .attacker,
-  .network[data-attack-phase="incident-check"]
-    .attackAttempt[data-account-attack-attempt="protected"] .attackConnection {
-    display: none;
-    animation: none;
   }
 
   .network :global([data-status-cascade-active] [data-scene-node-visual]),

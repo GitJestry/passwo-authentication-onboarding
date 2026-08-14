@@ -21,45 +21,45 @@ function ignoreNodeSelect(_nodeId: string): void {}
 
 function comparisonResultForNode(
   nodeId: string,
-  comparisonResults: AccountComparisonResults,
+  campusgramResult: PasswordRelation['kind'] | null,
+  masterCampusResult: PasswordRelation['kind'] | null,
+  campusEmailResult: PasswordRelation['kind'] | null,
 ): PasswordRelation['kind'] | null {
-  if (nodeId === 'campusgram' || nodeId === 'master-campus' || nodeId === 'campus-email') {
-    return comparisonResults[nodeId] ?? null;
-  }
-  return null;
+  if (nodeId === 'campusgram') return campusgramResult;
+  if (nodeId === 'master-campus') return masterCampusResult;
+  return nodeId === 'campus-email' ? campusEmailResult : null;
 }
 
 function AccountStatusOverlay({
   node,
   showAttacker,
   attackerAttemptStatus,
-  showDataLeakLabel,
   comparisonResult,
 }: {
   readonly node: NetworkSceneSnapshot['nodes'][number];
   readonly showAttacker: boolean;
   readonly attackerAttemptStatus: NetworkSceneSnapshot['nodes'][number]['status'] | null;
-  readonly showDataLeakLabel: boolean;
   readonly comparisonResult: PasswordRelation['kind'] | null;
 }) {
   const showsShield = node.status === 'protected' && node.kind !== 'shield';
+  const attackerStatus = attackerAttemptStatus ?? node.status;
   if (!showAttacker && !showsShield && comparisonResult === null) return null;
 
   return (
     <>
       {showAttacker ? (
         <span
+          key={`${node.id}-${attackerStatus}`}
           className={styles.attackAttempt}
-          data-account-attack-attempt={attackerAttemptStatus ?? node.status}
+          data-account-attack-attempt={attackerStatus}
+          data-account-attack-source={node.id}
           aria-hidden="true"
         >
           <span className={styles.attackConnection} />
           <span className={styles.attacker} data-account-attacker>
-            {showDataLeakLabel ? (
-              <strong className={styles.attackerLabel}>
-                {s06ConsequenceContent.page.dataLeak}
-              </strong>
-            ) : null}
+            <strong className={styles.attackerLabel}>
+              {s06ConsequenceContent.page.dataLeak}
+            </strong>
             <img src={attackerAsset} alt="" />
           </span>
         </span>
@@ -117,22 +117,30 @@ export function AccountAssessmentNetwork({
   readonly attackBlocked?: boolean;
   readonly comparisonResults?: AccountComparisonResults;
 }) {
-  const showDataLeakLabel =
-    attackPhase === undefined ||
-    attackPhase === 'found' ||
-    attackPhase === 'hypothetical-intro' ||
-    attackPhase === 'incident-check';
+  const campusgramResult = comparisonResults.campusgram ?? null;
+  const masterCampusResult = comparisonResults['master-campus'] ?? null;
+  const campusEmailResult = comparisonResults['campus-email'] ?? null;
   const renderNodeOverlay = useCallback(
     (node: NetworkSceneSnapshot['nodes'][number]) => (
       <AccountStatusOverlay
         node={node}
         showAttacker={node.id === attackerAccountId}
         attackerAttemptStatus={attackerAttemptStatus}
-        showDataLeakLabel={showDataLeakLabel}
-        comparisonResult={comparisonResultForNode(node.id, comparisonResults)}
+        comparisonResult={comparisonResultForNode(
+          node.id,
+          campusgramResult,
+          masterCampusResult,
+          campusEmailResult,
+        )}
       />
     ),
-    [attackerAccountId, attackerAttemptStatus, comparisonResults, showDataLeakLabel],
+    [
+      attackerAccountId,
+      attackerAttemptStatus,
+      campusEmailResult,
+      campusgramResult,
+      masterCampusResult,
+    ],
   );
 
   return (
