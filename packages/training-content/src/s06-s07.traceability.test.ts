@@ -101,12 +101,24 @@ describe('S06 transition and S07 passphrase-search copy traceability', () => {
   });
 
   it('keeps S07 linked to the passphrase-search browser state', () => {
-    expect(S07_PASSPHRASE_SEARCH_CONTENT_VERSION).toBe('2.3.0');
+    expect(S07_PASSPHRASE_SEARCH_CONTENT_VERSION).toBe('2.6.0');
     expect(s07PassphraseSearchContent.source.copyReference).toBe(
-      'docs/design/S06-S07-COPY-AUDIT.md#copy--und-darstellungsdelta-s07-ergebnisabschluss-13-august-2026',
+      'docs/design/S06-S07-COPY-AUDIT.md#inhaltsdelta-s07-weitere-passphrasen-wortfolgen-13-august-2026',
     );
     expect(s07PassphraseSearchContent.browser.searchTab.label).toBe('Passphrase generieren');
     expect(s07PassphraseSearchContent.browser.searchPage.brand).toBe('Search');
     expect(s07PassphraseSearchContent.browser.searchPage.results).toHaveLength(9);
+    expect(s07PassphraseSearchContent.browser.generatorPage.separators).toEqual([
+      { label: 'Bindestrich', value: '-' },
+      { label: 'Punkt', value: '.' },
+      { label: 'Unterstrich', value: '_' },
+      { label: 'Leerzeichen', value: ' ' },
+    ]);
+    expect(s07PassphraseSearchContent.browser.generatorPage.wordSets).toHaveLength(23);
+    expect(
+      s07PassphraseSearchContent.browser.generatorPage.wordSets.every(
+        (wordSet) => wordSet.length === 6,
+      ),
+    ).toBe(true);
   });
 });

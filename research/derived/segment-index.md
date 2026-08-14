@@ -155,11 +155,16 @@ Seitenangaben beziehen sich auf die im Trainingsdokument ausgewiesene interne Pa
   erscheint zuerst die Fortschrittskarte `Passphrase erstellen`; danach beginnt S07.
 - S07 zeigt Master Campus, Campus E-Mail und Campusgram erneut als bereits angemeldete
   Dashboard-Websites. Der Browser startet auf Campusgram.
-- Rechts neben Campusgram ist der bedienbare Tab `Passphrase generieren` geöffnet. Seine Seite
-  bleibt vorerst leer; es gibt noch keine Generator-, Such- oder Abschlusslogik.
+- Rechts neben Campusgram ist der bedienbare Tab `Passphrase generieren` geöffnet. Er zeigt
+  zunächst die fiktive Search-Ergebnisseite. Der hervorgehobene Pflichttreffer öffnet im selben
+  Tab eine kompakte, nicht scrollende Passphrase-Werkstatt.
+- Die Werkstatt erzeugt deterministisch ausschließlich lokale fiktive Wortfolgen. Bedienbar sind
+  nur die neue Wortfolge, vier Trennzeichen und `Kopieren`; Groß-/Kleinschreibung,
+  Kapitalisierung, Zahlen und weitere Generatoroptionen werden nicht angeboten. Die Auswahl wird
+  weder persistiert noch exportiert.
 - Der direkte QA-Einstieg lautet `s07-passphrase-search`. Die bisherigen fünf
   Auswertungs-Fixtures und ihre Renderer sind entfernt.
-- `S07_PASSPHRASE_SEARCH_CONTENT_VERSION 2.0.0` beschreibt nur diesen Browserzustand. Es werden
+- `S07_PASSPHRASE_SEARCH_CONTENT_VERSION 2.5.0` beschreibt Suchseite und Werkstatt. Es werden
   keine neuen Teilnehmer- oder Trainingswerte persistiert oder exportiert.
 
 ## Sections

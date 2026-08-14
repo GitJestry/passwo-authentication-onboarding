@@ -191,7 +191,146 @@ function DashboardHeading({
   );
 }
 
-function DashboardSidebar({ definition }: { readonly definition: CampusWebsiteDefinition }) {
+function SidebarNavigationIconFrame({ children }: { readonly children: ReactNode }) {
+  return (
+    <svg
+      aria-hidden="true"
+      className={styles.sidebarNavigationIcon}
+      fill="none"
+      viewBox="0 0 24 24"
+    >
+      {children}
+    </svg>
+  );
+}
+
+function DashboardNavigationIcon({ index }: { readonly index: number }) {
+  switch (index) {
+    case 0:
+      return (
+        <SidebarNavigationIconFrame>
+          <path d="m3.8 10.8 8.2-7 8.2 7v8.4H14.8v-5.4H9.2v5.4H3.8z" />
+        </SidebarNavigationIconFrame>
+      );
+    case 1:
+      return (
+        <SidebarNavigationIconFrame>
+          <circle cx="9" cy="8" r="3" />
+          <circle cx="17" cy="9" r="2.4" />
+          <path d="M3.8 19c.35-3.6 2.1-5.5 5.2-5.5s4.85 1.9 5.2 5.5M14.2 14.2c3.5-.7 5.45.9 5.9 3.8" />
+        </SidebarNavigationIconFrame>
+      );
+    case 2:
+      return (
+        <SidebarNavigationIconFrame>
+          <path d="M4 5.5h16v11H9l-4.5 3v-3H4z" />
+          <path d="M8 9.2h8M8 12.6h5" />
+        </SidebarNavigationIconFrame>
+      );
+    default:
+      return (
+        <SidebarNavigationIconFrame>
+          <rect x="4" y="5.5" width="16" height="14" rx="2" />
+          <path d="M8 3.5v4M16 3.5v4M4 9.5h16M8 13h3M14 13h2M8 16h2" />
+        </SidebarNavigationIconFrame>
+      );
+  }
+}
+
+function MasterNavigationIcon({ index }: { readonly index: number }) {
+  switch (index) {
+    case 0:
+      return (
+        <SidebarNavigationIconFrame>
+          <path d="m3.8 10.8 8.2-7 8.2 7v8.4H14.8v-5.4H9.2v5.4H3.8z" />
+        </SidebarNavigationIconFrame>
+      );
+    case 1:
+      return (
+        <SidebarNavigationIconFrame>
+          <circle cx="8.2" cy="8.2" r="2.8" />
+          <circle cx="16.4" cy="8.8" r="2.3" />
+          <path d="M3.5 19c.3-3.5 1.9-5.2 4.8-5.2 2.8 0 4.5 1.7 4.8 5.2M13.6 14.2c3.6-.8 5.8.8 6.2 4" />
+        </SidebarNavigationIconFrame>
+      );
+    case 2:
+      return (
+        <SidebarNavigationIconFrame>
+          <rect x="4" y="5.5" width="16" height="14" rx="2" />
+          <path d="M8 3.5v4M16 3.5v4M4 9.5h16M8 13h3M14 13h2M8 16h2" />
+        </SidebarNavigationIconFrame>
+      );
+    case 3:
+      return (
+        <SidebarNavigationIconFrame>
+          <path d="M6.2 18.5h11.3a3.3 3.3 0 0 0 .3-6.6A5.7 5.7 0 0 0 7 10.5a4.1 4.1 0 0 0-.8 8Z" />
+        </SidebarNavigationIconFrame>
+      );
+    case 4:
+      return (
+        <SidebarNavigationIconFrame>
+          <path d="M12 3.5 19 6v5.5c0 4.1-2.3 7.1-7 9-4.7-1.9-7-4.9-7-9V6z" />
+          <path d="m9.2 12 1.8 1.8 3.9-4" />
+        </SidebarNavigationIconFrame>
+      );
+    default:
+      return (
+        <SidebarNavigationIconFrame>
+          <circle cx="12" cy="8" r="3.2" />
+          <path d="M5.2 20c.4-4.3 2.7-6.5 6.8-6.5s6.4 2.2 6.8 6.5" />
+        </SidebarNavigationIconFrame>
+      );
+  }
+}
+
+function MailNavigationIcon({ index }: { readonly index: number }) {
+  switch (index) {
+    case 0:
+      return (
+        <SidebarNavigationIconFrame>
+          <path d="M4 7.2h16v11.3H4zM4.8 8l7.2 5.4L19.2 8" />
+        </SidebarNavigationIconFrame>
+      );
+    case 1:
+      return (
+        <SidebarNavigationIconFrame>
+          <path d="m12 3.7 2.5 5.1 5.6.8-4 3.9.9 5.6-5-2.7-5 2.7.9-5.6-4-3.9 5.6-.8z" />
+        </SidebarNavigationIconFrame>
+      );
+    case 2:
+      return (
+        <SidebarNavigationIconFrame>
+          <path d="m4 11.5 16-7-6.3 15.2-2.8-6.6zM10.9 13.1 20 4.5" />
+        </SidebarNavigationIconFrame>
+      );
+    case 3:
+      return (
+        <SidebarNavigationIconFrame>
+          <path d="M6 3.5h8l4 4v13H6zM14 3.5v4h4M9 12h6M9 15.5h6" />
+        </SidebarNavigationIconFrame>
+      );
+    case 4:
+      return (
+        <SidebarNavigationIconFrame>
+          <path d="M4.5 7h15v13h-15zM3.5 4h17v3h-17zM9 11h6" />
+        </SidebarNavigationIconFrame>
+      );
+    default:
+      return (
+        <SidebarNavigationIconFrame>
+          <path d="M5.5 7h13M9 7V4.5h6V7M7 7l.8 13h8.4L17 7M10 10.5v6M14 10.5v6" />
+        </SidebarNavigationIconFrame>
+      );
+  }
+}
+
+function DashboardSidebar({
+  definition,
+  showNavigationIcons = false,
+}: {
+  readonly definition: CampusWebsiteDefinition;
+  readonly showNavigationIcons?: boolean | undefined;
+}) {
   const { account, kind } = definition;
   const storageCard = account.dashboard.lowerCards.find(({ title }) => title === 'Speicherplatz');
   return (
@@ -207,7 +346,15 @@ function DashboardSidebar({ definition }: { readonly definition: CampusWebsiteDe
       <nav>
         {account.dashboard.navigation.map((item, index) => (
           <span className={index === 0 ? styles.sidebarActive : undefined} key={item}>
-            <i aria-hidden="true" />
+            {showNavigationIcons && kind === 'campusgram' ? (
+              <DashboardNavigationIcon index={index} />
+            ) : showNavigationIcons && kind === 'master-campus' ? (
+              <MasterNavigationIcon index={index} />
+            ) : showNavigationIcons && kind === 'campus-email' ? (
+              <MailNavigationIcon index={index} />
+            ) : (
+              <i aria-hidden="true" />
+            )}
             {item}
           </span>
         ))}
@@ -223,6 +370,82 @@ function DashboardSidebar({ definition }: { readonly definition: CampusWebsiteDe
   );
 }
 
+function masterServiceSymbolId(title: string): string | undefined {
+  switch (title) {
+    case 'Campus Workspace':
+      return 'campus-workspace';
+    case 'Campus Services':
+      return 'campus-services';
+    case 'Campus Cloud':
+      return 'campus-cloud';
+    default:
+      return undefined;
+  }
+}
+
+function MasterUtilityBar() {
+  return (
+    <div className={styles.masterUtilityBar} aria-hidden="true">
+      <span className={styles.masterSearchControl}>
+        <svg fill="none" viewBox="0 0 24 24">
+          <circle cx="10.5" cy="10.5" r="5.5" />
+          <path d="m15 15 4.5 4.5" />
+        </svg>
+        <i />
+      </span>
+      <span className={styles.masterUtilityIcon}>
+        <svg fill="none" viewBox="0 0 24 24">
+          <path d="M6 17.5h12l-1.7-2.4v-4.2a4.3 4.3 0 0 0-8.6 0v4.2zM10 19.5c.5.7 1.2 1 2 1s1.5-.3 2-1" />
+        </svg>
+      </span>
+      <span className={styles.masterAvatar}>P</span>
+    </div>
+  );
+}
+
+function MasterStatusIcon({ index }: { readonly index: number }) {
+  return (
+    <span className={styles.statusRing} aria-hidden="true">
+      {index === 2 ? (
+        <svg fill="none" viewBox="0 0 24 24">
+          <path d="M5 13v-1a7 7 0 0 1 14 0v1M5 12.5H4a2 2 0 0 0-2 2v2a2 2 0 0 0 2 2h2v-6ZM19 12.5h1a2 2 0 0 1 2 2v2a2 2 0 0 1-2 2h-2v-6ZM18 18.5c-.8 1.3-2.2 2-4.2 2" />
+        </svg>
+      ) : (
+        <svg fill="none" viewBox="0 0 24 24">
+          <path d="m6.5 12.3 3.4 3.4 7.7-8.2" />
+        </svg>
+      )}
+    </span>
+  );
+}
+
+function MailStatusIcon({ index }: { readonly index: number }) {
+  return (
+    <span className={styles.mailStatusIcon} aria-hidden="true">
+      <svg fill="none" viewBox="0 0 24 24">
+        {index === 0 ? (
+          <>
+            <rect x="3.5" y="5.5" width="17" height="13" rx="2" />
+            <path d="m4.5 7 7.5 5.8L19.5 7" />
+          </>
+        ) : index === 1 ? (
+          <>
+            <rect x="4" y="4" width="6" height="6" rx="1" />
+            <rect x="14" y="4" width="6" height="6" rx="1" />
+            <rect x="4" y="14" width="6" height="6" rx="1" />
+            <rect x="14" y="14" width="6" height="6" rx="1" />
+          </>
+        ) : (
+          <>
+            <path d="M12 3.5 19 6v5.5c0 4.1-2.3 7.1-7 9-4.7-1.9-7-4.9-7-9V6z" />
+            <path d="m9.2 12 1.8 1.8 3.9-4" />
+          </>
+        )}
+      </svg>
+    </span>
+  );
+}
+
 function MasterDashboard(props: {
   readonly definition: CampusWebsiteDefinition;
   readonly displayName?: string | undefined;
@@ -230,43 +453,63 @@ function MasterDashboard(props: {
 }) {
   const { account } = props.definition;
   return (
-    <main className={styles.dashboard}>
-      <DashboardSidebar definition={props.definition} />
+    <main className={styles.dashboard} data-master-refined="true">
+      <DashboardSidebar definition={props.definition} showNavigationIcons />
       <div className={styles.dashboardContent}>
-        <DashboardHeading
-          account={account}
-          displayName={props.displayName}
-          dashboardHeadingRef={props.dashboardHeadingRef}
-        />
+        <div className={styles.masterHeadingRow}>
+          <DashboardHeading
+            account={account}
+            displayName={props.displayName}
+            dashboardHeadingRef={props.dashboardHeadingRef}
+          />
+          <MasterUtilityBar />
+        </div>
         <section className={styles.masterSummary} aria-label={s01Content.siteUi.summaryAriaLabel}>
-          {account.dashboard.summaryCards.map((card) => (
-            <article className={styles.hubCard} key={card.title}>
-              <h2>{card.title}</h2>
-              <p>{card.detail}</p>
-              <span className={styles.cardLink}>{s01Content.siteUi.viewLabel} →</span>
-            </article>
-          ))}
+          {account.dashboard.summaryCards.map((card) => {
+            const symbolId = masterServiceSymbolId(card.title);
+            return (
+              <article className={styles.hubCard} key={card.title}>
+                {symbolId === undefined ? null : (
+                  <span className={styles.hubCardSymbol} aria-hidden="true">
+                    <NetworkSymbol symbolId={symbolId} />
+                  </span>
+                )}
+                <div className={styles.hubCardCopy}>
+                  <h2>{card.title}</h2>
+                  <p>{card.detail}</p>
+                  <span className={styles.cardLink}>{s01Content.siteUi.viewLabel} →</span>
+                </div>
+              </article>
+            );
+          })}
         </section>
         <section className={styles.masterActivity}>
           <header>
             <h2>{account.dashboard.activityTitle}</h2>
             <span>{s01Content.siteUi.showAllLabel}</span>
           </header>
-          {account.dashboard.activities.map((activity) => (
-            <article key={activity.title}>
-              <span className={styles.activityCheck} aria-hidden="true">•</span>
-              <div>
-                <strong>{activity.title}</strong>
-                <span>{activity.meta}</span>
-              </div>
-              <span aria-hidden="true">›</span>
-            </article>
-          ))}
+          {account.dashboard.activities.map((activity) => {
+            const symbolId = masterServiceSymbolId(activity.title);
+            return (
+              <article key={activity.title}>
+                {symbolId === undefined ? null : (
+                  <span className={styles.activitySymbol} aria-hidden="true">
+                    <NetworkSymbol symbolId={symbolId} />
+                  </span>
+                )}
+                <div>
+                  <strong>{activity.title}</strong>
+                  <span>{activity.meta}</span>
+                </div>
+                <span aria-hidden="true">›</span>
+              </article>
+            );
+          })}
         </section>
         <section className={styles.masterLower} aria-label={s01Content.siteUi.lowerAriaLabel}>
-          {account.dashboard.lowerCards.slice(0, 3).map((card) => (
-            <article key={card.title}>
-              <span className={styles.statusRing} aria-hidden="true">✓</span>
+          {account.dashboard.lowerCards.slice(0, 3).map((card, index) => (
+            <article data-card-index={index} key={card.title}>
+              <MasterStatusIcon index={index} />
               <div>
                 <h2>{card.title}</h2>
                 <p>{card.detail}</p>
@@ -297,15 +540,25 @@ function MailDashboard(props: {
   const { account } = props.definition;
   const selectedMessage = account.dashboard.activities[0];
   return (
-    <main className={`${styles.dashboard} ${styles.mailDashboard}`}>
-      <DashboardSidebar definition={props.definition} />
+    <main className={`${styles.dashboard} ${styles.mailDashboard}`} data-mail-refined="true">
+      <DashboardSidebar definition={props.definition} showNavigationIcons />
       <div className={styles.mailWorkspace}>
         <section
           className={styles.mailToolbar}
           aria-label={s01Content.siteUi.mailbox.toolbarAriaLabel}
         >
-          <div>⌕ {s01Content.siteUi.mailbox.searchLabel}</div>
-          <span>
+          <div className={styles.mailSearchControl}>
+            <svg aria-hidden="true" fill="none" viewBox="0 0 24 24">
+              <circle cx="10.5" cy="10.5" r="5.5" />
+              <path d="m15 15 4.5 4.5" />
+            </svg>
+            {s01Content.siteUi.mailbox.searchLabel}
+          </div>
+          <span className={styles.mailMessageCount}>
+            <svg aria-hidden="true" fill="none" viewBox="0 0 24 24">
+              <rect x="3.5" y="5.5" width="17" height="13" rx="2" />
+              <path d="m4.5 7 7.5 5.8L19.5 7" />
+            </svg>
             {s01Content.siteUi.mailbox.messageCount(account.dashboard.activities.length)}
           </span>
         </section>
@@ -313,7 +566,10 @@ function MailDashboard(props: {
           <div className={styles.messageList} aria-label={account.dashboard.activityTitle}>
             <header>
               <h2>{account.dashboard.activityTitle}</h2>
-              <span>{s01Content.siteUi.mailbox.latestFirst}</span>
+              <span>
+                {s01Content.siteUi.mailbox.latestFirst}
+                <b aria-hidden="true">⌄</b>
+              </span>
             </header>
             {account.dashboard.activities.map((activity, index) => (
               <article key={activity.title} data-selected={index === 0 || undefined}>
@@ -351,10 +607,13 @@ function MailDashboard(props: {
           </article>
         </section>
         <section className={styles.mailStatusGrid} aria-label={s01Content.siteUi.lowerAriaLabel}>
-          {account.dashboard.summaryCards.map((card) => (
+          {account.dashboard.summaryCards.map((card, index) => (
             <article key={card.title}>
-              <h2>{card.title}</h2>
-              <p>{card.detail}</p>
+              <MailStatusIcon index={index} />
+              <div>
+                <h2>{card.title}</h2>
+                <p>{card.detail}</p>
+              </div>
               <i aria-hidden="true" />
             </article>
           ))}
@@ -381,8 +640,11 @@ function CommunityDashboard(props: {
   const { account } = props.definition;
   const greetingName = props.displayName?.trim().split(/\s+/u)[0] || 'Campus';
   return (
-    <main className={`${styles.dashboard} ${styles.communityDashboard}`}>
-      <DashboardSidebar definition={props.definition} />
+    <main
+      className={`${styles.dashboard} ${styles.communityDashboard}`}
+      data-refined="true"
+    >
+      <DashboardSidebar definition={props.definition} showNavigationIcons />
       <div className={styles.communityContent}>
         <header className={styles.communityToolbar}>
           <h1

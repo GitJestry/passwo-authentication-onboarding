@@ -30,6 +30,15 @@
   min-height: 0;
 }
 
+.incidentStage::before {
+  position: absolute;
+  z-index: 0;
+  inset: 0;
+  background: rgb(70 3 31 / 27%);
+  content: "";
+  pointer-events: none;
+}
+
 .attacker {
   position: absolute;
   top: 50%;

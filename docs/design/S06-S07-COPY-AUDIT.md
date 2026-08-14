@@ -1,5 +1,69 @@
 # S06--S07 Copy Audit
 
+## Inhaltsdelta S07 weitere Passphrasen-Wortfolgen, 13. August 2026
+
+Quelle ist der ausdrückliche Nutzerauftrag vom 13. August 2026. Die bestehende lokale Auswahl
+aus drei fiktiven Wortfolgen wird um 20 Folgen erweitert. Jede neue Folge besteht weiterhin aus
+sechs großgeschriebenen Wörtern. Die Wortauswahl verwendet bewusst seltenere Begriffe ohne
+erkennbaren semantischen Zusammenhang innerhalb einer Folge. Bedienung, sichtbare Begleittexte,
+Persistenz, Export und Timing bleiben unverändert. `S07_PASSPHRASE_SEARCH_CONTENT_VERSION` wird
+von `2.5.0` auf `2.6.0` erhöht.
+
+| Segment und Text-ID | Aktueller Inhalt | Geplanter Inhalt | Primäre Rolle | Interaktionsziel | Grund und Bedeutungsänderung | Hervorhebung |
+|---|---|---|---|---|---|---|
+| `S07.browser.generatorPage.wordSets` | drei lokale Folgen mit je sechs Wörtern | 23 lokale Folgen mit je sechs Wörtern | Orientierung | `Neu generieren` | erweitert die vom Generator angebotene Variation um ausdrücklich verlangte seltenere, unverbundene Begriffe; keine Änderung der Lernbotschaft | keine |
+
+## Copy- und Darstellungsdelta S07 reduzierte Passphrasen-Werkstatt, 13. August 2026
+
+Quelle ist der ausdrückliche Nutzerauftrag vom 13. August 2026. Das Logo des hervorgehobenen
+Search-Treffers entspricht nun der Wortmarke der geöffneten Passphrase-Werkstatt. Die Status- und
+Vertrauenstexte `Direkt im Browser`, `Bereit` und `Fiktives Beispiel` entfallen. Der Seitentitel
+`Passphrase-Generator` steht außerhalb und oberhalb der Generatorfläche. Die bisherige
+Handlungsanweisung wird durch eine kurze, begrenzte Mechanismuserklärung ersetzt.
+
+Die drei lokalen Wortfolgen bestehen nun aus jeweils sechs großgeschriebenen Wörtern.
+`Neu generieren` steht direkt über dem Ausgabefeld, `Kopieren` darunter. Der Kopiervorgang bleibt
+eine lokale Simulation ohne Zugriff auf die System-Zwischenablage, beendet weiterhin S07 und
+zeigt bis zum Szenenwechsel den Toast `Kopiert`. Die bisherige Statuszeile unter der Generatorbox
+entfällt. `S07_PASSPHRASE_SEARCH_CONTENT_VERSION` wird von `2.4.0` auf `2.5.0` erhöht.
+
+| Segment und Text-ID | Vorher | Nachher | Rolle | Interaktionsziel | Grund und Bedeutungsänderung | Hervorhebung |
+|---|---|---|---|---|---|---|
+| `S07.browser.searchPage.primaryResult.logo` | grüner Buchstabe `P` | Wortmarke der Passphrase-Werkstatt | Orientierung | erster Ergebnistreffer | stellt die visuelle Identität zwischen Treffer und Zielseite her; keine Bedeutungsänderung | eigenständige Teal-Korall-Marke |
+| `S07.browser.searchPage.primaryResult.description` | nennt anpassbare Wortanzahl und Trennzeichen | nennt sechs Wörter und ausschließlich die Wahl des Trennzeichens | Orientierung | erster Ergebnistreffer | stimmt die Vorschau auf die tatsächlich angebotenen Generatoroptionen ab; begrenzt | keine |
+| `S07.browser.generatorPage.intro` | Handlungsanweisung zur Wortfolge und Lesbarkeit | `Eine lange Passphrase aus zufällig gewählten Wörtern ist schwerer zu erraten und trotzdem gut merkbar.` | Mechanismuserklärung | kein | ersetzt redundante Bedienanweisung durch kurze, begrenzte Sicherheitsinformation; begrenzt | keine |
+| `S07.browser.generatorPage.wordCount` | `5 Wörter` | `6 Wörter` | Orientierung | kein | bildet die ausdrücklich verlangte Generatorlänge ab; begrenzt | keine |
+| `S07.browser.generatorPage.outputLabel` | `Fiktives Beispiel` | entfällt sichtbar; zugänglicher Name bleibt erhalten | Safety Boundary | kein | reduziert sichtbare Ablenkung bei erhaltener Zugänglichkeit; begrenzt | keine |
+| `S07.browser.generatorPage.finish` | `Auswählen & weiter` mit Statuszeile | `Kopieren` mit Toast `Kopiert` | Navigation / Ergebnisfeedback | beendet S07 nach simulierter Kopierhandlung | bildet das gewünschte Website-Muster ab, ohne Passwortdaten in die System-Zwischenablage zu schreiben; begrenzt | Teal-Primärfläche und grüner Toast |
+
+## Copy- und Interaktionsdelta S07 Passphrasen-Werkstatt, 13. August 2026
+
+Quelle ist der ausdrückliche Nutzerauftrag vom 13. August 2026. Der erste Pflichttreffer der
+bereits vorhandenen fiktiven Search-Seite beendet S07 nicht mehr unmittelbar, sondern öffnet im
+selben Browser-Tab die neue fiktive `Passphrase-Werkstatt`. Deren Seitenstruktur orientiert sich
+an der bereitgestellten visuellen Referenz, übernimmt aber PassWo-nahe Teal-, Korall-, Flächen-,
+Radius- und Typografieentscheidungen sowie eine eigenständige Wortmarke. Die Seite bleibt in
+einem Viewport und enthält bewusst weder den Referenzabschnitt `Was ist eine Passphrase?` noch
+weitere Ratgeberflächen.
+
+Der Generator zeigt fünf fest vorgegebene Wörter und erlaubt ausschließlich die Wahl zwischen
+Bindestrich, Punkt, Unterstrich und Leerzeichen. Kapitalisierung, Großbuchstaben,
+Kleinbuchstaben, Zahlen und weitere Optionen entfallen. `Neu generieren` wechselt lokal und
+deterministisch zwischen drei fiktiven Wortfolgen. `Auswählen & weiter` beendet S07, ohne die
+Wortfolge oder Auswahl zu persistieren, zu exportieren oder in die Zwischenablage zu schreiben.
+`S07_PASSPHRASE_SEARCH_CONTENT_VERSION` wird von `2.3.0` auf `2.4.0` erhöht. Timingfelder,
+Persistenzvertrag und nachfolgende Segmente bleiben unverändert.
+
+| Segment und Text-ID | Aktueller Text | Geplanter Text | Primäre Rolle | Interaktionsziel | Grund und Bedeutungsänderung | Hervorhebung |
+|---|---|---|---|---|---|---|
+| `S07.browser.generatorPage.title` | nicht vorhanden | `Deine neue Passphrase` | Orientierung | kein | benennt die neue Ergebniswebsite knapp; ausdrücklich freigegeben | keine |
+| `S07.browser.generatorPage.intro` | nicht vorhanden | `Erzeuge eine neue Wortfolge und wähle das Trennzeichen, das für dich am besten lesbar ist.` | Navigation | Generator und Trennzeichen | bildet ausschließlich die sichtbare Bedienung ab; ausdrücklich freigegeben | keine |
+| `S07.browser.generatorPage.separatorLegend` | nicht vorhanden | `Trennzeichen wählen` | Navigation | vier sichtbare Trennzeichen | ersetzt die nicht gewünschten Zeichen- und Zahlenoptionen durch das einzige freigegebene Anpassungsziel; ausdrücklich freigegeben | aktive Auswahl in Teal plus Kontur |
+| `S07.browser.generatorPage.outputLabel` | nicht vorhanden | `Fiktives Beispiel` | Safety Boundary | kein | grenzt die lokale Wortfolge von einem echten Passwort ab; begrenzt | keine |
+| `S07.browser.generatorPage.generate` | nicht vorhanden | `Neu generieren` | Navigation | wechselt nur die lokale Wortfolge | benennt die tatsächliche wiederholbare Generatorhandlung; ausdrücklich freigegeben | keine |
+| `S07.browser.generatorPage.finish` | erster Ergebnisklick beendet S07 | `Auswählen & weiter` | Navigation | beendet S07 ohne Übergabe der Wortfolge | verschiebt den Abschluss auf die sichtbare Generatorhandlung und vermeidet einen vorgetäuschten Zwischenablagezugriff; begrenzt | Teal-Primärfläche |
+| `S07.browser.generatorPage.boundary` | nicht vorhanden | `Die angezeigte Wortfolge bleibt nur in dieser Übung.` | Safety Boundary | kein | macht die Datenschutzgrenze an der einzigen stabilen Stelle sichtbar; begrenzt | grüner Statuspunkt plus Text |
+
 ## Copy- und Darstellungsdelta S07 Ergebnisabschluss, 13. August 2026
 
 Quelle ist der ausdrückliche Nutzerauftrag vom 13. August 2026. Die stark an eine bekannte

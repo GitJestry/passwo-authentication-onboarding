@@ -30,6 +30,7 @@ export function S04IncidentTraining({
   onRetryExternalTiming,
 }: S04IncidentTrainingProps) {
   const [leavingForAnalysis, setLeavingForAnalysis] = useState(false);
+  const [passwordChangeOpen, setPasswordChangeOpen] = useState(false);
   const analysisTransitionRef = useRef<HTMLSpanElement>(null);
   const writingStart = snapshot.matches({ s04: 'writingStart' });
   const startWriteFailed = snapshot.matches({ s04: 'startWriteFailed' });
@@ -41,18 +42,25 @@ export function S04IncidentTraining({
   const browserSnapshot: BrowserShellSnapshot = {
     tabs: s01Content.browser.accounts.map((account) => ({
       id: account.id,
-      label: account.id === 'campusgram' ? `${account.label} · Warnung` : account.label,
+      label:
+        account.id === 'campusgram'
+          ? `${account.label} · ${
+              passwordChangeOpen ? s04Content.notice.passwordChange.tabLabel : 'Warnung'
+            }`
+          : account.label,
       icon: <NetworkSymbol symbolId={account.symbolId} />,
       enabled: false,
       disabledReason: 'Die Sicherheitswarnung wird innerhalb von Campusgram erklärt.',
       ...(account.id === 'campusgram' ? { status: 'danger' as const } : {}),
     })),
     activeTabId: 'campusgram',
-    address: s04Content.browser.address,
+    address: passwordChangeOpen
+      ? s04Content.notice.passwordChange.address
+      : s04Content.browser.address,
     accountIdentifier: campusIdentity.campusgram,
-    scrollKey: 's04:campusgram:incident',
-    dimmed: true,
-    dimStrength: 'soft',
+    scrollKey: passwordChangeOpen
+      ? 's04:campusgram:password-change'
+      : 's04:campusgram:incident',
     locked: writingStart || writingEnd,
   };
 
@@ -102,7 +110,7 @@ export function S04IncidentTraining({
               ref={analysisTransitionRef}
             />
           ) : undefined,
-          passWo: (
+          passWo: passwordChangeOpen ? undefined : (
             <section
               className={styles.incidentOverlay}
               role="alert"
@@ -162,7 +170,12 @@ export function S04IncidentTraining({
           interactionLabel={s04Content.browser.tabWarningLabel}
           view="dashboard"
           displayName={snapshot.context.displayName ?? ''}
-          dashboardNotice={<CampusgramIncidentNotice />}
+          dashboardNotice={
+            <CampusgramIncidentNotice
+              passwordChangeOpen={passwordChangeOpen}
+              onPasswordChangeOpenChange={setPasswordChangeOpen}
+            />
+          }
         />
       </BrowserShell>
     </section>

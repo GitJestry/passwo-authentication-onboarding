@@ -1,20 +1,20 @@
 .serviceNotice {
   display: grid;
   width: 100%;
-  grid-template-columns: auto minmax(0, 1fr);
+  grid-template-columns: auto minmax(0, 1fr) auto;
   align-items: center;
-  gap: var(--space-4);
-  margin-bottom: var(--space-4);
-  padding: var(--space-4) clamp(var(--space-4), 2cqi, var(--space-6));
-  border: var(--border-width-thin) solid color-mix(in srgb, var(--color-danger) 36%, transparent);
+  gap: clamp(var(--space-4), 2.2cqi, var(--space-7));
+  margin-bottom: var(--space-5);
+  padding: clamp(var(--space-4), 2.2cqi, var(--space-6));
+  border: var(--border-width-thin) solid color-mix(in srgb, var(--color-danger) 42%, transparent);
   border-radius: var(--radius-large);
   color: var(--color-ink-strong);
   background: linear-gradient(
-    105deg,
-    color-mix(in srgb, var(--color-danger-soft) 94%, white),
-    color-mix(in srgb, var(--color-danger-soft) 76%, var(--color-surface-primary))
+    112deg,
+    color-mix(in srgb, var(--color-danger-soft) 88%, white),
+    color-mix(in srgb, var(--color-danger-soft) 54%, var(--color-surface-primary))
   );
-  box-shadow: 0 0.7rem 1.8rem color-mix(in srgb, var(--color-danger) 12%, transparent);
+  box-shadow: 0 0.85rem 2.1rem color-mix(in srgb, var(--color-danger) 10%, transparent);
 }
 
 .incidentIcon {
@@ -34,7 +34,7 @@
 .serviceNotice h2 {
   margin: 0;
   color: var(--color-danger);
-  font-size: clamp(1.05rem, 1.8cqi, 1.45rem);
+  font-size: clamp(1.15rem, 1.8cqi, 1.55rem);
   line-height: var(--line-height-tight);
 }
 
@@ -45,9 +45,237 @@
   line-height: var(--line-height-body);
 }
 
+.serviceNotice .advisory {
+  margin-top: var(--space-2);
+  color: var(--color-ink-strong);
+}
+
+.passwordChangeAction,
+.submitButton {
+  display: inline-flex;
+  min-height: var(--size-control-large);
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-5);
+  border: var(--border-width-medium) solid transparent;
+  border-radius: var(--radius-small);
+  color: #fff;
+  background: linear-gradient(135deg, #a91454, var(--color-campusgram-accent));
+  box-shadow: 0 0.65rem 1.35rem rgb(143 23 73 / 20%);
+  font: inherit;
+  font-size: var(--font-size-small);
+  font-weight: var(--font-weight-heavy);
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.passwordChangeAction svg,
+.securityContext svg,
+.formIcon svg {
+  width: 1.35rem;
+  height: 1.35rem;
+  flex: none;
+}
+
+.passwordChangeAction:focus-visible,
+.submitButton:focus-visible,
+.passwordChangeHeader button:focus-visible,
+.passwordChangeCard input:focus-visible {
+  outline: var(--border-width-focus) solid var(--color-focus);
+  outline-offset: var(--space-1);
+  box-shadow: var(--shadow-focus);
+}
+
+.passwordChangeLayer {
+  position: absolute;
+  z-index: 20;
+  inset: 0;
+  min-height: 100%;
+  overflow: auto;
+  color: var(--color-campusgram-ink);
+  background:
+    radial-gradient(circle at 58% 8%, rgb(253 226 238 / 72%), transparent 27rem),
+    #fffafb;
+}
+
+.passwordChangeHeader {
+  display: flex;
+  min-height: 4.75rem;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+  padding: var(--space-3) clamp(var(--space-5), 4cqi, var(--space-8));
+  border-bottom: var(--border-width-thin) solid var(--color-campusgram-border);
+  background: rgb(255 255 255 / 88%);
+}
+
+.passwordChangeHeader button {
+  display: inline-flex;
+  min-height: var(--size-control-medium);
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-2) 0;
+  border: 0;
+  color: var(--color-campusgram-ink);
+  background: transparent;
+  font: inherit;
+  font-size: var(--font-size-small);
+  font-weight: var(--font-weight-heavy);
+  cursor: pointer;
+}
+
+.securityContext {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  color: var(--color-campusgram-muted);
+  font-size: var(--font-size-small);
+  font-weight: var(--font-weight-semibold);
+}
+
+.passwordChangeBody {
+  display: grid;
+  max-width: 68rem;
+  grid-template-columns: minmax(11rem, 14rem) minmax(0, 1fr);
+  align-items: start;
+  gap: clamp(var(--space-5), 4cqi, var(--space-8));
+  margin: 0 auto;
+  padding: clamp(var(--space-5), 4cqi, var(--space-8));
+}
+
+.passwordChangeBody > aside {
+  display: grid;
+  gap: var(--space-1);
+  padding: var(--space-4);
+  border: var(--border-width-thin) solid var(--color-campusgram-border);
+  border-radius: var(--radius-medium);
+  background: rgb(255 255 255 / 86%);
+}
+
+.passwordChangeBody > aside strong {
+  margin-bottom: var(--space-3);
+  font-size: var(--font-size-small);
+}
+
+.passwordChangeBody > aside span {
+  padding: var(--space-3);
+  border-radius: var(--radius-small);
+  color: var(--color-campusgram-muted);
+  font-size: var(--font-size-small);
+}
+
+.passwordChangeBody > aside span[aria-current="page"] {
+  color: var(--color-campusgram-ink);
+  background: var(--color-campusgram-soft);
+  font-weight: var(--font-weight-heavy);
+}
+
+.passwordChangeCard {
+  display: grid;
+  width: min(100%, 38rem);
+  gap: var(--space-4);
+  padding: clamp(var(--space-5), 3cqi, var(--space-7));
+  border: var(--border-width-thin) solid var(--color-campusgram-border);
+  border-radius: var(--radius-large);
+  background: #fff;
+  box-shadow: 0 1.1rem 2.8rem rgb(112 20 58 / 9%);
+}
+
+.passwordChangeCard h2 {
+  margin: 0;
+  font-size: clamp(1.5rem, 2.4cqi, 2rem);
+  line-height: var(--line-height-tight);
+}
+
+.passwordChangeCard h2:focus {
+  outline: 0;
+}
+
+.passwordChangeCard > p {
+  margin: 0;
+  color: var(--color-campusgram-muted);
+  line-height: var(--line-height-body);
+}
+
+.formIcon,
+.successMark {
+  display: grid;
+  width: 3rem;
+  height: 3rem;
+  place-items: center;
+  border-radius: var(--radius-round);
+  color: var(--color-campusgram-accent);
+  background: var(--color-campusgram-soft);
+}
+
+.successMark {
+  color: #14623b;
+  background: #e4f4ea;
+  font-size: 1.4rem;
+  font-weight: var(--font-weight-heavy);
+}
+
+.passwordChangeCard .safetyNote {
+  padding: var(--space-3) var(--space-4);
+  border-left: 0.22rem solid var(--color-campusgram-accent);
+  border-radius: 0 var(--radius-small) var(--radius-small) 0;
+  background: var(--color-campusgram-soft);
+  color: var(--color-campusgram-ink);
+  font-size: var(--font-size-small);
+}
+
+.passwordChangeCard label {
+  display: grid;
+  gap: var(--space-2);
+  color: var(--color-campusgram-ink);
+  font-size: var(--font-size-small);
+  font-weight: var(--font-weight-semibold);
+}
+
+.passwordChangeCard input {
+  width: 100%;
+  min-height: var(--size-control-large);
+  padding: var(--space-3) var(--space-4);
+  border: var(--border-width-thin) solid var(--color-campusgram-border);
+  border-radius: var(--radius-small);
+  color: var(--color-campusgram-ink);
+  background: #fff;
+  font: inherit;
+}
+
+.passwordChangeCard .validationError {
+  color: var(--color-danger);
+  font-size: var(--font-size-small);
+  font-weight: var(--font-weight-semibold);
+}
+
+.passwordChangeCard .submitButton {
+  width: max-content;
+  min-width: 11rem;
+  margin-top: var(--space-2);
+}
+
 @container artifact-stage (max-width: 760px) {
+  .serviceNotice {
+    grid-template-columns: auto minmax(0, 1fr);
+  }
+
+  .passwordChangeAction {
+    grid-column: 1 / -1;
+    width: 100%;
+  }
+
   .incidentIcon {
     width: 2.8rem;
     height: 2.8rem;
+  }
+
+  .passwordChangeBody {
+    grid-template-columns: 1fr;
+  }
+
+  .passwordChangeBody > aside {
+    display: none;
   }
 }

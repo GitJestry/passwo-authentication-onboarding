@@ -8,7 +8,7 @@ import {
   type BrowserShellSnapshot,
   type DesktopPlatform,
 } from '@passwo/ui';
-import { useState } from 'react';
+import { useEffect, useState, type MouseEvent } from 'react';
 import { NetworkSymbol } from '../../../../adapters/network/NetworkSymbolRegistry.js';
 import { CampusWebsiteBackdrop } from '../../CampusWebsiteBackdrop.js';
 import { CampusgramIncidentNotice } from '../../CampusgramIncidentNotice.js';
@@ -69,6 +69,14 @@ function SearchBrandIcon() {
   );
 }
 
+function GeneratorBrandMark() {
+  return (
+    <span className={styles.generatorBrandMark} aria-hidden="true">
+      <span>W</span>
+    </span>
+  );
+}
+
 function SearchPage({ onPrimaryResultSelect }: { readonly onPrimaryResultSelect: () => void }) {
   const searchPage = s07PassphraseSearchContent.browser.searchPage;
 
@@ -107,7 +115,7 @@ function SearchPage({ onPrimaryResultSelect }: { readonly onPrimaryResultSelect:
               <li key={result.id} className={isPrimary ? styles.primaryResult : styles.searchResult}>
                 <div className={styles.resultSource}>
                   <span className={styles.resultFavicon} aria-hidden="true">
-                    {result.siteName.slice(0, 1)}
+                    {isPrimary ? <GeneratorBrandMark /> : result.siteName.slice(0, 1)}
                   </span>
                   <span>
                     <strong>{result.siteName}</strong>
@@ -185,6 +193,138 @@ function SearchPage({ onPrimaryResultSelect }: { readonly onPrimaryResultSelect:
   );
 }
 
+function GeneratorPage({ onCopy }: { readonly onCopy: () => void }) {
+  const page = s07PassphraseSearchContent.browser.generatorPage;
+  const [separator, setSeparator] = useState<string>(page.separators[0].value);
+  const [wordSetIndex, setWordSetIndex] = useState(0);
+  const [copyToastPosition, setCopyToastPosition] = useState<{
+    readonly x: number;
+    readonly y: number;
+  } | null>(null);
+  const passphrase = (page.wordSets[wordSetIndex] ?? page.wordSets[0]).join(separator);
+
+  useEffect(() => {
+    if (copyToastPosition === null) {
+      return undefined;
+    }
+
+    const dismissTimeout = window.setTimeout(() => {
+      setCopyToastPosition(null);
+    }, 1800);
+
+    return () => window.clearTimeout(dismissTimeout);
+  }, [copyToastPosition]);
+
+  const showCopyToast = (event: MouseEvent<HTMLButtonElement>) => {
+    const buttonBounds = event.currentTarget.getBoundingClientRect();
+    const x = event.detail === 0 ? buttonBounds.left + buttonBounds.width / 2 : event.clientX;
+    const y = event.detail === 0 ? buttonBounds.top + buttonBounds.height / 2 : event.clientY;
+
+    setCopyToastPosition({ x, y });
+    onCopy();
+  };
+
+  return (
+    <div className={styles.generatorPage} aria-label={page.ariaLabel}>
+      <header className={styles.generatorHeader}>
+        <span className={styles.generatorBrand}>
+          <GeneratorBrandMark />
+          <strong>{page.siteName}</strong>
+        </span>
+        <nav aria-label="Seitennavigation">
+          {page.navigation.map((item, index) => (
+            <span key={item} className={index === 0 ? styles.activeGeneratorNavigation : undefined}>
+              {item}
+            </span>
+          ))}
+        </nav>
+      </header>
+
+      <main className={styles.generatorMain}>
+        <div className={styles.generatorIntro}>
+          <span>{page.eyebrow}</span>
+          <p>{page.securityMessage}</p>
+        </div>
+
+        <div className={styles.generatorWorkspace}>
+          <h1>{page.title}</h1>
+          <section className={styles.generatorCard} aria-labelledby="generator-card-title">
+            <div className={styles.generatorCardHeading}>
+              <h2 id="generator-card-title">{page.wordCount}</h2>
+            </div>
+
+            <fieldset className={styles.separatorFieldset}>
+              <legend>{page.separatorLegend}</legend>
+              <div className={styles.separatorOptions}>
+                {page.separators.map((option) => (
+                  <label key={option.label}>
+                    <input
+                      type="radio"
+                      name="passphrase-separator"
+                      value={option.value}
+                      checked={separator === option.value}
+                      onChange={() => {
+                        setSeparator(option.value);
+                        setCopyToastPosition(null);
+                      }}
+                    />
+                    <span className={styles.separatorSymbol} aria-hidden="true">
+                      {option.value === ' ' ? '⌴' : option.value}
+                    </span>
+                    <span>{option.label}</span>
+                  </label>
+                ))}
+              </div>
+            </fieldset>
+
+            <button
+              type="button"
+              className={styles.generateButton}
+              onClick={() => {
+                setWordSetIndex((currentIndex) => (currentIndex + 1) % page.wordSets.length);
+                setCopyToastPosition(null);
+              }}
+            >
+              <span aria-hidden="true">↻</span>
+              {page.generate}
+            </button>
+
+            <div className={styles.generatorOutputGroup}>
+              <output
+                className={styles.generatorOutput}
+                aria-label={page.outputAriaLabel}
+                aria-live="polite"
+              >
+                {passphrase}
+              </output>
+            </div>
+
+            <button
+              type="button"
+              className={styles.copyButton}
+              onClick={showCopyToast}
+            >
+              <span className={styles.copyButtonIcon} aria-hidden="true" />
+              {page.copy}
+            </button>
+          </section>
+        </div>
+      </main>
+
+      {copyToastPosition ? (
+        <div
+          className={styles.copyToast}
+          role="status"
+          style={{ left: copyToastPosition.x, top: copyToastPosition.y }}
+        >
+          <span aria-hidden="true">✓</span>
+          {page.copied}
+        </div>
+      ) : null}
+    </div>
+  );
+}
+
 export interface S07PassphraseSearchTrainingProps {
   readonly displayName: string;
   readonly platform?: DesktopPlatform;
@@ -197,8 +337,10 @@ export function S07PassphraseSearchTraining({
   onPrimaryResultSelect = () => undefined,
 }: S07PassphraseSearchTrainingProps) {
   const [activeTabId, setActiveTabId] = useState<S07TabId>('campusgram');
+  const [searchView, setSearchView] = useState<'results' | 'generator'>('results');
   const activeAccount = s01Content.browser.accounts.find(({ id }) => id === activeTabId);
   const searchTab = s07PassphraseSearchContent.browser.searchTab;
+  const generatorPage = s07PassphraseSearchContent.browser.generatorPage;
   const snapshot: BrowserShellSnapshot = {
     tabs: [
       ...s01Content.browser.accounts.map((account) => ({
@@ -216,8 +358,12 @@ export function S07PassphraseSearchTraining({
     ],
     activeTabId,
     address:
-      activeAccount === undefined ? searchTab.address : `${activeAccount.address}/dashboard`,
-    scrollKey: `s07:${activeTabId}`,
+      activeAccount === undefined
+        ? searchView === 'generator'
+          ? generatorPage.address
+          : searchTab.address
+        : `${activeAccount.address}/dashboard`,
+    scrollKey: `s07:${activeTabId}:${activeAccount === undefined ? searchView : 'dashboard'}`,
   };
 
   return (
@@ -235,7 +381,11 @@ export function S07PassphraseSearchTraining({
         }}
       >
         {activeAccount === undefined ? (
-          <SearchPage onPrimaryResultSelect={onPrimaryResultSelect} />
+          searchView === 'results' ? (
+            <SearchPage onPrimaryResultSelect={() => setSearchView('generator')} />
+          ) : (
+            <GeneratorPage onCopy={onPrimaryResultSelect} />
+          )
         ) : (
           <CampusWebsiteBackdrop
             accountId={activeAccount.id}

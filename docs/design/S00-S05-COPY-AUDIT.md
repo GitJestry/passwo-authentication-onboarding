@@ -1,5 +1,23 @@
 # S00--S05 Copy and Interaction Audit
 
+## Copy-Delta S04 Campusgram-Passwortwechsel, 14. August 2026
+
+Quelle ist der ausdrückliche Nutzerauftrag vom 14. August 2026. Die bestehende Erklärung des
+Campusgram-Datenlecks bleibt unverändert. Die Warnfläche erhält eine direkt zugeordnete Aktion,
+die innerhalb der fiktiven Campusgram-Website eine realitätsnahe Kontoeinstellung zum
+Passwortwechsel öffnet. Die Eingabefläche verlangt ausdrücklich nur das fiktive Passwort der
+Übung, hält alle Werte ausschließlich im flüchtigen React-Zustand und verwirft sie nach der lokal
+simulierten Bestätigung. Ablauf, Analyse, Persistenz, Export und Timing bleiben unverändert.
+`S04_CONTENT_VERSION` wird von `1.9.2` auf `1.10.0` erhöht.
+
+| Segment und Text-ID | Quelle | Aktueller Text | Geplanter Text | Primäre Rolle | Grund | Bedeutungsänderung | Interaktionsziel | Hervorhebung |
+|---|---|---|---|---|---|---|---|---|
+| `S04.notice.advisory`, `passwordChangeLabel` | Nutzerauftrag vom 2026-08-14 | nicht vorhanden | `Um dein Konto zu schützen, solltest du das fiktive Campusgram-Passwort jetzt ersetzen.` / `Passwort jetzt ändern` | Navigation | verlangte sichtbare Handlung eindeutig der Datenleckwarnung zuordnen und auf das fiktive Szenariokonto begrenzen | ja | öffnet die lokale Campusgram-Kontoeinstellung | keine |
+| `S04.notice.passwordChange.safetyNote` | Nutzerauftrag vom 2026-08-14 und bestehende Forschungsgrenze | nicht vorhanden | `Verwende hier ausschließlich das fiktive Campusgram-Passwort aus dieser Übung. Deine Eingaben bleiben flüchtig und werden nicht gespeichert.` | Safety Boundary | reale Passwörter ausschließen und die flüchtige Verarbeitung sichtbar begrenzen | ja | Passwortformular | keine |
+| `S04.notice.passwordChange.*PasswordLabel`, `submitLabel` | Nutzerauftrag vom 2026-08-14 | nicht vorhanden | `Aktuelles fiktives Passwort`, `Neues fiktives Passwort`, `Neues fiktives Passwort bestätigen`, `Passwort ändern` | Navigation | realitätsnahe, eindeutig beschriftete Campusgram-Kontoeinstellung bereitstellen | ja | lokale Formulareingaben und simulierte Bestätigung | keine |
+| `S04.notice.passwordChange.*Error` | Nutzerauftrag vom 2026-08-14 | nicht vorhanden | Hinweis bei abweichender Bestätigung oder unverändertem fiktivem Passwort | Ergebnisfeedback | ausschließlich die für die sichtbare Formularhandlung notwendigen Zuordnungsfehler erklären; keine Passwortstärke ableiten | ja | erneute lokale Eingabe | keine |
+| `S04.notice.passwordChange.completed*` | Nutzerauftrag vom 2026-08-14 und bestehende Forschungsgrenze | nicht vorhanden | `Passwortwechsel simuliert` / `Die Eingaben wurden verworfen und nicht gespeichert.` / `Zurück zu Campusgram` | Ergebnisfeedback und Safety Boundary | simulierte Website-Reaktion und Datenverwerfung unmittelbar bestätigen | ja | Rückkehr zum Campusgram-Dashboard | keine |
+
 ## Copy-Delta S05 Kandidatenprüfung gekürzt, 13. August 2026
 
 Quelle ist der ausdrückliche Nutzerauftrag vom 13. August 2026. Die Mechanismuserklärung zur
