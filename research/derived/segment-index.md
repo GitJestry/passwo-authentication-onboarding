@@ -164,7 +164,12 @@ Seitenangaben beziehen sich auf die im Trainingsdokument ausgewiesene interne Pa
   weder persistiert noch exportiert.
 - Der direkte QA-Einstieg lautet `s07-passphrase-search`. Die bisherigen fünf
   Auswertungs-Fixtures und ihre Renderer sind entfernt.
-- `S07_PASSPHRASE_SEARCH_CONTENT_VERSION 2.5.0` beschreibt Suchseite und Werkstatt. Es werden
+- Der Campusgram-Datenleckhinweis bietet auch in S07 den bereits in S04 verwendeten lokalen
+  `Passwort jetzt ändern`-Ablauf. Die Umgebung wird bis zum Öffnen dieses Ablaufs abgedunkelt,
+  während der Hinweis leuchtet; bei Reduced Motion bleibt der Leuchtrahmen statisch. Alle
+  Formulareingaben bleiben flüchtig und werden verworfen.
+- `S07_PASSPHRASE_SEARCH_CONTENT_VERSION 2.9.0` beschreibt Datenleckhinweis, lokalen
+  Passwortwechsel, Suchseite und Werkstatt. Es werden
   keine neuen Teilnehmer- oder Trainingswerte persistiert oder exportiert.
 
 ## Sections

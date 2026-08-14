@@ -1,5 +1,24 @@
 # S00--S05 Copy and Interaction Audit
 
+## Copy- und Interaktionsdelta S04 Passwortwechsel gestrafft, 14. August 2026
+
+Quelle ist der ausdrückliche Nutzerauftrag vom 14. August 2026. Das Setting und die Grenze zu
+realen Passwörtern wurden bereits vor S04 stabil eingeführt. Deshalb entfallen im sichtbaren
+Campusgram-Passwortwechsel die erneute Safety-Notiz und das wiederholte Adjektiv `fiktiv`. Das
+tatsächlich zuvor für Campusgram eingegebene Übungspasswort wird aus dem flüchtigen
+Statechart-Kontext als schreibgeschütztes aktuelles Passwort angezeigt. Alle drei Felder erhalten
+einen tastaturbedienbaren Schalter zum Anzeigen und Verbergen. Werte bleiben flüchtig; Persistenz,
+Export, Timing, Analyse und Studienablauf bleiben unverändert. `S04_CONTENT_VERSION` wird von
+`1.10.0` auf `1.11.0` erhöht.
+
+| Segment und Text-ID | Quelle | Aktueller Text | Geplanter Text | Primäre Rolle | Grund | Bedeutungsänderung | Interaktionsziel | Hervorhebung |
+|---|---|---|---|---|---|---|---|---|
+| `S04.notice.advisory` | Nutzerauftrag vom 2026-08-14 | `Um dein Konto zu schützen, solltest du das fiktive Campusgram-Passwort jetzt ersetzen.` | `Um dein Konto zu schützen, solltest du das Campusgram-Passwort jetzt ersetzen.` | Navigation | nachweisbare Redundanz zum bereits verdeutlichten Setting entfernen | nein | `Passwort jetzt ändern` | keine |
+| `S04.notice.passwordChange.safetyNote` | Nutzerauftrag vom 2026-08-14 | `Verwende hier ausschließlich das fiktive Campusgram-Passwort aus dieser Übung. Deine Eingaben bleiben flüchtig und werden nicht gespeichert.` | entfällt | Safety Boundary | bereits stabil eingeführte Grenze nicht in derselben Übung wiederholen | nein | kein | keine |
+| `S04.notice.passwordChange.*PasswordLabel` | Nutzerauftrag vom 2026-08-14 | `Aktuelles fiktives Passwort`, `Neues fiktives Passwort`, `Neues fiktives Passwort bestätigen` | `Aktuelles Passwort`, `Neues Passwort`, `Neues Passwort bestätigen` | Navigation | Formularbeschriftungen straffen; der Campusgram-Kontext ist durch Titel und Seite eindeutig | nein | jeweiliges Passwortfeld | keine |
+| `S04.notice.passwordChange.unchangedError` | Nutzerauftrag vom 2026-08-14 | `Das neue Passwort muss sich vom bisherigen fiktiven Passwort unterscheiden.` | `Das neue Passwort muss sich vom bisherigen Passwort unterscheiden.` | Ergebnisfeedback | dieselbe redundante Wiederholung auch im lokalen Zuordnungsfehler entfernen | nein | erneute Eingabe | keine |
+| `S04.notice.passwordChange.showPasswordLabel`, `hidePasswordLabel` | Nutzerauftrag vom 2026-08-14 | nicht vorhanden | `Passwort anzeigen`, `Passwort verbergen` | Navigation | barrierefreie Benennung der wiederhergestellten Augen-Schalter | ja | jeweiliger Augen-Schalter | Augensymbol plus zugänglicher Name |
+
 ## Copy-Delta S04 Campusgram-Passwortwechsel, 14. August 2026
 
 Quelle ist der ausdrückliche Nutzerauftrag vom 14. August 2026. Die bestehende Erklärung des

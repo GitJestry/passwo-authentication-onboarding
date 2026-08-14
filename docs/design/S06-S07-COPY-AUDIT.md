@@ -1,5 +1,89 @@
 # S06--S07 Copy Audit
 
+## Interaktionsdelta S07 simuliertes Kopieren und Einfügen, 14. August 2026
+
+Quelle ist der ausdrückliche Nutzerauftrag vom 14. August 2026. `Kopieren` legt die aktuell
+erzeugte fiktive Passphrase ausschließlich in einem flüchtigen React-State der S07-Szene ab und
+zeigt weiterhin kurz `Kopiert`. Nach dem Wechsel zum lokalen Campusgram-Passwortwechsel bietet
+`Einfügen` denselben Wert in den Feldern für das neue und das bestätigte Passwort an. Sobald
+beide Felder den Wert übernommen haben, wird der simulierte Clipboard-State gelöscht; beim
+Szenenende wird er durch das Unmounten ebenfalls verworfen.
+
+Die bisherige unmittelbare S07-Beendigung durch `Kopieren` wird durch die ausdrücklich verlangte
+Einfügehandlung ersetzt. Nach dem erfolgreichen Passwortwechsel bleibt die vorhandene
+Bestätigungsansicht sichtbar; erst deren bestehende Rückkehrhandlung beendet S07. Die übrige
+Dramaturgie bleibt unverändert.
+
+Die S07-Szene blockiert native Copy-, Cut- und Paste-Ereignisse einschließlich der zugehörigen
+Cmd-/Ctrl-Tastenkürzel. Es gibt keinen Zugriff auf die System-Zwischenablage, Browser-Speicher,
+Persistenz, Export oder Server. Abgesehen vom ausdrücklich ergänzten Buttontext `Einfügen`
+bleiben vorhandene Teilnehmertexte, Sicherheitsbotschaften und Hervorhebungen unverändert.
+`S07_PASSPHRASE_SEARCH_CONTENT_VERSION` wird von `2.9.0` auf `3.0.0` erhöht.
+
+| Segment und Text-ID | Aktueller Text | Geplanter Text | Primäre Rolle | Interaktionsziel | Grund und Bedeutungsänderung | Hervorhebung |
+|---|---|---|---|---|---|---|
+| `S07.browser.generatorPage.copy` | `Kopieren` | unverändert | Navigation | simulierte lokale Zwischenablage | Button führt die bereits bezeichnete Handlung nun innerhalb der Forschungsgrenze tatsächlich aus; begrenzt | keine |
+| `S07.browser.generatorPage.copied` | `Kopiert` | unverändert | Ergebnisfeedback | kein | Status bestätigt den flüchtigen internen Kopiervorgang; begrenzt | grüner Toast |
+| `S07.browser.generatorPage.paste` | nicht vorhanden | `Einfügen` | Navigation | neues beziehungsweise bestätigtes Passwortfeld | ausdrücklich verlangte, realistische interne Einfügehandlung ohne System-Zwischenablage; ausdrücklich freigegeben | keine |
+
+## Darstellungsdelta S07 Datenleck-Fokus, 14. August 2026
+
+Quelle ist der ausdrückliche Nutzerauftrag vom 14. August 2026. Beim Einstieg in den
+Campusgram-Tab von S07 wird die umgebende Website abgedunkelt. Der bereits sichtbare
+Datenleckhinweis bleibt vollständig hell und erhält einen pulsierenden Leuchtrahmen, damit das
+Interaktionsziel `Passwort jetzt ändern` vor der freien Tab-Navigation eindeutig erkennbar ist.
+Nach dem Öffnen des Passwortwechsels endet die Hervorhebung. Bei `prefers-reduced-motion` bleibt
+der Leuchtrahmen statisch.
+
+Teilnehmertexte, Interaktionsablauf, Persistenz und Export bleiben unverändert.
+`S07_PASSPHRASE_SEARCH_CONTENT_VERSION` wird von `2.8.0` auf `2.9.0` erhöht.
+
+| Element | Vorher | Nachher | Rolle | Interaktionsziel | Grund und Bedeutungsänderung | Hervorhebung |
+|---|---|---|---|---|---|---|
+| `S07.browser.campusgram.dashboardNotice.focus` | Datenleckhinweis ohne Fokusführung im normalen Dashboard | abgedunkelte Umgebung und leuchtender Datenleckhinweis | Navigation | `Passwort jetzt ändern` | macht die vom Nutzer verlangte Navigation durch Kontrast, Kontur und Leuchten sichtbar; keine textliche Bedeutungsänderung | gelber Leuchtrahmen, bei Reduced Motion statisch |
+
+## Interaktionsdelta S07 Campusgram-Passwortwechsel, 14. August 2026
+
+Quelle ist der ausdrückliche Nutzerauftrag vom 14. August 2026. Der in S07 bereits sichtbare
+Campusgram-Datenleckhinweis zeigt nun zusätzlich die vorhandene Handlung `Passwort jetzt ändern`.
+Die Handlung öffnet denselben lokalen, flüchtigen Passwortwechsel wie in S04. Alle Eingaben
+bleiben im lokalen React-Zustand, werden beim Abschluss verworfen und weder persistiert noch
+exportiert. Die Passphrasen-Suche und der S07-Abschluss bleiben unverändert.
+
+Die Teilnehmertexte werden unverändert aus S04 wiederverwendet; geändert wird ausschließlich,
+dass Beratung, Handlung und Passwortwechsel in S07 nicht mehr ausgeblendet sind.
+`S07_PASSPHRASE_SEARCH_CONTENT_VERSION` wird von `2.7.0` auf `2.8.0` erhöht.
+
+| Segment und Text-ID | Aktueller Text | Geplanter Text | Primäre Rolle | Interaktionsziel | Grund und Bedeutungsänderung | Hervorhebung |
+|---|---|---|---|---|---|---|
+| `S07.browser.campusgram.dashboardNotice.advisory` | in S07 ausgeblendet | `Um dein Konto zu schützen, solltest du das fiktive Campusgram-Passwort jetzt ersetzen.` | Safety Boundary | kein | übernimmt den bereits freigegebenen S04-Hinweis in den ausdrücklich verlangten S07-Hintergrund; begrenzt | keine |
+| `S07.browser.campusgram.dashboardNotice.passwordChangeLabel` | in S07 ausgeblendet | `Passwort jetzt ändern` | Navigation | öffnet den lokalen Campusgram-Passwortwechsel | macht die ausdrücklich verlangte Handlung im sichtbaren Datenleckhinweis bedienbar; ausdrücklich freigegeben | Schloss-Symbol und vorhandene Aktionsfläche |
+| `S07.browser.campusgram.passwordChange` | in S07 nicht erreichbar | unveränderter S04-Passwortwechsel mit ausschließlich fiktiven, flüchtigen Eingaben | Safety Boundary / Navigation | Formular und Rückkehr zu Campusgram | stellt denselben begrenzten Übungsablauf in S07 bereit; ausdrücklich freigegeben | keine |
+
+## Inhalts- und Interaktionsdelta S07 geordnete Passphrasen, 14. August 2026
+
+Quelle ist der ausdrückliche Nutzerauftrag vom 14. August 2026. Die bisherige Auswahl aus 23
+Wortfolgen wird durch fünf vorgegebene Passphrasen in der freigegebenen Reihenfolge ersetzt.
+Jede Passphrase bleibt direkt mit dem ebenfalls freigegebenen Merksatz für eine spätere
+PassWo-Erklärung verknüpft. Diese statischen Merksätze werden weder angezeigt noch als
+Teilnehmer- oder Trainingsentscheidung persistiert oder exportiert.
+
+Die Generatorausgabe startet leer. `Neu generieren` leert die Ausgabe, zeigt für 500 Millisekunden
+einen Ladezustand und gibt danach die nächste Passphrase aus. Nach der fünften Passphrase folgt
+wieder die erste. `Kopieren` bleibt gesperrt, solange keine Passphrase ausgegeben wurde.
+`S07_PASSPHRASE_SEARCH_CONTENT_VERSION` wird von `2.6.0` auf `2.7.0` erhöht.
+
+| Segment und Text-ID | Aktueller Inhalt | Geplanter Inhalt | Primäre Rolle | Interaktionsziel | Grund und Bedeutungsänderung | Hervorhebung |
+|---|---|---|---|---|---|---|
+| `S07.browser.generatorPage.passphrases` | 23 Wortfolgen ohne Merksatz | fünf ausdrücklich vorgegebene Wortfolgen mit jeweils zugeordnetem PassWo-Merksatz | Orientierung | `Neu generieren` | übernimmt Reihenfolge und Wortlaut aus dem Nutzerauftrag; ausdrücklich freigegeben | keine |
+| `S07.browser.generatorPage.initialOutput` | erste Wortfolge sofort sichtbar | leere Ausgabe | Ergebnisfeedback | `Neu generieren` | die Website soll ohne vorausgewählten Eintrag starten; ausdrücklich freigegeben | keine |
+| `S07.browser.generatorPage.generationDelay` | sofortiger Wechsel | leere Ausgabe mit 500 Millisekunden Ladezustand vor jeder Wortfolge | Ergebnisfeedback | `Neu generieren` | bildet die ausdrücklich gewünschte Generatorverzögerung ab; begrenzt | neutraler Ladeindikator ohne Text |
+
+Die fünf Merksätze haben die primäre Rolle `Mechanismuserklärung`, ihr künftiges
+Interaktionsziel ist `kein`, und sie erhalten keine Hervorhebung. Ihr Wortlaut wird aus dem
+Nutzerauftrag unverändert übernommen; eine sichtbare PassWo-Einbindung ist nicht Teil dieses
+Auftrags.
+
 ## Inhaltsdelta S07 weitere Passphrasen-Wortfolgen, 13. August 2026
 
 Quelle ist der ausdrückliche Nutzerauftrag vom 13. August 2026. Die bestehende lokale Auswahl

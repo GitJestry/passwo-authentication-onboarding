@@ -1,14 +1,14 @@
 import type { TrainingSectionId } from '@passwo/contracts';
 
-export const S07_PASSPHRASE_SEARCH_CONTENT_VERSION = '2.6.0';
+export const S07_PASSPHRASE_SEARCH_CONTENT_VERSION = '3.0.0';
 
 export const s07PassphraseSearchContent = {
   version: S07_PASSPHRASE_SEARCH_CONTENT_VERSION,
   source: {
     revision:
-      'Userauftrag vom 2026-08-13 · 20 weitere unverbundene Passphrasen-Wortfolgen',
+      'Userauftrag vom 2026-08-14 · flüchtiges simuliertes Kopieren und Einfügen in S07',
     copyReference:
-      'docs/design/S06-S07-COPY-AUDIT.md#inhaltsdelta-s07-weitere-passphrasen-wortfolgen-13-august-2026',
+      'docs/design/S06-S07-COPY-AUDIT.md#interaktionsdelta-s07-simuliertes-kopieren-und-einfügen-14-august-2026',
   },
   segment: {
     id: 'S07',
@@ -44,31 +44,34 @@ export const s07PassphraseSearchContent = {
       generate: 'Neu generieren',
       copy: 'Kopieren',
       copied: 'Kopiert',
-      wordSets: [
-        ['Anker', 'Birke', 'Kompass', 'Morgen', 'Wolke', 'Zeder'],
-        ['Feder', 'Hafen', 'Kiesel', 'Pfad', 'Sonne', 'Wiese'],
-        ['Atlas', 'Garten', 'Laterne', 'Segel', 'Ufer', 'Wald'],
-        ['Quaste', 'Mergel', 'Oboe', 'Zinne', 'Tiegel', 'Brache'],
-        ['Dohle', 'Firnis', 'Kufe', 'Mohn', 'Reede', 'Zwirn'],
-        ['Ampel', 'Bims', 'Foliant', 'Natter', 'Spindel', 'Wehr'],
-        ['Balg', 'Eibe', 'Kummet', 'Quarz', 'Tenne', 'Viola'],
-        ['Düne', 'Gamasche', 'Lot', 'Nessel', 'Prisma', 'Zuber'],
-        ['Barke', 'Fasan', 'Kreide', 'Orgel', 'Sicke', 'Wams'],
-        ['Dolde', 'Giebel', 'Kokon', 'Polder', 'Talar', 'Zange'],
-        ['Bürde', 'Flöte', 'Krater', 'Pergola', 'Spule', 'Wachtel'],
-        ['Degen', 'Garbe', 'Linse', 'Palisade', 'Tülle', 'Zobel'],
-        ['Bast', 'Fuge', 'Kanne', 'Ocker', 'Raupe', 'Weiche'],
-        ['Druse', 'Glocke', 'Loden', 'Priel', 'Trommel', 'Zyste'],
-        ['Bütte', 'Falter', 'Kobalt', 'Ornat', 'Reuse', 'Wendel'],
-        ['Draisine', 'Gneis', 'Lunte', 'Pappel', 'Tresse', 'Zügel'],
-        ['Borke', 'Fibel', 'Kassette', 'Otter', 'Ried', 'Woge'],
-        ['Dattel', 'Gondel', 'Marder', 'Plinthe', 'Trense', 'Zunder'],
-        ['Bohle', 'Fächer', 'Kralle', 'Opal', 'Rüsche', 'Winde'],
-        ['Drossel', 'Granne', 'Muffe', 'Pinsel', 'Tunika', 'Zarge'],
-        ['Binsen', 'Fresko', 'Kardätsche', 'Odem', 'Riegel', 'Wabe'],
-        ['Damaszener', 'Grummet', 'Mole', 'Punze', 'Torf', 'Zimbel'],
-        ['Brosche', 'Flachs', 'Kern', 'Orlog', 'Rinne', 'Wimpel'],
-        ['Dingi', 'Gouache', 'Mistel', 'Pikee', 'Trift', 'Zäsur'],
+      paste: 'Einfügen',
+      generationDelayMs: 500,
+      passphrases: [
+        {
+          words: ['Kaktus', 'Fenster', 'Regen', 'Komet', 'Lampe', 'Knochen'],
+          passWoMnemonic:
+            'Ein Kaktus sitzt am Fenster und es regnet Kometen. Meine Lampe sieht aus wie ein Knochen.',
+        },
+        {
+          words: ['Infekt', 'Festbesuch', 'Textstellen', 'Gehirn', 'Korrumpiert', 'Physik'],
+          passWoMnemonic:
+            'Es gab ein Infekt am Festbesuch. Ganz viele Textstellen im Gehirn wurden korrumpiert. Das ist alles Physik.',
+        },
+        {
+          words: ['Haartracht', 'Sommer', 'Seiltanz', 'Kennwort', 'Mythisch', 'Verfiel'],
+          passWoMnemonic:
+            'Eine riesige Haartracht schwankt im Sommer beim Seiltanz. Darin steht ein Kennwort, das mythisch leuchtet und plötzlich verfiel.',
+        },
+        {
+          words: ['Pinguin', 'Leiter', 'Mango', 'Wolke', 'Fahrrad', 'Koffer'],
+          passWoMnemonic:
+            'Ein Pinguin steigt auf der Leiter mit einer Mango in der Hand bis zur Wolke. Dort oben ist ein Fahrrad im Koffer.',
+        },
+        {
+          words: ['Nirgendwo', 'Querkommen', 'Finster', 'Appell', 'Ersuchen', 'Bleistift'],
+          passWoMnemonic:
+            'Im Nirgendwo versuche ich querzukommen, doch plötzlich wird es finster. Ich höre einen Appell, daraus wird ein Ersuchen, das ich mit einem Bleistift notiere.',
+        },
       ],
     },
     searchPage: {

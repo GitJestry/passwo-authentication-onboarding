@@ -101,9 +101,9 @@ describe('S06 transition and S07 passphrase-search copy traceability', () => {
   });
 
   it('keeps S07 linked to the passphrase-search browser state', () => {
-    expect(S07_PASSPHRASE_SEARCH_CONTENT_VERSION).toBe('2.6.0');
+    expect(S07_PASSPHRASE_SEARCH_CONTENT_VERSION).toBe('3.0.0');
     expect(s07PassphraseSearchContent.source.copyReference).toBe(
-      'docs/design/S06-S07-COPY-AUDIT.md#inhaltsdelta-s07-weitere-passphrasen-wortfolgen-13-august-2026',
+      'docs/design/S06-S07-COPY-AUDIT.md#interaktionsdelta-s07-simuliertes-kopieren-und-einfügen-14-august-2026',
     );
     expect(s07PassphraseSearchContent.browser.searchTab.label).toBe('Passphrase generieren');
     expect(s07PassphraseSearchContent.browser.searchPage.brand).toBe('Search');
@@ -114,11 +114,34 @@ describe('S06 transition and S07 passphrase-search copy traceability', () => {
       { label: 'Unterstrich', value: '_' },
       { label: 'Leerzeichen', value: ' ' },
     ]);
-    expect(s07PassphraseSearchContent.browser.generatorPage.wordSets).toHaveLength(23);
-    expect(
-      s07PassphraseSearchContent.browser.generatorPage.wordSets.every(
-        (wordSet) => wordSet.length === 6,
-      ),
-    ).toBe(true);
+    expect(s07PassphraseSearchContent.browser.generatorPage.generationDelayMs).toBe(500);
+    expect(s07PassphraseSearchContent.browser.generatorPage.paste).toBe('Einfügen');
+    expect(s07PassphraseSearchContent.browser.generatorPage.passphrases).toEqual([
+      {
+        words: ['Kaktus', 'Fenster', 'Regen', 'Komet', 'Lampe', 'Knochen'],
+        passWoMnemonic:
+          'Ein Kaktus sitzt am Fenster und es regnet Kometen. Meine Lampe sieht aus wie ein Knochen.',
+      },
+      {
+        words: ['Infekt', 'Festbesuch', 'Textstellen', 'Gehirn', 'Korrumpiert', 'Physik'],
+        passWoMnemonic:
+          'Es gab ein Infekt am Festbesuch. Ganz viele Textstellen im Gehirn wurden korrumpiert. Das ist alles Physik.',
+      },
+      {
+        words: ['Haartracht', 'Sommer', 'Seiltanz', 'Kennwort', 'Mythisch', 'Verfiel'],
+        passWoMnemonic:
+          'Eine riesige Haartracht schwankt im Sommer beim Seiltanz. Darin steht ein Kennwort, das mythisch leuchtet und plötzlich verfiel.',
+      },
+      {
+        words: ['Pinguin', 'Leiter', 'Mango', 'Wolke', 'Fahrrad', 'Koffer'],
+        passWoMnemonic:
+          'Ein Pinguin steigt auf der Leiter mit einer Mango in der Hand bis zur Wolke. Dort oben ist ein Fahrrad im Koffer.',
+      },
+      {
+        words: ['Nirgendwo', 'Querkommen', 'Finster', 'Appell', 'Ersuchen', 'Bleistift'],
+        passWoMnemonic:
+          'Im Nirgendwo versuche ich querzukommen, doch plötzlich wird es finster. Ich höre einen Appell, daraus wird ein Ersuchen, das ich mit einem Bleistift notiere.',
+      },
+    ]);
   });
 });

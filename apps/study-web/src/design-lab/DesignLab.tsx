@@ -869,7 +869,12 @@ function PasswordModuleSegmentPreview({
     );
   }
   if (segment === 's05-s06-transition' && snapshot.matches({ s07: 'active' })) {
-    return <S07PassphraseSearchTraining displayName={snapshot.context.displayName ?? ''} />;
+    return (
+      <S07PassphraseSearchTraining
+        campusgramPassword={snapshot.context.passwordValues.campusgram ?? ''}
+        displayName={snapshot.context.displayName ?? ''}
+      />
+    );
   }
   return <p>QA-Abschnitt wird vorbereitet …</p>;
 }
@@ -990,6 +995,9 @@ export function DesignLab({ scenarioId }: { readonly scenarioId: DesignLabScenar
         <DesignLabIntroduction scenarioId={scenarioId} scenario={scenario} />
         <ArtifactPreview>
           <S07PassphraseSearchTraining
+            campusgramPassword={
+              passwordOverrides.campusgram ?? defaultTrainingQaPasswords.campusgram
+            }
             displayName="Vorschau"
             platform={readDesktopPlatform()}
           />

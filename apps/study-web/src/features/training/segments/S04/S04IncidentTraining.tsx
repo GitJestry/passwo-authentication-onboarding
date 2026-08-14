@@ -172,6 +172,7 @@ export function S04IncidentTraining({
           displayName={snapshot.context.displayName ?? ''}
           dashboardNotice={
             <CampusgramIncidentNotice
+              currentPassword={snapshot.context.passwordValues.campusgram ?? ''}
               passwordChangeOpen={passwordChangeOpen}
               onPasswordChangeOpenChange={setPasswordChangeOpen}
             />

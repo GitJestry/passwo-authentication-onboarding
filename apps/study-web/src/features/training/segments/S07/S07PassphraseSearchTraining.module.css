@@ -9,6 +9,37 @@
   background: var(--color-surface-primary);
 }
 
+.incidentSpotlight {
+  position: relative;
+  z-index: 12;
+  box-shadow: 0 0 0 100vmax rgb(20 8 15 / 72%);
+}
+
+.incidentSpotlight::after {
+  position: absolute;
+  z-index: 1;
+  inset: -0.22rem;
+  border: 0.2rem solid rgb(255 225 112 / 96%);
+  border-radius: calc(var(--radius-large) + 0.22rem);
+  box-shadow: 0 0 1.6rem 0.5rem rgb(255 181 46 / 76%);
+  content: '';
+  pointer-events: none;
+  animation: incident-spotlight-pulse 1.8s ease-in-out infinite;
+}
+
+@keyframes incident-spotlight-pulse {
+  0%,
+  100% {
+    opacity: 0.72;
+    transform: scale(0.995);
+  }
+
+  50% {
+    opacity: 1;
+    transform: scale(1.008);
+  }
+}
+
 .searchPage {
   --search-blue: #1a5db7;
   --search-lime: #5e8d18;
@@ -690,7 +721,10 @@
 }
 
 .generatorOutput {
+  display: grid;
+  min-height: 3rem;
   min-width: 0;
+  place-items: center;
   padding: 0.9rem 1rem;
   overflow: hidden;
   border: 1px solid rgb(22 123 123 / 26%);
@@ -703,6 +737,15 @@
   letter-spacing: 0.01em;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+.generatorLoadingIndicator {
+  width: 1.1rem;
+  height: 1.1rem;
+  border: 0.18rem solid rgb(22 123 123 / 24%);
+  border-top-color: var(--generator-teal);
+  border-radius: 50%;
+  animation: generator-loading-spin 0.5s linear infinite;
 }
 
 .generateButton,
@@ -736,6 +779,12 @@
 
 .generateButton:hover {
   background: #f3f8f7;
+}
+
+.generateButton:disabled,
+.copyButton:disabled {
+  cursor: not-allowed;
+  opacity: 0.48;
 }
 
 .generateButton > span {
@@ -822,7 +871,21 @@
   }
 }
 
+@keyframes generator-loading-spin {
+  to {
+    transform: rotate(1turn);
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
+  .incidentSpotlight::after {
+    animation: none;
+  }
+
+  .generatorLoadingIndicator {
+    animation: none;
+  }
+
   .copyToast {
     animation-name: copy-toast-fade;
   }

@@ -1,5 +1,6 @@
 import {
   s01Content,
+  s04Content,
   s07PassphraseSearchContent,
   type S01AccountId,
 } from '@passwo/training-content';
@@ -8,7 +9,13 @@ import {
   type BrowserShellSnapshot,
   type DesktopPlatform,
 } from '@passwo/ui';
-import { useEffect, useState, type MouseEvent } from 'react';
+import {
+  useEffect,
+  useState,
+  type ClipboardEvent,
+  type KeyboardEvent,
+  type MouseEvent,
+} from 'react';
 import { NetworkSymbol } from '../../../../adapters/network/NetworkSymbolRegistry.js';
 import { CampusWebsiteBackdrop } from '../../CampusWebsiteBackdrop.js';
 import { CampusgramIncidentNotice } from '../../CampusgramIncidentNotice.js';
@@ -193,15 +200,42 @@ function SearchPage({ onPrimaryResultSelect }: { readonly onPrimaryResultSelect:
   );
 }
 
-function GeneratorPage({ onCopy }: { readonly onCopy: () => void }) {
+function GeneratorPage({ onCopy }: { readonly onCopy: (passphrase: string) => void }) {
   const page = s07PassphraseSearchContent.browser.generatorPage;
   const [separator, setSeparator] = useState<string>(page.separators[0].value);
-  const [wordSetIndex, setWordSetIndex] = useState(0);
+  const [passphraseIndex, setPassphraseIndex] = useState<number | null>(null);
+  const [nextPassphraseIndex, setNextPassphraseIndex] = useState(0);
+  const [isGenerating, setIsGenerating] = useState(false);
   const [copyToastPosition, setCopyToastPosition] = useState<{
     readonly x: number;
     readonly y: number;
   } | null>(null);
-  const passphrase = (page.wordSets[wordSetIndex] ?? page.wordSets[0]).join(separator);
+  const selectedPassphrase =
+    passphraseIndex === null
+      ? null
+      : (page.passphrases[passphraseIndex] ?? page.passphrases[0]);
+  const passphrase = selectedPassphrase?.words.join(separator) ?? '';
+
+  useEffect(() => {
+    if (!isGenerating) {
+      return undefined;
+    }
+
+    const generationTimeout = window.setTimeout(() => {
+      setPassphraseIndex(nextPassphraseIndex);
+      setNextPassphraseIndex(
+        (currentIndex) => (currentIndex + 1) % page.passphrases.length,
+      );
+      setIsGenerating(false);
+    }, page.generationDelayMs);
+
+    return () => window.clearTimeout(generationTimeout);
+  }, [
+    isGenerating,
+    nextPassphraseIndex,
+    page.generationDelayMs,
+    page.passphrases.length,
+  ]);
 
   useEffect(() => {
     if (copyToastPosition === null) {
@@ -221,7 +255,7 @@ function GeneratorPage({ onCopy }: { readonly onCopy: () => void }) {
     const y = event.detail === 0 ? buttonBounds.top + buttonBounds.height / 2 : event.clientY;
 
     setCopyToastPosition({ x, y });
-    onCopy();
+    onCopy(passphrase);
   };
 
   return (
@@ -280,8 +314,10 @@ function GeneratorPage({ onCopy }: { readonly onCopy: () => void }) {
             <button
               type="button"
               className={styles.generateButton}
+              disabled={isGenerating}
               onClick={() => {
-                setWordSetIndex((currentIndex) => (currentIndex + 1) % page.wordSets.length);
+                setPassphraseIndex(null);
+                setIsGenerating(true);
                 setCopyToastPosition(null);
               }}
             >
@@ -294,14 +330,20 @@ function GeneratorPage({ onCopy }: { readonly onCopy: () => void }) {
                 className={styles.generatorOutput}
                 aria-label={page.outputAriaLabel}
                 aria-live="polite"
+                aria-busy={isGenerating}
               >
-                {passphrase}
+                {isGenerating ? (
+                  <span className={styles.generatorLoadingIndicator} aria-hidden="true" />
+                ) : (
+                  passphrase
+                )}
               </output>
             </div>
 
             <button
               type="button"
               className={styles.copyButton}
+              disabled={passphrase.length === 0}
               onClick={showCopyToast}
             >
               <span className={styles.copyButtonIcon} aria-hidden="true" />
@@ -327,17 +369,21 @@ function GeneratorPage({ onCopy }: { readonly onCopy: () => void }) {
 
 export interface S07PassphraseSearchTrainingProps {
   readonly displayName: string;
+  readonly campusgramPassword: string;
   readonly platform?: DesktopPlatform;
   readonly onPrimaryResultSelect?: () => void;
 }
 
 export function S07PassphraseSearchTraining({
   displayName,
+  campusgramPassword,
   platform = 'mac',
   onPrimaryResultSelect = () => undefined,
 }: S07PassphraseSearchTrainingProps) {
   const [activeTabId, setActiveTabId] = useState<S07TabId>('campusgram');
   const [searchView, setSearchView] = useState<'results' | 'generator'>('results');
+  const [passwordChangeOpen, setPasswordChangeOpen] = useState(false);
+  const [simulatedClipboardValue, setSimulatedClipboardValue] = useState<string | null>(null);
   const activeAccount = s01Content.browser.accounts.find(({ id }) => id === activeTabId);
   const searchTab = s07PassphraseSearchContent.browser.searchTab;
   const generatorPage = s07PassphraseSearchContent.browser.generatorPage;
@@ -345,7 +391,10 @@ export function S07PassphraseSearchTraining({
     tabs: [
       ...s01Content.browser.accounts.map((account) => ({
         id: account.id,
-        label: account.label,
+        label:
+          account.id === 'campusgram' && passwordChangeOpen
+            ? `${account.label} · ${s04Content.notice.passwordChange.tabLabel}`
+            : account.label,
         icon: <NetworkSymbol symbolId={account.symbolId} />,
         enabled: true,
       })),
@@ -358,18 +407,41 @@ export function S07PassphraseSearchTraining({
     ],
     activeTabId,
     address:
-      activeAccount === undefined
+      activeAccount?.id === 'campusgram' && passwordChangeOpen
+        ? s04Content.notice.passwordChange.address
+        : activeAccount === undefined
         ? searchView === 'generator'
           ? generatorPage.address
           : searchTab.address
         : `${activeAccount.address}/dashboard`,
-    scrollKey: `s07:${activeTabId}:${activeAccount === undefined ? searchView : 'dashboard'}`,
+    scrollKey: `s07:${activeTabId}:${
+      activeAccount?.id === 'campusgram' && passwordChangeOpen
+        ? 'password-change'
+        : activeAccount === undefined
+          ? searchView
+          : 'dashboard'
+    }`,
+  };
+
+  const preventNativeClipboard = (event: ClipboardEvent<HTMLElement>): void => {
+    event.preventDefault();
+  };
+
+  const preventNativeClipboardShortcut = (event: KeyboardEvent<HTMLElement>): void => {
+    if (!(event.metaKey || event.ctrlKey) || !['c', 'v', 'x'].includes(event.key.toLowerCase())) {
+      return;
+    }
+    event.preventDefault();
   };
 
   return (
     <section
       className={styles.training}
       aria-label={s07PassphraseSearchContent.trainingAriaLabel}
+      onCopy={preventNativeClipboard}
+      onCut={preventNativeClipboard}
+      onPaste={preventNativeClipboard}
+      onKeyDownCapture={preventNativeClipboardShortcut}
     >
       <BrowserShell
         platform={platform}
@@ -384,7 +456,7 @@ export function S07PassphraseSearchTraining({
           searchView === 'results' ? (
             <SearchPage onPrimaryResultSelect={() => setSearchView('generator')} />
           ) : (
-            <GeneratorPage onCopy={onPrimaryResultSelect} />
+            <GeneratorPage onCopy={setSimulatedClipboardValue} />
           )
         ) : (
           <CampusWebsiteBackdrop
@@ -393,7 +465,21 @@ export function S07PassphraseSearchTraining({
             view="dashboard"
             displayName={displayName}
             dashboardNotice={
-              activeAccount.id === 'campusgram' ? <CampusgramIncidentNotice /> : undefined
+              activeAccount.id === 'campusgram' ? (
+                <CampusgramIncidentNotice
+                  className={styles.incidentSpotlight}
+                  currentPassword={campusgramPassword}
+                  passwordChangeOpen={passwordChangeOpen}
+                  onPasswordChangeOpenChange={setPasswordChangeOpen}
+                  simulatedClipboardValue={simulatedClipboardValue}
+                  simulatedPasteLabel={generatorPage.paste}
+                  onSimulatedClipboardConsumed={() => setSimulatedClipboardValue(null)}
+                  onSimulatedPasswordChangeCompleted={() => {
+                    setSimulatedClipboardValue(null);
+                    onPrimaryResultSelect();
+                  }}
+                />
+              ) : undefined
             }
           />
         )}

@@ -1,5 +1,6 @@
 import { s04Content } from '@passwo/training-content';
 import { useEffect, useId, useRef, useState, type FormEvent } from 'react';
+import { PasswordVisibilityIcon } from './PasswordVisibilityIcon.js';
 import styles from './CampusgramIncidentNotice.module.css';
 
 function IncidentIcon() {
@@ -41,23 +42,40 @@ function LockIcon() {
 }
 
 export interface CampusgramIncidentNoticeProps {
+  readonly className?: string | undefined;
+  readonly currentPassword: string;
   readonly passwordChangeOpen?: boolean | undefined;
   readonly onPasswordChangeOpenChange?: ((open: boolean) => void) | undefined;
+  readonly simulatedClipboardValue?: string | null | undefined;
+  readonly simulatedPasteLabel?: string | undefined;
+  readonly onSimulatedClipboardConsumed?: (() => void) | undefined;
+  readonly onSimulatedPasswordChangeCompleted?: (() => void) | undefined;
 }
 
 export function CampusgramIncidentNotice({
+  className,
+  currentPassword,
   passwordChangeOpen = false,
   onPasswordChangeOpenChange,
+  simulatedClipboardValue = null,
+  simulatedPasteLabel,
+  onSimulatedClipboardConsumed,
+  onSimulatedPasswordChangeCompleted,
 }: CampusgramIncidentNoticeProps) {
   const inputId = useId();
   const actionRef = useRef<HTMLButtonElement>(null);
   const headingRef = useRef<HTMLHeadingElement>(null);
+  const newPasswordInputRef = useRef<HTMLInputElement>(null);
+  const confirmedPasswordInputRef = useRef<HTMLInputElement>(null);
   const wasPasswordChangeOpen = useRef(passwordChangeOpen);
-  const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirmedPassword, setConfirmedPassword] = useState('');
+  const [currentPasswordRevealed, setCurrentPasswordRevealed] = useState(false);
+  const [newPasswordRevealed, setNewPasswordRevealed] = useState(false);
+  const [confirmedPasswordRevealed, setConfirmedPasswordRevealed] = useState(false);
   const [validationError, setValidationError] = useState<string | null>(null);
   const [completed, setCompleted] = useState(false);
+  const [usedSimulatedClipboard, setUsedSimulatedClipboard] = useState(false);
   const passwordChange = s04Content.notice.passwordChange;
 
   useEffect(() => {
@@ -70,12 +88,41 @@ export function CampusgramIncidentNotice({
   }, [completed, passwordChangeOpen]);
 
   function closePasswordChange(): void {
-    setCurrentPassword('');
+    if (completed && usedSimulatedClipboard) {
+      onSimulatedPasswordChangeCompleted?.();
+    }
     setNewPassword('');
     setConfirmedPassword('');
+    setCurrentPasswordRevealed(false);
+    setNewPasswordRevealed(false);
+    setConfirmedPasswordRevealed(false);
     setValidationError(null);
     setCompleted(false);
+    setUsedSimulatedClipboard(false);
     onPasswordChangeOpenChange?.(false);
+  }
+
+  function pasteSimulatedPassword(target: 'new' | 'confirm'): void {
+    if (simulatedClipboardValue === null) return;
+
+    const nextNewPassword = target === 'new' ? simulatedClipboardValue : newPassword;
+    const nextConfirmedPassword =
+      target === 'confirm' ? simulatedClipboardValue : confirmedPassword;
+    setNewPassword(nextNewPassword);
+    setConfirmedPassword(nextConfirmedPassword);
+    setValidationError(null);
+    setUsedSimulatedClipboard(true);
+    if (
+      nextNewPassword === simulatedClipboardValue &&
+      nextConfirmedPassword === simulatedClipboardValue
+    ) {
+      onSimulatedClipboardConsumed?.();
+      requestAnimationFrame(() => {
+        const input =
+          target === 'new' ? newPasswordInputRef.current : confirmedPasswordInputRef.current;
+        input?.focus();
+      });
+    }
   }
 
   function submitPasswordChange(event: FormEvent<HTMLFormElement>): void {
@@ -90,9 +137,11 @@ export function CampusgramIncidentNotice({
       return;
     }
 
-    setCurrentPassword('');
     setNewPassword('');
     setConfirmedPassword('');
+    setCurrentPasswordRevealed(false);
+    setNewPasswordRevealed(false);
+    setConfirmedPasswordRevealed(false);
     setValidationError(null);
     setCompleted(true);
   }
@@ -148,40 +197,117 @@ export function CampusgramIncidentNotice({
               <h2 id={`${inputId}-title`} ref={headingRef} tabIndex={-1}>
                 {passwordChange.title}
               </h2>
-              <p className={styles.safetyNote}>{passwordChange.safetyNote}</p>
-              <label htmlFor={`${inputId}-current`}>
-                {passwordChange.currentPasswordLabel}
-                <input
-                  id={`${inputId}-current`}
-                  type="password"
-                  autoComplete="off"
-                  required
-                  value={currentPassword}
-                  onChange={(event) => setCurrentPassword(event.currentTarget.value)}
-                />
-              </label>
-              <label htmlFor={`${inputId}-new`}>
-                {passwordChange.newPasswordLabel}
-                <input
-                  id={`${inputId}-new`}
-                  type="password"
-                  autoComplete="off"
-                  required
-                  value={newPassword}
-                  onChange={(event) => setNewPassword(event.currentTarget.value)}
-                />
-              </label>
-              <label htmlFor={`${inputId}-confirm`}>
-                {passwordChange.confirmPasswordLabel}
-                <input
-                  id={`${inputId}-confirm`}
-                  type="password"
-                  autoComplete="off"
-                  required
-                  value={confirmedPassword}
-                  onChange={(event) => setConfirmedPassword(event.currentTarget.value)}
-                />
-              </label>
+              <div className={styles.passwordFieldGroup}>
+                <label htmlFor={`${inputId}-current`}>
+                  {passwordChange.currentPasswordLabel}
+                </label>
+                <span className={styles.passwordField}>
+                  <input
+                    id={`${inputId}-current`}
+                    type={currentPasswordRevealed ? 'text' : 'password'}
+                    autoComplete="off"
+                    readOnly
+                    value={currentPassword}
+                  />
+                  <button
+                    type="button"
+                    className={styles.revealButton}
+                    aria-pressed={currentPasswordRevealed}
+                    aria-label={`${
+                      currentPasswordRevealed
+                        ? passwordChange.hidePasswordLabel
+                        : passwordChange.showPasswordLabel
+                    }: ${passwordChange.currentPasswordLabel}`}
+                    onClick={() => setCurrentPasswordRevealed((revealed) => !revealed)}
+                  >
+                    <PasswordVisibilityIcon revealed={currentPasswordRevealed} />
+                  </button>
+                </span>
+              </div>
+              <div className={styles.passwordFieldGroup}>
+                <label htmlFor={`${inputId}-new`}>
+                  {passwordChange.newPasswordLabel}
+                </label>
+                <span
+                  className={`${styles.passwordField} ${
+                    simulatedClipboardValue === null ? '' : styles.passwordFieldWithPaste
+                  }`}
+                >
+                  <input
+                    ref={newPasswordInputRef}
+                    id={`${inputId}-new`}
+                    type={newPasswordRevealed ? 'text' : 'password'}
+                    autoComplete="off"
+                    required
+                    value={newPassword}
+                    onChange={(event) => setNewPassword(event.currentTarget.value)}
+                  />
+                  {simulatedClipboardValue === null || simulatedPasteLabel === undefined ? null : (
+                    <button
+                      type="button"
+                      className={styles.pasteButton}
+                      onClick={() => pasteSimulatedPassword('new')}
+                    >
+                      {simulatedPasteLabel}
+                    </button>
+                  )}
+                  <button
+                    type="button"
+                    className={styles.revealButton}
+                    aria-pressed={newPasswordRevealed}
+                    aria-label={`${
+                      newPasswordRevealed
+                        ? passwordChange.hidePasswordLabel
+                        : passwordChange.showPasswordLabel
+                    }: ${passwordChange.newPasswordLabel}`}
+                    onClick={() => setNewPasswordRevealed((revealed) => !revealed)}
+                  >
+                    <PasswordVisibilityIcon revealed={newPasswordRevealed} />
+                  </button>
+                </span>
+              </div>
+              <div className={styles.passwordFieldGroup}>
+                <label htmlFor={`${inputId}-confirm`}>
+                  {passwordChange.confirmPasswordLabel}
+                </label>
+                <span
+                  className={`${styles.passwordField} ${
+                    simulatedClipboardValue === null ? '' : styles.passwordFieldWithPaste
+                  }`}
+                >
+                  <input
+                    ref={confirmedPasswordInputRef}
+                    id={`${inputId}-confirm`}
+                    type={confirmedPasswordRevealed ? 'text' : 'password'}
+                    autoComplete="off"
+                    required
+                    value={confirmedPassword}
+                    onChange={(event) => setConfirmedPassword(event.currentTarget.value)}
+                  />
+                  {simulatedClipboardValue === null || simulatedPasteLabel === undefined ? null : (
+                    <button
+                      type="button"
+                      className={styles.pasteButton}
+                      onClick={() => pasteSimulatedPassword('confirm')}
+                    >
+                      {simulatedPasteLabel}
+                    </button>
+                  )}
+                  <button
+                    type="button"
+                    className={styles.revealButton}
+                    aria-pressed={confirmedPasswordRevealed}
+                    aria-label={`${
+                      confirmedPasswordRevealed
+                        ? passwordChange.hidePasswordLabel
+                        : passwordChange.showPasswordLabel
+                    }: ${passwordChange.confirmPasswordLabel}`}
+                    onClick={() => setConfirmedPasswordRevealed((revealed) => !revealed)}
+                  >
+                    <PasswordVisibilityIcon revealed={confirmedPasswordRevealed} />
+                  </button>
+                </span>
+              </div>
               {validationError === null ? null : (
                 <p className={styles.validationError} role="alert">
                   {validationError}
@@ -198,7 +324,7 @@ export function CampusgramIncidentNotice({
   }
 
   return (
-    <section className={styles.serviceNotice} role="alert">
+    <section className={`${styles.serviceNotice} ${className ?? ''}`} role="alert">
       <span className={styles.incidentIcon} aria-hidden="true">
         <IncidentIcon />
       </span>

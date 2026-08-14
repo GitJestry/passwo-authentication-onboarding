@@ -32,10 +32,11 @@ export interface S04SegmentContent {
       readonly settingsTitle: string;
       readonly settingsNavigation: readonly [string, string, string];
       readonly title: string;
-      readonly safetyNote: string;
       readonly currentPasswordLabel: string;
       readonly newPasswordLabel: string;
       readonly confirmPasswordLabel: string;
+      readonly showPasswordLabel: string;
+      readonly hidePasswordLabel: string;
       readonly submitLabel: string;
       readonly mismatchError: string;
       readonly unchangedError: string;
@@ -53,16 +54,16 @@ export interface S04SegmentContent {
   };
 }
 
-export const S04_CONTENT_VERSION = '1.10.0';
+export const S04_CONTENT_VERSION = '1.11.0';
 
 export const s04Content: S04SegmentContent = {
   version: S04_CONTENT_VERSION,
   source: {
     document: 'research/private/training-script.pdf',
     internalPages: [12],
-    revision: 'Userauftrag vom 2026-08-14 · Campusgram-Passwortwechsel',
+    revision: 'Userauftrag vom 2026-08-14 · Campusgram-Passwortwechsel gestrafft',
     copyReference:
-      'docs/design/S00-S05-COPY-AUDIT.md#copy-delta-s04-campusgram-passwortwechsel-14-august-2026',
+      'docs/design/S00-S05-COPY-AUDIT.md#copy-und-interaktionsdelta-s04-passwortwechsel-gestrafft-14-august-2026',
   },
   segment: {
     id: 'S04',
@@ -80,8 +81,7 @@ export const s04Content: S04SegmentContent = {
       'Bei Campusgram gab es ein Datenleck. Eine alte Datei mit gespeicherten Passwortdaten ist in fremde Hände geraten.',
       'Wie geht ein Angreifer vor, um das Campusgram-Passwort herauszufinden?',
     ],
-    advisory:
-      'Um dein Konto zu schützen, solltest du das fiktive Campusgram-Passwort jetzt ersetzen.',
+    advisory: 'Um dein Konto zu schützen, solltest du das Campusgram-Passwort jetzt ersetzen.',
     passwordChangeLabel: 'Passwort jetzt ändern',
     passwordChange: {
       address: 'campusgram.campus.example/konto/passwort',
@@ -92,14 +92,14 @@ export const s04Content: S04SegmentContent = {
       settingsTitle: 'Kontoeinstellungen',
       settingsNavigation: ['Passwort', 'Privatsphäre', 'Benachrichtigungen'],
       title: 'Campusgram-Passwort ändern',
-      safetyNote:
-        'Verwende hier ausschließlich das fiktive Campusgram-Passwort aus dieser Übung. Deine Eingaben bleiben flüchtig und werden nicht gespeichert.',
-      currentPasswordLabel: 'Aktuelles fiktives Passwort',
-      newPasswordLabel: 'Neues fiktives Passwort',
-      confirmPasswordLabel: 'Neues fiktives Passwort bestätigen',
+      currentPasswordLabel: 'Aktuelles Passwort',
+      newPasswordLabel: 'Neues Passwort',
+      confirmPasswordLabel: 'Neues Passwort bestätigen',
+      showPasswordLabel: 'Passwort anzeigen',
+      hidePasswordLabel: 'Passwort verbergen',
       submitLabel: 'Passwort ändern',
       mismatchError: 'Die beiden neuen Passwörter stimmen nicht überein.',
-      unchangedError: 'Das neue Passwort muss sich vom bisherigen fiktiven Passwort unterscheiden.',
+      unchangedError: 'Das neue Passwort muss sich vom bisherigen Passwort unterscheiden.',
       completedTitle: 'Passwortwechsel simuliert',
       completedBody: 'Die Eingaben wurden verworfen und nicht gespeichert.',
       completedAction: 'Zurück zu Campusgram',

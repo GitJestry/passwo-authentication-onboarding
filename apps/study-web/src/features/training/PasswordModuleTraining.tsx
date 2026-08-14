@@ -488,6 +488,7 @@ export function PasswordModuleTraining({
     }
     return (
       <S07PassphraseSearchTraining
+        campusgramPassword={campusgramPassword}
         displayName={snapshot.context.displayName ?? ''}
         platform={platform}
         onPrimaryResultSelect={() => controller.completeS07()}

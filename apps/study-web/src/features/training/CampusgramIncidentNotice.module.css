@@ -81,7 +81,9 @@
 .passwordChangeAction:focus-visible,
 .submitButton:focus-visible,
 .passwordChangeHeader button:focus-visible,
-.passwordChangeCard input:focus-visible {
+.passwordChangeCard input:focus-visible,
+.revealButton:focus-visible,
+.pasteButton:focus-visible {
   outline: var(--border-width-focus) solid var(--color-focus);
   outline-offset: var(--space-1);
   box-shadow: var(--shadow-focus);
@@ -216,21 +218,15 @@
   font-weight: var(--font-weight-heavy);
 }
 
-.passwordChangeCard .safetyNote {
-  padding: var(--space-3) var(--space-4);
-  border-left: 0.22rem solid var(--color-campusgram-accent);
-  border-radius: 0 var(--radius-small) var(--radius-small) 0;
-  background: var(--color-campusgram-soft);
-  color: var(--color-campusgram-ink);
-  font-size: var(--font-size-small);
-}
-
 .passwordChangeCard label {
-  display: grid;
-  gap: var(--space-2);
   color: var(--color-campusgram-ink);
   font-size: var(--font-size-small);
   font-weight: var(--font-weight-semibold);
+}
+
+.passwordFieldGroup {
+  display: grid;
+  gap: var(--space-2);
 }
 
 .passwordChangeCard input {
@@ -242,6 +238,71 @@
   color: var(--color-campusgram-ink);
   background: #fff;
   font: inherit;
+}
+
+.passwordChangeCard input[readonly] {
+  background: color-mix(in srgb, var(--color-campusgram-soft) 45%, #fff);
+}
+
+.passwordField {
+  position: relative;
+  display: block;
+}
+
+.passwordField input {
+  padding-right: 3.4rem;
+}
+
+.passwordFieldWithPaste input {
+  padding-right: 8.4rem;
+}
+
+.pasteButton {
+  position: absolute;
+  top: 50%;
+  right: 3.2rem;
+  min-height: 2.5rem;
+  padding: 0 var(--space-3);
+  border: 0;
+  transform: translateY(-50%);
+  border-radius: var(--radius-small);
+  color: var(--color-campusgram-accent);
+  background: var(--color-campusgram-soft);
+  font: inherit;
+  font-size: var(--font-size-small);
+  font-weight: var(--font-weight-semibold);
+  cursor: pointer;
+}
+
+.pasteButton:hover {
+  color: var(--color-campusgram-ink);
+}
+
+.revealButton {
+  position: absolute;
+  top: 50%;
+  right: var(--space-2);
+  display: grid;
+  width: 2.5rem;
+  height: 2.5rem;
+  padding: 0;
+  border: 0;
+  place-items: center;
+  transform: translateY(-50%);
+  border-radius: var(--radius-small);
+  color: var(--color-campusgram-muted);
+  background: transparent;
+  cursor: pointer;
+}
+
+.revealButton:hover {
+  color: var(--color-campusgram-ink);
+  background: var(--color-campusgram-soft);
+}
+
+.revealButton svg {
+  width: 1.35rem;
+  height: 1.35rem;
 }
 
 .passwordChangeCard .validationError {
