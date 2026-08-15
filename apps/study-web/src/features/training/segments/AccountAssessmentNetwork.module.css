@@ -25,6 +25,10 @@
   max-height: 118%;
 }
 
+.network :global([data-size="detail"] [data-account-shield]) {
+  display: none;
+}
+
 .comparisonPathShield {
   position: absolute;
   z-index: 10;

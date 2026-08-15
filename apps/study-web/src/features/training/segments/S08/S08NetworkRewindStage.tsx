@@ -12,10 +12,10 @@ import type {
   PasswordConsequenceStepId,
 } from '@passwo/visualization';
 import { useMachine } from '@xstate/react';
-import { animate } from 'motion';
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { assign, setup } from 'xstate';
 import { ReactFlowNetworkAdapter } from '../../../../adapters/network/ReactFlowNetworkAdapter.js';
+import { CelebrationConfetti } from '../../CelebrationConfetti.js';
 import { AccountAssessmentNetwork } from '../AccountAssessmentNetwork.js';
 import { createS06BlockedReplayTriangle } from '../S06/S06ConsequenceController.js';
 import {
@@ -39,6 +39,7 @@ type S08Event =
       readonly type: 'PROTECT_WITH_UNIQUE_PASSPHRASE';
       readonly accountId: S08AffectedAccountId;
     }
+  | { readonly type: 'TRIANGLE_ANIMATION_COMPLETE' }
   | { readonly type: 'NEXT' };
 
 const s08Machine = setup({
@@ -96,7 +97,7 @@ const s08Machine = setup({
     attackReady: { on: { NEXT: { target: 'incidentAttack' } } },
     incidentAttack: { after: { phaseDuration: { target: 'triangleAnimating' } } },
     triangleAnimating: {
-      after: { phaseDuration: { target: 'replayComplete' } },
+      on: { TRIANGLE_ANIMATION_COMPLETE: { target: 'replayComplete' } },
     },
     replayComplete: { on: { NEXT: { target: 's09' } } },
     s09: {},
@@ -240,42 +241,13 @@ export function S08NetworkRewindStage({
   const summaryVisible = state.matches('s09');
 
   useEffect(() => {
-    if (!pathReplayRunning) return;
-    const animations: ReturnType<typeof animate>[] = [];
-    let frame: number | null = null;
-    const startDrawing = () => {
-      const edgeMasks = [
-        ...(networkHostRef.current?.querySelectorAll<SVGPathElement>(
-          '[data-network-edge-draw-mask]',
-        ) ?? []),
-      ];
-      if (edgeMasks.length === 0) {
-        frame = requestAnimationFrame(startDrawing);
-        return;
-      }
-      const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-      for (const edgeMask of edgeMasks) {
-        const length = edgeMask.getTotalLength();
-        if (!Number.isFinite(length) || length <= 0) continue;
-        edgeMask.style.strokeDasharray = `${length}`;
-        edgeMask.style.strokeDashoffset = reducedMotion ? '0' : `${length}`;
-        edgeMask.style.opacity = '1';
-        if (reducedMotion) continue;
-        animations.push(
-          animate(
-            edgeMask,
-            { strokeDashoffset: [length, 0] },
-            { duration: state.context.phaseDurationMs / 1000, ease: 'easeInOut' },
-          ),
-        );
-      }
-    };
-    frame = requestAnimationFrame(startDrawing);
-    return () => {
-      if (frame !== null) cancelAnimationFrame(frame);
-      for (const animation of animations) animation.stop();
-    };
-  }, [pathReplayRunning, state.context.phaseDurationMs]);
+    if (
+      pathReplayRunning &&
+      window.matchMedia('(prefers-reduced-motion: reduce)').matches
+    ) {
+      send({ type: 'TRIANGLE_ANIMATION_COMPLETE' });
+    }
+  }, [pathReplayRunning, send]);
 
   return (
     <section
@@ -293,7 +265,19 @@ export function S08NetworkRewindStage({
         platform={platform}
         browserDock={{ active: false, enabled: false, label: 'Browser geschlossen' }}
       >
-        <div ref={networkHostRef} className={styles.network}>
+        <div
+          ref={networkHostRef}
+          className={styles.network}
+          onAnimationEndCapture={(event) => {
+            if (
+              pathReplayRunning &&
+              event.target instanceof SVGPathElement &&
+              event.target.matches('[data-network-edge-draw-mask]')
+            ) {
+              send({ type: 'TRIANGLE_ANIMATION_COMPLETE' });
+            }
+          }}
+        >
           <AccountAssessmentNetwork
             adapter={adapter}
             presentation={presentation}
@@ -316,6 +300,12 @@ export function S08NetworkRewindStage({
               send({ type: 'PROTECT_WITH_UNIQUE_PASSPHRASE', accountId });
             }}
           />
+          {replayComplete ? (
+            <div className={styles.completionMoment} role="status" aria-live="polite">
+              <CelebrationConfetti />
+              <strong>{s08NetworkReplayContent.replayCompletion}</strong>
+            </div>
+          ) : null}
         </div>
         {replayReady ? (
           <button

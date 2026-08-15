@@ -809,6 +809,7 @@ function NodeEdge({
                 d={edge.path}
                 fill="none"
                 opacity={0}
+                pathLength={1}
                 stroke="white"
                 strokeWidth={14}
               />

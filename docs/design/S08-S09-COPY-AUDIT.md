@@ -46,3 +46,16 @@ Kontur. `S08_NETWORK_REPLAY_CONTENT_VERSION` steigt von `3.0.0` auf `3.1.0`.
 | Segment und Text-ID | Vorher | Nachher | Primäre Rolle | Interaktionsziel | Grund und Bedeutungsänderung | Hervorhebung |
 |---|---|---|---|---|---|---|
 | `S08.replayLabels.attack` | `Das alte Campusgram-Passwort wird erneut ausprobiert. Alle Verbindungen bleiben blockiert.` | entfällt | Orientierung | kein | ausdrücklich freigegebene Entfernung zusätzlicher kognitiver Last; keine Bedeutungsänderung am sichtbaren Rücklauf | keine |
+
+## Copy- und Darstellungsdelta S08 Abschlussfeedback, 15. August 2026
+
+Quelle ist der ausdrückliche Nutzerauftrag vom 15. August 2026. Sobald alle sechs grünen
+Liniensegmente vollständig gezeichnet sind, erscheinen mittig Konfetti und anschließend das groß
+hervorgehobene Ergebnisfeedback. Gleichzeitig wird die vorhandene Aktion `Abschließen` verfügbar.
+Der Wortlaut bezieht sich ausschließlich auf die dargestellten Konten und erweitert die
+Schutzwirkung nicht zu einer absoluten Sicherheitszusage. `S08_NETWORK_REPLAY_CONTENT_VERSION`
+steigt von `3.1.0` auf `3.2.0`.
+
+| Segment und Text-ID | Vorher | Nachher | Primäre Rolle | Interaktionsziel | Grund und Bedeutungsänderung | Hervorhebung |
+|---|---|---|---|---|---|---|
+| `S08.replayCompletion` | nicht vorhanden | `Konten wieder geschützt` | Ergebnisfeedback | kein | ausdrücklich freigegebene sichtbare Bestätigung des vollständig gezeichneten Schutzdreiecks; Bedeutungsänderung freigegeben | gesamte kurze Ergebnisphrase im positiven Ton |

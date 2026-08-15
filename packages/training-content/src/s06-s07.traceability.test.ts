@@ -12,7 +12,9 @@ const s06AttackFlowCopyReference =
   'docs/design/S06-S07-COPY-AUDIT.md#copy-delta-s06-rückkehr-zur-ausgangslage-15-august-2026';
 const s07EntryCopyReference =
   'docs/design/S06-S07-COPY-AUDIT.md#copy-delta-s07-passphrasen-eins-und-vier-15-august-2026';
-const s08S09CopyReference =
+const s08CopyReference =
+  'docs/design/S08-S09-COPY-AUDIT.md#copy--und-darstellungsdelta-s08-abschlussfeedback-15-august-2026';
+const s09CopyReference =
   'docs/design/S08-S09-COPY-AUDIT.md#copy--und-ablaufdelta-s08-rücklauf-und-s09-abschluss-15-august-2026';
 
 describe('S06 transition and S07 passphrase-search copy traceability', () => {
@@ -230,8 +232,8 @@ describe('S06 transition and S07 passphrase-search copy traceability', () => {
   });
 
   it('keeps S08 linked to the protected replay wording', () => {
-    expect(S08_NETWORK_REPLAY_CONTENT_VERSION).toBe('3.1.0');
-    expect(s08NetworkReplayContent.source.copyReference).toBe(s08S09CopyReference);
+    expect(S08_NETWORK_REPLAY_CONTENT_VERSION).toBe('3.2.0');
+    expect(s08NetworkReplayContent.source.copyReference).toBe(s08CopyReference);
     expect(s08NetworkReplayContent.protectionAction).toBe(
       'Einzigartige Passphrase verwenden',
     );
@@ -239,12 +241,15 @@ describe('S06 transition and S07 passphrase-search copy traceability', () => {
       attack: 'Angriff starten',
       finish: 'Abschließen',
     });
+    expect(s08NetworkReplayContent.replayCompletion).toBe(
+      'Konten wieder geschützt',
+    );
     expect('replayLabels' in s08NetworkReplayContent).toBe(false);
   });
 
   it('keeps the S09 password summary linked to its three principles', () => {
     expect(S09_PASSWORD_SUMMARY_CONTENT_VERSION).toBe('1.0.0');
-    expect(s09PasswordSummaryContent.source.copyReference).toBe(s08S09CopyReference);
+    expect(s09PasswordSummaryContent.source.copyReference).toBe(s09CopyReference);
     expect(s09PasswordSummaryContent.principles.map(({ label }) => label)).toEqual([
       'Stark',
       'Einzigartig',
