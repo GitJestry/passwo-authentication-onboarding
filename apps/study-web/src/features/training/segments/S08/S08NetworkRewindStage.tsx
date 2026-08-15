@@ -33,6 +33,8 @@ import {
   createCompletedS02Network,
   createExpandedS09AccountNetwork,
   createProtectedS08Network,
+  createS09ScalingComparisonResults,
+  createS09ScalingRiskNetwork,
   createS08ProtectionNetwork,
   staticNetworkPresentation,
 } from '../account-network.js';
@@ -45,7 +47,6 @@ interface S08Context {
   readonly initialStage: 's08' | 's09';
   readonly phaseDurationMs: number;
   readonly reductionDurationMs: number;
-  readonly vaultPauseDurationMs: number;
   readonly protectedAccountIds: readonly S08AffectedAccountId[];
 }
 
@@ -68,13 +69,11 @@ const s08Machine = setup({
       readonly initialStage: 's08' | 's09';
       readonly phaseDurationMs: number;
       readonly reductionDurationMs: number;
-      readonly vaultPauseDurationMs: number;
     },
   },
   delays: {
     phaseDuration: ({ context }) => context.phaseDurationMs,
     reductionDuration: ({ context }) => context.reductionDurationMs,
-    vaultPauseDuration: ({ context }) => context.vaultPauseDurationMs,
   },
   guards: {
     hasNoAffectedAccounts: ({ context }) => context.affectedAccountIds.length === 0,
@@ -104,7 +103,6 @@ const s08Machine = setup({
     initialStage: input.initialStage,
     phaseDurationMs: input.phaseDurationMs,
     reductionDurationMs: input.reductionDurationMs,
-    vaultPauseDurationMs: input.vaultPauseDurationMs,
     protectedAccountIds:
       input.initialStage === 's09' ? [...input.affectedAccountIds] : [],
   }),
@@ -157,14 +155,6 @@ const s08Machine = setup({
     },
     passWoSolution: {
       tags: ['s09', 'expanded'],
-      on: { NEXT: { target: 'vaultPause' } },
-    },
-    vaultPause: {
-      tags: ['s09', 'expanded'],
-      after: { vaultPauseDuration: { target: 'passWoVault' } },
-    },
-    passWoVault: {
-      tags: ['s09', 'expanded'],
       on: { NEXT: { target: 'managerTransition' } },
     },
     managerTransition: {
@@ -184,10 +174,6 @@ export interface S08NetworkRewindStageProps {
 
 function replayDuration(): number {
   return window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 1200 : 1450;
-}
-
-function vaultPauseDuration(): number {
-  return window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 0 : 650;
 }
 
 function accountReductionDuration(): number {
@@ -221,7 +207,6 @@ export function S08NetworkRewindStage({
       initialStage,
       phaseDurationMs: replayDuration(),
       reductionDurationMs: accountReductionDuration(),
-      vaultPauseDurationMs: vaultPauseDuration(),
     },
   });
   const sourceNetwork = useMemo(
@@ -285,6 +270,22 @@ export function S08NetworkRewindStage({
       ),
     [triangleNetwork],
   );
+  const scalingComparisonResults = useMemo(
+    () =>
+      createS09ScalingComparisonResults(
+        conservativeScaleNetwork,
+        s09PasswordSummaryContent.scaling.riskFindingShare,
+      ),
+    [conservativeScaleNetwork],
+  );
+  const scalingRiskNetwork = useMemo(
+    () =>
+      createS09ScalingRiskNetwork(
+        conservativeScaleNetwork,
+        scalingComparisonResults,
+      ),
+    [conservativeScaleNetwork, scalingComparisonResults],
+  );
   const projectedNetwork = useMemo(
     () => {
       if (preparationVisible) {
@@ -299,6 +300,13 @@ export function S08NetworkRewindStage({
       }
       if (state.matches('s09Reduction')) {
         return reducingNetwork;
+      }
+      if (
+        state.matches('passWoDifficulty') ||
+        state.matches('passWoRisks') ||
+        state.matches('passWoSolution')
+      ) {
+        return scalingRiskNetwork.network;
       }
       if (state.hasTag('expanded')) {
         return conservativeScaleNetwork;
@@ -317,6 +325,7 @@ export function S08NetworkRewindStage({
       conservativeScaleNetwork,
       replayBaseNetwork,
       reducingNetwork,
+      scalingRiskNetwork,
       sourceNetwork,
       state,
       studyScaleNetwork,
@@ -362,7 +371,11 @@ export function S08NetworkRewindStage({
   const replayReady = state.matches('attackReady');
   const replayComplete = state.matches('replayComplete');
   const summaryVisible = state.matches('s09Summary');
-  const vaultPauseVisible = state.matches('vaultPause');
+  const scalingFindingsRevealing = state.matches('passWoDifficulty');
+  const scalingFindingsVisible =
+    scalingFindingsRevealing ||
+    state.matches('passWoRisks') ||
+    state.matches('passWoSolution');
   const passWoStep = state.matches('s09Intro')
     ? 0
     : state.matches('s09Expansion')
@@ -375,9 +388,7 @@ export function S08NetworkRewindStage({
             ? 4
             : state.matches('passWoSolution')
               ? 5
-              : state.matches('passWoVault')
-                ? 6
-                : null;
+              : null;
 
   useEffect(() => {
     if (
@@ -463,6 +474,20 @@ export function S08NetworkRewindStage({
             attackEdgeId={null}
             showAccountShields
             overview={state.hasTag('expanded')}
+            {...(scalingFindingsVisible
+              ? {
+                  comparisonResults: scalingComparisonResults,
+                  comparisonResultsAriaHidden: true,
+                  comparisonResultsCompact: true,
+                  edgeRevealDelaysMs: scalingRiskNetwork.edgeRevealDelaysMs,
+                  animateEdgeReveals: scalingFindingsRevealing,
+                  ...(scalingFindingsRevealing
+                    ? {
+                        comparisonResultsSequential: true,
+                      }
+                    : {}),
+                }
+              : {})}
             celebratingNodeId={celebratingNodeId}
             interactionDisabled={!preparationVisible}
             nodeActionLabels={actionLabels}
@@ -562,17 +587,6 @@ export function S08NetworkRewindStage({
               </button>
             </section>
           </>
-        ) : vaultPauseVisible ? (
-          <>
-            <div className={styles.s09Dim} aria-hidden="true" />
-            <div
-              className={styles.vaultPause}
-              role="status"
-              aria-label="Ein Passworttresor erscheint."
-            >
-              <span aria-hidden="true" />
-            </div>
-          </>
         ) : passWoStep !== null ? (
           <>
             <div className={styles.s09Dim} aria-hidden="true" />
@@ -588,7 +602,16 @@ export function S08NetworkRewindStage({
                 openHelpLabel="PassWo-Hinweis öffnen"
                 speech={[s09PasswordSummaryContent.passWo.steps[passWoStep]]}
                 speechEmphasis={
-                  passWoStep === 0 ? passWoSpeechEmphasisFor('s09-scaling-intro') : []
+                  passWoSpeechEmphasisFor(
+                    [
+                      's09-scaling-intro',
+                      's09-scaling-expansion',
+                      's09-scaling-question',
+                      's09-scaling-difficulty',
+                      's09-scaling-risks',
+                      's09-scaling-solution',
+                    ][passWoStep] ?? '',
+                  )
                 }
                 speechKey={`s09-${passWoStep}`}
                 {...(state.matches('s09Reduction')
@@ -604,7 +627,7 @@ export function S08NetworkRewindStage({
                           : {
                               kind: 'advance',
                               label:
-                                passWoStep === 6 ? 'Zum Passwortmanager' : 'Weiter',
+                                passWoStep === 5 ? 'Passwortmanager' : 'Weiter',
                               onAction: () => send({ type: 'NEXT' }),
                             },
                     })}

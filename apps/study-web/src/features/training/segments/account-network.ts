@@ -1,4 +1,4 @@
-import type { S06AccountId } from '@passwo/contracts';
+import type { PasswordRelation, S06AccountId } from '@passwo/contracts';
 import { s02Content, s08NetworkReplayContent } from '@passwo/training-content';
 import type { NetworkSceneSnapshot, SceneEdge, SceneNode } from '@passwo/visualization';
 import type { NetworkPresentationSnapshot } from '../../../adapters/network/NetworkMotionAdapter.js';
@@ -509,6 +509,71 @@ export function createExpandedS09AccountNetwork(
       retainedAccountCount === accountCount
         ? `Das bisherige Netzwerk bleibt erhalten und wird auf insgesamt ${accountCount} beispielhafte Konten erweitert.`
         : `Das Netzwerk wird von ${accountCount} auf ${retainedAccountCount} beispielhafte Konten reduziert.`,
+  };
+}
+
+/**
+ * Distributes authored example findings across anonymous scaled accounts without inspecting any
+ * participant input. The three protected exercise accounts deliberately remain unmarked.
+ */
+export function createS09ScalingComparisonResults(
+  snapshot: NetworkSceneSnapshot,
+  findingShare: number,
+): Readonly<Partial<Record<string, PasswordRelation['kind']>>> {
+  const accounts = snapshot.nodes.filter(({ kind }) => kind === 'account');
+  const findingCount = Math.floor(accounts.length * findingShare);
+  const findings: Partial<Record<string, PasswordRelation['kind']>> = {};
+  const anonymousAccounts = accounts.filter(({ id }) =>
+    id.startsWith('s09-additional-account-'),
+  );
+  const authoredExampleAccounts = Array.from(
+    { length: Math.min(findingCount, anonymousAccounts.length) },
+    (_, index) => anonymousAccounts[(23 + index * 37) % anonymousAccounts.length],
+  ).filter((account): account is SceneNode => account !== undefined);
+
+  authoredExampleAccounts.forEach((account, index) => {
+    findings[account.id] =
+      index % 2 === 0 ? 'exact-match' : 'derived-variant-match';
+  });
+
+  return findings;
+}
+
+export interface S09ScalingRiskNetwork {
+  readonly network: NetworkSceneSnapshot;
+  readonly edgeRevealDelaysMs: Readonly<Partial<Record<string, number>>>;
+}
+
+/** Connects every illustrated finding once in the same deterministic reveal order. */
+export function createS09ScalingRiskNetwork(
+  snapshot: NetworkSceneSnapshot,
+  findings: Readonly<Partial<Record<string, PasswordRelation['kind']>>>,
+): S09ScalingRiskNetwork {
+  const accountIds = Object.keys(findings);
+  const edgeRevealDelaysMs: Partial<Record<string, number>> = {};
+  const riskEdges = accountIds.map((targetId, index): SceneEdge => {
+    const sourceId = accountIds[(index + accountIds.length - 1) % accountIds.length];
+    const relation = findings[targetId];
+    const edgeId = `s09-risk-relation-${index + 1}`;
+    edgeRevealDelaysMs[edgeId] = index * 55;
+    return {
+      id: edgeId,
+      sourceId: sourceId ?? targetId,
+      targetId,
+      kind: relation === 'exact-match' ? 'identical-reuse' : 'similar-pattern',
+      status: relation === 'exact-match' ? 'direct' : 'similar',
+      label: null,
+    };
+  });
+
+  return {
+    network: {
+      ...snapshot,
+      id: `${snapshot.id}-risk-relations`,
+      edges: [...snapshot.edges, ...riskEdges],
+      accessibleSummary: `${snapshot.accessibleSummary} 48 Konten tragen beispielhafte Befunde und sind durch rote Risikoverbindungen verbunden.`,
+    },
+    edgeRevealDelaysMs,
   };
 }
 

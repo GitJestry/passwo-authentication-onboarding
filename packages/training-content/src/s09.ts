@@ -1,13 +1,13 @@
 import type { TrainingSectionId } from '@passwo/contracts';
 
-export const S09_PASSWORD_SUMMARY_CONTENT_VERSION = '3.4.0';
+export const S09_PASSWORD_SUMMARY_CONTENT_VERSION = '3.9.0';
 
 export const s09PasswordSummaryContent = {
   version: S09_PASSWORD_SUMMARY_CONTENT_VERSION,
   source: {
-    revision: 'Userauftrag vom 2026-08-15 · Kontenskalierung von 134 auf 80',
+    revision: 'Userauftrag vom 2026-08-15 · Risikoverbindungen ohne erneutes Zeichnen',
     copyReference:
-      'docs/design/S08-S09-COPY-AUDIT.md#ablauf--und-darstellungsdelta-s09-kontenskalierung-von-134-auf-80-15-august-2026',
+      'docs/design/S08-S09-COPY-AUDIT.md#darstellungsdelta-s09-risikoverbindungen-ohne-erneutes-zeichnen-15-august-2026',
   },
   segment: {
     id: 'S09',
@@ -80,18 +80,18 @@ export const s09PasswordSummaryContent = {
   scaling: {
     studyAccountCount: 134,
     accountCount: 80,
+    riskFindingShare: 0.6,
     answer: 'Super easy!',
   },
   passWo: {
     guideName: 'PassWo',
     steps: [
-      'Für drei Konten hast du bereits gesehen, was zusammenkommen muss: Jedes Passwort soll stark, einzigartig und später wieder abrufbar sein.',
-      'Im Alltag bleibt es aber nicht bei drei Konten. Banking, Kommunikation, Shopping, Uni, Social Media, Weiterbildung und Arbeit summieren sich schnell. Eine aktuelle CHI-Studie (2026) schätzt, dass eine typische Person im Laufe der Zeit Accounts bei rund 134 verschiedenen Online-Diensten hatte.',
-      'Wir bleiben etwas konservativer: Wie realistisch wäre es für dich, für 80 Konten jeweils ein starkes und einzigartiges Passwort zu erstellen und dauerhaft im Kopf zu behalten?',
-      'Genau das ist die Schwierigkeit: So viele einzelne Passwörter dauerhaft im Kopf zu behalten, ist nicht realistisch. Deshalb ist es nachvollziehbar, sie wiederzuverwenden, leicht abzuwandeln oder selbst in Listen festzuhalten.',
-      'Wir haben aber bereits gesehen, wie Wiederverwendung und ähnliche Passwörter dazu führen können, dass ein getroffenes Konto weitere Konten gefährdet. Ungeschützte Passwortlisten können wiederum leicht zugänglich sein.',
-      'Die Lösung ist, dass wir uns diese vielen Passwörter gar nicht selbst merken müssen.',
-      'Dafür bräuchten wir einen sicheren Tresor, der für alle 80 Konten starke, einzigartige Passwörter erzeugt, geschützt speichert und beim Anmelden wieder einfügt. Dann müssten wir uns nur noch ein einziges starkes Passwort für den Tresor merken. Und genau das gibt es schon.',
+      'Hier im kleinen Szenario waren es nur drei Konten.',
+      'Im Alltag sind es aber deutlich mehr: Eine aktuelle CHI-Studie (2026) kommt auf rund 134 Online-Dienste pro Person.',
+      'Bleiben wir unter dem Wert: Wie realistisch wäre es für dich, dir selbst „nur“ 80 starke und einzigartige Passwörter dauerhaft zu merken?',
+      'So viele einzelne Passwörter dauerhaft im Kopf zu behalten, ist nicht realistisch. Deshalb ist es auch nachvollziehbar, dass Passwörter wiederverwendet, leicht abgewandelt oder in eigenen Listen festgehalten werden.',
+      'Welche Risiken dabei entstehen können, hast du gerade gesehen. Auch ungeschützte Passwortlisten können selbst zum Risiko werden.',
+      'Die gute Nachricht: Du musst dir all diese Passwörter auch gar nicht selbst merken.',
     ],
   },
   passwordManagerTransition: {

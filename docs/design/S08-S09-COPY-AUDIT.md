@@ -253,3 +253,102 @@ beiden Zahlen werden als getrennte versionierte Darstellungswerte geführt.
 |---|---|---|---|---|---|
 | `S09.passWo.steps.1` | Alltagseinordnung mit der CHI-2026-Angabe zu rund 134 Online-Diensten | Orientierung | `Weiter` | Netzwerk wird passend zur genannten Größenordnung auf 134 Kontoknoten erweitert | keine |
 | `S09.passWo.steps.2` | Frage nach der Realisierbarkeit starker, einzigartiger Passwörter für 80 Konten | Orientierung | Sprechblasenaktion `Super easy!` nach Abschluss der kurzen Reduktion | 54 Zusatzkonten verschwinden gestaffelt; genau 80 bleiben sichtbar | keine |
+
+## Copy- und Ablaufdelta S09 PassWo-Chat vor Passwortmanager, 15. August 2026
+
+Quelle ist der ausdrückliche Nutzerauftrag vom 15. August 2026. Die sechs vorgegebenen Absätze
+ersetzen die bisherigen sieben Skalierungs- und Passwortmanager-Schritte. Die bestehende
+Ereignisfolge bleibt bis zur letzten Sprechblase unverändert: Der zweite Schritt erweitert das
+Netzwerk auf 134 Konten, vor dem dritten Schritt wird es auf 80 Konten reduziert, und `Super easy!`
+führt zur nicht wertenden Einordnung. Der Button `Passwortmanager` in der sechsten Sprechblase
+startet die vorhandene Transition zu `Sektion 2 von 3` direkt. Der zusätzliche Tresor-Schritt und
+seine vorgelagerte Pause entfallen. `S09_PASSWORD_SUMMARY_CONTENT_VERSION` steigt von `3.4.0` auf
+`3.5.0`. Persistenz und Forschungswrites bleiben unverändert.
+
+| Segment und Text-ID | Vorher | Nachher | Primäre Rolle | Interaktionsziel | Grund und Bedeutungsänderung | Hervorhebung |
+|---|---|---|---|---|---|---|
+| `S09.passWo.steps.0` | Rückblick auf drei Konten sowie stark, einzigartig und abrufbar | `Hier im kleinen Szenario waren es nur drei Konten.` | Orientierung | `Weiter` zur Erweiterung auf 134 Konten | ausdrücklich freigegebene Straffung; begrenzt | keine |
+| `S09.passWo.steps.1` | ausführliche Alltagseinordnung mit Dienstkategorien und 134-Dienste-Angabe | `Im Alltag sind es aber deutlich mehr: Eine aktuelle CHI-Studie (2026) kommt auf rund 134 Online-Dienste pro Person.` | Orientierung | `Weiter` zur Reduktion auf 80 Konten | ausdrücklich freigegebene Straffung bei gleicher Skalierungsfunktion; begrenzt | `deutlich mehr` im Akzentton |
+| `S09.passWo.steps.2` | konservative Frage nach 80 Konten, Erstellung und Erinnern | `Bleiben wir unter dem Wert: Wie realistisch wäre es für dich, dir selbst „nur“ 80 starke und einzigartige Passwörter dauerhaft zu merken?` | Orientierung | Sprechblasenaktion `Super easy!` | ausdrücklich freigegebene Frageformulierung; begrenzt | `80 starke und einzigartige Passwörter dauerhaft zu merken` im Akzentton |
+| `S09.passWo.steps.3` | Schwierigkeit plus Ausweichstrategien in direkter Anrede | vorgegebene nicht wertende Einordnung von Erinnerungsgrenze und nachvollziehbaren Ausweichstrategien | Ergebnisfeedback | `Weiter` | reduziert die Bewertungssprache und erhält den Erklärzweck; begrenzt | keine |
+| `S09.passWo.steps.4` | kontoübergreifende Folgen und leicht zugängliche Listen | Rückbezug auf die gerade gesehenen Risiken sowie ungeschützte Passwortlisten | Mechanismuserklärung | `Weiter` | ausdrücklich freigegebene Straffung; begrenzt | `Risiken` im Warnungston |
+| `S09.passWo.steps.5` | Lösungssatz zum Nicht-selbst-Merken | `Die gute Nachricht: Du musst dir all diese Passwörter auch gar nicht selbst merken.` | Kerngedanke | Button `Passwortmanager` zur Sektions-Transition | ausdrücklich freigegebene positive Hinleitung und frühere Transition; Bedeutungsänderung freigegeben | zweiter Satz vollständig im positiven Ton |
+| `S09.passWo.steps.6` und Tresor-Pause | ausführliche Tresorerklärung nach animierter Zwischenpause | entfällt | Mechanismuserklärung | entfällt | ausdrücklich freigegebene frühere Transition; Bedeutungsänderung freigegeben | keine |
+
+## Darstellungsdelta S09 Befundtitel auf 75 Prozent der Konten, 15. August 2026
+
+Quelle ist der ausdrückliche Nutzerauftrag vom 15. August 2026. Während PassWo erklärt, dass
+das dauerhafte Erinnern vieler einzelner Passwörter nicht realistisch ist, tragen 60 der 80
+sichtbaren Konten einen roten Befundtitel. Die vorhandenen S06-Ergebnisbezeichnungen
+`Wiederverwendet` und `Ähnlich` werden gleichmäßig auf die anonymen Zusatzkonten verteilt. Die
+drei zuvor geschützten Übungskonten bleiben unmarkiert. Die Verteilung ist deterministisch und
+rein illustrativ; sie wertet keine Passwörter oder Teilnehmereingaben aus und wird nicht
+persistiert. Für assistive Technologien fasst ein gemeinsames Netzwerklabel die 60 Befunde
+zusammen, statt die beiden Titel jeweils 30-mal vorzulesen.
+
+Der sichtbare PassWo-Wortlaut, die Ereignisfolge und die Transition zum Passwortmanager bleiben
+unverändert. `S09_PASSWORD_SUMMARY_CONTENT_VERSION` steigt von `3.5.0` auf `3.6.0`.
+
+| Segment und Text-ID | Vorher | Nachher | Primäre Rolle | Interaktionsziel | Grund und Bedeutungsänderung | Hervorhebung |
+|---|---|---|---|---|---|---|
+| `S09.network.riskFindingShare` | keine Befundtitel an den 80 Skalierungskonten | 60 rote S06-Befundtitel: je 30-mal `Wiederverwendet` und `Ähnlich` | Ergebnisfeedback | kein | ausdrücklich freigegebene Illustration des Skalierungsproblems; begrenzt | roter Titeltext ergänzt Farbe als Bedeutungsträger |
+
+## Darstellungsdelta S09 sequenzielle Befundtitel auf 60 Prozent, 15. August 2026
+
+Quelle ist der ausdrückliche Nutzerauftrag vom 15. August 2026. Statt 75 % tragen nun exakt 60 %
+der 80 sichtbaren Konten einen roten Befundtitel. Die 48 betroffenen anonymen Konten werden über
+eine feste Permutation der authored Knotenreihenfolge räumlich zufällig wirkend ausgewählt. Die
+Titel erscheinen mit kurzem Abstand nacheinander und sind gegenüber der S06-Standarddarstellung
+deutlich kleiner. Bei Reduced Motion entfällt die Staffelung und alle Titel erscheinen sofort.
+
+Die 48 Titel teilen sich gleichmäßig auf 24-mal `Wiederverwendet` und 24-mal `Ähnlich` auf. Die
+Auswahl bleibt reproduzierbar, rein illustrativ und unabhängig von Passwörtern oder
+Teilnehmereingaben. PassWo-Wortlaut, Ereignisfolge, Persistenz und Forschungswrites bleiben
+unverändert. `S09_PASSWORD_SUMMARY_CONTENT_VERSION` steigt von `3.6.0` auf `3.7.0`.
+
+| Segment und Text-ID | Vorher | Nachher | Primäre Rolle | Interaktionsziel | Grund und Bedeutungsänderung | Hervorhebung |
+|---|---|---|---|---|---|---|
+| `S09.network.riskFindingShare` | 75 %, 60 gleichzeitig sichtbare Titel | 60 %, 48 nacheinander erscheinende Titel an fest permutierten anonymen Knoten | Ergebnisfeedback | kein | ausdrücklich freigegebene Reduktion und sequenzielle Darstellung; begrenzt | kleiner roter Titeltext; Wortlaut bleibt zusätzlicher Bedeutungsträger |
+
+## Darstellungsdelta S09 persistente Befundtitel und Risikoverbindungen, 15. August 2026
+
+Quelle ist der ausdrückliche Nutzerauftrag vom 15. August 2026. Die 48 roten Befundtitel
+verschwinden nicht mehr beim ersten `Weiter`, sondern bleiben auch in den anschließenden
+PassWo-Schritten zu Risiken und zur guten Nachricht sichtbar. Erst die Transition zur Sektion
+`Passwortmanager` beendet die Netzwerkansicht.
+
+Zusammen mit jedem gestaffelt erscheinenden Titel wird eine dünne rote Kante zwischen zwei der
+betroffenen anonymen Konten sichtbar. Insgesamt verbinden 48 Kanten alle markierten Konten in
+einem geschlossenen, durch die feste Permutation räumlich verteilten Beziehungsnetz. Die Kanten
+verwenden die vorhandenen S06-Arten `identical-reuse` beziehungsweise `similar-pattern`; sie
+bleiben nach `Weiter` bestehen und werden bei Reduced Motion ohne Staffelung im Endzustand
+gezeigt. Die Darstellung bleibt illustrativ und leitet keine Beziehung aus Teilnehmerdaten oder
+Passwörtern ab.
+
+PassWo-Wortlaut, Ereignisfolge, Persistenz und Forschungswrites bleiben unverändert.
+`S09_PASSWORD_SUMMARY_CONTENT_VERSION` steigt von `3.7.0` auf `3.8.0`.
+
+| Segment und Text-ID | Vorher | Nachher | Primäre Rolle | Interaktionsziel | Grund und Bedeutungsänderung | Hervorhebung |
+|---|---|---|---|---|---|---|
+| `S09.network.riskFindings` | 48 Titel nur im ersten Einordnungsschritt | 48 Titel bleiben bis zur Passwortmanager-Transition sichtbar | Ergebnisfeedback | `Weiter` verändert nur den PassWo-Schritt | ausdrücklich freigegebene Persistenz innerhalb der flüchtigen Szene; keine Bedeutungsänderung | kleine rote Titeltexte |
+| `S09.network.riskRelations` | keine zusätzlichen Verbindungen | 48 dünne rote S06-Beziehungskanten erscheinen gestaffelt mit den Titeln und bleiben sichtbar | Mechanismusillustration | kein | ausdrücklich freigegebene Andeutung vieler Beziehungen; begrenzt | rote Linie plus vorhandene unterschiedliche Beziehungstypen |
+
+## Darstellungsdelta S09 Risikoverbindungen ohne erneutes Zeichnen, 15. August 2026
+
+Quelle ist die ausdrückliche Nutzerkorrektur vom 15. August 2026. Die Staffelungsattribute für
+die 48 Titel und roten Beziehungskanten gelten nur noch beim erstmaligen Eintritt in den
+Einordnungsschritt. Die beiden anschließenden `Weiter`-Ereignisse behalten dasselbe Risikonetz als
+statischen Endzustand, ohne die Reveal-Animation erneut anzuwenden. Wortlaut, Knoten- und
+Kantenauswahl, Persistenz sowie Forschungswrites bleiben unverändert.
+
+`S09_PASSWORD_SUMMARY_CONTENT_VERSION` steigt von `3.8.0` auf `3.9.0`.
+
+| Segment und Text-ID | Vorher | Nachher | Primäre Rolle | Interaktionsziel | Grund und Bedeutungsänderung | Hervorhebung |
+|---|---|---|---|---|---|---|
+| `S09.network.riskRelations` | Staffelungsattribute bleiben nach `Weiter` aktiv und können die Linien erneut zeichnen | Staffelung nur beim ersten Erscheinen; danach statischer Endzustand | Mechanismusillustration | `Weiter` wechselt nur den PassWo-Text | ausdrückliche Korrektur des sichtbaren Zustandsübergangs; keine Bedeutungsänderung | unverändert |
+
+Die nachträgliche Darstellungskorrektur desselben Auftrags trennt das dauerhafte kompakte
+Linienstyling von der einmaligen Reveal-Animation. Beim Wechsel mit `Weiter` bleibt deshalb für
+alle 48 Kanten die Strichstärke von `1.25px` und die reduzierte Deckkraft erhalten; lediglich die
+Animationsmarkierung entfällt. Dadurch werden die persistenten Linien weder erneut gezeichnet
+noch auf die deutlich dickere S06-Standarddarstellung zurückgesetzt.

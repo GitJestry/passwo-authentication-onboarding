@@ -1,7 +1,7 @@
 import type { PasswordRelation, S06AccountId } from '@passwo/contracts';
 import { s06ConsequenceContent } from '@passwo/training-content';
 import type { NetworkSceneSnapshot } from '@passwo/visualization';
-import { useCallback } from 'react';
+import { useCallback, useMemo, type CSSProperties } from 'react';
 import attackerAsset from '../../../assets/passwo/attacker.png';
 import passwordFactorShieldAsset from '../../../assets/s05/password-factor-shield.png';
 import comparisonPathShieldAsset from '../../../assets/s06/comparison-path-shield.png';
@@ -14,24 +14,14 @@ import {
 import styles from './AccountAssessmentNetwork.module.css';
 
 export type AccountComparisonResults = Readonly<
-  Partial<Record<S06AccountId, PasswordRelation['kind']>>
+  Partial<Record<string, PasswordRelation['kind']>>
 >;
 
 const emptyComparisonResults: AccountComparisonResults = {};
+const emptyEdgeRevealDelaysMs: Readonly<Partial<Record<string, number>>> = {};
 const emptyNodeActionLabels: Readonly<Partial<Record<S06AccountId, string>>> = {};
 
 function ignoreNodeSelect(_nodeId: string): void {}
-
-function comparisonResultForNode(
-  nodeId: string,
-  campusgramResult: PasswordRelation['kind'] | null,
-  masterCampusResult: PasswordRelation['kind'] | null,
-  campusEmailResult: PasswordRelation['kind'] | null,
-): PasswordRelation['kind'] | null {
-  if (nodeId === 'campusgram') return campusgramResult;
-  if (nodeId === 'master-campus') return masterCampusResult;
-  return nodeId === 'campus-email' ? campusEmailResult : null;
-}
 
 function actionLabelForNode(
   nodeId: string,
@@ -48,6 +38,9 @@ function AccountStatusOverlay({
   showAttacker,
   attackerAttemptStatus,
   comparisonResult,
+  comparisonResultAriaHidden,
+  comparisonResultRevealIndex,
+  compactComparisonResult,
   actionLabel,
   celebrate,
   showAccountShield,
@@ -57,6 +50,9 @@ function AccountStatusOverlay({
   readonly showAttacker: boolean;
   readonly attackerAttemptStatus: NetworkSceneSnapshot['nodes'][number]['status'] | null;
   readonly comparisonResult: PasswordRelation['kind'] | null;
+  readonly comparisonResultAriaHidden: boolean;
+  readonly comparisonResultRevealIndex: number | null;
+  readonly compactComparisonResult: boolean;
   readonly actionLabel: string | null;
   readonly celebrate: boolean;
   readonly showAccountShield: boolean;
@@ -120,6 +116,18 @@ function AccountStatusOverlay({
         <strong
           className={styles.comparisonResult}
           data-comparison-result={comparisonResult}
+          data-comparison-result-compact={compactComparisonResult || undefined}
+          data-comparison-result-reveal={
+            comparisonResultRevealIndex === null ? undefined : true
+          }
+          aria-hidden={comparisonResultAriaHidden || undefined}
+          style={
+            comparisonResultRevealIndex === null
+              ? undefined
+              : ({
+                  animationDelay: `${comparisonResultRevealIndex * 55}ms`,
+                } satisfies CSSProperties)
+          }
         >
           {s06ConsequenceContent.comparisonResultLabels[comparisonResult]}
         </strong>
@@ -146,6 +154,11 @@ export function AccountAssessmentNetwork({
   attackEdgeId = null,
   attackBlocked = false,
   comparisonResults = emptyComparisonResults,
+  comparisonResultsAriaHidden = false,
+  comparisonResultsCompact = false,
+  comparisonResultsSequential = false,
+  edgeRevealDelaysMs = emptyEdgeRevealDelaysMs,
+  animateEdgeReveals = false,
   statusCascadeStartDelayMs,
   nodeActionLabels = emptyNodeActionLabels,
   celebratingNodeId = null,
@@ -172,6 +185,11 @@ export function AccountAssessmentNetwork({
   readonly attackEdgeId?: string | null;
   readonly attackBlocked?: boolean;
   readonly comparisonResults?: AccountComparisonResults;
+  readonly comparisonResultsAriaHidden?: boolean;
+  readonly comparisonResultsCompact?: boolean;
+  readonly comparisonResultsSequential?: boolean;
+  readonly edgeRevealDelaysMs?: Readonly<Partial<Record<string, number>>>;
+  readonly animateEdgeReveals?: boolean;
   readonly statusCascadeStartDelayMs?: number;
   readonly nodeActionLabels?: Readonly<Partial<Record<S06AccountId, string>>>;
   readonly celebratingNodeId?: S06AccountId | null;
@@ -181,21 +199,22 @@ export function AccountAssessmentNetwork({
   readonly showAccountShields?: boolean;
   readonly overview?: boolean;
 }) {
-  const campusgramResult = comparisonResults.campusgram ?? null;
-  const masterCampusResult = comparisonResults['master-campus'] ?? null;
-  const campusEmailResult = comparisonResults['campus-email'] ?? null;
+  const comparisonResultOrder = useMemo(
+    () => Object.keys(comparisonResults),
+    [comparisonResults],
+  );
   const renderNodeOverlay = useCallback(
     (node: NetworkSceneSnapshot['nodes'][number]) => (
       <AccountStatusOverlay
         node={node}
         showAttacker={node.id === attackerAccountId}
         attackerAttemptStatus={attackerAttemptStatus}
-        comparisonResult={comparisonResultForNode(
-          node.id,
-          campusgramResult,
-          masterCampusResult,
-          campusEmailResult,
-        )}
+        comparisonResult={comparisonResults[node.id] ?? null}
+        comparisonResultAriaHidden={comparisonResultsAriaHidden}
+        comparisonResultRevealIndex={
+          comparisonResultsSequential ? comparisonResultOrder.indexOf(node.id) : null
+        }
+        compactComparisonResult={comparisonResultsCompact}
         actionLabel={actionLabelForNode(node.id, nodeActionLabels)}
         celebrate={node.id === celebratingNodeId}
         showAccountShield={showAccountShields}
@@ -205,9 +224,11 @@ export function AccountAssessmentNetwork({
     [
       attackerAccountId,
       attackerAttemptStatus,
-      campusEmailResult,
-      campusgramResult,
-      masterCampusResult,
+      comparisonResults,
+      comparisonResultsAriaHidden,
+      comparisonResultsCompact,
+      comparisonResultsSequential,
+      comparisonResultOrder,
       nodeActionLabels,
       celebratingNodeId,
       accountShieldAsset,
@@ -235,6 +256,8 @@ export function AccountAssessmentNetwork({
         showStatusMarkers={false}
         dimInactiveNodes={false}
         renderNodeOverlay={renderNodeOverlay}
+        edgeRevealDelaysMs={edgeRevealDelaysMs}
+        animateEdgeReveals={animateEdgeReveals}
         currentAttackEdgeId={attackEdgeId}
         {...(statusCascadeStartDelayMs === undefined ? {} : { statusCascadeStartDelayMs })}
         {...(ariaLabel === undefined ? {} : { ariaLabel })}

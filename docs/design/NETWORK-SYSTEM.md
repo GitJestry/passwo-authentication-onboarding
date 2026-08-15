@@ -79,6 +79,19 @@ Erscheinen, das kurze Ausblenden springender Ursprungskanten und eine Tiefenwell
 Herauszoomen auf 134 Konten sichtbar. Mit der anschließenden konservativen 80-Konten-Frage
 ploppen die 54 nicht mehr benötigten Zusatzkonten in kurzer authored Reihenfolge auf und
 verschwinden. Bei Reduced Motion erscheint derselbe vollständige 80-Konten-Endzustand unmittelbar.
+Während PassWo die unrealistische dauerhafte Erinnerungsanforderung einordnet, tragen exakt 60 %
+dieser 80 Konten einen kleinen roten S06-Befundtitel `Wiederverwendet` oder `Ähnlich`. Die 48
+betroffenen anonymen Konten sind in einer festen, zufällig wirkenden Reihenfolge über das authored
+Punktmuster verteilt; ihre Titel erscheinen nacheinander. Die Verteilung ist eine reproduzierbare
+Illustration des genannten Skalierungsproblems und wird nicht aus Passwörtern, Eingaben oder einer
+Analyse abgeleitet. Bei Reduced Motion erscheinen alle 48 Titel unmittelbar im Endzustand.
+Mit jedem Titel erscheint außerdem eine dünne rote Beziehungskante zwischen zwei betroffenen
+anonymen Konten. Die 48 Kanten verbinden alle markierten Konten in der festen Reveal-Reihenfolge
+und bleiben ebenso wie die Titel in den beiden folgenden PassWo-Schritten sichtbar. Sie
+illustrieren mögliche Wiederverwendungs- oder Ähnlichkeitsbeziehungen und behaupten keine
+tatsächliche Analyse der dargestellten Konten. Die Reveal-Animation ist ausschließlich beim
+erstmaligen Eintritt aktiv; `Weiter` übernimmt den bereits sichtbaren statischen Endzustand, ohne
+die Kanten erneut zu zeichnen.
 
 ## S02-Kontenerkundung
 

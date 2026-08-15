@@ -146,12 +146,18 @@ const emphasisBySpeechId: Readonly<Record<string, readonly PassWoSpeechEmphasis[
     },
   ],
   's07-mnemonic': [{ phrase: 'Beispiel:', tone: 'accent' }],
-  's09-scaling-intro': [
-    { phrase: 'drei Konten', tone: 'accent', contrastId: 'scaling-requirements' },
+  's09-scaling-expansion': [{ phrase: 'deutlich mehr', tone: 'accent' }],
+  's09-scaling-question': [
     {
-      phrase: 'stark, einzigartig und später wieder abrufbar',
+      phrase: '80 starke und einzigartige Passwörter dauerhaft zu merken',
+      tone: 'accent',
+    },
+  ],
+  's09-scaling-risks': [{ phrase: 'Risiken', tone: 'warning' }],
+  's09-scaling-solution': [
+    {
+      phrase: 'Du musst dir all diese Passwörter auch gar nicht selbst merken.',
       tone: 'positive',
-      contrastId: 'scaling-requirements',
     },
   ],
 };

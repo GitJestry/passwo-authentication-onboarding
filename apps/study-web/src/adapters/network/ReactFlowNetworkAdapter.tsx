@@ -81,6 +81,7 @@ interface RendererState {
 type FocusHandler = (nodeId: string) => void;
 type RendererListener = () => void;
 type StatusCascadeListener = (settledNodeIds: readonly string[]) => void;
+const emptyEdgeRevealDelaysMs: Readonly<Partial<Record<string, number>>> = {};
 
 export class ReactFlowNetworkAdapter implements NetworkRendererPort {
   #state: RendererState;
@@ -781,6 +782,8 @@ interface NodeEdgeData extends Record<string, unknown> {
   readonly statusCascadeTiming: StatusCascadeTiming | null;
   readonly statusCascadeTone: StatusCascadeTone | null;
   readonly statusCascadeSettled: boolean;
+  readonly revealDelayMs: number | null;
+  readonly animateReveal: boolean;
 }
 
 type NodeFlowEdge = Edge<NodeEdgeData, 'node-edge'>;
@@ -852,7 +855,16 @@ function NodeEdge({
     ...(labelStyle === undefined ? {} : { labelStyle }),
     ...(markerEnd === undefined ? {} : { markerEnd }),
     ...(markerStart === undefined ? {} : { markerStart }),
-    ...(style === undefined ? {} : { style }),
+    ...(style === undefined && !data.animateReveal
+      ? {}
+      : {
+          style: {
+            ...style,
+            ...(!data.animateReveal || data.revealDelayMs === null
+              ? {}
+              : { animationDelay: `${data.revealDelayMs}ms` }),
+          },
+        }),
   };
   const drawsAttackPath = data.attackPath && data.drawing;
   const attackDrawMaskId = `${id}-attack-draw-mask`;
@@ -881,6 +893,8 @@ function NodeEdge({
       }
       data-network-edge-status-cascade-tone={data.statusCascadeTone ?? undefined}
       data-network-edge-status-cascade-settled={data.statusCascadeSettled || undefined}
+      data-network-edge-compact={data.revealDelayMs === null ? undefined : true}
+      data-network-edge-sequential-reveal={data.animateReveal || undefined}
     >
       <BaseEdge
         id={id}
@@ -998,6 +1012,8 @@ function toReactFlowElements(
   dimInactiveNodes: boolean,
   currentAttackEdgeId: string | null,
   statusCascadeStartDelayMs: number,
+  edgeRevealDelaysMs: Readonly<Partial<Record<string, number>>>,
+  animateEdgeReveals: boolean,
   onStatusCascadeEnd: (
     nodeId: string,
     tone: StatusCascadeTone,
@@ -1160,6 +1176,9 @@ function toReactFlowElements(
               ? (statusCascadeTonesByTargetId.get(edge.targetId) ?? null)
               : null,
             statusCascadeSettled: settledStatusCascadeTargetIds.has(edge.targetId),
+            revealDelayMs: edgeRevealDelaysMs[edge.id] ?? null,
+            animateReveal:
+              animateEdgeReveals && edgeRevealDelaysMs[edge.id] !== undefined,
           },
           ariaLabel: edge.label ?? `${edge.sourceId} mit ${edge.targetId} verbunden`,
         },
@@ -1186,6 +1205,8 @@ export interface ReactFlowNetworkProps {
   readonly dimInactiveNodes?: boolean;
   readonly currentAttackEdgeId?: string | null;
   readonly statusCascadeStartDelayMs?: number;
+  readonly edgeRevealDelaysMs?: Readonly<Partial<Record<string, number>>>;
+  readonly animateEdgeReveals?: boolean;
 }
 
 export function ReactFlowNetwork({
@@ -1206,6 +1227,8 @@ export function ReactFlowNetwork({
   dimInactiveNodes = true,
   currentAttackEdgeId = null,
   statusCascadeStartDelayMs = defaultStatusCascadeStartDelayMs,
+  edgeRevealDelaysMs = emptyEdgeRevealDelaysMs,
+  animateEdgeReveals = false,
 }: ReactFlowNetworkProps) {
   const containerRef = useRef<HTMLElement | null>(null);
   const [canvas, setCanvas] = useState<NetworkCanvasSize>({ width: 0, height: 0 });
@@ -1252,6 +1275,8 @@ export function ReactFlowNetwork({
         dimInactiveNodes,
         currentAttackEdgeId,
         statusCascadeStartDelayMs,
+        edgeRevealDelaysMs,
+        animateEdgeReveals,
         adapter.completeStatusCascade,
       ),
     [
@@ -1270,6 +1295,8 @@ export function ReactFlowNetwork({
       renderNodeOverlay,
       dimInactiveNodes,
       currentAttackEdgeId,
+      edgeRevealDelaysMs,
+      animateEdgeReveals,
       statusCascadeStartDelayMs,
       visualVariant,
       visualDensity,
