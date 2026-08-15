@@ -38,7 +38,10 @@ import {
 } from './segments/S06/S06ConsequenceTraining.js';
 import { createS06ConsequenceScenePlan } from './segments/S06/S06ConsequenceController.js';
 import { S07PassphraseSearchTraining } from './segments/S07/S07PassphraseSearchTraining.js';
-import { deriveS07AccountFeedback } from './segments/S07/S07PassphraseSearchMachine.js';
+import {
+  deriveS07AccountFeedback,
+  s07AccountsRequiringPassphraseChange,
+} from './segments/S07/S07PassphraseSearchMachine.js';
 import { S08NetworkRewindStage } from './segments/S08/S08NetworkRewindStage.js';
 
 export interface PasswordModuleTrainingProps {
@@ -146,11 +149,9 @@ export function PasswordModuleTraining({
       s06Source.accounts,
     );
   }, [s06Source]);
-  const s07AccountFeedback = useMemo(
-    () => (s06Plan === null ? [] : deriveS07AccountFeedback(s06Plan)),
-    [s06Plan],
-  );
-  const s07RemainingAccountIds = s07AccountFeedback.map(({ accountId }) => accountId);
+  const s07AccountFeedback =
+    s06Plan === null ? [] : deriveS07AccountFeedback(s06Plan);
+  const s07RemainingAccountIds = s07AccountsRequiringPassphraseChange(s07AccountFeedback);
   const completeS06 = useCallback(() => controllerRef.current?.completeS06(), []);
 
   useEffect(() => {

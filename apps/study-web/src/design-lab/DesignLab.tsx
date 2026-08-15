@@ -48,6 +48,7 @@ import {
 import { S07PassphraseSearchTraining } from '../features/training/segments/S07/S07PassphraseSearchTraining.js';
 import {
   deriveS07AccountFeedback,
+  s07AccountsRequiringPassphraseChange,
   type S07AccountFeedback,
 } from '../features/training/segments/S07/S07PassphraseSearchMachine.js';
 import { S08NetworkRewindStage } from '../features/training/segments/S08/S08NetworkRewindStage.js';
@@ -95,7 +96,7 @@ function S07ToS09QaPreview({
   if (stage !== 's07') {
     return (
       <S08NetworkRewindStage
-        affectedAccountIds={accountFeedback.map(({ accountId }) => accountId)}
+        affectedAccountIds={s07AccountsRequiringPassphraseChange(accountFeedback)}
         network={network}
         plan={plan}
         platform={platform}
@@ -119,7 +120,7 @@ function S06ToS07FixturePreview({ fixture }: { readonly fixture: S06ConsequenceF
   const [stage, setStage] = useState<'s06' | 'transition' | 's07'>('s06');
   const [summaryNetwork, setSummaryNetwork] = useState<NetworkSceneSnapshot | null>(null);
   const plan = useMemo(() => createS06FixtureScenePlan(fixture.id), [fixture.id]);
-  const accountFeedback = useMemo(() => deriveS07AccountFeedback(plan), [plan]);
+  const accountFeedback = deriveS07AccountFeedback(plan);
 
   if (stage === 's06') {
     return (
@@ -187,26 +188,11 @@ function S07DirectQaPreview({
     () => createS06ConsequenceScenePlan('design-lab-s07-to-s08', accounts),
     [accounts],
   );
-  const accountFeedback = useMemo(() => deriveS07AccountFeedback(plan), [plan]);
-  const visibleAccountFeedback: readonly S07AccountFeedback[] =
-    initialStage === 's08' || initialStage === 's09'
-      ? [
-          {
-            accountId: 'master-campus',
-            connectionAccountIds: ['campusgram'],
-            kind: 'strong-similar',
-          },
-          {
-            accountId: 'campus-email',
-            connectionAccountIds: ['campusgram'],
-            kind: 'similar-guessable',
-          },
-        ]
-      : accountFeedback;
+  const accountFeedback = deriveS07AccountFeedback(plan);
 
   return (
     <S07ToS09QaPreview
-      accountFeedback={visibleAccountFeedback}
+      accountFeedback={accountFeedback}
       campusgramPassword={accounts.campusgram.fictionalPassword}
       initialStage={initialStage}
       network={plan.steps.at(-1)?.network ?? null}

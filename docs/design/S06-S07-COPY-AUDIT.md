@@ -1,5 +1,21 @@
 # S06--S07 Copy Audit
 
+## Ablaufdelta S07/S08 minimale Passwortänderungen aus S06-Befunden, 15. August 2026
+
+Quelle ist der ausdrückliche Nutzerauftrag vom 15. August 2026. Die in S07 gezeigten Befunde zu
+eigenständiger Erratbarkeit, Ähnlichkeit und Wiederverwendung bleiben vollständig und wortgleich
+erhalten. Für die anschließenden offenen Konten in S08 wird daraus nun getrennt eine minimale,
+deterministische Änderungsmenge abgeleitet: Ein eigenständig leicht erratbares Passwort muss
+immer ersetzt werden. Eine Verbindung zum alten, geleakten Campusgram-Passwort macht das jeweils
+andere Konto erneuerungspflichtig. Besteht ausschließlich eine Verbindung zwischen Master Campus
+und Campus E-Mail, genügt die Änderung eines der beiden Passwörter; ist eines davon ohnehin
+eigenständig leicht erratbar, wird dieses Konto gewählt, andernfalls deterministisch Master
+Campus.
+
+Teilnehmertexte, Persistenz, Export, Timing und Content-Versionen bleiben unverändert. S08 zeigt
+nur für die so bestimmten Konten die vorhandene Aktion `Einzigartige Passphrase verwenden`;
+nicht betroffene Konten bleiben bereits geschützt dargestellt.
+
 ## Copy-Delta S06 Rückkehr zur Ausgangslage, 15. August 2026
 
 Quelle ist der ausdrückliche Nutzerauftrag vom 15. August 2026. Der letzte Sprechschritt vor der

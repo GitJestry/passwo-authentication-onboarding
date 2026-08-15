@@ -13,40 +13,71 @@ export interface S07AccountFeedback {
   readonly accountId: S07RemainingAccountId;
   readonly connectionAccountIds: readonly S01AccountId[];
   readonly kind: S07AccountFeedbackKind;
+  readonly requiresPassphraseChange: boolean;
+}
+
+export function s07AccountsRequiringPassphraseChange(
+  feedback: readonly S07AccountFeedback[],
+): readonly S07RemainingAccountId[] {
+  return feedback
+    .filter(({ requiresPassphraseChange }) => requiresPassphraseChange)
+    .map(({ accountId }) => accountId);
 }
 
 export function deriveS07AccountFeedback(
-  plan: PasswordConsequenceScenePlan,
+  plan: Pick<PasswordConsequenceScenePlan, 'accounts' | 'comparisons'>,
 ): readonly S07AccountFeedback[] {
-  const feedback: S07AccountFeedback[] = [];
-  for (const accountId of ['master-campus', 'campus-email'] as const) {
-    const isEasyToGuess =
-      plan.accounts.find((account) => account.accountId === accountId)?.disposition.kind ===
-      'whole-password-recognized';
+  const remainingAccountIds = ['master-campus', 'campus-email'] as const;
+  const isEasyToGuess = (accountId: S07RemainingAccountId): boolean =>
+    plan.accounts.find((account) => account.accountId === accountId)?.disposition.kind ===
+    'whole-password-recognized';
+  const hasRecognizedConnection = (
+    firstAccountId: S01AccountId,
+    secondAccountId: S01AccountId,
+  ): boolean =>
+    plan.comparisons.some(
+      ({ sourceAccountId, targetAccountId, result }) =>
+        ((sourceAccountId === firstAccountId && targetAccountId === secondAccountId) ||
+          (sourceAccountId === secondAccountId && targetAccountId === firstAccountId)) &&
+        result.relation.kind !== 'no-derived-path-recognized',
+    );
+
+  const requiredChanges = new Set<S07RemainingAccountId>(
+    remainingAccountIds.filter((accountId) => isEasyToGuess(accountId)),
+  );
+  for (const accountId of remainingAccountIds) {
+    if (hasRecognizedConnection(accountId, 'campusgram')) requiredChanges.add(accountId);
+  }
+
+  if (
+    hasRecognizedConnection('master-campus', 'campus-email') &&
+    !remainingAccountIds.some((accountId) => requiredChanges.has(accountId))
+  ) {
+    requiredChanges.add('master-campus');
+  }
+
+  return remainingAccountIds.flatMap((accountId): readonly S07AccountFeedback[] => {
     const otherAccountId =
       accountId === 'master-campus' ? 'campus-email' : 'master-campus';
     const connectionAccountIds = (['campusgram', otherAccountId] as const).filter(
-      (connectionAccountId) =>
-        plan.comparisons.some(
-          ({ sourceAccountId, targetAccountId, result }) =>
-            ((sourceAccountId === accountId && targetAccountId === connectionAccountId) ||
-              (sourceAccountId === connectionAccountId && targetAccountId === accountId)) &&
-            result.relation.kind !== 'no-derived-path-recognized',
-        ),
+      (connectionAccountId) => hasRecognizedConnection(accountId, connectionAccountId),
     );
-    if (!isEasyToGuess && connectionAccountIds.length === 0) continue;
-    feedback.push({
-      accountId,
-      connectionAccountIds,
-      kind:
-        connectionAccountIds.length === 0
-          ? 'unique-guessable'
-          : isEasyToGuess
-            ? 'similar-guessable'
-            : 'strong-similar',
-    });
-  }
-  return feedback;
+    const easyToGuess = isEasyToGuess(accountId);
+    if (!easyToGuess && connectionAccountIds.length === 0) return [];
+    return [
+      {
+        accountId,
+        connectionAccountIds,
+        kind:
+          connectionAccountIds.length === 0
+            ? 'unique-guessable'
+            : easyToGuess
+              ? 'similar-guessable'
+              : 'strong-similar',
+        requiresPassphraseChange: requiredChanges.has(accountId),
+      },
+    ];
+  });
 }
 
 interface S07PassphraseSearchInput {
