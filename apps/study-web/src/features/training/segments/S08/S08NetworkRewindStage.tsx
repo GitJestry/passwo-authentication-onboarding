@@ -15,6 +15,8 @@ import { useMachine } from '@xstate/react';
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { assign, setup } from 'xstate';
 import { ReactFlowNetworkAdapter } from '../../../../adapters/network/ReactFlowNetworkAdapter.js';
+import blueShieldAsset from '../../../../assets/s05/password-factor-shield.png';
+import greenShieldAsset from '../../../../assets/s06/comparison-path-shield.png';
 import { CelebrationConfetti } from '../../CelebrationConfetti.js';
 import { AccountAssessmentNetwork } from '../AccountAssessmentNetwork.js';
 import { createS06BlockedReplayTriangle } from '../S06/S06ConsequenceController.js';
@@ -100,7 +102,8 @@ const s08Machine = setup({
       on: { TRIANGLE_ANIMATION_COMPLETE: { target: 'replayComplete' } },
     },
     replayComplete: { on: { NEXT: { target: 's09' } } },
-    s09: {},
+    s09: { on: { NEXT: { target: 'desktopReview' } } },
+    desktopReview: {},
   },
 });
 
@@ -186,7 +189,8 @@ export function S08NetworkRewindStage({
       if (
         state.matches('triangleAnimating') ||
         state.matches('replayComplete') ||
-        state.matches('s09')
+        state.matches('s09') ||
+        state.matches('desktopReview')
       ) {
         return triangleNetwork;
       }
@@ -335,21 +339,57 @@ export function S08NetworkRewindStage({
               className={styles.summary}
               aria-label={s09PasswordSummaryContent.trainingAriaLabel}
             >
-              <p className={styles.summaryEyebrow}>{s09PasswordSummaryContent.eyebrow}</p>
               <h1>{s09PasswordSummaryContent.title}</h1>
-              <ul className={styles.principles}>
-                {s09PasswordSummaryContent.principles.map((principle, index) => (
-                  <li key={principle.id}>
-                    <span className={styles.principleNumber} aria-hidden="true">
-                      {index + 1}
-                    </span>
-                    <div>
-                      <strong>{principle.label}</strong>
-                      <p>{principle.text}</p>
-                    </div>
-                  </li>
-                ))}
-              </ul>
+              <div className={styles.summaryOverview}>
+                <img
+                  className={styles.summaryShield}
+                  src={greenShieldAsset}
+                  alt=""
+                  aria-hidden="true"
+                />
+                <ul className={styles.principles}>
+                  {s09PasswordSummaryContent.principles.map((principle) => (
+                    <li key={principle.id}>
+                      <span>
+                        {principle.parts.map((part, index) => {
+                          if (part.emphasis === 'strong') {
+                            return <strong key={index}>{part.text}</strong>;
+                          }
+                          if (part.emphasis === 'positive-strong') {
+                            return (
+                              <strong key={index} className={styles.principlePositive}>
+                                {part.text}
+                              </strong>
+                            );
+                          }
+                          if (part.emphasis === 'info') {
+                            return (
+                              <span key={index} className={styles.principleInfo}>
+                                {part.text}
+                              </span>
+                            );
+                          }
+                          return <span key={index}>{part.text}</span>;
+                        })}
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+                <img
+                  className={styles.summaryShield}
+                  src={blueShieldAsset}
+                  alt=""
+                  aria-hidden="true"
+                />
+              </div>
+              <button
+                type="button"
+                className={styles.summaryAction}
+                autoFocus
+                onClick={() => send({ type: 'NEXT' })}
+              >
+                {s09PasswordSummaryContent.finishAction}
+              </button>
             </section>
           </>
         ) : null}

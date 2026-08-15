@@ -207,11 +207,14 @@ Seitenangaben beziehen sich auf die im Trainingsdokument ausgewiesene interne Pa
   die Kontoknoten behalten ihre blauen S06-Passwortschilde. Blaue Verbindungslinien oder blaue
   Kreise an den Vergleichsschilden, die Passwortvergleich-Vorschau und ein
   `Was wäre, wenn?`-Modus entfallen.
-- Nach dem vollständigen Dreieck führt `Abschließen` ohne PassWo direkt nach S09. Dort bleibt das
-  Desktopnetzwerk stark abgedunkelt hinter einer kurzen Zusammenfassung zu starken,
-  einzigartigen und abrufbaren Passwörtern sichtbar.
-- `S09_PASSWORD_SUMMARY_CONTENT_VERSION 1.0.0` beschreibt ausschließlich diese lokale
-  Abschlussüberlagerung. Es entstehen keine neuen persistierten Felder oder Trainingswrites.
+- Nach dem vollständigen Dreieck führt `Zum Überblick` ohne PassWo direkt nach S09. Dort bleibt das
+  Desktopnetzwerk abgedunkelt hinter der transparenten Liste `Starke Passwörter auf einen Blick`
+  sichtbar. Die sechs unnummerierten Hinweise stehen zwischen dem großen grünen Vergleichsschild
+  und dem großen blauen Passwortschild. `Abschließen` entfernt die Überlagerung und zeigt das
+  zuletzt verlassene Schutzdreieck ohne Angreifer und mittiges Ergebnisfeedback.
+- `S09_PASSWORD_SUMMARY_CONTENT_VERSION 2.3.0` beschreibt ausschließlich diese lokale
+  Abschlussüberlagerung ohne äußere Box, ihre rein textbasierten authored Hervorhebungen sowie
+  den Rücksprung. Es entstehen keine neuen persistierten Felder oder Trainingswrites.
 - Der direkte QA-Einstieg `s08-network-replay` startet unmittelbar bei den betroffenen
   Kontoknoten; der bestehende S07-QA-Einstieg führt nach seinem Abschluss ebenfalls dorthin.
 

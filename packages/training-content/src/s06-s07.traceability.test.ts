@@ -13,9 +13,9 @@ const s06AttackFlowCopyReference =
 const s07EntryCopyReference =
   'docs/design/S06-S07-COPY-AUDIT.md#copy-delta-s07-passphrasen-eins-und-vier-15-august-2026';
 const s08CopyReference =
-  'docs/design/S08-S09-COPY-AUDIT.md#copy--und-darstellungsdelta-s08-abschlussfeedback-15-august-2026';
+  'docs/design/S08-S09-COPY-AUDIT.md#copy--und-darstellungsdelta-s09-passwortliste-und-rücksprung-15-august-2026';
 const s09CopyReference =
-  'docs/design/S08-S09-COPY-AUDIT.md#copy--und-ablaufdelta-s08-rücklauf-und-s09-abschluss-15-august-2026';
+  'docs/design/S08-S09-COPY-AUDIT.md#darstellungsdelta-s09-ohne-kategoriesymbole-15-august-2026';
 
 describe('S06 transition and S07 passphrase-search copy traceability', () => {
   it('keeps S06 consequence wording aligned with bounded whole-password recognition', () => {
@@ -232,14 +232,14 @@ describe('S06 transition and S07 passphrase-search copy traceability', () => {
   });
 
   it('keeps S08 linked to the protected replay wording', () => {
-    expect(S08_NETWORK_REPLAY_CONTENT_VERSION).toBe('3.2.0');
+    expect(S08_NETWORK_REPLAY_CONTENT_VERSION).toBe('3.3.0');
     expect(s08NetworkReplayContent.source.copyReference).toBe(s08CopyReference);
     expect(s08NetworkReplayContent.protectionAction).toBe(
       'Einzigartige Passphrase verwenden',
     );
     expect(s08NetworkReplayContent.replayActions).toEqual({
       attack: 'Angriff starten',
-      finish: 'Abschließen',
+      finish: 'Zum Überblick',
     });
     expect(s08NetworkReplayContent.replayCompletion).toBe(
       'Konten wieder geschützt',
@@ -247,13 +247,40 @@ describe('S06 transition and S07 passphrase-search copy traceability', () => {
     expect('replayLabels' in s08NetworkReplayContent).toBe(false);
   });
 
-  it('keeps the S09 password summary linked to its three principles', () => {
-    expect(S09_PASSWORD_SUMMARY_CONTENT_VERSION).toBe('1.0.0');
+  it('keeps the S09 password summary linked to its password checklist', () => {
+    expect(S09_PASSWORD_SUMMARY_CONTENT_VERSION).toBe('2.3.0');
     expect(s09PasswordSummaryContent.source.copyReference).toBe(s09CopyReference);
-    expect(s09PasswordSummaryContent.principles.map(({ label }) => label)).toEqual([
-      'Stark',
-      'Einzigartig',
-      'Abrufbar',
+    expect(s09PasswordSummaryContent.principles).toHaveLength(6);
+    expect(
+      s09PasswordSummaryContent.principles.map(({ parts }) =>
+        parts.map(({ text }) => text).join(''),
+      ),
+    ).toEqual([
+      'Mindestens 15 Zeichen verwenden.',
+      'Kein bestimmter Zeichenmix nötig: Länge ist wichtiger.',
+      'Persönliche Angaben sowie Konto- oder Dienstbezüge vermeiden.',
+      'Bestandteile ohne Zusammenhang wählen.',
+      'Für jedes Konto ein eigenes Passwort verwenden.',
+      'Einfache Methode: mindestens sechs zufällig gewählte Wörter als Passphrase.',
     ]);
+    expect(s09PasswordSummaryContent.principles[4].parts[1]).toEqual({
+      text: 'eigenes',
+      emphasis: 'positive-strong',
+    });
+    expect(s09PasswordSummaryContent.principles[5].parts[2]).toEqual({
+      text: 'Passphrase',
+      emphasis: 'info',
+    });
+    expect(s09PasswordSummaryContent.principles[0].parts[0]).toEqual({
+      text: 'Mindestens 15 Zeichen',
+      emphasis: 'info',
+    });
+    expect(s09PasswordSummaryContent.principles[2].parts[0].emphasis).toBe('strong');
+    expect(s09PasswordSummaryContent.principles[2].parts[2].emphasis).toBe('strong');
+    expect(s09PasswordSummaryContent.principles[2].parts[3]).toEqual({
+      text: ' vermeiden',
+      emphasis: 'info',
+    });
+    expect(s09PasswordSummaryContent.finishAction).toBe('Abschließen');
   });
 });

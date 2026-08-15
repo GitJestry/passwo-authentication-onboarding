@@ -1,13 +1,13 @@
 import type { TrainingSectionId } from '@passwo/contracts';
 
-export const S08_NETWORK_REPLAY_CONTENT_VERSION = '3.2.0';
+export const S08_NETWORK_REPLAY_CONTENT_VERSION = '3.3.0';
 
 export const s08NetworkReplayContent = {
   version: S08_NETWORK_REPLAY_CONTENT_VERSION,
   source: {
-    revision: 'Userauftrag vom 2026-08-15 · hervorgehobenes Abschlussfeedback',
+    revision: 'Userauftrag vom 2026-08-15 · Navigation zur S09-Übersicht',
     copyReference:
-      'docs/design/S08-S09-COPY-AUDIT.md#copy--und-darstellungsdelta-s08-abschlussfeedback-15-august-2026',
+      'docs/design/S08-S09-COPY-AUDIT.md#copy--und-darstellungsdelta-s09-passwortliste-und-rücksprung-15-august-2026',
   },
   segment: {
     id: 'S08',
@@ -25,7 +25,7 @@ export const s08NetworkReplayContent = {
   },
   replayActions: {
     attack: 'Angriff starten',
-    finish: 'Abschließen',
+    finish: 'Zum Überblick',
   },
   replayCompletion: 'Konten wieder geschützt',
 } as const;
