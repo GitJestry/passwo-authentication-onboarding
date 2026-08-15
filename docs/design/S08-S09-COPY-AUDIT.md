@@ -221,3 +221,35 @@ der sechs Zusammenfassungspunkte und der sieben Sprechschritte bleibt unverände
 | `S09.summary` | im vorherigen Delta aus dem sichtbaren Ablauf entfernt | vorhandene Passwortzusammenfassung vor der Netzwerkrückkehr wieder sichtbar | Orientierung und Kerngedanken | `Abschließen` | ausdrückliche Nutzerkorrektur; Ablaufänderung freigegeben | vorhandene, unveränderte Hervorhebungen |
 | `S09.finishAction` | `Weiter` | `Abschließen` | Navigation | Rückkehr ins Schutzdreieck und erster PassWo-Sprechschritt | benennt das tatsächliche Schließen der Zusammenfassung; begrenzt | keine |
 | `S08.replayActions.finish` | `Weiter` zur ersten S09-Sprechblase | wortgleich, nun zur S09-Zusammenfassung | Navigation | S09-Zusammenfassung | berücksichtigt die wiederhergestellte Zwischenansicht; begrenzte Ablaufänderung | keine |
+
+## Darstellungsdelta S09 Skalierungs-Kerngedanke, 15. August 2026
+
+Quelle ist der ausdrückliche Nutzerauftrag vom 15. August 2026. Im ersten Skalierungs-Schritt
+werden `drei Konten` sowie die zusammenhängende Anforderungsphrase
+`stark, einzigartig und später wieder abrufbar` hervorgehoben. Der sichtbare Wortlaut und das
+Interaktionsziel `Weiter` bleiben unverändert. Die erste Phrase erhält den Akzentton, die zweite
+den positiven Ton; beide bleiben zusätzlich fett ausgezeichnet, sodass Farbe nicht der einzige
+Bedeutungsträger ist. `S09_PASSWORD_SUMMARY_CONTENT_VERSION` steigt von `3.2.0` auf `3.3.0`.
+Es entstehen keine neuen persistierten Felder, Eingaben oder Trainingswrites.
+
+| Segment und Text-ID | Aktueller und weiterhin sichtbarer Text | Primäre Rolle | Interaktionsziel | Grund und Bedeutungsänderung | Hervorhebung |
+|---|---|---|---|---|---|
+| `S09.passWo.steps.0` | `Für drei Konten hast du bereits gesehen, was zusammenkommen muss: Jedes Passwort soll stark, einzigartig und später wieder abrufbar sein.` | Kerngedanke | `Weiter` | ausdrücklich freigegebene visuelle Gewichtung; keine Bedeutungsänderung | `drei Konten` fett im Akzentton; `stark, einzigartig und später wieder abrufbar` fett im positiven Ton |
+
+## Ablauf- und Darstellungsdelta S09 Kontenskalierung von 134 auf 80, 15. August 2026
+
+Quelle ist der ausdrückliche Nutzerauftrag vom 15. August 2026. Während des zweiten
+Skalierungs-Schritts zeigt das authored Netzwerk passend zur sichtbaren CHI-2026-Einordnung
+insgesamt 134 Kontoknoten. Beim Wechsel zur anschließenden konservativen 80-Konten-Frage ploppen
+die 54 darüber hinausgehenden Zusatzkonten in schneller Reihenfolge auf und verschwinden. Danach
+bleiben genau 80 Kontoknoten sichtbar. Der Übergang ist ein eigener Statechart-Zustand; bei
+Reduced Motion wird unmittelbar derselbe 80-Konten-Endzustand gerendert.
+
+Der sichtbare Wortlaut, die Antwortaktion und alle Forschungswrites bleiben unverändert. Die
+beiden Zahlen werden als getrennte versionierte Darstellungswerte geführt.
+`S09_PASSWORD_SUMMARY_CONTENT_VERSION` steigt von `3.3.0` auf `3.4.0`.
+
+| Segment und Text-ID | Aktueller und weiterhin sichtbarer Text | Primäre Rolle | Interaktionsziel | Darstellungsdelta und Grund | Hervorhebung |
+|---|---|---|---|---|---|
+| `S09.passWo.steps.1` | Alltagseinordnung mit der CHI-2026-Angabe zu rund 134 Online-Diensten | Orientierung | `Weiter` | Netzwerk wird passend zur genannten Größenordnung auf 134 Kontoknoten erweitert | keine |
+| `S09.passWo.steps.2` | Frage nach der Realisierbarkeit starker, einzigartiger Passwörter für 80 Konten | Orientierung | Sprechblasenaktion `Super easy!` nach Abschluss der kurzen Reduktion | 54 Zusatzkonten verschwinden gestaffelt; genau 80 bleiben sichtbar | keine |

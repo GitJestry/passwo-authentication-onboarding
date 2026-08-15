@@ -153,6 +153,7 @@ export function AccountAssessmentNetwork({
   interactionDisabled = true,
   accountShieldAsset = passwordFactorShieldAsset,
   showAccountShields = true,
+  overview = false,
 }: {
   readonly adapter: ReactFlowNetworkAdapter;
   readonly presentation: NetworkPresentationSnapshot;
@@ -178,6 +179,7 @@ export function AccountAssessmentNetwork({
   readonly interactionDisabled?: boolean;
   readonly accountShieldAsset?: string;
   readonly showAccountShields?: boolean;
+  readonly overview?: boolean;
 }) {
   const campusgramResult = comparisonResults.campusgram ?? null;
   const masterCampusResult = comparisonResults['master-campus'] ?? null;
@@ -227,6 +229,7 @@ export function AccountAssessmentNetwork({
         onNodeSelect={onNodeSelect}
         interactionDisabled={interactionDisabled}
         visualVariant="account-map"
+        visualDensity={overview ? 'overview' : 'default'}
         showEdgeLabels={false}
         showNodeLabels={false}
         showStatusMarkers={false}

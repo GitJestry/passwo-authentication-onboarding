@@ -35,7 +35,9 @@ Das Netzwerk zeigt Konten, abhängige Dienste, Funktionen, Passwortbeziehungen u
   Möglichkeiten klar von Konten unterscheidbar bleiben.
 - Jeder Node führt eine semantische `symbolId`. Der Renderer löst diese ID ausschließlich über
   eine lokale Inline-SVG-Registry auf; Emojis und externe Icon-Abhängigkeiten werden nicht
-  verwendet.
+  verwendet. Die anonymen, nicht interaktiven Zusatzkonten der S09-Skalierungsansicht sind die
+  einzige darstellerische Ausnahme: Sie verwenden statt eines Personensymbols eine vollflächige,
+  weich entsättigte Farbvariation, damit die bekannten Hauptkonten visuell führend bleiben.
 - Hauptknoten besitzen eine sehr helle graue Innenfläche, zugehörige Teilknoten eine leicht
   dunklere helle Innenfläche. Ihre etwas kräftigeren weißen Grundränder bleiben gleich, damit
   beide Knotentypen klar erkennbar sind; Form und Größe tragen die zusätzliche Unterscheidung.
@@ -58,6 +60,25 @@ Das Netzwerk zeigt Konten, abhängige Dienste, Funktionen, Passwortbeziehungen u
   keine rechteckigen Smoothstep-Segmente.
 - Die Statusfarben und Linienarten für S06 bleiben erhalten: direkte, ähnliche, blockierte und
   hypothetische Verbindungen unterscheiden sich zusätzlich durch Strichmuster.
+
+## S09-Skalierungsansicht
+
+Das vollständige S08-Schutzdreieck wird beim Maßstabswechsel einschließlich seiner Abstände,
+Detailknoten, Schilde und Kanten proportional um einen gemeinsamen Mittelpunkt verkleinert. Die
+anonymen Zusatzkonten füllen den Raum außerhalb dieses Mittelbereichs mit einem festen,
+unregelmäßigen Punktmuster und geprüften Mindestabständen; ihre sichtbaren Kreisflächen
+überdecken sich weder in der normalen noch in der kompakten Übersichtsdichte. Ein Raster oder
+laufzeitabhängiges Zufallslayout wird nicht verwendet. Die Zusatzkonten bleiben einzelne, vollständig deckende
+Farbknoten ohne rein dekorative Unterknoten. Ihre Kontoflächen durchlaufen mit individuellen,
+weich entsättigten Farbtönen die gesamte Farbskala, ohne die bekannten Hauptkonten zu überstimmen.
+
+Das authored Layout hält eine eigene untere Dialogzone für PassWo, Sprechblase und Tresormoment
+frei. Dadurch liegen keine Knoten oder Verbindungen hinter diesen UI-Flächen, während die
+Netzfläche selbst ihre Größe und damit die proportionale Skalierung behält. Das zeitlich versetzte
+Erscheinen, das kurze Ausblenden springender Ursprungskanten und eine Tiefenwelle machen das
+Herauszoomen auf 134 Konten sichtbar. Mit der anschließenden konservativen 80-Konten-Frage
+ploppen die 54 nicht mehr benötigten Zusatzkonten in kurzer authored Reihenfolge auf und
+verschwinden. Bei Reduced Motion erscheint derselbe vollständige 80-Konten-Endzustand unmittelbar.
 
 ## S02-Kontenerkundung
 

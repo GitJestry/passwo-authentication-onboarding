@@ -215,6 +215,9 @@ export function createS08ProtectionNetwork(
 ): NetworkSceneSnapshot {
   const affected = new Set(affectedAccountIds);
   const protectedAccounts = new Set<S06AccountId>(['campusgram', ...protectedAccountIds]);
+  for (const accountId of ['master-campus', 'campus-email'] as const) {
+    if (!affected.has(accountId)) protectedAccounts.add(accountId);
+  }
   const accountIds = new Set(['master-campus', 'campus-email', 'campusgram']);
   const nodes = source.nodes
     .filter(({ kind }) => kind !== 'shield')
@@ -293,55 +296,219 @@ export function createProtectedS08Network(
 }
 
 /**
+ * Authored once as a stable overview layout: the uneven gaps avoid a synthetic grid while
+ * retaining a reproducible, collision-free end state around the existing S08 graph.
+ */
+const s09ExpandedAccountPositions = [
+  [0.27, 0.625],
+  [0.73, 0.125],
+  [0.155, 0.425],
+  [0.845, 0.525],
+  [0.0975, 0.825],
+  [0.5575, 0.0583],
+  [0.7875, 0.6583],
+  [0.2125, 0.1583],
+  [0.9025, 0.2583],
+  [0.0688, 0.5583],
+  [0.5288, 0.8583],
+  [0.2988, 0.0917],
+  [0.7588, 0.3917],
+  [0.1838, 0.6917],
+  [0.8738, 0.7917],
+  [0.1263, 0.2917],
+  [0.3563, 0.8917],
+  [0.8163, 0.0361],
+  [0.2413, 0.3361],
+  [0.9313, 0.4361],
+  [0.0544, 0.7361],
+  [0.2844, 0.5361],
+  [0.7444, 0.8361],
+  [0.1694, 0.0694],
+  [0.8594, 0.1694],
+  [0.1119, 0.4694],
+  [0.8019, 0.5694],
+  [0.2269, 0.8694],
+  [0.6869, 0.1028],
+  [0.9169, 0.7028],
+  [0.0831, 0.2028],
+  [0.7731, 0.3028],
+  [0.1981, 0.6028],
+  [0.6581, 0.9028],
+  [0.4281, 0.0472],
+  [0.8881, 0.3472],
+  [0.1406, 0.6472],
+  [0.8306, 0.7472],
+  [0.2556, 0.2472],
+  [0.4856, 0.8472],
+  [0.9456, 0.0806],
+  [0.0472, 0.3806],
+  [0.7372, 0.4806],
+  [0.1622, 0.7806],
+  [0.8522, 0.8806],
+  [0.1047, 0.1139],
+  [0.7947, 0.2139],
+  [0.2197, 0.5139],
+  [0.9097, 0.6139],
+  [0.0759, 0.9139],
+  [0.3059, 0.3287],
+  [0.5934, 0.8287],
+  [0.3634, 0.062],
+  [0.8234, 0.362],
+  [0.2916, 0.862],
+  [0.8091, 0.8954],
+  [0.2341, 0.0398],
+  [0.1478, 0.1731],
+  [0.8378, 0.2731],
+  [0.4928, 0.1065],
+  [0.7911, 0.4509],
+  [0.2161, 0.7509],
+  [0.9061, 0.8509],
+  [0.3023, 0.6843],
+  [0.1298, 0.8843],
+  [0.9348, 0.3176],
+  [0.9492, 0.6435],
+  [0.0508, 0.1435],
+  [0.7408, 0.2435],
+  [0.1658, 0.5435],
+  [0.3095, 0.2102],
+  [0.252, 0.4546],
+  [0.942, 0.5546],
+  [0.6168, 0.0929],
+  [0.3005, 0.4373],
+  [0.7605, 0.7373],
+  [0.1855, 0.2373],
+  [0.4155, 0.8373],
+  [0.8755, 0.0707],
+  [0.9546, 0.7522],
+  [0.0454, 0.2522],
+  [0.1891, 0.9188],
+  [0.6491, 0.0336],
+  [0.7066, 0.8336],
+  [0.0957, 0.3608],
+  [0.7309, 0.6386],
+  [0.8603, 0.683],
+  [0.2565, 0.7312],
+  [0.7489, 0.046],
+  [0.1739, 0.346],
+  [0.8639, 0.446],
+  [0.1164, 0.746],
+  [0.9214, 0.1793],
+  [0.2529, 0.1254],
+  [0.7902, 0.8032],
+  [0.4452, 0.9032],
+  [0.5746, 0.9143],
+  [0.9411, 0.9069],
+  [0.0643, 0.0513],
+  [0.0476, 0.8415],
+  [0.0908, 0.6341],
+  [0.7826, 0.102],
+  [0.2076, 0.402],
+  [0.8976, 0.502],
+  [0.0701, 0.4629],
+  [0.7601, 0.5629],
+  [0.7673, 0.9184],
+  [0.3953, 0.9197],
+  [0.133, 0.0283],
+  [0.823, 0.1283],
+  [0.1186, 0.5616],
+  [0.7248, 0.9214],
+  [0.9584, 0.2079],
+  [0.6157, 0.9181],
+  [0.2572, 0.9243],
+  [0.0473, 0.6395],
+  [0.2306, 0.6544],
+  [0.5201, 0.025],
+  [0.326, 0.0287],
+  [0.3067, 0.7794],
+  [0.4675, 0.037],
+  [0.6337, 0.8278],
+  [0.9108, 0.0286],
+  [0.3194, 0.9228],
+  [0.3993, 0.1047],
+  [0.7121, 0.0318],
+  [0.8299, 0.6308],
+  [0.873, 0.5947],
+  [0.2715, 0.0253],
+  [0.1937, 0.8283],
+  [0.73, 0.331],
+] as const satisfies readonly (readonly [number, number])[];
+
+const s09SourceNetworkOrigin = { x: 0.5, y: 0.49 } as const;
+const s09SourceNetworkCenter = { x: 0.5, y: 0.34 } as const;
+const s09SourceNetworkScale = 0.38;
+const s09OverviewTop = 0.05;
+const s09OverviewHeight = 0.6;
+
+function projectS09SourcePosition(position: SceneNode['position']): SceneNode['position'] {
+  return {
+    x:
+      s09SourceNetworkCenter.x +
+      (position.x - s09SourceNetworkOrigin.x) * s09SourceNetworkScale,
+    y:
+      s09SourceNetworkCenter.y +
+      (position.y - s09SourceNetworkOrigin.y) * s09SourceNetworkScale,
+  };
+}
+
+function createS09AdditionalAccount(
+  position: SceneNode['position'],
+  index: number,
+  removing: boolean,
+): SceneNode {
+  const accountNumber = index + 1;
+  return {
+    id: `s09-additional-account-${accountNumber}`,
+    kind: 'account',
+    symbolId: removing ? 's09-account-swatch-removing' : 's09-account-swatch',
+    label: `Weiteres Konto ${accountNumber}`,
+    description: 'Ein weiterer beispielhafter Online-Dienst im Alltag.',
+    status: 'neutral',
+    locked: false,
+    position,
+    selectable: false,
+  };
+}
+
+/**
  * Keeps the completed S08 graph intact and adds only anonymous, presentation-only accounts.
- * The deterministic grid gives the S09 camera move a stable end state without inventing
- * relationships or participant data for those additional accounts.
+ * A lower retained count marks the trailing authored nodes for the 134-to-80 exit animation.
  */
 export function createExpandedS09AccountNetwork(
   source: NetworkSceneSnapshot,
   accountCount: number,
+  retainedAccountCount = accountCount,
 ): NetworkSceneSnapshot {
   const existingAccounts = source.nodes.filter(({ kind }) => kind === 'account');
   const additionalAccountCount = Math.max(0, accountCount - existingAccounts.length);
-  const columns = 10;
-  const rows = Math.max(1, Math.ceil(accountCount / columns));
-  const positions = Array.from({ length: columns * rows }, (_, index) => ({
-    x: 0.045 + (index % columns) * (0.91 / Math.max(1, columns - 1)),
-    y: 0.055 + Math.floor(index / columns) * (0.89 / Math.max(1, rows - 1)),
-  }));
-  const reservedPositionIndexes = new Set<number>();
-  for (const { position } of existingAccounts) {
-    let nearestIndex = 0;
-    let nearestDistance = Number.POSITIVE_INFINITY;
-    positions.forEach((candidate, index) => {
-      const distance = Math.hypot(candidate.x - position.x, candidate.y - position.y);
-      if (distance < nearestDistance && !reservedPositionIndexes.has(index)) {
-        nearestIndex = index;
-        nearestDistance = distance;
-      }
-    });
-    reservedPositionIndexes.add(nearestIndex);
-  }
-  const availablePositions = positions.filter((_, index) => !reservedPositionIndexes.has(index));
-  const additionalAccounts: SceneNode[] = availablePositions
+  const retainedAdditionalAccountCount = Math.max(
+    0,
+    retainedAccountCount - existingAccounts.length,
+  );
+  const projectedSourceNodes = source.nodes.map(
+    (node): SceneNode => ({
+      ...node,
+      position: projectS09SourcePosition(node.position),
+    }),
+  );
+  const additionalAccounts = s09ExpandedAccountPositions
     .slice(0, additionalAccountCount)
-    .map((position, index) => ({
-      id: `s09-additional-account-${index + 1}`,
-      kind: 'account',
-      symbolId: 'account',
-      label: `Weiteres Konto ${index + 1}`,
-      description: 'Ein weiterer beispielhafter Online-Dienst im Alltag.',
-      status: 'neutral',
-      locked: false,
-      position,
-      selectable: false,
-    }));
+    .map(([x, y], index) =>
+      createS09AdditionalAccount(
+        { x, y: s09OverviewTop + y * s09OverviewHeight },
+        index,
+        index >= retainedAdditionalAccountCount,
+      ),
+    );
 
   return {
     ...source,
     id: `${source.id}-s09-${accountCount}-accounts`,
-    nodes: [...source.nodes, ...additionalAccounts],
-    accessibleSummary: `Das bisherige Netzwerk bleibt erhalten und wird auf insgesamt ${accountCount} beispielhafte Konten erweitert.`,
+    nodes: [...projectedSourceNodes, ...additionalAccounts],
+    edges: source.edges,
+    accessibleSummary:
+      retainedAccountCount === accountCount
+        ? `Das bisherige Netzwerk bleibt erhalten und wird auf insgesamt ${accountCount} beispielhafte Konten erweitert.`
+        : `Das Netzwerk wird von ${accountCount} auf ${retainedAccountCount} beispielhafte Konten reduziert.`,
   };
 }
 

@@ -1,4 +1,6 @@
 .training {
+  --s09-dialog-band: clamp(12.5rem, 28cqb, 16rem);
+
   width: 100%;
   height: 100%;
   min-height: 0;
@@ -7,19 +9,33 @@
 
 .network {
   position: absolute;
-  inset: 0 0 4.8rem;
+  inset: 0;
   overflow: hidden;
   background: transparent;
   animation: protected-replay-enter 480ms var(--motion-ease-out) both;
 }
 
-.network::before {
+.network::before,
+.network::after {
   position: absolute;
   z-index: 0;
   inset: 0;
-  background: rgb(0 0 0 / 20%);
   content: '';
   pointer-events: none;
+}
+
+.network::before {
+  background: rgb(0 0 0 / 20%);
+}
+
+.network::after {
+  opacity: 0;
+  background: radial-gradient(
+    circle at 50% 48%,
+    transparent 0 18%,
+    rgb(114 194 222 / 7%) 30%,
+    transparent 56%
+  );
 }
 
 .network > div,
@@ -30,36 +46,86 @@
 }
 
 .network > div {
-  transform-origin: center;
-  transition: transform 900ms cubic-bezier(0.16, 1, 0.3, 1);
+  z-index: 1;
+  height: calc(100% - 4.8rem);
 }
 
-.training[data-s09-expanded="true"] .network > div {
-  transform: scale(0.46);
+.training[data-s09-expanded="true"] .network::after {
+  animation: s09-network-depth-wave 1.15s cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 
-.training[data-s09-expanded="true"]
-  .network
-  :global([data-scene-node^="s09-additional-account-"]) {
-  animation: s09-account-node-reveal 480ms var(--motion-ease-out) both;
-}
-
-.training[data-s09-expanded="true"]
-  .network
-  :global(.react-flow__node:nth-child(4n + 2) [data-scene-node^="s09-additional-account-"]) {
-  animation-delay: 100ms;
+.training .network :global(.react-flow__node) {
+  transition:
+    width 900ms cubic-bezier(0.16, 1, 0.3, 1),
+    height 900ms cubic-bezier(0.16, 1, 0.3, 1),
+    transform 900ms cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .training[data-s09-expanded="true"]
   .network
-  :global(.react-flow__node:nth-child(4n + 3) [data-scene-node^="s09-additional-account-"]) {
-  animation-delay: 200ms;
+  :global([data-symbol-id="s09-account-swatch"]),
+.training[data-s09-expanded="true"]
+  .network
+  :global([data-symbol-id="s09-account-swatch-removing"]) {
+  --node-visual-width: 26px;
+  --node-visual-height: 26px;
+  --s09-account-tone: #9babb8;
+
+  animation: s09-account-node-reveal 720ms cubic-bezier(0.16, 1, 0.3, 1) 120ms both;
 }
 
 .training[data-s09-expanded="true"]
   .network
-  :global(.react-flow__node:nth-child(4n) [data-scene-node^="s09-additional-account-"]) {
-  animation-delay: 300ms;
+  :global([data-symbol-id="s09-account-swatch"][data-compact="true"]),
+.training[data-s09-expanded="true"]
+  .network
+  :global([data-symbol-id="s09-account-swatch-removing"][data-compact="true"]) {
+  --node-visual-width: clamp(8px, 2.4cqi, 18px);
+  --node-visual-height: clamp(8px, 2.4cqi, 18px);
+}
+
+.training[data-s09-expanded="true"]
+  .network
+  :global([data-symbol-id="s09-account-swatch"] [data-scene-node-visual]),
+.training[data-s09-expanded="true"]
+  .network
+  :global([data-symbol-id="s09-account-swatch-removing"] [data-scene-node-visual]) {
+  border-width: 1.5px;
+  border-color: color-mix(in srgb, var(--s09-account-tone) 68%, #edf6f7);
+  color: transparent;
+  background:
+    radial-gradient(circle at 32% 27%, rgb(255 255 255 / 68%) 0 11%, transparent 34%),
+    linear-gradient(
+      145deg,
+      color-mix(in srgb, var(--s09-account-tone) 76%, #eef3f3),
+      color-mix(in srgb, var(--s09-account-tone) 88%, #657482)
+    );
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 48%),
+    0 0.38rem 0.9rem color-mix(in srgb, var(--s09-account-tone) 18%, transparent);
+  opacity: 1;
+}
+
+.training[data-s09-expanded="true"]
+  .network
+  :global([data-network-symbol="s09-account-swatch"]),
+.training[data-s09-expanded="true"]
+  .network
+  :global([data-network-symbol="s09-account-swatch-removing"]) {
+  display: none;
+}
+
+.training[data-s09-reducing="true"]
+  .network
+  :global([data-symbol-id="s09-account-swatch-removing"] [data-scene-node-visual]) {
+  animation: s09-account-node-remove 220ms cubic-bezier(0.55, 0, 1, 0.45)
+    calc(var(--s09-account-sequence-delay) - 624ms) both;
+}
+
+.training[data-s09-expanding="true"]
+  .network
+  :global([data-network-edge-target]:not([data-network-edge-target^="s09-additional-account-"])) {
+  animation: s09-source-edge-settle 900ms cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 
 .training[data-replay-phase="triangle"]
@@ -311,25 +377,16 @@
 .passWoScene {
   position: absolute;
   z-index: 10;
-  inset: clamp(var(--space-5), 5cqi, var(--space-9));
-  display: grid;
-  grid-template-columns: minmax(10rem, 0.55fr) minmax(22rem, 1.45fr);
-  align-items: end;
-  gap: clamp(var(--space-4), 3cqi, var(--space-8));
+  inset: 0;
 }
 
-.passWoScene > img {
-  justify-self: center;
-  width: min(100%, 20rem);
-  max-height: 68cqh;
-  object-fit: contain;
-  filter: drop-shadow(0 1.2rem 2rem rgb(0 0 0 / 35%));
-  animation: passwo-arrival 420ms var(--motion-ease-out) both;
-}
-
-.passWoSpeech {
-  align-self: center;
-  width: min(100%, 48rem);
+.training[data-s09-expanded="true"] .passWoScene,
+.training[data-s09-expanded="true"] .vaultPause {
+  top: auto;
+  right: 0;
+  bottom: 4.8rem;
+  left: 0;
+  height: var(--s09-dialog-band);
 }
 
 .vaultPause {
@@ -424,7 +481,55 @@
 @keyframes s09-account-node-reveal {
   from {
     opacity: 0;
-    transform: scale(0.3);
+    filter: blur(0.18rem);
+    transform: scale(0.18);
+  }
+
+  to {
+    opacity: 1;
+    filter: blur(0);
+    transform: scale(1);
+  }
+}
+
+@keyframes s09-account-node-remove {
+  45% {
+    opacity: 1;
+    filter: brightness(1.18);
+    transform: scale(1.32);
+  }
+
+  to {
+    opacity: 0;
+    filter: brightness(1.18) blur(0.12rem);
+    transform: scale(0.08);
+  }
+}
+
+@keyframes s09-source-edge-settle {
+  0%,
+  48% {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes s09-network-depth-wave {
+  from {
+    opacity: 0;
+    transform: scale(0.32);
+  }
+
+  42% {
+    opacity: 1;
+  }
+
+  to {
+    opacity: 0.34;
+    transform: scale(1.18);
   }
 }
 
@@ -438,13 +543,6 @@
   from {
     opacity: 0;
     transform: translate(-50%, calc(-50% + 1rem)) scale(0.985);
-  }
-}
-
-@keyframes passwo-arrival {
-  from {
-    opacity: 0;
-    transform: translateX(-1rem);
   }
 }
 
@@ -467,13 +565,6 @@
     bottom: 5.4rem;
   }
 
-  .passWoScene {
-    inset: var(--space-4);
-    grid-template-columns: 1fr;
-    gap: var(--space-4);
-    overflow: auto;
-  }
-
   .summary {
     max-height: calc(100% - 2 * var(--space-5));
     overflow: auto;
@@ -489,11 +580,6 @@
   .principles {
     padding-inline: var(--space-3);
   }
-
-  .passWoScene > img {
-    width: min(8rem, 28cqi);
-    max-height: 24cqh;
-  }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -502,17 +588,21 @@
   .s09Dim,
   .summary,
   .completionMoment strong,
-  .passWoScene > img,
   .vaultPause > span,
+  .training[data-s09-expanded="true"] .network::after,
   .training[data-s09-expanded="true"]
     .network
-    :global([data-scene-node^="s09-additional-account-"]) {
+    :global([data-scene-node^="s09-additional-account-"]),
+  .training[data-s09-reducing="true"]
+    .network
+    :global([data-symbol-id="s09-account-swatch-removing"] [data-scene-node-visual]) {
     animation: none;
   }
 
   .replayAction,
   .summaryAction,
-  .network > div {
+  .network > div,
+  .training .network :global(.react-flow__node) {
     transition: none;
   }
 

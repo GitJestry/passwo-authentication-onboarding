@@ -217,6 +217,7 @@ interface SceneNodeData extends Record<string, unknown> {
   readonly dimmed: boolean;
   readonly interactionDisabled: boolean;
   readonly visualVariant: NetworkVisualVariant;
+  readonly visualDensity: NetworkVisualDensity;
   readonly compact: boolean;
   readonly nodeSize: 'main' | 'detail';
   readonly nodeShape: NetworkNodeShape;
@@ -243,11 +244,14 @@ interface StatusCascadeTiming {
 const defaultStatusCascadeStartDelayMs = 850;
 const statusCascadeSpeedPxPerMs = 0.475 * 1.25;
 
-interface StatusCascadeNodeStyle extends CSSProperties {
-  readonly '--network-status-cascade-arrival-delay': string;
+interface SceneNodeStyle extends CSSProperties {
+  readonly '--network-status-cascade-arrival-delay'?: string;
+  readonly '--s09-account-sequence-delay'?: string;
+  readonly '--s09-account-tone'?: string;
 }
 
 export type NetworkVisualVariant = 'default' | 'account-map';
+export type NetworkVisualDensity = 'default' | 'overview';
 export type NetworkNodeShape = 'circle' | 'rounded-rectangle';
 
 export interface NetworkCanvasSize {
@@ -320,6 +324,62 @@ const accountMapDetailNodeLayout: NetworkNodeLayout = {
   shapeHeight: 62,
   shape: 'rounded-rectangle',
 };
+const overviewAccountNodeLayout: NetworkNodeLayout = {
+  width: 42,
+  height: 42,
+  shapeWidth: 42,
+  shapeHeight: 42,
+  shape: 'circle',
+};
+const overviewServiceNodeLayout: NetworkNodeLayout = {
+  width: 28,
+  height: 28,
+  shapeWidth: 28,
+  shapeHeight: 28,
+  shape: 'circle',
+};
+const overviewDetailNodeLayout: NetworkNodeLayout = {
+  width: 34,
+  height: 24,
+  shapeWidth: 34,
+  shapeHeight: 24,
+  shape: 'rounded-rectangle',
+};
+const overviewAnnotationNodeLayout: NetworkNodeLayout = {
+  width: 8,
+  height: 8,
+  shapeWidth: 8,
+  shapeHeight: 8,
+  shape: 'circle',
+};
+const compactOverviewAccountNodeLayout: NetworkNodeLayout = {
+  width: 28,
+  height: 28,
+  shapeWidth: 28,
+  shapeHeight: 28,
+  shape: 'circle',
+};
+const compactOverviewServiceNodeLayout: NetworkNodeLayout = {
+  width: 20,
+  height: 20,
+  shapeWidth: 20,
+  shapeHeight: 20,
+  shape: 'circle',
+};
+const compactOverviewDetailNodeLayout: NetworkNodeLayout = {
+  width: 24,
+  height: 17,
+  shapeWidth: 24,
+  shapeHeight: 17,
+  shape: 'rounded-rectangle',
+};
+const compactOverviewAnnotationNodeLayout: NetworkNodeLayout = {
+  width: 5,
+  height: 5,
+  shapeWidth: 5,
+  shapeHeight: 5,
+  shape: 'circle',
+};
 const compactAccountMapAccountNodeLayout: NetworkNodeLayout = {
   width: 87,
   height: 111,
@@ -353,8 +413,23 @@ function round(value: number): number {
 function layoutForNode(
   node: Pick<SceneNode, 'kind'>,
   visualVariant: NetworkVisualVariant,
+  visualDensity: NetworkVisualDensity,
   compact: boolean,
 ): NetworkNodeLayout {
+  if (visualDensity === 'overview') {
+    if (node.kind === 'annotation') {
+      return compact
+        ? compactOverviewAnnotationNodeLayout
+        : overviewAnnotationNodeLayout;
+    }
+    if (node.kind === 'account') {
+      return compact ? compactOverviewAccountNodeLayout : overviewAccountNodeLayout;
+    }
+    if (node.kind === 'function' || node.kind === 'content') {
+      return compact ? compactOverviewDetailNodeLayout : overviewDetailNodeLayout;
+    }
+    return compact ? compactOverviewServiceNodeLayout : overviewServiceNodeLayout;
+  }
   if (visualVariant === 'account-map') {
     if (node.kind === 'account') {
       return compact ? compactAccountMapAccountNodeLayout : accountMapAccountNodeLayout;
@@ -399,13 +474,16 @@ export function layoutSceneNode(
   canvas: NetworkCanvasSize,
   visualVariant: NetworkVisualVariant = 'default',
   showNodeLabels = true,
+  visualDensity: NetworkVisualDensity = 'default',
 ): Readonly<{
   position: { readonly x: number; readonly y: number };
   layout: NetworkNodeLayout;
   compact: boolean;
 }> {
-  const compact = visualVariant === 'account-map' && canvas.height < 520;
-  const authoredLayout = layoutForNode(node, visualVariant, compact);
+  const compact =
+    visualVariant === 'account-map' &&
+    (canvas.height < 520 || (visualDensity === 'overview' && canvas.width < 760));
+  const authoredLayout = layoutForNode(node, visualVariant, visualDensity, compact);
   const layout = showNodeLabels
     ? authoredLayout
     : { ...authoredLayout, height: authoredLayout.shapeHeight };
@@ -537,6 +615,7 @@ function SceneNodeCircle({ data }: NodeProps<SceneFlowNode>) {
     dimmed,
     interactionDisabled,
     visualVariant,
+    visualDensity,
     compact,
     nodeSize,
     nodeShape,
@@ -553,11 +632,35 @@ function SceneNodeCircle({ data }: NodeProps<SceneFlowNode>) {
   const lockedAccount = sceneNode.kind === 'account' && sceneNode.locked === true;
   const showStatusMarker =
     showStatusMarkers && !lockedAccount && sceneNode.status !== 'neutral';
-  const statusCascadeStyle: StatusCascadeNodeStyle | undefined =
-    statusCascadeTiming === null
+  const additionalAccountMatch = sceneNode.id.match(
+    /^s09-additional-account-(\d+)(?:-detail-(\d+))?$/,
+  );
+  const additionalAccountStyle =
+    additionalAccountMatch === null
+      ? null
+      : {
+          hue: Math.round(
+            (Number(additionalAccountMatch[1]) * 137.508 +
+              Number(additionalAccountMatch[2] ?? 0) * 23.7) %
+              360,
+          ),
+          sequenceDelay: `${Number(additionalAccountMatch[1]) * 8}ms`,
+        };
+  const sceneNodeStyle: SceneNodeStyle | undefined =
+    statusCascadeTiming === null && additionalAccountStyle === null
       ? undefined
       : {
-          '--network-status-cascade-arrival-delay': `${statusCascadeTiming.arrivalMs}ms`,
+          ...(statusCascadeTiming === null
+            ? {}
+            : {
+                '--network-status-cascade-arrival-delay': `${statusCascadeTiming.arrivalMs}ms`,
+              }),
+          ...(additionalAccountStyle === null
+            ? {}
+            : {
+                '--s09-account-sequence-delay': additionalAccountStyle.sequenceDelay,
+                '--s09-account-tone': `hsl(${additionalAccountStyle.hue} 36% 64%)`,
+              }),
         };
 
   return (
@@ -580,9 +683,10 @@ function SceneNodeCircle({ data }: NodeProps<SceneFlowNode>) {
       data-size={nodeSize}
       data-status={sceneNode.status}
       data-symbol-id={symbolId}
+      data-visual-density={visualDensity}
       data-variant={visualVariant}
       data-visible={visible}
-      style={statusCascadeStyle}
+      style={sceneNodeStyle}
     >
       <Handle
         type="target"
@@ -884,6 +988,7 @@ function toReactFlowElements(
   interactionDisabled: boolean,
   canvas: NetworkCanvasSize,
   visualVariant: NetworkVisualVariant,
+  visualDensity: NetworkVisualDensity,
   activeNodeId: string | null,
   activePreviewNodeId: string | null,
   showEdgeLabels: boolean,
@@ -907,7 +1012,7 @@ function toReactFlowElements(
   ]);
   const positionedNodes = snapshot.nodes.map((node) => ({
     node,
-    ...layoutSceneNode(node, canvas, visualVariant, showNodeLabels),
+    ...layoutSceneNode(node, canvas, visualVariant, showNodeLabels, visualDensity),
   }));
   const geometriesByNodeId = new Map(
     positionedNodes.map(({ node, position, layout }) => [node.id, geometryForNode(position, layout)]),
@@ -990,6 +1095,7 @@ function toReactFlowElements(
           : false,
         interactionDisabled,
         visualVariant,
+        visualDensity,
         compact,
         nodeSize: node.kind === 'account' ? 'main' : 'detail',
         nodeShape: layout.shape,
@@ -1070,6 +1176,7 @@ export interface ReactFlowNetworkProps {
   readonly canvasAriaLabel?: string;
   readonly interactionDisabled?: boolean;
   readonly visualVariant?: NetworkVisualVariant;
+  readonly visualDensity?: NetworkVisualDensity;
   readonly activeNodeId?: string | null;
   readonly activePreviewNodeId?: string | null;
   readonly showEdgeLabels?: boolean;
@@ -1089,6 +1196,7 @@ export function ReactFlowNetwork({
   canvasAriaLabel = 'Deterministisch angeordnetes Knotennetz',
   interactionDisabled = false,
   visualVariant = 'default',
+  visualDensity = 'default',
   activeNodeId = null,
   activePreviewNodeId = null,
   showEdgeLabels = true,
@@ -1134,6 +1242,7 @@ export function ReactFlowNetwork({
         interactionDisabled,
         canvas,
         visualVariant,
+        visualDensity,
         activeNodeId,
         activePreviewNodeId,
         showEdgeLabels,
@@ -1163,6 +1272,7 @@ export function ReactFlowNetwork({
       currentAttackEdgeId,
       statusCascadeStartDelayMs,
       visualVariant,
+      visualDensity,
     ],
   );
 

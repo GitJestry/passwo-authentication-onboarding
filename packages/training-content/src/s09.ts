@@ -1,13 +1,13 @@
 import type { TrainingSectionId } from '@passwo/contracts';
 
-export const S09_PASSWORD_SUMMARY_CONTENT_VERSION = '3.2.0';
+export const S09_PASSWORD_SUMMARY_CONTENT_VERSION = '3.4.0';
 
 export const s09PasswordSummaryContent = {
   version: S09_PASSWORD_SUMMARY_CONTENT_VERSION,
   source: {
-    revision: 'Userauftrag vom 2026-08-15 · Zusammenfassung vor Rückkehr ins S08-Netzwerk',
+    revision: 'Userauftrag vom 2026-08-15 · Kontenskalierung von 134 auf 80',
     copyReference:
-      'docs/design/S08-S09-COPY-AUDIT.md#ablauf--und-darstellungsdelta-s09-zusammenfassung-vor-netzwerkrückkehr-15-august-2026',
+      'docs/design/S08-S09-COPY-AUDIT.md#ablauf--und-darstellungsdelta-s09-kontenskalierung-von-134-auf-80-15-august-2026',
   },
   segment: {
     id: 'S09',
@@ -78,6 +78,7 @@ export const s09PasswordSummaryContent = {
   ],
   finishAction: 'Abschließen',
   scaling: {
+    studyAccountCount: 134,
     accountCount: 80,
     answer: 'Super easy!',
   },

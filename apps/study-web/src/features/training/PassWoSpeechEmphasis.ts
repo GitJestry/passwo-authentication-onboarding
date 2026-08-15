@@ -146,6 +146,14 @@ const emphasisBySpeechId: Readonly<Record<string, readonly PassWoSpeechEmphasis[
     },
   ],
   's07-mnemonic': [{ phrase: 'Beispiel:', tone: 'accent' }],
+  's09-scaling-intro': [
+    { phrase: 'drei Konten', tone: 'accent', contrastId: 'scaling-requirements' },
+    {
+      phrase: 'stark, einzigartig und später wieder abrufbar',
+      tone: 'positive',
+      contrastId: 'scaling-requirements',
+    },
+  ],
 };
 
 export function passWoSpeechEmphasisFor(

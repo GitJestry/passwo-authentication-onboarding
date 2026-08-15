@@ -23,9 +23,9 @@ import { assign, setup } from 'xstate';
 import { ReactFlowNetworkAdapter } from '../../../../adapters/network/ReactFlowNetworkAdapter.js';
 import blueShieldAsset from '../../../../assets/s05/password-factor-shield.png';
 import greenShieldAsset from '../../../../assets/s06/comparison-path-shield.png';
-import passWoTalkAsset from '../../../../assets/passwo/passwo-talk.png';
 import { CelebrationConfetti } from '../../CelebrationConfetti.js';
-import { PassWoSpeechBubble } from '../../PassWoSpeechBubble.js';
+import { PassWoGuide } from '../../PassWoGuide.js';
+import { passWoSpeechEmphasisFor } from '../../PassWoSpeechEmphasis.js';
 import { SectionTransition } from '../../SectionTransition.js';
 import { AccountAssessmentNetwork } from '../AccountAssessmentNetwork.js';
 import { createS06BlockedReplayTriangle } from '../S06/S06ConsequenceController.js';
@@ -44,6 +44,7 @@ interface S08Context {
   readonly affectedAccountIds: readonly S08AffectedAccountId[];
   readonly initialStage: 's08' | 's09';
   readonly phaseDurationMs: number;
+  readonly reductionDurationMs: number;
   readonly vaultPauseDurationMs: number;
   readonly protectedAccountIds: readonly S08AffectedAccountId[];
 }
@@ -66,11 +67,13 @@ const s08Machine = setup({
       readonly affectedAccountIds: readonly S08AffectedAccountId[];
       readonly initialStage: 's08' | 's09';
       readonly phaseDurationMs: number;
+      readonly reductionDurationMs: number;
       readonly vaultPauseDurationMs: number;
     },
   },
   delays: {
     phaseDuration: ({ context }) => context.phaseDurationMs,
+    reductionDuration: ({ context }) => context.reductionDurationMs,
     vaultPauseDuration: ({ context }) => context.vaultPauseDurationMs,
   },
   guards: {
@@ -100,6 +103,7 @@ const s08Machine = setup({
     affectedAccountIds: [...input.affectedAccountIds],
     initialStage: input.initialStage,
     phaseDurationMs: input.phaseDurationMs,
+    reductionDurationMs: input.reductionDurationMs,
     vaultPauseDurationMs: input.vaultPauseDurationMs,
     protectedAccountIds:
       input.initialStage === 's09' ? [...input.affectedAccountIds] : [],
@@ -133,7 +137,11 @@ const s08Machine = setup({
     s09Intro: { tags: ['s09'], on: { NEXT: { target: 's09Expansion' } } },
     s09Expansion: {
       tags: ['s09', 'expanded'],
-      on: { NEXT: { target: 's09Question' } },
+      on: { NEXT: { target: 's09Reduction' } },
+    },
+    s09Reduction: {
+      tags: ['s09', 'expanded', 'reducing'],
+      after: { reductionDuration: { target: 's09Question' } },
     },
     s09Question: {
       tags: ['s09', 'expanded'],
@@ -182,6 +190,10 @@ function vaultPauseDuration(): number {
   return window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 0 : 650;
 }
 
+function accountReductionDuration(): number {
+  return window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 0 : 760;
+}
+
 function affectedAccountId(nodeId: string): S08AffectedAccountId | null {
   if (nodeId === 'master-campus' || nodeId === 'campus-email') return nodeId;
   return null;
@@ -208,6 +220,7 @@ export function S08NetworkRewindStage({
       affectedAccountIds,
       initialStage,
       phaseDurationMs: replayDuration(),
+      reductionDurationMs: accountReductionDuration(),
       vaultPauseDurationMs: vaultPauseDuration(),
     },
   });
@@ -247,7 +260,24 @@ export function S08NetworkRewindStage({
       ),
     [firstPathStep, replayBaseNetwork, secondPathStep, thirdPathStep],
   );
-  const expandedNetwork = useMemo(
+  const studyScaleNetwork = useMemo(
+    () =>
+      createExpandedS09AccountNetwork(
+        triangleNetwork,
+        s09PasswordSummaryContent.scaling.studyAccountCount,
+      ),
+    [triangleNetwork],
+  );
+  const reducingNetwork = useMemo(
+    () =>
+      createExpandedS09AccountNetwork(
+        triangleNetwork,
+        s09PasswordSummaryContent.scaling.studyAccountCount,
+        s09PasswordSummaryContent.scaling.accountCount,
+      ),
+    [triangleNetwork],
+  );
+  const conservativeScaleNetwork = useMemo(
     () =>
       createExpandedS09AccountNetwork(
         triangleNetwork,
@@ -264,8 +294,14 @@ export function S08NetworkRewindStage({
             state.context.protectedAccountIds,
           );
       }
+      if (state.matches('s09Expansion')) {
+        return studyScaleNetwork;
+      }
+      if (state.matches('s09Reduction')) {
+        return reducingNetwork;
+      }
       if (state.hasTag('expanded')) {
-        return expandedNetwork;
+        return conservativeScaleNetwork;
       }
       if (
         state.matches('triangleAnimating') ||
@@ -278,10 +314,12 @@ export function S08NetworkRewindStage({
     },
     [
       preparationVisible,
-      expandedNetwork,
+      conservativeScaleNetwork,
       replayBaseNetwork,
+      reducingNetwork,
       sourceNetwork,
       state,
+      studyScaleNetwork,
       state.context.affectedAccountIds,
       state.context.protectedAccountIds,
       triangleNetwork,
@@ -329,7 +367,7 @@ export function S08NetworkRewindStage({
     ? 0
     : state.matches('s09Expansion')
       ? 1
-      : state.matches('s09Question')
+      : state.matches('s09Reduction') || state.matches('s09Question')
         ? 2
         : state.matches('passWoDifficulty')
           ? 3
@@ -393,6 +431,8 @@ export function S08NetworkRewindStage({
             : replayPhase
       }
       data-s09-expanded={state.hasTag('expanded') || undefined}
+      data-s09-expanding={state.matches('s09Expansion') || undefined}
+      data-s09-reducing={state.hasTag('reducing') || undefined}
     >
       <DesktopSurface
         platform={platform}
@@ -422,6 +462,7 @@ export function S08NetworkRewindStage({
             attackBlocked={replayRunning || replayComplete}
             attackEdgeId={null}
             showAccountShields
+            overview={state.hasTag('expanded')}
             celebratingNodeId={celebratingNodeId}
             interactionDisabled={!preparationVisible}
             nodeActionLabels={actionLabels}
@@ -539,25 +580,36 @@ export function S08NetworkRewindStage({
               className={styles.passWoScene}
               aria-label="PassWo erklärt den Übergang zum Passwortmanager"
             >
-              <img src={passWoTalkAsset} alt="PassWo" />
-              <PassWoSpeechBubble
-                className={styles.passWoSpeech}
-                speaker={s09PasswordSummaryContent.passWo.guideName}
-                paragraphs={[s09PasswordSummaryContent.passWo.steps[passWoStep]]}
-                tone="dark"
-                action={
-                  passWoStep === 2
-                    ? {
-                        kind: 'perform',
-                        label: s09PasswordSummaryContent.scaling.answer,
-                        onAction: () => send({ type: 'ANSWER_SELECTED' }),
-                      }
-                    : {
-                        kind: 'advance',
-                        label: passWoStep === 6 ? 'Zum Passwortmanager' : 'Weiter',
-                        onAction: () => send({ type: 'NEXT' }),
-                      }
+              <PassWoGuide
+                guideName={s09PasswordSummaryContent.passWo.guideName}
+                taskLabel="Passwortmanager"
+                helpOpen
+                helpId="s09-passwo-speech"
+                openHelpLabel="PassWo-Hinweis öffnen"
+                speech={[s09PasswordSummaryContent.passWo.steps[passWoStep]]}
+                speechEmphasis={
+                  passWoStep === 0 ? passWoSpeechEmphasisFor('s09-scaling-intro') : []
                 }
+                speechKey={`s09-${passWoStep}`}
+                {...(state.matches('s09Reduction')
+                  ? {}
+                  : {
+                      speechAction:
+                        passWoStep === 2
+                          ? {
+                              kind: 'perform',
+                              label: s09PasswordSummaryContent.scaling.answer,
+                              onAction: () => send({ type: 'ANSWER_SELECTED' }),
+                            }
+                          : {
+                              kind: 'advance',
+                              label:
+                                passWoStep === 6 ? 'Zum Passwortmanager' : 'Weiter',
+                              onAction: () => send({ type: 'NEXT' }),
+                            },
+                    })}
+                placement="bottom-left"
+                showHelpButton={false}
               />
             </section>
           </>

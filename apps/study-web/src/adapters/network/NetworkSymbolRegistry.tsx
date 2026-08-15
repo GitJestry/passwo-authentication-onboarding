@@ -325,6 +325,9 @@ function SymbolPaths({ symbolId }: Pick<NetworkSymbolProps, 'symbolId'>) {
       return <path d="M6 3h9l4 4v14H6V3Zm8 1v4h4M9 12h6M9 16h6" />;
     case 'annotation':
       return <path d="M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18Zm0 7v6M12 7h.01" />;
+    case 's09-account-swatch':
+    case 's09-account-swatch-removing':
+      return null;
     default:
       return (
         <>
