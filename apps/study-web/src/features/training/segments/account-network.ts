@@ -193,7 +193,7 @@ export function createRewoundAccountNetwork(
   };
 }
 
-export type S08ProtectedReplayPhase = 'attack' | 'what-if' | 'complete';
+export type S08ProtectedReplayPhase = 'ready' | 'attack' | 'complete';
 
 function s08AccountIdForNode(nodeId: string): S06AccountId | null {
   if (nodeId === 'master-campus' || nodeId.startsWith('master-campus-detail-')) {
@@ -225,7 +225,7 @@ export function createS08ProtectionNetwork(
       const actionable = node.kind === 'account' && affectedNode && !protectedNode;
       return {
         ...node,
-        status: protectedNode ? 'protected' : affectedNode ? 'affected' : 'viewed',
+        status: protectedNode ? 'protected' : affectedNode ? 'affected' : 'neutral',
         selectable: actionable,
         locked: false,
         description: actionable
@@ -234,9 +234,6 @@ export function createS08ProtectionNetwork(
       };
     });
   const nodeIds = new Set(nodes.map(({ id }) => id));
-  const protectedNodeIds = new Set(
-    nodes.filter(({ status }) => status === 'protected').map(({ id }) => id),
-  );
   const edges = source.edges
     .filter(
       ({ sourceId, targetId }) =>
@@ -244,11 +241,7 @@ export function createS08ProtectionNetwork(
         nodeIds.has(targetId) &&
         !(accountIds.has(sourceId) && accountIds.has(targetId)),
     )
-    .map((edge): SceneEdge =>
-      protectedNodeIds.has(edge.sourceId) && protectedNodeIds.has(edge.targetId)
-        ? { ...edge, kind: 'blocked-path', status: 'blocked', label: null }
-        : { ...edge, status: 'opened', label: null },
-    );
+    .map((edge): SceneEdge => ({ ...edge, status: 'neutral', label: null }));
   return {
     ...source,
     id: `${source.id}-s08-protection-${protectedAccountIds.join('-') || 'pending'}`,
@@ -266,47 +259,36 @@ export function createProtectedS08Network(
   phase: S08ProtectedReplayPhase,
 ): NetworkSceneSnapshot {
   const accountIds = new Set(['master-campus', 'campus-email', 'campusgram']);
-  const protectsAllAccounts = phase !== 'attack';
   const nodes = source.nodes
     .filter(({ kind }) => kind !== 'shield')
     .map((node): SceneNode => {
-      const belongsToCampusgram =
-        node.id === 'campusgram' || node.id.startsWith('campusgram-detail-');
-      const protectedNode = protectsAllAccounts || belongsToCampusgram;
       return {
         ...node,
-        status: protectedNode ? 'protected' : 'viewed',
+        status: 'protected',
         selectable: false,
         locked: false,
       };
     });
   const nodeIds = new Set(nodes.map(({ id }) => id));
-  const protectedNodeIds = new Set(
-    nodes.filter(({ status }) => status === 'protected').map(({ id }) => id),
-  );
-  const edges = source.edges
+  const localEdges = source.edges
     .filter(
       ({ sourceId, targetId }) =>
         nodeIds.has(sourceId) &&
         nodeIds.has(targetId) &&
         !(accountIds.has(sourceId) && accountIds.has(targetId)),
     )
-    .map((edge): SceneEdge => {
-      const protectedEdge =
-        protectedNodeIds.has(edge.sourceId) && protectedNodeIds.has(edge.targetId);
-      return protectedEdge
-        ? { ...edge, kind: 'blocked-path', status: 'blocked', label: null }
-        : { ...edge, status: 'opened', label: null };
-    });
+    .map((edge): SceneEdge => ({ ...edge, status: 'neutral', label: null }));
   return {
     ...source,
     id: `${source.id}-s08-${phase}`,
     nodes,
-    edges,
+    edges: localEdges,
     accessibleSummary:
-      phase === 'attack'
+      phase === 'ready'
+        ? 'Alle drei fiktiven Konten sind für den erneuten Angriff vorbereitet.'
+        : phase === 'attack'
         ? 'Das alte geleakte Passwort wird bei Campusgram erneut ausprobiert und dort blockiert.'
-        : 'Campusgram, Master Campus und Campus E-Mail sowie ihre verbundenen Bereiche bleiben geschützt. Es gibt keine Ausbreitung zwischen den Konten.',
+        : 'Campusgram, Master Campus und Campus E-Mail sowie ihre verbundenen Bereiche bleiben geschützt.',
   };
 }
 

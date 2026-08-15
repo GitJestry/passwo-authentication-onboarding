@@ -27,6 +27,7 @@ import {
   type BrowserTabModel,
   type DesktopPlatform,
 } from '@passwo/ui';
+import type { NetworkSceneSnapshot } from '@passwo/visualization';
 import { useCallback, useEffect, useMemo, useState, type ReactNode } from 'react';
 import { S00Training } from '../features/training/S00Training.js';
 import { S01Training } from '../features/training/S01Training.js';
@@ -39,7 +40,17 @@ import {
   S06ConsequenceTraining,
   type S06ConsequenceSource,
 } from '../features/training/segments/S06/S06ConsequenceTraining.js';
+import {
+  createS06ConsequenceScenePlan,
+  createS06FixtureScenePlan,
+  type S06ConsequenceAccountInputs,
+} from '../features/training/segments/S06/S06ConsequenceController.js';
 import { S07PassphraseSearchTraining } from '../features/training/segments/S07/S07PassphraseSearchTraining.js';
+import {
+  deriveS07AccountFeedback,
+  type S07AccountFeedback,
+} from '../features/training/segments/S07/S07PassphraseSearchMachine.js';
+import { S08NetworkRewindStage } from '../features/training/segments/S08/S08NetworkRewindStage.js';
 import styles from './DesignLab.module.css';
 import { S05DesignLabTraining } from './S05DesignLabTraining.js';
 
@@ -65,14 +76,56 @@ function ArtifactPreview({ children }: { readonly children: ReactNode }) {
   );
 }
 
+function S07ToS08QaPreview({
+  accountFeedback,
+  campusgramPassword,
+  initialStage = 's07',
+  network,
+  plan,
+}: {
+  readonly accountFeedback: readonly S07AccountFeedback[];
+  readonly campusgramPassword: string;
+  readonly initialStage?: 's07' | 's08';
+  readonly network: NetworkSceneSnapshot | null;
+  readonly plan: ReturnType<typeof createS06ConsequenceScenePlan>;
+}) {
+  const [stage, setStage] = useState<'s07' | 's08'>(initialStage);
+  const platform = readDesktopPlatform();
+
+  if (stage === 's08') {
+    return (
+      <S08NetworkRewindStage
+        affectedAccountIds={accountFeedback.map(({ accountId }) => accountId)}
+        network={network}
+        plan={plan}
+        platform={platform}
+      />
+    );
+  }
+
+  return (
+    <S07PassphraseSearchTraining
+      accountFeedback={accountFeedback}
+      campusgramPassword={campusgramPassword}
+      displayName="Vorschau"
+      onComplete={() => setStage('s08')}
+      platform={platform}
+    />
+  );
+}
+
 function S06ToS07FixturePreview({ fixture }: { readonly fixture: S06ConsequenceFixture }) {
   const [stage, setStage] = useState<'s06' | 'transition' | 's07'>('s06');
+  const [summaryNetwork, setSummaryNetwork] = useState<NetworkSceneSnapshot | null>(null);
+  const plan = useMemo(() => createS06FixtureScenePlan(fixture.id), [fixture.id]);
+  const accountFeedback = useMemo(() => deriveS07AccountFeedback(plan), [plan]);
 
   if (stage === 's06') {
     return (
       <S06ConsequenceTraining
         source={{ kind: 'fixture', fixtureId: fixture.id }}
         onComplete={() => setStage('transition')}
+        onSummaryNetworkReady={setSummaryNetwork}
       />
     );
   }
@@ -93,10 +146,70 @@ function S06ToS07FixturePreview({ fixture }: { readonly fixture: S06ConsequenceF
     );
   }
   return (
-    <S07PassphraseSearchTraining
+    <S07ToS08QaPreview
+      accountFeedback={accountFeedback}
       campusgramPassword={fixture.accounts.campusgram.fictionalPassword}
-      displayName="Vorschau"
-      platform={readDesktopPlatform()}
+      network={summaryNetwork ?? plan.steps.at(-1)?.network ?? null}
+      plan={plan}
+    />
+  );
+}
+
+function S07DirectQaPreview({
+  initialStage = 's07',
+  passwordOverrides,
+}: {
+  readonly initialStage?: 's07' | 's08';
+  readonly passwordOverrides: TrainingQaPasswordOverrides;
+}) {
+  const accounts = useMemo<S06ConsequenceAccountInputs>(() => {
+    const identity = deriveCampusIdentity('Vorschau');
+    return {
+      'master-campus': {
+        fictionalPassword: passwordForAccount('master-campus', passwordOverrides),
+        retrievalStatus: 'retrievable',
+        transientAccountIdentifiers: identity.assessmentTerms['master-campus'],
+      },
+      'campus-email': {
+        fictionalPassword: passwordForAccount('campus-email', passwordOverrides),
+        retrievalStatus: 'retrievable',
+        transientAccountIdentifiers: identity.assessmentTerms['campus-email'],
+      },
+      campusgram: {
+        fictionalPassword: passwordForAccount('campusgram', passwordOverrides),
+        retrievalStatus: 'retrievable',
+        transientAccountIdentifiers: identity.assessmentTerms.campusgram,
+      },
+    };
+  }, [passwordOverrides]);
+  const plan = useMemo(
+    () => createS06ConsequenceScenePlan('design-lab-s07-to-s08', accounts),
+    [accounts],
+  );
+  const accountFeedback = useMemo(() => deriveS07AccountFeedback(plan), [plan]);
+  const visibleAccountFeedback: readonly S07AccountFeedback[] =
+    initialStage === 's08'
+      ? [
+          {
+            accountId: 'master-campus',
+            connectionAccountIds: ['campusgram'],
+            kind: 'strong-similar',
+          },
+          {
+            accountId: 'campus-email',
+            connectionAccountIds: ['campusgram'],
+            kind: 'similar-guessable',
+          },
+        ]
+      : accountFeedback;
+
+  return (
+    <S07ToS08QaPreview
+      accountFeedback={visibleAccountFeedback}
+      campusgramPassword={accounts.campusgram.fictionalPassword}
+      initialStage={initialStage}
+      network={plan.steps.at(-1)?.network ?? null}
+      plan={plan}
     />
   );
 }
@@ -393,9 +506,16 @@ const scenarios: Record<DesignLabScenarioId, DesignLabScenario> = {
     showPassWoOverlay: false,
   },
   's07-passphrase-search': {
-    label: 'S07 Passphrase erstellen',
+    label: 'S07 → S08 Passphrase und Rücklauf',
     description:
-      'Eingeloggte Campus-Websites mit fiktiver Search-Ergebnisseite und kompakter Passphrase-Werkstatt.',
+      'Passphrase-Werkstatt mit anschließendem Übergang in die kontobezogenen S08-Aktionen und den Angriffsrücklauf.',
+    dimmed: false,
+    showPassWoOverlay: false,
+  },
+  's08-network-replay': {
+    label: 'S08 Angriffsrücklauf',
+    description:
+      'Direkter QA-Einstieg bei den betroffenen Kontoknoten vor dem vollständig blockierten Angriffsrücklauf.',
     dimmed: false,
     showPassWoOverlay: false,
   },
@@ -438,6 +558,7 @@ const scenarioGroups = [
       's06-incident-found-blocked',
       's06-mixed-actual-hypothetical',
       's07-passphrase-search',
+      's08-network-replay',
     ],
   },
 ] as const satisfies readonly DesignLabScenarioGroup[];
@@ -1034,13 +1155,18 @@ export function DesignLab({ scenarioId }: { readonly scenarioId: DesignLabScenar
       <main className={styles.labPage}>
         <DesignLabIntroduction scenarioId={scenarioId} scenario={scenario} />
         <ArtifactPreview>
-          <S07PassphraseSearchTraining
-            campusgramPassword={
-              passwordOverrides.campusgram ?? defaultTrainingQaPasswords.campusgram
-            }
-            displayName="Vorschau"
-            platform={readDesktopPlatform()}
-          />
+          <S07DirectQaPreview passwordOverrides={passwordOverrides} />
+        </ArtifactPreview>
+      </main>
+    );
+  }
+
+  if (scenarioId === 's08-network-replay') {
+    return (
+      <main className={styles.labPage}>
+        <DesignLabIntroduction scenarioId={scenarioId} scenario={scenario} />
+        <ArtifactPreview>
+          <S07DirectQaPreview initialStage="s08" passwordOverrides={passwordOverrides} />
         </ArtifactPreview>
       </main>
     );

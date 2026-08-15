@@ -540,6 +540,142 @@ function blockedResolutionNetwork(
   };
 }
 
+export type S06BlockedReplayFrame = 'attacking' | 'blocked';
+
+/**
+ * Reuses the authored S06 attack-preview and blocked-resolution projection for a replay in
+ * which a password change has removed the previously observed relationship.
+ */
+export function createS06BlockedReplayNetwork(
+  step: PasswordConsequencePlanStep,
+  priorSettledNetwork: NetworkSceneSnapshot,
+  frame: S06BlockedReplayFrame,
+  options: { readonly shieldProgress?: number } = {},
+): NetworkSceneSnapshot {
+  const sourceAccountId = step.sourceAccountId;
+  const targetAccountId = step.targetAccountId;
+  const sourceNode = step.network.nodes.find(({ id }) => id === sourceAccountId);
+  const targetNode = step.network.nodes.find(({ id }) => id === targetAccountId);
+  if (
+    sourceAccountId === null ||
+    targetAccountId === null ||
+    sourceNode === undefined ||
+    targetNode === undefined
+  ) {
+    return priorSettledNetwork;
+  }
+  const authoredShield: SceneNode = {
+    id: `${step.id}-shield`,
+    kind: 'shield',
+    symbolId: 'shield',
+    label: 'Dieser Angriffsweg ist blockiert.',
+    description:
+      'Mit den begrenzten Transformationswegen dieser Simulation wurde kein direkter Weg erkannt.',
+    status: 'protected',
+    position: { x: targetNode.position.x - 0.12, y: targetNode.position.y - 0.04 },
+    selectable: false,
+  };
+  const priorNodes = new Map(priorSettledNetwork.nodes.map((node) => [node.id, node]));
+  const priorEdges = new Map(priorSettledNetwork.edges.map((edge) => [edge.id, edge]));
+  const blockedStep: PasswordConsequencePlanStep = {
+    ...step,
+    network: {
+      ...step.network,
+      id: `${step.network.id}-protected-replay`,
+      nodes: [
+        ...step.network.nodes
+          .filter(({ kind }) => kind !== 'shield')
+          .map((node): SceneNode => ({
+            ...node,
+            status: priorNodes.get(node.id)?.status ?? 'protected',
+          })),
+        authoredShield,
+      ],
+      edges: step.network.edges.map((edge): SceneEdge =>
+        edge.id === `${step.id}-path`
+          ? { ...edge, kind: 'blocked-path', status: 'blocked', label: null }
+          : {
+              ...edge,
+              kind: priorEdges.get(edge.id)?.kind ?? edge.kind,
+              status: priorEdges.get(edge.id)?.status ?? edge.status,
+              label: null,
+            },
+      ),
+    },
+  };
+  const attackNetwork = attackPreviewNetwork(blockedStep, priorSettledNetwork);
+  if (frame === 'attacking') return attackNetwork;
+  const blockedNetwork = blockedResolutionNetwork(
+    blockedStep,
+    attackNetwork,
+    priorSettledNetwork,
+    false,
+  );
+  const shieldProgress = options.shieldProgress ?? 0.78;
+  if (shieldProgress === 0.78) return blockedNetwork;
+  return {
+    ...blockedNetwork,
+    nodes: blockedNetwork.nodes.map((node): SceneNode =>
+      node.id === authoredShield.id
+        ? {
+            ...node,
+            position: {
+              x: sourceNode.position.x + (targetNode.position.x - sourceNode.position.x) * shieldProgress,
+              y: sourceNode.position.y + (targetNode.position.y - sourceNode.position.y) * shieldProgress,
+            },
+          }
+        : node,
+    ),
+  };
+}
+
+export function createS06BlockedReplayTriangle(
+  baseNetwork: NetworkSceneSnapshot,
+  steps: readonly PasswordConsequencePlanStep[],
+): NetworkSceneSnapshot {
+  const baseEdges = baseNetwork.edges.filter((edge) => !isAttackEdge(edge));
+  const triangleNodes: SceneNode[] = [];
+  const triangleEdges: SceneEdge[] = [];
+  for (const step of steps) {
+    const sourceAccountId = step.sourceAccountId;
+    const targetAccountId = step.targetAccountId;
+    if (sourceAccountId === null || targetAccountId === null) continue;
+    const blockedNetwork = createS06BlockedReplayNetwork(step, baseNetwork, 'blocked', {
+      shieldProgress: 0.5,
+    });
+    const shield = blockedNetwork.nodes.find(
+      (node) => node.id === `${step.id}-shield` && node.kind === 'shield',
+    );
+    const firstSegment = blockedNetwork.edges.find(
+      (edge) => edge.id === `${step.id}-path`,
+    );
+    if (shield === undefined || firstSegment === undefined) continue;
+    triangleNodes.push(shield);
+    triangleEdges.push(
+      firstSegment,
+      {
+        id: `${step.id}-opposite-path`,
+        sourceId: targetAccountId,
+        targetId: shield.id,
+        kind: 'blocked-path',
+        status: 'blocked',
+        label: null,
+      },
+    );
+  }
+  return {
+    ...baseNetwork,
+    id: `${baseNetwork.id}-blocked-triangle`,
+    nodes: [
+      ...baseNetwork.nodes.filter(({ kind }) => kind !== 'shield'),
+      ...triangleNodes,
+    ],
+    edges: [...baseEdges, ...triangleEdges],
+    accessibleSummary:
+      'Alle drei Kontopaare sind durch grüne, mittig unterbrochene Schutzverbindungen blockiert.',
+  };
+}
+
 function resolvedNetwork(
   step: PasswordConsequencePlanStep,
   attackNetwork: NetworkSceneSnapshot,

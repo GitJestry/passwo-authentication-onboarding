@@ -78,11 +78,12 @@ export const trainingSegments = [
   },
   {
     id: 'S09',
-    title: 'Neue Wirkung ansehen',
+    title: 'Passwortprinzipien zusammenfassen',
     section: 'passwords',
     sourcePages: '53-55',
     foci: ['TF4', 'TF5'],
-    learningObjective: 'Veränderte Konsequenzstruktur sichtbar vergleichen.',
+    learningObjective:
+      'Die Wirkung der Änderungen ansehen und Stärke, Einzigartigkeit und Abrufbarkeit zusammenführen.',
   },
   {
     id: 'S10',

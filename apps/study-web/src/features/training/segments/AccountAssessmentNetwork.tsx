@@ -50,6 +50,7 @@ function AccountStatusOverlay({
   comparisonResult,
   actionLabel,
   celebrate,
+  showAccountShield,
   shieldAsset,
 }: {
   readonly node: NetworkSceneSnapshot['nodes'][number];
@@ -58,9 +59,11 @@ function AccountStatusOverlay({
   readonly comparisonResult: PasswordRelation['kind'] | null;
   readonly actionLabel: string | null;
   readonly celebrate: boolean;
+  readonly showAccountShield: boolean;
   readonly shieldAsset: string;
 }) {
-  const showsShield = node.status === 'protected' && node.kind !== 'shield';
+  const showsShield =
+    showAccountShield && node.status === 'protected' && node.kind !== 'shield';
   const showsComparisonPathShield =
     node.status === 'protected' && node.symbolId === 'comparison-path-shield';
   const attackerStatus = attackerAttemptStatus ?? node.status;
@@ -122,7 +125,9 @@ function AccountStatusOverlay({
         </strong>
       )}
       {actionLabel === null ? null : (
-        <strong className={styles.nodeActionLabel}>{actionLabel}</strong>
+        <strong className={styles.nodeActionLabel} data-node-action-label>
+          {actionLabel}
+        </strong>
       )}
       {celebrate ? <CelebrationConfetti /> : null}
     </>
@@ -147,6 +152,7 @@ export function AccountAssessmentNetwork({
   onNodeSelect = ignoreNodeSelect,
   interactionDisabled = true,
   accountShieldAsset = passwordFactorShieldAsset,
+  showAccountShields = true,
 }: {
   readonly adapter: ReactFlowNetworkAdapter;
   readonly presentation: NetworkPresentationSnapshot;
@@ -171,6 +177,7 @@ export function AccountAssessmentNetwork({
   readonly onNodeSelect?: (nodeId: string) => void;
   readonly interactionDisabled?: boolean;
   readonly accountShieldAsset?: string;
+  readonly showAccountShields?: boolean;
 }) {
   const campusgramResult = comparisonResults.campusgram ?? null;
   const masterCampusResult = comparisonResults['master-campus'] ?? null;
@@ -189,6 +196,7 @@ export function AccountAssessmentNetwork({
         )}
         actionLabel={actionLabelForNode(node.id, nodeActionLabels)}
         celebrate={node.id === celebratingNodeId}
+        showAccountShield={showAccountShields}
         shieldAsset={accountShieldAsset}
       />
     ),
@@ -201,6 +209,7 @@ export function AccountAssessmentNetwork({
       nodeActionLabels,
       celebratingNodeId,
       accountShieldAsset,
+      showAccountShields,
     ],
   );
 

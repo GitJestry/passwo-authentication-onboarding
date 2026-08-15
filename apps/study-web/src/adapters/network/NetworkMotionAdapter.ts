@@ -25,6 +25,7 @@ export interface NetworkPresentationSnapshot {
   readonly revealedNodeIds: readonly string[];
   readonly drawnEdgeTargetNodeIds?: readonly string[];
   readonly drawingTargetNodeId?: string | null;
+  readonly drawingTargetNodeIds?: readonly string[];
   readonly highlightedNodeId: string | null;
   readonly emphasis?: NetworkPresentationEmphasis | null;
   readonly announcedMessageId: string | null;

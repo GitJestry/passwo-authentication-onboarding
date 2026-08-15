@@ -103,21 +103,56 @@
   position: absolute;
   z-index: 12;
   left: 50%;
-  bottom: calc(100% + 0.6rem);
+  bottom: calc(100% + 0.85rem);
   width: max-content;
-  max-width: 12rem;
-  padding: 0.38rem 0.62rem;
-  border: var(--border-width-thin) solid rgb(86 179 255 / 74%);
-  border-radius: var(--radius-small);
-  color: #eef8ff;
-  background: rgb(4 35 77 / 92%);
-  box-shadow: 0 0 0.85rem rgb(36 151 255 / 32%);
-  font-size: clamp(0.58rem, 0.92cqi, 0.72rem);
+  max-width: 15rem;
+  padding: 0.62rem 0.9rem;
+  border: var(--border-width-medium) solid transparent;
+  border-radius: var(--radius-round);
+  color: #ffffff;
+  background: transparent;
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 16%),
+    0 0.65rem 1.4rem rgb(0 24 52 / 30%);
+  backdrop-filter: blur(1rem) saturate(1.12);
+  font-size: clamp(0.7rem, 1.12cqi, 0.86rem);
   font-weight: var(--font-weight-heavy);
-  line-height: 1.2;
+  line-height: 1.15;
   text-align: center;
   transform: translateX(-50%);
   pointer-events: none;
+  animation: node-action-invitation 1.45s ease-in-out infinite alternate;
+}
+
+.nodeActionLabel::before {
+  position: absolute;
+  inset: calc(-1 * var(--border-width-medium));
+  padding: var(--border-width-medium);
+  border-radius: inherit;
+  background: linear-gradient(105deg, #2497ff 0 48%, #08c978 52% 100%);
+  content: '';
+  pointer-events: none;
+  -webkit-mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+}
+
+.nodeActionLabel::after {
+  position: absolute;
+  top: calc(100% - 0.08rem);
+  left: 50%;
+  width: 0.72rem;
+  height: 0.72rem;
+  border-right: var(--border-width-medium) solid #08c978;
+  border-bottom: var(--border-width-medium) solid #08c978;
+  background: transparent;
+  content: '';
+  transform: translateX(-50%) rotate(45deg);
 }
 
 .attackConnection {
@@ -553,6 +588,15 @@
   }
 }
 
+@keyframes node-action-invitation {
+  to {
+    box-shadow:
+      inset 0 1px 0 rgb(255 255 255 / 22%),
+      0 0.85rem 1.7rem rgb(0 24 52 / 38%);
+    transform: translateX(-50%) translateY(-0.16rem) scale(1.025);
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .network :global(.edge-kind-dependency .react-flow__edge-path),
   .network :global(.edge-kind-association .react-flow__edge-path),
@@ -595,6 +639,10 @@
   .comparisonPathShield {
     opacity: 1;
     transform: scale(1);
+    animation: none;
+  }
+
+  .nodeActionLabel {
     animation: none;
   }
 

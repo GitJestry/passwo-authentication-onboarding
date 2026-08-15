@@ -6,11 +6,14 @@ import {
   s07PassphraseSearchContent,
 } from './s07.js';
 import { S08_NETWORK_REPLAY_CONTENT_VERSION, s08NetworkReplayContent } from './s08.js';
+import { S09_PASSWORD_SUMMARY_CONTENT_VERSION, s09PasswordSummaryContent } from './s09.js';
 
 const s06AttackFlowCopyReference =
   'docs/design/S06-S07-COPY-AUDIT.md#copy-delta-s06-rückkehr-zur-ausgangslage-15-august-2026';
 const s07EntryCopyReference =
   'docs/design/S06-S07-COPY-AUDIT.md#copy-delta-s07-passphrasen-eins-und-vier-15-august-2026';
+const s08S09CopyReference =
+  'docs/design/S08-S09-COPY-AUDIT.md#copy--und-ablaufdelta-s08-rücklauf-und-s09-abschluss-15-august-2026';
 
 describe('S06 transition and S07 passphrase-search copy traceability', () => {
   it('keeps S06 consequence wording aligned with bounded whole-password recognition', () => {
@@ -227,18 +230,25 @@ describe('S06 transition and S07 passphrase-search copy traceability', () => {
   });
 
   it('keeps S08 linked to the protected replay wording', () => {
-    expect(S08_NETWORK_REPLAY_CONTENT_VERSION).toBe('1.2.0');
-    expect(s08NetworkReplayContent.source.copyReference).toBe(
-      s06AttackFlowCopyReference,
-    );
+    expect(S08_NETWORK_REPLAY_CONTENT_VERSION).toBe('3.1.0');
+    expect(s08NetworkReplayContent.source.copyReference).toBe(s08S09CopyReference);
     expect(s08NetworkReplayContent.protectionAction).toBe(
-      'Einzigartige Passphrase erstellen',
+      'Einzigartige Passphrase verwenden',
     );
-    expect(s08NetworkReplayContent.allProtected).toBe(
-      'Damit sind die betroffenen Konten mit eigenen Passphrasen geschützt. Jetzt spielen wir den Angriff ein letztes Mal durch und schauen, was sich verändert hat.',
-    );
-    expect(s08NetworkReplayContent.result).toBe(
-      'Diesmal endet der Angriff bei dem alten geleakten Passwort. Es funktioniert nicht mehr bei Campusgram und kann auch nicht über Wiederverwendung auf deine anderen Konten übertragen werden.',
-    );
+    expect(s08NetworkReplayContent.replayActions).toEqual({
+      attack: 'Angriff starten',
+      finish: 'Abschließen',
+    });
+    expect('replayLabels' in s08NetworkReplayContent).toBe(false);
+  });
+
+  it('keeps the S09 password summary linked to its three principles', () => {
+    expect(S09_PASSWORD_SUMMARY_CONTENT_VERSION).toBe('1.0.0');
+    expect(s09PasswordSummaryContent.source.copyReference).toBe(s08S09CopyReference);
+    expect(s09PasswordSummaryContent.principles.map(({ label }) => label)).toEqual([
+      'Stark',
+      'Einzigartig',
+      'Abrufbar',
+    ]);
   });
 });

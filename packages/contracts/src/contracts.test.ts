@@ -249,6 +249,9 @@ describe('research-safe contracts', () => {
     expect(designLabScenarioForPath('/design-lab/s07-passphrase-search')).toBe(
       's07-passphrase-search',
     );
+    expect(designLabScenarioForPath('/design-lab/s08-network-replay')).toBe(
+      's08-network-replay',
+    );
     expect(designLabScenarioForPath('/design-lab/s07-directly-reached')).toBeNull();
   });
 

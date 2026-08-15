@@ -497,6 +497,11 @@
   pointer-events: none;
 }
 
+.edgeBlocked .attackEdgeDraw {
+  stroke: #08c978;
+  filter: drop-shadow(0 0 5px rgb(0 212 119 / 70%));
+}
+
 .statusCascadeMask {
   fill: none;
   stroke-dasharray: 1;

@@ -13,7 +13,7 @@ Seitenangaben beziehen sich auf die im Trainingsdokument ausgewiesene interne Pa
 | S06 | Passwortvergleich und Ausbreitungswege | 36–44 | TF3, TF4 | identisches Passwort / konkret ableitbare Variante / kein ableitbarer Weg erkannt, tatsächliche und hypothetische Pfade |
 | S07 | Passphrase erstellen | Nutzerauftrag 2026-08-13 | TF3, TF5 | eingeloggte Campus-Websites, zusätzlicher Passphrasen-Such-Tab |
 | S08 | Passwörter überarbeiten | 50–53 | TF3, TF5, TF6 | sechs zufällige Wörter, adaptive Bearbeitung |
-| S09 | Neue Wirkung ansehen | 53–55 | TF4, TF5 | beschleunigte Konsequenzsimulation |
+| S09 | Passwortprinzipien zusammenfassen | 53–55 | TF4, TF5 | verdunkelte Abschlusszusammenfassung nach blockiertem Rücklauf |
 | S10 | Zusammenfassung Passwort | 55–57 | TF6 | stark, einzigartig, abrufbar |
 | S11 | Von drei zu vielen Konten | 57–60 | TF1, TF2, TF4, TF6 | Skalierungsproblem, Übergang Passwortmanager |
 | S12 | Passwortmanager | 60–65 | TF2, TF3, TF4, TF6 | Generator, Save, Autofill, Vault, Recovery, Systemwahl |
@@ -182,7 +182,7 @@ Seitenangaben beziehen sich auf die im Trainingsdokument ausgewiesene interne Pa
 - Nach dem Campusgram-Wechsel werden nur Master Campus oder Campus E-Mail weiterbehandelt, wenn
   ihre lokale Analyse einen Volltreffer oder der gerichtete Vergleich zum alten
   Campusgram-Passwort einen Treffer beziehungsweise eine relevante Variation ergibt. Diese Konten
-  erhalten in S08 jeweils die Knotenaktion `Einzigartige Passphrase erstellen`; nicht betroffene
+  erhalten in S08 jeweils die Knotenaktion `Einzigartige Passphrase verwenden`; nicht betroffene
   Konten bleiben unverändert. Schutzschild und kurzes Konfetti bestätigen jede ausgeführte Aktion,
   bevor der abschließende Angriffsrücklauf beginnt.
 - Nach dem Campusgram-Wechsel projiziert S07 die lokalen S06-Befunde für die beiden anderen
@@ -191,9 +191,29 @@ Seitenangaben beziehen sich auf die im Trainingsdokument ausgewiesene interne Pa
   beide bereits stark und einzigartig, beginnt S08 unmittelbar mit dem Angriffsrücklauf.
 - `S07_PASSPHRASE_SEARCH_CONTENT_VERSION 4.9.0` beschreibt Datenleckhinweis, lokalen
   Passwortwechsel, Suchseite, Werkstatt und adaptive Kontorückmeldung;
-  `S08_NETWORK_REPLAY_CONTENT_VERSION 1.2.0` beschreibt die Netzabkürzung und den anschließenden
-  Angriffsrücklauf. Es werden
+  `S08_NETWORK_REPLAY_CONTENT_VERSION 3.1.0` beschreibt die Netzabkürzung und den anschließenden
+  bedienbaren Angriffsrücklauf. Es werden
   keine neuen Teilnehmer- oder Trainingswerte persistiert oder exportiert.
+
+## Implementierte S08--S09-Version
+
+- S08 beginnt ohne PassWo direkt auf dem Desktopnetzwerk. Nur Master Campus und Campus E-Mail
+  erhalten bei einem verbliebenen lokalen Stärke- oder Einzigartigkeitsbefund die Knotenaktion
+  `Einzigartige Passphrase verwenden`; die fiktive Ersetzung bleibt automatisch und vollständig
+  flüchtig. Schild und kurzes Konfetti bestätigen die Handlung.
+- Der große Button unten in der Mitte startet den erneuten Angriff. Der Angreifer bleibt oberhalb
+  von Campusgram, während alle sechs grünen Liniensegmente der drei Kontopaare gleichzeitig
+  starten. Je zwei Segmente lassen in der Seitenmitte Abstand für ein grünes Vergleichsschild;
+  die Kontoknoten behalten ihre blauen S06-Passwortschilde. Blaue Verbindungslinien oder blaue
+  Kreise an den Vergleichsschilden, die Passwortvergleich-Vorschau und ein
+  `Was wäre, wenn?`-Modus entfallen.
+- Nach dem vollständigen Dreieck führt `Abschließen` ohne PassWo direkt nach S09. Dort bleibt das
+  Desktopnetzwerk stark abgedunkelt hinter einer kurzen Zusammenfassung zu starken,
+  einzigartigen und abrufbaren Passwörtern sichtbar.
+- `S09_PASSWORD_SUMMARY_CONTENT_VERSION 1.0.0` beschreibt ausschließlich diese lokale
+  Abschlussüberlagerung. Es entstehen keine neuen persistierten Felder oder Trainingswrites.
+- Der direkte QA-Einstieg `s08-network-replay` startet unmittelbar bei den betroffenen
+  Kontoknoten; der bestehende S07-QA-Einstieg führt nach seinem Abschluss ebenfalls dorthin.
 
 ## Sections
 

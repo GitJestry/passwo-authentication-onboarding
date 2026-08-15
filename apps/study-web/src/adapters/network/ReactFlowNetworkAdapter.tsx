@@ -41,6 +41,7 @@ import styles from './ReactFlowNetworkAdapter.module.css';
 type StatusCascadeTone = 'danger' | 'protection';
 
 function statusCascadeToneForNode(node: SceneNode | undefined): StatusCascadeTone | null {
+  if (node?.kind === 'shield') return null;
   return node?.status === 'affected' || node?.status === 'exposed'
     ? 'danger'
     : node?.status === 'protected'
@@ -685,6 +686,7 @@ type ReactFlowPresentation = Pick<
   | 'revealedNodeIds'
   | 'drawnEdgeTargetNodeIds'
   | 'drawingTargetNodeId'
+  | 'drawingTargetNodeIds'
   | 'highlightedNodeId'
 >;
 
@@ -708,6 +710,7 @@ function sameReactFlowPresentation(
     sameNodeIds(left.revealedNodeIds, right.revealedNodeIds) &&
     sameNodeIds(left.drawnEdgeTargetNodeIds, right.drawnEdgeTargetNodeIds) &&
     (left.drawingTargetNodeId ?? null) === (right.drawingTargetNodeId ?? null) &&
+    sameNodeIds(left.drawingTargetNodeIds, right.drawingTargetNodeIds) &&
     left.highlightedNodeId === right.highlightedNodeId
   );
 }
@@ -896,6 +899,10 @@ function toReactFlowElements(
   const revealed = new Set(presentation.revealedNodeIds);
   const drawnEdgeTargetNodeIds = new Set(presentation.drawnEdgeTargetNodeIds ?? []);
   const drawingTargetNodeId = presentation.drawingTargetNodeId ?? null;
+  const drawingTargetNodeIds = new Set([
+    ...(presentation.drawingTargetNodeIds ?? []),
+    ...(drawingTargetNodeId === null ? [] : [drawingTargetNodeId]),
+  ]);
   const positionedNodes = snapshot.nodes.map((node) => ({
     node,
     ...layoutSceneNode(node, canvas, visualVariant, showNodeLabels),
@@ -1006,7 +1013,10 @@ function toReactFlowElements(
       const sourceGeometry = geometriesByNodeId.get(edge.sourceId);
       const targetGeometry = geometriesByNodeId.get(edge.targetId);
       if (sourceGeometry === undefined || targetGeometry === undefined) return [];
-      const currentAttackPath = edge.id === currentAttackEdgeId;
+      const currentAttackPath =
+        currentAttackEdgeId === null
+          ? drawingTargetNodeIds.has(edge.targetId)
+          : edge.id === currentAttackEdgeId;
       const showsStatusCascadeThread = nodesById.get(edge.targetId)?.kind !== 'account';
       return [
         {
@@ -1026,7 +1036,7 @@ function toReactFlowElements(
             targetNodeId: edge.targetId,
             visible: revealed.has(edge.targetId),
             drawing:
-              drawingTargetNodeId === edge.targetId &&
+              drawingTargetNodeIds.has(edge.targetId) &&
               (currentAttackEdgeId === null || currentAttackPath),
             drawn: drawnEdgeTargetNodeIds.has(edge.targetId),
             attackPath:
@@ -1102,6 +1112,9 @@ export function ReactFlowNetwork({
     ...(presentation.drawingTargetNodeId === undefined
       ? {}
       : { drawingTargetNodeId: presentation.drawingTargetNodeId }),
+    ...(presentation.drawingTargetNodeIds === undefined
+      ? {}
+      : { drawingTargetNodeIds: presentation.drawingTargetNodeIds }),
     highlightedNodeId: presentation.highlightedNodeId,
   };
   const flowPresentationRef = useRef(nextFlowPresentation);

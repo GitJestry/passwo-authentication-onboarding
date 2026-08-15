@@ -139,14 +139,17 @@ export function PasswordModuleTraining({
       },
     };
   }, [campusIdentity.assessmentTerms, passwordValues, retrievalResults]);
-  const s07AccountFeedback = useMemo(() => {
-    if (s06Source?.kind !== 'runtime') return [];
-    const plan = createS06ConsequenceScenePlan(
+  const s06Plan = useMemo(() => {
+    if (s06Source?.kind !== 'runtime') return null;
+    return createS06ConsequenceScenePlan(
       'supportive-runtime-s07-relations',
       s06Source.accounts,
     );
-    return deriveS07AccountFeedback(plan);
   }, [s06Source]);
+  const s07AccountFeedback = useMemo(
+    () => (s06Plan === null ? [] : deriveS07AccountFeedback(s06Plan)),
+    [s06Plan],
+  );
   const s07RemainingAccountIds = s07AccountFeedback.map(({ accountId }) => accountId);
   const completeS06 = useCallback(() => controllerRef.current?.completeS06(), []);
 
@@ -514,6 +517,7 @@ export function PasswordModuleTraining({
         affectedAccountIds={s07RemainingAccountIds}
         platform={platform}
         network={s06SummaryNetwork}
+        plan={s06Plan}
       />
     );
   }
