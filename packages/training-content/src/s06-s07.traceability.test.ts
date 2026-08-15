@@ -122,9 +122,9 @@ describe('S06 transition and S07 passphrase-search copy traceability', () => {
   });
 
   it('keeps S07 linked to the passphrase-search browser state', () => {
-    expect(S07_PASSPHRASE_SEARCH_CONTENT_VERSION).toBe('4.6.0');
+    expect(S07_PASSPHRASE_SEARCH_CONTENT_VERSION).toBe('4.7.0');
     expect(s07PassphraseSearchContent.source.copyReference).toBe(
-      'docs/design/S06-S07-COPY-AUDIT.md#copy--ablauf--und-darstellungsdelta-s07-generierungsbegleitung-15-august-2026',
+      'docs/design/S06-S07-COPY-AUDIT.md#copy--und-darstellungsdelta-s07-beschriftete-erfolgsschilde-15-august-2026',
     );
     expect(s07PassphraseSearchContent.browser.passwordChangeTitle).toBe('Passwort ändern');
     expect(s07PassphraseSearchContent.guide).toMatchObject({
@@ -141,6 +141,10 @@ describe('S06 transition and S07 passphrase-search copy traceability', () => {
     expect(s07PassphraseSearchContent.browser.campusgramPasswordChangeCompleted).toEqual({
       title: 'Passwort geändert',
       body: 'Die neue Passphrase wird jetzt für Campusgram verwendet.',
+      shieldLabels: {
+        green: 'Einzigartig',
+        blue: 'Stark',
+      },
     });
     expect(s07PassphraseSearchContent.browser.searchTab.landingLabel).toBe('Neuer Tab');
     expect(s07PassphraseSearchContent.browser.searchTab.label).toBe('Passphrase generieren');

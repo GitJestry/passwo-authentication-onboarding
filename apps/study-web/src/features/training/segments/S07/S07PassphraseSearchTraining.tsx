@@ -758,11 +758,28 @@ export function S07PassphraseSearchTraining({
                     pasteOnPasswordFieldClick
                     completedVisual={
                       <>
-                        <img src={greenShieldAsset} alt="" aria-hidden="true" />
-                        <img src={blueShieldAsset} alt="" aria-hidden="true" />
+                        <span className={styles.completedShield}>
+                          <span className={styles.completedShieldLabelGreen}>
+                            {
+                              s07PassphraseSearchContent.browser
+                                .campusgramPasswordChangeCompleted.shieldLabels.green
+                            }
+                          </span>
+                          <img src={greenShieldAsset} alt="" />
+                        </span>
+                        <span className={styles.completedShield}>
+                          <span className={styles.completedShieldLabelBlue}>
+                            {
+                              s07PassphraseSearchContent.browser
+                                .campusgramPasswordChangeCompleted.shieldLabels.blue
+                            }
+                          </span>
+                          <img src={blueShieldAsset} alt="" />
+                        </span>
                         <CelebrationConfetti />
                       </>
                     }
+                    completedVisualClassName={styles.completedShieldVisual}
                     showBackAction={false}
                     showCompletedAction={false}
                     onSimulatedPaste={(target) =>

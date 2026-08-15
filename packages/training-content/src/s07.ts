@@ -1,13 +1,13 @@
 import type { TrainingSectionId } from '@passwo/contracts';
 
-export const S07_PASSPHRASE_SEARCH_CONTENT_VERSION = '4.6.0';
+export const S07_PASSPHRASE_SEARCH_CONTENT_VERSION = '4.7.0';
 
 export const s07PassphraseSearchContent = {
   version: S07_PASSPHRASE_SEARCH_CONTENT_VERSION,
   source: {
-    revision: 'Userauftrag vom 2026-08-15 · S07 PassWo bei Generierung sichtbar halten',
+    revision: 'Userauftrag vom 2026-08-15 · S07 Schilde beschriften',
     copyReference:
-      'docs/design/S06-S07-COPY-AUDIT.md#copy--ablauf--und-darstellungsdelta-s07-generierungsbegleitung-15-august-2026',
+      'docs/design/S06-S07-COPY-AUDIT.md#copy--und-darstellungsdelta-s07-beschriftete-erfolgsschilde-15-august-2026',
   },
   segment: {
     id: 'S07',
@@ -40,6 +40,10 @@ export const s07PassphraseSearchContent = {
     campusgramPasswordChangeCompleted: {
       title: 'Passwort geändert',
       body: 'Die neue Passphrase wird jetzt für Campusgram verwendet.',
+      shieldLabels: {
+        green: 'Einzigartig',
+        blue: 'Stark',
+      },
     },
     searchTab: {
       id: 'passphrase-search',

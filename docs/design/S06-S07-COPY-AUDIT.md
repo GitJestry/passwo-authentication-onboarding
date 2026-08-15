@@ -1,5 +1,20 @@
 # S06--S07 Copy Audit
 
+## Copy- und Darstellungsdelta S07 beschriftete Erfolgsschilde, 15. August 2026
+
+Quelle ist der ausdrückliche Nutzerauftrag vom 15. August 2026. Auf der
+Campusgram-Erfolgskarte erhält der grüne Schild die Beschriftung `Einzigartig` und der blaue
+Schild die Beschriftung `Stark`. Die Beschriftungen benennen die beiden bereits dargestellten
+Eigenschaften und ersetzen keinen Handlungsschritt. Der bestehende Ergebnisstatus
+`Passwort geändert` steht etwas tiefer, damit Schilde und Status visuell getrennt bleiben.
+Persistenz, Export, Ablauf und Timing bleiben unverändert.
+`S07_PASSPHRASE_SEARCH_CONTENT_VERSION` wird von `4.6.0` auf `4.7.0` erhöht.
+
+| Segment und Text-ID | Vorher | Nachher | Primäre Rolle | Interaktionsziel | Grund und Bedeutungsänderung | Hervorhebung |
+|---|---|---|---|---|---|---|
+| `S07.browser.campusgramPasswordChangeCompleted.shieldLabels.green` | nicht vorhanden | `Einzigartig` | Ergebnisfeedback | kein | benennt die bereits dargestellte Unabhängigkeit der neuen Passphrase; ausdrücklich freigegeben | weißer Text auf grünem Schild |
+| `S07.browser.campusgramPasswordChangeCompleted.shieldLabels.blue` | nicht vorhanden | `Stark` | Ergebnisfeedback | kein | benennt die bereits dargestellte Stärke der neuen Passphrase; ausdrücklich freigegeben | weißer Text auf blauem Schild |
+
 ## Copy-, Ablauf- und Darstellungsdelta S07 Generierungsbegleitung, 15. August 2026
 
 Quelle ist der ausdrückliche Nutzerauftrag vom 15. August 2026. PassWo bleibt während der ersten

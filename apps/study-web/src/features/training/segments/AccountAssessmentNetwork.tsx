@@ -18,6 +18,7 @@ export type AccountComparisonResults = Readonly<
 >;
 
 const emptyComparisonResults: AccountComparisonResults = {};
+const emptyNodeActionLabels: Readonly<Partial<Record<S06AccountId, string>>> = {};
 
 function ignoreNodeSelect(_nodeId: string): void {}
 
@@ -141,7 +142,7 @@ export function AccountAssessmentNetwork({
   attackBlocked = false,
   comparisonResults = emptyComparisonResults,
   statusCascadeStartDelayMs,
-  nodeActionLabels = {},
+  nodeActionLabels = emptyNodeActionLabels,
   celebratingNodeId = null,
   onNodeSelect = ignoreNodeSelect,
   interactionDisabled = true,

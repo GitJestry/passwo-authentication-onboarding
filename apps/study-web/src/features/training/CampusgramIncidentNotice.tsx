@@ -76,6 +76,7 @@ export interface CampusgramIncidentNoticeProps {
       }
     | undefined;
   readonly completedVisual?: ReactNode;
+  readonly completedVisualClassName?: string | undefined;
 }
 
 export function CampusgramIncidentNotice({
@@ -101,6 +102,7 @@ export function CampusgramIncidentNotice({
   showPasswordVisibilityActions = true,
   completedCopy,
   completedVisual,
+  completedVisualClassName,
 }: CampusgramIncidentNoticeProps) {
   const inputId = useId();
   const actionRef = useRef<HTMLButtonElement>(null);
@@ -227,7 +229,12 @@ export function CampusgramIncidentNotice({
               {completedVisual === undefined ? (
                 <span className={styles.successMark} aria-hidden="true">✓</span>
               ) : (
-                <span className={styles.completedVisual} aria-hidden="true">
+                <span
+                  className={[styles.completedVisual, completedVisualClassName]
+                    .filter(Boolean)
+                    .join(' ')}
+                  aria-hidden="true"
+                >
                   {completedVisual}
                 </span>
               )}
