@@ -1,5 +1,84 @@
 # S06--S07 Copy Audit
 
+## Copy-Delta S07 Passphrasen eins und vier, 15. August 2026
+
+Quelle ist der ausdrückliche Nutzerauftrag vom 15. August 2026. Die erste und vierte der fünf
+festen S07-Wortfolgen sowie ihre konkreten Beispiel-Merksätze werden wortgetreu ersetzt. Ihre
+Positionen in der festgelegten Abspielreihenfolge bleiben erhalten. Ablauf, Interaktionen,
+Persistenz, Export und Timing ändern sich nicht. `S07_PASSPHRASE_SEARCH_CONTENT_VERSION` steigt
+von `4.10.0` auf `4.11.0`.
+
+| Segment und Text-ID | Vorher | Nachher | Primäre Rolle | Interaktionsziel | Grund und Bedeutungsänderung | Hervorhebung |
+|---|---|---|---|---|---|---|
+| `S07.browser.generatorPage.passphrases[0]` | `Kaktus-Fenster-Regen-Komet-Lampe-Knochen` mit bisherigem Beispiel-Merksatz | `Plexiglas-Dorffest-Knirps-Monieren-Eistee-Bergbahn` mit ausdrücklich vorgegebenem Beispiel-Merksatz | Mechanismuserklärung | Generator beziehungsweise `Kopieren` | ausdrücklich freigegebener Austausch des Beispiels; Bedeutung begrenzt | `Beispiel:`, Akzent |
+| `S07.browser.generatorPage.passphrases[3]` | `Pinguin-Leiter-Mango-Wolke-Fahrrad-Koffer` mit bisherigem Beispiel-Merksatz | `Popkultur-Wohnsiedlung-Holzarbeiten-Drohung-Streng-Knieprobleme` mit ausdrücklich vorgegebenem Beispiel-Merksatz | Mechanismuserklärung | Generator beziehungsweise `Kopieren` | ausdrücklich freigegebener Austausch des Beispiels; Bedeutung begrenzt | `Beispiel:`, Akzent |
+
+## Copy- und Darstellungsdelta S07 Einstieg und Zielführung, 15. August 2026
+
+Quelle ist der ausdrückliche Nutzerauftrag vom 15. August 2026. Die drei S07-Einstiegsschritte
+werden wortgetreu auf Definition, begrenzten Vergleich und anschließende Generatorhandlung
+ausgerichtet. Der zweite Schritt überschreitet das normale Zielbudget knapp, weil der ausdrücklich
+freigegebene Wortlaut den Kontrast zwischen einem geläufigen Einzelwort und mindestens sechs
+zufälligen, unzusammenhängenden Wörtern in einem zusammenhängenden Schritt aufbaut.
+
+Die Hervorhebungen bleiben presentation-only: Im ersten Schritt wird `Passphrase`, im zweiten
+Schritt die eine zusammenhängende Phrase `mindestens sechs zufälligen, unzusammenhängenden`
+markiert. Der dritte Schritt erhält keine Hervorhebung. Plus-Symbol, Suchaktion und die weiteren
+bereits geführten Ziele erhalten einen kontrastreicheren, größeren Leuchtrahmen; Plus und
+Suchsymbol werden zusätzlich vergrößert. Bei Reduced Motion bleibt der Rahmen statisch. Ablauf,
+Persistenz, Export und Studien-Timing ändern sich nicht.
+`S07_PASSPHRASE_SEARCH_CONTENT_VERSION` steigt von `4.8.0` auf `4.9.0`.
+
+| Segment und Text-ID | Aktueller Text | Geplanter Text | Primäre Rolle | Interaktionsziel | Grund und Bedeutungsänderung | Hervorhebung |
+|---|---|---|---|---|---|---|
+| `S07.guide.methodIntro` | `Dafür nutzen wir eine Passphrase: ein Passwort aus mehreren zufälligen Wörtern. Ein einzelnes bekanntes Wort bleibt früh prüfbar, auch wenn es lang ist.` | `Dafür nutzen wir eine Passphrase: eine einfache Methode, starke Passwörter nur aus Wörtern zu bilden.` | Mechanismuserklärung | `Weiter` | ausdrücklich freigegebene Definition; Bedeutungsänderung ausdrücklich freigegeben | `Passphrase`, Akzent |
+| `S07.guide.randomnessIntro` | `Mehrere zufällige, unzusammenhängende Wörter vermeiden dagegen typische selbst gewählte Muster.` | `Ein geläufiges Wort kann zwar lang sein, wird von Angreifern aber früh ausprobiert. Eine Passphrase aus mindestens sechs zufälligen, unzusammenhängenden Wörtern macht das Erraten dagegen deutlich aufwendiger.` | Mechanismuserklärung | `Weiter` | ausdrücklich freigegebener Vergleich und Mindestwortzahl; Bedeutungsänderung ausdrücklich freigegeben | `mindestens sechs zufälligen, unzusammenhängenden`, Akzent |
+| `S07.guide.searchIntro` | `Lass dir eine Passphrase aus mindestens sechs zufälligen Wörtern online generieren und ersetze damit das betroffene Passwort.` | `Lass dir online eine Passphrase generieren und ersetze damit das betroffene Passwort.` | Navigation | Browser-`+`, Suchsymbol und Generator | entfernt die im vorherigen Schritt bereits erklärte Mindestwortzahl; ausdrücklich freigegeben | keine |
+| `S07.browser.guidedTargets` | gelber Leuchtrahmen in Standardgröße | größerer orangefarbener Leuchtrahmen mit stärkerem Kontrast; vergrößerte Plus- und Suchziele | Navigation | Browser-`+`, Suchsymbol und weitere geführte Ziele | macht die verlangte Handlungsfolge auffälliger; keine Bedeutungsänderung | Form, Kontrast und Bewegung; bei Reduced Motion statisch |
+
+## Copy- und Ablaufdelta S06 Abschluss und S07 Kontorückmeldung, 15. August 2026
+
+Quelle ist der ausdrückliche Nutzerauftrag vom 15. August 2026. S06 endet mit der konkreten
+Handlung `Passwort ersetzen` und der Übergangskarte `Passwort sicher ersetzen`. Beim
+Campusgram-Passwortwechsel erklärt PassWo die Passphrase in drei kurzen Schritten. Die zwei
+Hervorhebungen `zufällige` und `unzusammenhängende` bilden den ausdrücklich freigegebenen
+Kontrast zum selbst gewählten Muster; alle anderen Schritte bleiben bei einer Hervorhebung.
+Nach jeder Generierung folgen die allgemeine Merkhilfe und anschließend der konkrete, mit
+`Beispiel:` eingeleitete Merksatz.
+
+Nach dem Campusgram-Wechsel werden die flüchtigen S06-Befunde für Master Campus und Campus
+E-Mail erneut projiziert. `whole-password-recognized` führt dabei ausschließlich in die
+freigegebene Formulierung `lässt sich ... leicht erraten`; jede in S06 begrenzt erkannte exakte
+oder abgeleitete Kontobeziehung führt in die benannte Ähnlichkeitsrückmeldung. Beziehungen werden
+pro Kontopaar zusammengeführt und in der Reihenfolge altes Campusgram-Passwort, anderes Konto
+genannt. Stark und einzigartig eingeordnete Konten erhalten keine einzelne Nachricht und keine
+S08-Schutzaktion. Es werden keine Befunde persistiert oder exportiert.
+
+Sind beide anderen Konten bereits stark und einzigartig, führt `Angriff abschließen` direkt in
+den S08-Rücklauf. Andernfalls führt `Angriff fortsetzen` zu S08; dort bleiben ausschließlich die
+offenen Konten direkt mit einer eigenen Passphrase bedienbar. Die Inhaltsversionen steigen auf
+`S00_CONTENT_VERSION 1.24.0`, `S06_CONSEQUENCE_CONTENT_VERSION 2.15.0`,
+`S07_PASSPHRASE_SEARCH_CONTENT_VERSION 4.8.0` und
+`S08_NETWORK_REPLAY_CONTENT_VERSION 1.2.0`.
+
+| Segment und Text-ID | Vorher | Nachher | Primäre Rolle | Interaktionsziel | Grund und Bedeutungsänderung | Hervorhebung |
+|---|---|---|---|---|---|---|
+| `S06.narrations.s06.transition.s07` | `Als Nächstes erstellen wir eine neue Passphrase.` | `Was macht man nach so einem Datenleck? Das betroffene Passwort sollte zügig durch ein neues, starkes Passwort ersetzt werden.` | Navigation | `Passwort ersetzen` | ausdrücklich freigegebene Überleitung zur konkreten Ersatzhandlung | keine |
+| `S06.page.replacePassword` | `Weiter` | `Passwort ersetzen` | Navigation | Übergangskarte | benennt die ausgelöste Handlung; ausdrücklich freigegeben | keine |
+| `sectionTransition.change-passwords` | `Passphrase erstellen` | `Passwort sicher ersetzen` | Orientierung | kein | ausdrücklich freigegebener Kartentitel | aktiver Fortschrittspunkt |
+| `S07.guide.methodIntro` | allgemeine Erklärung zu langer Passphrase und 15 Zeichen | `Dafür nutzen wir eine Passphrase: ein Passwort aus mehreren zufälligen Wörtern. Ein einzelnes bekanntes Wort bleibt früh prüfbar, auch wenn es lang ist.` | Mechanismuserklärung | `Weiter` | trennt Passphrase und bekanntes Einzelwort; ausdrücklich freigegeben | `Passphrase`, Akzent |
+| `S07.guide.randomnessIntro` | allgemeiner Hinweis auf zufällige Wortwahl | `Mehrere zufällige, unzusammenhängende Wörter vermeiden dagegen typische selbst gewählte Muster.` | Mechanismuserklärung | `Weiter` | benennt den freigegebenen Kontrast | `zufällige` und `unzusammenhängende`, gruppierter Akzent |
+| `S07.guide.searchIntro` | Generator suchen, erzeugen und für Campusgram verwenden | `Lass dir eine Passphrase aus mindestens sechs zufälligen Wörtern online generieren und ersetze damit das betroffene Passwort.` | Navigation | neuer Tab und Generator | stimmt die Aufgabe auf Wortzahl und Ersatzhandlung ab; ausdrücklich freigegeben | `mindestens sechs`, Akzent |
+| `S07.guide.mnemonicIntro` | allgemeines Bild oder Merksatz | `Für jetzt musst du sie dir nicht merken. Im Alltag kann eine kleine Geschichte das Erinnern erleichtern.` | Mechanismuserklärung | `Weiter` | freigegebene Entlastung und Alltagstransfer | keine |
+| `S07.guide.mnemonic` | `Möglicher Merksatz: [Merksatz]` | `Beispiel: [Merksatz]` nach jeder Generierung | Mechanismuserklärung | Generator beziehungsweise `Kopieren` | ausdrücklich freigegebene Wiederholung und Kennzeichnung | `Beispiel:`, Akzent |
+| `S07.browser.campusgramPasswordChangeCompleted` | `Passwort geändert` / `Die neue Passphrase wird jetzt für Campusgram verwendet.` | `Campusgram-Passwort wurde erfolgreich ersetzt`; bisheriger Zusatz entfällt | Ergebnisfeedback | kein | benennt das sichtbare Ergebnis ohne redundanten Zusatz; ausdrücklich freigegeben | bestehende Schilde `Einzigartig` und `Stark` |
+| `S07.guide.campusgramSuccess` | allgemeines Lob und längere Angriffseinordnung | `Campusgram ist jetzt geschützt. Das alte Passwort aus dem Datenleck kann dort nicht mehr verwendet werden.` | Ergebnisfeedback | `Weiter` | ausdrücklich freigegebene konkrete Schutzwirkung | keine |
+| `S07.guide.accountFeedback.strongSimilar` | pauschale Rest-Rückmeldung | `Das Passwort von [Konto] ist für sich betrachtet stark, ähnelt aber noch [Verbindung].` | Ergebnisfeedback | `Weiter` | übernimmt den passenden flüchtigen S06-Befund; ausdrücklich freigegeben | keine |
+| `S07.guide.accountFeedback.uniqueGuessable` | pauschale Rest-Rückmeldung | `Das Passwort von [Konto] ist einzigartig, lässt sich aber noch leicht erraten.` | Ergebnisfeedback | `Weiter` | übernimmt den passenden flüchtigen S06-Befund; ausdrücklich freigegeben | keine |
+| `S07.guide.accountFeedback.similarGuessable` | pauschale Rest-Rückmeldung | `Das Passwort von [Konto] ähnelt noch [Verbindung] und lässt sich außerdem leicht erraten.` | Ergebnisfeedback | `Weiter` | übernimmt beide passenden flüchtigen S06-Befunde; ausdrücklich freigegeben | keine |
+| `S07.guide.allAccountsProtected` | kein eigener Fall | `Auch deine anderen Konten sind bereits stark und einzigartig. Schau dir jetzt an, wie der Angriff mit deinen geschützten Konten endet.` | Navigation | `Angriff abschließen` | eigener Abschlussweg ohne offene Konten; ausdrücklich freigegeben | keine |
+| `S07.guide.remainingPlan` | Browserfenster als Abkürzung schließen | `Schau dir jetzt an, was der Angriff noch erreichen kann. Offene Konten kannst du dort direkt mit einer eigenen Passphrase absichern.` | Navigation | `Angriff fortsetzen` | führt direkt zum tatsächlich sichtbaren S08-Netzwerk; ausdrücklich freigegeben | keine |
+
 ## Copy- und Darstellungsdelta S07 beschriftete Erfolgsschilde, 15. August 2026
 
 Quelle ist der ausdrückliche Nutzerauftrag vom 15. August 2026. Auf der
@@ -860,3 +939,17 @@ erhöht.
 Die S06-QA-Dispositionen verwenden ab dem 3. August 2026 die Konfigurationskennung
 `passwo-bounded-guess-path-v2`. Schwelle, Dispositionslogik und Teilnehmertexte bleiben
 unverändert. `S06_CONSEQUENCE_CONTENT_VERSION` wird dafür von `2.3.0` auf `2.3.1` erhöht.
+## Copy- und Ablaufdelta S07 Merksatz bei Neugenerierung, 15. August 2026
+
+Quelle ist der ausdrückliche Nutzerauftrag vom 15. August 2026. Die allgemeine Merkhilfe
+`S07.guide.mnemonicIntro` bleibt inhaltlich unverändert, erscheint aber nur nach der ersten
+generierten Passphrase. Bei jeder Betätigung von `Neu generieren` folgt auf den bestehenden
+Generierungsstatus direkt der konkrete Beispiel-Merksatz der neuen Wortfolge. Dadurch wiederholt
+PassWo die bereits vermittelte Mechanismuserklärung nicht. Wortfolgen, Merksätze, Persistenz,
+Export und Timing bleiben unverändert. `S07_PASSPHRASE_SEARCH_CONTENT_VERSION` steigt von
+`4.9.0` auf `4.10.0`.
+
+| Segment und Text-ID | Vorher | Nachher | Primäre Rolle | Interaktionsziel | Grund und Bedeutungsänderung | Hervorhebung |
+|---|---|---|---|---|---|---|
+| `S07.guide.mnemonicIntro` | unveränderter Wortlaut nach jeder Generierung | unveränderter Wortlaut nur nach der ersten Generierung | Mechanismuserklärung | `Weiter` | entfernt nachweisbare Redundanz; keine Bedeutungsänderung | keine |
+| `S07.guide.mnemonic` | konkreter Beispiel-Merksatz nach der allgemeinen Merkhilfe | nach `Neu generieren` direkt der konkrete Beispiel-Merksatz | Mechanismuserklärung | Generator beziehungsweise `Kopieren` | hält die neue Wortfolge ohne wiederholte Erklärung unmittelbar erfassbar; begrenzte Ablaufänderung | `Beispiel:`, Akzent |

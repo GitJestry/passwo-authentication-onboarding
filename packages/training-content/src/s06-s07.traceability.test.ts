@@ -8,14 +8,17 @@ import {
 import { S08_NETWORK_REPLAY_CONTENT_VERSION, s08NetworkReplayContent } from './s08.js';
 
 const s06AttackFlowCopyReference =
-  'docs/design/S06-S07-COPY-AUDIT.md#darstellungs--und-ablaufdelta-s06-stabiler-campus-e-mail-befall-und-schlusszustand-14-august-2026';
+  'docs/design/S06-S07-COPY-AUDIT.md#copy--und-ablaufdelta-s06-abschluss-und-s07-kontorückmeldung-15-august-2026';
+const s07EntryCopyReference =
+  'docs/design/S06-S07-COPY-AUDIT.md#copy-delta-s07-passphrasen-eins-und-vier-15-august-2026';
 
 describe('S06 transition and S07 passphrase-search copy traceability', () => {
   it('keeps S06 consequence wording aligned with bounded whole-password recognition', () => {
-    expect(S06_CONSEQUENCE_CONTENT_VERSION).toBe('2.14.0');
+    expect(S06_CONSEQUENCE_CONTENT_VERSION).toBe('2.15.0');
     expect(s06ConsequenceContent.source.copyReference).toBe(s06AttackFlowCopyReference);
     expect(s06ConsequenceContent.page.attackStart).toBe('Angriff starten');
     expect(s06ConsequenceContent.page.finish).toBe('Fertig');
+    expect(s06ConsequenceContent.page.replacePassword).toBe('Passwort ersetzen');
     expect(s06ConsequenceContent.modes.hypothetical.overlay).toBe('Was wäre, wenn?');
     expect(s06ConsequenceContent.narrations['s06.incident.campusgram-found'].body).toBe(
       'Da der Angreifer nun das Campusgram-Passwort kennt, probiert er dieses oder ähnliche Varianten davon bei den anderen Konten aus.',
@@ -54,8 +57,8 @@ describe('S06 transition and S07 passphrase-search copy traceability', () => {
       },
     });
     expect(s06ConsequenceContent.narrations['s06.transition.s07']).toEqual({
-      heading: 'Passphrase erstellen',
-      body: 'Als Nächstes erstellen wir eine neue Passphrase.',
+      heading: 'Passwort sicher ersetzen',
+      body: 'Was macht man nach so einem Datenleck? Das betroffene Passwort sollte zügig durch ein neues, starkes Passwort ersetzt werden.',
     });
     expect(s06ConsequenceContent.narrations).toMatchObject({
       's06.summary.actual-none': {
@@ -122,25 +125,46 @@ describe('S06 transition and S07 passphrase-search copy traceability', () => {
   });
 
   it('keeps S07 linked to the passphrase-search browser state', () => {
-    expect(S07_PASSPHRASE_SEARCH_CONTENT_VERSION).toBe('4.7.0');
+    expect(S07_PASSPHRASE_SEARCH_CONTENT_VERSION).toBe('4.11.0');
     expect(s07PassphraseSearchContent.source.copyReference).toBe(
-      'docs/design/S06-S07-COPY-AUDIT.md#copy--und-darstellungsdelta-s07-beschriftete-erfolgsschilde-15-august-2026',
+      s07EntryCopyReference,
     );
     expect(s07PassphraseSearchContent.browser.passwordChangeTitle).toBe('Passwort ändern');
     expect(s07PassphraseSearchContent.guide).toMatchObject({
       methodIntro:
-        'Für ein starkes Passwort können wir mehrere zufällige Wörter zu einer langen Passphrase verbinden. So erreichen wir schnell mindestens 15 Zeichen, ohne ein selbst gewähltes Muster zu verwenden.',
+        'Dafür nutzen wir eine Passphrase: eine einfache Methode, starke Passwörter nur aus Wörtern zu bilden.',
       randomnessIntro:
-        'Wichtig ist, dass die Wörter zufällig gewählt werden. Dafür verwenden wir hier eine Passphrase aus mindestens sechs zufälligen Wörtern.',
+        'Ein geläufiges Wort kann zwar lang sein, wird von Angreifern aber früh ausprobiert. Eine Passphrase aus mindestens sechs zufälligen, unzusammenhängenden Wörtern macht das Erraten dagegen deutlich aufwendiger.',
       searchIntro:
-        'Du musst sie dir für diese Übung nicht merken. Suche nach einem Passphrase-Generator, erzeuge eine Passphrase und verwende sie für Campusgram.',
+        'Lass dir online eine Passphrase generieren und ersetze damit das betroffene Passwort.',
       generating: 'Passphrase wird erstellt …',
+      mnemonicIntro:
+        'Für jetzt musst du sie dir nicht merken. Im Alltag kann eine kleine Geschichte das Erinnern erleichtern.',
       campusgramSuccess:
-        'Sehr gut geschützt. Dein altes Campusgram-Passwort ist ersetzt. Der Angreifer kann den Treffer aus dem Datenleck für dieses Konto jetzt nicht mehr verwenden.',
+        'Campusgram ist jetzt geschützt. Das alte Passwort aus dem Datenleck kann dort nicht mehr verwendet werden.',
+      allAccountsProtected:
+        'Auch deine anderen Konten sind bereits stark und einzigartig. Schau dir jetzt an, wie der Angriff mit deinen geschützten Konten endet.',
+      remainingPlan:
+        'Schau dir jetzt an, was der Angriff noch erreichen kann. Offene Konten kannst du dort direkt mit einer eigenen Passphrase absichern.',
+      finishAttack: 'Angriff abschließen',
+      continueAttack: 'Angriff fortsetzen',
     });
+    expect(s07PassphraseSearchContent.guide.mnemonic('Merksatz')).toBe('Beispiel: Merksatz');
+    expect(
+      s07PassphraseSearchContent.guide.accountFeedback.strongSimilar(
+        'Master Campus',
+        'deinem alten Campusgram-Passwort',
+      ),
+    ).toBe(
+      'Das Passwort von Master Campus ist für sich betrachtet stark, ähnelt aber noch deinem alten Campusgram-Passwort.',
+    );
+    expect(
+      s07PassphraseSearchContent.guide.accountFeedback.uniqueGuessable('Campus E-Mail'),
+    ).toBe(
+      'Das Passwort von Campus E-Mail ist einzigartig, lässt sich aber noch leicht erraten.',
+    );
     expect(s07PassphraseSearchContent.browser.campusgramPasswordChangeCompleted).toEqual({
-      title: 'Passwort geändert',
-      body: 'Die neue Passphrase wird jetzt für Campusgram verwendet.',
+      title: 'Campusgram-Passwort wurde erfolgreich ersetzt',
       shieldLabels: {
         green: 'Einzigartig',
         blue: 'Stark',
@@ -166,9 +190,9 @@ describe('S06 transition and S07 passphrase-search copy traceability', () => {
     expect(s07PassphraseSearchContent.browser.generatorPage.paste).toBe('Einsetzen');
     expect(s07PassphraseSearchContent.browser.generatorPage.passphrases).toEqual([
       {
-        words: ['Kaktus', 'Fenster', 'Regen', 'Komet', 'Lampe', 'Knochen'],
+        words: ['Plexiglas', 'Dorffest', 'Knirps', 'Monieren', 'Eistee', 'Bergbahn'],
         passWoMnemonic:
-          'Ein Kaktus sitzt am Fenster und es regnet Kometen. Meine Lampe sieht aus wie ein Knochen.',
+          'Am Plexiglas beim Dorffest steht ein Knirps und beginnt zu monieren, weil sein Eistee in der Bergbahn verschüttet wurde.',
       },
       {
         words: ['Infekt', 'Festbesuch', 'Textstellen', 'Gehirn', 'Korrumpiert', 'Physik'],
@@ -181,9 +205,16 @@ describe('S06 transition and S07 passphrase-search copy traceability', () => {
           'Eine riesige Haartracht schwankt im Sommer beim Seiltanz. Darin steht ein Kennwort, das mythisch leuchtet und plötzlich verfiel.',
       },
       {
-        words: ['Pinguin', 'Leiter', 'Mango', 'Wolke', 'Fahrrad', 'Koffer'],
+        words: [
+          'Popkultur',
+          'Wohnsiedlung',
+          'Holzarbeiten',
+          'Drohung',
+          'Streng',
+          'Knieprobleme',
+        ],
         passWoMnemonic:
-          'Ein Pinguin steigt auf der Leiter mit einer Mango in der Hand bis zur Wolke. Dort oben ist ein Fahrrad im Koffer.',
+          'Für die Popkultur-Ausstellung in der Wohnsiedlung mache ich Holzarbeiten. Nach einer Drohung werde ich streng ermahnt, wegen meiner Knieprobleme aufzuhören.',
       },
       {
         words: ['Nirgendwo', 'Querkommen', 'Finster', 'Appell', 'Ersuchen', 'Bleistift'],
@@ -194,9 +225,9 @@ describe('S06 transition and S07 passphrase-search copy traceability', () => {
   });
 
   it('keeps S08 linked to the protected replay wording', () => {
-    expect(S08_NETWORK_REPLAY_CONTENT_VERSION).toBe('1.1.0');
+    expect(S08_NETWORK_REPLAY_CONTENT_VERSION).toBe('1.2.0');
     expect(s08NetworkReplayContent.source.copyReference).toBe(
-      'docs/design/S06-S07-COPY-AUDIT.md#copy--und-ablaufdelta-s07-passphrasenwechsel-und-s08-ubergang-14-august-2026',
+      s06AttackFlowCopyReference,
     );
     expect(s08NetworkReplayContent.protectionAction).toBe(
       'Einzigartige Passphrase erstellen',

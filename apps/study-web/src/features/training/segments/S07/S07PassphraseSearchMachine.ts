@@ -1,12 +1,58 @@
 import type { S01AccountId } from '@passwo/training-content';
+import type { PasswordConsequenceScenePlan } from '@passwo/visualization';
 import { assign, setup } from 'xstate';
 
 export type S07RemainingAccountId = Exclude<S01AccountId, 'campusgram'>;
 
+export type S07AccountFeedbackKind =
+  | 'strong-similar'
+  | 'unique-guessable'
+  | 'similar-guessable';
+
+export interface S07AccountFeedback {
+  readonly accountId: S07RemainingAccountId;
+  readonly connectionAccountIds: readonly S01AccountId[];
+  readonly kind: S07AccountFeedbackKind;
+}
+
+export function deriveS07AccountFeedback(
+  plan: PasswordConsequenceScenePlan,
+): readonly S07AccountFeedback[] {
+  const feedback: S07AccountFeedback[] = [];
+  for (const accountId of ['master-campus', 'campus-email'] as const) {
+    const isEasyToGuess =
+      plan.accounts.find((account) => account.accountId === accountId)?.disposition.kind ===
+      'whole-password-recognized';
+    const otherAccountId =
+      accountId === 'master-campus' ? 'campus-email' : 'master-campus';
+    const connectionAccountIds = (['campusgram', otherAccountId] as const).filter(
+      (connectionAccountId) =>
+        plan.comparisons.some(
+          ({ sourceAccountId, targetAccountId, result }) =>
+            ((sourceAccountId === accountId && targetAccountId === connectionAccountId) ||
+              (sourceAccountId === connectionAccountId && targetAccountId === accountId)) &&
+            result.relation.kind !== 'no-derived-path-recognized',
+        ),
+    );
+    if (!isEasyToGuess && connectionAccountIds.length === 0) continue;
+    feedback.push({
+      accountId,
+      connectionAccountIds,
+      kind:
+        connectionAccountIds.length === 0
+          ? 'unique-guessable'
+          : isEasyToGuess
+            ? 'similar-guessable'
+            : 'strong-similar',
+    });
+  }
+  return feedback;
+}
+
 interface S07PassphraseSearchInput {
   readonly generationDelayMs: number;
   readonly passphraseOrder: readonly number[];
-  readonly remainingAccountIds: readonly S07RemainingAccountId[];
+  readonly accountFeedback: readonly S07AccountFeedback[];
   readonly resultsDelayMs: number;
 }
 
@@ -16,7 +62,7 @@ export interface S07PassphraseSearchContext {
   readonly generatedCount: number;
   readonly generationDelayMs: number;
   readonly passphraseOrder: readonly number[];
-  readonly pendingAccountIds: readonly S07RemainingAccountId[];
+  readonly accountFeedback: readonly S07AccountFeedback[];
   readonly resultsDelayMs: number;
   readonly separator: string;
 }
@@ -34,8 +80,7 @@ type S07PassphraseSearchEvent =
   | { readonly type: 'PASTE_NEW' }
   | { readonly type: 'PASTE_CONFIRM' }
   | { readonly type: 'SUBMIT_PASSWORD_CHANGE' }
-  | { readonly type: 'CLOSE_BROWSER' }
-  | { readonly type: 'WINDOW_CLOSED' };
+  | { readonly type: 'CONTINUE_ATTACK' };
 
 function canGenerateAnother(context: S07PassphraseSearchContext): boolean {
   return context.generatedCount < context.passphraseOrder.length;
@@ -53,7 +98,7 @@ export const s07PassphraseSearchMachine = setup({
   },
   guards: {
     canGenerateAnother: ({ context }) => canGenerateAnother(context),
-    hasPendingAccounts: ({ context }) => context.pendingAccountIds.length > 0,
+    hasPendingAccounts: ({ context }) => context.accountFeedback.length > 0,
     selectedCampusgram: ({ event }) =>
       event.type === 'SELECT_TAB' && event.tabId === 'campusgram',
   },
@@ -85,7 +130,7 @@ export const s07PassphraseSearchMachine = setup({
     generatedCount: 0,
     generationDelayMs: input.generationDelayMs,
     passphraseOrder: input.passphraseOrder,
-    pendingAccountIds: [...input.remainingAccountIds],
+    accountFeedback: [...input.accountFeedback],
     resultsDelayMs: input.resultsDelayMs,
     separator: '-',
   }),
@@ -163,34 +208,15 @@ export const s07PassphraseSearchMachine = setup({
     postCampusgramRouting: {
       always: [
         { guard: 'hasPendingAccounts', target: 'remainingRisk' },
-        { target: 'closingBrowser' },
+        { target: 'remainingPlan' },
       ],
     },
     remainingRisk: {
       on: { NEXT: { target: 'remainingPlan' } },
     },
     remainingPlan: {
-      on: { CLOSE_BROWSER: { target: 'closingBrowser' } },
-    },
-    closingBrowser: {
-      on: { WINDOW_CLOSED: { target: 'complete' } },
+      on: { CONTINUE_ATTACK: { target: 'complete' } },
     },
     complete: { type: 'final' },
   },
 });
-
-export function shuffledPassphraseOrder(
-  count: number,
-  randomValue: () => number,
-): readonly number[] {
-  const order = Array.from({ length: count }, (_, index) => index);
-  for (let index = order.length - 1; index > 0; index -= 1) {
-    const swapIndex = Math.floor(randomValue() * (index + 1));
-    const current = order[index];
-    const swap = order[swapIndex];
-    if (current === undefined || swap === undefined) continue;
-    order[index] = swap;
-    order[swapIndex] = current;
-  }
-  return order;
-}

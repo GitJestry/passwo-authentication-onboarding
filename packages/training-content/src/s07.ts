@@ -1,13 +1,13 @@
 import type { TrainingSectionId } from '@passwo/contracts';
 
-export const S07_PASSPHRASE_SEARCH_CONTENT_VERSION = '4.7.0';
+export const S07_PASSPHRASE_SEARCH_CONTENT_VERSION = '4.11.0';
 
 export const s07PassphraseSearchContent = {
   version: S07_PASSPHRASE_SEARCH_CONTENT_VERSION,
   source: {
-    revision: 'Userauftrag vom 2026-08-15 · S07 Schilde beschriften',
+    revision: 'Userauftrag vom 2026-08-15 · S07 Passphrasen eins und vier',
     copyReference:
-      'docs/design/S06-S07-COPY-AUDIT.md#copy--und-darstellungsdelta-s07-beschriftete-erfolgsschilde-15-august-2026',
+      'docs/design/S06-S07-COPY-AUDIT.md#copy-delta-s07-passphrasen-eins-und-vier-15-august-2026',
   },
   segment: {
     id: 'S07',
@@ -18,28 +18,37 @@ export const s07PassphraseSearchContent = {
   guide: {
     taskLabel: 'Passphrase erstellen',
     methodIntro:
-      'Für ein starkes Passwort können wir mehrere zufällige Wörter zu einer langen Passphrase verbinden. So erreichen wir schnell mindestens 15 Zeichen, ohne ein selbst gewähltes Muster zu verwenden.',
+      'Dafür nutzen wir eine Passphrase: eine einfache Methode, starke Passwörter nur aus Wörtern zu bilden.',
     randomnessIntro:
-      'Wichtig ist, dass die Wörter zufällig gewählt werden. Dafür verwenden wir hier eine Passphrase aus mindestens sechs zufälligen Wörtern.',
+      'Ein geläufiges Wort kann zwar lang sein, wird von Angreifern aber früh ausprobiert. Eine Passphrase aus mindestens sechs zufälligen, unzusammenhängenden Wörtern macht das Erraten dagegen deutlich aufwendiger.',
     searchIntro:
-      'Du musst sie dir für diese Übung nicht merken. Suche nach einem Passphrase-Generator, erzeuge eine Passphrase und verwende sie für Campusgram.',
+      'Lass dir online eine Passphrase generieren und ersetze damit das betroffene Passwort.',
     generating: 'Passphrase wird erstellt …',
     mnemonicIntro:
-      'Eine zufällige Passphrase kann zuerst ungewohnt wirken. Zum Merken kannst du aus den Wörtern ein kleines Bild oder einen Merksatz bauen.',
-    mnemonic: (sentence: string) => `Möglicher Merksatz: ${sentence}`,
+      'Für jetzt musst du sie dir nicht merken. Im Alltag kann eine kleine Geschichte das Erinnern erleichtern.',
+    mnemonic: (sentence: string) => `Beispiel: ${sentence}`,
     campusgramSuccess:
-      'Sehr gut geschützt. Dein altes Campusgram-Passwort ist ersetzt. Der Angreifer kann den Treffer aus dem Datenleck für dieses Konto jetzt nicht mehr verwenden.',
-    remainingRisk: (account: string) =>
-      `Bei ${account} besteht noch ein Treffer oder eine Verbindung zum alten Passwort. Auch dort ersetzen wir das Passwort durch eine eigene, einzigartige Passphrase.`,
+      'Campusgram ist jetzt geschützt. Das alte Passwort aus dem Datenleck kann dort nicht mehr verwendet werden.',
+    accountFeedback: {
+      strongSimilar: (account: string, connection: string) =>
+        `Das Passwort von ${account} ist für sich betrachtet stark, ähnelt aber noch ${connection}.`,
+      uniqueGuessable: (account: string) =>
+        `Das Passwort von ${account} ist einzigartig, lässt sich aber noch leicht erraten.`,
+      similarGuessable: (account: string, connection: string) =>
+        `Das Passwort von ${account} ähnelt noch ${connection} und lässt sich außerdem leicht erraten.`,
+    },
+    allAccountsProtected:
+      'Auch deine anderen Konten sind bereits stark und einzigartig. Schau dir jetzt an, wie der Angriff mit deinen geschützten Konten endet.',
     remainingPlan:
-      'Dafür können wir wieder die Kontenübersicht als Abkürzung nutzen. Schließe das Browserfenster.',
+      'Schau dir jetzt an, was der Angriff noch erreichen kann. Offene Konten kannst du dort direkt mit einer eigenen Passphrase absichern.',
+    finishAttack: 'Angriff abschließen',
+    continueAttack: 'Angriff fortsetzen',
   },
   browser: {
     ariaLabel: 'Fiktive Browseranwendung, Segment S07, Passphrase erstellen',
     passwordChangeTitle: 'Passwort ändern',
     campusgramPasswordChangeCompleted: {
-      title: 'Passwort geändert',
-      body: 'Die neue Passphrase wird jetzt für Campusgram verwendet.',
+      title: 'Campusgram-Passwort wurde erfolgreich ersetzt',
       shieldLabels: {
         green: 'Einzigartig',
         blue: 'Stark',
@@ -74,9 +83,9 @@ export const s07PassphraseSearchContent = {
       generationDelayMs: 500,
       passphrases: [
         {
-          words: ['Kaktus', 'Fenster', 'Regen', 'Komet', 'Lampe', 'Knochen'],
+          words: ['Plexiglas', 'Dorffest', 'Knirps', 'Monieren', 'Eistee', 'Bergbahn'],
           passWoMnemonic:
-            'Ein Kaktus sitzt am Fenster und es regnet Kometen. Meine Lampe sieht aus wie ein Knochen.',
+            'Am Plexiglas beim Dorffest steht ein Knirps und beginnt zu monieren, weil sein Eistee in der Bergbahn verschüttet wurde.',
         },
         {
           words: ['Infekt', 'Festbesuch', 'Textstellen', 'Gehirn', 'Korrumpiert', 'Physik'],
@@ -89,9 +98,16 @@ export const s07PassphraseSearchContent = {
             'Eine riesige Haartracht schwankt im Sommer beim Seiltanz. Darin steht ein Kennwort, das mythisch leuchtet und plötzlich verfiel.',
         },
         {
-          words: ['Pinguin', 'Leiter', 'Mango', 'Wolke', 'Fahrrad', 'Koffer'],
+          words: [
+            'Popkultur',
+            'Wohnsiedlung',
+            'Holzarbeiten',
+            'Drohung',
+            'Streng',
+            'Knieprobleme',
+          ],
           passWoMnemonic:
-            'Ein Pinguin steigt auf der Leiter mit einer Mango in der Hand bis zur Wolke. Dort oben ist ein Fahrrad im Koffer.',
+            'Für die Popkultur-Ausstellung in der Wohnsiedlung mache ich Holzarbeiten. Nach einer Drohung werde ich streng ermahnt, wegen meiner Knieprobleme aufzuhören.',
         },
         {
           words: ['Nirgendwo', 'Querkommen', 'Finster', 'Appell', 'Ersuchen', 'Bleistift'],

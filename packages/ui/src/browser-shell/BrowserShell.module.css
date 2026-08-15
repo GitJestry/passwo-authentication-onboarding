@@ -206,6 +206,8 @@
 .newTabButton[data-guided-highlight="true"] {
   position: relative;
   z-index: 1;
+  width: var(--browser-guided-target-size, 1.85rem);
+  height: var(--browser-guided-target-size, 1.85rem);
   border-color: var(--browser-guided-ring, var(--color-accent-strong));
   color: var(--color-ink-strong);
   background: color-mix(in srgb, var(--color-accent-soft) 78%, var(--passwo-surface));

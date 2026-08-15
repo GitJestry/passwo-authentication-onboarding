@@ -46,6 +46,7 @@ const s08Machine = setup({
     phaseDuration: ({ context }) => context.phaseDurationMs,
   },
   guards: {
+    hasNoAffectedAccounts: ({ context }) => context.affectedAccountIds.length === 0,
     allProtected: ({ context }) =>
       context.affectedAccountIds.every((accountId) =>
         context.protectedAccountIds.includes(accountId),
@@ -73,7 +74,10 @@ const s08Machine = setup({
   }),
   states: {
     protection: {
-      always: { guard: 'allProtected', target: 'ready' },
+      always: [
+        { guard: 'hasNoAffectedAccounts', target: 'attack' },
+        { guard: 'allProtected', target: 'ready' },
+      ],
       on: {
         PROTECT_WITH_UNIQUE_PASSPHRASE: {
           guard: 'canProtectAccount',

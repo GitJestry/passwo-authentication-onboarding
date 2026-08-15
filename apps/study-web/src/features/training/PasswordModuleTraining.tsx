@@ -38,6 +38,7 @@ import {
 } from './segments/S06/S06ConsequenceTraining.js';
 import { createS06ConsequenceScenePlan } from './segments/S06/S06ConsequenceController.js';
 import { S07PassphraseSearchTraining } from './segments/S07/S07PassphraseSearchTraining.js';
+import { deriveS07AccountFeedback } from './segments/S07/S07PassphraseSearchMachine.js';
 import { S08NetworkRewindStage } from './segments/S08/S08NetworkRewindStage.js';
 
 export interface PasswordModuleTrainingProps {
@@ -138,25 +139,15 @@ export function PasswordModuleTraining({
       },
     };
   }, [campusIdentity.assessmentTerms, passwordValues, retrievalResults]);
-  const s07RemainingAccountIds = useMemo(() => {
+  const s07AccountFeedback = useMemo(() => {
     if (s06Source?.kind !== 'runtime') return [];
     const plan = createS06ConsequenceScenePlan(
       'supportive-runtime-s07-relations',
       s06Source.accounts,
     );
-    return (['master-campus', 'campus-email'] as const).filter((accountId) => {
-      const wasFound =
-        plan.accounts.find((account) => account.accountId === accountId)?.disposition.kind ===
-        'whole-password-recognized';
-      const connectedToOldCampusgramPassword = plan.comparisons.some(
-        ({ sourceAccountId, targetAccountId, result }) =>
-          sourceAccountId === 'campusgram' &&
-          targetAccountId === accountId &&
-          result.relation.kind !== 'no-derived-path-recognized',
-      );
-      return wasFound || connectedToOldCampusgramPassword;
-    });
+    return deriveS07AccountFeedback(plan);
   }, [s06Source]);
+  const s07RemainingAccountIds = s07AccountFeedback.map(({ accountId }) => accountId);
   const completeS06 = useCallback(() => controllerRef.current?.completeS06(), []);
 
   useEffect(() => {
@@ -508,9 +499,9 @@ export function PasswordModuleTraining({
     }
     return (
       <S07PassphraseSearchTraining
+        accountFeedback={s07AccountFeedback}
         campusgramPassword={campusgramPassword}
         displayName={snapshot.context.displayName ?? ''}
-        remainingAccountIds={s07RemainingAccountIds}
         platform={platform}
         onComplete={() => controller.completeS07()}
       />

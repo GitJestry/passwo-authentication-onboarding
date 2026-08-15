@@ -60,17 +60,16 @@ export interface S06NarrationContent {
   readonly body: string;
 }
 
-export const S06_CONSEQUENCE_CONTENT_VERSION = '2.14.0';
+export const S06_CONSEQUENCE_CONTENT_VERSION = '2.15.0';
 
 export const s06ConsequenceContent = {
   version: S06_CONSEQUENCE_CONTENT_VERSION,
   source: {
     document: 'research/private/training-script.pdf',
     internalPages: [36, 37, 38, 39, 40, 41, 42, 43, 44] as const,
-    revision:
-      'Userauftrag vom 2026-08-14 · stabiler Campus-E-Mail-Befall und Schlusszustand',
+    revision: 'Userauftrag vom 2026-08-15 · Überleitung zum Passwortwechsel',
     copyReference:
-      'docs/design/S06-S07-COPY-AUDIT.md#darstellungs--und-ablaufdelta-s06-stabiler-campus-e-mail-befall-und-schlusszustand-14-august-2026',
+      'docs/design/S06-S07-COPY-AUDIT.md#copy--und-ablaufdelta-s06-abschluss-und-s07-kontorückmeldung-15-august-2026',
   },
   segment: {
     id: 'S06',
@@ -95,6 +94,7 @@ export const s06ConsequenceContent = {
     dataLeak: 'Datenleck',
     replay: 'Animation wiederholen',
     continue: 'Weiter',
+    replacePassword: 'Passwort ersetzen',
     finish: 'Fertig',
     complete: 'Endübersicht erreicht',
     showPassword: 'Fiktives Passwort anzeigen',
@@ -270,8 +270,8 @@ export const s06ConsequenceContent = {
       body: 'Bislang begann der Angriff bei Campusgram. Welches Konto zuerst bekannt wird, lässt sich aber nicht vorhersagen. Deshalb schauen wir uns die Konten jetzt noch einmal aus einer anderen Ausgangslage an.',
     },
     's06.transition.s07': {
-      heading: 'Passphrase erstellen',
-      body: 'Als Nächstes erstellen wir eine neue Passphrase.',
+      heading: 'Passwort sicher ersetzen',
+      body: 'Was macht man nach so einem Datenleck? Das betroffene Passwort sollte zügig durch ein neues, starkes Passwort ersetzt werden.',
     },
   } as const satisfies Readonly<Record<S06NarrationId, S06NarrationContent>>,
   fixtures: [

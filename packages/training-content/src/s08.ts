@@ -1,13 +1,13 @@
 import type { TrainingSectionId } from '@passwo/contracts';
 
-export const S08_NETWORK_REPLAY_CONTENT_VERSION = '1.1.0';
+export const S08_NETWORK_REPLAY_CONTENT_VERSION = '1.2.0';
 
 export const s08NetworkReplayContent = {
   version: S08_NETWORK_REPLAY_CONTENT_VERSION,
   source: {
-    revision: 'Userauftrag vom 2026-08-14 · einzigartige Passphrasen vor dem Angriffsrücklauf',
+    revision: 'Userauftrag vom 2026-08-15 · direkter Rücklauf bei bereits geschützten Konten',
     copyReference:
-      'docs/design/S06-S07-COPY-AUDIT.md#copy--und-ablaufdelta-s07-passphrasenwechsel-und-s08-ubergang-14-august-2026',
+      'docs/design/S06-S07-COPY-AUDIT.md#copy--und-ablaufdelta-s06-abschluss-und-s07-kontorückmeldung-15-august-2026',
   },
   segment: {
     id: 'S08',

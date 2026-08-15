@@ -138,6 +138,14 @@ const emphasisBySpeechId: Readonly<Record<string, readonly PassWoSpeechEmphasis[
   's05-final-spread': [
     { phrase: 'wiederverwendet oder nur leicht verändert', tone: 'warning' },
   ],
+  's07-method-intro': [{ phrase: 'Passphrase', tone: 'accent' }],
+  's07-randomness-intro': [
+    {
+      phrase: 'mindestens sechs zufälligen, unzusammenhängenden',
+      tone: 'accent',
+    },
+  ],
+  's07-mnemonic': [{ phrase: 'Beispiel:', tone: 'accent' }],
 };
 
 export function passWoSpeechEmphasisFor(

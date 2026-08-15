@@ -19,10 +19,10 @@ import { CampusWebsiteBackdrop } from '../../CampusWebsiteBackdrop.js';
 import { CampusgramIncidentNotice } from '../../CampusgramIncidentNotice.js';
 import { CelebrationConfetti } from '../../CelebrationConfetti.js';
 import { PassWoGuide } from '../../PassWoGuide.js';
+import { passWoSpeechEmphasisFor } from '../../PassWoSpeechEmphasis.js';
 import {
-  type S07RemainingAccountId,
+  type S07AccountFeedback,
   s07PassphraseSearchMachine,
-  shuffledPassphraseOrder,
 } from './S07PassphraseSearchMachine.js';
 import styles from './S07PassphraseSearchTraining.module.css';
 
@@ -447,47 +447,45 @@ function GeneratorPage({
 export interface S07PassphraseSearchTrainingProps {
   readonly displayName: string;
   readonly campusgramPassword: string;
-  readonly remainingAccountIds?: readonly S07RemainingAccountId[];
-  readonly randomValue?: () => number;
+  readonly accountFeedback?: readonly S07AccountFeedback[];
   readonly platform?: DesktopPlatform;
   readonly onComplete?: () => void;
-}
-
-function secureRandomValue(): number {
-  const value = new Uint32Array(1);
-  window.crypto.getRandomValues(value);
-  return (value[0] ?? 0) / 4_294_967_296;
 }
 
 function accountLabel(accountId: S01AccountId): string {
   return s01Content.browser.accounts.find(({ id }) => id === accountId)?.label ?? accountId;
 }
 
+function connectionLabel(accountIds: readonly S01AccountId[]): string {
+  return accountIds
+    .map((accountId) =>
+      accountId === 'campusgram'
+        ? 'deinem alten Campusgram-Passwort'
+        : `dem Passwort von ${accountLabel(accountId)}`,
+    )
+    .join(' und ');
+}
+
 export function S07PassphraseSearchTraining({
   displayName,
   campusgramPassword,
-  remainingAccountIds = [],
-  randomValue = secureRandomValue,
+  accountFeedback = [],
   platform = 'mac',
   onComplete = () => undefined,
 }: S07PassphraseSearchTrainingProps) {
   const [activeTabId, setActiveTabId] = useState<S07TabId>('campusgram');
-  const [browserOpen, setBrowserOpen] = useState(true);
   const [copyToastPoint, setCopyToastPoint] = useState<{
     readonly x: number;
     readonly y: number;
   } | null>(null);
   const [passphraseOrder] = useState(() =>
-    shuffledPassphraseOrder(
-      s07PassphraseSearchContent.browser.generatorPage.passphrases.length,
-      randomValue,
-    ),
+    s07PassphraseSearchContent.browser.generatorPage.passphrases.map((_, index) => index),
   );
   const [state, send] = useMachine(s07PassphraseSearchMachine, {
     input: {
       generationDelayMs: s07PassphraseSearchContent.browser.generatorPage.generationDelayMs,
       passphraseOrder,
-      remainingAccountIds,
+      accountFeedback,
       resultsDelayMs: s07PassphraseSearchContent.browser.searchPage.resultsDelayMs,
     },
   });
@@ -518,8 +516,7 @@ export function S07PassphraseSearchTraining({
       state.matches('passwordChangeReady') ||
       state.matches('campusgramSuccess') ||
       state.matches('remainingRisk') ||
-      state.matches('remainingPlan') ||
-      state.matches('closingBrowser'));
+      state.matches('remainingPlan'));
   const generating = state.matches('generating') || state.matches('regenerating');
   const mnemonicVisible = state.matches('mnemonic');
   const copied = state.matches('copiedCampusgram');
@@ -532,14 +529,24 @@ export function S07PassphraseSearchTraining({
   }
 
   let speech: readonly string[] | null = null;
+  let speechId = '';
   let speechAction: { readonly kind: 'advance'; readonly onAction: () => void } | {
     readonly kind: 'perform';
     readonly label: string;
     readonly onAction: () => void;
   } | undefined;
-  if (state.matches('campusgramMethodIntro')) speech = [guide.methodIntro];
-  if (state.matches('campusgramRandomnessIntro')) speech = [guide.randomnessIntro];
-  if (state.matches('campusgramSearchIntro')) speech = [guide.searchIntro];
+  if (state.matches('campusgramMethodIntro')) {
+    speech = [guide.methodIntro];
+    speechId = 's07-method-intro';
+  }
+  if (state.matches('campusgramRandomnessIntro')) {
+    speech = [guide.randomnessIntro];
+    speechId = 's07-randomness-intro';
+  }
+  if (state.matches('campusgramSearchIntro')) {
+    speech = [guide.searchIntro];
+    speechId = 's07-search-intro';
+  }
   if (generating) speech = [guide.generating];
   if (state.matches('mnemonicIntro')) speech = [guide.mnemonicIntro];
   if (state.matches('mnemonic')) {
@@ -548,14 +555,29 @@ export function S07PassphraseSearchTraining({
         ? undefined
         : generatorPage.passphrases[state.context.currentPassphraseIndex];
     speech = selected === undefined ? null : [guide.mnemonic(selected.passWoMnemonic)];
+    speechId = 's07-mnemonic';
   }
   if (state.matches('campusgramSuccess')) speech = [guide.campusgramSuccess];
   if (state.matches('remainingRisk')) {
-    speech = state.context.pendingAccountIds.map((accountId) =>
-      guide.remainingRisk(accountLabel(accountId)),
-    );
+    speech = state.context.accountFeedback.map((feedback) => {
+      const label = accountLabel(feedback.accountId);
+      const connection = connectionLabel(feedback.connectionAccountIds);
+      if (feedback.kind === 'strong-similar') {
+        return guide.accountFeedback.strongSimilar(label, connection);
+      }
+      if (feedback.kind === 'unique-guessable') {
+        return guide.accountFeedback.uniqueGuessable(label);
+      }
+      return guide.accountFeedback.similarGuessable(label, connection);
+    });
   }
-  if (state.matches('remainingPlan')) speech = [guide.remainingPlan];
+  if (state.matches('remainingPlan')) {
+    speech = [
+      state.context.accountFeedback.length === 0
+        ? guide.allAccountsProtected
+        : guide.remainingPlan,
+    ];
+  }
 
   if (
     state.matches('campusgramMethodIntro') ||
@@ -566,11 +588,19 @@ export function S07PassphraseSearchTraining({
   ) {
     speechAction = {
       kind: 'advance',
+      onAction: () => send({ type: 'NEXT' }),
+    };
+  }
+  if (state.matches('remainingPlan')) {
+    speechAction = {
+      kind: 'perform',
+      label:
+        state.context.accountFeedback.length === 0
+          ? guide.finishAttack
+          : guide.continueAttack,
       onAction: () => {
-        send({ type: 'NEXT' });
-        if (state.matches('campusgramSuccess') && state.context.pendingAccountIds.length === 0) {
-          setBrowserOpen(false);
-        }
+        send({ type: 'CONTINUE_ATTACK' });
+        onComplete();
       },
     };
   }
@@ -636,17 +666,7 @@ export function S07PassphraseSearchTraining({
         variant="artifact"
         snapshot={snapshot}
         ariaLabel={s07PassphraseSearchContent.browser.ariaLabel}
-        windowOpen={browserOpen}
-        onWindowClose={() => {
-          if (!state.matches('remainingPlan')) return;
-          send({ type: 'CLOSE_BROWSER' });
-          setBrowserOpen(false);
-        }}
-        onWindowTransitionEnd={(windowState) => {
-          if (windowState !== 'closed' || !state.matches('closingBrowser')) return;
-          send({ type: 'WINDOW_CLOSED' });
-          onComplete();
-        }}
+        windowOpen
         onTabSelect={(tabId) => {
           if (!isS07TabId(tabId)) return;
           setActiveTabId(tabId);
@@ -663,6 +683,7 @@ export function S07PassphraseSearchTraining({
                 openHelpLabel={s00Content.narration.openGuideLabel}
                 speech={speech}
                 speechKey={`s07-${String(state.value)}-${String(state.context.currentPassphraseIndex)}`}
+                speechEmphasis={passWoSpeechEmphasisFor(speechId)}
                 {...(generating
                   ? {
                       speechFooter: (

@@ -72,7 +72,7 @@ export interface CampusgramIncidentNoticeProps {
   readonly completedCopy?:
     | {
         readonly title: string;
-        readonly body: string;
+        readonly body?: string;
       }
     | undefined;
   readonly completedVisual?: ReactNode;
@@ -241,7 +241,9 @@ export function CampusgramIncidentNotice({
               <h2 id={`${inputId}-title`} ref={headingRef} tabIndex={-1}>
                 {completedCopy?.title ?? passwordChange.completedTitle}
               </h2>
-              <p>{completedCopy?.body ?? passwordChange.completedBody}</p>
+              {completedCopy !== undefined && completedCopy.body === undefined ? null : (
+                <p>{completedCopy?.body ?? passwordChange.completedBody}</p>
+              )}
               {showCompletedAction ? (
                 <button type="button" className={styles.submitButton} onClick={closePasswordChange}>
                   {passwordChange.completedAction}

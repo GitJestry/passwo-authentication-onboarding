@@ -165,11 +165,17 @@ export function S06ConsequenceTraining({
             label: s06ConsequenceContent.page.attackStart,
             onAction: () => void runtime.controller.continue(),
           }
-        : {
-            kind: 'advance' as const,
-            label: s06ConsequenceContent.page.continue,
-            onAction: () => void runtime.controller.continue(),
-          }
+        : snapshot.stage === 's07-transition'
+          ? {
+              kind: 'perform' as const,
+              label: s06ConsequenceContent.page.replacePassword,
+              onAction: () => void runtime.controller.continue(),
+            }
+          : {
+              kind: 'advance' as const,
+              label: s06ConsequenceContent.page.continue,
+              onAction: () => void runtime.controller.continue(),
+            }
       : undefined;
   const speech = timingFailure
     ? [

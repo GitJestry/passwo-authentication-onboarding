@@ -151,7 +151,7 @@ Seitenangaben beziehen sich auf die im Trainingsdokument ausgewiesene interne Pa
   Transformationsweg, dessen erzeugter Kandidat den vollständigen Zielwert trifft.
 - Gemeinsame Teilstrings, allgemeine Ähnlichkeit und Edit-Distance begründen keinen Treffer. Ein
   nicht erkannter Weg bedeutet nur, dass diese Simulation keinen direkten Weg erkannt hat.
-- `S06_CONSEQUENCE_CONTENT_VERSION 2.14.0` übernimmt die S05-Vollpasswort-Disposition ohne eigene
+- `S06_CONSEQUENCE_CONTENT_VERSION 2.15.0` übernimmt die S05-Vollpasswort-Disposition ohne eigene
   Guess-Schwelle. Nur `whole-password-recognized` öffnet den tatsächlichen lokalen Vorfallspfad;
   `no-whole-password-recognized` bleibt eine begrenzte Nicht-Erkennung und kein Stärkeurteil.
 - Vier deterministische Design-Lab-Fixtures decken exakte Wiederverwendung plus Ableitung, einen
@@ -183,9 +183,14 @@ Seitenangaben beziehen sich auf die im Trainingsdokument ausgewiesene interne Pa
   erhalten in S08 jeweils die Knotenaktion `Einzigartige Passphrase erstellen`; nicht betroffene
   Konten bleiben unverändert. Schutzschild und kurzes Konfetti bestätigen jede ausgeführte Aktion,
   bevor der abschließende Angriffsrücklauf beginnt.
-- `S07_PASSPHRASE_SEARCH_CONTENT_VERSION 4.6.0` beschreibt Datenleckhinweis, lokalen
-  Passwortwechsel, Suchseite und Werkstatt; `S08_NETWORK_REPLAY_CONTENT_VERSION 1.1.0` beschreibt
-  die Netzabkürzung und den anschließenden Angriffsrücklauf. Es werden
+- Nach dem Campusgram-Wechsel projiziert S07 die lokalen S06-Befunde für die beiden anderen
+  Konten als stark/leicht erratbar und einzigartig/ähnlich. Stark und einzigartig eingeordnete
+  Konten bleiben ohne Einzelmeldung; nur offene Konten erhalten in S08 eine Schutzaktion. Sind
+  beide bereits stark und einzigartig, beginnt S08 unmittelbar mit dem Angriffsrücklauf.
+- `S07_PASSPHRASE_SEARCH_CONTENT_VERSION 4.9.0` beschreibt Datenleckhinweis, lokalen
+  Passwortwechsel, Suchseite, Werkstatt und adaptive Kontorückmeldung;
+  `S08_NETWORK_REPLAY_CONTENT_VERSION 1.2.0` beschreibt die Netzabkürzung und den anschließenden
+  Angriffsrücklauf. Es werden
   keine neuen Teilnehmer- oder Trainingswerte persistiert oder exportiert.
 
 ## Sections
