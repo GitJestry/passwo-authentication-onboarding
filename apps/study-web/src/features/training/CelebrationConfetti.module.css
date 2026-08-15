@@ -9,101 +9,567 @@
   pointer-events: none;
 }
 
+.burst::before {
+  position: absolute;
+  width: 2.75rem;
+  height: 2.75rem;
+  border: 0.2rem solid rgb(255 193 46 / 72%);
+  border-radius: 50%;
+  box-shadow:
+    0 0 1.25rem rgb(255 188 46 / 45%),
+    inset 0 0 0.9rem rgb(255 255 255 / 68%);
+  content: '';
+  opacity: 0;
+  transform: translate(-50%, -50%) scale(0.25);
+  animation: celebration-ring 1.45s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.burst::after {
+  position: absolute;
+  width: 3.4rem;
+  height: 3.4rem;
+  border-radius: 50%;
+  background: radial-gradient(
+    circle,
+    rgb(255 255 255 / 96%) 0 8%,
+    rgb(255 220 105 / 72%) 24%,
+    rgb(255 184 55 / 22%) 48%,
+    transparent 72%
+  );
+  content: '';
+  opacity: 0;
+  transform: translate(-50%, -50%) scale(0.18);
+  animation: celebration-flash 820ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
 .burst i {
   --confetti-angle: 0deg;
-  --confetti-distance: 3rem;
+  --confetti-distance: 5.4rem;
+  --confetti-delay: 0ms;
+  --confetti-drift: 0.2rem;
+  --confetti-sway: 1.1rem;
+  --confetti-spin: 210deg;
+  --confetti-tumble: 680deg;
+  --confetti-duration: 2.35s;
 
   position: absolute;
-  width: 0.36rem;
-  height: 0.68rem;
-  border-radius: 0.12rem;
-  background: #f5a623;
+  top: 0;
+  left: 0;
+  width: 0.58rem;
+  height: 1.08rem;
+  border-radius: 0.14rem;
+  background: #ffb000;
+  box-shadow: 0 0.1rem 0.18rem rgb(35 48 63 / 18%);
   opacity: 0;
-  animation: confetti-burst 760ms cubic-bezier(0.16, 1, 0.3, 1) both;
-  transform: rotate(var(--confetti-angle)) translateY(-0.8rem);
+  will-change: transform, opacity;
+  animation: confetti-flight var(--confetti-duration) linear var(--confetti-delay) both;
+  transform:
+    translate3d(0, 0, 0)
+    rotate(var(--confetti-angle))
+    translateY(-0.8rem)
+    scale(0.35);
 }
 
 .burst i:nth-child(2) {
-  --confetti-angle: 30deg;
-  --confetti-distance: 3.6rem;
-  background: #e95d74;
+  --confetti-angle: 15deg;
+  --confetti-distance: 6.5rem;
+  --confetti-delay: 24ms;
+  --confetti-drift: -0.45rem;
+  --confetti-spin: -260deg;
+  background: #ff5d73;
 }
 
 .burst i:nth-child(3) {
-  --confetti-angle: 60deg;
-  --confetti-distance: 4.1rem;
-  background: #4ab9b0;
+  --confetti-angle: 30deg;
+  --confetti-distance: 7.2rem;
+  --confetti-delay: 52ms;
+  --confetti-drift: 0.6rem;
+  --confetti-spin: 320deg;
+  background: #00a896;
 }
 
 .burst i:nth-child(4) {
-  --confetti-angle: 90deg;
-  --confetti-distance: 3.2rem;
-  background: #6b8ee8;
+  --confetti-angle: 45deg;
+  --confetti-distance: 5.9rem;
+  --confetti-delay: 12ms;
+  --confetti-drift: -0.3rem;
+  --confetti-spin: -220deg;
+  background: #3b82f6;
 }
 
 .burst i:nth-child(5) {
-  --confetti-angle: 120deg;
-  --confetti-distance: 3.8rem;
-  background: #f2cd43;
+  --confetti-angle: 60deg;
+  --confetti-distance: 6.8rem;
+  --confetti-delay: 68ms;
+  --confetti-drift: 0.5rem;
+  --confetti-spin: 280deg;
+  background: #ffd43b;
 }
 
 .burst i:nth-child(6) {
-  --confetti-angle: 150deg;
-  --confetti-distance: 4rem;
-  background: #e86d45;
+  --confetti-angle: 75deg;
+  --confetti-distance: 7.5rem;
+  --confetti-delay: 36ms;
+  --confetti-drift: -0.55rem;
+  --confetti-spin: -310deg;
+  background: #ff7a3d;
 }
 
 .burst i:nth-child(7) {
-  --confetti-angle: 180deg;
-  --confetti-distance: 3.1rem;
-  background: #36a873;
+  --confetti-angle: 90deg;
+  --confetti-distance: 6.1rem;
+  --confetti-delay: 6ms;
+  --confetti-drift: 0.35rem;
+  --confetti-spin: 240deg;
+  background: #22b573;
 }
 
 .burst i:nth-child(8) {
-  --confetti-angle: 210deg;
-  --confetti-distance: 3.7rem;
-  background: #df65c0;
+  --confetti-angle: 105deg;
+  --confetti-distance: 7rem;
+  --confetti-delay: 58ms;
+  --confetti-drift: -0.65rem;
+  --confetti-spin: -290deg;
+  background: #dc5cdb;
 }
 
 .burst i:nth-child(9) {
-  --confetti-angle: 240deg;
-  --confetti-distance: 4.2rem;
-  background: #47a9df;
+  --confetti-angle: 120deg;
+  --confetti-distance: 6.6rem;
+  --confetti-delay: 27ms;
+  --confetti-drift: 0.55rem;
+  --confetti-spin: 300deg;
+  background: #38bdf8;
 }
 
 .burst i:nth-child(10) {
-  --confetti-angle: 270deg;
-  --confetti-distance: 3.3rem;
-  background: #ee8b35;
+  --confetti-angle: 135deg;
+  --confetti-distance: 7.4rem;
+  --confetti-delay: 74ms;
+  --confetti-drift: -0.4rem;
+  --confetti-spin: -250deg;
+  background: #8b5cf6;
 }
 
 .burst i:nth-child(11) {
-  --confetti-angle: 300deg;
-  --confetti-distance: 3.9rem;
-  background: #7a72dc;
+  --confetti-angle: 150deg;
+  --confetti-distance: 6.2rem;
+  --confetti-delay: 43ms;
+  --confetti-drift: 0.7rem;
+  --confetti-spin: 270deg;
+  background: #ffb000;
 }
 
 .burst i:nth-child(12) {
-  --confetti-angle: 330deg;
-  --confetti-distance: 4.1rem;
-  background: #d94b55;
+  --confetti-angle: 165deg;
+  --confetti-distance: 7.1rem;
+  --confetti-delay: 18ms;
+  --confetti-drift: -0.5rem;
+  --confetti-spin: -320deg;
+  background: #ff5d73;
 }
 
-@keyframes confetti-burst {
-  12% {
-    opacity: 0.9;
+.burst i:nth-child(13) {
+  --confetti-angle: 180deg;
+  --confetti-distance: 5.8rem;
+  --confetti-delay: 100ms;
+  --confetti-drift: 0.4rem;
+  --confetti-spin: 260deg;
+  background: #00a896;
+}
+
+.burst i:nth-child(14) {
+  --confetti-angle: 195deg;
+  --confetti-distance: 6.9rem;
+  --confetti-delay: 80ms;
+  --confetti-drift: -0.6rem;
+  --confetti-spin: -280deg;
+  background: #3b82f6;
+}
+
+.burst i:nth-child(15) {
+  --confetti-angle: 210deg;
+  --confetti-distance: 7.3rem;
+  --confetti-delay: 140ms;
+  --confetti-drift: 0.5rem;
+  --confetti-spin: 330deg;
+  background: #ffd43b;
+}
+
+.burst i:nth-child(16) {
+  --confetti-angle: 225deg;
+  --confetti-distance: 6.3rem;
+  --confetti-delay: 60ms;
+  --confetti-drift: -0.35rem;
+  --confetti-spin: -230deg;
+  background: #ff7a3d;
+}
+
+.burst i:nth-child(17) {
+  --confetti-angle: 240deg;
+  --confetti-distance: 7.6rem;
+  --confetti-delay: 120ms;
+  --confetti-drift: 0.65rem;
+  --confetti-spin: 290deg;
+  background: #22b573;
+}
+
+.burst i:nth-child(18) {
+  --confetti-angle: 255deg;
+  --confetti-distance: 6.5rem;
+  --confetti-delay: 160ms;
+  --confetti-drift: -0.5rem;
+  --confetti-spin: -300deg;
+  background: #dc5cdb;
+}
+
+.burst i:nth-child(19) {
+  --confetti-angle: 270deg;
+  --confetti-distance: 7.2rem;
+  --confetti-delay: 90ms;
+  --confetti-drift: 0.4rem;
+  --confetti-spin: 250deg;
+  background: #38bdf8;
+}
+
+.burst i:nth-child(20) {
+  --confetti-angle: 285deg;
+  --confetti-distance: 6rem;
+  --confetti-delay: 150ms;
+  --confetti-drift: -0.7rem;
+  --confetti-spin: -270deg;
+  background: #8b5cf6;
+}
+
+.burst i:nth-child(21) {
+  --confetti-angle: 300deg;
+  --confetti-distance: 7.4rem;
+  --confetti-delay: 70ms;
+  --confetti-drift: 0.55rem;
+  --confetti-spin: 310deg;
+  background: #ffb000;
+}
+
+.burst i:nth-child(22) {
+  --confetti-angle: 315deg;
+  --confetti-distance: 6.7rem;
+  --confetti-delay: 130ms;
+  --confetti-drift: -0.45rem;
+  --confetti-spin: -240deg;
+  background: #ff5d73;
+}
+
+.burst i:nth-child(23) {
+  --confetti-angle: 330deg;
+  --confetti-distance: 7.5rem;
+  --confetti-delay: 110ms;
+  --confetti-drift: 0.6rem;
+  --confetti-spin: 280deg;
+  background: #00a896;
+}
+
+.burst i:nth-child(24) {
+  --confetti-angle: 345deg;
+  --confetti-distance: 6.4rem;
+  --confetti-delay: 170ms;
+  --confetti-drift: -0.55rem;
+  --confetti-spin: -330deg;
+  background: #8b5cf6;
+}
+
+.burst i:nth-child(25) {
+  --confetti-angle: 8deg;
+  --confetti-distance: 8rem;
+  --confetti-delay: 96ms;
+  --confetti-drift: -0.2rem;
+  --confetti-spin: 345deg;
+  background: #ffd43b;
+}
+
+.burst i:nth-child(26) {
+  --confetti-angle: 82deg;
+  --confetti-distance: 7.1rem;
+  --confetti-delay: 182ms;
+  --confetti-drift: 0.8rem;
+  --confetti-spin: -215deg;
+  background: #ff7a3d;
+}
+
+.burst i:nth-child(27) {
+  --confetti-angle: 146deg;
+  --confetti-distance: 8.2rem;
+  --confetti-delay: 48ms;
+  --confetti-drift: -0.75rem;
+  --confetti-spin: 375deg;
+  background: #22b573;
+}
+
+.burst i:nth-child(28) {
+  --confetti-angle: 203deg;
+  --confetti-distance: 6.8rem;
+  --confetti-delay: 205ms;
+  --confetti-drift: 0.25rem;
+  --confetti-spin: -350deg;
+  background: #dc5cdb;
+}
+
+.burst i:nth-child(29) {
+  --confetti-angle: 276deg;
+  --confetti-distance: 7.8rem;
+  --confetti-delay: 32ms;
+  --confetti-drift: -0.85rem;
+  --confetti-spin: 225deg;
+  background: #38bdf8;
+}
+
+.burst i:nth-child(30) {
+  --confetti-angle: 337deg;
+  --confetti-distance: 8.1rem;
+  --confetti-delay: 154ms;
+  --confetti-drift: 0.72rem;
+  --confetti-spin: -385deg;
+  background: #ff5d73;
+}
+
+.burst i:nth-child(31) {
+  --confetti-angle: 28deg;
+  --confetti-distance: 6.6rem;
+  --confetti-delay: 235ms;
+  --confetti-drift: 0.34rem;
+  --confetti-spin: 260deg;
+  background: #fff1a6;
+}
+
+.burst i:nth-child(32) {
+  --confetti-angle: 104deg;
+  --confetti-distance: 5.8rem;
+  --confetti-delay: 310ms;
+  --confetti-drift: -0.48rem;
+  --confetti-spin: -310deg;
+  background: #bff9ec;
+}
+
+.burst i:nth-child(33) {
+  --confetti-angle: 169deg;
+  --confetti-distance: 6.9rem;
+  --confetti-delay: 190ms;
+  --confetti-drift: 0.62rem;
+  --confetti-spin: 295deg;
+  background: #ffd0d8;
+}
+
+.burst i:nth-child(34) {
+  --confetti-angle: 226deg;
+  --confetti-distance: 5.6rem;
+  --confetti-delay: 345ms;
+  --confetti-drift: -0.28rem;
+  --confetti-spin: -245deg;
+  background: #d8e9ff;
+}
+
+.burst i:nth-child(35) {
+  --confetti-angle: 292deg;
+  --confetti-distance: 6.5rem;
+  --confetti-delay: 265ms;
+  --confetti-drift: 0.52rem;
+  --confetti-spin: 335deg;
+  background: #fff0a8;
+}
+
+.burst i:nth-child(36) {
+  --confetti-angle: 351deg;
+  --confetti-distance: 5.9rem;
+  --confetti-delay: 215ms;
+  --confetti-drift: -0.58rem;
+  --confetti-spin: -280deg;
+  background: #e8d9ff;
+}
+
+.burst i:nth-child(3n) {
+  --confetti-sway: 0.8rem;
+  --confetti-duration: 2.55s;
+  width: 0.74rem;
+  height: 0.74rem;
+  border-radius: 50%;
+}
+
+.burst i:nth-child(4n) {
+  --confetti-duration: 2.2s;
+  width: 0.78rem;
+  height: 0.78rem;
+  border-radius: 0.1rem;
+}
+
+.burst i:nth-child(5n) {
+  --confetti-sway: 1.45rem;
+  --confetti-duration: 2.7s;
+  width: 0.48rem;
+  height: 1.24rem;
+}
+
+.burst i:nth-child(2n) {
+  --confetti-sway: -1.25rem;
+  --confetti-tumble: -680deg;
+}
+
+.burst i:nth-child(6n + 1) {
+  z-index: 2;
+  filter: brightness(1.08) drop-shadow(0 0.18rem 0.18rem rgb(34 47 62 / 20%));
+}
+
+.burst i:nth-child(7n) {
+  width: 0.88rem;
+  height: 0.88rem;
+  border-radius: 0;
+  clip-path: polygon(
+    50% 0,
+    61% 34%,
+    100% 50%,
+    63% 63%,
+    50% 100%,
+    37% 63%,
+    0 50%,
+    38% 35%
+  );
+}
+
+.burst i:nth-child(6n + 2) {
+  width: 0.42rem;
+  height: 0.82rem;
+  box-shadow: none;
+}
+
+.burst i:nth-child(n + 31) {
+  --confetti-duration: 2.05s;
+  width: 0.72rem;
+  height: 0.72rem;
+  border-radius: 0;
+  box-shadow: none;
+  clip-path: polygon(
+    50% 0,
+    61% 37%,
+    100% 50%,
+    62% 62%,
+    50% 100%,
+    38% 62%,
+    0 50%,
+    39% 37%
+  );
+  filter: drop-shadow(0 0 0.28rem rgb(255 236 153 / 58%));
+}
+
+@keyframes confetti-flight {
+  0% {
+    opacity: 0;
+    animation-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
+    transform:
+      translate3d(0, 0, 0)
+      rotate(var(--confetti-angle))
+      translateY(-0.8rem)
+      scale(0.35)
+      rotate(0deg);
   }
 
-  72% {
-    opacity: 0.78;
+  5% {
+    opacity: 1;
+  }
+
+  14% {
+    opacity: 1;
+    transform:
+      translate3d(calc(0.08 * var(--confetti-sway)), -0.45rem, 0)
+      rotate(var(--confetti-angle))
+      translateY(calc(-0.95 * var(--confetti-distance)))
+      translateX(calc(0.58 * var(--confetti-drift)))
+      scale(1.04)
+      rotate(calc(0.68 * var(--confetti-spin)));
+  }
+
+  28% {
+    opacity: 1;
+    transform:
+      translate3d(calc(0.42 * var(--confetti-sway)), 0.65rem, 0)
+      rotate(var(--confetti-angle))
+      translateY(calc(-1.3 * var(--confetti-distance)))
+      translateX(calc(0.84 * var(--confetti-drift)))
+      scale(1.02)
+      scaleX(0.68)
+      rotate(calc(var(--confetti-spin) + 0.12 * var(--confetti-tumble)));
+  }
+
+  44% {
+    opacity: 0.98;
+    transform:
+      translate3d(calc(0.88 * var(--confetti-sway)), 3.25rem, 0)
+      rotate(var(--confetti-angle))
+      translateY(calc(-1.5 * var(--confetti-distance)))
+      translateX(var(--confetti-drift))
+      scale(0.98)
+      scaleX(0.08)
+      rotate(calc(var(--confetti-spin) + 0.3 * var(--confetti-tumble)));
+  }
+
+  62% {
+    opacity: 0.94;
+    transform:
+      translate3d(calc(0.2 * var(--confetti-sway)), 7.9rem, 0)
+      rotate(var(--confetti-angle))
+      translateY(calc(-1.62 * var(--confetti-distance)))
+      translateX(calc(1.08 * var(--confetti-drift)))
+      scale(0.94)
+      scaleX(-0.82)
+      rotate(calc(var(--confetti-spin) + 0.52 * var(--confetti-tumble)));
+  }
+
+  80% {
+    opacity: 0.82;
+    transform:
+      translate3d(calc(-0.62 * var(--confetti-sway)), 14.6rem, 0)
+      rotate(var(--confetti-angle))
+      translateY(calc(-1.69 * var(--confetti-distance)))
+      translateX(calc(1.14 * var(--confetti-drift)))
+      scale(0.88)
+      scaleX(0.32)
+      rotate(calc(var(--confetti-spin) + 0.76 * var(--confetti-tumble)));
   }
 
   to {
     opacity: 0;
     transform:
+      translate3d(calc(-0.12 * var(--confetti-sway)), 23rem, 0)
       rotate(var(--confetti-angle))
-      translateY(calc(-1 * var(--confetti-distance)))
-      rotate(150deg);
+      translateY(calc(-1.73 * var(--confetti-distance)))
+      translateX(calc(1.18 * var(--confetti-drift)))
+      scale(0.76)
+      scaleX(-0.72)
+      rotate(calc(var(--confetti-spin) + var(--confetti-tumble)));
+  }
+}
+
+@keyframes celebration-ring {
+  18% {
+    opacity: 0.82;
+  }
+
+  to {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(4.25);
+  }
+}
+
+@keyframes celebration-flash {
+  8% {
+    opacity: 0.95;
+  }
+
+  42% {
+    opacity: 0.72;
+    transform: translate(-50%, -50%) scale(1.18);
+  }
+
+  to {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(1.7);
   }
 }
 

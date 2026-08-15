@@ -27,31 +27,60 @@
 }
 
 .completedShieldVisual {
+  box-sizing: border-box;
+  display: block;
+  width: min(100%, 24rem);
   height: clamp(8.75rem, 21cqi, 10.75rem);
+  margin-inline: auto;
   margin-bottom: var(--space-2);
+}
+
+.completedShieldVisual + h2 {
+  width: min(100%, 28rem);
+  margin-top: var(--space-2);
+  margin-inline: auto;
+  font-size: clamp(1.25rem, 2cqi, 1.65rem);
+  text-align: center;
+}
+
+.completedShields {
+  display: grid;
+  width: 100%;
+  height: 100%;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  align-items: center;
+  justify-content: center;
+  gap: clamp(1.5rem, 5cqi, 3rem);
+  padding-inline: clamp(0.75rem, 3cqi, 1.5rem);
 }
 
 .completedShield {
   display: grid;
-  width: 100%;
+  width: min(100%, 8.75rem);
   height: 100%;
   grid-template-rows: auto minmax(0, 1fr);
+  justify-self: center;
   place-items: center;
   gap: var(--space-1);
 }
 
 .completedShield > img {
+  display: block;
   width: 100%;
   height: 100%;
+  margin-inline: auto;
   object-fit: contain;
+  object-position: center;
   filter: drop-shadow(0 0.5rem 0.9rem rgb(31 112 213 / 24%));
 }
 
 .completedShield > span {
+  width: 100%;
   font-size: clamp(0.72rem, 1.55cqi, 0.95rem);
   font-weight: var(--font-weight-heavy);
   letter-spacing: 0.01em;
   line-height: 1;
+  text-align: center;
 }
 
 .completedShieldLabelGreen {

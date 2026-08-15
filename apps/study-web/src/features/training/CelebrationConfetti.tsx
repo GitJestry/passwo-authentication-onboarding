@@ -1,6 +1,6 @@
 import styles from './CelebrationConfetti.module.css';
 
-const pieces = Array.from({ length: 12 }, (_, index) => index);
+const pieces = Array.from({ length: 36 }, (_, index) => index);
 
 export function CelebrationConfetti() {
   return (

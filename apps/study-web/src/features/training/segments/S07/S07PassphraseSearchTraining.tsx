@@ -779,23 +779,25 @@ export function S07PassphraseSearchTraining({
                     pasteOnPasswordFieldClick
                     completedVisual={
                       <>
-                        <span className={styles.completedShield}>
-                          <span className={styles.completedShieldLabelGreen}>
-                            {
-                              s07PassphraseSearchContent.browser
-                                .campusgramPasswordChangeCompleted.shieldLabels.green
-                            }
+                        <span className={styles.completedShields}>
+                          <span className={styles.completedShield}>
+                            <span className={styles.completedShieldLabelGreen}>
+                              {
+                                s07PassphraseSearchContent.browser
+                                  .campusgramPasswordChangeCompleted.shieldLabels.green
+                              }
+                            </span>
+                            <img src={greenShieldAsset} alt="" />
                           </span>
-                          <img src={greenShieldAsset} alt="" />
-                        </span>
-                        <span className={styles.completedShield}>
-                          <span className={styles.completedShieldLabelBlue}>
-                            {
-                              s07PassphraseSearchContent.browser
-                                .campusgramPasswordChangeCompleted.shieldLabels.blue
-                            }
+                          <span className={styles.completedShield}>
+                            <span className={styles.completedShieldLabelBlue}>
+                              {
+                                s07PassphraseSearchContent.browser
+                                  .campusgramPasswordChangeCompleted.shieldLabels.blue
+                              }
+                            </span>
+                            <img src={blueShieldAsset} alt="" />
                           </span>
-                          <img src={blueShieldAsset} alt="" />
                         </span>
                         <CelebrationConfetti />
                       </>
