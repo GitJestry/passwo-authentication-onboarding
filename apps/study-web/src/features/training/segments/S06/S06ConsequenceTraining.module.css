@@ -198,22 +198,14 @@
   background: #363636;
 }
 
-.hypotheticalLabel {
+.hypotheticalLogo {
   position: absolute;
   z-index: 11;
-  bottom: clamp(var(--space-3), 2cqb, var(--space-5));
-  right: clamp(var(--space-3), 2cqi, var(--space-5));
-  margin: 0;
-  padding: var(--space-3) var(--space-6);
-  border: var(--border-width-medium) solid rgb(255 255 255 / 70%);
-  border-radius: var(--radius-round);
-  color: #fff;
-  background: rgb(24 24 24 / 82%);
-  box-shadow: 0 0.6rem 1.2rem rgb(0 0 0 / 42%);
-  font-size: var(--font-size-heading-small);
-  font-weight: var(--font-weight-heavy);
-  line-height: var(--line-height-tight);
-  text-align: center;
+  top: var(--space-1);
+  left: var(--space-1);
+  width: clamp(8rem, 14cqi, 11rem);
+  height: auto;
+  mix-blend-mode: multiply;
 }
 
 .passWoLayer {
