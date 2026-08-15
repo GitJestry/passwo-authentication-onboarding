@@ -1,5 +1,78 @@
 # S06--S07 Copy Audit
 
+## Copy-Delta S06 Rückkehr zur Ausgangslage, 15. August 2026
+
+Quelle ist der ausdrückliche Nutzerauftrag vom 15. August 2026. Der letzte Sprechschritt vor der
+Rückkehr fasst nun die gezeigte Wirkung von Wiederverwendung und ähnlichen Passwörtern zusammen.
+Erst sein vorhandener `Weiter`-Button stellt die tatsächliche Campusgram-Ausgangslage wieder her.
+Die vier dort möglichen tatsächlichen Ergebnisvarianten beginnen einheitlich mit `Zurück zu
+unserer Ausgangslage:`. Hypothetische Zwischenzusammenfassungen bleiben unverändert.
+`S06_CONSEQUENCE_CONTENT_VERSION` steigt von `2.16.0` auf `2.17.0`.
+
+| Segment und Text-ID | Aktueller Text | Geplanter Text | Primäre Rolle | Interaktionsziel | Grund und Bedeutungsänderung | Hervorhebung |
+|---|---|---|---|---|---|---|
+| `S06.narrations.s06.transition.return-to-campusgram` | `Damit sind alle drei Ausgangslagen betrachtet. Als Nächstes kehren wir zur tatsächlichen Ausgangslage mit dem Datenleck bei Campusgram zurück.` | `Damit haben wir gesehen, warum Wiederverwendung und ähnliche Passwörter ein Datenleck auf weitere Konten ausweiten können.` | Kerngedanke | `Weiter` zur tatsächlichen Campusgram-Ausgangslage | ausdrücklich freigegebene Zusammenfassung; Bedeutungsänderung freigegeben | keine |
+| `S06.narrations.s06.summary.actual-none` | bisherige tatsächliche Ergebnisvariante | beginnt mit `Zurück zu unserer Ausgangslage:`; restlicher Wortlaut bleibt erhalten | Ergebnisfeedback | `Weiter` | macht den vollzogenen Ansichtswechsel in jeder Variante eindeutig; begrenzt | keine |
+| `S06.narrations.s06.summary.actual-one` | bisherige tatsächliche Ergebnisvariante | beginnt mit `Zurück zu unserer Ausgangslage:`; restlicher Wortlaut bleibt erhalten | Ergebnisfeedback | `Weiter` | macht den vollzogenen Ansichtswechsel in jeder Variante eindeutig; begrenzt | keine |
+| `S06.narrations.s06.summary.actual-both` | bisherige tatsächliche Ergebnisvariante | beginnt mit `Zurück zu unserer Ausgangslage:`; restlicher Wortlaut bleibt erhalten | Ergebnisfeedback | `Weiter` | macht den vollzogenen Ansichtswechsel in jeder Variante eindeutig; begrenzt | keine |
+| `S06.narrations.s06.summary.actual-source-blocked` | `In der tatsächlichen Ausgangslage wurde das Campusgram-Passwort in dieser begrenzten Prüfung nicht gefunden. Der Angreifer bleibt deshalb außerhalb des Kontos.` | `Zurück zu unserer Ausgangslage: Das Campusgram-Passwort wurde in dieser begrenzten Prüfung nicht gefunden. Der Angreifer bleibt deshalb außerhalb des Kontos.` | Ergebnisfeedback | `Weiter` | vereinheitlicht den Einstieg ohne doppelte Ausgangslagen-Formulierung; begrenzt | keine |
+
+## Darstellungsdelta S06 animierte Befallübernahme, 15. August 2026
+
+Quelle ist der ausdrückliche Nutzerauftrag vom 15. August 2026. Neu betroffene Hauptkonten
+wurden beim Renderwechsel bisher pauschal als bereits abgeschlossene Statuskaskade behandelt;
+lokal als `exposed` markierte Unterknoten wurden ebenfalls ohne Kaskade in den Endzustand
+gesetzt. Dadurch sprangen sowohl der erfolgreiche Pfad von Campusgram zu Master Campus als auch
+lokale Datenlecks bei einem schwachen Master-Campus- oder Campus-E-Mail-Passwort direkt auf das
+vollständig rote Ergebnis.
+
+Bei einem erfolgreichen kontoübergreifenden Pfad bleibt die bereits vollständig gezeichnete
+Angriffslinie ruhig stehen. Nur das neue Zielkonto übernimmt sichtbar den roten Status und setzt
+von dort die Kaskade zu dessen verbundenen Knoten fort; die Konto-zu-Konto-Linie wird bei
+`Wiederverwendet` oder `Ähnlich` nicht erneut gezeichnet. Beim lokalen Datenleck folgt auf die
+vorhandene Angreiferbewegung eine kurze sichtbare Übernahme des Hauptkontos; seine verbundenen
+Dienste oder Funktionen werden danach über die vorhandenen Kanten rot. Ein
+nachfolgender Szenenrender markiert laufende Kaskaden nicht mehr vorschnell als abgeschlossen.
+Abgeschlossene Kaskaden werden zugleich sofort im flüchtigen Rendererzustand festgehalten, ohne
+einen neuen Render auszulösen. Ein anschließender reiner PassWo-Schritt kann die bereits gezeigten
+Befallslinien dadurch nicht erneut starten.
+Reduced Motion zeigt weiterhin unmittelbar den vollständigen Endzustand. Teilnehmertexte,
+Content-Version, Persistenz, Export und Studien-Timing ändern sich nicht.
+
+## Animationsdelta S06 zweite ausgehende Prüflinie, 15. August 2026
+
+Quelle ist der ausdrückliche Nutzerauftrag vom 15. August 2026. Nach einer erkannten
+Wiederverwendung oder abgeleiteten Variante wartete die Statechart nach dem vollständigen
+Schließen der Vergleichskarte nochmals pauschal 1.350 Millisekunden. Diese zusätzliche Pause war
+länger als die sichtbare Ergebnisauflösung und ließ die zweite ausgehende Prüflinie verspätet
+wirken. Die deterministische Zusatzpause dauert nun sowohl für erfolgreiche Vergleiche als auch
+für `Keine Übereinstimmung` nur noch 120 Millisekunden. Die nächste Prüflinie beginnt dadurch
+bereits mit dem sichtbaren Anlauf der Ergebniskaskade beziehungsweise des Schutzschilds, statt
+erst nach deren bisheriger Nachlaufzeit. Reduced Motion, Teilnehmertexte, Content-Version,
+Persistenz, Export und Studien-Timing ändern sich nicht.
+
+## Copy- und Ablaufdelta S06 Campus-E-Mail-Einzelcheck, 15. August 2026
+
+Quelle ist der ausdrückliche Nutzerauftrag vom 15. August 2026 sowie die narrative Absicht von
+Skriptabschnitt 6.6 auf interner Seite 42. Am Ende von S06 wird Campus E-Mail nur noch mit der
+vorhandenen lokalen Vollpasswort-Prüfung für sich betrachtet. Wird das Passwort erkannt, bleiben
+der betroffene Kontoknoten und seine vier verbundenen Funktionen als konkrete Auswirkung
+sichtbar. Wird es nicht erkannt, bleibt der geschützte Zustand sichtbar; es folgt ausdrücklich
+kein `Was wäre, wenn?` und keine ausgehende Prüfung zu den anderen Konten. In beiden Fällen
+folgt direkt der vorhandene Sprechschritt zur Rückkehr in die tatsächliche
+Campusgram-Ausgangslage. Persistenz, Export und Studien-Timing ändern sich nicht.
+`S06_CONSEQUENCE_CONTENT_VERSION` steigt von `2.15.0` auf `2.16.0`.
+
+| Segment und Text-ID | Aktueller Text | Geplanter Text | Primäre Rolle | Interaktionsziel | Grund und Bedeutungsänderung | Hervorhebung |
+|---|---|---|---|---|---|---|
+| `S06.narrations.s06.transition.campus-email` | `Zum Schluss verschieben wir das Datenleck zu Campus E-Mail und prüfen von dort beide anderen Konten.` | `Zum Schluss verschieben wir das Datenleck zu Campus E-Mail und prüfen dieses Passwort für sich.` | Orientierung | `Weiter` | stimmt die Ankündigung auf den ausdrücklich verlangten Einzelcheck ab; begrenzt | keine |
+| `S06.narrations.s06.local-check.campus-email-found` | `Beim Campus-E-Mail-Passwort wurde ein vollständiger früher Kandidat erkannt. Von diesem Konto aus werden nun die beiden anderen Passwörter direkt im Netzwerk geprüft.` | `Beim Campus-E-Mail-Passwort wurde ein vollständiger früher Kandidat erkannt. Unabhängig von den Verbindungen zu anderen Konten lohnt es sich deshalb, auch dieses Passwort für sich stark zu wählen.` | Ergebnisfeedback | `Weiter` zur Rückkehr | ordnet den sichtbaren lokalen Befall ohne weitere Ausbreitungsankündigung ein; ausdrücklich freigegebene Ablaufänderung | keine |
+| `S06.narrations.s06.local-check.campus-email-blocked` | `Beim Campus-E-Mail-Passwort wurde in dieser begrenzten Prüfung kein vollständiger früher Kandidat erkannt. Die möglichen weiteren Wege betrachten wir deshalb als „Was wäre, wenn?“.` | `Beim Campus-E-Mail-Passwort wurde in dieser begrenzten Prüfung kein vollständiger früher Kandidat erkannt. Das ist ein günstiges Ergebnis dieser Prüfung, aber keine allgemeine Sicherheitsgarantie.` | Ergebnisfeedback / Safety Boundary | `Weiter` zur Rückkehr | entfernt den nicht mehr gezeigten hypothetischen Pfad und begrenzt die Schutzaussage; ausdrücklich freigegebene Ablaufänderung | keine |
+
+Die Formulierungen für den Einzelcheck waren bereits vor der späteren Erweiterung um zwei
+ausgehende Campus-E-Mail-Pfade freigegeben und werden unverändert wiederverwendet. Der
+Rückkehrtext bleibt bestehen; geschützte Formulierungen und Hervorhebungen sind nicht betroffen.
+
 ## Copy-Delta S07 Passphrasen eins und vier, 15. August 2026
 
 Quelle ist der ausdrückliche Nutzerauftrag vom 15. August 2026. Die erste und vierte der fünf

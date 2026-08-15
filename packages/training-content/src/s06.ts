@@ -60,16 +60,16 @@ export interface S06NarrationContent {
   readonly body: string;
 }
 
-export const S06_CONSEQUENCE_CONTENT_VERSION = '2.15.0';
+export const S06_CONSEQUENCE_CONTENT_VERSION = '2.17.0';
 
 export const s06ConsequenceContent = {
   version: S06_CONSEQUENCE_CONTENT_VERSION,
   source: {
     document: 'research/private/training-script.pdf',
     internalPages: [36, 37, 38, 39, 40, 41, 42, 43, 44] as const,
-    revision: 'Userauftrag vom 2026-08-15 · Überleitung zum Passwortwechsel',
+    revision: 'Userauftrag vom 2026-08-15 · Rückkehr zur Campusgram-Ausgangslage',
     copyReference:
-      'docs/design/S06-S07-COPY-AUDIT.md#copy--und-ablaufdelta-s06-abschluss-und-s07-kontorückmeldung-15-august-2026',
+      'docs/design/S06-S07-COPY-AUDIT.md#copy-delta-s06-rückkehr-zur-ausgangslage-15-august-2026',
   },
   segment: {
     id: 'S06',
@@ -211,19 +211,19 @@ export const s06ConsequenceContent = {
     },
     's06.transition.campus-email': {
       heading: 'Noch eine Ausgangslage',
-      body: 'Zum Schluss verschieben wir das Datenleck zu Campus E-Mail und prüfen von dort beide anderen Konten.',
+      body: 'Zum Schluss verschieben wir das Datenleck zu Campus E-Mail und prüfen dieses Passwort für sich.',
     },
     's06.local-check.campus-email-found': {
-      heading: 'Perspektivwechsel zu Campus E-Mail',
-      body: 'Beim Campus-E-Mail-Passwort wurde ein vollständiger früher Kandidat erkannt. Von diesem Konto aus werden nun die beiden anderen Passwörter direkt im Netzwerk geprüft.',
+      heading: 'Lokaler Einzelcheck von Campus E-Mail',
+      body: 'Beim Campus-E-Mail-Passwort wurde ein vollständiger früher Kandidat erkannt. Unabhängig von den Verbindungen zu anderen Konten lohnt es sich deshalb, auch dieses Passwort für sich stark zu wählen.',
     },
     's06.local-check.campus-email-blocked': {
-      heading: 'Perspektivwechsel zu Campus E-Mail',
-      body: 'Beim Campus-E-Mail-Passwort wurde in dieser begrenzten Prüfung kein vollständiger früher Kandidat erkannt. Die möglichen weiteren Wege betrachten wir deshalb als „Was wäre, wenn?“.',
+      heading: 'Lokaler Einzelcheck von Campus E-Mail',
+      body: 'Beim Campus-E-Mail-Passwort wurde in dieser begrenzten Prüfung kein vollständiger früher Kandidat erkannt. Das ist ein günstiges Ergebnis dieser Prüfung, aber keine allgemeine Sicherheitsgarantie.',
     },
     's06.transition.return-to-campusgram': {
       heading: 'Zurück zur Ausgangslage',
-      body: 'Damit sind alle drei Ausgangslagen betrachtet. Als Nächstes kehren wir zur tatsächlichen Ausgangslage mit dem Datenleck bei Campusgram zurück.',
+      body: 'Damit haben wir gesehen, warum Wiederverwendung und ähnliche Passwörter ein Datenleck auf weitere Konten ausweiten können.',
     },
     's06.summary': {
       heading: 'Gemeinsame Endübersicht',
@@ -231,19 +231,19 @@ export const s06ConsequenceContent = {
     },
     's06.summary.actual-none': {
       heading: 'Gemeinsame Endübersicht',
-      body: 'Der Angriff blieb auf Campusgram begrenzt. Die beiden anderen Konten blieben in dieser Prüfung geschützt.',
+      body: 'Zurück zu unserer Ausgangslage: Der Angriff blieb auf Campusgram begrenzt. Die beiden anderen Konten blieben in dieser Prüfung geschützt.',
     },
     's06.summary.actual-one': {
       heading: 'Gemeinsame Endübersicht',
-      body: 'Der Angriff konnte sich von Campusgram auf ein weiteres Konto ausbreiten. Das andere Konto blieb in dieser Prüfung geschützt.',
+      body: 'Zurück zu unserer Ausgangslage: Der Angriff konnte sich von Campusgram auf ein weiteres Konto ausbreiten. Das andere Konto blieb in dieser Prüfung geschützt.',
     },
     's06.summary.actual-both': {
       heading: 'Gemeinsame Endübersicht',
-      body: 'Der Angriff konnte sich von Campusgram auf beide anderen Konten ausbreiten.',
+      body: 'Zurück zu unserer Ausgangslage: Der Angriff konnte sich von Campusgram auf beide anderen Konten ausbreiten.',
     },
     's06.summary.actual-source-blocked': {
       heading: 'Tatsächliche Ausgangslage',
-      body: 'In der tatsächlichen Ausgangslage wurde das Campusgram-Passwort in dieser begrenzten Prüfung nicht gefunden. Der Angreifer bleibt deshalb außerhalb des Kontos.',
+      body: 'Zurück zu unserer Ausgangslage: Das Campusgram-Passwort wurde in dieser begrenzten Prüfung nicht gefunden. Der Angreifer bleibt deshalb außerhalb des Kontos.',
     },
     's06.summary.hypothetical-none': {
       heading: 'Gemeinsame Endübersicht',

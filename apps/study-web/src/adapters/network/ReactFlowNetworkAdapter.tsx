@@ -2,6 +2,7 @@ import type {
   AuthoredPosition,
   NetworkRendererPort,
   NetworkSceneSnapshot,
+  SceneEdge,
   SceneEdgeStatus,
   SceneNode,
 } from '@passwo/visualization';
@@ -55,10 +56,15 @@ function statusCascadeToneEntryForNode(
 }
 
 function statusCascadeToneForEdgeNodes(
+  edge: SceneEdge,
   source: SceneNode | undefined,
   target: SceneNode | undefined,
 ): StatusCascadeTone | null {
-  if (source?.kind !== 'account' || target === undefined || target.kind === 'account') return null;
+  if (source?.kind !== 'account' || target === undefined) return null;
+  const reachesAccountThroughAttack =
+    target.kind === 'account' &&
+    (edge.kind === 'identical-reuse' || edge.kind === 'similar-pattern');
+  if (target.kind === 'account' && !reachesAccountThroughAttack) return null;
   const sourceTone = statusCascadeToneForNode(source);
   return sourceTone !== null && statusCascadeToneForNode(target) === sourceTone
     ? sourceTone
@@ -119,27 +125,37 @@ export class ReactFlowNetworkAdapter implements NetworkRendererPort {
       return;
     }
     this.#unpublishedStatusCascadeTonesByNodeId.set(nodeId, tone);
+    const settledStatusCascadeTonesByNodeId = new Map(
+      this.#state.settledStatusCascadeTonesByNodeId,
+    );
+    settledStatusCascadeTonesByNodeId.set(nodeId, tone);
+    this.#state = {
+      ...this.#state,
+      settledStatusCascadeTonesByNodeId,
+    };
     const nodesById = new Map(
       this.#state.snapshot.nodes.map((sceneNode) => [sceneNode.id, sceneNode]),
     );
     const hasRunningCascade = this.#state.snapshot.edges.some((edge) => {
       const target = nodesById.get(edge.targetId);
       const edgeTone = statusCascadeToneForEdgeNodes(
+        edge,
         nodesById.get(edge.sourceId),
         target,
       );
       return (
         edgeTone !== null &&
-        target?.status !== 'exposed' &&
         this.#state.settledStatusCascadeTonesByNodeId.get(edge.targetId) !== edgeTone &&
         this.#unpublishedStatusCascadeTonesByNodeId.get(edge.targetId) !== edgeTone
       );
     });
     if (hasRunningCascade) return;
 
-    // Keep the completed SVG animation mounted while the controller reveals its next UI.
-    // Publishing renderer state here would rebuild the edge and expose its gray base path.
-    this.#notifyStatusCascade([...this.#unpublishedStatusCascadeTonesByNodeId.keys()]);
+    // Persist completion without emitting a renderer update. The finished CSS frame stays
+    // mounted, while a later PassWo-only render already sees the cascade as settled.
+    const settledNodeIds = [...this.#unpublishedStatusCascadeTonesByNodeId.keys()];
+    this.#unpublishedStatusCascadeTonesByNodeId.clear();
+    this.#notifyStatusCascade(settledNodeIds);
   };
 
   render(snapshot: NetworkSceneSnapshot): void {
@@ -151,17 +167,9 @@ export class ReactFlowNetworkAdapter implements NetworkRendererPort {
     const settledStatusCascadeTonesByNodeId = new Map<string, StatusCascadeTone>([
       ...[...this.#state.settledStatusCascadeTonesByNodeId].filter(retainsCurrentTone),
       ...[...this.#unpublishedStatusCascadeTonesByNodeId].filter(retainsCurrentTone),
-      ...(snapshot.id === this.#state.snapshot.id
-        ? []
-        : this.#state.snapshot.nodes
-            .flatMap(statusCascadeToneEntryForNode)
-            .filter(retainsCurrentTone)),
-      ...snapshot.nodes
-        .filter(({ kind }) => kind === 'account')
-        .flatMap(statusCascadeToneEntryForNode),
     ]);
-    // A real scene render is the stable boundary where completed CSS overlays may be
-    // replaced by their authored settled edge styles.
+    // Only cascades that actually reported completion may become settled. A following scene
+    // render can add the next attack path while an existing takeover keeps animating.
     this.#unpublishedStatusCascadeTonesByNodeId.clear();
     this.#state = {
       snapshot,
@@ -899,28 +907,44 @@ function toReactFlowElements(
   const statusCascadeTimingsByTargetId = new Map<string, StatusCascadeTiming>();
   const statusCascadeTonesByTargetId = new Map<string, StatusCascadeTone>();
   const settledStatusCascadeTargetIds = new Set<string>();
-  // Every outgoing cascade starts together and moves at the same pixel speed. Shorter
-  // authored paths therefore reach and recolor their bound nodes first.
+  const accountCascadeArrivalByNodeId = new Map<string, number>();
+
   for (const edge of snapshot.edges) {
     const source = nodesById.get(edge.sourceId);
     const target = nodesById.get(edge.targetId);
-    const tone = statusCascadeToneForEdgeNodes(source, target);
+    if (target?.kind !== 'account') continue;
+    const tone = statusCascadeToneForEdgeNodes(edge, source, target);
+    if (tone === null) continue;
+    accountCascadeArrivalByNodeId.set(edge.targetId, statusCascadeStartDelayMs);
+  }
+
+  // The account-to-account path was already drawn before the comparison result. Recolor the
+  // target account without replaying that path, then continue into its connected branch.
+  for (const edge of snapshot.edges) {
+    const source = nodesById.get(edge.sourceId);
+    const target = nodesById.get(edge.targetId);
+    const tone = statusCascadeToneForEdgeNodes(edge, source, target);
     if (tone === null) continue;
     statusCascadeTonesByTargetId.set(edge.targetId, tone);
     const sourceGeometry = geometriesByNodeId.get(edge.sourceId);
     const targetGeometry = geometriesByNodeId.get(edge.targetId);
     if (sourceGeometry === undefined || targetGeometry === undefined) continue;
-    const durationMs = Math.round(
-      createNodeEdgePath(sourceGeometry, targetGeometry).length / statusCascadeSpeedPxPerMs,
-    );
+    const durationMs =
+      target?.kind === 'account'
+        ? 0
+        : Math.round(
+            createNodeEdgePath(sourceGeometry, targetGeometry).length /
+              statusCascadeSpeedPxPerMs,
+          );
+    const startDelayMs =
+      target?.kind === 'account'
+        ? statusCascadeStartDelayMs
+        : (accountCascadeArrivalByNodeId.get(edge.sourceId) ?? statusCascadeStartDelayMs);
     statusCascadeTimingsByTargetId.set(edge.targetId, {
       durationMs,
-      arrivalMs: statusCascadeStartDelayMs + durationMs,
+      arrivalMs: startDelayMs + durationMs,
     });
-    if (
-      target?.status === 'exposed' ||
-      settledStatusCascadeTonesByNodeId.get(edge.targetId) === tone
-    ) {
+    if (settledStatusCascadeTonesByNodeId.get(edge.targetId) === tone) {
       settledStatusCascadeTargetIds.add(edge.targetId);
     }
   }
@@ -983,6 +1007,7 @@ function toReactFlowElements(
       const targetGeometry = geometriesByNodeId.get(edge.targetId);
       if (sourceGeometry === undefined || targetGeometry === undefined) return [];
       const currentAttackPath = edge.id === currentAttackEdgeId;
+      const showsStatusCascadeThread = nodesById.get(edge.targetId)?.kind !== 'account';
       return [
         {
           id: edge.id,
@@ -1010,8 +1035,12 @@ function toReactFlowElements(
               edge.kind === 'blocked-path',
             currentAttackPath,
             dimmed: dimInactiveNodes && (choosingAccount || edge.sourceId !== activeNodeId),
-            statusCascadeTiming: statusCascadeTimingsByTargetId.get(edge.targetId) ?? null,
-            statusCascadeTone: statusCascadeTonesByTargetId.get(edge.targetId) ?? null,
+            statusCascadeTiming: showsStatusCascadeThread
+              ? (statusCascadeTimingsByTargetId.get(edge.targetId) ?? null)
+              : null,
+            statusCascadeTone: showsStatusCascadeThread
+              ? (statusCascadeTonesByTargetId.get(edge.targetId) ?? null)
+              : null,
             statusCascadeSettled: settledStatusCascadeTargetIds.has(edge.targetId),
           },
           ariaLabel: edge.label ?? `${edge.sourceId} mit ${edge.targetId} verbunden`,

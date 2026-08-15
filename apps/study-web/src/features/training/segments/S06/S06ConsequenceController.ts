@@ -51,7 +51,6 @@ export interface S06ConsequenceControllerSnapshot {
     | 'hypothetical-ready'
     | 'master-hypothetical-animating'
     | 'master-hypothetical-ready'
-    | 'email-hypothetical-animating'
     | 'attacking'
     | 'campusgram-summary'
     | 'perspective-transition'
@@ -119,10 +118,6 @@ type S06MissionPhase =
       readonly kind: 'master-campus-hypothetical-intro';
       readonly step: PasswordConsequencePlanStep;
     }
-  | {
-      readonly kind: 'campus-email-hypothetical-intro';
-      readonly step: PasswordConsequencePlanStep;
-    }
   | { readonly kind: 'email-transition' }
   | { readonly kind: 'return-transition' }
   | { readonly kind: 'final-summary' }
@@ -135,7 +130,7 @@ interface S06MissionSequence {
 
 const accountIds = ['campusgram', 'master-campus', 'campus-email'] as const;
 const infectionDurationMs = 1350;
-const comparisonResolutionDurationMs = 1350;
+const comparisonResolutionDurationMs = 120;
 const automaticAttackDurationMs = 800;
 const comparisonPairs = [
   ['campusgram', 'master-campus'],
@@ -243,13 +238,6 @@ function masterCampusWasFound(plan: PasswordConsequenceScenePlan): boolean {
   );
 }
 
-function campusEmailWasFound(plan: PasswordConsequenceScenePlan): boolean {
-  return (
-    plan.accounts.find(({ accountId }) => accountId === 'campus-email')?.disposition.kind ===
-    'whole-password-recognized'
-  );
-}
-
 function localCheckDurationMs(step: PasswordConsequencePlanStep): number {
   const sourceAccountId = step.sourceAccountId;
   if (sourceAccountId === null) return 0;
@@ -294,15 +282,12 @@ function missionStepForPhase(phase: S06MissionPhase): MissionDefinition['steps']
   }
   if (
     phase.kind === 'local-check' ||
-    phase.kind === 'master-campus-hypothetical-intro' ||
-    phase.kind === 'campus-email-hypothetical-intro'
+    phase.kind === 'master-campus-hypothetical-intro'
   ) {
     const id =
       phase.kind === 'local-check'
         ? phase.step.id
-        : phase.kind === 'master-campus-hypothetical-intro'
-          ? 's06-master-campus-hypothetical-intro'
-          : 's06-campus-email-hypothetical-intro';
+        : 's06-master-campus-hypothetical-intro';
     return {
       id,
       narrationId:
@@ -370,20 +355,6 @@ function createMission(plan: PasswordConsequenceScenePlan): S06MissionSequence {
   phases.push(
     { kind: 'email-transition' },
     { kind: 'local-check', step: planStep(plan, 's06-step-campus-email-local-check') },
-  );
-  if (!campusEmailWasFound(plan)) {
-    phases.push({
-      kind: 'campus-email-hypothetical-intro',
-      step: planStep(plan, 's06-step-campus-email-local-check'),
-    });
-  }
-  const campusEmailMasterStep = planStep(plan, 's06-step-campus-email-master-campus');
-  const campusEmailCampusgramStep = planStep(plan, 's06-step-campus-email-campusgram');
-  phases.push(
-    { kind: 'automatic-comparison', step: campusEmailMasterStep },
-    { kind: 'comparison-resolution', step: campusEmailMasterStep },
-    { kind: 'automatic-comparison', step: campusEmailCampusgramStep },
-    { kind: 'comparison-resolution', step: campusEmailCampusgramStep },
     { kind: 'return-transition' },
     { kind: 'final-summary' },
     { kind: 's07-transition' },
@@ -1038,9 +1009,7 @@ export class S06ConsequenceController {
       const canStartNextAttack =
         awaitingDecision &&
         (this.#missionPhases[missionStepIndex + 1]?.kind === 'comparison' ||
-          this.#missionPhases[missionStepIndex + 1]?.kind === 'automatic-comparison' ||
-          this.#missionPhases[missionStepIndex + 1]?.kind ===
-            'campus-email-hypothetical-intro');
+          this.#missionPhases[missionStepIndex + 1]?.kind === 'automatic-comparison');
       this.#snapshot = {
         ...this.#snapshot,
         phase: awaitingDecision ? 'awaiting-decision' : 'animating',
@@ -1105,37 +1074,6 @@ export class S06ConsequenceController {
         },
       };
       this.#emit();
-      return;
-    }
-
-    if (missionPhase.kind === 'campus-email-hypothetical-intro') {
-      const step = missionPhase.step;
-      const stepIndex = this.#plan.steps.findIndex(({ id }) => id === step.id);
-      if (stepIndex < 0) return;
-      if (this.#snapshot.stage !== 'email-hypothetical-animating') {
-        const network = hypotheticalIncidentNetwork(step, 'campus-email', this.#settledNetwork);
-        this.#displayedAttackNetwork = null;
-        this.#settledNetwork = network;
-        this.#renderer?.render(network);
-      }
-      this.#snapshot = {
-        ...this.#snapshot,
-        phase: 'animating',
-        stage: 'email-hypothetical-animating',
-        stepIndex,
-        step,
-        participant: participantSnapshot(step),
-        attackPhase: 'hypothetical-intro',
-        attackSourceAccountId: 'campus-email',
-        isHypothetical: true,
-        showGuide: false,
-        comparisonVisible: false,
-        comparisonPreviewVisible: false,
-        completedComparisonResults: {},
-        controls: { canStart: false, canReplay: false, canContinue: false },
-      };
-      this.#emit();
-      if (awaitingDecision) this.#continueMissionAfterSnapshot();
       return;
     }
 

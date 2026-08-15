@@ -136,8 +136,10 @@ Seitenangaben beziehen sich auf die im Trainingsdokument ausgewiesene interne Pa
 - Der Timing-Handshake lautet S05 segment-end, S06 segment-start, S06 segment-end. Ein
   fehlgeschlagener späterer Write wiederholt keine bereits bestätigte Grenze.
 - Die Projektion verwendet die drei fiktiven Konten Master Campus, Campus E-Mail und Campusgram.
-  Jede Datenleckperspektive prüft die beiden gerichteten Beziehungen zu den anderen Konten.
-  Bereits gezeigte Rückwege laufen direkt im Netzwerk, ohne die Vergleichskarte erneut zu öffnen.
+  Campusgram und Master Campus prüfen die relevanten gerichteten Beziehungen zu den anderen
+  Konten. Campus E-Mail bildet am Ende ausschließlich einen lokalen Einzelcheck; bei einem Fund
+  werden seine verbundenen Funktionen betroffen dargestellt, bei Schutz folgt kein
+  hypothetischer Pfad. Danach kehrt die Ansicht zur tatsächlichen Campusgram-Ausgangslage zurück.
   Campusgram-Inhalte bleiben lokale
   Inhaltszuordnungen und werden nicht als SSO-Dienste modelliert.
 - Nach der Campus-E-Mail-Perspektive kündigt PassWo die Rückkehr an. Erst `Weiter` stellt die
@@ -151,7 +153,7 @@ Seitenangaben beziehen sich auf die im Trainingsdokument ausgewiesene interne Pa
   Transformationsweg, dessen erzeugter Kandidat den vollständigen Zielwert trifft.
 - Gemeinsame Teilstrings, allgemeine Ähnlichkeit und Edit-Distance begründen keinen Treffer. Ein
   nicht erkannter Weg bedeutet nur, dass diese Simulation keinen direkten Weg erkannt hat.
-- `S06_CONSEQUENCE_CONTENT_VERSION 2.15.0` übernimmt die S05-Vollpasswort-Disposition ohne eigene
+- `S06_CONSEQUENCE_CONTENT_VERSION 2.17.0` übernimmt die S05-Vollpasswort-Disposition ohne eigene
   Guess-Schwelle. Nur `whole-password-recognized` öffnet den tatsächlichen lokalen Vorfallspfad;
   `no-whole-password-recognized` bleibt eine begrenzte Nicht-Erkennung und kein Stärkeurteil.
 - Vier deterministische Design-Lab-Fixtures decken exakte Wiederverwendung plus Ableitung, einen
