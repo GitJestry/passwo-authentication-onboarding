@@ -292,6 +292,59 @@ export function createProtectedS08Network(
   };
 }
 
+/**
+ * Keeps the completed S08 graph intact and adds only anonymous, presentation-only accounts.
+ * The deterministic grid gives the S09 camera move a stable end state without inventing
+ * relationships or participant data for those additional accounts.
+ */
+export function createExpandedS09AccountNetwork(
+  source: NetworkSceneSnapshot,
+  accountCount: number,
+): NetworkSceneSnapshot {
+  const existingAccounts = source.nodes.filter(({ kind }) => kind === 'account');
+  const additionalAccountCount = Math.max(0, accountCount - existingAccounts.length);
+  const columns = 10;
+  const rows = Math.max(1, Math.ceil(accountCount / columns));
+  const positions = Array.from({ length: columns * rows }, (_, index) => ({
+    x: 0.045 + (index % columns) * (0.91 / Math.max(1, columns - 1)),
+    y: 0.055 + Math.floor(index / columns) * (0.89 / Math.max(1, rows - 1)),
+  }));
+  const reservedPositionIndexes = new Set<number>();
+  for (const { position } of existingAccounts) {
+    let nearestIndex = 0;
+    let nearestDistance = Number.POSITIVE_INFINITY;
+    positions.forEach((candidate, index) => {
+      const distance = Math.hypot(candidate.x - position.x, candidate.y - position.y);
+      if (distance < nearestDistance && !reservedPositionIndexes.has(index)) {
+        nearestIndex = index;
+        nearestDistance = distance;
+      }
+    });
+    reservedPositionIndexes.add(nearestIndex);
+  }
+  const availablePositions = positions.filter((_, index) => !reservedPositionIndexes.has(index));
+  const additionalAccounts: SceneNode[] = availablePositions
+    .slice(0, additionalAccountCount)
+    .map((position, index) => ({
+      id: `s09-additional-account-${index + 1}`,
+      kind: 'account',
+      symbolId: 'account',
+      label: `Weiteres Konto ${index + 1}`,
+      description: 'Ein weiterer beispielhafter Online-Dienst im Alltag.',
+      status: 'neutral',
+      locked: false,
+      position,
+      selectable: false,
+    }));
+
+  return {
+    ...source,
+    id: `${source.id}-s09-${accountCount}-accounts`,
+    nodes: [...source.nodes, ...additionalAccounts],
+    accessibleSummary: `Das bisherige Netzwerk bleibt erhalten und wird auf insgesamt ${accountCount} beispielhafte Konten erweitert.`,
+  };
+}
+
 export function staticNetworkPresentation(
   snapshot: NetworkSceneSnapshot,
 ): NetworkPresentationSnapshot {

@@ -78,12 +78,12 @@ export const trainingSegments = [
   },
   {
     id: 'S09',
-    title: 'Passwortprinzipien zusammenfassen',
+    title: 'Von drei zu vielen Konten',
     section: 'passwords',
     sourcePages: '53-55',
     foci: ['TF4', 'TF5'],
     learningObjective:
-      'Die Wirkung der Änderungen ansehen und Stärke, Einzigartigkeit und Abrufbarkeit zusammenführen.',
+      'Stärke, Einzigartigkeit und Abrufbarkeit zusammenführen und das Erinnerungsproblem vieler Konten erkennen.',
   },
   {
     id: 'S10',

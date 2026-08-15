@@ -146,3 +146,78 @@ persistierten Felder, Eingaben oder Trainingswrites.
 | Segment und Text-ID | Aktueller und weiterhin sichtbarer Text | Primäre Rolle | Interaktionsziel | Grund und Bedeutungsänderung | Hervorhebung |
 |---|---|---|---|---|---|
 | `S09.principles.avoid-personal-context` | `Persönliche Angaben sowie Konto- oder Dienstbezüge vermeiden.` | Kerngedanke | kein | ausdrücklich freigegebene Reduktion visueller Elemente; keine Bedeutungsänderung | keine Logos; `Persönliche Angaben` und `Konto- oder Dienstbezüge` fett; `vermeiden` blau und fett |
+
+## Copy-, Ablauf- und Darstellungsdelta S09 Übergang zum Passwortmanager, 15. August 2026
+
+Quelle ist der ausdrückliche Nutzerauftrag vom 15. August 2026. Nach der bestehenden
+Passwortübersicht führt S09 den Maßstabswechsel von drei auf 80 Konten vor, fragt mit der
+vorgegebenen Antwortmöglichkeit nach der subjektiven Realisierbarkeit und ordnet die Antwort ohne
+Bewertung der Person ein. PassWo verbindet das sichtbare Skalierungsproblem anschließend mit den
+bereits gezeigten Risiken von Wiederverwendung, ähnlichen Passwörtern und ungeschützten Listen.
+Danach führt die animierte Karte `Sektion 2 von 3` / `Passwortmanager` in den nächsten Abschnitt
+`Ein Tresor für alle deine Passwörter`.
+
+Die Auswahl bleibt flüchtiger lokaler Trainingszustand und erzeugt weder ein neues persistiertes
+Feld noch einen Forschungswrite. Die im Auftrag als aktuelle CHI-Studie (2026) vorgegebene
+134-Dienste-Einordnung wird als Teilnehmertext übernommen; ihre Quellenvalidierung ist nicht Teil
+dieses Implementierungsauftrags. `S09_PASSWORD_SUMMARY_CONTENT_VERSION` steigt von `2.3.0` auf
+`3.0.0`.
+
+| Segment und Text-ID | Vorher | Nachher | Primäre Rolle | Interaktionsziel | Grund und Bedeutungsänderung | Hervorhebung |
+|---|---|---|---|---|---|---|
+| `S09.finishAction` | `Abschließen` | `Weiter` | Navigation | Skalierungsszene mit drei Konten | benennt den tatsächlichen Dialogfortschritt; begrenzt | keine |
+| `S09.scaling.intro` | nicht vorhanden | `Für drei Konten hast du bereits gesehen, was zusammenkommen muss: Jedes Passwort soll stark, einzigartig und später wieder abrufbar sein.` | Kerngedanke | `Weiter` zur sichtbaren Kontoerweiterung | ausdrücklich freigegebener Rückbezug auf die drei Übungskonten; freigegeben | keine |
+| `S09.scaling.expansion` | nicht vorhanden | 80-Konten-Alltagseinordnung samt CHI-2026-/134-Dienste-Angabe | Orientierung | kein | ausdrücklich freigegebener Maßstabswechsel; freigegeben | keine |
+| `S09.scaling.question` | nicht vorhanden | Frage nach der Realisierbarkeit starker, einzigartiger Passwörter für 80 Konten | Orientierung | eine der drei sichtbaren Antwortoptionen | ausdrücklich freigegebene Reflexionsfrage; freigegeben | keine |
+| `S09.scaling.answer` | nicht vorhanden | `Super easy!` | Navigation | Antwortschaltfläche | wählt aus den drei vorgegebenen Schreibvarianten die reguläre englische Kleinschreibung mit dem spielerischen Ausrufezeichen; freigegeben | keine |
+| `S09.passWo.steps.0` | nicht vorhanden | Einordnung der unrealistischen Erinnerungsanforderung und nachvollziehbarer Ausweichstrategien | Ergebnisfeedback | `Weiter` | ausdrücklich freigegebene, nicht beschämende Einordnung; freigegeben | keine |
+| `S09.passWo.steps.1` | nicht vorhanden | Risiko von Wiederverwendung, ähnlichen Passwörtern und ungeschützten Listen | Mechanismuserklärung | `Weiter` | verbindet den Rückblick mit dem Skalierungsproblem; freigegeben | keine |
+| `S09.passWo.steps.2` | nicht vorhanden | `Die Lösung ist, dass wir uns diese vielen Passwörter gar nicht selbst merken müssen.` | Kerngedanke | `Weiter` | bereitet die sichtbare Tresoridee vor; freigegeben | keine |
+| `S09.passWo.steps.3` | nicht vorhanden | sicherer Tresor zum Erzeugen, geschützten Speichern und Ausfüllen sowie ein starkes Tresorpasswort | Mechanismuserklärung | `Weiter` zur Übergangskarte | ausdrücklich freigegebene Passwortmanager-Hinführung ohne absolute Sicherheitszusage; freigegeben | keine |
+| `S09.passwordManagerTransition` | nicht vorhanden | `Sektion 2 von 3` / `Passwortmanager` / `Ein Tresor für alle deine Passwörter` | Orientierung | kein | ausdrücklich freigegebener Abschnittsübergang; freigegeben | aktive Wegmarke |
+
+## Ablauf- und Darstellungsdelta S09 im herauszoomenden S08-Netzwerk, 15. August 2026
+
+Quelle ist der ausdrückliche Nutzerauftrag vom 15. August 2026. S09 beginnt unmittelbar im
+vollständig gezeichneten Schutzdreieck aus S08. Beim Eintritt verschwinden ausschließlich der
+Angreifer, das mittige Abschlussfeedback und die untere S08-Aktion. Die drei Konten, ihre
+zugehörigen Knoten, Schilde und grünen Verbindungen bleiben als sichtbare Ausgangslage erhalten.
+Die bisher zuerst eingeblendete Passwortliste gehört nicht mehr zum sichtbaren S09-Ablauf. Die
+S08-Aktion heißt deshalb nicht mehr `Zum Überblick`, sondern führt als reiner Dialogfortschritt
+mit `Weiter` in die erste S09-Sprechblase. `S08_NETWORK_REPLAY_CONTENT_VERSION` steigt von `3.3.0`
+auf `3.4.0`.
+
+Jeder der sieben ausdrücklich in Anführungszeichen vorgegebenen Absätze erscheint als eigener
+PassWo-Sprechschritt. Mit dem zweiten Sprechschritt zoomt das bestehende Netzwerk heraus und wird
+deterministisch auf insgesamt 80 Kontoknoten ergänzt. Die Ergänzung ist reine Darstellung und
+leitet weder Konten noch Passwörter aus Teilnehmerdaten ab. Die einzige Antwort `Super easy!`
+bleibt die konkrete Aktion der dritten Sprechblase. `S09_PASSWORD_SUMMARY_CONTENT_VERSION` steigt
+von `3.0.0` auf `3.1.0`.
+
+| Segment und Text-ID | Vorher | Nachher | Primäre Rolle | Interaktionsziel | Grund und Bedeutungsänderung | Hervorhebung |
+|---|---|---|---|---|---|---|
+| `S09.passWo.steps.0` | Text in separater Skalierungsfläche | wortgleich in eigener PassWo-Sprechblase über dem S08-Netzwerk | Kerngedanke | `Weiter` | ausdrücklich verlangte Sprecherzuordnung und sichtbare Kontinuität; keine Bedeutungsänderung | keine |
+| `S09.passWo.steps.1` | Text neben separater 80-Punkte-Fläche | wortgleich in eigener PassWo-Sprechblase während das vorhandene Netzwerk herauszoomt und Knoten ergänzt | Orientierung | `Weiter` | bindet die Erklärung an die sichtbare Netzwerkveränderung; keine Bedeutungsänderung | keine |
+| `S09.passWo.steps.2` | Frage in separater Skalierungsfläche | wortgleich in eigener PassWo-Sprechblase | Orientierung | Sprechblasenaktion `Super easy!` | ausdrücklich verlangte Sprecherzuordnung; keine Bedeutungsänderung | keine |
+| `S09.passWo.steps.3–6` | je ein PassWo-Schritt | weiterhin je eine eigene PassWo-Sprechblase | Feedback, Mechanismuserklärung und Kerngedanke gemäß vorherigem Delta | jeweils `Weiter`, zuletzt `Zum Passwortmanager` | bestätigt die eindeutige Ein-Absatz-pro-Sprechblase-Zuordnung; keine Bedeutungsänderung | keine |
+| `S08.replayActions.finish` | `Zum Überblick` | `Weiter` | Navigation | erste S09-Sprechblase im unveränderten Schutzdreieck | benennt nach Entfernung der Übersicht wieder das tatsächliche sichtbare Ziel; begrenzt | keine |
+
+## Ablauf- und Darstellungsdelta S09 Zusammenfassung vor Netzwerkrückkehr, 15. August 2026
+
+Quelle ist die ausdrückliche Korrektur des Nutzers vom 15. August 2026. Die vorhandene
+Passwortzusammenfassung bleibt Teil von S09 und erscheint unmittelbar nach der S08-Aktion
+`Weiter`. Erst ihre Aktion `Abschließen` entfernt die Zusammenfassung und kehrt in das weiterhin
+vollständige Schutzdreieck zurück. Dort beginnt PassWos erster Skalierungs-Sprechschritt; der
+zweite Sprechschritt löst unverändert das Herauszoomen und die Ergänzung auf 80 Konten aus.
+
+Sowohl hinter der Zusammenfassung als auch hinter den Sprechblasen bleibt das Netzwerk sichtbar.
+Die Zusammenfassung verwendet eine mittlere transparente Dimmung, die späteren Sprechschritte
+eine leichtere transparente Dimmung. Eine deckende schwarze Überlagerung entfällt. Der Wortlaut
+der sechs Zusammenfassungspunkte und der sieben Sprechschritte bleibt unverändert.
+`S09_PASSWORD_SUMMARY_CONTENT_VERSION` steigt von `3.1.0` auf `3.2.0`.
+
+| Segment und Text-ID | Vorher | Nachher | Primäre Rolle | Interaktionsziel | Grund und Bedeutungsänderung | Hervorhebung |
+|---|---|---|---|---|---|---|
+| `S09.summary` | im vorherigen Delta aus dem sichtbaren Ablauf entfernt | vorhandene Passwortzusammenfassung vor der Netzwerkrückkehr wieder sichtbar | Orientierung und Kerngedanken | `Abschließen` | ausdrückliche Nutzerkorrektur; Ablaufänderung freigegeben | vorhandene, unveränderte Hervorhebungen |
+| `S09.finishAction` | `Weiter` | `Abschließen` | Navigation | Rückkehr ins Schutzdreieck und erster PassWo-Sprechschritt | benennt das tatsächliche Schließen der Zusammenfassung; begrenzt | keine |
+| `S08.replayActions.finish` | `Weiter` zur ersten S09-Sprechblase | wortgleich, nun zur S09-Zusammenfassung | Navigation | S09-Zusammenfassung | berücksichtigt die wiederhergestellte Zwischenansicht; begrenzte Ablaufänderung | keine |

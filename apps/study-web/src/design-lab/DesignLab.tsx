@@ -76,7 +76,7 @@ function ArtifactPreview({ children }: { readonly children: ReactNode }) {
   );
 }
 
-function S07ToS08QaPreview({
+function S07ToS09QaPreview({
   accountFeedback,
   campusgramPassword,
   initialStage = 's07',
@@ -85,20 +85,21 @@ function S07ToS08QaPreview({
 }: {
   readonly accountFeedback: readonly S07AccountFeedback[];
   readonly campusgramPassword: string;
-  readonly initialStage?: 's07' | 's08';
+  readonly initialStage?: 's07' | 's08' | 's09';
   readonly network: NetworkSceneSnapshot | null;
   readonly plan: ReturnType<typeof createS06ConsequenceScenePlan>;
 }) {
-  const [stage, setStage] = useState<'s07' | 's08'>(initialStage);
+  const [stage, setStage] = useState<'s07' | 's08' | 's09'>(initialStage);
   const platform = readDesktopPlatform();
 
-  if (stage === 's08') {
+  if (stage !== 's07') {
     return (
       <S08NetworkRewindStage
         affectedAccountIds={accountFeedback.map(({ accountId }) => accountId)}
         network={network}
         plan={plan}
         platform={platform}
+        initialStage={stage}
       />
     );
   }
@@ -146,7 +147,7 @@ function S06ToS07FixturePreview({ fixture }: { readonly fixture: S06ConsequenceF
     );
   }
   return (
-    <S07ToS08QaPreview
+    <S07ToS09QaPreview
       accountFeedback={accountFeedback}
       campusgramPassword={fixture.accounts.campusgram.fictionalPassword}
       network={summaryNetwork ?? plan.steps.at(-1)?.network ?? null}
@@ -159,7 +160,7 @@ function S07DirectQaPreview({
   initialStage = 's07',
   passwordOverrides,
 }: {
-  readonly initialStage?: 's07' | 's08';
+  readonly initialStage?: 's07' | 's08' | 's09';
   readonly passwordOverrides: TrainingQaPasswordOverrides;
 }) {
   const accounts = useMemo<S06ConsequenceAccountInputs>(() => {
@@ -188,7 +189,7 @@ function S07DirectQaPreview({
   );
   const accountFeedback = useMemo(() => deriveS07AccountFeedback(plan), [plan]);
   const visibleAccountFeedback: readonly S07AccountFeedback[] =
-    initialStage === 's08'
+    initialStage === 's08' || initialStage === 's09'
       ? [
           {
             accountId: 'master-campus',
@@ -204,7 +205,7 @@ function S07DirectQaPreview({
       : accountFeedback;
 
   return (
-    <S07ToS08QaPreview
+    <S07ToS09QaPreview
       accountFeedback={visibleAccountFeedback}
       campusgramPassword={accounts.campusgram.fictionalPassword}
       initialStage={initialStage}
@@ -519,6 +520,13 @@ const scenarios: Record<DesignLabScenarioId, DesignLabScenario> = {
     dimmed: false,
     showPassWoOverlay: false,
   },
+  's09-password-manager-transition': {
+    label: 'S09 → Passwortmanager',
+    description:
+      'Direkter QA-Einstieg im geschützten S08-Netzwerk, das in S09 auf 80 Konten herauszoomt und zur Passwortmanager-Karte führt.',
+    dimmed: false,
+    showPassWoOverlay: false,
+  },
 };
 
 const scenarioGroups = [
@@ -551,7 +559,7 @@ const scenarioGroups = [
   },
   { label: 'S06 · Übergang', scenarioIds: ['s05-s06-transition'] },
   {
-    label: 'S06/S07',
+    label: 'S06–S09',
     scenarioIds: [
       's06-reuse-and-derived',
       's06-incident-not-found',
@@ -559,6 +567,7 @@ const scenarioGroups = [
       's06-mixed-actual-hypothetical',
       's07-passphrase-search',
       's08-network-replay',
+      's09-password-manager-transition',
     ],
   },
 ] as const satisfies readonly DesignLabScenarioGroup[];
@@ -1167,6 +1176,17 @@ export function DesignLab({ scenarioId }: { readonly scenarioId: DesignLabScenar
         <DesignLabIntroduction scenarioId={scenarioId} scenario={scenario} />
         <ArtifactPreview>
           <S07DirectQaPreview initialStage="s08" passwordOverrides={passwordOverrides} />
+        </ArtifactPreview>
+      </main>
+    );
+  }
+
+  if (scenarioId === 's09-password-manager-transition') {
+    return (
+      <main className={styles.labPage}>
+        <DesignLabIntroduction scenarioId={scenarioId} scenario={scenario} />
+        <ArtifactPreview>
+          <S07DirectQaPreview initialStage="s09" passwordOverrides={passwordOverrides} />
         </ArtifactPreview>
       </main>
     );

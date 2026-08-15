@@ -817,6 +817,7 @@ function NodeEdge({
           </defs>
           <path
             className={styles.attackEdgeDraw}
+            data-network-attack-draw-thread
             d={edge.path}
             fill="none"
             mask={`url(#${attackDrawMaskId})`}

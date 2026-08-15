@@ -13,9 +13,9 @@ const s06AttackFlowCopyReference =
 const s07EntryCopyReference =
   'docs/design/S06-S07-COPY-AUDIT.md#copy-delta-s07-passphrasen-eins-und-vier-15-august-2026';
 const s08CopyReference =
-  'docs/design/S08-S09-COPY-AUDIT.md#copy--und-darstellungsdelta-s09-passwortliste-und-rücksprung-15-august-2026';
+  'docs/design/S08-S09-COPY-AUDIT.md#ablauf--und-darstellungsdelta-s09-zusammenfassung-vor-netzwerkrückkehr-15-august-2026';
 const s09CopyReference =
-  'docs/design/S08-S09-COPY-AUDIT.md#darstellungsdelta-s09-ohne-kategoriesymbole-15-august-2026';
+  'docs/design/S08-S09-COPY-AUDIT.md#ablauf--und-darstellungsdelta-s09-zusammenfassung-vor-netzwerkrückkehr-15-august-2026';
 
 describe('S06 transition and S07 passphrase-search copy traceability', () => {
   it('keeps S06 consequence wording aligned with bounded whole-password recognition', () => {
@@ -232,14 +232,14 @@ describe('S06 transition and S07 passphrase-search copy traceability', () => {
   });
 
   it('keeps S08 linked to the protected replay wording', () => {
-    expect(S08_NETWORK_REPLAY_CONTENT_VERSION).toBe('3.3.0');
+    expect(S08_NETWORK_REPLAY_CONTENT_VERSION).toBe('3.4.0');
     expect(s08NetworkReplayContent.source.copyReference).toBe(s08CopyReference);
     expect(s08NetworkReplayContent.protectionAction).toBe(
       'Einzigartige Passphrase verwenden',
     );
     expect(s08NetworkReplayContent.replayActions).toEqual({
       attack: 'Angriff starten',
-      finish: 'Zum Überblick',
+      finish: 'Weiter',
     });
     expect(s08NetworkReplayContent.replayCompletion).toBe(
       'Konten wieder geschützt',
@@ -248,7 +248,7 @@ describe('S06 transition and S07 passphrase-search copy traceability', () => {
   });
 
   it('keeps the S09 password summary linked to its password checklist', () => {
-    expect(S09_PASSWORD_SUMMARY_CONTENT_VERSION).toBe('2.3.0');
+    expect(S09_PASSWORD_SUMMARY_CONTENT_VERSION).toBe('3.2.0');
     expect(s09PasswordSummaryContent.source.copyReference).toBe(s09CopyReference);
     expect(s09PasswordSummaryContent.principles).toHaveLength(6);
     expect(
@@ -282,5 +282,13 @@ describe('S06 transition and S07 passphrase-search copy traceability', () => {
       emphasis: 'info',
     });
     expect(s09PasswordSummaryContent.finishAction).toBe('Abschließen');
+    expect(s09PasswordSummaryContent.scaling.accountCount).toBe(80);
+    expect(s09PasswordSummaryContent.scaling.answer).toBe('Super easy!');
+    expect(s09PasswordSummaryContent.passWo.steps).toHaveLength(7);
+    expect(s09PasswordSummaryContent.passwordManagerTransition).toMatchObject({
+      sectionLabel: 'Sektion 2 von 3',
+      title: 'Passwortmanager',
+      parts: [{ id: 'password-vault', label: 'Ein Tresor für alle deine Passwörter' }],
+    });
   });
 });

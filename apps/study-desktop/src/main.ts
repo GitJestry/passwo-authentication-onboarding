@@ -79,7 +79,9 @@ function qaTrainingSegmentFromEnvironment(): TrainingQaSegment | null {
 
   const parsedSegment = trainingQaSegmentSchema.safeParse(configuredSegment);
   if (parsedSegment.success) return parsedSegment.data;
-  throw new Error('Ungültiger PASSWO_QA_SEGMENT-Wert. Erlaubt sind: s00, s01, s02, s03, s05, s06.');
+  throw new Error(
+    'Ungültiger PASSWO_QA_SEGMENT-Wert. Erlaubt sind: s00, s01, s02, s03, s05, s06, s07, s08, s09.',
+  );
 }
 
 function qaPasswordOverridesFromEnvironment(

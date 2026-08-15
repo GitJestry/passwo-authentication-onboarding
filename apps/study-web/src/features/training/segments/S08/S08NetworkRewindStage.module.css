@@ -8,6 +8,7 @@
 .network {
   position: absolute;
   inset: 0 0 4.8rem;
+  overflow: hidden;
   background: transparent;
   animation: protected-replay-enter 480ms var(--motion-ease-out) both;
 }
@@ -28,6 +29,39 @@
   background: transparent;
 }
 
+.network > div {
+  transform-origin: center;
+  transition: transform 900ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.training[data-s09-expanded="true"] .network > div {
+  transform: scale(0.46);
+}
+
+.training[data-s09-expanded="true"]
+  .network
+  :global([data-scene-node^="s09-additional-account-"]) {
+  animation: s09-account-node-reveal 480ms var(--motion-ease-out) both;
+}
+
+.training[data-s09-expanded="true"]
+  .network
+  :global(.react-flow__node:nth-child(4n + 2) [data-scene-node^="s09-additional-account-"]) {
+  animation-delay: 100ms;
+}
+
+.training[data-s09-expanded="true"]
+  .network
+  :global(.react-flow__node:nth-child(4n + 3) [data-scene-node^="s09-additional-account-"]) {
+  animation-delay: 200ms;
+}
+
+.training[data-s09-expanded="true"]
+  .network
+  :global(.react-flow__node:nth-child(4n) [data-scene-node^="s09-additional-account-"]) {
+  animation-delay: 300ms;
+}
+
 .training[data-replay-phase="triangle"]
   .network
   :global([data-network-edge-draw-mask]) {
@@ -35,6 +69,13 @@
   stroke-dasharray: 1;
   stroke-dashoffset: 1;
   animation: triangle-edge-drawing 2.2s ease-in-out forwards;
+}
+
+.training[data-replay-phase="triangle"]
+  .network
+  :global([data-network-attack-draw-thread]) {
+  stroke: #ff315e;
+  filter: drop-shadow(0 0 5px rgb(255 49 94 / 70%));
 }
 
 .training[data-replay-phase="triangle"]
@@ -117,13 +158,22 @@
   outline-offset: var(--space-1);
 }
 
-.summaryDim {
+.summaryDim,
+.s09Dim {
   position: absolute;
   z-index: 9;
   inset: 0;
-  background: rgb(1 8 20 / 72%);
-  backdrop-filter: blur(0.45rem) saturate(0.56);
-  animation: summary-dim-in 360ms var(--motion-ease-out) both;
+  pointer-events: none;
+  animation: s09-dim-in 320ms var(--motion-ease-out) both;
+}
+
+.summaryDim {
+  background: rgb(1 8 20 / 58%);
+  backdrop-filter: blur(0.32rem) saturate(0.7);
+}
+
+.s09Dim {
+  background: transparent;
 }
 
 .summary {
@@ -134,7 +184,6 @@
   display: grid;
   width: min(66rem, calc(100% - 2 * var(--space-7)));
   gap: clamp(var(--space-3), 2cqi, var(--space-5));
-  padding: 0;
   color: #eef8ff;
   transform: translate(-50%, -50%);
   animation: summary-card-in 460ms var(--motion-ease-out) both;
@@ -142,7 +191,7 @@
 
 .summary h1 {
   margin: 0;
-  color: #ffffff;
+  color: #fff;
   font-size: clamp(1.65rem, 3.4cqi, 2.8rem);
   line-height: var(--line-height-tight);
   letter-spacing: var(--letter-spacing-tight);
@@ -233,7 +282,7 @@
   padding: var(--space-3) var(--space-7);
   border: var(--border-width-medium) solid rgb(225 247 255 / 68%);
   border-radius: var(--radius-round);
-  color: #ffffff;
+  color: #fff;
   background: rgb(255 255 255 / 9%);
   box-shadow:
     inset 0 1px 0 rgb(255 255 255 / 20%),
@@ -257,6 +306,89 @@
 .summaryAction:focus-visible {
   outline: var(--border-width-focus) solid var(--color-focus);
   outline-offset: var(--space-1);
+}
+
+.passWoScene {
+  position: absolute;
+  z-index: 10;
+  inset: clamp(var(--space-5), 5cqi, var(--space-9));
+  display: grid;
+  grid-template-columns: minmax(10rem, 0.55fr) minmax(22rem, 1.45fr);
+  align-items: end;
+  gap: clamp(var(--space-4), 3cqi, var(--space-8));
+}
+
+.passWoScene > img {
+  justify-self: center;
+  width: min(100%, 20rem);
+  max-height: 68cqh;
+  object-fit: contain;
+  filter: drop-shadow(0 1.2rem 2rem rgb(0 0 0 / 35%));
+  animation: passwo-arrival 420ms var(--motion-ease-out) both;
+}
+
+.passWoSpeech {
+  align-self: center;
+  width: min(100%, 48rem);
+}
+
+.vaultPause {
+  position: absolute;
+  z-index: 10;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  pointer-events: none;
+}
+
+.vaultPause > span {
+  display: grid;
+  width: clamp(7rem, 18cqi, 12rem);
+  aspect-ratio: 1;
+  place-items: center;
+  border: clamp(0.4rem, 1cqi, 0.7rem) solid rgb(117 202 255 / 78%);
+  border-radius: 50%;
+  background:
+    radial-gradient(circle at center, #06172c 0 16%, transparent 17%),
+    conic-gradient(from 35deg, #75caff, #286fac, #75caff, #163f72, #75caff);
+  box-shadow:
+    inset 0 0 0 0.7rem rgb(3 17 38 / 72%),
+    0 0 2.8rem rgb(71 175 255 / 46%);
+  animation: vault-focus 650ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.managerLanding {
+  display: grid;
+  width: 100%;
+  height: 100%;
+  place-content: center;
+  gap: var(--space-3);
+  padding: var(--space-8);
+  color: #eaf7ff;
+  background: radial-gradient(circle at 50% 35%, #153e68, #051326 68%);
+  text-align: center;
+}
+
+.managerLanding p,
+.managerLanding h1 {
+  margin: 0;
+}
+
+.managerLanding p {
+  color: #75caff;
+  font-weight: var(--font-weight-heavy);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.managerLanding h1 {
+  color: #fff;
+  font-size: clamp(2rem, 6cqi, 5rem);
+  line-height: 1;
+}
+
+.managerLanding strong {
+  font-size: clamp(1.05rem, 2cqi, 1.55rem);
 }
 
 @keyframes protected-replay-enter {
@@ -289,7 +421,14 @@
   }
 }
 
-@keyframes summary-dim-in {
+@keyframes s09-account-node-reveal {
+  from {
+    opacity: 0;
+    transform: scale(0.3);
+  }
+}
+
+@keyframes s09-dim-in {
   from {
     opacity: 0;
   }
@@ -302,9 +441,37 @@
   }
 }
 
+@keyframes passwo-arrival {
+  from {
+    opacity: 0;
+    transform: translateX(-1rem);
+  }
+}
+
+@keyframes vault-focus {
+  from {
+    opacity: 0;
+    filter: blur(0.4rem);
+    transform: scale(0.72) rotate(-18deg);
+  }
+
+  to {
+    opacity: 1;
+    filter: blur(0);
+    transform: scale(1) rotate(0);
+  }
+}
+
 @container artifact-stage (max-width: 760px) {
   .replayAction {
     bottom: 5.4rem;
+  }
+
+  .passWoScene {
+    inset: var(--space-4);
+    grid-template-columns: 1fr;
+    gap: var(--space-4);
+    overflow: auto;
   }
 
   .summary {
@@ -322,18 +489,30 @@
   .principles {
     padding-inline: var(--space-3);
   }
+
+  .passWoScene > img {
+    width: min(8rem, 28cqi);
+    max-height: 24cqh;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
   .network,
   .summaryDim,
+  .s09Dim,
   .summary,
-  .completionMoment strong {
+  .completionMoment strong,
+  .passWoScene > img,
+  .vaultPause > span,
+  .training[data-s09-expanded="true"]
+    .network
+    :global([data-scene-node^="s09-additional-account-"]) {
     animation: none;
   }
 
   .replayAction,
-  .summaryAction {
+  .summaryAction,
+  .network > div {
     transition: none;
   }
 

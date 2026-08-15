@@ -12,16 +12,26 @@ import type {
   PasswordConsequenceStepId,
 } from '@passwo/visualization';
 import { useMachine } from '@xstate/react';
-import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
+import {
+  useEffect,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import { assign, setup } from 'xstate';
 import { ReactFlowNetworkAdapter } from '../../../../adapters/network/ReactFlowNetworkAdapter.js';
 import blueShieldAsset from '../../../../assets/s05/password-factor-shield.png';
 import greenShieldAsset from '../../../../assets/s06/comparison-path-shield.png';
+import passWoTalkAsset from '../../../../assets/passwo/passwo-talk.png';
 import { CelebrationConfetti } from '../../CelebrationConfetti.js';
+import { PassWoSpeechBubble } from '../../PassWoSpeechBubble.js';
+import { SectionTransition } from '../../SectionTransition.js';
 import { AccountAssessmentNetwork } from '../AccountAssessmentNetwork.js';
 import { createS06BlockedReplayTriangle } from '../S06/S06ConsequenceController.js';
 import {
   createCompletedS02Network,
+  createExpandedS09AccountNetwork,
   createProtectedS08Network,
   createS08ProtectionNetwork,
   staticNetworkPresentation,
@@ -32,7 +42,9 @@ export type S08AffectedAccountId = Exclude<S06AccountId, 'campusgram'>;
 
 interface S08Context {
   readonly affectedAccountIds: readonly S08AffectedAccountId[];
+  readonly initialStage: 's08' | 's09';
   readonly phaseDurationMs: number;
+  readonly vaultPauseDurationMs: number;
   readonly protectedAccountIds: readonly S08AffectedAccountId[];
 }
 
@@ -42,6 +54,8 @@ type S08Event =
       readonly accountId: S08AffectedAccountId;
     }
   | { readonly type: 'TRIANGLE_ANIMATION_COMPLETE' }
+  | { readonly type: 'ANSWER_SELECTED' }
+  | { readonly type: 'TRANSITION_COMPLETE' }
   | { readonly type: 'NEXT' };
 
 const s08Machine = setup({
@@ -50,11 +64,14 @@ const s08Machine = setup({
     events: {} as S08Event,
     input: {} as {
       readonly affectedAccountIds: readonly S08AffectedAccountId[];
+      readonly initialStage: 's08' | 's09';
       readonly phaseDurationMs: number;
+      readonly vaultPauseDurationMs: number;
     },
   },
   delays: {
     phaseDuration: ({ context }) => context.phaseDurationMs,
+    vaultPauseDuration: ({ context }) => context.vaultPauseDurationMs,
   },
   guards: {
     hasNoAffectedAccounts: ({ context }) => context.affectedAccountIds.length === 0,
@@ -66,6 +83,7 @@ const s08Machine = setup({
       event.type === 'PROTECT_WITH_UNIQUE_PASSPHRASE' &&
       context.affectedAccountIds.includes(event.accountId) &&
       !context.protectedAccountIds.includes(event.accountId),
+    startsAtS09: ({ context }) => context.initialStage === 's09',
   },
   actions: {
     protectAccount: assign({
@@ -77,13 +95,22 @@ const s08Machine = setup({
   },
 }).createMachine({
   id: 's08ProtectionAndReplay',
-  initial: 'protection',
+  initial: 'entry',
   context: ({ input }) => ({
     affectedAccountIds: [...input.affectedAccountIds],
+    initialStage: input.initialStage,
     phaseDurationMs: input.phaseDurationMs,
-    protectedAccountIds: [],
+    vaultPauseDurationMs: input.vaultPauseDurationMs,
+    protectedAccountIds:
+      input.initialStage === 's09' ? [...input.affectedAccountIds] : [],
   }),
   states: {
+    entry: {
+      always: [
+        { guard: 'startsAtS09', target: 's09Summary' },
+        { target: 'protection' },
+      ],
+    },
     protection: {
       always: [
         { guard: 'hasNoAffectedAccounts', target: 'attackReady' },
@@ -101,9 +128,41 @@ const s08Machine = setup({
     triangleAnimating: {
       on: { TRIANGLE_ANIMATION_COMPLETE: { target: 'replayComplete' } },
     },
-    replayComplete: { on: { NEXT: { target: 's09' } } },
-    s09: { on: { NEXT: { target: 'desktopReview' } } },
-    desktopReview: {},
+    replayComplete: { on: { NEXT: { target: 's09Summary' } } },
+    s09Summary: { tags: ['s09'], on: { NEXT: { target: 's09Intro' } } },
+    s09Intro: { tags: ['s09'], on: { NEXT: { target: 's09Expansion' } } },
+    s09Expansion: {
+      tags: ['s09', 'expanded'],
+      on: { NEXT: { target: 's09Question' } },
+    },
+    s09Question: {
+      tags: ['s09', 'expanded'],
+      on: { ANSWER_SELECTED: { target: 'passWoDifficulty' } },
+    },
+    passWoDifficulty: {
+      tags: ['s09', 'expanded'],
+      on: { NEXT: { target: 'passWoRisks' } },
+    },
+    passWoRisks: {
+      tags: ['s09', 'expanded'],
+      on: { NEXT: { target: 'passWoSolution' } },
+    },
+    passWoSolution: {
+      tags: ['s09', 'expanded'],
+      on: { NEXT: { target: 'vaultPause' } },
+    },
+    vaultPause: {
+      tags: ['s09', 'expanded'],
+      after: { vaultPauseDuration: { target: 'passWoVault' } },
+    },
+    passWoVault: {
+      tags: ['s09', 'expanded'],
+      on: { NEXT: { target: 'managerTransition' } },
+    },
+    managerTransition: {
+      on: { TRANSITION_COMPLETE: { target: 'managerLanding' } },
+    },
+    managerLanding: {},
   },
 });
 
@@ -112,10 +171,15 @@ export interface S08NetworkRewindStageProps {
   readonly network?: NetworkSceneSnapshot | null;
   readonly plan?: PasswordConsequenceScenePlan | null;
   readonly platform: DesktopPlatform;
+  readonly initialStage?: 's08' | 's09';
 }
 
 function replayDuration(): number {
   return window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 1200 : 1450;
+}
+
+function vaultPauseDuration(): number {
+  return window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 0 : 650;
 }
 
 function affectedAccountId(nodeId: string): S08AffectedAccountId | null {
@@ -135,11 +199,17 @@ export function S08NetworkRewindStage({
   network,
   plan,
   platform,
+  initialStage = 's08',
 }: S08NetworkRewindStageProps) {
   const networkHostRef = useRef<HTMLDivElement | null>(null);
   const [celebratingNodeId, setCelebratingNodeId] = useState<S08AffectedAccountId | null>(null);
   const [state, send] = useMachine(s08Machine, {
-    input: { affectedAccountIds, phaseDurationMs: replayDuration() },
+    input: {
+      affectedAccountIds,
+      initialStage,
+      phaseDurationMs: replayDuration(),
+      vaultPauseDurationMs: vaultPauseDuration(),
+    },
   });
   const sourceNetwork = useMemo(
     () => network ?? createCompletedS02Network(),
@@ -177,6 +247,14 @@ export function S08NetworkRewindStage({
       ),
     [firstPathStep, replayBaseNetwork, secondPathStep, thirdPathStep],
   );
+  const expandedNetwork = useMemo(
+    () =>
+      createExpandedS09AccountNetwork(
+        triangleNetwork,
+        s09PasswordSummaryContent.scaling.accountCount,
+      ),
+    [triangleNetwork],
+  );
   const projectedNetwork = useMemo(
     () => {
       if (preparationVisible) {
@@ -186,11 +264,13 @@ export function S08NetworkRewindStage({
             state.context.protectedAccountIds,
           );
       }
+      if (state.hasTag('expanded')) {
+        return expandedNetwork;
+      }
       if (
         state.matches('triangleAnimating') ||
         state.matches('replayComplete') ||
-        state.matches('s09') ||
-        state.matches('desktopReview')
+        state.hasTag('s09')
       ) {
         return triangleNetwork;
       }
@@ -198,6 +278,7 @@ export function S08NetworkRewindStage({
     },
     [
       preparationVisible,
+      expandedNetwork,
       replayBaseNetwork,
       sourceNetwork,
       state,
@@ -242,7 +323,23 @@ export function S08NetworkRewindStage({
   const replayRunning = incidentAttackRunning || pathReplayRunning;
   const replayReady = state.matches('attackReady');
   const replayComplete = state.matches('replayComplete');
-  const summaryVisible = state.matches('s09');
+  const summaryVisible = state.matches('s09Summary');
+  const vaultPauseVisible = state.matches('vaultPause');
+  const passWoStep = state.matches('s09Intro')
+    ? 0
+    : state.matches('s09Expansion')
+      ? 1
+      : state.matches('s09Question')
+        ? 2
+        : state.matches('passWoDifficulty')
+          ? 3
+          : state.matches('passWoRisks')
+            ? 4
+            : state.matches('passWoSolution')
+              ? 5
+              : state.matches('passWoVault')
+                ? 6
+                : null;
 
   useEffect(() => {
     if (
@@ -253,10 +350,41 @@ export function S08NetworkRewindStage({
     }
   }, [pathReplayRunning, send]);
 
+  if (state.matches('managerTransition')) {
+    const transition = s09PasswordSummaryContent.passwordManagerTransition;
+    return (
+      <SectionTransition
+        sectionLabel={transition.sectionLabel}
+        title={transition.title}
+        currentSection={2}
+        totalSections={3}
+        parts={transition.parts}
+        currentPart={1}
+        holdDurationMs={transition.holdDurationMs}
+        onComplete={() => send({ type: 'TRANSITION_COMPLETE' })}
+      />
+    );
+  }
+
+  if (state.matches('managerLanding')) {
+    const transition = s09PasswordSummaryContent.passwordManagerTransition;
+    return (
+      <section className={styles.managerLanding} aria-labelledby="password-manager-title">
+        <p>{transition.sectionLabel}</p>
+        <h1 id="password-manager-title">{transition.title}</h1>
+        <strong>{transition.parts[0]?.label}</strong>
+      </section>
+    );
+  }
+
   return (
     <section
       className={styles.training}
-      aria-label={s08NetworkReplayContent.trainingAriaLabel}
+      aria-label={
+        state.hasTag('s09')
+          ? s09PasswordSummaryContent.trainingAriaLabel
+          : s08NetworkReplayContent.trainingAriaLabel
+      }
       data-replay-phase={
         preparationVisible
           ? 'protection'
@@ -264,6 +392,7 @@ export function S08NetworkRewindStage({
             ? 'triangle'
             : replayPhase
       }
+      data-s09-expanded={state.hasTag('expanded') || undefined}
     >
       <DesktopSurface
         platform={platform}
@@ -390,6 +519,46 @@ export function S08NetworkRewindStage({
               >
                 {s09PasswordSummaryContent.finishAction}
               </button>
+            </section>
+          </>
+        ) : vaultPauseVisible ? (
+          <>
+            <div className={styles.s09Dim} aria-hidden="true" />
+            <div
+              className={styles.vaultPause}
+              role="status"
+              aria-label="Ein Passworttresor erscheint."
+            >
+              <span aria-hidden="true" />
+            </div>
+          </>
+        ) : passWoStep !== null ? (
+          <>
+            <div className={styles.s09Dim} aria-hidden="true" />
+            <section
+              className={styles.passWoScene}
+              aria-label="PassWo erklärt den Übergang zum Passwortmanager"
+            >
+              <img src={passWoTalkAsset} alt="PassWo" />
+              <PassWoSpeechBubble
+                className={styles.passWoSpeech}
+                speaker={s09PasswordSummaryContent.passWo.guideName}
+                paragraphs={[s09PasswordSummaryContent.passWo.steps[passWoStep]]}
+                tone="dark"
+                action={
+                  passWoStep === 2
+                    ? {
+                        kind: 'perform',
+                        label: s09PasswordSummaryContent.scaling.answer,
+                        onAction: () => send({ type: 'ANSWER_SELECTED' }),
+                      }
+                    : {
+                        kind: 'advance',
+                        label: passWoStep === 6 ? 'Zum Passwortmanager' : 'Weiter',
+                        onAction: () => send({ type: 'NEXT' }),
+                      }
+                }
+              />
             </section>
           </>
         ) : null}

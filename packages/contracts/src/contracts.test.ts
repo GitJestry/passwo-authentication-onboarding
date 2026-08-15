@@ -252,6 +252,9 @@ describe('research-safe contracts', () => {
     expect(designLabScenarioForPath('/design-lab/s08-network-replay')).toBe(
       's08-network-replay',
     );
+    expect(designLabScenarioForPath('/design-lab/s09-password-manager-transition')).toBe(
+      's09-password-manager-transition',
+    );
     expect(designLabScenarioForPath('/design-lab/s07-directly-reached')).toBeNull();
   });
 
