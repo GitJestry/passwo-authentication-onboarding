@@ -101,7 +101,7 @@ function s07Disposition(
 ): LocalPasswordDisposition {
   const base = {
     lengthOrientation: belowLengthOrientation ? 'below-15' : 'at-least-15',
-    analysisVersion: 'passwo-bounded-whole-recognition-v10',
+    analysisVersion: 'passwo-bounded-whole-recognition-v11',
   } as const;
   return wholeRecognition
     ? {
@@ -285,7 +285,7 @@ function passwordAnalysisWithFindings(
     findings,
     guessPath: {
       engineId: 'zxcvbn-ts',
-      configurationVersion: 'passwo-bounded-whole-recognition-v10',
+      configurationVersion: 'passwo-bounded-whole-recognition-v11',
       matches: [],
     },
     disclaimerId: 'simulation-not-production-strength',
@@ -611,7 +611,7 @@ describe('local fictional password analysis', () => {
       expect(expectedKinds.some((expectedKind) => actualKinds.includes(expectedKind))).toBe(true);
       expect(result.guessPath).toMatchObject({
         engineId: 'zxcvbn-ts',
-        configurationVersion: 'passwo-bounded-whole-recognition-v10',
+        configurationVersion: 'passwo-bounded-whole-recognition-v11',
       });
       for (const finding of result.findings) {
         expect(finding.id).toMatch(/^single:/u);
@@ -637,7 +637,7 @@ describe('local fictional password analysis', () => {
     expect(disposition).toEqual({
       kind: 'no-whole-password-recognized',
       lengthOrientation: 'at-least-15',
-      analysisVersion: 'passwo-bounded-whole-recognition-v10',
+      analysisVersion: 'passwo-bounded-whole-recognition-v11',
       explanationId: 's05.disposition.no-whole-password-recognized',
     });
   });
@@ -664,7 +664,7 @@ describe('local fictional password analysis', () => {
 
       expect(disposition).toMatchObject({
         kind: 'whole-password-recognized',
-        analysisVersion: 'passwo-bounded-whole-recognition-v10',
+        analysisVersion: 'passwo-bounded-whole-recognition-v11',
       });
     },
   );
@@ -721,7 +721,7 @@ describe('local fictional password analysis', () => {
     });
   });
 
-  it('does not combine independent component findings into a synthetic whole-password hit', () => {
+  it('recognizes a short concatenation of ordinary dictionary words as a bounded candidate', () => {
     const fictionalPassword = 'KaffeeMorgen';
     const componentAnalysis = passwordAnalysisWithFindings([
       {
@@ -742,7 +742,10 @@ describe('local fictional password analysis', () => {
 
     expect(
       determinePasswordSimulationDisposition({ fictionalPassword, componentAnalysis }),
-    ).toMatchObject({ kind: 'no-whole-password-recognized' });
+    ).toMatchObject({
+      kind: 'whole-password-recognized',
+      ruleId: 'whole-password-recognized-bounded-variant',
+    });
   });
 
   it('keeps the 15-character orientation separate from whole-password recognition', () => {
@@ -846,7 +849,7 @@ describe('local fictional password analysis', () => {
         ],
         guessPath: {
           engineId: 'zxcvbn-ts',
-          configurationVersion: 'passwo-bounded-whole-recognition-v10',
+          configurationVersion: 'passwo-bounded-whole-recognition-v11',
           matches: [],
         },
         disclaimerId: 'simulation-not-production-strength',
@@ -892,7 +895,7 @@ describe('local fictional password analysis', () => {
       ],
       guessPath: {
         engineId: 'zxcvbn-ts',
-        configurationVersion: 'passwo-bounded-whole-recognition-v10',
+        configurationVersion: 'passwo-bounded-whole-recognition-v11',
         matches: [],
       },
       disclaimerId: 'simulation-not-production-strength',

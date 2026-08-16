@@ -29,6 +29,7 @@ import {
 } from '@passwo/ui';
 import type { NetworkSceneSnapshot } from '@passwo/visualization';
 import { useCallback, useEffect, useMemo, useState, type ReactNode } from 'react';
+import { PasswordModuleTraining } from '../features/training/PasswordModuleTraining.js';
 import { S00Training } from '../features/training/S00Training.js';
 import { S01Training } from '../features/training/S01Training.js';
 import { SectionTransition } from '../features/training/SectionTransition.js';
@@ -86,11 +87,13 @@ function S07ToS09QaPreview({
 }: {
   readonly accountFeedback: readonly S07AccountFeedback[];
   readonly campusgramPassword: string;
-  readonly initialStage?: 's07' | 's08' | 's09';
+  readonly initialStage?: 's07' | 's08' | 's09' | 'manager-transition';
   readonly network: NetworkSceneSnapshot | null;
   readonly plan: ReturnType<typeof createS06ConsequenceScenePlan>;
 }) {
-  const [stage, setStage] = useState<'s07' | 's08' | 's09'>(initialStage);
+  const [stage, setStage] = useState<
+    's07' | 's08' | 's09' | 'manager-transition'
+  >(initialStage);
   const platform = readDesktopPlatform();
 
   if (stage !== 's07') {
@@ -161,7 +164,7 @@ function S07DirectQaPreview({
   initialStage = 's07',
   passwordOverrides,
 }: {
-  readonly initialStage?: 's07' | 's08' | 's09';
+  readonly initialStage?: 's07' | 's08' | 's09' | 'manager-transition';
   readonly passwordOverrides: TrainingQaPasswordOverrides;
 }) {
   const accounts = useMemo<S06ConsequenceAccountInputs>(() => {
@@ -353,163 +356,175 @@ const scenarios: Record<DesignLabScenarioId, DesignLabScenario> = {
     dimmed: true,
     showPassWoOverlay: true,
   },
+  'training-entry': {
+    label: 's1.0 · Trainingseröffnung',
+    description: 'PassWo-Vorstellung mit Betriebssystemwahl und fiktivem Benutzernamen.',
+    dimmed: false,
+    showPassWoOverlay: false,
+  },
   s00: {
-    label: 'S00',
+    label: 's1.1 · Einstieg',
     description: 'Deterministische Vorschau des ersten Trainingssegments.',
     dimmed: false,
     showPassWoOverlay: false,
   },
   s01: {
-    label: 'S01',
+    label: 's1.2 · Kontoeinrichtung',
     description: 'Direkter QA-Einstieg in die fiktive Kontoeinrichtung.',
     dimmed: false,
     showPassWoOverlay: false,
   },
   's02-master-campus': {
-    label: 'S02 Konten',
+    label: 's1.3 · Konten',
     description: 'Freie Kontowahl mit vollständigen geführten Vorschausequenzen pro Konto.',
     dimmed: false,
     showPassWoOverlay: false,
   },
   s03: {
-    label: 'S03',
+    label: 's1.4 · Anmeldeabruf',
     description: 'Direkter QA-Einstieg in den fiktiven Anmeldeabruf.',
     dimmed: false,
     showPassWoOverlay: false,
   },
   's03-warning': {
-    label: 'S03 Warnung',
+    label: 's1.5 · Warnung',
     description: 'Zeitraffer und klickgetriebene Campusgram-Warnung vor dem Segmentwechsel.',
     dimmed: false,
     showPassWoOverlay: false,
   },
   s04: {
-    label: 'S04',
+    label: 's1.6 · Datenleck',
     description: 'Datenleck-Erklärung innerhalb der fiktiven Campusgram-Website.',
     dimmed: false,
     showPassWoOverlay: false,
   },
   s05: {
-    label: 'S04 → S05 Übergang',
+    label: 's1.7 · Übergang zur Analyse',
     description:
       'Vollständiger QA-Einstieg ab der Campusgram-Warnung bis in die naheliegenden Bestandteile.',
     dimmed: false,
     showPassWoOverlay: false,
   },
   's05-common-suffix': {
-    label: 'S05 Bestandteile · Kern + Anhang',
+    label: 's1.8 · Kern + Anhang',
     description: 'Direkter QA-Einstieg bei den Bestandteilen mit häufigem Kern und Anhang.',
     dimmed: false,
     showPassWoOverlay: false,
   },
   's05-all-categories': {
-    label: 'S05 Bestandteile · alle drei Prüfungen',
+    label: 's1.9 · Alle drei Prüfungen',
     description:
       'Direkter QA-Einstieg mit häufigem Bestandteil, Bezug zum Konto, Dienst oder Umfeld sowie Variante; die persönliche Einordnung erfolgt lokal im Ablauf.',
     dimmed: false,
     showPassWoOverlay: false,
   },
   's05-account-year': {
-    label: 'S05 Bestandteile · Konto + Jahr',
+    label: 's1.10 · Konto + Jahr',
     description: 'Direkter QA-Einstieg bei den Bestandteilen mit Campusgram-Begriff und Jahr.',
     dimmed: false,
     showPassWoOverlay: false,
   },
   's05-no-simple-component': {
-    label: 'S05 Bestandteile · kein Treffer',
+    label: 's1.11 · Kein Bestandteil-Treffer',
     description: 'Direkter QA-Einstieg bei den Bestandteilen ohne erkannten einfachen Treffer.',
     dimmed: false,
     showPassWoOverlay: false,
   },
   's05-structure-repetition': {
-    label: 'S05 Vorhersehbarer Aufbau · Wiederholung',
+    label: 's1.12 · Aufbau: Wiederholung',
     description: 'Direkter QA-Einstieg beim Aufbau mit einem exakt wiederholten Bestandteil.',
     dimmed: false,
     showPassWoOverlay: false,
   },
   's05-structure-context': {
-    label: 'S05 Vorhersehbarer Aufbau · Kontext',
+    label: 's1.13 · Aufbau: Kontext',
     description: 'Direkter QA-Einstieg beim Aufbau mit Campusgram-Kontext, Jahr und Anhang.',
     dimmed: false,
     showPassWoOverlay: false,
   },
   's05-structure-none': {
-    label: 'S05 Vorhersehbarer Aufbau · kein Weg',
+    label: 's1.14 · Aufbau: kein Weg',
     description: 'Direkter QA-Einstieg beim Aufbau ohne erkannten einfachen Zusammenhang.',
     dimmed: false,
     showPassWoOverlay: false,
   },
   's05-free-search': {
-    label: 'S05 Alle Möglichkeiten durchprobieren',
+    label: 's1.15 · Alle Möglichkeiten',
     description: 'Direkter QA-Einstieg beim systematischen Durchprobieren aller Möglichkeiten.',
     dimmed: false,
     showPassWoOverlay: false,
   },
   's05-application-found': {
-    label: 'S05 Abschluss · Passwort gefunden',
+    label: 's1.16 · Abschluss: gefunden',
     description: 'Direkter QA-Einstieg in die rote geführte Campusgram-Abschlussszene.',
     dimmed: false,
     showPassWoOverlay: false,
   },
   's05-application-protected': {
-    label: 'S05 Abschluss · Prüfweg blockiert',
+    label: 's1.17 · Abschluss: blockiert',
     description: 'Direkter QA-Einstieg in die blaue Schild-Variante der Abschlussszene.',
     dimmed: false,
     showPassWoOverlay: false,
   },
   's05-s06-transition': {
-    label: 'S05 → S06 Übergang',
+    label: 's1.18 · Übergang zu Folgen',
     description:
       'QA-Einstieg beim S05-Abschluss mit PassWo, anschließender Übergangskarte und S06.',
     dimmed: false,
     showPassWoOverlay: false,
   },
   's06-reuse-and-derived': {
-    label: 'S06 Wiederverwendung + Ableitung',
+    label: 's1.19 · Wiederverwendung + Ableitung',
     description:
       'Campusgram wird gefunden, Master Campus konkret abgeleitet und Campus E-Mail exakt wiederverwendet.',
     dimmed: false,
     showPassWoOverlay: false,
   },
   's06-incident-not-found': {
-    label: 'S06 Vorfall stoppt',
+    label: 's1.20 · Vorfall stoppt',
     description:
       'Campusgram wird nicht schnell gefunden; Master Campus wird anschließend hypothetisch nur gegen Campus E-Mail geprüft und auch dort bleibt der Weg blockiert.',
     dimmed: false,
     showPassWoOverlay: false,
   },
   's06-incident-found-blocked': {
-    label: 'S06 gefunden, Wege blockiert',
+    label: 's1.21 · Gefunden, Wege blockiert',
     description:
       'Campusgram wird gefunden; nach den blockierten Campusgram-Wegen wird Master Campus hypothetisch nur gegen Campus E-Mail geprüft und ebenfalls blockiert.',
     dimmed: false,
     showPassWoOverlay: false,
   },
   's06-mixed-actual-hypothetical': {
-    label: 'S06 gemischt',
+    label: 's1.22 · Gemischte Darstellung',
     description:
       'Campusgram läuft real; Master Campus wird lokal nicht erkannt und anschließend mit einer konkreten Suffixvariante zu Campus E-Mail hypothetisch geprüft.',
     dimmed: false,
     showPassWoOverlay: false,
   },
   's07-passphrase-search': {
-    label: 'S07 → S08 Passphrase und Rücklauf',
+    label: 's1.23 · Passphrase und Rücklauf',
     description:
       'Passphrase-Werkstatt mit anschließendem Übergang in die kontobezogenen S08-Aktionen und den Angriffsrücklauf.',
     dimmed: false,
     showPassWoOverlay: false,
   },
   's08-network-replay': {
-    label: 'S08 Angriffsrücklauf',
+    label: 's1.24 · Angriffsrücklauf',
     description:
       'Direkter QA-Einstieg bei den betroffenen Kontoknoten vor dem vollständig blockierten Angriffsrücklauf.',
     dimmed: false,
     showPassWoOverlay: false,
   },
   's09-password-manager-transition': {
-    label: 'S09 → Passwortmanager',
+    label: 's1.25 · Übergang zum Passwortmanager',
     description:
       'Direkter QA-Einstieg im geschützten S08-Netzwerk, das in S09 auf 80 Konten herauszoomt und zur Passwortmanager-Karte führt.',
+    dimmed: false,
+    showPassWoOverlay: false,
+  },
+  's2-1-password-manager-transition': {
+    label: 's2.1 · Transitionkarte',
+    description: 'Direkter QA-Einstieg in die Transition zur Sektion Passwortmanager.',
     dimmed: false,
     showPassWoOverlay: false,
   },
@@ -521,12 +536,20 @@ const scenarioGroups = [
     scenarioIds: ['normal', 'dimmed', 'passwo-overlay'],
   },
   {
-    label: 'S00–S04',
-    scenarioIds: ['s00', 's01', 's02-master-campus', 's03', 's03-warning', 's04'],
+    label: 'Passwörter · s1.x Einstieg',
+    scenarioIds: [
+      'training-entry',
+      's00',
+      's01',
+      's02-master-campus',
+      's03',
+      's03-warning',
+      's04',
+    ],
   },
-  { label: 'S05 · Übergang', scenarioIds: ['s05'] },
+  { label: 'Passwörter · s1.x Analyseübergang', scenarioIds: ['s05'] },
   {
-    label: 'S05 · Bestandteile',
+    label: 'Passwörter · s1.x Bestandteile',
     scenarioIds: [
       's05-common-suffix',
       's05-all-categories',
@@ -535,17 +558,17 @@ const scenarioGroups = [
     ],
   },
   {
-    label: 'S05 · Vorhersehbarer Aufbau',
+    label: 'Passwörter · s1.x Aufbau',
     scenarioIds: ['s05-structure-repetition', 's05-structure-context', 's05-structure-none'],
   },
-  { label: 'S05 · Alle Möglichkeiten', scenarioIds: ['s05-free-search'] },
+  { label: 'Passwörter · s1.x Prüfung', scenarioIds: ['s05-free-search'] },
   {
-    label: 'S05 · Abschluss',
+    label: 'Passwörter · s1.x Abschluss',
     scenarioIds: ['s05-application-found', 's05-application-protected'],
   },
-  { label: 'S06 · Übergang', scenarioIds: ['s05-s06-transition'] },
+  { label: 'Passwörter · s1.x Folgenübergang', scenarioIds: ['s05-s06-transition'] },
   {
-    label: 'S06–S09',
+    label: 'Passwörter · s1.x Folgen und Rücklauf',
     scenarioIds: [
       's06-reuse-and-derived',
       's06-incident-not-found',
@@ -555,6 +578,10 @@ const scenarioGroups = [
       's08-network-replay',
       's09-password-manager-transition',
     ],
+  },
+  {
+    label: 'Passwortmanager · s2.x',
+    scenarioIds: ['s2-1-password-manager-transition'],
   },
 ] as const satisfies readonly DesignLabScenarioGroup[];
 
@@ -1057,6 +1084,17 @@ export function DesignLab({ scenarioId }: { readonly scenarioId: DesignLabScenar
       )
     : undefined;
 
+  if (scenarioId === 'training-entry') {
+    return (
+      <main className={styles.labPage}>
+        <DesignLabIntroduction scenarioId={scenarioId} scenario={scenario} />
+        <ArtifactPreview>
+          <PasswordModuleTraining />
+        </ArtifactPreview>
+      </main>
+    );
+  }
+
   if (scenarioId === 's00') {
     const campusWebsitePreview = readCampusWebsitePreview();
     const forceAnimationFailure =
@@ -1173,6 +1211,20 @@ export function DesignLab({ scenarioId }: { readonly scenarioId: DesignLabScenar
         <DesignLabIntroduction scenarioId={scenarioId} scenario={scenario} />
         <ArtifactPreview>
           <S07DirectQaPreview initialStage="s09" passwordOverrides={passwordOverrides} />
+        </ArtifactPreview>
+      </main>
+    );
+  }
+
+  if (scenarioId === 's2-1-password-manager-transition') {
+    return (
+      <main className={styles.labPage}>
+        <DesignLabIntroduction scenarioId={scenarioId} scenario={scenario} />
+        <ArtifactPreview>
+          <S07DirectQaPreview
+            initialStage="manager-transition"
+            passwordOverrides={passwordOverrides}
+          />
         </ArtifactPreview>
       </main>
     );

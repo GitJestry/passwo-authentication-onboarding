@@ -1,337 +1,328 @@
-# Begrenzte Passwort-Kandidatenanalyse in S05
+# Begrenzte Passwort-Kandidatenanalyse in S05 und S06
 
-## Zweck
+## Zweck und Claim-Grenze
 
-Diese Spezifikation dokumentiert die adaptive Trainingslogik für S05 bis S07. Sie beschreibt
-keinen Produktions-Password-Strength-Meter und keine empirische Messvariable. Die Analyse soll
-die drei im Training erklärten Angriffsstrategien auf fiktive Eingaben abbilden, konkrete
-Hinweise sichtbar machen und eine reproduzierbare Simulationsverzweigung bereitstellen.
+Diese Spezifikation dokumentiert die lokale adaptive Trainingslogik für S05 und S06. Sie
+beschreibt keinen produktiven Password Strength Meter, keine Verifier-Blocklist und keine
+empirische Messvariable. Die Logik soll:
+
+- konkrete, im Training erklärte Ansatzpunkte reproduzierbar erkennen;
+- das vollständige fiktive Passwort nur bei einem dokumentierten begrenzten Kandidatenweg als
+  gefunden behandeln;
+- dieselbe Entscheidung in S05 und S06 verwenden;
+- Länge getrennt als Handlungsempfehlung behandeln;
+- keine allgemeine Aussage `stark`, `sicher`, `bestanden` oder `unknackbar` erzeugen.
 
 Kanonische Architekturentscheidung: `ADR 0014-Bounded-Password-Guessing`.
 
 ## Wissenschaftliche Einordnung
 
-Die Implementierung verwendet zxcvbn-ts als lokale Pattern-Basis. zxcvbn kombiniert
-Wörterbuchtreffer, Transformationen, Tastaturmuster, Folgen, Wiederholungen, Daten und nicht
-anderweitig erklärte Bereiche zu einer intern bewerteten Sequenz. PassWo übernimmt aus dieser
-Sequenz erklärbare Pattern-Spans, aber keine numerische Guessability-Aussage. Die aktuelle
-Forschung warnt davor, einen Password Strength Meter unabhängig vom Angreifermodell als
-universelle Wahrheit zu behandeln. Die PassWo-Implementierung verwendet deshalb weder einen
-allgemeinen `stark/schwach`-Score noch eine Crack-Zeit oder eine Guess-Schwelle.
+NIST SP 800-63B-4 verlangt für produktive Verifier den Vergleich des vollständigen prospektiven
+Passworts mit häufig verwendeten, erwartbaren, kompromittierten und kontextspezifischen Werten
+sowie naheliegenden Ableitungen. NIST verlangt nicht, jedes beliebige enthaltene Wörterbuchwort
+als Blocklist-Treffer zu behandeln. Außerdem gilt für ein Passwort als alleinigen Faktor eine
+Mindestlänge von 15 Zeichen; zusätzliche Zeichentyp-Kompositionsregeln sollen nicht erzwungen
+werden.
+
+zxcvbn sucht Wörterbuchtreffer und weitere Muster und wählt anschließend eine nicht überlappende
+Sequenz für sein eigenes Guessability-Modell. Diese Sequenz ist keine erschöpfende Liste aller
+belegten Teilstrings. PassWo nutzt zxcvbn deshalb ausschließlich als lokale Musterquelle und
+übernimmt weder Score noch Guess-Zahl oder Crack-Zeit.
+
+Für Passphrasen ist die Erzeugungsmethode entscheidend. Die S07/S08-Passphrase beruht auf einer
+bekannten versionierten zufälligen Wortauswahl. S05 kann aus der bloßen Sichtbarkeit mehrerer
+gewöhnlicher Wörter nicht dieselbe Zufallsannahme ableiten. Die S05-Regel enthält deshalb nur eine
+bewusste Enthaltung: Ab fünf verschiedenen gewöhnlichen Wörtern erzeugt Wörterbuchabdeckung allein
+keinen positiven Treffer. Das ist keine positive Sicherheitsbewertung.
 
 Technische Referenzen:
 
+- NIST SP 800-63B-4, Abschnitt *Password Authenticators*.
 - Daniel Lowe Wheeler: *zxcvbn: Low-Budget Password Strength Estimation*, USENIX Security 2016.
-- Wang et al.: *No Single Silver Bullet: Measuring the Accuracy of Password Strength Meters*,
-  USENIX Security 2023.
-- NIST SP 800-63B-4, Abschnitt Password Authenticators.
-- Offizielle zxcvbn-ts-Dokumentation zu Sprachen, Wörterbüchern, Tastaturgraphen und `userInputs`.
+- Offizielle hashcat-Dokumentation zu Rule-, Hybrid-, Mask- und Combinator-Angriffen als
+  Beispiele dafür, dass bekannte Wörter mit endlichen Masken, Regeln und Kombinationen erweitert
+  werden können.
+- EFF Dice-Generated Passphrases als Beispiel einer Sicherheitserklärung aus einer bekannten
+  zufälligen Erzeugungsmethode.
 
-## Bedrohungsrahmen
+## Datenschutz und zulässige Eingaben
 
-Die fiktive Darstellung nimmt an, dass nach einem Datenleck ein lokal prüfbarer Passwortwert
-vorliegt. Der Angreifer kombiniert:
-
-1. naheliegende Bestandteile;
-2. vorhersehbare Strukturen und Transformationen;
-3. freies Ausprobieren für die verbleibenden Bereiche.
-
-Der bekannte Name des fiktiven Kontos sowie die lokal erzeugten fiktiven Kontoidentifikatoren
-dürfen als Kontext verwendet werden. Reale Konten, zusätzliche Leak-Daten, Phishing, Malware,
-Hardwareleistung und der konkrete Hashalgorithmus sind nicht Teil des Modells.
-
-## Eingaben und Datenschutz
-
-Zulässige Eingaben sind ausschließlich:
+Zulässig sind ausschließlich:
 
 - das im Training erzeugte fiktive Passwort;
-- wenige authored Begriffe des aktuell dargestellten fiktiven Kontos;
-- der aus dem flüchtigen Trainingsnamen lokal abgeleitete fiktive Benutzername und die fiktive
-  Konto-Mail des jeweils analysierten Kontos.
+- wenige versionierte Konto- und Dienstbegriffe des fiktiven Szenarios;
+- lokal aus der fiktiven Trainingsidentität abgeleitete Benutzer- und Kontoidentifikatoren.
 
-Nicht zulässig sind:
-
-- reale Passwörter oder Varianten;
-- weitere persönliche Profilinformationen;
-- externe Leak-Abfragen;
-- Netzwerk-, Storage-, Logging- oder Telemetrieausgaben;
-- Übernahme der Analyse in den Forschungsdatenexport.
-
-Die semantische Selbsteinordnung mit Ausweichoption bleibt ausschließlich im
-S05-Controllerzustand und wird beim Verlassen des Segments verworfen. Sie kann die unmittelbare
-Kategorie-Rückmeldung erklären, wird aber nicht als objektiver S06-Befund transportiert.
+Nicht zulässig sind reale Passwörter, reale Konten, externe Leak-Abfragen, Netzwerkzugriffe,
+Persistenz, Telemetrie oder Export der Analyse. Manuell in S05 markierte persönliche Bereiche
+bleiben flüchtiger UI-Zustand und werden nicht zur scheinbar objektiven S06-Diagnose.
 
 ## Eingefrorene Konfiguration
 
 | Bestandteil | Wert |
 |---|---|
-| Engine | `zxcvbn-ts` |
+| Analyse-ID | `passwo-bounded-whole-recognition-v11` |
+| Engine | `zxcvbn-ts` als Musterquelle |
 | Core | `@zxcvbn-ts/core@4.1.2` |
-| Allgemeines Wörterbuch und Graphen | `@zxcvbn-ts/language-common@4.1.2` |
+| Allgemeines Wörterbuch/Graphen | `@zxcvbn-ts/language-common@4.1.2` |
 | Deutsch | `@zxcvbn-ts/language-de@4.1.1` |
 | Englisch | `@zxcvbn-ts/language-en@4.1.1` |
-| Konfigurations-ID | `passwo-bounded-whole-recognition-v10` |
-| Maximale analysierte Länge | HTML-Eingabelimit 128 UTF-16-Codeeinheiten; zxcvbn `maxLength=128`; Längenorientierung nach Unicode-Codepoints |
-| Levenshtein-Option | zxcvbn-Option deaktiviert; authored Kontextmatch auf höchstens eine begrenzte Abweichung beschränkt |
-| Authored Konto-Kontext | kanonische kontospezifische Kataloge für Master Campus, Campus E-Mail und Campusgram; S05 verwendet den Campusgram-Katalog |
-| Lokale Kontoidentifikatoren | fiktiver Benutzername und fiktive Konto-Mail des aktuellen Kontos |
+| zxcvbn-Levenshtein | deaktiviert |
+| authored Kontextmatch | case-insensitive, eingefrorene Leetspeak-Ersetzungen, höchstens eine begrenzte Damerau-Levenshtein-Abweichung für ausreichend lange Begriffe |
+| Maximale Eingabe | 128 UTF-16-Codeeinheiten; Längenorientierung nach Unicode-Codepoints |
+| Längenorientierung | mindestens 15 Zeichen für selbst erstellte Passwörter |
+| Restzeichenbudget | höchstens `100_000_000` Kandidaten innerhalb einer eingefrorenen Familie |
+| Passphrase-Enthaltung | mindestens fünf verschiedene gewöhnliche Wörter/Namen ohne stärkeren konkreten Anker |
 | Externe Matcher | keine |
-| Vollpasswort-Treffer | einzelner früher Kandidat oder begrenzte typische Variante deckt die vollständige Zeichenfolge ab |
-| Längenorientierung | 15 Zeichen für selbst erstellte Passwörter |
 
-Das Lockfile muss vor dem Study Freeze exakt dieselben Paketversionen enthalten.
+## Verarbeitungsmodell
 
-## Blocklistenartige Vollpasswort-Semantik
+### 1. Musterquellen
 
-Die zxcvbn-Wörterbücher und authored Kontextbegriffe sind Erkennungshilfen für die didaktische
-Zerlegung. Sie sind keine produktive NIST-Blocklist und lehnen keine Teilnehmerwahl ab. Die
-Treffersemantik übernimmt jedoch bewusst eine zentrale Vollwert-Idee: Beim NIST-Blocklistenabgleich
-wird das vollständige prospektive Passwort mit bekannten, häufig verwendeten, erwartbaren oder
-kontextspezifischen Werten und Ableitungen verglichen, nicht jeder beliebige Teilstring als
-Blocklist-Treffer behandelt.
+`analyzeFictionalPassword` ruft zxcvbn-ts lokal mit der vollständigen Zeichenfolge und den
+zulässigen Kontextwerten als `userInputs` auf. Übernommen werden ausschließlich Match-Spans und
+Pattern-Typen für:
 
-PassWo verwendet diese Idee nur als didaktische Grenze: Ein einzelner früher Kandidat oder eine
-begrenzt authored Variante muss das **gesamte fiktive Passwort** abdecken, bevor die
-segmentübergreifende Disposition `whole-password-recognized` lautet. Teilbefunde dürfen weiterhin
-sichtbar sein, bestimmen die Disposition aber nicht allein. Das ist keine NIST-Konformitäts- oder
-Verifier-Implementierung.
-
-Für die kompakte S05-Abschlussauswertung trägt ein Volltreffer zusätzlich ausschließlich die IDs
-der automatischen Befunde, die diesen Treffer begründen. Sie dienen nur der lokalen
-Darstellungsprojektion, werden nicht persistiert oder exportiert und verändern die Trefferregel
-nicht. Bei Nicht-Erkennung bleiben vorhandene Befunde ausdrücklich als Teilbefunde bezeichnet.
-
-## Verarbeitung
-
-### 1. zxcvbn-Patternpfad
-
-`analyzeFictionalPassword` ruft zxcvbn-ts mit der vollständigen Zeichenfolge, den authored
-Konto-Begriffen und den flüchtigen fiktiven Kontoidentifikatoren als `userInputs` auf. Für eine
-von zxcvbn belegte Wiederholung wird zusätzlich deren strikt kürzere Basiskomponente mit derselben
-lokalen Konfiguration ausgewertet. Eine zweite lokale Projektion ohne Wörterbücher verhindert,
-dass ein Wörterbuchtreffer innerhalb dieser Basis belegte Tastatur-, Datums- oder Folgenmuster
-verdeckt.
-
-PassWo übernimmt ausschließlich `result.sequence` zur Projektion erklärbarer Pattern.
-`result.guesses`, `result.guessesLog10`, der Bibliotheksscore `0` bis `4` und `crackTimes` werden
-nicht in den Domain-Contract übernommen, nicht angezeigt und nicht für die Disposition verwendet.
-zxcvbn darf diese Werte intern zur Auswahl seiner Sequenz berechnen; PassWo macht daraus keine
-eigene numerische Sicherheitsbewertung.
-
-### 2. Komponenten
-
-Die optimale Sequenz wird in stabile PassWo-Kategorien projiziert:
-
-- häufiger Passwortkern;
-- häufiges Wort oder häufiger Name;
+- häufige Passwortwerte;
+- gewöhnliche Wörter und Namen;
+- Konto- und Dienstbezüge;
 - Tastaturmuster;
-- Jahr oder Datum;
-- einfache Zeichen- oder Wortfolge;
-- Wiederholung;
-- typische Transformation;
-- authored Konto- oder Dienstbegriff;
-- typischer Zahlen- oder Symbolanhang.
+- Jahre und Daten;
+- einfache Zeichen- oder Wortfolgen;
+- Wiederholungen;
+- typische Transformationen und Endungen.
 
-Zusätzliche deterministische Regeln ergänzen authored Konto-Treffer, exakte Treffer der lokalen
-fiktiven Kontoidentifikatoren, Jahreszahlen, typische Endungen und nummerierte Wiederholungen
-desselben Wortes mit mindestens drei aufeinanderfolgenden Markern. Authored Konto- und
-Dienstbegriffe werden zusätzlich begrenzt fuzzy geprüft: case-insensitive, mit der eingefrorenen
-zxcvbn-Leetspeak-Tabelle einschließlich ein- und mehrzeichiger Ersetzungen sowie höchstens einer
-einzelnen Damerau-Levenshtein-Abweichung für Tokens ab fünf Zeichen. Die Prüfung liefert
-weiterhin den tatsächlich erkannten Originalspan;
-angehängte Satzzeichen bleiben außerhalb des Begriffs, sofern der kürzere Treffer eindeutig ist.
-Eine typische Endung setzt Buchstaben im vorangehenden fiktiven Passwort voraus, aber keinen
-weiteren Komponentenbefund. Kategorien dürfen überlappen. Insbesondere verdrängt ein
-zxcvbn-Wiederholungsmatch die von zxcvbn erkannten Wörterbuch-, Passwort- und Folgenbefunde seiner
-Basis nicht. Für die Darstellung werden Dubletten entfernt und Befunde priorisiert. Die
-Vollpasswort-Disposition wird anschließend ausschließlich aus den konkret belegten PassWo-Befunden
-nach der unten definierten Trefferregel abgeleitet.
+`result.guesses`, `guessesLog10`, Score und Crack-Zeiten werden weder exportiert noch zur
+Disposition verwendet.
 
-Damit die optimale Gesamtsequenz alternative belegte Wörter nicht verdeckt, werden vollständige
-alphabetische Läufe zusätzlich deterministisch gegen die eingefrorenen Passwort-, Wort- und
-Namenswörterbücher zerlegt. Eine Ergänzung ist nur zulässig, wenn der gesamte Lauf lückenlos aus
-belegten Wörtern besteht oder ein einzelnes vollständiges Wörterbuchwort unmittelbar an ein
-nicht-alphanumerisches Verbindungszeichen grenzt. Ergänzte Wörter haben mindestens vier
-Buchstaben; kürzere Teile sind nur zulässig, wenn zxcvbn selbst genau diesen Span belegt. Bei
-mehreren vollständigen Zerlegungen werden zuerst weniger Teile, danach die bestehende
-Wörterbuchpriorität und schließlich längere frühere Teile bevorzugt. Die Ergänzung ist exakt und
-case-insensitive; Leetspeak, Tippfehler und beliebige innere Teilstrings werden nicht zusätzlich
-segmentiert. So bleiben etwa `ich` und `liebe` in `ichliebe-Campusgram4` belegbar, ohne eine freie
-sprachliche Tokenisierung einzuführen.
+### 2. Ergänzende Wörterbuchprojektion
 
-Nicht-alphanumerische Zeichen zwischen zwei belegten Bereichen dürfen in der Oberfläche als
-reine Verbindung markiert werden. Sie werden dadurch weder zum Wörterbuchtreffer noch zu einem
-neuen Rateweg-Match. Diese Darstellungsbefunde und Verbindungen verändern weder zxcvbns Pattern-Sequenz noch die
-Vollpasswort-Disposition.
+Da zxcvbns optimale Sequenz alternative Treffer verdecken kann, werden alphabetische Läufe
+zusätzlich exakt gegen die eingefrorenen Passwort-, Wort- und Namenslisten geprüft.
 
-Ein authored Konto- oder Dienstbegriff oder ein lokaler fiktiver Kontoidentifikator darf in der
-Darstellung auch als veränderter Kontobezug erscheinen, sobald der begrenzte authored Matcher den
-Originalspan belegt. Ein zusätzlicher deckungsgleicher zxcvbn-Transformationsbefund ist dafür nicht
-erforderlich. Die Fuzzy-Regel ist auf die oben genannte Zeichen- und Distanzgrenze beschränkt;
-beliebige semantische Ähnlichkeit oder unbeschränkte Levenshtein-Suche werden nicht als Kontobezug
-ausgegeben.
+Unterstützte Grenzen sind:
 
-### 3. Strukturen
+- Anfang und Ende des alphabetischen Laufs;
+- Klein-zu-Großschreibung, etwa `Passwort|Suppe`;
+- Akronym-zu-Titelwort, etwa `BVB|Test`;
+- eine lückenlose vollständige Zerlegung eines kleingeschriebenen Laufs.
 
-Die presentation-only Strukturanalyse erkennt nur:
+Unbekannte Bereiche bleiben möglich und löschen angrenzende Befunde nicht. Die Projektion darf
+keine beliebigen inneren Teilstrings erzeugen. Bei `Klarissa` werden deshalb nicht frei `Klar` und
+`larissa` herausgeschnitten. Bei `KlarissaBVBTestPasswort` können dagegen die sichtbaren Grenzen
+`Klarissa | BVB | Test | Passwort` genutzt werden.
 
-- ausreichend lange exakte Wiederholungen;
-- weitere von zxcvbn konkret belegte Wiederholungsmuster und vorhersehbare Komponentenfolgen;
-- authored Konto- oder Kontextbegriffe zusammen mit Jahr, Datum, Folge oder Anhang;
-- einen Zahlenmarker zusammen mit einem typischen Anhang.
+### 3. Konto-/Dienstvorrang
 
-Sie erfindet keine thematische oder sprachliche Beziehung und erzeugt nicht durch das
-Zusammenaddieren unabhängiger Teilbefunde einen Vollpasswort-Treffer.
-
-### 4. Lokale semantische Einordnung
-
-Teilnehmende ordnen ohne Freitext ein, ob ein Bestandteil als persönliche Angabe gedacht war,
-mehrere Bestandteile für sie zu demselben Thema gehören oder eine Satz-/Phrasenstruktur bilden. `Nichts davon oder unsicher` ist exklusiv. Die Auswahl:
-
-- bleibt lokal und flüchtig;
-- verlangt keine Details;
-- wird nicht exportiert;
-- beeinflusst die segmentübergreifende Disposition nicht.
-
-## Simulationsentscheidung
-
-Die Entscheidung ist absichtlich kategorial statt numerisch:
+Exakte oder authored begrenzt veränderte Konto-/Dienstspans haben Vorrang. Wörterbuchspans, die
+vollständig darin liegen, werden unterdrückt:
 
 ```text
-whole-password-recognized-value
-    iff ein einzelner zulässiger früher Kandidat die gesamte Zeichenfolge abdeckt
+Campusgram   -> Kontobezug
+nicht zusätzlich: Campus + gram
 
-whole-password-recognized-bounded-variant
-    iff ein einzelner erkannter Kern plus eine explizit begrenzte typische Variante
-        die gesamte Zeichenfolge abdeckt
-
-no-whole-password-recognized
-    andernfalls
+C4mpu5Gram! -> veränderter Kontobezug + vorhandene weitere Befunde
+nicht zusätzlich: Gram als konkurrierender Wörterbuchkern
 ```
 
-Als direkte Vollwert-Kandidaten gelten die bereits modellierten Kategorien häufiger
-Passwortkern/Wort/Name, Tastaturmuster, Jahr/Datum, einfache Zeichen- oder Wortfolge,
-Wiederholung und authored Konto-/Dienstbegriff. Eine deckungsgleiche typische Transformation
-kennzeichnet den Treffer als begrenzte Variante.
+Diese Regel ändert keine UI-Komponente. Sie bereinigt ausschließlich die interne Befundmenge, aus
+der bestehende Projektionen gespeist werden.
 
-Für einen Variantenweg darf ein einzelner am Anfang erkannter Passwort-/Wort-/Name- oder
-Konto-Kern durch einen typischen Zahlen-/Symbolanhang oder ein direkt anschließendes Jahr/Datum
-ergänzt werden. Zwischen Kern und Kalenderteil ist höchstens ein einzelnes `-`, `_` oder `.`
-zulässig; direkt anschließende typische Endinterpunktion darf den Kalenderteil abschließen.
+### 4. Kanonische nicht überlappende Evidenz
 
-**Mehrere unabhängige Teilbefunde werden nicht zu einem Volltreffer addiert.** Wenn etwa zwei
-Wörter gemeinsam die sichtbare Zeichenfolge abdecken, zeigt die Oberfläche beide Bestandteile;
-die konkrete Reihenfolge und Verbindung gelten dadurch noch nicht automatisch als ein einzelner
-früh geprüfter Kandidat.
+Für die Vollpasswort-Disposition wird eine kanonische Teilmenge gewählt. Die Auswahl:
 
-Ein vollständiger authored Konto-/Dienstbegriff oder lokaler fiktiver Kontoidentifikator kann
-unmittelbar einen Volltreffer bilden. Dafür wird keine künstliche numerische Gewichtung
-eingeführt.
+1. maximiert die belegte Zeichenabdeckung;
+2. verwendet bei gleicher Abdeckung weniger Spans;
+3. bevorzugt bei weiterem Gleichstand Konto-/Dienstbezug, Wiederholung, Tastatur/Folge,
+   Datum/Jahr, Passwortlistenwert, gewöhnliches Wort/Name und zuletzt typische Endung;
+4. ist bei vollständigem Gleichstand lexikografisch deterministisch.
 
-Die Gegenkategorie `no-whole-password-recognized` ist eine Enthaltung von einer positiven
-Trefferbehauptung, kein `strong`, `secure` oder `uncrackable`.
+Die Oberfläche berechnet keine zweite Auswahl oder Bewertung.
 
-## Rolle der Länge
+## Vollpasswort-Disposition
 
-Die sichtbare Länge wird unabhängig von der Kandidatenentscheidung als Unicode-Codepoint-Anzahl
-bestimmt:
+### Direkter Treffer
 
-- `below-15`;
-- `at-least-15`.
+`whole-password-recognized-value` gilt, wenn ein einzelner zulässiger Befund die gesamte
+Zeichenfolge abdeckt. Beispiele sind ein vollständiger gelisteter Passwortwert, ein einzelnes
+gewöhnliches Wort, ein Konto-/Dienstbegriff, eine Wiederholung, eine Folge oder ein Tastaturmuster.
 
-Die 15-Zeichen-Orientierung folgt der aktuellen NIST-Anforderung für Passwörter als alleinigen
-Faktor. Sie ist eine Handlungsempfehlung für selbst erstellte Passwörter, keine mathematische
-Zertifizierung. Deshalb gilt:
+`whole-password-recognized-bounded-variant` gilt bei einer deckungsgleichen belegten
+Transformation oder beim nachfolgend beschriebenen begrenzten Variantenweg.
 
-- ein langes Passwort kann trotz erfüllter Längenorientierung `whole-password-recognized` sein,
-  wenn ein früher Kandidat das vollständige Passwort abdeckt;
-- ein kurzes, in diesen Prüfungen nicht vollständig erkanntes Passwort bleibt
-  `no-whole-password-recognized` plus `below-15`;
-- `< 12`, `< 15` oder ausschließlich Kleinbuchstaben erzeugen **keinen** Volltreffer;
-- Zeichenklassen werden nicht als Pflicht oder Sicherheitsbeweis verwendet.
+### Begrenzter Variantenweg
 
-Die authored Angreifer-Uhr in S05.3 ist ein separates theoretisches Modell mit ausdrücklich
-unabhängig zufällig gezogenen Zeichen. Ihre Suchräume werden nicht mit zxcvbn-Werten oder der
-Vollpasswort-Disposition vermischt.
+Aus den kanonischen Spans werden semantische Anker und nicht abgedeckte Codepoints bestimmt.
+Typische Endungen sind belegte Modifikatoren, aber kein eigenständiger semantischer Anker.
 
-## Einbindung in S05 bis S07
+Für `k` semantische Anker und `r` Restzeichen umfasst die Kandidatenfamilie:
 
-### S05
+```text
+alphabetSize(rest)^r
+× multisetPermutations(anchors)
+× binomial(r + k, k)
+```
 
-- Karte 1 zeigt konkrete Komponentenbefunde.
-- Karte 2 zeigt begrenzte Strukturbefunde und die lokale semantische Einordnung.
-- Karte 3 zeigt sichtbare Länge, erkannte Bereiche, Restbereiche und die vollständige
-  Simulationsdisposition.
+`binomial(r + k, k)` verteilt die Restzeichen auf alle `k + 1` Positionen vor, zwischen und nach
+den Ankern. Deshalb hängt die Entscheidung nicht davon ab, ob derselbe Rest vor, zwischen oder
+nach erkannten Bestandteilen steht.
 
-### S06
+#### Restalphabete
 
-Nur `whole-password-recognized` öffnet den tatsächlichen roten Vorfallspfad. Die Gegenkategorie führt
-zum blockierten tatsächlichen Pfad und anschließend gegebenenfalls zur klar gekennzeichneten
-hypothetischen Darstellung. Beide Texte bleiben auf die begrenzte Simulation beschränkt.
+| Enthaltene Restzeichen | Verwendete Größe |
+|---|---:|
+| `a-z` | 26 |
+| `a-zäöüß` | 30 |
+| `A-Z` | 26 |
+| `A-ZÄÖÜ` | 29 |
+| `0-9` | 10 |
+| druckbare ASCII-Interpunktion/Leerzeichen | 33 |
 
-### S07
+Bei Mischungen werden die beteiligten Größen addiert. Nicht unterstützte Unicode-Zeichen liefern
+keinen positiven Restweg.
 
-Die Diagnose trennt:
+Die Familie muss höchstens `100_000_000` Kandidaten enthalten. Die Grenze ist so gesetzt, dass
+fünf beliebige ASCII-Kleinbuchstaben um einen einzelnen klaren Anker positionsunabhängig
+vollständig abgedeckt sind:
 
-- vollständigen frühen Kandidatentreffer;
-- Längenorientierung;
-- exakte Wiederverwendung;
-- abgeleitete Variante;
-- Abrufbarkeit.
+```text
+26^5 × 6 = 71_288_256
+```
 
-Die Teilnehmeroberfläche zeigt keine allgemeinen Aussagen wie `für sich sicher` oder `bestanden`.
+Sechs Kleinbuchstaben liegen bereits darüber:
 
-### S08
+```text
+26^6 × 7 = 2_162_410_432 > 100_000_000
+```
 
-Systemgenerierte Sechs-Wort-Folgen erhalten eine eigene Herkunftsbegründung. Sie werden nicht
-mithilfe des S05-Guessing-Modells akzeptiert oder abgelehnt.
+Die genaue große Zahl ist für den Teilnehmertext ohne Bedeutung. Relevant ist nur die eingefrorene
+binäre Regel. Sie ist weder eine Zeitprognose noch eine allgemeine Stärkeformel.
 
-## Validierung vor dem Freeze
+Für zwei verschiedene Anker und vier Kleinbuchstaben gilt einschließlich beider Ankerreihenfolgen
+und aller Verteilungen:
 
-Der synthetische Testkorpus enthält mindestens:
+```text
+26^4 × 2 × binomial(6, 2) = 13_709_280
+```
 
-- häufige vollständige Passwörter;
-- typische Großschreibung, Leetspeak-Varianten wie `ch4t!` für `Chat` und eine einzelne
-  begrenzte Zeichenabweichung;
-- lückenlos belegte aneinandergereihte Wörter sowie vollständige Wörter an `-`, `_`, `;` und
-  anderen nicht-alphanumerischen Verbindungen;
-- Konto-Begriff plus Jahr/Anhang;
-- Tastatur- und Zeichenfolgen;
-- exakte Wiederholungen;
-- lange vorhersehbare Zeichenfolgen;
-- nicht erklärte zufällig wirkende Zeichenfolgen;
-- Umlaute und Unicode-Offsetfälle;
-- ein einzelner Vollwert-Kandidat;
-- ein begrenzter Kern-plus-Anhang/Jahr-Variantenweg;
-- mehrere Teilbefunde, die gemeinsam den String abdecken, aber keinen einzelnen Kandidaten bilden;
-- Trennung von Vollpasswort-Treffer und 15-Zeichen-Orientierung.
+Daher erhalten alle folgenden Formen denselben positiven internen Weg:
 
-Metamorphe Invarianten:
+```text
+PasswortmklhSuppe
+PasswortSuppemlkh
+mklhPasswortSuppe
+```
 
-- Großschreibung oder `o -> 0` darf einen bekannten Kern nicht automatisch verbergen.
-- Ein einzelnes `!` oder eine Zeichenklasse erzeugt kein Sicherheitsurteil.
-- Ein einzelner erkannter Teil macht die vollständige Zeichenfolge nicht automatisch zum Treffer.
-- Ein Wörterbuchwort innerhalb eines nicht vollständig zerlegbaren alphabetischen Laufs erzeugt
-  durch die Zusatzprojektion keinen freien inneren Teiltreffer.
-- Länge allein bestimmt die Vollpasswort-Disposition nicht.
-- Semantische Selbsteinordnung verändert die Disposition nicht.
-- Kein Ergebnis darf `sicher`, `garantiert`, `bestanden` oder eine exakte Crack-Zeit behaupten.
+Bei fünf Kleinbuchstaben zwischen denselben zwei Ankern liegt die Familie oberhalb der Grenze und
+die Restzeichenregel enthält sich, sofern kein anderer konkreter Befund greift.
 
-Der Testkorpus validiert die vorab begrenzte Implementierung und ihre Reproduzierbarkeit. Er ist
-keine externe Validierungsstudie eines neuen Password Strength Meters.
+### Bereits erklärte Veränderungen
+
+Restzeichen werden erst nach der Befunderfassung berechnet. Erkannte Jahre, Zahlen-/Symbolenden,
+Folgen, Wiederholungen, Tastaturmuster oder Transformationen sind daher keine unerklärten Reste.
+`Passwort123?!` kann aufgrund seiner konkreten Befunde gefunden werden, auch wenn eine gleich
+lange beliebige Mischfolge außerhalb der Restfamilie läge.
+
+## Wörterketten und Passphrase-shaped Eingaben
+
+Die Trainingsregel unterscheidet nicht allgemein zwischen „sicherer Passphrase“ und „unsicherer
+Wörterkette“. Dafür wäre die bekannte Wortauswahl- und Zufallsmethode erforderlich.
+
+Sie verwendet nur diese begrenzte Entscheidung:
+
+- ein einzelnes gewöhnliches Wort kann ein direkter Treffer sein;
+- zwei bis vier vollständig erkannte gewöhnliche Wörter/Namen können als einfache
+  Wörteraneinanderreihung in der begrenzten Kandidatenfamilie liegen;
+- ab fünf verschiedenen gewöhnlichen Wörtern/Namen reicht Wörterbuchabdeckung **allein** nicht
+  für einen Treffer;
+- ein konkreter stärkerer Anker oder ein Muster kann die Eingabe weiterhin finden;
+- wiederholte Wörter erhalten keine Passphrase-Enthaltung.
+
+Beispiele:
+
+| Eingabe | Wörterbuch-only-Disposition | Begründung |
+|---|---|---|
+| `Kaffee` | gefunden | einzelner vollständiger Kandidat |
+| `KaffeeMorgen` | gefunden | kurze einfache Wörteraneinanderreihung |
+| `KaffeeMorgenSonneLampe` | gefunden | viergliedrige Wörteraneinanderreihung innerhalb der authored Grenze |
+| `KaffeeMorgenSonneLampeFenster` | nicht allein dadurch gefunden | fünf verschiedene gewöhnliche Wörter; passphrase-shaped Enthaltung |
+| `KaffeeMorgenPasswortSonneLampe` | kann gefunden werden | expliziter Passwortlistenanker `Passwort` |
+| `KaffeeKaffeeKaffeeKaffeeKaffee` | kann gefunden werden | Wiederholung statt unabhängiger Wortauswahl |
+
+`no-whole-password-recognized` bleibt auch hier eine Enthaltung und kein grünes Licht.
+
+## Länge
+
+Länge wird separat als Unicode-Codepoint-Anzahl bestimmt:
+
+```text
+below-15
+at-least-15
+```
+
+Die Längenorientierung ist keine Eingabe in die Kandidatenentscheidung. Daraus folgen vier
+zulässige Kombinationen:
+
+| Kandidatenprüfung | Länge | Bedeutung innerhalb des Trainings |
+|---|---|---|
+| gefunden | unter 15 | konkreter früher Weg plus nicht erfüllte Längenorientierung |
+| gefunden | mindestens 15 | Länge erreicht, aber konkreter früher Weg vorhanden |
+| nicht gefunden | unter 15 | kein positiver Weg in der begrenzten Prüfung; Länge dennoch zu kurz |
+| nicht gefunden | mindestens 15 | beide begrenzten Trainingsbefunde günstig, aber keine allgemeine Sicherheitsgarantie |
+
+Es gibt keine Pflicht für Großbuchstaben, Ziffern oder Sonderzeichen und keinen zusammengefassten
+Stärke-Score.
+
+## S05-/S06-Integration
+
+S05 und S06 rufen dieselben Funktionen auf:
+
+```text
+analyzeFictionalPassword(...)
+determinePasswordSimulationDisposition(...)
+```
+
+S05 verwendet die Disposition für die Abschlussauswertung. S06 analysiert jedes der drei
+fiktiven Konten erneut mit demselben Paket, denselben lokalen Kontexten und derselben
+Konfigurationsversion. Die bestehende S06-Animation erhält nur das kategoriale Ergebnis; sie
+enthält keine eigene Passwortbewertung.
+
+## Teststrategie
+
+`password-candidate-corpus.test.ts` enthält 120 verschiedene, vorab erwartete Beispielpasswörter:
+
+- 15 direkte Volltreffer;
+- 30 zwei- bis viergliedrige Wörterketten;
+- 20 passphrase-shaped Eingaben mit fünf oder sechs verschiedenen Wörtern;
+- 25 Restzeichenfälle innerhalb der Grenze;
+- 20 Restzeichenfälle außerhalb der Grenze;
+- 10 Struktur- und Abgrenzungsfälle.
+
+Der Korpus prüft außerdem:
+
+- gleiche Entscheidung unabhängig von Restposition und Ankerreihenfolge;
+- `KlarissaBVBTestPasswort!` ohne freie innere Fragmente `Klar`/`larissa`;
+- Vorrang von `Campusgram` beziehungsweise `C4mpu5Gram` gegenüber `Campus`/`gram`;
+- gemeinsame Disposition für S05 und S06;
+- Unabhängigkeit von der 15-Zeichen-Orientierung;
+- Unicode- und nicht unterstützte Restzeichen;
+- Wiederholungen, Folgen und Tastaturmuster.
+
+Die Tests validieren die deterministische Implementierung gegen die authored Spezifikation. Sie
+messen nicht die Genauigkeit gegenüber realen Passwortkorpora oder realen Angreifern.
 
 ## Bekannte Grenzen
 
-- zxcvbn-ts approximiert ausgewählte Guessing-Strategien; andere Angreifer können andere Wege
-  finden.
-- Wörterbücher sind sprach- und versionsabhängig.
-- `userInputs` enthalten authored Kontokontext sowie ausschließlich lokal abgeleitete fiktive
-  Kontoidentifikatoren und keine Daten realer Konten oder fremder Datenlecks.
-- Die optimierte Sequenz zeigt nicht zwingend jeden semantisch denkbaren Teilstring.
-- Die begrenzte Kompositzerlegung findet nur lückenlos durch die eingefrorenen Wörterbücher oder
-  bereits vorhandene zxcvbn-Spans belegte alphabetische Läufe.
-- `no-whole-password-recognized` ist eine Enthaltung von einer positiven Trefferbehauptung, kein
-  Sicherheitsnachweis.
-- Die manuelle S05-Markierung persönlicher Angaben bleibt absichtlich flüchtig und wird nicht als
-  scheinbar objektiver Befund nach S06 transportiert; automatisch abgeleitete fiktive
-  Kontoidentifikatoren bleiben dagegen reproduzierbare Kontextkandidaten.
+- Die Kandidatenfamilie ist bewusst klein und kann reale Treffer auslassen.
+- Ein echter Offline-Angriff hängt stark vom Hashverfahren, Salt, Kostenparametern, Hardware,
+  Wortlisten, Regeln und Priorisierung ab.
+- Die Restalphabetwahl ist eine eingefrorene Trainingsabstraktion. Sie sagt nicht voraus, wann ein
+  bestimmter realer Angreifer die Zeichenfolge prüfen würde.
+- Die Fünf-Wort-Enthaltung ist keine Passphrase-Zertifizierung. Nur die bekannte zufällige
+  S07/S08-Erzeugungsmethode erlaubt eine gesonderte methodische Begründung.
+- Die manuelle persönliche Einordnung bleibt flüchtig. Ein nicht automatisch belegtes Kürzel wie
+  `BVB` kann intern als kleiner Rest behandelt werden, ohne als persönlicher Bezug behauptet zu
+  werden.
+- Änderungen an Wörterbüchern oder Analyseparametern erfordern eine neue Version und einen erneut
+  geprüften Korpus.

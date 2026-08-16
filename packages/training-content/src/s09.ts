@@ -1,13 +1,13 @@
 import type { TrainingSectionId } from '@passwo/contracts';
 
-export const S09_PASSWORD_SUMMARY_CONTENT_VERSION = '3.9.0';
+export const S09_PASSWORD_SUMMARY_CONTENT_VERSION = '4.0.0';
 
 export const s09PasswordSummaryContent = {
   version: S09_PASSWORD_SUMMARY_CONTENT_VERSION,
   source: {
-    revision: 'Userauftrag vom 2026-08-15 · Risikoverbindungen ohne erneutes Zeichnen',
+    revision: 'Userauftrag vom 2026-08-16 · externer Passwortmanager-Einstieg',
     copyReference:
-      'docs/design/S08-S09-COPY-AUDIT.md#darstellungsdelta-s09-risikoverbindungen-ohne-erneutes-zeichnen-15-august-2026',
+      'docs/design/S08-S09-COPY-AUDIT.md#copy--und-interaktionsdelta-s09-externer-passwortmanager-einstieg-16-august-2026',
   },
   segment: {
     id: 'S09',
@@ -93,6 +93,11 @@ export const s09PasswordSummaryContent = {
       'Welche Risiken dabei entstehen können, hast du gerade gesehen. Auch ungeschützte Passwortlisten können selbst zum Risiko werden.',
       'Die gute Nachricht: Du musst dir all diese Passwörter auch gar nicht selbst merken.',
     ],
+  },
+  passwordManagerAction: {
+    title: 'Passwortmanager',
+    detail: 'kennenlernen',
+    ariaLabel: 'Passwortmanager kennenlernen',
   },
   passwordManagerTransition: {
     sectionLabel: 'Sektion 2 von 3',

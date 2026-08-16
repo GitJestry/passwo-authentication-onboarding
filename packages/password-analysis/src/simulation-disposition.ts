@@ -11,12 +11,20 @@ import { PASSWORD_ANALYSIS_CONFIGURATION_VERSION } from './password-guessing-ana
 
 export const SELF_CREATED_PASSWORD_LENGTH_ORIENTATION = 15;
 
+/**
+ * Authored ceiling for one finite residual family around already recognized candidates.
+ * `26^5 * 6` fits, so five arbitrary ASCII-lowercase codepoints are covered around one anchor
+ * independently of position; six do not fit. This is neither a crack-time estimate nor a
+ * password-strength score.
+ */
+export const MAX_BOUNDED_RESIDUAL_CANDIDATES = 100_000_000n;
+
 export interface PasswordSimulationDispositionInput {
   readonly fictionalPassword: string;
   readonly componentAnalysis: PasswordAnalysisResult;
 }
 
-const wholeCandidateKinds = new Set<PasswordSingleFindingKind>([
+const directWholeCandidateKinds = new Set<PasswordSingleFindingKind>([
   'common-password-core',
   'common-word',
   'common-name',
@@ -29,12 +37,61 @@ const wholeCandidateKinds = new Set<PasswordSingleFindingKind>([
   'account-or-service-term',
 ]);
 
-const boundedVariantAnchorKinds = new Set<PasswordSingleFindingKind>([
-  'common-password-core',
+const composedCandidateKinds = new Set<PasswordSingleFindingKind>([
+  ...directWholeCandidateKinds,
+  'typical-suffix',
+]);
+
+const ordinaryLexicalKinds = new Set<PasswordSingleFindingKind>([
   'common-word',
   'common-name',
-  'account-or-service-term',
 ]);
+
+const explicitPasswordAnchorTokens = new Set([
+  'admin',
+  'geheim',
+  'kennwort',
+  'letmein',
+  'login',
+  'meinpasswort',
+  'master',
+  'mypassword',
+  'password',
+  'passwort',
+  'starkespasswort',
+  'secret',
+  'strongpassword',
+  'test',
+  'testpassword',
+  'testpasswort',
+  'welcome',
+  'willkommen',
+]);
+
+const evidencePriority: Readonly<Partial<Record<PasswordSingleFindingKind, number>>> = {
+  'account-or-service-term': 0,
+  'repeated-component': 1,
+  'keyboard-pattern': 2,
+  'simple-character-sequence': 3,
+  'predictable-word-sequence': 4,
+  date: 5,
+  year: 6,
+  'common-password-core': 7,
+  'common-word': 8,
+  'common-name': 9,
+  'typical-suffix': 10,
+};
+
+interface CandidateEvidence {
+  readonly finding: PasswordSingleFinding;
+  readonly span: PasswordEvidenceSpan;
+}
+
+interface EvidenceSelection {
+  readonly items: readonly CandidateEvidence[];
+  readonly coveredCodeUnits: number;
+  readonly priority: number;
+}
 
 function lengthOrientationFor(fictionalPassword: string): PasswordLengthOrientation {
   return [...fictionalPassword].length < SELF_CREATED_PASSWORD_LENGTH_ORIENTATION
@@ -45,6 +102,17 @@ function lengthOrientationFor(fictionalPassword: string): PasswordLengthOrientat
 function findingSpans(finding: PasswordSingleFinding): readonly PasswordEvidenceSpan[] {
   return finding.evidence.filter(
     (evidence): evidence is PasswordEvidenceSpan => evidence.type === 'span',
+  );
+}
+
+function isValidSpan(span: PasswordEvidenceSpan, fictionalPassword: string): boolean {
+  return (
+    Number.isInteger(span.start) &&
+    Number.isInteger(span.end) &&
+    span.start >= 0 &&
+    span.end > span.start &&
+    span.end <= fictionalPassword.length &&
+    fictionalPassword.slice(span.start, span.end) === span.token
   );
 }
 
@@ -66,7 +134,7 @@ function directWholePasswordRecognition(
 } | null {
   const wholeCandidate = findings.find(
     (finding) =>
-      wholeCandidateKinds.has(finding.kind) &&
+      directWholeCandidateKinds.has(finding.kind) &&
       findingSpans(finding).some((span) => spansWholePassword(span, fictionalPassword)),
   );
   if (wholeCandidate === undefined) return null;
@@ -77,9 +145,10 @@ function directWholePasswordRecognition(
       findingSpans(finding).some((span) => spansWholePassword(span, fictionalPassword)),
   );
   return {
-    ruleId: transformation !== undefined
-      ? 'whole-password-recognized-bounded-variant'
-      : 'whole-password-recognized-value',
+    ruleId:
+      transformation !== undefined
+        ? 'whole-password-recognized-bounded-variant'
+        : 'whole-password-recognized-value',
     findingIds:
       transformation === undefined
         ? [wholeCandidate.id]
@@ -87,14 +156,229 @@ function directWholePasswordRecognition(
   };
 }
 
-function exactConnectorEnd(fictionalPassword: string, start: number): number {
-  const connector = fictionalPassword.slice(start, start + 1);
-  return connector === '-' || connector === '_' || connector === '.' ? start + 1 : start;
+function candidateEvidence(
+  fictionalPassword: string,
+  findings: readonly PasswordSingleFinding[],
+): readonly CandidateEvidence[] {
+  return findings.flatMap((finding) =>
+    composedCandidateKinds.has(finding.kind)
+      ? findingSpans(finding)
+          .filter((span) => isValidSpan(span, fictionalPassword))
+          .map((span) => ({ finding, span }))
+      : [],
+  );
 }
 
-function hasOnlyTypicalTerminalPunctuation(fictionalPassword: string, start: number): boolean {
-  const suffix = fictionalPassword.slice(start);
-  return suffix.length > 0 && /^[!?#$._-]+$/u.test(suffix);
+function betterSelection(left: EvidenceSelection, right: EvidenceSelection): EvidenceSelection {
+  if (left.coveredCodeUnits !== right.coveredCodeUnits) {
+    return left.coveredCodeUnits > right.coveredCodeUnits ? left : right;
+  }
+  if (left.items.length !== right.items.length) {
+    return left.items.length < right.items.length ? left : right;
+  }
+  if (left.priority !== right.priority) return left.priority < right.priority ? left : right;
+
+  const leftKey = left.items
+    .map(({ finding, span }) => `${span.start}:${span.end}:${finding.kind}`)
+    .join('|');
+  const rightKey = right.items
+    .map(({ finding, span }) => `${span.start}:${span.end}:${finding.kind}`)
+    .join('|');
+  return leftKey <= rightKey ? left : right;
+}
+
+function selectCanonicalEvidence(
+  fictionalPassword: string,
+  findings: readonly PasswordSingleFinding[],
+): readonly CandidateEvidence[] {
+  const candidates = candidateEvidence(fictionalPassword, findings);
+  const candidatesByStart = new Map<number, CandidateEvidence[]>();
+  for (const candidate of candidates) {
+    const items = candidatesByStart.get(candidate.span.start) ?? [];
+    items.push(candidate);
+    candidatesByStart.set(candidate.span.start, items);
+  }
+  for (const items of candidatesByStart.values()) {
+    items.sort(
+      (left, right) =>
+        right.span.end - left.span.end ||
+        (evidencePriority[left.finding.kind] ?? 99) -
+          (evidencePriority[right.finding.kind] ?? 99) ||
+        left.finding.id.localeCompare(right.finding.id),
+    );
+  }
+
+  const bestFrom = new Map<number, EvidenceSelection>();
+  const chooseFrom = (offset: number): EvidenceSelection => {
+    if (offset >= fictionalPassword.length) {
+      return { items: [], coveredCodeUnits: 0, priority: 0 };
+    }
+    const cached = bestFrom.get(offset);
+    if (cached !== undefined) return cached;
+
+    let best = chooseFrom(offset + 1);
+    for (const candidate of candidatesByStart.get(offset) ?? []) {
+      const remainder = chooseFrom(candidate.span.end);
+      const selection: EvidenceSelection = {
+        items: [candidate, ...remainder.items],
+        coveredCodeUnits:
+          candidate.span.end - candidate.span.start + remainder.coveredCodeUnits,
+        priority: (evidencePriority[candidate.finding.kind] ?? 99) + remainder.priority,
+      };
+      best = betterSelection(selection, best);
+    }
+    bestFrom.set(offset, best);
+    return best;
+  };
+
+  return chooseFrom(0).items;
+}
+
+function isOrdinaryLexicalEvidence({ finding, span }: CandidateEvidence): boolean {
+  if (ordinaryLexicalKinds.has(finding.kind)) return true;
+  if (finding.kind !== 'common-password-core' || !/^\p{L}+$/u.test(span.token)) return false;
+  return !explicitPasswordAnchorTokens.has(span.token.toLocaleLowerCase('de-DE'));
+}
+
+function ordinaryDictionaryOnlyPassphraseShape(
+  selectedEvidence: readonly CandidateEvidence[],
+): boolean {
+  const semanticEvidence = selectedEvidence.filter(
+    ({ finding }) => finding.kind !== 'typical-suffix',
+  );
+  const normalizedTokens = semanticEvidence.map(({ span }) =>
+    span.token.toLocaleLowerCase('de-DE'),
+  );
+  return (
+    semanticEvidence.length >= 5 &&
+    new Set(normalizedTokens).size === normalizedTokens.length &&
+    semanticEvidence.every(isOrdinaryLexicalEvidence)
+  );
+}
+
+function uncoveredCharacters(
+  fictionalPassword: string,
+  selectedEvidence: readonly CandidateEvidence[],
+): readonly string[] {
+  const covered = Array.from({ length: fictionalPassword.length }, () => false);
+  for (const { span } of selectedEvidence) {
+    for (let offset = span.start; offset < span.end; offset += 1) covered[offset] = true;
+  }
+
+  const residual: string[] = [];
+  let offset = 0;
+  for (const character of fictionalPassword) {
+    const end = offset + character.length;
+    if (!covered.slice(offset, end).every(Boolean)) residual.push(character);
+    offset = end;
+  }
+  return residual;
+}
+
+/**
+ * Returns the frozen alphabet used for this authored residual family. The observed class union is
+ * only a deterministic family selector; no class is presented as a password composition rule.
+ */
+function residualAlphabetSize(characters: readonly string[]): number | null {
+  let hasAsciiLowercase = false;
+  let hasExtendedGermanLowercase = false;
+  let hasAsciiUppercase = false;
+  let hasExtendedGermanUppercase = false;
+  let hasDigits = false;
+  let hasAsciiPunctuationOrSpace = false;
+
+  for (const character of characters) {
+    if (/^[a-z]$/u.test(character)) hasAsciiLowercase = true;
+    else if (/^[äöüß]$/u.test(character)) hasExtendedGermanLowercase = true;
+    else if (/^[A-Z]$/u.test(character)) hasAsciiUppercase = true;
+    else if (/^[ÄÖÜ]$/u.test(character)) hasExtendedGermanUppercase = true;
+    else if (/^[0-9]$/u.test(character)) hasDigits = true;
+    else if (/^[\x20-\x2F\x3A-\x40\x5B-\x60\x7B-\x7E]$/u.test(character)) {
+      hasAsciiPunctuationOrSpace = true;
+    } else {
+      return null;
+    }
+  }
+
+  let size = 0;
+  if (hasExtendedGermanLowercase) size += 30;
+  else if (hasAsciiLowercase) size += 26;
+  if (hasExtendedGermanUppercase) size += 29;
+  else if (hasAsciiUppercase) size += 26;
+  if (hasDigits) size += 10;
+  if (hasAsciiPunctuationOrSpace) size += 33;
+  return size;
+}
+
+function factorial(value: number): bigint {
+  let result = 1n;
+  for (let factor = 2; factor <= value; factor += 1) result *= BigInt(factor);
+  return result;
+}
+
+function binomial(n: number, k: number): bigint {
+  const smaller = Math.min(k, n - k);
+  let result = 1n;
+  for (let index = 1; index <= smaller; index += 1) {
+    result = (result * BigInt(n - smaller + index)) / BigInt(index);
+  }
+  return result;
+}
+
+function anchorPermutationCount(selectedEvidence: readonly CandidateEvidence[]): bigint {
+  const semanticEvidence = selectedEvidence.filter(
+    ({ finding }) => finding.kind !== 'typical-suffix',
+  );
+  const duplicateCounts = new Map<string, number>();
+  for (const { finding, span } of semanticEvidence) {
+    const key = `${finding.kind}:${span.token.toLocaleLowerCase('de-DE')}`;
+    duplicateCounts.set(key, (duplicateCounts.get(key) ?? 0) + 1);
+  }
+  let permutations = factorial(semanticEvidence.length);
+  for (const count of duplicateCounts.values()) permutations /= factorial(count);
+  return permutations;
+}
+
+function boundedResidualCandidateCount(
+  fictionalPassword: string,
+  selectedEvidence: readonly CandidateEvidence[],
+): bigint | null {
+  const semanticAnchorCount = selectedEvidence.filter(
+    ({ finding }) => finding.kind !== 'typical-suffix',
+  ).length;
+  if (semanticAnchorCount === 0) return null;
+
+  const residual = uncoveredCharacters(fictionalPassword, selectedEvidence);
+  if (residual.length === 0) return anchorPermutationCount(selectedEvidence);
+  const alphabetSize = residualAlphabetSize(residual);
+  if (alphabetSize === null || alphabetSize === 0) return null;
+
+  const freeStrings = BigInt(alphabetSize) ** BigInt(residual.length);
+  // Stars-and-bars distributes the ordered residual codepoints across every gap before, between,
+  // and after the selected anchors, making the decision independent of their observed position.
+  const placements = binomial(residual.length + semanticAnchorCount, semanticAnchorCount);
+  return freeStrings * placements * anchorPermutationCount(selectedEvidence);
+}
+
+function supportingFindingIds(
+  findings: readonly PasswordSingleFinding[],
+  selectedEvidence: readonly CandidateEvidence[],
+): readonly string[] {
+  const ids = new Set(selectedEvidence.map(({ finding }) => finding.id));
+  const selectedSpans = selectedEvidence.map(({ span }) => span);
+  for (const finding of findings) {
+    if (finding.kind !== 'typical-transformation') continue;
+    if (
+      findingSpans(finding).some((span) =>
+        selectedSpans.some(
+          (selected) => selected.start <= span.start && selected.end >= span.end,
+        ),
+      )
+    ) {
+      ids.add(finding.id);
+    }
+  }
+  return [...ids];
 }
 
 function boundedVariantRecognition(
@@ -105,62 +389,24 @@ function boundedVariantRecognition(
   readonly findingIds: readonly string[];
 } | null {
   if (fictionalPassword.length === 0) return null;
-
-  const anchors = findings.flatMap((finding) =>
-    boundedVariantAnchorKinds.has(finding.kind)
-      ? findingSpans(finding)
-          .filter((span) => span.start === 0 && span.end < fictionalPassword.length)
-          .map((span) => ({ finding, span }))
-      : [],
+  const selectedEvidence = selectCanonicalEvidence(fictionalPassword, findings);
+  const semanticEvidence = selectedEvidence.filter(
+    ({ finding }) => finding.kind !== 'typical-suffix',
   );
-  const suffixes = findings.flatMap((finding) =>
-    finding.kind === 'typical-suffix'
-      ? findingSpans(finding).map((span) => ({ finding, span }))
-      : [],
-  );
-  const calendarParts = findings.flatMap((finding) =>
-    finding.kind === 'year' || finding.kind === 'date'
-      ? findingSpans(finding).map((span) => ({ finding, span }))
-      : [],
-  );
+  if (semanticEvidence.length === 0) return null;
 
-  for (const anchor of anchors) {
-    const terminalSuffix = suffixes.find(
-      ({ span }) =>
-        span.start === anchor.span.end && span.end === fictionalPassword.length,
-    );
-    if (terminalSuffix !== undefined) {
-      return {
-        ruleId: 'whole-password-recognized-bounded-variant',
-        findingIds: [anchor.finding.id, terminalSuffix.finding.id],
-      };
-    }
+  // Five or more ordinary dictionary/name tokens are passphrase-shaped. Dictionary coverage alone
+  // is therefore insufficient for a positive hit; a stronger account, password-list, sequence,
+  // date, keyboard, or repetition anchor is still allowed to establish a concrete path.
+  if (ordinaryDictionaryOnlyPassphraseShape(selectedEvidence)) return null;
 
-    const calendarStart = exactConnectorEnd(fictionalPassword, anchor.span.end);
-    for (const calendar of calendarParts) {
-      if (calendar.span.start !== calendarStart) continue;
-      if (
-        calendar.span.end === fictionalPassword.length ||
-        hasOnlyTypicalTerminalPunctuation(fictionalPassword, calendar.span.end)
-      ) {
-        return {
-          ruleId: 'whole-password-recognized-bounded-variant',
-          findingIds: [anchor.finding.id, calendar.finding.id],
-        };
-      }
-      const calendarSuffix = suffixes.find(
-        ({ span }) =>
-          span.start === calendar.span.end && span.end === fictionalPassword.length,
-      );
-      if (calendarSuffix !== undefined) {
-        return {
-          ruleId: 'whole-password-recognized-bounded-variant',
-          findingIds: [anchor.finding.id, calendar.finding.id, calendarSuffix.finding.id],
-        };
-      }
-    }
-  }
-  return null;
+  const candidateCount = boundedResidualCandidateCount(fictionalPassword, selectedEvidence);
+  if (candidateCount === null || candidateCount > MAX_BOUNDED_RESIDUAL_CANDIDATES) return null;
+
+  return {
+    ruleId: 'whole-password-recognized-bounded-variant',
+    findingIds: supportingFindingIds(findings, selectedEvidence),
+  };
 }
 
 export function determinePasswordSimulationDisposition({

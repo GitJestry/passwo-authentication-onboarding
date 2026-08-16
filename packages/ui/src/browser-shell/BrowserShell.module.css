@@ -8,6 +8,11 @@
   --browser-tab-idle-surface: var(--color-surface-browser-tab-idle-mac);
   --browser-address-surface: var(--color-surface-browser-address-mac);
   --browser-chrome-border: var(--color-border-browser-chrome-mac);
+  --browser-tab-outline: color-mix(
+    in srgb,
+    var(--browser-chrome-border) 62%,
+    var(--color-ink-muted)
+  );
   --browser-tab-hover-surface: color-mix(
     in srgb,
     var(--browser-tab-idle-surface) 60%,
@@ -18,7 +23,7 @@
   z-index: 10;
   top: 0;
   right: 0;
-  bottom: 5.15rem;
+  bottom: 4.12rem;
   left: 0;
   isolation: isolate;
   display: flex;
@@ -51,7 +56,7 @@
   grid-template-columns: auto minmax(0, 1fr);
   align-items: end;
   gap: var(--space-3);
-  padding: var(--space-2) var(--space-4) 0;
+  padding: 0.22rem var(--space-4) 0;
   border-bottom: var(--border-width-thin) solid var(--browser-chrome-border);
   background: var(--browser-chrome-surface);
 }
@@ -142,7 +147,7 @@
 .tabs {
   display: flex;
   min-width: 0;
-  min-height: 2rem;
+  min-height: 1.72rem;
   margin: 0;
   gap: var(--space-1);
   overflow-x: auto;
@@ -168,9 +173,11 @@
 
 .newTabHint,
 .newTabButton {
-  width: 1.85rem;
-  height: 1.85rem;
+  width: 1.68rem;
+  height: 1.68rem;
+  border: var(--border-width-thin) solid var(--browser-tab-outline);
   border-radius: var(--radius-small);
+  background: color-mix(in srgb, var(--browser-tab-idle-surface) 72%, transparent);
 }
 
 .newTabHint svg,
@@ -187,13 +194,16 @@
 
 .newTabButton {
   padding: 0;
-  border: var(--border-width-thin) solid transparent;
-  background: transparent;
   cursor: pointer;
   font: inherit;
 }
 
 .newTabButton:hover {
+  border-color: color-mix(
+    in srgb,
+    var(--browser-tab-outline) 58%,
+    var(--color-ink-strong)
+  );
   color: var(--color-ink-strong);
   background: var(--browser-tab-hover-surface);
 }
@@ -254,8 +264,8 @@
   align-items: center;
   justify-content: space-between;
   gap: var(--space-2);
-  padding: 0.4rem var(--space-3);
-  border: var(--border-width-thin) solid transparent;
+  padding: 0.28rem var(--space-3);
+  border: var(--border-width-thin) solid var(--browser-tab-outline);
   border-radius: var(--radius-small) var(--radius-small) 0 0;
   color: var(--passwo-text);
   font: inherit;
@@ -308,6 +318,7 @@ button.activeTab {
 }
 
 .tab {
+  border-bottom-color: var(--browser-chrome-border);
   background: var(--browser-tab-idle-surface);
 }
 
@@ -666,7 +677,7 @@ button.activeTab[aria-disabled="true"] {
 
   bottom: 0;
   border-color: rgb(33 61 82 / 24%);
-  border-radius: var(--browser-window-radius);
+  border-radius: var(--browser-window-radius) var(--browser-window-radius) 0 0;
   box-shadow: none;
   transform-origin: 10.55rem calc(100% + 1.8rem);
 }
@@ -678,7 +689,7 @@ button.activeTab[aria-disabled="true"] {
 }
 
 .window[data-platform="windows"] .tabRow {
-  min-height: 2.55rem;
+  min-height: 2.2rem;
   padding: 0 0 0 var(--space-2);
 }
 
@@ -726,7 +737,7 @@ button.activeTab[aria-disabled="true"] {
 .window[data-platform="windows"] .windowControls button {
   width: 2.9rem;
   height: 100%;
-  min-height: 2.55rem;
+  min-height: 2.2rem;
   border: 0;
   border-radius: 0;
   color: #263542;
@@ -807,19 +818,19 @@ button.activeTab[aria-disabled="true"] {
 }
 
 .window[data-platform="linux"] .tabRow {
-  min-height: 2.65rem;
-  padding: var(--space-1) var(--space-2) 0 var(--space-3);
+  min-height: 2.25rem;
+  padding: 0.18rem var(--space-2) 0 var(--space-3);
 }
 
 .window[data-platform="linux"] .windowControls {
   align-self: center;
   gap: var(--space-2);
-  padding-bottom: var(--space-1);
+  padding-bottom: 0.18rem;
 }
 
 .window[data-platform="linux"] .windowControls button {
-  width: 1.55rem;
-  height: 1.55rem;
+  width: 1.42rem;
+  height: 1.42rem;
   border: 1px solid rgb(30 25 32 / 10%);
   color: #312b33;
   background: #d6d1d7;
@@ -920,7 +931,7 @@ button.activeTab[aria-disabled="true"] {
 
 @container artifact-stage (max-width: 760px) {
   .window {
-    bottom: 4.6rem;
+    bottom: 3.72rem;
   }
 
   .tabRow {

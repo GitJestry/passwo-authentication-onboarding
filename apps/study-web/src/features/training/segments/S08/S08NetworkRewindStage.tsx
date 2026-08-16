@@ -44,7 +44,7 @@ export type S08AffectedAccountId = Exclude<S06AccountId, 'campusgram'>;
 
 interface S08Context {
   readonly affectedAccountIds: readonly S08AffectedAccountId[];
-  readonly initialStage: 's08' | 's09';
+  readonly initialStage: 's08' | 's09' | 'manager-transition';
   readonly phaseDurationMs: number;
   readonly reductionDurationMs: number;
   readonly protectedAccountIds: readonly S08AffectedAccountId[];
@@ -66,7 +66,7 @@ const s08Machine = setup({
     events: {} as S08Event,
     input: {} as {
       readonly affectedAccountIds: readonly S08AffectedAccountId[];
-      readonly initialStage: 's08' | 's09';
+      readonly initialStage: 's08' | 's09' | 'manager-transition';
       readonly phaseDurationMs: number;
       readonly reductionDurationMs: number;
     },
@@ -86,6 +86,8 @@ const s08Machine = setup({
       context.affectedAccountIds.includes(event.accountId) &&
       !context.protectedAccountIds.includes(event.accountId),
     startsAtS09: ({ context }) => context.initialStage === 's09',
+    startsAtManagerTransition: ({ context }) =>
+      context.initialStage === 'manager-transition',
   },
   actions: {
     protectAccount: assign({
@@ -104,11 +106,12 @@ const s08Machine = setup({
     phaseDurationMs: input.phaseDurationMs,
     reductionDurationMs: input.reductionDurationMs,
     protectedAccountIds:
-      input.initialStage === 's09' ? [...input.affectedAccountIds] : [],
+      input.initialStage === 's08' ? [] : [...input.affectedAccountIds],
   }),
   states: {
     entry: {
       always: [
+        { guard: 'startsAtManagerTransition', target: 'managerTransition' },
         { guard: 'startsAtS09', target: 's09Summary' },
         { target: 'protection' },
       ],
@@ -169,7 +172,7 @@ export interface S08NetworkRewindStageProps {
   readonly network?: NetworkSceneSnapshot | null;
   readonly plan?: PasswordConsequenceScenePlan | null;
   readonly platform: DesktopPlatform;
-  readonly initialStage?: 's08' | 's09';
+  readonly initialStage?: 's08' | 's09' | 'manager-transition';
 }
 
 function replayDuration(): number {
@@ -614,7 +617,7 @@ export function S08NetworkRewindStage({
                   )
                 }
                 speechKey={`s09-${passWoStep}`}
-                {...(state.matches('s09Reduction')
+                {...(state.matches('s09Reduction') || state.matches('passWoSolution')
                   ? {}
                   : {
                       speechAction:
@@ -626,8 +629,7 @@ export function S08NetworkRewindStage({
                             }
                           : {
                               kind: 'advance',
-                              label:
-                                passWoStep === 5 ? 'Passwortmanager' : 'Weiter',
+                              label: 'Weiter',
                               onAction: () => send({ type: 'NEXT' }),
                             },
                     })}
@@ -635,6 +637,18 @@ export function S08NetworkRewindStage({
                 showHelpButton={false}
               />
             </section>
+            {state.matches('passWoSolution') ? (
+              <button
+                type="button"
+                className={styles.passwordManagerAction}
+                autoFocus
+                aria-label={s09PasswordSummaryContent.passwordManagerAction.ariaLabel}
+                onClick={() => send({ type: 'NEXT' })}
+              >
+                <strong>{s09PasswordSummaryContent.passwordManagerAction.title}</strong>
+                <span>{s09PasswordSummaryContent.passwordManagerAction.detail}</span>
+              </button>
+            ) : null}
           </>
         ) : null}
       </DesktopSurface>

@@ -352,3 +352,22 @@ Linienstyling von der einmaligen Reveal-Animation. Beim Wechsel mit `Weiter` ble
 alle 48 Kanten die Strichstärke von `1.25px` und die reduzierte Deckkraft erhalten; lediglich die
 Animationsmarkierung entfällt. Dadurch werden die persistenten Linien weder erneut gezeichnet
 noch auf die deutlich dickere S06-Standarddarstellung zurückgesetzt.
+
+## Copy- und Interaktionsdelta S09 externer Passwortmanager-Einstieg, 16. August 2026
+
+Quelle ist der ausdrückliche Nutzerauftrag vom 16. August 2026. Der letzte PassWo-Schritt behält
+seinen Wortlaut und seine Rolle als positiver Kerngedanke, besitzt aber keinen eigenen Button
+mehr. Stattdessen erscheint über dem weiterhin sichtbaren Netzwerk ein großes, mittig
+angeordnetes, glasartiges Handlungsziel. Nur dieses Ziel startet die vorhandene Transition zur
+Sektion Passwortmanager. Damit stimmen sichtbares Ziel und ausgelöste Handlung wieder eindeutig
+überein. Persistenz, Forschungswrites und der Inhalt der Transitionkarte bleiben unverändert.
+
+Der bisherige vollständige S09-QA-Einstieg bleibt als letzter `s1.x`-Eintrag erhalten. Der neue
+QA-Einstieg `s2.1` beginnt unmittelbar mit der Transitionkarte und führt anschließend auf die
+vorhandene Passwortmanager-Landingpage. `S09_PASSWORD_SUMMARY_CONTENT_VERSION` steigt von
+`3.9.0` auf `4.0.0`.
+
+| Segment und Text-ID | Vorher | Nachher | Primäre Rolle | Interaktionsziel | Grund und Bedeutungsänderung | Hervorhebung |
+|---|---|---|---|---|---|---|
+| `S09.passWo.steps.5` | unveränderter Kerngedanke mit Sprechblasenbutton `Passwortmanager` | Wortlaut unverändert, kein Sprechblasenbutton | Kerngedanke | mittiger Netzwerk-CTA | externe Handlung eindeutig dem sichtbaren Netzwerkziel zugeordnet; keine Bedeutungsänderung | unverändert positiv |
+| `S09.passwordManagerAction` | nicht vorhanden | `Passwortmanager` / `kennenlernen` | Navigation | großer glasartiger Button über dem Netzwerk | ausdrücklich freigegebene neue Handlungszuordnung; begrenzte Darstellungsänderung | keine |

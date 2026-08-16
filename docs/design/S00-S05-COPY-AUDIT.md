@@ -365,10 +365,11 @@ Teilbefunde und daneben die kurze, unabhängige Längeninformation. Danach endet
 
 Die Disposition führt dafür flüchtig die IDs der Befunde mit, die den modellierten Volltreffer
 begründen. Diese IDs werden weder persistiert noch exportiert. Die UI filtert nur anhand dieser
-bereits bestimmten Evidenz und enthält keine eigene Bewertungslogik. Die Analysekonfiguration wird
-für den erweiterten lokalen Output von `passwo-bounded-whole-recognition-v9` auf
-`passwo-bounded-whole-recognition-v10` und `S05_CONTENT_VERSION` von `2.73.0` auf `2.74.0`
-erhöht.
+bereits bestimmten Evidenz und enthält keine eigene Bewertungslogik. Die interne
+Analysekonfiguration wird für die kanonische Evidenzauswahl, den Vorrang vollständiger
+Kontokontexte und die positionsunabhängige begrenzte Restzeichenfamilie von
+`passwo-bounded-whole-recognition-v10` auf `passwo-bounded-whole-recognition-v11` erhöht. Der
+Teilnehmertext und `S05_CONTENT_VERSION 2.74.0` bleiben unverändert.
 
 | Segment und Text-ID | Quelle | Aktueller Text | Geplanter Text | Primäre Rolle | Grund | Bedeutungsänderung | Interaktionsziel | Hervorhebung |
 |---|---|---|---|---|---|---|---|---|

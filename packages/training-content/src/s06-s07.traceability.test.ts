@@ -15,7 +15,7 @@ const s07EntryCopyReference =
 const s08CopyReference =
   'docs/design/S08-S09-COPY-AUDIT.md#ablauf--und-darstellungsdelta-s09-zusammenfassung-vor-netzwerkrückkehr-15-august-2026';
 const s09CopyReference =
-  'docs/design/S08-S09-COPY-AUDIT.md#ablauf--und-darstellungsdelta-s09-kontenskalierung-von-134-auf-80-15-august-2026';
+  'docs/design/S08-S09-COPY-AUDIT.md#copy--und-interaktionsdelta-s09-externer-passwortmanager-einstieg-16-august-2026';
 
 describe('S06 transition and S07 passphrase-search copy traceability', () => {
   it('keeps S06 consequence wording aligned with bounded whole-password recognition', () => {
@@ -248,7 +248,7 @@ describe('S06 transition and S07 passphrase-search copy traceability', () => {
   });
 
   it('keeps the S09 password summary linked to its password checklist', () => {
-    expect(S09_PASSWORD_SUMMARY_CONTENT_VERSION).toBe('3.4.0');
+    expect(S09_PASSWORD_SUMMARY_CONTENT_VERSION).toBe('4.0.0');
     expect(s09PasswordSummaryContent.source.copyReference).toBe(s09CopyReference);
     expect(s09PasswordSummaryContent.principles).toHaveLength(6);
     expect(
@@ -285,7 +285,12 @@ describe('S06 transition and S07 passphrase-search copy traceability', () => {
     expect(s09PasswordSummaryContent.scaling.studyAccountCount).toBe(134);
     expect(s09PasswordSummaryContent.scaling.accountCount).toBe(80);
     expect(s09PasswordSummaryContent.scaling.answer).toBe('Super easy!');
-    expect(s09PasswordSummaryContent.passWo.steps).toHaveLength(7);
+    expect(s09PasswordSummaryContent.passWo.steps).toHaveLength(6);
+    expect(s09PasswordSummaryContent.passwordManagerAction).toEqual({
+      title: 'Passwortmanager',
+      detail: 'kennenlernen',
+      ariaLabel: 'Passwortmanager kennenlernen',
+    });
     expect(s09PasswordSummaryContent.passwordManagerTransition).toMatchObject({
       sectionLabel: 'Sektion 2 von 3',
       title: 'Passwortmanager',

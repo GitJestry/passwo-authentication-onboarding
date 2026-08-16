@@ -45,7 +45,7 @@ const accounts: readonly S06LocalAccountAnalysis[] = accountIds.map(
       disposition: {
         kind: 'no-whole-password-recognized',
         lengthOrientation: 'at-least-15',
-        analysisVersion: 'passwo-bounded-whole-recognition-v10',
+        analysisVersion: 'passwo-bounded-whole-recognition-v11',
         explanationId: 's05.disposition.no-whole-password-recognized',
       },
       retrievalStatus: 'retrievable',

@@ -6,6 +6,7 @@ export const designLabScenarioIdSchema = z.enum([
   'normal',
   'dimmed',
   'passwo-overlay',
+  'training-entry',
   's00',
   's01',
   's02-master-campus',
@@ -31,6 +32,7 @@ export const designLabScenarioIdSchema = z.enum([
   's07-passphrase-search',
   's08-network-replay',
   's09-password-manager-transition',
+  's2-1-password-manager-transition',
 ]);
 export type DesignLabScenarioId = z.infer<typeof designLabScenarioIdSchema>;
 

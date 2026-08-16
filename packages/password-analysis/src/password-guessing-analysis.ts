@@ -19,7 +19,7 @@ import {
   originalSpanForNormalizedRange,
 } from './case-insensitive-spans.js';
 
-export const PASSWORD_ANALYSIS_CONFIGURATION_VERSION = 'passwo-bounded-whole-recognition-v10';
+export const PASSWORD_ANALYSIS_CONFIGURATION_VERSION = 'passwo-bounded-whole-recognition-v11';
 
 export interface FictionalPasswordAnalysisInput {
   readonly fictionalPassword: string;
@@ -204,11 +204,11 @@ const supplementalDictionaryPriority: Readonly<Record<PasswordSingleFindingKind,
 
 const supplementalDictionaryKinds: ReadonlyMap<
   string,
-  Exclude<PasswordSingleFindingKind, 'no-simple-component-recognized'>
+  'common-password-core' | 'common-word' | 'common-name'
 > = (() => {
   const kinds = new Map<
     string,
-    Exclude<PasswordSingleFindingKind, 'no-simple-component-recognized'>
+    'common-password-core' | 'common-word' | 'common-name'
   >();
   for (const [dictionaryName, values] of Object.entries(zxcvbnDictionary)) {
     const normalizedDictionaryName = dictionaryName.toLocaleLowerCase('en-US');
@@ -220,6 +220,13 @@ const supplementalDictionaryKinds: ReadonlyMap<
       continue;
     }
     const kind = dictionaryNameFindingKind(normalizedDictionaryName);
+    if (
+      kind !== 'common-password-core' &&
+      kind !== 'common-word' &&
+      kind !== 'common-name'
+    ) {
+      continue;
+    }
     for (const value of values) {
       if (typeof value !== 'string') continue;
       const normalized = value.toLocaleLowerCase('de-DE');
@@ -240,10 +247,134 @@ function isConnector(character: string | undefined): boolean {
   return character !== undefined && !/[\p{L}\p{N}]/u.test(character);
 }
 
+interface LetterRunCharacter {
+  readonly value: string;
+  readonly start: number;
+  readonly end: number;
+}
+
+function letterRunCharacters(run: string): readonly LetterRunCharacter[] {
+  const characters: LetterRunCharacter[] = [];
+  let offset = 0;
+  for (const value of run) {
+    const start = offset;
+    offset += value.length;
+    characters.push({ value, start, end: offset });
+  }
+  return characters;
+}
+
+function isUppercaseLetter(value: string | undefined): boolean {
+  return value !== undefined && /^\p{Lu}$/u.test(value);
+}
+
+function isLowercaseLetter(value: string | undefined): boolean {
+  return value !== undefined && /^\p{Ll}$/u.test(value);
+}
+
+/**
+ * Returns only boundaries that are visible in the original spelling. This deliberately does not
+ * split arbitrary inner dictionary substrings. It supports CamelCase and acronym-to-word changes
+ * such as `Klarissa|BVB|Test|Passwort` while keeping `K|larissa` unsupported.
+ */
+function letterRunBoundaries(run: string): ReadonlySet<number> {
+  const characters = letterRunCharacters(run);
+  const boundaries = new Set<number>([0, run.length]);
+  for (let index = 1; index < characters.length; index += 1) {
+    const previous = characters[index - 1]?.value;
+    const current = characters[index]?.value;
+    const next = characters[index + 1]?.value;
+    if (
+      (isLowercaseLetter(previous) && isUppercaseLetter(current)) ||
+      (isUppercaseLetter(previous) && isUppercaseLetter(current) && isLowercaseLetter(next))
+    ) {
+      const boundary = characters[index]?.start;
+      if (boundary !== undefined) boundaries.add(boundary);
+    }
+  }
+  return boundaries;
+}
+
+function dictionarySpanHasSupportedBoundary(
+  run: string,
+  kind: 'common-password-core' | 'common-word' | 'common-name',
+  start: number,
+  end: number,
+): boolean {
+  if (start === 0 && end === run.length) return true;
+  const boundaries = letterRunBoundaries(run);
+  const startsAtBoundary = boundaries.has(start);
+  const endsAtBoundary = boundaries.has(end);
+  if (startsAtBoundary && endsAtBoundary) return true;
+
+  // Password-list cores remain useful anchors when a short free variation is appended or
+  // prepended. Ordinary words and names need an authored spelling boundary on their open side;
+  // this rejects accidental inner fragments such as `Klar`/`larissa` in `Klarissa`.
+  if (kind === 'common-password-core') return startsAtBoundary || endsAtBoundary;
+  return (startsAtBoundary && start > 0) || (endsAtBoundary && end < run.length);
+}
+
+function containingLetterRun(
+  input: string,
+  start: number,
+  end: number,
+): { readonly run: string; readonly start: number } | null {
+  for (const match of input.matchAll(/\p{L}+/gu)) {
+    const runStart = match.index;
+    const runEnd = runStart + match[0].length;
+    if (start >= runStart && end <= runEnd) return { run: match[0], start: runStart };
+  }
+  return null;
+}
+
+function filterUnsupportedGuessPathDictionaryFragments(
+  input: string,
+  findings: readonly PasswordSingleFinding[],
+): readonly PasswordSingleFinding[] {
+  const retainedDictionaryRanges = new Set<string>();
+  const initiallyRetained = findings.filter((item) => {
+    if (
+      item.kind !== 'common-password-core' &&
+      item.kind !== 'common-word' &&
+      item.kind !== 'common-name'
+    ) {
+      return true;
+    }
+    const kind = item.kind;
+    const spans = item.evidence.filter(
+      (evidence): evidence is PasswordEvidenceSpan => evidence.type === 'span',
+    );
+    const supported = spans.some((span) => {
+      const run = containingLetterRun(input, span.start, span.end);
+      return (
+        run === null ||
+        dictionarySpanHasSupportedBoundary(
+          run.run,
+          kind,
+          span.start - run.start,
+          span.end - run.start,
+        )
+      );
+    });
+    if (supported) {
+      for (const span of spans) retainedDictionaryRanges.add(`${span.start}:${span.end}`);
+    }
+    return supported;
+  });
+
+  return initiallyRetained.filter((item) => {
+    if (item.kind !== 'typical-transformation') return true;
+    return item.evidence.some(
+      (evidence) =>
+        evidence.type === 'span' && retainedDictionaryRanges.has(`${evidence.start}:${evidence.end}`),
+    );
+  });
+}
+
 interface DictionaryPartitionPart {
   readonly start: number;
   readonly end: number;
-  readonly kind: Exclude<PasswordSingleFindingKind, 'no-simple-component-recognized'>;
+  readonly kind: 'common-password-core' | 'common-word' | 'common-name';
 }
 
 interface GuessPathDictionarySpan {
@@ -321,8 +452,7 @@ function collectDictionaryPartitionFindings(
       const candidates = candidatesByStart.get(candidate.start) ?? [];
       if (
         !candidates.some(
-          (existing) =>
-            existing.end === candidate.end && existing.kind === candidate.kind,
+          (existing) => existing.end === candidate.end && existing.kind === candidate.kind,
         )
       ) {
         candidates.push(candidate);
@@ -330,13 +460,15 @@ function collectDictionaryPartitionFindings(
       }
     };
 
-    for (const start of normalizedStarts) {
-      for (const end of normalizedEnds) {
-        if (end <= start) continue;
-        const token = normalizedRun.value.slice(start, end);
+    for (const normalizedStart of normalizedStarts) {
+      for (const normalizedEnd of normalizedEnds) {
+        if (normalizedEnd <= normalizedStart) continue;
+        const token = normalizedRun.value.slice(normalizedStart, normalizedEnd);
         if ([...token].length < 4) continue;
         const kind = supplementalDictionaryKinds.get(token);
-        if (kind !== undefined) addCandidate({ start, end, kind });
+        if (kind !== undefined) {
+          addCandidate({ start: normalizedStart, end: normalizedEnd, kind });
+        }
       }
     }
     for (const { kind, span } of guessPathSpans) {
@@ -351,32 +483,87 @@ function collectDictionaryPartitionFindings(
     }
 
     const bestFrom = new Map<number, readonly DictionaryPartitionPart[] | null>();
-    const partitionFrom = (start: number): readonly DictionaryPartitionPart[] | null => {
-      if (start === normalizedRun.value.length) return [];
-      const cached = bestFrom.get(start);
+    const partitionFrom = (normalizedStart: number): readonly DictionaryPartitionPart[] | null => {
+      if (normalizedStart === normalizedRun.value.length) return [];
+      const cached = bestFrom.get(normalizedStart);
       if (cached !== undefined) return cached;
       let best: readonly DictionaryPartitionPart[] | null = null;
-      for (const candidate of candidatesByStart.get(start) ?? []) {
+      for (const candidate of candidatesByStart.get(normalizedStart) ?? []) {
         const remainder = partitionFrom(candidate.end);
         if (remainder === null) continue;
         const partition = [candidate, ...remainder];
         if (best === null || compareDictionaryPartitions(partition, best) < 0) best = partition;
       }
-      bestFrom.set(start, best);
+      bestFrom.set(normalizedStart, best);
       return best;
     };
 
-    const partition = partitionFrom(0);
+    const allCandidates = [...candidatesByStart.values()].flatMap((candidates) => candidates);
+    const candidatesWithOriginalSpans = allCandidates.flatMap((part) => {
+      const originalSpan = originalSpanForNormalizedRange(normalizedRun, part.start, part.end);
+      return originalSpan === null
+        ? []
+        : [{ part, start: originalSpan[0], end: originalSpan[1] }];
+    });
+    const completePartition = partitionFrom(0);
     const connectorBound = isConnector(before) || isConnector(after);
-    if (partition === null || (partition.length < 2 && !connectorBound)) continue;
-    for (const [ordinal, part] of partition.entries()) {
+    let selectedParts: readonly DictionaryPartitionPart[] = [];
+
+    if (completePartition !== null && (completePartition.length >= 2 || connectorBound)) {
+      selectedParts = completePartition;
+    } else {
+      const supported = candidatesWithOriginalSpans.filter((candidate) => {
+        if (
+          dictionarySpanHasSupportedBoundary(
+            run,
+            candidate.part.kind,
+            candidate.start,
+            candidate.end,
+          )
+        ) {
+          return true;
+        }
+
+        const atRunEdge = candidate.start === 0 || candidate.end === run.length;
+        const residualLength = run.length - (candidate.end - candidate.start);
+        const hasCompetingOverlap = candidatesWithOriginalSpans.some(
+          (other) =>
+            other !== candidate &&
+            candidate.start < other.end &&
+            other.start < candidate.end,
+        );
+        return (
+          atRunEdge &&
+          candidate.end - candidate.start >= 5 &&
+          residualLength <= 5 &&
+          !hasCompetingOverlap
+        );
+      });
+      supported.sort(
+        (left, right) =>
+          left.start - right.start ||
+          supplementalDictionaryPriority[left.part.kind] -
+            supplementalDictionaryPriority[right.part.kind] ||
+          right.end - right.start - (left.end - left.start),
+      );
+      const selected: DictionaryPartitionPart[] = [];
+      const occupied: Array<readonly [number, number]> = [];
+      for (const candidate of supported) {
+        if (occupied.some(([start, end]) => candidate.start < end && start < candidate.end)) {
+          continue;
+        }
+        occupied.push([candidate.start, candidate.end]);
+        selected.push(candidate.part);
+      }
+      selectedParts = selected;
+    }
+
+    for (const [ordinal, part] of selectedParts.entries()) {
       const originalSpan = originalSpanForNormalizedRange(normalizedRun, part.start, part.end);
       if (originalSpan === null) continue;
       const start = runStart + originalSpan[0];
       const end = runStart + originalSpan[1];
-      findings.push(
-        finding(input, part.kind, start, end, 'bounded-heuristic', ordinal),
-      );
+      findings.push(finding(input, part.kind, start, end, 'bounded-heuristic', ordinal));
     }
   }
   return findings;
@@ -856,6 +1043,37 @@ function collectTypicalSuffixes(input: string): readonly PasswordSingleFinding[]
   return findings;
 }
 
+function suppressDictionaryFindingsCoveredByAccountContext(
+  findings: readonly PasswordSingleFinding[],
+): readonly PasswordSingleFinding[] {
+  const accountSpans = findings.flatMap((item) =>
+    item.kind === 'account-or-service-term'
+      ? item.evidence.filter(
+          (evidence): evidence is PasswordEvidenceSpan => evidence.type === 'span',
+        )
+      : [],
+  );
+  if (accountSpans.length === 0) return findings;
+
+  return findings.filter((item) => {
+    if (
+      item.kind !== 'common-password-core' &&
+      item.kind !== 'common-word' &&
+      item.kind !== 'common-name'
+    ) {
+      return true;
+    }
+    const spans = item.evidence.filter(
+      (evidence): evidence is PasswordEvidenceSpan => evidence.type === 'span',
+    );
+    return !spans.some((span) =>
+      accountSpans.some(
+        (accountSpan) => accountSpan.start <= span.start && accountSpan.end >= span.end,
+      ),
+    );
+  });
+}
+
 function deduplicateAndSortFindings(
   findings: readonly PasswordSingleFinding[],
 ): readonly PasswordSingleFinding[] {
@@ -886,11 +1104,17 @@ export function analyzeFictionalPassword({
     ),
   ].filter((term) => term.length >= 3);
   const result = zxcvbnFactory.check(fictionalPassword, trimmedAccountTerms);
-  const guessPathFindings = findingsFromGuessPath(fictionalPassword, result.sequence);
-  const repeatedBaseFindings = findingsFromRepeatedBases(
+  const guessPathFindings = filterUnsupportedGuessPathDictionaryFragments(
     fictionalPassword,
-    result.sequence,
-    trimmedAccountTerms,
+    findingsFromGuessPath(fictionalPassword, result.sequence),
+  );
+  const repeatedBaseFindings = filterUnsupportedGuessPathDictionaryFragments(
+    fictionalPassword,
+    findingsFromRepeatedBases(
+      fictionalPassword,
+      result.sequence,
+      trimmedAccountTerms,
+    ),
   );
   const dictionaryPartitionFindings = collectDictionaryPartitionFindings(
     fictionalPassword,
@@ -913,16 +1137,18 @@ export function analyzeFictionalPassword({
   );
   const yearFindings = collectYears(fictionalPassword);
   const numberedWordSequenceFindings = collectNumberedWordSequences(fictionalPassword);
-  const findings = deduplicateAndSortFindings([
-    ...guessPathFindings,
-    ...repeatedBaseFindings,
-    ...dictionaryPartitionFindings,
-    ...exactAccountTermFindings,
-    ...fuzzyAccountTermFindings,
-    ...yearFindings,
-    ...numberedWordSequenceFindings,
-    ...collectTypicalSuffixes(fictionalPassword),
-  ]);
+  const findings = suppressDictionaryFindingsCoveredByAccountContext(
+    deduplicateAndSortFindings([
+      ...guessPathFindings,
+      ...repeatedBaseFindings,
+      ...dictionaryPartitionFindings,
+      ...exactAccountTermFindings,
+      ...fuzzyAccountTermFindings,
+      ...yearFindings,
+      ...numberedWordSequenceFindings,
+      ...collectTypicalSuffixes(fictionalPassword),
+    ]),
+  );
 
   return {
     kind: 'fictional-password-analysis',

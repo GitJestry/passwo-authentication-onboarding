@@ -1,0 +1,414 @@
+import type {
+  PasswordAnalysisResult,
+  PasswordSingleFinding,
+  PasswordSingleFindingKind,
+} from '@passwo/contracts';
+import { describe, expect, it } from 'vitest';
+import {
+  analyzeFictionalPassword,
+  determinePasswordSimulationDisposition,
+} from './index.js';
+
+interface AuthoredSegment {
+  readonly token: string;
+  readonly kind: Exclude<PasswordSingleFindingKind, 'no-simple-component-recognized'>;
+}
+
+interface CandidateCorpusCase {
+  readonly label: string;
+  readonly password: string;
+  readonly segments: readonly AuthoredSegment[];
+  readonly expectedFound: boolean;
+}
+
+function analysisFromSegments(
+  password: string,
+  segments: readonly AuthoredSegment[],
+): PasswordAnalysisResult {
+  let searchFrom = 0;
+  const findings: PasswordSingleFinding[] = segments.map((segment, ordinal) => {
+    const start = password.indexOf(segment.token, searchFrom);
+    if (start < 0) throw new Error(`Missing authored segment ${segment.token} in ${password}.`);
+    const end = start + segment.token.length;
+    searchFrom = end;
+    return {
+      id: `single:${segment.kind}:${start}-${end}:${ordinal}`,
+      kind: segment.kind,
+      evidence: [{ type: 'span', start, end, token: segment.token }],
+      explanationId: `s05.${segment.kind}`,
+      confidence: 'bounded-heuristic',
+    };
+  });
+  return {
+    kind: 'fictional-password-analysis',
+    findings,
+    guessPath: {
+      engineId: 'zxcvbn-ts',
+      configurationVersion: 'passwo-bounded-whole-recognition-v11',
+      matches: [],
+    },
+    disclaimerId: 'simulation-not-production-strength',
+  };
+}
+
+const ordinaryWords = [
+  'Kaffee',
+  'Morgen',
+  'Sonne',
+  'Suppe',
+  'Fenster',
+  'Regen',
+  'Lampe',
+  'Kaktus',
+  'Koffer',
+  'Fahrrad',
+  'Baum',
+  'Wasser',
+] as const;
+
+const directCases: readonly CandidateCorpusCase[] = ([
+  ['Passwort', 'common-password-core'],
+  ['Password', 'common-password-core'],
+  ['TestPasswort', 'common-password-core'],
+  ['Campusgram', 'account-or-service-term'],
+  ['MasterCampus', 'account-or-service-term'],
+  ['CampusMail', 'account-or-service-term'],
+  ['Klarissa', 'account-or-service-term'],
+  ['qwertz', 'keyboard-pattern'],
+  ['123456789', 'simple-character-sequence'],
+  ['2026', 'year'],
+  ['01012026', 'date'],
+  ['aaaaaaaaaaaaaaa', 'repeated-component'],
+  ['KaffeeKaffeeKaffee', 'repeated-component'],
+  ['Wort1-Wort2-Wort3', 'predictable-word-sequence'],
+  ['Kaffee', 'common-word'],
+] as const).map(([password, kind]) => ({
+  label: `direct ${password}`,
+  password,
+  segments: [{ token: password, kind }],
+  expectedFound: true,
+}));
+
+const wordChainCases: readonly CandidateCorpusCase[] = Array.from(
+  { length: 30 },
+  (_, index) => {
+    const count = 2 + (index % 3);
+    const separator = ['', '-', '_', ' '][Math.floor(index / 3) % 4] ?? '';
+    const start = index % ordinaryWords.length;
+    const step = 1 + Math.floor(index / ordinaryWords.length);
+    const selected = Array.from(
+      { length: count },
+      (_, wordIndex) => ordinaryWords[(start + wordIndex * step) % ordinaryWords.length] ?? 'Kaffee',
+    );
+    return {
+      label: `${count}-word chain ${index + 1}`,
+      password: selected.join(separator),
+      segments: selected.map((token) => ({ token, kind: 'common-word' as const })),
+      expectedFound: true,
+    };
+  },
+);
+
+const passphraseShapedCases: readonly CandidateCorpusCase[] = Array.from(
+  { length: 20 },
+  (_, index) => {
+    const count = 5 + (index % 2);
+    const separator = ['', '-', '_', ' '][Math.floor(index / 2) % 4] ?? '';
+    const start = index % ordinaryWords.length;
+    const step = 1 + Math.floor(index / ordinaryWords.length);
+    const selected = Array.from(
+      { length: count },
+      (_, wordIndex) => ordinaryWords[(start + wordIndex * step) % ordinaryWords.length] ?? 'Kaffee',
+    );
+    return {
+      label: `${count}-word passphrase-shaped input ${index + 1}`,
+      password: selected.join(separator),
+      segments: selected.map((token) => ({ token, kind: 'common-word' as const })),
+      expectedFound: false,
+    };
+  },
+);
+
+const residualFoundCases: readonly CandidateCorpusCase[] = ([
+  ['Passworta', ['Passwort']],
+  ['aPasswort', ['Passwort']],
+  ['Passwortabcd', ['Passwort']],
+  ['abcdPasswort', ['Passwort']],
+  ['Passwortksmdl', ['Passwort']],
+  ['ksmdlPasswort', ['Passwort']],
+  ['Passwort1234567', ['Passwort']],
+  ['1234567Passwort', ['Passwort']],
+  ['Passworta1B', ['Passwort']],
+  ['a1BPasswort', ['Passwort']],
+  ['Passwort!!!!', ['Passwort']],
+  ['!!!!Passwort', ['Passwort']],
+  ['Passwortäöüß', ['Passwort']],
+  ['äöüßPasswort', ['Passwort']],
+  ['PasswortmklhSuppe', ['Passwort', 'Suppe']],
+  ['PasswortSuppemlkh', ['Passwort', 'Suppe']],
+  ['mklhPasswortSuppe', ['Passwort', 'Suppe']],
+  ['PasswortmklhSuppeMorgen', ['Passwort', 'Suppe', 'Morgen']],
+  ['SuppePasswortmklhMorgen', ['Suppe', 'Passwort', 'Morgen']],
+  ['KlarissaBVBTestPasswort!', ['Klarissa', 'TestPasswort', '!']],
+  ['BVBKlarissaTestPasswort!', ['Klarissa', 'TestPasswort', '!']],
+  ['Campusgramabc', ['Campusgram']],
+  ['abcCampusgram', ['Campusgram']],
+  ['MasterCampus42xy', ['MasterCampus']],
+  ['42xyMasterCampus', ['MasterCampus']],
+] as const).map(([password, tokens]) => ({
+  label: `bounded residual ${password}`,
+  password,
+  segments: (tokens as readonly string[]).map((token) => ({
+    token,
+    kind:
+      token === 'Passwort' || token === 'TestPasswort'
+        ? ('common-password-core' as const)
+        : token === 'Suppe' || token === 'Morgen'
+          ? ('common-word' as const)
+          : token === '!'
+            ? ('typical-suffix' as const)
+            : ('account-or-service-term' as const),
+  })),
+  expectedFound: true,
+}));
+
+const residualNotFoundCases: readonly CandidateCorpusCase[] = ([
+  ['Passwortqzmpvx', ['Passwort']],
+  ['qzmpvxPasswort', ['Passwort']],
+  ['Passwortäöüßx', ['Passwort']],
+  ['äöüßxPasswort', ['Passwort']],
+  ['Passworta1B2c', ['Passwort']],
+  ['a1B2cPasswort', ['Passwort']],
+  ['Passwortq!7Mv', ['Passwort']],
+  ['q!7MvPasswort', ['Passwort']],
+  ['Passwort58392047', ['Passwort']],
+  ['58392047Passwort', ['Passwort']],
+  ['PasswortqzmpvSuppe', ['Passwort', 'Suppe']],
+  ['PasswortSuppeqzmpv', ['Passwort', 'Suppe']],
+  ['qzmpvPasswortSuppe', ['Passwort', 'Suppe']],
+  ['Passwort🙂', ['Passwort']],
+  ['🙂Passwort', ['Passwort']],
+  ['Campusgramqzmpvx', ['Campusgram']],
+  ['qzmpvxCampusgram', ['Campusgram']],
+  ['MasterCampusA1b2C', ['MasterCampus']],
+  ['A1b2CMasterCampus', ['MasterCampus']],
+  ['KlarissaqzmpvxTestPasswort', ['Klarissa', 'TestPasswort']],
+] as const).map(([password, tokens]) => ({
+  label: `residual outside boundary ${password}`,
+  password,
+  segments: (tokens as readonly string[]).map((token) => ({
+    token,
+    kind:
+      token === 'Passwort' || token === 'TestPasswort'
+        ? ('common-password-core' as const)
+        : token === 'Suppe'
+          ? ('common-word' as const)
+          : ('account-or-service-term' as const),
+  })),
+  expectedFound: false,
+}));
+
+const structuralCompositionCases: readonly CandidateCorpusCase[] = [
+  {
+    label: 'account plus year',
+    password: 'Campusgram2026',
+    segments: [
+      { token: 'Campusgram', kind: 'account-or-service-term' },
+      { token: '2026', kind: 'year' },
+    ],
+    expectedFound: true,
+  },
+  {
+    label: 'account plus typical suffix',
+    password: 'Campusgram123?!',
+    segments: [
+      { token: 'Campusgram', kind: 'account-or-service-term' },
+      { token: '123?!', kind: 'typical-suffix' },
+    ],
+    expectedFound: true,
+  },
+  {
+    label: 'ordinary words plus year',
+    password: 'KaffeeMorgen2026',
+    segments: [
+      { token: 'Kaffee', kind: 'common-word' },
+      { token: 'Morgen', kind: 'common-word' },
+      { token: '2026', kind: 'year' },
+    ],
+    expectedFound: true,
+  },
+  {
+    label: 'five words with explicit password anchor',
+    password: 'KaffeeMorgenPasswortSonneLampe',
+    segments: [
+      { token: 'Kaffee', kind: 'common-word' },
+      { token: 'Morgen', kind: 'common-word' },
+      { token: 'Passwort', kind: 'common-password-core' },
+      { token: 'Sonne', kind: 'common-word' },
+      { token: 'Lampe', kind: 'common-word' },
+    ],
+    expectedFound: true,
+  },
+  {
+    label: 'five ordinary words with one duplicate',
+    password: 'KaffeeMorgenKaffeeSonneLampe',
+    segments: [
+      { token: 'Kaffee', kind: 'common-word' },
+      { token: 'Morgen', kind: 'common-word' },
+      { token: 'Kaffee', kind: 'common-word' },
+      { token: 'Sonne', kind: 'common-word' },
+      { token: 'Lampe', kind: 'common-word' },
+    ],
+    expectedFound: true,
+  },
+  {
+    label: 'account plus four ordinary words',
+    password: 'CampusgramKaffeeMorgenSonneLampe',
+    segments: [
+      { token: 'Campusgram', kind: 'account-or-service-term' },
+      { token: 'Kaffee', kind: 'common-word' },
+      { token: 'Morgen', kind: 'common-word' },
+      { token: 'Sonne', kind: 'common-word' },
+      { token: 'Lampe', kind: 'common-word' },
+    ],
+    expectedFound: true,
+  },
+  {
+    label: 'whole repeat remains recognized',
+    password: 'KaffeeKaffeeKaffeeKaffee',
+    segments: [{ token: 'KaffeeKaffeeKaffeeKaffee', kind: 'repeated-component' }],
+    expectedFound: true,
+  },
+  {
+    label: 'whole keyboard path remains recognized',
+    password: 'qwertzuiopasdfgh',
+    segments: [{ token: 'qwertzuiopasdfgh', kind: 'keyboard-pattern' }],
+    expectedFound: true,
+  },
+  {
+    label: 'whole sequence remains recognized',
+    password: 'abcdefghijklmnopqrstuvwxyz',
+    segments: [
+      { token: 'abcdefghijklmnopqrstuvwxyz', kind: 'simple-character-sequence' },
+    ],
+    expectedFound: true,
+  },
+  {
+    label: 'five ordinary words stay unrecognized despite length',
+    password: 'KaffeeMorgenSonneFensterRegen',
+    segments: [
+      { token: 'Kaffee', kind: 'common-word' },
+      { token: 'Morgen', kind: 'common-word' },
+      { token: 'Sonne', kind: 'common-word' },
+      { token: 'Fenster', kind: 'common-word' },
+      { token: 'Regen', kind: 'common-word' },
+    ],
+    expectedFound: false,
+  },
+];
+
+const candidateCorpus: readonly CandidateCorpusCase[] = [
+  ...directCases,
+  ...wordChainCases,
+  ...passphraseShapedCases,
+  ...residualFoundCases,
+  ...residualNotFoundCases,
+  ...structuralCompositionCases,
+];
+
+describe('S05 bounded candidate corpus', () => {
+  it('contains at least 100 distinct example passwords', () => {
+    expect(candidateCorpus).toHaveLength(120);
+    expect(candidateCorpus.length).toBeGreaterThanOrEqual(100);
+    expect(new Set(candidateCorpus.map(({ password }) => password)).size).toBe(
+      candidateCorpus.length,
+    );
+  });
+
+  it.each(candidateCorpus)('$label: $password', ({ password, segments, expectedFound }) => {
+    const disposition = determinePasswordSimulationDisposition({
+      fictionalPassword: password,
+      componentAnalysis: analysisFromSegments(password, segments),
+    });
+    expect(disposition.kind === 'whole-password-recognized').toBe(expectedFound);
+  });
+});
+
+describe('S05/S06 shared analyzer integration', () => {
+  it.each([
+    ['KlarissaBVBTestPasswort!', ['Campusgram'], ['Klarissa'], true],
+    ['KlarissaTestPasswort!', ['Campusgram'], ['Klarissa'], true],
+    ['PasswortmklhSuppe', [], [], true],
+    ['PasswortSuppemlkh', [], [], true],
+    ['KaffeeMorgen', [], [], true],
+    ['KaffeeMorgenSonneLampe', [], [], true],
+    ['KaffeeMorgenSonneLampeFenster', [], [], false],
+    ['Kaffee-Morgen-Sonne-Lampe-Fenster', [], [], false],
+    ['kfxqztmpvlbwhrd', [], [], false],
+  ] as const)(
+    'projects %s to the shared S05/S06 disposition',
+    (fictionalPassword, authoredAccountTerms, transientAccountIdentifiers, expectedFound) => {
+      const componentAnalysis = analyzeFictionalPassword({
+        fictionalPassword,
+        authoredAccountTerms,
+        transientAccountIdentifiers,
+      });
+      const disposition = determinePasswordSimulationDisposition({
+        fictionalPassword,
+        componentAnalysis,
+      });
+      expect(disposition.kind === 'whole-password-recognized').toBe(expectedFound);
+    },
+  );
+
+  it.each([
+    ['Campusgram', 'Campusgram'],
+    ['C4mpu5Gram!', 'C4mpu5Gram'],
+  ] as const)('prefers the full account-context span in %s', (fictionalPassword, expectedToken) => {
+    const result = analyzeFictionalPassword({
+      fictionalPassword,
+      authoredAccountTerms: ['Campusgram'],
+    });
+    const accountSpans = result.findings.flatMap((finding) =>
+      finding.kind === 'account-or-service-term'
+        ? finding.evidence.flatMap((evidence) =>
+            evidence.type === 'span' ? [evidence.token] : [],
+          )
+        : [],
+    );
+    const nestedDictionarySpans = result.findings.flatMap((finding) =>
+      finding.kind === 'common-password-core' ||
+      finding.kind === 'common-word' ||
+      finding.kind === 'common-name'
+        ? finding.evidence.flatMap((evidence) =>
+            evidence.type === 'span' ? [evidence.token] : [],
+          )
+        : [],
+    );
+
+    expect(accountSpans).toContain(expectedToken);
+    expect(nestedDictionarySpans).not.toContain('Campus');
+    expect(nestedDictionarySpans).not.toContain('gram');
+    expect(nestedDictionarySpans).not.toContain('Gram');
+  });
+
+  it('does not expose inner Klar/larissa fragments when Klarissa is session context', () => {
+    const result = analyzeFictionalPassword({
+      fictionalPassword: 'KlarissaBVBTestPasswort!',
+      transientAccountIdentifiers: ['Klarissa'],
+    });
+    const tokens = result.findings.flatMap((finding) =>
+      finding.evidence.flatMap((evidence) =>
+        evidence.type === 'span' ? [evidence.token.toLocaleLowerCase('de-DE')] : [],
+      ),
+    );
+
+    expect(tokens).toContain('klarissa');
+    expect(
+      tokens.includes('testpasswort') ||
+        (tokens.includes('test') && tokens.includes('passwort')),
+    ).toBe(true);
+    expect(tokens).not.toContain('klar');
+    expect(tokens).not.toContain('larissa');
+  });
+});
