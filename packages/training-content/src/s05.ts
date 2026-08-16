@@ -70,7 +70,7 @@ export interface S05DesignLabFixture {
   readonly startSection: 'intro' | 'components' | 'structure';
 }
 
-export const S05_CONTENT_VERSION = '2.85.0';
+export const S05_CONTENT_VERSION = '2.87.0';
 
 export const s05Content = {
   version: S05_CONTENT_VERSION,
@@ -80,9 +80,9 @@ export const s05Content = {
       12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34,
       35,
     ] as const,
-    revision: 'Userauftrag vom 2026-08-13 · S05 Baustein- und Kontexttexte präzisiert',
+    revision: 'Userauftrag vom 2026-08-17 · S05 Strukturbeispiel vereinheitlicht',
     copyReference:
-      'docs/design/S00-S05-COPY-AUDIT.md#copy-delta-s05-baustein-und-kontexttexte-13-august-2026',
+      'docs/design/S00-S05-COPY-AUDIT.md#copy--und-darstellungsdelta-s05-annotiertes-strukturbeispiel-17-august-2026',
   },
   segment: {
     id: 'S05',
@@ -110,12 +110,11 @@ export const s05Content = {
       visibleSuffix: 'Campusgram-Passwort',
     },
     generatedPassword: 'rQ7mL2vX9pK4',
-    memorablePassword: 'MeinStarkesUniPasswort2005!',
-    memorablePasswordParts: ['Mein', 'Starkes', 'Uni', 'Passwort', '2005', '!'],
+    memorablePassword: 'MeinStarkesUniPasswort2005!!!',
+    memorablePasswordParts: ['Mein', 'Starkes', 'Uni', 'Passwort', '2005', '!!!'],
     strategyAnnotations: {
-      sentenceStructure: 'Kurze vorhersehbare Formulierung',
-      probability: 'sehr häufig',
-      personalDetail: 'Naheliegende Jahreszahl',
+      relationship: 'Zusammenhängend',
+      repetitionCount: 3,
     },
     fixedCommonPasswordFrame: {
       parts: ['•••••', '123456789', '••••'] as const,
@@ -411,6 +410,17 @@ export const s05Content = {
       'number-marker-with-typical-suffix': 'erkannter Zahlenmarker mit typischem Anhang',
       'no-simple-structure-recognized': 'kein einfacher Zusammenhang erkannt',
     } satisfies Readonly<Record<RuntimeStructureFindingKind, string>>,
+    reflection: {
+      themeQuestion: 'Welche Teile gehören für dich inhaltlich zusammen?',
+      sentenceQuestion: 'Welche Teile bilden für dich eine Satz- oder Phrasenstruktur?',
+      groupLabel: 'Gruppe',
+      newGroup: 'Neue Gruppe',
+      deleteGroup: 'Löschen',
+      finish: 'Fertig',
+      confirmTitle: 'Auswahl übernehmen?',
+      confirmBack: 'Zurück',
+      confirmContinue: 'Weiter',
+    },
     application: {
       passwordLabel: 'Campusgram-Passwort',
       repetitionFound:
@@ -650,8 +660,10 @@ export const s05Content = {
     ['s05-structure-intro', 'strategy-targeting', 'info'],
     ['s05-structure-theme', 'structure-theme', 'info'],
     ['s05-structure-theme-guessing', 'structure-theme', 'info'],
+    ['s05-structure-theme-reflection', 'structure-theme-reflection', 'info'],
     ['s05-structure-sentence', 'structure-sentence', 'info'],
     ['s05-structure-sentence-guessing', 'structure-sentence', 'info'],
+    ['s05-structure-sentence-reflection', 'structure-sentence-reflection', 'info'],
     ['s05-structure-repetition', 'structure-repetition', 'warning'],
     ['s05-structure-repetition-guessing', 'structure-repetition', 'warning'],
     ['s05-structure-application', 'structure-application', 'warning'],

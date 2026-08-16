@@ -4,7 +4,7 @@ import { S05_CONTENT_VERSION, s05Content } from './s05.js';
 
 describe('S05 content traceability', () => {
   it('keeps the participant copy bounded and separate from internal terminology', () => {
-    expect(S05_CONTENT_VERSION).toBe('2.85.0');
+    expect(S05_CONTENT_VERSION).toBe('2.87.0');
     expect(s05Content.source).toMatchObject({
       document: 'research/private/training-script.pdf',
       internalPages: [
@@ -12,7 +12,7 @@ describe('S05 content traceability', () => {
         35,
       ],
       copyReference:
-        'docs/design/S00-S05-COPY-AUDIT.md#copy-delta-s05-baustein-und-kontexttexte-13-august-2026',
+        'docs/design/S00-S05-COPY-AUDIT.md#copy--und-darstellungsdelta-s05-annotiertes-strukturbeispiel-17-august-2026',
     });
     expect(s05Content.segment.id).toBe('S05');
     expect(s05Content.page.fixtureNotice).toBe(
@@ -29,10 +29,19 @@ describe('S05 content traceability', () => {
         }),
       ).values(),
     ]);
-    expect(s05Content.intro.strategyAnnotations.probability).toBe('sehr häufig');
-    expect(s05Content.intro.strategyAnnotations.personalDetail).toBe(
-      'Naheliegende Jahreszahl',
-    );
+    expect(s05Content.intro.memorablePassword).toBe('MeinStarkesUniPasswort2005!!!');
+    expect(s05Content.intro.memorablePasswordParts).toEqual([
+      'Mein',
+      'Starkes',
+      'Uni',
+      'Passwort',
+      '2005',
+      '!!!',
+    ]);
+    expect(s05Content.intro.strategyAnnotations).toEqual({
+      relationship: 'Zusammenhängend',
+      repetitionCount: 3,
+    });
     expect(s05Content.componentStrategy.categories.map(({ title }) => title)).toEqual([
       'Häufig verwendete Passwörter und Zeichenfolgen',
       'Persönliche Angaben',
@@ -196,9 +205,7 @@ describe('S05 content traceability', () => {
       none: 'Bei den bisherigen Prüfungen wurde keine Übereinstimmung gefunden. Das bedeutet jedoch nicht, dass bereits alle Angriffsmöglichkeiten geprüft wurden.',
       nothingFound: 'Nichts gefunden',
     });
-    expect(s05Content.intro.strategyAnnotations.sentenceStructure).toBe(
-      'Kurze vorhersehbare Formulierung',
-    );
+    expect(s05Content.intro.strategyAnnotations.relationship).toBe('Zusammenhängend');
     expect(s05Content.structure.intro).toEqual([
       'Angreifer prüfen nämlich nicht nur häufige Zeichenfolgen, persönliche Angaben oder Kontobezüge. Sie berücksichtigen auch typische Muster, mit denen solche Elemente zu leichter merkbaren Passwörtern kombiniert werden.',
     ]);
@@ -226,10 +233,18 @@ describe('S05 content traceability', () => {
         'Erkennt oder vermutet ein Angreifer den wiederholten Grundbaustein, kann er gezielt solche Wiederholungsmuster prüfen.',
       ],
     });
+    expect(s05Content.structure.reflection).toMatchObject({
+      themeQuestion: 'Welche Teile gehören für dich inhaltlich zusammen?',
+      sentenceQuestion: 'Welche Teile bilden für dich eine Satz- oder Phrasenstruktur?',
+      newGroup: 'Neue Gruppe',
+      finish: 'Fertig',
+    });
     expect(s05Content.animations.map(([id]) => id)).toEqual(
       expect.arrayContaining([
         's05-structure-theme',
+        's05-structure-theme-reflection',
         's05-structure-sentence',
+        's05-structure-sentence-reflection',
         's05-structure-repetition',
       ]),
     );

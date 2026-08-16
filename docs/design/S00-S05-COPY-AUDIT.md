@@ -3082,3 +3082,65 @@ und die gemeinsame S05-/S06-Disposition.
 Teilnehmertexte, Text-IDs, Hervorhebungen, Interaktion, Animation, visuelle Kategorien,
 Persistenz, Export und Timing bleiben unverändert. Es gibt deshalb kein Copy-Delta und keinen
 Content-Versionssprung.
+
+### Copy- und Interaktionsdelta S05 Strukturreflexion 17. August 2026
+
+Quelle ist der ausdrückliche Nutzerauftrag vom 17. August 2026. Nach der bestehenden Erklärung zu
+naheliegenden inhaltlichen Zusammenhängen folgt eine eigene Reflexionsphase mit der Frage
+`Welche Teile gehören für dich inhaltlich zusammen?`. Die bereits aus der S05-Bausteinanalyse
+gebildeten Passwortteile können dabei in mehrere farblich unterscheidbare Gruppen eingeordnet
+werden. Nach der bestehenden Erklärung zu Satz- und Phrasenstrukturen folgt entsprechend die Frage
+`Welche Teile bilden für dich eine Satz- oder Phrasenstruktur?`; gerichtete Verbindungen zwischen
+direkt benachbarten Bausteinen werden als deutlich sichtbare Pfeile und zusammenhängende
+Strukturrahmen dargestellt.
+
+Wiederholungen werden weiterhin automatisch durch die bestehende Analyse ermittelt und nicht durch
+die teilnehmende Person eingegeben. In `structure-application` werden die drei Ebenen gemeinsam
+visualisiert: Inhaltsgruppen als Bausteinfarben, Satz-/Phrasenfolgen als Pfeile und Rahmen sowie
+automatisch erkannte Wiederholungen als weiße Außenmarkierung. Die Reflexion wird lokal als
+Baustein-IDs beziehungsweise gerichtete Nachbarschaftsverbindungen im S05-Snapshot gehalten und im
+übergeordneten Trainingsmodul verfügbar gemacht. Sie verändert in diesem Delta weder die
+`found`-Disposition noch S06-Angriffslogik oder Forschungsdatenexport.
+
+Die Beispielansicht `Naheliegende Zusammenhänge` verwendet für zusammengehörige Bausteine jeweils
+dieselbe Farbe; nicht gruppierte Endungen wie `5` oder `!!` bleiben neutral grau. Die bisherige
+Unicode-Pfeildarstellung der Satzbeispiele wird durch eine klarere Linie mit Pfeilspitze ersetzt.
+`S05_CONTENT_VERSION` wird von `2.85.0` auf `2.86.0` erhöht.
+
+### Copy- und Darstellungsdelta S05 annotiertes Strukturbeispiel 17. August 2026
+
+Quelle ist der ausdrückliche Nutzerauftrag vom 17. August 2026. Die erneut sichtbare
+Beispielkombination in `s05-structure-intro` übernimmt die Darstellungskonventionen der folgenden
+Strukturveranschaulichung: Weiße Pfeile verbinden `Mein`, `Starkes`, `Uni` und `Passwort`;
+`Starkes`, `Uni` und `Passwort` tragen als zusammengehörige Gruppe dieselbe Farbe, während `Mein`,
+`2005` und der Zeichenanhang neutral grau bleiben. Die Beziehungslinie umfasst nur diese drei
+gruppierten Wörter. Der Zeichenanhang wird von `!` auf `!!!` erweitert und wie eine Wiederholung
+weiß markiert; darüber steht `x3`. Analyse, Interaktion, Persistenz, Export und Timing bleiben
+unverändert. `S05_CONTENT_VERSION` wird von `2.86.0` auf `2.87.0` erhöht.
+
+| Segment und Text-ID | Quelle | Aktueller Text | Geplanter Text | Primäre Rolle | Grund | Bedeutungsänderung | Interaktionsziel | Hervorhebung |
+|---|---|---|---|---|---|---|---|---|
+| `S05.intro.memorablePassword` und `memorablePasswordParts[5]` | Nutzerauftrag vom 2026-08-17 | `MeinStarkesUniPasswort2005!` / `!` | `MeinStarkesUniPasswort2005!!!` / `!!!` | Mechanismuserklärung | Wiederholungsmuster in der bereits annotierten Beispielkombination sichtbar machen | ausdrücklich freigegeben | `Weiter` | weiße Außenmarkierung und `x3` am Zeichenanhang |
+| `S05.intro.strategyAnnotations.sentenceStructure` | Nutzerauftrag vom 2026-08-17 | `Kurze vorhersehbare Formulierung` | `Zusammenhängend` | Mechanismuserklärung | sichtbare Beziehung der drei gleichfarbigen Wortbausteine direkt benennen | ausdrücklich freigegeben | `Weiter` | Beziehungslinie nur über `Starkes`, `Uni`, `Passwort`; weiße Pfeile zwischen den ersten vier Wörtern |
+| `S05.intro.strategyAnnotations.probability` und `personalDetail` | Nutzerauftrag vom 2026-08-17 | `sehr häufig` / `Naheliegende Jahreszahl` | entfällt | Mechanismuserklärung | nicht mehr gewünschte Nebenannotationen und ihre Linien entfernen | ausdrücklich freigegeben | `Weiter` | keine |
+
+#### Darstellungspräzisierung S05 Verbindungskette 17. August 2026
+
+Quelle ist der ausdrückliche Nutzerauftrag vom 17. August 2026. Die weißen Pfeile zwischen
+`Mein`, `Starkes`, `Uni` und `Passwort` bleiben als sichtbare Satzverbindung erhalten. Das Label
+`Zusammenhängend` und sein senkrechter Anschluss werden am mittleren Baustein `Uni` verankert,
+damit der Anschluss mittig auf der horizontalen Verbindungskette sitzt und diese berührt.
+Teilnehmertext, Content-Version, Ablauf, Analyse, Persistenz, Export und Timing bleiben unverändert.
+
+Die anschließende Darstellungspräzisierung ersetzt die zunächst aus einem weißen Strich und
+einer CSS-Pfeilspitze zusammengesetzten Verbindungen durch drei vollständige weiße SVG-Pfeile.
+Damit werden die Richtungen `Mein` → `Starkes` → `Uni` → `Passwort` auch bei kleinen
+Darstellungsgrößen eindeutig als Pfeile und nicht als bloße Trennstriche wahrgenommen.
+
+#### Darstellungspräzisierung S05 Gruppenpalette 17. August 2026
+
+Quelle ist der ausdrückliche Nutzerauftrag vom 17. August 2026. Gruppe 1 der Strukturreflexion
+verwendet nun dasselbe Türkisblau wie die zusammengehörigen Bausteine der vorausgehenden
+Veranschaulichung. Das bisherige Blau und alle weiteren vorhandenen Gruppenfarben rücken jeweils
+um eine Position weiter. Teilnehmertext, Content-Version, Ablauf, Analyse, Persistenz, Export und
+Timing bleiben unverändert.

@@ -1,4 +1,3 @@
-import type { RuntimeStructureFindingKind } from '@passwo/contracts';
 import { s00Content, s05Content } from '@passwo/training-content';
 import type { DesktopPlatform } from '@passwo/ui';
 import {
@@ -26,6 +25,7 @@ import {
   type S05AnalysisControllerSnapshot,
   type S05AnalysisSubject,
   type S05InitialSection,
+  type S05StructureReflectionSnapshot,
   S05AnalysisController,
 } from './S05AnalysisController.js';
 import { S05AnimationAdapter } from './S05AnimationAdapter.js';
@@ -54,6 +54,7 @@ export interface S05AnalysisTrainingProps {
   readonly externalTimingError?: string | null;
   readonly onRetryTiming?: () => void;
   readonly completionPort?: S05CompletionPort;
+  readonly onStructureReflectionChange?: (reflection: S05StructureReflectionSnapshot) => void;
 }
 
 const CAMPUSGRAM_PASSWORD_REFERENCE_LENGTH = 17;
@@ -293,7 +294,7 @@ function StructureIntroScene() {
           display="decomposed"
           annotations={s05Content.intro.strategyAnnotations}
           visualScale={MEMORABLE_PASSWORD_VISUAL_SCALE}
-          ariaLabel={`${s05Content.intro.memorablePassword}: ${Object.values(s05Content.intro.strategyAnnotations).join(', ')}`}
+          ariaLabel={`${s05Content.intro.memorablePassword}: Starkes Uni Passwort ${s05Content.intro.strategyAnnotations.relationship}, drei Ausrufezeichen wiederholt`}
         />
       </div>
     </div>
@@ -787,11 +788,27 @@ function ComponentStrategyScene({
   );
 }
 
-function structureFindingLabel(kind: RuntimeStructureFindingKind): string {
-  return s05Content.structure.findingLabels[kind];
-}
-
 const structurePatternKeys = ['theme', 'sentence', 'repetition'] as const;
+
+const structureReflectionPalette = [
+  '#55b6ac',
+  '#5b5fef',
+  '#d85478',
+  '#1e9b72',
+  '#d28b31',
+  '#2e92bd',
+  '#985dc5',
+  '#ca6049',
+  '#6f973e',
+] as const;
+
+type StructureReflectionColorStyle = CSSProperties & {
+  readonly '--s05-structure-reflection-color': string;
+};
+
+function structureReflectionColor(index: number): string {
+  return structureReflectionPalette[index % structureReflectionPalette.length] ?? '#5b5fef';
+}
 
 function visibleStructurePatternCount(step: S05AnalysisControllerSnapshot['step']): number {
   if (step.startsWith('structure-repetition')) return 3;
@@ -869,84 +886,467 @@ function StructurePatternsScene({ step }: { readonly step: S05AnalysisController
   );
 }
 
-function StructurePasswordCheck({
-  subject,
-  snapshot,
-}: {
-  readonly subject: S05AnalysisSubject;
-  readonly snapshot: S05AnalysisControllerSnapshot;
-}) {
-  const repetitionFindings = snapshot.structureScene.runtimeAnalysis.findings.filter(
-    ({ findingKind }) =>
-      findingKind === 'exact-component-repetition' ||
-      findingKind === 'recognized-repetition-pattern',
+function structureReflectionBlocks(snapshot: S05AnalysisControllerSnapshot) {
+  const view = snapshot.componentStrategy.canonicalView;
+  if (view === null) return [];
+  return projectCanonicalPasswordBlocks(view, releasedComponentFindings(snapshot));
+}
+
+function contentGroupIndexForBlock(
+  reflection: S05StructureReflectionSnapshot,
+  blockId: string,
+): number | null {
+  const index = reflection.contentGroups.findIndex(({ blockIds }) => blockIds.includes(blockId));
+  return index < 0 ? null : index;
+}
+
+function sentenceLinkExists(
+  reflection: S05StructureReflectionSnapshot,
+  fromBlockId: string,
+  toBlockId: string,
+): boolean {
+  return reflection.sentenceLinks.some(
+    (link) => link.fromBlockId === fromBlockId && link.toBlockId === toBlockId,
   );
-  const repetitionSpans = repetitionFindings
-    .flatMap(({ evidence }) => evidence)
-    .filter((evidence) => evidence.type === 'span')
-    .sort((left, right) => left.start - right.start);
-  const passwordParts: string[] = [];
-  const highlightedIndices: number[] = [];
-  let cursor = 0;
-  for (const span of repetitionSpans) {
-    if (span.start < cursor) continue;
-    if (cursor < span.start) {
-      passwordParts.push(subject.fictionalPassword.slice(cursor, span.start));
+}
+
+interface StructureRepetitionGroup {
+  readonly id: string;
+  readonly blockIds: ReadonlySet<string>;
+  readonly firstBlockId: string;
+  readonly repetitionCount: number;
+}
+
+function structureRepetitionGroups(
+  snapshot: S05AnalysisControllerSnapshot,
+  blocks: ReturnType<typeof structureReflectionBlocks>,
+): readonly StructureRepetitionGroup[] {
+  return snapshot.structureScene.runtimeAnalysis.findings
+    .filter(
+      ({ findingKind }) =>
+        findingKind === 'exact-component-repetition' ||
+        findingKind === 'recognized-repetition-pattern',
+    )
+    .flatMap((finding) => {
+      const spans = finding.evidence
+        .filter((evidence) => evidence.type === 'span')
+        .sort((left, right) => left.start - right.start);
+      const firstSpan = spans[0];
+      if (firstSpan === undefined || spans.length < 2) return [];
+      const repeatedBlocks = blocks.filter((block) =>
+        spans.some((span) => span.start < block.end && span.end > block.start),
+      );
+      const firstBlock = repeatedBlocks.find(
+        (block) => firstSpan.start < block.end && firstSpan.end > block.start,
+      );
+      if (firstBlock === undefined) return [];
+      return [
+        {
+          id: finding.id,
+          blockIds: new Set(repeatedBlocks.map(({ id }) => id)),
+          firstBlockId: firstBlock.id,
+          repetitionCount: spans.length,
+        },
+      ];
+    });
+}
+
+function StructureReflectionToken({
+  block,
+  color,
+  repeated,
+  repetitionCount,
+  interactive,
+  onClick,
+  onHoverChange,
+}: {
+  readonly block: ReturnType<typeof structureReflectionBlocks>[number];
+  readonly color: string | null;
+  readonly repeated: boolean;
+  readonly repetitionCount: number | null;
+  readonly interactive: boolean;
+  readonly onClick?: (() => void) | undefined;
+  readonly onHoverChange?: ((hovered: boolean) => void) | undefined;
+}) {
+  const style: StructureReflectionColorStyle | undefined =
+    color === null ? undefined : { '--s05-structure-reflection-color': color };
+  return (
+    <button
+      type="button"
+      className={styles.structureReflectionToken}
+      style={style}
+      data-grouped={color === null ? undefined : true}
+      data-repetition={repeated || undefined}
+      disabled={!interactive}
+      onClick={onClick}
+      onMouseEnter={() => onHoverChange?.(true)}
+      onMouseLeave={() => onHoverChange?.(false)}
+    >
+      {repetitionCount === null ? null : (
+        <span className={styles.structureReflectionRepetitionCount} aria-hidden="true">
+          ×{repetitionCount}
+        </span>
+      )}
+      {block.value}
+    </button>
+  );
+}
+
+function StructureLinkArrow({
+  active = false,
+  preview = false,
+  separator = false,
+}: {
+  readonly active?: boolean;
+  readonly preview?: boolean;
+  readonly separator?: boolean;
+}) {
+  return (
+    <span
+      className={styles.structureReflectionGap}
+      data-active={active || undefined}
+      data-preview={preview || undefined}
+      data-separator={separator || undefined}
+      aria-hidden="true"
+    >
+      <span className={styles.structureReflectionArrow} />
+    </span>
+  );
+}
+
+function StructureSentenceRow({
+  snapshot,
+  controller,
+  summary = false,
+}: {
+  readonly snapshot: S05AnalysisControllerSnapshot;
+  readonly controller?: S05AnalysisController;
+  readonly summary?: boolean;
+}) {
+  const [hoveredBlockId, setHoveredBlockId] = useState<string | null>(null);
+  const blocks = structureReflectionBlocks(snapshot);
+  const reflection = snapshot.structureReflection;
+  const repetitionGroups = structureRepetitionGroups(snapshot, blocks);
+  const rendered: ReactNode[] = [];
+  let index = 0;
+
+  const tokenFor = (blockIndex: number) => {
+    const block = blocks[blockIndex];
+    if (block === undefined) return null;
+    const groupIndex = contentGroupIndexForBlock(reflection, block.id);
+    const repetitionGroup = summary
+      ? repetitionGroups.find(({ blockIds }) => blockIds.has(block.id))
+      : undefined;
+    const nextBlock = blocks[blockIndex + 1];
+    return (
+      <StructureReflectionToken
+        key={block.id}
+        block={block}
+        color={groupIndex === null ? null : structureReflectionColor(groupIndex)}
+        repeated={repetitionGroup !== undefined}
+        repetitionCount={
+          repetitionGroup?.firstBlockId === block.id
+            ? repetitionGroup.repetitionCount
+            : null
+        }
+        interactive={!summary && nextBlock !== undefined}
+        onClick={
+          summary || nextBlock === undefined || controller === undefined
+            ? undefined
+            : () => controller.toggleStructureSentenceLink(block.id, nextBlock.id)
+        }
+        onHoverChange={summary ? undefined : (hovered) => setHoveredBlockId(hovered ? block.id : null)}
+      />
+    );
+  };
+
+  while (index < blocks.length) {
+    const block = blocks[index];
+    const nextBlock = blocks[index + 1];
+    if (
+      block !== undefined &&
+      nextBlock !== undefined &&
+      sentenceLinkExists(reflection, block.id, nextBlock.id)
+    ) {
+      const startIndex = index;
+      let endIndex = index + 1;
+      while (endIndex < blocks.length - 1) {
+        const current = blocks[endIndex];
+        const following = blocks[endIndex + 1];
+        if (
+          current === undefined ||
+          following === undefined ||
+          !sentenceLinkExists(reflection, current.id, following.id)
+        ) {
+          break;
+        }
+        endIndex += 1;
+      }
+      const runChildren: ReactNode[] = [];
+      for (let runIndex = startIndex; runIndex <= endIndex; runIndex += 1) {
+        const runBlock = blocks[runIndex];
+        if (runBlock === undefined) continue;
+        runChildren.push(tokenFor(runIndex));
+        if (runIndex < endIndex) {
+          runChildren.push(
+            <StructureLinkArrow active key={`link-${runBlock.id}`} />,
+          );
+        }
+      }
+      rendered.push(
+        <span className={styles.structureReflectionRun} key={`run-${block.id}`}>
+          {runChildren}
+        </span>,
+      );
+      const runEndBlock = blocks[endIndex];
+      if (runEndBlock !== undefined && endIndex < blocks.length - 1) {
+        rendered.push(
+          <StructureLinkArrow
+            separator
+            preview={!summary && hoveredBlockId === runEndBlock.id}
+            key={`separator-${runEndBlock.id}`}
+          />,
+        );
+      }
+      index = endIndex + 1;
+      continue;
     }
-    highlightedIndices.push(passwordParts.length);
-    passwordParts.push(subject.fictionalPassword.slice(span.start, span.end));
-    cursor = span.end;
+
+    if (block !== undefined) rendered.push(tokenFor(index));
+    if (block !== undefined && nextBlock !== undefined) {
+      rendered.push(
+        <StructureLinkArrow
+          preview={!summary && hoveredBlockId === block.id}
+          key={`gap-${block.id}`}
+        />,
+      );
+    }
+    index += 1;
   }
-  if (cursor < subject.fictionalPassword.length) {
-    passwordParts.push(subject.fictionalPassword.slice(cursor));
+
+  return <div className={styles.structureReflectionPassword}>{rendered}</div>;
+}
+
+function StructureReflectionConfirmation({
+  onCancel,
+  onConfirm,
+}: {
+  readonly onCancel: () => void;
+  readonly onConfirm: () => void;
+}) {
+  const content = s05Content.structure.reflection;
+  return (
+    <div className={styles.structureReflectionConfirmBackdrop}>
+      <section
+        className={styles.structureReflectionConfirm}
+        role="dialog"
+        aria-modal="true"
+        aria-label={content.confirmTitle}
+      >
+        <strong>{content.confirmTitle}</strong>
+        <div>
+          <button type="button" onClick={onCancel}>
+            {content.confirmBack}
+          </button>
+          <button type="button" data-primary onClick={onConfirm}>
+            {content.confirmContinue}
+          </button>
+        </div>
+      </section>
+    </div>
+  );
+}
+
+function StructureContentReflection({
+  snapshot,
+  controller,
+}: {
+  readonly snapshot: S05AnalysisControllerSnapshot;
+  readonly controller: S05AnalysisController;
+}) {
+  const [confirming, setConfirming] = useState(false);
+  const blocks = structureReflectionBlocks(snapshot);
+  const reflection = snapshot.structureReflection;
+  const activeGroup = reflection.contentGroups.find(
+    ({ id }) => id === reflection.activeContentGroupId,
+  );
+  const hasInput = reflection.contentGroups.some(({ blockIds }) => blockIds.length > 0);
+  const canAddGroup =
+    activeGroup !== undefined &&
+    reflection.contentGroups.every(({ blockIds }) => blockIds.length > 0);
+
+  function finish(): void {
+    if (hasInput) {
+      setConfirming(true);
+      return;
+    }
+    controller.completeStructureContentReflection();
   }
-  if (passwordParts.length === 0) passwordParts.push(subject.fictionalPassword);
 
   return (
-    <section className={styles.structurePasswordCheck}>
-      <strong className={styles.canonicalAccount}>
-        <span aria-hidden="true"><NetworkSymbol symbolId="campusgram" /></span>
-        {s05Content.structure.application.passwordLabel}
-      </strong>
-      <PasswordBuildingBlocks
-        value={subject.fictionalPassword}
-        visualReferenceValue={subject.fictionalPassword}
-        parts={passwordParts}
-        display="decomposed"
-        appearance="analysis"
-        animate
-        highlightedIndices={highlightedIndices}
-        categoryIds={passwordParts.map((_, index) =>
-          highlightedIndices.includes(index) ? (['repetition'] as const) : [],
-        )}
-        ariaLabel={`${s05Content.structure.application.passwordLabel}: ${subject.fictionalPassword}`}
-      />
+    <section
+      className={styles.structureReflectionWorkspace}
+      data-s05-target="structure-theme-reflection"
+      data-s05-speech-obstacle
+    >
+      <div className={styles.structureReflectionPassword}>
+        {blocks.map((block) => {
+          const groupIndex = contentGroupIndexForBlock(reflection, block.id);
+          return (
+            <StructureReflectionToken
+              key={block.id}
+              block={block}
+              color={groupIndex === null ? null : structureReflectionColor(groupIndex)}
+              repeated={false}
+              repetitionCount={null}
+              interactive
+              onClick={() => controller.toggleStructureContentBlock(block.id)}
+            />
+          );
+        })}
+      </div>
+      <div className={styles.structureReflectionActions}>
+        <div className={styles.structureReflectionGroups}>
+          {reflection.contentGroups.map((group, groupIndex) => {
+            const groupStyle: StructureReflectionColorStyle = {
+              '--s05-structure-reflection-color': structureReflectionColor(groupIndex),
+            };
+            return (
+              <div className={styles.structureReflectionGroupEntry} key={group.id}>
+                <button
+                  type="button"
+                  className={styles.structureReflectionGroup}
+                  style={groupStyle}
+                  data-active={group.id === reflection.activeContentGroupId || undefined}
+                  onClick={() => controller.selectStructureContentGroup(group.id)}
+                >
+                  {s05Content.structure.reflection.groupLabel} {groupIndex + 1}
+                </button>
+                {groupIndex === 0 ? null : (
+                  <button
+                    type="button"
+                    className={styles.structureReflectionDelete}
+                    aria-label={`${s05Content.structure.reflection.deleteGroup} ${groupIndex + 1}`}
+                    onClick={() => controller.removeStructureContentGroup(group.id)}
+                  >
+                    <svg viewBox="0 0 24 24" aria-hidden="true">
+                      <path d="M4 7h16" />
+                      <path d="M9 7V4h6v3" />
+                      <path d="M7 7l1 13h8l1-13" />
+                      <path d="M10 11v5" />
+                      <path d="M14 11v5" />
+                    </svg>
+                    <small>{s05Content.structure.reflection.deleteGroup}</small>
+                  </button>
+                )}
+              </div>
+            );
+          })}
+          <button
+            type="button"
+            className={styles.structureReflectionAdd}
+            aria-label={s05Content.structure.reflection.newGroup}
+            disabled={!canAddGroup}
+            onClick={() => controller.addStructureContentGroup()}
+          >
+            <span aria-hidden="true">+</span>
+            <small>{s05Content.structure.reflection.newGroup}</small>
+          </button>
+        </div>
+        <button type="button" className={styles.structureReflectionFinish} onClick={finish}>
+          {s05Content.structure.reflection.finish}
+        </button>
+      </div>
+      {confirming ? (
+        <StructureReflectionConfirmation
+          onCancel={() => setConfirming(false)}
+          onConfirm={() => controller.completeStructureContentReflection()}
+        />
+      ) : null}
     </section>
   );
 }
 
-function StructureSequenceScene({
-  step,
-  subject,
+function StructureSentenceReflection({
+  snapshot,
+  controller,
+}: {
+  readonly snapshot: S05AnalysisControllerSnapshot;
+  readonly controller: S05AnalysisController;
+}) {
+  const [confirming, setConfirming] = useState(false);
+  const hasInput = snapshot.structureReflection.sentenceLinks.length > 0;
+
+  function finish(): void {
+    if (hasInput) {
+      setConfirming(true);
+      return;
+    }
+    controller.completeStructureSentenceReflection();
+  }
+
+  return (
+    <section
+      className={styles.structureReflectionWorkspace}
+      data-s05-target="structure-sentence-reflection"
+      data-s05-speech-obstacle
+    >
+      <StructureSentenceRow snapshot={snapshot} controller={controller} />
+      <button type="button" className={styles.structureReflectionFinish} onClick={finish}>
+        {s05Content.structure.reflection.finish}
+      </button>
+      {confirming ? (
+        <StructureReflectionConfirmation
+          onCancel={() => setConfirming(false)}
+          onConfirm={() => controller.completeStructureSentenceReflection()}
+        />
+      ) : null}
+    </section>
+  );
+}
+
+function StructureReflectionSummary({
   snapshot,
 }: {
-  readonly step: S05AnalysisControllerSnapshot['step'];
-  readonly subject: S05AnalysisSubject;
   readonly snapshot: S05AnalysisControllerSnapshot;
 }) {
-  const applicationVisible = step === 'structure-application';
+  return (
+    <section
+      className={`${styles.structureReflectionWorkspace} ${styles.structureReflectionSummary}`}
+      data-s05-target="structure-application"
+      data-s05-speech-obstacle
+    >
+      <StructureSentenceRow snapshot={snapshot} summary />
+    </section>
+  );
+}
+
+function StructurePatternScene({
+  snapshot,
+  controller,
+}: {
+  readonly snapshot: S05AnalysisControllerSnapshot;
+  readonly controller: S05AnalysisController;
+}) {
+  const patternStep =
+    snapshot.step === 'structure-application' ? 'structure-repetition' : snapshot.step;
+  const reflectionVisible =
+    snapshot.step === 'structure-theme-reflection' ||
+    snapshot.step === 'structure-sentence-reflection' ||
+    snapshot.step === 'structure-application';
 
   return (
     <div
-      className={`${styles.structureSequence}${
-        applicationVisible ? ` ${styles.structureApplication}` : ''
-      }`}
-      data-s05-target={applicationVisible ? 'structure-application' : undefined}
-      data-s05-speech-obstacle={applicationVisible || undefined}
+      className={styles.structurePatternWorkspace}
+      data-reflection={reflectionVisible || undefined}
     >
-      <StructurePatternsScene step={applicationVisible ? 'structure-repetition' : step} />
-      {applicationVisible ? (
-        <StructurePasswordCheck subject={subject} snapshot={snapshot} />
+      <StructurePatternsScene step={patternStep} />
+      {snapshot.step === 'structure-theme-reflection' ? (
+        <StructureContentReflection snapshot={snapshot} controller={controller} />
+      ) : snapshot.step === 'structure-sentence-reflection' ? (
+        <StructureSentenceReflection snapshot={snapshot} controller={controller} />
+      ) : snapshot.step === 'structure-application' ? (
+        <StructureReflectionSummary snapshot={snapshot} />
       ) : null}
     </div>
   );
@@ -2056,14 +2456,10 @@ function renderScene(
     case 'structure-sentence-guessing':
     case 'structure-repetition':
     case 'structure-repetition-guessing':
+    case 'structure-theme-reflection':
+    case 'structure-sentence-reflection':
     case 'structure-application':
-      return (
-        <StructureSequenceScene
-          step={snapshot.step}
-          subject={subject}
-          snapshot={snapshot}
-        />
-      );
+      return <StructurePatternScene snapshot={snapshot} controller={controller} />;
     case 'free-search-transition':
     case 'character-mix-first':
     case 'character-mix-comparison':
@@ -2270,10 +2666,14 @@ function speechFor(
       return [s05Content.structure.narration.theme[0]];
     case 'structure-theme-guessing':
       return [s05Content.structure.narration.theme[1]];
+    case 'structure-theme-reflection':
+      return [s05Content.structure.reflection.themeQuestion];
     case 'structure-sentence':
       return [s05Content.structure.narration.sentence[0]];
     case 'structure-sentence-guessing':
       return [s05Content.structure.narration.sentence[1]];
+    case 'structure-sentence-reflection':
+      return [s05Content.structure.reflection.sentenceQuestion];
     case 'structure-repetition':
       return [s05Content.structure.narration.repetition[0]];
     case 'structure-repetition-guessing':
@@ -2378,6 +2778,7 @@ export function S05AnalysisTraining({
   externalTimingError = null,
   onRetryTiming,
   completionPort,
+  onStructureReflectionChange,
 }: S05AnalysisTrainingProps) {
   const hostRef = useRef<HTMLElement | null>(null);
   const [controller, setController] = useState<S05AnalysisController | null>(null);
@@ -2409,6 +2810,11 @@ export function S05AnalysisTraining({
   useEffect(() => {
     controller?.start();
   }, [controller]);
+
+  useEffect(() => {
+    if (snapshot === null) return;
+    onStructureReflectionChange?.(snapshot.structureReflection);
+  }, [onStructureReflectionChange, snapshot?.structureReflection]);
 
   if (controller === null || snapshot === null) return null;
 
@@ -2464,6 +2870,9 @@ export function S05AnalysisTraining({
               onAction: continueFromSpeech,
             }
           : undefined;
+      case 'structure-theme-reflection':
+      case 'structure-sentence-reflection':
+        return undefined;
       case 'final-takeaway':
         return {
           kind: 'advance' as const,
@@ -2497,7 +2906,9 @@ export function S05AnalysisTraining({
             guidanceVisible &&
             snapshot.step !== 'components-summary' &&
             snapshot.step !== 'estimate' &&
-            snapshot.step !== 'length-model-comparison'
+            snapshot.step !== 'length-model-comparison' &&
+            snapshot.step !== 'structure-theme-reflection' &&
+            snapshot.step !== 'structure-sentence-reflection'
               ? true
               : undefined
           }

@@ -31,6 +31,7 @@ import {
   type S05CompletionPort,
   type S05TimingState,
 } from './segments/S05/S05AnalysisTraining.js';
+import type { S05StructureReflectionSnapshot } from './segments/S05/S05AnalysisController.js';
 import {
   S06ConsequenceTraining,
   type S06ConsequenceSource,
@@ -65,6 +66,7 @@ export function PasswordModuleTraining({
   const [platform, setPlatform] = useState<DesktopPlatform>('mac');
   const [s06SummaryNetwork, setS06SummaryNetwork] = useState<NetworkSceneSnapshot | null>(null);
   const controllerRef = useRef<PasswordModuleController | null>(null);
+  const s05StructureReflectionRef = useRef<S05StructureReflectionSnapshot | null>(null);
   const entrySceneRef = useRef<HTMLDivElement | null>(null);
   const entryCharacterRef = useRef<HTMLImageElement | null>(null);
   const entrySpeechRef = useRef<HTMLDivElement | null>(null);
@@ -153,6 +155,18 @@ export function PasswordModuleTraining({
     s06Plan === null ? [] : deriveS07AccountFeedback(s06Plan);
   const s07RemainingAccountIds = s07AccountsRequiringPassphraseChange(s07AccountFeedback);
   const completeS06 = useCallback(() => controllerRef.current?.completeS06(), []);
+  const captureS05StructureReflection = useCallback(
+    (reflection: S05StructureReflectionSnapshot) => {
+      if (
+        s05StructureReflectionRef.current?.sentenceConfirmed === true &&
+        !reflection.sentenceConfirmed
+      ) {
+        return;
+      }
+      s05StructureReflectionRef.current = reflection;
+    },
+    [],
+  );
 
   useEffect(() => {
     const controller = new PasswordModuleController({
@@ -413,6 +427,7 @@ export function PasswordModuleTraining({
         timingErrorCode={snapshot.context.timingErrorCode}
         externalTimingError={externalTimingError}
         completionPort={s05CompletionPort}
+        onStructureReflectionChange={captureS05StructureReflection}
         onRetryTiming={() => {
           if (externalTimingError !== null) {
             onRetryExternalTiming?.();
@@ -436,6 +451,7 @@ export function PasswordModuleTraining({
           timingErrorCode={snapshot.context.timingErrorCode}
           externalTimingError={externalTimingError}
           completionPort={s05CompletionPort}
+          onStructureReflectionChange={captureS05StructureReflection}
           onRetryTiming={() => {
             if (externalTimingError !== null) onRetryExternalTiming?.();
             else controller.retryTiming();

@@ -27,6 +27,7 @@ import {
   createCanonicalPasswordView,
   createPersonalFindings,
   isS05CharacterBoundary,
+  projectCanonicalPasswordBlocks,
   type S05CanonicalPasswordView,
   type S05CategoryCardStatus,
   type S05CategoryFinding,
@@ -63,8 +64,10 @@ export type S05AnalysisStep =
   | 'structure-intro'
   | 'structure-theme'
   | 'structure-theme-guessing'
+  | 'structure-theme-reflection'
   | 'structure-sentence'
   | 'structure-sentence-guessing'
+  | 'structure-sentence-reflection'
   | 'structure-repetition'
   | 'structure-repetition-guessing'
   | 'structure-application'
@@ -91,6 +94,24 @@ export type S05AnalysisStep =
 
 export type S05Estimate = (typeof s05Content.freeSearch.estimate.options)[number];
 
+export interface S05StructureContentGroup {
+  readonly id: string;
+  readonly blockIds: readonly string[];
+}
+
+export interface S05StructureSentenceLink {
+  readonly fromBlockId: string;
+  readonly toBlockId: string;
+}
+
+export interface S05StructureReflectionSnapshot {
+  readonly contentGroups: readonly S05StructureContentGroup[];
+  readonly activeContentGroupId: string;
+  readonly sentenceLinks: readonly S05StructureSentenceLink[];
+  readonly contentConfirmed: boolean;
+  readonly sentenceConfirmed: boolean;
+}
+
 export interface S05AnalysisSubject {
   readonly id: string;
   readonly label: string;
@@ -108,6 +129,7 @@ export interface S05AnalysisControllerSnapshot {
   readonly step: S05AnalysisStep;
   readonly findingScene: PasswordFindingSceneSnapshot;
   readonly structureScene: PasswordStructureSceneSnapshot;
+  readonly structureReflection: S05StructureReflectionSnapshot;
   readonly freeSearchDemonstrationScene: PasswordFreeSearchDemonstrationSceneSnapshot;
   readonly assessmentScene: PasswordAssessmentSceneSnapshot;
   readonly assessmentNetwork: NetworkSceneSnapshot;
@@ -173,8 +195,10 @@ const stepByMissionId: Readonly<Record<string, S05AnalysisStep>> = {
   's05-structure-intro': 'structure-intro',
   's05-structure-theme': 'structure-theme',
   's05-structure-theme-guessing': 'structure-theme-guessing',
+  's05-structure-theme-reflection': 'structure-theme-reflection',
   's05-structure-sentence': 'structure-sentence',
   's05-structure-sentence-guessing': 'structure-sentence-guessing',
+  's05-structure-sentence-reflection': 'structure-sentence-reflection',
   's05-structure-repetition': 'structure-repetition',
   's05-structure-repetition-guessing': 'structure-repetition-guessing',
   's05-structure-application': 'structure-application',
@@ -206,6 +230,33 @@ function initialComponentCards(): S05AnalysisControllerSnapshot['componentStrate
     'personal-details': { status: 'pending', findings: [] },
     'account-context': { status: 'pending', findings: [] },
   };
+}
+
+function initialStructureReflection(): S05StructureReflectionSnapshot {
+  return {
+    contentGroups: [{ id: 'content-group-1', blockIds: [] }],
+    activeContentGroupId: 'content-group-1',
+    sentenceLinks: [],
+    contentConfirmed: false,
+    sentenceConfirmed: false,
+  };
+}
+
+function releasedStructureFindings(
+  snapshot: S05AnalysisControllerSnapshot,
+): readonly S05CategoryFinding[] {
+  return s05Content.componentStrategy.categories.flatMap(({ id }) => {
+    const card = snapshot.componentStrategy.cards[id];
+    return card.status === 'checked-findings' ? card.findings : [];
+  });
+}
+
+function structureReflectionBlockIds(snapshot: S05AnalysisControllerSnapshot): readonly string[] {
+  const view = snapshot.componentStrategy.canonicalView;
+  if (view === null) return [];
+  return projectCanonicalPasswordBlocks(view, releasedStructureFindings(snapshot)).map(
+    ({ id }) => id,
+  );
 }
 
 function categoryForStep(step: S05AnalysisStep): S05ComponentCategoryId | null {
@@ -355,6 +406,7 @@ export class S05AnalysisController {
       step: stepForMissionIndex(this.#mission, 0),
       findingScene,
       structureScene,
+      structureReflection: initialStructureReflection(),
       freeSearchDemonstrationScene: createPasswordFreeSearchDemonstrationScene({
         id: `s05-free-search-${subject.id}`,
         lowercaseMeasurements: s05Content.freeSearch.theoreticalModel.lowercaseMeasurements.map(
@@ -561,6 +613,206 @@ export class S05AnalysisController {
           },
         },
       },
+    };
+    this.#emit();
+    void this.#missionController.continue();
+  }
+
+  selectStructureContentGroup(groupId: string): void {
+    const snapshot = this.#snapshot;
+    if (
+      this.#disposed ||
+      snapshot === null ||
+      snapshot.step !== 'structure-theme-reflection' ||
+      !snapshot.structureReflection.contentGroups.some(({ id }) => id === groupId)
+    ) {
+      return;
+    }
+    this.#snapshot = {
+      ...snapshot,
+      structureReflection: {
+        ...snapshot.structureReflection,
+        activeContentGroupId: groupId,
+      },
+    };
+    this.#emit();
+  }
+
+  toggleStructureContentBlock(blockId: string): void {
+    const snapshot = this.#snapshot;
+    if (
+      this.#disposed ||
+      snapshot === null ||
+      snapshot.step !== 'structure-theme-reflection'
+    ) {
+      return;
+    }
+    if (!structureReflectionBlockIds(snapshot).includes(blockId)) return;
+    const reflection = snapshot.structureReflection;
+    const activeGroup = reflection.contentGroups.find(
+      ({ id }) => id === reflection.activeContentGroupId,
+    );
+    if (activeGroup === undefined) return;
+    const alreadySelected = activeGroup.blockIds.includes(blockId);
+    const contentGroups = reflection.contentGroups.map((group) => {
+      if (group.id === activeGroup.id) {
+        return {
+          ...group,
+          blockIds: alreadySelected
+            ? group.blockIds.filter((id) => id !== blockId)
+            : [...group.blockIds, blockId],
+        };
+      }
+      return alreadySelected
+        ? group
+        : { ...group, blockIds: group.blockIds.filter((id) => id !== blockId) };
+    });
+    this.#snapshot = {
+      ...snapshot,
+      structureReflection: { ...reflection, contentGroups, contentConfirmed: false },
+    };
+    this.#emit();
+  }
+
+  addStructureContentGroup(): boolean {
+    const snapshot = this.#snapshot;
+    if (
+      this.#disposed ||
+      snapshot === null ||
+      snapshot.step !== 'structure-theme-reflection'
+    ) {
+      return false;
+    }
+    const reflection = snapshot.structureReflection;
+    if (reflection.contentGroups.some(({ blockIds }) => blockIds.length === 0)) return false;
+    const nextIndex =
+      reflection.contentGroups.reduce((maximum, { id }) => {
+        const match = /content-group-(\d+)/u.exec(id);
+        return Math.max(maximum, Number(match?.[1] ?? 0));
+      }, 0) + 1;
+    const nextGroup = { id: `content-group-${nextIndex}`, blockIds: [] } as const;
+    this.#snapshot = {
+      ...snapshot,
+      structureReflection: {
+        ...reflection,
+        contentGroups: [...reflection.contentGroups, nextGroup],
+        activeContentGroupId: nextGroup.id,
+        contentConfirmed: false,
+      },
+    };
+    this.#emit();
+    return true;
+  }
+
+  removeStructureContentGroup(groupId: string): void {
+    const snapshot = this.#snapshot;
+    if (
+      this.#disposed ||
+      snapshot === null ||
+      snapshot.step !== 'structure-theme-reflection'
+    ) {
+      return;
+    }
+    const reflection = snapshot.structureReflection;
+    if (
+      reflection.contentGroups.length <= 1 ||
+      !reflection.contentGroups.some(({ id }) => id === groupId)
+    ) {
+      return;
+    }
+    const contentGroups = reflection.contentGroups.filter(({ id }) => id !== groupId);
+    const activeContentGroupId =
+      reflection.activeContentGroupId === groupId
+        ? (contentGroups.at(-1)?.id ?? contentGroups[0]?.id ?? 'content-group-1')
+        : reflection.activeContentGroupId;
+    this.#snapshot = {
+      ...snapshot,
+      structureReflection: {
+        ...reflection,
+        contentGroups,
+        activeContentGroupId,
+        contentConfirmed: false,
+      },
+    };
+    this.#emit();
+  }
+
+  completeStructureContentReflection(): void {
+    const snapshot = this.#snapshot;
+    if (
+      this.#disposed ||
+      snapshot === null ||
+      snapshot.step !== 'structure-theme-reflection'
+    ) {
+      return;
+    }
+    const nonEmptyGroups = snapshot.structureReflection.contentGroups.filter(
+      ({ blockIds }) => blockIds.length > 0,
+    );
+    const contentGroups =
+      nonEmptyGroups.length > 0
+        ? nonEmptyGroups
+        : [{ id: 'content-group-1', blockIds: [] }];
+    const activeContentGroupId = contentGroups.some(
+      ({ id }) => id === snapshot.structureReflection.activeContentGroupId,
+    )
+      ? snapshot.structureReflection.activeContentGroupId
+      : (contentGroups[0]?.id ?? 'content-group-1');
+    this.#snapshot = {
+      ...snapshot,
+      structureReflection: {
+        ...snapshot.structureReflection,
+        contentGroups,
+        activeContentGroupId,
+        contentConfirmed: true,
+      },
+      controls: { ...snapshot.controls, canContinue: false },
+    };
+    this.#emit();
+    void this.#missionController.continue();
+  }
+
+  toggleStructureSentenceLink(fromBlockId: string, toBlockId: string): void {
+    const snapshot = this.#snapshot;
+    if (
+      this.#disposed ||
+      snapshot === null ||
+      snapshot.step !== 'structure-sentence-reflection'
+    ) {
+      return;
+    }
+    const blockIds = structureReflectionBlockIds(snapshot);
+    const fromIndex = blockIds.indexOf(fromBlockId);
+    if (fromIndex < 0 || blockIds[fromIndex + 1] !== toBlockId) return;
+    const reflection = snapshot.structureReflection;
+    const exists = reflection.sentenceLinks.some(
+      (link) => link.fromBlockId === fromBlockId && link.toBlockId === toBlockId,
+    );
+    const sentenceLinks = exists
+      ? reflection.sentenceLinks.filter(
+          (link) => link.fromBlockId !== fromBlockId || link.toBlockId !== toBlockId,
+        )
+      : [...reflection.sentenceLinks, { fromBlockId, toBlockId }];
+    this.#snapshot = {
+      ...snapshot,
+      structureReflection: { ...reflection, sentenceLinks, sentenceConfirmed: false },
+    };
+    this.#emit();
+  }
+
+  completeStructureSentenceReflection(): void {
+    const snapshot = this.#snapshot;
+    if (
+      this.#disposed ||
+      snapshot === null ||
+      snapshot.step !== 'structure-sentence-reflection'
+    ) {
+      return;
+    }
+    this.#snapshot = {
+      ...snapshot,
+      structureReflection: { ...snapshot.structureReflection, sentenceConfirmed: true },
+      controls: { ...snapshot.controls, canContinue: false },
     };
     this.#emit();
     void this.#missionController.continue();

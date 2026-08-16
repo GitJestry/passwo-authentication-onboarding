@@ -62,9 +62,8 @@ export interface PasswordBuildingBlocksProps {
     };
   };
   readonly annotations?: {
-    readonly sentenceStructure: string;
-    readonly probability: string;
-    readonly personalDetail: string;
+    readonly relationship: string;
+    readonly repetitionCount: number;
   };
 }
 
@@ -387,9 +386,6 @@ export function PasswordBuildingBlocks({
         style={visualStyle}
       >
         <code className={styles.decomposedPassword} style={gridStyle}>
-          {annotations === undefined ? null : (
-            <strong className={styles.sentenceStructure}>{annotations.sentenceStructure}</strong>
-          )}
           {parts.map((part, index) => {
             const partLabels = normalizeLabels(labels?.[index]);
             const partFindings = findings?.[index] ?? [];
@@ -414,6 +410,24 @@ export function PasswordBuildingBlocks({
                         </span>
                       ))}
                 </b>
+                {annotations === undefined || index > 2 ? null : (
+                  <svg
+                    className={styles.annotationArrow}
+                    viewBox="0 0 16 12"
+                    aria-hidden="true"
+                  >
+                    <path d="M1 6h13M9.5 1.5 14 6l-4.5 4.5" />
+                  </svg>
+                )}
+                {annotations === undefined || index < 1 || index > 3 ? null : (
+                  <>
+                    <i className={styles.relationshipStem} aria-hidden="true" />
+                    <i className={styles.relationshipRail} aria-hidden="true" />
+                  </>
+                )}
+                {annotations === undefined || index !== 2 ? null : (
+                  <strong className={styles.relationship}>{annotations.relationship}</strong>
+                )}
                 {partFindings.length === 0 ? null : (
                   <small className={styles.blockFindings}>
                     {partFindings.map(({ categoryId, label }) => (
@@ -431,11 +445,10 @@ export function PasswordBuildingBlocks({
                     ))}
                   </small>
                 )}
-                {annotations === undefined || index !== 3 ? null : (
-                  <small className={styles.probability}>{annotations.probability}</small>
-                )}
-                {annotations === undefined || index !== 4 ? null : (
-                  <small className={styles.personalDetail}>{annotations.personalDetail}</small>
+                {annotations === undefined || index !== parts.length - 1 ? null : (
+                  <small className={styles.repetitionCount}>
+                    x{annotations.repetitionCount}
+                  </small>
                 )}
               </>
             );
@@ -444,6 +457,8 @@ export function PasswordBuildingBlocks({
               'data-categories': categories.join(' '),
               'data-highlighted':
                 categories.length > 0 || highlightedIndices.includes(index) || undefined,
+              'data-annotation-repetition':
+                annotations !== undefined && index === parts.length - 1 ? true : undefined,
             } as const;
             return (
               <span key={`${part}-${index}`} {...sharedProps}>
