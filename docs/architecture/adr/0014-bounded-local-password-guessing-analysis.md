@@ -2,7 +2,7 @@
 
 - **Status:** Accepted
 - **Datum:** 2026-08-03
-- **Geändert am:** 2026-08-15: kanonische Evidenzauswahl, positionsunabhängige Restzeichenfamilien und Passphrase-Grenze
+- **Geändert am:** 2026-08-16: sprachgebundene Wortzerlegung, Befundprioritäten und getrennte Wiederholungen
 - **Citation label:** `ADR 0014-Bounded-Password-Guessing`
 - **Ergänzt:** ADR 0002, ADR 0003 und ADR 0007
 
@@ -35,7 +35,7 @@ NIST-Konformitätsimplementierung.
 ## Entscheidung
 
 `@passwo/password-analysis` bleibt vollständig lokal, deterministisch und frameworkfrei. Die
-Analysekonfiguration erhält die Version `passwo-bounded-whole-recognition-v11`.
+Analysekonfiguration erhält die Version `passwo-bounded-whole-recognition-v12`.
 
 Die interne Verarbeitung trennt drei Ebenen:
 
@@ -79,6 +79,14 @@ ohne freie innere Treffer wie `K|larissa` oder `Klar|issa` zu erfinden. Ein unbe
 löscht angrenzende belegte Wörter nicht. Vollständige kleingeschriebene Läufe dürfen weiterhin
 lückenlos aus den eingefrorenen Wörterbüchern zerlegt werden.
 
+Die vollständige Zerlegung wird je Lauf getrennt für Deutsch und Englisch berechnet. Wörter aus
+beiden Sprachen werden nicht frei zu einer künstlichen Mischpartition kombiniert. Kurze
+Funktionswörter und Kontextkürzel wie `ich`, `bis`, `zum` oder `uni` sind nur zulässig, wenn sie
+ein vollständiges sichtbares Segment oder einen Teil einer lückenlosen sprachgebundenen Partition
+bilden. Namenslisten werden nicht zur freien inneren Zerlegung verwendet. Ein Name bleibt nur als
+vollständiges sichtbares Segment oder als authored flüchtiger Kontext verfügbar. Dadurch kann
+`ZumMo` nicht als Name aus `ZumMond` ausgeschnitten werden.
+
 ### Vorrang des Kontokontexts
 
 Wenn ein exakter oder authored begrenzt veränderter Konto-/Dienstbegriff einen Bereich abdeckt,
@@ -86,6 +94,33 @@ werden Wörterbuchbefunde, die vollständig innerhalb dieses Bereichs liegen, au
 Befundmenge entfernt. So wird `Campusgram` nicht zusätzlich als `Campus` und `gram` bewertet;
 `C4mpu5Gram` bleibt ein vollständiger veränderter Kontobezug. Nicht deckungsgleiche Befunde
 außerhalb des Kontextspans bleiben erhalten.
+
+Spezifische Strukturspans haben außerdem Vorrang vor generischen Endungen. Ein erkanntes Jahr wie
+`2026` bleibt deshalb ein eigener Befund; bei `Passwort2026!` umfasst die generische Endung nur
+`!`. Ein bis drei druckbare ASCII-Trennzeichen zwischen zwei kanonischen semantischen Ankern gelten
+als vorhersehbare Verbindung und nicht als zusätzlicher unbekannter Suchraum. Die Zeichen selbst
+erzeugen keinen neuen semantischen Anker und keine Zeichentypregel.
+
+### Getrennte und begrenzt veränderte Wiederholungen
+
+Die Wiederholungserkennung ist nicht auf direkt aneinanderliegende zxcvbn-Wiederholungen begrenzt.
+PassWo ergänzt folgende konservative lokale Befunde:
+
+- derselbe alphanumerische Teil mit mindestens vier normalisierten Zeichen erscheint mindestens
+  zweimal nicht überlappend; bei vier oder fünf Zeichen müssen beide Vorkommen an sichtbaren
+  Wort-, Zahl- oder Schreibgrenzen liegen;
+- ausreichend lange sichtbare Komponenten mit mindestens acht Zeichen unterscheiden sich nach
+  normalisierter Groß-/Kleinschreibung um genau eine Damerau-Levenshtein-Operation;
+- ein durchgehender alphanumerischer Lauf kann in zwei nahezu gleich lange Hälften mit jeweils
+  mindestens acht Zeichen geteilt werden, die sich um genau eine Operation unterscheiden;
+- die eingefrorenen Ersetzungen `$→s`, `0→o`, `1→i`, `3→e`, `4→a`, `5→s`, `7→t` und `@→a`
+  werden ausschließlich für diese Wiederholungsbeziehung normalisiert.
+
+Damit werden beispielsweise `IchWiederholeZwischenIchWiederhole`, `haha242424haha`,
+`DatensicherheitDatens1cherheit` und `datensicherheitdatensxicherheit` als Wiederholungsaufbau
+erkannt. Die vorhandene Kategorie `repeated-component` wird mit mehreren belegten Spans verwendet;
+es entsteht keine neue Anzeige- oder Bewertungskategorie. Allgemeine unscharfe Teilstring-Suche
+oder beliebige Ähnlichkeitsschwellen bleiben ausgeschlossen.
 
 ### Vollpasswort-Treffer
 
@@ -145,22 +180,29 @@ nicht nochmals als unbekannter Rest. Dadurch kann `Passwort123?!` über den konk
 Aufbau erkannt werden, während ein nicht anderweitig erklärter größerer Mischrest bewusst nicht
 positiv bewertet wird.
 
-### Wörterketten und Passphrase-Grenze
+### Wörterketten und Enthaltung bei langen lexikalischen Folgen
 
 Ein einzelnes vollständiges geläufiges Wort kann ein direkter Kandidat sein. Eine vollständig
 belegte Kette aus bis zu vier gewöhnlichen Wörtern oder Namen liegt innerhalb der bewusst engen
 Trainingsfamilie einfacher Wörteraneinanderreihungen.
 
 Ab fünf **verschiedenen** gewöhnlichen Wörtern oder Namen reicht die Wörterbuchabdeckung allein
-nicht mehr für `whole-password-recognized`. Diese Eingabe ist für die Simulation
-`passphrase-shaped`. Das ist kein Sicherheitsnachweis. Ein anderer konkreter Befund kann weiterhin
-einen Treffer begründen, insbesondere:
+nicht mehr für `whole-password-recognized`. Die Simulation enthält sich bei einer solchen langen
+lexikalischen Folge. Das ist weder eine Einordnung der Erzeugungsmethode noch ein
+Sicherheitsnachweis. Ein anderer konkreter Befund kann weiterhin einen Treffer begründen,
+insbesondere:
 
 - ein authored Konto-/Dienstbezug;
 - ein expliziter Passwortlistenanker wie `Passwort` oder `TestPasswort`;
 - eine Wiederholung;
 - eine Folge, ein Datum oder ein Tastaturmuster;
 - ein vollständiger bereits gelisteter Ausdruck.
+
+Eine kleine eingefrorene Liste vollständiger vorhersehbarer Phrasen darf die Enthaltung
+überstimmen. Die Prüfung normalisiert dafür ausschließlich Groß-/Kleinschreibung und
+Trennzeichen. So bleibt beispielsweise `ichliebedichbiszummond` ein konkreter Phrasenkandidat,
+während eine beliebige Folge aus fünf oder sechs verschiedenen Wörterbuchwörtern nicht allein
+aufgrund ihrer Zerlegbarkeit gefunden wird.
 
 Die Grenze vermeidet, dass die S05-Komponentenerkennung eine aus fünf oder mehr unterschiedlichen
 Wörtern bestehende Passphrase allein wegen ihrer Wörterbuchwörter als gefunden bezeichnet. Sie
@@ -206,12 +248,18 @@ zuweist.
 
 ## Validierung
 
-Ein versionierter Testkorpus prüft 120 verschiedene Beispielpasswörter. Er enthält direkte
-Volltreffer, zwei- bis viergliedrige Wörterketten, passphrase-shaped Eingaben ab fünf
+Ein versionierter synthetischer Policy-Korpus prüft 120 verschiedene Beispielpasswörter. Er
+enthält direkte Volltreffer, zwei- bis viergliedrige Wörterketten, lange lexikalische Folgen ab fünf
 verschiedenen Wörtern, positionsunabhängige Restzeichen innerhalb und außerhalb der Grenze,
-Kontokontext, Wiederholungen, Folgen, Tastaturmuster, Unicode und Überlappungen. Zusätzliche
-Integrationstests führen reale `analyzeFictionalPassword`-Ergebnisse in dieselbe S05/S06-
-Disposition.
+Kontokontext, Wiederholungen, Folgen, Tastaturmuster, Unicode und Überlappungen.
+
+Zusätzlich durchlaufen 100 verschiedene End-to-End-Beispiele zuerst
+`analyzeFictionalPassword(...)` und anschließend
+`determinePasswordSimulationDisposition(...)`. Dieser Korpus prüft insbesondere kleingeschriebene
+und CamelCase-Wortfolgen, kurze Wörter, wiederholte Trennzeichen, Jahrespriorität,
+Kontokontextvorrang, getrennte und einmal veränderte Wiederholungen, lange lexikalische
+Enthaltungen sowie die gemeinsame S05-/S06-Disposition. Segmentierungsfehler können dadurch nicht
+durch bereits synthetisch vorgegebene Befunde verdeckt werden.
 
 Der Korpus belegt ausschließlich Reproduzierbarkeit und beabsichtigtes Verhalten der authored
 Trainingsregel. Er ist keine empirische Validierung von Sensitivität, Spezifität oder
@@ -220,13 +268,13 @@ Passwortstärke.
 ## Konsequenzen
 
 - Die Auswertung ist konservativ in der positiven Behauptung: Nicht unterstützte Zeichen,
-  größere Restfamilien und passphrase-shaped Wörterketten bleiben ohne positiven Volltreffer,
+  größere Restfamilien und lange lexikalische Folgen bleiben ohne zusätzlichen konkreten Weg ohne positiven Volltreffer,
   sofern kein anderer konkreter Befund greift.
 - Kurze Füllzeichen können einen klaren bekannten Anker nicht allein dadurch verbergen, dass sie
   an einer anderen Stelle stehen.
 - Konto-/Dienstbezüge erhalten eine eindeutige primäre Einordnung statt konkurrierender innerer
   Wörterbuchtreffer.
-- zxcvbn-Updates, Wörterbuchänderungen, Kandidatenbudget, Alphabetklassen, Passphrase-Grenze oder
+- zxcvbn-Updates, Wörterbuchänderungen, Kandidatenbudget, Alphabetklassen, lexikalische Enthaltung oder
   Prioritäten benötigen eine neue Analyseversion und angepasste Tests/Dokumentation.
 
 ## Verworfene Alternativen

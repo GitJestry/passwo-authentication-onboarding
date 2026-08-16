@@ -61,7 +61,7 @@ bleiben flüchtiger UI-Zustand und werden nicht zur scheinbar objektiven S06-Dia
 
 | Bestandteil | Wert |
 |---|---|
-| Analyse-ID | `passwo-bounded-whole-recognition-v11` |
+| Analyse-ID | `passwo-bounded-whole-recognition-v12` |
 | Engine | `zxcvbn-ts` als Musterquelle |
 | Core | `@zxcvbn-ts/core@4.1.2` |
 | Allgemeines Wörterbuch/Graphen | `@zxcvbn-ts/language-common@4.1.2` |
@@ -72,7 +72,10 @@ bleiben flüchtiger UI-Zustand und werden nicht zur scheinbar objektiven S06-Dia
 | Maximale Eingabe | 128 UTF-16-Codeeinheiten; Längenorientierung nach Unicode-Codepoints |
 | Längenorientierung | mindestens 15 Zeichen für selbst erstellte Passwörter |
 | Restzeichenbudget | höchstens `100_000_000` Kandidaten innerhalb einer eingefrorenen Familie |
-| Passphrase-Enthaltung | mindestens fünf verschiedene gewöhnliche Wörter/Namen ohne stärkeren konkreten Anker |
+| Lexikalische Enthaltung | mindestens fünf verschiedene gewöhnliche Wörter/Namen ohne stärkeren konkreten Anker |
+| Kurze Wörter | nur als vollständiges sichtbares Segment oder innerhalb einer vollständigen sprachgebundenen Partition |
+| Strukturelle Trennzeichen | ein bis drei druckbare ASCII-Zeichen zwischen zwei semantischen Ankern |
+| Wiederholungsvariation | exakte getrennte Wiederholung oder genau eine begrenzte Änderung bei ausreichend langen Teilen |
 | Externe Matcher | keine |
 
 ## Verarbeitungsmodell
@@ -98,7 +101,10 @@ Disposition verwendet.
 ### 2. Ergänzende Wörterbuchprojektion
 
 Da zxcvbns optimale Sequenz alternative Treffer verdecken kann, werden alphabetische Läufe
-zusätzlich exakt gegen die eingefrorenen Passwort-, Wort- und Namenslisten geprüft.
+zusätzlich exakt gegen die eingefrorenen Passwort- und Wortlisten geprüft. Deutsche und englische
+Partitionen werden getrennt berechnet; Wörter beider Sprachen werden nicht frei zu einer einzigen
+Mischpartition kombiniert. Namenslisten bleiben für vollständige sichtbare Segmente verfügbar,
+werden aber nicht zur freien inneren Zerlegung verwendet.
 
 Unterstützte Grenzen sind:
 
@@ -107,10 +113,19 @@ Unterstützte Grenzen sind:
 - Akronym-zu-Titelwort, etwa `BVB|Test`;
 - eine lückenlose vollständige Zerlegung eines kleingeschriebenen Laufs.
 
+Zwei- und Drei-Zeichen-Wörter wie `ich`, `bis`, `zum` oder `uni` werden nur aufgenommen, wenn sie
+ein vollständiges sichtbares Segment oder einen Teil einer lückenlosen Partition bilden. Dadurch
+werden kurze deutsche Funktionswörter berücksichtigt, ohne zufällige innere Fragmente allgemein
+zu erlauben.
+
 Unbekannte Bereiche bleiben möglich und löschen angrenzende Befunde nicht. Die Projektion darf
 keine beliebigen inneren Teilstrings erzeugen. Bei `Klarissa` werden deshalb nicht frei `Klar` und
 `larissa` herausgeschnitten. Bei `KlarissaBVBTestPasswort` können dagegen die sichtbaren Grenzen
 `Klarissa | BVB | Test | Passwort` genutzt werden.
+
+Ein Namensfund muss den vollständigen sichtbaren Abschnitt abdecken. Ein partieller Namensfund wie
+`ZumMo` in `ZumMond` oder `larissa` in `Klarissa` wird verworfen, sofern er nicht als flüchtiger
+authored Kontext vorliegt.
 
 ### 3. Konto-/Dienstvorrang
 
@@ -128,7 +143,41 @@ nicht zusätzlich: Gram als konkurrierender Wörterbuchkern
 Diese Regel ändert keine UI-Komponente. Sie bereinigt ausschließlich die interne Befundmenge, aus
 der bestehende Projektionen gespeist werden.
 
-### 4. Kanonische nicht überlappende Evidenz
+Die gleiche Spezifitätsregel gilt für Strukturspans: Ein erkanntes Jahr, Datum, eine Folge oder ein
+Tastaturmuster bleibt gegenüber einer generischen Endung maßgeblich. `Passwort2026!` wird deshalb
+intern als `Passwort | 2026 | !` geführt und nicht als `Passwort | 2026!`.
+
+### 4. Getrennte und begrenzt veränderte Wiederholungen
+
+Die authored Wiederholungsprojektion ergänzt zxcvbns zusammenhängende Wiederholungen um drei eng
+begrenzte Fälle:
+
+1. Ein normalisierter alphanumerischer Teil mit mindestens vier Zeichen erscheint mindestens
+   zweimal nicht überlappend. Bei vier oder fünf Zeichen sind sichtbare Grenzen an beiden
+   Vorkommen erforderlich.
+2. Zwei sichtbare Komponenten mit mindestens acht Zeichen unterscheiden sich nach
+   Groß-/Kleinschreibungs- und Leetspeak-Normalisierung um genau eine
+   Damerau-Levenshtein-Operation.
+3. Ein zusammenhängender alphanumerischer Lauf besteht aus zwei nahezu gleich langen Hälften mit
+   jeweils mindestens acht Zeichen und genau einer solchen Abweichung.
+
+Die Normalisierung umfasst ausschließlich `$→s`, `0→o`, `1→i`, `3→e`, `4→a`, `5→s`, `7→t` und
+`@→a`. Die bestehenden Spans und die Kategorie `repeated-component` werden wiederverwendet. Eine
+allgemeine unscharfe Suche oder ein numerischer Ähnlichkeitsscore wird nicht eingeführt.
+
+Beispiele:
+
+```text
+IchWiederholeZwischenIchWiederhole
+haha242424haha
+DatensicherheitDatens1cherheit
+datensicherheitdatensxicherheit
+```
+
+Bei der einmal veränderten Wiederholung wird der zweite belegte Span zusätzlich mit der bereits
+vorhandenen Kategorie `typical-transformation` verbunden.
+
+### 5. Kanonische nicht überlappende Evidenz
 
 Für die Vollpasswort-Disposition wird eine kanonische Teilmenge gewählt. Die Auswahl:
 
@@ -217,14 +266,19 @@ mklhPasswortSuppe
 Bei fünf Kleinbuchstaben zwischen denselben zwei Ankern liegt die Familie oberhalb der Grenze und
 die Restzeichenregel enthält sich, sofern kein anderer konkreter Befund greift.
 
-### Bereits erklärte Veränderungen
+### Bereits erklärte Veränderungen und Verbindungen
 
 Restzeichen werden erst nach der Befunderfassung berechnet. Erkannte Jahre, Zahlen-/Symbolenden,
 Folgen, Wiederholungen, Tastaturmuster oder Transformationen sind daher keine unerklärten Reste.
 `Passwort123?!` kann aufgrund seiner konkreten Befunde gefunden werden, auch wenn eine gleich
 lange beliebige Mischfolge außerhalb der Restfamilie läge.
 
-## Wörterketten und Passphrase-shaped Eingaben
+Ein bis drei druckbare ASCII-Trennzeichen zwischen zwei ausgewählten semantischen Ankern gelten als
+vorhersehbare Verbindung. Sie werden weder als zusätzlicher Anker noch als Schutzgewinn behandelt.
+So erhalten `IchLiebeDichMeine`, `Ich-liebe--dich---meine` und eine entsprechende Unterstrichform
+dieselbe begrenzte Behandlung, sofern die umgebenden Wörter vollständig erkannt sind.
+
+## Wörterketten und lange lexikalische Folgen
 
 Die Trainingsregel unterscheidet nicht allgemein zwischen „sicherer Passphrase“ und „unsicherer
 Wörterkette“. Dafür wäre die bekannte Wortauswahl- und Zufallsmethode erforderlich.
@@ -237,7 +291,12 @@ Sie verwendet nur diese begrenzte Entscheidung:
 - ab fünf verschiedenen gewöhnlichen Wörtern/Namen reicht Wörterbuchabdeckung **allein** nicht
   für einen Treffer;
 - ein konkreter stärkerer Anker oder ein Muster kann die Eingabe weiterhin finden;
-- wiederholte Wörter erhalten keine Passphrase-Enthaltung.
+- wiederholte Wörter erhalten keine lexikalische Enthaltung.
+
+Eine kleine eingefrorene Liste vollständiger vorhersehbarer Phrasen kann die Enthaltung
+überstimmen. Dafür werden nur Groß-/Kleinschreibung und Trennzeichen normalisiert. Die Liste ist
+kein Sprachmodell und keine allgemeine Phrasenerkennung. Sie enthält nur ausdrücklich getestete
+Trainingsbeispiele wie `ich liebe dich bis zum mond`.
 
 Beispiele:
 
@@ -246,7 +305,8 @@ Beispiele:
 | `Kaffee` | gefunden | einzelner vollständiger Kandidat |
 | `KaffeeMorgen` | gefunden | kurze einfache Wörteraneinanderreihung |
 | `KaffeeMorgenSonneLampe` | gefunden | viergliedrige Wörteraneinanderreihung innerhalb der authored Grenze |
-| `KaffeeMorgenSonneLampeFenster` | nicht allein dadurch gefunden | fünf verschiedene gewöhnliche Wörter; passphrase-shaped Enthaltung |
+| `KaffeeMorgenSonneLampeFenster` | nicht allein dadurch gefunden | fünf verschiedene gewöhnliche Wörter; lexikalische Enthaltung |
+| `ichliebedichbiszummond` | gefunden | vollständiger eingefrorener Phrasenkandidat trotz sechs erkannten Wörtern |
 | `KaffeeMorgenPasswortSonneLampe` | kann gefunden werden | expliziter Passwortlistenanker `Passwort` |
 | `KaffeeKaffeeKaffeeKaffeeKaffee` | kann gefunden werden | Wiederholung statt unabhängiger Wortauswahl |
 
@@ -290,20 +350,31 @@ enthält keine eigene Passwortbewertung.
 
 ## Teststrategie
 
-`password-candidate-corpus.test.ts` enthält 120 verschiedene, vorab erwartete Beispielpasswörter:
+`password-candidate-corpus.test.ts` enthält zunächst einen synthetischen Policy-Korpus mit 120
+verschiedenen, vorab erwarteten Beispielpasswörtern:
 
 - 15 direkte Volltreffer;
 - 30 zwei- bis viergliedrige Wörterketten;
-- 20 passphrase-shaped Eingaben mit fünf oder sechs verschiedenen Wörtern;
+- 20 lange lexikalische Folgen mit fünf oder sechs verschiedenen Wörtern;
 - 25 Restzeichenfälle innerhalb der Grenze;
 - 20 Restzeichenfälle außerhalb der Grenze;
 - 10 Struktur- und Abgrenzungsfälle.
 
-Der Korpus prüft außerdem:
+Ein zweiter Korpus enthält genau 100 verschiedene End-to-End-Eingaben. Jede Eingabe durchläuft
+zuerst `analyzeFictionalPassword(...)` und danach
+`determinePasswordSimulationDisposition(...)`. Dadurch prüft er die reale Segmentierung und nicht
+nur synthetisch vorgegebene Befunde. Enthalten sind 36 kurze Wörterketten, 24 lange lexikalische
+Enthaltungen, 20 Anker-/Kontext-/Phrasenfälle, 12 Wiederholungsfälle und acht negative Grenzfälle.
+
+Die Korpora prüfen außerdem:
 
 - gleiche Entscheidung unabhängig von Restposition und Ankerreihenfolge;
 - `KlarissaBVBTestPasswort!` ohne freie innere Fragmente `Klar`/`larissa`;
+- `ichliebedichbiszummond` und `IchLiebeDichBisZumMond` mit stabiler kurzer Wortzerlegung;
+- `meinstarkesunipasswort2026!` mit getrenntem Uni-Kontext, Jahr und Suffix;
+- wiederholte Trennzeichen zwischen erkannten Wörtern;
 - Vorrang von `Campusgram` beziehungsweise `C4mpu5Gram` gegenüber `Campus`/`gram`;
+- getrennte und einmal veränderte Wiederholungen einschließlich der vier dokumentierten Beispiele;
 - gemeinsame Disposition für S05 und S06;
 - Unabhängigkeit von der 15-Zeichen-Orientierung;
 - Unicode- und nicht unterstützte Restzeichen;
@@ -319,7 +390,7 @@ messen nicht die Genauigkeit gegenüber realen Passwortkorpora oder realen Angre
   Wortlisten, Regeln und Priorisierung ab.
 - Die Restalphabetwahl ist eine eingefrorene Trainingsabstraktion. Sie sagt nicht voraus, wann ein
   bestimmter realer Angreifer die Zeichenfolge prüfen würde.
-- Die Fünf-Wort-Enthaltung ist keine Passphrase-Zertifizierung. Nur die bekannte zufällige
+- Die Enthaltung bei fünf verschiedenen Wörtern ist keine Passphrase-Zertifizierung. Nur die bekannte zufällige
   S07/S08-Erzeugungsmethode erlaubt eine gesonderte methodische Begründung.
 - Die manuelle persönliche Einordnung bleibt flüchtig. Ein nicht automatisch belegtes Kürzel wie
   `BVB` kann intern als kleiner Rest behandelt werden, ohne als persönlicher Bezug behauptet zu

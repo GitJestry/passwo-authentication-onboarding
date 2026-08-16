@@ -353,7 +353,7 @@ describe('research-safe contracts', () => {
     const disposition: LocalPasswordDisposition = {
       kind: 'no-whole-password-recognized',
       lengthOrientation: 'at-least-15',
-      analysisVersion: 'passwo-bounded-whole-recognition-v11',
+      analysisVersion: 'passwo-bounded-whole-recognition-v12',
       explanationId: 's05.disposition.no-whole-password-recognized',
     };
 

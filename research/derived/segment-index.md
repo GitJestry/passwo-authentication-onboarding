@@ -110,10 +110,15 @@ Seitenangaben beziehen sich auf die im Trainingsdokument ausgewiesene interne Pa
   zwei Wortbausteine sichtbar voneinander. Sie führen in getrennten Sprechschritten zur bereits
   bestehenden lokalen Campusgram-Auswertung und werden weder analysiert noch persistiert.
 - Die S05-Simulationsdisposition (`S05_CONTENT_VERSION 2.74.0`, Analysekonfiguration
-  `passwo-bounded-whole-recognition-v11`) bleibt auf den vollständigen fiktiven Wert begrenzt:
+  `passwo-bounded-whole-recognition-v12`) bleibt auf den vollständigen fiktiven Wert begrenzt:
   `whole-password-recognized` entsteht durch einen direkten Vollwert oder eine dokumentierte
-  begrenzte Kandidatenfamilie aus kanonischen Ankern und positionsunabhängigen Restzeichen. Ab fünf
-  verschiedenen gewöhnlichen Wörtern reicht Wörterbuchabdeckung allein nicht aus. Die kompakte
+  begrenzte Kandidatenfamilie aus kanonischen Ankern und positionsunabhängigen Restzeichen.
+  Deutsche und englische Wortzerlegungen bleiben sprachgebunden; kurze Wörter sind nur in
+  vollständigen Partitionen zulässig, Konto- und Jahresbefunde haben Vorrang vor inneren
+  Wörterbuch- beziehungsweise Endungstreffern. Getrennte und einmal veränderte Wiederholungen
+  werden über mehrere belegte Spans der bestehenden Wiederholungskategorie erfasst. Ab fünf
+  verschiedenen gewöhnlichen Wörtern reicht Wörterbuchabdeckung allein nicht aus; nur eine kleine
+  eingefrorene Liste vollständiger vorhersehbarer Phrasen kann diese Enthaltung überstimmen. Die kompakte
   Abschlussauswertung nennt zuerst den Vollpasswort-Status,
   zeigt nur dessen kausale Befunde beziehungsweise klar bezeichnete Teilbefunde und ergänzt die
   15-Zeichen-Orientierung kurz und getrennt. Danach endet S05 direkt; Wiederverwendung und

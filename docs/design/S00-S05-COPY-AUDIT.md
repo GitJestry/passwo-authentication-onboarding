@@ -368,7 +368,7 @@ begründen. Diese IDs werden weder persistiert noch exportiert. Die UI filtert n
 bereits bestimmten Evidenz und enthält keine eigene Bewertungslogik. Die interne
 Analysekonfiguration wird für die kanonische Evidenzauswahl, den Vorrang vollständiger
 Kontokontexte und die positionsunabhängige begrenzte Restzeichenfamilie von
-`passwo-bounded-whole-recognition-v10` auf `passwo-bounded-whole-recognition-v11` erhöht. Der
+`passwo-bounded-whole-recognition-v10` auf `passwo-bounded-whole-recognition-v12` erhöht. Der
 Teilnehmertext und `S05_CONTENT_VERSION 2.74.0` bleiben unverändert.
 
 | Segment und Text-ID | Quelle | Aktueller Text | Geplanter Text | Primäre Rolle | Grund | Bedeutungsänderung | Interaktionsziel | Hervorhebung |
@@ -3060,3 +3060,25 @@ Passwörter oder Varianten davon`. `S00_CONTENT_VERSION` wird von `1.22.1` auf `
 | Segment und Text-ID | Quelle | Aktueller Text | Geplanter Text | Primäre Rolle | Grund | Bedeutungsänderung | Interaktionsziel | Hervorhebung |
 |---|---|---|---|---|---|---|---|---|
 | `S00.narration.safetyWarning` | Nutzerauftrag vom 2026-08-12 | `Bitte verwende keine echten Passwörter oder Varianten davon. Deine ausgedachten Passwörter werden nur für diese Übung verarbeitet und nicht dauerhaft gespeichert. Viel Erfolg!` | `Bitte keine echten Passwörter oder Varianten davon verwenden. Deine Eingaben werden nur für diese Übung verarbeitet und nicht gespeichert. Viel Spaß beim Ausprobieren!` | Safety Boundary | ausdrücklich freigegebene Kürzung und dramaturgische Änderung zu einem explorativen, weniger leistungsorientierten Abschluss | begrenzt | kein | `keine echten Passwörter oder Varianten davon` in Warnfarbe |
+
+### Internes Analysedelta S05/S06 v12: Wortgrenzen, Prioritäten und Wiederholungen, 16. August 2026
+
+Quelle sind die ausdrücklichen Nutzeraufträge vom 15. und 16. August 2026. Die lokale
+Passwortanalyse wird auf `passwo-bounded-whole-recognition-v12` erhöht. Deutsche und englische
+Wortpartitionen werden getrennt berechnet; kurze Wörter sind nur als vollständige sichtbare
+Segmente oder innerhalb einer lückenlosen sprachgebundenen Partition zulässig. Freie innere
+Namensfragmente werden verworfen. Konto-/Dienstbezüge und spezifische Jahres-, Datums-, Folgen-
+oder Tastaturbefunde erhalten Vorrang vor enthaltenen Wörterbuchspans beziehungsweise generischen
+Endungen. Kurze Trennzeichen zwischen zwei erkannten Bestandteilen gelten als strukturelle
+Verbindung. Getrennte identische sowie ausreichend lange, genau einmal veränderte Wiederholungen
+werden mit den vorhandenen Wiederholungs- und Transformationskategorien abgebildet.
+
+Eine kleine eingefrorene Liste vollständiger vorhersehbarer Phrasen kann die bestehende Enthaltung
+bei mindestens fünf verschiedenen gewöhnlichen Wörtern überstimmen. Eine beliebige lange
+Wörterfolge wird dadurch weiterhin nicht allein wegen ihrer Wörterbuchabdeckung positiv bewertet.
+Ein zusätzlicher End-to-End-Korpus prüft 100 verschiedene Eingaben über die tatsächliche Analyse
+und die gemeinsame S05-/S06-Disposition.
+
+Teilnehmertexte, Text-IDs, Hervorhebungen, Interaktion, Animation, visuelle Kategorien,
+Persistenz, Export und Timing bleiben unverändert. Es gibt deshalb kein Copy-Delta und keinen
+Content-Versionssprung.

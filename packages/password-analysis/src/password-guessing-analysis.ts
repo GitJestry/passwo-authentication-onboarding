@@ -19,7 +19,7 @@ import {
   originalSpanForNormalizedRange,
 } from './case-insensitive-spans.js';
 
-export const PASSWORD_ANALYSIS_CONFIGURATION_VERSION = 'passwo-bounded-whole-recognition-v11';
+export const PASSWORD_ANALYSIS_CONFIGURATION_VERSION = 'passwo-bounded-whole-recognition-v12';
 
 export interface FictionalPasswordAnalysisInput {
   readonly fictionalPassword: string;
@@ -202,46 +202,116 @@ const supplementalDictionaryPriority: Readonly<Record<PasswordSingleFindingKind,
   'common-name': 2,
 };
 
-const supplementalDictionaryKinds: ReadonlyMap<
-  string,
-  'common-password-core' | 'common-word' | 'common-name'
-> = (() => {
-  const kinds = new Map<
-    string,
-    'common-password-core' | 'common-word' | 'common-name'
-  >();
-  for (const [dictionaryName, values] of Object.entries(zxcvbnDictionary)) {
+type SupplementalLanguage = 'de' | 'en';
+
+const explicitPasswordAnchorTokens = new Set([
+  'admin',
+  'geheim',
+  'kennwort',
+  'letmein',
+  'login',
+  'meinpasswort',
+  'master',
+  'mypassword',
+  'password',
+  'passwort',
+  'secret',
+  'starkespasswort',
+  'strongpassword',
+  'test',
+  'testpassword',
+  'testpasswort',
+  'welcome',
+  'willkommen',
+]);
+
+export function isExplicitPasswordAnchorToken(token: string): boolean {
+  return explicitPasswordAnchorTokens.has(token.toLocaleLowerCase('de-DE'));
+}
+
+const allowedShortPartitionWords = new Set([
+  'am',
+  'an',
+  'and',
+  'auf',
+  'bis',
+  'das',
+  'dem',
+  'den',
+  'der',
+  'des',
+  'die',
+  'du',
+  'ein',
+  'er',
+  'es',
+  'for',
+  'für',
+  'ich',
+  'ihr',
+  'im',
+  'in',
+  'is',
+  'it',
+  'me',
+  'mit',
+  'my',
+  'of',
+  'on',
+  'oder',
+  'sie',
+  'the',
+  'to',
+  'und',
+  'uni',
+  'uns',
+  'von',
+  'we',
+  'wie',
+  'wir',
+  'you',
+  'zu',
+  'zum',
+  'zur',
+]);
+
+function collectAlphabeticDictionaryTokens(
+  dictionary: Dictionary,
+  includeDictionary: (dictionaryName: string) => boolean,
+): ReadonlySet<string> {
+  const tokens = new Set<string>();
+  for (const [dictionaryName, values] of Object.entries(dictionary)) {
     const normalizedDictionaryName = dictionaryName.toLocaleLowerCase('en-US');
-    if (
-      !normalizedDictionaryName.includes('password') &&
-      !normalizedDictionaryName.includes('commonword') &&
-      !normalizedDictionaryName.includes('name')
-    ) {
-      continue;
-    }
-    const kind = dictionaryNameFindingKind(normalizedDictionaryName);
-    if (
-      kind !== 'common-password-core' &&
-      kind !== 'common-word' &&
-      kind !== 'common-name'
-    ) {
-      continue;
-    }
+    if (!includeDictionary(normalizedDictionaryName)) continue;
     for (const value of values) {
       if (typeof value !== 'string') continue;
       const normalized = value.toLocaleLowerCase('de-DE');
-      if ([...normalized].length < 4 || !/^\p{L}+$/u.test(normalized)) continue;
-      const existing = kinds.get(normalized);
-      if (
-        existing === undefined ||
-        supplementalDictionaryPriority[kind] < supplementalDictionaryPriority[existing]
-      ) {
-        kinds.set(normalized, kind);
+      if (!/^\p{L}+$/u.test(normalized)) continue;
+      if ([...normalized].length >= 4 || allowedShortPartitionWords.has(normalized)) {
+        tokens.add(normalized);
       }
     }
   }
-  return kinds;
-})();
+  return tokens;
+}
+
+const supplementalPasswordTokens = collectAlphabeticDictionaryTokens(
+  zxcvbnCommonPackage.dictionary,
+  (dictionaryName) => dictionaryName.includes('password'),
+);
+
+const supplementalWordsByLanguage: Readonly<Record<SupplementalLanguage, ReadonlySet<string>>> = {
+  de: collectAlphabeticDictionaryTokens(
+    zxcvbnDePackage.dictionary,
+    (dictionaryName) =>
+      !dictionaryName.includes('firstname') && !dictionaryName.includes('lastname'),
+  ),
+  en: collectAlphabeticDictionaryTokens(
+    zxcvbnEnPackage.dictionary,
+    (dictionaryName) =>
+      !dictionaryName.includes('firstname') && !dictionaryName.includes('lastname'),
+  ),
+};
 
 function isConnector(character: string | undefined): boolean {
   return character !== undefined && !/[\p{L}\p{N}]/u.test(character);
@@ -306,6 +376,11 @@ function dictionarySpanHasSupportedBoundary(
   const startsAtBoundary = boundaries.has(start);
   const endsAtBoundary = boundaries.has(end);
   if (startsAtBoundary && endsAtBoundary) return true;
+
+  // Names are too collision-prone to use as free inner fragments. They remain available as an
+  // entire visible segment or through authored transient context, but not as a partial spelling
+  // such as `ZumMo` inside `ZumMond`.
+  if (kind === 'common-name') return false;
 
   // Password-list cores remain useful anchors when a short free variation is appended or
   // prepended. Ordinary words and names need an authored spelling boundary on their open side;
@@ -374,7 +449,7 @@ function filterUnsupportedGuessPathDictionaryFragments(
 interface DictionaryPartitionPart {
   readonly start: number;
   readonly end: number;
-  readonly kind: 'common-password-core' | 'common-word' | 'common-name';
+  readonly kind: 'common-password-core' | 'common-word';
 }
 
 interface GuessPathDictionarySpan {
@@ -404,6 +479,99 @@ function compareDictionaryPartitions(
   return 0;
 }
 
+function dictionaryPartitionKind(
+  token: string,
+  language: SupplementalLanguage,
+): DictionaryPartitionPart['kind'] | null {
+  const isOrdinaryWord = supplementalWordsByLanguage[language].has(token);
+  const isPasswordValue = supplementalPasswordTokens.has(token);
+  if (isPasswordValue && (!isOrdinaryWord || isExplicitPasswordAnchorToken(token))) {
+    return 'common-password-core';
+  }
+  if (isOrdinaryWord) return 'common-word';
+  return isPasswordValue ? 'common-password-core' : null;
+}
+
+function normalizedBoundaryForOriginalOffset(
+  normalized: ReturnType<typeof normalizeCaseWithOriginalOffsets>,
+  originalOffset: number,
+  originalLength: number,
+): number | null {
+  if (originalOffset === 0) return 0;
+  if (originalOffset === originalLength) return normalized.value.length;
+  const startIndex = normalized.originalStartByCodeUnit.findIndex(
+    (candidate) => candidate === originalOffset,
+  );
+  if (startIndex >= 0) return startIndex;
+  const endIndex = normalized.originalEndByCodeUnit.lastIndexOf(originalOffset);
+  return endIndex < 0 ? null : endIndex + 1;
+}
+
+function partitionCandidatesForLanguage(
+  normalizedValue: string,
+  normalizedStarts: ReadonlySet<number>,
+  normalizedEnds: ReadonlySet<number>,
+  language: SupplementalLanguage,
+): ReadonlyMap<number, readonly DictionaryPartitionPart[]> {
+  const candidatesByStart = new Map<number, DictionaryPartitionPart[]>();
+  for (const normalizedStart of normalizedStarts) {
+    for (const normalizedEnd of normalizedEnds) {
+      if (normalizedEnd <= normalizedStart) continue;
+      const token = normalizedValue.slice(normalizedStart, normalizedEnd);
+      const kind = dictionaryPartitionKind(token, language);
+      if (kind === null) continue;
+      const candidates = candidatesByStart.get(normalizedStart) ?? [];
+      if (!candidates.some((candidate) => candidate.end === normalizedEnd && candidate.kind === kind)) {
+        candidates.push({ start: normalizedStart, end: normalizedEnd, kind });
+        candidatesByStart.set(normalizedStart, candidates);
+      }
+    }
+  }
+  return candidatesByStart;
+}
+
+function bestDictionaryPartition(
+  candidatesByStart: ReadonlyMap<number, readonly DictionaryPartitionPart[]>,
+  start: number,
+  end: number,
+): readonly DictionaryPartitionPart[] | null {
+  const bestFrom = new Map<number, readonly DictionaryPartitionPart[] | null>();
+  const partitionFrom = (offset: number): readonly DictionaryPartitionPart[] | null => {
+    if (offset === end) return [];
+    if (offset > end) return null;
+    const cached = bestFrom.get(offset);
+    if (cached !== undefined) return cached;
+    let best: readonly DictionaryPartitionPart[] | null = null;
+    for (const candidate of candidatesByStart.get(offset) ?? []) {
+      if (candidate.end > end) continue;
+      const remainder = partitionFrom(candidate.end);
+      if (remainder === null) continue;
+      const partition = [candidate, ...remainder];
+      if (best === null || compareDictionaryPartitions(partition, best) < 0) best = partition;
+    }
+    bestFrom.set(offset, best);
+    return best;
+  };
+  return partitionFrom(start);
+}
+
+function bestLanguagePartition(
+  candidatesByLanguage: Readonly<
+    Record<SupplementalLanguage, ReadonlyMap<number, readonly DictionaryPartitionPart[]>>
+  >,
+  start: number,
+  end: number,
+): readonly DictionaryPartitionPart[] | null {
+  let best: readonly DictionaryPartitionPart[] | null = null;
+  for (const language of ['de', 'en'] as const) {
+    const partition = bestDictionaryPartition(candidatesByLanguage[language], start, end);
+    if (partition !== null && (best === null || compareDictionaryPartitions(partition, best) < 0)) {
+      best = partition;
+    }
+  }
+  return best;
+}
+
 function collectDictionaryPartitionFindings(
   input: string,
   guessPathFindings: readonly PasswordSingleFinding[],
@@ -431,6 +599,7 @@ function collectDictionaryPartitionFindings(
     const normalizedRun = normalizeCaseWithOriginalOffsets(run);
     const before = runStart === 0 ? undefined : input.slice(0, runStart).at(-1);
     const after = runEnd === input.length ? undefined : input.slice(runEnd)[0];
+    const connectorBound = isConnector(before) || isConnector(after);
     const normalizedStarts = new Set<number>([0]);
     const normalizedEnds = new Set<number>([normalizedRun.value.length]);
     for (let index = 1; index < normalizedRun.value.length; index += 1) {
@@ -447,123 +616,167 @@ function collectDictionaryPartitionFindings(
         normalizedEnds.add(index);
       }
     }
-    const candidatesByStart = new Map<number, DictionaryPartitionPart[]>();
-    const addCandidate = (candidate: DictionaryPartitionPart): void => {
-      const candidates = candidatesByStart.get(candidate.start) ?? [];
-      if (
-        !candidates.some(
-          (existing) => existing.end === candidate.end && existing.kind === candidate.kind,
-        )
-      ) {
-        candidates.push(candidate);
-        candidatesByStart.set(candidate.start, candidates);
-      }
-    };
 
-    for (const normalizedStart of normalizedStarts) {
-      for (const normalizedEnd of normalizedEnds) {
-        if (normalizedEnd <= normalizedStart) continue;
-        const token = normalizedRun.value.slice(normalizedStart, normalizedEnd);
-        if ([...token].length < 4) continue;
-        const kind = supplementalDictionaryKinds.get(token);
-        if (kind !== undefined) {
-          addCandidate({ start: normalizedStart, end: normalizedEnd, kind });
-        }
-      }
-    }
-    for (const { kind, span } of guessPathSpans) {
-      if (span.start < runStart || span.end > runEnd) continue;
-      const normalizedStart = normalizedRun.originalStartByCodeUnit.findIndex(
-        (originalStart) => originalStart === span.start - runStart,
+    const candidatesByLanguage = {
+      de: partitionCandidatesForLanguage(
+        normalizedRun.value,
+        normalizedStarts,
+        normalizedEnds,
+        'de',
+      ),
+      en: partitionCandidatesForLanguage(
+        normalizedRun.value,
+        normalizedStarts,
+        normalizedEnds,
+        'en',
+      ),
+    } as const;
+    const allPartitionCandidates = [
+      ...candidatesByLanguage.de.values(),
+      ...candidatesByLanguage.en.values(),
+    ]
+      .flatMap((candidates) => candidates)
+      .filter(
+        (candidate, index, candidates) =>
+          candidates.findIndex(
+            (other) =>
+              other.start === candidate.start &&
+              other.end === candidate.end &&
+              other.kind === candidate.kind,
+          ) === index,
       );
-      const normalizedEnd =
-        normalizedRun.originalEndByCodeUnit.lastIndexOf(span.end - runStart) + 1;
-      if (normalizedStart < 0 || normalizedEnd <= normalizedStart) continue;
-      addCandidate({ start: normalizedStart, end: normalizedEnd, kind });
-    }
 
-    const bestFrom = new Map<number, readonly DictionaryPartitionPart[] | null>();
-    const partitionFrom = (normalizedStart: number): readonly DictionaryPartitionPart[] | null => {
-      if (normalizedStart === normalizedRun.value.length) return [];
-      const cached = bestFrom.get(normalizedStart);
-      if (cached !== undefined) return cached;
-      let best: readonly DictionaryPartitionPart[] | null = null;
-      for (const candidate of candidatesByStart.get(normalizedStart) ?? []) {
-        const remainder = partitionFrom(candidate.end);
-        if (remainder === null) continue;
-        const partition = [candidate, ...remainder];
-        if (best === null || compareDictionaryPartitions(partition, best) < 0) best = partition;
+    const selectedParts: DictionaryPartitionPart[] = [];
+    const occupied: Array<readonly [number, number]> = [];
+    const acceptPartition = (partition: readonly DictionaryPartitionPart[]): void => {
+      for (const part of partition) {
+        if (occupied.some(([start, end]) => part.start < end && start < part.end)) continue;
+        occupied.push([part.start, part.end]);
+        selectedParts.push(part);
       }
-      bestFrom.set(normalizedStart, best);
-      return best;
     };
 
-    const allCandidates = [...candidatesByStart.values()].flatMap((candidates) => candidates);
-    const candidatesWithOriginalSpans = allCandidates.flatMap((part) => {
-      const originalSpan = originalSpanForNormalizedRange(normalizedRun, part.start, part.end);
-      return originalSpan === null
-        ? []
-        : [{ part, start: originalSpan[0], end: originalSpan[1] }];
-    });
-    const completePartition = partitionFrom(0);
-    const connectorBound = isConnector(before) || isConnector(after);
-    let selectedParts: readonly DictionaryPartitionPart[] = [];
-
+    const completePartition = bestLanguagePartition(
+      candidatesByLanguage,
+      0,
+      normalizedRun.value.length,
+    );
     if (completePartition !== null && (completePartition.length >= 2 || connectorBound)) {
-      selectedParts = completePartition;
+      acceptPartition(completePartition);
     } else {
-      const supported = candidatesWithOriginalSpans.filter((candidate) => {
-        if (
-          dictionarySpanHasSupportedBoundary(
-            run,
-            candidate.part.kind,
-            candidate.start,
-            candidate.end,
-          )
-        ) {
-          return true;
-        }
-
-        const atRunEdge = candidate.start === 0 || candidate.end === run.length;
-        const residualLength = run.length - (candidate.end - candidate.start);
-        const hasCompetingOverlap = candidatesWithOriginalSpans.some(
-          (other) =>
-            other !== candidate &&
-            candidate.start < other.end &&
-            other.start < candidate.end,
-        );
-        return (
-          atRunEdge &&
-          candidate.end - candidate.start >= 5 &&
-          residualLength <= 5 &&
-          !hasCompetingOverlap
-        );
-      });
-      supported.sort(
-        (left, right) =>
-          left.start - right.start ||
-          supplementalDictionaryPriority[left.part.kind] -
-            supplementalDictionaryPriority[right.part.kind] ||
-          right.end - right.start - (left.end - left.start),
+      const visibleOriginalBoundaries = [...letterRunBoundaries(run)].sort(
+        (left, right) => left - right,
       );
-      const selected: DictionaryPartitionPart[] = [];
-      const occupied: Array<readonly [number, number]> = [];
-      for (const candidate of supported) {
-        if (occupied.some(([start, end]) => candidate.start < end && start < candidate.end)) {
+      const visibleNormalizedBoundaries = visibleOriginalBoundaries.flatMap((boundary) => {
+        const normalizedBoundary = normalizedBoundaryForOriginalOffset(
+          normalizedRun,
+          boundary,
+          run.length,
+        );
+        return normalizedBoundary === null ? [] : [normalizedBoundary];
+      });
+      for (let index = 0; index < visibleNormalizedBoundaries.length - 1; index += 1) {
+        const segmentStart = visibleNormalizedBoundaries[index];
+        const segmentEnd = visibleNormalizedBoundaries[index + 1];
+        if (segmentStart === undefined || segmentEnd === undefined || segmentEnd <= segmentStart) {
           continue;
         }
-        occupied.push([candidate.start, candidate.end]);
-        selected.push(candidate.part);
+        const partition = bestLanguagePartition(candidatesByLanguage, segmentStart, segmentEnd);
+        if (
+          partition !== null &&
+          (partition.length >= 2 || visibleNormalizedBoundaries.length > 2 || connectorBound)
+        ) {
+          acceptPartition(partition);
+        }
       }
-      selectedParts = selected;
+
+      const supportedGuessPathParts: DictionaryPartitionPart[] = [];
+      for (const { kind, span } of guessPathSpans) {
+        if (kind === 'common-name') continue;
+        if (span.start < runStart || span.end > runEnd) continue;
+        const normalizedStart = normalizedBoundaryForOriginalOffset(
+          normalizedRun,
+          span.start - runStart,
+          run.length,
+        );
+        const normalizedEnd = normalizedBoundaryForOriginalOffset(
+          normalizedRun,
+          span.end - runStart,
+          run.length,
+        );
+        if (normalizedStart === null || normalizedEnd === null || normalizedEnd <= normalizedStart) {
+          continue;
+        }
+        const supported = dictionarySpanHasSupportedBoundary(
+          run,
+          kind,
+          span.start - runStart,
+          span.end - runStart,
+        );
+        const atRunEdge = span.start === runStart || span.end === runEnd;
+        const residualLength = run.length - (span.end - span.start);
+        const boundedEdgeResidual =
+          atRunEdge && span.end - span.start >= 4 && residualLength <= 5;
+        if (!supported && !boundedEdgeResidual) continue;
+        supportedGuessPathParts.push({
+          start: normalizedStart,
+          end: normalizedEnd,
+          kind,
+        });
+      }
+
+      const partialCandidates = [...allPartitionCandidates, ...supportedGuessPathParts].sort(
+        (left, right) =>
+          left.start - right.start ||
+          supplementalDictionaryPriority[left.kind] - supplementalDictionaryPriority[right.kind] ||
+          right.end - right.start - (left.end - left.start),
+      );
+      for (const candidate of partialCandidates) {
+        const originalSpan = originalSpanForNormalizedRange(
+          normalizedRun,
+          candidate.start,
+          candidate.end,
+        );
+        if (originalSpan === null) continue;
+        const supported = dictionarySpanHasSupportedBoundary(
+          run,
+          candidate.kind,
+          originalSpan[0],
+          originalSpan[1],
+        );
+        const atRunEdge = originalSpan[0] === 0 || originalSpan[1] === run.length;
+        const residualLength = run.length - (originalSpan[1] - originalSpan[0]);
+        const boundedEdgeResidual =
+          atRunEdge && originalSpan[1] - originalSpan[0] >= 4 && residualLength <= 5;
+        if (!supported && !boundedEdgeResidual) continue;
+        acceptPartition([candidate]);
+      }
     }
 
-    for (const [ordinal, part] of selectedParts.entries()) {
+    for (const [ordinal, part] of selectedParts
+      .sort((left, right) => left.start - right.start || left.end - right.end)
+      .entries()) {
       const originalSpan = originalSpanForNormalizedRange(normalizedRun, part.start, part.end);
       if (originalSpan === null) continue;
       const start = runStart + originalSpan[0];
       const end = runStart + originalSpan[1];
       findings.push(finding(input, part.kind, start, end, 'bounded-heuristic', ordinal));
+    }
+
+    for (const { kind, span } of guessPathSpans) {
+      if (kind !== 'common-name' || span.start < runStart || span.end > runEnd) continue;
+      if (
+        dictionarySpanHasSupportedBoundary(
+          run,
+          kind,
+          span.start - runStart,
+          span.end - runStart,
+        )
+      ) {
+        findings.push(
+          finding(input, 'common-name', span.start, span.end, 'bounded-heuristic', findings.length),
+        );
+      }
     }
   }
   return findings;
@@ -1008,39 +1221,419 @@ function collectNumberedWordSequences(input: string): readonly PasswordSingleFin
   });
 }
 
-function collectTypicalSuffixes(input: string): readonly PasswordSingleFinding[] {
+const curatedPredictablePhraseValues = new Set([
+  'antagenwiediesen',
+  'homesweethome',
+  'ichliebedichbiszummond',
+  'jedenmorgeneinenkaffee',
+  'ohnekaffeegehtnichts',
+]);
+
+function normalizedPredictablePhraseValue(input: string): string {
+  return normalizeCaseWithOriginalOffsets(input).value.replace(/[^\p{L}\p{N}]/gu, '');
+}
+
+export function isCuratedPredictablePhrase(input: string): boolean {
+  return (
+    input.length > 0 &&
+    curatedPredictablePhraseValues.has(normalizedPredictablePhraseValue(input))
+  );
+}
+
+function collectTypicalSuffixes(
+  input: string,
+  specificFindings: readonly PasswordSingleFinding[],
+): readonly PasswordSingleFinding[] {
   const findings: PasswordSingleFinding[] = [];
+  const specificSpans = specificFindings.flatMap((item) =>
+    item.kind === 'year' ||
+    item.kind === 'date' ||
+    item.kind === 'simple-character-sequence' ||
+    item.kind === 'keyboard-pattern'
+      ? item.evidence.filter(
+          (evidence): evidence is PasswordEvidenceSpan => evidence.type === 'span',
+        )
+      : [],
+  );
   for (const componentMatch of input.matchAll(/[\p{L}\p{N}]+/gu)) {
     const component = componentMatch[0];
     const componentStart = componentMatch.index;
     const componentEnd = componentStart + component.length;
-    const punctuation = /^[!?#$._-]+/u.exec(input.slice(componentEnd))?.[0] ?? '';
+    const trailingDigits = /\d{1,4}$/u.exec(component)?.[0] ?? '';
+    const punctuation = /^[\p{P}\p{S}]{1,3}/u.exec(input.slice(componentEnd))?.[0] ?? '';
     const punctuationEnd = componentEnd + punctuation.length;
-    const punctuationIsTypicalEnding =
-      punctuation.length > 0 &&
-      (punctuationEnd === input.length || /[!?]/u.test(punctuation));
-    const trailingDigits = /\d+$/u.exec(component)?.[0] ?? '';
+    const punctuationIsTypicalEnding = punctuation.length > 0;
     const boundedDigitEnding =
       trailingDigits.length > 0 &&
-      trailingDigits.length <= (punctuationIsTypicalEnding ? 4 : 3) &&
+      trailingDigits.length <= 4 &&
       (punctuationIsTypicalEnding || componentEnd === input.length);
     if (!punctuationIsTypicalEnding && !boundedDigitEnding) continue;
 
-    const suffixStart = componentEnd - (boundedDigitEnding ? trailingDigits.length : 0);
+    const trailingDigitStart = componentEnd - trailingDigits.length;
+    const digitsAlreadyExplained =
+      boundedDigitEnding &&
+      specificSpans.some((span) => span.start <= trailingDigitStart && span.end >= componentEnd);
+    const suffixStart =
+      componentEnd - (boundedDigitEnding && !digitsAlreadyExplained ? trailingDigits.length : 0);
     const base = input.slice(componentStart, suffixStart);
     if ([...base].length < 3 || !/\p{L}/u.test(base)) continue;
+    const suffixEnd = punctuationIsTypicalEnding ? punctuationEnd : componentEnd;
+    if (suffixStart === suffixEnd) continue;
     findings.push(
       finding(
         input,
         'typical-suffix',
         suffixStart,
-        punctuationIsTypicalEnding ? punctuationEnd : componentEnd,
+        suffixEnd,
         'bounded-heuristic',
         findings.length,
       ),
     );
   }
   return findings;
+}
+
+interface RepetitionNormalizedText {
+  readonly value: string;
+  readonly originalStartByCodeUnit: readonly number[];
+  readonly originalEndByCodeUnit: readonly number[];
+  readonly transformedByCodeUnit: readonly boolean[];
+}
+
+interface RepetitionGroupCandidate {
+  readonly spans: readonly PasswordEvidenceSpan[];
+  readonly transformedSpans: readonly PasswordEvidenceSpan[];
+  readonly normalizedLength: number;
+}
+
+const repetitionCharacterAliases: Readonly<Record<string, string>> = {
+  $: 's',
+  '0': 'o',
+  '1': 'i',
+  '3': 'e',
+  '4': 'a',
+  '5': 's',
+  '7': 't',
+  '@': 'a',
+};
+
+function normalizeRepetitionWithOriginalOffsets(input: string): RepetitionNormalizedText {
+  let value = '';
+  const originalStartByCodeUnit: number[] = [];
+  const originalEndByCodeUnit: number[] = [];
+  const transformedByCodeUnit: boolean[] = [];
+  let originalOffset = 0;
+  for (const originalCharacter of input) {
+    const originalEnd = originalOffset + originalCharacter.length;
+    const lower = originalCharacter.toLocaleLowerCase('de-DE');
+    const canonical = repetitionCharacterAliases[lower] ?? lower;
+    value += canonical;
+    for (let index = 0; index < canonical.length; index += 1) {
+      originalStartByCodeUnit.push(originalOffset);
+      originalEndByCodeUnit.push(originalEnd);
+      transformedByCodeUnit.push(canonical !== lower);
+    }
+    originalOffset = originalEnd;
+  }
+  return { value, originalStartByCodeUnit, originalEndByCodeUnit, transformedByCodeUnit };
+}
+
+function isAlphaNumericCharacter(character: string | undefined): boolean {
+  return character !== undefined && /^[\p{L}\p{N}]$/u.test(character);
+}
+
+function repetitionSpanHasVisibleBoundary(input: string, start: number, end: number): boolean {
+  const token = input.slice(start, end);
+  const first = [...token][0];
+  const last = [...token].at(-1);
+  const before = start === 0 ? undefined : [...input.slice(0, start)].at(-1);
+  const after = end === input.length ? undefined : [...input.slice(end)][0];
+  const startsAtBoundary =
+    start === 0 ||
+    !isAlphaNumericCharacter(before) ||
+    (isAlphaNumericCharacter(before) &&
+      isAlphaNumericCharacter(first) &&
+      (/^\p{N}$/u.test(before ?? '') !== /^\p{N}$/u.test(first ?? '') ||
+        (isLowercaseLetter(before) && isUppercaseLetter(first))));
+  const endsAtBoundary =
+    end === input.length ||
+    !isAlphaNumericCharacter(after) ||
+    (isAlphaNumericCharacter(last) &&
+      isAlphaNumericCharacter(after) &&
+      (/^\p{N}$/u.test(last ?? '') !== /^\p{N}$/u.test(after ?? '') ||
+        (isLowercaseLetter(last) && isUppercaseLetter(after))));
+  return startsAtBoundary && endsAtBoundary;
+}
+
+function nonOverlappingOccurrences(
+  value: string,
+  token: string,
+): readonly (readonly [number, number])[] {
+  const ranges: Array<readonly [number, number]> = [];
+  let from = 0;
+  while (token.length > 0) {
+    const start = value.indexOf(token, from);
+    if (start < 0) break;
+    ranges.push([start, start + token.length]);
+    from = start + token.length;
+  }
+  return ranges;
+}
+
+function repetitionCandidateFromNormalizedRanges(
+  input: string,
+  normalized: RepetitionNormalizedText,
+  ranges: readonly (readonly [number, number])[],
+): RepetitionGroupCandidate | null {
+  const spans = ranges.flatMap(([start, end]) => {
+    const original = originalSpanForNormalizedRange(normalized, start, end);
+    return original === null ? [] : [evidenceSpan(input, original[0], original[1])];
+  });
+  if (spans.length < 2 || spans.length !== ranges.length) return null;
+  const normalizedLength = (ranges[0]?.[1] ?? 0) - (ranges[0]?.[0] ?? 0);
+  if (
+    normalizedLength < 6 &&
+    !spans.every((span) => repetitionSpanHasVisibleBoundary(input, span.start, span.end))
+  ) {
+    return null;
+  }
+  const transformedSpans = spans.filter((_, index) => {
+    const range = ranges[index];
+    return (
+      range !== undefined &&
+      normalized.transformedByCodeUnit.slice(range[0], range[1]).some(Boolean)
+    );
+  });
+  return { spans, transformedSpans, normalizedLength };
+}
+
+function collectExactSeparatedRepetitionCandidates(
+  input: string,
+): readonly RepetitionGroupCandidate[] {
+  const normalized = normalizeRepetitionWithOriginalOffsets(input);
+  const byToken = new Map<string, RepetitionGroupCandidate>();
+  const minimumLength = 4;
+  for (let left = 0; left + minimumLength * 2 <= normalized.value.length; left += 1) {
+    for (let right = left + minimumLength; right < normalized.value.length; right += 1) {
+      const maximumLength = Math.min(right - left, normalized.value.length - right);
+      let length = 0;
+      while (
+        length < maximumLength &&
+        normalized.value[left + length] === normalized.value[right + length]
+      ) {
+        length += 1;
+      }
+      if (length < minimumLength) continue;
+      const token = normalized.value.slice(left, left + length);
+      if (!/[\p{L}\p{N}]/u.test(token)) continue;
+      const ranges = nonOverlappingOccurrences(normalized.value, token);
+      const candidate = repetitionCandidateFromNormalizedRanges(input, normalized, ranges);
+      if (candidate === null) continue;
+      const existing = byToken.get(token);
+      if (
+        existing === undefined ||
+        candidate.spans.length > existing.spans.length ||
+        candidate.normalizedLength > existing.normalizedLength
+      ) {
+        byToken.set(token, candidate);
+      }
+    }
+  }
+  return [...byToken.values()];
+}
+
+function visibleAlphaNumericRanges(input: string): readonly (readonly [number, number])[] {
+  const ranges: Array<readonly [number, number]> = [];
+  for (const runMatch of input.matchAll(/[\p{L}\p{N}]+/gu)) {
+    const run = runMatch[0];
+    const runStart = runMatch.index;
+    const boundaries = [...letterRunBoundaries(run)].sort((left, right) => left - right);
+    for (let startIndex = 0; startIndex < boundaries.length - 1; startIndex += 1) {
+      for (
+        let endIndex = startIndex + 1;
+        endIndex < Math.min(boundaries.length, startIndex + 5);
+        endIndex += 1
+      ) {
+        const start = boundaries[startIndex];
+        const end = boundaries[endIndex];
+        if (start === undefined || end === undefined || end <= start) continue;
+        if ([...run.slice(start, end)].length < 8) continue;
+        ranges.push([runStart + start, runStart + end]);
+      }
+    }
+  }
+  return ranges;
+}
+
+function collectSingleEditRepetitionCandidates(
+  input: string,
+): readonly RepetitionGroupCandidate[] {
+  const ranges = visibleAlphaNumericRanges(input);
+  const candidates: RepetitionGroupCandidate[] = [];
+  for (let leftIndex = 0; leftIndex < ranges.length; leftIndex += 1) {
+    const left = ranges[leftIndex];
+    if (left === undefined) continue;
+    const leftToken = [
+      ...normalizeRepetitionWithOriginalOffsets(input.slice(left[0], left[1])).value,
+    ];
+    for (let rightIndex = leftIndex + 1; rightIndex < ranges.length; rightIndex += 1) {
+      const right = ranges[rightIndex];
+      if (right === undefined || left[1] > right[0]) continue;
+      const rightToken = [
+        ...normalizeRepetitionWithOriginalOffsets(input.slice(right[0], right[1])).value,
+      ];
+      if (Math.abs(leftToken.length - rightToken.length) > 1) continue;
+      const distance = boundedDamerauDistance(leftToken, rightToken, 1);
+      if (distance !== 1) continue;
+      candidates.push({
+        spans: [
+          evidenceSpan(input, left[0], left[1]),
+          evidenceSpan(input, right[0], right[1]),
+        ],
+        transformedSpans: [evidenceSpan(input, right[0], right[1])],
+        normalizedLength: Math.max(leftToken.length, rightToken.length),
+      });
+    }
+  }
+  return candidates;
+}
+
+function collectBalancedRunRepetitionCandidates(
+  input: string,
+): readonly RepetitionGroupCandidate[] {
+  const candidates: RepetitionGroupCandidate[] = [];
+  for (const runMatch of input.matchAll(/[\p{L}\p{N}]+/gu)) {
+    const run = runMatch[0];
+    const runStart = runMatch.index;
+    const normalized = normalizeRepetitionWithOriginalOffsets(run);
+    for (const leftLength of [
+      Math.floor(normalized.value.length / 2),
+      Math.ceil(normalized.value.length / 2),
+    ]) {
+      const rightLength = normalized.value.length - leftLength;
+      if (leftLength < 8 || rightLength < 8 || Math.abs(leftLength - rightLength) > 1) continue;
+      const left = [...normalized.value.slice(0, leftLength)];
+      const right = [...normalized.value.slice(leftLength)];
+      if (boundedDamerauDistance(left, right, 1) !== 1) continue;
+      const leftOriginal = originalSpanForNormalizedRange(normalized, 0, leftLength);
+      const rightOriginal = originalSpanForNormalizedRange(
+        normalized,
+        leftLength,
+        normalized.value.length,
+      );
+      if (leftOriginal === null || rightOriginal === null) continue;
+      candidates.push({
+        spans: [
+          evidenceSpan(input, runStart + leftOriginal[0], runStart + leftOriginal[1]),
+          evidenceSpan(input, runStart + rightOriginal[0], runStart + rightOriginal[1]),
+        ],
+        transformedSpans: [
+          evidenceSpan(input, runStart + rightOriginal[0], runStart + rightOriginal[1]),
+        ],
+        normalizedLength: Math.max(leftLength, rightLength),
+      });
+    }
+  }
+  return candidates;
+}
+
+function evidenceRanges(finding: PasswordSingleFinding): readonly PasswordEvidenceSpan[] {
+  return finding.evidence.filter(
+    (evidence): evidence is PasswordEvidenceSpan => evidence.type === 'span',
+  );
+}
+
+function collectSeparatedRepetitionFindings(
+  input: string,
+  existingFindings: readonly PasswordSingleFinding[],
+): readonly PasswordSingleFinding[] {
+  const existingRepeatedSpans = existingFindings.flatMap((item) =>
+    item.kind === 'repeated-component' ? evidenceRanges(item) : [],
+  );
+  const candidates = [
+    ...collectExactSeparatedRepetitionCandidates(input),
+    ...collectSingleEditRepetitionCandidates(input),
+    ...collectBalancedRunRepetitionCandidates(input),
+  ].sort(
+    (left, right) =>
+      right.normalizedLength - left.normalizedLength ||
+      right.spans.length - left.spans.length ||
+      (left.spans[0]?.start ?? 0) - (right.spans[0]?.start ?? 0),
+  );
+  const selected: RepetitionGroupCandidate[] = [];
+  for (const candidate of candidates) {
+    if (
+      candidate.spans.every((span) =>
+        existingRepeatedSpans.some(
+          (existing) => existing.start <= span.start && existing.end >= span.end,
+        ),
+      )
+    ) {
+      continue;
+    }
+    if (
+      selected.some((existing) =>
+        candidate.spans.every((span) =>
+          existing.spans.some(
+            (existingSpan) =>
+              existingSpan.start <= span.start && existingSpan.end >= span.end,
+          ),
+        ),
+      )
+    ) {
+      continue;
+    }
+    selected.push(candidate);
+    if (selected.length >= 4) break;
+  }
+
+  const findings: PasswordSingleFinding[] = [];
+  for (const [ordinal, candidate] of selected.entries()) {
+    const rangeId = candidate.spans.map(({ start, end }) => `${start}-${end}`).join(':');
+    findings.push({
+      id: `single:repeated-component-group:${rangeId}:${ordinal}`,
+      kind: 'repeated-component',
+      evidence: candidate.spans,
+      explanationId: 's05.repeated-component',
+      confidence: 'bounded-heuristic',
+    });
+    for (const [transformationOrdinal, span] of candidate.transformedSpans.entries()) {
+      findings.push(
+        finding(
+          input,
+          'typical-transformation',
+          span.start,
+          span.end,
+          'bounded-heuristic',
+          ordinal * 10 + transformationOrdinal,
+        ),
+      );
+    }
+  }
+  return findings;
+}
+
+function suppressSingleSpanRepetitionsCoveredByGroups(
+  findings: readonly PasswordSingleFinding[],
+): readonly PasswordSingleFinding[] {
+  const groupedSpans = findings.flatMap((item) =>
+    item.kind === 'repeated-component' && evidenceRanges(item).length >= 2
+      ? evidenceRanges(item)
+      : [],
+  );
+  if (groupedSpans.length === 0) return findings;
+  return findings.filter((item) => {
+    if (item.kind !== 'repeated-component') return true;
+    const spans = evidenceRanges(item);
+    if (spans.length !== 1) return true;
+    const span = spans[0];
+    return (
+      span === undefined ||
+      !groupedSpans.some(
+        (grouped) => grouped.start <= span.start && grouped.end >= span.end,
+      )
+    );
+  });
 }
 
 function suppressDictionaryFindingsCoveredByAccountContext(
@@ -1079,8 +1672,13 @@ function deduplicateAndSortFindings(
 ): readonly PasswordSingleFinding[] {
   const byKey = new Map<string, PasswordSingleFinding>();
   for (const item of findings) {
-    const span = item.evidence.find((evidence) => evidence.type === 'span');
-    const key = span === undefined ? item.kind : `${item.kind}:${span.start}:${span.end}`;
+    const spans = item.evidence.filter(
+      (evidence): evidence is PasswordEvidenceSpan => evidence.type === 'span',
+    );
+    const key =
+      spans.length === 0
+        ? item.kind
+        : `${item.kind}:${spans.map(({ start, end }) => `${start}-${end}`).join(':')}`;
     const existing = byKey.get(key);
     if (existing === undefined || item.confidence === 'authored-exact-match') byKey.set(key, item);
   }
@@ -1137,17 +1735,29 @@ export function analyzeFictionalPassword({
   );
   const yearFindings = collectYears(fictionalPassword);
   const numberedWordSequenceFindings = collectNumberedWordSequences(fictionalPassword);
+  const separatedRepetitionFindings = collectSeparatedRepetitionFindings(fictionalPassword, [
+    ...guessPathFindings,
+    ...repeatedBaseFindings,
+  ]);
+  const typicalSuffixFindings = collectTypicalSuffixes(fictionalPassword, [
+    ...guessPathFindings,
+    ...yearFindings,
+    ...numberedWordSequenceFindings,
+  ]);
   const findings = suppressDictionaryFindingsCoveredByAccountContext(
-    deduplicateAndSortFindings([
-      ...guessPathFindings,
-      ...repeatedBaseFindings,
-      ...dictionaryPartitionFindings,
-      ...exactAccountTermFindings,
-      ...fuzzyAccountTermFindings,
-      ...yearFindings,
-      ...numberedWordSequenceFindings,
-      ...collectTypicalSuffixes(fictionalPassword),
-    ]),
+    suppressSingleSpanRepetitionsCoveredByGroups(
+      deduplicateAndSortFindings([
+        ...guessPathFindings,
+        ...repeatedBaseFindings,
+        ...dictionaryPartitionFindings,
+        ...exactAccountTermFindings,
+        ...fuzzyAccountTermFindings,
+        ...yearFindings,
+        ...numberedWordSequenceFindings,
+        ...separatedRepetitionFindings,
+        ...typicalSuffixFindings,
+      ]),
+    ),
   );
 
   return {

@@ -7,7 +7,11 @@ import type {
   PasswordSingleFindingKind,
   SimulationWholePasswordRecognitionRuleId,
 } from '@passwo/contracts';
-import { PASSWORD_ANALYSIS_CONFIGURATION_VERSION } from './password-guessing-analysis.js';
+import {
+  isCuratedPredictablePhrase,
+  isExplicitPasswordAnchorToken,
+  PASSWORD_ANALYSIS_CONFIGURATION_VERSION,
+} from './password-guessing-analysis.js';
 
 export const SELF_CREATED_PASSWORD_LENGTH_ORIENTATION = 15;
 
@@ -45,27 +49,6 @@ const composedCandidateKinds = new Set<PasswordSingleFindingKind>([
 const ordinaryLexicalKinds = new Set<PasswordSingleFindingKind>([
   'common-word',
   'common-name',
-]);
-
-const explicitPasswordAnchorTokens = new Set([
-  'admin',
-  'geheim',
-  'kennwort',
-  'letmein',
-  'login',
-  'meinpasswort',
-  'master',
-  'mypassword',
-  'password',
-  'passwort',
-  'starkespasswort',
-  'secret',
-  'strongpassword',
-  'test',
-  'testpassword',
-  'testpasswort',
-  'welcome',
-  'willkommen',
 ]);
 
 const evidencePriority: Readonly<Partial<Record<PasswordSingleFindingKind, number>>> = {
@@ -237,10 +220,10 @@ function selectCanonicalEvidence(
 function isOrdinaryLexicalEvidence({ finding, span }: CandidateEvidence): boolean {
   if (ordinaryLexicalKinds.has(finding.kind)) return true;
   if (finding.kind !== 'common-password-core' || !/^\p{L}+$/u.test(span.token)) return false;
-  return !explicitPasswordAnchorTokens.has(span.token.toLocaleLowerCase('de-DE'));
+  return !isExplicitPasswordAnchorToken(span.token);
 }
 
-function ordinaryDictionaryOnlyPassphraseShape(
+function ordinaryDictionaryOnlyLongLexicalSequence(
   selectedEvidence: readonly CandidateEvidence[],
 ): boolean {
   const semanticEvidence = selectedEvidence.filter(
@@ -256,6 +239,15 @@ function ordinaryDictionaryOnlyPassphraseShape(
   );
 }
 
+function isPredictableConnectorRun(value: string): boolean {
+  const characters = [...value];
+  return (
+    characters.length >= 1 &&
+    characters.length <= 3 &&
+    characters.every((character) => /^[\x20-\x2F\x3A-\x40\x5B-\x60\x7B-\x7E]$/u.test(character))
+  );
+}
+
 function uncoveredCharacters(
   fictionalPassword: string,
   selectedEvidence: readonly CandidateEvidence[],
@@ -265,12 +257,25 @@ function uncoveredCharacters(
     for (let offset = span.start; offset < span.end; offset += 1) covered[offset] = true;
   }
 
+  const semanticSpans = selectedEvidence
+    .filter(({ finding }) => finding.kind !== 'typical-suffix')
+    .map(({ span }) => span)
+    .sort((left, right) => left.start - right.start || left.end - right.end);
   const residual: string[] = [];
   let offset = 0;
-  for (const character of fictionalPassword) {
-    const end = offset + character.length;
-    if (!covered.slice(offset, end).every(Boolean)) residual.push(character);
-    offset = end;
+  while (offset < fictionalPassword.length) {
+    if (covered[offset]) {
+      offset += 1;
+      continue;
+    }
+    const runStart = offset;
+    while (offset < fictionalPassword.length && !covered[offset]) offset += 1;
+    const runEnd = offset;
+    const value = fictionalPassword.slice(runStart, runEnd);
+    const hasLeftAnchor = semanticSpans.some((span) => span.end === runStart);
+    const hasRightAnchor = semanticSpans.some((span) => span.start === runEnd);
+    if (hasLeftAnchor && hasRightAnchor && isPredictableConnectorRun(value)) continue;
+    residual.push(...value);
   }
   return residual;
 }
@@ -395,10 +400,15 @@ function boundedVariantRecognition(
   );
   if (semanticEvidence.length === 0) return null;
 
-  // Five or more ordinary dictionary/name tokens are passphrase-shaped. Dictionary coverage alone
-  // is therefore insufficient for a positive hit; a stronger account, password-list, sequence,
-  // date, keyboard, or repetition anchor is still allowed to establish a concrete path.
-  if (ordinaryDictionaryOnlyPassphraseShape(selectedEvidence)) return null;
+  // Five or more distinct ordinary dictionary/name tokens form a long lexical sequence. Dictionary
+  // coverage alone is insufficient for a positive hit; a stronger account, password-list, phrase,
+  // sequence, date, keyboard, or repetition anchor may still establish a concrete path.
+  if (
+    ordinaryDictionaryOnlyLongLexicalSequence(selectedEvidence) &&
+    !isCuratedPredictablePhrase(fictionalPassword)
+  ) {
+    return null;
+  }
 
   const candidateCount = boundedResidualCandidateCount(fictionalPassword, selectedEvidence);
   if (candidateCount === null || candidateCount > MAX_BOUNDED_RESIDUAL_CANDIDATES) return null;

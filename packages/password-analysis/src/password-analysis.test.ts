@@ -101,7 +101,7 @@ function s07Disposition(
 ): LocalPasswordDisposition {
   const base = {
     lengthOrientation: belowLengthOrientation ? 'below-15' : 'at-least-15',
-    analysisVersion: 'passwo-bounded-whole-recognition-v11',
+    analysisVersion: 'passwo-bounded-whole-recognition-v12',
   } as const;
   return wholeRecognition
     ? {
@@ -285,7 +285,7 @@ function passwordAnalysisWithFindings(
     findings,
     guessPath: {
       engineId: 'zxcvbn-ts',
-      configurationVersion: 'passwo-bounded-whole-recognition-v11',
+      configurationVersion: 'passwo-bounded-whole-recognition-v12',
       matches: [],
     },
     disclaimerId: 'simulation-not-production-strength',
@@ -539,7 +539,7 @@ describe('local fictional password analysis', () => {
   });
 
   it.each([
-    ['Passw0rt123!', ['123!']],
+    ['Passw0rt123!', ['!']],
     ['mEin!Pa55w0rt?', ['!', '?']],
     ['Wort!Fenster?Regen_', ['!', '?', '_']],
     ['Wort#', ['#']],
@@ -611,7 +611,7 @@ describe('local fictional password analysis', () => {
       expect(expectedKinds.some((expectedKind) => actualKinds.includes(expectedKind))).toBe(true);
       expect(result.guessPath).toMatchObject({
         engineId: 'zxcvbn-ts',
-        configurationVersion: 'passwo-bounded-whole-recognition-v11',
+        configurationVersion: 'passwo-bounded-whole-recognition-v12',
       });
       for (const finding of result.findings) {
         expect(finding.id).toMatch(/^single:/u);
@@ -637,7 +637,7 @@ describe('local fictional password analysis', () => {
     expect(disposition).toEqual({
       kind: 'no-whole-password-recognized',
       lengthOrientation: 'at-least-15',
-      analysisVersion: 'passwo-bounded-whole-recognition-v11',
+      analysisVersion: 'passwo-bounded-whole-recognition-v12',
       explanationId: 's05.disposition.no-whole-password-recognized',
     });
   });
@@ -664,7 +664,7 @@ describe('local fictional password analysis', () => {
 
       expect(disposition).toMatchObject({
         kind: 'whole-password-recognized',
-        analysisVersion: 'passwo-bounded-whole-recognition-v11',
+        analysisVersion: 'passwo-bounded-whole-recognition-v12',
       });
     },
   );
@@ -789,7 +789,7 @@ describe('local fictional password analysis', () => {
       'Campusgram2026!',
       ['Campusgram'],
       ['account-context-with-qualifier', 'number-marker-with-typical-suffix'],
-      ['Campusgram', '2026', '2026!', '2026', '2026!'],
+      ['Campusgram', '2026', '!', '2026', '!'],
     ],
     ['rQ7mL2vX9pK4', ['Campusgram'], ['no-simple-structure-recognized'], []],
   ] as const)(
@@ -817,7 +817,7 @@ describe('local fictional password analysis', () => {
     },
   );
 
-  it('does not infer authored relations or non-exact repetition at runtime', () => {
+  it('does not infer a repetition from unrelated lexical components', () => {
     for (const fictionalPassword of ['KaffeeTasseMorgen', 'IchTrinkeMorgensKaffee']) {
       const componentAnalysis = analyzeFictionalPassword({ fictionalPassword });
       expect(
@@ -827,6 +827,89 @@ describe('local fictional password analysis', () => {
         }).findings.map(({ findingKind }) => findingKind),
       ).toEqual(['no-simple-structure-recognized']);
     }
+  });
+
+  it.each([
+    ['IchWiederholeZwischenIchWiederhole', ['IchWiederhole', 'IchWiederhole']],
+    ['haha242424haha', ['haha', '242424', 'haha']],
+    ['DatensicherheitDatens1cherheit', ['Datensicherheit', 'Datens1cherheit']],
+    ['datensicherheitdatensxicherheit', ['datensicherheit', 'datensxicherheit']],
+  ] as const)('recognizes separated or once-modified repetition in %s', (fictionalPassword, tokens) => {
+    const componentAnalysis = analyzeFictionalPassword({ fictionalPassword });
+    const repeatedTokens = componentAnalysis.findings.flatMap((finding) =>
+      finding.kind === 'repeated-component'
+        ? finding.evidence.flatMap((evidence) =>
+            evidence.type === 'span' ? [evidence.token] : [],
+          )
+        : [],
+    );
+    const structure = analyzeFictionalPasswordStructure({
+      fictionalPassword,
+      componentAnalysis,
+    });
+
+    expect(repeatedTokens).toEqual(expect.arrayContaining([...tokens]));
+    expect(structure.findings.map(({ findingKind }) => findingKind)).toContain(
+      'recognized-repetition-pattern',
+    );
+  });
+
+  it('keeps Datensicherheit intact when the second occurrence has one leet change', () => {
+    const result = analyzeFictionalPassword({
+      fictionalPassword: 'DatensicherheitDatens1cherheit',
+    });
+    const tokens = result.findings.flatMap((finding) =>
+      finding.evidence.flatMap((evidence) =>
+        evidence.type === 'span' ? [evidence.token.toLocaleLowerCase('de-DE')] : [],
+      ),
+    );
+
+    expect(tokens).toContain('datensicherheit');
+    expect(tokens).toContain('datens1cherheit');
+    expect(tokens).not.toContain('date');
+    expect(tokens).not.toContain('n');
+  });
+
+  it.each([
+    ['ichliebedichbiszummond', ['ich', 'liebe', 'dich', 'bis', 'zum', 'mond']],
+    ['IchLiebeDichBisZumMond', ['ich', 'liebe', 'dich', 'bis', 'zum', 'mond']],
+    ['meinstarkesunipasswort2026!', ['mein', 'starkes', 'uni', 'passwort', '2026', '!']],
+    ['MeinStarkesUniPasswort2026!', ['mein', 'starkes', 'uni', 'passwort', '2026', '!']],
+  ] as const)('keeps the complete canonical lexical path for %s', (fictionalPassword, expected) => {
+    const result = analyzeFictionalPassword({
+      fictionalPassword,
+      authoredAccountTerms: ['Uni', 'Universität', 'Universitaet'],
+    });
+    const tokens = result.findings.flatMap((finding) =>
+      finding.evidence.flatMap((evidence) =>
+        evidence.type === 'span' ? [evidence.token.toLocaleLowerCase('de-DE')] : [],
+      ),
+    );
+
+    expect(tokens).toEqual(expect.arrayContaining([...expected]));
+    expect(tokens).not.toContain('zummo');
+    expect(tokens).not.toContain('nd');
+    expect(tokens).not.toContain('date');
+    expect(tokens).not.toContain('n');
+    expect(tokens).not.toContain('2026!');
+  });
+
+  it('treats bounded separator runs as connectors between recognized words', () => {
+    const fictionalPassword = 'Ich-liebe--dich---meine';
+    const componentAnalysis = analyzeFictionalPassword({ fictionalPassword });
+    const disposition = determinePasswordSimulationDisposition({
+      fictionalPassword,
+      componentAnalysis,
+    });
+
+    expect(disposition.kind).toBe('whole-password-recognized');
+    expect(
+      componentAnalysis.findings.flatMap((finding) =>
+        finding.evidence.flatMap((evidence) =>
+          evidence.type === 'span' ? [evidence.token.toLocaleLowerCase('de-DE')] : [],
+        ),
+      ),
+    ).toEqual(expect.arrayContaining(['ich', 'liebe', 'dich', 'meine']));
   });
 
   it.each([
@@ -849,7 +932,7 @@ describe('local fictional password analysis', () => {
         ],
         guessPath: {
           engineId: 'zxcvbn-ts',
-          configurationVersion: 'passwo-bounded-whole-recognition-v11',
+          configurationVersion: 'passwo-bounded-whole-recognition-v12',
           matches: [],
         },
         disclaimerId: 'simulation-not-production-strength',
@@ -895,7 +978,7 @@ describe('local fictional password analysis', () => {
       ],
       guessPath: {
         engineId: 'zxcvbn-ts',
-        configurationVersion: 'passwo-bounded-whole-recognition-v11',
+        configurationVersion: 'passwo-bounded-whole-recognition-v12',
         matches: [],
       },
       disclaimerId: 'simulation-not-production-strength',

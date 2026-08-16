@@ -44,7 +44,7 @@ function analysisFromSegments(
     findings,
     guessPath: {
       engineId: 'zxcvbn-ts',
-      configurationVersion: 'passwo-bounded-whole-recognition-v11',
+      configurationVersion: 'passwo-bounded-whole-recognition-v12',
       matches: [],
     },
     disclaimerId: 'simulation-not-production-strength',
@@ -109,7 +109,7 @@ const wordChainCases: readonly CandidateCorpusCase[] = Array.from(
   },
 );
 
-const passphraseShapedCases: readonly CandidateCorpusCase[] = Array.from(
+const longLexicalSequenceCases: readonly CandidateCorpusCase[] = Array.from(
   { length: 20 },
   (_, index) => {
     const count = 5 + (index % 2);
@@ -121,7 +121,7 @@ const passphraseShapedCases: readonly CandidateCorpusCase[] = Array.from(
       (_, wordIndex) => ordinaryWords[(start + wordIndex * step) % ordinaryWords.length] ?? 'Kaffee',
     );
     return {
-      label: `${count}-word passphrase-shaped input ${index + 1}`,
+      label: `${count}-word long lexical sequence ${index + 1}`,
       password: selected.join(separator),
       segments: selected.map((token) => ({ token, kind: 'common-word' as const })),
       expectedFound: false,
@@ -310,7 +310,7 @@ const structuralCompositionCases: readonly CandidateCorpusCase[] = [
 const candidateCorpus: readonly CandidateCorpusCase[] = [
   ...directCases,
   ...wordChainCases,
-  ...passphraseShapedCases,
+  ...longLexicalSequenceCases,
   ...residualFoundCases,
   ...residualNotFoundCases,
   ...structuralCompositionCases,
@@ -411,4 +411,201 @@ describe('S05/S06 shared analyzer integration', () => {
     expect(tokens).not.toContain('klar');
     expect(tokens).not.toContain('larissa');
   });
+});
+
+interface EndToEndCandidateCase {
+  readonly label: string;
+  readonly password: string;
+  readonly authoredAccountTerms?: readonly string[];
+  readonly transientAccountIdentifiers?: readonly string[];
+  readonly expectedFound: boolean;
+}
+
+const endToEndSeparators = ['', '-', '--', '_', '#', ' '] as const;
+const endToEndSteps = [1, 5, 7] as const;
+
+const endToEndWordChainCases: readonly EndToEndCandidateCase[] = Array.from(
+  { length: 36 },
+  (_, index) => {
+    const count = 2 + (index % 3);
+    const separator = endToEndSeparators[Math.floor(index / 3) % endToEndSeparators.length] ?? '';
+    const step = endToEndSteps[Math.floor(index / 12) % endToEndSteps.length] ?? 1;
+    const start = index % ordinaryWords.length;
+    const selected = Array.from(
+      { length: count },
+      (_, wordIndex) => ordinaryWords[(start + wordIndex * step) % ordinaryWords.length] ?? 'Kaffee',
+    );
+    return {
+      label: `end-to-end ${count}-word chain ${index + 1}`,
+      password: selected.join(separator),
+      expectedFound: true,
+    };
+  },
+);
+
+const endToEndLongLexicalCases: readonly EndToEndCandidateCase[] = Array.from(
+  { length: 24 },
+  (_, index) => {
+    const count = 5 + (index % 2);
+    const separator = endToEndSeparators[Math.floor(index / 2) % endToEndSeparators.length] ?? '';
+    const step = endToEndSteps[Math.floor(index / 8) % endToEndSteps.length] ?? 1;
+    const start = (index * 2) % ordinaryWords.length;
+    const selected = Array.from(
+      { length: count },
+      (_, wordIndex) => ordinaryWords[(start + wordIndex * step) % ordinaryWords.length] ?? 'Kaffee',
+    );
+    return {
+      label: `end-to-end long lexical abstention ${index + 1}`,
+      password: selected.join(separator),
+      expectedFound: false,
+    };
+  },
+);
+
+const endToEndAnchorCases: readonly EndToEndCandidateCase[] = [
+  { label: 'direct password anchor', password: 'Passwort', expectedFound: true },
+  { label: 'password anchor plus common ending', password: 'Passwort123?!', expectedFound: true },
+  { label: 'password anchor plus five lowercase residuals', password: 'Passwortksmdl', expectedFound: true },
+  {
+    label: 'five lowercase residuals before password anchor',
+    password: 'ksmdlPasswort',
+    expectedFound: true,
+  },
+  { label: 'residual between password anchor and word', password: 'PasswortmklhSuppe', expectedFound: true },
+  { label: 'residual after password anchor and word', password: 'PasswortSuppemlkh', expectedFound: true },
+  {
+    label: 'lowercase university password composition',
+    password: 'meinstarkesunipasswort2026!',
+    authoredAccountTerms: ['Uni', 'Universität', 'Universitaet'],
+    expectedFound: true,
+  },
+  {
+    label: 'camelcase university password composition',
+    password: 'MeinStarkesUniPasswort2026!',
+    authoredAccountTerms: ['Uni', 'Universität', 'Universitaet'],
+    expectedFound: true,
+  },
+  { label: 'curated phrase without separators', password: 'ichliebedichbiszummond', expectedFound: true },
+  { label: 'curated phrase in camelcase', password: 'IchLiebeDichBisZumMond', expectedFound: true },
+  { label: 'four words with repeated separators', password: 'Ich-liebe--dich---meine', expectedFound: true },
+  {
+    label: 'direct account context',
+    password: 'Campusgram',
+    authoredAccountTerms: ['Campusgram'],
+    expectedFound: true,
+  },
+  {
+    label: 'transformed account context',
+    password: 'C4mpu5Gram!',
+    authoredAccountTerms: ['Campusgram'],
+    expectedFound: true,
+  },
+  {
+    label: 'account context plus year',
+    password: 'Campusgram2026!',
+    authoredAccountTerms: ['Campusgram'],
+    expectedFound: true,
+  },
+  {
+    label: 'short account context plus year',
+    password: 'Uni2026!',
+    authoredAccountTerms: ['Uni'],
+    expectedFound: true,
+  },
+  {
+    label: 'session identifier and bounded residual',
+    password: 'KlarissaBVBTestPasswort!',
+    transientAccountIdentifiers: ['Klarissa'],
+    expectedFound: true,
+  },
+  {
+    label: 'reordered session identifier and bounded residual',
+    password: 'BVBKlarissaTestPasswort!',
+    transientAccountIdentifiers: ['Klarissa'],
+    expectedFound: true,
+  },
+  { label: 'test password plus residual', password: 'TestPasswortabcde', expectedFound: true },
+  { label: 'residual before test password', password: 'abcdeTestPasswort', expectedFound: true },
+  { label: 'ordinary words plus year', password: 'KaffeeMorgen2026', expectedFound: true },
+];
+
+const endToEndRepetitionCases: readonly EndToEndCandidateCase[] = [
+  { label: 'single character repetition', password: 'aaaaaaaaaaaaaaa', expectedFound: true },
+  { label: 'whole word repetition', password: 'KaffeeKaffeeKaffeeKaffee', expectedFound: true },
+  { label: 'embedded single character repetition', password: 'IchaaaaaaaaaaaaDich', expectedFound: true },
+  {
+    label: 'separated repeated component',
+    password: 'IchWiederholeZwischenIchWiederhole',
+    expectedFound: true,
+  },
+  { label: 'word and numeric repetitions', password: 'haha242424haha', expectedFound: true },
+  {
+    label: 'leet-transformed repeated component',
+    password: 'DatensicherheitDatens1cherheit',
+    expectedFound: true,
+  },
+  {
+    label: 'lowercase one-edit repeated halves',
+    password: 'datensicherheitdatensxicherheit',
+    expectedFound: true,
+  },
+  { label: 'one-edit repeated camel components', password: 'AbcdefghAbcdefgi', expectedFound: true },
+  { label: 'short word repetition', password: 'SommerSommer', expectedFound: true },
+  { label: 'short sequence repetition', password: 'abcabcabcabc', expectedFound: true },
+  { label: 'year repetition', password: '202620262026', expectedFound: true },
+  { label: 'password anchor with leet repetition', password: 'PasswortPassw0rt', expectedFound: true },
+];
+
+const endToEndNegativeCases: readonly EndToEndCandidateCase[] = [
+  { label: 'random lowercase 1', password: 'kfxqztmpvlbwhrd', expectedFound: false },
+  { label: 'random lowercase 2', password: 'vqmxnplkztrhbcf', expectedFound: false },
+  { label: 'six residual letters after anchor', password: 'Passwortqzmpvx', expectedFound: false },
+  { label: 'six residual letters before anchor', password: 'qzmpvxPasswort', expectedFound: false },
+  {
+    label: 'six residual letters after account context',
+    password: 'Campusgramqzmpvx',
+    authoredAccountTerms: ['Campusgram'],
+    expectedFound: false,
+  },
+  {
+    label: 'six residual letters before account context',
+    password: 'qzmpvxCampusgram',
+    authoredAccountTerms: ['Campusgram'],
+    expectedFound: false,
+  },
+  { label: 'unsupported emoji residual', password: 'Passwort🙂', expectedFound: false },
+  { label: 'random mixed-case string', password: 'QzmpvXtrldbNfgh', expectedFound: false },
+];
+
+const endToEndCandidateCorpus: readonly EndToEndCandidateCase[] = [
+  ...endToEndWordChainCases,
+  ...endToEndLongLexicalCases,
+  ...endToEndAnchorCases,
+  ...endToEndRepetitionCases,
+  ...endToEndNegativeCases,
+];
+
+describe('S05/S06 end-to-end candidate corpus', () => {
+  it('contains 100 distinct passwords evaluated through the real analyzer', () => {
+    expect(endToEndCandidateCorpus).toHaveLength(100);
+    expect(new Set(endToEndCandidateCorpus.map(({ password }) => password)).size).toBe(100);
+  });
+
+  it.each(endToEndCandidateCorpus)(
+    '$label: $password',
+    ({ password, authoredAccountTerms = [], transientAccountIdentifiers = [], expectedFound }) => {
+      const componentAnalysis = analyzeFictionalPassword({
+        fictionalPassword: password,
+        authoredAccountTerms,
+        transientAccountIdentifiers,
+      });
+      const disposition = determinePasswordSimulationDisposition({
+        fictionalPassword: password,
+        componentAnalysis,
+      });
+
+      expect(disposition.kind === 'whole-password-recognized').toBe(expectedFound);
+      expect(disposition.analysisVersion).toBe('passwo-bounded-whole-recognition-v12');
+    },
+  );
 });
