@@ -73,7 +73,7 @@ export interface S05DesignLabFixture {
   readonly startSection: 'intro' | 'components' | 'structure';
 }
 
-export const S05_CONTENT_VERSION = '2.91.0';
+export const S05_CONTENT_VERSION = '2.93.0';
 
 export const s05Content = {
   version: S05_CONTENT_VERSION,
@@ -550,8 +550,8 @@ export const s05Content = {
           length: 15,
           passwordLabel: '1 Wort',
           durationLabel: '80 Nanosekunden',
-          packageCaption: '',
-          packageLabel: 'Sprachpaket 🇩🇪',
+          packageCaption: 'Alle Wörterlängen',
+          packageLabel: '80.000 🇩🇪 Wörter',
           poolSize: 80_000,
           modelInformation: {
             passwordParts: '1 Wort',
@@ -784,7 +784,6 @@ export const s05Content = {
     ['s05-length-four-german-effort', 'length-second-reason', 'info'],
     ['s05-length-language-pool-stack', 'length-second-reason', 'info'],
     ['s05-length-multilingual-words', 'length-second-reason', 'info'],
-    ['s05-length-multilingual-effort', 'length-second-reason', 'info'],
     ['s05-final-components', 'final-components', 'info'],
     ['s05-final-result', 'final-result', 'warning'],
     ['s05-final-length', 'final-length', 'info'],

@@ -2338,15 +2338,15 @@ function SecondLengthReasonScene({
   readonly step: S05AnalysisControllerSnapshot['step'];
 }) {
   const content = s05Content.freeSearch.lengthExamples.secondLengthReason;
-  const usesMultilingualWords =
-    step === 'length-multilingual-words' || step === 'length-multilingual-effort';
+  const usesMultilingualWords = step === 'length-multilingual-words';
   const showsLanguageStack =
     step === 'length-language-pool-stack' || usesMultilingualWords;
-  const showsMultilingualEffort = step === 'length-multilingual-effort';
+  const emphasizesLanguageStack = step === 'length-language-pool-stack';
+  const emphasizesMultilingualWords = step === 'length-multilingual-words';
   const passwordExample = usesMultilingualWords
     ? content.multilingualWords
     : content.germanWords;
-  const effortExample = showsMultilingualEffort
+  const effortExample = usesMultilingualWords
     ? content.multilingualWords
     : content.germanWords;
 
@@ -2355,57 +2355,72 @@ function SecondLengthReasonScene({
       className={styles.wordPoolReasonScene}
       data-s05-target="length-second-reason"
       data-second-reason="true"
+      data-zoomed-out={usesMultilingualWords || undefined}
     >
       <div className={styles.wordPoolAxis} aria-hidden="true" />
-      <article className={styles.wordPoolCase} data-case="second-reason">
-        <div
-          className={styles.wordPoolSphere}
-          data-multilingual={showsMultilingualEffort || undefined}
-        >
-          <span className={styles.wordPoolEffort}>
-            <strong>{effortExample.durationLabel}</strong>
-            <WordPoolGear
-              label="Angreifermodell für die vier Wörter anzeigen"
-              tooltipId="s05-second-reason-attacker-model"
-            >
-              <WordPoolModelDetails information={effortExample.modelInformation} />
-            </WordPoolGear>
-          </span>
-        </div>
-      </article>
-      <article className={styles.wordPoolPassword} data-case="second-reason">
-        <span className={styles.wordPoolPasswordConnector} aria-hidden="true" />
-        <strong>{passwordExample.passwordLabel}</strong>
-        <PasswordBuildingBlocks
-          value={passwordExample.password}
-          parts={passwordExample.parts}
-          display="separated"
-          animate={false}
-          visualScale={0.52}
-          ariaLabel={`${passwordExample.passwordLabel}: ${passwordExample.parts.join(', ')}`}
-        />
-      </article>
-      <aside
-        className={styles.languagePackageStack}
-        data-expanded={showsLanguageStack || undefined}
-        aria-label="Vier gleich große Sprachpakete"
-      >
-        {content.languagePackages.map((languagePackage, index) => {
-          if (index > 0 && !showsLanguageStack) return null;
-          const tooltipId = `s05-language-package-${languagePackage.id}`;
-          return (
-            <div className={styles.languagePackage} key={languagePackage.id}>
-              <strong>{languagePackage.label}</strong>
+      <div className={styles.wordPoolSceneComposition}>
+        <article className={styles.wordPoolCase} data-case="second-reason">
+          <div
+            className={styles.wordPoolSphere}
+            data-growing={usesMultilingualWords || undefined}
+            data-multilingual={usesMultilingualWords || undefined}
+          >
+            <span className={styles.wordPoolEffort}>
+              <strong>{effortExample.durationLabel}</strong>
               <WordPoolGear
-                label={`Information zu ${languagePackage.label} anzeigen`}
-                tooltipId={tooltipId}
+                label="Angreifermodell für die vier Wörter anzeigen"
+                tooltipId="s05-second-reason-attacker-model"
               >
-                <span>{languagePackage.information}</span>
+                <WordPoolModelDetails information={effortExample.modelInformation} />
               </WordPoolGear>
-            </div>
-          );
-        })}
-      </aside>
+            </span>
+          </div>
+        </article>
+        <article
+          className={styles.wordPoolPassword}
+          data-case="second-reason"
+          data-emphasized={emphasizesMultilingualWords || undefined}
+          data-passwo-speech-obstacle
+        >
+          <span className={styles.wordPoolPasswordConnector} aria-hidden="true" />
+          <strong>{passwordExample.passwordLabel}</strong>
+          <PasswordBuildingBlocks
+            value={passwordExample.password}
+            parts={passwordExample.parts}
+            display="separated"
+            animate={false}
+            visualScale={0.78}
+            highlightedIndices={emphasizesMultilingualWords ? [0, 1, 2, 3] : []}
+            ariaLabel={`${passwordExample.passwordLabel}: ${passwordExample.parts.join(', ')}`}
+          />
+        </article>
+        <aside
+          className={styles.languagePackageStack}
+          data-expanded={showsLanguageStack || undefined}
+          data-emphasized={emphasizesLanguageStack || undefined}
+          aria-label="Vier gleich große Sprachpakete"
+        >
+          {content.languagePackages.map((languagePackage, index) => {
+            if (index > 0 && !showsLanguageStack) return null;
+            const tooltipId = `s05-language-package-${languagePackage.id}`;
+            const flagStart = languagePackage.label.lastIndexOf(' ');
+            return (
+              <div className={styles.languagePackage} key={languagePackage.id}>
+                <strong>
+                  <span>{languagePackage.label.slice(0, flagStart)}</span>
+                  <span>{languagePackage.label.slice(flagStart + 1)}</span>
+                </strong>
+                <WordPoolGear
+                  label={`Information zu ${languagePackage.label} anzeigen`}
+                  tooltipId={tooltipId}
+                >
+                  <span>{languagePackage.information}</span>
+                </WordPoolGear>
+              </div>
+            );
+          })}
+        </aside>
+      </div>
     </div>
   );
 }
@@ -2686,7 +2701,6 @@ function renderScene(
     case 'length-four-german-effort':
     case 'length-language-pool-stack':
     case 'length-multilingual-words':
-    case 'length-multilingual-effort':
       return <SecondLengthReasonScene step={snapshot.step} />;
     case 'final-components':
     case 'final-length':
@@ -2926,9 +2940,10 @@ function speechFor(
     case 'length-language-pool-stack':
       return [s05Content.freeSearch.lengthExamples.secondLengthReason.languagePoolIntroduction];
     case 'length-multilingual-words':
-      return [s05Content.freeSearch.lengthExamples.secondLengthReason.multilingualSelection];
-    case 'length-multilingual-effort':
-      return [s05Content.freeSearch.lengthExamples.secondLengthReason.multilingualEffort];
+      return [
+        s05Content.freeSearch.lengthExamples.secondLengthReason.multilingualSelection,
+        s05Content.freeSearch.lengthExamples.secondLengthReason.multilingualEffort,
+      ];
     case 'final-components':
       return [s05Content.freeSearch.application.assessmentIntroduction];
     case 'final-result': {

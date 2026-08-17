@@ -4,7 +4,7 @@ import { S05_CONTENT_VERSION, s05Content } from './s05.js';
 
 describe('S05 content traceability', () => {
   it('keeps the participant copy bounded and separate from internal terminology', () => {
-    expect(S05_CONTENT_VERSION).toBe('2.91.0');
+    expect(S05_CONTENT_VERSION).toBe('2.93.0');
     expect(s05Content.source).toMatchObject({
       document: 'research/private/training-script.pdf',
       internalPages: [
@@ -310,8 +310,8 @@ describe('S05 content traceability', () => {
           length: 15,
           passwordLabel: '1 Wort',
           durationLabel: '80 Nanosekunden',
-          packageCaption: '',
-          packageLabel: 'Sprachpaket 🇩🇪',
+          packageCaption: 'Alle Wörterlängen',
+          packageLabel: '80.000 🇩🇪 Wörter',
           poolSize: 80_000,
           modelInformation: {
             passwordParts: '1 Wort',
@@ -437,7 +437,7 @@ describe('S05 content traceability', () => {
     expect(reasonsStepIndex).toBe(orientationStepIndex + 1);
     expect(
       s05Content.animations
-        .slice(reasonsStepIndex, reasonsStepIndex + 12)
+        .slice(reasonsStepIndex, reasonsStepIndex + 11)
         .map(([id]) => id),
     ).toEqual([
       's05-length-reasons-intro',
@@ -451,7 +451,6 @@ describe('S05 content traceability', () => {
       's05-length-four-german-effort',
       's05-length-language-pool-stack',
       's05-length-multilingual-words',
-      's05-length-multilingual-effort',
     ]);
     expect(
       s05Content.animations

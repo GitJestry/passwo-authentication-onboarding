@@ -112,7 +112,8 @@ Seitenangaben beziehen sich auf die im Trainingsdokument ausgewiesene interne Pa
   Billion Versuchen pro Sekunde. Ein zweiter fester Vergleich zeigt `Hat`, `Bin`, `Kuh`, `Ich`
   und `Tee` als fünf Bausteine aus jeweils nur 350 Möglichkeiten mit `5,25 Sekunden`. Beide
   Beispiele sind über Stellenlinien angebunden; die statischen Kugeln blinken nicht. Transparente
-  Wortpakete und fokussierbare Zahnräder kennzeichnen Pool- und Modellannahmen. Über den
+  Wortpakete und fokussierbare Zahnräder kennzeichnen Pool- und Modellannahmen; das große Paket
+  trägt `Alle Wörterlängen` und `80.000 🇩🇪 Wörter`. Über den
   Beispielbausteinen stehen `1 Wort` beziehungsweise `5 Wörter`, unter beiden Messlinien klein
   `Mindestlänge`. Die Sprachpakete stehen direkt auf der Messskala rechts neben ihrer Kugel; das
   große Paket verwendet eine ungefähr zehnfach gestaffelte visuelle Volumenwirkung. Die
@@ -121,9 +122,13 @@ Seitenangaben beziehen sich auf die im Trainingsdokument ausgewiesene interne Pa
   deutsche Wörter auf `1,3 Jahre`. Drei gleich große spanische, französische und japanische
   Sprachpakete stapeln sich animiert über dem deutschen Paket; jedes behält ein kleines
   fokussierbares Zahnrad. Die vier unteren Bausteine wechseln anschließend zu
-  `Datensicherheit`, `Oscuridad`, `Yutori`, `Somnolent`, bevor die Kugel für den ungefähr
-  vierfachen gemeinsamen Pool auf `332 Jahre` wächst. Erst danach folgt die bestehende lokale
-  Campusgram-Auswertung.
+  `Datensicherheit`, `Oscuridad`, `Yutori`, `Somnolent`; in derselben Sprechblase wächst die Kugel
+  für den ungefähr vierfachen gemeinsamen Pool auf `332 Jahre`. Die gesamte Komposition zoomt
+  dabei anhand des jeweils strengeren Breiten- oder Höhenfaktors so weit heraus, dass die Kugel
+  vollständig im Szenenrahmen bleibt. Die höher liegende, gleichmäßig durchgezogene Messlinie
+  bleibt davon unskaliert; die unteren Bausteine werden von der responsiven
+  PassWo-Sprechblasenpositionierung als Hindernis berücksichtigt. Erst danach folgt die bestehende
+  lokale Campusgram-Auswertung.
 - Die S05-Simulationsdisposition (`S05_CONTENT_VERSION 2.74.0`, Analysekonfiguration
   `passwo-bounded-whole-recognition-v12`) bleibt auf den vollständigen fiktiven Wert begrenzt:
   `whole-password-recognized` entsteht durch einen direkten Vollwert oder eine dokumentierte

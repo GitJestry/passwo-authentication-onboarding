@@ -141,6 +141,9 @@ const emphasisBySpeechId: Readonly<Record<string, readonly PassWoSpeechEmphasis[
     },
     { phrase: 'schwer machen', tone: 'accent', contrastId: 'length-and-effort' },
   ],
+  's05-length-four-german-words': [
+    { phrase: 'demselben deutschen Wörterpool', tone: 'accent' },
+  ],
   's05-final-components': [{ phrase: 'gesamte Zeichenfolge', tone: 'accent' }],
   's05-final-result': [{ phrase: 'gesamte Zeichenfolge', tone: 'warning' }],
   's05-final-length': [{ phrase: 'mindestens 15 Zeichen', tone: 'accent' }],

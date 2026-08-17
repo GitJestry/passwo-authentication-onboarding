@@ -3275,3 +3275,63 @@ unverändert. `S05_CONTENT_VERSION` wird von `2.90.0` auf `2.91.0` erhöht.
 | `S05.freeSearch.lengthExamples.secondLengthReason.languagePoolIntroduction` | Nutzerauftrag vom 2026-08-17 | nicht vorhanden | `Dafür legen wir deutsche, spanische, französische und japanische Wörter zusammen.` | Mechanismuserklärung | animierten Sprachpaket-Stapel erläutern | ja | `Weiter` | keine |
 | `S05.freeSearch.lengthExamples.secondLengthReason.multilingualSelection` | Nutzerauftrag vom 2026-08-17 | nicht vorhanden | `Jedes Wort kann nun zufällig aus diesem gemeinsamen Pool stammen.` | Mechanismuserklärung | zufällige Ziehung aus dem gemeinsamen Pool benennen | ja | `Weiter` | keine |
 | `S05.freeSearch.lengthExamples.secondLengthReason.multilingualEffort` | Nutzerauftrag vom 2026-08-17 | nicht vorhanden | `Der Wörterpool ist damit etwa viermal so groß.` | Ergebnisfeedback | sichtbaren Poolvergleich begrenzen | ja | `Weiter` | keine |
+
+### Darstellungspräzisierung S05 mehrsprachiger Wortpool, 17. August 2026
+
+Quelle ist der ausdrückliche Nutzerauftrag vom 17. August 2026. Der Wortlaut bleibt unverändert.
+Im Schritt `s05-length-four-german-words` wird die zusammenhängende Phrase
+`demselben deutschen Wörterpool` als Carry-forward-Kerngedanke akzentuiert. Beim Satz über das
+Zusammenlegen der vier Sprachen leuchtet der gesamte Sprachpaket-Stapel als ein gemeinsamer
+Hinweis. Beim anschließenden Satz leuchten alle vier unteren Wortbausteine synchron und die
+Zeitkugel beginnt bereits zu wachsen. Die Paketbeschriftung wird kleiner, die Flaggen werden
+größer, die Zahnräder kleiner und der vertikale Paketabstand enger. Die unteren Wortbausteine,
+`1,3 Jahre` und der abschließende Wert `332 Jahre` erhalten eine deutlich größere visuelle
+Gewichtung; die Endkugel wächst dafür weiter aus dem Bildmaßstab heraus. Reduced Motion ersetzt
+die wiederholten Lichtimpulse durch den statischen hervorgehobenen Zustand. Content-Version,
+Analyse, Persistenz, Export und Timing bleiben unverändert.
+
+### Ablaufpräzisierung S05 gemeinsame Mehrsprachen-Sprechblase, 17. August 2026
+
+Quelle ist der ausdrückliche Nutzerauftrag vom 17. August 2026. Die beiden wortgleichen Sätze
+`Jedes Wort kann nun zufällig aus diesem gemeinsamen Pool stammen.` und
+`Der Wörterpool ist damit etwa viermal so groß.` erscheinen gemeinsam in einer PassWo-Sprechblase.
+Der bisherige separate Folgeschritt `s05-length-multilingual-effort` entfällt. Beim Eintritt in
+diese gemeinsame Sprechblase wechseln die Wortbausteine, der Wert wechselt auf `332 Jahre` und
+die Kugel wächst. Die gesamte Szenenkomposition zoomt gleichzeitig auf 72 Prozent heraus und die
+Kugelgröße wird zusätzlich an die verfügbare Szenenhöhe gebunden, damit
+die Kugel trotz ihrer großen Enddarstellung nicht am oberen Szenenrand abgeschnitten wird. Der
+Wortlaut, die Berechnungsannahmen, Analyse, Persistenz, Export und Timing bleiben unverändert.
+Wegen der geänderten authored Sprechschrittfolge wird `S05_CONTENT_VERSION` von `2.91.0` auf
+`2.92.0` erhöht.
+
+### Darstellungs- und Copy-Rücknahme S05 Nanosekunden-Paket, 17. August 2026
+
+Quelle ist der ausdrückliche Nutzerauftrag vom 17. August 2026. Ausschließlich im ersten
+Wortpool-Beispiel mit `80 Nanosekunden` wird die zwischenzeitliche Beschriftung
+`Sprachpaket 🇩🇪` auf den früheren Boxinhalt `Alle Wörterlängen` und `80.000 🇩🇪 Wörter`
+zurückgeführt. Die vier Sprachpakete des anschließenden Mehrsprachenvergleichs bleiben
+unverändert.
+
+Die Messskala wird aus der gezoomten Komposition herausgelöst und als gleichmäßig durchgezogene
+Linie über die Szenenbreite dargestellt. Im Mehrsprachen-Endzustand rückt die gemeinsame
+Basislinie auf 76 Prozent der Szenenhöhe. Der Zoom verwendet 66 Prozent im großen Layout und
+wird bei flachen beziehungsweise schmalen Displays stufenweise bis auf 46 Prozent verstärkt.
+Gleichzeitig beginnt die `1,3 Jahre`-Kugel deutlich kleiner und die `332 Jahre`-Kugel erhält eine
+größere authored Ausgangsgröße, damit ihr sichtbarer Größensprung trotz des stärkeren Herauszoomens
+erhalten bleibt. Reduced Motion übernimmt dieselben statischen Endmaße ohne wiederholte
+Lichtanimation. Analyse, Persistenz, Export und Timing bleiben unverändert. Wegen der sichtbaren
+Rücknahme des Boxinhalts wird `S05_CONTENT_VERSION` von `2.92.0` auf `2.93.0` erhöht.
+
+### Darstellungspräzisierung S05 responsive Mehrsprachen-Skala, 17. August 2026
+
+Quelle ist der ausdrückliche Nutzerauftrag vom 17. August 2026. Die große Endkugel behält ihre
+authored Größe. Die im Endzustand zuvor auf 76 Prozent abgesenkte Messlinie liegt nun bei
+68 Prozent der Szenenhöhe; dadurch bleiben die unteren Wortbausteine aus dem Bereich der
+PassWo-Sprechblase heraus. Die Wortbausteine werden zusätzlich als Hindernis an die bestehende
+responsive Sprechblasenpositionierung gemeldet.
+
+Der Szenenzoom wird nicht mehr durch einen einzelnen Breakpointwert bestimmt. Breiten- und
+Höhenstaffelung liefern getrennte Faktoren, von denen stets der kleinere verwendet wird. Sehr
+flache Fenster zoomen dadurch bis auf 36 Prozent heraus, ohne die normale Endkugel in ausreichend
+großen Fenstern zu verkleinern. Wortlaut, Content-Version, Analyse, Persistenz, Export und Timing
+bleiben unverändert.
