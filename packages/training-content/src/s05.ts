@@ -43,6 +43,9 @@ const characterMixVariationSuffixes = [
 
 const characterMixFinalVariation = 'mEin!Pa55w0rt?';
 
+const germanWordPackageInformation =
+  'Für diese vereinfachte Rechnung nehmen wir an, dass ein Sprachpaket etwa 80.000 Wörter enthält, die sich sinnvoll als merkbare Passwortwörter verwenden lassen. Der deutsche Duden enthält beispielsweise rund 151.000 Stichwörter, von denen wir hier nur einen Teil berücksichtigen.';
+
 const characterMixVariations = [
   ...characterMixVariationStems.flatMap((stem) =>
     characterMixVariationSuffixes.map((suffix) => `${stem}${suffix}`),
@@ -70,7 +73,7 @@ export interface S05DesignLabFixture {
   readonly startSection: 'intro' | 'components' | 'structure';
 }
 
-export const S05_CONTENT_VERSION = '2.87.0';
+export const S05_CONTENT_VERSION = '2.91.0';
 
 export const s05Content = {
   version: S05_CONTENT_VERSION,
@@ -80,9 +83,9 @@ export const s05Content = {
       12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34,
       35,
     ] as const,
-    revision: 'Userauftrag vom 2026-08-17 · S05 Strukturbeispiel vereinheitlicht',
+    revision: 'Userauftrag vom 2026-08-17 · S05 mehrsprachigen Wortpool ergänzt',
     copyReference:
-      'docs/design/S00-S05-COPY-AUDIT.md#copy--und-darstellungsdelta-s05-annotiertes-strukturbeispiel-17-august-2026',
+      'docs/design/S00-S05-COPY-AUDIT.md#copy--und-darstellungsdelta-s05-mehrsprachiger-wortpool-17-august-2026',
   },
   segment: {
     id: 'S05',
@@ -523,27 +526,119 @@ export const s05Content = {
     },
     lengthExamples: {
       mixedCharacterComparison:
-        'Die gelbe Kugel zeigt, warum zwölf Zeichen aus mehreren Zeichentypen bei wirklich zufälliger Auswahl so vielversprechend sind.',
+        'Die gelbe Kugel zeigt, warum zwölf Zeichen aus mehreren Zeichentypen bei wirklich zufälliger Auswahl wie k7#M!9p$2Lq& vom Aufwand so vielversprechend sind.',
       orientation:
         'Bei selbstgewählten Passwörtern lässt sich diese Zufälligkeit jedoch nicht voraussetzen. Deshalb liegt die aktuelle Orientierung bei mindestens 15 Zeichen.',
-      wordCore: {
-        password: 'Datensicherheit!',
-        parts: ['Datensicherheit', '!'],
-        length: 16,
+      reasonsIntroduction:
+        'Es gibt noch zwei weitere Gründe, warum Länge so wichtig ist.',
+      memorability:
+        'Selbstgewählte Passwörter wie Datensicherheit sind merkbar und erreichen 15 Zeichen, bestehen aber nur aus einem Wort.',
+      fullWordAttack:
+        'Der Angreifer muss dafür nur dieses Wort aus einem deutschen Wörterpaket Pool prüfen.',
+      shortWordComparison:
+        'Wir könnten stattdessen fünf zufällige Wörter mit zwei bis drei Buchstaben verwenden. Davon gibt es aber deutlich weniger, der mögliche Pool pro Wort wäre also sehr klein.',
+      sufficientPools:
+        'Für mehrere zufällige und trotzdem merkbare Bestandteile brauchen wir jeweils einen ausreichend großen Pool. Und dafür brauchen sie Platz.',
+      lengthTakeaway:
+        'So wird ein Passwort schnell länger als 15 Zeichen, wenn wir es dem Angreifer wirklich schwer machen wollen.',
+      secondReasonTransition: 'Nun zur zweiten Sache.',
+      wordPoolDemonstration: {
+        minimumLengthLabel: 'Mindestlänge',
+        longWord: {
+          password: 'Datensicherheit',
+          parts: ['Datensicherheit'],
+          length: 15,
+          passwordLabel: '1 Wort',
+          durationLabel: '80 Nanosekunden',
+          packageCaption: '',
+          packageLabel: 'Sprachpaket 🇩🇪',
+          poolSize: 80_000,
+          modelInformation: {
+            passwordParts: '1 Wort',
+            pool: '80.000 Wörter',
+            combinations: '80.000',
+            attemptsPerSecond: '1 Billion',
+          },
+          packageTooltip: germanWordPackageInformation,
+        },
+        shortWords: {
+          password: 'HatBinKuhIchTee',
+          parts: ['Hat', 'Bin', 'Kuh', 'Ich', 'Tee'],
+          length: 15,
+          passwordLabel: '5 Wörter',
+          durationLabel: '5,25 Sekunden',
+          packageCaption: '2-3 Buchstabenwörter',
+          packageLabel: 'nur 350 🇩🇪 Wörter',
+          poolSizePerWord: 350,
+          wordCount: 5,
+          modelInformation: {
+            passwordParts: '5 Wörter',
+            pool: 'je nur 350 Wörter',
+            combinations: '5.252.187.500.000',
+            attemptsPerSecond: '1 Billion',
+          },
+        },
       },
-      extraCharacters: {
-        password: 'Datensicherheit-?KmL',
-        parts: ['Datensicherheit', '-?KmL'],
-        length: 20,
+      secondLengthReason: {
+        germanWordsIntroduction:
+          'Statt eines Wortes nehmen wir drei weitere zufällige Wörter aus demselben deutschen Wörterpool.',
+        germanEffort:
+          'Er braucht dann maximal ca. 1,3 Jahre. Vielleicht können wir den Aufwand mit einem größeren Wörterpool erhöhen.',
+        languagePoolIntroduction:
+          'Dafür legen wir deutsche, spanische, französische und japanische Wörter zusammen.',
+        multilingualSelection:
+          'Jedes Wort kann nun zufällig aus diesem gemeinsamen Pool stammen.',
+        multilingualEffort: 'Der Wörterpool ist damit etwa viermal so groß.',
+        germanWords: {
+          password: 'DatensicherheitLobotomieZugspitzeUnbefugt',
+          parts: ['Datensicherheit', 'Lobotomie', 'Zugspitze', 'Unbefugt'],
+          passwordLabel: '4 Wörter',
+          durationLabel: '1,3 Jahre',
+          modelInformation: {
+            passwordParts: '4 Wörter',
+            pool: 'je 80.000 Wörter',
+            combinations: '40.960.000.000.000.000.000',
+            attemptsPerSecond: '1 Billion',
+          },
+        },
+        multilingualWords: {
+          password: 'DatensicherheitOscuridadYutoriSomnolent',
+          parts: ['Datensicherheit', 'Oscuridad', 'Yutori', 'Somnolent'],
+          passwordLabel: '4 Wörter',
+          durationLabel: '332 Jahre',
+          modelInformation: {
+            passwordParts: '4 Wörter',
+            pool: 'je 320.000 Wörter',
+            combinations: '10.485.760.000.000.000.000.000',
+            attemptsPerSecond: '1 Billion',
+          },
+        },
+        languagePackages: [
+          {
+            id: 'de',
+            label: 'Sprachpaket 🇩🇪',
+            information: germanWordPackageInformation,
+          },
+          {
+            id: 'es',
+            label: 'Sprachpaket 🇪🇸',
+            information:
+              'Für diese vereinfachte Rechnung nehmen wir für das spanische Sprachpaket ebenfalls etwa 80.000 Wörter an.',
+          },
+          {
+            id: 'fr',
+            label: 'Sprachpaket 🇫🇷',
+            information:
+              'Für diese vereinfachte Rechnung nehmen wir für das französische Sprachpaket ebenfalls etwa 80.000 Wörter an.',
+          },
+          {
+            id: 'ja',
+            label: 'Sprachpaket 🇯🇵',
+            information:
+              'Für diese vereinfachte Rechnung nehmen wir für das japanische Sprachpaket ebenfalls etwa 80.000 Wörter an.',
+          },
+        ],
       },
-      wordExamplesIntroduction:
-        'Kommen wir kurz noch einmal auf Wörter zurück. Diese beiden Passwörter erfüllen die Mindestlänge, bestehen aber jeweils nur aus einem häufigen Wort und ein paar zusätzlichen Zeichen. Dadurch werden sie zu früh geprüften Variationen.',
-      additionalWordQuestion:
-        'Mit mehreren Wörtern erreicht man die Mindestlänge schnell. Aber reicht es, einfach ein weiteres Wort hinzuzunehmen?',
-      practicalOutlook:
-        'Dafür gibt es eine einfache Methode, mit der sich lange und trotzdem gut merkbare Passwörter aus Wörtern bilden lassen. Die probieren wir später selbst aus.',
-      campusgramTransition:
-        'Schauen wir jetzt, wie dein Campusgram-Passwort bei diesen Angriffsmöglichkeiten abschneidet.',
     },
     application: {
       assessmentIntroduction:
@@ -678,7 +773,18 @@ export const s05Content = {
     ['s05-lowercase-clock', 'lowercase-clock', 'info'],
     ['s05-length-model-comparison', 'length-model-comparison', 'info'],
     ['s05-length-orientation', 'length-orientation', 'info'],
-    ['s05-length-campusgram-transition', 'campusgram-password', 'info'],
+    ['s05-length-reasons-intro', 'length-word-pools', 'info'],
+    ['s05-length-memorability', 'length-word-pools', 'info'],
+    ['s05-length-full-word-attack', 'length-word-pools', 'warning'],
+    ['s05-length-short-word-comparison', 'length-word-pools', 'info'],
+    ['s05-length-sufficient-pools', 'length-word-pools', 'info'],
+    ['s05-length-takeaway', 'length-word-pools', 'info'],
+    ['s05-length-second-reason-transition', 'length-word-pools', 'info'],
+    ['s05-length-four-german-words', 'length-second-reason', 'info'],
+    ['s05-length-four-german-effort', 'length-second-reason', 'info'],
+    ['s05-length-language-pool-stack', 'length-second-reason', 'info'],
+    ['s05-length-multilingual-words', 'length-second-reason', 'info'],
+    ['s05-length-multilingual-effort', 'length-second-reason', 'info'],
     ['s05-final-components', 'final-components', 'info'],
     ['s05-final-result', 'final-result', 'warning'],
     ['s05-final-length', 'final-length', 'info'],

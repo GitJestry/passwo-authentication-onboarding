@@ -82,10 +82,18 @@ export type S05AnalysisStep =
   | 'lowercase-clock'
   | 'length-model-comparison'
   | 'length-orientation'
-  | 'length-word-core'
-  | 'length-additional-word-question'
-  | 'length-practical-outlook'
-  | 'length-campusgram-transition'
+  | 'length-reasons-intro'
+  | 'length-memorability'
+  | 'length-full-word-attack'
+  | 'length-short-word-comparison'
+  | 'length-sufficient-pools'
+  | 'length-takeaway'
+  | 'length-second-reason-transition'
+  | 'length-four-german-words'
+  | 'length-four-german-effort'
+  | 'length-language-pool-stack'
+  | 'length-multilingual-words'
+  | 'length-multilingual-effort'
   | 'final-components'
   | 'final-length'
   | 'final-result'
@@ -213,10 +221,18 @@ const stepByMissionId: Readonly<Record<string, S05AnalysisStep>> = {
   's05-lowercase-clock': 'lowercase-clock',
   's05-length-model-comparison': 'length-model-comparison',
   's05-length-orientation': 'length-orientation',
-  's05-length-word-core': 'length-word-core',
-  's05-length-additional-word-question': 'length-additional-word-question',
-  's05-length-practical-outlook': 'length-practical-outlook',
-  's05-length-campusgram-transition': 'length-campusgram-transition',
+  's05-length-reasons-intro': 'length-reasons-intro',
+  's05-length-memorability': 'length-memorability',
+  's05-length-full-word-attack': 'length-full-word-attack',
+  's05-length-short-word-comparison': 'length-short-word-comparison',
+  's05-length-sufficient-pools': 'length-sufficient-pools',
+  's05-length-takeaway': 'length-takeaway',
+  's05-length-second-reason-transition': 'length-second-reason-transition',
+  's05-length-four-german-words': 'length-four-german-words',
+  's05-length-four-german-effort': 'length-four-german-effort',
+  's05-length-language-pool-stack': 'length-language-pool-stack',
+  's05-length-multilingual-words': 'length-multilingual-words',
+  's05-length-multilingual-effort': 'length-multilingual-effort',
   's05-final-components': 'final-components',
   's05-final-length': 'final-length',
   's05-final-result': 'final-result',

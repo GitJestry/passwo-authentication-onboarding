@@ -2100,11 +2100,13 @@ function LowercaseClockScene({
     controller.completeLowercaseScale();
   }
 
-  const targetId = snapshot.step === 'length-model-comparison'
-    ? 'length-model-comparison'
-    : focused
-      ? 'length-orientation'
-      : 'lowercase-clock';
+  const targetId = snapshot.step === 'length-reasons-intro'
+    ? 'length-word-pools'
+    : snapshot.step === 'length-model-comparison'
+      ? 'length-model-comparison'
+      : focused
+        ? 'length-orientation'
+        : 'lowercase-clock';
 
   return (
     <div
@@ -2286,58 +2288,246 @@ function LowercaseClockScene({
   );
 }
 
-type LengthExample = (typeof s05Content.freeSearch.lengthExamples)[
-  'wordCore' | 'extraCharacters'
-];
-
-function LengthExamplePassword({
-  example,
-  targetId,
+function WordPoolGear({
+  label,
+  tooltipId,
+  children,
 }: {
-  readonly example: LengthExample;
-  readonly targetId: string;
+  readonly label: string;
+  readonly tooltipId: string;
+  readonly children: ReactNode;
 }) {
   return (
-    <article
-      className={styles.lengthExamplePassword}
-      data-s05-target={targetId}
-      aria-label={`${example.password}, ${example.length} Zeichen`}
-    >
-      <PasswordBuildingBlocks
-        value={example.password}
-        parts={example.parts}
-        display="separated"
-        animate={false}
-        ariaLabel=""
-      />
-      <span className={styles.lengthRay} aria-hidden="true" />
-      <strong>{example.length} Zeichen</strong>
-    </article>
+    <span className={styles.wordPoolGear}>
+      <button type="button" aria-label={label} aria-describedby={tooltipId}>
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M9.6 2.75h4.8l.54 2.15c.43.18.84.42 1.22.7l2.08-.64 2.4 4.16-1.56 1.51a7 7 0 0 1 0 1.74l1.56 1.51-2.4 4.16-2.08-.64c-.38.28-.79.52-1.22.7l-.54 2.15H9.6l-.54-2.15a7 7 0 0 1-1.22-.7l-2.08.64-2.4-4.16 1.56-1.51a7 7 0 0 1 0-1.74L3.36 9.12l2.4-4.16 2.08.64c.38-.28.79-.52 1.22-.7L9.6 2.75Z" />
+          <circle cx="12" cy="11.5" r="2.65" />
+        </svg>
+      </button>
+      <span className={styles.wordPoolTooltip} id={tooltipId} role="tooltip">{children}</span>
+    </span>
   );
 }
 
-function LengthExamplesScene({
+interface WordPoolModelInformation {
+  readonly passwordParts: string;
+  readonly pool: string;
+  readonly combinations: string;
+  readonly attemptsPerSecond: string;
+}
+
+function WordPoolModelDetails({
+  information,
+}: {
+  readonly information: WordPoolModelInformation;
+}) {
+  return (
+    <>
+      <span><strong>Passwortbestandteile:</strong> {information.passwordParts}</span>
+      <span><strong>Wörterpool:</strong> {information.pool}</span>
+      <span><strong>Mögliche Kombinationen:</strong> {information.combinations}</span>
+      <span><strong>Berechnungen pro Sekunde:</strong> {information.attemptsPerSecond}</span>
+    </>
+  );
+}
+
+function SecondLengthReasonScene({
   step,
 }: {
   readonly step: S05AnalysisControllerSnapshot['step'];
 }) {
-  const examples = s05Content.freeSearch.lengthExamples;
-  const showsWordExamples =
-    step === 'length-word-core' || step === 'length-additional-word-question';
+  const content = s05Content.freeSearch.lengthExamples.secondLengthReason;
+  const usesMultilingualWords =
+    step === 'length-multilingual-words' || step === 'length-multilingual-effort';
+  const showsLanguageStack =
+    step === 'length-language-pool-stack' || usesMultilingualWords;
+  const showsMultilingualEffort = step === 'length-multilingual-effort';
+  const passwordExample = usesMultilingualWords
+    ? content.multilingualWords
+    : content.germanWords;
+  const effortExample = showsMultilingualEffort
+    ? content.multilingualWords
+    : content.germanWords;
 
   return (
     <div
-      className={styles.lengthExamplesScene}
-      data-s05-target={showsWordExamples ? 'length-example-comparison' : undefined}
+      className={styles.wordPoolReasonScene}
+      data-s05-target="length-second-reason"
+      data-second-reason="true"
     >
-      {showsWordExamples ? (
-        <LengthExamplePassword example={examples.wordCore} targetId="length-example-word" />
-      ) : null}
-      {showsWordExamples ? (
-        <LengthExamplePassword
-          example={examples.extraCharacters}
-          targetId="length-example-suffix"
+      <div className={styles.wordPoolAxis} aria-hidden="true" />
+      <article className={styles.wordPoolCase} data-case="second-reason">
+        <div
+          className={styles.wordPoolSphere}
+          data-multilingual={showsMultilingualEffort || undefined}
+        >
+          <span className={styles.wordPoolEffort}>
+            <strong>{effortExample.durationLabel}</strong>
+            <WordPoolGear
+              label="Angreifermodell für die vier Wörter anzeigen"
+              tooltipId="s05-second-reason-attacker-model"
+            >
+              <WordPoolModelDetails information={effortExample.modelInformation} />
+            </WordPoolGear>
+          </span>
+        </div>
+      </article>
+      <article className={styles.wordPoolPassword} data-case="second-reason">
+        <span className={styles.wordPoolPasswordConnector} aria-hidden="true" />
+        <strong>{passwordExample.passwordLabel}</strong>
+        <PasswordBuildingBlocks
+          value={passwordExample.password}
+          parts={passwordExample.parts}
+          display="separated"
+          animate={false}
+          visualScale={0.52}
+          ariaLabel={`${passwordExample.passwordLabel}: ${passwordExample.parts.join(', ')}`}
         />
+      </article>
+      <aside
+        className={styles.languagePackageStack}
+        data-expanded={showsLanguageStack || undefined}
+        aria-label="Vier gleich große Sprachpakete"
+      >
+        {content.languagePackages.map((languagePackage, index) => {
+          if (index > 0 && !showsLanguageStack) return null;
+          const tooltipId = `s05-language-package-${languagePackage.id}`;
+          return (
+            <div className={styles.languagePackage} key={languagePackage.id}>
+              <strong>{languagePackage.label}</strong>
+              <WordPoolGear
+                label={`Information zu ${languagePackage.label} anzeigen`}
+                tooltipId={tooltipId}
+              >
+                <span>{languagePackage.information}</span>
+              </WordPoolGear>
+            </div>
+          );
+        })}
+      </aside>
+    </div>
+  );
+}
+
+function WordPoolReasonScene({
+  step,
+}: {
+  readonly step: S05AnalysisControllerSnapshot['step'];
+}) {
+  const content = s05Content.freeSearch.lengthExamples.wordPoolDemonstration;
+  const stepOrder: readonly S05AnalysisControllerSnapshot['step'][] = [
+    'length-memorability',
+    'length-full-word-attack',
+    'length-short-word-comparison',
+    'length-sufficient-pools',
+    'length-takeaway',
+    'length-second-reason-transition',
+  ];
+  const stepIndex = stepOrder.indexOf(step);
+  const showsPassword = stepIndex >= 0;
+  const showsLongWordSphere = stepIndex >= 1;
+  const showsShortWords = stepIndex >= 2;
+  return (
+    <div
+      className={styles.wordPoolReasonScene}
+      data-s05-target="length-word-pools"
+      aria-label="Vergleich vereinfachter deutscher Wortpools im selben Angreifermodell"
+    >
+      <div className={styles.wordPoolAxis} aria-hidden="true" />
+      {showsPassword ? (
+        <article className={styles.wordPoolPassword} data-case="long-word">
+          <span className={styles.wordPoolPasswordConnector} aria-hidden="true" />
+          <strong>{content.longWord.passwordLabel}</strong>
+          <PasswordBuildingBlocks
+            value={content.longWord.password}
+            parts={content.longWord.parts}
+            display="separated"
+            animate={false}
+            visualScale={0.68}
+            ariaLabel={`${content.longWord.password}, ${content.longWord.length} Zeichen`}
+          />
+          <span
+            className={styles.wordPoolLengthRay}
+            role="img"
+            aria-label={`${content.longWord.length} Stellen`}
+          />
+          <small>{content.minimumLengthLabel}</small>
+        </article>
+      ) : null}
+      {showsLongWordSphere ? (
+        <article className={styles.wordPoolCase} data-case="long-word">
+          <div className={styles.wordPoolSphere}>
+            <span className={styles.wordPoolEffort}>
+              <strong>{content.longWord.durationLabel}</strong>
+              <WordPoolGear
+                label="Angreifermodell für das Wort anzeigen"
+                tooltipId="s05-long-word-attacker-model"
+              >
+                <WordPoolModelDetails information={content.longWord.modelInformation} />
+              </WordPoolGear>
+            </span>
+          </div>
+        </article>
+      ) : null}
+      {showsLongWordSphere ? (
+        <aside
+          className={styles.wordPackage}
+          data-emphasized={step === 'length-full-word-attack' || undefined}
+          data-package="large"
+        >
+          {content.longWord.packageCaption.length > 0 ? (
+            <small>{content.longWord.packageCaption}</small>
+          ) : null}
+          <strong>{content.longWord.packageLabel}</strong>
+          <WordPoolGear
+            label="Annahme zum deutschen Wortpaket anzeigen"
+            tooltipId="s05-large-word-pool-assumption"
+          >
+            <span>{content.longWord.packageTooltip}</span>
+          </WordPoolGear>
+        </aside>
+      ) : null}
+      {showsShortWords ? (
+        <article className={styles.wordPoolCase} data-case="short-words">
+          <div className={styles.wordPoolSphere}>
+            <span className={styles.wordPoolEffort}>
+              <strong>{content.shortWords.durationLabel}</strong>
+              <WordPoolGear
+                label="Angreifermodell für die fünf Wörter anzeigen"
+                tooltipId="s05-short-words-attacker-model"
+              >
+                <WordPoolModelDetails information={content.shortWords.modelInformation} />
+              </WordPoolGear>
+            </span>
+          </div>
+        </article>
+      ) : null}
+      {showsShortWords ? (
+        <article className={styles.wordPoolPassword} data-case="short-words">
+          <span className={styles.wordPoolPasswordConnector} aria-hidden="true" />
+          <strong>{content.shortWords.passwordLabel}</strong>
+          <PasswordBuildingBlocks
+            value={content.shortWords.password}
+            parts={content.shortWords.parts}
+            display="separated"
+            animate={false}
+            visualScale={0.58}
+            ariaLabel={`${content.shortWords.passwordLabel} ${content.shortWords.password}, ${content.shortWords.length} Zeichen`}
+          />
+          <span
+            className={styles.wordPoolLengthRay}
+            role="img"
+            aria-label={`${content.shortWords.length} Stellen`}
+          />
+          <small>{content.minimumLengthLabel}</small>
+        </article>
+      ) : null}
+      {showsShortWords ? (
+        <aside className={styles.wordPackage} data-package="small">
+          <small>{content.shortWords.packageCaption}</small>
+          <strong>{content.shortWords.packageLabel}</strong>
+        </aside>
       ) : null}
     </div>
   );
@@ -2483,18 +2673,21 @@ function renderScene(
       );
     case 'length-model-comparison':
     case 'length-orientation':
+    case 'length-reasons-intro':
       return <LowercaseClockScene snapshot={snapshot} controller={controller} focused />;
-    case 'length-word-core':
-    case 'length-additional-word-question':
-      return <LengthExamplesScene step={snapshot.step} />;
-    case 'length-practical-outlook':
-      return <SavedPassphraseGeneratorScene />;
-    case 'length-campusgram-transition':
-      return (
-        <div className={styles.recognizableStage} data-s05-target="campusgram-password">
-          <CampusgramPassword password={subject.fictionalPassword} />
-        </div>
-      );
+    case 'length-memorability':
+    case 'length-full-word-attack':
+    case 'length-short-word-comparison':
+    case 'length-sufficient-pools':
+    case 'length-takeaway':
+    case 'length-second-reason-transition':
+      return <WordPoolReasonScene step={snapshot.step} />;
+    case 'length-four-german-words':
+    case 'length-four-german-effort':
+    case 'length-language-pool-stack':
+    case 'length-multilingual-words':
+    case 'length-multilingual-effort':
+      return <SecondLengthReasonScene step={snapshot.step} />;
     case 'final-components':
     case 'final-length':
     case 'final-result':
@@ -2712,14 +2905,30 @@ function speechFor(
       return [s05Content.freeSearch.lengthExamples.mixedCharacterComparison];
     case 'length-orientation':
       return [s05Content.freeSearch.lengthExamples.orientation];
-    case 'length-word-core':
-      return [s05Content.freeSearch.lengthExamples.wordExamplesIntroduction];
-    case 'length-additional-word-question':
-      return [s05Content.freeSearch.lengthExamples.additionalWordQuestion];
-    case 'length-practical-outlook':
-      return [s05Content.freeSearch.lengthExamples.practicalOutlook];
-    case 'length-campusgram-transition':
-      return [s05Content.freeSearch.lengthExamples.campusgramTransition];
+    case 'length-reasons-intro':
+      return [s05Content.freeSearch.lengthExamples.reasonsIntroduction];
+    case 'length-memorability':
+      return [s05Content.freeSearch.lengthExamples.memorability];
+    case 'length-full-word-attack':
+      return [s05Content.freeSearch.lengthExamples.fullWordAttack];
+    case 'length-short-word-comparison':
+      return [s05Content.freeSearch.lengthExamples.shortWordComparison];
+    case 'length-sufficient-pools':
+      return [s05Content.freeSearch.lengthExamples.sufficientPools];
+    case 'length-takeaway':
+      return [s05Content.freeSearch.lengthExamples.lengthTakeaway];
+    case 'length-second-reason-transition':
+      return [s05Content.freeSearch.lengthExamples.secondReasonTransition];
+    case 'length-four-german-words':
+      return [s05Content.freeSearch.lengthExamples.secondLengthReason.germanWordsIntroduction];
+    case 'length-four-german-effort':
+      return [s05Content.freeSearch.lengthExamples.secondLengthReason.germanEffort];
+    case 'length-language-pool-stack':
+      return [s05Content.freeSearch.lengthExamples.secondLengthReason.languagePoolIntroduction];
+    case 'length-multilingual-words':
+      return [s05Content.freeSearch.lengthExamples.secondLengthReason.multilingualSelection];
+    case 'length-multilingual-effort':
+      return [s05Content.freeSearch.lengthExamples.secondLengthReason.multilingualEffort];
     case 'final-components':
       return [s05Content.freeSearch.application.assessmentIntroduction];
     case 'final-result': {
@@ -2906,7 +3115,7 @@ export function S05AnalysisTraining({
             guidanceVisible &&
             snapshot.step !== 'components-summary' &&
             snapshot.step !== 'estimate' &&
-            snapshot.step !== 'length-model-comparison' &&
+            !snapshot.step.startsWith('length-') &&
             snapshot.step !== 'structure-theme-reflection' &&
             snapshot.step !== 'structure-sentence-reflection'
               ? true
@@ -2937,8 +3146,7 @@ export function S05AnalysisTraining({
                 activeSnapshot.step === 'free-search-transition' ||
                 activeSnapshot.step.startsWith('character-mix-') ||
                 activeSnapshot.step.startsWith('estimate') ||
-                activeSnapshot.step === 'length-model-comparison' ||
-                activeSnapshot.step === 'length-orientation' ||
+                activeSnapshot.step.startsWith('length-') ||
                 activeSnapshot.step.startsWith('final-')
                   ? 'right'
                   : 'above'

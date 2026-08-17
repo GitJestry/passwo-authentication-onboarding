@@ -132,6 +132,15 @@ const emphasisBySpeechId: Readonly<Record<string, readonly PassWoSpeechEmphasis[
     { phrase: 'zu aufwendig', tone: 'accent', contrastId: 'estimate-threshold' },
   ],
   's05-length-orientation': [{ phrase: 'mindestens 15 Zeichen', tone: 'accent' }],
+  's05-length-full-word-attack': [{ phrase: 'Wörterpaket Pool', tone: 'accent' }],
+  's05-length-takeaway': [
+    {
+      phrase: 'schnell länger als 15 Zeichen',
+      tone: 'accent',
+      contrastId: 'length-and-effort',
+    },
+    { phrase: 'schwer machen', tone: 'accent', contrastId: 'length-and-effort' },
+  ],
   's05-final-components': [{ phrase: 'gesamte Zeichenfolge', tone: 'accent' }],
   's05-final-result': [{ phrase: 'gesamte Zeichenfolge', tone: 'warning' }],
   's05-final-length': [{ phrase: 'mindestens 15 Zeichen', tone: 'accent' }],

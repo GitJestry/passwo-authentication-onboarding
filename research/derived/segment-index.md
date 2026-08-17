@@ -104,11 +104,26 @@ Seitenangaben beziehen sich auf die im Trainingsdokument ausgewiesene interne Pa
   unveränderte Vergleichszoom zeichnet zusätzlich die Kleinbuchstaben-Kugeln bis 20 und zeigt
   davon den in den Viewport passenden Ausschnitt; nur die gelbe und die 15-Kleinbuchstaben-Kugel
   bleiben deckend, alle anderen Kugeln sind abgedunkelt. PassWo begrenzt den Vergleich gegen die
-  Auswahl selbstgewählter Passwörter. Beim anschließenden 15-Zeichen-Sprechschritt kehrt die
-  Kamera zur fokussierten 15-Zeichen-Ansicht zurück. Drei authored Beispiele mit 16, 20 und
-  24 Zeichen trennen einen vorhersehbaren Wortbestandteil, einen zusätzlichen Zeichenanhang und
-  zwei Wortbausteine sichtbar voneinander. Sie führen in getrennten Sprechschritten zur bereits
-  bestehenden lokalen Campusgram-Auswertung und werden weder analysiert noch persistiert.
+  Auswahl selbstgewählter Passwörter. Bei der 15-Zeichen-Orientierung und der anschließenden
+  Ankündigung der zwei weiteren Längengründe zoomt die Ansicht wieder auf die grüne Kugel. Danach
+  wird die Skala ohne Kugeln fortgeführt und stellt
+  `Datensicherheit` als merkbares 15-Zeichen-Wort einem vereinfachten Pool aus 80.000 deutschen
+  Wörtern gegenüber. Die authored Zeitkugel `80 Nanosekunden` folgt weiterhin dem Modell mit einer
+  Billion Versuchen pro Sekunde. Ein zweiter fester Vergleich zeigt `Hat`, `Bin`, `Kuh`, `Ich`
+  und `Tee` als fünf Bausteine aus jeweils nur 350 Möglichkeiten mit `5,25 Sekunden`. Beide
+  Beispiele sind über Stellenlinien angebunden; die statischen Kugeln blinken nicht. Transparente
+  Wortpakete und fokussierbare Zahnräder kennzeichnen Pool- und Modellannahmen. Über den
+  Beispielbausteinen stehen `1 Wort` beziehungsweise `5 Wörter`, unter beiden Messlinien klein
+  `Mindestlänge`. Die Sprachpakete stehen direkt auf der Messskala rechts neben ihrer Kugel; das
+  große Paket verwendet eine ungefähr zehnfach gestaffelte visuelle Volumenwirkung. Die
+  Demonstration analysiert oder persistiert keine Eingabe. Sie endet
+  mit dem Übergang zum zweiten Längengrund. Dort wächst die erste Kugel für vier zufällig gezogene
+  deutsche Wörter auf `1,3 Jahre`. Drei gleich große spanische, französische und japanische
+  Sprachpakete stapeln sich animiert über dem deutschen Paket; jedes behält ein kleines
+  fokussierbares Zahnrad. Die vier unteren Bausteine wechseln anschließend zu
+  `Datensicherheit`, `Oscuridad`, `Yutori`, `Somnolent`, bevor die Kugel für den ungefähr
+  vierfachen gemeinsamen Pool auf `332 Jahre` wächst. Erst danach folgt die bestehende lokale
+  Campusgram-Auswertung.
 - Die S05-Simulationsdisposition (`S05_CONTENT_VERSION 2.74.0`, Analysekonfiguration
   `passwo-bounded-whole-recognition-v12`) bleibt auf den vollständigen fiktiven Wert begrenzt:
   `whole-password-recognized` entsteht durch einen direkten Vollwert oder eine dokumentierte

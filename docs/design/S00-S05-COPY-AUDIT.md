@@ -3144,3 +3144,134 @@ verwendet nun dasselbe Türkisblau wie die zusammengehörigen Bausteine der vora
 Veranschaulichung. Das bisherige Blau und alle weiteren vorhandenen Gruppenfarben rücken jeweils
 um eine Position weiter. Teilnehmertext, Content-Version, Ablauf, Analyse, Persistenz, Export und
 Timing bleiben unverändert.
+
+## Copy- und Darstellungsdelta S05 Länge, Merkbarkeit und Wortpools, 17. August 2026
+
+Quelle ist der ausdrückliche Nutzerauftrag vom 17. August 2026. Die gelbe 12-Zeichen-Kugel und
+die 15-Zeichen-Kugel bleiben während der drei einleitenden Sprechschritte gemeinsam sichtbar.
+Danach beginnt der erste von zwei weiteren Längengründen. Die bisherige direkte
+Campusgram-Überleitung wird durch eine authored
+Wortpool-Demonstration ersetzt. Sie verwendet ausschließlich feste Beispiele und berechnet keine
+Eigenschaft des fiktiven Teilnehmerpassworts.
+
+Unter der sichtbaren Abschnittskennung `Erster Grund: Merkbarkeit und Länge` wird die Skala
+anschließend ohne Kugeln gezeigt. Unter ihrer Linie steht
+`Datensicherheit`. Danach erscheinen eine Kugel mit `80 Nanosekunden`, ein Zahnrad für das bereits
+eingeführte Angreifermodell und ein Wortpaket `80.000 🇩🇪 Wörter` mit eigenem Zahnrad. Der zweite
+Vergleich ergänzt links eine Kugel mit `5,25 Sekunden` und der Beschriftung
+`5 Wörter mit 2–3 Buchstaben`; unten rechts steht das Paket `350 🇩🇪 Wörter`. Farbe bleibt nicht
+der einzige Bedeutungsträger: Zeiten, Passwort-/Konstruktionslabels und Paketgrößen sind
+ausgeschrieben. Beide Zahnräder sind tastaturfokussierbar, und die Kugelpulse respektieren
+`prefers-reduced-motion`. `S05_CONTENT_VERSION` wird von `2.87.0` auf `2.88.0` erhöht.
+
+| Segment und Text-ID | Quelle | Aktueller Text | Geplanter Text | Primäre Rolle | Grund | Bedeutungsänderung | Interaktionsziel | Hervorhebung |
+|---|---|---|---|---|---|---|---|---|
+| `S05.freeSearch.lengthExamples.mixedCharacterComparison` | Nutzerauftrag vom 2026-08-17 | `Die gelbe Kugel zeigt, warum zwölf Zeichen aus mehreren Zeichentypen bei wirklich zufälliger Auswahl so vielversprechend sind.` | `Die gelbe Kugel zeigt, warum zwölf Zeichen aus mehreren Zeichentypen bei wirklich zufälliger Auswahl wie k7#M!9p$2Lq& vom Aufwand so vielversprechend sind.` | Mechanismuserklärung | das sichtbare Zufallsbeispiel ausdrücklich benennen | begrenzt | `Weiter` | keine |
+| `S05.freeSearch.lengthExamples.reasonsIntroduction` | Nutzerauftrag vom 2026-08-17 | nicht vorhanden | `Es gibt aber noch zwei weitere Gründe, warum Länge dafür so hilfreich ist.` | Orientierung | ausdrücklich freigegebener Übergang zu zwei weiteren Längengründen | ja | `Weiter` | keine |
+| `S05.freeSearch.lengthExamples.memorability` | Nutzerauftrag vom 2026-08-17 | nicht vorhanden | `Selbstgewählte Passwörter sollen merkbar bleiben. Datensicherheit ist nur ein Wort und erreicht schon 15 Zeichen.` | Mechanismuserklärung | Merkbarkeit und sichtbare Wortlänge verbinden | ja | `Weiter` | keine |
+| `S05.freeSearch.lengthExamples.wordPoolModel` | Nutzerauftrag vom 2026-08-17 | nicht vorhanden | `Es gilt dasselbe Angreifermodell, nun aber mit einem Pool von 80.000 Wörtern.` | Mechanismuserklärung | Modellwechsel vom Zeichenvorrat zum authored Wörterpool begrenzen | ja | `Weiter` | keine |
+| `S05.freeSearch.lengthExamples.largeWordPool` | Nutzerauftrag vom 2026-08-17 | nicht vorhanden | `Für diese vereinfachte Rechnung nehmen wir an, dass ein Sprachpaket etwa 80.000 Wörter enthält, die sich sinnvoll als merkbare Passwortwörter verwenden lassen. Der deutsche Duden enthält beispielsweise rund 151.000 Stichwörter, von denen wir hier nur einen Teil berücksichtigen.` | Mechanismuserklärung | ausdrücklich freigegebene Begründung der Demonstrationsannahme; Überschreitung des Zielbudgets wegen notwendiger Quellen- und Modellbegrenzung | ja | `Weiter`; Wortpaket-Zahnrad bleibt optional fokussierbar | keine |
+| `S05.freeSearch.lengthExamples.fullWordAttack` | Nutzerauftrag vom 2026-08-17 | nicht vorhanden | `Der Angreifer muss aber nicht 15 völlig unabhängige Zeichen erraten. Er kann das vollständige Wort aus einem deutschen Wörterpool prüfen.` | Mechanismuserklärung | Zeichenmodell und Wortkandidatenprüfung unterscheiden | ja | `Weiter` | keine |
+| `S05.freeSearch.lengthExamples.shortWordComparison` | Nutzerauftrag vom 2026-08-17 | nicht vorhanden | `Wir könnten stattdessen fünf zufällige Wörter mit nur zwei bis drei Buchstaben verwenden. Davon gibt es aber viel weniger. Der mögliche Wörterpool pro Wort wäre also sehr klein.` | Mechanismuserklärung | kleinen Pool kurzer Wörter am sichtbaren Gegenbeispiel erläutern; drei Sätze ausdrücklich vorgegeben | ja | `Weiter` | keine |
+| `S05.freeSearch.lengthExamples.sufficientPools` | Nutzerauftrag vom 2026-08-17 | nicht vorhanden | `Wenn wir mehrere zufällig gewählte und trotzdem merkbare Bestandteile wie Wörter verwenden wollen, brauchen sie jeweils einen ausreichend großen Pool. Und dafür brauchen sie Platz.` | Kerngedanke | Zufallsauswahl, Poolgröße und Platzbedarf verbinden | ja | `Weiter` | keine |
+| `S05.freeSearch.lengthExamples.lengthTakeaway` | Nutzerauftrag vom 2026-08-17 | nicht vorhanden | `So wird ein Passwort schnell länger als 15 Zeichen, wenn wir es einem Angreifer wirklich schwer machen wollen.` | Kerngedanke | ersten Längengrund ausdrücklich zusammenfassen | ja | `Weiter` | keine |
+| `S05.freeSearch.lengthExamples.secondReasonTransition` | Nutzerauftrag vom 2026-08-17 | nicht vorhanden | `Nun zur zweiten Sache.` | Orientierung | ausdrücklich freigegebener Übergang zum nächsten Längengrund | ja | `Weiter` | keine |
+
+## Copy- und Darstellungsdelta S05 Wortpool-Skala präzisiert, 17. August 2026
+
+Quelle ist der ausdrückliche Nutzerauftrag vom 17. August 2026. Beim Sprechschritt zur
+15-Zeichen-Orientierung zoomt die Darstellung wieder auf die grüne Kugel; der anschließende
+Übergang zu den zwei weiteren Längengründen behält diesen Fokus. Danach zeigt die neue Skala
+`Datensicherheit` als kleinen einzelnen Baustein und `HatBinKuhIchTee` als fünf getrennte
+Bausteine. Beide Beispiele sind über eine sichtbare Stellenlinie mit der Skala verbunden und als
+15 Zeichen zugänglich benannt.
+
+Die zusätzliche Abschnittskennung `Erster Grund: Merkbarkeit und Länge` entfällt. Die beiden
+Kugeln pulsieren nicht mehr. Der Text `80 Nanosekunden` wird verkleinert und erhält unmittelbar
+hinter dem Aufwand ein tastaturfokussierbares Zahnrad. Das Zahnrad nennt analog zum vorherigen
+Modell Passwortbestandteile, Wörterpool, mögliche Kombinationen und Berechnungen pro Sekunde;
+der Fünf-Wörter-Vergleich erhält dieselbe Information. Die Sprachpakete werden als farbneutrale,
+transparente Glasbausteine rechts neben ihrer jeweiligen Kugel dargestellt. Ihre kleinen
+Überschriften lauten `Alle Wörterlängen` und `2-3 Buchstabenwörter`; das kleine Paket wird als
+`nur 350 🇩🇪 Wörter` bezeichnet. Die ausführliche 80.000-Wörter-Annahme ist keine obligatorische
+Sprechblase mehr, sondern der fokussierbare Hover-Inhalt des großen Sprachpakets.
+
+Analyse, Persistenz, Export und Timing bleiben unverändert. `S05_CONTENT_VERSION` wird von
+`2.88.0` auf `2.89.0` erhöht.
+
+| Segment und Text-ID | Quelle | Aktueller Text | Geplanter Text | Primäre Rolle | Grund | Bedeutungsänderung | Interaktionsziel | Hervorhebung |
+|---|---|---|---|---|---|---|---|---|
+| `S05.freeSearch.lengthExamples.reasonsIntroduction` | Nutzerauftrag vom 2026-08-17 | `Es gibt aber noch zwei weitere Gründe, warum Länge dafür so hilfreich ist.` | `Es gibt noch zwei weitere Gründe, warum Länge so wichtig ist.` | Orientierung | ausdrücklich verlangte Straffung | begrenzt | `Weiter` | keine |
+| `S05.freeSearch.lengthExamples.memorability` | Nutzerauftrag vom 2026-08-17 | `Selbstgewählte Passwörter sollen merkbar bleiben. Datensicherheit ist nur ein Wort und erreicht schon 15 Zeichen.` | `Selbstgewählte Passwörter wie „Datensicherheit“ sind merkbar und erreichen 15 Zeichen sind aber nur ein Wort.` | Mechanismuserklärung | Beispiel, Merkbarkeit, Länge und Einzelwortgrenze in einem ausdrücklich vorgegebenen Sprechschritt verbinden | begrenzt | `Weiter` | keine |
+| `S05.freeSearch.lengthExamples.wordPoolModel` | Nutzerauftrag vom 2026-08-17 | `Es gilt dasselbe Angreifermodell, nun aber mit einem Pool von 80.000 Wörtern.` | entfällt als Sprechschritt; Angaben stehen im Zahnrad hinter dem Aufwand | Mechanismuserklärung | Modellannahmen optional und direkt am sichtbaren Aufwand zugänglich machen | begrenzt | Zahnrad an `80 Nanosekunden` beziehungsweise `5,25 Sekunden` | keine |
+| `S05.freeSearch.lengthExamples.largeWordPool` | Nutzerauftrag vom 2026-08-17 | ausführliche 80.000-Wörter-Erklärung als obligatorische Sprechblase | wortgleich als Hover-/Fokus-Inhalt des Sprachpaket-Zahnrads | Optionaler Hinweis | ausführliche Modellbegrenzung an ihr sichtbares Sprachpaket binden | nein | Zahnrad am Paket `80.000 🇩🇪 Wörter` | keine |
+| `S05.freeSearch.lengthExamples.wordPoolDemonstration.shortWords.passwordLabel` | Nutzerauftrag vom 2026-08-17 | `5 Wörter mit 2–3 Buchstaben` | `5 Wörter: „HatBinKuhIchTee“` plus fünf Bausteine `Hat`, `Bin`, `Kuh`, `Ich`, `Tee` | Orientierung | konkrete fünfteilige Zeichenfolge und Stellenlinie sichtbar machen | begrenzt | kein | fünf getrennte Bausteinformen |
+| `S05.freeSearch.lengthExamples.wordPoolDemonstration.shortWords.packageLabel` | Nutzerauftrag vom 2026-08-17 | `350 🇩🇪 Wörter` | `nur 350 🇩🇪 Wörter` | Orientierung | ausdrücklich verlangte Begrenzung des kleinen Pools | begrenzt | kein | keine |
+
+## Copy- und Darstellungsdelta S05 Wortpool-Messstab ausgerichtet, 17. August 2026
+
+Quelle ist der ausdrückliche Nutzerauftrag vom 17. August 2026. Über den beiden authored
+15-Zeichen-Beispielen stehen nun die parallelen Beschriftungen `1 Wort` und `5 Wörter`. Unter
+ihren Messlinien steht jeweils klein `Mindestlänge`. Die fünf sichtbaren Bausteine `Hat`, `Bin`,
+`Kuh`, `Ich` und `Tee` bleiben erhalten; die bisher zusätzlich ausgeschriebene Gesamtzeichenfolge
+entfällt aus der Überschrift.
+
+Beide transparenten Sprachpakete stehen mit ihrer Unterkante direkt auf der Messskala und jeweils
+rechts neben der zugehörigen Kugel. Das 80.000-Wörter-Paket verwendet gegenüber dem kleinen Paket
+eine rund 2,15-fache Kantenstaffelung und vermittelt damit ungefähr das Zehnfache visuelle
+Volumen. Beide Pakete bleiben gegenüber der vorherigen Darstellung kompakt. Das Zahnrad am
+80.000-Wörter-Paket wird auf eine kleine Inline-Steuerung reduziert und bleibt per Tastatur
+erreichbar. Analyse, Persistenz, Export und Timing bleiben unverändert.
+`S05_CONTENT_VERSION` wird von `2.89.0` auf `2.90.0` erhöht.
+
+| Segment und Text-ID | Quelle | Aktueller Text | Geplanter Text | Primäre Rolle | Grund | Bedeutungsänderung | Interaktionsziel | Hervorhebung |
+|---|---|---|---|---|---|---|---|---|
+| `S05.freeSearch.lengthExamples.memorability` | Nutzerauftrag vom 2026-08-17 | `Selbstgewählte Passwörter wie „Datensicherheit“ sind merkbar und erreichen 15 Zeichen sind aber nur ein Wort.` | `Selbstgewählte Passwörter wie Datensicherheit sind merkbar und erreichen 15 Zeichen, bestehen aber nur aus einem Wort.` | Mechanismuserklärung | ausdrücklich vorgegebene grammatische und inhaltliche Präzisierung | begrenzt | `Weiter` | keine |
+| `S05.freeSearch.lengthExamples.fullWordAttack` | Nutzerauftrag vom 2026-08-17 | `Der Angreifer muss aber nicht 15 völlig unabhängige Zeichen erraten. Er kann das vollständige Wort aus einem deutschen Wörterpool prüfen.` | `Der Angreifer muss dafür nur dieses Wort aus einem deutschen Wörterpaket Pool prüfen.` | Mechanismuserklärung | ausdrücklich verlangte Kürzung auf die Wortprüfung | begrenzt | `Weiter` | keine |
+| `S05.freeSearch.lengthExamples.shortWordComparison` | Nutzerauftrag vom 2026-08-17 | `Wir könnten stattdessen fünf zufällige Wörter mit nur zwei bis drei Buchstaben verwenden. Davon gibt es aber viel weniger. Der mögliche Wörterpool pro Wort wäre also sehr klein.` | `Wir könnten stattdessen fünf zufällige Wörter mit zwei bis drei Buchstaben verwenden. Davon gibt es aber deutlich weniger, der mögliche Pool pro Wort wäre also sehr klein.` | Mechanismuserklärung | ausdrücklich verlangte Straffung | begrenzt | `Weiter` | keine |
+| `S05.freeSearch.lengthExamples.sufficientPools` | Nutzerauftrag vom 2026-08-17 | `Wenn wir mehrere zufällig gewählte und trotzdem merkbare Bestandteile wie Wörter verwenden wollen, brauchen sie jeweils einen ausreichend großen Pool. Und dafür brauchen sie Platz.` | `Für mehrere zufällige und trotzdem merkbare Bestandteile brauchen wir jeweils einen ausreichend großen Pool. Und dafür brauchen sie Platz.` | Kerngedanke | ausdrücklich verlangte Straffung | begrenzt | `Weiter` | keine |
+| `S05.freeSearch.lengthExamples.lengthTakeaway` | Nutzerauftrag vom 2026-08-17 | `So wird ein Passwort schnell länger als 15 Zeichen, wenn wir es einem Angreifer wirklich schwer machen wollen.` | `So wird ein Passwort schnell länger als 15 Zeichen, wenn wir es dem Angreifer wirklich schwer machen wollen.` | Kerngedanke | ausdrücklich vorgegebener Bezug | begrenzt | `Weiter` | keine |
+| `S05.freeSearch.lengthExamples.secondReasonTransition` | Nutzerauftrag vom 2026-08-17 | `Nun zur zweiten Sache.` | wortgleich | Orientierung | ausdrücklich bestätigt | nein | `Weiter` | keine |
+
+### Darstellungspräzisierung S05 Wortpaket-Fokus und Messlinien, 17. August 2026
+
+Quelle ist der ausdrückliche Nutzerauftrag vom 17. August 2026. Die Stellenlinien unter
+`Datensicherheit` und den fünf kurzen Wortbausteinen rücken leicht nach unten. Hover- und
+Fokusinformationen erhöhen während ihrer Anzeige die Stacking-Reihenfolge ihres Pakets
+beziehungsweise ihrer Kugel und stehen dadurch vor den übrigen Szenenelementen.
+
+Während des Sprechschritts `s05-length-full-word-attack` wird das große Sprachpaket bis zum
+Fortschritt mit derselben weißen pulsierenden Umrandung wie die bestehende Variantenmaschine
+markiert. Reduced Motion zeigt stattdessen den statischen weißen Rand. In der Sprechblase wird
+`Wörterpaket Pool` akzentuiert. Im Sprechschritt `s05-length-takeaway` bilden
+`schnell länger als 15 Zeichen` und `schwer machen` eine ausdrücklich freigegebene gemeinsame
+Akzentgruppe. Wortlaut, Content-Version, Analyse, Persistenz, Export und Timing bleiben
+unverändert.
+
+## Copy- und Darstellungsdelta S05 mehrsprachiger Wortpool, 17. August 2026
+
+Quelle ist der ausdrückliche Nutzerauftrag vom 17. August 2026. Nach `Nun zur zweiten Sache.`
+folgen fünf eigene Sprechschritte vor der bestehenden Campusgram-Auswertung. Zunächst ersetzt die
+authored Folge `Datensicherheit`, `Lobotomie`, `Zugspitze`, `Unbefugt` das Einzelwortbeispiel;
+darüber steht `4 Wörter`. Die bisherige grüne Kugel wächst beim Szenenwechsel aus ihrer kleinen
+Ausgangsgröße auf die authored Anzeige `1,3 Jahre`.
+
+Danach ergänzen sich über dem weiterhin unteren deutschen Paket drei gleich große Glasbausteine
+`Sprachpaket 🇪🇸`, `Sprachpaket 🇫🇷` und `Sprachpaket 🇯🇵` mit gestaffelter Animation. Der deutsche
+Baustein heißt nun bereits im ersten Abschnitt `Sprachpaket 🇩🇪`; die frühere Überschrift
+`Alle Wörterlängen` entfällt. Jedes der vier Pakete behält ein verkleinertes, per Tastatur
+erreichbares Zahnrad. Anschließend wechseln die unteren Bausteine zu `Datensicherheit`,
+`Oscuridad`, `Yutori`, `Somnolent`; im letzten Schritt wächst die Kugel weiter auf `332 Jahre`.
+
+Die Zeit- und Kombinationswerte sind feste Demonstrationsdaten für vier unabhängige Ziehungen aus
+80.000 beziehungsweise 320.000 Möglichkeiten pro Wort bei einer Billion Versuchen pro Sekunde.
+Sie werden nicht aus Teilnehmerdaten berechnet. Analyse, Persistenz, Export und Timing bleiben
+unverändert. `S05_CONTENT_VERSION` wird von `2.90.0` auf `2.91.0` erhöht.
+
+| Segment und Text-ID | Quelle | Aktueller Text | Geplanter Text | Primäre Rolle | Grund | Bedeutungsänderung | Interaktionsziel | Hervorhebung |
+|---|---|---|---|---|---|---|---|---|
+| `S05.freeSearch.lengthExamples.secondLengthReason.germanWordsIntroduction` | Nutzerauftrag vom 2026-08-17 | nicht vorhanden | `Statt eines Wortes nehmen wir drei weitere zufällige Wörter aus demselben deutschen Wörterpool.` | Mechanismuserklärung | Übergang von einer zu vier unabhängigen Wortziehungen erklären | ja | `Weiter` | keine |
+| `S05.freeSearch.lengthExamples.secondLengthReason.germanEffort` | Nutzerauftrag vom 2026-08-17 | nicht vorhanden | `Er braucht dann maximal ca. 1,3 Jahre. Vielleicht können wir den Aufwand mit einem größeren Wörterpool erhöhen.` | Ergebnisfeedback und Orientierung | sichtbaren authored Aufwand benennen und den nächsten Poolvergleich eröffnen | ja | `Weiter` | keine |
+| `S05.freeSearch.lengthExamples.secondLengthReason.languagePoolIntroduction` | Nutzerauftrag vom 2026-08-17 | nicht vorhanden | `Dafür legen wir deutsche, spanische, französische und japanische Wörter zusammen.` | Mechanismuserklärung | animierten Sprachpaket-Stapel erläutern | ja | `Weiter` | keine |
+| `S05.freeSearch.lengthExamples.secondLengthReason.multilingualSelection` | Nutzerauftrag vom 2026-08-17 | nicht vorhanden | `Jedes Wort kann nun zufällig aus diesem gemeinsamen Pool stammen.` | Mechanismuserklärung | zufällige Ziehung aus dem gemeinsamen Pool benennen | ja | `Weiter` | keine |
+| `S05.freeSearch.lengthExamples.secondLengthReason.multilingualEffort` | Nutzerauftrag vom 2026-08-17 | nicht vorhanden | `Der Wörterpool ist damit etwa viermal so groß.` | Ergebnisfeedback | sichtbaren Poolvergleich begrenzen | ja | `Weiter` | keine |

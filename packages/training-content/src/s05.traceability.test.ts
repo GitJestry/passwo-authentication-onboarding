@@ -4,7 +4,7 @@ import { S05_CONTENT_VERSION, s05Content } from './s05.js';
 
 describe('S05 content traceability', () => {
   it('keeps the participant copy bounded and separate from internal terminology', () => {
-    expect(S05_CONTENT_VERSION).toBe('2.87.0');
+    expect(S05_CONTENT_VERSION).toBe('2.91.0');
     expect(s05Content.source).toMatchObject({
       document: 'research/private/training-script.pdf',
       internalPages: [
@@ -286,21 +286,101 @@ describe('S05 content traceability', () => {
     );
     expect(s05Content.freeSearch.lengthExamples).toMatchObject({
       mixedCharacterComparison:
-        'Die gelbe Kugel zeigt, warum zwölf Zeichen aus mehreren Zeichentypen bei wirklich zufälliger Auswahl so vielversprechend sind.',
+        'Die gelbe Kugel zeigt, warum zwölf Zeichen aus mehreren Zeichentypen bei wirklich zufälliger Auswahl wie k7#M!9p$2Lq& vom Aufwand so vielversprechend sind.',
       orientation:
         'Bei selbstgewählten Passwörtern lässt sich diese Zufälligkeit jedoch nicht voraussetzen. Deshalb liegt die aktuelle Orientierung bei mindestens 15 Zeichen.',
-      wordCore: { password: 'Datensicherheit!', parts: ['Datensicherheit', '!'], length: 16 },
-      extraCharacters: {
-        password: 'Datensicherheit-?KmL',
-        parts: ['Datensicherheit', '-?KmL'],
-        length: 20,
+      reasonsIntroduction:
+        'Es gibt noch zwei weitere Gründe, warum Länge so wichtig ist.',
+      memorability:
+        'Selbstgewählte Passwörter wie Datensicherheit sind merkbar und erreichen 15 Zeichen, bestehen aber nur aus einem Wort.',
+      fullWordAttack:
+        'Der Angreifer muss dafür nur dieses Wort aus einem deutschen Wörterpaket Pool prüfen.',
+      shortWordComparison:
+        'Wir könnten stattdessen fünf zufällige Wörter mit zwei bis drei Buchstaben verwenden. Davon gibt es aber deutlich weniger, der mögliche Pool pro Wort wäre also sehr klein.',
+      sufficientPools:
+        'Für mehrere zufällige und trotzdem merkbare Bestandteile brauchen wir jeweils einen ausreichend großen Pool. Und dafür brauchen sie Platz.',
+      lengthTakeaway:
+        'So wird ein Passwort schnell länger als 15 Zeichen, wenn wir es dem Angreifer wirklich schwer machen wollen.',
+      secondReasonTransition: 'Nun zur zweiten Sache.',
+      wordPoolDemonstration: {
+        minimumLengthLabel: 'Mindestlänge',
+        longWord: {
+          password: 'Datensicherheit',
+          parts: ['Datensicherheit'],
+          length: 15,
+          passwordLabel: '1 Wort',
+          durationLabel: '80 Nanosekunden',
+          packageCaption: '',
+          packageLabel: 'Sprachpaket 🇩🇪',
+          poolSize: 80_000,
+          modelInformation: {
+            passwordParts: '1 Wort',
+            pool: '80.000 Wörter',
+            combinations: '80.000',
+            attemptsPerSecond: '1 Billion',
+          },
+          packageTooltip:
+            'Für diese vereinfachte Rechnung nehmen wir an, dass ein Sprachpaket etwa 80.000 Wörter enthält, die sich sinnvoll als merkbare Passwortwörter verwenden lassen. Der deutsche Duden enthält beispielsweise rund 151.000 Stichwörter, von denen wir hier nur einen Teil berücksichtigen.',
+        },
+        shortWords: {
+          password: 'HatBinKuhIchTee',
+          parts: ['Hat', 'Bin', 'Kuh', 'Ich', 'Tee'],
+          length: 15,
+          passwordLabel: '5 Wörter',
+          durationLabel: '5,25 Sekunden',
+          packageCaption: '2-3 Buchstabenwörter',
+          packageLabel: 'nur 350 🇩🇪 Wörter',
+          poolSizePerWord: 350,
+          wordCount: 5,
+          modelInformation: {
+            passwordParts: '5 Wörter',
+            pool: 'je nur 350 Wörter',
+            combinations: '5.252.187.500.000',
+            attemptsPerSecond: '1 Billion',
+          },
+        },
       },
-      wordExamplesIntroduction:
-        'Kommen wir kurz noch einmal auf Wörter zurück. Diese beiden Passwörter erfüllen die Mindestlänge, bestehen aber jeweils nur aus einem häufigen Wort und ein paar zusätzlichen Zeichen. Dadurch werden sie zu früh geprüften Variationen.',
-      additionalWordQuestion:
-        'Mit mehreren Wörtern erreicht man die Mindestlänge schnell. Aber reicht es, einfach ein weiteres Wort hinzuzunehmen?',
-      practicalOutlook:
-        'Dafür gibt es eine einfache Methode, mit der sich lange und trotzdem gut merkbare Passwörter aus Wörtern bilden lassen. Die probieren wir später selbst aus.',
+      secondLengthReason: {
+        germanWordsIntroduction:
+          'Statt eines Wortes nehmen wir drei weitere zufällige Wörter aus demselben deutschen Wörterpool.',
+        germanEffort:
+          'Er braucht dann maximal ca. 1,3 Jahre. Vielleicht können wir den Aufwand mit einem größeren Wörterpool erhöhen.',
+        languagePoolIntroduction:
+          'Dafür legen wir deutsche, spanische, französische und japanische Wörter zusammen.',
+        multilingualSelection:
+          'Jedes Wort kann nun zufällig aus diesem gemeinsamen Pool stammen.',
+        multilingualEffort: 'Der Wörterpool ist damit etwa viermal so groß.',
+        germanWords: {
+          password: 'DatensicherheitLobotomieZugspitzeUnbefugt',
+          parts: ['Datensicherheit', 'Lobotomie', 'Zugspitze', 'Unbefugt'],
+          passwordLabel: '4 Wörter',
+          durationLabel: '1,3 Jahre',
+          modelInformation: {
+            passwordParts: '4 Wörter',
+            pool: 'je 80.000 Wörter',
+            combinations: '40.960.000.000.000.000.000',
+            attemptsPerSecond: '1 Billion',
+          },
+        },
+        multilingualWords: {
+          password: 'DatensicherheitOscuridadYutoriSomnolent',
+          parts: ['Datensicherheit', 'Oscuridad', 'Yutori', 'Somnolent'],
+          passwordLabel: '4 Wörter',
+          durationLabel: '332 Jahre',
+          modelInformation: {
+            passwordParts: '4 Wörter',
+            pool: 'je 320.000 Wörter',
+            combinations: '10.485.760.000.000.000.000.000',
+            attemptsPerSecond: '1 Billion',
+          },
+        },
+        languagePackages: [
+          { id: 'de', label: 'Sprachpaket 🇩🇪' },
+          { id: 'es', label: 'Sprachpaket 🇪🇸' },
+          { id: 'fr', label: 'Sprachpaket 🇫🇷' },
+          { id: 'ja', label: 'Sprachpaket 🇯🇵' },
+        ],
+      },
     });
     expect(s05Content.freeSearch.application).toMatchObject({
       assessmentIntroduction:
@@ -349,12 +429,30 @@ describe('S05 content traceability', () => {
     const orientationStepIndex = s05Content.animations.findIndex(
       ([id]) => id === 's05-length-orientation',
     );
-    const campusgramTransitionStepIndex = s05Content.animations.findIndex(
-      ([id]) => id === 's05-length-campusgram-transition',
+    const reasonsStepIndex = s05Content.animations.findIndex(
+      ([id]) => id === 's05-length-reasons-intro',
     );
     expect(comparisonStepIndex).toBeGreaterThan(-1);
     expect(orientationStepIndex).toBe(comparisonStepIndex + 1);
-    expect(campusgramTransitionStepIndex).toBe(orientationStepIndex + 1);
+    expect(reasonsStepIndex).toBe(orientationStepIndex + 1);
+    expect(
+      s05Content.animations
+        .slice(reasonsStepIndex, reasonsStepIndex + 12)
+        .map(([id]) => id),
+    ).toEqual([
+      's05-length-reasons-intro',
+      's05-length-memorability',
+      's05-length-full-word-attack',
+      's05-length-short-word-comparison',
+      's05-length-sufficient-pools',
+      's05-length-takeaway',
+      's05-length-second-reason-transition',
+      's05-length-four-german-words',
+      's05-length-four-german-effort',
+      's05-length-language-pool-stack',
+      's05-length-multilingual-words',
+      's05-length-multilingual-effort',
+    ]);
     expect(
       s05Content.animations
         .map(([id]) => id)
@@ -371,6 +469,9 @@ describe('S05 content traceability', () => {
         's05-length-word-core',
         's05-length-additional-word-question',
         's05-length-practical-outlook',
+        's05-length-campusgram-transition',
+        's05-length-word-pool-model',
+        's05-length-large-word-pool',
       ]),
     );
     expect(s05Content.freeSearch.theoreticalModel.lowercaseMeasurements).toContainEqual({
