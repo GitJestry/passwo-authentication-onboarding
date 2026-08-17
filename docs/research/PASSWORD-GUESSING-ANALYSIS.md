@@ -29,6 +29,11 @@ Sequenz für sein eigenes Guessability-Modell. Diese Sequenz ist keine erschöpf
 belegten Teilstrings. PassWo nutzt zxcvbn deshalb ausschließlich als lokale Musterquelle und
 übernimmt weder Score noch Guess-Zahl oder Crack-Zeit.
 
+Für zxcvbn-`repeat`-Matches bleiben die von der Engine bereits bestimmten flüchtigen Metadaten
+`baseToken` und `repeatCount` am lokalen Guess-Path erhalten. Sie verändern weder Evidenzspan noch
+Bewertung: Ein Core-Befund für `????` bleibt ein Span über `????`; erst die S05-Darstellung kann
+daraus vier Vorkommen von `?` projizieren. Die Metadaten werden nicht persistiert oder exportiert.
+
 Für Passphrasen ist die Erzeugungsmethode entscheidend. Die S07/S08-Passphrase beruht auf einer
 bekannten versionierten zufälligen Wortauswahl. S05 kann aus der bloßen Sichtbarkeit mehrerer
 gewöhnlicher Wörter nicht dieselbe Zufallsannahme ableiten. Die S05-Regel verwendet deshalb keine
@@ -64,7 +69,7 @@ noch als Forschungsvariable gespeichert.
 
 | Bestandteil | Wert |
 |---|---|
-| Analyse-ID | `passwo-bounded-whole-recognition-v13` |
+| Analyse-ID | `passwo-bounded-whole-recognition-v14` |
 | Engine | `zxcvbn-ts` als Musterquelle |
 | Core | `@zxcvbn-ts/core@4.1.2` |
 | Allgemeines Wörterbuch/Graphen | `@zxcvbn-ts/language-common@4.1.2` |
@@ -132,6 +137,11 @@ Unbekannte Bereiche bleiben möglich und löschen angrenzende Befunde nicht. Die
 keine beliebigen inneren Teilstrings erzeugen. Bei `Klarissa` werden deshalb nicht frei `Klar` und
 `larissa` herausgeschnitten. Bei `KlarissaBVBTestPasswort` können dagegen die sichtbaren Grenzen
 `Klarissa | BVB | Test | Passwort` genutzt werden.
+
+Ein Passwortlistenanker, der nur an einer Seite auf einer unterstützten Grenze liegt, darf keine
+weitere sichtbare Grenze innerhalb seines Spans überqueren. Damit bleibt eine kurze freie
+Erweiterung an einem Rand möglich, ein inneres Kollisionsfragment wie `tRot` über der sichtbaren
+Grenze `Ist|Rot` wird aber nicht als eigener Passwortlistenbestandteil übernommen.
 
 Ein Namensfund muss den vollständigen sichtbaren Abschnitt abdecken. Ein partieller Namensfund wie
 `ZumMo` in `ZumMond` oder `larissa` in `Klarissa` wird verworfen, sofern er nicht als flüchtiger

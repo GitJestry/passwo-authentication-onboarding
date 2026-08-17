@@ -157,7 +157,7 @@ Seitenangaben beziehen sich auf die im Trainingsdokument ausgewiesene interne Pa
   Zeichen, begrenzen den Vergleich auf nicht leicht vorhersehbare Ergänzungen und kündigen die
   spätere Passphrasenpraxis an. Erst dann folgt die bestehende lokale Campusgram-Auswertung.
 - Die S05-Simulationsdisposition (`S05_CONTENT_VERSION 2.98.0`, Analysekonfiguration
-  `passwo-bounded-whole-recognition-v13`) bleibt auf den vollständigen fiktiven Wert begrenzt:
+  `passwo-bounded-whole-recognition-v14`) bleibt auf den vollständigen fiktiven Wert begrenzt:
   `whole-password-recognized` entsteht durch einen direkten Vollwert oder eine dokumentierte
   begrenzte Kandidatenfamilie aus kanonischen Ankern und positionsunabhängigen Restzeichen oder
   durch einen flüchtigen, von der teilnehmenden Person bestätigten semantischen Kandidatenweg.

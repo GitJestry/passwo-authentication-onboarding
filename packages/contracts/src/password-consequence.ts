@@ -52,6 +52,9 @@ export interface PasswordGuessPathMatch {
   readonly start: number;
   readonly end: number;
   readonly sourceId: string | null;
+  /** Transient repeat metadata retained only for local explanatory projection. */
+  readonly baseToken?: string;
+  readonly repeatCount?: number;
 }
 
 export interface PasswordGuessPathAnalysis {

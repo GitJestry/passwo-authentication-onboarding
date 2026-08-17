@@ -594,6 +594,62 @@ describe('local fictional password analysis', () => {
     expect(tokens).not.toContain('lieb');
   });
 
+  it('does not keep a one-sided password-list fragment across a visible CamelCase boundary', () => {
+    const result = analyzeFictionalPassword({ fictionalPassword: 'IchBinEisSieIstRot' });
+    const dictionaryTokens = result.findings.flatMap((finding) =>
+      finding.kind === 'common-password-core' || finding.kind === 'common-word'
+        ? finding.evidence.flatMap((evidence) =>
+            evidence.type === 'span' ? [evidence.token.toLocaleLowerCase('de-DE')] : [],
+          )
+        : [],
+    );
+
+    expect(dictionaryTokens).toEqual(
+      expect.arrayContaining(['ichbin', 'eis', 'sie', 'ist', 'rot']),
+    );
+    expect(dictionaryTokens).not.toContain('trot');
+  });
+
+  it('retains repeat unit metadata without splitting the repeated-component evidence', () => {
+    const result = analyzeFictionalPassword({ fictionalPassword: '????' });
+
+    expect(result.findings).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          kind: 'repeated-component',
+          evidence: [{ type: 'span', start: 0, end: 4, token: '????' }],
+        }),
+      ]),
+    );
+    expect(result.guessPath.matches).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          pattern: 'repeat',
+          start: 0,
+          end: 4,
+          baseToken: '?',
+          repeatCount: 4,
+        }),
+      ]),
+    );
+  });
+
+  it('retains the recognized repeat base instead of minimizing it again downstream', () => {
+    const result = analyzeFictionalPassword({ fictionalPassword: 'KaffeeKaffeeKaffee' });
+
+    expect(result.guessPath.matches).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          pattern: 'repeat',
+          start: 0,
+          end: 18,
+          baseToken: 'Kaffee',
+          repeatCount: 3,
+        }),
+      ]),
+    );
+  });
+
   it.each([
     ['Passwort123!', [], ['common-password-core']],
     ['Campusgram2026', ['Campusgram'], ['account-or-service-term']],
@@ -611,7 +667,7 @@ describe('local fictional password analysis', () => {
       expect(expectedKinds.some((expectedKind) => actualKinds.includes(expectedKind))).toBe(true);
       expect(result.guessPath).toMatchObject({
         engineId: 'zxcvbn-ts',
-        configurationVersion: 'passwo-bounded-whole-recognition-v13',
+        configurationVersion: 'passwo-bounded-whole-recognition-v14',
       });
       for (const finding of result.findings) {
         expect(finding.id).toMatch(/^single:/u);
@@ -637,7 +693,7 @@ describe('local fictional password analysis', () => {
     expect(disposition).toEqual({
       kind: 'no-whole-password-recognized',
       lengthOrientation: 'at-least-15',
-      analysisVersion: 'passwo-bounded-whole-recognition-v13',
+      analysisVersion: 'passwo-bounded-whole-recognition-v14',
       explanationId: 's05.disposition.no-whole-password-recognized',
     });
   });
@@ -664,7 +720,7 @@ describe('local fictional password analysis', () => {
 
       expect(disposition).toMatchObject({
         kind: 'whole-password-recognized',
-        analysisVersion: 'passwo-bounded-whole-recognition-v13',
+        analysisVersion: 'passwo-bounded-whole-recognition-v14',
       });
     },
   );

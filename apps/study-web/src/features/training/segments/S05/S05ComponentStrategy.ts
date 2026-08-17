@@ -546,6 +546,49 @@ function attachTypicalChanges(
   });
 }
 
+function projectGuessPathRepetitionGroups(
+  password: string,
+  analysis: PasswordAnalysisResult,
+): readonly S05RepetitionGroup[] {
+  return analysis.guessPath.matches.flatMap((match, index) => {
+    if (match.pattern !== 'repeat') return [];
+
+    const baseToken = match.baseToken;
+    const repeatCount = match.repeatCount;
+    const hasMatchingCoreFinding = analysis.findings.some(
+      (finding) =>
+        finding.kind === 'repeated-component' &&
+        evidenceSpans(finding).some(
+          (span) => span.start === match.start && span.end === match.end,
+        ),
+    );
+    if (
+      !hasMatchingCoreFinding ||
+      baseToken === undefined ||
+      repeatCount === undefined ||
+      baseToken.length === 0 ||
+      !Number.isInteger(repeatCount) ||
+      repeatCount < 2 ||
+      match.start < 0 ||
+      match.end > password.length ||
+      match.end - match.start !== baseToken.length * repeatCount ||
+      password.slice(match.start, match.end) !== baseToken.repeat(repeatCount)
+    ) {
+      return [];
+    }
+
+    return [
+      {
+        id: `guess-repeat:${match.start}-${match.end}:${index}`,
+        spans: Array.from({ length: repeatCount }, (_, repetitionIndex) => {
+          const start = match.start + repetitionIndex * baseToken.length;
+          return { start, end: start + baseToken.length };
+        }),
+      },
+    ];
+  });
+}
+
 export function createCanonicalPasswordView(
   password: string,
   analysis: PasswordAnalysisResult,
@@ -581,13 +624,16 @@ export function createCanonicalPasswordView(
   const typicalSuffixSpans = canonicalFindingsWithSpans
     .filter(({ finding }) => finding.kind === 'typical-suffix')
     .map(({ span }) => span);
-  const repetitionGroups = analysis.findings.flatMap((finding) => {
-    if (finding.kind !== 'repeated-component') return [];
-    const spans = evidenceSpans(finding)
-      .map(({ start, end }) => ({ start, end }))
-      .sort((left, right) => left.start - right.start || left.end - right.end);
-    return spans.length < 2 ? [] : [{ id: finding.id, spans }];
-  });
+  const repetitionGroups = [
+    ...analysis.findings.flatMap((finding) => {
+      if (finding.kind !== 'repeated-component') return [];
+      const spans = evidenceSpans(finding)
+        .map(({ start, end }) => ({ start, end }))
+        .sort((left, right) => left.start - right.start || left.end - right.end);
+      return spans.length < 2 ? [] : [{ id: finding.id, spans }];
+    }),
+    ...projectGuessPathRepetitionGroups(password, analysis),
+  ];
   const typicalChanges = canonicalFindingsWithSpans.flatMap<S05TypicalChange>(
     ({ finding, span }) => {
       if (finding.kind === 'typical-transformation') {

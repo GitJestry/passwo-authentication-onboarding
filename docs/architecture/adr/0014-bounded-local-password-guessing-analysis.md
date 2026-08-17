@@ -2,7 +2,7 @@
 
 - **Status:** Accepted
 - **Datum:** 2026-08-03
-- **Geändert am:** 2026-08-17: robuste Kurzwort-/Tastaturgrenzen und flüchtige semantische Kandidatenwege
+- **Geändert am:** 2026-08-17: robuste Kurzwort-/Tastaturgrenzen, flüchtige semantische Kandidatenwege und Repeat-/Boundary-Korrektur
 - **Citation label:** `ADR 0014-Bounded-Password-Guessing`
 - **Ergänzt:** ADR 0002, ADR 0003 und ADR 0007
 
@@ -36,7 +36,7 @@ NIST-Konformitätsimplementierung.
 ## Entscheidung
 
 `@passwo/password-analysis` bleibt vollständig lokal, deterministisch und frameworkfrei. Die
-Analysekonfiguration erhält die Version `passwo-bounded-whole-recognition-v13`.
+Analysekonfiguration erhält die Version `passwo-bounded-whole-recognition-v14`.
 
 Die interne Verarbeitung trennt drei Ebenen:
 
@@ -67,6 +67,11 @@ PassWo übernimmt weder zxcvbn-Score noch `guesses`, `guessesLog10`, Crack-Zeite
 abgeleitete Schwelle. zxcvbn darf intern seine optimierte Sequenz bestimmen; PassWo ergänzt
 unabhängig belegte Wörterbuchspans, wenn sie an einer sichtbaren Schreibgrenze liegen.
 
+Bei zxcvbn-`repeat`-Matches bleiben die bereits von der Engine ermittelte Basiseinheit und
+Wiederholungsanzahl ausschließlich als flüchtige Guess-Path-Metadaten erhalten. Der fachliche
+`repeated-component`-Befund behält seinen vollständigen Evidenzspan; erst die S05-Projektion darf
+daraus einzelne visuelle Vorkommen bilden. Es entsteht keine zweite Wiederholungserkennung.
+
 ### Stabile Wortgrenzen
 
 Alphabetische Läufe werden zusätzlich an folgenden sichtbaren Grenzen betrachtet:
@@ -79,6 +84,11 @@ Dadurch kann `KlarissaBVBTestPasswort` als `Klarissa | BVB | Test | Passwort` be
 ohne freie innere Treffer wie `K|larissa` oder `Klar|issa` zu erfinden. Ein unbekannter Abschnitt
 löscht angrenzende belegte Wörter nicht. Vollständige kleingeschriebene Läufe dürfen weiterhin
 lückenlos aus den eingefrorenen Wörterbüchern zerlegt werden.
+
+Ein Passwortlistenanker, der nur an einer Seite auf einer unterstützten Grenze liegt, darf keine
+weitere sichtbare Grenze innerhalb seines Spans überqueren. Dadurch bleibt eine kurze freie
+Erweiterung an einem Rand möglich, während ein Kollisionsfragment wie `tRot` über `Ist|Rot` nicht
+als eigener Passwortlistenbestandteil übernommen wird.
 
 Die vollständige Zerlegung wird je Lauf getrennt für Deutsch und Englisch berechnet. Wörter aus
 beiden Sprachen werden nicht frei zu einer künstlichen Mischpartition kombiniert. Kurze

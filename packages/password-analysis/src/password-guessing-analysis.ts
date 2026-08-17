@@ -19,7 +19,7 @@ import {
   originalSpanForNormalizedRange,
 } from './case-insensitive-spans.js';
 
-export const PASSWORD_ANALYSIS_CONFIGURATION_VERSION = 'passwo-bounded-whole-recognition-v13';
+export const PASSWORD_ANALYSIS_CONFIGURATION_VERSION = 'passwo-bounded-whole-recognition-v14';
 
 export interface FictionalPasswordAnalysisInput {
   readonly fictionalPassword: string;
@@ -147,11 +147,21 @@ function matchSourceId(match: ZxcvbnMatch): string | null {
 }
 
 function projectGuessPathMatch(match: ZxcvbnMatch): PasswordGuessPathMatch {
+  const repeatMetadata =
+    match.pattern === 'repeat' &&
+    typeof match.baseToken === 'string' &&
+    match.baseToken.length > 0 &&
+    Number.isInteger(match.repeatCount) &&
+    match.repeatCount >= 2 &&
+    match.baseToken.repeat(match.repeatCount) === match.token
+      ? { baseToken: match.baseToken, repeatCount: match.repeatCount }
+      : {};
   return {
     pattern: matchPattern(match),
     start: match.i,
     end: match.j + 1,
     sourceId: matchSourceId(match),
+    ...repeatMetadata,
   };
 }
 
@@ -475,10 +485,27 @@ function dictionarySpanHasSupportedBoundary(
   if (kind === 'common-name') return false;
 
   // Password-list cores remain useful anchors when a short free variation is appended or
-  // prepended. Ordinary words and names need an authored spelling boundary on their open side;
-  // this rejects accidental inner fragments such as `Klar`/`larissa` in `Klarissa`.
-  if (kind === 'common-password-core') return startsAtBoundary || endsAtBoundary;
+  // prepended. A one-sided anchor must not cross another visible boundary because that would
+  // turn an inner collision such as `tRot` across `Ist|Rot` into a synthetic component.
+  if (kind === 'common-password-core') {
+    const crossesSupportedBoundary = [...boundaries].some(
+      (boundary) => boundary > start && boundary < end,
+    );
+    if (crossesSupportedBoundary) return false;
+    return startsAtBoundary || endsAtBoundary;
+  }
   return (startsAtBoundary && start > 0) || (endsAtBoundary && end < run.length);
+}
+
+function dictionarySpanCrossesSupportedBoundary(
+  run: string,
+  start: number,
+  end: number,
+  additionalBoundaries: ReadonlySet<number> = new Set(),
+): boolean {
+  return [...letterRunBoundaries(run), ...additionalBoundaries].some(
+    (boundary) => boundary > start && boundary < end,
+  );
 }
 
 function containingLetterRun(
@@ -837,7 +864,15 @@ function collectDictionaryPartitionFindings(
         const atRunEdge = span.start === runStart || span.end === runEnd;
         const residualLength = run.length - (span.end - span.start);
         const boundedEdgeResidual =
-          atRunEdge && span.end - span.start >= 4 && residualLength <= 5;
+          atRunEdge &&
+          span.end - span.start >= 4 &&
+          residualLength <= 5 &&
+          !dictionarySpanCrossesSupportedBoundary(
+            run,
+            span.start - runStart,
+            span.end - runStart,
+            additionalOriginalBoundaries,
+          );
         if (!supported && !boundedEdgeResidual) continue;
         supportedGuessPathParts.push({
           start: normalizedStart,
@@ -875,7 +910,15 @@ function collectDictionaryPartitionFindings(
         const atRunEdge = originalSpan[0] === 0 || originalSpan[1] === run.length;
         const residualLength = run.length - (originalSpan[1] - originalSpan[0]);
         const boundedEdgeResidual =
-          atRunEdge && originalSpan[1] - originalSpan[0] >= 4 && residualLength <= 5;
+          atRunEdge &&
+          originalSpan[1] - originalSpan[0] >= 4 &&
+          residualLength <= 5 &&
+          !dictionarySpanCrossesSupportedBoundary(
+            run,
+            originalSpan[0],
+            originalSpan[1],
+            additionalOriginalBoundaries,
+          );
         if (!supported && !boundedEdgeResidual) continue;
         acceptPartition([candidate]);
       }
