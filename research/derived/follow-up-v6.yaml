@@ -3,8 +3,10 @@ language: de-DE
 status: pre-pilot-candidate
 runtimeBoundary:
   bundledWithMainStudyClient: false
-  importedIntoMainResearchRuntime: false
-  delivery: separate tokenized follow-up questionnaire
+  hostedByStudyWebDeployment: true
+  responseHandledByStudyApi: true
+  manualResponseImport: false
+  delivery: separate tokenized route in the same study web deployment
 schedule:
   firstInvitationDelayHours: 240
   reminderDelayAfterFirstInvitationHours: 48
@@ -152,6 +154,7 @@ analysis:
 privacy:
   emailStoredSeparatelyFromResearchData: true
   emailPurpose: invitation and at most one reminder for the voluntary follow-up
-  deletionRule: immediately after the follow-up phase and the last intended send
-  automaticDeletionImplemented: false
-  openTechnicalReason: The current local export-and-manual-send workflow does not reliably record the last successful send or closure completion.
+  deletionRule: controlled deletion no later than seven calendar days after the last follow-up window closes
+  sendingModel: controlled manual send through the university account
+  delayedDebriefEmail: false
+  responseImportRequired: false

@@ -1,16 +1,16 @@
 # PassWo Authentication Onboarding
 
-Dieses pnpm-Monorepo enthält das **Supportive Authentication Onboarding** und die lokale Runtime
-für die gekoppelte Between-Subjects-Studie. Der technische Studienpfad, die visuelle
+Dieses pnpm-Monorepo enthält das **Supportive Authentication Onboarding** und die Runtime für die
+gekoppelte Between-Subjects-Studie. Der lokale technische Studienpfad, die visuelle
 Trainingsplattform, die Segmente S00 bis S07 und die pilot-versionierten Forschungsinstrumente
-sind integriert. S08 bis S17, das externe Follow-up-Formular mit Import und der Study Freeze sind
-noch offen.
+sind integriert. Für die Hauptstudie ist ein same-origin Webbetrieb mit sicherer Wiederaufnahme
+entschieden. S08 bis S17 sowie die technische Anpassung an dieses Web-Zielmodell sind noch offen.
 
 ## Aktueller Stand
 
-- **M1 – Study Runtime:** serverseitige Sitzungsanlage und verdeckte Blockzuweisung, getrennte
-  Study- und Training-Statecharts, SQLite-Persistenz erlaubter Forschungsdaten, Timing,
-  Reload-/Lease-Behandlung sowie CSV-/JSON-Export mit Manifest und Prüfsummen.
+- **M1 – lokale Study Runtime:** serverseitige Sitzungsanlage und verdeckte Blockzuweisung,
+  getrennte Study- und Training-Statecharts, SQLite-Persistenz erlaubter Forschungsdaten, Timing,
+  Legacy-Reload-/Lease-Behandlung sowie CSV-/JSON-Export mit Manifest und Prüfsummen.
 - **M2 – Visual Platform:** BrowserShell, PassWo-Adapter, Mission-/Animations-Handshake,
   Reduced Motion und der vollständige S00-Slice.
 - **Training:** S00 bis S07 bilden den integrierten Lauf. S07 verdichtet die bereits vorhandenen
@@ -19,7 +19,13 @@ noch offen.
 - **Instrumente:** Pre, unmittelbarer Post-Fragebogen, gemeinsamer Guardrail, post-guardrail
   Self-Efficacy und retrospektive SecAware-Vorerfahrung laufen als versionierte atomare Submissions.
   Die freiwillige Nachbefragung besitzt eine getrennte Recontact-Registry und einen Schedule-Export.
-- **Als Nächstes:** S08 bis S11 mit Passwortüberarbeitung und Modulabschluss.
+  `consent-v13-pilot` ist der Zieltext für den Webbetrieb und wird erst mit implementierter
+  Wiederaufnahme für Teilnehmerläufe freigegeben.
+- **Entschiedenes Web-Zielmodell:** Browser schließen oder neu laden unterbricht eine neue
+  Web-Sitzung, beendet sie aber nicht. Der letzte sichere inhaltsfreie Checkpoint wird im selben
+  Browser wiederaufgenommen; ausgewertet werden nur regulär abgeschlossene Runs.
+- **Als Nächstes:** S08 bis S17 fertigstellen, danach Webdeployment, Resume und same-origin
+  Follow-up-Route gemäß ADR 0016 umsetzen.
 
 `apps/study-desktop` verpackt die Anwendung für Apple Silicon ohne Adresszeile und startet die
 vorhandene Runtime intern. `apps/study-web` ist der einzige React-/Vite-Renderer.
@@ -47,9 +53,9 @@ pnpm dev
 ```
 
 Er baut und prüft das Referenzartefakt, erstellt Server-, Renderer- und Electron-Bundles und
-startet die Desktop-App. Ein eigenständiger Browser-Produktionsstart wird nicht unterstützt.
-Vite/Chromium bleiben ausschließlich interne E2E- und visuelle Testwerkzeuge und verwenden
-denselben Renderer-Quellcode.
+startet die lokale Desktop-App. Dieser Pfad bleibt Entwicklungs- und QA-Harness. Der produktive
+HTTPS-Webbetrieb ist in ADR 0016 entschieden, im aktuellen Repositorystand aber noch nicht
+vollständig implementiert. Vite, Chromium und Electron verwenden denselben Renderer-Quellcode.
 
 Die lokale arm64-App wird gebaut mit:
 
@@ -57,11 +63,11 @@ Die lokale arm64-App wird gebaut mit:
 pnpm desktop:package
 ```
 
-Das Ergebnis liegt unter `apps/study-desktop/out/Authentication Onboarding-darwin-arm64/`.
-Teilnehmende starten ausschließlich `Authentication Onboarding.app`. Die App benötigt weder einen
-separaten Browser noch einen zuvor gestarteten Server und verwendet weiterhin
-`~/.passwo-study/study.sqlite`. Signierung und Notarisierung sind nicht Bestandteil dieses lokalen
-Builds.
+Das Ergebnis liegt unter `apps/study-desktop/out/Authentication Onboarding-darwin-arm64/`. Die App
+ist für lokale Entwicklung, Pilotierung und QA nutzbar, benötigt keinen separat gestarteten Server
+und verwendet weiterhin `~/.passwo-study/study.sqlite`. Sie ist nicht mehr als alleiniger
+Hauptstudien-Auslieferungspfad festgelegt. Signierung und Notarisierung sind nicht Bestandteil
+dieses lokalen Builds.
 
 Die Hauptstudie verwendet standardmäßig `permuted-block`. Nur für Pretests dürfen die Bedingungen
 erzwungen werden:
@@ -78,15 +84,20 @@ pnpm dev:secaware
 
 Der Runtime-Pfad führt von Eligibility und Einwilligung über eine serverseitige Session, die
 optionale getrennte Recontact-Registrierung, die versionierten Pre-/Post-/Guardrail-Blöcke und das
-zugewiesene Artefakt zum gemeinsamen Debriefing und Abschluss. Eine E-Mail-Adresse ist keine
-Voraussetzung für die Hauptstudie. Anzeigenamen und Trainingsinputs bleiben
-ausschließlich im flüchtigen Arbeitsspeicher des Electron-Renderers. Standardmäßig liegt die
-Datenbank unter
-`~/.passwo-study/study.sqlite`; ein anderer lokaler Datenordner kann über `STUDY_DATA_DIR`
-gesetzt werden.
+zugewiesene Artefakt zum gemeinsamen Debriefing und regulären Abschluss. Eine E-Mail-Adresse ist
+keine Voraussetzung für die Hauptstudie. Anzeigenamen, fiktive Passwörter und lokale
+Trainingsbefunde bleiben ausschließlich im flüchtigen Rendererzustand.
+
+Im Zielmodell für die Hauptstudie bleibt ein Run nach Schließen oder Reload `in-progress` und wird
+im selben Browser am letzten sicheren Checkpoint fortgesetzt. Nur `completed` Runs gehen in die
+Auswertung ein. Die dafür nötige Cookie-, Checkpoint- und Timinganpassung ist noch zu
+implementieren. Im aktuellen lokalen Betrieb liegt die Datenbank standardmäßig unter
+`~/.passwo-study/study.sqlite`; `STUDY_DATA_DIR` setzt einen anderen lokalen Datenordner.
 
 Ein Export benötigt ein leeres oder neues Zielverzeichnis. `audit` ist die geschützte interne
-Nachweisfassung; nur `analysis` ist für Analyse oder Weitergabe vorgesehen:
+Nachweisfassung; `analysis` ist ein kontrollierter pseudonymisierter Arbeits- und Analyseexport.
+Keines der beiden Profile ist der langfristige anonyme Archivdatensatz oder ohne weitere Prüfung
+für öffentliche Weitergabe bestimmt:
 
 ```bash
 pnpm study:export -- --profile audit --output ./study-audit-export
@@ -96,13 +107,17 @@ pnpm study:export -- --profile analysis --database /pfad/study.sqlite --output .
 
 Ohne `--profile` bleibt `audit` der Standard. Beide Profile erzeugen Sessions, Timing und
 Antworten als CSV und JSON sowie ein Manifest mit Profil, gekoppelter Schemaprofilversion,
-Versionen, Zählungen und SHA-256-Prüfsummen. Der Analyseexport entfernt exakte Kalenderzeitpunkte. Die defensive Ausgabe
-`free-text-review` bleibt für mögliche Altbestände erhalten; das aktuelle Pilotinstrument erhebt
-keinen Freitext.
+Versionen, Zählungen und SHA-256-Prüfsummen. Der Analyseexport entfernt exakte Kalenderzeitpunkte.
+Der Analyseprozess selektiert ausschließlich regulär abgeschlossene Runs. Der spätere anonyme
+Archivdatensatz wird getrennt nach der Prozedur in `docs/research/DATA-CONTRACT.md` erzeugt. Die
+defensive Ausgabe `free-text-review` bleibt für mögliche Altbestände erhalten; das aktuelle
+Pilotinstrument erhebt keinen Freitext.
 
 Der Versand der optionalen Nachbefragung erfolgt nicht automatisch. Die Studienleitung erzeugt den
-geschützten Schedule nur bei Bedarf und versendet die neutralen Einladungen einzeln über das
-freigegebene Universitätskonto:
+geschützten Schedule nur bei Bedarf und versendet Einladung und höchstens eine Erinnerung einzeln
+über das freigegebene Universitätskonto. Der Link führt im Zielmodell zu einer tokenisierten Route
+desselben Study-Webdeployments; eine externe Plattform, ein Antwortimport und eine verzögerte
+Debrief-Mail entfallen:
 
 ```bash
 pnpm followup:export-schedule -- --output ./followup-schedule.csv --base-url https://example.invalid/follow-up
@@ -198,7 +213,7 @@ Inhaltsaufgaben geöffnet.
 
 ```bash
 git ls-files research/private
-```  x
+```
 
 Der Befehl muss ohne Ausgabe bleiben. Keine pauschalen Bereinigungsbefehle wie `git clean -X`
 verwenden, weil sie ignorierte private Quellen löschen könnten.

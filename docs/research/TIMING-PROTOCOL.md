@@ -1,55 +1,88 @@
 # Timing Protocol
 
+Status: **kanonische Zeitdefinition für neue Hauptstudien-Websitzungen.**
+Das Wiederaufnahmemodell steht in `ADR 0016-Web-Resume-Lifecycle`; das frühere
+Lease-/`incomplete-reload`-Verhalten gilt nur für lokale oder historische Sitzungen.
+
 ## Metriken
 
 ### Primär konditionsübergreifend
 
-`artifactWallClockMs = artifactEnd - artifactStart`
+`artifactSessionElapsedMs = Summe aller bestätigten Artefakt-Sitzungsintervalle`
 
-Diese Dauer umfasst die gesamte Zeit vom Start des zugewiesenen Artefakts bis zum definierten
-Abschluss. Sie wird für beide Bedingungen gleich interpretiert.
+Ein Sitzungsintervall misst die verstrichene Zeit innerhalb einer geöffneten Browser-Sitzung vom
+bestätigten Start bis zum bestätigten Ende oder zur technischen Unterbrechung. Ein bloßer
+Sichtbarkeitswechsel pausiert die primäre Dauer nicht; verborgene Zeit bleibt wie bisher enthalten
+und wird zusätzlich diagnostisch markiert. Nur die Offline-Zeit zwischen getrennten
+Browser-Sitzungen wird nicht mitgezählt. Die Definition gilt für beide Bedingungen gleich.
+
+Für ununterbrochene Sitzungen entspricht `artifactSessionElapsedMs` der bisherigen
+`artifactWallClockMs`. Das Web-Schemaprofil erhält dafür ein neues eindeutig benanntes Feld; das
+historische Feld wird nicht still mit einer neuen Semantik weiterverwendet.
 
 ### Diagnostisch im PassWo-Artefakt
 
-- `segmentWallClockMs` je S00–S17;
-- optional `sectionWallClockMs` für Passwort, Passwortmanager und MFA;
-- Sichtbarkeitsereignisse und technische Unterbrechungen.
+- `segmentSessionElapsedMs` je S00–S17;
+- optional entsprechende Abschnittsdauer für Passwort, Passwortmanager und MFA;
+- Sichtbarkeitsereignisse;
+- Anzahl und Dauer technischer Unterbrechungen.
 
 Segmentzeiten werden nicht gegen SecAware-Segmentzeiten getestet, weil dessen interne Struktur
 nicht gleich instrumentierbar ist.
 
-## Uhren
+## Uhren und Intervalle
 
-- Clientdauer: `performance.now()` als monotone Uhr.
-- Audit: ISO-Wall-Clock des Clients plus Empfangszeit des Servers.
-- Systemuhränderungen beeinflussen die primäre Dauer nicht.
+- Innerhalb einer geöffneten Browser-Sitzung misst `performance.now()` die monotone verstrichene
+  Dauer.
+- Der Server bestätigt Start und Ende jedes Sitzungsintervalls idempotent.
+- Auditzeitpunkte dienen der technischen Nachvollziehbarkeit und nicht der primären Dauermessung.
+- Systemuhränderungen verändern die innerhalb eines Sitzungsintervalls gemessene Dauer nicht.
+- Die Zeit zwischen zwei Browser-Sitzungen wird nicht als Bearbeitungszeit rekonstruiert.
 
 ## Ereignisse
 
 ```text
-start | pause | resume | end | visibility-hidden | visibility-visible | technical-abort
+start | pause | resume | end | visibility-hidden | visibility-visible | technical-interruption
 ```
 
 Jedes Ereignis besitzt pro Session eine streng steigende Sequenznummer. Die Datenbank verhindert
 Doppelübermittlung durch `UNIQUE(session_id, sequence)`.
 
+Ein neues Sitzungsintervall beginnt nur an einem bestätigten sicheren Checkpoint. Ein unterbrochener
+flüchtiger Trainingsschritt wird nicht zeitlich an seinen alten Clientzustand angehängt, sondern
+beginnt mit neuem Intervall erneut.
+
+## Unterbrechungen
+
+Browser-Schließen, Reload und Verbindungsverlust sind technische Unterbrechungen:
+
+- der Run bleibt `in-progress`;
+- das aktuelle Sitzungsintervall endet am letzten bestätigten Ereignis;
+- nach Wiederaufnahme beginnt ein neues Sitzungsintervall;
+- Offline-Zeit wird nicht mitgezählt;
+- die completed Sitzung erhält ein Unterbrechungsflag.
+
+Das Unterbrechungsflag wird in der Daueranalyse transparent berichtet und in einer
+Sensitivitätsprüfung berücksichtigt. Es schließt nicht pauschal PANAS-, UX-,
+design-diagnostische oder Guardrail-Outcomes eines regulär abgeschlossenen Runs aus.
+
 ## Grenzen
 
-- Timer werden durch Statechart-Transitions gestartet und beendet.
+- Timer werden ausschließlich durch Statechart-Transitions gesteuert.
 - Eine sichtbare Stoppuhr ist nicht vorgesehen.
-- Animationen und Dialoge dürfen den Timer nicht selbst steuern.
-- Im Referenzpfad läuft der Study Build same-origin in einem sandboxed iframe. Ein isolierter
-  Desktop-Viewer kann nur eingefrorene Zusatzlinks öffnen; weder iframe noch Viewer verändern die
-  globale Artefaktzeit oder erzeugen Referenz-Segmentzeiten. Das native SecAware-Quiz gehört zum
-  Referenzartefakt; erst dessen vollständiger Abschluss beendet die globale Artefaktzeit.
-- Im PassWo-Pfad werden verborgene Intervalle diagnostisch markiert, aber die primäre Wall-Clock
-  läuft weiter.
+- Animationen und Dialoge steuern den Timer nicht selbst.
+- Im Referenzpfad gehört das native SecAware-Quiz nicht zum administrierten Messpfad; der definierte
+  Referenz-Completion-Event beendet das Artefaktintervall.
+- Im PassWo-Pfad werden Sichtbarkeitswechsel und Unterbrechungen diagnostisch markiert.
+- Nur regulär `completed` Runs werden ausgewertet.
 
 ## Fehlerfälle
 
-- Fehlgeschlagenes Timing-Write blockiert den nächsten methodisch relevanten Übergang und zeigt
-  eine neutrale technische Meldung.
-- Bei Reload wird kein neuer `performance.now()`-Abschnitt an den alten Trainingszustand
-  angehängt; Sitzung wird unvollständig.
-- Negative oder unplausibel große Deltas werden beim Export als Qualitätsflag markiert, nicht
+- Ein fehlgeschlagener methodisch relevanter Timing-Write blockiert den betreffenden Übergang und
+  erlaubt denselben idempotenten Retry.
+- Negative oder unplausible Intervallwerte werden beim Export als Qualitätsflag markiert und nicht
   still korrigiert.
+- Geht der Rückkehrschlüssel verloren, wird keine Offline-Zeit geschätzt und keine alte Sitzung über
+  E-Mail oder Antworten gesucht.
+- Lokale historische Sitzungen mit `incomplete-reload` bleiben lesbar, werden aber nicht nachträglich
+  in das neue Resume-Modell umgedeutet.

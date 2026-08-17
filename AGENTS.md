@@ -7,16 +7,19 @@ aber keine lockereren Regeln ergänzen.
 
 1. Dieser Auftrag und seine Akzeptanzkriterien.
 2. Diese `AGENTS.md` und die nächstgelegene untergeordnete `AGENTS.md`.
-3. Akzeptierte ADRs unter `docs/architecture/adr/`.
-4. Relevante Fach- und Forschungsdokumente aus `docs/` und `research/derived/`.
+3. Die jüngste einschlägige akzeptierte oder ausdrücklich ersetzende ADR unter
+   `docs/architecture/adr/`. Historische Revisionen bleiben als Entscheidungsprotokoll lesbar,
+   sind aber keine parallelen aktuellen Anforderungen.
+4. Die kanonischen Fach- und Forschungsdokumente aus `docs/` und `research/derived/`.
 5. Rohquellen aus `research/private/` nur bei expliziten Inhaltsaufgaben.
 
 Wähle danach nur die zum Auftrag passenden Quellen:
 
 - Toolchain, Workspace und Build: `README.md` und ADR 0001.
-- Study Runtime, Persistenz und Export: `docs/research/STUDY-RUNTIME.md`,
-  `docs/research/DATA-CONTRACT.md`, die einschlägigen ADRs 0002–0005 sowie die beiden
-  Entscheidungen `ADR 0008-Lease` und `ADR 0008-Reference` aus dem ADR-Index.
+- Study Runtime, Wiederaufnahme, Persistenz und Export: `docs/research/STUDY-RUNTIME.md`,
+  `docs/research/DATA-CONTRACT.md`, `ADR 0016-Web-Resume-Lifecycle`, die weiterhin
+  einschlägigen ADRs 0002–0005 sowie `ADR 0008-Reference` aus dem ADR-Index.
+  `ADR 0008-Lease` beschreibt nur das historische beziehungsweise lokale Legacy-Verhalten.
 - Timing, Zuweisung oder Referenzbedingung: das gleichnamige Dokument unter `docs/research/`
   sowie ADR 0004, 0005 beziehungsweise `ADR 0008-Reference` aus dem ADR-Index.
 - BrowserShell, PassWo, Animation oder Knotennetzwerk: das einschlägige Dokument unter
@@ -40,21 +43,28 @@ Lies private Rohquellen nie pauschal.
 - Sende oder speichere niemals Anzeigenamen, fiktive Passwörter, Passwortteile,
   Ähnlichkeitsbefunde oder sonstige Trainingsentscheidungen.
 - Verwende weder `localStorage`, `sessionStorage`, IndexedDB noch Service Worker für
-  Teilnehmer- oder Trainingszustand.
-- Persistierbar sind nur: pseudonymer Sitzungscode, Bedingung, Versionen, Einwilligungsstatus,
-  Fragebogenantworten, Guardrail-Antworten, Zeitereignisse, Abschlussstatus und notwendige
-  technische Fehlercodes.
-- Logge keine Request-Bodies, IP-Adressen, User-Agents oder Eingabewerte.
+  Teilnehmer- oder Trainingszustand. Zulässig ist ausschließlich der in ADR 0016 festgelegte
+  opake, `Secure`- und `HttpOnly`-geschützte first-party Rückkehrschlüssel.
+- Persistierbar sind nur die im Data Contract benannten Datenklassen: pseudonyme Session- und
+  Forschungskennungen, Bedingung und Form, Versionen, Einwilligungsstatus, Instrumentantworten,
+  Timingereignisse, Abschlussstatus, notwendige technische Fehlercodes sowie der Hash des
+  Rückkehrschlüssels und ein stabiler inhaltsfreier Fortschritts-Checkpoint.
+- Logge keine Request-Bodies, IP-Adressen, User-Agents, Eingabewerte, Raw Tokens oder
+  tokenisierten URLs.
 - Frage nie nach realen Passwörtern, Konten, Tokens, Wiederherstellungscodes oder realen
   Sicherheitsvorfällen.
 - Formuliere keine Therapie-, Diagnose-, Behandlungs- oder Langzeitwirkungsbehauptungen.
 - Behaupte nie, ein Konto oder Passwort sei absolut „sicher“.
 
-Bei Unsicherheit stoppe die Implementierung und dokumentiere die offene Forschungsentscheidung.
+Löse dokumentierte Unschärfen anhand der jüngsten akzeptierten Entscheidung und wähle die kleinste
+kohärente Umsetzung. Erfinde keine Ethik-, Datenschutz- oder Freigabegates, keine automatische
+Löschung und keine externe Plattform, wenn ein akzeptierter manueller oder same-origin Prozess
+dokumentiert ist. Ein kontrollierter manueller Betriebsprozess ist eine gültige Lösung.
 
-Stoppe außerdem, wenn ein Auftrag:
+Stoppe nur, wenn ein Auftrag:
 
-- neue persistierte Felder verlangt;
+- eine neue Datenklasse oder persistierte Inhalte verlangt, die weder im Data Contract noch durch
+  eine akzeptierte ADR autorisiert sind;
 - die Condition clientseitig steuerbar machen würde;
 - echte Passwörter, Konten oder Sicherheitsvorfälle voraussetzt;
 - aus der Simulation eine Produktions-Passwortbewertung ableitet;
@@ -115,7 +125,8 @@ Stoppe außerdem, wenn ein Auftrag:
   Persistenz, Timing, Studienablauf, Export und lokale Trainingsdaten.
 - UI-, Layout-, Text-, Icon-, Animations- und Styling-Änderungen erhalten keine
   automatischen Tests.
-- E2E-Tests sind nur für ausdrücklich benannte Milestones oder einen Study Freeze zulässig.
+- E2E-Tests sind nur für ausdrücklich benannte Milestones oder den
+  Hauptstudien-Versions-Freeze zulässig.
 - Farbe ist nie der einzige Bedeutungsträger; Tastatur, Fokus und `prefers-reduced-motion`
   müssen berücksichtigt werden.
 
@@ -125,11 +136,14 @@ Vor Änderungen:
 
 1. Fasse Ziel, erlaubte Pfade und Akzeptanzkriterien intern zusammen.
 2. Lies nur die in der Aufgabe genannten Dokumente plus die zutreffenden Agentenregeln.
-3. Prüfe, ob ein ADR oder eine Forschungsentscheidung fehlt.
+3. Prüfe, ob eine aktuelle akzeptierte Entscheidung bereits vorliegt. Behandle frühere
+   ADR-Revisionen oder Roadmap-Platzhalter nicht als offene Gates, wenn sie später ersetzt wurden.
 
 Während der Änderung:
 
-- Halte den Diff klein und auf genau eine vertikale Aufgabe begrenzt.
+- Halte den Diff klein und auf genau eine vertikale Aufgabe begrenzt. Unterscheide dabei klar
+  zwischen akzeptiertem Zielverhalten und bereits implementiertem Stand; dokumentiere offene
+  Implementierungsarbeit, ohne die fachliche Entscheidung erneut zu öffnen.
 - Ändere keine Teilnehmertexte außerhalb des beauftragten Segments. Vor jeder Copy-Änderung
   klassifiziere die Textrolle und dokumentiere das Copy-Delta gemäß
   `docs/design/TRAINING-COPY.md`. Bestehender Wortlaut bleibt standardmäßig erhalten.

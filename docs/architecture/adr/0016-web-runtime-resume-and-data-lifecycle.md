@@ -1,0 +1,123 @@
+# ADR 0016 — Webbetrieb, Wiederaufnahme und Datenabschluss
+
+- **Status:** Accepted
+- **Datum:** 2026-08-17
+- **Citation label:** `ADR 0016-Web-Resume-Lifecycle`
+- **Ersetzt für den Hauptstudienbetrieb:** Reload-Abbruch aus `ADR 0008-Lease`, externen
+  Follow-up-Import und verzögerten Debrief-Versand aus `ADR 0011-Follow-up-Recontact`
+- **Ergänzt:** ADR 0002, ADR 0004, ADR 0012 und ADR 0013
+
+## Kontext
+
+Die Hauptstudie soll als Webanwendung betrieben werden. Ein geschlossenes Browserfenster ist dabei
+keine verlässliche Erklärung eines Teilnahmeabbruchs. Gleichzeitig dürfen fiktive Passwörter,
+Passwortteile und lokale Trainingsbefunde weiterhin weder an den Server gesendet noch persistent
+gespeichert werden.
+
+Bisherige Dokumente vermischten außerdem drei unterschiedliche Zeitpunkte: den technischen
+Versions-Freeze vor der Hauptstudie, den Schluss der Hauptdatenerhebung und die spätere
+Anonymisierung des Datensatzes. Diese Begriffe werden getrennt.
+
+## Entscheidung
+
+### 1. Hauptstudienbetrieb im Web
+
+Die produktive Hauptstudie läuft als same-origin Webanwendung über HTTPS. Web-Renderer und Study API
+verwenden weiterhin dieselben fachlichen Module. Die Electron-Hülle bleibt ein lokaler Entwicklungs-
+und QA-Pfad, ist aber nicht mehr der vorgesehene Auslieferungspfad der Hauptstudie.
+
+Eine separate Ethikkommissionsfreigabe ist für dieses Bachelorprojekt nicht als Projektgate
+vorgesehen. Das Repository darf weder eine nicht vorhandene Freigabe behaupten noch sie als
+technischen Launch-Blocker erfinden. Teilnahmeinformation, Einwilligung, Datenminimierung,
+Zugriffsschutz und die hier beschriebene Löschung bleiben verbindliche Anforderungen.
+
+### 2. Unterbrechen und Wiederaufnehmen
+
+Neue Web-Sitzungen bleiben bis zum regulären letzten Studienabschluss `in-progress`. Das Schließen
+oder Neuladen des Browsers ändert diesen Status nicht. Es gibt deshalb keinen zusätzlichen Button
+zum vorzeitigen „Beenden“, „Abbrechen“ oder „Schließen“. Die reguläre Abschlussaktion nach dem
+Debriefing bleibt bestehen.
+
+Die Wiederaufnahme verwendet einen kryptographisch zufälligen, opaken Rückkehrschlüssel:
+
+- der Browser erhält ihn ausschließlich als `Secure`, `HttpOnly`, first-party Cookie mit
+  `SameSite=Lax`;
+- das Cookie ist höchstens 30 Tage gültig und wird nach einem bestätigten Checkpoint erneuert,
+  jedoch nie über das vor Rekrutierungsbeginn festgelegte `resumeCloseAt` hinaus; dieser Zeitpunkt
+  ist zugleich der verbindliche Datenerhebungsschluss für Hauptsitzungen;
+- die Forschungsdatenbank speichert nur den Hash des Rückkehrschlüssels und dessen Ablaufzeit;
+- der Rückkehrschlüssel ist kein Forschungsfeld und wird nicht exportiert;
+- der Server speichert nur einen stabilen, inhaltsfreien Fortschritts-Checkpoint, etwa den nächsten
+  Fragebogenabschnitt oder einen freigegebenen Trainingssegment-Einstieg;
+- fiktive Passwörter, Passwortteile, Anzeigenamen, lokale Findings und andere Trainingsentscheidungen
+  bleiben flüchtig und werden auch für die Wiederaufnahme nicht gespeichert.
+
+Bei der Rückkehr im selben Browser wird der letzte serverseitig bestätigte Checkpoint geöffnet. Wenn
+der unterbrochene Einzelschritt flüchtige Trainingswerte benötigt, beginnt ausschließlich dieser
+Schritt erneut. Bereits atomar gespeicherte Fragebogenblöcke werden nicht erneut erhoben.
+
+Nach regulärem Abschluss, individueller Löschung, Ablauf oder Datensatz-Freeze werden
+Rückkehrschlüssel und Cookie ungültig. Geht der Rückkehrschlüssel vorher verloren oder wird das
+Cookie gelöscht, kann die Sitzung nicht über Kontaktdaten oder Forschungsantworten gesucht werden.
+Die Person kann neu beginnen oder mit ihrem Löschcode die Löschung der alten Sitzung verlangen.
+
+### 3. Auswertung und Timing bei Unterbrechungen
+
+Die Hauptanalyse umfasst ausschließlich regulär `completed` Sitzungen. Nicht abgeschlossene
+Sitzungen werden weder als Nullantwort noch als Studienoutcome interpretiert und beim Datensatz-
+Freeze vollständig gelöscht.
+
+Offline-Zeit zwischen Browser-Sitzungen zählt nicht zur Bearbeitungszeit. Eine wiederaufgenommene
+Sitzung erhält ein technisches Unterbrechungsflag; die auswertbare Dauer wird aus den bestätigten
+Artefakt-Sitzungsintervallen gebildet. Der unterbrochene flüchtige Trainingsschritt beginnt mit
+einem neuen Sitzungsintervall. Technische Unterbrechungen werden für die Daueranalyse transparent
+berichtet, blockieren aber nicht pauschal alle übrigen Outcomes eines vollständig abgeschlossenen
+Laufs.
+
+Der bisherige Status `incomplete-reload` und die Artefakt-Lease bleiben nur für historische lokale
+Sitzungen beziehungsweise den aktuellen Entwicklungsstand lesbar. Sie sind nicht das Zielmodell für
+neue Web-Sitzungen.
+
+### 4. Freiwillige Nachbefragung
+
+Die Nachbefragung läuft als getrennte tokenisierte Route derselben Webanwendung. Es gibt keine
+zusätzliche Umfrageplattform und keinen manuellen Antwortimport. Der individuelle Link enthält nur
+den zufälligen Roh-Token; der Server vergleicht dessen Hash und speichert den Roh-Token nicht in der
+Forschungsdatenbank.
+
+Einladung und höchstens eine Erinnerung werden kontrolliert über das Universitätskonto versendet.
+Die Anwendung muss dafür keine SMTP- oder Gmail-Zugangsdaten enthalten. Es gibt keine verzögerte
+Debrief-Mail, weil das gemeinsame Debriefing bereits am Ende der Hauptsitzung erfolgt.
+
+Das Kontaktregister, lokale Schedule-Dateien, versandte Follow-up-Nachrichten im
+projektkontrollierten Postfach und sonstige projektkontrollierte Kontaktkopien werden
+spätestens sieben Kalendertage nach Schließung des letzten Follow-up-Fensters gelöscht. Der
+Löschvorgang wird nur mit Datum, Anzahl vor der Löschung, Anzahl danach und ausführender Person
+dokumentiert; die Bestätigung enthält keine E-Mail-Adresse und keinen Token.
+
+### 5. Drei getrennte Abschlusszeitpunkte
+
+1. **Hauptstudien-Versions-Freeze:** vor Rekrutierungsbeginn; friert Code, Inhalte, Instrumente,
+   Referenzartefakt und Analyseplan ein.
+2. **Datenerhebungsschluss:** entspricht `resumeCloseAt`. Ab diesem Zeitpunkt werden weder neue
+   noch wiederaufgenommene Hauptsitzungen angenommen. Bereits eröffnete Follow-up-Fenster dürfen
+   noch abgeschlossen werden; unvollständige Hauptsitzungen können nicht mehr fortgesetzt werden.
+3. **Datensatz-Freeze mit Anonymisierung:** nach Schließung aller Follow-up-Fenster und Abschluss der
+   Datensatzprüfung; spätestens 30 Kalendertage nach dem letzten Follow-up-Fenster. Gibt es keine
+   Follow-up-Einwilligungen, läuft die Frist ab Datenerhebungsschluss.
+
+Die konkrete Anonymisierungsprozedur und die Bedeutung des anonymen Archivdatensatzes stehen
+kanonisch in `docs/research/DATA-CONTRACT.md`. Die zehnjährige Aufbewahrung beginnt mit dem dort
+dokumentierten `anonymisedAt`.
+
+## Konsequenzen
+
+- Web-Resume benötigt eine Migration für Rückkehrschlüssel-Hash, inhaltsfreien Checkpoint und
+  die eindeutig benannten Sitzungsintervall-/Unterbrechungsfelder des Web-Exports.
+- JavaScript-lesbarer Browser Storage bleibt für Teilnehmer- und Trainingszustand verboten.
+- Die bestehende lokale Runtime darf als Entwicklungsstand weiterlaufen, ist aber vor dem
+  Hauptstudien-Versions-Freeze an diese Entscheidung anzupassen.
+- `analysis`-Exporte vor dem Datensatz-Freeze bleiben pseudonymisierte Arbeitsdaten. Erst der
+  kontrolliert erzeugte und geprüfte Archivdatensatz darf als anonym bezeichnet werden.
+- Eine spätere öffentliche Weitergabe des Archivdatensatzes benötigt eine eigene kontextbezogene
+  Offenlegungsprüfung; die interne Anonymisierung ist keine pauschale Veröffentlichungsfreigabe.

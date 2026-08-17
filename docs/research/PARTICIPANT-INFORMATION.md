@@ -1,80 +1,34 @@
-# Teilnahmeinformation und Einwilligung — Pilotkandidat v11
+# Teilnahmeinformation und Einwilligung — Pilotkandidat v13
 
-Status: **verbindliche Teilnehmertextquelle für den Cognitive Pretest und den End-to-End-Pilot.**
-Die ausführbare Projektion liegt in `research/derived/instruments-v1.runtime.json`.
+Status: **Zieltextkandidat für den Web-Pilot und die Hauptstudie.** Die Fassung darf erst
+teilnehmerseitig eingesetzt werden, wenn Wiederaufnahme, `resumeCloseAt` und Datensatzabschluss
+gemäß ADR 0016 implementiert und geprüft sind. Die ausführbare Projektion liegt in
+`research/derived/instruments-v1.runtime.json`.
 
-## Copy-Delta 2026-08-06
+## Änderungsnachweis 2026-08-17
 
 - **Textrolle:** Teilnahmeinformation, Einwilligung und optionale Kontaktaufnahme.
-- **Freigabegrundlage:** bestätigte Studiendauer von etwa 30 Minuten, freiwilliges Follow-up,
-  pseudonymisierte Analysephase und anschließende Anonymisierung vor der zehnjährigen Aufbewahrung.
-- **Änderung:** Der sichtbare Einstieg wurde auf vier Kerninformationen verkürzt. Die kleine
-  Kontextzeile nennt die Bachelorarbeit an der Universität Bonn, während der Studienname als
-  Haupttitel erscheint. Die Freiwilligkeitsinformation nennt das Schließen des Browserfensters als
-  unmittelbare Abbruchmöglichkeit. Hinweise auf Bedingungen und den Vergleich bleiben aus der
-  Vorabinformation entfernt. Der offene Anonymisierungsplatzhalter und der Produktname des
-  Speicherorts entfallen. Die lokale Nicht-Speicherung fiktiver Passwörter wird ausdrücklich
-  genannt.
-- **Debriefing:** Die verzögerte Offenlegung wird knapp erklärt. Die letzten Wissensfragen werden
-  in einem kurzen Absatz aufgelöst; Aussagen zu Punktzahl, Bestehen oder Nichtbestehen entfallen.
+- **Quelle:** Entscheidung zum Webbetrieb und Datenlebenszyklus in
+  `ADR 0016-Web-Resume-Lifecycle` und `DATA-CONTRACT.md`.
+- **Änderung:** Browser-Schließen wird als Unterbrechung mit Wiederaufnahme beschrieben.
+  Unvollständige Teilnahmen werden nicht ausgewertet. Kontaktlöschung und Anonymisierung erhalten
+  konkrete relative Fristen. Die Follow-up-Einwilligung umfasst ausdrücklich Einladung und höchstens
+  eine Erinnerung.
+- **Bedeutungsänderung:** ja; der frühere lokale Reload-Abbruch wird durch einen transparenten
+  Web-Resume-Ablauf ersetzt. Erhobene Forschungsinhalte, Randomisierung und Instrumentreihenfolge
+  bleiben unverändert.
+- **Versionen:** `consent-v13-pilot`, `instrument-runtime-v9-pilot`.
 
-## Copy-Delta 2026-08-08
-
-- **Textflächen:** Kontextzeile, vier sichtbare Kerninformationen, sieben einzeln aufklappbare
-  Teilnahmeinformationsabschnitte und die optionale Follow-up-Einwilligung.
-- **Quelle:** ausdrückliche Nutzerentscheidung vom 2026-08-08.
-- **Textrolle:** Orientierung (Kontextzeile), Safety Boundary (Kerninformationen,
-  Teilnahmeinformation und Einwilligung).
-- **Änderung:** Der vorgegebene Wortlaut ersetzt die bisherigen Texte vollständig; der Detailzugang
-  bleibt in seine sieben Abschnitte gegliedert.
-- **Bedeutungsänderung:** ausdrücklich freigegeben. Es werden keine Datenfelder, Interaktionsziele,
-  Hervorhebungen, Persistenz-, Randomisierungs- oder Timingregeln geändert.
-
-## Copy-Delta 2026-08-09
-
-- **Textfläche:** Detailzugang auf dem Einwilligungs-Screen.
-- **Quelle:** ausdrückliche Nutzerentscheidung vom 2026-08-09.
-- **Textrolle:** Navigation.
-- **Aktueller Text:** `Ausführliche Teilnahmeinformationen`.
-- **Geplanter Text:** `Ausführliche Teilnahmeinformationen öffnen`.
-- **Grund:** Der Auslöser benennt die tatsächlich ausgelöste Dialogöffnung eindeutig und bleibt als
-  bedienbares Element erkennbar.
-- **Bedeutungsänderung:** nein.
-- **Interaktionsziel:** Dialog mit den ausführlichen Teilnahmeinformationen.
-- **Hervorhebung:** keine.
-- **Versionsänderung:** `consent-v12-pilot`, `instrument-runtime-v8-pilot`.
-- **Textfläche:** Fragebogen-Footer.
-- **Quelle:** ausdrückliche Nutzerentscheidung vom 2026-08-09.
-- **Aktueller Text:** keiner.
-- **Geplanter Text:** `© Universität Bonn · Teilnahmeinformationen`.
-- **Textrolle:** Orientierung.
-- **Grund:** Die Teilnahmeinformationen bleiben erreichbar, ohne die Bearbeitung des Fragebogens
-  visuell zu überlagern.
-- **Bedeutungsänderung:** nein.
-- **Interaktionsziel:** Dialog mit den ausführlichen Teilnahmeinformationen.
-- **Hervorhebung:** keine.
-
-- **Textflächen:** vier sichtbare Kerninformationen auf dem Einwilligungs-Screen.
-- **Quelle:** ausdrückliche Nutzerentscheidung vom 2026-08-09.
-- **Textrolle:** Safety Boundary.
-- **Änderung:** Die bestehenden Kerninformationen werden auf Dauer, freiwillige Beendigung,
-  pseudonymisierte Forschungsdaten und Zeitpunkt sowie Dauer der optionalen Nachbefragung
-  verdichtet. Die vollständigen Angaben bleiben über den Detailinformationen-Button erreichbar.
-- **Bedeutungsänderung:** begrenzt; die vier Kernaussagen bleiben erhalten. Es werden keine
-  Datenfelder, Persistenz-, Randomisierungs- oder Timingregeln geändert.
-- **Interaktionsziel:** Button `Ausführliche Teilnahmeinformationen öffnen`.
-- **Hervorhebung:** keine zusätzliche Hervorhebung.
-- **Ergänzung:** Die Freiwilligkeits-Kurzinfo verwendet `abbrechbar`, die Datenschutz-Kurzinfo
-  nennt die Nicht-Speicherung fiktiver Passwörter und der optionale Einwilligungstext beschränkt
-  die E-Mail-Verwendung auf die Einladung.
+Ältere Copy-Deltas bleiben über die Git-Historie nachvollziehbar und werden hier nicht als zweite
+aktuelle Textquelle wiederholt.
 
 ## Methodische Offenlegung
 
-Zu Beginn wird wahrheitsgemäß erklärt, dass ein digitales Lernangebot zu Passwörtern und zum
-Schutz von Online-Konten evaluiert wird. Der Vergleich zweier Lernangebote und der konkretere
-unmittelbare Untersuchungszweck werden erst nach allen In-Session-Messungen im gemeinsamen
-Debriefing offengelegt. Ablauf, ungefähre Dauer, Freiwilligkeit, Datenverarbeitung und die optionale
-Nachbefragung werden vor der Einwilligung beschrieben.
+Zu Beginn wird wahrheitsgemäß erklärt, dass ein digitales Lernangebot zu Passwörtern und zum Schutz
+von Online-Konten evaluiert wird. Der Vergleich zweier Lernangebote und der konkretere unmittelbare
+Untersuchungszweck werden erst nach allen In-Session-Messungen im gemeinsamen Debriefing
+offengelegt. Ablauf, ungefähre Dauer, Freiwilligkeit, Wiederaufnahme, Datenverarbeitung und die
+optionale Nachbefragung werden vor der Einwilligung beschrieben.
 
 ## Sichtbarer Einstieg
 
@@ -88,7 +42,7 @@ Nachbefragung werden vor der Einwilligung beschrieben.
 ### Das Wichtigste zur Teilnahme
 
 - **Dauer:** etwa 30 Minuten
-- **Freiwilligkeit:** jederzeit ohne Nachteile abbrechbar
+- **Freiwilligkeit:** jederzeit unterbrechbar; unvollständige Teilnahmen werden nicht ausgewertet
 - **Datenschutz:** pseudonymisierte Forschungsdaten; keine realen Passwörter oder Zugangsdaten;
   fiktive Passwörter werden nicht gespeichert
 - **Optionale Nachbefragung:** etwa zwei Minuten nach ca. zehn Tagen
@@ -110,22 +64,27 @@ nicht vorab beeinflussen.
 ### Welche Daten werden verarbeitet?
 
 Gespeichert werden deine Fragebogenantworten sowie technische Angaben zum Studienablauf, etwa
-Bearbeitungszeiten und Abschlussstatus.
+Bearbeitungszeiten, der letzte gespeicherte Abschnitt und der Abschlussstatus.
 
 Reale Passwörter, Kontonamen, Sicherheitscodes oder Zugangsdaten werden nicht erhoben. Fiktive
 Passwörter aus dem Lernangebot werden weder gespeichert noch übertragen.
 
 Die Forschungsdaten werden unter einer zufälligen Studien-ID gespeichert. Name und E-Mail-Adresse
-sind nicht Teil des Forschungsdatensatzes. Zugriff haben nur die für Durchführung, Auswertung und
-Aufbewahrung zuständigen Personen an der Universität Bonn.
+sind nicht Teil des Forschungsdatensatzes. Ein zufälliger technischer Rückkehrschlüssel wird in
+deinem Browser gespeichert, damit du eine unterbrochene Teilnahme während des Erhebungszeitraums
+im selben Browser fortsetzen kannst. Er enthält keine Antworten oder Kontaktdaten.
+
+Zugriff auf die gespeicherten Daten haben nur die für Durchführung, Auswertung und Aufbewahrung
+zuständigen Personen an der Universität Bonn.
 
 ### Freiwillige Nachbefragung und E-Mail-Adresse
 
 Wenn du freiwillig eine E-Mail-Adresse angibst, erhältst du ungefähr zehn Tage später eine Einladung
 zu einer etwa zweiminütigen Nachbefragung und gegebenenfalls eine einmalige Erinnerung.
 
-Die E-Mail-Adresse wird getrennt von den Forschungsdaten gespeichert, nur dafür verwendet und
-spätestens nach Abschluss der Nachbefragung gelöscht.
+Die E-Mail-Adresse wird getrennt von den Forschungsdaten gespeichert und nur für diese Einladung
+und höchstens eine Erinnerung verwendet. Das getrennte Kontaktregister wird spätestens sieben Tage
+nach Abschluss des Nachbefragungszeitraums gelöscht.
 
 Die Angabe einer E-Mail-Adresse und die Teilnahme an der Nachbefragung sind freiwillig.
 
@@ -135,17 +94,21 @@ Bis zum Abschluss der Datenauswertung und Prüfung des Datensatzes bleiben die F
 pseudonymisiert. In dieser Zeit kannst du mit deinem Löschcode die Löschung deiner zuordenbaren
 Forschungsdaten verlangen.
 
-Danach werden die Zuordnungsinformationen dauerhaft gelöscht und der verbleibende Datensatz
-anonymisiert. Eine Zuordnung zu einzelnen Personen oder nachträgliche individuelle Löschung ist
-dann nicht mehr möglich.
+Spätestens 30 Tage nach Abschluss der Datenerhebung und aller Nachbefragungszeiträume werden
+unvollständige Teilnahmen gelöscht und die Zuordnungsinformationen der abgeschlossenen Teilnahmen
+dauerhaft entfernt. Der verbleibende, geprüfte Datensatz wird anonymisiert. Eine Zuordnung zu
+einzelnen Personen oder nachträgliche individuelle Löschung ist dann nicht mehr möglich.
 
-Der anonymisierte Forschungsdatensatz wird universitätsseitig zehn Jahre aufbewahrt und
-anschließend gelöscht.
+Der anonymisierte Forschungsdatensatz wird ab diesem Zeitpunkt universitätsseitig zehn Jahre
+aufbewahrt und anschließend gelöscht.
 
-### Freiwilligkeit, Widerruf und deine Rechte
+### Freiwilligkeit, Unterbrechung und deine Rechte
 
-Die Teilnahme ist freiwillig und kann jederzeit ohne Begründung und ohne Nachteile beendet werden.
-Ein Abbruch beendet die weitere Datenerhebung.
+Die Teilnahme ist freiwillig. Du kannst die Bearbeitung jederzeit ohne Begründung und ohne Nachteile
+unterbrechen, indem du den Tab oder Browser schließt. Du entscheidest selbst, ob du während des
+Erhebungszeitraums im selben Browser zurückkehrst. Dann wird die Teilnahme am letzten gespeicherten
+Abschnitt fortgesetzt. Wenn du nicht zurückkehrst, wird die unvollständige Teilnahme nicht
+ausgewertet und spätestens bei der Anonymisierung gelöscht.
 
 Du kannst deine Einwilligung jederzeit mit Wirkung für die Zukunft widerrufen. Bis zur
 Anonymisierung kannst du unter Angabe deines Löschcodes die Löschung deiner Forschungsdaten bei
@@ -183,7 +146,7 @@ Datenschutzkontakt:<br>
 
 > Ich möchte etwa zehn Tage später per E-Mail zu einer freiwilligen, ungefähr zweiminütigen
 > Nachbefragung eingeladen werden. Meine E-Mail-Adresse darf dafür getrennt von den Forschungsdaten
-> gespeichert und ausschließlich für diese Einladung verwendet werden.
+> gespeichert und ausschließlich für die Einladung und höchstens eine Erinnerung verwendet werden.
 
 Die E-Mail-Adresse wird nur eingeblendet und validiert, wenn diese optionale Auswahl aktiviert
 wurde. Ohne Auswahl wird die Hauptstudie ohne Kontaktregistrierung angelegt.
@@ -206,30 +169,16 @@ wurde. Ohne Auswahl wird die Hauptstudie ohne Kontaktregistrierung angelegt.
 >
 > **Studie weiterempfehlen**
 >
-> Du kennst weitere Personen aus dem Hochschulbereich, die möglicherweise an der Studie
-> teilnehmen möchten? Dann kannst du ihnen gerne den allgemeinen Studienaufruf oder den
-> folgenden Link weiterleiten.
+> Du kennst weitere Personen aus dem Hochschulbereich, die möglicherweise an der Studie teilnehmen
+> möchten? Dann kannst du ihnen gerne den allgemeinen Studienaufruf oder den folgenden Link
+> weiterleiten.
 >
-> Die Weitergabe ist vollständig freiwillig. Bitte übermittle uns keine Namen oder
-> Kontaktdaten anderer Personen. Damit ihre Bearbeitung nicht beeinflusst wird, erzähle ihnen
-> bitte noch keine Einzelheiten zu den Aufgaben, Antwortmöglichkeiten oder der genauen
-> Forschungsfrage.
+> Die Weitergabe ist vollständig freiwillig. Bitte übermittle uns keine Namen oder Kontaktdaten
+> anderer Personen. Damit ihre Bearbeitung nicht beeinflusst wird, erzähle ihnen bitte noch keine
+> Einzelheiten zu den Aufgaben, Antwortmöglichkeiten oder der genauen Forschungsfrage.
 
 Mit freiwilliger Kontaktregistrierung endet sie mit:
 
 > Vielen Dank für deine Teilnahme. Da du eine Einladung zur freiwilligen Nachbefragung gewählt hast,
 > erhältst du ungefähr zehn Tage später eine E-Mail. Ob du dann teilnimmst, entscheidest du erneut
 > freiwillig.
-
-## Technischer und organisatorischer Restpunkt vor der Hauptstudie
-
-Das getrennte Kontaktregister und die Forschungsdatenbank sind technisch umgesetzt. Der derzeitige
-Schedule-Export versendet Nachrichten nicht selbst und protokolliert den letzten erfolgreichen
-Versand nicht zuverlässig. Die fristgerechte Löschung aller E-Mail-Adressen muss deshalb vor der
-Hauptstudie als kontrollierter manueller Betriebsprozess mit dokumentierter Bestätigung festgelegt
-werden oder durch eine spätere, zuverlässig quittierte Versand- und Löschlogik ersetzt werden.
-
-Die spätere Anonymisierung ist als verbindlicher Verarbeitungsschritt festgelegt. Ihre technische
-Prozedur muss vor der Hauptstudie dokumentieren, welche Zuordnungsinformationen, Kontaktregister,
-Löschcode-Hashes, präzisen Zeitbezüge und sonstigen potenziellen Identifikatoren entfernt oder
-vergröbert werden. Dieser Text-Freeze implementiert diese Prozedur noch nicht.

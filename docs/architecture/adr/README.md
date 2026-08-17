@@ -1,7 +1,8 @@
 # ADR Index
 
-Dieses Verzeichnis enthält unveränderliche Architekturentscheidungen. Der Index erleichtert die
-Auswahl einschlägiger Entscheidungen, ersetzt aber keine ADR.
+Dieses Verzeichnis enthält angenommene und versioniert fortgeschriebene
+Architekturentscheidungen. Der Index erleichtert die Auswahl einschlägiger Entscheidungen, ersetzt
+aber keine ADR.
 
 ## Zitierhinweis zu den beiden ADR 0008
 
@@ -15,6 +16,13 @@ bleiben unverändert; neue Verweise verwenden deshalb die folgenden eindeutigen 
 
 ADR 0006 bleibt als durch `ADR 0008-Reference` abgelöste historische Entscheidung erhalten.
 
+## Leseregel
+
+Maßgeblich ist jeweils die jüngste akzeptierte oder ausdrücklich ersetzende Entscheidung.
+Historische Revisionen erklären die Entwicklung, gelten aber nicht gleichzeitig als aktuelle
+Anforderung. Für Webbetrieb, Wiederaufnahme, Follow-up-Betrieb und Datenabschluss ist
+`ADR 0016-Web-Resume-Lifecycle` die übergeordnete aktuelle Entscheidung.
+
 ## Neuere Ergänzungen
 
 | Zitierlabel | Entscheidung | Pfad |
@@ -26,3 +34,4 @@ ADR 0006 bleibt als durch `ADR 0008-Reference` abgelöste historische Entscheidu
 | `ADR 0013-Deletion-Code-Separation` | Trennung von Forschungs-ID und Löschcode | [0013-research-id-and-deletion-code-separation.md](./0013-research-id-and-deletion-code-separation.md) |
 | `ADR 0014-Bounded-Password-Guessing` | Begrenzte lokale Passwort-Rateweganalyse | [0014-bounded-local-password-guessing-analysis.md](./0014-bounded-local-password-guessing-analysis.md) |
 | `ADR 0015-Artifact-Viewport` | Gemeinsamer Full-Bleed Artefakt-Viewport | [0015-bounded-artifact-viewport.md](./0015-bounded-artifact-viewport.md) |
+| `ADR 0016-Web-Resume-Lifecycle` | Webbetrieb, Wiederaufnahme und Datenabschluss | [0016-web-runtime-resume-and-data-lifecycle.md](./0016-web-runtime-resume-and-data-lifecycle.md) |

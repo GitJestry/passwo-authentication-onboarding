@@ -2,324 +2,109 @@
 
 - **Status:** Accepted
 - **Datum:** 2026-07-30
+- **Aktuelle Revision:** 2026-08-17
 - **Citation label:** `ADR 0012-Instrument-Submissions`
 - **Ergänzt:** ADR 0002, ADR 0003 und ADR 0005
+- **Zusammen lesen mit:** `MEASUREMENT-INSTRUMENT.md`, `PARTICIPANT-INFORMATION.md` und ADR 0016
 
-## Kontext
+## Aktuelle wirksame Fassung
 
-Die bisherige Study Runtime speichert für Pre, Post und Guardrail nur boolesche Platzhalter. Die
-finale Instrumentfassung benötigt versionierte Itemantworten, atomare Blockabgaben, stabile
-Retries, eine reproduzierbare Guardrail-Optionenreihenfolge und einen Export ohne
-clientseitige Scoringlogik. Diese Daten sind zulässige Forschungsdaten, erweitern aber das
-persistierte Schema und benötigen daher eine explizite Entscheidung.
+Für die nächste Web-Pilot- und Hauptstudienfreigabe gelten die eingecheckten aktuellen Manifeste
+und die folgende Versionskombination:
+
+| Bestandteil | Version |
+|---|---|
+| Instrument | `3.0.0-pilot` |
+| Fragebogen | `questionnaire-v4-pilot` |
+| Guardrail | `guardrail-v6-pilot` |
+| Einwilligung | `consent-v13-pilot` |
+| Follow-up | `follow-up-v6-pilot` |
+| Runtime-Manifest | `instrument-runtime-v9-pilot` |
+
+Frühere Revisionen dieser ADR dokumentierten Zwischenstände. Sie sind über die Git-Historie
+nachvollziehbar, aber keine parallelen Anforderungen und keine offenen Versions-Freeze-Eingaben.
 
 ## Entscheidung
 
-Die teilnehmerseitige Runtime-Definition wird als geprüftes, eingechecktes JSON in
-`@passwo/contracts` geführt und gegen `research/derived/instruments-v1.runtime.json` getestet. Sie
-enthält Texte, IDs, Antworttypen, Optionen, Blockstruktur und die sechs balancierten
-Guardrail-Formen, aber keine Richtig-/Falsch-, `appropriate`-, `incomplete`- oder
-`unsafe`-Klassifikationen. Die vollständige Forschungs- und Scoring-Spezifikation bleibt in
-`research/derived/instruments-v1.yaml`.
+### Kanonische Instrumentquellen
+
+Die vollständige Forschungs- und Auswertungsspezifikation liegt in
+`research/derived/instruments-v1.yaml`. Die teilnehmerseitige, von Klassifikationen bereinigte
+Runtime-Projektion liegt in `research/derived/instruments-v1.runtime.json` und wird bytegleich nach
+`packages/contracts/src/generated/instruments-v1.runtime.json` übernommen.
+
+Die Runtime-Projektion enthält Texte, IDs, Antworttypen, Optionen, Blockstruktur und die sechs
+balancierten Guardrail-Formen. Sie enthält keine Richtig-/Falsch-, `appropriate`-, `incomplete`-
+oder `unsafe`-Klassifikation. Scoring und Kategorisierung erfolgen ausschließlich im reproduzierbaren
+Analyseprozess.
+
+Die fachliche Beschreibung von Reihenfolge, Skalen und Interpretationsgrenzen steht kanonisch in
+`docs/research/MEASUREMENT-INSTRUMENT.md`; Teilnehmerinformation und Einwilligung stehen kanonisch in
+`docs/research/PARTICIPANT-INFORMATION.md`.
+
+### Atomare Submissions
 
 Ein Client sendet immer einen vollständigen Instrumentblock. Der Server validiert die exakt
-erwartete Itemmenge und alle Werte anhand der versionierten Runtime-Definition. Der erste gültige
-Block wird in einer Transaktion gespeichert. Eine identische Wiederholung ist idempotent; eine
-abweichende zweite Abgabe desselben Blocks wird als Konflikt abgelehnt und überschreibt keine
-Daten.
+erwartete Itemmenge und alle Werte anhand der versionierten Runtime-Definition.
 
-Die Forschungsdatenbank ergänzt:
+- Der erste gültige Block wird transaktional gespeichert.
+- Eine identische Wiederholung ist idempotent.
+- Eine abweichende zweite Abgabe desselben Blocks wird als Konflikt abgelehnt.
+- Bereits atomar gespeicherte Blöcke werden bei Wiederaufnahme nicht erneut erhoben.
+- Antwortbuchstaben oder sichtbare Positionen werden nicht als Forschungswert gespeichert; nur
+  stabile Item- und Option-IDs.
+
+### Guardrail-Präsentation
+
+Condition und Guardrail-Form werden serverseitig und getrennt in kleinen permutierten Blöcken
+zugewiesen. Der Client kann weder Condition noch Form wählen.
+
+Für jedes Guardrail-Item bilden `F1` bis `F6` alle sechs Permutationen der drei inhaltlichen
+Antwortoptionen ab. `Weiß ich nicht` bleibt an letzter Position. Form-ID und tatsächlich angezeigte
+Option-IDs werden persistiert und exportiert. Es gibt keinen Guardrail-Gesamtscore, keine
+Pass-Fail-Schwelle und kein Correctness Feedback vor Abschluss aller In-Session-Outcomes.
+
+### Aktuelle Teilnehmer- und Lifecycle-Revision
+
+`consent-v13-pilot` und `instrument-runtime-v9-pilot` aktualisieren ausschließlich
+Teilnahmeinformation, Einwilligung und Runtime-Texte zum entschiedenen Webbetrieb:
+
+- Browser-Schließen oder Reload unterbricht einen Run und beendet ihn nicht regulär;
+- im selben Browser kann am letzten sicheren inhaltsfreien Checkpoint fortgesetzt werden;
+- unvollständige Runs werden nicht ausgewertet und beim Datensatz-Freeze gelöscht;
+- Kontaktregister und projektkontrollierte Kontaktkopien werden spätestens sieben Kalendertage nach
+  dem letzten Follow-up-Fenster gelöscht;
+- der Datensatz-Freeze mit Anonymisierung erfolgt spätestens 30 Kalendertage nach dem letzten
+  Follow-up-Fenster beziehungsweise ohne Follow-up ab Datenerhebungsschluss;
+- die zehnjährige Aufbewahrung beginnt erst mit `anonymisedAt` für den anonymen Archivdatensatz.
+
+Diese Revision verändert keine Messitems, Skalen, Guardrail-Formen, Antwortoptionen oder
+Erhebungsreihenfolgen. Solange die Web-Wiederaufnahme noch nicht implementiert ist, bleibt diese
+Consent-Fassung ein internes Zielmanifest und darf nicht für teilnehmerseitige Pilot- oder
+Hauptstudiensitzungen freigegeben werden.
+
+## Persistierte Forschungsfelder
+
+Die Instrumentarchitektur verwendet:
 
 - `guardrail_form_id` an der Session;
-- eine innerhalb jeder Artefaktbedingung getrennt balancierte Formzuweisung über permutierte
-  Sechserblöcke `F1` bis `F6`;
 - `instrument_submissions` mit Block-ID, Payload-Fingerprint und Abgabezeit;
 - `response_presentations` mit der tatsächlich dargestellten Optionreihenfolge;
-- `section_id` für einzelne Response-Zeilen.
+- `section_id` für einzelne Response-Zeilen;
+- die in ADR 0016 autorisierten operativen Resume-Felder, die nicht Teil des Instruments und nicht
+  Teil des Forschungsdatenexports sind.
 
-Formzuweisung und Condition-Zuweisung erfolgen transaktional, aber über getrennte Blockfolgen. Der
-Client kann weder Condition noch Form wählen. `Weiß ich nicht` bleibt in allen Formen an letzter
-Stelle. Rohantworten und Präsentationsreihenfolge werden exportiert; Scoring erfolgt ausschließlich
-im reproduzierbaren Analyseprozess.
-
-Schemaänderungen laufen über nummerierte SQLite-Migrationen. `CREATE TABLE IF NOT EXISTS` allein
-ist keine Migration bestehender Datenbanken.
+Schemaänderungen laufen über nummerierte Migrationen. `CREATE TABLE IF NOT EXISTS` allein ist keine
+Migration bestehender Datenbanken.
 
 ## Konsequenzen
 
-- Der Renderer enthält keine Guardrail-Auswertung und zeigt vor Abschluss beider Blöcke kein
-  Richtig/Falsch-Feedback.
-- Antwortbuchstaben oder sichtbare Positionen werden nie als Forschungswert gespeichert; nur
-  stabile Option-IDs.
-- Der Export erhält eine neue Schemaprofilversion, Response Presentations und ein Data Dictionary.
-- Die Platzhalterverträge dürfen während eines einzelnen Implementierungsschritts kompatibel
-  weiterbestehen, müssen aber mit der echten UI-Integration vollständig entfernt werden.
-- Änderungen an Instrument-IDs, Formularformen, Persistenz- oder Konfliktsemantik benötigen eine
-  Revision dieser ADR und neue Instrumentversionen.
-
-## Revision 2026-07-30 — Fragebogen-Antwortformate
-
-Die Instrument- und Fragebogenversionen werden auf `1.3.0-draft` beziehungsweise
-`questionnaire-v1.3-draft` angehoben; das Runtime-Manifest wird
-`instrument-runtime-v1.3-draft`. Anlass sind die geänderte Self-Efficacy-Semantik und die
-explizite Trennung der Antwortformate. Instrument-, Section-, Item- und Response-IDs bleiben
-stabil. Guardrail und Follow-up sind inhaltlich unverändert und behalten ihre Versionen.
-
-## Revision 2026-07-30 — verpflichtende Nachbefragung
-
-Die Instrumentversion wird auf `1.4.0-draft`, das Runtime-Manifest auf
-`instrument-runtime-v1.4-draft` und die Consent-Version auf `consent-v2-draft` angehoben. Die
-Nachbefragung ist nun angekündigter Bestandteil der allgemeinen Einwilligung; eine separate
-Follow-up-Entscheidung entfällt. Fragebogen-, Guardrail- und Follow-up-Instrumentversion sowie die
-Follow-up-Fragen bleiben unverändert.
-
-## Revision 2026-07-31 — optionale Nachbefragung und strukturierte Teilnehmerinformation
-
-Die vorangehende Pflicht-Follow-up-Revision wird durch `ADR 0011-Follow-up-Recontact` und die
-kanonische `PARTICIPANT-INFORMATION.md` abgelöst. Die Follow-up-Einwilligung ist getrennt und
-optional; eine Ablehnung blockiert die Hauptstudie nicht.
-
-Die Instrumentversion wird auf `1.5.0-draft`, das Runtime-Manifest auf
-`instrument-runtime-v1.5-draft` und die Consent-Version auf `consent-v3-draft` angehoben. Die
-gemeinsame Teilnahmeinformation, Consent-Texte, optionale Recontact-Texte und beide Varianten der
-Session Closure werden als strukturierte Runtime-Daten geführt. Fragebogen-, Guardrail- und
-Follow-up-Inhaltsversionen bleiben unverändert.
-
-## Revision 2026-08-02 — Instrument Revision v1.6
-
-Die Instrumentversion wird auf `1.6.0-draft`, die Fragebogenversion auf
-`questionnaire-v1.4-draft`, die Guardrail-Version auf `guardrail-v3-draft`, die Follow-up-Version
-auf `follow-up-v2-draft` und das Runtime-Manifest auf `instrument-runtime-v1.6-draft` angehoben.
-Die Consent-Version bleibt `consent-v3-draft`.
-
-Die Instrument-IDs `pre-v1`, `post-v1`, `guardrail-v2`, `post-open-v1` und `follow-up-v1`
-bleiben stabil. Im Guardrail ersetzen die Item-IDs `SCENARIO_DISTINCT_PASSWORDS` und
-`SCENARIO_PM_MANY_ACCOUNTS` die bisherigen Szenario-IDs. Die revidierten Follow-up-Optionen
-trennen `cannot_recall` und `no_answer`, entfernen die beiden Recovery-Prüfhandlungen und teilen
-die bisherigen kombinierten Vertrauens-/Zugangsgründe in die fachlich festgelegten Einzelgründe.
-
-`PRE_GENDER` ist technisch verpflichtend. Inhaltliche Freiwilligkeit wird ausschließlich durch
-die stabile Antwortoption `no_answer` abgebildet; ein zusätzlicher Nullwert ist unzulässig.
-
-PassWo-interne Lernfragen bleiben im PassWo-Artefakt erhalten. Das native SecAware-Abschlussquiz
-bleibt als fest beschlossene und betreuerseitig gebilligte Studienadaption aus dem gemessenen
-Referenzpfad entfernt, um unmittelbare Feedback-Kontamination des gemeinsamen externen
-Guardrails zu vermeiden. Native Scores sind keine Studienoutcomes. Diese Revision ändert weder
-den eingefrorenen SecAware-Build noch Persistenzschema, Migrationen, Randomisierung oder Timing.
-
-## Revision 2026-08-02 — Instrument Revision v1.7
-
-Die Instrumentversion wird auf `1.7.0-draft`, die Fragebogenversion auf
-`questionnaire-v1.5-draft`, die Consent-Version auf `consent-v4-draft`, die Follow-up-Version auf
-`follow-up-v3-draft` und das Runtime-Manifest auf `instrument-runtime-v1.7-draft` angehoben.
-Guardrail-Version und Guardrail-Formen bleiben unverändert.
-
-`PRE_GENDER`, die drei allgemeinen Familiarity-Items, das redundante TF5-Interesse-Item und der
-explorative Emotionsblock werden entfernt. Das bisher doppelte Passwortmanager-Self-Efficacy-Item
-wird in Erzeugen/Speichern und Abruf/Anmeldung getrennt. Zeitfragen stehen im Post unmittelbar
-nach dem Artefakt vor dem UEQ-S. Die Zustimmungsskala bleibt siebenstufig und vollständig
-beschriftet, wird aber ohne horizontale Scrollpflicht pro Item dargestellt.
-
-Die Teilnehmerinformation erhält eine sofort sichtbare Kerninformation, einen während der Sitzung
-erreichbaren Detailzugang und den zugänglichen Teilnehmercode. Offizielle Datenschutzkontakte,
-Rechtsgrundlage und konkrete Löschfristen bleiben externe Study-Freeze-Eingaben und werden nicht
-durch die Software erfunden.
-
-## Revision 2026-08-02 — Teilnehmertext und Löschcode-Trennung v1.8
-
-Die Instrumentversion wird auf `1.8.0-draft`, die Consent-Version auf `consent-v5-draft` und das
-Runtime-Manifest auf `instrument-runtime-v1.8-draft` angehoben. Fragebogen-, Guardrail- und
-Follow-up-Inhaltsversionen bleiben unverändert.
-
-Die sichtbaren Kurzfakten auf der Willkommensseite entfallen, weil dieselben Informationen bereits
-in der unmittelbar sichtbaren Kerninformation und in den ausführlichen Teilnahmeinformationen
-enthalten sind. Titel, Willkommenstext und Zweckbeschreibung werden auf Passwörter und den Schutz
-von Online-Konten präzisiert. Die ausführlichen Informationen bleiben über einen kompakten,
-zugänglichen Dialog erreichbar.
-
-Gemäß `ADR 0013-Deletion-Code-Separation` wird der bisherige Teilnehmercode als Löschcode
-bezeichnet und von der Forschungs-ID getrennt. Der Löschcode wird nach Sessionerstellung und am
-Sitzungsende angezeigt, aber weder als Forschungs-ID verwendet noch exportiert.
-
-## Revision 2026-08-03 — Getrennte Audit- und Analyseexporte
-
-Der gemeinsame Forschungsdatenexport erhält die Profile `audit` und `analysis`. Das gemeinsame
-Manifestformat wird `research-export-v5`; die gekoppelten Schemaprofilversionen heißen
-`research-audit-v1` und `research-analysis-v1`. Das Auditprofil bleibt die geschützte interne
-Nachweisfassung mit technischen Zeitpunkten. Das Analyseprofil entfernt exakte Kalender-,
-Empfangs-, Erstellungs- und monotone Startzeitpunkte; methodisch notwendige Dauern, Sequenzen,
-Versionen, Condition, Guardrail-Form, Completion-Status und Forschungs-ID bleiben erhalten.
-
-Ausgefüllte Freitextantworten werden im Analyseprofil aus den regulären Responses separiert und in
-einer geschützten `free-text-review`-Datei mit `pending-review` ausgewiesen. Erst eine manuell auf
-identifizierende Angaben geprüfte und bereinigte Fassung darf in die Analyse übernommen werden.
-Leere optionale Freitexte bleiben als `null` analysierbar. Beide Profile schließen Session-ID,
-Kontaktdaten, Löschcodes, Token und Trainingsinputs aus. Das Manifest enthält Profil,
-Schemaprofilversion, Freitextanzahl, Prüfstatus und Prüfsummen. Diese Revision ändert keine
-Persistenzfelder, Instrumentantworten, Randomisierung oder Timing-Erhebung.
-
-## Revision 2026-08-03 — Datenschutzkontakt und Betroffenenrechte v1.9
-
-Die Instrumentversion wird auf `1.9.0-draft`, die Consent-Version auf `consent-v6-draft` und das
-Runtime-Manifest auf `instrument-runtime-v1.9-draft` angehoben. Fragebogen-, Guardrail- und
-Follow-up-Inhaltsversionen bleiben unverändert.
-
-Der bisherige Kontaktplatzhalter wird anhand der offiziellen Datenschutzerklärung und
-Datenschutz-Stabsstelle der Universität Bonn durch verantwortliche Stelle und
-Datenschutzbeauftragte ersetzt. Die ausführliche Teilnehmerinformation nennt zusätzlich
-Einwilligung gemäß Art. 6 Abs. 1 lit. a DSGVO, Widerruf für die Zukunft, die wesentlichen
-Betroffenenrechte und die zuständige Landesaufsicht. Der geschützte Einwilligungssatz bleibt
-unverändert. Konkrete Aufbewahrungs- und Löschfristen bleiben die einzige noch einzutragende
-Datenschutzangabe vor dem Study Freeze.
-
-## Revision 2026-08-03 — Finaler Questionnaire Freeze 2.0
-
-Diese Revision ersetzt für die Hauptsitzung alle früheren Draft-Instrumententscheidungen. Die
-Instrumentversion wird `2.0.0`, die Fragebogenversion `questionnaire-v2`, die Guardrail-Version
-`guardrail-v4`, die Follow-up-Version `follow-up-v4` und das Runtime-Manifest
-`instrument-runtime-v2`. Die Consent-Version bleibt durch diese Revision unverändert.
-
-Die Haupt-Study-Runtime enthält ausschließlich `pre-v1`, `post-v1`, `guardrail-v2` und
-`post-open-v1`. Der Follow-up-Fragebogen wird aus der Runtime entfernt und als getrenntes
-Instrument in `research/derived/follow-up-v4.yaml` sowie
-`docs/research/FOLLOW-UP-INSTRUMENT.md` versioniert. Die Hauptanwendung verwaltet weiterhin nur
-optionale Recontact-Einwilligung, getrennte Kontaktregistrierung und Versandplanung.
-
-Die Hauptsitzungsreihenfolge wird verbindlich auf unmittelbare Post-Wahrnehmung, drei
-Anwendungsszenarien, drei Recognition-Items, Post-Guardrail-Self-Efficacy, retrospektive
-SecAware-Vorerfahrung und einen optionalen Kommentar festgelegt. Recognition darf die
-Anwendungsszenarien nicht vorwegnehmen; vor Abschluss aller In-Session-Outcomes wird kein
-Correctness Feedback gezeigt.
-
-Die Guardrail-Zuweisung wird von drei auf sechs Formen `F1` bis `F6` erweitert. Innerhalb jeder
-Artefaktbedingung werden kleine permutierte Sechserblöcke verwendet. Die Formen bilden alle sechs
-Reihenfolgen der drei Anwendungsszenarien ab und platzieren jede substantive Antwortoption für
-jedes Item genau zweimal auf jeder der drei Positionen. `Weiß ich nicht` bleibt fest an letzter
-Stelle. Die Form-ID und angezeigten Option-IDs bleiben persistierte Forschungsdaten; die
-Question-Order wird aus der versionierten Formdefinition deterministisch rekonstruiert.
-
-Die Runtime-Projektion enthält weiterhin keine Guardrail-Klassifikationen. Es werden kein
-Guardrail-Gesamtscore, kein Pass/Fail und kein Unsafe-Summenwert gespeichert oder berechnet. Die
-Erweiterung der zulässigen Form-IDs erfolgt über SQLite-Migration 7. Bestehende Sessions behalten
-ihre frühere Form; neue Formblöcke verwenden alle sechs Formen.
-
-## Revision 2026-08-03 — Instrument 2.1 und verzögerte Handlungsmessung
-
-Die Instrumentversion wird `2.1.0`, die Fragebogenversion `questionnaire-v3`, die Consent-Version
-`consent-v7-draft`, die Follow-up-Version `follow-up-v5` und das Runtime-Manifest
-`instrument-runtime-v2.1`. `guardrail-v4` bleibt unverändert.
-
-Im Abschnitt `duration` wird `PERCEIVED_DURATION` mit der vollständig beschrifteten Skala
-`perceivedDuration7` exakt vor `TIME_FIT` eingefügt. Das erste Item erfasst subjektive Länge, das
-zweite zeitliche Angemessenheit; beide werden einzeln und als vollständige Verteilung ausgewertet,
-ohne höhere Werte als bessere Qualität zu interpretieren.
-
-`CONSEQUENCE_VISIBILITY` wird für 2.1 vollständig durch `CONSEQUENCE_TANGIBILITY` mit dem Wortlaut
-„Durch das Lernangebot konnte ich mir konkret vorstellen, wie sich unterschiedliche Entscheidungen
-auf den Schutz von Konten auswirken können.“ ersetzt. Historische 2.0-Antworten behalten ihre alte
-ID und werden nicht migriert oder umbenannt.
-
-Das getrennte Follow-up-v5 behält seine drei fokalen Handlungen, Kontextfragen,
-Barriereverzweigungen und Sicherheitswarnung inhaltlich bei. Revidiert werden nur Titel,
-Instruktion, Nachrichten und Status als verpflichtender zweiter Studienteil. Die drei fokalen
-Items werden als zentral-sekundäre Familie getrennt ausgewertet. Runtime-Projektion und generierte
-Vertragskopie müssen identisch bleiben.
-
-Weil das Data Dictionary mit `interpretationNote` nun die abweichende Bedeutung von
-`PERCEIVED_DURATION` und `TIME_FIT` maschinenlesbar dokumentiert, wird das Export-Manifest auf
-`research-export-v6` angehoben. Dies ändert keine persistierten Forschungsdaten.
-
-## Revision 2026-08-05 — Pilotkandidat Instrument 3.0
-
-Diese Revision ersetzt die Instrumententscheidungen 2.0 und 2.1 für neue Pilot-Sitzungen. Die
-Versionen lauten `3.0.0-pilot`, `questionnaire-v4-pilot`, `guardrail-v5-pilot`,
-`consent-v8-pilot`, `follow-up-v6-pilot` und `instrument-runtime-v3-pilot`.
-
-Die Haupt-Runtime enthält nur `pre-v1`, `post-v1` und `guardrail-v2`; `post-open-v1` und der offene
-Kommentar werden entfernt. Der Pre-Fragebogen enthält keine Self-Efficacy-Baseline. Der Post-Pfad
-besteht aus PANAS, zwei Zeiturteilen, UEQ-S, UEQ+ Inhaltsseriosität, zwölf design-diagnostischen
-Einzelitems, Risikoproportionalität, wahrgenommenem Verständnis, dem gemeinsamen Guardrail,
-vier post-guardrail Self-Efficacy-Einzelitems und retrospektiver SecAware-Vorerfahrung.
-
-Die PANAS erhält eine eigene vollständig beschriftete Fünfpunkt-Skala. Standardisierte PANAS-,
-UEQ-S- und UEQ+-Wortlaute, Reihenfolgen und Polaritäten bleiben unverändert. Die Custom Items sind
-keine Skalen und werden nicht aggregiert.
-
-`guardrail-v5-pilot` beschränkt sich auf fünf explizit in beiden administrierten Artefaktpfaden
-dokumentierte Claim-Ebenen. Die sechs serverseitig ausbalancierten Formen bleiben erhalten, ihre
-Item- und Option-IDs werden jedoch auf die neuen Distinct-Password-, Password-Manager- und
-MFA-Fragen aktualisiert. Klassifikationen bleiben außerhalb der Client-Runtime.
-
-Der terminale SecAware-V9-Knowledge-Quizpfad und dessen Lösungshinweise bleiben vor dem gemeinsamen
-Guardrail ausgelassen. Der gemessene Referenzpfad endet unmittelbar davor. Diese Adaptation und die
-Shared-Content-Matrix müssen vor der Hauptstudie von einer zweiten qualifizierten Person geprüft
-werden.
-
-Die Nachbefragung ist wieder optional und wird getrennt in `follow-up-v6.yaml` versioniert. Diese
-Revision führt keine neuen persistierten Forschungsfelder ein; bestehende Tabellen und atomare
-Submission-Grenzen werden weiterverwendet.
-
-## Revision 2026-08-06 — Verkürzte Teilnahmeinformation und festgelegte Anonymisierungsgrenze
-
-Die Consent-Version wird auf `consent-v9-pilot` und das Runtime-Manifest auf
-`instrument-runtime-v4-pilot` angehoben. Instrument-, Fragebogen-, Guardrail- und Follow-up-Version
-bleiben unverändert.
-
-Der sichtbare Einstieg wird auf Dauer, Freiwilligkeit, pseudonymisierte Verarbeitung und die
-optionale Nachbefragung verdichtet. Interne Metadaten, der konkrete Speicherproduktname und der
-offene Anonymisierungsplatzhalter entfallen aus dem Teilnehmertext. Hinweise auf mehrere
-Bedingungen oder den Vergleich werden vor den unmittelbaren Messungen nicht angezeigt.
-
-Die Forschungsdaten bleiben bis zum Abschluss der Datenauswertung und der abschließenden Prüfung
-des Datensatzes pseudonymisiert. Danach werden die Zuordnungsinformationen dauerhaft gelöscht und
-der verbleibende Datensatz anonymisiert; nur dieser anonymisierte Datensatz wird anschließend zehn
-Jahre universitätsseitig aufbewahrt. Diese Revision legt die Verarbeitungsgrenze und den
-Teilnehmertext fest, implementiert jedoch noch keine neue technische Anonymisierungsroutine oder
-einen automatisch quittierten E-Mail-Löschprozess.
-
-## Revision 2026-08-06 — Verdichtetes gemeinsames Debriefing
-
-Das Runtime-Manifest wird auf `instrument-runtime-v5-pilot` angehoben; Einwilligungs-, Instrument-,
-Fragebogen-, Guardrail- und Follow-up-Version bleiben unverändert.
-
-Das gemeinsame Debriefing legt weiterhin den Vergleich der beiden Lernangebote und den Grund für
-die verzögerte Offenlegung offen. Die Korrektur der zuvor präsentierten unsicheren Alternativen wird
-auf einen kurzen Auflösungsabsatz verdichtet. Aussagen zu einer persönlichen Punktzahl oder zu
-Bestehen und Nichtbestehen entfallen, weil im Studienablauf keine entsprechende Bewertung erfolgt.
-
-## Revision 2026-08-06 — Einstiegshierarchie, globale Post-Navigation und Guardrail-Matrix
-
-Die Consent-Version wird auf `consent-v10-pilot`, die Guardrail-Version auf
-`guardrail-v6-pilot` und das Runtime-Manifest auf `instrument-runtime-v6-pilot` angehoben.
-Instrument-, Fragebogen- und Follow-up-Version bleiben unverändert. Es werden keine Messitems,
-Skalen, Antwortoptionen oder Erhebungsreihenfolgen verändert.
-
-Auf der Einwilligungsseite erscheint die Bachelorarbeitszuordnung als zurückhaltende Kontextzeile
-und der Studienname als Haupttitel. Der sichtbare Kurzüberblick bleibt auf vier Kerninformationen
-begrenzt und nennt das Schließen des Browserfensters als unmittelbare Möglichkeit, die weitere
-Teilnahme zu beenden. Eine Wiederaufnahme wird nicht zugesichert, solange dafür keine eigene
-Runtime- und Persistenzentscheidung implementiert ist.
-
-Der Post-Pfad erhält eine durchgängige, nicht interaktive Navigation mit den vier übergeordneten
-Abschnitten `Rückblick`, `Kontosituationen`, `Inhaltsfragen` und `Abschluss`. Die sechs unmittelbaren
-Post-Seiten gehören vollständig zum Rückblick, die Szenarien zu Kontosituationen, die
-Recognition-Fragen zu Inhaltsfragen und Self-Efficacy plus retrospektive SecAware-Vorerfahrung zum
-Abschluss. Lokale Seitenstände werden zusätzlich und deutlich sichtbar ausgewiesen. Diese
-Darstellung ändert weder Reihenfolge noch Submission-Grenzen.
-
-Für jedes der sechs Guardrail-Items werden die drei substantiven Antwortoptionen über `F1` bis
-`F6` in allen sechs möglichen Permutationen genau einmal dargestellt. Die Zuordnung ist für jedes
-Item separat eingefroren. Innerhalb einer einzelnen Form wird keine zusätzliche Balance der
-richtigen Antwortpositionen erzwungen. `Weiß ich nicht` bleibt bei jedem Item fest an vierter und
-letzter Position; die sechs Reihenfolgen der Anwendungsszenarien bleiben unverändert ausbalanciert.
-
-## Revision 2026-08-08 — Teilnehmerinformation und Follow-up-Einwilligung
-
-Die Consent-Version wird auf `consent-v11-pilot` und das Runtime-Manifest auf
-`instrument-runtime-v7-pilot` angehoben. Instrument-, Fragebogen-, Guardrail- und
-Follow-up-Version bleiben unverändert.
-
-Die Kontextzeile, die sichtbaren Kerninformationen, die sieben einzeln erreichbaren Abschnitte der
-Teilnahmeinformation und der Wortlaut der optionalen Follow-up-Einwilligung werden gemäß der
-ausdrücklichen Nutzerentscheidung aktualisiert. Datenfelder, Einwilligungsstruktur,
-Follow-up-Timing, Persistenz, Randomisierung und Messinstrumente bleiben unverändert.
+- Renderer und Teilnehmerbundle enthalten keine Guardrail-Auswertung.
+- Instrument-, Consent- oder Runtime-Copy-Änderungen benötigen einen passenden Versionssprung und
+  synchronisierte Runtime-Kopien.
+- Änderungen an Item-IDs, Formen, Persistenz- oder Konfliktsemantik benötigen eine Revision dieser
+  ADR.
+- Die optionale Nachbefragung bleibt ein getrennt versioniertes Instrument und läuft gemäß ADR 0011
+  und ADR 0016 auf einer tokenisierten same-origin Route.
+- Die zweite qualifizierte Inhaltsprüfung bleibt fachliche Research QA, keine psychometrische
+  Validierung und keine zusätzliche Softwarefunktion.

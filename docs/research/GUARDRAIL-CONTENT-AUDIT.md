@@ -80,6 +80,8 @@ Vor der Hauptstudie muss für jeden Claim festgehalten werden:
 - Bestätigung, dass der Inhalt im standardisierten Pfad zwingend gezeigt wird;
 - Bestätigung, dass er nicht nur im ausgelassenen Quiz oder einem optionalen Link vorkommt.
 
-Die Matrix, das Artefaktaudit und alle Klassifikationen werden von einer zweiten qualifizierten
-Usable-Security-Person geprüft. Abweichungen und Auflösung werden dokumentiert. Diese Prüfung ist
-Content Review, keine psychometrische Validierung oder Interrater-Reliabilitätsstudie.
+Die Matrix, das Artefaktaudit und alle Klassifikationen werden von einer zweiten fachlich
+qualifizierten Person geprüft, etwa Betreuung oder Usable-Security-Review. Nur konkrete Befunde und
+ihre Auflösung werden dokumentiert. Diese manuelle Prüfung ist Content Review, keine
+psychometrische Validierung, keine Interrater-Reliabilitätsstudie und keine zusätzliche
+Softwarefunktion.

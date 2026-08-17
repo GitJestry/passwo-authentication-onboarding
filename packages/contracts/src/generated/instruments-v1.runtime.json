@@ -3,9 +3,9 @@
   "instrumentVersion": "3.0.0-pilot",
   "questionnaireVersion": "questionnaire-v4-pilot",
   "guardrailVersion": "guardrail-v6-pilot",
-  "consentVersion": "consent-v12-pilot",
+  "consentVersion": "consent-v13-pilot",
   "followUpVersion": "follow-up-v6-pilot",
-  "runtimeManifestVersion": "instrument-runtime-v8-pilot",
+  "runtimeManifestVersion": "instrument-runtime-v9-pilot",
   "language": "de-DE",
   "participantTerm": "Lernangebot",
   "scales": {
@@ -138,9 +138,10 @@
           "id": "data",
           "heading": "Welche Daten werden verarbeitet?",
           "paragraphs": [
-            "Gespeichert werden deine Fragebogenantworten sowie technische Angaben zum Studienablauf, etwa Bearbeitungszeiten und Abschlussstatus.",
+            "Gespeichert werden deine Fragebogenantworten sowie technische Angaben zum Studienablauf, etwa Bearbeitungszeiten, der letzte gespeicherte Abschnitt und der Abschlussstatus.",
             "Reale Passwörter, Kontonamen, Sicherheitscodes oder Zugangsdaten werden nicht erhoben. Fiktive Passwörter aus dem Lernangebot werden weder gespeichert noch übertragen.",
-            "Die Forschungsdaten werden unter einer zufälligen Studien-ID gespeichert. Name und E-Mail-Adresse sind nicht Teil des Forschungsdatensatzes. Zugriff haben nur die für Durchführung, Auswertung und Aufbewahrung zuständigen Personen an der Universität Bonn."
+            "Die Forschungsdaten werden unter einer zufälligen Studien-ID gespeichert. Name und E-Mail-Adresse sind nicht Teil des Forschungsdatensatzes. Ein zufälliger technischer Rückkehrschlüssel wird in deinem Browser gespeichert, damit du eine unterbrochene Teilnahme während des Erhebungszeitraums im selben Browser fortsetzen kannst. Er enthält keine Antworten oder Kontaktdaten.",
+            "Zugriff auf die gespeicherten Daten haben nur die für Durchführung, Auswertung und Aufbewahrung zuständigen Personen an der Universität Bonn."
           ]
         },
         {
@@ -148,7 +149,7 @@
           "heading": "Freiwillige Nachbefragung und E-Mail-Adresse",
           "paragraphs": [
             "Wenn du freiwillig eine E-Mail-Adresse angibst, erhältst du ungefähr zehn Tage später eine Einladung zu einer etwa zweiminütigen Nachbefragung und gegebenenfalls eine einmalige Erinnerung.",
-            "Die E-Mail-Adresse wird getrennt von den Forschungsdaten gespeichert, nur dafür verwendet und spätestens nach Abschluss der Nachbefragung gelöscht.",
+            "Die E-Mail-Adresse wird getrennt von den Forschungsdaten gespeichert und nur für diese Einladung und höchstens eine Erinnerung verwendet. Das getrennte Kontaktregister wird spätestens sieben Tage nach Abschluss des Nachbefragungszeitraums gelöscht.",
             "Die Angabe einer E-Mail-Adresse und die Teilnahme an der Nachbefragung sind freiwillig."
           ]
         },
@@ -157,15 +158,15 @@
           "heading": "Pseudonymisierung, Anonymisierung und Aufbewahrung",
           "paragraphs": [
             "Bis zum Abschluss der Datenauswertung und Prüfung des Datensatzes bleiben die Forschungsdaten pseudonymisiert. In dieser Zeit kannst du mit deinem Löschcode die Löschung deiner zuordenbaren Forschungsdaten verlangen.",
-            "Danach werden die Zuordnungsinformationen dauerhaft gelöscht und der verbleibende Datensatz anonymisiert. Eine Zuordnung zu einzelnen Personen oder nachträgliche individuelle Löschung ist dann nicht mehr möglich.",
-            "Der anonymisierte Forschungsdatensatz wird universitätsseitig zehn Jahre aufbewahrt und anschließend gelöscht."
+            "Spätestens 30 Tage nach Abschluss der Datenerhebung und aller Nachbefragungszeiträume werden unvollständige Teilnahmen gelöscht und die Zuordnungsinformationen der abgeschlossenen Teilnahmen dauerhaft entfernt. Der verbleibende, geprüfte Datensatz wird anonymisiert. Eine Zuordnung zu einzelnen Personen oder nachträgliche individuelle Löschung ist dann nicht mehr möglich.",
+            "Der anonymisierte Forschungsdatensatz wird ab diesem Zeitpunkt universitätsseitig zehn Jahre aufbewahrt und anschließend gelöscht."
           ]
         },
         {
           "id": "voluntariness",
-          "heading": "Freiwilligkeit, Widerruf und deine Rechte",
+          "heading": "Freiwilligkeit, Unterbrechung und deine Rechte",
           "paragraphs": [
-            "Die Teilnahme ist freiwillig und kann jederzeit ohne Begründung und ohne Nachteile beendet werden. Ein Abbruch beendet die weitere Datenerhebung.",
+            "Die Teilnahme ist freiwillig. Du kannst die Bearbeitung jederzeit ohne Begründung und ohne Nachteile unterbrechen, indem du den Tab oder Browser schließt. Du entscheidest selbst, ob du während des Erhebungszeitraums im selben Browser zurückkehrst. Dann wird die Teilnahme am letzten gespeicherten Abschnitt fortgesetzt. Wenn du nicht zurückkehrst, wird die unvollständige Teilnahme nicht ausgewertet und spätestens bei der Anonymisierung gelöscht.",
             "Du kannst deine Einwilligung jederzeit mit Wirkung für die Zukunft widerrufen. Bis zur Anonymisierung kannst du unter Angabe deines Löschcodes die Löschung deiner Forschungsdaten bei Julian Meyer unter s27jmeye@uni-bonn.de verlangen.",
             "Die Verarbeitung erfolgt auf Grundlage deiner Einwilligung gemäß Art. 6 Abs. 1 lit. a DSGVO. Im Rahmen der gesetzlichen Voraussetzungen hast du insbesondere Rechte auf Auskunft, Berichtigung, Löschung, Einschränkung der Verarbeitung und Datenübertragbarkeit sowie ein Beschwerderecht bei einer Datenschutzaufsichtsbehörde."
           ]
@@ -200,7 +201,7 @@
       "essentialSummaryHeading": "Das Wichtigste zur Teilnahme",
       "essentialSummaryParagraphs": [
         "Dauer: etwa 30 Minuten",
-        "Freiwilligkeit: jederzeit ohne Nachteile abbrechbar",
+        "Freiwilligkeit: jederzeit unterbrechbar; unvollständige Teilnahmen werden nicht ausgewertet",
         "Datenschutz: pseudonymisierte Forschungsdaten; keine realen Passwörter oder Zugangsdaten; fiktive Passwörter werden nicht gespeichert",
         "Optionale Nachbefragung: etwa zwei Minuten nach ca. zehn Tagen"
       ]
@@ -208,7 +209,7 @@
     "followUpRecontact": {
       "optional": true,
       "consentLegend": "Optionale Nachbefragung",
-      "consentStatement": "Ich möchte etwa zehn Tage später per E-Mail zu einer freiwilligen, ungefähr zweiminütigen Nachbefragung eingeladen werden. Meine E-Mail-Adresse darf dafür getrennt von den Forschungsdaten gespeichert und ausschließlich für diese Einladung verwendet werden.",
+      "consentStatement": "Ich möchte etwa zehn Tage später per E-Mail zu einer freiwilligen, ungefähr zweiminütigen Nachbefragung eingeladen werden. Meine E-Mail-Adresse darf dafür getrennt von den Forschungsdaten gespeichert und ausschließlich für die Einladung und höchstens eine Erinnerung verwendet werden.",
       "emailLabel": "E-Mail-Adresse für die freiwillige Nachbefragung",
       "emailRequired": true,
       "emailNeverStoredInResearchDatabase": true,
@@ -224,10 +225,7 @@
         "paragraphs": [
           "Diese Studie vergleicht zwei digitale Lernangebote zu Passwörtern und zum Schutz von Online-Konten. Untersucht wird, wie sie wahrgenommen werden und wie zentrale Inhalte verstanden und auf Kontosituationen angewendet werden.",
           "Dass zwei Lernangebote verglichen werden, wurde zu Beginn nicht genannt, damit diese Information deine Bearbeitung und deine unmittelbaren Bewertungen möglichst wenig beeinflusst.",
-          "Zur Auflösung der letzten Fragen: Für jedes Konto wird ein eigenes starkes Passwort empfohlen. Passwortmanager können solche Passwörter erzeugen und verwalten. MFA/2FA ergänzt das Passwort um mindestens einen weiteren Faktor aus einer anderen Kategorie, ersetzt diese Empfehlung aber nicht.",
-          "Studie weiterempfehlen",
-          "Du kennst weitere Personen aus dem Hochschulbereich, die möglicherweise an der Studie teilnehmen möchten? Dann kannst du ihnen gerne den allgemeinen Studienaufruf oder den folgenden Link weiterleiten.",
-          "Die Weitergabe ist vollständig freiwillig. Bitte übermittle uns keine Namen oder Kontaktdaten anderer Personen. Damit ihre Bearbeitung nicht beeinflusst wird, erzähle ihnen bitte noch keine Einzelheiten zu den Aufgaben, Antwortmöglichkeiten oder der genauen Forschungsfrage."
+          "Zur Auflösung der letzten Fragen: Für jedes Konto wird ein eigenes starkes Passwort empfohlen. Passwortmanager können solche Passwörter erzeugen und verwalten. MFA/2FA ergänzt das Passwort um mindestens einen weiteren Faktor aus einer anderen Kategorie, ersetzt diese Empfehlung aber nicht."
         ],
         "actionLabel": "Sitzung abschließen"
       },
@@ -237,9 +235,6 @@
           "Diese Studie vergleicht zwei digitale Lernangebote zu Passwörtern und zum Schutz von Online-Konten. Untersucht wird, wie sie wahrgenommen werden und wie zentrale Inhalte verstanden und auf Kontosituationen angewendet werden.",
           "Dass zwei Lernangebote verglichen werden, wurde zu Beginn nicht genannt, damit diese Information deine Bearbeitung und deine unmittelbaren Bewertungen möglichst wenig beeinflusst.",
           "Zur Auflösung der letzten Fragen: Für jedes Konto wird ein eigenes starkes Passwort empfohlen. Passwortmanager können solche Passwörter erzeugen und verwalten. MFA/2FA ergänzt das Passwort um mindestens einen weiteren Faktor aus einer anderen Kategorie, ersetzt diese Empfehlung aber nicht.",
-          "Studie weiterempfehlen",
-          "Du kennst weitere Personen aus dem Hochschulbereich, die möglicherweise an der Studie teilnehmen möchten? Dann kannst du ihnen gerne den allgemeinen Studienaufruf oder den folgenden Link weiterleiten.",
-          "Die Weitergabe ist vollständig freiwillig. Bitte übermittle uns keine Namen oder Kontaktdaten anderer Personen. Damit ihre Bearbeitung nicht beeinflusst wird, erzähle ihnen bitte noch keine Einzelheiten zu den Aufgaben, Antwortmöglichkeiten oder der genauen Forschungsfrage.",
           "Vielen Dank für deine Teilnahme. Da du eine Einladung zur freiwilligen Nachbefragung gewählt hast, erhältst du ungefähr zehn Tage später eine E-Mail. Ob du dann teilnimmst, entscheidest du erneut freiwillig."
         ],
         "actionLabel": "Sitzung abschließen"

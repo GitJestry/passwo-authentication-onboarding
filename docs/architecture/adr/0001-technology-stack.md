@@ -29,4 +29,4 @@ SQLite halten den Studienbetrieb lokal und auditierbar.
   Desktop-App als einzigen produktiven Studienstart.
 - Keine Cloud-Datenbank und keine externen Analytics.
 - React Flow und Motion dürfen nur über Adaptergrenzen in die Domäne gelangen.
-- Abhängigkeitsupdates erfolgen bewusst und werden vor dem Study Freeze gestoppt.
+- Abhängigkeitsupdates erfolgen bewusst und werden vor dem Hauptstudien-Versions-Freeze gestoppt.

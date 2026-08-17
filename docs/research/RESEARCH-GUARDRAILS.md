@@ -59,10 +59,11 @@ werden.
 
 - Die E-Mail-Adresse ist freiwillig und keine Voraussetzung für die Hauptstudie.
 - E-Mail und Raw Token liegen ausschließlich in der getrennten Recontact Registry.
-- Die Follow-up-Fragen sind nicht Bestandteil der Training Runtime. Kanonische Quellen sind
+- Die Follow-up-Fragen sind nicht Bestandteil der Training Runtime. Sie laufen auf einer
+  tokenisierten Route desselben Study-Webdeployments. Kanonische Quellen sind
   `FOLLOW-UP-INSTRUMENT.md` und `research/derived/follow-up-v6.yaml`.
-- Einladung und Erinnerung enthalten keine Authentifizierungsempfehlung; das Follow-up ist kein
-  erneutes Training.
+- Einladung und höchstens eine Erinnerung enthalten keine Authentifizierungsempfehlung; das
+  Follow-up ist kein erneutes Training. Eine verzögerte Debrief-Mail entfällt.
 - Nichtantwort ist fehlend und wird nicht als keine Handlung codiert.
 - Passwort-, Passwortmanager- und MFA-Handlungen bleiben getrennt; es gibt keinen kombinierten
   Behavior Score.
@@ -81,7 +82,7 @@ werden.
 - Passwortmanager unterstützen einzigartige Passwörter, ersetzen deren Einzigartigkeit aber
   nicht.
 
-## Freeze-Regel
+## Hauptstudien-Versions-Freeze
 
 Vor der Hauptstudie werden Content, Referenzpfad, Instrumenttexte, Guardrail-Formen und Rubrik,
 separates Follow-up, Consent, Debrief, Timing, Persistenz und Export gemeinsam versioniert. Nach

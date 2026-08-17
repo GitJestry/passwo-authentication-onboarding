@@ -1,10 +1,18 @@
 # ADR 0008 — Operative Artefakt-Lease
 
-- **Status:** Accepted
+- **Status:** Für neue Hauptstudien-Websitzungen durch ADR 0016 ersetzt; lokal als Legacy erhalten
 - **Datum:** 2026-07-25
 - **Citation label:** `ADR 0008-Lease`
+- **Aktueller Geltungsbereich:** historische und derzeitige lokale Electron-Runtime
 
-## Entscheidung
+## Aktuelle Einordnung
+
+Für neue Hauptstudien-Websitzungen ist Schließen oder Neuladen des Browsers eine Unterbrechung und
+kein `incomplete-reload`. Wiederaufnahme und aktive Zeitintervalle richten sich nach
+`ADR 0016-Web-Resume-Lifecycle`. Die nachfolgende Lease bleibt nur dokumentiert, weil sie in der
+lokalen Runtime implementiert ist und historische Sitzungen interpretierbar bleiben müssen.
+
+## Historische Entscheidung
 
 Eine laufende Artefaktsitzung erhält zusätzlich zu den Forschungstimingevents eine getrennte
 operative Lease. Sie enthält nur die pseudonyme Session-ID, den letzten Heartbeat und einen

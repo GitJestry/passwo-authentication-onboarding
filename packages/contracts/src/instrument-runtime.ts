@@ -331,7 +331,7 @@ export const instrumentRuntimeManifestSchema = z
     instrumentVersion: z.literal('3.0.0-pilot'),
     questionnaireVersion: z.literal('questionnaire-v4-pilot'),
     guardrailVersion: z.literal('guardrail-v6-pilot'),
-    consentVersion: z.literal('consent-v12-pilot'),
+    consentVersion: z.literal('consent-v13-pilot'),
     followUpVersion: z.literal('follow-up-v6-pilot'),
     language: z.literal('de-DE'),
     participantTerm: participantTextSchema,
@@ -395,7 +395,7 @@ export const instrumentRuntimeManifestSchema = z
         'guardrail-v2': guardrailInstrumentSchema,
       })
       .strict(),
-    runtimeManifestVersion: z.literal('instrument-runtime-v8-pilot'),
+    runtimeManifestVersion: z.literal('instrument-runtime-v9-pilot'),
   })
   .strict();
 

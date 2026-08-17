@@ -1,34 +1,70 @@
 # Roadmap und aktueller Umsetzungsstand
 
-Die Meilensteine bleiben als Planungsrahmen erhalten, laufen aber nicht mehr strikt linear:
-Instrument- und Referenzarbeit aus M6 wurde bereits parallel zum noch unvollständigen
-Trainingsmodul umgesetzt.
+Die Roadmap unterscheidet zwischen bereits getroffenen Fachentscheidungen und noch ausstehender
+Implementierung. Frühere Platzhalter für Ethikfreigabe, externe Follow-up-Plattform, Antwortimport
+oder verzögerten Debrief-Versand sind keine aktuellen Projektgates. Das verbindliche Zielmodell für
+Webbetrieb, Wiederaufnahme und Datenabschluss steht in `ADR 0016-Web-Resume-Lifecycle`.
 
 | Meilenstein | Status | Stand / nächster Abschluss |
 |---|---|---|
 | M0 — Foundation und Scope Freeze | abgeschlossen | Repository, ADRs, Datengrenze, Studienfluss und Segmentindex stehen. |
-| M1 — Technischer Walking Skeleton | abgeschlossen | Session, verdeckte Zuweisung, SQLite, Timing, Reload-/Lease-Verhalten und Export sind implementiert. |
+| M1 — Lokaler technischer Walking Skeleton | abgeschlossen | Session, verdeckte Zuweisung, SQLite, Timing, Legacy-Lease und Export sind für die lokale Runtime implementiert. |
 | M2 — Visual Platform | abgeschlossen | BrowserShell, DesktopSurface, PassWoGuide, Animation-Handshake, Reduced Motion und Design Lab stehen. |
 | M3 — Knotennetzwerk | abgeschlossen | Frameworkfreie Szenenmodelle, React-Flow-Adapter, S02 und S06-Konsequenz-Fixtures stehen. |
-| M4 — Passwortmodul S03–S11 | teilweise | S03 bis S07 einschließlich lokaler Einzelanalyse, dynamischer Konsequenzsimulation und Auswertung sind integriert; S08–S11 fehlen. |
-| M5 — Passwortmanager und MFA S12–S17 | offen | Simulationen, Recovery-Grenzen, MFA und integrierte Abschlusskarte fehlen. |
-| M6 — Instrumente und Referenzartefakt | teilweise | Instrument 2.1, Guardrail-Formen, eingebettetes Referenzartefakt, PDF-Viewer, atomare Recontact-Registry, Schedule-Export und manueller Einzelversandprozess stehen. Cognitive Pretest, Ethik-/Datenschutzfreigabe, öffentliches Follow-up, Import und operativer finaler Debrief-Versand fehlen. |
-| M7 — Pretest und Hardening | offen | Technischer Smoke-Test am Studiengerät und 3–5 Pilotdurchläufe pro Bedingung stehen aus. |
-| M8 — Study Freeze | offen | Datenschutzkontakt, technische Schutzmaßnahmen und duale Exportprozedur sind dokumentiert. Versionen und Commit müssen nach Festlegung der konkreten Aufbewahrungs-/Löschfristen eingefroren werden. |
+| M4 — Passwortmodul S03–S11 | teilweise | S03 bis S07 sind integriert; S08 bis S11 sind noch fertigzustellen und fachlich zu prüfen. |
+| M5 — Passwortmanager und MFA S12–S17 | offen | Simulationen, Recovery-Grenzen, MFA und integrierter Abschluss fehlen. |
+| M6 — Instrumente und Referenzartefakt | teilweise | Pilotinstrument, Guardrail-Formen, Referenzartefakt, Zieltext der Teilnahmeinformation und Follow-up-Instrument stehen. Die Web-Consent-Fassung wird erst mit implementierter Wiederaufnahme freigegeben. Cognitive Pretest, zweite Inhaltsprüfung und Befundauflösung stehen aus. |
+| M7 — Webbetrieb und Follow-up | teilweise | Zielmodell ist entschieden. HTTPS-Deployment, sichere Wiederaufnahme, same-origin Follow-up-Route und der kontrollierte manuelle Versand-/Löschablauf sind noch umzusetzen und zu erproben. |
+| M8 — Hauptstudien-Versions-Freeze | offen | Nach vollständigem Training, Pilot und technischem Dry Run werden Commit, Inhalte, Instrumente, Referenzartefakt und Analyseplan eingefroren. |
+| M9 — Datensatz-Freeze und Anonymisierung | später operativ | Nach Datenerhebung und Follow-up werden nur abgeschlossene Runs übernommen, Zuordnungsinformationen entfernt, Arbeitskopien gelöscht und der anonyme Archivdatensatz gemäß `DATA-CONTRACT.md` erzeugt. |
 
 ## Nächste Abnahmetore
 
-1. S08 bis S11 mit Passwortüberarbeitung und Modulabschluss implementieren und fachlich
-   prüfen.
-2. S12 bis S17 integrieren und den vollständigen supportive Artefaktabschluss herstellen.
-3. Instrumente, neutrale Zwei-Teil-Kommunikation und Guardrail Content Audit gemäß den Kriterien in `MEASUREMENT-INSTRUMENT.md` im Cognitive Pretest prüfen.
-4. Follow-up-Formular und Token-Import umsetzen sowie den manuellen abschließenden
-   Debrief-Versand erproben.
-5. Pilotdurchläufe durchführen und anschließend den Study Freeze dokumentieren.
+1. S08 bis S17 fertigstellen und den vollständigen supportive Artefaktpfad fachlich prüfen.
+2. Webdeployment und Wiederaufnahme gemäß ADR 0016 implementieren; flüchtige Trainingswerte dürfen
+   dabei nicht persistiert werden.
+3. Die tokenisierte Follow-up-Route innerhalb derselben Webanwendung implementieren und den
+   manuellen Versand sowie die dokumentierte Kontaktlöschung einmal vollständig erproben.
+4. Cognitive Pretest, Pilotdurchläufe in beiden Bedingungen und die zweite qualifizierte
+   Inhaltsprüfung durchführen; konkrete Befunde dokumentiert auflösen.
+5. Completed-only-Auswahl, Timing mit Unterbrechungen, Analyseexport und die in
+   `DATA-CONTRACT.md` festgelegte Anonymisierungsprozedur in einem Dry Run prüfen.
+6. Danach den Hauptstudien-Versions-Freeze mit Commit, Versionsmanifest und Analyseplan
+   dokumentieren.
 
-## Unveränderte Gates
+## Noch umzusetzen, nicht erneut zu entscheiden
+
+- Die aktuelle lokale Runtime markiert Reloads noch über Lease/`incomplete-reload`. Für die
+  Hauptstudie wird dieser Pfad durch Resume-Cookie, inhaltsfreien Checkpoint und aktive
+  Timingintervalle ersetzt.
+- Der bestehende Analyseexport kann technische Statusfälle enthalten. Vor dem Versions-Freeze muss
+  die Completed-only-Auswahl im Export oder im verbindlichen Analyseskript technisch erzwungen sein.
+- Same-origin Follow-up-Abgabe, Tokenverbrauch und Kontaktlöschung sind noch zu implementieren
+  beziehungsweise als kontrollierter manueller Ablauf zu erproben.
+- Die Anonymisierungsprozedur ist fachlich festgelegt. Sie kann als kleiner kontrollierter
+  Export-/Löschbefehl oder als dokumentierter manueller Ablauf umgesetzt werden; eine große
+  Verwaltungsoberfläche ist nicht erforderlich.
+
+## Keine Projektgates
+
+Folgende Punkte sind entschieden und dürfen nicht erneut als offene Grundsatzentscheidung oder
+pauschaler Launch-Blocker geführt werden:
+
+- Für dieses Bachelorprojekt ist keine separate Ethikkommissionsfreigabe als Projektgate
+  vorgesehen. Das Repository behauptet keine solche Freigabe.
+- Es wird keine externe Follow-up-Plattform und kein manueller Antwortimport benötigt.
+- Es wird keine verzögerte Debrief-Mail versendet; das Debriefing erfolgt am Ende der Hauptsitzung.
+- Der kontrollierte manuelle E-Mail-Versand und die dokumentierte manuelle Kontaktlöschung sind das
+  akzeptierte Betriebsmodell; eine automatische Mail- oder Löschinfrastruktur ist nicht erforderlich.
+- Ein geschlossenes Browserfenster ist eine Unterbrechung, kein regulärer Abschluss. Es ist kein
+  zusätzlicher Teilnehmerbutton zum vorzeitigen Beenden erforderlich.
+
+## Unveränderte Forschungsgrenzen
 
 - Keine Produktions-„Passwortstärke“- oder Sicherheitsgarantie.
-- Keine Trainingsinputs oder lokalen Auswertungen in Forschungsdaten.
-- Beide Bedingungen verwenden dieselbe neutrale Einführung, Timingregel und denselben zweiten Studienteil.
-- Nach dem Study Freeze nur dokumentierte kritische Bugfixes mit Versionssprung.
+- Keine Trainingsinputs oder lokalen Passwortbefunde in Forschungsdaten.
+- Beide Bedingungen verwenden dieselbe neutrale Einführung, Timingregel und denselben zweiten
+  Studienteil.
+- Ausgewertet werden nur regulär abgeschlossene Runs.
+- Nach dem Hauptstudien-Versions-Freeze erfolgen nur dokumentierte kritische Bugfixes mit
+  Versionssprung.

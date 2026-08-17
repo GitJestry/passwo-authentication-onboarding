@@ -1,151 +1,196 @@
 # Data Contract
 
+Status: **kanonische Datengrenze und Datenlebenszyklus-Definition für die Hauptstudie.**
+Der Webbetrieb und die Wiederaufnahme sind in `ADR 0016-Web-Resume-Lifecycle` entschieden.
+
+## Begriffe
+
+- **Pseudonymisierte Arbeitsphase:** Ein Datensatz kann über getrennt gehaltene Zusatzinformationen
+  noch einer Sitzung oder Kontaktadresse zugeordnet werden. Das gilt auch dann, wenn Name und
+  E-Mail-Adresse nicht im Forschungsdatensatz stehen.
+- **Arbeits- oder Analyseexport:** Ein kontrollierter pseudonymisierter Export für Prüfung und
+  Auswertung. Er ist kein anonymer Datensatz und nicht zur öffentlichen Weitergabe bestimmt.
+- **Anonymer Archivdatensatz:** Der nach der unten festgelegten Prozedur erzeugte Datensatz, für den
+  keine Zuordnungsinformationen oder realistisch nutzbaren Identifikationsmittel mehr unter
+  Projektkontrolle bestehen. Nur dieser Datensatz wird zehn Jahre aufbewahrt.
+
+Das Entfernen offensichtlicher Identifikatoren allein reicht nicht für die Bezeichnung „anonym“.
+Die Entscheidung berücksichtigt deshalb auch Merkmalskombinationen, Zeitbezüge, Arbeitskopien und
+Backups. Grundlage dieser Begriffsverwendung sind Art. 4 Nr. 5 und Erwägungsgrund 26 DSGVO sowie die
+Abgrenzung von Pseudonymisierung und Anonymisierung durch den Europäischen Datenschutzausschuss.
+
 ## Datenklassen
 
-| Klasse | Beispiele | Persistenz |
+| Klasse | Beispiele | Persistenz und Zweck |
 |---|---|---|
-| Study identity | interne Session-UUID, zufällige nicht angezeigte Forschungs-/Studien-ID | `study.sqlite` |
-| Deletion lookup | ausschließlich SHA-256-Hash des flüchtigen Löschcodes | `study.sqlite` |
-| Assignment | Bedingung, Zuweisungsmodus, Guardrail-Form `F1` bis `F6` | `study.sqlite` |
-| Versioning | Study-, Content-, Fragebogen-, Guardrail-, Consent-, Follow-up- und Referenzversion | `study.sqlite` |
-| Timing | Phase, Abschnitt/Segment, Start/Ende, Dauer, technische Reason Codes | `study.sqlite` |
-| Main-session instruments | Pre, Post, Guardrail, Post-Guardrail-Self-Efficacy, retrospektive SecAware-Frage | `study.sqlite` |
-| Presentation | Form-ID und tatsächlich angezeigte Guardrail-Option-IDs | `study.sqlite` |
-| Completion | completed, incomplete-reload, technische Fehlerzustände | `study.sqlite` |
-| Follow-up linkage | optionale Einwilligung, Follow-up-Version, Token-Hash | `study.sqlite` |
-| Recontact | E-Mail, Raw Token, Token-Hash, Consent-Version, geplante Einladungs-/Erinnerungs-/Schließzeitpunkte | ausschließlich `recontact.sqlite` |
-| Externes Follow-up | getrennt ausgelieferte Antworten, später nur über zufällige Studien-ID pseudonym verknüpfbar | außerhalb der Haupt-Runtime |
-| Ephemeral participant data | Anzeigename, roher Löschcode | ausschließlich flüchtiger Rendererzustand |
-| Training input/diagnosis | fiktive Passwörter, Loginversuche, Findings, Ähnlichkeit | nie persistieren oder senden |
-| Sensitive real-world data | reale Konten, Passwörter, Tokens, Wiederherstellungscodes, Vorfälle | nie erheben |
-| Passive metadata | IP, User-Agent, Request-Bodies | nicht persistieren oder loggen |
+| Operative Session | interne Session-UUID, Status, Versionen | `study.sqlite`; Ablauf und Tabellenbeziehungen |
+| Forschungsfall | zufällige, nicht angezeigte Forschungs-ID | `study.sqlite`; pseudonyme Verknüpfung während der Arbeitsphase |
+| Löschzuordnung | ausschließlich SHA-256-Hash des flüchtigen Löschcodes | `study.sqlite`; Löschanfragen bis zur Anonymisierung |
+| Zuweisung | Bedingung, Zuweisungsmodus, Guardrail-Form `F1` bis `F6` | `study.sqlite` |
+| Instrumentdaten | Pre, Post, Guardrail, Self-Efficacy, retrospektive SecAware-Frage | `study.sqlite` |
+| Präsentation | Form-ID und tatsächlich angezeigte Guardrail-Option-IDs | `study.sqlite` |
+| Timing | Artefakt-Sitzungsintervalle, Abschnitt/Segment, Dauer, Sichtbarkeit, technische Reason Codes | `study.sqlite`; keine passive Aktivitätsüberwachung |
+| Fortschritt | stabiler inhaltsfreier Checkpoint | `study.sqlite`; Wiederaufnahme ohne Trainingswerte |
+| Rückkehrschlüssel | Hash und Ablaufzeit eines zufälligen Resume-Tokens | `study.sqlite`; nur operative Wiederaufnahme |
+| Follow-up-Verknüpfung | Einwilligung, Follow-up-Version, Token-Hash, Follow-up-Antworten | `study.sqlite`; pseudonyme Verbindung bis zur Anonymisierung |
+| Kontaktregister | E-Mail, Raw Token, Consent-Version, Versandzeitpunkte | ausschließlich getrennte `recontact.sqlite` |
+| Flüchtige Teilnehmerdaten | Anzeigename, roher Löschcode, Raw-Resume-Token | nur flüchtiger Zustand beziehungsweise `HttpOnly`-Cookie |
+| Trainingsinput und lokale Analyse | fiktive Passwörter, Passwortteile, Findings, Ähnlichkeit | nie persistieren oder senden |
+| Reale Sicherheitsdaten | reale Konten, Passwörter, Tokens, Wiederherstellungscodes, Vorfälle | nie erheben |
+| Passive Metadaten | IP, User-Agent, vollständige Request-Bodies | nicht persistieren oder in Anwendungslogs schreiben |
 
-## Forschungsdatenbank
+## Forschungsdatenbank und Kontaktregister
 
-`study.sqlite` enthält:
+`study.sqlite` enthält ausschließlich die für Studienablauf, pseudonyme Verknüpfung, Auswertung und
+spätere Löschung erforderlichen Daten. E-Mail-Adresse und Raw-Follow-up-Token sind dort verboten.
 
-- `study_sessions` für Session-UUID, Forschungs-ID, Löschcode-Hash, Zuweisung, Versionen,
-  optionale Follow-up-Einwilligung und Abschlussstatus;
-- `assignment_slots` und `guardrail_form_slots` für getrennte serverseitige Blockzuweisungen;
-- `timing_events` für idempotente Timingwrites;
-- `artifact_leases` nur für operative Reload-Erkennung;
-- `instrument_submissions` für atomare Blockabgaben und Payload-Fingerprints;
-- `responses` für validierte Antworten der Hauptsitzung;
-- `response_presentations` für tatsächlich dargestellte Guardrail-Optionen.
+`recontact.sqlite` wird nur bei freiwilliger Follow-up-Einwilligung befüllt. Sie enthält keine
+Bedingung, Antworten, Timings, Trainingsinputs oder PassWo-Befunde. Eine Person kann die Hauptstudie
+ohne E-Mail-Adresse vollständig abschließen.
 
-E-Mail, Raw Token und Recontact-Request-ID sind in `study.sqlite` verboten. `artifact_leases` sind
-keine Forschungsdaten und werden nicht exportiert.
+Haupt- und Follow-up-Antworten werden während der pseudonymisierten Arbeitsphase über die interne
+Session beziehungsweise Forschungs-ID verbunden. Die E-Mail-Adresse gelangt nie in einen
+Forschungs- oder Analyseexport.
 
-## Getrenntes Kontaktregister
+## Run-Lifecycle und Auswertungseinschluss
 
-`recontact.sqlite` wird nur angelegt beziehungsweise befüllt, wenn die Person die optionale
-Nachbefragung auswählt und eine gültige E-Mail-Adresse angibt. Es enthält ausschließlich die für
-den Kontaktprozess erforderliche Zuordnung. Eine Person kann ohne E-Mail-Adresse vollständig an
-der Hauptstudie teilnehmen.
+Neue Sitzungen beginnen als `in-progress`. Browser-Schließen oder Reload ist eine Unterbrechung und
+kein regulärer Abschluss. Bei Rückkehr vor `resumeCloseAt` wird der letzte bestätigte Checkpoint
+geöffnet; ein unterbrochener Schritt mit flüchtigen Trainingswerten beginnt erneut.
 
-Die Hauptdatenbank speichert nur den Token-Hash. Antworten aus Haupt- und Nachbefragung dürfen nur
-über die zufällige Studien-ID pseudonym zusammengeführt werden; die E-Mail-Adresse darf nie in den
-Forschungsdatensatz oder Analyseexport gelangen.
+Nur regulär `completed` Sitzungen gehen in die Hauptauswertung ein. Nicht abgeschlossene Sitzungen
+werden nicht als Nullantwort, Dropout-Outcome oder negatives Verhalten interpretiert. Sie bleiben
+bis zum Datensatz-Freeze pseudonymisiert, damit Wiederaufnahme und Löschanfragen möglich sind, und
+werden beim Datensatz-Freeze vollständig entfernt.
 
-Die E-Mail-Adresse ist nach Abschluss der Follow-up-Phase und dem letzten vorgesehenen Versand zu
-löschen. Der aktuelle manuelle Schedule-Export bestätigt keinen letzten erfolgreichen Versand.
-Automatische Löschung ist deshalb noch nicht implementiert; vor der Hauptstudie ist ein
-kontrollierter manueller Löschprozess oder eine zuverlässig quittierte Versand-/Löschlogik
-verbindlich festzulegen.
+Historische Statuswerte wie `incomplete-reload`, `participant-withdrawal` oder `technical-abort`
+bleiben für alte lokale Sitzungen lesbar. Sie erzeugen keinen automatischen Einschluss in die
+Hauptanalyse.
 
-## Kanonische Instrumentquellen
+## Kontrollierte Zeitpunkte
 
-- `research/derived/instruments-v1.yaml`: Forschungs- und Analysespezifikation;
-- `research/derived/instruments-v1.runtime.json`: geprüfte Teilnehmer-Runtime;
-- `packages/contracts/src/generated/instruments-v1.runtime.json`: identische eingebundene Kopie;
-- `research/derived/follow-up-v6.yaml`: getrenntes Follow-up-Instrument und Nachrichten.
+### Hauptstudien-Versions-Freeze
 
-Die Haupt-Runtime enthält nur `pre-v1`, `post-v1` und `guardrail-v2`. Es gibt keinen
-`post-open-v1`-Block und keinen offenen Kommentar. Follow-up-Fragen werden nicht in das
-Hauptstudien-Bundle importiert.
+Vor Rekrutierungsbeginn werden Code, Inhalte, Instrumente, Referenzartefakt und Analyseplan auf einen
+Commit und die zugehörigen Versionen festgelegt. Dies ist ein Software- und Methodik-Freeze, keine
+Anonymisierung.
 
-## Hauptstudienblöcke
+### Datenerhebungsschluss
 
-```text
-Pre sample
-→ Pre experience
-→ Artefakt
-→ PANAS
-→ perceived duration / duration fit
-→ UEQ-S
-→ UEQ+ Trustworthiness of Content
-→ design diagnostics
-→ risk proportionality / perceived understanding
-→ Guardrail scenarios
-→ Guardrail recognition
-→ post-guardrail self-efficacy
-→ retrospective SecAware exposure
-→ common debriefing
-→ completion
-```
+Die Studienleitung legt vor Rekrutierungsbeginn `resumeCloseAt` fest und dokumentiert diesen
+Zeitpunkt als Datenerhebungsschluss. Danach werden weder neue noch wiederaufgenommene
+Hauptsitzungen angenommen. Bereits eröffnete Follow-up-Fenster bleiben bis zu ihrem jeweiligen
+Schließzeitpunkt erreichbar.
 
-Der Client sendet jeweils einen vollständigen Block mit `instrumentId`, `sectionId` und der exakt
-erwarteten Itemmenge. Der Server validiert IDs, Typen, Wertebereiche, Pflichtfelder,
-Mehrfachauswahl-Exklusivität und Guardrail-Präsentation anhand der versionierten Runtime.
+### Kontaktlöschung
 
-Die erste gültige Submission wird transaktional gespeichert. Identische Wiederholung ist
-idempotent; ein abweichender zweiter Payload erzeugt einen Konflikt und überschreibt keine Daten.
-Klassifikationen und Scoring-Rubriken werden nicht an den Client ausgeliefert oder mit Antworten
-gespeichert.
+Spätestens sieben Kalendertage nach Schließung des letzten Follow-up-Fensters werden
+`recontact.sqlite`, lokale Schedule-Exporte, versandte Follow-up-Nachrichten im
+projektkontrollierten Postfach und sonstige projektkontrollierte Kontaktkopien gelöscht.
+Die Bestätigung enthält nur Datum, ausführende Person sowie Datensatzanzahl vor und nach der
+Löschung. E-Mail-Adressen und Tokens werden nicht in das Löschprotokoll übernommen.
 
-## Guardrail-Formen
+### Datensatz-Freeze und Anonymisierung
 
-Die Formen `F1` bis `F6` werden innerhalb jeder Bedingung in kleinen zufällig permutierten
-Sechserblöcken serverseitig zugewiesen. Form und tatsächliche Optionreihenfolge werden vor der
-Antwort persistiert und bleiben stabil. Der Client kann weder Condition noch Form bestimmen.
+Nach Schließung aller Follow-up-Fenster und Abschluss der Datensatzprüfung wird der Datensatz-Freeze
+manuell ausgelöst, spätestens 30 Kalendertage nach dem letzten Follow-up-Fenster. Gibt es keine
+Follow-up-Einwilligungen, gilt die Frist ab Datenerhebungsschluss.
 
-## Pseudonymisierung, Anonymisierung und Löschung
+Der dokumentierte Zeitpunkt heißt `anonymisedAt`. Ab diesem Zeitpunkt ist keine individuelle
+Löschung mehr möglich und die zehnjährige Aufbewahrungsfrist des anonymen Archivdatensatzes beginnt.
 
-Solange Haupt- und Follow-up-Antworten über die zufällige Studien-ID zugeordnet werden können,
-sind die Forschungsdaten pseudonymisiert, nicht anonym. Sie bleiben bis zum Abschluss der
-Datenauswertung und der abschließenden Prüfung des Datensatzes pseudonymisiert. Bis dahin kann eine
-Person unter Angabe des Löschcodes die zuordenbaren Daten löschen lassen.
+## Verbindliche Anonymisierungsprozedur
 
-Anschließend werden alle für eine individuelle Zuordnung verfügbaren Zusatzinformationen dauerhaft
-gelöscht und der verbleibende Forschungsdatensatz anonymisiert. Dazu gehören mindestens das
-Kontaktregister, Follow-up-Zuordnungen, Löschcode-Hashes und weitere technische oder inhaltliche
-Merkmale, die im konkreten Datensatz eine Zuordnung ermöglichen könnten. Die bereits verbundenen
-Haupt- und Follow-up-Antworten dürfen innerhalb eines anonymen Falls zusammenbleiben. Nach diesem
-Schritt ist eine individuelle Zuordnung und Löschung nicht mehr möglich.
+Der Datensatz darf erst nach Abschluss aller folgenden Schritte als anonym bezeichnet werden:
 
-Der rohe Löschcode wird clientseitig erzeugt und nicht gespeichert; in `study.sqlite` liegt bis zur
-Anonymisierung nur sein SHA-256-Hash. Die zufällige Forschungs-ID wird der Person nicht angezeigt.
+1. **Eingang sperren:** Keine neuen Sitzungen, Follow-up-Antworten oder Änderungen werden mehr in die
+   Arbeitsdaten übernommen. Versionen und Fallzahlen werden protokolliert.
+2. **Fallauswahl:** Vor der Löschung dürfen ausschließlich nicht personenbezogene aggregierte
+   Ablaufzahlen zu gestarteten, abgeschlossenen und unvollständigen Sitzungen festgehalten werden.
+   Danach werden alle nicht `completed` Sitzungen und ihre abhängigen Daten vollständig entfernt.
+   Follow-up-Nichtantwort bleibt bei completed Hauptsitzungen fehlend und wird nicht als Inaktivität
+   codiert.
+3. **Verknüpfung abschließen:** Zulässige Haupt- und Follow-up-Antworten werden vor Entfernung der
+   Zuordnungsmittel zusammengeführt.
+4. **Dauerwerte ableiten:** Erforderliche Dauern und Unterbrechungsflags werden berechnet. Absolute
+   Kalender-, Empfangs-, Registrierungs- und Versandzeitpunkte werden nicht in den Archivdatensatz
+   übernommen.
+5. **Neue Fall-IDs erzeugen:** Jeder verbleibende Fall erhält eine neu zufällig erzeugte
+   `analysis_case_id`. Es wird keine Zuordnungstabelle zwischen dieser ID und Session-, Forschungs-
+   oder Löschkennungen aufbewahrt.
+6. **Zuordnungsdaten entfernen:** Session-UUID, Forschungs-ID, Löschcode-Hash, Resume-Token-Hash,
+   Follow-up-Token-Hash, Request-IDs, Artefakt-Leases, Kontaktregister und sonstige operative
+   Verknüpfungsdaten werden gelöscht.
+7. **Inhaltsdaten minimieren:** Freitext wird nicht archiviert. Technische Fehlertexte werden auf
+   vorab definierte grobe Qualitätsflags reduziert. Nur für Reproduktion und Auswertung notwendige
+   Instrumentantworten, Versionen, Condition, Präsentationsreihenfolgen und abgeleitete Dauern
+   bleiben erhalten.
+8. **Merkmalskombinationen prüfen:** Hochschulrolle, Fachbereich, Altersgruppe, Vorerfahrung,
+   seltene technische Flags und auffällig präzise Dauerwerte gelten gemeinsam als potenzielle
+   Quasi-Identifikatoren. Kombinationen mit weniger als drei Fällen werden durch Zusammenfassung,
+   Rundung oder Weglassen der analytisch am wenigsten benötigten Variable vergröbert. Zusätzlich
+   wird geprüft, ob besonderes Rekrutierungswissen eine Person trotzdem realistisch erkennbar
+   machen könnte.
+9. **Arbeitskopien beseitigen:** Pseudonymisierte Datenbanken, Audit-/Analyseexporte, temporäre
+   Dateien und projektkontrollierte Backups werden gelöscht oder durch dokumentierte Ablaufregeln
+   vollständig aus der Wiederherstellung entfernt. Solange eine solche Kopie existiert, gilt der
+   Datenbestand nicht als anonym.
+10. **Ergebnis dokumentieren:** Ein nicht personenbezogenes Anonymisierungsprotokoll hält
+    `anonymisedAt`, Commit und Instrumentversionen, Fallzahlen vor und nach der Bereinigung,
+    vorgenommene Vergröberungen und die Prüfsumme des finalen Archivdatensatzes fest.
 
-Der anonymisierte Forschungsdatensatz wird geschützt auf universitären Systemen zehn Jahre
-aufbewahrt und anschließend endgültig gelöscht. Die technische Anonymisierungsprozedur ist vor der
-Hauptstudie als kontrollierter und überprüfbarer Verarbeitungsschritt zu dokumentieren.
+Die Drei-Fälle-Regel ist eine projektspezifische Mindestschwelle für die Archivfassung, keine
+allgemeine rechtliche Garantie. Die abschließende Bewertung bleibt kontextbezogen und bezieht die
+verfügbaren Zusatzinformationen und vorgesehenen Empfänger ein.
 
-## Timing
+Die Prozedur darf als kleiner kontrollierter CLI-/Exportablauf oder als dokumentierter manueller
+Vorgang umgesetzt werden. Sie benötigt keine Teilnehmeroberfläche, keinen automatischen Scheduler
+und kein allgemeines Datenverwaltungsportal. Entscheidend sind reproduzierbare Eingaben, die
+vollständige Entfernung der Zuordnungs- und Arbeitskopien sowie das abschließende Protokoll.
 
-- zentrale Artefaktdauer: Wall-Clock zwischen vorab definiertem Start- und Endereignis;
-- nicht als ununterbrochene aktive Beschäftigung interpretieren;
-- Reloads, technische Fehler und längere Unsichtbarkeit nach vorab festgelegten Regeln markieren;
-- Prototype-Segmentzeiten nur intern diagnostisch verwenden.
+## Aufbewahrung und Weitergabe
 
-Für die Referenzbedingung endet der gemessene administrierte Instruktionspfad unmittelbar vor dem
-ausgelassenen terminalen Knowledge Quiz.
+Der anonyme Archivdatensatz wird ab `anonymisedAt` zehn Jahre geschützt auf universitären Systemen
+aufbewahrt und anschließend gelöscht. Die ursprünglichen pseudonymisierten Datenbanken und
+Arbeitskopien gehören nicht zu dieser Zehnjahresaufbewahrung.
 
-## Export
+Der Archivdatensatz ist standardmäßig nicht öffentlich. Eine spätere Herausgabe an Dritte oder
+Veröffentlichung erfordert eine neue Offenlegungsprüfung, weil sich Identifikationsmöglichkeiten mit
+Empfängern und Zusatzwissen ändern können. Veröffentlichte Thesis-Tabellen und Abbildungen enthalten
+nur aggregierte Ergebnisse.
 
-Audit- und Analyseexporte schließen Session-ID, E-Mail, Löschcode, Raw Token, Trainingsinputs und
-Passwortdiagnosen aus. Der Analyseexport enthält nur erlaubte pseudonymisierte Forschungsfelder
-und die tatsächlich präsentierten Guardrail-Reihenfolgen. Follow-up-Einwilligung und
-Follow-up-Version dürfen als Verfahrensvariablen enthalten sein; sie machen die E-Mail-Adresse
-nicht zu einem Forschungsfeld.
+## Löschanfragen vor der Anonymisierung
+
+Der rohe Löschcode wird clientseitig erzeugt und weder serverseitig noch in Exporten gespeichert.
+Bis `anonymisedAt` kann die zugehörige pseudonymisierte Sitzung über seinen SHA-256-Hash gefunden und
+vollständig aus Forschungsdatenbank und Kontaktregister gelöscht werden.
+
+Die lokale Lösch-CLI bleibt standardmäßig ein Dry-Run; Schreiben erfordert `--confirm`. Bereits
+erzeugte Arbeits-Exporte und Backups werden im selben kontrollierten Vorgang separat berücksichtigt.
+Nach `anonymisedAt` existiert keine Zuordnung mehr, mit der ein einzelner Fall identifiziert oder
+individuell gelöscht werden könnte.
+
+## Exporte
+
+- **Auditprofil:** geschützte pseudonymisierte Nachweisfassung einschließlich technischer
+  Zeitpunkte; nur für Datenprüfung.
+- **Analyseprofil:** pseudonymisierte Arbeitsfassung ohne exakte Kalenderzeitpunkte; nur für
+  kontrollierte interne Auswertung. Der Analyseprozess selektiert ausschließlich `completed` Runs.
+- **Archivfassung:** Ergebnis der Anonymisierungsprozedur; neue `analysis_case_id`, keine
+  Zuordnungsmittel, vergröberte Hintergrunddaten und keine Arbeitskopien.
+
+Keines der beiden regulären Exportprofile ist allein durch seinen Dateinamen anonym.
 
 ## Verbotene Datenflüsse
 
 Unzulässig sind insbesondere:
 
 - Persistenz oder Übertragung realer oder fiktiver Passwortwerte, Passwortteile oder Findings;
-- Logging von Request-Bodies, Eingabewerten, IP-Adressen oder User-Agents;
-- E-Mail oder Raw Token in Forschungsantworten oder Exporten;
+- Logging von Request-Bodies, Eingabewerten, IP-Adressen, User-Agents oder Raw Tokens in
+  projektkontrollierten Anwendungs- und Access-Logs;
+- E-Mail, Raw Follow-up-Token oder Raw-Resume-Token in Forschungsantworten oder Exporten;
 - clientseitige Condition- oder Guardrail-Form-Wahl;
-- Auslieferung von Scoring-/Klassifikationsrubriken an Teilnehmende;
+- Auslieferung von Scoring- oder Klassifikationsrubriken an Teilnehmende;
 - Bündelung der Follow-up-Fragen mit Training oder Hauptfragebogen;
-- Bezeichnung pseudonym verknüpfbarer Daten als anonym.
+- Bezeichnung pseudonym verknüpfbarer Arbeitsdaten als anonym;
+- öffentliche Weitergabe des internen Analyseexports ohne neue Offenlegungsprüfung.

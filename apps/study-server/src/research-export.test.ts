@@ -203,10 +203,10 @@ describe('research export', () => {
     ].join('\n');
 
     expect(productionConsentText).toContain(
-      'bis zum Abschluss der Datenauswertung und der abschließenden Prüfung des Datensatzes pseudonymisiert',
+      'Bis zum Abschluss der Datenauswertung und Prüfung des Datensatzes bleiben die Forschungsdaten pseudonymisiert',
     );
     expect(productionConsentText).toContain(
-      'Anschließend werden alle Zuordnungsinformationen dauerhaft gelöscht',
+      'werden unvollständige Teilnahmen gelöscht und die Zuordnungsinformationen der abgeschlossenen Teilnahmen dauerhaft entfernt',
     );
     expect(productionConsentText).not.toMatch(
       /\[OFFEN|Sciebo|nach Studienende anonymisiert|einschließlich der Nachbefragung/u,

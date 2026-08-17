@@ -11,9 +11,12 @@ bytegleich sein.
 - Instrument: `3.0.0-pilot`
 - Fragebogen: `questionnaire-v4-pilot`
 - Guardrail: `guardrail-v6-pilot`
-- Einwilligung: `consent-v12-pilot`
+- Einwilligung: `consent-v13-pilot`
 - Follow-up: `follow-up-v6-pilot`
-- Runtime-Manifest: `instrument-runtime-v8-pilot`
+- Runtime-Manifest: `instrument-runtime-v9-pilot`
+
+`consent-v13-pilot` und `instrument-runtime-v9-pilot` sind das Zielmanifest für den Web-Pilot.
+Sie werden erst nach Umsetzung und Prüfung der Wiederaufnahme teilnehmerseitig freigegeben.
 
 ## Evidenzarchitektur
 
@@ -188,9 +191,11 @@ zugänglichen Ankern gerendert; Farbe ist nie der einzige Bedeutungsträger. PAN
 - kein Wissenszuwachs ohne Pretest;
 - keine kausale Zuschreibung an einzelne Foci oder Interfaceelemente.
 
-## Vor dem Hauptstudien-Freeze
+## Vor dem Hauptstudien-Versions-Freeze
 
 Erforderlich sind Cognitive Pretest, End-to-End-Pilot in beiden Bedingungen, zweite qualifizierte
 Prüfung von Artefaktaudit, Shared-Content-Matrix und Guardrail-Klassifikationen sowie dokumentierte
-Auflösung aller Befunde. Pilotpersonen werden nicht in die Hauptstudie aufgenommen und Pilotdaten
-nicht mit Hauptstudiendaten zusammengeführt.
+Auflösung konkreter Befunde. Diese Prüfung ist eine manuelle fachliche Research-QA-Aufgabe. Sie
+erfordert keine Runtime-Funktion und keine psychometrische Interrater-Studie. Pilotpersonen werden
+nicht in die Hauptstudie aufgenommen; Pilotdaten werden nicht mit Hauptstudiendaten
+zusammengeführt.

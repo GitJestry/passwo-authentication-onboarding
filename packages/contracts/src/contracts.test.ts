@@ -477,9 +477,9 @@ describe('research-safe contracts', () => {
       instrumentVersion: '3.0.0-pilot',
       questionnaireVersion: 'questionnaire-v4-pilot',
       guardrailVersion: 'guardrail-v6-pilot',
-      consentVersion: 'consent-v12-pilot',
+      consentVersion: 'consent-v13-pilot',
       followUpVersion: 'follow-up-v6-pilot',
-      runtimeManifestVersion: 'instrument-runtime-v8-pilot',
+      runtimeManifestVersion: 'instrument-runtime-v9-pilot',
     });
     expect(Object.keys(instrumentRuntimeManifest.instruments)).toEqual([
       'pre-v1',
