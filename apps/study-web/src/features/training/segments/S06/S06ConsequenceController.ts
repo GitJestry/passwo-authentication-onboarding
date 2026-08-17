@@ -38,7 +38,9 @@ import type { NetworkPresentationSnapshot } from '../../../../adapters/network/N
 import {
   createCanonicalPasswordView,
   createPersonalFindings,
+  isS05CharacterBoundary,
   projectCanonicalPasswordBlocks,
+  type S05PersonalCandidate,
   type S05VisualCategoryId,
 } from '../S05/S05ComponentStrategy.js';
 import {
@@ -54,7 +56,7 @@ export interface S06ConsequenceParticipantSnapshot {
   readonly generatedCandidate: string | null;
 }
 
-export type S06LocalReflectionMode = 'groups' | 'structure';
+export type S06LocalReflectionMode = 'groups' | 'structure' | 'personal';
 
 export interface S06LocalReflectionBlock {
   readonly id: string;
@@ -84,6 +86,7 @@ export interface S06LocalReflectionSnapshot {
   }[];
   readonly activeContentGroupId: string;
   readonly structureLinks: readonly S06LocalReflectionStructureLink[];
+  readonly personalCandidates: readonly S05PersonalCandidate[];
 }
 
 export interface S06ConsequenceControllerSnapshot {
@@ -787,6 +790,7 @@ function pendingLocalCheckNetwork(
 function createLocalReflection(
   accountId: S06AccountId,
   account: S06ConsequenceAccountInputs[S06AccountId],
+  personalCandidates?: readonly S05PersonalCandidate[],
 ): S06LocalReflectionSnapshot {
   const componentAnalysis = analyzeFictionalPassword({
     fictionalPassword: account.fictionalPassword,
@@ -796,9 +800,8 @@ function createLocalReflection(
       : { transientAccountIdentifiers: account.transientAccountIdentifiers }),
   });
   const canonicalView = createCanonicalPasswordView(account.fictionalPassword, componentAnalysis);
-  const personalFindings = createPersonalFindings(
-    canonicalView,
-    (account.semanticEvidence?.relations ?? []).flatMap((relation) =>
+  const existingPersonalCandidates = (account.semanticEvidence?.relations ?? []).flatMap(
+    (relation) =>
       relation.kind !== 'personal-context'
         ? []
         : relation.evidence.flatMap((evidence, index) =>
@@ -812,8 +815,9 @@ function createLocalReflection(
                   },
                 ],
           ),
-    ),
   );
+  const resolvedPersonalCandidates = personalCandidates ?? existingPersonalCandidates;
+  const personalFindings = createPersonalFindings(canonicalView, resolvedPersonalCandidates);
   const automaticFindings = [
     ...canonicalView.automaticFindings['common-components'],
     ...canonicalView.automaticFindings['account-context'],
@@ -868,6 +872,77 @@ function createLocalReflection(
     contentGroups: [{ id: 'content-group-1', blockIds: [] }],
     activeContentGroupId: 'content-group-1',
     structureLinks: [],
+    personalCandidates: resolvedPersonalCandidates,
+  };
+}
+
+function blocksOverlap(
+  left: Pick<S06LocalReflectionBlock, 'start' | 'end'>,
+  right: Pick<S06LocalReflectionBlock, 'start' | 'end'>,
+): boolean {
+  return left.start < right.end && right.start < left.end;
+}
+
+function blocksCoverRange(
+  blocks: readonly S06LocalReflectionBlock[],
+  range: Pick<S06LocalReflectionBlock, 'start' | 'end'>,
+): boolean {
+  let cursor = range.start;
+  for (const block of [...blocks].sort((left, right) => left.start - right.start)) {
+    if (!blocksOverlap(block, range)) continue;
+    if (block.start > cursor) return false;
+    cursor = Math.max(cursor, Math.min(block.end, range.end));
+    if (cursor >= range.end) return true;
+  }
+  return false;
+}
+
+function reprojectLocalReflection(
+  reflection: S06LocalReflectionSnapshot,
+  account: S06ConsequenceAccountInputs[S06AccountId],
+  personalCandidates: readonly S05PersonalCandidate[],
+): S06LocalReflectionSnapshot {
+  const projection = createLocalReflection(reflection.accountId, account, personalCandidates);
+  const oldBlocks = new Map(reflection.blocks.map((block) => [block.id, block]));
+  const contentGroups = reflection.contentGroups.map((group) => ({
+    ...group,
+    blockIds: projection.blocks
+      .filter((newBlock) =>
+        blocksCoverRange(
+          group.blockIds.flatMap((blockId) => {
+            const oldBlock = oldBlocks.get(blockId);
+            return oldBlock === undefined ? [] : [oldBlock];
+          }),
+          newBlock,
+        ),
+      )
+      .map(({ id }) => id),
+  }));
+  const structureLinks = reflection.structureLinks.flatMap(({ fromBlockId, toBlockId }) => {
+    const oldFrom = oldBlocks.get(fromBlockId);
+    const oldTo = oldBlocks.get(toBlockId);
+    if (oldFrom === undefined || oldTo === undefined) return [];
+    const fromBlock = [...projection.blocks]
+      .reverse()
+      .find((block) => blocksOverlap(oldFrom, block));
+    const toBlock = projection.blocks.find((block) => blocksOverlap(oldTo, block));
+    if (fromBlock === undefined || toBlock === undefined || fromBlock.end !== toBlock.start) {
+      return [];
+    }
+    return [{ fromBlockId: fromBlock.id, toBlockId: toBlock.id }];
+  });
+  return {
+    ...projection,
+    mode: reflection.mode,
+    contentGroups,
+    activeContentGroupId: reflection.activeContentGroupId,
+    structureLinks: structureLinks.filter(
+      (link, index, links) =>
+        links.findIndex(
+          (candidate) =>
+            candidate.fromBlockId === link.fromBlockId && candidate.toBlockId === link.toBlockId,
+        ) === index,
+    ),
   };
 }
 
@@ -1080,6 +1155,65 @@ export class S06ConsequenceController {
     this.#emit();
   }
 
+  addLocalPersonalCandidate(start: number, end: number): boolean {
+    const reflection = this.#snapshot.localReflection;
+    if (
+      this.#disposed ||
+      this.#snapshot.stage !== 'local-reflection' ||
+      reflection === null ||
+      reflection.mode !== 'personal' ||
+      !Number.isInteger(start) ||
+      !Number.isInteger(end) ||
+      start < 0 ||
+      start >= end ||
+      end > reflection.fictionalPassword.length ||
+      !isS05CharacterBoundary(reflection.fictionalPassword, start) ||
+      !isS05CharacterBoundary(reflection.fictionalPassword, end) ||
+      reflection.personalCandidates.some(
+        (candidate) => start < candidate.end && candidate.start < end,
+      )
+    ) {
+      return false;
+    }
+    const personalCandidates = [
+      ...reflection.personalCandidates,
+      { id: `s06-personal:${start}-${end}`, start, end },
+    ].sort((left, right) => left.start - right.start || left.end - right.end);
+    this.#snapshot = {
+      ...this.#snapshot,
+      localReflection: reprojectLocalReflection(
+        reflection,
+        this.#accountInputs[reflection.accountId],
+        personalCandidates,
+      ),
+    };
+    this.#emit();
+    return true;
+  }
+
+  removeLocalPersonalCandidate(candidateId: string): void {
+    const reflection = this.#snapshot.localReflection;
+    if (
+      this.#disposed ||
+      this.#snapshot.stage !== 'local-reflection' ||
+      reflection === null ||
+      reflection.mode !== 'personal'
+    ) {
+      return;
+    }
+    const personalCandidates = reflection.personalCandidates.filter(({ id }) => id !== candidateId);
+    if (personalCandidates.length === reflection.personalCandidates.length) return;
+    this.#snapshot = {
+      ...this.#snapshot,
+      localReflection: reprojectLocalReflection(
+        reflection,
+        this.#accountInputs[reflection.accountId],
+        personalCandidates,
+      ),
+    };
+    this.#emit();
+  }
+
   selectLocalReflectionGroup(groupId: string): void {
     const reflection = this.#snapshot.localReflection;
     if (
@@ -1179,7 +1313,26 @@ export class S06ConsequenceController {
     const reflection = this.#snapshot.localReflection;
     if (this.#disposed || this.#snapshot.stage !== 'local-reflection' || reflection === null) return;
     const account = this.#accountInputs[reflection.accountId];
-    const semanticEvidence = semanticEvidenceForReflection(reflection, account.semanticEvidence);
+    const personalRelation =
+      reflection.personalCandidates.length === 0
+        ? []
+        : [
+            {
+              id: `semantic:s06:${reflection.accountId}:personal`,
+              kind: 'personal-context' as const,
+              evidence: reflection.personalCandidates.map(({ start, end }) => ({
+                type: 'span' as const,
+                start,
+                end,
+                token: reflection.fictionalPassword.slice(start, end),
+              })),
+            },
+          ];
+    const semanticEvidence = semanticEvidenceForReflection(reflection, {
+      kind: 'transient-password-semantic-evidence',
+      confirmed: true,
+      relations: personalRelation,
+    });
     this.#accountInputs = {
       ...this.#accountInputs,
       [reflection.accountId]: { ...account, semanticEvidence },

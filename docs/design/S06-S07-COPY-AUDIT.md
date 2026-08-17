@@ -1,5 +1,34 @@
 # S06--S07 Copy Audit
 
+## Copy- und Darstellungsdelta S06 persönliche Bereiche, 17. August 2026
+
+Quelle ist der ausdrückliche Nutzerauftrag vom 17. August 2026. Unter `Struktur` ergänzt die
+lokale Passwortreflexion den rosa umrandeten Modus `Persönliches`. Er zeigt das fiktive Passwort
+als zusammenhängende Zeichenkette und erlaubt dieselbe flüchtige Bereichsauswahl wie S05. Beim
+Verlassen werden persönliche Grenzen in die bestehende Bausteinprojektion übernommen; vorhandene
+Gruppen und Strukturpfeile werden nur auf weiterhin überlappende beziehungsweise angrenzende
+Bausteine abgebildet. Eine entfernte Grenze hinterlässt deshalb keine ungültige Referenz.
+
+Persönliche Bereiche erhalten die bestehende rosa-violette Kategoriefläche, solange keine
+Gruppe den Baustein ausgewählt hat. Eine Gruppenfläche hat Darstellungspriorität; das untere
+Label `Persönliche Angabe` bleibt als zusätzlicher, nicht ausschließlich farblicher
+Bedeutungsträger sichtbar. Angaben bleiben flüchtig und werden weder persistiert noch exportiert.
+Analyseverträge, Studien-Timing und Ablauf bleiben unverändert.
+`S06_CONSEQUENCE_CONTENT_VERSION` steigt von `2.22.0` auf `2.24.0`.
+
+Der präzisierende Nutzerauftrag vom selben Tag begrenzt die persönliche Zeichenkettenansicht auf
+die bestehende Passwortfläche und lässt deren Hintergrund transparent. `Gruppe` und `Struktur`
+stehen gleichrangig nebeneinander; `Persönliches` folgt darunter über die gemeinsame Breite statt
+als zweite Hälfte neben `Struktur`. Der kleine, durchscheinende Button `Übernehmen` beendet die
+persönliche Auswahl. Der direkte Wechsel zu Gruppe oder Struktur übernimmt denselben flüchtigen
+Zwischenstand ebenfalls.
+
+| Segment und Text-ID | Aktueller Text | Geplanter Text | Primäre Rolle | Interaktionsziel | Grund und Bedeutungsänderung | Hervorhebung |
+|---|---|---|---|---|---|---|
+| `S06.page.localReflection.personalMode` | nicht vorhanden | `Persönliches` | Navigation | flüchtige persönliche Bereichsauswahl | ausdrücklich benannte neue Moduswahl; begrenzt | rosa Umrandung und aktiver Zustand |
+| `S06.page.localReflection.personalSelectionLabel` | nicht vorhanden | `Persönliche Angaben im fiktiven Passwort markieren` | Navigation (barrierefreier Name) | Zeichenbereich im fiktiven Passwort | eindeutige Handlungszuordnung für Tastatur und Assistenztechnik; begrenzt | keine |
+| `S06.page.localReflection.personalApply` | nicht vorhanden | `Übernehmen` | Navigation | persönliche Auswahl übernehmen und zur Gruppenansicht wechseln | ausdrücklich verlangte sichtbare Bestätigung; begrenzt | kleiner durchscheinender Button |
+
 ## Darstellungsdelta S06 Gruppenflächen statt Kategorieflächen, 17. August 2026
 
 Quelle ist der ausdrückliche Nutzerauftrag vom 17. August 2026. Die Bausteine der lokalen

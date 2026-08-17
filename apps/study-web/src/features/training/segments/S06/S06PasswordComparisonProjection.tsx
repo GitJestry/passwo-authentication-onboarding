@@ -45,7 +45,7 @@ function clamp(value: number, minimum: number, maximum: number): number {
 
 function comparisonPasswordScale(value: string): number {
   const characterCount = Math.max(Array.from(value).length, 1);
-  return Math.min(1, 16 / characterCount);
+  return Math.max(0.66, Math.min(1.12, 18 / characterCount));
 }
 
 function sortedEvidence(evidence: readonly PasswordEvidenceSpan[]): readonly PasswordEvidenceSpan[] {

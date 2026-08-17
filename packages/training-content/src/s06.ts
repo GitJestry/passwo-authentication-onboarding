@@ -55,17 +55,16 @@ export interface S06NarrationContent {
   readonly body: string;
 }
 
-export const S06_CONSEQUENCE_CONTENT_VERSION = '2.22.0';
+export const S06_CONSEQUENCE_CONTENT_VERSION = '2.24.0';
 
 export const s06ConsequenceContent = {
   version: S06_CONSEQUENCE_CONTENT_VERSION,
   source: {
     document: 'research/private/training-script.pdf',
     internalPages: [36, 37, 38, 39, 40, 41, 42, 43, 44] as const,
-    revision:
-      'Userauftrag vom 2026-08-17 · bedingte Überleitung zu Campus E-Mail ergänzt',
+    revision: 'Userauftrag vom 2026-08-17 · persönliche Bereichsauswahl ergänzt',
     copyReference:
-      'docs/design/S06-S07-COPY-AUDIT.md#copy--und-ablaufdelta-s06-kompakter-sprechablauf-17-august-2026',
+      'docs/design/S06-S07-COPY-AUDIT.md#copy--und-darstellungsdelta-s06-persönliche-bereiche-17-august-2026',
   },
   segment: {
     id: 'S06',
@@ -101,6 +100,9 @@ export const s06ConsequenceContent = {
       groupLabel: 'Gruppe',
       newGroup: 'Neue Gruppe',
       structureMode: 'Struktur',
+      personalMode: 'Persönliches',
+      personalSelectionLabel: 'Persönliche Angaben im fiktiven Passwort markieren',
+      personalApply: 'Übernehmen',
       passwordTitles: {
         'master-campus': 'Master Campus-Passwort',
         'campus-email': 'Campus E-Mail-Passwort',

@@ -1,6 +1,7 @@
-import { s06ConsequenceContent } from '@passwo/training-content';
+import { s05Content, s06ConsequenceContent } from '@passwo/training-content';
 import { type CSSProperties, type ReactNode, useState } from 'react';
 import { NetworkSymbol } from '../../../../adapters/network/NetworkSymbolRegistry.js';
+import { PasswordBuildingBlocks } from '../S05/PasswordBuildingBlocks.js';
 import type {
   S06LocalReflectionMode,
   S06LocalReflectionSnapshot,
@@ -11,6 +12,10 @@ const groupColors = ['#5b5fef', '#c15ca8', '#238c83', '#ba7437'] as const;
 
 interface GroupColorStyle extends CSSProperties {
   readonly '--s06-reflection-group-color': string;
+}
+
+interface PasswordScaleStyle extends CSSProperties {
+  readonly '--s06-reflection-password-scale': string;
 }
 
 function structureLinkExists(
@@ -52,6 +57,8 @@ export function S06LocalPasswordReflection({
   onGroupSelect,
   onGroupAdd,
   onBlockToggle,
+  onPersonalCreate,
+  onPersonalRemove,
   onFinish,
 }: {
   readonly reflection: S06LocalReflectionSnapshot;
@@ -60,6 +67,8 @@ export function S06LocalPasswordReflection({
   readonly onGroupSelect: (groupId: string) => void;
   readonly onGroupAdd: () => void;
   readonly onBlockToggle: (blockId: string) => void;
+  readonly onPersonalCreate: (start: number, end: number) => boolean;
+  readonly onPersonalRemove: (candidateId: string) => void;
   readonly onFinish: () => void;
 }) {
   const [hoveredBlockId, setHoveredBlockId] = useState<string | null>(null);
@@ -69,6 +78,12 @@ export function S06LocalPasswordReflection({
     reflection.accountId === 'campusgram'
       ? content.passwordLabel
       : content.passwordTitles[reflection.accountId];
+  const characterCount = Math.max([...reflection.fictionalPassword].length, 1);
+  const passwordScaleStyle: PasswordScaleStyle = {
+    '--s06-reflection-password-scale': String(
+      Math.max(0.62, Math.min(1, 20 / characterCount)),
+    ),
+  };
   return (
     <section
       className={styles.reflection}
@@ -82,8 +97,39 @@ export function S06LocalPasswordReflection({
         </span>
         {passwordTitle}
       </h2>
-      <div className={styles.password} aria-label={reflection.fictionalPassword}>
-        {(() => {
+      <div
+        className={styles.password}
+        data-mode={reflection.mode}
+        aria-label={reflection.fictionalPassword}
+        style={passwordScaleStyle}
+      >
+        {reflection.mode === 'personal' ? (
+          <div className={styles.personalPassword}>
+            <PasswordBuildingBlocks
+              value={reflection.fictionalPassword}
+              parts={[...reflection.fictionalPassword]}
+              display="decomposed"
+              appearance="analysis"
+              continuous
+              animate
+              categoryIds={[...reflection.fictionalPassword].map(() => [])}
+              rangeSelection={{
+                candidates: reflection.personalCandidates,
+                onCreate: onPersonalCreate,
+                onRemove: onPersonalRemove,
+                status: s05Content.componentStrategy.personalDetails.selectionStatus,
+              }}
+              ariaLabel={content.personalSelectionLabel}
+            />
+            <button
+              type="button"
+              className={styles.applyPersonal}
+              onClick={() => onModeChange('groups')}
+            >
+              {content.personalApply}
+            </button>
+          </div>
+        ) : (() => {
           const rendered: ReactNode[] = [];
           const tokenFor = (index: number): ReactNode => {
             const block = reflection.blocks[index];
@@ -124,6 +170,9 @@ export function S06LocalPasswordReflection({
                   data-categories={block.categoryIds.join(' ')}
                   data-repetition={block.repeated || undefined}
                   data-group-selected={groupSelected || undefined}
+                  data-personal-selected={
+                    (!groupSelected && block.categoryIds.includes('personal-details')) || undefined
+                  }
                   data-structure-selected={structureConnected || undefined}
                   aria-pressed={
                     reflection.mode === 'groups' ? groupSelected : outgoingLinkActive
@@ -227,54 +276,67 @@ export function S06LocalPasswordReflection({
         {interactive ? (
           <div className={styles.modes}>
             <strong>{content.modeLabel}</strong>
-            <div className={styles.groupControl}>
-              <div className={styles.groupList}>
-                {reflection.contentGroups.map((group, groupIndex) => {
-                  const groupStyle: GroupColorStyle = {
-                    '--s06-reflection-group-color':
-                      groupColors[groupIndex % groupColors.length] ?? groupColors[0],
-                  };
-                  return (
+            <div className={styles.modeControls}>
+              <div className={styles.primaryModes}>
+                <div className={styles.groupControl}>
+                  <div className={styles.groupList}>
+                    {reflection.contentGroups.map((group, groupIndex) => {
+                      const groupStyle: GroupColorStyle = {
+                        '--s06-reflection-group-color':
+                          groupColors[groupIndex % groupColors.length] ?? groupColors[0],
+                      };
+                      return (
+                        <button
+                          type="button"
+                          className={styles.groupButton}
+                          style={groupStyle}
+                          data-active={
+                            (reflection.mode === 'groups' &&
+                              reflection.activeContentGroupId === group.id) || undefined
+                          }
+                          aria-pressed={
+                            reflection.mode === 'groups' &&
+                            reflection.activeContentGroupId === group.id
+                          }
+                          onClick={() => onGroupSelect(group.id)}
+                          key={group.id}
+                        >
+                          {content.groupLabel} {groupIndex + 1}
+                        </button>
+                      );
+                    })}
                     <button
                       type="button"
-                      className={styles.groupButton}
-                      style={groupStyle}
-                      data-active={
-                        (reflection.mode === 'groups' &&
-                          reflection.activeContentGroupId === group.id) || undefined
-                      }
-                      aria-pressed={
-                        reflection.mode === 'groups' &&
-                        reflection.activeContentGroupId === group.id
-                      }
-                      onClick={() => onGroupSelect(group.id)}
-                      key={group.id}
+                      className={styles.addGroup}
+                      aria-label={content.newGroup}
+                      disabled={!canAddGroup}
+                      onClick={onGroupAdd}
                     >
-                      {content.groupLabel} {groupIndex + 1}
+                      <span aria-hidden="true">+</span>
+                      <small>{content.newGroup}</small>
                     </button>
-                  );
-                })}
+                  </div>
+                </div>
                 <button
                   type="button"
-                  className={styles.addGroup}
-                  aria-label={content.newGroup}
-                  disabled={!canAddGroup}
-                  onClick={onGroupAdd}
+                  data-active={reflection.mode === 'structure' || undefined}
+                  aria-pressed={reflection.mode === 'structure'}
+                  disabled={reflection.blocks.length < 2}
+                  onClick={() => onModeChange('structure')}
                 >
-                  <span aria-hidden="true">+</span>
-                  <small>{content.newGroup}</small>
+                  {content.structureMode}
                 </button>
               </div>
+              <button
+                type="button"
+                className={styles.personalMode}
+                data-active={reflection.mode === 'personal' || undefined}
+                aria-pressed={reflection.mode === 'personal'}
+                onClick={() => onModeChange('personal')}
+              >
+                {content.personalMode}
+              </button>
             </div>
-            <button
-              type="button"
-              data-active={reflection.mode === 'structure' || undefined}
-              aria-pressed={reflection.mode === 'structure'}
-              disabled={reflection.blocks.length < 2}
-              onClick={() => onModeChange('structure')}
-            >
-              {content.structureMode}
-            </button>
             <button type="button" className={styles.finish} onClick={onFinish}>
               {s06ConsequenceContent.page.finish}
             </button>

@@ -110,6 +110,7 @@
   justify-self: center;
   margin-top: clamp(var(--space-3), 3.5cqb, var(--space-7));
   color: #f4f4f6;
+  transform: translateY(8rem);
 }
 
 .finalPasswordStructure {
@@ -4887,6 +4888,9 @@
 }
 
 .canonicalPassword {
+  --size-password-building-block-font: 2.25rem;
+  --size-password-continuous-font: 2.3rem;
+
   display: grid;
   width: min(54rem, 100%);
   min-width: 0;

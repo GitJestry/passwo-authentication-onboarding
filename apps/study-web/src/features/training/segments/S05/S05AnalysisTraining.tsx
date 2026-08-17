@@ -669,6 +669,10 @@ function CanonicalPasswordView({
       `${value}: ${blockFindings.map(({ label }) => label).join(', ')}`,
     );
   const selectionCharacters = [...view.password];
+  const canonicalPasswordScale = Math.max(
+    0.68,
+    Math.min(1.08, 20 / Math.max(selectionCharacters.length, 1)),
+  );
   const hasReleasedFindings = visibleFindings.length > 0;
   const parts = selectingPersonalDetails
     ? selectionCharacters
@@ -692,6 +696,7 @@ function CanonicalPasswordView({
         <PasswordBuildingBlocks
           value={view.password}
           visualReferenceValue={view.password}
+          visualScale={canonicalPasswordScale}
           parts={parts}
           display="decomposed"
           appearance="analysis"
