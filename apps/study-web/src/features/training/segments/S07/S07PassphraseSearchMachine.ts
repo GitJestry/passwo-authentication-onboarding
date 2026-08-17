@@ -13,14 +13,14 @@ export interface S07AccountFeedback {
   readonly accountId: S07RemainingAccountId;
   readonly connectionAccountIds: readonly S01AccountId[];
   readonly kind: S07AccountFeedbackKind;
-  readonly requiresPassphraseChange: boolean;
+  readonly recommendedForChange: boolean;
 }
 
-export function s07AccountsRequiringPassphraseChange(
+export function s07RecommendedResolutionAccountIds(
   feedback: readonly S07AccountFeedback[],
 ): readonly S07RemainingAccountId[] {
   return feedback
-    .filter(({ requiresPassphraseChange }) => requiresPassphraseChange)
+    .filter(({ recommendedForChange }) => recommendedForChange)
     .map(({ accountId }) => accountId);
 }
 
@@ -42,18 +42,18 @@ export function deriveS07AccountFeedback(
         result.relation.kind !== 'no-derived-path-recognized',
     );
 
-  const requiredChanges = new Set<S07RemainingAccountId>(
+  const recommendedChanges = new Set<S07RemainingAccountId>(
     remainingAccountIds.filter((accountId) => isEasyToGuess(accountId)),
   );
   for (const accountId of remainingAccountIds) {
-    if (hasRecognizedConnection(accountId, 'campusgram')) requiredChanges.add(accountId);
+    if (hasRecognizedConnection(accountId, 'campusgram')) recommendedChanges.add(accountId);
   }
 
   if (
     hasRecognizedConnection('master-campus', 'campus-email') &&
-    !remainingAccountIds.some((accountId) => requiredChanges.has(accountId))
+    !remainingAccountIds.some((accountId) => recommendedChanges.has(accountId))
   ) {
-    requiredChanges.add('master-campus');
+    recommendedChanges.add('master-campus');
   }
 
   return remainingAccountIds.flatMap((accountId): readonly S07AccountFeedback[] => {
@@ -74,7 +74,7 @@ export function deriveS07AccountFeedback(
             : easyToGuess
               ? 'similar-guessable'
               : 'strong-similar',
-        requiresPassphraseChange: requiredChanges.has(accountId),
+        recommendedForChange: recommendedChanges.has(accountId),
       },
     ];
   });

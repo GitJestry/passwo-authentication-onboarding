@@ -9,7 +9,7 @@ import { S08_NETWORK_REPLAY_CONTENT_VERSION, s08NetworkReplayContent } from './s
 import { S09_PASSWORD_SUMMARY_CONTENT_VERSION, s09PasswordSummaryContent } from './s09.js';
 
 const s06AttackFlowCopyReference =
-  'docs/design/S06-S07-COPY-AUDIT.md#copy-und-analysedelta-s06-gerichtete-begrenzte-variantenwege-17-august-2026';
+  'docs/design/S06-S07-COPY-AUDIT.md#copy-und-analysedelta-s06-strukturorientierte-bausteinersetzung-17-august-2026';
 const s07EntryCopyReference =
   'docs/design/S06-S07-COPY-AUDIT.md#copy-und-ablaufdelta-s07-passphraseneinstieg-in-zwei-schritten-17-august-2026';
 const s08CopyReference =
@@ -19,7 +19,7 @@ const s09CopyReference =
 
 describe('S06 transition and S07 passphrase-search copy traceability', () => {
   it('keeps S06 consequence wording aligned with bounded whole-password recognition', () => {
-    expect(S06_CONSEQUENCE_CONTENT_VERSION).toBe('2.25.0');
+    expect(S06_CONSEQUENCE_CONTENT_VERSION).toBe('2.26.0');
     expect(s06ConsequenceContent.source.copyReference).toBe(s06AttackFlowCopyReference);
     expect(s06ConsequenceContent.page.attackStart).toBe('Angriff starten');
     expect(s06ConsequenceContent.page.finish).toBe('Fertig');
@@ -108,6 +108,17 @@ describe('S06 transition and S07 passphrase-search copy traceability', () => {
         'Das gleiche Wiederholungsmuster wurde mit einem anderen Zeichen verwendet.',
       'leading-or-trailing-component-removed':
         'Ein vollständiger vorangestellter oder angehängter Bestandteil wurde entfernt.',
+      'bounded-component-replaced':
+        'Ein einzelner klar abgegrenzter Bestandteil wurde innerhalb desselben Musters ausgetauscht.',
+      'component-replacement-with-small-surface-changes':
+        'Ein einzelner klar abgegrenzter Bestandteil und bis zu drei kleine typische Merkmale wurden verändert.',
+      'bounded-surface-changes': 'Bis zu drei kleine typische Veränderungen wurden kombiniert.',
+      'account-term-with-small-surface-changes':
+        'Der Konto- oder Dienstbegriff und bis zu drei kleine typische Merkmale wurden verändert.',
+      'repeated-pattern-with-small-surface-changes':
+        'Das Wiederholungsmuster und bis zu drei kleine typische Merkmale wurden verändert.',
+      'component-removal-with-small-surface-changes':
+        'Ein vollständiger Randbestandteil und bis zu drei kleine typische Merkmale wurden verändert.',
     });
     const previewFixture = s06ConsequenceContent.fixtures.find(
       ({ id }) => id === 'reuse-and-derived',

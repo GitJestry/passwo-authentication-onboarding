@@ -51,7 +51,7 @@ import {
 import { S07PassphraseSearchTraining } from '../features/training/segments/S07/S07PassphraseSearchTraining.js';
 import {
   deriveS07AccountFeedback,
-  s07AccountsRequiringPassphraseChange,
+  s07RecommendedResolutionAccountIds,
   type S07AccountFeedback,
   type S07RemainingAccountId,
 } from '../features/training/segments/S07/S07PassphraseSearchMachine.js';
@@ -116,7 +116,7 @@ function S07ToS09QaPreview({
   const [stage, setStage] = useState<
     's07' | 's08' | 's09' | 'manager-transition'
   >(initialStage);
-  const [completedAffectedAccountIds, setCompletedAffectedAccountIds] = useState<
+  const [completedRecommendedAccountIds, setCompletedRecommendedAccountIds] = useState<
     readonly S07RemainingAccountId[] | null
   >(null);
   const platform = readDesktopPlatform();
@@ -124,9 +124,9 @@ function S07ToS09QaPreview({
   if (stage !== 's07') {
     return (
       <S08NetworkRewindStage
-        affectedAccountIds={
-          completedAffectedAccountIds ??
-          s07AccountsRequiringPassphraseChange(accountFeedback)
+        recommendedAccountIds={
+          completedRecommendedAccountIds ??
+          s07RecommendedResolutionAccountIds(accountFeedback)
         }
         network={network}
         plan={plan}
@@ -141,8 +141,8 @@ function S07ToS09QaPreview({
       accountFeedback={accountFeedback}
       campusgramPassword={campusgramPassword}
       displayName="Vorschau"
-      onComplete={(affectedAccountIds) => {
-        setCompletedAffectedAccountIds(affectedAccountIds);
+      onComplete={(recommendedAccountIds) => {
+        setCompletedRecommendedAccountIds(recommendedAccountIds);
         setStage('s08');
       }}
       platform={platform}

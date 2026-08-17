@@ -37,28 +37,29 @@ import {
   createS08ProtectionRiskModel,
   createS09ScalingComparisonResults,
   createS09ScalingRiskNetwork,
+  s08AccountHasOpenActionNeed,
+  s08HasOpenActionNeed,
   type S08ProtectionRiskModel,
   staticNetworkPresentation,
 } from '../account-network.js';
 import styles from './S08NetworkRewindStage.module.css';
 
-export type S08AffectedAccountId = Exclude<S06AccountId, 'campusgram'>;
+export type S08ChangeableAccountId = Exclude<S06AccountId, 'campusgram'>;
 
 interface S08Context {
-  readonly affectedAccountIds: readonly S08AffectedAccountId[];
   readonly initialStage: 's08' | 's09' | 'manager-transition';
   readonly phaseDurationMs: number;
   readonly protectionResolutionDurationMs: number;
   readonly reductionDurationMs: number;
-  readonly protectedAccountIds: readonly S08AffectedAccountId[];
-  readonly resolvingAccountId: S08AffectedAccountId | null;
+  readonly protectedAccountIds: readonly S08ChangeableAccountId[];
+  readonly resolvingAccountId: S08ChangeableAccountId | null;
   readonly riskModel: S08ProtectionRiskModel;
 }
 
 type S08Event =
   | {
       readonly type: 'PROTECT_WITH_UNIQUE_PASSPHRASE';
-      readonly accountId: S08AffectedAccountId;
+      readonly accountId: S08ChangeableAccountId;
     }
   | { readonly type: 'TRIANGLE_ANIMATION_COMPLETE' }
   | { readonly type: 'ANSWER_SELECTED' }
@@ -70,7 +71,7 @@ const s08Machine = setup({
     context: {} as S08Context,
     events: {} as S08Event,
     input: {} as {
-      readonly affectedAccountIds: readonly S08AffectedAccountId[];
+      readonly recommendedAccountIds: readonly S08ChangeableAccountId[];
       readonly initialStage: 's08' | 's09' | 'manager-transition';
       readonly phaseDurationMs: number;
       readonly protectionResolutionDurationMs: number;
@@ -86,12 +87,14 @@ const s08Machine = setup({
   },
   guards: {
     allResolved: ({ context }) =>
-      (['master-campus', 'campus-email'] as const).every(
-        (accountId) => !accountHasUnresolvedRisk(context, accountId),
-      ),
+      !s08HasOpenActionNeed(context.riskModel, context.protectedAccountIds),
     canProtectAccount: ({ context, event }) =>
       event.type === 'PROTECT_WITH_UNIQUE_PASSPHRASE' &&
-      accountHasUnresolvedRisk(context, event.accountId),
+      s08AccountHasOpenActionNeed(
+        context.riskModel,
+        context.protectedAccountIds,
+        event.accountId,
+      ),
     startsAtS09: ({ context }) => context.initialStage === 's09',
     startsAtManagerTransition: ({ context }) =>
       context.initialStage === 'manager-transition',
@@ -116,13 +119,12 @@ const s08Machine = setup({
   id: 's08ProtectionAndReplay',
   initial: 'entry',
   context: ({ input }) => ({
-    affectedAccountIds: [...input.affectedAccountIds],
     initialStage: input.initialStage,
     phaseDurationMs: input.phaseDurationMs,
     protectionResolutionDurationMs: input.protectionResolutionDurationMs,
     reductionDurationMs: input.reductionDurationMs,
     protectedAccountIds:
-      input.initialStage === 's08' ? [] : [...input.affectedAccountIds],
+      input.initialStage === 's08' ? [] : [...input.recommendedAccountIds],
     resolvingAccountId: null,
     riskModel: input.riskModel,
   }),
@@ -192,7 +194,7 @@ const s08Machine = setup({
 });
 
 export interface S08NetworkRewindStageProps {
-  readonly affectedAccountIds?: readonly S08AffectedAccountId[];
+  readonly recommendedAccountIds?: readonly S08ChangeableAccountId[];
   readonly network?: NetworkSceneSnapshot | null;
   readonly plan?: PasswordConsequenceScenePlan | null;
   readonly platform: DesktopPlatform;
@@ -211,27 +213,7 @@ function protectionResolutionDuration(): number {
   return window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 0 : 460;
 }
 
-function accountHasUnresolvedRisk(
-  context: Pick<S08Context, 'protectedAccountIds' | 'riskModel'>,
-  accountId: S08AffectedAccountId,
-): boolean {
-  if (context.protectedAccountIds.includes(accountId)) return false;
-  if (context.riskModel.weakAccountIds.includes(accountId)) return true;
-  return context.riskModel.relationships.some(
-    ({ sourceId, targetId }) =>
-      (sourceId === accountId || targetId === accountId) &&
-      !(
-        (sourceId === 'master-campus' || sourceId === 'campus-email') &&
-        context.protectedAccountIds.includes(sourceId)
-      ) &&
-      !(
-        (targetId === 'master-campus' || targetId === 'campus-email') &&
-        context.protectedAccountIds.includes(targetId)
-      ),
-  );
-}
-
-function affectedAccountId(nodeId: string): S08AffectedAccountId | null {
+function changeableAccountId(nodeId: string): S08ChangeableAccountId | null {
   if (nodeId === 'master-campus' || nodeId === 'campus-email') return nodeId;
   return null;
 }
@@ -244,14 +226,14 @@ function planStep(
 }
 
 export function S08NetworkRewindStage({
-  affectedAccountIds = [],
+  recommendedAccountIds = [],
   network,
   plan,
   platform,
   initialStage = 's08',
 }: S08NetworkRewindStageProps) {
   const networkHostRef = useRef<HTMLDivElement | null>(null);
-  const [celebratingNodeId, setCelebratingNodeId] = useState<S08AffectedAccountId | null>(null);
+  const [celebratingNodeId, setCelebratingNodeId] = useState<S08ChangeableAccountId | null>(null);
   const sourceNetwork = useMemo(
     () => network ?? createCompletedS02Network(),
     [network],
@@ -262,7 +244,7 @@ export function S08NetworkRewindStage({
   );
   const [state, send] = useMachine(s08Machine, {
     input: {
-      affectedAccountIds,
+      recommendedAccountIds,
       initialStage,
       phaseDurationMs: replayDuration(),
       protectionResolutionDurationMs: protectionResolutionDuration(),
@@ -441,23 +423,22 @@ export function S08NetworkRewindStage({
     const resolvingAccountId = state.context.resolvingAccountId;
     if (
       resolvingAccountId === null ||
-      !accountHasUnresolvedRisk(state.context, accountId)
+      !s08AccountHasOpenActionNeed(
+        state.context.riskModel,
+        state.context.protectedAccountIds,
+        accountId,
+      )
     ) {
       return false;
     }
-    return !accountHasUnresolvedRisk(
-      {
-        riskModel: state.context.riskModel,
-        protectedAccountIds: [
-          ...state.context.protectedAccountIds,
-          resolvingAccountId,
-        ],
-      },
+    return !s08AccountHasOpenActionNeed(
+      state.context.riskModel,
+      [...state.context.protectedAccountIds, resolvingAccountId],
       accountId,
     );
   });
-  const releasingWeakAccountIds = releasingAccountIds.filter((accountId) =>
-    state.context.riskModel.weakAccountIds.includes(accountId),
+  const releasingLocalFindingAccountIds = releasingAccountIds.filter((accountId) =>
+    state.context.riskModel.localFindingAccountIds.includes(accountId),
   );
   const passWoStep = state.matches('s09Intro')
     ? 0
@@ -534,11 +515,11 @@ export function S08NetworkRewindStage({
       data-s08-releasing-campus-email={
         releasingAccountIds.includes('campus-email') || undefined
       }
-      data-s08-releasing-weak-master-campus={
-        releasingWeakAccountIds.includes('master-campus') || undefined
+      data-s08-releasing-local-finding-master-campus={
+        releasingLocalFindingAccountIds.includes('master-campus') || undefined
       }
-      data-s08-releasing-weak-campus-email={
-        releasingWeakAccountIds.includes('campus-email') || undefined
+      data-s08-releasing-local-finding-campus-email={
+        releasingLocalFindingAccountIds.includes('campus-email') || undefined
       }
     >
       <DesktopSurface
@@ -590,7 +571,7 @@ export function S08NetworkRewindStage({
             showEdgeLabels={preparationVisible}
             onNodeSelect={(nodeId) => {
               if (!preparationVisible) return;
-              const accountId = affectedAccountId(nodeId);
+              const accountId = changeableAccountId(nodeId);
               if (accountId === null || actionLabels[accountId] === undefined) return;
               setCelebratingNodeId(accountId);
               send({ type: 'PROTECT_WITH_UNIQUE_PASSPHRASE', accountId });

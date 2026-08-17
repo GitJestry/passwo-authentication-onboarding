@@ -1,5 +1,42 @@
 # S06--S07 Copy Audit
 
+## Copy- und Analysedelta S06 strukturorientierte Bausteinersetzung, 17. August 2026
+
+Quelle ist der ausdrückliche Nutzerauftrag vom 17. August 2026 nach dem Fehlfall
+`PrflbildBonn!` ↔ `PrflbildCampus!`. Die vorherige gerichtete Variantenlogik konnte zwar
+Konto-/Dienstbegriffe, Randentfernungen und kleine Oberflächenänderungen erzeugen, aber keinen
+einzelnen frei gewählten Wortbaustein im ansonsten stabilen Passwortmuster austauschen. Zusätzlich
+konnte die zeichenbasierte LCS-Differenz einen intuitiven Worttausch wie `Kaffee` → `Tasse` in
+mehrere unzusammenhängende Zeichenhunks zerlegen. Das führte zu vom konkreten Wortlaut abhängigen
+Nicht-Erkennungen.
+
+S06 ergänzt deshalb eine strukturelle, weiterhin gerichtete Kandidatenfamilie. Buchstabenfolgen
+werden lokal an Trennzeichen, Ziffer-/Buchstabenwechseln und Camel-Case-Grenzen in sichtbare
+Bausteine zerlegt und auf Bausteinebene ausgerichtet. Genau ein ausgetauschter Buchstabenbaustein
+mit mindestens drei Zeichen darf als Hauptveränderung verwendet werden, wenn der übrige erzeugte
+Kandidat weiterhin einen stabilen gemeinsamen Kern von mindestens vier Zeichen besitzt. Kleine
+Änderungen wie Trennzeichen oder typischer Anhang können zusätzlich hinzukommen. Das Oberflächenbudget
+wird dabei von zwei auf drei kleine Veränderungen erweitert, damit typische Kombinationen aus
+Groß-/Kleinschreibung, kurzer Zahl und Endzeichen nicht künstlich auseinanderfallen. Authored Konto-/Dienstbegriffe behalten die höhere Priorität und werden weiterhin
+mit ihrem spezifischen Transformationsweg erklärt.
+
+Die Erweiterung ist keine semantische Wortähnlichkeit, kein Wörterbuchscore und keine allgemeine
+Edit-Distance. Zwei frei ausgetauschte Wortbausteine bleiben ausgeschlossen. Deshalb wird
+`PrflbildBonn!` ↔ `PrflbildCampus!` als `Ähnlich` erkannt, während
+`IchAnanasBinSuperTraurig` ↔ `IchBananeBinSuperGlücklich` weiterhin keinen direkten Variantenweg
+erhält. `MorgenKaffee7` ↔ `MorgenTasse7` gilt nun dagegen als ein einzelner Bausteintausch im
+stabilen Rahmen `Morgen…7`. Alle fiktiven Werte und Befunde bleiben ausschließlich flüchtig im
+Browser.
+
+`S06_CONSEQUENCE_CONTENT_VERSION` steigt von `2.25.0` auf `2.26.0`.
+
+| Segment und Text-ID | Vorher | Nachher | Primäre Rolle | Grund und Bedeutungsänderung |
+|---|---|---|---|---|
+| `S06.transformationLabels.bounded-component-replaced` | nicht vorhanden | `Ein einzelner klar abgegrenzter Bestandteil wurde innerhalb desselben Musters ausgetauscht.` | Mechanismuserklärung | benennt den neu zugelassenen einzelnen strukturellen Bausteintausch; begrenzte Bedeutungsänderung |
+| `S06.transformationLabels.component-replacement-with-small-surface-changes` | nicht vorhanden | `Ein einzelner klar abgegrenzter Bestandteil und bis zu drei kleine typische Merkmale wurden verändert.` | Mechanismuserklärung | erklärt die bestehende Kombinationsgrenze für den neuen Hauptweg; begrenzte Bedeutungsänderung |
+| `S06.transformationLabels.bounded-surface-changes` und bestehende `*-with-small-surface-changes` | `bis zu zwei kleine typische Veränderungen/Merkmale` | `bis zu drei kleine typische Veränderungen/Merkmale` | Mechanismuserklärung | erlaubt typische Kombinationen aus Groß-/Kleinschreibung, kurzer Zahl und Endzeichen, ohne die Grenze auf einen allgemeinen Ähnlichkeitsscore zu öffnen |
+| lokale S06-Paarableitung | Hauptveränderungen nur authored Konto-/Dienstbegriff, Wiederholungsmuster oder Randentfernung | zusätzlich genau ein strukturell abgegrenzter Buchstabenbaustein im stabilen Muster | Analysegrenze | behebt wortlautabhängige Nicht-Erkennungen ohne globalen Ähnlichkeitsscore oder mehrere freie Wortersetzungen |
+
 ## Copy- und Analysedelta S06 gerichtete begrenzte Variantenwege, 17. August 2026
 
 Quelle ist der ausdrückliche Nutzerauftrag vom 17. August 2026. Die bisherige S06-Ähnlichkeitslogik
@@ -118,7 +155,7 @@ auf `2.22.0`.
 | `S06.narrations.s06.transition.master-campus-email-no-match` | nicht vorhanden | `Zwischen Master Campus und Campus E-Mail wurde hier keine solche Übereinstimmung erkannt. Dieser Weg führt in dieser Übung nicht weiter. Schauen wir uns das Campus-E-Mail-Passwort jetzt noch für sich an.` | Ergebnisfeedback / Orientierung | `Weiter` zum lokalen Campus-E-Mail-Check | ordnet die begrenzte Nicht-Erkennung ein und benennt den nächsten Schritt; ausdrücklich freigegeben | keine |
 | `S06.narrations.s06.local-check.campus-email-found` | begrenzter früher Kandidat mit allgemeiner Stärkeeinordnung | `Auch dieses Passwort gilt hier als gefunden. Einzigartigkeit verhindert die Ausbreitung zwischen Konten, trotzdem sollte jedes Passwort auch für sich stark sein.` | Ergebnisfeedback / Kerngedanke | `Weiter` | verbindet Einzelstärke und Einzigartigkeit im vorgegebenen Wortlaut; ausdrücklich freigegeben | keine |
 | `S06.narrations.s06.local-check.campus-email-blocked` | begrenzte Nicht-Erkennung mit allgemeiner Sicherheitsgrenze | `Dieses Passwort wurde hier nicht gefunden. Das ist ein gutes Ergebnis für diese Übung.` | Ergebnisfeedback | `Weiter` | wertet nur das Übungsergebnis und verspricht keine Sicherheit; ausdrücklich freigegeben | keine |
-| `S06.narrations.s06.transition.s07` | allgemeiner Hinweis zum Ersetzen des betroffenen Passworts | `Ein Datenleck lässt sich nicht immer verhindern. Danach zählt, die Folgen zu begrenzen: das betroffene Passwort zügig ersetzen und Wiederverwendung stoppen. Genau das machen wir jetzt bei Campusgram.` | Kerngedanke / Navigation | `Passwort ersetzen` | verbindet Schadensbegrenzung direkt mit der nächsten sichtbaren Handlung; ausdrücklich freigegeben | keine |
+| `S06.narrations.s06.transition.s07` | allgemeiner Hinweis zum Ersetzen des betroffenen Passworts | `Ein Datenleck lässt sich nicht immer verhindern. Danach zählt, die Folgen zu begrenzen: das betroffene Passwort zügig ersetzen und Wiederverwendung stoppen. Genau das machen wir jetzt bei Campusgram.` | Kerngedanke / Navigation | `Passwort ersetzen` | verbindet Schadensbegrenzung direkt mit der nächsten sichtbaren Handlung; ausdrücklich freigegeben | `zügig ersetzen und Wiederverwendung stoppen`, Akzent |
 | bisherige Zusatzblasen und Master-Campus-zu-Campusgram-Vergleich | separate Campusgram-/Master-Hypothese, Campus-E-Mail-Einleitung, Rückkehransage, zweite Endübersicht und zusätzlicher Vergleich | entfallen aus dem sichtbaren Ablauf | Ablaufreduktion | kein | setzt die ausdrücklich vorgegebene Reihenfolge ohne redundante oder widersprüchliche Schritte um; Bedeutungsänderung ausdrücklich freigegeben | keine |
 
 ## Copy-, Interaktions- und Darstellungsdelta S06 Passwortreflexion, 17. August 2026
@@ -190,6 +227,20 @@ Campus.
 Teilnehmertexte, Persistenz, Export, Timing und Content-Versionen bleiben unverändert. S08 zeigt
 nur für die so bestimmten Konten die vorhandene Aktion `Einzigartige Passphrase verwenden`;
 nicht betroffene Konten bleiben bereits geschützt dargestellt.
+
+Der ausdrückliche Nutzerauftrag vom 17. August 2026 präzisiert und ersetzt die zuletzt genannte
+Einschränkung: Die minimale deterministische Kontomenge aus S07 ist nur noch eine Empfehlung
+beziehungsweise ein Default, keine Beschränkung der in S08 erlaubten Entscheidung. S08 trennt
+lokale Kontobefunde von offenen Passwortbeziehungen. Ein lokaler Befund bleibt an das betreffende
+Konto gebunden. Bei einer ausschließlich relationalen Verbindung sind dagegen beide beteiligten
+Konten als mögliche Änderung auswählbar.
+
+Nach dem Ersetzen eines Passworts durch eine starke einzigartige Passphrase entfallen alle damit
+gelösten inzidenten Beziehungen samt vorhandener Zerfallsanimation. Anschließend leitet S08 den
+offenen Handlungsbedarf erneut aus den verbleibenden lokalen Befunden und Beziehungen ab. Das
+andere Konto bleibt nur dann offen, wenn es einen eigenen lokalen Befund oder mindestens eine
+weitere problematische Beziehung besitzt. Teilnehmertexte, Persistenz, Export, Studien-Timing
+und Content-Versionen bleiben unverändert.
 
 ## Copy-Delta S06 Rückkehr zur Ausgangslage, 15. August 2026
 

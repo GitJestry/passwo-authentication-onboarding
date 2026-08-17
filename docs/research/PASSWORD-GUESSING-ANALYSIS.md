@@ -69,7 +69,7 @@ noch als Forschungsvariable gespeichert.
 
 | Bestandteil | Wert |
 |---|---|
-| Analyse-ID | `passwo-bounded-whole-recognition-v14` |
+| Analyse-ID | `passwo-bounded-whole-recognition-v15` |
 | Engine | `zxcvbn-ts` als Musterquelle |
 | Core | `@zxcvbn-ts/core@4.1.2` |
 | Allgemeines Wörterbuch/Graphen | `@zxcvbn-ts/language-common@4.1.2` |
@@ -125,9 +125,10 @@ Unterstützte Grenzen sind:
 - eine lückenlose vollständige Zerlegung eines kleingeschriebenen Laufs.
 
 Zwei- und Drei-Zeichen-Wörter wie `ich`, `bis`, `zum` oder `uni` werden nur aufgenommen, wenn sie
-ein vollständiges sichtbares Segment oder einen Teil einer lückenlosen Partition bilden. Dadurch
-werden kurze deutsche Funktionswörter berücksichtigt, ohne zufällige innere Fragmente allgemein
-zu erlauben.
+ein vollständiges sichtbares Segment oder einen Teil einer lückenlosen Partition bilden. Ein
+isolierter zxcvbn-Kurzworttreffer benötigt deshalb zwei sichtbare Grenzen; die lückenlose
+kleingeschriebene Partition darf kurze Wörter weiterhin intern verwenden. Dadurch werden kurze
+deutsche Funktionswörter berücksichtigt, ohne zufällige innere Fragmente allgemein zu erlauben.
 
 Eine kleine eingefrorene Liste gebräuchlicher Abkürzungen wie `LKW`, `DVD`, `DHL`, `LOL`, `USB`
 und `WLAN` wird nach denselben Grenzen ausschließlich exakt und case-insensitive berücksichtigt.
@@ -142,6 +143,10 @@ Ein Passwortlistenanker, der nur an einer Seite auf einer unterstützten Grenze 
 weitere sichtbare Grenze innerhalb seines Spans überqueren. Damit bleibt eine kurze freie
 Erweiterung an einem Rand möglich, ein inneres Kollisionsfragment wie `tRot` über der sichtbaren
 Grenze `Ist|Rot` wird aber nicht als eigener Passwortlistenbestandteil übernommen.
+Die gleiche Einschränkung wird vor der dynamischen vollständigen Wörterbuchpartition angewandt.
+Kandidaten dürfen eine sichtbare Grenze nur dann überspannen, wenn beide Kandidatenenden selbst
+unterstützte Grenzen sind. Ein vollständiger Listeneintrag `IchBin` bleibt damit zulässig; die
+verschobene Zerlegung `Is|tRot` über `Ist|Rot` ist ausgeschlossen.
 
 Ein Namensfund muss den vollständigen sichtbaren Abschnitt abdecken. Ein partieller Namensfund wie
 `ZumMo` in `ZumMond` oder `larissa` in `Klarissa` wird verworfen, sofern er nicht als flüchtiger
@@ -410,11 +415,13 @@ Aktuell wird die Evidenz nur in S05 erhoben.
 Die sechs S06-Paarvergleiche sind gerichtet. Nach einer exakten Wiederverwendung erzeugt der
 lokale Vergleich vollständige Kandidaten aus dem bekannten Quellpasswort. `derived-variant-match`
 gilt nur, wenn ein Kandidat den vollständigen Zielwert trifft und der Weg höchstens aus einer
-Hauptveränderung sowie zwei kleinen typischen Veränderungen besteht.
+Hauptveränderung sowie drei kleinen typischen Veränderungen besteht.
 
 Als Hauptveränderung gelten ausschließlich:
 
 - der Austausch eines authored Konto- oder Dienstbegriffs;
+- der Austausch genau eines Buchstabenbausteins mit mindestens drei Zeichen in einem ansonsten
+  stabilen Muster; die Bausteingrenzen entstehen ausschließlich aus Trennzeichen, Ziffer-/Buchstabenwechseln und Camel Case;
 - der Wechsel des Zeichens bei einem vollständigen Wiederholungsmuster gleicher Länge;
 - das Entfernen eines durch Zeichenklasse, Trennzeichen oder Camel-Case-Grenze abgegrenzten
   vorangestellten oder angehängten Bestandteils.
@@ -428,7 +435,8 @@ Operationen als endliche Kandidatenfamilien, nicht als allgemeinen Edit-Distance
 Der Weg ist absichtlich nicht symmetrisch. `Passwort49u52u` kann durch Entfernen des bekannten
 Randbestandteils zu `Passwort` führen. Aus `Passwort` wird der unbekannte längere Rest dagegen
 nicht erfunden. Ebenso reichen gemeinsame Teilstrings oder der gleiche allgemeine Satzrahmen
-nicht aus; zwei beliebige Wörterbuchwörter werden nicht aus dem Zielwert übernommen. Ein negatives
+nicht aus. Ein einzelner strukturell abgegrenzter Buchstabenbaustein darf im stabilen Rahmen
+ausgetauscht werden; zwei freie Bausteinersetzungen werden weiterhin nicht kombiniert. Ein negatives
 Ergebnis lautet deshalb `Keine direkte Variante erkannt` und ist weder eine Aussage über fehlende
 Gemeinsamkeiten noch eine Sicherheitsgarantie. Alle Eingaben und Vergleichsbefunde bleiben lokal
 und flüchtig.

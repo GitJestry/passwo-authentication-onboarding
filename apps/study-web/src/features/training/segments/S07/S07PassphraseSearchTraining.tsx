@@ -23,7 +23,7 @@ import { passWoSpeechEmphasisFor } from '../../PassWoSpeechEmphasis.js';
 import {
   type S07AccountFeedback,
   type S07RemainingAccountId,
-  s07AccountsRequiringPassphraseChange,
+  s07RecommendedResolutionAccountIds,
   s07PassphraseSearchMachine,
 } from './S07PassphraseSearchMachine.js';
 import styles from './S07PassphraseSearchTraining.module.css';
@@ -452,7 +452,7 @@ export interface S07PassphraseSearchTrainingProps {
   readonly accountFeedback?: readonly S07AccountFeedback[];
   readonly platform?: DesktopPlatform;
   readonly onComplete?: (
-    affectedAccountIds: readonly S07RemainingAccountId[],
+    recommendedAccountIds: readonly S07RemainingAccountId[],
   ) => void;
 }
 
@@ -598,7 +598,7 @@ export function S07PassphraseSearchTraining({
       onAction: () => {
         send({ type: 'CONTINUE_ATTACK' });
         onComplete(
-          s07AccountsRequiringPassphraseChange(state.context.accountFeedback),
+          s07RecommendedResolutionAccountIds(state.context.accountFeedback),
         );
       },
     };

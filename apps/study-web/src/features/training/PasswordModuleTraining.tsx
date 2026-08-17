@@ -44,7 +44,7 @@ import { createS06ConsequenceScenePlan } from './segments/S06/S06ConsequenceCont
 import { S07PassphraseSearchTraining } from './segments/S07/S07PassphraseSearchTraining.js';
 import {
   deriveS07AccountFeedback,
-  s07AccountsRequiringPassphraseChange,
+  s07RecommendedResolutionAccountIds,
 } from './segments/S07/S07PassphraseSearchMachine.js';
 import { S08NetworkRewindStage } from './segments/S08/S08NetworkRewindStage.js';
 
@@ -168,7 +168,7 @@ export function PasswordModuleTraining({
   }, [s06Source]);
   const s07AccountFeedback =
     s06Plan === null ? [] : deriveS07AccountFeedback(s06Plan);
-  const s07RemainingAccountIds = s07AccountsRequiringPassphraseChange(s07AccountFeedback);
+  const s08RecommendedAccountIds = s07RecommendedResolutionAccountIds(s07AccountFeedback);
   const completeS06 = useCallback(() => controllerRef.current?.completeS06(), []);
   const captureSemanticEvidenceForAccount = useCallback(
     (accountId: S06AccountId, evidence: TransientPasswordSemanticEvidence) => {
@@ -548,7 +548,7 @@ export function PasswordModuleTraining({
   if (snapshot.matches('awaiting-s08')) {
     return (
       <S08NetworkRewindStage
-        affectedAccountIds={s07RemainingAccountIds}
+        recommendedAccountIds={s08RecommendedAccountIds}
         platform={platform}
         network={s06SummaryNetwork}
         plan={s06Plan}

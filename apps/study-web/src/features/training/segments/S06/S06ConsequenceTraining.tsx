@@ -308,7 +308,7 @@ export function S06ConsequenceTraining({
               openHelpLabel={s00Content.narration.openGuideLabel}
               speech={speech}
               speechKey={`s06-${snapshot.stage}-${snapshot.step.id}-${timingState}`}
-              speechEmphasis={passWoSpeechEmphasisFor(snapshot.step.narrationId)}
+              speechEmphasis={passWoSpeechEmphasisFor(snapshot.participant.narrationId)}
               speechTone="dark"
               {...(speechAction === undefined ? {} : { speechAction })}
               speechObstacleSelector="[data-scene-node]"

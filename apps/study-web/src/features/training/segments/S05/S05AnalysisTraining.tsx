@@ -1025,10 +1025,12 @@ function repetitionSegmentsForBlock(
 
   return clipped.reduce<Array<{ start: number; end: number }>>((segments, segment) => {
     const previous = segments.at(-1);
-    if (previous === undefined || segment.start >= previous.end) {
+    if (previous === undefined || segment.start > previous.end) {
       segments.push({ ...segment });
       return segments;
     }
+    // Adjacent occurrences belong to the same visual repeat run. Keeping the semantic spans
+    // separate preserves the recognized unit/count while avoiding tiny nested boxes for `????`.
     previous.end = Math.max(previous.end, segment.end);
     return segments;
   }, []);

@@ -218,6 +218,7 @@ export type PasswordTransformationId =
   | 'single-character-changed'
   | 'repeated-character-pattern-changed'
   | 'leading-or-trailing-component-removed'
+  | 'bounded-component-replaced'
   | 'bounded-surface-changes'
   | 'account-term-and-year-changed'
   | 'account-term-and-suffix-changed'
@@ -225,7 +226,8 @@ export type PasswordTransformationId =
   | 'account-term-year-and-suffix-changed'
   | 'account-term-with-small-surface-changes'
   | 'repeated-pattern-with-small-surface-changes'
-  | 'component-removal-with-small-surface-changes';
+  | 'component-removal-with-small-surface-changes'
+  | 'component-replacement-with-small-surface-changes';
 
 export interface ExactPasswordRelation {
   readonly kind: 'exact-match';

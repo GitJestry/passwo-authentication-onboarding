@@ -206,7 +206,43 @@ function isS08AccountId(value: string): value is S06AccountId {
 
 export interface S08ProtectionRiskModel {
   readonly relationships: readonly SceneEdge[];
-  readonly weakAccountIds: readonly S06AccountId[];
+  readonly localFindingAccountIds: readonly S06AccountId[];
+}
+
+export function activeS08PasswordRelationships(
+  riskModel: S08ProtectionRiskModel,
+  changedAccountIds: readonly S06AccountId[],
+): readonly SceneEdge[] {
+  const changedAccounts = new Set(changedAccountIds);
+  return riskModel.relationships.filter(
+    ({ sourceId, targetId }) =>
+      (!isS08AccountId(sourceId) || !changedAccounts.has(sourceId)) &&
+      (!isS08AccountId(targetId) || !changedAccounts.has(targetId)),
+  );
+}
+
+export function s08AccountHasOpenActionNeed(
+  riskModel: S08ProtectionRiskModel,
+  changedAccountIds: readonly S06AccountId[],
+  accountId: Exclude<S06AccountId, 'campusgram'>,
+): boolean {
+  if (changedAccountIds.includes(accountId)) return false;
+  if (riskModel.localFindingAccountIds.includes(accountId)) return true;
+  return activeS08PasswordRelationships(riskModel, changedAccountIds).some(
+    ({ sourceId, targetId }) => sourceId === accountId || targetId === accountId,
+  );
+}
+
+export function s08HasOpenActionNeed(
+  riskModel: S08ProtectionRiskModel,
+  changedAccountIds: readonly S06AccountId[],
+): boolean {
+  const hasOpenLocalFinding = riskModel.localFindingAccountIds.some(
+    (accountId) => accountId !== 'campusgram' && !changedAccountIds.includes(accountId),
+  );
+  return (
+    hasOpenLocalFinding || activeS08PasswordRelationships(riskModel, changedAccountIds).length > 0
+  );
 }
 
 export function createS08ProtectionRiskModel(
@@ -240,7 +276,7 @@ export function createS08ProtectionRiskModel(
       sourceRelationships.length > 0
         ? sourceRelationships
         : [...plannedRelationships.values()],
-    weakAccountIds: (plan?.accounts ?? [])
+    localFindingAccountIds: (plan?.accounts ?? [])
       .filter(({ disposition }) => disposition.kind === 'whole-password-recognized')
       .map(({ accountId }) => accountId),
   };
@@ -265,36 +301,33 @@ export function createS08ProtectionNetwork(
   riskModel: S08ProtectionRiskModel,
 ): NetworkSceneSnapshot {
   const protectedAccounts = new Set<S06AccountId>(protectedAccountIds);
-  const activeRelationships = riskModel.relationships
-    .filter(
-      ({ sourceId, targetId }) =>
-        (!isS08AccountId(sourceId) || !protectedAccounts.has(sourceId)) &&
-        (!isS08AccountId(targetId) || !protectedAccounts.has(targetId)),
-    )
-    .map((edge): SceneEdge => {
-      const referencesOldCampusgramPassword =
-        edge.sourceId === 'campusgram' || edge.targetId === 'campusgram';
-      const exactReuse = edge.kind === 'identical-reuse';
-      return {
-        ...edge,
-        status: exactReuse ? 'direct' : 'similar',
-        label: referencesOldCampusgramPassword
-          ? exactReuse
-            ? s08NetworkReplayContent.relationLabels.campusgramReuse
-            : s08NetworkReplayContent.relationLabels.campusgramSimilar
-          : exactReuse
-            ? s08NetworkReplayContent.relationLabels.reuse
-            : s08NetworkReplayContent.relationLabels.similar,
-      };
-    });
-  const weakAccounts = new Set(riskModel.weakAccountIds);
-  const accountsWithActiveRisk = new Set<S06AccountId>(weakAccounts);
+  const activeRelationships = activeS08PasswordRelationships(
+    riskModel,
+    protectedAccountIds,
+  ).map((edge): SceneEdge => {
+    const referencesOldCampusgramPassword =
+      edge.sourceId === 'campusgram' || edge.targetId === 'campusgram';
+    const exactReuse = edge.kind === 'identical-reuse';
+    return {
+      ...edge,
+      status: exactReuse ? 'direct' : 'similar',
+      label: referencesOldCampusgramPassword
+        ? exactReuse
+          ? s08NetworkReplayContent.relationLabels.campusgramReuse
+          : s08NetworkReplayContent.relationLabels.campusgramSimilar
+        : exactReuse
+          ? s08NetworkReplayContent.relationLabels.reuse
+          : s08NetworkReplayContent.relationLabels.similar,
+    };
+  });
+  const localFindingAccounts = new Set(riskModel.localFindingAccountIds);
+  const accountsWithOpenActionNeed = new Set<S06AccountId>(localFindingAccounts);
   for (const { sourceId, targetId } of activeRelationships) {
     if (isS08AccountId(sourceId) && sourceId !== 'campusgram') {
-      accountsWithActiveRisk.add(sourceId);
+      accountsWithOpenActionNeed.add(sourceId);
     }
     if (isS08AccountId(targetId) && targetId !== 'campusgram') {
-      accountsWithActiveRisk.add(targetId);
+      accountsWithOpenActionNeed.add(targetId);
     }
   }
   const nodes = source.nodes
@@ -305,12 +338,12 @@ export function createS08ProtectionNetwork(
         accountId !== null &&
         accountId !== 'campusgram' &&
         !protectedAccounts.has(accountId) &&
-        accountsWithActiveRisk.has(accountId);
-      const weakNode =
+        accountsWithOpenActionNeed.has(accountId);
+      const hasLocalFinding =
         accountId !== null &&
         accountId !== 'campusgram' &&
         !protectedAccounts.has(accountId) &&
-        weakAccounts.has(accountId);
+        localFindingAccounts.has(accountId);
       const actionable =
         node.kind === 'account' &&
         accountId !== null &&
@@ -318,7 +351,7 @@ export function createS08ProtectionNetwork(
         affectedNode;
       return {
         ...node,
-        status: weakNode ? 'affected' : 'protected',
+        status: hasLocalFinding ? 'affected' : 'protected',
         selectable: actionable,
         locked: false,
         description: actionable
@@ -343,7 +376,7 @@ export function createS08ProtectionNetwork(
     accessibleSummary:
       (['master-campus', 'campus-email'] as const).every(
         (accountId) =>
-          protectedAccounts.has(accountId) || !accountsWithActiveRisk.has(accountId),
+          protectedAccounts.has(accountId) || !accountsWithOpenActionNeed.has(accountId),
       )
         ? s08NetworkReplayContent.protectionSummaries.complete
         : s08NetworkReplayContent.protectionSummaries.pending,

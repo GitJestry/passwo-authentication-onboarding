@@ -224,10 +224,10 @@
   animation: s08-risk-label-dissolve 300ms ease-in both;
 }
 
-.training[data-s08-releasing-weak-master-campus="true"]
+.training[data-s08-releasing-local-finding-master-campus="true"]
   .network
   :global([data-scene-node^="master-campus"] [data-scene-node-visual]),
-.training[data-s08-releasing-weak-campus-email="true"]
+.training[data-s08-releasing-local-finding-campus-email="true"]
   .network
   :global([data-scene-node^="campus-email"] [data-scene-node-visual]) {
   animation: s08-risk-node-release 460ms cubic-bezier(0.16, 1, 0.3, 1) both;

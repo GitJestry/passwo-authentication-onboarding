@@ -56,16 +56,16 @@ export interface S06NarrationContent {
   readonly body: string;
 }
 
-export const S06_CONSEQUENCE_CONTENT_VERSION = '2.25.0';
+export const S06_CONSEQUENCE_CONTENT_VERSION = '2.26.0';
 
 export const s06ConsequenceContent = {
   version: S06_CONSEQUENCE_CONTENT_VERSION,
   source: {
     document: 'research/private/training-script.pdf',
     internalPages: [36, 37, 38, 39, 40, 41, 42, 43, 44] as const,
-    revision: 'Userauftrag vom 2026-08-17 · gerichtete begrenzte Variantenwege',
+    revision: 'Userauftrag vom 2026-08-17 · robuste strukturorientierte Variantenwege',
     copyReference:
-      'docs/design/S06-S07-COPY-AUDIT.md#copy-und-analysedelta-s06-gerichtete-begrenzte-variantenwege-17-august-2026',
+      'docs/design/S06-S07-COPY-AUDIT.md#copy-und-analysedelta-s06-strukturorientierte-bausteinersetzung-17-august-2026',
   },
   segment: {
     id: 'S06',
@@ -176,18 +176,22 @@ export const s06ConsequenceContent = {
       'Das gleiche Wiederholungsmuster wurde mit einem anderen Zeichen verwendet.',
     'leading-or-trailing-component-removed':
       'Ein vollständiger vorangestellter oder angehängter Bestandteil wurde entfernt.',
-    'bounded-surface-changes': 'Bis zu zwei kleine typische Veränderungen wurden kombiniert.',
+    'bounded-component-replaced':
+      'Ein einzelner klar abgegrenzter Bestandteil wurde innerhalb desselben Musters ausgetauscht.',
+    'bounded-surface-changes': 'Bis zu drei kleine typische Veränderungen wurden kombiniert.',
     'account-term-and-year-changed': 'Konto- oder Dienstbegriff und Jahreszahl wurden verändert.',
     'account-term-and-suffix-changed': 'Konto- oder Dienstbegriff und Anhang wurden verändert.',
     'year-and-suffix-changed': 'Jahreszahl und typischer Anhang wurden verändert.',
     'account-term-year-and-suffix-changed':
       'Konto- oder Dienstbegriff, Jahreszahl und typischer Anhang wurden begrenzt verändert.',
     'account-term-with-small-surface-changes':
-      'Der Konto- oder Dienstbegriff und bis zu zwei kleine typische Merkmale wurden verändert.',
+      'Der Konto- oder Dienstbegriff und bis zu drei kleine typische Merkmale wurden verändert.',
     'repeated-pattern-with-small-surface-changes':
-      'Das Wiederholungsmuster und bis zu zwei kleine typische Merkmale wurden verändert.',
+      'Das Wiederholungsmuster und bis zu drei kleine typische Merkmale wurden verändert.',
     'component-removal-with-small-surface-changes':
-      'Ein vollständiger Randbestandteil und bis zu zwei kleine typische Merkmale wurden verändert.',
+      'Ein vollständiger Randbestandteil und bis zu drei kleine typische Merkmale wurden verändert.',
+    'component-replacement-with-small-surface-changes':
+      'Ein einzelner klar abgegrenzter Bestandteil und bis zu drei kleine typische Merkmale wurden verändert.',
   } as const satisfies Readonly<Record<PasswordTransformationId, string>>,
   dispositionLabels: {
     'whole-password-recognized':

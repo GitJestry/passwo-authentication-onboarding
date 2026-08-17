@@ -19,7 +19,7 @@ import {
   originalSpanForNormalizedRange,
 } from './case-insensitive-spans.js';
 
-export const PASSWORD_ANALYSIS_CONFIGURATION_VERSION = 'passwo-bounded-whole-recognition-v14';
+export const PASSWORD_ANALYSIS_CONFIGURATION_VERSION = 'passwo-bounded-whole-recognition-v15';
 
 export interface FictionalPasswordAnalysisInput {
   readonly fictionalPassword: string;
@@ -542,14 +542,18 @@ function filterUnsupportedGuessPathDictionaryFragments(
       const codePointLength = [...span.token].length;
       if (codePointLength < 4 && !/^\p{L}{2,3}$/u.test(span.token)) return false;
       const run = containingLetterRun(input, span.start, span.end);
-      return (
-        run === null ||
-        dictionarySpanHasSupportedBoundary(
-          run.run,
-          kind,
-          span.start - run.start,
-          span.end - run.start,
-        )
+      if (run === null) return true;
+      const relativeStart = span.start - run.start;
+      const relativeEnd = span.end - run.start;
+      if (codePointLength < 4) {
+        const boundaries = letterRunBoundaries(run.run);
+        return boundaries.has(relativeStart) && boundaries.has(relativeEnd);
+      }
+      return dictionarySpanHasSupportedBoundary(
+        run.run,
+        kind,
+        relativeStart,
+        relativeEnd,
       );
     });
     if (supported) {
@@ -634,11 +638,21 @@ function partitionCandidatesForLanguage(
   normalizedStarts: ReadonlySet<number>,
   normalizedEnds: ReadonlySet<number>,
   language: SupplementalLanguage,
+  protectedBoundaries: ReadonlySet<number> = new Set(),
 ): ReadonlyMap<number, readonly DictionaryPartitionPart[]> {
   const candidatesByStart = new Map<number, DictionaryPartitionPart[]>();
   for (const normalizedStart of normalizedStarts) {
     for (const normalizedEnd of normalizedEnds) {
       if (normalizedEnd <= normalizedStart) continue;
+      const crossesProtectedBoundary = [...protectedBoundaries].some(
+        (boundary) => boundary > normalizedStart && boundary < normalizedEnd,
+      );
+      if (
+        crossesProtectedBoundary &&
+        (!protectedBoundaries.has(normalizedStart) || !protectedBoundaries.has(normalizedEnd))
+      ) {
+        continue;
+      }
       const token = normalizedValue.slice(normalizedStart, normalizedEnd);
       const kind = dictionaryPartitionKind(token, language);
       if (kind === null) continue;
@@ -762,18 +776,29 @@ function collectDictionaryPartitionFindings(
       }
     }
 
+    const protectedNormalizedBoundaries = new Set<number>();
+    for (const boundary of supportedOriginalBoundaries) {
+      const normalizedBoundary = normalizedBoundaryForOriginalOffset(
+        normalizedRun,
+        boundary,
+        run.length,
+      );
+      if (normalizedBoundary !== null) protectedNormalizedBoundaries.add(normalizedBoundary);
+    }
     const candidatesByLanguage = {
       de: partitionCandidatesForLanguage(
         normalizedRun.value,
         normalizedStarts,
         normalizedEnds,
         'de',
+        protectedNormalizedBoundaries,
       ),
       en: partitionCandidatesForLanguage(
         normalizedRun.value,
         normalizedStarts,
         normalizedEnds,
         'en',
+        protectedNormalizedBoundaries,
       ),
     } as const;
     const allPartitionCandidates = [

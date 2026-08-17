@@ -9,7 +9,7 @@ import type {
 import { describe, expect, it } from 'vitest';
 import {
   deriveS07AccountFeedback,
-  s07AccountsRequiringPassphraseChange,
+  s07RecommendedResolutionAccountIds,
 } from './S07PassphraseSearchMachine.js';
 
 type RemainingAccountId = Exclude<S06AccountId, 'campusgram'>;
@@ -80,14 +80,14 @@ function routingPlan({
   };
 }
 
-function requiredAccounts(
+function recommendedAccounts(
   plan: Pick<PasswordConsequenceScenePlan, 'accounts' | 'comparisons'>,
 ): readonly RemainingAccountId[] {
-  return s07AccountsRequiringPassphraseChange(deriveS07AccountFeedback(plan));
+  return s07RecommendedResolutionAccountIds(deriveS07AccountFeedback(plan));
 }
 
 describe('S07 password change routing', () => {
-  it('changes every non-Campusgram account connected to Campusgram', () => {
+  it('recommends every non-Campusgram account connected to Campusgram', () => {
     const plan = routingPlan({
       connections: [
         ['campusgram', 'master-campus'],
@@ -95,29 +95,32 @@ describe('S07 password change routing', () => {
       ],
     });
 
-    expect(requiredAccounts(plan)).toEqual(['master-campus', 'campus-email']);
+    expect(recommendedAccounts(plan)).toEqual(['master-campus', 'campus-email']);
   });
 
-  it.each(remainingAccountIds)('changes weak account %s without a connection', (accountId) => {
-    const plan = routingPlan({ easyToGuess: [accountId] });
+  it.each(remainingAccountIds)(
+    'recommends local finding account %s without a connection',
+    (accountId) => {
+      const plan = routingPlan({ easyToGuess: [accountId] });
 
-    expect(requiredAccounts(plan)).toEqual([accountId]);
-  });
+      expect(recommendedAccounts(plan)).toEqual([accountId]);
+    },
+  );
 
-  it('changes Master Campus for the only strong connection between remaining accounts', () => {
+  it('defaults to Master Campus for the only relation between remaining accounts', () => {
     const plan = routingPlan({
       connections: [['master-campus', 'campus-email']],
     });
 
-    expect(requiredAccounts(plan)).toEqual(['master-campus']);
+    expect(recommendedAccounts(plan)).toEqual(['master-campus']);
   });
 
-  it('changes the already weak account for a connection between remaining accounts', () => {
+  it('recommends the local finding account for a relation between remaining accounts', () => {
     const plan = routingPlan({
       connections: [['master-campus', 'campus-email']],
       easyToGuess: ['campus-email'],
     });
 
-    expect(requiredAccounts(plan)).toEqual(['campus-email']);
+    expect(recommendedAccounts(plan)).toEqual(['campus-email']);
   });
 });

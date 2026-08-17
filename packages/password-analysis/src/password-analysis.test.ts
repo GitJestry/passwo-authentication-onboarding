@@ -594,7 +594,7 @@ describe('local fictional password analysis', () => {
     expect(tokens).not.toContain('lieb');
   });
 
-  it('does not keep a one-sided password-list fragment across a visible CamelCase boundary', () => {
+  it('does not shift a complete partition across a visible CamelCase boundary', () => {
     const result = analyzeFictionalPassword({ fictionalPassword: 'IchBinEisSieIstRot' });
     const dictionaryTokens = result.findings.flatMap((finding) =>
       finding.kind === 'common-password-core' || finding.kind === 'common-word'
@@ -607,6 +607,24 @@ describe('local fictional password analysis', () => {
     expect(dictionaryTokens).toEqual(
       expect.arrayContaining(['ichbin', 'eis', 'sie', 'ist', 'rot']),
     );
+    expect(dictionaryTokens).not.toContain('is');
+    expect(dictionaryTokens).not.toContain('trot');
+  });
+
+  it('keeps the CamelCase partition stable when an adjacent punctuation repeat follows it', () => {
+    const result = analyzeFictionalPassword({ fictionalPassword: 'IchBinEisSieIstRot????' });
+    const dictionaryTokens = result.findings.flatMap((finding) =>
+      finding.kind === 'common-password-core' || finding.kind === 'common-word'
+        ? finding.evidence.flatMap((evidence) =>
+            evidence.type === 'span' ? [evidence.token.toLocaleLowerCase('de-DE')] : [],
+          )
+        : [],
+    );
+
+    expect(dictionaryTokens).toEqual(
+      expect.arrayContaining(['ichbin', 'eis', 'sie', 'ist', 'rot']),
+    );
+    expect(dictionaryTokens).not.toContain('is');
     expect(dictionaryTokens).not.toContain('trot');
   });
 
@@ -667,7 +685,7 @@ describe('local fictional password analysis', () => {
       expect(expectedKinds.some((expectedKind) => actualKinds.includes(expectedKind))).toBe(true);
       expect(result.guessPath).toMatchObject({
         engineId: 'zxcvbn-ts',
-        configurationVersion: 'passwo-bounded-whole-recognition-v14',
+        configurationVersion: 'passwo-bounded-whole-recognition-v15',
       });
       for (const finding of result.findings) {
         expect(finding.id).toMatch(/^single:/u);
@@ -693,7 +711,7 @@ describe('local fictional password analysis', () => {
     expect(disposition).toEqual({
       kind: 'no-whole-password-recognized',
       lengthOrientation: 'at-least-15',
-      analysisVersion: 'passwo-bounded-whole-recognition-v14',
+      analysisVersion: 'passwo-bounded-whole-recognition-v15',
       explanationId: 's05.disposition.no-whole-password-recognized',
     });
   });
@@ -720,7 +738,7 @@ describe('local fictional password analysis', () => {
 
       expect(disposition).toMatchObject({
         kind: 'whole-password-recognized',
-        analysisVersion: 'passwo-bounded-whole-recognition-v14',
+        analysisVersion: 'passwo-bounded-whole-recognition-v15',
       });
     },
   );
@@ -1350,8 +1368,12 @@ describe('local fictional password analysis', () => {
     ['LunaCampusgram2026!', 'LunaCampusgram2027?', 'derived-variant-match'],
     ['LunaCampusgram2026', 'LunaCampusgram2026!', 'derived-variant-match'],
     ['LunaCampusgram2026!', 'LunaMail2027?', 'derived-variant-match'],
+    ['lunaCampusgram2026!', 'LunaMail2027?', 'derived-variant-match'],
     ['hallo', 'hallo1', 'derived-variant-match'],
     ['hallo1', 'hallo', 'derived-variant-match'],
+    ['hallo', 'hallo12!', 'derived-variant-match'],
+    ['Passwort1', 'Passwort2!', 'derived-variant-match'],
+    ['hallo1!', 'Hallo2?', 'derived-variant-match'],
     ['HandyPasswort', 'Handy-Passwort', 'derived-variant-match'],
     ['Handy-Passwort', 'HandyPasswort', 'derived-variant-match'],
     ['MeinStarkesPasswortCampusgram', 'MeinStarkesPasswortMail!', 'derived-variant-match'],
@@ -1363,7 +1385,11 @@ describe('local fictional password analysis', () => {
     ['rQ7mL2vX', 'rQ7mL2vY', 'derived-variant-match'],
     ['Passwrot', 'Passwort', 'derived-variant-match'],
     ['Passw0rt1!', 'Passwort1!', 'derived-variant-match'],
-    ['MorgenKaffee7', 'MorgenTasse7', 'no-derived-path-recognized'],
+    ['PrflbildBonn!', 'PrflbildCampus!', 'derived-variant-match'],
+    ['PrflbildCampus!', 'PrflbildBonn!', 'derived-variant-match'],
+    ['MorgenKaffee7', 'MorgenTasse7', 'derived-variant-match'],
+    ['Prflbild-Bonn!', 'Prflbild_Campus?', 'derived-variant-match'],
+    ['Mein-Profil-Bonn!', 'Mein_Profil_Campus?', 'derived-variant-match'],
     ['IchAnanasBinSuperTraurig', 'IchBananeBinSuperGlücklich', 'no-derived-path-recognized'],
     ['Passwort', 'Passwort49u52u', 'no-derived-path-recognized'],
     ['LunaCampusgram2020!', 'LunaCampusgram2026!', 'no-derived-path-recognized'],
@@ -1384,6 +1410,7 @@ describe('local fictional password analysis', () => {
   it.each([
     ['short suffix added', 'hallo', 'hallo1', 'typical-suffix-changed-added-or-removed'],
     ['short suffix removed', 'hallo1', 'hallo', 'typical-suffix-changed-added-or-removed'],
+    ['compound suffix added', 'hallo', 'hallo12!', 'typical-suffix-changed-added-or-removed'],
     ['bounded terminal year', 'Passwort2020', 'Passwort2021', 'bounded-year-changed'],
     ['separator inserted', 'HandyPasswort', 'Handy-Passwort', 'separator-changed'],
     ['capitalization changed', 'HandyPasswort', 'handypasswort', 'capitalization-changed'],
@@ -1421,6 +1448,26 @@ describe('local fictional password analysis', () => {
       'account-term-and-suffix-changed',
     ],
     ['two bounded surface changes', 'Hallo1', 'hallo2', 'bounded-surface-changes'],
+    ['number and ending changed', 'Passwort1', 'Passwort2!', 'bounded-surface-changes'],
+    ['three bounded surface changes', 'hallo1!', 'Hallo2?', 'bounded-surface-changes'],
+    [
+      'account term plus three bounded surface changes',
+      'lunaCampusgram2026!',
+      'LunaMail2027?',
+      'account-term-with-small-surface-changes',
+    ],
+    [
+      'single bounded component replacement',
+      'PrflbildBonn!',
+      'PrflbildCampus!',
+      'bounded-component-replaced',
+    ],
+    [
+      'component replacement with separator and suffix changes',
+      'Prflbild-Bonn!',
+      'Prflbild_Campus?',
+      'component-replacement-with-small-surface-changes',
+    ],
   ] as const)(
     'grounds %s through a concrete transformation',
     (_case, sourcePassword, targetPassword, transformationId) => {
@@ -1482,7 +1529,6 @@ describe('local fictional password analysis', () => {
   });
 
   it.each([
-    ['common substring only', 'MorgenKaffee7', 'MorgenTasse7'],
     [
       'same sentence frame with two arbitrary word replacements',
       'IchAnanasBinSuperTraurig',

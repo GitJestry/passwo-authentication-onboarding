@@ -36,7 +36,7 @@ NIST-Konformitätsimplementierung.
 ## Entscheidung
 
 `@passwo/password-analysis` bleibt vollständig lokal, deterministisch und frameworkfrei. Die
-Analysekonfiguration erhält die Version `passwo-bounded-whole-recognition-v14`.
+Analysekonfiguration erhält die Version `passwo-bounded-whole-recognition-v15`.
 
 Die interne Verarbeitung trennt drei Ebenen:
 
@@ -89,6 +89,10 @@ Ein Passwortlistenanker, der nur an einer Seite auf einer unterstützten Grenze 
 weitere sichtbare Grenze innerhalb seines Spans überqueren. Dadurch bleibt eine kurze freie
 Erweiterung an einem Rand möglich, während ein Kollisionsfragment wie `tRot` über `Ist|Rot` nicht
 als eigener Passwortlistenbestandteil übernommen wird.
+Dieselbe Grenze gilt bereits bei der Bildung vollständiger Wörterbuchpartitionen: Ein Kandidat darf
+eine sichtbare Grenze nur überqueren, wenn sowohl sein Anfang als auch sein Ende selbst auf
+unterstützten Grenzen liegen. Dadurch bleibt ein vollständiger Anker wie `IchBin` möglich, während
+die Partition `Ist|Rot` nicht zu `Is|tRot` verschoben werden kann.
 
 Die vollständige Zerlegung wird je Lauf getrennt für Deutsch und Englisch berechnet. Wörter aus
 beiden Sprachen werden nicht frei zu einer künstlichen Mischpartition kombiniert. Kurze
@@ -101,7 +105,9 @@ vollständiges sichtbares Segment oder als authored flüchtiger Kontext verfügb
 Eine kleine eingefrorene Menge gebräuchlicher Abkürzungen wie `LKW`, `DVD`, `DHL`, `LOL`, `USB`
 oder `WLAN` wird ausschließlich exakt und ohne Edit-Distance beziehungsweise Leetspeak erkannt.
 Dasselbe gilt für zwei- und dreibuchstabige Wörter: Sie dürfen eine vollständige Partition
-stützen, aber keine freien inneren Teiltreffer erzeugen.
+stützen, aber keine freien inneren Teiltreffer erzeugen. Ein isolierter zxcvbn-Kurzworttreffer wird
+deshalb nur direkt übernommen, wenn beide Enden auf sichtbaren Grenzen liegen; eine vollständige
+kleingeschriebene Partition kann kurze Wörter weiterhin intern belegen.
 
 Tastaturfolgen werden zusätzlich unabhängig von zxcvbns optimierter Endsequenz über maximale
 Spans der eingefrorenen QWERTZ-/QWERTY-Reihen erkannt. Ein solcher Span erzeugt eine feste Grenze

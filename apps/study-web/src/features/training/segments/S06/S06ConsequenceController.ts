@@ -49,6 +49,7 @@ import {
 } from '../account-network.js';
 
 export interface S06ConsequenceParticipantSnapshot {
+  readonly narrationId: S06NarrationId;
   readonly narration: S06NarrationContent;
   readonly mode: (typeof s06ConsequenceContent.modes)[keyof typeof s06ConsequenceContent.modes];
   readonly relationLabel: string | null;
@@ -1012,8 +1013,10 @@ function hypotheticalIncidentNetwork(
 
 function participantSnapshot(step: PasswordConsequencePlanStep): S06ConsequenceParticipantSnapshot {
   const relation = step.relation;
+  const narrationId = step.narrationId as S06NarrationId;
   return {
-    narration: s06ConsequenceContent.narrations[step.narrationId as S06NarrationId],
+    narrationId,
+    narration: s06ConsequenceContent.narrations[narrationId],
     mode: s06ConsequenceContent.modes[step.mode],
     relationLabel: relation === null ? null : s06ConsequenceContent.relationLabels[relation.kind],
     transformationLabel:
@@ -1776,6 +1779,7 @@ export class S06ConsequenceController {
   #participantForNarration(narrationId: S06NarrationId): S06ConsequenceParticipantSnapshot {
     return {
       ...participantSnapshot(this.#snapshot.step),
+      narrationId,
       narration: s06ConsequenceContent.narrations[narrationId],
     };
   }

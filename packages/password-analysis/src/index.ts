@@ -35,7 +35,8 @@ type TransformationAtom =
   | 'leet'
   | 'edit'
   | 'repetition'
-  | 'removal';
+  | 'removal'
+  | 'component';
 
 type TransformationClass = 'main' | 'surface';
 
@@ -57,6 +58,173 @@ interface IndexedCharacter {
   readonly value: string;
   readonly start: number;
   readonly end: number;
+}
+
+function longestCommonSubsequenceMatches<T>(
+  source: readonly T[],
+  target: readonly T[],
+  equals: (sourceItem: T, targetItem: T) => boolean,
+): readonly (readonly [number, number])[] {
+  const rows = source.length + 1;
+  const columns = target.length + 1;
+  const lcs = Array.from({ length: rows }, () => Array<number>(columns).fill(0));
+  for (let sourceIndex = source.length - 1; sourceIndex >= 0; sourceIndex -= 1) {
+    const currentRow = lcs[sourceIndex];
+    if (currentRow === undefined) continue;
+    for (let targetIndex = target.length - 1; targetIndex >= 0; targetIndex -= 1) {
+      const sourceItem = source[sourceIndex];
+      const targetItem = target[targetIndex];
+      currentRow[targetIndex] =
+        sourceItem !== undefined && targetItem !== undefined && equals(sourceItem, targetItem)
+          ? 1 + (lcs[sourceIndex + 1]?.[targetIndex + 1] ?? 0)
+          : Math.max(
+              lcs[sourceIndex + 1]?.[targetIndex] ?? 0,
+              currentRow[targetIndex + 1] ?? 0,
+            );
+    }
+  }
+
+  const matches: Array<readonly [number, number]> = [];
+  let sourceIndex = 0;
+  let targetIndex = 0;
+  while (sourceIndex < source.length && targetIndex < target.length) {
+    const sourceItem = source[sourceIndex];
+    const targetItem = target[targetIndex];
+    if (sourceItem !== undefined && targetItem !== undefined && equals(sourceItem, targetItem)) {
+      matches.push([sourceIndex, targetIndex]);
+      sourceIndex += 1;
+      targetIndex += 1;
+      continue;
+    }
+    const skipSource = lcs[sourceIndex + 1]?.[targetIndex] ?? 0;
+    const skipTarget = lcs[sourceIndex]?.[targetIndex + 1] ?? 0;
+    if (skipSource >= skipTarget) sourceIndex += 1;
+    else targetIndex += 1;
+  }
+  return matches;
+}
+
+interface LexicalComponent {
+  readonly start: number;
+  readonly end: number;
+  readonly value: string;
+  readonly normalizedValue: string;
+}
+
+function isLetter(value: string): boolean {
+  return /\p{L}/u.test(value);
+}
+
+function shouldSplitLexicalRun(
+  characters: readonly IndexedCharacter[],
+  runStartIndex: number,
+  index: number,
+): boolean {
+  const previous = characters[index - 1]?.value;
+  const current = characters[index]?.value;
+  const next = characters[index + 1]?.value;
+  if (previous === undefined || current === undefined) return false;
+  if (/\p{Ll}/u.test(previous) && /\p{Lu}/u.test(current)) return true;
+  return (
+    index - runStartIndex >= 2 &&
+    /\p{Lu}/u.test(previous) &&
+    /\p{Lu}/u.test(current) &&
+    next !== undefined &&
+    /\p{Ll}/u.test(next)
+  );
+}
+
+function lexicalComponents(input: string): readonly LexicalComponent[] {
+  const characters = indexedCharacters(input);
+  const components: LexicalComponent[] = [];
+  let runStartIndex: number | null = null;
+
+  const pushRun = (endIndex: number): void => {
+    if (runStartIndex === null || endIndex <= runStartIndex) return;
+    const first = characters[runStartIndex];
+    const last = characters[endIndex - 1];
+    if (first === undefined || last === undefined) return;
+    const value = input.slice(first.start, last.end);
+    components.push({
+      start: first.start,
+      end: last.end,
+      value,
+      normalizedValue: value.toLocaleLowerCase('de-DE'),
+    });
+  };
+
+  for (let index = 0; index < characters.length; index += 1) {
+    const character = characters[index];
+    if (character === undefined) continue;
+    if (!isLetter(character.value)) {
+      pushRun(index);
+      runStartIndex = null;
+      continue;
+    }
+    if (runStartIndex === null) {
+      runStartIndex = index;
+      continue;
+    }
+    if (shouldSplitLexicalRun(characters, runStartIndex, index)) {
+      pushRun(index);
+      runStartIndex = index;
+    }
+  }
+  pushRun(characters.length);
+  return components;
+}
+
+function componentReplacementTransformations(
+  sourcePassword: string,
+  targetPassword: string,
+): readonly CandidateTransformation[] {
+  const source = lexicalComponents(sourcePassword);
+  const target = lexicalComponents(targetPassword);
+  if (source.length === 0 || target.length === 0) return [];
+
+  const matches = longestCommonSubsequenceMatches(
+    source,
+    target,
+    (sourceComponent, targetComponent) =>
+      sourceComponent.normalizedValue === targetComponent.normalizedValue,
+  );
+
+  const transformations: CandidateTransformation[] = [];
+  let sourceCursor = 0;
+  let targetCursor = 0;
+  for (const [sourceMatch, targetMatch] of [
+    ...matches,
+    [source.length, target.length] as const,
+  ]) {
+    const sourceDifferenceCount = sourceMatch - sourceCursor;
+    const targetDifferenceCount = targetMatch - targetCursor;
+    if (sourceDifferenceCount === 1 && targetDifferenceCount === 1) {
+      const sourceComponent = source[sourceCursor];
+      const targetComponent = target[targetCursor];
+      if (
+        sourceComponent !== undefined &&
+        targetComponent !== undefined &&
+        sourceComponent.normalizedValue !== targetComponent.normalizedValue &&
+        [...sourceComponent.value].length >= 3 &&
+        [...targetComponent.value].length >= 3
+      ) {
+        transformations.push(
+          transformation(
+            'component',
+            'main',
+            60,
+            sourcePassword,
+            targetPassword,
+            [sourceComponent.start, sourceComponent.end],
+            [targetComponent.start, targetComponent.end],
+          ),
+        );
+      }
+    }
+    sourceCursor = sourceMatch + 1;
+    targetCursor = targetMatch + 1;
+  }
+  return transformations;
 }
 
 interface DifferenceHunk {
@@ -97,39 +265,11 @@ function characterBoundary(
 function differenceHunks(sourcePassword: string, targetPassword: string): readonly DifferenceHunk[] {
   const source = indexedCharacters(sourcePassword);
   const target = indexedCharacters(targetPassword);
-  const rows = source.length + 1;
-  const columns = target.length + 1;
-  const lcs = Array.from({ length: rows }, () => Array<number>(columns).fill(0));
-
-  for (let sourceIndex = source.length - 1; sourceIndex >= 0; sourceIndex -= 1) {
-    const currentRow = lcs[sourceIndex];
-    if (currentRow === undefined) continue;
-    for (let targetIndex = target.length - 1; targetIndex >= 0; targetIndex -= 1) {
-      currentRow[targetIndex] =
-        source[sourceIndex]?.value === target[targetIndex]?.value
-          ? 1 + (lcs[sourceIndex + 1]?.[targetIndex + 1] ?? 0)
-          : Math.max(
-              lcs[sourceIndex + 1]?.[targetIndex] ?? 0,
-              currentRow[targetIndex + 1] ?? 0,
-            );
-    }
-  }
-
-  const matches: Array<readonly [number, number]> = [];
-  let sourceIndex = 0;
-  let targetIndex = 0;
-  while (sourceIndex < source.length && targetIndex < target.length) {
-    if (source[sourceIndex]?.value === target[targetIndex]?.value) {
-      matches.push([sourceIndex, targetIndex]);
-      sourceIndex += 1;
-      targetIndex += 1;
-      continue;
-    }
-    const skipSource = lcs[sourceIndex + 1]?.[targetIndex] ?? 0;
-    const skipTarget = lcs[sourceIndex]?.[targetIndex + 1] ?? 0;
-    if (skipSource >= skipTarget) sourceIndex += 1;
-    else targetIndex += 1;
-  }
+  const matches = longestCommonSubsequenceMatches(
+    source,
+    target,
+    (sourceCharacter, targetCharacter) => sourceCharacter.value === targetCharacter.value,
+  );
 
   const hunks: DifferenceHunk[] = [];
   let sourceCursor = 0;
@@ -304,41 +444,111 @@ function numberTransformations(
 const symbolicSuffixPattern = /[!?._-]{1,3}$/u;
 const numericSuffixPattern = /\d{1,4}$/u;
 
-function typicalSuffix(input: string): readonly [number, number] | null {
-  const symbolicMatch = symbolicSuffixPattern.exec(input);
-  if (symbolicMatch !== null) return [symbolicMatch.index, input.length];
-
-  const numericMatch = numericSuffixPattern.exec(input);
-  if (numericMatch === null) return null;
-  const start = numericMatch.index;
-  if (start > 0 && /\d/u.test(input.slice(start - 1, start))) return null;
-  return [start, input.length];
+interface TypicalSuffixParts {
+  readonly range: readonly [number, number];
+  readonly numericRange: readonly [number, number] | null;
+  readonly symbolicRange: readonly [number, number] | null;
 }
 
-function suffixTransformation(
+function terminalNumericRange(
+  input: string,
+  end: number,
+): readonly [number, number] | null {
+  const prefix = input.slice(0, end);
+  const match = numericSuffixPattern.exec(prefix);
+  if (match === null) return null;
+  if (match.index > 0 && /\d/u.test(prefix.slice(match.index - 1, match.index))) return null;
+  return [match.index, end];
+}
+
+function typicalSuffixParts(input: string): TypicalSuffixParts | null {
+  const symbolicMatch = symbolicSuffixPattern.exec(input);
+  const symbolicRange: readonly [number, number] | null =
+    symbolicMatch === null ? null : [symbolicMatch.index, input.length];
+  const numericEnd = symbolicRange?.[0] ?? input.length;
+  const numericRange = terminalNumericRange(input, numericEnd);
+  if (numericRange === null && symbolicRange === null) return null;
+  return {
+    range: [numericRange?.[0] ?? symbolicRange?.[0] ?? input.length, input.length],
+    numericRange,
+    symbolicRange,
+  };
+}
+
+function typicalSuffix(input: string): readonly [number, number] | null {
+  return typicalSuffixParts(input)?.range ?? null;
+}
+
+function suffixTransformations(
   sourcePassword: string,
   targetPassword: string,
-): CandidateTransformation | null {
-  const sourceRange: readonly [number, number] =
-    typicalSuffix(sourcePassword) ?? [sourcePassword.length, sourcePassword.length];
-  const targetRange: readonly [number, number] =
-    typicalSuffix(targetPassword) ?? [targetPassword.length, targetPassword.length];
-  const sourceSuffix = sourcePassword.slice(sourceRange[0], sourceRange[1]);
-  const targetSuffix = targetPassword.slice(targetRange[0], targetRange[1]);
-  if (sourceSuffix === targetSuffix || (sourceSuffix.length === 0 && targetSuffix.length === 0)) {
-    return null;
+): readonly CandidateTransformation[] {
+  const sourceParts = typicalSuffixParts(sourcePassword);
+  const targetParts = typicalSuffixParts(targetPassword);
+  if (sourceParts === null && targetParts === null) return [];
+
+  if (sourceParts === null || targetParts === null) {
+    const sourceRange: readonly [number, number] =
+      sourceParts?.range ?? [sourcePassword.length, sourcePassword.length];
+    const targetRange: readonly [number, number] =
+      targetParts?.range ?? [targetPassword.length, targetPassword.length];
+    return [
+      transformation(
+        'suffix',
+        'surface',
+        18,
+        sourcePassword,
+        targetPassword,
+        sourceRange,
+        targetRange,
+      ),
+    ];
   }
-  // Two four-digit years remain governed by the explicit ±2 year path, even at the end.
-  if (looksLikeYear(sourceSuffix) && looksLikeYear(targetSuffix)) return null;
-  return transformation(
-    'suffix',
-    'surface',
-    18,
-    sourcePassword,
-    targetPassword,
-    sourceRange,
-    targetRange,
-  );
+
+  const transformations: CandidateTransformation[] = [];
+  const sourceSymbolRange: readonly [number, number] =
+    sourceParts.symbolicRange ?? [sourcePassword.length, sourcePassword.length];
+  const targetSymbolRange: readonly [number, number] =
+    targetParts.symbolicRange ?? [targetPassword.length, targetPassword.length];
+  const sourceSymbol = sourcePassword.slice(sourceSymbolRange[0], sourceSymbolRange[1]);
+  const targetSymbol = targetPassword.slice(targetSymbolRange[0], targetSymbolRange[1]);
+  if (sourceSymbol !== targetSymbol) {
+    transformations.push(
+      transformation(
+        'suffix',
+        'surface',
+        18,
+        sourcePassword,
+        targetPassword,
+        sourceSymbolRange,
+        targetSymbolRange,
+      ),
+    );
+  }
+
+  const sourceNumberInsertion = sourceParts.symbolicRange?.[0] ?? sourcePassword.length;
+  const targetNumberInsertion = targetParts.symbolicRange?.[0] ?? targetPassword.length;
+  const sourceNumberRange: readonly [number, number] =
+    sourceParts.numericRange ?? [sourceNumberInsertion, sourceNumberInsertion];
+  const targetNumberRange: readonly [number, number] =
+    targetParts.numericRange ?? [targetNumberInsertion, targetNumberInsertion];
+  const sourceNumber = sourcePassword.slice(sourceNumberRange[0], sourceNumberRange[1]);
+  const targetNumber = targetPassword.slice(targetNumberRange[0], targetNumberRange[1]);
+  if ((sourceNumber.length === 0) !== (targetNumber.length === 0)) {
+    transformations.push(
+      transformation(
+        'suffix',
+        'surface',
+        19,
+        sourcePassword,
+        targetPassword,
+        sourceNumberRange,
+        targetNumberRange,
+      ),
+    );
+  }
+
+  return transformations;
 }
 
 const separatorPattern = /^[-_.\s]{0,2}$/u;
@@ -596,7 +806,7 @@ function transpositionTransformation(
 
 function mergeAtomTransformations(
   transformations: readonly CandidateTransformation[],
-  atom: 'case' | 'leet',
+  atom: 'case' | 'leet' | 'separator',
   maximumEdits: number,
 ): readonly CandidateTransformation[] {
   const matching = transformations.filter((item) => item.atom === atom);
@@ -741,7 +951,8 @@ function hunkTransformations(
     return candidates;
   });
   const casesMerged = mergeAtomTransformations(candidates, 'case', Number.POSITIVE_INFINITY);
-  return mergeAtomTransformations(casesMerged, 'leet', 2);
+  const leetMerged = mergeAtomTransformations(casesMerged, 'leet', 2);
+  return mergeAtomTransformations(leetMerged, 'separator', 4);
 }
 
 function rangeOverlap(
@@ -798,10 +1009,10 @@ function candidateCombinations(
       const surfaceCount = next.filter(
         ({ class: transformationClass }) => transformationClass === 'surface',
       ).length;
-      if (mainCount > 1 || surfaceCount > 2) continue;
+      if (mainCount > 1 || surfaceCount > 3) continue;
       if (selected.some((existing) => transformationsOverlap(existing, candidate))) continue;
       combinations.push(next);
-      if (next.length < 3) visit(index + 1, next);
+      if (next.length < 4) visit(index + 1, next);
     }
   }
 
@@ -907,6 +1118,8 @@ function transformationIdFor(
         return 'repeated-character-pattern-changed';
       case 'removal':
         return 'leading-or-trailing-component-removed';
+      case 'component':
+        return 'bounded-component-replaced';
       default:
         return null;
     }
@@ -931,6 +1144,7 @@ function transformationIdFor(
   if (atomSet.has('account')) return 'account-term-with-small-surface-changes';
   if (atomSet.has('repetition')) return 'repeated-pattern-with-small-surface-changes';
   if (atomSet.has('removal')) return 'component-removal-with-small-surface-changes';
+  if (atomSet.has('component')) return 'component-replacement-with-small-surface-changes';
   return 'bounded-surface-changes';
 }
 
@@ -965,15 +1179,16 @@ export function compareFictionalPasswords({
     };
   }
 
-  const suffix = suffixTransformation(sourcePassword, targetPassword);
+  const suffixes = suffixTransformations(sourcePassword, targetPassword);
   const transposition = transpositionTransformation(sourcePassword, targetPassword);
   const transformations = [
     ...accountTransformations(sourcePassword, targetPassword, authoredAccountAndServiceTerms),
     ...yearTransformations(sourcePassword, targetPassword),
     ...numberTransformations(sourcePassword, targetPassword),
     ...repeatedPatternTransformations(sourcePassword, targetPassword),
+    ...componentReplacementTransformations(sourcePassword, targetPassword),
     ...boundaryComponentRemovalTransformations(sourcePassword, targetPassword),
-    ...(suffix === null ? [] : [suffix]),
+    ...suffixes,
     ...(transposition === null ? [] : [transposition]),
     ...hunkTransformations(sourcePassword, targetPassword),
   ];

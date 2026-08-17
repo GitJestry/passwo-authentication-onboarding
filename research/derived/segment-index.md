@@ -157,7 +157,7 @@ Seitenangaben beziehen sich auf die im Trainingsdokument ausgewiesene interne Pa
   Zeichen, begrenzen den Vergleich auf nicht leicht vorhersehbare Ergänzungen und kündigen die
   spätere Passphrasenpraxis an. Erst dann folgt die bestehende lokale Campusgram-Auswertung.
 - Die S05-Simulationsdisposition (`S05_CONTENT_VERSION 2.98.0`, Analysekonfiguration
-  `passwo-bounded-whole-recognition-v14`) bleibt auf den vollständigen fiktiven Wert begrenzt:
+  `passwo-bounded-whole-recognition-v15`) bleibt auf den vollständigen fiktiven Wert begrenzt:
   `whole-password-recognized` entsteht durch einen direkten Vollwert oder eine dokumentierte
   begrenzte Kandidatenfamilie aus kanonischen Ankern und positionsunabhängigen Restzeichen oder
   durch einen flüchtigen, von der teilnehmenden Person bestätigten semantischen Kandidatenweg.
@@ -226,11 +226,14 @@ Seitenangaben beziehen sich auf die im Trainingsdokument ausgewiesene interne Pa
   die wiederhergestellte Campusgram-Schlussansicht unverändert.
 - Eine Beziehung ist ausschließlich `exact-match`, `derived-variant-match` oder
   `no-derived-path-recognized`. Eine abgeleitete Variante benötigt einen konkreten begrenzten
-  Transformationsweg, dessen erzeugter Kandidat den vollständigen Zielwert trifft.
-- Gemeinsame Teilstrings und allgemeine Ähnlichkeitswerte begründen keinen Treffer. Eine einzelne
-  Zeichenoperation zählt nur als explizit begrenzter erzeugter Kandidatenweg. Ein nicht erkannter
-  Weg bedeutet nur, dass diese Simulation keinen direkten Weg erkannt hat.
-- `S06_CONSEQUENCE_CONTENT_VERSION 2.25.0` übernimmt die S05-Vollpasswort-Disposition ohne eigene
+  Transformationsweg, dessen erzeugter Kandidat den vollständigen Zielwert trifft; höchstens eine Hauptveränderung und drei kleine Oberflächenveränderungen werden kombiniert.
+- Gemeinsame Teilstrings und allgemeine Ähnlichkeitswerte begründen keinen Treffer. Zusätzlich zu
+  den authored Wegen kann genau ein an Trennzeichen, Ziffer-/Buchstabenwechsel oder Camel Case abgegrenzter Buchstabenbaustein
+  im ansonsten stabilen Muster ausgetauscht werden; zwei freie Bausteinersetzungen bleiben
+  ausgeschlossen. Eine einzelne Zeichenoperation zählt nur als explizit begrenzter erzeugter
+  Kandidatenweg. Ein nicht erkannter Weg bedeutet nur, dass diese Simulation keinen direkten Weg
+  erkannt hat.
+- `S06_CONSEQUENCE_CONTENT_VERSION 2.26.0` übernimmt die S05-Vollpasswort-Disposition ohne eigene
   Guess-Schwelle. Nur `whole-password-recognized` öffnet den tatsächlichen lokalen Vorfallspfad;
   `no-whole-password-recognized` bleibt eine begrenzte Nicht-Erkennung und kein Stärkeurteil.
 - Jeder der drei flüchtigen S06-Kontoeingänge akzeptiert optional dieselbe bestätigte semantische
@@ -261,12 +264,15 @@ Seitenangaben beziehen sich auf die im Trainingsdokument ausgewiesene interne Pa
   `Passwort jetzt ändern`-Ablauf. Die Umgebung wird bis zum Öffnen dieses Ablaufs abgedunkelt,
   während der Hinweis leuchtet; bei Reduced Motion bleibt der Leuchtrahmen statisch. Alle
   Formulareingaben bleiben flüchtig und werden verworfen.
-- Nach dem Campusgram-Wechsel werden nur Master Campus oder Campus E-Mail weiterbehandelt, wenn
-  ihre lokale Analyse einen Volltreffer oder der gerichtete Vergleich zum alten
-  Campusgram-Passwort einen Treffer beziehungsweise eine relevante Variation ergibt. Diese Konten
-  erhalten in S08 jeweils die Knotenaktion `Einzigartige Passphrase verwenden`; nicht betroffene
-  Konten bleiben unverändert. Schutzschild und kurzes Konfetti bestätigen jede ausgeführte Aktion,
-  bevor der abschließende Angriffsrücklauf beginnt.
+- Nach dem Campusgram-Wechsel trennt S08 lokale Kontobefunde von offenen Passwortbeziehungen.
+  Ein lokaler Volltreffer bleibt an das betreffende Konto gebunden. Bei Wiederverwendung oder
+  Ähnlichkeit sind beide Endpunkte der roten gestrichelten Beziehung als mögliche Änderung
+  auswählbar. `Einzigartige Passphrase verwenden` löst den lokalen Befund des gewählten Kontos
+  und alle inzidenten Beziehungen; deren Kanten zerfallen sichtbar. Danach wird der verbleibende
+  Handlungsbedarf erneut aus lokalen Befunden und noch offenen Beziehungen abgeleitet. Die in S07
+  berechnete minimale Kontomenge ist nur eine Empfehlung beziehungsweise ein Default und keine
+  Einschränkung der S08-Auswahl. Schutzschild und kurzes Konfetti bestätigen jede ausgeführte
+  Aktion, bevor der abschließende Angriffsrücklauf beginnt.
 - Nach dem Campusgram-Wechsel projiziert S07 die lokalen S06-Befunde für die beiden anderen
   Konten als stark/leicht erratbar und einzigartig/ähnlich. Stark und einzigartig eingeordnete
   Konten bleiben ohne Einzelmeldung; nur offene Konten erhalten in S08 eine Schutzaktion. Sind
