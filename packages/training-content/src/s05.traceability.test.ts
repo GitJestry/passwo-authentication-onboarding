@@ -4,15 +4,16 @@ import { S05_CONTENT_VERSION, s05Content } from './s05.js';
 
 describe('S05 content traceability', () => {
   it('keeps the participant copy bounded and separate from internal terminology', () => {
-    expect(S05_CONTENT_VERSION).toBe('2.96.0');
+    expect(S05_CONTENT_VERSION).toBe('2.100.0');
     expect(s05Content.source).toMatchObject({
       document: 'research/private/training-script.pdf',
       internalPages: [
         12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34,
         35,
       ],
+      revision: 'Userauftrag vom 2026-08-17 · S05 Zeichenrückbezug präzisiert',
       copyReference:
-        'docs/design/S00-S05-COPY-AUDIT.md#copy-und-logikdelta-s05-ungefähre-übungsentscheidung-und-semantische-kandidatenwege-17-august-2026',
+        'docs/design/S00-S05-COPY-AUDIT.md#copy-delta-s05-zeichenrückbezug-präzisiert-17-august-2026',
     });
     expect(s05Content.segment.id).toBe('S05');
     expect(s05Content.page.fixtureNotice).toBe(
@@ -353,6 +354,37 @@ describe('S05 content traceability', () => {
         fifthWordIntroduction:
           'Jetzt füge ich einfach ein weiteres zufälliges Wort aus demselben Pool hinzu. Und schon steigt der Aufwand auf 106 Millionen Jahre!',
         fifthWordAction: 'Schätzfrage',
+        languagePoolEstimate: {
+          question:
+            'Wie viele Sprachpakete bräuchten wir insgesamt, damit vier Wörter ungefähr denselben Aufwand erzeugen wie diese fünf?',
+          minimum: 4,
+          maximum: 195,
+          target: 95,
+          inputLabel: 'Anzahl der Sprachpakete',
+          valueUnit: 'Sprachpakete',
+          decrementLabel: 'Ein Sprachpaket weniger',
+          incrementLabel: 'Ein Sprachpaket mehr',
+          submitAction: 'Schätzung abgeben',
+          solutionLabel: '95 Sprachpakete',
+          legend: {
+            missing: 'Bis zur Lösung ergänzt',
+            excess: 'Über der Lösung zurückgesetzt',
+          },
+          result:
+            'Von vier auf fast 95 Sprachpakete, nur um ein zusätzliches Wort auszugleichen.',
+          takeaway:
+            'Das ist der zweite Grund: Ein weiteres zufälliges Wort kann viel mehr bringen als ein größerer Wörterpool.',
+        },
+        charsetAnalogy: {
+          characterTypes:
+            'Bei Zeichen ist es ähnlich: Mehr Zeichentypen vergrößern den Pool pro Zeichen.',
+          additionalCharacter:
+            'Ein weiteres Zeichen wirkt nach demselben Prinzip wie ein weiteres Wort.',
+          predictability:
+            'Einfach vorhersehbare Zeichen oder Wörter anzuhängen bringt diesen großen Zuwachs dagegen nicht.',
+          passphraseOutlook:
+            'Wie man mit zufälligen Wörtern ein starkes und trotzdem gut merkbares Passwort erstellt, schauen wir uns später praktisch an.',
+        },
         germanWords: {
           password: 'DatensicherheitLobotomieZugspitzeUnbefugt',
           parts: ['Datensicherheit', 'Lobotomie', 'Zugspitze', 'Unbefugt'],
@@ -399,18 +431,18 @@ describe('S05 content traceability', () => {
     });
     expect(s05Content.freeSearch.application).toMatchObject({
       assessmentIntroduction: [
-        'Jetzt müssen wir für diese Übung noch entscheiden, ob dein Passwort bei den bisherigen Prüfungen vom Angreifer gefunden wurde.',
-        'Das ist keine Bewertung der Passwortstärke und keine Sicherheitsgarantie, sondern nur eine ungefähre Entscheidung für diese Übung.',
+        'Für diese Übung entscheiden wir jetzt grob, ob dein Passwort bei den bisherigen Prüfungen gefunden wurde.',
+        'Das ist keine Bewertung der Passwortstärke oder Sicherheitsgarantie.',
       ],
       result: {
         recognizedValue:
-          'Bei den bisherigen Prüfungen wurde die gesamte Zeichenfolge als früher Kandidat erkannt. Für diese Übung gilt das Campusgram-Passwort deshalb als gefunden.',
+          'Die gesamte Zeichenfolge wurde als früher Kandidat erkannt. Deshalb gilt dein Campusgram-Passwort hier als gefunden.',
         recognizedBoundedVariant:
-          'Bei den bisherigen Prüfungen konnte eine einfache Veränderung zu der gesamten Zeichenfolge führen. Für diese Übung gilt das Campusgram-Passwort deshalb als gefunden.',
+          'Eine einfache Veränderung führte zur gesamten Zeichenfolge. Deshalb gilt dein Campusgram-Passwort hier als gefunden.',
         recognizedSemanticPath:
-          'Die bisherigen Prüfungen und die von dir markierten Zusammenhänge ergeben einen nachvollziehbaren Weg zur gesamten Zeichenfolge. Für diese Übung gilt das Campusgram-Passwort deshalb als gefunden.',
+          'Die bisherigen Prüfungen und die von dir markierten Zusammenhänge ergeben einen nachvollziehbaren Weg zur gesamten Zeichenfolge. Deshalb gilt dein Campusgram-Passwort hier als gefunden.',
         notRecognized:
-          'Bei den bisherigen Prüfungen wurde kein Weg erkannt, der die gesamte Zeichenfolge abdeckt. Für diese Übung gilt das Campusgram-Passwort deshalb als nicht gefunden. Das ist kein Sicherheitsnachweis.',
+          'Kein erkannter Weg deckt die gesamte Zeichenfolge ab. Deshalb gilt dein Campusgram-Passwort hier als nicht gefunden. Das ist kein Sicherheitsnachweis.',
       },
       length: {
         belowOrientation:
@@ -456,7 +488,7 @@ describe('S05 content traceability', () => {
     expect(reasonsStepIndex).toBe(orientationStepIndex + 1);
     expect(
       s05Content.animations
-        .slice(reasonsStepIndex, reasonsStepIndex + 12)
+        .slice(reasonsStepIndex, reasonsStepIndex + 19)
         .map(([id]) => id),
     ).toEqual([
       's05-length-reasons-intro',
@@ -471,7 +503,15 @@ describe('S05 content traceability', () => {
       's05-length-language-pool-stack',
       's05-length-multilingual-words',
       's05-length-fifth-word-comparison',
+      's05-length-language-pool-question',
+      's05-length-language-pool-result',
+      's05-length-language-pool-takeaway',
+      's05-length-charset-analogy-types',
+      's05-length-charset-analogy-position',
+      's05-length-charset-predictability',
+      's05-length-passphrase-outlook',
     ]);
+    expect(s05Content.animations[reasonsStepIndex + 19]?.[0]).toBe('s05-final-components');
     expect(
       s05Content.animations
         .map(([id]) => id)

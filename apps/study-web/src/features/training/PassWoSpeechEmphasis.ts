@@ -147,6 +147,29 @@ const emphasisBySpeechId: Readonly<Record<string, readonly PassWoSpeechEmphasis[
   's05-length-fifth-word-comparison': [
     { phrase: 'weiteres zufälliges Wort', tone: 'accent' },
   ],
+  's05-length-language-pool-question': [
+    { phrase: 'Wie viele Sprachpakete', tone: 'accent' },
+    { phrase: 'vier Wörter', tone: 'accent' },
+    { phrase: 'denselben Aufwand', tone: 'accent' },
+  ],
+  's05-length-language-pool-result': [
+    { phrase: 'fast 95 Sprachpakete', tone: 'accent' },
+  ],
+  's05-length-language-pool-takeaway': [
+    { phrase: 'Ein weiteres zufälliges Wort', tone: 'accent' },
+  ],
+  's05-length-charset-analogy-types': [
+    { phrase: 'Mehr Zeichentypen', tone: 'accent' },
+  ],
+  's05-length-charset-analogy-position': [
+    { phrase: 'Ein weiteres Zeichen', tone: 'accent' },
+  ],
+  's05-length-charset-predictability': [
+    { phrase: 'Einfach vorhersehbare Zeichen oder Wörter', tone: 'warning' },
+  ],
+  's05-length-passphrase-outlook': [
+    { phrase: 'zufälligen Wörtern', tone: 'accent' },
+  ],
   's05-final-components': [{ phrase: 'gesamte Zeichenfolge', tone: 'accent' }],
   's05-final-result': [{ phrase: 'gesamte Zeichenfolge', tone: 'warning' }],
   's05-final-length': [{ phrase: 'mindestens 15 Zeichen', tone: 'accent' }],

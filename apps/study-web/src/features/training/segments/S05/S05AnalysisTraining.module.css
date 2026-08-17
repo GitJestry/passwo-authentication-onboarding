@@ -63,7 +63,8 @@
   padding: var(--space-4) clamp(var(--space-5), 5cqi, var(--space-8));
 }
 
-.content:has(.lowercaseScaleScene) {
+.content:has(.lowercaseScaleScene),
+.content:has(.languageMapScene) {
   padding: 0;
   overflow: hidden;
 }
@@ -3211,6 +3212,392 @@
   }
 }
 
+.languageMapScene {
+  position: relative;
+  display: grid;
+  box-sizing: border-box;
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  grid-template-rows: minmax(0, 1fr) auto;
+  gap: clamp(var(--space-2), 1.5cqb, var(--space-4));
+  padding: clamp(var(--space-3), 2.5cqb, var(--space-6)) clamp(var(--space-4), 4cqi, var(--space-8));
+  overflow: hidden;
+  background:
+    radial-gradient(circle at 50% 36%, rgb(40 126 87 / 14%), transparent 38%),
+    linear-gradient(180deg, #07121c 0%, #091721 58%, #071018 100%);
+  container-type: size;
+}
+
+.languageMapScene::before {
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(rgb(255 255 255 / 2%) 1px, transparent 1px),
+    linear-gradient(90deg, rgb(255 255 255 / 2%) 1px, transparent 1px);
+  background-size: 4.5rem 4.5rem;
+  content: '';
+  mask-image: linear-gradient(to bottom, rgb(0 0 0 / 42%), transparent 74%);
+  pointer-events: none;
+}
+
+.languageMapFrame {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  width: min(100%, 96rem);
+  min-height: 0;
+  place-items: center;
+  margin: 0 auto;
+  overflow: hidden;
+}
+
+.languageMap {
+  display: block;
+  width: min(100%, 92rem);
+  height: 100%;
+  max-height: 64cqb;
+  overflow: visible;
+  filter: drop-shadow(0 1rem 2.5rem rgb(0 0 0 / 30%));
+}
+
+.languageMapCountry,
+.languageMapMarker {
+  fill: transparent;
+  stroke: rgb(180 198 217 / 48%);
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 0.72;
+  transition:
+    fill 180ms cubic-bezier(0.22, 1, 0.36, 1),
+    stroke 180ms cubic-bezier(0.22, 1, 0.36, 1),
+    opacity 180ms cubic-bezier(0.22, 1, 0.36, 1),
+    filter 180ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.languageMapMarker {
+  stroke-width: 1;
+}
+
+.languageMapCountry[data-status="primary"],
+.languageMapMarker[data-status="primary"] {
+  fill: #176341;
+  stroke: #9df6bd;
+  filter: drop-shadow(0 0 0.18rem rgb(86 235 144 / 72%));
+}
+
+.languageMapCountry[data-status="estimated"],
+.languageMapMarker[data-status="estimated"] {
+  fill: #45a876;
+  stroke: #a8f2c2;
+  filter: drop-shadow(0 0 0.12rem rgb(69 168 118 / 54%));
+}
+
+.languageMapCountry[data-status="missing"],
+.languageMapMarker[data-status="missing"] {
+  fill: url('#s05-language-map-missing-pattern');
+  stroke: #9fc7ff;
+  stroke-width: 1;
+}
+
+.languageMapCountry[data-status="excess"],
+.languageMapMarker[data-status="excess"] {
+  fill: transparent;
+  stroke: rgb(190 201 214 / 68%);
+  stroke-dasharray: 2.4 1.8;
+  opacity: 0.58;
+}
+
+.languageMapMissingPatternBase {
+  fill: #215da2;
+}
+
+.languageMapMissingPatternStripe {
+  fill: #6aa8f0;
+}
+
+.languageMapFlags circle {
+  fill: rgb(4 15 22 / 92%);
+  stroke: rgb(255 255 255 / 82%);
+  stroke-width: 1.1;
+  filter: drop-shadow(0 0.2rem 0.45rem rgb(0 0 0 / 56%));
+}
+
+.languageMapFlags text {
+  font-family: "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", sans-serif;
+  font-size: 13.5px;
+  paint-order: stroke;
+  stroke: rgb(4 15 22 / 26%);
+  stroke-width: 0.5px;
+}
+
+.languageMapLegend {
+  position: absolute;
+  top: clamp(var(--space-2), 2cqb, var(--space-4));
+  left: clamp(var(--space-2), 2cqi, var(--space-5));
+  display: flex;
+  max-width: min(82%, 48rem);
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-3);
+  border: var(--border-width-thin) solid rgb(255 255 255 / 13%);
+  border-radius: var(--radius-medium);
+  color: rgb(235 243 251 / 82%);
+  background: rgb(5 14 22 / 70%);
+  box-shadow: 0 0.7rem 1.8rem rgb(0 0 0 / 24%);
+  backdrop-filter: blur(0.75rem) saturate(1.08);
+  font-size: clamp(0.62rem, 0.9cqi, 0.78rem);
+  line-height: 1;
+}
+
+.languageMapLegend > span {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  white-space: nowrap;
+}
+
+.languageMapLegend i {
+  display: inline-block;
+  width: 0.82rem;
+  height: 0.82rem;
+  border: 1px solid rgb(255 255 255 / 62%);
+  border-radius: 0.22rem;
+  background: rgb(167 185 204 / 12%);
+}
+
+.languageMapLegend [data-status="missing"] i {
+  background: repeating-linear-gradient(135deg, #215da2 0 3px, #6aa8f0 3px 6px);
+}
+
+.languageMapLegend [data-status="excess"] i {
+  border-style: dashed;
+  background: rgb(145 157 172 / 12%);
+  opacity: 0.72;
+}
+
+.languageMapSolution {
+  position: absolute;
+  z-index: 3;
+  top: 52%;
+  left: 50%;
+  color: #e9fff1;
+  font-size: clamp(1.8rem, 4.2cqi, 4.2rem);
+  font-weight: var(--font-weight-heavy);
+  letter-spacing: -0.04em;
+  text-align: center;
+  text-shadow: 0 0.2rem 1rem rgb(0 0 0 / 52%);
+  transform: translate(-50%, -50%);
+  animation: language-map-solution-arrival 620ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.languageMapControls {
+  position: relative;
+  z-index: 4;
+  display: grid;
+  width: min(74%, 68rem);
+  min-width: min(100%, 38rem);
+  grid-template-columns: minmax(14rem, 1fr) auto auto;
+  align-items: center;
+  gap: clamp(var(--space-2), 1.6cqi, var(--space-4));
+  margin: 0 auto;
+  padding: var(--space-3);
+  border: var(--border-width-thin) solid rgb(255 255 255 / 14%);
+  border-radius: var(--radius-large);
+  background:
+    linear-gradient(145deg, rgb(255 255 255 / 11%), rgb(255 255 255 / 3%)),
+    rgb(6 16 25 / 80%);
+  box-shadow: 0 1rem 3rem rgb(0 0 0 / 34%);
+  backdrop-filter: blur(1rem) saturate(1.12);
+}
+
+.languageMapRange {
+  position: relative;
+  display: grid;
+  min-width: 0;
+  gap: var(--space-1);
+  padding-inline: var(--space-1);
+}
+
+.languageMapRangeBounds {
+  display: flex;
+  justify-content: space-between;
+  color: rgb(227 237 247 / 64%);
+  font-size: var(--font-size-x-small);
+  font-variant-numeric: tabular-nums;
+}
+
+.languageMapRange input[type="range"] {
+  width: 100%;
+  height: 1.55rem;
+  margin: 0;
+  appearance: none;
+  background: transparent;
+  cursor: pointer;
+}
+
+.languageMapRange input[type="range"]::-webkit-slider-runnable-track {
+  height: 0.52rem;
+  border: 1px solid rgb(255 255 255 / 14%);
+  border-radius: var(--radius-round);
+  background:
+    linear-gradient(
+      to right,
+      #45a876 0 var(--s05-language-pool-progress),
+      rgb(150 168 186 / 24%) var(--s05-language-pool-progress) 100%
+    );
+  box-shadow: inset 0 0.1rem 0.25rem rgb(0 0 0 / 30%);
+}
+
+.languageMapRange input[type="range"]::-moz-range-track {
+  height: 0.52rem;
+  border: 1px solid rgb(255 255 255 / 14%);
+  border-radius: var(--radius-round);
+  background:
+    linear-gradient(
+      to right,
+      #45a876 0 var(--s05-language-pool-progress),
+      rgb(150 168 186 / 24%) var(--s05-language-pool-progress) 100%
+    );
+  box-shadow: inset 0 0.1rem 0.25rem rgb(0 0 0 / 30%);
+}
+
+.languageMapRange input[type="range"]::-webkit-slider-thumb {
+  width: 1.45rem;
+  height: 1.45rem;
+  margin-top: -0.52rem;
+  appearance: none;
+  border: 0.2rem solid #dffff0;
+  border-radius: var(--radius-round);
+  background: #278c5c;
+  box-shadow: 0 0 0 0.22rem rgb(69 168 118 / 30%), 0 0.35rem 0.9rem rgb(0 0 0 / 38%);
+}
+
+.languageMapRange input[type="range"]::-moz-range-thumb {
+  width: 1.1rem;
+  height: 1.1rem;
+  border: 0.2rem solid #dffff0;
+  border-radius: var(--radius-round);
+  background: #278c5c;
+  box-shadow: 0 0 0 0.22rem rgb(69 168 118 / 30%), 0 0.35rem 0.9rem rgb(0 0 0 / 38%);
+}
+
+.languageMapRange input[type="range"]:focus-visible {
+  outline: var(--border-width-focus) solid var(--color-focus);
+  outline-offset: var(--space-1);
+  border-radius: var(--radius-round);
+}
+
+.languageMapExactValue {
+  display: flex;
+  align-items: stretch;
+  border: var(--border-width-thin) solid rgb(255 255 255 / 16%);
+  border-radius: var(--radius-medium);
+  overflow: hidden;
+  background: rgb(255 255 255 / 5%);
+}
+
+.languageMapExactValue > button {
+  display: grid;
+  width: 2.6rem;
+  min-width: 2.6rem;
+  place-items: center;
+  border: 0;
+  color: #e9fff1;
+  background: rgb(255 255 255 / 5%);
+  font-size: 1.3rem;
+  cursor: pointer;
+}
+
+.languageMapExactValue > button:first-child {
+  border-right: var(--border-width-thin) solid rgb(255 255 255 / 12%);
+}
+
+.languageMapExactValue > button:last-child {
+  border-left: var(--border-width-thin) solid rgb(255 255 255 / 12%);
+}
+
+.languageMapExactValue > button:hover:not(:disabled),
+.languageMapExactValue > button:focus-visible:not(:disabled) {
+  background: rgb(69 168 118 / 24%);
+}
+
+.languageMapExactValue > button:focus-visible,
+.languageMapExactValue input:focus-visible,
+.languageMapSubmit:focus-visible {
+  outline: var(--border-width-focus) solid var(--color-focus);
+  outline-offset: -0.15rem;
+}
+
+.languageMapExactValue > button:disabled,
+.languageMapRange input:disabled,
+.languageMapExactValue input:disabled,
+.languageMapSubmit:disabled {
+  cursor: default;
+  opacity: 0.48;
+}
+
+.languageMapExactValue label {
+  display: grid;
+  min-width: 7.8rem;
+  place-items: center;
+  padding: 0.28rem var(--space-2);
+}
+
+.languageMapExactValue input {
+  width: 5.3rem;
+  border: 0;
+  color: #fff;
+  background: transparent;
+  font-size: 1.35rem;
+  font-weight: var(--font-weight-heavy);
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+  text-align: center;
+}
+
+.languageMapExactValue label > span {
+  color: rgb(229 240 250 / 64%);
+  font-size: 0.58rem;
+  font-weight: var(--font-weight-bold);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.languageMapSubmit {
+  min-height: 3.5rem;
+  padding: var(--space-3) clamp(var(--space-4), 2.3cqi, var(--space-6));
+  border: 1px solid rgb(155 246 188 / 62%);
+  border-radius: var(--radius-medium);
+  color: #f1fff6;
+  background: linear-gradient(145deg, #247e52, #155b3a);
+  box-shadow: 0 0.65rem 1.6rem rgb(0 0 0 / 28%), inset 0 0 1rem rgb(255 255 255 / 5%);
+  font-weight: var(--font-weight-heavy);
+  white-space: nowrap;
+  cursor: pointer;
+  transition: transform 150ms ease, filter 150ms ease;
+}
+
+.languageMapSubmit:hover:not(:disabled) {
+  filter: brightness(1.12);
+  transform: translateY(-0.08rem);
+}
+
+.languageMapSubmit:active:not(:disabled) {
+  transform: translateY(0.04rem);
+}
+
+@keyframes language-map-solution-arrival {
+  from {
+    opacity: 0;
+    transform: translate(-50%, -44%) scale(0.88);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+  }
+}
+
 .wordPoolReasonScene {
   --second-reason-baseline: 66%;
   --second-reason-width-zoom: 0.66;
@@ -5219,6 +5606,7 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .languageMapSolution,
   .generatedSequence i,
   .strategyFocus,
   .recognizableStage [data-display="assembled"],
@@ -5274,6 +5662,10 @@
     animation: none;
   }
 
+  .languageMapCountry,
+  .languageMapMarker,
+  .languageMapRange input,
+  .languageMapSubmit,
   .lowercaseScaleAxis,
   .scaleMilestone,
   .scaleTick,
@@ -5340,6 +5732,103 @@
   .summaryScene {
     scroll-behavior: auto;
   }
+}
+
+@container artifact-stage (max-width: 62rem) {
+  .languageMapControls {
+    width: min(82%, 58rem);
+    grid-template-columns: minmax(12rem, 1fr) auto;
+  }
+
+  .languageMapRange {
+    grid-column: 1;
+    grid-row: 1;
+  }
+
+  .languageMapExactValue {
+    width: fit-content;
+    grid-column: 1;
+    grid-row: 2;
+  }
+
+  .languageMapSubmit {
+    grid-column: 2;
+    grid-row: 1 / span 2;
+  }
+}
+
+@container artifact-stage (max-width: 46rem) {
+  .languageMapScene {
+    padding-inline: var(--space-3);
+  }
+
+  .languageMap {
+    width: 112%;
+    max-width: none;
+  }
+
+  .languageMapControls {
+    width: 100%;
+    min-width: 0;
+    grid-template-columns: 1fr auto;
+    margin-inline: 0;
+  }
+
+  .languageMapRange {
+    grid-column: 1 / -1;
+    grid-row: 1;
+  }
+
+  .languageMapExactValue {
+    grid-column: 1;
+    grid-row: 2;
+  }
+
+  .languageMapSubmit {
+    grid-column: 2;
+    grid-row: 2;
+  }
+
+  .languageMapLegend {
+    top: var(--space-1);
+    left: var(--space-1);
+    max-width: calc(100% - 2 * var(--space-1));
+  }
+}
+
+@container artifact-stage (max-width: 32rem) {
+  .languageMapControls {
+    grid-template-columns: 1fr;
+  }
+
+  .languageMapExactValue,
+  .languageMapSubmit {
+    width: 100%;
+  }
+
+  .languageMapSubmit {
+    grid-column: 1;
+    grid-row: auto;
+  }
+
+  .languageMapSolution {
+    font-size: clamp(1.45rem, 7cqi, 2.4rem);
+  }
+}
+
+@container artifact-stage (max-height: 38rem) {
+  .languageMapScene {
+    padding-block: var(--space-2);
+  }
+
+  .languageMap {
+    max-height: 58cqb;
+  }
+
+  .languageMapControls {
+    padding: var(--space-2);
+  }
+
 }
 
 @container artifact-stage (max-width: 54rem) {

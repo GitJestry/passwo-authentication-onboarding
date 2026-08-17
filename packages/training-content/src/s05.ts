@@ -73,7 +73,7 @@ export interface S05DesignLabFixture {
   readonly startSection: 'intro' | 'components' | 'structure';
 }
 
-export const S05_CONTENT_VERSION = '2.96.0';
+export const S05_CONTENT_VERSION = '2.100.0';
 
 export const s05Content = {
   version: S05_CONTENT_VERSION,
@@ -83,10 +83,9 @@ export const s05Content = {
       12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34,
       35,
     ] as const,
-    revision:
-      'Userauftrag vom 2026-08-17 · ungefähre Übungsentscheidung mit bestätigten Zusammenhängen',
+    revision: 'Userauftrag vom 2026-08-17 · S05 Übungsentscheidung und Diagnosen gekürzt',
     copyReference:
-      'docs/design/S00-S05-COPY-AUDIT.md#copy-und-logikdelta-s05-ungefähre-übungsentscheidung-und-semantische-kandidatenwege-17-august-2026',
+      'docs/design/S00-S05-COPY-AUDIT.md#copy-delta-s05-übungsentscheidung-und-diagnosen-gekürzt-17-august-2026',
   },
   segment: {
     id: 'S05',
@@ -593,6 +592,37 @@ export const s05Content = {
         fifthWordIntroduction:
           'Jetzt füge ich einfach ein weiteres zufälliges Wort aus demselben Pool hinzu. Und schon steigt der Aufwand auf 106 Millionen Jahre!',
         fifthWordAction: 'Schätzfrage',
+        languagePoolEstimate: {
+          question:
+            'Wie viele Sprachpakete bräuchten wir insgesamt, damit vier Wörter ungefähr denselben Aufwand erzeugen wie diese fünf?',
+          minimum: 4,
+          maximum: 195,
+          target: 95,
+          inputLabel: 'Anzahl der Sprachpakete',
+          valueUnit: 'Sprachpakete',
+          decrementLabel: 'Ein Sprachpaket weniger',
+          incrementLabel: 'Ein Sprachpaket mehr',
+          submitAction: 'Schätzung abgeben',
+          solutionLabel: '95 Sprachpakete',
+          legend: {
+            missing: 'Bis zur Lösung ergänzt',
+            excess: 'Über der Lösung zurückgesetzt',
+          },
+          result:
+            'Von vier auf fast 95 Sprachpakete, nur um ein zusätzliches Wort auszugleichen.',
+          takeaway:
+            'Das ist der zweite Grund: Ein weiteres zufälliges Wort kann viel mehr bringen als ein größerer Wörterpool.',
+        },
+        charsetAnalogy: {
+          characterTypes:
+            'Bei Zeichen ist es ähnlich: Mehr Zeichentypen vergrößern den Pool pro Zeichen.',
+          additionalCharacter:
+            'Ein weiteres Zeichen wirkt nach demselben Prinzip wie ein weiteres Wort.',
+          predictability:
+            'Einfach vorhersehbare Zeichen oder Wörter anzuhängen bringt diesen großen Zuwachs dagegen nicht.',
+          passphraseOutlook:
+            'Wie man mit zufälligen Wörtern ein starkes und trotzdem gut merkbares Passwort erstellt, schauen wir uns später praktisch an.',
+        },
         germanWords: {
           password: 'DatensicherheitLobotomieZugspitzeUnbefugt',
           parts: ['Datensicherheit', 'Lobotomie', 'Zugspitze', 'Unbefugt'],
@@ -658,18 +688,18 @@ export const s05Content = {
     },
     application: {
       assessmentIntroduction: [
-        'Jetzt müssen wir für diese Übung noch entscheiden, ob dein Passwort bei den bisherigen Prüfungen vom Angreifer gefunden wurde.',
-        'Das ist keine Bewertung der Passwortstärke und keine Sicherheitsgarantie, sondern nur eine ungefähre Entscheidung für diese Übung.',
+        'Für diese Übung entscheiden wir jetzt grob, ob dein Passwort bei den bisherigen Prüfungen gefunden wurde.',
+        'Das ist keine Bewertung der Passwortstärke oder Sicherheitsgarantie.',
       ],
       result: {
         recognizedValue:
-          'Bei den bisherigen Prüfungen wurde die gesamte Zeichenfolge als früher Kandidat erkannt. Für diese Übung gilt das Campusgram-Passwort deshalb als gefunden.',
+          'Die gesamte Zeichenfolge wurde als früher Kandidat erkannt. Deshalb gilt dein Campusgram-Passwort hier als gefunden.',
         recognizedBoundedVariant:
-          'Bei den bisherigen Prüfungen konnte eine einfache Veränderung zu der gesamten Zeichenfolge führen. Für diese Übung gilt das Campusgram-Passwort deshalb als gefunden.',
+          'Eine einfache Veränderung führte zur gesamten Zeichenfolge. Deshalb gilt dein Campusgram-Passwort hier als gefunden.',
         recognizedSemanticPath:
-          'Die bisherigen Prüfungen und die von dir markierten Zusammenhänge ergeben einen nachvollziehbaren Weg zur gesamten Zeichenfolge. Für diese Übung gilt das Campusgram-Passwort deshalb als gefunden.',
+          'Die bisherigen Prüfungen und die von dir markierten Zusammenhänge ergeben einen nachvollziehbaren Weg zur gesamten Zeichenfolge. Deshalb gilt dein Campusgram-Passwort hier als gefunden.',
         notRecognized:
-          'Bei den bisherigen Prüfungen wurde kein Weg erkannt, der die gesamte Zeichenfolge abdeckt. Für diese Übung gilt das Campusgram-Passwort deshalb als nicht gefunden. Das ist kein Sicherheitsnachweis.',
+          'Kein erkannter Weg deckt die gesamte Zeichenfolge ab. Deshalb gilt dein Campusgram-Passwort hier als nicht gefunden. Das ist kein Sicherheitsnachweis.',
       },
       length: {
         belowOrientation:
@@ -805,6 +835,13 @@ export const s05Content = {
     ['s05-length-language-pool-stack', 'length-second-reason', 'info'],
     ['s05-length-multilingual-words', 'length-second-reason', 'info'],
     ['s05-length-fifth-word-comparison', 'length-second-reason', 'info'],
+    ['s05-length-language-pool-question', 'length-language-map', 'info'],
+    ['s05-length-language-pool-result', 'length-language-map', 'info'],
+    ['s05-length-language-pool-takeaway', 'length-language-map', 'info'],
+    ['s05-length-charset-analogy-types', 'length-model-comparison', 'info'],
+    ['s05-length-charset-analogy-position', 'length-model-comparison', 'info'],
+    ['s05-length-charset-predictability', 'length-model-comparison', 'warning'],
+    ['s05-length-passphrase-outlook', 'length-model-comparison', 'info'],
     ['s05-final-components', 'final-components', 'info'],
     ['s05-final-result', 'final-result', 'warning'],
     ['s05-final-length', 'final-length', 'info'],

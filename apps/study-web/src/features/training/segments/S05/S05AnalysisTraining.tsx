@@ -3,6 +3,7 @@ import type { TransientPasswordSemanticEvidence } from '@passwo/contracts';
 import type { DesktopPlatform } from '@passwo/ui';
 import {
   type CSSProperties,
+  type FormEvent,
   type ReactNode,
   useEffect,
   useMemo,
@@ -30,6 +31,13 @@ import {
   S05AnalysisController,
 } from './S05AnalysisController.js';
 import { S05AnimationAdapter } from './S05AnimationAdapter.js';
+import {
+  S05_LANGUAGE_MAP_VIEW_BOX,
+  S05_LANGUAGE_PACKAGE_COUNTRY_ORDER,
+  s05LanguageMapCountryMarkers,
+  s05LanguageMapCountryPaths,
+  s05LanguageMapFlagLabels,
+} from './S05LanguageWorldMapData.js';
 import {
   projectCanonicalPasswordBlocks,
   summarizeCategoryCandidates,
@@ -62,6 +70,10 @@ const CAMPUSGRAM_PASSWORD_REFERENCE_LENGTH = 17;
 
 interface CampusgramPasswordVisualStyle extends CSSProperties {
   readonly '--s05-campusgram-password-scale': string;
+}
+
+interface LanguagePoolRangeStyle extends CSSProperties {
+  readonly '--s05-language-pool-progress': string;
 }
 
 function campusgramPasswordVisualStyle(password: string): CampusgramPasswordVisualStyle {
@@ -1964,7 +1976,12 @@ function LowercaseClockScene({
   const graphRef = useRef<HTMLDivElement | null>(null);
   const viewport = useScaleViewport(graphRef);
   const currentLength = snapshot.lowercaseScale.password.length;
-  const comparesLengthModels = snapshot.step === 'length-model-comparison';
+  const comparesLengthModels =
+    snapshot.step === 'length-model-comparison' ||
+    snapshot.step === 'length-charset-analogy-types' ||
+    snapshot.step === 'length-charset-analogy-position' ||
+    snapshot.step === 'length-charset-predictability' ||
+    snapshot.step === 'length-passphrase-outlook';
   const layout = buildScaleLayout(
     comparesLengthModels ? 16 : currentLength,
     comparesLengthModels ? LOWERCASE_SCALE_MAXIMUM_LENGTH : currentLength,
@@ -2103,7 +2120,7 @@ function LowercaseClockScene({
 
   const targetId = snapshot.step === 'length-reasons-intro'
     ? 'length-word-pools'
-    : snapshot.step === 'length-model-comparison'
+    : comparesLengthModels
       ? 'length-model-comparison'
       : focused
         ? 'length-orientation'
@@ -2598,6 +2615,255 @@ function SecondLengthReasonScene({
   );
 }
 
+type LanguageMapCountryStatus =
+  | 'neutral'
+  | 'primary'
+  | 'estimated'
+  | 'missing'
+  | 'excess';
+
+const languagePackagePositionByCode = new Map<string, number>(
+  S05_LANGUAGE_PACKAGE_COUNTRY_ORDER.map((code, index) => [code, index + 1] as const),
+);
+
+function languageMapCountryStatus(
+  packageCode: string | null,
+  estimate: number,
+  submittedEstimate: number | null,
+  target: number,
+): LanguageMapCountryStatus {
+  if (packageCode === null) return 'neutral';
+  const position = languagePackagePositionByCode.get(packageCode);
+  if (position === undefined) return 'neutral';
+  if (position <= 4) return 'primary';
+  if (submittedEstimate === null) return position <= estimate ? 'estimated' : 'neutral';
+  if (position <= Math.min(submittedEstimate, target)) return 'estimated';
+  if (submittedEstimate < target && position <= target) return 'missing';
+  if (submittedEstimate > target && position <= submittedEstimate) return 'excess';
+  return 'neutral';
+}
+
+function LanguagePoolWorldMapScene({
+  snapshot,
+  controller,
+}: {
+  readonly snapshot: S05AnalysisControllerSnapshot;
+  readonly controller: S05AnalysisController;
+}) {
+  const content =
+    s05Content.freeSearch.lengthExamples.secondLengthReason.languagePoolEstimate;
+  const estimate = snapshot.languagePoolEstimate.value;
+  const submittedEstimate = snapshot.languagePoolEstimate.submittedValue;
+  const interactionEnabled =
+    snapshot.step === 'length-language-pool-question' &&
+    snapshot.phase === 'awaiting-decision' &&
+    submittedEstimate === null;
+  const showsSolution = snapshot.step !== 'length-language-pool-question';
+  const rangeProgress =
+    ((estimate - content.minimum) / (content.maximum - content.minimum)) * 100;
+  const rangeStyle: LanguagePoolRangeStyle = {
+    '--s05-language-pool-progress': `${rangeProgress}%`,
+  };
+  const statusByCode = useMemo(
+    () =>
+      new Map<string, LanguageMapCountryStatus>(
+        S05_LANGUAGE_PACKAGE_COUNTRY_ORDER.map(
+          (code) =>
+            [
+              code,
+              languageMapCountryStatus(
+                code,
+                estimate,
+                submittedEstimate,
+                content.target,
+              ),
+            ] as const,
+        ),
+      ),
+    [content.target, estimate, submittedEstimate],
+  );
+  const accessibleSummary =
+    submittedEstimate === null
+      ? `${estimate} Sprachpakete sind in deiner Schätzung markiert.`
+      : submittedEstimate < content.target
+        ? `Du hast ${submittedEstimate} Sprachpakete geschätzt. Die fehlenden Pakete bis ungefähr ${content.target} sind zusätzlich markiert.`
+        : submittedEstimate > content.target
+          ? `Du hast ${submittedEstimate} Sprachpakete geschätzt. Die Pakete oberhalb der Lösung von ungefähr ${content.target} wurden zurückgesetzt.`
+          : `Deine Schätzung entspricht der Lösung von ungefähr ${content.target} Sprachpaketen.`;
+
+  function statusFor(packageCode: string | null): LanguageMapCountryStatus {
+    if (packageCode === null) return 'neutral';
+    return statusByCode.get(packageCode) ?? 'neutral';
+  }
+
+  function setEstimate(value: number): void {
+    controller.setLanguagePoolEstimate(value);
+  }
+
+  function submitEstimate(event: FormEvent<HTMLFormElement>): void {
+    event.preventDefault();
+    controller.submitLanguagePoolEstimate();
+  }
+
+  return (
+    <div
+      className={styles.languageMapScene}
+      data-s05-target="length-language-map"
+    >
+      <section className={styles.languageMapFrame} aria-labelledby="s05-language-map-title">
+        <h2 className={styles.visuallyHidden} id="s05-language-map-title">
+          Weltkarte der berücksichtigten Sprachpakete
+        </h2>
+        <svg
+          className={styles.languageMap}
+          viewBox={S05_LANGUAGE_MAP_VIEW_BOX}
+          role="img"
+          aria-labelledby="s05-language-map-title"
+          aria-describedby="s05-language-map-summary"
+          preserveAspectRatio="xMidYMid meet"
+        >
+          <defs>
+            <pattern
+              id="s05-language-map-missing-pattern"
+              width="8"
+              height="8"
+              patternUnits="userSpaceOnUse"
+              patternTransform="rotate(35)"
+            >
+              <rect width="8" height="8" className={styles.languageMapMissingPatternBase} />
+              <rect width="3" height="8" className={styles.languageMapMissingPatternStripe} />
+            </pattern>
+          </defs>
+          <g fillRule="evenodd" aria-hidden="true">
+            {s05LanguageMapCountryPaths.map((country) => (
+              <path
+                className={styles.languageMapCountry}
+                data-status={statusFor(country.packageCode)}
+                d={country.path}
+                key={country.id}
+                vectorEffect="non-scaling-stroke"
+              />
+            ))}
+            {s05LanguageMapCountryMarkers.map((country) => (
+              <circle
+                className={styles.languageMapMarker}
+                data-status={statusFor(country.packageCode)}
+                cx={country.x}
+                cy={country.y}
+                key={country.packageCode}
+                r="3.3"
+                vectorEffect="non-scaling-stroke"
+              />
+            ))}
+          </g>
+          <g className={styles.languageMapFlags} aria-hidden="true">
+            {s05LanguageMapFlagLabels.map((country) => (
+              <g key={country.packageCode}>
+                <circle cx={country.x} cy={country.y} r="10.5" />
+                <text
+                  x={country.x}
+                  y={country.y + 0.5}
+                  textAnchor="middle"
+                  dominantBaseline="central"
+                >
+                  {country.flag}
+                </text>
+              </g>
+            ))}
+          </g>
+        </svg>
+
+        {submittedEstimate !== null && submittedEstimate !== content.target ? (
+          <div className={styles.languageMapLegend} aria-label="Legende der Weltkarte">
+            {submittedEstimate < content.target ? (
+              <span data-status="missing"><i />{content.legend.missing}</span>
+            ) : (
+              <span data-status="excess"><i />{content.legend.excess}</span>
+            )}
+          </div>
+        ) : null}
+
+        {showsSolution ? (
+          <output className={styles.languageMapSolution} data-s05-speech-obstacle role="status">
+            {content.solutionLabel}
+          </output>
+        ) : null}
+      </section>
+
+      {snapshot.step === 'length-language-pool-question' ? (
+        <form
+          className={styles.languageMapControls}
+          data-s05-speech-obstacle
+          onSubmit={submitEstimate}
+        >
+          <label className={styles.languageMapRange}>
+            <span className={styles.visuallyHidden}>{content.inputLabel}</span>
+            <span className={styles.languageMapRangeBounds} aria-hidden="true">
+              <span>{content.minimum}</span>
+              <span>{content.maximum}</span>
+            </span>
+            <input
+              type="range"
+              min={content.minimum}
+              max={content.maximum}
+              step="1"
+              value={estimate}
+              disabled={!interactionEnabled}
+              style={rangeStyle}
+              aria-label={content.inputLabel}
+              aria-describedby="s05-language-map-summary"
+              onChange={(event) => setEstimate(event.currentTarget.valueAsNumber)}
+            />
+          </label>
+          <div className={styles.languageMapExactValue}>
+            <button
+              type="button"
+              disabled={!interactionEnabled || estimate <= content.minimum}
+              aria-label={content.decrementLabel}
+              onClick={() => setEstimate(estimate - 1)}
+            >
+              −
+            </button>
+            <label>
+              <input
+                type="number"
+                min={content.minimum}
+                max={content.maximum}
+                step="1"
+                value={estimate}
+                disabled={!interactionEnabled}
+                inputMode="numeric"
+                aria-label={content.inputLabel}
+                onChange={(event) => setEstimate(event.currentTarget.valueAsNumber)}
+              />
+              <span>{content.valueUnit}</span>
+            </label>
+            <button
+              type="button"
+              disabled={!interactionEnabled || estimate >= content.maximum}
+              aria-label={content.incrementLabel}
+              onClick={() => setEstimate(estimate + 1)}
+            >
+              +
+            </button>
+          </div>
+          <button
+            className={styles.languageMapSubmit}
+            type="submit"
+            disabled={!interactionEnabled}
+          >
+            {content.submitAction}
+          </button>
+        </form>
+      ) : null}
+
+      <p className={styles.visuallyHidden} id="s05-language-map-summary" aria-live="polite">
+        {accessibleSummary}
+      </p>
+    </div>
+  );
+}
+
 function WordPoolReasonScene({
   step,
 }: {
@@ -2876,6 +3142,15 @@ function renderScene(
     case 'length-multilingual-words':
     case 'length-fifth-word-comparison':
       return <SecondLengthReasonScene step={snapshot.step} />;
+    case 'length-language-pool-question':
+    case 'length-language-pool-result':
+    case 'length-language-pool-takeaway':
+      return <LanguagePoolWorldMapScene snapshot={snapshot} controller={controller} />;
+    case 'length-charset-analogy-types':
+    case 'length-charset-analogy-position':
+    case 'length-charset-predictability':
+    case 'length-passphrase-outlook':
+      return <LowercaseClockScene snapshot={snapshot} controller={controller} focused />;
     case 'final-components':
     case 'final-length':
     case 'final-result':
@@ -3120,6 +3395,34 @@ function speechFor(
       ];
     case 'length-fifth-word-comparison':
       return [s05Content.freeSearch.lengthExamples.secondLengthReason.fifthWordIntroduction];
+    case 'length-language-pool-question':
+      return [
+        s05Content.freeSearch.lengthExamples.secondLengthReason.languagePoolEstimate.question,
+      ];
+    case 'length-language-pool-result':
+      return [
+        s05Content.freeSearch.lengthExamples.secondLengthReason.languagePoolEstimate.result,
+      ];
+    case 'length-language-pool-takeaway':
+      return [
+        s05Content.freeSearch.lengthExamples.secondLengthReason.languagePoolEstimate.takeaway,
+      ];
+    case 'length-charset-analogy-types':
+      return [
+        s05Content.freeSearch.lengthExamples.secondLengthReason.charsetAnalogy.characterTypes,
+      ];
+    case 'length-charset-analogy-position':
+      return [
+        s05Content.freeSearch.lengthExamples.secondLengthReason.charsetAnalogy.additionalCharacter,
+      ];
+    case 'length-charset-predictability':
+      return [
+        s05Content.freeSearch.lengthExamples.secondLengthReason.charsetAnalogy.predictability,
+      ];
+    case 'length-passphrase-outlook':
+      return [
+        s05Content.freeSearch.lengthExamples.secondLengthReason.charsetAnalogy.passphraseOutlook,
+      ];
     case 'final-components':
       return s05Content.freeSearch.application.assessmentIntroduction;
     case 'final-result': {
@@ -3279,6 +3582,8 @@ export function S05AnalysisTraining({
           disabled,
           onAction: continueFromSpeech,
         };
+      case 'length-language-pool-question':
+        return undefined;
       case 'structure-theme-reflection':
       case 'structure-sentence-reflection':
         return undefined;
@@ -3342,14 +3647,16 @@ export function S05AnalysisTraining({
                 ? { mutedSpeechParagraphIndexes: [1] }
                 : {})}
               speechPlacement={
-                componentGuidanceVisible ||
-                activeSnapshot.step === 'free-search-transition' ||
-                activeSnapshot.step.startsWith('character-mix-') ||
-                activeSnapshot.step.startsWith('estimate') ||
-                activeSnapshot.step.startsWith('length-') ||
-                activeSnapshot.step.startsWith('final-')
-                  ? 'right'
-                  : 'above'
+                activeSnapshot.step === 'length-language-pool-question'
+                  ? 'above'
+                  : componentGuidanceVisible ||
+                      activeSnapshot.step === 'free-search-transition' ||
+                      activeSnapshot.step.startsWith('character-mix-') ||
+                      activeSnapshot.step.startsWith('estimate') ||
+                      activeSnapshot.step.startsWith('length-') ||
+                      activeSnapshot.step.startsWith('final-')
+                    ? 'right'
+                    : 'above'
               }
               {...(componentGuidanceVisible
                 ? {}

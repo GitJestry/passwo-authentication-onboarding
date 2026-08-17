@@ -3457,3 +3457,103 @@ erhöht.
 | `S05.freeSearch.application.result.notRecognized` | Nutzerauftrag vom 2026-08-17 | `Zur ersten Frage: Keiner der dargestellten frühen Kandidaten oder begrenzten Variantenwege deckt die gesamte Zeichenfolge ab. Deshalb wurde das Campusgram-Passwort in diesen Prüfungen nicht gefunden. Das ist kein Sicherheitsnachweis.` | `Bei den bisherigen Prüfungen wurde kein Weg erkannt, der die gesamte Zeichenfolge abdeckt. Für diese Übung gilt das Campusgram-Passwort deshalb als nicht gefunden. Das ist kein Sicherheitsnachweis.` | Ergebnisrückmeldung | Formuliert die begrenzte Nicht-Erkennung ohne interne Kandidatenfamilien offenzulegen und behält die Claim-Grenze bei. | bestehender Ergebnisablauf; keine neue Hervorhebung |
 | `S05.freeSearch.application.length.belowOrientation` | Nutzerauftrag vom 2026-08-17 | `Die zweite Frage bleibt davon getrennt: Mit [Anzahl] Zeichen liegt das Campusgram-Passwort unter der Orientierung von mindestens 15 Zeichen für selbst gewählte Passwörter.` | `Unabhängig davon: Mit [Anzahl] Zeichen liegt das Campusgram-Passwort unter der Orientierung von mindestens 15 Zeichen für selbst gewählte Passwörter.` | Handlungsorientierung | Hält die Längenorientierung von der ungefähren Fundentscheidung getrennt, ohne eine zuvor nicht mehr eingeführte zweite Frage zu referenzieren. | bestehender Ergebnisablauf; Längenwert wie bisher |
 | `S05.freeSearch.application.length.reachesOrientation` | Nutzerauftrag vom 2026-08-17 | `Die zweite Frage bleibt davon getrennt: Mit [Anzahl] Zeichen erreicht das Campusgram-Passwort die Orientierung von mindestens 15 Zeichen für selbst gewählte Passwörter.` | `Unabhängig davon: Mit [Anzahl] Zeichen erreicht das Campusgram-Passwort die Orientierung von mindestens 15 Zeichen für selbst gewählte Passwörter.` | Handlungsorientierung | Hält die Längenorientierung von der ungefähren Fundentscheidung getrennt, ohne daraus eine Sicherheitsgarantie abzuleiten. | bestehender Ergebnisablauf; Längenwert wie bisher |
+
+## Copy- und Darstellungsdelta S05 Sprachpaket-Schätzung und Zeichenrückbezug, 17. August 2026
+
+Quelle ist der ausdrückliche Nutzerauftrag vom 17. August 2026. Direkt nach dem bestehenden
+Fünfwort-Vergleich und dessen Aktion `Schätzfrage` wird die vorherige Kugelkomposition vollständig
+durch eine eigenständige Weltkartenansicht ersetzt. Die Frage bleibt eine einzelne
+PassWo-Sprechblase ohne Sprechblasenaktion. Ausschließlich `Schätzung abgeben` führt den
+Trainingsablauf weiter.
+
+Die horizontale Karte verwendet lokal eingebundene, einmalig in SVG-Pfade projizierte
+Natural-Earth-Grenzen im Maßstab 1:110 Mio.; im Browser erfolgt kein externer Abruf und keine
+Einbettung. Deutschland, Spanien, Frankreich und Japan sind als bestehende vier Sprachpakete
+dunkelgrün markiert und tragen ihre Flaggen. Der Regler bildet insgesamt 5 bis 195 Sprachpakete
+ab, startet bei 5 und kann zusätzlich über Minus, Plus oder eine numerische Eingabe präzise
+bedient werden. Eine feste Präsentationsreihenfolge bestimmt, welche weiteren Länder bei einer
+höheren Schätzung markiert werden; die Reihenfolge drückt keine Rangfolge von Ländern oder
+Sprachen aus.
+
+Nach der Abgabe bleibt die Schätzung nur im lokalen S05-Controller erhalten. Bei einer zu kleinen
+Schätzung werden die bis zur authored Lösung von ungefähr 95 fehlenden Pakete zusätzlich blau und
+schraffiert markiert. Bei einer zu großen Schätzung werden die oberhalb der Lösung liegenden
+Pakete wieder grau und gestrichelt dargestellt. Farbe ist damit nicht die einzige
+Zustandsinformation. Die Auflösung `Ca. 95 Sprachpakete` erscheint als große transparente
+Glasfläche in der Kartenmitte. Es werden keine Teilnehmerwerte persistiert, exportiert oder in
+die Passwortanalyse übernommen.
+
+Nach Ergebnis und Kerngedanke wird die bereits vorhandene Vergleichsansicht mit der
+15-Kleinbuchstaben-Kugel und der gelben 12-Zeichen-Kugel unverändert erneut verwendet. Vier
+getrennte PassWo-Sprechschritte übertragen den Poolvergleich auf Zeichentypen und Zeichenlänge,
+begrenzen die Aussage auf nicht leicht vorhersehbare Ergänzungen und kündigen die spätere
+Passphrasenpraxis an. Der normale `Weiter`-Schritt der letzten Blase führt anschließend direkt in
+die bestehende lokale Campusgram-Passwortprüfung. Analyse, Persistenz, Export und Timing bleiben
+ansonsten unverändert. `S05_CONTENT_VERSION` wird von `2.96.0` auf `2.97.0` erhöht.
+
+| Segment und Text-ID | Quelle | Aktueller Text | Geplanter Text | Primäre Rolle | Grund | Bedeutungsänderung | Interaktionsziel | Hervorhebung |
+|---|---|---|---|---|---|---|---|---|
+| `S05.freeSearch.lengthExamples.secondLengthReason.languagePoolEstimate.question` | Nutzerauftrag vom 2026-08-17 | nicht vorhanden | `Wie viele Sprachpakete bräuchten wir insgesamt, damit vier Wörter ungefähr denselben Aufwand erzeugen wie diese fünf?` | Interaktionsfrage | den Poolvergleich als konkrete Schätzung auf der Weltkarte durchführen | ja | ausschließlich Kartenregler und `Schätzung abgeben`; kein PassWo-Button | keine |
+| `S05.freeSearch.lengthExamples.secondLengthReason.languagePoolEstimate.submitAction` | Nutzerauftrag vom 2026-08-17 | nicht vorhanden | `Schätzung abgeben` | Navigation | sichtbare fachliche Handlung eindeutig benennen | ja | Abgabe der flüchtigen Karten-Schätzung | keine |
+| `S05.freeSearch.lengthExamples.secondLengthReason.languagePoolEstimate.solutionLabel` | Nutzerauftrag vom 2026-08-17 | nicht vorhanden | `Ca. 95 Sprachpakete` | Ergebnisfeedback | authored Auflösung direkt in der Kartenmitte zeigen | ja | keine | keine |
+| `S05.freeSearch.lengthExamples.secondLengthReason.languagePoolEstimate.result` | Nutzerauftrag vom 2026-08-17 | nicht vorhanden | `Von vier auf fast 95 Sprachpakete, nur um ein zusätzliches Wort auszugleichen.` | Ergebnisfeedback | sichtbare Kartenauflösung in den Vergleich zurückübersetzen | ja | `Weiter` | `fast 95 Sprachpakete` als Akzent |
+| `S05.freeSearch.lengthExamples.secondLengthReason.languagePoolEstimate.takeaway` | Nutzerauftrag vom 2026-08-17 | nicht vorhanden | `Das ist der zweite Grund: Ein weiteres zufälliges Wort kann viel mehr bringen als ein größerer Wörterpool.` | Kerngedanke | zweiten Längengrund abschließen | ja | `Weiter` | `Ein weiteres zufälliges Wort` als Akzent |
+| `S05.freeSearch.lengthExamples.secondLengthReason.charsetAnalogy.characterTypes` | Nutzerauftrag vom 2026-08-17 | nicht vorhanden | `Bei Zeichen ist es ähnlich: Mehr Zeichentypen vergrößern den Pool pro Zeichen.` | Mechanismuserklärung | Sprachpakete auf den Zeichenvorrat übertragen | ja | `Weiter`; bestehende Zwei-Kugel-Ansicht | `Mehr Zeichentypen` als Akzent |
+| `S05.freeSearch.lengthExamples.secondLengthReason.charsetAnalogy.additionalCharacter` | Nutzerauftrag vom 2026-08-17 | nicht vorhanden | `Ein weiteres Zeichen ist dagegen wie ein weiteres Wort.` | Mechanismuserklärung | zusätzliche Position als Gegenstück zum zusätzlichen Wort benennen | ja | `Weiter`; bestehende Zwei-Kugel-Ansicht | `Ein weiteres Zeichen` als Akzent |
+| `S05.freeSearch.lengthExamples.secondLengthReason.charsetAnalogy.predictability` | Nutzerauftrag vom 2026-08-17 | nicht vorhanden | `Das gilt nur, wenn die zusätzlichen Zeichen oder Wörter nicht leicht vorhersehbar sind.` | Safety Boundary | künstliches vorhersehbares Anhängen ausdrücklich ausschließen | ja | `Weiter`; bestehende Zwei-Kugel-Ansicht | `nicht leicht vorhersehbar` als Warnung |
+| `S05.freeSearch.lengthExamples.secondLengthReason.charsetAnalogy.passphraseOutlook` | Nutzerauftrag vom 2026-08-17 | nicht vorhanden | `Wie man mit zufälligen Wörtern ein starkes und trotzdem gut merkbares Passwort erstellt, schauen wir uns später praktisch an.` | Orientierung | Passphrasenpraxis ankündigen und zurück zur aktuellen Prüfung führen | ja | `Weiter` zur bestehenden lokalen Passwortprüfung | `zufälligen Wörtern` als Akzent |
+
+## Copy- und Darstellungsdelta S05 Weltkarten-Schätzansicht präzisiert, 17. August 2026
+
+Quelle ist der ausdrückliche Nutzerauftrag vom 17. August 2026. Der Schätzregler beginnt nun bei
+den vier bereits sichtbaren Sprachpaketen statt bei fünf. Die feste Legende `4 Ausgangspakete`
+und `Deine Schätzung` oben links entfällt; nach der Abgabe bleiben die nicht allein durch Farbe
+vermittelten Hinweise für fehlende beziehungsweise überschüssige Pakete erhalten.
+
+Die Frage bleibt wortgleich. Auf ausdrücklichen Wunsch werden darin abweichend von der üblichen
+Ein-Hervorhebungs-Regel die drei Phrasen `Wie viele Sprachpakete`, `vier Wörter` und
+`denselben Aufwand` akzentuiert. Die Auflösung wird von `Ca. 95 Sprachpakete` auf
+`95 Sprachpakete` gekürzt und ohne hinterlegte Glasfläche direkt über der Karte dargestellt.
+Persistenz, Export, Analyse und Timing bleiben unverändert. `S05_CONTENT_VERSION` wird von
+`2.97.0` auf `2.98.0` erhöht.
+
+| Segment und Text-ID | Quelle | Aktueller Text | Geplanter Text | Primäre Rolle | Grund | Bedeutungsänderung | Interaktionsziel | Hervorhebung |
+|---|---|---|---|---|---|---|---|---|
+| `S05.freeSearch.lengthExamples.secondLengthReason.languagePoolEstimate.question` | Nutzerauftrag vom 2026-08-17 | `Wie viele Sprachpakete bräuchten wir insgesamt, damit vier Wörter ungefähr denselben Aufwand erzeugen wie diese fünf?` | wortgleich | Interaktionsfrage | ausdrücklich gewünschte visuelle Gliederung der drei Vergleichsgrößen | nein | Kartenregler und `Schätzung abgeben` | `Wie viele Sprachpakete`, `vier Wörter` und `denselben Aufwand` als Akzent |
+| `S05.freeSearch.lengthExamples.secondLengthReason.languagePoolEstimate.solutionLabel` | Nutzerauftrag vom 2026-08-17 | `Ca. 95 Sprachpakete` | `95 Sprachpakete` | Ergebnisfeedback | ausdrücklich verlangte Entfernung von `Ca.` und der Glasfläche | begrenzt | kein | keine |
+| `S05.freeSearch.lengthExamples.secondLengthReason.languagePoolEstimate.legend.primary` | Nutzerauftrag vom 2026-08-17 | `4 Ausgangspakete` | entfällt | Orientierung | bereits durch die vier markierten Ausgangsländer sichtbar | nein | kein | keine |
+| `S05.freeSearch.lengthExamples.secondLengthReason.languagePoolEstimate.legend.estimate` | Nutzerauftrag vom 2026-08-17 | `Deine Schätzung` | entfällt | Orientierung | ausdrücklich verlangte Reduktion der festen Legende | nein | kein | keine |
+
+## Copy-Delta S05 Zeichenrückbezug präzisiert, 17. August 2026
+
+Quelle ist der ausdrückliche Nutzerauftrag vom 17. August 2026. Die drei aufeinanderfolgenden
+PassWo-Sprechblasen bleiben getrennte Schritte in der bestehenden Zwei-Kugel-Ansicht. Die erste
+Blase bleibt wortgleich. Die zweite beschreibt die Analogie zwischen einem zusätzlichen Zeichen
+und einem zusätzlichen Wort als dasselbe Prinzip. Die dritte formuliert die Safety Boundary
+direkter: Einfach vorhersehbares Anhängen erzeugt den zuvor beschriebenen großen Zuwachs nicht.
+Interaktion, Darstellung, Persistenz, Export und Timing bleiben unverändert.
+`S05_CONTENT_VERSION` wird von `2.98.0` auf `2.99.0` erhöht.
+
+| Segment und Text-ID | Quelle | Aktueller Text | Geplanter Text | Primäre Rolle | Grund | Bedeutungsänderung | Interaktionsziel | Hervorhebung |
+|---|---|---|---|---|---|---|---|---|
+| `S05.freeSearch.lengthExamples.secondLengthReason.charsetAnalogy.characterTypes` | Nutzerauftrag vom 2026-08-17 | `Bei Zeichen ist es ähnlich: Mehr Zeichentypen vergrößern den Pool pro Zeichen.` | wortgleich | Mechanismuserklärung | ausdrücklich gewünschte Dreierfolge vollständig bestätigen | nein | `Weiter`; bestehende Zwei-Kugel-Ansicht | `Mehr Zeichentypen` als Akzent |
+| `S05.freeSearch.lengthExamples.secondLengthReason.charsetAnalogy.additionalCharacter` | Nutzerauftrag vom 2026-08-17 | `Ein weiteres Zeichen ist dagegen wie ein weiteres Wort.` | `Ein weiteres Zeichen wirkt nach demselben Prinzip wie ein weiteres Wort.` | Mechanismuserklärung | Analogie ausdrücklich als gemeinsames Prinzip formulieren | begrenzt | `Weiter`; bestehende Zwei-Kugel-Ansicht | `Ein weiteres Zeichen` als Akzent |
+| `S05.freeSearch.lengthExamples.secondLengthReason.charsetAnalogy.predictability` | Nutzerauftrag vom 2026-08-17 | `Das gilt nur, wenn die zusätzlichen Zeichen oder Wörter nicht leicht vorhersehbar sind.` | `Einfach vorhersehbare Zeichen oder Wörter anzuhängen bringt diesen großen Zuwachs dagegen nicht.` | Safety Boundary | Grenze direkt auf vorhersehbares Anhängen und den ausbleibenden Zuwachs beziehen | begrenzt | `Weiter`; bestehende Zwei-Kugel-Ansicht | `Einfach vorhersehbare Zeichen oder Wörter` als Warnung |
+
+## Copy-Delta S05 Übungsentscheidung und Diagnosen gekürzt, 17. August 2026
+
+Quelle ist der ausdrückliche Nutzerauftrag vom 17. August 2026. Die Einleitung zur groben
+Übungsentscheidung und alle vier Ergebnisdiagnosen werden sprachlich gekürzt. Die Grenze gegenüber
+einer Bewertung der Passwortstärke oder Sicherheitsgarantie bleibt in der Einleitung erhalten; die
+Nichtfund-Diagnose behält zusätzlich den ausdrücklichen Hinweis, dass sie kein Sicherheitsnachweis
+ist. Interaktion, Hervorhebung, Analyse, Persistenz, Export und Timing bleiben unverändert.
+`S05_CONTENT_VERSION` wird von `2.99.0` auf `2.100.0` erhöht.
+
+| Segment und Text-ID | Quelle | Aktueller Text | Geplanter Text | Primäre Rolle | Grund | Bedeutungsänderung | Interaktionsziel | Hervorhebung |
+|---|---|---|---|---|---|---|---|---|
+| `S05.freeSearch.application.assessmentIntroduction[0]` | Nutzerauftrag vom 2026-08-17 | `Jetzt müssen wir für diese Übung noch entscheiden, ob dein Passwort bei den bisherigen Prüfungen vom Angreifer gefunden wurde.` | `Für diese Übung entscheiden wir jetzt grob, ob dein Passwort bei den bisherigen Prüfungen gefunden wurde.` | Orientierung | Redundanz und unnötige kognitive Last entfernen | nein | bestehendes `Weiter` | keine |
+| `S05.freeSearch.application.assessmentIntroduction[1]` | Nutzerauftrag vom 2026-08-17 | `Das ist keine Bewertung der Passwortstärke und keine Sicherheitsgarantie, sondern nur eine ungefähre Entscheidung für diese Übung.` | `Das ist keine Bewertung der Passwortstärke oder Sicherheitsgarantie.` | Safety Boundary | die bereits im ersten Satz benannte grobe Übungsentscheidung nicht wiederholen | nein | bestehendes `Weiter` | keine |
+| `S05.freeSearch.application.result.recognizedValue` | Nutzerauftrag vom 2026-08-17 | `Bei den bisherigen Prüfungen wurde die gesamte Zeichenfolge als früher Kandidat erkannt. Für diese Übung gilt das Campusgram-Passwort deshalb als gefunden.` | `Die gesamte Zeichenfolge wurde als früher Kandidat erkannt. Deshalb gilt dein Campusgram-Passwort hier als gefunden.` | Ergebnisfeedback | Diagnose kürzen und direkt adressieren | nein | bestehender Ergebnisablauf | keine neue Hervorhebung |
+| `S05.freeSearch.application.result.recognizedBoundedVariant` | Nutzerauftrag vom 2026-08-17 | `Bei den bisherigen Prüfungen konnte eine einfache Veränderung zu der gesamten Zeichenfolge führen. Für diese Übung gilt das Campusgram-Passwort deshalb als gefunden.` | `Eine einfache Veränderung führte zur gesamten Zeichenfolge. Deshalb gilt dein Campusgram-Passwort hier als gefunden.` | Ergebnisfeedback | Diagnose kürzen und direkt adressieren | nein | bestehender Ergebnisablauf | keine neue Hervorhebung |
+| `S05.freeSearch.application.result.recognizedSemanticPath` | Nutzerauftrag vom 2026-08-17 | `Die bisherigen Prüfungen und die von dir markierten Zusammenhänge ergeben einen nachvollziehbaren Weg zur gesamten Zeichenfolge. Für diese Übung gilt das Campusgram-Passwort deshalb als gefunden.` | `Die bisherigen Prüfungen und die von dir markierten Zusammenhänge ergeben einen nachvollziehbaren Weg zur gesamten Zeichenfolge. Deshalb gilt dein Campusgram-Passwort hier als gefunden.` | Ergebnisfeedback | Diagnose kürzen und direkt adressieren | nein | bestehender Ergebnisablauf | keine neue Hervorhebung |
+| `S05.freeSearch.application.result.notRecognized` | Nutzerauftrag vom 2026-08-17 | `Bei den bisherigen Prüfungen wurde kein Weg erkannt, der die gesamte Zeichenfolge abdeckt. Für diese Übung gilt das Campusgram-Passwort deshalb als nicht gefunden. Das ist kein Sicherheitsnachweis.` | `Kein erkannter Weg deckt die gesamte Zeichenfolge ab. Deshalb gilt dein Campusgram-Passwort hier als nicht gefunden. Das ist kein Sicherheitsnachweis.` | Ergebnisfeedback | Diagnose kürzen; Sicherheitsgrenze ausdrücklich erhalten | nein | bestehender Ergebnisablauf | keine neue Hervorhebung |

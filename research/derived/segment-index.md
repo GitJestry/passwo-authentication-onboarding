@@ -138,9 +138,20 @@ Seitenangaben beziehen sich auf die im Trainingsdokument ausgewiesene interne Pa
   `5 Wörter` werden als große Vergleichsüberschriften gesetzt. Die Messachse liegt für diesen
   Vergleich höher, die Ticks reichen nur nach unten und die Sprachpaket-Tooltips werden über ihren
   jeweiligen Paketstapel gehoben. Zahnräder der Zeitwerte stehen mit festen Abständen als
-  Superscript rechts oben am letzten Wort des Aufwands. Erst danach folgt die bestehende lokale
-  Campusgram-Auswertung.
-- Die S05-Simulationsdisposition (`S05_CONTENT_VERSION 2.96.0`, Analysekonfiguration
+  Superscript rechts oben am letzten Wort des Aufwands. Die anschließende Schätzfrage ersetzt die
+  Kugelkomposition vollständig durch eine lokale horizontale Weltkarte mit Natural-Earth-Grenzen.
+  Deutschland, Spanien, Frankreich und Japan bleiben als vier Ausgangspakete dunkelgrün und mit
+  Flaggen markiert. Ein flüchtiger Regler startet bei 4 und reicht bis 195 Sprachpakete; Minus,
+  Plus und numerische Eingabe ergänzen die schnelle und präzise Bedienung. Nur
+  `Schätzung abgeben` setzt den Ablauf fort. Fehlende Pakete bis zur authored Lösung von ungefähr
+  95 werden blau schraffiert ergänzt, überschüssige Pakete wieder grau gestrichelt dargestellt.
+  Die feste Länderreihenfolge ist reine Präsentationslogik und keine Rangfolge. Nach der großen
+  Auflösung `95 Sprachpakete` erklären zwei getrennte Sprechschritte Ergebnis und zweiten
+  Längengrund. Danach kehrt exakt die bestehende Zwei-Kugel-Ansicht zurück: vier weitere
+  Sprechschritte übertragen Sprachpakete auf Zeichentypen und zusätzliche Wörter auf zusätzliche
+  Zeichen, begrenzen den Vergleich auf nicht leicht vorhersehbare Ergänzungen und kündigen die
+  spätere Passphrasenpraxis an. Erst dann folgt die bestehende lokale Campusgram-Auswertung.
+- Die S05-Simulationsdisposition (`S05_CONTENT_VERSION 2.98.0`, Analysekonfiguration
   `passwo-bounded-whole-recognition-v13`) bleibt auf den vollständigen fiktiven Wert begrenzt:
   `whole-password-recognized` entsteht durch einen direkten Vollwert oder eine dokumentierte
   begrenzte Kandidatenfamilie aus kanonischen Ankern und positionsunabhängigen Restzeichen oder

@@ -101,6 +101,13 @@ export type S05AnalysisStep =
   | 'length-language-pool-stack'
   | 'length-multilingual-words'
   | 'length-fifth-word-comparison'
+  | 'length-language-pool-question'
+  | 'length-language-pool-result'
+  | 'length-language-pool-takeaway'
+  | 'length-charset-analogy-types'
+  | 'length-charset-analogy-position'
+  | 'length-charset-predictability'
+  | 'length-passphrase-outlook'
   | 'final-components'
   | 'final-length'
   | 'final-result'
@@ -152,6 +159,10 @@ export interface S05AnalysisControllerSnapshot {
   readonly estimate: {
     readonly selected: S05Estimate | null;
     readonly confirmed: boolean;
+  };
+  readonly languagePoolEstimate: {
+    readonly value: number;
+    readonly submittedValue: number | null;
   };
   readonly lowercaseScale: {
     readonly password: string;
@@ -241,6 +252,13 @@ const stepByMissionId: Readonly<Record<string, S05AnalysisStep>> = {
   's05-length-language-pool-stack': 'length-language-pool-stack',
   's05-length-multilingual-words': 'length-multilingual-words',
   's05-length-fifth-word-comparison': 'length-fifth-word-comparison',
+  's05-length-language-pool-question': 'length-language-pool-question',
+  's05-length-language-pool-result': 'length-language-pool-result',
+  's05-length-language-pool-takeaway': 'length-language-pool-takeaway',
+  's05-length-charset-analogy-types': 'length-charset-analogy-types',
+  's05-length-charset-analogy-position': 'length-charset-analogy-position',
+  's05-length-charset-predictability': 'length-charset-predictability',
+  's05-length-passphrase-outlook': 'length-passphrase-outlook',
   's05-final-components': 'final-components',
   's05-final-length': 'final-length',
   's05-final-result': 'final-result',
@@ -550,6 +568,11 @@ export class S05AnalysisController {
         'focus',
       ),
       estimate: { selected: null, confirmed: false },
+      languagePoolEstimate: {
+        value:
+          s05Content.freeSearch.lengthExamples.secondLengthReason.languagePoolEstimate.minimum,
+        submittedValue: null,
+      },
       lowercaseScale: {
         password: initialLowercasePassword,
         reachedSixteen: false,
@@ -977,6 +1000,53 @@ export class S05AnalysisController {
     void this.#missionController.continue();
   }
 
+  setLanguagePoolEstimate(value: number): void {
+    const snapshot = this.#snapshot;
+    const content =
+      s05Content.freeSearch.lengthExamples.secondLengthReason.languagePoolEstimate;
+    if (
+      this.#disposed ||
+      snapshot === null ||
+      snapshot.step !== 'length-language-pool-question' ||
+      snapshot.phase !== 'awaiting-decision' ||
+      snapshot.languagePoolEstimate.submittedValue !== null ||
+      !Number.isFinite(value)
+    ) {
+      return;
+    }
+    const nextValue = Math.min(content.maximum, Math.max(content.minimum, Math.round(value)));
+    if (nextValue === snapshot.languagePoolEstimate.value) return;
+    this.#snapshot = {
+      ...snapshot,
+      languagePoolEstimate: { ...snapshot.languagePoolEstimate, value: nextValue },
+    };
+    this.#emit();
+  }
+
+  submitLanguagePoolEstimate(): boolean {
+    const snapshot = this.#snapshot;
+    if (
+      this.#disposed ||
+      snapshot === null ||
+      snapshot.step !== 'length-language-pool-question' ||
+      snapshot.phase !== 'awaiting-decision' ||
+      snapshot.languagePoolEstimate.submittedValue !== null
+    ) {
+      return false;
+    }
+    this.#snapshot = {
+      ...snapshot,
+      languagePoolEstimate: {
+        ...snapshot.languagePoolEstimate,
+        submittedValue: snapshot.languagePoolEstimate.value,
+      },
+      controls: { ...snapshot.controls, canContinue: false },
+    };
+    this.#emit();
+    void this.#missionController.continue();
+    return true;
+  }
+
   addLowercaseCharacter(): void {
     const snapshot = this.#snapshot;
     if (
@@ -1118,6 +1188,7 @@ export class S05AnalysisController {
         canContinue:
           awaitingDecision &&
           step !== 'lowercase-clock' &&
+          step !== 'length-language-pool-question' &&
           (step !== 'estimate' || currentSnapshot.estimate.confirmed),
       },
     };
