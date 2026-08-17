@@ -11,9 +11,9 @@ import { S09_PASSWORD_SUMMARY_CONTENT_VERSION, s09PasswordSummaryContent } from 
 const s06AttackFlowCopyReference =
   'docs/design/S06-S07-COPY-AUDIT.md#copy-delta-s06-rückkehr-zur-ausgangslage-15-august-2026';
 const s07EntryCopyReference =
-  'docs/design/S06-S07-COPY-AUDIT.md#copy-delta-s07-passphrasen-eins-und-vier-15-august-2026';
+  'docs/design/S06-S07-COPY-AUDIT.md#copy-und-ablaufdelta-s07-passphraseneinstieg-in-zwei-schritten-17-august-2026';
 const s08CopyReference =
-  'docs/design/S08-S09-COPY-AUDIT.md#ablauf--und-darstellungsdelta-s09-zusammenfassung-vor-netzwerkrückkehr-15-august-2026';
+  'docs/design/S08-S09-COPY-AUDIT.md#copy--und-darstellungsdelta-s08-risikoverbindungen-auflösen-17-august-2026';
 const s09CopyReference =
   'docs/design/S08-S09-COPY-AUDIT.md#copy--und-interaktionsdelta-s09-externer-passwortmanager-einstieg-16-august-2026';
 
@@ -132,16 +132,14 @@ describe('S06 transition and S07 passphrase-search copy traceability', () => {
   });
 
   it('keeps S07 linked to the passphrase-search browser state', () => {
-    expect(S07_PASSPHRASE_SEARCH_CONTENT_VERSION).toBe('4.11.0');
+    expect(S07_PASSPHRASE_SEARCH_CONTENT_VERSION).toBe('4.12.0');
     expect(s07PassphraseSearchContent.source.copyReference).toBe(
       s07EntryCopyReference,
     );
     expect(s07PassphraseSearchContent.browser.passwordChangeTitle).toBe('Passwort ändern');
     expect(s07PassphraseSearchContent.guide).toMatchObject({
       methodIntro:
-        'Dafür nutzen wir eine Passphrase: eine einfache Methode, starke Passwörter nur aus Wörtern zu bilden.',
-      randomnessIntro:
-        'Ein geläufiges Wort kann zwar lang sein, wird von Angreifern aber früh ausprobiert. Eine Passphrase aus mindestens sechs zufälligen, unzusammenhängenden Wörtern macht das Erraten dagegen deutlich aufwendiger.',
+        'Die Passphrase ist genau die Methode für starke Passwörter aus Wörtern, die wir heute schon angesprochen haben. Sie besteht aus mindestens sechs zufällig ausgewählten, voneinander unabhängigen Wörtern.',
       searchIntro:
         'Lass dir online eine Passphrase generieren und ersetze damit das betroffene Passwort.',
       generating: 'Passphrase wird erstellt …',
@@ -232,11 +230,17 @@ describe('S06 transition and S07 passphrase-search copy traceability', () => {
   });
 
   it('keeps S08 linked to the protected replay wording', () => {
-    expect(S08_NETWORK_REPLAY_CONTENT_VERSION).toBe('3.4.0');
+    expect(S08_NETWORK_REPLAY_CONTENT_VERSION).toBe('3.5.0');
     expect(s08NetworkReplayContent.source.copyReference).toBe(s08CopyReference);
     expect(s08NetworkReplayContent.protectionAction).toBe(
       'Einzigartige Passphrase verwenden',
     );
+    expect(s08NetworkReplayContent.relationLabels).toEqual({
+      campusgramReuse: 'altes wiederverwendet',
+      campusgramSimilar: 'ähnlich zum alten',
+      reuse: 'wiederverwendet',
+      similar: 'ähnlich',
+    });
     expect(s08NetworkReplayContent.replayActions).toEqual({
       attack: 'Angriff starten',
       finish: 'Weiter',

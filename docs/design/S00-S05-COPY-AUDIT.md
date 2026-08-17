@@ -3420,3 +3420,40 @@ Endkugel noch die kleinere Referenzbeschriftung seine Position relativ zu `Jahre
 Erbsenkugel an `332 Jahre` wird gegenüber ihrer vorherigen Darstellung auf 20 Prozent skaliert
 und ist damit 80 Prozent kleiner. Wortlaut, Content-Version, Analyse, Persistenz, Export und
 Timing bleiben unverändert.
+
+## Copy und Logikdelta S05 ungefähre Übungsentscheidung und semantische Kandidatenwege, 17. August 2026
+
+Quelle ist der ausdrückliche Nutzerauftrag vom 17. August 2026. Die bereits implementierte
+Markierung persönlicher Bereiche, inhaltlich zusammengehöriger Bausteine und benachbarter
+Satz-/Phrasenstrukturen bleibt visuell und interaktiv unverändert. Nach vollständiger Bestätigung
+werden diese lokalen Auswahlen zusätzlich als flüchtige Evidenz an die bestehende begrenzte
+Vollpasswort-Disposition übergeben. Sie können einen weiteren nachvollziehbaren Kandidatenweg
+öffnen, aber keinen automatisch erkannten Treffer zurücknehmen und keine Aussage `stark`, `sicher`
+oder `bestanden` erzeugen.
+
+Die automatische Analyse wird gleichzeitig auf `passwo-bounded-whole-recognition-v13` angehoben.
+Maximale QWERTZ-/QWERTY-Tastaturspans begrenzen nun die angrenzende Wortzerlegung;
+Zwei-/Dreibuchstabenwörter und eine kleine kuratierte Abkürzungsliste werden ausschließlich exakt
+in vollständigen Segmenten oder sprachgebundenen Vollpartitionen berücksichtigt. Vollständige
+authored Komposita wie `Datensicherheit` verdrängen kleinere vollständig enthaltene
+Wörterbuchtreffer. Mehrere gewöhnliche Wörter führen unabhängig von ihrer Anzahl nicht allein zu
+einem positiven Volltreffer. Länge bleibt als 15-Zeichen-Orientierung vollständig getrennt.
+
+Die bestätigten Relationen bleiben ausschließlich im Speicher des laufenden Trainings. S05 ordnet
+sie dem Campusgram-Konto zu. Das generische S06-Kontomodell akzeptiert denselben optionalen Typ
+bereits für Master Campus und Campus E-Mail, damit dort später derselbe kurze Reflexionsschritt ohne
+eine zweite Bewertungslogik ergänzt werden kann. Persistenz, Forschungsdatenexport, Telemetrie,
+Animationen, Farben, Bausteindesign und bestehende Markierungssteuerung bleiben unverändert.
+`S05_CONTENT_VERSION` wird aufgrund der zwischenzeitlichen Copy-Deltas von `2.95.0` auf `2.96.0`
+erhöht.
+
+| Segment und Text-ID | Quelle | Vorher | Nachher | Primäre Rolle | Grund und Bedeutungsänderung | Interaktionsziel / Hervorhebung |
+|---|---|---|---|---|---|---|
+| `S05.freeSearch.application.assessmentIntroduction[0]` | Nutzerauftrag vom 2026-08-17 | `Die Zusammenfassung zeigt die Ansatzpunkte. Für das Ergebnis zählen zwei getrennte Fragen: Deckt ein früh geprüfter Passwortkandidat die gesamte Zeichenfolge ab? Und erreicht das Passwort die Längenorientierung?` | `Jetzt müssen wir für diese Übung noch entscheiden, ob dein Passwort bei den bisherigen Prüfungen vom Angreifer gefunden wurde.` | Orientierung | Die Abschlussentscheidung wird als begrenzte Übungsentscheidung angekündigt, ohne interne Kandidatenregeln vorwegzunehmen. | bestehendes `Weiter`; keine neue Hervorhebung |
+| `S05.freeSearch.application.assessmentIntroduction[1]` | Nutzerauftrag vom 2026-08-17 | nicht vorhanden | `Das ist keine Bewertung der Passwortstärke und keine Sicherheitsgarantie, sondern nur eine ungefähre Entscheidung für diese Übung.` | Claim-Grenze | Begrenzt die folgende kategoriale Entscheidung ausdrücklich gegen Stärke- und Sicherheitsbehauptungen. | bestehendes `Weiter`; keine neue Hervorhebung |
+| `S05.freeSearch.application.result.recognizedValue` | Nutzerauftrag vom 2026-08-17 | `Zur ersten Frage: Ein früh geprüfter Passwortkandidat deckt die gesamte Zeichenfolge ab. Deshalb gilt das Campusgram-Passwort in dieser begrenzten Simulation als gefunden.` | `Bei den bisherigen Prüfungen wurde die gesamte Zeichenfolge als früher Kandidat erkannt. Für diese Übung gilt das Campusgram-Passwort deshalb als gefunden.` | Ergebnisrückmeldung | Bezieht das Ergebnis direkt auf die zuvor angekündigte ungefähre Übungsentscheidung und entfernt die nicht mehr eingeführte Zählung als erste Frage. | bestehender Ergebnisablauf; nur die bereits vorhandenen kausalen Befunde bleiben sichtbar |
+| `S05.freeSearch.application.result.recognizedBoundedVariant` | Nutzerauftrag vom 2026-08-17 | `Zur ersten Frage: Eine begrenzte typische Variante deckt die gesamte Zeichenfolge ab. Deshalb gilt das Campusgram-Passwort in dieser begrenzten Simulation als gefunden.` | `Bei den bisherigen Prüfungen konnte eine einfache Veränderung zu der gesamten Zeichenfolge führen. Für diese Übung gilt das Campusgram-Passwort deshalb als gefunden.` | Ergebnisrückmeldung | Erklärt den begrenzten Variantenweg ohne interne Regelsprache oder allgemeine Stärkeaussage. | bestehender Ergebnisablauf; nur die bereits vorhandenen kausalen Befunde bleiben sichtbar |
+| `S05.freeSearch.application.result.recognizedSemanticPath` | Nutzerauftrag vom 2026-08-17 | nicht vorhanden | `Die bisherigen Prüfungen und die von dir markierten Zusammenhänge ergeben einen nachvollziehbaren Weg zur gesamten Zeichenfolge. Für diese Übung gilt das Campusgram-Passwort deshalb als gefunden.` | Ergebnisrückmeldung | Benennt die bereits erfolgte Reflexion als Teil des Übungswegs, ohne daraus eine allgemeine Passwortstärke abzuleiten. | bestehender Ergebnisablauf; nur die bereits vorhandenen kausalen Befunde bleiben sichtbar |
+| `S05.freeSearch.application.result.notRecognized` | Nutzerauftrag vom 2026-08-17 | `Zur ersten Frage: Keiner der dargestellten frühen Kandidaten oder begrenzten Variantenwege deckt die gesamte Zeichenfolge ab. Deshalb wurde das Campusgram-Passwort in diesen Prüfungen nicht gefunden. Das ist kein Sicherheitsnachweis.` | `Bei den bisherigen Prüfungen wurde kein Weg erkannt, der die gesamte Zeichenfolge abdeckt. Für diese Übung gilt das Campusgram-Passwort deshalb als nicht gefunden. Das ist kein Sicherheitsnachweis.` | Ergebnisrückmeldung | Formuliert die begrenzte Nicht-Erkennung ohne interne Kandidatenfamilien offenzulegen und behält die Claim-Grenze bei. | bestehender Ergebnisablauf; keine neue Hervorhebung |
+| `S05.freeSearch.application.length.belowOrientation` | Nutzerauftrag vom 2026-08-17 | `Die zweite Frage bleibt davon getrennt: Mit [Anzahl] Zeichen liegt das Campusgram-Passwort unter der Orientierung von mindestens 15 Zeichen für selbst gewählte Passwörter.` | `Unabhängig davon: Mit [Anzahl] Zeichen liegt das Campusgram-Passwort unter der Orientierung von mindestens 15 Zeichen für selbst gewählte Passwörter.` | Handlungsorientierung | Hält die Längenorientierung von der ungefähren Fundentscheidung getrennt, ohne eine zuvor nicht mehr eingeführte zweite Frage zu referenzieren. | bestehender Ergebnisablauf; Längenwert wie bisher |
+| `S05.freeSearch.application.length.reachesOrientation` | Nutzerauftrag vom 2026-08-17 | `Die zweite Frage bleibt davon getrennt: Mit [Anzahl] Zeichen erreicht das Campusgram-Passwort die Orientierung von mindestens 15 Zeichen für selbst gewählte Passwörter.` | `Unabhängig davon: Mit [Anzahl] Zeichen erreicht das Campusgram-Passwort die Orientierung von mindestens 15 Zeichen für selbst gewählte Passwörter.` | Handlungsorientierung | Hält die Längenorientierung von der ungefähren Fundentscheidung getrennt, ohne daraus eine Sicherheitsgarantie abzuleiten. | bestehender Ergebnisablauf; Längenwert wie bisher |

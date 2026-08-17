@@ -151,6 +151,97 @@
   animation: none;
 }
 
+.training[data-replay-phase="protection"]
+  .network
+  :global(.edge-kind-identical-reuse .react-flow__edge-path),
+.training[data-replay-phase="protection"]
+  .network
+  :global(.edge-kind-similar-pattern .react-flow__edge-path) {
+  stroke: #ff315e;
+  stroke-width: 3px;
+  stroke-dasharray: 7 7;
+  opacity: 0.9;
+}
+
+.training[data-replay-phase="protection"]
+  .network
+  :global(.edge-kind-identical-reuse .react-flow__edge-text),
+.training[data-replay-phase="protection"]
+  .network
+  :global(.edge-kind-similar-pattern .react-flow__edge-text) {
+  fill: #ff5a79;
+}
+
+.training[data-replay-phase="protection"]
+  .network
+  :global(.edge-kind-identical-reuse .react-flow__edge-textbg),
+.training[data-replay-phase="protection"]
+  .network
+  :global(.edge-kind-similar-pattern .react-flow__edge-textbg) {
+  fill: #2b0712;
+  fill-opacity: 0.94;
+}
+
+.training[data-s08-resolving-account="master-campus"]
+  .network
+  :global([data-network-edge-risk-relation="true"][data-network-edge-source="master-campus"] .react-flow__edge-path),
+.training[data-s08-resolving-account="master-campus"]
+  .network
+  :global([data-network-edge-risk-relation="true"][data-network-edge-target="master-campus"] .react-flow__edge-path),
+.training[data-s08-resolving-account="campus-email"]
+  .network
+  :global([data-network-edge-risk-relation="true"][data-network-edge-source="campus-email"] .react-flow__edge-path),
+.training[data-s08-resolving-account="campus-email"]
+  .network
+  :global([data-network-edge-risk-relation="true"][data-network-edge-target="campus-email"] .react-flow__edge-path) {
+  animation: s08-risk-edge-dissolve 460ms ease-out both;
+}
+
+.training[data-s08-resolving-account="master-campus"]
+  .network
+  :global([data-network-edge-risk-relation="true"][data-network-edge-source="master-campus"] .react-flow__edge-text),
+.training[data-s08-resolving-account="master-campus"]
+  .network
+  :global([data-network-edge-risk-relation="true"][data-network-edge-source="master-campus"] .react-flow__edge-textbg),
+.training[data-s08-resolving-account="master-campus"]
+  .network
+  :global([data-network-edge-risk-relation="true"][data-network-edge-target="master-campus"] .react-flow__edge-text),
+.training[data-s08-resolving-account="master-campus"]
+  .network
+  :global([data-network-edge-risk-relation="true"][data-network-edge-target="master-campus"] .react-flow__edge-textbg),
+.training[data-s08-resolving-account="campus-email"]
+  .network
+  :global([data-network-edge-risk-relation="true"][data-network-edge-source="campus-email"] .react-flow__edge-text),
+.training[data-s08-resolving-account="campus-email"]
+  .network
+  :global([data-network-edge-risk-relation="true"][data-network-edge-source="campus-email"] .react-flow__edge-textbg),
+.training[data-s08-resolving-account="campus-email"]
+  .network
+  :global([data-network-edge-risk-relation="true"][data-network-edge-target="campus-email"] .react-flow__edge-text),
+.training[data-s08-resolving-account="campus-email"]
+  .network
+  :global([data-network-edge-risk-relation="true"][data-network-edge-target="campus-email"] .react-flow__edge-textbg) {
+  animation: s08-risk-label-dissolve 300ms ease-in both;
+}
+
+.training[data-s08-releasing-weak-master-campus="true"]
+  .network
+  :global([data-scene-node^="master-campus"] [data-scene-node-visual]),
+.training[data-s08-releasing-weak-campus-email="true"]
+  .network
+  :global([data-scene-node^="campus-email"] [data-scene-node-visual]) {
+  animation: s08-risk-node-release 460ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.training[data-s08-releasing-master-campus="true"]
+  .network
+  :global([data-scene-node="master-campus"] [data-node-action-label]),
+.training[data-s08-releasing-campus-email="true"]
+  .network
+  :global([data-scene-node="campus-email"] [data-node-action-label]) {
+  animation: s08-risk-action-dissolve 380ms cubic-bezier(0.4, 0, 1, 1) both;
+}
+
 .completionMoment {
   position: absolute;
   z-index: 8;
@@ -592,6 +683,48 @@
   }
 }
 
+@keyframes s08-risk-edge-dissolve {
+  to {
+    opacity: 0;
+  }
+}
+
+@keyframes s08-risk-label-dissolve {
+  to {
+    opacity: 0;
+  }
+}
+
+@keyframes s08-risk-node-release {
+  42% {
+    opacity: 1;
+    transform: scale(1.035);
+  }
+
+  82% {
+    opacity: 0.2;
+    transform: scale(0.94);
+  }
+
+  to {
+    opacity: 0;
+    transform: scale(0.9);
+  }
+}
+
+@keyframes s08-risk-action-dissolve {
+  28% {
+    opacity: 1;
+    clip-path: inset(0);
+  }
+
+  to {
+    opacity: 0;
+    clip-path: inset(44% 48% 48% 48% round 999px);
+    transform: translateX(-50%) translateY(-0.4rem) scale(0.82);
+  }
+}
+
 @container artifact-stage (max-width: 760px) {
   .replayAction {
     bottom: 5.4rem;
@@ -627,7 +760,13 @@
     :global([data-scene-node^="s09-additional-account-"]),
   .training[data-s09-reducing="true"]
     .network
-    :global([data-symbol-id="s09-account-swatch-removing"] [data-scene-node-visual]) {
+    :global([data-symbol-id="s09-account-swatch-removing"] [data-scene-node-visual]),
+  .training[data-replay-phase="protection"]
+    .network
+    :global(.edge-kind-identical-reuse .react-flow__edge-path),
+  .training[data-replay-phase="protection"]
+    .network
+    :global(.edge-kind-similar-pattern .react-flow__edge-path) {
     animation: none;
   }
 

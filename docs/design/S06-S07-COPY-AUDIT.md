@@ -1028,6 +1028,22 @@ erhöht.
 Die S06-QA-Dispositionen verwenden ab dem 3. August 2026 die Konfigurationskennung
 `passwo-bounded-guess-path-v2`. Schwelle, Dispositionslogik und Teilnehmertexte bleiben
 unverändert. `S06_CONSEQUENCE_CONTENT_VERSION` wird dafür von `2.3.0` auf `2.3.1` erhöht.
+
+## Copy- und Ablaufdelta S07 Passphraseneinstieg in zwei Schritten, 17. August 2026
+
+Quelle ist der ausdrückliche Nutzerauftrag vom 17. August 2026. Der Einstieg in den
+Campusgram-Passwortwechsel besteht nicht mehr aus drei, sondern aus zwei PassWo-Sprechschritten.
+Die bisher getrennten Erklärungen zur Passphrase und zur zufälligen Wortauswahl werden zu einer
+Mechanismuserklärung zusammengeführt. Danach folgt unmittelbar die bestehende Navigation zum
+Online-Generator. Der entfallene Zwischenzustand speichert keine Daten und berührt weder
+Persistenz, Export noch Studien-Timing. `S07_PASSPHRASE_SEARCH_CONTENT_VERSION` steigt von
+`4.11.0` auf `4.12.0`.
+
+| Segment und Text-ID | Aktueller Text | Geplanter Text | Primäre Rolle | Interaktionsziel | Grund und Bedeutungsänderung | Hervorhebung |
+|---|---|---|---|---|---|---|
+| `S07.guide.methodIntro` | `Dafür nutzen wir eine Passphrase: eine einfache Methode, starke Passwörter nur aus Wörtern zu bilden.` | `Die Passphrase ist genau die Methode für starke Passwörter aus Wörtern, die wir heute schon angesprochen haben. Sie besteht aus mindestens sechs zufällig ausgewählten, voneinander unabhängigen Wörtern.` | Mechanismuserklärung | `Weiter` | führt Methode, Mindestwortzahl und Unabhängigkeit im ausdrücklich freigegebenen Wortlaut zusammen; Bedeutungsänderung ausdrücklich freigegeben | `Die Passphrase`, Akzent |
+| `S07.guide.randomnessIntro` | `Ein geläufiges Wort kann zwar lang sein, wird von Angreifern aber früh ausprobiert. Eine Passphrase aus mindestens sechs zufälligen, unzusammenhängenden Wörtern macht das Erraten dagegen deutlich aufwendiger.` | entfällt als eigener Sprechschritt; Mindestwortzahl und zufällige Unabhängigkeit stehen im neuen `methodIntro` | Mechanismuserklärung | entfällt | reduziert den Einstieg ausdrücklich von drei auf zwei Sprechblasen; Bedeutung wird in den ersten Schritt übernommen | keine |
+| `S07.guide.searchIntro` | `Lass dir online eine Passphrase generieren und ersetze damit das betroffene Passwort.` | wortgleich | Navigation | Browser-`+`, danach Suche und Generator | bleibt als zweiter Einstiegsschritt erhalten und benennt das tatsächliche sichtbare Ziel | keine |
 ## Copy- und Ablaufdelta S07 Merksatz bei Neugenerierung, 15. August 2026
 
 Quelle ist der ausdrückliche Nutzerauftrag vom 15. August 2026. Die allgemeine Merkhilfe

@@ -1,6 +1,11 @@
 import type { PasswordRelation, S06AccountId } from '@passwo/contracts';
 import { s02Content, s08NetworkReplayContent } from '@passwo/training-content';
-import type { NetworkSceneSnapshot, SceneEdge, SceneNode } from '@passwo/visualization';
+import type {
+  NetworkSceneSnapshot,
+  PasswordConsequenceScenePlan,
+  SceneEdge,
+  SceneNode,
+} from '@passwo/visualization';
 import type { NetworkPresentationSnapshot } from '../../../adapters/network/NetworkMotionAdapter.js';
 
 const s02Accounts = s02Content.scene.accounts;
@@ -195,6 +200,52 @@ export function createRewoundAccountNetwork(
 
 export type S08ProtectedReplayPhase = 'ready' | 'attack' | 'complete';
 
+function isS08AccountId(value: string): value is S06AccountId {
+  return value === 'master-campus' || value === 'campus-email' || value === 'campusgram';
+}
+
+export interface S08ProtectionRiskModel {
+  readonly relationships: readonly SceneEdge[];
+  readonly weakAccountIds: readonly S06AccountId[];
+}
+
+export function createS08ProtectionRiskModel(
+  source: NetworkSceneSnapshot,
+  plan?: Pick<PasswordConsequenceScenePlan, 'accounts' | 'comparisons'> | null,
+): S08ProtectionRiskModel {
+  const sourceRelationships = source.edges.filter(
+    (edge) =>
+      isS08AccountId(edge.sourceId) &&
+      isS08AccountId(edge.targetId) &&
+      (edge.kind === 'identical-reuse' || edge.kind === 'similar-pattern'),
+  );
+  const plannedRelationships = new Map<string, SceneEdge>();
+  for (const comparison of plan?.comparisons ?? []) {
+    const relationKind = comparison.result.relation.kind;
+    if (relationKind === 'no-derived-path-recognized') continue;
+    const pairId = [comparison.sourceAccountId, comparison.targetAccountId].sort().join('--');
+    const current = plannedRelationships.get(pairId);
+    if (current?.kind === 'identical-reuse') continue;
+    plannedRelationships.set(pairId, {
+      id: `s08-risk-${pairId}`,
+      sourceId: comparison.sourceAccountId,
+      targetId: comparison.targetAccountId,
+      kind: relationKind === 'exact-match' ? 'identical-reuse' : 'similar-pattern',
+      status: relationKind === 'exact-match' ? 'direct' : 'similar',
+      label: null,
+    });
+  }
+  return {
+    relationships:
+      sourceRelationships.length > 0
+        ? sourceRelationships
+        : [...plannedRelationships.values()],
+    weakAccountIds: (plan?.accounts ?? [])
+      .filter(({ disposition }) => disposition.kind === 'whole-password-recognized')
+      .map(({ accountId }) => accountId),
+  };
+}
+
 function s08AccountIdForNode(nodeId: string): S06AccountId | null {
   if (nodeId === 'master-campus' || nodeId.startsWith('master-campus-detail-')) {
     return 'master-campus';
@@ -210,25 +261,64 @@ function s08AccountIdForNode(nodeId: string): S06AccountId | null {
 
 export function createS08ProtectionNetwork(
   source: NetworkSceneSnapshot,
-  affectedAccountIds: readonly S06AccountId[],
   protectedAccountIds: readonly S06AccountId[],
+  riskModel: S08ProtectionRiskModel,
 ): NetworkSceneSnapshot {
-  const affected = new Set(affectedAccountIds);
-  const protectedAccounts = new Set<S06AccountId>(['campusgram', ...protectedAccountIds]);
-  for (const accountId of ['master-campus', 'campus-email'] as const) {
-    if (!affected.has(accountId)) protectedAccounts.add(accountId);
+  const protectedAccounts = new Set<S06AccountId>(protectedAccountIds);
+  const activeRelationships = riskModel.relationships
+    .filter(
+      ({ sourceId, targetId }) =>
+        (!isS08AccountId(sourceId) || !protectedAccounts.has(sourceId)) &&
+        (!isS08AccountId(targetId) || !protectedAccounts.has(targetId)),
+    )
+    .map((edge): SceneEdge => {
+      const referencesOldCampusgramPassword =
+        edge.sourceId === 'campusgram' || edge.targetId === 'campusgram';
+      const exactReuse = edge.kind === 'identical-reuse';
+      return {
+        ...edge,
+        status: exactReuse ? 'direct' : 'similar',
+        label: referencesOldCampusgramPassword
+          ? exactReuse
+            ? s08NetworkReplayContent.relationLabels.campusgramReuse
+            : s08NetworkReplayContent.relationLabels.campusgramSimilar
+          : exactReuse
+            ? s08NetworkReplayContent.relationLabels.reuse
+            : s08NetworkReplayContent.relationLabels.similar,
+      };
+    });
+  const weakAccounts = new Set(riskModel.weakAccountIds);
+  const accountsWithActiveRisk = new Set<S06AccountId>(weakAccounts);
+  for (const { sourceId, targetId } of activeRelationships) {
+    if (isS08AccountId(sourceId) && sourceId !== 'campusgram') {
+      accountsWithActiveRisk.add(sourceId);
+    }
+    if (isS08AccountId(targetId) && targetId !== 'campusgram') {
+      accountsWithActiveRisk.add(targetId);
+    }
   }
-  const accountIds = new Set(['master-campus', 'campus-email', 'campusgram']);
   const nodes = source.nodes
     .filter(({ kind }) => kind !== 'shield')
     .map((node): SceneNode => {
       const accountId = s08AccountIdForNode(node.id);
-      const protectedNode = accountId !== null && protectedAccounts.has(accountId);
-      const affectedNode = accountId !== null && affected.has(accountId);
-      const actionable = node.kind === 'account' && affectedNode && !protectedNode;
+      const affectedNode =
+        accountId !== null &&
+        accountId !== 'campusgram' &&
+        !protectedAccounts.has(accountId) &&
+        accountsWithActiveRisk.has(accountId);
+      const weakNode =
+        accountId !== null &&
+        accountId !== 'campusgram' &&
+        !protectedAccounts.has(accountId) &&
+        weakAccounts.has(accountId);
+      const actionable =
+        node.kind === 'account' &&
+        accountId !== null &&
+        accountId !== 'campusgram' &&
+        affectedNode;
       return {
         ...node,
-        status: protectedNode ? 'protected' : affectedNode ? 'affected' : 'neutral',
+        status: weakNode ? 'affected' : 'protected',
         selectable: actionable,
         locked: false,
         description: actionable
@@ -242,16 +332,19 @@ export function createS08ProtectionNetwork(
       ({ sourceId, targetId }) =>
         nodeIds.has(sourceId) &&
         nodeIds.has(targetId) &&
-        !(accountIds.has(sourceId) && accountIds.has(targetId)),
+        !(isS08AccountId(sourceId) && isS08AccountId(targetId)),
     )
     .map((edge): SceneEdge => ({ ...edge, status: 'neutral', label: null }));
   return {
     ...source,
     id: `${source.id}-s08-protection-${protectedAccountIds.join('-') || 'pending'}`,
     nodes,
-    edges,
+    edges: [...edges, ...activeRelationships],
     accessibleSummary:
-      affectedAccountIds.length === protectedAccountIds.length
+      (['master-campus', 'campus-email'] as const).every(
+        (accountId) =>
+          protectedAccounts.has(accountId) || !accountsWithActiveRisk.has(accountId),
+      )
         ? s08NetworkReplayContent.protectionSummaries.complete
         : s08NetworkReplayContent.protectionSummaries.pending,
   };

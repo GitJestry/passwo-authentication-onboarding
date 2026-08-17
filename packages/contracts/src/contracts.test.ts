@@ -9,6 +9,7 @@ import {
   type PasswordComparisonResult,
   type RuntimeStructureFinding,
   type TheoreticalSearchSpaceModel,
+  type TransientPasswordSemanticEvidence,
   createSessionRequestSchema,
   deletionCodeSchema,
   designLabScenarioForPath,
@@ -252,6 +253,12 @@ describe('research-safe contracts', () => {
     expect(designLabScenarioForPath('/design-lab/s08-network-replay')).toBe(
       's08-network-replay',
     );
+    expect(designLabScenarioForPath('/design-lab/s08-strong-relations')).toBe(
+      's08-strong-relations',
+    );
+    expect(designLabScenarioForPath('/design-lab/s08-weak-mixed-relations')).toBe(
+      's08-weak-mixed-relations',
+    );
     expect(designLabScenarioForPath('/design-lab/s09-password-manager-transition')).toBe(
       's09-password-manager-transition',
     );
@@ -353,7 +360,7 @@ describe('research-safe contracts', () => {
     const disposition: LocalPasswordDisposition = {
       kind: 'no-whole-password-recognized',
       lengthOrientation: 'at-least-15',
-      analysisVersion: 'passwo-bounded-whole-recognition-v12',
+      analysisVersion: 'passwo-bounded-whole-recognition-v13',
       explanationId: 's05.disposition.no-whole-password-recognized',
     };
 
@@ -362,6 +369,38 @@ describe('research-safe contracts', () => {
     expect(disposition.kind).toBe('no-whole-password-recognized');
     expect(Object.keys(disposition)).not.toEqual(
       expect.arrayContaining(['score', 'crackTime', 'effectiveLength', 'entropy', 'estimatedGuesses', 'quickPathThreshold']),
+    );
+  });
+
+  it('keeps participant-confirmed semantic evidence transient and categorical', () => {
+    const semanticEvidence: TransientPasswordSemanticEvidence = {
+      kind: 'transient-password-semantic-evidence',
+      confirmed: true,
+      relations: [
+        {
+          id: 'semantic:content:1',
+          kind: 'shared-content',
+          evidence: [
+            { type: 'span', start: 0, end: 6, token: 'Kaffee' },
+            { type: 'span', start: 6, end: 12, token: 'Morgen' },
+          ],
+        },
+      ],
+    };
+    const disposition: LocalPasswordDisposition = {
+      kind: 'whole-password-recognized',
+      ruleId: 'whole-password-recognized-semantic-path',
+      findingIds: ['single:common-word:0-6:0', 'single:common-word:6-12:1'],
+      semanticRelationIds: ['semantic:content:1'],
+      lengthOrientation: 'below-15',
+      analysisVersion: 'passwo-bounded-whole-recognition-v13',
+      explanationId: 's05.disposition.whole-password-recognized-semantic-path',
+    };
+
+    expect(semanticEvidence.confirmed).toBe(true);
+    expect(disposition.ruleId).toBe('whole-password-recognized-semantic-path');
+    expect(Object.keys(semanticEvidence)).not.toEqual(
+      expect.arrayContaining(['password', 'score', 'strength', 'entropy', 'estimatedGuesses']),
     );
   });
 

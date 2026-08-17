@@ -22,6 +22,8 @@ import { PassWoGuide } from '../../PassWoGuide.js';
 import { passWoSpeechEmphasisFor } from '../../PassWoSpeechEmphasis.js';
 import {
   type S07AccountFeedback,
+  type S07RemainingAccountId,
+  s07AccountsRequiringPassphraseChange,
   s07PassphraseSearchMachine,
 } from './S07PassphraseSearchMachine.js';
 import styles from './S07PassphraseSearchTraining.module.css';
@@ -449,7 +451,9 @@ export interface S07PassphraseSearchTrainingProps {
   readonly campusgramPassword: string;
   readonly accountFeedback?: readonly S07AccountFeedback[];
   readonly platform?: DesktopPlatform;
-  readonly onComplete?: () => void;
+  readonly onComplete?: (
+    affectedAccountIds: readonly S07RemainingAccountId[],
+  ) => void;
 }
 
 function accountLabel(accountId: S01AccountId): string {
@@ -496,7 +500,6 @@ export function S07PassphraseSearchTraining({
   const searchTabOpen = !(
     state.matches('incident') ||
     state.matches('campusgramMethodIntro') ||
-    state.matches('campusgramRandomnessIntro') ||
     state.matches('campusgramSearchIntro')
   );
   const searchView = state.matches('searchLanding')
@@ -509,7 +512,6 @@ export function S07PassphraseSearchTraining({
   const campusgramChangeOpen =
     activeTabId === 'campusgram' &&
     (state.matches('campusgramMethodIntro') ||
-      state.matches('campusgramRandomnessIntro') ||
       state.matches('campusgramSearchIntro') ||
       state.matches('pasteNewPassword') ||
       state.matches('pasteConfirmedPassword') ||
@@ -538,10 +540,6 @@ export function S07PassphraseSearchTraining({
   if (state.matches('campusgramMethodIntro')) {
     speech = [guide.methodIntro];
     speechId = 's07-method-intro';
-  }
-  if (state.matches('campusgramRandomnessIntro')) {
-    speech = [guide.randomnessIntro];
-    speechId = 's07-randomness-intro';
   }
   if (state.matches('campusgramSearchIntro')) {
     speech = [guide.searchIntro];
@@ -581,7 +579,6 @@ export function S07PassphraseSearchTraining({
 
   if (
     state.matches('campusgramMethodIntro') ||
-    state.matches('campusgramRandomnessIntro') ||
     state.matches('mnemonicIntro') ||
     state.matches('campusgramSuccess') ||
     state.matches('remainingRisk')
@@ -600,7 +597,9 @@ export function S07PassphraseSearchTraining({
           : guide.continueAttack,
       onAction: () => {
         send({ type: 'CONTINUE_ATTACK' });
-        onComplete();
+        onComplete(
+          s07AccountsRequiringPassphraseChange(state.context.accountFeedback),
+        );
       },
     };
   }
@@ -650,7 +649,6 @@ export function S07PassphraseSearchTraining({
     }`,
     dimmed:
       state.matches('campusgramMethodIntro') ||
-      state.matches('campusgramRandomnessIntro') ||
       state.matches('campusgramSearchIntro'),
     allowTabInteractionWhenDimmed: state.matches('campusgramSearchIntro'),
     highlightNewTab: state.matches('campusgramSearchIntro'),

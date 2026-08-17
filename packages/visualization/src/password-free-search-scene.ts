@@ -66,7 +66,9 @@ export function createPasswordAssessmentScene(
       : componentAnalysis.findings;
   const recognitionSummary =
     disposition.kind === 'whole-password-recognized'
-      ? 'Ein einzelner früher Kandidat oder eine begrenzte typische Variante deckt das vollständige fiktive Passwort ab.'
+      ? disposition.ruleId === 'whole-password-recognized-semantic-path'
+        ? 'Die bisherigen Prüfungen und bestätigten Zusammenhänge bilden in dieser Übung einen vollständigen Kandidatenweg.'
+        : 'Ein einzelner früher Kandidat oder eine begrenzte typische Variante deckt das vollständige fiktive Passwort ab.'
       : explanatoryFindings.length > 0
         ? 'Die Übung erkennt Bestandteile, aber keinen einzelnen frühen Kandidaten oder begrenzten Variantenweg für das vollständige Passwort.'
         : 'Die Übung erkennt in den dargestellten Prüfungen keinen frühen Kandidaten für das vollständige Passwort.';

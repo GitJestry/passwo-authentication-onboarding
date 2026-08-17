@@ -770,6 +770,7 @@ const nodeTypes = {
 };
 
 interface NodeEdgeData extends Record<string, unknown> {
+  readonly sourceNodeId: string;
   readonly sourceGeometry: NodeGeometry;
   readonly targetGeometry: NodeGeometry;
   readonly targetNodeId: string;
@@ -777,6 +778,7 @@ interface NodeEdgeData extends Record<string, unknown> {
   readonly drawing: boolean;
   readonly drawn: boolean;
   readonly attackPath: boolean;
+  readonly riskRelation: boolean;
   readonly currentAttackPath: boolean;
   readonly dimmed: boolean;
   readonly statusCascadeTiming: StatusCascadeTiming | null;
@@ -879,6 +881,7 @@ function NodeEdge({
     Math.abs(data.targetGeometry.centerY - data.sourceGeometry.centerY) + maskPadding * 2;
   return (
     <g
+      data-network-edge-source={data.sourceNodeId}
       data-network-edge-target={data.targetNodeId}
       data-network-edge-visible={data.visible || data.drawing}
       data-network-edge-drawing={data.drawing}
@@ -887,6 +890,7 @@ function NodeEdge({
       data-network-edge-attack-drawn={
         data.attackPath && data.drawn ? true : undefined
       }
+      data-network-edge-risk-relation={data.riskRelation || undefined}
       data-network-edge-dimmed={data.dimmed}
       data-network-edge-status-cascade-active={
         data.statusCascadeTiming !== null && !data.statusCascadeSettled ? true : undefined
@@ -1155,6 +1159,7 @@ function toReactFlowElements(
           zIndex: 0,
           className: `${styles.edge} ${edgeClassByStatus[edge.status]} edge-status-${edge.status} edge-kind-${edge.kind}`,
           data: {
+            sourceNodeId: edge.sourceId,
             sourceGeometry,
             targetGeometry,
             targetNodeId: edge.targetId,
@@ -1167,6 +1172,8 @@ function toReactFlowElements(
               edge.kind === 'identical-reuse' ||
               edge.kind === 'similar-pattern' ||
               edge.kind === 'blocked-path',
+            riskRelation:
+              edge.kind === 'identical-reuse' || edge.kind === 'similar-pattern',
             currentAttackPath,
             dimmed: dimInactiveNodes && (choosingAccount || edge.sourceId !== activeNodeId),
             statusCascadeTiming: showsStatusCascadeThread

@@ -73,6 +73,28 @@ export interface PasswordSemanticReflection {
   readonly confirmed: boolean;
 }
 
+/**
+ * Transient, participant-confirmed relations between spans of one fictional password. These
+ * relations are local training evidence only. They must never be persisted, exported or treated
+ * as an objective password-strength measurement.
+ */
+export type TransientPasswordSemanticRelationKind =
+  | 'personal-context'
+  | 'shared-content'
+  | 'sentence-or-phrase';
+
+export interface TransientPasswordSemanticRelation {
+  readonly id: string;
+  readonly kind: TransientPasswordSemanticRelationKind;
+  readonly evidence: readonly PasswordEvidenceSpan[];
+}
+
+export interface TransientPasswordSemanticEvidence {
+  readonly kind: 'transient-password-semantic-evidence';
+  readonly confirmed: boolean;
+  readonly relations: readonly TransientPasswordSemanticRelation[];
+}
+
 export interface PasswordAnalysisResult {
   readonly kind: 'fictional-password-analysis';
   readonly findings: readonly PasswordSingleFinding[];
@@ -142,7 +164,8 @@ export interface TheoreticalSearchSpaceModel {
 
 export type SimulationWholePasswordRecognitionRuleId =
   | 'whole-password-recognized-value'
-  | 'whole-password-recognized-bounded-variant';
+  | 'whole-password-recognized-bounded-variant'
+  | 'whole-password-recognized-semantic-path';
 export type PasswordLengthOrientation = 'below-15' | 'at-least-15';
 
 interface LocalPasswordDispositionBase {
@@ -153,11 +176,20 @@ interface LocalPasswordDispositionBase {
 export type LocalPasswordDisposition =
   | (LocalPasswordDispositionBase & {
       readonly kind: 'whole-password-recognized';
-      readonly ruleId: SimulationWholePasswordRecognitionRuleId;
+      readonly ruleId:
+        | 'whole-password-recognized-value'
+        | 'whole-password-recognized-bounded-variant';
       readonly findingIds: readonly string[];
       readonly explanationId:
         | 's05.disposition.whole-password-recognized-value'
         | 's05.disposition.whole-password-recognized-bounded-variant';
+    })
+  | (LocalPasswordDispositionBase & {
+      readonly kind: 'whole-password-recognized';
+      readonly ruleId: 'whole-password-recognized-semantic-path';
+      readonly findingIds: readonly string[];
+      readonly semanticRelationIds: readonly string[];
+      readonly explanationId: 's05.disposition.whole-password-recognized-semantic-path';
     })
   | (LocalPasswordDispositionBase & {
       readonly kind: 'no-whole-password-recognized';

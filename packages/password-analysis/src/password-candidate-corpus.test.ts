@@ -2,6 +2,7 @@ import type {
   PasswordAnalysisResult,
   PasswordSingleFinding,
   PasswordSingleFindingKind,
+  TransientPasswordSemanticEvidence,
 } from '@passwo/contracts';
 import { describe, expect, it } from 'vitest';
 import {
@@ -18,7 +19,29 @@ interface CandidateCorpusCase {
   readonly label: string;
   readonly password: string;
   readonly segments: readonly AuthoredSegment[];
+  readonly semanticEvidence?: TransientPasswordSemanticEvidence;
   readonly expectedFound: boolean;
+}
+
+function semanticEvidenceForTokens(
+  password: string,
+  tokens: readonly string[],
+  id: string,
+  kind: 'shared-content' | 'sentence-or-phrase' = 'sentence-or-phrase',
+): TransientPasswordSemanticEvidence {
+  let searchFrom = 0;
+  const evidence = tokens.map((token) => {
+    const start = password.indexOf(token, searchFrom);
+    if (start < 0) throw new Error(`Missing semantic token ${token} in ${password}.`);
+    const end = start + token.length;
+    searchFrom = end;
+    return { type: 'span' as const, start, end, token };
+  });
+  return {
+    kind: 'transient-password-semantic-evidence',
+    confirmed: true,
+    relations: [{ id, kind, evidence }],
+  };
 }
 
 function analysisFromSegments(
@@ -44,7 +67,7 @@ function analysisFromSegments(
     findings,
     guessPath: {
       engineId: 'zxcvbn-ts',
-      configurationVersion: 'passwo-bounded-whole-recognition-v12',
+      configurationVersion: 'passwo-bounded-whole-recognition-v13',
       matches: [],
     },
     disclaimerId: 'simulation-not-production-strength',
@@ -104,6 +127,31 @@ const wordChainCases: readonly CandidateCorpusCase[] = Array.from(
       label: `${count}-word chain ${index + 1}`,
       password: selected.join(separator),
       segments: selected.map((token) => ({ token, kind: 'common-word' as const })),
+      expectedFound: false,
+    };
+  },
+);
+
+const semanticWordChainCases: readonly CandidateCorpusCase[] = Array.from(
+  { length: 12 },
+  (_, index) => {
+    const count = 2 + (index % 4);
+    const separator = ['::', '/', '..', '---'][Math.floor(index / 4) % 4] ?? '::';
+    const start = (index * 2) % ordinaryWords.length;
+    const selected = Array.from(
+      { length: count },
+      (_, wordIndex) => ordinaryWords[(start + wordIndex) % ordinaryWords.length] ?? 'Kaffee',
+    );
+    const password = selected.join(separator);
+    return {
+      label: `confirmed semantic word chain ${index + 1}`,
+      password,
+      segments: selected.map((token) => ({ token, kind: 'common-word' as const })),
+      semanticEvidence: semanticEvidenceForTokens(
+        password,
+        selected,
+        `semantic:sentence:${index}`,
+      ),
       expectedFound: true,
     };
   },
@@ -259,7 +307,7 @@ const structuralCompositionCases: readonly CandidateCorpusCase[] = [
       { token: 'Sonne', kind: 'common-word' },
       { token: 'Lampe', kind: 'common-word' },
     ],
-    expectedFound: true,
+    expectedFound: false,
   },
   {
     label: 'account plus four ordinary words',
@@ -310,6 +358,7 @@ const structuralCompositionCases: readonly CandidateCorpusCase[] = [
 const candidateCorpus: readonly CandidateCorpusCase[] = [
   ...directCases,
   ...wordChainCases,
+  ...semanticWordChainCases,
   ...longLexicalSequenceCases,
   ...residualFoundCases,
   ...residualNotFoundCases,
@@ -318,20 +367,23 @@ const candidateCorpus: readonly CandidateCorpusCase[] = [
 
 describe('S05 bounded candidate corpus', () => {
   it('contains at least 100 distinct example passwords', () => {
-    expect(candidateCorpus).toHaveLength(120);
     expect(candidateCorpus.length).toBeGreaterThanOrEqual(100);
     expect(new Set(candidateCorpus.map(({ password }) => password)).size).toBe(
       candidateCorpus.length,
     );
   });
 
-  it.each(candidateCorpus)('$label: $password', ({ password, segments, expectedFound }) => {
-    const disposition = determinePasswordSimulationDisposition({
-      fictionalPassword: password,
-      componentAnalysis: analysisFromSegments(password, segments),
-    });
-    expect(disposition.kind === 'whole-password-recognized').toBe(expectedFound);
-  });
+  it.each(candidateCorpus)(
+    '$label: $password',
+    ({ password, segments, semanticEvidence, expectedFound }) => {
+      const disposition = determinePasswordSimulationDisposition({
+        fictionalPassword: password,
+        componentAnalysis: analysisFromSegments(password, segments),
+        ...(semanticEvidence === undefined ? {} : { semanticEvidence }),
+      });
+      expect(disposition.kind === 'whole-password-recognized').toBe(expectedFound);
+    },
+  );
 });
 
 describe('S05/S06 shared analyzer integration', () => {
@@ -340,8 +392,8 @@ describe('S05/S06 shared analyzer integration', () => {
     ['KlarissaTestPasswort!', ['Campusgram'], ['Klarissa'], true],
     ['PasswortmklhSuppe', [], [], true],
     ['PasswortSuppemlkh', [], [], true],
-    ['KaffeeMorgen', [], [], true],
-    ['KaffeeMorgenSonneLampe', [], [], true],
+    ['KaffeeMorgen', [], [], false],
+    ['KaffeeMorgenSonneLampe', [], [], false],
     ['KaffeeMorgenSonneLampeFenster', [], [], false],
     ['Kaffee-Morgen-Sonne-Lampe-Fenster', [], [], false],
     ['kfxqztmpvlbwhrd', [], [], false],
@@ -418,6 +470,7 @@ interface EndToEndCandidateCase {
   readonly password: string;
   readonly authoredAccountTerms?: readonly string[];
   readonly transientAccountIdentifiers?: readonly string[];
+  readonly semanticEvidence?: TransientPasswordSemanticEvidence;
   readonly expectedFound: boolean;
 }
 
@@ -435,10 +488,21 @@ const endToEndWordChainCases: readonly EndToEndCandidateCase[] = Array.from(
       { length: count },
       (_, wordIndex) => ordinaryWords[(start + wordIndex * step) % ordinaryWords.length] ?? 'Kaffee',
     );
+    const password = selected.join(separator);
+    const hasConfirmedRelation = index % 2 === 0;
     return {
       label: `end-to-end ${count}-word chain ${index + 1}`,
-      password: selected.join(separator),
-      expectedFound: true,
+      password,
+      ...(hasConfirmedRelation
+        ? {
+            semanticEvidence: semanticEvidenceForTokens(
+              password,
+              selected,
+              `semantic:end-to-end:${index}`,
+            ),
+          }
+        : {}),
+      expectedFound: hasConfirmedRelation,
     };
   },
 );
@@ -487,7 +551,16 @@ const endToEndAnchorCases: readonly EndToEndCandidateCase[] = [
   },
   { label: 'curated phrase without separators', password: 'ichliebedichbiszummond', expectedFound: true },
   { label: 'curated phrase in camelcase', password: 'IchLiebeDichBisZumMond', expectedFound: true },
-  { label: 'four words with repeated separators', password: 'Ich-liebe--dich---meine', expectedFound: true },
+  {
+    label: 'four words with repeated separators and confirmed sentence relation',
+    password: 'Ich-liebe--dich---meine',
+    semanticEvidence: semanticEvidenceForTokens(
+      'Ich-liebe--dich---meine',
+      ['Ich', 'liebe', 'dich', 'meine'],
+      'semantic:sentence:separators',
+    ),
+    expectedFound: true,
+  },
   {
     label: 'direct account context',
     password: 'Campusgram',
@@ -527,6 +600,83 @@ const endToEndAnchorCases: readonly EndToEndCandidateCase[] = [
   { label: 'test password plus residual', password: 'TestPasswortabcde', expectedFound: true },
   { label: 'residual before test password', password: 'abcdeTestPasswort', expectedFound: true },
   { label: 'ordinary words plus year', password: 'KaffeeMorgen2026', expectedFound: true },
+  {
+    label: 'combined password, number, keyboard and account anchors',
+    password: 'Passwort123456789qwertzCampusgram!',
+    authoredAccountTerms: ['Campusgram'],
+    expectedFound: true,
+  },
+  {
+    label: 'keyboard path between ordinary words',
+    password: 'MeinqwertzStarkesPasswort',
+    expectedFound: true,
+  },
+  { label: 'curated German compound', password: 'Datensicherheit', expectedFound: true },
+  {
+    label: 'confirmed short-word sentence 1',
+    password: 'eisichbintotpo',
+    semanticEvidence: semanticEvidenceForTokens(
+      'eisichbintotpo',
+      ['eis', 'ich', 'bin', 'tot', 'po'],
+      'semantic:short-words:1',
+    ),
+    expectedFound: true,
+  },
+  {
+    label: 'confirmed short-word sentence 2',
+    password: 'ichbineineispo',
+    semanticEvidence: semanticEvidenceForTokens(
+      'ichbineineispo',
+      ['ich', 'bin', 'ein', 'eis', 'po'],
+      'semantic:short-words:2',
+    ),
+    expectedFound: true,
+  },
+  {
+    label: 'confirmed short-word sentence 3',
+    password: 'ichhabeineispo',
+    semanticEvidence: semanticEvidenceForTokens(
+      'ichhabeineispo',
+      ['ich', 'habe', 'in', 'eis', 'po'],
+      'semantic:short-words:3',
+    ),
+    expectedFound: true,
+  },
+  {
+    label: 'confirmed short-word sentence 4',
+    password: 'eisölindapo',
+    semanticEvidence: semanticEvidenceForTokens(
+      'eisölindapo',
+      ['eis', 'öl', 'in', 'da', 'po'],
+      'semantic:short-words:4',
+    ),
+    expectedFound: true,
+  },
+  { label: 'curated abbreviation LKW', password: 'LKW', expectedFound: true },
+  { label: 'curated abbreviation DVD', password: 'DVD', expectedFound: true },
+  { label: 'curated abbreviation LOL', password: 'LOL', expectedFound: true },
+  { label: 'curated abbreviation DHL', password: 'DHL', expectedFound: true },
+  {
+    label: 'confirmed sentence around a password anchor',
+    password: 'MeinStarkesPasswortIstGut',
+    semanticEvidence: semanticEvidenceForTokens(
+      'MeinStarkesPasswortIstGut',
+      ['Mein', 'Starkes', 'Passwort', 'Ist', 'Gut'],
+      'semantic:sentence:password-anchor',
+    ),
+    expectedFound: true,
+  },
+  {
+    label: 'confirmed shared personal event with year',
+    password: 'HochzeitAmSchloss1995!',
+    semanticEvidence: semanticEvidenceForTokens(
+      'HochzeitAmSchloss1995!',
+      ['Hochzeit', 'Am', 'Schloss', '1995'],
+      'semantic:content:wedding',
+      'shared-content',
+    ),
+    expectedFound: true,
+  },
 ];
 
 const endToEndRepetitionCases: readonly EndToEndCandidateCase[] = [
@@ -586,14 +736,22 @@ const endToEndCandidateCorpus: readonly EndToEndCandidateCase[] = [
 ];
 
 describe('S05/S06 end-to-end candidate corpus', () => {
-  it('contains 100 distinct passwords evaluated through the real analyzer', () => {
-    expect(endToEndCandidateCorpus).toHaveLength(100);
-    expect(new Set(endToEndCandidateCorpus.map(({ password }) => password)).size).toBe(100);
+  it('contains at least 100 distinct passwords evaluated through the real analyzer', () => {
+    expect(endToEndCandidateCorpus.length).toBeGreaterThanOrEqual(100);
+    expect(new Set(endToEndCandidateCorpus.map(({ password }) => password)).size).toBe(
+      endToEndCandidateCorpus.length,
+    );
   });
 
   it.each(endToEndCandidateCorpus)(
     '$label: $password',
-    ({ password, authoredAccountTerms = [], transientAccountIdentifiers = [], expectedFound }) => {
+    ({
+      password,
+      authoredAccountTerms = [],
+      transientAccountIdentifiers = [],
+      semanticEvidence,
+      expectedFound,
+    }) => {
       const componentAnalysis = analyzeFictionalPassword({
         fictionalPassword: password,
         authoredAccountTerms,
@@ -602,10 +760,11 @@ describe('S05/S06 end-to-end candidate corpus', () => {
       const disposition = determinePasswordSimulationDisposition({
         fictionalPassword: password,
         componentAnalysis,
+        ...(semanticEvidence === undefined ? {} : { semanticEvidence }),
       });
 
       expect(disposition.kind === 'whole-password-recognized').toBe(expectedFound);
-      expect(disposition.analysisVersion).toBe('passwo-bounded-whole-recognition-v12');
+      expect(disposition.analysisVersion).toBe('passwo-bounded-whole-recognition-v13');
     },
   );
 });

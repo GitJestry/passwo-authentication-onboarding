@@ -101,7 +101,7 @@ function s07Disposition(
 ): LocalPasswordDisposition {
   const base = {
     lengthOrientation: belowLengthOrientation ? 'below-15' : 'at-least-15',
-    analysisVersion: 'passwo-bounded-whole-recognition-v12',
+    analysisVersion: 'passwo-bounded-whole-recognition-v13',
   } as const;
   return wholeRecognition
     ? {
@@ -285,7 +285,7 @@ function passwordAnalysisWithFindings(
     findings,
     guessPath: {
       engineId: 'zxcvbn-ts',
-      configurationVersion: 'passwo-bounded-whole-recognition-v12',
+      configurationVersion: 'passwo-bounded-whole-recognition-v13',
       matches: [],
     },
     disclaimerId: 'simulation-not-production-strength',
@@ -611,7 +611,7 @@ describe('local fictional password analysis', () => {
       expect(expectedKinds.some((expectedKind) => actualKinds.includes(expectedKind))).toBe(true);
       expect(result.guessPath).toMatchObject({
         engineId: 'zxcvbn-ts',
-        configurationVersion: 'passwo-bounded-whole-recognition-v12',
+        configurationVersion: 'passwo-bounded-whole-recognition-v13',
       });
       for (const finding of result.findings) {
         expect(finding.id).toMatch(/^single:/u);
@@ -637,7 +637,7 @@ describe('local fictional password analysis', () => {
     expect(disposition).toEqual({
       kind: 'no-whole-password-recognized',
       lengthOrientation: 'at-least-15',
-      analysisVersion: 'passwo-bounded-whole-recognition-v12',
+      analysisVersion: 'passwo-bounded-whole-recognition-v13',
       explanationId: 's05.disposition.no-whole-password-recognized',
     });
   });
@@ -664,7 +664,7 @@ describe('local fictional password analysis', () => {
 
       expect(disposition).toMatchObject({
         kind: 'whole-password-recognized',
-        analysisVersion: 'passwo-bounded-whole-recognition-v12',
+        analysisVersion: 'passwo-bounded-whole-recognition-v13',
       });
     },
   );
@@ -721,7 +721,7 @@ describe('local fictional password analysis', () => {
     });
   });
 
-  it('recognizes a short concatenation of ordinary dictionary words as a bounded candidate', () => {
+  it('does not turn an ordinary multi-word decomposition into a strength formula', () => {
     const fictionalPassword = 'KaffeeMorgen';
     const componentAnalysis = passwordAnalysisWithFindings([
       {
@@ -742,10 +742,88 @@ describe('local fictional password analysis', () => {
 
     expect(
       determinePasswordSimulationDisposition({ fictionalPassword, componentAnalysis }),
+    ).toMatchObject({ kind: 'no-whole-password-recognized' });
+  });
+
+  it('uses a confirmed relation as a transient semantic candidate path', () => {
+    const fictionalPassword = 'KaffeeMorgen';
+    const componentAnalysis = passwordAnalysisWithFindings([
+      {
+        id: 'single:common-word:0-6:0',
+        kind: 'common-word',
+        evidence: [{ type: 'span', start: 0, end: 6, token: 'Kaffee' }],
+        explanationId: 's05.common-word',
+        confidence: 'bounded-heuristic',
+      },
+      {
+        id: 'single:common-word:6-12:1',
+        kind: 'common-word',
+        evidence: [{ type: 'span', start: 6, end: 12, token: 'Morgen' }],
+        explanationId: 's05.common-word',
+        confidence: 'bounded-heuristic',
+      },
+    ]);
+
+    expect(
+      determinePasswordSimulationDisposition({
+        fictionalPassword,
+        componentAnalysis,
+        semanticEvidence: {
+          kind: 'transient-password-semantic-evidence',
+          confirmed: true,
+          relations: [
+            {
+              id: 'semantic:content:1',
+              kind: 'shared-content',
+              evidence: [
+                { type: 'span', start: 0, end: 6, token: 'Kaffee' },
+                { type: 'span', start: 6, end: 12, token: 'Morgen' },
+              ],
+            },
+          ],
+        },
+      }),
     ).toMatchObject({
       kind: 'whole-password-recognized',
-      ruleId: 'whole-password-recognized-bounded-variant',
+      ruleId: 'whole-password-recognized-semantic-path',
+      semanticRelationIds: ['semantic:content:1'],
     });
+  });
+
+  it.each([
+    {
+      label: 'unconfirmed evidence',
+      confirmed: false,
+      token: 'Kaffee',
+    },
+    {
+      label: 'stale evidence whose token no longer matches the password',
+      confirmed: true,
+      token: 'Kaktus',
+    },
+  ] as const)('ignores $label', ({ confirmed, token }) => {
+    const fictionalPassword = 'KaffeeMorgen';
+    const componentAnalysis = analyzeFictionalPassword({ fictionalPassword });
+    const disposition = determinePasswordSimulationDisposition({
+      fictionalPassword,
+      componentAnalysis,
+      semanticEvidence: {
+        kind: 'transient-password-semantic-evidence',
+        confirmed,
+        relations: [
+          {
+            id: 'semantic:content:invalid',
+            kind: 'shared-content',
+            evidence: [
+              { type: 'span', start: 0, end: 6, token },
+              { type: 'span', start: 6, end: 12, token: 'Morgen' },
+            ],
+          },
+        ],
+      },
+    });
+
+    expect(disposition.kind).toBe('no-whole-password-recognized');
   });
 
   it('keeps the 15-character orientation separate from whole-password recognition', () => {
@@ -894,7 +972,79 @@ describe('local fictional password analysis', () => {
     expect(tokens).not.toContain('2026!');
   });
 
-  it('treats bounded separator runs as connectors between recognized words', () => {
+  it('uses an embedded keyboard path as a boundary without hiding adjacent words', () => {
+    const result = analyzeFictionalPassword({
+      fictionalPassword: 'MeinqwertzStarkesPasswort',
+    });
+    const tokens = result.findings.flatMap((finding) =>
+      finding.evidence.flatMap((evidence) =>
+        evidence.type === 'span' ? [evidence.token.toLocaleLowerCase('de-DE')] : [],
+      ),
+    );
+
+    expect(tokens).toEqual(expect.arrayContaining(['mein', 'qwertz', 'starkes', 'passwort']));
+    expect(tokens).not.toContain('meinqwertz');
+  });
+
+  it('prefers the curated full compound Datensicherheit over nested dictionary parts', () => {
+    const result = analyzeFictionalPassword({ fictionalPassword: 'Datensicherheit' });
+    const tokens = result.findings.flatMap((finding) =>
+      finding.evidence.flatMap((evidence) =>
+        evidence.type === 'span' ? [evidence.token.toLocaleLowerCase('de-DE')] : [],
+      ),
+    );
+
+    expect(tokens).toContain('datensicherheit');
+    expect(tokens).not.toContain('daten');
+    expect(tokens).not.toContain('sicherheit');
+  });
+
+  it.each([
+    ['eisichbintotpo', ['eis', 'ich', 'bin', 'tot', 'po']],
+    ['ichbineineispo', ['ich', 'bin', 'ein', 'eis', 'po']],
+    ['ichhabeineispo', ['ich', 'habe', 'in', 'eis', 'po']],
+    ['eisölindapo', ['eis', 'öl', 'in', 'da', 'po']],
+  ] as const)('keeps a complete short-word partition for %s', (fictionalPassword, expected) => {
+    const result = analyzeFictionalPassword({ fictionalPassword });
+    const tokens = result.findings.flatMap((finding) =>
+      finding.evidence.flatMap((evidence) =>
+        evidence.type === 'span' ? [evidence.token.toLocaleLowerCase('de-DE')] : [],
+      ),
+    );
+
+    expect(tokens).toEqual(expect.arrayContaining([...expected]));
+  });
+
+  it.each(['LKW', 'DVD', 'LOL', 'DHL'] as const)(
+    'recognizes the curated short abbreviation %s only as an exact lexical unit',
+    (fictionalPassword) => {
+      const result = analyzeFictionalPassword({ fictionalPassword });
+      const tokens = result.findings.flatMap((finding) =>
+        finding.evidence.flatMap((evidence) =>
+          evidence.type === 'span' ? [evidence.token.toLocaleLowerCase('de-DE')] : [],
+        ),
+      );
+
+      expect(tokens).toContain(fictionalPassword.toLocaleLowerCase('de-DE'));
+    },
+  );
+
+  it('does not reinterpret a leet-modified short abbreviation as an exact lexical unit', () => {
+    const result = analyzeFictionalPassword({ fictionalPassword: 'L0L' });
+    const dictionarySpans = result.findings.flatMap((finding) =>
+      finding.kind === 'common-password-core' ||
+      finding.kind === 'common-word' ||
+      finding.kind === 'common-name'
+        ? finding.evidence.flatMap((evidence) =>
+            evidence.type === 'span' ? [evidence.token] : [],
+          )
+        : [],
+    );
+
+    expect(dictionarySpans).not.toContain('L0L');
+  });
+
+  it('keeps separator-connected words visible without treating word count as a hit', () => {
     const fictionalPassword = 'Ich-liebe--dich---meine';
     const componentAnalysis = analyzeFictionalPassword({ fictionalPassword });
     const disposition = determinePasswordSimulationDisposition({
@@ -902,7 +1052,7 @@ describe('local fictional password analysis', () => {
       componentAnalysis,
     });
 
-    expect(disposition.kind).toBe('whole-password-recognized');
+    expect(disposition.kind).toBe('no-whole-password-recognized');
     expect(
       componentAnalysis.findings.flatMap((finding) =>
         finding.evidence.flatMap((evidence) =>
@@ -910,6 +1060,95 @@ describe('local fictional password analysis', () => {
         ),
       ),
     ).toEqual(expect.arrayContaining(['ich', 'liebe', 'dich', 'meine']));
+  });
+
+  it('uses confirmed sentence links across separator-connected words', () => {
+    const fictionalPassword = 'Ich-liebe--dich---meine';
+    const componentAnalysis = analyzeFictionalPassword({ fictionalPassword });
+    const disposition = determinePasswordSimulationDisposition({
+      fictionalPassword,
+      componentAnalysis,
+      semanticEvidence: {
+        kind: 'transient-password-semantic-evidence',
+        confirmed: true,
+        relations: [
+          {
+            id: 'semantic:sentence:0',
+            kind: 'sentence-or-phrase',
+            evidence: [
+              { type: 'span', start: 0, end: 3, token: 'Ich' },
+              { type: 'span', start: 4, end: 9, token: 'liebe' },
+              { type: 'span', start: 11, end: 15, token: 'dich' },
+              { type: 'span', start: 18, end: 23, token: 'meine' },
+            ],
+          },
+        ],
+      },
+    });
+
+    expect(disposition).toMatchObject({
+      kind: 'whole-password-recognized',
+      ruleId: 'whole-password-recognized-semantic-path',
+    });
+  });
+
+  it('does not let one relation explain unrelated short lexical components', () => {
+    const fictionalPassword = 'eisichbintotpo';
+    const componentAnalysis = analyzeFictionalPassword({ fictionalPassword });
+    const disposition = determinePasswordSimulationDisposition({
+      fictionalPassword,
+      componentAnalysis,
+      semanticEvidence: {
+        kind: 'transient-password-semantic-evidence',
+        confirmed: true,
+        relations: [
+          {
+            id: 'semantic:partial-short-words',
+            kind: 'shared-content',
+            evidence: [
+              { type: 'span', start: 0, end: 3, token: 'eis' },
+              { type: 'span', start: 8, end: 11, token: 'tot' },
+            ],
+          },
+        ],
+      },
+    });
+
+    expect(disposition.kind).toBe('no-whole-password-recognized');
+  });
+
+  it('uses a participant-marked personal span without treating it as an automatic dictionary fact', () => {
+    const fictionalPassword = 'BVBKaffee';
+    const componentAnalysis = analyzeFictionalPassword({ fictionalPassword });
+    const disposition = determinePasswordSimulationDisposition({
+      fictionalPassword,
+      componentAnalysis,
+      semanticEvidence: {
+        kind: 'transient-password-semantic-evidence',
+        confirmed: true,
+        relations: [
+          {
+            id: 'semantic:personal:bvb',
+            kind: 'personal-context',
+            evidence: [{ type: 'span', start: 0, end: 3, token: 'BVB' }],
+          },
+          {
+            id: 'semantic:content:bvb-kaffee',
+            kind: 'shared-content',
+            evidence: [
+              { type: 'span', start: 0, end: 3, token: 'BVB' },
+              { type: 'span', start: 3, end: 9, token: 'Kaffee' },
+            ],
+          },
+        ],
+      },
+    });
+
+    expect(disposition).toMatchObject({
+      kind: 'whole-password-recognized',
+      ruleId: 'whole-password-recognized-semantic-path',
+      semanticRelationIds: ['semantic:personal:bvb', 'semantic:content:bvb-kaffee'],
+    });
   });
 
   it.each([
@@ -932,7 +1171,7 @@ describe('local fictional password analysis', () => {
         ],
         guessPath: {
           engineId: 'zxcvbn-ts',
-          configurationVersion: 'passwo-bounded-whole-recognition-v12',
+          configurationVersion: 'passwo-bounded-whole-recognition-v13',
           matches: [],
         },
         disclaimerId: 'simulation-not-production-strength',
@@ -978,7 +1217,7 @@ describe('local fictional password analysis', () => {
       ],
       guessPath: {
         engineId: 'zxcvbn-ts',
-        configurationVersion: 'passwo-bounded-whole-recognition-v12',
+        configurationVersion: 'passwo-bounded-whole-recognition-v13',
         matches: [],
       },
       disclaimerId: 'simulation-not-production-strength',

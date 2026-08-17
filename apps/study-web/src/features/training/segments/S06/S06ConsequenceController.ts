@@ -1,4 +1,9 @@
-import type { PasswordRelation, S06AccountId, S06PairComparison } from '@passwo/contracts';
+import type {
+  PasswordRelation,
+  S06AccountId,
+  S06PairComparison,
+  TransientPasswordSemanticEvidence,
+} from '@passwo/contracts';
 import {
   analyzeFictionalPassword,
   compareFictionalPasswords,
@@ -101,6 +106,7 @@ export type S06ConsequenceAccountInputs = Readonly<
       readonly fictionalPassword: string;
       readonly retrievalStatus: S06LocalAccountAnalysis['retrievalStatus'];
       readonly transientAccountIdentifiers?: readonly string[];
+      readonly semanticEvidence?: TransientPasswordSemanticEvidence;
     }
   >
 >;
@@ -169,6 +175,9 @@ export function createS06ConsequenceScenePlan(
       disposition: determinePasswordSimulationDisposition({
         fictionalPassword: account.fictionalPassword,
         componentAnalysis,
+        ...(account.semanticEvidence === undefined
+          ? {}
+          : { semanticEvidence: account.semanticEvidence }),
       }),
     };
   });

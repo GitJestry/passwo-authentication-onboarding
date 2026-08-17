@@ -1,13 +1,13 @@
 import type { TrainingSectionId } from '@passwo/contracts';
 
-export const S07_PASSPHRASE_SEARCH_CONTENT_VERSION = '4.11.0';
+export const S07_PASSPHRASE_SEARCH_CONTENT_VERSION = '4.12.0';
 
 export const s07PassphraseSearchContent = {
   version: S07_PASSPHRASE_SEARCH_CONTENT_VERSION,
   source: {
-    revision: 'Userauftrag vom 2026-08-15 · S07 Passphrasen eins und vier',
+    revision: 'Userauftrag vom 2026-08-17 · S07 Passphraseneinstieg auf zwei Schritte gekürzt',
     copyReference:
-      'docs/design/S06-S07-COPY-AUDIT.md#copy-delta-s07-passphrasen-eins-und-vier-15-august-2026',
+      'docs/design/S06-S07-COPY-AUDIT.md#copy-und-ablaufdelta-s07-passphraseneinstieg-in-zwei-schritten-17-august-2026',
   },
   segment: {
     id: 'S07',
@@ -18,9 +18,7 @@ export const s07PassphraseSearchContent = {
   guide: {
     taskLabel: 'Passphrase erstellen',
     methodIntro:
-      'Dafür nutzen wir eine Passphrase: eine einfache Methode, starke Passwörter nur aus Wörtern zu bilden.',
-    randomnessIntro:
-      'Ein geläufiges Wort kann zwar lang sein, wird von Angreifern aber früh ausprobiert. Eine Passphrase aus mindestens sechs zufälligen, unzusammenhängenden Wörtern macht das Erraten dagegen deutlich aufwendiger.',
+      'Die Passphrase ist genau die Methode für starke Passwörter aus Wörtern, die wir heute schon angesprochen haben. Sie besteht aus mindestens sechs zufällig ausgewählten, voneinander unabhängigen Wörtern.',
     searchIntro:
       'Lass dir online eine Passphrase generieren und ersetze damit das betroffene Passwort.',
     generating: 'Passphrase wird erstellt …',

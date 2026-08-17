@@ -7,6 +7,7 @@ import {
 import {
   getS05DesignLabFixture,
   getS05DesignLabFixtureByRouteId,
+  getS06ConsequenceFixture,
   getS06ConsequenceFixtureByRouteId,
   type S06ConsequenceFixture,
   type S01AccountId,
@@ -51,6 +52,7 @@ import {
   deriveS07AccountFeedback,
   s07AccountsRequiringPassphraseChange,
   type S07AccountFeedback,
+  type S07RemainingAccountId,
 } from '../features/training/segments/S07/S07PassphraseSearchMachine.js';
 import { S08NetworkRewindStage } from '../features/training/segments/S08/S08NetworkRewindStage.js';
 import styles from './DesignLab.module.css';
@@ -94,12 +96,18 @@ function S07ToS09QaPreview({
   const [stage, setStage] = useState<
     's07' | 's08' | 's09' | 'manager-transition'
   >(initialStage);
+  const [completedAffectedAccountIds, setCompletedAffectedAccountIds] = useState<
+    readonly S07RemainingAccountId[] | null
+  >(null);
   const platform = readDesktopPlatform();
 
   if (stage !== 's07') {
     return (
       <S08NetworkRewindStage
-        affectedAccountIds={s07AccountsRequiringPassphraseChange(accountFeedback)}
+        affectedAccountIds={
+          completedAffectedAccountIds ??
+          s07AccountsRequiringPassphraseChange(accountFeedback)
+        }
         network={network}
         plan={plan}
         platform={platform}
@@ -113,7 +121,10 @@ function S07ToS09QaPreview({
       accountFeedback={accountFeedback}
       campusgramPassword={campusgramPassword}
       displayName="Vorschau"
-      onComplete={() => setStage('s08')}
+      onComplete={(affectedAccountIds) => {
+        setCompletedAffectedAccountIds(affectedAccountIds);
+        setStage('s08');
+      }}
       platform={platform}
     />
   );
@@ -198,6 +209,26 @@ function S07DirectQaPreview({
       accountFeedback={accountFeedback}
       campusgramPassword={accounts.campusgram.fictionalPassword}
       initialStage={initialStage}
+      network={plan.steps.at(-1)?.network ?? null}
+      plan={plan}
+    />
+  );
+}
+
+function S08FixtureQaPreview({
+  fixtureId,
+}: {
+  readonly fixtureId: S06ConsequenceFixture['id'];
+}) {
+  const fixture = getS06ConsequenceFixture(fixtureId);
+  const plan = useMemo(() => createS06FixtureScenePlan(fixtureId), [fixtureId]);
+  const accountFeedback = deriveS07AccountFeedback(plan);
+
+  return (
+    <S07ToS09QaPreview
+      accountFeedback={accountFeedback}
+      campusgramPassword={fixture.accounts.campusgram.fictionalPassword}
+      initialStage="s08"
       network={plan.steps.at(-1)?.network ?? null}
       plan={plan}
     />
@@ -515,8 +546,22 @@ const scenarios: Record<DesignLabScenarioId, DesignLabScenario> = {
     dimmed: false,
     showPassWoOverlay: false,
   },
+  's08-strong-relations': {
+    label: 's1.25 · Starke Beziehungsknoten',
+    description:
+      'Direkter S08-QA-Einstieg mit zwei starken blauen Konten und einer erkannten Ähnlichkeitsbeziehung; Campusgram bleibt geschützt.',
+    dimmed: false,
+    showPassWoOverlay: false,
+  },
+  's08-weak-mixed-relations': {
+    label: 's1.26 · Schwach + gemischte Beziehungen',
+    description:
+      'Direkter S08-QA-Einstieg mit roten schwachen Konten sowie exakter Wiederverwendung und abgeleiteter Ähnlichkeit; Campusgram bleibt geschützt.',
+    dimmed: false,
+    showPassWoOverlay: false,
+  },
   's09-password-manager-transition': {
-    label: 's1.25 · Übergang zum Passwortmanager',
+    label: 's1.27 · Übergang zum Passwortmanager',
     description:
       'Direkter QA-Einstieg im geschützten S08-Netzwerk, das in S09 auf 80 Konten herauszoomt und zur Passwortmanager-Karte führt.',
     dimmed: false,
@@ -576,6 +621,8 @@ const scenarioGroups = [
       's06-mixed-actual-hypothetical',
       's07-passphrase-search',
       's08-network-replay',
+      's08-strong-relations',
+      's08-weak-mixed-relations',
       's09-password-manager-transition',
     ],
   },
@@ -1200,6 +1247,28 @@ export function DesignLab({ scenarioId }: { readonly scenarioId: DesignLabScenar
         <DesignLabIntroduction scenarioId={scenarioId} scenario={scenario} />
         <ArtifactPreview>
           <S07DirectQaPreview initialStage="s08" passwordOverrides={passwordOverrides} />
+        </ArtifactPreview>
+      </main>
+    );
+  }
+
+  if (scenarioId === 's08-strong-relations') {
+    return (
+      <main className={styles.labPage}>
+        <DesignLabIntroduction scenarioId={scenarioId} scenario={scenario} />
+        <ArtifactPreview>
+          <S08FixtureQaPreview fixtureId="mixed-actual-hypothetical" />
+        </ArtifactPreview>
+      </main>
+    );
+  }
+
+  if (scenarioId === 's08-weak-mixed-relations') {
+    return (
+      <main className={styles.labPage}>
+        <DesignLabIntroduction scenarioId={scenarioId} scenario={scenario} />
+        <ArtifactPreview>
+          <S08FixtureQaPreview fixtureId="reuse-and-derived" />
         </ArtifactPreview>
       </main>
     );

@@ -166,6 +166,7 @@ export function AccountAssessmentNetwork({
   interactionDisabled = true,
   accountShieldAsset = passwordFactorShieldAsset,
   showAccountShields = true,
+  showEdgeLabels = false,
   overview = false,
 }: {
   readonly adapter: ReactFlowNetworkAdapter;
@@ -197,6 +198,7 @@ export function AccountAssessmentNetwork({
   readonly interactionDisabled?: boolean;
   readonly accountShieldAsset?: string;
   readonly showAccountShields?: boolean;
+  readonly showEdgeLabels?: boolean;
   readonly overview?: boolean;
 }) {
   const comparisonResultOrder = useMemo(
@@ -251,7 +253,7 @@ export function AccountAssessmentNetwork({
         interactionDisabled={interactionDisabled}
         visualVariant="account-map"
         visualDensity={overview ? 'overview' : 'default'}
-        showEdgeLabels={false}
+        showEdgeLabels={showEdgeLabels}
         showNodeLabels={false}
         showStatusMarkers={false}
         dimInactiveNodes={false}

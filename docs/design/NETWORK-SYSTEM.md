@@ -61,6 +61,25 @@ Das Netzwerk zeigt Konten, abhängige Dienste, Funktionen, Passwortbeziehungen u
 - Die Statusfarben und Linienarten für S06 bleiben erhalten: direkte, ähnliche, blockierte und
   hypothetische Verbindungen unterscheiden sich zusätzlich durch Strichmuster.
 
+## S08-Risikoverbindungen
+
+S08 übernimmt die lokal erkannten Wiederverwendungs- und Ähnlichkeitsbeziehungen aus dem
+S06-Plan und zeigt sie einheitlich als rote gestrichelte Kontokanten. Beziehungen zu Campusgram
+kennzeichnen durch ihr Label, dass sie sich auf dessen bereits ersetztes altes Passwort beziehen.
+Eine verwendete einzigartige Passphrase entfernt nur die Kanten des gewählten Kontos. Der
+zugehörige Aktionshinweis und die gestrichelten Risikokanten lösen sich im selben
+Statechart-Schritt auf. Nur lokal schwache Konten sind rot betroffen. Ein starkes Konto bleibt
+trotz einer Wiederverwendungs- oder Ähnlichkeitskante blau geschützt, zeigt aber weiterhin die
+Aktion `Einzigartige Passphrase verwenden`, bis seine Beziehung aufgelöst ist. Reduced Motion
+projiziert unmittelbar denselben fachlichen Endzustand. Campusgram bleibt in S08 immer im blauen
+Schutzzustand, weil die sichtbaren Risikokanten ausdrücklich sein bereits ersetztes altes Passwort
+referenzieren. Aktionsknoten behalten unabhängig vom roten oder blauen Status dieselbe Hover- und
+Fokusrückmeldung.
+
+Die direkten QA-Einstiege `s08-strong-relations` und `s08-weak-mixed-relations` decken gemeinsam
+starke blaue Beziehungsknoten, rote schwache Knoten, exakte Wiederverwendung, abgeleitete
+Ähnlichkeit und den dauerhaft geschützten Campusgram-Knoten ab.
+
 ## S09-Skalierungsansicht
 
 Das vollständige S08-Schutzdreieck wird beim Maßstabswechsel einschließlich seiner Abstände,

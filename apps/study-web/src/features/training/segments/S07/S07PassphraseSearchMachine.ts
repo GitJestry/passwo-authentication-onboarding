@@ -170,9 +170,6 @@ export const s07PassphraseSearchMachine = setup({
       on: { OPEN_CAMPUSGRAM_CHANGE: { target: 'campusgramMethodIntro' } },
     },
     campusgramMethodIntro: {
-      on: { NEXT: { target: 'campusgramRandomnessIntro' } },
-    },
-    campusgramRandomnessIntro: {
       on: { NEXT: { target: 'campusgramSearchIntro' } },
     },
     campusgramSearchIntro: {

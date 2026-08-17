@@ -31,9 +31,10 @@ belegten Teilstrings. PassWo nutzt zxcvbn deshalb ausschließlich als lokale Mus
 
 Für Passphrasen ist die Erzeugungsmethode entscheidend. Die S07/S08-Passphrase beruht auf einer
 bekannten versionierten zufälligen Wortauswahl. S05 kann aus der bloßen Sichtbarkeit mehrerer
-gewöhnlicher Wörter nicht dieselbe Zufallsannahme ableiten. Die S05-Regel enthält deshalb nur eine
-bewusste Enthaltung: Ab fünf verschiedenen gewöhnlichen Wörtern erzeugt Wörterbuchabdeckung allein
-keinen positiven Treffer. Das ist keine positive Sicherheitsbewertung.
+gewöhnlicher Wörter nicht dieselbe Zufallsannahme ableiten. Die S05-Regel verwendet deshalb keine
+Wortanzahl als automatische Treffer- oder Sicherheitsgrenze. Eine Mehrwortfolge benötigt einen
+konkreten automatischen Kandidatenweg oder eine bereits im Training erhobene, bestätigte
+semantische Relation. Das ist keine positive Sicherheitsbewertung.
 
 Technische Referenzen:
 
@@ -54,14 +55,16 @@ Zulässig sind ausschließlich:
 - lokal aus der fiktiven Trainingsidentität abgeleitete Benutzer- und Kontoidentifikatoren.
 
 Nicht zulässig sind reale Passwörter, reale Konten, externe Leak-Abfragen, Netzwerkzugriffe,
-Persistenz, Telemetrie oder Export der Analyse. Manuell in S05 markierte persönliche Bereiche
-bleiben flüchtiger UI-Zustand und werden nicht zur scheinbar objektiven S06-Diagnose.
+Persistenz, Telemetrie oder Export der Analyse. Manuell in S05 bestätigte persönliche,
+inhaltliche und Satz-/Phrasenrelationen bleiben flüchtiger Laufzeitzustand. Sie dürfen dieselbe
+begrenzte Kandidatenentscheidung in S05 und S06 ergänzen, werden aber weder als objektive Semantik
+noch als Forschungsvariable gespeichert.
 
 ## Eingefrorene Konfiguration
 
 | Bestandteil | Wert |
 |---|---|
-| Analyse-ID | `passwo-bounded-whole-recognition-v12` |
+| Analyse-ID | `passwo-bounded-whole-recognition-v13` |
 | Engine | `zxcvbn-ts` als Musterquelle |
 | Core | `@zxcvbn-ts/core@4.1.2` |
 | Allgemeines Wörterbuch/Graphen | `@zxcvbn-ts/language-common@4.1.2` |
@@ -72,8 +75,11 @@ bleiben flüchtiger UI-Zustand und werden nicht zur scheinbar objektiven S06-Dia
 | Maximale Eingabe | 128 UTF-16-Codeeinheiten; Längenorientierung nach Unicode-Codepoints |
 | Längenorientierung | mindestens 15 Zeichen für selbst erstellte Passwörter |
 | Restzeichenbudget | höchstens `100_000_000` Kandidaten innerhalb einer eingefrorenen Familie |
-| Lexikalische Enthaltung | mindestens fünf verschiedene gewöhnliche Wörter/Namen ohne stärkeren konkreten Anker |
-| Kurze Wörter | nur als vollständiges sichtbares Segment oder innerhalb einer vollständigen sprachgebundenen Partition |
+| Mehrwortregel | Wörterbuchabdeckung allein erzeugt unabhängig von der Wortanzahl keinen Volltreffer |
+| Kurze Wörter | nur exakt als vollständiges sichtbares Segment oder innerhalb einer vollständigen sprachgebundenen Partition |
+| Abkürzungen | kleine kuratierte Liste, nur exakte case-insensitive Erkennung |
+| Tastaturgrenzen | maximaler eigener QWERTZ-/QWERTY-Span ab fünf Zeichen |
+| Semantische Evidenz | bestätigte persönliche, inhaltliche oder Satz-/Phrasenrelationen; nur flüchtig und additiv |
 | Strukturelle Trennzeichen | ein bis drei druckbare ASCII-Zeichen zwischen zwei semantischen Ankern |
 | Wiederholungsvariation | exakte getrennte Wiederholung oder genau eine begrenzte Änderung bei ausreichend langen Teilen |
 | Externe Matcher | keine |
@@ -118,6 +124,10 @@ ein vollständiges sichtbares Segment oder einen Teil einer lückenlosen Partiti
 werden kurze deutsche Funktionswörter berücksichtigt, ohne zufällige innere Fragmente allgemein
 zu erlauben.
 
+Eine kleine eingefrorene Liste gebräuchlicher Abkürzungen wie `LKW`, `DVD`, `DHL`, `LOL`, `USB`
+und `WLAN` wird nach denselben Grenzen ausschließlich exakt und case-insensitive berücksichtigt.
+Für kurze Wörter und Abkürzungen gibt es weder Leetspeak-Varianten noch Edit-Distance.
+
 Unbekannte Bereiche bleiben möglich und löschen angrenzende Befunde nicht. Die Projektion darf
 keine beliebigen inneren Teilstrings erzeugen. Bei `Klarissa` werden deshalb nicht frei `Klar` und
 `larissa` herausgeschnitten. Bei `KlarissaBVBTestPasswort` können dagegen die sichtbaren Grenzen
@@ -126,6 +136,12 @@ keine beliebigen inneren Teilstrings erzeugen. Bei `Klarissa` werden deshalb nic
 Ein Namensfund muss den vollständigen sichtbaren Abschnitt abdecken. Ein partieller Namensfund wie
 `ZumMo` in `ZumMond` oder `larissa` in `Klarissa` wird verworfen, sofern er nicht als flüchtiger
 authored Kontext vorliegt.
+
+Tastaturfolgen werden zusätzlich unabhängig von zxcvbns Endsequenz über eine kleine eingefrorene
+Menge horizontaler QWERTZ-/QWERTY-Reihen vorwärts und rückwärts gesucht. Nur maximale Spans ab
+fünf Zeichen werden übernommen. Ihre Grenzen teilen den umgebenden Buchstabenlauf für die
+Wortpartition. Deshalb liefert `MeinqwertzStarkesPasswort` die Befunde `Mein`, `qwertz`,
+`Starkes` und `Passwort`, statt `Meinqwertz` als unbekannten Gesamtbereich zu behandeln.
 
 ### 3. Konto-/Dienstvorrang
 
@@ -146,6 +162,11 @@ der bestehende Projektionen gespeist werden.
 Die gleiche Spezifitätsregel gilt für Strukturspans: Ein erkanntes Jahr, Datum, eine Folge oder ein
 Tastaturmuster bleibt gegenüber einer generischen Endung maßgeblich. `Passwort2026!` wird deshalb
 intern als `Passwort | 2026 | !` geführt und nicht als `Passwort | 2026!`.
+
+Eine kleine authored Liste vollständiger trainingsrelevanter Komposita erhält ebenfalls Vorrang
+vor vollständig enthaltenen kleineren Wörterbuchtreffern. `Datensicherheit` wird daher als
+vollständiger Begriff behandelt und nicht gleichzeitig als `Daten | Sicherheit`. Diese Liste ist
+keine allgemeine deutsche Kompositaanalyse.
 
 ### 4. Getrennte und begrenzt veränderte Wiederholungen
 
@@ -199,6 +220,11 @@ gewöhnliches Wort, ein Konto-/Dienstbegriff, eine Wiederholung, eine Folge oder
 
 `whole-password-recognized-bounded-variant` gilt bei einer deckungsgleichen belegten
 Transformation oder beim nachfolgend beschriebenen begrenzten Variantenweg.
+
+`whole-password-recognized-semantic-path` gilt, wenn die automatisch belegten Anker und die
+bestätigten flüchtigen Relationen gemeinsam die vollständige Zeichenfolge erklären. Die
+Disposition enthält dann nur die verwendeten Befund- und Relations-IDs; die Relationen selbst
+bleiben im Laufzeitzustand.
 
 ### Begrenzter Variantenweg
 
@@ -275,40 +301,54 @@ lange beliebige Mischfolge außerhalb der Restfamilie läge.
 
 Ein bis drei druckbare ASCII-Trennzeichen zwischen zwei ausgewählten semantischen Ankern gelten als
 vorhersehbare Verbindung. Sie werden weder als zusätzlicher Anker noch als Schutzgewinn behandelt.
-So erhalten `IchLiebeDichMeine`, `Ich-liebe--dich---meine` und eine entsprechende Unterstrichform
-dieselbe begrenzte Behandlung, sofern die umgebenden Wörter vollständig erkannt sind.
+Bei einem bestätigten semantischen Weg dürfen außerdem nur die explizit eingefrorenen
+grammatischen Verbindungswörter wie `am`, `im`, `in`, `mit`, `von`, `zum` oder `und` unmarkiert
+zwischen markierten Teilen stehen. Andere gewöhnliche Wörter müssen selbst durch mindestens eine
+Relation belegt sein.
 
-## Wörterketten und lange lexikalische Folgen
+## Wörter und flüchtige semantische Kandidatenwege
 
 Die Trainingsregel unterscheidet nicht allgemein zwischen „sicherer Passphrase“ und „unsicherer
-Wörterkette“. Dafür wäre die bekannte Wortauswahl- und Zufallsmethode erforderlich.
+Wörterkette“. Dafür wäre die bekannte Wortauswahl- und Zufallsmethode erforderlich. Die bloße
+Anzahl erkannter Wörter wird daher nicht als allgemeine Trefferregel verwendet.
 
-Sie verwendet nur diese begrenzte Entscheidung:
+Es gelten nur diese begrenzten Wege:
 
-- ein einzelnes gewöhnliches Wort kann ein direkter Treffer sein;
-- zwei bis vier vollständig erkannte gewöhnliche Wörter/Namen können als einfache
-  Wörteraneinanderreihung in der begrenzten Kandidatenfamilie liegen;
-- ab fünf verschiedenen gewöhnlichen Wörtern/Namen reicht Wörterbuchabdeckung **allein** nicht
-  für einen Treffer;
-- ein konkreter stärkerer Anker oder ein Muster kann die Eingabe weiterhin finden;
-- wiederholte Wörter erhalten keine lexikalische Enthaltung.
+- ein einzelnes vollständiges gewöhnliches Wort kann ein direkter Kandidat sein;
+- mehrere gewöhnliche Wörter erklären sichtbare Bestandteile, erzeugen allein aber keinen
+  Volltreffer;
+- ein konkreter automatischer Anker oder ein vollständiges Muster kann die Mehrwortfolge finden;
+- eine kleine eingefrorene Liste vollständiger vorhersehbarer Phrasen kann einen direkten Weg
+  liefern;
+- die bereits vorhandene Teilnehmerreflexion kann einen flüchtigen semantischen Weg bestätigen.
 
-Eine kleine eingefrorene Liste vollständiger vorhersehbarer Phrasen kann die Enthaltung
-überstimmen. Dafür werden nur Groß-/Kleinschreibung und Trennzeichen normalisiert. Die Liste ist
-kein Sprachmodell und keine allgemeine Phrasenerkennung. Sie enthält nur ausdrücklich getestete
-Trainingsbeispiele wie `ich liebe dich bis zum mond`.
+Die flüchtige Evidenz enthält ausschließlich exakte Spans und eine der drei Relationen:
+
+```text
+personal-context
+shared-content
+sentence-or-phrase
+```
+
+Persönlicher Kontext benötigt mindestens einen markierten Span; Inhalts- und Satzrelationen
+mindestens zwei. Alle Spans werden gegen die aktuelle fiktive Zeichenfolge validiert. Eine
+Relation kann einen automatischen Treffer nicht zurücknehmen. Eine Angabe `unabhängig` oder eine
+nicht bestätigte Reflexion erzeugt keinen zusätzlichen Weg.
 
 Beispiele:
 
-| Eingabe | Wörterbuch-only-Disposition | Begründung |
+| Eingabe | Disposition ohne/mit bestätigter Relation | Begründung |
 |---|---|---|
 | `Kaffee` | gefunden | einzelner vollständiger Kandidat |
-| `KaffeeMorgen` | gefunden | kurze einfache Wörteraneinanderreihung |
-| `KaffeeMorgenSonneLampe` | gefunden | viergliedrige Wörteraneinanderreihung innerhalb der authored Grenze |
-| `KaffeeMorgenSonneLampeFenster` | nicht allein dadurch gefunden | fünf verschiedene gewöhnliche Wörter; lexikalische Enthaltung |
+| `KaffeeMorgen` | ohne Relation nicht gefunden; mit bestätigtem Zusammenhang gefunden | Wortzahl allein reicht nicht; die Relation eröffnet einen vollständigen semantischen Weg |
+| `KaffeeMorgenSonneLampe` | ohne Relation nicht gefunden | vier Wörter sind keine eigene Stärke- oder Trefferformel |
+| `KaffeeMorgenSonneLampeFenster` | ohne Relation nicht gefunden | ebenso keine Passphrase-Zertifizierung durch Wortzahl |
 | `ichliebedichbiszummond` | gefunden | vollständiger eingefrorener Phrasenkandidat trotz sechs erkannten Wörtern |
+| `Passwort123456789qwertzCampusgram!` | gefunden | Passwortanker, Zahlenfolge, Tastaturfolge und Kontobezug bilden gemeinsam einen konkreten automatischen Weg |
 | `KaffeeMorgenPasswortSonneLampe` | kann gefunden werden | expliziter Passwortlistenanker `Passwort` |
 | `KaffeeKaffeeKaffeeKaffeeKaffee` | kann gefunden werden | Wiederholung statt unabhängiger Wortauswahl |
+| `HochzeitAmSchloss1995!` | mit bestätigter Inhaltsrelation gefunden | markierter gemeinsamer Kontext plus Jahr und Endung decken die Zeichenfolge ab |
+| `eisichbintotpo` | nur bei vollständiger bestätigter Struktur gefunden | eine Teilrelation darf die übrigen kurzen Wörter nicht miterklären |
 
 `no-whole-password-recognized` bleibt auch hier eine Enthaltung und kein grünes Licht.
 
@@ -348,23 +388,32 @@ fiktiven Konten erneut mit demselben Paket, denselben lokalen Kontexten und ders
 Konfigurationsversion. Die bestehende S06-Animation erhält nur das kategoriale Ergebnis; sie
 enthält keine eigene Passwortbewertung.
 
+Die bestehenden S05-Auswahlen werden nach ihrer Bestätigung in
+`TransientPasswordSemanticEvidence` projiziert und ausschließlich im Speicher des laufenden
+Trainings dem Campusgram-Konto zugeordnet. Das S06-Eingabemodell akzeptiert denselben optionalen
+Typ für alle drei Konten. Damit können Master Campus und Campus E-Mail später denselben kurzen
+Reflexionsschritt erhalten, ohne die Disposition oder die Visualisierung neu zu implementieren.
+Aktuell wird die Evidenz nur in S05 erhoben.
+
 ## Teststrategie
 
-`password-candidate-corpus.test.ts` enthält zunächst einen synthetischen Policy-Korpus mit 120
-verschiedenen, vorab erwarteten Beispielpasswörtern:
+`password-candidate-corpus.test.ts` enthält zunächst einen synthetischen Policy-Korpus mit
+mindestens 120 verschiedenen, vorab erwarteten Beispielpasswörtern:
 
 - 15 direkte Volltreffer;
-- 30 zwei- bis viergliedrige Wörterketten;
-- 20 lange lexikalische Folgen mit fünf oder sechs verschiedenen Wörtern;
+- gewöhnliche Wörterketten ohne automatischen Treffer;
+- bestätigte semantische Wörterketten;
+- längere Wortfolgen ohne konkrete zusätzliche Evidenz;
 - 25 Restzeichenfälle innerhalb der Grenze;
 - 20 Restzeichenfälle außerhalb der Grenze;
 - 10 Struktur- und Abgrenzungsfälle.
 
-Ein zweiter Korpus enthält genau 100 verschiedene End-to-End-Eingaben. Jede Eingabe durchläuft
+Ein zweiter Korpus enthält mindestens 100 verschiedene End-to-End-Eingaben. Jede Eingabe durchläuft
 zuerst `analyzeFictionalPassword(...)` und danach
 `determinePasswordSimulationDisposition(...)`. Dadurch prüft er die reale Segmentierung und nicht
-nur synthetisch vorgegebene Befunde. Enthalten sind 36 kurze Wörterketten, 24 lange lexikalische
-Enthaltungen, 20 Anker-/Kontext-/Phrasenfälle, 12 Wiederholungsfälle und acht negative Grenzfälle.
+nur synthetisch vorgegebene Befunde. Enthalten sind gewöhnliche und bestätigte Wörterketten,
+Kurzwortpartitionen, Abkürzungen, Tastaturgrenzen, Anker-/Kontext-/Phrasenfälle,
+Wiederholungsfälle und negative Grenzfälle.
 
 Die Korpora prüfen außerdem:
 
@@ -372,6 +421,11 @@ Die Korpora prüfen außerdem:
 - `KlarissaBVBTestPasswort!` ohne freie innere Fragmente `Klar`/`larissa`;
 - `ichliebedichbiszummond` und `IchLiebeDichBisZumMond` mit stabiler kurzer Wortzerlegung;
 - `meinstarkesunipasswort2026!` mit getrenntem Uni-Kontext, Jahr und Suffix;
+- `MeinqwertzStarkesPasswort` mit Tastaturspan als Grenze für die angrenzende Wortanalyse;
+- `Datensicherheit` mit Vorrang des vollständigen Kompositums;
+- `eisichbintotpo`, `ichbineineispo`, `ichhabeineispo` und `eisölindapo` mit vollständigen
+  Kurzwortpartitionen;
+- `LKW`, `DVD`, `LOL` und `DHL` als exakte kuratierte Abkürzungen;
 - wiederholte Trennzeichen zwischen erkannten Wörtern;
 - Vorrang von `Campusgram` beziehungsweise `C4mpu5Gram` gegenüber `Campus`/`gram`;
 - getrennte und einmal veränderte Wiederholungen einschließlich der vier dokumentierten Beispiele;
@@ -390,10 +444,11 @@ messen nicht die Genauigkeit gegenüber realen Passwortkorpora oder realen Angre
   Wortlisten, Regeln und Priorisierung ab.
 - Die Restalphabetwahl ist eine eingefrorene Trainingsabstraktion. Sie sagt nicht voraus, wann ein
   bestimmter realer Angreifer die Zeichenfolge prüfen würde.
-- Die Enthaltung bei fünf verschiedenen Wörtern ist keine Passphrase-Zertifizierung. Nur die bekannte zufällige
+- Keine Wortanzahl ist eine Passphrase-Zertifizierung. Nur die bekannte zufällige
   S07/S08-Erzeugungsmethode erlaubt eine gesonderte methodische Begründung.
-- Die manuelle persönliche Einordnung bleibt flüchtig. Ein nicht automatisch belegtes Kürzel wie
-  `BVB` kann intern als kleiner Rest behandelt werden, ohne als persönlicher Bezug behauptet zu
-  werden.
+- Die semantischen Relationen sind Selbstauskunft innerhalb der Intervention. Sie sind weder
+  objektive Passwortmerkmale noch Nachweis, dass ein realer Angreifer dieselbe Information kennt.
+- Die aktuellen Master-Campus- und Campus-E-Mail-Pfade akzeptieren bereits flüchtige semantische
+  Evidenz, erheben sie aber noch nicht in einer eigenen UI.
 - Änderungen an Wörterbüchern oder Analyseparametern erfordern eine neue Version und einen erneut
   geprüften Korpus.

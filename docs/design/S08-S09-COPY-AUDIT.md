@@ -1,5 +1,39 @@
 # S08--S09 Copy Audit
 
+## Copy- und Darstellungsdelta S08 Risikoverbindungen auflösen, 17. August 2026
+
+Quelle ist der ausdrückliche Nutzerauftrag vom 17. August 2026. S08 zeigt erkannte
+Wiederverwendungen und Ähnlichkeiten zwischen den drei fiktiven Konten als rote gestrichelte
+Beziehungskanten. Verbindungen mit Campusgram beziehen sich durch ihren Wortlaut ausdrücklich auf
+das bereits ersetzte alte Campusgram-Passwort. Zwischen Master Campus und Campus E-Mail benennt
+die Kante nur die erkannte Beziehungsart.
+
+Wird `Einzigartige Passphrase verwenden` an Master Campus oder Campus E-Mail ausgelöst, zerfallen
+ausschließlich die mit diesem Konto verbundenen Risikokanten und dessen Aktionshinweis. Nur ein
+lokal als schwach eingeordnetes fiktives Passwort färbt den Knoten rot. Ein ansonsten starkes
+Konto bleibt auch bei einer dargestellten Wiederverwendungs- oder Ähnlichkeitsbeziehung im blauen
+Schutzzustand, behält aber bis zur Auflösung genau dieselbe Knotenaktion. Reduced Motion zeigt
+unmittelbar denselben fachlichen Endzustand.
+Alle Befunde und Änderungen bleiben flüchtig; Persistenz und Forschungswrites bleiben unverändert.
+`S08_NETWORK_REPLAY_CONTENT_VERSION` steigt von `3.4.0` auf `3.5.0`.
+
+Die Darstellungskorrektur aus dem Nutzerauftrag vom 17. August 2026 ersetzt außerdem die
+aufwendige gefilterte SVG-Zerfallsanimation durch ein kurzes Opacity-Ausblenden der bereits
+gestrichelten Segmente. Der Wortlaut und die Content-Version bleiben dabei unverändert.
+
+Die nachfolgende QA-Darstellungskorrektur desselben Nutzerauftrags hält Campusgram in S08 immer im
+blauen Schutzzustand und stellt die Hover-Rückmeldung für jeden Knoten mit sichtbarer
+Passphrasenaktion wieder her. Zwei interne, deterministische QA-Einstiege decken die starke sowie
+die schwache und gemischte Beziehungskonstellation ab. Teilnehmerwortlaut und Content-Version
+bleiben unverändert.
+
+| Segment und Text-ID | Vorher | Nachher | Primäre Rolle | Interaktionsziel | Grund und Bedeutungsänderung | Hervorhebung |
+|---|---|---|---|---|---|---|
+| `S08.relationLabels.campusgramReuse` | keine Kantenbeschriftung | `altes wiederverwendet` | Ergebnisfeedback | kein | kennzeichnet die Beziehung zum bereits ersetzten alten Campusgram-Passwort; begrenzt | rote gestrichelte Kante und Text |
+| `S08.relationLabels.campusgramSimilar` | keine Kantenbeschriftung | `ähnlich zum alten` | Ergebnisfeedback | kein | kennzeichnet die Ähnlichkeit zum bereits ersetzten alten Campusgram-Passwort; begrenzt | rote gestrichelte Kante und Text |
+| `S08.relationLabels.reuse` | keine Kantenbeschriftung | `wiederverwendet` | Ergebnisfeedback | kein | benennt die erkannte Beziehung zwischen Master Campus und Campus E-Mail; begrenzt | rote gestrichelte Kante und Text |
+| `S08.relationLabels.similar` | keine Kantenbeschriftung | `ähnlich` | Ergebnisfeedback | kein | benennt die erkannte Beziehung zwischen Master Campus und Campus E-Mail; begrenzt | rote gestrichelte Kante und Text |
+
 ## Copy- und Ablaufdelta S08 Rücklauf und S09 Abschluss, 15. August 2026
 
 Quelle ist der ausdrückliche Nutzerauftrag vom 15. August 2026. Nach S07 bleibt PassWo im gesamten

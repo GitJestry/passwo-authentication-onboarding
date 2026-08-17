@@ -1,4 +1,8 @@
 import { s00Content, s01Content, s05Content } from '@passwo/training-content';
+import type {
+  S06AccountId,
+  TransientPasswordSemanticEvidence,
+} from '@passwo/contracts';
 import {
   deriveCampusIdentity,
   PasswordModuleController,
@@ -31,7 +35,6 @@ import {
   type S05CompletionPort,
   type S05TimingState,
 } from './segments/S05/S05AnalysisTraining.js';
-import type { S05StructureReflectionSnapshot } from './segments/S05/S05AnalysisController.js';
 import {
   S06ConsequenceTraining,
   type S06ConsequenceSource,
@@ -65,8 +68,11 @@ export function PasswordModuleTraining({
   const [snapshot, setSnapshot] = useState<PasswordModuleSnapshot | null>(null);
   const [platform, setPlatform] = useState<DesktopPlatform>('mac');
   const [s06SummaryNetwork, setS06SummaryNetwork] = useState<NetworkSceneSnapshot | null>(null);
+  // Local intervention evidence only; never copied into machine context or research exports.
+  const [semanticEvidenceByAccount, setSemanticEvidenceByAccount] = useState<
+    Partial<Record<S06AccountId, TransientPasswordSemanticEvidence>>
+  >({});
   const controllerRef = useRef<PasswordModuleController | null>(null);
-  const s05StructureReflectionRef = useRef<S05StructureReflectionSnapshot | null>(null);
   const entrySceneRef = useRef<HTMLDivElement | null>(null);
   const entryCharacterRef = useRef<HTMLImageElement | null>(null);
   const entrySpeechRef = useRef<HTMLDivElement | null>(null);
@@ -130,20 +136,29 @@ export function PasswordModuleTraining({
           fictionalPassword: masterCampusPassword,
           retrievalStatus: masterCampusRetrieval,
           transientAccountIdentifiers: campusIdentity.assessmentTerms['master-campus'],
+          ...(semanticEvidenceByAccount['master-campus'] === undefined
+            ? {}
+            : { semanticEvidence: semanticEvidenceByAccount['master-campus'] }),
         },
         'campus-email': {
           fictionalPassword: campusEmailPassword,
           retrievalStatus: campusEmailRetrieval,
           transientAccountIdentifiers: campusIdentity.assessmentTerms['campus-email'],
+          ...(semanticEvidenceByAccount['campus-email'] === undefined
+            ? {}
+            : { semanticEvidence: semanticEvidenceByAccount['campus-email'] }),
         },
         campusgram: {
           fictionalPassword: campusgramPasswordValue,
           retrievalStatus: campusgramRetrieval,
           transientAccountIdentifiers: campusIdentity.assessmentTerms.campusgram,
+          ...(semanticEvidenceByAccount.campusgram === undefined
+            ? {}
+            : { semanticEvidence: semanticEvidenceByAccount.campusgram }),
         },
       },
     };
-  }, [campusIdentity.assessmentTerms, passwordValues, retrievalResults]);
+  }, [campusIdentity.assessmentTerms, passwordValues, retrievalResults, semanticEvidenceByAccount]);
   const s06Plan = useMemo(() => {
     if (s06Source?.kind !== 'runtime') return null;
     return createS06ConsequenceScenePlan(
@@ -155,17 +170,18 @@ export function PasswordModuleTraining({
     s06Plan === null ? [] : deriveS07AccountFeedback(s06Plan);
   const s07RemainingAccountIds = s07AccountsRequiringPassphraseChange(s07AccountFeedback);
   const completeS06 = useCallback(() => controllerRef.current?.completeS06(), []);
-  const captureS05StructureReflection = useCallback(
-    (reflection: S05StructureReflectionSnapshot) => {
-      if (
-        s05StructureReflectionRef.current?.sentenceConfirmed === true &&
-        !reflection.sentenceConfirmed
-      ) {
-        return;
-      }
-      s05StructureReflectionRef.current = reflection;
+  const captureSemanticEvidenceForAccount = useCallback(
+    (accountId: S06AccountId, evidence: TransientPasswordSemanticEvidence) => {
+      if (!evidence.confirmed) return;
+      setSemanticEvidenceByAccount((current) => ({ ...current, [accountId]: evidence }));
     },
     [],
+  );
+  const captureS05SemanticEvidence = useCallback(
+    (evidence: TransientPasswordSemanticEvidence) => {
+      captureSemanticEvidenceForAccount('campusgram', evidence);
+    },
+    [captureSemanticEvidenceForAccount],
   );
 
   useEffect(() => {
@@ -427,7 +443,7 @@ export function PasswordModuleTraining({
         timingErrorCode={snapshot.context.timingErrorCode}
         externalTimingError={externalTimingError}
         completionPort={s05CompletionPort}
-        onStructureReflectionChange={captureS05StructureReflection}
+        onSemanticEvidenceChange={captureS05SemanticEvidence}
         onRetryTiming={() => {
           if (externalTimingError !== null) {
             onRetryExternalTiming?.();
@@ -451,7 +467,7 @@ export function PasswordModuleTraining({
           timingErrorCode={snapshot.context.timingErrorCode}
           externalTimingError={externalTimingError}
           completionPort={s05CompletionPort}
-          onStructureReflectionChange={captureS05StructureReflection}
+          onSemanticEvidenceChange={captureS05SemanticEvidence}
           onRetryTiming={() => {
             if (externalTimingError !== null) onRetryExternalTiming?.();
             else controller.retryTiming();

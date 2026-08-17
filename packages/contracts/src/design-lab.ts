@@ -31,6 +31,8 @@ export const designLabScenarioIdSchema = z.enum([
   's06-mixed-actual-hypothetical',
   's07-passphrase-search',
   's08-network-replay',
+  's08-strong-relations',
+  's08-weak-mixed-relations',
   's09-password-manager-transition',
   's2-1-password-manager-transition',
 ]);

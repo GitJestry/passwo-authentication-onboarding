@@ -1,4 +1,5 @@
 import { s00Content, s05Content } from '@passwo/training-content';
+import type { TransientPasswordSemanticEvidence } from '@passwo/contracts';
 import type { DesktopPlatform } from '@passwo/ui';
 import {
   type CSSProperties,
@@ -54,7 +55,7 @@ export interface S05AnalysisTrainingProps {
   readonly externalTimingError?: string | null;
   readonly onRetryTiming?: () => void;
   readonly completionPort?: S05CompletionPort;
-  readonly onStructureReflectionChange?: (reflection: S05StructureReflectionSnapshot) => void;
+  readonly onSemanticEvidenceChange?: (evidence: TransientPasswordSemanticEvidence) => void;
 }
 
 const CAMPUSGRAM_PASSWORD_REFERENCE_LENGTH = 17;
@@ -3120,17 +3121,19 @@ function speechFor(
     case 'length-fifth-word-comparison':
       return [s05Content.freeSearch.lengthExamples.secondLengthReason.fifthWordIntroduction];
     case 'final-components':
-      return [s05Content.freeSearch.application.assessmentIntroduction];
+      return s05Content.freeSearch.application.assessmentIntroduction;
     case 'final-result': {
       const disposition = snapshot.assessmentScene.disposition;
       if (disposition.kind === 'no-whole-password-recognized') {
         return [s05Content.freeSearch.application.result.notRecognized];
       }
-      return [
-        disposition.ruleId === 'whole-password-recognized-value'
-          ? s05Content.freeSearch.application.result.recognizedValue
-          : s05Content.freeSearch.application.result.recognizedBoundedVariant,
-      ];
+      if (disposition.ruleId === 'whole-password-recognized-value') {
+        return [s05Content.freeSearch.application.result.recognizedValue];
+      }
+      if (disposition.ruleId === 'whole-password-recognized-semantic-path') {
+        return [s05Content.freeSearch.application.result.recognizedSemanticPath];
+      }
+      return [s05Content.freeSearch.application.result.recognizedBoundedVariant];
     }
     case 'final-length': {
       const copy =
@@ -3177,7 +3180,7 @@ export function S05AnalysisTraining({
   externalTimingError = null,
   onRetryTiming,
   completionPort,
-  onStructureReflectionChange,
+  onSemanticEvidenceChange,
 }: S05AnalysisTrainingProps) {
   const hostRef = useRef<HTMLElement | null>(null);
   const [controller, setController] = useState<S05AnalysisController | null>(null);
@@ -3212,8 +3215,8 @@ export function S05AnalysisTraining({
 
   useEffect(() => {
     if (snapshot === null) return;
-    onStructureReflectionChange?.(snapshot.structureReflection);
-  }, [onStructureReflectionChange, snapshot?.structureReflection]);
+    onSemanticEvidenceChange?.(snapshot.semanticEvidence);
+  }, [onSemanticEvidenceChange, snapshot?.semanticEvidence]);
 
   if (controller === null || snapshot === null) return null;
 

@@ -5,6 +5,12 @@ import {
   createSystemGeneratedSearchSpaceModel,
   determinePasswordSimulationDisposition,
 } from '@passwo/password-analysis';
+import type {
+  PasswordAnalysisResult,
+  PasswordEvidenceSpan,
+  TransientPasswordSemanticEvidence,
+  TransientPasswordSemanticRelation,
+} from '@passwo/contracts';
 import { getS05Animation, s05Content } from '@passwo/training-content';
 import {
   type AnimationPlayerPort,
@@ -32,6 +38,7 @@ import {
   type S05CategoryCardStatus,
   type S05CategoryFinding,
   type S05ComponentCategoryId,
+  type S05DisplayBlock,
   type S05PersonalCandidate,
 } from './S05ComponentStrategy.js';
 import {
@@ -138,6 +145,7 @@ export interface S05AnalysisControllerSnapshot {
   readonly findingScene: PasswordFindingSceneSnapshot;
   readonly structureScene: PasswordStructureSceneSnapshot;
   readonly structureReflection: S05StructureReflectionSnapshot;
+  readonly semanticEvidence: TransientPasswordSemanticEvidence;
   readonly freeSearchDemonstrationScene: PasswordFreeSearchDemonstrationSceneSnapshot;
   readonly assessmentScene: PasswordAssessmentSceneSnapshot;
   readonly assessmentNetwork: NetworkSceneSnapshot;
@@ -268,11 +276,104 @@ function releasedStructureFindings(
 }
 
 function structureReflectionBlockIds(snapshot: S05AnalysisControllerSnapshot): readonly string[] {
+  return structureReflectionBlocks(snapshot).map(({ id }) => id);
+}
+
+function structureReflectionBlocks(
+  snapshot: S05AnalysisControllerSnapshot,
+): readonly S05DisplayBlock[] {
   const view = snapshot.componentStrategy.canonicalView;
   if (view === null) return [];
-  return projectCanonicalPasswordBlocks(view, releasedStructureFindings(snapshot)).map(
-    ({ id }) => id,
+  return projectCanonicalPasswordBlocks(view, releasedStructureFindings(snapshot));
+}
+
+function semanticEvidenceSpan(
+  password: string,
+  start: number,
+  end: number,
+): PasswordEvidenceSpan {
+  return { type: 'span', start, end, token: password.slice(start, end) };
+}
+
+function relationFromBlocks(
+  password: string,
+  id: string,
+  kind: TransientPasswordSemanticRelation['kind'],
+  blockIds: readonly string[],
+  blocks: readonly S05DisplayBlock[],
+): TransientPasswordSemanticRelation | null {
+  const evidence = blockIds
+    .flatMap((blockId) => {
+      const block = blocks.find(({ id: candidateId }) => candidateId === blockId);
+      return block === undefined
+        ? []
+        : [semanticEvidenceSpan(password, block.start, block.end)];
+    })
+    .filter(
+      (span, index, spans) =>
+        spans.findIndex(
+          (candidate) => candidate.start === span.start && candidate.end === span.end,
+        ) === index,
+    )
+    .sort((left, right) => left.start - right.start || left.end - right.end);
+  return evidence.length >= 2 ? { id, kind, evidence } : null;
+}
+
+function createTransientSemanticEvidence(
+  snapshot: S05AnalysisControllerSnapshot,
+): TransientPasswordSemanticEvidence {
+  const view = snapshot.componentStrategy.canonicalView;
+  if (view === null) {
+    return {
+      kind: 'transient-password-semantic-evidence',
+      confirmed: false,
+      relations: [],
+    };
+  }
+
+  const personalCard = snapshot.componentStrategy.cards['personal-details'];
+  const personalRelations: TransientPasswordSemanticRelation[] = personalCard.findings.map(
+    ({ id, start, end }) => ({
+      id: `semantic:${id}`,
+      kind: 'personal-context',
+      evidence: [semanticEvidenceSpan(view.password, start, end)],
+    }),
   );
+  const blocks = structureReflectionBlocks(snapshot);
+  const contentRelations = snapshot.structureReflection.contentConfirmed
+    ? snapshot.structureReflection.contentGroups.flatMap(({ id, blockIds }) => {
+        const relation = relationFromBlocks(
+          view.password,
+          `semantic:content:${id}`,
+          'shared-content',
+          blockIds,
+          blocks,
+        );
+        return relation === null ? [] : [relation];
+      })
+    : [];
+  const sentenceRelations = snapshot.structureReflection.sentenceConfirmed
+    ? snapshot.structureReflection.sentenceLinks.flatMap(({ fromBlockId, toBlockId }, index) => {
+        const relation = relationFromBlocks(
+          view.password,
+          `semantic:sentence:${index}:${fromBlockId}:${toBlockId}`,
+          'sentence-or-phrase',
+          [fromBlockId, toBlockId],
+          blocks,
+        );
+        return relation === null ? [] : [relation];
+      })
+    : [];
+  const personalConfirmed =
+    personalCard.status === 'checked-findings' || personalCard.status === 'checked-none';
+  return {
+    kind: 'transient-password-semantic-evidence',
+    confirmed:
+      personalConfirmed &&
+      snapshot.structureReflection.contentConfirmed &&
+      snapshot.structureReflection.sentenceConfirmed,
+    relations: [...personalRelations, ...contentRelations, ...sentenceRelations],
+  };
 }
 
 function categoryForStep(step: S05AnalysisStep): S05ComponentCategoryId | null {
@@ -358,6 +459,8 @@ export class S05AnalysisController {
   readonly #unsubscribe: () => void;
   readonly #onComplete: (() => void) | undefined;
   readonly #nextLowercaseCharacter: () => string;
+  readonly #subject: S05AnalysisSubject;
+  readonly #componentAnalysis: PasswordAnalysisResult;
   #snapshot: S05AnalysisControllerSnapshot | null;
   #completionReported = false;
   #disposed = false;
@@ -369,6 +472,7 @@ export class S05AnalysisController {
     onComplete,
     nextLowercaseCharacter,
   }: S05AnalysisControllerOptions) {
+    this.#subject = subject;
     this.#mission = createMission(subject, initialSection);
     this.#onComplete = onComplete;
     this.#nextLowercaseCharacter = nextLowercaseCharacter;
@@ -385,6 +489,7 @@ export class S05AnalysisController {
               subject.analysisContext.transientAccountIdentifiers,
           }),
     });
+    this.#componentAnalysis = componentAnalysis;
     const structureAnalysis = analyzeFictionalPasswordStructure({
       fictionalPassword: subject.fictionalPassword,
       componentAnalysis,
@@ -423,6 +528,11 @@ export class S05AnalysisController {
       findingScene,
       structureScene,
       structureReflection: initialStructureReflection(),
+      semanticEvidence: {
+        kind: 'transient-password-semantic-evidence',
+        confirmed: false,
+        relations: [],
+      },
       freeSearchDemonstrationScene: createPasswordFreeSearchDemonstrationScene({
         id: `s05-free-search-${subject.id}`,
         lowercaseMeasurements: s05Content.freeSearch.theoreticalModel.lowercaseMeasurements.map(
@@ -587,7 +697,7 @@ export class S05AnalysisController {
       view,
       snapshot.componentStrategy.personalSelection.candidates,
     );
-    this.#snapshot = {
+    this.#snapshot = this.#withUpdatedSemanticAssessment({
       ...snapshot,
       componentStrategy: {
         ...snapshot.componentStrategy,
@@ -599,7 +709,7 @@ export class S05AnalysisController {
           },
         },
       },
-    };
+    });
     this.#emit();
     void this.#missionController.continue();
   }
@@ -774,7 +884,7 @@ export class S05AnalysisController {
     )
       ? snapshot.structureReflection.activeContentGroupId
       : (contentGroups[0]?.id ?? 'content-group-1');
-    this.#snapshot = {
+    this.#snapshot = this.#withUpdatedSemanticAssessment({
       ...snapshot,
       structureReflection: {
         ...snapshot.structureReflection,
@@ -783,7 +893,7 @@ export class S05AnalysisController {
         contentConfirmed: true,
       },
       controls: { ...snapshot.controls, canContinue: false },
-    };
+    });
     this.#emit();
     void this.#missionController.continue();
   }
@@ -825,11 +935,11 @@ export class S05AnalysisController {
     ) {
       return;
     }
-    this.#snapshot = {
+    this.#snapshot = this.#withUpdatedSemanticAssessment({
       ...snapshot,
       structureReflection: { ...snapshot.structureReflection, sentenceConfirmed: true },
       controls: { ...snapshot.controls, canContinue: false },
-    };
+    });
     this.#emit();
     void this.#missionController.continue();
   }
@@ -952,6 +1062,31 @@ export class S05AnalysisController {
     this.#snapshot = null;
     this.#listeners.clear();
     await this.#missionController.dispose();
+  }
+
+  #withUpdatedSemanticAssessment(
+    snapshot: S05AnalysisControllerSnapshot,
+  ): S05AnalysisControllerSnapshot {
+    const semanticEvidence = createTransientSemanticEvidence(snapshot);
+    const disposition = determinePasswordSimulationDisposition({
+      fictionalPassword: this.#subject.fictionalPassword,
+      componentAnalysis: this.#componentAnalysis,
+      semanticEvidence,
+    });
+    return {
+      ...snapshot,
+      semanticEvidence,
+      assessmentScene: createPasswordAssessmentScene(
+        `s05-assessment-${this.#subject.id}`,
+        this.#subject.fictionalPassword,
+        this.#componentAnalysis,
+        disposition,
+      ),
+      assessmentNetwork: createS05AssessmentNetwork(
+        disposition.kind === 'whole-password-recognized',
+        assessmentNetworkPhase(snapshot.step),
+      ),
+    };
   }
 
   #handleMissionSnapshot(snapshot: MissionSnapshot): void {

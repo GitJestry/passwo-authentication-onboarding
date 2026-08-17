@@ -2,7 +2,7 @@
 
 - **Status:** Accepted
 - **Datum:** 2026-08-03
-- **Geändert am:** 2026-08-16: sprachgebundene Wortzerlegung, Befundprioritäten und getrennte Wiederholungen
+- **Geändert am:** 2026-08-17: robuste Kurzwort-/Tastaturgrenzen und flüchtige semantische Kandidatenwege
 - **Citation label:** `ADR 0014-Bounded-Password-Guessing`
 - **Ergänzt:** ADR 0002, ADR 0003 und ADR 0007
 
@@ -13,7 +13,8 @@ Muster ein Angreifer früh prüfen kann. S06 benötigt anschließend einen repro
 Wert dafür, ob die begrenzte Simulation das vollständige Passwort gefunden hat. Die Arbeit
 entwickelt und validiert jedoch keinen Password Strength Meter.
 
-Die bisherige Auswertung hatte drei Probleme:
+Die bisherige Auswertung hatte zusätzlich zu den bereits behobenen Überlappungs- und
+Wiederholungsproblemen drei offene Grenzen:
 
 1. zxcvbn liefert eine optimierte nicht überlappende Gesamtsequenz. Diese Sequenz ist keine
    erschöpfende Liste aller belegten Teiltreffer. Ein unbekannter Abschnitt konnte deshalb
@@ -21,9 +22,9 @@ Die bisherige Auswertung hatte drei Probleme:
 2. Überlappende Befunde wie `Campus`, `gram` und der authored Kontobegriff `Campusgram` konnten
    nebeneinander bestehen, obwohl der vollständige Kontextbegriff die verständlichere primäre
    Erklärung ist.
-3. Ein bekannter Kern mit einer kurzen unbekannten Ergänzung wurde nur an bestimmten Positionen
-   erkannt. Dadurch konnten semantisch gleichartige Beispiele wie `PasswortmklhSuppe` und
-   `PasswortSuppemlkh` unterschiedlich behandelt werden.
+3. Die vorhandenen, von der teilnehmenden Person bestätigten persönlichen, inhaltlichen und
+   Satz-/Phrasenbeziehungen wurden zwar reflektiv angezeigt, aber noch nicht als flüchtige
+   Evidenz für die abschließende Übungsentscheidung verwendet.
 
 NIST SP 800-63B-4 fordert für Verifier einen Vergleich des vollständigen prospektiven Passworts
 mit häufig verwendeten, erwartbaren, kompromittierten und kontextspezifischen Werten sowie
@@ -35,7 +36,7 @@ NIST-Konformitätsimplementierung.
 ## Entscheidung
 
 `@passwo/password-analysis` bleibt vollständig lokal, deterministisch und frameworkfrei. Die
-Analysekonfiguration erhält die Version `passwo-bounded-whole-recognition-v12`.
+Analysekonfiguration erhält die Version `passwo-bounded-whole-recognition-v13`.
 
 Die interne Verarbeitung trennt drei Ebenen:
 
@@ -87,6 +88,17 @@ bilden. Namenslisten werden nicht zur freien inneren Zerlegung verwendet. Ein Na
 vollständiges sichtbares Segment oder als authored flüchtiger Kontext verfügbar. Dadurch kann
 `ZumMo` nicht als Name aus `ZumMond` ausgeschnitten werden.
 
+Eine kleine eingefrorene Menge gebräuchlicher Abkürzungen wie `LKW`, `DVD`, `DHL`, `LOL`, `USB`
+oder `WLAN` wird ausschließlich exakt und ohne Edit-Distance beziehungsweise Leetspeak erkannt.
+Dasselbe gilt für zwei- und dreibuchstabige Wörter: Sie dürfen eine vollständige Partition
+stützen, aber keine freien inneren Teiltreffer erzeugen.
+
+Tastaturfolgen werden zusätzlich unabhängig von zxcvbns optimierter Endsequenz über maximale
+Spans der eingefrorenen QWERTZ-/QWERTY-Reihen erkannt. Ein solcher Span erzeugt eine feste Grenze
+für die lexikalische Analyse davor und danach. Dadurch bleibt bei
+`MeinqwertzStarkesPasswort` sowohl `qwertz` als auch `Mein`, `Starkes` und `Passwort` sichtbar.
+Die Tastaturfolge konkurriert nicht mehr mit dem gesamten alphabetischen Lauf.
+
 ### Vorrang des Kontokontexts
 
 Wenn ein exakter oder authored begrenzt veränderter Konto-/Dienstbegriff einen Bereich abdeckt,
@@ -100,6 +112,11 @@ Spezifische Strukturspans haben außerdem Vorrang vor generischen Endungen. Ein 
 `!`. Ein bis drei druckbare ASCII-Trennzeichen zwischen zwei kanonischen semantischen Ankern gelten
 als vorhersehbare Verbindung und nicht als zusätzlicher unbekannter Suchraum. Die Zeichen selbst
 erzeugen keinen neuen semantischen Anker und keine Zeichentypregel.
+
+Eine kleine authored Kompositumliste stellt vollständige trainingsrelevante Begriffe wie
+`Datensicherheit`, `Passwortsicherheit` oder `Benutzerkonto` vor ihre inneren Wörter. Existiert
+kein solcher vollständiger Begriff, darf die normale sprachgebundene Partition weiterhin mehrere
+Wörter liefern. Das ist eine Prioritätsregel und keine allgemeine deutsche Kompositaanalyse.
 
 ### Getrennte und begrenzt veränderte Wiederholungen
 
@@ -180,35 +197,43 @@ nicht nochmals als unbekannter Rest. Dadurch kann `Passwort123?!` über den konk
 Aufbau erkannt werden, während ein nicht anderweitig erklärter größerer Mischrest bewusst nicht
 positiv bewertet wird.
 
-### Wörterketten und Enthaltung bei langen lexikalischen Folgen
+### Wörter und bestätigte semantische Kandidatenwege
 
-Ein einzelnes vollständiges geläufiges Wort kann ein direkter Kandidat sein. Eine vollständig
-belegte Kette aus bis zu vier gewöhnlichen Wörtern oder Namen liegt innerhalb der bewusst engen
-Trainingsfamilie einfacher Wörteraneinanderreihungen.
+Ein einzelnes vollständiges geläufiges Wort kann ein direkter Kandidat sein. Mehrere gewöhnliche
+Wörter oder Namen werden dagegen unabhängig von ihrer Anzahl zunächst nur als erklärende Befunde
+geführt. Eine vollständige Wörterbuchpartition erzeugt allein keinen positiven Volltreffer. Damit
+entsteht weder eine Regel `bis vier Wörter = gefunden` noch eine vermeintliche
+Passphrase-Zertifizierung ab einer bestimmten Wortzahl.
 
-Ab fünf **verschiedenen** gewöhnlichen Wörtern oder Namen reicht die Wörterbuchabdeckung allein
-nicht mehr für `whole-password-recognized`. Die Simulation enthält sich bei einer solchen langen
-lexikalischen Folge. Das ist weder eine Einordnung der Erzeugungsmethode noch ein
-Sicherheitsnachweis. Ein anderer konkreter Befund kann weiterhin einen Treffer begründen,
-insbesondere:
+Ein Mehrwortaufbau kann weiterhin automatisch gefunden werden, wenn ein konkreter stärkerer Weg
+vorliegt, insbesondere:
 
 - ein authored Konto-/Dienstbezug;
 - ein expliziter Passwortlistenanker wie `Passwort` oder `TestPasswort`;
 - eine Wiederholung;
-- eine Folge, ein Datum oder ein Tastaturmuster;
-- ein vollständiger bereits gelisteter Ausdruck.
+- eine Folge, ein Datum, Jahr oder Tastaturmuster;
+- ein vollständiger bereits gelisteter Ausdruck;
+- eine kleine eingefrorene vollständige Phrase wie `ichliebedichbiszummond`.
 
-Eine kleine eingefrorene Liste vollständiger vorhersehbarer Phrasen darf die Enthaltung
-überstimmen. Die Prüfung normalisiert dafür ausschließlich Groß-/Kleinschreibung und
-Trennzeichen. So bleibt beispielsweise `ichliebedichbiszummond` ein konkreter Phrasenkandidat,
-während eine beliebige Folge aus fünf oder sechs verschiedenen Wörterbuchwörtern nicht allein
-aufgrund ihrer Zerlegbarkeit gefunden wird.
+Zusätzlich darf die bereits vorhandene S05-Reflexion einen **flüchtigen semantischen
+Kandidatenweg** vervollständigen. Dafür werden ausschließlich die von der teilnehmenden Person
+bestätigten Spans übernommen:
 
-Die Grenze vermeidet, dass die S05-Komponentenerkennung eine aus fünf oder mehr unterschiedlichen
-Wörtern bestehende Passphrase allein wegen ihrer Wörterbuchwörter als gefunden bezeichnet. Sie
-behauptet weder, dass jede Fünf-Wort-Eingabe sicher sei, noch ersetzt sie die in S07/S08 bekannte
-und versionierte zufällige Erzeugungsmethode. Wiederholte Wörter gelten nicht als unabhängig
-gezogene Passphrase und erhalten daher keine automatische Ausnahme.
+- persönliche Bereiche;
+- Bausteine einer inhaltlich zusammengehörigen Gruppe;
+- direkt verbundene Bausteine einer Satz- oder Phrasenstruktur.
+
+Die Relationen müssen gemeinsam mit den automatisch belegten Ankern die vollständige
+Zeichenfolge abdecken. Ein bis drei unterstützte Trennzeichen sowie eine kleine eingefrorene Menge
+grammatischer Verbindungswörter dürfen zwischen den markierten semantischen Teilen liegen. Andere
+gewöhnliche Wörter müssen selbst zu mindestens einer bestätigten Relation gehören. Dadurch reicht
+beispielsweise eine Relation zwischen `eis` und `tot` nicht aus, um die übrigen Wörter in
+`eisichbintotpo` nachträglich mitzuerklären.
+
+Teilnehmerbestätigte Relationen sind additiv: Sie können einen zusätzlichen Kandidatenweg eröffnen,
+aber keinen automatischen Treffer zurücknehmen und keine Sicherheit bestätigen. Sie sind weder
+objektive Semantikmessung noch Aussage über tatsächliches Angreiferwissen. Eine nicht bestätigte
+oder ungültige Relation wird ignoriert.
 
 ### Länge bleibt unabhängig
 
@@ -228,12 +253,16 @@ S05 erzeugt `PasswordSimulationDisposition` ausschließlich durch
 Funktion und derselben Konfigurationsversion. React, Szenenprojektionen und Teilnehmertexte
 enthalten keine zweite Trefferlogik.
 
-Die manuelle S05-Markierung persönlicher Angaben bleibt lokal und flüchtig. Sie wird nicht als
-scheinbar objektiver Befund nach S06 transportiert. Bereits authored oder aus der fiktiven
-Trainingsidentität lokal abgeleitete Begriffe dürfen dagegen reproduzierbar als Kontextanker
-verwendet werden. Nicht automatisch belegte kurze persönliche Kürzel können innerhalb der
-begrenzten Restzeichenfamilie liegen, ohne dass PassWo ihnen eine erfundene semantische Kategorie
-zuweist.
+Die S05-Markierungen werden als `TransientPasswordSemanticEvidence` ausschließlich im Speicher des
+laufenden Trainings gehalten und zusammen mit dem Campusgram-Konto an dieselbe S06-Disposition
+übergeben. Das S06-Kontomodell akzeptiert denselben optionalen Evidenztyp bereits für Master Campus
+und Campus E-Mail. Dadurch können die beiden späteren lokalen Prüfungen dieselbe flüchtige
+Reflexionslogik verwenden, ohne eine zweite Bewertungsfunktion einzuführen. Die aktuelle UI erhebt
+diese Relationen dort noch nicht.
+
+S06 übernimmt nur das kategoriale Resultat und die IDs der verwendeten Relationen. Die
+Passwortspans und Relationen werden nicht in Forschungsdaten, Persistenz oder Telemetrie
+überführt.
 
 ## Datenschutz- und Architekturgrenze
 
@@ -248,18 +277,20 @@ zuweist.
 
 ## Validierung
 
-Ein versionierter synthetischer Policy-Korpus prüft 120 verschiedene Beispielpasswörter. Er
-enthält direkte Volltreffer, zwei- bis viergliedrige Wörterketten, lange lexikalische Folgen ab fünf
-verschiedenen Wörtern, positionsunabhängige Restzeichen innerhalb und außerhalb der Grenze,
-Kontokontext, Wiederholungen, Folgen, Tastaturmuster, Unicode und Überlappungen.
+Ein versionierter synthetischer Policy-Korpus prüft mindestens 120 verschiedene
+Beispielpasswörter. Er enthält direkte Volltreffer, gewöhnliche Wörterketten ohne automatischen
+Treffer, bestätigte semantische Wörterketten, positionsunabhängige Restzeichen innerhalb und
+außerhalb der Grenze, Kontokontext, Wiederholungen, Folgen, Tastaturmuster, Unicode und
+Überlappungen.
 
-Zusätzlich durchlaufen 100 verschiedene End-to-End-Beispiele zuerst
+Zusätzlich durchlaufen mindestens 100 verschiedene End-to-End-Beispiele zuerst
 `analyzeFictionalPassword(...)` und anschließend
 `determinePasswordSimulationDisposition(...)`. Dieser Korpus prüft insbesondere kleingeschriebene
-und CamelCase-Wortfolgen, kurze Wörter, wiederholte Trennzeichen, Jahrespriorität,
-Kontokontextvorrang, getrennte und einmal veränderte Wiederholungen, lange lexikalische
-Enthaltungen sowie die gemeinsame S05-/S06-Disposition. Segmentierungsfehler können dadurch nicht
-durch bereits synthetisch vorgegebene Befunde verdeckt werden.
+und CamelCase-Wortfolgen, vollständige Zwei-/Dreibuchstabenpartitionen, kuratierte Abkürzungen,
+Tastaturspans als Segmentgrenzen, wiederholte Trennzeichen, Kompositum- und Jahrespriorität,
+Kontokontextvorrang, getrennte und einmal veränderte Wiederholungen, positive und negative
+semantische Pfade sowie die gemeinsame S05-/S06-Disposition. Segmentierungsfehler können dadurch
+nicht durch bereits synthetisch vorgegebene Befunde verdeckt werden.
 
 Der Korpus belegt ausschließlich Reproduzierbarkeit und beabsichtigtes Verhalten der authored
 Trainingsregel. Er ist keine empirische Validierung von Sensitivität, Spezifität oder
@@ -268,14 +299,15 @@ Passwortstärke.
 ## Konsequenzen
 
 - Die Auswertung ist konservativ in der positiven Behauptung: Nicht unterstützte Zeichen,
-  größere Restfamilien und lange lexikalische Folgen bleiben ohne zusätzlichen konkreten Weg ohne positiven Volltreffer,
+  größere Restfamilien und gewöhnliche Mehrwortfolgen bleiben ohne zusätzlichen konkreten Weg ohne positiven Volltreffer,
   sofern kein anderer konkreter Befund greift.
 - Kurze Füllzeichen können einen klaren bekannten Anker nicht allein dadurch verbergen, dass sie
   an einer anderen Stelle stehen.
 - Konto-/Dienstbezüge erhalten eine eindeutige primäre Einordnung statt konkurrierender innerer
   Wörterbuchtreffer.
-- zxcvbn-Updates, Wörterbuchänderungen, Kandidatenbudget, Alphabetklassen, lexikalische Enthaltung oder
-  Prioritäten benötigen eine neue Analyseversion und angepasste Tests/Dokumentation.
+- zxcvbn-Updates, Wörterbuchänderungen, Kandidatenbudget, Alphabetklassen, semantische
+  Relationsregeln oder Prioritäten benötigen eine neue Analyseversion und angepasste
+  Tests/Dokumentation.
 
 ## Verworfene Alternativen
 
@@ -298,11 +330,12 @@ unterschiedlich behandelt würden.
 
 Verworfen, weil Mindestlänge und konkreter Kandidatenweg unterschiedliche Aussagen sind.
 
-### Jedes Wörterbuchwort in einer Passphrase blockieren
+### Wortanzahl als automatische Stärke- oder Trefferregel
 
-Verworfen, weil NIST den vollständigen Wert statt beliebiger Teilwörter adressiert und weil die
-S07/S08-Passphrase auf einer bekannten zufälligen Wortauswahl beruht. Die authored Fünf-Wort-
-Grenze ist daher eine Enthaltung von einem Wörterbuch-only-Treffer, keine positive Freigabe.
+Verworfen, weil die bloße Anzahl erkannter Wörter weder eine bekannte zufällige Erzeugungsmethode
+noch einen konkreten frühen Kandidatenweg belegt. NIST adressiert den vollständigen Wert statt
+beliebiger Teilwörter; die S07/S08-Passphrase beruht dagegen auf einer bekannten zufälligen
+Wortauswahl. Mehrwortfolgen benötigen daher einen automatischen oder bestätigten konkreten Weg.
 
 ### Externe Pwned-Password-Abfrage oder generative KI
 

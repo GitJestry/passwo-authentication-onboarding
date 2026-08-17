@@ -5,7 +5,8 @@ import type {
   PasswordSimulationDisposition,
   PasswordSingleFinding,
   PasswordSingleFindingKind,
-  SimulationWholePasswordRecognitionRuleId,
+  TransientPasswordSemanticEvidence,
+  TransientPasswordSemanticRelation,
 } from '@passwo/contracts';
 import {
   isCuratedPredictablePhrase,
@@ -26,6 +27,7 @@ export const MAX_BOUNDED_RESIDUAL_CANDIDATES = 100_000_000n;
 export interface PasswordSimulationDispositionInput {
   readonly fictionalPassword: string;
   readonly componentAnalysis: PasswordAnalysisResult;
+  readonly semanticEvidence?: TransientPasswordSemanticEvidence;
 }
 
 const directWholeCandidateKinds = new Set<PasswordSingleFindingKind>([
@@ -49,6 +51,31 @@ const composedCandidateKinds = new Set<PasswordSingleFindingKind>([
 const ordinaryLexicalKinds = new Set<PasswordSingleFindingKind>([
   'common-word',
   'common-name',
+]);
+
+const semanticLexicalConnectorTokens = new Set([
+  'am',
+  'an',
+  'auf',
+  'aus',
+  'bei',
+  'bis',
+  'das',
+  'dem',
+  'den',
+  'der',
+  'des',
+  'die',
+  'ein',
+  'im',
+  'in',
+  'mit',
+  'und',
+  'vom',
+  'von',
+  'vor',
+  'zum',
+  'zur',
 ]);
 
 const evidencePriority: Readonly<Partial<Record<PasswordSingleFindingKind, number>>> = {
@@ -112,7 +139,9 @@ function directWholePasswordRecognition(
   fictionalPassword: string,
   findings: readonly PasswordSingleFinding[],
 ): {
-  readonly ruleId: SimulationWholePasswordRecognitionRuleId;
+  readonly ruleId:
+    | 'whole-password-recognized-value'
+    | 'whole-password-recognized-bounded-variant';
   readonly findingIds: readonly string[];
 } | null {
   const wholeCandidate = findings.find(
@@ -223,20 +252,32 @@ function isOrdinaryLexicalEvidence({ finding, span }: CandidateEvidence): boolea
   return !isExplicitPasswordAnchorToken(span.token);
 }
 
-function ordinaryDictionaryOnlyLongLexicalSequence(
+function ordinaryDictionaryOnlyLexicalComposition(
   selectedEvidence: readonly CandidateEvidence[],
 ): boolean {
   const semanticEvidence = selectedEvidence.filter(
     ({ finding }) => finding.kind !== 'typical-suffix',
   );
-  const normalizedTokens = semanticEvidence.map(({ span }) =>
-    span.token.toLocaleLowerCase('de-DE'),
-  );
-  return (
-    semanticEvidence.length >= 5 &&
-    new Set(normalizedTokens).size === normalizedTokens.length &&
-    semanticEvidence.every(isOrdinaryLexicalEvidence)
-  );
+  return semanticEvidence.length >= 2 && semanticEvidence.every(isOrdinaryLexicalEvidence);
+}
+
+function hasStrongAutomaticAnchor(selectedEvidence: readonly CandidateEvidence[]): boolean {
+  return selectedEvidence.some(({ finding, span }) => {
+    switch (finding.kind) {
+      case 'account-or-service-term':
+      case 'keyboard-pattern':
+      case 'simple-character-sequence':
+      case 'predictable-word-sequence':
+      case 'repeated-component':
+      case 'year':
+      case 'date':
+        return true;
+      case 'common-password-core':
+        return !/^\p{L}+$/u.test(span.token) || isExplicitPasswordAnchorToken(span.token);
+      default:
+        return false;
+    }
+  });
 }
 
 function isPredictableConnectorRun(value: string): boolean {
@@ -246,6 +287,85 @@ function isPredictableConnectorRun(value: string): boolean {
     characters.length <= 3 &&
     characters.every((character) => /^[\x20-\x2F\x3A-\x40\x5B-\x60\x7B-\x7E]$/u.test(character))
   );
+}
+
+function validatedSemanticRelations(
+  fictionalPassword: string,
+  semanticEvidence: TransientPasswordSemanticEvidence | undefined,
+): readonly TransientPasswordSemanticRelation[] {
+  if (semanticEvidence?.confirmed !== true) return [];
+  return semanticEvidence.relations.flatMap((relation) => {
+    const evidence = relation.evidence
+      .filter((span) => isValidSpan(span, fictionalPassword))
+      .filter(
+        (span, index, spans) =>
+          spans.findIndex(
+            (candidate) => candidate.start === span.start && candidate.end === span.end,
+          ) === index,
+      )
+      .sort((left, right) => left.start - right.start || left.end - right.end);
+    const minimumSpanCount = relation.kind === 'personal-context' ? 1 : 2;
+    return evidence.length >= minimumSpanCount ? [{ ...relation, evidence }] : [];
+  });
+}
+
+function spansCoverRange(
+  spans: readonly PasswordEvidenceSpan[],
+  start: number,
+  end: number,
+): boolean {
+  return spans.some((span) => span.start <= start && span.end >= end);
+}
+
+function isSemanticLexicalConnector({ finding, span }: CandidateEvidence): boolean {
+  return (
+    isOrdinaryLexicalEvidence({ finding, span }) &&
+    semanticLexicalConnectorTokens.has(span.token.toLocaleLowerCase('de-DE'))
+  );
+}
+
+function semanticRelationsExplainLexicalEvidence(
+  selectedEvidence: readonly CandidateEvidence[],
+  relations: readonly TransientPasswordSemanticRelation[],
+): boolean {
+  const relationSpans = relations.flatMap(({ evidence }) => evidence);
+  const ordinaryEvidence = selectedEvidence.filter(isOrdinaryLexicalEvidence);
+  if (ordinaryEvidence.length === 0) return true;
+  return ordinaryEvidence.every(
+    (item) =>
+      spansCoverRange(relationSpans, item.span.start, item.span.end) ||
+      isSemanticLexicalConnector(item),
+  );
+}
+
+function semanticCoverageSpans(
+  selectedEvidence: readonly CandidateEvidence[],
+  relations: readonly TransientPasswordSemanticRelation[],
+): readonly PasswordEvidenceSpan[] {
+  return [
+    ...selectedEvidence.map(({ span }) => span),
+    ...relations.flatMap(({ evidence }) => evidence),
+  ].sort((left, right) => left.start - right.start || left.end - right.end);
+}
+
+function spansCoverPasswordWithPredictableConnectors(
+  fictionalPassword: string,
+  spans: readonly PasswordEvidenceSpan[],
+): boolean {
+  if (fictionalPassword.length === 0 || spans.length === 0) return false;
+  let cursor = 0;
+  for (const span of spans) {
+    if (span.end <= cursor) continue;
+    if (span.start > cursor) {
+      const gap = fictionalPassword.slice(cursor, span.start);
+      if (!isPredictableConnectorRun(gap)) return false;
+    }
+    cursor = Math.max(cursor, span.end);
+  }
+  if (cursor < fictionalPassword.length) {
+    return isPredictableConnectorRun(fictionalPassword.slice(cursor));
+  }
+  return cursor >= fictionalPassword.length;
 }
 
 function uncoveredCharacters(
@@ -390,7 +510,9 @@ function boundedVariantRecognition(
   fictionalPassword: string,
   findings: readonly PasswordSingleFinding[],
 ): {
-  readonly ruleId: SimulationWholePasswordRecognitionRuleId;
+  readonly ruleId:
+    | 'whole-password-recognized-value'
+    | 'whole-password-recognized-bounded-variant';
   readonly findingIds: readonly string[];
 } | null {
   if (fictionalPassword.length === 0) return null;
@@ -400,14 +522,24 @@ function boundedVariantRecognition(
   );
   if (semanticEvidence.length === 0) return null;
 
-  // Five or more distinct ordinary dictionary/name tokens form a long lexical sequence. Dictionary
-  // coverage alone is insufficient for a positive hit; a stronger account, password-list, phrase,
-  // sequence, date, keyboard, or repetition anchor may still establish a concrete path.
-  if (
-    ordinaryDictionaryOnlyLongLexicalSequence(selectedEvidence) &&
-    !isCuratedPredictablePhrase(fictionalPassword)
-  ) {
-    return null;
+  const curatedPhrase = isCuratedPredictablePhrase(fictionalPassword);
+  const automaticAnchor = hasStrongAutomaticAnchor(selectedEvidence);
+  const semanticItems = selectedEvidence.filter(
+    ({ finding }) => finding.kind !== 'typical-suffix',
+  );
+
+  // Ordinary dictionary words explain visible components, but their number is not a password-
+  // strength formula. A multi-word composition therefore needs a concrete automatic anchor,
+  // a curated full phrase, or participant-confirmed semantic evidence handled separately below.
+  if (ordinaryDictionaryOnlyLexicalComposition(selectedEvidence) && !curatedPhrase) return null;
+  if (!automaticAnchor && !curatedPhrase) {
+    const onlySemanticItem = semanticItems[0];
+    const oneOrdinaryValueWithNoFreeResidual =
+      semanticItems.length === 1 &&
+      onlySemanticItem !== undefined &&
+      isOrdinaryLexicalEvidence(onlySemanticItem) &&
+      uncoveredCharacters(fictionalPassword, selectedEvidence).length === 0;
+    if (!oneOrdinaryValueWithNoFreeResidual) return null;
   }
 
   const candidateCount = boundedResidualCandidateCount(fictionalPassword, selectedEvidence);
@@ -419,9 +551,40 @@ function boundedVariantRecognition(
   };
 }
 
+function semanticPathRecognition(
+  fictionalPassword: string,
+  findings: readonly PasswordSingleFinding[],
+  semanticEvidence: TransientPasswordSemanticEvidence | undefined,
+): {
+  readonly ruleId: 'whole-password-recognized-semantic-path';
+  readonly findingIds: readonly string[];
+  readonly semanticRelationIds: readonly string[];
+} | null {
+  if (fictionalPassword.length === 0) return null;
+  const relations = validatedSemanticRelations(fictionalPassword, semanticEvidence);
+  if (relations.length === 0) return null;
+
+  const selectedEvidence = selectCanonicalEvidence(fictionalPassword, findings);
+  const allOrdinaryEvidenceExplained = semanticRelationsExplainLexicalEvidence(
+    selectedEvidence,
+    relations,
+  );
+  if (!allOrdinaryEvidenceExplained) return null;
+
+  const coverage = semanticCoverageSpans(selectedEvidence, relations);
+  if (!spansCoverPasswordWithPredictableConnectors(fictionalPassword, coverage)) return null;
+
+  return {
+    ruleId: 'whole-password-recognized-semantic-path',
+    findingIds: supportingFindingIds(findings, selectedEvidence),
+    semanticRelationIds: relations.map(({ id }) => id),
+  };
+}
+
 export function determinePasswordSimulationDisposition({
   fictionalPassword,
   componentAnalysis,
+  semanticEvidence,
 }: PasswordSimulationDispositionInput): PasswordSimulationDisposition {
   const base = {
     lengthOrientation: lengthOrientationFor(fictionalPassword),
@@ -429,9 +592,20 @@ export function determinePasswordSimulationDisposition({
   } as const;
   const recognition =
     directWholePasswordRecognition(fictionalPassword, componentAnalysis.findings) ??
+    semanticPathRecognition(fictionalPassword, componentAnalysis.findings, semanticEvidence) ??
     boundedVariantRecognition(fictionalPassword, componentAnalysis.findings);
 
   if (recognition !== null) {
+    if (recognition.ruleId === 'whole-password-recognized-semantic-path') {
+      return {
+        ...base,
+        kind: 'whole-password-recognized',
+        ruleId: recognition.ruleId,
+        findingIds: recognition.findingIds,
+        semanticRelationIds: recognition.semanticRelationIds,
+        explanationId: 's05.disposition.whole-password-recognized-semantic-path',
+      };
+    }
     return {
       ...base,
       kind: 'whole-password-recognized',
