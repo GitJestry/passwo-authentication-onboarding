@@ -1,18 +1,21 @@
-import type { S01AccountId } from '@passwo/training-content';
+import type {
+  S01AccountId,
+  S07OpenConnectionKind,
+} from '@passwo/training-content';
 import type { PasswordConsequenceScenePlan } from '@passwo/visualization';
 import { assign, setup } from 'xstate';
 
 export type S07RemainingAccountId = Exclude<S01AccountId, 'campusgram'>;
 
-export type S07AccountFeedbackKind =
-  | 'strong-similar'
-  | 'unique-guessable'
-  | 'similar-guessable';
+export interface S07OpenConnection {
+  readonly accountId: S01AccountId;
+  readonly kind: Exclude<S07OpenConnectionKind, 'none'>;
+}
 
 export interface S07AccountFeedback {
   readonly accountId: S07RemainingAccountId;
-  readonly connectionAccountIds: readonly S01AccountId[];
-  readonly kind: S07AccountFeedbackKind;
+  readonly connections: readonly S07OpenConnection[];
+  readonly easyToGuess: boolean;
   readonly recommendedForChange: boolean;
 }
 
@@ -31,16 +34,25 @@ export function deriveS07AccountFeedback(
   const isEasyToGuess = (accountId: S07RemainingAccountId): boolean =>
     plan.accounts.find((account) => account.accountId === accountId)?.disposition.kind ===
     'whole-password-recognized';
+  const recognizedConnectionKind = (
+    firstAccountId: S01AccountId,
+    secondAccountId: S01AccountId,
+  ): Exclude<S07OpenConnectionKind, 'none'> | null => {
+    const relations = plan.comparisons
+      .filter(
+        ({ sourceAccountId, targetAccountId }) =>
+        ((sourceAccountId === firstAccountId && targetAccountId === secondAccountId) ||
+          (sourceAccountId === secondAccountId && targetAccountId === firstAccountId)),
+      )
+      .map(({ result }) => result.relation.kind);
+    if (relations.includes('exact-match')) return 'identical';
+    if (relations.includes('derived-variant-match')) return 'similar';
+    return null;
+  };
   const hasRecognizedConnection = (
     firstAccountId: S01AccountId,
     secondAccountId: S01AccountId,
-  ): boolean =>
-    plan.comparisons.some(
-      ({ sourceAccountId, targetAccountId, result }) =>
-        ((sourceAccountId === firstAccountId && targetAccountId === secondAccountId) ||
-          (sourceAccountId === secondAccountId && targetAccountId === firstAccountId)) &&
-        result.relation.kind !== 'no-derived-path-recognized',
-    );
+  ): boolean => recognizedConnectionKind(firstAccountId, secondAccountId) !== null;
 
   const recommendedChanges = new Set<S07RemainingAccountId>(
     remainingAccountIds.filter((accountId) => isEasyToGuess(accountId)),
@@ -59,21 +71,19 @@ export function deriveS07AccountFeedback(
   return remainingAccountIds.flatMap((accountId): readonly S07AccountFeedback[] => {
     const otherAccountId =
       accountId === 'master-campus' ? 'campus-email' : 'master-campus';
-    const connectionAccountIds = (['campusgram', otherAccountId] as const).filter(
-      (connectionAccountId) => hasRecognizedConnection(accountId, connectionAccountId),
+    const connections = (['campusgram', otherAccountId] as const).flatMap(
+      (connectionAccountId): readonly S07OpenConnection[] => {
+        const kind = recognizedConnectionKind(accountId, connectionAccountId);
+        return kind === null ? [] : [{ accountId: connectionAccountId, kind }];
+      },
     );
     const easyToGuess = isEasyToGuess(accountId);
-    if (!easyToGuess && connectionAccountIds.length === 0) return [];
+    if (!easyToGuess && connections.length === 0) return [];
     return [
       {
         accountId,
-        connectionAccountIds,
-        kind:
-          connectionAccountIds.length === 0
-            ? 'unique-guessable'
-            : easyToGuess
-              ? 'similar-guessable'
-              : 'strong-similar',
+        connections,
+        easyToGuess,
         recommendedForChange: recommendedChanges.has(accountId),
       },
     ];
@@ -83,7 +93,6 @@ export function deriveS07AccountFeedback(
 interface S07PassphraseSearchInput {
   readonly generationDelayMs: number;
   readonly passphraseOrder: readonly number[];
-  readonly accountFeedback: readonly S07AccountFeedback[];
   readonly resultsDelayMs: number;
 }
 
@@ -93,7 +102,6 @@ export interface S07PassphraseSearchContext {
   readonly generatedCount: number;
   readonly generationDelayMs: number;
   readonly passphraseOrder: readonly number[];
-  readonly accountFeedback: readonly S07AccountFeedback[];
   readonly resultsDelayMs: number;
   readonly separator: string;
 }
@@ -129,7 +137,6 @@ export const s07PassphraseSearchMachine = setup({
   },
   guards: {
     canGenerateAnother: ({ context }) => canGenerateAnother(context),
-    hasPendingAccounts: ({ context }) => context.accountFeedback.length > 0,
     selectedCampusgram: ({ event }) =>
       event.type === 'SELECT_TAB' && event.tabId === 'campusgram',
   },
@@ -161,7 +168,6 @@ export const s07PassphraseSearchMachine = setup({
     generatedCount: 0,
     generationDelayMs: input.generationDelayMs,
     passphraseOrder: input.passphraseOrder,
-    accountFeedback: [...input.accountFeedback],
     resultsDelayMs: input.resultsDelayMs,
     separator: '-',
   }),
@@ -234,10 +240,7 @@ export const s07PassphraseSearchMachine = setup({
       on: { NEXT: { target: 'postCampusgramRouting' } },
     },
     postCampusgramRouting: {
-      always: [
-        { guard: 'hasPendingAccounts', target: 'remainingRisk' },
-        { target: 'remainingPlan' },
-      ],
+      always: { target: 'remainingRisk' },
     },
     remainingRisk: {
       on: { NEXT: { target: 'remainingPlan' } },

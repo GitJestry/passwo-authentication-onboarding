@@ -1,5 +1,44 @@
 # S06--S07 Copy Audit
 
+## Copy-Delta S07 priorisierte Relationsverdichtung, 17. August 2026
+
+Quelle ist der ausdrückliche Nutzerauftrag vom 17. August 2026. Die gemeinsame
+Kontenzusammenfassung zählt nicht mehr alle sichtbaren Relationskanten auf. Beziehungen zum alten
+Campusgram-Passwort haben sprachlich Priorität und werden nach identischer Wiederverwendung und
+Ähnlichkeit unterschieden. Die direkte Beziehung zwischen Master Campus und Campus E-Mail wird
+nur genannt, wenn ihre Lage nicht bereits durch die priorisierten Campusgram-Beziehungen
+ausreichend beschrieben ist. Die lokale Erratbarkeit folgt einmal aggregiert in einem optionalen
+zweiten Satz. Dadurch umfasst die Rückmeldung höchstens zwei Sätze und beschreibt keine Kante aus
+mehreren Perspektiven. Die vollständige Relation bleibt weiterhin visuell im Netzwerk sichtbar.
+
+Persistenz, Export, Timing und die S08-Empfehlung bleiben unverändert.
+`S07_PASSPHRASE_SEARCH_CONTENT_VERSION` steigt von `4.13.0` auf `4.14.0`.
+
+| Segment und Text-ID | Aktueller Text | Geplanter Text | Primäre Rolle | Interaktionsziel | Grund und Bedeutungsänderung | Hervorhebung |
+|---|---|---|---|---|---|---|
+| `S07.guide.accountSummary.relationships` | je nach Befund bis zu drei nacheinander genannte Relationsaussagen | priorisierte Zustandsbeschreibung mit Beziehungen zum alten Campusgram-Passwort zuerst; direkte Master-Campus-/Campus-E-Mail-Beziehung nur bei zusätzlichem Erkenntniswert | Ergebnisfeedback | `Weiter` | entfernt die ausdrücklich benannte redundante Kantenaufzählung; keine Änderung der Befunde | keine |
+| `S07.guide.accountSummary.mixed-example` | `Das Passwort von Master Campus ähnelt noch dem alten Campusgram-Passwort. Die Campus E-Mail verwendet noch das alte Campusgram-Passwort. Die Passwörter von Master Campus und Campus E-Mail ähneln sich noch. Beide Passwörter lassen sich außerdem noch leicht erraten.` | `Die Campus E-Mail verwendet noch das alte Campusgram-Passwort, und das Passwort von Master Campus ähnelt ihm noch. Beide Passwörter lassen sich außerdem leicht erraten.` | Ergebnisfeedback | `Weiter` | ausdrücklich freigegebene Verdichtung des konkreten Mischfalls auf zwei Sätze | keine |
+
+## Copy-Delta S07 kompakte Kontenzusammenfassung, 17. August 2026
+
+Quelle ist der ausdrückliche Nutzerauftrag vom 17. August 2026. Kurz vor dem Übergang nach S08
+fasst PassWo die flüchtigen S06-Befunde nicht mehr in bis zu zwei kontoweisen Absätzen zusammen,
+sondern in genau einer gemeinsamen Ergebnisrückmeldung. Die freigegebenen Varianten bilden die
+acht möglichen offenen Beziehungsmuster zwischen Master Campus, Campus E-Mail und dem alten
+Campusgram-Passwort sowie die vier Kombinationen der lokalen Befunde `leicht erratbar` ab.
+`exact-match` wird dabei weiterhin ausdrücklich als identische Wiederverwendung benannt;
+`derived-variant-match` bleibt als Ähnlichkeit formuliert. Die Rückmeldung verändert weder die
+bestehende Empfehlung für S08 noch Persistenz, Export oder Timing. Auch ohne offenen Befund wird
+vor der bestehenden S08-Navigation die dafür gelieferte Variante `Keine offene Verbindung`
+angezeigt.
+
+`S07_PASSPHRASE_SEARCH_CONTENT_VERSION` steigt von `4.12.0` auf `4.13.0`.
+
+| Segment und Text-ID | Aktueller Text | Geplanter Text | Primäre Rolle | Interaktionsziel | Grund und Bedeutungsänderung | Hervorhebung |
+|---|---|---|---|---|---|---|
+| `S07.guide.accountFeedback.*` → `S07.guide.accountSummary` | bis zu zwei kontoweise Texte zu Stärke, Einzigartigkeit, Ähnlichkeit und Erratbarkeit | eine der 32 ausdrücklich gelieferten gemeinsamen Varianten zu offenen Beziehungen und Erratbarkeit | Ergebnisfeedback | `Weiter` | entfernt die ausdrücklich benannte Redundanz und fasst die Lage der Konten in einer Sprachblase zusammen; keine Änderung der zugrunde liegenden Befunde | keine |
+| `S07.guide.accountSummary.exact-match` | identische Wiederverwendung wurde in der bisherigen Rückmeldung nur als Ähnlichkeit bezeichnet | `Master Campus und Campus E-Mail verwenden noch dasselbe Passwort.`, `Master Campus verwendet noch das alte Campusgram-Passwort.` beziehungsweise `Die Campus E-Mail verwendet noch das alte Campusgram-Passwort.` | Ergebnisfeedback | `Weiter` | übernimmt die ausdrücklich freigegebenen Ersatzformulierungen und erhält die fachliche Unterscheidung aus S06; begrenzte Bedeutungspräzisierung | keine |
+
 ## Copy- und Analysedelta S06 strukturorientierte Bausteinersetzung, 17. August 2026
 
 Quelle ist der ausdrückliche Nutzerauftrag vom 17. August 2026 nach dem Fehlfall

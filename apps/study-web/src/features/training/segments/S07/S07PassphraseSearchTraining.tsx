@@ -456,18 +456,14 @@ export interface S07PassphraseSearchTrainingProps {
   ) => void;
 }
 
-function accountLabel(accountId: S01AccountId): string {
-  return s01Content.browser.accounts.find(({ id }) => id === accountId)?.label ?? accountId;
-}
-
-function connectionLabel(accountIds: readonly S01AccountId[]): string {
-  return accountIds
-    .map((accountId) =>
-      accountId === 'campusgram'
-        ? 'deinem alten Campusgram-Passwort'
-        : `dem Passwort von ${accountLabel(accountId)}`,
-    )
-    .join(' und ');
+function connectionKind(
+  feedback: S07AccountFeedback | undefined,
+  accountId: S01AccountId,
+): 'none' | 'similar' | 'identical' {
+  return (
+    feedback?.connections.find((connection) => connection.accountId === accountId)?.kind ??
+    'none'
+  );
 }
 
 export function S07PassphraseSearchTraining({
@@ -489,7 +485,6 @@ export function S07PassphraseSearchTraining({
     input: {
       generationDelayMs: s07PassphraseSearchContent.browser.generatorPage.generationDelayMs,
       passphraseOrder,
-      accountFeedback,
       resultsDelayMs: s07PassphraseSearchContent.browser.searchPage.resultsDelayMs,
     },
   });
@@ -560,21 +555,25 @@ export function S07PassphraseSearchTraining({
     speechId = 's07-campusgram-success';
   }
   if (state.matches('remainingRisk')) {
-    speech = state.context.accountFeedback.map((feedback) => {
-      const label = accountLabel(feedback.accountId);
-      const connection = connectionLabel(feedback.connectionAccountIds);
-      if (feedback.kind === 'strong-similar') {
-        return guide.accountFeedback.strongSimilar(label, connection);
-      }
-      if (feedback.kind === 'unique-guessable') {
-        return guide.accountFeedback.uniqueGuessable(label);
-      }
-      return guide.accountFeedback.similarGuessable(label, connection);
-    });
+    const masterCampus = accountFeedback.find(
+      ({ accountId }) => accountId === 'master-campus',
+    );
+    const campusEmail = accountFeedback.find(
+      ({ accountId }) => accountId === 'campus-email',
+    );
+    speech = [
+      guide.accountSummary({
+        masterCampusCampusgram: connectionKind(masterCampus, 'campusgram'),
+        campusEmailCampusgram: connectionKind(campusEmail, 'campusgram'),
+        masterCampusCampusEmail: connectionKind(masterCampus, 'campus-email'),
+        masterCampusEasyToGuess: masterCampus?.easyToGuess ?? false,
+        campusEmailEasyToGuess: campusEmail?.easyToGuess ?? false,
+      }),
+    ];
   }
   if (state.matches('remainingPlan')) {
     speech = [
-      state.context.accountFeedback.length === 0
+      accountFeedback.length === 0
         ? guide.allAccountsProtected
         : guide.remainingPlan,
     ];
@@ -595,14 +594,12 @@ export function S07PassphraseSearchTraining({
     speechAction = {
       kind: 'perform',
       label:
-        state.context.accountFeedback.length === 0
+        accountFeedback.length === 0
           ? guide.finishAttack
           : guide.continueAttack,
       onAction: () => {
         send({ type: 'CONTINUE_ATTACK' });
-        onComplete(
-          s07RecommendedResolutionAccountIds(state.context.accountFeedback),
-        );
+        onComplete(s07RecommendedResolutionAccountIds(accountFeedback));
       },
     };
   }

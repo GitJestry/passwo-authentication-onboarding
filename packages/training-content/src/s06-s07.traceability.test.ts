@@ -11,7 +11,7 @@ import { S09_PASSWORD_SUMMARY_CONTENT_VERSION, s09PasswordSummaryContent } from 
 const s06AttackFlowCopyReference =
   'docs/design/S06-S07-COPY-AUDIT.md#copy-und-analysedelta-s06-strukturorientierte-bausteinersetzung-17-august-2026';
 const s07EntryCopyReference =
-  'docs/design/S06-S07-COPY-AUDIT.md#copy-und-ablaufdelta-s07-passphraseneinstieg-in-zwei-schritten-17-august-2026';
+  'docs/design/S06-S07-COPY-AUDIT.md#copy-delta-s07-priorisierte-relationsverdichtung-17-august-2026';
 const s08CopyReference =
   'docs/design/S08-S09-COPY-AUDIT.md#copy--und-darstellungsdelta-s08-risikoverbindungen-auflösen-17-august-2026';
 const s09CopyReference =
@@ -156,7 +156,7 @@ describe('S06 transition and S07 passphrase-search copy traceability', () => {
   });
 
   it('keeps S07 linked to the passphrase-search browser state', () => {
-    expect(S07_PASSPHRASE_SEARCH_CONTENT_VERSION).toBe('4.12.0');
+    expect(S07_PASSPHRASE_SEARCH_CONTENT_VERSION).toBe('4.14.0');
     expect(s07PassphraseSearchContent.source.copyReference).toBe(
       s07EntryCopyReference,
     );
@@ -180,17 +180,37 @@ describe('S06 transition and S07 passphrase-search copy traceability', () => {
     });
     expect(s07PassphraseSearchContent.guide.mnemonic('Merksatz')).toBe('Beispiel: Merksatz');
     expect(
-      s07PassphraseSearchContent.guide.accountFeedback.strongSimilar(
-        'Master Campus',
-        'deinem alten Campusgram-Passwort',
-      ),
+      s07PassphraseSearchContent.guide.accountSummary({
+        masterCampusCampusgram: 'similar',
+        campusEmailCampusgram: 'similar',
+        masterCampusCampusEmail: 'similar',
+        masterCampusEasyToGuess: true,
+        campusEmailEasyToGuess: false,
+      }),
     ).toBe(
-      'Das Passwort von Master Campus ist für sich betrachtet stark, ähnelt aber noch deinem alten Campusgram-Passwort.',
+      'Die Passwörter von Master Campus und Campus E-Mail ähneln noch dem alten Campusgram-Passwort. Das Passwort von Master Campus lässt sich außerdem leicht erraten.',
     );
     expect(
-      s07PassphraseSearchContent.guide.accountFeedback.uniqueGuessable('Campus E-Mail'),
+      s07PassphraseSearchContent.guide.accountSummary({
+        masterCampusCampusgram: 'identical',
+        campusEmailCampusgram: 'none',
+        masterCampusCampusEmail: 'none',
+        masterCampusEasyToGuess: false,
+        campusEmailEasyToGuess: true,
+      }),
     ).toBe(
-      'Das Passwort von Campus E-Mail ist einzigartig, lässt sich aber noch leicht erraten.',
+      'Master Campus verwendet noch das alte Campusgram-Passwort. Das Passwort der Campus E-Mail lässt sich außerdem leicht erraten.',
+    );
+    expect(
+      s07PassphraseSearchContent.guide.accountSummary({
+        masterCampusCampusgram: 'similar',
+        campusEmailCampusgram: 'identical',
+        masterCampusCampusEmail: 'similar',
+        masterCampusEasyToGuess: true,
+        campusEmailEasyToGuess: true,
+      }),
+    ).toBe(
+      'Die Campus E-Mail verwendet noch das alte Campusgram-Passwort, und das Passwort von Master Campus ähnelt ihm noch. Beide Passwörter lassen sich außerdem leicht erraten.',
     );
     expect(s07PassphraseSearchContent.browser.campusgramPasswordChangeCompleted).toEqual({
       title: 'Campusgram-Passwort wurde erfolgreich ersetzt',

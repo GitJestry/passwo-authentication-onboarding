@@ -277,12 +277,18 @@ Seitenangaben beziehen sich auf die im Trainingsdokument ausgewiesene interne Pa
   ein Default und keine Einschränkung der S08-Auswahl. Schutzschild und kurzes Konfetti
   bestätigen jede ausgeführte Aktion, bevor der abschließende Angriffsrücklauf beginnt.
 - Nach dem Campusgram-Wechsel projiziert S07 die lokalen S06-Befunde für die beiden anderen
-  Konten als stark/leicht erratbar und einzigartig/ähnlich. Stark und einzigartig eingeordnete
-  Konten bleiben ohne Einzelmeldung; nur offene Konten erhalten in S08 eine Schutzaktion. Sind
-  beide bereits stark und einzigartig, beginnt S08 unmittelbar mit dem Angriffsrücklauf.
-- `S07_PASSPHRASE_SEARCH_CONTENT_VERSION 4.12.0` beschreibt den zweistufigen
+  Konten in genau einer gemeinsamen PassWo-Rückmeldung. Sie kombiniert die offenen Beziehungen
+  mit den lokalen Befunden `leicht erratbar` und unterscheidet identische Wiederverwendung von
+  begrenzt erkannter Ähnlichkeit. Beziehungen zum alten Campusgram-Passwort haben sprachlich
+  Priorität; die direkte Beziehung zwischen Master Campus und Campus E-Mail erscheint nur, wenn
+  sie zusätzliche Information liefert. Die Erratbarkeit wird einmal aggregiert genannt, sodass
+  die Rückmeldung höchstens zwei Sätze umfasst. Gibt es keinen offenen Befund, nennt sie
+  ausdrücklich die fehlende offene Verbindung. Stark und einzigartig eingeordnete Konten bleiben
+  ohne kontoweise Einzelmeldung; nur offene Konten erhalten in S08 eine Schutzaktion. Sind beide
+  bereits stark und einzigartig, beginnt S08 danach unmittelbar mit dem Angriffsrücklauf.
+- `S07_PASSPHRASE_SEARCH_CONTENT_VERSION 4.14.0` beschreibt den zweistufigen
   Passphraseneinstieg, Datenleckhinweis, lokalen Passwortwechsel, Suchseite, Werkstatt und
-  adaptive Kontorückmeldung;
+  die kompakte adaptive Kontenzusammenfassung;
   `S08_NETWORK_REPLAY_CONTENT_VERSION 3.1.0` beschreibt die Netzabkürzung und den anschließenden
   bedienbaren Angriffsrücklauf. Es werden
   keine neuen Teilnehmer- oder Trainingswerte persistiert oder exportiert.

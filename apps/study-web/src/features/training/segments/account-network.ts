@@ -272,8 +272,10 @@ export function createS08ProtectionRiskModel(
     });
   }
   return {
+    // The plan is the canonical S06 finding set. The snapshot may predate transient
+    // reflection updates and supplies presentation data only while a plan is available.
     relationships:
-      sourceRelationships.length > 0
+      plan === null || plan === undefined
         ? sourceRelationships
         : [...plannedRelationships.values()],
     localFindingAccountIds: (plan?.accounts ?? [])
