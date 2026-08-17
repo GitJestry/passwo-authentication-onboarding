@@ -3253,8 +3253,16 @@
   transform: scale(min(var(--second-reason-width-zoom), var(--second-reason-height-zoom)));
 }
 
+.wordPoolReasonScene[data-fifth-word-comparison="true"] .wordPoolSceneComposition {
+  transform: none;
+}
+
 .wordPoolReasonScene[data-zoomed-out="true"] {
   --second-reason-baseline: 68%;
+}
+
+.wordPoolReasonScene[data-fifth-word-comparison="true"] {
+  --second-reason-baseline: 60%;
 }
 
 .wordPoolAxis {
@@ -3300,6 +3308,37 @@
   animation: second-reason-shift-left 900ms cubic-bezier(0.22, 1, 0.36, 1);
 }
 
+.wordPoolPassword[data-position="comparison-left"] {
+  left: 10%;
+}
+
+.wordPoolPassword[data-position="comparison-right"] {
+  left: 90%;
+  animation: fifth-word-detail-arrival 760ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.wordPoolPassword[data-fixed="true"][data-position="comparison-left"] {
+  left: 28%;
+}
+
+.wordPoolPassword[data-fixed="true"][data-position="comparison-right"] {
+  left: 72%;
+}
+
+.wordPoolPassword[data-fixed="true"] {
+  top: calc(var(--second-reason-baseline) + 3.2rem);
+  max-width: 46%;
+}
+
+.wordPoolPassword[data-fixed="true"] .wordPoolPasswordConnector {
+  display: none;
+}
+
+.wordPoolPassword[data-fixed="true"] > strong {
+  font-size: clamp(1.55rem, 2.6cqi, 2.3rem);
+  letter-spacing: 0.04em;
+}
+
 .wordPoolPassword[data-case="second-reason"][data-emphasized="true"] > div {
   animation: multilingual-word-blocks-emphasis 1.15s ease-in-out infinite;
 }
@@ -3322,6 +3361,78 @@
   height: 0.1rem;
   background: inherit;
   content: '';
+}
+
+.wordPoolComparisonTick {
+  position: absolute;
+  z-index: 8;
+  top: var(--second-reason-baseline);
+  display: grid;
+  justify-items: center;
+  gap: var(--space-1);
+  color: rgb(245 248 255 / 88%);
+  font-size: clamp(0.78rem, 1.2cqi, 1rem);
+  font-weight: var(--font-weight-heavy);
+  text-shadow: 0 0 0.7rem rgb(101 214 141 / 42%);
+  transform: translateX(-50%);
+}
+
+.wordPoolComparisonTick[data-position="comparison-left"] {
+  left: 28%;
+}
+
+.wordPoolComparisonTick[data-position="comparison-right"] {
+  left: 72%;
+}
+
+.wordPoolComparisonTick > i {
+  width: 0.14rem;
+  height: 1.5rem;
+  border-radius: var(--radius-round);
+  background: currentColor;
+  box-shadow: 0 0 0.65rem currentColor;
+}
+
+.wordPoolReferencePea {
+  position: absolute;
+  z-index: 15;
+  top: var(--second-reason-baseline);
+  left: 28%;
+  display: grid;
+  justify-items: center;
+  color: #f5f8ff;
+  transform: translate(-50%, -100%);
+}
+
+.wordPoolReferencePea > i {
+  display: block;
+  width: clamp(0.27rem, 0.44cqi, 0.36rem);
+  aspect-ratio: 1;
+  border: 1px solid rgb(132 225 169 / 82%);
+  border-radius: var(--radius-round);
+  background: radial-gradient(circle at 38% 34%, #3a9a62 0 20%, #267b4b 48%, #0b2a1b 100%);
+  box-shadow:
+    inset 0 0 0.45rem rgb(101 214 141 / 58%),
+    0 0 0.8rem rgb(101 214 141 / 38%);
+}
+
+.wordPoolReferencePea .wordPoolEffort {
+  position: absolute;
+  bottom: calc(100% + 0.3rem);
+  left: 50%;
+  width: max-content;
+  max-width: none;
+  transform: translateX(-50%);
+}
+
+.wordPoolReferencePea .wordPoolEffort > strong {
+  padding-right: 0.9rem;
+  font-size: clamp(1.05rem, 1.8cqi, 1.45rem);
+}
+
+.wordPoolReferencePea:has(.wordPoolGear:hover),
+.wordPoolReferencePea:has(.wordPoolGear:focus-within) {
+  z-index: 200;
 }
 
 .wordPoolPassword > strong {
@@ -3393,6 +3504,14 @@
   animation: second-reason-shift-left 900ms cubic-bezier(0.22, 1, 0.36, 1);
 }
 
+.wordPoolCase[data-position="comparison-left"] {
+  left: 10%;
+}
+
+.wordPoolCase[data-position="comparison-right"] {
+  left: 72%;
+}
+
 .wordPoolSphere {
   display: grid;
   width: clamp(8rem, 13cqi, 11rem);
@@ -3428,6 +3547,12 @@
   width: clamp(36rem, 58cqi, 56rem);
 }
 
+.wordPoolCase[data-case="second-reason"] .wordPoolSphere[data-fifth-word="true"] {
+  width: min(clamp(21rem, 33cqi, 30rem), 50cqi, 55cqb);
+  transform-origin: center bottom;
+  animation: fifth-word-sphere-arrival 900ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
 .wordPoolCase[data-case="second-reason"] .wordPoolEffort > strong {
   font-size: clamp(2.4rem, 5.4cqi, 4.8rem);
   letter-spacing: -0.045em;
@@ -3439,12 +3564,28 @@
   font-size: clamp(3.8rem, 8cqi, 7rem);
 }
 
+.wordPoolCase[data-case="second-reason"]
+  .wordPoolSphere[data-fifth-word="true"]
+  .wordPoolEffort > strong {
+  width: 72%;
+  font-size: clamp(2.2rem, 5cqi, 4.6rem);
+  line-height: 0.94;
+  white-space: normal;
+}
+
 .wordPoolEffort {
   display: inline-flex;
   max-width: 92%;
   align-items: center;
   justify-content: center;
   gap: 0.2rem;
+}
+
+.wordPoolEffortUnit {
+  position: relative;
+  display: inline-block;
+  padding-right: 0.55rem;
+  white-space: nowrap;
 }
 
 .wordPoolEffort > strong {
@@ -3456,9 +3597,25 @@
 }
 
 .wordPoolEffort .wordPoolGear > button {
-  width: 1.15rem;
-  height: 1.15rem;
-  padding: 0.12rem;
+  width: clamp(0.78rem, 1.2cqi, 1.15rem);
+  height: clamp(0.78rem, 1.2cqi, 1.15rem);
+  padding: 0;
+}
+
+.wordPoolEffortUnit .wordPoolGear {
+  position: absolute;
+  z-index: 12;
+  top: -0.5rem;
+  right: -0.7rem;
+  left: auto;
+  width: 1rem;
+  height: 1rem;
+  line-height: 1;
+}
+
+.wordPoolEffortUnit .wordPoolGear > button {
+  width: 1rem;
+  height: 1rem;
 }
 
 .wordPoolEffort .wordPoolTooltip {
@@ -3466,6 +3623,10 @@
   right: 0;
   width: max-content;
   max-width: min(27rem, 65vw);
+  font-weight: var(--font-weight-regular);
+  letter-spacing: normal;
+  text-align: left;
+  white-space: normal;
 }
 
 .wordPackage {
@@ -3565,6 +3726,19 @@
   animation: language-package-stack-emphasis 1.15s ease-in-out infinite;
 }
 
+.languagePackageStack[data-comparison-position] {
+  animation: fifth-word-detail-arrival 760ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.languagePackageStack[data-comparison-position="left"] {
+  left: 35%;
+}
+
+.languagePackageStack[data-comparison-position="right"] {
+  right: clamp(0.5rem, 2cqi, 1.5rem);
+  left: auto;
+}
+
 .languagePackage {
   position: relative;
   display: grid;
@@ -3610,6 +3784,7 @@
 }
 
 .languagePackage .wordPoolTooltip {
+  z-index: 1000;
   top: auto;
   right: 0;
   bottom: calc(100% + var(--space-2));
@@ -3671,7 +3846,7 @@
 
 .wordPoolTooltip {
   position: absolute;
-  z-index: 20;
+  z-index: 1000;
   top: calc(100% + var(--space-2));
   right: 0;
   display: grid;
@@ -3704,7 +3879,12 @@
 .wordPoolCase:has(.wordPoolGear:focus-within),
 .languagePackageStack:has(.wordPoolGear:hover),
 .languagePackageStack:has(.wordPoolGear:focus-within) {
-  z-index: 60;
+  z-index: 200;
+}
+
+.languagePackage:has(.wordPoolGear:hover),
+.languagePackage:has(.wordPoolGear:focus-within) {
+  z-index: 2;
 }
 
 .generatedPassword span {
@@ -4627,6 +4807,32 @@
   }
 }
 
+@keyframes fifth-word-sphere-arrival {
+  0% {
+    opacity: 0;
+    transform: scale(0.18);
+  }
+
+  72% {
+    opacity: 1;
+    transform: scale(1.08);
+  }
+
+  100% {
+    transform: none;
+  }
+}
+
+@keyframes fifth-word-detail-arrival {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
 @keyframes machine-block-to-center {
   0% {
     left: 0;
@@ -5035,7 +5241,10 @@
   .machineOutput[data-emphasized="true"],
   .wordPackage[data-emphasized="true"],
   .languagePackageStack[data-emphasized="true"],
+  .languagePackageStack[data-comparison-position],
   .languagePackageStack[data-expanded="true"] .languagePackage,
+  .wordPoolCase[data-position="comparison-right"] .wordPoolSphere,
+  .wordPoolPassword[data-position="comparison-right"],
   .wordPoolPassword[data-case="second-reason"][data-emphasized="true"] > div,
   .wordPoolPassword[data-case="second-reason"],
   .wordPoolCase[data-case="second-reason"],
@@ -5209,12 +5418,22 @@
   .wordPoolReasonScene {
     --second-reason-width-zoom: 0.52;
   }
+
+  .languagePackageStack[data-comparison-position="left"] {
+    left: 36%;
+  }
+
 }
 
 @container artifact-stage (max-width: 32rem) {
   .wordPoolReasonScene {
     --second-reason-width-zoom: 0.46;
   }
+
+  .languagePackageStack[data-comparison-position="left"] {
+    left: 38%;
+  }
+
 }
 
 @container artifact-stage (max-height: 42rem) {

@@ -2317,6 +2317,20 @@ interface WordPoolModelInformation {
   readonly attemptsPerSecond: string;
 }
 
+interface SecondLengthReasonExampleContent {
+  readonly password: string;
+  readonly parts: readonly string[];
+  readonly passwordLabel: string;
+  readonly durationLabel: string;
+  readonly modelInformation: WordPoolModelInformation;
+}
+
+interface LanguagePackageContent {
+  readonly id: string;
+  readonly label: string;
+  readonly information: string;
+}
+
 function WordPoolModelDetails({
   information,
 }: {
@@ -2332,21 +2346,166 @@ function WordPoolModelDetails({
   );
 }
 
+function SecondLengthReasonPassword({
+  example,
+  position,
+  emphasized = false,
+  fixed = false,
+}: {
+  readonly example: SecondLengthReasonExampleContent;
+  readonly position: 'single' | 'comparison-left' | 'comparison-right';
+  readonly emphasized?: boolean;
+  readonly fixed?: boolean;
+}) {
+  return (
+    <article
+      className={styles.wordPoolPassword}
+      data-case="second-reason"
+      data-position={position}
+      data-fixed={fixed || undefined}
+      data-emphasized={emphasized || undefined}
+      data-passwo-speech-obstacle
+    >
+      <span className={styles.wordPoolPasswordConnector} aria-hidden="true" />
+      <strong>{example.passwordLabel}</strong>
+      <PasswordBuildingBlocks
+        value={example.password}
+        parts={example.parts}
+        display="separated"
+        animate={false}
+        visualScale={fixed ? 0.55 : 0.78}
+        highlightedIndices={emphasized ? example.parts.map((_, index) => index) : []}
+        ariaLabel={`${example.passwordLabel}: ${example.parts.join(', ')}`}
+      />
+    </article>
+  );
+}
+
+function SecondLengthReasonExample({
+  example,
+  position,
+  sphereKind,
+  showPassword = true,
+  emphasized = false,
+}: {
+  readonly example: SecondLengthReasonExampleContent;
+  readonly position: 'single' | 'comparison-left' | 'comparison-right';
+  readonly sphereKind: 'german' | 'multilingual' | 'fifth-word';
+  readonly showPassword?: boolean;
+  readonly emphasized?: boolean;
+}) {
+  const tooltipId = `s05-second-reason-attacker-model-${position}`;
+  return (
+    <>
+      <article
+        className={styles.wordPoolCase}
+        data-case="second-reason"
+        data-position={position}
+      >
+        <div
+          className={styles.wordPoolSphere}
+          data-growing={sphereKind !== 'german' || undefined}
+          data-multilingual={sphereKind === 'multilingual' || undefined}
+          data-fifth-word={sphereKind === 'fifth-word' || undefined}
+        >
+          <WordPoolEffortInformation example={example} tooltipId={tooltipId} />
+        </div>
+      </article>
+      {showPassword ? (
+        <SecondLengthReasonPassword
+          example={example}
+          position={position}
+          emphasized={emphasized}
+        />
+      ) : null}
+    </>
+  );
+}
+
+function WordPoolEffortInformation({
+  example,
+  tooltipId,
+}: {
+  readonly example: SecondLengthReasonExampleContent;
+  readonly tooltipId: string;
+}) {
+  const durationParts = example.durationLabel.split(' ');
+  const durationFinalUnit = durationParts.at(-1) ?? example.durationLabel;
+  const durationLeading = durationParts.slice(0, -1).join(' ');
+  return (
+    <span className={styles.wordPoolEffort}>
+      <strong>
+        {durationLeading.length > 0 ? `${durationLeading} ` : null}
+        <span className={styles.wordPoolEffortUnit}>
+          <span>{durationFinalUnit}</span>
+          <WordPoolGear
+            label={`Angreifermodell für ${example.passwordLabel} anzeigen`}
+            tooltipId={tooltipId}
+          >
+            <WordPoolModelDetails information={example.modelInformation} />
+          </WordPoolGear>
+        </span>
+      </strong>
+    </span>
+  );
+}
+
+function LanguagePackageStack({
+  packages,
+  expanded,
+  emphasized = false,
+  comparisonPosition,
+}: {
+  readonly packages: readonly LanguagePackageContent[];
+  readonly expanded: boolean;
+  readonly emphasized?: boolean;
+  readonly comparisonPosition?: 'left' | 'right';
+}) {
+  return (
+    <aside
+      className={styles.languagePackageStack}
+      data-expanded={expanded || undefined}
+      data-emphasized={emphasized || undefined}
+      data-comparison-position={comparisonPosition}
+      aria-label="Vier gleich große Sprachpakete"
+    >
+      {packages.map((languagePackage, index) => {
+        if (index > 0 && !expanded) return null;
+        const tooltipId = `s05-language-package-${comparisonPosition ?? 'single'}-${languagePackage.id}`;
+        const flagStart = languagePackage.label.lastIndexOf(' ');
+        return (
+          <div className={styles.languagePackage} key={languagePackage.id}>
+            <strong>
+              <span>{languagePackage.label.slice(0, flagStart)}</span>
+              <span>{languagePackage.label.slice(flagStart + 1)}</span>
+            </strong>
+            <WordPoolGear
+              label={`Information zu ${languagePackage.label} anzeigen`}
+              tooltipId={tooltipId}
+            >
+              <span>{languagePackage.information}</span>
+            </WordPoolGear>
+          </div>
+        );
+      })}
+    </aside>
+  );
+}
+
 function SecondLengthReasonScene({
   step,
 }: {
   readonly step: S05AnalysisControllerSnapshot['step'];
 }) {
   const content = s05Content.freeSearch.lengthExamples.secondLengthReason;
-  const usesMultilingualWords = step === 'length-multilingual-words';
+  const comparesFifthWord = step === 'length-fifth-word-comparison';
+  const usesMultilingualWords =
+    step === 'length-multilingual-words' || comparesFifthWord;
   const showsLanguageStack =
     step === 'length-language-pool-stack' || usesMultilingualWords;
   const emphasizesLanguageStack = step === 'length-language-pool-stack';
   const emphasizesMultilingualWords = step === 'length-multilingual-words';
   const passwordExample = usesMultilingualWords
-    ? content.multilingualWords
-    : content.germanWords;
-  const effortExample = usesMultilingualWords
     ? content.multilingualWords
     : content.germanWords;
 
@@ -2356,71 +2515,84 @@ function SecondLengthReasonScene({
       data-s05-target="length-second-reason"
       data-second-reason="true"
       data-zoomed-out={usesMultilingualWords || undefined}
+      data-fifth-word-comparison={comparesFifthWord || undefined}
     >
       <div className={styles.wordPoolAxis} aria-hidden="true" />
-      <div className={styles.wordPoolSceneComposition}>
-        <article className={styles.wordPoolCase} data-case="second-reason">
-          <div
-            className={styles.wordPoolSphere}
-            data-growing={usesMultilingualWords || undefined}
-            data-multilingual={usesMultilingualWords || undefined}
+      {comparesFifthWord ? (
+        <>
+          <span
+            className={styles.wordPoolComparisonTick}
+            data-position="comparison-left"
+            aria-label={`Markierung für ${content.multilingualWords.durationLabel}`}
           >
-            <span className={styles.wordPoolEffort}>
-              <strong>{effortExample.durationLabel}</strong>
-              <WordPoolGear
-                label="Angreifermodell für die vier Wörter anzeigen"
-                tooltipId="s05-second-reason-attacker-model"
-              >
-                <WordPoolModelDetails information={effortExample.modelInformation} />
-              </WordPoolGear>
-            </span>
-          </div>
-        </article>
-        <article
-          className={styles.wordPoolPassword}
-          data-case="second-reason"
-          data-emphasized={emphasizesMultilingualWords || undefined}
-          data-passwo-speech-obstacle
-        >
-          <span className={styles.wordPoolPasswordConnector} aria-hidden="true" />
-          <strong>{passwordExample.passwordLabel}</strong>
-          <PasswordBuildingBlocks
-            value={passwordExample.password}
-            parts={passwordExample.parts}
-            display="separated"
-            animate={false}
-            visualScale={0.78}
-            highlightedIndices={emphasizesMultilingualWords ? [0, 1, 2, 3] : []}
-            ariaLabel={`${passwordExample.passwordLabel}: ${passwordExample.parts.join(', ')}`}
+            <i aria-hidden="true" />
+          </span>
+          <span
+            className={styles.wordPoolComparisonTick}
+            data-position="comparison-right"
+            aria-label={`Markierung für ${content.fiveWords.durationLabel}`}
+          >
+            <i aria-hidden="true" />
+          </span>
+        </>
+      ) : null}
+      {comparesFifthWord ? (
+        <span className={styles.wordPoolReferencePea}>
+          <WordPoolEffortInformation
+            example={content.multilingualWords}
+            tooltipId="s05-second-reason-attacker-model-reference"
           />
-        </article>
-        <aside
-          className={styles.languagePackageStack}
-          data-expanded={showsLanguageStack || undefined}
-          data-emphasized={emphasizesLanguageStack || undefined}
-          aria-label="Vier gleich große Sprachpakete"
-        >
-          {content.languagePackages.map((languagePackage, index) => {
-            if (index > 0 && !showsLanguageStack) return null;
-            const tooltipId = `s05-language-package-${languagePackage.id}`;
-            const flagStart = languagePackage.label.lastIndexOf(' ');
-            return (
-              <div className={styles.languagePackage} key={languagePackage.id}>
-                <strong>
-                  <span>{languagePackage.label.slice(0, flagStart)}</span>
-                  <span>{languagePackage.label.slice(flagStart + 1)}</span>
-                </strong>
-                <WordPoolGear
-                  label={`Information zu ${languagePackage.label} anzeigen`}
-                  tooltipId={tooltipId}
-                >
-                  <span>{languagePackage.information}</span>
-                </WordPoolGear>
-              </div>
-            );
-          })}
-        </aside>
+          <i aria-hidden="true" />
+        </span>
+      ) : null}
+      <div className={styles.wordPoolSceneComposition}>
+        {comparesFifthWord ? (
+          <SecondLengthReasonExample
+            example={content.fiveWords}
+            position="comparison-right"
+            sphereKind="fifth-word"
+            showPassword={false}
+          />
+        ) : (
+          <SecondLengthReasonExample
+            example={passwordExample}
+            position="single"
+            sphereKind={usesMultilingualWords ? 'multilingual' : 'german'}
+            emphasized={emphasizesMultilingualWords}
+          />
+        )}
+        {comparesFifthWord ? null : (
+          <LanguagePackageStack
+            packages={content.languagePackages}
+            expanded={showsLanguageStack}
+            emphasized={emphasizesLanguageStack}
+          />
+        )}
       </div>
+      {comparesFifthWord ? (
+        <>
+          <SecondLengthReasonPassword
+            example={content.multilingualWords}
+            position="comparison-left"
+            fixed
+          />
+          <SecondLengthReasonPassword
+            example={content.fiveWords}
+            position="comparison-right"
+            fixed
+          />
+          <LanguagePackageStack
+            packages={content.languagePackages}
+            expanded
+            comparisonPosition="left"
+          />
+          <LanguagePackageStack
+            packages={content.languagePackages}
+            expanded
+            comparisonPosition="right"
+          />
+        </>
+      ) : null}
     </div>
   );
 }
@@ -2701,6 +2873,7 @@ function renderScene(
     case 'length-four-german-effort':
     case 'length-language-pool-stack':
     case 'length-multilingual-words':
+    case 'length-fifth-word-comparison':
       return <SecondLengthReasonScene step={snapshot.step} />;
     case 'final-components':
     case 'final-length':
@@ -2944,6 +3117,8 @@ function speechFor(
         s05Content.freeSearch.lengthExamples.secondLengthReason.multilingualSelection,
         s05Content.freeSearch.lengthExamples.secondLengthReason.multilingualEffort,
       ];
+    case 'length-fifth-word-comparison':
+      return [s05Content.freeSearch.lengthExamples.secondLengthReason.fifthWordIntroduction];
     case 'final-components':
       return [s05Content.freeSearch.application.assessmentIntroduction];
     case 'final-result': {
@@ -3094,6 +3269,13 @@ export function S05AnalysisTraining({
               onAction: continueFromSpeech,
             }
           : undefined;
+      case 'length-fifth-word-comparison':
+        return {
+          kind: 'advance' as const,
+          label: s05Content.freeSearch.lengthExamples.secondLengthReason.fifthWordAction,
+          disabled,
+          onAction: continueFromSpeech,
+        };
       case 'structure-theme-reflection':
       case 'structure-sentence-reflection':
         return undefined;

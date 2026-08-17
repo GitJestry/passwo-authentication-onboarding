@@ -3335,3 +3335,88 @@ Höhenstaffelung liefern getrennte Faktoren, von denen stets der kleinere verwen
 flache Fenster zoomen dadurch bis auf 36 Prozent heraus, ohne die normale Endkugel in ausreichend
 großen Fenstern zu verkleinern. Wortlaut, Content-Version, Analyse, Persistenz, Export und Timing
 bleiben unverändert.
+
+## Copy- und Darstellungsdelta S05 fünftes Poolwort, 17. August 2026
+
+Quelle ist der ausdrückliche Nutzerauftrag vom 17. August 2026. Direkt nach dem gemeinsamen
+Vierwort-Pool folgt der neue Sprechschritt `s05-length-fifth-word-comparison`. Die bestehende
+Kugel `332 Jahre` bleibt links sichtbar. Rechts erscheint eine zweite, größere Kugel mit
+`106,3 Millionen Jahre`; ihre Zeitbeschriftung wird innerhalb der Kugel besonders groß gesetzt.
+Der unveränderte vierteilige Sprachpaketstapel steht rechts neben der neuen Kugel. Die Skala zoomt
+so weit heraus, dass beide Kugeln in verschiedenen Fensterformaten gleichzeitig sichtbar
+bleiben.
+
+Unter der ersten Kugel bleiben `Datensicherheit`, `Oscuridad`, `Yutori` und `Somnolent` sichtbar.
+Unter der zweiten Kugel steht die authored Fünfwort-Folge `Datensicherheit`, `Oscuridad`, `Yutori`,
+`Somnolent`, `Capez`. Die Werte sind feste Demonstrationsdaten für vier beziehungsweise fünf
+unabhängige Ziehungen aus jeweils 320.000 Möglichkeiten bei einer Billion Versuchen pro Sekunde;
+sie werden nicht aus Teilnehmerdaten berechnet. Analyse, Persistenz, Export und Timing bleiben
+unverändert. `S05_CONTENT_VERSION` wird von `2.93.0` auf `2.94.0` erhöht.
+
+| Segment und Text-ID | Quelle | Aktueller Text | Geplanter Text | Primäre Rolle | Grund | Bedeutungsänderung | Interaktionsziel | Hervorhebung |
+|---|---|---|---|---|---|---|---|---|
+| `S05.freeSearch.lengthExamples.secondLengthReason.fifthWordIntroduction` | Nutzerauftrag vom 2026-08-17 | nicht vorhanden | `Jetzt füge ich nur ein weiteres zufälliges Wort aus demselben Pool hinzu.` | Mechanismuserklärung | Übergang von vier auf fünf unabhängige Wortziehungen benennen | ja | `Schätzfrage` | keine |
+| `S05.freeSearch.lengthExamples.secondLengthReason.fifthWordQuestion` | Nutzerauftrag vom 2026-08-17 | nicht vorhanden | `Was glaubst du?` | Orientierung | ausdrücklich gewünschte kurze Frage vor dem anschließenden Trainingsabschnitt | ja | `Schätzfrage` | keine |
+| `S05.freeSearch.lengthExamples.secondLengthReason.fifthWordAction` | Nutzerauftrag vom 2026-08-17 | nicht vorhanden | `Schätzfrage` | Navigation | ausdrücklich benannte Aktion der gemeinsamen PassWo-Blase | ja | nächster S05-Schritt | keine |
+
+### Copy- und Skalierungspräzisierung S05 fünftes Poolwort, 17. August 2026
+
+Quelle ist der ausdrückliche Nutzerauftrag vom 17. August 2026. Im Vergleichsschritt schrumpft
+die vorhandene `332 Jahre`-Kugel zu einer kleinen Referenz, während die Kugel
+`106,3 Millionen Jahre` stark aus einer kleinen Ausgangsgröße wächst und kurz über ihr Endmaß
+hinausschwingt. Die unteren Wortbausteine werden aus der gezoomten Kugelkomposition herausgelöst
+und behalten dadurch ihre sichtbare Größe. `4 Wörter` und `5 Wörter` werden deutlich größer
+dargestellt. Beide Kugeln erhalten rechts jeweils einen eigenen, gleich großen vierteiligen
+Sprachpaketstapel; auch diese Stapel liegen außerhalb der Zoomtransformation.
+
+`Was glaubst du?` entfällt vollständig aus diesem Sprechschritt. Der verbleibende Button
+`Schätzfrage` bleibt gemäß dem vorangegangenen ausdrücklichen Auftrag erhalten. Analyse,
+Persistenz, Export und Timing bleiben unverändert. `S05_CONTENT_VERSION` wird von `2.94.0` auf
+`2.95.0` erhöht.
+
+| Segment und Text-ID | Quelle | Aktueller Text | Geplanter Text | Primäre Rolle | Grund | Bedeutungsänderung | Interaktionsziel | Hervorhebung |
+|---|---|---|---|---|---|---|---|---|
+| `S05.freeSearch.lengthExamples.secondLengthReason.fifthWordIntroduction` | Nutzerauftrag vom 2026-08-17 | `Jetzt füge ich nur ein weiteres zufälliges Wort aus demselben Pool hinzu.` | `Jetzt füge ich einfach ein weiteres zufälliges Wort aus demselben Pool hinzu. Und schon steigt der Aufwand auf 106 Millionen Jahre!` | Mechanismuserklärung und Ergebnisfeedback | fünfte Ziehung und sichtbaren Aufwand in einem ausdrücklich vorgegebenen Schritt verbinden | begrenzt | `Schätzfrage` | `weiteres zufälliges Wort` als Akzent |
+| `S05.freeSearch.lengthExamples.secondLengthReason.fifthWordQuestion` | Nutzerauftrag vom 2026-08-17 | `Was glaubst du?` | entfällt | Orientierung | ausdrücklich verlangte Löschung | begrenzt | kein | keine |
+
+### Darstellungspräzisierung S05 Fünfwort-Ticks und Informationsebenen, 17. August 2026
+
+Quelle ist der ausdrückliche Nutzerauftrag vom 17. August 2026. Der Fünfwort-Vergleich übernimmt
+die Trennung von Tick, Kugel und Zeitinhalt aus der bestehenden Kleinbuchstaben-Skala. Die frühere
+`332 Jahre`-Kugel wird im Vergleich nicht mehr gerendert; sichtbar bleibt ausschließlich ihr
+beschrifteter Tick bei `4 Wörter`. Die Kugel `106,3 Millionen Jahre`, ihr Tick, `5 Wörter` und
+die zugehörigen Bausteine verwenden dieselbe feste horizontale Position.
+
+Nur in diesem Vergleich rückt die Messachse auf 60 Prozent der Szenenhöhe. Beide Ticks verlaufen
+ab der Achse ausschließlich nach unten; die konstant großen Wortbausteine beginnen unterhalb der
+vollständigen Tick-Beschriftung und besitzen dort keine zusätzliche über die Achse ragende
+Verbindungslinie. Die Endkugel erhält ihre responsive Darstellungsgröße direkt aus verfügbarer
+Breite und Höhe, statt durch eine Transformation verschoben zu werden.
+
+Die Zahnräder der Zeitaufwände stehen analog zur Kleinbuchstaben-Skala direkt rechts oben am
+letzten Wort des Zeitwerts. Fokussierte oder mit dem Zeiger geöffnete Sprachpaket-Informationen
+heben sowohl den betroffenen Baustein als auch seinen Stapel über die übrigen Pakete; ihre
+Tooltips verwenden innerhalb dieser Ebene die höchste lokale Stacking-Reihenfolge. Wortlaut,
+Content-Version, Analyse, Persistenz, Export und Timing bleiben unverändert.
+
+### Darstellungspräzisierung S05 Zeitwert-Zahnräder und Erbsenreferenz, 17. August 2026
+
+Quelle ist der ausdrückliche Nutzerauftrag vom 17. August 2026. Die Zahnräder aller sichtbaren
+Zeitaufwände werden aus dem Textfluss gelöst und absolut rechts oben am letzten Wort des jeweiligen
+Zeitwerts verankert. Die Position bleibt dadurch unabhängig von Länge, Zeilenumbruch und
+Schriftgröße des vorangehenden Zahlenwerts.
+
+Am linken Tick des Fünfwort-Vergleichs erscheint eine kleine grüne Erbsenkugel. `332 Jahre` steht
+direkt oberhalb dieser Referenz an der Position der nicht mehr sichtbaren großen Vierwort-Kugel
+und verwendet dieselbe Zahnradverankerung wie der Zeitwert in der großen rechten Kugel. Wortlaut,
+Content-Version, Analyse, Persistenz, Export und Timing bleiben unverändert.
+
+### Darstellungspräzisierung S05 feste Zeitwert-Zahnradposition, 17. August 2026
+
+Quelle ist der ausdrückliche Nutzerauftrag vom 17. August 2026. Der Zeitwert reserviert rechts
+vom letzten Wort einen festen Bereich; das Zahnrad wird mit festen Rem-Abständen als Superscript
+über dessen rechter oberer Ecke positioniert. Damit verändern weder die große Schrift in der
+Endkugel noch die kleinere Referenzbeschriftung seine Position relativ zu `Jahre`. Die grüne
+Erbsenkugel an `332 Jahre` wird gegenüber ihrer vorherigen Darstellung auf 20 Prozent skaliert
+und ist damit 80 Prozent kleiner. Wortlaut, Content-Version, Analyse, Persistenz, Export und
+Timing bleiben unverändert.

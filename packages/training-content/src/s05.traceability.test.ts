@@ -4,7 +4,7 @@ import { S05_CONTENT_VERSION, s05Content } from './s05.js';
 
 describe('S05 content traceability', () => {
   it('keeps the participant copy bounded and separate from internal terminology', () => {
-    expect(S05_CONTENT_VERSION).toBe('2.93.0');
+    expect(S05_CONTENT_VERSION).toBe('2.95.0');
     expect(s05Content.source).toMatchObject({
       document: 'research/private/training-script.pdf',
       internalPages: [
@@ -350,6 +350,9 @@ describe('S05 content traceability', () => {
         multilingualSelection:
           'Jedes Wort kann nun zufällig aus diesem gemeinsamen Pool stammen.',
         multilingualEffort: 'Der Wörterpool ist damit etwa viermal so groß.',
+        fifthWordIntroduction:
+          'Jetzt füge ich einfach ein weiteres zufälliges Wort aus demselben Pool hinzu. Und schon steigt der Aufwand auf 106 Millionen Jahre!',
+        fifthWordAction: 'Schätzfrage',
         germanWords: {
           password: 'DatensicherheitLobotomieZugspitzeUnbefugt',
           parts: ['Datensicherheit', 'Lobotomie', 'Zugspitze', 'Unbefugt'],
@@ -371,6 +374,18 @@ describe('S05 content traceability', () => {
             passwordParts: '4 Wörter',
             pool: 'je 320.000 Wörter',
             combinations: '10.485.760.000.000.000.000.000',
+            attemptsPerSecond: '1 Billion',
+          },
+        },
+        fiveWords: {
+          password: 'DatensicherheitOscuridadYutoriSomnolentCapez',
+          parts: ['Datensicherheit', 'Oscuridad', 'Yutori', 'Somnolent', 'Capez'],
+          passwordLabel: '5 Wörter',
+          durationLabel: '106,3 Millionen Jahre',
+          modelInformation: {
+            passwordParts: '5 Wörter',
+            pool: 'je 320.000 Wörter',
+            combinations: '3.355.443.200.000.000.000.000.000.000',
             attemptsPerSecond: '1 Billion',
           },
         },
@@ -437,7 +452,7 @@ describe('S05 content traceability', () => {
     expect(reasonsStepIndex).toBe(orientationStepIndex + 1);
     expect(
       s05Content.animations
-        .slice(reasonsStepIndex, reasonsStepIndex + 11)
+        .slice(reasonsStepIndex, reasonsStepIndex + 12)
         .map(([id]) => id),
     ).toEqual([
       's05-length-reasons-intro',
@@ -451,6 +466,7 @@ describe('S05 content traceability', () => {
       's05-length-four-german-effort',
       's05-length-language-pool-stack',
       's05-length-multilingual-words',
+      's05-length-fifth-word-comparison',
     ]);
     expect(
       s05Content.animations

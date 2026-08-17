@@ -127,8 +127,19 @@ Seitenangaben beziehen sich auf die im Trainingsdokument ausgewiesene interne Pa
   dabei anhand des jeweils strengeren Breiten- oder Höhenfaktors so weit heraus, dass die Kugel
   vollständig im Szenenrahmen bleibt. Die höher liegende, gleichmäßig durchgezogene Messlinie
   bleibt davon unskaliert; die unteren Bausteine werden von der responsiven
-  PassWo-Sprechblasenpositionierung als Hindernis berücksichtigt. Erst danach folgt die bestehende
-  lokale Campusgram-Auswertung.
+  PassWo-Sprechblasenpositionierung als Hindernis berücksichtigt. Ein letzter Vergleich ergänzt
+  anschließend `Capez` als fünftes zufälliges Wort aus demselben gemeinsamen Pool. Die
+  frühere `332 Jahre`-Kugel liegt außerhalb des Vergleichsausschnitts; an ihrem Tick bleiben eine
+  eine auf 20 Prozent verkleinerte grüne Erbsenkugel und der Zeitwert `332 Jahre` sichtbar. Die wesentlich größere Kugel wächst rechts auf
+  `106,3 Millionen Jahre` und sitzt exakt auf ihrem eigenen Tick. Unter ihr stehen
+  `Datensicherheit`, `Oscuridad`, `Yutori`, `Somnolent`, `Capez`, rechts daneben derselbe
+  vierteilige Sprachpaketstapel. Auch die linke Referenzkugel erhält einen eigenen gleich großen
+  Stapel. Beide Stapel und die unteren Wortbausteine bleiben konstant groß; `4 Wörter` und
+  `5 Wörter` werden als große Vergleichsüberschriften gesetzt. Die Messachse liegt für diesen
+  Vergleich höher, die Ticks reichen nur nach unten und die Sprachpaket-Tooltips werden über ihren
+  jeweiligen Paketstapel gehoben. Zahnräder der Zeitwerte stehen mit festen Abständen als
+  Superscript rechts oben am letzten Wort des Aufwands. Erst danach folgt die bestehende lokale
+  Campusgram-Auswertung.
 - Die S05-Simulationsdisposition (`S05_CONTENT_VERSION 2.74.0`, Analysekonfiguration
   `passwo-bounded-whole-recognition-v12`) bleibt auf den vollständigen fiktiven Wert begrenzt:
   `whole-password-recognized` entsteht durch einen direkten Vollwert oder eine dokumentierte

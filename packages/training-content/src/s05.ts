@@ -73,7 +73,7 @@ export interface S05DesignLabFixture {
   readonly startSection: 'intro' | 'components' | 'structure';
 }
 
-export const S05_CONTENT_VERSION = '2.93.0';
+export const S05_CONTENT_VERSION = '2.95.0';
 
 export const s05Content = {
   version: S05_CONTENT_VERSION,
@@ -589,6 +589,9 @@ export const s05Content = {
         multilingualSelection:
           'Jedes Wort kann nun zufällig aus diesem gemeinsamen Pool stammen.',
         multilingualEffort: 'Der Wörterpool ist damit etwa viermal so groß.',
+        fifthWordIntroduction:
+          'Jetzt füge ich einfach ein weiteres zufälliges Wort aus demselben Pool hinzu. Und schon steigt der Aufwand auf 106 Millionen Jahre!',
+        fifthWordAction: 'Schätzfrage',
         germanWords: {
           password: 'DatensicherheitLobotomieZugspitzeUnbefugt',
           parts: ['Datensicherheit', 'Lobotomie', 'Zugspitze', 'Unbefugt'],
@@ -610,6 +613,18 @@ export const s05Content = {
             passwordParts: '4 Wörter',
             pool: 'je 320.000 Wörter',
             combinations: '10.485.760.000.000.000.000.000',
+            attemptsPerSecond: '1 Billion',
+          },
+        },
+        fiveWords: {
+          password: 'DatensicherheitOscuridadYutoriSomnolentCapez',
+          parts: ['Datensicherheit', 'Oscuridad', 'Yutori', 'Somnolent', 'Capez'],
+          passwordLabel: '5 Wörter',
+          durationLabel: '106,3 Millionen Jahre',
+          modelInformation: {
+            passwordParts: '5 Wörter',
+            pool: 'je 320.000 Wörter',
+            combinations: '3.355.443.200.000.000.000.000.000.000',
             attemptsPerSecond: '1 Billion',
           },
         },
@@ -784,6 +799,7 @@ export const s05Content = {
     ['s05-length-four-german-effort', 'length-second-reason', 'info'],
     ['s05-length-language-pool-stack', 'length-second-reason', 'info'],
     ['s05-length-multilingual-words', 'length-second-reason', 'info'],
+    ['s05-length-fifth-word-comparison', 'length-second-reason', 'info'],
     ['s05-final-components', 'final-components', 'info'],
     ['s05-final-result', 'final-result', 'warning'],
     ['s05-final-length', 'final-length', 'info'],

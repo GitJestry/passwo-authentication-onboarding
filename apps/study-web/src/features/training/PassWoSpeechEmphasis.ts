@@ -144,6 +144,9 @@ const emphasisBySpeechId: Readonly<Record<string, readonly PassWoSpeechEmphasis[
   's05-length-four-german-words': [
     { phrase: 'demselben deutschen Wörterpool', tone: 'accent' },
   ],
+  's05-length-fifth-word-comparison': [
+    { phrase: 'weiteres zufälliges Wort', tone: 'accent' },
+  ],
   's05-final-components': [{ phrase: 'gesamte Zeichenfolge', tone: 'accent' }],
   's05-final-result': [{ phrase: 'gesamte Zeichenfolge', tone: 'warning' }],
   's05-final-length': [{ phrase: 'mindestens 15 Zeichen', tone: 'accent' }],

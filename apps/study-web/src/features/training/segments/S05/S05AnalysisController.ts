@@ -93,6 +93,7 @@ export type S05AnalysisStep =
   | 'length-four-german-effort'
   | 'length-language-pool-stack'
   | 'length-multilingual-words'
+  | 'length-fifth-word-comparison'
   | 'final-components'
   | 'final-length'
   | 'final-result'
@@ -231,6 +232,7 @@ const stepByMissionId: Readonly<Record<string, S05AnalysisStep>> = {
   's05-length-four-german-effort': 'length-four-german-effort',
   's05-length-language-pool-stack': 'length-language-pool-stack',
   's05-length-multilingual-words': 'length-multilingual-words',
+  's05-length-fifth-word-comparison': 'length-fifth-word-comparison',
   's05-final-components': 'final-components',
   's05-final-length': 'final-length',
   's05-final-result': 'final-result',
