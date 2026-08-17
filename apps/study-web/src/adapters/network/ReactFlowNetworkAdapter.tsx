@@ -907,6 +907,25 @@ function NodeEdge({
         labelY={edge.labelY}
         {...optionalEdgeProps}
       />
+      {data.riskRelation ? (
+        <g
+          data-network-edge-break-effect
+          transform={`translate(${edge.labelX} ${edge.labelY})`}
+          aria-hidden="true"
+        >
+          <path
+            data-network-edge-break-impact
+            d="M -8 0 H 8 M 0 -8 V 8 M -5.5 -5.5 L 5.5 5.5 M 5.5 -5.5 L -5.5 5.5"
+          />
+          <circle data-network-edge-smoke-puff="1" cx="-8" cy="1" r="4.6" />
+          <circle data-network-edge-smoke-puff="2" cx="-4" cy="-5" r="5.2" />
+          <circle data-network-edge-smoke-puff="3" cx="2" cy="-7" r="4.8" />
+          <circle data-network-edge-smoke-puff="4" cx="7" cy="-2" r="5.4" />
+          <circle data-network-edge-smoke-puff="5" cx="5" cy="5" r="4.2" />
+          <circle data-network-edge-smoke-puff="6" cx="-3" cy="6" r="5" />
+          <circle data-network-edge-smoke-puff="7" cx="0" cy="0" r="5.8" />
+        </g>
+      ) : null}
       {drawsAttackPath ? (
         <>
           <defs>

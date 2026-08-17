@@ -555,7 +555,10 @@ export function S07PassphraseSearchTraining({
     speech = selected === undefined ? null : [guide.mnemonic(selected.passWoMnemonic)];
     speechId = 's07-mnemonic';
   }
-  if (state.matches('campusgramSuccess')) speech = [guide.campusgramSuccess];
+  if (state.matches('campusgramSuccess')) {
+    speech = [guide.campusgramSuccess];
+    speechId = 's07-campusgram-success';
+  }
   if (state.matches('remainingRisk')) {
     speech = state.context.accountFeedback.map((feedback) => {
       const label = accountLabel(feedback.accountId);

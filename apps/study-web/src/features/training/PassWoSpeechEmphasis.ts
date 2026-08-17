@@ -179,6 +179,12 @@ const emphasisBySpeechId: Readonly<Record<string, readonly PassWoSpeechEmphasis[
   's06.transition.s07': [
     { phrase: 'zügig ersetzen und Wiederverwendung stoppen', tone: 'accent' },
   ],
+  's07-campusgram-success': [
+    {
+      phrase: 'Das alte Passwort aus dem Datenleck kann dort nicht mehr verwendet werden.',
+      tone: 'positive',
+    },
+  ],
   's07-method-intro': [{ phrase: 'Die Passphrase', tone: 'accent' }],
   's07-mnemonic': [{ phrase: 'Beispiel:', tone: 'accent' }],
   's09-scaling-expansion': [{ phrase: 'deutlich mehr', tone: 'accent' }],

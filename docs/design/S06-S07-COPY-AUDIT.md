@@ -242,6 +242,21 @@ andere Konto bleibt nur dann offen, wenn es einen eigenen lokalen Befund oder mi
 weitere problematische Beziehung besitzt. Teilnehmertexte, Persistenz, Export, Studien-Timing
 und Content-Versionen bleiben unverändert.
 
+Der ergänzende Darstellungsauftrag vom 17. August 2026 entfernt in S08 den schwarzen Hintergrund
+der Beziehungslabels `ähnlich`, `ähnlich zum alten`, `altes wiederverwendet` und des gleichartig
+gerenderten Labels `wiederverwendet`. Die unveränderten Buchstaben erhalten stattdessen eine helle
+Warnfarbe, eine dunkle Kontur und einen dezenten Schatten beziehungsweise Leuchtsaum. Dadurch
+bleiben die Labels vor dem Netzwerk lesbar, ohne als schwarze Textkästen über den roten
+gestrichelten Beziehungskanten zu liegen. Teilnehmertext, Content-Version, Ablauf, Persistenz,
+Export und Studien-Timing bleiben unverändert.
+
+Der ergänzende Darstellungsauftrag vom selben Tag fügt beim Auflösen einer roten gestrichelten
+Beziehung eine kleine Rauchwolken-Explosion am geometrischen Mittelpunkt der betroffenen Kante
+hinzu. Ein kurzer heller Impuls und mehrere graue Rauchpartikel begleiten die vorhandene
+460-Millisekunden-Zerfallsanimation; andere Kanten bleiben unberührt. Bei `prefers-reduced-motion`
+entfällt der zusätzliche Effekt vollständig. Teilnehmertext, Content-Version, Ablauf,
+Persistenz, Export und Studien-Timing bleiben unverändert.
+
 ## Copy-Delta S06 Rückkehr zur Ausgangslage, 15. August 2026
 
 Quelle ist der ausdrückliche Nutzerauftrag vom 15. August 2026. Der letzte Sprechschritt vor der
@@ -387,7 +402,7 @@ offenen Konten direkt mit einer eigenen Passphrase bedienbar. Die Inhaltsversion
 | `S07.guide.mnemonicIntro` | allgemeines Bild oder Merksatz | `Für jetzt musst du sie dir nicht merken. Im Alltag kann eine kleine Geschichte das Erinnern erleichtern.` | Mechanismuserklärung | `Weiter` | freigegebene Entlastung und Alltagstransfer | keine |
 | `S07.guide.mnemonic` | `Möglicher Merksatz: [Merksatz]` | `Beispiel: [Merksatz]` nach jeder Generierung | Mechanismuserklärung | Generator beziehungsweise `Kopieren` | ausdrücklich freigegebene Wiederholung und Kennzeichnung | `Beispiel:`, Akzent |
 | `S07.browser.campusgramPasswordChangeCompleted` | `Passwort geändert` / `Die neue Passphrase wird jetzt für Campusgram verwendet.` | `Campusgram-Passwort wurde erfolgreich ersetzt`; bisheriger Zusatz entfällt | Ergebnisfeedback | kein | benennt das sichtbare Ergebnis ohne redundanten Zusatz; ausdrücklich freigegeben | bestehende Schilde `Einzigartig` und `Stark` |
-| `S07.guide.campusgramSuccess` | allgemeines Lob und längere Angriffseinordnung | `Campusgram ist jetzt geschützt. Das alte Passwort aus dem Datenleck kann dort nicht mehr verwendet werden.` | Ergebnisfeedback | `Weiter` | ausdrücklich freigegebene konkrete Schutzwirkung | keine |
+| `S07.guide.campusgramSuccess` | allgemeines Lob und längere Angriffseinordnung | `Campusgram ist jetzt geschützt. Das alte Passwort aus dem Datenleck kann dort nicht mehr verwendet werden.` | Ergebnisfeedback | `Weiter` | ausdrücklich freigegebene konkrete Schutzwirkung | `Das alte Passwort aus dem Datenleck kann dort nicht mehr verwendet werden.`, positiv |
 | `S07.guide.accountFeedback.strongSimilar` | pauschale Rest-Rückmeldung | `Das Passwort von [Konto] ist für sich betrachtet stark, ähnelt aber noch [Verbindung].` | Ergebnisfeedback | `Weiter` | übernimmt den passenden flüchtigen S06-Befund; ausdrücklich freigegeben | keine |
 | `S07.guide.accountFeedback.uniqueGuessable` | pauschale Rest-Rückmeldung | `Das Passwort von [Konto] ist einzigartig, lässt sich aber noch leicht erraten.` | Ergebnisfeedback | `Weiter` | übernimmt den passenden flüchtigen S06-Befund; ausdrücklich freigegeben | keine |
 | `S07.guide.accountFeedback.similarGuessable` | pauschale Rest-Rückmeldung | `Das Passwort von [Konto] ähnelt noch [Verbindung] und lässt sich außerdem leicht erraten.` | Ergebnisfeedback | `Weiter` | übernimmt beide passenden flüchtigen S06-Befunde; ausdrücklich freigegeben | keine |

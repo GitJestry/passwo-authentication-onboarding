@@ -169,7 +169,16 @@
 .training[data-replay-phase="protection"]
   .network
   :global(.edge-kind-similar-pattern .react-flow__edge-text) {
-  fill: #ff5a79;
+  fill: #ff8da4;
+  stroke: #3a0914;
+  stroke-width: 2.4px;
+  stroke-linejoin: round;
+  font-weight: 800;
+  letter-spacing: 0.01em;
+  paint-order: stroke fill;
+  filter:
+    drop-shadow(0 1px 1px rgb(25 3 9 / 90%))
+    drop-shadow(0 0 5px rgb(255 49 94 / 62%));
 }
 
 .training[data-replay-phase="protection"]
@@ -178,8 +187,9 @@
 .training[data-replay-phase="protection"]
   .network
   :global(.edge-kind-similar-pattern .react-flow__edge-textbg) {
-  fill: #2b0712;
-  fill-opacity: 0.94;
+  fill: transparent;
+  fill-opacity: 0;
+  stroke: none;
 }
 
 .training[data-s08-resolving-account="master-campus"]
@@ -195,6 +205,63 @@
   .network
   :global([data-network-edge-risk-relation="true"][data-network-edge-target="campus-email"] .react-flow__edge-path) {
   animation: s08-risk-edge-dissolve 460ms ease-out both;
+}
+
+.training[data-s08-resolving-account="master-campus"]
+  .network
+  :global([data-network-edge-risk-relation="true"][data-network-edge-source="master-campus"] [data-network-edge-break-effect]),
+.training[data-s08-resolving-account="master-campus"]
+  .network
+  :global([data-network-edge-risk-relation="true"][data-network-edge-target="master-campus"] [data-network-edge-break-effect]),
+.training[data-s08-resolving-account="campus-email"]
+  .network
+  :global([data-network-edge-risk-relation="true"][data-network-edge-source="campus-email"] [data-network-edge-break-effect]),
+.training[data-s08-resolving-account="campus-email"]
+  .network
+  :global([data-network-edge-risk-relation="true"][data-network-edge-target="campus-email"] [data-network-edge-break-effect]) {
+  opacity: 1;
+  animation: s08-smoke-cloud-burst 460ms ease-out both;
+}
+
+.training[data-s08-resolving-account]
+  .network
+  :global([data-network-edge-break-effect] [data-network-edge-smoke-puff]) {
+  fill: #9ca8b3;
+  stroke: #e9eff1;
+  stroke-width: 0.75px;
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: s08-smoke-puff-burst 360ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.training[data-s08-resolving-account]
+  .network
+  :global([data-network-edge-break-effect] [data-network-edge-smoke-puff="2"]),
+.training[data-s08-resolving-account]
+  .network
+  :global([data-network-edge-break-effect] [data-network-edge-smoke-puff="5"]) {
+  animation-delay: 35ms;
+}
+
+.training[data-s08-resolving-account]
+  .network
+  :global([data-network-edge-break-effect] [data-network-edge-smoke-puff="3"]),
+.training[data-s08-resolving-account]
+  .network
+  :global([data-network-edge-break-effect] [data-network-edge-smoke-puff="6"]) {
+  animation-delay: 65ms;
+}
+
+.training[data-s08-resolving-account]
+  .network
+  :global([data-network-edge-break-effect] [data-network-edge-break-impact]) {
+  fill: none;
+  stroke: #fff1bd;
+  stroke-width: 2px;
+  stroke-linecap: round;
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: s08-edge-break-impact 210ms ease-out both;
 }
 
 .training[data-s08-resolving-account="master-campus"]
@@ -689,6 +756,58 @@
   }
 }
 
+@keyframes s08-smoke-cloud-burst {
+  0% {
+    opacity: 0;
+    filter: blur(0);
+  }
+
+  14% {
+    opacity: 1;
+  }
+
+  68% {
+    opacity: 0.9;
+  }
+
+  100% {
+    opacity: 0;
+    filter: blur(1.2px);
+  }
+}
+
+@keyframes s08-smoke-puff-burst {
+  0% {
+    opacity: 0;
+    transform: translateY(2px) scale(0.2);
+  }
+
+  24% {
+    opacity: 0.95;
+  }
+
+  100% {
+    opacity: 0;
+    transform: translateY(-4px) scale(1.65);
+  }
+}
+
+@keyframes s08-edge-break-impact {
+  0% {
+    opacity: 0;
+    transform: scale(0.25) rotate(0deg);
+  }
+
+  35% {
+    opacity: 1;
+  }
+
+  100% {
+    opacity: 0;
+    transform: scale(1.45) rotate(12deg);
+  }
+}
+
 @keyframes s08-risk-label-dissolve {
   to {
     opacity: 0;
@@ -768,6 +887,10 @@
     .network
     :global(.edge-kind-similar-pattern .react-flow__edge-path) {
     animation: none;
+  }
+
+  .training .network :global([data-network-edge-break-effect]) {
+    display: none;
   }
 
   .replayAction,

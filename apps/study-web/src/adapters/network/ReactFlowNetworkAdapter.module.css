@@ -527,6 +527,11 @@
   stroke-linejoin: round;
 }
 
+.edge :global([data-network-edge-break-effect]) {
+  opacity: 0;
+  pointer-events: none;
+}
+
 .attackEdgeDraw {
   fill: none;
   stroke: #ff315e;

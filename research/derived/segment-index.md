@@ -267,12 +267,15 @@ Seitenangaben beziehen sich auf die im Trainingsdokument ausgewiesene interne Pa
 - Nach dem Campusgram-Wechsel trennt S08 lokale Kontobefunde von offenen Passwortbeziehungen.
   Ein lokaler Volltreffer bleibt an das betreffende Konto gebunden. Bei Wiederverwendung oder
   Ähnlichkeit sind beide Endpunkte der roten gestrichelten Beziehung als mögliche Änderung
-  auswählbar. `Einzigartige Passphrase verwenden` löst den lokalen Befund des gewählten Kontos
-  und alle inzidenten Beziehungen; deren Kanten zerfallen sichtbar. Danach wird der verbleibende
-  Handlungsbedarf erneut aus lokalen Befunden und noch offenen Beziehungen abgeleitet. Die in S07
-  berechnete minimale Kontomenge ist nur eine Empfehlung beziehungsweise ein Default und keine
-  Einschränkung der S08-Auswahl. Schutzschild und kurzes Konfetti bestätigen jede ausgeführte
-  Aktion, bevor der abschließende Angriffsrücklauf beginnt.
+  auswählbar. Die kompakten Beziehungslabels stehen ohne schwarzen Hintergrund direkt an den
+  Kanten und bleiben durch helle Buchstaben, dunkle Kontur und Schattierung lesbar.
+  `Einzigartige Passphrase verwenden` löst den lokalen Befund des gewählten Kontos
+  und alle inzidenten Beziehungen; deren Kanten zerfallen sichtbar mit einer kleinen Rauchwolke
+  am jeweiligen Kantenmittelpunkt. Bei Reduced Motion entfällt dieser Zusatzeffekt. Danach wird
+  der verbleibende Handlungsbedarf erneut aus lokalen Befunden und noch offenen Beziehungen
+  abgeleitet. Die in S07 berechnete minimale Kontomenge ist nur eine Empfehlung beziehungsweise
+  ein Default und keine Einschränkung der S08-Auswahl. Schutzschild und kurzes Konfetti
+  bestätigen jede ausgeführte Aktion, bevor der abschließende Angriffsrücklauf beginnt.
 - Nach dem Campusgram-Wechsel projiziert S07 die lokalen S06-Befunde für die beiden anderen
   Konten als stark/leicht erratbar und einzigartig/ähnlich. Stark und einzigartig eingeordnete
   Konten bleiben ohne Einzelmeldung; nur offene Konten erhalten in S08 eine Schutzaktion. Sind
