@@ -1080,6 +1080,13 @@ const fuzzyCharacterAliases: Readonly<Record<string, string>> = (() => {
   return aliases;
 })();
 
+/** Canonicalizes the frozen one-character zxcvbn substitutions for bounded local comparisons. */
+export function canonicalizeTypicalLeet(value: string): string {
+  return [...value.toLocaleLowerCase('de-DE')]
+    .map((character) => fuzzyCharacterAliases[character] ?? character)
+    .join('');
+}
+
 function escapeRegularExpression(value: string): string {
   return value.replace(/[.*+?^${}()|[\]\\]/gu, '\\$&');
 }

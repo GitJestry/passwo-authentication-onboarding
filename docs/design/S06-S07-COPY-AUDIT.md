@@ -1,5 +1,39 @@
 # S06--S07 Copy Audit
 
+## Copy- und Analysedelta S06 gerichtete begrenzte Variantenwege, 17. August 2026
+
+Quelle ist der ausdrückliche Nutzerauftrag vom 17. August 2026. Die bisherige S06-Ähnlichkeitslogik
+erkannte nur den Austausch authored Konto- und Dienstbegriffe, eine auf zwei Jahre begrenzte
+Jahresänderung und einen abschließenden Symbolanhang. Dadurch blieben einfache konkrete Varianten
+wie `hallo` → `hallo1`, `HandyPasswort` → `Handy-Passwort`, ein entfernter Randbestandteil oder ein
+gleiches Wiederholungsmuster unerkannt.
+
+Der lokale Vergleich bleibt gerichtet und erzeugt weiterhin ausschließlich vollständige
+Kandidaten. Ein Ziel gilt nur dann als `Ähnlich`, wenn es aus dem bekannten Quellpasswort durch
+höchstens eine erkennbare Hauptveränderung und bis zu zwei kleine typische Veränderungen vollständig
+erzeugt wird. Hauptveränderungen sind der Austausch eines Konto- oder Dienstbegriffs, der Wechsel
+des Zeichens in einem vollständigen Wiederholungsmuster oder das Entfernen eines klar abgegrenzten
+vorangestellten beziehungsweise angehängten Bestandteils. Kleine Veränderungen umfassen begrenzte
+Jahres- und Zahlenänderungen, kurze Zahlen- oder Symbolanhänge, Groß-/Kleinschreibung, übliche
+Trennzeichen, eingefrorene typische Leetspeak-Ersetzungen sowie höchstens einzelne
+Zeichenoperationen. Frei erfundene Wörter oder längere Zielreste werden nicht übernommen.
+
+Der vollständige Zielwert muss getroffen werden. Eine gemeinsame Teilzeichenfolge oder derselbe
+allgemeine Satzrahmen reichen nicht. Deshalb bleibt
+`IchAnanasBinSuperTraurig` → `IchBananeBinSuperGlücklich` ohne erkannten direkten Variantenweg.
+`Passwort49u52u` → `Passwort` ist dagegen ein gerichteter Entfernungsweg; die Gegenrichtung wird
+nicht erkannt, weil der unbekannte Anhang nicht aus `Passwort` abgeleitet werden kann. Alle Werte,
+Transformationen und Ergebnisse bleiben flüchtig im Browser und werden weder persistiert noch
+exportiert.
+
+`S06_CONSEQUENCE_CONTENT_VERSION` steigt von `2.24.0` auf `2.25.0`.
+
+| Segment und Text-ID | Vorher | Nachher | Primäre Rolle | Grund und Bedeutungsänderung |
+|---|---|---|---|---|
+| `S06.comparisonResultLabels.no-derived-path-recognized` | `Keine Übereinstimmung` | `Keine direkte Variante erkannt` | Ergebnisfeedback / Safety Boundary | vermeidet die zu absolute Aussage, es bestehe keinerlei Gemeinsamkeit; benennt ausschließlich, dass der begrenzte gerichtete Kandidatengenerator keinen vollständigen Weg fand |
+| `S06.transformationLabels.*` | sieben enge Konto-, Jahres- und Anhangswege | konkrete Labels für Randbestandteil, Wiederholungsmuster, Trennzeichen, Groß-/Kleinschreibung, typische Zeichenersetzung, einzelne Zeichenoperation und begrenzte Kombinationen | Mechanismuserklärung | erklärt den tatsächlich erzeugten vollständigen Kandidaten statt eines Ähnlichkeitsscores |
+| lokale S06-Paarableitung | bis zu Kontoersetzung, Jahresänderung und Symbolanhang | höchstens eine Hauptveränderung plus bis zu zwei kleine typische Veränderungen | Analysegrenze | erweitert klar erkennbare Alltagsvarianten, ohne semantische Wortersetzung oder prozentuale Ähnlichkeit einzuführen |
+
 ## Copy- und Darstellungsdelta S06 persönliche Bereiche, 17. August 2026
 
 Quelle ist der ausdrückliche Nutzerauftrag vom 17. August 2026. Unter `Struktur` ergänzt die

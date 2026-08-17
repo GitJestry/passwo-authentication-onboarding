@@ -1,4 +1,5 @@
 import type {
+  PasswordTransformationId,
   S06AccountId,
   TrainingSectionId,
 } from '@passwo/contracts';
@@ -55,16 +56,16 @@ export interface S06NarrationContent {
   readonly body: string;
 }
 
-export const S06_CONSEQUENCE_CONTENT_VERSION = '2.24.0';
+export const S06_CONSEQUENCE_CONTENT_VERSION = '2.25.0';
 
 export const s06ConsequenceContent = {
   version: S06_CONSEQUENCE_CONTENT_VERSION,
   source: {
     document: 'research/private/training-script.pdf',
     internalPages: [36, 37, 38, 39, 40, 41, 42, 43, 44] as const,
-    revision: 'Userauftrag vom 2026-08-17 · persönliche Bereichsauswahl ergänzt',
+    revision: 'Userauftrag vom 2026-08-17 · gerichtete begrenzte Variantenwege',
     copyReference:
-      'docs/design/S06-S07-COPY-AUDIT.md#copy--und-darstellungsdelta-s06-persönliche-bereiche-17-august-2026',
+      'docs/design/S06-S07-COPY-AUDIT.md#copy-und-analysedelta-s06-gerichtete-begrenzte-variantenwege-17-august-2026',
   },
   segment: {
     id: 'S06',
@@ -158,18 +159,36 @@ export const s06ConsequenceContent = {
   comparisonResultLabels: {
     'exact-match': 'Wiederverwendet',
     'derived-variant-match': 'Ähnlich',
-    'no-derived-path-recognized': 'Keine Übereinstimmung',
+    'no-derived-path-recognized': 'Keine direkte Variante erkannt',
   },
   transformationLabels: {
     'account-or-service-term-replaced': 'Konto- oder Dienstbegriff wurde ausgetauscht.',
     'bounded-year-changed': 'Die Jahreszahl wurde innerhalb des begrenzten Wegs verändert.',
-    'typical-suffix-changed-or-added': 'Ein typischer Anhang wurde verändert oder ergänzt.',
+    'bounded-number-component-changed': 'Ein kurzer Zahlenbestandteil wurde verändert.',
+    'typical-suffix-changed-added-or-removed':
+      'Ein kurzer typischer Anhang wurde verändert, ergänzt oder entfernt.',
+    'separator-changed': 'Ein übliches Trennzeichen wurde verändert, ergänzt oder entfernt.',
+    'capitalization-changed': 'Die Groß- und Kleinschreibung wurde verändert.',
+    'typical-leetspeak-changed': 'Eine typische Zeichenersetzung wurde verändert.',
+    'single-character-changed':
+      'Ein einzelnes Zeichen wurde ergänzt, entfernt, ausgetauscht oder vertauscht.',
+    'repeated-character-pattern-changed':
+      'Das gleiche Wiederholungsmuster wurde mit einem anderen Zeichen verwendet.',
+    'leading-or-trailing-component-removed':
+      'Ein vollständiger vorangestellter oder angehängter Bestandteil wurde entfernt.',
+    'bounded-surface-changes': 'Bis zu zwei kleine typische Veränderungen wurden kombiniert.',
     'account-term-and-year-changed': 'Konto- oder Dienstbegriff und Jahreszahl wurden verändert.',
     'account-term-and-suffix-changed': 'Konto- oder Dienstbegriff und Anhang wurden verändert.',
     'year-and-suffix-changed': 'Jahreszahl und typischer Anhang wurden verändert.',
     'account-term-year-and-suffix-changed':
       'Konto- oder Dienstbegriff, Jahreszahl und typischer Anhang wurden begrenzt verändert.',
-  },
+    'account-term-with-small-surface-changes':
+      'Der Konto- oder Dienstbegriff und bis zu zwei kleine typische Merkmale wurden verändert.',
+    'repeated-pattern-with-small-surface-changes':
+      'Das Wiederholungsmuster und bis zu zwei kleine typische Merkmale wurden verändert.',
+    'component-removal-with-small-surface-changes':
+      'Ein vollständiger Randbestandteil und bis zu zwei kleine typische Merkmale wurden verändert.',
+  } as const satisfies Readonly<Record<PasswordTransformationId, string>>,
   dispositionLabels: {
     'whole-password-recognized':
       'Vollständiges Passwort als frühen Kandidaten in dieser begrenzten Simulation erkannt',

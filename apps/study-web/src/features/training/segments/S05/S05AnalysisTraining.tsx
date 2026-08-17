@@ -950,6 +950,7 @@ function sentenceLinkExists(
 
 interface StructureRepetitionGroup {
   readonly id: string;
+  readonly spans: readonly { readonly start: number; readonly end: number }[];
   readonly blockIds: ReadonlySet<string>;
   readonly firstBlockId: string;
   readonly repetitionCount: number;
@@ -959,7 +960,7 @@ function structureRepetitionGroups(
   snapshot: S05AnalysisControllerSnapshot,
   blocks: ReturnType<typeof structureReflectionBlocks>,
 ): readonly StructureRepetitionGroup[] {
-  return snapshot.structureScene.runtimeAnalysis.findings
+  const runtimeGroups = snapshot.structureScene.runtimeAnalysis.findings
     .filter(
       ({ findingKind }) =>
         findingKind === 'exact-component-repetition' ||
@@ -969,31 +970,74 @@ function structureRepetitionGroups(
       const spans = finding.evidence
         .filter((evidence) => evidence.type === 'span')
         .sort((left, right) => left.start - right.start);
-      const firstSpan = spans[0];
-      if (firstSpan === undefined || spans.length < 2) return [];
-      const repeatedBlocks = blocks.filter((block) =>
-        spans.some((span) => span.start < block.end && span.end > block.start),
-      );
-      const firstBlock = repeatedBlocks.find(
-        (block) => firstSpan.start < block.end && firstSpan.end > block.start,
-      );
-      if (firstBlock === undefined) return [];
-      return [
-        {
-          id: finding.id,
-          blockIds: new Set(repeatedBlocks.map(({ id }) => id)),
-          firstBlockId: firstBlock.id,
-          repetitionCount: spans.length,
-        },
-      ];
+      return spans.length < 2
+        ? []
+        : [{ id: finding.id, spans, repetitionCount: spans.length }];
     });
+  const projectedGroups =
+    snapshot.componentStrategy.canonicalView?.repetitionGroups.map((group) => ({
+      id: group.id,
+      spans: group.spans,
+      repetitionCount: group.spans.length,
+    })) ?? [];
+  const seen = new Set<string>();
+
+  return [...projectedGroups, ...runtimeGroups].flatMap((group) => {
+    const spans = [...group.spans].sort(
+      (left, right) => left.start - right.start || left.end - right.end,
+    );
+    const firstSpan = spans[0];
+    if (firstSpan === undefined || spans.length < 2) return [];
+    const key = spans.map(({ start, end }) => `${start}-${end}`).join(':');
+    if (seen.has(key)) return [];
+    seen.add(key);
+    const repeatedBlocks = blocks.filter((block) =>
+      spans.some((span) => span.start < block.end && span.end > block.start),
+    );
+    const firstBlock = repeatedBlocks.find(
+      (block) => firstSpan.start < block.end && firstSpan.end > block.start,
+    );
+    if (firstBlock === undefined) return [];
+    return [
+      {
+        id: group.id,
+        spans,
+        blockIds: new Set(repeatedBlocks.map(({ id }) => id)),
+        firstBlockId: firstBlock.id,
+        repetitionCount: group.repetitionCount,
+      },
+    ];
+  });
+}
+
+function repetitionSegmentsForBlock(
+  block: ReturnType<typeof structureReflectionBlocks>[number],
+  group: StructureRepetitionGroup | undefined,
+): readonly { readonly start: number; readonly end: number }[] {
+  if (group === undefined) return [];
+  const clipped = group.spans
+    .flatMap((span) => {
+      const start = Math.max(block.start, span.start);
+      const end = Math.min(block.end, span.end);
+      return start < end ? [{ start, end }] : [];
+    })
+    .sort((left, right) => left.start - right.start || left.end - right.end);
+
+  return clipped.reduce<Array<{ start: number; end: number }>>((segments, segment) => {
+    const previous = segments.at(-1);
+    if (previous === undefined || segment.start >= previous.end) {
+      segments.push({ ...segment });
+      return segments;
+    }
+    previous.end = Math.max(previous.end, segment.end);
+    return segments;
+  }, []);
 }
 
 function StructureReflectionToken({
   block,
   color,
-  repeated,
-  repetitionCount,
+  repetitionGroup,
   interactive,
   showFindings,
   sentence,
@@ -1002,8 +1046,7 @@ function StructureReflectionToken({
 }: {
   readonly block: ReturnType<typeof structureReflectionBlocks>[number];
   readonly color: string | null;
-  readonly repeated: boolean;
-  readonly repetitionCount: number | null;
+  readonly repetitionGroup: StructureRepetitionGroup | undefined;
   readonly interactive: boolean;
   readonly showFindings: boolean;
   readonly sentence: boolean;
@@ -1015,6 +1058,45 @@ function StructureReflectionToken({
   );
   const style: StructureSummaryTokenStyle | undefined =
     color === null ? undefined : { '--s05-structure-reflection-color': color };
+  const repetitionSegments = repetitionSegmentsForBlock(block, repetitionGroup);
+  const fullRepetition =
+    repetitionSegments.length === 1 &&
+    repetitionSegments[0]?.start === block.start &&
+    repetitionSegments[0]?.end === block.end;
+  const firstRepetitionStart = repetitionGroup?.spans[0]?.start;
+  const repetitionCount = repetitionGroup?.repetitionCount ?? null;
+  const showFullRepetitionCount =
+    fullRepetition && repetitionGroup?.firstBlockId === block.id && repetitionCount !== null;
+  const tokenValue = (() => {
+    if (repetitionSegments.length === 0 || fullRepetition) return block.value;
+    const parts: ReactNode[] = [];
+    let cursor = block.start;
+    for (const segment of repetitionSegments) {
+      if (cursor < segment.start) {
+        parts.push(block.value.slice(cursor - block.start, segment.start - block.start));
+      }
+      const showsCount =
+        firstRepetitionStart !== undefined &&
+        firstRepetitionStart >= segment.start &&
+        firstRepetitionStart < segment.end;
+      parts.push(
+        <span
+          className={styles.structureReflectionInlineRepetition}
+          key={`repeat-${segment.start}-${segment.end}`}
+        >
+          {showsCount && repetitionCount !== null ? (
+            <span className={styles.structureReflectionRepetitionCount} aria-hidden="true">
+              ×{repetitionCount}
+            </span>
+          ) : null}
+          {block.value.slice(segment.start - block.start, segment.end - block.start)}
+        </span>,
+      );
+      cursor = segment.end;
+    }
+    if (cursor < block.end) parts.push(block.value.slice(cursor - block.start));
+    return <span className={styles.structureReflectionTokenValue}>{parts}</span>;
+  })();
   const token = (
     <button
       type="button"
@@ -1022,19 +1104,20 @@ function StructureReflectionToken({
       style={style}
       data-grouped={color === null ? undefined : true}
       data-category={categoryId}
-      data-repetition={repeated || undefined}
+      data-repetition={repetitionSegments.length > 0 || undefined}
+      data-repetition-full={fullRepetition || undefined}
       data-sentence={sentence || undefined}
       disabled={!interactive}
       onClick={onClick}
       onMouseEnter={() => onHoverChange?.(true)}
       onMouseLeave={() => onHoverChange?.(false)}
     >
-      {repetitionCount === null ? null : (
+      {!showFullRepetitionCount ? null : (
         <span className={styles.structureReflectionRepetitionCount} aria-hidden="true">
           ×{repetitionCount}
         </span>
       )}
-      {block.value}
+      {tokenValue}
     </button>
   );
   if (!showFindings) return token;
@@ -1114,12 +1197,7 @@ function StructureSentenceRow({
         key={block.id}
         block={block}
         color={groupIndex === null ? null : structureReflectionColor(groupIndex)}
-        repeated={repetitionGroup !== undefined}
-        repetitionCount={
-          repetitionGroup?.firstBlockId === block.id
-            ? repetitionGroup.repetitionCount
-            : null
-        }
+        repetitionGroup={repetitionGroup}
         interactive={!summary && nextBlock !== undefined}
         showFindings={showFindings}
         sentence={sentence}
@@ -1270,8 +1348,7 @@ function StructureContentReflection({
               key={block.id}
               block={block}
               color={groupIndex === null ? null : structureReflectionColor(groupIndex)}
-              repeated={false}
-              repetitionCount={null}
+              repetitionGroup={undefined}
               interactive
               showFindings={false}
               sentence={false}

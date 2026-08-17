@@ -1294,10 +1294,26 @@ describe('local fictional password analysis', () => {
     ['LunaCampusgram2026!', 'LunaCampusgram2027?', 'derived-variant-match'],
     ['LunaCampusgram2026', 'LunaCampusgram2026!', 'derived-variant-match'],
     ['LunaCampusgram2026!', 'LunaMail2027?', 'derived-variant-match'],
+    ['hallo', 'hallo1', 'derived-variant-match'],
+    ['hallo1', 'hallo', 'derived-variant-match'],
+    ['HandyPasswort', 'Handy-Passwort', 'derived-variant-match'],
+    ['Handy-Passwort', 'HandyPasswort', 'derived-variant-match'],
+    ['MeinStarkesPasswortCampusgram', 'MeinStarkesPasswortMail!', 'derived-variant-match'],
+    ['MeinStarkesPasswortMail!', 'MeinStarkesPasswortCampusgram', 'derived-variant-match'],
+    ['1111111111!?2026', '2222222222!?2026', 'derived-variant-match'],
+    ['11111111!', '22222222?', 'derived-variant-match'],
+    ['Passwort49u52u', 'Passwort', 'derived-variant-match'],
+    ['Passwort49u52u!', 'Passwort?', 'derived-variant-match'],
+    ['rQ7mL2vX', 'rQ7mL2vY', 'derived-variant-match'],
+    ['Passwrot', 'Passwort', 'derived-variant-match'],
+    ['Passw0rt1!', 'Passwort1!', 'derived-variant-match'],
     ['MorgenKaffee7', 'MorgenTasse7', 'no-derived-path-recognized'],
-    ['rQ7mL2vX', 'rQ7mL2vY', 'no-derived-path-recognized'],
+    ['IchAnanasBinSuperTraurig', 'IchBananeBinSuperGlücklich', 'no-derived-path-recognized'],
+    ['Passwort', 'Passwort49u52u', 'no-derived-path-recognized'],
+    ['LunaCampusgram2020!', 'LunaCampusgram2026!', 'no-derived-path-recognized'],
+    ['Passwort2020', 'Passwort2026', 'no-derived-path-recognized'],
   ] as const)(
-    'classifies %s and %s only through concrete candidate paths',
+    'classifies directed path %s → %s only through bounded generated candidates',
     (sourcePassword, targetPassword, relationKind) => {
       expect(
         compareFictionalPasswords({
@@ -1309,7 +1325,69 @@ describe('local fictional password analysis', () => {
     },
   );
 
-  it('returns the concrete generated candidate and grounded evidence for a derived relation', () => {
+  it.each([
+    ['short suffix added', 'hallo', 'hallo1', 'typical-suffix-changed-added-or-removed'],
+    ['short suffix removed', 'hallo1', 'hallo', 'typical-suffix-changed-added-or-removed'],
+    ['bounded terminal year', 'Passwort2020', 'Passwort2021', 'bounded-year-changed'],
+    ['separator inserted', 'HandyPasswort', 'Handy-Passwort', 'separator-changed'],
+    ['capitalization changed', 'HandyPasswort', 'handypasswort', 'capitalization-changed'],
+    ['typical leetspeak changed', 'Passw0rt1!', 'Passwort1!', 'typical-leetspeak-changed'],
+    ['one character changed', 'rQ7mL2vX', 'rQ7mL2vY', 'single-character-changed'],
+    ['adjacent characters transposed', 'Passwrot', 'Passwort', 'single-character-changed'],
+    [
+      'repetition variable changed',
+      '1111111111!?2026',
+      '2222222222!?2026',
+      'repeated-character-pattern-changed',
+    ],
+    [
+      'trailing component removed',
+      'Passwort49u52u',
+      'Passwort',
+      'leading-or-trailing-component-removed',
+    ],
+    [
+      'repetition and suffix changed',
+      '11111111!',
+      '22222222?',
+      'repeated-pattern-with-small-surface-changes',
+    ],
+    [
+      'component removed and suffix changed',
+      'Passwort49u52u!',
+      'Passwort?',
+      'component-removal-with-small-surface-changes',
+    ],
+    [
+      'account term and suffix changed',
+      'MeinStarkesPasswortCampusgram',
+      'MeinStarkesPasswortMail!',
+      'account-term-and-suffix-changed',
+    ],
+    ['two bounded surface changes', 'Hallo1', 'hallo2', 'bounded-surface-changes'],
+  ] as const)(
+    'grounds %s through a concrete transformation',
+    (_case, sourcePassword, targetPassword, transformationId) => {
+      const relation = compareFictionalPasswords({
+        sourcePassword,
+        targetPassword,
+        authoredAccountAndServiceTerms: comparisonTerms,
+      }).relation;
+
+      expect(relation.kind).toBe('derived-variant-match');
+      if (relation.kind !== 'derived-variant-match') return;
+      expect(relation.candidate).toBe(targetPassword);
+      expect(relation.transformationId).toBe(transformationId);
+      for (const span of relation.sourceEvidence) {
+        expect(sourcePassword.slice(span.start, span.end)).toBe(span.token);
+      }
+      for (const span of relation.targetEvidence) {
+        expect(targetPassword.slice(span.start, span.end)).toBe(span.token);
+      }
+    },
+  );
+
+  it('returns the concrete generated candidate and grounded evidence for a combined relation', () => {
     const sourcePassword = 'LunaCampusgram2026!';
     const targetPassword = 'LunaMail2027?';
     const relation = compareFictionalPasswords({
@@ -1331,18 +1409,41 @@ describe('local fictional password analysis', () => {
     }
   });
 
+  it('keeps component removal directional instead of inventing an unknown suffix', () => {
+    const removable = compareFictionalPasswords({
+      sourcePassword: 'Passwort49u52u',
+      targetPassword: 'Passwort',
+      authoredAccountAndServiceTerms: comparisonTerms,
+    }).relation;
+    const invented = compareFictionalPasswords({
+      sourcePassword: 'Passwort',
+      targetPassword: 'Passwort49u52u',
+      authoredAccountAndServiceTerms: comparisonTerms,
+    }).relation;
+
+    expect(removable.kind).toBe('derived-variant-match');
+    expect(invented.kind).toBe('no-derived-path-recognized');
+  });
+
   it.each([
     ['common substring only', 'MorgenKaffee7', 'MorgenTasse7'],
-    ['single edit only', 'rQ7mL2vX', 'rQ7mL2vY'],
-    ['character substitution only', 'Passw0rt1!', 'Passwort1!'],
+    [
+      'same sentence frame with two arbitrary word replacements',
+      'IchAnanasBinSuperTraurig',
+      'IchBananeBinSuperGlücklich',
+    ],
+    ['arbitrary longer target suffix', 'Passwort', 'Passwort49u52u'],
     ['unbounded year change', 'LunaCampusgram2020!', 'LunaCampusgram2026!'],
-  ] as const)('does not treat %s as a derived path', (_case, sourcePassword, targetPassword) => {
-    expect(
-      compareFictionalPasswords({
-        sourcePassword,
-        targetPassword,
-        authoredAccountAndServiceTerms: comparisonTerms,
-      }).relation.kind,
-    ).toBe('no-derived-path-recognized');
-  });
+  ] as const)(
+    'does not treat %s as a direct derived path',
+    (_case, sourcePassword, targetPassword) => {
+      expect(
+        compareFictionalPasswords({
+          sourcePassword,
+          targetPassword,
+          authoredAccountAndServiceTerms: comparisonTerms,
+        }).relation.kind,
+      ).toBe('no-derived-path-recognized');
+    },
+  );
 });

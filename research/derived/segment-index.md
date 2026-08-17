@@ -227,9 +227,10 @@ Seitenangaben beziehen sich auf die im Trainingsdokument ausgewiesene interne Pa
 - Eine Beziehung ist ausschließlich `exact-match`, `derived-variant-match` oder
   `no-derived-path-recognized`. Eine abgeleitete Variante benötigt einen konkreten begrenzten
   Transformationsweg, dessen erzeugter Kandidat den vollständigen Zielwert trifft.
-- Gemeinsame Teilstrings, allgemeine Ähnlichkeit und Edit-Distance begründen keinen Treffer. Ein
-  nicht erkannter Weg bedeutet nur, dass diese Simulation keinen direkten Weg erkannt hat.
-- `S06_CONSEQUENCE_CONTENT_VERSION 2.22.0` übernimmt die S05-Vollpasswort-Disposition ohne eigene
+- Gemeinsame Teilstrings und allgemeine Ähnlichkeitswerte begründen keinen Treffer. Eine einzelne
+  Zeichenoperation zählt nur als explizit begrenzter erzeugter Kandidatenweg. Ein nicht erkannter
+  Weg bedeutet nur, dass diese Simulation keinen direkten Weg erkannt hat.
+- `S06_CONSEQUENCE_CONTENT_VERSION 2.25.0` übernimmt die S05-Vollpasswort-Disposition ohne eigene
   Guess-Schwelle. Nur `whole-password-recognized` öffnet den tatsächlichen lokalen Vorfallspfad;
   `no-whole-password-recognized` bleibt eine begrenzte Nicht-Erkennung und kein Stärkeurteil.
 - Jeder der drei flüchtigen S06-Kontoeingänge akzeptiert optional dieselbe bestätigte semantische

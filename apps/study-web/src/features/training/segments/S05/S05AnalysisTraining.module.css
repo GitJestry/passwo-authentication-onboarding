@@ -1565,20 +1565,31 @@
 }
 
 .structureReflectionToken[data-grouped="true"] {
-  border-color: color-mix(in srgb, var(--s05-structure-reflection-color) 82%, white);
-  box-shadow:
-    0 0.45rem 1rem rgb(0 0 0 / 24%),
-    0 0 1rem color-mix(in srgb, var(--s05-structure-reflection-color) 24%, transparent);
+  border-color: #4b4b52;
+  background: color-mix(in srgb, var(--s05-structure-reflection-color) 72%, #111113);
+  box-shadow: 0 0.55rem 1.2rem rgb(0 0 0 / 32%);
 }
 
-.structureReflectionToken[data-repetition="true"] {
+.structureReflectionToken[data-repetition-full="true"] {
   margin-inline: 0.44rem;
   outline: 0.18rem solid #f7f7f8;
   outline-offset: 0.2rem;
 }
 
-.structureReflectionRun > .structureReflectionToken[data-repetition="true"] {
+.structureReflectionRun > .structureReflectionToken[data-repetition-full="true"] {
   margin-inline: 0;
+}
+
+.structureReflectionTokenValue {
+  display: inline;
+}
+
+.structureReflectionInlineRepetition {
+  position: relative;
+  display: inline-block;
+  border-radius: 0.14rem;
+  outline: 0.18rem solid #f7f7f8;
+  outline-offset: 0.15rem;
 }
 
 .structureReflectionRepetitionCount {
@@ -1596,7 +1607,7 @@
   pointer-events: none;
 }
 
-.structureReflectionToken[data-grouped="true"][data-repetition="true"] {
+.structureReflectionToken[data-grouped="true"][data-repetition-full="true"] {
   box-shadow:
     0 0.45rem 1rem rgb(0 0 0 / 24%),
     0 0 1rem color-mix(in srgb, var(--s05-structure-reflection-color) 30%, transparent);

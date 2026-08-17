@@ -9,7 +9,7 @@ import { S08_NETWORK_REPLAY_CONTENT_VERSION, s08NetworkReplayContent } from './s
 import { S09_PASSWORD_SUMMARY_CONTENT_VERSION, s09PasswordSummaryContent } from './s09.js';
 
 const s06AttackFlowCopyReference =
-  'docs/design/S06-S07-COPY-AUDIT.md#copy--und-darstellungsdelta-s06-persönliche-bereiche-17-august-2026';
+  'docs/design/S06-S07-COPY-AUDIT.md#copy-und-analysedelta-s06-gerichtete-begrenzte-variantenwege-17-august-2026';
 const s07EntryCopyReference =
   'docs/design/S06-S07-COPY-AUDIT.md#copy-und-ablaufdelta-s07-passphraseneinstieg-in-zwei-schritten-17-august-2026';
 const s08CopyReference =
@@ -19,7 +19,7 @@ const s09CopyReference =
 
 describe('S06 transition and S07 passphrase-search copy traceability', () => {
   it('keeps S06 consequence wording aligned with bounded whole-password recognition', () => {
-    expect(S06_CONSEQUENCE_CONTENT_VERSION).toBe('2.24.0');
+    expect(S06_CONSEQUENCE_CONTENT_VERSION).toBe('2.25.0');
     expect(s06ConsequenceContent.source.copyReference).toBe(s06AttackFlowCopyReference);
     expect(s06ConsequenceContent.page.attackStart).toBe('Angriff starten');
     expect(s06ConsequenceContent.page.finish).toBe('Fertig');
@@ -97,7 +97,17 @@ describe('S06 transition and S07 passphrase-search copy traceability', () => {
     expect(s06ConsequenceContent.comparisonResultLabels).toEqual({
       'exact-match': 'Wiederverwendet',
       'derived-variant-match': 'Ähnlich',
-      'no-derived-path-recognized': 'Keine Übereinstimmung',
+      'no-derived-path-recognized': 'Keine direkte Variante erkannt',
+    });
+    expect(s06ConsequenceContent.transformationLabels).toMatchObject({
+      'typical-suffix-changed-added-or-removed':
+        'Ein kurzer typischer Anhang wurde verändert, ergänzt oder entfernt.',
+      'separator-changed':
+        'Ein übliches Trennzeichen wurde verändert, ergänzt oder entfernt.',
+      'repeated-character-pattern-changed':
+        'Das gleiche Wiederholungsmuster wurde mit einem anderen Zeichen verwendet.',
+      'leading-or-trailing-component-removed':
+        'Ein vollständiger vorangestellter oder angehängter Bestandteil wurde entfernt.',
     });
     const previewFixture = s06ConsequenceContent.fixtures.find(
       ({ id }) => id === 'reuse-and-derived',

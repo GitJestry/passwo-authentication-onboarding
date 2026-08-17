@@ -190,6 +190,11 @@
   background: #000;
 }
 
+/* S06 uses the authored account and comparison-path shield assets instead. */
+.networkPanel :global([data-symbol-id="shield"]) {
+  display: none;
+}
+
 .page[data-scene-mode="hypothetical"] .networkPanel,
 .page[data-scene-mode="hypothetical"] .networkPanel > div,
 .page[data-scene-mode="hypothetical"] .networkPanel :global(.react-flow),

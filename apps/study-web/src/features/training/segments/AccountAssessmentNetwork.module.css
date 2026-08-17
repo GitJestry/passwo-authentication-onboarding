@@ -32,15 +32,28 @@
 .network
   :global([data-scene-node]:has([data-node-action-label]) [data-scene-node-button]) {
   cursor: pointer;
+  transition: transform var(--motion-standard) var(--motion-ease-out);
 }
 
 .network
-  :global([data-scene-node]:has([data-node-action-label]):hover [data-scene-node-visual]) {
+  :global(
+    [data-scene-node]:has([data-node-action-label])
+      [data-scene-node-button]:not(:disabled):is(:hover, :focus-visible)
+  ) {
+  transform: translateY(-3px) scale(1.025);
+}
+
+.network
+  :global(
+    [data-scene-node]:has([data-node-action-label])
+      [data-scene-node-button]:not(:disabled):is(:hover, :focus-visible)
+      [data-scene-node-visual]
+  ) {
   border-color: color-mix(in srgb, var(--color-accent-strong) 62%, #ffffff);
   box-shadow:
     0 0 0 5px color-mix(in srgb, #50bff2 12%, transparent),
     0 1.1rem 2.2rem color-mix(in srgb, #285377 22%, transparent);
-  transform: translateY(-3px) scale(1.025);
+  transform: none;
 }
 
 .comparisonPathShield {
@@ -662,6 +675,11 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .network
+    :global([data-scene-node]:has([data-node-action-label]) [data-scene-node-button]) {
+    transition: none;
+  }
+
   .comparisonResult[data-comparison-result-reveal="true"] {
     opacity: 1;
     animation: none;

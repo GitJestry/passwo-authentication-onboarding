@@ -395,6 +395,34 @@ Typ für alle drei Konten. Damit können Master Campus und Campus E-Mail später
 Reflexionsschritt erhalten, ohne die Disposition oder die Visualisierung neu zu implementieren.
 Aktuell wird die Evidenz nur in S05 erhoben.
 
+### Gerichtete S06-Variantenwege
+
+Die sechs S06-Paarvergleiche sind gerichtet. Nach einer exakten Wiederverwendung erzeugt der
+lokale Vergleich vollständige Kandidaten aus dem bekannten Quellpasswort. `derived-variant-match`
+gilt nur, wenn ein Kandidat den vollständigen Zielwert trifft und der Weg höchstens aus einer
+Hauptveränderung sowie zwei kleinen typischen Veränderungen besteht.
+
+Als Hauptveränderung gelten ausschließlich:
+
+- der Austausch eines authored Konto- oder Dienstbegriffs;
+- der Wechsel des Zeichens bei einem vollständigen Wiederholungsmuster gleicher Länge;
+- das Entfernen eines durch Zeichenklasse, Trennzeichen oder Camel-Case-Grenze abgegrenzten
+  vorangestellten oder angehängten Bestandteils.
+
+Kleine typische Veränderungen sind eine auf zwei Jahre begrenzte Jahresänderung, ein kurzer
+Zahlenbestandteil, ein kurzer Zahlen- oder Symbolanhang, Groß-/Kleinschreibung, ein übliches
+Trennzeichen, eine eingefrorene typische Leetspeak-Ersetzung oder eine einzelne Einfügung,
+Entfernung, Ersetzung beziehungsweise benachbarte Vertauschung. Der Vergleich verwendet diese
+Operationen als endliche Kandidatenfamilien, nicht als allgemeinen Edit-Distance-Score.
+
+Der Weg ist absichtlich nicht symmetrisch. `Passwort49u52u` kann durch Entfernen des bekannten
+Randbestandteils zu `Passwort` führen. Aus `Passwort` wird der unbekannte längere Rest dagegen
+nicht erfunden. Ebenso reichen gemeinsame Teilstrings oder der gleiche allgemeine Satzrahmen
+nicht aus; zwei beliebige Wörterbuchwörter werden nicht aus dem Zielwert übernommen. Ein negatives
+Ergebnis lautet deshalb `Keine direkte Variante erkannt` und ist weder eine Aussage über fehlende
+Gemeinsamkeiten noch eine Sicherheitsgarantie. Alle Eingaben und Vergleichsbefunde bleiben lokal
+und flüchtig.
+
 ## Teststrategie
 
 `password-candidate-corpus.test.ts` enthält zunächst einen synthetischen Policy-Korpus mit

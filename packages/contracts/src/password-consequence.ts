@@ -207,11 +207,22 @@ export type PasswordRelationKind =
 export type PasswordTransformationId =
   | 'account-or-service-term-replaced'
   | 'bounded-year-changed'
-  | 'typical-suffix-changed-or-added'
+  | 'bounded-number-component-changed'
+  | 'typical-suffix-changed-added-or-removed'
+  | 'separator-changed'
+  | 'capitalization-changed'
+  | 'typical-leetspeak-changed'
+  | 'single-character-changed'
+  | 'repeated-character-pattern-changed'
+  | 'leading-or-trailing-component-removed'
+  | 'bounded-surface-changes'
   | 'account-term-and-year-changed'
   | 'account-term-and-suffix-changed'
   | 'year-and-suffix-changed'
-  | 'account-term-year-and-suffix-changed';
+  | 'account-term-year-and-suffix-changed'
+  | 'account-term-with-small-surface-changes'
+  | 'repeated-pattern-with-small-surface-changes'
+  | 'component-removal-with-small-surface-changes';
 
 export interface ExactPasswordRelation {
   readonly kind: 'exact-match';

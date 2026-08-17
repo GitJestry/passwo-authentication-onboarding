@@ -72,11 +72,17 @@ interface S05TypicalChange {
 export interface S05CanonicalPasswordView {
   readonly password: string;
   readonly blocks: readonly S05CanonicalBlock[];
+  readonly repetitionGroups: readonly S05RepetitionGroup[];
   readonly automaticFindings: Readonly<{
     readonly 'common-components': readonly S05CategoryFinding[];
     readonly 'account-context': readonly S05CategoryFinding[];
   }>;
   readonly typicalChanges: readonly S05TypicalChange[];
+}
+
+export interface S05RepetitionGroup {
+  readonly id: string;
+  readonly spans: readonly { readonly start: number; readonly end: number }[];
 }
 
 export interface S05DisplayBlock extends S05CanonicalBlock {
@@ -575,6 +581,13 @@ export function createCanonicalPasswordView(
   const typicalSuffixSpans = canonicalFindingsWithSpans
     .filter(({ finding }) => finding.kind === 'typical-suffix')
     .map(({ span }) => span);
+  const repetitionGroups = analysis.findings.flatMap((finding) => {
+    if (finding.kind !== 'repeated-component') return [];
+    const spans = evidenceSpans(finding)
+      .map(({ start, end }) => ({ start, end }))
+      .sort((left, right) => left.start - right.start || left.end - right.end);
+    return spans.length < 2 ? [] : [{ id: finding.id, spans }];
+  });
   const typicalChanges = canonicalFindingsWithSpans.flatMap<S05TypicalChange>(
     ({ finding, span }) => {
       if (finding.kind === 'typical-transformation') {
@@ -673,6 +686,7 @@ export function createCanonicalPasswordView(
   return {
     password,
     blocks,
+    repetitionGroups,
     typicalChanges,
     automaticFindings: {
       'common-components': commonFindings,
