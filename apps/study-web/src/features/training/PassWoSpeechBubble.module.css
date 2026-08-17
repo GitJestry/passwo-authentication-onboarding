@@ -19,12 +19,18 @@
 }
 
 .bubble[data-tone="dark"] {
-  --bubble-surface: color-mix(in srgb, #0d2031 94%, transparent);
-  --bubble-border: color-mix(in srgb, var(--color-accent-soft) 42%, transparent);
-  --bubble-text: var(--color-on-inverse);
-  --bubble-muted: color-mix(in srgb, var(--color-on-inverse) 76%, transparent);
-
-  box-shadow: 0 1.3rem 3rem color-mix(in srgb, #000 48%, transparent);
+  --bubble-surface: color-mix(
+    in srgb,
+    var(--color-surface-analysis-raised) 97%,
+    transparent
+  );
+  --bubble-border: color-mix(
+    in srgb,
+    var(--color-accent-strong) 24%,
+    var(--color-border-analysis)
+  );
+  --bubble-text: var(--color-ink-analysis);
+  --bubble-muted: var(--color-ink-analysis-muted);
 }
 
 .speaker {
@@ -142,10 +148,6 @@
   width: 100%;
   height: 100%;
   object-fit: contain;
-}
-
-.bubble[data-tone="dark"] .emphasis {
-  color: color-mix(in srgb, var(--emphasis-color) 48%, var(--color-on-inverse));
 }
 
 .footer {

@@ -1,5 +1,6 @@
 import type { S06AccountId } from '@passwo/contracts';
 import {
+  getS06ConsequenceFixture,
   s00Content,
   s06ConsequenceContent,
   type S06ConsequenceFixtureId,
@@ -13,9 +14,11 @@ import whatIfLogo from '../../../../assets/s06/what-if-logo.png';
 import { PassWoGuide } from '../../PassWoGuide.js';
 import { passWoSpeechEmphasisFor } from '../../PassWoSpeechEmphasis.js';
 import { AccountAssessmentNetwork } from '../AccountAssessmentNetwork.js';
+import { S06LocalPasswordReflection } from './S06LocalPasswordReflection.js';
 import { S06PasswordComparisonProjection } from './S06PasswordComparisonProjection.js';
 import {
   type S06ConsequenceControllerSnapshot,
+  type S06ConsequenceControllerOptions,
   type S06ConsequenceAccountInputs,
   createS06ConsequenceScenePlan,
   createS06FixtureScenePlan,
@@ -47,6 +50,7 @@ export interface S06ConsequenceTrainingProps {
   readonly externalTimingError?: string | null;
   readonly onRetryTiming?: () => void;
   readonly onComplete?: () => void;
+  readonly onSemanticEvidenceChange?: S06ConsequenceControllerOptions['onSemanticEvidenceChange'];
   readonly onSummaryNetworkReady?: (network: NetworkSceneSnapshot) => void;
 }
 
@@ -66,6 +70,12 @@ function createScenePlan(
   throw new Error('S06 consequence source is missing.');
 }
 
+function accountInputsForSource(source: S06ConsequenceSource): S06ConsequenceAccountInputs {
+  return source.kind === 'runtime'
+    ? source.accounts
+    : getS06ConsequenceFixture(source.fixtureId).accounts;
+}
+
 export function S06ConsequenceTraining({
   source,
   timingState = 'active',
@@ -73,6 +83,7 @@ export function S06ConsequenceTraining({
   externalTimingError = null,
   onRetryTiming,
   onComplete,
+  onSemanticEvidenceChange,
   onSummaryNetworkReady,
 }: S06ConsequenceTrainingProps) {
   const sceneRef = useRef<HTMLElement | null>(null);
@@ -80,8 +91,9 @@ export function S06ConsequenceTraining({
   const planCacheRef = useRef<PlanCache | null>(null);
   const [runtime, setRuntime] = useState<Runtime | null>(null);
   const [snapshot, setSnapshot] = useState<S06ConsequenceControllerSnapshot | null>(null);
-  const fixtureId = source.kind === 'fixture' ? source.fixtureId : null;
-  const runtimeAccounts = source.kind === 'runtime' ? source.accounts : null;
+  const [initialSource] = useState(source);
+  const fixtureId = initialSource.kind === 'fixture' ? initialSource.fixtureId : null;
+  const runtimeAccounts = initialSource.kind === 'runtime' ? initialSource.accounts : null;
 
   useEffect(() => {
     const sourceIdentity = fixtureId ?? runtimeAccounts;
@@ -119,8 +131,10 @@ export function S06ConsequenceTraining({
     });
     controller = new S06ConsequenceController({
       plan,
+      accountInputs: accountInputsForSource(initialSource),
       animationPlayer,
       prefersReducedMotion,
+      ...(onSemanticEvidenceChange === undefined ? {} : { onSemanticEvidenceChange }),
       ...(onComplete === undefined ? {} : { onComplete }),
     });
     const renderer = new ReactFlowNetworkAdapter(controller.getSnapshot().step.network);
@@ -146,7 +160,7 @@ export function S06ConsequenceTraining({
       unsubscribe();
       void controller?.dispose();
     };
-  }, [fixtureId, onComplete, onSummaryNetworkReady, runtimeAccounts]);
+  }, [fixtureId, initialSource, onComplete, onSemanticEvidenceChange, onSummaryNetworkReady, runtimeAccounts]);
 
   if (runtime === null || snapshot === null) return null;
 
@@ -267,6 +281,17 @@ export function S06ConsequenceTraining({
             onResolutionComplete={() => runtime.controller.resolutionCompleted(snapshot.step.id)}
           />
         )}
+        {snapshot.localReflection === null ? null : (
+          <S06LocalPasswordReflection
+            reflection={snapshot.localReflection}
+            interactive={snapshot.stage === 'local-reflection'}
+            onModeChange={(mode) => runtime.controller.selectLocalReflectionMode(mode)}
+            onGroupSelect={(groupId) => runtime.controller.selectLocalReflectionGroup(groupId)}
+            onGroupAdd={() => runtime.controller.addLocalReflectionGroup()}
+            onBlockToggle={(blockId) => runtime.controller.toggleLocalReflectionBlock(blockId)}
+            onFinish={() => runtime.controller.completeLocalReflection()}
+          />
+        )}
         {timingFailure || snapshot.showGuide ? (
           <div className={styles.passWoLayer} role={timingFailure ? 'alert' : undefined}>
             <PassWoGuide
@@ -278,11 +303,12 @@ export function S06ConsequenceTraining({
               speech={speech}
               speechKey={`s06-${snapshot.stage}-${snapshot.step.id}-${timingState}`}
               speechEmphasis={passWoSpeechEmphasisFor(snapshot.step.narrationId)}
+              speechTone="dark"
               {...(speechAction === undefined ? {} : { speechAction })}
               speechObstacleSelector="[data-scene-node]"
               speechPlacement="right"
               placement="bottom-left"
-              pose={snapshot.isHypothetical ? 'default' : 'warning'}
+              pose={snapshot.stage === 'initial-found' ? 'warning' : 'default'}
               showHelpButton={false}
             />
           </div>

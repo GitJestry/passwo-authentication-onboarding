@@ -4,7 +4,7 @@ import { S05_CONTENT_VERSION, s05Content } from './s05.js';
 
 describe('S05 content traceability', () => {
   it('keeps the participant copy bounded and separate from internal terminology', () => {
-    expect(S05_CONTENT_VERSION).toBe('2.100.0');
+    expect(S05_CONTENT_VERSION).toBe('2.101.0');
     expect(s05Content.source).toMatchObject({
       document: 'research/private/training-script.pdf',
       internalPages: [
@@ -452,6 +452,10 @@ describe('S05 content traceability', () => {
       },
       reuseTakeaway:
         'Selbst gewählte Passwörter werden oft für mehrere Konten wiederverwendet oder nur leicht verändert, weil man sich so weniger merken muss.',
+      reuseExample: {
+        sourcePassword: 'PasswortCampusgram',
+        targetPassword: 'PasswortMasterCampus',
+      },
       attackerTakeaway:
         'Wird eines davon herausgefunden, können Angreifer diese Varianten auch bei anderen Konten ausprobieren.',
       otherAccountsAction: 'Andere Konten prüfen',

@@ -496,6 +496,7 @@ export function PasswordModuleTraining({
         timingErrorCode={snapshot.context.timingErrorCode}
         externalTimingError={externalTimingError}
         onComplete={completeS06}
+        onSemanticEvidenceChange={captureSemanticEvidenceForAccount}
         onSummaryNetworkReady={setS06SummaryNetwork}
         onRetryTiming={() => {
           if (externalTimingError !== null) onRetryExternalTiming?.();

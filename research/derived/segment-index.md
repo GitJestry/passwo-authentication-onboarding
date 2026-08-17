@@ -67,6 +67,11 @@ Seitenangaben beziehen sich auf die im Trainingsdokument ausgewiesene interne Pa
   Bausteine; bei einem vollständig erkannten Einzelbaustein weist sie auf den bereits gefundenen
   Passwortkandidaten hin. Die gemeinsame
   Abschlussansicht übergibt anschließend unverändert an `Vorhersehbarer Aufbau`.
+- In der Campusgram-Abschlusszusammenfassung bleiben die Bausteinflächen wie in der lokalen
+  S06-Reflexion zunächst transparent; erst bestätigte Gruppen füllen den vollständigen Baustein.
+  Kategoriezuordnungen bleiben über Befundpunkte und Beschriftungen sichtbar. Der QA-Einstieg
+  `s05-s06-transition` enthält zusätzlich einen ausschließlich flüchtigen persönlichen Befund mit
+  überlappendem Bereich, um die Blockprojektion visuell prüfen zu können.
 - Die Laufbandmaschine wird für alle vier Kategorien wiederverwendet. Ihre linke Beispieltabelle
   trägt statt einer Textüberschrift das große Symbol der aktuellen Kategorie, verwendet nur fest
   authored Beispiele und führt über die mittlere Beschriftung `Typische Veränderungen generieren`
@@ -184,22 +189,39 @@ Seitenangaben beziehen sich auf die im Trainingsdokument ausgewiesene interne Pa
   Projektion; nur die Eingabequelle unterscheidet sich zwischen Fixtures und flüchtigen
   Übungswerten.
 - Die Laufzeitwerte werden beim bestätigten Eintritt einmal lokal ausgewertet. Drei
-  Einzelanalysen, sechs gerichtete Kontovergleiche und die daraus projizierten Szenen bleiben
-  flüchtig und werden weder in den globalen Machine Context kopiert noch an eine Study API
-  gesendet.
+  Einzelanalysen und sechs gerichtete Kontovergleiche bleiben flüchtig und werden weder in den
+  globalen Machine Context kopiert noch an eine Study API gesendet. Sichtbar projiziert werden
+  die beiden Wege von Campusgram sowie anschließend ausschließlich Master Campus zu Campus
+  E-Mail.
 - Der Timing-Handshake lautet S05 segment-end, S06 segment-start, S06 segment-end. Ein
   fehlgeschlagener späterer Write wiederholt keine bereits bestätigte Grenze.
 - Die Projektion verwendet die drei fiktiven Konten Master Campus, Campus E-Mail und Campusgram.
-  Campusgram und Master Campus prüfen die relevanten gerichteten Beziehungen zu den anderen
-  Konten. Campus E-Mail bildet am Ende ausschließlich einen lokalen Einzelcheck; bei einem Fund
+  Campusgram prüft die Beziehungen zu beiden anderen Konten; Master Campus anschließend nur noch
+  die im neuen Sprechablauf angekündigte Beziehung zu Campus E-Mail. Nach diesem Vergleich ordnet
+  eine bedingte PassWo-Blase die erkannte Verbindung oder die begrenzte Nicht-Erkennung ein und
+  führt erst danach zum lokalen Campus-E-Mail-Check. Campus E-Mail bildet am Ende ausschließlich
+  einen lokalen Einzelcheck; bei einem Fund
   werden seine verbundenen Funktionen betroffen dargestellt, bei Schutz folgt kein
   hypothetischer Pfad. Danach kehrt die Ansicht zur tatsächlichen Campusgram-Ausgangslage zurück.
   Campusgram-Inhalte bleiben lokale
   Inhaltszuordnungen und werden nicht als SSO-Dienste modelliert.
-- Nach der Campus-E-Mail-Perspektive kündigt PassWo die Rückkehr an. Erst `Weiter` stellt die
-  tatsächliche Campusgram-Ausgangslage einschließlich ihres ursprünglichen lokalen Prüfergebnisses
-  wieder her.
-- Ein hypothetischer Campus-E-Mail-Befall setzt vor den ausgehenden Prüfpfaden den Angreifer und
+- Nach der Campus-E-Mail-Perspektive stellt der Controller ohne zusätzliche Rückkehr- oder
+  Endübersichtsblase die tatsächliche Campusgram-Ausgangslage wieder her. PassWo führt direkt mit
+  dem neuen Folgenschutz-Satz zu S07.
+- Beim Perspektivwechsel zu Master Campus und Campus E-Mail werden die übrigen Knoten zunächst
+  ausgeblendet. Das jeweilige fiktive Passwort zeigt automatisch erkannte Kategorien und
+  Wiederholungen und nimmt über `Gruppen` beziehungsweise `Struktur` ausschließlich flüchtige
+  Zusatzangaben entgegen. Der aktive Kontozweig einschließlich seiner Unterkonten bleibt dabei
+  sichtbar; die Gruppensteuerung beginnt mit `Gruppe 1` und kann wie in S05 über den Plus-Button
+  erweitert werden. Die Bausteine beginnen ohne Kategoriefläche transparent; erst eine
+  Gruppenzuordnung färbt die gesamte Bausteinfläche in der Gruppenfarbe. Der Strukturmodus setzt
+  wie in S05 gerichtete Pfeile zwischen benachbarten Bausteinen. Wiederholungen erhalten nur am
+  ersten Wiederholungsbaustein den Multiplikator und kein zusätzliches Textlabel. Nach `Fertig`
+  verschwindet die Reflexionsfläche. Gleichzeitig mit PassWos Ergebnistext zeigt das Kontennetz
+  den betroffenen roten Kontozweig oder den geschützten Kontozweig samt Schutzschild. Bei Master
+  Campus startet `Angriff starten` anschließend nur noch den Vergleich mit Campus E-Mail; beim
+  Campus-E-Mail-Einzelcheck führt `Weiter` direkt zum S07-Übergang.
+- Ein hypothetischer Master-Campus-Befall setzt vor dem Vergleich mit Campus E-Mail den Angreifer und
   den gesamten Kontozweig sichtbar auf betroffen. Der anschließende Passphrasen-Übergang bewahrt
   die wiederhergestellte Campusgram-Schlussansicht unverändert.
 - Eine Beziehung ist ausschließlich `exact-match`, `derived-variant-match` oder
@@ -207,7 +229,7 @@ Seitenangaben beziehen sich auf die im Trainingsdokument ausgewiesene interne Pa
   Transformationsweg, dessen erzeugter Kandidat den vollständigen Zielwert trifft.
 - Gemeinsame Teilstrings, allgemeine Ähnlichkeit und Edit-Distance begründen keinen Treffer. Ein
   nicht erkannter Weg bedeutet nur, dass diese Simulation keinen direkten Weg erkannt hat.
-- `S06_CONSEQUENCE_CONTENT_VERSION 2.17.0` übernimmt die S05-Vollpasswort-Disposition ohne eigene
+- `S06_CONSEQUENCE_CONTENT_VERSION 2.22.0` übernimmt die S05-Vollpasswort-Disposition ohne eigene
   Guess-Schwelle. Nur `whole-password-recognized` öffnet den tatsächlichen lokalen Vorfallspfad;
   `no-whole-password-recognized` bleibt eine begrenzte Nicht-Erkennung und kein Stärkeurteil.
 - Jeder der drei flüchtigen S06-Kontoeingänge akzeptiert optional dieselbe bestätigte semantische

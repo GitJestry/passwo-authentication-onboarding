@@ -26,7 +26,9 @@ import { PasswordBuildingBlocks, passwordVisualStyleFor } from './PasswordBuildi
 import {
   type S05AnalysisControllerSnapshot,
   type S05AnalysisSubject,
+  type S05InitialPersonalFinding,
   type S05InitialSection,
+  type S05InitialStructurePreset,
   type S05StructureReflectionSnapshot,
   S05AnalysisController,
 } from './S05AnalysisController.js';
@@ -57,6 +59,8 @@ export interface S05CompletionPort {
 export interface S05AnalysisTrainingProps {
   readonly subject: S05AnalysisSubject;
   readonly initialSection?: S05InitialSection;
+  readonly initialPersonalFindings?: readonly S05InitialPersonalFinding[];
+  readonly initialStructurePreset?: S05InitialStructurePreset;
   readonly platform?: DesktopPlatform;
   readonly timingState?: S05TimingState;
   readonly timingErrorCode?: string | null;
@@ -819,6 +823,10 @@ type StructureReflectionColorStyle = CSSProperties & {
   readonly '--s05-structure-reflection-color': string;
 };
 
+type StructureSummaryTokenStyle = CSSProperties & {
+  readonly '--s05-structure-reflection-color': string;
+};
+
 function structureReflectionColor(index: number): string {
   return structureReflectionPalette[index % structureReflectionPalette.length] ?? '#5b5fef';
 }
@@ -899,10 +907,22 @@ function StructurePatternsScene({ step }: { readonly step: S05AnalysisController
   );
 }
 
-function structureReflectionBlocks(snapshot: S05AnalysisControllerSnapshot) {
+function structureReflectionBlocks(
+  snapshot: S05AnalysisControllerSnapshot,
+  includeAllFindings = false,
+) {
   const view = snapshot.componentStrategy.canonicalView;
   if (view === null) return [];
-  return projectCanonicalPasswordBlocks(view, releasedComponentFindings(snapshot));
+  const findings = includeAllFindings
+    ? s05Content.componentStrategy.categories.flatMap(({ id }) => {
+        const card = snapshot.componentStrategy.cards[id];
+        if (card.status === 'checked-findings' || card.status === 'checked-none') {
+          return card.findings;
+        }
+        return id === 'personal-details' ? [] : view.automaticFindings[id];
+      })
+    : releasedComponentFindings(snapshot);
+  return projectCanonicalPasswordBlocks(view, findings, [], !includeAllFindings);
 }
 
 function contentGroupIndexForBlock(
@@ -970,6 +990,8 @@ function StructureReflectionToken({
   repeated,
   repetitionCount,
   interactive,
+  showFindings,
+  sentence,
   onClick,
   onHoverChange,
 }: {
@@ -978,18 +1000,25 @@ function StructureReflectionToken({
   readonly repeated: boolean;
   readonly repetitionCount: number | null;
   readonly interactive: boolean;
+  readonly showFindings: boolean;
+  readonly sentence: boolean;
   readonly onClick?: (() => void) | undefined;
   readonly onHoverChange?: ((hovered: boolean) => void) | undefined;
 }) {
-  const style: StructureReflectionColorStyle | undefined =
+  const categoryId = block.categoryIds.find(
+    (candidate): candidate is S05ComponentCategoryId => candidate !== 'repetition',
+  );
+  const style: StructureSummaryTokenStyle | undefined =
     color === null ? undefined : { '--s05-structure-reflection-color': color };
-  return (
+  const token = (
     <button
       type="button"
       className={styles.structureReflectionToken}
       style={style}
       data-grouped={color === null ? undefined : true}
+      data-category={categoryId}
       data-repetition={repeated || undefined}
+      data-sentence={sentence || undefined}
       disabled={!interactive}
       onClick={onClick}
       onMouseEnter={() => onHoverChange?.(true)}
@@ -1002,6 +1031,23 @@ function StructureReflectionToken({
       )}
       {block.value}
     </button>
+  );
+  if (!showFindings) return token;
+
+  return (
+    <span className={styles.structureReflectionFindingBlock}>
+      {token}
+      {block.findings.length === 0 ? null : (
+        <small className={styles.structureReflectionFindings}>
+          {block.findings.map(({ categoryId, label }) => (
+            <span data-category={categoryId} key={`${categoryId}-${label}`}>
+              <i aria-hidden="true" />
+              <span>{label}</span>
+            </span>
+          ))}
+        </small>
+      )}
+    </span>
   );
 }
 
@@ -1031,13 +1077,15 @@ function StructureSentenceRow({
   snapshot,
   controller,
   summary = false,
+  showFindings = false,
 }: {
   readonly snapshot: S05AnalysisControllerSnapshot;
   readonly controller?: S05AnalysisController;
   readonly summary?: boolean;
+  readonly showFindings?: boolean;
 }) {
   const [hoveredBlockId, setHoveredBlockId] = useState<string | null>(null);
-  const blocks = structureReflectionBlocks(snapshot);
+  const blocks = structureReflectionBlocks(snapshot, showFindings);
   const reflection = snapshot.structureReflection;
   const repetitionGroups = structureRepetitionGroups(snapshot, blocks);
   const rendered: ReactNode[] = [];
@@ -1051,6 +1099,11 @@ function StructureSentenceRow({
       ? repetitionGroups.find(({ blockIds }) => blockIds.has(block.id))
       : undefined;
     const nextBlock = blocks[blockIndex + 1];
+    const previousBlock = blocks[blockIndex - 1];
+    const sentence =
+      reflection.sentenceBlockIds.includes(block.id) ||
+      (previousBlock !== undefined && sentenceLinkExists(reflection, previousBlock.id, block.id)) ||
+      (nextBlock !== undefined && sentenceLinkExists(reflection, block.id, nextBlock.id));
     return (
       <StructureReflectionToken
         key={block.id}
@@ -1063,6 +1116,8 @@ function StructureSentenceRow({
             : null
         }
         interactive={!summary && nextBlock !== undefined}
+        showFindings={showFindings}
+        sentence={sentence}
         onClick={
           summary || nextBlock === undefined || controller === undefined
             ? undefined
@@ -1213,6 +1268,8 @@ function StructureContentReflection({
               repeated={false}
               repetitionCount={null}
               interactive
+              showFindings={false}
+              sentence={false}
               onClick={() => controller.toggleStructureContentBlock(block.id)}
             />
           );
@@ -3025,7 +3082,65 @@ function FinalAssessmentScene({ snapshot }: { readonly snapshot: S05AnalysisCont
           canvasAriaLabel="Campusgram und seine verbundenen Knoten sind sichtbar und entsperrt"
         />
       </article>
+      {snapshot.step === 'final-components' ||
+      snapshot.step === 'final-length' ||
+      snapshot.step === 'final-result' ? (
+        <FinalPasswordSummary snapshot={snapshot} />
+      ) : null}
+      {snapshot.step === 'final-spread' ? <PasswordReuseExampleScene /> : null}
     </div>
+  );
+}
+
+function PasswordReuseExampleScene() {
+  const example = s05Content.freeSearch.application.reuseExample;
+  return (
+    <figure
+      className={styles.passwordReuseExample}
+      aria-label={`${example.sourcePassword} wird ähnlich als ${example.targetPassword} verwendet`}
+      data-s05-speech-obstacle
+    >
+      <code>{example.sourcePassword}</code>
+      <span aria-hidden="true" />
+      <code>{example.targetPassword}</code>
+    </figure>
+  );
+}
+
+interface FinalPasswordSummaryStyle extends CSSProperties {
+  readonly '--s05-final-password-character-count': number;
+  readonly '--s05-final-password-scale': number;
+}
+
+function FinalPasswordSummary({
+  snapshot,
+}: {
+  readonly snapshot: S05AnalysisControllerSnapshot;
+}) {
+  const view = snapshot.componentStrategy.canonicalView;
+  if (view === null) return null;
+  const summaryStyle: FinalPasswordSummaryStyle = {
+    '--s05-final-password-character-count': Math.max([...view.password].length, 1),
+    '--s05-final-password-scale': Math.min(1, 32 / Math.max([...view.password].length, 1)),
+  };
+
+  return (
+    <section
+      className={styles.finalPasswordSummary}
+      style={summaryStyle}
+      aria-label={`Visuelle Zusammenfassung des Campusgram-Passworts ${view.password}`}
+      data-s05-speech-obstacle
+    >
+      <strong className={`${styles.canonicalAccount} ${styles.finalPasswordAccount}`}>
+        <span aria-hidden="true">
+          <NetworkSymbol symbolId="campusgram" />
+        </span>
+        <span>Campusgram-Passwort</span>
+      </strong>
+      <div className={styles.finalPasswordStructure}>
+        <StructureSentenceRow snapshot={snapshot} summary showFindings />
+      </div>
+    </section>
   );
 }
 
@@ -3477,6 +3592,8 @@ function transitionCategoryForStep(
 export function S05AnalysisTraining({
   subject,
   initialSection = 'intro',
+  initialPersonalFindings,
+  initialStructurePreset,
   platform = 'mac',
   timingState = 'active',
   timingErrorCode = null,
@@ -3500,6 +3617,8 @@ export function S05AnalysisTraining({
       subject,
       animationPlayer,
       initialSection,
+      ...(initialPersonalFindings === undefined ? {} : { initialPersonalFindings }),
+      ...(initialStructurePreset === undefined ? {} : { initialStructurePreset }),
       nextLowercaseCharacter: createCryptoLowercaseCharacter,
       onComplete: () => completionPort?.complete(),
     });
@@ -3510,7 +3629,7 @@ export function S05AnalysisTraining({
       unsubscribe();
       void nextController.dispose();
     };
-  }, [completionPort, initialSection, subject]);
+  }, [completionPort, initialPersonalFindings, initialSection, initialStructurePreset, subject]);
 
   useEffect(() => {
     controller?.start();

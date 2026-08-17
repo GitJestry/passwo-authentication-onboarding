@@ -6,6 +6,7 @@ import {
   PassWoSpeechBubble,
   type PassWoSpeechAction,
   type PassWoSpeechPlacement,
+  type PassWoSpeechTone,
 } from './PassWoSpeechBubble.js';
 import type { PassWoSpeechEmphasis } from './PassWoSpeechEmphasis.js';
 import {
@@ -35,6 +36,7 @@ export interface PassWoGuideProps {
   readonly mutedSpeechParagraphIndexes?: readonly number[];
   readonly speechFooter?: ReactNode;
   readonly speechPlacement?: PassWoSpeechPlacement;
+  readonly speechTone?: PassWoSpeechTone;
   readonly speechObstacleSelector?: string;
   readonly speechAction?: PassWoSpeechAction;
   readonly placement?: 'bottom-left' | 'bottom-right' | 'center' | 'incident';
@@ -75,6 +77,7 @@ export function PassWoGuide({
   mutedSpeechParagraphIndexes,
   speechFooter,
   speechPlacement = 'right',
+  speechTone = 'light',
   speechObstacleSelector,
   speechAction,
   placement = 'bottom-left',
@@ -199,6 +202,7 @@ export function PassWoGuide({
               : { mutedParagraphIndexes: mutedSpeechParagraphIndexes })}
             footer={speechFooter}
             placement={speechPosition?.side ?? speechPlacement}
+            tone={speechTone}
             {...(speechPosition === null ? {} : { arrowOffset: speechPosition.arrowOffset })}
             {...(speechAction === undefined ? {} : { action: speechAction })}
           />

@@ -135,6 +135,13 @@ interface S05FindingCluster {
   readonly findings: readonly S05CategoryFinding[];
 }
 
+interface S05DisplayRange {
+  readonly start: number;
+  readonly end: number;
+  readonly categoryId?: S05ComponentCategoryId;
+  readonly findings: readonly S05CategoryFinding[];
+}
+
 function higherPriorityCategory(
   left: S05ComponentCategoryId,
   right: S05ComponentCategoryId,
@@ -166,6 +173,85 @@ function clusterOverlappingFindings(
       };
       return clusters;
     }, []);
+}
+
+function personalFindingExactlyMatchesRange(
+  finding: S05CategoryFinding,
+  range: Pick<S05DisplayRange, 'start' | 'end'>,
+): boolean {
+  return finding.start === range.start && finding.end === range.end;
+}
+
+function splitUnrecognizedRangeByPersonalFindings(
+  range: S05DisplayRange,
+  personalFindings: readonly S05CategoryFinding[],
+): readonly S05DisplayRange[] {
+  const overlappingFindings = personalFindings.filter(
+    (finding) => finding.start < range.end && finding.end > range.start,
+  );
+  if (overlappingFindings.length === 0) return [range];
+
+  const boundaries = new Set<number>([range.start, range.end]);
+  for (const finding of overlappingFindings) {
+    boundaries.add(Math.max(range.start, finding.start));
+    boundaries.add(Math.min(range.end, finding.end));
+  }
+  const sortedBoundaries = [...boundaries].sort((left, right) => left - right);
+  return sortedBoundaries.slice(0, -1).flatMap((start, index) => {
+    const end = sortedBoundaries[index + 1];
+    if (end === undefined || start === end) return [];
+    const findings = overlappingFindings.filter(
+      (finding) => finding.start < end && finding.end > start,
+    );
+    return [
+      {
+        start,
+        end,
+        ...(findings.length === 0 ? {} : { categoryId: 'personal-details' as const }),
+        findings,
+      },
+    ];
+  });
+}
+
+function createDisplayRanges(
+  passwordLength: number,
+  findings: readonly S05CategoryFinding[],
+): readonly S05DisplayRange[] {
+  const personalFindings = findings.filter(
+    (finding) => finding.categoryId === 'personal-details',
+  );
+  const analyzedClusters = clusterOverlappingFindings(
+    findings.filter((finding) => finding.categoryId !== 'personal-details'),
+  );
+  const analyzedRanges: S05DisplayRange[] = [];
+  let cursor = 0;
+  for (const cluster of analyzedClusters) {
+    if (cursor < cluster.start) {
+      analyzedRanges.push({ start: cursor, end: cluster.start, findings: [] });
+    }
+    analyzedRanges.push(cluster);
+    cursor = cluster.end;
+  }
+  if (cursor < passwordLength) {
+    analyzedRanges.push({ start: cursor, end: passwordLength, findings: [] });
+  }
+
+  return analyzedRanges.flatMap((range) => {
+    if (range.findings.length === 0) {
+      return splitUnrecognizedRangeByPersonalFindings(range, personalFindings);
+    }
+    const overlappingPersonalFindings = personalFindings.filter(
+      (finding) => finding.start < range.end && finding.end > range.start,
+    );
+    const exactPersonalFinding = overlappingPersonalFindings.some((finding) =>
+      personalFindingExactlyMatchesRange(finding, range),
+    );
+    const findingsForRange = [...range.findings, ...overlappingPersonalFindings];
+    return exactPersonalFinding
+      ? [{ ...range, categoryId: 'personal-details' as const, findings: findingsForRange }]
+      : [{ ...range, findings: findingsForRange }];
+  });
 }
 
 function containedFindingLabel(label: string): string {
@@ -665,29 +751,13 @@ export function projectCanonicalPasswordBlocks(
   view: S05CanonicalPasswordView,
   findings: readonly S05CategoryFinding[],
   repetitionAnnotations: readonly S05RepetitionAnnotation[] = [],
+  showContainedFindingLabels = true,
 ): readonly S05DisplayBlock[] {
   const representedChangeIds = new Set(findings.flatMap(({ changeIds }) => changeIds));
   const visibleChanges = view.typicalChanges.filter(
     (change) => representedChangeIds.has(change.id),
   );
-  const clusters = clusterOverlappingFindings(findings);
-  const displayRanges: Array<{
-    readonly start: number;
-    readonly end: number;
-    readonly categoryId?: S05ComponentCategoryId;
-    readonly findings: readonly S05CategoryFinding[];
-  }> = [];
-  let cursor = 0;
-  for (const cluster of clusters) {
-    if (cursor < cluster.start) {
-      displayRanges.push({ start: cursor, end: cluster.start, findings: [] });
-    }
-    displayRanges.push(cluster);
-    cursor = cluster.end;
-  }
-  if (cursor < view.password.length) {
-    displayRanges.push({ start: cursor, end: view.password.length, findings: [] });
-  }
+  const displayRanges = createDisplayRanges(view.password.length, findings);
 
   return displayRanges.map((range): S05DisplayBlock => {
     const block = {
@@ -745,11 +815,15 @@ export function projectCanonicalPasswordBlocks(
               : finding.categoryId === 'personal-details'
                 ? s05Content.componentStrategy.presentation.findingChips.personalComponent
                 : s05Content.findingLabels['account-or-service-term'];
-          const isContained = evidenceStart > block.start || evidenceEnd < block.end;
+          const isContained = evidenceStart !== block.start || evidenceEnd !== block.end;
+          const isPrimaryCategory = range.categoryId === finding.categoryId;
           return {
             categoryId: finding.categoryId,
             label:
-              isContained && finding.categoryId !== 'account-context'
+              showContainedFindingLabels &&
+              isContained &&
+              !isPrimaryCategory &&
+              finding.categoryId !== 'account-context'
                 ? containedFindingLabel(baseLabel)
                 : baseLabel,
           };

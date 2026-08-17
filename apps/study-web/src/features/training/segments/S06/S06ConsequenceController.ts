@@ -6,6 +6,7 @@ import type {
 } from '@passwo/contracts';
 import {
   analyzeFictionalPassword,
+  analyzeFictionalPasswordStructure,
   compareFictionalPasswords,
   determinePasswordSimulationDisposition,
 } from '@passwo/password-analysis';
@@ -35,6 +36,12 @@ import {
 } from '@passwo/visualization';
 import type { NetworkPresentationSnapshot } from '../../../../adapters/network/NetworkMotionAdapter.js';
 import {
+  createCanonicalPasswordView,
+  createPersonalFindings,
+  projectCanonicalPasswordBlocks,
+  type S05VisualCategoryId,
+} from '../S05/S05ComponentStrategy.js';
+import {
   alignNetworkSceneToS02,
   projectS05AssessmentNetwork,
 } from '../account-network.js';
@@ -47,23 +54,52 @@ export interface S06ConsequenceParticipantSnapshot {
   readonly generatedCandidate: string | null;
 }
 
+export type S06LocalReflectionMode = 'groups' | 'structure';
+
+export interface S06LocalReflectionBlock {
+  readonly id: string;
+  readonly start: number;
+  readonly end: number;
+  readonly value: string;
+  readonly categoryIds: readonly S05VisualCategoryId[];
+  readonly findings: readonly { readonly categoryId: S05VisualCategoryId; readonly label: string }[];
+  readonly repeated: boolean;
+  readonly repetitionCount: number | null;
+}
+
+export interface S06LocalReflectionStructureLink {
+  readonly fromBlockId: string;
+  readonly toBlockId: string;
+}
+
+export interface S06LocalReflectionSnapshot {
+  readonly accountId: S06AccountId;
+  readonly accountLabel: string;
+  readonly fictionalPassword: string;
+  readonly mode: S06LocalReflectionMode;
+  readonly blocks: readonly S06LocalReflectionBlock[];
+  readonly contentGroups: readonly {
+    readonly id: string;
+    readonly blockIds: readonly string[];
+  }[];
+  readonly activeContentGroupId: string;
+  readonly structureLinks: readonly S06LocalReflectionStructureLink[];
+}
+
 export interface S06ConsequenceControllerSnapshot {
   readonly phase: 'ready' | 'animating' | 'awaiting-decision' | 'complete';
   readonly stage:
     | 'initial-found'
     | 'initial-blocked'
     | 'hypothetical-animating'
-    | 'hypothetical-ready'
     | 'master-hypothetical-animating'
     | 'master-hypothetical-ready'
     | 'attacking'
     | 'campusgram-summary'
     | 'perspective-transition'
-    | 'local-check-animating'
-    | 'local-check-result'
     | 'email-transition'
-    | 'return-transition'
-    | 'final-summary'
+    | 'local-reflection'
+    | 'local-check-result'
     | 's07-transition'
     | 'complete';
   readonly stepIndex: number;
@@ -85,6 +121,7 @@ export interface S06ConsequenceControllerSnapshot {
   readonly completedComparisonResults: Readonly<
     Partial<Record<S06AccountId, PasswordRelation['kind']>>
   >;
+  readonly localReflection: S06LocalReflectionSnapshot | null;
   readonly controls: {
     readonly canStart: boolean;
     readonly canReplay: boolean;
@@ -94,8 +131,13 @@ export interface S06ConsequenceControllerSnapshot {
 
 export interface S06ConsequenceControllerOptions {
   readonly plan: PasswordConsequenceScenePlan;
+  readonly accountInputs: S06ConsequenceAccountInputs;
   readonly animationPlayer: AnimationPlayerPort;
   readonly prefersReducedMotion: () => boolean;
+  readonly onSemanticEvidenceChange?: (
+    accountId: S06AccountId,
+    evidence: TransientPasswordSemanticEvidence,
+  ) => void;
   readonly onComplete?: () => void;
 }
 
@@ -115,18 +157,16 @@ type ControllerListener = (snapshot: S06ConsequenceControllerSnapshot) => void;
 
 type S06MissionPhase =
   | { readonly kind: 'comparison'; readonly step: PasswordConsequencePlanStep }
-  | { readonly kind: 'automatic-comparison'; readonly step: PasswordConsequencePlanStep }
   | { readonly kind: 'comparison-resolution'; readonly step: PasswordConsequencePlanStep }
   | { readonly kind: 'campusgram-summary' }
   | { readonly kind: 'perspective-transition' }
-  | { readonly kind: 'local-check'; readonly step: PasswordConsequencePlanStep }
+  | { readonly kind: 'email-transition' }
+  | { readonly kind: 'local-reflection'; readonly step: PasswordConsequencePlanStep }
+  | { readonly kind: 'local-check-result'; readonly step: PasswordConsequencePlanStep }
   | {
       readonly kind: 'master-campus-hypothetical-intro';
       readonly step: PasswordConsequencePlanStep;
     }
-  | { readonly kind: 'email-transition' }
-  | { readonly kind: 'return-transition' }
-  | { readonly kind: 'final-summary' }
   | { readonly kind: 's07-transition' };
 
 interface S06MissionSequence {
@@ -136,8 +176,8 @@ interface S06MissionSequence {
 
 const accountIds = ['campusgram', 'master-campus', 'campus-email'] as const;
 const infectionDurationMs = 1350;
+const localDecisionPauseMs = 900;
 const comparisonResolutionDurationMs = 120;
-const automaticAttackDurationMs = 800;
 const comparisonPairs = [
   ['campusgram', 'master-campus'],
   ['campusgram', 'campus-email'],
@@ -247,19 +287,8 @@ function masterCampusWasFound(plan: PasswordConsequenceScenePlan): boolean {
   );
 }
 
-function localCheckDurationMs(step: PasswordConsequencePlanStep): number {
-  const sourceAccountId = step.sourceAccountId;
-  if (sourceAccountId === null) return 0;
-  return step.network.nodes.some(
-    ({ id, status }) => id === sourceAccountId && status === 'exposed',
-  )
-    ? infectionDurationMs
-    : 0;
-}
-
 function missionStepForPhase(phase: S06MissionPhase): MissionDefinition['steps'][number] {
-  if (phase.kind === 'comparison' || phase.kind === 'automatic-comparison') {
-    const automatic = phase.kind === 'automatic-comparison';
+  if (phase.kind === 'comparison') {
     return {
       id: phase.step.id,
       narrationId: phase.step.narrationId,
@@ -269,11 +298,11 @@ function missionStepForPhase(phase: S06MissionPhase): MissionDefinition['steps']
           {
             type: 'reveal' as const,
             targetId: phase.step.visibleChange.targetId,
-            durationMs: automatic ? 800 : 500,
+            durationMs: 500,
           },
         ],
         reducedMotion: { strategy: 'instant-end-state' as const, maxDurationMs: 0 },
-        maxDurationMs: automatic ? automaticAttackDurationMs : 500,
+        maxDurationMs: 500,
       },
     };
   }
@@ -289,36 +318,38 @@ function missionStepForPhase(phase: S06MissionPhase): MissionDefinition['steps']
       },
     };
   }
-  if (
-    phase.kind === 'local-check' ||
-    phase.kind === 'master-campus-hypothetical-intro'
-  ) {
-    const id =
-      phase.kind === 'local-check'
-        ? phase.step.id
-        : 's06-master-campus-hypothetical-intro';
+  if (phase.kind === 'master-campus-hypothetical-intro') {
+    const id = 's06-master-campus-hypothetical-intro';
     return {
       id,
-      narrationId:
-        phase.kind === 'master-campus-hypothetical-intro'
-          ? 's06.incident.master-campus-hypothetical'
-          : phase.step.narrationId,
+      narrationId: phase.step.narrationId,
       animation: {
         id: `${id}-animation`,
         steps: [
           {
             type: 'pause',
-            durationMs:
-              phase.kind === 'local-check'
-                ? localCheckDurationMs(phase.step)
-                : infectionDurationMs,
+            durationMs: infectionDurationMs,
           },
         ],
         reducedMotion: { strategy: 'instant-end-state' as const, maxDurationMs: 0 },
-        maxDurationMs:
-          phase.kind === 'local-check'
-            ? localCheckDurationMs(phase.step)
-            : infectionDurationMs,
+        maxDurationMs: infectionDurationMs,
+      },
+    };
+  }
+  if (phase.kind === 'local-reflection' || phase.kind === 'local-check-result') {
+    const id = `${phase.step.id}-${phase.kind}`;
+    const durationMs = phase.kind === 'local-check-result' ? localDecisionPauseMs : 0;
+    return {
+      id,
+      narrationId: phase.step.narrationId,
+      animation: {
+        id: `${id}-animation`,
+        steps:
+          durationMs === 0
+            ? [{ type: 'announce', messageId: id }]
+            : [{ type: 'pause', durationMs }],
+        reducedMotion: { strategy: 'instant-end-state' as const, maxDurationMs: 0 },
+        maxDurationMs: durationMs,
       },
     };
   }
@@ -345,7 +376,8 @@ function createMission(plan: PasswordConsequenceScenePlan): S06MissionSequence {
     { kind: 'comparison-resolution', step: campusgramEmailStep },
     { kind: 'campusgram-summary' },
     { kind: 'perspective-transition' },
-    { kind: 'local-check', step: planStep(plan, 's06-step-master-campus-perspective') },
+    { kind: 'local-reflection', step: planStep(plan, 's06-step-master-campus-perspective') },
+    { kind: 'local-check-result', step: planStep(plan, 's06-step-master-campus-perspective') },
   ];
   if (!masterCampusWasFound(plan)) {
     phases.push({
@@ -353,19 +385,15 @@ function createMission(plan: PasswordConsequenceScenePlan): S06MissionSequence {
       step: planStep(plan, 's06-step-master-campus-perspective'),
     });
   }
-  const masterCampusgramStep = planStep(plan, 's06-step-master-campus-campusgram');
-  phases.push({ kind: 'automatic-comparison', step: masterCampusgramStep });
-  phases.push({ kind: 'comparison-resolution', step: masterCampusgramStep });
   const masterEmailStep = planStep(plan, 's06-step-master-campus-campus-email');
   phases.push(
     { kind: 'comparison', step: masterEmailStep },
     { kind: 'comparison-resolution', step: masterEmailStep },
+    { kind: 'email-transition' },
   );
   phases.push(
-    { kind: 'email-transition' },
-    { kind: 'local-check', step: planStep(plan, 's06-step-campus-email-local-check') },
-    { kind: 'return-transition' },
-    { kind: 'final-summary' },
+    { kind: 'local-reflection', step: planStep(plan, 's06-step-campus-email-local-check') },
+    { kind: 'local-check-result', step: planStep(plan, 's06-step-campus-email-local-check') },
     { kind: 's07-transition' },
   );
   return {
@@ -756,6 +784,133 @@ function pendingLocalCheckNetwork(
   };
 }
 
+function createLocalReflection(
+  accountId: S06AccountId,
+  account: S06ConsequenceAccountInputs[S06AccountId],
+): S06LocalReflectionSnapshot {
+  const componentAnalysis = analyzeFictionalPassword({
+    fictionalPassword: account.fictionalPassword,
+    authoredAccountTerms: s06ConsequenceContent.accounts[accountId].accountTerms,
+    ...(account.transientAccountIdentifiers === undefined
+      ? {}
+      : { transientAccountIdentifiers: account.transientAccountIdentifiers }),
+  });
+  const canonicalView = createCanonicalPasswordView(account.fictionalPassword, componentAnalysis);
+  const personalFindings = createPersonalFindings(
+    canonicalView,
+    (account.semanticEvidence?.relations ?? []).flatMap((relation) =>
+      relation.kind !== 'personal-context'
+        ? []
+        : relation.evidence.flatMap((evidence, index) =>
+            evidence.type !== 'span'
+              ? []
+              : [
+                  {
+                    id: `s06-personal:${relation.id}:${index}`,
+                    start: evidence.start,
+                    end: evidence.end,
+                  },
+                ],
+          ),
+    ),
+  );
+  const automaticFindings = [
+    ...canonicalView.automaticFindings['common-components'],
+    ...canonicalView.automaticFindings['account-context'],
+    ...personalFindings,
+  ];
+  const structureAnalysis = analyzeFictionalPasswordStructure({
+    fictionalPassword: account.fictionalPassword,
+    componentAnalysis,
+  });
+  const repetitionFindings = structureAnalysis.findings.filter(
+    ({ findingKind }) =>
+      findingKind === 'exact-component-repetition' ||
+      findingKind === 'recognized-repetition-pattern',
+  );
+  const blocks = projectCanonicalPasswordBlocks(canonicalView, automaticFindings).map(
+    (block): S06LocalReflectionBlock => {
+      const repeated = repetitionFindings.some((finding) => {
+        const spans = finding.evidence.filter((evidence) => evidence.type === 'span');
+        return (
+          spans.length >= 2 &&
+          spans.some((span) => span.start < block.end && span.end > block.start)
+        );
+      });
+      const repetitionCount = repetitionFindings.reduce<number | null>((maximum, finding) => {
+        const spans = finding.evidence
+          .filter((evidence) => evidence.type === 'span')
+          .sort((left, right) => left.start - right.start);
+        const firstSpan = spans[0];
+        const beginsHere =
+          firstSpan !== undefined && firstSpan.start < block.end && firstSpan.end > block.start;
+        if (!beginsHere || spans.length < 2) return maximum;
+        return Math.max(maximum ?? 0, spans.length);
+      }, null);
+      return {
+        id: block.id,
+        start: block.start,
+        end: block.end,
+        value: block.value,
+        categoryIds: block.categoryIds,
+        findings: block.findings,
+        repeated,
+        repetitionCount,
+      };
+    },
+  );
+  return {
+    accountId,
+    accountLabel: s06ConsequenceContent.accounts[accountId].label,
+    fictionalPassword: account.fictionalPassword,
+    mode: 'groups',
+    blocks,
+    contentGroups: [{ id: 'content-group-1', blockIds: [] }],
+    activeContentGroupId: 'content-group-1',
+    structureLinks: [],
+  };
+}
+
+function semanticEvidenceForReflection(
+  reflection: S06LocalReflectionSnapshot,
+  existingEvidence: TransientPasswordSemanticEvidence | undefined,
+): TransientPasswordSemanticEvidence {
+  const relation = (
+    id: string,
+    kind: 'shared-content' | 'sentence-or-phrase',
+    blockIds: readonly string[],
+  ) => {
+    const evidence = reflection.blocks
+      .filter((block) => blockIds.includes(block.id))
+      .sort((left, right) => left.start - right.start)
+      .map(({ start, end, value }) => ({ type: 'span' as const, start, end, token: value }));
+    return evidence.length < 2 ? [] : [{ id, kind, evidence }];
+  };
+  return {
+    kind: 'transient-password-semantic-evidence',
+    confirmed: true,
+    relations: [
+      ...(existingEvidence?.relations.filter(
+        (existingRelation) => existingRelation.kind === 'personal-context',
+      ) ?? []),
+      ...reflection.contentGroups.flatMap((group) =>
+        relation(
+          `semantic:s06:${reflection.accountId}:${group.id}`,
+          'shared-content',
+          group.blockIds,
+        ),
+      ),
+      ...reflection.structureLinks.flatMap(({ fromBlockId, toBlockId }, index) =>
+        relation(
+          `semantic:s06:${reflection.accountId}:structure:${index}:${fromBlockId}:${toBlockId}`,
+          'sentence-or-phrase',
+          [fromBlockId, toBlockId],
+        ),
+      ),
+    ],
+  };
+}
+
 function hypotheticalIncidentNetwork(
   step: PasswordConsequencePlanStep,
   accountId: S06AccountId,
@@ -795,12 +950,17 @@ function participantSnapshot(step: PasswordConsequencePlanStep): S06ConsequenceP
 }
 
 export class S06ConsequenceController {
-  readonly #plan: PasswordConsequenceScenePlan;
+  #plan: PasswordConsequenceScenePlan;
+  #accountInputs: S06ConsequenceAccountInputs;
   readonly #missionController: MissionController;
   readonly #mission: MissionDefinition;
   readonly #missionPhases: readonly S06MissionPhase[];
   readonly #prefersReducedMotion: () => boolean;
   readonly #onComplete: () => void;
+  readonly #onSemanticEvidenceChange: (
+    accountId: S06AccountId,
+    evidence: TransientPasswordSemanticEvidence,
+  ) => void;
   readonly #listeners = new Set<ControllerListener>();
   readonly #unsubscribeMission: () => void;
   #renderer: NetworkRendererPort | null = null;
@@ -819,15 +979,19 @@ export class S06ConsequenceController {
 
   constructor({
     plan,
+    accountInputs,
     animationPlayer,
     prefersReducedMotion,
+    onSemanticEvidenceChange,
     onComplete,
   }: S06ConsequenceControllerOptions) {
     const firstStep = plan.steps[0];
     if (firstStep === undefined) throw new Error('S06 scene plan requires at least one step.');
     this.#plan = plan;
+    this.#accountInputs = accountInputs;
     this.#prefersReducedMotion = prefersReducedMotion;
     this.#onComplete = onComplete ?? (() => undefined);
+    this.#onSemanticEvidenceChange = onSemanticEvidenceChange ?? (() => undefined);
     this.#settledNetwork = firstStep.network;
     this.#campusgramInitialNetwork = firstStep.network;
     this.#campusgramOutcomeNetwork = firstStep.network;
@@ -858,6 +1022,7 @@ export class S06ConsequenceController {
       comparisonVisible: false,
       comparisonPreviewVisible: false,
       completedComparisonResults: {},
+      localReflection: null,
       controls: {
         canStart: this.#campusgramWasFound(),
         canReplay: false,
@@ -897,14 +1062,138 @@ export class S06ConsequenceController {
       this.#startHypotheticalIntro();
       return Promise.resolve();
     }
-    if (
-      this.#snapshot.stage === 'initial-found' ||
-      this.#snapshot.stage === 'hypothetical-ready'
-    ) {
+    if (this.#snapshot.stage === 'initial-found') {
       this.#startAttack();
       return Promise.resolve();
     }
     return this.#missionController.continue();
+  }
+
+  selectLocalReflectionMode(mode: S06LocalReflectionMode): void {
+    const reflection = this.#snapshot.localReflection;
+    if (this.#disposed || this.#snapshot.stage !== 'local-reflection' || reflection === null) return;
+    if (mode === 'structure' && reflection.blocks.length < 2) return;
+    this.#snapshot = {
+      ...this.#snapshot,
+      localReflection: { ...reflection, mode },
+    };
+    this.#emit();
+  }
+
+  selectLocalReflectionGroup(groupId: string): void {
+    const reflection = this.#snapshot.localReflection;
+    if (
+      this.#disposed ||
+      this.#snapshot.stage !== 'local-reflection' ||
+      reflection === null ||
+      !reflection.contentGroups.some(({ id }) => id === groupId)
+    ) {
+      return;
+    }
+    this.#snapshot = {
+      ...this.#snapshot,
+      localReflection: {
+        ...reflection,
+        mode: 'groups',
+        activeContentGroupId: groupId,
+      },
+    };
+    this.#emit();
+  }
+
+  addLocalReflectionGroup(): void {
+    const reflection = this.#snapshot.localReflection;
+    if (this.#disposed || this.#snapshot.stage !== 'local-reflection' || reflection === null) return;
+    const canAdd = reflection.contentGroups.every(({ blockIds }) => blockIds.length > 0);
+    if (!canAdd) return;
+    const nextIndex =
+      Math.max(
+        0,
+        ...reflection.contentGroups.map(({ id }) => Number(/(\d+)$/u.exec(id)?.[1] ?? 0)),
+      ) + 1;
+    const nextGroup = { id: `content-group-${nextIndex}`, blockIds: [] } as const;
+    this.#snapshot = {
+      ...this.#snapshot,
+      localReflection: {
+        ...reflection,
+        mode: 'groups',
+        contentGroups: [...reflection.contentGroups, nextGroup],
+        activeContentGroupId: nextGroup.id,
+      },
+    };
+    this.#emit();
+  }
+
+  toggleLocalReflectionBlock(blockId: string): void {
+    const reflection = this.#snapshot.localReflection;
+    if (
+      this.#disposed ||
+      this.#snapshot.stage !== 'local-reflection' ||
+      reflection === null ||
+      !reflection.blocks.some(({ id }) => id === blockId)
+    ) {
+      return;
+    }
+    if (reflection.mode === 'groups') {
+      const activeGroup = reflection.contentGroups.find(
+        ({ id }) => id === reflection.activeContentGroupId,
+      );
+      if (activeGroup === undefined) return;
+      const alreadySelected = activeGroup.blockIds.includes(blockId);
+      const contentGroups = reflection.contentGroups.map((group) => ({
+        ...group,
+        blockIds:
+          group.id === activeGroup.id
+            ? alreadySelected
+              ? group.blockIds.filter((id) => id !== blockId)
+              : [...group.blockIds, blockId]
+            : group.blockIds.filter((id) => id !== blockId),
+      }));
+      this.#snapshot = {
+        ...this.#snapshot,
+        localReflection: { ...reflection, contentGroups },
+      };
+      this.#emit();
+      return;
+    }
+    const fromIndex = reflection.blocks.findIndex(({ id }) => id === blockId);
+    const toBlock = reflection.blocks[fromIndex + 1];
+    if (fromIndex < 0 || toBlock === undefined) return;
+    const exists = reflection.structureLinks.some(
+      ({ fromBlockId, toBlockId }) => fromBlockId === blockId && toBlockId === toBlock.id,
+    );
+    const structureLinks = exists
+      ? reflection.structureLinks.filter(
+          ({ fromBlockId, toBlockId }) =>
+            fromBlockId !== blockId || toBlockId !== toBlock.id,
+        )
+      : [...reflection.structureLinks, { fromBlockId: blockId, toBlockId: toBlock.id }];
+    this.#snapshot = {
+      ...this.#snapshot,
+      localReflection: { ...reflection, structureLinks },
+    };
+    this.#emit();
+  }
+
+  completeLocalReflection(): void {
+    const reflection = this.#snapshot.localReflection;
+    if (this.#disposed || this.#snapshot.stage !== 'local-reflection' || reflection === null) return;
+    const account = this.#accountInputs[reflection.accountId];
+    const semanticEvidence = semanticEvidenceForReflection(reflection, account.semanticEvidence);
+    this.#accountInputs = {
+      ...this.#accountInputs,
+      [reflection.accountId]: { ...account, semanticEvidence },
+    };
+    this.#plan = createS06ConsequenceScenePlan(this.#plan.id, this.#accountInputs);
+    this.#onSemanticEvidenceChange(reflection.accountId, semanticEvidence);
+    this.#snapshot = {
+      ...this.#snapshot,
+      phase: 'animating',
+      stage: 'local-check-result',
+      controls: { canStart: false, canReplay: false, canContinue: false },
+    };
+    this.#emit();
+    void this.#missionController.continue();
   }
 
   previewCompleted(stepId: PasswordConsequencePlanStep['id']): void {
@@ -994,17 +1283,7 @@ export class S06ConsequenceController {
     if (this.#pendingResolutionNodeIds.size > 0) return;
 
     this.#waitingForHypotheticalResolution = false;
-    this.#snapshot = {
-      ...this.#snapshot,
-      phase: 'awaiting-decision',
-      stage: 'hypothetical-ready',
-      participant: this.#participantForNarration('s06.incident.campusgram-hypothetical'),
-      attackPhase: 'found',
-      attackSourceAccountId: 'campusgram',
-      showGuide: true,
-      controls: { canStart: true, canReplay: false, canContinue: true },
-    };
-    this.#emit();
+    this.#startAttack();
   }
 
   updatePresentation(presentation: NetworkPresentationSnapshot): void {
@@ -1041,44 +1320,13 @@ export class S06ConsequenceController {
     if (missionPhase === undefined) return;
     const awaitingDecision = missionSnapshot.matches({ active: 'awaitingDecision' });
 
-    if (missionPhase.kind === 'automatic-comparison') {
-      const step = missionPhase.step;
-      const stepIndex = this.#plan.steps.findIndex(({ id }) => id === step.id);
-      if (stepIndex < 0 || step.targetAccountId === null || step.relation === null) return;
-      if (!awaitingDecision) {
-        this.#displayedAttackNetwork = attackPreviewNetwork(step, this.#settledNetwork);
-        this.#renderer?.render(this.#displayedAttackNetwork);
-        this.#snapshot = {
-          ...this.#snapshot,
-          phase: 'animating',
-          stage: 'attacking',
-          stepIndex,
-          step,
-          participant: participantSnapshot(step),
-          attackPhase: 'attacking',
-          attackSourceAccountId: step.sourceAccountId,
-          isHypothetical: step.mode === 'hypothetical',
-          showGuide: false,
-          comparisonVisible: true,
-          comparisonPreviewVisible: false,
-          controls: { canStart: false, canReplay: false, canContinue: false },
-        };
-        this.#emit();
-        return;
-      }
-
-      this.#resolveAutomaticComparison(step);
-      this.#continueMissionAfterSnapshot();
-      return;
-    }
-
     if (missionPhase.kind === 'comparison-resolution') {
       if (awaitingDecision) this.#continueMissionAfterSnapshot();
       return;
     }
 
     if (missionPhase.kind === 'comparison') {
-      const step = missionPhase.step;
+      const step = this.#currentPlanStep(missionPhase.step.id);
       const stepIndex = this.#plan.steps.findIndex(({ id }) => id === step.id);
       if (stepIndex < 0) return;
       if (this.#snapshot.step.id !== step.id || this.#displayedAttackNetwork === null) {
@@ -1117,62 +1365,80 @@ export class S06ConsequenceController {
       return;
     }
 
-    if (missionPhase.kind === 'local-check') {
-      const step = missionPhase.step;
+    if (missionPhase.kind === 'local-reflection') {
+      if (!awaitingDecision) return;
+      const step = this.#currentPlanStep(missionPhase.step.id);
       const stepIndex = this.#plan.steps.findIndex(({ id }) => id === step.id);
-      if (stepIndex < 0) return;
-      const enteredLocalCheck =
-        this.#snapshot.step.id !== step.id ||
-        (this.#snapshot.stage !== 'local-check-animating' &&
-          this.#snapshot.stage !== 'local-check-result');
-      if (!awaitingDecision && enteredLocalCheck) {
+      const accountId = step.sourceAccountId;
+      if (stepIndex < 0 || accountId === null) return;
+      const existingReflection = this.#snapshot.localReflection;
+      const localReflection =
+        existingReflection?.accountId === accountId
+          ? existingReflection
+          : createLocalReflection(accountId, this.#accountInputs[accountId]);
+      if (existingReflection?.accountId !== accountId) {
         const pendingNetwork = pendingLocalCheckNetwork(step);
         this.#displayedAttackNetwork = null;
         this.#settledNetwork = pendingNetwork;
         this.#renderer?.render(pendingNetwork);
-      } else if (awaitingDecision && this.#snapshot.stage !== 'local-check-result') {
-        const settledLocalCheckNetwork = step.network;
-        const sourceWasExposed =
-          step.sourceAccountId !== null &&
-          settledLocalCheckNetwork.nodes.some(
-            ({ id, status }) => id === step.sourceAccountId && status === 'exposed',
-          );
-        this.#settledNetwork = {
-          ...settledLocalCheckNetwork,
-          nodes: settledLocalCheckNetwork.nodes.filter(({ kind }) => kind !== 'shield'),
-          edges: sourceWasExposed
-            ? settledLocalCheckNetwork.edges.map((edge): SceneEdge =>
-                edge.sourceId === step.sourceAccountId &&
-                edge.targetId.startsWith(`${step.sourceAccountId}-detail-`)
-                  ? { ...edge, status: 'direct' }
-                  : edge,
-              )
-            : settledLocalCheckNetwork.edges,
-        };
-        this.#renderer?.render(this.#settledNetwork);
       }
-      const canStartNextAttack =
-        awaitingDecision &&
-        (this.#missionPhases[missionStepIndex + 1]?.kind === 'comparison' ||
-          this.#missionPhases[missionStepIndex + 1]?.kind === 'automatic-comparison');
       this.#snapshot = {
         ...this.#snapshot,
-        phase: awaitingDecision ? 'awaiting-decision' : 'animating',
-        stage: awaitingDecision ? 'local-check-result' : 'local-check-animating',
+        phase: 'awaiting-decision',
+        stage: 'local-reflection',
+        stepIndex,
+        step,
+        participant: participantSnapshot(step),
+        attackPhase: 'incident-check',
+        attackSourceAccountId: accountId,
+        isHypothetical: false,
+        showGuide: false,
+        comparisonVisible: false,
+        comparisonPreviewVisible: false,
+        completedComparisonResults: {},
+        localReflection,
+        presentation: {
+          ...this.#snapshot.presentation,
+          revealedNodeIds: step.network.nodes
+            .filter((node) => isAccountBranchNode(node, accountId))
+            .map(({ id }) => id),
+          highlightedNodeId: accountId,
+        },
+        controls: { canStart: false, canReplay: false, canContinue: false },
+      };
+      this.#emit();
+      return;
+    }
+
+    if (missionPhase.kind === 'local-check-result') {
+      if (!awaitingDecision) return;
+      const step = this.#currentPlanStep(missionPhase.step.id);
+      const stepIndex = this.#plan.steps.findIndex(({ id }) => id === step.id);
+      if (stepIndex < 0) return;
+      this.#settleLocalCheck(step);
+      this.#snapshot = {
+        ...this.#snapshot,
+        phase: 'awaiting-decision',
+        stage: 'local-check-result',
         stepIndex,
         step,
         participant: participantSnapshot(step),
         attackPhase: 'incident-check',
         attackSourceAccountId: step.sourceAccountId,
         isHypothetical: false,
-        showGuide: awaitingDecision,
+        showGuide: true,
         comparisonVisible: false,
         comparisonPreviewVisible: false,
-        completedComparisonResults: {},
+        localReflection: null,
+        presentation: {
+          ...this.#snapshot.presentation,
+          revealedNodeIds: this.#allNodeIds(),
+          highlightedNodeId: step.sourceAccountId,
+        },
         controls: {
-          canStart: canStartNextAttack,
+          canStart: step.sourceAccountId === 'master-campus',
           canReplay: false,
-          canContinue: awaitingDecision,
+          canContinue: true,
         },
       };
       this.#emit();
@@ -1180,7 +1446,11 @@ export class S06ConsequenceController {
     }
 
     if (missionPhase.kind === 'master-campus-hypothetical-intro') {
-      const step = missionPhase.step;
+      if (masterCampusWasFound(this.#plan)) {
+        if (awaitingDecision) this.#continueMissionAfterSnapshot();
+        return;
+      }
+      const step = this.#currentPlanStep(missionPhase.step.id);
       const stepIndex = this.#plan.steps.findIndex(({ id }) => id === step.id);
       if (stepIndex < 0) return;
       if (
@@ -1200,25 +1470,22 @@ export class S06ConsequenceController {
           : 'master-hypothetical-animating',
         stepIndex,
         step,
-        participant: {
-          ...participantSnapshot(step),
-          narration:
-            s06ConsequenceContent.narrations['s06.incident.master-campus-hypothetical'],
-        },
+        participant: participantSnapshot(step),
         attackPhase: 'hypothetical-intro',
         attackSourceAccountId: 'master-campus',
         isHypothetical: true,
-        showGuide: awaitingDecision,
+        showGuide: false,
         comparisonVisible: false,
         comparisonPreviewVisible: false,
         completedComparisonResults: {},
         controls: {
-          canStart: awaitingDecision,
+          canStart: false,
           canReplay: false,
-          canContinue: awaitingDecision,
+          canContinue: false,
         },
       };
       this.#emit();
+      if (awaitingDecision) this.#continueMissionAfterSnapshot();
       return;
     }
 
@@ -1263,14 +1530,23 @@ export class S06ConsequenceController {
     }
 
     if (missionPhase.kind === 'email-transition') {
+      const step = this.#currentPlanStep('s06-step-master-campus-campus-email');
+      const stepIndex = this.#plan.steps.findIndex(({ id }) => id === step.id);
+      if (stepIndex < 0 || step.relation === null) return;
+      const narrationId: S06NarrationId =
+        step.relation.kind === 'no-derived-path-recognized'
+          ? 's06.transition.master-campus-email-no-match'
+          : 's06.transition.master-campus-email-match';
       this.#snapshot = {
         ...this.#snapshot,
         phase: 'awaiting-decision',
         stage: 'email-transition',
-        participant: this.#participantForNarration('s06.transition.campus-email'),
+        stepIndex,
+        step,
+        participant: this.#participantForNarration(narrationId),
         attackPhase: 'preview-ready',
         attackSourceAccountId: 'master-campus',
-        isHypothetical: false,
+        isHypothetical: step.mode === 'hypothetical',
         showGuide: true,
         comparisonVisible: false,
         comparisonPreviewVisible: false,
@@ -1280,63 +1556,61 @@ export class S06ConsequenceController {
       return;
     }
 
-    if (missionPhase.kind === 'return-transition') {
-      this.#snapshot = {
-        ...this.#snapshot,
-        phase: 'awaiting-decision',
-        stage: 'return-transition',
-        participant: this.#participantForNarration('s06.transition.return-to-campusgram'),
-        attackPhase: 'preview-ready',
-        attackSourceAccountId: 'campus-email',
-        isHypothetical: this.#snapshot.step.mode === 'hypothetical',
-        showGuide: true,
-        comparisonVisible: false,
-        comparisonPreviewVisible: false,
-        controls: { canStart: false, canReplay: false, canContinue: true },
-      };
-      this.#emit();
-      return;
-    }
-
-    if (missionPhase.kind === 'final-summary') {
-      const summaryStep = planStep(this.#plan, 's06-step-summary');
-      this.#settledNetwork = this.#campusgramWasFound()
-        ? this.#campusgramOutcomeNetwork
-        : this.#campusgramInitialNetwork;
-      this.#renderer?.render(this.#settledNetwork);
-      this.#snapshot = {
-        ...this.#snapshot,
-        phase: 'awaiting-decision',
-        stage: 'final-summary',
-        stepIndex: this.#plan.steps.length - 1,
-        step: summaryStep,
-        participant: this.#participantForNarration(
-          this.#campusgramSummaryNarrationId('actual'),
-        ),
-        attackPhase: 'found',
-        attackSourceAccountId: 'campusgram',
-        isHypothetical: false,
-        showGuide: true,
-        comparisonVisible: false,
-        comparisonPreviewVisible: false,
-        completedComparisonResults: this.#campusgramWasFound()
-          ? this.#campusgramComparisonResults
-          : {},
-        controls: { canStart: false, canReplay: false, canContinue: true },
-      };
-      this.#emit();
-      return;
-    }
-
+    const summaryStep = planStep(this.#plan, 's06-step-summary');
+    this.#settledNetwork = this.#campusgramWasFound()
+      ? this.#campusgramOutcomeNetwork
+      : this.#campusgramInitialNetwork;
+    this.#renderer?.render(this.#settledNetwork);
     this.#snapshot = {
       ...this.#snapshot,
       phase: 'awaiting-decision',
       stage: 's07-transition',
+      stepIndex: this.#plan.steps.length - 1,
+      step: summaryStep,
       participant: this.#participantForNarration('s06.transition.s07'),
+      attackPhase: 'found',
+      attackSourceAccountId: 'campusgram',
+      isHypothetical: false,
       showGuide: true,
+      comparisonVisible: false,
+      comparisonPreviewVisible: false,
+      completedComparisonResults: this.#campusgramWasFound()
+        ? this.#campusgramComparisonResults
+        : {},
       controls: { canStart: false, canReplay: false, canContinue: true },
     };
     this.#emit();
+  }
+
+  #currentPlanStep(stepId: PasswordConsequenceStepId): PasswordConsequencePlanStep {
+    return planStep(this.#plan, stepId);
+  }
+
+  #allNodeIds(): readonly string[] {
+    return [
+      ...new Set(this.#plan.steps.flatMap(({ network }) => network.nodes.map(({ id }) => id))),
+    ];
+  }
+
+  #settleLocalCheck(step: PasswordConsequencePlanStep): void {
+    const sourceWasExposed =
+      step.sourceAccountId !== null &&
+      step.network.nodes.some(
+        ({ id, status }) => id === step.sourceAccountId && status === 'exposed',
+      );
+    this.#settledNetwork = {
+      ...step.network,
+      nodes: step.network.nodes,
+      edges: sourceWasExposed
+        ? step.network.edges.map((edge): SceneEdge =>
+            edge.sourceId === step.sourceAccountId &&
+            edge.targetId.startsWith(`${step.sourceAccountId}-detail-`)
+              ? { ...edge, status: 'direct' }
+              : edge,
+          )
+        : step.network.edges,
+    };
+    this.#renderer?.render(this.#settledNetwork);
   }
 
   #campusgramWasFound(): boolean {
@@ -1353,18 +1627,13 @@ export class S06ConsequenceController {
     };
   }
 
-  #campusgramSummaryNarrationId(
-    mode: 'plan' | 'actual' = 'plan',
-  ): Extract<S06NarrationId, `s06.summary.${string}`> {
-    if (mode === 'actual' && !this.#campusgramWasFound()) {
-      return 's06.summary.actual-source-blocked';
-    }
+  #campusgramSummaryNarrationId(): Extract<S06NarrationId, `s06.summary.${string}`> {
     const affectedTargetCount = this.#plan.comparisons.filter(
       ({ sourceAccountId, result }) =>
         sourceAccountId === 'campusgram' &&
         result.relation.kind !== 'no-derived-path-recognized',
     ).length;
-    if (mode === 'plan' && !this.#campusgramWasFound()) {
+    if (!this.#campusgramWasFound()) {
       return affectedTargetCount === 0
         ? 's06.summary.hypothetical-none'
         : affectedTargetCount === 1
@@ -1411,34 +1680,6 @@ export class S06ConsequenceController {
     };
     this.#emit();
     void this.#missionController.start(this.#mission);
-  }
-
-  #resolveAutomaticComparison(step: PasswordConsequencePlanStep): void {
-    if (step.targetAccountId === null || step.relation === null) return;
-    const attackNetwork =
-      this.#displayedAttackNetwork ?? attackPreviewNetwork(step, this.#settledNetwork);
-    this.#settledNetwork = resolvedNetwork(step, attackNetwork, this.#settledNetwork);
-    this.#displayedAttackNetwork = null;
-    this.#snapshot = {
-      ...this.#snapshot,
-      phase: 'animating',
-      stage: 'attacking',
-      step,
-      participant: participantSnapshot(step),
-      attackPhase: 'resolving',
-      attackSourceAccountId: step.sourceAccountId,
-      isHypothetical: step.mode === 'hypothetical',
-      showGuide: false,
-      comparisonVisible: false,
-      comparisonPreviewVisible: false,
-      completedComparisonResults: {
-        ...this.#snapshot.completedComparisonResults,
-        [step.targetAccountId]: step.relation.kind,
-      },
-      controls: { canStart: false, canReplay: false, canContinue: false },
-    };
-    this.#renderer?.render(this.#settledNetwork);
-    this.#emit();
   }
 
   #continueMissionAfterSnapshot(): void {

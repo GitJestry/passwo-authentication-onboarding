@@ -130,8 +130,19 @@ export interface S05StructureReflectionSnapshot {
   readonly contentGroups: readonly S05StructureContentGroup[];
   readonly activeContentGroupId: string;
   readonly sentenceLinks: readonly S05StructureSentenceLink[];
+  readonly sentenceBlockIds: readonly string[];
   readonly contentConfirmed: boolean;
   readonly sentenceConfirmed: boolean;
+}
+
+export interface S05InitialStructurePreset {
+  readonly contentGroups: readonly (readonly { readonly start: number; readonly end: number }[])[];
+  readonly sentenceRuns: readonly { readonly start: number; readonly end: number }[];
+}
+
+export interface S05InitialPersonalFinding {
+  readonly start: number;
+  readonly end: number;
 }
 
 export interface S05AnalysisSubject {
@@ -191,6 +202,8 @@ interface S05AnalysisControllerOptions {
   readonly subject: S05AnalysisSubject;
   readonly animationPlayer: AnimationPlayerPort;
   readonly initialSection?: S05InitialSection;
+  readonly initialPersonalFindings?: readonly S05InitialPersonalFinding[];
+  readonly initialStructurePreset?: S05InitialStructurePreset;
   readonly onComplete?: () => void;
   readonly nextLowercaseCharacter: () => string;
 }
@@ -279,8 +292,53 @@ function initialStructureReflection(): S05StructureReflectionSnapshot {
     contentGroups: [{ id: 'content-group-1', blockIds: [] }],
     activeContentGroupId: 'content-group-1',
     sentenceLinks: [],
+    sentenceBlockIds: [],
     contentConfirmed: false,
     sentenceConfirmed: false,
+  };
+}
+
+function structureReflectionFromPreset(
+  blocks: readonly S05DisplayBlock[],
+  preset: S05InitialStructurePreset,
+): S05StructureReflectionSnapshot {
+  const blockIdsForRanges = (
+    ranges: readonly { readonly start: number; readonly end: number }[],
+  ) =>
+    blocks
+      .filter((block) => ranges.some((range) => range.start < block.end && range.end > block.start))
+      .map(({ id }) => id);
+  const contentGroups = preset.contentGroups.map((ranges, index) => ({
+    id: `content-group-${index + 1}`,
+    blockIds: blockIdsForRanges(ranges),
+  }));
+  const sentenceLinks = preset.sentenceRuns.flatMap((range) => {
+    const sentenceBlocks = blocks.filter(
+      (block) => range.start < block.end && range.end > block.start,
+    );
+    return sentenceBlocks.slice(0, -1).flatMap((block, index) => {
+      const nextBlock = sentenceBlocks[index + 1];
+      return nextBlock === undefined
+        ? []
+        : [{ fromBlockId: block.id, toBlockId: nextBlock.id }];
+    });
+  });
+  const sentenceBlockIds = [
+    ...new Set(
+      preset.sentenceRuns.flatMap((range) =>
+        blocks
+          .filter((block) => range.start < block.end && range.end > block.start)
+          .map(({ id }) => id),
+      ),
+    ),
+  ];
+  return {
+    contentGroups,
+    activeContentGroupId: contentGroups[0]?.id ?? 'content-group-1',
+    sentenceLinks,
+    sentenceBlockIds,
+    contentConfirmed: true,
+    sentenceConfirmed: true,
   };
 }
 
@@ -487,6 +545,8 @@ export class S05AnalysisController {
     subject,
     animationPlayer,
     initialSection = 'intro',
+    initialPersonalFindings,
+    initialStructurePreset,
     onComplete,
     nextLowercaseCharacter,
   }: S05AnalysisControllerOptions) {
@@ -524,6 +584,44 @@ export class S05AnalysisController {
       subject.fictionalPassword,
       componentAnalysis,
     );
+    const initialPersonalCandidates = (initialPersonalFindings ?? []).map(
+      ({ start, end }, index) => ({ id: `initial-personal:${index}`, start, end }),
+    );
+    const initialPersonalCategoryFindings = createPersonalFindings(
+      canonicalView,
+      initialPersonalCandidates,
+    );
+    const initialCards =
+      initialSection === 'application'
+        ? {
+            'common-components': {
+              status: canonicalView.automaticFindings['common-components'].length > 0
+                ? ('checked-findings' as const)
+                : ('checked-none' as const),
+              findings: canonicalView.automaticFindings['common-components'],
+            },
+            'personal-details': {
+              status: initialPersonalCategoryFindings.length > 0
+                ? ('checked-findings' as const)
+                : ('checked-none' as const),
+              findings: initialPersonalCategoryFindings,
+            },
+            'account-context': {
+              status: canonicalView.automaticFindings['account-context'].length > 0
+                ? ('checked-findings' as const)
+                : ('checked-none' as const),
+              findings: canonicalView.automaticFindings['account-context'],
+            },
+          }
+        : initialComponentCards();
+    const initialBlocks = projectCanonicalPasswordBlocks(
+      canonicalView,
+      s05Content.componentStrategy.categories.flatMap(({ id }) => initialCards[id].findings),
+    );
+    const initialReflection =
+      initialStructurePreset === undefined
+        ? initialStructureReflection()
+        : structureReflectionFromPreset(initialBlocks, initialStructurePreset);
     const structureScene = createPasswordStructureScene(
       `s05-structure-${subject.id}`,
       s05Content.structure.demonstrations,
@@ -545,7 +643,7 @@ export class S05AnalysisController {
       step: stepForMissionIndex(this.#mission, 0),
       findingScene,
       structureScene,
-      structureReflection: initialStructureReflection(),
+      structureReflection: initialReflection,
       semanticEvidence: {
         kind: 'transient-password-semantic-evidence',
         confirmed: false,
@@ -580,11 +678,20 @@ export class S05AnalysisController {
       },
       componentStrategy: {
         canonicalView,
-        cards: initialComponentCards(),
-        personalSelection: { candidates: [] },
+        cards: initialCards,
+        personalSelection: {
+          candidates: initialPersonalCategoryFindings.map(({ id, start, end }) => ({
+            id,
+            start,
+            end,
+          })),
+        },
       },
       controls: { canStart: true, canContinue: false },
     };
+    if (initialStructurePreset !== undefined) {
+      this.#snapshot = this.#withUpdatedSemanticAssessment(this.#snapshot);
+    }
     this.#missionController = new MissionController({
       animationPlayer,
       onComplete: () => {
@@ -942,9 +1049,17 @@ export class S05AnalysisController {
           (link) => link.fromBlockId !== fromBlockId || link.toBlockId !== toBlockId,
         )
       : [...reflection.sentenceLinks, { fromBlockId, toBlockId }];
+    const sentenceBlockIds = [
+      ...new Set(sentenceLinks.flatMap(({ fromBlockId, toBlockId }) => [fromBlockId, toBlockId])),
+    ];
     this.#snapshot = {
       ...snapshot,
-      structureReflection: { ...reflection, sentenceLinks, sentenceConfirmed: false },
+      structureReflection: {
+        ...reflection,
+        sentenceLinks,
+        sentenceBlockIds,
+        sentenceConfirmed: false,
+      },
     };
     this.#emit();
   }

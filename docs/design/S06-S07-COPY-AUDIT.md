@@ -1,5 +1,117 @@
 # S06--S07 Copy Audit
 
+## Darstellungsdelta S06 Gruppenflächen statt Kategorieflächen, 17. August 2026
+
+Quelle ist der ausdrückliche Nutzerauftrag vom 17. August 2026. Die Bausteine der lokalen
+Passwortreflexion bei Master Campus und Campus E-Mail beginnen mit transparenter Fläche und
+neutralem Rand. Automatisch erkannte Kategorien färben die Bausteinfläche nicht mehr. Erst eine
+flüchtige Gruppenzuordnung färbt die gesamte Fläche des betreffenden Bausteins in der stabilen
+Gruppenfarbe; die Gruppe wird nicht mehr ausschließlich durch einen farbigen Rand dargestellt.
+Wiederholungsrahmen, Strukturpfeile, sichtbare Befundlabels und `aria-pressed` bleiben als
+zusätzliche, nicht ausschließlich farbliche Bedeutungsträger erhalten. Teilnehmertext,
+Content-Version, Analyse, Persistenz, Export und Studien-Timing ändern sich nicht.
+
+## Copy- und Ablaufdelta S06 kompakter Sprechablauf, 17. August 2026
+
+Quelle ist der ausdrückliche Nutzerauftrag vom 17. August 2026. Er ersetzt den bisherigen
+PassWo-Sprechablauf von S06 vollständig. Die neue Fassung nennt Ergebnis und unmittelbare
+Bedeutung kürzer, führt beim Master-Campus-Perspektivwechsel nur noch den ausdrücklich
+angekündigten Vergleich mit Campus E-Mail aus und geht nach dessen lokalem Einzelcheck ohne
+zusätzliche Campus-E-Mail-Einleitung, Rückkehransage oder zweite Endübersicht direkt zum
+Folgenschutz in S07 über.
+
+Die hypothetischen Befallanimationen bleiben als eindeutig gekennzeichnete Darstellung erhalten,
+erzeugen aber keine zusätzliche Sprechblase mehr: Die jeweilige Nicht-Erkennungsblase enthält die
+Annahme bereits. Vor dem letzten S07-Sprechschritt stellt der Controller weiterhin die tatsächliche
+Campusgram-Ausgangslage her. Persistenz, Export, Timinggrenzen und Analyseentscheidung bleiben
+unverändert. `S06_CONSEQUENCE_CONTENT_VERSION` steigt von `2.20.0` auf `2.21.0`.
+
+Der ergänzende Nutzerauftrag vom selben Tag bindet das lokale Ergebnis sichtbar an genau den
+Sprechmoment, der es benennt: Sobald die Master-Campus- beziehungsweise Campus-E-Mail-Blase den
+Fund oder die Nicht-Erkennung erklärt, verschwindet die Reflexionsfläche und das Kontonetz zeigt
+gleichzeitig entweder den roten betroffenen Kontozweig oder den geschützten Kontozweig samt
+Schutzschild. Der bisher nachgelagerte lokale Animationsschritt entfällt; der folgende Button
+startet nur noch den angekündigten Vergleich beziehungsweise den Übergang. Wortlaut,
+Analyseentscheidung, Persistenz, Export und Content-Version bleiben dadurch unverändert.
+
+Ein weiterer Nutzerauftrag vom selben Tag ergänzt nach dem aufgelösten Vergleich von Master
+Campus zu Campus E-Mail genau eine bedingte Überleitung. Bei `exact-match` oder
+`derived-variant-match` benennt sie die erkannte Verbindung und ihre mögliche Ausbreitungswirkung;
+bei `no-derived-path-recognized` benennt sie die begrenzte Nicht-Erkennung. Beide Varianten führen
+mit `Weiter` in den lokalen Campus-E-Mail-Check. Persistenz, Export, Timinggrenzen und
+Analyseentscheidung bleiben unverändert. `S06_CONSEQUENCE_CONTENT_VERSION` steigt von `2.21.0`
+auf `2.22.0`.
+
+| Segment und Text-ID | Aktueller Text | Geplanter Text | Primäre Rolle | Interaktionsziel | Grund und Bedeutungsänderung | Hervorhebung |
+|---|---|---|---|---|---|---|
+| `S06.narrations.s06.incident.campusgram-found` | `Da der Angreifer nun das Campusgram-Passwort kennt …` | `Das Campusgram-Passwort ist nun bekannt. Der Angreifer kann es und ähnliche Varianten jetzt auch bei den anderen Konten ausprobieren.` | Mechanismuserklärung | `Angriff starten` | ausdrücklich vorgegebener, kompakter Einstieg; begrenzt | keine |
+| `S06.narrations.s06.incident.campusgram-blocked` | Nicht-Erkennung und offene Was-wäre-wenn-Frage | `Das Campusgram-Passwort wurde hier nicht gefunden. Schauen wir trotzdem kurz, was passiert wäre, wenn es bekannt geworden wäre.` | Orientierung | `Weiter` zur hypothetischen Darstellung | übernimmt die bisher zweite Hypothese-Blase; ausdrücklich freigegebene Ablaufänderung | keine |
+| `S06.narrations.s06.summary.actual-none/one/both` | bisherige tatsächliche Ergebnisvarianten | die drei ausdrücklich vorgegebenen Varianten `Hier bleibt …`, `Bei einem weiteren Konto …` und `Bei beiden anderen Konten …` | Ergebnisfeedback | `Weiter` | erklärt Ausbreitung unmittelbar am sichtbaren Ergebnis; ausdrücklich freigegeben | keine |
+| `S06.narrations.s06.summary.hypothetical-none/one/both` | bisherige hypothetische Ergebnisvarianten | die drei ausdrücklich vorgegebenen Varianten `Wäre das Campusgram-Passwort bekannt geworden …` | Ergebnisfeedback | `Weiter` | verkürzt den Kontrast ohne Sicherheitsgarantie; ausdrücklich freigegeben | keine |
+| `S06.narrations.s06.transition` | mehrsätziger allgemeiner Perspektivwechsel | `Ein Datenleck kann bei jedem Konto beginnen. Schauen wir deshalb noch von Master Campus aus.` | Orientierung | `Weiter` zur lokalen Master-Campus-Reflexion | benennt exakt den nächsten sichtbaren Ausgangspunkt; ausdrücklich freigegeben | keine |
+| `S06.narrations.s06.perspective.master-campus-found` | Fund und angekündigte Vergleiche mit Campusgram und Campus E-Mail | `Das Master-Campus-Passwort gilt hier ebenfalls als gefunden. Prüfen wir, ob es bei Campus E-Mail weiterführt.` | Ergebnisfeedback / Navigation | `Angriff starten` | beschränkt Text und Ablauf auf den angekündigten Vergleich; ausdrücklich freigegeben | keine |
+| `S06.narrations.s06.perspective.master-campus-blocked` | Nicht-Erkennung und spätere separate Hypothese-Blase | `Das Master-Campus-Passwort wurde hier nicht gefunden. Für den Vergleich nehmen wir kurz an, es wäre bekannt geworden.` | Ergebnisfeedback / Orientierung | `Angriff starten` | integriert die Annahme und entfernt eine redundante Blase; ausdrücklich freigegeben | keine |
+| `S06.narrations.s06.transition.master-campus-email-match` | nicht vorhanden | `Zwischen Master Campus und Campus E-Mail wurde ein gleiches oder ähnliches Passwort erkannt. Dieser Weg könnte den Angriff auf Campus E-Mail ausweiten. Schauen wir uns das Campus-E-Mail-Passwort jetzt noch für sich an.` | Ergebnisfeedback / Orientierung | `Weiter` zum lokalen Campus-E-Mail-Check | ordnet die sichtbare Übereinstimmung ein und benennt den nächsten Schritt; ausdrücklich freigegeben | keine |
+| `S06.narrations.s06.transition.master-campus-email-no-match` | nicht vorhanden | `Zwischen Master Campus und Campus E-Mail wurde hier keine solche Übereinstimmung erkannt. Dieser Weg führt in dieser Übung nicht weiter. Schauen wir uns das Campus-E-Mail-Passwort jetzt noch für sich an.` | Ergebnisfeedback / Orientierung | `Weiter` zum lokalen Campus-E-Mail-Check | ordnet die begrenzte Nicht-Erkennung ein und benennt den nächsten Schritt; ausdrücklich freigegeben | keine |
+| `S06.narrations.s06.local-check.campus-email-found` | begrenzter früher Kandidat mit allgemeiner Stärkeeinordnung | `Auch dieses Passwort gilt hier als gefunden. Einzigartigkeit verhindert die Ausbreitung zwischen Konten, trotzdem sollte jedes Passwort auch für sich stark sein.` | Ergebnisfeedback / Kerngedanke | `Weiter` | verbindet Einzelstärke und Einzigartigkeit im vorgegebenen Wortlaut; ausdrücklich freigegeben | keine |
+| `S06.narrations.s06.local-check.campus-email-blocked` | begrenzte Nicht-Erkennung mit allgemeiner Sicherheitsgrenze | `Dieses Passwort wurde hier nicht gefunden. Das ist ein gutes Ergebnis für diese Übung.` | Ergebnisfeedback | `Weiter` | wertet nur das Übungsergebnis und verspricht keine Sicherheit; ausdrücklich freigegeben | keine |
+| `S06.narrations.s06.transition.s07` | allgemeiner Hinweis zum Ersetzen des betroffenen Passworts | `Ein Datenleck lässt sich nicht immer verhindern. Danach zählt, die Folgen zu begrenzen: das betroffene Passwort zügig ersetzen und Wiederverwendung stoppen. Genau das machen wir jetzt bei Campusgram.` | Kerngedanke / Navigation | `Passwort ersetzen` | verbindet Schadensbegrenzung direkt mit der nächsten sichtbaren Handlung; ausdrücklich freigegeben | keine |
+| bisherige Zusatzblasen und Master-Campus-zu-Campusgram-Vergleich | separate Campusgram-/Master-Hypothese, Campus-E-Mail-Einleitung, Rückkehransage, zweite Endübersicht und zusätzlicher Vergleich | entfallen aus dem sichtbaren Ablauf | Ablaufreduktion | kein | setzt die ausdrücklich vorgegebene Reihenfolge ohne redundante oder widersprüchliche Schritte um; Bedeutungsänderung ausdrücklich freigegeben | keine |
+
+## Copy-, Interaktions- und Darstellungsdelta S06 Passwortreflexion, 17. August 2026
+
+Quelle ist der ausdrückliche Nutzerauftrag vom 17. August 2026. In der lokalen Passwortreflexion
+für Master Campus und Campus E-Mail werden automatisch erkannte Befundlabels kompakter unter den
+jeweiligen Bausteinen dargestellt, ohne deren horizontale Abstände zu vergrößern. Gruppenfarben
+markieren in S05 und S06 ausschließlich den Rand; die vorhandene Kategoriefläche im Inneren bleibt
+sichtbar. Die S06-Reflexion liegt für beide Konten weiter rechts.
+
+Der Strukturmodus übernimmt die S05-Interaktion: Ein Baustein schaltet die gerichtete Verbindung
+zum unmittelbar folgenden Baustein. Aktive Verbindungen werden als zusammenhängende Pfeilläufe
+gerendert und einzeln als flüchtige Satz-/Phrasenbeziehung ausgewertet. Wiederholte Bausteine
+behalten ihren gemeinsamen weißen Rand, aber nur der erste Baustein einer Wiederholungsgruppe
+zeigt den Multiplikator. Das redundante untere Label `Wiederholung` entfällt. Persistenz, Export,
+Studien-Timing und die begrenzte Passwortanalyse ändern sich nicht.
+`S06_CONSEQUENCE_CONTENT_VERSION` steigt von `2.19.0` auf `2.20.0`.
+
+| Segment und Text-ID | Aktueller Text | Geplanter Text | Primäre Rolle | Interaktionsziel | Grund und Bedeutungsänderung | Hervorhebung |
+|---|---|---|---|---|---|---|
+| `S06.page.localReflection.repetitionFinding` | `Wiederholung` unter jedem betroffenen Baustein | entfällt; Wiederholung bleibt durch gemeinsamen Rand und einmaliges `×N` sichtbar | Ergebnisfeedback | kein | entfernt ausdrücklich benannte Redundanz und unnötige kognitive Last; keine fachliche Bedeutungsänderung | weißer Rand und `×N` am ersten Baustein |
+
+## Copy- und Ablaufdelta S06 lokale Reflexion vor weiteren Datenlecks, 17. August 2026
+
+Quelle ist der ausdrückliche Nutzerauftrag vom 17. August 2026. Beim Wechsel des fiktiven
+Datenlecks zu Master Campus und später zu Campus E-Mail bleiben zunächst nur der jeweilige
+Kontoknoten und das zugehörige fiktive Passwort sichtbar. Die bereits lokal erkannten Kategorien
+und Wiederholungen sind markiert. Die Person kann über die beiden Modi `Gruppen` und `Struktur`
+zusätzliche flüchtige Zusammenhänge angeben und bestätigt sie mit `Fertig`. Erst danach verwendet
+die unveränderte begrenzte Passwortanalyse genau diese bestätigte Information und PassWo erklärt
+das lokale Ergebnis. `Angriff starten` blendet die Passwortansicht aus, stellt das Kontennetz
+wieder her und setzt den bisherigen S06-Ablauf fort. Für Campus E-Mail bleibt der anschließend
+ausgeführte Ablauf ein lokaler Einzelcheck ohne ausgehende Kontoprüfung.
+
+Die Angaben werden weder persistiert noch exportiert und bleiben außerhalb des globalen
+Machine-Contexts. Persistenz, Export und Studien-Timing ändern sich nicht.
+`S06_CONSEQUENCE_CONTENT_VERSION` steigt von `2.17.0` auf `2.18.0`.
+
+Der ergänzende Nutzerauftrag vom 17. August 2026 präzisiert die Darstellung: Der aktive
+Kontozweig bleibt mit seinen Unterkonten sichtbar. Kontologo und Titel stehen über dem Passwort.
+Die Modussteuerung, `Fertig` und die aus S05 übernommene Gruppensteuerung mit `Gruppe 1` und
+Plus-Button bilden eine kompakte, horizontal zentrierte Reihe. Die fachliche Auswertung und alle
+bestehenden PassWo-Texte bleiben unverändert. `S06_CONSEQUENCE_CONTENT_VERSION` steigt dafür von
+`2.18.0` auf `2.19.0`.
+
+| Segment und Text-ID | Aktueller Text | Geplanter Text | Primäre Rolle | Interaktionsziel | Grund und Bedeutungsänderung | Hervorhebung |
+|---|---|---|---|---|---|---|
+| `S06.page.localReflection.modeLabel` | neu | `Modus:` | Orientierung | Moduswahl | ausdrücklich verlangte Zuordnung der beiden vorhandenen Reflexionsarten; begrenzt | keine |
+| `S06.page.localReflection.groupLabel` | `Gruppen` | `Gruppe 1` | Navigation | erste aktive Inhaltsgruppe | gleicht Benennung und Gruppenmechanik ausdrücklich an S05 an; begrenzt | aktive S05-Gruppenform |
+| `S06.page.localReflection.newGroup` | neu | `Neue Gruppe` | Navigation | Plus-Button | übernimmt die vorhandene S05-Gruppenerweiterung; begrenzt | Plus-Button |
+| `S06.page.localReflection.passwordTitles.master-campus` | neu | `Master Campus-Passwort` | Orientierung | kein | ordnet Logo und Passwortfläche eindeutig dem aktiven Konto zu; begrenzt | Kontologo |
+| `S06.page.localReflection.passwordTitles.campus-email` | neu | `Campus E-Mail-Passwort` | Orientierung | kein | ordnet Logo und Passwortfläche eindeutig dem aktiven Konto zu; begrenzt | Kontologo |
+| `S06.page.localReflection.structureMode` | neu | `Struktur` | Navigation | Strukturmodus | ausdrücklich benannter Modus; begrenzt | aktive Buttonform |
+| `S06.page.finish` | `Fertig` | wortgleich, zusätzlich in beiden lokalen Reflexionsschritten | Navigation | bestätigte flüchtige Zusatzinformation übernehmen | ordnet die bestehende Handlung dem neuen sichtbaren Schritt zu; keine Bedeutungsänderung | Primärbutton |
+| `S06.page.attackStart` | `Angriff starten` | wortgleich, nach dem lokalen Ergebnis für beide Perspektiven | Navigation | Passwortansicht schließen und Netzwerksimulation starten | stimmt den Button mit der ausdrücklich verlangten Reihenfolge ab; begrenzt | Primäraktion |
+
 ## Ablaufdelta S07/S08 minimale Passwortänderungen aus S06-Befunden, 15. August 2026
 
 Quelle ist der ausdrückliche Nutzerauftrag vom 15. August 2026. Die in S07 gezeigten Befunde zu

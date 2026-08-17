@@ -90,6 +90,168 @@
   background: #000;
 }
 
+.finalPasswordSummary {
+  position: absolute;
+  z-index: 8;
+  top: clamp(2.25rem, 7cqb, 5rem);
+  bottom: clamp(13.5rem, 25cqb, 15rem);
+  left: clamp(2rem, 7cqi, 5.5rem);
+  display: grid;
+  width: min(55cqi, 48rem);
+  min-width: 0;
+  grid-template-rows: auto minmax(0, 1fr);
+  align-items: center;
+  gap: clamp(var(--space-4), 3cqb, var(--space-7));
+  color: #f4f4f6;
+  pointer-events: none;
+}
+
+.finalPasswordAccount {
+  justify-self: center;
+  margin-top: clamp(var(--space-3), 3.5cqb, var(--space-7));
+  color: #f4f4f6;
+}
+
+.finalPasswordStructure {
+  display: grid;
+  min-width: 0;
+  place-items: center;
+}
+
+.finalPasswordStructure .structureReflectionPassword {
+  width: 100%;
+  align-items: flex-start;
+  row-gap: clamp(var(--space-3), 2.5cqb, var(--space-5));
+}
+
+.finalPasswordStructure .structureReflectionRun {
+  display: contents;
+}
+
+.finalPasswordStructure .structureReflectionToken {
+  min-height: clamp(2.1rem, 4.4cqb, 3.2rem);
+  padding: clamp(0.3rem, 0.7cqb, 0.48rem) clamp(0.42rem, 0.8cqi, 0.72rem);
+  background: transparent;
+  box-shadow: none;
+  font-size: min(
+    clamp(1rem, 2.45cqi, 2.15rem),
+    calc(46cqi / var(--s05-final-password-character-count))
+  );
+}
+
+.finalPasswordStructure .structureReflectionToken[data-grouped="true"] {
+  border-color: #4b4b52;
+  background: color-mix(in srgb, var(--s05-structure-reflection-color) 72%, #111113);
+  box-shadow: 0 0.55rem 1.2rem rgb(0 0 0 / 32%);
+}
+
+.finalPasswordStructure .structureReflectionGap {
+  height: clamp(2.1rem, 4.4cqb, 3.2rem);
+}
+
+.structureReflectionFindingBlock {
+  display: inline-grid;
+  min-width: 0;
+  justify-items: center;
+  align-self: start;
+}
+
+.structureReflectionFindings {
+  display: grid;
+  width: 0;
+  min-width: 100%;
+  max-width: 100%;
+  gap: calc(0.2rem * var(--s05-final-password-scale, 1));
+  margin-top: calc(var(--space-2) * var(--s05-final-password-scale, 1));
+  color: #e9e9ed;
+  font-family: var(--font-family-sans);
+  font-size: calc(
+    clamp(0.5rem, 0.82cqi, 0.7rem) * var(--s05-final-password-scale, 1)
+  );
+  font-weight: var(--font-weight-bold);
+  line-height: var(--line-height-tight);
+  text-align: left;
+}
+
+.structureReflectionFindings > span > span {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.structureReflectionFindings > span {
+  --semantic-border: #ffffff;
+
+  display: grid;
+  min-width: 0;
+  grid-template-columns:
+    calc(0.55rem * var(--s05-final-password-scale, 1))
+    minmax(0, 1fr);
+  gap: calc(var(--space-1) * var(--s05-final-password-scale, 1));
+  align-items: start;
+}
+
+.structureReflectionFindings > span[data-category="common-components"] {
+  --semantic-border: #6fa8ff;
+}
+
+.structureReflectionFindings > span[data-category="personal-details"] {
+  --semantic-border: #bd83ee;
+}
+
+.structureReflectionFindings > span[data-category="account-context"] {
+  --semantic-border: #f4cf56;
+}
+
+.structureReflectionFindings i {
+  width: calc(0.5rem * var(--s05-final-password-scale, 1));
+  height: calc(0.5rem * var(--s05-final-password-scale, 1));
+  margin-top: 0.16em;
+  border: var(--border-width-thin) solid color-mix(in srgb, var(--semantic-border) 72%, white);
+  border-radius: 50%;
+  background: var(--semantic-border);
+  box-shadow: 0 0 0.45rem color-mix(in srgb, var(--semantic-border) 42%, transparent);
+}
+
+.passwordReuseExample {
+  position: absolute;
+  z-index: 8;
+  top: clamp(3rem, 9cqb, 6rem);
+  bottom: clamp(14rem, 27cqb, 17rem);
+  left: clamp(1.25rem, 5cqi, 4.5rem);
+  display: grid;
+  width: min(45cqi, 38rem);
+  min-width: 0;
+  grid-template-rows: auto minmax(3rem, 1fr) auto;
+  place-items: center;
+  margin: 0;
+  color: #f4f4f6;
+  pointer-events: none;
+}
+
+.passwordReuseExample code {
+  display: block;
+  max-width: 100%;
+  padding: clamp(0.7rem, 1.8cqi, 1.2rem) clamp(0.9rem, 2.4cqi, 1.6rem);
+  overflow: hidden;
+  border: var(--border-width-medium) solid #72727c;
+  border-radius: var(--radius-medium);
+  color: #f7f7f9;
+  background: #232327;
+  box-shadow: 0 0.65rem 1.4rem rgb(0 0 0 / 32%);
+  font-size: min(clamp(1rem, 2.4cqi, 2rem), 2.45cqi);
+  font-weight: var(--font-weight-heavy);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.passwordReuseExample > span {
+  width: 0;
+  height: 100%;
+  min-height: 3rem;
+  border-left: 0.2rem dashed #ff315e;
+  filter: drop-shadow(0 0 0.35rem rgb(255 49 94 / 55%));
+}
+
 .assessmentDesktop :global([data-scene-node-button]) {
   opacity: 1;
 }
@@ -167,6 +329,26 @@
     opacity: 1;
     animation: none !important;
     transform: none;
+  }
+
+}
+
+@container artifact-stage (max-width: 760px) {
+  .finalPasswordSummary {
+    top: clamp(1rem, 3cqb, 2rem);
+    right: var(--space-4);
+    bottom: clamp(13rem, 25cqb, 14rem);
+    left: var(--space-4);
+    width: auto;
+    gap: var(--space-3);
+  }
+
+  .passwordReuseExample {
+    top: var(--space-4);
+    right: var(--space-4);
+    bottom: clamp(13rem, 25cqb, 14rem);
+    left: var(--space-4);
+    width: auto;
   }
 
 }
@@ -1383,7 +1565,6 @@
 
 .structureReflectionToken[data-grouped="true"] {
   border-color: color-mix(in srgb, var(--s05-structure-reflection-color) 82%, white);
-  background: color-mix(in srgb, var(--s05-structure-reflection-color) 58%, #171719);
   box-shadow:
     0 0.45rem 1rem rgb(0 0 0 / 24%),
     0 0 1rem color-mix(in srgb, var(--s05-structure-reflection-color) 24%, transparent);

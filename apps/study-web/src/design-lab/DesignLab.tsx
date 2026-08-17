@@ -2,6 +2,7 @@ import {
   defaultTrainingQaPasswords,
   type DesignLabScenarioId,
   designLabPathForScenario,
+  type TransientPasswordSemanticEvidence,
   type TrainingQaPasswordOverrides,
 } from '@passwo/contracts';
 import {
@@ -69,6 +70,25 @@ interface DesignLabScenarioGroup {
   readonly label: string;
   readonly scenarioIds: readonly DesignLabScenarioId[];
 }
+
+const s05S06TransitionQaPassword = 'MeinStarkes!UniPasswortIchBinCool????';
+const s05S06TransitionPersonalValue = 'UniPasswort';
+const s05S06TransitionPersonalStart = s05S06TransitionQaPassword.indexOf(
+  s05S06TransitionPersonalValue,
+);
+const s05S06TransitionInitialPersonalFindings = [
+  {
+    start: s05S06TransitionPersonalStart,
+    end: s05S06TransitionPersonalStart + s05S06TransitionPersonalValue.length,
+  },
+] as const;
+const s05S06TransitionInitialStructurePreset = {
+  contentGroups: [[{ start: 4, end: 11 }, { start: 12, end: 23 }]],
+  sentenceRuns: [
+    { start: 0, end: 23 },
+    { start: 23, end: 33 },
+  ],
+} as const;
 
 function ArtifactPreview({ children }: { readonly children: ReactNode }) {
   return (
@@ -803,7 +823,12 @@ function waitForPreviewState(
   });
 }
 
-function s06SourceForPreview(snapshot: PasswordModuleSnapshot): S06ConsequenceSource | null {
+function s06SourceForPreview(
+  snapshot: PasswordModuleSnapshot,
+  semanticEvidenceByAccount: Readonly<
+    Partial<Record<S01AccountId, TransientPasswordSemanticEvidence>>
+  >,
+): S06ConsequenceSource | null {
   const assessmentTerms = deriveCampusIdentity('Vorschau').assessmentTerms;
   const accountInput = (accountId: S01AccountId) => {
     const fictionalPassword = snapshot.context.passwordValues[accountId];
@@ -820,6 +845,9 @@ function s06SourceForPreview(snapshot: PasswordModuleSnapshot): S06ConsequenceSo
       fictionalPassword,
       retrievalStatus,
       transientAccountIdentifiers: assessmentTerms[accountId],
+      ...(semanticEvidenceByAccount[accountId] === undefined
+        ? {}
+        : { semanticEvidence: semanticEvidenceByAccount[accountId] }),
     };
   };
   const masterCampus = accountInput('master-campus');
@@ -858,15 +886,28 @@ function PasswordModuleSegmentPreview({
   const [controller, setController] = useState<PasswordModuleController | null>(null);
   const [snapshot, setSnapshot] = useState<PasswordModuleSnapshot | null>(null);
   const [preparationError, setPreparationError] = useState<string | null>(null);
+  const [semanticEvidenceByAccount, setSemanticEvidenceByAccount] = useState<
+    Partial<Record<S01AccountId, TransientPasswordSemanticEvidence>>
+  >({});
   const continuesThroughS06 =
     segment === 's05-s06-transition' ||
     segment === 's05-application-found' ||
     segment === 's05-application-protected';
   const completeS05 = useCallback(() => controller?.completeS05(), [controller]);
   const completeS06 = useCallback(() => controller?.completeS06(), [controller]);
+  const captureCampusgramSemanticEvidence = useCallback(
+    (evidence: TransientPasswordSemanticEvidence) => {
+      if (!evidence.confirmed) return;
+      setSemanticEvidenceByAccount((current) => ({ ...current, campusgram: evidence }));
+    },
+    [],
+  );
   const s06Source = useMemo(
-    () => (snapshot === null ? null : s06SourceForPreview(snapshot)),
-    [snapshot],
+    () =>
+      snapshot === null
+        ? null
+        : s06SourceForPreview(snapshot, semanticEvidenceByAccount),
+    [semanticEvidenceByAccount, snapshot],
   );
 
   useEffect(() => {
@@ -903,7 +944,9 @@ function PasswordModuleSegmentPreview({
 
       for (const accountId of previewController.getSnapshot().context.accountIds) {
         const fixturePassword =
-          (segment === 's05' || continuesThroughS06) && accountId === 'campusgram'
+          segment === 's05-s06-transition' && accountId === 'campusgram'
+            ? s05S06TransitionQaPassword
+            : (segment === 's05' || continuesThroughS06) && accountId === 'campusgram'
             ? getS05DesignLabFixture(
                 segment === 's05-application-protected'
                   ? 'no-simple-component'
@@ -912,9 +955,11 @@ function PasswordModuleSegmentPreview({
             : undefined;
         previewController.setPasswordValue(
           accountId,
-          passwordOverrides[accountId as S01AccountId] ??
-            fixturePassword ??
-            defaultTrainingQaPasswords[accountId as S01AccountId],
+          segment === 's05-s06-transition' && accountId === 'campusgram'
+            ? (fixturePassword ?? defaultTrainingQaPasswords.campusgram)
+            : passwordOverrides[accountId as S01AccountId] ??
+                fixturePassword ??
+                defaultTrainingQaPasswords[accountId as S01AccountId],
         );
         previewController.configureAccount(accountId);
       }
@@ -1050,9 +1095,12 @@ function PasswordModuleSegmentPreview({
     (segment === 's04' || segment === 's05' || continuesThroughS06) &&
     snapshot.matches({ s05: 'active' })
   ) {
+    const usesS118Default = segment === 's05-s06-transition';
     const applicationPasswordOverride =
-      passwordOverrides.campusgram ??
-      (segment === 's05-application-protected'
+      usesS118Default
+        ? s05S06TransitionQaPassword
+        : passwordOverrides.campusgram ??
+          (segment === 's05-application-protected'
         ? getS05DesignLabFixture('no-simple-component').fictionalPassword
         : continuesThroughS06
           ? getS05DesignLabFixture('common-suffix').fictionalPassword
@@ -1064,8 +1112,17 @@ function PasswordModuleSegmentPreview({
         {...(applicationPasswordOverride === undefined
           ? {}
           : { passwordOverride: applicationPasswordOverride })}
+        {...(!usesS118Default
+          ? {}
+          : {
+              initialPersonalFindings: s05S06TransitionInitialPersonalFindings,
+              initialStructurePreset: s05S06TransitionInitialStructurePreset,
+            })}
         {...(segment === 's05' || continuesThroughS06
           ? { onComplete: completeS05 }
+          : {})}
+        {...(segment === 's05-s06-transition'
+          ? { onSemanticEvidenceChange: captureCampusgramSemanticEvidence }
           : {})}
       />
     );

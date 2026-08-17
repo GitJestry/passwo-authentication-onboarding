@@ -73,7 +73,7 @@ export interface S05DesignLabFixture {
   readonly startSection: 'intro' | 'components' | 'structure';
 }
 
-export const S05_CONTENT_VERSION = '2.100.0';
+export const S05_CONTENT_VERSION = '2.101.0';
 
 export const s05Content = {
   version: S05_CONTENT_VERSION,
@@ -711,6 +711,10 @@ export const s05Content = {
         'Das Schild steht für den Schutz durch das Passwort als einen Faktor, nicht für absolute Kontosicherheit.',
       reuseTakeaway:
         'Selbst gewählte Passwörter werden oft für mehrere Konten wiederverwendet oder nur leicht verändert, weil man sich so weniger merken muss.',
+      reuseExample: {
+        sourcePassword: 'PasswortCampusgram',
+        targetPassword: 'PasswortMasterCampus',
+      },
       attackerTakeaway:
         'Wird eines davon herausgefunden, können Angreifer diese Varianten auch bei anderen Konten ausprobieren.',
       otherAccountsAction: 'Andere Konten prüfen',

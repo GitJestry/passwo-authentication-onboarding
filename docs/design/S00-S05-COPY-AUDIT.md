@@ -1,5 +1,26 @@
 # S00--S05 Copy and Interaction Audit
 
+## Darstellungsdelta S05 Campusgram-Bausteine, 17. August 2026
+
+Quelle ist der ausdrückliche Nutzerauftrag vom 17. August 2026. Die Campusgram-Zusammenfassung
+übernimmt die visuelle Semantik der lokalen S06-Reflexion: Bausteine bleiben unabhängig von ihrer
+Befundkategorie transparent und werden erst durch eine bestätigte Gruppenzuordnung vollflächig
+gefärbt. Befundpunkte und -beschriftungen bleiben als zusätzlicher, nicht ausschließlich
+farblicher Bedeutungsträger erhalten. Der QA-Einstieg `s05-s06-transition` ergänzt ausschließlich
+für die visuelle Fehlerprüfung einen flüchtigen persönlichen Befund, dessen Bereich andere
+Bausteinbefunde überschneidet. Teilnehmerwortlaut, Laufzeitanalyse, Persistenz, Export und
+Content-Version bleiben unverändert.
+
+## Copy-Delta S05 visuelles Wiederverwendungsbeispiel, 17. August 2026
+
+Quelle ist der ausdrückliche Nutzerauftrag vom 17. August 2026. Beim bestehenden Sprechschritt
+`s05-final-spread` erscheinen ergänzend die beiden fiktiven Beispielpasswörter
+`PasswortCampusgram` und `PasswortMasterCampus`, verbunden durch eine rote gestrichelte Linie.
+Der bestehende PassWo-Wortlaut bleibt unverändert. Die Textrolle der beiden Werte ist
+Mechanismusvisualisierung, das Interaktionsziel ist `Weiter`, und die Bedeutungsänderung ist auf
+die ausdrücklich gewünschte Konkretisierung von Wiederverwendung beziehungsweise leichter
+Veränderung begrenzt. `S05_CONTENT_VERSION` steigt von `2.100.0` auf `2.101.0`.
+
 ## Copy- und Interaktionsdelta S04 Passwortwechsel gestrafft, 14. August 2026
 
 Quelle ist der ausdrückliche Nutzerauftrag vom 14. August 2026. Das Setting und die Grenze zu
