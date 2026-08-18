@@ -229,6 +229,66 @@ const sixGuardrailFormsSchema = `
   DROP TABLE guardrail_form_slots_before_six_forms;
 `;
 
+const webRuntimeSchema = `
+  ALTER TABLE study_sessions ADD COLUMN progress_checkpoint TEXT NOT NULL
+    DEFAULT 'pre-questionnaire';
+  ALTER TABLE study_sessions ADD COLUMN artifact_completed_at_iso TEXT;
+  ALTER TABLE study_sessions ADD COLUMN web_interruption_count INTEGER NOT NULL DEFAULT 0
+    CHECK (web_interruption_count >= 0);
+  ALTER TABLE study_sessions ADD COLUMN last_resumed_at_iso TEXT;
+
+  CREATE TABLE web_resume_tokens (
+    session_id TEXT PRIMARY KEY REFERENCES study_sessions(session_id) ON DELETE CASCADE,
+    token_hash TEXT NOT NULL UNIQUE CHECK (length(token_hash) = 64),
+    expires_at_iso TEXT NOT NULL,
+    last_confirmed_at_iso TEXT NOT NULL,
+    invalidated_at_iso TEXT
+  );
+
+  CREATE INDEX active_web_resume_tokens
+  ON web_resume_tokens(token_hash, expires_at_iso)
+  WHERE invalidated_at_iso IS NULL;
+
+  CREATE TABLE web_artifact_intervals (
+    interval_id TEXT PRIMARY KEY,
+    open_request_id TEXT NOT NULL UNIQUE,
+    session_id TEXT NOT NULL REFERENCES study_sessions(session_id) ON DELETE CASCADE,
+    started_at_iso TEXT NOT NULL,
+    last_confirmed_at_iso TEXT NOT NULL,
+    confirmed_elapsed_ms REAL NOT NULL DEFAULT 0
+      CHECK (confirmed_elapsed_ms >= 0 AND confirmed_elapsed_ms <= 21600000),
+    closed_at_iso TEXT,
+    close_reason TEXT CHECK (close_reason IS NULL OR close_reason IN ('completed', 'interrupted'))
+  );
+
+  CREATE UNIQUE INDEX one_active_web_artifact_interval
+  ON web_artifact_intervals(session_id) WHERE closed_at_iso IS NULL;
+  CREATE INDEX web_artifact_intervals_by_session
+  ON web_artifact_intervals(session_id, started_at_iso);
+
+  CREATE TABLE web_segment_timing_events (
+    event_id TEXT PRIMARY KEY,
+    interval_id TEXT NOT NULL REFERENCES web_artifact_intervals(interval_id) ON DELETE CASCADE,
+    session_id TEXT NOT NULL REFERENCES study_sessions(session_id) ON DELETE CASCADE,
+    segment_id TEXT NOT NULL CHECK (
+      segment_id IN ('S00', 'S01', 'S02', 'S03', 'S04', 'S05', 'S06', 'S07')
+    ),
+    event_type TEXT NOT NULL CHECK (event_type IN ('segment-start', 'segment-end')),
+    elapsed_ms REAL CHECK (elapsed_ms IS NULL OR (elapsed_ms >= 0 AND elapsed_ms <= 21600000)),
+    server_received_at_iso TEXT NOT NULL,
+    UNIQUE (interval_id, segment_id, event_type)
+  );
+
+  CREATE TABLE web_artifact_visibility_events (
+    event_id TEXT PRIMARY KEY,
+    interval_id TEXT NOT NULL REFERENCES web_artifact_intervals(interval_id) ON DELETE CASCADE,
+    session_id TEXT NOT NULL REFERENCES study_sessions(session_id) ON DELETE CASCADE,
+    visibility TEXT NOT NULL CHECK (visibility IN ('hidden', 'visible')),
+    elapsed_ms REAL NOT NULL CHECK (elapsed_ms >= 0 AND elapsed_ms <= 21600000),
+    server_received_at_iso TEXT NOT NULL
+  );
+`;
+
 const recontactSchema = `
   CREATE TABLE IF NOT EXISTS recontact.registrations (
     session_id TEXT PRIMARY KEY,
@@ -413,6 +473,10 @@ const migrations: readonly Migration[] = [
     version: 7,
     apply: (database) => database.exec(sixGuardrailFormsSchema),
   },
+  {
+    version: 8,
+    apply: (database) => database.exec(webRuntimeSchema),
+  },
 ];
 
 function migrate(database: Database.Database, migrationResearchToken: () => string): void {
@@ -449,9 +513,13 @@ export function openStudyDatabase(
     chmodSync(dataDirectory, 0o700);
   }
 
-  const database = new Database(databasePath);
+  const database = new Database(databasePath, { timeout: 5_000 });
   database.pragma('foreign_keys = ON');
   database.pragma('journal_mode = DELETE');
+  database.pragma('synchronous = FULL');
+  database.pragma('busy_timeout = 5000');
+  database.pragma('secure_delete = ON');
+  database.pragma('temp_store = MEMORY');
   attachRecontactDatabase(database, recontactDatabasePath);
   migrate(database, migrationResearchToken);
 

@@ -20,6 +20,8 @@ const sessionRowSchema = z.object({
   followUpTokenHash: z.string().nullable(),
   completionStatus: z.string(),
   technicalErrorCode: z.string().nullable(),
+  artifactSessionElapsedMs: z.number().finite().nonnegative().nullable(),
+  webInterruptionCount: z.number().int().nonnegative(),
   createdAtIso: z.string(),
   completedAtIso: z.string().nullable(),
 });
@@ -44,6 +46,18 @@ export const sessionRowSelection = `
     follow_up_token_hash AS followUpTokenHash,
     completion_status AS completionStatus,
     technical_error_code AS technicalErrorCode,
+    CASE
+      WHEN EXISTS (
+        SELECT 1 FROM web_artifact_intervals AS web_interval
+        WHERE web_interval.session_id = study_sessions.session_id
+      ) THEN COALESCE((
+        SELECT SUM(web_interval.confirmed_elapsed_ms)
+        FROM web_artifact_intervals AS web_interval
+        WHERE web_interval.session_id = study_sessions.session_id
+      ), 0)
+      ELSE NULL
+    END AS artifactSessionElapsedMs,
+    web_interruption_count AS webInterruptionCount,
     created_at_iso AS createdAtIso,
     completed_at_iso AS completedAtIso
   FROM study_sessions

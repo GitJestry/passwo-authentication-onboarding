@@ -9,3 +9,4 @@ export * from './study.js';
 export * from './study-data-deletion.js';
 export * from './timing.js';
 export * from './training.js';
+export * from './web-runtime.js';

@@ -1,7 +1,10 @@
 import { createActor, type SnapshotFrom } from 'xstate';
 import type { SegmentTimingEvent, SegmentTimingPort } from './mission-controller.js';
 import { isPermittedFictionalPassword } from './fictional-password-input.js';
-import { passwordModuleMachine } from './password-module-machine.js';
+import {
+  passwordModuleMachine,
+  type PasswordModuleResumeSegmentId,
+} from './password-module-machine.js';
 import {
   passwordSegmentTimingPlan,
   type PasswordTimedSegmentId,
@@ -21,6 +24,7 @@ interface FailedBoundary {
 export interface PasswordModuleControllerOptions {
   readonly accountIds: readonly string[];
   readonly timingPort?: SegmentTimingPort;
+  readonly resumeSegmentId?: PasswordModuleResumeSegmentId;
 }
 
 export type PasswordModuleSnapshot = SnapshotFrom<typeof passwordModuleMachine>;
@@ -31,9 +35,11 @@ export class PasswordModuleController {
   #failedBoundary: FailedBoundary | null = null;
   #disposed = false;
 
-  constructor({ accountIds, timingPort }: PasswordModuleControllerOptions) {
+  constructor({ accountIds, timingPort, resumeSegmentId }: PasswordModuleControllerOptions) {
     if (accountIds.length !== 3) throw new Error('password-module-requires-three-accounts');
-    this.#actor = createActor(passwordModuleMachine, { input: { accountIds } });
+    this.#actor = createActor(passwordModuleMachine, {
+      input: { accountIds, ...(resumeSegmentId === undefined ? {} : { resumeSegmentId }) },
+    });
     this.#timingPort = timingPort;
     this.#actor.start();
   }
@@ -50,6 +56,9 @@ export class PasswordModuleController {
   enterDisplayName(displayName: string): void {
     if (!this.#actor.getSnapshot().matches('entry')) return;
     this.#actor.send({ type: 'DISPLAY_NAME_ENTERED', displayName });
+    if (this.#actor.getSnapshot().matches({ s01: 'starting' })) {
+      void this.#writeSegmentBoundary('S01', 'segment-start');
+    }
   }
 
   completeSectionTransition(): void {

@@ -1,4 +1,7 @@
 import {
+  type ArtifactCheckpoint,
+  artifactCheckpointSchema,
+  artifactIntervalStartResponseSchema,
   mainInstrumentBlocks,
   type AssignmentMode,
   type CreateSessionResponse,
@@ -12,6 +15,8 @@ import {
   type RegisterRecontactRequest,
   registerRecontactRequestSchema,
   type StudyCondition,
+  type StudyResumeTarget,
+  type WebResumeSession,
 } from '@passwo/contracts';
 import { assign, fromCallback, fromPromise, setup } from 'xstate';
 
@@ -24,18 +29,20 @@ const studySessionInitializationSchema = createSessionResponseSchema
   .strict();
 
 export interface StudyRuntimePorts {
-  createSession(followUpConsent: boolean): Promise<StudySessionInitialization>;
+  createSession(
+    followUpConsent: boolean,
+    recontact: RegisterRecontactRequest | null,
+  ): Promise<StudySessionInitialization>;
   registerRecontact(sessionId: string, request: RegisterRecontactRequest): Promise<void>;
   abandonRecontact(sessionId: string): Promise<void>;
   saveInstrumentSubmission(
     sessionId: string,
     submission: InstrumentSubmissionRequest,
   ): Promise<void>;
-  startArtifact(sessionId: string): Promise<void>;
+  startArtifact(sessionId: string): Promise<ArtifactRuntimeStart>;
   endArtifact(sessionId: string): Promise<number>;
   recordArtifactVisibility(sessionId: string, visible: boolean): Promise<void>;
   retryArtifactTiming(sessionId: string): Promise<number | null>;
-  markIncompleteReload(sessionId: string): void;
   observeArtifactLifecycle(input: ArtifactLifecycleInput): () => void;
   completeSession(sessionId: string): Promise<void>;
 }
@@ -44,7 +51,13 @@ export interface ArtifactLifecycleInput {
   readonly sessionId: string;
   readonly condition: StudyCondition;
   onVisibilityChange(visible: boolean): void;
-  onReload(): void;
+}
+
+
+export interface ArtifactRuntimeStart {
+  readonly checkpoint: ArtifactCheckpoint;
+  readonly artifactSessionElapsedMs: number;
+  readonly interrupted: boolean;
 }
 
 export interface StudyContext {
@@ -59,8 +72,12 @@ export interface StudyContext {
   readonly instrumentBlockCursor: number;
   readonly questionnaireBlockCursor: number;
   readonly questionnaireDrafts: readonly (InstrumentSubmissionRequest | null)[];
+  readonly questionnaireBackFloor: number;
   readonly pendingSubmission: InstrumentSubmissionRequest | null;
   readonly artifactWallClockMs: number | null;
+  readonly artifactCheckpoint: ArtifactCheckpoint | null;
+  readonly resumeTarget: StudyResumeTarget | null;
+  readonly interrupted: boolean;
   readonly artifactTimingStarted: boolean;
   readonly pendingArtifactTimingWrites: number;
   readonly artifactCompletionRequested: boolean;
@@ -114,7 +131,6 @@ export type StudyEvent =
       readonly type: 'ARTIFACT_TIMING_WRITE_FAILED';
       readonly errorCode: string;
     }
-  | { readonly type: 'ARTIFACT_RELOAD' }
   | { readonly type: 'TECHNICAL_ABORT'; readonly errorCode: string }
   | { readonly type: 'RESET' };
 
@@ -130,8 +146,12 @@ const initialContext: StudyContext = {
   instrumentBlockCursor: 0,
   questionnaireBlockCursor: 0,
   questionnaireDrafts: [],
+  questionnaireBackFloor: 0,
   pendingSubmission: null,
   artifactWallClockMs: null,
+  artifactCheckpoint: null,
+  resumeTarget: null,
+  interrupted: false,
   artifactTimingStarted: false,
   pendingArtifactTimingWrites: 0,
   artifactCompletionRequested: false,
@@ -231,15 +251,40 @@ function errorCode(error: unknown): string {
   return 'research-data-write-failed';
 }
 
-export function createStudyMachine(ports: StudyRuntimePorts) {
+function initialContextFor(resumeSession: WebResumeSession | null): StudyContext {
+  if (resumeSession === null) return initialContext;
+  const checkpoint = artifactCheckpointSchema.safeParse(resumeSession.checkpoint);
+  return {
+    ...initialContext,
+    sessionId: resumeSession.sessionId,
+    condition: resumeSession.condition,
+    assignmentMode: resumeSession.assignmentMode,
+    guardrailFormId: resumeSession.guardrailFormId,
+    followUpConsent: resumeSession.followUpConsent,
+    instrumentBlockCursor: resumeSession.nextInstrumentBlockIndex,
+    questionnaireBlockCursor: resumeSession.nextInstrumentBlockIndex,
+    questionnaireBackFloor: resumeSession.nextInstrumentBlockIndex,
+    artifactWallClockMs: resumeSession.artifactSessionElapsedMs,
+    artifactCheckpoint: checkpoint.success ? checkpoint.data : null,
+    resumeTarget: resumeSession.resumeTarget,
+    interrupted: resumeSession.interrupted,
+  };
+}
+
+export function createStudyMachine(
+  ports: StudyRuntimePorts,
+  resumeSession: WebResumeSession | null = null,
+) {
+  const hydratedInitialContext = initialContextFor(resumeSession);
   const machineSetup = setup({
     types: {
       context: {} as StudyContext,
       events: {} as StudyEvent,
     },
     actors: {
-      createSession: fromPromise(async ({ input }: { input: { followUpConsent: boolean } }) =>
-        ports.createSession(input.followUpConsent),
+      createSession: fromPromise(
+        async ({ input }: { input: { followUpConsent: boolean; recontact: RegisterRecontactRequest | null } }) =>
+          ports.createSession(input.followUpConsent, input.recontact),
       ),
       registerRecontact: fromPromise(
         async ({ input }: { input: { sessionId: string; request: RegisterRecontactRequest } }) =>
@@ -276,7 +321,6 @@ export function createStudyMachine(ports: StudyRuntimePorts) {
             ...input,
             onVisibilityChange: (visible) =>
               sendBack({ type: 'ARTIFACT_VISIBILITY_CHANGED', visible }),
-            onReload: () => sendBack({ type: 'ARTIFACT_RELOAD' }),
           }),
       ),
       completeSession: fromPromise(async ({ input }: { input: { sessionId: string } }) =>
@@ -301,6 +345,7 @@ export function createStudyMachine(ports: StudyRuntimePorts) {
       acceptsPreBack: ({ context, event }) =>
         event.type === 'BACK_PRE' &&
         matchesQuestionnairePage(context, event.payload, 'pre-v1') &&
+        context.questionnaireBlockCursor > context.questionnaireBackFloor &&
         adjacentQuestionnaireBlockIs(context, -1, 'pre-v1'),
       acceptsPostSubmission: ({ context, event }) =>
         event.type === 'SUBMIT_POST' &&
@@ -312,6 +357,7 @@ export function createStudyMachine(ports: StudyRuntimePorts) {
       acceptsPostBack: ({ context, event }) =>
         event.type === 'BACK_POST' &&
         matchesQuestionnairePage(context, event.payload, 'post-v1') &&
+        context.questionnaireBlockCursor > context.questionnaireBackFloor &&
         adjacentQuestionnaireBlockIs(context, -1, 'post-v1'),
       acceptsGuardrailSubmission: ({ context, event }) =>
         event.type === 'SUBMIT_GUARDRAILS' &&
@@ -328,6 +374,11 @@ export function createStudyMachine(ports: StudyRuntimePorts) {
         context.artifactCompletionRequested && context.pendingArtifactTimingWrites === 0,
       visibilityTimingFailed: ({ context }) => context.artifactTimingErrorKind === 'visibility',
       endTimingFailed: ({ context }) => context.artifactTimingErrorKind === 'end',
+      resumesPreQuestionnaire: ({ context }) => context.resumeTarget === 'pre-questionnaire',
+      resumesArtifactPreparation: ({ context }) => context.resumeTarget === 'artifact-preparation',
+      resumesArtifact: ({ context }) => context.resumeTarget === 'artifact',
+      resumesPostQuestionnaire: ({ context }) => context.resumeTarget === 'post-questionnaire',
+      resumesGuardrails: ({ context }) => context.resumeTarget === 'guardrails',
     },
     actions: {
       clearResearchError: assign({ researchErrorCode: () => null }),
@@ -432,8 +483,17 @@ export function createStudyMachine(ports: StudyRuntimePorts) {
       requestArtifactCompletion: assign({
         artifactCompletionRequested: () => true,
       }),
-      confirmArtifactTimingStarted: assign({
-        artifactTimingStarted: () => true,
+      storeArtifactRuntimeStart: assign(({ event }) => {
+        const output = artifactIntervalStartResponseSchema.parse(
+          'output' in event ? event.output : null,
+        );
+        return {
+          artifactTimingStarted: true,
+          artifactCheckpoint: output.checkpoint,
+          artifactWallClockMs: output.artifactSessionElapsedMs,
+          interrupted: output.interrupted,
+          researchErrorCode: null,
+        };
       }),
       incrementPendingArtifactTimingWrites: assign({
         pendingArtifactTimingWrites: ({ context }) => context.pendingArtifactTimingWrites + 1,
@@ -462,9 +522,6 @@ export function createStudyMachine(ports: StudyRuntimePorts) {
               errorCode: errorCode(error),
             }),
         );
-      },
-      markIncompleteReload: ({ context }) => {
-        ports.markIncompleteReload(requiredSessionId(context));
       },
       storeVisibilityTimingError: assign({
         artifactTimingErrorKind: () => 'visibility' as const,
@@ -498,12 +555,22 @@ export function createStudyMachine(ports: StudyRuntimePorts) {
 
   return machineSetup.createMachine({
     id: 'study',
-    initial: 'consent',
-    context: initialContext,
+    initial: resumeSession === null ? 'consent' : 'resumeRouting',
+    context: hydratedInitialContext,
     on: {
       TECHNICAL_ABORT: { target: '.fatalError', actions: 'storeFatalError' },
     },
     states: {
+      resumeRouting: {
+        always: [
+          { guard: 'resumesPreQuestionnaire', target: 'preQuestionnaire' },
+          { guard: 'resumesArtifactPreparation', target: 'artifactLifecycle' },
+          { guard: 'resumesArtifact', target: '#study.artifactLifecycle.starting' },
+          { guard: 'resumesPostQuestionnaire', target: 'postQuestionnaire' },
+          { guard: 'resumesGuardrails', target: 'guardrails' },
+          { target: 'sessionClosure' },
+        ],
+      },
       consent: {
         on: {
           ACCEPT_CONSENT: {
@@ -517,10 +584,16 @@ export function createStudyMachine(ports: StudyRuntimePorts) {
         invoke: {
           id: 'createSession',
           src: 'createSession',
-          input: ({ context }) => ({ followUpConsent: context.followUpConsent }),
+          input: ({ context }) => ({
+            followUpConsent: context.followUpConsent,
+            recontact:
+              context.recontactEmail === null || context.recontactRequestId === null
+                ? null
+                : { email: context.recontactEmail, requestId: context.recontactRequestId },
+          }),
           onDone: {
-            target: 'recontactRegistration',
-            actions: 'storeSession',
+            target: 'preQuestionnaire',
+            actions: ['storeSession', 'clearRecontactSecrets'],
           },
           onError: {
             target: 'sessionError',
@@ -664,7 +737,6 @@ export function createStudyMachine(ports: StudyRuntimePorts) {
           }),
         },
         on: {
-          ARTIFACT_RELOAD: { actions: 'markIncompleteReload' },
           ARTIFACT_VISIBILITY_CHANGED: {
             guard: 'acceptsArtifactVisibility',
             actions: ['incrementPendingArtifactTimingWrites', 'recordArtifactVisibility'],
@@ -693,7 +765,7 @@ export function createStudyMachine(ports: StudyRuntimePorts) {
               input: ({ context }) => ({ sessionId: requiredSessionId(context) }),
               onDone: {
                 target: 'artifact',
-                actions: 'confirmArtifactTimingStarted',
+                actions: 'storeArtifactRuntimeStart',
               },
               onError: {
                 target: 'startError',
@@ -714,11 +786,11 @@ export function createStudyMachine(ports: StudyRuntimePorts) {
           retryingStartTiming: {
             invoke: {
               id: 'retryArtifactStartTiming',
-              src: 'retryArtifactTiming',
+              src: 'startArtifact',
               input: ({ context }) => ({ sessionId: requiredSessionId(context) }),
               onDone: {
                 target: 'artifact',
-                actions: ['confirmArtifactTimingStarted', 'clearArtifactTimingError'],
+                actions: ['storeArtifactRuntimeStart', 'clearArtifactTimingError'],
               },
               onError: {
                 target: 'startError',

@@ -13,8 +13,8 @@ export const researchIdSchema = researchCodeSchema;
 export const researchExportProfileSchema = z.enum(['audit', 'analysis']);
 export type ResearchExportProfile = z.infer<typeof researchExportProfileSchema>;
 export const researchExportSchemaProfileVersionSchema = z.enum([
-  'research-audit-v1',
-  'research-analysis-v1',
+  'research-audit-v2',
+  'research-analysis-v2',
 ]);
 
 export const researchExportSessionRecordSchema = z
@@ -34,6 +34,8 @@ export const researchExportSessionRecordSchema = z
     followUpVersion: versionIdSchema,
     completionStatus: completionStatusSchema,
     technicalErrorCode: z.string().trim().min(1).max(80).nullable(),
+    artifactSessionElapsedMs: z.number().finite().nonnegative().nullable(),
+    webInterruptionCount: z.number().int().nonnegative(),
     createdAtIso: z.iso.datetime(),
     completedAtIso: z.iso.datetime().nullable(),
   })
@@ -159,7 +161,7 @@ export type ResearchExportSessionCount = z.infer<typeof researchExportSessionCou
 
 export const researchExportManifestSchema = z
   .object({
-    schemaVersion: z.literal('research-export-v6'),
+    schemaVersion: z.literal('research-export-v7'),
     profile: researchExportProfileSchema,
     schemaProfileVersion: researchExportSchemaProfileVersionSchema,
     exportedAtIso: z.iso.datetime(),
@@ -187,7 +189,7 @@ export const researchExportManifestSchema = z
   .strict()
   .superRefine((manifest, context) => {
     const expectedVersion =
-      manifest.profile === 'audit' ? 'research-audit-v1' : 'research-analysis-v1';
+      manifest.profile === 'audit' ? 'research-audit-v2' : 'research-analysis-v2';
     if (manifest.schemaProfileVersion !== expectedVersion) {
       context.addIssue({
         code: 'custom',

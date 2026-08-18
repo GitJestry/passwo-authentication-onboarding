@@ -16,6 +16,7 @@ import {
   sessionStatusResponseSchema,
   studyTimingEventSchema,
   timingWriteResponseSchema,
+  type WebResumeRawToken,
 } from '@passwo/contracts';
 import Fastify, { type FastifyInstance } from 'fastify';
 import { z } from 'zod';
@@ -23,6 +24,8 @@ import { openStudyDatabase } from './database.js';
 import { cryptoStudyRandomSource, type StudyRandomSource } from './random-source.js';
 import { isReferenceArtifactAvailable, registerReferenceArtifact } from './static-web.js';
 import { StudyRepository, StudyRepositoryError, type StudyVersions } from './study-repository.js';
+import { registerWebStudyRoutes } from './web-routes.js';
+import { WebRuntimeRepository } from './web-runtime-repository.js';
 
 const sessionParamsSchema = z.object({ sessionId: z.uuid() });
 
@@ -46,6 +49,12 @@ export interface StudyServerBuildOptions {
   readonly nowIso?: () => string;
   readonly createRecontactToken?: () => string;
   readonly versions?: StudyVersions;
+  readonly webRuntime?: {
+    readonly resumeCloseAtIso: string;
+    readonly secureCookies: boolean;
+    readonly publicOrigin?: string;
+    readonly createResumeToken?: () => WebResumeRawToken;
+  };
 }
 
 export function buildStudyServer({
@@ -58,23 +67,35 @@ export function buildStudyServer({
   nowIso,
   createRecontactToken,
   versions = walkingSkeletonVersions,
+  webRuntime,
 }: StudyServerBuildOptions): FastifyInstance {
   const database = openStudyDatabase(
     databasePath,
     recontactDatabasePath,
     () => randomSource.researchToken(),
   );
+  const effectiveNowIso = nowIso ?? (() => new Date().toISOString());
   const repository = new StudyRepository({
     database,
     assignmentMode,
     versions,
     random: randomSource,
-    ...(nowIso === undefined ? {} : { nowIso }),
+    nowIso: effectiveNowIso,
     ...(createRecontactToken === undefined ? {} : { createRecontactToken }),
   });
   const server = Fastify({
     logger: false,
     trustProxy: false,
+  });
+  server.addHook('onSend', async (request, reply, payload) => {
+    if (request.url.startsWith('/api/')) {
+      reply.header('Cache-Control', 'no-store');
+      reply.header('Pragma', 'no-cache');
+      reply.header('Expires', '0');
+      reply.header('Referrer-Policy', 'no-referrer');
+      reply.header('X-Content-Type-Options', 'nosniff');
+    }
+    return payload;
   });
   const referenceArtifactAvailable =
     referenceArtifactDirectory !== undefined &&
@@ -82,13 +103,14 @@ export function buildStudyServer({
   if (referenceArtifactDirectory !== undefined) {
     registerReferenceArtifact(server, referenceArtifactDirectory);
   }
-  const staleRecoveryInterval = setInterval(() => {
-    repository.recoverStaleArtifactSessions();
-  }, 60_000);
-  staleRecoveryInterval.unref();
+  const staleRecoveryInterval =
+    webRuntime === undefined
+      ? setInterval(() => repository.recoverStaleArtifactSessions(), 60_000)
+      : null;
+  staleRecoveryInterval?.unref();
 
   server.addHook('onClose', async () => {
-    clearInterval(staleRecoveryInterval);
+    if (staleRecoveryInterval !== null) clearInterval(staleRecoveryInterval);
     database.close();
   });
 
@@ -117,6 +139,29 @@ export function buildStudyServer({
     status: 'ok',
     version,
   }));
+
+  if (webRuntime !== undefined) {
+    const webRepository = new WebRuntimeRepository({
+      database,
+      studyRepository: repository,
+      nowIso: effectiveNowIso,
+      randomUuid: () => randomSource.randomUuid(),
+      resumeCloseAtIso: webRuntime.resumeCloseAtIso,
+    });
+    registerWebStudyRoutes(server, {
+      repository: webRepository,
+      referenceArtifactAvailable,
+      forcedSupportive: assignmentMode === 'forced-supportive',
+      resumeCloseAtIso: webRuntime.resumeCloseAtIso,
+      secureCookies: webRuntime.secureCookies,
+      nowIso: effectiveNowIso,
+      ...(webRuntime.publicOrigin === undefined ? {} : { publicOrigin: webRuntime.publicOrigin }),
+      ...(webRuntime.createResumeToken === undefined
+        ? {}
+        : { createResumeToken: webRuntime.createResumeToken }),
+    });
+    return server;
+  }
 
   server.post('/api/study/sessions', async (request, reply) => {
     if (assignmentMode !== 'forced-supportive' && !referenceArtifactAvailable) {

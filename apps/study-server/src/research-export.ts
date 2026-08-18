@@ -308,10 +308,15 @@ export function exportResearchData({
 }: ResearchExportOptions): ResearchExportResult {
   const database = new Database(databasePath, { readonly: true });
   try {
-    const sessions = database
+    const allSessions = database
       .prepare(`${sessionRowSelection} ORDER BY research_code`)
       .all()
       .map(toSessionRecord);
+    const sessions =
+      profile === 'analysis'
+        ? allSessions.filter((session) => session.completionStatus === 'completed')
+        : allSessions;
+    const includedResearchIds = new Set(sessions.map((session) => session.researchId));
     const timing = database
       .prepare(
         `SELECT
@@ -331,7 +336,8 @@ export function exportResearchData({
          ORDER BY session.research_code, timing.sequence`,
       )
       .all()
-      .map((row) => researchExportTimingRecordSchema.parse(row));
+      .map((row) => researchExportTimingRecordSchema.parse(row))
+      .filter((event) => includedResearchIds.has(event.researchId));
     const responses = database
       .prepare(
         `SELECT
@@ -358,7 +364,8 @@ export function exportResearchData({
            response.item_id`,
       )
       .all()
-      .map(toResponseRecord);
+      .map(toResponseRecord)
+      .filter((response) => includedResearchIds.has(response.researchId));
     const presentations = database
       .prepare(
         `SELECT
@@ -379,7 +386,8 @@ export function exportResearchData({
            presentation.item_id`,
       )
       .all()
-      .map(toPresentationRecord);
+      .map(toPresentationRecord)
+      .filter((presentation) => includedResearchIds.has(presentation.researchId));
     const dictionary = dataDictionary();
 
     const dictionaryCsv = csvFile(
@@ -440,15 +448,17 @@ export function exportResearchData({
             'researchId', 'condition', 'assignmentMode', 'studyVersion', 'contentVersion',
             'questionnaireVersion', 'guardrailVersion', 'guardrailFormId', 'consentVersion',
             'referenceArtifactVersion', 'consentAccepted', 'followUpConsent', 'followUpVersion',
-            'completionStatus', 'technicalErrorCode', 'createdAtIso', 'completedAtIso',
+            'completionStatus', 'technicalErrorCode', 'artifactSessionElapsedMs',
+            'webInterruptionCount', 'createdAtIso', 'completedAtIso',
           ],
           sessions.map((session) => [
             session.researchId, session.condition, session.assignmentMode, session.studyVersion,
             session.contentVersion, session.questionnaireVersion, session.guardrailVersion,
             session.guardrailFormId, session.consentVersion, session.referenceArtifactVersion,
             session.consentAccepted, session.followUpConsent, session.followUpVersion,
-            session.completionStatus, session.technicalErrorCode, session.createdAtIso,
-            session.completedAtIso,
+            session.completionStatus, session.technicalErrorCode,
+            session.artifactSessionElapsedMs, session.webInterruptionCount,
+            session.createdAtIso, session.completedAtIso,
           ]),
         ),
       },
@@ -516,7 +526,8 @@ export function exportResearchData({
             'researchId', 'condition', 'assignmentMode', 'studyVersion', 'contentVersion',
             'questionnaireVersion', 'guardrailVersion', 'guardrailFormId', 'consentVersion',
             'referenceArtifactVersion', 'consentAccepted', 'followUpConsent', 'followUpVersion',
-            'completionStatus', 'technicalErrorCode',
+            'completionStatus', 'technicalErrorCode', 'artifactSessionElapsedMs',
+            'webInterruptionCount',
           ],
           analysisSessions.map((session) => [
             session.researchId, session.condition, session.assignmentMode, session.studyVersion,
@@ -524,6 +535,7 @@ export function exportResearchData({
             session.guardrailFormId, session.consentVersion, session.referenceArtifactVersion,
             session.consentAccepted, session.followUpConsent, session.followUpVersion,
             session.completionStatus, session.technicalErrorCode,
+            session.artifactSessionElapsedMs, session.webInterruptionCount,
           ]),
         ),
       },
@@ -602,10 +614,10 @@ export function exportResearchData({
     }
 
     const manifest = researchExportManifestSchema.parse({
-      schemaVersion: 'research-export-v6',
+      schemaVersion: 'research-export-v7',
       profile,
       schemaProfileVersion:
-        profile === 'audit' ? 'research-audit-v1' : 'research-analysis-v1',
+        profile === 'audit' ? 'research-audit-v2' : 'research-analysis-v2',
       exportedAtIso,
       runtimeManifestVersion: instrumentRuntimeManifest.runtimeManifestVersion,
       versions: {

@@ -85,6 +85,8 @@ export const persistedSessionRecordSchema = z
     followUpTokenHash: followUpTokenHashSchema.nullable(),
     completionStatus: completionStatusSchema,
     technicalErrorCode: z.string().trim().min(1).max(80).nullable(),
+    artifactSessionElapsedMs: z.number().finite().nonnegative().nullable(),
+    webInterruptionCount: z.number().int().nonnegative(),
     createdAtIso: z.iso.datetime(),
     completedAtIso: z.iso.datetime().nullable(),
   })

@@ -28,6 +28,9 @@ const expectedCourseId = 'CwynTB5JDjzJgtE8M2SKmgtgC6sM4C4h';
 const expectedSourceVersion = 'V9 (27.03.2026)';
 const completionMessageType = 'passwo:reference-completed';
 const completionRequestMessageType = 'passwo:reference-completion-request';
+const checkpointMessageType = 'passwo:reference-checkpoint';
+const resumeMessageType = 'passwo:reference-resume';
+const contentReadyMessageType = 'passwo:reference-content-ready';
 const openSupplementMessageType = 'passwo:reference-open-supplement';
 const snapshotId = 'secaware-passwords-authentication-2026-07-26';
 const retainedLessonIds = [
@@ -104,6 +107,14 @@ const instructionalLessonIds = [
   'zbxeD7QUdMnDlBWKvVsxMy5G8ghjnDRt',
 ];
 const finalInstructionLessonId = 'zbxeD7QUdMnDlBWKvVsxMy5G8ghjnDRt';
+const checkpointByLessonId = Object.freeze({
+  cCLcBEovpLj72dCgZ6HsfeQV4xIR2_Lv: 'passwords',
+  '8s5ZF8ravaGthNGdmPcOMPOpdjLwXR-O': 'password-manager',
+  zbxeD7QUdMnDlBWKvVsxMy5G8ghjnDRt: 'mfa',
+});
+const lessonIdByCheckpoint = Object.freeze(
+  Object.fromEntries(Object.entries(checkpointByLessonId).map(([lessonId, id]) => [id, lessonId])),
+);
 const completionGuard = `  <script type="text/javascript">
     // ${completionGuardMarker}:start
     (function preventIncompleteReferenceCompletion() {
@@ -207,24 +218,123 @@ const completionBridge = `${driverScriptTag}
         return result;
       };
 
-      window.addEventListener('message', function completeFromVisibleCourseAction(event) {
-        if (
-          event.source !== window.scormdriver_content ||
-          event.origin !== window.location.origin ||
-          typeof event.data !== 'object' ||
-          event.data === null ||
-          event.data.type !== '${completionRequestMessageType}' ||
-          event.data.snapshotId !== '${snapshotId}' ||
-          Object.keys(event.data).length !== 2
-        ) {
+      var pendingResumeCheckpointId = null;
+      var lessonIdByCheckpoint = Object.freeze(${JSON.stringify(lessonIdByCheckpoint)});
+
+      function forwardPendingResume() {
+        if (!pendingResumeCheckpointId || !window.scormdriver_content) return;
+        window.scormdriver_content.postMessage(
+          {
+            type: '${resumeMessageType}',
+            snapshotId: '${snapshotId}',
+            checkpointId: pendingResumeCheckpointId
+          },
+          window.location.origin
+        );
+      }
+
+      window.addEventListener('message', function handleReferenceRuntimeMessage(event) {
+        if (event.origin !== window.location.origin || typeof event.data !== 'object' || event.data === null) {
           return;
         }
-        originalSetReachedEnd.apply(window, []);
-        reportCompletionOnce();
+        if (
+          event.source === window.scormdriver_content &&
+          event.data.type === '${completionRequestMessageType}' &&
+          event.data.snapshotId === '${snapshotId}' &&
+          Object.keys(event.data).length === 2
+        ) {
+          originalSetReachedEnd.apply(window, []);
+          reportCompletionOnce();
+          return;
+        }
+        if (
+          event.source === window.scormdriver_content &&
+          event.data.type === '${checkpointMessageType}' &&
+          event.data.snapshotId === '${snapshotId}' &&
+          Object.prototype.hasOwnProperty.call(lessonIdByCheckpoint, event.data.checkpointId) &&
+          Object.keys(event.data).length === 3
+        ) {
+          window.top.postMessage(event.data, window.location.origin);
+          return;
+        }
+        if (
+          event.source === window.scormdriver_content &&
+          event.data.type === '${contentReadyMessageType}' &&
+          event.data.snapshotId === '${snapshotId}' &&
+          Object.keys(event.data).length === 2
+        ) {
+          forwardPendingResume();
+          return;
+        }
+        if (
+          event.source === window.top &&
+          event.data.type === '${resumeMessageType}' &&
+          event.data.snapshotId === '${snapshotId}' &&
+          Object.prototype.hasOwnProperty.call(lessonIdByCheckpoint, event.data.checkpointId) &&
+          Object.keys(event.data).length === 3
+        ) {
+          pendingResumeCheckpointId = event.data.checkpointId;
+          forwardPendingResume();
+        }
       });
     })();
     // passwo-reference-completion-bridge:end
   </script>`;
+const progressBridge = `  <script type="text/javascript">
+    // passwo-reference-progress-bridge:start
+    (function installReferenceProgressBridge() {
+      var checkpointByLessonId = Object.freeze(${JSON.stringify(checkpointByLessonId)});
+      var lessonIdByCheckpoint = Object.freeze(${JSON.stringify(lessonIdByCheckpoint)});
+      var lastReportedCheckpointId = null;
+
+      function currentLessonId() {
+        var match = window.location.hash.match(/^#\/lessons\/([^/?#]+)/);
+        return match ? decodeURIComponent(match[1]) : null;
+      }
+
+      function reportCurrentCheckpoint() {
+        var lessonId = currentLessonId();
+        var checkpointId = lessonId ? checkpointByLessonId[lessonId] : null;
+        if (!checkpointId || checkpointId === lastReportedCheckpointId) return;
+        lastReportedCheckpointId = checkpointId;
+        window.parent.postMessage(
+          {
+            type: '${checkpointMessageType}',
+            snapshotId: '${snapshotId}',
+            checkpointId: checkpointId
+          },
+          window.location.origin
+        );
+      }
+
+      window.addEventListener('hashchange', reportCurrentCheckpoint);
+      window.addEventListener('message', function resumeReferenceLesson(event) {
+        if (
+          event.source !== window.parent ||
+          event.origin !== window.location.origin ||
+          typeof event.data !== 'object' ||
+          event.data === null ||
+          event.data.type !== '${resumeMessageType}' ||
+          event.data.snapshotId !== '${snapshotId}' ||
+          !Object.prototype.hasOwnProperty.call(lessonIdByCheckpoint, event.data.checkpointId) ||
+          Object.keys(event.data).length !== 3
+        ) {
+          return;
+        }
+        var lessonId = lessonIdByCheckpoint[event.data.checkpointId];
+        var targetHash = '#/lessons/' + lessonId;
+        if (window.location.hash !== targetHash) window.location.hash = targetHash;
+        window.setTimeout(reportCurrentCheckpoint, 0);
+      });
+      window.parent.postMessage(
+        { type: '${contentReadyMessageType}', snapshotId: '${snapshotId}' },
+        window.location.origin
+      );
+      window.setTimeout(reportCurrentCheckpoint, 0);
+    })();
+    // passwo-reference-progress-bridge:end
+  </script>`;
+
 const supplementBridge = `  <script type="text/javascript">
     // passwo-reference-supplement-bridge:start
     document.addEventListener('click', function openReferenceSupplement(event) {
@@ -657,7 +767,7 @@ adaptedCourseHtml = replaceExactlyOnce(
 adaptedCourseHtml = replaceExactlyOnce(
   adaptedCourseHtml,
   courseBodyClose,
-  `${completionGuard}\n${supplementBridge}`,
+  `${completionGuard}\n${progressBridge}\n${supplementBridge}`,
   'the course body closing tag',
 );
 

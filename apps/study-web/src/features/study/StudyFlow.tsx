@@ -5,13 +5,18 @@ import {
   mainInstrumentBlocks,
   postGuardrailSectionIds,
   recontactEmailSchema,
+  referenceArtifactLessonCheckpointIdSchema,
+  referenceLessonCheckpointSchema,
+  supportiveCheckpointSchema,
+  type ReferenceArtifactLessonCheckpointId,
+  type WebResumeSession,
 } from '@passwo/contracts';
 import { createStudyMachine } from '@passwo/study-engine';
 import { ArtifactViewport } from '@passwo/ui';
 import { useMachine } from '@xstate/react';
-import { type ReactNode, useCallback, useMemo, useRef, useState } from 'react';
+import { type ReactNode, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { BrowserSegmentTimingAdapter } from '../../adapters/timing/BrowserSegmentTimingAdapter.js';
-import { createStudyApi } from '../../api/study-api.js';
+import { createStudyApi, type StudyApi } from '../../api/study-api.js';
 import { ReferenceArtifact } from '../reference/ReferenceArtifact.js';
 import { PasswordModuleTraining } from '../training/PasswordModuleTraining.js';
 import { TrainingClipboardBoundary } from '../training/TrainingClipboardBoundary.js';
@@ -425,10 +430,14 @@ function SupportiveArtifact({
   timingPort,
   timingError,
   onRetryTiming,
+  resumeSegmentId,
+  onComplete,
 }: {
   readonly timingPort: BrowserSegmentTimingAdapter;
   readonly timingError: string | null;
   readonly onRetryTiming: () => void;
+  readonly resumeSegmentId?: 'S00' | 'S01';
+  readonly onComplete: () => void;
 }) {
   return (
     <TrainingClipboardBoundary allowCopy={false}>
@@ -436,6 +445,8 @@ function SupportiveArtifact({
         timingPort={timingPort}
         externalTimingError={timingError}
         onRetryExternalTiming={onRetryTiming}
+        resumeSegmentId={resumeSegmentId}
+        onComplete={onComplete}
       />
     </TrainingClipboardBoundary>
   );
@@ -507,14 +518,41 @@ function ConfigurationError({ errorCode }: { readonly errorCode: string }) {
   );
 }
 
-export function StudyFlow() {
-  const api = useMemo(() => createStudyApi(), []);
-  const machine = useMemo(() => createStudyMachine(api), [api]);
+function HydratedStudyFlow({
+  api,
+  resumeSession,
+}: {
+  readonly api: StudyApi;
+  readonly resumeSession: WebResumeSession | null;
+}) {
+  const machine = useMemo(() => createStudyMachine(api, resumeSession), [api, resumeSession]);
   const [snapshot, send] = useMachine(machine);
   const { context } = snapshot;
   const currentBlock = mainInstrumentBlocks[context.instrumentBlockCursor];
   const currentQuestionnaireBlock = mainInstrumentBlocks[context.questionnaireBlockCursor];
   const completeArtifact = useCallback(() => send({ type: 'ARTIFACT_COMPLETED' }), [send]);
+  const supportiveResumeSegment = useMemo(() => {
+    if (!context.interrupted || context.artifactCheckpoint === null) return undefined;
+    const parsed = supportiveCheckpointSchema.safeParse(context.artifactCheckpoint);
+    if (!parsed.success || parsed.data === 'supportive:complete') return undefined;
+    return parsed.data === 'supportive:entry' || parsed.data === 'supportive:S00' ? 'S00' : 'S01';
+  }, [context.artifactCheckpoint, context.interrupted]);
+  const referenceResumeCheckpoint = useMemo<ReferenceArtifactLessonCheckpointId | undefined>(() => {
+    if (!context.interrupted || context.artifactCheckpoint === null) return undefined;
+    const parsed = referenceLessonCheckpointSchema.safeParse(context.artifactCheckpoint);
+    if (!parsed.success) return undefined;
+    const checkpointId = parsed.data.slice('reference:'.length);
+    const semantic = referenceArtifactLessonCheckpointIdSchema.safeParse(checkpointId);
+    return semantic.success ? semantic.data : undefined;
+  }, [context.artifactCheckpoint, context.interrupted]);
+  useEffect(() => {
+    if (
+      snapshot.matches({ artifactLifecycle: { artifact: 'supportive' } }) &&
+      context.artifactCheckpoint === 'supportive:complete'
+    ) {
+      completeArtifact();
+    }
+  }, [completeArtifact, context.artifactCheckpoint, snapshot]);
   const segmentTimingPort = useMemo(() => {
     if (context.sessionId === null || context.condition !== 'supportive') return null;
     return new BrowserSegmentTimingAdapter(api.createSegmentTimingPort(context.sessionId));
@@ -617,10 +655,24 @@ export function StudyFlow() {
             context.artifactTimingErrorKind === 'visibility' ? context.researchErrorCode : null
           }
           onRetryTiming={() => send({ type: 'RETRY_ARTIFACT_VISIBILITY' })}
+          resumeSegmentId={supportiveResumeSegment}
+          onComplete={completeArtifact}
         />
       );
   } else if (snapshot.matches({ artifactLifecycle: { artifact: 'reference' } })) {
-    content = <ReferenceArtifact onComplete={completeArtifact} />;
+    content = (
+      <ReferenceArtifact
+        onComplete={completeArtifact}
+        resumeCheckpoint={referenceResumeCheckpoint}
+        onCheckpoint={async (checkpointId) => {
+          if (context.sessionId === null) throw new Error('missing-session');
+          await api.confirmArtifactCheckpoint(
+            context.sessionId,
+            referenceLessonCheckpointSchema.parse(`reference:${checkpointId}`),
+          );
+        }}
+      />
+    );
   } else if (snapshot.matches({ artifactLifecycle: 'endError' })) {
     content = (
       <ResearchDataError
@@ -788,9 +840,11 @@ export function StudyFlow() {
         <h1 id="complete-title" tabIndex={-1} autoFocus>
           Sitzung abgeschlossen
         </h1>
-        <p>
-          Löschcode: <strong>{context.deletionCode}</strong>
-        </p>
+        {context.deletionCode === null ? null : (
+          <p>
+            Löschcode: <strong>{context.deletionCode}</strong>
+          </p>
+        )}
       </section>
     );
   } else if (snapshot.matches('fatalError')) {
@@ -828,4 +882,68 @@ export function StudyFlow() {
       </div>
     </main>
   );
+}
+
+
+export function StudyFlow() {
+  const api = useMemo(() => createStudyApi(), []);
+  const [resumeSession, setResumeSession] = useState<WebResumeSession | null | undefined>(undefined);
+  const [resumeError, setResumeError] = useState<string | null>(null);
+  const [resumeAttempt, setResumeAttempt] = useState(0);
+
+  useEffect(() => {
+    let cancelled = false;
+    setResumeError(null);
+    void api.restoreSession().then(
+      (session) => {
+        if (!cancelled) setResumeSession(session);
+      },
+      (error: unknown) => {
+        if (cancelled) return;
+        setResumeError(
+          error instanceof Error && error.message.length > 0
+            ? error.message
+            : 'resume-read-failed',
+        );
+      },
+    );
+    return () => {
+      cancelled = true;
+    };
+  }, [api, resumeAttempt]);
+
+  if (resumeError !== null) {
+    return (
+      <main className={styles.studyPage} data-study-surface="">
+        <div className={styles.studyShell}>
+          <div className={styles.studyContent}>
+            <ResearchDataError
+              titleId="resume-error-title"
+              errorCode={resumeError}
+              onRetry={() => {
+                setResumeSession(undefined);
+                setResumeAttempt((current) => current + 1);
+              }}
+            />
+          </div>
+        </div>
+      </main>
+    );
+  }
+
+  if (resumeSession === undefined) {
+    return (
+      <main className={styles.studyPage} data-study-surface="">
+        <div className={styles.studyShell}>
+          <div className={styles.studyContent}>
+            <div className={styles.loading} role="status">
+              Studienstand wird geladen …
+            </div>
+          </div>
+        </div>
+      </main>
+    );
+  }
+
+  return <HydratedStudyFlow api={api} resumeSession={resumeSession} />;
 }

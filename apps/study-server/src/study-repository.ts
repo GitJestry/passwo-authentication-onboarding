@@ -1086,7 +1086,10 @@ export class StudyRepository {
       }
     }
     if (instrumentId === 'pre-v1') {
-      if (this.#artifactBoundaryCount(sessionId, 'start') > 0) {
+      if (
+        this.#artifactBoundaryCount(sessionId, 'start') > 0 ||
+        this.#webArtifactIntervalCount(sessionId) > 0
+      ) {
         throw new StudyRepositoryError('pre-response-not-available', 409);
       }
       return;
@@ -1122,15 +1125,42 @@ export class StudyRepository {
   }
 
   #requireArtifactStarted(sessionId: string): void {
-    if (this.#artifactBoundaryCount(sessionId, 'start') !== 1) {
+    if (
+      this.#artifactBoundaryCount(sessionId, 'start') !== 1 &&
+      this.#webArtifactIntervalCount(sessionId) === 0
+    ) {
       throw new StudyRepositoryError('artifact-start-required', 409);
     }
   }
 
   #requireArtifactEnded(sessionId: string): void {
-    if (this.#artifactBoundaryCount(sessionId, 'end') !== 1) {
+    if (
+      this.#artifactBoundaryCount(sessionId, 'end') !== 1 &&
+      !this.#webArtifactCompleted(sessionId)
+    ) {
       throw new StudyRepositoryError('artifact-end-required', 409);
     }
+  }
+
+  #webArtifactIntervalCount(sessionId: string): number {
+    return countSchema.parse(
+      this.#database
+        .prepare(`SELECT COUNT(*) AS count FROM web_artifact_intervals WHERE session_id = ?`)
+        .get(sessionId),
+    ).count;
+  }
+
+  #webArtifactCompleted(sessionId: string): boolean {
+    return (
+      countSchema.parse(
+        this.#database
+          .prepare(
+            `SELECT COUNT(*) AS count FROM study_sessions
+             WHERE session_id = ? AND artifact_completed_at_iso IS NOT NULL`,
+          )
+          .get(sessionId),
+      ).count === 1
+    );
   }
 
   #requireSupportiveSegmentsCompleted(sessionId: string): void {

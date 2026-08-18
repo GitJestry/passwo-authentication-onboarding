@@ -5,6 +5,13 @@ import type { FastifyInstance } from 'fastify';
 import { buildStudyServer } from './app.js';
 import { registerStudyWeb } from './static-web.js';
 
+export interface StudyWebRuntimeOptions {
+  readonly resumeCloseAtIso: string;
+  readonly secureCookies: boolean;
+  readonly publicOrigin?: string;
+  readonly allowDesignLab?: boolean;
+}
+
 export interface StartStudyRuntimeOptions {
   readonly version: string;
   readonly assignmentMode?: AssignmentMode;
@@ -12,6 +19,7 @@ export interface StartStudyRuntimeOptions {
   readonly recontactDatabasePath?: string;
   readonly referenceArtifactDirectory?: string;
   readonly webBuildDirectory?: string;
+  readonly webRuntime?: StudyWebRuntimeOptions;
   readonly host?: '127.0.0.1';
   readonly port?: number;
 }
@@ -51,6 +59,7 @@ export async function startStudyRuntime({
   recontactDatabasePath,
   referenceArtifactDirectory,
   webBuildDirectory,
+  webRuntime,
   host = '127.0.0.1',
   port = 0,
 }: StartStudyRuntimeOptions): Promise<StudyRuntime> {
@@ -63,10 +72,24 @@ export async function startStudyRuntime({
     ...(databasePath === undefined ? {} : { databasePath }),
     recontactDatabasePath: selectedRecontactDatabasePath,
     ...(referenceArtifactDirectory === undefined ? {} : { referenceArtifactDirectory }),
+    ...(webRuntime === undefined
+      ? {}
+      : {
+          webRuntime: {
+            resumeCloseAtIso: webRuntime.resumeCloseAtIso,
+            secureCookies: webRuntime.secureCookies,
+            ...(webRuntime.publicOrigin === undefined
+              ? {}
+              : { publicOrigin: webRuntime.publicOrigin }),
+          },
+        }),
   });
 
   try {
-    await registerStudyWeb(server, webBuildDirectory === undefined ? {} : { webBuildDirectory });
+    await registerStudyWeb(server, {
+      ...(webBuildDirectory === undefined ? {} : { webBuildDirectory }),
+      allowDesignLab: webRuntime?.allowDesignLab ?? true,
+    });
     const origin = await server.listen({ host, port });
     return {
       origin,

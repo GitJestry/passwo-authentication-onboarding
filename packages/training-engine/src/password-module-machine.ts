@@ -2,9 +2,11 @@ import { assign, setup } from 'xstate';
 import { isPermittedFictionalPassword } from './fictional-password-input.js';
 
 export type RetrievalResult = 'pending' | 'retrievable' | 'not-remembered' | 'assisted';
+export type PasswordModuleResumeSegmentId = 'S00' | 'S01';
 
 export interface PasswordModuleContext {
   readonly accountIds: readonly string[];
+  readonly resumeSegmentId: PasswordModuleResumeSegmentId | null;
   readonly displayName: string | null;
   readonly activeAccountId: string | null;
   readonly passwordValues: Readonly<Record<string, string>>;
@@ -17,6 +19,7 @@ export interface PasswordModuleContext {
 
 export interface PasswordModuleInput {
   readonly accountIds: readonly string[];
+  readonly resumeSegmentId?: PasswordModuleResumeSegmentId;
 }
 
 export type PasswordModuleEvent =
@@ -156,6 +159,8 @@ export const passwordModuleMachine = setup({
     input: {} as PasswordModuleInput,
   },
   guards: {
+    resumesAtS00: ({ context }) => context.resumeSegmentId === 'S00',
+    resumesAtS01: ({ context }) => context.resumeSegmentId === 'S01',
     isKnownAccount: ({ context, event }) =>
       event.type === 'SELECT_ACCOUNT' && isKnownAccount(context, event.accountId),
     canEditAccount: ({ context, event }) =>
@@ -305,6 +310,7 @@ export const passwordModuleMachine = setup({
   initial: 'entry',
   context: ({ input }) => ({
     accountIds: [...input.accountIds],
+    resumeSegmentId: input.resumeSegmentId ?? null,
     displayName: null,
     activeAccountId: input.accountIds[0] ?? null,
     passwordValues: emptyPasswordValues(input.accountIds),
@@ -320,10 +326,11 @@ export const passwordModuleMachine = setup({
   states: {
     entry: {
       on: {
-        DISPLAY_NAME_ENTERED: {
-          target: 'sectionTransition',
-          actions: 'storeDisplayName',
-        },
+        DISPLAY_NAME_ENTERED: [
+          { target: 's00', guard: 'resumesAtS00', actions: 'storeDisplayName' },
+          { target: 's01.starting', guard: 'resumesAtS01', actions: 'storeDisplayName' },
+          { target: 'sectionTransition', actions: 'storeDisplayName' },
+        ],
       },
     },
     sectionTransition: {

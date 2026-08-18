@@ -13,6 +13,7 @@
     "preinstall": "node ./scripts/verify-toolchain.mjs",
     "dev": "pnpm desktop:dev",
     "build": "pnpm typecheck && pnpm --filter @passwo/study-server build && pnpm --filter @passwo/study-web build && pnpm --filter @passwo/study-desktop build",
+    "build:web-runtime": "pnpm --filter @passwo/study-server build && pnpm --filter @passwo/study-web build",
     "typecheck": "tsc -p tsconfig.json --noEmit && pnpm -r --if-present run typecheck",
     "test": "pnpm test:core",
     "test:core": "vitest run",
@@ -31,6 +32,8 @@
     "desktop:package": "node ./scripts/build-reference-artifact.mjs && node ./scripts/verify-reference-artifact.mjs && pnpm build && pnpm --filter @passwo/study-desktop run package",
     "study:export": "tsx ./scripts/export-study.ts",
     "study:delete": "tsx ./scripts/delete-study-data.ts",
+    "study:backup": "pnpm --filter @passwo/study-server backup",
+    "study:web:start": "pnpm --filter @passwo/study-server start:production",
     "followup:export-schedule": "tsx ./scripts/export-followup-schedule.ts",
     "clean": "node ./scripts/clean.mjs"
   },

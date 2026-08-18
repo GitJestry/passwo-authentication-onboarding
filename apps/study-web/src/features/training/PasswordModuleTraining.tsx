@@ -6,6 +6,7 @@ import type {
 import {
   deriveCampusIdentity,
   PasswordModuleController,
+  type PasswordModuleResumeSegmentId,
   type PasswordModuleSnapshot,
   type RetrievalResult,
   type SegmentTimingPort,
@@ -52,6 +53,8 @@ export interface PasswordModuleTrainingProps {
   readonly timingPort?: SegmentTimingPort;
   readonly externalTimingError?: string | null;
   readonly onRetryExternalTiming?: () => void;
+  readonly resumeSegmentId?: PasswordModuleResumeSegmentId;
+  readonly onComplete?: () => void;
 }
 
 function s06RetrievalStatus(
@@ -64,6 +67,8 @@ export function PasswordModuleTraining({
   timingPort,
   externalTimingError = null,
   onRetryExternalTiming,
+  resumeSegmentId,
+  onComplete,
 }: PasswordModuleTrainingProps) {
   const [snapshot, setSnapshot] = useState<PasswordModuleSnapshot | null>(null);
   const [platform, setPlatform] = useState<DesktopPlatform>('mac');
@@ -73,6 +78,7 @@ export function PasswordModuleTraining({
     Partial<Record<S06AccountId, TransientPasswordSemanticEvidence>>
   >({});
   const controllerRef = useRef<PasswordModuleController | null>(null);
+  const completionNotifiedRef = useRef(false);
   const entrySceneRef = useRef<HTMLDivElement | null>(null);
   const entryCharacterRef = useRef<HTMLImageElement | null>(null);
   const entrySpeechRef = useRef<HTMLDivElement | null>(null);
@@ -188,9 +194,11 @@ export function PasswordModuleTraining({
     const controller = new PasswordModuleController({
       accountIds: s01Content.browser.accounts.map(({ id }) => id),
       ...(timingPort === undefined ? {} : { timingPort }),
+      ...(resumeSegmentId === undefined ? {} : { resumeSegmentId }),
     });
     const unsubscribe = controller.subscribe(setSnapshot);
     controllerRef.current = controller;
+    completionNotifiedRef.current = false;
     setSnapshot(controller.getSnapshot());
 
     return () => {
@@ -198,7 +206,14 @@ export function PasswordModuleTraining({
       controller.dispose();
       controllerRef.current = null;
     };
-  }, [timingPort]);
+  }, [resumeSegmentId, timingPort]);
+
+  useEffect(() => {
+    if (!snapshot?.matches('awaiting-s08') || onComplete === undefined) return;
+    if (completionNotifiedRef.current) return;
+    completionNotifiedRef.current = true;
+    onComplete();
+  }, [onComplete, snapshot]);
 
   if (snapshot === null) {
     return <div className={styles.loading}>Training wird vorbereitet …</div>;
@@ -546,6 +561,9 @@ export function PasswordModuleTraining({
   }
 
   if (snapshot.matches('awaiting-s08')) {
+    if (onComplete !== undefined) {
+      return <div className={styles.loading}>Training wird abgeschlossen …</div>;
+    }
     return (
       <S08NetworkRewindStage
         recommendedAccountIds={s08RecommendedAccountIds}

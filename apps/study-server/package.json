@@ -11,6 +11,8 @@
   },
   "scripts": {
     "build": "tsup",
+    "backup": "node ./dist/backup.js",
+    "start:production": "node ./dist/production.js",
     "typecheck": "tsc -p tsconfig.json --noEmit"
   },
   "dependencies": {

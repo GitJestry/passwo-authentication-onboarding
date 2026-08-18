@@ -7,6 +7,7 @@ import {
   designLabPathForTrainingQaSegment,
   referenceSupplementLinkForId,
   referenceSupplementLinkIdSchema,
+  WEB_RESUME_COOKIE_MAX_AGE_SECONDS,
   type TrainingQaAccountId,
   type TrainingQaPasswordOverrides,
   trainingQaSegmentSchema,
@@ -415,6 +416,13 @@ async function startApplication(): Promise<void> {
       'study-build',
     ),
     webBuildDirectory: runtimeResourcePath('../../study-web/dist', 'dist'),
+    webRuntime: {
+      resumeCloseAtIso: new Date(
+        Date.now() + WEB_RESUME_COOKIE_MAX_AGE_SECONDS * 1_000,
+      ).toISOString(),
+      secureCookies: false,
+      allowDesignLab: true,
+    },
     host: '127.0.0.1',
     port: 0,
   });

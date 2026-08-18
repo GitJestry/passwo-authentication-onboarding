@@ -12,6 +12,22 @@ import type { FastifyInstance, FastifyReply, FastifyRequest } from 'fastify';
 const defaultWebBuildDirectory = fileURLToPath(new URL('../../study-web/dist/', import.meta.url));
 
 const designLabRoutes = new Set(designLabPaths);
+const studyWebCsp = [
+  "default-src 'self'",
+  "base-uri 'self'",
+  "connect-src 'self'",
+  "font-src 'self' data:",
+  "form-action 'self'",
+  "frame-ancestors 'none'",
+  "frame-src 'self'",
+  "img-src 'self' data: blob:",
+  "manifest-src 'self'",
+  "media-src 'self' blob:",
+  "object-src 'none'",
+  "script-src 'self'",
+  "style-src 'self' 'unsafe-inline'",
+  "worker-src 'self' blob:",
+].join('; ');
 const referenceArtifactCsp = [
   "default-src 'self' data: blob:",
   "connect-src 'self'",
@@ -65,11 +81,17 @@ export function registerReferenceArtifact(
 
 export async function registerStudyWeb(
   server: FastifyInstance,
-  { webBuildDirectory = defaultWebBuildDirectory }: { readonly webBuildDirectory?: string } = {},
+  {
+    webBuildDirectory = defaultWebBuildDirectory,
+    allowDesignLab = true,
+  }: {
+    readonly webBuildDirectory?: string;
+    readonly allowDesignLab?: boolean;
+  } = {},
 ): Promise<void> {
   if (!existsSync(webBuildDirectory)) {
     server.get('/', async () => ({
-      message: 'Study web build not found. Build the desktop application before starting it.',
+      message: 'Study web build not found. Build the web runtime before starting it.',
       status: 'web-build-missing',
     }));
     return;
@@ -79,12 +101,34 @@ export async function registerStudyWeb(
     root: webBuildDirectory,
     wildcard: false,
     decorateReply: false,
+    setHeaders(response, filePath) {
+      response.setHeader('Content-Security-Policy', studyWebCsp);
+      response.setHeader('Cross-Origin-Opener-Policy', 'same-origin');
+      response.setHeader('Cross-Origin-Resource-Policy', 'same-origin');
+      response.setHeader(
+        'Permissions-Policy',
+        'camera=(), geolocation=(), microphone=(), payment=(), usb=()',
+      );
+      response.setHeader('Referrer-Policy', 'no-referrer');
+      response.setHeader('X-Content-Type-Options', 'nosniff');
+      response.setHeader('X-Frame-Options', 'DENY');
+      response.setHeader(
+        'Cache-Control',
+        filePath.endsWith('.html')
+          ? 'no-store'
+          : filePath.includes('/assets/')
+            ? 'public, max-age=31536000, immutable'
+            : 'no-cache',
+      );
+    },
   });
 
-  server.get('/design-lab', (request, reply) =>
-    sendDesignLabApp(request, reply, webBuildDirectory),
-  );
-  server.get('/design-lab/*', (request, reply) =>
-    sendDesignLabApp(request, reply, webBuildDirectory),
-  );
+  if (allowDesignLab) {
+    server.get('/design-lab', (request, reply) =>
+      sendDesignLabApp(request, reply, webBuildDirectory),
+    );
+    server.get('/design-lab/*', (request, reply) =>
+      sendDesignLabApp(request, reply, webBuildDirectory),
+    );
+  }
 }
