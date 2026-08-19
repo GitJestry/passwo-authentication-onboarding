@@ -39,13 +39,14 @@ Rückkehrschlüssel als `Secure`, `HttpOnly`, first-party Cookie. Die API persis
 und einen inhaltsfreien Fortschritts-Checkpoint. Fiktive Passwörter, Passwortteile, Anzeigenamen,
 lokale Findings und Trainingsentscheidungen bleiben im flüchtigen Rendererzustand.
 
-## Aktueller lokaler Entwicklungsstand
+## Lokaler Entwicklungs- und produktiver Webpfad
 
 `apps/study-desktop` kann den vorhandenen Renderer und Server weiterhin lokal starten. Der
-implementierte Lease-/`incomplete-reload`-Pfad ist Legacy-Verhalten für diesen lokalen Stand. Vor
-dem Hauptstudien-Versions-Freeze sind Webdeployment, Resume-Cookie, Checkpointing und
-unterbrechungsfähiges Timing gemäß `ADR 0016-Web-Resume-Lifecycle` umzusetzen. Diese noch offene
-Implementierung öffnet die bereits getroffene Betriebsentscheidung nicht erneut.
+Lease-/`incomplete-reload`-Pfad bleibt Legacy-Verhalten dieses lokalen Pfads. Für die Hauptstudie
+stehen ein eigener Production-Einstieg, das `Secure`-/`HttpOnly`-Resume-Cookie, serverseitige
+Checkpoints, bestätigte Web-Timingintervalle und der Completed-only-Analyseexport bereit. Das
+minimale Nginx-/systemd-Deployment ist unter `docs/operations/WEB-DEPLOYMENT.md` beschrieben und
+muss vor dem Versions-Freeze auf der Ziel-VM vollständig als Dry Run geprüft werden.
 
 ## Monorepo-Schnitt
 

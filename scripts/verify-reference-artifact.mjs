@@ -23,7 +23,11 @@ const expectedEntryPoint = 'scormdriver/indexAPI.html';
 const expectedCourseId = 'CwynTB5JDjzJgtE8M2SKmgtgC6sM4C4h';
 const expectedCompletionMessageType = 'passwo:reference-completed';
 const expectedCompletionRequestMessageType = 'passwo:reference-completion-request';
+const expectedCheckpointMessageType = 'passwo:reference-checkpoint';
+const expectedResumeMessageType = 'passwo:reference-resume';
+const expectedContentReadyMessageType = 'passwo:reference-content-ready';
 const expectedOpenSupplementMessageType = 'passwo:reference-open-supplement';
+const expectedCheckpointIds = ['passwords', 'password-manager', 'mfa'];
 const expectedSourceFileCount = 146;
 const expectedSourceManifestSha256 =
   '4eee807687cad07e9856decd711a45a79076caf2ef9b9b6d6dae0401d23f821b';
@@ -31,7 +35,7 @@ const expectedBuildFileCount = 146;
 const expectedBuildManifestSha256 =
   '92e63925f3e85165f6c44ba0c12dbf77b0e480b2176e492e6ded53b5d582ec79';
 const expectedTransformationConfigSha256 =
-  '1e19f45b0b79b0c2195d45b020c807b1d194a8926149515e81cf85b2f02517d9';
+  '7828d3f454a637e909dafdd9e8f98e0d3a0cc8cb8b5c597c92b79cd850d810d2';
 const coursePath = 'scormcontent/index.html';
 const driverPath = 'scormdriver/indexAPI.html';
 const finalInstructionContinueBlockId = 'cld8nihms01nn1tdj5q8tcthv';
@@ -102,8 +106,10 @@ const expectedTransformationIds = [
   'runtime-popup-apis-disable',
   'course-exit-disable',
   'runtime-completion-action-bridge',
+  'runtime-progress-checkpoint-bridge',
   'runtime-provider-logo-targets-localize',
   'driver-completion-bridge',
+  'driver-progress-resume-relay',
 ];
 const datasetPattern =
   /async function __fetchCourse\(\) \{\s*return Promise\.resolve\(deserialize\("([A-Za-z0-9+/=]+)"\)\)\s*\}/u;
@@ -465,6 +471,8 @@ async function verify() {
     expectedReferenceVersion,
     expectedSnapshotId,
     expectedCompletionMessageType,
+    expectedCheckpointMessageType,
+    expectedResumeMessageType,
     expectedOpenSupplementMessageType,
   ]) {
     if (!contracts.includes(`'${value}'`)) {
@@ -495,6 +503,20 @@ async function verify() {
   }
   if (!transformations.includes(`messageType: ${expectedOpenSupplementMessageType}`)) {
     fail('the transformation configuration omits the supplement message type.');
+  }
+  for (const value of [
+    `checkpointMessageType: ${expectedCheckpointMessageType}`,
+    `resumeMessageType: ${expectedResumeMessageType}`,
+    `contentReadyMessageType: ${expectedContentReadyMessageType}`,
+  ]) {
+    if (!transformations.includes(value)) {
+      fail(`the transformation configuration omits ${value}.`);
+    }
+  }
+  for (const checkpointId of expectedCheckpointIds) {
+    if (!transformations.includes(`    - ${checkpointId}`)) {
+      fail(`the transformation configuration omits checkpoint ${checkpointId}.`);
+    }
   }
   for (const { id, url } of referenceSupplementLinks) {
     if (!transformations.includes(`id: ${id}`) || !transformations.includes(url)) {
@@ -589,6 +611,25 @@ async function verify() {
     fail('the generated course does not validate and bridge its original completion action.');
   }
   if (
+    sourceCourseHtml.includes('passwo-reference-progress-bridge') ||
+    occurrenceCount(buildCourseHtml, 'passwo-reference-progress-bridge:start') !== 1 ||
+    occurrenceCount(buildCourseHtml, 'passwo-reference-progress-bridge:end') !== 1 ||
+    occurrenceCount(buildCourseHtml, expectedCheckpointMessageType) !== 1 ||
+    occurrenceCount(buildCourseHtml, expectedResumeMessageType) !== 1 ||
+    occurrenceCount(buildCourseHtml, expectedContentReadyMessageType) !== 1 ||
+    !buildCourseHtml.includes("window.addEventListener('hashchange', reportCurrentCheckpoint)") ||
+    !buildCourseHtml.includes('event.source !== window.parent') ||
+    !buildCourseHtml.includes('event.origin !== window.location.origin') ||
+    !buildCourseHtml.includes('Object.keys(event.data).length !== 3')
+  ) {
+    fail('the generated course does not contain the bounded lesson checkpoint and resume bridge.');
+  }
+  for (const checkpointId of expectedCheckpointIds) {
+    if (!buildCourseHtml.includes(`:${JSON.stringify(checkpointId)}`)) {
+      fail(`the generated course progress bridge omits checkpoint ${checkpointId}.`);
+    }
+  }
+  if (
     occurrenceCount(buildCourseHtml, 'passwo-reference-supplement-bridge:start') !== 1 ||
     occurrenceCount(buildCourseHtml, 'passwo-reference-supplement-bridge:end') !== 1 ||
     occurrenceCount(buildCourseHtml, 'PasswoOpenReferenceSupplement') !== 2
@@ -609,17 +650,21 @@ async function verify() {
     occurrenceCount(buildDriverHtml, 'passwo-reference-completion-bridge:end') !== 1 ||
     occurrenceCount(buildDriverHtml, expectedCompletionMessageType) !== 1 ||
     occurrenceCount(buildDriverHtml, expectedCompletionRequestMessageType) !== 1 ||
+    occurrenceCount(buildDriverHtml, expectedCheckpointMessageType) !== 1 ||
+    occurrenceCount(buildDriverHtml, expectedResumeMessageType) !== 2 ||
+    occurrenceCount(buildDriverHtml, expectedContentReadyMessageType) !== 1 ||
     occurrenceCount(buildDriverHtml, expectedOpenSupplementMessageType) !== 1 ||
-    occurrenceCount(buildDriverHtml, expectedSnapshotId) !== 3 ||
+    occurrenceCount(buildDriverHtml, expectedSnapshotId) !== 7 ||
     !buildDriverHtml.includes('originalSetReachedEnd.apply(window, arguments)') ||
-    !buildDriverHtml.includes('event.source !== window.scormdriver_content') ||
+    !buildDriverHtml.includes('event.source === window.scormdriver_content') ||
     !buildDriverHtml.includes('originalSetReachedEnd.apply(window, [])') ||
     occurrenceCount(buildDriverHtml, 'if (result !== false) reportCompletionOnce();') !== 1 ||
-    !buildDriverHtml.includes(
-      'originalSetReachedEnd.apply(window, []);\n        reportCompletionOnce();',
-    ) ||
     !buildDriverHtml.includes('if (result !== false) reportCompletionOnce();') ||
     !buildDriverHtml.includes('reportCompletionOnce();') ||
+    !buildDriverHtml.includes('event.source === window.scormdriver_content') ||
+    !buildDriverHtml.includes('event.source === window.top') ||
+    !buildDriverHtml.includes('Object.keys(event.data).length === 3') ||
+    !buildDriverHtml.includes('pendingResumeCheckpointId = event.data.checkpointId') ||
     !buildDriverHtml.includes(
       `{ type: '${expectedCompletionMessageType}', snapshotId: '${expectedSnapshotId}' }`,
     )

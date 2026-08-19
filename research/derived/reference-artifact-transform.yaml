@@ -137,6 +137,10 @@ transformations:
     targetId: cld8nihms01nn1tdj5q8tcthv
     operation: validate-prior-navigation-completion-and-bridge-retitled-final-continue-action
     reason: The single original final Continue action must validate the two prior lessons through the frozen rendered navigation and complete without depending on inaccessible provider runtime internals.
+  - id: runtime-progress-checkpoint-bridge
+    targetId: scormcontent/index.html
+    operation: post-three-semantic-lesson-checkpoints-and-accept-same-origin-resume
+    reason: Web resume needs only the current retained lesson and must not read or persist quiz answers, SCORM interactions, or other participant content.
   - id: runtime-provider-logo-targets-localize
     targetId: bundled-Storyline-provider-logo-webobjects
     operation: replace-with-about-blank
@@ -145,12 +149,36 @@ transformations:
     targetId: scormdriver/indexAPI.html
     operation: wrap-SetReachedEnd-and-accept-validated-course-request
     reason: The validated final course action must emit one data-minimal signal even when the provider incorrectly keeps the final lesson progress incomplete.
+  - id: driver-progress-resume-relay
+    targetId: scormdriver/indexAPI.html
+    operation: relay-validated-checkpoint-ready-and-resume-messages-between-wrapper-and-course
+    reason: The same-origin driver is the only stable boundary between the study wrapper and the generated course frame.
 completionBridge:
   messageType: passwo:reference-completed
   payloadFields:
     - type
     - snapshotId
   snapshotId: secaware-passwords-authentication-2026-07-26
+  targetOrigin: same-origin
+progressBridge:
+  checkpointMessageType: passwo:reference-checkpoint
+  resumeMessageType: passwo:reference-resume
+  contentReadyMessageType: passwo:reference-content-ready
+  checkpointIds:
+    - passwords
+    - password-manager
+    - mfa
+  checkpointPayloadFields:
+    - type
+    - snapshotId
+    - checkpointId
+  resumePayloadFields:
+    - type
+    - snapshotId
+    - checkpointId
+  contentReadyPayloadFields:
+    - type
+    - snapshotId
   targetOrigin: same-origin
 supplementBridge:
   messageType: passwo:reference-open-supplement

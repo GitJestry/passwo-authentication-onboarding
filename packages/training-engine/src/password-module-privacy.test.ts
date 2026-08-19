@@ -24,11 +24,15 @@ function studyRuntimePorts(requestArguments: unknown[][]): StudyRuntimePorts {
     },
     startArtifact: async (...arguments_) => {
       requestArguments.push(arguments_);
+      return {
+        checkpoint: 'supportive:entry',
+        artifactSessionElapsedMs: 0,
+        interrupted: false,
+      };
     },
     endArtifact: async () => 0,
     recordArtifactVisibility: async () => {},
     retryArtifactTiming: async () => null,
-    markIncompleteReload: () => {},
     observeArtifactLifecycle: () => () => {},
     completeSession: async () => {},
   };

@@ -22,11 +22,14 @@ function runtimePorts(
     registerRecontact: async () => {},
     abandonRecontact: async () => {},
     saveInstrumentSubmission,
-    startArtifact: async () => {},
+    startArtifact: async () => ({
+      checkpoint: condition === 'supportive' ? 'supportive:entry' : 'reference:passwords',
+      artifactSessionElapsedMs: 0,
+      interrupted: false,
+    }),
     endArtifact: async () => 325,
     recordArtifactVisibility: async () => {},
     retryArtifactTiming: async () => null,
-    markIncompleteReload: () => {},
     observeArtifactLifecycle: () => () => {},
     completeSession: async () => {},
   };
@@ -168,9 +171,9 @@ describe('studyMachine', () => {
     let createdWithFollowUpConsent: boolean | null = null;
     const ports = runtimePorts('reference');
     const createSession = ports.createSession;
-    ports.createSession = async (followUpConsent) => {
+    ports.createSession = async (followUpConsent, recontact) => {
       createdWithFollowUpConsent = followUpConsent;
-      return createSession(followUpConsent);
+      return createSession(followUpConsent, recontact);
     };
     ports.registerRecontact = async () => {
       registrationAttempts += 1;

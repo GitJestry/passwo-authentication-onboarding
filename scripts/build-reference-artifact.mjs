@@ -26,6 +26,7 @@ const expectedSourceManifestSha256 =
   '4eee807687cad07e9856decd711a45a79076caf2ef9b9b6d6dae0401d23f821b';
 const expectedCourseId = 'CwynTB5JDjzJgtE8M2SKmgtgC6sM4C4h';
 const expectedSourceVersion = 'V9 (27.03.2026)';
+const artifactVersion = 'secaware-passwords-authentication-v9-study-adapted-2026-07-30-r16';
 const completionMessageType = 'passwo:reference-completed';
 const completionRequestMessageType = 'passwo:reference-completion-request';
 const checkpointMessageType = 'passwo:reference-checkpoint';
@@ -800,5 +801,5 @@ if (
 }
 
 process.stdout.write(
-  `Reference study artifact built from ${expectedSourceVersion}: ${buildManifest.fileCount} files, manifest SHA-256 ${buildManifest.sha256}.\n`,
+  `Reference study artifact ${artifactVersion} built from ${expectedSourceVersion}: ${buildManifest.fileCount} files, manifest SHA-256 ${buildManifest.sha256}.\n`,
 );

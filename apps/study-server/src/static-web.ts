@@ -102,17 +102,17 @@ export async function registerStudyWeb(
     wildcard: false,
     decorateReply: false,
     setHeaders(response, filePath) {
-      response.setHeader('Content-Security-Policy', studyWebCsp);
-      response.setHeader('Cross-Origin-Opener-Policy', 'same-origin');
-      response.setHeader('Cross-Origin-Resource-Policy', 'same-origin');
-      response.setHeader(
+      response.header('Content-Security-Policy', studyWebCsp);
+      response.header('Cross-Origin-Opener-Policy', 'same-origin');
+      response.header('Cross-Origin-Resource-Policy', 'same-origin');
+      response.header(
         'Permissions-Policy',
         'camera=(), geolocation=(), microphone=(), payment=(), usb=()',
       );
-      response.setHeader('Referrer-Policy', 'no-referrer');
-      response.setHeader('X-Content-Type-Options', 'nosniff');
-      response.setHeader('X-Frame-Options', 'DENY');
-      response.setHeader(
+      response.header('Referrer-Policy', 'no-referrer');
+      response.header('X-Content-Type-Options', 'nosniff');
+      response.header('X-Frame-Options', 'DENY');
+      response.header(
         'Cache-Control',
         filePath.endsWith('.html')
           ? 'no-store'

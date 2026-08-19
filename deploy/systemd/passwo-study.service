@@ -1,0 +1,36 @@
+[Unit]
+Description=PassWo web study
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=passwo
+Group=passwo
+WorkingDirectory=/opt/passwo-study/current
+Environment=NODE_ENV=production
+EnvironmentFile=/etc/passwo-study/passwo-study.env
+ExecStartPre=/usr/bin/test -f /opt/passwo-study/current/apps/study-server/dist/production.js
+ExecStartPre=/usr/bin/test -f /opt/passwo-study/current/apps/study-web/dist/index.html
+ExecStart=/usr/local/bin/node /opt/passwo-study/current/apps/study-server/dist/production.js
+Restart=on-failure
+RestartSec=3s
+TimeoutStopSec=30s
+UMask=0077
+StateDirectory=passwo-study
+StateDirectoryMode=0700
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/var/lib/passwo-study
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectControlGroups=true
+RestrictSUIDSGID=true
+RestrictRealtime=true
+LockPersonality=true
+RestrictAddressFamilies=AF_UNIX AF_INET AF_INET6
+
+[Install]
+WantedBy=multi-user.target

@@ -13,16 +13,16 @@ Webbetrieb, Wiederaufnahme und Datenabschluss steht in `ADR 0016-Web-Resume-Life
 | M3 — Knotennetzwerk | abgeschlossen | Frameworkfreie Szenenmodelle, React-Flow-Adapter, S02 und S06-Konsequenz-Fixtures stehen. |
 | M4 — Passwortmodul S03–S11 | teilweise | S03 bis S07 sind integriert; S08 bis S11 sind noch fertigzustellen und fachlich zu prüfen. |
 | M5 — Passwortmanager und MFA S12–S17 | offen | Simulationen, Recovery-Grenzen, MFA und integrierter Abschluss fehlen. |
-| M6 — Instrumente und Referenzartefakt | teilweise | Pilotinstrument, Guardrail-Formen, Referenzartefakt, Zieltext der Teilnahmeinformation und Follow-up-Instrument stehen. Die Web-Consent-Fassung wird erst mit implementierter Wiederaufnahme freigegeben. Cognitive Pretest, zweite Inhaltsprüfung und Befundauflösung stehen aus. |
-| M7 — Webbetrieb und Follow-up | teilweise | Zielmodell ist entschieden. HTTPS-Deployment, sichere Wiederaufnahme, same-origin Follow-up-Route und der kontrollierte manuelle Versand-/Löschablauf sind noch umzusetzen und zu erproben. |
+| M6 — Instrumente und Referenzartefakt | teilweise | Pilotinstrument, Guardrail-Formen, SecAware-r16-Freeze, Zieltext der Teilnahmeinformation und Follow-up-Instrument stehen. Cognitive Pretest, zweite Inhaltsprüfung und Befundauflösung stehen aus. |
+| M7 — Webbetrieb und Follow-up | teilweise | Production-Start, sichere Wiederaufnahme, persistente Checkpoints, unterbrechungsfähiges Timing, Completed-only-Export und minimales HTTPS-Deployment stehen. Ziel-VM-Dry-Run, same-origin Follow-up-Route und der kontrollierte manuelle Versand-/Löschablauf stehen noch aus. |
 | M8 — Hauptstudien-Versions-Freeze | offen | Nach vollständigem Training, Pilot und technischem Dry Run werden Commit, Inhalte, Instrumente, Referenzartefakt und Analyseplan eingefroren. |
 | M9 — Datensatz-Freeze und Anonymisierung | später operativ | Nach Datenerhebung und Follow-up werden nur abgeschlossene Runs übernommen, Zuordnungsinformationen entfernt, Arbeitskopien gelöscht und der anonyme Archivdatensatz gemäß `DATA-CONTRACT.md` erzeugt. |
 
 ## Nächste Abnahmetore
 
 1. S08 bis S17 fertigstellen und den vollständigen supportive Artefaktpfad fachlich prüfen.
-2. Webdeployment und Wiederaufnahme gemäß ADR 0016 implementieren; flüchtige Trainingswerte dürfen
-   dabei nicht persistiert werden.
+2. Das dokumentierte Webdeployment und die Wiederaufnahme auf der Ziel-VM vollständig erproben;
+   flüchtige Trainingswerte dürfen dabei nicht persistiert werden.
 3. Die tokenisierte Follow-up-Route innerhalb derselben Webanwendung implementieren und den
    manuellen Versand sowie die dokumentierte Kontaktlöschung einmal vollständig erproben.
 4. Cognitive Pretest, Pilotdurchläufe in beiden Bedingungen und die zweite qualifizierte
@@ -34,11 +34,10 @@ Webbetrieb, Wiederaufnahme und Datenabschluss steht in `ADR 0016-Web-Resume-Life
 
 ## Noch umzusetzen, nicht erneut zu entscheiden
 
-- Die aktuelle lokale Runtime markiert Reloads noch über Lease/`incomplete-reload`. Für die
-  Hauptstudie wird dieser Pfad durch Resume-Cookie, inhaltsfreien Checkpoint und aktive
-  Timingintervalle ersetzt.
-- Der bestehende Analyseexport kann technische Statusfälle enthalten. Vor dem Versions-Freeze muss
-  die Completed-only-Auswahl im Export oder im verbindlichen Analyseskript technisch erzwungen sein.
+- Die Desktop-Runtime behält Lease/`incomplete-reload` als Legacy-Verhalten. Der produktive Webpfad
+  verwendet stattdessen Resume-Cookie, inhaltsfreien Checkpoint und aktive Timingintervalle.
+- Der Analyseexport selektiert technisch ausschließlich `completed` Runs. Vor dem Versions-Freeze
+  muss diese Grenze noch einmal mit einem bewusst unvollständigen Dry-Run-Fall geprüft werden.
 - Same-origin Follow-up-Abgabe, Tokenverbrauch und Kontaktlöschung sind noch zu implementieren
   beziehungsweise als kontrollierter manueller Ablauf zu erproben.
 - Die Anonymisierungsprozedur ist fachlich festgelegt. Sie kann als kleiner kontrollierter

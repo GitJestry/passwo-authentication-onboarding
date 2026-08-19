@@ -445,7 +445,7 @@ function SupportiveArtifact({
         timingPort={timingPort}
         externalTimingError={timingError}
         onRetryExternalTiming={onRetryTiming}
-        resumeSegmentId={resumeSegmentId}
+        {...(resumeSegmentId === undefined ? {} : { resumeSegmentId })}
         onComplete={onComplete}
       />
     </TrainingClipboardBoundary>
@@ -655,7 +655,7 @@ function HydratedStudyFlow({
             context.artifactTimingErrorKind === 'visibility' ? context.researchErrorCode : null
           }
           onRetryTiming={() => send({ type: 'RETRY_ARTIFACT_VISIBILITY' })}
-          resumeSegmentId={supportiveResumeSegment}
+          {...(supportiveResumeSegment === undefined ? {} : { resumeSegmentId: supportiveResumeSegment })}
           onComplete={completeArtifact}
         />
       );
@@ -663,7 +663,7 @@ function HydratedStudyFlow({
     content = (
       <ReferenceArtifact
         onComplete={completeArtifact}
-        resumeCheckpoint={referenceResumeCheckpoint}
+        {...(referenceResumeCheckpoint === undefined ? {} : { resumeCheckpoint: referenceResumeCheckpoint })}
         onCheckpoint={async (checkpointId) => {
           if (context.sessionId === null) throw new Error('missing-session');
           await api.confirmArtifactCheckpoint(

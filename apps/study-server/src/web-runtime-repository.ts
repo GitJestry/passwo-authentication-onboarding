@@ -77,8 +77,12 @@ const segmentStateSchema = z.object({
   eventType: z.enum(['segment-start', 'segment-end']),
 });
 
-const supportiveRank = new Map(SUPPORTIVE_CHECKPOINTS.map((value, index) => [value, index]));
-const referenceRank = new Map(REFERENCE_LESSON_CHECKPOINTS.map((value, index) => [value, index]));
+const supportiveRank = new Map<ArtifactCheckpoint, number>(
+  SUPPORTIVE_CHECKPOINTS.map((value, index) => [value, index]),
+);
+const referenceRank = new Map<ArtifactCheckpoint, number>(
+  REFERENCE_LESSON_CHECKPOINTS.map((value, index) => [value, index]),
+);
 
 function isArtifactCheckpoint(value: StudyProgressCheckpoint): boolean {
   return value.startsWith('supportive:') || value.startsWith('reference:');

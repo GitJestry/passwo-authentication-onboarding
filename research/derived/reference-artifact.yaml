@@ -39,12 +39,21 @@ integrity:
   sourceManifestSha256: 4eee807687cad07e9856decd711a45a79076caf2ef9b9b6d6dae0401d23f821b
   studyBuildFileCount: 146
   studyBuildManifestSha256: 92e63925f3e85165f6c44ba0c12dbf77b0e480b2176e492e6ded53b5d582ec79
-  transformationConfigSha256: 1e19f45b0b79b0c2195d45b020c807b1d194a8926149515e81cf85b2f02517d9
+  transformationConfigSha256: 7828d3f454a637e909dafdd9e8f98e0d3a0cc8cb8b5c597c92b79cd850d810d2
 completionBridge:
   messageType: passwo:reference-completed
   payloadFields:
     - type
     - snapshotId
+  acceptedByWrapperOnlyFrom: same-origin configured iframe window
+progressBridge:
+  checkpointMessageType: passwo:reference-checkpoint
+  resumeMessageType: passwo:reference-resume
+  contentReadyMessageType: passwo:reference-content-ready
+  checkpointIds:
+    - passwords
+    - password-manager
+    - mfa
   acceptedByWrapperOnlyFrom: same-origin configured iframe window
 supplementBridge:
   messageType: passwo:reference-open-supplement
