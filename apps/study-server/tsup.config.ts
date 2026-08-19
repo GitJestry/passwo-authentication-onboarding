@@ -6,7 +6,6 @@ export default defineConfig({
   },
   clean: true,
   dts: false,
-  entry: ['src/runtime.ts', 'src/production.ts', 'src/backup.ts'],
   external: ['better-sqlite3'],
   format: ['esm'],
   noExternal: [/^(?!better-sqlite3(?:\/|$)).*/],

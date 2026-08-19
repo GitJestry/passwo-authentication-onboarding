@@ -17,7 +17,7 @@ const expectedBuildPath =
   'research/private/reference/secaware/passwords-authentication/2026-07-26/study-build';
 const expectedTransformationPath = 'research/derived/reference-artifact-transform.yaml';
 const expectedSnapshotId = 'secaware-passwords-authentication-2026-07-26';
-const expectedReferenceVersion = 'secaware-passwords-authentication-v9-study-adapted-2026-07-30-r15';
+const expectedReferenceVersion = 'secaware-passwords-authentication-v9-study-adapted-2026-07-30-r16';
 const expectedSourceVersion = 'V9 (27.03.2026)';
 const expectedEntryPoint = 'scormdriver/indexAPI.html';
 const expectedCourseId = 'CwynTB5JDjzJgtE8M2SKmgtgC6sM4C4h';
@@ -29,7 +29,7 @@ const expectedSourceManifestSha256 =
   '4eee807687cad07e9856decd711a45a79076caf2ef9b9b6d6dae0401d23f821b';
 const expectedBuildFileCount = 146;
 const expectedBuildManifestSha256 =
-  '4964b4d3c851278c1c061970c0ab7b0918b60f53d08c8ef398331f789e7fe8d7';
+  '92e63925f3e85165f6c44ba0c12dbf77b0e480b2176e492e6ded53b5d582ec79';
 const expectedTransformationConfigSha256 =
   '1e19f45b0b79b0c2195d45b020c807b1d194a8926149515e81cf85b2f02517d9';
 const coursePath = 'scormcontent/index.html';
