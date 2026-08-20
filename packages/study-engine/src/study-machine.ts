@@ -257,6 +257,7 @@ function initialContextFor(resumeSession: WebResumeSession | null): StudyContext
   return {
     ...initialContext,
     sessionId: resumeSession.sessionId,
+    deletionCode: resumeSession.deletionCode,
     condition: resumeSession.condition,
     assignmentMode: resumeSession.assignmentMode,
     guardrailFormId: resumeSession.guardrailFormId,

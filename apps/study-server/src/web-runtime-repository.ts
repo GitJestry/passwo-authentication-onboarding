@@ -5,7 +5,11 @@ import {
   type ArtifactIntervalStartRequest,
   type ArtifactIntervalStartResponse,
   type ConfirmArtifactCheckpointRequest,
+  type CreateSessionRequest,
   type CreateSessionResponse,
+  type DeletionCode,
+  deletionCodeHashSchema,
+  type DeletionCodeHash,
   completionStatusSchema,
   type CompletionStatus,
   type InstrumentSubmissionRequest,
@@ -17,8 +21,8 @@ import {
   SUPPORTIVE_ARTIFACT_SEGMENT_IDS,
   SUPPORTIVE_CHECKPOINTS,
   supportiveCheckpointSchema,
+  type RegisterRecontactRequest,
   type WebArtifactVisibilityRequest,
-  type WebCreateSessionRequest,
   type WebResumeSession,
   type WebResumeTokenHash,
   type WebSegmentTimingRequest,
@@ -45,8 +49,16 @@ const checkpointSchema = z.object({
 });
 const tokenRowSchema = z.object({
   sessionId: z.string(),
+  createRequestId: z.string(),
   expiresAtIso: z.string(),
   invalidatedAtIso: z.string().nullable(),
+  completionStatus: z.string(),
+  deletionCodeHash: deletionCodeHashSchema,
+});
+const createRetryRowSchema = z.object({
+  sessionId: z.string(),
+  followUpConsent: z.union([z.literal(0), z.literal(1)]),
+  deletionCodeHash: deletionCodeHashSchema,
   completionStatus: z.string(),
 });
 const intervalSchema = z.object({
@@ -76,6 +88,17 @@ const segmentStateSchema = z.object({
   segmentId: z.enum(SUPPORTIVE_ARTIFACT_SEGMENT_IDS),
   eventType: z.enum(['segment-start', 'segment-end']),
 });
+
+type WebRuntimeCreateSessionRequest = CreateSessionRequest & {
+  readonly recontact: RegisterRecontactRequest | null;
+};
+
+export interface ResumeTokenBinding {
+  readonly sessionId: string;
+  readonly createRequestId: string;
+  readonly deletionCodeHash: DeletionCodeHash;
+  readonly active: boolean;
+}
 
 const supportiveRank = new Map<ArtifactCheckpoint, number>(
   SUPPORTIVE_CHECKPOINTS.map((value, index) => [value, index]),
@@ -112,12 +135,38 @@ export class WebRuntimeRepository {
   }
 
   createSession(
-    request: WebCreateSessionRequest,
+    request: WebRuntimeCreateSessionRequest,
     tokenHash: WebResumeTokenHash,
     expiresAtIso: string,
   ): CreateSessionResponse {
     this.#requireCollectionOpen();
     return this.#database.transaction(() => {
+      const existing = createRetryRowSchema.nullable().parse(
+        this.#database.prepare(
+          `SELECT session_id AS sessionId,
+                  follow_up_consent AS followUpConsent,
+                  deletion_code_hash AS deletionCodeHash,
+                  completion_status AS completionStatus
+           FROM study_sessions
+           WHERE create_request_id = ?`,
+        ).get(request.requestId) ?? null,
+      );
+      if (
+        existing !== null &&
+        existing.deletionCodeHash !== request.deletionCodeHash
+      ) {
+        if (
+          existing.completionStatus !== 'in-progress' ||
+          (existing.followUpConsent === 1) !== request.followUpConsent
+        ) {
+          throw new StudyRepositoryError('session-create-conflict', 409);
+        }
+        this.#database.prepare(
+          `UPDATE study_sessions
+           SET deletion_code_hash = ?
+           WHERE session_id = ? AND completion_status = 'in-progress'`,
+        ).run(request.deletionCodeHash, existing.sessionId);
+      }
       const session = this.#studyRepository.createSession(request);
       if (request.recontact !== null) {
         this.#studyRepository.registerRecontact(session.sessionId, request.recontact);
@@ -137,17 +186,23 @@ export class WebRuntimeRepository {
     })();
   }
 
+  resumeTokenBinding(tokenHash: WebResumeTokenHash): ResumeTokenBinding | null {
+    const row = this.#resumeTokenRow(tokenHash);
+    if (row === null) return null;
+    return {
+      sessionId: row.sessionId,
+      createRequestId: row.createRequestId,
+      deletionCodeHash: row.deletionCodeHash,
+      active:
+        row.invalidatedAtIso === null &&
+        row.completionStatus === 'in-progress' &&
+        Date.parse(row.expiresAtIso) > Date.parse(this.#nowIso()) &&
+        this.#collectionOpen(),
+    };
+  }
+
   resolveSession(tokenHash: WebResumeTokenHash, allowCompleted = false): string | null {
-    const row = tokenRowSchema.nullable().parse(
-      this.#database.prepare(
-        `SELECT token.session_id AS sessionId, token.expires_at_iso AS expiresAtIso,
-                token.invalidated_at_iso AS invalidatedAtIso,
-                session.completion_status AS completionStatus
-         FROM web_resume_tokens AS token
-         JOIN study_sessions AS session ON session.session_id = token.session_id
-         WHERE token.token_hash = ?`,
-      ).get(tokenHash) ?? null,
-    );
+    const row = this.#resumeTokenRow(tokenHash);
     if (row === null) return null;
     if (allowCompleted && row.completionStatus === 'completed') return row.sessionId;
     if (
@@ -159,7 +214,7 @@ export class WebRuntimeRepository {
     return row.sessionId;
   }
 
-  restoreSession(sessionId: string): WebResumeSession {
+  restoreSession(sessionId: string, deletionCode: DeletionCode | null): WebResumeSession {
     this.#requireCollectionOpen();
     return this.#database.transaction(() => {
       const interrupted = this.#closeOpenInterval(sessionId, 'interrupted');
@@ -169,7 +224,7 @@ export class WebRuntimeRepository {
          SET web_interruption_count = web_interruption_count + ?, last_resumed_at_iso = ?
          WHERE session_id = ? AND completion_status = 'in-progress'`,
       ).run(interrupted ? 1 : 0, now, sessionId);
-      return this.#resumeSnapshot(sessionId);
+      return this.#resumeSnapshot(sessionId, deletionCode);
     })();
   }
 
@@ -413,7 +468,23 @@ export class WebRuntimeRepository {
     })();
   }
 
-  #resumeSnapshot(sessionId: string): WebResumeSession {
+  #resumeTokenRow(tokenHash: WebResumeTokenHash): z.infer<typeof tokenRowSchema> | null {
+    return tokenRowSchema.nullable().parse(
+      this.#database.prepare(
+        `SELECT token.session_id AS sessionId,
+                session.create_request_id AS createRequestId,
+                token.expires_at_iso AS expiresAtIso,
+                token.invalidated_at_iso AS invalidatedAtIso,
+                session.completion_status AS completionStatus,
+                session.deletion_code_hash AS deletionCodeHash
+         FROM web_resume_tokens AS token
+         JOIN study_sessions AS session ON session.session_id = token.session_id
+         WHERE token.token_hash = ?`,
+      ).get(tokenHash) ?? null,
+    );
+  }
+
+  #resumeSnapshot(sessionId: string, deletionCode: DeletionCode | null): WebResumeSession {
     const session = sessionSchema.parse(
       this.#database.prepare(
         `SELECT session_id AS sessionId, condition, assignment_mode AS assignmentMode,
@@ -455,6 +526,7 @@ export class WebRuntimeRepository {
           ? null
           : this.#artifactElapsedMs(sessionId),
       interrupted: session.interruptionCount > 0,
+      deletionCode,
     };
   }
 

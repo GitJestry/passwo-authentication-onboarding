@@ -34,7 +34,7 @@ Abgrenzung von Pseudonymisierung und Anonymisierung durch den Europäischen Date
 | Rückkehrschlüssel | Hash und Ablaufzeit eines zufälligen Resume-Tokens | `study.sqlite`; nur operative Wiederaufnahme |
 | Follow-up-Verknüpfung | Einwilligung, Follow-up-Version, Token-Hash, Follow-up-Antworten | `study.sqlite`; pseudonyme Verbindung bis zur Anonymisierung |
 | Kontaktregister | E-Mail, Raw Token, Consent-Version, Versandzeitpunkte | ausschließlich getrennte `recontact.sqlite` |
-| Flüchtige Teilnehmerdaten | Anzeigename, roher Löschcode, Raw-Resume-Token | nur flüchtiger Zustand beziehungsweise `HttpOnly`-Cookie |
+| Flüchtige Teilnehmerdaten | Anzeigename, roher Löschcode, Raw-Resume-Token | Löschcode nur im flüchtigen Study-State beziehungsweise in der aktuellen Antwort; Resume-Token nur im `HttpOnly`-Cookie |
 | Trainingsinput und lokale Analyse | fiktive Passwörter, Passwortteile, Findings, Ähnlichkeit | nie persistieren oder senden |
 | Reale Sicherheitsdaten | reale Konten, Passwörter, Tokens, Wiederherstellungscodes, Vorfälle | nie erheben |
 | Passive Metadaten | IP, User-Agent, vollständige Request-Bodies | nicht persistieren oder in Anwendungslogs schreiben |
@@ -161,9 +161,12 @@ nur aggregierte Ergebnisse.
 
 ## Löschanfragen vor der Anonymisierung
 
-Der rohe Löschcode wird clientseitig erzeugt und weder serverseitig noch in Exporten gespeichert.
-Bis `anonymisedAt` kann die zugehörige pseudonymisierte Sitzung über seinen SHA-256-Hash gefunden und
-vollständig aus Forschungsdatenbank und Kontaktregister gelöscht werden.
+Der rohe Löschcode wird deterministisch aus dem zufälligen `HttpOnly`-Rückkehrschlüssel
+abgeleitet und weder in der Forschungsdatenbank noch in Exporten gespeichert. Bei einer gültigen
+Wiederaufnahme kann der Server ihn erneut ableiten und nur nach Abgleich mit dem gespeicherten
+SHA-256-Hash an denselben Browser zurückgeben. Bis `anonymisedAt` kann die zugehörige
+pseudonymisierte Sitzung über diesen Hash gefunden und vollständig aus Forschungsdatenbank und
+Kontaktregister gelöscht werden.
 
 Die lokale Lösch-CLI bleibt standardmäßig ein Dry-Run; Schreiben erfordert `--confirm`. Bereits
 erzeugte Arbeits-Exporte und Backups werden im selben kontrollierten Vorgang separat berücksichtigt.

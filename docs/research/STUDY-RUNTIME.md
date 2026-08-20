@@ -20,7 +20,7 @@ Eligibility lokal prüfen
 → gemeinsame Teilnahmeinformation
 → erforderliche Hauptstudien-Einwilligung
 → optional: Nachbefragung auswählen und E-Mail-Adresse angeben
-→ Löschcode lokal erzeugen
+→ zufälligen `HttpOnly`-Rückkehrschlüssel setzen und Löschcode serverseitig ableiten
 → Session serverseitig anlegen; Condition und Guardrail-Form verdeckt zuweisen
 → nur bei Opt-in: E-Mail getrennt registrieren
 → Pre sample
@@ -114,8 +114,10 @@ wird der Löschcode angezeigt. Im Fragebogen bleibt die ausführliche Fassung ü
 `© Universität Bonn · Teilnahmeinformationen` erreichbar.
 
 Die Runtime zeigt keine Forschungs-ID, Condition, Antworten oder Timingdaten. Der rohe Löschcode
-wird nicht serverseitig gespeichert. Teilnehmende müssen ihn selbst sichern, wenn sie später eine
-Löschung anfragen möchten.
+wird nicht serverseitig gespeichert. Bei einer gültigen Wiederaufnahme im selben Browser wird er
+aus dem `HttpOnly`-Rückkehrschlüssel erneut abgeleitet und nur nach Hash-Abgleich angezeigt.
+Teilnehmende müssen ihn weiterhin selbst sichern, wenn sie später unabhängig von diesem Browser
+eine Löschung anfragen möchten.
 
 ## Zustands- und Datenschutzgrenzen
 

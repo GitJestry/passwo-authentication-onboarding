@@ -3,16 +3,31 @@ import { mkdirSync, writeFileSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
 
 interface Options {
-  database: string;
-  output: string;
+  readonly database: string;
+  readonly output: string;
 }
 
-type Row = Record<string, unknown>;
+interface SessionRow {
+  readonly session_id: string;
+  readonly condition: string;
+  readonly completion_status: string;
+  readonly created_at_iso: string;
+  readonly artifact_completed_at_iso: string | null;
+  readonly completed_at_iso: string | null;
+  readonly web_interruption_count: number;
+}
+
+interface ArtifactTimingRow {
+  readonly session_id: string;
+  readonly active_ms: number;
+  readonly started_at_iso: string;
+  readonly ended_at_iso: string;
+}
 
 interface ArtifactTiming {
-  activeMs: number | null;
-  startedAtMs: number | null;
-  endedAtMs: number | null;
+  readonly activeMs: number;
+  readonly startedAtMs: number | null;
+  readonly endedAtMs: number | null;
 }
 
 function parseOptions(argv: readonly string[]): Options {
@@ -37,30 +52,10 @@ function parseOptions(argv: readonly string[]): Options {
   return { database: resolve(database), output: resolve(output) };
 }
 
-function quoteIdentifier(identifier: string): string {
-  return `"${identifier.replaceAll('"', '""')}"`;
-}
-
-function pick(row: Row, candidates: readonly string[]): unknown {
-  for (const candidate of candidates) {
-    if (candidate in row) return row[candidate];
-  }
-  return null;
-}
-
-function pickColumn(columns: ReadonlySet<string>, candidates: readonly string[]): string | null {
-  return candidates.find((candidate) => columns.has(candidate)) ?? null;
-}
-
-function epoch(value: unknown): number | null {
-  if (typeof value !== 'string' || value.length === 0) return null;
+function epoch(value: string | null): number | null {
+  if (value === null || value.length === 0) return null;
   const parsed = Date.parse(value);
   return Number.isFinite(parsed) ? parsed : null;
-}
-
-function finiteNumber(value: unknown): number | null {
-  if (typeof value !== 'number' || !Number.isFinite(value)) return null;
-  return Math.max(0, Math.round(value));
 }
 
 function nonNegativeDifference(end: number | null, start: number | null): number | null {
@@ -74,134 +69,66 @@ function csvCell(value: unknown): string {
   return /[",\n\r]/.test(text) ? `"${text.replaceAll('"', '""')}"` : text;
 }
 
-function tableColumns(db: Database.Database, table: string): Set<string> {
-  return new Set(
-    (
-      db.prepare(`PRAGMA table_info(${quoteIdentifier(table)})`).all() as Array<{
-        name: string;
-      }>
-    ).map(({ name }) => name),
-  );
-}
-
 function readArtifactTiming(db: Database.Database): Map<string, ArtifactTiming> {
-  const result = new Map<string, ArtifactTiming>();
-  const tableNames = (
-    db
-      .prepare("SELECT name FROM sqlite_master WHERE type = 'table' AND name NOT LIKE 'sqlite_%'")
-      .all() as Array<{ name: string }>
-  ).map(({ name }) => name);
+  const rows = db
+    .prepare(
+      `SELECT interval.session_id,
+              SUM(interval.confirmed_elapsed_ms) AS active_ms,
+              MIN(interval.started_at_iso) AS started_at_iso,
+              MAX(COALESCE(interval.closed_at_iso, interval.last_confirmed_at_iso)) AS ended_at_iso
+       FROM web_artifact_intervals AS interval
+       GROUP BY interval.session_id`,
+    )
+    .all() as ArtifactTimingRow[];
 
-  for (const table of tableNames) {
-    if (!table.toLowerCase().includes('artifact')) continue;
-    const columns = tableColumns(db, table);
-    if (!columns.has('session_id')) continue;
-
-    const elapsedColumn = pickColumn(columns, [
-      'artifact_session_elapsed_ms',
-      'active_elapsed_ms',
-      'elapsed_ms',
-      'duration_ms',
-    ]);
-    const startColumn = pickColumn(columns, [
-      'artifact_started_at_iso',
-      'started_at_iso',
-      'start_at_iso',
-    ]);
-    const endColumn = pickColumn(columns, [
-      'artifact_ended_at_iso',
-      'ended_at_iso',
-      'end_at_iso',
-    ]);
-
-    const selected = ['session_id', elapsedColumn, startColumn, endColumn].filter(
-      (column): column is string => column !== null,
-    );
-    if (selected.length === 1) continue;
-
-    const rows = db
-      .prepare(
-        `SELECT ${selected.map(quoteIdentifier).join(', ')} FROM ${quoteIdentifier(table)}`,
-      )
-      .all() as Row[];
-
-    for (const row of rows) {
-      const sessionId = row.session_id;
-      if (typeof sessionId !== 'string') continue;
-      const current = result.get(sessionId) ?? {
-        activeMs: null,
-        startedAtMs: null,
-        endedAtMs: null,
-      };
-      const startedAtMs = startColumn === null ? null : epoch(row[startColumn]);
-      const endedAtMs = endColumn === null ? null : epoch(row[endColumn]);
-      const explicitElapsed = elapsedColumn === null ? null : finiteNumber(row[elapsedColumn]);
-      const intervalElapsed = nonNegativeDifference(endedAtMs, startedAtMs);
-      const elapsed = explicitElapsed ?? intervalElapsed;
-
-      if (elapsed !== null) current.activeMs = (current.activeMs ?? 0) + elapsed;
-      if (
-        startedAtMs !== null &&
-        (current.startedAtMs === null || startedAtMs < current.startedAtMs)
-      ) {
-        current.startedAtMs = startedAtMs;
-      }
-      if (endedAtMs !== null && (current.endedAtMs === null || endedAtMs > current.endedAtMs)) {
-        current.endedAtMs = endedAtMs;
-      }
-      result.set(sessionId, current);
-    }
-  }
-
-  return result;
+  return new Map(
+    rows.map((row) => [
+      row.session_id,
+      {
+        activeMs: Math.max(0, Math.round(row.active_ms)),
+        startedAtMs: epoch(row.started_at_iso),
+        endedAtMs: epoch(row.ended_at_iso),
+      },
+    ]),
+  );
 }
 
 const options = parseOptions(process.argv.slice(2));
 const db = new Database(options.database, { readonly: true, fileMustExist: true });
 
 try {
-  const rows = db.prepare('SELECT * FROM study_sessions ORDER BY created_at_iso').all() as Row[];
+  const rows = db
+    .prepare(
+      `SELECT session_id, condition, completion_status, created_at_iso,
+              artifact_completed_at_iso, completed_at_iso, web_interruption_count
+       FROM study_sessions
+       ORDER BY created_at_iso, session_id`,
+    )
+    .all() as SessionRow[];
   const artifactTiming = readArtifactTiming(db);
   const outputRows = rows.map((row) => {
-    const sessionId = typeof row.session_id === 'string' ? row.session_id : '';
-    const discoveredTiming = artifactTiming.get(sessionId);
-    const created = epoch(pick(row, ['created_at_iso']));
-    const artifactStarted =
-      epoch(
-        pick(row, ['artifact_started_at_iso', 'artifact_start_at_iso', 'artifact_started_at']),
-      ) ?? discoveredTiming?.startedAtMs ?? null;
-    const artifactEnded =
-      epoch(pick(row, ['artifact_ended_at_iso', 'artifact_end_at_iso', 'artifact_ended_at'])) ??
-      discoveredTiming?.endedAtMs ??
-      null;
-    const completed = epoch(pick(row, ['completed_at_iso']));
+    const intervalTiming = artifactTiming.get(row.session_id);
+    const created = epoch(row.created_at_iso);
+    const artifactStarted = intervalTiming?.startedAtMs ?? null;
+    const artifactEnded = epoch(row.artifact_completed_at_iso) ?? intervalTiming?.endedAtMs ?? null;
+    const completed = epoch(row.completed_at_iso);
     const preQuestionnaireWallClockMs = nonNegativeDifference(artifactStarted, created);
     const postQuestionnaireWallClockMs = nonNegativeDifference(completed, artifactEnded);
     const questionnaireWallClockMs =
       preQuestionnaireWallClockMs === null || postQuestionnaireWallClockMs === null
         ? null
         : preQuestionnaireWallClockMs + postQuestionnaireWallClockMs;
-    const trainingActiveMs =
-      finiteNumber(
-        pick(row, [
-          'artifact_session_elapsed_ms',
-          'artifactSessionElapsedMs',
-          'artifact_duration_ms',
-        ]),
-      ) ??
-      discoveredTiming?.activeMs ??
-      null;
 
     return {
-      session_id: sessionId,
-      condition: pick(row, ['condition']),
-      completion_status: pick(row, ['completion_status']),
-      training_active_ms: trainingActiveMs,
+      session_id: row.session_id,
+      condition: row.condition,
+      completion_status: row.completion_status,
+      training_active_ms: intervalTiming?.activeMs ?? null,
       pre_questionnaire_wall_clock_ms: preQuestionnaireWallClockMs,
       post_questionnaire_wall_clock_ms: postQuestionnaireWallClockMs,
       questionnaire_wall_clock_ms: questionnaireWallClockMs,
       study_wall_clock_ms: nonNegativeDifference(completed, created),
-      web_interruption_count: pick(row, ['web_interruption_count']),
+      web_interruption_count: row.web_interruption_count,
     };
   });
 

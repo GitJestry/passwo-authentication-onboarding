@@ -79,6 +79,66 @@ function focusSupplementLink(frame: HTMLIFrameElement | null, linkId: string): v
     ?.focus();
 }
 
+const referenceLightSchemeStyleId = 'passwo-reference-light-scheme';
+const referenceLightSchemeCss = `
+  :root {
+    color-scheme: only light !important;
+    background: #fff !important;
+  }
+  html,
+  body {
+    background-color: #fff !important;
+  }
+`;
+
+function installReferenceLightScheme(frame: HTMLIFrameElement): () => void {
+  const cleanups: Array<() => void> = [];
+  const visitedDocuments = new WeakSet<Document>();
+
+  function applyFrame(candidate: HTMLIFrameElement): void {
+    try {
+      const document = candidate.contentDocument;
+      if (document !== null) applyDocument(document);
+    } catch {
+      // The frozen artifact is same-origin. Ignore defensive cross-origin failures only.
+    }
+  }
+
+  function applyDocument(document: Document): void {
+    if (visitedDocuments.has(document)) return;
+    visitedDocuments.add(document);
+    document.documentElement.style.setProperty('color-scheme', 'only light', 'important');
+    document.documentElement.style.setProperty('background-color', '#fff', 'important');
+    document.body?.style.setProperty('background-color', '#fff', 'important');
+
+    if (document.getElementById(referenceLightSchemeStyleId) === null) {
+      const style = document.createElement('style');
+      style.id = referenceLightSchemeStyleId;
+      style.textContent = referenceLightSchemeCss;
+      document.head?.append(style);
+    }
+
+    const applyNestedFrames = (): void => {
+      for (const nestedFrame of document.querySelectorAll<HTMLIFrameElement>('iframe')) {
+        applyFrame(nestedFrame);
+      }
+    };
+    const onNestedFrameLoad = (): void => applyNestedFrames();
+    document.addEventListener('load', onNestedFrameLoad, true);
+    cleanups.push(() => document.removeEventListener('load', onNestedFrameLoad, true));
+
+    const observer = new MutationObserver(applyNestedFrames);
+    observer.observe(document.documentElement, { childList: true, subtree: true });
+    cleanups.push(() => observer.disconnect());
+    applyNestedFrames();
+  }
+
+  applyFrame(frame);
+  return () => {
+    for (const cleanup of cleanups.splice(0)) cleanup();
+  };
+}
+
 export interface ReferenceArtifactProps {
   readonly onComplete: () => void;
   readonly onCheckpoint?: (checkpointId: ReferenceArtifactLessonCheckpointId) => Promise<void>;
@@ -104,6 +164,7 @@ export function ReferenceArtifact({
   const viewerOpenRef = useRef(false);
   const activeSupplementLinkIdRef = useRef<string | null>(null);
   const supplementRequestPendingRef = useRef(false);
+  const lightSchemeCleanupRef = useRef<() => void>(() => undefined);
   const [loadFailed, setLoadFailed] = useState(false);
   const [checkpointWriteFailed, setCheckpointWriteFailed] = useState(false);
   const [reloadKey, setReloadKey] = useState(0);
@@ -193,6 +254,7 @@ export function ReferenceArtifact({
     window.addEventListener('message', receiveReferenceMessage);
     return () => {
       window.removeEventListener('message', receiveReferenceMessage);
+      lightSchemeCleanupRef.current();
       if (viewerOpenRef.current) {
         void window.passwoDesktop?.closeReferenceSupplement();
       }
@@ -205,6 +267,8 @@ export function ReferenceArtifact({
     completionFinishedRef.current = false;
     setLoadFailed(false);
     setDesktopBridgeUnavailable(false);
+    lightSchemeCleanupRef.current();
+    lightSchemeCleanupRef.current = () => undefined;
     setReloadKey((current) => current + 1);
   };
 
@@ -248,6 +312,8 @@ export function ReferenceArtifact({
         sandbox="allow-scripts allow-same-origin"
         referrerPolicy="no-referrer"
         onLoad={(event) => {
+          lightSchemeCleanupRef.current();
+          lightSchemeCleanupRef.current = installReferenceLightScheme(event.currentTarget);
           const contentType = event.currentTarget.contentDocument?.contentType;
           setLoadFailed(contentType !== undefined && contentType !== 'text/html');
           if (resumeCheckpoint !== undefined) {

@@ -10,10 +10,6 @@ import {
   type ConfirmArtifactCheckpointRequest,
   confirmArtifactCheckpointRequestSchema,
   confirmArtifactCheckpointResponseSchema,
-  createSessionResponseSchema,
-  type DeletionCode,
-  deletionCodeSchema,
-  hashDeletionCode,
   type InstrumentSubmissionRequest,
   instrumentSubmissionRequestSchema,
   type RegisterRecontactRequest,
@@ -25,6 +21,7 @@ import {
   webArtifactVisibilityRequestSchema,
   webArtifactVisibilityResponseSchema,
   webCreateSessionRequestSchema,
+  webCreateSessionResponseSchema,
   type WebArtifactVisibilityRequest,
   type WebResumeSession,
   webResumeResponseSchema,
@@ -68,16 +65,6 @@ function apiErrorCode(value: unknown): string {
   return 'research-data-write-failed';
 }
 
-function generateDeletionCode(): DeletionCode {
-  const bytes = globalThis.crypto.getRandomValues(new Uint8Array(8));
-  const hex = Array.from(bytes, (byte) => byte.toString(16).padStart(2, '0'))
-    .join('')
-    .toUpperCase();
-  return deletionCodeSchema.parse(
-    `PW-${hex.slice(0, 4)}-${hex.slice(4, 8)}-${hex.slice(8, 12)}-${hex.slice(12, 16)}`,
-  );
-}
-
 function writeHeaders(): HeadersInit {
   return {
     'content-type': 'application/json',
@@ -109,8 +96,6 @@ function elapsed(interval: ActiveInterval): number {
 
 export function createStudyApi(): StudyApi {
   const createRequestId = globalThis.crypto.randomUUID();
-  const deletionCode = generateDeletionCode();
-  const deletionHashPromise = hashDeletionCode(deletionCode);
   let restorePromise: Promise<WebResumeSession | null> | null = null;
   let selectedSessionId: string | null = null;
   let pendingStartRequestId: string | null = null;
@@ -208,14 +193,13 @@ export function createStudyApi(): StudyApi {
         requestId: createRequestId,
         consentAccepted: true,
         followUpConsent,
-        deletionCodeHash: await deletionHashPromise,
         recontact,
       });
-      const response = createSessionResponseSchema.parse(
+      const response = webCreateSessionResponseSchema.parse(
         await postJson('/api/study/sessions', request),
       );
       selectSession(response.sessionId);
-      return { ...response, deletionCode };
+      return response;
     },
 
     registerRecontact: async () => {

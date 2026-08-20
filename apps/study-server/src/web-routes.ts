@@ -9,7 +9,10 @@ import {
   completeSessionRequestSchema,
   confirmArtifactCheckpointRequestSchema,
   confirmArtifactCheckpointResponseSchema,
+  createSessionRequestSchema,
   createSessionResponseSchema,
+  deletionCodeHashSchema,
+  deletionCodeSchema,
   instrumentSubmissionRequestSchema,
   saveResponseResponseSchema,
   sessionStatusResponseSchema,
@@ -19,6 +22,7 @@ import {
   webArtifactVisibilityRequestSchema,
   webArtifactVisibilityResponseSchema,
   webCreateSessionRequestSchema,
+  webCreateSessionResponseSchema,
   webResumeRawTokenSchema,
   webResumeResponseSchema,
   webResumeTokenHashSchema,
@@ -69,6 +73,24 @@ function hashToken(token: WebResumeRawToken): WebResumeTokenHash {
 
 function newToken(factory?: () => WebResumeRawToken): WebResumeRawToken {
   return webResumeRawTokenSchema.parse(factory?.() ?? randomBytes(32).toString('base64url'));
+}
+
+function deletionCodeForToken(token: WebResumeRawToken) {
+  const hex = createHash('sha256')
+    .update('passwo-deletion-code:v1\0', 'utf8')
+    .update(token, 'utf8')
+    .digest('hex')
+    .slice(0, 16)
+    .toUpperCase();
+  return deletionCodeSchema.parse(
+    `PW-${hex.slice(0, 4)}-${hex.slice(4, 8)}-${hex.slice(8, 12)}-${hex.slice(12, 16)}`,
+  );
+}
+
+function hashDeletionCode(deletionCode: ReturnType<typeof deletionCodeForToken>) {
+  return deletionCodeHashSchema.parse(
+    createHash('sha256').update(deletionCode, 'utf8').digest('hex'),
+  );
 }
 
 function expiryFor(nowIso: string, closeAtIso: string): {
@@ -187,17 +209,38 @@ export function registerWebStudyRoutes(
   server.post('/api/study/session/resume', async (request, reply) => {
     requireWriteRequest(request, publicOrigin);
     emptyRequestSchema.parse(request.body);
+    const expiry = expiryFor(nowIso(), resumeCloseAtIso);
     const token = rawToken(request, secureCookies);
-    if (token === null) return reply.send(webResumeResponseSchema.parse({ session: null }));
-    const hash = hashToken(token);
-    const sessionId = repository.resolveSession(hash);
-    if (sessionId === null) {
-      clearCookie(reply, secureCookies);
+    if (token === null) {
+      setCookie(
+        reply,
+        newToken(createResumeToken),
+        expiry.expiresAtIso,
+        expiry.maxAgeSeconds,
+        secureCookies,
+      );
       return reply.send(webResumeResponseSchema.parse({ session: null }));
     }
-    const session = repository.restoreSession(sessionId);
-    const expiry = expiryFor(nowIso(), resumeCloseAtIso);
-    repository.refreshToken(sessionId, hash, expiry.expiresAtIso);
+
+    const hash = hashToken(token);
+    const binding = repository.resumeTokenBinding(hash);
+    if (binding === null || !binding.active) {
+      setCookie(
+        reply,
+        newToken(createResumeToken),
+        expiry.expiresAtIso,
+        expiry.maxAgeSeconds,
+        secureCookies,
+      );
+      return reply.send(webResumeResponseSchema.parse({ session: null }));
+    }
+
+    const deletionCode = deletionCodeForToken(token);
+    const session = repository.restoreSession(
+      binding.sessionId,
+      binding.deletionCodeHash === hashDeletionCode(deletionCode) ? deletionCode : null,
+    );
+    repository.refreshToken(binding.sessionId, hash, expiry.expiresAtIso);
     setCookie(reply, token, expiry.expiresAtIso, expiry.maxAgeSeconds, secureCookies);
     return reply.send(webResumeResponseSchema.parse({ session }));
   });
@@ -208,14 +251,49 @@ export function registerWebStudyRoutes(
       return reply.status(503).send({ errorCode: 'reference-artifact-unavailable' });
     }
     const body = webCreateSessionRequestSchema.parse(request.body);
-    const token = newToken(createResumeToken);
+    const cookieToken = rawToken(request, secureCookies);
+    const cookieBinding = cookieToken === null
+      ? null
+      : repository.resumeTokenBinding(hashToken(cookieToken));
+    if (
+      cookieBinding?.active === true &&
+      cookieBinding.createRequestId !== body.requestId
+    ) {
+      throw new StudyRepositoryError('active-session-already-exists', 409);
+    }
+    const token =
+      cookieToken === null || (cookieBinding !== null && !cookieBinding.active)
+        ? newToken(createResumeToken)
+        : cookieToken;
+    const deletionCode = deletionCodeForToken(token);
+    const deletionCodeHash = hashDeletionCode(deletionCode);
+    if (
+      cookieBinding?.active === true &&
+      cookieBinding.deletionCodeHash !== deletionCodeHash
+    ) {
+      throw new StudyRepositoryError('resume-token-deletion-code-mismatch', 409);
+    }
     const hash = hashToken(token);
     const expiry = expiryFor(nowIso(), resumeCloseAtIso);
     const session = createSessionResponseSchema.parse(
-      repository.createSession(body, hash, expiry.expiresAtIso),
+      repository.createSession(
+        {
+          ...createSessionRequestSchema.parse({
+            requestId: body.requestId,
+            consentAccepted: body.consentAccepted,
+            followUpConsent: body.followUpConsent,
+            deletionCodeHash,
+          }),
+          recontact: body.recontact,
+        },
+        hash,
+        expiry.expiresAtIso,
+      ),
     );
     setCookie(reply, token, expiry.expiresAtIso, expiry.maxAgeSeconds, secureCookies);
-    return reply.status(201).send(session);
+    return reply.status(201).send(
+      webCreateSessionResponseSchema.parse({ ...session, deletionCode }),
+    );
   });
 
   server.post<{ Params: { sessionId: string } }>(

@@ -4,6 +4,8 @@ import { registerRecontactRequestSchema } from './recontact.js';
 import {
   assignmentModeSchema,
   createSessionRequestSchema,
+  createSessionResponseSchema,
+  deletionCodeSchema,
   studyConditionSchema,
 } from './study.js';
 import { SUPPORTIVE_ARTIFACT_SEGMENT_IDS } from './training.js';
@@ -70,6 +72,7 @@ export const studyResumeTargetSchema = z.enum([
 export type StudyResumeTarget = z.infer<typeof studyResumeTargetSchema>;
 
 export const webCreateSessionRequestSchema = createSessionRequestSchema
+  .omit({ deletionCodeHash: true })
   .extend({ recontact: registerRecontactRequestSchema.nullable() })
   .strict()
   .superRefine((request, context) => {
@@ -83,6 +86,11 @@ export const webCreateSessionRequestSchema = createSessionRequestSchema
   });
 export type WebCreateSessionRequest = z.infer<typeof webCreateSessionRequestSchema>;
 
+export const webCreateSessionResponseSchema = createSessionResponseSchema
+  .extend({ deletionCode: deletionCodeSchema })
+  .strict();
+export type WebCreateSessionResponse = z.infer<typeof webCreateSessionResponseSchema>;
+
 export const webResumeSessionSchema = z
   .object({
     sessionId: z.uuid(),
@@ -95,6 +103,7 @@ export const webResumeSessionSchema = z
     nextInstrumentBlockIndex: z.number().int().min(0).max(mainInstrumentBlocks.length),
     artifactSessionElapsedMs: z.number().finite().nonnegative().nullable(),
     interrupted: z.boolean(),
+    deletionCode: deletionCodeSchema.nullable(),
   })
   .strict();
 export type WebResumeSession = z.infer<typeof webResumeSessionSchema>;

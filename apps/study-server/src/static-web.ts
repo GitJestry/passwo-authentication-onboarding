@@ -30,17 +30,19 @@ const studyWebCsp = [
 ].join('; ');
 const referenceArtifactCsp = [
   "default-src 'self' data: blob:",
-  "connect-src 'self'",
-  "frame-src 'self'",
+  "base-uri 'self'",
+  "connect-src 'self' blob:",
+  "font-src 'self' data:",
+  "form-action 'self'",
+  "frame-src 'self' data: blob:",
   "img-src 'self' data: blob:",
+  "manifest-src 'self'",
   "media-src 'self' data: blob:",
+  "object-src 'self' data: blob:",
   "script-src 'self' 'unsafe-inline' 'unsafe-eval' blob:",
   "style-src 'self' 'unsafe-inline'",
   "worker-src 'self' blob:",
   "frame-ancestors 'self'",
-  "object-src 'none'",
-  "form-action 'none'",
-  "base-uri 'none'",
 ].join('; ');
 
 function sendDesignLabApp(request: FastifyRequest, reply: FastifyReply, webBuildDirectory: string) {
@@ -74,6 +76,10 @@ export function registerReferenceArtifact(
     wildcard: true,
     setHeaders(response) {
       response.header('Content-Security-Policy', referenceArtifactCsp);
+      response.header('Accept-Ranges', 'bytes');
+      response.header('Cache-Control', 'public, max-age=31536000, immutable');
+      response.header('Cross-Origin-Resource-Policy', 'same-origin');
+      response.header('Referrer-Policy', 'no-referrer');
       response.header('X-Content-Type-Options', 'nosniff');
     },
   });

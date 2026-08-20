@@ -10,16 +10,22 @@ Backup-, Monitoring- oder Containerarchitektur gehört ausdrücklich nicht zu di
 Browser
   -> HTTPS https://study.statisticslab.de
   -> Nginx :443
-  -> PassWo Study Server 127.0.0.1:3000
-     -> Study-Web-Build
-     -> lokaler SecAware-r16-Build
-     -> /var/lib/passwo-study/study.sqlite
-     -> /var/lib/passwo-study/recontact.sqlite
+     -> SecAware-r16-Build direkt statisch mit Byte-Range-Unterstützung
+     -> PassWo Study Server 127.0.0.1:3000
+        -> Study-Web-Build
+        -> /var/lib/passwo-study/study.sqlite
+        -> /var/lib/passwo-study/recontact.sqlite
 ```
 
 Nur Nginx ist öffentlich erreichbar. Der Node-Prozess bindet fest an `127.0.0.1`. Der Browser
 speichert nur das `Secure`-/`HttpOnly`-Rückkehr-Cookie; Forschungsantworten und Trainingsinput
 werden nicht in Browser-Speichern abgelegt.
+
+Der eingefrorene SecAware-Unterbaum unter
+`/reference/secaware/passwords-authentication/` wird aus dem aktuellen Release-Symlink direkt von
+Nginx ausgeliefert. Dadurch laufen die vielen Rise-/Storyline-Dateien und MP4-Range-Requests nicht
+durch Fastify. Die Study API und der übrige Web-Build bleiben unverändert über den lokalen
+Node-Prozess angebunden.
 
 ## 2. Vorbedingungen
 
@@ -317,7 +323,14 @@ Vom Mac:
 ```bash
 curl -fsS https://study.statisticslab.de/api/health
 curl -I https://study.statisticslab.de/
+curl -I https://study.statisticslab.de/reference/secaware/passwords-authentication/scormdriver/indexAPI.html
+curl -sS -D - -o /dev/null \
+  -H 'Range: bytes=0-1023' \
+  https://study.statisticslab.de/reference/secaware/passwords-authentication/scormcontent/assets/250326_SA_StarkePasswoerte.mp4
 ```
+
+Der HTML-Request muss den langfristigen immutable Cache-Header liefern. Der Video-Request muss mit
+`206 Partial Content` und einem gültigen `Content-Range` antworten.
 
 Danach im Browser einen vollständigen Testlauf mit ausschließlich fiktiven Testangaben durchführen.
 

@@ -2,6 +2,7 @@
 
 - **Status:** Accepted
 - **Datum:** 2026-08-17
+- **Revision:** 2026-08-20 für Löschcode-Wiederherstellung und kanonische Timingauswertung
 - **Citation label:** `ADR 0016-Web-Resume-Lifecycle`
 - **Ersetzt für den Hauptstudienbetrieb:** Reload-Abbruch aus `ADR 0008-Lease`, externen
   Follow-up-Import und verzögerten Debrief-Versand aus `ADR 0011-Follow-up-Recontact`
@@ -47,6 +48,9 @@ Die Wiederaufnahme verwendet einen kryptographisch zufälligen, opaken Rückkehr
   ist zugleich der verbindliche Datenerhebungsschluss für Hauptsitzungen;
 - die Forschungsdatenbank speichert nur den Hash des Rückkehrschlüssels und dessen Ablaufzeit;
 - der Rückkehrschlüssel ist kein Forschungsfeld und wird nicht exportiert;
+- der Löschcode kann während einer gültigen Wiederaufnahme deterministisch aus dem Raw Token
+  abgeleitet werden; zurückgegeben wird er nur bei Übereinstimmung mit dem gespeicherten
+  Löschcode-Hash, während weder Raw Token noch Rohcode persistiert werden;
 - der Server speichert nur einen stabilen, inhaltsfreien Fortschritts-Checkpoint, etwa den nächsten
   Fragebogenabschnitt oder einen freigegebenen Trainingssegment-Einstieg;
 - fiktive Passwörter, Passwortteile, Anzeigenamen, lokale Findings und andere Trainingsentscheidungen
@@ -73,6 +77,12 @@ Artefakt-Sitzungsintervallen gebildet. Der unterbrochene flüchtige Trainingssch
 einem neuen Sitzungsintervall. Technische Unterbrechungen werden für die Daueranalyse transparent
 berichtet, blockieren aber nicht pauschal alle übrigen Outcomes eines vollständig abgeschlossenen
 Laufs.
+
+Die kanonische Trainingsdauer ist ausschließlich
+`SUM(web_artifact_intervals.confirmed_elapsed_ms)` je Sitzung. Visibility-Events beschreiben nur
+den technischen Sichtbarkeitsverlauf und werden nicht zusätzlich auf die Dauer addiert. Vor- und
+Nachfragebogenzeiten bleiben getrennte Wall-Clock-Diagnostik und sind kein Bestandteil von
+`training_active_ms`.
 
 Der bisherige Status `incomplete-reload` und die Artefakt-Lease bleiben nur für historische lokale
 Sitzungen beziehungsweise den aktuellen Entwicklungsstand lesbar. Sie sind nicht das Zielmodell für

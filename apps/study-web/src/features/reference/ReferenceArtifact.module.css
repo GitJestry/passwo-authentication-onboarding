@@ -1,4 +1,5 @@
 .surface {
+  color-scheme: only light;
   position: relative;
   display: flex;
   flex-direction: column;
@@ -7,10 +8,11 @@
   min-width: 0;
   min-height: 0;
   overflow: hidden;
-  background: var(--color-surface-primary);
+  background: #ffffff;
 }
 
 .frame {
+  color-scheme: only light;
   display: block;
   width: 100%;
   height: 100%;
@@ -18,7 +20,7 @@
   min-height: 0;
   flex: 1;
   border: 0;
-  background: var(--color-surface-primary);
+  background: #ffffff;
 }
 
 .errorPanel {

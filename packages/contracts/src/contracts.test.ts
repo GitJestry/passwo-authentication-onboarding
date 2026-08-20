@@ -31,6 +31,9 @@ import {
   SUPPORTIVE_ARTIFACT_VERSION,
   studyTimingEventSchema,
   studyDataDeletionReportSchema,
+  webCreateSessionRequestSchema,
+  webCreateSessionResponseSchema,
+  webResumeSessionSchema,
 } from './index.js';
 
 const validDeletionCodeHash = 'a'.repeat(64);
@@ -133,6 +136,48 @@ describe('research-safe contracts', () => {
       createHash('sha256').update(deletionCode, 'utf8').digest('hex'),
     );
     expect(deletionCodeSchema.safeParse('PW-ab12-CD34-EF56-7890').success).toBe(false);
+  });
+
+  it('returns the deletion code only from the web server and restores it with the session', () => {
+    const request = {
+      requestId: 'f5d74d44-f700-4dc7-ac00-5e251a8890c3',
+      consentAccepted: true,
+      followUpConsent: false,
+      recontact: null,
+    };
+    expect(webCreateSessionRequestSchema.safeParse(request).success).toBe(true);
+    expect(
+      webCreateSessionRequestSchema.safeParse({
+        ...request,
+        deletionCodeHash: validDeletionCodeHash,
+      }).success,
+    ).toBe(false);
+
+    const deletionCode = deletionCodeSchema.parse('PW-AB12-CD34-EF56-7890');
+    expect(
+      webCreateSessionResponseSchema.safeParse({
+        sessionId: '6b51a541-5e36-4c24-88ea-2ec05e41e72d',
+        condition: 'supportive',
+        assignmentMode: 'forced-supportive',
+        guardrailFormId: 'F1',
+        deletionCode,
+      }).success,
+    ).toBe(true);
+    expect(
+      webResumeSessionSchema.safeParse({
+        sessionId: '6b51a541-5e36-4c24-88ea-2ec05e41e72d',
+        condition: 'supportive',
+        assignmentMode: 'forced-supportive',
+        guardrailFormId: 'F1',
+        followUpConsent: false,
+        checkpoint: 'pre-questionnaire',
+        resumeTarget: 'pre-questionnaire',
+        nextInstrumentBlockIndex: 0,
+        artifactSessionElapsedMs: null,
+        interrupted: true,
+        deletionCode,
+      }).success,
+    ).toBe(true);
   });
 
   it('limits local deletion reports to table names and affected record counts', () => {
