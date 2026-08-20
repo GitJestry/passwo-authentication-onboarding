@@ -455,3 +455,8 @@ Dienst abschalten:
 ```bash
 systemctl disable --now passwo-study
 ```
+
+```bash
+cd /opt/passwo-study/current
+pnpm deploy:prepare-native
+```

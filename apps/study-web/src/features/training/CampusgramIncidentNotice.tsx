@@ -8,6 +8,7 @@ import {
   type ReactNode,
 } from 'react';
 import { PasswordVisibilityIcon } from './PasswordVisibilityIcon.js';
+import { SimulatedPasswordInput } from './SimulatedPasswordInput.js';
 import styles from './CampusgramIncidentNotice.module.css';
 
 function IncidentIcon() {
@@ -263,10 +264,9 @@ export function CampusgramIncidentNotice({
                   {passwordChange.currentPasswordLabel}
                 </label>
                 <span className={styles.passwordField}>
-                  <input
+                  <SimulatedPasswordInput
                     id={`${inputId}-current`}
-                    type={currentPasswordRevealed ? 'text' : 'password'}
-                    autoComplete="off"
+                    masked={!currentPasswordRevealed}
                     readOnly
                     value={currentPassword}
                   />
@@ -295,11 +295,10 @@ export function CampusgramIncidentNotice({
                     simulatedClipboardValue === null ? '' : styles.passwordFieldWithPaste
                   }`}
                 >
-                  <input
+                  <SimulatedPasswordInput
                     ref={newPasswordInputRef}
                     id={`${inputId}-new`}
-                    type={newPasswordRevealed ? 'text' : 'password'}
-                    autoComplete="off"
+                    masked={!newPasswordRevealed}
                     required
                     readOnly={!allowFreePasswordInput}
                     value={newPassword}
@@ -352,11 +351,10 @@ export function CampusgramIncidentNotice({
                     simulatedClipboardValue === null ? '' : styles.passwordFieldWithPaste
                   }`}
                 >
-                  <input
+                  <SimulatedPasswordInput
                     ref={confirmedPasswordInputRef}
                     id={`${inputId}-confirm`}
-                    type={confirmedPasswordRevealed ? 'text' : 'password'}
-                    autoComplete="off"
+                    masked={!confirmedPasswordRevealed}
                     required
                     readOnly={!allowFreePasswordInput}
                     value={confirmedPassword}

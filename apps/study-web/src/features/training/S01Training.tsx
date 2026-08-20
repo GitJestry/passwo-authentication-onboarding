@@ -18,6 +18,7 @@ import { CampusWebsiteBackdrop } from './CampusWebsiteBackdrop.js';
 import { PassWoGuide } from './PassWoGuide.js';
 import { passWoSpeechEmphasisFor } from './PassWoSpeechEmphasis.js';
 import { PasswordVisibilityIcon } from './PasswordVisibilityIcon.js';
+import { SimulatedPasswordInput } from './SimulatedPasswordInput.js';
 import styles from './S01Training.module.css';
 import { useFictionalPasswordInput } from './useFictionalPasswordInput.js';
 
@@ -339,11 +340,9 @@ export function S01Training({
                       : String(passwordInput.limitFeedbackAttempt % 2)
                   }
                 >
-                  <input
+                  <SimulatedPasswordInput
                     id={`fictional-password-${account.id}`}
-                    name={`fictional-password-${account.id}`}
-                    type={revealedAccountIds.has(account.id) ? 'text' : 'password'}
-                    autoComplete="new-password"
+                    masked={!revealedAccountIds.has(account.id)}
                     maxLength={MAX_FICTIONAL_PASSWORD_LENGTH}
                     spellCheck={false}
                     disabled={!editing || interactionBlocked}

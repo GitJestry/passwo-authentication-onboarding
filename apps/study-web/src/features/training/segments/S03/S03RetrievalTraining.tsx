@@ -20,6 +20,7 @@ import { NetworkSymbol } from '../../../../adapters/network/NetworkSymbolRegistr
 import { AccountSuccessOverlay } from '../../AccountSuccessOverlay.js';
 import { CampusWebsiteBackdrop } from '../../CampusWebsiteBackdrop.js';
 import { PassWoGuide } from '../../PassWoGuide.js';
+import { SimulatedPasswordInput } from '../../SimulatedPasswordInput.js';
 import type { PassWoSpeechAction } from '../../PassWoSpeechBubble.js';
 import { passWoSpeechEmphasisFor } from '../../PassWoSpeechEmphasis.js';
 import { useFictionalPasswordInput } from '../../useFictionalPasswordInput.js';
@@ -671,9 +672,9 @@ export function S03RetrievalTraining({
                       <input
                         id={`s03-username-${account.id}`}
                         className={styles.usernameInput}
-                        name={`s03-username-${account.id}`}
+                        name="passwo-account-label"
                         type="text"
-                        autoComplete="username"
+                        autoComplete="off"
                         value={accountIdentifier}
                         readOnly
                         aria-readonly="true"
@@ -706,11 +707,9 @@ export function S03RetrievalTraining({
                             : String(passwordInput.limitFeedbackAttempt % 2)
                         }
                       >
-                        <input
+                        <SimulatedPasswordInput
                           id={`s03-password-${account.id}`}
-                          name={`s03-password-${account.id}`}
-                          type={revealedAccountIds.has(account.id) ? 'text' : 'password'}
-                          autoComplete="current-password"
+                          masked={!revealedAccountIds.has(account.id)}
                           maxLength={MAX_FICTIONAL_PASSWORD_LENGTH}
                           spellCheck={false}
                           value={autofillingActive ? autofillTargetValue : activeValue}
