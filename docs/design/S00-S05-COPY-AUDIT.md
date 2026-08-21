@@ -1,5 +1,28 @@
 # S00--S05 Copy and Interaction Audit
 
+## Darstellungsdelta S05 16-Stellen-Vorschau im Modellvergleich, 21. August 2026
+
+Quelle ist der ausdrückliche Nutzerauftrag vom 21. August 2026. Im bestehenden Vergleich von
+15 zufälligen Kleinbuchstaben und 12 zufälligen Zeichen aus allen Zeichentypen erhält der rechts
+sichtbare Ausschnitt der 16-Stellen-Kleinbuchstaben-Kugel zusätzlich den Marker `16 Stellen`, den
+bereits vorhandenen Modellwert `ca. 1.380 Jahre` und oberhalb die Kennzeichnung
+`kleinbuchstaben`. Marker, Zeitwert und Kennzeichnung bleiben wie die zugehörige Vorschaukugel
+abgedunkelt und leicht transparent. Marker, Zeitwert und Kennzeichnung werden ohne feste
+Viewport-Koordinaten aus dem jeweils sichtbaren Ausschnitt der projizierten Vorschaukugel
+positioniert und skaliert. Kennzeichnung und Zeitwert bilden eine gemeinsame Gruppe innerhalb
+der Kugel; der Marker übernimmt deren kugelabhängige horizontale Position auf der Skala. Die
+beiden eigentlichen Vergleichsmodelle bleiben deckend. Der seitliche innere Vignettenschatten
+der fokussierten Skala bleibt bestehen. Stattdessen entfällt das seitliche Szenen-Padding sowohl
+in der interaktiven Kugelskala als auch im anschließenden fokussierten Vergleich, damit der Graph
+in beiden Ansichten die volle Breite einnimmt und außerhalb des Graphen keine schwarzen
+Randbalken entstehen. Die eigenen Innenabstände der Bedienelemente bleiben erhalten. Die
+kugelgebundene Informationsgruppe wird innerhalb des sichtbaren Graphen begrenzt, damit Zeitwert
+und Kennzeichnung nicht am rechten Rand abschneiden.
+Die sichtbaren Texte werden unverändert aus den bestehenden S05-Inhalten wiederverwendet. Ihre
+Rollen sind Orientierung beziehungsweise Ergebnisfeedback; ein Interaktionsziel entsteht nicht.
+Berechnung, Teilnehmertext, Interaktion, Ablauf, Persistenz, Export, Timing und Content-Version
+bleiben unverändert.
+
 ## Darstellungsdelta S05 Campusgram-Bausteine, 17. August 2026
 
 Quelle ist der ausdrückliche Nutzerauftrag vom 17. August 2026. Die Campusgram-Zusammenfassung

@@ -1833,6 +1833,7 @@ function useScaleViewport(ref: { readonly current: HTMLElement | null }) {
 interface ScaleItemStyle extends CSSProperties {
   readonly '--scale-x': string;
   readonly '--scale-y'?: string;
+  readonly '--preview-size'?: string;
   readonly '--sphere-size'?: string;
   readonly '--sphere-color'?: string;
   readonly '--tick-color'?: string;
@@ -2134,6 +2135,17 @@ function LowercaseModelLabel({ style }: { readonly style: ScaleItemStyle }) {
   );
 }
 
+function LowercaseComparisonPreview({ style }: { readonly style: ScaleItemStyle }) {
+  return (
+    <span className={styles.comparisonPreviewInformation} style={style}>
+      <strong className={styles.lowercaseModelAlphabet} aria-label="kleinbuchstaben">
+        <LowercaseAlphabetMark inline decorative lowercase />
+      </strong>
+      <ScaleTimeInformation length={16} showExplanation={false} showInformation={false} />
+    </span>
+  );
+}
+
 function LowercaseClockScene({
   snapshot,
   controller,
@@ -2173,6 +2185,10 @@ function LowercaseClockScene({
       comparisonGap -
       (layout.positions.get(16) ?? 110),
   );
+  const comparisonPreviewWidth = Math.min(
+    scaleSphereDiameter(16) * 0.06,
+    generatedSphereDiameter * 0.12,
+  );
   const comparisonWorldX = (length: number): number =>
     (layout.positions.get(length) ?? 110) +
     (comparesLengthModels && length >= 16 ? comparisonTrailingShift : 0);
@@ -2191,10 +2207,7 @@ function LowercaseClockScene({
           comparisonWorldX(16) - scaleSphereDiameter(16) / 2;
         const comparisonRight = Math.max(
           generatedSphereWorldX + generatedSphereDiameter / 2,
-          shiftedSixteenLeft + Math.min(
-            scaleSphereDiameter(16) * 0.06,
-            generatedSphereDiameter * 0.12,
-          ),
+          shiftedSixteenLeft + comparisonPreviewWidth,
         );
         const comparisonTop =
           layout.axisTop -
@@ -2286,6 +2299,57 @@ function LowercaseClockScene({
     };
   }
 
+  function comparisonPreviewGeometry() {
+    const diameter = screenDiameter(16);
+    const left = screenX(16) - diameter / 2;
+    const top = screenTop(16);
+    const visibleLeft = Math.max(0, left);
+    const visibleRight = Math.min(viewport.width, left + diameter);
+    const visibleTop = Math.max(0, top);
+    const visibleBottom = Math.min(viewport.height, top + diameter);
+    const visibleWidth = Math.max(1, visibleRight - visibleLeft);
+    const visibleHeight = Math.max(1, visibleBottom - visibleTop);
+    const size = Math.max(
+      140,
+      Math.min(
+        visibleWidth * 1.75,
+        visibleHeight * 0.52,
+        generatedSphereDiameter * projection.scale * 0.68,
+      ),
+    );
+    const preferredX = visibleLeft + visibleWidth / 2;
+    const horizontalInset = size * 0.52;
+    return {
+      x: Math.max(
+        horizontalInset,
+        Math.min(viewport.width - horizontalInset, preferredX),
+      ),
+      y: visibleTop + visibleHeight / 2,
+      size,
+    };
+  }
+
+  function comparisonPreviewInformationStyle(): ScaleItemStyle {
+    const geometry = comparisonPreviewGeometry();
+    return {
+      '--scale-x': `${geometry.x}px`,
+      '--scale-y': `${geometry.y}px`,
+      '--preview-size': `${geometry.size}px`,
+      '--sphere-size': `${geometry.size}px`,
+      '--sphere-color': scaleColor(16),
+    };
+  }
+
+  function comparisonPreviewTickStyle(): ScaleItemStyle {
+    const geometry = comparisonPreviewGeometry();
+    return {
+      '--scale-x': `${geometry.x}px`,
+      '--scale-y': `${projection.axisY + 10}px`,
+      '--preview-size': `${geometry.size}px`,
+      '--tick-color': scaleColor(16),
+    };
+  }
+
   function attemptFinish(): void {
     controller.completeLowercaseScale();
   }
@@ -2341,25 +2405,31 @@ function LowercaseClockScene({
           const preview = !comparesLengthModels && length === currentLength + 1;
           const active = length === currentLength;
           const previous = !comparesLengthModels && length === currentLength - 1;
+          const comparisonPreview = comparesLengthModels && length === 16;
           const sphereIsLargeEnough = comparesLengthModels || screenDiameter(length) >= 2;
-          const tickStyle: ScaleItemStyle = {
+          const tickStyle: ScaleItemStyle = comparisonPreview ? comparisonPreviewTickStyle() : {
             '--scale-x': `${screenX(length)}px`,
             '--scale-y': `${projection.axisY + 10}px`,
             '--tick-color': scaleColor(length),
           };
           return (
             <div key={length}>
-              {visible || !comparesLengthModels ? (
+              {visible || !comparesLengthModels || comparisonPreview ? (
                 <div
                   className={styles.scaleTick}
                   data-reached={visible || undefined}
                   data-active={active || undefined}
                   data-comparison-muted={comparesLengthModels && !active || undefined}
+                  data-comparison-preview={comparisonPreview || undefined}
                   data-future={(!visible && !visibleInComparison) || undefined}
                   style={tickStyle}
                 >
                   <i />
-                  <span>{active ? `${length === 20 ? '20+' : length} Stellen` : length === 20 ? '20+' : length}</span>
+                  <span>
+                    {active || comparisonPreview
+                      ? `${length === 20 ? '20+' : length} Stellen`
+                      : length === 20 ? '20+' : length}
+                  </span>
                 </div>
               ) : null}
               {(visible || visibleInComparison || preview) && sphereIsLargeEnough ? (
@@ -2419,6 +2489,7 @@ function LowercaseClockScene({
             </div>
             <LowercaseModelLabel style={sphereStyle(15)} />
             <MixedCharacterModelLabel style={generatedSphereStyle()} />
+            <LowercaseComparisonPreview style={comparisonPreviewInformationStyle()} />
           </>
         ) : null}
       </div>

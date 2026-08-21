@@ -2646,7 +2646,7 @@
   width: 100%;
   height: 100%;
   min-height: 100%;
-  padding: 0 clamp(var(--space-3), 2cqi, var(--space-5)) var(--space-3);
+  padding: 0 0 var(--space-3);
   grid-template-rows: minmax(28rem, 1fr) auto;
   color: #f5f8ff;
   background: transparent;
@@ -2833,6 +2833,15 @@
   width: 0.14rem;
   height: 1.5rem;
   box-shadow: 0 0 0.65rem currentColor;
+}
+
+.scaleTick[data-comparison-preview="true"] {
+  font-size: clamp(1rem, calc(var(--preview-size) * 0.075), 1.55rem);
+}
+
+.scaleTick[data-comparison-preview="true"] i {
+  width: clamp(0.11rem, calc(var(--preview-size) * 0.007), 0.14rem);
+  height: clamp(1.25rem, calc(var(--preview-size) * 0.08), 1.65rem);
 }
 
 .scaleTick[data-future="true"] {
@@ -3136,12 +3145,43 @@
   white-space: nowrap;
 }
 
-.scaleModelExplanation > .lowercaseModelAlphabet {
+.scaleModelExplanation > .lowercaseModelAlphabet,
+.comparisonPreviewInformation > .lowercaseModelAlphabet {
   padding: 0.15em 0.48em;
   border: 1px solid rgb(132 225 169 / 56%);
   border-radius: var(--radius-round);
   background: rgb(101 214 141 / 14%);
   white-space: nowrap;
+}
+
+.comparisonPreviewInformation {
+  position: absolute;
+  z-index: 10;
+  top: var(--scale-y);
+  left: var(--scale-x);
+  display: grid;
+  width: var(--preview-size);
+  justify-items: center;
+  gap: clamp(0.15rem, calc(var(--preview-size) * 0.025), 0.55rem);
+  color: #f5f8ff;
+  opacity: 0.44;
+  filter: grayscale(0.68) brightness(0.72);
+  text-align: center;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+}
+
+.comparisonPreviewInformation > .lowercaseModelAlphabet {
+  font-size: clamp(0.95rem, calc(var(--preview-size) * 0.08), 1.8rem);
+}
+
+.comparisonPreviewInformation .scaleTimeInformation {
+  min-height: 0;
+  padding: 0;
+}
+
+.comparisonPreviewInformation .scaleTimeInformation > strong {
+  font-size: clamp(1.35rem, calc(var(--preview-size) * 0.2), 5.8rem);
 }
 
 .lowercaseModelAlphabet .lowercaseAlphabetMarkInline {
