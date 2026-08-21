@@ -54,6 +54,19 @@ bei Abbruch oder Fehler einen definierten Endzustand herstellen.
 - Animationen können pausiert werden, wenn der Tab verborgen ist; die primäre Artefaktzeit läuft
   dennoch als Wall-Clock weiter.
 
+## Button-Interaktion
+
+Jeder bedienbare Button erhält unabhängig von Größe und visueller Variante ein zurückhaltendes
+physisches Feedback: Beim Hover hebt er sich minimal, beim Drücken bewegt er sich leicht zurück
+und wird geringfügig skaliert. Das gilt auch für sekundäre, transparente und reine Icon- oder
+Info-Buttons. Die globale Button-Basis im Web-Client stellt dieses Verhalten für bestehende und
+künftige native Buttons bereit; komponentenspezifische Varianten dürfen es nur bewusst
+verfeinern.
+
+Das Feedback verändert weder Farbe noch Form des Buttons, wird nicht auf deaktivierte Buttons
+angewendet und verzichtet bei `prefers-reduced-motion` auf Bewegung. Fokusdarstellung und
+Tastaturbedienbarkeit bleiben davon unabhängig verpflichtend.
+
 ## Design Lab
 
 Jede komplexe Sequenz erhält eine deterministische Route oder Query im `/design-lab`, sodass

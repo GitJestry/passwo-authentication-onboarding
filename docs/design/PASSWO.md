@@ -63,7 +63,9 @@ Ausgangspunkt zurück.
 
 Die Namenszeile zeigt den einwortigen Aufgabenstatus statt des Figurennamens. Direkt daneben
 öffnet ein Fragezeichen-Button die jeweilige Erklärung. Während PassWo spricht, verschwindet
-dieser Button vollständig. Der vollständige Sprechblasentext ist sofort verfügbar und darf nur
+dieser Button vollständig. Wie jeder bedienbare Button besitzt auch der Fragezeichen-Button das
+in `docs/design/ANIMATION-SYSTEM.md` definierte Hover- und Druckfeedback. Der vollständige
+Sprechblasentext ist sofort verfügbar und darf nur
 kurz einblenden. Reine Dialogfortschritte verwenden genau einen sichtbaren Button `Weiter`;
 `Schließen` ist ausschließlich für optionale Hinweise zulässig, die keinen Trainingsübergang
 auslösen. Wenn eine konkrete Handlung innerhalb der Sprechblase nötig ist, etwa `Passwort prüfen`,
