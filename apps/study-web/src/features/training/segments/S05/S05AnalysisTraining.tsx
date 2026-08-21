@@ -686,10 +686,6 @@ function CanonicalPasswordView({
       `${value}: ${blockFindings.map(({ label }) => label).join(', ')}`,
     );
   const selectionCharacters = [...view.password];
-  const canonicalPasswordScale = Math.max(
-    0.68,
-    Math.min(1.08, 20 / Math.max(selectionCharacters.length, 1)),
-  );
   const hasReleasedFindings = visibleFindings.length > 0;
   const parts = selectingPersonalDetails
     ? selectionCharacters
@@ -708,7 +704,6 @@ function CanonicalPasswordView({
         <PasswordBuildingBlocks
           value={view.password}
           visualReferenceValue={view.password}
-          visualScale={canonicalPasswordScale}
           parts={parts}
           display="decomposed"
           appearance="analysis"
@@ -883,6 +878,7 @@ function StructurePatternsScene({ step }: { readonly step: S05AnalysisController
                   data-pattern={patternKey}
                   aria-label={row.join(', ')}
                   key={`${patternKey}-${rowIndex}`}
+                  style={passwordVisualStyleFor(row.join(''))}
                 >
                   <div className={styles.structureExampleBlocks}>
                     {patternKey === 'theme' ? (
@@ -903,11 +899,20 @@ function StructurePatternsScene({ step }: { readonly step: S05AnalysisController
                             </span>
                           );
                         })
-                      : row.map((part, partIndex) => (
-                          <span data-block-index={partIndex} key={`${part}-${partIndex}`}>
-                            {part}
-                          </span>
-                        ))}
+                      : row.flatMap((part, partIndex) => {
+                          const block = (
+                            <span data-block-index={partIndex} key={`${part}-${partIndex}`}>
+                              {part}
+                            </span>
+                          );
+                          if (patternKey !== 'sentence' || partIndex === row.length - 1) {
+                            return [block];
+                          }
+                          return [
+                            block,
+                            <StructureLinkArrow active key={`${part}-${partIndex}-arrow`} />,
+                          ];
+                        })}
                   </div>
                   {patternKey === 'repetition' ? (
                     <span className={styles.structureRepetitionMultiplier} aria-hidden="true">
@@ -1289,7 +1294,14 @@ function StructureSentenceRow({
     index += 1;
   }
 
-  return <div className={styles.structureReflectionPassword}>{rendered}</div>;
+  return (
+    <div
+      className={styles.structureReflectionPassword}
+      style={passwordVisualStyleFor(snapshot.componentStrategy.canonicalView?.password ?? '')}
+    >
+      {rendered}
+    </div>
+  );
 }
 
 function StructureReflectionConfirmation({
@@ -1356,7 +1368,10 @@ function StructureContentReflection({
     >
       <div className={styles.structurePasswordCheck}>
         <CampusgramPasswordHeading />
-        <div className={styles.structureReflectionPassword}>
+        <div
+          className={styles.structureReflectionPassword}
+          style={passwordVisualStyleFor(snapshot.componentStrategy.canonicalView?.password ?? '')}
+        >
           {blocks.map((block) => {
             const groupIndex = contentGroupIndexForBlock(reflection, block.id);
             return (
@@ -2317,8 +2332,11 @@ function LowercaseClockScene({
         generatedSphereDiameter * projection.scale * 0.68,
       ),
     );
-    const preferredX = visibleLeft + visibleWidth / 2;
     const horizontalInset = size * 0.52;
+    // The visible slice grows towards the left on wider viewports. Anchor the preview content
+    // from its right edge so its labels keep their place inside the sphere instead of following
+    // the moving center of that slice.
+    const preferredX = visibleRight - horizontalInset;
     return {
       x: Math.max(
         horizontalInset,

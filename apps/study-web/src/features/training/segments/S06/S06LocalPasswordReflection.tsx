@@ -1,7 +1,10 @@
 import { s05Content, s06ConsequenceContent } from '@passwo/training-content';
 import { type CSSProperties, type ReactNode, useState } from 'react';
 import { NetworkSymbol } from '../../../../adapters/network/NetworkSymbolRegistry.js';
-import { PasswordBuildingBlocks } from '../S05/PasswordBuildingBlocks.js';
+import {
+  PasswordBuildingBlocks,
+  passwordVisualStyleFor,
+} from '../S05/PasswordBuildingBlocks.js';
 import type {
   S06LocalReflectionMode,
   S06LocalReflectionSnapshot,
@@ -12,10 +15,6 @@ const groupColors = ['#5b5fef', '#c15ca8', '#238c83', '#ba7437'] as const;
 
 interface GroupColorStyle extends CSSProperties {
   readonly '--s06-reflection-group-color': string;
-}
-
-interface PasswordScaleStyle extends CSSProperties {
-  readonly '--s06-reflection-password-scale': string;
 }
 
 function structureLinkExists(
@@ -78,12 +77,7 @@ export function S06LocalPasswordReflection({
     reflection.accountId === 'campusgram'
       ? content.passwordLabel
       : content.passwordTitles[reflection.accountId];
-  const characterCount = Math.max([...reflection.fictionalPassword].length, 1);
-  const passwordScaleStyle: PasswordScaleStyle = {
-    '--s06-reflection-password-scale': String(
-      Math.max(0.62, Math.min(1, 20 / characterCount)),
-    ),
-  };
+  const passwordScaleStyle = passwordVisualStyleFor(reflection.fictionalPassword);
   return (
     <section
       className={styles.reflection}

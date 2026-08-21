@@ -43,11 +43,6 @@ function clamp(value: number, minimum: number, maximum: number): number {
   return Math.min(maximum, Math.max(minimum, value));
 }
 
-function comparisonPasswordScale(value: string): number {
-  const characterCount = Math.max(Array.from(value).length, 1);
-  return Math.max(0.66, Math.min(1.12, 18 / characterCount));
-}
-
 function sortedEvidence(evidence: readonly PasswordEvidenceSpan[]): readonly PasswordEvidenceSpan[] {
   return [...evidence].sort((left, right) => left.start - right.start);
 }
@@ -418,7 +413,6 @@ export function S06PasswordComparisonProjection({
                   display="decomposed"
                   appearance="analysis"
                   animate
-                  visualScale={comparisonPasswordScale(sourcePassword)}
                   highlightedIndices={sourceCommonIndices}
                   categoryIds={parts.source.map(({ kind }) =>
                     kind === 'common' ? ['common-components'] : [],
@@ -436,7 +430,6 @@ export function S06PasswordComparisonProjection({
                   display="decomposed"
                   appearance="analysis"
                   animate
-                  visualScale={comparisonPasswordScale(targetPassword)}
                   highlightedIndices={targetCommonIndices}
                   categoryIds={parts.target.map(({ kind }) =>
                     kind === 'common' ? ['common-components'] : [],
