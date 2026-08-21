@@ -7,7 +7,7 @@ if (desktopChrome === undefined) {
 
 export default defineConfig({
   testDir: './tests/e2e',
-  testMatch: 'study-persistence-smoke.spec.ts',
+  testMatch: '**/*.spec.ts',
   fullyParallel: false,
   forbidOnly: Boolean(process.env.CI),
   retries: 0,

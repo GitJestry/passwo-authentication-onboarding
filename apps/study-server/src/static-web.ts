@@ -4,6 +4,7 @@ import { fileURLToPath } from 'node:url';
 import fastifyStatic from '@fastify/static';
 import {
   designLabPaths,
+  isLiveQaPath,
   REFERENCE_ARTIFACT_ENTRY_POINT,
   REFERENCE_ARTIFACT_ROUTE_PREFIX,
 } from '@passwo/contracts';
@@ -11,7 +12,7 @@ import type { FastifyInstance, FastifyReply, FastifyRequest } from 'fastify';
 
 const defaultWebBuildDirectory = fileURLToPath(new URL('../../study-web/dist/', import.meta.url));
 
-const designLabRoutes = new Set(designLabPaths);
+const designLabRoutes = new Set<string>(designLabPaths);
 const studyWebCsp = [
   "default-src 'self'",
   "base-uri 'self'",
@@ -45,11 +46,16 @@ const referenceArtifactCsp = [
   "frame-ancestors 'self'",
 ].join('; ');
 
-function sendDesignLabApp(request: FastifyRequest, reply: FastifyReply, webBuildDirectory: string) {
+function sendSinglePageApp(
+  request: FastifyRequest,
+  reply: FastifyReply,
+  webBuildDirectory: string,
+  acceptsPath: (pathname: string) => boolean,
+) {
   const requestUrl = request.raw.url;
   if (requestUrl === undefined) return reply.callNotFound();
   const pathname = new URL(requestUrl, 'http://study.local').pathname;
-  if (!designLabRoutes.has(pathname)) return reply.callNotFound();
+  if (!acceptsPath(pathname)) return reply.callNotFound();
   return reply.type('text/html; charset=utf-8').sendFile('index.html', webBuildDirectory);
 }
 
@@ -90,9 +96,11 @@ export async function registerStudyWeb(
   {
     webBuildDirectory = defaultWebBuildDirectory,
     allowDesignLab = true,
+    allowLiveQa = false,
   }: {
     readonly webBuildDirectory?: string;
     readonly allowDesignLab?: boolean;
+    readonly allowLiveQa?: boolean;
   } = {},
 ): Promise<void> {
   if (!existsSync(webBuildDirectory)) {
@@ -131,10 +139,23 @@ export async function registerStudyWeb(
 
   if (allowDesignLab) {
     server.get('/design-lab', (request, reply) =>
-      sendDesignLabApp(request, reply, webBuildDirectory),
+      sendSinglePageApp(request, reply, webBuildDirectory, (pathname) =>
+        designLabRoutes.has(pathname),
+      ),
     );
     server.get('/design-lab/*', (request, reply) =>
-      sendDesignLabApp(request, reply, webBuildDirectory),
+      sendSinglePageApp(request, reply, webBuildDirectory, (pathname) =>
+        designLabRoutes.has(pathname),
+      ),
+    );
+  }
+
+  if (allowLiveQa) {
+    server.get('/qa', (request, reply) =>
+      sendSinglePageApp(request, reply, webBuildDirectory, isLiveQaPath),
+    );
+    server.get('/qa/*', (request, reply) =>
+      sendSinglePageApp(request, reply, webBuildDirectory, isLiveQaPath),
     );
   }
 }

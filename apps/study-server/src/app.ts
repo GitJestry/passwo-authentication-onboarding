@@ -53,6 +53,8 @@ export interface StudyServerBuildOptions {
     readonly resumeCloseAtIso: string;
     readonly secureCookies: boolean;
     readonly publicOrigin?: string;
+    readonly resumeCookieName?: string;
+    readonly qaControlsEnabled?: boolean;
     readonly createResumeToken?: () => WebResumeRawToken;
   };
 }
@@ -156,6 +158,12 @@ export function buildStudyServer({
       secureCookies: webRuntime.secureCookies,
       nowIso: effectiveNowIso,
       ...(webRuntime.publicOrigin === undefined ? {} : { publicOrigin: webRuntime.publicOrigin }),
+      ...(webRuntime.resumeCookieName === undefined
+        ? {}
+        : { resumeCookieName: webRuntime.resumeCookieName }),
+      ...(webRuntime.qaControlsEnabled === undefined
+        ? {}
+        : { qaControlsEnabled: webRuntime.qaControlsEnabled }),
       ...(webRuntime.createResumeToken === undefined
         ? {}
         : { createResumeToken: webRuntime.createResumeToken }),

@@ -118,19 +118,15 @@ function installReferenceLightScheme(frame: HTMLIFrameElement): () => void {
       document.head?.append(style);
     }
 
-    const applyNestedFrames = (): void => {
-      for (const nestedFrame of document.querySelectorAll<HTMLIFrameElement>('iframe')) {
-        applyFrame(nestedFrame);
-      }
+    const onNestedFrameLoad = (event: Event): void => {
+      if (event.target instanceof HTMLIFrameElement) applyFrame(event.target);
     };
-    const onNestedFrameLoad = (): void => applyNestedFrames();
     document.addEventListener('load', onNestedFrameLoad, true);
     cleanups.push(() => document.removeEventListener('load', onNestedFrameLoad, true));
 
-    const observer = new MutationObserver(applyNestedFrames);
-    observer.observe(document.documentElement, { childList: true, subtree: true });
-    cleanups.push(() => observer.disconnect());
-    applyNestedFrames();
+    for (const nestedFrame of document.querySelectorAll<HTMLIFrameElement>('iframe')) {
+      applyFrame(nestedFrame);
+    }
   }
 
   applyFrame(frame);

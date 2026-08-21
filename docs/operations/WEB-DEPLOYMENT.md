@@ -11,21 +11,66 @@ Browser
   -> HTTPS https://study.statisticslab.de
   -> Nginx :443
      -> SecAware-r16-Build direkt statisch mit Byte-Range-Unterstützung
-     -> PassWo Study Server 127.0.0.1:3000
+     -> produktive Studie -> PassWo Study Server 127.0.0.1:3000
         -> Study-Web-Build
         -> /var/lib/passwo-study/study.sqlite
         -> /var/lib/passwo-study/recontact.sqlite
+     -> Basic-Auth-geschützte Live-QA unter /qa
+        -> PassWo-Runtime 127.0.0.1:3101 -> In-Memory-Datenbanken
+        -> SecAware-Runtime 127.0.0.1:3102 -> In-Memory-Datenbanken
 ```
 
-Nur Nginx ist öffentlich erreichbar. Der Node-Prozess bindet fest an `127.0.0.1`. Der Browser
-speichert nur das `Secure`-/`HttpOnly`-Rückkehr-Cookie; Forschungsantworten und Trainingsinput
-werden nicht in Browser-Speichern abgelegt.
+Nur Nginx ist öffentlich erreichbar. Alle Node-Prozesse binden fest an `127.0.0.1`. Der
+produktive Browserpfad speichert nur das `Secure`-/`HttpOnly`-Rückkehr-Cookie; Forschungsantworten
+und Trainingsinput werden nicht in Browser-Speichern abgelegt. Die Live-QA verwendet zwei anders
+benannte `__Host-`-Cookies und berührt weder das produktive Cookie noch die produktiven
+SQLite-Dateien. Nginx reicht an jede Runtime ausschließlich das für sie bestimmte Rückkehr-Cookie
+weiter; die übrigen same-origin Cookies werden vor dem Proxy entfernt.
 
 Der eingefrorene SecAware-Unterbaum unter
 `/reference/secaware/passwords-authentication/` wird aus dem aktuellen Release-Symlink direkt von
 Nginx ausgeliefert. Dadurch laufen die vielen Rise-/Storyline-Dateien und MP4-Range-Requests nicht
-durch Fastify. Die Study API und der übrige Web-Build bleiben unverändert über den lokalen
-Node-Prozess angebunden.
+durch Fastify. Produktionsstudie und Live-QA verwenden denselben Web-Build und dieselben statischen
+Referenzdateien; nur API-Runtime, Cookies und Datenbanken sind getrennt.
+
+## Standardweg für Updates
+
+Für normale Code-Updates wird der Release nicht manuell auf der VM gepatcht. Der lokale Working Tree
+ist die Quelle des Deployments, auch wenn Änderungen noch nicht committed sind. Ein vollständiger,
+atomarer Release wird mit einem Befehl erzeugt:
+
+```bash
+pnpm deploy:web
+```
+
+Der Befehl führt standardmäßig aus:
+
+1. den lokalen SecAware-Study-Build und dessen Integritätsprüfung,
+2. `pnpm typecheck`,
+3. den schnellen Playwright-Vollablauf für **beide** erzwungenen Bedingungen mit In-Memory-Datenbank,
+4. den Web-/Server-Build inklusive vorkomprimierter Vite-Assets,
+5. einen neuen timestamp-basierten Release per `rsync`, wobei der private SecAware-Quellsnapshot lokal bleibt,
+6. `pnpm install --frozen-lockfile` auf Linux und die Host-Prüfung von `better-sqlite3`,
+7. die produktive Runtime und beide Live-QA-Runtimes inklusive systemd-Unit,
+8. `nginx -t`, atomaren `current`-Symlinkwechsel, Service-Neustarts und lokale Health-Checks,
+9. einen öffentlichen SecAware-HTML-Test, einen MP4-Byte-Range-Test auf `206 Partial Content` und
+   die Prüfung, dass `/qa` ohne Basic Auth mit `401` geschützt bleibt.
+
+Vor dem ersten Deployment dieses Stands muss die Live-QA einmalig eingerichtet sein; der Befehl
+steht in Abschnitt 5.1. Die SSH-Verbindung wird während des Deployments gemultiplext, sodass eine
+verschlüsselte SSH-Key-Passphrase normalerweise nur einmal abgefragt wird. Scheitert nach dem
+Symlinkwechsel ein Start- oder Smoke-Test, stellt das Skript den vorherigen Release und die vorherige
+Nginx-Konfiguration automatisch wieder her. Die SQLite-Datenbanken unter `/var/lib/passwo-study`
+werden nicht kopiert oder ersetzt.
+
+Nur für eine bewusste Notfallauslieferung ohne Typecheck und E2E existiert:
+
+```bash
+pnpm deploy:web -- --skip-checks
+```
+
+Dieser Schalter ist kein normaler Deployment-Weg. Die folgenden manuellen Abschnitte bleiben als
+Fallback und zur Erstinstallation dokumentiert.
 
 ## 2. Vorbedingungen
 
@@ -70,6 +115,7 @@ Der letzte Befehl baut nur Study-Server und Web-Client, nicht Electron. Prüfe d
 
 ```bash
 test -f apps/study-server/dist/production.js
+test -f apps/study-server/dist/qa-production.js
 test -f apps/study-web/dist/index.html
 test -f research/private/reference/secaware/passwords-authentication/2026-07-26/study-build/scormdriver/indexAPI.html
 ```
@@ -113,6 +159,34 @@ install -d -o www-data -g www-data -m 0755 /var/www/passwo-certbot
 Die SQLite-Dateien liegen ausschließlich unter `/var/lib/passwo-study`. Releases unter `/opt`
 enthalten keinen Teilnehmerdatensatz.
 
+### 5.1 Geschützte Live-QA einmalig einrichten
+
+Auf dem Mac im Repository:
+
+```bash
+pnpm qa:live:setup
+```
+
+Der Befehl fragt einen mindestens zwölf Zeichen langes Basic-Auth-Passwort ab und überträgt nur
+folgende Betriebsdateien:
+
+```text
+/etc/nginx/passwo-live-qa.htpasswd
+/etc/passwo-study/passwo-study-qa.env
+/etc/systemd/system/passwo-study-qa.service
+```
+
+Der Standardbenutzer lautet `passwo-qa` und kann mit `PASSWO_QA_USERNAME` überschrieben werden.
+Für nicht-interaktive, kontrollierte Ausführung kann das Passwort über `PASSWO_QA_PASSWORD`
+bereitgestellt werden. Der Dienst wird bei der Einrichtung noch nicht gestartet; das anschließende
+`pnpm deploy:web` baut `qa-production.js`, installiert die Unit und aktiviert die beiden internen
+Ports `3101` und `3102`.
+
+Die QA-Umgebung verwendet ausschließlich In-Memory-Datenbanken. Die PassWo- und SecAware-Bedingung
+werden durch getrennte serverseitig erzwungene Runtimes festgelegt; kein Request kann eine
+produktive Bedingung auswählen. Ein erneuter Aufruf von `pnpm qa:live:setup` ersetzt nur die
+Basic-Auth-Datei und die Unit. Eine bereits vorhandene QA-Umgebungsdatei bleibt erhalten.
+
 ## 6. Release vom Mac übertragen
 
 Auf dem Mac im Repository:
@@ -153,10 +227,14 @@ Als `root`, mit dem gerade übertragenen Wert:
 RELEASE_ID=REPLACE_WITH_RELEASE_ID
 cd "/opt/passwo-study/releases/${RELEASE_ID}"
 
+PREVIOUS_RELEASE="$(readlink -f /opt/passwo-study/current)"
 pnpm install --frozen-lockfile
-pnpm build:web-runtime
+bash ./deploy/scripts/prepare-native-dependencies.sh \
+  "/opt/passwo-study/releases/${RELEASE_ID}" \
+  "${PREVIOUS_RELEASE}"
 
 test -f apps/study-server/dist/production.js
+test -f apps/study-server/dist/qa-production.js
 test -f apps/study-web/dist/index.html
 test -f research/private/reference/secaware/passwords-authentication/2026-07-26/study-build/scormdriver/indexAPI.html
 
@@ -165,9 +243,12 @@ chmod -R o-w "/opt/passwo-study/releases/${RELEASE_ID}"
 ln -sfn "/opt/passwo-study/releases/${RELEASE_ID}" /opt/passwo-study/current
 ```
 
-Nicht `node_modules` vom Mac übertragen: `better-sqlite3` benötigt das Linux-x64-Binary der VM.
-Der SecAware-Build wird auf der VM nicht erneut transformiert, weil der private Quellsnapshot dort
-bewusst nicht vorhanden ist.
+Nicht `node_modules` vom Mac übertragen: `better-sqlite3` benötigt ein zum Zielhost kompatibles
+Linux-x64-Native-Modul. `prepare-native-dependencies.sh` prüft zunächst den neu installierten Build,
+übernimmt bei identischer Paketversion bevorzugt das bereits funktionierende Native-Modul aus dem
+aktuellen Release und kompiliert nur als Fallback auf der VM. Dadurch wird insbesondere ein
+inkompatibler Prebuild für eine neuere glibc nicht live geschaltet. Der SecAware-Build wird auf der VM
+nicht erneut transformiert, weil der private Quellsnapshot dort bewusst nicht vorhanden ist.
 
 ## 8. Erhebungsschluss und Umgebungsdatei festlegen
 
@@ -236,24 +317,29 @@ Die Serverzeitzone bleibt `Etc/UTC`.
 ```bash
 cp /opt/passwo-study/current/deploy/systemd/passwo-study.service \
   /etc/systemd/system/passwo-study.service
+cp /opt/passwo-study/current/deploy/systemd/passwo-study-qa.service \
+  /etc/systemd/system/passwo-study-qa.service
 
 systemctl daemon-reload
-systemctl enable --now passwo-study
-systemctl --no-pager --full status passwo-study
+systemctl enable --now passwo-study passwo-study-qa
+systemctl --no-pager --full status passwo-study passwo-study-qa
 ```
 
-Lokaler Health-Check auf der VM:
+Lokale Health-Checks auf der VM:
 
 ```bash
 curl -fsS http://127.0.0.1:3000/api/health
+curl -fsS http://127.0.0.1:3101/api/health
+curl -fsS http://127.0.0.1:3102/api/health
 ```
 
-Erwartet wird JSON mit `"status":"ok"`.
+Alle drei Antworten müssen JSON mit `"status":"ok"` enthalten.
 
 Bei Startproblemen:
 
 ```bash
 journalctl -u passwo-study -n 100 --no-pager
+journalctl -u passwo-study-qa -n 100 --no-pager
 ```
 
 Die Anwendung loggt keine Request-Bodies, IP-Adressen, User-Agents oder Raw Tokens.
@@ -327,12 +413,30 @@ curl -I https://study.statisticslab.de/reference/secaware/passwords-authenticati
 curl -sS -D - -o /dev/null \
   -H 'Range: bytes=0-1023' \
   https://study.statisticslab.de/reference/secaware/passwords-authentication/scormcontent/assets/250326_SA_StarkePasswoerte.mp4
+curl -sS -o /dev/null -w '%{http_code}\n' https://study.statisticslab.de/qa
 ```
 
 Der HTML-Request muss den langfristigen immutable Cache-Header liefern. Der Video-Request muss mit
-`206 Partial Content` und einem gültigen `Content-Range` antworten.
+`206 Partial Content` und einem gültigen `Content-Range` antworten. Der letzte Request muss ohne
+Zugangsdaten `401` liefern.
 
-Danach im Browser einen vollständigen Testlauf mit ausschließlich fiktiven Testangaben durchführen.
+Danach `https://study.statisticslab.de/qa` im Browser öffnen und die in Abschnitt 5.1 festgelegten
+Basic-Auth-Zugangsdaten verwenden. Prüfe mindestens:
+
+1. PassWo und SecAware lassen sich direkt auswählen, ohne eine produktive Sitzung anzulegen.
+2. Der direkte SecAware-Modus startet Video und Passwortgenerator über die reale Nginx-Auslieferung.
+3. Beide Studienpfade können bis zum Lernangebot springen und verwenden getrennte QA-Cookies.
+4. Reload beziehungsweise Tab-Wechsel im PassWo-Studienpfad durchlaufen Resume und Segment-Timing.
+5. „Lernangebot überspringen“ und „Restliche Fragebögen ausfüllen“ führen bis zum regulären
+   Abschluss, ohne die produktive Datenbank zu verändern.
+6. „QA-Sitzung zurücksetzen“ erzeugt beim nächsten Start eine neue isolierte Sitzung.
+
+Für einen belastbaren Kaltstartvergleich einen privaten Browserkontext oder deaktivierten Cache
+verwenden. Danach im normalen Browser zusätzlich das reale Cache-Verhalten prüfen.
+
+Der produktive Hauptpfad muss vor Rekrutierungsbeginn weiterhin einmal mit ausschließlich fiktiven
+Testangaben geprüft werden; für wiederholte Inhalts- und Laufzeit-QA ist anschließend `/qa` zu
+verwenden.
 
 ### 12.1 Resume prüfen
 
@@ -417,8 +521,10 @@ freigeben.
 Kleine tägliche Prüfung:
 
 ```bash
-systemctl is-active passwo-study nginx
+systemctl is-active passwo-study passwo-study-qa nginx
 curl -fsS http://127.0.0.1:3000/api/health
+curl -fsS http://127.0.0.1:3101/api/health
+curl -fsS http://127.0.0.1:3102/api/health
 sqlite3 /var/lib/passwo-study/study.sqlite \
   "SELECT completion_status, COUNT(*) FROM study_sessions GROUP BY completion_status;"
 ```
@@ -439,16 +545,20 @@ und dort gebaut. Danach:
 
 ```bash
 ln -sfn /opt/passwo-study/releases/NEW_RELEASE_ID /opt/passwo-study/current
-systemctl restart passwo-study
+systemctl restart passwo-study passwo-study-qa
 curl -fsS http://127.0.0.1:3000/api/health
+curl -fsS http://127.0.0.1:3101/api/health
+curl -fsS http://127.0.0.1:3102/api/health
 ```
 
 Rollback auf den vorherigen Release-Stand:
 
 ```bash
 ln -sfn /opt/passwo-study/releases/PREVIOUS_RELEASE_ID /opt/passwo-study/current
-systemctl restart passwo-study
+systemctl restart passwo-study passwo-study-qa
 curl -fsS http://127.0.0.1:3000/api/health
+curl -fsS http://127.0.0.1:3101/api/health
+curl -fsS http://127.0.0.1:3102/api/health
 ```
 
 Die Datenbanken bleiben unter `/var/lib/passwo-study` und werden durch den Symlinkwechsel nicht
@@ -466,10 +576,5 @@ Ab `PASSWO_RESUME_CLOSE_AT` lehnt die Runtime neue und wiederaufgenommene Haupts
 Dienst abschalten:
 
 ```bash
-systemctl disable --now passwo-study
-```
-
-```bash
-cd /opt/passwo-study/current
-pnpm deploy:prepare-native
+systemctl disable --now passwo-study passwo-study-qa
 ```

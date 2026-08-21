@@ -94,7 +94,14 @@ function elapsed(interval: ActiveInterval): number {
   return Math.max(0, performance.now() - interval.startedAtMonotonicMs);
 }
 
-export function createStudyApi(): StudyApi {
+export function createStudyApi(
+  { apiBasePath = '' }: { readonly apiBasePath?: string } = {},
+): StudyApi {
+  const normalizedApiBasePath = apiBasePath.endsWith('/')
+    ? apiBasePath.slice(0, -1)
+    : apiBasePath;
+  const post = (path: string, body: unknown, keepalive = false) =>
+    postJson(`${normalizedApiBasePath}${path}`, body, keepalive);
   const createRequestId = globalThis.crypto.randomUUID();
   let restorePromise: Promise<WebResumeSession | null> | null = null;
   let selectedSessionId: string | null = null;
@@ -120,7 +127,7 @@ export function createStudyApi(): StudyApi {
 
   async function writeSegment(sessionId: string, pending: PendingSegmentWrite): Promise<void> {
     webSegmentTimingResponseSchema.parse(
-      await postJson(`/api/study/sessions/${sessionId}/segment-timing`, pending.request),
+      await post(`/api/study/sessions/${sessionId}/segment-timing`, pending.request),
     );
     if (pending.event.eventType === 'segment-start') {
       segmentStartedAt.set(pending.event.segmentId, performance.now());
@@ -132,7 +139,7 @@ export function createStudyApi(): StudyApi {
 
   const api: StudyApi = {
     restoreSession: () => {
-      restorePromise ??= postJson('/api/study/session/resume', {})
+      restorePromise ??= post('/api/study/session/resume', {})
         .then((body) => webResumeResponseSchema.parse(body).session)
         .catch((error: unknown) => {
           restorePromise = null;
@@ -181,7 +188,7 @@ export function createStudyApi(): StudyApi {
         checkpoint,
       });
       return confirmArtifactCheckpointResponseSchema.parse(
-        await postJson(`/api/study/sessions/${sessionId}/artifact-checkpoint`, request),
+        await post(`/api/study/sessions/${sessionId}/artifact-checkpoint`, request),
       ).checkpoint;
     },
 
@@ -196,7 +203,7 @@ export function createStudyApi(): StudyApi {
         recontact,
       });
       const response = webCreateSessionResponseSchema.parse(
-        await postJson('/api/study/sessions', request),
+        await post('/api/study/sessions', request),
       );
       selectSession(response.sessionId);
       return response;
@@ -216,7 +223,7 @@ export function createStudyApi(): StudyApi {
       selectSession(sessionId);
       const request = instrumentSubmissionRequestSchema.parse(submission);
       saveResponseResponseSchema.parse(
-        await postJson(`/api/study/sessions/${sessionId}/instrument-submissions`, request),
+        await post(`/api/study/sessions/${sessionId}/instrument-submissions`, request),
       );
     },
 
@@ -225,7 +232,7 @@ export function createStudyApi(): StudyApi {
       if (activeInterval !== null) throw new Error('artifact-interval-already-active');
       pendingStartRequestId ??= globalThis.crypto.randomUUID();
       const response = artifactIntervalStartResponseSchema.parse(
-        await postJson(`/api/study/sessions/${sessionId}/artifact-intervals`,
+        await post(`/api/study/sessions/${sessionId}/artifact-intervals`,
           artifactIntervalStartRequestSchema.parse({ requestId: pendingStartRequestId })),
       );
       activeInterval = {
@@ -243,7 +250,7 @@ export function createStudyApi(): StudyApi {
         elapsedMs: elapsed(interval),
       });
       const response = artifactIntervalEndResponseSchema.parse(
-        await postJson(
+        await post(
           `/api/study/sessions/${sessionId}/artifact-intervals/end`,
           pendingEndRequest,
         ),
@@ -264,7 +271,7 @@ export function createStudyApi(): StudyApi {
       });
       try {
         webArtifactVisibilityResponseSchema.parse(
-          await postJson(`/api/study/sessions/${sessionId}/artifact-visibility`, request),
+          await post(`/api/study/sessions/${sessionId}/artifact-visibility`, request),
         );
       } catch (error) {
         pendingVisibilityWrites.push(request);
@@ -276,7 +283,7 @@ export function createStudyApi(): StudyApi {
       selectSession(sessionId);
       if (pendingEndRequest !== null) {
         const response = artifactIntervalEndResponseSchema.parse(
-          await postJson(
+          await post(
             `/api/study/sessions/${sessionId}/artifact-intervals/end`,
             pendingEndRequest,
           ),
@@ -289,7 +296,7 @@ export function createStudyApi(): StudyApi {
       const request = pendingVisibilityWrites[0];
       if (request === undefined) throw new Error('artifact-timing-retry-missing');
       webArtifactVisibilityResponseSchema.parse(
-        await postJson(`/api/study/sessions/${sessionId}/artifact-visibility`, request),
+        await post(`/api/study/sessions/${sessionId}/artifact-visibility`, request),
       );
       pendingVisibilityWrites.shift();
       return null;
@@ -305,17 +312,20 @@ export function createStudyApi(): StudyApi {
           elapsedMs: elapsed(interval),
         });
         if (keepalive) {
-          void fetch(`/api/study/sessions/${sessionId}/artifact-intervals/heartbeat`, {
-            method: 'POST',
-            credentials: 'same-origin',
-            cache: 'no-store',
-            headers: writeHeaders(),
-            body: JSON.stringify(request),
-            keepalive: true,
-          }).catch(() => undefined);
+          void fetch(
+            `${normalizedApiBasePath}/api/study/sessions/${sessionId}/artifact-intervals/heartbeat`,
+            {
+              method: 'POST',
+              credentials: 'same-origin',
+              cache: 'no-store',
+              headers: writeHeaders(),
+              body: JSON.stringify(request),
+              keepalive: true,
+            },
+          ).catch(() => undefined);
           return;
         }
-        void postJson(`/api/study/sessions/${sessionId}/artifact-intervals/heartbeat`, request)
+        void post(`/api/study/sessions/${sessionId}/artifact-intervals/heartbeat`, request)
           .then((body) => artifactIntervalHeartbeatResponseSchema.parse(body))
           .catch(() => undefined);
       };
@@ -338,7 +348,7 @@ export function createStudyApi(): StudyApi {
     completeSession: async (sessionId: string) => {
       selectSession(sessionId);
       sessionStatusResponseSchema.parse(
-        await postJson(
+        await post(
           `/api/study/sessions/${sessionId}/complete`,
           completeSessionRequestSchema.parse({ debriefAcknowledged: true }),
         ),

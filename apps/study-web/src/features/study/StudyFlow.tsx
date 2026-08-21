@@ -18,7 +18,10 @@ import { type ReactNode, useCallback, useEffect, useMemo, useRef, useState } fro
 import { BrowserSegmentTimingAdapter } from '../../adapters/timing/BrowserSegmentTimingAdapter.js';
 import { createStudyApi, type StudyApi } from '../../api/study-api.js';
 import { ReferenceArtifact } from '../reference/ReferenceArtifact.js';
-import { prefetchReferenceArtifact } from '../reference/reference-prefetch.js';
+import {
+  cancelReferenceArtifactPrefetch,
+  prefetchReferenceArtifact,
+} from '../reference/reference-prefetch.js';
 import { PasswordModuleTraining } from '../training/PasswordModuleTraining.js';
 import { TrainingClipboardBoundary } from '../training/TrainingClipboardBoundary.js';
 import { GuardrailBlockForm, QuestionnaireSectionForm } from './InstrumentForm.js';
@@ -547,8 +550,13 @@ function HydratedStudyFlow({
     return semantic.success ? semantic.data : undefined;
   }, [context.artifactCheckpoint, context.interrupted]);
   useEffect(() => {
-    if (context.condition === 'reference') prefetchReferenceArtifact();
-  }, [context.condition]);
+    if (context.condition !== 'reference') return;
+    if (snapshot.matches({ artifactLifecycle: { artifact: 'reference' } })) {
+      cancelReferenceArtifactPrefetch();
+      return;
+    }
+    prefetchReferenceArtifact();
+  }, [context.condition, snapshot]);
   useEffect(() => {
     if (
       snapshot.matches({ artifactLifecycle: { artifact: 'supportive' } }) &&
@@ -889,8 +897,13 @@ function HydratedStudyFlow({
 }
 
 
-export function StudyFlow() {
-  const api = useMemo(() => createStudyApi(), []);
+export function StudyFlow(
+  { apiBasePath }: { readonly apiBasePath?: string } = {},
+) {
+  const api = useMemo(
+    () => createStudyApi(apiBasePath === undefined ? {} : { apiBasePath }),
+    [apiBasePath],
+  );
   const [resumeSession, setResumeSession] = useState<WebResumeSession | null | undefined>(undefined);
   const [resumeError, setResumeError] = useState<string | null>(null);
   const [resumeAttempt, setResumeAttempt] = useState(0);

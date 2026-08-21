@@ -40,6 +40,7 @@ const sessionParamsSchema = z.object({ sessionId: z.uuid() });
 const emptyRequestSchema = z.object({}).strict();
 const secureCookieName = '__Host-passwo-resume';
 const localCookieName = 'passwo-resume';
+const cookieNameSchema = z.string().regex(/^[A-Za-z0-9_-]+$/u).max(80);
 
 export interface WebStudyRouteOptions {
   readonly repository: WebRuntimeRepository;
@@ -48,6 +49,8 @@ export interface WebStudyRouteOptions {
   readonly resumeCloseAtIso: string;
   readonly secureCookies: boolean;
   readonly publicOrigin?: string;
+  readonly resumeCookieName?: string;
+  readonly qaControlsEnabled?: boolean;
   readonly nowIso: () => string;
   readonly createResumeToken?: () => WebResumeRawToken;
 }
@@ -109,8 +112,13 @@ function expiryFor(nowIso: string, closeAtIso: string): {
   };
 }
 
-function cookieName(secure: boolean): string {
-  return secure ? secureCookieName : localCookieName;
+function resolvedCookieName(secure: boolean, configuredName?: string): string {
+  if (configuredName === undefined) return secure ? secureCookieName : localCookieName;
+  const name = cookieNameSchema.parse(configuredName);
+  if (secure && !name.startsWith('__Host-')) {
+    throw new Error('Secure resume cookies must use the __Host- prefix.');
+  }
+  return name;
 }
 
 function setCookie(
@@ -119,9 +127,10 @@ function setCookie(
   expiresAtIso: string,
   maxAgeSeconds: number,
   secure: boolean,
+  name: string,
 ): void {
   const attributes = [
-    `${cookieName(secure)}=${token}`,
+    `${name}=${token}`,
     'Path=/',
     'HttpOnly',
     'SameSite=Lax',
@@ -132,9 +141,9 @@ function setCookie(
   reply.header('Set-Cookie', attributes.join('; '));
 }
 
-function clearCookie(reply: FastifyReply, secure: boolean): void {
+function clearCookie(reply: FastifyReply, secure: boolean, name: string): void {
   const attributes = [
-    `${cookieName(secure)}=`,
+    `${name}=`,
     'Path=/',
     'HttpOnly',
     'SameSite=Lax',
@@ -145,8 +154,8 @@ function clearCookie(reply: FastifyReply, secure: boolean): void {
   reply.header('Set-Cookie', attributes.join('; '));
 }
 
-function rawToken(request: FastifyRequest, secure: boolean): WebResumeRawToken | null {
-  const value = parseCookies(request.headers.cookie).get(cookieName(secure));
+function rawToken(request: FastifyRequest, name: string): WebResumeRawToken | null {
+  const value = parseCookies(request.headers.cookie).get(name);
   if (value === undefined) return null;
   const parsed = webResumeRawTokenSchema.safeParse(value);
   return parsed.success ? parsed.data : null;
@@ -172,15 +181,18 @@ export function registerWebStudyRoutes(
     resumeCloseAtIso,
     secureCookies,
     publicOrigin,
+    resumeCookieName,
+    qaControlsEnabled = false,
     nowIso,
     createResumeToken,
   } = options;
+  const cookieName = resolvedCookieName(secureCookies, resumeCookieName);
 
   const authenticate = (
     request: FastifyRequest,
     allowCompleted = false,
   ): { readonly sessionId: string; readonly token: WebResumeRawToken; readonly hash: WebResumeTokenHash } => {
-    const token = rawToken(request, secureCookies);
+    const token = rawToken(request, cookieName);
     if (token === null) throw new StudyRepositoryError('resume-token-required', 401);
     const hash = hashToken(token);
     const sessionId = repository.resolveSession(hash, allowCompleted);
@@ -203,14 +215,21 @@ export function registerWebStudyRoutes(
   const refreshCookie = (reply: FastifyReply, auth: ReturnType<typeof authenticate>): void => {
     const expiry = expiryFor(nowIso(), resumeCloseAtIso);
     repository.refreshToken(auth.sessionId, auth.hash, expiry.expiresAtIso);
-    setCookie(reply, auth.token, expiry.expiresAtIso, expiry.maxAgeSeconds, secureCookies);
+    setCookie(
+      reply,
+      auth.token,
+      expiry.expiresAtIso,
+      expiry.maxAgeSeconds,
+      secureCookies,
+      cookieName,
+    );
   };
 
   server.post('/api/study/session/resume', async (request, reply) => {
     requireWriteRequest(request, publicOrigin);
     emptyRequestSchema.parse(request.body);
     const expiry = expiryFor(nowIso(), resumeCloseAtIso);
-    const token = rawToken(request, secureCookies);
+    const token = rawToken(request, cookieName);
     if (token === null) {
       setCookie(
         reply,
@@ -218,6 +237,7 @@ export function registerWebStudyRoutes(
         expiry.expiresAtIso,
         expiry.maxAgeSeconds,
         secureCookies,
+        cookieName,
       );
       return reply.send(webResumeResponseSchema.parse({ session: null }));
     }
@@ -231,6 +251,7 @@ export function registerWebStudyRoutes(
         expiry.expiresAtIso,
         expiry.maxAgeSeconds,
         secureCookies,
+        cookieName,
       );
       return reply.send(webResumeResponseSchema.parse({ session: null }));
     }
@@ -241,9 +262,25 @@ export function registerWebStudyRoutes(
       binding.deletionCodeHash === hashDeletionCode(deletionCode) ? deletionCode : null,
     );
     repository.refreshToken(binding.sessionId, hash, expiry.expiresAtIso);
-    setCookie(reply, token, expiry.expiresAtIso, expiry.maxAgeSeconds, secureCookies);
+    setCookie(
+      reply,
+      token,
+      expiry.expiresAtIso,
+      expiry.maxAgeSeconds,
+      secureCookies,
+      cookieName,
+    );
     return reply.send(webResumeResponseSchema.parse({ session }));
   });
+
+  if (qaControlsEnabled) {
+    server.post('/api/qa/reset', async (request, reply) => {
+      requireWriteRequest(request, publicOrigin);
+      emptyRequestSchema.parse(request.body);
+      clearCookie(reply, secureCookies, cookieName);
+      return reply.status(204).send();
+    });
+  }
 
   server.post('/api/study/sessions', async (request, reply) => {
     requireWriteRequest(request, publicOrigin);
@@ -251,7 +288,7 @@ export function registerWebStudyRoutes(
       return reply.status(503).send({ errorCode: 'reference-artifact-unavailable' });
     }
     const body = webCreateSessionRequestSchema.parse(request.body);
-    const cookieToken = rawToken(request, secureCookies);
+    const cookieToken = rawToken(request, cookieName);
     const cookieBinding = cookieToken === null
       ? null
       : repository.resumeTokenBinding(hashToken(cookieToken));
@@ -290,7 +327,14 @@ export function registerWebStudyRoutes(
         expiry.expiresAtIso,
       ),
     );
-    setCookie(reply, token, expiry.expiresAtIso, expiry.maxAgeSeconds, secureCookies);
+    setCookie(
+      reply,
+      token,
+      expiry.expiresAtIso,
+      expiry.maxAgeSeconds,
+      secureCookies,
+      cookieName,
+    );
     return reply.status(201).send(
       webCreateSessionResponseSchema.parse({ ...session, deletionCode }),
     );
@@ -412,7 +456,7 @@ export function registerWebStudyRoutes(
       authenticateSession(request, sessionId, true);
       completeSessionRequestSchema.parse(request.body);
       const completionStatus = repository.completeSession(sessionId);
-      clearCookie(reply, secureCookies);
+      clearCookie(reply, secureCookies, cookieName);
       return reply.send(sessionStatusResponseSchema.parse({ completionStatus }));
     },
   );

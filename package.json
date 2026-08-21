@@ -13,12 +13,12 @@
     "preinstall": "node ./scripts/verify-toolchain.mjs",
     "dev": "pnpm desktop:dev",
     "build": "pnpm typecheck && pnpm --filter @passwo/study-server build && pnpm --filter @passwo/study-web build && pnpm --filter @passwo/study-desktop build",
-    "build:web-runtime": "pnpm --filter @passwo/study-server build && pnpm --filter @passwo/study-web build",
+    "build:web-runtime": "pnpm --filter @passwo/study-server build && pnpm --filter @passwo/study-web build && node ./scripts/precompress-web-assets.mjs",
     "typecheck": "tsc -p tsconfig.json --noEmit && pnpm -r --if-present run typecheck",
     "test": "pnpm test:core",
     "test:core": "vitest run",
     "test:watch": "vitest",
-    "test:e2e": "playwright test tests/e2e/study-persistence-smoke.spec.ts",
+    "test:e2e": "node ./scripts/build-reference-artifact.mjs && node ./scripts/verify-reference-artifact.mjs && playwright test tests/e2e/study-full-flow.spec.ts",
     "test:desktop": "node ./scripts/test-desktop.mjs",
     "test:reference-artifact": "node ./scripts/build-reference-artifact.mjs && node ./scripts/verify-reference-artifact.mjs && pnpm build && node ./scripts/test-reference-completion.mjs",
     "format": "biome format --write .",
@@ -37,7 +37,10 @@
     "clean": "node ./scripts/clean.mjs",
     "study:audit-data": "tsx ./scripts/audit-study-data.ts",
     "study:timing-report": "tsx ./scripts/report-study-timing.ts",
-    "deploy:prepare-native": "bash ./deploy/scripts/prepare-native-dependencies.sh"
+    "deploy:prepare-native": "bash ./deploy/scripts/prepare-native-dependencies.sh",
+    "test:e2e:persistence": "playwright test tests/e2e/study-persistence-smoke.spec.ts",
+    "qa:live:setup": "bash ./deploy/scripts/setup-live-qa.sh",
+    "deploy:web": "bash ./deploy/scripts/deploy-web.sh"
   },
   "devDependencies": {
     "@axe-core/playwright": "^4.10.0",

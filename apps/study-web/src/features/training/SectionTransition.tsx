@@ -1,4 +1,4 @@
-import type { AnimationEvent, CSSProperties } from 'react';
+import { type AnimationEvent, type CSSProperties, useEffect, useRef } from 'react';
 import styles from './SectionTransition.module.css';
 
 const arrivalDurationMs = 400;
@@ -46,11 +46,24 @@ export function SectionTransition({
     '--section-transition-hold-duration': `${holdDurationMs}ms`,
     '--section-transition-fade-duration': `${fadeDurationMs}ms`,
   };
+  const onCompleteRef = useRef(onComplete);
+  const completedRef = useRef(false);
+  onCompleteRef.current = onComplete;
+
+  useEffect(() => {
+    completedRef.current = false;
+    const timeoutId = window.setTimeout(() => {
+      if (completedRef.current) return;
+      completedRef.current = true;
+      onCompleteRef.current();
+    }, arrivalDurationMs + holdDurationMs + fadeDurationMs + 100);
+    return () => window.clearTimeout(timeoutId);
+  }, [currentPart, currentSection, holdDurationMs, sectionLabel, title]);
 
   function completeFade(event: AnimationEvent<HTMLDivElement>): void {
-    if (event.currentTarget === event.target) {
-      onComplete();
-    }
+    if (event.currentTarget !== event.target || completedRef.current) return;
+    completedRef.current = true;
+    onCompleteRef.current();
   }
 
   return (

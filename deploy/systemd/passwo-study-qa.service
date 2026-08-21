@@ -1,0 +1,34 @@
+[Unit]
+Description=PassWo protected live QA
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=passwo
+Group=passwo
+WorkingDirectory=/opt/passwo-study/current
+Environment=NODE_ENV=production
+EnvironmentFile=/etc/passwo-study/passwo-study-qa.env
+ExecStartPre=/usr/bin/test -f /opt/passwo-study/current/apps/study-server/dist/qa-production.js
+ExecStartPre=/usr/bin/test -f /opt/passwo-study/current/apps/study-web/dist/index.html
+ExecStartPre=/usr/bin/test -f /opt/passwo-study/current/research/private/reference/secaware/passwords-authentication/2026-07-26/study-build/scormdriver/indexAPI.html
+ExecStart=/usr/local/bin/node /opt/passwo-study/current/apps/study-server/dist/qa-production.js
+Restart=on-failure
+RestartSec=3s
+TimeoutStopSec=30s
+UMask=0077
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectControlGroups=true
+RestrictSUIDSGID=true
+RestrictRealtime=true
+LockPersonality=true
+RestrictAddressFamilies=AF_UNIX AF_INET AF_INET6
+
+[Install]
+WantedBy=multi-user.target

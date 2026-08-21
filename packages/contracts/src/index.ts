@@ -1,6 +1,7 @@
 export * from './character.js';
 export * from './design-lab.js';
 export * from './instrument-runtime.js';
+export * from './live-qa.js';
 export * from './password-consequence.js';
 export * from './recontact.js';
 export * from './reference-supplements.js';

@@ -1,79 +1,69 @@
 import { REFERENCE_ARTIFACT_ROUTE_PREFIX } from '@passwo/contracts';
 
-interface ReferencePrefetchTarget {
-  readonly path: string;
-  readonly as?: 'document' | 'font' | 'script' | 'style' | 'video';
+const referenceWarmupTargets = [
+  'scormdriver/indexAPI.html?StandAlone=true',
+  'scormdriver/driverOptions.js',
+  'scormdriver/preloadIntegrity.js',
+  'scormdriver/scormdriver.js',
+  'scormcontent/index.html',
+  'scormcontent/lib/lzwcompress.js',
+  'scormcontent/lib/rise/089c1887.js',
+  'scormcontent/lib/learn_dist/entry.js',
+  'scormcontent/lib/mondrian/entry.js',
+] as const;
+
+let warmupStarted = false;
+let warmupAbortController: AbortController | null = null;
+let scheduledWarmup: number | null = null;
+
+type IdleWindow = Window & {
+  requestIdleCallback?: (callback: () => void, options?: { readonly timeout?: number }) => number;
+  cancelIdleCallback?: (handle: number) => void;
+};
+
+async function warmSequentially(signal: AbortSignal): Promise<void> {
+  for (const path of referenceWarmupTargets) {
+    if (signal.aborted) return;
+    try {
+      const response = await fetch(`${REFERENCE_ARTIFACT_ROUTE_PREFIX}${path}`, {
+        cache: 'force-cache',
+        credentials: 'same-origin',
+        signal,
+      });
+      if (!response.ok) return;
+      await response.arrayBuffer();
+    } catch {
+      if (signal.aborted) return;
+      return;
+    }
+  }
 }
 
-const referencePrefetchTargets: readonly ReferencePrefetchTarget[] = [
-  { path: 'scormdriver/indexAPI.html?StandAlone=true', as: 'document' },
-  { path: 'scormdriver/scormdriver.js', as: 'script' },
-  { path: 'scormdriver/driverOptions.js', as: 'script' },
-  { path: 'scormdriver/preloadIntegrity.js', as: 'script' },
-  { path: 'scormcontent/index.html', as: 'document' },
-  { path: 'scormcontent/lib/lzwcompress.js', as: 'script' },
-  { path: 'scormcontent/lib/rise/089c1887.js', as: 'script' },
-  { path: 'scormcontent/lib/rise/4a460832.js', as: 'script' },
-  { path: 'scormcontent/lib/rise/48427b49.js', as: 'script' },
-  { path: 'scormcontent/lib/rise/bb36bef0.js', as: 'script' },
-  { path: 'scormcontent/lib/rise/d9b9ec3d.js', as: 'script' },
-  { path: 'scormcontent/lib/rise/64b25d98.css', as: 'style' },
-  { path: 'scormcontent/lib/rise/79bcdede.css', as: 'style' },
-  { path: 'scormcontent/lib/mondrian/entry.js', as: 'script' },
-  { path: 'scormcontent/lib/learn_dist/entry.js', as: 'script' },
-  { path: 'scormcontent/assets/U4w9PDNngJxwB5_j/story.html', as: 'document' },
-  {
-    path: 'scormcontent/assets/U4w9PDNngJxwB5_j/html5/lib/scripts/bootstrapper.min.js',
-    as: 'script',
-  },
-  {
-    path: 'scormcontent/assets/U4w9PDNngJxwB5_j/html5/lib/scripts/slides.min.js',
-    as: 'script',
-  },
-  {
-    path: 'scormcontent/assets/U4w9PDNngJxwB5_j/html5/lib/scripts/frame.desktop.min.js',
-    as: 'script',
-  },
-  {
-    path: 'scormcontent/assets/U4w9PDNngJxwB5_j/html5/data/css/output.min.css',
-    as: 'style',
-  },
-  { path: 'scormcontent/assets/U4w9PDNngJxwB5_j/lms/scormdriver.js', as: 'script' },
-  { path: 'scormcontent/assets/VRuCzkjdJavVemQT/story.html', as: 'document' },
-  {
-    path: 'scormcontent/assets/VRuCzkjdJavVemQT/html5/lib/scripts/bootstrapper.min.js',
-    as: 'script',
-  },
-  {
-    path: 'scormcontent/assets/VRuCzkjdJavVemQT/html5/lib/scripts/slides.min.js',
-    as: 'script',
-  },
-  {
-    path: 'scormcontent/assets/VRuCzkjdJavVemQT/html5/lib/scripts/frame.desktop.min.js',
-    as: 'script',
-  },
-  {
-    path: 'scormcontent/assets/VRuCzkjdJavVemQT/html5/data/css/output.min.css',
-    as: 'style',
-  },
-  { path: 'scormcontent/assets/250326_SA_StarkePasswoerte.mp4', as: 'video' },
-  { path: 'scormcontent/assets/230620_SA_PasswortManager_.mp4', as: 'video' },
-  { path: 'scormcontent/assets/230623_SA_MultiFaktorAuthe.mp4', as: 'video' },
-];
-
-let prefetchStarted = false;
-
 export function prefetchReferenceArtifact(): void {
-  if (prefetchStarted) return;
-  prefetchStarted = true;
+  if (warmupStarted) return;
+  warmupStarted = true;
+  warmupAbortController = new AbortController();
+  const signal = warmupAbortController.signal;
+  const idleWindow = window as IdleWindow;
+  const start = () => {
+    scheduledWarmup = null;
+    void warmSequentially(signal);
+  };
 
-  for (const target of referencePrefetchTargets) {
-    const link = document.createElement('link');
-    link.rel = 'prefetch';
-    link.href = `${REFERENCE_ARTIFACT_ROUTE_PREFIX}${target.path}`;
-    if (target.as !== undefined) link.as = target.as;
-    link.setAttribute('fetchpriority', 'low');
-    link.dataset.passwoReferencePrefetch = '';
-    document.head.append(link);
+  if (idleWindow.requestIdleCallback !== undefined) {
+    scheduledWarmup = idleWindow.requestIdleCallback(start, { timeout: 1_500 });
+    return;
+  }
+  scheduledWarmup = window.setTimeout(start, 750);
+}
+
+export function cancelReferenceArtifactPrefetch(): void {
+  warmupAbortController?.abort();
+  warmupAbortController = null;
+  if (scheduledWarmup !== null) {
+    const idleWindow = window as IdleWindow;
+    idleWindow.cancelIdleCallback?.(scheduledWarmup);
+    window.clearTimeout(scheduledWarmup);
+    scheduledWarmup = null;
   }
 }

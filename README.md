@@ -134,10 +134,43 @@ pnpm study:delete -- --confirm
 pnpm study:delete -- --database /pfad/study.sqlite --recontact-database /pfad/recontact.sqlite
 ```
 
+## Geschützte Live-QA
+
+Die beiden vollständigen Lernangebote und der reale Studienpfad lassen sich auf derselben
+Produktionsinfrastruktur prüfen, ohne produktive Sitzungen oder Zuweisungsplätze anzulegen. Die
+Live-QA läuft hinter Nginx Basic Auth auf zwei getrennten, serverseitig erzwungenen Runtimes mit
+In-Memory-Datenbanken und eigenen `HttpOnly`-Rückkehr-Cookies.
+
+Einmalig werden Zugangsdaten und der zusätzliche systemd-Dienst eingerichtet:
+
+```bash
+pnpm qa:live:setup
+```
+
+Anschließend wird die Live-QA bei normalen Releases zusammen mit der Studie ausgeliefert:
+
+```bash
+pnpm deploy:web
+```
+
+Unter `https://study.statisticslab.de/qa` sind **PassWo** und **SecAware** jeweils in zwei Modi
+verfügbar:
+
+- **Direkt öffnen** rendert nur das Lernangebot. Das eignet sich für reale Ladezeiten, Videos,
+  Animationen und Inhalte.
+- **Studienpfad öffnen** verwendet den vollständigen `StudyFlow` mit isoliertem Resume und Timing.
+  Eine geschützte QA-Leiste kann bis zum Lernangebot springen, das Lernangebot überspringen, die
+  restlichen Fragebögen schema-konform ausfüllen oder die QA-Sitzung zurücksetzen.
+
+Die Bedingung wird ausschließlich durch den ausgewählten serverseitigen QA-Port festgelegt. Die
+produktive Datenbank, das produktive Rückkehr-Cookie und die Permuted-Block-Randomisierung werden
+nicht verwendet. Alle QA-Sitzungen verschwinden spätestens beim Neustart des QA-Dienstes. Details
+stehen in `docs/operations/WEB-DEPLOYMENT.md`.
+
 ## Design Lab
 
-`/design-lab` ist ein interner QA-Pfad für deterministische, vom Studienablauf isolierte Szenen,
-Barrierefreiheitsprüfungen und visuelle Regression. Dazu gehören BrowserShell- und
+`/design-lab` ist ein interner lokaler QA-Pfad für deterministische, vom Studienablauf isolierte
+Szenen, Barrierefreiheitsprüfungen und visuelle Regression. Dazu gehören BrowserShell- und
 PassWo-Zustände sowie die S00-, S02-Master-Campus-, S03-Warnungs-, S04-, S05-, S06- und
 S07-Fixtures.
 Das Design Lab ist kein Auslieferungspfad, speichert keine Forschungsdaten und ersetzt keine
@@ -194,7 +227,8 @@ normalen Studienpfad.
 pnpm check                    # Biome, TypeScript und Research Boundary
 pnpm test:core                # Research-Core-, Contract- und lokale Trainingsdaten-Tests
 pnpm build                    # Server, kanonischen Renderer und Electron-Hülle bauen
-pnpm test:e2e                 # Study Runtime, Design Lab und Barrierefreiheit
+pnpm test:e2e                 # beide vollständigen Studienbedingungen, Artefakte schnell übersprungen
+pnpm test:e2e:persistence     # älterer manueller Persistenz-Smoke-Test
 pnpm test:reference-artifact  # echter SecAware-Kursweg und automatischer Post-Übergang
 pnpm test:desktop             # Electron-/SQLite-Smoke-Test
 pnpm desktop:package          # lokale arm64-.app
@@ -202,7 +236,21 @@ pnpm check:research-boundary  # Datengrenzen und private Quellen prüfen
 ```
 
 Vor dem ersten E2E-Lauf wird Chromium einmalig mit
-`pnpm exec playwright install chromium` installiert.
+`pnpm exec playwright install chromium` installiert. Der neue Vollablauf erzeugt für jede Bedingung
+eine In-Memory-Sitzung, legt alle Instrumentblöcke mit schema-validen Antworten ab, startet das
+zugewiesene Artefakt, bestätigt dessen kanonische Abschlussgrenzen ohne manuelle Navigation und
+prüft den regulären Sitzungsabschluss.
+
+Für normale Produktionsupdates reicht anschließend:
+
+```bash
+pnpm deploy:web
+```
+
+Der Befehl führt lokale Checks und den E2E-Vollablauf aus, baut den Web-Release, überträgt ihn per
+`rsync`, bereitet native Linux-Abhängigkeiten vor und schaltet Produktionsstudie sowie Live-QA mit
+automatischem Rollback und Health-/SecAware-Range-/Auth-Smoke-Tests live. Details stehen in
+`docs/operations/WEB-DEPLOYMENT.md`.
 
 ## Vertrauliche Forschungsquellen
 

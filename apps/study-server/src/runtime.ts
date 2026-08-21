@@ -9,7 +9,10 @@ export interface StudyWebRuntimeOptions {
   readonly resumeCloseAtIso: string;
   readonly secureCookies: boolean;
   readonly publicOrigin?: string;
+  readonly resumeCookieName?: string;
   readonly allowDesignLab?: boolean;
+  readonly allowLiveQa?: boolean;
+  readonly qaControlsEnabled?: boolean;
 }
 
 export interface StartStudyRuntimeOptions {
@@ -81,6 +84,12 @@ export async function startStudyRuntime({
             ...(webRuntime.publicOrigin === undefined
               ? {}
               : { publicOrigin: webRuntime.publicOrigin }),
+            ...(webRuntime.resumeCookieName === undefined
+              ? {}
+              : { resumeCookieName: webRuntime.resumeCookieName }),
+            ...(webRuntime.qaControlsEnabled === undefined
+              ? {}
+              : { qaControlsEnabled: webRuntime.qaControlsEnabled }),
           },
         }),
   });
@@ -89,6 +98,7 @@ export async function startStudyRuntime({
     await registerStudyWeb(server, {
       ...(webBuildDirectory === undefined ? {} : { webBuildDirectory }),
       allowDesignLab: webRuntime?.allowDesignLab ?? true,
+      allowLiveQa: webRuntime?.allowLiveQa ?? false,
     });
     const origin = await server.listen({ host, port });
     return {
