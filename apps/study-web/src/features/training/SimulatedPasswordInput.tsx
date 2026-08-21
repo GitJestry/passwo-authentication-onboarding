@@ -20,8 +20,6 @@ export const SimulatedPasswordInput = forwardRef<
   { masked, value, defaultValue, className, ...props },
   ref,
 ) {
-  const displayedValue = String(value ?? defaultValue ?? '');
-
   return (
     <span className={styles.root}>
       <input
@@ -44,11 +42,6 @@ export const SimulatedPasswordInput = forwardRef<
           .filter((entry): entry is string => entry !== undefined)
           .join(' ')}
       />
-      {masked && displayedValue.length > 0 ? (
-        <span className={styles.mask} aria-hidden="true">
-          {'•'.repeat(Array.from(displayedValue).length)}
-        </span>
-      ) : null}
     </span>
   );
 });
