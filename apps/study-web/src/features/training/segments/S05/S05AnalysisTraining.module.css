@@ -4296,7 +4296,7 @@
 }
 
 .wordPackage[data-package="small"] > strong {
-  font-size: clamp(0.56rem, 0.8cqi, 0.68rem);
+  font-size: clamp(0.46rem, 0.66cqi, 0.55rem);
   white-space: normal;
 }
 
@@ -4307,9 +4307,20 @@
   text-align: left;
 }
 
-.wordPackage[data-package="small"] > small {
-  font-size: clamp(0.46rem, 0.68cqi, 0.58rem);
+.wordPackage > small:first-child {
+  color: initial;
+  font-size: clamp(2rem, 3.2cqi, 2.5rem);
+  line-height: 0.9;
   text-align: center;
+}
+
+.wordPackage[data-package="small"] > small {
+  font-size: clamp(0.38rem, 0.56cqi, 0.48rem);
+  text-align: center;
+}
+
+.wordPackage[data-package="small"] > small:first-child {
+  font-size: clamp(0.8rem, 1.3cqi, 1rem);
 }
 
 .wordPackage[data-package="large"] > small {
@@ -4385,11 +4396,12 @@
 }
 
 .languagePackage > strong > span:first-child {
-  font-size: clamp(0.5rem, 0.72cqi, 0.62rem);
+  font-size: clamp(1.25rem, 2.2cqi, 1.75rem);
+  line-height: 1;
 }
 
 .languagePackage > strong > span:last-child {
-  font-size: clamp(1.25rem, 2.2cqi, 1.75rem);
+  font-size: clamp(0.7rem, 1cqi, 0.88rem);
   line-height: 1;
 }
 

@@ -1,5 +1,58 @@
 # S00--S05 Copy and Interaction Audit
 
+## Copy-Delta S05 Wortanzahlhinweise ausgeblendet, 22. August 2026
+
+Quelle ist der ausdrückliche Nutzerauftrag vom 22. August 2026. Die sichtbaren Hinweise `1 Wort`
+und `5 Wörter` oberhalb der beiden Passwortbeispiele entfallen; die Beispielfolgen,
+Größenangaben und optionalen Angreifermodell-Informationen bleiben erhalten. Berechnungen,
+Werte, Animationen, Layout, Interaktion, Ablauf, Analyse, Persistenz, Export und Timing bleiben
+unverändert. `S05_CONTENT_VERSION` wird von `2.101.3` auf `2.101.4` erhöht.
+
+| Segment und Text-ID | Quelle | Aktueller Text | Geplanter Text | Primäre Rolle | Grund | Bedeutungsänderung | Interaktionsziel | Hervorhebung |
+|---|---|---|---|---|---|---|---|---|
+| `S05.freeSearch.lengthExamples.wordPoolDemonstration.{longWord,shortWords}.passwordLabel` | Nutzerauftrag vom 2026-08-22 | `1 Wort` beziehungsweise `5 Wörter` oberhalb der Passwortbeispiele | nicht sichtbar | Orientierung | ausdrücklich verlangte Reduktion nicht benötigter sichtbarer Hinweise | nein | kein | keine |
+
+## Copy- und Darstellungsdelta S05 Wortlisten-Auswahlkarten verdichtet, 22. August 2026
+
+Quelle ist der ausdrückliche Nutzerauftrag vom 22. August 2026. Die Auswahlkarten zeigen jeweils
+eine große deutsche Flagge, eine kleinere Auswahlbeschreibung und darunter die unveränderte
+Größenangabe. Die zusätzlichen Beschriftungen der vorigen Fassung entfallen. Berechnungen,
+Werte, Animationen, Interaktion, Ablauf, Analyse, Persistenz, Export und Timing bleiben
+unverändert. `S05_CONTENT_VERSION` wird von `2.101.2` auf `2.101.3` erhöht.
+
+| Segment und Text-ID | Quelle | Aktueller Text | Geplanter Text | Primäre Rolle | Grund | Bedeutungsänderung | Interaktionsziel | Hervorhebung |
+|---|---|---|---|---|---|---|---|---|
+| `S05.freeSearch.lengthExamples.wordPoolDemonstration.{longWord,shortWords}` | Nutzerauftrag vom 2026-08-22 | Große Auswahl: `Ganze Wortliste`, `alle Wortlängen`, `ca. 80.000 Wörter`; Kleine Auswahl: `Kurze Wörter`, `2–3 Buchstaben`, `ca. 350 Wörter` | Groß: `🇩🇪`, `Ganze Wortliste`, `ca. 80.000 Wörter`; klein: `🇩🇪`, `2-3 Buchstaben`, `ca. 350 Wörter` | Mechanismuserklärung | ausdrücklich verlangte kompakte Beschriftung mit priorisierter Länderkennung | nein | kein | keine |
+
+## Copy-Delta S05 Wortlisten-Visualisierung vereinheitlicht, 22. August 2026
+
+Quelle ist der ausdrückliche Nutzerauftrag vom 22. August 2026. Ausschließlich die sichtbaren
+Texte der S05-Wortlisten-Visualisierung werden vereinheitlicht. Berechnungen, Werte,
+Animationen, Layout, Interaktion, Ablauf, Analyse, Persistenz, Export und Timing bleiben
+unverändert. `S05_CONTENT_VERSION` wird von `2.101.1` auf `2.101.2` erhöht.
+
+| Segment und Text-ID | Quelle | Aktueller Text | Geplanter Text | Primäre Rolle | Grund | Bedeutungsänderung | Interaktionsziel | Hervorhebung |
+|---|---|---|---|---|---|---|---|---|
+| `S05.freeSearch.lengthExamples.wordPoolDemonstration.{longWord,shortWords}` | Nutzerauftrag vom 2026-08-22 | `Alle Wörterlängen` / `80.000 🇩🇪 Wörter`; `2-3 Buchstabenwörter` / `nur 350 🇩🇪 Wörter` | Große Auswahl: `Ganze Wortliste`, `alle Wortlängen`, `ca. 80.000 Wörter`; Kleine Auswahl: `Kurze Wörter`, `2–3 Buchstaben`, `ca. 350 Wörter` | Mechanismuserklärung | ausdrücklich verlangte konsistente Benennung der Auswahlkarten | nein | kein | keine |
+| `S05.freeSearch.lengthExamples.wordPoolDemonstration.longWord.packageTooltip` und `S05.freeSearch.lengthExamples.secondLengthReason.languagePackages[*].information` | Nutzerauftrag vom 2026-08-22 | Informationen mit `Sprachpaket` und ausführlichem Duden-Hinweis | Informationen mit `Wortliste`; deutsche Information auf den vorgegebenen kurzen Wortlaut begrenzt | Optionaler Hinweis | ausdrücklich verlangte Terminologie und Kürzung der deutschen Information | begrenzt | Info-Schaltfläche der jeweiligen Wortliste | keine |
+| `S05.freeSearch.lengthExamples.secondLengthReason.languagePackages[*].label` | Nutzerauftrag vom 2026-08-22 | `Sprachpaket 🇩🇪` / `🇪🇸` / `🇫🇷` / `🇯🇵` | `🇩🇪 Wortliste` / `🇪🇸 Wortliste` / `🇫🇷 Wortliste` / `🇯🇵 Wortliste` | Orientierung | ausdrücklich verlangte Flaggen- und Wortlistenbenennung | nein | Info-Schaltfläche der jeweiligen Wortliste | keine |
+| `S05.freeSearch.lengthExamples.secondLengthReason.languagePoolEstimate` sowie zugängliche S05-Beschriftungen | Nutzerauftrag vom 2026-08-22 | `Sprachpaket` / `Sprachpakete` | `Wortliste` / `Wortlisten` | Mechanismuserklärung | ausdrücklich verlangte terminologische Konsistenz in der gesamten S05-Sequenz | nein | Schätzfrage und ihre Bedienelemente | `Wie viele Wortlisten`, Akzent; `fast 95 Wortlisten`, Akzent |
+
+## Copy-Delta S05 Länge-Sprechblasen präzisiert, 22. August 2026
+
+Quelle ist der ausdrückliche Nutzerauftrag vom 22. August 2026. Die vier S05-Sprechschritte
+präzisieren die Längenempfehlung, die bewusst vereinfachte Kleinbuchstaben-Demonstration, den
+Aufwand des Zufallsvergleichs und den Übergang zu zwei weiteren Längenaspekten. Darstellung,
+Interaktion, Ablauf, Analyse, Persistenz, Export und Timing bleiben unverändert.
+`S05_CONTENT_VERSION` wird von `2.101.0` auf `2.101.1` erhöht.
+
+| Segment und Text-ID | Quelle | Aktueller Text | Geplanter Text | Primäre Rolle | Grund | Bedeutungsänderung | Interaktionsziel | Hervorhebung |
+|---|---|---|---|---|---|---|---|---|
+| `S05.freeSearch.characterMix.narration[4]` | Nutzerauftrag vom 2026-08-22 | `Das musst du auch nicht. Deshalb setzt die aktuelle Empfehlung bei selbst gewählten Passwörtern vor allem auf Länge.` | `Das musst du auch nicht. Deshalb setzt die aktuelle Empfehlung bei selbst gewählten Passwörtern vor allem auf Länge, statt bestimmte Zeichentypen vorzuschreiben.` | Kerngedanke | ausdrücklich verlangte Präzisierung der Längenempfehlung | begrenzt | `Weiter` | `vor allem auf Länge`, Akzent |
+| `S05.freeSearch.characterMix.narration[5]` | Nutzerauftrag vom 2026-08-22 | `Wie lang sollte ein solches Passwort mindestens sein? Dafür lassen wir andere Zeichentypen zunächst bewusst weg und verwenden nur zufällig erzeugte Kleinbuchstaben.` | `Wie lang sollte ein solches Passwort mindestens sein? Um das zu sehen, nehmen wir ein Passwort, das nur aus zufälligen Kleinbuchstaben besteht.` | Mechanismuserklärung | ausdrücklich verlangte verständlichere Einführung der sichtbaren Modellannahme | begrenzt | `Weiter` | `zufälligen Kleinbuchstaben`, Akzent |
+| `S05.freeSearch.lengthExamples.mixedCharacterComparison` | Nutzerauftrag vom 2026-08-22 | `Die gelbe Kugel zeigt, warum zwölf Zeichen aus mehreren Zeichentypen bei wirklich zufälliger Auswahl wie k7#M!9p$2Lq& vom Aufwand so vielversprechend sind.` | `Die gelbe Kugel zeigt, warum zwölf wirklich zufällige Zeichen aus mehreren Zeichentypen wie k7#M!9p$2Lq& so aufwendig durchzuprobieren sind.` | Mechanismuserklärung | ausdrücklich verlangte Konkretisierung des sichtbaren Zufallsvergleichs | begrenzt | `Weiter` | keine |
+| `S05.freeSearch.lengthExamples.reasonsIntroduction` | Nutzerauftrag vom 2026-08-22 | `Es gibt noch zwei weitere Gründe, warum Länge so wichtig ist.` | `Warum selbst gewählte Passwörter oft noch länger werden, schauen wir uns an zwei weiteren Punkten an.` | Orientierung | ausdrücklich verlangter Übergang zu den folgenden Längenaspekten | begrenzt | `Weiter` | keine |
+
 ## Darstellungsdelta S05 16-Stellen-Vorschau im Modellvergleich, 21. August 2026
 
 Quelle ist der ausdrückliche Nutzerauftrag vom 21. August 2026. Im bestehenden Vergleich von

@@ -2746,7 +2746,7 @@ function LanguagePackageStack({
       data-expanded={expanded || undefined}
       data-emphasized={emphasized || undefined}
       data-comparison-position={comparisonPosition}
-      aria-label="Vier gleich große Sprachpakete"
+      aria-label="Vier gleich große Wortlisten"
     >
       {packages.map((languagePackage, index) => {
         if (index > 0 && !expanded) return null;
@@ -2945,12 +2945,12 @@ function LanguagePoolWorldMapScene({
   );
   const accessibleSummary =
     submittedEstimate === null
-      ? `${estimate} Sprachpakete sind in deiner Schätzung markiert.`
+      ? `${estimate} Wortlisten sind in deiner Schätzung markiert.`
       : submittedEstimate < content.target
-        ? `Du hast ${submittedEstimate} Sprachpakete geschätzt. Die fehlenden Pakete bis ungefähr ${content.target} sind zusätzlich markiert.`
-        : submittedEstimate > content.target
-          ? `Du hast ${submittedEstimate} Sprachpakete geschätzt. Die Pakete oberhalb der Lösung von ungefähr ${content.target} wurden zurückgesetzt.`
-          : `Deine Schätzung entspricht der Lösung von ungefähr ${content.target} Sprachpaketen.`;
+        ? `Du hast ${submittedEstimate} Wortlisten geschätzt. Die fehlenden Wortlisten bis ungefähr ${content.target} sind zusätzlich markiert.`
+      : submittedEstimate > content.target
+          ? `Du hast ${submittedEstimate} Wortlisten geschätzt. Die Wortlisten oberhalb der Lösung von ungefähr ${content.target} wurden zurückgesetzt.`
+          : `Deine Schätzung entspricht der Lösung von ungefähr ${content.target} Wortlisten.`;
 
   function statusFor(packageCode: string | null): LanguageMapCountryStatus {
     if (packageCode === null) return 'neutral';
@@ -2973,7 +2973,7 @@ function LanguagePoolWorldMapScene({
     >
       <section className={styles.languageMapFrame} aria-labelledby="s05-language-map-title">
         <h2 className={styles.visuallyHidden} id="s05-language-map-title">
-          Weltkarte der berücksichtigten Sprachpakete
+          Weltkarte der berücksichtigten Wortlisten
         </h2>
         <svg
           className={styles.languageMap}
@@ -3153,7 +3153,6 @@ function WordPoolReasonScene({
       {showsPassword ? (
         <article className={styles.wordPoolPassword} data-case="long-word">
           <span className={styles.wordPoolPasswordConnector} aria-hidden="true" />
-          <strong>{content.longWord.passwordLabel}</strong>
           <PasswordBuildingBlocks
             value={content.longWord.password}
             parts={content.longWord.parts}
@@ -3191,12 +3190,13 @@ function WordPoolReasonScene({
           data-emphasized={step === 'length-full-word-attack' || undefined}
           data-package="large"
         >
+          <small>{content.longWord.packageTitle}</small>
           {content.longWord.packageCaption.length > 0 ? (
             <small>{content.longWord.packageCaption}</small>
           ) : null}
           <strong>{content.longWord.packageLabel}</strong>
           <WordPoolGear
-            label="Annahme zum deutschen Wortpaket anzeigen"
+            label="Annahme zur deutschen Wortliste anzeigen"
             tooltipId="s05-large-word-pool-assumption"
           >
             <span>{content.longWord.packageTooltip}</span>
@@ -3221,14 +3221,13 @@ function WordPoolReasonScene({
       {showsShortWords ? (
         <article className={styles.wordPoolPassword} data-case="short-words">
           <span className={styles.wordPoolPasswordConnector} aria-hidden="true" />
-          <strong>{content.shortWords.passwordLabel}</strong>
           <PasswordBuildingBlocks
             value={content.shortWords.password}
             parts={content.shortWords.parts}
             display="separated"
             animate={false}
             visualScale={0.58}
-            ariaLabel={`${content.shortWords.passwordLabel} ${content.shortWords.password}, ${content.shortWords.length} Zeichen`}
+            ariaLabel={`${content.shortWords.password}, ${content.shortWords.length} Zeichen`}
           />
           <span
             className={styles.wordPoolLengthRay}
@@ -3240,6 +3239,7 @@ function WordPoolReasonScene({
       ) : null}
       {showsShortWords ? (
         <aside className={styles.wordPackage} data-package="small">
+          <small>{content.shortWords.packageTitle}</small>
           <small>{content.shortWords.packageCaption}</small>
           <strong>{content.shortWords.packageLabel}</strong>
         </aside>

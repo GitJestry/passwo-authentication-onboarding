@@ -43,8 +43,8 @@ const characterMixVariationSuffixes = [
 
 const characterMixFinalVariation = 'mEin!Pa55w0rt?';
 
-const germanWordPackageInformation =
-  'Für diese vereinfachte Rechnung nehmen wir an, dass ein Sprachpaket etwa 80.000 Wörter enthält, die sich sinnvoll als merkbare Passwortwörter verwenden lassen. Der deutsche Duden enthält beispielsweise rund 151.000 Stichwörter, von denen wir hier nur einen Teil berücksichtigen.';
+const germanWordListInformation =
+  'Für diese Rechnung zählen wir in der deutschen Wortliste etwa 80.000 passende Wörter. Davon haben nur ungefähr 350 Wörter eine Länge von 2–3 Buchstaben.';
 
 const characterMixVariations = [
   ...characterMixVariationStems.flatMap((stem) =>
@@ -73,7 +73,7 @@ export interface S05DesignLabFixture {
   readonly startSection: 'intro' | 'components' | 'structure';
 }
 
-export const S05_CONTENT_VERSION = '2.101.0';
+export const S05_CONTENT_VERSION = '2.101.4';
 
 export const s05Content = {
   version: S05_CONTENT_VERSION,
@@ -83,9 +83,9 @@ export const s05Content = {
       12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34,
       35,
     ] as const,
-    revision: 'Userauftrag vom 2026-08-17 · S05 Übungsentscheidung und Diagnosen gekürzt',
+    revision: 'Userauftrag vom 2026-08-22 · S05 Wortanzahlhinweise ausgeblendet',
     copyReference:
-      'docs/design/S00-S05-COPY-AUDIT.md#copy-delta-s05-übungsentscheidung-und-diagnosen-gekürzt-17-august-2026',
+      'docs/design/S00-S05-COPY-AUDIT.md#copy-delta-s05-wortanzahlhinweise-ausgeblendet-22-august-2026',
   },
   segment: {
     id: 'S05',
@@ -463,8 +463,8 @@ export const s05Content = {
         'Deshalb kann ein Passwort als stark markiert werden, obwohl es typischen Mustern folgt und vom Angreifer früh ausprobiert wird.',
         'Verschiedene Zeichentypen können ein Passwort stärker machen, werden bei selbst gewählten Passwörtern aber oft vorhersehbar eingesetzt.',
         'Darauf zu hoffen, dass der Angreifer eine komplizierte Variante wie „mEin!Pa55w0rt?“ nicht prüft, ist riskant.',
-        'Das musst du auch nicht. Deshalb setzt die aktuelle Empfehlung bei selbst gewählten Passwörtern vor allem auf Länge.',
-        'Wie lang sollte ein solches Passwort mindestens sein? Dafür lassen wir andere Zeichentypen zunächst bewusst weg und verwenden nur zufällig erzeugte Kleinbuchstaben.',
+        'Das musst du auch nicht. Deshalb setzt die aktuelle Empfehlung bei selbst gewählten Passwörtern vor allem auf Länge, statt bestimmte Zeichentypen vorzuschreiben.',
+        'Wie lang sollte ein solches Passwort mindestens sein? Um das zu sehen, nehmen wir ein Passwort, das nur aus zufälligen Kleinbuchstaben besteht.',
       ],
     },
     estimate: {
@@ -526,11 +526,11 @@ export const s05Content = {
     },
     lengthExamples: {
       mixedCharacterComparison:
-        'Die gelbe Kugel zeigt, warum zwölf Zeichen aus mehreren Zeichentypen bei wirklich zufälliger Auswahl wie k7#M!9p$2Lq& vom Aufwand so vielversprechend sind.',
+        'Die gelbe Kugel zeigt, warum zwölf wirklich zufällige Zeichen aus mehreren Zeichentypen wie k7#M!9p$2Lq& so aufwendig durchzuprobieren sind.',
       orientation:
         'Bei selbstgewählten Passwörtern lässt sich diese Zufälligkeit jedoch nicht voraussetzen. Deshalb liegt die aktuelle Orientierung bei mindestens 15 Zeichen.',
       reasonsIntroduction:
-        'Es gibt noch zwei weitere Gründe, warum Länge so wichtig ist.',
+        'Warum selbst gewählte Passwörter oft noch länger werden, schauen wir uns an zwei weiteren Punkten an.',
       memorability:
         'Selbstgewählte Passwörter wie Datensicherheit sind merkbar und erreichen 15 Zeichen, bestehen aber nur aus einem Wort.',
       fullWordAttack:
@@ -550,8 +550,9 @@ export const s05Content = {
           length: 15,
           passwordLabel: '1 Wort',
           durationLabel: '80 Nanosekunden',
-          packageCaption: 'Alle Wörterlängen',
-          packageLabel: '80.000 🇩🇪 Wörter',
+          packageTitle: '🇩🇪',
+          packageCaption: 'Ganze Wortliste',
+          packageLabel: 'ca. 80.000 Wörter',
           poolSize: 80_000,
           modelInformation: {
             passwordParts: '1 Wort',
@@ -559,7 +560,7 @@ export const s05Content = {
             combinations: '80.000',
             attemptsPerSecond: '1 Billion',
           },
-          packageTooltip: germanWordPackageInformation,
+          packageTooltip: germanWordListInformation,
         },
         shortWords: {
           password: 'HatBinKuhIchTee',
@@ -567,8 +568,9 @@ export const s05Content = {
           length: 15,
           passwordLabel: '5 Wörter',
           durationLabel: '5,25 Sekunden',
-          packageCaption: '2-3 Buchstabenwörter',
-          packageLabel: 'nur 350 🇩🇪 Wörter',
+          packageTitle: '🇩🇪',
+          packageCaption: '2-3 Buchstaben',
+          packageLabel: 'ca. 350 Wörter',
           poolSizePerWord: 350,
           wordCount: 5,
           modelInformation: {
@@ -594,22 +596,22 @@ export const s05Content = {
         fifthWordAction: 'Schätzfrage',
         languagePoolEstimate: {
           question:
-            'Wie viele Sprachpakete bräuchten wir insgesamt, damit vier Wörter ungefähr denselben Aufwand erzeugen wie diese fünf?',
+            'Wie viele Wortlisten bräuchten wir insgesamt, damit vier Wörter ungefähr denselben Aufwand erzeugen wie diese fünf?',
           minimum: 4,
           maximum: 195,
           target: 95,
-          inputLabel: 'Anzahl der Sprachpakete',
-          valueUnit: 'Sprachpakete',
-          decrementLabel: 'Ein Sprachpaket weniger',
-          incrementLabel: 'Ein Sprachpaket mehr',
+          inputLabel: 'Anzahl der Wortlisten',
+          valueUnit: 'Wortlisten',
+          decrementLabel: 'Eine Wortliste weniger',
+          incrementLabel: 'Eine Wortliste mehr',
           submitAction: 'Schätzung abgeben',
-          solutionLabel: '95 Sprachpakete',
+          solutionLabel: '95 Wortlisten',
           legend: {
             missing: 'Bis zur Lösung ergänzt',
             excess: 'Über der Lösung zurückgesetzt',
           },
           result:
-            'Von vier auf fast 95 Sprachpakete, nur um ein zusätzliches Wort auszugleichen.',
+            'Von vier auf fast 95 Wortlisten, nur um ein zusätzliches Wort auszugleichen.',
           takeaway:
             'Das ist der zweite Grund: Ein weiteres zufälliges Wort kann viel mehr bringen als ein größerer Wörterpool.',
         },
@@ -662,26 +664,26 @@ export const s05Content = {
         languagePackages: [
           {
             id: 'de',
-            label: 'Sprachpaket 🇩🇪',
-            information: germanWordPackageInformation,
+            label: '🇩🇪 Wortliste',
+            information: germanWordListInformation,
           },
           {
             id: 'es',
-            label: 'Sprachpaket 🇪🇸',
+            label: '🇪🇸 Wortliste',
             information:
-              'Für diese vereinfachte Rechnung nehmen wir für das spanische Sprachpaket ebenfalls etwa 80.000 Wörter an.',
+              'Für diese vereinfachte Rechnung nehmen wir für die spanische Wortliste ebenfalls etwa 80.000 Wörter an.',
           },
           {
             id: 'fr',
-            label: 'Sprachpaket 🇫🇷',
+            label: '🇫🇷 Wortliste',
             information:
-              'Für diese vereinfachte Rechnung nehmen wir für das französische Sprachpaket ebenfalls etwa 80.000 Wörter an.',
+              'Für diese vereinfachte Rechnung nehmen wir für die französische Wortliste ebenfalls etwa 80.000 Wörter an.',
           },
           {
             id: 'ja',
-            label: 'Sprachpaket 🇯🇵',
+            label: '🇯🇵 Wortliste',
             information:
-              'Für diese vereinfachte Rechnung nehmen wir für das japanische Sprachpaket ebenfalls etwa 80.000 Wörter an.',
+              'Für diese vereinfachte Rechnung nehmen wir für die japanische Wortliste ebenfalls etwa 80.000 Wörter an.',
           },
         ],
       },

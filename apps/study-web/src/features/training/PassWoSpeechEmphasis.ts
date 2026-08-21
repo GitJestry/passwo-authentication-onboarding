@@ -123,9 +123,9 @@ const emphasisBySpeechId: Readonly<Record<string, readonly PassWoSpeechEmphasis[
   's05-structure-intro': [{ phrase: 'typische Muster', tone: 'accent' }],
   's05-character-mix-first': [{ phrase: 'zufällig erzeugten', tone: 'accent' }],
   's05-character-mix-types': [{ phrase: 'riskant', tone: 'warning' }],
-  's05-character-mix-strategy': [{ phrase: 'Länge', tone: 'accent' }],
+  's05-character-mix-strategy': [{ phrase: 'vor allem auf Länge', tone: 'accent' }],
   's05-character-mix-takeaway': [
-    { phrase: 'zufällig erzeugte Kleinbuchstaben', tone: 'accent' },
+    { phrase: 'zufälligen Kleinbuchstaben', tone: 'accent' },
   ],
   's05-estimate': [
     { phrase: 'welcher Länge', tone: 'accent', contrastId: 'estimate-threshold' },
@@ -148,12 +148,12 @@ const emphasisBySpeechId: Readonly<Record<string, readonly PassWoSpeechEmphasis[
     { phrase: 'weiteres zufälliges Wort', tone: 'accent' },
   ],
   's05-length-language-pool-question': [
-    { phrase: 'Wie viele Sprachpakete', tone: 'accent' },
+    { phrase: 'Wie viele Wortlisten', tone: 'accent' },
     { phrase: 'vier Wörter', tone: 'accent' },
     { phrase: 'denselben Aufwand', tone: 'accent' },
   ],
   's05-length-language-pool-result': [
-    { phrase: 'fast 95 Sprachpakete', tone: 'accent' },
+    { phrase: 'fast 95 Wortlisten', tone: 'accent' },
   ],
   's05-length-language-pool-takeaway': [
     { phrase: 'Ein weiteres zufälliges Wort', tone: 'accent' },

@@ -4,7 +4,7 @@ import { S05_CONTENT_VERSION, s05Content } from './s05.js';
 
 describe('S05 content traceability', () => {
   it('keeps the participant copy bounded and separate from internal terminology', () => {
-    expect(S05_CONTENT_VERSION).toBe('2.101.0');
+    expect(S05_CONTENT_VERSION).toBe('2.101.4');
     expect(s05Content.source).toMatchObject({
       document: 'research/private/training-script.pdf',
       internalPages: [
@@ -276,10 +276,10 @@ describe('S05 content traceability', () => {
       'Darauf zu hoffen, dass der Angreifer eine komplizierte Variante wie „mEin!Pa55w0rt?“ nicht prüft, ist riskant.',
     );
     expect(s05Content.freeSearch.characterMix.narration[4]).toBe(
-      'Das musst du auch nicht. Deshalb setzt die aktuelle Empfehlung bei selbst gewählten Passwörtern vor allem auf Länge.',
+      'Das musst du auch nicht. Deshalb setzt die aktuelle Empfehlung bei selbst gewählten Passwörtern vor allem auf Länge, statt bestimmte Zeichentypen vorzuschreiben.',
     );
     expect(s05Content.freeSearch.characterMix.narration[5]).toBe(
-      'Wie lang sollte ein solches Passwort mindestens sein? Dafür lassen wir andere Zeichentypen zunächst bewusst weg und verwenden nur zufällig erzeugte Kleinbuchstaben.',
+      'Wie lang sollte ein solches Passwort mindestens sein? Um das zu sehen, nehmen wir ein Passwort, das nur aus zufälligen Kleinbuchstaben besteht.',
     );
     expect(s05Content.freeSearch.characterMix.narration).toHaveLength(6);
     expect(s05Content.freeSearch.estimate.question).toBe(
@@ -287,11 +287,11 @@ describe('S05 content traceability', () => {
     );
     expect(s05Content.freeSearch.lengthExamples).toMatchObject({
       mixedCharacterComparison:
-        'Die gelbe Kugel zeigt, warum zwölf Zeichen aus mehreren Zeichentypen bei wirklich zufälliger Auswahl wie k7#M!9p$2Lq& vom Aufwand so vielversprechend sind.',
+        'Die gelbe Kugel zeigt, warum zwölf wirklich zufällige Zeichen aus mehreren Zeichentypen wie k7#M!9p$2Lq& so aufwendig durchzuprobieren sind.',
       orientation:
         'Bei selbstgewählten Passwörtern lässt sich diese Zufälligkeit jedoch nicht voraussetzen. Deshalb liegt die aktuelle Orientierung bei mindestens 15 Zeichen.',
       reasonsIntroduction:
-        'Es gibt noch zwei weitere Gründe, warum Länge so wichtig ist.',
+        'Warum selbst gewählte Passwörter oft noch länger werden, schauen wir uns an zwei weiteren Punkten an.',
       memorability:
         'Selbstgewählte Passwörter wie Datensicherheit sind merkbar und erreichen 15 Zeichen, bestehen aber nur aus einem Wort.',
       fullWordAttack:
@@ -311,8 +311,9 @@ describe('S05 content traceability', () => {
           length: 15,
           passwordLabel: '1 Wort',
           durationLabel: '80 Nanosekunden',
-          packageCaption: 'Alle Wörterlängen',
-          packageLabel: '80.000 🇩🇪 Wörter',
+          packageTitle: '🇩🇪',
+          packageCaption: 'Ganze Wortliste',
+          packageLabel: 'ca. 80.000 Wörter',
           poolSize: 80_000,
           modelInformation: {
             passwordParts: '1 Wort',
@@ -321,7 +322,7 @@ describe('S05 content traceability', () => {
             attemptsPerSecond: '1 Billion',
           },
           packageTooltip:
-            'Für diese vereinfachte Rechnung nehmen wir an, dass ein Sprachpaket etwa 80.000 Wörter enthält, die sich sinnvoll als merkbare Passwortwörter verwenden lassen. Der deutsche Duden enthält beispielsweise rund 151.000 Stichwörter, von denen wir hier nur einen Teil berücksichtigen.',
+            'Für diese Rechnung zählen wir in der deutschen Wortliste etwa 80.000 passende Wörter. Davon haben nur ungefähr 350 Wörter eine Länge von 2–3 Buchstaben.',
         },
         shortWords: {
           password: 'HatBinKuhIchTee',
@@ -329,8 +330,9 @@ describe('S05 content traceability', () => {
           length: 15,
           passwordLabel: '5 Wörter',
           durationLabel: '5,25 Sekunden',
-          packageCaption: '2-3 Buchstabenwörter',
-          packageLabel: 'nur 350 🇩🇪 Wörter',
+          packageTitle: '🇩🇪',
+          packageCaption: '2-3 Buchstaben',
+          packageLabel: 'ca. 350 Wörter',
           poolSizePerWord: 350,
           wordCount: 5,
           modelInformation: {
@@ -356,22 +358,22 @@ describe('S05 content traceability', () => {
         fifthWordAction: 'Schätzfrage',
         languagePoolEstimate: {
           question:
-            'Wie viele Sprachpakete bräuchten wir insgesamt, damit vier Wörter ungefähr denselben Aufwand erzeugen wie diese fünf?',
+            'Wie viele Wortlisten bräuchten wir insgesamt, damit vier Wörter ungefähr denselben Aufwand erzeugen wie diese fünf?',
           minimum: 4,
           maximum: 195,
           target: 95,
-          inputLabel: 'Anzahl der Sprachpakete',
-          valueUnit: 'Sprachpakete',
-          decrementLabel: 'Ein Sprachpaket weniger',
-          incrementLabel: 'Ein Sprachpaket mehr',
+          inputLabel: 'Anzahl der Wortlisten',
+          valueUnit: 'Wortlisten',
+          decrementLabel: 'Eine Wortliste weniger',
+          incrementLabel: 'Eine Wortliste mehr',
           submitAction: 'Schätzung abgeben',
-          solutionLabel: '95 Sprachpakete',
+          solutionLabel: '95 Wortlisten',
           legend: {
             missing: 'Bis zur Lösung ergänzt',
             excess: 'Über der Lösung zurückgesetzt',
           },
           result:
-            'Von vier auf fast 95 Sprachpakete, nur um ein zusätzliches Wort auszugleichen.',
+            'Von vier auf fast 95 Wortlisten, nur um ein zusätzliches Wort auszugleichen.',
           takeaway:
             'Das ist der zweite Grund: Ein weiteres zufälliges Wort kann viel mehr bringen als ein größerer Wörterpool.',
         },
@@ -422,10 +424,10 @@ describe('S05 content traceability', () => {
           },
         },
         languagePackages: [
-          { id: 'de', label: 'Sprachpaket 🇩🇪' },
-          { id: 'es', label: 'Sprachpaket 🇪🇸' },
-          { id: 'fr', label: 'Sprachpaket 🇫🇷' },
-          { id: 'ja', label: 'Sprachpaket 🇯🇵' },
+          { id: 'de', label: '🇩🇪 Wortliste' },
+          { id: 'es', label: '🇪🇸 Wortliste' },
+          { id: 'fr', label: '🇫🇷 Wortliste' },
+          { id: 'ja', label: '🇯🇵 Wortliste' },
         ],
       },
     });
