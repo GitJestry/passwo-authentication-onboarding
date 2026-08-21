@@ -6,7 +6,7 @@ import {
 } from '@passwo/training-engine';
 import { BrowserShell, type BrowserShellSnapshot, type DesktopPlatform } from '@passwo/ui';
 import { useEffect, useRef, useState } from 'react';
-import attackerAsset from '../../../../assets/passwo/attacker.png';
+import attackerAsset from '../../../../assets/passwo/attacker.webp';
 import { NetworkSymbol } from '../../../../adapters/network/NetworkSymbolRegistry.js';
 import { CampusWebsiteBackdrop } from '../../CampusWebsiteBackdrop.js';
 import { CampusgramIncidentNotice } from '../../CampusgramIncidentNotice.js';
@@ -120,6 +120,8 @@ export function S04IncidentTraining({
                 <img
                   className={styles.attacker}
                   src={attackerAsset}
+                  width={1024}
+                  height={1024}
                   alt="Symbolische Darstellung eines Angreifers am Computer"
                 />
                 <PassWoGuide

@@ -10,7 +10,7 @@ import {
   type CSSProperties,
   type RefObject,
 } from 'react';
-import comparisonPathShieldAsset from '../../../../assets/s06/comparison-path-shield.png';
+import comparisonPathShieldAsset from '../../../../assets/s06/comparison-path-shield.webp';
 import { NetworkSymbol } from '../../../../adapters/network/NetworkSymbolRegistry.js';
 import { PasswordBuildingBlocks } from '../S05/PasswordBuildingBlocks.js';
 import styles from './S06PasswordComparisonProjection.module.css';
@@ -225,6 +225,8 @@ function PreviewAttackPath({
         <img
           className={styles.previewShield}
           src={comparisonPathShieldAsset}
+          width={512}
+          height={768}
           alt=""
         />
       ) : null}

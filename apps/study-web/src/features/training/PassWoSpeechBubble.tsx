@@ -182,7 +182,12 @@ export function PassWoSpeechBubble({
                             <NetworkSymbol symbolId={segment.emphasis.symbolId} />
                           )
                         ) : (
-                          <img src={segment.emphasis.symbolSrc} alt="" />
+                          <img
+                            src={segment.emphasis.symbolSrc}
+                            width={768}
+                            height={768}
+                            alt=""
+                          />
                         )}
                       </span>
                     )}

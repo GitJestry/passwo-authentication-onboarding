@@ -14,18 +14,48 @@ import {
 import { createStudyMachine } from '@passwo/study-engine';
 import { ArtifactViewport } from '@passwo/ui';
 import { useMachine } from '@xstate/react';
-import { type ReactNode, useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import {
+  lazy,
+  type ReactNode,
+  Suspense,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import { BrowserSegmentTimingAdapter } from '../../adapters/timing/BrowserSegmentTimingAdapter.js';
 import { createStudyApi, type StudyApi } from '../../api/study-api.js';
-import { ReferenceArtifact } from '../reference/ReferenceArtifact.js';
+import { scheduleIdleWork } from '../../app/idle-prefetch.js';
+import {
+  loadReferenceArtifactRenderer,
+  loadSupportiveArtifactRenderer,
+  preloadSupportiveArtifactRuntime,
+} from '../artifact-loaders.js';
 import {
   cancelReferenceArtifactPrefetch,
   prefetchReferenceArtifact,
 } from '../reference/reference-prefetch.js';
-import { PasswordModuleTraining } from '../training/PasswordModuleTraining.js';
 import { TrainingClipboardBoundary } from '../training/TrainingClipboardBoundary.js';
 import { GuardrailBlockForm, QuestionnaireSectionForm } from './InstrumentForm.js';
 import styles from './StudyFlow.module.css';
+
+const ReferenceArtifact = lazy(async () => {
+  const module = await loadReferenceArtifactRenderer();
+  return { default: module.ReferenceArtifact };
+});
+const PasswordModuleTraining = lazy(async () => {
+  const module = await loadSupportiveArtifactRenderer();
+  return { default: module.PasswordModuleTraining };
+});
+
+function ArtifactRendererLoadingBoundary() {
+  return (
+    <div className={styles.loading} role="status" aria-busy="true">
+      Das Lernangebot beginnt gleich
+    </div>
+  );
+}
 
 const preInstrument = instrumentRuntimeManifest.instruments['pre-v1'];
 const postInstrument = instrumentRuntimeManifest.instruments['post-v1'];
@@ -558,6 +588,16 @@ function HydratedStudyFlow({
     prefetchReferenceArtifact();
   }, [context.condition, snapshot]);
   useEffect(() => {
+    if (context.condition === null) return;
+    const preloadRenderer =
+      context.condition === 'supportive'
+        ? preloadSupportiveArtifactRuntime
+        : loadReferenceArtifactRenderer;
+    return scheduleIdleWork(() => {
+      void preloadRenderer().catch(() => undefined);
+    });
+  }, [context.condition]);
+  useEffect(() => {
     if (
       snapshot.matches({ artifactLifecycle: { artifact: 'supportive' } }) &&
       context.artifactCheckpoint === 'supportive:complete'
@@ -661,29 +701,37 @@ function HydratedStudyFlow({
       segmentTimingPort === null ? (
         <ConfigurationError errorCode="missing-segment-timing-port" />
       ) : (
-        <SupportiveArtifact
-          timingPort={segmentTimingPort}
-          timingError={
-            context.artifactTimingErrorKind === 'visibility' ? context.researchErrorCode : null
-          }
-          onRetryTiming={() => send({ type: 'RETRY_ARTIFACT_VISIBILITY' })}
-          {...(supportiveResumeSegment === undefined ? {} : { resumeSegmentId: supportiveResumeSegment })}
-          onComplete={completeArtifact}
-        />
+        <Suspense fallback={<ArtifactRendererLoadingBoundary />}>
+          <SupportiveArtifact
+            timingPort={segmentTimingPort}
+            timingError={
+              context.artifactTimingErrorKind === 'visibility' ? context.researchErrorCode : null
+            }
+            onRetryTiming={() => send({ type: 'RETRY_ARTIFACT_VISIBILITY' })}
+            {...(supportiveResumeSegment === undefined
+              ? {}
+              : { resumeSegmentId: supportiveResumeSegment })}
+            onComplete={completeArtifact}
+          />
+        </Suspense>
       );
   } else if (snapshot.matches({ artifactLifecycle: { artifact: 'reference' } })) {
     content = (
-      <ReferenceArtifact
-        onComplete={completeArtifact}
-        {...(referenceResumeCheckpoint === undefined ? {} : { resumeCheckpoint: referenceResumeCheckpoint })}
-        onCheckpoint={async (checkpointId) => {
-          if (context.sessionId === null) throw new Error('missing-session');
-          await api.confirmArtifactCheckpoint(
-            context.sessionId,
-            referenceLessonCheckpointSchema.parse(`reference:${checkpointId}`),
-          );
-        }}
-      />
+      <Suspense fallback={<ArtifactRendererLoadingBoundary />}>
+        <ReferenceArtifact
+          onComplete={completeArtifact}
+          {...(referenceResumeCheckpoint === undefined
+            ? {}
+            : { resumeCheckpoint: referenceResumeCheckpoint })}
+          onCheckpoint={async (checkpointId) => {
+            if (context.sessionId === null) throw new Error('missing-session');
+            await api.confirmArtifactCheckpoint(
+              context.sessionId,
+              referenceLessonCheckpointSchema.parse(`reference:${checkpointId}`),
+            );
+          }}
+        />
+      </Suspense>
     );
   } else if (snapshot.matches({ artifactLifecycle: 'endError' })) {
     content = (

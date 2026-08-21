@@ -21,8 +21,8 @@ import {
 } from 'react';
 import { assign, setup } from 'xstate';
 import { ReactFlowNetworkAdapter } from '../../../../adapters/network/ReactFlowNetworkAdapter.js';
-import blueShieldAsset from '../../../../assets/s05/password-factor-shield.png';
-import greenShieldAsset from '../../../../assets/s06/comparison-path-shield.png';
+import blueShieldAsset from '../../../../assets/s05/password-factor-shield.webp';
+import greenShieldAsset from '../../../../assets/s06/comparison-path-shield.webp';
 import { CelebrationConfetti } from '../../CelebrationConfetti.js';
 import { PassWoGuide } from '../../PassWoGuide.js';
 import { passWoSpeechEmphasisFor } from '../../PassWoSpeechEmphasis.js';
@@ -617,6 +617,8 @@ export function S08NetworkRewindStage({
                 <img
                   className={styles.summaryShield}
                   src={greenShieldAsset}
+                  width={512}
+                  height={768}
                   alt=""
                   aria-hidden="true"
                 />
@@ -651,6 +653,8 @@ export function S08NetworkRewindStage({
                 <img
                   className={styles.summaryShield}
                   src={blueShieldAsset}
+                  width={512}
+                  height={768}
                   alt=""
                   aria-hidden="true"
                 />

@@ -4,14 +4,39 @@ import {
   isLiveQaPath,
   liveQaRouteForPath,
 } from '@passwo/contracts';
-import { DesignLab } from '../design-lab/DesignLab.js';
-import { StudyFlow } from '../features/study/StudyFlow.js';
-import { LiveQa } from '../live-qa/LiveQa.js';
+import { lazy, Suspense } from 'react';
+
+const DesignLab = lazy(async () => {
+  const module = await import('../design-lab/DesignLab.js');
+  return { default: module.DesignLab };
+});
+const StudyFlow = lazy(async () => {
+  const module = await import('../features/study/StudyFlow.js');
+  return { default: module.StudyFlow };
+});
+const LiveQa = lazy(async () => {
+  const module = await import('../live-qa/LiveQa.js');
+  return { default: module.LiveQa };
+});
+
+function RouteLoadingBoundary() {
+  return (
+    <main aria-busy="true">
+      <p role="status">Studienstand wird geladen …</p>
+    </main>
+  );
+}
 
 export function App() {
   const { pathname } = window.location;
   const liveQaRoute = liveQaRouteForPath(pathname);
-  if (liveQaRoute !== null) return <LiveQa route={liveQaRoute} />;
+  if (liveQaRoute !== null) {
+    return (
+      <Suspense fallback={<RouteLoadingBoundary />}>
+        <LiveQa route={liveQaRoute} />
+      </Suspense>
+    );
+  }
   if (isLiveQaPath(pathname)) {
     return (
       <main>
@@ -22,7 +47,11 @@ export function App() {
 
   const designLabScenarioId = designLabScenarioForPath(pathname);
   if (designLabScenarioId !== null) {
-    return <DesignLab scenarioId={designLabScenarioId} />;
+    return (
+      <Suspense fallback={<RouteLoadingBoundary />}>
+        <DesignLab scenarioId={designLabScenarioId} />
+      </Suspense>
+    );
   }
   if (isDesignLabPath(pathname)) {
     return (
@@ -32,5 +61,9 @@ export function App() {
     );
   }
 
-  return <StudyFlow />;
+  return (
+    <Suspense fallback={<RouteLoadingBoundary />}>
+      <StudyFlow />
+    </Suspense>
+  );
 }

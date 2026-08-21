@@ -1,8 +1,8 @@
 import { s01Content, type S01AccountId } from '@passwo/training-content';
 import type { ReactNode, Ref } from 'react';
-import campusgramHero from '../../assets/campus-sites/campusgram-hero.png';
-import campusEmailHero from '../../assets/campus-sites/campus-mail-hero.png';
-import masterCampusHero from '../../assets/campus-sites/master-campus-hero.png';
+import campusgramHero from '../../assets/campus-sites/campusgram-hero.webp';
+import campusEmailHero from '../../assets/campus-sites/campus-mail-hero.webp';
+import masterCampusHero from '../../assets/campus-sites/master-campus-hero.webp';
 import { NetworkSymbol } from '../../adapters/network/NetworkSymbolRegistry.js';
 import styles from './CampusWebsiteBackdrop.module.css';
 
@@ -38,6 +38,8 @@ type CampusWebsiteKind = S01AccountId;
 interface CampusWebsiteDefinition {
   readonly account: CampusAccount;
   readonly heroImage: string;
+  readonly heroHeight: number;
+  readonly heroWidth: number;
   readonly kind: CampusWebsiteKind;
 }
 
@@ -50,11 +52,29 @@ function campusAccount(accountId: S01AccountId): CampusAccount {
 function campusWebsiteDefinition(accountId: S01AccountId): CampusWebsiteDefinition {
   switch (accountId) {
     case 'master-campus':
-      return { account: campusAccount(accountId), heroImage: masterCampusHero, kind: accountId };
+      return {
+        account: campusAccount(accountId),
+        heroImage: masterCampusHero,
+        heroHeight: 747,
+        heroWidth: 1400,
+        kind: accountId,
+      };
     case 'campus-email':
-      return { account: campusAccount(accountId), heroImage: campusEmailHero, kind: accountId };
+      return {
+        account: campusAccount(accountId),
+        heroImage: campusEmailHero,
+        heroHeight: 747,
+        heroWidth: 1400,
+        kind: accountId,
+      };
     case 'campusgram':
-      return { account: campusAccount(accountId), heroImage: campusgramHero, kind: accountId };
+      return {
+        account: campusAccount(accountId),
+        heroImage: campusgramHero,
+        heroHeight: 933,
+        heroWidth: 1400,
+        kind: accountId,
+      };
     default: {
       const exhaustiveAccountId: never = accountId;
       throw new Error(`unknown-campus-account:${String(exhaustiveAccountId)}`);
@@ -65,7 +85,13 @@ function campusWebsiteDefinition(accountId: S01AccountId): CampusWebsiteDefiniti
 function SiteVisual({ definition }: { readonly definition: CampusWebsiteDefinition }) {
   return (
     <figure className={styles.heroVisual}>
-      <img src={definition.heroImage} alt="" />
+      <img
+        src={definition.heroImage}
+        width={definition.heroWidth}
+        height={definition.heroHeight}
+        loading="eager"
+        alt=""
+      />
     </figure>
   );
 }

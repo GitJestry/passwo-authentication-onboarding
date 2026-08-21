@@ -21,6 +21,6 @@ export default defineConfig({
         pdfViewer: resolve(import.meta.dirname, 'pdf-viewer.html'),
       },
     },
-    sourcemap: true,
+    sourcemap: false,
   },
 });

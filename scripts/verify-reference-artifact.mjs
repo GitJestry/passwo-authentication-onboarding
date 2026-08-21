@@ -147,8 +147,12 @@ async function sha256(path) {
     .digest('hex');
 }
 
-async function manifestHash(directory) {
-  const files = await filesBelow(directory);
+async function manifestHash(directory, { ignoreGzipSidecars = false } = {}) {
+  // Delivery-only gzip sidecars are derived after artifact verification and do not alter the
+  // frozen adapted content represented by the canonical manifest.
+  const files = (await filesBelow(directory)).filter(
+    (file) => !ignoreGzipSidecars || !file.endsWith('.gz'),
+  );
   const manifest = [];
   for (const file of files) {
     const relativePath = relative(directory, file).split(sep).join('/');
@@ -427,7 +431,7 @@ async function verify() {
     readFile(transformationPath, 'utf8'),
     readFile(contractPath, 'utf8'),
     manifestHash(sourceDirectory),
-    manifestHash(buildDirectory),
+    manifestHash(buildDirectory, { ignoreGzipSidecars: true }),
   ]);
 
   const metadataExpectations = [

@@ -10,7 +10,7 @@ import type { NetworkSceneSnapshot, PasswordConsequenceScenePlan } from '@passwo
 import { useEffect, useRef, useState } from 'react';
 import { NetworkMotionAdapter } from '../../../../adapters/network/NetworkMotionAdapter.js';
 import { ReactFlowNetworkAdapter } from '../../../../adapters/network/ReactFlowNetworkAdapter.js';
-import whatIfLogo from '../../../../assets/s06/what-if-logo.png';
+import whatIfLogo from '../../../../assets/s06/what-if-logo.webp';
 import { PassWoGuide } from '../../PassWoGuide.js';
 import { passWoSpeechEmphasisFor } from '../../PassWoSpeechEmphasis.js';
 import { AccountAssessmentNetwork } from '../AccountAssessmentNetwork.js';
@@ -253,6 +253,8 @@ export function S06ConsequenceTraining({
           <img
             className={styles.hypotheticalLogo}
             src={whatIfLogo}
+            width={512}
+            height={512}
             alt={s06ConsequenceContent.modes.hypothetical.overlay}
           />
         ) : null}

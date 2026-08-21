@@ -48,7 +48,7 @@ Der Befehl führt standardmäßig aus:
 1. den lokalen SecAware-Study-Build und dessen Integritätsprüfung,
 2. `pnpm typecheck`,
 3. den schnellen Playwright-Vollablauf für **beide** erzwungenen Bedingungen mit In-Memory-Datenbank,
-4. den Web-/Server-Build inklusive vorkomprimierter Vite-Assets,
+4. den Web-/Server-Build inklusive vorkomprimierter Vite- und SecAware-Auslieferungsassets,
 5. einen neuen timestamp-basierten Release per `rsync`, wobei der private SecAware-Quellsnapshot lokal bleibt,
 6. `pnpm install --frozen-lockfile` auf Linux und die Host-Prüfung von `better-sqlite3`,
 7. die produktive Runtime und beide Live-QA-Runtimes inklusive systemd-Unit,
@@ -118,6 +118,7 @@ test -f apps/study-server/dist/production.js
 test -f apps/study-server/dist/qa-production.js
 test -f apps/study-web/dist/index.html
 test -f research/private/reference/secaware/passwords-authentication/2026-07-26/study-build/scormdriver/indexAPI.html
+test -f research/private/reference/secaware/passwords-authentication/2026-07-26/study-build/scormdriver/scormdriver.js.gz
 ```
 
 ## 4. Basispakete und Toolchain auf der VM installieren
@@ -237,6 +238,7 @@ test -f apps/study-server/dist/production.js
 test -f apps/study-server/dist/qa-production.js
 test -f apps/study-web/dist/index.html
 test -f research/private/reference/secaware/passwords-authentication/2026-07-26/study-build/scormdriver/indexAPI.html
+test -f research/private/reference/secaware/passwords-authentication/2026-07-26/study-build/scormdriver/scormdriver.js.gz
 
 chown -R root:root "/opt/passwo-study/releases/${RELEASE_ID}"
 chmod -R o-w "/opt/passwo-study/releases/${RELEASE_ID}"

@@ -85,6 +85,16 @@
   overflow: hidden;
 }
 
+.artifactLoading {
+  display: grid;
+  width: 100%;
+  min-height: 18rem;
+  place-items: center;
+  color: var(--color-ink-strong);
+  background: var(--color-surface-primary);
+  font-weight: var(--font-weight-bold);
+}
+
 .toolbar {
   position: fixed;
   z-index: 10000;

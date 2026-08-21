@@ -5,10 +5,11 @@ import {
   type LiveQaRoute,
 } from '@passwo/contracts';
 import { ArtifactViewport } from '@passwo/ui';
-import { useState } from 'react';
-import { ReferenceArtifact } from '../features/reference/ReferenceArtifact.js';
-import { StudyFlow } from '../features/study/StudyFlow.js';
-import { PasswordModuleTraining } from '../features/training/PasswordModuleTraining.js';
+import { lazy, Suspense, useState } from 'react';
+import {
+  loadReferenceArtifactRenderer,
+  loadSupportiveArtifactRenderer,
+} from '../features/artifact-loaders.js';
 import { TrainingClipboardBoundary } from '../features/training/TrainingClipboardBoundary.js';
 import {
   completeLiveQaQuestionnaires,
@@ -17,6 +18,27 @@ import {
   skipLiveQaArtifact,
 } from './live-qa-api.js';
 import styles from './LiveQa.module.css';
+
+const ReferenceArtifact = lazy(async () => {
+  const module = await loadReferenceArtifactRenderer();
+  return { default: module.ReferenceArtifact };
+});
+const PasswordModuleTraining = lazy(async () => {
+  const module = await loadSupportiveArtifactRenderer();
+  return { default: module.PasswordModuleTraining };
+});
+const StudyFlow = lazy(async () => {
+  const module = await import('../features/study/StudyFlow.js');
+  return { default: module.StudyFlow };
+});
+
+function ArtifactLoadingBoundary() {
+  return (
+    <div className={styles.artifactLoading} role="status" aria-busy="true">
+      Das Lernangebot beginnt gleich
+    </div>
+  );
+}
 
 const conditionCopy = {
   supportive: {
@@ -187,13 +209,15 @@ function DirectArtifact({ condition }: { readonly condition: LiveQaCondition }) 
     <main className={styles.artifactSurface} data-artifact-surface="">
       <QaToolbar condition={condition} mode="direct" />
       <ArtifactViewport>
-        {condition === 'supportive' ? (
-          <TrainingClipboardBoundary allowCopy={false}>
-            <PasswordModuleTraining onComplete={() => setCompleted(true)} />
-          </TrainingClipboardBoundary>
-        ) : (
-          <ReferenceArtifact onComplete={() => setCompleted(true)} />
-        )}
+        <Suspense fallback={<ArtifactLoadingBoundary />}>
+          {condition === 'supportive' ? (
+            <TrainingClipboardBoundary allowCopy={false}>
+              <PasswordModuleTraining onComplete={() => setCompleted(true)} />
+            </TrainingClipboardBoundary>
+          ) : (
+            <ReferenceArtifact onComplete={() => setCompleted(true)} />
+          )}
+        </Suspense>
       </ArtifactViewport>
     </main>
   );
@@ -203,7 +227,9 @@ function FullStudy({ condition }: { readonly condition: LiveQaCondition }) {
   return (
     <>
       <QaToolbar condition={condition} mode="study" />
-      <StudyFlow apiBasePath={liveQaApiBasePath(condition)} />
+      <Suspense fallback={<ArtifactLoadingBoundary />}>
+        <StudyFlow apiBasePath={liveQaApiBasePath(condition)} />
+      </Suspense>
     </>
   );
 }

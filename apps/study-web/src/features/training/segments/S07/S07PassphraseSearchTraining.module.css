@@ -149,7 +149,7 @@
   padding: clamp(2rem, 8vh, 6rem) 2rem clamp(6rem, 18vh, 11rem);
   color: var(--search-ink);
   background-color: var(--color-surface-primary);
-  background-image: url('../../../../assets/s07/search-start-artwork.png');
+  background-image: url('../../../../assets/s07/search-start-artwork.webp');
   background-position: center;
   background-size: cover;
   font-family: var(--font-family-sans);

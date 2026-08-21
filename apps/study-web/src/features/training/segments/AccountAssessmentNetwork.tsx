@@ -2,9 +2,9 @@ import type { PasswordRelation, S06AccountId } from '@passwo/contracts';
 import { s06ConsequenceContent } from '@passwo/training-content';
 import type { NetworkSceneSnapshot } from '@passwo/visualization';
 import { useCallback, useMemo, type CSSProperties } from 'react';
-import attackerAsset from '../../../assets/passwo/attacker.png';
-import passwordFactorShieldAsset from '../../../assets/s05/password-factor-shield.png';
-import comparisonPathShieldAsset from '../../../assets/s06/comparison-path-shield.png';
+import attackerAsset from '../../../assets/passwo/attacker.webp';
+import passwordFactorShieldAsset from '../../../assets/s05/password-factor-shield.webp';
+import comparisonPathShieldAsset from '../../../assets/s06/comparison-path-shield.webp';
 import type { NetworkPresentationSnapshot } from '../../../adapters/network/NetworkMotionAdapter.js';
 import { CelebrationConfetti } from '../CelebrationConfetti.js';
 import {
@@ -89,7 +89,7 @@ function AccountStatusOverlay({
             <strong className={styles.attackerLabel}>
               {s06ConsequenceContent.page.dataLeak}
             </strong>
-            <img src={attackerAsset} alt="" />
+            <img src={attackerAsset} width={1024} height={1024} alt="" />
           </span>
         </span>
       ) : null}
@@ -99,6 +99,8 @@ function AccountStatusOverlay({
           data-account-shield
           data-main={node.kind === 'account' || undefined}
           src={shieldAsset}
+          width={512}
+          height={768}
           alt=""
           aria-hidden="true"
         />
@@ -108,6 +110,8 @@ function AccountStatusOverlay({
           className={styles.comparisonPathShield}
           data-comparison-path-shield
           src={comparisonPathShieldAsset}
+          width={512}
+          height={768}
           alt=""
           aria-hidden="true"
         />

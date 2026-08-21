@@ -226,9 +226,9 @@
   .studyPage::before,
   .studyPage::after {
     background-image:
-      url("../../assets/study/participant-shield.png"),
-      url("../../assets/study/participant-shield.png"),
-      url("../../assets/study/participant-shield.png");
+      url("../../assets/study/participant-shield.webp"),
+      url("../../assets/study/participant-shield.webp"),
+      url("../../assets/study/participant-shield.webp");
     background-position: center 12%, center 50%, center 88%;
     background-repeat: no-repeat;
     background-size: clamp(4.5rem, 7vw, 6rem) auto;

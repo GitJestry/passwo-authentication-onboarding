@@ -12,8 +12,8 @@ import {
   type DesktopPlatform,
 } from '@passwo/ui';
 import { useState } from 'react';
-import blueShieldAsset from '../../../../assets/s05/password-factor-shield.png';
-import greenShieldAsset from '../../../../assets/s06/comparison-path-shield.png';
+import blueShieldAsset from '../../../../assets/s05/password-factor-shield.webp';
+import greenShieldAsset from '../../../../assets/s06/comparison-path-shield.webp';
 import { NetworkSymbol } from '../../../../adapters/network/NetworkSymbolRegistry.js';
 import { CampusWebsiteBackdrop } from '../../CampusWebsiteBackdrop.js';
 import { CampusgramIncidentNotice } from '../../CampusgramIncidentNotice.js';
@@ -785,7 +785,7 @@ export function S07PassphraseSearchTraining({
                                   .campusgramPasswordChangeCompleted.shieldLabels.green
                               }
                             </span>
-                            <img src={greenShieldAsset} alt="" />
+                            <img src={greenShieldAsset} width={512} height={768} alt="" />
                           </span>
                           <span className={styles.completedShield}>
                             <span className={styles.completedShieldLabelBlue}>
@@ -794,7 +794,7 @@ export function S07PassphraseSearchTraining({
                                   .campusgramPasswordChangeCompleted.shieldLabels.blue
                               }
                             </span>
-                            <img src={blueShieldAsset} alt="" />
+                            <img src={blueShieldAsset} width={512} height={768} alt="" />
                           </span>
                         </span>
                         <CelebrationConfetti />

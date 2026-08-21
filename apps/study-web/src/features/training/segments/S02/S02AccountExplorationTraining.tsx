@@ -9,8 +9,8 @@ import {
   type CSSProperties,
   type PointerEvent,
 } from 'react';
-import passWoThinkAsset from '../../../../assets/passwo/passwo-dock.png';
-import passWoWaitingAsset from '../../../../assets/passwo/passwo-waiting.png';
+import passWoThinkAsset from '../../../../assets/passwo/passwo-dock.webp';
+import passWoWaitingAsset from '../../../../assets/passwo/passwo-waiting.webp';
 import { NetworkMotionAdapter } from '../../../../adapters/network/NetworkMotionAdapter.js';
 import { NetworkSymbol } from '../../../../adapters/network/NetworkSymbolRegistry.js';
 import {
@@ -1088,6 +1088,8 @@ export function S02AccountExplorationTraining({
                 data-passwo-character
                 data-speaking={guideOpen || undefined}
                 src={guideOpen ? passWoThinkAsset : passWoWaitingAsset}
+                width={360}
+                height={guideOpen ? 540 : 435}
                 alt={s02Content.accessibility.characterLabel}
               />
             </div>

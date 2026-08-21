@@ -38,6 +38,7 @@ test -f apps/study-server/dist/production.js
 test -f apps/study-server/dist/qa-production.js
 test -f apps/study-web/dist/index.html
 test -f "${reference_build}/scormdriver/indexAPI.html"
+test -f "${reference_build}/scormdriver/scormdriver.js.gz"
 
 control_path="/tmp/passwo-deploy-ssh-$$"
 cleanup() {
@@ -123,6 +124,7 @@ test -f apps/study-server/dist/production.js
 test -f apps/study-server/dist/qa-production.js
 test -f apps/study-web/dist/index.html
 test -f "${reference_build}/scormdriver/indexAPI.html"
+test -f "${reference_build}/scormdriver/scormdriver.js.gz"
 runuser -u www-data -- test -r "${new_release}/${reference_build}/scormdriver/indexAPI.html"
 
 install -o root -g root -m 0644 \

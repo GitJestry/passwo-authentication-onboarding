@@ -1,7 +1,7 @@
 import { useMemo, useRef, type ReactNode } from 'react';
-import passWoDockAsset from '../../assets/passwo/passwo-dock.png';
-import passWoWarningAsset from '../../assets/passwo/passwo-warning.png';
-import passWoWaitingAsset from '../../assets/passwo/passwo-waiting.png';
+import passWoDockAsset from '../../assets/passwo/passwo-dock.webp';
+import passWoWarningAsset from '../../assets/passwo/passwo-warning.webp';
+import passWoWaitingAsset from '../../assets/passwo/passwo-waiting.webp';
 import {
   PassWoSpeechBubble,
   type PassWoSpeechAction,
@@ -110,6 +110,12 @@ export function PassWoGuide({
       ? 0
       : Math.min(100, Math.max(0, (progress.current / progress.total) * 100));
   const showTaskStatus = !helpOpen || showTaskStatusWhenSpeaking;
+  const characterAsset =
+    pose === 'warning'
+      ? { src: passWoWarningAsset, width: 360, height: 540 }
+      : helpOpen
+        ? { src: passWoDockAsset, width: 360, height: 540 }
+        : { src: passWoWaitingAsset, width: 360, height: 435 };
 
   return (
     <aside
@@ -175,13 +181,9 @@ export function PassWoGuide({
           data-speaking={helpOpen || undefined}
           data-passwo-character
           data-pose={pose === 'warning' ? 'warning' : helpOpen ? 'speaking' : 'waiting'}
-          src={
-            pose === 'warning'
-              ? passWoWarningAsset
-              : helpOpen
-                ? passWoDockAsset
-                : passWoWaitingAsset
-          }
+          src={characterAsset.src}
+          width={characterAsset.width}
+          height={characterAsset.height}
           alt=""
         />
       </div>

@@ -13,8 +13,16 @@ import {
 } from '@passwo/training-engine';
 import type { DesktopPlatform } from '@passwo/ui';
 import type { NetworkSceneSnapshot } from '@passwo/visualization';
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import passWoWelcomeAsset from '../../assets/passwo/passwo-welcome.png';
+import {
+  lazy,
+  Suspense,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
+import passWoWelcomeAsset from '../../assets/passwo/passwo-welcome.webp';
 import { PassWoSpeechBubble } from './PassWoSpeechBubble.js';
 import { passWoSpeechEmphasisFor } from './PassWoSpeechEmphasis.js';
 import {
@@ -24,30 +32,136 @@ import {
 import styles from './PasswordModuleTraining.module.css';
 import { SectionTransition } from './SectionTransition.js';
 import { S00Training } from './S00Training.js';
-import { S01Training } from './S01Training.js';
-import {
-  S02AccountExplorationTraining,
-  type S02TimingState,
-} from './segments/S02/S02AccountExplorationTraining.js';
-import { S03RetrievalTraining } from './segments/S03/S03RetrievalTraining.js';
-import { S04IncidentTraining } from './segments/S04/S04IncidentTraining.js';
-import {
-  S05AnalysisTraining,
-  type S05CompletionPort,
-  type S05TimingState,
+import type { S02TimingState } from './segments/S02/S02AccountExplorationTraining.js';
+import type {
+  S05CompletionPort,
+  S05TimingState,
 } from './segments/S05/S05AnalysisTraining.js';
-import {
-  S06ConsequenceTraining,
-  type S06ConsequenceSource,
-  type S06TimingState,
+import type {
+  S06ConsequenceSource,
+  S06TimingState,
 } from './segments/S06/S06ConsequenceTraining.js';
-import { createS06ConsequenceScenePlan } from './segments/S06/S06ConsequenceController.js';
-import { S07PassphraseSearchTraining } from './segments/S07/S07PassphraseSearchTraining.js';
 import {
-  deriveS07AccountFeedback,
-  s07RecommendedResolutionAccountIds,
-} from './segments/S07/S07PassphraseSearchMachine.js';
-import { S08NetworkRewindStage } from './segments/S08/S08NetworkRewindStage.js';
+  preloadTrainingSegmentImages,
+  type TrainingSegmentId,
+} from './training-runtime-assets.js';
+
+const loadS01Training = () => import('./S01Training.js');
+const loadS02Training = () => import('./segments/S02/S02AccountExplorationTraining.js');
+const loadS03Training = () => import('./segments/S03/S03RetrievalTraining.js');
+const loadS04Training = () => import('./segments/S04/S04IncidentTraining.js');
+const loadS05Training = () => import('./segments/S05/S05AnalysisTraining.js');
+const loadS06Training = () => import('./segments/S06/S06ConsequenceTraining.js');
+const loadS07Training = () => import('./segments/S07/S07PassphraseSearchTraining.js');
+const loadS08Training = () => import('./segments/S08/S08NetworkRewindStage.js');
+
+const S01Training = lazy(async () => {
+  const module = await loadS01Training();
+  return { default: module.S01Training };
+});
+const S02AccountExplorationTraining = lazy(async () => {
+  const module = await loadS02Training();
+  return { default: module.S02AccountExplorationTraining };
+});
+const S03RetrievalTraining = lazy(async () => {
+  const module = await loadS03Training();
+  return { default: module.S03RetrievalTraining };
+});
+const S04IncidentTraining = lazy(async () => {
+  const module = await loadS04Training();
+  return { default: module.S04IncidentTraining };
+});
+const S05AnalysisTraining = lazy(async () => {
+  const module = await loadS05Training();
+  return { default: module.S05AnalysisTraining };
+});
+const S06ConsequenceTraining = lazy(async () => {
+  const module = await loadS06Training();
+  return { default: module.S06ConsequenceTraining };
+});
+const S07PassphraseSearchTraining = lazy(async () => {
+  const module = await loadS07Training();
+  return { default: module.S07PassphraseSearchTraining };
+});
+const S08NetworkRewindStage = lazy(async () => {
+  const module = await loadS08Training();
+  return { default: module.S08NetworkRewindStage };
+});
+
+interface LateTrainingTools {
+  readonly createS06ConsequenceScenePlan: (typeof import(
+    './segments/S06/S06ConsequenceController.js'
+  ))['createS06ConsequenceScenePlan'];
+  readonly deriveS07AccountFeedback: (typeof import(
+    './segments/S07/S07PassphraseSearchMachine.js'
+  ))['deriveS07AccountFeedback'];
+  readonly s07RecommendedResolutionAccountIds: (typeof import(
+    './segments/S07/S07PassphraseSearchMachine.js'
+  ))['s07RecommendedResolutionAccountIds'];
+}
+
+let lateTrainingToolsPromise: Promise<LateTrainingTools> | null = null;
+
+function loadLateTrainingTools(): Promise<LateTrainingTools> {
+  lateTrainingToolsPromise ??= Promise.all([
+    import('./segments/S06/S06ConsequenceController.js'),
+    import('./segments/S07/S07PassphraseSearchMachine.js'),
+  ]).then(([s06Module, s07Module]) => ({
+    createS06ConsequenceScenePlan: s06Module.createS06ConsequenceScenePlan,
+    deriveS07AccountFeedback: s07Module.deriveS07AccountFeedback,
+    s07RecommendedResolutionAccountIds: s07Module.s07RecommendedResolutionAccountIds,
+  }));
+  return lateTrainingToolsPromise;
+}
+
+let passwordModuleRuntimeWarmup: Promise<void> | null = null;
+
+function preloadTrainingCohort(
+  segments: readonly {
+    readonly id: TrainingSegmentId;
+    readonly loadModule: () => Promise<unknown>;
+  }[],
+): Promise<void> {
+  return Promise.all(
+    segments.map(({ id, loadModule }) =>
+      Promise.all([loadModule(), preloadTrainingSegmentImages(id)]),
+    ),
+  ).then(() => undefined);
+}
+
+export function preloadPasswordModuleRuntime(): Promise<void> {
+  passwordModuleRuntimeWarmup ??= Promise.all([
+    preloadTrainingSegmentImages('entry', 'high'),
+    preloadTrainingSegmentImages('s00', 'high'),
+    preloadTrainingCohort([
+      { id: 's01', loadModule: loadS01Training },
+      { id: 's02', loadModule: loadS02Training },
+      { id: 's03', loadModule: loadS03Training },
+      { id: 's04', loadModule: loadS04Training },
+    ]),
+  ])
+    .then(() =>
+      preloadTrainingCohort([
+        { id: 's05', loadModule: loadS05Training },
+        {
+          id: 's06',
+          loadModule: () => Promise.all([loadS06Training(), loadLateTrainingTools()]),
+        },
+        { id: 's07', loadModule: loadS07Training },
+        { id: 's08', loadModule: loadS08Training },
+      ]),
+    )
+    .then(() => undefined);
+  return passwordModuleRuntimeWarmup;
+}
+
+function TrainingSegmentLoadingBoundary() {
+  return (
+    <div className={styles.loading} role="status" aria-busy="true">
+      Training wird vorbereitet …
+    </div>
+  );
+}
 
 export interface PasswordModuleTrainingProps {
   readonly timingPort?: SegmentTimingPort;
@@ -63,7 +177,15 @@ function s06RetrievalStatus(
   return status === undefined || status === 'pending' ? null : status;
 }
 
-export function PasswordModuleTraining({
+export function PasswordModuleTraining(props: PasswordModuleTrainingProps) {
+  return (
+    <Suspense fallback={<TrainingSegmentLoadingBoundary />}>
+      <PasswordModuleTrainingContent {...props} />
+    </Suspense>
+  );
+}
+
+function PasswordModuleTrainingContent({
   timingPort,
   externalTimingError = null,
   onRetryExternalTiming,
@@ -73,6 +195,7 @@ export function PasswordModuleTraining({
   const [snapshot, setSnapshot] = useState<PasswordModuleSnapshot | null>(null);
   const [platform, setPlatform] = useState<DesktopPlatform>('mac');
   const [s06SummaryNetwork, setS06SummaryNetwork] = useState<NetworkSceneSnapshot | null>(null);
+  const [lateTrainingTools, setLateTrainingTools] = useState<LateTrainingTools | null>(null);
   // Local intervention evidence only; never copied into machine context or research exports.
   const [semanticEvidenceByAccount, setSemanticEvidenceByAccount] = useState<
     Partial<Record<S06AccountId, TransientPasswordSemanticEvidence>>
@@ -166,15 +289,20 @@ export function PasswordModuleTraining({
     };
   }, [campusIdentity.assessmentTerms, passwordValues, retrievalResults, semanticEvidenceByAccount]);
   const s06Plan = useMemo(() => {
-    if (s06Source?.kind !== 'runtime') return null;
-    return createS06ConsequenceScenePlan(
+    if (s06Source?.kind !== 'runtime' || lateTrainingTools === null) return null;
+    return lateTrainingTools.createS06ConsequenceScenePlan(
       'supportive-runtime-s07-relations',
       s06Source.accounts,
     );
-  }, [s06Source]);
+  }, [lateTrainingTools, s06Source]);
   const s07AccountFeedback =
-    s06Plan === null ? [] : deriveS07AccountFeedback(s06Plan);
-  const s08RecommendedAccountIds = s07RecommendedResolutionAccountIds(s07AccountFeedback);
+    s06Plan === null || lateTrainingTools === null
+      ? []
+      : lateTrainingTools.deriveS07AccountFeedback(s06Plan);
+  const s08RecommendedAccountIds =
+    lateTrainingTools === null
+      ? []
+      : lateTrainingTools.s07RecommendedResolutionAccountIds(s07AccountFeedback);
   const completeS06 = useCallback(() => controllerRef.current?.completeS06(), []);
   const captureSemanticEvidenceForAccount = useCallback(
     (accountId: S06AccountId, evidence: TransientPasswordSemanticEvidence) => {
@@ -214,6 +342,22 @@ export function PasswordModuleTraining({
     completionNotifiedRef.current = true;
     onComplete();
   }, [onComplete, snapshot]);
+
+  useEffect(() => {
+    let cancelled = false;
+    void preloadPasswordModuleRuntime()
+      .catch(() => undefined)
+      .then(() => loadLateTrainingTools())
+      .then(
+        (tools) => {
+          if (!cancelled) setLateTrainingTools(tools);
+        },
+        () => undefined,
+      );
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   if (snapshot === null) {
     return <div className={styles.loading}>Training wird vorbereitet …</div>;
@@ -262,6 +406,10 @@ export function PasswordModuleTraining({
             <img
               ref={entryCharacterRef}
               src={passWoWelcomeAsset}
+              width={440}
+              height={660}
+              loading="eager"
+              fetchPriority="high"
               alt="PassWo, Begleiter im Training"
             />
           </div>
@@ -548,6 +696,9 @@ export function PasswordModuleTraining({
           ) : null}
         </section>
       );
+    }
+    if (lateTrainingTools === null || s06Plan === null) {
+      return <TrainingSegmentLoadingBoundary />;
     }
     return (
       <S07PassphraseSearchTraining

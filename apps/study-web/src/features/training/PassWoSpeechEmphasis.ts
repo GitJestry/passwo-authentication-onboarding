@@ -1,7 +1,7 @@
-import accountContextAsset from '../../assets/s05/category-logos/account-context.png';
-import commonCoresAsset from '../../assets/s05/category-logos/common-cores.png';
-import personalDetailsAsset from '../../assets/s05/category-logos/personal-details.png';
-import typicalChangesAsset from '../../assets/s05/category-logos/typical-changes.png';
+import accountContextAsset from '../../assets/s05/category-logos/account-context.webp';
+import commonCoresAsset from '../../assets/s05/category-logos/common-cores.webp';
+import personalDetailsAsset from '../../assets/s05/category-logos/personal-details.webp';
+import typicalChangesAsset from '../../assets/s05/category-logos/typical-changes.webp';
 
 export type PassWoSpeechEmphasisTone =
   | 'accent'

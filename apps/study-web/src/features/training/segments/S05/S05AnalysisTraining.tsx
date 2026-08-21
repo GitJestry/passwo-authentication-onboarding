@@ -10,11 +10,11 @@ import {
   useRef,
   useState,
 } from 'react';
-import accountContextAsset from '../../../../assets/s05/category-logos/account-context.png';
-import commonCoresAsset from '../../../../assets/s05/category-logos/common-cores.png';
-import personalDetailsAsset from '../../../../assets/s05/category-logos/personal-details.png';
-import typicalChangesAsset from '../../../../assets/s05/category-logos/typical-changes.png';
-import attackerAsset from '../../../../assets/passwo/attacker.png';
+import accountContextAsset from '../../../../assets/s05/category-logos/account-context.webp';
+import commonCoresAsset from '../../../../assets/s05/category-logos/common-cores.webp';
+import personalDetailsAsset from '../../../../assets/s05/category-logos/personal-details.webp';
+import typicalChangesAsset from '../../../../assets/s05/category-logos/typical-changes.webp';
+import attackerAsset from '../../../../assets/passwo/attacker.webp';
 import { ReactFlowNetworkAdapter } from '../../../../adapters/network/ReactFlowNetworkAdapter.js';
 import { NetworkSymbol } from '../../../../adapters/network/NetworkSymbolRegistry.js';
 import scaleClockAsset from '../../../../assets/s05/scale-clock.svg';
@@ -149,6 +149,8 @@ function CandidateCheckScene({ subject }: { readonly subject: S05AnalysisSubject
       <img
         className={styles.attackerPortrait}
         src={attackerAsset}
+        width={1024}
+        height={1024}
         alt="Symbolische Darstellung eines Angreifers am Computer"
       />
     </div>
@@ -295,6 +297,8 @@ function StrategyTargetingScene({ subject }: { readonly subject: S05AnalysisSubj
       <img
         className={`${styles.attackerPortrait} ${styles.strategyTargetingAttacker}`}
         src={attackerAsset}
+        width={1024}
+        height={1024}
         alt=""
       />
     </div>
@@ -353,6 +357,8 @@ function ComponentStartScene({ subject }: { readonly subject: S05AnalysisSubject
       <img
         className={styles.attackerPortrait}
         src={attackerAsset}
+        width={1024}
+        height={1024}
         alt="Symbolische Darstellung eines Angreifers am Computer"
       />
     </div>
@@ -485,7 +491,7 @@ function CategoryMachine({
       aria-label={category?.title ?? content.ariaLabel}
     >
       <div className={styles.machineInput}>
-        <img src={categoryAssets[categoryId]} alt="" />
+        <img src={categoryAssets[categoryId]} width={768} height={768} alt="" />
         <div aria-hidden="true">
           {conveyorBlocks.map((block) => (
             <code key={block} data-active={block === travelingBlock || undefined}>
@@ -520,7 +526,7 @@ function CategoryMachine({
         data-source={arrivedBlock}
         data-emphasized={step === 'common-components-changes' || undefined}
       >
-        <img src={typicalChangesAsset} alt="" />
+        <img src={typicalChangesAsset} width={768} height={512} alt="" />
         <div className={styles.machineOutputViewport} key={arrivedBlock}>
           <div className={styles.machineOutputStream}>
             {[...variants, ...variants].map((variant, index) => (
@@ -555,7 +561,7 @@ function CategoryTransition({
   return (
     <div className={styles.categoryTransition} aria-hidden="true">
       <div className={styles.categoryTransitionPanel}>
-        <img src={categoryAssets[categoryId]} alt="" />
+        <img src={categoryAssets[categoryId]} width={768} height={768} alt="" />
         <strong>{category?.title ?? s05Content.page.title}</strong>
       </div>
     </div>
@@ -598,7 +604,7 @@ function ComponentReviewCard({
               data-category={category.id}
             >
               <div className={styles.componentReviewHeading}>
-                <img src={categoryAssets[category.id]} alt="" />
+                <img src={categoryAssets[category.id]} width={768} height={768} alt="" />
                 <h3>{category.title}</h3>
               </div>
               {findingValues.length === 0 ? (
@@ -1538,7 +1544,12 @@ function CharacterChecklist({
     <article className={styles.characterChecklist} data-early-hit={earlyHit || undefined}>
       {earlyHit ? (
         <div className={styles.earlyHitHeader}>
-          <img src={attackerAsset} alt="Symbolische Darstellung eines Angreifers am Computer" />
+          <img
+            src={attackerAsset}
+            width={1024}
+            height={1024}
+            alt="Symbolische Darstellung eines Angreifers am Computer"
+          />
           <strong>{content.earlyHit}</strong>
         </div>
       ) : null}
@@ -1599,7 +1610,12 @@ function PasswordVariationScene({ final }: { readonly final: boolean }) {
     >
       {final ? (
         <div className={styles.finalVariationMarker}>
-          <img src={attackerAsset} alt="Symbolische Darstellung eines Angreifers am Computer" />
+          <img
+            src={attackerAsset}
+            width={1024}
+            height={1024}
+            alt="Symbolische Darstellung eines Angreifers am Computer"
+          />
           <strong>{content.finalVariationStatus}</strong>
         </div>
       ) : null}
@@ -1961,7 +1977,7 @@ function projectScale(layout: ScaleLayout, currentLength: number, width: number,
 function ScaleSceneAttacker() {
   return (
     <aside className={styles.scaleSceneAttacker} aria-hidden="true">
-      <img src={attackerAsset} alt="" />
+      <img src={attackerAsset} width={1024} height={1024} alt="" />
       <span className={styles.scaleSceneClock}>
         <img src={scaleClockAsset} alt="" />
       </span>
