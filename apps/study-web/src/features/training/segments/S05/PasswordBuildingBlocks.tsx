@@ -336,6 +336,7 @@ export function PasswordBuildingBlocks({
         >
           <code
             className={styles.continuousPassword}
+            data-range-selectable={rangeSelection === undefined ? undefined : true}
             data-selecting={pointerSelection === null ? undefined : true}
             onPointerMove={(event) => {
               if (pointerSelection === null || event.pointerId !== pointerSelection.pointerId) return;

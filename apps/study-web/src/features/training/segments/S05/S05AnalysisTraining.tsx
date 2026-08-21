@@ -652,6 +652,17 @@ function releasedComponentFindings(
   });
 }
 
+function CampusgramPasswordHeading() {
+  return (
+    <strong className={styles.canonicalAccount}>
+      <span aria-hidden="true">
+        <NetworkSymbol symbolId="campusgram" />
+      </span>
+      <span>Campusgram-Passwort</span>
+    </strong>
+  );
+}
+
 function CanonicalPasswordView({
   snapshot,
   controller,
@@ -691,12 +702,7 @@ function CanonicalPasswordView({
       aria-label={s05Content.componentStrategy.presentation.canonicalAriaLabel}
     >
       <header>
-        <strong className={styles.canonicalAccount}>
-          <span aria-hidden="true">
-            <NetworkSymbol symbolId="campusgram" />
-          </span>
-          <span>Campusgram-Passwort</span>
-        </strong>
+        <CampusgramPasswordHeading />
       </header>
       <div className={styles.canonicalBlocks} data-s05-speech-obstacle>
         <PasswordBuildingBlocks
@@ -1348,22 +1354,25 @@ function StructureContentReflection({
       data-s05-target="structure-theme-reflection"
       data-s05-speech-obstacle
     >
-      <div className={styles.structureReflectionPassword}>
-        {blocks.map((block) => {
-          const groupIndex = contentGroupIndexForBlock(reflection, block.id);
-          return (
-            <StructureReflectionToken
-              key={block.id}
-              block={block}
-              color={groupIndex === null ? null : structureReflectionColor(groupIndex)}
-              repetitionGroup={undefined}
-              interactive
-              showFindings={false}
-              sentence={false}
-              onClick={() => controller.toggleStructureContentBlock(block.id)}
-            />
-          );
-        })}
+      <div className={styles.structurePasswordCheck}>
+        <CampusgramPasswordHeading />
+        <div className={styles.structureReflectionPassword}>
+          {blocks.map((block) => {
+            const groupIndex = contentGroupIndexForBlock(reflection, block.id);
+            return (
+              <StructureReflectionToken
+                key={block.id}
+                block={block}
+                color={groupIndex === null ? null : structureReflectionColor(groupIndex)}
+                repetitionGroup={undefined}
+                interactive
+                showFindings={false}
+                sentence={false}
+                onClick={() => controller.toggleStructureContentBlock(block.id)}
+              />
+            );
+          })}
+        </div>
       </div>
       <div className={styles.structureReflectionActions}>
         <div className={styles.structureReflectionGroups}>
@@ -1451,7 +1460,10 @@ function StructureSentenceReflection({
       data-s05-target="structure-sentence-reflection"
       data-s05-speech-obstacle
     >
-      <StructureSentenceRow snapshot={snapshot} controller={controller} />
+      <div className={styles.structurePasswordCheck}>
+        <CampusgramPasswordHeading />
+        <StructureSentenceRow snapshot={snapshot} controller={controller} />
+      </div>
       <button type="button" className={styles.structureReflectionFinish} onClick={finish}>
         {s05Content.structure.reflection.finish}
       </button>
@@ -1476,7 +1488,10 @@ function StructureReflectionSummary({
       data-s05-target="structure-application"
       data-s05-speech-obstacle
     >
-      <StructureSentenceRow snapshot={snapshot} summary />
+      <div className={styles.structurePasswordCheck}>
+        <CampusgramPasswordHeading />
+        <StructureSentenceRow snapshot={snapshot} summary />
+      </div>
     </section>
   );
 }
