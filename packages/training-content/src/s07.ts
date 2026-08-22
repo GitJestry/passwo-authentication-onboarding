@@ -1,6 +1,6 @@
 import type { TrainingSectionId } from '@passwo/contracts';
 
-export const S07_PASSPHRASE_SEARCH_CONTENT_VERSION = '4.14.0';
+export const S07_PASSPHRASE_SEARCH_CONTENT_VERSION = '4.16.0';
 
 export type S07OpenConnectionKind = 'none' | 'similar' | 'identical';
 
@@ -12,89 +12,33 @@ export interface S07AccountSituation {
   readonly campusEmailEasyToGuess: boolean;
 }
 
-function relationshipSummary(situation: S07AccountSituation): string {
-  let masterCampusCampusgram = situation.masterCampusCampusgram;
-  let campusEmailCampusgram = situation.campusEmailCampusgram;
-
-  if (situation.masterCampusCampusEmail === 'identical') {
-    if (masterCampusCampusgram !== 'none' && campusEmailCampusgram === 'none') {
-      campusEmailCampusgram = masterCampusCampusgram;
-    } else if (campusEmailCampusgram !== 'none' && masterCampusCampusgram === 'none') {
-      masterCampusCampusgram = campusEmailCampusgram;
-    }
-  } else if (situation.masterCampusCampusEmail === 'similar') {
-    if (masterCampusCampusgram === 'identical' && campusEmailCampusgram === 'none') {
-      campusEmailCampusgram = 'similar';
-    } else if (campusEmailCampusgram === 'identical' && masterCampusCampusgram === 'none') {
-      masterCampusCampusgram = 'similar';
-    }
-  }
-
-  if (masterCampusCampusgram !== 'none' && campusEmailCampusgram !== 'none') {
-    if (masterCampusCampusgram === 'identical' && campusEmailCampusgram === 'identical') {
-      return 'Master Campus und Campus E-Mail verwenden noch das alte Campusgram-Passwort.';
-    }
-    if (masterCampusCampusgram === 'identical') {
-      return 'Master Campus verwendet noch das alte Campusgram-Passwort, und das Passwort der Campus E-Mail ähnelt ihm noch.';
-    }
-    if (campusEmailCampusgram === 'identical') {
-      return 'Die Campus E-Mail verwendet noch das alte Campusgram-Passwort, und das Passwort von Master Campus ähnelt ihm noch.';
-    }
-    return 'Die Passwörter von Master Campus und Campus E-Mail ähneln noch dem alten Campusgram-Passwort.';
-  }
-
-  if (masterCampusCampusgram !== 'none') {
-    if (situation.masterCampusCampusEmail === 'similar') {
-      return 'Das Passwort von Master Campus ähnelt noch dem alten Campusgram-Passwort und dem Passwort der Campus E-Mail.';
-    }
-    return masterCampusCampusgram === 'identical'
-      ? 'Master Campus verwendet noch das alte Campusgram-Passwort.'
-      : 'Das Passwort von Master Campus ähnelt noch dem alten Campusgram-Passwort.';
-  }
-
-  if (campusEmailCampusgram !== 'none') {
-    if (situation.masterCampusCampusEmail === 'similar') {
-      return 'Das Passwort der Campus E-Mail ähnelt noch dem alten Campusgram-Passwort und dem Passwort von Master Campus.';
-    }
-    return campusEmailCampusgram === 'identical'
-      ? 'Die Campus E-Mail verwendet noch das alte Campusgram-Passwort.'
-      : 'Das Passwort der Campus E-Mail ähnelt noch dem alten Campusgram-Passwort.';
-  }
-
-  if (situation.masterCampusCampusEmail === 'identical') {
-    return 'Master Campus und Campus E-Mail verwenden noch dasselbe Passwort.';
-  }
-  if (situation.masterCampusCampusEmail === 'similar') {
-    return 'Die Passwörter von Master Campus und Campus E-Mail ähneln sich noch.';
-  }
-  return 'Zwischen Master Campus, Campus E-Mail und dem alten Campusgram-Passwort gibt es keine offene Verbindung mehr.';
-}
-
-function guessabilitySummary(situation: S07AccountSituation): string | null {
-  if (situation.masterCampusEasyToGuess && situation.campusEmailEasyToGuess) {
-    return 'Beide Passwörter lassen sich außerdem leicht erraten.';
-  }
-  if (situation.masterCampusEasyToGuess) {
-    return 'Das Passwort von Master Campus lässt sich außerdem leicht erraten.';
-  }
-  if (situation.campusEmailEasyToGuess) {
-    return 'Das Passwort der Campus E-Mail lässt sich außerdem leicht erraten.';
-  }
-  return null;
-}
-
 export function summarizeS07AccountSituation(situation: S07AccountSituation): string {
-  const relationship = relationshipSummary(situation);
-  const guessability = guessabilitySummary(situation);
-  return guessability === null ? relationship : `${relationship} ${guessability}`;
+  const hasSimilarOrIdenticalPassword = [
+    situation.masterCampusCampusgram,
+    situation.campusEmailCampusgram,
+    situation.masterCampusCampusEmail,
+  ].some((connection) => connection !== 'none');
+  const hasEasyToGuessPassword =
+    situation.masterCampusEasyToGuess || situation.campusEmailEasyToGuess;
+
+  if (hasSimilarOrIdenticalPassword && hasEasyToGuessPassword) {
+    return 'Bei den anderen Konten gibt es noch gleiche oder ähnliche Passwörter. Mindestens eines lässt sich außerdem leicht erraten.';
+  }
+  if (hasSimilarOrIdenticalPassword) {
+    return 'Bei den anderen Konten gibt es noch gleiche oder ähnliche Passwörter.';
+  }
+  if (hasEasyToGuessPassword) {
+    return 'Die anderen Kontopasswörter sind bereits einzigartig. Mindestens eines lässt sich aber noch leicht erraten.';
+  }
+  return 'Die anderen Kontopasswörter sind bereits einzigartig und schwer zu erraten.';
 }
 
 export const s07PassphraseSearchContent = {
   version: S07_PASSPHRASE_SEARCH_CONTENT_VERSION,
   source: {
-    revision: 'Userauftrag vom 2026-08-17 · priorisierte S07-Relationsverdichtung',
+    revision: 'Userauftrag vom 2026-08-22 · S07 aggregierte Kontenzusammenfassung',
     copyReference:
-      'docs/design/S06-S07-COPY-AUDIT.md#copy-delta-s07-priorisierte-relationsverdichtung-17-august-2026',
+      'docs/design/S06-S07-COPY-AUDIT.md#copy-delta-s07-aggregierte-kontenzusammenfassung-22-august-2026',
   },
   segment: {
     id: 'S07',
@@ -105,9 +49,9 @@ export const s07PassphraseSearchContent = {
   guide: {
     taskLabel: 'Passphrase erstellen',
     methodIntro:
-      'Die Passphrase ist genau die Methode für starke Passwörter aus Wörtern, die wir heute schon angesprochen haben. Sie besteht aus mindestens sechs zufällig ausgewählten, voneinander unabhängigen Wörtern.',
+      'Für das neue Campusgram-Passwort nutzen wir jetzt sechs zufällige, voneinander unabhängige Wörter. Ein solches Passwort nennt man Passphrase.',
     searchIntro:
-      'Lass dir online eine Passphrase generieren und ersetze damit das betroffene Passwort.',
+      'Lass dir hier im eingeblendeten Browser eine solche Passphrase generieren und ersetze damit das betroffene Passwort.',
     generating: 'Passphrase wird erstellt …',
     mnemonicIntro:
       'Für jetzt musst du sie dir nicht merken. Im Alltag kann eine kleine Geschichte das Erinnern erleichtern.',
@@ -115,10 +59,8 @@ export const s07PassphraseSearchContent = {
     campusgramSuccess:
       'Campusgram ist jetzt geschützt. Das alte Passwort aus dem Datenleck kann dort nicht mehr verwendet werden.',
     accountSummary: summarizeS07AccountSituation,
-    allAccountsProtected:
-      'Auch deine anderen Konten sind bereits stark und einzigartig. Schau dir jetzt an, wie der Angriff mit deinen geschützten Konten endet.',
     remainingPlan:
-      'Schau dir jetzt an, was der Angriff noch erreichen kann. Offene Konten kannst du dort direkt mit einer eigenen Passphrase absichern.',
+      'Du kannst die betroffenen Konten im Netzwerk jetzt direkt mit einer eigenen Passphrase absichern.',
     finishAttack: 'Angriff abschließen',
     continueAttack: 'Angriff fortsetzen',
   },

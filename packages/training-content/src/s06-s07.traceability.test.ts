@@ -11,9 +11,9 @@ import { S09_PASSWORD_SUMMARY_CONTENT_VERSION, s09PasswordSummaryContent } from 
 const s06AttackFlowCopyReference =
   'docs/design/S06-S07-COPY-AUDIT.md#copy-und-analysedelta-s06-strukturorientierte-bausteinersetzung-17-august-2026';
 const s07EntryCopyReference =
-  'docs/design/S06-S07-COPY-AUDIT.md#copy-delta-s07-priorisierte-relationsverdichtung-17-august-2026';
+  'docs/design/S06-S07-COPY-AUDIT.md#copy-delta-s07-aggregierte-kontenzusammenfassung-22-august-2026';
 const s08CopyReference =
-  'docs/design/S08-S09-COPY-AUDIT.md#copy--und-darstellungsdelta-s08-risikoverbindungen-auflösen-17-august-2026';
+  'docs/design/S08-S09-COPY-AUDIT.md#copy-delta-s08-zusammenfassungsnavigation-22-august-2026';
 const s09CopyReference =
   'docs/design/S08-S09-COPY-AUDIT.md#copy--und-interaktionsdelta-s09-externer-passwortmanager-einstieg-16-august-2026';
 
@@ -156,25 +156,23 @@ describe('S06 transition and S07 passphrase-search copy traceability', () => {
   });
 
   it('keeps S07 linked to the passphrase-search browser state', () => {
-    expect(S07_PASSPHRASE_SEARCH_CONTENT_VERSION).toBe('4.14.0');
+    expect(S07_PASSPHRASE_SEARCH_CONTENT_VERSION).toBe('4.16.0');
     expect(s07PassphraseSearchContent.source.copyReference).toBe(
       s07EntryCopyReference,
     );
     expect(s07PassphraseSearchContent.browser.passwordChangeTitle).toBe('Passwort ändern');
     expect(s07PassphraseSearchContent.guide).toMatchObject({
       methodIntro:
-        'Die Passphrase ist genau die Methode für starke Passwörter aus Wörtern, die wir heute schon angesprochen haben. Sie besteht aus mindestens sechs zufällig ausgewählten, voneinander unabhängigen Wörtern.',
+        'Für das neue Campusgram-Passwort nutzen wir jetzt sechs zufällige, voneinander unabhängige Wörter. Ein solches Passwort nennt man Passphrase.',
       searchIntro:
-        'Lass dir online eine Passphrase generieren und ersetze damit das betroffene Passwort.',
+        'Lass dir hier im eingeblendeten Browser eine solche Passphrase generieren und ersetze damit das betroffene Passwort.',
       generating: 'Passphrase wird erstellt …',
       mnemonicIntro:
         'Für jetzt musst du sie dir nicht merken. Im Alltag kann eine kleine Geschichte das Erinnern erleichtern.',
       campusgramSuccess:
         'Campusgram ist jetzt geschützt. Das alte Passwort aus dem Datenleck kann dort nicht mehr verwendet werden.',
-      allAccountsProtected:
-        'Auch deine anderen Konten sind bereits stark und einzigartig. Schau dir jetzt an, wie der Angriff mit deinen geschützten Konten endet.',
       remainingPlan:
-        'Schau dir jetzt an, was der Angriff noch erreichen kann. Offene Konten kannst du dort direkt mit einer eigenen Passphrase absichern.',
+        'Du kannst die betroffenen Konten im Netzwerk jetzt direkt mit einer eigenen Passphrase absichern.',
       finishAttack: 'Angriff abschließen',
       continueAttack: 'Angriff fortsetzen',
     });
@@ -184,22 +182,22 @@ describe('S06 transition and S07 passphrase-search copy traceability', () => {
         masterCampusCampusgram: 'similar',
         campusEmailCampusgram: 'similar',
         masterCampusCampusEmail: 'similar',
-        masterCampusEasyToGuess: true,
+        masterCampusEasyToGuess: false,
         campusEmailEasyToGuess: false,
       }),
     ).toBe(
-      'Die Passwörter von Master Campus und Campus E-Mail ähneln noch dem alten Campusgram-Passwort. Das Passwort von Master Campus lässt sich außerdem leicht erraten.',
+      'Bei den anderen Konten gibt es noch gleiche oder ähnliche Passwörter.',
     );
     expect(
       s07PassphraseSearchContent.guide.accountSummary({
-        masterCampusCampusgram: 'identical',
+        masterCampusCampusgram: 'none',
         campusEmailCampusgram: 'none',
         masterCampusCampusEmail: 'none',
         masterCampusEasyToGuess: false,
         campusEmailEasyToGuess: true,
       }),
     ).toBe(
-      'Master Campus verwendet noch das alte Campusgram-Passwort. Das Passwort der Campus E-Mail lässt sich außerdem leicht erraten.',
+      'Die anderen Kontopasswörter sind bereits einzigartig. Mindestens eines lässt sich aber noch leicht erraten.',
     );
     expect(
       s07PassphraseSearchContent.guide.accountSummary({
@@ -210,8 +208,17 @@ describe('S06 transition and S07 passphrase-search copy traceability', () => {
         campusEmailEasyToGuess: true,
       }),
     ).toBe(
-      'Die Campus E-Mail verwendet noch das alte Campusgram-Passwort, und das Passwort von Master Campus ähnelt ihm noch. Beide Passwörter lassen sich außerdem leicht erraten.',
+      'Bei den anderen Konten gibt es noch gleiche oder ähnliche Passwörter. Mindestens eines lässt sich außerdem leicht erraten.',
     );
+    expect(
+      s07PassphraseSearchContent.guide.accountSummary({
+        masterCampusCampusgram: 'none',
+        campusEmailCampusgram: 'none',
+        masterCampusCampusEmail: 'none',
+        masterCampusEasyToGuess: false,
+        campusEmailEasyToGuess: false,
+      }),
+    ).toBe('Die anderen Kontopasswörter sind bereits einzigartig und schwer zu erraten.');
     expect(s07PassphraseSearchContent.browser.campusgramPasswordChangeCompleted).toEqual({
       title: 'Campusgram-Passwort wurde erfolgreich ersetzt',
       shieldLabels: {
@@ -274,7 +281,7 @@ describe('S06 transition and S07 passphrase-search copy traceability', () => {
   });
 
   it('keeps S08 linked to the protected replay wording', () => {
-    expect(S08_NETWORK_REPLAY_CONTENT_VERSION).toBe('3.5.0');
+    expect(S08_NETWORK_REPLAY_CONTENT_VERSION).toBe('3.6.0');
     expect(s08NetworkReplayContent.source.copyReference).toBe(s08CopyReference);
     expect(s08NetworkReplayContent.protectionAction).toBe(
       'Einzigartige Passphrase verwenden',
@@ -287,7 +294,7 @@ describe('S06 transition and S07 passphrase-search copy traceability', () => {
     });
     expect(s08NetworkReplayContent.replayActions).toEqual({
       attack: 'Angriff starten',
-      finish: 'Weiter',
+      finish: 'Zur Zusammenfassung',
     });
     expect(s08NetworkReplayContent.replayCompletion).toBe(
       'Konten wieder geschützt',

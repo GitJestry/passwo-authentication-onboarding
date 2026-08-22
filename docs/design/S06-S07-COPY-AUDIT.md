@@ -1,5 +1,36 @@
 # S06--S07 Copy Audit
 
+## Copy-Delta S07 aggregierte Kontenzusammenfassung, 22. August 2026
+
+Quelle ist der ausdrückliche Nutzerauftrag vom 22. August 2026. Nach dem Campusgram-Wechsel
+fasst PassWo die vorhandenen S06-Ergebnisse nur noch in den vier Kombinationen aus offenen
+Wiederverwendungen oder Ähnlichkeiten und lokaler Erratbarkeit zusammen. Konkrete Konten und
+Verbindungen bleiben im Netzwerk sichtbar und werden nicht mehr in der Sprechblase aufgezählt.
+Bei vollständig einzigartigen und nicht leicht erratbaren Kontopasswörtern folgt keine zweite
+Sprechblase; bei jedem anderen Zustand verweist sie auf die direkte Absicherung im Netzwerk.
+Erkennung, Netzwerkdarstellung, Persistenz, Angriffssimulation und Navigation bleiben unverändert.
+`S07_PASSPHRASE_SEARCH_CONTENT_VERSION` wird von `4.15.0` auf `4.16.0` erhöht.
+
+| Segment und Text-ID | Aktueller Text | Geplanter Text | Primäre Rolle | Interaktionsziel | Grund und Bedeutungsänderung | Hervorhebung |
+|---|---|---|---|---|---|---|
+| `S07.guide.accountSummary` | 13 Beziehungstexte mit vier Erratbarkeits-Zusätzen | vier aggregierte Zustände zu Wiederverwendung oder Ähnlichkeit und Erratbarkeit | Ergebnisfeedback | `Weiter` | ausdrücklich vorgegebene Verdichtung; die zugrunde liegenden Befunde bleiben unverändert | keine |
+| `S07.guide.remainingPlan` | `Schau dir jetzt an, was der Angriff noch erreichen kann. Offene Konten kannst du dort direkt mit einer eigenen Passphrase absichern.` | `Du kannst die betroffenen Konten im Netzwerk jetzt direkt mit einer eigenen Passphrase absichern.` | Navigation | betroffene Konten im Netzwerk | ausdrücklich vorgegebener Wortlaut; keine neue Handlung | keine |
+| `S07.guide.allAccountsProtected` | `Auch deine anderen Konten sind bereits stark und einzigartig. Schau dir jetzt an, wie der Angriff mit deinen geschützten Konten endet.` | entfällt | Ergebnisfeedback | `kein` | bei Zustand ohne offenen Befund ausdrücklich keine zweite Sprechblase | keine |
+
+## Copy-Delta S07 Passphraseneinstieg präzisiert, 22. August 2026
+
+Quelle ist der ausdrückliche Nutzerauftrag vom 22. August 2026. Die beiden ersten S07-
+Sprechblasen erhalten den vorgegebenen Wortlaut. Die erste erklärt die sechs zufälligen,
+voneinander unabhängigen Wörter und benennt die Methode; ausschließlich `Passphrase` wird
+akzentuiert. Die zweite verweist auf den eingeblendeten Browser als tatsächliches
+Interaktionsziel. Ablauf, Darstellung, Persistenz, Export und Timing bleiben unverändert.
+`S07_PASSPHRASE_SEARCH_CONTENT_VERSION` wird von `4.14.0` auf `4.15.0` erhöht.
+
+| Segment und Text-ID | Aktueller Text | Geplanter Text | Primäre Rolle | Interaktionsziel | Grund und Bedeutungsänderung | Hervorhebung |
+|---|---|---|---|---|---|---|
+| `S07.guide.methodIntro` | `Die Passphrase ist genau die Methode für starke Passwörter aus Wörtern, die wir heute schon angesprochen haben. Sie besteht aus mindestens sechs zufällig ausgewählten, voneinander unabhängigen Wörtern.` | `Für das neue Campusgram-Passwort nutzen wir jetzt sechs zufällige, voneinander unabhängige Wörter. Ein solches Passwort nennt man Passphrase.` | Mechanismuserklärung | `Weiter` | ausdrücklich vorgegebener Wortlaut | `Passphrase`, Akzent |
+| `S07.guide.searchIntro` | `Lass dir online eine Passphrase generieren und ersetze damit das betroffene Passwort.` | `Lass dir hier im eingeblendeten Browser eine solche Passphrase generieren und ersetze damit das betroffene Passwort.` | Navigation | eingeblendeter Browser | ausdrücklich vorgegebener Wortlaut mit konkretem UI-Ziel | keine |
+
 ## Copy-Delta S07 priorisierte Relationsverdichtung, 17. August 2026
 
 Quelle ist der ausdrückliche Nutzerauftrag vom 17. August 2026. Die gemeinsame

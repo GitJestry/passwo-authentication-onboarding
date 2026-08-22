@@ -1,13 +1,13 @@
 import type { TrainingSectionId } from '@passwo/contracts';
 
-export const S08_NETWORK_REPLAY_CONTENT_VERSION = '3.5.0';
+export const S08_NETWORK_REPLAY_CONTENT_VERSION = '3.6.0';
 
 export const s08NetworkReplayContent = {
   version: S08_NETWORK_REPLAY_CONTENT_VERSION,
   source: {
-    revision: 'Userauftrag vom 2026-08-17 · S08-Risikoverbindungen auflösen',
+    revision: 'Userauftrag vom 2026-08-22 · S08-Zusammenfassungsnavigation',
     copyReference:
-      'docs/design/S08-S09-COPY-AUDIT.md#copy--und-darstellungsdelta-s08-risikoverbindungen-auflösen-17-august-2026',
+      'docs/design/S08-S09-COPY-AUDIT.md#copy-delta-s08-zusammenfassungsnavigation-22-august-2026',
   },
   segment: {
     id: 'S08',
@@ -31,7 +31,7 @@ export const s08NetworkReplayContent = {
   },
   replayActions: {
     attack: 'Angriff starten',
-    finish: 'Weiter',
+    finish: 'Zur Zusammenfassung',
   },
   replayCompletion: 'Konten wieder geschützt',
 } as const;

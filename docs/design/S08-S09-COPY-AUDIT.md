@@ -1,5 +1,16 @@
 # S08--S09 Copy Audit
 
+## Copy-Delta S08 Zusammenfassungsnavigation, 22. August 2026
+
+Quelle ist der ausdrückliche Nutzerauftrag vom 22. August 2026. Der glasige S08-Button nach dem
+vollständigen Angriffsrücklauf verweist weiterhin auf die anschließende S09-Übersicht, benennt
+dieses Ziel nun aber präziser. Ablauf, Netzwerkdarstellung, Animation, Persistenz und Export
+bleiben unverändert. `S08_NETWORK_REPLAY_CONTENT_VERSION` wird von `3.5.0` auf `3.6.0` erhöht.
+
+| Segment und Text-ID | Aktueller Text | Geplanter Text | Primäre Rolle | Interaktionsziel | Grund und Bedeutungsänderung | Hervorhebung |
+|---|---|---|---|---|---|---|
+| `S08.replayActions.finish` | `Weiter` | `Zur Zusammenfassung` | Navigation | S09-Zusammenfassung | ausdrücklich vorgegebene Benennung des unveränderten Ziels | keine |
+
 ## Copy- und Darstellungsdelta S08 Risikoverbindungen auflösen, 17. August 2026
 
 Quelle ist der ausdrückliche Nutzerauftrag vom 17. August 2026. S08 zeigt erkannte

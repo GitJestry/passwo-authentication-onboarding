@@ -178,7 +178,7 @@ const emphasisBySpeechId: Readonly<Record<string, readonly PassWoSpeechEmphasis[
       tone: 'positive',
     },
   ],
-  's07-method-intro': [{ phrase: 'Die Passphrase', tone: 'accent' }],
+  's07-method-intro': [{ phrase: 'Passphrase', tone: 'accent' }],
   's07-mnemonic': [{ phrase: 'Beispiel:', tone: 'accent' }],
   's09-scaling-expansion': [{ phrase: 'deutlich mehr', tone: 'accent' }],
   's09-scaling-question': [

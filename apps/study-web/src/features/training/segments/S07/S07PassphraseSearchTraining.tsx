@@ -481,9 +481,11 @@ export function S07PassphraseSearchTraining({
   const [passphraseOrder] = useState(() =>
     s07PassphraseSearchContent.browser.generatorPage.passphrases.map((_, index) => index),
   );
+  const hasRemainingAccountRisk = accountFeedback.length > 0;
   const [state, send] = useMachine(s07PassphraseSearchMachine, {
     input: {
       generationDelayMs: s07PassphraseSearchContent.browser.generatorPage.generationDelayMs,
+      hasRemainingAccountRisk,
       passphraseOrder,
       resultsDelayMs: s07PassphraseSearchContent.browser.searchPage.resultsDelayMs,
     },
@@ -572,11 +574,7 @@ export function S07PassphraseSearchTraining({
     ];
   }
   if (state.matches('remainingPlan')) {
-    speech = [
-      accountFeedback.length === 0
-        ? guide.allAccountsProtected
-        : guide.remainingPlan,
-    ];
+    speech = [guide.remainingPlan];
   }
 
   if (
@@ -587,16 +585,18 @@ export function S07PassphraseSearchTraining({
   ) {
     speechAction = {
       kind: 'advance',
-      onAction: () => send({ type: 'NEXT' }),
+      onAction: () => {
+        send({ type: 'NEXT' });
+        if (state.matches('remainingRisk') && !hasRemainingAccountRisk) {
+          onComplete(s07RecommendedResolutionAccountIds(accountFeedback));
+        }
+      },
     };
   }
   if (state.matches('remainingPlan')) {
     speechAction = {
       kind: 'perform',
-      label:
-        accountFeedback.length === 0
-          ? guide.finishAttack
-          : guide.continueAttack,
+      label: guide.continueAttack,
       onAction: () => {
         send({ type: 'CONTINUE_ATTACK' });
         onComplete(s07RecommendedResolutionAccountIds(accountFeedback));

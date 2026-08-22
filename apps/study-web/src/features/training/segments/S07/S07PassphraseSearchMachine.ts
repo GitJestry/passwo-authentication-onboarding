@@ -92,6 +92,7 @@ export function deriveS07AccountFeedback(
 
 interface S07PassphraseSearchInput {
   readonly generationDelayMs: number;
+  readonly hasRemainingAccountRisk: boolean;
   readonly passphraseOrder: readonly number[];
   readonly resultsDelayMs: number;
 }
@@ -101,6 +102,7 @@ export interface S07PassphraseSearchContext {
   readonly currentPassphraseIndex: number | null;
   readonly generatedCount: number;
   readonly generationDelayMs: number;
+  readonly hasRemainingAccountRisk: boolean;
   readonly passphraseOrder: readonly number[];
   readonly resultsDelayMs: number;
   readonly separator: string;
@@ -137,6 +139,7 @@ export const s07PassphraseSearchMachine = setup({
   },
   guards: {
     canGenerateAnother: ({ context }) => canGenerateAnother(context),
+    hasRemainingAccountRisk: ({ context }) => context.hasRemainingAccountRisk,
     selectedCampusgram: ({ event }) =>
       event.type === 'SELECT_TAB' && event.tabId === 'campusgram',
   },
@@ -167,6 +170,7 @@ export const s07PassphraseSearchMachine = setup({
     currentPassphraseIndex: null,
     generatedCount: 0,
     generationDelayMs: input.generationDelayMs,
+    hasRemainingAccountRisk: input.hasRemainingAccountRisk,
     passphraseOrder: input.passphraseOrder,
     resultsDelayMs: input.resultsDelayMs,
     separator: '-',
@@ -243,7 +247,12 @@ export const s07PassphraseSearchMachine = setup({
       always: { target: 'remainingRisk' },
     },
     remainingRisk: {
-      on: { NEXT: { target: 'remainingPlan' } },
+      on: {
+        NEXT: [
+          { guard: 'hasRemainingAccountRisk', target: 'remainingPlan' },
+          { target: 'complete' },
+        ],
+      },
     },
     remainingPlan: {
       on: { CONTINUE_ATTACK: { target: 'complete' } },
