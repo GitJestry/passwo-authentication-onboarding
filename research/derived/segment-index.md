@@ -111,51 +111,21 @@ Seitenangaben beziehen sich auf die im Trainingsdokument ausgewiesene interne Pa
   bleiben deckend, alle anderen Kugeln sind abgedunkelt. PassWo begrenzt den Vergleich gegen die
   Auswahl selbstgewählter Passwörter. Bei der 15-Zeichen-Orientierung und der anschließenden
   Ankündigung der zwei weiteren Längengründe zoomt die Ansicht wieder auf die grüne Kugel. Danach
-  wird die Skala ohne Kugeln fortgeführt und stellt
-  `Datensicherheit` als merkbares 15-Zeichen-Wort einem vereinfachten Pool aus 80.000 deutschen
-  Wörtern gegenüber. Die authored Zeitkugel `80 Nanosekunden` folgt weiterhin dem Modell mit einer
-  Billion Versuchen pro Sekunde. Ein zweiter fester Vergleich zeigt `Hat`, `Bin`, `Kuh`, `Ich`
-  und `Tee` als fünf Bausteine aus jeweils nur 350 Möglichkeiten mit `5,25 Sekunden`. Beide
-  Beispiele sind über Stellenlinien angebunden; die statischen Kugeln blinken nicht. Transparente
-  Wortpakete und fokussierbare Zahnräder kennzeichnen Pool- und Modellannahmen; das große Paket
-  trägt `Alle Wörterlängen` und `80.000 🇩🇪 Wörter`. Über den
-  Beispielbausteinen stehen `1 Wort` beziehungsweise `5 Wörter`, unter beiden Messlinien klein
-  `Mindestlänge`. Die Sprachpakete stehen direkt auf der Messskala rechts neben ihrer Kugel; das
-  große Paket verwendet eine ungefähr zehnfach gestaffelte visuelle Volumenwirkung. Die
-  Demonstration analysiert oder persistiert keine Eingabe. Sie endet
-  mit dem Übergang zum zweiten Längengrund. Dort wächst die erste Kugel für vier zufällig gezogene
-  deutsche Wörter auf `1,3 Jahre`. Drei gleich große spanische, französische und japanische
-  Sprachpakete stapeln sich animiert über dem deutschen Paket; jedes behält ein kleines
-  fokussierbares Zahnrad. Die vier unteren Bausteine wechseln anschließend zu
-  `Datensicherheit`, `Oscuridad`, `Yutori`, `Somnolent`; in derselben Sprechblase wächst die Kugel
-  für den ungefähr vierfachen gemeinsamen Pool auf `332 Jahre`. Die gesamte Komposition zoomt
-  dabei anhand des jeweils strengeren Breiten- oder Höhenfaktors so weit heraus, dass die Kugel
-  vollständig im Szenenrahmen bleibt. Die höher liegende, gleichmäßig durchgezogene Messlinie
-  bleibt davon unskaliert; die unteren Bausteine werden von der responsiven
-  PassWo-Sprechblasenpositionierung als Hindernis berücksichtigt. Ein letzter Vergleich ergänzt
-  anschließend `Capez` als fünftes zufälliges Wort aus demselben gemeinsamen Pool. Die
-  frühere `332 Jahre`-Kugel liegt außerhalb des Vergleichsausschnitts; an ihrem Tick bleiben eine
-  eine auf 20 Prozent verkleinerte grüne Erbsenkugel und der Zeitwert `332 Jahre` sichtbar. Die wesentlich größere Kugel wächst rechts auf
-  `106,3 Millionen Jahre` und sitzt exakt auf ihrem eigenen Tick. Unter ihr stehen
-  `Datensicherheit`, `Oscuridad`, `Yutori`, `Somnolent`, `Capez`, rechts daneben derselbe
-  vierteilige Sprachpaketstapel. Auch die linke Referenzkugel erhält einen eigenen gleich großen
-  Stapel. Beide Stapel und die unteren Wortbausteine bleiben konstant groß; `4 Wörter` und
-  `5 Wörter` werden als große Vergleichsüberschriften gesetzt. Die Messachse liegt für diesen
-  Vergleich höher, die Ticks reichen nur nach unten und die Sprachpaket-Tooltips werden über ihren
-  jeweiligen Paketstapel gehoben. Zahnräder der Zeitwerte stehen mit festen Abständen als
-  Superscript rechts oben am letzten Wort des Aufwands. Die anschließende Schätzfrage ersetzt die
-  Kugelkomposition vollständig durch eine lokale horizontale Weltkarte mit Natural-Earth-Grenzen.
-  Deutschland, Spanien, Frankreich und Japan bleiben als vier Ausgangspakete dunkelgrün und mit
-  Flaggen markiert. Ein flüchtiger Regler startet bei 4 und reicht bis 195 Sprachpakete; Minus,
-  Plus und numerische Eingabe ergänzen die schnelle und präzise Bedienung. Nur
-  `Schätzung abgeben` setzt den Ablauf fort. Fehlende Pakete bis zur authored Lösung von ungefähr
-  95 werden blau schraffiert ergänzt, überschüssige Pakete wieder grau gestrichelt dargestellt.
-  Die feste Länderreihenfolge ist reine Präsentationslogik und keine Rangfolge. Nach der großen
-  Auflösung `95 Sprachpakete` erklären zwei getrennte Sprechschritte Ergebnis und zweiten
-  Längengrund. Danach kehrt exakt die bestehende Zwei-Kugel-Ansicht zurück: vier weitere
-  Sprechschritte übertragen Sprachpakete auf Zeichentypen und zusätzliche Wörter auf zusätzliche
-  Zeichen, begrenzen den Vergleich auf nicht leicht vorhersehbare Ergänzungen und kündigen die
-  spätere Passphrasenpraxis an. Erst dann folgt die bestehende lokale Campusgram-Auswertung.
+  wird die Skala ohne Kugeln fortgeführt. `Datensicherheit` erscheint zunächst als merkbares
+  15-Zeichen-Wort. Der Vergleich mit `Hat`, `Bin`, `Kuh`, `Ich` und `Tee` zeigt erst nur die fünf
+  Bausteine und die Mindestlänge; im nächsten Sprechschritt kommen der Pool aus etwa 350 sehr
+  kurzen Wörtern und die authored Zeitkugel `5,25 Sekunden` hinzu. Danach ersetzt die Folge
+  `Datensicherheit`, `Lobotomie`, `Zugspitze`, `Unbefugt` die bisherige Einzelwortanzeige in-place.
+  Ihre Kugel wächst auf `1,3 Jahre`, während das Fünfwortbeispiel links mit einer 2-Pixel-Kugel
+  sichtbar bleibt. Der zweite Längengrund beginnt mit derselben Vierwort-/Deutsche-Wortliste-
+  Komposition wie bisher. Deutsche, spanische, französische und japanische Wortlisten werden
+  anschließend als ungefähr vierfacher Pool mit `332 Jahre` gezeigt. Der letzte Vergleich kehrt
+  zur deutschen Wortliste zurück: Links bleiben vier deutsche Wörter und `1,3 Jahre` mit einer
+  2-Pixel-Referenzkugel; rechts stehen `6 Wörter` aus `Datensicherheit`, `Lobotomie`, `Zugspitze`,
+  `Unbefugt`, `Posen`, `Trampolin` sowie `8,3 Milliarden Jahre`. Auf beiden Seiten ist nur der
+  deutsche Wortlistenstapel sichtbar. Länderkarte, Wortlisten-Schätzfrage und Zeichenraum-Analogie
+  entfallen; danach folgt direkt die bestehende lokale Campusgram-Auswertung. Die Demonstration
+  analysiert oder persistiert keine Eingabe.
 - Die S05-Simulationsdisposition (`S05_CONTENT_VERSION 2.98.0`, Analysekonfiguration
   `passwo-bounded-whole-recognition-v15`) bleibt auf den vollständigen fiktiven Wert begrenzt:
   `whole-password-recognized` entsteht durch einen direkten Vollwert oder eine dokumentierte

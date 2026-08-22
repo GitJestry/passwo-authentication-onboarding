@@ -132,43 +132,22 @@ const emphasisBySpeechId: Readonly<Record<string, readonly PassWoSpeechEmphasis[
     { phrase: 'zu aufwendig', tone: 'accent', contrastId: 'estimate-threshold' },
   ],
   's05-length-orientation': [{ phrase: 'mindestens 15 Zeichen', tone: 'accent' }],
-  's05-length-full-word-attack': [{ phrase: 'Wörterpaket Pool', tone: 'accent' }],
-  's05-length-takeaway': [
-    {
-      phrase: 'schnell länger als 15 Zeichen',
-      tone: 'accent',
-      contrastId: 'length-and-effort',
-    },
-    { phrase: 'schwer machen', tone: 'accent', contrastId: 'length-and-effort' },
+  's05-length-full-word-attack': [
+    { phrase: 'ein einzelnes deutsches Wort', tone: 'accent' },
   ],
+  's05-length-takeaway': [{ phrase: 'schnell länger als 15 Zeichen', tone: 'accent' }],
+  's05-length-second-reason-transition': [],
   's05-length-four-german-words': [
-    { phrase: 'demselben deutschen Wörterpool', tone: 'accent' },
+    { phrase: 'noch weiter erschweren', tone: 'accent' },
+  ],
+  's05-length-language-pool-stack': [
+    { phrase: 'Auswahl pro Wort', tone: 'accent' },
+  ],
+  's05-length-multilingual-words': [
+    { phrase: 'vervierfacht sich die Auswahl', tone: 'accent' },
   ],
   's05-length-fifth-word-comparison': [
-    { phrase: 'weiteres zufälliges Wort', tone: 'accent' },
-  ],
-  's05-length-language-pool-question': [
-    { phrase: 'Wie viele Wortlisten', tone: 'accent' },
-    { phrase: 'vier Wörter', tone: 'accent' },
-    { phrase: 'denselben Aufwand', tone: 'accent' },
-  ],
-  's05-length-language-pool-result': [
-    { phrase: 'fast 95 Wortlisten', tone: 'accent' },
-  ],
-  's05-length-language-pool-takeaway': [
-    { phrase: 'Ein weiteres zufälliges Wort', tone: 'accent' },
-  ],
-  's05-length-charset-analogy-types': [
-    { phrase: 'Mehr Zeichentypen', tone: 'accent' },
-  ],
-  's05-length-charset-analogy-position': [
-    { phrase: 'Ein weiteres Zeichen', tone: 'accent' },
-  ],
-  's05-length-charset-predictability': [
-    { phrase: 'Einfach vorhersehbare Zeichen oder Wörter', tone: 'warning' },
-  ],
-  's05-length-passphrase-outlook': [
-    { phrase: 'zufälligen Wörtern', tone: 'accent' },
+    { phrase: 'zwei weitere zufällige Wörter', tone: 'accent' },
   ],
   's05-final-components': [{ phrase: 'gesamte Zeichenfolge', tone: 'accent' }],
   's05-final-result': [{ phrase: 'gesamte Zeichenfolge', tone: 'warning' }],

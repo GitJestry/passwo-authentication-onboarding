@@ -73,7 +73,7 @@ export interface S05DesignLabFixture {
   readonly startSection: 'intro' | 'components' | 'structure';
 }
 
-export const S05_CONTENT_VERSION = '2.101.4';
+export const S05_CONTENT_VERSION = '2.102.4';
 
 export const s05Content = {
   version: S05_CONTENT_VERSION,
@@ -83,9 +83,9 @@ export const s05Content = {
       12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34,
       35,
     ] as const,
-    revision: 'Userauftrag vom 2026-08-22 · S05 Wortanzahlhinweise ausgeblendet',
+    revision: 'Userauftrag vom 2026-08-22 · S05 Wortlängen-Sprechblasen ersetzt',
     copyReference:
-      'docs/design/S00-S05-COPY-AUDIT.md#copy-delta-s05-wortanzahlhinweise-ausgeblendet-22-august-2026',
+      'docs/design/S00-S05-COPY-AUDIT.md#copy-delta-s05-wortlaengen-sprechblasen-ersetzt-22-august-2026',
   },
   segment: {
     id: 'S05',
@@ -530,18 +530,18 @@ export const s05Content = {
       orientation:
         'Bei selbstgewählten Passwörtern lässt sich diese Zufälligkeit jedoch nicht voraussetzen. Deshalb liegt die aktuelle Orientierung bei mindestens 15 Zeichen.',
       reasonsIntroduction:
-        'Warum selbst gewählte Passwörter oft noch länger werden, schauen wir uns an zwei weiteren Punkten an.',
-      memorability:
-        'Selbstgewählte Passwörter wie Datensicherheit sind merkbar und erreichen 15 Zeichen, bestehen aber nur aus einem Wort.',
+        'Warum selbst gewählte Passwörter oft noch länger werden, schauen wir uns jetzt am Beispiel von Wörtern an.',
+      memorability: 'Nehmen wir dafür Datensicherheit als Passwort.',
       fullWordAttack:
-        'Der Angreifer muss dafür nur dieses Wort aus einem deutschen Wörterpaket Pool prüfen.',
+        'Das ist merkbar und 15 Zeichen lang, für den Angreifer aber nur ein einzelnes deutsches Wort.',
       shortWordComparison:
-        'Wir könnten stattdessen fünf zufällige Wörter mit zwei bis drei Buchstaben verwenden. Davon gibt es aber deutlich weniger, der mögliche Pool pro Wort wäre also sehr klein.',
+        'Um bei 15 Zeichen zu bleiben und es schwerer erratbar zu machen, könnten wir stattdessen mehrere Wörter verwenden.',
       sufficientPools:
-        'Für mehrere zufällige und trotzdem merkbare Bestandteile brauchen wir jeweils einen ausreichend großen Pool. Und dafür brauchen sie Platz.',
+        'Je mehr Wörter in 15 Zeichen passen sollen, desto kürzer müssen sie sein. Von sehr kurzen Wörtern gibt es aber nur wenige, sodass ihre Kombinationen schnell durchprobiert sind.',
       lengthTakeaway:
-        'So wird ein Passwort schnell länger als 15 Zeichen, wenn wir es dem Angreifer wirklich schwer machen wollen.',
-      secondReasonTransition: 'Nun zur zweiten Sache.',
+        'Vier zufällige Wörter aus einer großen deutschen Wortliste sind dagegen schnell länger als 15 Zeichen. Das Durchprobieren aller Kombinationen dauert hier etwa 1,3 Jahre.',
+      secondReasonTransition:
+        'Mehrere zufällige Wörter brauchen also mehr Platz, wenn das Passwort schwer zu erraten sein soll.',
       wordPoolDemonstration: {
         minimumLengthLabel: 'Mindestlänge',
         longWord: {
@@ -583,52 +583,19 @@ export const s05Content = {
       },
       secondLengthReason: {
         germanWordsIntroduction:
-          'Statt eines Wortes nehmen wir drei weitere zufällige Wörter aus demselben deutschen Wörterpool.',
-        germanEffort:
-          'Er braucht dann maximal ca. 1,3 Jahre. Vielleicht können wir den Aufwand mit einem größeren Wörterpool erhöhen.',
+          'Jetzt können wir das Erraten noch weiter erschweren.',
         languagePoolIntroduction:
-          'Dafür legen wir deutsche, spanische, französische und japanische Wörter zusammen.',
+          'Dafür vergrößern wir die Auswahl pro Wort und legen deutsche, spanische, französische und japanische Wortlisten zusammen.',
         multilingualSelection:
-          'Jedes Wort kann nun zufällig aus diesem gemeinsamen Pool stammen.',
-        multilingualEffort: 'Der Wörterpool ist damit etwa viermal so groß.',
-        fifthWordIntroduction:
-          'Jetzt füge ich einfach ein weiteres zufälliges Wort aus demselben Pool hinzu. Und schon steigt der Aufwand auf 106 Millionen Jahre!',
-        fifthWordAction: 'Schätzfrage',
-        languagePoolEstimate: {
-          question:
-            'Wie viele Wortlisten bräuchten wir insgesamt, damit vier Wörter ungefähr denselben Aufwand erzeugen wie diese fünf?',
-          minimum: 4,
-          maximum: 195,
-          target: 95,
-          inputLabel: 'Anzahl der Wortlisten',
-          valueUnit: 'Wortlisten',
-          decrementLabel: 'Eine Wortliste weniger',
-          incrementLabel: 'Eine Wortliste mehr',
-          submitAction: 'Schätzung abgeben',
-          solutionLabel: '95 Wortlisten',
-          legend: {
-            missing: 'Bis zur Lösung ergänzt',
-            excess: 'Über der Lösung zurückgesetzt',
-          },
-          result:
-            'Von vier auf fast 95 Wortlisten, nur um ein zusätzliches Wort auszugleichen.',
-          takeaway:
-            'Das ist der zweite Grund: Ein weiteres zufälliges Wort kann viel mehr bringen als ein größerer Wörterpool.',
-        },
-        charsetAnalogy: {
-          characterTypes:
-            'Bei Zeichen ist es ähnlich: Mehr Zeichentypen vergrößern den Pool pro Zeichen.',
-          additionalCharacter:
-            'Ein weiteres Zeichen wirkt nach demselben Prinzip wie ein weiteres Wort.',
-          predictability:
-            'Einfach vorhersehbare Zeichen oder Wörter anzuhängen bringt diesen großen Zuwachs dagegen nicht.',
-          passphraseOutlook:
-            'Wie man mit zufälligen Wörtern ein starkes und trotzdem gut merkbares Passwort erstellt, schauen wir uns später praktisch an.',
-        },
+          'Damit vervierfacht sich die Auswahl für jedes Wort.',
+        additionalGermanWords:
+          'Oder wir bleiben bei deutschen Wörtern und fügen zwei weitere zufällige Wörter hinzu. Dann steigt der Aufwand auf etwa 8,3 Milliarden Jahre.',
         germanWords: {
           password: 'DatensicherheitLobotomieZugspitzeUnbefugt',
           parts: ['Datensicherheit', 'Lobotomie', 'Zugspitze', 'Unbefugt'],
           passwordLabel: '4 Wörter',
+          showPasswordLabel: false,
+          lengthScaleLabel: '39 Zeichen',
           durationLabel: '1,3 Jahre',
           modelInformation: {
             passwordParts: '4 Wörter',
@@ -649,15 +616,15 @@ export const s05Content = {
             attemptsPerSecond: '1 Billion',
           },
         },
-        fiveWords: {
-          password: 'DatensicherheitOscuridadYutoriSomnolentCapez',
-          parts: ['Datensicherheit', 'Oscuridad', 'Yutori', 'Somnolent', 'Capez'],
-          passwordLabel: '5 Wörter',
-          durationLabel: '106,3 Millionen Jahre',
+        sixGermanWords: {
+          password: 'DatensicherheitLobotomieZugspitzeUnbefugtPosenTrampolin',
+          parts: ['Datensicherheit', 'Lobotomie', 'Zugspitze', 'Unbefugt', 'Posen', 'Trampolin'],
+          passwordLabel: '6 Wörter',
+          durationLabel: '8,3 Milliarden Jahre',
           modelInformation: {
-            passwordParts: '5 Wörter',
-            pool: 'je 320.000 Wörter',
-            combinations: '3.355.443.200.000.000.000.000.000.000',
+            passwordParts: '6 Wörter',
+            pool: 'je 80.000 Wörter',
+            combinations: '262.144.000.000.000.000.000.000.000.000',
             attemptsPerSecond: '1 Billion',
           },
         },
@@ -837,17 +804,9 @@ export const s05Content = {
     ['s05-length-takeaway', 'length-word-pools', 'info'],
     ['s05-length-second-reason-transition', 'length-word-pools', 'info'],
     ['s05-length-four-german-words', 'length-second-reason', 'info'],
-    ['s05-length-four-german-effort', 'length-second-reason', 'info'],
     ['s05-length-language-pool-stack', 'length-second-reason', 'info'],
     ['s05-length-multilingual-words', 'length-second-reason', 'info'],
     ['s05-length-fifth-word-comparison', 'length-second-reason', 'info'],
-    ['s05-length-language-pool-question', 'length-language-map', 'info'],
-    ['s05-length-language-pool-result', 'length-language-map', 'info'],
-    ['s05-length-language-pool-takeaway', 'length-language-map', 'info'],
-    ['s05-length-charset-analogy-types', 'length-model-comparison', 'info'],
-    ['s05-length-charset-analogy-position', 'length-model-comparison', 'info'],
-    ['s05-length-charset-predictability', 'length-model-comparison', 'warning'],
-    ['s05-length-passphrase-outlook', 'length-model-comparison', 'info'],
     ['s05-final-components', 'final-components', 'info'],
     ['s05-final-result', 'final-result', 'warning'],
     ['s05-final-length', 'final-length', 'info'],

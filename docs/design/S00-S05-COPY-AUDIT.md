@@ -1,5 +1,87 @@
 # S00--S05 Copy and Interaction Audit
 
+## Copy-Delta S05 Wortlängen-Sprechblasen ersetzt, 22. August 2026
+
+Quelle ist der ausdrückliche Nutzerauftrag vom 22. August 2026. Drei aufeinanderfolgende
+Sprechblasen des Wortlängenvergleichs erhalten den exakt vorgegebenen Wortlaut. Sichtbare
+Beispiele, Skalen, Zeitwerte, Berechnungen, Hervorhebung, Interaktion, Ablauf, Analyse,
+Persistenz, Export und Timing bleiben unverändert. `S05_CONTENT_VERSION` wird von `2.102.3` auf
+`2.102.4` erhöht.
+
+| Segment und Text-ID | Quelle | Aktueller Text | Geplanter Text | Primäre Rolle | Grund | Bedeutungsänderung | Interaktionsziel | Hervorhebung |
+|---|---|---|---|---|---|---|---|---|
+| `S05.freeSearch.lengthExamples.sufficientPools` | Nutzerauftrag vom 2026-08-22 | allgemeiner Zusammenhang zwischen kürzeren Wörtern, kleinem Pool und schnellem Durchprobieren | `Je mehr Wörter in 15 Zeichen passen sollen, desto kürzer müssen sie sein. Von sehr kurzen Wörtern gibt es aber nur wenige, sodass ihre Kombinationen schnell durchprobiert sind.` | Mechanismuserklärung | ausdrücklich vorgegebener Wortlaut | begrenzt | `Weiter` | keine |
+| `S05.freeSearch.lengthExamples.lengthTakeaway` | Nutzerauftrag vom 2026-08-22 | Vierwortbeispiel ohne Wiederholung des sichtbaren Zeitwerts | `Vier zufällige Wörter aus einer großen deutschen Wortliste sind dagegen schnell länger als 15 Zeichen. Das Durchprobieren aller Kombinationen dauert hier etwa 1,3 Jahre.` | Ergebnisfeedback | ausdrücklich vorgegebener Wortlaut | begrenzt | `Weiter` | `schnell länger als 15 Zeichen`, Akzent |
+| `S05.freeSearch.lengthExamples.secondReasonTransition` | Nutzerauftrag vom 2026-08-22 | zwei Sätze zur Grenze von 15 Zeichen und zum Längenbedarf | `Mehrere zufällige Wörter brauchen also mehr Platz, wenn das Passwort schwer zu erraten sein soll.` | Kerngedanke | ausdrücklich vorgegebener Wortlaut | begrenzt | `Weiter` | keine |
+
+## Darstellungsdelta S05 Mehrsprachenvergleich wiederhergestellt, 22. August 2026
+
+Quelle ist der ausdrückliche Nutzerauftrag vom 22. August 2026. Die Zeichenskala unter den vier
+deutschen Wörtern wird von `24 Zeichen` auf `39 Zeichen` korrigiert. Beim mehrsprachigen
+Vierwortbeispiel ist `4 Wörter` wieder sichtbar. Der abschließende Vergleich zeigt links wieder
+die vier Wörter aus vier unterschiedlichen Wortlisten einschließlich ihres Zeitaufwands und der
+vier Wortlisten; rechts bleiben die sechs deutschen Wörter mit `8,3 Milliarden Jahre` und der
+deutschen Wortliste. Die zuvor links verwendete deutsche Vierwortdarstellung mit `1,3 Jahre`
+entfällt aus diesem Vergleich. Berechnungen, Interaktion, Ablauf, Analyse, Persistenz, Export und
+Timing bleiben unverändert. `S05_CONTENT_VERSION` wird von `2.102.2` auf `2.102.3` erhöht.
+
+| Segment und Text-ID | Quelle | Aktueller Zustand | Geplanter Zustand | Primäre Rolle | Grund | Bedeutungsänderung | Interaktionsziel | Hervorhebung |
+|---|---|---|---|---|---|---|---|---|
+| `S05.freeSearch.lengthExamples.secondLengthReason.germanWords.lengthScaleLabel` | Nutzerauftrag vom 2026-08-22 | `24 Zeichen` | `39 Zeichen` | Orientierung | ausdrücklich verlangte Korrektur der Längenangabe | begrenzt | kein | keine |
+| `S05.freeSearch.lengthExamples.secondLengthReason.multilingualWords.showPasswordLabel` | Nutzerauftrag vom 2026-08-22 | sichtbares `4 Wörter` ausgeblendet | `4 Wörter` sichtbar | Orientierung | Wortanzahl wie beim Sechswortvergleich sichtbar zuordnen | nein | kein | keine |
+| S05-Vergleich bei `length-fifth-word-comparison` | Nutzerauftrag vom 2026-08-22 | links vier deutsche Wörter, `1,3 Jahre` und eine deutsche Wortliste; rechts sechs deutsche Wörter und `8,3 Milliarden Jahre` | links vier mehrsprachige Wörter, deren Zeitaufwand und vier Wortlisten; rechts unverändert sechs deutsche Wörter, `8,3 Milliarden Jahre` und eine deutsche Wortliste | Ergebnisfeedback | ausdrücklich verlangte frühere Vergleichsdarstellung wiederherstellen | ja | Info-Zahnrad / `Weiter` | keine |
+
+## Darstellungsdelta S05 Vierwortbeispiel mit Zeichenskala, 22. August 2026
+
+Quelle ist der ausdrückliche Nutzerauftrag vom 22. August 2026. Unter den vier deutschen
+Wortbausteinen erscheint die bestehende horizontale Längenskala mit der Beschriftung
+`24 Zeichen`. Die an den 15-Zeichen-Beispielen verwendete Beschriftung `Mindestlänge` wird für
+diese Darstellung nicht übernommen. Wortbausteine, Zeitwert, Berechnung, Animation,
+Interaktion, Ablauf, Analyse, Persistenz, Export und Timing bleiben unverändert.
+`S05_CONTENT_VERSION` wird von `2.102.1` auf `2.102.2` erhöht.
+
+| Segment und Text-ID | Quelle | Aktueller Zustand | Geplanter Zustand | Primäre Rolle | Grund | Bedeutungsänderung | Interaktionsziel | Hervorhebung |
+|---|---|---|---|---|---|---|---|---|
+| `S05.freeSearch.lengthExamples.secondLengthReason.germanWords.lengthScaleLabel` | Nutzerauftrag vom 2026-08-22 | keine Skala unter den vier deutschen Wörtern | bestehende horizontale Längenskala mit `24 Zeichen` | Orientierung | ausdrücklich verlangte Längenangabe unmittelbar am Beispiel | begrenzt | kein | keine |
+
+## Copy- und Darstellungsdelta S05 Wortlistenvergleich präzisiert, 22. August 2026
+
+Quelle ist der ausdrückliche Nutzerauftrag vom 22. August 2026. Die Übergänge des
+Wortlistenvergleichs werden sprachlich präzisiert, der bereits in der Kugel sichtbare Zeitwert
+`1,3 Jahre` wird nicht mehr in der Sprechblase wiederholt, und die sichtbare Bezeichnung
+`4 Wörter` entfällt bei beiden Vierwort-Darstellungen. Zugängliche Benennung, Modellinformation,
+Beispiele, Berechnungen, Animationen, Interaktion, Ablauf, Analyse, Persistenz, Export und Timing
+bleiben unverändert. `S05_CONTENT_VERSION` wird von `2.102.0` auf `2.102.1` erhöht.
+
+| Segment und Text-ID | Quelle | Aktueller Text / Zustand | Geplanter Text / Zustand | Primäre Rolle | Grund | Bedeutungsänderung | Interaktionsziel | Hervorhebung |
+|---|---|---|---|---|---|---|---|---|
+| `S05.freeSearch.lengthExamples.reasonsIntroduction` | Nutzerauftrag vom 2026-08-22 | `Warum selbst gewählte Passwörter oft noch länger werden, schauen wir uns an zwei weiteren Punkten an.` | `Warum selbst gewählte Passwörter oft noch länger werden, schauen wir uns jetzt am Beispiel von Wörtern an.` | Orientierung | ausdrücklich verlangte Präzisierung des folgenden Beispiels | begrenzt | `Weiter` | keine |
+| `S05.freeSearch.lengthExamples.lengthTakeaway` | Nutzerauftrag vom 2026-08-22 | zwei Sätze einschließlich Wiederholung von `etwa 1,3 Jahre` | `Nehmen wir stattdessen vier zufällige Wörter aus einer großen deutschen Wortliste, werden wir schnell länger als 15 Zeichen.` | Ergebnisfeedback | nachweisbare Redundanz zur sichtbaren Zeitangabe entfernen | nein | `Weiter` | `schnell länger als 15 Zeichen`, Akzent |
+| `S05.freeSearch.lengthExamples.secondReasonTransition` | Nutzerauftrag vom 2026-08-22 | allgemeine Verbindung von schwerem Erraten, Merkbarkeit und Länge | zwei vorgegebene Sätze zur Grenze von 15 Zeichen und zum Längenbedarf mehrerer zufälliger Wörter | Kerngedanke | fachliche Aussage ausdrücklich präzisieren | begrenzt | `Weiter` | keine |
+| `S05.freeSearch.lengthExamples.secondLengthReason.{germanWordsIntroduction,languagePoolIntroduction}` | Nutzerauftrag vom 2026-08-22 | indirekte Übergänge mit `Der zweite Punkt` und `Wir könnten zunächst` | direkte Übergänge mit `Jetzt können wir` und `Dafür vergrößern wir` | Orientierung / Mechanismuserklärung | ausdrücklich verlangte dramaturgische Straffung | begrenzt | `Weiter` | `noch weiter erschweren`; `Auswahl pro Wort`, Akzent |
+| `S05.freeSearch.lengthExamples.secondLengthReason.{germanWords,multilingualWords}.showPasswordLabel` | Nutzerauftrag vom 2026-08-22 | sichtbares `4 Wörter` | nicht sichtbar; zugängliche Benennung bleibt `4 Wörter` | Orientierung | ausdrücklich verlangte Reduktion des sichtbaren Hinweises | nein | kein | keine |
+
+## Copy- und Ablaufdelta S05 Wortlistenvergleich neu gefasst, 22. August 2026
+
+Quelle ist der ausdrückliche Nutzerauftrag vom 22. August 2026. Die Sprechblasen des
+15-Zeichen-/Wortlistenvergleichs werden entlang der jeweils sichtbaren Zustandsänderung neu
+geschnitten. Die Vierwort-Anzeige mit `1,3 Jahre` ersetzt die bisherige Einzelwortkugel in-place,
+während das Fünfwortbeispiel links mit einer 2-Pixel-Referenzkugel sichtbar bleibt. Der zweite
+Längengrund vergleicht danach den vierfachen mehrsprachigen Pool mit sechs deutschen Wörtern und
+`8,3 Milliarden Jahre`. Länderkarte, Wortlisten-Schätzfrage und anschließende
+Zeichenraum-Analogie entfallen aus dem S05-Ablauf; nach dem Sechswortvergleich folgt direkt die
+bestehende Campusgram-Auswertung. Analyse, Persistenz, Export und Timing bleiben unverändert.
+`S05_CONTENT_VERSION` wird von `2.101.4` auf `2.102.0` erhöht.
+
+| Segment und Text-ID | Quelle | Aktueller Text / Zustand | Geplanter Text / Zustand | Primäre Rolle | Grund | Bedeutungsänderung | Interaktionsziel | Hervorhebung |
+|---|---|---|---|---|---|---|---|---|
+| `S05.freeSearch.lengthExamples.{memorability,fullWordAttack}` | Nutzerauftrag vom 2026-08-22 | ein langer Satz zu Merkbarkeit/Länge; separater Satz zum Wörterpool | `Nehmen wir dafür Datensicherheit als Passwort.`; `Das ist merkbar und 15 Zeichen lang, für den Angreifer aber nur ein einzelnes deutsches Wort.` | Mechanismuserklärung | ausdrücklich vorgegebener Schnitt | begrenzt | `Weiter` | `ein einzelnes deutsches Wort`, Akzent |
+| `S05.freeSearch.lengthExamples.{shortWordComparison,sufficientPools}` | Nutzerauftrag vom 2026-08-22 | ein gemeinsamer Schritt für fünf kurze Wörter und kleinen Pool; allgemeiner Pool-/Platzsatz | zwei vorgegebene Schritte: mehrere Wörter bei 15 Zeichen; Begrenzung durch wenige sehr kurze Wörter | Mechanismuserklärung | Text an getrennte Baustein- und Pooldarstellung binden | ja | `Weiter` | keine |
+| `S05.freeSearch.lengthExamples.{lengthTakeaway,secondReasonTransition}` | Nutzerauftrag vom 2026-08-22 | allgemeiner Längen-Kerngedanke; `Nun zur zweiten Sache.` | Vierwortbeispiel mit `1,3 Jahre`; Kerngedanke zur Verbindung von schwerem Erraten und Merkbarkeit | Ergebnisfeedback / Kerngedanke | ausdrücklich vorgegebene neue Dramaturgie | ja | `Weiter` | `etwa 1,3 Jahre`; `schweres Erraten und Merkbarkeit`, Akzent |
+| `S05.freeSearch.lengthExamples.secondLengthReason.{germanWordsIntroduction,languagePoolIntroduction,multilingualSelection,additionalGermanWords}` | Nutzerauftrag vom 2026-08-22 | drei deutsche Zusatzwörter; größerer Pool; vier Einzelsprachen; fünftes mehrsprachiges Wort mit `106,3 Millionen Jahre` | zweiter Punkt; vier zusammengelegte Wortlisten; vervierfachte Auswahl; zwei weitere deutsche Wörter mit `8,3 Milliarden Jahre` | Orientierung / Mechanismuserklärung / Ergebnisfeedback | ausdrücklich vorgegebene Neufassung | ja | `Weiter` | je Schritt eine Akzentphrase: `noch weiter erschweren`, `Auswahl pro Wort vergrößern`, `vervierfacht sich die Auswahl`, `zwei weitere zufällige Wörter` |
+| `S05.freeSearch.lengthExamples.secondLengthReason.sixGermanWords` | Nutzerauftrag vom 2026-08-22 | `5 Wörter`, mehrsprachige Folge, `106,3 Millionen Jahre`, vier Wortlistenstapel | `6 Wörter`: `Datensicherheit`, `Lobotomie`, `Zugspitze`, `Unbefugt`, `Posen`, `Trampolin`; `8,3 Milliarden Jahre`; ausschließlich deutsche Wortliste | Ergebnisfeedback | sichtbares Beispiel und Modellwert ausdrücklich ersetzt | ja | Info-Zahnrad / `Weiter` | keine |
+| `S05.animations` ab `s05-length-fifth-word-comparison` | Nutzerauftrag vom 2026-08-22 | Länderkarte, Schätzfrage und vier Zeichenraum-Schritte | direkter Übergang zu `s05-final-components` | Navigation | ausdrücklich verlangte Kürzung des restlichen Skripts | ja | `Weiter` | keine |
+
 ## Copy-Delta S05 Wortanzahlhinweise ausgeblendet, 22. August 2026
 
 Quelle ist der ausdrückliche Nutzerauftrag vom 22. August 2026. Die sichtbaren Hinweise `1 Wort`
