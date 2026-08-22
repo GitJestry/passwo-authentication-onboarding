@@ -1,5 +1,88 @@
 # S00--S05 Copy and Interaction Audit
 
+## Copy-Delta S05 Variantenmarkierung und Hinweis präzisiert, 22. August 2026
+
+Quelle ist der ausdrückliche Nutzerauftrag vom 22. August 2026. Die Sprechblase zu typischen
+Varianten erhält eine deutlich sichtbare, breite Logo-Markierung. Der bestehende Hinweis wird mit
+dem vorgegebenen Wortlaut gekürzt; seine Safety Boundary bleibt erhalten. Darstellung,
+Interaktion, Ablauf, Analyse, Persistenz, Export und Timing bleiben unverändert.
+`S05_CONTENT_VERSION` wird von `2.105.0` auf `2.106.0` erhöht.
+
+| Segment und Text-ID | Quelle | Aktueller Text / Zustand | Geplanter Text / Zustand | Primäre Rolle | Grund | Bedeutungsänderung | Interaktionsziel | Hervorhebung |
+|---|---|---|---|---|---|---|---|---|
+| `S05.componentStrategy.commonComponents.explanation[2]` | Nutzerauftrag vom 2026-08-22 | `typischen Varianten` nur als Akzentmarkierung | `typischen Varianten` mit breiter Logo-Markierung | Mechanismuserklärung | ausdrücklich verlangte visuelle Referenzauflösung | nein | `Weiter` | `typischen Varianten`, Akzent mit Logo |
+| `S05.intro.narration.componentCategoryOverview[1]` | Nutzerauftrag vom 2026-08-22 | `Bitte beachte: Das Modul kann Bestandteile übersehen oder falsch einordnen. Es dient nur zum Verständnis, nicht zur Sicherheitsbewertung.` | `Bitte beachte: Das Modul kann Fehler machen und dient nur zum Verständnis, nicht zur Sicherheitsbewertung.` | Safety Boundary | ausdrücklich vorgegebener Wortlaut | begrenzt | `Weiter` | `Bitte beachte:`, Akzent |
+
+## Copy-Delta S05 Begrifflichkeiten und Beispiele präzisiert, 22. August 2026
+
+Quelle ist der ausdrückliche Nutzerauftrag vom 22. August 2026. Vier bestehende S05-
+Sprechblasen werden ausschließlich mit dem vorgegebenen Wortlaut präzisiert. Die vorhandene
+Akzentmarkierung von `Geläufige Wörter` bleibt erhalten. Die Logo-Markierung von
+`typische Varianten` wird im folgenden Copy-Delta ergänzt. Darstellung, Interaktion, Ablauf, Analyse,
+Persistenz, Export und Timing bleiben unverändert. `S05_CONTENT_VERSION` wird von `2.104.0` auf
+`2.105.0` erhöht.
+
+| Segment und Text-ID | Quelle | Aktueller Text | Geplanter Text | Primäre Rolle | Grund | Bedeutungsänderung | Interaktionsziel | Hervorhebung |
+|---|---|---|---|---|---|---|---|---|
+| `S05.componentStrategy.commonComponents.explanation[0]` | Nutzerauftrag vom 2026-08-22 | `Dazu gehören häufig verwendete Passwörter und Wörter, einfache Tastatur- und Zahlenfolgen wie „123456“ oder „qwertz“ oder naheliegende Jahreszahlen.` | `Dazu gehören häufig verwendete Passwörter, geläufige Wörter, einfache Tastatur- und Zahlenfolgen wie „123456“ oder „qwertz“ sowie Jahreszahlen.` | Mechanismuserklärung | ausdrücklich vorgegebener Wortlaut | begrenzt | `Weiter` | keine |
+| `S05.componentStrategy.commonComponents.explanation[1]` | Nutzerauftrag vom 2026-08-22 | `Wörter sind nicht grundsätzlich unsicher. Geläufige Wörter, etwa aus Wörterbüchern, können Angreifer jedoch früh ausprobieren.` | `Wörter sind nicht grundsätzlich unsicher. Geläufige Wörter können Angreifer jedoch mithilfe von Wörterlisten früh ausprobieren.` | Mechanismuserklärung | ausdrücklich vorgegebener Wortlaut | begrenzt | `Weiter` | `Geläufige Wörter`, Akzent bleibt erhalten |
+| `S05.componentStrategy.commonComponents.explanation[2]` | Nutzerauftrag vom 2026-08-22 | unverändert | unverändert | Mechanismuserklärung | Markierung wird im folgenden Copy-Delta ergänzt | nein | `Weiter` | `typischen Varianten`, Akzent |
+| `S05.componentStrategy.accountContext.explanation[0]` | Nutzerauftrag vom 2026-08-22 | `Bei Campusgram wären das zum Beispiel der Benutzername, ‚Campus‘, ‚Nachricht‘ oder der Dienstname, bei einem WLAN-Passwort etwa ‚WLAN‘, ‚Router‘ oder ‚Fritzbox‘.` | `Bei Campusgram wären das zum Beispiel der Benutzername, Campus, Nachricht oder der Dienstname. Bei einem WLAN-Passwort etwa WLAN, Router oder Fritzbox.` | Mechanismuserklärung | ausdrücklich vorgegebener Wortlaut | begrenzt | `Weiter` | keine |
+
+## Copy- und Ablaufdelta S05 Übergang zum vollständigen Durchprobieren, 22. August 2026
+
+Quelle ist der ausdrückliche Nutzerauftrag vom 22. August 2026. Nach der bestehenden
+Wiederholungsmuster-Sequenz bleibt zunächst die Musteransicht sichtbar. Ein zusätzlicher
+PassWo-Sprechschritt führt von frühen Passwortkandidaten und typischen Mustern zum vollständigen
+Durchprobieren; ausschließlich die Phrase `alle möglichen Zeichenfolgen durchprobieren` wird
+akzentuiert. Danach wechselt die Darstellung zur einzelnen Regelanzeige mit `Passw0rt123!`.
+Zwei getrennte Sprechschritte erklären dort zuerst den Zweck bekannter Passwortregeln und ordnen
+anschließend ihre mögliche Täuschungswirkung anhand der sichtbaren starken Bewertung ein. Die
+bestehende Vergleichsansicht folgt danach unverändert. Analyse, Persistenz, Export und Timing
+bleiben unverändert. `S05_CONTENT_VERSION` wird von `2.103.1` auf `2.104.0` erhöht.
+
+| Segment und Text-ID | Quelle | Aktueller Text / Zustand | Geplanter Text / Zustand | Primäre Rolle | Grund | Bedeutungsänderung | Interaktionsziel | Hervorhebung |
+|---|---|---|---|---|---|---|---|---|
+| `S05.freeSearch.transition.exhaustiveSearch` | Nutzerauftrag vom 2026-08-22 | nicht vorhanden; direkter Wechsel von der Musteransicht zur Regelanzeige | `Greifen frühe Passwortkandidaten und typische Muster nicht, kann der Angreifer bei einem Datenleck noch alle möglichen Zeichenfolgen durchprobieren.` | Mechanismuserklärung | ausdrücklich verlangte dramaturgische Brücke zum vollständigen Durchprobieren | ja | `Weiter` zur Regelanzeige | `alle möglichen Zeichenfolgen durchprobieren`, Akzent |
+| `S05.freeSearch.transition.rulePurpose` | Nutzerauftrag vom 2026-08-22 | nicht vorhanden | `Viele bekannte Passwortregeln sollen genau dieses Durchprobieren erschweren.` | Mechanismuserklärung | Zweck der nun sichtbaren Regeln vor ihrer Begrenzung einordnen | ja | `Weiter`; einzelne Regelanzeige mit `Passw0rt123!` bleibt sichtbar | keine |
+| `S05.freeSearch.transition.explanation` | Nutzerauftrag vom 2026-08-22 | `Hier erfüllt Passw0rt123! alle angezeigten Regeln und wird als stark bewertet.` | `Doch sie können täuschen. Passw0rt123! erfüllt alle angezeigten Regeln und wird als stark bewertet.` | Ergebnisfeedback | ausdrücklich verlangte Einschränkung nach der unmittelbar vorausgehenden Zweckerklärung | begrenzt | `Weiter` zur bestehenden Vergleichsansicht | keine |
+
+## Copy-Delta S05 Sechswort-Ausblick präzisiert, 22. August 2026
+
+Quelle ist der ausdrückliche Nutzerauftrag vom 22. August 2026. Der abschließende Ausblick des
+neuen Zeichenvergleichs benennt nun die spätere praktische Erstellung eines schwer zu erratenden
+und trotzdem merkbaren Passworts. Darstellung, Interaktion, Ablauf, Analyse, Persistenz, Export
+und Timing bleiben unverändert. Die bestehende Hervorhebung von `sechs zufälligen Wörtern` bleibt
+erhalten. `S05_CONTENT_VERSION` wird von `2.103.0` auf `2.103.1` erhöht.
+
+| Segment und Text-ID | Quelle | Aktueller Text | Geplanter Text | Primäre Rolle | Grund | Bedeutungsänderung | Interaktionsziel | Hervorhebung |
+|---|---|---|---|---|---|---|---|---|
+| `S05.freeSearch.lengthExamples.characterConclusion.passphraseOutlook` | Nutzerauftrag vom 2026-08-22 | `Wie wir das mit sechs zufälligen Wörtern nutzen, schauen wir uns später an.` | `Wie du mit sechs zufälligen Wörtern ein schwer zu erratendes und trotzdem merkbares Passwort erstellst, schauen wir uns später praktisch an.` | Orientierung | ausdrücklich vorgegebener Wortlaut und konkreterer Ausblick auf die spätere Praxis | begrenzt | `Weiter` zur bestehenden Bewertung | `sechs zufälligen Wörtern`, Akzent |
+
+## Copy- und Ablaufdelta S05 Zeichenvergleich vor Bewertung, 22. August 2026
+
+Quelle ist der ausdrückliche Nutzerauftrag vom 22. August 2026 in Verbindung mit den
+S05-Skriptseiten 28 bis 33. Direkt nach dem sichtbaren Sechswortvergleich mit
+`8,3 Milliarden Jahre` und vor der bestehenden Campusgram-Bewertung werden drei getrennte
+PassWo-Sprechschritte ergänzt. Der erste verwendet erneut die vorhandene Vergleichsskala mit der
+gelben 12-Zeichen-Kugel und der 15-Kleinbuchstaben-Referenz, zoomt jedoch so weit heraus, dass die
+16-Kleinbuchstaben-Kugel vollständig sichtbar ist. Diese Kugel ist deckend und blinkt während
+dieser Sprechblase als Fokus; bei `prefers-reduced-motion` bleibt sie statisch hervorgehoben. Die
+beiden folgenden Schritte verwenden wieder die vorhandene fokussierte 15-Zeichen-Ansicht. Danach
+beginnt unverändert die bestehende Bewertung.
+
+Zusätzlich werden die zwei ausdrücklich benannten früheren Sprechblasen ersetzt. Die Markierung
+`mindestens 15 Zeichen` bleibt erhalten. Analyse, Persistenz, Export und Timing bleiben
+unverändert. `S05_CONTENT_VERSION` wird von `2.102.4` auf `2.103.0` erhöht.
+
+| Segment und Text-ID | Quelle | Aktueller Text / Zustand | Geplanter Text / Zustand | Primäre Rolle | Grund | Bedeutungsänderung | Interaktionsziel | Hervorhebung |
+|---|---|---|---|---|---|---|---|---|
+| `S05.freeSearch.lengthExamples.mixedCharacterComparison` | Nutzerauftrag vom 2026-08-22 | `Die gelbe Kugel zeigt, warum zwölf wirklich zufällige Zeichen aus mehreren Zeichentypen wie k7#M!9p$2Lq& so aufwendig durchzuprobieren sind.` | `Die gelbe Kugel zeigt, warum ein wirklich zufälliges Passwort wie k7#M!9p$2Lq& so aufwendig durchzuprobieren ist.` | Mechanismuserklärung | ausdrücklich vorgegebener Wortlaut | begrenzt | `Weiter` | keine |
+| `S05.freeSearch.lengthExamples.orientation` | Nutzerauftrag vom 2026-08-22 | `Bei selbstgewählten Passwörtern lässt sich diese Zufälligkeit jedoch nicht voraussetzen. Deshalb liegt die aktuelle Orientierung bei mindestens 15 Zeichen.` | `Da sich diese Zufälligkeit bei selbst gewählten Passwörtern jedoch nicht voraussetzen lässt, liegt die aktuelle Orientierung bei mindestens 15 Zeichen.` | Kerngedanke | ausdrücklich vorgegebener Wortlaut | nein | `Weiter` | `mindestens 15 Zeichen`, Akzent |
+| `S05.freeSearch.lengthExamples.characterConclusion.comparison` | Nutzerauftrag vom 2026-08-22 | nicht vorhanden; direkter Übergang zur Bewertung | `Bei einzelnen Zeichen sehen wir etwas Ähnliches: 16 zufällige Kleinbuchstaben sind aufwendiger durchzuprobieren als 12 zufällige Zeichen aus allen Zeichentypen.` | Mechanismuserklärung | Zeichen- und Wortlängeneffekt vor der Bewertung zusammenführen | ja | `Weiter`; herausgezoomte Vergleichsskala | `16 zufällige Kleinbuchstaben`, Akzent; 16er-Kugel als blinkender visueller Fokus |
+| `S05.freeSearch.lengthExamples.characterConclusion.predictability` | Nutzerauftrag vom 2026-08-22 | nicht vorhanden | `Zusätzliche Länge kann den Aufwand also stark erhöhen, ohne bestimmte Zeichentypen zu brauchen - aber nur, wenn die neuen Zeichen oder Wörter nicht vorhersehbar sind.` | Safety Boundary | Zuwachs ausdrücklich auf nicht vorhersehbare Ergänzungen begrenzen | ja | `Weiter`; fokussierte 15-Zeichen-Ansicht | `nicht vorhersehbar`, Warnung |
+| `S05.freeSearch.lengthExamples.characterConclusion.passphraseOutlook` | Nutzerauftrag vom 2026-08-22 | nicht vorhanden | `Wie wir das mit sechs zufälligen Wörtern nutzen, schauen wir uns später an.` | Orientierung | spätere Sechswortmethode knapp ankündigen | ja | `Weiter` zur bestehenden Bewertung; fokussierte 15-Zeichen-Ansicht | `sechs zufälligen Wörtern`, Akzent |
+
 ## Copy-Delta S05 Wortlängen-Sprechblasen ersetzt, 22. August 2026
 
 Quelle ist der ausdrückliche Nutzerauftrag vom 22. August 2026. Drei aufeinanderfolgende

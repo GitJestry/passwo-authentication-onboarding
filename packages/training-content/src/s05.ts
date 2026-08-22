@@ -73,7 +73,7 @@ export interface S05DesignLabFixture {
   readonly startSection: 'intro' | 'components' | 'structure';
 }
 
-export const S05_CONTENT_VERSION = '2.102.4';
+export const S05_CONTENT_VERSION = '2.106.0';
 
 export const s05Content = {
   version: S05_CONTENT_VERSION,
@@ -83,9 +83,9 @@ export const s05Content = {
       12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34,
       35,
     ] as const,
-    revision: 'Userauftrag vom 2026-08-22 · S05 Wortlängen-Sprechblasen ersetzt',
+    revision: 'Userauftrag vom 2026-08-22 · S05 Variantenmarkierung und Hinweis präzisiert',
     copyReference:
-      'docs/design/S00-S05-COPY-AUDIT.md#copy-delta-s05-wortlaengen-sprechblasen-ersetzt-22-august-2026',
+      'docs/design/S00-S05-COPY-AUDIT.md#copy-delta-s05-variantenmarkierung-und-hinweis-praezisiert-22-august-2026',
   },
   segment: {
     id: 'S05',
@@ -142,7 +142,7 @@ export const s05Content = {
       ],
       componentCategoryOverview: [
         'Dabei beginnt er mit Passwörtern und Zeichenfolgen, die besonders häufig verwendet werden.',
-        'Bitte beachte: Das Modul kann Bestandteile übersehen oder falsch einordnen. Es dient nur zum Verständnis, nicht zur Sicherheitsbewertung.',
+        'Bitte beachte: Das Modul kann Fehler machen und dient nur zum Verständnis, nicht zur Sicherheitsbewertung.',
       ],
     },
   },
@@ -187,8 +187,8 @@ export const s05Content = {
     },
     commonComponents: {
       explanation: [
-        'Dazu gehören häufig verwendete Passwörter und Wörter, einfache Tastatur- und Zahlenfolgen wie „123456“ oder „qwertz“ oder naheliegende Jahreszahlen.',
-        'Wörter sind nicht grundsätzlich unsicher. Geläufige Wörter, etwa aus Wörterbüchern, können Angreifer jedoch früh ausprobieren.',
+        'Dazu gehören häufig verwendete Passwörter, geläufige Wörter, einfache Tastatur- und Zahlenfolgen wie „123456“ oder „qwertz“ sowie Jahreszahlen.',
+        'Wörter sind nicht grundsätzlich unsicher. Geläufige Wörter können Angreifer jedoch mithilfe von Wörterlisten früh ausprobieren.',
         'Bei selbst gewählten Passwörtern kommen außerdem oft Veränderungen wie Großschreibung, Zeichenersetzungen, Zahlen oder Symbole vor. Auch solche typischen Varianten werden ausprobiert.',
         'Prüfen wir nun dein gewähltes Passwort auf häufig verwendete Passwörter und Zeichenfolgen.',
       ],
@@ -275,7 +275,7 @@ export const s05Content = {
         'Um sich leichter zu merken, welches Passwort zu welchem Konto gehört, werden oft Begriffe mit Bezug zum Konto, zum Dienst oder zu dessen Umfeld eingebaut. Solche Bezüge kann ein Angreifer gezielt mitprüfen.',
       ],
       explanation: [
-        'Bei Campusgram wären das zum Beispiel der Benutzername, ‚Campus‘, ‚Nachricht‘ oder der Dienstname, bei einem WLAN-Passwort etwa ‚WLAN‘, ‚Router‘ oder ‚Fritzbox‘.',
+        'Bei Campusgram wären das zum Beispiel der Benutzername, Campus, Nachricht oder der Dienstname. Bei einem WLAN-Passwort etwa WLAN, Router oder Fritzbox.',
         'Prüfen wir nun dein gewähltes Passwort auf einen möglichen Bezug zu Campusgram.',
       ],
       check: 'Im Passwort prüfen',
@@ -443,8 +443,11 @@ export const s05Content = {
         'Wichtig: Passphrasen, also Passwörter aus mehreren Wörtern, können sehr stark sein. Werden genug Wörter zufällig erzeugt, fehlen dem Angreifer genau die Zusammenhänge, die ihm eben noch geholfen haben. Wie das praktisch geht, schauen wir uns später an.',
     },
     transition: {
+      exhaustiveSearch:
+        'Greifen frühe Passwortkandidaten und typische Muster nicht, kann der Angreifer bei einem Datenleck noch alle möglichen Zeichenfolgen durchprobieren.',
+      rulePurpose: 'Viele bekannte Passwortregeln sollen genau dieses Durchprobieren erschweren.',
       explanation:
-        'Hier erfüllt Passw0rt123! alle angezeigten Regeln und wird als stark bewertet.',
+        'Doch sie können täuschen. Passw0rt123! erfüllt alle angezeigten Regeln und wird als stark bewertet.',
     },
     characterMix: {
       panelTitle: 'Passwort erstellen',
@@ -526,9 +529,9 @@ export const s05Content = {
     },
     lengthExamples: {
       mixedCharacterComparison:
-        'Die gelbe Kugel zeigt, warum zwölf wirklich zufällige Zeichen aus mehreren Zeichentypen wie k7#M!9p$2Lq& so aufwendig durchzuprobieren sind.',
+        'Die gelbe Kugel zeigt, warum ein wirklich zufälliges Passwort wie k7#M!9p$2Lq& so aufwendig durchzuprobieren ist.',
       orientation:
-        'Bei selbstgewählten Passwörtern lässt sich diese Zufälligkeit jedoch nicht voraussetzen. Deshalb liegt die aktuelle Orientierung bei mindestens 15 Zeichen.',
+        'Da sich diese Zufälligkeit bei selbst gewählten Passwörtern jedoch nicht voraussetzen lässt, liegt die aktuelle Orientierung bei mindestens 15 Zeichen.',
       reasonsIntroduction:
         'Warum selbst gewählte Passwörter oft noch länger werden, schauen wir uns jetzt am Beispiel von Wörtern an.',
       memorability: 'Nehmen wir dafür Datensicherheit als Passwort.',
@@ -653,6 +656,14 @@ export const s05Content = {
               'Für diese vereinfachte Rechnung nehmen wir für die japanische Wortliste ebenfalls etwa 80.000 Wörter an.',
           },
         ],
+      },
+      characterConclusion: {
+        comparison:
+          'Bei einzelnen Zeichen sehen wir etwas Ähnliches: 16 zufällige Kleinbuchstaben sind aufwendiger durchzuprobieren als 12 zufällige Zeichen aus allen Zeichentypen.',
+        predictability:
+          'Zusätzliche Länge kann den Aufwand also stark erhöhen, ohne bestimmte Zeichentypen zu brauchen - aber nur, wenn die neuen Zeichen oder Wörter nicht vorhersehbar sind.',
+        passphraseOutlook:
+          'Wie du mit sechs zufälligen Wörtern ein schwer zu erratendes und trotzdem merkbares Passwort erstellst, schauen wir uns später praktisch an.',
       },
     },
     application: {
@@ -785,7 +796,9 @@ export const s05Content = {
     ['s05-structure-repetition', 'structure-repetition', 'warning'],
     ['s05-structure-repetition-guessing', 'structure-repetition', 'warning'],
     ['s05-structure-application', 'structure-application', 'warning'],
-    ['s05-free-search-transition', 'character-mix', 'info'],
+    ['s05-free-search-transition', 'structure-repetition', 'info'],
+    ['s05-character-mix-rule-purpose', 'character-mix', 'info'],
+    ['s05-character-mix-rule-warning', 'character-mix', 'warning'],
     ['s05-character-mix-first', 'character-mix', 'info'],
     ['s05-character-mix-comparison', 'character-mix', 'info'],
     ['s05-character-mix-difference', 'character-mix', 'warning'],
@@ -807,6 +820,9 @@ export const s05Content = {
     ['s05-length-language-pool-stack', 'length-second-reason', 'info'],
     ['s05-length-multilingual-words', 'length-second-reason', 'info'],
     ['s05-length-fifth-word-comparison', 'length-second-reason', 'info'],
+    ['s05-length-character-comparison', 'length-character-comparison', 'info'],
+    ['s05-length-character-takeaway', 'length-character-takeaway', 'info'],
+    ['s05-length-passphrase-outlook', 'length-passphrase-outlook', 'info'],
     ['s05-final-components', 'final-components', 'info'],
     ['s05-final-result', 'final-result', 'warning'],
     ['s05-final-length', 'final-length', 'info'],

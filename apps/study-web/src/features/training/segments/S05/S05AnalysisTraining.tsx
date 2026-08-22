@@ -1507,11 +1507,14 @@ function StructurePatternScene({
   readonly controller: S05AnalysisController;
 }) {
   const patternStep =
-    snapshot.step === 'structure-application' ? 'structure-repetition' : snapshot.step;
+    snapshot.step === 'structure-application' || snapshot.step === 'free-search-transition'
+      ? 'structure-repetition'
+      : snapshot.step;
   const reflectionVisible =
     snapshot.step === 'structure-theme-reflection' ||
     snapshot.step === 'structure-sentence-reflection' ||
-    snapshot.step === 'structure-application';
+    snapshot.step === 'structure-application' ||
+    snapshot.step === 'free-search-transition';
 
   return (
     <div
@@ -1523,7 +1526,7 @@ function StructurePatternScene({
         <StructureContentReflection snapshot={snapshot} controller={controller} />
       ) : snapshot.step === 'structure-sentence-reflection' ? (
         <StructureSentenceReflection snapshot={snapshot} controller={controller} />
-      ) : snapshot.step === 'structure-application' ? (
+      ) : snapshot.step === 'structure-application' || snapshot.step === 'free-search-transition' ? (
         <StructureReflectionSummary snapshot={snapshot} />
       ) : null}
     </div>
@@ -1593,7 +1596,8 @@ function CharacterChecklist({
 
 function CharacterMixScene({ step }: { readonly step: S05AnalysisControllerSnapshot['step'] }) {
   const content = s05Content.freeSearch.characterMix;
-  const showComparison = step !== 'free-search-transition';
+  const showComparison =
+    step !== 'character-mix-rule-purpose' && step !== 'character-mix-rule-warning';
   const showEarlyHit = step === 'character-mix-comparison';
   return (
     <div className={styles.characterMixScene} data-s05-target="character-mix" data-s05-speech-obstacle>
@@ -2138,9 +2142,19 @@ function LowercaseModelLabel({ style }: { readonly style: ScaleItemStyle }) {
   );
 }
 
-function LowercaseComparisonPreview({ style }: { readonly style: ScaleItemStyle }) {
+function LowercaseComparisonPreview({
+  style,
+  focused = false,
+}: {
+  readonly style: ScaleItemStyle;
+  readonly focused?: boolean;
+}) {
   return (
-    <span className={styles.comparisonPreviewInformation} style={style}>
+    <span
+      className={styles.comparisonPreviewInformation}
+      data-focused={focused || undefined}
+      style={style}
+    >
       <strong className={styles.lowercaseModelAlphabet} aria-label="kleinbuchstaben">
         <LowercaseAlphabetMark inline decorative lowercase />
       </strong>
@@ -2163,7 +2177,9 @@ function LowercaseClockScene({
   const graphRef = useRef<HTMLDivElement | null>(null);
   const viewport = useScaleViewport(graphRef);
   const currentLength = snapshot.lowercaseScale.password.length;
-  const comparesLengthModels = snapshot.step === 'length-model-comparison';
+  const revisitsCharacterComparison = snapshot.step === 'length-character-comparison';
+  const comparesLengthModels =
+    snapshot.step === 'length-model-comparison' || revisitsCharacterComparison;
   const layout = buildScaleLayout(
     comparesLengthModels ? 16 : currentLength,
     comparesLengthModels ? LOWERCASE_SCALE_MAXIMUM_LENGTH : currentLength,
@@ -2198,19 +2214,25 @@ function LowercaseClockScene({
   );
   const projection = comparesLengthModels
     ? (() => {
-        const zoom = 1.28;
+        const zoom = revisitsCharacterComparison ? 1 : 1.28;
         const comparisonLeft =
           (layout.positions.get(15) ?? 110) - scaleSphereDiameter(15) / 2;
         const shiftedSixteenLeft =
           comparisonWorldX(16) - scaleSphereDiameter(16) / 2;
         const comparisonRight = Math.max(
           generatedSphereWorldX + generatedSphereDiameter / 2,
-          shiftedSixteenLeft + comparisonPreviewWidth,
+          revisitsCharacterComparison
+            ? comparisonWorldX(16) + scaleSphereDiameter(16) / 2
+            : shiftedSixteenLeft + comparisonPreviewWidth,
         );
         const comparisonTop =
           layout.axisTop -
           layout.sphereLift -
-          Math.max(scaleSphereDiameter(15), generatedSphereDiameter) -
+          Math.max(
+            scaleSphereDiameter(15),
+            generatedSphereDiameter,
+            revisitsCharacterComparison ? scaleSphereDiameter(16) : 0,
+          ) -
           Math.max(110, generatedSphereDiameter * 0.035);
         const comparisonBottom = layout.axisTop + Math.max(160, generatedSphereDiameter * 0.04);
         const scale = Math.min(
@@ -2331,6 +2353,14 @@ function LowercaseClockScene({
   }
 
   function comparisonPreviewInformationStyle(): ScaleItemStyle {
+    if (revisitsCharacterComparison) {
+      const diameter = screenDiameter(16);
+      return {
+        ...sphereStyle(16),
+        '--scale-y': `${screenTop(16) + diameter / 2}px`,
+        '--preview-size': `${Math.min(diameter * 0.42, 320)}px`,
+      };
+    }
     const geometry = comparisonPreviewGeometry();
     return {
       '--scale-x': `${geometry.x}px`,
@@ -2357,6 +2387,12 @@ function LowercaseClockScene({
 
   const targetId = snapshot.step === 'length-reasons-intro'
     ? 'length-word-pools'
+    : snapshot.step === 'length-character-comparison'
+      ? 'length-character-comparison'
+      : snapshot.step === 'length-character-takeaway'
+        ? 'length-character-takeaway'
+        : snapshot.step === 'length-passphrase-outlook'
+          ? 'length-passphrase-outlook'
     : comparesLengthModels
       ? 'length-model-comparison'
       : focused
@@ -2406,7 +2442,10 @@ function LowercaseClockScene({
           const preview = !comparesLengthModels && length === currentLength + 1;
           const active = length === currentLength;
           const previous = !comparesLengthModels && length === currentLength - 1;
-          const comparisonPreview = comparesLengthModels && length === 16;
+          const comparisonPreview =
+            comparesLengthModels && length === 16 && !revisitsCharacterComparison;
+          const characterComparisonFocus =
+            revisitsCharacterComparison && length === 16;
           const sphereIsLargeEnough = comparesLengthModels || screenDiameter(length) >= 2;
           const tickStyle: ScaleItemStyle = comparisonPreview ? comparisonPreviewTickStyle() : {
             '--scale-x': `${screenX(length)}px`,
@@ -2415,13 +2454,16 @@ function LowercaseClockScene({
           };
           return (
             <div key={length}>
-              {visible || !comparesLengthModels || comparisonPreview ? (
+              {visible || !comparesLengthModels || comparisonPreview || characterComparisonFocus ? (
                 <div
                   className={styles.scaleTick}
                   data-reached={visible || undefined}
                   data-active={active || undefined}
-                  data-comparison-muted={comparesLengthModels && !active || undefined}
+                  data-comparison-muted={
+                    (comparesLengthModels && !active && !characterComparisonFocus) || undefined
+                  }
                   data-comparison-preview={comparisonPreview || undefined}
+                  data-character-comparison-focus={characterComparisonFocus || undefined}
                   data-future={(!visible && !visibleInComparison) || undefined}
                   style={tickStyle}
                 >
@@ -2439,7 +2481,10 @@ function LowercaseClockScene({
                   data-reached={visible || undefined}
                   data-active={active || undefined}
                   data-previous={previous || undefined}
-                  data-comparison-muted={comparesLengthModels && !active || undefined}
+                  data-comparison-muted={
+                    (comparesLengthModels && !active && !characterComparisonFocus) || undefined
+                  }
+                  data-character-comparison-focus={characterComparisonFocus || undefined}
                   data-future={(!visible && !visibleInComparison) || undefined}
                   data-preview={preview || undefined}
                   style={sphereStyle(length)}
@@ -2490,7 +2535,10 @@ function LowercaseClockScene({
             </div>
             <LowercaseModelLabel style={sphereStyle(15)} />
             <MixedCharacterModelLabel style={generatedSphereStyle()} />
-            <LowercaseComparisonPreview style={comparisonPreviewInformationStyle()} />
+            <LowercaseComparisonPreview
+              style={comparisonPreviewInformationStyle()}
+              focused={revisitsCharacterComparison}
+            />
           </>
         ) : null}
       </div>
@@ -3183,8 +3231,10 @@ function renderScene(
     case 'structure-theme-reflection':
     case 'structure-sentence-reflection':
     case 'structure-application':
-      return <StructurePatternScene snapshot={snapshot} controller={controller} />;
     case 'free-search-transition':
+      return <StructurePatternScene snapshot={snapshot} controller={controller} />;
+    case 'character-mix-rule-purpose':
+    case 'character-mix-rule-warning':
     case 'character-mix-first':
     case 'character-mix-comparison':
       return <CharacterMixScene step={snapshot.step} />;
@@ -3208,6 +3258,9 @@ function renderScene(
     case 'length-model-comparison':
     case 'length-orientation':
     case 'length-reasons-intro':
+    case 'length-character-comparison':
+    case 'length-character-takeaway':
+    case 'length-passphrase-outlook':
       return <LowercaseClockScene snapshot={snapshot} controller={controller} focused />;
     case 'length-memorability':
     case 'length-full-word-attack':
@@ -3417,6 +3470,10 @@ function speechFor(
       ];
     }
     case 'free-search-transition':
+      return [s05Content.freeSearch.transition.exhaustiveSearch];
+    case 'character-mix-rule-purpose':
+      return [s05Content.freeSearch.transition.rulePurpose];
+    case 'character-mix-rule-warning':
       return [s05Content.freeSearch.transition.explanation];
     case 'character-mix-first':
       return [s05Content.freeSearch.characterMix.narration[0]];
@@ -3460,6 +3517,12 @@ function speechFor(
       return [s05Content.freeSearch.lengthExamples.secondLengthReason.multilingualSelection];
     case 'length-fifth-word-comparison':
       return [s05Content.freeSearch.lengthExamples.secondLengthReason.additionalGermanWords];
+    case 'length-character-comparison':
+      return [s05Content.freeSearch.lengthExamples.characterConclusion.comparison];
+    case 'length-character-takeaway':
+      return [s05Content.freeSearch.lengthExamples.characterConclusion.predictability];
+    case 'length-passphrase-outlook':
+      return [s05Content.freeSearch.lengthExamples.characterConclusion.passphraseOutlook];
     case 'final-components':
       return s05Content.freeSearch.application.assessmentIntroduction;
     case 'final-result': {
@@ -3680,7 +3743,6 @@ export function S05AnalysisTraining({
                 : {})}
               speechPlacement={
                 componentGuidanceVisible ||
-                activeSnapshot.step === 'free-search-transition' ||
                 activeSnapshot.step.startsWith('character-mix-') ||
                 activeSnapshot.step.startsWith('estimate') ||
                 activeSnapshot.step.startsWith('length-') ||

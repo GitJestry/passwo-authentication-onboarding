@@ -17,6 +17,7 @@ export interface PassWoSpeechEmphasis {
   readonly tone: PassWoSpeechEmphasisTone;
   readonly symbolId?: string;
   readonly symbolSrc?: string;
+  readonly symbolSize?: 'standard' | 'wide';
   /** Additional phrases are rendered only when they share this explicit grouped emphasis. */
   readonly contrastId?: string;
 }
@@ -63,9 +64,10 @@ const emphasisBySpeechId: Readonly<Record<string, readonly PassWoSpeechEmphasis[
   's05-component-category-overview': [{ phrase: 'Bitte beachte:', tone: 'accent' }],
   's05-common-components-changes': [
     {
-      phrase: 'typische Varianten',
+      phrase: 'typischen Varianten',
       tone: 'accent',
       symbolSrc: typicalChangesAsset,
+      symbolSize: 'wide',
     },
   ],
   's05-common-components-examples': [{ phrase: 'Geläufige Wörter', tone: 'accent' }],
@@ -121,6 +123,9 @@ const emphasisBySpeechId: Readonly<Record<string, readonly PassWoSpeechEmphasis[
     { phrase: 'Wiederholungsmuster', tone: 'accent' },
   ],
   's05-structure-intro': [{ phrase: 'typische Muster', tone: 'accent' }],
+  's05-free-search-transition': [
+    { phrase: 'alle möglichen Zeichenfolgen durchprobieren', tone: 'accent' },
+  ],
   's05-character-mix-first': [{ phrase: 'zufällig erzeugten', tone: 'accent' }],
   's05-character-mix-types': [{ phrase: 'riskant', tone: 'warning' }],
   's05-character-mix-strategy': [{ phrase: 'vor allem auf Länge', tone: 'accent' }],
@@ -148,6 +153,15 @@ const emphasisBySpeechId: Readonly<Record<string, readonly PassWoSpeechEmphasis[
   ],
   's05-length-fifth-word-comparison': [
     { phrase: 'zwei weitere zufällige Wörter', tone: 'accent' },
+  ],
+  's05-length-character-comparison': [
+    { phrase: '16 zufällige Kleinbuchstaben', tone: 'accent' },
+  ],
+  's05-length-character-takeaway': [
+    { phrase: 'nicht vorhersehbar', tone: 'warning' },
+  ],
+  's05-length-passphrase-outlook': [
+    { phrase: 'sechs zufälligen Wörtern', tone: 'accent' },
   ],
   's05-final-components': [{ phrase: 'gesamte Zeichenfolge', tone: 'accent' }],
   's05-final-result': [{ phrase: 'gesamte Zeichenfolge', tone: 'warning' }],

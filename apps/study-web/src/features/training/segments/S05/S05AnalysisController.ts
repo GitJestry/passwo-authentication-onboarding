@@ -79,6 +79,8 @@ export type S05AnalysisStep =
   | 'structure-repetition-guessing'
   | 'structure-application'
   | 'free-search-transition'
+  | 'character-mix-rule-purpose'
+  | 'character-mix-rule-warning'
   | 'character-mix-first'
   | 'character-mix-comparison'
   | 'character-mix-difference'
@@ -100,6 +102,9 @@ export type S05AnalysisStep =
   | 'length-language-pool-stack'
   | 'length-multilingual-words'
   | 'length-fifth-word-comparison'
+  | 'length-character-comparison'
+  | 'length-character-takeaway'
+  | 'length-passphrase-outlook'
   | 'final-components'
   | 'final-length'
   | 'final-result'
@@ -231,6 +236,8 @@ const stepByMissionId: Readonly<Record<string, S05AnalysisStep>> = {
   's05-structure-repetition-guessing': 'structure-repetition-guessing',
   's05-structure-application': 'structure-application',
   's05-free-search-transition': 'free-search-transition',
+  's05-character-mix-rule-purpose': 'character-mix-rule-purpose',
+  's05-character-mix-rule-warning': 'character-mix-rule-warning',
   's05-character-mix-first': 'character-mix-first',
   's05-character-mix-comparison': 'character-mix-comparison',
   's05-character-mix-difference': 'character-mix-difference',
@@ -252,6 +259,9 @@ const stepByMissionId: Readonly<Record<string, S05AnalysisStep>> = {
   's05-length-language-pool-stack': 'length-language-pool-stack',
   's05-length-multilingual-words': 'length-multilingual-words',
   's05-length-fifth-word-comparison': 'length-fifth-word-comparison',
+  's05-length-character-comparison': 'length-character-comparison',
+  's05-length-character-takeaway': 'length-character-takeaway',
+  's05-length-passphrase-outlook': 'length-passphrase-outlook',
   's05-final-components': 'final-components',
   's05-final-length': 'final-length',
   's05-final-result': 'final-result',

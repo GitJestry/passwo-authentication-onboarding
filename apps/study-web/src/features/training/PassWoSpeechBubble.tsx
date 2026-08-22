@@ -176,7 +176,11 @@ export function PassWoSpeechBubble({
                     key={segmentIndex}
                   >
                     {!segment.emphasis.showSymbol ? null : (
-                      <span className={styles.inlineSymbol} aria-hidden="true">
+                      <span
+                        className={styles.inlineSymbol}
+                        data-size={segment.emphasis.symbolSize ?? 'standard'}
+                        aria-hidden="true"
+                      >
                         {segment.emphasis.symbolSrc === undefined ? (
                           segment.emphasis.symbolId === undefined ? null : (
                             <NetworkSymbol symbolId={segment.emphasis.symbolId} />
