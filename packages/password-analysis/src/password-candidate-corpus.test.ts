@@ -770,7 +770,7 @@ describe('S05/S06 end-to-end candidate corpus', () => {
       });
 
       expect(disposition.kind === 'whole-password-recognized').toBe(expectedFound);
-      expect(disposition.analysisVersion).toBe('passwo-bounded-whole-recognition-v17');
+      expect(disposition.analysisVersion).toBe('passwo-bounded-whole-recognition-v18');
     },
   );
 });

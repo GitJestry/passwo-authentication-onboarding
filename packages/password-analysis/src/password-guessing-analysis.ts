@@ -19,7 +19,7 @@ import {
   originalSpanForNormalizedRange,
 } from './case-insensitive-spans.js';
 
-export const PASSWORD_ANALYSIS_CONFIGURATION_VERSION = 'passwo-bounded-whole-recognition-v17';
+export const PASSWORD_ANALYSIS_CONFIGURATION_VERSION = 'passwo-bounded-whole-recognition-v18';
 
 export interface FictionalPasswordAnalysisInput {
   readonly fictionalPassword: string;
@@ -72,10 +72,28 @@ const zxcvbnPatternFactory = new ZxcvbnFactory({
 
 // The authored matcher deliberately shares the frozen zxcvbn substitution vocabulary. It adds
 // bounded explanatory evidence without turning the training into a numerical strength estimator.
-const zxcvbnLeetTable = new Options().l33tTable;
+const zxcvbnOptions = new Options();
+const zxcvbnLeetTable = zxcvbnOptions.l33tTable;
 const zxcvbnSubstitutionsByCharacter: ReadonlyMap<string, readonly string[]> = new Map(
   Object.entries(zxcvbnLeetTable),
 );
+
+interface PredictableWordSequenceVocabulary {
+  readonly name: string;
+  readonly positions: ReadonlyMap<string, number>;
+}
+
+const predictableWordSequenceVocabularies: readonly PredictableWordSequenceVocabulary[] =
+  Object.entries(zxcvbnDictionary).flatMap(([name, values]) => {
+    if (!zxcvbnOptions.isWordSequence(name)) return [];
+    const positions = new Map<string, number>();
+    for (const [index, value] of values.entries()) {
+      if (typeof value !== 'string') continue;
+      const normalized = value.normalize('NFC').toLocaleLowerCase('de-DE');
+      if (!positions.has(normalized)) positions.set(normalized, index);
+    }
+    return positions.size >= 2 ? [{ name, positions }] : [];
+  });
 
 type ZxcvbnResult = ReturnType<typeof zxcvbnFactory.check>;
 type ZxcvbnMatch = ZxcvbnResult['sequence'][number];
@@ -112,6 +130,13 @@ function stringProperty(value: unknown, name: string): string | null {
   return typeof property === 'string' ? property : null;
 }
 
+function stringArrayProperty(value: unknown, name: string): readonly string[] | null {
+  const property = asRecord(value)[name];
+  return Array.isArray(property) && property.every((item) => typeof item === 'string')
+    ? property
+    : null;
+}
+
 function booleanProperty(value: unknown, name: string): boolean {
   return asRecord(value)[name] === true;
 }
@@ -140,7 +165,13 @@ function matchPattern(match: ZxcvbnMatch): PasswordGuessPathPattern {
 }
 
 function matchSourceId(match: ZxcvbnMatch): string | null {
-  if (match.pattern === 'dictionary') return stringProperty(match, 'dictionaryName');
+  if (match.pattern === 'dictionary') {
+    return stringProperty(match, 'dictionaryName');
+  }
+  if (match.pattern === 'wordSequence') {
+    const words = stringArrayProperty(match, 'words');
+    return words === null ? null : contiguousPredictableVocabularyName(words);
+  }
   if (match.pattern === 'regex') return stringProperty(match, 'regexName');
   if (match.pattern === 'spatial') return stringProperty(match, 'graph');
   return null;
@@ -553,6 +584,100 @@ function letterRunBoundaries(run: string): ReadonlySet<number> {
   return boundaries;
 }
 
+/**
+ * Returns component boundaries that can be justified from the spelling itself. Besides connectors,
+ * this includes letter-number transitions and the CamelCase/acronym boundaries used by the local
+ * dictionary partitioner. Arbitrary inner offsets are deliberately excluded.
+ */
+function visibleComponentBoundaryOffsets(input: string): ReadonlySet<number> {
+  const boundaries = new Set<number>([0, input.length]);
+  for (const match of input.matchAll(/\p{L}+/gu)) {
+    const runStart = match.index;
+    for (const boundary of letterRunBoundaries(match[0])) {
+      boundaries.add(runStart + boundary);
+    }
+  }
+  for (const match of input.matchAll(/\p{N}+/gu)) {
+    boundaries.add(match.index);
+    boundaries.add(match.index + match[0].length);
+  }
+  return boundaries;
+}
+
+function componentBoundaryOffsets(
+  input: string,
+  trustedFindings: readonly PasswordSingleFinding[] = [],
+): ReadonlySet<number> {
+  const boundaries = new Set(visibleComponentBoundaryOffsets(input));
+  for (const item of trustedFindings) {
+    for (const evidence of item.evidence) {
+      if (evidence.type !== 'span') continue;
+      boundaries.add(evidence.start);
+      boundaries.add(evidence.end);
+    }
+  }
+  return boundaries;
+}
+
+function normalizedPredictableSequenceToken(value: string): string {
+  return value
+    .normalize('NFC')
+    .toLocaleLowerCase('de-DE')
+    .replace(/[\s._-]+/gu, '');
+}
+
+function contiguousPredictableVocabularyName(words: readonly string[]): string | null {
+  const normalizedWords = words.map((word) =>
+    word.normalize('NFC').toLocaleLowerCase('de-DE'),
+  );
+  for (const { name, positions } of predictableWordSequenceVocabularies) {
+    const indices = normalizedWords.map((word) => positions.get(word));
+    if (indices.some((index) => index === undefined)) continue;
+    const first = indices[0];
+    const second = indices[1];
+    if (first === undefined || second === undefined) continue;
+    const step = second - first;
+    if (Math.abs(step) !== 1) continue;
+    if (
+      indices.every(
+        (index, wordIndex) => index !== undefined && index === first + wordIndex * step,
+      )
+    ) {
+      return name;
+    }
+  }
+  return null;
+}
+
+/**
+ * zxcvbn-ts' word-sequence matcher can join dictionary hits from unrelated sequence lists and
+ * loses whether an individual word was reversed or written in l33t. Treat its output as a
+ * candidate only: the visible token must spell adjacent entries from one frozen vocabulary and
+ * must start and end at defensible component boundaries.
+ */
+function isSupportedPredictableWordSequenceMatch(
+  input: string,
+  match: ZxcvbnMatch,
+  offset = 0,
+): boolean {
+  if (match.pattern !== 'wordSequence') return true;
+  const words = stringArrayProperty(match, 'words');
+  if (words === null || words.length < 2) return false;
+  const wordCount = asRecord(match).wordCount;
+  if (typeof wordCount === 'number' && wordCount !== words.length) return false;
+
+  const start = offset + match.i;
+  const end = offset + match.j + 1;
+  if (start < 0 || end > input.length || start >= end) return false;
+  const token = input.slice(start, end);
+  const directWords = words.map(normalizedPredictableSequenceToken).join('');
+  if (normalizedPredictableSequenceToken(token) !== directWords) return false;
+  if (contiguousPredictableVocabularyName(words) === null) return false;
+
+  const boundaries = visibleComponentBoundaryOffsets(input);
+  return boundaries.has(start) && boundaries.has(end);
+}
+
 function dictionarySpanHasSupportedBoundary(
   run: string,
   kind: 'common-password-core' | 'common-word' | 'common-name',
@@ -654,6 +779,24 @@ function filterUnsupportedGuessPathDictionaryFragments(
     return item.evidence.some(
       (evidence) =>
         evidence.type === 'span' && retainedDictionaryRanges.has(`${evidence.start}:${evidence.end}`),
+    );
+  });
+}
+
+function filterUnsupportedAccountTermFindings(
+  findings: readonly PasswordSingleFinding[],
+  supportedBoundaries: ReadonlySet<number>,
+): readonly PasswordSingleFinding[] {
+  return findings.filter((item) => {
+    if (item.kind !== 'account-or-service-term') return true;
+    const spans = item.evidence.filter(
+      (evidence): evidence is PasswordEvidenceSpan => evidence.type === 'span',
+    );
+    return (
+      spans.length > 0 &&
+      spans.every(
+        (span) => supportedBoundaries.has(span.start) && supportedBoundaries.has(span.end),
+      )
     );
   });
 }
@@ -1119,6 +1262,7 @@ function findingsFromGuessPath(
         );
         break;
       case 'wordSequence':
+        if (!isSupportedPredictableWordSequenceMatch(input, match, offset)) break;
         findings.push(
           finding(input, 'predictable-word-sequence', start, end, 'bounded-heuristic', ordinal),
         );
@@ -1172,6 +1316,7 @@ function findingsFromRepeatedBases(
 function collectExactAccountTermFindings(
   input: string,
   authoredAccountTerms: readonly string[],
+  supportedBoundaries: ReadonlySet<number>,
 ): readonly PasswordSingleFinding[] {
   const findings: PasswordSingleFinding[] = [];
   const occupiedSpans: Array<readonly [number, number]> = [];
@@ -1186,6 +1331,7 @@ function collectExactAccountTermFindings(
 
   for (const term of uniqueTerms) {
     for (const [start, end] of findCaseInsensitiveSpans(input, term)) {
+      if (!supportedBoundaries.has(start) || !supportedBoundaries.has(end)) continue;
       if (
         occupiedSpans.some(
           ([occupiedStart, occupiedEnd]) => start < occupiedEnd && end > occupiedStart,
@@ -1388,6 +1534,7 @@ function collectFuzzyAccountTermFindings(
   input: string,
   authoredAccountTerms: readonly string[],
   occupiedSpans: readonly (readonly [number, number])[],
+  supportedBoundaries: ReadonlySet<number>,
 ): readonly PasswordSingleFinding[] {
   const uniqueTerms = [
     ...new Map(
@@ -1441,6 +1588,9 @@ function collectFuzzyAccountTermFindings(
   const occupied = [...occupiedSpans];
   for (const candidate of candidates) {
     const span: readonly [number, number] = [candidate.start, candidate.end];
+    if (!supportedBoundaries.has(candidate.start) || !supportedBoundaries.has(candidate.end)) {
+      continue;
+    }
     if (occupied.some((occupiedSpan) => spansOverlap(occupiedSpan, span))) continue;
     occupied.push(span);
     findings.push(
@@ -1996,6 +2146,49 @@ function suppressDictionaryFindingsCoveredByPreferredDictionaryFinding(
   return findings.filter((item) => !suppressedIds.has(item.id));
 }
 
+function removeOrphanedTypicalTransformations(
+  findings: readonly PasswordSingleFinding[],
+): readonly PasswordSingleFinding[] {
+  const transformationBaseKinds = new Set<PasswordSingleFindingKind>([
+    'common-password-core',
+    'common-word',
+    'common-name',
+    'account-or-service-term',
+    'repeated-component',
+  ]);
+  const retainedBaseRanges = new Set<string>();
+  for (const item of findings) {
+    if (!transformationBaseKinds.has(item.kind)) continue;
+    for (const evidence of item.evidence) {
+      if (evidence.type === 'span') retainedBaseRanges.add(`${evidence.start}:${evidence.end}`);
+    }
+  }
+  return findings.filter((item) => {
+    if (item.kind !== 'typical-transformation') return true;
+    return item.evidence.some(
+      (evidence) =>
+        evidence.type === 'span' && retainedBaseRanges.has(`${evidence.start}:${evidence.end}`),
+    );
+  });
+}
+
+function isSupportedGuessPathMatch(
+  input: string,
+  match: ZxcvbnMatch,
+  accountBoundaries: ReadonlySet<number>,
+): boolean {
+  if (match.pattern === 'wordSequence') {
+    return isSupportedPredictableWordSequenceMatch(input, match);
+  }
+  if (
+    match.pattern === 'dictionary' &&
+    stringProperty(match, 'dictionaryName') === 'userInputs'
+  ) {
+    return accountBoundaries.has(match.i) && accountBoundaries.has(match.j + 1);
+  }
+  return true;
+}
+
 function deduplicateAndSortFindings(
   findings: readonly PasswordSingleFinding[],
 ): readonly PasswordSingleFinding[] {
@@ -2031,11 +2224,11 @@ export function analyzeFictionalPassword({
     ),
   ].filter((term) => term.length >= 3);
   const result = zxcvbnFactory.check(fictionalPassword, trimmedAccountTerms);
-  const guessPathFindings = filterUnsupportedGuessPathDictionaryFragments(
+  const rawGuessPathFindings = filterUnsupportedGuessPathDictionaryFragments(
     fictionalPassword,
     findingsFromGuessPath(fictionalPassword, result.sequence),
   );
-  const repeatedBaseFindings = filterUnsupportedGuessPathDictionaryFragments(
+  const rawRepeatedBaseFindings = filterUnsupportedGuessPathDictionaryFragments(
     fictionalPassword,
     findingsFromRepeatedBases(
       fictionalPassword,
@@ -2046,12 +2239,25 @@ export function analyzeFictionalPassword({
   const deterministicKeyboardFindings = collectDeterministicKeyboardFindings(fictionalPassword);
   const dictionaryPartitionFindings = collectDictionaryPartitionFindings(
     fictionalPassword,
-    [...guessPathFindings, ...repeatedBaseFindings],
+    [...rawGuessPathFindings, ...rawRepeatedBaseFindings],
     deterministicKeyboardFindings,
+  );
+  const accountBoundaries = componentBoundaryOffsets(fictionalPassword, [
+    ...dictionaryPartitionFindings,
+    ...deterministicKeyboardFindings,
+  ]);
+  const guessPathFindings = filterUnsupportedAccountTermFindings(
+    rawGuessPathFindings,
+    accountBoundaries,
+  );
+  const repeatedBaseFindings = filterUnsupportedAccountTermFindings(
+    rawRepeatedBaseFindings,
+    accountBoundaries,
   );
   const exactAccountTermFindings = collectExactAccountTermFindings(
     fictionalPassword,
     trimmedAccountTerms,
+    accountBoundaries,
   );
   const exactAccountTermSpans: Array<readonly [number, number]> = [];
   for (const item of exactAccountTermFindings) {
@@ -2063,6 +2269,7 @@ export function analyzeFictionalPassword({
     fictionalPassword,
     trimmedAccountTerms,
     exactAccountTermSpans,
+    accountBoundaries,
   );
   const yearFindings = collectYears(fictionalPassword);
   const numberedWordSequenceFindings = collectNumberedWordSequences(fictionalPassword);
@@ -2076,21 +2283,23 @@ export function analyzeFictionalPassword({
     ...yearFindings,
     ...numberedWordSequenceFindings,
   ]);
-  const findings = suppressDictionaryFindingsCoveredByPreferredDictionaryFinding(
-    suppressDictionaryFindingsCoveredByAccountContext(
-      suppressSingleSpanRepetitionsCoveredByGroups(
-        deduplicateAndSortFindings([
-          ...guessPathFindings,
-          ...repeatedBaseFindings,
-          ...deterministicKeyboardFindings,
-          ...dictionaryPartitionFindings,
-          ...exactAccountTermFindings,
-          ...fuzzyAccountTermFindings,
-          ...yearFindings,
-          ...numberedWordSequenceFindings,
-          ...separatedRepetitionFindings,
-          ...typicalSuffixFindings,
-        ]),
+  const findings = removeOrphanedTypicalTransformations(
+    suppressDictionaryFindingsCoveredByPreferredDictionaryFinding(
+      suppressDictionaryFindingsCoveredByAccountContext(
+        suppressSingleSpanRepetitionsCoveredByGroups(
+          deduplicateAndSortFindings([
+            ...guessPathFindings,
+            ...repeatedBaseFindings,
+            ...deterministicKeyboardFindings,
+            ...dictionaryPartitionFindings,
+            ...exactAccountTermFindings,
+            ...fuzzyAccountTermFindings,
+            ...yearFindings,
+            ...numberedWordSequenceFindings,
+            ...separatedRepetitionFindings,
+            ...typicalSuffixFindings,
+          ]),
+        ),
       ),
     ),
   );
@@ -2112,7 +2321,9 @@ export function analyzeFictionalPassword({
     guessPath: {
       engineId: 'zxcvbn-ts',
       configurationVersion: PASSWORD_ANALYSIS_CONFIGURATION_VERSION,
-      matches: result.sequence.map(projectGuessPathMatch),
+      matches: result.sequence
+        .filter((match) => isSupportedGuessPathMatch(fictionalPassword, match, accountBoundaries))
+        .map(projectGuessPathMatch),
     },
     disclaimerId: 'simulation-not-production-strength',
   };

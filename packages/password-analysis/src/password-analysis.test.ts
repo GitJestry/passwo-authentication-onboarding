@@ -636,6 +636,95 @@ describe('local fictional password analysis', () => {
     expect(dictionaryTokens).not.toContain('trot');
   });
 
+  it('rejects a mixed or reversed word-sequence candidate before it can cut canonical words', () => {
+    const fictionalPassword = 'IchBinMeinStarkesUniPassw0rt123!!!!';
+    const result = analyzeFictionalPassword({
+      fictionalPassword,
+      authoredAccountTerms: ['Uni', 'Insta'],
+    });
+    const tokensByKind = new Map<string, string[]>();
+    for (const finding of result.findings) {
+      const tokens = finding.evidence.flatMap((evidence) =>
+        evidence.type === 'span' ? [evidence.token] : [],
+      );
+      tokensByKind.set(finding.kind, [
+        ...(tokensByKind.get(finding.kind) ?? []),
+        ...tokens,
+      ]);
+    }
+
+    expect(tokensByKind.get('predictable-word-sequence') ?? []).not.toContain('einStar');
+    expect(tokensByKind.get('account-or-service-term')).toEqual(['Uni']);
+    expect(tokensByKind.get('common-word')).toEqual(
+      expect.arrayContaining(['Mein', 'Starkes']),
+    );
+    expect(tokensByKind.get('typical-transformation')).toEqual(['Passw0rt']);
+    expect(
+      result.guessPath.matches.map((match) =>
+        fictionalPassword.slice(match.start, match.end),
+      ),
+    ).not.toContain('einStar');
+  });
+
+  it('uses canonical lexical boundaries for lowercase account terms', () => {
+    const result = analyzeFictionalPassword({
+      fictionalPassword: 'meinstarkesunipasswort2026!',
+      authoredAccountTerms: ['Uni', 'Insta'],
+    });
+    const accountTokens = result.findings.flatMap((finding) =>
+      finding.kind === 'account-or-service-term'
+        ? finding.evidence.flatMap((evidence) =>
+            evidence.type === 'span' ? [evidence.token.toLocaleLowerCase('de-DE')] : [],
+          )
+        : [],
+    );
+
+    expect(accountTokens).toEqual(['uni']);
+  });
+
+  it.each([
+    'einszweidrei',
+    'eins-zwei-drei',
+    'oneTwoThree',
+    'MontagDienstagMittwoch',
+  ])('retains the direct contiguous predictable sequence %s', (fictionalPassword) => {
+    const result = analyzeFictionalPassword({ fictionalPassword });
+
+    expect(result.findings).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ kind: 'predictable-word-sequence' }),
+      ]),
+    );
+    expect(result.guessPath.matches).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          pattern: 'sequence',
+          start: 0,
+          end: fictionalPassword.length,
+        }),
+      ]),
+    );
+  });
+
+  it.each(['einsrot', 'einszehn'])(
+    'rejects the non-contiguous or mixed predictable sequence %s',
+    (fictionalPassword) => {
+      const result = analyzeFictionalPassword({ fictionalPassword });
+
+      expect(
+        result.findings.some(({ kind }) => kind === 'predictable-word-sequence'),
+      ).toBe(false);
+      expect(
+        result.guessPath.matches.some(
+          ({ pattern, start, end }) =>
+            pattern === 'sequence' &&
+            start === 0 &&
+            end === fictionalPassword.length,
+        ),
+      ).toBe(false);
+    },
+  );
+
   it('keeps the CamelCase partition stable when an adjacent punctuation repeat follows it', () => {
     const result = analyzeFictionalPassword({ fictionalPassword: 'IchBinEisSieIstRot????' });
     const dictionaryTokens = result.findings.flatMap((finding) =>
@@ -710,7 +799,7 @@ describe('local fictional password analysis', () => {
       expect(expectedKinds.some((expectedKind) => actualKinds.includes(expectedKind))).toBe(true);
       expect(result.guessPath).toMatchObject({
         engineId: 'zxcvbn-ts',
-        configurationVersion: 'passwo-bounded-whole-recognition-v17',
+        configurationVersion: 'passwo-bounded-whole-recognition-v18',
       });
       for (const finding of result.findings) {
         expect(finding.id).toMatch(/^single:/u);
@@ -736,7 +825,7 @@ describe('local fictional password analysis', () => {
     expect(disposition).toEqual({
       kind: 'no-whole-password-recognized',
       lengthOrientation: 'at-least-15',
-      analysisVersion: 'passwo-bounded-whole-recognition-v17',
+      analysisVersion: 'passwo-bounded-whole-recognition-v18',
       explanationId: 's05.disposition.no-whole-password-recognized',
     });
   });
@@ -781,7 +870,7 @@ describe('local fictional password analysis', () => {
 
       expect(disposition).toMatchObject({
         kind: 'whole-password-recognized',
-        analysisVersion: 'passwo-bounded-whole-recognition-v17',
+        analysisVersion: 'passwo-bounded-whole-recognition-v18',
       });
     },
   );

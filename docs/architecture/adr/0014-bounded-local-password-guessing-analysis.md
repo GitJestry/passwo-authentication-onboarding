@@ -36,7 +36,7 @@ NIST-Konformitätsimplementierung.
 ## Entscheidung
 
 `@passwo/password-analysis` bleibt vollständig lokal, deterministisch und frameworkfrei. Die
-Analysekonfiguration erhält die Version `passwo-bounded-whole-recognition-v17`.
+Analysekonfiguration erhält die Version `passwo-bounded-whole-recognition-v18`.
 
 Die interne Verarbeitung trennt drei Ebenen:
 
@@ -68,6 +68,13 @@ PassWo übernimmt weder zxcvbn-Score noch `guesses`, `guessesLog10`, Crack-Zeite
 abgeleitete Schwelle. zxcvbn darf intern seine optimierte Sequenz bestimmen; PassWo ergänzt
 unabhängig belegte Wörterbuchspans, wenn sie an einer sichtbaren Schreibgrenze liegen.
 
+Matcher-Ergebnisse bleiben Kandidaten an einer Adaptergrenze. Insbesondere wird ein
+`wordSequence`-Match nur übernommen, wenn der sichtbare Span die gemeldeten Wörter direkt bildet,
+die Wörter benachbarte Einträge derselben eingefrorenen Sequenzliste sind und der Gesamtspan auf
+unterstützten Komponentengrenzen liegt. Das verhindert gemischte oder rückwärts hergeleitete
+Folgen wie `einStar` (`einS → eins`, `tar → rat`), ohne echte Folgen wie `einszweidrei` zu
+verlieren.
+
 Bei zxcvbn-`repeat`-Matches bleiben die bereits von der Engine ermittelte Basiseinheit und
 Wiederholungsanzahl ausschließlich als flüchtige Guess-Path-Metadaten erhalten. Der fachliche
 `repeated-component`-Befund behält seinen vollständigen Evidenzspan; erst die S05-Projektion darf
@@ -85,6 +92,11 @@ Dadurch kann `KlarissaBVBTestPasswort` als `Klarissa | BVB | Test | Passwort` be
 ohne freie innere Treffer wie `K|larissa` oder `Klar|issa` zu erfinden. Ein unbekannter Abschnitt
 löscht angrenzende belegte Wörter nicht. Vollständige kleingeschriebene Läufe dürfen weiterhin
 lückenlos aus den eingefrorenen Wörterbüchern zerlegt werden.
+
+Authored Konto- und Dienstbegriffe verwenden dieselbe Grenzsemantik. Ein Treffer ist nur zulässig,
+wenn beide Enden entweder in der Schreibweise sichtbar oder durch eine akzeptierte lexikalische
+Partition belegt sind. Dadurch wird `uni` in `meinstarkesunipasswort2026!` erhalten, ein
+quer über `Mein|Starkes` liegendes `inSta` jedoch bereits an der Analysegrenze verworfen.
 
 Ein Passwortlistenanker, der nur an einer Seite auf einer unterstützten Grenze liegt, darf keine
 weitere sichtbare Grenze innerhalb seines Spans überqueren. Dadurch bleibt eine kurze freie
@@ -106,6 +118,11 @@ Korpusaudit bestätigte Fragmente und Kodierungsartefakte ausgeschlossen. Diesel
 einen von zxcvbn direkt gemeldeten gewöhnlichen Worttreffer. Dadurch werden weder die kurzen
 Kandidaten künstlich auf eine minimale Positivliste reduziert noch längere Korpusartefakte allein
 wegen ihres Vorkommens als Wort angezeigt.
+
+Transformationsbefunde besitzen keine eigenständige Segmentautorität. Nach der kanonischen
+Spezifitätsauswahl bleiben sie nur erhalten, wenn am identischen Span weiterhin ein zugehöriger
+Wort-, Passwortlisten-, Konto- oder Wiederholungsbefund existiert. Unterdrückte Basistreffer können
+damit keine verwaisten Grenzen in nachgelagerten Projektionen hinterlassen.
 
 Kurze Funktionswörter und Kontextkürzel wie `es`, `in`, `ich`, `bis`, `zum`, `the`, `po`, `öl`
 oder `uni` bleiben damit verfügbar. Zwei- und dreibuchstabige Wörter dürfen jedoch nur ein

@@ -69,7 +69,7 @@ noch als Forschungsvariable gespeichert.
 
 | Bestandteil | Wert |
 |---|---|
-| Analyse-ID | `passwo-bounded-whole-recognition-v17` |
+| Analyse-ID | `passwo-bounded-whole-recognition-v18` |
 | Engine | `zxcvbn-ts` als Musterquelle |
 | Core | `@zxcvbn-ts/core@4.1.2` |
 | Allgemeines Wörterbuch/Graphen | `@zxcvbn-ts/language-common@4.1.2` |
@@ -83,6 +83,7 @@ noch als Forschungsvariable gespeichert.
 | Vollständiges Durchprobieren | letzter Weg bis einschließlich `26^12 = 95_428_956_661_682_176` Zeichenfolgen |
 | Mehrwortregel | Wörterbuchabdeckung allein erzeugt unabhängig von der Wortanzahl keinen Volltreffer |
 | Gewöhnliche Wörter | längenabhängig rangbegrenzte und orthografisch gefilterte deutsche/englische Korpora; kurze Wörter nur als vollständiges sichtbares Segment oder innerhalb einer vollständigen sprachgebundenen Partition |
+| Vorhersagbare Wortfolgen | direkte Schreibweise benachbarter Einträge aus genau einer eingefrorenen Sequenzliste; keine gemischten, rückwärts gelesenen oder über Wortgrenzen verschobenen Treffer |
 | Abkürzungen | kleine kuratierte Liste, nur exakte case-insensitive Erkennung |
 | Tastaturgrenzen | maximaler eigener QWERTZ-/QWERTY-Span ab fünf Zeichen |
 | Semantische Evidenz | bestätigte persönliche, inhaltliche oder Satz-/Phrasenrelationen; nur flüchtig und additiv |
@@ -109,6 +110,14 @@ Pattern-Typen für:
 
 `result.guesses`, `guessesLog10`, Score und Crack-Zeiten werden weder exportiert noch zur
 Disposition verwendet.
+
+Auch zxcvbns `wordSequence`-Match wird nicht ungeprüft übernommen. Die Engine kann intern
+Treffer aus verschiedenen Sequenzwörterbüchern verbinden und verwirft bei der Projektion, ob ein
+einzelner Treffer rückwärts oder mit Zeichenersetzungen entstand. PassWo akzeptiert deshalb nur
+eine Folge, wenn der sichtbare Span die gemeldeten Wörter direkt schreibt, alle Wörter in genau
+einer eingefrorenen Sequenzliste unmittelbar aufeinanderfolgen und Anfang sowie Ende auf
+begründbaren Komponentengrenzen liegen. Dadurch bleibt beispielsweise `einszweidrei` erhalten;
+eine Konstruktion wie `einStar` aus `einS → eins` und rückwärts `tar → rat` wird verworfen.
 
 ### 2. Ergänzende Wörterbuchprojektion
 
@@ -187,6 +196,18 @@ nicht zusätzlich: Gram als konkurrierender Wörterbuchkern
 
 Diese Regel ändert keine UI-Komponente. Sie bereinigt ausschließlich die interne Befundmenge, aus
 der bestehende Projektionen gespeist werden.
+
+Ein authored Kontextbegriff darf zugleich keine bereits belegte Wortgrenze kreuzen. Zulässige
+Grenzen stammen aus der sichtbaren Schreibweise, aus Buchstaben-Ziffer-Wechseln und aus der
+sprachgebundenen Wörterbuchpartition. Damit bleibt `uni` in
+`meinstarkesunipasswort2026!` erkennbar, während `Insta` nicht als `inSta` quer über
+`Mein|Starkes` projiziert wird. Dieselbe Grenze gilt für exakte, fuzzy und von zxcvbn als
+`userInputs` gemeldete Kontexttreffer.
+
+Nach allen Vorrang- und Unterdrückungsregeln werden Transformationsspans noch einmal an ihren
+verbliebenen Grundbefund gebunden. Wird etwa ein kleiner Wörterbuchtreffer durch einen
+spezifischeren Passwortlisten- oder Kontextbefund ersetzt, darf seine frühere
+Großschreibungs-/Leetspeak-Markierung nicht als verwaiste Grenze in der Darstellung verbleiben.
 
 Die gleiche Spezifitätsregel gilt für Strukturspans: Ein erkanntes Jahr, Datum, eine Folge oder ein
 Tastaturmuster bleibt gegenüber einer generischen Endung maßgeblich. `Passwort2026!` wird deshalb
