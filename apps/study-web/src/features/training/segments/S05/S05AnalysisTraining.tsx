@@ -5,6 +5,7 @@ import {
   type CSSProperties,
   type ReactNode,
   useEffect,
+  useLayoutEffect,
   useMemo,
   useRef,
   useState,
@@ -1822,7 +1823,7 @@ function durationLabelFor(length: number): string {
 
 function useScaleViewport(ref: { readonly current: HTMLElement | null }) {
   const [size, setSize] = useState({ width: 960, height: 520 });
-  useEffect(() => {
+  useLayoutEffect(() => {
     const element = ref.current;
     if (element === null) return undefined;
     const updateSize = ({ width, height }: DOMRectReadOnly) =>
@@ -2152,8 +2153,10 @@ function LowercaseComparisonPreview({
 }) {
   return (
     <span
-      className={styles.comparisonPreviewInformation}
+      className={`${styles.scaleTimeBubble} ${styles.comparisonPreviewInformation}`}
+      data-active="true"
       data-focused={focused || undefined}
+      data-length={16}
       style={style}
     >
       <ScaleTimeInformation length={16} showExplanation showInformation={false} />
@@ -2323,47 +2326,6 @@ function LowercaseClockScene({
     };
   }
 
-  function comparisonPreviewGeometry() {
-    const diameter = screenDiameter(16);
-    const size = revisitsCharacterComparison
-      ? Math.min(diameter * 0.42, 320)
-      : Math.max(
-          140,
-          Math.min(
-            diameter * 0.18,
-            generatedSphereDiameter * projection.scale * 0.68,
-            viewport.width * 0.32,
-            viewport.height * 0.34,
-          ),
-        );
-    return {
-      x: screenX(16),
-      y: screenTop(16) + diameter / 2,
-      size,
-    };
-  }
-
-  function comparisonPreviewInformationStyle(): ScaleItemStyle {
-    const geometry = comparisonPreviewGeometry();
-    return {
-      '--scale-x': `${geometry.x}px`,
-      '--scale-y': `${geometry.y}px`,
-      '--preview-size': `${geometry.size}px`,
-      '--sphere-size': `${geometry.size}px`,
-      '--sphere-color': scaleColor(16),
-    };
-  }
-
-  function comparisonPreviewTickStyle(): ScaleItemStyle {
-    const geometry = comparisonPreviewGeometry();
-    return {
-      '--scale-x': `${geometry.x}px`,
-      '--scale-y': `${projection.axisY + 10}px`,
-      '--preview-size': `${geometry.size}px`,
-      '--tick-color': scaleColor(16),
-    };
-  }
-
   function attemptFinish(): void {
     controller.completeLowercaseScale();
   }
@@ -2431,7 +2393,7 @@ function LowercaseClockScene({
             revisitsCharacterComparison && length === 16;
           const sphereIsLargeEnough = comparesLengthModels || screenDiameter(length) >= 2;
           const comparisonLabel = comparisonPreview || characterComparisonFocus;
-          const tickStyle: ScaleItemStyle = comparisonLabel ? comparisonPreviewTickStyle() : {
+          const tickStyle: ScaleItemStyle = {
             '--scale-x': `${screenX(length)}px`,
             '--scale-y': `${projection.axisY + 10}px`,
             '--tick-color': scaleColor(length),
@@ -2442,7 +2404,7 @@ function LowercaseClockScene({
                 <div
                   className={styles.scaleTick}
                   data-reached={visible || undefined}
-                  data-active={active || undefined}
+                  data-active={active || comparisonLabel || undefined}
                   data-comparison-muted={
                     (comparesLengthModels && !active && !characterComparisonFocus) || undefined
                   }
@@ -2520,7 +2482,7 @@ function LowercaseClockScene({
             <LowercaseModelLabel style={sphereStyle(15)} />
             <MixedCharacterModelLabel style={generatedSphereStyle()} />
             <LowercaseComparisonPreview
-              style={comparisonPreviewInformationStyle()}
+              style={sphereStyle(16)}
               focused={revisitsCharacterComparison}
             />
           </>
@@ -2642,92 +2604,6 @@ function WordPoolModelDetails({
   );
 }
 
-function SecondLengthReasonPassword({
-  example,
-  position,
-  emphasized = false,
-  fixed = false,
-}: {
-  readonly example: SecondLengthReasonExampleContent;
-  readonly position: 'single' | 'comparison-left' | 'comparison-right';
-  readonly emphasized?: boolean;
-  readonly fixed?: boolean;
-}) {
-  return (
-    <article
-      className={styles.wordPoolPassword}
-      data-case="second-reason"
-      data-position={position}
-      data-fixed={fixed || undefined}
-      data-emphasized={emphasized || undefined}
-      data-passwo-speech-obstacle
-    >
-      <span className={styles.wordPoolPasswordConnector} aria-hidden="true" />
-      {example.showPasswordLabel === false ? null : <strong>{example.passwordLabel}</strong>}
-      <PasswordBuildingBlocks
-        value={example.password}
-        parts={example.parts}
-        display="separated"
-        animate={false}
-        visualScale={fixed ? (example.parts.length >= 6 ? 0.36 : 0.55) : 0.78}
-        highlightedIndices={emphasized ? example.parts.map((_, index) => index) : []}
-        ariaLabel={`${example.passwordLabel}: ${example.parts.join(', ')}`}
-      />
-      {example.lengthScaleLabel === undefined ? null : (
-        <>
-          <span
-            className={styles.wordPoolLengthRay}
-            role="img"
-            aria-label={example.lengthScaleLabel}
-          />
-          <small>{example.lengthScaleLabel}</small>
-        </>
-      )}
-    </article>
-  );
-}
-
-function SecondLengthReasonExample({
-  example,
-  position,
-  sphereKind,
-  showPassword = true,
-  emphasized = false,
-}: {
-  readonly example: SecondLengthReasonExampleContent;
-  readonly position: 'single' | 'comparison-left' | 'comparison-right';
-  readonly sphereKind: 'german' | 'multilingual' | 'fifth-word';
-  readonly showPassword?: boolean;
-  readonly emphasized?: boolean;
-}) {
-  const tooltipId = `s05-second-reason-attacker-model-${position}`;
-  return (
-    <>
-      <article
-        className={styles.wordPoolCase}
-        data-case="second-reason"
-        data-position={position}
-      >
-        <div
-          className={styles.wordPoolSphere}
-          data-growing={sphereKind !== 'german' || undefined}
-          data-multilingual={sphereKind === 'multilingual' || undefined}
-          data-fifth-word={sphereKind === 'fifth-word' || undefined}
-        >
-          <WordPoolEffortInformation example={example} tooltipId={tooltipId} />
-        </div>
-      </article>
-      {showPassword ? (
-        <SecondLengthReasonPassword
-          example={example}
-          position={position}
-          emphasized={emphasized}
-        />
-      ) : null}
-    </>
-  );
-}
-
 function WordPoolEffortInformation({
   example,
   tooltipId,
@@ -2756,38 +2632,255 @@ function WordPoolEffortInformation({
   );
 }
 
-function LanguagePackageStack({
-  packages,
-  expanded,
+const wordComparisonSteps = [
+  'length-memorability',
+  'length-full-word-attack',
+  'length-short-word-comparison',
+  'length-sufficient-pools',
+  'length-takeaway',
+  'length-second-reason-transition',
+  'length-four-german-words',
+  'length-language-pool-stack',
+  'length-multilingual-words',
+  'length-fifth-word-comparison',
+] as const;
+
+interface WordComparisonGeometryStyle extends CSSProperties {
+  readonly '--word-slot-x': string;
+  readonly '--word-sphere-size'?: string;
+  readonly '--word-sphere-color'?: string;
+}
+
+const WORD_COMBINATION_MAGNITUDES = {
+  // Presentation-only log10 magnitudes keep the renderer independent from localized labels.
+  longWord: 4.9,
+  shortWords: 12.72,
+  germanWords: 19.61,
+  multilingualWords: 22.02,
+  sixGermanWords: 29.42,
+} as const;
+
+function wordComparisonSphereDiameter(
+  magnitude: number,
+  viewport: { readonly width: number; readonly height: number },
+): number {
+  const minimumMagnitude = WORD_COMBINATION_MAGNITUDES.longWord;
+  const maximumMagnitude = WORD_COMBINATION_MAGNITUDES.sixGermanWords;
+  const progress = Math.max(
+    0,
+    Math.min(1, (magnitude - minimumMagnitude) / (maximumMagnitude - minimumMagnitude)),
+  );
+  const minimumDiameter = Math.max(
+    72,
+    Math.min(112, viewport.width * 0.12, viewport.height * 0.17),
+  );
+  const maximumDiameter = Math.max(
+    minimumDiameter * 1.85,
+    Math.min(360, viewport.width * 0.24, viewport.height * 0.42),
+  );
+  return minimumDiameter + (maximumDiameter - minimumDiameter) * progress;
+}
+
+function WordComparisonCase({
+  example,
+  visible,
+  slot,
+  x,
+  diameter,
+  tone,
   emphasized = false,
-  comparisonPosition,
 }: {
-  readonly packages: readonly LanguagePackageContent[];
-  readonly expanded: boolean;
+  readonly example: SecondLengthReasonExampleContent;
+  readonly visible: boolean;
+  readonly slot: 'primary' | 'secondary';
+  readonly x: number;
+  readonly diameter: number;
+  readonly tone: 'green' | 'blue';
   readonly emphasized?: boolean;
-  readonly comparisonPosition?: 'left' | 'right';
+}) {
+  const style: WordComparisonGeometryStyle = {
+    '--word-slot-x': `${x}%`,
+    '--word-sphere-size': `${diameter}px`,
+    '--word-sphere-color': tone === 'green' ? '#267b4b' : '#244f9c',
+  };
+  return (
+    <article
+      className={styles.wordComparisonCase}
+      data-slot={slot}
+      data-visible={visible || undefined}
+      data-emphasized={emphasized || undefined}
+      style={style}
+      aria-hidden={!visible}
+      inert={!visible || undefined}
+    >
+      <div className={styles.wordComparisonSphere}>
+        <WordPoolEffortInformation
+          example={example}
+          tooltipId={`s05-word-comparison-${slot}-model`}
+        />
+      </div>
+    </article>
+  );
+}
+
+function WordComparisonPassword({
+  example,
+  visible,
+  slot,
+  x,
+  lengthLabel,
+  emphasized = false,
+}: {
+  readonly example: SecondLengthReasonExampleContent;
+  readonly visible: boolean;
+  readonly slot: 'primary' | 'secondary';
+  readonly x: number;
+  readonly lengthLabel?: string;
+  readonly emphasized?: boolean;
+}) {
+  const style: WordComparisonGeometryStyle = { '--word-slot-x': `${x}%` };
+  const visualScale = example.parts.length >= 6
+    ? 0.4
+    : example.parts.length >= 4
+      ? 0.52
+      : example.parts.length > 1
+        ? 0.58
+        : 0.68;
+  return (
+    <article
+      className={styles.wordComparisonPassword}
+      data-slot={slot}
+      data-visible={visible || undefined}
+      data-emphasized={emphasized || undefined}
+      style={style}
+      aria-hidden={!visible}
+      inert={!visible || undefined}
+      data-passwo-speech-obstacle={visible || undefined}
+    >
+      {example.showPasswordLabel === false ? null : <strong>{example.passwordLabel}</strong>}
+      <PasswordBuildingBlocks
+        value={example.password}
+        parts={example.parts}
+        display="separated"
+        animate={false}
+        visualScale={visualScale}
+        highlightedIndices={emphasized ? example.parts.map((_, index) => index) : []}
+        ariaLabel={`${example.passwordLabel}: ${example.parts.join(', ')}`}
+      />
+      {lengthLabel === undefined ? null : (
+        <>
+          <span className={styles.wordComparisonLengthRay} aria-hidden="true" />
+          <small>{lengthLabel}</small>
+        </>
+      )}
+    </article>
+  );
+}
+
+function WordComparisonTick({
+  visible,
+  slot,
+  x,
+}: {
+  readonly visible: boolean;
+  readonly slot: 'primary' | 'secondary';
+  readonly x: number;
+}) {
+  const style: WordComparisonGeometryStyle = { '--word-slot-x': `${x}%` };
+  return (
+    <span
+      className={styles.wordComparisonTick}
+      data-slot={slot}
+      data-visible={visible || undefined}
+      style={style}
+      aria-hidden="true"
+    />
+  );
+}
+
+function WordComparisonPackageCard({
+  visible,
+  slot,
+  title,
+  caption,
+  label,
+  information,
+}: {
+  readonly visible: boolean;
+  readonly slot: 'primary' | 'secondary';
+  readonly title: string;
+  readonly caption: string;
+  readonly label: string;
+  readonly information?: string;
 }) {
   return (
     <aside
-      className={styles.languagePackageStack}
-      data-expanded={expanded || undefined}
+      className={styles.wordComparisonPackageCard}
+      data-slot={slot}
+      data-visible={visible || undefined}
+      aria-hidden={!visible}
+      inert={!visible || undefined}
+    >
+      <small>{title}</small>
+      <span>{caption}</span>
+      <strong>{label}</strong>
+      {information === undefined ? null : (
+        <WordPoolGear
+          label="Annahme zur deutschen Wortliste anzeigen"
+          tooltipId="s05-word-comparison-package-assumption"
+        >
+          <span>{information}</span>
+        </WordPoolGear>
+      )}
+    </aside>
+  );
+}
+
+function WordComparisonPackages({
+  packages,
+  visible,
+  expanded,
+  slot,
+  x,
+  emphasized = false,
+}: {
+  readonly packages: readonly LanguagePackageContent[];
+  readonly visible: boolean;
+  readonly expanded: boolean;
+  readonly slot: 'primary' | 'secondary';
+  readonly x: number;
+  readonly emphasized?: boolean;
+}) {
+  const style: WordComparisonGeometryStyle = { '--word-slot-x': `${x}%` };
+  return (
+    <aside
+      className={styles.wordComparisonPackages}
+      data-slot={slot}
+      data-visible={visible || undefined}
       data-emphasized={emphasized || undefined}
-      data-comparison-position={comparisonPosition}
-      aria-label="Vier gleich große Wortlisten"
+      style={style}
+      aria-label={expanded ? 'Vier gleich große Wortlisten' : 'Deutsche Wortliste'}
+      aria-hidden={!visible}
+      inert={!visible || undefined}
     >
       {packages.map((languagePackage, index) => {
-        if (index > 0 && !expanded) return null;
-        const tooltipId = `s05-language-package-${comparisonPosition ?? 'single'}-${languagePackage.id}`;
-        const flagStart = languagePackage.label.lastIndexOf(' ');
+        const itemVisible = visible && (expanded || index === 0);
+        const flagEnd = languagePackage.label.indexOf(' ');
         return (
-          <div className={styles.languagePackage} key={languagePackage.id}>
+          <div
+            className={styles.wordComparisonPackage}
+            data-visible={itemVisible || undefined}
+            aria-hidden={!itemVisible}
+            inert={!itemVisible || undefined}
+            key={languagePackage.id}
+          >
             <strong>
-              <span>{languagePackage.label.slice(0, flagStart)}</span>
-              <span>{languagePackage.label.slice(flagStart + 1)}</span>
+              <span>{languagePackage.label.slice(0, flagEnd)}</span>
+              <span>{languagePackage.label.slice(flagEnd + 1)}</span>
             </strong>
             <WordPoolGear
               label={`Information zu ${languagePackage.label} anzeigen`}
-              tooltipId={tooltipId}
+              tooltipId={`s05-word-comparison-${slot}-${languagePackage.id}`}
             >
               <span>{languagePackage.information}</span>
             </WordPoolGear>
@@ -2798,245 +2891,141 @@ function LanguagePackageStack({
   );
 }
 
-function SecondLengthReasonScene({
-  step,
-}: {
-  readonly step: S05AnalysisControllerSnapshot['step'];
-}) {
-  const content = s05Content.freeSearch.lengthExamples.secondLengthReason;
-  const comparesAdditionalWords = step === 'length-fifth-word-comparison';
-  const usesMultilingualWords = step === 'length-multilingual-words';
-  const showsLanguageStack =
-    step === 'length-language-pool-stack' || usesMultilingualWords;
-  const emphasizesLanguageStack = step === 'length-language-pool-stack';
-  const emphasizesMultilingualWords = step === 'length-multilingual-words';
-  const passwordExample = usesMultilingualWords
-    ? content.multilingualWords
-    : content.germanWords;
-
-  return (
-    <div
-      className={styles.wordPoolReasonScene}
-      data-s05-target="length-second-reason"
-      data-second-reason="true"
-      data-zoomed-out={usesMultilingualWords || undefined}
-      data-fifth-word-comparison={comparesAdditionalWords || undefined}
-    >
-      <div className={styles.wordPoolAxis} aria-hidden="true" />
-      {comparesAdditionalWords ? (
-        <>
-          <span
-            className={styles.wordPoolComparisonTick}
-            data-position="comparison-left"
-            aria-label={`Markierung für ${content.multilingualWords.durationLabel}`}
-          >
-            <i aria-hidden="true" />
-          </span>
-          <span
-            className={styles.wordPoolComparisonTick}
-            data-position="comparison-right"
-            aria-label={`Markierung für ${content.sixGermanWords.durationLabel}`}
-          >
-            <i aria-hidden="true" />
-          </span>
-        </>
-      ) : null}
-      {comparesAdditionalWords ? (
-        <span className={styles.wordPoolReferencePea}>
-          <WordPoolEffortInformation
-            example={content.multilingualWords}
-            tooltipId="s05-second-reason-attacker-model-reference"
-          />
-          <i aria-hidden="true" />
-        </span>
-      ) : null}
-      <div className={styles.wordPoolSceneComposition}>
-        {comparesAdditionalWords ? (
-          <SecondLengthReasonExample
-            example={content.sixGermanWords}
-            position="comparison-right"
-            sphereKind="fifth-word"
-            showPassword={false}
-          />
-        ) : (
-          <SecondLengthReasonExample
-            example={passwordExample}
-            position="single"
-            sphereKind={usesMultilingualWords ? 'multilingual' : 'german'}
-            emphasized={emphasizesMultilingualWords}
-          />
-        )}
-        {comparesAdditionalWords ? null : (
-          <LanguagePackageStack
-            packages={content.languagePackages}
-            expanded={showsLanguageStack}
-            emphasized={emphasizesLanguageStack}
-          />
-        )}
-      </div>
-      {comparesAdditionalWords ? (
-        <>
-          <SecondLengthReasonPassword
-            example={content.multilingualWords}
-            position="comparison-left"
-            fixed
-          />
-          <SecondLengthReasonPassword
-            example={content.sixGermanWords}
-            position="comparison-right"
-            fixed
-          />
-          <LanguagePackageStack
-            packages={content.languagePackages}
-            expanded
-            comparisonPosition="left"
-          />
-          <LanguagePackageStack
-            packages={content.languagePackages.slice(0, 1)}
-            expanded={false}
-            comparisonPosition="right"
-          />
-        </>
-      ) : null}
-    </div>
-  );
-}
-
 function WordPoolReasonScene({
   step,
 }: {
   readonly step: S05AnalysisControllerSnapshot['step'];
 }) {
-  const content = s05Content.freeSearch.lengthExamples.wordPoolDemonstration;
-  const stepOrder: readonly S05AnalysisControllerSnapshot['step'][] = [
-    'length-memorability',
-    'length-full-word-attack',
-    'length-short-word-comparison',
-    'length-sufficient-pools',
-    'length-takeaway',
-    'length-second-reason-transition',
-  ];
-  const stepIndex = stepOrder.indexOf(step);
-  const showsPassword = stepIndex >= 0;
-  const showsLongWordSphere = stepIndex >= 1;
-  const showsShortWordPassword = stepIndex >= 2;
-  const showsShortWordModel = stepIndex >= 3;
-  const showsFourGermanWords = stepIndex >= 4;
-  const germanWords = s05Content.freeSearch.lengthExamples.secondLengthReason.germanWords;
-  const germanPackage =
-    s05Content.freeSearch.lengthExamples.secondLengthReason.languagePackages.slice(0, 1);
+  const firstReason = s05Content.freeSearch.lengthExamples.wordPoolDemonstration;
+  const secondReason = s05Content.freeSearch.lengthExamples.secondLengthReason;
+  const graphRef = useRef<HTMLDivElement | null>(null);
+  const viewport = useScaleViewport(graphRef);
+  const stepIndex = wordComparisonSteps.findIndex((candidate) => candidate === step);
+  const showsLongWordSphere = stepIndex >= 1 && stepIndex < 4;
+  const showsShortWordPassword = stepIndex >= 2 && stepIndex < 4;
+  const showsShortWordSphere = stepIndex >= 3 && stepIndex < 4;
+  const showsLongWordPassword = stepIndex >= 0 && stepIndex < 4;
+  const showsGermanWords = stepIndex >= 4 && stepIndex < 8;
+  const showsMultilingualWords = stepIndex >= 8;
+  const comparesAdditionalWords = stepIndex >= 9;
+  const showsLanguagePackages = stepIndex >= 4;
+  const expandsLanguagePackages = stepIndex >= 7;
+  const primaryExample = showsMultilingualWords
+    ? secondReason.multilingualWords
+    : showsGermanWords
+      ? secondReason.germanWords
+      : firstReason.longWord;
+  const secondaryExample = comparesAdditionalWords
+    ? secondReason.sixGermanWords
+    : firstReason.shortWords;
+  const primaryMagnitude = showsMultilingualWords
+    ? WORD_COMBINATION_MAGNITUDES.multilingualWords
+    : showsGermanWords
+      ? WORD_COMBINATION_MAGNITUDES.germanWords
+      : WORD_COMBINATION_MAGNITUDES.longWord;
+  const secondaryMagnitude = comparesAdditionalWords
+    ? WORD_COMBINATION_MAGNITUDES.sixGermanWords
+    : WORD_COMBINATION_MAGNITUDES.shortWords;
+  const primaryX = showsGermanWords || showsMultilingualWords ? 25 : 66;
+  const secondaryX = comparesAdditionalWords ? 75 : 28;
+  const packageX = 9;
+  const primaryLengthLabel = showsGermanWords
+    ? secondReason.germanWords.lengthScaleLabel
+    : showsLongWordPassword
+      ? firstReason.minimumLengthLabel
+      : undefined;
+  const secondaryLengthLabel = comparesAdditionalWords
+    ? undefined
+    : showsShortWordPassword
+      ? firstReason.minimumLengthLabel
+      : undefined;
   return (
     <div
-      className={styles.wordPoolReasonScene}
-      data-s05-target="length-word-pools"
-      data-first-reason-growth={showsFourGermanWords || undefined}
+      className={styles.wordComparisonScene}
+      data-s05-target={stepIndex >= 6 ? 'length-second-reason' : 'length-word-pools'}
+      data-s05-persistent-scene
+      data-phase={
+        comparesAdditionalWords
+          ? 'comparison'
+          : showsMultilingualWords
+            ? 'multilingual'
+            : showsGermanWords
+              ? 'words'
+              : 'length'
+      }
       aria-label="Vergleich vereinfachter deutscher Wortpools im selben Angreifermodell"
     >
-      <div className={styles.wordPoolAxis} aria-hidden="true" />
-      {showsPassword && !showsFourGermanWords ? (
-        <article className={styles.wordPoolPassword} data-case="long-word">
-          <span className={styles.wordPoolPasswordConnector} aria-hidden="true" />
-          <PasswordBuildingBlocks
-            value={content.longWord.password}
-            parts={content.longWord.parts}
-            display="separated"
-            animate={false}
-            visualScale={0.68}
-            ariaLabel={`${content.longWord.password}, ${content.longWord.length} Zeichen`}
-          />
-          <span
-            className={styles.wordPoolLengthRay}
-            role="img"
-            aria-label={`${content.longWord.length} Stellen`}
-          />
-          <small>{content.minimumLengthLabel}</small>
-        </article>
-      ) : null}
-      {showsLongWordSphere && !showsFourGermanWords ? (
-        <article className={styles.wordPoolCase} data-case="long-word">
-          <div className={styles.wordPoolSphere}>
-            <span className={styles.wordPoolEffort}>
-              <strong>{content.longWord.durationLabel}</strong>
-              <WordPoolGear
-                label="Angreifermodell für das Wort anzeigen"
-                tooltipId="s05-long-word-attacker-model"
-              >
-                <WordPoolModelDetails information={content.longWord.modelInformation} />
-              </WordPoolGear>
-            </span>
-          </div>
-        </article>
-      ) : null}
-      {showsLongWordSphere && !showsFourGermanWords ? (
-        <aside
-          className={styles.wordPackage}
-          data-emphasized={step === 'length-full-word-attack' || undefined}
-          data-package="large"
-        >
-          <small>{content.longWord.packageTitle}</small>
-          {content.longWord.packageCaption.length > 0 ? (
-            <small>{content.longWord.packageCaption}</small>
-          ) : null}
-          <strong>{content.longWord.packageLabel}</strong>
-          <WordPoolGear
-            label="Annahme zur deutschen Wortliste anzeigen"
-            tooltipId="s05-large-word-pool-assumption"
-          >
-            <span>{content.longWord.packageTooltip}</span>
-          </WordPoolGear>
-        </aside>
-      ) : null}
-      {showsShortWordModel ? (
-        <article className={styles.wordPoolCase} data-case="short-words">
-          <div className={styles.wordPoolSphere}>
-            <span className={styles.wordPoolEffort}>
-              <strong>{content.shortWords.durationLabel}</strong>
-              <WordPoolGear
-                label="Angreifermodell für die fünf Wörter anzeigen"
-                tooltipId="s05-short-words-attacker-model"
-              >
-                <WordPoolModelDetails information={content.shortWords.modelInformation} />
-              </WordPoolGear>
-            </span>
-          </div>
-        </article>
-      ) : null}
-      {showsShortWordPassword ? (
-        <article className={styles.wordPoolPassword} data-case="short-words">
-          <span className={styles.wordPoolPasswordConnector} aria-hidden="true" />
-          <PasswordBuildingBlocks
-            value={content.shortWords.password}
-            parts={content.shortWords.parts}
-            display="separated"
-            animate={false}
-            visualScale={0.58}
-            ariaLabel={`${content.shortWords.password}, ${content.shortWords.length} Zeichen`}
-          />
-          <span
-            className={styles.wordPoolLengthRay}
-            role="img"
-            aria-label={`${content.shortWords.length} Stellen`}
-          />
-          <small>{content.minimumLengthLabel}</small>
-        </article>
-      ) : null}
-      {showsShortWordModel && !showsFourGermanWords ? (
-        <aside className={styles.wordPackage} data-package="small">
-          <small>{content.shortWords.packageTitle}</small>
-          <small>{content.shortWords.packageCaption}</small>
-          <strong>{content.shortWords.packageLabel}</strong>
-        </aside>
-      ) : null}
-      {showsFourGermanWords ? (
-        <>
-          <SecondLengthReasonExample
-            example={germanWords}
-            position="single"
-            sphereKind="german"
-          />
-          <LanguagePackageStack packages={germanPackage} expanded={false} />
-        </>
-      ) : null}
+      <div className={styles.wordComparisonGraph} ref={graphRef}>
+        <div className={styles.wordComparisonAxis} aria-hidden="true" />
+        <WordComparisonTick visible={stepIndex >= 0} slot="primary" x={primaryX} />
+        <WordComparisonTick
+          visible={showsShortWordPassword || comparesAdditionalWords}
+          slot="secondary"
+          x={secondaryX}
+        />
+        <WordComparisonCase
+          example={primaryExample}
+          visible={showsLongWordSphere || showsGermanWords || showsMultilingualWords}
+          slot="primary"
+          x={primaryX}
+          diameter={wordComparisonSphereDiameter(primaryMagnitude, viewport)}
+          tone="green"
+          emphasized={step === 'length-full-word-attack' || step === 'length-multilingual-words'}
+        />
+        <WordComparisonCase
+          example={secondaryExample}
+          visible={showsShortWordSphere || comparesAdditionalWords}
+          slot="secondary"
+          x={secondaryX}
+          diameter={wordComparisonSphereDiameter(secondaryMagnitude, viewport)}
+          tone="blue"
+        />
+        <WordComparisonPassword
+          example={primaryExample}
+          visible={showsLongWordPassword || showsGermanWords || showsMultilingualWords}
+          slot="primary"
+          x={primaryX}
+          emphasized={step === 'length-multilingual-words'}
+          {...(primaryLengthLabel === undefined ? {} : { lengthLabel: primaryLengthLabel })}
+        />
+        <WordComparisonPassword
+          example={secondaryExample}
+          visible={showsShortWordPassword || comparesAdditionalWords}
+          slot="secondary"
+          x={secondaryX}
+          {...(secondaryLengthLabel === undefined ? {} : { lengthLabel: secondaryLengthLabel })}
+        />
+        <WordComparisonPackageCard
+          visible={showsLongWordSphere}
+          slot="primary"
+          title={firstReason.longWord.packageTitle}
+          caption={firstReason.longWord.packageCaption}
+          label={firstReason.longWord.packageLabel}
+          information={firstReason.longWord.packageTooltip}
+        />
+        <WordComparisonPackageCard
+          visible={showsShortWordSphere}
+          slot="secondary"
+          title={firstReason.shortWords.packageTitle}
+          caption={firstReason.shortWords.packageCaption}
+          label={firstReason.shortWords.packageLabel}
+        />
+        <WordComparisonPackages
+          packages={secondReason.languagePackages}
+          visible={showsLanguagePackages}
+          expanded={expandsLanguagePackages}
+          slot="primary"
+          x={packageX}
+          emphasized={step === 'length-language-pool-stack'}
+        />
+        <WordComparisonPackages
+          packages={secondReason.languagePackages.slice(0, 1)}
+          visible={comparesAdditionalWords}
+          expanded={false}
+          slot="secondary"
+          x={91}
+        />
+      </div>
     </div>
   );
 }
@@ -3252,12 +3241,11 @@ function renderScene(
     case 'length-sufficient-pools':
     case 'length-takeaway':
     case 'length-second-reason-transition':
-      return <WordPoolReasonScene step={snapshot.step} />;
     case 'length-four-german-words':
     case 'length-language-pool-stack':
     case 'length-multilingual-words':
     case 'length-fifth-word-comparison':
-      return <SecondLengthReasonScene step={snapshot.step} />;
+      return <WordPoolReasonScene step={snapshot.step} />;
     case 'final-components':
     case 'final-length':
     case 'final-result':

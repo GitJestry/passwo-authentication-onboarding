@@ -26,16 +26,17 @@ bleiben unverändert. `S05_CONTENT_VERSION` wird von `2.110.0` auf `2.111.0` erh
 
 Quelle ist der ausdrückliche Nutzerauftrag vom 23. August 2026. In der angeschnittenen
 16-Stellen-Vorschau des Modellvergleichs und in der späteren vollständig sichtbaren
-16-Stellen-Fokuskugel verwenden Zeitblock und Stellenmarker dieselbe responsive Mittelachse und
-kugelabhängige Skalierungsbasis. Die separate Kennzeichnung `kleinbuchstaben` innerhalb der
-16-Stellen-Kugel entfällt; stattdessen steht unter dem vorhandenen Zeitwert wie in den übrigen
-Zeitkugeln `bis alle kleinbuchstaben Zeichenfolgen geprüft sind`. Die Modellkennzeichnung der
+16-Stellen-Fokuskugel verwenden Zeitblock und Stellenmarker denselben kugelgebundenen Renderer
+wie die ursprüngliche aktive 16-Stellen-Ansicht. Damit folgen Mittelachse, Breite und Schriftgrößen
+ohne separate Vorschauwerte responsiv der projizierten Kugel. Die separate Kennzeichnung
+`kleinbuchstaben` innerhalb der 16-Stellen-Kugel entfällt; stattdessen steht unter dem vorhandenen
+Zeitwert wie in den übrigen Zeitkugeln `bis alle kleinbuchstaben Zeichenfolgen geprüft sind`. Die Modellkennzeichnung der
 15-Stellen-Kugel bleibt unverändert. Interaktion, Ablauf, Analyse, Persistenz, Export und Timing
 bleiben unverändert; kein Content-Versionssprung ist erforderlich.
 
 | Segment und Text-ID | Quelle | Aktueller Zustand | Geplanter Zustand | Primäre Rolle | Grund | Bedeutungsänderung | Interaktionsziel | Hervorhebung |
 |---|---|---|---|---|---|---|---|---|
-| `S05.freeSearch.theoreticalModel.lowercaseTimeExplanation` | Nutzerauftrag vom 2026-08-23 | Zeitwert, `16 Stellen` und `kleinbuchstaben` verwenden in den beiden 16er-Ansichten unterschiedliche Positionierungs- und Skalierungsregeln | Zeitwert und `16 Stellen` sind kugelabhängig mittig ausgerichtet; unter dem Zeitwert steht `bis alle kleinbuchstaben Zeichenfolgen geprüft sind` | Mechanismuserklärung / Orientierung | einheitliche responsive Zuordnung und bessere Lesbarkeit auf unterschiedlichen Screens | nein | kein | keine |
+| `S05.freeSearch.theoreticalModel.lowercaseTimeExplanation` | Nutzerauftrag vom 2026-08-23 | Die beiden Vergleichsansichten verwenden für Zeitwert und `16 Stellen` einen separaten Vorschau-Textblock mit eigener Größenberechnung | Zeitwert, Erklärung und `16 Stellen` verwenden denselben kugelgebundenen Renderer wie die ursprüngliche aktive 16-Stellen-Ansicht; unter dem Zeitwert steht `bis alle kleinbuchstaben Zeichenfolgen geprüft sind` | Mechanismuserklärung / Orientierung | einheitliche responsive Zuordnung und bessere Lesbarkeit auf unterschiedlichen Screens | nein | kein | keine |
 
 ## Copy-Delta S00 eigene Passwoerter, 23. August 2026
 
