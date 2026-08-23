@@ -3,15 +3,16 @@ import { type CSSProperties, type ReactNode, useState } from 'react';
 import { NetworkSymbol } from '../../../../adapters/network/NetworkSymbolRegistry.js';
 import {
   PasswordBuildingBlocks,
+  passwordSingleLineVisualStyleFor,
   passwordVisualStyleFor,
 } from '../S05/PasswordBuildingBlocks.js';
+import { PasswordComponentReview } from '../S05/PasswordComponentReview.js';
+import { structureGroupColor } from '../S05/StructureGroupPalette.js';
 import type {
   S06LocalReflectionMode,
   S06LocalReflectionSnapshot,
 } from './S06ConsequenceController.js';
 import styles from './S06LocalPasswordReflection.module.css';
-
-const groupColors = ['#5b5fef', '#c15ca8', '#238c83', '#ba7437'] as const;
 
 interface GroupColorStyle extends CSSProperties {
   readonly '--s06-reflection-group-color': string;
@@ -72,12 +73,27 @@ export function S06LocalPasswordReflection({
 }) {
   const [hoveredBlockId, setHoveredBlockId] = useState<string | null>(null);
   const content = s06ConsequenceContent.page.localReflection;
-  const canAddGroup = reflection.contentGroups.every(({ blockIds }) => blockIds.length > 0);
+  const groupLimitReached =
+    reflection.contentGroups.length >= content.maxGroupCount;
+  const canAddGroup =
+    !groupLimitReached &&
+    reflection.contentGroups.every(({ blockIds }) => blockIds.length > 0);
   const passwordTitle =
     reflection.accountId === 'campusgram'
       ? content.passwordLabel
       : content.passwordTitles[reflection.accountId];
-  const passwordScaleStyle = passwordVisualStyleFor(reflection.fictionalPassword);
+  const passwordScaleStyle =
+    reflection.mode === 'personal'
+      ? passwordVisualStyleFor(reflection.fictionalPassword)
+      : passwordSingleLineVisualStyleFor(
+          reflection.fictionalPassword,
+          reflection.blocks.length,
+        );
+  const summaryCategories = s05Content.componentStrategy.categories.map((category) => ({
+    id: category.id,
+    title: category.title,
+    values: reflection.findingValues[category.id],
+  }));
   return (
     <section
       className={styles.reflection}
@@ -85,186 +101,179 @@ export function S06LocalPasswordReflection({
       data-account-id={reflection.accountId}
       data-interactive={interactive || undefined}
     >
-      <h2 className={styles.title}>
-        <span aria-hidden="true">
-          <NetworkSymbol symbolId={reflection.accountId} />
-        </span>
-        {passwordTitle}
-      </h2>
-      <div
-        className={styles.password}
-        data-mode={reflection.mode}
-        aria-label={reflection.fictionalPassword}
-        style={passwordScaleStyle}
-      >
-        {reflection.mode === 'personal' ? (
-          <div className={styles.personalPassword}>
-            <PasswordBuildingBlocks
-              value={reflection.fictionalPassword}
-              parts={[...reflection.fictionalPassword]}
-              display="decomposed"
-              appearance="analysis"
-              continuous
-              animate
-              categoryIds={[...reflection.fictionalPassword].map(() => [])}
-              rangeSelection={{
-                candidates: reflection.personalCandidates,
-                onCreate: onPersonalCreate,
-                onRemove: onPersonalRemove,
-                status: s05Content.componentStrategy.personalDetails.selectionStatus,
-              }}
-              ariaLabel={content.personalSelectionLabel}
-            />
-            <button
-              type="button"
-              className={styles.applyPersonal}
-              onClick={() => onModeChange('groups')}
-            >
-              {content.personalApply}
-            </button>
-          </div>
-        ) : (() => {
-          const rendered: ReactNode[] = [];
-          const tokenFor = (index: number): ReactNode => {
-            const block = reflection.blocks[index];
-            if (block === undefined) return null;
-            const previousBlock = reflection.blocks[index - 1];
-            const nextBlock = reflection.blocks[index + 1];
-            const groupIndex = reflection.contentGroups.findIndex(({ blockIds }) =>
-              blockIds.includes(block.id),
-            );
-            const groupSelected = groupIndex >= 0;
-            const incomingLinkActive =
-              previousBlock !== undefined &&
-              structureLinkExists(reflection, previousBlock.id, block.id);
-            const outgoingLinkActive =
-              nextBlock !== undefined && structureLinkExists(reflection, block.id, nextBlock.id);
-            const structureConnected = incomingLinkActive || outgoingLinkActive;
-            const groupStyle: GroupColorStyle | undefined =
-              groupIndex < 0
-                ? undefined
-                : {
-                    '--s06-reflection-group-color':
-                      groupColors[groupIndex % groupColors.length] ?? groupColors[0],
-                  };
-            return (
-              <span className={styles.blockFrame} key={block.id}>
-                {block.repetitionCount === null ? null : (
-                  <span
-                    className={styles.repetitionCount}
-                    aria-label={`${block.repetitionCount}-mal`}
-                  >
-                    ×{block.repetitionCount}
-                  </span>
-                )}
-                <button
-                  type="button"
-                  className={styles.block}
-                  style={groupStyle}
-                  data-categories={block.categoryIds.join(' ')}
-                  data-repetition={block.repeated || undefined}
-                  data-group-selected={groupSelected || undefined}
-                  data-personal-selected={
-                    (!groupSelected && block.categoryIds.includes('personal-details')) || undefined
-                  }
-                  data-structure-selected={structureConnected || undefined}
-                  aria-pressed={
-                    reflection.mode === 'groups' ? groupSelected : outgoingLinkActive
-                  }
-                  disabled={
-                    !interactive || (reflection.mode === 'structure' && nextBlock === undefined)
-                  }
-                  onClick={() => onBlockToggle(block.id)}
-                  onMouseEnter={() =>
-                    setHoveredBlockId(reflection.mode === 'structure' ? block.id : null)
-                  }
-                  onMouseLeave={() => setHoveredBlockId(null)}
-                  onFocus={() =>
-                    setHoveredBlockId(reflection.mode === 'structure' ? block.id : null)
-                  }
-                  onBlur={() => setHoveredBlockId(null)}
-                >
-                  {block.value}
-                </button>
-                {block.findings.length === 0 ? null : (
-                  <small className={styles.findings}>
-                    {block.findings.map(({ categoryId, label }) => (
-                      <span data-category={categoryId} key={`${categoryId}-${label}`}>
-                        <i aria-hidden="true" />
-                        <span>{label}</span>
-                      </span>
-                    ))}
-                  </small>
-                )}
-              </span>
-            );
-          };
-
-          let index = 0;
-          while (index < reflection.blocks.length) {
-            const block = reflection.blocks[index];
-            const nextBlock = reflection.blocks[index + 1];
-            if (
-              block !== undefined &&
-              nextBlock !== undefined &&
-              structureLinkExists(reflection, block.id, nextBlock.id)
-            ) {
-              const startIndex = index;
-              let endIndex = index + 1;
-              while (endIndex < reflection.blocks.length - 1) {
-                const current = reflection.blocks[endIndex];
-                const following = reflection.blocks[endIndex + 1];
-                if (
-                  current === undefined ||
-                  following === undefined ||
-                  !structureLinkExists(reflection, current.id, following.id)
-                ) {
-                  break;
-                }
-                endIndex += 1;
-              }
-              const runChildren: ReactNode[] = [];
-              for (let runIndex = startIndex; runIndex <= endIndex; runIndex += 1) {
-                const runBlock = reflection.blocks[runIndex];
-                if (runBlock === undefined) continue;
-                runChildren.push(tokenFor(runIndex));
-                if (runIndex < endIndex) {
-                  runChildren.push(<StructureLinkArrow active key={`link-${runBlock.id}`} />);
-                }
-              }
-              rendered.push(
-                <span className={styles.structureRun} key={`run-${block.id}`}>
-                  {runChildren}
-                </span>,
+      <PasswordComponentReview
+        entries={summaryCategories}
+        layout="compact"
+        live
+      />
+      <div className={styles.passwordVisualization}>
+        <h2 className={styles.title}>
+          <span aria-hidden="true">
+            <NetworkSymbol symbolId={reflection.accountId} />
+          </span>
+          {passwordTitle}
+        </h2>
+        <div
+          className={styles.password}
+          data-mode={reflection.mode}
+          aria-label={reflection.fictionalPassword}
+          style={passwordScaleStyle}
+        >
+          {reflection.mode === 'personal' ? (
+            <div className={styles.personalPassword}>
+              <PasswordBuildingBlocks
+                value={reflection.fictionalPassword}
+                parts={[...reflection.fictionalPassword]}
+                display="decomposed"
+                appearance="analysis"
+                continuous
+                animate
+                categoryIds={[...reflection.fictionalPassword].map(() => [])}
+                rangeSelection={{
+                  candidates: reflection.personalCandidates,
+                  onCreate: onPersonalCreate,
+                  onRemove: onPersonalRemove,
+                  status: s05Content.componentStrategy.personalDetails.selectionStatus,
+                }}
+                ariaLabel={content.personalSelectionLabel}
+              />
+              <button
+                type="button"
+                className={styles.applyPersonal}
+                onClick={() => onModeChange('groups')}
+              >
+                {content.personalApply}
+              </button>
+            </div>
+          ) : (() => {
+            const rendered: ReactNode[] = [];
+            const tokenFor = (index: number): ReactNode => {
+              const block = reflection.blocks[index];
+              if (block === undefined) return null;
+              const previousBlock = reflection.blocks[index - 1];
+              const nextBlock = reflection.blocks[index + 1];
+              const groupIndex = reflection.contentGroups.findIndex(({ blockIds }) =>
+                blockIds.includes(block.id),
               );
-              const runEndBlock = reflection.blocks[endIndex];
-              if (runEndBlock !== undefined && endIndex < reflection.blocks.length - 1) {
+              const groupSelected = groupIndex >= 0;
+              const incomingLinkActive =
+                previousBlock !== undefined &&
+                structureLinkExists(reflection, previousBlock.id, block.id);
+              const outgoingLinkActive =
+                nextBlock !== undefined && structureLinkExists(reflection, block.id, nextBlock.id);
+              const structureConnected = incomingLinkActive || outgoingLinkActive;
+              const groupStyle: GroupColorStyle | undefined =
+                groupIndex < 0
+                  ? undefined
+                  : {
+                      '--s06-reflection-group-color':
+                        structureGroupColor(groupIndex),
+                    };
+              return (
+                <span className={styles.blockFrame} key={block.id}>
+                  {block.repetitionCount === null ? null : (
+                    <span
+                      className={styles.repetitionCount}
+                      aria-label={`${block.repetitionCount}-mal`}
+                    >
+                      ×{block.repetitionCount}
+                    </span>
+                  )}
+                  <button
+                    type="button"
+                    className={styles.block}
+                    style={groupStyle}
+                    data-repetition={block.repeated || undefined}
+                    data-group-selected={groupSelected || undefined}
+                    data-structure-selected={structureConnected || undefined}
+                    aria-pressed={
+                      reflection.mode === 'groups' ? groupSelected : outgoingLinkActive
+                    }
+                    disabled={
+                      !interactive || (reflection.mode === 'structure' && nextBlock === undefined)
+                    }
+                    onClick={() => onBlockToggle(block.id)}
+                    onMouseEnter={() =>
+                      setHoveredBlockId(reflection.mode === 'structure' ? block.id : null)
+                    }
+                    onMouseLeave={() => setHoveredBlockId(null)}
+                    onFocus={() =>
+                      setHoveredBlockId(reflection.mode === 'structure' ? block.id : null)
+                    }
+                    onBlur={() => setHoveredBlockId(null)}
+                  >
+                    {block.value}
+                  </button>
+                </span>
+              );
+            };
+
+            let index = 0;
+            while (index < reflection.blocks.length) {
+              const block = reflection.blocks[index];
+              const nextBlock = reflection.blocks[index + 1];
+              if (
+                block !== undefined &&
+                nextBlock !== undefined &&
+                structureLinkExists(reflection, block.id, nextBlock.id)
+              ) {
+                const startIndex = index;
+                let endIndex = index + 1;
+                while (endIndex < reflection.blocks.length - 1) {
+                  const current = reflection.blocks[endIndex];
+                  const following = reflection.blocks[endIndex + 1];
+                  if (
+                    current === undefined ||
+                    following === undefined ||
+                    !structureLinkExists(reflection, current.id, following.id)
+                  ) {
+                    break;
+                  }
+                  endIndex += 1;
+                }
+                const runChildren: ReactNode[] = [];
+                for (let runIndex = startIndex; runIndex <= endIndex; runIndex += 1) {
+                  const runBlock = reflection.blocks[runIndex];
+                  if (runBlock === undefined) continue;
+                  runChildren.push(tokenFor(runIndex));
+                  if (runIndex < endIndex) {
+                    runChildren.push(<StructureLinkArrow active key={`link-${runBlock.id}`} />);
+                  }
+                }
+                rendered.push(
+                  <span className={styles.structureRun} key={`run-${block.id}`}>
+                    {runChildren}
+                  </span>,
+                );
+                const runEndBlock = reflection.blocks[endIndex];
+                if (runEndBlock !== undefined && endIndex < reflection.blocks.length - 1) {
+                  rendered.push(
+                    <StructureLinkArrow
+                      separator
+                      preview={
+                        reflection.mode === 'structure' && hoveredBlockId === runEndBlock.id
+                      }
+                      key={`separator-${runEndBlock.id}`}
+                    />,
+                  );
+                }
+                index = endIndex + 1;
+                continue;
+              }
+              if (block !== undefined) rendered.push(tokenFor(index));
+              if (block !== undefined && nextBlock !== undefined) {
                 rendered.push(
                   <StructureLinkArrow
-                    separator
-                    preview={
-                      reflection.mode === 'structure' && hoveredBlockId === runEndBlock.id
-                    }
-                    key={`separator-${runEndBlock.id}`}
+                    preview={reflection.mode === 'structure' && hoveredBlockId === block.id}
+                    key={`gap-${block.id}`}
                   />,
                 );
               }
-              index = endIndex + 1;
-              continue;
+              index += 1;
             }
-            if (block !== undefined) rendered.push(tokenFor(index));
-            if (block !== undefined && nextBlock !== undefined) {
-              rendered.push(
-                <StructureLinkArrow
-                  preview={reflection.mode === 'structure' && hoveredBlockId === block.id}
-                  key={`gap-${block.id}`}
-                />,
-              );
-            }
-            index += 1;
-          }
-          return rendered;
-        })()}
+            return rendered;
+          })()}
+        </div>
       </div>
       <footer className={styles.actions}>
         {interactive ? (
@@ -273,11 +282,14 @@ export function S06LocalPasswordReflection({
             <div className={styles.modeControls}>
               <div className={styles.primaryModes}>
                 <div className={styles.groupControl}>
-                  <div className={styles.groupList}>
+                  <div
+                    className={styles.groupList}
+                    data-group-count={reflection.contentGroups.length}
+                  >
                     {reflection.contentGroups.map((group, groupIndex) => {
                       const groupStyle: GroupColorStyle = {
                         '--s06-reflection-group-color':
-                          groupColors[groupIndex % groupColors.length] ?? groupColors[0],
+                          structureGroupColor(groupIndex),
                       };
                       return (
                         <button
@@ -302,12 +314,21 @@ export function S06LocalPasswordReflection({
                     <button
                       type="button"
                       className={styles.addGroup}
-                      aria-label={content.newGroup}
+                      aria-label={
+                        groupLimitReached ? content.maxGroups : content.newGroup
+                      }
+                      data-limit-reached={groupLimitReached || undefined}
                       disabled={!canAddGroup}
                       onClick={onGroupAdd}
                     >
-                      <span aria-hidden="true">+</span>
-                      <small>{content.newGroup}</small>
+                      {groupLimitReached ? (
+                        content.maxGroups
+                      ) : (
+                        <>
+                          <span aria-hidden="true">+</span>
+                          <small>{content.newGroup}</small>
+                        </>
+                      )}
                     </button>
                   </div>
                 </div>

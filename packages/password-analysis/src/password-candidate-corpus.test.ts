@@ -725,6 +725,12 @@ const endToEndNegativeCases: readonly EndToEndCandidateCase[] = [
   },
   { label: 'unsupported emoji residual', password: 'Passwort🙂', expectedFound: false },
   { label: 'random mixed-case string', password: 'QzmpvXtrldbNfgh', expectedFound: false },
+  { label: 'authored random example', password: 'rQ7mL2vX9pK4', expectedFound: false },
+  {
+    label: 'authored mixed-symbol random example',
+    password: 'rQ7!m2vX9?pK',
+    expectedFound: false,
+  },
 ];
 
 const endToEndCandidateCorpus: readonly EndToEndCandidateCase[] = [
@@ -764,7 +770,7 @@ describe('S05/S06 end-to-end candidate corpus', () => {
       });
 
       expect(disposition.kind === 'whole-password-recognized').toBe(expectedFound);
-      expect(disposition.analysisVersion).toBe('passwo-bounded-whole-recognition-v16');
+      expect(disposition.analysisVersion).toBe('passwo-bounded-whole-recognition-v17');
     },
   );
 });

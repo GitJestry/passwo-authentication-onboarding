@@ -58,16 +58,16 @@ export interface S06NarrationContent {
   readonly body: string;
 }
 
-export const S06_CONSEQUENCE_CONTENT_VERSION = '2.30.0';
+export const S06_CONSEQUENCE_CONTENT_VERSION = '2.32.0';
 
 export const s06ConsequenceContent = {
   version: S06_CONSEQUENCE_CONTENT_VERSION,
   source: {
     document: 'research/private/training-script.pdf',
     internalPages: [36, 37, 38, 39, 40, 41, 42, 43, 44] as const,
-    revision: 'Userauftrag vom 2026-08-23 · Transition-Kartenüberschrift präzisiert',
+    revision: 'Userauftrag vom 2026-08-23 · Vierer-Gruppenpalette und Gruppenlimit',
     copyReference:
-      'docs/design/S06-S07-COPY-AUDIT.md#copy-delta-s06-transition-karte-23-august-2026',
+      'docs/design/S06-S07-COPY-AUDIT.md#copy--und-darstellungsdelta-s06-vierer-gruppenpalette-und-gruppenlimit-23-august-2026',
   },
   segment: {
     id: 'S06',
@@ -102,6 +102,8 @@ export const s06ConsequenceContent = {
       modeLabel: 'Modus:',
       groupLabel: 'Gruppe',
       newGroup: 'Neue Gruppe',
+      maxGroupCount: 4,
+      maxGroups: 'Max. 4 Gruppen',
       structureMode: 'Struktur',
       personalMode: 'Persönliches',
       personalSelectionLabel: 'Persönliche Angaben im fiktiven Passwort markieren',

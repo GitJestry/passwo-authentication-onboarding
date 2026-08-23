@@ -1,5 +1,62 @@
 # S00--S05 Copy and Interaction Audit
 
+## Copy- und Darstellungsdelta S05 drittes Wiederholungsbeispiel, 23. August 2026
+
+Quelle ist der ausdrückliche Nutzerauftrag vom 23. August 2026. Ausschließlich im dritten
+sichtbaren Wiederholungsbeispiel entfällt das Fragezeichen in beiden identischen Bausteinen.
+Die zweite und dritte Beispielzeile rücken durch einen kleineren Zeilenabstand nach oben; bei
+sehr schmaler Darstellung skalieren Bausteine, Innenabstände, Verbindungspfeile und
+Wiederholungsmultiplikator gemeinsam, ohne die Beispielbedeutung zu verändern. Ablauf, Analyse,
+Persistenz, Export und Timing bleiben unverändert. `S05_CONTENT_VERSION` wird von `2.115.0` auf
+`2.116.0` erhöht.
+
+| Segment und Text-ID | Quelle | Aktueller Text | Geplanter Text | Primäre Rolle | Grund | Bedeutungsänderung | Interaktionsziel | Hervorhebung |
+|---|---|---|---|---|---|---|---|---|
+| `S05.structure.presentationExamples.repetition.rows[2]` | Nutzerauftrag vom 2026-08-23 | `D7!kP2?`, `D7!kP2?` | `D7!kP2`, `D7!kP2` | Orientierung / sichtbares Mechanismusbeispiel | ausdrücklich vorgegebenes Beispiel ohne Fragezeichen | begrenzt | kein | bestehender weißer Wiederholungsrahmen |
+
+Geschützter Wortlaut und bestehende Sprechschritte bleiben unverändert.
+
+## Copy- und Darstellungsdelta S05 Vierer-Gruppenpalette und Gruppenlimit, 23. August 2026
+
+Quelle ist der ausdrückliche Nutzerauftrag vom 23. August 2026. Dieses Delta ersetzt die zuvor
+am selben Tag festgelegte Sechser-Palette und Obergrenze. S05 verwendet stabil geordnet genau
+`#1E8449`, `#52BE80`, `#A9DFBF` und `#E8F8F0`; Gruppe 1 sowie die grün markierten
+Strukturbeispiele verwenden `#1E8449` als Basisfarbe. Weitere Gruppenfarben werden nicht
+zyklisch wiederholt.
+
+Die Gruppenerweiterung ist in Controller und Oberfläche auf vier Gruppen begrenzt. Sobald die
+vierte Gruppe vorhanden ist, wird der bisherige Plus-Button zum nicht interaktiven Hinweis
+`Max. 4 Gruppen`. Analyse, Persistenz, Export und Timing bleiben unverändert.
+`S05_CONTENT_VERSION` wird von `2.114.0` auf `2.115.0` erhöht.
+
+| Segment und Text-ID | Quelle | Aktueller Text | Geplanter Text | Primäre Rolle | Grund | Bedeutungsänderung | Interaktionsziel | Hervorhebung |
+|---|---|---|---|---|---|---|---|---|
+| `S05.structure.reflection.maxGroups` | Nutzerauftrag vom 2026-08-23 | `Max. 6 Gruppen` | `Max. 4 Gruppen` | Ergebnisfeedback / Orientierung | synchronisiert den sichtbaren Hinweis mit der ausdrücklich reduzierten Obergrenze | begrenzt | kein; ersetzt den deaktivierten Plus-Button bei vier Gruppen | keine |
+
+Geschützter Wortlaut und bestehende Sprechschritte bleiben unverändert.
+
+## Copy- und Darstellungsdelta S05 gruene Gruppenpalette und Gruppenlimit, 23. August 2026
+
+Quelle ist der ausdrückliche Nutzerauftrag vom 23. August 2026. Die bestehende Türkisblau-
+Referenz der Strukturgruppen wird durch eine feste Skala aus sechs klar unterscheidbaren
+Grüntönen ersetzt. Ihre Reihenfolge ist stabil und wird nicht zyklisch wiederholt. Gruppe 1,
+das annotierte Passwortbeispiel und dessen darüberliegende Verbindungslinien verwenden dieselbe
+grüne Basisfarbe. Ab vier Gruppen werden Gruppenbuttons und Abstände stufenweise kompakter, damit
+die vollständige Steuerung innerhalb der angenommenen Fenstergrößen bleibt.
+
+Die Gruppenerweiterung ist in Controller und Oberfläche auf sechs Gruppen begrenzt. Sobald die
+sechste Gruppe vorhanden ist, wird der bisherige Plus-Button zum nicht interaktiven Hinweis
+`Max. 6 Gruppen`. Analyse, Persistenz, Export und Timing bleiben unverändert.
+`S05_CONTENT_VERSION` wird von `2.113.0` auf `2.114.0` erhöht.
+
+| Segment und Text-ID | Quelle | Aktueller Text | Geplanter Text | Primäre Rolle | Grund | Bedeutungsänderung | Interaktionsziel | Hervorhebung |
+|---|---|---|---|---|---|---|---|---|
+| `S05.structure.reflection.maxGroups` | Nutzerauftrag vom 2026-08-23 | nicht vorhanden; Plus-Button bleibt nach weiteren Gruppen sichtbar | `Max. 6 Gruppen` | Ergebnisfeedback / Orientierung | macht die ausdrücklich vorgegebene Obergrenze direkt am bisherigen Erweiterungsziel sichtbar | begrenzt | kein; ersetzt den deaktivierten Plus-Button bei sechs Gruppen | keine |
+
+Die bestehende Darstellungspräzisierung vom 17. August 2026 zur türkisblauen ersten Gruppe ist
+durch dieses Delta ausdrücklich ersetzt. Geschützter Wortlaut und bestehende Sprechschritte
+bleiben unverändert.
+
 ## Copy- und Darstellungsdelta S05 Wortbeispiele mit Länderzuordnung, 23. August 2026
 
 Quelle ist der ausdrückliche Nutzerauftrag vom 23. August 2026. Ausschließlich die drei

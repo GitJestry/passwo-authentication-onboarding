@@ -99,34 +99,55 @@
   z-index: 8;
   top: clamp(2.25rem, 7cqb, 5rem);
   bottom: clamp(13.5rem, 25cqb, 15rem);
-  left: clamp(2rem, 7cqi, 5.5rem);
+  left: clamp(1rem, 2.5cqi, 2.5rem);
   display: grid;
-  width: min(55cqi, 48rem);
+  width: min(56cqi, 50rem);
   min-width: 0;
-  grid-template-rows: auto minmax(0, 1fr);
-  align-items: center;
-  gap: clamp(var(--space-4), 3cqb, var(--space-7));
+  align-content: center;
+  gap: clamp(var(--space-3), 2cqb, var(--space-5));
   color: #f4f4f6;
   pointer-events: none;
 }
 
+.finalPasswordVisualization {
+  display: grid;
+  width: 100%;
+  min-width: 0;
+  gap: clamp(0.5rem, 1.25cqb, 0.85rem);
+  justify-items: center;
+  container-type: inline-size;
+}
+
 .finalPasswordAccount {
   justify-self: center;
-  margin-top: clamp(var(--space-3), 3.5cqb, var(--space-7));
   color: #f4f4f6;
-  transform: translateY(8rem);
+  font-size: clamp(1.15rem, 1.8cqi, 1.55rem);
+}
+
+.finalPasswordAccount > span:first-child {
+  width: clamp(2.8rem, 4.2cqi, 3.4rem);
+  height: clamp(2.8rem, 4.2cqi, 3.4rem);
 }
 
 .finalPasswordStructure {
   display: grid;
+  width: 100%;
   min-width: 0;
   place-items: center;
+  container-type: inline-size;
 }
 
 .finalPasswordStructure .structureReflectionPassword {
+  --password-row-font-size: min(
+    1.85rem,
+    calc(90cqi / var(--password-row-unit-count))
+  );
+
   width: 100%;
-  align-items: flex-start;
-  row-gap: clamp(var(--space-3), 2.5cqb, var(--space-5));
+  max-width: 100%;
+  align-items: center;
+  flex-wrap: nowrap;
+  overflow: visible;
 }
 
 .finalPasswordStructure .structureReflectionRun {
@@ -134,87 +155,45 @@
 }
 
 .finalPasswordStructure .structureReflectionToken {
-  min-height: clamp(2.1rem, 4.4cqb, 3.2rem);
-  padding: clamp(0.3rem, 0.7cqb, 0.48rem) clamp(0.42rem, 0.8cqi, 0.72rem);
+  min-width: 0;
+  min-height: calc(var(--password-row-font-size) * 2.1);
+  padding: 0.36em 0.55em;
   background: transparent;
   box-shadow: none;
-  font-size: min(
-    clamp(1rem, 2.45cqi, 2.15rem),
-    calc(46cqi / var(--s05-final-password-character-count))
-  );
+  font-size: var(--password-row-font-size);
+  overflow-wrap: normal;
+  white-space: nowrap;
 }
 
 .finalPasswordStructure .structureReflectionToken[data-grouped="true"] {
-  border-color: #4b4b52;
+  border-color: color-mix(in srgb, var(--s05-structure-reflection-color) 82%, white);
   background: color-mix(in srgb, var(--s05-structure-reflection-color) 72%, #111113);
   box-shadow: 0 0.55rem 1.2rem rgb(0 0 0 / 32%);
 }
 
 .finalPasswordStructure .structureReflectionGap {
-  height: clamp(2.1rem, 4.4cqb, 3.2rem);
+  height: calc(var(--password-row-font-size) * 2.1);
+  align-self: center;
 }
 
-.structureReflectionFindingBlock {
-  display: inline-grid;
-  min-width: 0;
-  justify-items: center;
-  align-self: start;
+.finalPasswordStructure .structureReflectionGap:is(
+    [data-active="true"],
+    [data-preview="true"],
+    [data-separator="true"]
+  ) {
+  width: calc(var(--password-row-font-size) * 0.9);
 }
 
-.structureReflectionFindings {
-  display: grid;
-  width: 0;
-  min-width: 100%;
-  max-width: 100%;
-  gap: calc(0.2rem * var(--s05-final-password-scale, 1));
-  margin-top: calc(var(--space-2) * var(--s05-final-password-scale, 1));
-  color: #e9e9ed;
-  font-family: var(--font-family-sans);
-  font-size: calc(
-    clamp(0.5rem, 0.82cqi, 0.7rem) * var(--s05-final-password-scale, 1)
-  );
-  font-weight: var(--font-weight-bold);
-  line-height: var(--line-height-tight);
-  text-align: left;
+.finalPasswordStructure .structureReflectionArrow {
+  width: calc(var(--password-row-font-size) * 0.72);
+  height: max(0.13rem, calc(var(--password-row-font-size) * 0.075));
 }
 
-.structureReflectionFindings > span > span {
-  min-width: 0;
-  overflow-wrap: anywhere;
-}
-
-.structureReflectionFindings > span {
-  --semantic-border: #ffffff;
-
-  display: grid;
-  min-width: 0;
-  grid-template-columns:
-    calc(0.55rem * var(--s05-final-password-scale, 1))
-    minmax(0, 1fr);
-  gap: calc(var(--space-1) * var(--s05-final-password-scale, 1));
-  align-items: start;
-}
-
-.structureReflectionFindings > span[data-category="common-components"] {
-  --semantic-border: #6fa8ff;
-}
-
-.structureReflectionFindings > span[data-category="personal-details"] {
-  --semantic-border: #bd83ee;
-}
-
-.structureReflectionFindings > span[data-category="account-context"] {
-  --semantic-border: #f4cf56;
-}
-
-.structureReflectionFindings i {
-  width: calc(0.5rem * var(--s05-final-password-scale, 1));
-  height: calc(0.5rem * var(--s05-final-password-scale, 1));
-  margin-top: 0.16em;
-  border: var(--border-width-thin) solid color-mix(in srgb, var(--semantic-border) 72%, white);
-  border-radius: 50%;
-  background: var(--semantic-border);
-  box-shadow: 0 0 0.45rem color-mix(in srgb, var(--semantic-border) 42%, transparent);
+.finalPasswordStructure .structureReflectionArrow::after {
+  width: calc(var(--password-row-font-size) * 0.34);
+  height: calc(var(--password-row-font-size) * 0.34);
+  border-top-width: max(0.13rem, calc(var(--password-row-font-size) * 0.075));
+  border-right-width: max(0.13rem, calc(var(--password-row-font-size) * 0.075));
 }
 
 .passwordReuseExample {
@@ -341,10 +320,9 @@
 @container artifact-stage (max-width: 760px) {
   .finalPasswordSummary {
     top: clamp(1rem, 3cqb, 2rem);
-    right: var(--space-4);
     bottom: clamp(13rem, 25cqb, 14rem);
-    left: var(--space-4);
-    width: auto;
+    left: var(--space-3);
+    width: min(56cqi, 50rem);
     gap: var(--space-3);
   }
 
@@ -1105,9 +1083,9 @@
 }
 
 .strategyCandidateBlock[data-origin="0"] {
-  --building-block-border: #55b6ac;
-  --building-block-ink: #d8fff9;
-  --building-block-surface: #123d40;
+  --building-block-border: color-mix(in srgb, var(--color-positive) 82%, white);
+  --building-block-ink: #e4fff0;
+  --building-block-surface: color-mix(in srgb, var(--color-positive) 70%, #111113);
 }
 
 .strategyCandidateBlock[data-origin="1"] {
@@ -1379,11 +1357,14 @@
 
 .structureExampleRows {
   display: grid;
+  grid-template-rows: repeat(3, clamp(2.4rem, 5cqb, 3rem));
   gap: clamp(var(--space-4), 3.6cqb, var(--space-7));
+  container-type: inline-size;
 }
 
 .structureExampleRow {
   min-width: 0;
+  align-self: start;
 }
 
 .structureExampleRow[data-pattern="repetition"] {
@@ -1420,10 +1401,10 @@
   padding:
     calc(clamp(0.28rem, 1.25cqi, 0.55rem) * var(--s05-password-visual-scale))
     calc(clamp(0.45rem, 2.2cqi, 0.85rem) * var(--s05-password-visual-scale));
-  border: var(--border-width-medium) solid #55b6ac;
+  border: var(--border-width-medium) solid #5a5a62;
   border-radius: 0.35rem;
-  color: #d8fff9;
-  background: #123d40;
+  color: #ededf0;
+  background: #2b2b30;
   box-shadow: 0 0.35rem 0.85rem rgb(0 0 0 / 22%);
   font-family: ui-monospace, monospace;
   font-size: min(
@@ -1435,36 +1416,12 @@
   text-align: center;
 }
 
-.structureExampleBlocks [data-block-index="1"] {
-  border-color: #7aa7e5;
-  color: #e3efff;
-  background: #173456;
-}
-
-.structureExampleBlocks [data-block-index="2"] {
-  border-color: #b68cde;
-  color: #f2e7ff;
-  background: #432661;
-}
-
-.structureExampleBlocks [data-block-index="3"] {
-  border-color: #e29b73;
-  color: #fff0e8;
-  background: #61341f;
-}
-
-.structureExampleBlocks [data-block-index="4"] {
-  border-color: #d8bc67;
-  color: #fff7d9;
-  background: #554514;
-}
-
 .structureExampleRow[data-pattern="theme"]
   .structureConnectionGroup
   > [data-block-index] {
-  border-color: #55b6ac;
-  color: #d8fff9;
-  background: #123d40;
+  border-color: color-mix(in srgb, #1E8449 82%, white);
+  color: #e4fff0;
+  background: color-mix(in srgb, #1E8449 70%, #111113);
 }
 
 .structureExampleRow[data-pattern="theme"]
@@ -1482,6 +1439,7 @@
 }
 
 .structureExampleRow[data-pattern="repetition"] .structureExampleBlocks {
+  flex-wrap: nowrap;
   gap: clamp(0.65rem, 1.2cqi, 0.9rem);
 }
 
@@ -1507,6 +1465,48 @@
   white-space: nowrap;
 }
 
+@container (max-width: 20rem) {
+  .structureExampleRow[data-pattern="repetition"] {
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+
+  .structureExampleBlocks [data-block-index] {
+    min-width: 0;
+    padding:
+      calc(min(0.24rem, 2cqi) * var(--s05-password-visual-scale))
+      calc(min(0.32rem, 2.5cqi) * var(--s05-password-visual-scale));
+    font-size: min(
+      calc(0.9rem * var(--s05-password-visual-scale)),
+      calc(115cqi / var(--s05-password-visual-character-count))
+    );
+    overflow-wrap: normal;
+    white-space: nowrap;
+  }
+
+  .structureExampleRow[data-pattern="sentence"]
+    .structureReflectionGap:is([data-active="true"], [data-preview="true"]) {
+    width: clamp(0.45rem, 5cqi, 0.8rem);
+  }
+
+  .structureExampleRow[data-pattern="sentence"] .structureReflectionArrow {
+    width: clamp(0.35rem, 3.5cqi, 0.6rem);
+    height: 0.1rem;
+  }
+
+  .structureExampleRow[data-pattern="sentence"] .structureReflectionArrow::after {
+    width: 0.32rem;
+    height: 0.32rem;
+    border-top-width: 0.1rem;
+    border-right-width: 0.1rem;
+  }
+
+  .structureRepetitionMultiplier {
+    width: clamp(1.65rem, 12cqi, 2.4rem);
+    min-height: clamp(1.8rem, 14cqi, 2.4rem);
+    font-size: clamp(0.85rem, 8cqi, 1.2rem);
+  }
+}
+
 .structureConnectionGroup {
   --structure-connection-gap: clamp(0.2rem, 0.42cqi, var(--space-2));
 
@@ -1521,7 +1521,7 @@
   left: 50%;
   width: var(--border-width-thin);
   height: 0.55rem;
-  background: color-mix(in srgb, var(--color-accent) 72%, transparent);
+  background: color-mix(in srgb, #1E8449 82%, transparent);
   content: '';
   pointer-events: none;
   transform: translateX(-50%);
@@ -1534,7 +1534,7 @@
   left: 0;
   width: calc(100% + var(--structure-connection-gap));
   height: var(--border-width-thin);
-  background: color-mix(in srgb, var(--color-accent) 72%, transparent);
+  background: color-mix(in srgb, #1E8449 82%, transparent);
   content: '';
   pointer-events: none;
 }
@@ -1678,9 +1678,13 @@
 }
 
 .structureReflectionToken[data-grouped="true"] {
-  border-color: #4b4b52;
+  border-color: color-mix(in srgb, var(--s05-structure-reflection-color) 82%, white);
   background: color-mix(in srgb, var(--s05-structure-reflection-color) 72%, #111113);
   box-shadow: 0 0.55rem 1.2rem rgb(0 0 0 / 32%);
+}
+
+.structureReflectionToken[data-grouped="true"]:not(:disabled):hover {
+  border-color: color-mix(in srgb, var(--s05-structure-reflection-color) 82%, white);
 }
 
 .structureReflectionToken[data-repetition-full="true"] {
@@ -1810,7 +1814,7 @@
 }
 
 .structureReflectionGroup {
-  --s05-structure-reflection-color: #5b5fef;
+  --s05-structure-reflection-color: var(--color-positive);
 
   width: 100%;
   min-height: 2.75rem;
@@ -1917,6 +1921,42 @@
   color: #57575e;
   background: #101012;
   cursor: default;
+}
+
+.structureReflectionAdd[data-limit-reached="true"] {
+  width: 7.5rem;
+  min-height: 2.25rem;
+  height: auto;
+  padding: 0.35rem 0.6rem;
+  border-color: color-mix(in srgb, var(--color-positive) 58%, #55555e);
+  border-radius: 0.65rem;
+  color: #e4f4eb;
+  background: color-mix(in srgb, var(--color-positive) 22%, #171719);
+  font-size: 0.72rem;
+  font-weight: var(--font-weight-bold);
+  line-height: var(--line-height-tight);
+}
+
+.structureReflectionGroups[data-group-count="4"] {
+  min-width: 6.75rem;
+  flex-basis: 6.75rem;
+  gap: clamp(0.22rem, 0.55cqb, 0.4rem);
+}
+
+.structureReflectionGroups[data-group-count="4"] .structureReflectionGroupEntry {
+  width: 6.75rem;
+}
+
+.structureReflectionGroups[data-group-count="4"] .structureReflectionGroup {
+  min-height: 2.1rem;
+  padding: 0.25rem 0.55rem;
+  font-size: 0.78rem;
+}
+
+.structureReflectionGroups[data-group-count="4"]
+  .structureReflectionAdd:not([data-limit-reached="true"]) {
+  width: 2.1rem;
+  height: 2.1rem;
 }
 
 .structureReflectionFinish {
@@ -4560,145 +4600,6 @@
   margin: 0 auto;
 }
 
-.componentReviewCard {
-  position: relative;
-  z-index: 3;
-  grid-column: 1;
-  grid-row: 1;
-  align-self: center;
-  display: grid;
-  width: 100%;
-  min-height: calc(var(--artifact-unit, 1rem) * 19);
-  max-height: min(calc(var(--artifact-unit, 1rem) * 28), calc(100% - var(--space-4)));
-  align-content: start;
-  gap: var(--space-3);
-  min-width: 0;
-  padding: var(--space-4);
-  border: var(--border-width-medium) solid
-    color-mix(in srgb, var(--color-accent) 62%, var(--color-border));
-  border-radius: var(--radius-medium);
-  color: var(--color-ink-strong);
-  background: color-mix(in srgb, var(--color-surface-primary) 90%, transparent);
-  box-shadow:
-    0 1.2rem 2.8rem rgb(0 0 0 / 24%),
-    inset 0.18rem 0 0 color-mix(in srgb, var(--color-accent) 72%, transparent);
-  overflow: auto;
-  transform: none;
-}
-
-.componentReviewCard > h2 {
-  margin: 0;
-  font-size: clamp(
-    calc(var(--artifact-unit, 1rem) * 1.15),
-    1.8cqi,
-    calc(var(--artifact-unit, 1rem) * 1.45)
-  );
-  text-align: center;
-}
-
-.componentReviewEntries {
-  display: grid;
-  gap: var(--space-4);
-}
-
-.componentReviewEntries article {
-  display: grid;
-  gap: var(--space-2);
-  padding-top: var(--space-3);
-  border-top: var(--border-width-thin) solid var(--color-border);
-}
-
-.componentReviewEntries article[data-category="common-components"] {
-  border-color: #6fa8ff;
-}
-
-.componentReviewEntries article[data-category="personal-details"] {
-  border-color: #bd83ee;
-}
-
-.componentReviewEntries article[data-category="account-context"] {
-  border-color: #f4cf56;
-}
-
-.componentReviewHeading {
-  display: grid;
-  grid-template-columns: 3.8rem minmax(0, 1fr);
-  gap: var(--space-2);
-  align-items: center;
-}
-
-.componentReviewHeading img {
-  width: 3.8rem;
-  height: 3.8rem;
-  object-fit: contain;
-}
-
-.componentReviewHeading h3 {
-  margin: 0;
-  color: inherit;
-  font-size: var(--font-size-small);
-  line-height: var(--line-height-tight);
-}
-
-.componentReviewCard [data-display="decomposed"] {
-  width: 100%;
-  justify-content: start;
-  justify-items: start;
-}
-
-.componentReviewCard [data-display="continuous"] {
-  width: 100%;
-  gap: var(--space-2);
-  justify-items: start;
-}
-
-.componentReviewCard [data-display="continuous"] > code {
-  display: flex;
-  width: 100%;
-  flex-wrap: wrap;
-  gap: calc(0.2rem * var(--s05-password-visual-scale));
-  justify-content: flex-start;
-  padding: 0;
-  border: 0;
-  border-radius: 0;
-  background: transparent;
-  box-shadow: none;
-  font-size: calc(clamp(0.7rem, 0.9cqi, 0.88rem) * var(--s05-password-visual-scale));
-  line-height: 1.75;
-  text-align: start;
-}
-
-.componentReviewCard [data-display="decomposed"] > code {
-  display: flex;
-  width: 100%;
-  max-width: 100%;
-  gap: calc(0.2rem * var(--s05-password-visual-scale));
-  flex-wrap: wrap;
-  justify-content: flex-start;
-  font-size: calc(clamp(0.72rem, 1cqi, 0.92rem) * var(--s05-password-visual-scale));
-}
-
-.componentReviewCard [data-display="decomposed"] > code > span {
-  max-width: 100%;
-  flex: 0 0 auto;
-  grid-template-rows: auto;
-}
-
-.componentReviewCard [data-display="decomposed"] b {
-  min-height: calc(1.75rem * var(--s05-password-visual-scale));
-  padding:
-    calc(0.2rem * var(--s05-password-visual-scale))
-    calc(0.42rem * var(--s05-password-visual-scale));
-  border-width: var(--border-width-thin);
-  border-radius: 0.3rem;
-  box-shadow: 0 0.35rem 0.65rem color-mix(in srgb, var(--building-block-border) 15%, transparent);
-  font-size: min(
-    calc(clamp(0.7rem, 0.9cqi, 0.88rem) * var(--s05-password-visual-scale)),
-    calc(180cqi / var(--s05-password-visual-character-count))
-  );
-  line-height: 1.1;
-}
-
 .structureReviewCard {
   border-color: color-mix(in srgb, var(--color-warning) 58%, var(--color-border));
   box-shadow:
@@ -4744,12 +4645,6 @@
 .structureReviewEntries h3 {
   margin: 0;
   color: var(--color-ink-strong);
-  font-size: var(--font-size-small);
-  line-height: var(--line-height-tight);
-}
-
-.nothingFound {
-  color: var(--color-ink-muted);
   font-size: var(--font-size-small);
   line-height: var(--line-height-tight);
 }
@@ -5377,30 +5272,6 @@
     minmax(0, 1fr);
 }
 
-:global([data-artifact-layout="compact"]) .componentReviewCard {
-  align-self: start;
-  gap: var(--space-2);
-  padding: var(--space-3);
-}
-
-:global([data-artifact-layout="compact"]) .componentReviewEntries {
-  gap: var(--space-2);
-}
-
-:global([data-artifact-layout="compact"]) .componentReviewEntries article {
-  gap: var(--space-1);
-  padding-top: var(--space-2);
-}
-
-:global([data-artifact-layout="compact"]) .componentReviewHeading {
-  grid-template-columns: 2.75rem minmax(0, 1fr);
-}
-
-:global([data-artifact-layout="compact"]) .componentReviewHeading img {
-  width: 2.75rem;
-  height: 2.75rem;
-}
-
 @container artifact-stage (max-width: 760px) {
   .controls {
     align-items: flex-start;
@@ -5430,16 +5301,6 @@
 
   .componentReviewLayout[data-review-visible="true"] .componentStrategyLayout {
     grid-column: 1;
-  }
-
-  .componentReviewCard {
-    position: static;
-    grid-column: 1;
-    grid-row: auto;
-    width: 100%;
-    min-height: 12rem;
-    max-height: none;
-    transform: none;
   }
 
   .componentStrategyWorkspace {
@@ -5599,16 +5460,6 @@
     grid-row: 1;
   }
 
-  .componentReviewCard {
-    position: relative;
-    grid-column: 1;
-    grid-row: 1;
-    min-height: calc(var(--artifact-unit, 1rem) * 19);
-    max-height: min(
-      calc(var(--artifact-unit, 1rem) * 28),
-      calc(100% - var(--space-4))
-    );
-  }
 }
 
 @media (prefers-reduced-motion: reduce) {

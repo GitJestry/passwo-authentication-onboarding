@@ -13,6 +13,10 @@ interface PasswordVisualStyle extends CSSProperties {
   readonly '--s05-password-visual-character-count': string;
 }
 
+interface PasswordSingleLineVisualStyle extends PasswordVisualStyle {
+  readonly '--password-row-unit-count': string;
+}
+
 export function passwordVisualStyleFor(
   value: string,
   fixedScale?: number,
@@ -27,6 +31,22 @@ export function passwordVisualStyleFor(
   return {
     '--s05-password-visual-scale': String(scale),
     '--s05-password-visual-character-count': String(fixedScale === undefined ? characterCount : 1),
+  };
+}
+
+export function passwordSingleLineVisualStyleFor(
+  value: string,
+  blockCount: number,
+): PasswordSingleLineVisualStyle {
+  const characterCount = Math.max([...value].length, 1);
+  const boundedBlockCount = Math.max(blockCount, 1);
+  const visualUnitCount =
+    characterCount * 0.64 +
+    boundedBlockCount * 1.4 +
+    Math.max(boundedBlockCount - 1, 0) * 1.15;
+  return {
+    ...passwordVisualStyleFor(value),
+    '--password-row-unit-count': String(visualUnitCount),
   };
 }
 

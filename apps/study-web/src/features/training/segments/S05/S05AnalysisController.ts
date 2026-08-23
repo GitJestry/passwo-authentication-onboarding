@@ -925,7 +925,12 @@ export class S05AnalysisController {
       return false;
     }
     const reflection = snapshot.structureReflection;
-    if (reflection.contentGroups.some(({ blockIds }) => blockIds.length === 0)) return false;
+    if (
+      reflection.contentGroups.length >= s05Content.structure.reflection.maxGroupCount ||
+      reflection.contentGroups.some(({ blockIds }) => blockIds.length === 0)
+    ) {
+      return false;
+    }
     const nextIndex =
       reflection.contentGroups.reduce((maximum, { id }) => {
         const match = /content-group-(\d+)/u.exec(id);

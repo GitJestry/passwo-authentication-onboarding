@@ -80,6 +80,20 @@ export interface S05CanonicalPasswordView {
   readonly typicalChanges: readonly S05TypicalChange[];
 }
 
+export function categoryFindingValues(
+  view: S05CanonicalPasswordView,
+  findings: readonly S05CategoryFinding[],
+): readonly string[] {
+  const positionedValues = findings
+    .map((finding) => ({
+      start: finding.start,
+      end: finding.end,
+      value: view.password.slice(finding.start, finding.end),
+    }))
+    .sort((left, right) => left.start - right.start || left.end - right.end);
+  return [...new Map(positionedValues.map((item) => [item.value, item.value] as const)).values()];
+}
+
 export interface S05RepetitionGroup {
   readonly id: string;
   readonly spans: readonly { readonly start: number; readonly end: number }[];

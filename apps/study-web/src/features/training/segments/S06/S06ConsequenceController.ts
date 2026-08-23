@@ -36,12 +36,13 @@ import {
 } from '@passwo/visualization';
 import type { NetworkPresentationSnapshot } from '../../../../adapters/network/NetworkMotionAdapter.js';
 import {
+  categoryFindingValues,
   createCanonicalPasswordView,
   createPersonalFindings,
   isS05CharacterBoundary,
   projectCanonicalPasswordBlocks,
+  type S05ComponentCategoryId,
   type S05PersonalCandidate,
-  type S05VisualCategoryId,
 } from '../S05/S05ComponentStrategy.js';
 import {
   alignNetworkSceneToS02,
@@ -64,8 +65,6 @@ export interface S06LocalReflectionBlock {
   readonly start: number;
   readonly end: number;
   readonly value: string;
-  readonly categoryIds: readonly S05VisualCategoryId[];
-  readonly findings: readonly { readonly categoryId: S05VisualCategoryId; readonly label: string }[];
   readonly repeated: boolean;
   readonly repetitionCount: number | null;
 }
@@ -88,6 +87,7 @@ export interface S06LocalReflectionSnapshot {
   readonly activeContentGroupId: string;
   readonly structureLinks: readonly S06LocalReflectionStructureLink[];
   readonly personalCandidates: readonly S05PersonalCandidate[];
+  readonly findingValues: Readonly<Record<S05ComponentCategoryId, readonly string[]>>;
 }
 
 export interface S06ConsequenceControllerSnapshot {
@@ -822,7 +822,6 @@ function createLocalReflection(
   const automaticFindings = [
     ...canonicalView.automaticFindings['common-components'],
     ...canonicalView.automaticFindings['account-context'],
-    ...personalFindings,
   ];
   const structureAnalysis = analyzeFictionalPasswordStructure({
     fictionalPassword: account.fictionalPassword,
@@ -857,8 +856,6 @@ function createLocalReflection(
         start: block.start,
         end: block.end,
         value: block.value,
-        categoryIds: block.categoryIds,
-        findings: block.findings,
         repeated,
         repetitionCount,
       };
@@ -874,6 +871,17 @@ function createLocalReflection(
     activeContentGroupId: 'content-group-1',
     structureLinks: [],
     personalCandidates: resolvedPersonalCandidates,
+    findingValues: {
+      'common-components': categoryFindingValues(
+        canonicalView,
+        canonicalView.automaticFindings['common-components'],
+      ),
+      'personal-details': categoryFindingValues(canonicalView, personalFindings),
+      'account-context': categoryFindingValues(
+        canonicalView,
+        canonicalView.automaticFindings['account-context'],
+      ),
+    },
   };
 }
 
@@ -1241,7 +1249,10 @@ export class S06ConsequenceController {
   addLocalReflectionGroup(): void {
     const reflection = this.#snapshot.localReflection;
     if (this.#disposed || this.#snapshot.stage !== 'local-reflection' || reflection === null) return;
-    const canAdd = reflection.contentGroups.every(({ blockIds }) => blockIds.length > 0);
+    const canAdd =
+      reflection.contentGroups.length <
+        s06ConsequenceContent.page.localReflection.maxGroupCount &&
+      reflection.contentGroups.every(({ blockIds }) => blockIds.length > 0);
     if (!canAdd) return;
     const nextIndex =
       Math.max(

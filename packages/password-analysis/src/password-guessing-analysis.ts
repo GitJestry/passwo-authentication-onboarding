@@ -19,7 +19,7 @@ import {
   originalSpanForNormalizedRange,
 } from './case-insensitive-spans.js';
 
-export const PASSWORD_ANALYSIS_CONFIGURATION_VERSION = 'passwo-bounded-whole-recognition-v16';
+export const PASSWORD_ANALYSIS_CONFIGURATION_VERSION = 'passwo-bounded-whole-recognition-v17';
 
 export interface FictionalPasswordAnalysisInput {
   readonly fictionalPassword: string;
@@ -259,50 +259,48 @@ const curatedShortAbbreviationTokens = new Set([
   'wlan',
 ]);
 
-const curatedGermanShortWordTokens = new Set([
-  'am',
-  'an',
-  'auf',
-  'aus',
-  'bei',
-  'bin',
-  'bis',
-  'da',
-  'das',
-  'dem',
-  'den',
-  'der',
-  'des',
-  'die',
-  'dir',
-  'du',
-  'ein',
-  'eis',
-  'er',
-  'es',
-  'für',
-  'hat',
-  'ich',
-  'ihr',
-  'im',
-  'in',
-  'ist',
-  'mit',
-  'nur',
-  'ob',
-  'öl',
-  'po',
-  'sie',
-  'tot',
-  'und',
-  'vom',
-  'von',
-  'vor',
-  'wir',
-  'wo',
-  'zum',
-  'zur',
+// These are confirmed source-corpus artefacts rather than ordinary German or English words. The
+// set is a denylist discovered by auditing the frozen zxcvbn corpora; it does not replace the broad
+// source dictionaries with a small positive allowlist.
+const auditedCommonWordCorpusArtifacts = new Set([
+  'aii',
+  'chte',
+  'fãœr',
+  'hlen',
+  'ndert',
+  'stiii',
+  'tte',
+  'ttest',
+  'unh',
 ]);
+
+interface OrdinaryWordRankLimits {
+  readonly twoCodePoints: number;
+  readonly threeCodePoints: number;
+  readonly fourCodePoints: number;
+  readonly fiveCodePoints: number;
+  readonly longer: number;
+}
+
+// The zxcvbn common-word corpora are frequency ordered but their low-frequency tails contain
+// subtitle fragments, mojibake, names, and corpus labels. These frozen ceilings retain broad
+// everyday vocabulary while refusing to treat every corpus entry as a learner-facing word.
+const ordinaryWordRankLimits: Readonly<Record<SupplementalLanguage, OrdinaryWordRankLimits>> = {
+  de: {
+    twoCodePoints: 8_000,
+    threeCodePoints: 5_000,
+    fourCodePoints: 10_000,
+    fiveCodePoints: 15_000,
+    longer: 22_000,
+  },
+  en: {
+    twoCodePoints: 8_000,
+    threeCodePoints: 8_000,
+    fourCodePoints: 15_000,
+    fiveCodePoints: 20_000,
+    longer: 40_000,
+  },
+};
 
 const curatedGermanCompoundTokens = new Set([
   'benutzerkonto',
@@ -311,6 +309,86 @@ const curatedGermanCompoundTokens = new Set([
   'onlinekonto',
   'passwortsicherheit',
 ]);
+
+function normalizedOrdinaryWordToken(
+  value: string,
+  language: SupplementalLanguage,
+): string {
+  return value
+    .normalize('NFC')
+    .toLocaleLowerCase(language === 'de' ? 'de-DE' : 'en-US');
+}
+
+function ordinaryWordRankLimit(
+  language: SupplementalLanguage,
+  codePointLength: number,
+): number {
+  const limits = ordinaryWordRankLimits[language];
+  if (codePointLength === 2) return limits.twoCodePoints;
+  if (codePointLength === 3) return limits.threeCodePoints;
+  if (codePointLength === 4) return limits.fourCodePoints;
+  if (codePointLength === 5) return limits.fiveCodePoints;
+  return limits.longer;
+}
+
+function isOrthographicallyPlausibleOrdinaryWord(
+  token: string,
+  language: SupplementalLanguage,
+): boolean {
+  const allowedLetters = language === 'de' ? /^[a-zäöüß]+$/u : /^[a-z]+$/u;
+  const vowel = language === 'de' ? /[aeiouyäöü]/u : /[aeiouy]/u;
+  return (
+    allowedLetters.test(token) &&
+    vowel.test(token) &&
+    !auditedCommonWordCorpusArtifacts.has(token)
+  );
+}
+
+function collectRankedCommonWordTokens(
+  dictionary: Dictionary,
+  language: SupplementalLanguage,
+): ReadonlySet<string> {
+  const dictionaryName = `commonWords-${language}`;
+  const values = dictionary[dictionaryName] ?? [];
+  const tokens = new Set<string>();
+  for (const [index, value] of values.entries()) {
+    if (typeof value !== 'string') continue;
+    const normalized = normalizedOrdinaryWordToken(value, language);
+    const codePointLength = [...normalized].length;
+    if (codePointLength < 2) continue;
+    if (!isOrthographicallyPlausibleOrdinaryWord(normalized, language)) continue;
+    if (index + 1 > ordinaryWordRankLimit(language, codePointLength)) continue;
+    tokens.add(normalized);
+  }
+  return tokens;
+}
+
+function collectStructuredVocabularyTokens(
+  dictionary: Dictionary,
+  language: SupplementalLanguage,
+): ReadonlySet<string> {
+  const tokens = new Set<string>();
+  for (const [dictionaryName, values] of Object.entries(dictionary)) {
+    const normalizedDictionaryName = dictionaryName.toLocaleLowerCase('en-US');
+    if (
+      normalizedDictionaryName.includes('commonwords') ||
+      normalizedDictionaryName.includes('wikipedia') ||
+      normalizedDictionaryName.includes('firstname') ||
+      normalizedDictionaryName.includes('lastname')
+    ) {
+      continue;
+    }
+    for (const value of values) {
+      if (typeof value !== 'string') continue;
+      const normalized = normalizedOrdinaryWordToken(value, language);
+      if ([...normalized].length < 2) continue;
+      if (isOrthographicallyPlausibleOrdinaryWord(normalized, language)) {
+        tokens.add(normalized);
+      }
+    }
+  }
+  return tokens;
+}
 
 function collectAlphabeticDictionaryTokens(
   dictionary: Dictionary,
@@ -341,26 +419,35 @@ const supplementalPasswordTokens = collectAlphabeticDictionaryTokens(
 
 const supplementalWordsByLanguage: Readonly<Record<SupplementalLanguage, ReadonlySet<string>>> = {
   de: new Set([
-    ...collectAlphabeticDictionaryTokens(
-      zxcvbnDePackage.dictionary,
-      (dictionaryName) =>
-        !dictionaryName.includes('firstname') && !dictionaryName.includes('lastname'),
-      2,
-    ),
+    ...collectRankedCommonWordTokens(zxcvbnDePackage.dictionary, 'de'),
+    ...collectStructuredVocabularyTokens(zxcvbnDePackage.dictionary, 'de'),
     ...curatedShortAbbreviationTokens,
-    ...curatedGermanShortWordTokens,
     ...curatedGermanCompoundTokens,
   ]),
   en: new Set([
-    ...collectAlphabeticDictionaryTokens(
-      zxcvbnEnPackage.dictionary,
-      (dictionaryName) =>
-        !dictionaryName.includes('firstname') && !dictionaryName.includes('lastname'),
-      2,
-    ),
+    ...collectRankedCommonWordTokens(zxcvbnEnPackage.dictionary, 'en'),
+    ...collectStructuredVocabularyTokens(zxcvbnEnPackage.dictionary, 'en'),
     ...curatedShortAbbreviationTokens,
   ]),
 };
+
+const approvedOrdinaryWordTokens = new Set([
+  ...supplementalWordsByLanguage.de,
+  ...supplementalWordsByLanguage.en,
+]);
+
+function isApprovedDictionaryMatch(match: ZxcvbnMatch): boolean {
+  if (match.pattern !== 'dictionary' || dictionaryFindingKind(match) !== 'common-word') {
+    return true;
+  }
+  const matchedWord = stringProperty(match, 'matchedWord') ?? match.token;
+  const normalizedGerman = normalizedOrdinaryWordToken(matchedWord, 'de');
+  const normalizedEnglish = normalizedOrdinaryWordToken(matchedWord, 'en');
+  return (
+    approvedOrdinaryWordTokens.has(normalizedGerman) ||
+    approvedOrdinaryWordTokens.has(normalizedEnglish)
+  );
+}
 
 const deterministicKeyboardRows = [
   '1234567890',
@@ -989,6 +1076,7 @@ function findingsFromGuessPath(
     const end = offset + match.j + 1;
     switch (match.pattern) {
       case 'dictionary': {
+        if (!isApprovedDictionaryMatch(match)) break;
         findings.push(
           finding(
             input,

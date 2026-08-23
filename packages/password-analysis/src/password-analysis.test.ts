@@ -710,7 +710,7 @@ describe('local fictional password analysis', () => {
       expect(expectedKinds.some((expectedKind) => actualKinds.includes(expectedKind))).toBe(true);
       expect(result.guessPath).toMatchObject({
         engineId: 'zxcvbn-ts',
-        configurationVersion: 'passwo-bounded-whole-recognition-v16',
+        configurationVersion: 'passwo-bounded-whole-recognition-v17',
       });
       for (const finding of result.findings) {
         expect(finding.id).toMatch(/^single:/u);
@@ -736,10 +736,28 @@ describe('local fictional password analysis', () => {
     expect(disposition).toEqual({
       kind: 'no-whole-password-recognized',
       lengthOrientation: 'at-least-15',
-      analysisVersion: 'passwo-bounded-whole-recognition-v16',
+      analysisVersion: 'passwo-bounded-whole-recognition-v17',
       explanationId: 's05.disposition.no-whole-password-recognized',
     });
   });
+
+  it.each(['rQ7mL2vX9pK4', 'rQ7!m2vX9?pK'] as const)(
+    'does not project short alphabetic runs from the authored random example %s as dictionary findings',
+    (fictionalPassword) => {
+      const result = analyzeFictionalPassword({ fictionalPassword });
+      const dictionaryTokens = result.findings.flatMap((finding) =>
+        finding.kind === 'common-password-core' ||
+        finding.kind === 'common-word' ||
+        finding.kind === 'common-name'
+          ? finding.evidence.flatMap((evidence) =>
+              evidence.type === 'span' ? [evidence.token] : [],
+            )
+          : [],
+      );
+
+      expect(dictionaryTokens).toEqual([]);
+    },
+  );
 
   it.each([
     ['passwort', []],
@@ -763,7 +781,7 @@ describe('local fictional password analysis', () => {
 
       expect(disposition).toMatchObject({
         kind: 'whole-password-recognized',
-        analysisVersion: 'passwo-bounded-whole-recognition-v16',
+        analysisVersion: 'passwo-bounded-whole-recognition-v17',
       });
     },
   );
@@ -1165,6 +1183,70 @@ describe('local fictional password analysis', () => {
       );
 
       expect(tokens).toContain(fictionalPassword.toLocaleLowerCase('de-DE'));
+    },
+  );
+
+  it.each([
+    ['es', ['es']],
+    ['in', ['in']],
+    ['ich', ['ich']],
+    ['du', ['du']],
+    ['bis', ['bis']],
+    ['zum', ['zum']],
+    ['öl', ['öl']],
+    ['po', ['po']],
+    ['the', ['the']],
+    ['and', ['and']],
+    ['you', ['you']],
+    ['for', ['for']],
+    ['may', ['may']],
+    ['sind', ['sind']],
+  ] as const)(
+    'keeps the intended exact lexical candidate for %s without selecting a shorter inner word',
+    (fictionalPassword, expectedTokens) => {
+      const result = analyzeFictionalPassword({ fictionalPassword });
+      const dictionaryTokens = result.findings.flatMap((finding) =>
+        finding.kind === 'common-password-core' ||
+        finding.kind === 'common-word' ||
+        finding.kind === 'common-name'
+          ? finding.evidence.flatMap((evidence) =>
+              evidence.type === 'span'
+                ? [evidence.token.toLocaleLowerCase('de-DE')]
+                : [],
+            )
+          : [],
+      );
+
+      expect(dictionaryTokens).toEqual(expectedTokens);
+    },
+  );
+
+  it.each([
+    'ml',
+    'vx',
+    'pk',
+    'tte',
+    'lch',
+    'aii',
+    'unh',
+    'chte',
+    'fãœr',
+    'chffffff',
+    'cctv',
+    'stiii',
+  ] as const)(
+    'does not project the audited corpus artefact %s as an ordinary word',
+    (fictionalPassword) => {
+      const result = analyzeFictionalPassword({ fictionalPassword });
+      const ordinaryWordTokens = result.findings.flatMap((finding) =>
+        finding.kind === 'common-word'
+          ? finding.evidence.flatMap((evidence) =>
+              evidence.type === 'span' ? [evidence.token] : [],
+            )
+          : [],
+      );
+
+      expect(ordinaryWordTokens).toEqual([]);
     },
   );
 

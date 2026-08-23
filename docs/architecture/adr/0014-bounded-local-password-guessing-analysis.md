@@ -2,7 +2,7 @@
 
 - **Status:** Accepted
 - **Datum:** 2026-08-03
-- **Geändert am:** 2026-08-22: vollständiges Durchprobieren als letzter begrenzter Fundweg
+- **Geändert am:** 2026-08-23: Wortkorpora über alle Wortlängen konservativ bereinigt; zuvor 2026-08-22 vollständiges Durchprobieren als letzter begrenzter Fundweg
 - **Citation label:** `ADR 0014-Bounded-Password-Guessing`
 - **Ergänzt:** ADR 0002, ADR 0003 und ADR 0007
 
@@ -36,7 +36,7 @@ NIST-Konformitätsimplementierung.
 ## Entscheidung
 
 `@passwo/password-analysis` bleibt vollständig lokal, deterministisch und frameworkfrei. Die
-Analysekonfiguration erhält die Version `passwo-bounded-whole-recognition-v16`.
+Analysekonfiguration erhält die Version `passwo-bounded-whole-recognition-v17`.
 
 Die interne Verarbeitung trennt drei Ebenen:
 
@@ -96,19 +96,31 @@ unterstützten Grenzen liegen. Dadurch bleibt ein vollständiger Anker wie `IchB
 die Partition `Ist|Rot` nicht zu `Is|tRot` verschoben werden kann.
 
 Die vollständige Zerlegung wird je Lauf getrennt für Deutsch und Englisch berechnet. Wörter aus
-beiden Sprachen werden nicht frei zu einer künstlichen Mischpartition kombiniert. Kurze
-Funktionswörter und Kontextkürzel wie `ich`, `bis`, `zum` oder `uni` sind nur zulässig, wenn sie
-ein vollständiges sichtbares Segment oder einen Teil einer lückenlosen sprachgebundenen Partition
-bilden. Namenslisten werden nicht zur freien inneren Zerlegung verwendet. Ein Name bleibt nur als
-vollständiges sichtbares Segment oder als authored flüchtiger Kontext verfügbar. Dadurch kann
-`ZumMo` nicht als Name aus `ZumMond` ausgeschnitten werden.
+beiden Sprachen werden nicht frei zu einer künstlichen Mischpartition kombiniert. Die
+Wortkandidaten stammen weiterhin breit aus den eingefrorenen, nach Häufigkeit geordneten deutschen
+und englischen zxcvbn-Korpora. PassWo übernimmt diese Korpora jedoch bei keiner Wortlänge
+ungeprüft: Zulässig sind nur sprachtypische Buchstabenfolgen mit mindestens einem Vokal innerhalb
+fester längenabhängiger Ranggrenzen. Explizite Namenslisten und die wesentlich unruhigeren
+Wikipedia-Korpora werden nicht zur freien Wortpartition herangezogen. Zusätzlich werden im
+Korpusaudit bestätigte Fragmente und Kodierungsartefakte ausgeschlossen. Dieselbe Prüfung gilt für
+einen von zxcvbn direkt gemeldeten gewöhnlichen Worttreffer. Dadurch werden weder die kurzen
+Kandidaten künstlich auf eine minimale Positivliste reduziert noch längere Korpusartefakte allein
+wegen ihres Vorkommens als Wort angezeigt.
+
+Kurze Funktionswörter und Kontextkürzel wie `es`, `in`, `ich`, `bis`, `zum`, `the`, `po`, `öl`
+oder `uni` bleiben damit verfügbar. Zwei- und dreibuchstabige Wörter dürfen jedoch nur ein
+vollständiges sichtbares Segment oder einen Teil einer lückenlosen sprachgebundenen Partition
+bilden; freie innere Kurzworttreffer bleiben ausgeschlossen. Namenslisten werden nicht zur freien
+inneren Zerlegung verwendet. Ein Name bleibt nur als vollständiges sichtbares Segment oder als
+authored flüchtiger Kontext verfügbar. Dadurch kann `ZumMo` nicht als Name aus `ZumMond`
+ausgeschnitten werden und zufällige Korpusfragmente wie `ml`, `vx`, `pk` oder `tte` werden nicht
+als Wortbestandteil projiziert.
 
 Eine kleine eingefrorene Menge gebräuchlicher Abkürzungen wie `LKW`, `DVD`, `DHL`, `LOL`, `USB`
 oder `WLAN` wird ausschließlich exakt und ohne Edit-Distance beziehungsweise Leetspeak erkannt.
-Dasselbe gilt für zwei- und dreibuchstabige Wörter: Sie dürfen eine vollständige Partition
-stützen, aber keine freien inneren Teiltreffer erzeugen. Ein isolierter zxcvbn-Kurzworttreffer wird
-deshalb nur direkt übernommen, wenn beide Enden auf sichtbaren Grenzen liegen; eine vollständige
-kleingeschriebene Partition kann kurze Wörter weiterhin intern belegen.
+Ein isolierter kurzer zxcvbn-Worttreffer wird nur direkt übernommen, wenn beide Enden auf sichtbaren
+Grenzen liegen; eine vollständige kleingeschriebene Partition kann geprüfte kurze Wörter weiterhin
+intern belegen.
 
 Tastaturfolgen werden zusätzlich unabhängig von zxcvbns optimierter Endsequenz über maximale
 Spans der eingefrorenen QWERTZ-/QWERTY-Reihen erkannt. Ein solcher Span erzeugt eine feste Grenze

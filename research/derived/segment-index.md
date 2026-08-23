@@ -127,12 +127,14 @@ Seitenangaben beziehen sich auf die im Trainingsdokument ausgewiesene interne Pa
   entfallen; danach folgt direkt die bestehende lokale Campusgram-Auswertung. Die Demonstration
   analysiert oder persistiert keine Eingabe.
 - Die S05-Simulationsdisposition (`S05_CONTENT_VERSION 2.98.0`, Analysekonfiguration
-  `passwo-bounded-whole-recognition-v15`) bleibt auf den vollständigen fiktiven Wert begrenzt:
+  `passwo-bounded-whole-recognition-v17`) bleibt auf den vollständigen fiktiven Wert begrenzt:
   `whole-password-recognized` entsteht durch einen direkten Vollwert oder eine dokumentierte
   begrenzte Kandidatenfamilie aus kanonischen Ankern und positionsunabhängigen Restzeichen oder
   durch einen flüchtigen, von der teilnehmenden Person bestätigten semantischen Kandidatenweg.
-  Deutsche und englische Wortzerlegungen bleiben sprachgebunden; kurze Wörter und kuratierte
-  Abkürzungen sind nur exakt in vollständigen Segmenten beziehungsweise Partitionen zulässig.
+  Deutsche und englische Wortzerlegungen bleiben sprachgebunden. Die häufigkeitsgeordneten
+  Sprachkorpora werden über alle Wortlängen durch eingefrorene Rang-, Schrift- und
+  Korpusartefaktgrenzen bereinigt; kurze Wörter bleiben nur exakt in vollständigen Segmenten
+  beziehungsweise Partitionen zulässig. Kuratierte Abkürzungen werden davon getrennt behandelt.
   Eigene maximale Tastaturspans erzeugen Grenzen für angrenzende Wörter; vollständige
   Kontobegriffe, Jahre und authored Komposita haben Vorrang vor inneren Wörterbuch- beziehungsweise
   Endungstreffern. Getrennte und einmal veränderte Wiederholungen werden über mehrere belegte Spans

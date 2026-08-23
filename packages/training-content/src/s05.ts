@@ -73,7 +73,7 @@ export interface S05DesignLabFixture {
   readonly startSection: 'intro' | 'components' | 'structure';
 }
 
-export const S05_CONTENT_VERSION = '2.113.0';
+export const S05_CONTENT_VERSION = '2.116.0';
 
 export const s05Content = {
   version: S05_CONTENT_VERSION,
@@ -83,9 +83,9 @@ export const s05Content = {
       12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34,
       35,
     ] as const,
-    revision: 'Userauftrag vom 2026-08-23 · Wortbeispiele mit Länderzuordnung',
+    revision: 'Userauftrag vom 2026-08-23 · Wiederholungsbeispiel ohne Fragezeichen',
     copyReference:
-      'docs/design/S00-S05-COPY-AUDIT.md#copy--und-darstellungsdelta-s05-wortbeispiele-mit-länderzuordnung-23-august-2026',
+      'docs/design/S00-S05-COPY-AUDIT.md#copy--und-darstellungsdelta-s05-drittes-wiederholungsbeispiel-23-august-2026',
   },
   segment: {
     id: 'S05',
@@ -386,7 +386,7 @@ export const s05Content = {
         rows: [
           ['1213', '1213', '1213', '1213'],
           ['F3rien#27', 'F3rien#27'],
-          ['D7!kP2?', 'D7!kP2?'],
+          ['D7!kP2', 'D7!kP2'],
         ],
       },
     },
@@ -418,6 +418,8 @@ export const s05Content = {
       sentenceQuestion: 'Welche Teile bilden für dich eine Satz- oder Phrasenstruktur?',
       groupLabel: 'Gruppe',
       newGroup: 'Neue Gruppe',
+      maxGroupCount: 4,
+      maxGroups: 'Max. 4 Gruppen',
       deleteGroup: 'Löschen',
       finish: 'Fertig',
       confirmTitle: 'Auswahl übernehmen?',

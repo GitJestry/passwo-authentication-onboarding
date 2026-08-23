@@ -69,7 +69,7 @@ noch als Forschungsvariable gespeichert.
 
 | Bestandteil | Wert |
 |---|---|
-| Analyse-ID | `passwo-bounded-whole-recognition-v16` |
+| Analyse-ID | `passwo-bounded-whole-recognition-v17` |
 | Engine | `zxcvbn-ts` als Musterquelle |
 | Core | `@zxcvbn-ts/core@4.1.2` |
 | Allgemeines Wörterbuch/Graphen | `@zxcvbn-ts/language-common@4.1.2` |
@@ -82,7 +82,7 @@ noch als Forschungsvariable gespeichert.
 | Restzeichenbudget | höchstens `100_000_000` Kandidaten innerhalb einer eingefrorenen Familie |
 | Vollständiges Durchprobieren | letzter Weg bis einschließlich `26^12 = 95_428_956_661_682_176` Zeichenfolgen |
 | Mehrwortregel | Wörterbuchabdeckung allein erzeugt unabhängig von der Wortanzahl keinen Volltreffer |
-| Kurze Wörter | nur exakt als vollständiges sichtbares Segment oder innerhalb einer vollständigen sprachgebundenen Partition |
+| Gewöhnliche Wörter | längenabhängig rangbegrenzte und orthografisch gefilterte deutsche/englische Korpora; kurze Wörter nur als vollständiges sichtbares Segment oder innerhalb einer vollständigen sprachgebundenen Partition |
 | Abkürzungen | kleine kuratierte Liste, nur exakte case-insensitive Erkennung |
 | Tastaturgrenzen | maximaler eigener QWERTZ-/QWERTY-Span ab fünf Zeichen |
 | Semantische Evidenz | bestätigte persönliche, inhaltliche oder Satz-/Phrasenrelationen; nur flüchtig und additiv |
@@ -118,6 +118,16 @@ Partitionen werden getrennt berechnet; Wörter beider Sprachen werden nicht frei
 Mischpartition kombiniert. Namenslisten bleiben für vollständige sichtbare Segmente verfügbar,
 werden aber nicht zur freien inneren Zerlegung verwendet.
 
+Die ergänzende Projektion verwendet weiterhin die breiten, nach Häufigkeit geordneten
+`commonWords-de`- und `commonWords-en`-Korpora. Sie übernimmt weder kurze noch längere Einträge
+ungeprüft. Pro Sprache und Wortlänge gilt eine eingefrorene Ranggrenze; zusätzlich werden nur
+sprachtypische Buchstabenfolgen mit mindestens einem Vokal zugelassen. Explizite Namens- und
+Wikipedia-Listen werden nicht zur freien Wortpartition verwendet. Im Audit bestätigte
+Korpusfragmente und Kodierungsartefakte werden gezielt ausgeschlossen. Strukturierte Listen wie
+Wochentage, Monate oder Zahlenwörter bleiben als begrenzte Wortquelle verfügbar. Damit bleibt die
+Abdeckung gewöhnlicher kurzer Wörter breit, während zufällige Korpuswerte nicht allein aufgrund
+einer Teilstring-Übereinstimmung sichtbar werden. Dieselbe Filterung gilt auch ab vier Zeichen.
+
 Unterstützte Grenzen sind:
 
 - Anfang und Ende des alphabetischen Laufs;
@@ -125,11 +135,14 @@ Unterstützte Grenzen sind:
 - Akronym-zu-Titelwort, etwa `BVB|Test`;
 - eine lückenlose vollständige Zerlegung eines kleingeschriebenen Laufs.
 
-Zwei- und Drei-Zeichen-Wörter wie `ich`, `bis`, `zum` oder `uni` werden nur aufgenommen, wenn sie
-ein vollständiges sichtbares Segment oder einen Teil einer lückenlosen Partition bilden. Ein
-isolierter zxcvbn-Kurzworttreffer benötigt deshalb zwei sichtbare Grenzen; die lückenlose
-kleingeschriebene Partition darf kurze Wörter weiterhin intern verwenden. Dadurch werden kurze
-deutsche Funktionswörter berücksichtigt, ohne zufällige innere Fragmente allgemein zu erlauben.
+Zwei- und Drei-Zeichen-Wörter wie `es`, `in`, `ich`, `bis`, `zum`, `po`, `öl` oder `the`
+werden aus denselben bereinigten Sprachkorpora abgeleitet und nicht auf eine kleine manuelle
+Positivliste reduziert. Sie müssen ein vollständiges sichtbares Segment oder einen Teil einer
+lückenlosen Partition bilden. Diese Grenze gilt auch für einen von zxcvbn direkt gemeldeten
+Kurzworttreffer. Ein isolierter Treffer benötigt zusätzlich zwei sichtbare Grenzen; die lückenlose
+kleingeschriebene Partition darf geprüfte kurze Wörter weiterhin intern verwenden. So bleiben
+gebräuchliche Funktions- und Alltagswörter berücksichtigt, ohne zufällige innere Fragmente wie
+`ml`, `vx`, `pk` oder `tte` als Wörter zu markieren.
 
 Eine kleine eingefrorene Liste gebräuchlicher Abkürzungen wie `LKW`, `DVD`, `DHL`, `LOL`, `USB`
 und `WLAN` wird nach denselben Grenzen ausschließlich exakt und case-insensitive berücksichtigt.
@@ -495,6 +508,8 @@ Die Korpora prüfen außerdem:
 - `Datensicherheit` mit Vorrang des vollständigen Kompositums;
 - `eisichbintotpo`, `ichbineineispo`, `ichhabeineispo` und `eisölindapo` mit vollständigen
   Kurzwortpartitionen;
+- die authored Zufallsbeispiele ohne Wörterbuchbefunde für `ml`, `vx` oder `pk` sowie weitere
+  negative Kurz- und Langartefakte aus dem Korpusaudit;
 - `LKW`, `DVD`, `LOL` und `DHL` als exakte kuratierte Abkürzungen;
 - wiederholte Trennzeichen zwischen erkannten Wörtern;
 - Vorrang von `Campusgram` beziehungsweise `C4mpu5Gram` gegenüber `Campus`/`gram`;

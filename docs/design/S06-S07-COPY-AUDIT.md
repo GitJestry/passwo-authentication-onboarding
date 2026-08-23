@@ -1,5 +1,43 @@
 # S06--S07 Copy Audit
 
+## Copy- und Darstellungsdelta S06 Vierer-Gruppenpalette und Gruppenlimit, 23. August 2026
+
+Quelle ist der ausdrückliche Nutzerauftrag vom 23. August 2026. Dieses Delta ersetzt die zuvor
+am selben Tag festgelegte Sechser-Palette und Obergrenze. S06 übernimmt stabil geordnet genau
+`#1E8449`, `#52BE80`, `#A9DFBF` und `#E8F8F0` aus S05; Gruppe 1 verwendet `#1E8449` als
+Basisfarbe. Weitere Gruppenfarben werden nicht zyklisch wiederholt.
+
+Die Gruppenerweiterung ist in Controller und Oberfläche auf vier Gruppen begrenzt. Sobald die
+vierte Gruppe vorhanden ist, wird der bisherige Plus-Button zum nicht interaktiven Hinweis
+`Max. 4 Gruppen`. Analyse, Persistenz, Export und Timing bleiben unverändert.
+`S06_CONSEQUENCE_CONTENT_VERSION` wird von `2.31.0` auf `2.32.0` erhöht.
+
+| Segment und Text-ID | Quelle | Aktueller Text | Geplanter Text | Primäre Rolle | Grund | Bedeutungsänderung | Interaktionsziel | Hervorhebung |
+|---|---|---|---|---|---|---|---|---|
+| `S06.page.localReflection.maxGroups` | Nutzerauftrag vom 2026-08-23 | `Max. 6 Gruppen` | `Max. 4 Gruppen` | Ergebnisfeedback / Orientierung | synchronisiert den sichtbaren Hinweis mit der ausdrücklich reduzierten Obergrenze | begrenzt | kein; ersetzt den deaktivierten Plus-Button bei vier Gruppen | keine |
+
+Geschützter Wortlaut und bestehende Sprechschritte bleiben unverändert.
+
+## Copy- und Darstellungsdelta S06 gruene Gruppenpalette und Gruppenlimit, 23. August 2026
+
+Quelle ist der ausdrückliche Nutzerauftrag vom 23. August 2026. S06 übernimmt dieselbe feste,
+stabil geordnete Skala aus sechs klar unterscheidbaren Grüntönen wie S05. Die Gruppenflächen der
+Passwortbausteine und die zugehörigen Gruppenbuttons verwenden damit dieselbe visuelle Zuordnung;
+die bisherige mehrfarbige Palette mit blauem Ausgangston entfällt. Ab vier Gruppen werden Höhe,
+Innenabstand und Zwischenraum der Gruppenbuttons stufenweise reduziert, damit die aufgeklappte
+Liste innerhalb der angenommenen Fenstergrößen bleibt.
+
+Die Gruppenerweiterung ist in Controller und Oberfläche auf sechs Gruppen begrenzt. Sobald die
+sechste Gruppe vorhanden ist, wird der bisherige Plus-Button zum nicht interaktiven Hinweis
+`Max. 6 Gruppen`. Analyse, Persistenz, Export und Timing bleiben unverändert.
+`S06_CONSEQUENCE_CONTENT_VERSION` wird von `2.30.0` auf `2.31.0` erhöht.
+
+| Segment und Text-ID | Quelle | Aktueller Text | Geplanter Text | Primäre Rolle | Grund | Bedeutungsänderung | Interaktionsziel | Hervorhebung |
+|---|---|---|---|---|---|---|---|---|
+| `S06.page.localReflection.maxGroups` | Nutzerauftrag vom 2026-08-23 | nicht vorhanden; Plus-Button bleibt nach weiteren Gruppen sichtbar | `Max. 6 Gruppen` | Ergebnisfeedback / Orientierung | macht die ausdrücklich vorgegebene Obergrenze direkt am bisherigen Erweiterungsziel sichtbar | begrenzt | kein; ersetzt den deaktivierten Plus-Button bei sechs Gruppen | keine |
+
+Geschützter Wortlaut und bestehende Sprechschritte bleiben unverändert.
+
 ## Copy-Delta S06 Transition-Karte, 23. August 2026
 
 Quelle ist der ausdrückliche Nutzerauftrag vom 23. August 2026. Ausschließlich die Überschrift
