@@ -149,6 +149,7 @@
 
   width: 100%;
   max-width: 100%;
+  padding-top: 1rem;
   align-items: center;
   flex-wrap: nowrap;
   overflow: visible;
@@ -1641,6 +1642,8 @@
     4.25rem
   );
 
+  position: relative;
+  isolation: isolate;
   display: flex;
   width: 100%;
   max-width: 100%;
@@ -1743,6 +1746,12 @@
   outline-offset: 0.15rem;
 }
 
+.structureReflectionToken[data-grouped="true"][data-repetition-full="true"] {
+  box-shadow:
+    0 0.45rem 1rem rgb(0 0 0 / 24%),
+    0 0 1rem color-mix(in srgb, var(--s05-structure-reflection-color) 30%, transparent);
+}
+
 .structureReflectionRepetitionCount {
   position: absolute;
   right: 0;
@@ -1756,12 +1765,6 @@
   text-align: center;
   text-shadow: 0 0 0.55rem rgb(255 255 255 / 22%);
   pointer-events: none;
-}
-
-.structureReflectionToken[data-grouped="true"][data-repetition-full="true"] {
-  box-shadow:
-    0 0.45rem 1rem rgb(0 0 0 / 24%),
-    0 0 1rem color-mix(in srgb, var(--s05-structure-reflection-color) 30%, transparent);
 }
 
 .structureReflectionGap {

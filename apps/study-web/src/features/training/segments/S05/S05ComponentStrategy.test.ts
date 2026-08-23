@@ -230,7 +230,7 @@ describe('S05 component strategy presentation', () => {
     ]);
   });
 
-  it('keeps a freely selected personal range exact without absorbing its suffix', () => {
+  it('keeps a freely selected personal range exact without splitting the original block', () => {
     const password = 'melinda123!';
     const view = createCanonicalPasswordView(
       password,
@@ -253,9 +253,9 @@ describe('S05 component strategy presentation', () => {
       ({ labels }) => labels.length > 0,
     );
     expect(personal).toMatchObject([{ start: 2, end: 7 }]);
-    expect(displayed.map(({ value }) => value)).toEqual(['linda']);
+    expect(displayed.map(({ value }) => value)).toEqual([password]);
     expect(displayed.flatMap(({ labels }) => labels)).toEqual(['Persönliche Angabe']);
-    expect(displayed[0]?.categoryIds).toEqual(['personal-details']);
+    expect(displayed[0]?.categoryIds).toEqual([]);
     expect(summarizeCategoryCandidates(view, personal).hasSingleCandidateMatch).toBe(false);
   });
 
@@ -268,8 +268,7 @@ describe('S05 component strategy presentation', () => {
     ]);
 
     expect(projectCanonicalPasswordBlocks(view, personal).map(({ value }) => value)).toEqual([
-      'Event',
-      'Hobby',
+      password,
     ]);
     expect(summarizeCategoryCandidates(view, personal)).toMatchObject({
       candidateCount: 2,

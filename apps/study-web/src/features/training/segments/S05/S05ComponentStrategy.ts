@@ -142,16 +142,10 @@ const visualCategoryOrder = [
   'repetition',
 ] as const satisfies readonly S05VisualCategoryId[];
 
-const componentCategoryPriority = {
-  'common-components': 0,
-  'personal-details': 1,
-  'account-context': 2,
-} as const satisfies Readonly<Record<S05ComponentCategoryId, number>>;
-
 interface S05FindingCluster {
   readonly start: number;
   readonly end: number;
-  readonly categoryId: S05ComponentCategoryId;
+  readonly categoryId?: S05ComponentCategoryId;
   readonly findings: readonly S05CategoryFinding[];
 }
 
@@ -160,13 +154,6 @@ interface S05DisplayRange {
   readonly end: number;
   readonly categoryId?: S05ComponentCategoryId;
   readonly findings: readonly S05CategoryFinding[];
-}
-
-function higherPriorityCategory(
-  left: S05ComponentCategoryId,
-  right: S05ComponentCategoryId,
-): S05ComponentCategoryId {
-  return componentCategoryPriority[right] > componentCategoryPriority[left] ? right : left;
 }
 
 function clusterOverlappingFindings(
@@ -188,50 +175,13 @@ function clusterOverlappingFindings(
       clusters[clusters.length - 1] = {
         start: previous.start,
         end: Math.max(previous.end, finding.end),
-        categoryId: higherPriorityCategory(previous.categoryId, finding.categoryId),
+        ...(previous.categoryId === finding.categoryId
+          ? { categoryId: previous.categoryId }
+          : {}),
         findings: [...previous.findings, finding],
       };
       return clusters;
     }, []);
-}
-
-function personalFindingExactlyMatchesRange(
-  finding: S05CategoryFinding,
-  range: Pick<S05DisplayRange, 'start' | 'end'>,
-): boolean {
-  return finding.start === range.start && finding.end === range.end;
-}
-
-function splitUnrecognizedRangeByPersonalFindings(
-  range: S05DisplayRange,
-  personalFindings: readonly S05CategoryFinding[],
-): readonly S05DisplayRange[] {
-  const overlappingFindings = personalFindings.filter(
-    (finding) => finding.start < range.end && finding.end > range.start,
-  );
-  if (overlappingFindings.length === 0) return [range];
-
-  const boundaries = new Set<number>([range.start, range.end]);
-  for (const finding of overlappingFindings) {
-    boundaries.add(Math.max(range.start, finding.start));
-    boundaries.add(Math.min(range.end, finding.end));
-  }
-  const sortedBoundaries = [...boundaries].sort((left, right) => left - right);
-  return sortedBoundaries.slice(0, -1).flatMap((start, index) => {
-    const end = sortedBoundaries[index + 1];
-    if (end === undefined || start === end) return [];
-    const findings = overlappingFindings.filter(
-      (finding) => finding.start < end && finding.end > start,
-    );
-    return [
-      {
-        start,
-        end,
-        ...(findings.length === 0 ? {} : { categoryId: 'personal-details' as const }),
-        findings,
-      },
-    ];
-  });
 }
 
 function createDisplayRanges(
@@ -257,21 +207,15 @@ function createDisplayRanges(
     analyzedRanges.push({ start: cursor, end: passwordLength, findings: [] });
   }
 
-  return analyzedRanges.flatMap((range) => {
-    if (range.findings.length === 0) {
-      return splitUnrecognizedRangeByPersonalFindings(range, personalFindings);
-    }
-    const overlappingPersonalFindings = personalFindings.filter(
-      (finding) => finding.start < range.end && finding.end > range.start,
-    );
-    const exactPersonalFinding = overlappingPersonalFindings.some((finding) =>
-      personalFindingExactlyMatchesRange(finding, range),
-    );
-    const findingsForRange = [...range.findings, ...overlappingPersonalFindings];
-    return exactPersonalFinding
-      ? [{ ...range, categoryId: 'personal-details' as const, findings: findingsForRange }]
-      : [{ ...range, findings: findingsForRange }];
-  });
+  return analyzedRanges.map((range) => ({
+    ...range,
+    findings: [
+      ...range.findings,
+      ...personalFindings.filter(
+        (finding) => finding.start < range.end && finding.end > range.start,
+      ),
+    ],
+  }));
 }
 
 function containedFindingLabel(label: string): string {
@@ -444,21 +388,16 @@ function findingRange(finding: S05CategoryFinding): BlockRange {
   return { start: finding.start, end: finding.end };
 }
 
-function partiallyOverlaps(left: BlockRange, right: BlockRange): boolean {
-  if (left.start >= right.end || right.start >= left.end) return false;
-  const leftContainsRight = left.start <= right.start && left.end >= right.end;
-  const rightContainsLeft = right.start <= left.start && right.end >= left.end;
-  return !leftContainsRight && !rightContainsLeft;
-}
-
-function excludeCrossBoundaryFindings(
+function excludeOverlappingFindings(
   findings: readonly S05CategoryFinding[],
   boundaryFindings: readonly S05CategoryFinding[],
 ): readonly S05CategoryFinding[] {
   const boundaryRanges = boundaryFindings.map(findingRange);
   return findings.filter((finding) => {
     const range = findingRange(finding);
-    return !boundaryRanges.some((boundary) => partiallyOverlaps(range, boundary));
+    return !boundaryRanges.some(
+      (boundary) => range.start < boundary.end && boundary.start < range.end,
+    );
   });
 }
 
@@ -739,7 +678,7 @@ export function createCanonicalPasswordView(
   const commonFindings = removeCoveredFindings(
     attachTypicalChanges(partialView, rawCommonFindings),
   );
-  const boundaryCompatibleAccountFindings = excludeCrossBoundaryFindings(
+  const nonOverlappingAccountFindings = excludeOverlappingFindings(
     rawAccountFindings,
     rawCommonFindings,
   );
@@ -751,7 +690,7 @@ export function createCanonicalPasswordView(
     automaticFindings: {
       'common-components': commonFindings,
       'account-context': removeCoveredFindings(
-        attachTypicalChanges(partialView, boundaryCompatibleAccountFindings),
+        attachTypicalChanges(partialView, nonOverlappingAccountFindings),
       ),
     },
   };
@@ -897,7 +836,7 @@ export function projectCanonicalPasswordBlocks(
               showContainedFindingLabels &&
               isContained &&
               !isPrimaryCategory &&
-              finding.categoryId !== 'account-context'
+              finding.categoryId === 'common-components'
                 ? containedFindingLabel(baseLabel)
                 : baseLabel,
           };
@@ -913,7 +852,6 @@ export function projectCanonicalPasswordBlocks(
       ],
       categoryIds: [
         ...(range.categoryId === undefined ? [] : [range.categoryId]),
-        ...directFindings.map(({ categoryId }) => categoryId),
         ...(repetitions.length === 0 ? [] : (['repetition'] as const)),
       ].filter((categoryId, index, categoryIds) => categoryIds.indexOf(categoryId) === index),
       groupIds: [...new Set(directFindings.map(({ id }) => id))],

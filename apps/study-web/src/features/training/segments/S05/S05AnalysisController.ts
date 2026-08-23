@@ -927,7 +927,7 @@ export class S05AnalysisController {
     const reflection = snapshot.structureReflection;
     if (
       reflection.contentGroups.length >= s05Content.structure.reflection.maxGroupCount ||
-      reflection.contentGroups.some(({ blockIds }) => blockIds.length === 0)
+      reflection.contentGroups.some(({ blockIds }) => blockIds.length < 2)
     ) {
       return false;
     }
@@ -993,7 +993,7 @@ export class S05AnalysisController {
       return;
     }
     const nonEmptyGroups = snapshot.structureReflection.contentGroups.filter(
-      ({ blockIds }) => blockIds.length > 0,
+      ({ blockIds }) => blockIds.length >= 2,
     );
     const contentGroups =
       nonEmptyGroups.length > 0

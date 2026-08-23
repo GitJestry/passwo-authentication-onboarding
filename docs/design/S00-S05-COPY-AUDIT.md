@@ -1,5 +1,130 @@
 # S00--S05 Copy and Interaction Audit
 
+## Darstellungsdelta S05 alte Zusammenhangsmarkierung und begrenzte Kategoriefarben, 23. August 2026
+
+Quelle ist der ausdrückliche Nutzerauftrag vom 23. August 2026. Dieses Delta ersetzt die zuletzt
+eingeführte Linienmarkierung der interaktiven Zusammenhänge vollständig. Die Zusammenhangsreflexion
+verwendet wieder die vorherige Darstellung: Zugeordnete Bausteine erhalten die Farbe von
+`Zusammenhang A`, `Zusammenhang B` oder `Zusammenhang C`. Die zusätzliche SVG-Ebene, gestaffelte
+Schienen und Hover-/Fokusvorschau entfallen. Auch die authored Einstiegsvorschau und die statischen
+Zusammenhangsbeispiele verwenden wieder ihre ursprünglichen Bausteinfärbungen und CSS-Linien.
+
+Die gelbe Einfärbung häufiger Bestandteile und die blaue Einfärbung von Konto-/Dienstbezügen
+bleiben nur während der drei frühen Prüfungen einschließlich der Zusammenfassung `Früh geprüft`
+sichtbar. In den nachfolgenden S05-Strukturansichten werden diese Kategoriefarben nicht
+fortgeführt. Kategorie-Logos und ihre konkreten Einstufungen bleiben dort als nicht flächige
+Zuordnung erhalten; persönliche Bereiche bleiben weiterhin ausschließlich über pinke Schrift und
+Endstriche markiert. Teilnehmerwortlaut, Analyse, Mindestgröße eines Zusammenhangs, flüchtige
+Trainingsentscheidungen, Persistenz, Export und Timing bleiben unverändert.
+`S05_CONTENT_VERSION` wird von `2.125.0` auf `2.126.0` erhöht.
+
+| Segment und Text-ID | Quelle | Aktueller Zustand | Geplanter Zustand | Primäre Rolle | Grund | Bedeutungsänderung | Interaktionsziel | Hervorhebung |
+|---|---|---|---|---|---|---|---|---|
+| `S05.structure.reflection.contentGroups` | Nutzerauftrag vom 2026-08-23 | Zusammenhänge ausschließlich als dynamische, gestaffelte SVG-Linien mit Zielvorschau | vorherige gruppenfarbige Bausteinmarkierung; keine dynamische Linienebene und keine Hover-Vorschau | Ergebnisfeedback | ausdrücklich verlangte Rückkehr zur früheren Markierung | nein | Passwortbausteine und Zusammenhangssteuerungen | Gruppenfarbe plus Bezeichnung A–C |
+| `S05.structure.presentationExamples` | Nutzerauftrag vom 2026-08-23 | positionsbasierte SVG-Verbindungen und neutrale Zusammenhangsbausteine | ursprüngliche CSS-Verbindungen und grüne Zusammenhangsbausteine | Mechanismuserklärung | Vorschau wieder an die alte Darstellung angleichen | nein | kein | grüne Bausteinfläche und Verbindungslinie |
+| `S05.componentStrategy.categoryColorScope` | Nutzerauftrag vom 2026-08-23 | gelbe und blaue Kategoriefarben bleiben in allen folgenden Strukturansichten bestehen | Kategoriefarben enden mit `Früh geprüft`; spätere Zuordnung nur über Logo-Infos und persönliche Schriftmarkierung | Ergebnisfeedback | begrenzt die frühe Prüffärbung auf den ausdrücklich benannten Abschnitt | nein | unveränderte Logo-Infos | Farbe nur bis zur frühen Zusammenfassung |
+
+Geschützter Wortlaut und bestehende Sprechschritte bleiben unverändert.
+
+## Darstellungsdelta S05 persistente Kategoriefarben und gestaffelte Zusammenhangsvorschau, 23. August 2026
+
+Quelle ist der ausdrückliche Nutzerauftrag vom 23. August 2026. Dieses Delta präzisiert die
+Trennung zwischen Kategorie- und Zusammenhangsdarstellung: Die gelbe Einfärbung für häufige
+Bestandteile und die blaue Einfärbung für Konto-/Dienstbezug bleiben nach ihrer jeweiligen
+Prüfung in allen folgenden Ansichten am Baustein erhalten. Persönliche Bereiche bleiben gemäß
+dem vorherigen Delta ausschließlich durch pinke Schrift und ihre Endstriche markiert. Eine
+Zusammenhangszuordnung verändert keine dieser Flächenfarben.
+
+Die statischen Zusammenhangsbeispiele und die interaktive Reflexion verwenden nun dieselbe
+positionsbasierte SVG-Geometrie. Oberhalb der Bausteine ist ausreichend Raum für die sichtbaren
+Linien reserviert. Zusammenhang A, B und C erhalten verschiedene Schienenhöhen, damit parallele
+horizontale Abschnitte nicht übereinanderliegen. Nach Auswahl des ersten Bausteins zeigt Hover
+oder Tastaturfokus auf einem noch freien Baustein die mögliche Verbindung gestrichelt als
+Vorschau; ein Klick übernimmt sie nahtlos in die bestehende Linie. Zeilenumbrüche werden weiterhin
+aus den tatsächlichen Bausteinpositionen abgeleitet, und `prefers-reduced-motion` deaktiviert die
+Zeichen- und Vorschaupulsanimation.
+
+Teilnehmerwortlaut, Analyse, flüchtige Trainingsentscheidungen, Persistenz, Export und Timing
+bleiben unverändert. `S05_CONTENT_VERSION` wird von `2.124.0` auf `2.125.0` erhöht.
+
+| Segment und Text-ID | Quelle | Aktueller Zustand | Geplanter Zustand | Primäre Rolle | Grund | Bedeutungsänderung | Interaktionsziel | Hervorhebung |
+|---|---|---|---|---|---|---|---|---|
+| `S05.structure.presentationExamples.theme` | Nutzerauftrag vom 2026-08-23; bestehende Strukturveranschaulichung | CSS-Einzelsegmente verbinden die Vorschau nicht zuverlässig | gemeinsame positionsbasierte SVG-Verbindung über den vorgesehenen Bausteinen | Mechanismuserklärung | Vorschau und Reflexion verwenden dieselbe sichtbare Verbindungslogik | nein | kein | starke grüne Verbindungslinie |
+| `S05.structure.reflection.contentGroups` | Nutzerauftrag vom 2026-08-23 | Linien können unter den Bausteinen liegen; mehrere Zusammenhänge teilen dieselbe Höhe; keine Zielvorschau | sichtbare, nach Zusammenhang gestaffelte Linien plus gestrichelte Hover-/Fokusvorschau vom bestehenden Anfang zum freien Ziel | Navigation / Ergebnisfeedback | macht Auswahlfolge und mehrere unabhängige Zusammenhänge vor der Bestätigung nachvollziehbar | nein | freier Passwortbaustein nach gesetztem Verbindungsanfang | Linienhöhe, Strichmuster und Bezeichnung A–C |
+| `S05.componentStrategy.persistentCategoryColor` | Nutzerauftrag vom 2026-08-23 | Kategoriefarben fehlen in späteren Strukturansichten | freigegebene gelbe und blaue Bausteinfärbung bleibt durchgängig erhalten; persönliche Markierung bleibt zeichenbasiert | Ergebnisfeedback | hält die Ergebnisse der frühen Prüfungen auch während der Zusammenhangsreflexion sichtbar | nein | unveränderte Bausteine und Logo-Infos | Kategorienfarbe plus Logo und konkrete Einstufung |
+
+Geschützter Wortlaut und bestehende Sprechschritte bleiben unverändert.
+
+## Copy- und Darstellungsdelta S05 reduzierte Logo-Infos und animierte Zusammenhangslinien, 23. August 2026
+
+Quelle ist der ausdrückliche Nutzerauftrag vom 23. August 2026. Die fokussierbaren Logo-Kacheln
+zeigen in ihrer Infokarte nur noch die konkrete lokale Einstufung, beispielsweise
+`Persönliche Angabe` oder `häufiges Datum`. Der wiederholte Kategoriename und die Zwischenzeile
+`Eingestuft als` entfallen. Freigegebene Logo-Kacheln bleiben auch während der betroffenen
+Sprechblasen per Hover und Tastaturfokus erreichbar; die Sprechblasensteuerung und ihr Wortlaut
+bleiben unverändert.
+
+Persönlich markierte Zeichen leuchten etwas zurückhaltender. Die vertikalen rosa Endstriche
+liegen enger am ersten und letzten Zeichen eines Bereichs, sind etwas dunkler und zwei Pixel
+stark. Weder Auswahlverhalten noch Bausteinfläche ändern sich.
+
+In der Strukturreflexion bleiben alle zuvor freigegebenen Kategorie-Logos an den neutralen
+Passwortbausteinen sichtbar. Zusammenhänge färben keine Bausteine mehr, sondern werden
+ausschließlich durch deutlich stärkere Verbindungslinien dargestellt. Der erste gewählte
+Baustein ist nur ein unbestätigter Verbindungsanfang. Erst der zweite Baustein bildet einen
+Zusammenhang; jeder weitere gewählte Baustein erweitert dieselbe Linie. Ein neuer Zusammenhang
+kann erst angelegt werden, wenn alle vorhandenen Zusammenhänge mindestens zwei Bausteine
+verbinden. Ein beim Abschluss allein stehender Verbindungsanfang wird nicht als Zusammenhang
+übernommen. Die eigene responsive SVG-Animation misst die tatsächliche Zeilenposition, verbindet
+auch umgebrochene Bausteine und wird bei `prefers-reduced-motion` ohne Zeichenanimation gezeigt.
+Die beschrifteten Steuerungen `Zusammenhang A` bis `Zusammenhang C` bleiben neben den Linien als
+nicht farbgebundene Zuordnung erhalten.
+
+Teilnehmerwortlaut ändert sich ausschließlich durch das Entfernen der redundanten Logo-Info-Texte.
+Analyse, flüchtige Trainingsentscheidungen, Persistenz, Export und Timing bleiben unverändert.
+`S05_CONTENT_VERSION` wird von `2.123.0` auf `2.124.0` erhöht.
+
+| Segment und Text-ID | Quelle | Aktueller Zustand | Geplanter Zustand | Primäre Rolle | Grund | Bedeutungsänderung | Interaktionsziel | Hervorhebung |
+|---|---|---|---|---|---|---|---|---|
+| `S05.componentStrategy.presentation.logoInfo` | Nutzerauftrag vom 2026-08-23 | Kategoriename, `Eingestuft als`, konkrete Einstufung; bei einigen Sprechblasen nicht erreichbar | nur konkrete Einstufung; freigegebene Kachel bleibt per Hover und Fokus erreichbar | Ergebnisfeedback / optionaler Hinweis | reduziert Redundanz und behebt das blockierte Info-Ziel | begrenzt auf gekürzten Hilfetext | jeweilige Logo-Kachel | gläserne Infokarte |
+| `S05.componentStrategy.personalDetails.marking` | Nutzerauftrag vom 2026-08-23 | stärker glühende pinke Schrift und sehr dünne, hellere Endstriche mit größerem Abstand | weniger Leuchten; dunklere, zwei Pixel starke Endstriche direkt an den Bereichsenden | Ergebnisfeedback | präzisiert die Bereichsgrenze ohne Bausteinfärbung | nein | unveränderte Zeichen-Auswahl | pinke Schrift und vertikale Endstriche |
+| `S05.structure.reflection.contentGroups` | Nutzerauftrag vom 2026-08-23; bestehende Strukturveranschaulichung | Gruppenzugehörigkeit färbt Bausteine; neue Gruppe nach einem gewählten Baustein möglich | neutrale Bausteine mit fortgeführten Kategorie-Logos; nur animierte, stärkere Verbindungslinien; neuer Zusammenhang erst nach zwei verbundenen Bausteinen | Mechanismuserklärung / Ergebnisfeedback | macht die Verbindung selbst zum maßgeblichen Bedeutungsträger und verhindert unvollständige Zusammenhänge | begrenzt auf Mindestgröße und Darstellung des Zusammenhangs | Bausteine und beschriftete Zusammenhangssteuerungen | Verbindungslinie plus Bezeichnung A–C |
+
+Geschützter Wortlaut und bestehende Sprechschritte bleiben unverändert.
+
+## Copy- und Darstellungsdelta S05 persistente frühe Befundmarkierungen, 23. August 2026
+
+Quelle ist der ausdrückliche Nutzerauftrag vom 23. August 2026 sowie die narrative Vorgabe der
+internen Skriptseiten 12 bis 35, erkannte Stellen direkt am zentralen fiktiven Passwort zu
+markieren. Die drei Prüfungen bauen ihre sichtbaren Befunde nun aufeinander auf: Bei
+`Persönliche Angaben` bleibt die bereits geprüfte häufige Kategorie sichtbar, bei
+`Bezug zum Konto, Dienst oder Umfeld` bleiben beide vorherigen Kategorien sichtbar. Die
+Textlabels unter den Bausteinen entfallen in allen drei Einzelprüfungen. Stattdessen stehen dort
+sofort die vorhandenen fokussierbaren Kategorie-Logos; ihre Infokarte nennt weiterhin den
+vollständigen Kategorienamen und unter `Eingestuft als` immer die konkrete lokale Einstufung.
+
+Die persönliche Auswahl findet direkt in derselben kanonischen Bausteinzeile statt. Ziehen,
+Tastaturauswahl und Entfernen bleiben erhalten. Ausgewählte Zeichen leuchten ausschließlich in
+strahlendem Pink; eine persönliche Auswahl teilt oder färbt keinen Baustein und kann daher auch in
+einem bereits gelb oder blau markierten Baustein liegen. Sehr dünne vertikale rosa Striche am
+ersten und letzten ausgewählten Zeichen begrenzen jeden zusammengehörenden persönlichen Bereich.
+Ein bereits als häufig verwendeter Bestandteil erkannter Bereich wird nicht zusätzlich als
+Konto-/Dienstbezug dupliziert. Damit benötigen automatische Kategorien keine Farbhierarchie;
+bei einer unerwarteten verbleibenden Überlappung bleibt die Fläche neutral.
+
+Teilnehmerwortlaut, Vollpasswort-Disposition, flüchtige Auswahl, Persistenz, Export und Timing
+bleiben unverändert. Die lokale Kategorienprojektion wird ausschließlich für den ausdrücklich
+ausgeschlossenen Doppelbefund aus häufigem Bestandteil und Konto-/Dienstbezug verengt.
+`S05_CONTENT_VERSION` wird von `2.122.0` auf `2.123.0` erhöht.
+
+| Segment und Text-ID | Quelle | Aktueller Zustand | Geplanter Zustand | Primäre Rolle | Grund | Bedeutungsänderung | Interaktionsziel | Hervorhebung |
+|---|---|---|---|---|---|---|---|---|
+| `S05.componentStrategy.canonicalFindings` | Nutzerauftrag vom 2026-08-23; Trainingsskript S05, interne Seiten 12–35 | einzelne Kategorieprüfung zeigt nur ihre aktuellen Textlabels | bereits geprüfte Kategorien bleiben sichtbar und verwenden sofort Logo-Infokarten mit konkreter Einstufung | Ergebnisfeedback | Prüfpfad und kumulatives Ergebnis bleiben am Originalpasswort nachvollziehbar | nein | jeweilige Logo-Kachel per Hover oder Fokus | Kategorie-Logo, keine zusätzliche Textmarkierung |
+| `S05.componentStrategy.personalDetails.marking` | Nutzerauftrag vom 2026-08-23; Trainingsskript S05, interne Seiten 12–35 | Auswahl wechselt in eine separate durchgehende Zeichenfläche | Auswahl direkt innerhalb der bestehenden kanonischen Bausteine; nur pinke Schrift plus dünne vertikale Bereichsenden | Ergebnisfeedback / Navigation | persönliche Bereiche bleiben exakt und können bestehende automatische Bausteine überlagern, ohne deren Fläche umzudeuten | nein | Zeichen per Ziehen, Tippen oder Tastatur | strahlend pinke Zeichen und zarte Endstriche |
+| `S05.analysis.accountContext.overlap` | Nutzerauftrag vom 2026-08-23 | derselbe Bereich kann als häufiger Bestandteil und Konto-/Dienstbezug projiziert werden | bereits häufig eingestufte Bereiche erhalten keinen doppelten Konto-/Dienstbefund | Ergebnisfeedback | entfernt die ausdrücklich ausgeschlossene Doppelklassifikation und damit die visuelle Farbhierarchie | begrenzt auf überlappende automatische Befunde | kein | nur die zuerst geprüfte häufige Kategorie bleibt |
+
+Geschützter Wortlaut und bestehende Sprechschritte bleiben unverändert.
+
 ## Copy-Delta S05 sichtbare Konto- und Dienstbeispiele begrenzt, 23. August 2026
 
 Quelle ist der ausdrückliche Nutzerauftrag vom 23. August 2026 sowie die narrative Abgrenzung

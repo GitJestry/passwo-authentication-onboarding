@@ -61,9 +61,11 @@ Seitenangaben beziehen sich auf die im Trainingsdokument ausgewiesene interne Pa
 - Das fiktive Campusgram-Passwort liegt bereits vor dem ersten Prüfklick unverdeckt in der
   kanonischen Bausteinansicht ohne Verbergen-Schalter vor. Die vier Prüfungen legen ausschließlich
   ihre flüchtigen lokalen Befunde frei: nicht betroffene Bausteine bleiben neutral, betroffene
-  Bausteine leuchten ohne Lageänderung und behalten während der einzelnen Kategorieprüfungen ihre
-  konkreten Befundlabels. Erst die gemeinsame Drei-Kategorien-Zusammenfassung ersetzt diese Labels
-  an den Bausteinen durch deutlich größere, gegebenenfalls vertikal gestapelte Logos. Die kompakte
+  Bausteine leuchten ohne Lageänderung. Bereits geprüfte Befunde bleiben in den folgenden
+  Kategorieprüfungen sichtbar. Ab dem ersten Befund stehen an den Bausteinen statt Textlabels
+  deutlich größere, gegebenenfalls vertikal gestapelte Logo-Infokarten. Hover oder Tastaturfokus
+  nennt ausschließlich die konkrete Einstufung, beispielsweise `Persönliche Angabe` oder
+  `häufiges Datum`; die Kacheln bleiben auch während der betroffenen Sprechblasen erreichbar. Die kompakte
   Übersicht `Früh geprüft` listet jede geprüfte Kategorie einmal mit großem, responsiv skaliertem
   Logo und vollständigem Kategorienamen; einzelne erkannte Begriffe erscheinen dort nicht. Diese
   Übersicht bleibt ausschließlich direkt nach den drei Kategorien sichtbar und entfällt in der
@@ -72,20 +74,28 @@ Seitenangaben beziehen sich auf die im Trainingsdokument ausgewiesene interne Pa
   Bausteine; bei einem vollständig erkannten Einzelbaustein weist sie auf den bereits gefundenen
   Passwortkandidaten hin. Die gemeinsame
   Abschlussansicht übergibt anschließend unverändert an `Vorhersehbarer Aufbau`.
-- In der Campusgram-Abschlusszusammenfassung bleiben die Bausteinflächen wie in der lokalen
-  S06-Reflexion zunächst transparent; erst bestätigte Gruppen füllen den vollständigen Baustein.
-  Kategoriezuordnungen bleiben über größere, vertikal gestapelte Info-Logos sichtbar. Hover oder
-  Tastaturfokus öffnet eine gläserne Karte mit Kategoriename und konkreter Einstufung. Persönlich
-  markierte Bereiche leuchten zeichenpräzise lila-pink; das persönliche Kategorienlogo steht unter
-  jedem überlappten Baustein, ohne dessen Grenzen zu verändern. Der QA-Einstieg
+- Nach der Zusammenfassung `Früh geprüft` werden die gelben Bausteinflächen für häufige
+  Bestandteile und die blauen Bausteinflächen für Konto-/Dienstbezug nicht weitergeführt. In der
+  Campusgram-Abschlusszusammenfassung und den folgenden Strukturphasen bleiben die drei früh
+  geprüften Kategorien ausschließlich über größere, vertikal gestapelte Info-Logos an den jeweils
+  erkannten Bausteinen sichtbar. Hover oder Tastaturfokus
+  öffnet eine gläserne Karte nur mit der konkreten Einstufung. Persönlich markierte Bereiche
+  leuchten zeichenpräzise und zurückhaltend pink; das persönliche Kategorienlogo steht unter jedem
+  überlappten Baustein, ohne dessen Grenzen zu verändern. Eng anliegende, dunklere und zwei Pixel
+  starke vertikale rosa Endstriche begrenzen jeden zusammengehörenden persönlichen Bereich. Der QA-Einstieg
   `s05-s06-transition` enthält zusätzlich einen ausschließlich flüchtigen persönlichen Befund mit
   überlappendem Bereich, um die Blockprojektion visuell prüfen zu können.
 - Die Laufbandmaschine wird für alle vier Kategorien wiederverwendet. Ihre linke Beispieltabelle
   trägt statt einer Textüberschrift das große Symbol der aktuellen Kategorie, verwendet nur fest
   authored Beispiele und führt über die mittlere Beschriftung `Typische Veränderungen generieren`
-  zur schneller scrollenden Variantenliste. Bei `Persönliche Angaben` werden die kanonischen Bausteine anschließend
-  selbst anklickbar; Checkbox und Baustein schalten denselben lokalen Markierungszustand. Die
-  Übernahme bleibt auch ohne Auswahl möglich und erzeugt dann keinen persönlichen Befund.
+  zur schneller scrollenden Variantenliste. Bei `Persönliche Angaben` bleibt dieselbe kanonische
+  Bausteinzeile einschließlich der zuvor erkannten Kategorie sichtbar. Die Zeichen sind darin per
+  Ziehen oder Tastatur auswählbar und durch erneutes Betätigen entfernbar. Persönliche Bereiche
+  färben ausschließlich ihre Schrift pink und überlagern vorhandene gelbe oder blaue Bausteine,
+  ohne deren Fläche oder Grenzen zu verändern. Die Übernahme bleibt auch ohne Auswahl möglich und
+  erzeugt dann keinen persönlichen Befund. Ein häufig verwendeter Bereich wird nicht zusätzlich
+  als Konto-/Dienstbezug dupliziert; eine Farbhierarchie zwischen automatischen Kategorien
+  entfällt.
 - S05.0 bis S05.4 verwenden die internen Seiten 12 bis 35 als Inhaltsquelle und sind im Design Lab
   sowie im realen Supportive-Training zwischen S04 und S06 vollständig durchspielbar. Beide Pfade
   verwenden dieselbe Komponente und denselben lokalen Controller.
@@ -96,6 +106,14 @@ Seitenangaben beziehen sich auf die im Trainingsdokument ausgewiesene interne Pa
   erklärte Liste einschließlich Titel wird weiß pulsierend umrahmt. Bei der anschließenden lokalen
   Wiederholungsprüfung bleiben alle drei Listen sichtbar; das fiktive Campusgram-Passwort steht
   mittig darunter und markiert erkannte Wiederholungen mit denselben Bausteinen.
+- Die lokale Zusammenhangsreflexion beginnt mit Zusammenhang A. Ein angeklickter Baustein erhält
+  wieder unmittelbar die Farbe des aktiven Zusammenhangs; weitere Bausteine erweitern dieselbe
+  farbige Gruppe. Erst zwei gewählte Bausteine bilden einen vollständigen Zusammenhang, und ein
+  weiterer Zusammenhang kann erst angelegt werden, wenn alle vorhandenen Gruppen mindestens zwei
+  Bausteine enthalten. Eine zusätzliche Linienebene und eine Hover-Vorschau entfallen. Die
+  authored Einstiegsvorschau und statischen Zusammenhangsbeispiele verwenden wieder ihre
+  ursprünglichen grünen Bausteinflächen und CSS-Verbindungslinien. Die beschrifteten Steuerungen A
+  bis C bleiben neben der Gruppenfarbe als Bedeutungsträger erhalten.
 - Der aus der flüchtigen Campusidentität abgeleitete Benutzername und die fiktive Konto-Mail
   werden der lokalen zxcvbn-Auswertung als zusätzliche Kontoanhaltspunkte übergeben. Sie bleiben
   im Arbeitsspeicher und werden weder persistiert noch exportiert.
@@ -134,7 +152,7 @@ Seitenangaben beziehen sich auf die im Trainingsdokument ausgewiesene interne Pa
   deutsche Wortlistenstapel sichtbar. Länderkarte, Wortlisten-Schätzfrage und Zeichenraum-Analogie
   entfallen; danach folgt direkt die bestehende lokale Campusgram-Auswertung. Die Demonstration
   analysiert oder persistiert keine Eingabe.
-- Die S05-Simulationsdisposition (`S05_CONTENT_VERSION 2.121.0`, Analysekonfiguration
+- Die S05-Simulationsdisposition (`S05_CONTENT_VERSION 2.126.0`, Analysekonfiguration
   `passwo-bounded-whole-recognition-v17`) bleibt auf den vollständigen fiktiven Wert begrenzt:
   `whole-password-recognized` entsteht durch einen direkten Vollwert oder eine dokumentierte
   begrenzte Kandidatenfamilie aus kanonischen Ankern und positionsunabhängigen Restzeichen oder

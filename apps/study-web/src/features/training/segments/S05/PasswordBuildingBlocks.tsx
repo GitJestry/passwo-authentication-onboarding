@@ -119,11 +119,16 @@ export function PasswordBlockText({
     const characterStart = offset;
     const characterEnd = characterStart + character.length;
     offset = characterEnd;
-    const highlighted = personalHighlightRanges.some(
+    const highlightedRange = personalHighlightRanges.find(
       (range) => range.start < characterEnd && range.end > characterStart,
     );
-    return highlighted ? (
-      <mark className={styles.personalCharacter} key={characterStart}>
+    return highlightedRange !== undefined ? (
+      <mark
+        className={styles.personalCharacter}
+        data-range-start={highlightedRange.start === characterStart || undefined}
+        data-range-end={highlightedRange.end === characterEnd || undefined}
+        key={characterStart}
+      >
         {character}
       </mark>
     ) : character;
@@ -163,13 +168,19 @@ export function PasswordBuildingBlocks({
   rangeSelection,
   annotations,
 }: PasswordBuildingBlocksProps) {
-  const characterOffsets = parts.reduce<readonly { readonly start: number; readonly end: number }[]>(
+  const partOffsets = parts.reduce<readonly { readonly start: number; readonly end: number }[]>(
     (offsets, part) => {
       const start = offsets.at(-1)?.end ?? 0;
       return [...offsets, { start, end: start + part.length }];
     },
     [],
   );
+  let characterOffset = 0;
+  const selectionCharacters = [...value].map((character) => {
+    const start = characterOffset;
+    characterOffset += character.length;
+    return { character, start, end: characterOffset };
+  });
   const characterButtons = useRef<(HTMLButtonElement | null)[]>([]);
   const [pointerSelection, setPointerSelection] = useState<{
     readonly pointerId: number;
@@ -182,7 +193,7 @@ export function PasswordBuildingBlocks({
   const visualStyle = passwordVisualStyleFor(visualReferenceValue ?? value, visualScale);
 
   function candidateAtIndex(index: number): S05PersonalCandidate | undefined {
-    const offset = characterOffsets[index];
+    const offset = selectionCharacters[index];
     return offset === undefined
       ? undefined
       : rangeSelection?.candidates.find(
@@ -194,8 +205,8 @@ export function PasswordBuildingBlocks({
     readonly start: number;
     readonly end: number;
   } | null {
-    const first = characterOffsets[Math.min(firstIndex, secondIndex)];
-    const last = characterOffsets[Math.max(firstIndex, secondIndex)];
+    const first = selectionCharacters[Math.min(firstIndex, secondIndex)];
+    const last = selectionCharacters[Math.max(firstIndex, secondIndex)];
     return first === undefined || last === undefined ? null : { start: first.start, end: last.end };
   }
 
@@ -204,7 +215,7 @@ export function PasswordBuildingBlocks({
       .elementFromPoint(clientX, clientY)
       ?.closest<HTMLElement>('[data-character-index]');
     const index = Number(element?.dataset.characterIndex);
-    return Number.isInteger(index) && characterOffsets[index] !== undefined ? index : null;
+    return Number.isInteger(index) && selectionCharacters[index] !== undefined ? index : null;
   }
 
   function finishPointerSelection(finalIndex: number): void {
@@ -217,9 +228,131 @@ export function PasswordBuildingBlocks({
   }
 
   function focusCharacter(index: number): void {
-    const boundedIndex = Math.min(Math.max(index, 0), Math.max(parts.length - 1, 0));
+    const boundedIndex = Math.min(
+      Math.max(index, 0),
+      Math.max(selectionCharacters.length - 1, 0),
+    );
     setActiveCharacterIndex(boundedIndex);
     characterButtons.current[boundedIndex]?.focus();
+  }
+
+  const previewRange =
+    pointerSelection === null
+      ? null
+      : rangeForIndexes(pointerSelection.anchorIndex, pointerSelection.currentIndex);
+
+  function renderRangeCharacter(index: number): ReactNode {
+    const selectionCharacter = selectionCharacters[index];
+    if (selectionCharacter === undefined || rangeSelection === undefined) return null;
+    const candidate = candidateAtIndex(index);
+    const previewed =
+      previewRange !== null &&
+      previewRange.start <= selectionCharacter.start &&
+      previewRange.end >= selectionCharacter.end;
+    return (
+      <button
+        className={styles.rangeCharacter}
+        data-character-index={index}
+        data-highlighted={candidate === undefined ? undefined : true}
+        data-preview={previewed && candidate === undefined ? true : undefined}
+        data-range-start={candidate?.start === selectionCharacter.start || undefined}
+        data-range-end={candidate?.end === selectionCharacter.end || undefined}
+        type="button"
+        tabIndex={activeCharacterIndex === index ? 0 : -1}
+        aria-label={`Zeichen ${index + 1} von ${selectionCharacters.length}`}
+        aria-pressed={candidate !== undefined}
+        key={`character-${index}`}
+        ref={(element) => {
+          characterButtons.current[index] = element;
+        }}
+        onFocus={() => setActiveCharacterIndex(index)}
+        onPointerDown={(event) => {
+          if (event.button !== 0) return;
+          event.preventDefault();
+          if (candidate !== undefined) {
+            rangeSelection.onRemove(candidate.id);
+            setKeyboardAnchor(null);
+            setSelectionStatus(rangeSelection.status.removed);
+            return;
+          }
+          event.currentTarget
+            .closest<HTMLElement>('[data-range-selection-surface]')
+            ?.setPointerCapture(event.pointerId);
+          setPointerSelection({
+            pointerId: event.pointerId,
+            anchorIndex: index,
+            currentIndex: index,
+          });
+        }}
+        onKeyDown={(event) => {
+          if (event.key === 'ArrowLeft') {
+            event.preventDefault();
+            focusCharacter(index - 1);
+            return;
+          }
+          if (event.key === 'ArrowRight') {
+            event.preventDefault();
+            focusCharacter(index + 1);
+            return;
+          }
+          if (event.key === 'Home') {
+            event.preventDefault();
+            focusCharacter(0);
+            return;
+          }
+          if (event.key === 'End') {
+            event.preventDefault();
+            focusCharacter(selectionCharacters.length - 1);
+            return;
+          }
+          if (event.key === 'Escape' && keyboardAnchor !== null) {
+            event.preventDefault();
+            setKeyboardAnchor(null);
+            setSelectionStatus(rangeSelection.status.cancelled);
+            return;
+          }
+          if (event.key !== ' ' && event.key !== 'Enter') return;
+          event.preventDefault();
+          if (candidate !== undefined) {
+            rangeSelection.onRemove(candidate.id);
+            setKeyboardAnchor(null);
+            setSelectionStatus(rangeSelection.status.removed);
+            return;
+          }
+          if (keyboardAnchor === null) {
+            setKeyboardAnchor(index);
+            setSelectionStatus(rangeSelection.status.started);
+            return;
+          }
+          const range = rangeForIndexes(keyboardAnchor, index);
+          const added = range !== null && rangeSelection.onCreate(range.start, range.end);
+          setKeyboardAnchor(null);
+          setSelectionStatus(added ? rangeSelection.status.added : rangeSelection.status.invalid);
+        }}
+      >
+        {selectionCharacter.character}
+      </button>
+    );
+  }
+
+  function handleSelectionPointerMove(clientX: number, clientY: number, pointerId: number): void {
+    if (pointerSelection === null || pointerId !== pointerSelection.pointerId) return;
+    const index = characterIndexAtPointer(clientX, clientY);
+    if (index !== null && index !== pointerSelection.currentIndex) {
+      setPointerSelection({ ...pointerSelection, currentIndex: index });
+    }
+  }
+
+  function handleSelectionPointerEnd(
+    surface: HTMLElement,
+    clientX: number,
+    clientY: number,
+    pointerId: number,
+  ): void {
+    if (pointerSelection === null || pointerId !== pointerSelection.pointerId) return;
+    const index = characterIndexAtPointer(clientX, clientY);
+    if (surface.hasPointerCapture(pointerId)) surface.releasePointerCapture(pointerId);
+    finishPointerSelection(index ?? pointerSelection.currentIndex);
   }
 
   if (display === 'assembled') {
@@ -237,111 +370,8 @@ export function PasswordBuildingBlocks({
 
   if (display === 'decomposed') {
     if (continuous) {
-      const activeRangeSelection = rangeSelection;
-      const previewRange =
-        pointerSelection === null
-          ? null
-          : rangeForIndexes(pointerSelection.anchorIndex, pointerSelection.currentIndex);
-      function renderRangeCharacter(index: number): ReactNode {
-        const part = parts[index];
-        const offset = characterOffsets[index];
-        if (
-          part === undefined ||
-          offset === undefined ||
-          activeRangeSelection === undefined
-        ) {
-          return null;
-        }
-        const candidate = candidateAtIndex(index);
-        const previewed =
-          previewRange !== null &&
-          previewRange.start <= offset.start &&
-          previewRange.end >= offset.end;
-        return (
-          <button
-            className={styles.rangeCharacter}
-            data-character-index={index}
-            data-highlighted={candidate === undefined ? undefined : true}
-            data-preview={previewed && candidate === undefined ? true : undefined}
-            type="button"
-            tabIndex={activeCharacterIndex === index ? 0 : -1}
-            aria-label={`Zeichen ${index + 1} von ${parts.length}`}
-            aria-pressed={candidate !== undefined}
-            key={`character-${index}`}
-            ref={(element) => {
-              characterButtons.current[index] = element;
-            }}
-            onFocus={() => setActiveCharacterIndex(index)}
-            onPointerDown={(event) => {
-              if (event.button !== 0) return;
-              event.preventDefault();
-              if (candidate !== undefined) {
-                activeRangeSelection.onRemove(candidate.id);
-                setKeyboardAnchor(null);
-                setSelectionStatus(activeRangeSelection.status.removed);
-                return;
-              }
-              event.currentTarget.parentElement?.setPointerCapture(event.pointerId);
-              setPointerSelection({
-                pointerId: event.pointerId,
-                anchorIndex: index,
-                currentIndex: index,
-              });
-            }}
-            onKeyDown={(event) => {
-              if (event.key === 'ArrowLeft') {
-                event.preventDefault();
-                focusCharacter(index - 1);
-                return;
-              }
-              if (event.key === 'ArrowRight') {
-                event.preventDefault();
-                focusCharacter(index + 1);
-                return;
-              }
-              if (event.key === 'Home') {
-                event.preventDefault();
-                focusCharacter(0);
-                return;
-              }
-              if (event.key === 'End') {
-                event.preventDefault();
-                focusCharacter(parts.length - 1);
-                return;
-              }
-              if (event.key === 'Escape' && keyboardAnchor !== null) {
-                event.preventDefault();
-                setKeyboardAnchor(null);
-                setSelectionStatus(activeRangeSelection.status.cancelled);
-                return;
-              }
-              if (event.key !== ' ' && event.key !== 'Enter') return;
-              event.preventDefault();
-              if (candidate !== undefined) {
-                activeRangeSelection.onRemove(candidate.id);
-                setKeyboardAnchor(null);
-                setSelectionStatus(activeRangeSelection.status.removed);
-                return;
-              }
-              if (keyboardAnchor === null) {
-                setKeyboardAnchor(index);
-                setSelectionStatus(activeRangeSelection.status.started);
-                return;
-              }
-              const range = rangeForIndexes(keyboardAnchor, index);
-              const added = range !== null && activeRangeSelection.onCreate(range.start, range.end);
-              setKeyboardAnchor(null);
-              setSelectionStatus(
-                added ? activeRangeSelection.status.added : activeRangeSelection.status.invalid,
-              );
-            }}
-          >
-            {part}
-          </button>
-        );
-      }
       const continuousParts: readonly ReactNode[] =
-        activeRangeSelection === undefined
+        rangeSelection === undefined
           ? parts.map((part, index) => {
               const categories = categoryIds?.[index] ?? [];
               const partMatchCategories = normalizeLabels(matchCategories?.[index]);
@@ -357,7 +387,7 @@ export function PasswordBuildingBlocks({
                   >
                     <PasswordBlockText
                       value={part}
-                      start={characterOffsets[index]?.start ?? 0}
+                      start={partOffsets[index]?.start ?? 0}
                       personalHighlightRanges={personalHighlightRanges}
                     />
                   </span>
@@ -371,31 +401,7 @@ export function PasswordBuildingBlocks({
                 </span>
               );
             })
-          : (() => {
-              const rendered: ReactNode[] = [];
-              for (let index = 0; index < parts.length; ) {
-                const candidate = candidateAtIndex(index);
-                const offset = characterOffsets[index];
-                if (candidate !== undefined && offset?.start === candidate.start) {
-                  const candidateCharacters: ReactNode[] = [];
-                  let candidateIndex = index;
-                  while (candidateAtIndex(candidateIndex)?.id === candidate.id) {
-                    candidateCharacters.push(renderRangeCharacter(candidateIndex));
-                    candidateIndex += 1;
-                  }
-                  rendered.push(
-                    <span className={styles.rangeCandidate} key={candidate.id}>
-                      {candidateCharacters}
-                    </span>,
-                  );
-                  index = candidateIndex;
-                  continue;
-                }
-                rendered.push(renderRangeCharacter(index));
-                index += 1;
-              }
-              return rendered;
-            })();
+          : selectionCharacters.map((_, index) => renderRangeCharacter(index));
       return (
         <div
           className={styles.blocks}
@@ -407,22 +413,19 @@ export function PasswordBuildingBlocks({
         >
           <code
             className={styles.continuousPassword}
+            data-range-selection-surface
             data-range-selectable={rangeSelection === undefined ? undefined : true}
             data-selecting={pointerSelection === null ? undefined : true}
             onPointerMove={(event) => {
-              if (pointerSelection === null || event.pointerId !== pointerSelection.pointerId) return;
-              const index = characterIndexAtPointer(event.clientX, event.clientY);
-              if (index !== null && index !== pointerSelection.currentIndex) {
-                setPointerSelection({ ...pointerSelection, currentIndex: index });
-              }
+              handleSelectionPointerMove(event.clientX, event.clientY, event.pointerId);
             }}
             onPointerUp={(event) => {
-              if (pointerSelection === null || event.pointerId !== pointerSelection.pointerId) return;
-              const index = characterIndexAtPointer(event.clientX, event.clientY);
-              if (event.currentTarget.hasPointerCapture(event.pointerId)) {
-                event.currentTarget.releasePointerCapture(event.pointerId);
-              }
-              finishPointerSelection(index ?? pointerSelection.currentIndex);
+              handleSelectionPointerEnd(
+                event.currentTarget,
+                event.clientX,
+                event.clientY,
+                event.pointerId,
+              );
             }}
             onPointerCancel={(event) => {
               if (pointerSelection === null || event.pointerId !== pointerSelection.pointerId) return;
@@ -457,7 +460,32 @@ export function PasswordBuildingBlocks({
         aria-label={ariaLabel}
         style={visualStyle}
       >
-        <code className={styles.decomposedPassword} style={gridStyle}>
+        <code
+          className={styles.decomposedPassword}
+          style={gridStyle}
+          data-range-selectable={rangeSelection === undefined ? undefined : true}
+          data-range-selection-surface={rangeSelection === undefined ? undefined : true}
+          data-selecting={pointerSelection === null ? undefined : true}
+          onPointerMove={(event) => {
+            handleSelectionPointerMove(event.clientX, event.clientY, event.pointerId);
+          }}
+          onPointerUp={(event) => {
+            handleSelectionPointerEnd(
+              event.currentTarget,
+              event.clientX,
+              event.clientY,
+              event.pointerId,
+            );
+          }}
+          onPointerCancel={(event) => {
+            if (pointerSelection === null || event.pointerId !== pointerSelection.pointerId) return;
+            if (event.currentTarget.hasPointerCapture(event.pointerId)) {
+              event.currentTarget.releasePointerCapture(event.pointerId);
+            }
+            setPointerSelection(null);
+            setSelectionStatus(rangeSelection?.status.cancelled ?? '');
+          }}
+        >
           {parts.map((part, index) => {
             const partLabels = normalizeLabels(labels?.[index]);
             const partFindings = findings?.[index] ?? [];
@@ -471,15 +499,24 @@ export function PasswordBuildingBlocks({
                   data-block-value
                   data-obscured={'•'.repeat([...part].length)}
                 >
-                  {joiningSegments.length === 1
-                    ? (
+                  {rangeSelection !== undefined
+                    ? selectionCharacters.flatMap((character, characterIndex) => {
+                        const partOffset = partOffsets[index];
+                        return partOffset !== undefined &&
+                          character.start >= partOffset.start &&
+                          character.end <= partOffset.end
+                          ? [renderRangeCharacter(characterIndex)]
+                          : [];
+                      })
+                    : joiningSegments.length === 1
+                      ? (
                         <PasswordBlockText
                           value={part}
-                          start={characterOffsets[index]?.start ?? 0}
+                          start={partOffsets[index]?.start ?? 0}
                           personalHighlightRanges={personalHighlightRanges}
                         />
                       )
-                    : joiningSegments.map((segment, segmentIndex) => (
+                      : joiningSegments.map((segment, segmentIndex) => (
                         <span
                           className={styles.joiningSegment}
                           key={`${segment}-${segmentIndex}`}
@@ -552,6 +589,11 @@ export function PasswordBuildingBlocks({
             );
           })}
         </code>
+        {rangeSelection === undefined ? null : (
+          <span className={styles.selectionStatus} aria-live="polite">
+            {selectionStatus}
+          </span>
+        )}
       </div>
     );
   }

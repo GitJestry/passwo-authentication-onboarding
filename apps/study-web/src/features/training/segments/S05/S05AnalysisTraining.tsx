@@ -4,6 +4,7 @@ import type { DesktopPlatform } from '@passwo/ui';
 import {
   type CSSProperties,
   type ReactNode,
+  useCallback,
   useEffect,
   useLayoutEffect,
   useMemo,
@@ -27,7 +28,9 @@ import {
 } from './PasswordBuildingBlocks.js';
 import {
   passwordCategoryAssets,
+  PasswordCategoryHoverCoachProvider,
   PasswordCategoryIconStack,
+  type PasswordCategoryHoverCoachContextValue,
 } from './PasswordCategoryIcon.js';
 import { PasswordComponentReview } from './PasswordComponentReview.js';
 import { structureGroupColor, structureGroupLetter } from './StructureGroupPalette.js';
@@ -57,6 +60,15 @@ export type S05TimingState = 'active' | 'writingEnd' | 'endWriteFailed';
 export interface S05CompletionPort {
   complete(): void;
 }
+
+type PasswordCategoryHoverCoachState =
+  | { readonly status: 'waiting' }
+  | {
+      readonly status: 'active';
+      readonly targetId: string;
+      readonly sceneKey: string;
+    }
+  | { readonly status: 'dismissed' };
 
 export interface S05AnalysisTrainingProps {
   readonly subject: S05AnalysisSubject;
@@ -561,15 +573,6 @@ function CategoryTransition({
   );
 }
 
-function categoryForStep(
-  step: S05AnalysisControllerSnapshot['step'],
-): S05ComponentCategoryId | null {
-  if (step.startsWith('common-components-')) return 'common-components';
-  if (step.startsWith('personal-details-')) return 'personal-details';
-  if (step.startsWith('account-context-')) return 'account-context';
-  return null;
-}
-
 function ComponentReviewCard({
   snapshot,
 }: {
@@ -628,10 +631,7 @@ function CanonicalPasswordView({
 }) {
   const view = snapshot.componentStrategy.canonicalView;
   if (view === null) return null;
-  const focus = snapshot.step === 'components-summary' ? null : categoryForStep(snapshot.step);
-  const findings = releasedComponentFindings(snapshot);
-  const visibleFindings =
-    focus === null ? findings : findings.filter(({ categoryId }) => categoryId === focus);
+  const visibleFindings = releasedComponentFindings(snapshot);
   const selectingPersonalDetails = snapshot.step === 'personal-details-check';
   const displayBlocks = projectCanonicalPasswordBlocks(view, visibleFindings);
   const displayBlockFindings = displayBlocks.map(({ findings: blockFindings }) => blockFindings);
@@ -641,13 +641,8 @@ function CanonicalPasswordView({
     .map(({ value, findings: blockFindings }) =>
       `${value}: ${blockFindings.map(({ label }) => label).join(', ')}`,
     );
-  const selectionCharacters = [...view.password];
   const hasReleasedFindings = visibleFindings.length > 0;
-  const parts = selectingPersonalDetails
-    ? selectionCharacters
-    : hasReleasedFindings
-      ? displayBlocks.map(({ value }) => value)
-      : [view.password];
+  const parts = hasReleasedFindings ? displayBlocks.map(({ value }) => value) : [view.password];
   return (
     <section
       className={styles.canonicalPassword}
@@ -663,37 +658,15 @@ function CanonicalPasswordView({
           parts={parts}
           display="decomposed"
           appearance="analysis"
-          continuous={selectingPersonalDetails}
           animate={hasReleasedFindings}
           categoryIds={
-            selectingPersonalDetails
-              ? selectionCharacters.map(() => [])
-              : hasReleasedFindings
-                ? displayBlocks.map(({ categoryIds }) => categoryIds)
-                : [[]]
+            hasReleasedFindings ? displayBlocks.map(({ categoryIds }) => categoryIds) : [[]]
           }
-          matchCategories={
-            selectingPersonalDetails
-              ? selectionCharacters.map(() => [])
-              : hasReleasedFindings
-                ? displayBlocks.map(({ matchCategories }) => matchCategories)
-                : [[]]
-          }
-          labels={
-            selectingPersonalDetails || snapshot.step === 'components-summary'
-              ? parts.map(() => [])
-              : hasReleasedFindings
-                ? displayBlocks.map(({ matchCategories }) => matchCategories)
-                : [[]]
-          }
+          labels={parts.map(() => [])}
           findings={
-            selectingPersonalDetails
-              ? selectionCharacters.map(() => [])
-              : hasReleasedFindings
-                ? displayBlockFindings
-                : [[]]
+            hasReleasedFindings ? displayBlockFindings : [[]]
           }
-          findingDisplay={snapshot.step === 'components-summary' ? 'icons' : 'labels'}
+          findingDisplay="icons"
           personalHighlightRanges={snapshot.componentStrategy.personalSelection.candidates}
           {...(selectingPersonalDetails
             ? {
@@ -778,10 +751,6 @@ function ComponentStrategyScene({
 const structurePatternKeys = ['theme', 'sentence', 'repetition'] as const;
 
 type StructureReflectionColorStyle = CSSProperties & {
-  readonly '--s05-structure-reflection-color': string;
-};
-
-type StructureSummaryTokenStyle = CSSProperties & {
   readonly '--s05-structure-reflection-color': string;
 };
 
@@ -1008,7 +977,7 @@ function StructureReflectionToken({
   const categoryId = block.categoryIds.find(
     (candidate): candidate is S05ComponentCategoryId => candidate !== 'repetition',
   );
-  const style: StructureSummaryTokenStyle | undefined =
+  const style: StructureReflectionColorStyle | undefined =
     color === null ? undefined : { '--s05-structure-reflection-color': color };
   const repetitionSegments = repetitionSegmentsForBlock(block, repetitionGroup);
   const fullRepetition =
@@ -1293,13 +1262,13 @@ function StructureContentReflection({
   const activeGroup = reflection.contentGroups.find(
     ({ id }) => id === reflection.activeContentGroupId,
   );
-  const hasInput = reflection.contentGroups.some(({ blockIds }) => blockIds.length > 0);
+  const hasInput = reflection.contentGroups.some(({ blockIds }) => blockIds.length >= 2);
   const groupLimitReached =
     reflection.contentGroups.length >= s05Content.structure.reflection.maxGroupCount;
   const canAddGroup =
     !groupLimitReached &&
     activeGroup !== undefined &&
-    reflection.contentGroups.every(({ blockIds }) => blockIds.length > 0);
+    reflection.contentGroups.every(({ blockIds }) => blockIds.length >= 2);
 
   function finish(): void {
     if (hasInput) {
@@ -3898,7 +3867,60 @@ export function S05AnalysisTraining({
   const hostRef = useRef<HTMLElement | null>(null);
   const [controller, setController] = useState<S05AnalysisController | null>(null);
   const [snapshot, setSnapshot] = useState<S05AnalysisControllerSnapshot | null>(null);
+  const [hoverCoachState, setHoverCoachState] = useState<PasswordCategoryHoverCoachState>({
+    status: 'waiting',
+  });
   const timingFailure = externalTimingError !== null || timingState === 'endWriteFailed';
+  const hoverCoachSceneKey = snapshot?.step ?? 's05-loading';
+  const hoverCoachEnabled =
+    snapshot !== null &&
+    snapshot.step !== 'common-components-intro' &&
+    snapshot.step !== 'personal-details-check' &&
+    snapshot.step !== 'account-context-intro';
+  const hoverCoachSceneKeyRef = useRef(hoverCoachSceneKey);
+  hoverCoachSceneKeyRef.current = hoverCoachSceneKey;
+  const dismissVisibleCategoryHoverCoach = useCallback(() => {
+    setHoverCoachState((current) =>
+      current.status === 'active' ||
+      (current.status === 'waiting' &&
+        (hostRef.current?.querySelector('[data-category-stack]') ?? null) !== null)
+        ? { status: 'dismissed' }
+        : current,
+    );
+  }, []);
+  const consumeCategoryHoverCoach = useCallback(() => {
+    setHoverCoachState((current) =>
+      current.status === 'dismissed' ? current : { status: 'dismissed' },
+    );
+  }, []);
+  const claimCategoryHoverCoach = useCallback((targetId: string, sceneKey: string) => {
+    if (sceneKey !== hoverCoachSceneKeyRef.current) return;
+    setHoverCoachState((current) =>
+      current.status === 'waiting'
+        ? { status: 'active', targetId, sceneKey }
+        : current,
+    );
+  }, []);
+  const hoverCoachContext = useMemo<PasswordCategoryHoverCoachContextValue>(
+    () => ({
+      activeTargetId:
+        hoverCoachState.status === 'active' &&
+        hoverCoachState.sceneKey === hoverCoachSceneKey
+          ? hoverCoachState.targetId
+          : null,
+      enabled: hoverCoachEnabled,
+      sceneKey: hoverCoachSceneKey,
+      claim: claimCategoryHoverCoach,
+      dismiss: consumeCategoryHoverCoach,
+    }),
+    [
+      claimCategoryHoverCoach,
+      consumeCategoryHoverCoach,
+      hoverCoachEnabled,
+      hoverCoachSceneKey,
+      hoverCoachState,
+    ],
+  );
 
   useEffect(() => {
     const animationPlayer = new S05AnimationAdapter({
@@ -3933,6 +3955,14 @@ export function S05AnalysisTraining({
     onSemanticEvidenceChange?.(snapshot.semanticEvidence);
   }, [onSemanticEvidenceChange, snapshot?.semanticEvidence]);
 
+  useEffect(() => {
+    setHoverCoachState((current) =>
+      current.status === 'active' && current.sceneKey !== hoverCoachSceneKey
+        ? { status: 'dismissed' }
+        : current,
+    );
+  }, [hoverCoachSceneKey]);
+
   if (controller === null || snapshot === null) return null;
 
   const activeController = controller;
@@ -3941,8 +3971,10 @@ export function S05AnalysisTraining({
   const speech = speechFor(activeSnapshot);
   const guidanceVisible = speech !== null;
   const personalCheckVisible = activeSnapshot.step === 'personal-details-check';
+  const hasReleasedCategoryInfo = releasedComponentFindings(activeSnapshot).length > 0;
 
   function continueFromSpeech(): void {
+    dismissVisibleCategoryHoverCoach();
     activeController.continue();
   }
 
@@ -3956,7 +3988,10 @@ export function S05AnalysisTraining({
           kind: 'advance' as const,
           label: s05Content.componentStrategy.commonComponents.check,
           disabled,
-          onAction: () => activeController.completeCommonComponentsCheck(),
+          onAction: () => {
+            dismissVisibleCategoryHoverCoach();
+            activeController.completeCommonComponentsCheck();
+          },
         };
       case 'personal-details-intro':
         return {
@@ -3977,7 +4012,10 @@ export function S05AnalysisTraining({
           kind: 'advance' as const,
           label: s05Content.componentStrategy.accountContext.check,
           disabled,
-          onAction: () => activeController.completeAccountContextCheck(),
+          onAction: () => {
+            dismissVisibleCategoryHoverCoach();
+            activeController.completeAccountContextCheck();
+          },
         };
       case 'estimate':
         return activeSnapshot.estimate.confirmed
@@ -4011,8 +4049,9 @@ export function S05AnalysisTraining({
   const currentSpeechAction = speechAction();
 
   return (
-    <section ref={hostRef} className={styles.training} aria-label={s05Content.trainingAriaLabel}>
-      <article className={styles.page}>
+    <PasswordCategoryHoverCoachProvider value={hoverCoachContext}>
+      <section ref={hostRef} className={styles.training} aria-label={s05Content.trainingAriaLabel}>
+        <article className={styles.page}>
         {transitionCategoryId === null ? null : (
           <CategoryTransition categoryId={transitionCategoryId} />
         )}
@@ -4021,6 +4060,7 @@ export function S05AnalysisTraining({
           aria-live="polite"
           inert={
             guidanceVisible &&
+            !hasReleasedCategoryInfo &&
             snapshot.step !== 'components-summary' &&
             snapshot.step !== 'estimate' &&
             !snapshot.step.startsWith('length-') &&
@@ -4097,7 +4137,8 @@ export function S05AnalysisTraining({
               </section>
             ) : null}
         </footer>
-      </article>
-    </section>
+        </article>
+      </section>
+    </PasswordCategoryHoverCoachProvider>
   );
 }
