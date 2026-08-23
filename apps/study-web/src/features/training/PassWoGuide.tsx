@@ -35,6 +35,7 @@ export interface PassWoGuideProps {
   readonly speechEmphasis?: readonly PassWoSpeechEmphasis[];
   readonly mutedSpeechParagraphIndexes?: readonly number[];
   readonly speechFooter?: ReactNode;
+  readonly speechAdjacent?: ReactNode;
   readonly speechPlacement?: PassWoSpeechPlacement;
   readonly speechTone?: PassWoSpeechTone;
   readonly speechObstacleSelector?: string;
@@ -76,6 +77,7 @@ export function PassWoGuide({
   speechEmphasis,
   mutedSpeechParagraphIndexes,
   speechFooter,
+  speechAdjacent,
   speechPlacement = 'right',
   speechTone = 'light',
   speechObstacleSelector,
@@ -193,6 +195,7 @@ export function PassWoGuide({
           id={helpId}
           className={styles.speechSlot}
           data-positioned={speechPosition !== null}
+          data-has-adjacent={speechAdjacent !== undefined || undefined}
           style={passWoSpeechPositionStyle(speechPosition)}
         >
           <PassWoSpeechBubble
@@ -208,6 +211,9 @@ export function PassWoGuide({
             {...(speechPosition === null ? {} : { arrowOffset: speechPosition.arrowOffset })}
             {...(speechAction === undefined ? {} : { action: speechAction })}
           />
+          {speechAdjacent === undefined ? null : (
+            <div className={styles.speechAdjacent}>{speechAdjacent}</div>
+          )}
         </div>
       ) : null}
     </aside>

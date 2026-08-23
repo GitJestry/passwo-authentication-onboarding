@@ -7,12 +7,12 @@ const canonicalAccountIds = ['master-campus', 'campus-email', 'campusgram'] as c
 
 describe('S00 to S02 training-content traceability', () => {
   it('keeps S00 linked to its named source page and canonical accounts', () => {
-    expect(S00_CONTENT_VERSION).toBe('1.24.0');
+    expect(S00_CONTENT_VERSION).toBe('1.25.0');
     expect(s00Content.source).toMatchObject({
       document: 'research/private/training-script.pdf',
       internalPage: 2,
       copyReference:
-        'docs/design/S06-S07-COPY-AUDIT.md#copy--und-ablaufdelta-s06-abschluss-und-s07-kontorückmeldung-15-august-2026',
+        'docs/design/S00-S05-COPY-AUDIT.md#copy-delta-s00-eigene-passwoerter-23-august-2026',
     });
     expect(s00Content.segment.id).toBe('S00');
     expect(s00Content.sectionTransition).toMatchObject({
@@ -22,7 +22,7 @@ describe('S00 to S02 training-content traceability', () => {
       parts: [
         { id: 'account-setup', label: 'Konten einrichten' },
         { id: 'password-strength', label: 'Passwortstärke verstehen' },
-        { id: 'unique-passwords', label: 'Passwörter einzigartig halten' },
+        { id: 'unique-passwords', label: 'Für jedes Konto ein eigenes Passwort' },
         { id: 'change-passwords', label: 'Passwort sicher ersetzen' },
       ],
     });

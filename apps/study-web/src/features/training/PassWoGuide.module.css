@@ -103,6 +103,36 @@
   opacity: 1;
 }
 
+.speechSlot[data-has-adjacent="true"] {
+  --passwo-adjacent-bubble-width: min(
+    calc(var(--artifact-unit, 1rem) * 23),
+    38cqi
+  );
+  --passwo-adjacent-content-width: min(
+    calc(var(--artifact-unit, 1rem) * 28),
+    38cqi
+  );
+  --passwo-adjacent-collapsed-half-height: calc(3rem + var(--space-1));
+
+  width: calc(
+    var(--passwo-adjacent-bubble-width) + var(--passwo-adjacent-content-width) + var(--space-3)
+  );
+  min-width: 0;
+}
+
+.speechSlot[data-has-adjacent="true"] > :first-child {
+  width: var(--passwo-adjacent-bubble-width);
+  min-width: 0;
+  max-width: none;
+}
+
+.speechAdjacent {
+  position: absolute;
+  right: 0;
+  bottom: calc(50% - var(--passwo-adjacent-collapsed-half-height));
+  width: var(--passwo-adjacent-content-width);
+}
+
 .guideDock {
   position: relative;
   display: grid;
@@ -294,6 +324,28 @@
 
 :global([data-artifact-layout="compact"]) .speechSlot {
   width: min(24rem, calc(100cqi - var(--space-6)));
+}
+
+:global([data-artifact-layout="compact"]) .speechSlot[data-has-adjacent="true"] {
+  width: calc(
+    var(--passwo-adjacent-bubble-width) + var(--passwo-adjacent-content-width) + var(--space-3)
+  );
+}
+
+@container artifact-stage (max-width: 42rem) {
+  .speechSlot[data-has-adjacent="true"] {
+    width: min(24rem, calc(100cqi - var(--space-6)));
+  }
+
+  .speechSlot[data-has-adjacent="true"] > :first-child {
+    width: 100%;
+  }
+
+  .speechAdjacent {
+    right: 0;
+    bottom: calc(100% + var(--space-3));
+    width: 100%;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {

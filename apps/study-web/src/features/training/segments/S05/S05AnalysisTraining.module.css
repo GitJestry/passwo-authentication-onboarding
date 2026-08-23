@@ -491,6 +491,11 @@
   pointer-events: auto;
 }
 
+.lengthOrientationInformationAdjacent {
+  position: static;
+  width: 100%;
+}
+
 .lengthOrientationInformationItem {
   display: grid;
   gap: var(--space-2);
@@ -562,7 +567,9 @@
 }
 
 .lengthOrientationInformationPanel {
+  max-height: min(15rem, 28cqb);
   padding: var(--space-3) var(--space-4);
+  overflow: auto;
   border-radius: var(--radius-medium);
   font-size: var(--font-size-small);
   line-height: var(--line-height-body);
@@ -5790,9 +5797,8 @@
     width: auto;
   }
 
-  .lengthOrientationInformationPanel {
-    max-height: min(15rem, 28cqb);
-    overflow: auto;
+  .lengthOrientationInformationAdjacent {
+    width: 100%;
   }
 
   .wordPoolCase[data-case="long-word"] {

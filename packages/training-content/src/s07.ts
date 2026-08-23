@@ -1,6 +1,6 @@
 import type { TrainingSectionId } from '@passwo/contracts';
 
-export const S07_PASSPHRASE_SEARCH_CONTENT_VERSION = '4.18.0';
+export const S07_PASSPHRASE_SEARCH_CONTENT_VERSION = '4.19.0';
 
 export type S07OpenConnectionKind = 'none' | 'similar' | 'identical';
 
@@ -28,17 +28,17 @@ export function summarizeS07AccountSituation(situation: S07AccountSituation): st
     return 'Bei den anderen Konten wird noch dasselbe Passwort oder eine leichte Abwandlung verwendet.';
   }
   if (hasEasyToGuessPassword) {
-    return 'Die anderen Kontopasswörter sind bereits einzigartig. Mindestens eines lässt sich aber noch leicht erraten.';
+    return 'Die anderen Konten verwenden bereits jeweils ein eigenes Passwort. Mindestens eines lässt sich aber noch leicht erraten.';
   }
-  return 'Die anderen Kontopasswörter sind bereits einzigartig und schwer zu erraten.';
+  return 'Die anderen Konten verwenden bereits eigene Passwörter, die sich schwer erraten lassen.';
 }
 
 export const s07PassphraseSearchContent = {
   version: S07_PASSPHRASE_SEARCH_CONTENT_VERSION,
   source: {
-    revision: 'Userauftrag vom 2026-08-23 · S07 Campusgram-Erfolgsnachricht präzisiert',
+    revision: 'Userauftrag vom 2026-08-23 · sichtbare Texte zu eigenen Passwörtern präzisiert',
     copyReference:
-      'docs/design/S06-S07-COPY-AUDIT.md#copy-delta-s07-campusgram-erfolgsnachricht-praezisiert-23-august-2026',
+      'docs/design/S06-S07-COPY-AUDIT.md#copy-delta-s06-s07-eigene-passwoerter-23-august-2026',
   },
   segment: {
     id: 'S07',
@@ -49,7 +49,7 @@ export const s07PassphraseSearchContent = {
   guide: {
     taskLabel: 'Passphrase erstellen',
     methodIntro:
-      'Für das neue Campusgram-Passwort nutzen wir jetzt sechs zufällige, voneinander unabhängige Wörter. Ein solches Passwort nennt man Passphrase.',
+      'Für das neue Campusgram-Passwort nutzen wir jetzt sechs zufällige, voneinander unabhängige Wörter. Ein Passwort aus mehreren Wörtern nennt man Passphrase.',
     searchIntro:
       'Lass dir hier im eingeblendeten Browser eine solche Passphrase generieren und ersetze damit das betroffene Passwort.',
     generating: 'Passphrase wird erstellt …',
@@ -70,7 +70,7 @@ export const s07PassphraseSearchContent = {
     campusgramPasswordChangeCompleted: {
       title: 'Campusgram-Passwort wurde erfolgreich ersetzt',
       shieldLabels: {
-        green: 'Einzigartig',
+        green: 'Nur für dieses Konto',
         blue: 'Stark',
       },
     },
@@ -177,13 +177,13 @@ export const s07PassphraseSearchContent = {
           domain: 'https://www.netzblick.example/wissen/gute-passphrase',
           title: 'Wie finde ich eine gute Passphrase?',
           description:
-            'Praktische Orientierung zu Länge, Einzigartigkeit und Merkbarkeit – ohne echte Konten oder persönliche Angaben zu verwenden.',
+            'Praktische Orientierung zu Länge, eigenen Passwörtern und Merkbarkeit – ohne echte Konten oder persönliche Angaben zu verwenden.',
         },
         {
           id: 'privacy-labor',
           siteName: 'Privacy Labor',
           domain: 'https://privacy-labor.example/kompakt/passphrase',
-          title: 'Passphrase kompakt: zufällig, lang und einzigartig',
+          title: 'Passphrase kompakt: zufällig, lang und für jedes Konto anders',
           description:
             'Eine kurze Checkliste für neue Passphrasen und Hinweise dazu, weshalb bekannte Zitate oder persönliche Daten ungeeignet sind.',
         },

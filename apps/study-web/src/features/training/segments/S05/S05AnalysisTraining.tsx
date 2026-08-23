@@ -3577,11 +3577,20 @@ function transitionCategoryForStep(
 type LengthOrientationInformationId =
   (typeof s05Content.freeSearch.lengthExamples.orientationInformation)[number]['id'];
 
-function LengthOrientationInformation() {
+function LengthOrientationInformation({
+  className,
+}: {
+  readonly className?: string | undefined;
+}) {
   const [openId, setOpenId] = useState<LengthOrientationInformationId | null>(null);
 
   return (
-    <aside className={styles.lengthOrientationInformation} aria-label="Zusätzliche Informationen">
+    <aside
+      className={`${styles.lengthOrientationInformation}${
+        className === undefined ? '' : ` ${className}`
+      }`}
+      aria-label="Zusätzliche Informationen"
+    >
       {s05Content.freeSearch.lengthExamples.orientationInformation.map((item) => {
         const expanded = openId === item.id;
         const buttonId = `s05-length-orientation-${item.id}-button`;
@@ -3782,6 +3791,13 @@ export function S05AnalysisTraining({
               speech={speech}
               speechKey={`s05-${snapshot.step}`}
               speechEmphasis={passWoSpeechEmphasisFor(`s05-${snapshot.step}`)}
+              speechAdjacent={
+                snapshot.step === 'length-orientation' ? (
+                  <LengthOrientationInformation
+                    className={styles.lengthOrientationInformationAdjacent}
+                  />
+                ) : undefined
+              }
               {...(snapshot.step === 'component-category-overview'
                 ? { mutedSpeechParagraphIndexes: [1] }
                 : {})}
@@ -3803,9 +3819,6 @@ export function S05AnalysisTraining({
               placement="bottom-left"
               showHelpButton={false}
             />
-            {snapshot.step === 'length-orientation' ? (
-              <LengthOrientationInformation />
-            ) : null}
           </div>
         )}
         <footer

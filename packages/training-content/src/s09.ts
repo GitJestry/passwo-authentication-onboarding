@@ -1,13 +1,13 @@
 import type { TrainingSectionId } from '@passwo/contracts';
 
-export const S09_PASSWORD_SUMMARY_CONTENT_VERSION = '4.2.0';
+export const S09_PASSWORD_SUMMARY_CONTENT_VERSION = '4.3.0';
 
 export const s09PasswordSummaryContent = {
   version: S09_PASSWORD_SUMMARY_CONTENT_VERSION,
   source: {
-    revision: 'Userauftrag vom 2026-08-23 · S09 Passphrasenmethode umbenannt',
+    revision: 'Userauftrag vom 2026-08-23 · sichtbare Texte zu eigenen Passwörtern präzisiert',
     copyReference:
-      'docs/design/S08-S09-COPY-AUDIT.md#copy-delta-s09-passphrasenmethode-umbenannt-23-august-2026',
+      'docs/design/S08-S09-COPY-AUDIT.md#copy-delta-s08-s09-eigene-passwoerter-23-august-2026',
   },
   segment: {
     id: 'S09',
@@ -88,7 +88,7 @@ export const s09PasswordSummaryContent = {
     steps: [
       'Hier im kleinen Szenario waren es nur drei Konten.',
       'Im Alltag sind es aber deutlich mehr: Eine aktuelle CHI-Studie (2026) kommt auf rund 134 Online-Dienste pro Person.',
-      'Bleiben wir unter dem Wert: Wie realistisch wäre es für dich, dir selbst „nur“ 80 starke und einzigartige Passwörter dauerhaft zu merken?',
+      'Bleiben wir unter dem Wert: Wie realistisch wäre es für dich, dir selbst „nur“ 80 starke Passwörter, für jedes Konto ein eigenes, dauerhaft zu merken?',
       'So viele einzelne Passwörter dauerhaft im Kopf zu behalten, ist nicht realistisch. Deshalb ist es auch nachvollziehbar, dass Menschen dasselbe Passwort für mehrere Konten verwenden, es leicht abwandeln oder Passwörter in eigenen Listen festhalten.',
       'Welche Risiken dabei entstehen können, hast du gerade gesehen. Auch ungeschützte Passwortlisten können selbst zum Risiko werden.',
       'Die gute Nachricht: Du musst dir all diese Passwörter auch gar nicht selbst merken.',

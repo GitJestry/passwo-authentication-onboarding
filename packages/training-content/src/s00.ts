@@ -81,7 +81,7 @@ export interface S00SegmentContent {
   };
 }
 
-export const S00_CONTENT_VERSION = '1.24.0';
+export const S00_CONTENT_VERSION = '1.25.0';
 
 export const s00Content: S00SegmentContent = {
   version: S00_CONTENT_VERSION,
@@ -104,7 +104,7 @@ export const s00Content: S00SegmentContent = {
     parts: [
       { id: 'account-setup', label: 'Konten einrichten' },
       { id: 'password-strength', label: 'Passwortstärke verstehen' },
-      { id: 'unique-passwords', label: 'Passwörter einzigartig halten' },
+      { id: 'unique-passwords', label: 'Für jedes Konto ein eigenes Passwort' },
       { id: 'change-passwords', label: 'Passwort sicher ersetzen' },
     ],
   },
@@ -113,7 +113,7 @@ export const s00Content: S00SegmentContent = {
     internalPage: 2,
     uxReference: 'Vom Nutzer bereitgestellte UX-Konzeptboards, 2026-07-31',
     copyReference:
-      'docs/design/S06-S07-COPY-AUDIT.md#copy--und-ablaufdelta-s06-abschluss-und-s07-kontorückmeldung-15-august-2026',
+      'docs/design/S00-S05-COPY-AUDIT.md#copy-delta-s00-eigene-passwoerter-23-august-2026',
   },
   segment: {
     id: 'S00',

@@ -184,7 +184,7 @@ const emphasisBySpeechId: Readonly<Record<string, readonly PassWoSpeechEmphasis[
   's09-scaling-expansion': [{ phrase: 'deutlich mehr', tone: 'accent' }],
   's09-scaling-question': [
     {
-      phrase: '80 starke und einzigartige Passwörter dauerhaft zu merken',
+      phrase: '80 starke Passwörter, für jedes Konto ein eigenes, dauerhaft zu merken',
       tone: 'accent',
     },
   ],

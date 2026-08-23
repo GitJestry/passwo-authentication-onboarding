@@ -9,17 +9,17 @@ import { S08_NETWORK_REPLAY_CONTENT_VERSION, s08NetworkReplayContent } from './s
 import { S09_PASSWORD_SUMMARY_CONTENT_VERSION, s09PasswordSummaryContent } from './s09.js';
 
 const s06AttackFlowCopyReference =
-  'docs/design/S06-S07-COPY-AUDIT.md#copy-delta-s06-vergleichslabels-fuer-passwort-abwandlungen-vereinheitlicht-22-august-2026';
+  'docs/design/S06-S07-COPY-AUDIT.md#copy-delta-s06-s07-eigene-passwoerter-23-august-2026';
 const s07EntryCopyReference =
-  'docs/design/S06-S07-COPY-AUDIT.md#copy-delta-s05-s09-terminologie-fuer-passwort-abwandlungen-vereinheitlicht-22-august-2026';
+  'docs/design/S06-S07-COPY-AUDIT.md#copy-delta-s06-s07-eigene-passwoerter-23-august-2026';
 const s08CopyReference =
-  'docs/design/S08-S09-COPY-AUDIT.md#copy-delta-s08-zusammenfassungsnavigation-22-august-2026';
+  'docs/design/S08-S09-COPY-AUDIT.md#copy-delta-s08-s09-eigene-passwoerter-23-august-2026';
 const s09CopyReference =
-  'docs/design/S08-S09-COPY-AUDIT.md#copy-delta-s05-s09-terminologie-fuer-passwort-abwandlungen-vereinheitlicht-22-august-2026';
+  'docs/design/S08-S09-COPY-AUDIT.md#copy-delta-s08-s09-eigene-passwoerter-23-august-2026';
 
 describe('S06 transition and S07 passphrase-search copy traceability', () => {
   it('keeps S06 consequence wording aligned with bounded whole-password recognition', () => {
-    expect(S06_CONSEQUENCE_CONTENT_VERSION).toBe('2.28.0');
+    expect(S06_CONSEQUENCE_CONTENT_VERSION).toBe('2.29.0');
     expect(s06ConsequenceContent.source.copyReference).toBe(s06AttackFlowCopyReference);
     expect(s06ConsequenceContent.page.attackStart).toBe('Angriff starten');
     expect(s06ConsequenceContent.page.finish).toBe('Fertig');
@@ -66,7 +66,7 @@ describe('S06 transition and S07 passphrase-search copy traceability', () => {
       },
       's06.local-check.campus-email-found': {
         heading: 'Lokaler Einzelcheck von Campus E-Mail',
-        body: 'Auch dieses Passwort gilt hier als gefunden. Einzigartigkeit verhindert die Ausbreitung zwischen Konten, trotzdem sollte jedes Passwort auch für sich stark sein.',
+        body: 'Auch dieses Passwort gilt hier als gefunden. Vom bekannten Passwort führte aber kein direkter Weg zu diesem Konto. Trotzdem sollte jedes Passwort auch für sich schwer zu erraten sein.',
       },
       's06.local-check.campus-email-blocked': {
         heading: 'Lokaler Einzelcheck von Campus E-Mail',
@@ -159,14 +159,14 @@ describe('S06 transition and S07 passphrase-search copy traceability', () => {
   });
 
   it('keeps S07 linked to the passphrase-search browser state', () => {
-    expect(S07_PASSPHRASE_SEARCH_CONTENT_VERSION).toBe('4.18.0');
+    expect(S07_PASSPHRASE_SEARCH_CONTENT_VERSION).toBe('4.19.0');
     expect(s07PassphraseSearchContent.source.copyReference).toBe(
       s07EntryCopyReference,
     );
     expect(s07PassphraseSearchContent.browser.passwordChangeTitle).toBe('Passwort ändern');
     expect(s07PassphraseSearchContent.guide).toMatchObject({
       methodIntro:
-        'Für das neue Campusgram-Passwort nutzen wir jetzt sechs zufällige, voneinander unabhängige Wörter. Ein solches Passwort nennt man Passphrase.',
+        'Für das neue Campusgram-Passwort nutzen wir jetzt sechs zufällige, voneinander unabhängige Wörter. Ein Passwort aus mehreren Wörtern nennt man Passphrase.',
       searchIntro:
         'Lass dir hier im eingeblendeten Browser eine solche Passphrase generieren und ersetze damit das betroffene Passwort.',
       generating: 'Passphrase wird erstellt …',
@@ -200,7 +200,7 @@ describe('S06 transition and S07 passphrase-search copy traceability', () => {
         campusEmailEasyToGuess: true,
       }),
     ).toBe(
-      'Die anderen Kontopasswörter sind bereits einzigartig. Mindestens eines lässt sich aber noch leicht erraten.',
+      'Die anderen Konten verwenden bereits jeweils ein eigenes Passwort. Mindestens eines lässt sich aber noch leicht erraten.',
     );
     expect(
       s07PassphraseSearchContent.guide.accountSummary({
@@ -221,11 +221,11 @@ describe('S06 transition and S07 passphrase-search copy traceability', () => {
         masterCampusEasyToGuess: false,
         campusEmailEasyToGuess: false,
       }),
-    ).toBe('Die anderen Kontopasswörter sind bereits einzigartig und schwer zu erraten.');
+    ).toBe('Die anderen Konten verwenden bereits eigene Passwörter, die sich schwer erraten lassen.');
     expect(s07PassphraseSearchContent.browser.campusgramPasswordChangeCompleted).toEqual({
       title: 'Campusgram-Passwort wurde erfolgreich ersetzt',
       shieldLabels: {
-        green: 'Einzigartig',
+        green: 'Nur für dieses Konto',
         blue: 'Stark',
       },
     });
@@ -237,6 +237,19 @@ describe('S06 transition and S07 passphrase-search copy traceability', () => {
     );
     expect(s07PassphraseSearchContent.browser.searchPage.results).toHaveLength(9);
     expect(s07PassphraseSearchContent.browser.searchPage.resultsDelayMs).toBe(900);
+    expect(s07PassphraseSearchContent.browser.searchPage.results).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          id: 'netzblick',
+          description:
+            'Praktische Orientierung zu Länge, eigenen Passwörtern und Merkbarkeit – ohne echte Konten oder persönliche Angaben zu verwenden.',
+        }),
+        expect.objectContaining({
+          id: 'privacy-labor',
+          title: 'Passphrase kompakt: zufällig, lang und für jedes Konto anders',
+        }),
+      ]),
+    );
     expect(s07PassphraseSearchContent.browser.generatorPage.separators).toEqual([
       { label: 'Bindestrich', value: '-' },
       { label: 'Punkt', value: '.' },
@@ -284,11 +297,19 @@ describe('S06 transition and S07 passphrase-search copy traceability', () => {
   });
 
   it('keeps S08 linked to the protected replay wording', () => {
-    expect(S08_NETWORK_REPLAY_CONTENT_VERSION).toBe('3.7.0');
+    expect(S08_NETWORK_REPLAY_CONTENT_VERSION).toBe('3.8.0');
     expect(s08NetworkReplayContent.source.copyReference).toBe(s08CopyReference);
     expect(s08NetworkReplayContent.protectionAction).toBe(
-      'Einzigartige Passphrase verwenden',
+      'Eigene Passphrase verwenden',
     );
+    expect(s08NetworkReplayContent.protectionActionDescription).toBe(
+      'Das fiktive Passwort dieses betroffenen Kontos automatisch durch eine eigene Passphrase ersetzen.',
+    );
+    expect(s08NetworkReplayContent.protectionSummaries).toEqual({
+      pending:
+        'Auch für die noch betroffenen Konten können wir jeweils eine eigene Passphrase verwenden.',
+      complete: 'Alle betroffenen Konten verwenden jetzt eigene Passphrasen.',
+    });
     expect(s08NetworkReplayContent.relationLabels).toEqual({
       campusgramReuse: 'Dasselbe wie das alte',
       campusgramSimilar: 'Leicht abgewandelt zum alten',
@@ -300,13 +321,13 @@ describe('S06 transition and S07 passphrase-search copy traceability', () => {
       finish: 'Zur Zusammenfassung',
     });
     expect(s08NetworkReplayContent.replayCompletion).toBe(
-      'Konten wieder geschützt',
+      'Eigene Passphrasen eingerichtet',
     );
     expect('replayLabels' in s08NetworkReplayContent).toBe(false);
   });
 
   it('keeps the S09 password summary linked to its password checklist', () => {
-    expect(S09_PASSWORD_SUMMARY_CONTENT_VERSION).toBe('4.2.0');
+    expect(S09_PASSWORD_SUMMARY_CONTENT_VERSION).toBe('4.3.0');
     expect(s09PasswordSummaryContent.source.copyReference).toBe(s09CopyReference);
     expect(s09PasswordSummaryContent.principles).toHaveLength(6);
     expect(
@@ -344,6 +365,9 @@ describe('S06 transition and S07 passphrase-search copy traceability', () => {
     expect(s09PasswordSummaryContent.scaling.accountCount).toBe(80);
     expect(s09PasswordSummaryContent.scaling.answer).toBe('Super easy!');
     expect(s09PasswordSummaryContent.passWo.steps).toHaveLength(6);
+    expect(s09PasswordSummaryContent.passWo.steps[2]).toBe(
+      'Bleiben wir unter dem Wert: Wie realistisch wäre es für dich, dir selbst „nur“ 80 starke Passwörter, für jedes Konto ein eigenes, dauerhaft zu merken?',
+    );
     expect(s09PasswordSummaryContent.passwordManagerAction).toEqual({
       title: 'Passwortmanager',
       detail: 'kennenlernen',

@@ -1,5 +1,23 @@
 # S08--S09 Copy Audit
 
+## Copy-Delta S08-S09 eigene Passwoerter, 23. August 2026
+
+Quelle ist der ausdrückliche Nutzerauftrag vom 23. August 2026. Ausschließlich die unten
+benannten sichtbaren Texte werden ersetzt. Ablauf, Bedingungen, IDs, Interaktion, Analyse,
+Persistenz, Export und Timing bleiben unverändert. Die bestehende Akzentmarkierung der S09-
+Sprechblase umfasst weiterhin den vollständigen neuen Kerngedanken.
+`S08_NETWORK_REPLAY_CONTENT_VERSION` steigt von `3.7.0` auf `3.8.0`;
+`S09_PASSWORD_SUMMARY_CONTENT_VERSION` steigt von `4.2.0` auf `4.3.0`.
+
+| Segment und Text-ID | Aktueller Text | Geplanter Text | Primäre Rolle | Interaktionsziel | Grund und Bedeutungsänderung | Hervorhebung |
+|---|---|---|---|---|---|---|
+| `S08.protectionAction` | `Einzigartige Passphrase verwenden` | `Eigene Passphrase verwenden` | Navigation | betroffener Kontoknoten | ausdrücklich vorgegebener Wortlaut; begrenzt | bestehende Knotenaktion bleibt erhalten |
+| `S08.protectionActionDescription` | `… automatisch durch eine einzigartige Passphrase ersetzen.` | `… automatisch durch eine eigene Passphrase ersetzen.` | Navigation / Safety Boundary | betroffener Kontoknoten | ausdrücklich vorgegebener Wortlaut; begrenzt | keine |
+| `S08.protectionSummaries.pending` | `Noch betroffene Konten können mit jeweils einer eigenen Passphrase geschützt werden.` | `Auch für die noch betroffenen Konten können wir jeweils eine eigene Passphrase verwenden.` | Ergebnisfeedback | kein | ausdrücklich vorgegebener Wortlaut; begrenzt | keine |
+| `S08.protectionSummaries.complete` | `Alle betroffenen Konten sind mit eigenen Passphrasen geschützt.` | `Alle betroffenen Konten verwenden jetzt eigene Passphrasen.` | Ergebnisfeedback | kein | ausdrücklich vorgegebener Wortlaut; begrenzt | keine |
+| `S08.replayCompletion` | `Konten wieder geschützt` | `Eigene Passphrasen eingerichtet` | Ergebnisfeedback | kein | ausdrücklich vorgegebener Wortlaut; begrenzt | bestehender positiver Ergebnisstil bleibt erhalten |
+| `S09.passWo.steps[2]` | `… 80 starke und einzigartige Passwörter dauerhaft zu merken?` | `… 80 starke Passwörter, für jedes Konto ein eigenes, dauerhaft zu merken?` | Orientierung | `Super easy!` | ausdrücklich vorgegebener Wortlaut; begrenzt | bestehender Akzent bleibt erhalten |
+
 ## Copy-Delta S09 Passphrasenmethode umbenannt, 23. August 2026
 
 Quelle ist der ausdrückliche Nutzerauftrag vom 23. August 2026. Ausschließlich die sichtbare

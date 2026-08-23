@@ -1,5 +1,16 @@
 # S00--S05 Copy and Interaction Audit
 
+## Copy-Delta S00 eigene Passwoerter, 23. August 2026
+
+Quelle ist der ausdrückliche Nutzerauftrag vom 23. August 2026. Ausschließlich die unten
+benannte sichtbare Beschriftung wird ersetzt. IDs, Reihenfolge, Interaktion, Ablauf, Analyse,
+Persistenz, Export und Timing bleiben unverändert. `S00_CONTENT_VERSION` steigt von `1.24.0` auf
+`1.25.0`.
+
+| Segment und Text-ID | Aktueller Text | Geplanter Text | Primäre Rolle | Interaktionsziel | Grund und Bedeutungsänderung | Hervorhebung |
+|---|---|---|---|---|---|---|
+| `S00.sectionTransition.parts.unique-passwords` | `Passwörter einzigartig halten` | `Für jedes Konto ein eigenes Passwort` | Orientierung | kein | ausdrücklich vorgegebener Wortlaut; begrenzt | bestehende aktive Abschnittsmarkierung bleibt erhalten |
+
 ## Copy-Delta S05 optionale NIST-Infofelder, 23. August 2026
 
 Quelle ist der ausdrückliche Nutzerauftrag vom 23. August 2026. Im bestehenden Schritt

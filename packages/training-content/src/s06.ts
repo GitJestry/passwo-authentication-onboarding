@@ -56,16 +56,16 @@ export interface S06NarrationContent {
   readonly body: string;
 }
 
-export const S06_CONSEQUENCE_CONTENT_VERSION = '2.28.0';
+export const S06_CONSEQUENCE_CONTENT_VERSION = '2.29.0';
 
 export const s06ConsequenceContent = {
   version: S06_CONSEQUENCE_CONTENT_VERSION,
   source: {
     document: 'research/private/training-script.pdf',
     internalPages: [36, 37, 38, 39, 40, 41, 42, 43, 44] as const,
-    revision: 'Userauftrag vom 2026-08-22 · S06 Vergleichslabels für Passwort-Abwandlungen vereinheitlicht',
+    revision: 'Userauftrag vom 2026-08-23 · sichtbare Texte zu eigenen Passwörtern präzisiert',
     copyReference:
-      'docs/design/S06-S07-COPY-AUDIT.md#copy-delta-s06-vergleichslabels-fuer-passwort-abwandlungen-vereinheitlicht-22-august-2026',
+      'docs/design/S06-S07-COPY-AUDIT.md#copy-delta-s06-s07-eigene-passwoerter-23-august-2026',
   },
   segment: {
     id: 'S06',
@@ -243,7 +243,7 @@ export const s06ConsequenceContent = {
     },
     's06.local-check.campus-email-found': {
       heading: 'Lokaler Einzelcheck von Campus E-Mail',
-      body: 'Auch dieses Passwort gilt hier als gefunden. Einzigartigkeit verhindert die Ausbreitung zwischen Konten, trotzdem sollte jedes Passwort auch für sich stark sein.',
+      body: 'Auch dieses Passwort gilt hier als gefunden. Vom bekannten Passwort führte aber kein direkter Weg zu diesem Konto. Trotzdem sollte jedes Passwort auch für sich schwer zu erraten sein.',
     },
     's06.local-check.campus-email-blocked': {
       heading: 'Lokaler Einzelcheck von Campus E-Mail',

@@ -1,5 +1,23 @@
 # S06--S07 Copy Audit
 
+## Copy-Delta S06-S07 eigene Passwoerter, 23. August 2026
+
+Quelle ist der ausdrückliche Nutzerauftrag vom 23. August 2026. Ausschließlich die unten
+benannten sichtbaren Texte werden ersetzt. Ablauf, Bedingungen, IDs, Interaktion, Analyse,
+Persistenz, Export und Timing bleiben unverändert. Bestehende Hervorhebungen bleiben an den
+jeweils entsprechenden neuen Textteilen erhalten. `S06_CONSEQUENCE_CONTENT_VERSION` steigt von
+`2.28.0` auf `2.29.0`; `S07_PASSPHRASE_SEARCH_CONTENT_VERSION` steigt von `4.18.0` auf `4.19.0`.
+
+| Segment und Text-ID | Aktueller Text | Geplanter Text | Primäre Rolle | Interaktionsziel | Grund und Bedeutungsänderung | Hervorhebung |
+|---|---|---|---|---|---|---|
+| `S06.narrations.s06.local-check.campus-email-found` | bisherige Einordnung zu Einzigartigkeit und Stärke | `Auch dieses Passwort gilt hier als gefunden. Vom bekannten Passwort führte aber kein direkter Weg zu diesem Konto. Trotzdem sollte jedes Passwort auch für sich schwer zu erraten sein.` | Ergebnisfeedback | `Weiter` | ausdrücklich vorgegebener Wortlaut; begrenzt | keine |
+| `S07.guide.methodIntro` | `… Ein solches Passwort nennt man Passphrase.` | `… Ein Passwort aus mehreren Wörtern nennt man Passphrase.` | Mechanismuserklärung | `Weiter` | ausdrücklich vorgegebener Wortlaut; begrenzt | `Passphrase`, Akzent bleibt erhalten |
+| `S07.guide.accountSummary.easyToGuess` | `Die anderen Kontopasswörter sind bereits einzigartig. Mindestens eines lässt sich aber noch leicht erraten.` | `Die anderen Konten verwenden bereits jeweils ein eigenes Passwort. Mindestens eines lässt sich aber noch leicht erraten.` | Ergebnisfeedback | `Weiter` | ausdrücklich vorgegebener Wortlaut; begrenzt | keine |
+| `S07.guide.accountSummary.clear` | `Die anderen Kontopasswörter sind bereits einzigartig und schwer zu erraten.` | `Die anderen Konten verwenden bereits eigene Passwörter, die sich schwer erraten lassen.` | Ergebnisfeedback | `Weiter` | ausdrücklich vorgegebener Wortlaut; begrenzt | keine |
+| `S07.browser.campusgramPasswordChangeCompleted.shieldLabels.green` | `Einzigartig` | `Nur für dieses Konto` | Ergebnisfeedback | kein | ausdrücklich vorgegebener Wortlaut; begrenzt | bestehender grüner Schild bleibt erhalten |
+| `S07.browser.searchPage.results.netzblick.description` | `Praktische Orientierung zu Länge, Einzigartigkeit und Merkbarkeit …` | `Praktische Orientierung zu Länge, eigenen Passwörtern und Merkbarkeit …` | Orientierung | kein | ausdrücklich vorgegebener Wortlaut; begrenzt | keine |
+| `S07.browser.searchPage.results.privacy-labor.title` | `Passphrase kompakt: zufällig, lang und einzigartig` | `Passphrase kompakt: zufällig, lang und für jedes Konto anders` | Orientierung | kein | ausdrücklich vorgegebener Wortlaut; begrenzt | keine |
+
 ## Copy-Delta S07 aggregierte Kontenzusammenfassung, 22. August 2026
 
 Quelle ist der ausdrückliche Nutzerauftrag vom 22. August 2026. Nach dem Campusgram-Wechsel
