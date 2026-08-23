@@ -73,7 +73,7 @@ export interface S05DesignLabFixture {
   readonly startSection: 'intro' | 'components' | 'structure';
 }
 
-export const S05_CONTENT_VERSION = '2.112.0';
+export const S05_CONTENT_VERSION = '2.113.0';
 
 export const s05Content = {
   version: S05_CONTENT_VERSION,
@@ -83,9 +83,9 @@ export const s05Content = {
       12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34,
       35,
     ] as const,
-    revision: 'Userauftrag vom 2026-08-23 · Zufallsvergleich vereinfacht',
+    revision: 'Userauftrag vom 2026-08-23 · Wortbeispiele mit Länderzuordnung',
     copyReference:
-      'docs/design/S00-S05-COPY-AUDIT.md#copy-delta-s05-zufallsvergleich-vereinfacht-23-august-2026',
+      'docs/design/S00-S05-COPY-AUDIT.md#copy--und-darstellungsdelta-s05-wortbeispiele-mit-länderzuordnung-23-august-2026',
   },
   segment: {
     id: 'S05',
@@ -608,8 +608,8 @@ export const s05Content = {
         additionalGermanWords:
           'Oder wir bleiben bei deutschen Wörtern und fügen zwei weitere zufällige Wörter hinzu. Dann steigt der Aufwand auf etwa 8,3 Milliarden Jahre.',
         germanWords: {
-          password: 'DatensicherheitLobotomieZugspitzeUnbefugt',
-          parts: ['Datensicherheit', 'Lobotomie', 'Zugspitze', 'Unbefugt'],
+          password: 'GezeitenwechselLobotomieZugspitzeUnbefugt',
+          parts: ['Gezeitenwechsel', 'Lobotomie', 'Zugspitze', 'Unbefugt'],
           passwordLabel: '4 Wörter',
           showPasswordLabel: false,
           lengthScaleLabel: '39 Zeichen',
@@ -622,8 +622,9 @@ export const s05Content = {
           },
         },
         multilingualWords: {
-          password: 'DatensicherheitOscuridadYutoriSomnolent',
-          parts: ['Datensicherheit', 'Oscuridad', 'Yutori', 'Somnolent'],
+          password: 'YutoriOscuridadFallenSomnolent',
+          parts: ['Yutori', 'Oscuridad', 'Fallen', 'Somnolent'],
+          partLabels: ['🇯🇵', '🇪🇸', '🇩🇪', '🇫🇷'],
           passwordLabel: '4 Wörter',
           durationLabel: '332 Jahre',
           modelInformation: {
@@ -634,8 +635,9 @@ export const s05Content = {
           },
         },
         sixGermanWords: {
-          password: 'DatensicherheitLobotomieZugspitzeUnbefugtPosenTrampolin',
-          parts: ['Datensicherheit', 'Lobotomie', 'Zugspitze', 'Unbefugt', 'Posen', 'Trampolin'],
+          password: 'NotrufFlussAkustikZugewachsenEntscheidenPlakette',
+          parts: ['Notruf', 'Fluss', 'Akustik', 'Zugewachsen', 'Entscheiden', 'Plakette'],
+          partLabels: ['🇩🇪', '🇩🇪', '🇩🇪', '🇩🇪', '🇩🇪', '🇩🇪'],
           passwordLabel: '6 Wörter',
           durationLabel: '8,3 Milliarden Jahre',
           modelInformation: {

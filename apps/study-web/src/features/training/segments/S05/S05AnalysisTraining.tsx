@@ -2576,6 +2576,7 @@ interface WordPoolModelInformation {
 interface SecondLengthReasonExampleContent {
   readonly password: string;
   readonly parts: readonly string[];
+  readonly partLabels?: readonly string[];
   readonly passwordLabel: string;
   readonly showPasswordLabel?: boolean;
   readonly lengthScaleLabel?: string;
@@ -2653,6 +2654,14 @@ interface WordComparisonGeometryStyle extends CSSProperties {
   readonly '--word-slot-x': string;
   readonly '--word-sphere-size'?: string;
   readonly '--word-sphere-color'?: string;
+  readonly '--word-label-size'?: string;
+  readonly '--word-detail-scale'?: string;
+  readonly '--word-detail-offset'?: string;
+}
+
+interface WordComparisonSceneStyle extends CSSProperties {
+  readonly '--word-comparison-axis-y': string;
+  readonly '--word-comparison-sphere-gap': string;
 }
 
 const WORD_COMBINATION_MAGNITUDES = {
@@ -2664,25 +2673,130 @@ const WORD_COMBINATION_MAGNITUDES = {
   sixGermanWords: 29.42,
 } as const;
 
-function wordComparisonSphereDiameter(
-  magnitude: number,
-  viewport: { readonly width: number; readonly height: number },
-): number {
+const WORD_COMPARISON_DIAMETER_GROWTH = 1_000_000;
+
+function wordComparisonWorldDiameter(magnitude: number): number {
   const minimumMagnitude = WORD_COMBINATION_MAGNITUDES.longWord;
   const maximumMagnitude = WORD_COMBINATION_MAGNITUDES.sixGermanWords;
   const progress = Math.max(
     0,
     Math.min(1, (magnitude - minimumMagnitude) / (maximumMagnitude - minimumMagnitude)),
   );
-  const minimumDiameter = Math.max(
-    72,
-    Math.min(112, viewport.width * 0.12, viewport.height * 0.17),
+  // A compressed exponential keeps adjacent authored milestones distinct without pretending
+  // that their many orders of magnitude can be drawn at a literal physical scale.
+  return 64 * WORD_COMPARISON_DIAMETER_GROWTH ** progress;
+}
+
+interface WordComparisonScaleLayout {
+  readonly positions: readonly number[];
+  readonly axisTop: number;
+  readonly sphereLift: number;
+  readonly left: number;
+  readonly right: number;
+  readonly top: number;
+  readonly bottom: number;
+}
+
+interface WordComparisonScaleProjection {
+  readonly scale: number;
+  readonly translateX: number;
+  readonly translateY: number;
+  readonly axisY: number;
+}
+
+function clampWordComparisonValue(value: number, minimum: number, maximum: number): number {
+  return Math.min(Math.max(value, minimum), maximum);
+}
+
+function buildWordComparisonScaleLayout(
+  magnitudes: readonly number[],
+  activeIndex: number,
+): WordComparisonScaleLayout {
+  const positions = [110];
+  const currentDiameter = wordComparisonWorldDiameter(magnitudes[activeIndex] ?? magnitudes[0] ?? 0);
+  for (let index = 1; index <= activeIndex; index += 1) {
+    const previousDiameter = wordComparisonWorldDiameter(magnitudes[index - 1] ?? 0);
+    const diameter = wordComparisonWorldDiameter(magnitudes[index] ?? 0);
+    const cameraGap = currentDiameter * Math.min(0.95, 0.62 + activeIndex * 0.14);
+    const gap = Math.max(
+      180,
+      Math.sqrt(previousDiameter * diameter) * 0.18,
+      Math.max(previousDiameter, diameter) * 0.1,
+      cameraGap,
+    );
+    positions.push((positions[index - 1] ?? 110) + previousDiameter / 2 + diameter / 2 + gap);
+  }
+  const sphereLift = Math.max(28, currentDiameter * 0.026);
+  const axisTop = currentDiameter + sphereLift + Math.max(96, currentDiameter * 0.06);
+  let minimumX = Number.POSITIVE_INFINITY;
+  let maximumX = Number.NEGATIVE_INFINITY;
+  let minimumY = Number.POSITIVE_INFINITY;
+  for (let index = 0; index <= activeIndex; index += 1) {
+    const diameter = wordComparisonWorldDiameter(magnitudes[index] ?? 0);
+    const x = positions[index] ?? 110;
+    minimumX = Math.min(minimumX, x - diameter / 2);
+    maximumX = Math.max(maximumX, x + diameter / 2);
+    minimumY = Math.min(minimumY, axisTop - sphereLift - diameter);
+  }
+  const leftPadding = Math.max(92, currentDiameter * 0.25);
+  const rightPadding = Math.max(92, currentDiameter * 0.7);
+  const topPadding = Math.max(92, currentDiameter * 0.08);
+  return {
+    positions,
+    axisTop,
+    sphereLift,
+    left: minimumX - leftPadding,
+    right: maximumX + rightPadding,
+    top: minimumY - topPadding,
+    bottom: axisTop + Math.max(180, currentDiameter * 0.28),
+  };
+}
+
+function projectWordComparisonScale({
+  viewport,
+  layout,
+  activeIndex,
+  activeDiameter,
+}: {
+  readonly viewport: { readonly width: number; readonly height: number };
+  readonly layout: WordComparisonScaleLayout;
+  readonly activeIndex: number;
+  readonly activeDiameter: number;
+}): WordComparisonScaleProjection {
+  const spanX = layout.right - layout.left;
+  const spanY = layout.bottom - layout.top;
+  const scale = Math.min(
+    (viewport.width * 0.92) / spanX,
+    (viewport.height * 0.86) / spanY,
   );
-  const maximumDiameter = Math.max(
-    minimumDiameter * 1.85,
-    Math.min(360, viewport.width * 0.24, viewport.height * 0.42),
-  );
-  return minimumDiameter + (maximumDiameter - minimumDiameter) * progress;
+  if (activeIndex === 0) {
+    const focusedDiameter = Math.min(150, viewport.width * 0.2, viewport.height * 0.28);
+    const focusedScale = Math.max(scale, focusedDiameter / activeDiameter);
+    const activeX = layout.positions[0] ?? 110;
+    const activeCenterY = layout.axisTop - layout.sphereLift - activeDiameter / 2;
+    const translateY = viewport.height * 0.42 - activeCenterY * focusedScale;
+    return {
+      scale: focusedScale,
+      translateX: viewport.width / 2 - activeX * focusedScale,
+      translateY,
+      axisY: layout.axisTop * focusedScale + translateY,
+    };
+  }
+  const translateX = viewport.width / 2 - ((layout.left + layout.right) / 2) * scale;
+  const translateY = (viewport.height - spanY * scale) / 2 - layout.top * scale;
+  return {
+    scale,
+    translateX,
+    translateY,
+    axisY: layout.axisTop * scale + translateY,
+  };
+}
+
+function wordComparisonPasswordVisualScale(partCount: number, sphereDiameter: number): number {
+  const densityScale =
+    partCount >= 6 ? 0.54 : partCount >= 4 ? 0.6 : partCount > 1 ? 0.66 : 0.72;
+  const geometryScale = clampWordComparisonValue(sphereDiameter / 200, 0.72, 1.08);
+  return densityScale * geometryScale;
 }
 
 function WordComparisonCase({
@@ -2692,6 +2806,8 @@ function WordComparisonCase({
   x,
   diameter,
   tone,
+  showEffort = true,
+  labelScale = 1,
   emphasized = false,
 }: {
   readonly example: SecondLengthReasonExampleContent;
@@ -2699,13 +2815,21 @@ function WordComparisonCase({
   readonly slot: 'primary' | 'secondary';
   readonly x: number;
   readonly diameter: number;
-  readonly tone: 'green' | 'blue';
+  readonly tone: 'green' | 'blue' | 'purple';
+  readonly showEffort?: boolean;
+  readonly labelScale?: number;
   readonly emphasized?: boolean;
 }) {
   const style: WordComparisonGeometryStyle = {
-    '--word-slot-x': `${x}%`,
+    '--word-slot-x': `${x}px`,
     '--word-sphere-size': `${diameter}px`,
-    '--word-sphere-color': tone === 'green' ? '#267b4b' : '#244f9c',
+    '--word-sphere-color':
+      tone === 'green' ? '#267b4b' : tone === 'purple' ? '#42105f' : '#244f9c',
+    '--word-label-size': `${clampWordComparisonValue(
+      diameter * 0.12 * labelScale,
+      labelScale < 1 ? 10 : 12.5,
+      labelScale > 1.4 ? 96 : 76,
+    )}px`,
   };
   return (
     <article
@@ -2716,12 +2840,15 @@ function WordComparisonCase({
       style={style}
       aria-hidden={!visible}
       inert={!visible || undefined}
+      data-passwo-speech-obstacle={visible || undefined}
     >
       <div className={styles.wordComparisonSphere}>
-        <WordPoolEffortInformation
-          example={example}
-          tooltipId={`s05-word-comparison-${slot}-model`}
-        />
+        {showEffort ? (
+          <WordPoolEffortInformation
+            example={example}
+            tooltipId={`s05-word-comparison-${slot}-model`}
+          />
+        ) : null}
       </div>
     </article>
   );
@@ -2732,45 +2859,56 @@ function WordComparisonPassword({
   visible,
   slot,
   x,
+  sphereDiameter,
   lengthLabel,
+  summarized = false,
   emphasized = false,
+  highlighted = emphasized,
+  showLabel = true,
 }: {
   readonly example: SecondLengthReasonExampleContent;
   readonly visible: boolean;
   readonly slot: 'primary' | 'secondary';
   readonly x: number;
+  readonly sphereDiameter: number;
   readonly lengthLabel?: string;
+  readonly summarized?: boolean;
   readonly emphasized?: boolean;
+  readonly highlighted?: boolean;
+  readonly showLabel?: boolean;
 }) {
-  const style: WordComparisonGeometryStyle = { '--word-slot-x': `${x}%` };
-  const visualScale = example.parts.length >= 6
-    ? 0.4
-    : example.parts.length >= 4
-      ? 0.52
-      : example.parts.length > 1
-        ? 0.58
-        : 0.68;
+  const style: WordComparisonGeometryStyle = { '--word-slot-x': `${x}px` };
+  const visualScale = wordComparisonPasswordVisualScale(
+    example.parts.length,
+    sphereDiameter,
+  );
   return (
     <article
       className={styles.wordComparisonPassword}
       data-slot={slot}
       data-visible={visible || undefined}
       data-emphasized={emphasized || undefined}
+      data-highlighted={highlighted || undefined}
+      data-summarized={summarized || undefined}
       style={style}
       aria-hidden={!visible}
       inert={!visible || undefined}
       data-passwo-speech-obstacle={visible || undefined}
     >
-      {example.showPasswordLabel === false ? null : <strong>{example.passwordLabel}</strong>}
-      <PasswordBuildingBlocks
-        value={example.password}
-        parts={example.parts}
-        display="separated"
-        animate={false}
-        visualScale={visualScale}
-        highlightedIndices={emphasized ? example.parts.map((_, index) => index) : []}
-        ariaLabel={`${example.passwordLabel}: ${example.parts.join(', ')}`}
-      />
+      {showLabel ? <strong>{example.passwordLabel}</strong> : null}
+      {summarized ? null : (
+        <PasswordBuildingBlocks
+          value={example.password}
+          parts={example.parts}
+          display="separated"
+          labelsOutside={example.partLabels !== undefined}
+          animate={false}
+          visualScale={visualScale}
+          highlightedIndices={highlighted ? example.parts.map((_, index) => index) : []}
+          ariaLabel={`${example.passwordLabel}: ${example.parts.join(', ')}`}
+          {...(example.partLabels === undefined ? {} : { labels: example.partLabels })}
+        />
+      )}
       {lengthLabel === undefined ? null : (
         <>
           <span className={styles.wordComparisonLengthRay} aria-hidden="true" />
@@ -2790,7 +2928,7 @@ function WordComparisonTick({
   readonly slot: 'primary' | 'secondary';
   readonly x: number;
 }) {
-  const style: WordComparisonGeometryStyle = { '--word-slot-x': `${x}%` };
+  const style: WordComparisonGeometryStyle = { '--word-slot-x': `${x}px` };
   return (
     <span
       className={styles.wordComparisonTick}
@@ -2798,7 +2936,34 @@ function WordComparisonTick({
       data-visible={visible || undefined}
       style={style}
       aria-hidden="true"
+      data-passwo-speech-obstacle={visible || undefined}
     />
+  );
+}
+
+function WordComparisonResidualTime({
+  visible,
+  x,
+  label,
+  tone,
+}: {
+  readonly visible: boolean;
+  readonly x: number;
+  readonly label: string;
+  readonly tone: 'green' | 'blue';
+}) {
+  const style: WordComparisonGeometryStyle = { '--word-slot-x': `${x}px` };
+  return (
+    <span
+      className={styles.wordComparisonResidualTime}
+      data-visible={visible || undefined}
+      data-tone={tone}
+      style={style}
+      aria-hidden={!visible}
+      data-passwo-speech-obstacle={visible || undefined}
+    >
+      {label}
+    </span>
   );
 }
 
@@ -2807,32 +2972,44 @@ function WordComparisonPackageCard({
   slot,
   x,
   sphereDiameter,
+  detailSide = 'right',
+  detailOffset,
   title,
   caption,
   label,
   information,
+  informationTooltipId = 's05-word-comparison-package-assumption',
+  detailScale = 1,
 }: {
   readonly visible: boolean;
   readonly slot: 'primary' | 'secondary';
   readonly x: number;
   readonly sphereDiameter: number;
+  readonly detailSide?: 'left' | 'right';
+  readonly detailOffset?: number;
   readonly title: string;
   readonly caption: string;
   readonly label: string;
   readonly information?: string;
+  readonly informationTooltipId?: string;
+  readonly detailScale?: number;
 }) {
   const style: WordComparisonGeometryStyle = {
-    '--word-slot-x': `${x}%`,
+    '--word-slot-x': `${x}px`,
     '--word-sphere-size': `${sphereDiameter}px`,
+    '--word-detail-scale': String(detailScale),
+    ...(detailOffset === undefined ? {} : { '--word-detail-offset': `${detailOffset}px` }),
   };
   return (
     <aside
       className={styles.wordComparisonPackageCard}
       data-slot={slot}
       data-visible={visible || undefined}
+      data-detail-side={detailSide}
       style={style}
       aria-hidden={!visible}
       inert={!visible || undefined}
+      data-passwo-speech-obstacle={visible || undefined}
     >
       <small>{title}</small>
       <span>{caption}</span>
@@ -2840,7 +3017,7 @@ function WordComparisonPackageCard({
       {information === undefined ? null : (
         <WordPoolGear
           label="Annahme zur deutschen Wortliste anzeigen"
-          tooltipId="s05-word-comparison-package-assumption"
+          tooltipId={informationTooltipId}
         >
           <span>{information}</span>
         </WordPoolGear>
@@ -2856,6 +3033,9 @@ function WordComparisonPackages({
   slot,
   x,
   sphereDiameter,
+  detailSide = 'right',
+  detailOffset,
+  detailScale = 1,
   emphasized = false,
 }: {
   readonly packages: readonly LanguagePackageContent[];
@@ -2864,11 +3044,16 @@ function WordComparisonPackages({
   readonly slot: 'primary' | 'secondary';
   readonly x: number;
   readonly sphereDiameter: number;
+  readonly detailSide?: 'left' | 'right';
+  readonly detailOffset?: number;
+  readonly detailScale?: number;
   readonly emphasized?: boolean;
 }) {
   const style: WordComparisonGeometryStyle = {
-    '--word-slot-x': `${x}%`,
+    '--word-slot-x': `${x}px`,
     '--word-sphere-size': `${sphereDiameter}px`,
+    '--word-detail-scale': String(detailScale),
+    ...(detailOffset === undefined ? {} : { '--word-detail-offset': `${detailOffset}px` }),
   };
   return (
     <aside
@@ -2876,10 +3061,12 @@ function WordComparisonPackages({
       data-slot={slot}
       data-visible={visible || undefined}
       data-emphasized={emphasized || undefined}
+      data-detail-side={detailSide}
       style={style}
       aria-label={expanded ? 'Vier gleich große Wortlisten' : 'Deutsche Wortliste'}
       aria-hidden={!visible}
       inert={!visible || undefined}
+      data-passwo-speech-obstacle={visible || undefined}
     >
       {packages.map((languagePackage, index) => {
         const itemVisible = visible && (expanded || index === 0);
@@ -2919,56 +3106,107 @@ function WordPoolReasonScene({
   const graphRef = useRef<HTMLDivElement | null>(null);
   const viewport = useScaleViewport(graphRef);
   const stepIndex = wordComparisonSteps.findIndex((candidate) => candidate === step);
-  const showsLongWordSphere = stepIndex >= 1 && stepIndex < 4;
-  const showsShortWordPassword = stepIndex >= 2 && stepIndex < 5;
-  const showsShortWordSphere = stepIndex >= 3 && stepIndex < 5;
-  const showsLongWordPassword = stepIndex >= 0 && stepIndex < 4;
-  const showsGermanWords = stepIndex >= 4 && stepIndex < 8;
-  const showsMultilingualWords = stepIndex >= 8;
-  const comparesAdditionalWords = stepIndex >= 9;
-  const keepsGermanPackageCard = stepIndex >= 4 && stepIndex < 7;
-  const showsLanguagePackages = stepIndex >= 7;
-  const primaryExample = showsMultilingualWords
-    ? secondReason.multilingualWords
-    : showsGermanWords
-      ? secondReason.germanWords
-      : firstReason.longWord;
-  const secondaryExample = comparesAdditionalWords
-    ? secondReason.sixGermanWords
-    : firstReason.shortWords;
-  const primaryMagnitude = showsMultilingualWords
-    ? WORD_COMBINATION_MAGNITUDES.multilingualWords
-    : showsGermanWords
-      ? WORD_COMBINATION_MAGNITUDES.germanWords
-      : WORD_COMBINATION_MAGNITUDES.longWord;
-  const secondaryMagnitude = comparesAdditionalWords
-    ? WORD_COMBINATION_MAGNITUDES.sixGermanWords
-    : WORD_COMBINATION_MAGNITUDES.shortWords;
-  const primarySphereDiameter = wordComparisonSphereDiameter(primaryMagnitude, viewport);
-  const secondarySphereDiameter = wordComparisonSphereDiameter(secondaryMagnitude, viewport);
-  const primaryX = stepIndex >= 7 ? 25 : 66;
-  const secondaryX = comparesAdditionalWords ? 68 : 28;
-  const primaryLengthLabel = showsGermanWords
-    ? secondReason.germanWords.lengthScaleLabel
-    : showsLongWordPassword
-      ? firstReason.minimumLengthLabel
-      : undefined;
-  const secondaryLengthLabel = comparesAdditionalWords
-    ? undefined
-    : showsShortWordPassword
-      ? firstReason.minimumLengthLabel
-      : undefined;
+  const milestones = [
+    {
+      id: 'long-word',
+      example: firstReason.longWord,
+      magnitude: WORD_COMBINATION_MAGNITUDES.longWord,
+      tone: 'green' as const,
+      labelScale: 0.72,
+      lengthLabel: firstReason.minimumLengthLabel,
+    },
+    {
+      id: 'short-words',
+      example: firstReason.shortWords,
+      magnitude: WORD_COMBINATION_MAGNITUDES.shortWords,
+      tone: 'blue' as const,
+      labelScale: 1,
+      lengthLabel: firstReason.minimumLengthLabel,
+    },
+    {
+      id: 'german-words',
+      example: secondReason.germanWords,
+      magnitude: WORD_COMBINATION_MAGNITUDES.germanWords,
+      tone: 'green' as const,
+      labelScale: 1.2,
+      lengthLabel: secondReason.germanWords.lengthScaleLabel,
+    },
+    {
+      id: 'multilingual-words',
+      example: secondReason.multilingualWords,
+      magnitude: WORD_COMBINATION_MAGNITUDES.multilingualWords,
+      tone: 'green' as const,
+      labelScale: 1.3,
+      lengthLabel: undefined,
+    },
+    {
+      id: 'six-german-words',
+      example: secondReason.sixGermanWords,
+      magnitude: WORD_COMBINATION_MAGNITUDES.sixGermanWords,
+      tone: 'purple' as const,
+      labelScale: 1.48,
+      lengthLabel: undefined,
+    },
+  ] as const;
+  const currentMilestoneIndex =
+    stepIndex >= 9 ? 4 : stepIndex >= 8 ? 3 : stepIndex >= 4 ? 2 : stepIndex >= 2 ? 1 : 0;
+  const preparesMultilingualComparison = stepIndex === 7;
+  const usesSecondComparisonWindow = stepIndex >= 7;
+  const visibleMilestones =
+    preparesMultilingualComparison
+      ? milestones.slice(2, 4)
+      : currentMilestoneIndex <= 2
+        ? milestones.slice(0, currentMilestoneIndex + 1)
+        : milestones.slice(2, currentMilestoneIndex + 1);
+  const activeVisibleIndex = visibleMilestones.length - 1;
+  const activeSphereIndex = preparesMultilingualComparison ? 0 : activeVisibleIndex;
+  const magnitudes = visibleMilestones.map((milestone) => milestone.magnitude);
+  const scaleLayout = buildWordComparisonScaleLayout(magnitudes, activeVisibleIndex);
+  const activeWorldDiameter = wordComparisonWorldDiameter(
+    visibleMilestones[activeVisibleIndex]?.magnitude ?? WORD_COMBINATION_MAGNITUDES.longWord,
+  );
+  const projection = projectWordComparisonScale({
+    viewport,
+    layout: scaleLayout,
+    activeIndex: activeVisibleIndex,
+    activeDiameter: activeWorldDiameter,
+  });
+  const screenX = (index: number): number =>
+    (scaleLayout.positions[index] ?? 110) * projection.scale + projection.translateX;
+  const screenDiameter = (index: number): number =>
+    wordComparisonWorldDiameter(visibleMilestones[index]?.magnitude ?? 0) * projection.scale;
+  const showsGermanWordList = currentMilestoneIndex >= 2 && usesSecondComparisonWindow;
+  const showsMultilingualWordLists = usesSecondComparisonWindow;
+  const comparesAdditionalWords = currentMilestoneIndex === 4;
+  const detailScale = Math.max(
+    0.56,
+    1 - Math.max(currentMilestoneIndex, preparesMultilingualComparison ? 3 : 0) * 0.11,
+  );
+  const sceneStyle: WordComparisonSceneStyle = {
+    '--word-comparison-axis-y': `${projection.axisY}px`,
+    '--word-comparison-sphere-gap': `${Math.max(14, scaleLayout.sphereLift * projection.scale)}px`,
+  };
+  const germanMilestoneIndex = visibleMilestones.findIndex(
+    (milestone) => milestone.id === 'german-words',
+  );
+  const multilingualMilestoneIndex = visibleMilestones.findIndex(
+    (milestone) => milestone.id === 'multilingual-words',
+  );
+  const finalMilestoneIndex = visibleMilestones.findIndex(
+    (milestone) => milestone.id === 'six-german-words',
+  );
   return (
     <div
       className={styles.wordComparisonScene}
       data-s05-target={stepIndex >= 6 ? 'length-second-reason' : 'length-word-pools'}
       data-s05-persistent-scene
+      style={sceneStyle}
       data-phase={
         comparesAdditionalWords
           ? 'comparison'
-          : showsMultilingualWords
+          : usesSecondComparisonWindow
             ? 'multilingual'
-            : showsGermanWords
+            : currentMilestoneIndex >= 2
               ? 'words'
               : 'length'
       }
@@ -2976,79 +3214,146 @@ function WordPoolReasonScene({
     >
       <div className={styles.wordComparisonGraph} ref={graphRef}>
         <div className={styles.wordComparisonAxis} aria-hidden="true" />
-        <WordComparisonTick visible={stepIndex >= 0} slot="primary" x={primaryX} />
-        <WordComparisonTick
-          visible={showsShortWordPassword || comparesAdditionalWords}
-          slot="secondary"
-          x={secondaryX}
+        <span
+          className={styles.wordComparisonAxisObstacle}
+          data-passwo-speech-obstacle
+          aria-hidden="true"
         />
-        <WordComparisonCase
-          example={primaryExample}
-          visible={showsLongWordSphere || showsGermanWords || showsMultilingualWords}
-          slot="primary"
-          x={primaryX}
-          diameter={primarySphereDiameter}
-          tone="green"
-          emphasized={step === 'length-full-word-attack' || step === 'length-multilingual-words'}
-        />
-        <WordComparisonCase
-          example={secondaryExample}
-          visible={showsShortWordSphere || comparesAdditionalWords}
-          slot="secondary"
-          x={secondaryX}
-          diameter={secondarySphereDiameter}
-          tone="blue"
-        />
-        <WordComparisonPassword
-          example={primaryExample}
-          visible={showsLongWordPassword || showsGermanWords || showsMultilingualWords}
-          slot="primary"
-          x={primaryX}
-          emphasized={step === 'length-multilingual-words'}
-          {...(primaryLengthLabel === undefined ? {} : { lengthLabel: primaryLengthLabel })}
-        />
-        <WordComparisonPassword
-          example={secondaryExample}
-          visible={showsShortWordPassword || comparesAdditionalWords}
-          slot="secondary"
-          x={secondaryX}
-          {...(secondaryLengthLabel === undefined ? {} : { lengthLabel: secondaryLengthLabel })}
-        />
+        {visibleMilestones.map((milestone, index) => (
+          <WordComparisonTick
+            key={`tick-${milestone.id}`}
+            visible={
+              !preparesMultilingualComparison || milestone.id !== 'multilingual-words'
+            }
+            slot={index % 2 === 0 ? 'primary' : 'secondary'}
+            x={screenX(index)}
+          />
+        ))}
+        {visibleMilestones.map((milestone, index) => (
+          <WordComparisonResidualTime
+            key={`time-${milestone.id}`}
+            visible={
+              (!preparesMultilingualComparison || milestone.id !== 'multilingual-words') &&
+              screenDiameter(index) < 34
+            }
+            x={screenX(index)}
+            label={milestone.example.durationLabel}
+            tone={milestone.tone === 'blue' ? 'blue' : 'green'}
+          />
+        ))}
+        {visibleMilestones.map((milestone, index) => (
+          <WordComparisonCase
+            key={milestone.id}
+            example={milestone.example}
+            visible={
+              screenDiameter(index) >= 2 &&
+              (!preparesMultilingualComparison || milestone.id !== 'multilingual-words')
+            }
+            slot={index % 2 === 0 ? 'primary' : 'secondary'}
+            x={screenX(index)}
+            diameter={Math.max(2, screenDiameter(index))}
+            tone={milestone.tone}
+            showEffort={screenDiameter(index) >= 34}
+            labelScale={milestone.labelScale}
+            emphasized={index === activeSphereIndex}
+          />
+        ))}
+        {visibleMilestones.map((milestone, index) => (
+          <WordComparisonPassword
+            key={`password-${milestone.id}`}
+            example={milestone.example}
+            visible
+            slot={index % 2 === 0 ? 'primary' : 'secondary'}
+            x={screenX(index)}
+            sphereDiameter={Math.max(2, screenDiameter(index))}
+            summarized={usesSecondComparisonWindow && index !== activeVisibleIndex}
+            emphasized={index === activeVisibleIndex}
+            highlighted={false}
+            showLabel={usesSecondComparisonWindow}
+            {...(milestone.lengthLabel === undefined ||
+            (usesSecondComparisonWindow && milestone.id === 'german-words')
+              ? {}
+              : { lengthLabel: milestone.lengthLabel })}
+          />
+        ))}
         <WordComparisonPackageCard
-          visible={showsLongWordSphere || keepsGermanPackageCard}
+          visible={currentMilestoneIndex <= 2 && !usesSecondComparisonWindow}
           slot="primary"
-          x={primaryX}
-          sphereDiameter={primarySphereDiameter}
+          x={screenX(0)}
+          sphereDiameter={Math.max(2, screenDiameter(0))}
+          detailSide="right"
+          detailOffset={72}
+          detailScale={detailScale}
           title={firstReason.longWord.packageTitle}
           caption={firstReason.longWord.packageCaption}
           label={firstReason.longWord.packageLabel}
           information={firstReason.longWord.packageTooltip}
         />
         <WordComparisonPackageCard
-          visible={showsShortWordSphere}
+          visible={
+            currentMilestoneIndex >= 1 &&
+            currentMilestoneIndex <= 2 &&
+            !usesSecondComparisonWindow
+          }
           slot="secondary"
-          x={secondaryX}
-          sphereDiameter={secondarySphereDiameter}
+          x={screenX(1)}
+          sphereDiameter={Math.max(2, screenDiameter(1))}
+          detailOffset={72}
+          detailScale={detailScale}
           title={firstReason.shortWords.packageTitle}
           caption={firstReason.shortWords.packageCaption}
           label={firstReason.shortWords.packageLabel}
         />
+        <WordComparisonPackageCard
+          visible={currentMilestoneIndex === 2 && !usesSecondComparisonWindow}
+          slot="primary"
+          x={screenX(Math.max(0, germanMilestoneIndex))}
+          sphereDiameter={Math.max(2, screenDiameter(Math.max(0, germanMilestoneIndex)))}
+          detailSide="right"
+          detailOffset={64}
+          detailScale={detailScale}
+          title={firstReason.longWord.packageTitle}
+          caption={firstReason.longWord.packageCaption}
+          label={firstReason.longWord.packageLabel}
+          information={firstReason.longWord.packageTooltip}
+          informationTooltipId="s05-word-comparison-four-words-package-assumption"
+        />
+        <WordComparisonPackages
+          packages={secondReason.languagePackages.slice(0, 1)}
+          visible={showsGermanWordList}
+          expanded={false}
+          slot="primary"
+          x={screenX(Math.max(0, germanMilestoneIndex))}
+          sphereDiameter={Math.max(2, screenDiameter(Math.max(0, germanMilestoneIndex)))}
+          detailSide="right"
+          detailOffset={72}
+          detailScale={detailScale}
+        />
         <WordComparisonPackages
           packages={secondReason.languagePackages}
-          visible={showsLanguagePackages}
-          expanded={showsLanguagePackages}
-          slot="primary"
-          x={primaryX}
-          sphereDiameter={primarySphereDiameter}
+          visible={showsMultilingualWordLists}
+          expanded
+          slot="secondary"
+          x={screenX(Math.max(0, multilingualMilestoneIndex))}
+          sphereDiameter={
+            preparesMultilingualComparison
+              ? 2
+              : Math.max(2, screenDiameter(Math.max(0, multilingualMilestoneIndex)))
+          }
+          detailSide="right"
+          detailScale={detailScale}
           emphasized={step === 'length-language-pool-stack'}
         />
         <WordComparisonPackages
           packages={secondReason.languagePackages.slice(0, 1)}
           visible={comparesAdditionalWords}
           expanded={false}
-          slot="secondary"
-          x={secondaryX}
-          sphereDiameter={secondarySphereDiameter}
+          slot="primary"
+          x={screenX(Math.max(0, finalMilestoneIndex))}
+          sphereDiameter={Math.max(2, screenDiameter(Math.max(0, finalMilestoneIndex)))}
+          detailSide="right"
+          detailScale={detailScale}
+          emphasized={comparesAdditionalWords}
         />
       </div>
     </div>

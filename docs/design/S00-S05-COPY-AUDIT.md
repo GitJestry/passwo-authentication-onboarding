@@ -1,5 +1,21 @@
 # S00--S05 Copy and Interaction Audit
 
+## Copy- und Darstellungsdelta S05 Wortbeispiele mit Länderzuordnung, 23. August 2026
+
+Quelle ist der ausdrückliche Nutzerauftrag vom 23. August 2026. Ausschließlich die drei
+sichtbaren Wortbeispiele des bestehenden Wortlistenvergleichs werden ersetzt. Beim
+mehrsprachigen Beispiel und beim Sechswortbeispiel erscheinen die ausdrücklich zugeordneten
+Flaggen direkt unter den Wortbausteinen. Die Wortbausteine erhalten keine Fokus-Leuchte; die
+Modellwerte, Wortlisten-Größen, Zeitwerte, Sprechblasen, Interaktion, Analyse, Persistenz,
+Export und Timing bleiben unverändert. `S05_CONTENT_VERSION` wird von `2.112.0` auf `2.113.0`
+erhöht.
+
+| Segment und Text-ID | Quelle | Aktueller Text | Geplanter Text | Primäre Rolle | Grund | Bedeutungsänderung | Interaktionsziel | Hervorhebung |
+|---|---|---|---|---|---|---|---|---|
+| `S05.freeSearch.lengthExamples.secondLengthReason.germanWords.{password,parts}` | Nutzerauftrag vom 2026-08-23 | `Datensicherheit`, `Lobotomie`, `Zugspitze`, `Unbefugt` | `Gezeitenwechsel`, `Lobotomie`, `Zugspitze`, `Unbefugt` | Orientierung / sichtbares Mechanismusbeispiel | ausdrücklich vorgegebenes Beispiel | begrenzt | kein | keine |
+| `S05.freeSearch.lengthExamples.secondLengthReason.multilingualWords.{password,parts,partLabels}` | Nutzerauftrag vom 2026-08-23 | `Datensicherheit`, `Oscuridad`, `Yutori`, `Somnolent`; keine Länderlabels | `Yutori` 🇯🇵, `Oscuridad` 🇪🇸, `Fallen` 🇩🇪, `Somnolent` 🇫🇷 | Orientierung / sichtbares Mechanismusbeispiel | ausdrücklich vorgegebene Reihenfolge und Länderzuordnung | begrenzt | kein | keine |
+| `S05.freeSearch.lengthExamples.secondLengthReason.sixGermanWords.{password,parts,partLabels}` | Nutzerauftrag vom 2026-08-23 | `Datensicherheit`, `Lobotomie`, `Zugspitze`, `Unbefugt`, `Posen`, `Trampolin`; keine Länderlabels | `Notruf`, `Fluss`, `Akustik`, `Zugewachsen`, `Entscheiden`, `Plakette`; jeweils 🇩🇪 | Orientierung / sichtbares Mechanismusbeispiel | ausdrücklich vorgegebenes Beispiel ohne Bindestriche in den Bausteinen | begrenzt | kein | keine |
+
 ## Copy-Delta S05 Zufallsvergleich vereinfacht, 23. August 2026
 
 Quelle ist der ausdrückliche Nutzerauftrag vom 23. August 2026. Ausschließlich die bestehende

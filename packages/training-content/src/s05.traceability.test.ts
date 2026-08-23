@@ -4,16 +4,16 @@ import { S05_CONTENT_VERSION, s05Content } from './s05.js';
 
 describe('S05 content traceability', () => {
   it('keeps the participant copy bounded and separate from internal terminology', () => {
-    expect(S05_CONTENT_VERSION).toBe('2.112.0');
+    expect(S05_CONTENT_VERSION).toBe('2.113.0');
     expect(s05Content.source).toMatchObject({
       document: 'research/private/training-script.pdf',
       internalPages: [
         12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34,
         35,
       ],
-      revision: 'Userauftrag vom 2026-08-23 · optionale NIST-Infofelder ergänzt',
+      revision: 'Userauftrag vom 2026-08-23 · Wortbeispiele mit Länderzuordnung',
       copyReference:
-        'docs/design/S00-S05-COPY-AUDIT.md#copy-delta-s05-optionale-nist-infofelder-23-august-2026',
+        'docs/design/S00-S05-COPY-AUDIT.md#copy--und-darstellungsdelta-s05-wortbeispiele-mit-länderzuordnung-23-august-2026',
     });
     expect(s05Content.segment.id).toBe('S05');
     expect(s05Content.page.fixtureNotice).toBe(
@@ -382,8 +382,8 @@ describe('S05 content traceability', () => {
         additionalGermanWords:
           'Oder wir bleiben bei deutschen Wörtern und fügen zwei weitere zufällige Wörter hinzu. Dann steigt der Aufwand auf etwa 8,3 Milliarden Jahre.',
         germanWords: {
-          password: 'DatensicherheitLobotomieZugspitzeUnbefugt',
-          parts: ['Datensicherheit', 'Lobotomie', 'Zugspitze', 'Unbefugt'],
+          password: 'GezeitenwechselLobotomieZugspitzeUnbefugt',
+          parts: ['Gezeitenwechsel', 'Lobotomie', 'Zugspitze', 'Unbefugt'],
           passwordLabel: '4 Wörter',
           showPasswordLabel: false,
           lengthScaleLabel: '39 Zeichen',
@@ -396,8 +396,9 @@ describe('S05 content traceability', () => {
           },
         },
         multilingualWords: {
-          password: 'DatensicherheitOscuridadYutoriSomnolent',
-          parts: ['Datensicherheit', 'Oscuridad', 'Yutori', 'Somnolent'],
+          password: 'YutoriOscuridadFallenSomnolent',
+          parts: ['Yutori', 'Oscuridad', 'Fallen', 'Somnolent'],
+          partLabels: ['🇯🇵', '🇪🇸', '🇩🇪', '🇫🇷'],
           passwordLabel: '4 Wörter',
           durationLabel: '332 Jahre',
           modelInformation: {
@@ -408,8 +409,9 @@ describe('S05 content traceability', () => {
           },
         },
         sixGermanWords: {
-          password: 'DatensicherheitLobotomieZugspitzeUnbefugtPosenTrampolin',
-          parts: ['Datensicherheit', 'Lobotomie', 'Zugspitze', 'Unbefugt', 'Posen', 'Trampolin'],
+          password: 'NotrufFlussAkustikZugewachsenEntscheidenPlakette',
+          parts: ['Notruf', 'Fluss', 'Akustik', 'Zugewachsen', 'Entscheiden', 'Plakette'],
+          partLabels: ['🇩🇪', '🇩🇪', '🇩🇪', '🇩🇪', '🇩🇪', '🇩🇪'],
           passwordLabel: '6 Wörter',
           durationLabel: '8,3 Milliarden Jahre',
           modelInformation: {

@@ -35,6 +35,7 @@ export interface PasswordBuildingBlocksProps {
   readonly parts: readonly string[];
   readonly display: 'assembled' | 'separated' | 'decomposed';
   readonly labels?: readonly (string | readonly string[])[];
+  readonly labelsOutside?: boolean;
   readonly findings?: readonly (readonly S05DisplayFinding[])[];
   readonly matchCategories?: readonly (string | readonly string[])[];
   readonly categoryIds?: readonly (readonly S05VisualCategoryId[])[];
@@ -81,6 +82,7 @@ export function PasswordBuildingBlocks({
   parts,
   display,
   labels,
+  labelsOutside = false,
   findings,
   matchCategories,
   categoryIds,
@@ -477,6 +479,7 @@ export function PasswordBuildingBlocks({
       className={styles.blocks}
       data-display="separated"
       data-appearance={appearance}
+      data-labels-outside={labelsOutside || undefined}
       aria-label={ariaLabel}
       style={visualStyle}
     >

@@ -472,6 +472,10 @@
   --passwo-safe-block-end: calc(var(--artifact-unit, 1rem) * 11);
 }
 
+.page:has(.passWoLayer [data-speaking="true"]) .content:has(.wordComparisonScene) {
+  padding-bottom: var(--passwo-safe-block-end);
+}
+
 :global([data-artifact-layout="compact"])
   .page:has(.passWoLayer [data-speaking="true"])
   .content,
@@ -479,15 +483,6 @@
   .page:has(.passWoLayer [data-speaking="true"])
   .content {
   padding-bottom: var(--passwo-safe-block-end);
-}
-
-:global([data-artifact-layout="compact"])
-  .page:has(.passWoLayer [data-speaking="true"])
-  .content:has(.wordComparisonScene),
-:global([data-artifact-layout="constrained"])
-  .page:has(.passWoLayer [data-speaking="true"])
-  .content:has(.wordComparisonScene) {
-  padding: 0;
 }
 
 .passWoLayer[data-component-guidance="true"] section[data-placement] {
@@ -3646,6 +3641,8 @@
 .wordComparisonScene {
   --word-comparison-axis-y: 68%;
   --word-comparison-sphere-gap: clamp(1.25rem, 2.8cqb, 2rem);
+  --word-comparison-motion-duration: 680ms;
+  --word-comparison-growth-duration: 680ms;
 
   position: relative;
   width: 100%;
@@ -3653,6 +3650,10 @@
   min-height: 100%;
   color: #f5f8ff;
   overflow: hidden;
+}
+
+.wordComparisonScene[data-phase="comparison"] {
+  --word-comparison-growth-duration: 2200ms;
 }
 
 .wordComparisonScene::before {
@@ -3690,6 +3691,18 @@
     rgb(255 255 255 / 18%)
   );
   box-shadow: 0 0 0.5rem rgb(106 168 255 / 14%);
+  transition: top var(--word-comparison-motion-duration) cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.wordComparisonAxisObstacle {
+  position: absolute;
+  z-index: 2;
+  top: calc(var(--word-comparison-axis-y) - 0.8rem);
+  right: 0;
+  left: 0;
+  height: 2.6rem;
+  pointer-events: none;
+  transition: top var(--word-comparison-motion-duration) cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 .wordComparisonCase {
@@ -3702,10 +3715,11 @@
   pointer-events: none;
   transform: translate(-50%, calc(-100% - var(--word-comparison-sphere-gap))) scale(0.98);
   transition:
-    left 620ms cubic-bezier(0.22, 1, 0.36, 1),
+    top var(--word-comparison-motion-duration) cubic-bezier(0.22, 1, 0.36, 1),
+    left var(--word-comparison-motion-duration) cubic-bezier(0.22, 1, 0.36, 1),
     opacity 220ms ease,
-    transform 620ms cubic-bezier(0.22, 1, 0.36, 1),
-    visibility 0s linear 620ms;
+    transform var(--word-comparison-motion-duration) cubic-bezier(0.22, 1, 0.36, 1),
+    visibility 0s linear var(--word-comparison-motion-duration);
   visibility: hidden;
 }
 
@@ -3715,6 +3729,11 @@
   transform: translate(-50%, calc(-100% - var(--word-comparison-sphere-gap)));
   transition-delay: 0s;
   visibility: visible;
+}
+
+.wordComparisonCase[data-visible="true"]:not([data-emphasized="true"]) {
+  opacity: 0.72;
+  filter: saturate(0.82) brightness(0.84);
 }
 
 .wordComparisonSphere {
@@ -3729,7 +3748,7 @@
     color-mix(in srgb, var(--word-sphere-color) 82%, white 7%) 0 18%,
     var(--word-sphere-color) 52%,
     color-mix(in srgb, var(--word-sphere-color) 42%, #02050b) 82%,
-    #07100c 100%
+    color-mix(in srgb, var(--word-sphere-color) 18%, #02050b) 100%
   );
   box-shadow:
     inset 0 0 calc(var(--word-sphere-size) * 0.08)
@@ -3738,11 +3757,43 @@
     0 0 calc(var(--word-sphere-size) * 0.08)
       color-mix(in srgb, var(--word-sphere-color) 35%, transparent);
   transition:
-    width 620ms cubic-bezier(0.22, 1, 0.36, 1),
-    height 620ms cubic-bezier(0.22, 1, 0.36, 1),
+    width var(--word-comparison-growth-duration) cubic-bezier(0.16, 1, 0.3, 1),
+    height var(--word-comparison-growth-duration) cubic-bezier(0.16, 1, 0.3, 1),
     border-color 220ms ease,
     background 220ms ease,
-    box-shadow 220ms ease;
+    box-shadow var(--word-comparison-growth-duration) cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.wordComparisonCase[data-visible="true"] .wordComparisonSphere {
+  transform-origin: center bottom;
+  animation: word-comparison-sphere-arrival var(--word-comparison-growth-duration)
+    cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+@keyframes word-comparison-sphere-arrival {
+  from {
+    transform: scale(0.18);
+  }
+
+  to {
+    transform: scale(1);
+  }
+}
+
+.wordComparisonScene[data-phase="comparison"]
+  .wordComparisonCase[data-emphasized="true"]
+  .wordComparisonSphere {
+  animation-name: word-comparison-final-sphere-arrival;
+}
+
+@keyframes word-comparison-final-sphere-arrival {
+  from {
+    transform: scale(0.04);
+  }
+
+  to {
+    transform: scale(1);
+  }
 }
 
 .wordComparisonCase[data-emphasized="true"] .wordComparisonSphere {
@@ -3767,17 +3818,13 @@
 
 .wordComparisonScene .wordPoolEffort > strong {
   width: 100%;
-  font-size: clamp(0.82rem, calc(var(--word-sphere-size) * 0.105), 3rem);
+  font-size: var(--word-label-size, clamp(0.78rem, calc(var(--word-sphere-size) * 0.12), 4.8rem));
   line-height: 0.98;
   text-align: center;
   text-shadow: 0 0.15rem 0.65rem rgb(0 0 0 / 88%);
   text-wrap: balance;
   white-space: normal;
-}
-
-.wordComparisonScene[data-phase="length"] .wordPoolEffort > strong {
-  font-size: clamp(0.66rem, calc(var(--word-sphere-size) * 0.075), 1rem);
-  line-height: 1.05;
+  transition: font-size var(--word-comparison-growth-duration) cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .wordComparisonScene .wordPoolEffortUnit {
@@ -3861,11 +3908,51 @@
   box-shadow: 0 0 0.55rem rgb(245 248 255 / 26%);
   opacity: 0;
   transform: translateX(-50%);
-  transition: left 620ms cubic-bezier(0.22, 1, 0.36, 1), opacity 180ms ease;
+  transition:
+    top var(--word-comparison-motion-duration) cubic-bezier(0.22, 1, 0.36, 1),
+    left var(--word-comparison-motion-duration) cubic-bezier(0.22, 1, 0.36, 1),
+    opacity 180ms ease;
 }
 
 .wordComparisonTick[data-visible="true"] {
   opacity: 1;
+}
+
+.wordComparisonResidualTime {
+  position: absolute;
+  z-index: 7;
+  top: calc(var(--word-comparison-axis-y) - var(--word-comparison-sphere-gap));
+  left: var(--word-slot-x);
+  padding: 0.2rem 0.5rem;
+  border: var(--border-width-thin) solid currentColor;
+  border-radius: var(--radius-round);
+  background: rgb(7 11 19 / 88%);
+  color: #65d68d;
+  font-size: clamp(0.62rem, 0.9cqi, 0.78rem);
+  font-weight: var(--font-weight-bold);
+  line-height: var(--line-height-tight);
+  opacity: 0;
+  pointer-events: none;
+  transform: translate(-50%, -100%) translateY(0.25rem);
+  transition:
+    top var(--word-comparison-motion-duration) cubic-bezier(0.22, 1, 0.36, 1),
+    left var(--word-comparison-motion-duration) cubic-bezier(0.22, 1, 0.36, 1),
+    opacity 180ms ease,
+    transform 420ms cubic-bezier(0.22, 1, 0.36, 1),
+    visibility 0s linear 420ms;
+  visibility: hidden;
+  white-space: nowrap;
+}
+
+.wordComparisonResidualTime[data-tone="blue"] {
+  color: #6aa8ff;
+}
+
+.wordComparisonResidualTime[data-visible="true"] {
+  opacity: 1;
+  transform: translate(-50%, -100%);
+  transition-delay: 0s;
+  visibility: visible;
 }
 
 .wordComparisonPassword {
@@ -3875,7 +3962,7 @@
   left: var(--word-slot-x);
   display: grid;
   width: max-content;
-  max-width: 46%;
+  max-width: 15%;
   justify-items: center;
   gap: clamp(0.2rem, 0.8cqb, var(--space-2));
   opacity: 0;
@@ -3883,10 +3970,11 @@
   text-shadow: 0 0.2rem 0.8rem rgb(0 0 0 / 86%);
   transform: translateX(-50%) translateY(0.35rem);
   transition:
-    left 620ms cubic-bezier(0.22, 1, 0.36, 1),
+    top var(--word-comparison-motion-duration) cubic-bezier(0.22, 1, 0.36, 1),
+    left var(--word-comparison-motion-duration) cubic-bezier(0.22, 1, 0.36, 1),
     opacity 220ms ease,
-    transform 620ms cubic-bezier(0.22, 1, 0.36, 1),
-    visibility 0s linear 620ms;
+    transform var(--word-comparison-motion-duration) cubic-bezier(0.22, 1, 0.36, 1),
+    visibility 0s linear var(--word-comparison-motion-duration);
   visibility: hidden;
 }
 
@@ -3904,19 +3992,25 @@
 }
 
 .wordComparisonScene:is([data-phase="multilingual"], [data-phase="comparison"])
-  .wordComparisonPassword
+  .wordComparisonPassword[data-emphasized="true"]
   > strong {
   font-size: clamp(1.5rem, 2.8cqi, 2.35rem);
   line-height: var(--line-height-tight);
 }
 
+.wordComparisonPassword[data-emphasized="true"] {
+  z-index: 9;
+  max-width: 34%;
+}
+
 .wordComparisonPassword > div {
   max-width: 100%;
-  flex-wrap: nowrap;
+  justify-content: center;
+  flex-wrap: wrap;
   gap: clamp(0.1rem, 0.3cqi, var(--space-1));
 }
 
-.wordComparisonPassword[data-emphasized="true"] > div {
+.wordComparisonPassword[data-highlighted="true"] > div {
   filter: brightness(1.16) drop-shadow(0 0 0.8rem rgb(255 255 255 / 34%));
 }
 
@@ -3961,12 +4055,12 @@
   top: var(--word-comparison-axis-y);
   left: var(--word-slot-x);
   display: grid;
-  width: clamp(7.5rem, 12cqi, 10rem);
-  min-height: 5.3rem;
+  width: max(5.2rem, calc(clamp(7.5rem, 12cqi, 10rem) * var(--word-detail-scale, 1)));
+  min-height: max(3.8rem, calc(5.3rem * var(--word-detail-scale, 1)));
   box-sizing: border-box;
   place-content: center;
-  gap: 0.18rem;
-  padding: var(--space-3);
+  gap: calc(0.18rem * var(--word-detail-scale, 1));
+  padding: calc(var(--space-3) * var(--word-detail-scale, 1));
   border: var(--border-width-thin) solid rgb(255 255 255 / 24%);
   border-radius: var(--radius-medium);
   background: linear-gradient(145deg, rgb(255 255 255 / 13%), rgb(255 255 255 / 4%));
@@ -3975,59 +4069,84 @@
   pointer-events: none;
   text-align: center;
   transform: translate(
-    calc(var(--word-sphere-size) / 2 + clamp(0.65rem, 1.4cqi, 1rem)),
+    calc(var(--word-sphere-size) / 2 + var(--word-detail-offset, clamp(2rem, 4cqi, 3rem))),
     calc(-100% - 0.3rem)
   );
   transition:
-    left 620ms cubic-bezier(0.22, 1, 0.36, 1),
+    top var(--word-comparison-motion-duration) cubic-bezier(0.22, 1, 0.36, 1),
+    left var(--word-comparison-motion-duration) cubic-bezier(0.22, 1, 0.36, 1),
+    width var(--word-comparison-growth-duration) cubic-bezier(0.16, 1, 0.3, 1),
+    min-height var(--word-comparison-growth-duration) cubic-bezier(0.16, 1, 0.3, 1),
+    padding var(--word-comparison-growth-duration) cubic-bezier(0.16, 1, 0.3, 1),
     opacity 220ms ease,
-    transform 420ms cubic-bezier(0.22, 1, 0.36, 1),
-    visibility 0s linear 420ms;
+    transform var(--word-comparison-motion-duration) cubic-bezier(0.22, 1, 0.36, 1),
+    visibility 0s linear var(--word-comparison-motion-duration);
   visibility: hidden;
 }
 
 .wordComparisonPackageCard[data-slot="secondary"] {
-  width: clamp(5.75rem, 8.5cqi, 7rem);
-  min-height: 4rem;
-  gap: 0.1rem;
-  padding: var(--space-2);
+  width: max(4.8rem, calc(clamp(5.75rem, 8.5cqi, 7rem) * var(--word-detail-scale, 1)));
+  min-height: max(3.3rem, calc(4rem * var(--word-detail-scale, 1)));
+  gap: calc(0.1rem * var(--word-detail-scale, 1));
+  padding: calc(var(--space-2) * var(--word-detail-scale, 1));
+}
+
+.wordComparisonPackageCard[data-detail-side="left"] {
+  transform: translate(
+    calc(-100% - var(--word-sphere-size) / 2 - var(--word-detail-offset, clamp(2rem, 4cqi, 3rem))),
+    calc(-100% - 0.3rem)
+  );
 }
 
 .wordComparisonPackageCard[data-visible="true"] {
   opacity: 1;
   pointer-events: auto;
   transform: translate(
-    calc(var(--word-sphere-size) / 2 + clamp(0.65rem, 1.4cqi, 1rem)),
+    calc(var(--word-sphere-size) / 2 + var(--word-detail-offset, clamp(2rem, 4cqi, 3rem))),
     -100%
   );
   transition-delay: 0s;
   visibility: visible;
 }
 
+.wordComparisonPackageCard[data-detail-side="left"][data-visible="true"] {
+  transform: translate(
+    calc(-100% - var(--word-sphere-size) / 2 - var(--word-detail-offset, clamp(2rem, 4cqi, 3rem))),
+    -100%
+  );
+}
+
 .wordComparisonPackageCard > small {
-  font-size: clamp(1.45rem, 2.4cqi, 2rem);
+  font-size: max(0.95rem, calc(clamp(1.45rem, 2.4cqi, 2rem) * var(--word-detail-scale, 1)));
   line-height: 1;
 }
 
 .wordComparisonPackageCard[data-slot="secondary"] > small {
-  font-size: clamp(1.05rem, 1.75cqi, 1.35rem);
+  font-size: max(0.85rem, calc(clamp(1.05rem, 1.75cqi, 1.35rem) * var(--word-detail-scale, 1)));
 }
 
 .wordComparisonPackageCard > span {
   color: rgb(245 248 255 / 64%);
-  font-size: clamp(0.58rem, 0.88cqi, 0.72rem);
+  font-size: max(0.55rem, calc(clamp(0.58rem, 0.88cqi, 0.72rem) * var(--word-detail-scale, 1)));
 }
 
 .wordComparisonPackageCard[data-slot="secondary"] > span {
-  font-size: clamp(0.5rem, 0.72cqi, 0.62rem);
+  font-size: max(0.52rem, calc(clamp(0.5rem, 0.72cqi, 0.62rem) * var(--word-detail-scale, 1)));
 }
 
 .wordComparisonPackageCard > strong {
-  font-size: clamp(0.72rem, 1.05cqi, 0.92rem);
+  font-size: max(0.62rem, calc(clamp(0.72rem, 1.05cqi, 0.92rem) * var(--word-detail-scale, 1)));
 }
 
 .wordComparisonPackageCard[data-slot="secondary"] > strong {
-  font-size: clamp(0.62rem, 0.85cqi, 0.75rem);
+  font-size: max(0.58rem, calc(clamp(0.62rem, 0.85cqi, 0.75rem) * var(--word-detail-scale, 1)));
+}
+
+.wordComparisonPackageCard > small,
+.wordComparisonPackageCard > span,
+.wordComparisonPackageCard > strong,
+.wordComparisonPackage > strong > span {
+  transition: font-size var(--word-comparison-growth-duration) cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .wordComparisonPackageCard .wordPoolGear {
@@ -4098,18 +4217,20 @@
   left: var(--word-slot-x);
   display: flex;
   flex-direction: column-reverse;
-  gap: 0.22rem;
+  gap: calc(0.22rem * var(--word-detail-scale, 1));
   opacity: 0;
   pointer-events: none;
   transform: translate(
-    calc(var(--word-sphere-size) / 2 + clamp(0.65rem, 1.4cqi, 1rem)),
+    calc(var(--word-sphere-size) / 2 + var(--word-detail-offset, clamp(2rem, 4cqi, 3rem))),
     calc(-100% - 0.3rem)
   );
   transition:
-    left 620ms cubic-bezier(0.22, 1, 0.36, 1),
+    top var(--word-comparison-motion-duration) cubic-bezier(0.22, 1, 0.36, 1),
+    left var(--word-comparison-motion-duration) cubic-bezier(0.22, 1, 0.36, 1),
+    gap var(--word-comparison-growth-duration) cubic-bezier(0.16, 1, 0.3, 1),
     opacity 220ms ease,
-    transform 620ms cubic-bezier(0.22, 1, 0.36, 1),
-    visibility 0s linear 620ms;
+    transform var(--word-comparison-motion-duration) cubic-bezier(0.22, 1, 0.36, 1),
+    visibility 0s linear var(--word-comparison-motion-duration);
   visibility: hidden;
 }
 
@@ -4117,11 +4238,25 @@
   opacity: 1;
   pointer-events: auto;
   transform: translate(
-    calc(var(--word-sphere-size) / 2 + clamp(0.65rem, 1.4cqi, 1rem)),
+    calc(var(--word-sphere-size) / 2 + var(--word-detail-offset, clamp(2rem, 4cqi, 3rem))),
     -100%
   );
   transition-delay: 0s;
   visibility: visible;
+}
+
+.wordComparisonPackages[data-detail-side="left"] {
+  transform: translate(
+    calc(-100% - var(--word-sphere-size) / 2 - var(--word-detail-offset, clamp(2rem, 4cqi, 3rem))),
+    calc(-100% - 0.3rem)
+  );
+}
+
+.wordComparisonPackages[data-detail-side="left"][data-visible="true"] {
+  transform: translate(
+    calc(-100% - var(--word-sphere-size) / 2 - var(--word-detail-offset, clamp(2rem, 4cqi, 3rem))),
+    -100%
+  );
 }
 
 .wordComparisonPackages[data-emphasized="true"] {
@@ -4156,17 +4291,26 @@
   position: relative;
   display: grid;
   box-sizing: border-box;
-  width: clamp(6.7rem, 9cqi, 8.2rem);
-  min-height: clamp(2.6rem, 4.8cqb, 3.25rem);
+  width: max(4.7rem, calc(clamp(6.7rem, 9cqi, 8.2rem) * var(--word-detail-scale, 1)));
+  min-height: max(2.25rem, calc(clamp(2.6rem, 4.8cqb, 3.25rem) * var(--word-detail-scale, 1)));
   place-items: center;
-  padding: var(--space-2) 2rem var(--space-2) var(--space-2);
+  padding:
+    calc(var(--space-2) * var(--word-detail-scale, 1))
+    max(1.5rem, calc(2rem * var(--word-detail-scale, 1)))
+    calc(var(--space-2) * var(--word-detail-scale, 1))
+    calc(var(--space-2) * var(--word-detail-scale, 1));
   border: var(--border-width-thin) solid rgb(255 255 255 / 24%);
   border-radius: var(--radius-medium);
   background: linear-gradient(145deg, rgb(255 255 255 / 13%), rgb(255 255 255 / 4%));
   box-shadow: inset 0 0 1rem rgb(255 255 255 / 5%), 0 0.4rem 1rem rgb(0 0 0 / 22%);
   opacity: 0;
   transform: translateY(0.4rem);
-  transition: opacity 200ms ease, transform 420ms cubic-bezier(0.22, 1, 0.36, 1);
+  transition:
+    width var(--word-comparison-growth-duration) cubic-bezier(0.16, 1, 0.3, 1),
+    min-height var(--word-comparison-growth-duration) cubic-bezier(0.16, 1, 0.3, 1),
+    padding var(--word-comparison-growth-duration) cubic-bezier(0.16, 1, 0.3, 1),
+    opacity 200ms ease,
+    transform var(--word-comparison-motion-duration) cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 .wordComparisonPackage[data-visible="true"] {
@@ -4182,11 +4326,11 @@
 }
 
 .wordComparisonPackage > strong > span:first-child {
-  font-size: clamp(1.1rem, 1.7cqi, 1.5rem);
+  font-size: max(0.85rem, calc(clamp(1.1rem, 1.7cqi, 1.5rem) * var(--word-detail-scale, 1)));
 }
 
 .wordComparisonPackage > strong > span:last-child {
-  font-size: clamp(0.62rem, 0.9cqi, 0.8rem);
+  font-size: max(0.55rem, calc(clamp(0.62rem, 0.9cqi, 0.8rem) * var(--word-detail-scale, 1)));
 }
 
 .wordComparisonPackage .wordPoolGear {
@@ -5468,14 +5612,26 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .wordComparisonAxis,
+  .wordComparisonAxisObstacle,
   .wordComparisonCase,
   .wordComparisonSphere,
   .wordComparisonTick,
+  .wordComparisonResidualTime,
   .wordComparisonPassword,
   .wordComparisonPackageCard,
   .wordComparisonPackages,
-  .wordComparisonPackage {
+  .wordComparisonPackage,
+  .wordComparisonPackageCard > small,
+  .wordComparisonPackageCard > span,
+  .wordComparisonPackageCard > strong,
+  .wordComparisonPackage > strong > span,
+  .wordComparisonScene .wordPoolEffort > strong {
     transition: none;
+  }
+
+  .wordComparisonCase[data-visible="true"] .wordComparisonSphere {
+    animation: none;
   }
 
   .wordComparisonPackages[data-emphasized="true"]
@@ -5599,23 +5755,27 @@
   }
 
   .wordComparisonPassword {
-    max-width: 48%;
+    max-width: 18%;
+  }
+
+  .wordComparisonPassword[data-emphasized="true"] {
+    max-width: 38%;
   }
 
   .wordComparisonPackageCard {
-    width: 7.25rem;
-    min-height: 4.8rem;
-    padding: var(--space-2);
+    width: max(5.2rem, calc(7.25rem * var(--word-detail-scale, 1)));
+    min-height: max(3.8rem, calc(4.8rem * var(--word-detail-scale, 1)));
+    padding: calc(var(--space-2) * var(--word-detail-scale, 1));
   }
 
   .wordComparisonPackageCard[data-slot="secondary"] {
-    width: 5.5rem;
-    min-height: 3.75rem;
+    width: max(4.8rem, calc(5.5rem * var(--word-detail-scale, 1)));
+    min-height: max(3.3rem, calc(3.75rem * var(--word-detail-scale, 1)));
   }
 
   .wordComparisonPackage {
-    width: 6.6rem;
-    min-height: 2.55rem;
+    width: max(4.7rem, calc(6.6rem * var(--word-detail-scale, 1)));
+    min-height: max(2.25rem, calc(2.55rem * var(--word-detail-scale, 1)));
   }
 
   .lengthOrientationInformation {
