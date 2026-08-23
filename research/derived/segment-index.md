@@ -134,7 +134,7 @@ Seitenangaben beziehen sich auf die im Trainingsdokument ausgewiesene interne Pa
   deutsche Wortlistenstapel sichtbar. Länderkarte, Wortlisten-Schätzfrage und Zeichenraum-Analogie
   entfallen; danach folgt direkt die bestehende lokale Campusgram-Auswertung. Die Demonstration
   analysiert oder persistiert keine Eingabe.
-- Die S05-Simulationsdisposition (`S05_CONTENT_VERSION 2.120.0`, Analysekonfiguration
+- Die S05-Simulationsdisposition (`S05_CONTENT_VERSION 2.121.0`, Analysekonfiguration
   `passwo-bounded-whole-recognition-v17`) bleibt auf den vollständigen fiktiven Wert begrenzt:
   `whole-password-recognized` entsteht durch einen direkten Vollwert oder eine dokumentierte
   begrenzte Kandidatenfamilie aus kanonischen Ankern und positionsunabhängigen Restzeichen oder
@@ -218,7 +218,7 @@ Seitenangaben beziehen sich auf die im Trainingsdokument ausgewiesene interne Pa
   ausgeschlossen. Eine einzelne Zeichenoperation zählt nur als explizit begrenzter erzeugter
   Kandidatenweg. Ein nicht erkannter Weg bedeutet nur, dass diese Simulation keinen direkten Weg
   erkannt hat.
-- `S06_CONSEQUENCE_CONTENT_VERSION 2.36.0` übernimmt die S05-Vollpasswort-Disposition ohne eigene
+- `S06_CONSEQUENCE_CONTENT_VERSION 2.37.0` übernimmt die S05-Vollpasswort-Disposition ohne eigene
   Guess-Schwelle. Nur `whole-password-recognized` öffnet den tatsächlichen lokalen Vorfallspfad;
   `no-whole-password-recognized` bleibt eine begrenzte Nicht-Erkennung und kein Stärkeurteil.
 - Jeder der drei flüchtigen S06-Kontoeingänge akzeptiert optional dieselbe bestätigte semantische

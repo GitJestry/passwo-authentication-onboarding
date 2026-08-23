@@ -290,6 +290,7 @@ export function S06ConsequenceTraining({
             onModeChange={(mode) => runtime.controller.selectLocalReflectionMode(mode)}
             onGroupSelect={(groupId) => runtime.controller.selectLocalReflectionGroup(groupId)}
             onGroupAdd={() => runtime.controller.addLocalReflectionGroup()}
+            onGroupRemove={(groupId) => runtime.controller.removeLocalReflectionGroup(groupId)}
             onBlockToggle={(blockId) => runtime.controller.toggleLocalReflectionBlock(blockId)}
             onPersonalCreate={(start, end) =>
               runtime.controller.addLocalPersonalCandidate(start, end)

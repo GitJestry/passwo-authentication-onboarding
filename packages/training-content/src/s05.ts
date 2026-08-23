@@ -13,7 +13,7 @@ const campusgramContextConveyorBlocks = [
       return [normalized, normalized] as const;
     }),
   ).values(),
-];
+].filter((term) => term !== 'instagram' && term !== 'insta');
 
 const characterMixVariationStems = [
   'meinPasswort',
@@ -73,7 +73,7 @@ export interface S05DesignLabFixture {
   readonly startSection: 'intro' | 'components' | 'structure';
 }
 
-export const S05_CONTENT_VERSION = '2.120.0';
+export const S05_CONTENT_VERSION = '2.122.0';
 
 export const s05Content = {
   version: S05_CONTENT_VERSION,
@@ -83,9 +83,9 @@ export const s05Content = {
       12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34,
       35,
     ] as const,
-    revision: 'Userauftrag vom 2026-08-23 · Dreier-Gruppenpalette ab #52BE80',
+    revision: 'Userauftrag vom 2026-08-23 · sichtbare Konto-/Dienstbeispiele begrenzt',
     copyReference:
-      'docs/design/S00-S05-COPY-AUDIT.md#copy--und-darstellungsdelta-s05-dreier-gruppenpalette-ab-52be80-23-august-2026',
+      'docs/design/S00-S05-COPY-AUDIT.md#copy-delta-s05-sichtbare-konto--und-dienstbeispiele-begrenzt-23-august-2026',
   },
   segment: {
     id: 'S05',
@@ -418,10 +418,10 @@ export const s05Content = {
     reflection: {
       themeQuestion: 'Welche Teile gehören für dich inhaltlich zusammen?',
       sentenceQuestion: 'Welche Teile bilden für dich eine Satz- oder Phrasenstruktur?',
-      groupLabel: 'Gruppe',
-      newGroup: 'Neue Gruppe',
+      groupLabel: 'Zusammenhang',
+      newGroup: 'Neuer Zusammenhang',
       maxGroupCount: 3,
-      maxGroups: 'Max. 3 Gruppen',
+      maxGroups: 'Max. 3 Zusammenhänge',
       deleteGroup: 'Löschen',
       finish: 'Fertig',
       confirmTitle: 'Auswahl übernehmen?',

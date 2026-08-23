@@ -1,5 +1,35 @@
 # S00--S05 Copy and Interaction Audit
 
+## Copy-Delta S05 sichtbare Konto- und Dienstbeispiele begrenzt, 23. August 2026
+
+Quelle ist der ausdrückliche Nutzerauftrag vom 23. August 2026 sowie die narrative Abgrenzung
+von Konto-, Dienst- und Umfeldbezügen auf den internen Skriptseiten 12 bis 35. `Instagram` und
+`Insta` entfallen ausschließlich aus der sichtbaren Beispieltabelle der Campusgram-Maschine.
+Beide Begriffe bleiben im kanonischen Campusgram-Katalog und werden bei der lokalen Prüfung
+weiterhin erkannt. Interaktion, Analyseentscheidung, Persistenz, Export und Timing bleiben
+unverändert. `S05_CONTENT_VERSION` wird von `2.121.0` auf `2.122.0` erhöht.
+
+| Segment und Text-ID | Quelle | Aktueller Text | Geplanter Text | Primäre Rolle | Grund | Bedeutungsänderung | Interaktionsziel | Hervorhebung |
+|---|---|---|---|---|---|---|---|---|
+| `S05.componentStrategy.accountContext.machine.conveyorBlocks` | Nutzerauftrag vom 2026-08-23; Trainingsskript S05, interne Seiten 12–35 | normalisierte Campusgram-Liste einschließlich `instagram` und `insta` | sichtbare Liste ohne `instagram` und `insta`; `S05.analysis.authoredAccountTerms` bleibt unverändert | Mechanismuserklärung | die beiden ausdrücklich ausgeschlossenen Begriffe nicht als sichtbare Maschinenbeispiele nach außen führen | begrenzt auf die Beispieldarstellung | kein | keine |
+
+Geschützter Wortlaut und bestehende Sprechschritte bleiben unverändert.
+
+## Copy-Delta S05 Zusammenhänge A bis C, 23. August 2026
+
+Quelle ist der ausdrückliche Nutzerauftrag vom 23. August 2026. Die drei nummerierten
+Inhaltsgruppen heißen in der sichtbaren Strukturreflexion nun `Zusammenhang A`,
+`Zusammenhang B` und `Zusammenhang C`. Der Plus-Hinweis verwendet entsprechend
+`Neuer Zusammenhang`; der nicht interaktive Grenzhinweis lautet `Max. 3 Zusammenhänge`.
+Auswahl, Löschfunktion, Zuordnung, Analyse, Persistenz, Export und Timing bleiben unverändert.
+`S05_CONTENT_VERSION` wird von `2.120.0` auf `2.121.0` erhöht.
+
+| Segment und Text-ID | Quelle | Aktueller Text | Geplanter Text | Primäre Rolle | Grund | Bedeutungsänderung | Interaktionsziel | Hervorhebung |
+|---|---|---|---|---|---|---|---|---|
+| `S05.structure.reflection.{groupLabel,newGroup,maxGroups}` | Nutzerauftrag vom 2026-08-23 | `Gruppe 1–3`; `Neue Gruppe`; `Max. 3 Gruppen` | `Zusammenhang A–C`; `Neuer Zusammenhang`; `Max. 3 Zusammenhänge` | Orientierung | ausdrücklich verlangte Bezeichnung und konsistente Benennung der zugehörigen Steuerungen | nein | jeweiliger Zusammenhang; Plus-Steuerung; kein Ziel beim Grenzhinweis | keine |
+
+Geschützter Wortlaut und bestehende Sprechschritte bleiben unverändert.
+
 ## Copy- und Darstellungsdelta S05 Dreier-Gruppenpalette ab #52BE80, 23. August 2026
 
 Quelle ist der ausdrückliche Nutzerauftrag vom 23. August 2026. Dieses Delta ersetzt die bisherige

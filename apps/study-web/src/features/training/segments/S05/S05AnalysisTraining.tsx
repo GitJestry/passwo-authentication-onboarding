@@ -30,7 +30,7 @@ import {
   PasswordCategoryIconStack,
 } from './PasswordCategoryIcon.js';
 import { PasswordComponentReview } from './PasswordComponentReview.js';
-import { structureGroupColor } from './StructureGroupPalette.js';
+import { structureGroupColor, structureGroupLetter } from './StructureGroupPalette.js';
 import {
   type S05AnalysisControllerSnapshot,
   type S05AnalysisSubject,
@@ -480,6 +480,7 @@ function CategoryMachine({
       data-s05-target="component-conveyor"
       data-s05-speech-obstacle
       data-machine-step={step}
+      data-category={categoryId}
       aria-label={category?.title ?? content.ariaLabel}
     >
       <div className={styles.machineInput}>
@@ -518,7 +519,7 @@ function CategoryMachine({
         data-source={arrivedBlock}
         data-emphasized={step === 'common-components-changes' || undefined}
       >
-        <img src={typicalChangesAsset} width={768} height={512} alt="" />
+        <img src={typicalChangesAsset} width={768} height={576} alt="" />
         <div className={styles.machineOutputViewport} key={arrivedBlock}>
           <div className={styles.machineOutputStream}>
             {[...variants, ...variants].map((variant, index) => (
@@ -551,7 +552,7 @@ function CategoryTransition({
 }) {
   const category = s05Content.componentStrategy.categories.find(({ id }) => id === categoryId);
   return (
-    <div className={styles.categoryTransition} aria-hidden="true">
+    <div className={styles.categoryTransition} data-category={categoryId} aria-hidden="true">
       <div className={styles.categoryTransitionPanel}>
         <img src={passwordCategoryAssets[categoryId]} width={768} height={768} alt="" />
         <strong>{category?.title ?? s05Content.page.title}</strong>
@@ -1355,13 +1356,16 @@ function StructureContentReflection({
                   data-active={group.id === reflection.activeContentGroupId || undefined}
                   onClick={() => controller.selectStructureContentGroup(group.id)}
                 >
-                  {s05Content.structure.reflection.groupLabel} {groupIndex + 1}
+                  {s05Content.structure.reflection.groupLabel} {structureGroupLetter(groupIndex)}
                 </button>
                 {groupIndex === 0 ? null : (
                   <button
                     type="button"
                     className={styles.structureReflectionDelete}
-                    aria-label={`${s05Content.structure.reflection.deleteGroup} ${groupIndex + 1}`}
+                    aria-label={
+                      `${s05Content.structure.reflection.deleteGroup} ` +
+                      `${s05Content.structure.reflection.groupLabel} ${structureGroupLetter(groupIndex)}`
+                    }
                     onClick={() => controller.removeStructureContentGroup(group.id)}
                   >
                     <svg viewBox="0 0 24 24" aria-hidden="true">
@@ -1377,27 +1381,22 @@ function StructureContentReflection({
               </div>
             );
           })}
-          <button
-            type="button"
-            className={styles.structureReflectionAdd}
-            aria-label={
-              groupLimitReached
-                ? s05Content.structure.reflection.maxGroups
-                : s05Content.structure.reflection.newGroup
-            }
-            data-limit-reached={groupLimitReached || undefined}
-            disabled={!canAddGroup}
-            onClick={() => controller.addStructureContentGroup()}
-          >
-            {groupLimitReached ? (
-              s05Content.structure.reflection.maxGroups
-            ) : (
-              <>
-                <span aria-hidden="true">+</span>
-                <small>{s05Content.structure.reflection.newGroup}</small>
-              </>
-            )}
-          </button>
+          {groupLimitReached ? (
+            <span className={styles.structureReflectionLimit}>
+              {s05Content.structure.reflection.maxGroups}
+            </span>
+          ) : (
+            <button
+              type="button"
+              className={styles.structureReflectionAdd}
+              aria-label={s05Content.structure.reflection.newGroup}
+              disabled={!canAddGroup}
+              onClick={() => controller.addStructureContentGroup()}
+            >
+              <span aria-hidden="true">+</span>
+              <small>{s05Content.structure.reflection.newGroup}</small>
+            </button>
+          )}
         </div>
         <button type="button" className={styles.structureReflectionFinish} onClick={finish}>
           {s05Content.structure.reflection.finish}

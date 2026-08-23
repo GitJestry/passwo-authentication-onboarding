@@ -9,7 +9,7 @@ import { S08_NETWORK_REPLAY_CONTENT_VERSION, s08NetworkReplayContent } from './s
 import { S09_PASSWORD_SUMMARY_CONTENT_VERSION, s09PasswordSummaryContent } from './s09.js';
 
 const s06AttackFlowCopyReference =
-  'docs/design/S06-S07-COPY-AUDIT.md#copy--und-darstellungsdelta-s06-logo-infos-ohne-zusammenfassungskarte-23-august-2026';
+  'docs/design/S06-S07-COPY-AUDIT.md#copy-delta-s06-zusammenhaenge-a-bis-c-23-august-2026';
 const s07EntryCopyReference =
   'docs/design/S06-S07-COPY-AUDIT.md#copy-delta-s06-s07-eigene-passwoerter-23-august-2026';
 const s08CopyReference =
@@ -19,17 +19,17 @@ const s09CopyReference =
 
 describe('S06 transition and S07 passphrase-search copy traceability', () => {
   it('keeps S06 consequence wording aligned with bounded whole-password recognition', () => {
-    expect(S06_CONSEQUENCE_CONTENT_VERSION).toBe('2.36.0');
+    expect(S06_CONSEQUENCE_CONTENT_VERSION).toBe('2.37.0');
     expect(s06ConsequenceContent.source.copyReference).toBe(s06AttackFlowCopyReference);
     expect(s06ConsequenceContent.page.attackStart).toBe('Angriff starten');
     expect(s06ConsequenceContent.page.finish).toBe('Fertig');
     expect(s06ConsequenceContent.page.localReflection).toEqual({
       passwordLabel: 'Fiktives Passwort',
       modeLabel: 'Modus:',
-      groupLabel: 'Gruppe',
-      newGroup: 'Neue Gruppe',
+      groupLabel: 'Zusammenhang',
+      newGroup: 'Neuer Zusammenhang',
       maxGroupCount: 3,
-      maxGroups: 'Max. 3 Gruppen',
+      maxGroups: 'Max. 3 Zusammenhänge',
       structureMode: 'Struktur',
       personalMode: 'Persönliches',
       personalSelectionLabel: 'Persönliche Angaben im fiktiven Passwort markieren',

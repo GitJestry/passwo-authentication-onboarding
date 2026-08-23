@@ -1,5 +1,20 @@
 # S06--S07 Copy Audit
 
+## Copy-Delta S06 Zusammenhänge A bis C, 23. August 2026
+
+Quelle ist der ausdrückliche Nutzerauftrag vom 23. August 2026. Die aus S05 übernommenen
+Inhaltsgruppen heißen in der lokalen Reflexion nun `Zusammenhang A`, `Zusammenhang B` und
+`Zusammenhang C`. Der Plus-Hinweis verwendet entsprechend `Neuer Zusammenhang`; der nicht
+interaktive Grenzhinweis lautet `Max. 3 Zusammenhänge`. Auswahl, Löschfunktion, Zuordnung,
+Analyse, Persistenz, Export und Timing bleiben unverändert.
+`S06_CONSEQUENCE_CONTENT_VERSION` wird von `2.36.0` auf `2.37.0` erhöht.
+
+| Segment und Text-ID | Quelle | Aktueller Text | Geplanter Text | Primäre Rolle | Grund | Bedeutungsänderung | Interaktionsziel | Hervorhebung |
+|---|---|---|---|---|---|---|---|---|
+| `S06.page.localReflection.{groupLabel,newGroup,maxGroups}` | Nutzerauftrag vom 2026-08-23 | `Gruppe 1–3`; `Neue Gruppe`; `Max. 3 Gruppen` | `Zusammenhang A–C`; `Neuer Zusammenhang`; `Max. 3 Zusammenhänge` | Orientierung | ausdrücklich verlangte Bezeichnung und konsistente Benennung der zugehörigen Steuerungen | nein | jeweiliger Zusammenhang; Plus-Steuerung; kein Ziel beim Grenzhinweis | keine |
+
+Geschützter Wortlaut und bestehende Sprechschritte bleiben unverändert.
+
 ## Copy- und Darstellungsdelta S06 Dreier-Gruppenpalette ab #52BE80, 23. August 2026
 
 Quelle ist der ausdrückliche Nutzerauftrag vom 23. August 2026. Dieses Delta ersetzt die bisherige

@@ -8,7 +8,7 @@ import {
   passwordVisualStyleFor,
 } from '../S05/PasswordBuildingBlocks.js';
 import { PasswordCategoryIconStack } from '../S05/PasswordCategoryIcon.js';
-import { structureGroupColor } from '../S05/StructureGroupPalette.js';
+import { structureGroupColor, structureGroupLetter } from '../S05/StructureGroupPalette.js';
 import type {
   S06LocalReflectionMode,
   S06LocalReflectionSnapshot,
@@ -57,6 +57,7 @@ export function S06LocalPasswordReflection({
   onModeChange,
   onGroupSelect,
   onGroupAdd,
+  onGroupRemove,
   onBlockToggle,
   onPersonalCreate,
   onPersonalRemove,
@@ -67,6 +68,7 @@ export function S06LocalPasswordReflection({
   readonly onModeChange: (mode: S06LocalReflectionMode) => void;
   readonly onGroupSelect: (groupId: string) => void;
   readonly onGroupAdd: () => void;
+  readonly onGroupRemove: (groupId: string) => void;
   readonly onBlockToggle: (blockId: string) => void;
   readonly onPersonalCreate: (start: number, end: number) => boolean;
   readonly onPersonalRemove: (candidateId: string) => void;
@@ -291,44 +293,60 @@ export function S06LocalPasswordReflection({
                           structureGroupColor(groupIndex),
                       };
                       return (
-                        <button
-                          type="button"
-                          className={styles.groupButton}
-                          style={groupStyle}
-                          data-active={
-                            (reflection.mode === 'groups' &&
-                              reflection.activeContentGroupId === group.id) || undefined
-                          }
-                          aria-pressed={
-                            reflection.mode === 'groups' &&
-                            reflection.activeContentGroupId === group.id
-                          }
-                          onClick={() => onGroupSelect(group.id)}
-                          key={group.id}
-                        >
-                          {content.groupLabel} {groupIndex + 1}
-                        </button>
+                        <div className={styles.groupEntry} key={group.id}>
+                          <button
+                            type="button"
+                            className={styles.groupButton}
+                            style={groupStyle}
+                            data-active={
+                              (reflection.mode === 'groups' &&
+                                reflection.activeContentGroupId === group.id) || undefined
+                            }
+                            aria-pressed={
+                              reflection.mode === 'groups' &&
+                              reflection.activeContentGroupId === group.id
+                            }
+                            onClick={() => onGroupSelect(group.id)}
+                          >
+                            {content.groupLabel} {structureGroupLetter(groupIndex)}
+                          </button>
+                          {groupIndex === 0 ? null : (
+                            <button
+                              type="button"
+                              className={styles.deleteGroup}
+                              aria-label={
+                                `${s05Content.structure.reflection.deleteGroup} ` +
+                                `${content.groupLabel} ${structureGroupLetter(groupIndex)}`
+                              }
+                              onClick={() => onGroupRemove(group.id)}
+                            >
+                              <svg viewBox="0 0 24 24" aria-hidden="true">
+                                <path d="M4 7h16" />
+                                <path d="M9 7V4h6v3" />
+                                <path d="M7 7l1 13h8l1-13" />
+                                <path d="M10 11v5" />
+                                <path d="M14 11v5" />
+                              </svg>
+                              <small>{s05Content.structure.reflection.deleteGroup}</small>
+                            </button>
+                          )}
+                        </div>
                       );
                     })}
-                    <button
-                      type="button"
-                      className={styles.addGroup}
-                      aria-label={
-                        groupLimitReached ? content.maxGroups : content.newGroup
-                      }
-                      data-limit-reached={groupLimitReached || undefined}
-                      disabled={!canAddGroup}
-                      onClick={onGroupAdd}
-                    >
-                      {groupLimitReached ? (
-                        content.maxGroups
-                      ) : (
-                        <>
-                          <span aria-hidden="true">+</span>
-                          <small>{content.newGroup}</small>
-                        </>
-                      )}
-                    </button>
+                    {groupLimitReached ? (
+                      <span className={styles.groupLimit}>{content.maxGroups}</span>
+                    ) : (
+                      <button
+                        type="button"
+                        className={styles.addGroup}
+                        aria-label={content.newGroup}
+                        disabled={!canAddGroup}
+                        onClick={onGroupAdd}
+                      >
+                        <span aria-hidden="true">+</span>
+                        <small>{content.newGroup}</small>
+                      </button>
+                    )}
                   </div>
                 </div>
                 <button

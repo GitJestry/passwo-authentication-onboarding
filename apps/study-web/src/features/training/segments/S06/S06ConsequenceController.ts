@@ -1273,6 +1273,33 @@ export class S06ConsequenceController {
     this.#emit();
   }
 
+  removeLocalReflectionGroup(groupId: string): void {
+    const reflection = this.#snapshot.localReflection;
+    if (
+      this.#disposed ||
+      this.#snapshot.stage !== 'local-reflection' ||
+      reflection === null ||
+      reflection.contentGroups.length <= 1 ||
+      !reflection.contentGroups.some(({ id }) => id === groupId)
+    ) {
+      return;
+    }
+    const contentGroups = reflection.contentGroups.filter(({ id }) => id !== groupId);
+    const activeContentGroupId =
+      reflection.activeContentGroupId === groupId
+        ? (contentGroups.at(-1)?.id ?? contentGroups[0]?.id ?? 'content-group-1')
+        : reflection.activeContentGroupId;
+    this.#snapshot = {
+      ...this.#snapshot,
+      localReflection: {
+        ...reflection,
+        contentGroups,
+        activeContentGroupId,
+      },
+    };
+    this.#emit();
+  }
+
   toggleLocalReflectionBlock(blockId: string): void {
     const reflection = this.#snapshot.localReflection;
     if (

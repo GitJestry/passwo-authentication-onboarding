@@ -58,16 +58,16 @@ export interface S06NarrationContent {
   readonly body: string;
 }
 
-export const S06_CONSEQUENCE_CONTENT_VERSION = '2.36.0';
+export const S06_CONSEQUENCE_CONTENT_VERSION = '2.37.0';
 
 export const s06ConsequenceContent = {
   version: S06_CONSEQUENCE_CONTENT_VERSION,
   source: {
     document: 'research/private/training-script.pdf',
     internalPages: [36, 37, 38, 39, 40, 41, 42, 43, 44] as const,
-    revision: 'Userauftrag vom 2026-08-23 · Dreier-Gruppenpalette ab #52BE80',
+    revision: 'Userauftrag vom 2026-08-23 · Zusammenhänge A bis C',
     copyReference:
-      'docs/design/S06-S07-COPY-AUDIT.md#copy--und-darstellungsdelta-s06-dreier-gruppenpalette-ab-52be80-23-august-2026',
+      'docs/design/S06-S07-COPY-AUDIT.md#copy-delta-s06-zusammenhaenge-a-bis-c-23-august-2026',
   },
   segment: {
     id: 'S06',
@@ -100,10 +100,10 @@ export const s06ConsequenceContent = {
     localReflection: {
       passwordLabel: 'Fiktives Passwort',
       modeLabel: 'Modus:',
-      groupLabel: 'Gruppe',
-      newGroup: 'Neue Gruppe',
+      groupLabel: 'Zusammenhang',
+      newGroup: 'Neuer Zusammenhang',
       maxGroupCount: 3,
-      maxGroups: 'Max. 3 Gruppen',
+      maxGroups: 'Max. 3 Zusammenhänge',
       structureMode: 'Struktur',
       personalMode: 'Persönliches',
       personalSelectionLabel: 'Persönliche Angaben im fiktiven Passwort markieren',
