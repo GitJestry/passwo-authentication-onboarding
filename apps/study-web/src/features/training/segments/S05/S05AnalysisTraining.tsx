@@ -3574,6 +3574,50 @@ function transitionCategoryForStep(
   return null;
 }
 
+type LengthOrientationInformationId =
+  (typeof s05Content.freeSearch.lengthExamples.orientationInformation)[number]['id'];
+
+function LengthOrientationInformation() {
+  const [openId, setOpenId] = useState<LengthOrientationInformationId | null>(null);
+
+  return (
+    <aside className={styles.lengthOrientationInformation} aria-label="Zusätzliche Informationen">
+      {s05Content.freeSearch.lengthExamples.orientationInformation.map((item) => {
+        const expanded = openId === item.id;
+        const buttonId = `s05-length-orientation-${item.id}-button`;
+        const panelId = `s05-length-orientation-${item.id}-panel`;
+        return (
+          <section className={styles.lengthOrientationInformationItem} key={item.id}>
+            {expanded ? (
+              <div
+                className={styles.lengthOrientationInformationPanel}
+                id={panelId}
+                role="region"
+                aria-labelledby={buttonId}
+              >
+                <p>{item.answer}</p>
+              </div>
+            ) : null}
+            <button
+              id={buttonId}
+              type="button"
+              aria-expanded={expanded}
+              aria-controls={panelId}
+              onClick={() => setOpenId(expanded ? null : item.id)}
+            >
+              <span className={styles.lengthOrientationInformationIcon} aria-hidden="true">
+                i
+              </span>
+              <span>{item.question}</span>
+              <span className={styles.lengthOrientationInformationChevron} aria-hidden="true" />
+            </button>
+          </section>
+        );
+      })}
+    </aside>
+  );
+}
+
 export function S05AnalysisTraining({
   subject,
   initialSection = 'intro',
@@ -3759,6 +3803,9 @@ export function S05AnalysisTraining({
               placement="bottom-left"
               showHelpButton={false}
             />
+            {snapshot.step === 'length-orientation' ? (
+              <LengthOrientationInformation />
+            ) : null}
           </div>
         )}
         <footer

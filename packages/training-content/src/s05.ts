@@ -73,7 +73,7 @@ export interface S05DesignLabFixture {
   readonly startSection: 'intro' | 'components' | 'structure';
 }
 
-export const S05_CONTENT_VERSION = '2.109.0';
+export const S05_CONTENT_VERSION = '2.110.0';
 
 export const s05Content = {
   version: S05_CONTENT_VERSION,
@@ -83,9 +83,9 @@ export const s05Content = {
       12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34,
       35,
     ] as const,
-    revision: 'Userauftrag vom 2026-08-23 · S05 Längenorientierung präzisiert',
+    revision: 'Userauftrag vom 2026-08-23 · optionale NIST-Infofelder ergänzt',
     copyReference:
-      'docs/design/S00-S05-COPY-AUDIT.md#copy-delta-s05-laengenorientierung-praezisiert-23-august-2026',
+      'docs/design/S00-S05-COPY-AUDIT.md#copy-delta-s05-optionale-nist-infofelder-23-august-2026',
   },
   segment: {
     id: 'S05',
@@ -532,6 +532,20 @@ export const s05Content = {
         'Die gelbe Kugel zeigt, warum Regeln wie zwölf Zeichen und mehrere Zeichentypen bei wirklich zufälliger Auswahl so aufwendig durchzuprobieren sind.',
       orientation:
         'Da sich diese Zufälligkeit bei selbst gewählten Passwörtern jedoch nicht voraussetzen lässt, sollten sie mindestens 15 Zeichen lang sein.',
+      orientationInformation: [
+        {
+          id: 'legacy-guidance',
+          question: 'Warum hört man oft noch von 12 Zeichen und verschiedenen Zeichentypen?',
+          answer:
+            'Das US-amerikanische NIST rät schon seit 2017 davon ab, bestimmte Zeichentypen vorzuschreiben. Die Empfehlung von mindestens 15 Zeichen ist dagegen neuer und wurde 2025 in der aktuellen NIST-Richtlinie finalisiert. Bis Trainings und Passwortregeln angepasst werden, können ältere Vorgaben noch länger begegnen.',
+        },
+        {
+          id: 'nist',
+          question: 'Was ist das NIST?',
+          answer:
+            'Das NIST ist eine US-amerikanische Bundesbehörde für Standards und Technologie. Seine Empfehlungen zur IT-Sicherheit werden international genutzt. Auch das deutsche Bundesamt für Sicherheit in der Informationstechnik beschreibt die NIST-SP-800-Reihe als international einflussreich.',
+        },
+      ],
       reasonsIntroduction:
         'Warum selbst gewählte Passwörter oft noch länger werden, schauen wir uns jetzt am Beispiel von Wörtern an.',
       memorability: 'Nehmen wir dafür Datensicherheit als Passwort.',

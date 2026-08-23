@@ -480,6 +480,98 @@
   max-width: min(23rem, calc(100cqi - var(--space-6)));
 }
 
+.lengthOrientationInformation {
+  position: absolute;
+  z-index: 4;
+  right: clamp(var(--space-4), 4cqi, var(--space-8));
+  bottom: clamp(var(--space-4), 3.5cqb, var(--space-7));
+  display: grid;
+  width: min(34rem, 43cqi);
+  gap: var(--space-2);
+  pointer-events: auto;
+}
+
+.lengthOrientationInformationItem {
+  display: grid;
+  gap: var(--space-2);
+}
+
+.lengthOrientationInformationItem > button,
+.lengthOrientationInformationPanel {
+  border: var(--border-width-thin) solid color-mix(in srgb, var(--color-border) 78%, transparent);
+  color: var(--color-ink-strong);
+  background: color-mix(in srgb, var(--color-surface-primary) 94%, transparent);
+  box-shadow: var(--shadow-card);
+  backdrop-filter: blur(0.75rem);
+}
+
+.lengthOrientationInformationItem > button {
+  display: grid;
+  width: 100%;
+  min-height: 3rem;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  gap: var(--space-2);
+  align-items: center;
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-medium);
+  font: inherit;
+  font-size: var(--font-size-small);
+  font-weight: var(--font-weight-bold);
+  line-height: var(--line-height-tight);
+  text-align: left;
+  cursor: pointer;
+}
+
+.lengthOrientationInformationItem > button:hover {
+  border-color: var(--color-accent-strong);
+  background: color-mix(in srgb, var(--color-surface-primary) 88%, var(--color-accent-soft));
+}
+
+.lengthOrientationInformationItem > button:focus-visible {
+  outline: var(--border-width-focus) solid var(--color-focus);
+  outline-offset: var(--space-1);
+  box-shadow: var(--shadow-focus);
+}
+
+.lengthOrientationInformationIcon {
+  display: grid;
+  width: 1.35rem;
+  height: 1.35rem;
+  place-items: center;
+  border: var(--border-width-thin) solid currentColor;
+  border-radius: var(--radius-round);
+  color: var(--color-accent-strong);
+  font-family: ui-serif, Georgia, serif;
+  font-size: var(--font-size-x-small);
+  font-weight: var(--font-weight-heavy);
+  line-height: 1;
+}
+
+.lengthOrientationInformationChevron {
+  width: 0.55rem;
+  height: 0.55rem;
+  border-right: var(--border-width-medium) solid currentColor;
+  border-bottom: var(--border-width-medium) solid currentColor;
+  transform: rotate(45deg) translateY(-0.12rem);
+  transition: transform var(--motion-standard) var(--motion-ease-out);
+}
+
+.lengthOrientationInformationItem > button[aria-expanded="true"]
+  .lengthOrientationInformationChevron {
+  transform: rotate(225deg) translate(-0.08rem, -0.08rem);
+}
+
+.lengthOrientationInformationPanel {
+  padding: var(--space-3) var(--space-4);
+  border-radius: var(--radius-medium);
+  font-size: var(--font-size-small);
+  line-height: var(--line-height-body);
+}
+
+.lengthOrientationInformationPanel p {
+  margin: 0;
+}
+
 .attackerAttempt {
   position: absolute;
   z-index: 2;
@@ -5561,6 +5653,10 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .lengthOrientationInformationChevron {
+    transition: none;
+  }
+
   .generatedSequence i,
   .strategyFocus,
   .recognizableStage [data-display="assembled"],
@@ -5687,6 +5783,18 @@
 }
 
 @container artifact-stage (max-width: 54rem) {
+  .lengthOrientationInformation {
+    right: var(--space-3);
+    bottom: calc(var(--artifact-unit, 1rem) * 11.5);
+    left: var(--space-3);
+    width: auto;
+  }
+
+  .lengthOrientationInformationPanel {
+    max-height: min(15rem, 28cqb);
+    overflow: auto;
+  }
+
   .wordPoolCase[data-case="long-word"] {
     left: 62%;
   }

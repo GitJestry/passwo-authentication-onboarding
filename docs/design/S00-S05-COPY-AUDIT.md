@@ -1,5 +1,19 @@
 # S00--S05 Copy and Interaction Audit
 
+## Copy-Delta S05 optionale NIST-Infofelder, 23. August 2026
+
+Quelle ist der ausdrückliche Nutzerauftrag vom 23. August 2026. Im bestehenden Schritt
+`S05.freeSearch.lengthExamples.orientation` werden zwei standardmäßig geschlossene, optionale
+Infofelder ergänzt. Sie verändern weder den bestehenden Wortlaut noch den Pflichtfortschritt;
+maximal ein Hinweis ist gleichzeitig geöffnet. `S05_CONTENT_VERSION` wird von `2.109.0` auf
+`2.110.0` erhöht. Ablauf, Analyse, Visualisierung, Persistenz, Export und Timing bleiben
+unverändert.
+
+| Segment und Text-ID | Quelle | Aktueller Text | Geplanter Text | Primäre Rolle | Grund | Bedeutungsänderung | Interaktionsziel | Hervorhebung |
+|---|---|---|---|---|---|---|---|---|
+| `S05.freeSearch.lengthExamples.orientationInformation.legacy-guidance` | Nutzerauftrag vom 2026-08-23 | nicht vorhanden | `Warum hört man oft noch von 12 Zeichen und verschiedenen Zeichentypen?` mit vorgegebenem Erläuterungstext | Optionaler Hinweis | ausdrücklich verlangte zeitliche Einordnung älterer Vorgaben | begrenzt, optional | eigener Accordion-Button; `Weiter` bleibt unabhängig | keine |
+| `S05.freeSearch.lengthExamples.orientationInformation.nist` | Nutzerauftrag vom 2026-08-23 | nicht vorhanden | `Was ist das NIST?` mit vorgegebenem Erläuterungstext | Optionaler Hinweis | ausdrücklich verlangte Einordnung der Institution | begrenzt, optional | eigener Accordion-Button; `Weiter` bleibt unabhängig | keine |
+
 ## Darstellungsdelta S05 Kleinbuchstaben in Zeitkugeln neutral, 23. August 2026
 
 Quelle ist der ausdrückliche Nutzerauftrag vom 23. August 2026. In der Erklärung `bis alle
