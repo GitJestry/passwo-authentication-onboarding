@@ -1,5 +1,27 @@
 # S00--S05 Copy and Interaction Audit
 
+## Copy-Delta S05 Zufallsvergleich vereinfacht, 23. August 2026
+
+Quelle ist der ausdrückliche Nutzerauftrag vom 23. August 2026. Ausschließlich die bestehende
+Mechanismuserklärung zum Zufallsvergleich erhält den vorgegebenen Wortlaut. Darstellung,
+Interaktion, Ablauf, Analyse, Persistenz, Export und Timing bleiben unverändert.
+`S05_CONTENT_VERSION` wird von `2.111.0` auf `2.112.0` erhöht.
+
+| Segment und Text-ID | Quelle | Aktueller Text | Geplanter Text | Primäre Rolle | Grund | Bedeutungsänderung | Interaktionsziel | Hervorhebung |
+|---|---|---|---|---|---|---|---|---|
+| `S05.freeSearch.lengthExamples.mixedCharacterComparison` | Nutzerauftrag vom 2026-08-23 | `Die gelbe Kugel zeigt, warum zwölf Zeichen aus mehreren Zeichentypen bei einer wirklich zufälligen Zeichenfolge wie „k7#M!9p$2Lq&“ so aufwendig vollständig durchzuprobieren sind.` | `Die gelbe Kugel zeigt, warum zwölf zufällige Zeichen aus mehreren Zeichentypen wie „k7#M!9p$2Lq&“ so aufwendig durchzuprobieren sind.“` | Mechanismuserklärung | ausdrücklich vorgegebener Wortlaut | begrenzt | `Weiter` | keine |
+
+## Copy-Delta S05 Zufallsvergleich konkretisiert, 23. August 2026
+
+Quelle ist der ausdrückliche Nutzerauftrag vom 23. August 2026. Ausschließlich die bestehende
+Mechanismuserklärung zum Zufallsvergleich erhält den vorgegebenen Wortlaut einschließlich des
+fiktiven Beispiels. Darstellung, Interaktion, Ablauf, Analyse, Persistenz, Export und Timing
+bleiben unverändert. `S05_CONTENT_VERSION` wird von `2.110.0` auf `2.111.0` erhöht.
+
+| Segment und Text-ID | Quelle | Aktueller Text | Geplanter Text | Primäre Rolle | Grund | Bedeutungsänderung | Interaktionsziel | Hervorhebung |
+|---|---|---|---|---|---|---|---|---|
+| `S05.freeSearch.lengthExamples.mixedCharacterComparison` | Nutzerauftrag vom 2026-08-23 | `Die gelbe Kugel zeigt, warum Regeln wie zwölf Zeichen und mehrere Zeichentypen bei wirklich zufälliger Auswahl so aufwendig durchzuprobieren sind.` | `Die gelbe Kugel zeigt, warum zwölf Zeichen aus mehreren Zeichentypen bei einer wirklich zufälligen Zeichenfolge wie „k7#M!9p$2Lq&“ so aufwendig vollständig durchzuprobieren sind.` | Mechanismuserklärung | ausdrücklich vorgegebener Wortlaut | begrenzt | `Weiter` | keine |
+
 ## Darstellungsdelta S05 16-Stellen-Kugel einheitlich zentriert, 23. August 2026
 
 Quelle ist der ausdrückliche Nutzerauftrag vom 23. August 2026. In der angeschnittenen

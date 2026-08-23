@@ -4,7 +4,7 @@ import { S05_CONTENT_VERSION, s05Content } from './s05.js';
 
 describe('S05 content traceability', () => {
   it('keeps the participant copy bounded and separate from internal terminology', () => {
-    expect(S05_CONTENT_VERSION).toBe('2.110.0');
+    expect(S05_CONTENT_VERSION).toBe('2.112.0');
     expect(s05Content.source).toMatchObject({
       document: 'research/private/training-script.pdf',
       internalPages: [
@@ -302,7 +302,7 @@ describe('S05 content traceability', () => {
     );
     expect(s05Content.freeSearch.lengthExamples).toMatchObject({
       mixedCharacterComparison:
-        'Die gelbe Kugel zeigt, warum Regeln wie zwölf Zeichen und mehrere Zeichentypen bei wirklich zufälliger Auswahl so aufwendig durchzuprobieren sind.',
+        'Die gelbe Kugel zeigt, warum zwölf zufällige Zeichen aus mehreren Zeichentypen wie „k7#M!9p$2Lq&“ so aufwendig durchzuprobieren sind.“',
       orientation:
         'Da sich diese Zufälligkeit bei selbst gewählten Passwörtern jedoch nicht voraussetzen lässt, sollten sie mindestens 15 Zeichen lang sein.',
       orientationInformation: [

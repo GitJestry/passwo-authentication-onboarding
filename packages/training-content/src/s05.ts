@@ -73,7 +73,7 @@ export interface S05DesignLabFixture {
   readonly startSection: 'intro' | 'components' | 'structure';
 }
 
-export const S05_CONTENT_VERSION = '2.110.0';
+export const S05_CONTENT_VERSION = '2.112.0';
 
 export const s05Content = {
   version: S05_CONTENT_VERSION,
@@ -83,9 +83,9 @@ export const s05Content = {
       12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34,
       35,
     ] as const,
-    revision: 'Userauftrag vom 2026-08-23 · optionale NIST-Infofelder ergänzt',
+    revision: 'Userauftrag vom 2026-08-23 · Zufallsvergleich vereinfacht',
     copyReference:
-      'docs/design/S00-S05-COPY-AUDIT.md#copy-delta-s05-optionale-nist-infofelder-23-august-2026',
+      'docs/design/S00-S05-COPY-AUDIT.md#copy-delta-s05-zufallsvergleich-vereinfacht-23-august-2026',
   },
   segment: {
     id: 'S05',
@@ -529,7 +529,7 @@ export const s05Content = {
     },
     lengthExamples: {
       mixedCharacterComparison:
-        'Die gelbe Kugel zeigt, warum Regeln wie zwölf Zeichen und mehrere Zeichentypen bei wirklich zufälliger Auswahl so aufwendig durchzuprobieren sind.',
+        'Die gelbe Kugel zeigt, warum zwölf zufällige Zeichen aus mehreren Zeichentypen wie „k7#M!9p$2Lq&“ so aufwendig durchzuprobieren sind.“',
       orientation:
         'Da sich diese Zufälligkeit bei selbst gewählten Passwörtern jedoch nicht voraussetzen lässt, sollten sie mindestens 15 Zeichen lang sein.',
       orientationInformation: [
