@@ -3775,6 +3775,11 @@
   white-space: normal;
 }
 
+.wordComparisonScene[data-phase="length"] .wordPoolEffort > strong {
+  font-size: clamp(0.66rem, calc(var(--word-sphere-size) * 0.075), 1rem);
+  line-height: 1.05;
+}
+
 .wordComparisonScene .wordPoolEffortUnit {
   position: relative;
   display: inline-block;
@@ -3797,6 +3802,27 @@
   padding: 0.5rem;
 }
 
+.wordComparisonScene .wordPoolGear > button svg {
+  width: 62.5%;
+  height: 62.5%;
+}
+
+.wordComparisonScene[data-phase="length"] .wordPoolEffortUnit {
+  padding-right: 0.85rem;
+}
+
+.wordComparisonScene[data-phase="length"] .wordPoolEffortUnit .wordPoolGear {
+  right: -0.5rem;
+  width: 1.5rem;
+  height: 1.5rem;
+}
+
+.wordComparisonScene[data-phase="length"] .wordPoolEffortUnit .wordPoolGear > button {
+  width: 1.5rem;
+  height: 1.5rem;
+  padding: 0.4rem;
+}
+
 .wordComparisonCase:not([data-visible="true"]) .wordPoolGear,
 .wordComparisonPackageCard:not([data-visible="true"]) .wordPoolGear,
 .wordComparisonPackages:not([data-visible="true"]) .wordPoolGear,
@@ -3811,6 +3837,11 @@
   width: max-content;
   max-width: min(22rem, calc(100cqi - 2rem));
   transform: translate(-50%, 0.35rem);
+}
+
+.wordComparisonScene .wordPoolTooltip > span {
+  min-width: 0;
+  overflow-wrap: anywhere;
 }
 
 .wordComparisonScene .wordPoolGear:has(button:hover) .wordPoolTooltip,
@@ -3872,6 +3903,13 @@
   letter-spacing: var(--letter-spacing-wide);
 }
 
+.wordComparisonScene:is([data-phase="multilingual"], [data-phase="comparison"])
+  .wordComparisonPassword
+  > strong {
+  font-size: clamp(1.5rem, 2.8cqi, 2.35rem);
+  line-height: var(--line-height-tight);
+}
+
 .wordComparisonPassword > div {
   max-width: 100%;
   flex-wrap: nowrap;
@@ -3920,7 +3958,8 @@
 .wordComparisonPackageCard {
   position: absolute;
   z-index: 9;
-  top: clamp(0.75rem, 2.5cqb, 1.5rem);
+  top: var(--word-comparison-axis-y);
+  left: var(--word-slot-x);
   display: grid;
   width: clamp(7.5rem, 12cqi, 10rem);
   min-height: 5.3rem;
@@ -3935,23 +3974,32 @@
   opacity: 0;
   pointer-events: none;
   text-align: center;
-  transform: translateY(-0.3rem);
-  transition: opacity 220ms ease, transform 420ms cubic-bezier(0.22, 1, 0.36, 1), visibility 0s linear 420ms;
+  transform: translate(
+    calc(var(--word-sphere-size) / 2 + clamp(0.65rem, 1.4cqi, 1rem)),
+    calc(-100% - 0.3rem)
+  );
+  transition:
+    left 620ms cubic-bezier(0.22, 1, 0.36, 1),
+    opacity 220ms ease,
+    transform 420ms cubic-bezier(0.22, 1, 0.36, 1),
+    visibility 0s linear 420ms;
   visibility: hidden;
 }
 
-.wordComparisonPackageCard[data-slot="primary"] {
-  right: clamp(var(--space-3), 3cqi, var(--space-6));
-}
-
 .wordComparisonPackageCard[data-slot="secondary"] {
-  left: clamp(var(--space-3), 3cqi, var(--space-6));
+  width: clamp(5.75rem, 8.5cqi, 7rem);
+  min-height: 4rem;
+  gap: 0.1rem;
+  padding: var(--space-2);
 }
 
 .wordComparisonPackageCard[data-visible="true"] {
   opacity: 1;
   pointer-events: auto;
-  transform: none;
+  transform: translate(
+    calc(var(--word-sphere-size) / 2 + clamp(0.65rem, 1.4cqi, 1rem)),
+    -100%
+  );
   transition-delay: 0s;
   visibility: visible;
 }
@@ -3961,13 +4009,25 @@
   line-height: 1;
 }
 
+.wordComparisonPackageCard[data-slot="secondary"] > small {
+  font-size: clamp(1.05rem, 1.75cqi, 1.35rem);
+}
+
 .wordComparisonPackageCard > span {
   color: rgb(245 248 255 / 64%);
   font-size: clamp(0.58rem, 0.88cqi, 0.72rem);
 }
 
+.wordComparisonPackageCard[data-slot="secondary"] > span {
+  font-size: clamp(0.5rem, 0.72cqi, 0.62rem);
+}
+
 .wordComparisonPackageCard > strong {
   font-size: clamp(0.72rem, 1.05cqi, 0.92rem);
+}
+
+.wordComparisonPackageCard[data-slot="secondary"] > strong {
+  font-size: clamp(0.62rem, 0.85cqi, 0.75rem);
 }
 
 .wordComparisonPackageCard .wordPoolGear {
@@ -4034,14 +4094,17 @@
 .wordComparisonPackages {
   position: absolute;
   z-index: 10;
-  top: clamp(0.75rem, 2.5cqb, 1.5rem);
-  left: clamp(4.25rem, var(--word-slot-x), calc(100% - 4.25rem));
+  top: var(--word-comparison-axis-y);
+  left: var(--word-slot-x);
   display: flex;
   flex-direction: column-reverse;
   gap: 0.22rem;
   opacity: 0;
   pointer-events: none;
-  transform: translateX(-50%) translateY(-0.3rem);
+  transform: translate(
+    calc(var(--word-sphere-size) / 2 + clamp(0.65rem, 1.4cqi, 1rem)),
+    calc(-100% - 0.3rem)
+  );
   transition:
     left 620ms cubic-bezier(0.22, 1, 0.36, 1),
     opacity 220ms ease,
@@ -4053,13 +4116,40 @@
 .wordComparisonPackages[data-visible="true"] {
   opacity: 1;
   pointer-events: auto;
-  transform: translateX(-50%);
+  transform: translate(
+    calc(var(--word-sphere-size) / 2 + clamp(0.65rem, 1.4cqi, 1rem)),
+    -100%
+  );
   transition-delay: 0s;
   visibility: visible;
 }
 
 .wordComparisonPackages[data-emphasized="true"] {
   filter: drop-shadow(0 0 0.75rem rgb(106 168 255 / 48%));
+}
+
+.wordComparisonPackages[data-emphasized="true"]
+  .wordComparisonPackage[data-visible="true"] {
+  animation: word-comparison-package-emphasis 1.15s ease-in-out infinite;
+}
+
+@keyframes word-comparison-package-emphasis {
+  0%,
+  100% {
+    border-color: rgb(255 255 255 / 32%);
+    box-shadow:
+      inset 0 0 1rem rgb(255 255 255 / 7%),
+      0 0.4rem 1rem rgb(0 0 0 / 22%),
+      0 0 0 rgb(106 168 255 / 0%);
+  }
+
+  50% {
+    border-color: rgb(207 228 255 / 88%);
+    box-shadow:
+      inset 0 0 1.2rem rgb(148 193 255 / 24%),
+      0 0.4rem 1rem rgb(0 0 0 / 22%),
+      0 0 1.25rem rgb(106 168 255 / 82%);
+  }
 }
 
 .wordComparisonPackage {
@@ -5388,6 +5478,11 @@
     transition: none;
   }
 
+  .wordComparisonPackages[data-emphasized="true"]
+    .wordComparisonPackage[data-visible="true"] {
+    animation: none;
+  }
+
   .lengthOrientationInformationChevron {
     transition: none;
   }
@@ -5513,6 +5608,11 @@
     padding: var(--space-2);
   }
 
+  .wordComparisonPackageCard[data-slot="secondary"] {
+    width: 5.5rem;
+    min-height: 3.75rem;
+  }
+
   .wordComparisonPackage {
     width: 6.6rem;
     min-height: 2.55rem;
@@ -5571,14 +5671,6 @@
 @container artifact-stage (max-width: 48rem) {
   .wordComparisonPassword {
     top: calc(var(--word-comparison-axis-y) + 1.7rem);
-  }
-
-  .wordComparisonPackageCard {
-    top: var(--space-2);
-  }
-
-  .wordComparisonPackages {
-    top: var(--space-2);
   }
 
 }

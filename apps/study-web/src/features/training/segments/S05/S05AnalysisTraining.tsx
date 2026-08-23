@@ -2183,7 +2183,7 @@ function LowercaseClockScene({
     snapshot.step === 'length-model-comparison' || revisitsCharacterComparison;
   const layout = buildScaleLayout(
     comparesLengthModels ? 16 : currentLength,
-    comparesLengthModels ? LOWERCASE_SCALE_MAXIMUM_LENGTH : currentLength,
+    comparesLengthModels ? 16 : currentLength,
   );
   const generatedSphereDiameter = scaleSphereDiameter(16) * 0.55;
   const comparisonGap = Math.max(200, generatedSphereDiameter * 0.12);
@@ -2383,7 +2383,7 @@ function LowercaseClockScene({
         )}
         {lowercaseScaleLengths.map((length) => {
           const visible = length <= currentLength;
-          const visibleInComparison = comparesLengthModels;
+          const visibleInComparison = comparesLengthModels && length <= 16;
           const preview = !comparesLengthModels && length === currentLength + 1;
           const active = length === currentLength;
           const previous = !comparesLengthModels && length === currentLength - 1;
@@ -2594,11 +2594,15 @@ function WordPoolModelDetails({
 }: {
   readonly information: WordPoolModelInformation;
 }) {
+  const normalizedCombinations = information.combinations.replaceAll('.', '');
+  const combinations = /^\d+$/.test(normalizedCombinations)
+    ? formatGermanCompact(BigInt(normalizedCombinations))
+    : information.combinations;
   return (
     <>
       <span><strong>Passwortbestandteile:</strong> {information.passwordParts}</span>
       <span><strong>Wörterpool:</strong> {information.pool}</span>
-      <span><strong>Mögliche Kombinationen:</strong> {information.combinations}</span>
+      <span><strong>Mögliche Kombinationen:</strong> {combinations}</span>
       <span><strong>Berechnungen pro Sekunde:</strong> {information.attemptsPerSecond}</span>
     </>
   );
@@ -2801,6 +2805,8 @@ function WordComparisonTick({
 function WordComparisonPackageCard({
   visible,
   slot,
+  x,
+  sphereDiameter,
   title,
   caption,
   label,
@@ -2808,16 +2814,23 @@ function WordComparisonPackageCard({
 }: {
   readonly visible: boolean;
   readonly slot: 'primary' | 'secondary';
+  readonly x: number;
+  readonly sphereDiameter: number;
   readonly title: string;
   readonly caption: string;
   readonly label: string;
   readonly information?: string;
 }) {
+  const style: WordComparisonGeometryStyle = {
+    '--word-slot-x': `${x}%`,
+    '--word-sphere-size': `${sphereDiameter}px`,
+  };
   return (
     <aside
       className={styles.wordComparisonPackageCard}
       data-slot={slot}
       data-visible={visible || undefined}
+      style={style}
       aria-hidden={!visible}
       inert={!visible || undefined}
     >
@@ -2842,6 +2855,7 @@ function WordComparisonPackages({
   expanded,
   slot,
   x,
+  sphereDiameter,
   emphasized = false,
 }: {
   readonly packages: readonly LanguagePackageContent[];
@@ -2849,9 +2863,13 @@ function WordComparisonPackages({
   readonly expanded: boolean;
   readonly slot: 'primary' | 'secondary';
   readonly x: number;
+  readonly sphereDiameter: number;
   readonly emphasized?: boolean;
 }) {
-  const style: WordComparisonGeometryStyle = { '--word-slot-x': `${x}%` };
+  const style: WordComparisonGeometryStyle = {
+    '--word-slot-x': `${x}%`,
+    '--word-sphere-size': `${sphereDiameter}px`,
+  };
   return (
     <aside
       className={styles.wordComparisonPackages}
@@ -2902,14 +2920,14 @@ function WordPoolReasonScene({
   const viewport = useScaleViewport(graphRef);
   const stepIndex = wordComparisonSteps.findIndex((candidate) => candidate === step);
   const showsLongWordSphere = stepIndex >= 1 && stepIndex < 4;
-  const showsShortWordPassword = stepIndex >= 2 && stepIndex < 4;
-  const showsShortWordSphere = stepIndex >= 3 && stepIndex < 4;
+  const showsShortWordPassword = stepIndex >= 2 && stepIndex < 5;
+  const showsShortWordSphere = stepIndex >= 3 && stepIndex < 5;
   const showsLongWordPassword = stepIndex >= 0 && stepIndex < 4;
   const showsGermanWords = stepIndex >= 4 && stepIndex < 8;
   const showsMultilingualWords = stepIndex >= 8;
   const comparesAdditionalWords = stepIndex >= 9;
-  const showsLanguagePackages = stepIndex >= 4;
-  const expandsLanguagePackages = stepIndex >= 7;
+  const keepsGermanPackageCard = stepIndex >= 4 && stepIndex < 7;
+  const showsLanguagePackages = stepIndex >= 7;
   const primaryExample = showsMultilingualWords
     ? secondReason.multilingualWords
     : showsGermanWords
@@ -2926,9 +2944,10 @@ function WordPoolReasonScene({
   const secondaryMagnitude = comparesAdditionalWords
     ? WORD_COMBINATION_MAGNITUDES.sixGermanWords
     : WORD_COMBINATION_MAGNITUDES.shortWords;
-  const primaryX = showsGermanWords || showsMultilingualWords ? 25 : 66;
-  const secondaryX = comparesAdditionalWords ? 75 : 28;
-  const packageX = 9;
+  const primarySphereDiameter = wordComparisonSphereDiameter(primaryMagnitude, viewport);
+  const secondarySphereDiameter = wordComparisonSphereDiameter(secondaryMagnitude, viewport);
+  const primaryX = stepIndex >= 7 ? 25 : 66;
+  const secondaryX = comparesAdditionalWords ? 68 : 28;
   const primaryLengthLabel = showsGermanWords
     ? secondReason.germanWords.lengthScaleLabel
     : showsLongWordPassword
@@ -2968,7 +2987,7 @@ function WordPoolReasonScene({
           visible={showsLongWordSphere || showsGermanWords || showsMultilingualWords}
           slot="primary"
           x={primaryX}
-          diameter={wordComparisonSphereDiameter(primaryMagnitude, viewport)}
+          diameter={primarySphereDiameter}
           tone="green"
           emphasized={step === 'length-full-word-attack' || step === 'length-multilingual-words'}
         />
@@ -2977,7 +2996,7 @@ function WordPoolReasonScene({
           visible={showsShortWordSphere || comparesAdditionalWords}
           slot="secondary"
           x={secondaryX}
-          diameter={wordComparisonSphereDiameter(secondaryMagnitude, viewport)}
+          diameter={secondarySphereDiameter}
           tone="blue"
         />
         <WordComparisonPassword
@@ -2996,8 +3015,10 @@ function WordPoolReasonScene({
           {...(secondaryLengthLabel === undefined ? {} : { lengthLabel: secondaryLengthLabel })}
         />
         <WordComparisonPackageCard
-          visible={showsLongWordSphere}
+          visible={showsLongWordSphere || keepsGermanPackageCard}
           slot="primary"
+          x={primaryX}
+          sphereDiameter={primarySphereDiameter}
           title={firstReason.longWord.packageTitle}
           caption={firstReason.longWord.packageCaption}
           label={firstReason.longWord.packageLabel}
@@ -3006,6 +3027,8 @@ function WordPoolReasonScene({
         <WordComparisonPackageCard
           visible={showsShortWordSphere}
           slot="secondary"
+          x={secondaryX}
+          sphereDiameter={secondarySphereDiameter}
           title={firstReason.shortWords.packageTitle}
           caption={firstReason.shortWords.packageCaption}
           label={firstReason.shortWords.packageLabel}
@@ -3013,9 +3036,10 @@ function WordPoolReasonScene({
         <WordComparisonPackages
           packages={secondReason.languagePackages}
           visible={showsLanguagePackages}
-          expanded={expandsLanguagePackages}
+          expanded={showsLanguagePackages}
           slot="primary"
-          x={packageX}
+          x={primaryX}
+          sphereDiameter={primarySphereDiameter}
           emphasized={step === 'length-language-pool-stack'}
         />
         <WordComparisonPackages
@@ -3023,7 +3047,8 @@ function WordPoolReasonScene({
           visible={comparesAdditionalWords}
           expanded={false}
           slot="secondary"
-          x={91}
+          x={secondaryX}
+          sphereDiameter={secondarySphereDiameter}
         />
       </div>
     </div>
