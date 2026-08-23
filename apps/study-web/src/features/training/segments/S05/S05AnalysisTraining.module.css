@@ -3289,8 +3289,7 @@
   white-space: nowrap;
 }
 
-.scaleModelExplanation > .lowercaseModelAlphabet,
-.comparisonPreviewInformation > .lowercaseModelAlphabet {
+.scaleModelExplanation > .lowercaseModelAlphabet {
   padding: 0.15em 0.48em;
   border: 1px solid rgb(132 225 169 / 56%);
   border-radius: var(--radius-round);
@@ -3306,7 +3305,6 @@
   display: grid;
   width: var(--preview-size);
   justify-items: center;
-  gap: clamp(0.15rem, calc(var(--preview-size) * 0.025), 0.55rem);
   color: #f5f8ff;
   opacity: 0.44;
   filter: grayscale(0.68) brightness(0.72);
@@ -3320,11 +3318,6 @@
   filter: none;
 }
 
-.comparisonPreviewInformation > .lowercaseModelAlphabet {
-  font-size: clamp(0.95rem, calc(var(--preview-size) * 0.08), 1.8rem);
-  transform: translateY(clamp(-0.8rem, calc(var(--preview-size) * -0.04), -0.35rem));
-}
-
 .comparisonPreviewInformation .scaleTimeInformation {
   min-height: 0;
   padding: 0;
@@ -3332,6 +3325,11 @@
 
 .comparisonPreviewInformation .scaleTimeInformation > strong {
   font-size: clamp(1.35rem, calc(var(--preview-size) * 0.2), 5.8rem);
+}
+
+.comparisonPreviewInformation .scaleTimeExplanation {
+  width: 96%;
+  font-size: clamp(0.65rem, calc(var(--preview-size) * 0.048), 1.15rem);
 }
 
 .lowercaseModelAlphabet .lowercaseAlphabetMarkInline {

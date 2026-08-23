@@ -2156,10 +2156,7 @@ function LowercaseComparisonPreview({
       data-focused={focused || undefined}
       style={style}
     >
-      <strong className={styles.lowercaseModelAlphabet} aria-label="kleinbuchstaben">
-        <LowercaseAlphabetMark inline decorative lowercase />
-      </strong>
-      <ScaleTimeInformation length={16} showExplanation={false} showInformation={false} />
+      <ScaleTimeInformation length={16} showExplanation showInformation={false} />
     </span>
   );
 }
@@ -2200,10 +2197,6 @@ function LowercaseClockScene({
       comparisonGap -
       (layout.positions.get(16) ?? 110),
   );
-  const comparisonPreviewWidth = Math.min(
-    scaleSphereDiameter(16) * 0.06,
-    generatedSphereDiameter * 0.12,
-  );
   const comparisonWorldX = (length: number): number =>
     (layout.positions.get(length) ?? 110) +
     (comparesLengthModels && length >= 16 ? comparisonTrailingShift : 0);
@@ -2218,15 +2211,19 @@ function LowercaseClockScene({
         const zoom = revisitsCharacterComparison ? 1 : 1.28;
         const comparisonLeft =
           (layout.positions.get(15) ?? 110) - scaleSphereDiameter(15) / 2;
-        const shiftedSixteenLeft =
-          comparisonWorldX(16) - scaleSphereDiameter(16) / 2;
+        const sixteenCenterY =
+          layout.axisTop - layout.sphereLift - scaleSphereDiameter(16) / 2;
+        const previewContentSize = Math.min(
+          scaleSphereDiameter(16) * 0.18,
+          generatedSphereDiameter * 0.68,
+        );
         const comparisonRight = Math.max(
           generatedSphereWorldX + generatedSphereDiameter / 2,
           revisitsCharacterComparison
             ? comparisonWorldX(16) + scaleSphereDiameter(16) / 2
-            : shiftedSixteenLeft + comparisonPreviewWidth,
+            : comparisonWorldX(16) + previewContentSize * 0.62,
         );
-        const comparisonTop =
+        const modelComparisonTop =
           layout.axisTop -
           layout.sphereLift -
           Math.max(
@@ -2235,6 +2232,12 @@ function LowercaseClockScene({
             revisitsCharacterComparison ? scaleSphereDiameter(16) : 0,
           ) -
           Math.max(110, generatedSphereDiameter * 0.035);
+        const comparisonTop = revisitsCharacterComparison
+          ? modelComparisonTop
+          : Math.min(
+              modelComparisonTop,
+              sixteenCenterY - previewContentSize * 0.62,
+            );
         const comparisonBottom = layout.axisTop + Math.max(160, generatedSphereDiameter * 0.04);
         const scale = Math.min(
           baseProjection.scale * zoom,
@@ -2322,46 +2325,25 @@ function LowercaseClockScene({
 
   function comparisonPreviewGeometry() {
     const diameter = screenDiameter(16);
-    const left = screenX(16) - diameter / 2;
-    const top = screenTop(16);
-    const visibleLeft = Math.max(0, left);
-    const visibleRight = Math.min(viewport.width, left + diameter);
-    const visibleTop = Math.max(0, top);
-    const visibleBottom = Math.min(viewport.height, top + diameter);
-    const visibleWidth = Math.max(1, visibleRight - visibleLeft);
-    const visibleHeight = Math.max(1, visibleBottom - visibleTop);
-    const size = Math.max(
-      140,
-      Math.min(
-        visibleWidth * 1.75,
-        visibleHeight * 0.52,
-        generatedSphereDiameter * projection.scale * 0.68,
-      ),
-    );
-    const horizontalInset = size * 0.52;
-    // The visible slice grows towards the left on wider viewports. Anchor the preview content
-    // from its right edge so its labels keep their place inside the sphere instead of following
-    // the moving center of that slice.
-    const preferredX = visibleRight - horizontalInset;
+    const size = revisitsCharacterComparison
+      ? Math.min(diameter * 0.42, 320)
+      : Math.max(
+          140,
+          Math.min(
+            diameter * 0.18,
+            generatedSphereDiameter * projection.scale * 0.68,
+            viewport.width * 0.32,
+            viewport.height * 0.34,
+          ),
+        );
     return {
-      x: Math.max(
-        horizontalInset,
-        Math.min(viewport.width - horizontalInset, preferredX),
-      ),
-      y: visibleTop + visibleHeight / 2,
+      x: screenX(16),
+      y: screenTop(16) + diameter / 2,
       size,
     };
   }
 
   function comparisonPreviewInformationStyle(): ScaleItemStyle {
-    if (revisitsCharacterComparison) {
-      const diameter = screenDiameter(16);
-      return {
-        ...sphereStyle(16),
-        '--scale-y': `${screenTop(16) + diameter / 2}px`,
-        '--preview-size': `${Math.min(diameter * 0.42, 320)}px`,
-      };
-    }
     const geometry = comparisonPreviewGeometry();
     return {
       '--scale-x': `${geometry.x}px`,
@@ -2448,7 +2430,8 @@ function LowercaseClockScene({
           const characterComparisonFocus =
             revisitsCharacterComparison && length === 16;
           const sphereIsLargeEnough = comparesLengthModels || screenDiameter(length) >= 2;
-          const tickStyle: ScaleItemStyle = comparisonPreview ? comparisonPreviewTickStyle() : {
+          const comparisonLabel = comparisonPreview || characterComparisonFocus;
+          const tickStyle: ScaleItemStyle = comparisonLabel ? comparisonPreviewTickStyle() : {
             '--scale-x': `${screenX(length)}px`,
             '--scale-y': `${projection.axisY + 10}px`,
             '--tick-color': scaleColor(length),
@@ -2463,14 +2446,14 @@ function LowercaseClockScene({
                   data-comparison-muted={
                     (comparesLengthModels && !active && !characterComparisonFocus) || undefined
                   }
-                  data-comparison-preview={comparisonPreview || undefined}
+                  data-comparison-preview={comparisonLabel || undefined}
                   data-character-comparison-focus={characterComparisonFocus || undefined}
                   data-future={(!visible && !visibleInComparison) || undefined}
                   style={tickStyle}
                 >
                   <i />
                   <span>
-                    {active || comparisonPreview
+                    {active || comparisonLabel
                       ? `${length === 20 ? '20+' : length} Stellen`
                       : length === 20 ? '20+' : length}
                   </span>

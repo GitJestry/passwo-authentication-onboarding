@@ -1,5 +1,20 @@
 # S00--S05 Copy and Interaction Audit
 
+## Darstellungsdelta S05 16-Stellen-Kugel einheitlich zentriert, 23. August 2026
+
+Quelle ist der ausdrückliche Nutzerauftrag vom 23. August 2026. In der angeschnittenen
+16-Stellen-Vorschau des Modellvergleichs und in der späteren vollständig sichtbaren
+16-Stellen-Fokuskugel verwenden Zeitblock und Stellenmarker dieselbe responsive Mittelachse und
+kugelabhängige Skalierungsbasis. Die separate Kennzeichnung `kleinbuchstaben` innerhalb der
+16-Stellen-Kugel entfällt; stattdessen steht unter dem vorhandenen Zeitwert wie in den übrigen
+Zeitkugeln `bis alle kleinbuchstaben Zeichenfolgen geprüft sind`. Die Modellkennzeichnung der
+15-Stellen-Kugel bleibt unverändert. Interaktion, Ablauf, Analyse, Persistenz, Export und Timing
+bleiben unverändert; kein Content-Versionssprung ist erforderlich.
+
+| Segment und Text-ID | Quelle | Aktueller Zustand | Geplanter Zustand | Primäre Rolle | Grund | Bedeutungsänderung | Interaktionsziel | Hervorhebung |
+|---|---|---|---|---|---|---|---|---|
+| `S05.freeSearch.theoreticalModel.lowercaseTimeExplanation` | Nutzerauftrag vom 2026-08-23 | Zeitwert, `16 Stellen` und `kleinbuchstaben` verwenden in den beiden 16er-Ansichten unterschiedliche Positionierungs- und Skalierungsregeln | Zeitwert und `16 Stellen` sind kugelabhängig mittig ausgerichtet; unter dem Zeitwert steht `bis alle kleinbuchstaben Zeichenfolgen geprüft sind` | Mechanismuserklärung / Orientierung | einheitliche responsive Zuordnung und bessere Lesbarkeit auf unterschiedlichen Screens | nein | kein | keine |
+
 ## Copy-Delta S00 eigene Passwoerter, 23. August 2026
 
 Quelle ist der ausdrückliche Nutzerauftrag vom 23. August 2026. Ausschließlich die unten
