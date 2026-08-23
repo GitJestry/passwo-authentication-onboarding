@@ -4,16 +4,16 @@ import { S05_CONTENT_VERSION, s05Content } from './s05.js';
 
 describe('S05 content traceability', () => {
   it('keeps the participant copy bounded and separate from internal terminology', () => {
-    expect(S05_CONTENT_VERSION).toBe('2.106.0');
+    expect(S05_CONTENT_VERSION).toBe('2.109.0');
     expect(s05Content.source).toMatchObject({
       document: 'research/private/training-script.pdf',
       internalPages: [
         12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34,
         35,
       ],
-      revision: 'Userauftrag vom 2026-08-22 · S05 Variantenmarkierung und Hinweis präzisiert',
+      revision: 'Userauftrag vom 2026-08-23 · S05 Längenorientierung präzisiert',
       copyReference:
-        'docs/design/S00-S05-COPY-AUDIT.md#copy-delta-s05-variantenmarkierung-und-hinweis-praezisiert-22-august-2026',
+        'docs/design/S00-S05-COPY-AUDIT.md#copy-delta-s05-laengenorientierung-praezisiert-23-august-2026',
     });
     expect(s05Content.segment.id).toBe('S05');
     expect(s05Content.page.fixtureNotice).toBe(
@@ -68,7 +68,7 @@ describe('S05 content traceability', () => {
       'Wörter sind nicht grundsätzlich unsicher. Geläufige Wörter können Angreifer jedoch mithilfe von Wörterlisten früh ausprobieren.',
     );
     expect(s05Content.componentStrategy.commonComponents.explanation[2]).toBe(
-      'Bei selbst gewählten Passwörtern kommen außerdem oft Veränderungen wie Großschreibung, Zeichenersetzungen, Zahlen oder Symbole vor. Auch solche typischen Varianten werden ausprobiert.',
+      'Bei selbst gewählten Passwörtern kommen außerdem oft Änderungen wie Großschreibung, Zeichenersetzungen, Zahlen oder Symbole vor. Auch solche typischen Abwandlungen werden ausprobiert.',
     );
     expect(s05Content.componentStrategy.presentation.findingChips).toMatchObject({
       commonPassword: 'häufig verwendetes Passwort',
@@ -107,7 +107,7 @@ describe('S05 content traceability', () => {
       'passwort',
     );
     expect(s05Content.componentStrategy.commonComponents.machine.generatorLabel).toBe(
-      'Typische Varianten generieren',
+      'Typische Abwandlung generieren',
     );
     expect(s05Content.componentStrategy.presentation.reviewCardTitle).toBe('Zusammenfassung');
     expect(s05Content.componentStrategy.personalDetails.opening).toEqual([
@@ -288,10 +288,10 @@ describe('S05 content traceability', () => {
     );
     expect(s05Content.freeSearch.characterMix.finalVariationStatus).toBe('(Variation getestet)');
     expect(s05Content.freeSearch.characterMix.narration[3]).toBe(
-      'Darauf zu hoffen, dass der Angreifer eine komplizierte Variante wie „mEin!Pa55w0rt?“ nicht prüft, ist riskant.',
+      'Darauf zu hoffen, dass der Angreifer eine Abwandlung wie „mEin!Pa55w0rt?“ nicht prüft, ist riskant.',
     );
     expect(s05Content.freeSearch.characterMix.narration[4]).toBe(
-      'Das musst du auch nicht. Deshalb setzt die aktuelle Empfehlung bei selbst gewählten Passwörtern vor allem auf Länge, statt bestimmte Zeichentypen vorzuschreiben.',
+      'Das musst du auch nicht. Bei selbst gewählten Passwörtern kommt es vor allem auf die Länge an, nicht darauf, bestimmte Zeichentypen einzubauen.',
     );
     expect(s05Content.freeSearch.characterMix.narration[5]).toBe(
       'Wie lang sollte ein solches Passwort mindestens sein? Um das zu sehen, nehmen wir ein Passwort, das nur aus zufälligen Kleinbuchstaben besteht.',
@@ -302,9 +302,9 @@ describe('S05 content traceability', () => {
     );
     expect(s05Content.freeSearch.lengthExamples).toMatchObject({
       mixedCharacterComparison:
-        'Die gelbe Kugel zeigt, warum ein wirklich zufälliges Passwort wie k7#M!9p$2Lq& so aufwendig durchzuprobieren ist.',
+        'Die gelbe Kugel zeigt, warum Regeln wie zwölf Zeichen und mehrere Zeichentypen bei wirklich zufälliger Auswahl so aufwendig durchzuprobieren sind.',
       orientation:
-        'Da sich diese Zufälligkeit bei selbst gewählten Passwörtern jedoch nicht voraussetzen lässt, liegt die aktuelle Orientierung bei mindestens 15 Zeichen.',
+        'Da sich diese Zufälligkeit bei selbst gewählten Passwörtern jedoch nicht voraussetzen lässt, sollten sie mindestens 15 Zeichen lang sein.',
       reasonsIntroduction:
         'Warum selbst gewählte Passwörter oft noch länger werden, schauen wir uns jetzt am Beispiel von Wörtern an.',
       memorability: 'Nehmen wir dafür Datensicherheit als Passwort.',
@@ -430,7 +430,7 @@ describe('S05 content traceability', () => {
         recognizedValue:
           'Die gesamte Zeichenfolge wurde als früher Kandidat erkannt. Deshalb gilt dein Campusgram-Passwort hier als gefunden.',
         recognizedBoundedVariant:
-          'Eine einfache Veränderung führte zur gesamten Zeichenfolge. Deshalb gilt dein Campusgram-Passwort hier als gefunden.',
+          'Eine einfache Änderung führte zur gesamten Zeichenfolge. Deshalb gilt dein Campusgram-Passwort hier als gefunden.',
         recognizedSemanticPath:
           'Die bisherigen Prüfungen und die von dir markierten Zusammenhänge ergeben einen nachvollziehbaren Weg zur gesamten Zeichenfolge. Deshalb gilt dein Campusgram-Passwort hier als gefunden.',
         notRecognized:
@@ -443,13 +443,13 @@ describe('S05 content traceability', () => {
           'Unabhängig davon: Mit [Anzahl] Zeichen erreicht das Campusgram-Passwort die Orientierung von mindestens 15 Zeichen für selbst gewählte Passwörter.',
       },
       reuseTakeaway:
-        'Selbst gewählte Passwörter werden oft für mehrere Konten wiederverwendet oder nur leicht verändert, weil man sich so weniger merken muss.',
+        'Oft wird dasselbe selbst gewählte Passwort für mehrere Konten verwendet oder nur leicht abgewandelt, weil man sich so weniger merken muss.',
       reuseExample: {
         sourcePassword: 'PasswortCampusgram',
         targetPassword: 'PasswortMasterCampus',
       },
       attackerTakeaway:
-        'Wird eines davon herausgefunden, können Angreifer diese Varianten auch bei anderen Konten ausprobieren.',
+        'Wird eines davon herausgefunden, können Angreifer dasselbe Passwort und leichte Abwandlungen auch bei anderen Konten ausprobieren.',
       otherAccountsAction: 'Andere Konten prüfen',
     });
     expect(s05Content.freeSearch.estimate.options).toEqual([12, 13, 14, 15, 16, 17, 18, 19, 20]);

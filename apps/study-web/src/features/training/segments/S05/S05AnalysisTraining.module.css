@@ -2293,6 +2293,11 @@
   text-shadow: 0 0 0.55em color-mix(in srgb, var(--lowercase-character-color) 28%, transparent);
 }
 
+.scaleTimeExplanation .lowercaseCharacter {
+  color: inherit;
+  text-shadow: none;
+}
+
 .lowercaseAlphabetMarkInline {
   flex: 0 0 auto;
   gap: 0;

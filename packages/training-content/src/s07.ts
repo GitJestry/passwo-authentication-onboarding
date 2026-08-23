@@ -1,6 +1,6 @@
 import type { TrainingSectionId } from '@passwo/contracts';
 
-export const S07_PASSPHRASE_SEARCH_CONTENT_VERSION = '4.16.0';
+export const S07_PASSPHRASE_SEARCH_CONTENT_VERSION = '4.18.0';
 
 export type S07OpenConnectionKind = 'none' | 'similar' | 'identical';
 
@@ -22,10 +22,10 @@ export function summarizeS07AccountSituation(situation: S07AccountSituation): st
     situation.masterCampusEasyToGuess || situation.campusEmailEasyToGuess;
 
   if (hasSimilarOrIdenticalPassword && hasEasyToGuessPassword) {
-    return 'Bei den anderen Konten gibt es noch gleiche oder ähnliche Passwörter. Mindestens eines lässt sich außerdem leicht erraten.';
+    return 'Bei den anderen Konten wird noch dasselbe Passwort oder eine leichte Abwandlung verwendet. Mindestens eines lässt sich außerdem leicht erraten.';
   }
   if (hasSimilarOrIdenticalPassword) {
-    return 'Bei den anderen Konten gibt es noch gleiche oder ähnliche Passwörter.';
+    return 'Bei den anderen Konten wird noch dasselbe Passwort oder eine leichte Abwandlung verwendet.';
   }
   if (hasEasyToGuessPassword) {
     return 'Die anderen Kontopasswörter sind bereits einzigartig. Mindestens eines lässt sich aber noch leicht erraten.';
@@ -36,9 +36,9 @@ export function summarizeS07AccountSituation(situation: S07AccountSituation): st
 export const s07PassphraseSearchContent = {
   version: S07_PASSPHRASE_SEARCH_CONTENT_VERSION,
   source: {
-    revision: 'Userauftrag vom 2026-08-22 · S07 aggregierte Kontenzusammenfassung',
+    revision: 'Userauftrag vom 2026-08-23 · S07 Campusgram-Erfolgsnachricht präzisiert',
     copyReference:
-      'docs/design/S06-S07-COPY-AUDIT.md#copy-delta-s07-aggregierte-kontenzusammenfassung-22-august-2026',
+      'docs/design/S06-S07-COPY-AUDIT.md#copy-delta-s07-campusgram-erfolgsnachricht-praezisiert-23-august-2026',
   },
   segment: {
     id: 'S07',
@@ -57,7 +57,7 @@ export const s07PassphraseSearchContent = {
       'Für jetzt musst du sie dir nicht merken. Im Alltag kann eine kleine Geschichte das Erinnern erleichtern.',
     mnemonic: (sentence: string) => `Beispiel: ${sentence}`,
     campusgramSuccess:
-      'Campusgram ist jetzt geschützt. Das alte Passwort aus dem Datenleck kann dort nicht mehr verwendet werden.',
+      'Das Campusgram-Passwort ist jetzt ersetzt. Das alte Passwort aus dem Datenleck kann dort nicht mehr verwendet werden.',
     accountSummary: summarizeS07AccountSituation,
     remainingPlan:
       'Du kannst die betroffenen Konten im Netzwerk jetzt direkt mit einer eigenen Passphrase absichern.',

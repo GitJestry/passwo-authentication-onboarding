@@ -9,17 +9,17 @@ import { S08_NETWORK_REPLAY_CONTENT_VERSION, s08NetworkReplayContent } from './s
 import { S09_PASSWORD_SUMMARY_CONTENT_VERSION, s09PasswordSummaryContent } from './s09.js';
 
 const s06AttackFlowCopyReference =
-  'docs/design/S06-S07-COPY-AUDIT.md#copy-und-analysedelta-s06-strukturorientierte-bausteinersetzung-17-august-2026';
+  'docs/design/S06-S07-COPY-AUDIT.md#copy-delta-s06-vergleichslabels-fuer-passwort-abwandlungen-vereinheitlicht-22-august-2026';
 const s07EntryCopyReference =
-  'docs/design/S06-S07-COPY-AUDIT.md#copy-delta-s07-aggregierte-kontenzusammenfassung-22-august-2026';
+  'docs/design/S06-S07-COPY-AUDIT.md#copy-delta-s05-s09-terminologie-fuer-passwort-abwandlungen-vereinheitlicht-22-august-2026';
 const s08CopyReference =
   'docs/design/S08-S09-COPY-AUDIT.md#copy-delta-s08-zusammenfassungsnavigation-22-august-2026';
 const s09CopyReference =
-  'docs/design/S08-S09-COPY-AUDIT.md#copy--und-interaktionsdelta-s09-externer-passwortmanager-einstieg-16-august-2026';
+  'docs/design/S08-S09-COPY-AUDIT.md#copy-delta-s05-s09-terminologie-fuer-passwort-abwandlungen-vereinheitlicht-22-august-2026';
 
 describe('S06 transition and S07 passphrase-search copy traceability', () => {
   it('keeps S06 consequence wording aligned with bounded whole-password recognition', () => {
-    expect(S06_CONSEQUENCE_CONTENT_VERSION).toBe('2.26.0');
+    expect(S06_CONSEQUENCE_CONTENT_VERSION).toBe('2.28.0');
     expect(s06ConsequenceContent.source.copyReference).toBe(s06AttackFlowCopyReference);
     expect(s06ConsequenceContent.page.attackStart).toBe('Angriff starten');
     expect(s06ConsequenceContent.page.finish).toBe('Fertig');
@@ -40,10 +40,13 @@ describe('S06 transition and S07 passphrase-search copy traceability', () => {
     expect(s06ConsequenceContent.page.replacePassword).toBe('Passwort ersetzen');
     expect(s06ConsequenceContent.modes.hypothetical.overlay).toBe('Was wäre, wenn?');
     expect(s06ConsequenceContent.narrations['s06.incident.campusgram-found'].body).toBe(
-      'Das Campusgram-Passwort ist nun bekannt. Der Angreifer kann es und ähnliche Varianten jetzt auch bei den anderen Konten ausprobieren.',
+      'Das Campusgram-Passwort ist nun bekannt. Der Angreifer kann dasselbe Passwort und leichte Abwandlungen jetzt auch bei den anderen Konten ausprobieren.',
     );
     expect(s06ConsequenceContent.narrations['s06.incident.campusgram-blocked'].body).toBe(
       'Das Campusgram-Passwort wurde hier nicht gefunden. Schauen wir trotzdem kurz, was passiert wäre, wenn es bekannt geworden wäre.',
+    );
+    expect(s06ConsequenceContent.narrations['s06.compare.exact-match'].body).toBe(
+      'Dasselbe Passwort kann beim Zielkonto ausprobiert werden.',
     );
     expect(s06ConsequenceContent.narrations['s06.transition'].body).toBe(
       'Ein Datenleck kann bei jedem Konto beginnen. Schauen wir deshalb noch von Master Campus aus.',
@@ -56,7 +59,7 @@ describe('S06 transition and S07 passphrase-search copy traceability', () => {
         body: 'Das Master-Campus-Passwort wurde hier nicht gefunden. Für den Vergleich nehmen wir kurz an, es wäre bekannt geworden.',
       },
       's06.transition.master-campus-email-match': {
-        body: 'Zwischen Master Campus und Campus E-Mail wurde ein gleiches oder ähnliches Passwort erkannt. Dieser Weg könnte den Angriff auf Campus E-Mail ausweiten. Schauen wir uns das Campus-E-Mail-Passwort jetzt noch für sich an.',
+        body: 'Zwischen Master Campus und Campus E-Mail wurde dasselbe Passwort oder eine leichte Abwandlung erkannt. Dieser Weg könnte den Angriff auf Campus E-Mail ausweiten. Schauen wir uns das Campus-E-Mail-Passwort jetzt noch für sich an.',
       },
       's06.transition.master-campus-email-no-match': {
         body: 'Zwischen Master Campus und Campus E-Mail wurde hier keine solche Übereinstimmung erkannt. Dieser Weg führt in dieser Übung nicht weiter. Schauen wir uns das Campus-E-Mail-Passwort jetzt noch für sich an.',
@@ -72,17 +75,17 @@ describe('S06 transition and S07 passphrase-search copy traceability', () => {
     });
     expect(s06ConsequenceContent.narrations['s06.transition.s07']).toEqual({
       heading: 'Passwort sicher ersetzen',
-      body: 'Ein Datenleck lässt sich nicht immer verhindern. Danach zählt, die Folgen zu begrenzen: das betroffene Passwort zügig ersetzen und Wiederverwendung stoppen. Genau das machen wir jetzt bei Campusgram.',
+      body: 'Ein Datenleck lässt sich nicht immer verhindern. Danach zählt, die Folgen zu begrenzen: das betroffene Passwort zügig ersetzen und für jedes Konto ein eigenes Passwort verwenden. Genau das machen wir jetzt bei Campusgram.',
     });
     expect(s06ConsequenceContent.narrations).toMatchObject({
       's06.summary.actual-none': {
         body: 'Hier bleibt der Angriff auf Campusgram begrenzt. Bei den anderen Konten führen diese Versuche nicht weiter.',
       },
       's06.summary.actual-one': {
-        body: 'Bei einem weiteren Konto führt ein gleiches oder ähnliches Passwort weiter. So kann aus einem betroffenen Konto ein zweites werden.',
+        body: 'Bei einem weiteren Konto kann dasselbe Passwort oder eine leichte Abwandlung den Angriff weiterführen. So kann aus einem betroffenen Konto ein zweites werden.',
       },
       's06.summary.actual-both': {
-        body: 'Bei beiden anderen Konten führt ein gleiches oder ähnliches Passwort weiter. So kann sich ein Datenleck auf mehrere Konten ausweiten.',
+        body: 'Bei beiden anderen Konten können dasselbe Passwort oder leichte Abwandlungen den Angriff weiterführen. So kann sich ein Datenleck auf mehrere Konten ausweiten.',
       },
       's06.summary.hypothetical-none': {
         body: 'Wäre das Campusgram-Passwort bekannt geworden, wäre der Angriff hier auf Campusgram begrenzt geblieben.',
@@ -95,9 +98,9 @@ describe('S06 transition and S07 passphrase-search copy traceability', () => {
       },
     });
     expect(s06ConsequenceContent.comparisonResultLabels).toEqual({
-      'exact-match': 'Wiederverwendet',
-      'derived-variant-match': 'Ähnlich',
-      'no-derived-path-recognized': 'Keine direkte Variante erkannt',
+      'exact-match': 'Dasselbe Passwort',
+      'derived-variant-match': 'Leicht abgewandelt',
+      'no-derived-path-recognized': 'Keine leichte Abwandlung erkannt',
     });
     expect(s06ConsequenceContent.transformationLabels).toMatchObject({
       'typical-suffix-changed-added-or-removed':
@@ -156,7 +159,7 @@ describe('S06 transition and S07 passphrase-search copy traceability', () => {
   });
 
   it('keeps S07 linked to the passphrase-search browser state', () => {
-    expect(S07_PASSPHRASE_SEARCH_CONTENT_VERSION).toBe('4.16.0');
+    expect(S07_PASSPHRASE_SEARCH_CONTENT_VERSION).toBe('4.18.0');
     expect(s07PassphraseSearchContent.source.copyReference).toBe(
       s07EntryCopyReference,
     );
@@ -170,7 +173,7 @@ describe('S06 transition and S07 passphrase-search copy traceability', () => {
       mnemonicIntro:
         'Für jetzt musst du sie dir nicht merken. Im Alltag kann eine kleine Geschichte das Erinnern erleichtern.',
       campusgramSuccess:
-        'Campusgram ist jetzt geschützt. Das alte Passwort aus dem Datenleck kann dort nicht mehr verwendet werden.',
+        'Das Campusgram-Passwort ist jetzt ersetzt. Das alte Passwort aus dem Datenleck kann dort nicht mehr verwendet werden.',
       remainingPlan:
         'Du kannst die betroffenen Konten im Netzwerk jetzt direkt mit einer eigenen Passphrase absichern.',
       finishAttack: 'Angriff abschließen',
@@ -186,7 +189,7 @@ describe('S06 transition and S07 passphrase-search copy traceability', () => {
         campusEmailEasyToGuess: false,
       }),
     ).toBe(
-      'Bei den anderen Konten gibt es noch gleiche oder ähnliche Passwörter.',
+      'Bei den anderen Konten wird noch dasselbe Passwort oder eine leichte Abwandlung verwendet.',
     );
     expect(
       s07PassphraseSearchContent.guide.accountSummary({
@@ -208,7 +211,7 @@ describe('S06 transition and S07 passphrase-search copy traceability', () => {
         campusEmailEasyToGuess: true,
       }),
     ).toBe(
-      'Bei den anderen Konten gibt es noch gleiche oder ähnliche Passwörter. Mindestens eines lässt sich außerdem leicht erraten.',
+      'Bei den anderen Konten wird noch dasselbe Passwort oder eine leichte Abwandlung verwendet. Mindestens eines lässt sich außerdem leicht erraten.',
     );
     expect(
       s07PassphraseSearchContent.guide.accountSummary({
@@ -281,16 +284,16 @@ describe('S06 transition and S07 passphrase-search copy traceability', () => {
   });
 
   it('keeps S08 linked to the protected replay wording', () => {
-    expect(S08_NETWORK_REPLAY_CONTENT_VERSION).toBe('3.6.0');
+    expect(S08_NETWORK_REPLAY_CONTENT_VERSION).toBe('3.7.0');
     expect(s08NetworkReplayContent.source.copyReference).toBe(s08CopyReference);
     expect(s08NetworkReplayContent.protectionAction).toBe(
       'Einzigartige Passphrase verwenden',
     );
     expect(s08NetworkReplayContent.relationLabels).toEqual({
-      campusgramReuse: 'altes wiederverwendet',
-      campusgramSimilar: 'ähnlich zum alten',
-      reuse: 'wiederverwendet',
-      similar: 'ähnlich',
+      campusgramReuse: 'Dasselbe wie das alte',
+      campusgramSimilar: 'Leicht abgewandelt zum alten',
+      reuse: 'Dasselbe',
+      similar: 'Leicht abgewandelt',
     });
     expect(s08NetworkReplayContent.replayActions).toEqual({
       attack: 'Angriff starten',
@@ -303,7 +306,7 @@ describe('S06 transition and S07 passphrase-search copy traceability', () => {
   });
 
   it('keeps the S09 password summary linked to its password checklist', () => {
-    expect(S09_PASSWORD_SUMMARY_CONTENT_VERSION).toBe('4.0.0');
+    expect(S09_PASSWORD_SUMMARY_CONTENT_VERSION).toBe('4.2.0');
     expect(s09PasswordSummaryContent.source.copyReference).toBe(s09CopyReference);
     expect(s09PasswordSummaryContent.principles).toHaveLength(6);
     expect(
@@ -316,7 +319,7 @@ describe('S06 transition and S07 passphrase-search copy traceability', () => {
       'Persönliche Angaben sowie Konto- oder Dienstbezüge vermeiden.',
       'Bestandteile ohne Zusammenhang wählen.',
       'Für jedes Konto ein eigenes Passwort verwenden.',
-      'Einfache Methode: mindestens sechs zufällig gewählte Wörter als Passphrase.',
+      'Merkbare Methode: mindestens sechs zufällig gewählte Wörter als Passphrase.',
     ]);
     expect(s09PasswordSummaryContent.principles[4].parts[1]).toEqual({
       text: 'eigenes',

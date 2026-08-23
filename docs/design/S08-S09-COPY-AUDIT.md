@@ -1,5 +1,30 @@
 # S08--S09 Copy Audit
 
+## Copy-Delta S09 Passphrasenmethode umbenannt, 23. August 2026
+
+Quelle ist der ausdrückliche Nutzerauftrag vom 23. August 2026. Ausschließlich die sichtbare
+Bezeichnung der bestehenden Passphrasenmethode wird umbenannt; der Hinweis auf mindestens sechs
+zufällig gewählte Wörter bleibt wortgleich. Ablauf, Interaktionen, Persistenz und Export bleiben
+unverändert. `S09_PASSWORD_SUMMARY_CONTENT_VERSION` steigt von `4.1.0` auf `4.2.0`.
+
+| Segment und Text-ID | Aktueller Text | Geplanter Text | Primäre Rolle | Interaktionsziel | Grund und Bedeutungsänderung | Hervorhebung |
+|---|---|---|---|---|---|---|
+| `S09.principles.six-word-passphrase` | `Einfache Methode: mindestens sechs zufällig gewählte Wörter als Passphrase.` | `Merkbare Methode: mindestens sechs zufällig gewählte Wörter als Passphrase.` | Kerngedanke | kein | ausdrücklich vorgegebene Umbenennung; begrenzt | `Merkbare Methode:` fett; `Passphrase` blau |
+
+## Copy-Delta S08 Verbindungslabels vereinheitlicht, 22. August 2026
+
+Quelle ist der ausdrückliche Nutzerauftrag vom 22. August 2026. Ausschließlich die sichtbaren
+Beschriftungen der bestehenden S08-Risikokanten verwenden nun dieselbe Terminologie wie die
+S06-Vergleichslabels. Kantenlogik, Zustände, internen IDs, Interaktionen, Persistenz und Export
+bleiben unverändert. `S08_NETWORK_REPLAY_CONTENT_VERSION` steigt von `3.6.0` auf `3.7.0`.
+
+| Segment und Text-ID | Aktueller Text | Geplanter Text | Primäre Rolle | Interaktionsziel | Grund und Bedeutungsänderung | Hervorhebung |
+|---|---|---|---|---|---|---|
+| `S08.relationLabels.similar` | `ähnlich` | `Leicht abgewandelt` | Ergebnisfeedback | kein | ausdrücklich vorgegebene, konsistente Terminologie; begrenzt | bestehende rote gestrichelte Kante und Text |
+| `S08.relationLabels.reuse` | `wiederverwendet` | `Dasselbe` | Ergebnisfeedback | kein | ausdrücklich vorgegebene, konsistente Terminologie; begrenzt | bestehende rote gestrichelte Kante und Text |
+| `S08.relationLabels.campusgramSimilar` | `ähnlich zum alten` | `Leicht abgewandelt zum alten` | Ergebnisfeedback | kein | ausdrücklich vorgegebene, konsistente Terminologie; begrenzt | bestehende rote gestrichelte Kante und Text |
+| `S08.relationLabels.campusgramReuse` | `altes wiederverwendet` | `Dasselbe wie das alte` | Ergebnisfeedback | kein | ausdrücklich vorgegebene, konsistente Terminologie; begrenzt | bestehende rote gestrichelte Kante und Text |
+
 ## Copy-Delta S08 Zusammenfassungsnavigation, 22. August 2026
 
 Quelle ist der ausdrückliche Nutzerauftrag vom 22. August 2026. Der glasige S08-Button nach dem
@@ -416,3 +441,15 @@ vorhandene Passwortmanager-Landingpage. `S09_PASSWORD_SUMMARY_CONTENT_VERSION` s
 |---|---|---|---|---|---|---|
 | `S09.passWo.steps.5` | unveränderter Kerngedanke mit Sprechblasenbutton `Passwortmanager` | Wortlaut unverändert, kein Sprechblasenbutton | Kerngedanke | mittiger Netzwerk-CTA | externe Handlung eindeutig dem sichtbaren Netzwerkziel zugeordnet; keine Bedeutungsänderung | unverändert positiv |
 | `S09.passwordManagerAction` | nicht vorhanden | `Passwortmanager` / `kennenlernen` | Navigation | großer glasartiger Button über dem Netzwerk | ausdrücklich freigegebene neue Handlungszuordnung; begrenzte Darstellungsänderung | keine |
+
+## Copy-Delta S05-S09 Terminologie für Passwort-Abwandlungen vereinheitlicht, 22. August 2026
+
+Quelle ist der ausdrückliche Nutzerauftrag vom 22. August 2026. Der benannte S09-PassWo-Schritt
+unterscheidet nun ausdrücklich dasselbe Passwort, eine leichte Abwandlung und Passwortlisten.
+Die Netzwerklabels in S08 sind nicht Teil dieses Deltas. Ereignisfolge, Persistenz,
+Forschungswrites und Interaktionen bleiben unverändert. `S09_PASSWORD_SUMMARY_CONTENT_VERSION`
+steigt von `4.0.0` auf `4.1.0`.
+
+| Segment und Text-ID | Aktueller Text | Geplanter Text | Primäre Rolle | Interaktionsziel | Grund und Bedeutungsänderung | Hervorhebung |
+|---|---|---|---|---|---|---|
+| `S09.passWo.steps.3` | `So viele einzelne Passwörter dauerhaft im Kopf zu behalten, ist nicht realistisch. Deshalb ist es auch nachvollziehbar, dass Passwörter wiederverwendet, leicht abgewandelt oder in eigenen Listen festgehalten werden.` | `So viele einzelne Passwörter dauerhaft im Kopf zu behalten, ist nicht realistisch. Deshalb ist es auch nachvollziehbar, dass Menschen dasselbe Passwort für mehrere Konten verwenden, es leicht abwandeln oder Passwörter in eigenen Listen festhalten.` | Ergebnisfeedback | `Weiter` | ausdrücklich vorgegebene, konsistente Terminologie; begrenzt | keine |

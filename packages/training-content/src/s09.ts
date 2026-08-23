@@ -1,13 +1,13 @@
 import type { TrainingSectionId } from '@passwo/contracts';
 
-export const S09_PASSWORD_SUMMARY_CONTENT_VERSION = '4.0.0';
+export const S09_PASSWORD_SUMMARY_CONTENT_VERSION = '4.2.0';
 
 export const s09PasswordSummaryContent = {
   version: S09_PASSWORD_SUMMARY_CONTENT_VERSION,
   source: {
-    revision: 'Userauftrag vom 2026-08-16 · externer Passwortmanager-Einstieg',
+    revision: 'Userauftrag vom 2026-08-23 · S09 Passphrasenmethode umbenannt',
     copyReference:
-      'docs/design/S08-S09-COPY-AUDIT.md#copy--und-interaktionsdelta-s09-externer-passwortmanager-einstieg-16-august-2026',
+      'docs/design/S08-S09-COPY-AUDIT.md#copy-delta-s09-passphrasenmethode-umbenannt-23-august-2026',
   },
   segment: {
     id: 'S09',
@@ -66,7 +66,7 @@ export const s09PasswordSummaryContent = {
     {
       id: 'six-word-passphrase',
       parts: [
-        { text: 'Einfache Methode:', emphasis: 'strong' },
+        { text: 'Merkbare Methode:', emphasis: 'strong' },
         {
           text: ' mindestens sechs zufällig gewählte Wörter als ',
           emphasis: 'none',
@@ -89,7 +89,7 @@ export const s09PasswordSummaryContent = {
       'Hier im kleinen Szenario waren es nur drei Konten.',
       'Im Alltag sind es aber deutlich mehr: Eine aktuelle CHI-Studie (2026) kommt auf rund 134 Online-Dienste pro Person.',
       'Bleiben wir unter dem Wert: Wie realistisch wäre es für dich, dir selbst „nur“ 80 starke und einzigartige Passwörter dauerhaft zu merken?',
-      'So viele einzelne Passwörter dauerhaft im Kopf zu behalten, ist nicht realistisch. Deshalb ist es auch nachvollziehbar, dass Passwörter wiederverwendet, leicht abgewandelt oder in eigenen Listen festgehalten werden.',
+      'So viele einzelne Passwörter dauerhaft im Kopf zu behalten, ist nicht realistisch. Deshalb ist es auch nachvollziehbar, dass Menschen dasselbe Passwort für mehrere Konten verwenden, es leicht abwandeln oder Passwörter in eigenen Listen festhalten.',
       'Welche Risiken dabei entstehen können, hast du gerade gesehen. Auch ungeschützte Passwortlisten können selbst zum Risiko werden.',
       'Die gute Nachricht: Du musst dir all diese Passwörter auch gar nicht selbst merken.',
     ],

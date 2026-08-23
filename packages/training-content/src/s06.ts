@@ -56,16 +56,16 @@ export interface S06NarrationContent {
   readonly body: string;
 }
 
-export const S06_CONSEQUENCE_CONTENT_VERSION = '2.26.0';
+export const S06_CONSEQUENCE_CONTENT_VERSION = '2.28.0';
 
 export const s06ConsequenceContent = {
   version: S06_CONSEQUENCE_CONTENT_VERSION,
   source: {
     document: 'research/private/training-script.pdf',
     internalPages: [36, 37, 38, 39, 40, 41, 42, 43, 44] as const,
-    revision: 'Userauftrag vom 2026-08-17 · robuste strukturorientierte Variantenwege',
+    revision: 'Userauftrag vom 2026-08-22 · S06 Vergleichslabels für Passwort-Abwandlungen vereinheitlicht',
     copyReference:
-      'docs/design/S06-S07-COPY-AUDIT.md#copy-und-analysedelta-s06-strukturorientierte-bausteinersetzung-17-august-2026',
+      'docs/design/S06-S07-COPY-AUDIT.md#copy-delta-s06-vergleichslabels-fuer-passwort-abwandlungen-vereinheitlicht-22-august-2026',
   },
   segment: {
     id: 'S06',
@@ -157,9 +157,9 @@ export const s06ConsequenceContent = {
     blockedShield: 'Dieser Angriffsweg ist blockiert.',
   },
   comparisonResultLabels: {
-    'exact-match': 'Wiederverwendet',
-    'derived-variant-match': 'Ähnlich',
-    'no-derived-path-recognized': 'Keine direkte Variante erkannt',
+    'exact-match': 'Dasselbe Passwort',
+    'derived-variant-match': 'Leicht abgewandelt',
+    'no-derived-path-recognized': 'Keine leichte Abwandlung erkannt',
   },
   transformationLabels: {
     'account-or-service-term-replaced': 'Konto- oder Dienstbegriff wurde ausgetauscht.',
@@ -207,7 +207,7 @@ export const s06ConsequenceContent = {
   narrations: {
     's06.incident.campusgram-found': {
       heading: 'Erster Vorfall: Campusgram',
-      body: 'Das Campusgram-Passwort ist nun bekannt. Der Angreifer kann es und ähnliche Varianten jetzt auch bei den anderen Konten ausprobieren.',
+      body: 'Das Campusgram-Passwort ist nun bekannt. Der Angreifer kann dasselbe Passwort und leichte Abwandlungen jetzt auch bei den anderen Konten ausprobieren.',
     },
     's06.incident.campusgram-blocked': {
       heading: 'Erster Vorfall: Campusgram',
@@ -215,11 +215,11 @@ export const s06ConsequenceContent = {
     },
     's06.compare.exact-match': {
       heading: 'Vollständige Werte stimmen überein',
-      body: 'Das bekannte Passwort kann ohne Veränderung beim Zielkonto ausprobiert werden.',
+      body: 'Dasselbe Passwort kann beim Zielkonto ausprobiert werden.',
     },
     's06.compare.derived-variant-match': {
       heading: 'Ein begrenzter Kandidatenweg trifft den Zielwert',
-      body: 'Die sichtbare Transformation erzeugt das vollständige fiktive Zielpasswort.',
+      body: 'Die gezeigte Änderung führt zum vollständigen fiktiven Zielpasswort.',
     },
     's06.compare.no-derived-path-recognized': {
       heading: 'Kein direkter Weg erkannt',
@@ -235,7 +235,7 @@ export const s06ConsequenceContent = {
     },
     's06.transition.master-campus-email-match': {
       heading: 'Übergang zu Campus E-Mail',
-      body: 'Zwischen Master Campus und Campus E-Mail wurde ein gleiches oder ähnliches Passwort erkannt. Dieser Weg könnte den Angriff auf Campus E-Mail ausweiten. Schauen wir uns das Campus-E-Mail-Passwort jetzt noch für sich an.',
+      body: 'Zwischen Master Campus und Campus E-Mail wurde dasselbe Passwort oder eine leichte Abwandlung erkannt. Dieser Weg könnte den Angriff auf Campus E-Mail ausweiten. Schauen wir uns das Campus-E-Mail-Passwort jetzt noch für sich an.',
     },
     's06.transition.master-campus-email-no-match': {
       heading: 'Übergang zu Campus E-Mail',
@@ -259,11 +259,11 @@ export const s06ConsequenceContent = {
     },
     's06.summary.actual-one': {
       heading: 'Gemeinsame Endübersicht',
-      body: 'Bei einem weiteren Konto führt ein gleiches oder ähnliches Passwort weiter. So kann aus einem betroffenen Konto ein zweites werden.',
+      body: 'Bei einem weiteren Konto kann dasselbe Passwort oder eine leichte Abwandlung den Angriff weiterführen. So kann aus einem betroffenen Konto ein zweites werden.',
     },
     's06.summary.actual-both': {
       heading: 'Gemeinsame Endübersicht',
-      body: 'Bei beiden anderen Konten führt ein gleiches oder ähnliches Passwort weiter. So kann sich ein Datenleck auf mehrere Konten ausweiten.',
+      body: 'Bei beiden anderen Konten können dasselbe Passwort oder leichte Abwandlungen den Angriff weiterführen. So kann sich ein Datenleck auf mehrere Konten ausweiten.',
     },
     's06.summary.hypothetical-none': {
       heading: 'Gemeinsame Endübersicht',
@@ -283,7 +283,7 @@ export const s06ConsequenceContent = {
     },
     's06.transition.s07': {
       heading: 'Passwort sicher ersetzen',
-      body: 'Ein Datenleck lässt sich nicht immer verhindern. Danach zählt, die Folgen zu begrenzen: das betroffene Passwort zügig ersetzen und Wiederverwendung stoppen. Genau das machen wir jetzt bei Campusgram.',
+      body: 'Ein Datenleck lässt sich nicht immer verhindern. Danach zählt, die Folgen zu begrenzen: das betroffene Passwort zügig ersetzen und für jedes Konto ein eigenes Passwort verwenden. Genau das machen wir jetzt bei Campusgram.',
     },
   } as const satisfies Readonly<Record<S06NarrationId, S06NarrationContent>>,
   fixtures: [

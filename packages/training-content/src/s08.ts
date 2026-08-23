@@ -1,13 +1,13 @@
 import type { TrainingSectionId } from '@passwo/contracts';
 
-export const S08_NETWORK_REPLAY_CONTENT_VERSION = '3.6.0';
+export const S08_NETWORK_REPLAY_CONTENT_VERSION = '3.7.0';
 
 export const s08NetworkReplayContent = {
   version: S08_NETWORK_REPLAY_CONTENT_VERSION,
   source: {
-    revision: 'Userauftrag vom 2026-08-22 · S08-Zusammenfassungsnavigation',
+    revision: 'Userauftrag vom 2026-08-22 · S08-Verbindungslabels vereinheitlicht',
     copyReference:
-      'docs/design/S08-S09-COPY-AUDIT.md#copy-delta-s08-zusammenfassungsnavigation-22-august-2026',
+      'docs/design/S08-S09-COPY-AUDIT.md#copy-delta-s08-verbindungslabels-vereinheitlicht-22-august-2026',
   },
   segment: {
     id: 'S08',
@@ -24,10 +24,10 @@ export const s08NetworkReplayContent = {
     complete: 'Alle betroffenen Konten sind mit eigenen Passphrasen geschützt.',
   },
   relationLabels: {
-    campusgramReuse: 'altes wiederverwendet',
-    campusgramSimilar: 'ähnlich zum alten',
-    reuse: 'wiederverwendet',
-    similar: 'ähnlich',
+    campusgramReuse: 'Dasselbe wie das alte',
+    campusgramSimilar: 'Leicht abgewandelt zum alten',
+    reuse: 'Dasselbe',
+    similar: 'Leicht abgewandelt',
   },
   replayActions: {
     attack: 'Angriff starten',

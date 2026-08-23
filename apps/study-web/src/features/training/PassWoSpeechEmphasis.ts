@@ -64,7 +64,7 @@ const emphasisBySpeechId: Readonly<Record<string, readonly PassWoSpeechEmphasis[
   's05-component-category-overview': [{ phrase: 'Bitte beachte:', tone: 'accent' }],
   's05-common-components-changes': [
     {
-      phrase: 'typischen Varianten',
+      phrase: 'typischen Abwandlungen',
       tone: 'accent',
       symbolSrc: typicalChangesAsset,
       symbolSize: 'wide',
@@ -128,7 +128,7 @@ const emphasisBySpeechId: Readonly<Record<string, readonly PassWoSpeechEmphasis[
   ],
   's05-character-mix-first': [{ phrase: 'zufällig erzeugten', tone: 'accent' }],
   's05-character-mix-types': [{ phrase: 'riskant', tone: 'warning' }],
-  's05-character-mix-strategy': [{ phrase: 'vor allem auf Länge', tone: 'accent' }],
+  's05-character-mix-strategy': [{ phrase: 'vor allem auf die Länge', tone: 'accent' }],
   's05-character-mix-takeaway': [
     { phrase: 'zufälligen Kleinbuchstaben', tone: 'accent' },
   ],
@@ -136,7 +136,7 @@ const emphasisBySpeechId: Readonly<Record<string, readonly PassWoSpeechEmphasis[
     { phrase: 'welcher Länge', tone: 'accent', contrastId: 'estimate-threshold' },
     { phrase: 'zu aufwendig', tone: 'accent', contrastId: 'estimate-threshold' },
   ],
-  's05-length-orientation': [{ phrase: 'mindestens 15 Zeichen', tone: 'accent' }],
+  's05-length-orientation': [{ phrase: 'mindestens 15 Zeichen lang', tone: 'accent' }],
   's05-length-full-word-attack': [
     { phrase: 'ein einzelnes deutsches Wort', tone: 'accent' },
   ],
@@ -167,10 +167,11 @@ const emphasisBySpeechId: Readonly<Record<string, readonly PassWoSpeechEmphasis[
   's05-final-result': [{ phrase: 'gesamte Zeichenfolge', tone: 'warning' }],
   's05-final-length': [{ phrase: 'mindestens 15 Zeichen', tone: 'accent' }],
   's05-final-spread': [
-    { phrase: 'wiederverwendet oder nur leicht verändert', tone: 'warning' },
+    { phrase: 'dasselbe', tone: 'warning', contrastId: 'password-reuse-pattern' },
+    { phrase: 'leicht abgewandelt', tone: 'warning', contrastId: 'password-reuse-pattern' },
   ],
   's06.transition.s07': [
-    { phrase: 'zügig ersetzen und Wiederverwendung stoppen', tone: 'accent' },
+    { phrase: 'zügig ersetzen und für jedes Konto ein eigenes Passwort verwenden', tone: 'accent' },
   ],
   's07-campusgram-success': [
     {

@@ -1369,3 +1369,48 @@ Export und Timing bleiben unverändert. `S07_PASSPHRASE_SEARCH_CONTENT_VERSION` 
 |---|---|---|---|---|---|---|
 | `S07.guide.mnemonicIntro` | unveränderter Wortlaut nach jeder Generierung | unveränderter Wortlaut nur nach der ersten Generierung | Mechanismuserklärung | `Weiter` | entfernt nachweisbare Redundanz; keine Bedeutungsänderung | keine |
 | `S07.guide.mnemonic` | konkreter Beispiel-Merksatz nach der allgemeinen Merkhilfe | nach `Neu generieren` direkt der konkrete Beispiel-Merksatz | Mechanismuserklärung | Generator beziehungsweise `Kopieren` | hält die neue Wortfolge ohne wiederholte Erklärung unmittelbar erfassbar; begrenzte Ablaufänderung | `Beispiel:`, Akzent |
+
+## Copy-Delta S05-S09 Terminologie für Passwort-Abwandlungen vereinheitlicht, 22. August 2026
+
+Quelle ist der ausdrückliche Nutzerauftrag vom 22. August 2026. Die benannten S06- und
+S07-PassWo-Sprechblasen verwenden für einen exakten Treffer `dasselbe Passwort`, für einen
+aus einfachen Änderungen abgeleiteten Treffer `leichte Abwandlung` und für einen einzelnen
+Schritt `Änderung`. Ablauf, Bedingungen, IDs, Auswertungen und Interaktionen bleiben unverändert.
+`S06_CONSEQUENCE_CONTENT_VERSION` steigt von `2.26.0` auf `2.27.0`; die
+`S07_PASSPHRASE_SEARCH_CONTENT_VERSION` steigt von `4.16.0` auf `4.17.0`.
+
+| Segment und Text-ID | Aktueller Text | Geplanter Text | Primäre Rolle | Interaktionsziel | Grund und Bedeutungsänderung | Hervorhebung |
+|---|---|---|---|---|---|---|
+| `S06.narrations.s06.incident.campusgram-found` | `Das Campusgram-Passwort ist nun bekannt. Der Angreifer kann es und ähnliche Varianten jetzt auch bei den anderen Konten ausprobieren.` | `Das Campusgram-Passwort ist nun bekannt. Der Angreifer kann dasselbe Passwort und leichte Abwandlungen jetzt auch bei den anderen Konten ausprobieren.` | Ergebnisfeedback | `Weiter` | exaktes Passwort und Abwandlungen verständlich unterscheiden; begrenzt | keine |
+| `S06.narrations.s06.compare.exact-match` | `Das bekannte Passwort kann ohne Veränderung beim Zielkonto ausprobiert werden.` | `Dasselbe Passwort kann beim Zielkonto ausprobiert werden.` | Ergebnisfeedback | `Weiter` | exakten Treffer als dasselbe Passwort bezeichnen; begrenzt | keine |
+| `S06.narrations.s06.compare.derived-variant-match` | `Die sichtbare Transformation erzeugt das vollständige fiktive Zielpasswort.` | `Die gezeigte Änderung führt zum vollständigen fiktiven Zielpasswort.` | Ergebnisfeedback | `Weiter` | technischen Begriff durch die konkrete Änderung ersetzen; begrenzt | keine |
+| `S06.narrations.s06.transition.master-campus-email-match` | `Zwischen Master Campus und Campus E-Mail wurde ein gleiches oder ähnliches Passwort erkannt. Dieser Weg könnte den Angriff auf Campus E-Mail ausweiten. Schauen wir uns das Campus-E-Mail-Passwort jetzt noch für sich an.` | `Zwischen Master Campus und Campus E-Mail wurde dasselbe Passwort oder eine leichte Abwandlung erkannt. Dieser Weg könnte den Angriff auf Campus E-Mail ausweiten. Schauen wir uns das Campus-E-Mail-Passwort jetzt noch für sich an.` | Ergebnisfeedback | `Weiter` | Übungsbefund präzise und ohne allgemeine Ähnlichkeitsbehauptung benennen; begrenzt | keine |
+| `S06.narrations.s06.summary.actual-one` | `Bei einem weiteren Konto führt ein gleiches oder ähnliches Passwort weiter. So kann aus einem betroffenen Konto ein zweites werden.` | `Bei einem weiteren Konto kann dasselbe Passwort oder eine leichte Abwandlung den Angriff weiterführen. So kann aus einem betroffenen Konto ein zweites werden.` | Ergebnisfeedback | `Weiter` | Übungsbefund präzise und verständlich benennen; begrenzt | keine |
+| `S06.narrations.s06.summary.actual-both` | `Bei beiden anderen Konten führt ein gleiches oder ähnliches Passwort weiter. So kann sich ein Datenleck auf mehrere Konten ausweiten.` | `Bei beiden anderen Konten können dasselbe Passwort oder leichte Abwandlungen den Angriff weiterführen. So kann sich ein Datenleck auf mehrere Konten ausweiten.` | Ergebnisfeedback | `Weiter` | Übungsbefund präzise und verständlich benennen; begrenzt | keine |
+| `S06.narrations.s06.transition.s07` | `Ein Datenleck lässt sich nicht immer verhindern. Danach zählt, die Folgen zu begrenzen: das betroffene Passwort zügig ersetzen und Wiederverwendung stoppen. Genau das machen wir jetzt bei Campusgram.` | `Ein Datenleck lässt sich nicht immer verhindern. Danach zählt, die Folgen zu begrenzen: das betroffene Passwort zügig ersetzen und für jedes Konto ein eigenes Passwort verwenden. Genau das machen wir jetzt bei Campusgram.` | Navigation | bestehender Passwortwechsel bei Campusgram | konkrete, nutzerseitige Handlung statt abstrakter Wiederverwendung; begrenzt | gleichbedeutende Handlungsphrase im Akzentton |
+| `S07.guide.accountSummary` | `Bei den anderen Konten gibt es noch gleiche oder ähnliche Passwörter.` | `Bei den anderen Konten wird noch dasselbe Passwort oder eine leichte Abwandlung verwendet.` | Ergebnisfeedback | `Weiter` | bedingte Zusammenfassung präzise und ohne allgemeine Ähnlichkeitsbehauptung formulieren; begrenzt | keine |
+
+## Copy-Delta S06 Vergleichslabels für Passwort-Abwandlungen vereinheitlicht, 22. August 2026
+
+Quelle ist der ausdrückliche Nutzerauftrag vom 22. August 2026. Die drei zentralen
+S06-Vergleichslabels verwenden nun dieselbe Terminologie wie die PassWo-Sprechblasen. Sie werden
+in S06-Vergleichsvorschauen, Netzwerken und nachfolgenden geteilten Darstellungen aus dieser einen
+Content-Quelle bezogen. Bedingungen, IDs, Auswertungen und Interaktionen bleiben unverändert.
+`S06_CONSEQUENCE_CONTENT_VERSION` steigt von `2.27.0` auf `2.28.0`.
+
+| Segment und Text-ID | Aktueller Text | Geplanter Text | Primäre Rolle | Interaktionsziel | Grund und Bedeutungsänderung | Hervorhebung |
+|---|---|---|---|---|---|---|
+| `S06.comparisonResultLabels.exact-match` | `Wiederverwendet` | `Dasselbe Passwort` | Ergebnisfeedback | kein | exakten Vergleich laienverständlich und konsistent bezeichnen; begrenzt | keine |
+| `S06.comparisonResultLabels.derived-variant-match` | `Ähnlich` | `Leicht abgewandelt` | Ergebnisfeedback | kein | abgeleiteten Treffer auf die geprüften einfachen Änderungen begrenzen; begrenzt | keine |
+| `S06.comparisonResultLabels.no-derived-path-recognized` | `Keine direkte Variante erkannt` | `Keine leichte Abwandlung erkannt` | Ergebnisfeedback | kein | Gegenbefund mit derselben begrenzten Terminologie bezeichnen; begrenzt | keine |
+
+## Copy-Delta S07 Campusgram-Erfolgsnachricht präzisiert, 23. August 2026
+
+Quelle ist der ausdrückliche Nutzerauftrag vom 23. August 2026. Ausschließlich der erste Satz
+der bestehenden S07-Erfolgsrückmeldung benennt nun das sichtbare Ersetzen des fiktiven
+Campusgram-Passworts. Der zweite Satz sowie Ablauf, Interaktionen, Persistenz und Export bleiben
+unverändert. `S07_PASSPHRASE_SEARCH_CONTENT_VERSION` steigt von `4.17.0` auf `4.18.0`.
+
+| Segment und Text-ID | Aktueller Text | Geplanter Text | Primäre Rolle | Interaktionsziel | Grund und Bedeutungsänderung | Hervorhebung |
+|---|---|---|---|---|---|---|
+| `S07.guide.campusgramSuccess` | `Campusgram ist jetzt geschützt. Das alte Passwort aus dem Datenleck kann dort nicht mehr verwendet werden.` | `Das Campusgram-Passwort ist jetzt ersetzt. Das alte Passwort aus dem Datenleck kann dort nicht mehr verwendet werden.` | Ergebnisfeedback | `Weiter` | ausdrücklich vorgegebene Präzisierung des sichtbaren Ergebnisses; begrenzt | unverändert positiv: `Das alte Passwort aus dem Datenleck kann dort nicht mehr verwendet werden.` |

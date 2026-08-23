@@ -1,5 +1,31 @@
 # S00--S05 Copy and Interaction Audit
 
+## Darstellungsdelta S05 Kleinbuchstaben in Zeitkugeln neutral, 23. August 2026
+
+Quelle ist der ausdrückliche Nutzerauftrag vom 23. August 2026. In der Erklärung `bis alle
+kleinbuchstaben Zeichenfolgen geprüft sind` werden die Buchstaben von `kleinbuchstaben` neutral
+statt mehrfarbig dargestellt. Alle anderen Verwendungen der Buchstabenmarkierung bleiben
+unverändert. Text, Interaktion, Ablauf, Analyse, Persistenz, Export und Timing bleiben
+unverändert; kein Content-Versionssprung ist erforderlich.
+
+| Segment und Text-ID | Quelle | Aktueller Zustand | Geplanter Zustand | Primäre Rolle | Grund | Bedeutungsänderung | Interaktionsziel | Hervorhebung |
+|---|---|---|---|---|---|---|---|---|
+| `S05.freeSearch.theoreticalModel.lowercaseTimeExplanation` | Nutzerauftrag vom 2026-08-23 | `kleinbuchstaben` mehrfarbig | `kleinbuchstaben` neutral | Mechanismuserklärung | ausdrücklich verlangte Reduktion der Farbhervorhebung in der Zeitkugel | nein | kein | keine |
+
+## Copy-Delta S05 Längenorientierung präzisiert, 23. August 2026
+
+Quelle ist der ausdrückliche Nutzerauftrag vom 23. August 2026. Drei bestehende S05-
+Sprechblasen erhalten ausschließlich den vorgegebenen Wortlaut. Die Kerngedanken `vor allem auf
+die Länge` und `mindestens 15 Zeichen lang` werden jeweils akzentuiert. Darstellung,
+Interaktion, Ablauf, Analyse, Persistenz, Export und Timing bleiben unverändert.
+`S05_CONTENT_VERSION` wird von `2.108.0` auf `2.109.0` erhöht.
+
+| Segment und Text-ID | Quelle | Aktueller Text | Geplanter Text | Primäre Rolle | Grund | Bedeutungsänderung | Interaktionsziel | Hervorhebung |
+|---|---|---|---|---|---|---|---|---|
+| `S05.freeSearch.characterMix.narration[4]` | Nutzerauftrag vom 2026-08-23 | `Das musst du auch nicht. Deshalb setzt die aktuelle Empfehlung bei selbst gewählten Passwörtern vor allem auf Länge, statt bestimmte Zeichentypen vorzuschreiben.` | `Das musst du auch nicht. Bei selbst gewählten Passwörtern kommt es vor allem auf die Länge an, nicht darauf, bestimmte Zeichentypen einzubauen.` | Kerngedanke | ausdrücklich vorgegebener Wortlaut | begrenzt | `Weiter` | `vor allem auf die Länge`, Akzent |
+| `S05.freeSearch.lengthExamples.mixedCharacterComparison` | Nutzerauftrag vom 2026-08-23 | `Die gelbe Kugel zeigt, warum ein wirklich zufälliges Passwort wie k7#M!9p$2Lq& so aufwendig durchzuprobieren ist.` | `Die gelbe Kugel zeigt, warum Regeln wie zwölf Zeichen und mehrere Zeichentypen bei wirklich zufälliger Auswahl so aufwendig durchzuprobieren sind.` | Mechanismuserklärung | ausdrücklich vorgegebener Wortlaut | begrenzt | `Weiter` | keine |
+| `S05.freeSearch.lengthExamples.orientation` | Nutzerauftrag vom 2026-08-23 | `Da sich diese Zufälligkeit bei selbst gewählten Passwörtern jedoch nicht voraussetzen lässt, liegt die aktuelle Orientierung bei mindestens 15 Zeichen.` | `Da sich diese Zufälligkeit bei selbst gewählten Passwörtern jedoch nicht voraussetzen lässt, sollten sie mindestens 15 Zeichen lang sein.` | Kerngedanke | ausdrücklich vorgegebener Wortlaut | begrenzt | `Weiter` | `mindestens 15 Zeichen lang`, Akzent |
+
 ## Copy-Delta S05 Variantenmarkierung und Hinweis präzisiert, 22. August 2026
 
 Quelle ist der ausdrückliche Nutzerauftrag vom 22. August 2026. Die Sprechblase zu typischen
@@ -3819,3 +3845,30 @@ ist. Interaktion, Hervorhebung, Analyse, Persistenz, Export und Timing bleiben u
 | `S05.freeSearch.application.result.recognizedBoundedVariant` | Nutzerauftrag vom 2026-08-17 | `Bei den bisherigen Prüfungen konnte eine einfache Veränderung zu der gesamten Zeichenfolge führen. Für diese Übung gilt das Campusgram-Passwort deshalb als gefunden.` | `Eine einfache Veränderung führte zur gesamten Zeichenfolge. Deshalb gilt dein Campusgram-Passwort hier als gefunden.` | Ergebnisfeedback | Diagnose kürzen und direkt adressieren | nein | bestehender Ergebnisablauf | keine neue Hervorhebung |
 | `S05.freeSearch.application.result.recognizedSemanticPath` | Nutzerauftrag vom 2026-08-17 | `Die bisherigen Prüfungen und die von dir markierten Zusammenhänge ergeben einen nachvollziehbaren Weg zur gesamten Zeichenfolge. Für diese Übung gilt das Campusgram-Passwort deshalb als gefunden.` | `Die bisherigen Prüfungen und die von dir markierten Zusammenhänge ergeben einen nachvollziehbaren Weg zur gesamten Zeichenfolge. Deshalb gilt dein Campusgram-Passwort hier als gefunden.` | Ergebnisfeedback | Diagnose kürzen und direkt adressieren | nein | bestehender Ergebnisablauf | keine neue Hervorhebung |
 | `S05.freeSearch.application.result.notRecognized` | Nutzerauftrag vom 2026-08-17 | `Bei den bisherigen Prüfungen wurde kein Weg erkannt, der die gesamte Zeichenfolge abdeckt. Für diese Übung gilt das Campusgram-Passwort deshalb als nicht gefunden. Das ist kein Sicherheitsnachweis.` | `Kein erkannter Weg deckt die gesamte Zeichenfolge ab. Deshalb gilt dein Campusgram-Passwort hier als nicht gefunden. Das ist kein Sicherheitsnachweis.` | Ergebnisfeedback | Diagnose kürzen; Sicherheitsgrenze ausdrücklich erhalten | nein | bestehender Ergebnisablauf | keine neue Hervorhebung |
+
+## Copy-Delta S05-S09 Terminologie für Passwort-Abwandlungen vereinheitlicht, 22. August 2026
+
+Quelle ist der ausdrückliche Nutzerauftrag vom 22. August 2026. In den benannten
+PassWo-Sprechblasen bezeichnet `Abwandlung` künftig ein aus einem anderen Passwort abgeleitetes
+Passwort und `Änderung` einen konkreten Schritt innerhalb einer solchen Abwandlung. Exakte
+Treffer heißen nutzerseitig `dasselbe Passwort`. Die S05-Sprechschritte, ihre Reihenfolge und
+ihre Interaktionen bleiben unverändert. `S05_CONTENT_VERSION` steigt von `2.106.0` auf `2.107.0`.
+
+| Segment und Text-ID | Aktueller Text | Geplanter Text | Primäre Rolle | Interaktionsziel | Grund und Bedeutungsänderung | Hervorhebung |
+|---|---|---|---|---|---|---|
+| `S05.componentStrategy.commonComponents.explanation[2]` | `Bei selbst gewählten Passwörtern kommen außerdem oft Veränderungen wie Großschreibung, Zeichenersetzungen, Zahlen oder Symbole vor. Auch solche typischen Varianten werden ausprobiert.` | `Bei selbst gewählten Passwörtern kommen außerdem oft Änderungen wie Großschreibung, Zeichenersetzungen, Zahlen oder Symbole vor. Auch solche typischen Abwandlungen werden ausprobiert.` | Mechanismuserklärung | `Weiter` | ausdrücklich vorgegebene, laienverständliche Terminologie; begrenzt | `typischen Abwandlungen` im Akzentton, bestehendes Symbol bleibt zugeordnet |
+| `S05.freeSearch.characterMix.narration[3]` | `Darauf zu hoffen, dass der Angreifer eine komplizierte Variante wie „mEin!Pa55w0rt?“ nicht prüft, ist riskant.` | `Darauf zu hoffen, dass der Angreifer eine Abwandlung wie „mEin!Pa55w0rt?“ nicht prüft, ist riskant.` | Safety Boundary | `Weiter` | ausdrücklich vorgegebene Terminologie; nein | `riskant` im Warnungston |
+| `S05.freeSearch.application.result.recognizedBoundedVariant` | `Eine einfache Veränderung führte zur gesamten Zeichenfolge. Deshalb gilt dein Campusgram-Passwort hier als gefunden.` | `Eine einfache Änderung führte zur gesamten Zeichenfolge. Deshalb gilt dein Campusgram-Passwort hier als gefunden.` | Ergebnisfeedback | `Weiter` | konkret ausgeführte Änderung statt allgemeiner Veränderung benennen; begrenzt | `gesamte Zeichenfolge` im Warnungston |
+| `S05.freeSearch.application.reuseTakeaway` | `Selbst gewählte Passwörter werden oft für mehrere Konten wiederverwendet oder nur leicht verändert, weil man sich so weniger merken muss.` | `Oft wird dasselbe selbst gewählte Passwort für mehrere Konten verwendet oder nur leicht abgewandelt, weil man sich so weniger merken muss.` | Mechanismuserklärung | `Weiter` | exakte Verwendung von leichter Abwandlung auf die Übungsgrenze begrenzen; begrenzt | `dasselbe` und `leicht abgewandelt` als Warnkontrast |
+| `S05.freeSearch.application.attackerTakeaway` | `Wird eines davon herausgefunden, können Angreifer diese Varianten auch bei anderen Konten ausprobieren.` | `Wird eines davon herausgefunden, können Angreifer dasselbe Passwort und leichte Abwandlungen auch bei anderen Konten ausprobieren.` | Kerngedanke | `Weiter` | exaktes Passwort und Abwandlungen verständlich unterscheiden; begrenzt | keine |
+
+## Copy-Delta S05 Maschinenbeschriftung für Abwandlungen, 22. August 2026
+
+Quelle ist der ausdrückliche Nutzerauftrag vom 22. August 2026. Die sichtbare Beschriftung der
+bestehenden Laufbandmaschine verwendet dieselbe nutzerseitige Terminologie wie die zugehörige
+PassWo-Sprechblase. Maschine, Animation, Interaktion und zugrunde liegende Prüfungen bleiben
+unverändert. `S05_CONTENT_VERSION` steigt von `2.107.0` auf `2.108.0`.
+
+| Segment und Text-ID | Aktueller Text | Geplanter Text | Primäre Rolle | Interaktionsziel | Grund und Bedeutungsänderung | Hervorhebung |
+|---|---|---|---|---|---|---|
+| `S05.componentStrategy.commonComponents.machine.generatorLabel` | `Typische Varianten generieren` | `Typische Abwandlung generieren` | Orientierung | kein | ausdrücklich vorgegebene konsistente Terminologie; begrenzt | keine |
