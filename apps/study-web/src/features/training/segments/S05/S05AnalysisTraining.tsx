@@ -1767,8 +1767,15 @@ function useScaleViewport(ref: { readonly current: HTMLElement | null }) {
   useLayoutEffect(() => {
     const element = ref.current;
     if (element === null) return undefined;
-    const updateSize = ({ width, height }: DOMRectReadOnly) =>
-      setSize({ width: Math.max(width, 320), height: Math.max(height, 320) });
+    const updateSize = ({ width, height }: DOMRectReadOnly) => {
+      const nextWidth = Math.max(Math.round(width), 320);
+      const nextHeight = Math.max(Math.round(height), 320);
+      setSize((current) =>
+        current.width === nextWidth && current.height === nextHeight
+          ? current
+          : { width: nextWidth, height: nextHeight },
+      );
+    };
     updateSize(element.getBoundingClientRect());
     const observer = new ResizeObserver((entries) => {
       const entry = entries[0];
@@ -2190,9 +2197,14 @@ function LowercaseClockScene({
         );
         const comparisonCenterX =
           (comparisonLeft + comparisonRight) / 2;
+        const comparisonVerticalLift =
+          snapshot.step === 'length-model-comparison'
+            ? Math.min(36, Math.max(12, viewport.height * 0.05))
+            : 0;
         const translateY =
           (viewport.height - (comparisonBottom - comparisonTop) * scale) / 2 -
-          comparisonTop * scale;
+          comparisonTop * scale -
+          comparisonVerticalLift;
         return {
           ...baseProjection,
           scale,
