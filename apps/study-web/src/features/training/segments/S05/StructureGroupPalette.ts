@@ -1,5 +1,4 @@
 const structureGroupPalette = [
-  '#1E8449',
   '#52BE80',
   '#A9DFBF',
   '#E8F8F0',

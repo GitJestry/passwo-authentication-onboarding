@@ -61,15 +61,23 @@ Seitenangaben beziehen sich auf die im Trainingsdokument ausgewiesene interne Pa
 - Das fiktive Campusgram-Passwort liegt bereits vor dem ersten Prüfklick unverdeckt in der
   kanonischen Bausteinansicht ohne Verbergen-Schalter vor. Die vier Prüfungen legen ausschließlich
   ihre flüchtigen lokalen Befunde frei: nicht betroffene Bausteine bleiben neutral, betroffene
-  Bausteine leuchten ohne Lageänderung und ihre Befundtexte stehen unter gleich hohen
-  Bausteinflächen. Befunde der ersten Prüfung unterscheiden häufig verwendetes Passwort oder Wort,
-  Tastaturfolge, Zahlenfolge und naheliegende Jahreszahl. Die Rückmeldung benennt die erkannten
+  Bausteine leuchten ohne Lageänderung und behalten während der einzelnen Kategorieprüfungen ihre
+  konkreten Befundlabels. Erst die gemeinsame Drei-Kategorien-Zusammenfassung ersetzt diese Labels
+  an den Bausteinen durch deutlich größere, gegebenenfalls vertikal gestapelte Logos. Die kompakte
+  Übersicht `Früh geprüft` listet jede geprüfte Kategorie einmal mit großem, responsiv skaliertem
+  Logo und vollständigem Kategorienamen; einzelne erkannte Begriffe erscheinen dort nicht. Diese
+  Übersicht bleibt ausschließlich direkt nach den drei Kategorien sichtbar und entfällt in der
+  späteren Fundansicht. Befunde der ersten Prüfung unterscheiden häufig verwendetes Passwort oder
+  Wort, Tastaturfolge, Zahlenfolge und naheliegende Jahreszahl. Die Rückmeldung benennt die erkannten
   Bausteine; bei einem vollständig erkannten Einzelbaustein weist sie auf den bereits gefundenen
   Passwortkandidaten hin. Die gemeinsame
   Abschlussansicht übergibt anschließend unverändert an `Vorhersehbarer Aufbau`.
 - In der Campusgram-Abschlusszusammenfassung bleiben die Bausteinflächen wie in der lokalen
   S06-Reflexion zunächst transparent; erst bestätigte Gruppen füllen den vollständigen Baustein.
-  Kategoriezuordnungen bleiben über Befundpunkte und Beschriftungen sichtbar. Der QA-Einstieg
+  Kategoriezuordnungen bleiben über größere, vertikal gestapelte Info-Logos sichtbar. Hover oder
+  Tastaturfokus öffnet eine gläserne Karte mit Kategoriename und konkreter Einstufung. Persönlich
+  markierte Bereiche leuchten zeichenpräzise lila-pink; das persönliche Kategorienlogo steht unter
+  jedem überlappten Baustein, ohne dessen Grenzen zu verändern. Der QA-Einstieg
   `s05-s06-transition` enthält zusätzlich einen ausschließlich flüchtigen persönlichen Befund mit
   überlappendem Bereich, um die Blockprojektion visuell prüfen zu können.
 - Die Laufbandmaschine wird für alle vier Kategorien wiederverwendet. Ihre linke Beispieltabelle
@@ -126,7 +134,7 @@ Seitenangaben beziehen sich auf die im Trainingsdokument ausgewiesene interne Pa
   deutsche Wortlistenstapel sichtbar. Länderkarte, Wortlisten-Schätzfrage und Zeichenraum-Analogie
   entfallen; danach folgt direkt die bestehende lokale Campusgram-Auswertung. Die Demonstration
   analysiert oder persistiert keine Eingabe.
-- Die S05-Simulationsdisposition (`S05_CONTENT_VERSION 2.98.0`, Analysekonfiguration
+- Die S05-Simulationsdisposition (`S05_CONTENT_VERSION 2.120.0`, Analysekonfiguration
   `passwo-bounded-whole-recognition-v17`) bleibt auf den vollständigen fiktiven Wert begrenzt:
   `whole-password-recognized` entsteht durch einen direkten Vollwert oder eine dokumentierte
   begrenzte Kandidatenfamilie aus kanonischen Ankern und positionsunabhängigen Restzeichen oder
@@ -183,9 +191,14 @@ Seitenangaben beziehen sich auf die im Trainingsdokument ausgewiesene interne Pa
 - Beim Perspektivwechsel zu Master Campus und Campus E-Mail werden die übrigen Knoten zunächst
   ausgeblendet. Das jeweilige fiktive Passwort zeigt automatisch erkannte Kategorien und
   Wiederholungen und nimmt über `Gruppen` beziehungsweise `Struktur` ausschließlich flüchtige
-  Zusatzangaben entgegen. Der aktive Kontozweig einschließlich seiner Unterkonten bleibt dabei
-  sichtbar; die Gruppensteuerung beginnt mit `Gruppe 1` und kann wie in S05 über den Plus-Button
-  erweitert werden. Die Bausteine beginnen ohne Kategoriefläche transparent; erst eine
+  Zusatzangaben entgegen. Eine separate Karte `Früh geprüft` entfällt. An den Bausteinen stehen
+  deutlich größere, gegebenenfalls gestapelte und an ihre Anzahl angepasste Info-Logos. Hover oder
+  Tastaturfokus öffnet eine gläserne Karte mit Kategoriename und konkreter Einstufung.
+  Persönliche Bereiche leuchten zeichenpräzise lila-pink und können über mehrere Bausteine reichen,
+  deren persönliches Kategorienlogo die Zuordnung zusätzlich sichtbar macht. Der aktive
+  Kontozweig einschließlich seiner Unterkonten bleibt dabei sichtbar; die Gruppensteuerung beginnt
+  mit `Gruppe 1` und kann wie in S05 über den Plus-Button erweitert werden. Die Bausteine beginnen
+  ohne Kategoriefläche transparent; erst eine
   Gruppenzuordnung färbt die gesamte Bausteinfläche in der Gruppenfarbe. Der Strukturmodus setzt
   wie in S05 gerichtete Pfeile zwischen benachbarten Bausteinen. Wiederholungen erhalten nur am
   ersten Wiederholungsbaustein den Multiplikator und kein zusätzliches Textlabel. Nach `Fertig`
@@ -205,7 +218,7 @@ Seitenangaben beziehen sich auf die im Trainingsdokument ausgewiesene interne Pa
   ausgeschlossen. Eine einzelne Zeichenoperation zählt nur als explizit begrenzter erzeugter
   Kandidatenweg. Ein nicht erkannter Weg bedeutet nur, dass diese Simulation keinen direkten Weg
   erkannt hat.
-- `S06_CONSEQUENCE_CONTENT_VERSION 2.26.0` übernimmt die S05-Vollpasswort-Disposition ohne eigene
+- `S06_CONSEQUENCE_CONTENT_VERSION 2.36.0` übernimmt die S05-Vollpasswort-Disposition ohne eigene
   Guess-Schwelle. Nur `whole-password-recognized` öffnet den tatsächlichen lokalen Vorfallspfad;
   `no-whole-password-recognized` bleibt eine begrenzte Nicht-Erkennung und kein Stärkeurteil.
 - Jeder der drei flüchtigen S06-Kontoeingänge akzeptiert optional dieselbe bestätigte semantische

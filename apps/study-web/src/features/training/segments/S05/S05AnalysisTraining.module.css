@@ -101,12 +101,16 @@
   bottom: clamp(13.5rem, 25cqb, 15rem);
   left: clamp(1rem, 2.5cqi, 2.5rem);
   display: grid;
-  width: min(56cqi, 50rem);
+  width: min(66cqi, 60rem);
   min-width: 0;
   align-content: center;
   gap: clamp(var(--space-3), 2cqb, var(--space-5));
   color: #f4f4f6;
   pointer-events: none;
+}
+
+.finalPasswordSummary [data-category-stack] {
+  pointer-events: auto;
 }
 
 .finalPasswordVisualization {
@@ -139,7 +143,7 @@
 
 .finalPasswordStructure .structureReflectionPassword {
   --password-row-font-size: min(
-    1.85rem,
+    2.45rem,
     calc(90cqi / var(--password-row-unit-count))
   );
 
@@ -152,6 +156,14 @@
 
 .finalPasswordStructure .structureReflectionRun {
   display: contents;
+}
+
+.structureReflectionTokenFrame {
+  position: relative;
+  display: inline-grid;
+  min-width: 0;
+  align-self: center;
+  place-items: center;
 }
 
 .finalPasswordStructure .structureReflectionToken {
@@ -442,7 +454,8 @@
   pointer-events: none;
 }
 
-.passWoLayer > * {
+.passWoLayer button,
+.passWoLayer [role="button"] {
   pointer-events: auto;
 }
 
@@ -1419,9 +1432,9 @@
 .structureExampleRow[data-pattern="theme"]
   .structureConnectionGroup
   > [data-block-index] {
-  border-color: color-mix(in srgb, #1E8449 82%, white);
+  border-color: color-mix(in srgb, #52BE80 82%, white);
   color: #e4fff0;
-  background: color-mix(in srgb, #1E8449 70%, #111113);
+  background: color-mix(in srgb, #52BE80 70%, #111113);
 }
 
 .structureExampleRow[data-pattern="theme"]
@@ -1521,7 +1534,7 @@
   left: 50%;
   width: var(--border-width-thin);
   height: 0.55rem;
-  background: color-mix(in srgb, #1E8449 82%, transparent);
+  background: color-mix(in srgb, #52BE80 82%, transparent);
   content: '';
   pointer-events: none;
   transform: translateX(-50%);
@@ -1534,7 +1547,7 @@
   left: 0;
   width: calc(100% + var(--structure-connection-gap));
   height: var(--border-width-thin);
-  background: color-mix(in srgb, #1E8449 82%, transparent);
+  background: color-mix(in srgb, #52BE80 82%, transparent);
   content: '';
   pointer-events: none;
 }
@@ -1618,6 +1631,16 @@
 }
 
 .structureReflectionPassword {
+  --password-row-font-size: min(
+    calc(clamp(1.3rem, 3.2cqi, 2rem) * var(--s05-password-visual-scale)),
+    calc(180cqi / var(--s05-password-visual-character-count))
+  );
+  --password-category-logo-size: clamp(
+    2rem,
+    calc(var(--password-row-font-size) * 1.75),
+    4.25rem
+  );
+
   display: flex;
   width: 100%;
   max-width: 100%;
@@ -1631,6 +1654,18 @@
 .structureReflectionPassword:has(.structureReflectionToken[data-repetition="true"]) {
   padding-top: 1.75rem;
   row-gap: clamp(2rem, 4cqb, 2.5rem);
+}
+
+.structureReflectionPassword:has([data-category-stack]) {
+  padding-bottom: calc(var(--password-category-logo-size) + 0.45rem);
+}
+
+.structureReflectionPassword:has([data-category-stack][data-count="2"]) {
+  padding-bottom: calc(var(--password-category-logo-size) * 2 + 0.75rem);
+}
+
+.structureReflectionPassword:has([data-category-stack][data-count="3"]) {
+  padding-bottom: calc(var(--password-category-logo-size) * 3 + 1.05rem);
 }
 
 .structureReflectionToken {
@@ -1652,10 +1687,7 @@
   background: #232327;
   box-shadow: 0 0.45rem 1rem rgb(0 0 0 / 24%);
   font-family: ui-monospace, monospace;
-  font-size: min(
-    calc(clamp(1.3rem, 3.2cqi, 2rem) * var(--s05-password-visual-scale)),
-    calc(180cqi / var(--s05-password-visual-character-count))
-  );
+  font-size: var(--password-row-font-size);
   font-weight: var(--font-weight-heavy);
   overflow-wrap: anywhere;
   text-align: center;
@@ -1693,7 +1725,9 @@
   outline-offset: 0.2rem;
 }
 
-.structureReflectionRun > .structureReflectionToken[data-repetition-full="true"] {
+.structureReflectionRun
+  > .structureReflectionTokenFrame
+  > .structureReflectionToken[data-repetition-full="true"] {
   margin-inline: 0;
 }
 
@@ -3781,21 +3815,23 @@
   width: var(--word-sphere-size);
   height: var(--word-sphere-size);
   place-items: center;
-  border: 1px solid color-mix(in srgb, var(--word-sphere-color) 74%, white 24%);
+  border: 1px solid
+    color-mix(in srgb, var(--word-sphere-color) 72%, rgb(255 255 255 / 18%));
   border-radius: var(--radius-round);
   background: radial-gradient(
-    circle at 42% 36%,
-    color-mix(in srgb, var(--word-sphere-color) 82%, white 7%) 0 18%,
-    var(--word-sphere-color) 52%,
-    color-mix(in srgb, var(--word-sphere-color) 42%, #02050b) 82%,
-    color-mix(in srgb, var(--word-sphere-color) 18%, #02050b) 100%
+    circle at center,
+    color-mix(in srgb, var(--word-sphere-color) 66%, #09101d) 0 54%,
+    color-mix(in srgb, var(--word-sphere-color) 38%, #03060c) 78%,
+    color-mix(in srgb, var(--word-sphere-color) 74%, #08101b) 100%
   );
   box-shadow:
-    inset 0 0 calc(var(--word-sphere-size) * 0.08)
-      color-mix(in srgb, var(--word-sphere-color) 76%, transparent),
-    inset 0 0 calc(var(--word-sphere-size) * 0.16) rgb(0 0 0 / 22%),
-    0 0 calc(var(--word-sphere-size) * 0.08)
-      color-mix(in srgb, var(--word-sphere-color) 35%, transparent);
+    inset 0 0 calc(var(--word-sphere-size) * 0.045)
+      color-mix(in srgb, var(--word-sphere-color) 82%, transparent),
+    inset 0 0 calc(var(--word-sphere-size) * 0.14) rgb(0 0 0 / 24%),
+    0 0 calc(var(--word-sphere-size) * 0.025)
+      color-mix(in srgb, var(--word-sphere-color) 64%, transparent),
+    0 0 calc(var(--word-sphere-size) * 0.075)
+      color-mix(in srgb, var(--word-sphere-color) 24%, transparent);
   transition:
     width var(--word-comparison-growth-duration) cubic-bezier(0.16, 1, 0.3, 1),
     height var(--word-comparison-growth-duration) cubic-bezier(0.16, 1, 0.3, 1),
@@ -3837,14 +3873,15 @@
 }
 
 .wordComparisonCase[data-emphasized="true"] .wordComparisonSphere {
-  border-color: rgb(255 255 255 / 82%);
+  border-color: color-mix(in srgb, var(--word-sphere-color) 72%, rgb(255 255 255 / 18%));
   box-shadow:
-    inset 0 0 calc(var(--word-sphere-size) * 0.08)
-      color-mix(in srgb, var(--word-sphere-color) 82%, transparent),
-    inset 0 0 calc(var(--word-sphere-size) * 0.16) rgb(0 0 0 / 18%),
-    0 0 0 0.12rem rgb(255 255 255 / 24%),
+    inset 0 0 calc(var(--word-sphere-size) * 0.05)
+      color-mix(in srgb, var(--word-sphere-color) 92%, transparent),
+    inset 0 0 calc(var(--word-sphere-size) * 0.14) rgb(0 0 0 / 20%),
+    0 0 calc(var(--word-sphere-size) * 0.035)
+      color-mix(in srgb, var(--word-sphere-color) 76%, transparent),
     0 0 calc(var(--word-sphere-size) * 0.1)
-      color-mix(in srgb, var(--word-sphere-color) 48%, transparent);
+      color-mix(in srgb, var(--word-sphere-color) 30%, transparent);
 }
 
 .wordComparisonScene .wordPoolEffort {
@@ -3967,7 +4004,7 @@
   border: var(--border-width-thin) solid currentColor;
   border-radius: var(--radius-round);
   background: rgb(7 11 19 / 88%);
-  color: #65d68d;
+  color: color-mix(in srgb, var(--word-sphere-color) 68%, white);
   font-size: clamp(0.62rem, 0.9cqi, 0.78rem);
   font-weight: var(--font-weight-bold);
   line-height: var(--line-height-tight);
@@ -3982,10 +4019,6 @@
     visibility 0s linear 420ms;
   visibility: hidden;
   white-space: nowrap;
-}
-
-.wordComparisonResidualTime[data-tone="blue"] {
-  color: #6aa8ff;
 }
 
 .wordComparisonResidualTime[data-visible="true"] {
@@ -4674,6 +4707,13 @@
 
 .componentStrategyWorkspace[data-summary="true"] {
   transform: none;
+}
+
+.componentStrategyWorkspace[data-summary="true"] .canonicalPassword {
+  --size-password-building-block-font: 2.9rem;
+  --size-password-continuous-font: 2.95rem;
+
+  width: min(64rem, 100%);
 }
 
 .componentStrategyWorkspace .campusgramPassword {

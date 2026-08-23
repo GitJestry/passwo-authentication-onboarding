@@ -10,9 +10,6 @@ import {
   useRef,
   useState,
 } from 'react';
-import accountContextAsset from '../../../../assets/s05/category-logos/account-context.webp';
-import commonCoresAsset from '../../../../assets/s05/category-logos/common-cores.webp';
-import personalDetailsAsset from '../../../../assets/s05/category-logos/personal-details.webp';
 import typicalChangesAsset from '../../../../assets/s05/category-logos/typical-changes.webp';
 import attackerAsset from '../../../../assets/passwo/attacker.webp';
 import { ReactFlowNetworkAdapter } from '../../../../adapters/network/ReactFlowNetworkAdapter.js';
@@ -23,10 +20,15 @@ import { PassWoGuide } from '../../PassWoGuide.js';
 import { passWoSpeechEmphasisFor } from '../../PassWoSpeechEmphasis.js';
 import { PasswordVisibilityIcon } from '../../PasswordVisibilityIcon.js';
 import {
+  PasswordBlockText,
   PasswordBuildingBlocks,
   passwordSingleLineVisualStyleFor,
   passwordVisualStyleFor,
 } from './PasswordBuildingBlocks.js';
+import {
+  passwordCategoryAssets,
+  PasswordCategoryIconStack,
+} from './PasswordCategoryIcon.js';
 import { PasswordComponentReview } from './PasswordComponentReview.js';
 import { structureGroupColor } from './StructureGroupPalette.js';
 import {
@@ -361,12 +363,6 @@ function ComponentStartScene({ subject }: { readonly subject: S05AnalysisSubject
   );
 }
 
-const categoryAssets = {
-  'common-components': commonCoresAsset,
-  'personal-details': personalDetailsAsset,
-  'account-context': accountContextAsset,
-} as const;
-
 type CommonComponentMachineStep =
   | 'common-components-start'
   | 'common-components-examples'
@@ -487,7 +483,7 @@ function CategoryMachine({
       aria-label={category?.title ?? content.ariaLabel}
     >
       <div className={styles.machineInput}>
-        <img src={categoryAssets[categoryId]} width={768} height={768} alt="" />
+        <img src={passwordCategoryAssets[categoryId]} width={768} height={768} alt="" />
         <div aria-hidden="true">
           {conveyorBlocks.map((block) => (
             <code key={block} data-active={block === travelingBlock || undefined}>
@@ -557,7 +553,7 @@ function CategoryTransition({
   return (
     <div className={styles.categoryTransition} aria-hidden="true">
       <div className={styles.categoryTransitionPanel}>
-        <img src={categoryAssets[categoryId]} width={768} height={768} alt="" />
+        <img src={passwordCategoryAssets[categoryId]} width={768} height={768} alt="" />
         <strong>{category?.title ?? s05Content.page.title}</strong>
       </div>
     </div>
@@ -581,18 +577,12 @@ function ComponentReviewCard({
   const completedCategories = s05Content.componentStrategy.categories.filter(({ id }) =>
     snapshot.componentStrategy.cards[id].status.startsWith('checked-'),
   );
-  const view = snapshot.componentStrategy.canonicalView;
   return (
     <PasswordComponentReview
-      entries={completedCategories.map((category) => {
-        const card = snapshot.componentStrategy.cards[category.id];
-        return {
-          id: category.id,
-          title: category.title,
-          status: card.status,
-          values: view === null ? [] : categoryFindingValues(view, card.findings),
-        };
-      })}
+      entries={completedCategories.map((category) => ({
+        id: category.id,
+        title: category.title,
+      }))}
     />
   );
 }
@@ -689,8 +679,8 @@ function CanonicalPasswordView({
                 : [[]]
           }
           labels={
-            selectingPersonalDetails
-              ? selectionCharacters.map(() => [])
+            selectingPersonalDetails || snapshot.step === 'components-summary'
+              ? parts.map(() => [])
               : hasReleasedFindings
                 ? displayBlocks.map(({ matchCategories }) => matchCategories)
                 : [[]]
@@ -702,6 +692,8 @@ function CanonicalPasswordView({
                 ? displayBlockFindings
                 : [[]]
           }
+          findingDisplay={snapshot.step === 'components-summary' ? 'icons' : 'labels'}
+          personalHighlightRanges={snapshot.componentStrategy.personalSelection.candidates}
           {...(selectingPersonalDetails
             ? {
                 rangeSelection: {
@@ -998,6 +990,7 @@ function StructureReflectionToken({
   sentence,
   onClick,
   onHoverChange,
+  personalHighlightRanges,
 }: {
   readonly block: ReturnType<typeof structureReflectionBlocks>[number];
   readonly color: string | null;
@@ -1006,6 +999,10 @@ function StructureReflectionToken({
   readonly sentence: boolean;
   readonly onClick?: (() => void) | undefined;
   readonly onHoverChange?: ((hovered: boolean) => void) | undefined;
+  readonly personalHighlightRanges: readonly {
+    readonly start: number;
+    readonly end: number;
+  }[];
 }) {
   const categoryId = block.categoryIds.find(
     (candidate): candidate is S05ComponentCategoryId => candidate !== 'repetition',
@@ -1021,13 +1018,30 @@ function StructureReflectionToken({
   const repetitionCount = repetitionGroup?.repetitionCount ?? null;
   const showFullRepetitionCount =
     fullRepetition && repetitionGroup?.firstBlockId === block.id && repetitionCount !== null;
+  const renderText = (start: number, end: number, key: string) => (
+    <span key={key}>
+      <PasswordBlockText
+        value={block.value.slice(start - block.start, end - block.start)}
+        start={start}
+        personalHighlightRanges={personalHighlightRanges}
+      />
+    </span>
+  );
   const tokenValue = (() => {
-    if (repetitionSegments.length === 0 || fullRepetition) return block.value;
+    if (repetitionSegments.length === 0 || fullRepetition) {
+      return (
+        <PasswordBlockText
+          value={block.value}
+          start={block.start}
+          personalHighlightRanges={personalHighlightRanges}
+        />
+      );
+    }
     const parts: ReactNode[] = [];
     let cursor = block.start;
     for (const segment of repetitionSegments) {
       if (cursor < segment.start) {
-        parts.push(block.value.slice(cursor - block.start, segment.start - block.start));
+        parts.push(renderText(cursor, segment.start, `plain-${cursor}-${segment.start}`));
       }
       const showsCount =
         firstRepetitionStart !== undefined &&
@@ -1043,36 +1057,45 @@ function StructureReflectionToken({
               ×{repetitionCount}
             </span>
           ) : null}
-          {block.value.slice(segment.start - block.start, segment.end - block.start)}
+          <PasswordBlockText
+            value={block.value.slice(segment.start - block.start, segment.end - block.start)}
+            start={segment.start}
+            personalHighlightRanges={personalHighlightRanges}
+          />
         </span>,
       );
       cursor = segment.end;
     }
-    if (cursor < block.end) parts.push(block.value.slice(cursor - block.start));
+    if (cursor < block.end) {
+      parts.push(renderText(cursor, block.end, `plain-${cursor}-${block.end}`));
+    }
     return <span className={styles.structureReflectionTokenValue}>{parts}</span>;
   })();
   const token = (
-    <button
-      type="button"
-      className={styles.structureReflectionToken}
-      style={style}
-      data-grouped={color === null ? undefined : true}
-      data-category={categoryId}
-      data-repetition={repetitionSegments.length > 0 || undefined}
-      data-repetition-full={fullRepetition || undefined}
-      data-sentence={sentence || undefined}
-      disabled={!interactive}
-      onClick={onClick}
-      onMouseEnter={() => onHoverChange?.(true)}
-      onMouseLeave={() => onHoverChange?.(false)}
-    >
-      {!showFullRepetitionCount ? null : (
-        <span className={styles.structureReflectionRepetitionCount} aria-hidden="true">
-          ×{repetitionCount}
-        </span>
-      )}
-      {tokenValue}
-    </button>
+    <span className={styles.structureReflectionTokenFrame}>
+      <button
+        type="button"
+        className={styles.structureReflectionToken}
+        style={style}
+        data-grouped={color === null ? undefined : true}
+        data-category={categoryId}
+        data-repetition={repetitionSegments.length > 0 || undefined}
+        data-repetition-full={fullRepetition || undefined}
+        data-sentence={sentence || undefined}
+        disabled={!interactive}
+        onClick={onClick}
+        onMouseEnter={() => onHoverChange?.(true)}
+        onMouseLeave={() => onHoverChange?.(false)}
+      >
+        {!showFullRepetitionCount ? null : (
+          <span className={styles.structureReflectionRepetitionCount} aria-hidden="true">
+            ×{repetitionCount}
+          </span>
+        )}
+        {tokenValue}
+      </button>
+      <PasswordCategoryIconStack findings={block.findings} />
+    </span>
   );
   return token;
 }
@@ -1141,7 +1164,10 @@ function StructureSentenceRow({
             ? undefined
             : () => controller.toggleStructureSentenceLink(block.id, nextBlock.id)
         }
-        onHoverChange={summary ? undefined : (hovered) => setHoveredBlockId(hovered ? block.id : null)}
+        onHoverChange={
+          summary ? undefined : (hovered) => setHoveredBlockId(hovered ? block.id : null)
+        }
+        personalHighlightRanges={snapshot.componentStrategy.personalSelection.candidates}
       />
     );
   };
@@ -1305,6 +1331,7 @@ function StructureContentReflection({
                 interactive
                 sentence={false}
                 onClick={() => controller.toggleStructureContentBlock(block.id)}
+                personalHighlightRanges={snapshot.componentStrategy.personalSelection.candidates}
               />
             );
           })}
@@ -2751,7 +2778,7 @@ function WordComparisonCase({
   slot,
   x,
   diameter,
-  tone,
+  color,
   showEffort = true,
   labelScale = 1,
   emphasized = false,
@@ -2761,7 +2788,7 @@ function WordComparisonCase({
   readonly slot: 'primary' | 'secondary';
   readonly x: number;
   readonly diameter: number;
-  readonly tone: 'green' | 'blue' | 'purple';
+  readonly color: string;
   readonly showEffort?: boolean;
   readonly labelScale?: number;
   readonly emphasized?: boolean;
@@ -2769,8 +2796,7 @@ function WordComparisonCase({
   const style: WordComparisonGeometryStyle = {
     '--word-slot-x': `${x}px`,
     '--word-sphere-size': `${diameter}px`,
-    '--word-sphere-color':
-      tone === 'green' ? '#267b4b' : tone === 'purple' ? '#42105f' : '#244f9c',
+    '--word-sphere-color': color,
     '--word-label-size': `${clampWordComparisonValue(
       diameter * 0.12 * labelScale,
       labelScale < 1 ? 10 : 12.5,
@@ -2891,19 +2917,21 @@ function WordComparisonResidualTime({
   visible,
   x,
   label,
-  tone,
+  color,
 }: {
   readonly visible: boolean;
   readonly x: number;
   readonly label: string;
-  readonly tone: 'green' | 'blue';
+  readonly color: string;
 }) {
-  const style: WordComparisonGeometryStyle = { '--word-slot-x': `${x}px` };
+  const style: WordComparisonGeometryStyle = {
+    '--word-slot-x': `${x}px`,
+    '--word-sphere-color': color,
+  };
   return (
     <span
       className={styles.wordComparisonResidualTime}
       data-visible={visible || undefined}
-      data-tone={tone}
       style={style}
       aria-hidden={!visible}
       data-passwo-speech-obstacle={visible || undefined}
@@ -3057,7 +3085,7 @@ function WordPoolReasonScene({
       id: 'long-word',
       example: firstReason.longWord,
       magnitude: WORD_COMBINATION_MAGNITUDES.longWord,
-      tone: 'green' as const,
+      color: '#3f090f',
       labelScale: 0.72,
       lengthLabel: firstReason.minimumLengthLabel,
     },
@@ -3065,7 +3093,7 @@ function WordPoolReasonScene({
       id: 'short-words',
       example: firstReason.shortWords,
       magnitude: WORD_COMBINATION_MAGNITUDES.shortWords,
-      tone: 'blue' as const,
+      color: '#a8323d',
       labelScale: 1,
       lengthLabel: firstReason.minimumLengthLabel,
     },
@@ -3073,7 +3101,7 @@ function WordPoolReasonScene({
       id: 'german-words',
       example: secondReason.germanWords,
       magnitude: WORD_COMBINATION_MAGNITUDES.germanWords,
-      tone: 'green' as const,
+      color: scaleColor(14),
       labelScale: 1.2,
       lengthLabel: secondReason.germanWords.lengthScaleLabel,
     },
@@ -3081,7 +3109,7 @@ function WordPoolReasonScene({
       id: 'multilingual-words',
       example: secondReason.multilingualWords,
       magnitude: WORD_COMBINATION_MAGNITUDES.multilingualWords,
-      tone: 'green' as const,
+      color: scaleColor(16),
       labelScale: 1.3,
       lengthLabel: undefined,
     },
@@ -3089,7 +3117,7 @@ function WordPoolReasonScene({
       id: 'six-german-words',
       example: secondReason.sixGermanWords,
       magnitude: WORD_COMBINATION_MAGNITUDES.sixGermanWords,
-      tone: 'purple' as const,
+      color: '#42105f',
       labelScale: 1.48,
       lengthLabel: undefined,
     },
@@ -3184,7 +3212,7 @@ function WordPoolReasonScene({
             }
             x={screenX(index)}
             label={milestone.example.durationLabel}
-            tone={milestone.tone === 'blue' ? 'blue' : 'green'}
+            color={milestone.color}
           />
         ))}
         {visibleMilestones.map((milestone, index) => (
@@ -3198,7 +3226,7 @@ function WordPoolReasonScene({
             slot={index % 2 === 0 ? 'primary' : 'secondary'}
             x={screenX(index)}
             diameter={Math.max(2, screenDiameter(index))}
-            tone={milestone.tone}
+            color={milestone.color}
             showEffort={screenDiameter(index) >= 34}
             labelScale={milestone.labelScale}
             emphasized={index === activeSphereIndex}
@@ -3376,25 +3404,12 @@ function FinalPasswordSummary({
 }) {
   const view = snapshot.componentStrategy.canonicalView;
   if (view === null) return null;
-  const summaryCategories = s05Content.componentStrategy.categories.map((category) => ({
-    id: category.id,
-    title: category.title,
-    values: categoryFindingValues(
-      view,
-      snapshot.componentStrategy.cards[category.id].findings,
-    ),
-  }));
-
   return (
     <section
       className={styles.finalPasswordSummary}
       aria-label={`Visuelle Zusammenfassung des Campusgram-Passworts ${view.password}`}
       data-s05-speech-obstacle
     >
-      <PasswordComponentReview
-        entries={summaryCategories}
-        layout="compact"
-      />
       <div className={styles.finalPasswordVisualization}>
         <strong className={`${styles.canonicalAccount} ${styles.finalPasswordAccount}`}>
           <span aria-hidden="true">
@@ -4011,7 +4026,10 @@ export function S05AnalysisTraining({
             snapshot.step !== 'estimate' &&
             !snapshot.step.startsWith('length-') &&
             snapshot.step !== 'structure-theme-reflection' &&
-            snapshot.step !== 'structure-sentence-reflection'
+            snapshot.step !== 'structure-sentence-reflection' &&
+            snapshot.step !== 'structure-application' &&
+            snapshot.step !== 'free-search-transition' &&
+            !snapshot.step.startsWith('final-')
               ? true
               : undefined
           }

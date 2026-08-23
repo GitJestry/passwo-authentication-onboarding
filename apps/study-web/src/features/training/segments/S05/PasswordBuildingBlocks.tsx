@@ -4,6 +4,7 @@ import type {
   S05PersonalCandidate,
   S05VisualCategoryId,
 } from './S05ComponentStrategy.js';
+import { PasswordCategoryIconStack } from './PasswordCategoryIcon.js';
 import styles from './PasswordBuildingBlocks.module.css';
 
 const PASSWORD_VISUAL_REFERENCE_LENGTH = 32;
@@ -57,6 +58,7 @@ export interface PasswordBuildingBlocksProps {
   readonly labels?: readonly (string | readonly string[])[];
   readonly labelsOutside?: boolean;
   readonly findings?: readonly (readonly S05DisplayFinding[])[];
+  readonly findingDisplay?: 'labels' | 'icons';
   readonly matchCategories?: readonly (string | readonly string[])[];
   readonly categoryIds?: readonly (readonly S05VisualCategoryId[])[];
   readonly continuous?: boolean;
@@ -70,6 +72,10 @@ export interface PasswordBuildingBlocksProps {
   readonly appearance?: 'authored' | 'candidate' | 'analysis';
   readonly highlightedIndex?: number;
   readonly highlightedIndices?: readonly number[];
+  readonly personalHighlightRanges?: readonly {
+    readonly start: number;
+    readonly end: number;
+  }[];
   readonly rangeSelection?: {
     readonly candidates: readonly S05PersonalCandidate[];
     readonly onCreate: (start: number, end: number) => boolean;
@@ -88,6 +94,43 @@ export interface PasswordBuildingBlocksProps {
   };
 }
 
+export function PasswordBlockText({
+  value,
+  start = 0,
+  personalHighlightRanges = [],
+}: {
+  readonly value: string;
+  readonly start?: number;
+  readonly personalHighlightRanges?: readonly {
+    readonly start: number;
+    readonly end: number;
+  }[];
+}) {
+  const valueEnd = start + value.length;
+  if (
+    !personalHighlightRanges.some(
+      (range) => range.start < valueEnd && range.end > start,
+    )
+  ) {
+    return value;
+  }
+  let offset = start;
+  const characters = [...value].map((character) => {
+    const characterStart = offset;
+    const characterEnd = characterStart + character.length;
+    offset = characterEnd;
+    const highlighted = personalHighlightRanges.some(
+      (range) => range.start < characterEnd && range.end > characterStart,
+    );
+    return highlighted ? (
+      <mark className={styles.personalCharacter} key={characterStart}>
+        {character}
+      </mark>
+    ) : character;
+  });
+  return <span className={styles.passwordBlockText}>{characters}</span>;
+}
+
 function normalizeLabels(label: string | readonly string[] | undefined): readonly string[] {
   if (label === undefined || label === '') return [];
   return typeof label === 'string' ? [label] : label;
@@ -104,6 +147,7 @@ export function PasswordBuildingBlocks({
   labels,
   labelsOutside = false,
   findings,
+  findingDisplay = 'labels',
   matchCategories,
   categoryIds,
   continuous = false,
@@ -115,6 +159,7 @@ export function PasswordBuildingBlocks({
   appearance = 'authored',
   highlightedIndex,
   highlightedIndices = [],
+  personalHighlightRanges = [],
   rangeSelection,
   annotations,
 }: PasswordBuildingBlocksProps) {
@@ -310,7 +355,11 @@ export function PasswordBuildingBlocks({
                     data-part-index={index}
                     data-categories={categories.join(' ')}
                   >
-                    {part}
+                    <PasswordBlockText
+                      value={part}
+                      start={characterOffsets[index]?.start ?? 0}
+                      personalHighlightRanges={personalHighlightRanges}
+                    />
                   </span>
                   {partMatchCategories.length === 0 ? null : (
                     <small className={styles.continuousCategory}>
@@ -423,7 +472,13 @@ export function PasswordBuildingBlocks({
                   data-obscured={'•'.repeat([...part].length)}
                 >
                   {joiningSegments.length === 1
-                    ? part
+                    ? (
+                        <PasswordBlockText
+                          value={part}
+                          start={characterOffsets[index]?.start ?? 0}
+                          personalHighlightRanges={personalHighlightRanges}
+                        />
+                      )
                     : joiningSegments.map((segment, segmentIndex) => (
                         <span
                           className={styles.joiningSegment}
@@ -453,12 +508,19 @@ export function PasswordBuildingBlocks({
                 )}
                 {partFindings.length === 0 ? null : (
                   <small className={styles.blockFindings}>
-                    {partFindings.map(({ categoryId, label }) => (
-                      <span data-category={categoryId} key={`${categoryId}-${label}`}>
-                        <i aria-hidden="true" />
-                        <span>{label}</span>
-                      </span>
-                    ))}
+                    {findingDisplay === 'icons' ? (
+                      <PasswordCategoryIconStack
+                        findings={partFindings}
+                        flow
+                      />
+                    ) : (
+                      partFindings.map(({ categoryId, label }) => (
+                        <span data-category={categoryId} key={`${categoryId}-${label}`}>
+                          <i aria-hidden="true" />
+                          <span>{label}</span>
+                        </span>
+                      ))
+                    )}
                   </small>
                 )}
                 {partFindings.length > 0 || partLabels.length === 0 ? null : (

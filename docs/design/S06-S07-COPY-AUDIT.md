@@ -1,5 +1,76 @@
 # S06--S07 Copy Audit
 
+## Copy- und Darstellungsdelta S06 Dreier-Gruppenpalette ab #52BE80, 23. August 2026
+
+Quelle ist der ausdrückliche Nutzerauftrag vom 23. August 2026. Dieses Delta ersetzt die bisherige
+Vierer-Palette und Obergrenze. S06 übernimmt stabil geordnet genau `#52BE80`, `#A9DFBF` und
+`#E8F8F0` aus S05; Gruppe 1 verwendet `#52BE80` als Basisfarbe. Weitere Gruppenfarben werden
+nicht zyklisch wiederholt.
+
+Die Gruppenerweiterung ist in Controller und Oberfläche auf drei Gruppen begrenzt. Sobald die
+dritte Gruppe vorhanden ist, wird der bisherige Plus-Button zum nicht interaktiven Hinweis
+`Max. 3 Gruppen`. Analyse, Persistenz, Export und Timing bleiben unverändert.
+`S06_CONSEQUENCE_CONTENT_VERSION` wird von `2.35.0` auf `2.36.0` erhöht.
+
+| Segment und Text-ID | Quelle | Aktueller Text | Geplanter Text | Primäre Rolle | Grund | Bedeutungsänderung | Interaktionsziel | Hervorhebung |
+|---|---|---|---|---|---|---|---|---|
+| `S06.page.localReflection.maxGroups` | Nutzerauftrag vom 2026-08-23 | `Max. 4 Gruppen` | `Max. 3 Gruppen` | Ergebnisfeedback / Orientierung | synchronisiert den sichtbaren Hinweis mit der ausdrücklich reduzierten Obergrenze | begrenzt | kein; ersetzt den deaktivierten Plus-Button bei drei Gruppen | keine |
+
+Geschützter Wortlaut und bestehende Sprechschritte bleiben unverändert.
+
+## Copy- und Darstellungsdelta S06 Logo-Infos ohne Zusammenfassungskarte, 23. August 2026
+
+Quelle ist der ausdrückliche Nutzerauftrag vom 23. August 2026. Die Karte `Früh geprüft` entfällt
+in der lokalen S06-Passwortreflexion vollständig. Die dadurch frei werdende Fläche vergrößert die
+Passwortbausteine und ihre Kategorie-Logos. Die Logos bleiben unter den zugeordneten Bausteinen;
+mehrere Kategorien werden vertikal gestapelt und abhängig von ihrer Anzahl responsiv skaliert.
+
+Jedes Logo erhält dieselbe erkennbare und tastaturfähige Info-Interaktion wie in S05: Die
+bausteingrößenabhängige, durchsichtige Glassy-Kachel gleicht die unterschiedlichen transparenten
+Bildränder aus und steht näher am Baustein. Hilfecursor und eine dezente Hover-/Fokus-Leuchte
+reichen als Interaktionshinweis; ein zusätzliches Fragezeichen entfällt. Hover oder Fokus öffnet
+eine stärker gedeckte gläserne Infokarte mit dem vollständigen Kategorienamen und den konkreten
+Befunden unter `Eingestuft als`. Persönliche Bereiche behalten zusätzlich ihre zeichenpräzise
+lila-pinke Leuchte. Dauerhafte Logos erhalten größenabhängig reservierten Raum und bedecken keine
+Modus- oder Abschlusssteuerung.
+
+Analyse, Auswahl, Persistenz, Export und Timing bleiben unverändert.
+`S06_CONSEQUENCE_CONTENT_VERSION` wird von `2.34.0` auf `2.35.0` erhöht.
+
+| Segment und Text-ID | Aktueller Zustand | Geplanter Zustand | Primäre Rolle | Interaktionsziel | Grund und Bedeutungsänderung | Hervorhebung |
+|---|---|---|---|---|---|---|
+| `S06.page.localReflection.earlyChecked` | Karte `Früh geprüft` | entfällt vollständig | Orientierung | kein | entfernt die redundante Zusammenfassung und schafft Platz für die eigentliche Bausteinzuordnung | nein |
+| `S06.page.localReflection.blockFindingInfo` | statische kleine Logos | bausteingrößenabhängige fokussierbare Logo-Kacheln mit durchsichtiger gläserner Oberfläche, ausgeglichener Bildposition sowie Kategoriename und konkreter Einstufung in einer stärker gedeckten Hover-/Fokus-Karte | Ergebnisfeedback / Optionaler Hinweis | jeweilige Kachel unter dem Baustein | macht Details platzsparend, erkennbar und tastaturzugänglich | Logo-Kachel und Fokusform |
+
+Bestehende Sprechschritte und geschützter Wortlaut bleiben unverändert.
+
+## Copy- und Darstellungsdelta S06 Kategorienübersicht und Kategorie-Logos, 23. August 2026
+
+Quelle ist der ausdrückliche Nutzerauftrag vom 23. August 2026. Die aus S05 übernommene große
+Kategorienzusammenfassung heißt in der lokalen S06-Reflexion nun `Früh geprüft` und zeigt jede
+geprüfte Kategorie genau einmal mit einem deutlich großen, responsiv skalierten Logo und ihrem
+vollständigen Kategorienamen. Einzelne erkannte Begriffe erscheinen dort nicht. Unter den
+eigentlichen Passwortbausteinen ersetzen deutlich größere Kategorie-Logos die bisherigen
+Befundlabels; mehrere zutreffende Kategorien werden vertikal gestapelt und abhängig von ihrer
+Anzahl skaliert.
+
+Persönliche Bereiche werden ohne rosa Rahmen zeichenpräzise durch leuchtendes Lila-Pink markiert.
+Überlappt ein persönlicher Bereich mehrere vorhandene Bausteine, steht das Logo `Persönliche
+Angaben` unter jedem dieser Bausteine, während die Zeichenfarbe die genaue Ausdehnung zeigt.
+Gruppenflächen, Strukturpfeile und Wiederholungsmarkierungen bleiben unverändert. Logos und
+Zeichenmarkierung verhindern eine ausschließlich farbliche Bedeutungszuordnung. Analyse,
+Interaktion, Persistenz, Export und Timing bleiben unverändert.
+`S06_CONSEQUENCE_CONTENT_VERSION` wird von `2.32.0` auf `2.34.0` erhöht.
+
+| Segment und Text-ID | Aktueller Text/Zustand | Geplanter Text/Zustand | Primäre Rolle | Interaktionsziel | Grund und Bedeutungsänderung | Hervorhebung |
+|---|---|---|---|---|---|---|
+| `S06.page.localReflection.earlyCheckedTitle` | `Zusammenfassung` | `Früh geprüft` | Orientierung | kein | ausdrücklich verlangte Kategorienübersicht; begrenzte Umbenennung | keine |
+| `S06.page.localReflection.earlyCheckedEntries` | einzelne erkannte Begriffe mit Kategorienlogo | je geprüfter Kategorie einmal großes Logo plus vollständiger Kategoriename | Orientierung | kein | ausdrücklich verlangte Kategorienübersicht ohne Einzelbefunde; begrenzt | große, responsive Kategorie-Logos |
+| `S06.page.localReflection.blockFindings` | Befundtexte unter den Bausteinen | deutlich größere, vertikal gestapelte Logos der übergeordneten Kategorien | Ergebnisfeedback | kein | hält die Kategorienzuordnung direkt am Baustein; Befunde bleiben unverändert | Kategorie-Logos |
+| `S06.page.localReflection.personalMarking` | rosa-violetter Bereichsrahmen | exakt betroffene Zeichen leuchten lila-pink; Kategorienlogo unter jedem überlappten Baustein | Ergebnisfeedback | persönliche Bereichsauswahl bleibt unverändert | zeigt den ausgewählten Bereich ohne Änderung der Bausteingrenzen; keine Bedeutungsänderung | lila-pinke Zeichen plus Kategorienlogo |
+
+Bestehende Sprechschritte und geschützter Wortlaut bleiben unverändert.
+
 ## Copy- und Darstellungsdelta S06 Vierer-Gruppenpalette und Gruppenlimit, 23. August 2026
 
 Quelle ist der ausdrückliche Nutzerauftrag vom 23. August 2026. Dieses Delta ersetzt die zuvor

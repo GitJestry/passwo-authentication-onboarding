@@ -127,6 +127,8 @@ Stoppe nur, wenn ein Auftrag:
   automatischen Tests.
 - E2E-Tests sind nur für ausdrücklich benannte Milestones oder den
   Hauptstudien-Versions-Freeze zulässig.
+- Bei jeder UI-Neuerstellung und -Anpassung müssen Inhalte auf allen in den Anforderungen
+  relevanten Bildschirmgrößen korrekt skalieren und vollständig nutzbar bleiben.
 - Farbe ist nie der einzige Bedeutungsträger; Tastatur, Fokus und `prefers-reduced-motion`
   müssen berücksichtigt werden.
 

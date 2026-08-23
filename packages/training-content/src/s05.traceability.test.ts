@@ -4,16 +4,16 @@ import { S05_CONTENT_VERSION, s05Content } from './s05.js';
 
 describe('S05 content traceability', () => {
   it('keeps the participant copy bounded and separate from internal terminology', () => {
-    expect(S05_CONTENT_VERSION).toBe('2.116.0');
+    expect(S05_CONTENT_VERSION).toBe('2.120.0');
     expect(s05Content.source).toMatchObject({
       document: 'research/private/training-script.pdf',
       internalPages: [
         12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34,
         35,
       ],
-      revision: 'Userauftrag vom 2026-08-23 · Wiederholungsbeispiel ohne Fragezeichen',
+      revision: 'Userauftrag vom 2026-08-23 · Logo-Infos ohne Abschlusskarte',
       copyReference:
-        'docs/design/S00-S05-COPY-AUDIT.md#copy--und-darstellungsdelta-s05-drittes-wiederholungsbeispiel-23-august-2026',
+        'docs/design/S00-S05-COPY-AUDIT.md#copy--und-darstellungsdelta-s05-logo-infos-ohne-abschlusskarte-23-august-2026',
     });
     expect(s05Content.segment.id).toBe('S05');
     expect(s05Content.page.fixtureNotice).toBe(
@@ -109,7 +109,11 @@ describe('S05 content traceability', () => {
     expect(s05Content.componentStrategy.commonComponents.machine.generatorLabel).toBe(
       'Typische Abwandlung generieren',
     );
-    expect(s05Content.componentStrategy.presentation.reviewCardTitle).toBe('Zusammenfassung');
+    expect(s05Content.componentStrategy.presentation.reviewCardTitle).toBe('Früh geprüft');
+    expect(s05Content.componentStrategy.presentation.categoryInfoGroupLabel).toBe(
+      'Informationen zu den markierten Kategorien',
+    );
+    expect(s05Content.componentStrategy.presentation.classificationLabel).toBe('Eingestuft als');
     expect(s05Content.componentStrategy.personalDetails.opening).toEqual([
       'Persönliche Angaben sind vertraut und meist leicht zu merken. Gerade weil sie persönlich sind, können sie schwer erratbar wirken.',
     ]);
@@ -242,8 +246,8 @@ describe('S05 content traceability', () => {
       themeQuestion: 'Welche Teile gehören für dich inhaltlich zusammen?',
       sentenceQuestion: 'Welche Teile bilden für dich eine Satz- oder Phrasenstruktur?',
       newGroup: 'Neue Gruppe',
-      maxGroupCount: 4,
-      maxGroups: 'Max. 4 Gruppen',
+      maxGroupCount: 3,
+      maxGroups: 'Max. 3 Gruppen',
       finish: 'Fertig',
     });
     expect(s05Content.animations.map(([id]) => id)).toEqual(

@@ -1,5 +1,86 @@
 # S00--S05 Copy and Interaction Audit
 
+## Copy- und Darstellungsdelta S05 Dreier-Gruppenpalette ab #52BE80, 23. August 2026
+
+Quelle ist der ausdrückliche Nutzerauftrag vom 23. August 2026. Dieses Delta ersetzt die bisherige
+Vierer-Palette und Obergrenze. S05 verwendet stabil geordnet genau `#52BE80`, `#A9DFBF` und
+`#E8F8F0`; Gruppe 1 sowie die grün markierten Strukturbeispiele verwenden `#52BE80` als
+Basisfarbe. Weitere Gruppenfarben werden nicht zyklisch wiederholt.
+
+Die Gruppenerweiterung ist in Controller und Oberfläche auf drei Gruppen begrenzt. Sobald die
+dritte Gruppe vorhanden ist, wird der bisherige Plus-Button zum nicht interaktiven Hinweis
+`Max. 3 Gruppen`. Analyse, Persistenz, Export und Timing bleiben unverändert.
+`S05_CONTENT_VERSION` wird von `2.119.0` auf `2.120.0` erhöht.
+
+| Segment und Text-ID | Quelle | Aktueller Text | Geplanter Text | Primäre Rolle | Grund | Bedeutungsänderung | Interaktionsziel | Hervorhebung |
+|---|---|---|---|---|---|---|---|---|
+| `S05.structure.reflection.maxGroups` | Nutzerauftrag vom 2026-08-23 | `Max. 4 Gruppen` | `Max. 3 Gruppen` | Ergebnisfeedback / Orientierung | synchronisiert den sichtbaren Hinweis mit der ausdrücklich reduzierten Obergrenze | begrenzt | kein; ersetzt den deaktivierten Plus-Button bei drei Gruppen | keine |
+
+Geschützter Wortlaut und bestehende Sprechschritte bleiben unverändert.
+
+## Copy- und Darstellungsdelta S05 Logo-Infos ohne Abschlusskarte, 23. August 2026
+
+Quelle ist der ausdrückliche Nutzerauftrag vom 23. August 2026. Die Übersicht `Früh geprüft`
+bleibt ausschließlich einmal direkt nach den drei einzelnen Kategorieprüfungen sichtbar. In der
+späteren Campusgram-Fund- und Abschlussansicht entfällt sie vollständig. Dort tragen nur noch die
+größeren Kategorie-Logos unter den ebenfalls vergrößerten Bausteinen die Zuordnung.
+
+Jedes Logo unter einem Baustein liegt in einer gläsernen Kachel, deren Größe proportional zur
+Bausteinschrift skaliert. Die unterschiedlichen transparenten Ränder der Bilddateien werden
+innerhalb der Kacheln visuell ausgeglichen. Hilfecursor und eine dezente Hover-/Fokus-Leuchte
+kennzeichnen die gesamte Kachel als Info-Element; ein zusätzliches Fragezeichen entfällt. Hover
+oder Tastaturfokus öffnet eine stärker gedeckte gläserne Infokarte. Sie nennt zuerst den
+vollständigen Kategorienamen und danach unter `Eingestuft als` die konkreten lokalen
+Befundbezeichnungen, beispielsweise ein erkanntes Datum. Mehrere Kategorien bleiben vertikal
+gestapelt. Die Kacheln stehen näher an den Bausteinen und erhalten größenabhängig reservierten
+Raum; die Infokarte ist ausschließlich während der Abfrage eingeblendet. Die konkreten Labels der
+einzelnen vorausgehenden Kategorieprüfungen bleiben unverändert. In den späteren Struktur-,
+Übergangs- und Abschlussansichten bleiben die Logo-Infos auch während einer sichtbaren
+Sprechblase hover- und fokussierbar; die übrige Ablaufsteuerung bleibt davon unberührt.
+
+Analyse, Auswahl, Persistenz, Export und Timing bleiben unverändert. Farbe ist nicht der einzige
+Bedeutungsträger; Kategoriename und Einstufung sind auch über Fokus und Assistenztechnik
+zugänglich. `S05_CONTENT_VERSION` wird von `2.118.0` auf `2.119.0` erhöht.
+
+| Segment und Text-ID | Aktueller Zustand | Geplanter Zustand | Primäre Rolle | Interaktionsziel | Grund und Bedeutungsänderung | Hervorhebung |
+|---|---|---|---|---|---|---|
+| `S05.finalPasswordSummary.earlyChecked` | Karte `Früh geprüft` neben der Fundansicht | entfällt; die einmalige Liste direkt nach den Kategorien bleibt erhalten | Orientierung | kein | entfernt die spätere redundante Zusammenfassung und schafft Raum für größere Bausteine | nein | keine |
+| `S05.componentStrategy.presentation.categoryInfoGroupLabel` | nicht vorhanden | `Informationen zu den markierten Kategorien` | Orientierung (barrierefreier Name) | Gruppe der Info-Logos | macht Zweck und Gruppierung für Assistenztechnik eindeutig | begrenzt | keine |
+| `S05.componentStrategy.presentation.classificationLabel` | nicht vorhanden | `Eingestuft als` | Ergebnisfeedback | Info-Logo per Hover oder Fokus | ordnet die konkreten Befunde dem Kategorienamen zu | begrenzt | gläserne Infokarte |
+| `S05.summaryBlockFindings.interaction` | statische kleine Logos | bausteingrößenabhängige fokussierbare Logo-Kacheln mit durchsichtiger gläserner Oberfläche, ausgeglichener Bildposition und stärker gedeckter Hover-/Fokus-Detailkarte | Ergebnisfeedback / Optionaler Hinweis | jeweilige Kachel unter dem Baustein | macht die verfügbare Detailinformation sichtbar und tastaturzugänglich | nein | Logo-Kachel und Fokusform |
+
+Geschützter Wortlaut und bestehende Sprechschritte bleiben unverändert.
+
+## Copy- und Darstellungsdelta S05 Kategorienübersicht und Kategorie-Logos, 23. August 2026
+
+Quelle ist der ausdrückliche Nutzerauftrag vom 23. August 2026. Die bisherige große
+Kategorienzusammenfassung wird zur kompakten Übersicht `Früh geprüft`: Jede geprüfte Kategorie
+steht einmal mit einem deutlich großen, responsiv skalierten Logo und ihrem vollständigen
+Kategorienamen untereinander. Einzelne erkannte Begriffe erscheinen dort nicht. An den
+Passwortbausteinen der gemeinsamen Drei-Kategorien-Zusammenfassung ersetzen dieselben Logos die
+bisherigen Befundtexte; treffen mehrere Kategorien zu, werden ihre Logos vertikal gestapelt. Die
+Logos skalieren abhängig von ihrer Anzahl, bleiben aber deutlich größer als die frühere
+Punkt-/Labeldarstellung. In den vorausgehenden einzelnen Kategorieprüfungen bleiben die konkreten
+Befundlabels unter den Bausteinen unverändert sichtbar.
+
+Persönlich markierte Bereiche erhalten keinen rosa Rahmen mehr. Stattdessen leuchten genau die
+betroffenen Zeichen lila-pink. Das Logo `Persönliche Angaben` kann dadurch unter mehreren
+überlappten Bausteinen stehen, während die Zeichenfarbe die exakte Ausdehnung sichtbar macht.
+Die bestehende S05-Kategorieeinfärbung der Bausteine bleibt erhalten. Logos und Zeichenmarkierung
+sind gemeinsam Bedeutungsträger; Farbe steht nicht allein. Analyse, Interaktion, Persistenz,
+Export und Timing bleiben unverändert. `S05_CONTENT_VERSION` wird von `2.116.0` auf `2.118.0`
+erhöht.
+
+| Segment und Text-ID | Quelle | Aktueller Text | Geplanter Text | Primäre Rolle | Grund | Bedeutungsänderung | Interaktionsziel | Hervorhebung |
+|---|---|---|---|---|---|---|---|---|
+| `S05.componentStrategy.presentation.reviewCardTitle` | Nutzerauftrag vom 2026-08-23 | `Zusammenfassung` | `Früh geprüft` | Orientierung | benennt die Fläche als Übersicht der bereits früh geprüften Begriffe | begrenzt | kein | keine |
+| `S05.componentStrategy.presentation.categoriesAriaLabel` | Nutzerauftrag vom 2026-08-23 | `Drei Arten von Passwortbestandteilen` | `Früh geprüfte Kategorien` | Orientierung | gleicht die barrierefreie Benennung an die neue Kategorienübersicht an | begrenzt | kein | keine |
+| `S05.componentStrategy.presentation.reviewEntries` | Nutzerauftrag vom 2026-08-23 | einzelne erkannte Begriffe mit Kategorienlogo | je geprüfter Kategorie einmal großes Logo plus vollständiger Kategoriename | Orientierung | ausdrücklich verlangte Kategorienübersicht ohne Einzelbefunde | begrenzt | kein | große, responsive Kategorie-Logos |
+| `S05.componentStrategy.presentation.summaryBlockFindings` | Nutzerauftrag vom 2026-08-23 | Befundtexte unter den Bausteinen der Drei-Kategorien-Zusammenfassung | deutlich größere, vertikal gestapelte Logos der übergeordneten Kategorien; einzelne Kategorieprüfungen behalten ihre Labels | Ergebnisfeedback | hält die Kategorienzuordnung direkt am Baustein, ohne Einzelbegriffe in der gemeinsamen Übersicht zu wiederholen | nein | kein | Kategorie-Logos |
+| `S05.componentStrategy.personalDetails.marking` | Nutzerauftrag vom 2026-08-23 | rosa-violetter Bereichsrahmen | exakt betroffene Zeichen leuchten lila-pink; Kategorienlogo unter jedem überlappten Baustein | Ergebnisfeedback | zeigt die genaue Auswahl unabhängig von vorhandenen Bausteingrenzen | nein | persönliche Bereichsauswahl bleibt unverändert | lila-pinke Zeichen plus Kategorienlogo |
+
+Geschützter Wortlaut und bestehende Sprechschritte bleiben unverändert.
+
 ## Copy- und Darstellungsdelta S05 drittes Wiederholungsbeispiel, 23. August 2026
 
 Quelle ist der ausdrückliche Nutzerauftrag vom 23. August 2026. Ausschließlich im dritten

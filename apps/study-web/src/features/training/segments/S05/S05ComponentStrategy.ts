@@ -913,8 +913,9 @@ export function projectCanonicalPasswordBlocks(
       ],
       categoryIds: [
         ...(range.categoryId === undefined ? [] : [range.categoryId]),
+        ...directFindings.map(({ categoryId }) => categoryId),
         ...(repetitions.length === 0 ? [] : (['repetition'] as const)),
-      ],
+      ].filter((categoryId, index, categoryIds) => categoryIds.indexOf(categoryId) === index),
       groupIds: [...new Set(directFindings.map(({ id }) => id))],
     };
   });

@@ -2,11 +2,12 @@ import { s05Content, s06ConsequenceContent } from '@passwo/training-content';
 import { type CSSProperties, type ReactNode, useState } from 'react';
 import { NetworkSymbol } from '../../../../adapters/network/NetworkSymbolRegistry.js';
 import {
+  PasswordBlockText,
   PasswordBuildingBlocks,
   passwordSingleLineVisualStyleFor,
   passwordVisualStyleFor,
 } from '../S05/PasswordBuildingBlocks.js';
-import { PasswordComponentReview } from '../S05/PasswordComponentReview.js';
+import { PasswordCategoryIconStack } from '../S05/PasswordCategoryIcon.js';
 import { structureGroupColor } from '../S05/StructureGroupPalette.js';
 import type {
   S06LocalReflectionMode,
@@ -89,11 +90,6 @@ export function S06LocalPasswordReflection({
           reflection.fictionalPassword,
           reflection.blocks.length,
         );
-  const summaryCategories = s05Content.componentStrategy.categories.map((category) => ({
-    id: category.id,
-    title: category.title,
-    values: reflection.findingValues[category.id],
-  }));
   return (
     <section
       className={styles.reflection}
@@ -101,11 +97,6 @@ export function S06LocalPasswordReflection({
       data-account-id={reflection.accountId}
       data-interactive={interactive || undefined}
     >
-      <PasswordComponentReview
-        entries={summaryCategories}
-        layout="compact"
-        live
-      />
       <div className={styles.passwordVisualization}>
         <h2 className={styles.title}>
           <span aria-hidden="true">
@@ -116,6 +107,9 @@ export function S06LocalPasswordReflection({
         <div
           className={styles.password}
           data-mode={reflection.mode}
+          data-has-category-icons={
+            reflection.blocks.some(({ findings }) => findings.length > 0) || undefined
+          }
           aria-label={reflection.fictionalPassword}
           style={passwordScaleStyle}
         >
@@ -202,8 +196,13 @@ export function S06LocalPasswordReflection({
                     }
                     onBlur={() => setHoveredBlockId(null)}
                   >
-                    {block.value}
+                    <PasswordBlockText
+                      value={block.value}
+                      start={block.start}
+                      personalHighlightRanges={reflection.personalCandidates}
+                    />
                   </button>
+                  <PasswordCategoryIconStack findings={block.findings} />
                 </span>
               );
             };
