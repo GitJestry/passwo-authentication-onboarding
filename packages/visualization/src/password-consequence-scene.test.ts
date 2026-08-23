@@ -145,6 +145,12 @@ describe('password consequence scene projection', () => {
       }),
     );
     expect(emailComparisonSteps).toHaveLength(2);
+    expect(
+      plan.steps.find(({ id }) => id === 's06-step-master-campus-perspective')?.narrationId,
+    ).toBe('s06.perspective.master-campus-blocked');
+    expect(
+      plan.steps.find(({ id }) => id === 's06-step-campus-email-local-check')?.narrationId,
+    ).toBe('s06.local-check.campus-email-blocked');
     expect(plan.resolvedResult.paths).toContainEqual(
       expect.objectContaining({
         sourceAccountId: 'campusgram',
@@ -155,5 +161,50 @@ describe('password consequence scene projection', () => {
       }),
     );
     expect(plan.resolvedResult.affectedAccountIds).not.toContain('master-campus');
+  });
+
+  it('selects the short boundary wording for later exhaustive-search findings', () => {
+    const exhaustiveAccounts: readonly S06LocalAccountAnalysis[] = accounts.map((account) =>
+      account.accountId === 'campusgram'
+        ? account
+        : {
+            ...account,
+            disposition: {
+              kind: 'whole-password-recognized',
+              ruleId: 'whole-password-recognized-exhaustive-search',
+              findingIds: [],
+              lengthOrientation: 'below-15',
+              analysisVersion: 'passwo-bounded-whole-recognition-v16',
+              explanationId: 's05.disposition.whole-password-recognized-exhaustive-search',
+            },
+          },
+    );
+    const comparisons: readonly S06PairComparison[] = [
+      ['campusgram', 'master-campus'],
+      ['campusgram', 'campus-email'],
+      ['master-campus', 'campusgram'],
+      ['master-campus', 'campus-email'],
+      ['campus-email', 'master-campus'],
+      ['campus-email', 'campusgram'],
+    ].map(([sourceAccountId, targetAccountId]) => ({
+      sourceAccountId: sourceAccountId as S06AccountId,
+      targetAccountId: targetAccountId as S06AccountId,
+      result: comparison('no-derived-path-recognized'),
+    }));
+
+    const plan = projectPasswordConsequenceScenePlan({
+      id: 'exhaustive-search-local-copy',
+      incidentSource: 'campusgram',
+      accounts: exhaustiveAccounts,
+      comparisons,
+      accountDefinitions,
+    });
+
+    expect(
+      plan.steps.find(({ id }) => id === 's06-step-master-campus-perspective')?.narrationId,
+    ).toBe('s06.perspective.master-campus-exhaustive-found');
+    expect(
+      plan.steps.find(({ id }) => id === 's06-step-campus-email-local-check')?.narrationId,
+    ).toBe('s06.local-check.campus-email-exhaustive-found');
   });
 });

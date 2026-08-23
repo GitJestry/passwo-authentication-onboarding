@@ -9,7 +9,7 @@ import { S08_NETWORK_REPLAY_CONTENT_VERSION, s08NetworkReplayContent } from './s
 import { S09_PASSWORD_SUMMARY_CONTENT_VERSION, s09PasswordSummaryContent } from './s09.js';
 
 const s06AttackFlowCopyReference =
-  'docs/design/S06-S07-COPY-AUDIT.md#copy-delta-s06-s07-eigene-passwoerter-23-august-2026';
+  'docs/design/S06-S07-COPY-AUDIT.md#copy-delta-s06-transition-karte-23-august-2026';
 const s07EntryCopyReference =
   'docs/design/S06-S07-COPY-AUDIT.md#copy-delta-s06-s07-eigene-passwoerter-23-august-2026';
 const s08CopyReference =
@@ -19,7 +19,7 @@ const s09CopyReference =
 
 describe('S06 transition and S07 passphrase-search copy traceability', () => {
   it('keeps S06 consequence wording aligned with bounded whole-password recognition', () => {
-    expect(S06_CONSEQUENCE_CONTENT_VERSION).toBe('2.29.0');
+    expect(S06_CONSEQUENCE_CONTENT_VERSION).toBe('2.30.0');
     expect(s06ConsequenceContent.source.copyReference).toBe(s06AttackFlowCopyReference);
     expect(s06ConsequenceContent.page.attackStart).toBe('Angriff starten');
     expect(s06ConsequenceContent.page.finish).toBe('Fertig');
@@ -53,10 +53,13 @@ describe('S06 transition and S07 passphrase-search copy traceability', () => {
     );
     expect(s06ConsequenceContent.narrations).toMatchObject({
       's06.perspective.master-campus-found': {
-        body: 'Das Master-Campus-Passwort gilt hier ebenfalls als gefunden. Prüfen wir, ob es bei Campus E-Mail weiterführt.',
+        body: 'Das Master-Campus-Passwort gilt ebenfalls als gefunden. Prüfen wir, ob es bei Campus E-Mail weiterführt.',
+      },
+      's06.perspective.master-campus-exhaustive-found': {
+        body: 'Das Durchprobieren liegt innerhalb der Grenze. Das Master-Campus-Passwort gilt hier als gefunden. Prüfen wir, ob es bei Campus E-Mail weiterführt.',
       },
       's06.perspective.master-campus-blocked': {
-        body: 'Das Master-Campus-Passwort wurde hier nicht gefunden. Für den Vergleich nehmen wir kurz an, es wäre bekannt geworden.',
+        body: 'Das Durchprobieren liegt außerhalb der Grenze. Das Master-Campus-Passwort gilt hier nicht als gefunden. Für den Vergleich nehmen wir kurz an, es wäre bekannt.',
       },
       's06.transition.master-campus-email-match': {
         body: 'Zwischen Master Campus und Campus E-Mail wurde dasselbe Passwort oder eine leichte Abwandlung erkannt. Dieser Weg könnte den Angriff auf Campus E-Mail ausweiten. Schauen wir uns das Campus-E-Mail-Passwort jetzt noch für sich an.',
@@ -68,13 +71,17 @@ describe('S06 transition and S07 passphrase-search copy traceability', () => {
         heading: 'Lokaler Einzelcheck von Campus E-Mail',
         body: 'Auch dieses Passwort gilt hier als gefunden. Vom bekannten Passwort führte aber kein direkter Weg zu diesem Konto. Trotzdem sollte jedes Passwort auch für sich schwer zu erraten sein.',
       },
+      's06.local-check.campus-email-exhaustive-found': {
+        heading: 'Lokaler Einzelcheck von Campus E-Mail',
+        body: 'Das Durchprobieren liegt innerhalb der Grenze. Auch dieses Passwort gilt hier als gefunden.',
+      },
       's06.local-check.campus-email-blocked': {
         heading: 'Lokaler Einzelcheck von Campus E-Mail',
-        body: 'Dieses Passwort wurde hier nicht gefunden. Das ist ein gutes Ergebnis für diese Übung.',
+        body: 'Das Durchprobieren liegt außerhalb der Grenze. Dieses Passwort gilt hier nicht als gefunden.',
       },
     });
     expect(s06ConsequenceContent.narrations['s06.transition.s07']).toEqual({
-      heading: 'Passwort sicher ersetzen',
+      heading: 'Betroffenes Passwort ersetzen',
       body: 'Ein Datenleck lässt sich nicht immer verhindern. Danach zählt, die Folgen zu begrenzen: das betroffene Passwort zügig ersetzen und für jedes Konto ein eigenes Passwort verwenden. Genau das machen wir jetzt bei Campusgram.',
     });
     expect(s06ConsequenceContent.narrations).toMatchObject({

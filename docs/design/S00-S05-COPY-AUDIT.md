@@ -51,6 +51,27 @@ Interaktion, Ablauf, Analyse, Persistenz, Export und Timing bleiben unverändert
 | `S05.freeSearch.lengthExamples.mixedCharacterComparison` | Nutzerauftrag vom 2026-08-23 | `Die gelbe Kugel zeigt, warum ein wirklich zufälliges Passwort wie k7#M!9p$2Lq& so aufwendig durchzuprobieren ist.` | `Die gelbe Kugel zeigt, warum Regeln wie zwölf Zeichen und mehrere Zeichentypen bei wirklich zufälliger Auswahl so aufwendig durchzuprobieren sind.` | Mechanismuserklärung | ausdrücklich vorgegebener Wortlaut | begrenzt | `Weiter` | keine |
 | `S05.freeSearch.lengthExamples.orientation` | Nutzerauftrag vom 2026-08-23 | `Da sich diese Zufälligkeit bei selbst gewählten Passwörtern jedoch nicht voraussetzen lässt, liegt die aktuelle Orientierung bei mindestens 15 Zeichen.` | `Da sich diese Zufälligkeit bei selbst gewählten Passwörtern jedoch nicht voraussetzen lässt, sollten sie mindestens 15 Zeichen lang sein.` | Kerngedanke | ausdrücklich vorgegebener Wortlaut | begrenzt | `Weiter` | `mindestens 15 Zeichen lang`, Akzent |
 
+## Copy- und Analysedelta S05 vollständiges Durchprobieren als letzter Fundweg, 22. August 2026
+
+Quelle ist der ausdrückliche Nutzerauftrag vom 22. August 2026. Nach den vorhandenen konkreten
+Kandidatenwegen prüft die lokale Simulation als letzten Weg den vollständigen Zeichenvorrat. Die
+interne Grenze entspricht `26^12` Zeichenfolgen und damit der bereits gezeigten Größenordnung von
+etwa einem Tag bei einer Billion Versuchen pro Sekunde. Die Grenze ist eine authored
+Simulationsentscheidung und bleibt von der separaten 15-Zeichen-Orientierung getrennt. Konkrete
+Kandidaten-, Varianten- und bestätigte semantische Wege behalten Vorrang.
+
+Die PassWo-Sprechblasen nennen nach außen nur das vollständige Durchprobieren sowie das Ergebnis
+innerhalb oder außerhalb der Grenze. Bei Master Campus und Campus E-Mail wird die Methode nicht
+erneut erklärt. Persistenz, Export und Forschungsdaten bleiben unverändert.
+`S05_CONTENT_VERSION` wird von `2.106.0` auf `2.107.0` erhöht; die Analysekonfiguration wird auf
+`passwo-bounded-whole-recognition-v16` erhöht.
+
+| Segment und Text-ID | Vorher | Nachher | Primäre Rolle | Grund und Bedeutungsänderung |
+|---|---|---|---|---|
+| `S05.freeSearch.application.assessmentIntroduction` | Entscheidung nur anhand der bisherigen erkannten Wege; vollständiges Durchprobieren nicht Teil der Disposition | ein Passwort gilt bei einem vollständigen erkannten Weg oder bei vollständigem Durchprobieren innerhalb der Grenze als gefunden; Safety Boundary bleibt erhalten | Mechanismuserklärung / Safety Boundary | schließt kurze unerkannte Zeichenfolgen, ohne eine pauschale Mindestlängenregel einzuführen |
+| `S05.freeSearch.application.result.recognizedExhaustiveSearch` | nicht vorhanden | `Das Durchprobieren liegt innerhalb der Grenze. Deshalb gilt dein Campusgram-Passwort hier als gefunden.` | Ergebnisfeedback | kurze Begründung des neuen letzten Fundwegs |
+| `S05.freeSearch.application.result.notRecognized` | kein erkannter Weg deckt die gesamte Zeichenfolge ab | `Das Durchprobieren liegt über der Grenze. Deshalb gilt dein Campusgram-Passwort hier als nicht gefunden. Das ist kein Sicherheitsnachweis.` | Ergebnisfeedback / Safety Boundary | benennt die tatsächliche letzte Prüfgrenze und verhindert eine Sicherheitszusage |
+
 ## Copy-Delta S05 Variantenmarkierung und Hinweis präzisiert, 22. August 2026
 
 Quelle ist der ausdrückliche Nutzerauftrag vom 22. August 2026. Die Sprechblase zu typischen

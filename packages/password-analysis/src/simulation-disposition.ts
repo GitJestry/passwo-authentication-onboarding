@@ -13,6 +13,10 @@ import {
   isExplicitPasswordAnchorToken,
   PASSWORD_ANALYSIS_CONFIGURATION_VERSION,
 } from './password-guessing-analysis.js';
+import {
+  createFictionalPasswordExhaustiveSearchModel,
+  MAX_EXHAUSTIVE_SEARCH_CANDIDATES,
+} from './theoretical-search-space.js';
 
 export const SELF_CREATED_PASSWORD_LENGTH_ORIENTATION = 15;
 
@@ -612,6 +616,20 @@ export function determinePasswordSimulationDisposition({
       ruleId: recognition.ruleId,
       findingIds: recognition.findingIds,
       explanationId: `s05.disposition.${recognition.ruleId}`,
+    };
+  }
+
+  const exhaustiveSearch = createFictionalPasswordExhaustiveSearchModel(fictionalPassword);
+  if (
+    exhaustiveSearch !== null &&
+    exhaustiveSearch.totalCandidateCount <= MAX_EXHAUSTIVE_SEARCH_CANDIDATES
+  ) {
+    return {
+      ...base,
+      kind: 'whole-password-recognized',
+      ruleId: 'whole-password-recognized-exhaustive-search',
+      findingIds: [],
+      explanationId: 's05.disposition.whole-password-recognized-exhaustive-search',
     };
   }
 

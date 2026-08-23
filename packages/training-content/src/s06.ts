@@ -36,10 +36,12 @@ export type S06NarrationId =
   | 's06.compare.derived-variant-match'
   | 's06.compare.no-derived-path-recognized'
   | 's06.perspective.master-campus-found'
+  | 's06.perspective.master-campus-exhaustive-found'
   | 's06.perspective.master-campus-blocked'
   | 's06.transition.master-campus-email-match'
   | 's06.transition.master-campus-email-no-match'
   | 's06.local-check.campus-email-found'
+  | 's06.local-check.campus-email-exhaustive-found'
   | 's06.local-check.campus-email-blocked'
   | 's06.summary'
   | 's06.summary.actual-none'
@@ -56,16 +58,16 @@ export interface S06NarrationContent {
   readonly body: string;
 }
 
-export const S06_CONSEQUENCE_CONTENT_VERSION = '2.29.0';
+export const S06_CONSEQUENCE_CONTENT_VERSION = '2.30.0';
 
 export const s06ConsequenceContent = {
   version: S06_CONSEQUENCE_CONTENT_VERSION,
   source: {
     document: 'research/private/training-script.pdf',
     internalPages: [36, 37, 38, 39, 40, 41, 42, 43, 44] as const,
-    revision: 'Userauftrag vom 2026-08-23 · sichtbare Texte zu eigenen Passwörtern präzisiert',
+    revision: 'Userauftrag vom 2026-08-23 · Transition-Kartenüberschrift präzisiert',
     copyReference:
-      'docs/design/S06-S07-COPY-AUDIT.md#copy-delta-s06-s07-eigene-passwoerter-23-august-2026',
+      'docs/design/S06-S07-COPY-AUDIT.md#copy-delta-s06-transition-karte-23-august-2026',
   },
   segment: {
     id: 'S06',
@@ -195,9 +197,9 @@ export const s06ConsequenceContent = {
   } as const satisfies Readonly<Record<PasswordTransformationId, string>>,
   dispositionLabels: {
     'whole-password-recognized':
-      'Vollständiges Passwort als frühen Kandidaten in dieser begrenzten Simulation erkannt',
+      'Vollständiges Passwort in dieser begrenzten Simulation gefunden',
     'no-whole-password-recognized':
-      'Kein vollständiger früher Kandidat in dieser begrenzten Simulation erkannt',
+      'Vollständiges Passwort in dieser begrenzten Simulation nicht gefunden',
   },
   retrievalLabels: {
     retrievable: 'direkt abrufbar',
@@ -227,11 +229,15 @@ export const s06ConsequenceContent = {
     },
     's06.perspective.master-campus-found': {
       heading: 'Perspektivwechsel zu Master Campus',
-      body: 'Das Master-Campus-Passwort gilt hier ebenfalls als gefunden. Prüfen wir, ob es bei Campus E-Mail weiterführt.',
+      body: 'Das Master-Campus-Passwort gilt ebenfalls als gefunden. Prüfen wir, ob es bei Campus E-Mail weiterführt.',
+    },
+    's06.perspective.master-campus-exhaustive-found': {
+      heading: 'Perspektivwechsel zu Master Campus',
+      body: 'Das Durchprobieren liegt innerhalb der Grenze. Das Master-Campus-Passwort gilt hier als gefunden. Prüfen wir, ob es bei Campus E-Mail weiterführt.',
     },
     's06.perspective.master-campus-blocked': {
       heading: 'Perspektivwechsel zu Master Campus',
-      body: 'Das Master-Campus-Passwort wurde hier nicht gefunden. Für den Vergleich nehmen wir kurz an, es wäre bekannt geworden.',
+      body: 'Das Durchprobieren liegt außerhalb der Grenze. Das Master-Campus-Passwort gilt hier nicht als gefunden. Für den Vergleich nehmen wir kurz an, es wäre bekannt.',
     },
     's06.transition.master-campus-email-match': {
       heading: 'Übergang zu Campus E-Mail',
@@ -245,9 +251,13 @@ export const s06ConsequenceContent = {
       heading: 'Lokaler Einzelcheck von Campus E-Mail',
       body: 'Auch dieses Passwort gilt hier als gefunden. Vom bekannten Passwort führte aber kein direkter Weg zu diesem Konto. Trotzdem sollte jedes Passwort auch für sich schwer zu erraten sein.',
     },
+    's06.local-check.campus-email-exhaustive-found': {
+      heading: 'Lokaler Einzelcheck von Campus E-Mail',
+      body: 'Das Durchprobieren liegt innerhalb der Grenze. Auch dieses Passwort gilt hier als gefunden.',
+    },
     's06.local-check.campus-email-blocked': {
       heading: 'Lokaler Einzelcheck von Campus E-Mail',
-      body: 'Dieses Passwort wurde hier nicht gefunden. Das ist ein gutes Ergebnis für diese Übung.',
+      body: 'Das Durchprobieren liegt außerhalb der Grenze. Dieses Passwort gilt hier nicht als gefunden.',
     },
     's06.summary': {
       heading: 'Gemeinsame Endübersicht',
@@ -282,7 +292,7 @@ export const s06ConsequenceContent = {
       body: 'Ein Datenleck kann bei jedem Konto beginnen. Schauen wir deshalb noch von Master Campus aus.',
     },
     's06.transition.s07': {
-      heading: 'Passwort sicher ersetzen',
+      heading: 'Betroffenes Passwort ersetzen',
       body: 'Ein Datenleck lässt sich nicht immer verhindern. Danach zählt, die Folgen zu begrenzen: das betroffene Passwort zügig ersetzen und für jedes Konto ein eigenes Passwort verwenden. Genau das machen wir jetzt bei Campusgram.',
     },
   } as const satisfies Readonly<Record<S06NarrationId, S06NarrationContent>>,

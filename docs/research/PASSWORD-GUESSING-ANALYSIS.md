@@ -69,7 +69,7 @@ noch als Forschungsvariable gespeichert.
 
 | Bestandteil | Wert |
 |---|---|
-| Analyse-ID | `passwo-bounded-whole-recognition-v15` |
+| Analyse-ID | `passwo-bounded-whole-recognition-v16` |
 | Engine | `zxcvbn-ts` als Musterquelle |
 | Core | `@zxcvbn-ts/core@4.1.2` |
 | Allgemeines Wörterbuch/Graphen | `@zxcvbn-ts/language-common@4.1.2` |
@@ -80,6 +80,7 @@ noch als Forschungsvariable gespeichert.
 | Maximale Eingabe | 128 UTF-16-Codeeinheiten; Längenorientierung nach Unicode-Codepoints |
 | Längenorientierung | mindestens 15 Zeichen für selbst erstellte Passwörter |
 | Restzeichenbudget | höchstens `100_000_000` Kandidaten innerhalb einer eingefrorenen Familie |
+| Vollständiges Durchprobieren | letzter Weg bis einschließlich `26^12 = 95_428_956_661_682_176` Zeichenfolgen |
 | Mehrwortregel | Wörterbuchabdeckung allein erzeugt unabhängig von der Wortanzahl keinen Volltreffer |
 | Kurze Wörter | nur exakt als vollständiges sichtbares Segment oder innerhalb einer vollständigen sprachgebundenen Partition |
 | Abkürzungen | kleine kuratierte Liste, nur exakte case-insensitive Erkennung |
@@ -321,6 +322,27 @@ grammatischen Verbindungswörter wie `am`, `im`, `in`, `mit`, `von`, `zum` oder 
 zwischen markierten Teilen stehen. Andere gewöhnliche Wörter müssen selbst durch mindestens eine
 Relation belegt sein.
 
+### Vollständiges Durchprobieren als letzter Fundweg
+
+Erst wenn keiner der konkreten Wege greift, wird aus der Unicode-Codepoint-Länge und der Vereinigung
+der beobachteten Zeichenklassen ein vollständiger Suchraum gebildet. Die Regel
+`whole-password-recognized-exhaustive-search` gilt, wenn dieser Suchraum höchstens
+
+```text
+26^12 = 95_428_956_661_682_176
+```
+
+Zeichenfolgen umfasst. Bei einer Billion Versuchen pro Sekunde entspricht dies der im Training
+bereits dargestellten Größenordnung von ungefähr einem Tag. Die Grenze ist authored, binär und
+keine individuelle Zeitprognose. Für ASCII werden Kleinbuchstaben, Großbuchstaben, Ziffern und
+der verwendete Symbolvorrat addiert. Weitere druckbare ASCII-Symbole verwenden den vollständigen
+33-Zeichen-Pool. Andere Unicode-Zeichen verwenden einen endlichen Ersatzpool von 128 Zeichen,
+damit kurze Werte diese letzte Prüfung nicht durch eine nicht unterstützte Zeichenart umgehen.
+
+Der Weg wird ausschließlich nach direkten, begrenzten Varianten- und bestätigten semantischen
+Wegen geprüft. Er enthält keine `findingIds`; Suchraum, Eingabe und Zeitwert werden nicht
+persistiert oder als Forschungsvariable exportiert.
+
 ## Wörter und flüchtige semantische Kandidatenwege
 
 Die Trainingsregel unterscheidet nicht allgemein zwischen „sicherer Passphrase“ und „unsicherer
@@ -365,7 +387,9 @@ Beispiele:
 | `HochzeitAmSchloss1995!` | mit bestätigter Inhaltsrelation gefunden | markierter gemeinsamer Kontext plus Jahr und Endung decken die Zeichenfolge ab |
 | `eisichbintotpo` | nur bei vollständiger bestätigter Struktur gefunden | eine Teilrelation darf die übrigen kurzen Wörter nicht miterklären |
 
-`no-whole-password-recognized` bleibt auch hier eine Enthaltung und kein grünes Licht.
+`no-whole-password-recognized` bedeutet nach allen konkreten Wegen zusätzlich, dass der
+vollständige Suchraum über der authored Grenze liegt. Es bleibt eine Enthaltung und kein grünes
+Licht.
 
 ## Länge
 
@@ -381,9 +405,9 @@ zulässige Kombinationen:
 
 | Kandidatenprüfung | Länge | Bedeutung innerhalb des Trainings |
 |---|---|---|
-| gefunden | unter 15 | konkreter früher Weg plus nicht erfüllte Längenorientierung |
-| gefunden | mindestens 15 | Länge erreicht, aber konkreter früher Weg vorhanden |
-| nicht gefunden | unter 15 | kein positiver Weg in der begrenzten Prüfung; Länge dennoch zu kurz |
+| gefunden | unter 15 | konkreter Weg oder vollständiges Durchprobieren innerhalb der Grenze; Längenorientierung dennoch nicht erfüllt |
+| gefunden | mindestens 15 | Länge erreicht, aber ein positiver begrenzter Fundweg vorhanden |
+| nicht gefunden | unter 15 | vollständiges Durchprobieren oberhalb der Grenze; Länge dennoch zu kurz |
 | nicht gefunden | mindestens 15 | beide begrenzten Trainingsbefunde günstig, aber keine allgemeine Sicherheitsgarantie |
 
 Es gibt keine Pflicht für Großbuchstaben, Ziffern oder Sonderzeichen und keinen zusammengefassten

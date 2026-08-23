@@ -682,18 +682,20 @@ export const s05Content = {
     },
     application: {
       assessmentIntroduction: [
-        'Für diese Übung entscheiden wir jetzt grob, ob dein Passwort bei den bisherigen Prüfungen gefunden wurde.',
-        'Das ist keine Bewertung der Passwortstärke oder Sicherheitsgarantie.',
+        'Ein Passwort gilt hier als gefunden, wenn ein erkannter Weg zur ganzen Zeichenfolge führt.',
+        'Das gilt auch, wenn alle Zeichenfolgen in höchstens etwa einem Tag durchprobiert wären. Es ist keine Sicherheitsgarantie.',
       ],
       result: {
         recognizedValue:
-          'Die gesamte Zeichenfolge wurde als früher Kandidat erkannt. Deshalb gilt dein Campusgram-Passwort hier als gefunden.',
+          'Die ganze Zeichenfolge wurde früh erkannt. Deshalb gilt dein Campusgram-Passwort hier als gefunden.',
         recognizedBoundedVariant:
           'Eine einfache Änderung führte zur gesamten Zeichenfolge. Deshalb gilt dein Campusgram-Passwort hier als gefunden.',
         recognizedSemanticPath:
-          'Die bisherigen Prüfungen und die von dir markierten Zusammenhänge ergeben einen nachvollziehbaren Weg zur gesamten Zeichenfolge. Deshalb gilt dein Campusgram-Passwort hier als gefunden.',
+          'Die bisherigen Prüfungen und deine Markierungen führen zur ganzen Zeichenfolge. Deshalb gilt dein Campusgram-Passwort hier als gefunden.',
+        recognizedExhaustiveSearch:
+          'Das Durchprobieren liegt innerhalb der Grenze. Deshalb gilt dein Campusgram-Passwort hier als gefunden.',
         notRecognized:
-          'Kein erkannter Weg deckt die gesamte Zeichenfolge ab. Deshalb gilt dein Campusgram-Passwort hier als nicht gefunden. Das ist kein Sicherheitsnachweis.',
+          'Das Durchprobieren liegt über der Grenze. Deshalb gilt dein Campusgram-Passwort hier als nicht gefunden. Das ist kein Sicherheitsnachweis.',
       },
       length: {
         belowOrientation:

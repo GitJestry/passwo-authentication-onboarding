@@ -2,7 +2,7 @@
 
 - **Status:** Accepted
 - **Datum:** 2026-08-03
-- **Geändert am:** 2026-08-17: robuste Kurzwort-/Tastaturgrenzen, flüchtige semantische Kandidatenwege und Repeat-/Boundary-Korrektur
+- **Geändert am:** 2026-08-22: vollständiges Durchprobieren als letzter begrenzter Fundweg
 - **Citation label:** `ADR 0014-Bounded-Password-Guessing`
 - **Ergänzt:** ADR 0002, ADR 0003 und ADR 0007
 
@@ -36,7 +36,7 @@ NIST-Konformitätsimplementierung.
 ## Entscheidung
 
 `@passwo/password-analysis` bleibt vollständig lokal, deterministisch und frameworkfrei. Die
-Analysekonfiguration erhält die Version `passwo-bounded-whole-recognition-v15`.
+Analysekonfiguration erhält die Version `passwo-bounded-whole-recognition-v16`.
 
 Die interne Verarbeitung trennt drei Ebenen:
 
@@ -48,8 +48,9 @@ Die interne Verarbeitung trennt drei Ebenen:
    anschließend die authored Kategorienpriorität. Konto- und Dienstbezüge haben Vorrang vor darin
    enthaltenen Wörterbuchtreffern.
 3. **Vollpasswort-Disposition:** Eine getrennte begrenzte Kandidatenregel entscheidet nur, ob das
-   vollständige Passwort innerhalb der authored Kandidatenfamilie liegt. Sie erzeugt keinen
-   numerischen Stärke-Score und keine Crack-Zeit.
+   vollständige Passwort durch einen konkreten Kandidatenweg oder als letzter Weg durch den
+   eingefrorenen vollständigen Suchraum gefunden wird. Sie erzeugt keinen numerischen
+   Stärke-Score und keine individuelle Crack-Zeit.
 
 ### zxcvbn bleibt Hinweisquelle, nicht Entscheidungsinstanz
 
@@ -251,6 +252,27 @@ aber keinen automatischen Treffer zurücknehmen und keine Sicherheit bestätigen
 objektive Semantikmessung noch Aussage über tatsächliches Angreiferwissen. Eine nicht bestätigte
 oder ungültige Relation wird ignoriert.
 
+### Vollständiges Durchprobieren als letzter Weg
+
+Greift kein direkter, begrenzter Varianten- oder bestätigter semantischer Weg, wird als letzter
+Schritt der vollständige Suchraum der beobachteten Zeichenklassen berechnet. Die Regel
+`whole-password-recognized-exhaustive-search` gilt höchstens bis
+
+```text
+26^12 = 95_428_956_661_682_176 Zeichenfolgen
+```
+
+Diese authored Grenze entspricht bei der bereits verwendeten Demonstrationsannahme von einer
+Billion Versuchen pro Sekunde ungefähr einem Tag. Sie ist keine allgemeine Crack-Zeit und keine
+produktive Mindestlängenregel. Die Alphabetgröße wird aus den tatsächlich vorkommenden
+Kleinbuchstaben-, Großbuchstaben-, Ziffern- und Symbolklassen gebildet. Nicht unterstützte
+Unicode-Zeichen verwenden einen endlichen authored Ersatzpool, damit eine sehr kurze Zeichenfolge
+die letzte Prüfung nicht allein durch ihre Zeichenart umgehen kann.
+
+Konkrete Kandidatenwege haben immer Vorrang und behalten ihre spezifische Erklärung. Das
+vollständige Durchprobieren erzeugt keine Befund-IDs und wird nicht als Passwortstärke-Score oder
+Suchraummodell persistiert.
+
 ### Länge bleibt unabhängig
 
 Die Unicode-Codepoint-Länge wird weiterhin getrennt als `below-15` oder `at-least-15` ausgegeben.
@@ -259,7 +281,7 @@ Sie erzeugt oder verhindert keinen Volltreffer:
 - `< 15` ist eine nicht erfüllte Trainingsorientierung, aber kein automatischer Treffer;
 - `>= 15` ist kein Sicherheitsnachweis;
 - ein langes, vollständiges Muster kann gefunden werden;
-- ein kurzer nicht positiv erkannter Wert bleibt `no-whole-password-recognized` plus `below-15`;
+- ein kurzer Wert kann über den letzten vollständigen Suchraum gefunden werden; liegt dieser über der Grenze, bleibt er `no-whole-password-recognized` plus `below-15`;
 - Zeichenklassen sind keine Kompositionsanforderung.
 
 ### S05 und S06 verwenden dieselbe Entscheidung
@@ -295,9 +317,9 @@ Passwortspans und Relationen werden nicht in Forschungsdaten, Persistenz oder Te
 
 Ein versionierter synthetischer Policy-Korpus prüft mindestens 120 verschiedene
 Beispielpasswörter. Er enthält direkte Volltreffer, gewöhnliche Wörterketten ohne automatischen
-Treffer, bestätigte semantische Wörterketten, positionsunabhängige Restzeichen innerhalb und
-außerhalb der Grenze, Kontokontext, Wiederholungen, Folgen, Tastaturmuster, Unicode und
-Überlappungen.
+Treffer, bestätigte semantische Wörterketten, positionsunabhängige Restzeichen sowie vollständige
+Suchräume innerhalb und außerhalb ihrer jeweiligen Grenze, Kontokontext, Wiederholungen, Folgen,
+Tastaturmuster, Unicode und Überlappungen.
 
 Zusätzlich durchlaufen mindestens 100 verschiedene End-to-End-Beispiele zuerst
 `analyzeFictionalPassword(...)` und anschließend

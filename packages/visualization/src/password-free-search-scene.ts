@@ -68,10 +68,10 @@ export function createPasswordAssessmentScene(
     disposition.kind === 'whole-password-recognized'
       ? disposition.ruleId === 'whole-password-recognized-semantic-path'
         ? 'Die bisherigen Prüfungen und bestätigten Zusammenhänge bilden in dieser Übung einen vollständigen Kandidatenweg.'
-        : 'Ein einzelner früher Kandidat oder eine begrenzte typische Variante deckt das vollständige fiktive Passwort ab.'
-      : explanatoryFindings.length > 0
-        ? 'Die Übung erkennt Bestandteile, aber keinen einzelnen frühen Kandidaten oder begrenzten Variantenweg für das vollständige Passwort.'
-        : 'Die Übung erkennt in den dargestellten Prüfungen keinen frühen Kandidaten für das vollständige Passwort.';
+        : disposition.ruleId === 'whole-password-recognized-exhaustive-search'
+          ? 'Das vollständige Durchprobieren liegt in dieser Übung innerhalb der festgelegten Grenze.'
+          : 'Ein einzelner früher Kandidat oder eine begrenzte typische Variante deckt das vollständige fiktive Passwort ab.'
+      : 'Das vollständige Durchprobieren liegt in dieser Übung außerhalb der festgelegten Grenze. Das ist kein Sicherheitsnachweis.';
   const lengthSummary =
     disposition.lengthOrientation === 'below-15'
       ? 'Die Zeichenfolge liegt zusätzlich unter der Orientierung von mindestens 15 Zeichen für selbst erstellte Passwörter.'

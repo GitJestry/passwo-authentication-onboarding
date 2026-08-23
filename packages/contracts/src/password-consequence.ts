@@ -168,7 +168,8 @@ export interface TheoreticalSearchSpaceModel {
 export type SimulationWholePasswordRecognitionRuleId =
   | 'whole-password-recognized-value'
   | 'whole-password-recognized-bounded-variant'
-  | 'whole-password-recognized-semantic-path';
+  | 'whole-password-recognized-semantic-path'
+  | 'whole-password-recognized-exhaustive-search';
 export type PasswordLengthOrientation = 'below-15' | 'at-least-15';
 
 interface LocalPasswordDispositionBase {
@@ -193,6 +194,12 @@ export type LocalPasswordDisposition =
       readonly findingIds: readonly string[];
       readonly semanticRelationIds: readonly string[];
       readonly explanationId: 's05.disposition.whole-password-recognized-semantic-path';
+    })
+  | (LocalPasswordDispositionBase & {
+      readonly kind: 'whole-password-recognized';
+      readonly ruleId: 'whole-password-recognized-exhaustive-search';
+      readonly findingIds: readonly string[];
+      readonly explanationId: 's05.disposition.whole-password-recognized-exhaustive-search';
     })
   | (LocalPasswordDispositionBase & {
       readonly kind: 'no-whole-password-recognized';

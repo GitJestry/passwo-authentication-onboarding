@@ -60,11 +60,16 @@ export class S05AnimationAdapter implements AnimationPlayerPort {
       }
       // Consecutive narration steps can retarget the same persistent scene. Replaying the
       // whole-scene entrance in that case makes already visible cards appear to reload.
+      const persistentScene = element.closest<HTMLElement>('[data-s05-persistent-scene]');
+      const previousPersistentScene = this.#previousTarget?.closest<HTMLElement>(
+        '[data-s05-persistent-scene]',
+      );
       const sharesVisibleScene =
         this.#previousTarget !== null &&
         (element === this.#previousTarget ||
           element.contains(this.#previousTarget) ||
-          this.#previousTarget.contains(element));
+          this.#previousTarget.contains(element) ||
+          (persistentScene !== null && persistentScene === previousPersistentScene));
       const advancesWithinScene =
         this.#previousSequenceId !== null && this.#previousSequenceId !== sequence.id;
       this.#previousSequenceId = sequence.id;

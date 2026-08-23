@@ -417,6 +417,23 @@ describe('research-safe contracts', () => {
     );
   });
 
+  it('represents the exhaustive-search outcome without a score or persisted search model', () => {
+    const disposition: LocalPasswordDisposition = {
+      kind: 'whole-password-recognized',
+      ruleId: 'whole-password-recognized-exhaustive-search',
+      findingIds: [],
+      lengthOrientation: 'below-15',
+      analysisVersion: 'passwo-bounded-whole-recognition-v16',
+      explanationId: 's05.disposition.whole-password-recognized-exhaustive-search',
+    };
+
+    expect(disposition.ruleId).toBe('whole-password-recognized-exhaustive-search');
+    expect(disposition.findingIds).toEqual([]);
+    expect(Object.keys(disposition)).not.toEqual(
+      expect.arrayContaining(['score', 'crackTime', 'entropy', 'searchSpace', 'password']),
+    );
+  });
+
   it('keeps participant-confirmed semantic evidence transient and categorical', () => {
     const semanticEvidence: TransientPasswordSemanticEvidence = {
       kind: 'transient-password-semantic-evidence',

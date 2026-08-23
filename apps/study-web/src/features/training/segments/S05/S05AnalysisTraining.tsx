@@ -1520,6 +1520,7 @@ function StructurePatternScene({
     <div
       className={styles.structurePatternWorkspace}
       data-reflection={reflectionVisible || undefined}
+      data-s05-persistent-scene="structure-patterns"
     >
       <StructurePatternsScene step={patternStep} />
       {snapshot.step === 'structure-theme-reflection' ? (
@@ -3535,6 +3536,9 @@ function speechFor(
       }
       if (disposition.ruleId === 'whole-password-recognized-semantic-path') {
         return [s05Content.freeSearch.application.result.recognizedSemanticPath];
+      }
+      if (disposition.ruleId === 'whole-password-recognized-exhaustive-search') {
+        return [s05Content.freeSearch.application.result.recognizedExhaustiveSearch];
       }
       return [s05Content.freeSearch.application.result.recognizedBoundedVariant];
     }

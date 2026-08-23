@@ -12,10 +12,12 @@ import {
   analyzeFictionalPassword,
   analyzeFictionalPasswordStructure,
   compareFictionalPasswords,
+  createFictionalPasswordExhaustiveSearchModel,
   createLowercaseSearchSpaceModel,
   createSystemGeneratedSearchSpaceModel,
   createTheoreticalSearchSpaceModel,
   determinePasswordSimulationDisposition,
+  MAX_EXHAUSTIVE_SEARCH_CANDIDATES,
   projectS07Recommendations,
 } from './index.js';
 
@@ -78,6 +80,29 @@ describe('exact theoretical search-space demonstrations', () => {
     const completeYears = generated.exhaustiveSearchDuration.wholeSeconds / 31_557_600n;
     expect(completeYears).toBe(615n);
   });
+
+  it('uses the displayed twelve-lowercase example as the exhaustive-search boundary', () => {
+    expect(MAX_EXHAUSTIVE_SEARCH_CANDIDATES).toBe(95_428_956_661_682_176n);
+    expect(
+      createFictionalPasswordExhaustiveSearchModel('kfxqztmpvlbw')?.totalCandidateCount,
+    ).toBe(MAX_EXHAUSTIVE_SEARCH_CANDIDATES);
+  });
+
+  it.each([
+    ['qzmpvx', 26, 6],
+    ['qZ4!m2', 72, 6],
+    ['aA0~bB1?', 95, 8],
+    ['😀😀😀😀', 128, 4],
+  ] as const)(
+    'derives a finite complete-search family for %s',
+    (fictionalPassword, alphabetSize, length) => {
+      expect(createFictionalPasswordExhaustiveSearchModel(fictionalPassword)).toMatchObject({
+        alphabetSize,
+        length,
+        attemptsPerSecond: 1_000_000_000_000n,
+      });
+    },
+  );
 
   it.each([
     [{ alphabetSize: 0, length: 12, attemptsPerSecond: 1n }, 'alphabetSize'],
@@ -685,7 +710,7 @@ describe('local fictional password analysis', () => {
       expect(expectedKinds.some((expectedKind) => actualKinds.includes(expectedKind))).toBe(true);
       expect(result.guessPath).toMatchObject({
         engineId: 'zxcvbn-ts',
-        configurationVersion: 'passwo-bounded-whole-recognition-v15',
+        configurationVersion: 'passwo-bounded-whole-recognition-v16',
       });
       for (const finding of result.findings) {
         expect(finding.id).toMatch(/^single:/u);
@@ -711,7 +736,7 @@ describe('local fictional password analysis', () => {
     expect(disposition).toEqual({
       kind: 'no-whole-password-recognized',
       lengthOrientation: 'at-least-15',
-      analysisVersion: 'passwo-bounded-whole-recognition-v15',
+      analysisVersion: 'passwo-bounded-whole-recognition-v16',
       explanationId: 's05.disposition.no-whole-password-recognized',
     });
   });
@@ -738,7 +763,7 @@ describe('local fictional password analysis', () => {
 
       expect(disposition).toMatchObject({
         kind: 'whole-password-recognized',
-        analysisVersion: 'passwo-bounded-whole-recognition-v15',
+        analysisVersion: 'passwo-bounded-whole-recognition-v16',
       });
     },
   );
@@ -900,8 +925,48 @@ describe('local fictional password analysis', () => {
     expect(disposition.kind).toBe('no-whole-password-recognized');
   });
 
+  it.each([
+    ['qzmpvx', 'whole-password-recognized'],
+    ['qZ4!m2', 'whole-password-recognized'],
+    ['kfxqztmpvlbw', 'whole-password-recognized'],
+    ['kfxqztmpvlbwh', 'no-whole-password-recognized'],
+    ['aA0~bB1?', 'whole-password-recognized'],
+    ['aA0~bB1?c', 'no-whole-password-recognized'],
+    ['😀😀😀😀', 'whole-password-recognized'],
+  ] as const)(
+    'applies the final exhaustive-search boundary to %s',
+    (fictionalPassword, expectedKind) => {
+      const disposition = determinePasswordSimulationDisposition({
+        fictionalPassword,
+        componentAnalysis: passwordAnalysisWithoutRecognizedCandidate(),
+      });
+
+      expect(disposition.kind).toBe(expectedKind);
+      if (expectedKind === 'whole-password-recognized') {
+        expect(disposition).toMatchObject({
+          ruleId: 'whole-password-recognized-exhaustive-search',
+          findingIds: [],
+          explanationId: 's05.disposition.whole-password-recognized-exhaustive-search',
+        });
+      }
+    },
+  );
+
+  it('keeps a concrete candidate explanation ahead of exhaustive search', () => {
+    const fictionalPassword = 'passwort';
+    const disposition = determinePasswordSimulationDisposition({
+      fictionalPassword,
+      componentAnalysis: analyzeFictionalPassword({ fictionalPassword }),
+    });
+
+    expect(disposition).toMatchObject({
+      kind: 'whole-password-recognized',
+      ruleId: 'whole-password-recognized-value',
+    });
+  });
+
   it('keeps the 15-character orientation separate from whole-password recognition', () => {
-    const shortRandom = 'kfxqztmpvlb';
+    const shortRandom = 'qZ4!m2V?x8P#';
     const shortDisposition = determinePasswordSimulationDisposition({
       fictionalPassword: shortRandom,
       componentAnalysis: passwordAnalysisWithoutRecognizedCandidate(),

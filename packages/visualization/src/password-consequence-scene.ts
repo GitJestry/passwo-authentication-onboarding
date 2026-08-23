@@ -229,13 +229,19 @@ function localCheckStep(
 ): PasswordConsequencePlanStep {
   const account = accountById(input.accounts, accountId);
   const found = wholePasswordRecognized(account.disposition);
+  const foundByExhaustiveSearch =
+    account.disposition.kind === 'whole-password-recognized' &&
+    account.disposition.ruleId === 'whole-password-recognized-exhaustive-search';
   const base = createBaseNetwork(input.accounts, input.accountDefinitions);
   let nodes = withNodeStatus(base.nodes, accountId, found ? 'exposed' : 'protected');
   if (!found) nodes = addShield(nodes, accountId, stepId);
   return {
     id: stepId,
     mode,
-    narrationId: `${narrationPrefix}-${found ? 'found' : 'blocked'}`,
+    narrationId:
+      foundByExhaustiveSearch && accountId !== 'campusgram'
+        ? `${narrationPrefix}-exhaustive-found`
+        : `${narrationPrefix}-${found ? 'found' : 'blocked'}`,
     sourceAccountId: accountId,
     targetAccountId: null,
     relation: null,
@@ -243,9 +249,11 @@ function localCheckStep(
       id: `${input.id}-${stepId}`,
       nodes,
       edges: base.edges,
-      accessibleSummary: found
-        ? `${definitionById(input.accountDefinitions, accountId).label}: vollständiges Passwort als früher Kandidat erkannt.`
-        : `${definitionById(input.accountDefinitions, accountId).label}: kein vollständiger früher Kandidat in dieser begrenzten Prüfung erkannt.`,
+      accessibleSummary: foundByExhaustiveSearch
+        ? `${definitionById(input.accountDefinitions, accountId).label}: vollständiges Durchprobieren liegt innerhalb der festgelegten Grenze.`
+        : found
+          ? `${definitionById(input.accountDefinitions, accountId).label}: vollständiges Passwort über einen konkreten Kandidatenweg gefunden.`
+          : `${definitionById(input.accountDefinitions, accountId).label}: vollständiges Durchprobieren liegt außerhalb der festgelegten Grenze.`,
     },
     visibleChange: { targetId: accountId, emphasis: found ? 'danger' : 'positive' },
   };

@@ -1,5 +1,16 @@
 # S06--S07 Copy Audit
 
+## Copy-Delta S06 Transition-Karte, 23. August 2026
+
+Quelle ist der ausdrückliche Nutzerauftrag vom 23. August 2026. Ausschließlich die Überschrift
+der letzten S06-Transition-Karte wird umbenannt. Ablauf, Bedingungen, Interaktion, Hervorhebung,
+Analyse, Persistenz, Export und Timing bleiben unverändert.
+`S06_CONSEQUENCE_CONTENT_VERSION` steigt von `2.29.0` auf `2.30.0`.
+
+| Segment und Text-ID | Aktueller Text | Geplanter Text | Primäre Rolle | Interaktionsziel | Grund und Bedeutungsänderung | Hervorhebung |
+|---|---|---|---|---|---|---|
+| `S06.narrations.s06.transition.s07.heading` | `Passwort sicher ersetzen` | `Betroffenes Passwort ersetzen` | Orientierung | bestehender Passwortwechsel bei Campusgram | ausdrücklich vorgegebene Umbenennung; begrenzt | keine |
+
 ## Copy-Delta S06-S07 eigene Passwoerter, 23. August 2026
 
 Quelle ist der ausdrückliche Nutzerauftrag vom 23. August 2026. Ausschließlich die unten
@@ -17,6 +28,24 @@ jeweils entsprechenden neuen Textteilen erhalten. `S06_CONSEQUENCE_CONTENT_VERSI
 | `S07.browser.campusgramPasswordChangeCompleted.shieldLabels.green` | `Einzigartig` | `Nur für dieses Konto` | Ergebnisfeedback | kein | ausdrücklich vorgegebener Wortlaut; begrenzt | bestehender grüner Schild bleibt erhalten |
 | `S07.browser.searchPage.results.netzblick.description` | `Praktische Orientierung zu Länge, Einzigartigkeit und Merkbarkeit …` | `Praktische Orientierung zu Länge, eigenen Passwörtern und Merkbarkeit …` | Orientierung | kein | ausdrücklich vorgegebener Wortlaut; begrenzt | keine |
 | `S07.browser.searchPage.results.privacy-labor.title` | `Passphrase kompakt: zufällig, lang und einzigartig` | `Passphrase kompakt: zufällig, lang und für jedes Konto anders` | Orientierung | kein | ausdrücklich vorgegebener Wortlaut; begrenzt | keine |
+
+## Copydelta S06 kurzes Grenzergebnis bei weiteren Konten, 22. August 2026
+
+Quelle ist der ausdrückliche Nutzerauftrag vom 22. August 2026. S06 übernimmt den neuen letzten
+Fundweg aus derselben lokalen Disposition wie S05. Bei Master Campus und Campus E-Mail erklärt
+PassWo das vollständige Durchprobieren nicht erneut, sondern nennt unmittelbar, ob es innerhalb
+oder außerhalb der bereits eingeführten Grenze liegt. Andere konkrete Fundwege behalten ihre
+bestehende knappe Rückmeldung. Die allgemeinen Statusbezeichnungen sprechen deshalb nicht mehr
+nur von einem frühen Kandidaten. Persistenz, Export, Timing und die S07-Auswertung bleiben
+unverändert. `S06_CONSEQUENCE_CONTENT_VERSION` steigt von `2.26.0` auf `2.27.0`.
+
+| Segment und Text-ID | Vorher | Nachher | Primäre Rolle | Grund und Bedeutungsänderung |
+|---|---|---|---|---|
+| `S06.perspective.master-campus-exhaustive-found` | nicht vorhanden | `Das Durchprobieren liegt innerhalb der Grenze. Das Master-Campus-Passwort gilt hier als gefunden. Prüfen wir, ob es bei Campus E-Mail weiterführt.` | Ergebnisfeedback / Navigation | Ergebnis ohne erneute Methodenerklärung |
+| `S06.perspective.master-campus-blocked` | allgemeines Nichtgefunden-Ergebnis | unmittelbare Aussage, dass das Durchprobieren außerhalb der Grenze liegt; anschließender hypothetischer Vergleich bleibt erhalten | Ergebnisfeedback / Safety Boundary | begründet den Status mit dem tatsächlich maßgeblichen letzten Weg |
+| `S06.local-check.campus-email-exhaustive-found` | nicht vorhanden | `Das Durchprobieren liegt innerhalb der Grenze. Auch dieses Passwort gilt hier als gefunden.` | Ergebnisfeedback | kurze kontospezifische Rückmeldung |
+| `S06.local-check.campus-email-blocked` | allgemeines Nichtgefunden-Ergebnis mit positiver Wertung | `Das Durchprobieren liegt außerhalb der Grenze. Dieses Passwort gilt hier nicht als gefunden.` | Ergebnisfeedback / Safety Boundary | entfernt die pauschale positive Bewertung und nennt nur das begrenzte Ergebnis |
+
 
 ## Copy-Delta S07 aggregierte Kontenzusammenfassung, 22. August 2026
 
