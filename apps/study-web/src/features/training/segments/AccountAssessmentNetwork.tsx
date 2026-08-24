@@ -21,7 +21,7 @@ export type AccountComparisonResults = Readonly<
 const emptyComparisonResults: AccountComparisonResults = {};
 const emptyEdgeRevealDelaysMs: Readonly<Partial<Record<string, number>>> = {};
 const emptyNodeActionLabels: Readonly<Partial<Record<S06AccountId, string>>> = {};
-const emptyAccountIds: readonly S06AccountId[] = [];
+const emptyAccountIds: readonly string[] = [];
 
 function ignoreNodeSelect(_nodeId: string): void {}
 
@@ -35,18 +35,11 @@ function actionLabelForNode(
   return null;
 }
 
-function mainAccountId(nodeId: string): S06AccountId | null {
-  return nodeId === 'campusgram' || nodeId === 'master-campus' || nodeId === 'campus-email'
-    ? nodeId
-    : null;
-}
-
-function isEasyToGuessMainAccount(
+function isEasyToGuessAccount(
   nodeId: string,
-  accountIds: readonly S06AccountId[],
+  accountIds: readonly string[],
 ): boolean {
-  const accountId = mainAccountId(nodeId);
-  return accountId !== null && accountIds.includes(accountId);
+  return accountIds.includes(nodeId);
 }
 
 function AccountStatusOverlay({
@@ -240,7 +233,7 @@ export function AccountAssessmentNetwork({
   readonly showAccountShields?: boolean;
   readonly showEdgeLabels?: boolean;
   readonly overview?: boolean;
-  readonly easyToGuessAccountIds?: readonly S06AccountId[];
+  readonly easyToGuessAccountIds?: readonly string[];
   readonly hideDetailSymbols?: boolean;
 }) {
   const comparisonResultOrder = useMemo(
@@ -269,7 +262,7 @@ export function AccountAssessmentNetwork({
         celebrate={node.id === celebratingNodeId}
         showAccountShield={showAccountShields}
         shieldAsset={accountShieldAsset}
-        easyToGuess={isEasyToGuessMainAccount(node.id, easyToGuessAccountIds)}
+        easyToGuess={isEasyToGuessAccount(node.id, easyToGuessAccountIds)}
       />
     ),
     [

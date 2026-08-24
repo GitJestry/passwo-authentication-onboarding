@@ -250,7 +250,6 @@ const statusCascadeSpeedPxPerMs = 0.475 * 1.25;
 interface SceneNodeStyle extends CSSProperties {
   readonly '--network-status-cascade-arrival-delay'?: string;
   readonly '--s09-account-sequence-delay'?: string;
-  readonly '--s09-account-tone'?: string;
 }
 
 export type NetworkVisualVariant = 'default' | 'account-map';
@@ -642,11 +641,6 @@ function SceneNodeCircle({ data }: NodeProps<SceneFlowNode>) {
     additionalAccountMatch === null
       ? null
       : {
-          hue: Math.round(
-            (Number(additionalAccountMatch[1]) * 137.508 +
-              Number(additionalAccountMatch[2] ?? 0) * 23.7) %
-              360,
-          ),
           sequenceDelay: `${Number(additionalAccountMatch[1]) * 8}ms`,
         };
   const sceneNodeStyle: SceneNodeStyle | undefined =
@@ -662,7 +656,6 @@ function SceneNodeCircle({ data }: NodeProps<SceneFlowNode>) {
             ? {}
             : {
                 '--s09-account-sequence-delay': additionalAccountStyle.sequenceDelay,
-                '--s09-account-tone': `hsl(${additionalAccountStyle.hue} 36% 64%)`,
               }),
         };
 

@@ -177,6 +177,10 @@ const s08Machine = setup({
     },
     passWoDifficulty: {
       tags: ['s09', 'expanded'],
+      on: { NEXT: { target: 'passWoWorkarounds' } },
+    },
+    passWoWorkarounds: {
+      tags: ['s09', 'expanded'],
       on: { NEXT: { target: 'passWoRisks' } },
     },
     passWoRisks: {
@@ -373,6 +377,7 @@ export function S08NetworkRewindStage({
       }
       if (
         state.matches('passWoDifficulty') ||
+        state.matches('passWoWorkarounds') ||
         state.matches('passWoRisks') ||
         state.matches('passWoSolution')
       ) {
@@ -445,6 +450,7 @@ export function S08NetworkRewindStage({
   const scalingFindingsRevealing = state.matches('passWoDifficulty');
   const scalingFindingsVisible =
     scalingFindingsRevealing ||
+    state.matches('passWoWorkarounds') ||
     state.matches('passWoRisks') ||
     state.matches('passWoSolution');
   const releasingAccountIds = (
@@ -483,11 +489,13 @@ export function S08NetworkRewindStage({
         ? 2
         : state.matches('passWoDifficulty')
           ? 3
-          : state.matches('passWoRisks')
+          : state.matches('passWoWorkarounds')
             ? 4
-            : state.matches('passWoSolution')
+            : state.matches('passWoRisks')
               ? 5
-              : null;
+              : state.matches('passWoSolution')
+                ? 6
+                : null;
 
   useEffect(() => {
     if (
@@ -588,7 +596,11 @@ export function S08NetworkRewindStage({
               ? { statusCascadeStartDelayMs: scalingFindingNodeDelayMs }
               : {})}
             showAccountShields
-            easyToGuessAccountIds={easyToGuessAccountIds}
+            easyToGuessAccountIds={
+              scalingFindingsVisible
+                ? scalingRiskNetwork.easyToGuessAccountIds
+                : easyToGuessAccountIds
+            }
             overview={state.hasTag('expanded')}
             {...(scalingFindingsVisible
               ? {
@@ -729,6 +741,7 @@ export function S08NetworkRewindStage({
                       's09-scaling-expansion',
                       's09-scaling-question',
                       's09-scaling-difficulty',
+                      's09-scaling-workarounds',
                       's09-scaling-risks',
                       's09-scaling-solution',
                     ][passWoStep] ?? '',

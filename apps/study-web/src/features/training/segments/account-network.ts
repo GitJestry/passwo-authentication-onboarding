@@ -713,6 +713,7 @@ export function createS09ScalingComparisonResults(
 export interface S09ScalingRiskNetwork {
   readonly network: NetworkSceneSnapshot;
   readonly edgeRevealDelaysMs: Readonly<Partial<Record<string, number>>>;
+  readonly easyToGuessAccountIds: readonly string[];
 }
 
 /** Connects every illustrated finding once in the same deterministic reveal order. */
@@ -721,6 +722,18 @@ export function createS09ScalingRiskNetwork(
   findings: Readonly<Partial<Record<string, PasswordRelation['kind']>>>,
 ): S09ScalingRiskNetwork {
   const accountIds = Object.keys(findings);
+  const unaffectedAccountIds = snapshot.nodes
+    .filter(
+      ({ id, kind }) =>
+        kind === 'account' &&
+        id.startsWith('s09-additional-account-') &&
+        findings[id] === undefined,
+    )
+    .map(({ id }) => id);
+  const easyToGuessAccountIds = [
+    ...accountIds.filter((_, index) => index % 8 === 0).slice(0, 6),
+    ...unaffectedAccountIds.filter((_, index) => index % 7 === 0).slice(0, 5),
+  ];
   const edgeRevealDelaysMs: Partial<Record<string, number>> = {};
   const riskEdges = accountIds.map((targetId, index): SceneEdge => {
     const sourceId = accountIds[(index + accountIds.length - 1) % accountIds.length];
@@ -745,9 +758,10 @@ export function createS09ScalingRiskNetwork(
         findings[node.id] === undefined ? node : { ...node, status: 'affected' },
       ),
       edges: [...snapshot.edges, ...riskEdges],
-      accessibleSummary: `${snapshot.accessibleSummary} ${accountIds.length} der weißen Kontoknoten tragen beispielhafte Befunde und sind durch rote Risikoverbindungen verbunden.`,
+      accessibleSummary: `${snapshot.accessibleSummary} ${accountIds.length} der weißen Kontoknoten tragen beispielhafte Befunde und sind durch rote Risikoverbindungen verbunden. Elf räumlich verteilte weiße und rote Kontoknoten tragen zusätzlich das Schild „Leicht zu erraten“.`,
     },
     edgeRevealDelaysMs,
+    easyToGuessAccountIds,
   };
 }
 

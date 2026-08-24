@@ -193,10 +193,11 @@ const emphasisBySpeechId: Readonly<Record<string, readonly PassWoSpeechEmphasis[
   ],
   's07-method-intro': [{ phrase: 'Passphrase', tone: 'accent' }],
   's07-mnemonic': [{ phrase: 'Beispiel:', tone: 'accent' }],
-  's09-scaling-expansion': [{ phrase: 'deutlich mehr', tone: 'accent' }],
+  's09-scaling-expansion': [{ phrase: '134 Online-Diensten', tone: 'accent' }],
   's09-scaling-question': [
     {
-      phrase: '80 starke Passwörter, für jedes Konto ein eigenes, dauerhaft zu merken',
+      phrase:
+        '80 Konten jeweils ein starkes, eigenes Passwort dauerhaft im Kopf zu behalten?',
       tone: 'accent',
     },
   ],

@@ -15,7 +15,7 @@ const s07EntryCopyReference =
 const s08CopyReference =
   'docs/design/S08-S09-COPY-AUDIT.md#copy-delta-s08-s09-eigene-passwoerter-23-august-2026';
 const s09CopyReference =
-  'docs/design/S08-S09-COPY-AUDIT.md#copy-delta-s08-s09-eigene-passwoerter-23-august-2026';
+  'docs/design/S08-S09-COPY-AUDIT.md#copy-delta-s09-skalierungsdialog-gestrafft-25-august-2026';
 
 describe('S06 transition and S07 passphrase-search copy traceability', () => {
   it('keeps S06 consequence wording aligned with bounded whole-password recognition', () => {
@@ -371,7 +371,7 @@ describe('S06 transition and S07 passphrase-search copy traceability', () => {
   });
 
   it('keeps the S09 password summary linked to its password checklist', () => {
-    expect(S09_PASSWORD_SUMMARY_CONTENT_VERSION).toBe('4.3.0');
+    expect(S09_PASSWORD_SUMMARY_CONTENT_VERSION).toBe('4.6.0');
     expect(s09PasswordSummaryContent.source.copyReference).toBe(s09CopyReference);
     expect(s09PasswordSummaryContent.principles).toHaveLength(6);
     expect(
@@ -407,11 +407,16 @@ describe('S06 transition and S07 passphrase-search copy traceability', () => {
     expect(s09PasswordSummaryContent.finishAction).toBe('Abschließen');
     expect(s09PasswordSummaryContent.scaling.studyAccountCount).toBe(134);
     expect(s09PasswordSummaryContent.scaling.accountCount).toBe(80);
-    expect(s09PasswordSummaryContent.scaling.answer).toBe('Super easy!');
-    expect(s09PasswordSummaryContent.passWo.steps).toHaveLength(6);
-    expect(s09PasswordSummaryContent.passWo.steps[2]).toBe(
-      'Bleiben wir unter dem Wert: Wie realistisch wäre es für dich, dir selbst „nur“ 80 starke Passwörter, für jedes Konto ein eigenes, dauerhaft zu merken?',
-    );
+    expect(s09PasswordSummaryContent.scaling.answer).toBe('Weiter');
+    expect(s09PasswordSummaryContent.passWo.steps).toEqual([
+      'Für die drei Konten sind die offenen Probleme aufgelöst: Die Passwörter sind stark und keines ist mehr mit einem anderen verbunden.',
+      'Im Alltag sind es aber deutlich mehr. Eine CHI-Studie von 2026 schätzt, dass eine typische Person im Laufe der Zeit Accounts bei rund 134 Online-Diensten hatte.',
+      'Bleiben wir darunter: Wie realistisch wäre es für dich, für 80 Konten jeweils ein starkes, eigenes Passwort dauerhaft im Kopf zu behalten?',
+      'Bei so vielen Konten wird die eigene Passwortverwaltung schnell unüberschaubar.',
+      'Deshalb ist es nachvollziehbar, dass Passwörter wiederverwendet, leicht abgewandelt oder selbst notiert werden.',
+      'Die Risiken davon hast du gerade gesehen. Auch ungeschützte Passwortlisten können selbst zum Risiko werden.',
+      'Die gute Nachricht: Du musst dir all diese Passwörter auch gar nicht selbst merken.',
+    ]);
     expect(s09PasswordSummaryContent.passwordManagerAction).toEqual({
       title: 'Passwortmanager',
       detail: 'kennenlernen',

@@ -94,9 +94,10 @@ Detailknoten, Schilde und Kanten proportional um einen gemeinsamen Mittelpunkt v
 anonymen Zusatzkonten füllen den Raum außerhalb dieses Mittelbereichs mit einem festen,
 unregelmäßigen Punktmuster und geprüften Mindestabständen; ihre sichtbaren Kreisflächen
 überdecken sich weder in der normalen noch in der kompakten Übersichtsdichte. Ein Raster oder
-laufzeitabhängiges Zufallslayout wird nicht verwendet. Die Zusatzkonten bleiben einzelne, vollständig deckende
-Farbknoten ohne rein dekorative Unterknoten. Ihre Kontoflächen durchlaufen mit individuellen,
-weich entsättigten Farbtönen die gesamte Farbskala, ohne die bekannten Hauptkonten zu überstimmen.
+laufzeitabhängiges Zufallslayout wird nicht verwendet. Die Zusatzkonten bleiben einzelne,
+vollständig deckende weiß-graue Knoten ohne rein dekorative Unterknoten. Die ruhige einheitliche
+Grundfläche hält die bekannten Hauptkonten visuell führend und lässt den späteren roten
+Befallszustand eindeutig lesbar werden.
 
 Das authored Layout hält eine eigene untere Dialogzone für PassWo, Sprechblase und Tresormoment
 frei. Dadurch liegen keine Knoten oder Verbindungen hinter diesen UI-Flächen, während die
@@ -113,8 +114,13 @@ Illustration des genannten Skalierungsproblems und wird nicht aus Passwörtern, 
 Analyse abgeleitet. Bei Reduced Motion erscheinen alle 46 Titel unmittelbar im Endzustand.
 Mit jedem Titel erscheint außerdem eine dünne rote Beziehungskante zwischen zwei betroffenen
 anonymen Konten. Die 46 Kanten verbinden alle markierten Konten in der festen Reveal-Reihenfolge.
-Nachdem die letzte Kante vollständig gezeichnet ist, wechseln dieselben 46 Knoten gemeinsam von
-Weiß in den roten Befallszustand. Kanten, Titel und Knotenstatus bleiben in den beiden folgenden PassWo-Schritten sichtbar. Sie
+Während die Kanten gezeichnet werden, gehen dieselben 46 Knoten bereits langsam von Weiß über
+helle und gedeckte Rosatöne. Nachdem die letzte Kante vollständig gezeichnet ist, erreichen sie
+gemeinsam den roten Befallszustand. Die fertig gezeichneten Kanten bleiben dabei durchgezogen und
+wechseln in den folgenden Dialogschritten nicht auf einen gestrichelten Stil. Auf sechs roten und
+fünf weiterhin weißen, fest verteilten Zusatzkonten liegt zusätzlich das vorhandene Schild
+`Leicht zu erraten`. Kanten, Titel, Schilde und Knotenstatus bleiben in den beiden folgenden
+PassWo-Schritten sichtbar. Sie
 illustrieren mögliche Wiederverwendungs- oder Ähnlichkeitsbeziehungen und behaupten keine
 tatsächliche Analyse der dargestellten Konten. Die Reveal-Animation ist ausschließlich beim
 erstmaligen Eintritt aktiv; `Weiter` übernimmt den bereits sichtbaren statischen Endzustand, ohne

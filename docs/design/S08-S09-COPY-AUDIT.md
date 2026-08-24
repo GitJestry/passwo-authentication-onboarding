@@ -1,5 +1,63 @@
 # S08--S09 Copy Audit
 
+## Copy-Delta S09 Skalierungsdialog gestrafft, 25. August 2026
+
+Quelle ist der ausdrückliche Nutzerauftrag vom 25. August 2026. Die sechs Sprechschritte vor der
+bestehenden guten Nachricht werden durch die vorgegebenen kürzeren Fassungen ersetzt. Ablauf,
+Interaktionsziele, Netzwerkdarstellung, Persistenz, Export und Timing bleiben unverändert. Die
+einzigen Hervorhebungen innerhalb dieser sechs Schritte sind `134 Online-Diensten`, die
+zusammenhängende Phrase `80 Konten jeweils ein starkes, eigenes Passwort dauerhaft im Kopf zu
+behalten?` und `Risiken`. Die bestehende positive Hervorhebung der anschließenden guten Nachricht
+bleibt unverändert. `S09_PASSWORD_SUMMARY_CONTENT_VERSION` steigt von `4.5.0` auf `4.6.0`.
+
+| Segment und Text-ID | Geplanter Text | Primäre Rolle | Interaktionsziel | Grund und Bedeutungsänderung | Hervorhebung |
+|---|---|---|---|---|---|
+| `S09.passWo.steps[0]` | `Für die drei Konten sind die offenen Probleme aufgelöst: Die Passwörter sind stark und keines ist mehr mit einem anderen verbunden.` | Ergebnisfeedback | `Weiter` | ausdrücklich vorgegebene Straffung; begrenzt | keine |
+| `S09.passWo.steps[1]` | `Im Alltag sind es aber deutlich mehr. Eine CHI-Studie von 2026 schätzt, dass eine typische Person im Laufe der Zeit Accounts bei rund 134 Online-Diensten hatte.` | Orientierung | `Weiter` | ausdrücklich vorgegebene Straffung; begrenzt | `134 Online-Diensten` im Akzentton |
+| `S09.passWo.steps[2]` | `Bleiben wir darunter: Wie realistisch wäre es für dich, für 80 Konten jeweils ein starkes, eigenes Passwort dauerhaft im Kopf zu behalten?` | Orientierung | `Weiter` | ausdrücklich vorgegebene Straffung; begrenzt | `80 Konten jeweils ein starkes, eigenes Passwort dauerhaft im Kopf zu behalten?` im Akzentton |
+| `S09.passWo.steps[3]` | `Bei so vielen Konten wird die eigene Passwortverwaltung schnell unüberschaubar.` | Ergebnisfeedback | `Weiter` | ausdrücklich vorgegebene Einordnung; begrenzt | keine |
+| `S09.passWo.steps[4]` | `Deshalb ist es nachvollziehbar, dass Passwörter wiederverwendet, leicht abgewandelt oder selbst notiert werden.` | Mechanismuserklärung | `Weiter` | Wortlaut bleibt erhalten; keine Bedeutungsänderung | keine |
+| `S09.passWo.steps[5]` | `Die Risiken davon hast du gerade gesehen. Auch ungeschützte Passwortlisten können selbst zum Risiko werden.` | Mechanismuserklärung | `Weiter` | ausdrücklich vorgegebene Straffung und Plural; begrenzt | `Risiken` im Warnungston |
+
+## Copy-Delta S09 Antwortaktion Weiter, 25. August 2026
+
+Quelle ist der ausdrückliche Nutzerauftrag vom 25. August 2026. Die Antwortaktion unter der
+80-Konten-Frage heißt statt `Super easy!` nun `Weiter`. Sie löst weiterhin ausschließlich den
+Fortschritt zur nicht wertenden Einordnung der Erinnerungsgrenze aus. Fragewortlaut,
+Netzwerkdarstellung, Ablauf, Persistenz, Export und Timing bleiben unverändert.
+`S09_PASSWORD_SUMMARY_CONTENT_VERSION` steigt von `4.4.0` auf `4.5.0`.
+
+| Segment und Text-ID | Aktueller Text | Geplanter Text | Primäre Rolle | Interaktionsziel | Grund und Bedeutungsänderung | Hervorhebung |
+|---|---|---|---|---|---|---|
+| `S09.scaling.answer` | `Super easy!` | `Weiter` | Navigation | nächster PassWo-Schritt zur Erinnerungsgrenze | ausdrücklich vorgegebene neutrale Fortschrittsaktion; begrenzt | keine |
+
+## Copy- und Ablaufdelta S09 Skalierungsdialog vor der guten Nachricht, 25. August 2026
+
+Quelle ist der ausdrückliche Nutzerauftrag vom 25. August 2026. Die sechs vorgegebenen Absätze
+ersetzen die bisherigen fünf Sprechschritte zwischen der S09-Zusammenfassung und der bestehenden
+Hinleitung `Die gute Nachricht: Du musst dir all diese Passwörter auch gar nicht selbst merken.`.
+Jeder Absatz bleibt ein eigener PassWo-Schritt. Dadurch erhält die nachvollziehbare Einordnung der
+Ausweichstrategien einen eigenen Schritt zwischen Erinnerungsgrenze und Risikorückblick. Der
+zusätzliche Dialogfortschritt verwendet wie die angrenzenden Schritte `Weiter`; die vorhandene
+Antwort `Super easy!`, Netzwerkskalierung, Risikodarstellung und Passwortmanager-Transition bleiben
+unverändert.
+
+Die Hervorhebungen markieren jeweils nur den Carry-forward-Kerngedanken und bleiben zusätzlich
+fett ausgezeichnet. Die bestätigte Auflösung der Probleme und die bestehende gute Nachricht
+verwenden den positiven Ton, der Maßstabswechsel und die 80-Konten-Frage den Akzentton sowie die
+Ausweichstrategien und ungeschützte Passwortliste den Warnungston. Persistenz, Export und Timing
+bleiben unverändert. `S09_PASSWORD_SUMMARY_CONTENT_VERSION` steigt von `4.3.0` auf `4.4.0`.
+
+| Segment und Text-ID | Aktueller Text | Geplanter Text | Primäre Rolle | Interaktionsziel | Grund und Bedeutungsänderung | Hervorhebung |
+|---|---|---|---|---|---|---|
+| `S09.passWo.steps[0]` | `Hier im kleinen Szenario waren es nur drei Konten.` | `Für die drei Konten haben wir jetzt die offenen Probleme aufgelöst: Die Passwörter sind stark und keines ist mehr mit einem anderen verbunden.` | Ergebnisfeedback | `Weiter` zur Erweiterung auf 134 Konten | ausdrücklich vorgegebener Ergebnisrückblick; begrenzt | `Die Passwörter sind stark und keines ist mehr mit einem anderen verbunden.` positiv |
+| `S09.passWo.steps[1]` | `Im Alltag sind es aber deutlich mehr: Eine aktuelle CHI-Studie (2026) kommt auf rund 134 Online-Dienste pro Person.` | `Im Alltag müssen wir diesen Zustand aber für deutlich mehr Konten aufrechterhalten. Eine CHI-Studie von 2026 schätzt, dass eine typische Person im Laufe der Zeit Accounts bei rund 134 Online-Diensten hatte.` | Orientierung | `Weiter` zur Reduktion auf 80 Konten | ausdrücklich vorgegebene zeitliche und quantitative Einordnung; begrenzt | `deutlich mehr Konten` im Akzentton |
+| `S09.passWo.steps[2]` | `Bleiben wir unter dem Wert: Wie realistisch wäre es für dich, dir selbst „nur“ 80 starke Passwörter, für jedes Konto ein eigenes, dauerhaft zu merken?` | `Bleiben wir deutlich darunter: Wie realistisch wäre es für dich, für 80 Konten jeweils ein starkes, eigenes Passwort dauerhaft im Kopf zu behalten?` | Orientierung | Sprechblasenaktion `Super easy!` | ausdrücklich vorgegebene Reflexionsfrage; begrenzt | `für 80 Konten jeweils ein starkes, eigenes Passwort dauerhaft im Kopf zu behalten` im Akzentton |
+| `S09.passWo.steps[3]` | Erinnerungsgrenze und Ausweichstrategien in einem Schritt | `Bei so vielen Konten wird es schnell schwierig, jedes einzelne Passwort selbst im Kopf zu behalten.` | Ergebnisfeedback | `Weiter` | ausdrücklich vorgegebene Trennung zweier Hauptgedanken; begrenzt | keine |
+| `S09.passWo.steps[4]` | Teil des bisherigen Schritts 3 | `Deshalb ist es nachvollziehbar, dass Passwörter wiederverwendet, leicht abgewandelt oder selbst notiert werden.` | Mechanismuserklärung | `Weiter` | nicht beschämende Einordnung in einem eigenen Schritt; begrenzt | `Passwörter wiederverwendet, leicht abgewandelt oder selbst notiert` im Warnungston |
+| `S09.passWo.steps[5]` | `Welche Risiken dabei entstehen können, hast du gerade gesehen. Auch ungeschützte Passwortlisten können selbst zum Risiko werden.` | `Welche Risiken dabei entstehen können, hast du gerade gesehen. Auch eine ungeschützte Passwortliste kann selbst zum Risiko werden.` | Mechanismuserklärung | `Weiter` | ausdrücklich vorgegebener Singular; begrenzt | `ungeschützte Passwortliste` im Warnungston |
+| `S09.passWo.steps[6]` | bisher `S09.passWo.steps[5]` | Wortlaut `Die gute Nachricht: Du musst dir all diese Passwörter auch gar nicht selbst merken.` bleibt unverändert | Kerngedanke | Button `Passwortmanager` | Indexverschiebung durch den zusätzlichen Sprechschritt; keine Bedeutungsänderung | zweiter Satz vollständig im positiven Ton |
+
 ## Darstellungsdelta S08 lokale Warnung getrennt von Campusgram-Ausbreitung, 24. August 2026
 
 Quelle ist der ausdrückliche Nutzerauftrag vom 24. August 2026. Ein Konto wird nur dann mit
