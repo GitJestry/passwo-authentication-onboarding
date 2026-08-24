@@ -1,5 +1,31 @@
 # S06--S07 Copy Audit
 
+## Darstellungsdelta S06 roter Befallszustand im What-if-Pfad, 24. August 2026
+
+Quelle ist der ausdrückliche Nutzerauftrag vom 24. August 2026. Nach der hypothetischen
+Befallen-Animation verwendet der What-if-Pfad durchgehend denselben roten Befallszustand wie ein
+tatsächlicher Vorfall. Der Ausgangsknoten, seine Unterknoten und seine internen Linien bleiben
+beim anschließenden Vergleich rot; lokal blockierte grüne Linien und der lila hypothetische
+Knotenstatus werden dort nicht erneut projiziert.
+
+Die hypothetische Einordnung bleibt über den grauen Szenenhintergrund, das dauerhaft sichtbare
+`Was wäre, wenn?`-Logo und die zugängliche Szenenbeschreibung erhalten. Teilnehmertexte,
+Analyse, flüchtige Werte, Persistenz, Export, Timing und
+`S06_CONSEQUENCE_CONTENT_VERSION 2.43.0` bleiben unverändert.
+
+## Interaktionsdelta S06 Standardmodus und stabile persönliche Zeichen, 24. August 2026
+
+Quelle ist der ausdrückliche Nutzerauftrag vom 24. August 2026. Die lokale Reflexion startet ab
+zwei erkannten Teilen im Modus `Zusammenhang`. Wenn nur ein Teil erkannt wurde, bleibt
+`Persönliches` der Standardmodus, weil `Zusammenhang` und `Struktur` dort nicht anwendbar sind.
+
+Die gemeinsame Bausteinbox richtet ihren Inhalt in allen drei Modi über dieselbe vertikale
+Grundbox aus. Dadurch springt die gesamte Zeichenzeile beim Wechsel zu `Persönliches` nicht nach
+oben. Das vorhandene physische Hover- und Druckfeedback der einzelnen Zeichenbuttons bleibt
+erhalten. Tastaturbedienung, Fokusdarstellung, Auswahlverhalten, Analyse, flüchtige semantische
+Evidenz, Persistenz, Export und Timing ändern sich nicht. Teilnehmertexte und
+`S06_CONSEQUENCE_CONTENT_VERSION 2.43.0` bleiben unverändert.
+
 ## Interaktionsdelta S06 Filzstift während des gesamten persönlichen Modus, 24. August 2026
 
 Quelle ist der ausdrückliche Nutzerauftrag vom 24. August 2026 und dessen anschließende

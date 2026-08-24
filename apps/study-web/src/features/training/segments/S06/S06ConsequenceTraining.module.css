@@ -190,6 +190,10 @@
   background: #000;
 }
 
+.networkPanel :global(.react-flow) {
+  overflow: visible !important;
+}
+
 /* S06 uses the authored account and comparison-path shield assets instead. */
 .networkPanel :global([data-symbol-id="shield"]) {
   display: none;
@@ -208,7 +212,7 @@
   z-index: 11;
   top: var(--space-1);
   left: var(--space-1);
-  width: clamp(8rem, 14cqi, 11rem);
+  width: clamp(8rem, 17cqi, 15rem);
   height: auto;
   mix-blend-mode: multiply;
 }

@@ -444,6 +444,16 @@ function carriesProtectedStatus(
   return node?.status === 'protected';
 }
 
+function carriesSettledSourceStatus(
+  node: SceneNode | undefined,
+): node is SceneNode & { readonly status: 'protected' | 'exposed' | 'affected' } {
+  return (
+    node?.status === 'protected' ||
+    node?.status === 'exposed' ||
+    node?.status === 'affected'
+  );
+}
+
 function carriesPersistentEdgeStatus(
   edge: SceneEdge | undefined,
 ): edge is SceneEdge & { readonly status: 'direct' | 'similar' | 'blocked' } {
@@ -631,7 +641,7 @@ function attackPreviewNetwork(
           const authoredNode = step.network.nodes.find(({ id }) => id === node.id);
           const settledNode = settledNodes.get(node.id);
           return [
-            settledNode?.status === 'protected' || settledNode?.status === 'exposed'
+            carriesSettledSourceStatus(settledNode)
               ? { ...(authoredNode ?? node), status: settledNode.status }
               : (authoredNode ?? node),
           ];
@@ -708,7 +718,7 @@ function blockedResolutionNetwork(
         if (isAccountBranchNode(node, sourceAccountId)) {
           const prior = priorNodes.get(node.id);
           return [
-            prior?.status === 'protected' || prior?.status === 'exposed'
+            carriesSettledSourceStatus(prior)
               ? { ...node, status: prior.status }
               : node,
           ];
@@ -921,9 +931,12 @@ function resolvedNetwork(
   }
   const persistentNetwork = preserveSettledState(step.network, priorSettledNetwork);
   const priorBlockingShields = attackNetwork.nodes.filter(({ kind }) => kind === 'shield');
+  const resolvedRelationStatus = relation.kind === 'exact-match' ? 'direct' : 'similar';
   const resolvedEdges = mergeWithPriorAttackEdges(
     persistentNetwork.edges.map((edge): SceneEdge =>
-      edge.id === `${step.id}-path` ? { ...edge, label: resultLabel } : edge,
+      edge.id === `${step.id}-path`
+        ? { ...edge, status: resolvedRelationStatus, label: resultLabel }
+        : edge,
     ),
   );
   const priorNodes = new Map(priorSettledNetwork.nodes.map((node) => [node.id, node]));
@@ -945,7 +958,7 @@ function resolvedNetwork(
         ) {
           const prior = priorNodes.get(node.id);
           return [
-            prior?.status === 'protected' ? { ...node, status: 'protected' } : node,
+            carriesSettledSourceStatus(prior) ? { ...node, status: prior.status } : node,
           ];
         }
         return [
@@ -1146,7 +1159,7 @@ function createLocalReflection(
     accountId,
     accountLabel: s06ConsequenceContent.accounts[accountId].label,
     fictionalPassword: account.fictionalPassword,
-    mode: 'personal',
+    mode: blocks.length >= 2 ? 'groups' : 'personal',
     blocks,
     contentGroups: [{ id: 'content-group-1', blockIds: [] }],
     activeContentGroupId: 'content-group-1',
@@ -1303,7 +1316,14 @@ function hypotheticalIncidentNetwork(
       }),
       persistentShields,
     ),
-    edges: mergeEdgesById(persistentNetwork.edges, persistentAttackEdges),
+    edges: mergeEdgesById(
+      persistentNetwork.edges.map((edge): SceneEdge =>
+        edge.sourceId === accountId && edge.targetId.startsWith(`${accountId}-detail-`)
+          ? { ...edge, status: 'direct' }
+          : edge,
+      ),
+      persistentAttackEdges,
+    ),
     accessibleSummary: `Was wäre, wenn? ${s06ConsequenceContent.accounts[accountId].label} wird als hypothetisch betroffen dargestellt.`,
   };
   return incidentNetwork;
@@ -1997,6 +2017,7 @@ export class S06ConsequenceController {
       ) {
         const network = hypotheticalIncidentNetwork(step, 'master-campus', this.#settledNetwork);
         this.#displayedAttackNetwork = null;
+        this.#settledNetwork = network;
         this.#renderer?.render(network);
       }
       this.#snapshot = {
@@ -2230,6 +2251,7 @@ export class S06ConsequenceController {
 
   #startHypotheticalIntro(): void {
     const network = hypotheticalCampusgramNetwork(this.#snapshot.step.network);
+    this.#settledNetwork = network;
     this.#snapshot = {
       ...this.#snapshot,
       phase: 'animating',
