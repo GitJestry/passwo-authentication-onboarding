@@ -3900,13 +3900,13 @@ function speechFor(
       if (disposition.ruleId === 'whole-password-recognized-value') {
         return [s05Content.freeSearch.application.result.recognizedValue];
       }
-      if (disposition.ruleId === 'whole-password-recognized-semantic-path') {
-        return [s05Content.freeSearch.application.result.recognizedSemanticPath];
+      if (disposition.ruleId === 'whole-password-recognized-single-anchor-residual') {
+        return [s05Content.freeSearch.application.result.recognizedSingleAnchorResidual];
       }
       if (disposition.ruleId === 'whole-password-recognized-exhaustive-search') {
         return [s05Content.freeSearch.application.result.recognizedExhaustiveSearch];
       }
-      return [s05Content.freeSearch.application.result.recognizedBoundedVariant];
+      return [s05Content.freeSearch.application.result.recognizedGeneratedCandidate];
     }
     case 'final-length': {
       const copy =

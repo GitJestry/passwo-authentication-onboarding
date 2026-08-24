@@ -66,12 +66,14 @@ export function createPasswordAssessmentScene(
       : componentAnalysis.findings;
   const recognitionSummary =
     disposition.kind === 'whole-password-recognized'
-      ? disposition.ruleId === 'whole-password-recognized-semantic-path'
-        ? 'Die bisherigen Prüfungen und bestätigten Zusammenhänge bilden in dieser Übung einen vollständigen Kandidatenweg.'
-        : disposition.ruleId === 'whole-password-recognized-exhaustive-search'
-          ? 'Das vollständige Durchprobieren liegt in dieser Übung innerhalb der festgelegten Grenze.'
-          : 'Ein einzelner früher Kandidat oder eine begrenzte typische Variante deckt das vollständige fiktive Passwort ab.'
-      : 'Das vollständige Durchprobieren liegt in dieser Übung außerhalb der festgelegten Grenze. Das ist kein Sicherheitsnachweis.';
+      ? disposition.ruleId === 'whole-password-recognized-single-anchor-residual'
+        ? 'Ein früher Kandidat und ein kurzer frei durchprobierter Rest erzeugen in dieser Übung das vollständige fiktive Passwort.'
+        : disposition.ruleId === 'whole-password-recognized-generated-candidate'
+          ? 'Frühe Kandidaten und begrenzte typische Änderungen erzeugen in dieser Übung das vollständige fiktive Passwort.'
+          : disposition.ruleId === 'whole-password-recognized-exhaustive-search'
+            ? 'Das vollständige Durchprobieren liegt in dieser Übung innerhalb der festgelegten Grenze.'
+            : 'Ein früher Kandidat entspricht in dieser Übung dem vollständigen fiktiven Passwort.'
+      : 'Keine der gezeigten Strategien erzeugt in dieser Übung das vollständige fiktive Passwort innerhalb der festgelegten Grenze. Das ist kein Sicherheitsnachweis.';
   const lengthSummary =
     disposition.lengthOrientation === 'below-15'
       ? 'Die Zeichenfolge liegt zusätzlich unter der Orientierung von mindestens 15 Zeichen für selbst erstellte Passwörter.'

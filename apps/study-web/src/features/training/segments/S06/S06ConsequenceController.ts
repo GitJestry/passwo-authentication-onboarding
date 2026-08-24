@@ -101,6 +101,7 @@ export interface S06ConsequenceControllerSnapshot {
     | 'campusgram-summary'
     | 'perspective-transition'
     | 'email-transition'
+    | 'email-local-check-transition'
     | 'data-leak-transition'
     | 'local-reflection'
     | 'local-check-result'
@@ -168,6 +169,7 @@ type S06MissionPhase =
   | { readonly kind: 'campusgram-summary' }
   | { readonly kind: 'perspective-transition' }
   | { readonly kind: 'email-transition' }
+  | { readonly kind: 'email-local-check-transition' }
   | { readonly kind: 'local-reflection'; readonly step: PasswordConsequencePlanStep }
   | { readonly kind: 'local-check-result'; readonly step: PasswordConsequencePlanStep }
   | {
@@ -409,6 +411,7 @@ function createMission(plan: PasswordConsequenceScenePlan): S06MissionSequence {
     { kind: 'comparison', step: masterEmailStep },
     { kind: 'comparison-resolution', step: masterEmailStep },
     { kind: 'email-transition' },
+    { kind: 'email-local-check-transition' },
   );
   phases.push(
     { kind: 'local-reflection', step: planStep(plan, 's06-step-campus-email-local-check') },
@@ -470,6 +473,13 @@ function incidentSourceStatus(
     return 'protected';
   }
   return authoredNode.status;
+}
+
+function hypotheticalIncidentSourceStatus(
+  node: SceneNode,
+  sourceAccountId: S06AccountId,
+): SceneNode['status'] {
+  return node.id === sourceAccountId ? 'exposed' : 'affected';
 }
 
 function sourceHasLocalFinding(step: PasswordConsequencePlanStep): boolean {
@@ -754,8 +764,8 @@ function blockedResolutionNetwork(
             {
               ...node,
               status:
-                step.mode === 'hypothetical' && !retainAttackPath
-                  ? 'protected'
+                step.mode === 'hypothetical'
+                  ? hypotheticalIncidentSourceStatus(node, sourceAccountId)
                   : incidentSourceStatus(node, prior),
             },
           ];
@@ -949,6 +959,7 @@ function resolvedNetwork(
   attackNetwork: NetworkSceneSnapshot,
   priorSettledNetwork: NetworkSceneSnapshot,
 ): NetworkSceneSnapshot {
+  const sourceAccountId = step.sourceAccountId;
   const targetAccountId = step.targetAccountId;
   const relation = step.relation;
   if (targetAccountId === null || relation === null) return step.network;
@@ -983,11 +994,11 @@ function resolvedNetwork(
   );
   const priorNodes = new Map(priorSettledNetwork.nodes.map((node) => [node.id, node]));
   const affectedTargetAccountIds =
-    step.sourceAccountId !== null &&
+    sourceAccountId !== null &&
     (sourceHasLocalFinding(step) ||
-      priorNodes.get(step.sourceAccountId)?.status === 'affected' ||
+      priorNodes.get(sourceAccountId)?.status === 'affected' ||
       step.mode === 'hypothetical')
-      ? affectedAccountsForIncident(resolvedEdges, step.sourceAccountId)
+      ? affectedAccountsForIncident(resolvedEdges, sourceAccountId)
       : new Set<S06AccountId>();
   return {
     ...persistentNetwork,
@@ -996,8 +1007,8 @@ function resolvedNetwork(
       ...persistentNetwork.nodes.flatMap((node): readonly SceneNode[] => {
         if (node.kind === 'shield') return [];
         if (
-          step.sourceAccountId !== null &&
-          isAccountBranchNode(node, step.sourceAccountId)
+          sourceAccountId !== null &&
+          isAccountBranchNode(node, sourceAccountId)
         ) {
           const prior = priorNodes.get(node.id);
           return [
@@ -1005,7 +1016,7 @@ function resolvedNetwork(
               ...node,
               status:
                 step.mode === 'hypothetical'
-                  ? 'protected'
+                  ? hypotheticalIncidentSourceStatus(node, sourceAccountId)
                   : incidentSourceStatus(node, prior),
             },
           ];
@@ -1419,6 +1430,7 @@ export class S06ConsequenceController {
     Partial<Record<S06AccountId, PasswordRelation['kind']>>
   > = {};
   #displayedAttackNetwork: NetworkSceneSnapshot | null = null;
+  #networkBeforeHypotheticalIncident: NetworkSceneSnapshot | null = null;
   #pendingResolutionNodeIds = new Set<string>();
   #waitingForHypotheticalResolution = false;
   #snapshot: S06ConsequenceControllerSnapshot;
@@ -2074,6 +2086,7 @@ export class S06ConsequenceController {
         this.#snapshot.stage !== 'master-hypothetical-animating' &&
         this.#snapshot.stage !== 'master-hypothetical-ready'
       ) {
+        this.#networkBeforeHypotheticalIncident = this.#settledNetwork;
         const network = hypotheticalIncidentNetwork(step, 'master-campus', this.#settledNetwork);
         this.#displayedAttackNetwork = null;
         this.#settledNetwork = network;
@@ -2128,14 +2141,53 @@ export class S06ConsequenceController {
     }
 
     if (missionPhase.kind === 'perspective-transition') {
+      const step = this.#currentPlanStep('s06-step-campusgram-incident');
+      const stepIndex = this.#plan.steps.findIndex(({ id }) => id === step.id);
+      if (stepIndex < 0) return;
+      this.#restoreNetworkBeforeHypotheticalIncident();
       this.#snapshot = {
         ...this.#snapshot,
         phase: 'awaiting-decision',
         stage: 'perspective-transition',
-        participant: this.#participantForNarration('s06.transition'),
+        stepIndex,
+        step,
+        participant: {
+          ...participantSnapshot(step),
+          narrationId: 's06.transition',
+          narration: s06ConsequenceContent.narrations['s06.transition'],
+        },
         attackPhase: 'preview-ready',
         attackSourceAccountId: 'campusgram',
-        isHypothetical: !this.#campusgramWasFound(),
+        isHypothetical: false,
+        showGuide: true,
+        comparisonVisible: false,
+        comparisonPreviewVisible: false,
+        controls: { canStart: false, canReplay: false, canContinue: true },
+      };
+      this.#emit();
+      return;
+    }
+
+    if (missionPhase.kind === 'email-local-check-transition') {
+      const step = this.#currentPlanStep('s06-step-campus-email-local-check');
+      const stepIndex = this.#plan.steps.findIndex(({ id }) => id === step.id);
+      if (stepIndex < 0) return;
+      this.#restoreNetworkBeforeHypotheticalIncident();
+      const narrationId: S06NarrationId = 's06.transition.campus-email-local-check';
+      this.#snapshot = {
+        ...this.#snapshot,
+        phase: 'awaiting-decision',
+        stage: 'email-local-check-transition',
+        stepIndex,
+        step,
+        participant: {
+          ...participantSnapshot(step),
+          narrationId,
+          narration: s06ConsequenceContent.narrations[narrationId],
+        },
+        attackPhase: 'preview-ready',
+        attackSourceAccountId: 'master-campus',
+        isHypothetical: false,
         showGuide: true,
         comparisonVisible: false,
         comparisonPreviewVisible: false,
@@ -2328,6 +2380,7 @@ export class S06ConsequenceController {
   }
 
   #startHypotheticalIntro(): void {
+    this.#networkBeforeHypotheticalIncident = this.#settledNetwork;
     const network = hypotheticalCampusgramNetwork(this.#snapshot.step.network);
     this.#settledNetwork = network;
     this.#snapshot = {
@@ -2367,6 +2420,23 @@ export class S06ConsequenceController {
     queueMicrotask(() => {
       if (!this.#disposed) void this.#missionController.continue();
     });
+  }
+
+  #restoreNetworkBeforeHypotheticalIncident(): void {
+    if (this.#networkBeforeHypotheticalIncident === null) return;
+    const restoredNetwork = this.#networkBeforeHypotheticalIncident;
+    const persistentAttackEdges = this.#settledNetwork.edges.filter(isAttackEdge);
+    const persistentBlockingShields = this.#settledNetwork.nodes.filter(
+      (node) => node.kind === 'shield',
+    );
+    this.#settledNetwork = {
+      ...restoredNetwork,
+      nodes: mergeNodesById(restoredNetwork.nodes, persistentBlockingShields),
+      edges: mergeEdgesById(restoredNetwork.edges, persistentAttackEdges),
+    };
+    this.#networkBeforeHypotheticalIncident = null;
+    this.#displayedAttackNetwork = null;
+    this.#renderer?.render(this.#settledNetwork);
   }
 
   #notifyComplete(): void {

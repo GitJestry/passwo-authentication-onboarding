@@ -17,8 +17,8 @@ const masterCampusSemanticEvidence: TransientPasswordSemanticEvidence = {
   ],
 };
 
-describe('S06 consequence semantic preparation', () => {
-  it('accepts the same transient semantic evidence on a non-Campusgram account', () => {
+describe('S06 consequence semantic annotations', () => {
+  it('keeps transient semantic evidence explanatory on a non-Campusgram account', () => {
     const plan = createS06ConsequenceScenePlan('semantic-evidence-fixture', {
       campusgram: {
         fictionalPassword: 'qzmpvxtrldbnhcf',
@@ -35,13 +35,14 @@ describe('S06 consequence semantic preparation', () => {
       },
     });
 
-    expect(
-      plan.accounts.find(({ accountId }) => accountId === 'master-campus')?.disposition,
-    ).toMatchObject({
+    const masterCampusDisposition = plan.accounts.find(
+      ({ accountId }) => accountId === 'master-campus',
+    )?.disposition;
+    expect(masterCampusDisposition).toMatchObject({
       kind: 'whole-password-recognized',
-      ruleId: 'whole-password-recognized-semantic-path',
-      semanticRelationIds: ['semantic:content:master-campus'],
+      ruleId: 'whole-password-recognized-generated-candidate',
     });
+    expect(masterCampusDisposition).not.toHaveProperty('semanticRelationIds');
     expect(plan.accounts.find(({ accountId }) => accountId === 'campusgram')?.disposition.kind).toBe(
       'no-whole-password-recognized',
     );

@@ -209,11 +209,11 @@ Seitenangaben beziehen sich auf die im Trainingsdokument ausgewiesene interne Pa
   deutsche Wortlistenstapel sichtbar. Länderkarte, Wortlisten-Schätzfrage und Zeichenraum-Analogie
   entfallen; danach folgt direkt die bestehende lokale Campusgram-Auswertung. Die Demonstration
   analysiert oder persistiert keine Eingabe.
-- Die S05-Simulationsdisposition (`S05_CONTENT_VERSION 2.131.0`, Analysekonfiguration
-  `passwo-bounded-whole-recognition-v19`) bleibt auf den vollständigen fiktiven Wert begrenzt:
-  `whole-password-recognized` entsteht durch einen direkten Vollwert oder eine dokumentierte
-  begrenzte Kandidatenfamilie aus kanonischen Ankern und positionsunabhängigen Restzeichen oder
-  durch einen flüchtigen, von der teilnehmenden Person bestätigten semantischen Kandidatenweg.
+- Die S05-Simulationsdisposition (`S05_CONTENT_VERSION 2.134.0`, Analysekonfiguration
+  `passwo-bounded-whole-recognition-v20`) bleibt auf den vollständigen fiktiven Wert begrenzt:
+  `whole-password-recognized` entsteht durch einen direkten Vollwert, eine quellengestützte
+  generierte Kandidatenfamilie, genau einen belegten Anker mit frei durchprobiertem Rest oder das
+  vollständige Durchprobieren innerhalb der gemeinsamen Grenze `26^12`.
   Deutsche und englische Wortzerlegungen bleiben sprachgebunden. Die häufigkeitsgeordneten
   Sprachkorpora werden über alle Wortlängen durch eingefrorene Rang-, Schrift- und
   Korpusartefaktgrenzen bereinigt; kurze Wörter bleiben nur exakt in vollständigen Segmenten
@@ -229,18 +229,17 @@ Seitenangaben beziehen sich auf die im Trainingsdokument ausgewiesene interne Pa
   Eigene maximale Tastaturspans erzeugen Grenzen für angrenzende Wörter; vollständige
   Kontobegriffe, Jahre und authored Komposita haben Vorrang vor inneren Wörterbuch- beziehungsweise
   Endungstreffern. Getrennte und einmal veränderte Wiederholungen werden über mehrere belegte Spans
-  der bestehenden Wiederholungskategorie erfasst. Mehrere gewöhnliche Wörter führen unabhängig von
-  ihrer Anzahl nicht allein zu einem Volltreffer. Persönliche Markierungen, Inhaltsgruppen und
-  Satz-/Phrasenverbindungen können nach Bestätigung additiv einen vollständigen semantischen Weg
-  bilden; sie können keinen automatischen Treffer aufheben und keine Sicherheit bestätigen. Die
+  der bestehenden Wiederholungskategorie erfasst. Mehrere gewöhnliche Wörter werden mit ihren
+  vollständigen authored Quellenfamilien gezählt und führen nur innerhalb der gemeinsamen
+  Übungsgrenze zu einem Volltreffer. Persönliche Markierungen, Inhaltsgruppen und
+  Satz-/Phrasenverbindungen bleiben flüchtige Erklärdaten und beeinflussen die Disposition nicht. Die
   kompakte Abschlussauswertung nennt zuerst den Vollpasswort-Status,
   zeigt nur dessen kausale Befunde beziehungsweise klar bezeichnete Teilbefunde und ergänzt die
   15-Zeichen-Orientierung kurz und getrennt. Danach endet S05 direkt; Wiederverwendung und
   Ähnlichkeit folgen in S06. Eine fehlende Vollerkennung bedeutet nicht stark, sicher, zufällig
   oder unangreifbar. Numerische zxcvbn-Guess-Werte werden weder angezeigt noch für diese
-  Disposition verwendet. Die bestätigte S05-Evidenz bleibt flüchtig und wird für Campusgram an
-  dieselbe S06-Disposition übergeben; das S06-Eingabemodell ist für dieselbe spätere Erhebung bei
-  Master Campus und Campus E-Mail vorbereitet.
+  Disposition verwendet. Die bestätigte S05-Evidenz bleibt flüchtig und kann aus
+  Kompatibilitätsgründen an S06 übergeben werden, wird von der Dispositionsfunktion aber ignoriert.
 - Die sechs Beispielwörter sind ein festes Demonstrationsbeispiel. Wortliste und produktiver
   Generator bleiben ausschließlich S08 vorbehalten.
 
@@ -261,8 +260,10 @@ Seitenangaben beziehen sich auf die im Trainingsdokument ausgewiesene interne Pa
 - Die Projektion verwendet die drei fiktiven Konten Master Campus, Campus E-Mail und Campusgram.
   Campusgram prüft die Beziehungen zu beiden anderen Konten; Master Campus anschließend nur noch
   die im neuen Sprechablauf angekündigte Beziehung zu Campus E-Mail. Nach diesem Vergleich ordnet
-  eine bedingte PassWo-Blase die erkannte Verbindung oder die begrenzte Nicht-Erkennung ein und
-  führt erst danach zum lokalen Campus-E-Mail-Check. Campus E-Mail bildet am Ende ausschließlich
+  eine bedingte PassWo-Blase die erkannte Verbindung oder die begrenzte Nicht-Erkennung ein. Eine
+  zweite, nicht mehr hypothetisch markierte Blase führt danach mit `Schauen wir uns das
+  Campus-E-Mail-Passwort jetzt noch für sich an.` zum lokalen Campus-E-Mail-Check. Campus E-Mail
+  bildet am Ende ausschließlich
   einen lokalen Einzelcheck; bei einem Fund
   werden seine verbundenen Funktionen betroffen dargestellt, bei Schutz folgt kein
   hypothetischer Pfad. Danach kehrt die Ansicht zur tatsächlichen Campusgram-Ausgangslage zurück.
@@ -306,8 +307,12 @@ Seitenangaben beziehen sich auf die im Trainingsdokument ausgewiesene interne Pa
   Campus startet `Angriff starten` anschließend nur noch den Vergleich mit Campus E-Mail; beim
   Campus-E-Mail-Einzelcheck führt `Weiter` direkt zum S07-Übergang.
 - Ein hypothetischer Master-Campus-Befall setzt vor dem Vergleich mit Campus E-Mail den Angreifer und
-  den gesamten Kontozweig sichtbar auf betroffen. Der anschließende Passphrasen-Übergang bewahrt
-  die wiederhergestellte Campusgram-Schlussansicht unverändert.
+  den gesamten Kontozweig sichtbar auf betroffen. Hypothetische Campusgram- und
+  Master-Campus-Quellen bleiben während aller Vergleichsauflösungen und ihrer Zusammenfassung
+  betroffen; erst die jeweils folgende, nicht mehr hypothetische Perspektiv- beziehungsweise
+  Einzelcheck-Navigation stellt den zuvor gemerkten tatsächlichen Schutzzustand wieder her. Der
+  anschließende Passphrasen-Übergang bewahrt die wiederhergestellte Campusgram-Schlussansicht
+  unverändert.
 - Eine Beziehung ist ausschließlich `exact-match`, `derived-variant-match` oder
   `no-derived-path-recognized`. Allgemeine leichte Abwandlungen verwenden die case-sensitive
   restricted Damerau-Levenshtein-Distanz auf NFC-normalisierten Graphemclustern. Positiv sind nur
@@ -325,15 +330,14 @@ Seitenangaben beziehen sich auf die im Trainingsdokument ausgewiesene interne Pa
   und schreibt den Kandidaten nach jedem Schritt fort. Erst nach dem vollständigen Zielkandidaten
   erscheinen Ergebnis und Angriffslinie. Ergänzungen und Entfernungen behalten einen sichtbaren
   leeren Gegenwert; Reduced Motion zeigt denselben Endzustand ohne zeitliche Staffelung.
-- `S06_CONSEQUENCE_CONTENT_VERSION 2.44.0` übernimmt die S05-Vollpasswort-Disposition ohne eigene
+- `S06_CONSEQUENCE_CONTENT_VERSION 2.49.0` übernimmt die S05-Vollpasswort-Disposition ohne eigene
   Guess-Schwelle und versioniert zusätzlich die neue Paarvergleichs- und Erklärungsdarstellung.
   Nur `whole-password-recognized` öffnet den tatsächlichen lokalen Vorfallspfad;
   `no-whole-password-recognized` bleibt eine begrenzte Nicht-Erkennung und kein Stärkeurteil.
-- Jeder der drei flüchtigen S06-Kontoeingänge akzeptiert optional dieselbe bestätigte semantische
-  Evidenz aus persönlichen Bereichen, Inhaltsgruppen und Satz-/Phrasenverbindungen. Aktuell wird
-  sie aus dem bestehenden S05-Schritt für Campusgram übergeben; Master Campus und Campus E-Mail
-  sind für einen späteren identischen lokalen Reflexionsschritt vorbereitet, ohne eine zweite
-  Bewertungslogik oder Persistenz einzuführen.
+- Jeder der drei flüchtigen S06-Kontoeingänge akzeptiert aus Kompatibilitätsgründen optional die
+  bestätigte semantische Evidenz aus S05. Die gemeinsame Dispositionsfunktion ignoriert diese
+  Markierungen absichtlich; sie erzeugen weder Angreiferwissen noch einen objektiven Treffer und
+  werden nicht persistiert.
 - Vier deterministische Design-Lab-Fixtures decken exakte Wiederverwendung plus Ableitung, einen
   gestoppten ersten Vorfall, zwei blockierte Folgewege und eine gemischte
   tatsächliche/hypothetische Darstellung ab.

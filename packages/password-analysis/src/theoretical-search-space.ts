@@ -11,8 +11,10 @@ export const DEMONSTRATION_ATTEMPTS_PER_SECOND = 1_000_000_000_000n;
  * already displayed twelve-lowercase-character example (`26^12`, shown as about one day).
  * This is a simulation boundary, not a universal crack-time or password-strength threshold.
  */
-export const MAX_EXHAUSTIVE_SEARCH_CANDIDATES =
-  BigInt(LOWERCASE_ALPHABET_SIZE) ** 12n;
+export const MAX_SIMULATION_CANDIDATES = BigInt(LOWERCASE_ALPHABET_SIZE) ** 12n;
+
+/** @deprecated Use MAX_SIMULATION_CANDIDATES for the shared authored boundary. */
+export const MAX_EXHAUSTIVE_SEARCH_CANDIDATES = MAX_SIMULATION_CANDIDATES;
 
 export interface TheoreticalSearchSpaceInput {
   readonly alphabetSize: number;

@@ -1,5 +1,60 @@
 # S06--S07 Copy Audit
 
+## Copy- und Darstellungsdelta S06 persistente Beziehungslinien und S07 Campusgram-Hinweis, 24. August 2026
+
+Quelle ist der ausdrückliche Nutzerauftrag vom 24. August 2026. Beim Verlassen einer
+hypothetischen S06-Ausgangslage werden weiterhin die tatsächlichen Knotenstatus
+wiederhergestellt. Bereits aufgelöste Passwortbeziehungen und blockierte Wege bleiben nun jedoch
+wie vor dem letzten Ablaufpatch als persistente Kanten samt benötigter Blockadeschilde sichtbar.
+Die What-if-Quelle selbst bleibt bis zu ihrer Ergebniszusammenfassung betroffen; nur der
+anschließende Perspektiv- oder Einzelcheck-Hinweis stellt ihren tatsächlichen Knotenstatus wieder
+her. Teilnehmertext, Analyse, Persistenz, Export und Timing ändern sich dadurch nicht.
+
+Der Campusgram-Datenleckhinweis in S07 verwendet weiterhin die kanonische S04-Komponente und
+zeigt deshalb ebenfalls deren neuen Beratungssatz `Ändere deshalb dein Campusgram-Passwort.`.
+Textrolle, Interaktionsziel und Copy-Delta sind im S04-Audit dokumentiert; es entsteht keine
+zweite Textquelle.
+
+## Copy- und Ablaufdelta S06 stabile What-if-Zustände und getrennter Campus-E-Mail-Übergang, 24. August 2026
+
+Quelle ist der ausdrückliche Nutzerauftrag vom 24. August 2026. Eine hypothetisch betroffene
+Campusgram- oder Master-Campus-Quelle bleibt nun während der gesamten zugehörigen
+Vergleichsauflösung und Ergebniszusammenfassung rot betroffen. Die Projektion springt zwischen
+Angriffsansicht und Auflösung nicht mehr kurz in den blauen Schutzzustand. Erst der jeweils
+nachfolgende, nicht mehr hypothetisch markierte Perspektiv- beziehungsweise Einzelcheck-Hinweis
+stellt den vor der What-if-Annahme gemerkten tatsächlichen Zustand wieder her.
+
+Die bisher zusammengeführte Master-Campus-/Campus-E-Mail-Blase wird wieder in Ergebnisfeedback
+und Navigation getrennt. Die bedingte erste Blase ordnet weiterhin die erkannte Verbindung oder
+begrenzte Nicht-Erkennung ein. Eine zweite Blase verlässt die What-if-Darstellung und führt mit dem
+ausdrücklich vorgegebenen Satz zum lokalen Campus-E-Mail-Check. Analyse, Persistenz, Export und
+Studien-Timing bleiben unverändert. `S06_CONSEQUENCE_CONTENT_VERSION` steigt von `2.48.0` auf
+`2.49.0`.
+
+| Segment und Text-ID | Quelle | Aktueller Text | Geplanter Text | Primäre Rolle | Grund | Bedeutungsänderung | Interaktionsziel | Hervorhebung |
+|---|---|---|---|---|---|---|---|---|
+| `S06.narrations.s06.transition.master-campus-email-match` | Nutzerauftrag vom 2026-08-24 / vorhandener Content | `Zwischen Master Campus und Campus E-Mail wurde dasselbe Passwort oder eine leichte Abwandlung erkannt. Dieser Weg könnte den Angriff auf Campus E-Mail ausweiten. Schauen wir uns das Campus-E-Mail-Passwort jetzt noch für sich an.` | `Zwischen Master Campus und Campus E-Mail wurde dasselbe Passwort oder eine leichte Abwandlung erkannt. Dieser Weg könnte den Angriff auf Campus E-Mail ausweiten.` | Ergebnisfeedback | trennt Ergebnis und Navigation wieder an der sichtbaren What-if-Grenze | nein | `Weiter` zur getrennten Navigation | keine |
+| `S06.narrations.s06.transition.master-campus-email-no-match` | Nutzerauftrag vom 2026-08-24 / vorhandener Content | `Zwischen Master Campus und Campus E-Mail wurde hier keine solche Übereinstimmung erkannt. Dieser Weg führt in dieser Übung nicht weiter. Schauen wir uns das Campus-E-Mail-Passwort jetzt noch für sich an.` | `Zwischen Master Campus und Campus E-Mail wurde hier keine solche Übereinstimmung erkannt. Dieser Weg führt in dieser Übung nicht weiter.` | Ergebnisfeedback | trennt Ergebnis und Navigation wieder an der sichtbaren What-if-Grenze | nein | `Weiter` zur getrennten Navigation | keine |
+| `S06.narrations.s06.transition.campus-email-local-check` | ausdrücklicher Nutzerwortlaut vom 2026-08-24 | bisher letzter Satz der beiden bedingten Ergebnisblasen | `Schauen wir uns das Campus-E-Mail-Passwort jetzt noch für sich an.` | Navigation | eigener Sprechschritt verlässt die What-if-Darstellung vor dem lokalen Einzelcheck | nein | `Weiter` zum lokalen Campus-E-Mail-Check | keine |
+
+Geschützter Wortlaut bleibt unverändert.
+
+## Copy-Delta S06 Datenleckgrenze und Passwortwechsel, 24. August 2026
+
+Quelle ist der vom Nutzer am 24. August 2026 zur vollständigen Übernahme vorgegebene
+`passwo-v20-candidate-generation.patch`. Der hypothetische S06-Pfad erklärt nun, dass ein in der
+begrenzten Übung nicht erratenes Passwort unabhängig davon durch ein Datenleck bekannt werden
+kann. Der Übergang zu S07 unterscheidet das betroffene Passwort von gleichen oder leicht
+abgewandelten Wiederverwendungen bei anderen Konten. Interaktionen, Persistenz, Export und Timing
+bleiben unverändert. `S06_CONSEQUENCE_CONTENT_VERSION` steigt von `2.47.0` auf `2.48.0`.
+
+| Segment und Text-ID | Quelle | Aktueller Text | Geplanter Text | Primäre Rolle | Grund | Bedeutungsänderung | Interaktionsziel | Hervorhebung |
+|---|---|---|---|---|---|---|---|---|
+| `S06.narrations.s06.incident.campusgram-blocked` | Nutzerauftrag / v20-Patch vom 2026-08-24 | `Das Campusgram-Passwort wurde hier nicht gefunden. Schauen wir trotzdem kurz, was passiert wäre, wenn es bekannt geworden wäre.` | `Auch wenn das Passwort hier nicht erraten wurde, kann es durch ein Datenleck bekannt werden: etwa wenn es unmittelbar im Klartext offengelegt oder aus unzureichend geschützten Passwortdaten nachträglich ermittelt wird. Schauen wir deshalb, was dann bei den anderen Konten passieren würde.` | Safety Boundary | Nicht-Erkennung von einem unabhängigen Datenleckpfad trennen | ausdrücklich freigegeben | `Weiter` in den bestehenden hypothetischen Pfad | keine |
+| `S06.narrations.s06.transition.s07` | Nutzerauftrag / v20-Patch vom 2026-08-24 | `Ein Datenleck lässt sich nicht immer verhindern. Danach zählt, die Folgen zu begrenzen: das betroffene Passwort zügig ersetzen und für jedes Konto ein eigenes Passwort verwenden. Genau das machen wir jetzt bei Campusgram.` | `Ein Datenleck lässt sich nicht immer verhindern. Wird ein Passwort dabei bekannt, sollte es zügig ersetzt werden. Wurde dasselbe oder leicht abgewandelt auch bei anderen Konten verwendet, sollten dort ebenfalls neue, jeweils eigene Passwörter eingesetzt werden. Genau damit beginnen wir jetzt bei Campusgram.` | Kerngedanke | Handlung nach dem modellierten Datenleck nach betroffenem und wiederverwendetem Passwort differenzieren | ausdrücklich freigegeben | bestehender Übergang zu Campusgram in S07 | keine |
+
+Geschützter Wortlaut bleibt unverändert.
+
 ## Copy- und Darstellungsdelta S06 lokale Fundmarkierung und direkte Vergleichspfeile, 24. August 2026
 
 Quelle ist der ausdrückliche Nutzerauftrag vom 24. August 2026. Ausschließlich ein Konto, dessen

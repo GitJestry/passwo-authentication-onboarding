@@ -42,6 +42,7 @@ export type S06NarrationId =
   | 's06.perspective.master-campus-blocked'
   | 's06.transition.master-campus-email-match'
   | 's06.transition.master-campus-email-no-match'
+  | 's06.transition.campus-email-local-check'
   | 's06.local-check.campus-email-found'
   | 's06.local-check.campus-email-exhaustive-found'
   | 's06.local-check.campus-email-blocked'
@@ -60,16 +61,16 @@ export interface S06NarrationContent {
   readonly body: string;
 }
 
-export const S06_CONSEQUENCE_CONTENT_VERSION = '2.47.0';
+export const S06_CONSEQUENCE_CONTENT_VERSION = '2.49.0';
 
 export const s06ConsequenceContent = {
   version: S06_CONSEQUENCE_CONTENT_VERSION,
   source: {
     document: 'research/private/training-script.pdf',
     internalPages: [36, 37, 38, 39, 40, 41, 42, 43, 44] as const,
-    revision: 'Userauftrag vom 2026-08-24 · längere Vergleichsvorschau ohne Rollenlabel',
+    revision: 'Userauftrag vom 2026-08-24 · getrennte What-if-Ergebnis- und Navigationsschritte',
     copyReference:
-      'docs/design/S06-S07-COPY-AUDIT.md#copy-und-darstellungsdelta-s06-laengere-vergleichsvorschau-ohne-rollenlabel-24-august-2026',
+      'docs/design/S06-S07-COPY-AUDIT.md#copy-und-ablaufdelta-s06-stabile-what-if-zustaende-und-getrennter-campus-e-mail-uebergang-24-august-2026',
   },
   segment: {
     id: 'S06',
@@ -253,7 +254,7 @@ export const s06ConsequenceContent = {
     },
     's06.incident.campusgram-blocked': {
       heading: 'Erster Vorfall: Campusgram',
-      body: 'Das Campusgram-Passwort wurde hier nicht gefunden. Schauen wir trotzdem kurz, was passiert wäre, wenn es bekannt geworden wäre.',
+      body: 'Auch wenn das Passwort hier nicht erraten wurde, kann es durch ein Datenleck bekannt werden: etwa wenn es unmittelbar im Klartext offengelegt oder aus unzureichend geschützten Passwortdaten nachträglich ermittelt wird. Schauen wir deshalb, was dann bei den anderen Konten passieren würde.',
     },
     's06.compare.exact-match': {
       heading: 'Vollständige Werte stimmen überein',
@@ -285,11 +286,15 @@ export const s06ConsequenceContent = {
     },
     's06.transition.master-campus-email-match': {
       heading: 'Übergang zu Campus E-Mail',
-      body: 'Zwischen Master Campus und Campus E-Mail wurde dasselbe Passwort oder eine leichte Abwandlung erkannt. Dieser Weg könnte den Angriff auf Campus E-Mail ausweiten. Schauen wir uns das Campus-E-Mail-Passwort jetzt noch für sich an.',
+      body: 'Zwischen Master Campus und Campus E-Mail wurde dasselbe Passwort oder eine leichte Abwandlung erkannt. Dieser Weg könnte den Angriff auf Campus E-Mail ausweiten.',
     },
     's06.transition.master-campus-email-no-match': {
       heading: 'Übergang zu Campus E-Mail',
-      body: 'Zwischen Master Campus und Campus E-Mail wurde hier keine solche Übereinstimmung erkannt. Dieser Weg führt in dieser Übung nicht weiter. Schauen wir uns das Campus-E-Mail-Passwort jetzt noch für sich an.',
+      body: 'Zwischen Master Campus und Campus E-Mail wurde hier keine solche Übereinstimmung erkannt. Dieser Weg führt in dieser Übung nicht weiter.',
+    },
+    's06.transition.campus-email-local-check': {
+      heading: 'Übergang zu Campus E-Mail',
+      body: 'Schauen wir uns das Campus-E-Mail-Passwort jetzt noch für sich an.',
     },
     's06.local-check.campus-email-found': {
       heading: 'Lokaler Einzelcheck von Campus E-Mail',
@@ -337,7 +342,7 @@ export const s06ConsequenceContent = {
     },
     's06.transition.s07': {
       heading: 'Betroffenes Passwort ersetzen',
-      body: 'Ein Datenleck lässt sich nicht immer verhindern. Danach zählt, die Folgen zu begrenzen: das betroffene Passwort zügig ersetzen und für jedes Konto ein eigenes Passwort verwenden. Genau das machen wir jetzt bei Campusgram.',
+      body: 'Ein Datenleck lässt sich nicht immer verhindern. Wird ein Passwort dabei bekannt, sollte es zügig ersetzt werden. Wurde dasselbe oder leicht abgewandelt auch bei anderen Konten verwendet, sollten dort ebenfalls neue, jeweils eigene Passwörter eingesetzt werden. Genau damit beginnen wir jetzt bei Campusgram.',
     },
   } as const satisfies Readonly<Record<S06NarrationId, S06NarrationContent>>,
   fixtures: [

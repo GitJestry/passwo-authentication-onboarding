@@ -4,7 +4,7 @@ import { S05_CONTENT_VERSION, s05Content } from './s05.js';
 
 describe('S05 content traceability', () => {
   it('keeps the participant copy bounded and separate from internal terminology', () => {
-    expect(S05_CONTENT_VERSION).toBe('2.133.0');
+    expect(S05_CONTENT_VERSION).toBe('2.134.0');
     expect(s05Content.source).toMatchObject({
       document: 'research/private/training-script.pdf',
       internalPages: [
@@ -463,20 +463,20 @@ describe('S05 content traceability', () => {
     });
     expect(s05Content.freeSearch.application).toMatchObject({
       assessmentIntroduction: [
-        'Ein Passwort gilt hier als gefunden, wenn ein erkannter Weg zur ganzen Zeichenfolge führt.',
-        'Das gilt auch, wenn alle Zeichenfolgen in höchstens etwa einem Tag durchprobiert wären. Es ist keine Sicherheitsgarantie.',
+        'Gefunden heißt hier: Eine der gezeigten Strategien erzeugt genau das ganze Passwort innerhalb der Übungsgrenze.',
+        'Dazu werden frühe Kandidaten kombiniert oder typisch verändert. Bleibt neben genau einem Kandidaten ein kurzer Rest, wird nur dieser Rest frei durchprobiert; danach folgt noch das vollständige Durchprobieren. Das Ergebnis ist keine Sicherheitsgarantie.',
       ],
       result: {
         recognizedValue:
-          'Die ganze Zeichenfolge wurde früh erkannt. Deshalb gilt dein Campusgram-Passwort hier als gefunden.',
-        recognizedBoundedVariant:
-          'Eine einfache Änderung führte zur gesamten Zeichenfolge. Deshalb gilt dein Campusgram-Passwort hier als gefunden.',
-        recognizedSemanticPath:
-          'Die bisherigen Prüfungen und deine Markierungen führen zur ganzen Zeichenfolge. Deshalb gilt dein Campusgram-Passwort hier als gefunden.',
+          'Ein früher Kandidat entspricht genau dem ganzen Campusgram-Passwort. Deshalb gilt es hier als gefunden.',
+        recognizedGeneratedCandidate:
+          'Eine Kombination früher Kandidaten oder eine typische Änderung erzeugt genau das ganze Campusgram-Passwort innerhalb der Übungsgrenze. Deshalb gilt es hier als gefunden.',
+        recognizedSingleAnchorResidual:
+          'Ein früher Kandidat deckt einen Teil der Zeichenfolge ab. Der kurze übrige Teil lässt sich innerhalb der Übungsgrenze frei durchprobieren. Deshalb gilt dein Campusgram-Passwort hier als gefunden.',
         recognizedExhaustiveSearch:
-          'Das Durchprobieren liegt innerhalb der Grenze. Deshalb gilt dein Campusgram-Passwort hier als gefunden.',
+          'Alle Zeichenfolgen dieses Zeichenraums und dieser Länge liegen innerhalb der Übungsgrenze. Deshalb gilt dein Campusgram-Passwort hier als gefunden.',
         notRecognized:
-          'Das Durchprobieren liegt über der Grenze. Deshalb gilt dein Campusgram-Passwort hier als nicht gefunden. Das ist kein Sicherheitsnachweis.',
+          'Keine der gezeigten Strategien erzeugt das ganze Campusgram-Passwort innerhalb der Übungsgrenze. Deshalb gilt es hier als nicht gefunden. Das ist kein Sicherheitsnachweis.',
       },
       length: {
         belowOrientation:

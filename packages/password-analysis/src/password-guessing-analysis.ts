@@ -19,7 +19,7 @@ import {
   originalSpanForNormalizedRange,
 } from './case-insensitive-spans.js';
 
-export const PASSWORD_ANALYSIS_CONFIGURATION_VERSION = 'passwo-bounded-whole-recognition-v19';
+export const PASSWORD_ANALYSIS_CONFIGURATION_VERSION = 'passwo-bounded-whole-recognition-v20';
 
 export interface FictionalPasswordAnalysisInput {
   readonly fictionalPassword: string;
@@ -245,7 +245,7 @@ const supplementalDictionaryPriority: Readonly<Record<PasswordSingleFindingKind,
 
 type SupplementalLanguage = 'de' | 'en';
 
-const explicitPasswordAnchorTokens = new Set([
+const explicitPasswordAnchorTokenValues = [
   'admin',
   'geheim',
   'kennwort',
@@ -264,7 +264,9 @@ const explicitPasswordAnchorTokens = new Set([
   'testpasswort',
   'welcome',
   'willkommen',
-]);
+] as const;
+
+const explicitPasswordAnchorTokens = new Set<string>(explicitPasswordAnchorTokenValues);
 
 export function isExplicitPasswordAnchorToken(token: string): boolean {
   return explicitPasswordAnchorTokens.has(token.toLocaleLowerCase('de-DE'));
@@ -1491,7 +1493,13 @@ function collectExactAccountTermFindings(
 
   for (const term of uniqueTerms) {
     for (const [start, end] of findCaseInsensitiveSpans(input, term)) {
-      if (!supportedBoundaries.has(start) || !supportedBoundaries.has(end)) continue;
+      const hasSupportedBoundaries =
+        supportedBoundaries.has(start) && supportedBoundaries.has(end);
+      const canServeAsEdgeAnchor =
+        [...term].length >= 4 && (start === 0 || end === input.length);
+      // A sufficiently long authored term at either edge can seed the explicit one-anchor-plus-rest
+      // hybrid even when the random-looking remainder creates no visible component boundary.
+      if (!hasSupportedBoundaries && !canServeAsEdgeAnchor) continue;
       if (
         occupiedSpans.some(
           ([occupiedStart, occupiedEnd]) => start < occupiedEnd && end > occupiedStart,
@@ -1547,6 +1555,27 @@ export function canonicalizeTypicalLeet(value: string): string {
   return [...value.toLocaleLowerCase('de-DE')]
     .map((character) => fuzzyCharacterAliases[character] ?? character)
     .join('');
+}
+
+/**
+ * Matches one complete authored password anchor after the same bounded surface changes taught in
+ * S05: case changes, the frozen one-character leet substitutions, and at most one additional
+ * repetition of an adjacent character. The caller is responsible for removing a separately
+ * recognized suffix before invoking this helper.
+ */
+export function matchExplicitPasswordAnchorVariant(value: string): string | null {
+  const canonical = canonicalizeTypicalLeet(value.normalize('NFC'));
+  const variants = new Set<string>([canonical]);
+  const characters = [...canonical];
+  for (let index = 1; index < characters.length; index += 1) {
+    if (characters[index] !== characters[index - 1]) continue;
+    variants.add([...characters.slice(0, index), ...characters.slice(index + 1)].join(''));
+  }
+
+  for (const candidate of variants) {
+    if (explicitPasswordAnchorTokens.has(candidate)) return candidate;
+  }
+  return null;
 }
 
 /**
@@ -1895,7 +1924,9 @@ function collectTypicalSuffixes(
     const componentStart = componentMatch.index;
     const componentEnd = componentStart + component.length;
     const trailingDigits = /\d{1,4}$/u.exec(component)?.[0] ?? '';
-    const punctuation = /^[\p{P}\p{S}]{1,3}/u.exec(input.slice(componentEnd))?.[0] ?? '';
+    const punctuation = /^[\x21-\x2F\x3A-\x40\x5B-\x60\x7B-\x7E]{1,3}/u.exec(
+      input.slice(componentEnd),
+    )?.[0] ?? '';
     const punctuationEnd = componentEnd + punctuation.length;
     const punctuationIsTypicalEnding = punctuation.length > 0;
     const boundedDigitEnding =
@@ -1926,6 +1957,42 @@ function collectTypicalSuffixes(
     );
   }
   return findings;
+}
+
+function collectWholeExplicitPasswordAnchorVariantFindings(
+  input: string,
+  suffixFindings: readonly PasswordSingleFinding[],
+): readonly PasswordSingleFinding[] {
+  const coreEnds = new Set<number>([input.length]);
+  for (const suffix of suffixFindings) {
+    if (suffix.kind !== 'typical-suffix') continue;
+    for (const evidence of suffix.evidence) {
+      if (evidence.type === 'span' && evidence.end === input.length) {
+        coreEnds.add(evidence.start);
+      }
+    }
+  }
+
+  for (const coreEnd of [...coreEnds].sort((left, right) => right - left)) {
+    if (coreEnd < 3) continue;
+    const core = input.slice(0, coreEnd);
+    const matchedAnchor = matchExplicitPasswordAnchorVariant(core);
+    if (matchedAnchor === null) continue;
+
+    const base: PasswordSingleFinding = {
+      ...finding(input, 'common-password-core', 0, coreEnd, 'bounded-heuristic', 50_000),
+      segmentationRole: 'candidate-only',
+    };
+    if (core === matchedAnchor) return [base];
+    return [
+      base,
+      {
+        ...finding(input, 'typical-transformation', 0, coreEnd, 'bounded-heuristic', 50_000),
+        segmentationRole: 'candidate-only',
+      },
+    ];
+  }
+  return [];
 }
 
 interface RepetitionNormalizedText {
@@ -2507,6 +2574,11 @@ export function analyzeFictionalPassword({
     ...yearFindings,
     ...numberedWordSequenceFindings,
   ]);
+  const wholeExplicitPasswordAnchorVariantFindings =
+    collectWholeExplicitPasswordAnchorVariantFindings(
+      fictionalPassword,
+      typicalSuffixFindings,
+    );
   const findings = removeOrphanedTypicalTransformations(
     suppressDictionaryFindingsCoveredByPreferredDictionaryFinding(
       suppressDictionaryFindingsCoveredByAccountContext(
@@ -2522,6 +2594,7 @@ export function analyzeFictionalPassword({
             ...numberedWordSequenceFindings,
             ...separatedRepetitionFindings,
             ...typicalSuffixFindings,
+            ...wholeExplicitPasswordAnchorVariantFindings,
           ]),
         ),
       ),

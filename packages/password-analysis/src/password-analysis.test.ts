@@ -18,6 +18,7 @@ import {
   createTheoreticalSearchSpaceModel,
   determinePasswordSimulationDisposition,
   MAX_EXHAUSTIVE_SEARCH_CANDIDATES,
+  MAX_SIMULATION_CANDIDATES,
   projectS07Recommendations,
 } from './index.js';
 
@@ -81,11 +82,12 @@ describe('exact theoretical search-space demonstrations', () => {
     expect(completeYears).toBe(615n);
   });
 
-  it('uses the displayed twelve-lowercase example as the exhaustive-search boundary', () => {
-    expect(MAX_EXHAUSTIVE_SEARCH_CANDIDATES).toBe(95_428_956_661_682_176n);
+  it('uses the displayed twelve-lowercase example as the shared simulation boundary', () => {
+    expect(MAX_SIMULATION_CANDIDATES).toBe(95_428_956_661_682_176n);
+    expect(MAX_EXHAUSTIVE_SEARCH_CANDIDATES).toBe(MAX_SIMULATION_CANDIDATES);
     expect(
       createFictionalPasswordExhaustiveSearchModel('kfxqztmpvlbw')?.totalCandidateCount,
-    ).toBe(MAX_EXHAUSTIVE_SEARCH_CANDIDATES);
+    ).toBe(MAX_SIMULATION_CANDIDATES);
   });
 
   it.each([
@@ -898,7 +900,7 @@ describe('local fictional password analysis', () => {
       expect(expectedKinds.some((expectedKind) => actualKinds.includes(expectedKind))).toBe(true);
       expect(result.guessPath).toMatchObject({
         engineId: 'zxcvbn-ts',
-        configurationVersion: 'passwo-bounded-whole-recognition-v19',
+        configurationVersion: 'passwo-bounded-whole-recognition-v20',
       });
       for (const finding of result.findings) {
         expect(finding.id).toMatch(/^single:/u);
@@ -924,7 +926,7 @@ describe('local fictional password analysis', () => {
     expect(disposition).toEqual({
       kind: 'no-whole-password-recognized',
       lengthOrientation: 'at-least-15',
-      analysisVersion: 'passwo-bounded-whole-recognition-v19',
+      analysisVersion: 'passwo-bounded-whole-recognition-v20',
       explanationId: 's05.disposition.no-whole-password-recognized',
     });
   });
@@ -969,7 +971,7 @@ describe('local fictional password analysis', () => {
 
       expect(disposition).toMatchObject({
         kind: 'whole-password-recognized',
-        analysisVersion: 'passwo-bounded-whole-recognition-v19',
+        analysisVersion: 'passwo-bounded-whole-recognition-v20',
       });
     },
   );
@@ -1018,7 +1020,7 @@ describe('local fictional password analysis', () => {
       determinePasswordSimulationDisposition({ fictionalPassword, componentAnalysis }),
     ).toMatchObject({
       kind: 'whole-password-recognized',
-      ruleId: 'whole-password-recognized-bounded-variant',
+      ruleId: 'whole-password-recognized-generated-candidate',
       findingIds: [
         'single:account-or-service-term:0-10:0',
         'single:typical-suffix:10-14:1',
@@ -1026,7 +1028,7 @@ describe('local fictional password analysis', () => {
     });
   });
 
-  it('does not turn an ordinary multi-word decomposition into a strength formula', () => {
+  it('counts an ordinary two-word composition from the complete lexical candidate pools', () => {
     const fictionalPassword = 'KaffeeMorgen';
     const componentAnalysis = passwordAnalysisWithFindings([
       {
@@ -1047,27 +1049,58 @@ describe('local fictional password analysis', () => {
 
     expect(
       determinePasswordSimulationDisposition({ fictionalPassword, componentAnalysis }),
+    ).toMatchObject({
+      kind: 'whole-password-recognized',
+      ruleId: 'whole-password-recognized-generated-candidate',
+    });
+  });
+
+
+  it('uses free residual search only around one recognized anchor', () => {
+    const fictionalPassword = 'PasswortlOtr';
+    const componentAnalysis = analyzeFictionalPassword({ fictionalPassword });
+
+    expect(
+      determinePasswordSimulationDisposition({ fictionalPassword, componentAnalysis }),
+    ).toMatchObject({
+      kind: 'whole-password-recognized',
+      ruleId: 'whole-password-recognized-single-anchor-residual',
+    });
+  });
+
+  it('recognizes a complete heavily transformed authored password anchor', () => {
+    const fictionalPassword = 'M3inPa555w0rt!?';
+    const componentAnalysis = analyzeFictionalPassword({ fictionalPassword });
+
+    expect(
+      determinePasswordSimulationDisposition({ fictionalPassword, componentAnalysis }),
+    ).toMatchObject({
+      kind: 'whole-password-recognized',
+      ruleId: 'whole-password-recognized-generated-candidate',
+    });
+    expect(componentAnalysis.findings).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          kind: 'common-password-core',
+          segmentationRole: 'candidate-only',
+          evidence: [{ type: 'span', start: 0, end: 13, token: 'M3inPa555w0rt' }],
+        }),
+      ]),
+    );
+  });
+
+  it('does not let one explicit anchor make a long word composition a generated candidate', () => {
+    const fictionalPassword = 'KaffeeMorgenPasswortSonneLampe';
+    const componentAnalysis = analyzeFictionalPassword({ fictionalPassword });
+
+    expect(
+      determinePasswordSimulationDisposition({ fictionalPassword, componentAnalysis }),
     ).toMatchObject({ kind: 'no-whole-password-recognized' });
   });
 
-  it('uses a confirmed relation as a transient semantic candidate path', () => {
-    const fictionalPassword = 'KaffeeMorgen';
-    const componentAnalysis = passwordAnalysisWithFindings([
-      {
-        id: 'single:common-word:0-6:0',
-        kind: 'common-word',
-        evidence: [{ type: 'span', start: 0, end: 6, token: 'Kaffee' }],
-        explanationId: 's05.common-word',
-        confidence: 'bounded-heuristic',
-      },
-      {
-        id: 'single:common-word:6-12:1',
-        kind: 'common-word',
-        evidence: [{ type: 'span', start: 6, end: 12, token: 'Morgen' }],
-        explanationId: 's05.common-word',
-        confidence: 'bounded-heuristic',
-      },
-    ]);
+  it('does not let a confirmed relation create a candidate path', () => {
+    const fictionalPassword = 'KaffeeMorgenSonneLampe';
+    const componentAnalysis = analyzeFictionalPassword({ fictionalPassword });
 
     expect(
       determinePasswordSimulationDisposition({
@@ -1083,16 +1116,14 @@ describe('local fictional password analysis', () => {
               evidence: [
                 { type: 'span', start: 0, end: 6, token: 'Kaffee' },
                 { type: 'span', start: 6, end: 12, token: 'Morgen' },
+                { type: 'span', start: 12, end: 17, token: 'Sonne' },
+                { type: 'span', start: 17, end: 22, token: 'Lampe' },
               ],
             },
           ],
         },
       }),
-    ).toMatchObject({
-      kind: 'whole-password-recognized',
-      ruleId: 'whole-password-recognized-semantic-path',
-      semanticRelationIds: ['semantic:content:1'],
-    });
+    ).toMatchObject({ kind: 'no-whole-password-recognized' });
   });
 
   it.each([
@@ -1107,7 +1138,7 @@ describe('local fictional password analysis', () => {
       token: 'Kaktus',
     },
   ] as const)('ignores $label', ({ confirmed, token }) => {
-    const fictionalPassword = 'KaffeeMorgen';
+    const fictionalPassword = 'KaffeeMorgenSonneLampe';
     const componentAnalysis = analyzeFictionalPassword({ fictionalPassword });
     const disposition = determinePasswordSimulationDisposition({
       fictionalPassword,
@@ -1122,6 +1153,8 @@ describe('local fictional password analysis', () => {
             evidence: [
               { type: 'span', start: 0, end: 6, token },
               { type: 'span', start: 6, end: 12, token: 'Morgen' },
+              { type: 'span', start: 12, end: 17, token: 'Sonne' },
+              { type: 'span', start: 17, end: 22, token: 'Lampe' },
             ],
           },
         ],
@@ -1471,7 +1504,7 @@ describe('local fictional password analysis', () => {
     ).toEqual(expect.arrayContaining(['ich', 'liebe', 'dich', 'meine']));
   });
 
-  it('uses confirmed sentence links across separator-connected words', () => {
+  it('keeps confirmed sentence links explanatory for separator-connected words', () => {
     const fictionalPassword = 'Ich-liebe--dich---meine';
     const componentAnalysis = analyzeFictionalPassword({ fictionalPassword });
     const disposition = determinePasswordSimulationDisposition({
@@ -1495,16 +1528,17 @@ describe('local fictional password analysis', () => {
       },
     });
 
-    expect(disposition).toMatchObject({
-      kind: 'whole-password-recognized',
-      ruleId: 'whole-password-recognized-semantic-path',
-    });
+    expect(disposition).toMatchObject({ kind: 'no-whole-password-recognized' });
   });
 
-  it('does not let one relation explain unrelated short lexical components', () => {
-    const fictionalPassword = 'eisichbintotpo';
+  it('does not let one partial relation change a four-word disposition', () => {
+    const fictionalPassword = 'KaffeeMorgenSonneLampe';
     const componentAnalysis = analyzeFictionalPassword({ fictionalPassword });
-    const disposition = determinePasswordSimulationDisposition({
+    const withoutSemanticEvidence = determinePasswordSimulationDisposition({
+      fictionalPassword,
+      componentAnalysis,
+    });
+    const withSemanticEvidence = determinePasswordSimulationDisposition({
       fictionalPassword,
       componentAnalysis,
       semanticEvidence: {
@@ -1512,18 +1546,19 @@ describe('local fictional password analysis', () => {
         confirmed: true,
         relations: [
           {
-            id: 'semantic:partial-short-words',
+            id: 'semantic:partial-words',
             kind: 'shared-content',
             evidence: [
-              { type: 'span', start: 0, end: 3, token: 'eis' },
-              { type: 'span', start: 8, end: 11, token: 'tot' },
+              { type: 'span', start: 0, end: 6, token: 'Kaffee' },
+              { type: 'span', start: 12, end: 17, token: 'Sonne' },
             ],
           },
         ],
       },
     });
 
-    expect(disposition.kind).toBe('no-whole-password-recognized');
+    expect(withoutSemanticEvidence).toEqual(withSemanticEvidence);
+    expect(withSemanticEvidence.kind).toBe('no-whole-password-recognized');
   });
 
   it('uses a participant-marked personal span without treating it as an automatic dictionary fact', () => {
@@ -1555,9 +1590,9 @@ describe('local fictional password analysis', () => {
 
     expect(disposition).toMatchObject({
       kind: 'whole-password-recognized',
-      ruleId: 'whole-password-recognized-semantic-path',
-      semanticRelationIds: ['semantic:personal:bvb', 'semantic:content:bvb-kaffee'],
+      ruleId: 'whole-password-recognized-generated-candidate',
     });
+    expect(disposition).not.toHaveProperty('semanticRelationIds');
   });
 
   it.each([

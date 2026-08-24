@@ -174,8 +174,8 @@ export interface TheoreticalSearchSpaceModel {
 
 export type SimulationWholePasswordRecognitionRuleId =
   | 'whole-password-recognized-value'
-  | 'whole-password-recognized-bounded-variant'
-  | 'whole-password-recognized-semantic-path'
+  | 'whole-password-recognized-generated-candidate'
+  | 'whole-password-recognized-single-anchor-residual'
   | 'whole-password-recognized-exhaustive-search';
 export type PasswordLengthOrientation = 'below-15' | 'at-least-15';
 
@@ -189,18 +189,17 @@ export type LocalPasswordDisposition =
       readonly kind: 'whole-password-recognized';
       readonly ruleId:
         | 'whole-password-recognized-value'
-        | 'whole-password-recognized-bounded-variant';
+        | 'whole-password-recognized-generated-candidate';
       readonly findingIds: readonly string[];
       readonly explanationId:
         | 's05.disposition.whole-password-recognized-value'
-        | 's05.disposition.whole-password-recognized-bounded-variant';
+        | 's05.disposition.whole-password-recognized-generated-candidate';
     })
   | (LocalPasswordDispositionBase & {
       readonly kind: 'whole-password-recognized';
-      readonly ruleId: 'whole-password-recognized-semantic-path';
+      readonly ruleId: 'whole-password-recognized-single-anchor-residual';
       readonly findingIds: readonly string[];
-      readonly semanticRelationIds: readonly string[];
-      readonly explanationId: 's05.disposition.whole-password-recognized-semantic-path';
+      readonly explanationId: 's05.disposition.whole-password-recognized-single-anchor-residual';
     })
   | (LocalPasswordDispositionBase & {
       readonly kind: 'whole-password-recognized';

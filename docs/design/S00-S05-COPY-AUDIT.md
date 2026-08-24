@@ -1,5 +1,47 @@
 # S00--S05 Copy and Interaction Audit
 
+## Copy-Delta S04 direkter Campusgram-Passworthinweis, 24. August 2026
+
+Quelle ist der ausdrückliche Nutzerauftrag vom 24. August 2026. Der Beratungssatz im
+Campusgram-Datenleckhinweis knüpft nun direkt an die unmittelbar davor erklärte
+Datenlecksituation an. Die bestehende Handlung `Passwort jetzt ändern` und der lokale,
+vollständig flüchtige Passwortwechsel bleiben unverändert. S07 rendert denselben kanonischen
+Hinweis aus `s04Content` und übernimmt den neuen Wortlaut dadurch ebenfalls. Persistenz, Export,
+Timing und Studienablauf bleiben unverändert. `S04_CONTENT_VERSION` steigt von `1.11.0` auf
+`1.12.0`.
+
+| Segment und Text-ID | Quelle | Aktueller Text | Geplanter Text | Primäre Rolle | Grund | Bedeutungsänderung | Interaktionsziel | Hervorhebung |
+|---|---|---|---|---|---|---|---|---|
+| `S04.notice.advisory` / wiederverwendet als `S07.browser.campusgram.dashboardNotice.advisory` | ausdrücklicher Nutzerwortlaut vom 2026-08-24 | `Um dein Konto zu schützen, solltest du das Campusgram-Passwort jetzt ersetzen.` | `Ändere deshalb dein Campusgram-Passwort.` | Navigation | stellt den kausalen Bezug zur direkt vorausgehenden Datenleckmeldung kürzer her | begrenzt | bestehendes `Passwort jetzt ändern` | keine |
+
+Geschützter Wortlaut bleibt unverändert.
+
+## Copy-Delta S05 Kandidatengenerierung der Analyseversion v20, 24. August 2026
+
+Quelle ist der vom Nutzer am 24. August 2026 zur vollständigen Übernahme vorgegebene
+`passwo-v20-candidate-generation.patch`. Die Abschlussauswertung beschreibt nun die tatsächlichen
+v20-Wege: direkten Vollwert, generierten Kandidaten, genau einen Anker mit frei durchprobiertem
+Rest sowie das abschließende vollständige Durchprobieren innerhalb derselben Übungsgrenze.
+Teilnehmermarkierungen werden nicht mehr als Angreiferwissen eingeordnet. Interaktionsziel,
+Persistenz, Export und Timing bleiben unverändert. `S05_CONTENT_VERSION` steigt von `2.133.0` auf
+`2.134.0`.
+
+| Segment und Text-ID | Quelle | Aktueller Text | Geplanter Text | Primäre Rolle | Grund | Bedeutungsänderung | Interaktionsziel | Hervorhebung |
+|---|---|---|---|---|---|---|---|---|
+| `S05.freeSearch.application.assessmentIntroduction[0]` | Nutzerauftrag / v20-Patch vom 2026-08-24 | `Ein Passwort gilt hier als gefunden, wenn ein erkannter Weg zur ganzen Zeichenfolge führt.` | `Gefunden heißt hier: Eine der gezeigten Strategien erzeugt genau das ganze Passwort innerhalb der Übungsgrenze.` | Mechanismuserklärung | sichtbare Erklärung an das v20-Angreifermodell anpassen | ausdrücklich freigegeben | bestehender Ergebnisablauf | keine |
+| `S05.freeSearch.application.assessmentIntroduction[1]` | Nutzerauftrag / v20-Patch vom 2026-08-24 | `Das gilt auch, wenn alle Zeichenfolgen in höchstens etwa einem Tag durchprobiert wären. Es ist keine Sicherheitsgarantie.` | `Dazu werden frühe Kandidaten kombiniert oder typisch verändert. Bleibt neben genau einem Kandidaten ein kurzer Rest, wird nur dieser Rest frei durchprobiert; danach folgt noch das vollständige Durchprobieren. Das Ergebnis ist keine Sicherheitsgarantie.` | Mechanismuserklärung | die drei geordneten v20-Fundwege mit Claim-Grenze benennen | ausdrücklich freigegeben | bestehender Ergebnisablauf | keine |
+| `S05.freeSearch.application.result.recognizedValue` | Nutzerauftrag / v20-Patch vom 2026-08-24 | `Die ganze Zeichenfolge wurde früh erkannt. Deshalb gilt dein Campusgram-Passwort hier als gefunden.` | `Ein früher Kandidat entspricht genau dem ganzen Campusgram-Passwort. Deshalb gilt es hier als gefunden.` | Ergebnisfeedback | direkten Vollwertweg präzise benennen | begrenzt | bestehender Ergebnisablauf | keine |
+| `S05.freeSearch.application.result.recognizedGeneratedCandidate` | Nutzerauftrag / v20-Patch vom 2026-08-24 | `Eine einfache Änderung führte zur gesamten Zeichenfolge. Deshalb gilt dein Campusgram-Passwort hier als gefunden.` (`recognizedBoundedVariant`) | `Eine Kombination früher Kandidaten oder eine typische Änderung erzeugt genau das ganze Campusgram-Passwort innerhalb der Übungsgrenze. Deshalb gilt es hier als gefunden.` | Ergebnisfeedback | neue quellengestützte Kandidatenfamilie erklären | ausdrücklich freigegeben | bestehender Ergebnisablauf | keine |
+| `S05.freeSearch.application.result.recognizedSingleAnchorResidual` | Nutzerauftrag / v20-Patch vom 2026-08-24 | `Die bisherigen Prüfungen und deine Markierungen führen zur ganzen Zeichenfolge. Deshalb gilt dein Campusgram-Passwort hier als gefunden.` (`recognizedSemanticPath`) | `Ein früher Kandidat deckt einen Teil der Zeichenfolge ab. Der kurze übrige Teil lässt sich innerhalb der Übungsgrenze frei durchprobieren. Deshalb gilt dein Campusgram-Passwort hier als gefunden.` | Ergebnisfeedback | Markierungen nicht als Angreiferwissen verwenden und den tatsächlichen Restweg benennen | ausdrücklich freigegeben | bestehender Ergebnisablauf | keine |
+| `S05.freeSearch.application.result.recognizedExhaustiveSearch` | Nutzerauftrag / v20-Patch vom 2026-08-24 | `Das Durchprobieren liegt innerhalb der Grenze. Deshalb gilt dein Campusgram-Passwort hier als gefunden.` | `Alle Zeichenfolgen dieses Zeichenraums und dieser Länge liegen innerhalb der Übungsgrenze. Deshalb gilt dein Campusgram-Passwort hier als gefunden.` | Ergebnisfeedback | Suchweg präzisieren | begrenzt | bestehender Ergebnisablauf | keine |
+| `S05.freeSearch.application.result.notRecognized` | Nutzerauftrag / v20-Patch vom 2026-08-24 | `Das Durchprobieren liegt über der Grenze. Deshalb gilt dein Campusgram-Passwort hier als nicht gefunden. Das ist kein Sicherheitsnachweis.` | `Keine der gezeigten Strategien erzeugt das ganze Campusgram-Passwort innerhalb der Übungsgrenze. Deshalb gilt es hier als nicht gefunden. Das ist kein Sicherheitsnachweis.` | Safety Boundary | Nicht-Erkennung auf alle v20-Wege beziehen, ohne eine Sicherheitsgarantie abzuleiten | ausdrücklich freigegeben | bestehender Ergebnisablauf | keine |
+| `S05.passwordAssessment.accessibleSummary.singleAnchorResidual` | Nutzerauftrag / v20-Patch vom 2026-08-24 | `Die bisherigen Prüfungen und bestätigten Zusammenhänge bilden in dieser Übung einen vollständigen Kandidatenweg.` | `Ein früher Kandidat und ein kurzer frei durchprobierter Rest erzeugen in dieser Übung das vollständige fiktive Passwort.` | Ergebnisfeedback | zugängliche Zusammenfassung an den Ein-Anker-Restweg anpassen | ausdrücklich freigegeben | kein | keine |
+| `S05.passwordAssessment.accessibleSummary.generatedCandidate` | Nutzerauftrag / v20-Patch vom 2026-08-24 | `Ein einzelner früher Kandidat oder eine begrenzte typische Variante deckt das vollständige fiktive Passwort ab.` | `Frühe Kandidaten und begrenzte typische Änderungen erzeugen in dieser Übung das vollständige fiktive Passwort.` | Ergebnisfeedback | zugängliche Zusammenfassung an die generierte Kandidatenfamilie anpassen | ausdrücklich freigegeben | kein | keine |
+| `S05.passwordAssessment.accessibleSummary.recognizedValue` | Nutzerauftrag / v20-Patch vom 2026-08-24 | `Ein einzelner früher Kandidat oder eine begrenzte typische Variante deckt das vollständige fiktive Passwort ab.` | `Ein früher Kandidat entspricht in dieser Übung dem vollständigen fiktiven Passwort.` | Ergebnisfeedback | direkten Vollwert vom generierten Kandidaten trennen | begrenzt | kein | keine |
+| `S05.passwordAssessment.accessibleSummary.notRecognized` | Nutzerauftrag / v20-Patch vom 2026-08-24 | `Das vollständige Durchprobieren liegt in dieser Übung außerhalb der festgelegten Grenze. Das ist kein Sicherheitsnachweis.` | `Keine der gezeigten Strategien erzeugt in dieser Übung das vollständige fiktive Passwort innerhalb der festgelegten Grenze. Das ist kein Sicherheitsnachweis.` | Safety Boundary | Nicht-Erkennung zugänglich auf alle v20-Wege begrenzen | ausdrücklich freigegeben | kein | keine |
+
+Geschützter Wortlaut bleibt unverändert.
+
 ## Copy- und Darstellungsdelta S05 kompaktes Gleichheitsbeispiel, 24. August 2026
 
 Quelle ist der ausdrückliche Nutzerauftrag vom 24. August 2026. Das visuelle Beispiel für ein

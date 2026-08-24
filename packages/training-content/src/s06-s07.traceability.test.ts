@@ -9,7 +9,7 @@ import { S08_NETWORK_REPLAY_CONTENT_VERSION, s08NetworkReplayContent } from './s
 import { S09_PASSWORD_SUMMARY_CONTENT_VERSION, s09PasswordSummaryContent } from './s09.js';
 
 const s06AttackFlowCopyReference =
-  'docs/design/S06-S07-COPY-AUDIT.md#copy-und-interaktionsdelta-s06-begrenzte-abwandlung-und-edit-pfad-24-august-2026';
+  'docs/design/S06-S07-COPY-AUDIT.md#copy-und-ablaufdelta-s06-stabile-what-if-zustaende-und-getrennter-campus-e-mail-uebergang-24-august-2026';
 const s07EntryCopyReference =
   'docs/design/S06-S07-COPY-AUDIT.md#copy-delta-s06-s07-eigene-passwoerter-23-august-2026';
 const s08CopyReference =
@@ -19,7 +19,7 @@ const s09CopyReference =
 
 describe('S06 transition and S07 passphrase-search copy traceability', () => {
   it('keeps S06 consequence wording aligned with bounded whole-password recognition', () => {
-    expect(S06_CONSEQUENCE_CONTENT_VERSION).toBe('2.47.0');
+    expect(S06_CONSEQUENCE_CONTENT_VERSION).toBe('2.49.0');
     expect(s06ConsequenceContent.source.copyReference).toBe(s06AttackFlowCopyReference);
     expect(s06ConsequenceContent.page.attackStart).toBe('Angriff starten');
     expect(s06ConsequenceContent.page.finish).toBe('Fertig');
@@ -45,7 +45,7 @@ describe('S06 transition and S07 passphrase-search copy traceability', () => {
       'Das Campusgram-Passwort ist nun bekannt. Der Angreifer kann dasselbe Passwort und leichte Abwandlungen jetzt auch bei den anderen Konten ausprobieren.',
     );
     expect(s06ConsequenceContent.narrations['s06.incident.campusgram-blocked'].body).toBe(
-      'Das Campusgram-Passwort wurde hier nicht gefunden. Schauen wir trotzdem kurz, was passiert wäre, wenn es bekannt geworden wäre.',
+      'Auch wenn das Passwort hier nicht erraten wurde, kann es durch ein Datenleck bekannt werden: etwa wenn es unmittelbar im Klartext offengelegt oder aus unzureichend geschützten Passwortdaten nachträglich ermittelt wird. Schauen wir deshalb, was dann bei den anderen Konten passieren würde.',
     );
     expect(s06ConsequenceContent.narrations['s06.compare.exact-match'].body).toBe(
       'Dasselbe Passwort kann beim Zielkonto ausprobiert werden.',
@@ -68,10 +68,13 @@ describe('S06 transition and S07 passphrase-search copy traceability', () => {
         body: 'Das Durchprobieren liegt außerhalb der Grenze. Das Master-Campus-Passwort gilt hier nicht als gefunden. Für den Vergleich nehmen wir kurz an, es wäre bekannt.',
       },
       's06.transition.master-campus-email-match': {
-        body: 'Zwischen Master Campus und Campus E-Mail wurde dasselbe Passwort oder eine leichte Abwandlung erkannt. Dieser Weg könnte den Angriff auf Campus E-Mail ausweiten. Schauen wir uns das Campus-E-Mail-Passwort jetzt noch für sich an.',
+        body: 'Zwischen Master Campus und Campus E-Mail wurde dasselbe Passwort oder eine leichte Abwandlung erkannt. Dieser Weg könnte den Angriff auf Campus E-Mail ausweiten.',
       },
       's06.transition.master-campus-email-no-match': {
-        body: 'Zwischen Master Campus und Campus E-Mail wurde hier keine solche Übereinstimmung erkannt. Dieser Weg führt in dieser Übung nicht weiter. Schauen wir uns das Campus-E-Mail-Passwort jetzt noch für sich an.',
+        body: 'Zwischen Master Campus und Campus E-Mail wurde hier keine solche Übereinstimmung erkannt. Dieser Weg führt in dieser Übung nicht weiter.',
+      },
+      's06.transition.campus-email-local-check': {
+        body: 'Schauen wir uns das Campus-E-Mail-Passwort jetzt noch für sich an.',
       },
       's06.local-check.campus-email-found': {
         heading: 'Lokaler Einzelcheck von Campus E-Mail',
@@ -88,7 +91,7 @@ describe('S06 transition and S07 passphrase-search copy traceability', () => {
     });
     expect(s06ConsequenceContent.narrations['s06.transition.s07']).toEqual({
       heading: 'Betroffenes Passwort ersetzen',
-      body: 'Ein Datenleck lässt sich nicht immer verhindern. Danach zählt, die Folgen zu begrenzen: das betroffene Passwort zügig ersetzen und für jedes Konto ein eigenes Passwort verwenden. Genau das machen wir jetzt bei Campusgram.',
+      body: 'Ein Datenleck lässt sich nicht immer verhindern. Wird ein Passwort dabei bekannt, sollte es zügig ersetzt werden. Wurde dasselbe oder leicht abgewandelt auch bei anderen Konten verwendet, sollten dort ebenfalls neue, jeweils eigene Passwörter eingesetzt werden. Genau damit beginnen wir jetzt bei Campusgram.',
     });
     expect(s06ConsequenceContent.narrations).toMatchObject({
       's06.summary.actual-none': {

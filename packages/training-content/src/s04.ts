@@ -54,16 +54,16 @@ export interface S04SegmentContent {
   };
 }
 
-export const S04_CONTENT_VERSION = '1.11.0';
+export const S04_CONTENT_VERSION = '1.12.0';
 
 export const s04Content: S04SegmentContent = {
   version: S04_CONTENT_VERSION,
   source: {
     document: 'research/private/training-script.pdf',
     internalPages: [12],
-    revision: 'Userauftrag vom 2026-08-14 · Campusgram-Passwortwechsel gestrafft',
+    revision: 'Userauftrag vom 2026-08-24 · Campusgram-Passwortwechsel direkt begründet',
     copyReference:
-      'docs/design/S00-S05-COPY-AUDIT.md#copy-und-interaktionsdelta-s04-passwortwechsel-gestrafft-14-august-2026',
+      'docs/design/S00-S05-COPY-AUDIT.md#copy-delta-s04-direkter-campusgram-passworthinweis-24-august-2026',
   },
   segment: {
     id: 'S04',
@@ -81,7 +81,7 @@ export const s04Content: S04SegmentContent = {
       'Bei Campusgram gab es ein Datenleck. Eine alte Datei mit gespeicherten Passwortdaten ist in fremde Hände geraten.',
       'Wie geht ein Angreifer vor, um das Campusgram-Passwort herauszufinden?',
     ],
-    advisory: 'Um dein Konto zu schützen, solltest du das Campusgram-Passwort jetzt ersetzen.',
+    advisory: 'Ändere deshalb dein Campusgram-Passwort.',
     passwordChangeLabel: 'Passwort jetzt ändern',
     passwordChange: {
       address: 'campusgram.campus.example/konto/passwort',

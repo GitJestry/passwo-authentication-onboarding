@@ -449,7 +449,7 @@ describe('research-safe contracts', () => {
       ruleId: 'whole-password-recognized-exhaustive-search',
       findingIds: [],
       lengthOrientation: 'below-15',
-      analysisVersion: 'passwo-bounded-whole-recognition-v16',
+      analysisVersion: 'passwo-bounded-whole-recognition-v20',
       explanationId: 's05.disposition.whole-password-recognized-exhaustive-search',
     };
 
@@ -460,7 +460,7 @@ describe('research-safe contracts', () => {
     );
   });
 
-  it('keeps participant-confirmed semantic evidence transient and categorical', () => {
+  it('keeps participant-confirmed semantic evidence transient and outside the disposition', () => {
     const semanticEvidence: TransientPasswordSemanticEvidence = {
       kind: 'transient-password-semantic-evidence',
       confirmed: true,
@@ -477,16 +477,16 @@ describe('research-safe contracts', () => {
     };
     const disposition: LocalPasswordDisposition = {
       kind: 'whole-password-recognized',
-      ruleId: 'whole-password-recognized-semantic-path',
-      findingIds: ['single:common-word:0-6:0', 'single:common-word:6-12:1'],
-      semanticRelationIds: ['semantic:content:1'],
+      ruleId: 'whole-password-recognized-single-anchor-residual',
+      findingIds: ['single:common-password-core:0-8:0'],
       lengthOrientation: 'below-15',
-      analysisVersion: 'passwo-bounded-whole-recognition-v13',
-      explanationId: 's05.disposition.whole-password-recognized-semantic-path',
+      analysisVersion: 'passwo-bounded-whole-recognition-v20',
+      explanationId: 's05.disposition.whole-password-recognized-single-anchor-residual',
     };
 
     expect(semanticEvidence.confirmed).toBe(true);
-    expect(disposition.ruleId).toBe('whole-password-recognized-semantic-path');
+    expect(disposition.ruleId).toBe('whole-password-recognized-single-anchor-residual');
+    expect(disposition).not.toHaveProperty('semanticRelationIds');
     expect(Object.keys(semanticEvidence)).not.toEqual(
       expect.arrayContaining(['password', 'score', 'strength', 'entropy', 'estimatedGuesses']),
     );
