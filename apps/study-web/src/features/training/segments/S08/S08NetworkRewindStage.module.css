@@ -326,7 +326,7 @@
   position: absolute;
   z-index: 8;
   top: 48%;
-  left: 56%;
+  left: 50%;
   display: grid;
   width: min(76%, 38rem);
   min-height: 1px;
