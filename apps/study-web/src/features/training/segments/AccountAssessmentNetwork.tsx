@@ -35,7 +35,7 @@ function actionLabelForNode(
 
 function AccountStatusOverlay({
   node,
-  showAttacker,
+  attackerRole,
   attackerAttemptStatus,
   comparisonResult,
   comparisonResultAriaHidden,
@@ -47,7 +47,7 @@ function AccountStatusOverlay({
   shieldAsset,
 }: {
   readonly node: NetworkSceneSnapshot['nodes'][number];
-  readonly showAttacker: boolean;
+  readonly attackerRole: 'active' | 'departing' | null;
   readonly attackerAttemptStatus: NetworkSceneSnapshot['nodes'][number]['status'] | null;
   readonly comparisonResult: PasswordRelation['kind'] | null;
   readonly comparisonResultAriaHidden: boolean;
@@ -64,7 +64,7 @@ function AccountStatusOverlay({
     node.status === 'protected' && node.symbolId === 'comparison-path-shield';
   const attackerStatus = attackerAttemptStatus ?? node.status;
   if (
-    !showAttacker &&
+    attackerRole === null &&
     !showsShield &&
     !showsComparisonPathShield &&
     comparisonResult === null &&
@@ -76,12 +76,13 @@ function AccountStatusOverlay({
 
   return (
     <>
-      {showAttacker ? (
+      {attackerRole === null ? null : (
         <span
-          key={`${node.id}-${attackerStatus}`}
+          key={`${node.id}-${attackerRole}-${attackerStatus}`}
           className={styles.attackAttempt}
           data-account-attack-attempt={attackerStatus}
           data-account-attack-source={node.id}
+          data-account-attacker-role={attackerRole}
           aria-hidden="true"
         >
           <span className={styles.attackConnection} />
@@ -92,7 +93,7 @@ function AccountStatusOverlay({
             <img src={attackerAsset} width={1024} height={1024} alt="" />
           </span>
         </span>
-      ) : null}
+      )}
       {showsShield ? (
         <img
           className={styles.shield}
@@ -153,6 +154,7 @@ export function AccountAssessmentNetwork({
   canvasAriaLabel,
   attackPhase,
   attackerAccountId = 'campusgram',
+  attackerDepartureAccountId = null,
   attackerAttemptStatus = null,
   attackTargetId,
   attackEdgeId = null,
@@ -181,10 +183,12 @@ export function AccountAssessmentNetwork({
     | 'found'
     | 'hypothetical-intro'
     | 'incident-check'
+    | 'source-transition'
     | 'attacking'
     | 'preview-ready'
     | 'resolving';
   readonly attackerAccountId?: S06AccountId | null;
+  readonly attackerDepartureAccountId?: S06AccountId | null;
   readonly attackerAttemptStatus?: NetworkSceneSnapshot['nodes'][number]['status'] | null;
   readonly attackTargetId?: S06AccountId | null;
   readonly attackEdgeId?: string | null;
@@ -213,7 +217,13 @@ export function AccountAssessmentNetwork({
     (node: NetworkSceneSnapshot['nodes'][number]) => (
       <AccountStatusOverlay
         node={node}
-        showAttacker={node.id === attackerAccountId}
+        attackerRole={
+          node.id === attackerDepartureAccountId
+            ? 'departing'
+            : node.id === attackerAccountId
+              ? 'active'
+              : null
+        }
         attackerAttemptStatus={attackerAttemptStatus}
         comparisonResult={comparisonResults[node.id] ?? null}
         comparisonResultAriaHidden={comparisonResultsAriaHidden}
@@ -229,6 +239,7 @@ export function AccountAssessmentNetwork({
     ),
     [
       attackerAccountId,
+      attackerDepartureAccountId,
       attackerAttemptStatus,
       comparisonResults,
       comparisonResultsAriaHidden,
@@ -249,6 +260,7 @@ export function AccountAssessmentNetwork({
       data-attack-source={attackerAccountId ?? undefined}
       data-attack-target={attackTargetId ?? undefined}
       data-attack-blocked={attackBlocked || undefined}
+      data-attack-attempt={attackerAttemptStatus ?? undefined}
     >
       <ReactFlowNetwork
         adapter={adapter}

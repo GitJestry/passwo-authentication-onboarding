@@ -1,0 +1,746 @@
+diff --git a/apps/study-web/src/features/training/segments/S05/S05ComponentStrategy.test.ts b/apps/study-web/src/features/training/segments/S05/S05ComponentStrategy.test.ts
+index 7cac9541c256027309fc71009c32b8b9b2cad419..dbdd47c52ae40ec68eec2a9995826b4032ef431b 100644
+--- a/apps/study-web/src/features/training/segments/S05/S05ComponentStrategy.test.ts
++++ b/apps/study-web/src/features/training/segments/S05/S05ComponentStrategy.test.ts
+@@ -102,6 +102,45 @@ describe('S05 component strategy presentation', () => {
+     });
+   });
+ 
++  it('shows IchBin as two understandable components without changing whole-candidate recognition', () => {
++    const password = 'IchBin';
++    const analysis = analyzeFictionalPassword({ fictionalPassword: password });
++    const view = createCanonicalPasswordView(password, analysis);
++    const disposition = determinePasswordSimulationDisposition({
++      fictionalPassword: password,
++      componentAnalysis: analysis,
++    });
++
++    expect(view.blocks.map(({ value }) => value)).toEqual(['Ich', 'Bin']);
++    expect(
++      view.automaticFindings['common-components'].map(({ start, end }) =>
++        password.slice(start, end),
++      ),
++    ).toEqual(expect.arrayContaining(['Ich', 'Bin']));
++    expect(
++      view.automaticFindings['common-components'].map(({ start, end }) =>
++        password.slice(start, end),
++      ),
++    ).not.toContain('IchBin');
++    expect(disposition).toMatchObject({ kind: 'whole-password-recognized' });
++  });
++
++  it.each(['Maiden', 'MaiDen'])(
++    'keeps the meaningful English word %s as one visible component',
++    (password) => {
++      const analysis = analyzeFictionalPassword({ fictionalPassword: password });
++      const view = createCanonicalPasswordView(password, analysis);
++      const visibleTokens = view.automaticFindings['common-components'].map(({ start, end }) =>
++        password.slice(start, end),
++      );
++
++      expect(view.blocks.map(({ value }) => value)).toEqual([password]);
++      expect(visibleTokens).toContain(password);
++      expect(visibleTokens).not.toContain('Mai');
++      expect(visibleTokens).not.toContain('Den');
++    },
++  );
++
+   it('does not treat two candidates covering the password as a single-candidate match', () => {
+     const password = 'Passw0rtSommer';
+     const view = createCanonicalPasswordView(
+diff --git a/apps/study-web/src/features/training/segments/S05/S05ComponentStrategy.ts b/apps/study-web/src/features/training/segments/S05/S05ComponentStrategy.ts
+index 7393839795b9a7104f8e9fd7652ed3781db1bcd2..b18a7ef85bb07230d3378bf81e666298e07a8239 100644
+--- a/apps/study-web/src/features/training/segments/S05/S05ComponentStrategy.ts
++++ b/apps/study-web/src/features/training/segments/S05/S05ComponentStrategy.ts
+@@ -547,10 +547,11 @@ export function createCanonicalPasswordView(
+   analysis: PasswordAnalysisResult,
+ ): S05CanonicalPasswordView {
+   const findingsWithSpans = analysis.findings.flatMap((finding) =>
+-    commonComponentKinds.has(finding.kind) ||
+-    finding.kind === 'account-or-service-term' ||
+-    finding.kind === 'typical-transformation' ||
+-    finding.kind === 'typical-suffix'
++    finding.segmentationRole !== 'candidate-only' &&
++    (commonComponentKinds.has(finding.kind) ||
++      finding.kind === 'account-or-service-term' ||
++      finding.kind === 'typical-transformation' ||
++      finding.kind === 'typical-suffix')
+       ? evidenceSpans(finding).map((span) => ({ finding, span }))
+       : [],
+   );
+diff --git a/docs/architecture/adr/0014-bounded-local-password-guessing-analysis.md b/docs/architecture/adr/0014-bounded-local-password-guessing-analysis.md
+index 830b4ac5235b71ca28ba5a0de5239cd313e3c689..92cd900c1f8c4824d119e294ea8723a680f89a2d 100644
+--- a/docs/architecture/adr/0014-bounded-local-password-guessing-analysis.md
++++ b/docs/architecture/adr/0014-bounded-local-password-guessing-analysis.md
+@@ -36,7 +36,7 @@ NIST-Konformitätsimplementierung.
+ ## Entscheidung
+ 
+ `@passwo/password-analysis` bleibt vollständig lokal, deterministisch und frameworkfrei. Die
+-Analysekonfiguration erhält die Version `passwo-bounded-whole-recognition-v18`.
++Analysekonfiguration erhält die Version `passwo-bounded-whole-recognition-v19`.
+ 
+ Die interne Verarbeitung trennt drei Ebenen:
+ 
+@@ -104,8 +104,15 @@ Erweiterung an einem Rand möglich, während ein Kollisionsfragment wie `tRot` 
+ als eigener Passwortlistenbestandteil übernommen wird.
+ Dieselbe Grenze gilt bereits bei der Bildung vollständiger Wörterbuchpartitionen: Ein Kandidat darf
+ eine sichtbare Grenze nur überqueren, wenn sowohl sein Anfang als auch sein Ende selbst auf
+-unterstützten Grenzen liegen. Dadurch bleibt ein vollständiger Anker wie `IchBin` möglich, während
+-die Partition `Ist|Rot` nicht zu `Is|tRot` verschoben werden kann.
++unterstützten Grenzen liegen. Passwortlisten-Vollwerte werden zusätzlich von ihrer sichtbaren
++Segmentierungsautorität getrennt. Überspannt ein Vollwert sichtbare Wortgrenzen, ist selbst kein
++gewöhnliches deutsches oder englisches Wort und lassen sich sämtliche sichtbaren Teile in einer
++einzigen unterstützten Sprache als gewöhnliche Wörter belegen, bleibt er als Angriffskandidat
++erhalten, wird aber nicht als ein Baustein projiziert. Deshalb wird `IchBin` nach außen zu
++`Ich | Bin`. Ein vollständiges gewöhnliches Wort hat dagegen Vorrang; `Maiden` beziehungsweise
++`MaiDen` wird nicht aufgrund der deutschen Teiltreffer `Mai | den` zerlegt. Sichtbare
++Großschreibungsgrenzen allein lösen keine Zerlegung aus. Die bestehende Sperre verhindert weiterhin,
++dass `Ist|Rot` zu `Is|tRot` verschoben wird.
+ 
+ Die vollständige Zerlegung wird je Lauf getrennt für Deutsch und Englisch berechnet. Wörter aus
+ beiden Sprachen werden nicht frei zu einer künstlichen Mischpartition kombiniert. Die
+diff --git a/docs/research/PASSWORD-GUESSING-ANALYSIS.md b/docs/research/PASSWORD-GUESSING-ANALYSIS.md
+index b843218d72bf348272893f1508706139af246f74..0ce4aff53ee8a417b7d4dcd6c761a51b9c3be29d 100644
+--- a/docs/research/PASSWORD-GUESSING-ANALYSIS.md
++++ b/docs/research/PASSWORD-GUESSING-ANALYSIS.md
+@@ -69,7 +69,7 @@ noch als Forschungsvariable gespeichert.
+ 
+ | Bestandteil | Wert |
+ |---|---|
+-| Analyse-ID | `passwo-bounded-whole-recognition-v18` |
++| Analyse-ID | `passwo-bounded-whole-recognition-v19` |
+ | Engine | `zxcvbn-ts` als Musterquelle |
+ | Core | `@zxcvbn-ts/core@4.1.2` |
+ | Allgemeines Wörterbuch/Graphen | `@zxcvbn-ts/language-common@4.1.2` |
+@@ -168,8 +168,15 @@ Erweiterung an einem Rand möglich, ein inneres Kollisionsfragment wie `tRot` ü
+ Grenze `Ist|Rot` wird aber nicht als eigener Passwortlistenbestandteil übernommen.
+ Die gleiche Einschränkung wird vor der dynamischen vollständigen Wörterbuchpartition angewandt.
+ Kandidaten dürfen eine sichtbare Grenze nur dann überspannen, wenn beide Kandidatenenden selbst
+-unterstützte Grenzen sind. Ein vollständiger Listeneintrag `IchBin` bleibt damit zulässig; die
+-verschobene Zerlegung `Is|tRot` über `Ist|Rot` ist ausgeschlossen.
++unterstützte Grenzen sind. Vollständige Passwortlisteneinträge erhalten danach eine zusätzliche
++Segmentierungsprüfung: Überspannt ein Eintrag sichtbare Wortgrenzen, ist der vollständige Wert in
++keiner unterstützten Sprache selbst ein gewöhnliches Wort und bilden alle sichtbaren Teile in
++derselben Sprache gewöhnliche Wörter, bleibt der Vollwert nur als Angriffskandidat erhalten. Er
++definiert dann keine sichtbaren Bausteingrenzen. `IchBin` bleibt dadurch für die spätere
++Vollwerterkennung verfügbar, wird in der Bausteinansicht aber als `Ich | Bin` projiziert. Ein
++sprachlich eigenständiger Vollwert hat Vorrang: `Maiden` und selbst die Schreibvariante `MaiDen`
++werden nicht zu den zufällig passenden deutschen Teilwörtern `Mai | den` zerlegt. Die Regel ist
++damit keine pauschale CamelCase-Trennung.
+ 
+ Ein Namensfund muss den vollständigen sichtbaren Abschnitt abdecken. Ein partieller Namensfund wie
+ `ZumMo` in `ZumMond` oder `larissa` in `Klarissa` wird verworfen, sofern er nicht als flüchtiger
+diff --git a/packages/contracts/src/password-consequence.ts b/packages/contracts/src/password-consequence.ts
+index 3d720f3d815704e9530e6e991c64a6c652585dfb..ec63c0d340b7487c32a15e0e6441df2d47f3eedc 100644
+--- a/packages/contracts/src/password-consequence.ts
++++ b/packages/contracts/src/password-consequence.ts
+@@ -1,5 +1,7 @@
+ export type PasswordFindingConfidence = 'authored-exact-match' | 'bounded-heuristic';
+ 
++export type PasswordFindingSegmentationRole = 'component' | 'candidate-only';
++
+ export interface PasswordEvidenceSpan {
+   readonly type: 'span';
+   readonly start: number;
+@@ -35,6 +37,11 @@ export interface PasswordSingleFinding {
+   readonly evidence: readonly PasswordEvidence[];
+   readonly explanationId: string;
+   readonly confidence: PasswordFindingConfidence;
++  /**
++   * `candidate-only` findings remain available for whole-candidate recognition but must not
++   * define learner-facing component boundaries. Omission is equivalent to `component`.
++   */
++  readonly segmentationRole?: PasswordFindingSegmentationRole;
+ }
+ 
+ export type PasswordGuessPathPattern =
+diff --git a/packages/password-analysis/src/password-analysis.test.ts b/packages/password-analysis/src/password-analysis.test.ts
+index 6dac78bdb6f4f90e429a4ff4ef09386496e10cc6..16e2a30fa59e6b6d8e6f065e59b0c1f35f6d84f5 100644
+--- a/packages/password-analysis/src/password-analysis.test.ts
++++ b/packages/password-analysis/src/password-analysis.test.ts
+@@ -622,7 +622,8 @@ describe('local fictional password analysis', () => {
+   it('does not shift a complete partition across a visible CamelCase boundary', () => {
+     const result = analyzeFictionalPassword({ fictionalPassword: 'IchBinEisSieIstRot' });
+     const dictionaryTokens = result.findings.flatMap((finding) =>
+-      finding.kind === 'common-password-core' || finding.kind === 'common-word'
++      finding.segmentationRole !== 'candidate-only' &&
++      (finding.kind === 'common-password-core' || finding.kind === 'common-word')
+         ? finding.evidence.flatMap((evidence) =>
+             evidence.type === 'span' ? [evidence.token.toLocaleLowerCase('de-DE')] : [],
+           )
+@@ -630,12 +631,90 @@ describe('local fictional password analysis', () => {
+     );
+ 
+     expect(dictionaryTokens).toEqual(
+-      expect.arrayContaining(['ichbin', 'eis', 'sie', 'ist', 'rot']),
++      expect.arrayContaining(['ich', 'bin', 'eis', 'sie', 'ist', 'rot']),
+     );
++    expect(dictionaryTokens).not.toContain('ichbin');
+     expect(dictionaryTokens).not.toContain('is');
+     expect(dictionaryTokens).not.toContain('trot');
++    expect(result.findings).toEqual(
++      expect.arrayContaining([
++        expect.objectContaining({
++          kind: 'common-password-core',
++          segmentationRole: 'candidate-only',
++          evidence: [{ type: 'span', start: 0, end: 6, token: 'IchBin' }],
++        }),
++      ]),
++    );
++  });
++
++  it('keeps an opaque password-list value for recognition but exposes its German words', () => {
++    const fictionalPassword = 'IchBin';
++    const result = analyzeFictionalPassword({ fictionalPassword });
++    const candidateOnlyFinding = result.findings.find(
++      (finding) =>
++        finding.kind === 'common-password-core' &&
++        finding.segmentationRole === 'candidate-only' &&
++        finding.evidence.some(
++          (evidence) =>
++            evidence.type === 'span' &&
++            evidence.start === 0 &&
++            evidence.end === fictionalPassword.length,
++        ),
++    );
++    const componentTokens = result.findings.flatMap((finding) =>
++      finding.segmentationRole !== 'candidate-only' && finding.kind === 'common-word'
++        ? finding.evidence.flatMap((evidence) =>
++            evidence.type === 'span' ? [evidence.token] : [],
++          )
++        : [],
++    );
++    const disposition = determinePasswordSimulationDisposition({
++      fictionalPassword,
++      componentAnalysis: result,
++    });
++
++    expect(candidateOnlyFinding).toBeDefined();
++    expect(componentTokens).toEqual(expect.arrayContaining(['Ich', 'Bin']));
++    expect(componentTokens).not.toContain('IchBin');
++    expect(disposition).toMatchObject({ kind: 'whole-password-recognized' });
++    if (disposition.kind === 'whole-password-recognized' && candidateOnlyFinding !== undefined) {
++      expect(disposition.findingIds).toContain(candidateOnlyFinding.id);
++    }
+   });
+ 
++  it.each(['Maiden', 'MaiDen'])(
++    'keeps the complete English word %s instead of inventing a German partition',
++    (fictionalPassword) => {
++      const result = analyzeFictionalPassword({ fictionalPassword });
++      const componentTokens = result.findings.flatMap((finding) =>
++        finding.segmentationRole !== 'candidate-only' &&
++        (finding.kind === 'common-password-core' || finding.kind === 'common-word')
++          ? finding.evidence.flatMap((evidence) =>
++              evidence.type === 'span'
++                ? [evidence.token.toLocaleLowerCase('en-US')]
++                : [],
++            )
++          : [],
++      );
++
++      expect(componentTokens).toContain('maiden');
++      expect(componentTokens).not.toContain('mai');
++      expect(componentTokens).not.toContain('den');
++      expect(
++        result.findings.some(
++          (finding) =>
++            finding.segmentationRole === 'candidate-only' &&
++            finding.evidence.some(
++              (evidence) =>
++                evidence.type === 'span' &&
++                evidence.start === 0 &&
++                evidence.end === fictionalPassword.length,
++            ),
++        ),
++      ).toBe(false);
++    },
++  );
++
+   it('rejects a mixed or reversed word-sequence candidate before it can cut canonical words', () => {
+     const fictionalPassword = 'IchBinMeinStarkesUniPassw0rt123!!!!';
+     const result = analyzeFictionalPassword({
+@@ -656,9 +735,27 @@ describe('local fictional password analysis', () => {
+     expect(tokensByKind.get('predictable-word-sequence') ?? []).not.toContain('einStar');
+     expect(tokensByKind.get('account-or-service-term')).toEqual(['Uni']);
+     expect(tokensByKind.get('common-word')).toEqual(
+-      expect.arrayContaining(['Mein', 'Starkes']),
++      expect.arrayContaining(['Ich', 'Bin', 'Mein', 'Starkes']),
+     );
+-    expect(tokensByKind.get('typical-transformation')).toEqual(['Passw0rt']);
++    expect(result.findings).toEqual(
++      expect.arrayContaining([
++        expect.objectContaining({
++          kind: 'common-password-core',
++          segmentationRole: 'candidate-only',
++          evidence: [{ type: 'span', start: 0, end: 6, token: 'IchBin' }],
++        }),
++      ]),
++    );
++    expect(
++      result.findings.flatMap((finding) =>
++        finding.kind === 'typical-transformation' &&
++        finding.segmentationRole !== 'candidate-only'
++          ? finding.evidence.flatMap((evidence) =>
++              evidence.type === 'span' ? [evidence.token] : [],
++            )
++          : [],
++      ),
++    ).toEqual(['Passw0rt']);
+     expect(
+       result.guessPath.matches.map((match) =>
+         fictionalPassword.slice(match.start, match.end),
+@@ -728,7 +825,8 @@ describe('local fictional password analysis', () => {
+   it('keeps the CamelCase partition stable when an adjacent punctuation repeat follows it', () => {
+     const result = analyzeFictionalPassword({ fictionalPassword: 'IchBinEisSieIstRot????' });
+     const dictionaryTokens = result.findings.flatMap((finding) =>
+-      finding.kind === 'common-password-core' || finding.kind === 'common-word'
++      finding.segmentationRole !== 'candidate-only' &&
++      (finding.kind === 'common-password-core' || finding.kind === 'common-word')
+         ? finding.evidence.flatMap((evidence) =>
+             evidence.type === 'span' ? [evidence.token.toLocaleLowerCase('de-DE')] : [],
+           )
+@@ -736,8 +834,9 @@ describe('local fictional password analysis', () => {
+     );
+ 
+     expect(dictionaryTokens).toEqual(
+-      expect.arrayContaining(['ichbin', 'eis', 'sie', 'ist', 'rot']),
++      expect.arrayContaining(['ich', 'bin', 'eis', 'sie', 'ist', 'rot']),
+     );
++    expect(dictionaryTokens).not.toContain('ichbin');
+     expect(dictionaryTokens).not.toContain('is');
+     expect(dictionaryTokens).not.toContain('trot');
+   });
+@@ -799,7 +898,7 @@ describe('local fictional password analysis', () => {
+       expect(expectedKinds.some((expectedKind) => actualKinds.includes(expectedKind))).toBe(true);
+       expect(result.guessPath).toMatchObject({
+         engineId: 'zxcvbn-ts',
+-        configurationVersion: 'passwo-bounded-whole-recognition-v18',
++        configurationVersion: 'passwo-bounded-whole-recognition-v19',
+       });
+       for (const finding of result.findings) {
+         expect(finding.id).toMatch(/^single:/u);
+@@ -825,7 +924,7 @@ describe('local fictional password analysis', () => {
+     expect(disposition).toEqual({
+       kind: 'no-whole-password-recognized',
+       lengthOrientation: 'at-least-15',
+-      analysisVersion: 'passwo-bounded-whole-recognition-v18',
++      analysisVersion: 'passwo-bounded-whole-recognition-v19',
+       explanationId: 's05.disposition.no-whole-password-recognized',
+     });
+   });
+@@ -870,7 +969,7 @@ describe('local fictional password analysis', () => {
+ 
+       expect(disposition).toMatchObject({
+         kind: 'whole-password-recognized',
+-        analysisVersion: 'passwo-bounded-whole-recognition-v18',
++        analysisVersion: 'passwo-bounded-whole-recognition-v19',
+       });
+     },
+   );
+diff --git a/packages/password-analysis/src/password-candidate-corpus.test.ts b/packages/password-analysis/src/password-candidate-corpus.test.ts
+index 6cd2ff686b75fb3cfe2c257fdf242e577428b1b4..61e252e2e2af95409539fc1add19099fa2cc3b37 100644
+--- a/packages/password-analysis/src/password-candidate-corpus.test.ts
++++ b/packages/password-analysis/src/password-candidate-corpus.test.ts
+@@ -770,7 +770,7 @@ describe('S05/S06 end-to-end candidate corpus', () => {
+       });
+ 
+       expect(disposition.kind === 'whole-password-recognized').toBe(expectedFound);
+-      expect(disposition.analysisVersion).toBe('passwo-bounded-whole-recognition-v18');
++      expect(disposition.analysisVersion).toBe('passwo-bounded-whole-recognition-v19');
+     },
+   );
+ });
+diff --git a/packages/password-analysis/src/password-guessing-analysis.ts b/packages/password-analysis/src/password-guessing-analysis.ts
+index 460974625e4c184d60ab00fbca65dd40a0f02c71..2c8794659a840f0bd86d0fefb377f3ce91782a25 100644
+--- a/packages/password-analysis/src/password-guessing-analysis.ts
++++ b/packages/password-analysis/src/password-guessing-analysis.ts
+@@ -19,7 +19,7 @@ import {
+   originalSpanForNormalizedRange,
+ } from './case-insensitive-spans.js';
+ 
+-export const PASSWORD_ANALYSIS_CONFIGURATION_VERSION = 'passwo-bounded-whole-recognition-v18';
++export const PASSWORD_ANALYSIS_CONFIGURATION_VERSION = 'passwo-bounded-whole-recognition-v19';
+ 
+ export interface FictionalPasswordAnalysisInput {
+   readonly fictionalPassword: string;
+@@ -610,6 +610,7 @@ function componentBoundaryOffsets(
+ ): ReadonlySet<number> {
+   const boundaries = new Set(visibleComponentBoundaryOffsets(input));
+   for (const item of trustedFindings) {
++    if (item.segmentationRole === 'candidate-only') continue;
+     for (const evidence of item.evidence) {
+       if (evidence.type !== 'span') continue;
+       boundaries.add(evidence.start);
+@@ -813,6 +814,15 @@ interface GuessPathDictionarySpan {
+   readonly span: PasswordEvidenceSpan;
+ }
+ 
++interface DictionaryPartitionProjection {
++  readonly findings: readonly PasswordSingleFinding[];
++  readonly candidateOnlyRanges: ReadonlySet<string>;
++}
++
++function evidenceRangeKey(start: number, end: number): string {
++  return `${start}:${end}`;
++}
++
+ function compareDictionaryPartitions(
+   left: readonly DictionaryPartitionPart[],
+   right: readonly DictionaryPartitionPart[],
+@@ -901,6 +911,82 @@ function partitionCandidatesForLanguage(
+   return candidatesByStart;
+ }
+ 
++/**
++ * A password-list value may be useful as one attack candidate without being a meaningful visible
++ * component. Split it only when the original spelling exposes at least one boundary, every visible
++ * part is an ordinary word in the same language, and the complete value is not itself an ordinary
++ * German or English word. The whole-word guard keeps values such as `Maiden` or `MaiDen` intact.
++ */
++function hasMonolingualVisibleWordPartition(
++  normalizedValue: string,
++  start: number,
++  end: number,
++  visibleLexicalBoundaries: ReadonlySet<number>,
++): boolean {
++  const internalBoundaries = [...visibleLexicalBoundaries]
++    .filter((boundary) => boundary > start && boundary < end)
++    .sort((left, right) => left - right);
++  if (internalBoundaries.length === 0) return false;
++
++  const completeToken = normalizedValue.slice(start, end);
++  if (approvedOrdinaryWordTokens.has(completeToken)) return false;
++
++  const boundaries = [start, ...internalBoundaries, end];
++  return (['de', 'en'] as const).some((language) =>
++    boundaries.slice(0, -1).every((partStart, index) => {
++      const partEnd = boundaries[index + 1];
++      return (
++        partEnd !== undefined &&
++        supplementalWordsByLanguage[language].has(normalizedValue.slice(partStart, partEnd))
++      );
++    }),
++  );
++}
++
++function collectCandidateOnlyPasswordRanges(
++  normalizedValue: string,
++  candidatesByLanguage: Readonly<
++    Record<SupplementalLanguage, ReadonlyMap<number, readonly DictionaryPartitionPart[]>>
++  >,
++  visibleLexicalBoundaries: ReadonlySet<number>,
++): ReadonlySet<string> {
++  const ranges = new Set<string>();
++  for (const language of ['de', 'en'] as const) {
++    for (const candidates of candidatesByLanguage[language].values()) {
++      for (const candidate of candidates) {
++        if (candidate.kind !== 'common-password-core') continue;
++        if (
++          hasMonolingualVisibleWordPartition(
++            normalizedValue,
++            candidate.start,
++            candidate.end,
++            visibleLexicalBoundaries,
++          )
++        ) {
++          ranges.add(evidenceRangeKey(candidate.start, candidate.end));
++        }
++      }
++    }
++  }
++  return ranges;
++}
++
++function omitCandidateOnlyPasswordRanges(
++  candidatesByStart: ReadonlyMap<number, readonly DictionaryPartitionPart[]>,
++  candidateOnlyRanges: ReadonlySet<string>,
++): ReadonlyMap<number, readonly DictionaryPartitionPart[]> {
++  const retained = new Map<number, readonly DictionaryPartitionPart[]>();
++  for (const [start, candidates] of candidatesByStart) {
++    const filtered = candidates.filter(
++      (candidate) =>
++        candidate.kind !== 'common-password-core' ||
++        !candidateOnlyRanges.has(evidenceRangeKey(candidate.start, candidate.end)),
++    );
++    if (filtered.length > 0) retained.set(start, filtered);
++  }
++  return retained;
++}
++
+ function bestDictionaryPartition(
+   candidatesByStart: ReadonlyMap<number, readonly DictionaryPartitionPart[]>,
+   start: number,
+@@ -947,8 +1033,9 @@ function collectDictionaryPartitionFindings(
+   input: string,
+   guessPathFindings: readonly PasswordSingleFinding[],
+   structuralBoundaryFindings: readonly PasswordSingleFinding[] = [],
+-): readonly PasswordSingleFinding[] {
++): DictionaryPartitionProjection {
+   const findings: PasswordSingleFinding[] = [];
++  const candidateOnlyRanges = new Set<string>();
+   const guessPathSpans: GuessPathDictionarySpan[] = [];
+   for (const item of guessPathFindings) {
+     if (
+@@ -985,8 +1072,9 @@ function collectDictionaryPartitionFindings(
+         }
+       }
+     }
++    const visibleLexicalOriginalBoundaries = letterRunBoundaries(run);
+     const supportedOriginalBoundaries = new Set([
+-      ...letterRunBoundaries(run),
++      ...visibleLexicalOriginalBoundaries,
+       ...additionalOriginalBoundaries,
+     ]);
+     const normalizedStarts = new Set<number>([0]);
+@@ -1015,7 +1103,16 @@ function collectDictionaryPartitionFindings(
+       );
+       if (normalizedBoundary !== null) protectedNormalizedBoundaries.add(normalizedBoundary);
+     }
+-    const candidatesByLanguage = {
++    const visibleLexicalNormalizedBoundaries = new Set<number>();
++    for (const boundary of visibleLexicalOriginalBoundaries) {
++      const normalizedBoundary = normalizedBoundaryForOriginalOffset(
++        normalizedRun,
++        boundary,
++        run.length,
++      );
++      if (normalizedBoundary !== null) visibleLexicalNormalizedBoundaries.add(normalizedBoundary);
++    }
++    const unfilteredCandidatesByLanguage = {
+       de: partitionCandidatesForLanguage(
+         normalizedRun.value,
+         normalizedStarts,
+@@ -1031,6 +1128,64 @@ function collectDictionaryPartitionFindings(
+         protectedNormalizedBoundaries,
+       ),
+     } as const;
++    const candidateOnlyNormalizedRanges = collectCandidateOnlyPasswordRanges(
++      normalizedRun.value,
++      unfilteredCandidatesByLanguage,
++      visibleLexicalNormalizedBoundaries,
++    );
++    const previouslySelectedCandidateOnlyRanges = new Set(
++      (
++        bestLanguagePartition(
++          unfilteredCandidatesByLanguage,
++          0,
++          normalizedRun.value.length,
++        ) ?? []
++      )
++        .filter(
++          (part) =>
++            part.kind === 'common-password-core' &&
++            candidateOnlyNormalizedRanges.has(evidenceRangeKey(part.start, part.end)),
++        )
++        .map((part) => evidenceRangeKey(part.start, part.end)),
++    );
++    for (const range of candidateOnlyNormalizedRanges) {
++      const [normalizedStartText, normalizedEndText] = range.split(':');
++      const normalizedStart = Number(normalizedStartText);
++      const normalizedEnd = Number(normalizedEndText);
++      if (!Number.isInteger(normalizedStart) || !Number.isInteger(normalizedEnd)) continue;
++      const originalSpan = originalSpanForNormalizedRange(
++        normalizedRun,
++        normalizedStart,
++        normalizedEnd,
++      );
++      if (originalSpan === null) continue;
++      const start = runStart + originalSpan[0];
++      const end = runStart + originalSpan[1];
++      candidateOnlyRanges.add(evidenceRangeKey(start, end));
++      if (previouslySelectedCandidateOnlyRanges.has(range)) {
++        findings.push({
++          ...finding(
++            input,
++            'common-password-core',
++            start,
++            end,
++            'bounded-heuristic',
++            findings.length,
++          ),
++          segmentationRole: 'candidate-only',
++        });
++      }
++    }
++    const candidatesByLanguage = {
++      de: omitCandidateOnlyPasswordRanges(
++        unfilteredCandidatesByLanguage.de,
++        candidateOnlyNormalizedRanges,
++      ),
++      en: omitCandidateOnlyPasswordRanges(
++        unfilteredCandidatesByLanguage.en,
++        candidateOnlyNormalizedRanges,
++      ),
++    } as const;
+     const allPartitionCandidates = [
+       ...candidatesByLanguage.de.values(),
+       ...candidatesByLanguage.en.values(),
+@@ -1109,6 +1264,11 @@ function collectDictionaryPartitionFindings(
+         if (normalizedStart === null || normalizedEnd === null || normalizedEnd <= normalizedStart) {
+           continue;
+         }
++        if (
++          candidateOnlyNormalizedRanges.has(evidenceRangeKey(normalizedStart, normalizedEnd))
++        ) {
++          continue;
++        }
+         const supported = dictionarySpanHasSupportedBoundary(
+           run,
+           kind,
+@@ -1205,7 +1365,7 @@ function collectDictionaryPartitionFindings(
+       }
+     }
+   }
+-  return findings;
++  return { findings, candidateOnlyRanges };
+ }
+ 
+ function findingsFromGuessPath(
+@@ -2127,9 +2287,11 @@ function suppressDictionaryFindingsCoveredByPreferredDictionaryFinding(
+ 
+   const suppressedIds = new Set<string>();
+   for (const entry of dictionaryEntries) {
++    if (entry.finding.segmentationRole === 'candidate-only') continue;
+     const entryPriority = supplementalDictionaryPriority[entry.finding.kind];
+     const covered = dictionaryEntries.some((candidate) => {
+       if (candidate.finding.id === entry.finding.id) return false;
++      if (candidate.finding.segmentationRole === 'candidate-only') return false;
+       const candidatePriority = supplementalDictionaryPriority[candidate.finding.kind];
+       const candidateIsCuratedCompound = curatedGermanCompoundTokens.has(
+         candidate.span.token.toLocaleLowerCase('de-DE'),
+@@ -2146,6 +2308,26 @@ function suppressDictionaryFindingsCoveredByPreferredDictionaryFinding(
+   return findings.filter((item) => !suppressedIds.has(item.id));
+ }
+ 
++function markCandidateOnlySegmentationFindings(
++  findings: readonly PasswordSingleFinding[],
++  candidateOnlyRanges: ReadonlySet<string>,
++): readonly PasswordSingleFinding[] {
++  if (candidateOnlyRanges.size === 0) return findings;
++  return findings.map((item) => {
++    if (item.kind !== 'common-password-core' && item.kind !== 'typical-transformation') {
++      return item;
++    }
++    const hasCandidateOnlyRange = item.evidence.some(
++      (evidence) =>
++        evidence.type === 'span' &&
++        candidateOnlyRanges.has(evidenceRangeKey(evidence.start, evidence.end)),
++    );
++    return hasCandidateOnlyRange
++      ? { ...item, segmentationRole: 'candidate-only' as const }
++      : item;
++  });
++}
++
+ function removeOrphanedTypicalTransformations(
+   findings: readonly PasswordSingleFinding[],
+ ): readonly PasswordSingleFinding[] {
+@@ -2224,11 +2406,11 @@ export function analyzeFictionalPassword({
+     ),
+   ].filter((term) => term.length >= 3);
+   const result = zxcvbnFactory.check(fictionalPassword, trimmedAccountTerms);
+-  const rawGuessPathFindings = filterUnsupportedGuessPathDictionaryFragments(
++  const unclassifiedGuessPathFindings = filterUnsupportedGuessPathDictionaryFragments(
+     fictionalPassword,
+     findingsFromGuessPath(fictionalPassword, result.sequence),
+   );
+-  const rawRepeatedBaseFindings = filterUnsupportedGuessPathDictionaryFragments(
++  const unclassifiedRepeatedBaseFindings = filterUnsupportedGuessPathDictionaryFragments(
+     fictionalPassword,
+     findingsFromRepeatedBases(
+       fictionalPassword,
+@@ -2237,13 +2419,21 @@ export function analyzeFictionalPassword({
+     ),
+   );
+   const deterministicKeyboardFindings = collectDeterministicKeyboardFindings(fictionalPassword);
+-  const dictionaryPartitionFindings = collectDictionaryPartitionFindings(
++  const dictionaryPartitionProjection = collectDictionaryPartitionFindings(
+     fictionalPassword,
+-    [...rawGuessPathFindings, ...rawRepeatedBaseFindings],
++    [...unclassifiedGuessPathFindings, ...unclassifiedRepeatedBaseFindings],
+     deterministicKeyboardFindings,
+   );
++  const rawGuessPathFindings = markCandidateOnlySegmentationFindings(
++    unclassifiedGuessPathFindings,
++    dictionaryPartitionProjection.candidateOnlyRanges,
++  );
++  const rawRepeatedBaseFindings = markCandidateOnlySegmentationFindings(
++    unclassifiedRepeatedBaseFindings,
++    dictionaryPartitionProjection.candidateOnlyRanges,
++  );
+   const accountBoundaries = componentBoundaryOffsets(fictionalPassword, [
+-    ...dictionaryPartitionFindings,
++    ...dictionaryPartitionProjection.findings,
+     ...deterministicKeyboardFindings,
+   ]);
+   const guessPathFindings = filterUnsupportedAccountTermFindings(
+@@ -2291,7 +2481,7 @@ export function analyzeFictionalPassword({
+             ...guessPathFindings,
+             ...repeatedBaseFindings,
+             ...deterministicKeyboardFindings,
+-            ...dictionaryPartitionFindings,
++            ...dictionaryPartitionProjection.findings,
+             ...exactAccountTermFindings,
+             ...fuzzyAccountTermFindings,
+             ...yearFindings,
+@@ -2426,6 +2616,7 @@ export function analyzeFictionalPasswordStructure({
+ }: FictionalPasswordStructureAnalysisInput): PasswordStructureAnalysisResult {
+   const findings: RuntimeStructureFinding[] = [];
+   const concreteComponentFindings = componentAnalysis.findings.flatMap((item) => {
++    if (item.segmentationRole === 'candidate-only') return [];
+     const evidence = getValidatedEvidenceSpans(fictionalPassword, item);
+     return evidence === null ? [] : [{ ...item, evidence }];
+   });
+diff --git a/packages/visualization/src/password-finding-scene.ts b/packages/visualization/src/password-finding-scene.ts
+index db10b892b4ffdcc48cb713daa07aed3a6e44ed60..2f6a07266213457414e8d57640fbe50bfaa1f080 100644
+--- a/packages/visualization/src/password-finding-scene.ts
++++ b/packages/visualization/src/password-finding-scene.ts
+@@ -14,14 +14,17 @@ export function createPasswordFindingScene(
+   id: string,
+   runtimeAnalysis: PasswordAnalysisResult,
+ ): PasswordFindingSceneSnapshot {
+-  const prioritizedFindings = runtimeAnalysis.findings.slice(0, MAX_VISIBLE_PASSWORD_FINDINGS);
++  const componentFindings = runtimeAnalysis.findings.filter(
++    ({ segmentationRole }) => segmentationRole !== 'candidate-only',
++  );
++  const prioritizedFindings = componentFindings.slice(0, MAX_VISIBLE_PASSWORD_FINDINGS);
+   return {
+     id,
+     runtimeAnalysis,
+     prioritizedFindings,
+     omittedFindingCount: Math.max(
+       0,
+-      runtimeAnalysis.findings.length - prioritizedFindings.length,
++      componentFindings.length - prioritizedFindings.length,
+     ),
+     accessibleSummary:
+       prioritizedFindings.length === 1 &&
+diff --git a/research/derived/segment-index.md b/research/derived/segment-index.md
+index ee8670e4fb71cc29c262f82b9f415c084eaf0c9e..e0ae52b292a83eb6084a6392154edb5f49eb5432 100644
+--- a/research/derived/segment-index.md
++++ b/research/derived/segment-index.md
+@@ -153,7 +153,7 @@ Seitenangaben beziehen sich auf die im Trainingsdokument ausgewiesene interne Pa
+   entfallen; danach folgt direkt die bestehende lokale Campusgram-Auswertung. Die Demonstration
+   analysiert oder persistiert keine Eingabe.
+ - Die S05-Simulationsdisposition (`S05_CONTENT_VERSION 2.126.0`, Analysekonfiguration
+-  `passwo-bounded-whole-recognition-v18`) bleibt auf den vollständigen fiktiven Wert begrenzt:
++  `passwo-bounded-whole-recognition-v19`) bleibt auf den vollständigen fiktiven Wert begrenzt:
+   `whole-password-recognized` entsteht durch einen direkten Vollwert oder eine dokumentierte
+   begrenzte Kandidatenfamilie aus kanonischen Ankern und positionsunabhängigen Restzeichen oder
+   durch einen flüchtigen, von der teilnehmenden Person bestätigten semantischen Kandidatenweg.
+@@ -163,8 +163,12 @@ Seitenangaben beziehen sich auf die im Trainingsdokument ausgewiesene interne Pa
+   beziehungsweise Partitionen zulässig. Kuratierte Abkürzungen werden davon getrennt behandelt.
+   Von zxcvbn vorgeschlagene Wortfolgen werden nur bei direkter Schreibweise benachbarter Einträge
+   derselben Sequenzliste übernommen; authored Konto-/Diensttreffer müssen auf sichtbaren oder
+-  lexikalisch belegten Komponentengrenzen liegen. Unterdrückte Basistreffer hinterlassen keine
+-  verwaisten Transformationsgrenzen in der S05-Projektion.
++  lexikalisch belegten Komponentengrenzen liegen. Ein Passwortlisten-Vollwert, der selbst kein
++  gewöhnliches deutsches oder englisches Wort ist, darf keine sichtbaren Wortgrenzen überdecken,
++  wenn seine Teile gemeinsam eine vollständige einsprachige Wortzerlegung bilden: `IchBin` bleibt
++  Angriffskandidat, erscheint aber als `Ich | Bin`. Vollständige Wörter haben Vorrang, sodass
++  `Maiden` beziehungsweise `MaiDen` nicht künstlich als `Mai | den` projiziert wird. Unterdrückte
++  Basistreffer hinterlassen keine verwaisten Transformationsgrenzen in der S05-Projektion.
+   Eigene maximale Tastaturspans erzeugen Grenzen für angrenzende Wörter; vollständige
+   Kontobegriffe, Jahre und authored Komposita haben Vorrang vor inneren Wörterbuch- beziehungsweise
+   Endungstreffern. Getrennte und einmal veränderte Wiederholungen werden über mehrere belegte Spans

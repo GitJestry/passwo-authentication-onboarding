@@ -63,9 +63,11 @@ Seitenangaben beziehen sich auf die im Trainingsdokument ausgewiesene interne Pa
   ihre flüchtigen lokalen Befunde frei: nicht betroffene Bausteine bleiben neutral, betroffene
   Bausteine leuchten ohne Lageänderung. Bereits geprüfte Befunde bleiben in den folgenden
   Kategorieprüfungen sichtbar. Ab dem ersten Befund stehen an den Bausteinen statt Textlabels
-  deutlich größere, gegebenenfalls vertikal gestapelte Logo-Infokarten. Hover oder Tastaturfokus
-  nennt ausschließlich die konkrete Einstufung, beispielsweise `Persönliche Angabe` oder
-  `häufiges Datum`; die Kacheln bleiben auch während der betroffenen Sprechblasen erreichbar. Die kompakte
+  deutlich größere Logo-Infokarten; mehrere Logos werden verkleinert nebeneinander angeordnet,
+  wobei die Mittelpunkte aller Logogrößen auf derselben Y-Ebene bleiben.
+  Hover oder Tastaturfokus nennt ausschließlich die konkrete Einstufung, beispielsweise
+  `Persönliche Angabe`, `geläufiges Wort` oder `häufiges Datum`; die Kacheln bleiben auch während
+  der betroffenen Sprechblasen erreichbar. Die kompakte
   Übersicht `Früh geprüft` listet jede geprüfte Kategorie einmal mit großem, responsiv skaliertem
   Logo und vollständigem Kategorienamen; einzelne erkannte Begriffe erscheinen dort nicht. Diese
   Übersicht bleibt ausschließlich direkt nach den drei Kategorien sichtbar und entfällt in der
@@ -77,8 +79,8 @@ Seitenangaben beziehen sich auf die im Trainingsdokument ausgewiesene interne Pa
 - Nach der Zusammenfassung `Früh geprüft` werden die gelben Bausteinflächen für häufige
   Bestandteile und die blauen Bausteinflächen für Konto-/Dienstbezug nicht weitergeführt. In der
   Campusgram-Abschlusszusammenfassung und den folgenden Strukturphasen bleiben die drei früh
-  geprüften Kategorien ausschließlich über größere, vertikal gestapelte Info-Logos an den jeweils
-  erkannten Bausteinen sichtbar. Hover oder Tastaturfokus
+  geprüften Kategorien ausschließlich über größere Info-Logos an den jeweils erkannten Bausteinen
+  sichtbar; mehrere Logos werden verkleinert nebeneinander angeordnet. Hover oder Tastaturfokus
   öffnet eine gläserne Karte nur mit der konkreten Einstufung. Persönlich markierte Bereiche
   leuchten zeichenpräzise und zurückhaltend pink; das persönliche Kategorienlogo steht unter jedem
   überlappten Baustein, ohne dessen Grenzen zu verändern. Eng anliegende, dunklere und zwei Pixel
@@ -106,14 +108,58 @@ Seitenangaben beziehen sich auf die im Trainingsdokument ausgewiesene interne Pa
   erklärte Liste einschließlich Titel wird weiß pulsierend umrahmt. Bei der anschließenden lokalen
   Wiederholungsprüfung bleiben alle drei Listen sichtbar; das fiktive Campusgram-Passwort steht
   mittig darunter und markiert erkannte Wiederholungen mit denselben Bausteinen.
-- Die lokale Zusammenhangsreflexion beginnt mit Zusammenhang A. Ein angeklickter Baustein erhält
-  wieder unmittelbar die Farbe des aktiven Zusammenhangs; weitere Bausteine erweitern dieselbe
-  farbige Gruppe. Erst zwei gewählte Bausteine bilden einen vollständigen Zusammenhang, und ein
+- Die lokale Zusammenhangsreflexion beginnt mit Zusammenhang A. Der erste angeklickte Baustein
+  bleibt transparent und erhält nur einen entlang aller vier Randseiten laufenden gestrichelten
+  Suchrahmen. Erst der zweite
+  Baustein bestätigt den Zusammenhang und färbt beide vollständig; ein Moduswechsel verwirft eine
+  einzelne unbestätigte Vorschau. Ein
   weiterer Zusammenhang kann erst angelegt werden, wenn alle vorhandenen Gruppen mindestens zwei
-  Bausteine enthalten. Eine zusätzliche Linienebene und eine Hover-Vorschau entfallen. Die
+  Bausteine enthalten. A, B und C belegen als größere Farbkugeln feste linke, mittlere und rechte
+  Positionen unter dem Zusammenhangsmodus außerhalb der Modusbox; der jeweils nächste freie Platz
+  zeigt dort bereits die Plus-Steuerung. Sie wird erst nach zwei markierten Bausteinen in jedem
+  vorhandenen Zusammenhang nutzbar, und vorhandene weitere Zusammenhänge lassen sich dort
+  unmittelbar löschen. Jede Kugel ist durch eine Linie mit dem Zusammenhangsbutton verbunden; die
+  aktive Linie übernimmt die Gruppenfarbe und läuft animiert. Der Zusammenhangsmodus übernimmt
+  ebenfalls die Farbe der fokussierten Gruppe. Die persönliche Bereichsauswahl verwendet dieselbe
+  Baustein- und Zeichenmarkierung wie S05. PassWo führt den ersten lokalen Markierungsschritt
+  einmalig ein; beim Campus-E-Mail-Schritt wird dieser Hinweis nicht wiederholt. Eine zusätzliche
+  Linienebene zwischen den Passwortbausteinen und eine Hover-Vorschau entfallen. Die
   authored Einstiegsvorschau und statischen Zusammenhangsbeispiele verwenden wieder ihre
   ursprünglichen grünen Bausteinflächen und CSS-Verbindungslinien. Die beschrifteten Steuerungen A
   bis C bleiben neben der Gruppenfarbe als Bedeutungsträger erhalten.
+- Bei der lokalen Bestimmung bleibt das Angreifermodell während Markierung und Übergang in
+  Warteposition. Erst der sichtbare Ergebniszustand projiziert den neu bestimmten Knotenstatus und
+  löst bei einem Fund die Bewegung zum Knoten aus. Logo-Informationen unter Passwörtern mit einem
+  bis drei Bausteinen erhalten zusätzlichen Abstand; die Campus-E-Mail-Markieransicht wird als
+  Ganzes höher positioniert.
+- Vor den lokalen Markieransichten setzt ein eigener Datenleckwechsel nur den neu geprüften
+  Kontozweig auf den neutralen Prüfzustand. Bestimmte rote und grüne Beziehungen bleiben über alle
+  folgenden Ansichten erhalten. Die rote Knotenprojektion folgt jedoch der aktiven Quelle: Nach
+  einem lokalen Fund sind nur sie und über bestimmte rote Beziehungen mit ihr verbundene Konten
+  rot; die frühere Prüfrichtung spielt dafür keine Rolle. Lokale blaue Schutzzustände bleiben
+  erhalten; ein grüner blockierter Paarweg färbt seinen Zielknoten nicht selbst blau. Rote
+  Befallsbeziehungen tragen einmalig direkt an der Kante das bestehende S06-Ergebnislabel
+  `Dasselbe Passwort` oder `Leicht abgewandelt` im S08-Stil ohne weißen Hintergrund; zusätzliche
+  Knotenergebnislabels entfallen. Der Text zur fehlenden leichten Abwandlung bleibt ausschließlich
+  in der Vergleichsvorschau. Ein blockierter Weg besteht wie
+  in S08 aus zwei statischen grünen Liniensegmenten, die ein grünes Schild exakt in ihrer Mitte
+  treffen. Während eines neuen Angriffs darf der aktuelle blaue Schutzzustand
+  vorübergehend der roten Prüfbewegung weichen, danach gilt wieder das bestimmte Befalls- oder
+  Schutzergebnis. Der Angreifer blendet an der bisherigen Position aus und erscheint ohne
+  Größenwechsel an der neuen Kontoposition. Der langsamere Crossfade zeigt den laufenden Angriff
+  anschließend ungefähr eine zusätzliche Sekunde, bevor die Markieransicht weich erscheint.
+  Master Campus wird von rechts, Campus E-Mail aus einer Position unterhalb des Knotens mit nach
+  oben laufender vertikaler Angriffslinie angegriffen. Während der Markierung bleiben nur das
+  aktive Konto, seine Unterknoten und internen Kanten sichtbar. Beim lokalen Ergebnis kehrt das
+  gesamte Netzwerk zurück; ein Fund breitet sich über bereits bestimmte rote Beziehungen in beide
+  Richtungen zu verbundenen Konten und deren Unterknoten aus. Grüne blockierte Wege übertragen
+  keinen Befall. Eine grüne generische Knotenhervorhebung entfällt. Alle
+  Angreiferbilder bleiben mit 144 % der Kontoknotengröße kontofüllend. `Fertig` projiziert das
+  lokale Ergebnis ohne eigene Wartepause. Der abschließende Rückwechsel zu Campusgram behält alle
+  bestimmten Beziehungen und projiziert die Knotenstatus erneut aus dieser Quellperspektive. Bei
+  begrenzter Stage-Breite oder -Höhe wird das vollständige Markiermodul kompakter; auf noch
+  schmaleren Stages erhält die Modussteuerung wieder ausreichend nutzbare Breite. Die hellgrauen
+  Strukturpfeile bleiben durch größere Strichstärke und höhere Vorschau-Deckkraft erkennbar.
 - Der aus der flüchtigen Campusidentität abgeleitete Benutzername und die fiktive Konto-Mail
   werden der lokalen zxcvbn-Auswertung als zusätzliche Kontoanhaltspunkte übergeben. Sie bleiben
   im Arbeitsspeicher und werden weder persistiert noch exportiert.
@@ -152,7 +198,7 @@ Seitenangaben beziehen sich auf die im Trainingsdokument ausgewiesene interne Pa
   deutsche Wortlistenstapel sichtbar. Länderkarte, Wortlisten-Schätzfrage und Zeichenraum-Analogie
   entfallen; danach folgt direkt die bestehende lokale Campusgram-Auswertung. Die Demonstration
   analysiert oder persistiert keine Eingabe.
-- Die S05-Simulationsdisposition (`S05_CONTENT_VERSION 2.126.0`, Analysekonfiguration
+- Die S05-Simulationsdisposition (`S05_CONTENT_VERSION 2.127.0`, Analysekonfiguration
   `passwo-bounded-whole-recognition-v18`) bleibt auf den vollständigen fiktiven Wert begrenzt:
   `whole-password-recognized` entsteht durch einen direkten Vollwert oder eine dokumentierte
   begrenzte Kandidatenfamilie aus kanonischen Ankern und positionsunabhängigen Restzeichen oder
@@ -214,7 +260,8 @@ Seitenangaben beziehen sich auf die im Trainingsdokument ausgewiesene interne Pa
   ausgeblendet. Das jeweilige fiktive Passwort zeigt automatisch erkannte Kategorien und
   Wiederholungen und nimmt über `Gruppen` beziehungsweise `Struktur` ausschließlich flüchtige
   Zusatzangaben entgegen. Eine separate Karte `Früh geprüft` entfällt. An den Bausteinen stehen
-  deutlich größere, gegebenenfalls gestapelte und an ihre Anzahl angepasste Info-Logos. Hover oder
+  deutlich größere Info-Logos. Mehrere Logos werden verkleinert und nebeneinander statt gestapelt
+  angeordnet. Hover oder
   Tastaturfokus öffnet eine gläserne Karte mit Kategoriename und konkreter Einstufung.
   Persönliche Bereiche leuchten zeichenpräzise lila-pink und können über mehrere Bausteine reichen,
   deren persönliches Kategorienlogo die Zuordnung zusätzlich sichtbar macht. Der aktive
@@ -240,7 +287,7 @@ Seitenangaben beziehen sich auf die im Trainingsdokument ausgewiesene interne Pa
   ausgeschlossen. Eine einzelne Zeichenoperation zählt nur als explizit begrenzter erzeugter
   Kandidatenweg. Ein nicht erkannter Weg bedeutet nur, dass diese Simulation keinen direkten Weg
   erkannt hat.
-- `S06_CONSEQUENCE_CONTENT_VERSION 2.37.0` übernimmt die S05-Vollpasswort-Disposition ohne eigene
+- `S06_CONSEQUENCE_CONTENT_VERSION 2.40.0` übernimmt die S05-Vollpasswort-Disposition ohne eigene
   Guess-Schwelle. Nur `whole-password-recognized` öffnet den tatsächlichen lokalen Vorfallspfad;
   `no-whole-password-recognized` bleibt eine begrenzte Nicht-Erkennung und kein Stärkeurteil.
 - Jeder der drei flüchtigen S06-Kontoeingänge akzeptiert optional dieselbe bestätigte semantische
@@ -320,6 +367,11 @@ Seitenangaben beziehen sich auf die im Trainingsdokument ausgewiesene interne Pa
   den Rücksprung. Es entstehen keine neuen persistierten Felder oder Trainingswrites.
 - Der direkte QA-Einstieg `s08-network-replay` startet unmittelbar bei den betroffenen
   Kontoknoten; der bestehende S07-QA-Einstieg führt nach seinem Abschluss ebenfalls dorthin.
+- In der anschließenden S09-Skalierungsansicht werden die roten Risikoverbindungen während des
+  PassWo-Schritts zur unrealistischen Erinnerungsanforderung vollständig aufgemalt. Erst nach der
+  letzten Kante wechseln deterministisch 60 % der weißen anonymen Zusatzkonten gemeinsam auf Rot.
+  Die drei bekannten geschützten Übungskonten bleiben ausgenommen; die Illustration verwendet
+  keine Teilnehmerdaten oder Passwortanalyse.
 
 ## Sections
 

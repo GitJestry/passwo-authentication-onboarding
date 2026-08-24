@@ -1,5 +1,157 @@
 # S06--S07 Copy Audit
 
+## Copy- und Darstellungsdelta S06 ausgelagerte Gruppenwahl, 24. August 2026
+
+Quelle ist der ausdrückliche Nutzerauftrag vom 24. August 2026. Die Farbkugeln liegen außerhalb
+der Modusbox unter `Zusammenhang`, sodass die Box selbst nur eine einheitliche Buttonhöhe behält.
+Ein weiterer Zusammenhang kann erst geöffnet werden, wenn jeder vorhandene Zusammenhang
+mindestens zwei Bausteine enthält. Das entspricht der bereits dokumentierten fachlichen Grenze,
+dass ein einzelner Baustein noch keinen Zusammenhang bildet.
+
+Die ausgeschriebenen Bezeichnungen `Zusammenhang` und `Persönliches` werden nicht gekürzt. Der
+aktive Modus bleibt ruhig markiert, während die jeweils anderen Modi visuell zurücktreten. Die
+persönliche Auswahl arbeitet direkt in den vorhandenen Bausteingrenzen, zeigt dabei aber weder
+Zusammenhangsflächen noch Strukturpfeile oder automatische Kategorienflächen. Der separate Button
+`Übernehmen` entfällt; der Wechsel erfolgt direkt über die drei dauerhaft sichtbaren Modi.
+Bausteinabstände, Steuerungsgrößen und die Gesamtbreite skalieren auf großen Bildschirmen stärker,
+während schmale Ansichten die vollständigen Bezeichnungen weiterhin anzeigen.
+
+Der erste Baustein eines Zusammenhangs ist nur eine gestrichelte Vorschau. Erst die Auswahl eines
+zweiten Bausteins bestätigt und füllt beide; ein Wechsel zu `Struktur` oder `Persönliches`
+verwirft eine einzelne Vorschau. Die persönliche Zeichenmarkierung verzichtet auf die bisherige
+Eingangsanimation. Mehrere Kategorienlogos werden überall verkleinert und horizontal angeordnet.
+Passwort- und Kontotitel wachsen gegenüber den Passwortbausteinen leicht, `Zusammenhang` steht
+ungeachtet der fehlenden Symbolspalte geometrisch mittig im Button. Die responsive Breite bleibt
+auf kleinen Screens auf den rechten Bereich begrenzt und wächst auf großen Screens stärker mit.
+
+Die unbestätigte Zusammenhangsvorschau bleibt vollständig transparent und erhält stattdessen einen
+umlaufenden gestrichelten Suchrahmen; bei reduzierter Bewegung bleibt der Rahmen statisch. A, B und
+C belegen links, mittig und rechts dauerhaft dieselben Außenpositionen unterhalb der Modusbox. Auch
+der nächste Plus-Slot steht bereits an seiner späteren Position. Jede Kugel ist mit dem
+Zusammenhangsbutton verbunden; die Linie der aktiven Gruppe übernimmt ihre Farbe und läuft sichtbar
+in Richtung der Steuerung. Die Strukturpfeile wechseln zu dunklem, kontrastreichem Grau. Das
+Markiermodul wird für schmale Stages weiter begrenzt, damit es insbesondere beim Campus-E-Mail-Konto
+nicht in die Kontooberfläche hineinragt. Teilnehmerwortlaut und Inhaltsversion bleiben dadurch
+unverändert.
+
+Unterschiedlich große einzelne, doppelte und dreifache Kategorienlogos verwenden auch in S06 eine
+gemeinsame responsive Höhenzeile, sodass ihre Mittelpunkte stets auf derselben Y-Ebene liegen.
+
+Während der lokalen Passwortbestimmung bleibt das Angreifermodell bis zum sichtbaren
+Ergebniszustand in Warteposition; ein bereits neu berechneter Fundstatus löst keine vorgezogene
+Knotenbewegung aus. Bei Passwörtern mit einem bis drei Bausteinen rücken die Logo-Informationen
+weiter von den Bausteinen ab und reservieren den zusätzlichen Zwischenraum. Die gesamte
+Campus-E-Mail-Markieransicht sitzt höher, damit unter ihr mehr freie Kontooberfläche bleibt. Der
+unbestätigte Zusammenhang verwendet statt einer rotierenden Rechteckform nun eindeutig laufende
+Striche entlang aller vier Randseiten. Diese Änderungen betreffen Darstellung und
+Zustandsprojektion, nicht Teilnehmerwortlaut oder Inhaltsversion.
+
+Der Perspektivwechsel zu Master Campus und Campus E-Mail erhält einen eigenen animierten
+Datenleckzustand: Nur der neu lokal geprüfte Zweig wird neutralisiert. Bereits bestimmte rote
+Befallsbeziehungen und grüne Schutzbeziehungen bleiben in allen weiteren Ansichten sichtbar.
+Der rote Knotenzustand wird dagegen für die aktive Datenleckquelle neu projiziert: Rot bleiben nur
+die Quelle und Konten, die über eine bereits bestimmte rote Beziehung mit ihr verbunden sind.
+Die ursprüngliche Prüfrichtung begrenzt den Ausbreitungsweg nicht. Ein lokaler blauer
+Schutzzustand bleibt erhalten; eine grüne Paarbeziehung allein färbt
+ihren Zielknoten nicht blau. Blockierte Paarwege verwenden dieselbe statische Darstellung wie
+S08: Zwei grüne Linien treffen ein exakt mittiges grünes Schild und ersetzen dort die rote
+Angriffslinie.
+S06 übernimmt dabei keine S08-Bezeichnungen mit `das alte`; bestehender S06-Wortlaut bleibt
+unverändert. Bereits bestimmte rote Beziehungen zeigen dauerhaft die vorhandenen
+S06-Ergebnislabels `Dasselbe Passwort` beziehungsweise `Leicht abgewandelt`. Sie verwenden wie in
+S08 helle Schrift mit dunkler Kontur und ohne weiße Hintergrundfläche. Die bisherigen zusätzlichen
+Knotenlabels entfallen, sodass jedes Ergebnis nur einmal an der Beziehung steht; insbesondere
+bleibt `Keine leichte Abwandlung erkannt` auf die Vergleichsvorschau begrenzt. Die primäre Rolle
+bleibt Ergebnisfeedback; es entsteht kein neuer Text und keine neue Bedeutungsbehauptung. Der
+bisherige Angreifer blendet an seiner Position aus und der neue blendet in identischer,
+kontofüllender PNG-Größe an der Zielposition ein. Der langsamere Crossfade hält den
+laufenden Angriff anschließend ungefähr eine zusätzliche Sekunde, bevor die Markieransicht weich
+erscheint. Master Campus wird von rechts, Campus E-Mail mit längerer vertikaler Linie von unterhalb
+des Knotens angegriffen; die spätere Knotenbewegung folgt derselben Richtung. Bereits bestimmte
+rote Beziehungen werden bei einem erfolgreichen lokalen Angriff als Ausbreitungsweg in beide
+Richtungen verwendet: Master Campus kann dadurch Campusgram erreichen, Campus E-Mail beide zuvor
+verbundenen Konten. Grüne blockierte Wege lösen keinen Befall aus. Während der eigentlichen
+Markierung sind alle anderen Konten und kontoübergreifenden Verbindungen ausgeblendet; sichtbar
+bleiben nur das aktive Konto, seine Unterknoten und deren interne Verbindungen. Die grüne generische
+Knotenhervorhebung entfällt in Wechsel, Markierung und lokaler Ergebnisprojektion. Während eines
+neuen Angriffs darf der aktuelle Knoten seinen blauen Schild vorübergehend für die rote
+Prüfbewegung verlassen; danach gilt wieder das bestimmte rote Befalls- oder blaue Schutzergebnis.
+Der abschließende Rückwechsel zu Campusgram behält alle bestimmten Beziehungen und projiziert die
+Knotenstatus erneut aus der Campusgram-Perspektive.
+`Fertig` startet die Betroffen-/Blockiert-Projektion ohne die bisherige 900-ms-Wartephase und ohne
+leeren Zwischen-Render. Die Strukturpfeile werden heller, dicker und auch in der Vorschau weniger
+stark abgeblendet. Bei einer Stage unter 1400 px Breite oder 850 px Höhe werden das gesamte
+Markiermodul, seine Titel, Passwortbausteine, Modussteuerung, Gruppenkugeln und Abschlussaktion
+gemeinsam kompakter. Unterhalb von 760 beziehungsweise 520 Stage-Pixeln ordnet sich die verfügbare
+Breite so neu, dass die ausgeschriebenen Modusnamen bedienbar bleiben. Wortlaut und Inhaltsversion
+bleiben unverändert.
+
+Auswahlwerte, Analyse, flüchtiger Zustand, Persistenz, Export und Timing bleiben unverändert.
+`S06_CONSEQUENCE_CONTENT_VERSION` wird von `2.39.0` auf `2.40.0` erhöht.
+
+| Segment und Text-ID | Quelle | Aktueller Text | Geplanter Text | Primäre Rolle | Grund | Bedeutungsänderung | Interaktionsziel | Hervorhebung |
+|---|---|---|---|---|---|---|---|---|
+| `S06.page.localReflection.personalApply` | Nutzerauftrag vom 2026-08-24 | `Übernehmen` | entfällt | Navigation | der dauerhafte Moduswechsel übernimmt die Rückkehr und entfernt eine redundante Aktion | nein | kein verbleibendes Ziel | keine |
+| `S06.comparisonResultLabels.exact-match` | Nutzerauftrag vom 2026-08-24 | `Dasselbe Passwort`, bisher nur im Vergleichsergebnis | wortgleich zusätzlich auf der dauerhaft bestimmten roten Beziehung | Ergebnisfeedback | hält die bestimmte Beziehungsart in späteren Netzwerkansichten sichtbar | nein | kein | rote Beziehungslinie plus Text |
+| `S06.comparisonResultLabels.derived-variant-match` | Nutzerauftrag vom 2026-08-24 | `Leicht abgewandelt`, bisher nur im Vergleichsergebnis | wortgleich zusätzlich auf der dauerhaft bestimmten roten Beziehung | Ergebnisfeedback | hält die bestimmte Beziehungsart in späteren Netzwerkansichten sichtbar | nein | kein | rote Beziehungslinie plus Text |
+| `S06.network.comparisonResultOverlay` | Nutzerauftrag vom 2026-08-24 | zusätzliches Ergebnislabel am Zielknoten, einschließlich `Keine leichte Abwandlung erkannt` | entfällt im Knotennetz; die Vergleichsvorschau bleibt unverändert | Ergebnisfeedback | entfernt doppelte Bezeichnungen und begrenzt die Nicht-Erkennung auf die Vorschau | nein | kein verbleibendes Knotenziel | rote Beziehungslinie beziehungsweise Vergleichsvorschau |
+
+Geschützter Wortlaut und PassWo-Sprechschritte bleiben unverändert.
+
+## Copy- und Darstellungsdelta S06 zentrierte Markierungssteuerung, 24. August 2026
+
+Quelle ist der ausdrückliche Nutzerauftrag vom 24. August 2026. Dieses Delta ersetzt die
+untere UI-Anleitung aus der kompakten Markierungssteuerung. PassWo spricht den neuen Hinweis
+einmal beim ersten lokalen Markierungsschritt mit Master Campus; bei Campus E-Mail wird er nicht
+wiederholt. Der Satz ist als Navigation und freiwillige Übungseinladung klassifiziert. Er fordert
+keine echten Passwörter oder persönlichen Angaben an, sondern bezieht sich ausschließlich auf das
+bereits sichtbare fiktive Passwort.
+
+Der Campusgram-Passworttitel aus S05 sowie die Passworttitel für Master Campus und Campus E-Mail
+werden einheitlich unterstrichen. Moduswahl und Abschluss stehen zentriert unter dem Passwort;
+`Fertig` folgt unterhalb der Modusbox. Alle drei Modusbuttons erhalten dieselbe Höhe,
+Innenaufteilung und responsive Skalierung. Der Zusammenhangsbutton hat kein Symbol mehr, die
+aktiven Modusflächen verwenden eine ruhige einzelne Zustandsmarkierung und die fokussierte
+Zusammenhangskugel keinen doppelten Ring. B und C übernehmen wieder ihre jeweilige feste
+Gruppenfarbe. `Persönliches` verwendet einen neutralen Button und dieselbe Baustein- und
+Zeichenmarkierung wie S05.
+
+Auswahl, Analyse, flüchtiger Zustand, Persistenz, Export und Timing bleiben unverändert.
+`S06_CONSEQUENCE_CONTENT_VERSION` wird von `2.38.0` auf `2.39.0` erhöht.
+
+| Segment und Text-ID | Quelle | Aktueller Text | Geplanter Text | Primäre Rolle | Grund | Bedeutungsänderung | Interaktionsziel | Hervorhebung |
+|---|---|---|---|---|---|---|---|---|
+| `S06.page.localReflection.instruction` | Nutzerauftrag vom 2026-08-23 | `Wähle erst einen Modus. Markiere dann die passenden Teile im Passwort.` | entfällt | Navigation | ersetzt den statischen UI-Hinweis durch eine einmalige PassWo-Einführung | nein | kein verbleibendes UI-Ziel | keine |
+| `S06.narrations.s06.local-reflection.marking-guide` | Nutzerauftrag vom 2026-08-24 | nicht vorhanden | `Als Übung kannst du auch hier die Muster und persönlichen Angaben markieren die dir auffallen.` | Navigation | ausdrücklich vorgegebene natürliche PassWo-Einführung; nur beim ersten lokalen Markierungsschritt | begrenzt | sichtbare Modi und fiktive Passwortbausteine | keine |
+
+Geschützter Wortlaut und andere Sprechschritte bleiben unverändert.
+
+## Copy- und Darstellungsdelta S06 kompakte Markierungssteuerung, 23. August 2026
+
+Quelle ist der ausdrückliche Nutzerauftrag vom 23. August 2026 sowie ausschließlich die
+Markierungsdarstellung aus `design idee markieren.png`. Die lokale Passwortreflexion übernimmt
+eine kompakte, horizontal angeordnete Modusleiste mit `Zusammenhang`, `Struktur` und
+`Persönliches`; die dreiteilige Schrittanzeige entfällt. Unter der Leiste bleibt ausschließlich
+der neue Bedienhinweis sichtbar. Er ist als Navigation klassifiziert und verweist auf die
+unmittelbar sichtbaren Modi und Passwortbausteine.
+
+Die bisher nach unten wachsende Zusammenhangsliste wird durch höchstens drei beschriftete
+Farbkugeln A bis C direkt unter dem Zusammenhangsmodus ersetzt. Der jeweils nächste freie Platz
+ist die Plus-Steuerung; bei drei vorhandenen Gruppen entfällt sie. Weitere Gruppen lassen sich
+direkt an ihrer Kugel löschen. Der Zusammenhangsmodus übernimmt die Farbe der fokussierten
+Gruppe. Die Modussymbole zeigen drei verbundene farbige Bausteine, zwei durch einen Pfeil
+verbundene Strukturbausteine beziehungsweise das vorhandene Logo `Persönliche Angaben`. Farbe
+bleibt durch Beschriftungen, Fokusformen und `aria-pressed` ein zusätzlicher Bedeutungsträger.
+
+Auswahl, Analyse, flüchtiger Zustand, Persistenz, Export und Timing bleiben unverändert.
+`S06_CONSEQUENCE_CONTENT_VERSION` wird von `2.37.0` auf `2.38.0` erhöht.
+
+| Segment und Text-ID | Quelle | Aktueller Text | Geplanter Text | Primäre Rolle | Grund | Bedeutungsänderung | Interaktionsziel | Hervorhebung |
+|---|---|---|---|---|---|---|---|---|
+| `S06.page.localReflection.instruction` | Nutzerauftrag vom 2026-08-23 | nicht vorhanden | `Wähle erst einen Modus. Markiere dann die passenden Teile im Passwort.` | Navigation | übernimmt ausschließlich die ausdrücklich benannte untere Beschreibung aus der Designidee | nein | Modussteuerung und Passwortbausteine | keine |
+
+Geschützter Wortlaut und bestehende Sprechschritte bleiben unverändert.
+
 ## Copy-Delta S06 Zusammenhänge A bis C, 23. August 2026
 
 Quelle ist der ausdrückliche Nutzerauftrag vom 23. August 2026. Die aus S05 übernommenen

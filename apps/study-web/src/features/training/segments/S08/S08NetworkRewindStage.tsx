@@ -326,6 +326,14 @@ export function S08NetworkRewindStage({
       ),
     [conservativeScaleNetwork, scalingComparisonResults],
   );
+  const scalingFindingNodeDelayMs = useMemo(
+    () =>
+      Object.values(scalingRiskNetwork.edgeRevealDelaysMs).reduce<number>(
+        (latestDelay, delay) => Math.max(latestDelay, delay ?? 0),
+        0,
+      ) + 260,
+    [scalingRiskNetwork.edgeRevealDelaysMs],
+  );
   const projectedNetwork = useMemo(
     () => {
       if (preparationVisible) {
@@ -549,6 +557,9 @@ export function S08NetworkRewindStage({
             attackTargetId={replayRunning || replayComplete ? 'campusgram' : null}
             attackBlocked={replayRunning || replayComplete}
             attackEdgeId={null}
+            {...(scalingFindingsRevealing
+              ? { statusCascadeStartDelayMs: scalingFindingNodeDelayMs }
+              : {})}
             showAccountShields
             overview={state.hasTag('expanded')}
             {...(scalingFindingsVisible

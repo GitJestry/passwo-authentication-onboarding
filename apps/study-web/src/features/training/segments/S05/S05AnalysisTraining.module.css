@@ -199,14 +199,14 @@
 
 .finalPasswordStructure .structureReflectionArrow {
   width: calc(var(--password-row-font-size) * 0.72);
-  height: max(0.13rem, calc(var(--password-row-font-size) * 0.075));
+  height: max(0.16rem, calc(var(--password-row-font-size) * 0.09));
 }
 
 .finalPasswordStructure .structureReflectionArrow::after {
   width: calc(var(--password-row-font-size) * 0.34);
   height: calc(var(--password-row-font-size) * 0.34);
-  border-top-width: max(0.13rem, calc(var(--password-row-font-size) * 0.075));
-  border-right-width: max(0.13rem, calc(var(--password-row-font-size) * 0.075));
+  border-top-width: max(0.16rem, calc(var(--password-row-font-size) * 0.09));
+  border-right-width: max(0.16rem, calc(var(--password-row-font-size) * 0.09));
 }
 
 .passwordReuseExample {
@@ -384,11 +384,17 @@
   gap: var(--space-2);
   color: var(--color-ink-muted);
   font-size: clamp(
-    var(--font-size-body),
-    1.5cqi,
-    calc(var(--artifact-unit, 1rem) * 1.2)
+    1.05rem,
+    1.75cqi,
+    calc(var(--artifact-unit, 1rem) * 1.45)
   );
   font-weight: var(--font-weight-bold);
+}
+
+.campusgramPasswordTitle > span:last-child {
+  text-decoration-line: underline;
+  text-decoration-thickness: 0.11em;
+  text-underline-offset: 0.28em;
 }
 
 .campusgramSymbol {
@@ -1664,11 +1670,11 @@
 }
 
 .structureReflectionPassword:has([data-category-stack][data-count="2"]) {
-  padding-bottom: calc(var(--password-category-logo-size) * 2 + 0.75rem);
+  padding-bottom: calc(var(--password-category-logo-size) * 0.75 + 0.45rem);
 }
 
 .structureReflectionPassword:has([data-category-stack][data-count="3"]) {
-  padding-bottom: calc(var(--password-category-logo-size) * 3 + 1.05rem);
+  padding-bottom: calc(var(--password-category-logo-size) * 0.65 + 0.45rem);
 }
 
 .structureReflectionToken {
@@ -1800,10 +1806,10 @@
   position: relative;
   display: block;
   width: clamp(0.95rem, 1.5cqi, 1.28rem);
-  height: 0.16rem;
+  height: 0.18rem;
   border-radius: 999px;
-  background: #f4f4f6;
-  box-shadow: 0 0 0.65rem rgb(255 255 255 / 20%);
+  background: #a8abb0;
+  box-shadow: 0 0 0.62rem rgb(0 0 0 / 34%);
 }
 
 .structureReflectionArrow::after {
@@ -1812,15 +1818,15 @@
   right: 0;
   width: 0.5rem;
   height: 0.5rem;
-  border-top: 0.16rem solid #f4f4f6;
-  border-right: 0.16rem solid #f4f4f6;
+  border-top: 0.18rem solid #a8abb0;
+  border-right: 0.18rem solid #a8abb0;
   content: '';
   transform: translateY(-50%) rotate(45deg);
 }
 
 .structureReflectionGap[data-preview="true"]:not([data-active="true"])
   .structureReflectionArrow {
-  opacity: 0.48;
+  opacity: 0.68;
 }
 
 .structureReflectionRun {
@@ -4739,7 +4745,7 @@
   align-items: center;
   gap: var(--space-2);
   color: var(--color-ink-strong);
-  font-size: clamp(1rem, 1.5cqi, 1.2rem);
+  font-size: clamp(1.05rem, 1.75cqi, 1.45rem);
   font-weight: var(--font-weight-bold);
 }
 
@@ -4749,6 +4755,12 @@
   height: clamp(2.25rem, 3cqi, 2.75rem);
   place-items: center;
   color: var(--color-campusgram);
+}
+
+.canonicalAccount > span:last-child {
+  text-decoration-line: underline;
+  text-decoration-thickness: 0.11em;
+  text-underline-offset: 0.28em;
 }
 
 .canonicalAccount svg {

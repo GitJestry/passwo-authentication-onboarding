@@ -73,7 +73,7 @@ export interface S05DesignLabFixture {
   readonly startSection: 'intro' | 'components' | 'structure';
 }
 
-export const S05_CONTENT_VERSION = '2.126.0';
+export const S05_CONTENT_VERSION = '2.127.0';
 
 export const s05Content = {
   version: S05_CONTENT_VERSION,
@@ -83,9 +83,9 @@ export const s05Content = {
       12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34,
       35,
     ] as const,
-    revision: 'Userauftrag vom 2026-08-23 · alte Zusammenhangsmarkierung wiederhergestellt',
+    revision: 'Userauftrag vom 2026-08-24 · geläufiges Wort in Logo-Information',
     copyReference:
-      'docs/design/S00-S05-COPY-AUDIT.md#darstellungsdelta-s05-alte-zusammenhangsmarkierung-und-begrenzte-kategoriefarben-23-august-2026',
+      'docs/design/S00-S05-COPY-AUDIT.md#copydelta-s05-geläufiges-wort-in-logo-information-24-august-2026',
   },
   segment: {
     id: 'S05',
@@ -179,7 +179,7 @@ export const s05Content = {
       },
       findingCategories: {
         password: 'häufiges Passwort',
-        word: 'häufiges Wort',
+        word: 'geläufiges Wort',
         keyboard: 'häufige Tastaturfolge',
         numberSequence: 'häufige Zahlenfolge',
         date: 'häufiges Datum',

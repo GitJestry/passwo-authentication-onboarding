@@ -180,7 +180,7 @@
   inset: 1.6rem 0 clamp(12.5rem, 23cqb, 13rem);
   min-width: 0;
   min-height: 0;
-  overflow: hidden;
+  overflow: visible;
   background: #000;
 }
 

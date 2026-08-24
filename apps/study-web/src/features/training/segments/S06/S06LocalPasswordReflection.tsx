@@ -7,7 +7,10 @@ import {
   passwordSingleLineVisualStyleFor,
   passwordVisualStyleFor,
 } from '../S05/PasswordBuildingBlocks.js';
-import { PasswordCategoryIconStack } from '../S05/PasswordCategoryIcon.js';
+import {
+  PasswordCategoryIcon,
+  PasswordCategoryIconStack,
+} from '../S05/PasswordCategoryIcon.js';
 import { structureGroupColor, structureGroupLetter } from '../S05/StructureGroupPalette.js';
 import type {
   S06LocalReflectionMode,
@@ -51,6 +54,17 @@ function StructureLinkArrow({
   );
 }
 
+function StructureModeIcon() {
+  return (
+    <svg viewBox="0 0 44 28" aria-hidden="true">
+      <rect x="2" y="7" width="13" height="14" rx="3" />
+      <path d="M18 14h9" />
+      <path d="m24 10 4 4-4 4" />
+      <rect x="31" y="7" width="11" height="14" rx="3" />
+    </svg>
+  );
+}
+
 export function S06LocalPasswordReflection({
   reflection,
   interactive,
@@ -80,7 +94,17 @@ export function S06LocalPasswordReflection({
     reflection.contentGroups.length >= content.maxGroupCount;
   const canAddGroup =
     !groupLimitReached &&
-    reflection.contentGroups.every(({ blockIds }) => blockIds.length > 0);
+    reflection.contentGroups.every(({ blockIds }) => blockIds.length >= 2);
+  const activeGroupIndex = Math.max(
+    0,
+    reflection.contentGroups.findIndex(({ id }) => id === reflection.activeContentGroupId),
+  );
+  const activeGroupStyle: GroupColorStyle = {
+    '--s06-reflection-group-color': structureGroupColor(activeGroupIndex),
+  };
+  const nextGroupStyle: GroupColorStyle = {
+    '--s06-reflection-group-color': structureGroupColor(reflection.contentGroups.length),
+  };
   const passwordTitle =
     reflection.accountId === 'campusgram'
       ? content.passwordLabel
@@ -104,11 +128,12 @@ export function S06LocalPasswordReflection({
           <span aria-hidden="true">
             <NetworkSymbol symbolId={reflection.accountId} />
           </span>
-          {passwordTitle}
+          <span className={styles.titleText}>{passwordTitle}</span>
         </h2>
         <div
           className={styles.password}
           data-mode={reflection.mode}
+          data-few-blocks={reflection.blocks.length <= 3 || undefined}
           data-has-category-icons={
             reflection.blocks.some(({ findings }) => findings.length > 0) || undefined
           }
@@ -119,12 +144,11 @@ export function S06LocalPasswordReflection({
             <div className={styles.personalPassword}>
               <PasswordBuildingBlocks
                 value={reflection.fictionalPassword}
-                parts={[...reflection.fictionalPassword]}
+                parts={reflection.blocks.map(({ value }) => value)}
                 display="decomposed"
                 appearance="analysis"
-                continuous
-                animate
-                categoryIds={[...reflection.fictionalPassword].map(() => [])}
+                animate={false}
+                personalHighlightRanges={reflection.personalCandidates}
                 rangeSelection={{
                   candidates: reflection.personalCandidates,
                   onCreate: onPersonalCreate,
@@ -133,13 +157,6 @@ export function S06LocalPasswordReflection({
                 }}
                 ariaLabel={content.personalSelectionLabel}
               />
-              <button
-                type="button"
-                className={styles.applyPersonal}
-                onClick={() => onModeChange('groups')}
-              >
-                {content.personalApply}
-              </button>
             </div>
           ) : (() => {
             const rendered: ReactNode[] = [];
@@ -152,6 +169,10 @@ export function S06LocalPasswordReflection({
                 blockIds.includes(block.id),
               );
               const groupSelected = groupIndex >= 0;
+              const groupComplete =
+                groupSelected &&
+                (reflection.contentGroups[groupIndex]?.blockIds.length ?? 0) >= 2;
+              const groupPreview = groupSelected && !groupComplete;
               const incomingLinkActive =
                 previousBlock !== undefined &&
                 structureLinkExists(reflection, previousBlock.id, block.id);
@@ -180,7 +201,8 @@ export function S06LocalPasswordReflection({
                     className={styles.block}
                     style={groupStyle}
                     data-repetition={block.repeated || undefined}
-                    data-group-selected={groupSelected || undefined}
+                    data-group-selected={groupComplete || undefined}
+                    data-group-preview={groupPreview || undefined}
                     data-structure-selected={structureConnected || undefined}
                     aria-pressed={
                       reflection.mode === 'groups' ? groupSelected : outgoingLinkActive
@@ -278,64 +300,79 @@ export function S06LocalPasswordReflection({
       </div>
       <footer className={styles.actions}>
         {interactive ? (
-          <div className={styles.modes}>
-            <strong>{content.modeLabel}</strong>
-            <div className={styles.modeControls}>
-              <div className={styles.primaryModes}>
-                <div className={styles.groupControl}>
-                  <div
-                    className={styles.groupList}
-                    data-group-count={reflection.contentGroups.length}
-                  >
-                    {reflection.contentGroups.map((group, groupIndex) => {
-                      const groupStyle: GroupColorStyle = {
-                        '--s06-reflection-group-color':
-                          structureGroupColor(groupIndex),
-                      };
-                      return (
-                        <div className={styles.groupEntry} key={group.id}>
+          <div className={styles.actionRow}>
+            <div
+              className={styles.modeControls}
+              role="group"
+              aria-label={content.modeLabel}
+              data-active-mode={reflection.mode}
+            >
+              <div className={styles.relationshipControl}>
+                <button
+                  type="button"
+                  className={styles.relationshipMode}
+                  style={activeGroupStyle}
+                  data-active={reflection.mode === 'groups' || undefined}
+                  aria-pressed={reflection.mode === 'groups'}
+                  onClick={() => onModeChange('groups')}
+                >
+                  <span className={styles.modeLabel}>{content.groupLabel}</span>
+                </button>
+                <div className={styles.groupPalette}>
+                  {reflection.contentGroups.map((group, groupIndex) => {
+                    const groupStyle: GroupColorStyle = {
+                      '--s06-reflection-group-color': structureGroupColor(groupIndex),
+                    };
+                    const groupName =
+                      `${content.groupLabel} ${structureGroupLetter(groupIndex)}`;
+                    return (
+                      <div
+                        className={styles.groupEntry}
+                        style={groupStyle}
+                        data-slot={groupIndex}
+                        data-active={
+                          (reflection.mode === 'groups' &&
+                            reflection.activeContentGroupId === group.id) || undefined
+                        }
+                        key={group.id}
+                      >
+                        <button
+                          type="button"
+                          className={styles.groupButton}
+                          data-active={
+                            (reflection.mode === 'groups' &&
+                              reflection.activeContentGroupId === group.id) || undefined
+                          }
+                          aria-label={groupName}
+                          aria-pressed={
+                            reflection.mode === 'groups' &&
+                            reflection.activeContentGroupId === group.id
+                          }
+                          onClick={() => onGroupSelect(group.id)}
+                        >
+                          {structureGroupLetter(groupIndex)}
+                        </button>
+                        {groupIndex === 0 ? null : (
                           <button
                             type="button"
-                            className={styles.groupButton}
-                            style={groupStyle}
-                            data-active={
-                              (reflection.mode === 'groups' &&
-                                reflection.activeContentGroupId === group.id) || undefined
+                            className={styles.deleteGroup}
+                            aria-label={
+                              `${s05Content.structure.reflection.deleteGroup} ${groupName}`
                             }
-                            aria-pressed={
-                              reflection.mode === 'groups' &&
-                              reflection.activeContentGroupId === group.id
-                            }
-                            onClick={() => onGroupSelect(group.id)}
+                            onClick={() => onGroupRemove(group.id)}
                           >
-                            {content.groupLabel} {structureGroupLetter(groupIndex)}
+                            <span aria-hidden="true">×</span>
                           </button>
-                          {groupIndex === 0 ? null : (
-                            <button
-                              type="button"
-                              className={styles.deleteGroup}
-                              aria-label={
-                                `${s05Content.structure.reflection.deleteGroup} ` +
-                                `${content.groupLabel} ${structureGroupLetter(groupIndex)}`
-                              }
-                              onClick={() => onGroupRemove(group.id)}
-                            >
-                              <svg viewBox="0 0 24 24" aria-hidden="true">
-                                <path d="M4 7h16" />
-                                <path d="M9 7V4h6v3" />
-                                <path d="M7 7l1 13h8l1-13" />
-                                <path d="M10 11v5" />
-                                <path d="M14 11v5" />
-                              </svg>
-                              <small>{s05Content.structure.reflection.deleteGroup}</small>
-                            </button>
-                          )}
-                        </div>
-                      );
-                    })}
-                    {groupLimitReached ? (
-                      <span className={styles.groupLimit}>{content.maxGroups}</span>
-                    ) : (
+                        )}
+                      </div>
+                    );
+                  })}
+                  {groupLimitReached ? null : (
+                    <div
+                      className={styles.groupEntry}
+                      style={nextGroupStyle}
+                      data-slot={reflection.contentGroups.length}
+                    >
                       <button
                         type="button"
                         className={styles.addGroup}
@@ -344,21 +381,22 @@ export function S06LocalPasswordReflection({
                         onClick={onGroupAdd}
                       >
                         <span aria-hidden="true">+</span>
-                        <small>{content.newGroup}</small>
                       </button>
-                    )}
-                  </div>
+                    </div>
+                  )}
                 </div>
-                <button
-                  type="button"
-                  data-active={reflection.mode === 'structure' || undefined}
-                  aria-pressed={reflection.mode === 'structure'}
-                  disabled={reflection.blocks.length < 2}
-                  onClick={() => onModeChange('structure')}
-                >
-                  {content.structureMode}
-                </button>
               </div>
+              <button
+                type="button"
+                className={styles.structureMode}
+                data-active={reflection.mode === 'structure' || undefined}
+                aria-pressed={reflection.mode === 'structure'}
+                disabled={reflection.blocks.length < 2}
+                onClick={() => onModeChange('structure')}
+              >
+                <StructureModeIcon />
+                <span className={styles.modeLabel}>{content.structureMode}</span>
+              </button>
               <button
                 type="button"
                 className={styles.personalMode}
@@ -366,11 +404,22 @@ export function S06LocalPasswordReflection({
                 aria-pressed={reflection.mode === 'personal'}
                 onClick={() => onModeChange('personal')}
               >
-                {content.personalMode}
+                <span className={styles.personalModeIcon} aria-hidden="true">
+                  <PasswordCategoryIcon categoryId="personal-details" decorative />
+                </span>
+                <span className={styles.modeLabel}>{content.personalMode}</span>
               </button>
             </div>
-            <button type="button" className={styles.finish} onClick={onFinish}>
-              {s06ConsequenceContent.page.finish}
+            <button
+              type="button"
+              className={styles.finish}
+              onClick={onFinish}
+            >
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <circle cx="12" cy="12" r="9" />
+                <path d="m8 12 2.5 2.5L16 9" />
+              </svg>
+              <span>{s06ConsequenceContent.page.finish}</span>
             </button>
           </div>
         ) : null}

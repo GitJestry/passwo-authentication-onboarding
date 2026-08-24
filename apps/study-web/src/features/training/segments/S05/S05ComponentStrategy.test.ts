@@ -27,9 +27,9 @@ function analysisWithFindings(findings: readonly PasswordSingleFinding[]): Passw
 
 describe('S05 component strategy presentation', () => {
   it.each([
-    ['wort1wort1', 'common-word', 'häufiges Wort'],
+    ['wort1wort1', 'common-word', 'geläufiges Wort'],
     ['password1password1', 'common-password-core', 'häufiges Passwort'],
-    ['zümra1zümra1', 'common-name', 'häufiges Wort'],
+    ['zümra1zümra1', 'common-name', 'geläufiges Wort'],
     ['qwertz9876xqwertz9876x', 'keyboard-pattern', 'häufige Tastaturfolge'],
     ['2026-2026-', 'year', 'häufiges Datum'],
     ['12.03.2012-12.03.2012-', 'date', 'häufiges Datum'],

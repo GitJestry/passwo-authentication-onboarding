@@ -1,5 +1,19 @@
 # S08--S09 Copy Audit
 
+## Darstellungsdelta S09 rote Skalierungsknoten nach Kantenaufbau, 24. August 2026
+
+Quelle ist der ausdrückliche Nutzerauftrag vom 24. August 2026. Im bestehenden PassWo-Schritt
+`S09.passWo.steps[3]` werden die roten Risikoverbindungen weiterhin in ihrer deterministischen
+Reihenfolge gezeichnet. Erst nachdem die letzte dieser Kanten vollständig erschienen ist,
+wechseln 60 % der weißen anonymen Kontoknoten gemeinsam in den roten Befallszustand. Die drei
+bekannten geschützten Übungskonten gehören nicht zur Grundgesamtheit. Die Auswahl bleibt
+reproduzierbar und vollständig authored; sie wird weder aus Teilnehmerdaten noch aus einer
+Passwortanalyse abgeleitet. Bei Reduced Motion erscheinen Kanten und rote Knoten unmittelbar im
+gemeinsamen Endzustand.
+
+Der bestehende Sprechtext, seine Rolle als Ergebnisfeedback, Interaktion, Persistenz, Export und
+`S09_PASSWORD_SUMMARY_CONTENT_VERSION` bleiben unverändert.
+
 ## Copy-Delta S08-S09 eigene Passwoerter, 23. August 2026
 
 Quelle ist der ausdrückliche Nutzerauftrag vom 23. August 2026. Ausschließlich die unten

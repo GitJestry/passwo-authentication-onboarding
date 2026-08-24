@@ -99,14 +99,15 @@ Herauszoomen auf 134 Konten sichtbar. Mit der anschließenden konservativen 80-K
 ploppen die 54 nicht mehr benötigten Zusatzkonten in kurzer authored Reihenfolge auf und
 verschwinden. Bei Reduced Motion erscheint derselbe vollständige 80-Konten-Endzustand unmittelbar.
 Während PassWo die unrealistische dauerhafte Erinnerungsanforderung einordnet, tragen exakt 60 %
-dieser 80 Konten einen kleinen roten S06-Befundtitel `Wiederverwendet` oder `Ähnlich`. Die 48
-betroffenen anonymen Konten sind in einer festen, zufällig wirkenden Reihenfolge über das authored
-Punktmuster verteilt; ihre Titel erscheinen nacheinander. Die Verteilung ist eine reproduzierbare
+der weißen anonymen Zusatzkonten einen kleinen roten S06-Befundtitel `Wiederverwendet` oder
+`Ähnlich`. Die 46 betroffenen Zusatzkonten sind in einer festen, zufällig wirkenden Reihenfolge
+über das authored Punktmuster verteilt; ihre Titel erscheinen nacheinander. Die Verteilung ist eine reproduzierbare
 Illustration des genannten Skalierungsproblems und wird nicht aus Passwörtern, Eingaben oder einer
-Analyse abgeleitet. Bei Reduced Motion erscheinen alle 48 Titel unmittelbar im Endzustand.
+Analyse abgeleitet. Bei Reduced Motion erscheinen alle 46 Titel unmittelbar im Endzustand.
 Mit jedem Titel erscheint außerdem eine dünne rote Beziehungskante zwischen zwei betroffenen
-anonymen Konten. Die 48 Kanten verbinden alle markierten Konten in der festen Reveal-Reihenfolge
-und bleiben ebenso wie die Titel in den beiden folgenden PassWo-Schritten sichtbar. Sie
+anonymen Konten. Die 46 Kanten verbinden alle markierten Konten in der festen Reveal-Reihenfolge.
+Nachdem die letzte Kante vollständig gezeichnet ist, wechseln dieselben 46 Knoten gemeinsam von
+Weiß in den roten Befallszustand. Kanten, Titel und Knotenstatus bleiben in den beiden folgenden PassWo-Schritten sichtbar. Sie
 illustrieren mögliche Wiederverwendungs- oder Ähnlichkeitsbeziehungen und behaupten keine
 tatsächliche Analyse der dargestellten Konten. Die Reveal-Animation ist ausschließlich beim
 erstmaligen Eintritt aktiv; `Weiter` übernimmt den bereits sichtbaren statischen Endzustand, ohne
@@ -151,3 +152,53 @@ Danach wird in S06 derselbe Graph um Angriffs- und Schutzstatus erweitert. Der e
 der unveränderte letzte S05-Netzwerkstand; beide Segmente verwenden dieselbe
 Auswertungskomponente. Master-Campus- und Campus-E-Mail-Detailkanten erhalten in dieser
 Auswertungsdarstellung denselben neutralen Linienstil.
+
+Bei der lokalen Passwortbestimmung für Master Campus und Campus E-Mail bleibt das Angreifermodell
+während der Markierung und des Statechart-Übergangs ausdrücklich in seiner Warteposition. Der
+spätere Knotenstatus wird erst projiziert, sobald der lokale Ergebniszustand samt sichtbarer
+Ergebnisrückmeldung erreicht ist. Ein bereits im neu berechneten Netzwerk vorhandener
+`exposed`-Status darf die Angreiferbewegung nicht vorwegnehmen. Reduced Motion übernimmt dieselbe
+fachliche Reihenfolge ohne Bewegungsanimation.
+
+Vor jeder lokalen Markieransicht läuft außerdem ein eigener Datenleckwechsel. Das Netzwerk zeigt
+dabei alle Hauptknoten und setzt ausschließlich den neu lokal geprüften Kontozweig auf den
+neutralen Prüfzustand. Bereits bestimmte Paarbeziehungen bleiben dauerhaft sichtbar: erkannte
+Befallswege als rote Beziehung, blockierte Wege wie in S08 als zwei statische grüne Segmente mit
+einem exakt mittigen grünen Schutzschild. Knotenstatus werden für die aktive Datenleckquelle
+projiziert: Nach einem lokalen Fund sind nur die Quelle sowie über bereits bestimmte rote
+Beziehungen mit ihr verbundene Konten rot. Die frühere Prüfrichtung der Beziehung ist dafür
+unerheblich. Ein unabhängig bestimmter lokaler blauer Schutzzustand bleibt erhalten; ein blockierter
+Paarweg allein erzeugt keinen blauen Zielknoten. Rote Beziehungen tragen dauerhaft die vorhandenen
+S06-Labels `Dasselbe Passwort` beziehungsweise `Leicht abgewandelt` in der S08-Darstellung ohne
+weiße Hintergrundfläche. Zusätzliche Ergebnislabels an Knoten entfallen; der Text zur fehlenden
+leichten Abwandlung bleibt auf die Vergleichsvorschau begrenzt. Grüne Beziehungen benötigen neben
+ihren beiden Segmenten und dem mittigen Schild kein zusätzliches Textlabel. Für die kurze
+Übergangsphase dürfen alter und neuer Angreiferanker gleichzeitig im Snapshot stehen: Der alte
+Anker blendet an
+seiner bisherigen Position aus, der neue blendet an der Zielposition ein. Beide verwenden dieselbe
+Bildgröße von 144 % des
+Kontoknotens; Zustandswechsel dürfen die PNG-Größe nicht mehr verändern. Der langsamere Crossfade
+geht in ungefähr eine zusätzliche Sekunde sichtbaren laufenden Angriffs über und anschließend in
+die weich eingeblendete Markieransicht; dort bleibt ausschließlich der neue Anker erhalten. Der
+Master-Campus-Anker liegt rechts, der Campus-E-Mail-Anker unterhalb und mit zusätzlichem Abstand zum
+Knoten. Die Angriffslinie und die spätere Bewegung in den Knoten verwenden entsprechend eine
+horizontale beziehungsweise von unten nach oben laufende Richtung. Eine grüne generische Knoten-Hervorhebung wird
+während Wechsel, Markierung und lokaler Ergebnisprojektion nicht gesetzt.
+
+Während der lokalen Markierung rendert S06 ausschließlich das aktive Konto, seine Unterknoten und
+deren interne Kanten. Andere Konten sowie alle kontoübergreifenden Beziehungen werden erst mit der
+Ergebnisprojektion wieder eingeblendet. Wird Master Campus oder Campus E-Mail lokal erreicht,
+breitet sich dieser Vorfall über jede bereits bestimmte rote Passwortbeziehung aus, unabhängig
+davon, in welcher Richtung die Beziehung zuvor geprüft wurde. Die bereits gezeichnete Ausrichtung
+der Beziehung bleibt auch beim Wechsel der Datenleckquelle unverändert; die Ergebnisanimation
+spiegelt oder richtet sie nicht neu aus. Blockierte grüne Wege übertragen keinen Befall.
+
+Der jeweils aktuelle Paarangriff darf den betroffenen Prüf- und Schutzzustand nur für seine rote
+Angriffsbewegung überlagern. Danach setzt sich das bestimmte Ergebnis wieder durch. Ein lokal
+blockiertes Master-Campus-Passwort behält deshalb beim Wechsel zu Campus E-Mail seinen blauen
+Schildzustand, sofern kein bereits bestimmter roter Befallsweg diesen Kontozweig erreicht hat.
+Dasselbe gilt für Campus E-Mail beim abschließenden Rückwechsel zu Campusgram. Der S06-Abschluss
+behält den vollständigen Satz bestimmter Beziehungen und projiziert die Knotenstatus erneut für
+Campusgram, statt einen früheren Campusgram-Zwischenstand zu verwenden. S06-Beziehungslabels
+referenzieren das aktuell dargestellte
+fiktive Passwort und verwenden nicht die S08-Formulierungen mit `das alte`.

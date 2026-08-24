@@ -648,12 +648,11 @@ export function createS09ScalingComparisonResults(
   snapshot: NetworkSceneSnapshot,
   findingShare: number,
 ): Readonly<Partial<Record<string, PasswordRelation['kind']>>> {
-  const accounts = snapshot.nodes.filter(({ kind }) => kind === 'account');
-  const findingCount = Math.floor(accounts.length * findingShare);
   const findings: Partial<Record<string, PasswordRelation['kind']>> = {};
-  const anonymousAccounts = accounts.filter(({ id }) =>
-    id.startsWith('s09-additional-account-'),
+  const anonymousAccounts = snapshot.nodes.filter(
+    ({ id, kind }) => kind === 'account' && id.startsWith('s09-additional-account-'),
   );
+  const findingCount = Math.floor(anonymousAccounts.length * findingShare);
   const authoredExampleAccounts = Array.from(
     { length: Math.min(findingCount, anonymousAccounts.length) },
     (_, index) => anonymousAccounts[(23 + index * 37) % anonymousAccounts.length],
@@ -698,8 +697,11 @@ export function createS09ScalingRiskNetwork(
     network: {
       ...snapshot,
       id: `${snapshot.id}-risk-relations`,
+      nodes: snapshot.nodes.map((node): SceneNode =>
+        findings[node.id] === undefined ? node : { ...node, status: 'affected' },
+      ),
       edges: [...snapshot.edges, ...riskEdges],
-      accessibleSummary: `${snapshot.accessibleSummary} 48 Konten tragen beispielhafte Befunde und sind durch rote Risikoverbindungen verbunden.`,
+      accessibleSummary: `${snapshot.accessibleSummary} ${accountIds.length} der weißen Kontoknoten tragen beispielhafte Befunde und sind durch rote Risikoverbindungen verbunden.`,
     },
     edgeRevealDelaysMs,
   };

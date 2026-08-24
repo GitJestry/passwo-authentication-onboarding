@@ -203,9 +203,13 @@ export function S06ConsequenceTraining({
   const attackSourceAccountId = snapshot.attackSourceAccountId;
   const attackerAttemptStatus =
     snapshot.attackPhase === 'incident-check' && attackSourceAccountId !== null
-      ? (snapshot.step.network.nodes.find(({ id }) => id === attackSourceAccountId)?.status ??
-        null)
+      ? snapshot.stage === 'local-check-result' && snapshot.phase === 'awaiting-decision'
+        ? (snapshot.step.network.nodes.find(({ id }) => id === attackSourceAccountId)?.status ??
+          'neutral')
+        : 'neutral'
       : null;
+  const showsIncidentCascade =
+    snapshot.stage === 'local-check-result' && attackerAttemptStatus === 'exposed';
   const comparison =
     !snapshot.comparisonPreviewVisible ||
     snapshot.step.sourceAccountId === null ||
@@ -239,14 +243,15 @@ export function S06ConsequenceTraining({
             presentation={snapshot.presentation}
             attackPhase={snapshot.attackPhase}
             attackerAccountId={snapshot.attackSourceAccountId}
+            attackerDepartureAccountId={snapshot.attackDepartureAccountId}
             attackerAttemptStatus={attackerAttemptStatus}
             attackTargetId={snapshot.step.targetAccountId}
             attackEdgeId={snapshot.comparisonVisible ? `${snapshot.step.id}-path` : null}
             attackBlocked={
               snapshot.step.relation?.kind === 'no-derived-path-recognized'
             }
-            comparisonResults={snapshot.completedComparisonResults}
-            statusCascadeStartDelayMs={120}
+            statusCascadeStartDelayMs={showsIncidentCascade ? 1100 : 120}
+            showEdgeLabels
           />
         </div>
         {snapshot.isHypothetical ? (

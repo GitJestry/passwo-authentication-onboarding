@@ -108,6 +108,24 @@
 
 .training[data-s09-expanded="true"]
   .network
+  :global([data-symbol-id="s09-account-swatch"][data-status-cascade-tone="danger"][data-status-cascade-active="true"] [data-scene-node-visual]) {
+  animation: s09-risk-node-arrival 220ms cubic-bezier(0.16, 1, 0.3, 1)
+    var(--network-status-cascade-arrival-delay) both;
+}
+
+.training[data-s09-expanded="true"]
+  .network
+  :global([data-symbol-id="s09-account-swatch"][data-status="affected"]:not([data-status-cascade-active="true"]) [data-scene-node-visual]) {
+  border-color: #ff315e;
+  color: #fff;
+  background: #70031e;
+  box-shadow:
+    0 0 0 0.18rem rgb(255 49 94 / 22%),
+    0 0 0.9rem rgb(255 49 94 / 72%);
+}
+
+.training[data-s09-expanded="true"]
+  .network
   :global([data-network-symbol="s09-account-swatch"]),
 .training[data-s09-expanded="true"]
   .network
@@ -161,35 +179,6 @@
   stroke-width: 3px;
   stroke-dasharray: 7 7;
   opacity: 0.9;
-}
-
-.training[data-replay-phase="protection"]
-  .network
-  :global(.edge-kind-identical-reuse .react-flow__edge-text),
-.training[data-replay-phase="protection"]
-  .network
-  :global(.edge-kind-similar-pattern .react-flow__edge-text) {
-  fill: #ff8da4;
-  stroke: #3a0914;
-  stroke-width: 2.4px;
-  stroke-linejoin: round;
-  font-weight: 800;
-  letter-spacing: 0.01em;
-  paint-order: stroke fill;
-  filter:
-    drop-shadow(0 1px 1px rgb(25 3 9 / 90%))
-    drop-shadow(0 0 5px rgb(255 49 94 / 62%));
-}
-
-.training[data-replay-phase="protection"]
-  .network
-  :global(.edge-kind-identical-reuse .react-flow__edge-textbg),
-.training[data-replay-phase="protection"]
-  .network
-  :global(.edge-kind-similar-pattern .react-flow__edge-textbg) {
-  fill: transparent;
-  fill-opacity: 0;
-  stroke: none;
 }
 
 .training[data-s08-resolving-account="master-campus"]
@@ -689,6 +678,37 @@
   }
 }
 
+@keyframes s09-risk-node-arrival {
+  0%, 45% {
+    border-color: color-mix(in srgb, var(--s09-account-tone) 68%, #edf6f7);
+    background:
+      radial-gradient(circle at 32% 27%, rgb(255 255 255 / 68%) 0 11%, transparent 34%),
+      linear-gradient(
+        145deg,
+        color-mix(in srgb, var(--s09-account-tone) 76%, #eef3f3),
+        color-mix(in srgb, var(--s09-account-tone) 88%, #657482)
+      );
+    box-shadow:
+      inset 0 1px 0 rgb(255 255 255 / 48%),
+      0 0.38rem 0.9rem color-mix(in srgb, var(--s09-account-tone) 18%, transparent);
+    transform: scale(1);
+  }
+
+  78% {
+    border-color: #fff;
+    background: #70031e;
+    box-shadow: 0 0 0 0.18rem rgb(255 49 94 / 22%), 0 0 1.1rem rgb(255 49 94 / 82%);
+    transform: scale(1.24);
+  }
+
+  to {
+    border-color: #ff315e;
+    background: #70031e;
+    box-shadow: 0 0 0 0.18rem rgb(255 49 94 / 22%), 0 0 0.9rem rgb(255 49 94 / 72%);
+    transform: scale(1);
+  }
+}
+
 @keyframes s09-account-node-remove {
   45% {
     opacity: 1;
@@ -891,6 +911,18 @@
 
   .training .network :global([data-network-edge-break-effect]) {
     display: none;
+  }
+
+  .training[data-s09-expanded="true"]
+    .network
+    :global([data-symbol-id="s09-account-swatch"][data-status="affected"] [data-scene-node-visual]) {
+    border-color: #ff315e;
+    color: #fff;
+    background: #70031e;
+    box-shadow:
+      0 0 0 0.18rem rgb(255 49 94 / 22%),
+      0 0 0.9rem rgb(255 49 94 / 72%);
+    animation: none;
   }
 
   .replayAction,

@@ -1,5 +1,36 @@
 # S00--S05 Copy and Interaction Audit
 
+## Copydelta S05 geläufiges Wort in Logo-Information, 24. August 2026
+
+Quelle ist der ausdrückliche Nutzerauftrag vom 24. August 2026. Die nach außen sichtbare
+Einstufung eines erkannten geläufigen Wortes in den Kategorienlogo-Hoverkarten wechselt von
+`häufiges Wort` zu `geläufiges Wort`. Die Textrolle ist Ergebnisfeedback. Die neue Formulierung
+gleicht die kompakte Einstufung an den bereits freigegebenen Erklärwortlaut zu geläufigen Wörtern
+an; interne Kategorie-IDs, Erkennung, Analyse, flüchtiger Zustand, Persistenz, Export und Timing
+bleiben unverändert. `S05_CONTENT_VERSION` wird von `2.126.0` auf `2.127.0` erhöht.
+
+| Segment und Text-ID | Quelle | Aktueller Text | Geplanter Text | Primäre Rolle | Grund | Bedeutungsänderung | Interaktionsziel | Hervorhebung |
+|---|---|---|---|---|---|---|---|---|
+| `S05.componentStrategy.presentation.findingCategories.word` | Nutzerauftrag vom 2026-08-24 | `häufiges Wort` | `geläufiges Wort` | Ergebnisfeedback | konsistente sichtbare Benennung in den Logo-Hoverkarten | nein | Kategorienlogo am fiktiven Passwortbaustein | Logo und Hoverkarte |
+
+Geschützter Wortlaut und bestehende Sprechschritte bleiben unverändert.
+
+## Darstellungsdelta S05 responsive Logo-Hinweise und Strukturpfeile, 24. August 2026
+
+Quelle ist der ausdrückliche Nutzerauftrag vom 24. August 2026. Die automatisch einmal gezeigte
+Hover-Hilfe und die zugehörigen Logo-Tooltips verwenden keine pauschale Langbreite mehr, sondern
+richten ihre Breite am tatsächlichen Hinweistext aus. In schmalen Stage-Ansichten werden Tooltip,
+Handzeiger und Fragezeichen zusätzlich verkleinert und enger gesetzt. Die Strukturpfeile zwischen
+Bausteinen wechseln von Weiß zu einem kontrastreichen dunklen Grau. Teilnehmerwortlaut,
+Interaktionsreihenfolge, Analyse, flüchtiger Zustand, Persistenz, Export und Timing bleiben
+unverändert; deshalb bleibt auch `S05_CONTENT_VERSION` unverändert.
+
+Einzelne sowie verkleinerte doppelte oder dreifache Kategorienlogos liegen innerhalb einer
+gemeinsamen responsiven Höhenzeile. Dadurch bleiben ihre Mittelpunkte unabhängig von verfügbarer
+Breite und Logoanzahl auf derselben Y-Ebene.
+
+Geschützter Wortlaut und bestehende Sprechschritte bleiben unverändert.
+
 ## Darstellungsdelta S05 alte Zusammenhangsmarkierung und begrenzte Kategoriefarben, 23. August 2026
 
 Quelle ist der ausdrückliche Nutzerauftrag vom 23. August 2026. Dieses Delta ersetzt die zuletzt

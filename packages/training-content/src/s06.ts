@@ -35,6 +35,7 @@ export type S06NarrationId =
   | 's06.compare.exact-match'
   | 's06.compare.derived-variant-match'
   | 's06.compare.no-derived-path-recognized'
+  | 's06.local-reflection.marking-guide'
   | 's06.perspective.master-campus-found'
   | 's06.perspective.master-campus-exhaustive-found'
   | 's06.perspective.master-campus-blocked'
@@ -58,16 +59,16 @@ export interface S06NarrationContent {
   readonly body: string;
 }
 
-export const S06_CONSEQUENCE_CONTENT_VERSION = '2.37.0';
+export const S06_CONSEQUENCE_CONTENT_VERSION = '2.40.0';
 
 export const s06ConsequenceContent = {
   version: S06_CONSEQUENCE_CONTENT_VERSION,
   source: {
     document: 'research/private/training-script.pdf',
     internalPages: [36, 37, 38, 39, 40, 41, 42, 43, 44] as const,
-    revision: 'Userauftrag vom 2026-08-23 · Zusammenhänge A bis C',
+    revision: 'Userauftrag vom 2026-08-24 · ausgelagerte S06-Gruppenwahl',
     copyReference:
-      'docs/design/S06-S07-COPY-AUDIT.md#copy-delta-s06-zusammenhaenge-a-bis-c-23-august-2026',
+      'docs/design/S06-S07-COPY-AUDIT.md#copy-und-darstellungsdelta-s06-ausgelagerte-gruppenwahl-24-august-2026',
   },
   segment: {
     id: 'S06',
@@ -107,7 +108,6 @@ export const s06ConsequenceContent = {
       structureMode: 'Struktur',
       personalMode: 'Persönliches',
       personalSelectionLabel: 'Persönliche Angaben im fiktiven Passwort markieren',
-      personalApply: 'Übernehmen',
       passwordTitles: {
         'master-campus': 'Master Campus-Passwort',
         'campus-email': 'Campus E-Mail-Passwort',
@@ -228,6 +228,10 @@ export const s06ConsequenceContent = {
     's06.compare.no-derived-path-recognized': {
       heading: 'Kein direkter Weg erkannt',
       body: 'Die Prüflinie stoppt vor dem Ziel. Das ist keine allgemeine Sicherheitsgarantie.',
+    },
+    's06.local-reflection.marking-guide': {
+      heading: 'Eigene Beobachtung',
+      body: 'Als Übung kannst du auch hier die Muster und persönlichen Angaben markieren die dir auffallen.',
     },
     's06.perspective.master-campus-found': {
       heading: 'Perspektivwechsel zu Master Campus',
