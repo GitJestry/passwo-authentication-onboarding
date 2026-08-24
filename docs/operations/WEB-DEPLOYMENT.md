@@ -45,9 +45,9 @@ pnpm deploy:web
 
 Der Befehl führt standardmäßig aus:
 
-1. den lokalen SecAware-Study-Build und dessen Integritätsprüfung,
-2. `pnpm typecheck`,
-3. den schnellen Playwright-Vollablauf für **beide** erzwungenen Bedingungen mit In-Memory-Datenbank,
+1. `pnpm test:web:release` mit Artefaktintegrität, Typ- und Research-Boundary-Prüfung sowie allen Core-Tests,
+2. dateibasierte vollständige Webläufe, Neustart/Resume, Löschung, Export und Parallelrandomisierung,
+3. den Playwright-Vollablauf für **beide** erzwungenen Bedingungen und den realen SecAware-Kurs,
 4. den Web-/Server-Build inklusive vorkomprimierter Vite- und SecAware-Auslieferungsassets,
 5. einen neuen timestamp-basierten Release per `rsync`, wobei der private SecAware-Quellsnapshot lokal bleibt,
 6. `pnpm install --frozen-lockfile` auf Linux und die Host-Prüfung von `better-sqlite3`,
@@ -71,6 +71,15 @@ pnpm deploy:web -- --skip-checks
 
 Dieser Schalter ist kein normaler Deployment-Weg. Die folgenden manuellen Abschnitte bleiben als
 Fallback und zur Erstinstallation dokumentiert.
+
+Das bereits ausgerollte System kann ohne Datenmutation zusammen mit dem lokalen Release-Gate geprüft
+werden. Der Zusatz öffnet eine gemultiplexte SSH-Verbindung, prüft Dienste, Dateirechte,
+`quick_check`, Foreign Keys und das Forschungsdaten-Audit read-only und fragt die SSH-Passphrase
+bei Bedarf einmal ab:
+
+```bash
+pnpm test:web:release -- --deployed
+```
 
 ## 2. Vorbedingungen
 

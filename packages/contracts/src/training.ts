@@ -63,18 +63,47 @@ export const SUPPORTIVE_ARTIFACT_SEGMENT_IDS = [
   'S06',
   'S07',
 ] as const;
+export const supportiveArtifactSegmentIdSchema = z.enum(SUPPORTIVE_ARTIFACT_SEGMENT_IDS);
 export type SupportiveArtifactSegmentId = (typeof SUPPORTIVE_ARTIFACT_SEGMENT_IDS)[number];
 export const SUPPORTIVE_ARTIFACT_FINAL_SEGMENT_ID =
   'S07' as const satisfies SupportiveArtifactSegmentId;
 
+export const trainingSectionIdSchema = z.enum(['passwords', 'password-manager', 'mfa']);
+export type TrainingSectionId = z.infer<typeof trainingSectionIdSchema>;
+
+export interface SupportiveSectionResumeTarget {
+  readonly sectionId: TrainingSectionId;
+  readonly segmentId: SupportiveArtifactSegmentId;
+}
+
+/**
+ * Every persisted supportive checkpoint needs an explicit section restart. Extending the runtime
+ * segment list therefore fails type checking until the new section boundary is deliberately added.
+ */
+const supportiveSectionResumeTargets = {
+  S00: { sectionId: 'passwords', segmentId: 'S00' },
+  S01: { sectionId: 'passwords', segmentId: 'S01' },
+  S02: { sectionId: 'passwords', segmentId: 'S01' },
+  S03: { sectionId: 'passwords', segmentId: 'S01' },
+  S04: { sectionId: 'passwords', segmentId: 'S01' },
+  S05: { sectionId: 'passwords', segmentId: 'S01' },
+  S06: { sectionId: 'passwords', segmentId: 'S01' },
+  S07: { sectionId: 'passwords', segmentId: 'S01' },
+} as const satisfies Record<SupportiveArtifactSegmentId, SupportiveSectionResumeTarget>;
+
+export function supportiveSectionResumeTargetFor(
+  checkpoint: SupportiveArtifactSegmentId,
+): SupportiveSectionResumeTarget {
+  return supportiveSectionResumeTargets[checkpoint];
+}
+
 /**
  * Checkpoints contain no training input. S01 creates the fictional identity and passwords needed
- * by all later password segments, so an interrupted later segment safely rebuilds from S01.
+ * by the rest of the current password section, so an interrupted later segment safely rebuilds
+ * that section from S01.
  */
-export function supportiveResumeSegmentFor(
-  checkpoint: SupportiveArtifactSegmentId,
-): 'S00' | 'S01' {
-  return checkpoint === 'S00' ? 'S00' : 'S01';
+export function supportiveResumeSegmentFor(checkpoint: SupportiveArtifactSegmentId): 'S00' | 'S01' {
+  return supportiveSectionResumeTargets[checkpoint].segmentId;
 }
 
 export const segmentIds = [
@@ -100,9 +129,6 @@ export const segmentIds = [
 
 export const segmentIdSchema = z.enum(segmentIds);
 export type SegmentId = z.infer<typeof segmentIdSchema>;
-
-export const trainingSectionIdSchema = z.enum(['passwords', 'password-manager', 'mfa']);
-export type TrainingSectionId = z.infer<typeof trainingSectionIdSchema>;
 
 export const translationFocusIdSchema = z.enum(['TF1', 'TF2', 'TF3', 'TF4', 'TF5', 'TF6']);
 export type TranslationFocusId = z.infer<typeof translationFocusIdSchema>;

@@ -19,7 +19,7 @@ import {
   originalSpanForNormalizedRange,
 } from './case-insensitive-spans.js';
 
-export const PASSWORD_ANALYSIS_CONFIGURATION_VERSION = 'passwo-bounded-whole-recognition-v20';
+export const PASSWORD_ANALYSIS_CONFIGURATION_VERSION = 'passwo-bounded-whole-recognition-v21';
 
 export interface FictionalPasswordAnalysisInput {
   readonly fictionalPassword: string;
@@ -343,6 +343,10 @@ const curatedGermanCompoundTokens = new Set([
   'passwortsicherheit',
 ]);
 
+// The authored passphrase example is part of the reviewed training content. Keep its ordinary
+// noun available even when it lies beyond the frozen upstream frequency ceiling.
+const curatedAuthoredGermanWordTokens = new Set(['komet']);
+
 function normalizedOrdinaryWordToken(
   value: string,
   language: SupplementalLanguage,
@@ -456,6 +460,7 @@ const supplementalWordsByLanguage: Readonly<Record<SupplementalLanguage, Readonl
     ...collectStructuredVocabularyTokens(zxcvbnDePackage.dictionary, 'de'),
     ...curatedShortAbbreviationTokens,
     ...curatedGermanCompoundTokens,
+    ...curatedAuthoredGermanWordTokens,
   ]),
   en: new Set([
     ...collectRankedCommonWordTokens(zxcvbnEnPackage.dictionary, 'en'),
@@ -954,16 +959,32 @@ function collectCandidateOnlyPasswordRanges(
 ): ReadonlySet<string> {
   const ranges = new Set<string>();
   for (const language of ['de', 'en'] as const) {
-    for (const candidates of candidatesByLanguage[language].values()) {
+    const languageCandidates = candidatesByLanguage[language];
+    for (const candidates of languageCandidates.values()) {
       for (const candidate of candidates) {
         if (candidate.kind !== 'common-password-core') continue;
+        const completeToken = normalizedValue.slice(candidate.start, candidate.end);
+        const ordinaryCandidates = new Map<number, readonly DictionaryPartitionPart[]>();
+        for (const [start, alternatives] of languageCandidates) {
+          const retained = alternatives.filter(
+            (alternative) =>
+              alternative.kind === 'common-word' &&
+              alternative.start >= candidate.start &&
+              alternative.end <= candidate.end,
+          );
+          if (retained.length > 0) ordinaryCandidates.set(start, retained);
+        }
+        const ordinaryPartition = approvedOrdinaryWordTokens.has(completeToken)
+          ? null
+          : bestDictionaryPartition(ordinaryCandidates, candidate.start, candidate.end);
         if (
           hasMonolingualVisibleWordPartition(
             normalizedValue,
             candidate.start,
             candidate.end,
             visibleLexicalBoundaries,
-          )
+          ) ||
+          (ordinaryPartition !== null && ordinaryPartition.length >= 2)
         ) {
           ranges.add(evidenceRangeKey(candidate.start, candidate.end));
         }

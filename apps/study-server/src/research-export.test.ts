@@ -106,9 +106,9 @@ describe('research export', () => {
     expect(readFileSync(join(outputDirectory, 'data-dictionary.json'), 'utf8')).toContain(
       '"itemId": "MR_DISTINCT_PASSWORDS"',
     );
-    expect(result.manifest.schemaVersion).toBe('research-export-v6');
+    expect(result.manifest.schemaVersion).toBe('research-export-v7');
     expect(result.manifest.profile).toBe('audit');
-    expect(result.manifest.schemaProfileVersion).toBe('research-audit-v1');
+    expect(result.manifest.schemaProfileVersion).toBe('research-audit-v2');
     for (const file of result.manifest.files) {
       expect(
         createHash('sha256')
@@ -165,9 +165,9 @@ describe('research export', () => {
     const freeTextReview = readFileSync(join(outputDirectory, 'free-text-review.json'), 'utf8');
 
     expect(result.manifest).toMatchObject({
-      schemaVersion: 'research-export-v6',
+      schemaVersion: 'research-export-v7',
       profile: 'analysis',
-      schemaProfileVersion: 'research-analysis-v1',
+      schemaProfileVersion: 'research-analysis-v2',
       freeTextReview: { recordCount: 0, status: 'pending-review' },
     });
     expect(result.files).toEqual(

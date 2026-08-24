@@ -29,6 +29,7 @@ import {
   s07RecommendationIds,
   SUPPORTIVE_ARTIFACT_SEGMENT_IDS,
   SUPPORTIVE_ARTIFACT_VERSION,
+  supportiveSectionResumeTargetFor,
   studyTimingEventSchema,
   studyDataDeletionReportSchema,
   webCreateSessionRequestSchema,
@@ -191,6 +192,10 @@ describe('research-safe contracts', () => {
         { table: 'instrument_submissions', count: 1 },
         { table: 'responses', count: 3 },
         { table: 'response_presentations', count: 4 },
+        { table: 'web_resume_tokens', count: 1 },
+        { table: 'web_artifact_intervals', count: 1 },
+        { table: 'web_segment_timing_events', count: 2 },
+        { table: 'web_artifact_visibility_events', count: 1 },
         { table: 'recontact.registrations', count: 1 },
       ],
     };
@@ -217,6 +222,16 @@ describe('research-safe contracts', () => {
       'S06',
       'S07',
     ]);
+    expect(supportiveSectionResumeTargetFor('S00')).toEqual({
+      sectionId: 'passwords',
+      segmentId: 'S00',
+    });
+    for (const checkpoint of SUPPORTIVE_ARTIFACT_SEGMENT_IDS.slice(1)) {
+      expect(supportiveSectionResumeTargetFor(checkpoint)).toEqual({
+        sectionId: 'passwords',
+        segmentId: 'S01',
+      });
+    }
     expect(
       studyTimingEventSchema.safeParse({
         sequence: 1,
@@ -449,7 +464,7 @@ describe('research-safe contracts', () => {
       ruleId: 'whole-password-recognized-exhaustive-search',
       findingIds: [],
       lengthOrientation: 'below-15',
-      analysisVersion: 'passwo-bounded-whole-recognition-v20',
+      analysisVersion: 'passwo-bounded-whole-recognition-v21',
       explanationId: 's05.disposition.whole-password-recognized-exhaustive-search',
     };
 
@@ -480,7 +495,7 @@ describe('research-safe contracts', () => {
       ruleId: 'whole-password-recognized-single-anchor-residual',
       findingIds: ['single:common-password-core:0-8:0'],
       lengthOrientation: 'below-15',
-      analysisVersion: 'passwo-bounded-whole-recognition-v20',
+      analysisVersion: 'passwo-bounded-whole-recognition-v21',
       explanationId: 's05.disposition.whole-password-recognized-single-anchor-residual',
     };
 
@@ -494,9 +509,9 @@ describe('research-safe contracts', () => {
 
   it('keeps researcher exports inside the approved data boundary', () => {
     const manifest = {
-      schemaVersion: 'research-export-v6',
+      schemaVersion: 'research-export-v7',
       profile: 'audit',
-      schemaProfileVersion: 'research-audit-v1',
+      schemaProfileVersion: 'research-audit-v2',
       exportedAtIso: '2026-07-24T12:00:00.000Z',
       runtimeManifestVersion: instrumentRuntimeManifest.runtimeManifestVersion,
       versions: {
@@ -707,9 +722,9 @@ describe('research-safe contracts', () => {
     const participantInformation = JSON.stringify(
       instrumentRuntimeManifest.procedures.participantInformation,
     );
-    expect(participantInformation).toContain('Die heutige Teilnahme dauert etwa 30 Minuten.');
+    expect(participantInformation).toContain('Die Teilnahme dauert insgesamt etwa 30 Minuten.');
     expect(participantInformation).toContain(
-      'bis zum Abschluss der Datenauswertung und der abschließenden Prüfung des Datensatzes pseudonymisiert',
+      'Bis zum Abschluss der Datenauswertung und Prüfung des Datensatzes bleiben die Forschungsdaten pseudonymisiert.',
     );
     expect(participantInformation).toContain(
       'Fiktive Passwörter aus dem Lernangebot werden weder gespeichert noch übertragen.',

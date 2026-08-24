@@ -18,6 +18,8 @@ import {
   referenceLessonCheckpointSchema,
   type StudyProgressCheckpoint,
   studyProgressCheckpointSchema,
+  supportiveArtifactSegmentIdSchema,
+  supportiveResumeSegmentFor,
   SUPPORTIVE_ARTIFACT_SEGMENT_IDS,
   SUPPORTIVE_CHECKPOINTS,
   supportiveCheckpointSchema,
@@ -29,7 +31,7 @@ import {
 } from '@passwo/contracts';
 import type Database from 'better-sqlite3';
 import { z } from 'zod';
-import { StudyRepository, StudyRepositoryError } from './study-repository.js';
+import { type StudyRepository, StudyRepositoryError } from './study-repository.js';
 
 const sessionSchema = z.object({
   sessionId: z.string(),
@@ -639,9 +641,15 @@ export class WebRuntimeRepository {
       if (starts.length !== ends.length) throw new StudyRepositoryError('segment-already-active', 409);
       if (starts.length === 0) {
         const checkpoint = this.#artifactCheckpoint(this.#checkpointSession(sessionId));
-        const expected = checkpoint === 'supportive:S00' || checkpoint === 'supportive:entry'
-          ? 'S00'
-          : 'S01';
+        if (!checkpoint.startsWith('supportive:') || checkpoint === 'supportive:complete') {
+          throw new StudyRepositoryError('segment-resume-checkpoint-invalid', 409);
+        }
+        const expected =
+          checkpoint === 'supportive:entry'
+            ? 'S00'
+            : supportiveResumeSegmentFor(
+                supportiveArtifactSegmentIdSchema.parse(checkpoint.slice('supportive:'.length)),
+              );
         if (request.segmentId !== expected) {
           throw new StudyRepositoryError('segment-resume-start-required', 409);
         }

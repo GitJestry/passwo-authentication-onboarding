@@ -19,6 +19,7 @@
     "test:core": "vitest run",
     "test:watch": "vitest",
     "test:e2e": "node ./scripts/build-reference-artifact.mjs && node ./scripts/verify-reference-artifact.mjs && playwright test tests/e2e/study-full-flow.spec.ts",
+    "test:web:release": "node ./scripts/test-web-release.mjs",
     "test:desktop": "node ./scripts/test-desktop.mjs",
     "test:reference-artifact": "node ./scripts/build-reference-artifact.mjs && node ./scripts/verify-reference-artifact.mjs && pnpm build && node ./scripts/test-reference-completion.mjs",
     "format": "biome format --write .",

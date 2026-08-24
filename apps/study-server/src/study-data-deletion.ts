@@ -128,6 +128,38 @@ function deletionReport(
         ),
       },
       {
+        table: 'web_resume_tokens',
+        count: countRows(
+          database,
+          'SELECT COUNT(*) AS count FROM web_resume_tokens WHERE session_id = ?',
+          sessionId,
+        ),
+      },
+      {
+        table: 'web_artifact_intervals',
+        count: countRows(
+          database,
+          'SELECT COUNT(*) AS count FROM web_artifact_intervals WHERE session_id = ?',
+          sessionId,
+        ),
+      },
+      {
+        table: 'web_segment_timing_events',
+        count: countRows(
+          database,
+          'SELECT COUNT(*) AS count FROM web_segment_timing_events WHERE session_id = ?',
+          sessionId,
+        ),
+      },
+      {
+        table: 'web_artifact_visibility_events',
+        count: countRows(
+          database,
+          'SELECT COUNT(*) AS count FROM web_artifact_visibility_events WHERE session_id = ?',
+          sessionId,
+        ),
+      },
+      {
         table: 'recontact.registrations',
         count: hasRecontactDatabase
           ? countRows(
@@ -149,13 +181,23 @@ function deleteMatchedRows(
   if (hasRecontactDatabase) {
     database.prepare('DELETE FROM recontact.registrations WHERE session_id = ?').run(sessionId);
   }
+  database
+    .prepare('DELETE FROM web_artifact_visibility_events WHERE session_id = ?')
+    .run(sessionId);
+  database.prepare('DELETE FROM web_segment_timing_events WHERE session_id = ?').run(sessionId);
+  database.prepare('DELETE FROM web_artifact_intervals WHERE session_id = ?').run(sessionId);
+  database.prepare('DELETE FROM web_resume_tokens WHERE session_id = ?').run(sessionId);
   database.prepare('DELETE FROM artifact_leases WHERE session_id = ?').run(sessionId);
   database.prepare('DELETE FROM response_presentations WHERE session_id = ?').run(sessionId);
   database.prepare('DELETE FROM responses WHERE session_id = ?').run(sessionId);
   database.prepare('DELETE FROM instrument_submissions WHERE session_id = ?').run(sessionId);
   database.prepare('DELETE FROM timing_events WHERE session_id = ?').run(sessionId);
-  database.prepare('DELETE FROM guardrail_form_slots WHERE session_id = ?').run(sessionId);
-  database.prepare('DELETE FROM assignment_slots WHERE session_id = ?').run(sessionId);
+  database
+    .prepare('UPDATE guardrail_form_slots SET session_id = NULL WHERE session_id = ?')
+    .run(sessionId);
+  database
+    .prepare('UPDATE assignment_slots SET session_id = NULL WHERE session_id = ?')
+    .run(sessionId);
   database.prepare('DELETE FROM study_sessions WHERE session_id = ?').run(sessionId);
 }
 

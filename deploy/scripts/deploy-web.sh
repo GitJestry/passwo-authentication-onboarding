@@ -20,19 +20,12 @@ elif [[ $# -gt 0 ]]; then
 fi
 
 if [[ "${skip_checks}" == false ]]; then
-  echo "==> Referenzartefakt bauen und prüfen"
-  node ./scripts/build-reference-artifact.mjs
-  node ./scripts/verify-reference-artifact.mjs
-
-  echo "==> TypeScript prüfen"
-  pnpm typecheck
-
-  echo "==> Beide Studienbedingungen automatisch durchlaufen"
-  pnpm exec playwright test tests/e2e/study-full-flow.spec.ts
+  echo "==> Vollständige Web-Release-Tests ausführen"
+  pnpm test:web:release
+else
+  echo "==> Web-Runtime bauen und statische Assets vorkomprimieren"
+  pnpm build:web-runtime
 fi
-
-echo "==> Web-Runtime bauen und statische Assets vorkomprimieren"
-pnpm build:web-runtime
 
 test -f apps/study-server/dist/production.js
 test -f apps/study-server/dist/qa-production.js

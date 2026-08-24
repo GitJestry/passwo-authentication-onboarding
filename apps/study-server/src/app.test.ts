@@ -16,10 +16,10 @@ import { afterEach, describe, expect, it } from 'vitest';
 import { z } from 'zod';
 import { buildStudyServer } from './app.js';
 import { openStudyDatabase } from './database.js';
-import type { StudyRandomSource } from './random-source.js';
 import {
   createSession,
   createSessionBody,
+  deterministicTestRandomSource,
   recordSupportiveSegmentsThroughEnd,
   submitBlock,
   validSubmission,
@@ -38,26 +38,10 @@ afterEach(async () => {
   }
 });
 
-function deterministicRandomSource(): StudyRandomSource {
-  let uuidIdentity = 0;
-  let researchIdentity = 0;
-  return {
-    randomUuid: () => {
-      uuidIdentity += 1;
-      return `00000000-0000-4000-8000-${uuidIdentity.toString().padStart(12, '0')}`;
-    },
-    researchToken: () => {
-      researchIdentity += 1;
-      return `A${researchIdentity.toString(16).toUpperCase().padStart(15, '0')}`;
-    },
-    randomIndex: () => 0,
-  };
-}
-
 function createServer(
   assignmentMode: AssignmentMode,
   databasePath = ':memory:',
-  randomSource = deterministicRandomSource(),
+  randomSource = deterministicTestRandomSource(),
 ): FastifyInstance {
   const server = buildStudyServer({
     version: '0.1.2',
@@ -126,7 +110,7 @@ describe('study server research core', () => {
     const temporaryDirectory = mkdtempSync(join(tmpdir(), 'passwo-study-core-'));
     temporaryDirectories.push(temporaryDirectory);
     const databasePath = join(temporaryDirectory, 'study.sqlite');
-    const randomSource = deterministicRandomSource();
+    const randomSource = deterministicTestRandomSource();
     const supportiveServer = createServer('forced-supportive', databasePath, randomSource);
     await createSession(supportiveServer, 1);
     const referenceServer = createServer('forced-reference', databasePath, randomSource);
@@ -353,6 +337,7 @@ describe('study server research core', () => {
       { version: 5 },
       { version: 6 },
       { version: 7 },
+      { version: 8 },
     ]);
     expect(responseColumns).toEqual(
       expect.arrayContaining([expect.objectContaining({ name: 'section_id', notnull: 1 })]),
@@ -375,6 +360,10 @@ describe('study server research core', () => {
         { name: 'guardrail_form_slots' },
         { name: 'instrument_submissions' },
         { name: 'response_presentations' },
+        { name: 'web_artifact_intervals' },
+        { name: 'web_artifact_visibility_events' },
+        { name: 'web_resume_tokens' },
+        { name: 'web_segment_timing_events' },
       ]),
     );
   });

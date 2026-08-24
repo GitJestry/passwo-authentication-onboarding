@@ -68,7 +68,7 @@ objektive Semantik noch als Forschungsvariable gespeichert.
 
 | Bestandteil | Wert |
 |---|---|
-| Analyse-ID | `passwo-bounded-whole-recognition-v20` |
+| Analyse-ID | `passwo-bounded-whole-recognition-v21` |
 | Engine | `zxcvbn-ts` als Musterquelle |
 | Core | `@zxcvbn-ts/core@4.1.2` |
 | Allgemeines Wörterbuch/Graphen | `@zxcvbn-ts/language-common@4.1.2` |
@@ -580,7 +580,7 @@ Die Korpora prüfen außerdem:
 - `meinstarkesunipasswort2026!` mit getrenntem Uni-Kontext, Jahr und Suffix;
 - `MeinqwertzStarkesPasswort` mit Tastaturspan als Grenze für die angrenzende Wortanalyse;
 - `Datensicherheit` mit Vorrang des vollständigen Kompositums;
-- `eisichbintotpo`, `ichbineineispo`, `ichhabeineispo` und `eisölindapo` mit vollständigen
+- `eisichbintotpo`, `ichhabeineispo` und `eisölindapo` mit vollständigen
   Kurzwortpartitionen;
 - die authored Zufallsbeispiele ohne Wörterbuchbefunde für `ml`, `vx` oder `pk` sowie weitere
   negative Kurz- und Langartefakte aus dem Korpusaudit;
@@ -595,6 +595,13 @@ Die Korpora prüfen außerdem:
 
 Die Tests validieren die deterministische Implementierung gegen die authored Spezifikation. Sie
 messen nicht die Genauigkeit gegenüber realen Passwortkorpora oder realen Angreifern.
+
+Version v21 stellt zwei bereits dokumentierte Projektionen wieder her: Das authored Wort `Komet`
+bleibt an unterstützten Trennzeichen atomar sichtbar, und ein vollständiger Passwortlistenkandidat
+wie `ichbin` bleibt zwar als Ratekandidat erhalten, überstimmt aber keine lückenlose Zerlegung in
+gewöhnliche deutsche Kurzwörter. Die Kandidatenentscheidung wird nicht erweitert. Für die ohne
+sichtbare Grenzen mehrdeutige Zeichenfolge `ichbineineispo` wird bewusst keine einzelne kanonische
+Wortzerlegung behauptet.
 
 ## Bekannte Grenzen
 

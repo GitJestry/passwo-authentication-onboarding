@@ -67,7 +67,7 @@ function analysisFromSegments(
     findings,
     guessPath: {
       engineId: 'zxcvbn-ts',
-      configurationVersion: 'passwo-bounded-whole-recognition-v20',
+      configurationVersion: 'passwo-bounded-whole-recognition-v21',
       matches: [],
     },
     disclaimerId: 'simulation-not-production-strength',
@@ -805,7 +805,7 @@ describe('S05/S06 end-to-end candidate corpus', () => {
       });
 
       expect(disposition.kind === 'whole-password-recognized').toBe(expectedFound);
-      expect(disposition.analysisVersion).toBe('passwo-bounded-whole-recognition-v20');
+      expect(disposition.analysisVersion).toBe('passwo-bounded-whole-recognition-v21');
     },
   );
 });

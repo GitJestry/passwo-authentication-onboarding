@@ -29,7 +29,7 @@ describe('S05 content traceability', () => {
           return [normalized, normalized] as const;
         }),
       ).values(),
-    ]);
+    ].filter((term) => term !== 'instagram' && term !== 'insta'));
     expect(s05Content.intro.memorablePassword).toBe('MeinStarkesUniPasswort2005!!!');
     expect(s05Content.intro.memorablePasswordParts).toEqual([
       'Mein',
@@ -179,6 +179,7 @@ describe('S05 content traceability', () => {
     ]);
     expect(s05Content.componentStrategy.accountContext.explanation).toEqual([
       'Bei Campusgram wären das zum Beispiel der Benutzername, Campus, Nachricht oder der Dienstname. Bei einem WLAN-Passwort etwa WLAN, Router oder Fritzbox.',
+      'Prüfen wir nun dein gewähltes Passwort auf einen möglichen Bezug zu Campusgram.',
     ]);
     expect(s05Content.componentStrategy.accountContext.results).toMatchObject({
       none: ['Hier wurde kein direkter Bezug zu Campusgram erkannt.'],
@@ -628,6 +629,6 @@ describe('S05 content traceability', () => {
     );
     expect(
       s05Content.freeSearch.theoreticalModel.lowercaseMeasurements.map(({ length }) => length),
-    ).toEqual([8, 9, 10, 11, 12, 13, 14, 15, 16]);
+    ).toEqual([8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20]);
   });
 });

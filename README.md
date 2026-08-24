@@ -4,7 +4,8 @@ Dieses pnpm-Monorepo enthält das **Supportive Authentication Onboarding** und d
 gekoppelte Between-Subjects-Studie. Der lokale technische Studienpfad, die visuelle
 Trainingsplattform, die Segmente S00 bis S07 und die pilot-versionierten Forschungsinstrumente
 sind integriert. Für die Hauptstudie ist ein same-origin Webbetrieb mit sicherer Wiederaufnahme
-entschieden. S08 bis S17 sowie die technische Anpassung an dieses Web-Zielmodell sind noch offen.
+implementiert. S08 bis S17 und die same-origin Follow-up-Route sind noch offen; der bereits
+integrierte Studienlauf bleibt davon vollständig ausführbar.
 
 ## Aktueller Stand
 
@@ -19,13 +20,11 @@ entschieden. S08 bis S17 sowie die technische Anpassung an dieses Web-Zielmodell
 - **Instrumente:** Pre, unmittelbarer Post-Fragebogen, gemeinsamer Guardrail, post-guardrail
   Self-Efficacy und retrospektive SecAware-Vorerfahrung laufen als versionierte atomare Submissions.
   Die freiwillige Nachbefragung besitzt eine getrennte Recontact-Registry und einen Schedule-Export.
-  `consent-v13-pilot` ist der Zieltext für den Webbetrieb und wird erst mit implementierter
-  Wiederaufnahme für Teilnehmerläufe freigegeben.
-- **Entschiedenes Web-Zielmodell:** Browser schließen oder neu laden unterbricht eine neue
+  `consent-v13-pilot` ist der Zieltext für den Webbetrieb.
+- **Web-Runtime:** Browser schließen oder neu laden unterbricht eine neue
   Web-Sitzung, beendet sie aber nicht. Der letzte sichere inhaltsfreie Checkpoint wird im selben
   Browser wiederaufgenommen; ausgewertet werden nur regulär abgeschlossene Runs.
-- **Als Nächstes:** S08 bis S17 fertigstellen, danach Webdeployment, Resume und same-origin
-  Follow-up-Route gemäß ADR 0016 umsetzen.
+- **Als Nächstes:** S08 bis S17 und die same-origin Follow-up-Route gemäß ADR 0016 fertigstellen.
 
 `apps/study-desktop` verpackt die Anwendung für Apple Silicon ohne Adresszeile und startet die
 vorhandene Runtime intern. `apps/study-web` ist der einzige React-/Vite-Renderer.
@@ -90,8 +89,8 @@ Trainingsbefunde bleiben ausschließlich im flüchtigen Rendererzustand.
 
 Im Zielmodell für die Hauptstudie bleibt ein Run nach Schließen oder Reload `in-progress` und wird
 im selben Browser am letzten sicheren Checkpoint fortgesetzt. Nur `completed` Runs gehen in die
-Auswertung ein. Die dafür nötige Cookie-, Checkpoint- und Timinganpassung ist noch zu
-implementieren. Im aktuellen lokalen Betrieb liegt die Datenbank standardmäßig unter
+Auswertung ein. Cookie-, Checkpoint- und Sitzungsintervall-Persistenz sind im Webpfad implementiert.
+Im aktuellen lokalen Betrieb liegt die Datenbank standardmäßig unter
 `~/.passwo-study/study.sqlite`; `STUDY_DATA_DIR` setzt einen anderen lokalen Datenordner.
 
 Ein Export benötigt ein leeres oder neues Zielverzeichnis. `audit` ist die geschützte interne
@@ -123,10 +122,22 @@ Debrief-Mail entfallen:
 pnpm followup:export-schedule -- --output ./followup-schedule.csv --base-url https://example.invalid/follow-up
 ```
 
+Die E-Mail-Adresse und der Raw-Follow-up-Token liegen ausschließlich in der getrennten
+`recontact.sqlite`; im Produktionsbetrieb ist das
+`/var/lib/passwo-study/recontact.sqlite`. Für den manuellen Versand wird nicht direkt in der
+Datenbank gearbeitet: Der obige Befehl schreibt die benötigten Felder `email`, `tokenLink`,
+`firstInvitationAtIso`, `reminderAtIso` und `closesAtIso` in die explizit angegebene geschützte
+Schedule-Datei.
+
 Eine einzelne Session kann ausschließlich lokal über ihren Löschcode geprüft oder gelöscht werden.
 Der Code wird verdeckt über die Standardeingabe gelesen und nie als Kommandozeilenargument
 übergeben. Ohne `--confirm` bleibt der Vorgang ein Dry-Run; vorhandene Exporte und Backups werden
 nicht verändert.
+
+Die Löschung entfernt die Session-Verknüpfung aus Condition- und Guardrail-Form-Slots und löscht
+sämtliche übrigen sessionabhängigen Zeilen einschließlich Web-Resume und Kontaktregister. Der
+danach inhaltsfreie Slot bleibt absichtlich offen, damit der nächste Run genau diesen Platz belegt
+und ein laufender Randomisierungsblock nicht aus dem Gleichgewicht gerät.
 
 ```bash
 pnpm study:delete
@@ -224,6 +235,7 @@ normalen Studienpfad.
 ## Qualitätschecks
 
 ```bash
+pnpm test:web:release          # vollständiges lokales Release-Gate für die Webstudie
 pnpm check                    # Biome, TypeScript und Research Boundary
 pnpm test:core                # Research-Core-, Contract- und lokale Trainingsdaten-Tests
 pnpm build                    # Server, kanonischen Renderer und Electron-Hülle bauen
@@ -235,11 +247,27 @@ pnpm desktop:package          # lokale arm64-.app
 pnpm check:research-boundary  # Datengrenzen und private Quellen prüfen
 ```
 
+`pnpm test:web:release` ist der kanonische Einzelbefehl. Er baut und verifiziert das eingefrorene
+SecAware-Artefakt, prüft Typen und Research Boundary, führt die vollständige Core-Suite,
+dateibasierte Webläufe für beide Bedingungen, Neustart/Resume, Pseudonymisierung, Export,
+Löschcode und parallele Blockrandomisierung aus, baut die Produktionsruntime und durchläuft beide
+Browserpfade sowie den realen dreiteiligen SecAware-Kurs. PassWo S00–S07 gehören derzeit vollständig
+zu Sektion 1; eine Unterbrechung innerhalb dieser Sektion rekonstruiert sie ab S01. Die typisierte
+Resume-Tabelle muss beim späteren Hinzufügen von Sektion 2 oder 3 erweitert werden, sonst scheitert
+das Release-Gate bereits beim Typecheck.
+
 Vor dem ersten E2E-Lauf wird Chromium einmalig mit
-`pnpm exec playwright install chromium` installiert. Der neue Vollablauf erzeugt für jede Bedingung
-eine In-Memory-Sitzung, legt alle Instrumentblöcke mit schema-validen Antworten ab, startet das
-zugewiesene Artefakt, bestätigt dessen kanonische Abschlussgrenzen ohne manuelle Navigation und
-prüft den regulären Sitzungsabschluss.
+`pnpm exec playwright install chromium` installiert. Optional prüft derselbe Befehl nach den lokalen
+Tests die laufenden Dienste, SQLite-Integrität, Forschungsdaten-Audit und öffentliche
+SecAware-Auslieferung read-only auf dem Zielhost. SSH darf dabei nach der Passphrase fragen:
+
+```bash
+pnpm test:web:release -- --deployed
+```
+
+Dieser Zusatz verändert oder löscht keine Produktivdaten. Vollablauf und Löschprobe verwenden
+lokale temporäre dateibasierte Datenbanken; wiederholte Inhalts-QA erfolgt über die isolierte
+Live-QA.
 
 Für normale Produktionsupdates reicht anschließend:
 

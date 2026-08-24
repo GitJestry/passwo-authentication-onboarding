@@ -1,5 +1,6 @@
 import {
   type ArtifactCheckpoint,
+  type ArtifactIntervalStartResponse,
   artifactCheckpointSchema,
   artifactIntervalStartResponseSchema,
   mainInstrumentBlocks,
@@ -54,11 +55,7 @@ export interface ArtifactLifecycleInput {
 }
 
 
-export interface ArtifactRuntimeStart {
-  readonly checkpoint: ArtifactCheckpoint;
-  readonly artifactSessionElapsedMs: number;
-  readonly interrupted: boolean;
-}
+export type ArtifactRuntimeStart = ArtifactIntervalStartResponse;
 
 export interface StudyContext {
   readonly sessionId: string | null;

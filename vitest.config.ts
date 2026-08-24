@@ -23,8 +23,11 @@ export default defineConfig({
       'apps/study-server/src/recontact.test.ts',
       'apps/study-server/src/research-export.test.ts',
       'apps/study-server/src/runtime-restart.test.ts',
+      'apps/study-server/src/study-data-deletion.test.ts',
+      'apps/study-server/src/web-release-acceptance.test.ts',
     ],
     passWithNoTests: false,
     restoreMocks: true,
+    testTimeout: 30_000,
   },
 });

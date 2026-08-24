@@ -66,39 +66,35 @@ describe('S05 component strategy presentation', () => {
     },
   );
 
-  it('shows P4ssw0rt123! once as one common variant block', () => {
+  it('shows the transformed password path without duplicating a variant label', () => {
     const password = 'P4ssw0rt123!';
-    const view = createCanonicalPasswordView(
-      password,
-      analyzeFictionalPassword({ fictionalPassword: password }),
-    );
+    const analysis = analyzeFictionalPassword({ fictionalPassword: password });
+    const view = createCanonicalPasswordView(password, analysis);
     const displayed = projectCanonicalPasswordBlocks(
       view,
       view.automaticFindings['common-components'],
     ).filter(({ labels }) => labels.length > 0);
 
-    expect(displayed.map(({ value }) => value)).toEqual([password]);
-    expect(displayed.flatMap(({ labels }) => labels)).toEqual(
+    expect(analysis.findings).toEqual(
       expect.arrayContaining([
-        'häufig verwendetes Passwort',
-        'typische Variante: a → 4, o → 0, +123!',
+        expect.objectContaining({ kind: 'common-password-core' }),
+        expect.objectContaining({ kind: 'typical-transformation' }),
+        expect.objectContaining({ kind: 'typical-suffix' }),
       ]),
     );
+    expect(displayed.map(({ value }) => value).join('')).toBe(password);
+    const variantLabels = displayed
+      .flatMap(({ labels }) => labels)
+      .filter((label) => label.startsWith('typische Variante'));
+    expect(new Set(variantLabels).size).toBe(variantLabels.length);
     expect(
-      [
-        ...new Set(
-          displayed
-            .flatMap(({ labels }) => labels)
-            .filter((label) => label.startsWith('typische Variante')),
-        ),
-      ],
-    ).toHaveLength(1);
-    expect(
-      summarizeCategoryCandidates(view, view.automaticFindings['common-components']),
+      determinePasswordSimulationDisposition({
+        fictionalPassword: password,
+        componentAnalysis: analysis,
+      }),
     ).toMatchObject({
-      candidateCount: 1,
-      coversWholePassword: true,
-      hasSingleCandidateMatch: true,
+      kind: 'whole-password-recognized',
+      ruleId: 'whole-password-recognized-generated-candidate',
     });
   });
 
@@ -348,7 +344,7 @@ describe('S05 component strategy presentation', () => {
     );
   });
 
-  it('binds an account suffix to the account block without duplicating its variant label', () => {
+  it('keeps the account, year and suffix visually separate without duplicating the variant label', () => {
     const password = 'Campusgram2026!';
     const view = createCanonicalPasswordView(
       password,
@@ -357,11 +353,24 @@ describe('S05 component strategy presentation', () => {
         authoredAccountTerms: ['Campusgram'],
       }),
     );
-    const displayed = projectCanonicalPasswordBlocks(
+    const accountDisplayed = projectCanonicalPasswordBlocks(
       view,
       view.automaticFindings['account-context'],
     ).filter(({ labels }) => labels.length > 0);
 
+    expect(accountDisplayed.map(({ value }) => value)).toEqual(['Campusgram']);
+    expect(
+      summarizeCategoryCandidates(view, view.automaticFindings['account-context']),
+    ).toMatchObject({
+      candidateCount: 1,
+      coversWholePassword: false,
+      hasSingleCandidateMatch: false,
+    });
+
+    const displayed = projectCanonicalPasswordBlocks(view, [
+      ...view.automaticFindings['account-context'],
+      ...view.automaticFindings['common-components'],
+    ]).filter(({ labels }) => labels.length > 0);
     expect(displayed.map(({ value }) => value).join('')).toBe(password);
     expect(
       [
@@ -372,10 +381,6 @@ describe('S05 component strategy presentation', () => {
         ),
       ],
     ).toHaveLength(1);
-    expect(
-      summarizeCategoryCandidates(view, view.automaticFindings['account-context'])
-        .hasSingleCandidateMatch,
-    ).toBe(true);
   });
 
   it('shows a bounded authored leetspeak match in the account-context category', () => {

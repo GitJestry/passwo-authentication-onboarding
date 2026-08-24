@@ -255,9 +255,9 @@ describe('passwordModuleMachine', () => {
   it('preserves transient S03 data until discard', () => {
     const actor = createModuleActor();
     const values = {
-      'master-campus': '  id 🙂!?  ',
-      'campus-email': 'mail 🧭 #$',
-      campusgram: 'gram_Ä 🐾',
+      'master-campus': '  id Ä!?  ',
+      'campus-email': 'mail Ö #$',
+      campusgram: 'gram_Ü_ß',
     } as const;
     for (const [accountId, value] of Object.entries(values)) {
       actor.send({ type: 'SET_PASSWORD_VALUE', accountId, value });
@@ -267,7 +267,7 @@ describe('passwordModuleMachine', () => {
     actor.send({
       type: 'SET_RETRIEVAL_PASSWORD_VALUE',
       accountId: 'master-campus',
-      value: '  id 🙂!?  ',
+      value: '  id Ä!?  ',
     });
     actor.send({ type: 'SUBMIT_RETRIEVAL_LOGIN', accountId: 'master-campus' });
     completeAssistedLogin(actor, 'campus-email');

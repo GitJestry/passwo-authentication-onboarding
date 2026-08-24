@@ -2,7 +2,7 @@
 
 - **Status:** Accepted
 - **Datum:** 2026-08-03
-- **Geändert am:** 2026-08-24: gemeinsame Kandidatengrenze, quellengestützte Kombinationen und Restweg nur bei genau einem Anker; außerdem S06-Abwandlungsrelation auf normalisierte restricted Damerau-Levenshtein-Distanz und einen begrenzten Kontobegriffspfad umgestellt
+- **Geändert am:** 2026-08-24: gemeinsame Kandidatengrenze, quellengestützte Kombinationen und Restweg nur bei genau einem Anker; außerdem S06-Abwandlungsrelation auf normalisierte restricted Damerau-Levenshtein-Distanz, einen begrenzten Kontobegriffspfad und die v21-Korrektur der dokumentierten Wörterbuchprojektion umgestellt
 - **Citation label:** `ADR 0014-Bounded-Password-Guessing`
 - **Ergänzt:** ADR 0002, ADR 0003 und ADR 0007
 
@@ -37,7 +37,7 @@ NIST-Konformitätsimplementierung.
 ## Entscheidung
 
 `@passwo/password-analysis` bleibt vollständig lokal, deterministisch und frameworkfrei. Die
-Analysekonfiguration erhält die Version `passwo-bounded-whole-recognition-v20`.
+Analysekonfiguration erhält die Version `passwo-bounded-whole-recognition-v21`.
 
 Die interne Verarbeitung trennt drei Ebenen:
 
@@ -431,6 +431,13 @@ nicht durch bereits synthetisch vorgegebene Befunde verdeckt werden.
 Der Korpus belegt ausschließlich Reproduzierbarkeit und beabsichtigtes Verhalten der authored
 Trainingsregel. Er ist keine empirische Validierung von Sensitivität, Spezifität oder
 Passwortstärke.
+
+Version v21 korrigiert ausschließlich die bereits spezifizierte sichtbare Projektion: Das authored
+Wort `Komet` bleibt an unterstützten Trennzeichen atomar, und ein vollständiger
+Passwortlistenkandidat wie `ichbin` bleibt als Ratekandidat erhalten, ohne eine belegte
+lückenlose Kurzwortpartition zu verdecken. Eine ohne sichtbare Grenzen mehrdeutige Folge wie
+`ichbineineispo` erhält dagegen keine künstlich erzwungene Einzelzerlegung. Kandidatenbudget und
+Disposition bleiben unverändert.
 
 ## Konsequenzen
 

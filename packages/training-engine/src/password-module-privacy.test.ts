@@ -25,6 +25,7 @@ function studyRuntimePorts(requestArguments: unknown[][]): StudyRuntimePorts {
     startArtifact: async (...arguments_) => {
       requestArguments.push(arguments_);
       return {
+        intervalId: 'c185bbd8-2088-47d2-b45a-924c8d8778ea',
         checkpoint: 'supportive:entry',
         artifactSessionElapsedMs: 0,
         interrupted: false,

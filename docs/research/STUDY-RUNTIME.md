@@ -61,10 +61,15 @@ Die Runtime stellt den letzten bestätigten sicheren Checkpoint wieder her:
 
 - atomar gespeicherte Fragebogenblöcke bleiben abgeschlossen;
 - der nächste noch nicht abgeschlossene Fragebogenabschnitt wird geöffnet;
-- im Artefakt wird der letzte bestätigte Segment- oder Seiteneinstieg geöffnet;
-- ein unterbrochener Schritt, der flüchtige fiktive Passwörter oder lokale Befunde benötigt, beginnt
-  erneut;
+- SecAware öffnet den letzten bestätigten Seiteneinstieg;
+- PassWo beginnt erneut am Anfang der zuletzt erreichten Trainingssektion, weil die dafür nötigen
+  flüchtigen fiktiven Werte und lokalen Befunde nicht persistiert werden;
 - Trainingsinputs werden für die Wiederaufnahme weder gesendet noch gespeichert.
+
+Im aktuell integrierten PassWo-Lauf gehören S00 bis S07 zu Sektion 1 `passwords`. Eine
+Unterbrechung im einmaligen S00-Einstieg beginnt wieder bei S00; nach diesem Einstieg beginnt die
+Sektion datenschutzkonform bei S01 neu. Sektion 2 `password-manager` und Sektion 3 `mfa` erhalten
+mit ihrer Runtime-Integration jeweils einen expliziten eigenen Wiederaufnahmestart.
 
 Wenn die Person nicht vor `resumeCloseAt` zurückkehrt, bleibt die Sitzung unvollständig. Sie wird
 nicht ausgewertet und beim Datensatz-Freeze gelöscht. Eine vorzeitige individuelle Löschung bleibt

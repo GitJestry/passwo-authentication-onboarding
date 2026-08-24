@@ -210,7 +210,7 @@ Seitenangaben beziehen sich auf die im Trainingsdokument ausgewiesene interne Pa
   entfallen; danach folgt direkt die bestehende lokale Campusgram-Auswertung. Die Demonstration
   analysiert oder persistiert keine Eingabe.
 - Die S05-Simulationsdisposition (`S05_CONTENT_VERSION 2.134.0`, Analysekonfiguration
-  `passwo-bounded-whole-recognition-v20`) bleibt auf den vollständigen fiktiven Wert begrenzt:
+  `passwo-bounded-whole-recognition-v21`) bleibt auf den vollständigen fiktiven Wert begrenzt:
   `whole-password-recognized` entsteht durch einen direkten Vollwert, eine quellengestützte
   generierte Kandidatenfamilie, genau einen belegten Anker mit frei durchprobiertem Rest oder das
   vollständige Durchprobieren innerhalb der gemeinsamen Grenze `26^12`.

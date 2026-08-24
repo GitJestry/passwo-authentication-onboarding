@@ -7,6 +7,8 @@ import {
   recontactEmailSchema,
   referenceArtifactLessonCheckpointIdSchema,
   referenceLessonCheckpointSchema,
+  supportiveArtifactSegmentIdSchema,
+  supportiveResumeSegmentFor,
   supportiveCheckpointSchema,
   type ReferenceArtifactLessonCheckpointId,
   type WebResumeSession,
@@ -569,7 +571,10 @@ function HydratedStudyFlow({
     if (!context.interrupted || context.artifactCheckpoint === null) return undefined;
     const parsed = supportiveCheckpointSchema.safeParse(context.artifactCheckpoint);
     if (!parsed.success || parsed.data === 'supportive:complete') return undefined;
-    return parsed.data === 'supportive:entry' || parsed.data === 'supportive:S00' ? 'S00' : 'S01';
+    if (parsed.data === 'supportive:entry') return 'S00';
+    return supportiveResumeSegmentFor(
+      supportiveArtifactSegmentIdSchema.parse(parsed.data.slice('supportive:'.length)),
+    );
   }, [context.artifactCheckpoint, context.interrupted]);
   const referenceResumeCheckpoint = useMemo<ReferenceArtifactLessonCheckpointId | undefined>(() => {
     if (!context.interrupted || context.artifactCheckpoint === null) return undefined;

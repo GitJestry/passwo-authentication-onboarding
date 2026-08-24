@@ -1,4 +1,4 @@
-import { mkdtemp, rm } from 'node:fs/promises';
+import { mkdtemp, readFile, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -8,14 +8,74 @@ const repositoryRoot = fileURLToPath(new URL('..', import.meta.url));
 const completionType = 'passwo:reference-completed';
 const snapshotId = 'secaware-passwords-authentication-2026-07-26';
 const dataDirectory = await mkdtemp(resolve(tmpdir(), 'passwo-reference-completion-'));
+const instrumentRuntimeManifest = JSON.parse(
+  await readFile(
+    resolve(repositoryRoot, 'packages/contracts/src/generated/instruments-v1.runtime.json'),
+    'utf8',
+  ),
+);
+const referenceSupplementLinks = JSON.parse(
+  await readFile(
+    resolve(repositoryRoot, 'packages/contracts/src/reference-supplement-links.json'),
+    'utf8',
+  ),
+);
+const firstReferenceSupplement = referenceSupplementLinks.find(
+  ({ id }) => id === 'passwords-bsi-checklist',
+);
+if (firstReferenceSupplement === undefined) {
+  fail('the canonical password supplement is missing.');
+}
+const immediatePostSectionIds = new Set([
+  'panas',
+  'duration',
+  'ueqs',
+  'content_trustworthiness',
+  'design_diagnostics',
+  'risk_understanding',
+]);
 
 function fail(message) {
   throw new Error(`Reference completion integration failed: ${message}`);
 }
 
-async function clickPlaceholder(page) {
-  await page.getByLabel('Ich habe die Hinweise zu diesem Abschnitt gelesen.').check();
-  await page.getByRole('button', { name: 'Antwort speichern' }).click();
+function validInstrumentValue(item) {
+  if (item.type === 'integer') return item.min ?? 0;
+  if (item.type === 'scale') {
+    const scale = instrumentRuntimeManifest.scales[item.scale];
+    if (scale === undefined) fail(`scale ${String(item.scale)} is missing.`);
+    return Math.floor((scale.min + scale.max) / 2);
+  }
+  if (item.type === 'semanticDifferential') {
+    const scale = instrumentRuntimeManifest.scales.ueqSemanticDifferential7;
+    return Math.floor((scale.min + scale.max) / 2);
+  }
+  if (item.type === 'text') return null;
+  const optionId = item.options?.[0]?.id;
+  if (optionId === undefined) fail(`option for ${String(item.id)} is missing.`);
+  return item.type === 'multiChoice' ? [optionId] : optionId;
+}
+
+async function submitInstrumentSections(page, studyOrigin, sessionId, instrumentId, sections) {
+  for (const section of sections) {
+    const response = await page.context().request.post(
+      new URL(`/api/study/sessions/${sessionId}/instrument-submissions`, studyOrigin).toString(),
+      {
+        headers: { 'x-passwo-study-request': '1' },
+        data: {
+          instrumentId,
+          sectionId: section.id,
+          responses: section.items.map((item) => ({
+            itemId: item.id,
+            value: validInstrumentValue(item),
+          })),
+        },
+      },
+    );
+    if (!response.ok()) {
+      fail(`saving ${instrumentId}:${String(section.id)} returned ${String(response.status())}.`);
+    }
+  }
 }
 
 async function waitForFrame(page, path, timeoutMs = 30_000) {
@@ -37,11 +97,17 @@ try {
     version: '0.1.2',
     assignmentMode: 'forced-reference',
     databasePath: resolve(dataDirectory, 'study.sqlite'),
+    recontactDatabasePath: resolve(dataDirectory, 'recontact.sqlite'),
     referenceArtifactDirectory: resolve(
       repositoryRoot,
       'research/private/reference/secaware/passwords-authentication/2026-07-26/study-build',
     ),
     webBuildDirectory: resolve(repositoryRoot, 'apps/study-web/dist'),
+    webRuntime: {
+      resumeCloseAtIso: '2099-01-01T00:00:00.000Z',
+      secureCookies: false,
+      allowDesignLab: false,
+    },
     host: '127.0.0.1',
     port: 0,
   });
@@ -53,21 +119,42 @@ try {
   context.on('page', (page) => pages.push(page));
   const page = await context.newPage();
   page.on('request', (request) => {
-    if (!new URL(request.url()).pathname.endsWith('/timing')) return;
-    const body = request.postDataJSON();
-    if (
-      typeof body === 'object' &&
-      body !== null &&
-      body.phase === 'artifact' &&
-      body.eventType === 'end'
-    ) {
-      artifactEndTimings.push(body);
-    }
+    if (!new URL(request.url()).pathname.endsWith('/artifact-intervals/end')) return;
+    artifactEndTimings.push(request.postDataJSON());
   });
   await page.goto(studyOrigin);
-  await page.getByLabel('Ich habe die Hinweise gelesen und willige').check();
-  await page.getByRole('button', { name: 'Weiter zum Fragebogen' }).click();
-  await clickPlaceholder(page);
+  for (const item of instrumentRuntimeManifest.procedures.eligibility.items) {
+    await page.getByLabel(item.prompt).check();
+  }
+  await page
+    .getByRole('group', {
+      name: instrumentRuntimeManifest.procedures.participantInformation.requiredConsent.legend,
+    })
+    .getByRole('checkbox')
+    .check();
+  const sessionResponsePromise = page.waitForResponse(
+    (response) =>
+      response.request().method() === 'POST' &&
+      new URL(response.url()).pathname === '/api/study/sessions',
+  );
+  await page
+    .getByRole('button', {
+      name: instrumentRuntimeManifest.procedures.participantInformation.actions.acceptLabel,
+    })
+    .click();
+  const sessionResponse = await sessionResponsePromise;
+  if (!sessionResponse.ok()) fail(`session creation returned ${String(sessionResponse.status())}.`);
+  const session = await sessionResponse.json();
+  if (typeof session.sessionId !== 'string') fail('session creation returned no sessionId.');
+  await submitInstrumentSections(
+    page,
+    studyOrigin,
+    session.sessionId,
+    'pre-v1',
+    instrumentRuntimeManifest.instruments['pre-v1'].sections,
+  );
+  await page.reload();
+  await page.getByRole('button', { name: 'Lernangebot beginnen' }).click();
 
   const iframe = page.getByTitle('Passwörter & Authentifizierung');
   await iframe.waitFor();
@@ -169,7 +256,7 @@ try {
     .locator('button[aria-expanded="false"]')
     .filter({ hasText: 'Zusatzinformationen' });
   await disclosure.click();
-  await courseFrame.locator('[data-passwo-supplement-link-id="passwords-bsi-checklist"]').click();
+  await courseFrame.locator(`a[href="${firstReferenceSupplement.url}"]`).click();
   await page.getByRole('alert').waitFor();
   if (
     !(await page.getByRole('alert').innerText()).includes(
@@ -190,7 +277,7 @@ try {
   });
   await clickCourseControl(/Training abschließen/iu);
 
-  await page.getByRole('heading', { name: 'Fragebogen nach dem Artefakt' }).waitFor();
+  await page.getByRole('heading', { name: 'Fragebogen nach dem Lernangebot' }).waitFor();
   const completionSignalCount = await page.evaluate(
     () => window.__passwoReferenceCompletionSignals,
   );
@@ -200,8 +287,17 @@ try {
   if (artifactEndTimings.length !== 1) {
     fail(`the real course completion produced ${String(artifactEndTimings.length)} artifact ends.`);
   }
-  await clickPlaceholder(page);
-  await page.getByRole('heading', { name: 'Verständnis prüfen' }).waitFor();
+  await submitInstrumentSections(
+    page,
+    studyOrigin,
+    session.sessionId,
+    'post-v1',
+    instrumentRuntimeManifest.instruments['post-v1'].sections.filter(({ id }) =>
+      immediatePostSectionIds.has(id),
+    ),
+  );
+  await page.reload();
+  await page.getByRole('heading', { name: 'Fragen zu Kontosituationen' }).waitFor();
   process.stdout.write(
     'Reference completion integration passed: three-lesson boundary, twelve supplements, one completion signal, one artifact end, shared post and guardrail.\n',
   );

@@ -2,7 +2,7 @@
 
 - **Status:** Accepted
 - **Datum:** 2026-08-17
-- **Revision:** 2026-08-20 für Löschcode-Wiederherstellung und kanonische Timingauswertung
+- **Revision:** 2026-08-24 für PassWo-Wiederaufnahme an Sektionsgrenzen
 - **Citation label:** `ADR 0016-Web-Resume-Lifecycle`
 - **Ersetzt für den Hauptstudienbetrieb:** Reload-Abbruch aus `ADR 0008-Lease`, externen
   Follow-up-Import und verzögerten Debrief-Versand aus `ADR 0011-Follow-up-Recontact`
@@ -56,9 +56,14 @@ Die Wiederaufnahme verwendet einen kryptographisch zufälligen, opaken Rückkehr
 - fiktive Passwörter, Passwortteile, Anzeigenamen, lokale Findings und andere Trainingsentscheidungen
   bleiben flüchtig und werden auch für die Wiederaufnahme nicht gespeichert.
 
-Bei der Rückkehr im selben Browser wird der letzte serverseitig bestätigte Checkpoint geöffnet. Wenn
-der unterbrochene Einzelschritt flüchtige Trainingswerte benötigt, beginnt ausschließlich dieser
-Schritt erneut. Bereits atomar gespeicherte Fragebogenblöcke werden nicht erneut erhoben.
+Bei der Rückkehr im selben Browser wird der letzte serverseitig bestätigte Checkpoint ausgewertet.
+SecAware öffnet den letzten bestätigten Seiteneinstieg. PassWo setzt nicht an einem einzelnen
+Segment fort, sondern rekonstruiert die zuletzt erreichte der drei Trainingssektionen ab deren
+festgelegtem Einstieg. Im aktuell integrierten Lauf gehören S00 bis S07 zu Sektion 1 `passwords`:
+Während des einmaligen S00-Einstiegs wird S00 wiederholt, danach beginnt diese Sektion bei S01 neu.
+Sektion 2 `password-manager` und Sektion 3 `mfa` müssen bei ihrer Runtime-Integration je einen
+expliziten Wiederaufnahmestart ergänzen. Bereits atomar gespeicherte Fragebogenblöcke werden nicht
+erneut erhoben.
 
 Nach regulärem Abschluss, individueller Löschung, Ablauf oder Datensatz-Freeze werden
 Rückkehrschlüssel und Cookie ungültig. Geht der Rückkehrschlüssel vorher verloren oder wird das

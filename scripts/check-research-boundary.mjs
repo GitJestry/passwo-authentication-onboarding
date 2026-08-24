@@ -206,7 +206,7 @@ for (const packageRoot of [
       }
     }
     if (
-      /\b(?:CREATE TABLE|INSERT INTO|SELECT[\s\S]{0,120}\bFROM|UPDATE[\s\S]{0,120}\bSET|DELETE FROM)\b/iu.test(
+      /\b(?:CREATE TABLE|INSERT INTO|SELECT\b[\s\S]{0,120}\bFROM|UPDATE\b[\s\S]{0,120}\bSET|DELETE FROM)\b/iu.test(
         content,
       )
     ) {

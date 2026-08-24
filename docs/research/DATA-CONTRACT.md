@@ -56,7 +56,8 @@ Forschungs- oder Analyseexport.
 
 Neue Sitzungen beginnen als `in-progress`. Browser-Schließen oder Reload ist eine Unterbrechung und
 kein regulärer Abschluss. Bei Rückkehr vor `resumeCloseAt` wird der letzte bestätigte Checkpoint
-geöffnet; ein unterbrochener Schritt mit flüchtigen Trainingswerten beginnt erneut.
+geöffnet. SecAware setzt am bestätigten Seiteneinstieg fort; PassWo beginnt am Anfang der zuletzt
+erreichten Trainingssektion neu, ohne flüchtige Trainingswerte zu persistieren.
 
 Nur regulär `completed` Sitzungen gehen in die Hauptauswertung ein. Nicht abgeschlossene Sitzungen
 werden nicht als Nullantwort, Dropout-Outcome oder negatives Verhalten interpretiert. Sie bleiben

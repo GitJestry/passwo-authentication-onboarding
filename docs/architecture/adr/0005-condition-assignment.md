@@ -2,6 +2,7 @@
 
 - **Status:** Accepted
 - **Datum:** 2026-07-23
+- **Revision:** 2026-08-24 für individuelle Löschung während der Rekrutierung
 
 ## Entscheidung
 
@@ -13,3 +14,7 @@ reference Plätze. Erzwungene Bedingungen sind ausschließlich Pretest-Konfigura
 - Der Client fordert keine Condition an und kann sie nicht überschreiben.
 - Zuweisungsmodus und Ergebnis werden mit der Session versioniert.
 - Zufallsquelle und Blockzustand müssen injizierbar und testbar sein.
+- Bei einer individuellen Löschung wird nur die Session-Verknüpfung ihres bereits gezogenen
+  Condition- und Guardrail-Form-Slots entfernt. Der inhaltsfreie Slot bleibt bestehen und wird als
+  nächster offener Slot erneut vergeben; es wird weder neu ausgelost noch ein unvollständiger Block
+  zurückgelassen.

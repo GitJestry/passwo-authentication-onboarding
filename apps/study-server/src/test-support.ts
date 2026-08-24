@@ -1,13 +1,21 @@
 import {
+  artifactIntervalStartResponseSchema,
   type CreateSessionResponse,
   type InstrumentResponseValue,
   type InstrumentRuntimeItem,
   type InstrumentSubmissionRequest,
+  type InstrumentSubmissionBlock,
   mainInstrumentBlocks,
   type SupportiveArtifactSegmentId,
+  SUPPORTIVE_ARTIFACT_SEGMENT_IDS,
+  WEB_STUDY_REQUEST_HEADER,
+  WEB_STUDY_REQUEST_HEADER_VALUE,
+  webCreateSessionResponseSchema,
+  type WebCreateSessionResponse,
 } from '@passwo/contracts';
-import type { FastifyInstance } from 'fastify';
+import type { FastifyInstance, InjectOptions, LightMyRequestResponse } from 'fastify';
 import { expect } from 'vitest';
+import type { StudyRandomSource } from './random-source.js';
 
 const supportiveSegmentTimingBounds = {
   S00: { startSequence: 1, startMs: 125, endSequence: 2, endMs: 425 },
@@ -34,6 +42,22 @@ export function createSessionBody(identity: number, followUpConsent = true) {
     consentAccepted: true,
     followUpConsent,
     deletionCodeHash: identity.toString(16).padStart(64, '0'),
+  };
+}
+
+export function deterministicTestRandomSource(): StudyRandomSource {
+  let uuidIdentity = 0;
+  let researchIdentity = 0;
+  return {
+    randomUuid: () => {
+      uuidIdentity += 1;
+      return `00000000-0000-4000-8000-${uuidIdentity.toString().padStart(12, '0')}`;
+    },
+    researchToken: () => {
+      researchIdentity += 1;
+      return `A${researchIdentity.toString(16).toUpperCase().padStart(15, '0')}`;
+    },
+    randomIndex: () => 0,
   };
 }
 
@@ -175,4 +199,201 @@ export async function recordSupportiveSegmentsThroughEnd(
   }
 
   return session;
+}
+
+export const webStudyWriteHeaders = {
+  [WEB_STUDY_REQUEST_HEADER]: WEB_STUDY_REQUEST_HEADER_VALUE,
+} as const;
+
+export interface CreatedWebTestSession {
+  readonly cookie: string;
+  readonly session: WebCreateSessionResponse;
+  readonly setCookieHeader: string;
+}
+
+function responseCookieHeader(response: LightMyRequestResponse): string {
+  const header = response.headers['set-cookie'];
+  const serialized = Array.isArray(header) ? header[0] : header;
+  if (typeof serialized !== 'string') throw new Error('missing-web-test-cookie');
+  return serialized;
+}
+
+function responseCookie(response: LightMyRequestResponse): string {
+  const cookie = responseCookieHeader(response).split(';', 1)[0];
+  if (cookie === undefined) throw new Error('invalid-web-test-cookie');
+  return cookie;
+}
+
+export async function webPost(
+  server: FastifyInstance,
+  cookie: string | null,
+  url: string,
+  payload: NonNullable<InjectOptions['payload']>,
+  expectedStatusCode = 200,
+): Promise<LightMyRequestResponse> {
+  const response = await server.inject({
+    method: 'POST',
+    url,
+    headers: {
+      ...webStudyWriteHeaders,
+      ...(cookie === null ? {} : { cookie }),
+    },
+    payload,
+  });
+  expect(response.statusCode, `${url}: ${response.body}`).toBe(expectedStatusCode);
+  return response;
+}
+
+export async function createWebTestSession(
+  server: FastifyInstance,
+  identity: number,
+  followUpConsent = true,
+): Promise<CreatedWebTestSession> {
+  const suffix = identity.toString().padStart(12, '0');
+  const response = await webPost(
+    server,
+    null,
+    '/api/study/sessions',
+    {
+      requestId: `30000000-0000-4000-8000-${suffix}`,
+      consentAccepted: true,
+      followUpConsent,
+      recontact: followUpConsent
+        ? {
+            requestId: `40000000-0000-4000-8000-${suffix}`,
+            email: `web-participant-${identity}@example.org`,
+          }
+        : null,
+    },
+    201,
+  );
+  return {
+    cookie: responseCookie(response),
+    session: webCreateSessionResponseSchema.parse(response.json()),
+    setCookieHeader: responseCookieHeader(response),
+  };
+}
+
+export async function submitWebInstrumentBlocks(
+  server: FastifyInstance,
+  cookie: string,
+  sessionId: string,
+  blocks: readonly InstrumentSubmissionBlock[],
+): Promise<void> {
+  for (const block of blocks) {
+    await webPost(
+      server,
+      cookie,
+      `/api/study/sessions/${sessionId}/instrument-submissions`,
+      validSubmission(block.instrumentId, block.sectionId),
+    );
+  }
+}
+
+export async function openWebArtifactInterval(
+  server: FastifyInstance,
+  cookie: string,
+  sessionId: string,
+  requestId: string,
+) {
+  const response = await webPost(
+    server,
+    cookie,
+    `/api/study/sessions/${sessionId}/artifact-intervals`,
+    { requestId },
+  );
+  return artifactIntervalStartResponseSchema.parse(response.json());
+}
+
+export async function recordWebSupportiveSegments(
+  server: FastifyInstance,
+  cookie: string,
+  sessionId: string,
+  intervalId: string,
+  segmentIds: readonly SupportiveArtifactSegmentId[],
+  firstEventIdentity = 1,
+): Promise<number> {
+  let elapsedMs = firstEventIdentity;
+  for (const segmentId of segmentIds) {
+    const eventSuffix = elapsedMs.toString().padStart(12, '0');
+    await webPost(server, cookie, `/api/study/sessions/${sessionId}/segment-timing`, {
+      eventId: `50000000-0000-4000-8000-${eventSuffix}`,
+      intervalId,
+      segmentId,
+      eventType: 'segment-start',
+      elapsedMs: null,
+    });
+    elapsedMs += 1;
+    await webPost(server, cookie, `/api/study/sessions/${sessionId}/segment-timing`, {
+      eventId: `60000000-0000-4000-8000-${elapsedMs.toString().padStart(12, '0')}`,
+      intervalId,
+      segmentId,
+      eventType: 'segment-end',
+      elapsedMs,
+    });
+    elapsedMs += 1;
+  }
+  return elapsedMs;
+}
+
+export async function completeWebArtifact(
+  server: FastifyInstance,
+  created: CreatedWebTestSession,
+  intervalRequestId: string,
+): Promise<void> {
+  const { cookie, session } = created;
+  const interval = await openWebArtifactInterval(
+    server,
+    cookie,
+    session.sessionId,
+    intervalRequestId,
+  );
+  await webPost(server, cookie, `/api/study/sessions/${session.sessionId}/artifact-visibility`, {
+    eventId: `70000000-0000-4000-8000-${intervalRequestId.slice(-12)}`,
+    intervalId: interval.intervalId,
+    visibility: 'hidden',
+    elapsedMs: 1,
+  });
+  let elapsedMs = 2;
+  if (session.condition === 'supportive') {
+    elapsedMs = await recordWebSupportiveSegments(
+      server,
+      cookie,
+      session.sessionId,
+      interval.intervalId,
+      SUPPORTIVE_ARTIFACT_SEGMENT_IDS,
+      2,
+    );
+  } else {
+    await webPost(server, cookie, `/api/study/sessions/${session.sessionId}/artifact-checkpoint`, {
+      intervalId: interval.intervalId,
+      checkpoint: 'reference:mfa',
+    });
+  }
+  await webPost(server, cookie, `/api/study/sessions/${session.sessionId}/artifact-intervals/end`, {
+    intervalId: interval.intervalId,
+    elapsedMs,
+  });
+}
+
+export async function completeWebTestStudy(
+  server: FastifyInstance,
+  created: CreatedWebTestSession,
+  intervalRequestId: string,
+): Promise<void> {
+  const preBlocks = mainInstrumentBlocks.filter((block) => block.instrumentId === 'pre-v1');
+  await submitWebInstrumentBlocks(server, created.cookie, created.session.sessionId, preBlocks);
+  await completeWebArtifact(server, created, intervalRequestId);
+  await submitWebInstrumentBlocks(
+    server,
+    created.cookie,
+    created.session.sessionId,
+    mainInstrumentBlocks.slice(preBlocks.length),
+  );
+  await webPost(
+    server,
+    created.cookie,
+    `/api/study/sessions/${created.session.sessionId}/complete`,
+    { debriefAcknowledged: true },
+  );
 }

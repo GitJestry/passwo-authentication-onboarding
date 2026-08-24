@@ -3,7 +3,7 @@ import { mkdtempSync, readFileSync, rmSync, statSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { mainInstrumentBlocks } from '@passwo/contracts';
+import { instrumentRuntimeManifest, mainInstrumentBlocks } from '@passwo/contracts';
 import Database from 'better-sqlite3';
 import type { FastifyInstance } from 'fastify';
 import { afterEach, describe, expect, it } from 'vitest';
@@ -144,7 +144,7 @@ describe('follow-up recontact boundary', () => {
       email: 'person@example.org',
       rawToken: token,
       tokenHash: expectedHash,
-      consentVersion: 'consent-v10-pilot',
+      consentVersion: instrumentRuntimeManifest.consentVersion,
       requestId,
     });
     expect(JSON.stringify(recontactSchema)).not.toMatch(

@@ -9,6 +9,10 @@ export const studyDataDeletionTableSchema = z.enum([
   'instrument_submissions',
   'responses',
   'response_presentations',
+  'web_resume_tokens',
+  'web_artifact_intervals',
+  'web_segment_timing_events',
+  'web_artifact_visibility_events',
   'recontact.registrations',
 ]);
 export type StudyDataDeletionTable = z.infer<typeof studyDataDeletionTableSchema>;
@@ -23,7 +27,7 @@ export type StudyDataDeletionTableCount = z.infer<typeof studyDataDeletionTableC
 
 export const studyDataDeletionReportSchema = z
   .object({
-    tables: z.array(studyDataDeletionTableCountSchema).length(9),
+    tables: z.array(studyDataDeletionTableCountSchema).length(13),
   })
   .strict();
 export type StudyDataDeletionReport = z.infer<typeof studyDataDeletionReportSchema>;

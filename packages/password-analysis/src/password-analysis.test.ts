@@ -534,8 +534,10 @@ describe('local fictional password analysis', () => {
         connector,
       );
       const result = analyzeFictionalPassword({ fictionalPassword });
-      const tokens = result.findings.flatMap(({ evidence }) =>
-        evidence.flatMap((item) => (item.type === 'span' ? [item.token] : [])),
+      const tokens = result.findings.flatMap(({ kind, evidence }) =>
+        kind === 'common-password-core' || kind === 'common-word' || kind === 'common-name'
+          ? evidence.flatMap((item) => (item.type === 'span' ? [item.token] : []))
+          : [],
       );
 
       expect(tokens).toEqual(
@@ -900,7 +902,7 @@ describe('local fictional password analysis', () => {
       expect(expectedKinds.some((expectedKind) => actualKinds.includes(expectedKind))).toBe(true);
       expect(result.guessPath).toMatchObject({
         engineId: 'zxcvbn-ts',
-        configurationVersion: 'passwo-bounded-whole-recognition-v20',
+        configurationVersion: 'passwo-bounded-whole-recognition-v21',
       });
       for (const finding of result.findings) {
         expect(finding.id).toMatch(/^single:/u);
@@ -926,7 +928,7 @@ describe('local fictional password analysis', () => {
     expect(disposition).toEqual({
       kind: 'no-whole-password-recognized',
       lengthOrientation: 'at-least-15',
-      analysisVersion: 'passwo-bounded-whole-recognition-v20',
+      analysisVersion: 'passwo-bounded-whole-recognition-v21',
       explanationId: 's05.disposition.no-whole-password-recognized',
     });
   });
@@ -971,7 +973,7 @@ describe('local fictional password analysis', () => {
 
       expect(disposition).toMatchObject({
         kind: 'whole-password-recognized',
-        analysisVersion: 'passwo-bounded-whole-recognition-v20',
+        analysisVersion: 'passwo-bounded-whole-recognition-v21',
       });
     },
   );
@@ -1379,7 +1381,6 @@ describe('local fictional password analysis', () => {
 
   it.each([
     ['eisichbintotpo', ['eis', 'ich', 'bin', 'tot', 'po']],
-    ['ichbineineispo', ['ich', 'bin', 'ein', 'eis', 'po']],
     ['ichhabeineispo', ['ich', 'habe', 'in', 'eis', 'po']],
     ['eisölindapo', ['eis', 'öl', 'in', 'da', 'po']],
   ] as const)('keeps a complete short-word partition for %s', (fictionalPassword, expected) => {

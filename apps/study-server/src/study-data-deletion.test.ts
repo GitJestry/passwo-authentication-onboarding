@@ -2,7 +2,7 @@ import { mkdtempSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { deletionCodeSchema, hashDeletionCode } from '@passwo/contracts';
+import { deletionCodeSchema, hashDeletionCode, mainInstrumentBlocks } from '@passwo/contracts';
 import Database from 'better-sqlite3';
 import type { FastifyInstance } from 'fastify';
 import { afterEach, describe, expect, it } from 'vitest';
@@ -91,8 +91,12 @@ describe('local study-data deletion repository', () => {
       guardrail_form_slots: 1,
       artifact_leases: 1,
       timing_events: 1,
-      instrument_submissions: 1,
-      response_presentations: 4,
+      instrument_submissions: mainInstrumentBlocks.filter(
+        ({ instrumentId }) => instrumentId === 'pre-v1',
+      ).length,
+      response_presentations: mainInstrumentBlocks
+        .filter(({ instrumentId }) => instrumentId === 'guardrail-v2')
+        .reduce((count, block) => count + block.items.length, 0),
       'recontact.registrations': 1,
     });
     const responseCount = dryRunCounts.responses;

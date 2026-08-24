@@ -23,6 +23,7 @@ function runtimePorts(
     abandonRecontact: async () => {},
     saveInstrumentSubmission,
     startArtifact: async () => ({
+      intervalId: 'b185bbd8-2088-47d2-b45a-924c8d8778ea',
       checkpoint: condition === 'supportive' ? 'supportive:entry' : 'reference:passwords',
       artifactSessionElapsedMs: 0,
       interrupted: false,
@@ -126,10 +127,12 @@ describe('studyMachine', () => {
     let registrationAttempts = 0;
     const registrationRequests: unknown[] = [];
     const retryPorts = runtimePorts('supportive');
-    retryPorts.registerRecontact = async (_sessionId, request) => {
-      registrationRequests.push(request);
+    const createSession = retryPorts.createSession;
+    retryPorts.createSession = async (followUpConsent, recontact) => {
+      registrationRequests.push(recontact);
       registrationAttempts += 1;
       if (registrationAttempts === 1) throw new Error('recontact-write-failed');
+      return createSession(followUpConsent, recontact);
     };
     const retryActor = createActor(createStudyMachine(retryPorts));
     retryActor.start();
@@ -141,13 +144,11 @@ describe('studyMachine', () => {
         requestId: 'f5d74d44-f700-4dc7-ac00-5e251a8890c3',
       },
     });
-    await waitForState(retryActor, () =>
-      retryActor.getSnapshot().matches({ recontactRegistration: 'error' }),
-    );
+    await waitForState(retryActor, () => retryActor.getSnapshot().matches('sessionError'));
 
-    expect(retryActor.getSnapshot().context.condition).toBe('supportive');
+    expect(retryActor.getSnapshot().context.condition).toBeNull();
     expect(retryActor.getSnapshot().context.recontactEmail).toBe('person@example.org');
-    retryActor.send({ type: 'RETRY_RECONTACT' });
+    retryActor.send({ type: 'RETRY_SESSION' });
     await waitForState(retryActor, () =>
       retryActor.getSnapshot().matches({ preQuestionnaire: 'editing' }),
     );
@@ -191,14 +192,12 @@ describe('studyMachine', () => {
     actor.stop();
   });
 
-  it('continues without follow-up after a registration error and clears recontact data', async () => {
+  it('does not create a session for an invalid follow-up registration', () => {
     const ports = runtimePorts('supportive');
-    let abandonedSessionId: string | null = null;
-    ports.registerRecontact = async () => {
-      throw new Error('recontact-write-failed');
-    };
-    ports.abandonRecontact = async (sessionId) => {
-      abandonedSessionId = sessionId;
+    let creationAttempts = 0;
+    ports.createSession = async () => {
+      creationAttempts += 1;
+      throw new Error('unexpected-session-creation');
     };
     const actor = createActor(createStudyMachine(ports));
     actor.start();
@@ -206,18 +205,13 @@ describe('studyMachine', () => {
       type: 'ACCEPT_CONSENT',
       followUpConsent: true,
       recontact: {
-        email: 'person@example.org',
+        email: 'invalid-email',
         requestId: 'f5d74d44-f700-4dc7-ac00-5e251a8890c3',
       },
     });
-    await waitForState(actor, () =>
-      actor.getSnapshot().matches({ recontactRegistration: 'error' }),
-    );
 
-    actor.send({ type: 'CONTINUE_WITHOUT_FOLLOW_UP' });
-    await waitForState(actor, () => actor.getSnapshot().matches({ preQuestionnaire: 'editing' }));
-
-    expect(abandonedSessionId).toBe('a185bbd8-2088-47d2-b45a-924c8d8778ea');
+    expect(actor.getSnapshot().matches('consent')).toBe(true);
+    expect(creationAttempts).toBe(0);
     expect(actor.getSnapshot().context.followUpConsent).toBe(false);
     expect(actor.getSnapshot().context.recontactEmail).toBeNull();
     expect(actor.getSnapshot().context.recontactRequestId).toBeNull();
