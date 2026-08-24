@@ -9,7 +9,7 @@ import { S08_NETWORK_REPLAY_CONTENT_VERSION, s08NetworkReplayContent } from './s
 import { S09_PASSWORD_SUMMARY_CONTENT_VERSION, s09PasswordSummaryContent } from './s09.js';
 
 const s06AttackFlowCopyReference =
-  'docs/design/S06-S07-COPY-AUDIT.md#copy-und-interaktionsdelta-s06-freie-persoenliche-markierung-24-august-2026';
+  'docs/design/S06-S07-COPY-AUDIT.md#copy-und-interaktionsdelta-s06-begrenzte-abwandlung-und-edit-pfad-24-august-2026';
 const s07EntryCopyReference =
   'docs/design/S06-S07-COPY-AUDIT.md#copy-delta-s06-s07-eigene-passwoerter-23-august-2026';
 const s08CopyReference =
@@ -19,7 +19,7 @@ const s09CopyReference =
 
 describe('S06 transition and S07 passphrase-search copy traceability', () => {
   it('keeps S06 consequence wording aligned with bounded whole-password recognition', () => {
-    expect(S06_CONSEQUENCE_CONTENT_VERSION).toBe('2.43.0');
+    expect(S06_CONSEQUENCE_CONTENT_VERSION).toBe('2.47.0');
     expect(s06ConsequenceContent.source.copyReference).toBe(s06AttackFlowCopyReference);
     expect(s06ConsequenceContent.page.attackStart).toBe('Angriff starten');
     expect(s06ConsequenceContent.page.finish).toBe('Fertig');
@@ -128,14 +128,42 @@ describe('S06 transition and S07 passphrase-search copy traceability', () => {
         'Ein einzelner klar abgegrenzter Bestandteil wurde innerhalb desselben Musters ausgetauscht.',
       'component-replacement-with-small-surface-changes':
         'Ein einzelner klar abgegrenzter Bestandteil und bis zu drei kleine typische Merkmale wurden verändert.',
-      'bounded-surface-changes': 'Bis zu drei kleine typische Veränderungen wurden kombiniert.',
+      'bounded-surface-changes':
+        'Der gezeigte Änderungsweg liegt innerhalb der festgelegten Distanzgrenze.',
       'account-term-with-small-surface-changes':
-        'Der Konto- oder Dienstbegriff und bis zu drei kleine typische Merkmale wurden verändert.',
+        'Ein vollständiger Kontobegriff und höchstens zwei weitere Zeichenänderungen bilden den gezeigten Weg.',
       'repeated-pattern-with-small-surface-changes':
         'Das Wiederholungsmuster und bis zu drei kleine typische Merkmale wurden verändert.',
       'component-removal-with-small-surface-changes':
         'Ein vollständiger Randbestandteil und bis zu drei kleine typische Merkmale wurden verändert.',
     });
+    expect(s06ConsequenceContent.transformationStepLabels).toEqual({
+      'account-term-replacement': 'Kontobegriff ersetzt',
+      'year-change': 'Jahreszahl verändert',
+      'number-change': 'Zahlenbestandteil verändert',
+      'suffix-change': 'Endzeichen oder kurzer Anhang verändert',
+      'separator-change': 'Trennzeichen verändert',
+      'capitalization-change': 'Groß- und Kleinschreibung verändert',
+      'leet-substitution': 'Typische Zeichenersetzung',
+      'character-substitution': 'Zeichen ersetzt',
+      'character-insertion': 'Zeichen ergänzt',
+      'character-deletion': 'Zeichen entfernt',
+      'adjacent-transposition': 'Benachbarte Zeichen vertauscht',
+    });
+    expect(s06ConsequenceContent.comparisonPathLabels).toEqual({
+      heading: 'Angreiferweg',
+      emptyValue: 'nichts',
+      exactValue: 'unverändert',
+    });
+    expect(s06ConsequenceContent.accounts.campusgram.comparisonIdentifiers).toEqual([
+      'Campusgram',
+      'Campus Gram',
+      'Instagram',
+      'Insta',
+    ]);
+    expect(s06ConsequenceContent.accounts['campus-email'].comparisonIdentifiers).not.toContain(
+      'Mail',
+    );
     const previewFixture = s06ConsequenceContent.fixtures.find(
       ({ id }) => id === 'reuse-and-derived',
     );

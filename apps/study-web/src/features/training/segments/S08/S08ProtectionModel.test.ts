@@ -93,11 +93,27 @@ function comparison(
           : {
               kind: 'derived-variant-match',
               relationId: `similar:${sourceAccountId}:${targetAccountId}`,
-              transformationId: 'bounded-component-replaced',
-              sourceEvidence: [],
-              targetEvidence: [],
+              transformationId: 'bounded-surface-changes',
+              basis: 'normalized-restricted-damerau-levenshtein',
+              rawDistance: 1,
+              normalizedDistance: 0.1,
+              pathCost: 1,
+              steps: [
+                {
+                  id: `transformation:${sourceAccountId}:${targetAccountId}`,
+                  kind: 'character-substitution',
+                  operation: 'replace',
+                  sourceEvidence: { type: 'span', start: 0, end: 1, token: 'a' },
+                  targetEvidence: { type: 'span', start: 0, end: 1, token: 'b' },
+                  cost: 1,
+                  resultingCandidate: `fiktiv-${targetAccountId}`,
+                  explanationId: 's06.transformation.character-substitution',
+                },
+              ],
+              sourceEvidence: [{ type: 'span', start: 0, end: 1, token: 'a' }],
+              targetEvidence: [{ type: 'span', start: 0, end: 1, token: 'b' }],
               candidate: `fiktiv-${targetAccountId}`,
-              explanationId: 's06.relation.bounded-component-replaced',
+              explanationId: 's06.relation.bounded-surface-changes',
             },
       disclaimerId: 'simulation-not-production-strength',
     },
@@ -254,7 +270,7 @@ describe('S08 open action needs', () => {
       selectable: true,
     });
     expect(network.nodes.find(({ id }) => id === 'campus-email')).toMatchObject({
-      status: 'affected',
+      status: 'neutral',
       selectable: true,
     });
   });

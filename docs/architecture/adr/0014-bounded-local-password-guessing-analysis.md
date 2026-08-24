@@ -2,7 +2,7 @@
 
 - **Status:** Accepted
 - **Datum:** 2026-08-03
-- **Geändert am:** 2026-08-23: Wortkorpora über alle Wortlängen konservativ bereinigt; zuvor 2026-08-22 vollständiges Durchprobieren als letzter begrenzter Fundweg
+- **Geändert am:** 2026-08-24: S06-Abwandlungsrelation auf normalisierte restricted Damerau-Levenshtein-Distanz und einen begrenzten Kontobegriffspfad umgestellt; zuvor 2026-08-23 Wortkorpora über alle Wortlängen konservativ bereinigt
 - **Citation label:** `ADR 0014-Bounded-Password-Guessing`
 - **Ergänzt:** ADR 0002, ADR 0003 und ADR 0007
 
@@ -334,9 +334,43 @@ und Campus E-Mail. Dadurch können die beiden späteren lokalen Prüfungen diese
 Reflexionslogik verwenden, ohne eine zweite Bewertungsfunktion einzuführen. Die aktuelle UI erhebt
 diese Relationen dort noch nicht.
 
-S06 übernimmt nur das kategoriale Resultat und die IDs der verwendeten Relationen. Die
-Passwortspans und Relationen werden nicht in Forschungsdaten, Persistenz oder Telemetrie
-überführt.
+Die gerichteten Paarvergleiche in S06 sind von dieser Vollpasswort-Disposition getrennt. Sie
+verwenden eine eigene lokale Relation mit exakt drei Ergebnissen: exakte Übereinstimmung,
+begrenzte Abwandlung oder kein erkannter begrenzter Weg.
+
+### Gerichtete S06-Abwandlungsrelation
+
+Eine allgemeine Abwandlung wird durch die case-sensitive restricted Damerau-Levenshtein-Distanz
+auf NFC-normalisierten Graphemclustern operationalisiert. Einfügen, Löschen, Ersetzen und die
+benachbarte Vertauschung kosten jeweils eine Operation. Ein allgemeiner Pfad ist nur zulässig,
+wenn die absolute Distanz zwischen eins und drei liegt und durch die Länge des längeren Werts
+normalisiert höchstens `0,25` beträgt.
+
+Zusätzlich ist genau ein scenario-spezifischer Makroschritt zulässig: Ein vollständiger Identifier
+des Quellkontos darf an unterstützten sichtbaren Verbinder-, Buchstaben/Ziffer-, Camel-Case-
+oder Akronym-zu-Wort-Grenzen durch einen vollständigen Identifier des Zielkontos aus einer
+getrennten kleinen Liste ersetzt werden. Außerhalb der Identifier sind höchstens zwei
+Distanzoperationen, eine normalisierte Restdistanz von höchstens `0,25` und ein zusammenhängender
+unveränderter Lauf von mindestens vier Graphemclustern erforderlich. Allgemeine Kontextwörter aus
+der S05-Analyse sind keine S06-Ersetzungsidentifier.
+
+Die früheren Haupt- und Oberflächenheuristiken erzeugen keine positiven Relationen mehr. Jahr,
+Zahl, Endzeichen, Trennzeichen, Großschreibung und Leetspeak dienen ausschließlich dazu, die
+Operationen eines bereits akzeptierten Pfads verständlich zu benennen. Beliebige aus dem
+Zielpasswort übernommene Wortbestandteile sind kein Kandidateninventar.
+
+Der Domain-Layer gibt einen geordneten Pfad aus paarweisen `PasswordTransformationStep`-Objekten
+mit Quellspan, Zielspan, Operation, Kosten, Erklärungstyp und dem nach diesem Schritt entstandenen
+vollständigen Zwischenkandidaten aus. Der Pfad wird nur akzeptiert, wenn seine Anwendung auf den
+Quellwert nach NFC-Normalisierung exakt den Zielwert erzeugt. React rendert diese Schritte und
+Zwischenkandidaten sowie danach das kategoriale Resultat; es sortiert keine getrennten
+Evidenzlisten zusammen und berechnet keine zweite Ähnlichkeitslogik. Der Angriffsweg bewegt sich
+erst nach der sichtbaren vollständigen Kandidatenbildung zum Zielkonto.
+
+Die Distanzgrenzen sind eine vorab festgelegte konservative Trainingsoperationalisierung. Sie sind
+weder ein universeller wissenschaftlicher Klassifikationsstandard noch eine Schätzung realer
+Angriffswahrscheinlichkeit. Passwortwerte, Spans, Distanzen und Relationen werden nicht in
+Forschungsdaten, Persistenz oder Telemetrie überführt.
 
 ## Datenschutz- und Architekturgrenze
 

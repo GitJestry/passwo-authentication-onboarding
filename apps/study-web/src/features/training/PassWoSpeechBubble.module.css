@@ -154,6 +154,13 @@
   object-fit: contain;
 }
 
+.inlineSymbol img {
+  filter:
+    drop-shadow(0 0.14em 0.18em rgb(0 0 0 / 88%))
+    drop-shadow(0 0 0.22em rgb(0 0 0 / 78%))
+    drop-shadow(0 0 0.28em rgb(255 49 94 / 38%));
+}
+
 .footer {
   display: grid;
   gap: var(--space-3);

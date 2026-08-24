@@ -124,6 +124,7 @@ export interface S06ConsequenceControllerSnapshot {
   readonly showGuide: boolean;
   readonly comparisonVisible: boolean;
   readonly comparisonPreviewVisible: boolean;
+  readonly localFindingAccountIds: readonly S06AccountId[];
   readonly completedComparisonResults: Readonly<
     Partial<Record<S06AccountId, PasswordRelation['kind']>>
   >;
@@ -228,9 +229,6 @@ export function createS06ConsequenceScenePlan(
       }),
     };
   });
-  const authoredAccountAndServiceTerms = accountIds.flatMap(
-    (accountId) => s06ConsequenceContent.accounts[accountId].accountTerms,
-  );
   const comparisons: S06PairComparison[] = comparisonPairs.map(
     ([sourceAccountId, targetAccountId]) => ({
       sourceAccountId,
@@ -238,7 +236,10 @@ export function createS06ConsequenceScenePlan(
       result: compareFictionalPasswords({
         sourcePassword: accountInputs[sourceAccountId].fictionalPassword,
         targetPassword: accountInputs[targetAccountId].fictionalPassword,
-        authoredAccountAndServiceTerms,
+        sourceAccountIdentifiers:
+          s06ConsequenceContent.accounts[sourceAccountId].comparisonIdentifiers,
+        targetAccountIdentifiers:
+          s06ConsequenceContent.accounts[targetAccountId].comparisonIdentifiers,
       }),
     }),
   );
@@ -292,6 +293,14 @@ function masterCampusWasFound(plan: PasswordConsequenceScenePlan): boolean {
     plan.accounts.find(({ accountId }) => accountId === 'master-campus')?.disposition.kind ===
     'whole-password-recognized'
   );
+}
+
+function localFindingAccountIds(
+  plan: PasswordConsequenceScenePlan,
+): readonly S06AccountId[] {
+  return plan.accounts
+    .filter(({ disposition }) => disposition.kind === 'whole-password-recognized')
+    .map(({ accountId }) => accountId);
 }
 
 function missionStepForPhase(phase: S06MissionPhase): MissionDefinition['steps'][number] {
@@ -444,20 +453,29 @@ function carriesProtectedStatus(
   return node?.status === 'protected';
 }
 
-function carriesSettledSourceStatus(
-  node: SceneNode | undefined,
-): node is SceneNode & { readonly status: 'protected' | 'exposed' | 'affected' } {
-  return (
-    node?.status === 'protected' ||
-    node?.status === 'exposed' ||
-    node?.status === 'affected'
-  );
-}
-
 function carriesPersistentEdgeStatus(
   edge: SceneEdge | undefined,
 ): edge is SceneEdge & { readonly status: 'direct' | 'similar' | 'blocked' } {
   return edge?.status === 'direct' || edge?.status === 'similar' || edge?.status === 'blocked';
+}
+
+function incidentSourceStatus(
+  authoredNode: SceneNode,
+  settledNode: SceneNode | undefined,
+): SceneNode['status'] {
+  if (settledNode?.status === 'affected' || settledNode?.status === 'exposed') {
+    return settledNode.status;
+  }
+  if (settledNode?.status === 'protected' || authoredNode.status === 'protected') {
+    return 'protected';
+  }
+  return authoredNode.status;
+}
+
+function sourceHasLocalFinding(step: PasswordConsequencePlanStep): boolean {
+  return step.network.nodes.some(
+    (node) => node.id === step.sourceAccountId && node.status === 'exposed',
+  );
 }
 
 function preserveSettledState(
@@ -567,7 +585,11 @@ function projectNetworkForSource(
     nodes: network.nodes.map((node): SceneNode => {
       if (node.kind === 'shield') return node;
       if (isAccountBranchNode(node, sourceAccountId)) {
-        return authoredNodes.get(node.id) ?? node;
+        const authoredNode = authoredNodes.get(node.id) ?? node;
+        return {
+          ...authoredNode,
+          status: incidentSourceStatus(authoredNode, settledNodes.get(node.id)),
+        };
       }
       return {
         ...node,
@@ -623,7 +645,9 @@ function attackPreviewNetwork(
     step.sourceAccountId === null ? undefined : settledNodes.get(step.sourceAccountId);
   const affectedTargetAccountIds =
     step.sourceAccountId !== null &&
-    (settledSourceNode?.status === 'exposed' || step.mode === 'hypothetical')
+    (sourceHasLocalFinding(step) ||
+      settledSourceNode?.status === 'affected' ||
+      step.mode === 'hypothetical')
       ? affectedAccountsForIncident(priorAttackEdges, step.sourceAccountId)
       : new Set<S06AccountId>();
   const currentAttackEdge = step.network.edges.find(isAttackEdge);
@@ -640,10 +664,17 @@ function attackPreviewNetwork(
         ) {
           const authoredNode = step.network.nodes.find(({ id }) => id === node.id);
           const settledNode = settledNodes.get(node.id);
+          const sourceNode = authoredNode ?? node;
           return [
-            carriesSettledSourceStatus(settledNode)
-              ? { ...(authoredNode ?? node), status: settledNode.status }
-              : (authoredNode ?? node),
+            {
+              ...sourceNode,
+              status:
+                step.mode === 'hypothetical'
+                  ? node.id === step.sourceAccountId
+                    ? 'exposed'
+                    : 'affected'
+                  : incidentSourceStatus(sourceNode, settledNode),
+            },
           ];
         }
         const settledNode = settledNodes.get(node.id);
@@ -684,7 +715,9 @@ function blockedResolutionNetwork(
   if (sourceAccountId === null || targetAccountId === null) return attackNetwork;
   const priorNodes = new Map(priorSettledNetwork.nodes.map((node) => [node.id, node]));
   const affectedTargetAccountIds =
-    priorNodes.get(sourceAccountId)?.status === 'exposed' || step.mode === 'hypothetical'
+    sourceHasLocalFinding(step) ||
+    priorNodes.get(sourceAccountId)?.status === 'affected' ||
+    step.mode === 'hypothetical'
       ? affectedAccountsForIncident(
           priorSettledNetwork.edges.filter(isAttackEdge),
           sourceAccountId,
@@ -718,9 +751,13 @@ function blockedResolutionNetwork(
         if (isAccountBranchNode(node, sourceAccountId)) {
           const prior = priorNodes.get(node.id);
           return [
-            carriesSettledSourceStatus(prior)
-              ? { ...node, status: prior.status }
-              : node,
+            {
+              ...node,
+              status:
+                step.mode === 'hypothetical' && !retainAttackPath
+                  ? 'protected'
+                  : incidentSourceStatus(node, prior),
+            },
           ];
         }
         const prior = priorNodes.get(node.id);
@@ -801,7 +838,7 @@ export function createS06BlockedReplayNetwork(
     symbolId: 'shield',
     label: 'Dieser Angriffsweg ist blockiert.',
     description:
-      'Mit den begrenzten Transformationswegen dieser Simulation wurde kein direkter Weg erkannt.',
+      'Mit den hier geprüften kleinen Zeichenänderungen und Kontobegriffswechseln wurde kein direkter Weg erkannt.',
     status: 'protected',
     position: { x: targetNode.position.x - 0.12, y: targetNode.position.y - 0.04 },
     selectable: false,
@@ -931,7 +968,12 @@ function resolvedNetwork(
   }
   const persistentNetwork = preserveSettledState(step.network, priorSettledNetwork);
   const priorBlockingShields = attackNetwork.nodes.filter(({ kind }) => kind === 'shield');
-  const resolvedRelationStatus = relation.kind === 'exact-match' ? 'direct' : 'similar';
+  const resolvedRelationStatus =
+    step.mode === 'hypothetical'
+      ? 'hypothetical'
+      : relation.kind === 'exact-match'
+        ? 'direct'
+        : 'similar';
   const resolvedEdges = mergeWithPriorAttackEdges(
     persistentNetwork.edges.map((edge): SceneEdge =>
       edge.id === `${step.id}-path`
@@ -942,7 +984,8 @@ function resolvedNetwork(
   const priorNodes = new Map(priorSettledNetwork.nodes.map((node) => [node.id, node]));
   const affectedTargetAccountIds =
     step.sourceAccountId !== null &&
-    (priorNodes.get(step.sourceAccountId)?.status === 'exposed' ||
+    (sourceHasLocalFinding(step) ||
+      priorNodes.get(step.sourceAccountId)?.status === 'affected' ||
       step.mode === 'hypothetical')
       ? affectedAccountsForIncident(resolvedEdges, step.sourceAccountId)
       : new Set<S06AccountId>();
@@ -958,7 +1001,13 @@ function resolvedNetwork(
         ) {
           const prior = priorNodes.get(node.id);
           return [
-            carriesSettledSourceStatus(prior) ? { ...node, status: prior.status } : node,
+            {
+              ...node,
+              status:
+                step.mode === 'hypothetical'
+                  ? 'protected'
+                  : incidentSourceStatus(node, prior),
+            },
           ];
         }
         return [
@@ -987,7 +1036,7 @@ function hypotheticalCampusgramNetwork(
     ...network,
     id: `${network.id}-hypothetical`,
     accessibleSummary:
-      'Was wäre, wenn? Campusgram wird in dieser hypothetischen Simulation als betroffen dargestellt.',
+      'Was wäre, wenn? Von Campusgram aus werden bestehende Passwortverbindungen geprüft.',
   };
 }
 
@@ -1288,6 +1337,7 @@ function hypotheticalIncidentNetwork(
     ({ kind, id }) => kind === 'shield' && id !== localShieldIdFor(accountId),
   );
   const persistentAttackEdges = settledNetwork.edges.filter(isAttackEdge);
+  const settledEdges = new Map(settledNetwork.edges.map((edge) => [edge.id, edge]));
   const affectedTargetAccountIds = affectedAccountsForIncident(
     persistentAttackEdges,
     accountId,
@@ -1298,6 +1348,7 @@ function hypotheticalIncidentNetwork(
     nodes: mergeNodesById(
       persistentNetwork.nodes.flatMap((node): readonly SceneNode[] => {
         if (node.kind === 'shield') return [];
+        const settledNode = settledNetwork.nodes.find(({ id }) => id === node.id);
         return [
           isAccountBranchNode(node, accountId)
             ? {
@@ -1308,7 +1359,7 @@ function hypotheticalIncidentNetwork(
                 ...node,
                 status: projectedStatusForOtherBranch(
                   node,
-                  settledNetwork.nodes.find(({ id }) => id === node.id),
+                  settledNode,
                   affectedTargetAccountIds,
                 ),
               },
@@ -1319,12 +1370,15 @@ function hypotheticalIncidentNetwork(
     edges: mergeEdgesById(
       persistentNetwork.edges.map((edge): SceneEdge =>
         edge.sourceId === accountId && edge.targetId.startsWith(`${accountId}-detail-`)
-          ? { ...edge, status: 'direct' }
+          ? {
+              ...edge,
+              status: settledEdges.get(edge.id)?.status ?? 'neutral',
+            }
           : edge,
       ),
       persistentAttackEdges,
     ),
-    accessibleSummary: `Was wäre, wenn? ${s06ConsequenceContent.accounts[accountId].label} wird als hypothetisch betroffen dargestellt.`,
+    accessibleSummary: `Was wäre, wenn? Von ${s06ConsequenceContent.accounts[accountId].label} aus werden bestehende Passwortverbindungen geprüft.`,
   };
   return incidentNetwork;
 }
@@ -1414,6 +1468,7 @@ export class S06ConsequenceController {
       showGuide: true,
       comparisonVisible: false,
       comparisonPreviewVisible: false,
+      localFindingAccountIds: localFindingAccountIds(plan),
       completedComparisonResults: {},
       localReflection: null,
       controls: {
@@ -1704,6 +1759,10 @@ export class S06ConsequenceController {
       [reflection.accountId]: { ...account, semanticEvidence },
     };
     this.#plan = createS06ConsequenceScenePlan(this.#plan.id, this.#accountInputs);
+    this.#snapshot = {
+      ...this.#snapshot,
+      localFindingAccountIds: localFindingAccountIds(this.#plan),
+    };
     this.#onSemanticEvidenceChange(reflection.accountId, semanticEvidence);
     void this.#missionController.continue();
   }
@@ -2167,6 +2226,13 @@ export class S06ConsequenceController {
       ({ kind, id }) => kind === 'shield' && id === localShieldIdFor(sourceAccountId),
     );
     const persistentAttackEdges = this.#settledNetwork.edges.filter(isAttackEdge);
+    const sourceWasReachedByActualPath = persistentAttackEdges.some((edge) => {
+      if (edge.status !== 'direct' && edge.status !== 'similar') return false;
+      return (
+        accountIdForNodeId(edge.sourceId) === sourceAccountId ||
+        accountIdForNodeId(edge.targetId) === sourceAccountId
+      );
+    });
     const affectedTargetAccountIds = sourceWasExposed
       ? affectedAccountsForIncident(persistentAttackEdges, sourceAccountId)
       : new Set<S06AccountId>();
@@ -2176,7 +2242,17 @@ export class S06ConsequenceController {
         step.network.nodes.flatMap((node): readonly SceneNode[] => {
           if (node.kind === 'shield') return [];
           const priorNode = priorNodes.get(node.id);
-          if (isAccountBranchNode(node, sourceAccountId)) return [node];
+          if (isAccountBranchNode(node, sourceAccountId)) {
+            return [
+              {
+                ...node,
+                status:
+                  sourceWasExposed || sourceWasReachedByActualPath
+                    ? incidentSourceStatus(node, priorNode)
+                    : node.status,
+              },
+            ];
+          }
           return [
             {
               ...node,
@@ -2202,7 +2278,9 @@ export class S06ConsequenceController {
             ) {
               return sourceWasExposed
                 ? { ...edge, status: 'direct' }
-                : { ...edge, status: 'blocked' };
+                : carriesPersistentEdgeStatus(priorEdge)
+                  ? { ...edge, status: priorEdge.status }
+                  : { ...edge, status: 'blocked' };
             }
             return carriesPersistentEdgeStatus(priorEdge)
               ? { ...edge, status: priorEdge.status }

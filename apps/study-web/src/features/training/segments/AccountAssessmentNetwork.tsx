@@ -5,6 +5,7 @@ import { useCallback, useMemo, type CSSProperties } from 'react';
 import attackerAsset from '../../../assets/passwo/attacker.webp';
 import passwordFactorShieldAsset from '../../../assets/s05/password-factor-shield.webp';
 import comparisonPathShieldAsset from '../../../assets/s06/comparison-path-shield.webp';
+import easyToGuessAsset from '../../../assets/s06/easy-to-guess.png';
 import type { NetworkPresentationSnapshot } from '../../../adapters/network/NetworkMotionAdapter.js';
 import { CelebrationConfetti } from '../CelebrationConfetti.js';
 import {
@@ -20,6 +21,7 @@ export type AccountComparisonResults = Readonly<
 const emptyComparisonResults: AccountComparisonResults = {};
 const emptyEdgeRevealDelaysMs: Readonly<Partial<Record<string, number>>> = {};
 const emptyNodeActionLabels: Readonly<Partial<Record<S06AccountId, string>>> = {};
+const emptyAccountIds: readonly S06AccountId[] = [];
 
 function ignoreNodeSelect(_nodeId: string): void {}
 
@@ -31,6 +33,20 @@ function actionLabelForNode(
     return labels[nodeId] ?? null;
   }
   return null;
+}
+
+function mainAccountId(nodeId: string): S06AccountId | null {
+  return nodeId === 'campusgram' || nodeId === 'master-campus' || nodeId === 'campus-email'
+    ? nodeId
+    : null;
+}
+
+function isEasyToGuessMainAccount(
+  nodeId: string,
+  accountIds: readonly S06AccountId[],
+): boolean {
+  const accountId = mainAccountId(nodeId);
+  return accountId !== null && accountIds.includes(accountId);
 }
 
 function AccountStatusOverlay({
@@ -45,6 +61,7 @@ function AccountStatusOverlay({
   celebrate,
   showAccountShield,
   shieldAsset,
+  easyToGuess,
 }: {
   readonly node: NetworkSceneSnapshot['nodes'][number];
   readonly attackerRole: 'active' | 'departing' | null;
@@ -57,9 +74,10 @@ function AccountStatusOverlay({
   readonly celebrate: boolean;
   readonly showAccountShield: boolean;
   readonly shieldAsset: string;
+  readonly easyToGuess: boolean;
 }) {
   const showsShield =
-    showAccountShield && node.status === 'protected' && node.kind !== 'shield';
+    showAccountShield && !easyToGuess && node.status === 'protected' && node.kind !== 'shield';
   const showsComparisonPathShield =
     node.status === 'protected' && node.symbolId === 'comparison-path-shield';
   const attackerStatus = attackerAttemptStatus ?? node.status;
@@ -67,6 +85,7 @@ function AccountStatusOverlay({
     attackerRole === null &&
     !showsShield &&
     !showsComparisonPathShield &&
+    !easyToGuess &&
     comparisonResult === null &&
     actionLabel === null &&
     !celebrate
@@ -102,6 +121,17 @@ function AccountStatusOverlay({
           src={shieldAsset}
           width={512}
           height={768}
+          alt=""
+          aria-hidden="true"
+        />
+      ) : null}
+      {easyToGuess ? (
+        <img
+          className={styles.easyToGuess}
+          data-easy-to-guess
+          src={easyToGuessAsset}
+          width={1024}
+          height={1024}
           alt=""
           aria-hidden="true"
         />
@@ -174,6 +204,8 @@ export function AccountAssessmentNetwork({
   showAccountShields = true,
   showEdgeLabels = false,
   overview = false,
+  easyToGuessAccountIds = emptyAccountIds,
+  hideDetailSymbols = false,
 }: {
   readonly adapter: ReactFlowNetworkAdapter;
   readonly presentation: NetworkPresentationSnapshot;
@@ -208,6 +240,8 @@ export function AccountAssessmentNetwork({
   readonly showAccountShields?: boolean;
   readonly showEdgeLabels?: boolean;
   readonly overview?: boolean;
+  readonly easyToGuessAccountIds?: readonly S06AccountId[];
+  readonly hideDetailSymbols?: boolean;
 }) {
   const comparisonResultOrder = useMemo(
     () => Object.keys(comparisonResults),
@@ -224,7 +258,7 @@ export function AccountAssessmentNetwork({
               ? 'active'
               : null
         }
-        attackerAttemptStatus={attackerAttemptStatus}
+        attackerAttemptStatus={node.id === attackerAccountId ? attackerAttemptStatus : null}
         comparisonResult={comparisonResults[node.id] ?? null}
         comparisonResultAriaHidden={comparisonResultsAriaHidden}
         comparisonResultRevealIndex={
@@ -235,6 +269,7 @@ export function AccountAssessmentNetwork({
         celebrate={node.id === celebratingNodeId}
         showAccountShield={showAccountShields}
         shieldAsset={accountShieldAsset}
+        easyToGuess={isEasyToGuessMainAccount(node.id, easyToGuessAccountIds)}
       />
     ),
     [
@@ -250,6 +285,7 @@ export function AccountAssessmentNetwork({
       celebratingNodeId,
       accountShieldAsset,
       showAccountShields,
+      easyToGuessAccountIds,
     ],
   );
 
@@ -261,6 +297,7 @@ export function AccountAssessmentNetwork({
       data-attack-target={attackTargetId ?? undefined}
       data-attack-blocked={attackBlocked || undefined}
       data-attack-attempt={attackerAttemptStatus ?? undefined}
+      data-hide-detail-symbols={hideDetailSymbols || undefined}
     >
       <ReactFlowNetwork
         adapter={adapter}

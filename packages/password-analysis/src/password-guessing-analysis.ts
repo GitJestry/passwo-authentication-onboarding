@@ -1549,6 +1549,40 @@ export function canonicalizeTypicalLeet(value: string): string {
     .join('');
 }
 
+/**
+ * Checks one frozen zxcvbn substitution in either direction without collapsing ambiguous symbols
+ * such as `1`, `!`, `6` or `7` onto a single arbitrary source letter.
+ */
+export function isTypicalLeetTransformation(sourceValue: string, targetValue: string): boolean {
+  const source = sourceValue.normalize('NFC').toLocaleLowerCase('de-DE');
+  const target = targetValue.normalize('NFC').toLocaleLowerCase('de-DE');
+  const sourceCharacters = [...source];
+  const targetCharacters = [...target];
+  if (sourceCharacters.length === 1) {
+    const sourceCharacter = sourceCharacters[0];
+    if (
+      sourceCharacter !== undefined &&
+      substitutionsForCharacter(sourceCharacter).some(
+        (substitution) => substitution.toLocaleLowerCase('de-DE') === target,
+      )
+    ) {
+      return true;
+    }
+  }
+  if (targetCharacters.length === 1) {
+    const targetCharacter = targetCharacters[0];
+    if (
+      targetCharacter !== undefined &&
+      substitutionsForCharacter(targetCharacter).some(
+        (substitution) => substitution.toLocaleLowerCase('de-DE') === source,
+      )
+    ) {
+      return true;
+    }
+  }
+  return false;
+}
+
 function escapeRegularExpression(value: string): string {
   return value.replace(/[.*+?^${}()|[\]\\]/gu, '\\$&');
 }

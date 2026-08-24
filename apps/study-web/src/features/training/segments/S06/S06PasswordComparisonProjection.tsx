@@ -1,9 +1,14 @@
-import type { PasswordEvidenceSpan, PasswordRelation, S06AccountId } from '@passwo/contracts';
+import type {
+  PasswordRelation,
+  PasswordTransformationStep,
+  S06AccountId,
+} from '@passwo/contracts';
 import { s06ConsequenceContent } from '@passwo/training-content';
 import { BugStatusIcon } from '@passwo/ui';
 import {
   Fragment,
   useEffect,
+  useId,
   useLayoutEffect,
   useRef,
   useState,
@@ -11,14 +16,10 @@ import {
   type RefObject,
 } from 'react';
 import comparisonPathShieldAsset from '../../../../assets/s06/comparison-path-shield.webp';
+import samePasswordAsset from '../../../../assets/password-relations/same.png';
+import similarPasswordAsset from '../../../../assets/password-relations/similar.png';
 import { NetworkSymbol } from '../../../../adapters/network/NetworkSymbolRegistry.js';
-import { PasswordBuildingBlocks } from '../S05/PasswordBuildingBlocks.js';
 import styles from './S06PasswordComparisonProjection.module.css';
-
-interface ComparisonPart {
-  readonly value: string;
-  readonly kind: 'common' | 'variation';
-}
 
 interface ProjectionLayout {
   readonly left: number;
@@ -31,139 +32,264 @@ interface ProjectionLayout {
   };
 }
 
-interface CoreLink {
-  readonly sourceX: number;
-  readonly sourceY: number;
-  readonly targetX: number;
-  readonly targetY: number;
-  readonly caseVariation: boolean;
+interface PasswordDisplaySegment {
+  readonly id: string;
+  readonly value: string;
+  readonly kind: 'unchanged' | 'changed' | 'empty' | 'neutral';
+  readonly stepIndex: number | null;
 }
+
+interface TransformationLink {
+  readonly stepIndex: number;
+  readonly path: string;
+}
+
+type ComparisonAnimationStyle = CSSProperties & {
+  readonly '--comparison-step-delay'?: string;
+  readonly '--comparison-result-delay'?: string;
+};
+
+type PasswordSequenceStyle = CSSProperties & {
+  readonly '--password-character-size': string;
+};
+
+const firstStepDelayMs = 1_180;
+const stepIntervalMs = 560;
+const stepAnimationDurationMs = 380;
 
 function clamp(value: number, minimum: number, maximum: number): number {
   return Math.min(maximum, Math.max(minimum, value));
 }
 
-function sortedEvidence(evidence: readonly PasswordEvidenceSpan[]): readonly PasswordEvidenceSpan[] {
-  return [...evidence].sort((left, right) => left.start - right.start);
+function layoutOffsetWithin(
+  element: HTMLElement,
+  ancestor: HTMLElement,
+): { readonly left: number; readonly top: number } | null {
+  let left = 0;
+  let top = 0;
+  let current: HTMLElement | null = element;
+  while (current !== null && current !== ancestor) {
+    left += current.offsetLeft;
+    top += current.offsetTop;
+    current = current.offsetParent instanceof HTMLElement ? current.offsetParent : null;
+  }
+  return current === ancestor ? { left, top } : null;
 }
 
-function pairedComparisonParts(
+function stepDelay(index: number): number {
+  return firstStepDelayMs + index * stepIntervalMs;
+}
+
+function completedPathDelay(stepCount: number): number {
+  return stepDelay(Math.max(0, stepCount - 1)) + stepAnimationDurationMs + 320;
+}
+
+function timedStepStyle(index: number): ComparisonAnimationStyle {
+  return { '--comparison-step-delay': `${stepDelay(index)}ms` };
+}
+
+function displayToken(value: string): string {
+  return value.length === 0 ? s06ConsequenceContent.comparisonPathLabels.emptyValue : value;
+}
+
+function passwordCharacterSize(visualUnitCount: number): string {
+  const scale = clamp(24 / Math.max(1, visualUnitCount), 0.58, 1);
+  return `${5 * scale}cqi`;
+}
+
+function orderedStepEvidence(
+  steps: readonly PasswordTransformationStep[],
+  side: 'source' | 'target',
+): readonly {
+  readonly step: PasswordTransformationStep;
+  readonly stepIndex: number;
+}[] {
+  return steps
+    .map((step, stepIndex) => ({ step, stepIndex }))
+    .sort((left, right) => {
+      const leftEvidence =
+        side === 'source' ? left.step.sourceEvidence : left.step.targetEvidence;
+      const rightEvidence =
+        side === 'source' ? right.step.sourceEvidence : right.step.targetEvidence;
+      return (
+        leftEvidence.start - rightEvidence.start ||
+        leftEvidence.end - rightEvidence.end ||
+        left.stepIndex - right.stepIndex
+      );
+    });
+}
+
+function passwordDisplaySegments(
+  password: string,
+  relation: PasswordRelation,
+  side: 'source' | 'target',
+): readonly PasswordDisplaySegment[] {
+  if (relation.kind === 'exact-match') {
+    return [
+      {
+        id: `${side}:exact`,
+        value: password,
+        kind: 'unchanged',
+        stepIndex: null,
+      },
+    ];
+  }
+  if (relation.kind !== 'derived-variant-match') {
+    return [
+      {
+        id: `${side}:neutral`,
+        value: password,
+        kind: 'neutral',
+        stepIndex: null,
+      },
+    ];
+  }
+
+  const segments: PasswordDisplaySegment[] = [];
+  let cursor = 0;
+  for (const { step, stepIndex } of orderedStepEvidence(relation.steps, side)) {
+    const evidence = side === 'source' ? step.sourceEvidence : step.targetEvidence;
+    if (evidence.start > cursor) {
+      segments.push({
+        id: `${side}:unchanged:${cursor}-${evidence.start}`,
+        value: password.slice(cursor, evidence.start),
+        kind: 'unchanged',
+        stepIndex: null,
+      });
+    }
+    segments.push({
+      id: `${side}:changed:${step.id}`,
+      value: displayToken(evidence.token),
+      kind: evidence.start === evidence.end ? 'empty' : 'changed',
+      stepIndex,
+    });
+    cursor = Math.max(cursor, evidence.end);
+  }
+  if (cursor < password.length) {
+    segments.push({
+      id: `${side}:unchanged:${cursor}-${password.length}`,
+      value: password.slice(cursor),
+      kind: 'unchanged',
+      stepIndex: null,
+    });
+  }
+  return segments;
+}
+
+function PasswordRelationSequence({
+  accountId,
+  password,
+  relation,
+  side,
+}: {
+  readonly accountId: S06AccountId;
+  readonly password: string;
+  readonly relation: PasswordRelation;
+  readonly side: 'source' | 'target';
+}) {
+  const segments = passwordDisplaySegments(password, relation, side);
+  const sequenceStyle: PasswordSequenceStyle = {
+    '--password-character-size': passwordCharacterSize(
+      password.length + Math.max(0, segments.length - 1) * 2,
+    ),
+  };
+  return (
+    <div
+      className={styles.passwordRow}
+      data-comparison-row={side}
+      data-relation={relation.kind}
+    >
+      <code
+        className={styles.passwordSequence}
+        style={sequenceStyle}
+        aria-label={`${s06ConsequenceContent.accounts[accountId].label}: ${password}`}
+      >
+        {segments.map((segment) => (
+          <span
+            key={segment.id}
+            className={styles.passwordSegment}
+            data-kind={segment.kind}
+            data-step-index={segment.stepIndex ?? undefined}
+            style={segment.stepIndex === null ? undefined : timedStepStyle(segment.stepIndex)}
+            aria-hidden="true"
+          >
+            {segment.value}
+          </span>
+        ))}
+      </code>
+    </div>
+  );
+}
+
+function transformationSummary(
   sourcePassword: string,
   targetPassword: string,
   relation: PasswordRelation,
-): { readonly source: readonly ComparisonPart[]; readonly target: readonly ComparisonPart[] } {
+): string {
   if (relation.kind === 'exact-match') {
-    const part = { value: sourcePassword, kind: 'common' } as const;
-    return { source: [part], target: [part] };
+    return `Die Passwörter „${sourcePassword}“ und „${targetPassword}“ sind identisch.`;
   }
-  if (relation.kind !== 'derived-variant-match') {
-    return {
-      source: [{ value: sourcePassword, kind: 'variation' }],
-      target: [{ value: targetPassword, kind: 'variation' }],
-    };
+  if (relation.kind === 'no-derived-path-recognized') {
+    return `Zwischen „${sourcePassword}“ und „${targetPassword}“ wurde innerhalb der festgelegten Grenzen kein leichter Abwandlungsweg erkannt.`;
   }
-
-  const source: ComparisonPart[] = [];
-  const target: ComparisonPart[] = [];
-  const sourceEvidence = sortedEvidence(relation.sourceEvidence);
-  const targetEvidence = sortedEvidence(relation.targetEvidence);
-  let sourceCursor = 0;
-  let targetCursor = 0;
-
-  for (let index = 0; index < Math.max(sourceEvidence.length, targetEvidence.length); index += 1) {
-    const sourceChange = sourceEvidence[index];
-    const targetChange = targetEvidence[index];
-    if (sourceChange === undefined || targetChange === undefined) continue;
-    const sourceCore = sourcePassword.slice(sourceCursor, sourceChange.start);
-    const targetCore = targetPassword.slice(targetCursor, targetChange.start);
-    if (sourceCore.length > 0 || targetCore.length > 0) {
-      const coreIsRelated =
-        sourceCore.length > 0 &&
-        targetCore.length > 0 &&
-        sourceCore.toLocaleLowerCase('de-DE') === targetCore.toLocaleLowerCase('de-DE');
-      source.push({
-        value: sourceCore,
-        kind: coreIsRelated ? 'common' : 'variation',
-      });
-      target.push({
-        value: targetCore,
-        kind: coreIsRelated ? 'common' : 'variation',
-      });
-    }
-    const changedIsRelated =
-      sourceChange.token.length > 0 &&
-      targetChange.token.length > 0 &&
-      sourceChange.token.toLocaleLowerCase('de-DE') ===
-        targetChange.token.toLocaleLowerCase('de-DE');
-    source.push({
-      value: sourceChange.token,
-      kind: changedIsRelated ? 'common' : 'variation',
-    });
-    target.push({
-      value: targetChange.token,
-      kind: changedIsRelated ? 'common' : 'variation',
-    });
-    sourceCursor = sourceChange.end;
-    targetCursor = targetChange.end;
-  }
-
-  const sourceTail = sourcePassword.slice(sourceCursor);
-  const targetTail = targetPassword.slice(targetCursor);
-  if (sourceTail.length > 0 || targetTail.length > 0) {
-    const tailIsRelated =
-      sourceTail.length > 0 &&
-      targetTail.length > 0 &&
-      sourceTail.toLocaleLowerCase('de-DE') === targetTail.toLocaleLowerCase('de-DE');
-    source.push({
-      value: sourceTail,
-      kind: tailIsRelated ? 'common' : 'variation',
-    });
-    target.push({
-      value: targetTail,
-      kind: tailIsRelated ? 'common' : 'variation',
-    });
-  }
-  return {
-    source: source.filter(({ value }) => value.length > 0),
-    target: target.filter(({ value }) => value.length > 0),
-  };
+  const changes = relation.steps
+    .map((step) => {
+      const label = s06ConsequenceContent.transformationStepLabels[step.kind];
+      return `„${displayToken(step.sourceEvidence.token)}“ wird zu „${displayToken(step.targetEvidence.token)}“: ${label}. Danach lautet der Kandidat „${step.resultingCandidate}“`;
+    })
+    .join('; ');
+  return `Aus „${sourcePassword}“ wird „${targetPassword}“. ${changes}.`;
 }
 
-function CommonCoreLinks({ hostRef }: { readonly hostRef: RefObject<HTMLDivElement | null> }) {
-  const [links, setLinks] = useState<readonly CoreLink[]>([]);
+function TransformationLinks({
+  relation,
+}: {
+  readonly relation: PasswordRelation;
+}) {
+  const svgRef = useRef<SVGSVGElement | null>(null);
+  const [links, setLinks] = useState<readonly TransformationLink[]>([]);
+  const markerId = `comparison-arrow-${useId().replaceAll(':', '')}`;
 
   useLayoutEffect(() => {
-    const host = hostRef.current;
-    if (host === null) return;
+    const host = svgRef.current?.parentElement;
+    if (
+      host === null ||
+      host === undefined ||
+      relation.kind === 'no-derived-path-recognized'
+    ) {
+      return;
+    }
     let frame: number | null = null;
     const update = () => {
-      const hostRect = host.getBoundingClientRect();
-      const sourceParts = [
-        ...host.querySelectorAll<HTMLElement>(
-          '[data-comparison-row="source"] [data-categories~="common-components"]',
-        ),
-      ];
-      const targetParts = [
-        ...host.querySelectorAll<HTMLElement>(
-          '[data-comparison-row="target"] [data-categories~="common-components"]',
-        ),
-      ];
+      const stepIndexes =
+        relation.kind === 'derived-variant-match'
+          ? relation.steps.map((_, stepIndex) => stepIndex)
+          : [0];
       setLinks(
-        sourceParts.flatMap((sourcePart, index) => {
-          const targetPart = targetParts[index];
-          if (targetPart === undefined) return [];
-          const sourceRect = sourcePart.getBoundingClientRect();
-          const targetRect = targetPart.getBoundingClientRect();
+        stepIndexes.flatMap((stepIndex) => {
+          const segmentSelector =
+            relation.kind === 'exact-match'
+              ? `.${styles.passwordSegment}`
+              : `[data-step-index="${stepIndex}"]`;
+          const sourceSegment = host.querySelector<HTMLElement>(
+            `[data-comparison-row="source"] ${segmentSelector}`,
+          );
+          const targetSegment = host.querySelector<HTMLElement>(
+            `[data-comparison-row="target"] ${segmentSelector}`,
+          );
+          if (sourceSegment === null || targetSegment === null) return [];
+          const sourceOffset = layoutOffsetWithin(sourceSegment, host);
+          const targetOffset = layoutOffsetWithin(targetSegment, host);
+          if (sourceOffset === null || targetOffset === null) return [];
+          const sourceX = sourceOffset.left + sourceSegment.offsetWidth / 2;
+          const sourceY = sourceOffset.top + sourceSegment.offsetHeight;
+          const targetX = targetOffset.left + targetSegment.offsetWidth / 2;
+          const targetY = targetOffset.top;
+          const controlY = sourceY + (targetY - sourceY) / 2;
           return [
             {
-              sourceX: sourceRect.left + sourceRect.width / 2 - hostRect.left,
-              sourceY: sourceRect.bottom - hostRect.top,
-              targetX: targetRect.left + targetRect.width / 2 - hostRect.left,
-              targetY: targetRect.top - hostRect.top,
-              caseVariation:
-                sourcePart.textContent?.toLocaleLowerCase('de-DE') ===
-                  targetPart.textContent?.toLocaleLowerCase('de-DE') &&
-                sourcePart.textContent !== targetPart.textContent,
+              stepIndex,
+              path: `M ${sourceX} ${sourceY} C ${sourceX} ${controlY}, ${targetX} ${controlY}, ${targetX} ${targetY}`,
             },
           ];
         }),
@@ -183,16 +309,31 @@ function CommonCoreLinks({ hostRef }: { readonly hostRef: RefObject<HTMLDivEleme
       observer.disconnect();
       if (frame !== null) cancelAnimationFrame(frame);
     };
-  }, [hostRef]);
+  }, [relation]);
 
   return (
-    <svg className={styles.coreLinks} aria-hidden="true">
-      {links.map((link, index) => (
-        <path
-          key={`${link.sourceX}-${link.targetX}-${index}`}
-          data-case-variation={link.caseVariation || undefined}
-          d={`M ${link.sourceX} ${link.sourceY} C ${link.sourceX} ${(link.sourceY + link.targetY) / 2}, ${link.targetX} ${(link.sourceY + link.targetY) / 2}, ${link.targetX} ${link.targetY}`}
-        />
+    <svg ref={svgRef} className={styles.transformationLinks} aria-hidden="true">
+      <defs>
+        <marker
+          id={markerId}
+          markerWidth="8"
+          markerHeight="8"
+          refX="7"
+          refY="4"
+          orient="auto"
+          markerUnits="strokeWidth"
+        >
+          <path d="M 0 0 L 8 4 L 0 8 Z" />
+        </marker>
+      </defs>
+      {links.map((link) => (
+        <g
+          key={link.stepIndex}
+          data-step-index={link.stepIndex}
+          style={timedStepStyle(link.stepIndex)}
+        >
+          <path d={link.path} pathLength="1" markerEnd={`url(#${markerId})`} />
+        </g>
       ))}
     </svg>
   );
@@ -259,21 +400,31 @@ export function S06PasswordComparisonProjection({
   const cardRef = useRef<HTMLDivElement | null>(null);
   const advanceButtonRef = useRef<HTMLButtonElement | null>(null);
   const [layout, setLayout] = useState<ProjectionLayout | null>(null);
+  const [resultVisible, setResultVisible] = useState(false);
   const [resultRevealed, setResultRevealed] = useState(false);
   const [playbackIteration, setPlaybackIteration] = useState(0);
   const [replayInProgress, setReplayInProgress] = useState(false);
-  const parts = pairedComparisonParts(sourcePassword, targetPassword, relation);
-  const sourceCommonIndices = parts.source.flatMap(({ kind }, index) =>
-    kind === 'common' ? [index] : [],
-  );
-  const targetCommonIndices = parts.target.flatMap(({ kind }, index) =>
-    kind === 'common' ? [index] : [],
-  );
   const successful = relation.kind !== 'no-derived-path-recognized';
+  const relationLogoAsset =
+    relation.kind === 'exact-match'
+      ? samePasswordAsset
+      : relation.kind === 'derived-variant-match'
+        ? similarPasswordAsset
+        : null;
+  const resultDelayMs =
+    relation.kind === 'derived-variant-match'
+      ? completedPathDelay(relation.steps.length)
+      : relation.kind === 'exact-match'
+        ? 1_850
+        : 1_450;
+  const cardStyle = {
+    '--comparison-result-delay': `${resultDelayMs}ms`,
+  } as ComparisonAnimationStyle;
 
   useEffect(() => {
     if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
     const frame = requestAnimationFrame(() => {
+      setResultVisible(true);
       setResultRevealed(true);
       if (phase === 'attacking') onPreviewComplete();
       if (phase === 'resolving') onResolutionComplete();
@@ -294,7 +445,10 @@ export function S06PasswordComparisonProjection({
     const update = () => {
       const sceneRect = scene.getBoundingClientRect();
       const networkRect = networkHost.getBoundingClientRect();
-      const cardRect = card.getBoundingClientRect();
+      // The entry animation scales the card visually. Layout must use its untransformed border box,
+      // otherwise the final full-size card can extend beyond the scene after the animation settles.
+      const cardWidth = card.offsetWidth;
+      const cardHeight = card.offsetHeight;
       const target = networkHost.querySelector<HTMLElement>(
         `[data-scene-node-button="${targetAccountId}"]`,
       );
@@ -305,18 +459,18 @@ export function S06PasswordComparisonProjection({
       const projectsLeft = targetAccountId === 'campusgram';
       const left = clamp(
         projectsLeft
-          ? Math.min(sceneRect.width * 0.51 - cardRect.width, targetX - cardRect.width - 82)
+          ? Math.min(sceneRect.width * 0.51 - cardWidth, targetX - cardWidth - 82)
           : Math.max(sceneRect.width * 0.49, targetX + 82),
         20,
-        Math.max(20, sceneRect.width - cardRect.width - 24),
+        Math.max(20, sceneRect.width - cardWidth - 24),
       );
       const networkBottom = networkRect.bottom - sceneRect.top;
       const top = clamp(
-        targetY - cardRect.height / 2,
+        targetY - cardHeight / 2,
         20,
-        Math.max(20, networkBottom - cardRect.height - 16),
+        Math.max(20, networkBottom - cardHeight - 16),
       );
-      const cardNearX = projectsLeft ? left + cardRect.width : left;
+      const cardNearX = projectsLeft ? left + cardWidth : left;
       const targetEdgeX = targetX + (projectsLeft ? -3 : 3);
       setLayout({
         left,
@@ -324,8 +478,8 @@ export function S06PasswordComparisonProjection({
         projection: {
           startA: [targetEdgeX, targetY - 5],
           startB: [targetEdgeX, targetY + 5],
-          endA: [cardNearX, top + cardRect.height * 0.22],
-          endB: [cardNearX, top + cardRect.height * 0.78],
+          endA: [cardNearX, top + cardHeight * 0.22],
+          endB: [cardNearX, top + cardHeight * 0.78],
         },
       });
     };
@@ -348,10 +502,12 @@ export function S06PasswordComparisonProjection({
 
   const replayPreview = () => {
     if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      setResultVisible(true);
       setResultRevealed(true);
       setPlaybackIteration((iteration) => iteration + 1);
       return;
     }
+    setResultVisible(false);
     setResultRevealed(false);
     setReplayInProgress(true);
     setPlaybackIteration((iteration) => iteration + 1);
@@ -392,7 +548,9 @@ export function S06PasswordComparisonProjection({
         <div
           ref={cardRef}
           className={styles.card}
-          aria-label={s06ConsequenceContent.relationLabels[relation.kind]}
+          style={cardStyle}
+          role="group"
+          aria-label={transformationSummary(sourcePassword, targetPassword, relation)}
           onAnimationEnd={(event) => {
             if (event.target === event.currentTarget && phase === 'resolving') {
               onResolutionComplete();
@@ -400,61 +558,53 @@ export function S06PasswordComparisonProjection({
           }}
         >
           <Fragment key={playbackIteration}>
-            <CommonCoreLinks hostRef={cardRef} />
+            {successful ? <TransformationLinks relation={relation} /> : null}
             <div className={styles.comparisonGrid}>
               <PreviewAttackPath blocked={!successful} resultRevealed={resultRevealed} />
               <span className={styles.accountSymbol} data-attack-symbol="source" aria-hidden="true">
                 <NetworkSymbol symbolId={sourceAccountId} />
               </span>
-              <div className={styles.passwordRow} data-comparison-row="source">
-                <PasswordBuildingBlocks
-                  value={sourcePassword}
-                  parts={parts.source.map(({ value }) => value)}
-                  display="decomposed"
-                  appearance="analysis"
-                  animate
-                  highlightedIndices={sourceCommonIndices}
-                  categoryIds={parts.source.map(({ kind }) =>
-                    kind === 'common' ? ['common-components'] : [],
-                  )}
-                  ariaLabel={`${s06ConsequenceContent.accounts[sourceAccountId].label}: ${sourcePassword}`}
-                />
-              </div>
+              <PasswordRelationSequence
+                accountId={sourceAccountId}
+                password={sourcePassword}
+                relation={relation}
+                side="source"
+              />
               <span className={styles.accountSymbol} data-attack-symbol="target" aria-hidden="true">
                 <NetworkSymbol symbolId={targetAccountId} />
               </span>
-              <div className={styles.passwordRow} data-comparison-row="target">
-                <PasswordBuildingBlocks
-                  value={targetPassword}
-                  parts={parts.target.map(({ value }) => value)}
-                  display="decomposed"
-                  appearance="analysis"
-                  animate
-                  highlightedIndices={targetCommonIndices}
-                  categoryIds={parts.target.map(({ kind }) =>
-                    kind === 'common' ? ['common-components'] : [],
-                  )}
-                  ariaLabel={`${s06ConsequenceContent.accounts[targetAccountId].label}: ${targetPassword}`}
-                />
-              </div>
+              <PasswordRelationSequence
+                accountId={targetAccountId}
+                password={targetPassword}
+                relation={relation}
+                side="target"
+              />
             </div>
             <strong
               className={styles.result}
-              role={resultRevealed ? 'status' : undefined}
-              aria-hidden={resultRevealed ? undefined : true}
+              role={resultVisible ? 'status' : undefined}
+              aria-hidden={resultVisible ? undefined : true}
               onAnimationStart={(event) => {
-                if (event.target === event.currentTarget) {
-                  setResultRevealed(true);
-                }
+                if (event.target === event.currentTarget) setResultVisible(true);
               }}
               onAnimationEnd={(event) => {
-                if (event.target === event.currentTarget) {
-                  if (phase === 'attacking') onPreviewComplete();
-                  if (replayInProgress) setReplayInProgress(false);
-                }
+                if (event.target !== event.currentTarget) return;
+                setResultRevealed(true);
+                if (phase === 'attacking') onPreviewComplete();
+                if (replayInProgress) setReplayInProgress(false);
               }}
             >
-              {s06ConsequenceContent.comparisonResultLabels[relation.kind]}
+              {relationLogoAsset === null ? null : (
+                <img
+                  className={styles.resultLogo}
+                  src={relationLogoAsset}
+                  width={512}
+                  height={512}
+                  alt=""
+                  aria-hidden="true"
+                />
+              )}
+              <span>{s06ConsequenceContent.comparisonResultLabels[relation.kind]}</span>
             </strong>
           </Fragment>
         </div>
@@ -477,7 +627,9 @@ export function S06PasswordComparisonProjection({
               onClick={onAdvance}
             >
               {finishLabel}
-              <span aria-hidden="true">{finishLabel === s06ConsequenceContent.page.finish ? '✓' : '→'}</span>
+              <span aria-hidden="true">
+                {finishLabel === s06ConsequenceContent.page.finish ? '✓' : '→'}
+              </span>
             </button>
           </footer>
         ) : null}

@@ -13,6 +13,8 @@ import {
 } from 'react';
 import typicalChangesAsset from '../../../../assets/s05/category-logos/typical-changes.webp';
 import attackerAsset from '../../../../assets/passwo/attacker.webp';
+import samePasswordAsset from '../../../../assets/password-relations/same.png';
+import similarPasswordAsset from '../../../../assets/password-relations/similar.png';
 import { ReactFlowNetworkAdapter } from '../../../../adapters/network/ReactFlowNetworkAdapter.js';
 import { NetworkSymbol } from '../../../../adapters/network/NetworkSymbolRegistry.js';
 import scaleClockAsset from '../../../../assets/s05/scale-clock.svg';
@@ -90,6 +92,10 @@ interface CampusgramPasswordVisualStyle extends CSSProperties {
   readonly '--s05-campusgram-password-scale': string;
 }
 
+interface PasswordReuseVisualStyle extends CSSProperties {
+  readonly '--password-character-count': number;
+}
+
 function campusgramPasswordVisualStyle(password: string): CampusgramPasswordVisualStyle {
   const characterCount = Math.max([...password].length, 1);
   const scale =
@@ -100,6 +106,19 @@ function campusgramPasswordVisualStyle(password: string): CampusgramPasswordVisu
   return {
     '--s05-campusgram-password-scale': String(scale),
   };
+}
+
+function passwordReuseVisualStyle(password: string): PasswordReuseVisualStyle {
+  return {
+    '--password-character-count': Math.max([...password].length, 1),
+  };
+}
+
+function passwordSegmentCenter(password: string, segmentStart: number): number {
+  const characterCount = Math.max([...password].length, 1);
+  const boundedStart = Math.min(Math.max(segmentStart, 0), characterCount);
+  const center = boundedStart + (characterCount - boundedStart) / 2;
+  return Math.min(90, Math.max(10, (center / characterCount) * 100));
 }
 
 function CampusgramPassword({
@@ -3384,6 +3403,10 @@ function FinalAssessmentScene({ snapshot }: { readonly snapshot: S05AnalysisCont
           presentation={presentation}
           ariaLabel="Konten und verbundene Bereiche in der Campusgram-Prüfung"
           canvasAriaLabel="Campusgram und seine verbundenen Knoten sind sichtbar und entsperrt"
+          easyToGuessAccountIds={
+            recognized && snapshot.step !== 'final-components' ? ['campusgram'] : []
+          }
+          hideDetailSymbols
         />
       </article>
       {snapshot.step === 'final-components' ||
@@ -3397,16 +3420,85 @@ function FinalAssessmentScene({ snapshot }: { readonly snapshot: S05AnalysisCont
 }
 
 function PasswordReuseExampleScene() {
-  const example = s05Content.freeSearch.application.reuseExample;
+  const examples = s05Content.freeSearch.application.reuseExamples;
   return (
     <figure
       className={styles.passwordReuseExample}
-      aria-label={`${example.sourcePassword} wird ähnlich als ${example.targetPassword} verwendet`}
+      aria-label="Beispiele für dasselbe und ein leicht abgewandeltes Passwort"
       data-s05-speech-obstacle
     >
-      <code>{example.sourcePassword}</code>
-      <span aria-hidden="true" />
-      <code>{example.targetPassword}</code>
+      {examples.map((example) => {
+        let sharedPrefixLength = 0;
+        while (
+          sharedPrefixLength < example.sourcePassword.length &&
+          example.sourcePassword[sharedPrefixLength] === example.targetPassword[sharedPrefixLength]
+        ) {
+          sharedPrefixLength += 1;
+        }
+        const sourceSegmentCenter = passwordSegmentCenter(
+          example.sourcePassword,
+          sharedPrefixLength,
+        );
+        const targetSegmentCenter = passwordSegmentCenter(
+          example.targetPassword,
+          sharedPrefixLength,
+        );
+        const passwordBlock = (password: string) => (
+          <code
+            data-whole-match={example.id === 'same' || undefined}
+            style={passwordReuseVisualStyle(password)}
+          >
+            {example.id === 'similar' ? (
+              <>
+                <span>{password.slice(0, sharedPrefixLength)}</span>
+                <span data-account-part>{password.slice(sharedPrefixLength)}</span>
+              </>
+            ) : (
+              <span>{password}</span>
+            )}
+          </code>
+        );
+        return (
+          <div
+            key={example.id}
+            className={styles.passwordReuseExampleRow}
+            data-example={example.id}
+            role="group"
+            aria-label={`${example.sourcePassword} und ${example.targetPassword}: ${example.label}`}
+          >
+            {passwordBlock(example.sourcePassword)}
+            <span className={styles.passwordRelationBridge} aria-hidden="true">
+              <svg viewBox="0 0 100 48" preserveAspectRatio="none">
+                <path
+                  d={
+                    example.id === 'same'
+                      ? 'M 50 0 V 40'
+                      : `M ${sourceSegmentCenter} 0 C ${sourceSegmentCenter} 15, ${targetSegmentCenter} 29, ${targetSegmentCenter} 40`
+                  }
+                />
+                <path
+                  className={styles.passwordRelationArrowhead}
+                  d={
+                    example.id === 'same'
+                      ? 'M 46 37 L 50 45 L 54 37'
+                      : `M ${targetSegmentCenter - 4} 37 L ${targetSegmentCenter} 45 L ${targetSegmentCenter + 4} 37`
+                  }
+                />
+              </svg>
+              <span className={styles.passwordRelationMark}>
+                <small>{example.label}</small>
+                <img
+                  src={example.id === 'same' ? samePasswordAsset : similarPasswordAsset}
+                  width={1254}
+                  height={1254}
+                  alt=""
+                />
+              </span>
+            </span>
+            {passwordBlock(example.targetPassword)}
+          </div>
+        );
+      })}
     </figure>
   );
 }

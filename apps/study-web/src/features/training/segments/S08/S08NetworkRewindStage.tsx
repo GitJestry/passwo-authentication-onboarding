@@ -30,6 +30,7 @@ import { SectionTransition } from '../../SectionTransition.js';
 import { AccountAssessmentNetwork } from '../AccountAssessmentNetwork.js';
 import { createS06BlockedReplayTriangle } from '../S06/S06ConsequenceController.js';
 import {
+  blockedS08ProtectionSteps,
   createCompletedS02Network,
   createExpandedS09AccountNetwork,
   createProtectedS08Network,
@@ -266,6 +267,13 @@ export function S08NetworkRewindStage({
     () => planStep(plan, 's06-step-master-campus-campus-email'),
     [plan],
   );
+  const replaySteps = useMemo(
+    () =>
+      [firstPathStep, secondPathStep, thirdPathStep].filter(
+        (step): step is PasswordConsequencePlanStep => step !== null,
+      ),
+    [firstPathStep, secondPathStep, thirdPathStep],
+  );
   const replayPhase = state.matches('incidentAttack')
     ? 'attack'
     : state.matches('attackReady')
@@ -276,15 +284,33 @@ export function S08NetworkRewindStage({
     [replayPhase, sourceNetwork],
   );
   const triangleNetwork = useMemo(
-    () =>
-      createS06BlockedReplayTriangle(
-        replayBaseNetwork,
-        [firstPathStep, secondPathStep, thirdPathStep].filter(
-          (step): step is PasswordConsequencePlanStep => step !== null,
-        ),
-      ),
-    [firstPathStep, replayBaseNetwork, secondPathStep, thirdPathStep],
+    () => createS06BlockedReplayTriangle(replayBaseNetwork, replaySteps),
+    [replayBaseNetwork, replaySteps],
   );
+  const preparationNetwork = useMemo(() => {
+    const protectionNetwork = createS08ProtectionNetwork(
+      sourceNetwork,
+      state.context.protectedAccountIds,
+      state.context.riskModel,
+    );
+    const networkWithBlockedConnections = createS06BlockedReplayTriangle(
+      protectionNetwork,
+      blockedS08ProtectionSteps(
+        state.context.riskModel,
+        state.context.protectedAccountIds,
+        replaySteps,
+      ),
+    );
+    return {
+      ...networkWithBlockedConnections,
+      accessibleSummary: protectionNetwork.accessibleSummary,
+    };
+  }, [
+    replaySteps,
+    sourceNetwork,
+    state.context.protectedAccountIds,
+    state.context.riskModel,
+  ]);
   const studyScaleNetwork = useMemo(
     () =>
       createExpandedS09AccountNetwork(
@@ -337,11 +363,7 @@ export function S08NetworkRewindStage({
   const projectedNetwork = useMemo(
     () => {
       if (preparationVisible) {
-        return createS08ProtectionNetwork(
-          sourceNetwork,
-          state.context.protectedAccountIds,
-          state.context.riskModel,
-        );
+        return preparationNetwork;
       }
       if (state.matches('s09Expansion')) {
         return studyScaleNetwork;
@@ -360,6 +382,7 @@ export function S08NetworkRewindStage({
         return conservativeScaleNetwork;
       }
       if (
+        state.matches('attackReady') ||
         state.matches('triangleAnimating') ||
         state.matches('replayComplete') ||
         state.hasTag('s09')
@@ -371,13 +394,12 @@ export function S08NetworkRewindStage({
     [
       preparationVisible,
       conservativeScaleNetwork,
+      preparationNetwork,
       replayBaseNetwork,
       reducingNetwork,
       scalingRiskNetwork,
-      sourceNetwork,
       state,
       studyScaleNetwork,
-      state.context.protectedAccountIds,
       triangleNetwork,
     ],
   );
@@ -447,6 +469,11 @@ export function S08NetworkRewindStage({
   });
   const releasingLocalFindingAccountIds = releasingAccountIds.filter((accountId) =>
     state.context.riskModel.localFindingAccountIds.includes(accountId),
+  );
+  const easyToGuessAccountIds = state.context.riskModel.localFindingAccountIds.filter(
+    (accountId) =>
+      accountId !== 'campusgram' &&
+      !state.context.protectedAccountIds.includes(accountId),
   );
   const passWoStep = state.matches('s09Intro')
     ? 0
@@ -561,6 +588,7 @@ export function S08NetworkRewindStage({
               ? { statusCascadeStartDelayMs: scalingFindingNodeDelayMs }
               : {})}
             showAccountShields
+            easyToGuessAccountIds={easyToGuessAccountIds}
             overview={state.hasTag('expanded')}
             {...(scalingFindingsVisible
               ? {

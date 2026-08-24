@@ -1,5 +1,46 @@
 # S00--S05 Copy and Interaction Audit
 
+## Copy- und Darstellungsdelta S05 kompaktes Gleichheitsbeispiel, 24. August 2026
+
+Quelle ist der ausdrückliche Nutzerauftrag vom 24. August 2026. Das visuelle Beispiel für ein
+exakt wiederverwendetes Passwort zeigt statt `PasswortCampusgram` nun auf beiden Seiten den
+fiktiven Wert `Passw0rt123!`. Das gleichzeitig sichtbare Beispiel für eine leichte Abwandlung,
+PassWos Sprechtext und alle übrigen Teilnehmertexte bleiben unverändert. Größere Bausteine und
+ein längerer vertikaler Verbindungspfad verbessern ausschließlich die Darstellung; auf schmalen
+Ansichten bleiben beide Beispiele untereinander scrollbar. Analyse, Persistenz, Export und Timing
+bleiben unverändert. `S05_CONTENT_VERSION` steigt von `2.132.0` auf `2.133.0`.
+
+| Segment und Text-ID | Quelle | Aktueller Text | Geplanter Text | Primäre Rolle | Grund | Bedeutungsänderung | Interaktionsziel | Hervorhebung |
+|---|---|---|---|---|---|---|---|---|
+| `S05.freeSearch.application.reuseExamples.same` | Nutzerauftrag vom 2026-08-24 | `PasswortCampusgram` — `dasselbe` — `PasswortCampusgram` | `Passw0rt123!` — `dasselbe` — `Passw0rt123!` | Mechanismusillustration | ausdrücklich gewünschtes kompakteres Beispiel für exakte Wiederverwendung | nein | kein | vollständige rote Umrandung und Gleichheitssymbol |
+
+Geschützter Wortlaut und alle Sprechschritte bleiben unverändert.
+
+## Copy- und Darstellungsdelta S05 zwei Passwortbeziehungen, 24. August 2026
+
+Quelle ist der ausdrückliche Nutzerauftrag vom 24. August 2026. Das bisher einzelne Beispiel
+`PasswortCampusgram` zu `PasswortMasterCampus` wird durch zwei gleichzeitig sichtbare
+Vergleichszeilen ersetzt. Die erste zeigt denselben fiktiven Wert auf beiden Seiten, die zweite
+zeigt die bereits vorhandene leichte Abwandlung. Zwischen den Passwortkarten verläuft jeweils
+eine Linie; auf ihrem Mittelpunkt steht das gelieferte Gleichheits- beziehungsweise
+Abwandlungssymbol, darüber die kleine Bezeichnung `dasselbe` oder `leicht abgewandelt`.
+Die beiden gelieferten Symbole erhalten ausschließlich eine weiche Schattenhervorhebung; eine
+zusätzliche schwarze Kreisfläche wird nicht verwendet.
+
+Dieselben Symbole markieren zusätzlich die bereits hervorgehobenen Phrasen in PassWos
+unveränderter Sprechblase. Die Darstellung bleibt auch ohne Farbe durch unterschiedliche
+Symbole, ausgeschriebene Labels und zugängliche Gruppenbeschreibungen verständlich. Ablauf,
+Analyse, flüchtige Werte, Persistenz, Export und Timing bleiben unverändert.
+`S05_CONTENT_VERSION` steigt von `2.131.0` auf `2.132.0`.
+
+| Segment und Text-ID | Quelle | Aktueller Text | Geplanter Text | Primäre Rolle | Grund | Bedeutungsänderung | Interaktionsziel | Hervorhebung |
+|---|---|---|---|---|---|---|---|---|
+| `S05.freeSearch.application.reuseExamples.same` | Nutzerauftrag vom 2026-08-24 | nicht vorhanden | `PasswortCampusgram` — `dasselbe` — `PasswortCampusgram` | Mechanismusillustration | exakte Wiederverwendung als eigenes visuelles Beispiel zeigen | nein | kein | Gleichheitssymbol auf der Verbindung |
+| `S05.freeSearch.application.reuseExamples.similar` | Nutzerauftrag vom 2026-08-24 | einzelnes unbeschriftetes Beispiel `PasswortCampusgram` zu `PasswortMasterCampus` | `PasswortCampusgram` — `leicht abgewandelt` — `PasswortMasterCampus` | Mechanismusillustration | leichte Abwandlung vom exakten Fall visuell unterscheiden | nein | kein | Abwandlungssymbol auf der Verbindung |
+| `S05.freeSearch.application.reuseTakeaway` | Nutzerauftrag vom 2026-08-24 | unveränderter Wortlaut; Warnkontrast ohne Symbole | wortgleich; `dasselbe` und `leicht abgewandelt` erhalten das jeweils zugehörige Symbol | Mechanismuserklärung | Text und sichtbare Vergleichszeilen eindeutig aufeinander beziehen | nein | `Weiter` | bestehender Warnkontrast plus Symbole |
+
+Geschützter Wortlaut und alle Sprechschritte bleiben unverändert.
+
 ## Interaktionsdelta S05 Filzstift während des gesamten Eingabeschritts, 24. August 2026
 
 Quelle ist der ausdrückliche Nutzerauftrag vom 24. August 2026 und dessen anschließende

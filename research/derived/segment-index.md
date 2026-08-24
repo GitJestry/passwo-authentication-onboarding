@@ -309,16 +309,25 @@ Seitenangaben beziehen sich auf die im Trainingsdokument ausgewiesene interne Pa
   den gesamten Kontozweig sichtbar auf betroffen. Der anschließende Passphrasen-Übergang bewahrt
   die wiederhergestellte Campusgram-Schlussansicht unverändert.
 - Eine Beziehung ist ausschließlich `exact-match`, `derived-variant-match` oder
-  `no-derived-path-recognized`. Eine abgeleitete Variante benötigt einen konkreten begrenzten
-  Transformationsweg, dessen erzeugter Kandidat den vollständigen Zielwert trifft; höchstens eine Hauptveränderung und drei kleine Oberflächenveränderungen werden kombiniert.
-- Gemeinsame Teilstrings und allgemeine Ähnlichkeitswerte begründen keinen Treffer. Zusätzlich zu
-  den authored Wegen kann genau ein an Trennzeichen, Ziffer-/Buchstabenwechsel oder Camel Case abgegrenzter Buchstabenbaustein
-  im ansonsten stabilen Muster ausgetauscht werden; zwei freie Bausteinersetzungen bleiben
-  ausgeschlossen. Eine einzelne Zeichenoperation zählt nur als explizit begrenzter erzeugter
-  Kandidatenweg. Ein nicht erkannter Weg bedeutet nur, dass diese Simulation keinen direkten Weg
-  erkannt hat.
-- `S06_CONSEQUENCE_CONTENT_VERSION 2.43.0` übernimmt die S05-Vollpasswort-Disposition ohne eigene
-  Guess-Schwelle. Nur `whole-password-recognized` öffnet den tatsächlichen lokalen Vorfallspfad;
+  `no-derived-path-recognized`. Allgemeine leichte Abwandlungen verwenden die case-sensitive
+  restricted Damerau-Levenshtein-Distanz auf NFC-normalisierten Graphemclustern. Positiv sind nur
+  Pfade mit absoluter Distanz eins bis drei und normalisierter Distanz höchstens `0,25`.
+- Genau ein zusätzlicher scenario-spezifischer Makropfad darf einen vollständigen Identifier des
+  Quellkontos durch einen vollständigen Identifier des Zielkontos ersetzen. Beide stammen aus
+  getrennten kleinen Listen und müssen an unterstützten Grenzen liegen. Außerhalb der Identifier
+  sind höchstens zwei Distanzoperationen, eine normalisierte Restdistanz von höchstens `0,25` und
+  ein zusammenhängender gemeinsamer Lauf von mindestens vier Zeichen erforderlich. Breite
+  S05-Kontextbegriffe und beliebige aus dem Zielwert übernommene Wortbestandteile begründen keinen
+  Weg.
+- Der Domain-Layer liefert für jeden positiven Pfad geordnete paarweise Schritte mit Quellspan,
+  Zielspan, Operation, Kosten, Erklärungstyp und dem nach dem Schritt entstandenen vollständigen
+  Zwischenkandidaten. Die Projektion zeigt nacheinander die tatsächlichen `vorher -> nachher`-Paare
+  und schreibt den Kandidaten nach jedem Schritt fort. Erst nach dem vollständigen Zielkandidaten
+  erscheinen Ergebnis und Angriffslinie. Ergänzungen und Entfernungen behalten einen sichtbaren
+  leeren Gegenwert; Reduced Motion zeigt denselben Endzustand ohne zeitliche Staffelung.
+- `S06_CONSEQUENCE_CONTENT_VERSION 2.44.0` übernimmt die S05-Vollpasswort-Disposition ohne eigene
+  Guess-Schwelle und versioniert zusätzlich die neue Paarvergleichs- und Erklärungsdarstellung.
+  Nur `whole-password-recognized` öffnet den tatsächlichen lokalen Vorfallspfad;
   `no-whole-password-recognized` bleibt eine begrenzte Nicht-Erkennung und kein Stärkeurteil.
 - Jeder der drei flüchtigen S06-Kontoeingänge akzeptiert optional dieselbe bestätigte semantische
   Evidenz aus persönlichen Bereichen, Inhaltsgruppen und Satz-/Phrasenverbindungen. Aktuell wird

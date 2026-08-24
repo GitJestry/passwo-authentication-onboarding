@@ -60,6 +60,9 @@ Das Netzwerk zeigt Konten, abhängige Dienste, Funktionen, Passwortbeziehungen u
   keine rechteckigen Smoothstep-Segmente.
 - Die Statusfarben und Linienarten für S06 bleiben erhalten: direkte, ähnliche, blockierte und
   hypothetische Verbindungen unterscheiden sich zusätzlich durch Strichmuster.
+- Rote Passwortbeziehungen in S06 und S08 tragen mittig ein eigenes Gleichheits- oder
+  Abwandlungssymbol. Ihr vorhandenes kleines Textlabel steht direkt darüber, sodass Beziehungsart
+  und gegebenenfalls der Bezug zum alten Campusgram-Passwort auch ohne Farbe verständlich bleiben.
 
 ## S08-Risikoverbindungen
 
@@ -68,13 +71,17 @@ S06-Plan und zeigt sie einheitlich als rote gestrichelte Kontokanten. Beziehunge
 kennzeichnen durch ihr Label, dass sie sich auf dessen bereits ersetztes altes Passwort beziehen.
 Eine verwendete einzigartige Passphrase entfernt nur die Kanten des gewählten Kontos. Der
 zugehörige Aktionshinweis und die gestrichelten Risikokanten lösen sich im selben
-Statechart-Schritt auf. Nur lokal schwache Konten sind rot betroffen. Ein starkes Konto bleibt
-trotz einer Wiederverwendungs- oder Ähnlichkeitskante blau geschützt, zeigt aber weiterhin die
-Aktion `Einzigartige Passphrase verwenden`, bis seine Beziehung aufgelöst ist. Reduced Motion
-projiziert unmittelbar denselben fachlichen Endzustand. Campusgram bleibt in S08 immer im blauen
-Schutzzustand, weil die sichtbaren Risikokanten ausdrücklich sein bereits ersetztes altes Passwort
-referenzieren. Aktionsknoten behalten unabhängig vom roten oder blauen Status dieselbe Hover- und
-Fokusrückmeldung.
+Statechart-Schritt auf. Kontopaare ohne aktive Risikobeziehung zeigen bereits eine grüne, mittig
+durch ein Schutzschild unterbrochene Verbindung. Wird eine Risikobeziehung durch die
+Passphrasenaktion aufgelöst, nimmt die entsprechende grüne Schutzverbindung ihren Platz ein.
+Beim Start des erneuten Angriffs werden diese grünen Verbindungen kurz ausgeblendet, damit der
+bestehende Angriffsablauf sie anschließend erneut aufbauen kann. Nur lokal schwache Konten sind
+rot betroffen. Ein starkes Konto bleibt trotz einer Wiederverwendungs- oder Ähnlichkeitskante blau
+geschützt, zeigt aber weiterhin die Aktion `Einzigartige Passphrase verwenden`, bis seine Beziehung
+aufgelöst ist. Reduced Motion projiziert unmittelbar denselben fachlichen Endzustand. Campusgram
+bleibt in S08 immer im blauen Schutzzustand, weil die sichtbaren Risikokanten ausdrücklich sein
+bereits ersetztes altes Passwort referenzieren. Aktionsknoten behalten unabhängig vom roten oder
+blauen Status dieselbe Hover- und Fokusrückmeldung.
 
 Die direkten QA-Einstiege `s08-strong-relations` und `s08-weak-mixed-relations` decken gemeinsam
 starke blaue Beziehungsknoten, rote schwache Knoten, exakte Wiederverwendung, abgeleitete

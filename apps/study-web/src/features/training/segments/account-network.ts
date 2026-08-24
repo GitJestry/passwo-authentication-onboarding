@@ -2,6 +2,7 @@ import type { PasswordRelation, S06AccountId } from '@passwo/contracts';
 import { s02Content, s08NetworkReplayContent } from '@passwo/training-content';
 import type {
   NetworkSceneSnapshot,
+  PasswordConsequencePlanStep,
   PasswordConsequenceScenePlan,
   SceneEdge,
   SceneNode,
@@ -221,6 +222,31 @@ export function activeS08PasswordRelationships(
   );
 }
 
+function s08AccountPairId(left: S06AccountId, right: S06AccountId): string {
+  return [left, right].sort().join('--');
+}
+
+export function blockedS08ProtectionSteps(
+  riskModel: S08ProtectionRiskModel,
+  changedAccountIds: readonly S06AccountId[],
+  steps: readonly PasswordConsequencePlanStep[],
+): readonly PasswordConsequencePlanStep[] {
+  const activeRelationshipPairIds = new Set(
+    activeS08PasswordRelationships(riskModel, changedAccountIds).flatMap(
+      ({ sourceId, targetId }) =>
+        isS08AccountId(sourceId) && isS08AccountId(targetId)
+          ? [s08AccountPairId(sourceId, targetId)]
+          : [],
+    ),
+  );
+  return steps.filter(({ sourceAccountId, targetAccountId }) => {
+    if (sourceAccountId === null || targetAccountId === null) return false;
+    return !activeRelationshipPairIds.has(
+      s08AccountPairId(sourceAccountId, targetAccountId),
+    );
+  });
+}
+
 export function s08AccountHasOpenActionNeed(
   riskModel: S08ProtectionRiskModel,
   changedAccountIds: readonly S06AccountId[],
@@ -332,15 +358,29 @@ export function createS08ProtectionNetwork(
       accountsWithOpenActionNeed.add(targetId);
     }
   }
+  const accountsReachedFromCampusgram = new Set<S06AccountId>();
+  for (const { sourceId, targetId } of activeRelationships) {
+    if (sourceId === 'campusgram' && isS08AccountId(targetId)) {
+      accountsReachedFromCampusgram.add(targetId);
+    }
+    if (targetId === 'campusgram' && isS08AccountId(sourceId)) {
+      accountsReachedFromCampusgram.add(sourceId);
+    }
+  }
   const nodes = source.nodes
     .filter(({ kind }) => kind !== 'shield')
     .map((node): SceneNode => {
       const accountId = s08AccountIdForNode(node.id);
-      const affectedNode =
+      const hasOpenActionNeed =
         accountId !== null &&
         accountId !== 'campusgram' &&
         !protectedAccounts.has(accountId) &&
         accountsWithOpenActionNeed.has(accountId);
+      const affectedThroughCampusgram =
+        accountId !== null &&
+        accountId !== 'campusgram' &&
+        !protectedAccounts.has(accountId) &&
+        accountsReachedFromCampusgram.has(accountId);
       const hasLocalFinding =
         accountId !== null &&
         accountId !== 'campusgram' &&
@@ -350,10 +390,14 @@ export function createS08ProtectionNetwork(
         node.kind === 'account' &&
         accountId !== null &&
         accountId !== 'campusgram' &&
-        affectedNode;
+        hasOpenActionNeed;
       return {
         ...node,
-        status: hasLocalFinding ? 'affected' : 'protected',
+        status: affectedThroughCampusgram
+          ? 'affected'
+          : hasLocalFinding
+            ? 'neutral'
+            : 'protected',
         selectable: actionable,
         locked: false,
         description: actionable

@@ -280,6 +280,21 @@
   animation: s08-risk-label-dissolve 300ms ease-in both;
 }
 
+.training[data-s08-resolving-account="master-campus"]
+  .network
+  :global([data-network-edge-risk-relation="true"][data-network-edge-source="master-campus"] [data-password-relation-marker]),
+.training[data-s08-resolving-account="master-campus"]
+  .network
+  :global([data-network-edge-risk-relation="true"][data-network-edge-target="master-campus"] [data-password-relation-marker]),
+.training[data-s08-resolving-account="campus-email"]
+  .network
+  :global([data-network-edge-risk-relation="true"][data-network-edge-source="campus-email"] [data-password-relation-marker]),
+.training[data-s08-resolving-account="campus-email"]
+  .network
+  :global([data-network-edge-risk-relation="true"][data-network-edge-target="campus-email"] [data-password-relation-marker]) {
+  animation: s08-risk-label-dissolve 300ms ease-in both;
+}
+
 .training[data-s08-releasing-local-finding-master-campus="true"]
   .network
   :global([data-scene-node^="master-campus"] [data-scene-node-visual]),
@@ -287,6 +302,15 @@
   .network
   :global([data-scene-node^="campus-email"] [data-scene-node-visual]) {
   animation: s08-risk-node-release 460ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.training[data-s08-releasing-local-finding-master-campus="true"]
+  .network
+  :global([data-scene-node="master-campus"] [data-easy-to-guess]),
+.training[data-s08-releasing-local-finding-campus-email="true"]
+  .network
+  :global([data-scene-node="campus-email"] [data-easy-to-guess]) {
+  animation: s08-risk-label-dissolve 300ms ease-in both;
 }
 
 .training[data-s08-releasing-master-campus="true"]

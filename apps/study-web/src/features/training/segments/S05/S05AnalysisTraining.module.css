@@ -212,41 +212,199 @@
 .passwordReuseExample {
   position: absolute;
   z-index: 8;
-  top: clamp(3rem, 9cqb, 6rem);
+  top: clamp(2rem, 5cqb, 3.75rem);
   bottom: clamp(14rem, 27cqb, 17rem);
   left: clamp(1.25rem, 5cqi, 4.5rem);
   display: grid;
-  width: min(45cqi, 38rem);
+  width: min(62cqi, 58rem);
   min-width: 0;
-  grid-template-rows: auto minmax(3rem, 1fr) auto;
-  place-items: center;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  align-content: center;
+  gap: clamp(1.25rem, 2.4cqi, 2.25rem);
   margin: 0;
   color: #f4f4f6;
   pointer-events: none;
 }
 
-.passwordReuseExample code {
-  display: block;
+.passwordReuseExampleRow {
+  position: relative;
+  display: grid;
+  width: 100%;
   max-width: 100%;
-  padding: clamp(0.7rem, 1.8cqi, 1.2rem) clamp(0.9rem, 2.4cqi, 1.6rem);
-  overflow: hidden;
+  min-width: 0;
+  grid-template-rows: auto clamp(6.25rem, 11cqb, 8.25rem) auto;
+  justify-items: center;
+  align-self: center;
+  container-type: inline-size;
+}
+
+.passwordReuseExample code {
+  position: relative;
+  z-index: 1;
+  display: inline-flex;
+  width: auto;
+  max-width: 100%;
+  min-height: clamp(2.5rem, 4.8cqb, 3.2rem);
+  padding: clamp(0.42rem, 0.8cqi, 0.64rem) clamp(0.58rem, 1.05cqi, 0.86rem);
+  align-items: stretch;
+  justify-content: center;
   border: var(--border-width-medium) solid #72727c;
   border-radius: var(--radius-medium);
   color: #f7f7f9;
   background: #232327;
   box-shadow: 0 0.65rem 1.4rem rgb(0 0 0 / 32%);
-  font-size: min(clamp(1rem, 2.4cqi, 2rem), 2.45cqi);
+  font-size: clamp(
+    0.72rem,
+    calc(155cqi / var(--password-character-count)),
+    1.54rem
+  );
   font-weight: var(--font-weight-heavy);
-  text-overflow: ellipsis;
+  line-height: 1.2;
+  overflow-wrap: normal;
+  text-align: center;
   white-space: nowrap;
+  word-break: normal;
 }
 
-.passwordReuseExample > span {
-  width: 0;
+.passwordReuseExample code > span {
+  display: inline-flex;
+  padding: 0.12rem 0.06rem;
+  align-items: center;
+  border: var(--border-width-medium) solid transparent;
+  border-radius: 0.35rem;
+}
+
+.passwordReuseExample code[data-whole-match="true"] {
+  border-color: #ff315e;
+  box-shadow:
+    0 0 0 0.1rem rgb(255 49 94 / 24%),
+    0 0.65rem 1.4rem rgb(0 0 0 / 32%);
+}
+
+.passwordReuseExample code [data-account-part] {
+  border-color: #ff315e;
+  background: rgb(255 49 94 / 12%);
+  box-shadow: 0 0 0 0.08rem rgb(255 49 94 / 22%);
+}
+
+.passwordReuseExampleRow[data-example="similar"] code {
+  min-height: 0;
+  padding: 0;
+  gap: 0.16rem;
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.passwordReuseExampleRow[data-example="similar"] code > span {
+  min-height: clamp(2.5rem, 4.8cqb, 3.2rem);
+  padding: clamp(0.42rem, 0.8cqi, 0.64rem) clamp(0.52rem, 0.9cqi, 0.76rem);
+  border-color: #72727c;
+  background: #232327;
+  box-shadow: 0 0.65rem 1.4rem rgb(0 0 0 / 32%);
+}
+
+.passwordReuseExampleRow[data-example="similar"] code > [data-account-part] {
+  border-color: #ff315e;
+  background: color-mix(in srgb, #232327 88%, #ff315e);
+  box-shadow:
+    0 0 0 0.08rem rgb(255 49 94 / 22%),
+    0 0.65rem 1.4rem rgb(0 0 0 / 32%);
+}
+
+.passwordRelationBridge {
+  position: relative;
+  display: block;
+  width: min(100%, 23rem);
   height: 100%;
-  min-height: 3rem;
-  border-left: 0.2rem dashed #ff315e;
-  filter: drop-shadow(0 0 0.35rem rgb(255 49 94 / 55%));
+  min-height: 0;
+}
+
+.passwordRelationBridge > svg {
+  position: absolute;
+  z-index: 1;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+
+.passwordRelationBridge > svg > path {
+  fill: none;
+  stroke: #ff668a;
+  stroke-width: 2.4;
+  stroke-linecap: round;
+  stroke-dasharray: 5 7;
+  vector-effect: non-scaling-stroke;
+  filter: drop-shadow(0 0 0.28rem rgb(255 49 94 / 68%));
+}
+
+.passwordRelationBridge > svg > .passwordRelationArrowhead {
+  stroke-dasharray: none;
+  stroke-linejoin: round;
+}
+
+.passwordRelationMark {
+  position: absolute;
+  z-index: 2;
+  top: 50%;
+  left: 50%;
+  display: grid;
+  width: clamp(2.45rem, 3.8cqi, 3.35rem);
+  aspect-ratio: 1;
+  place-items: center;
+  transform: translate(-50%, -50%);
+}
+
+.passwordRelationMark small {
+  position: absolute;
+  bottom: calc(100% + 0.08rem);
+  left: 50%;
+  color: #ffd7e1;
+  font-family: var(--font-family-body);
+  font-size: clamp(0.62rem, 0.78cqi, 0.72rem);
+  font-weight: var(--font-weight-heavy);
+  line-height: 1;
+  text-align: center;
+  text-shadow: 0 0.1rem 0.16rem #0a0a0d, 0 0 0.45rem #0a0a0d;
+  white-space: nowrap;
+  transform: translateX(-50%);
+}
+
+.passwordRelationMark img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  filter:
+    drop-shadow(0 0.35rem 0.46rem rgb(0 0 0 / 88%))
+    drop-shadow(0 0 0.46rem rgb(0 0 0 / 82%))
+    drop-shadow(0 0 0.7rem rgb(255 49 94 / 38%));
+}
+
+@container artifact-stage (min-width: 1152px) and (min-height: 720px) {
+  .passwordReuseExample {
+    width: min(66cqi, 62rem);
+  }
+
+  .passwordReuseExample code {
+    min-height: clamp(3rem, 5.3cqb, 3.65rem);
+    padding: clamp(0.55rem, 0.85cqi, 0.76rem) clamp(0.8rem, 1.1cqi, 1.05rem);
+    font-size: clamp(
+      0.84rem,
+      calc(175cqi / var(--password-character-count)),
+      1.78rem
+    );
+  }
+
+  .passwordReuseExampleRow[data-example="similar"] code > span {
+    min-height: clamp(3rem, 5.3cqb, 3.65rem);
+    padding: clamp(0.55rem, 0.85cqi, 0.76rem) clamp(0.7rem, 0.96cqi, 0.92rem);
+  }
+
+  .passwordRelationMark {
+    width: clamp(2.85rem, 4cqi, 3.75rem);
+  }
 }
 
 .assessmentDesktop :global([data-scene-node-button]) {
@@ -341,12 +499,54 @@
 
   .passwordReuseExample {
     top: var(--space-4);
-    right: var(--space-4);
+    right: clamp(2.5rem, 8cqi, 5rem);
     bottom: clamp(13rem, 25cqb, 14rem);
-    left: var(--space-4);
+    left: clamp(2.5rem, 8cqi, 5rem);
     width: auto;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: clamp(0.65rem, 1.8cqi, 1.2rem);
   }
 
+  .passwordReuseExampleRow {
+    grid-template-rows: auto clamp(5rem, 9cqb, 6.25rem) auto;
+  }
+
+  .passwordReuseExample code {
+    min-height: 2.35rem;
+    padding: clamp(0.36rem, 0.95cqi, 0.54rem) clamp(0.45rem, 1.15cqi, 0.7rem);
+    font-size: clamp(
+      0.72rem,
+      calc(155cqi / var(--password-character-count)),
+      1.2rem
+    );
+  }
+
+  .passwordReuseExampleRow[data-example="similar"] code > span {
+    min-height: 2.35rem;
+    padding: clamp(0.36rem, 0.95cqi, 0.54rem) clamp(0.4rem, 0.85cqi, 0.6rem);
+  }
+
+}
+
+@container artifact-stage (max-width: 560px) {
+  .passwordReuseExample {
+    top: var(--space-3);
+    right: var(--space-3);
+    bottom: clamp(12rem, 23cqb, 13.5rem);
+    left: var(--space-3);
+    grid-template-columns: minmax(0, 1fr);
+    gap: clamp(0.7rem, 2cqb, 1rem);
+    overflow-y: auto;
+    overscroll-behavior: contain;
+  }
+
+  .passwordReuseExampleRow {
+    grid-template-rows: auto clamp(4.25rem, 8cqb, 5.4rem) auto;
+  }
+
+  .passwordRelationBridge {
+    width: min(78%, 18rem);
+  }
 }
 
 .attackerStage,

@@ -1,11 +1,15 @@
 import type {
   PasswordComparisonResult,
   PasswordEvidenceSpan,
+  PasswordTransformationBasis,
   PasswordTransformationId,
+  PasswordTransformationOperation,
+  PasswordTransformationStep,
+  PasswordTransformationStepKind,
 } from '@passwo/contracts';
 
 import { findCaseInsensitiveSpans } from './case-insensitive-spans.js';
-import { canonicalizeTypicalLeet } from './password-guessing-analysis.js';
+import { isTypicalLeetTransformation } from './password-guessing-analysis.js';
 
 export type {
   PasswordAnalysisResult,
@@ -22,1150 +26,1062 @@ export * from './theoretical-search-space.js';
 export interface LocalPasswordComparisonInput {
   readonly sourcePassword: string;
   readonly targetPassword: string;
-  readonly authoredAccountAndServiceTerms: readonly string[];
+  readonly sourceAccountIdentifiers: readonly string[];
+  readonly targetAccountIdentifiers: readonly string[];
 }
 
-type TransformationAtom =
-  | 'account'
-  | 'year'
-  | 'number'
-  | 'suffix'
-  | 'separator'
-  | 'case'
-  | 'leet'
-  | 'edit'
-  | 'repetition'
-  | 'removal'
-  | 'component';
-
-type TransformationClass = 'main' | 'surface';
-
-interface CandidateEdit {
-  readonly sourceEvidence: PasswordEvidenceSpan;
-  readonly targetEvidence: PasswordEvidenceSpan;
-  readonly sourceChangedRange: readonly [number, number];
-  readonly targetChangedRange: readonly [number, number];
-}
-
-interface CandidateTransformation {
-  readonly atom: TransformationAtom;
-  readonly class: TransformationClass;
-  readonly priority: number;
-  readonly edits: readonly CandidateEdit[];
-}
+const maximumGeneralDistance = 3;
+const maximumNormalizedDistance = 0.25;
+const maximumAccountResidualDistance = 2;
+const minimumAccountCommonCoreLength = 4;
+const comparisonSegmenter = new Intl.Segmenter('de-DE', { granularity: 'grapheme' });
 
 interface IndexedCharacter {
   readonly value: string;
+  readonly comparisonValue: string;
   readonly start: number;
   readonly end: number;
 }
 
-function longestCommonSubsequenceMatches<T>(
-  source: readonly T[],
-  target: readonly T[],
-  equals: (sourceItem: T, targetItem: T) => boolean,
-): readonly (readonly [number, number])[] {
-  const rows = source.length + 1;
-  const columns = target.length + 1;
-  const lcs = Array.from({ length: rows }, () => Array<number>(columns).fill(0));
-  for (let sourceIndex = source.length - 1; sourceIndex >= 0; sourceIndex -= 1) {
-    const currentRow = lcs[sourceIndex];
-    if (currentRow === undefined) continue;
-    for (let targetIndex = target.length - 1; targetIndex >= 0; targetIndex -= 1) {
-      const sourceItem = source[sourceIndex];
-      const targetItem = target[targetIndex];
-      currentRow[targetIndex] =
-        sourceItem !== undefined && targetItem !== undefined && equals(sourceItem, targetItem)
-          ? 1 + (lcs[sourceIndex + 1]?.[targetIndex + 1] ?? 0)
-          : Math.max(
-              lcs[sourceIndex + 1]?.[targetIndex] ?? 0,
-              currentRow[targetIndex + 1] ?? 0,
-            );
-    }
-  }
+type AlignmentActionKind =
+  | 'match'
+  | 'substitute'
+  | 'insert'
+  | 'delete'
+  | 'transpose';
 
-  const matches: Array<readonly [number, number]> = [];
-  let sourceIndex = 0;
-  let targetIndex = 0;
-  while (sourceIndex < source.length && targetIndex < target.length) {
-    const sourceItem = source[sourceIndex];
-    const targetItem = target[targetIndex];
-    if (sourceItem !== undefined && targetItem !== undefined && equals(sourceItem, targetItem)) {
-      matches.push([sourceIndex, targetIndex]);
-      sourceIndex += 1;
-      targetIndex += 1;
-      continue;
-    }
-    const skipSource = lcs[sourceIndex + 1]?.[targetIndex] ?? 0;
-    const skipTarget = lcs[sourceIndex]?.[targetIndex + 1] ?? 0;
-    if (skipSource >= skipTarget) sourceIndex += 1;
-    else targetIndex += 1;
-  }
-  return matches;
-}
-
-interface LexicalComponent {
-  readonly start: number;
-  readonly end: number;
-  readonly value: string;
-  readonly normalizedValue: string;
-}
-
-function isLetter(value: string): boolean {
-  return /\p{L}/u.test(value);
-}
-
-function shouldSplitLexicalRun(
-  characters: readonly IndexedCharacter[],
-  runStartIndex: number,
-  index: number,
-): boolean {
-  const previous = characters[index - 1]?.value;
-  const current = characters[index]?.value;
-  const next = characters[index + 1]?.value;
-  if (previous === undefined || current === undefined) return false;
-  if (/\p{Ll}/u.test(previous) && /\p{Lu}/u.test(current)) return true;
-  return (
-    index - runStartIndex >= 2 &&
-    /\p{Lu}/u.test(previous) &&
-    /\p{Lu}/u.test(current) &&
-    next !== undefined &&
-    /\p{Ll}/u.test(next)
-  );
-}
-
-function lexicalComponents(input: string): readonly LexicalComponent[] {
-  const characters = indexedCharacters(input);
-  const components: LexicalComponent[] = [];
-  let runStartIndex: number | null = null;
-
-  const pushRun = (endIndex: number): void => {
-    if (runStartIndex === null || endIndex <= runStartIndex) return;
-    const first = characters[runStartIndex];
-    const last = characters[endIndex - 1];
-    if (first === undefined || last === undefined) return;
-    const value = input.slice(first.start, last.end);
-    components.push({
-      start: first.start,
-      end: last.end,
-      value,
-      normalizedValue: value.toLocaleLowerCase('de-DE'),
-    });
-  };
-
-  for (let index = 0; index < characters.length; index += 1) {
-    const character = characters[index];
-    if (character === undefined) continue;
-    if (!isLetter(character.value)) {
-      pushRun(index);
-      runStartIndex = null;
-      continue;
-    }
-    if (runStartIndex === null) {
-      runStartIndex = index;
-      continue;
-    }
-    if (shouldSplitLexicalRun(characters, runStartIndex, index)) {
-      pushRun(index);
-      runStartIndex = index;
-    }
-  }
-  pushRun(characters.length);
-  return components;
-}
-
-function componentReplacementTransformations(
-  sourcePassword: string,
-  targetPassword: string,
-): readonly CandidateTransformation[] {
-  const source = lexicalComponents(sourcePassword);
-  const target = lexicalComponents(targetPassword);
-  if (source.length === 0 || target.length === 0) return [];
-
-  const matches = longestCommonSubsequenceMatches(
-    source,
-    target,
-    (sourceComponent, targetComponent) =>
-      sourceComponent.normalizedValue === targetComponent.normalizedValue,
-  );
-
-  const transformations: CandidateTransformation[] = [];
-  let sourceCursor = 0;
-  let targetCursor = 0;
-  for (const [sourceMatch, targetMatch] of [
-    ...matches,
-    [source.length, target.length] as const,
-  ]) {
-    const sourceDifferenceCount = sourceMatch - sourceCursor;
-    const targetDifferenceCount = targetMatch - targetCursor;
-    if (sourceDifferenceCount === 1 && targetDifferenceCount === 1) {
-      const sourceComponent = source[sourceCursor];
-      const targetComponent = target[targetCursor];
-      if (
-        sourceComponent !== undefined &&
-        targetComponent !== undefined &&
-        sourceComponent.normalizedValue !== targetComponent.normalizedValue &&
-        [...sourceComponent.value].length >= 3 &&
-        [...targetComponent.value].length >= 3
-      ) {
-        transformations.push(
-          transformation(
-            'component',
-            'main',
-            60,
-            sourcePassword,
-            targetPassword,
-            [sourceComponent.start, sourceComponent.end],
-            [targetComponent.start, targetComponent.end],
-          ),
-        );
-      }
-    }
-    sourceCursor = sourceMatch + 1;
-    targetCursor = targetMatch + 1;
-  }
-  return transformations;
-}
-
-interface DifferenceHunk {
+interface AlignmentAction {
+  readonly kind: AlignmentActionKind;
   readonly sourceStart: number;
   readonly sourceEnd: number;
   readonly targetStart: number;
   readonly targetEnd: number;
-  readonly sourceValue: string;
-  readonly targetValue: string;
+  readonly cost: 0 | 1;
+}
+
+interface AlignmentResult {
+  readonly distance: number;
+  readonly sourceCharacters: readonly IndexedCharacter[];
+  readonly targetCharacters: readonly IndexedCharacter[];
+  readonly actions: readonly AlignmentAction[];
+  readonly longestUnchangedRun: number;
+}
+
+interface RawEdit {
+  readonly operation: PasswordTransformationOperation;
+  readonly sourceEvidence: PasswordEvidenceSpan;
+  readonly targetEvidence: PasswordEvidenceSpan;
+  readonly cost: number;
+}
+
+interface DraftTransformationStep {
+  readonly kind: PasswordTransformationStepKind;
+  readonly operation: PasswordTransformationOperation;
+  readonly sourceEvidence: PasswordEvidenceSpan;
+  readonly targetEvidence: PasswordEvidenceSpan;
+  readonly cost: number;
+}
+
+interface TokenSpan {
+  readonly start: number;
+  readonly end: number;
+  readonly token: string;
+}
+
+interface BoundedIdentifierSpan extends TokenSpan {
+  readonly identifier: string;
+}
+
+interface NumericEditGroup {
+  readonly key: string;
+  readonly sourceToken: TokenSpan | null;
+  readonly targetToken: TokenSpan | null;
+}
+
+interface DerivedRelationInput {
+  readonly sourcePassword: string;
+  readonly targetPassword: string;
+  readonly basis: PasswordTransformationBasis;
+  readonly rawDistance: number;
+  readonly normalizedDistance: number;
+  readonly pathCost: number;
+  readonly steps: readonly PasswordTransformationStep[];
+}
+
+function indexedCharacters(input: string): readonly IndexedCharacter[] {
+  return [...comparisonSegmenter.segment(input)].map(({ segment, index }) => ({
+    value: segment,
+    comparisonValue: segment.normalize('NFC'),
+    start: index,
+    end: index + segment.length,
+  }));
+}
+
+function matrixValue(matrix: readonly (readonly number[])[], row: number, column: number): number {
+  return matrix[row]?.[column] ?? Number.POSITIVE_INFINITY;
+}
+
+function alignmentCharacterClass(value: string): 'letter' | 'number' | 'other' {
+  if (/^\p{L}\p{M}*$/u.test(value.normalize('NFD'))) return 'letter';
+  if (/^\p{N}+$/u.test(value)) return 'number';
+  return 'other';
+}
+
+function alignmentPriority(
+  kind: Exclude<AlignmentActionKind, 'match'>,
+  sourceValue: string,
+  targetValue: string,
+): number {
+  switch (kind) {
+    case 'transpose':
+      return 0;
+    case 'substitute':
+      // In an equal-cost path, keep like character classes paired. This preserves a trailing
+      // insertion as its own edit instead of pairing a digit with the new terminal symbol.
+      return alignmentCharacterClass(sourceValue) === alignmentCharacterClass(targetValue)
+        ? 1
+        : 4;
+    case 'delete':
+      return 2;
+    case 'insert':
+      return 3;
+  }
+}
+
+/**
+ * Computes the restricted Damerau-Levenshtein distance, also known as optimal string alignment.
+ * Adjacent transpositions cost one operation and cannot overlap another transposition.
+ */
+function alignPasswords(source: string, target: string): AlignmentResult {
+  const sourceCharacters = indexedCharacters(source);
+  const targetCharacters = indexedCharacters(target);
+  const distances = Array.from({ length: sourceCharacters.length + 1 }, () =>
+    Array<number>(targetCharacters.length + 1).fill(0),
+  );
+  const decisions = Array.from({ length: sourceCharacters.length + 1 }, () =>
+    Array<AlignmentActionKind | null>(targetCharacters.length + 1).fill(null),
+  );
+
+  for (let sourceIndex = 1; sourceIndex <= sourceCharacters.length; sourceIndex += 1) {
+    const row = distances[sourceIndex];
+    const decisionRow = decisions[sourceIndex];
+    if (row === undefined || decisionRow === undefined) continue;
+    row[0] = sourceIndex;
+    decisionRow[0] = 'delete';
+  }
+  const firstRow = distances[0];
+  const firstDecisionRow = decisions[0];
+  if (firstRow !== undefined && firstDecisionRow !== undefined) {
+    for (let targetIndex = 1; targetIndex <= targetCharacters.length; targetIndex += 1) {
+      firstRow[targetIndex] = targetIndex;
+      firstDecisionRow[targetIndex] = 'insert';
+    }
+  }
+
+  for (let sourceIndex = 1; sourceIndex <= sourceCharacters.length; sourceIndex += 1) {
+    const row = distances[sourceIndex];
+    const decisionRow = decisions[sourceIndex];
+    if (row === undefined || decisionRow === undefined) continue;
+    for (let targetIndex = 1; targetIndex <= targetCharacters.length; targetIndex += 1) {
+      const sourceCharacter = sourceCharacters[sourceIndex - 1];
+      const targetCharacter = targetCharacters[targetIndex - 1];
+      if (sourceCharacter === undefined || targetCharacter === undefined) continue;
+      if (sourceCharacter.comparisonValue === targetCharacter.comparisonValue) {
+        row[targetIndex] = matrixValue(distances, sourceIndex - 1, targetIndex - 1);
+        decisionRow[targetIndex] = 'match';
+        continue;
+      }
+
+      const candidates: Array<{
+        readonly kind: Exclude<AlignmentActionKind, 'match'>;
+        readonly cost: number;
+      }> = [
+        {
+          kind: 'substitute',
+          cost: matrixValue(distances, sourceIndex - 1, targetIndex - 1) + 1,
+        },
+        { kind: 'delete', cost: matrixValue(distances, sourceIndex - 1, targetIndex) + 1 },
+        { kind: 'insert', cost: matrixValue(distances, sourceIndex, targetIndex - 1) + 1 },
+      ];
+      const previousSource = sourceCharacters[sourceIndex - 2];
+      const previousTarget = targetCharacters[targetIndex - 2];
+      if (
+        previousSource !== undefined &&
+        previousTarget !== undefined &&
+        sourceCharacter.comparisonValue === previousTarget.comparisonValue &&
+        previousSource.comparisonValue === targetCharacter.comparisonValue
+      ) {
+        candidates.push({
+          kind: 'transpose',
+          cost: matrixValue(distances, sourceIndex - 2, targetIndex - 2) + 1,
+        });
+      }
+      candidates.sort(
+        (left, right) =>
+          left.cost - right.cost ||
+          alignmentPriority(
+            left.kind,
+            sourceCharacter.comparisonValue,
+            targetCharacter.comparisonValue,
+          ) -
+            alignmentPriority(
+              right.kind,
+              sourceCharacter.comparisonValue,
+              targetCharacter.comparisonValue,
+            ),
+      );
+      const selected = candidates[0];
+      if (selected === undefined) continue;
+      row[targetIndex] = selected.cost;
+      decisionRow[targetIndex] = selected.kind;
+    }
+  }
+
+  const reversedActions: AlignmentAction[] = [];
+  let sourceIndex = sourceCharacters.length;
+  let targetIndex = targetCharacters.length;
+  while (sourceIndex > 0 || targetIndex > 0) {
+    const decision = decisions[sourceIndex]?.[targetIndex];
+    if (decision === null || decision === undefined) {
+      throw new Error('Damerau-Levenshtein alignment ended without a deterministic backtrace.');
+    }
+    switch (decision) {
+      case 'match':
+        reversedActions.push({
+          kind: decision,
+          sourceStart: sourceIndex - 1,
+          sourceEnd: sourceIndex,
+          targetStart: targetIndex - 1,
+          targetEnd: targetIndex,
+          cost: 0,
+        });
+        sourceIndex -= 1;
+        targetIndex -= 1;
+        break;
+      case 'substitute':
+        reversedActions.push({
+          kind: decision,
+          sourceStart: sourceIndex - 1,
+          sourceEnd: sourceIndex,
+          targetStart: targetIndex - 1,
+          targetEnd: targetIndex,
+          cost: 1,
+        });
+        sourceIndex -= 1;
+        targetIndex -= 1;
+        break;
+      case 'delete':
+        reversedActions.push({
+          kind: decision,
+          sourceStart: sourceIndex - 1,
+          sourceEnd: sourceIndex,
+          targetStart: targetIndex,
+          targetEnd: targetIndex,
+          cost: 1,
+        });
+        sourceIndex -= 1;
+        break;
+      case 'insert':
+        reversedActions.push({
+          kind: decision,
+          sourceStart: sourceIndex,
+          sourceEnd: sourceIndex,
+          targetStart: targetIndex - 1,
+          targetEnd: targetIndex,
+          cost: 1,
+        });
+        targetIndex -= 1;
+        break;
+      case 'transpose':
+        reversedActions.push({
+          kind: decision,
+          sourceStart: sourceIndex - 2,
+          sourceEnd: sourceIndex,
+          targetStart: targetIndex - 2,
+          targetEnd: targetIndex,
+          cost: 1,
+        });
+        sourceIndex -= 2;
+        targetIndex -= 2;
+        break;
+    }
+  }
+
+  const actions = reversedActions.reverse();
+  let currentUnchangedRun = 0;
+  let longestUnchangedRun = 0;
+  for (const action of actions) {
+    if (action.kind === 'match') {
+      currentUnchangedRun += action.sourceEnd - action.sourceStart;
+      longestUnchangedRun = Math.max(longestUnchangedRun, currentUnchangedRun);
+    } else {
+      currentUnchangedRun = 0;
+    }
+  }
+
+  return {
+    distance: matrixValue(distances, sourceCharacters.length, targetCharacters.length),
+    sourceCharacters,
+    targetCharacters,
+    actions,
+    longestUnchangedRun,
+  };
+}
+
+function characterRange(
+  characters: readonly IndexedCharacter[],
+  start: number,
+  end: number,
+  inputLength: number,
+): readonly [number, number] {
+  if (start === end) {
+    const boundary = characters[start]?.start ?? inputLength;
+    return [boundary, boundary];
+  }
+  const first = characters[start];
+  const last = characters[end - 1];
+  if (first === undefined || last === undefined) return [inputLength, inputLength];
+  return [first.start, last.end];
 }
 
 function evidenceSpan(input: string, start: number, end: number): PasswordEvidenceSpan {
   return { type: 'span', start, end, token: input.slice(start, end) };
 }
 
-function replaceRange(input: string, start: number, end: number, replacement: string): string {
-  return `${input.slice(0, start)}${replacement}${input.slice(end)}`;
-}
-
-function indexedCharacters(input: string): readonly IndexedCharacter[] {
-  const characters: IndexedCharacter[] = [];
-  let offset = 0;
-  for (const value of input) {
-    characters.push({ value, start: offset, end: offset + value.length });
-    offset += value.length;
-  }
-  return characters;
-}
-
-function characterBoundary(
-  characters: readonly IndexedCharacter[],
-  index: number,
-  fallback: number,
-): number {
-  return characters[index]?.start ?? fallback;
-}
-
-function differenceHunks(sourcePassword: string, targetPassword: string): readonly DifferenceHunk[] {
-  const source = indexedCharacters(sourcePassword);
-  const target = indexedCharacters(targetPassword);
-  const matches = longestCommonSubsequenceMatches(
-    source,
-    target,
-    (sourceCharacter, targetCharacter) => sourceCharacter.value === targetCharacter.value,
-  );
-
-  const hunks: DifferenceHunk[] = [];
-  let sourceCursor = 0;
-  let targetCursor = 0;
-  for (const [sourceMatch, targetMatch] of [
-    ...matches,
-    [source.length, target.length] as const,
-  ]) {
-    if (sourceCursor < sourceMatch || targetCursor < targetMatch) {
-      const sourceStart = characterBoundary(source, sourceCursor, sourcePassword.length);
-      const sourceEnd = characterBoundary(source, sourceMatch, sourcePassword.length);
-      const targetStart = characterBoundary(target, targetCursor, targetPassword.length);
-      const targetEnd = characterBoundary(target, targetMatch, targetPassword.length);
-      hunks.push({
-        sourceStart,
-        sourceEnd,
-        targetStart,
-        targetEnd,
-        sourceValue: sourcePassword.slice(sourceStart, sourceEnd),
-        targetValue: targetPassword.slice(targetStart, targetEnd),
-      });
-    }
-    sourceCursor = sourceMatch + 1;
-    targetCursor = targetMatch + 1;
-  }
-  return hunks;
-}
-
-function transformation(
-  atom: TransformationAtom,
-  transformationClass: TransformationClass,
-  priority: number,
+function rawEditsFromAlignment(
   sourcePassword: string,
   targetPassword: string,
-  sourceRange: readonly [number, number],
-  targetRange: readonly [number, number],
-): CandidateTransformation {
-  return {
-    atom,
-    class: transformationClass,
-    priority,
-    edits: [
+  sourceSlice: string,
+  targetSlice: string,
+  sourceOffset: number,
+  targetOffset: number,
+  alignment: AlignmentResult,
+): readonly RawEdit[] {
+  return alignment.actions.flatMap((action): readonly RawEdit[] => {
+    if (action.kind === 'match') return [];
+    const localSourceRange = characterRange(
+      alignment.sourceCharacters,
+      action.sourceStart,
+      action.sourceEnd,
+      sourceSlice.length,
+    );
+    const localTargetRange = characterRange(
+      alignment.targetCharacters,
+      action.targetStart,
+      action.targetEnd,
+      targetSlice.length,
+    );
+    const sourceRange = [
+      sourceOffset + localSourceRange[0],
+      sourceOffset + localSourceRange[1],
+    ] as const;
+    const targetRange = [
+      targetOffset + localTargetRange[0],
+      targetOffset + localTargetRange[1],
+    ] as const;
+    const operation: PasswordTransformationOperation =
+      action.kind === 'insert'
+        ? 'insert'
+        : action.kind === 'delete'
+          ? 'remove'
+          : action.kind === 'transpose'
+            ? 'transpose'
+            : 'replace';
+    return [
       {
+        operation,
         sourceEvidence: evidenceSpan(sourcePassword, sourceRange[0], sourceRange[1]),
         targetEvidence: evidenceSpan(targetPassword, targetRange[0], targetRange[1]),
-        sourceChangedRange: sourceRange,
-        targetChangedRange: targetRange,
+        cost: action.cost,
       },
-    ],
-  };
-}
-
-function firstCaseInsensitiveSpan(input: string, token: string): readonly [number, number] | null {
-  return findCaseInsensitiveSpans(input, token)[0] ?? null;
-}
-
-function accountTransformations(
-  sourcePassword: string,
-  targetPassword: string,
-  terms: readonly string[],
-): readonly CandidateTransformation[] {
-  const transformations: CandidateTransformation[] = [];
-  const normalizedTerms = [
-    ...new Set(terms.map((term) => term.trim()).filter((term) => term.length >= 3)),
-  ].sort((left, right) => right.length - left.length || left.localeCompare(right, 'de-DE'));
-  for (const sourceTerm of normalizedTerms) {
-    const sourceSpan = firstCaseInsensitiveSpan(sourcePassword, sourceTerm);
-    if (sourceSpan === null) continue;
-    for (const targetTerm of normalizedTerms) {
-      if (sourceTerm.toLocaleLowerCase('de-DE') === targetTerm.toLocaleLowerCase('de-DE')) continue;
-      const targetSpan = firstCaseInsensitiveSpan(targetPassword, targetTerm);
-      if (targetSpan === null) continue;
-      transformations.push(
-        transformation(
-          'account',
-          'main',
-          10,
-          sourcePassword,
-          targetPassword,
-          sourceSpan,
-          targetSpan,
-        ),
-      );
-    }
-  }
-  return transformations;
-}
-
-function yearTransformations(
-  sourcePassword: string,
-  targetPassword: string,
-): readonly CandidateTransformation[] {
-  const sourceYears = [...sourcePassword.matchAll(/(?:19|20)\d{2}/gu)];
-  const targetYears = [...targetPassword.matchAll(/(?:19|20)\d{2}/gu)];
-  const transformations: CandidateTransformation[] = [];
-  for (const source of sourceYears) {
-    for (const target of targetYears) {
-      if (source[0] === target[0] || Math.abs(Number(source[0]) - Number(target[0])) > 2) continue;
-      transformations.push(
-        transformation(
-          'year',
-          'surface',
-          20,
-          sourcePassword,
-          targetPassword,
-          [source.index, source.index + source[0].length],
-          [target.index, target.index + target[0].length],
-        ),
-      );
-    }
-  }
-  return transformations;
-}
-
-function looksLikeYear(value: string): boolean {
-  return /^(?:19|20)\d{2}$/u.test(value);
-}
-
-function containingYear(input: string, start: number, end: number): string | null {
-  for (const match of input.matchAll(/(?:19|20)\d{2}/gu)) {
-    const matchEnd = match.index + match[0].length;
-    if (start >= match.index && end <= matchEnd) return match[0];
-  }
-  return null;
-}
-
-function isUnboundedYearDifference(
-  sourcePassword: string,
-  targetPassword: string,
-  hunk: DifferenceHunk,
-): boolean {
-  const sourceYear = containingYear(sourcePassword, hunk.sourceStart, hunk.sourceEnd);
-  const targetYear = containingYear(targetPassword, hunk.targetStart, hunk.targetEnd);
-  return (
-    sourceYear !== null &&
-    targetYear !== null &&
-    Math.abs(Number(sourceYear) - Number(targetYear)) > 2
-  );
-}
-
-function numberTransformations(
-  sourcePassword: string,
-  targetPassword: string,
-): readonly CandidateTransformation[] {
-  const sourceNumbers = [...sourcePassword.matchAll(/\d+/gu)].filter(
-    ({ 0: value }) => [...value].length <= 4,
-  );
-  const targetNumbers = [...targetPassword.matchAll(/\d+/gu)].filter(
-    ({ 0: value }) => [...value].length <= 4,
-  );
-  const transformations: CandidateTransformation[] = [];
-  for (const source of sourceNumbers) {
-    for (const target of targetNumbers) {
-      if (source[0] === target[0]) continue;
-      if (looksLikeYear(source[0]) && looksLikeYear(target[0])) continue;
-      transformations.push(
-        transformation(
-          'number',
-          'surface',
-          24,
-          sourcePassword,
-          targetPassword,
-          [source.index, source.index + source[0].length],
-          [target.index, target.index + target[0].length],
-        ),
-      );
-    }
-  }
-  return transformations;
-}
-
-const symbolicSuffixPattern = /[!?._-]{1,3}$/u;
-const numericSuffixPattern = /\d{1,4}$/u;
-
-interface TypicalSuffixParts {
-  readonly range: readonly [number, number];
-  readonly numericRange: readonly [number, number] | null;
-  readonly symbolicRange: readonly [number, number] | null;
-}
-
-function terminalNumericRange(
-  input: string,
-  end: number,
-): readonly [number, number] | null {
-  const prefix = input.slice(0, end);
-  const match = numericSuffixPattern.exec(prefix);
-  if (match === null) return null;
-  if (match.index > 0 && /\d/u.test(prefix.slice(match.index - 1, match.index))) return null;
-  return [match.index, end];
-}
-
-function typicalSuffixParts(input: string): TypicalSuffixParts | null {
-  const symbolicMatch = symbolicSuffixPattern.exec(input);
-  const symbolicRange: readonly [number, number] | null =
-    symbolicMatch === null ? null : [symbolicMatch.index, input.length];
-  const numericEnd = symbolicRange?.[0] ?? input.length;
-  const numericRange = terminalNumericRange(input, numericEnd);
-  if (numericRange === null && symbolicRange === null) return null;
-  return {
-    range: [numericRange?.[0] ?? symbolicRange?.[0] ?? input.length, input.length],
-    numericRange,
-    symbolicRange,
-  };
-}
-
-function typicalSuffix(input: string): readonly [number, number] | null {
-  return typicalSuffixParts(input)?.range ?? null;
-}
-
-function suffixTransformations(
-  sourcePassword: string,
-  targetPassword: string,
-): readonly CandidateTransformation[] {
-  const sourceParts = typicalSuffixParts(sourcePassword);
-  const targetParts = typicalSuffixParts(targetPassword);
-  if (sourceParts === null && targetParts === null) return [];
-
-  if (sourceParts === null || targetParts === null) {
-    const sourceRange: readonly [number, number] =
-      sourceParts?.range ?? [sourcePassword.length, sourcePassword.length];
-    const targetRange: readonly [number, number] =
-      targetParts?.range ?? [targetPassword.length, targetPassword.length];
-    return [
-      transformation(
-        'suffix',
-        'surface',
-        18,
-        sourcePassword,
-        targetPassword,
-        sourceRange,
-        targetRange,
-      ),
     ];
-  }
-
-  const transformations: CandidateTransformation[] = [];
-  const sourceSymbolRange: readonly [number, number] =
-    sourceParts.symbolicRange ?? [sourcePassword.length, sourcePassword.length];
-  const targetSymbolRange: readonly [number, number] =
-    targetParts.symbolicRange ?? [targetPassword.length, targetPassword.length];
-  const sourceSymbol = sourcePassword.slice(sourceSymbolRange[0], sourceSymbolRange[1]);
-  const targetSymbol = targetPassword.slice(targetSymbolRange[0], targetSymbolRange[1]);
-  if (sourceSymbol !== targetSymbol) {
-    transformations.push(
-      transformation(
-        'suffix',
-        'surface',
-        18,
-        sourcePassword,
-        targetPassword,
-        sourceSymbolRange,
-        targetSymbolRange,
-      ),
-    );
-  }
-
-  const sourceNumberInsertion = sourceParts.symbolicRange?.[0] ?? sourcePassword.length;
-  const targetNumberInsertion = targetParts.symbolicRange?.[0] ?? targetPassword.length;
-  const sourceNumberRange: readonly [number, number] =
-    sourceParts.numericRange ?? [sourceNumberInsertion, sourceNumberInsertion];
-  const targetNumberRange: readonly [number, number] =
-    targetParts.numericRange ?? [targetNumberInsertion, targetNumberInsertion];
-  const sourceNumber = sourcePassword.slice(sourceNumberRange[0], sourceNumberRange[1]);
-  const targetNumber = targetPassword.slice(targetNumberRange[0], targetNumberRange[1]);
-  if ((sourceNumber.length === 0) !== (targetNumber.length === 0)) {
-    transformations.push(
-      transformation(
-        'suffix',
-        'surface',
-        19,
-        sourcePassword,
-        targetPassword,
-        sourceNumberRange,
-        targetNumberRange,
-      ),
-    );
-  }
-
-  return transformations;
+  });
 }
 
-const separatorPattern = /^[-_.\s]{0,2}$/u;
-
-function isSeparatorChange(sourceValue: string, targetValue: string): boolean {
-  return (
-    sourceValue !== targetValue &&
-    (sourceValue.length > 0 || targetValue.length > 0) &&
-    separatorPattern.test(sourceValue) &&
-    separatorPattern.test(targetValue)
-  );
+function tokenSpans(input: string, pattern: RegExp): readonly TokenSpan[] {
+  return [...input.matchAll(pattern)].map((match) => ({
+    start: match.index ?? 0,
+    end: (match.index ?? 0) + match[0].length,
+    token: match[0],
+  }));
 }
 
-function isSingleCharacterRun(value: string): boolean {
-  const characters = [...value];
-  return characters.length >= 4 && characters.every((character) => character === characters[0]);
+function numericSpans(input: string): readonly TokenSpan[] {
+  return tokenSpans(input, /\d+/gu);
 }
 
-function isRepeatedPatternChange(sourceValue: string, targetValue: string): boolean {
-  const sourceCharacters = [...sourceValue];
-  const targetCharacters = [...targetValue];
-  return (
-    sourceCharacters.length === targetCharacters.length &&
-    isSingleCharacterRun(sourceValue) &&
-    isSingleCharacterRun(targetValue) &&
-    sourceCharacters[0] !== targetCharacters[0]
-  );
+function terminalSymbolSpan(input: string): TokenSpan | null {
+  const match = /[!?._-]{1,3}$/u.exec(input);
+  return match === null
+    ? null
+    : { start: match.index, end: input.length, token: match[0] };
 }
 
-interface RepeatedRun {
-  readonly start: number;
-  readonly end: number;
-  readonly value: string;
-  readonly length: number;
+function evidenceInsideToken(evidence: PasswordEvidenceSpan, token: TokenSpan): boolean {
+  return evidence.start === evidence.end
+    ? evidence.start >= token.start && evidence.start <= token.end
+    : evidence.start >= token.start && evidence.end <= token.end;
 }
 
-function repeatedRuns(input: string): readonly RepeatedRun[] {
-  const characters = indexedCharacters(input);
-  const runs: RepeatedRun[] = [];
-  let startIndex = 0;
-  while (startIndex < characters.length) {
-    const first = characters[startIndex];
-    if (first === undefined) break;
-    let endIndex = startIndex + 1;
-    while (characters[endIndex]?.value === first.value) endIndex += 1;
-    if (endIndex - startIndex >= 4) {
-      const last = characters[endIndex - 1];
-      if (last !== undefined) {
-        runs.push({
-          start: first.start,
-          end: last.end,
-          value: input.slice(first.start, last.end),
-          length: endIndex - startIndex,
-        });
-      }
-    }
-    startIndex = endIndex;
-  }
-  return runs;
-}
-
-function repeatedPatternTransformations(
-  sourcePassword: string,
-  targetPassword: string,
-): readonly CandidateTransformation[] {
-  const transformations: CandidateTransformation[] = [];
-  for (const sourceRun of repeatedRuns(sourcePassword)) {
-    for (const targetRun of repeatedRuns(targetPassword)) {
-      if (
-        sourceRun.length !== targetRun.length ||
-        !isRepeatedPatternChange(sourceRun.value, targetRun.value)
-      ) {
-        continue;
-      }
-      transformations.push(
-        transformation(
-          'repetition',
-          'main',
-          12,
-          sourcePassword,
-          targetPassword,
-          [sourceRun.start, sourceRun.end],
-          [targetRun.start, targetRun.end],
-        ),
-      );
-    }
-  }
-  return transformations;
-}
-
-function characterClass(
-  value: string,
-): 'digit' | 'lower' | 'upper' | 'letter' | 'separator' | 'other' {
-  if (/\d/u.test(value)) return 'digit';
-  if (/[-_.\s]/u.test(value)) return 'separator';
-  if (/\p{Ll}/u.test(value)) return 'lower';
-  if (/\p{Lu}/u.test(value)) return 'upper';
-  if (/\p{L}/u.test(value)) return 'letter';
-  return 'other';
-}
-
-function hasComponentBoundary(left: string, right: string): boolean {
-  const leftClass = characterClass(left);
-  const rightClass = characterClass(right);
-  if (leftClass === 'separator' || rightClass === 'separator') return true;
-  if (leftClass === 'digit' && rightClass !== 'digit') return true;
-  if (leftClass !== 'digit' && rightClass === 'digit') return true;
-  return leftClass === 'lower' && rightClass === 'upper';
-}
-
-function componentBoundaryAt(input: string, offset: number): boolean {
-  const left = indexedCharacters(input.slice(0, offset)).at(-1)?.value;
-  const right = indexedCharacters(input.slice(offset))[0]?.value;
-  return left !== undefined && right !== undefined && hasComponentBoundary(left, right);
-}
-
-function boundaryComponentRemovalTransformations(
-  sourcePassword: string,
-  targetPassword: string,
-): readonly CandidateTransformation[] {
-  const sourceSuffixStart = typicalSuffix(sourcePassword)?.[0] ?? sourcePassword.length;
-  const targetSuffixStart = typicalSuffix(targetPassword)?.[0] ?? targetPassword.length;
-  const sourceBase = sourcePassword.slice(0, sourceSuffixStart);
-  const targetBase = targetPassword.slice(0, targetSuffixStart);
-  if ([...targetBase].length < 4 || sourceBase === targetBase) return [];
-
-  const normalizedSource = sourceBase.toLocaleLowerCase('de-DE');
-  const normalizedTarget = targetBase.toLocaleLowerCase('de-DE');
-  const transformations: CandidateTransformation[] = [];
-
-  if (
-    normalizedSource.startsWith(normalizedTarget) &&
-    sourceBase.length > targetBase.length &&
-    componentBoundaryAt(sourceBase, targetBase.length)
-  ) {
-    transformations.push(
-      transformation(
-        'removal',
-        'main',
-        14,
-        sourcePassword,
-        targetPassword,
-        [targetBase.length, sourceBase.length],
-        [targetBase.length, targetBase.length],
-      ),
-    );
-  }
-
-  const leadingRemovalEnd = sourceBase.length - targetBase.length;
-  if (
-    normalizedSource.endsWith(normalizedTarget) &&
-    leadingRemovalEnd > 0 &&
-    componentBoundaryAt(sourceBase, leadingRemovalEnd)
-  ) {
-    transformations.push(
-      transformation(
-        'removal',
-        'main',
-        14,
-        sourcePassword,
-        targetPassword,
-        [0, leadingRemovalEnd],
-        [0, 0],
-      ),
-    );
-  }
-
-  return transformations;
-}
-
-function isRemovableBoundaryComponent(
-  sourcePassword: string,
-  targetPassword: string,
-  hunk: DifferenceHunk,
+function evidenceInsideOptionalTerminalSpan(
+  evidence: PasswordEvidenceSpan,
+  terminalSpan: TokenSpan | null,
+  inputLength: number,
 ): boolean {
-  if (hunk.targetValue.length !== 0 || [...hunk.sourceValue].length < 2) return false;
-  if ([...targetPassword].length < 4) return false;
-  if (hunk.sourceStart === 0) {
-    const removed = indexedCharacters(hunk.sourceValue);
-    const retained = indexedCharacters(sourcePassword.slice(hunk.sourceEnd));
-    const left = removed.at(-1)?.value;
-    const right = retained[0]?.value;
-    return left !== undefined && right !== undefined && hasComponentBoundary(left, right);
-  }
-  if (hunk.sourceEnd === sourcePassword.length) {
-    const retained = indexedCharacters(sourcePassword.slice(0, hunk.sourceStart));
-    const removed = indexedCharacters(hunk.sourceValue);
-    const left = retained.at(-1)?.value;
-    const right = removed[0]?.value;
-    return left !== undefined && right !== undefined && hasComponentBoundary(left, right);
-  }
-  return false;
+  return terminalSpan === null
+    ? evidence.start === inputLength && evidence.end === inputLength
+    : evidenceInsideToken(evidence, terminalSpan);
 }
 
-function isSingleEdit(sourceValue: string, targetValue: string): boolean {
-  const source = [...sourceValue];
-  const target = [...targetValue];
-  if (Math.abs(source.length - target.length) > 1) return false;
-  if (source.length === target.length) {
-    return source.reduce(
-      (differences, character, index) => differences + (character === target[index] ? 0 : 1),
-      0,
-    ) === 1;
-  }
-  const shorter = source.length < target.length ? source : target;
-  const longer = source.length < target.length ? target : source;
-  let shorterIndex = 0;
-  let longerIndex = 0;
-  let skipped = false;
-  while (shorterIndex < shorter.length && longerIndex < longer.length) {
-    if (shorter[shorterIndex] === longer[longerIndex]) {
-      shorterIndex += 1;
-      longerIndex += 1;
-      continue;
-    }
-    if (skipped) return false;
-    skipped = true;
-    longerIndex += 1;
-  }
-  return true;
+function combinedEvidence(
+  input: string,
+  evidence: readonly PasswordEvidenceSpan[],
+): PasswordEvidenceSpan {
+  const start = Math.min(...evidence.map(({ start }) => start));
+  const end = Math.max(...evidence.map(({ end }) => end));
+  return evidenceSpan(input, start, end);
 }
 
-function transpositionTransformation(
-  sourcePassword: string,
-  targetPassword: string,
-): CandidateTransformation | null {
-  const source = indexedCharacters(sourcePassword);
-  const target = indexedCharacters(targetPassword);
-  if (source.length !== target.length || source.length < 2) return null;
-  const differences = source.flatMap((character, index) =>
-    character.value === target[index]?.value ? [] : [index],
-  );
-  if (differences.length !== 2) return null;
-  const first = differences[0];
-  const second = differences[1];
+function numericEditGroup(
+  edit: RawEdit,
+  sourceNumbers: readonly TokenSpan[],
+  targetNumbers: readonly TokenSpan[],
+): NumericEditGroup | null {
+  const sourceToken =
+    sourceNumbers.find((token) => evidenceInsideToken(edit.sourceEvidence, token)) ?? null;
+  const targetToken =
+    targetNumbers.find((token) => evidenceInsideToken(edit.targetEvidence, token)) ?? null;
+  if (sourceToken === null && targetToken === null) return null;
+  if (sourceToken === null && edit.operation !== 'insert') return null;
+  if (targetToken === null && edit.operation !== 'remove') return null;
+  if (sourceToken === null && targetToken !== null && [...targetToken.token].length < 2) {
+    return null;
+  }
+  if (targetToken === null && sourceToken !== null && [...sourceToken.token].length < 2) {
+    return null;
+  }
   if (
-    first === undefined ||
-    second === undefined ||
-    second !== first + 1 ||
-    source[first]?.value !== target[second]?.value ||
-    source[second]?.value !== target[first]?.value
+    (sourceToken !== null && [...sourceToken.token].length > 4) ||
+    (targetToken !== null && [...targetToken.token].length > 4)
   ) {
     return null;
   }
-  return transformation(
-    'edit',
-    'surface',
-    38,
-    sourcePassword,
-    targetPassword,
-    [source[first]?.start ?? 0, source[second]?.end ?? sourcePassword.length],
-    [target[first]?.start ?? 0, target[second]?.end ?? targetPassword.length],
+  const sourceKey =
+    sourceToken === null
+      ? `empty-${edit.sourceEvidence.start}`
+      : `${sourceToken.start}-${sourceToken.end}`;
+  const targetKey =
+    targetToken === null
+      ? `empty-${edit.targetEvidence.start}`
+      : `${targetToken.start}-${targetToken.end}`;
+  return { key: `${sourceKey}:${targetKey}`, sourceToken, targetToken };
+}
+
+function looksLikeBoundedYear(token: TokenSpan): boolean {
+  return /^(?:19|20)\d{2}$/u.test(token.token);
+}
+
+function editsAreContiguous(left: RawEdit, right: RawEdit): boolean {
+  return (
+    left.sourceEvidence.end === right.sourceEvidence.start &&
+    left.targetEvidence.end === right.targetEvidence.start
   );
 }
 
-function mergeAtomTransformations(
-  transformations: readonly CandidateTransformation[],
-  atom: 'case' | 'leet' | 'separator',
-  maximumEdits: number,
-): readonly CandidateTransformation[] {
-  const matching = transformations.filter((item) => item.atom === atom);
-  const editCount = matching.reduce((sum, item) => sum + item.edits.length, 0);
-  if (matching.length <= 1 || editCount > maximumEdits) return transformations;
-  const first = matching[0];
-  if (first === undefined) return transformations;
-  return [
-    ...transformations.filter((item) => item.atom !== atom),
-    {
-      atom,
-      class: 'surface',
-      priority: first.priority,
-      edits: matching.flatMap(({ edits }) => edits),
-    },
-  ];
+function draftStep(
+  kind: PasswordTransformationStepKind,
+  operation: PasswordTransformationOperation,
+  sourceEvidence: PasswordEvidenceSpan,
+  targetEvidence: PasswordEvidenceSpan,
+  cost: number,
+): DraftTransformationStep {
+  return { kind, operation, sourceEvidence, targetEvidence, cost };
 }
 
-function hunkTransformations(
+function projectTransformationSteps(
   sourcePassword: string,
   targetPassword: string,
-): readonly CandidateTransformation[] {
-  const candidates = differenceHunks(sourcePassword, targetPassword).flatMap((hunk) => {
-    const sourceRange = [hunk.sourceStart, hunk.sourceEnd] as const;
-    const targetRange = [hunk.targetStart, hunk.targetEnd] as const;
-    const candidates: CandidateTransformation[] = [];
-    const unboundedYearDifference = isUnboundedYearDifference(
+  edits: readonly RawEdit[],
+): readonly DraftTransformationStep[] {
+  if (edits.length === 0) return [];
+  const sourceNumbers = numericSpans(sourcePassword);
+  const targetNumbers = numericSpans(targetPassword);
+  const sourceTerminalSymbols = terminalSymbolSpan(sourcePassword);
+  const targetTerminalSymbols = terminalSymbolSpan(targetPassword);
+  const used = new Set<number>();
+  const drafts: DraftTransformationStep[] = [];
+
+  const numericGroups = new Map<
+    string,
+    { readonly indexes: number[]; readonly group: NumericEditGroup }
+  >();
+  for (const [index, edit] of edits.entries()) {
+    const group = numericEditGroup(edit, sourceNumbers, targetNumbers);
+    if (group === null) continue;
+    const existing = numericGroups.get(group.key);
+    if (existing === undefined) {
+      numericGroups.set(group.key, { indexes: [index], group });
+    } else {
+      existing.indexes.push(index);
+    }
+  }
+  for (const { indexes, group } of numericGroups.values()) {
+    const groupedEdits = indexes.flatMap((index) => {
+      const edit = edits[index];
+      return edit === undefined ? [] : [edit];
+    });
+    const first = groupedEdits[0];
+    if (first === undefined) continue;
+    for (const index of indexes) used.add(index);
+    const sourceEvidence =
+      group.sourceToken === null
+        ? evidenceSpan(sourcePassword, first.sourceEvidence.start, first.sourceEvidence.start)
+        : evidenceSpan(sourcePassword, group.sourceToken.start, group.sourceToken.end);
+    const targetEvidence =
+      group.targetToken === null
+        ? evidenceSpan(targetPassword, first.targetEvidence.start, first.targetEvidence.start)
+        : evidenceSpan(targetPassword, group.targetToken.start, group.targetToken.end);
+    drafts.push(
+      draftStep(
+        group.sourceToken !== null &&
+          group.targetToken !== null &&
+          looksLikeBoundedYear(group.sourceToken) &&
+          looksLikeBoundedYear(group.targetToken)
+          ? 'year-change'
+          : 'number-change',
+        group.sourceToken === null
+          ? 'insert'
+          : group.targetToken === null
+            ? 'remove'
+            : 'replace',
+        sourceEvidence,
+        targetEvidence,
+        groupedEdits.reduce((sum, edit) => sum + edit.cost, 0),
+      ),
+    );
+  }
+
+  for (let startIndex = 0; startIndex < edits.length; startIndex += 1) {
+    if (used.has(startIndex)) continue;
+    let selectedEnd = -1;
+    for (
+      let endIndex = startIndex;
+      endIndex < Math.min(edits.length, startIndex + 3);
+      endIndex += 1
+    ) {
+      if (used.has(endIndex)) break;
+      const previous = edits[endIndex - 1];
+      const current = edits[endIndex];
+      if (
+        endIndex > startIndex &&
+        (previous === undefined || current === undefined || !editsAreContiguous(previous, current))
+      ) {
+        break;
+      }
+      const candidateEdits = edits.slice(startIndex, endIndex + 1);
+      const sourceEvidence = combinedEvidence(
+        sourcePassword,
+        candidateEdits.map((edit) => edit.sourceEvidence),
+      );
+      const targetEvidence = combinedEvidence(
+        targetPassword,
+        candidateEdits.map((edit) => edit.targetEvidence),
+      );
+      if (isTypicalLeetTransformation(sourceEvidence.token, targetEvidence.token)) {
+        selectedEnd = endIndex;
+      }
+    }
+    if (selectedEnd < startIndex) continue;
+    const groupedEdits = edits.slice(startIndex, selectedEnd + 1);
+    groupedEdits.forEach((_, relativeIndex) => used.add(startIndex + relativeIndex));
+    drafts.push(
+      draftStep(
+        'leet-substitution',
+        'replace',
+        combinedEvidence(
+          sourcePassword,
+          groupedEdits.map((edit) => edit.sourceEvidence),
+        ),
+        combinedEvidence(
+          targetPassword,
+          groupedEdits.map((edit) => edit.targetEvidence),
+        ),
+        groupedEdits.reduce((sum, edit) => sum + edit.cost, 0),
+      ),
+    );
+  }
+
+  const suffixIndexes = edits.flatMap((edit, index) =>
+    !used.has(index) &&
+    evidenceInsideOptionalTerminalSpan(
+      edit.sourceEvidence,
+      sourceTerminalSymbols,
+      sourcePassword.length,
+    ) &&
+    evidenceInsideOptionalTerminalSpan(
+      edit.targetEvidence,
+      targetTerminalSymbols,
+      targetPassword.length,
+    )
+      ? [index]
+      : [],
+  );
+  if (suffixIndexes.length > 0) {
+    const suffixEdits = suffixIndexes.flatMap((index) => {
+      const edit = edits[index];
+      return edit === undefined ? [] : [edit];
+    });
+    suffixIndexes.forEach((index) => used.add(index));
+    const sourceEvidence = combinedEvidence(
       sourcePassword,
+      suffixEdits.map((edit) => edit.sourceEvidence),
+    );
+    const targetEvidence = combinedEvidence(
       targetPassword,
-      hunk,
+      suffixEdits.map((edit) => edit.targetEvidence),
     );
+    drafts.push(
+      draftStep(
+        'suffix-change',
+        sourceEvidence.token.length === 0
+          ? 'insert'
+          : targetEvidence.token.length === 0
+            ? 'remove'
+            : 'replace',
+        sourceEvidence,
+        targetEvidence,
+        suffixEdits.reduce((sum, edit) => sum + edit.cost, 0),
+      ),
+    );
+  }
 
-    if (isRepeatedPatternChange(hunk.sourceValue, hunk.targetValue)) {
-      candidates.push(
-        transformation(
-          'repetition',
-          'main',
-          12,
-          sourcePassword,
-          targetPassword,
-          sourceRange,
-          targetRange,
-        ),
-      );
-    }
-    if (isRemovableBoundaryComponent(sourcePassword, targetPassword, hunk)) {
-      candidates.push(
-        transformation(
-          'removal',
-          'main',
-          14,
-          sourcePassword,
-          targetPassword,
-          sourceRange,
-          targetRange,
-        ),
-      );
-    }
-    if (
-      !unboundedYearDifference &&
-      /^\d{1,4}$/u.test(hunk.sourceValue) &&
-      /^\d{1,4}$/u.test(hunk.targetValue) &&
-      !(looksLikeYear(hunk.sourceValue) && looksLikeYear(hunk.targetValue))
-    ) {
-      candidates.push(
-        transformation(
-          'number',
-          'surface',
-          24,
-          sourcePassword,
-          targetPassword,
-          sourceRange,
-          targetRange,
-        ),
-      );
-    }
-    if (
-      hunk.sourceValue.length > 0 &&
-      hunk.targetValue.length > 0 &&
-      hunk.sourceValue !== hunk.targetValue &&
-      hunk.sourceValue.toLocaleLowerCase('de-DE') ===
-        hunk.targetValue.toLocaleLowerCase('de-DE')
-    ) {
-      candidates.push(
-        transformation(
-          'case',
-          'surface',
-          26,
-          sourcePassword,
-          targetPassword,
-          sourceRange,
-          targetRange,
-        ),
-      );
-    }
-    if (isSeparatorChange(hunk.sourceValue, hunk.targetValue)) {
-      candidates.push(
-        transformation(
-          'separator',
-          'surface',
-          28,
-          sourcePassword,
-          targetPassword,
-          sourceRange,
-          targetRange,
-        ),
-      );
-    }
-    if (
-      hunk.sourceValue.length > 0 &&
-      hunk.targetValue.length > 0 &&
-      hunk.sourceValue !== hunk.targetValue &&
-      canonicalizeTypicalLeet(hunk.sourceValue) === canonicalizeTypicalLeet(hunk.targetValue) &&
-      [...hunk.sourceValue].length <= 2 &&
-      [...hunk.targetValue].length <= 2
-    ) {
-      candidates.push(
-        transformation(
-          'leet',
-          'surface',
-          30,
-          sourcePassword,
-          targetPassword,
-          sourceRange,
-          targetRange,
-        ),
-      );
-    }
-    if (!unboundedYearDifference && isSingleEdit(hunk.sourceValue, hunk.targetValue)) {
-      candidates.push(
-        transformation(
-          'edit',
-          'surface',
-          40,
-          sourcePassword,
-          targetPassword,
-          sourceRange,
-          targetRange,
-        ),
-      );
-    }
-    return candidates;
-  });
-  const casesMerged = mergeAtomTransformations(candidates, 'case', Number.POSITIVE_INFINITY);
-  const leetMerged = mergeAtomTransformations(casesMerged, 'leet', 2);
-  return mergeAtomTransformations(leetMerged, 'separator', 4);
-}
+  for (const [index, edit] of edits.entries()) {
+    if (used.has(index)) continue;
+    const source = edit.sourceEvidence.token;
+    const target = edit.targetEvidence.token;
+    const separatorChange =
+      source !== target &&
+      (source.length > 0 || target.length > 0) &&
+      /^[-_.\s]*$/u.test(source) &&
+      /^[-_.\s]*$/u.test(target);
+    const capitalizationChange =
+      source.length > 0 &&
+      target.length > 0 &&
+      source !== target &&
+      source.toLocaleLowerCase('de-DE') === target.toLocaleLowerCase('de-DE');
+    const kind: PasswordTransformationStepKind =
+      edit.operation === 'transpose'
+        ? 'adjacent-transposition'
+        : capitalizationChange
+          ? 'capitalization-change'
+          : isTypicalLeetTransformation(source, target)
+            ? 'leet-substitution'
+            : separatorChange
+              ? 'separator-change'
+              : edit.operation === 'insert'
+                ? 'character-insertion'
+                : edit.operation === 'remove'
+                  ? 'character-deletion'
+                  : 'character-substitution';
+    drafts.push(
+      draftStep(
+        kind,
+        edit.operation,
+        edit.sourceEvidence,
+        edit.targetEvidence,
+        edit.cost,
+      ),
+    );
+  }
 
-function rangeOverlap(
-  left: readonly [number, number],
-  right: readonly [number, number],
-): boolean {
-  const leftEmpty = left[0] === left[1];
-  const rightEmpty = right[0] === right[1];
-  if (leftEmpty && rightEmpty) return left[0] === right[0];
-  if (leftEmpty) return left[0] > right[0] && left[0] < right[1];
-  if (rightEmpty) return right[0] > left[0] && right[0] < left[1];
-  return left[0] < right[1] && right[0] < left[1];
-}
-
-function transformationsOverlap(
-  left: CandidateTransformation,
-  right: CandidateTransformation,
-): boolean {
-  return left.edits.some((leftEdit) =>
-    right.edits.some(
-      (rightEdit) =>
-        rangeOverlap(leftEdit.sourceChangedRange, rightEdit.sourceChangedRange) ||
-        rangeOverlap(leftEdit.targetChangedRange, rightEdit.targetChangedRange),
-    ),
+  return drafts.sort(
+    (left, right) =>
+      left.sourceEvidence.start - right.sourceEvidence.start ||
+      left.targetEvidence.start - right.targetEvidence.start ||
+      left.sourceEvidence.end - right.sourceEvidence.end,
   );
 }
 
-function transformationKey(item: CandidateTransformation): string {
-  return [
-    item.atom,
-    ...item.edits.flatMap(({ sourceChangedRange, targetChangedRange }) => [
-      `${sourceChangedRange[0]}-${sourceChangedRange[1]}`,
-      `${targetChangedRange[0]}-${targetChangedRange[1]}`,
-    ]),
-  ].join(':');
-}
-
-function candidateCombinations(
-  transformations: readonly CandidateTransformation[],
-): readonly (readonly CandidateTransformation[])[] {
-  const unique = [
-    ...new Map(transformations.map((item) => [transformationKey(item), item])).values(),
-  ];
-  const combinations: CandidateTransformation[][] = [];
-
-  function visit(start: number, selected: readonly CandidateTransformation[]): void {
-    for (let index = start; index < unique.length; index += 1) {
-      const candidate = unique[index];
-      if (candidate === undefined) continue;
-      const next = [...selected, candidate];
-      const mainCount = next.filter(
-        ({ class: transformationClass }) => transformationClass === 'main',
-      ).length;
-      const surfaceCount = next.filter(
-        ({ class: transformationClass }) => transformationClass === 'surface',
-      ).length;
-      if (mainCount > 1 || surfaceCount > 3) continue;
-      if (selected.some((existing) => transformationsOverlap(existing, candidate))) continue;
-      combinations.push(next);
-      if (next.length < 4) visit(index + 1, next);
-    }
-  }
-
-  visit(0, []);
-  return combinations.sort((left, right) => {
-    if (left.length !== right.length) return left.length - right.length;
-    const leftPriority = left.reduce((sum, item) => sum + item.priority, 0);
-    const rightPriority = right.reduce((sum, item) => sum + item.priority, 0);
-    if (leftPriority !== rightPriority) return leftPriority - rightPriority;
-    return left
-      .map(({ atom }) => atom)
-      .join('+')
-      .localeCompare(right.map(({ atom }) => atom).join('+'));
+function finalizeSteps(
+  sourcePassword: string,
+  drafts: readonly DraftTransformationStep[],
+): readonly PasswordTransformationStep[] {
+  const orderedDrafts = [...drafts].sort(
+    (left, right) =>
+      left.sourceEvidence.start - right.sourceEvidence.start ||
+      left.targetEvidence.start - right.targetEvidence.start ||
+      left.sourceEvidence.end - right.sourceEvidence.end ||
+      left.targetEvidence.end - right.targetEvidence.end,
+  );
+  let candidate = sourcePassword;
+  let cumulativeLengthDelta = 0;
+  // Evidence offsets stay anchored to the original source. Apply ordered steps left to right while
+  // carrying the length delta introduced by all preceding insertions, removals and replacements.
+  return orderedDrafts.map((step, index) => {
+    const adjustedStart = step.sourceEvidence.start + cumulativeLengthDelta;
+    const adjustedEnd = step.sourceEvidence.end + cumulativeLengthDelta;
+    candidate = replacementAt(
+      candidate,
+      adjustedStart,
+      adjustedEnd,
+      step.targetEvidence.token,
+    );
+    cumulativeLengthDelta +=
+      step.targetEvidence.token.length - step.sourceEvidence.token.length;
+    return {
+      ...step,
+      id: `transformation:${index}:${step.kind}:${step.sourceEvidence.start}-${step.sourceEvidence.end}:${step.targetEvidence.start}-${step.targetEvidence.end}`,
+      resultingCandidate: candidate,
+      explanationId: `s06.transformation.${step.kind}`,
+    };
   });
 }
 
-function applyTransformations(
-  sourcePassword: string,
-  transformations: readonly CandidateTransformation[],
+function replacementAt(
+  input: string,
+  start: number,
+  end: number,
+  replacement: string,
 ): string {
-  const edits = transformations
-    .flatMap(({ edits: transformationEdits }) => transformationEdits)
-    .sort(
-      (left, right) =>
-        right.sourceChangedRange[0] - left.sourceChangedRange[0] ||
-        right.sourceChangedRange[1] - left.sourceChangedRange[1],
-    );
-  return edits.reduce(
-    (candidate, edit) =>
-      replaceRange(
-        candidate,
-        edit.sourceChangedRange[0],
-        edit.sourceChangedRange[1],
-        edit.targetEvidence.token,
-      ),
-    sourcePassword,
-  );
+  return `${input.slice(0, start)}${replacement}${input.slice(end)}`;
 }
 
-function withoutRanges(input: string, ranges: readonly (readonly [number, number])[]): string {
-  let result = input;
-  for (const [start, end] of [...ranges].sort((left, right) => right[0] - left[0])) {
-    result = replaceRange(result, start, end, '');
-  }
-  return result;
-}
-
-function hasStableCommonCore(
+function applyTransformationSteps(
   sourcePassword: string,
-  targetPassword: string,
-  transformations: readonly CandidateTransformation[],
-): boolean {
-  const editsRemovedFromCore = transformations
-    .filter(({ atom }) => atom !== 'case')
-    .flatMap(({ edits }) => edits);
-  const sourceCore = withoutRanges(
-    sourcePassword,
-    editsRemovedFromCore.map(({ sourceChangedRange }) => sourceChangedRange),
-  );
-  const targetCore = withoutRanges(
-    targetPassword,
-    editsRemovedFromCore.map(({ targetChangedRange }) => targetChangedRange),
-  );
-  if (
-    sourceCore.toLocaleLowerCase('de-DE') === targetCore.toLocaleLowerCase('de-DE') &&
-    [...sourceCore].length >= 4
-  ) {
-    return true;
+  steps: readonly PasswordTransformationStep[],
+): string | null {
+  let candidate = sourcePassword;
+  let cumulativeLengthDelta = 0;
+  for (const step of steps) {
+    const adjustedStart = step.sourceEvidence.start + cumulativeLengthDelta;
+    const adjustedEnd = step.sourceEvidence.end + cumulativeLengthDelta;
+    candidate = replacementAt(
+      candidate,
+      adjustedStart,
+      adjustedEnd,
+      step.targetEvidence.token,
+    );
+    if (candidate !== step.resultingCandidate) return null;
+    cumulativeLengthDelta +=
+      step.targetEvidence.token.length - step.sourceEvidence.token.length;
   }
-  return transformations.some(
-    ({ atom, edits }) =>
-      atom === 'repetition' &&
-      edits.some(({ sourceEvidence, targetEvidence }) =>
-        isRepeatedPatternChange(sourceEvidence.token, targetEvidence.token),
-      ),
-  );
+  return candidate;
 }
 
-function transformationIdFor(
-  transformations: readonly CandidateTransformation[],
-): PasswordTransformationId | null {
-  const atoms = transformations.map(({ atom }) => atom);
-  const atomSet = new Set(atoms);
-  if (atoms.length === 1) {
-    switch (atoms[0]) {
-      case 'account':
-        return 'account-or-service-term-replaced';
-      case 'year':
-        return 'bounded-year-changed';
-      case 'number':
-        return 'bounded-number-component-changed';
-      case 'suffix':
-        return 'typical-suffix-changed-added-or-removed';
-      case 'separator':
-        return 'separator-changed';
-      case 'case':
-        return 'capitalization-changed';
-      case 'leet':
-        return 'typical-leetspeak-changed';
-      case 'edit':
-        return 'single-character-changed';
-      case 'repetition':
-        return 'repeated-character-pattern-changed';
-      case 'removal':
-        return 'leading-or-trailing-component-removed';
-      case 'component':
-        return 'bounded-component-replaced';
-      default:
-        return null;
+function transformationIdForSteps(
+  steps: readonly PasswordTransformationStep[],
+): PasswordTransformationId {
+  const kinds = new Set(steps.map(({ kind }) => kind));
+  if (kinds.has('account-term-replacement')) {
+    if (steps.length === 1) return 'account-or-service-term-replaced';
+    if (kinds.size === 2 && kinds.has('year-change')) return 'account-term-and-year-changed';
+    if (kinds.size === 2 && kinds.has('suffix-change')) return 'account-term-and-suffix-changed';
+    if (kinds.size === 3 && kinds.has('year-change') && kinds.has('suffix-change')) {
+      return 'account-term-year-and-suffix-changed';
+    }
+    return 'account-term-with-small-surface-changes';
+  }
+  if (steps.length === 1) {
+    const step = steps[0];
+    if (step !== undefined) {
+      switch (step.kind) {
+        case 'year-change':
+          return 'bounded-year-changed';
+        case 'number-change':
+          return 'bounded-number-component-changed';
+        case 'suffix-change':
+          return 'typical-suffix-changed-added-or-removed';
+        case 'separator-change':
+          return 'separator-changed';
+        case 'capitalization-change':
+          return 'capitalization-changed';
+        case 'leet-substitution':
+          return 'typical-leetspeak-changed';
+        case 'character-substitution':
+        case 'character-insertion':
+        case 'character-deletion':
+        case 'adjacent-transposition':
+          return step.cost === 1 ? 'single-character-changed' : 'bounded-surface-changes';
+        case 'account-term-replacement':
+          return 'account-or-service-term-replaced';
+      }
     }
   }
-  if (atomSet.size === 2 && atomSet.has('account') && atomSet.has('year')) {
-    return 'account-term-and-year-changed';
-  }
-  if (atomSet.size === 2 && atomSet.has('account') && atomSet.has('suffix')) {
-    return 'account-term-and-suffix-changed';
-  }
-  if (atomSet.size === 2 && atomSet.has('year') && atomSet.has('suffix')) {
+  if (kinds.size === 2 && kinds.has('year-change') && kinds.has('suffix-change')) {
     return 'year-and-suffix-changed';
   }
-  if (
-    atomSet.size === 3 &&
-    atomSet.has('account') &&
-    atomSet.has('year') &&
-    atomSet.has('suffix')
-  ) {
-    return 'account-term-year-and-suffix-changed';
-  }
-  if (atomSet.has('account')) return 'account-term-with-small-surface-changes';
-  if (atomSet.has('repetition')) return 'repeated-pattern-with-small-surface-changes';
-  if (atomSet.has('removal')) return 'component-removal-with-small-surface-changes';
-  if (atomSet.has('component')) return 'component-replacement-with-small-surface-changes';
   return 'bounded-surface-changes';
 }
 
-function sortedEvidence(
-  transformations: readonly CandidateTransformation[],
-): readonly CandidateEdit[] {
-  return transformations
-    .flatMap(({ edits }) => edits)
-    .sort(
-      (left, right) =>
-        left.sourceChangedRange[0] - right.sourceChangedRange[0] ||
-        left.targetChangedRange[0] - right.targetChangedRange[0],
-    );
-}
-
-export function compareFictionalPasswords({
+function relationFromPath({
   sourcePassword,
   targetPassword,
-  authoredAccountAndServiceTerms,
-}: LocalPasswordComparisonInput): PasswordComparisonResult {
-  if (sourcePassword === targetPassword) {
+  basis,
+  rawDistance,
+  normalizedDistance,
+  pathCost,
+  steps,
+}: DerivedRelationInput): PasswordComparisonResult | null {
+  const reconstructedCandidate = applyTransformationSteps(sourcePassword, steps);
+  if (
+    steps.length === 0 ||
+    reconstructedCandidate === null ||
+    reconstructedCandidate.normalize('NFC') !== targetPassword.normalize('NFC')
+  ) {
+    return null;
+  }
+  const transformationId = transformationIdForSteps(steps);
+  const evidenceId = steps
+    .map(
+      ({ sourceEvidence, targetEvidence }) =>
+        `${sourceEvidence.start}-${sourceEvidence.end}:${targetEvidence.start}-${targetEvidence.end}`,
+    )
+    .join(':');
+  return {
+    kind: 'fictional-password-comparison',
+    relation: {
+      kind: 'derived-variant-match',
+      relationId: `relation:${basis}:${transformationId}:${evidenceId}`,
+      transformationId,
+      basis,
+      rawDistance,
+      normalizedDistance,
+      pathCost,
+      steps,
+      sourceEvidence: steps.map(({ sourceEvidence }) => sourceEvidence),
+      targetEvidence: steps.map(({ targetEvidence }) => targetEvidence),
+      candidate: targetPassword,
+      explanationId: `s06.relation.${transformationId}`,
+    },
+    disclaimerId: 'simulation-not-production-strength',
+  };
+}
+
+function normalizedDistance(distance: number, source: string, target: string): number {
+  const maximumLength = Math.max(indexedCharacters(source).length, indexedCharacters(target).length);
+  return maximumLength === 0 ? 0 : distance / maximumLength;
+}
+
+function isLetterGrapheme(value: string | undefined): boolean {
+  return value !== undefined && /^\p{L}\p{M}*$/u.test(value.normalize('NFD'));
+}
+
+function isNumberGrapheme(value: string | undefined): boolean {
+  return value !== undefined && /^\p{N}+$/u.test(value);
+}
+
+function isLowercaseLetterGrapheme(value: string | undefined): boolean {
+  return value !== undefined && /^\p{Ll}\p{M}*$/u.test(value.normalize('NFD'));
+}
+
+function isUppercaseLetterGrapheme(value: string | undefined): boolean {
+  return value !== undefined && /^\p{Lu}\p{M}*$/u.test(value.normalize('NFD'));
+}
+
+function supportedBoundary(input: string, offset: number): boolean {
+  if (offset === 0 || offset === input.length) return true;
+  const characters = indexedCharacters(input);
+  const rightIndex = characters.findIndex(({ start }) => start === offset);
+  if (rightIndex <= 0) return false;
+  const left = characters[rightIndex - 1]?.comparisonValue;
+  const right = characters[rightIndex]?.comparisonValue;
+  const next = characters[rightIndex + 1]?.comparisonValue;
+  if (left === undefined || right === undefined) return false;
+
+  const leftIsLetter = isLetterGrapheme(left);
+  const rightIsLetter = isLetterGrapheme(right);
+  const leftIsNumber = isNumberGrapheme(left);
+  const rightIsNumber = isNumberGrapheme(right);
+  if ((!leftIsLetter && !leftIsNumber) || (!rightIsLetter && !rightIsNumber)) return true;
+  if (leftIsNumber !== rightIsNumber) return true;
+  if (isLowercaseLetterGrapheme(left) && isUppercaseLetterGrapheme(right)) return true;
+  return (
+    isUppercaseLetterGrapheme(left) &&
+    isUppercaseLetterGrapheme(right) &&
+    isLowercaseLetterGrapheme(next)
+  );
+}
+
+function boundedIdentifierSpans(
+  input: string,
+  identifiers: readonly string[],
+): readonly BoundedIdentifierSpan[] {
+  const uniqueIdentifiers = [
+    ...new Map(
+      identifiers
+        .map((identifier) => identifier.trim())
+        .filter((identifier) => [...identifier].length >= 3)
+        .map((identifier) => [identifier.toLocaleLowerCase('de-DE'), identifier]),
+    ).values(),
+  ].sort((left, right) => right.length - left.length || left.localeCompare(right, 'de-DE'));
+  const spans: BoundedIdentifierSpan[] = [];
+  for (const identifier of uniqueIdentifiers) {
+    for (const [start, end] of findCaseInsensitiveSpans(input, identifier)) {
+      if (!supportedBoundary(input, start) || !supportedBoundary(input, end)) continue;
+      spans.push({ start, end, token: input.slice(start, end), identifier });
+    }
+  }
+  return spans.sort(
+    (left, right) =>
+      left.start - right.start ||
+      (right.end - right.start) - (left.end - left.start) ||
+      left.identifier.localeCompare(right.identifier, 'de-DE'),
+  );
+}
+
+function accountSpecificRelation({
+  sourcePassword,
+  targetPassword,
+  sourceAccountIdentifiers,
+  targetAccountIdentifiers,
+}: LocalPasswordComparisonInput): PasswordComparisonResult | null {
+  const sourceSpans = boundedIdentifierSpans(sourcePassword, sourceAccountIdentifiers);
+  const targetSpans = boundedIdentifierSpans(targetPassword, targetAccountIdentifiers);
+  const candidates: Array<{
+    readonly result: PasswordComparisonResult;
+    readonly residualDistance: number;
+    readonly normalizedResidualDistance: number;
+    readonly identifierCoverage: number;
+  }> = [];
+
+  for (const sourceSpan of sourceSpans) {
+    for (const targetSpan of targetSpans) {
+      if (
+        sourceSpan.token.toLocaleLowerCase('de-DE') ===
+        targetSpan.token.toLocaleLowerCase('de-DE')
+      ) {
+        continue;
+      }
+      const sourcePrefix = sourcePassword.slice(0, sourceSpan.start);
+      const targetPrefix = targetPassword.slice(0, targetSpan.start);
+      const sourceSuffix = sourcePassword.slice(sourceSpan.end);
+      const targetSuffix = targetPassword.slice(targetSpan.end);
+      const prefixAlignment = alignPasswords(sourcePrefix, targetPrefix);
+      const suffixAlignment = alignPasswords(sourceSuffix, targetSuffix);
+      const residualDistance = prefixAlignment.distance + suffixAlignment.distance;
+      const sourceResidualLength =
+        prefixAlignment.sourceCharacters.length + suffixAlignment.sourceCharacters.length;
+      const targetResidualLength =
+        prefixAlignment.targetCharacters.length + suffixAlignment.targetCharacters.length;
+      const residualLength = Math.max(sourceResidualLength, targetResidualLength);
+      const normalizedResidualDistance =
+        residualLength === 0 ? 0 : residualDistance / residualLength;
+      const longestCommonCore = Math.max(
+        prefixAlignment.longestUnchangedRun,
+        suffixAlignment.longestUnchangedRun,
+      );
+      if (
+        residualDistance > maximumAccountResidualDistance ||
+        normalizedResidualDistance > maximumNormalizedDistance + Number.EPSILON ||
+        longestCommonCore < minimumAccountCommonCoreLength
+      ) {
+        continue;
+      }
+
+      const residualEdits = [
+        ...rawEditsFromAlignment(
+          sourcePassword,
+          targetPassword,
+          sourcePrefix,
+          targetPrefix,
+          0,
+          0,
+          prefixAlignment,
+        ),
+        ...rawEditsFromAlignment(
+          sourcePassword,
+          targetPassword,
+          sourceSuffix,
+          targetSuffix,
+          sourceSpan.end,
+          targetSpan.end,
+          suffixAlignment,
+        ),
+      ];
+      const residualDrafts = projectTransformationSteps(
+        sourcePassword,
+        targetPassword,
+        residualEdits,
+      );
+      const accountDraft = draftStep(
+        'account-term-replacement',
+        'replace',
+        evidenceSpan(sourcePassword, sourceSpan.start, sourceSpan.end),
+        evidenceSpan(targetPassword, targetSpan.start, targetSpan.end),
+        1,
+      );
+      const steps = finalizeSteps(sourcePassword, [accountDraft, ...residualDrafts]);
+      const result = relationFromPath({
+        sourcePassword,
+        targetPassword,
+        basis: 'bounded-account-transformation',
+        rawDistance: residualDistance,
+        normalizedDistance: normalizedResidualDistance,
+        pathCost: 1 + residualDistance,
+        steps,
+      });
+      if (result === null) continue;
+      candidates.push({
+        result,
+        residualDistance,
+        normalizedResidualDistance,
+        identifierCoverage:
+          [...sourceSpan.token].length + [...targetSpan.token].length,
+      });
+    }
+  }
+
+  candidates.sort(
+    (left, right) =>
+      left.residualDistance - right.residualDistance ||
+      left.normalizedResidualDistance - right.normalizedResidualDistance ||
+      right.identifierCoverage - left.identifierCoverage,
+  );
+  return candidates[0]?.result ?? null;
+}
+
+function generalEditRelation(
+  sourcePassword: string,
+  targetPassword: string,
+): PasswordComparisonResult | null {
+  const alignment = alignPasswords(sourcePassword, targetPassword);
+  const ratio = normalizedDistance(alignment.distance, sourcePassword, targetPassword);
+  if (
+    alignment.distance < 1 ||
+    alignment.distance > maximumGeneralDistance ||
+    ratio > maximumNormalizedDistance + Number.EPSILON
+  ) {
+    return null;
+  }
+  const rawEdits = rawEditsFromAlignment(
+    sourcePassword,
+    targetPassword,
+    sourcePassword,
+    targetPassword,
+    0,
+    0,
+    alignment,
+  );
+  const steps = finalizeSteps(
+    sourcePassword,
+    projectTransformationSteps(sourcePassword, targetPassword, rawEdits),
+  );
+  return relationFromPath({
+    sourcePassword,
+    targetPassword,
+    basis: 'normalized-restricted-damerau-levenshtein',
+    rawDistance: alignment.distance,
+    normalizedDistance: ratio,
+    pathCost: alignment.distance,
+    steps,
+  });
+}
+
+export function compareFictionalPasswords(
+  input: LocalPasswordComparisonInput,
+): PasswordComparisonResult {
+  const { sourcePassword, targetPassword } = input;
+  if (sourcePassword.normalize('NFC') === targetPassword.normalize('NFC')) {
     return {
       kind: 'fictional-password-comparison',
       relation: {
@@ -1179,51 +1095,10 @@ export function compareFictionalPasswords({
     };
   }
 
-  const suffixes = suffixTransformations(sourcePassword, targetPassword);
-  const transposition = transpositionTransformation(sourcePassword, targetPassword);
-  const transformations = [
-    ...accountTransformations(sourcePassword, targetPassword, authoredAccountAndServiceTerms),
-    ...yearTransformations(sourcePassword, targetPassword),
-    ...numberTransformations(sourcePassword, targetPassword),
-    ...repeatedPatternTransformations(sourcePassword, targetPassword),
-    ...componentReplacementTransformations(sourcePassword, targetPassword),
-    ...boundaryComponentRemovalTransformations(sourcePassword, targetPassword),
-    ...suffixes,
-    ...(transposition === null ? [] : [transposition]),
-    ...hunkTransformations(sourcePassword, targetPassword),
-  ];
-
-  for (const combination of candidateCombinations(transformations)) {
-    const candidate = applyTransformations(sourcePassword, combination);
-    if (
-      candidate !== targetPassword ||
-      !hasStableCommonCore(sourcePassword, targetPassword, combination)
-    ) {
-      continue;
-    }
-    const transformationId = transformationIdFor(combination);
-    if (transformationId === null) continue;
-    const evidence = sortedEvidence(combination);
-    const evidenceId = evidence
-      .map(
-        ({ sourceEvidence, targetEvidence }) =>
-          `${sourceEvidence.start}-${sourceEvidence.end}:${targetEvidence.start}-${targetEvidence.end}`,
-      )
-      .join(':');
-    return {
-      kind: 'fictional-password-comparison',
-      relation: {
-        kind: 'derived-variant-match',
-        relationId: `relation:${transformationId}:${evidenceId}`,
-        transformationId,
-        sourceEvidence: evidence.map(({ sourceEvidence }) => sourceEvidence),
-        targetEvidence: evidence.map(({ targetEvidence }) => targetEvidence),
-        candidate,
-        explanationId: `s06.relation.${transformationId}`,
-      },
-      disclaimerId: 'simulation-not-production-strength',
-    };
-  }
+  const accountRelation = accountSpecificRelation(input);
+  if (accountRelation !== null) return accountRelation;
+  const editRelation = generalEditRelation(sourcePassword, targetPassword);
+  if (editRelation !== null) return editRelation;
 
   return {
     kind: 'fictional-password-comparison',

@@ -25,8 +25,25 @@
   max-height: 118%;
 }
 
+.easyToGuess {
+  position: absolute;
+  z-index: 11;
+  width: 88%;
+  height: 88%;
+  object-fit: contain;
+  filter:
+    drop-shadow(0 0.5rem 0.6rem rgb(0 0 0 / 66%))
+    drop-shadow(0 0 0.9rem rgb(255 49 94 / 72%));
+  pointer-events: none;
+}
+
 .network :global([data-size="detail"] [data-account-shield]) {
   display: none;
+}
+
+.network[data-hide-detail-symbols="true"]
+  :global([data-size="detail"] [data-network-symbol]) {
+  opacity: 0;
 }
 
 .network
@@ -205,7 +222,8 @@
 .attackConnection {
   position: absolute;
   z-index: 0;
-  bottom: 94%;
+  right: auto;
+  bottom: 100%;
   left: calc(50% - 0.125rem);
   width: 0.25rem;
   height: 56%;
@@ -218,48 +236,6 @@
   filter: drop-shadow(0 0 0.35rem rgb(255 49 94 / 82%));
   animation: account-attack-connection 0.8s linear infinite;
   transform-origin: bottom;
-}
-
-.attackAttempt[data-account-attack-attempt="exposed"] .attacker {
-  top: -22%;
-  left: -22%;
-  width: 144%;
-}
-
-.attackAttempt[data-account-attack-attempt="exposed"] .attackConnection {
-  display: none;
-}
-
-.network[data-attack-phase="incident-check"]
-  .attackAttempt[data-account-attack-attempt="exposed"]
-  .attackConnection {
-  display: block;
-}
-
-.network[data-attack-phase="incident-check"][data-attack-source="master-campus"]
-  :global([data-scene-node="master-campus"][data-status="neutral"] [data-scene-node-visual]),
-.network[data-attack-phase="incident-check"][data-attack-source="campus-email"]
-  :global([data-scene-node="campus-email"][data-status="neutral"] [data-scene-node-visual]) {
-  border-color: #ff315e;
-  box-shadow: 0 0 0 0.2rem rgb(255 49 94 / 20%), 0 0 1rem rgb(255 49 94 / 58%);
-}
-
-.network[data-attack-phase="incident-check"][data-attack-source="master-campus"]
-  :global([data-scene-node="master-campus"][data-status="exposed"] [data-scene-node-visual]),
-.network[data-attack-phase="incident-check"][data-attack-source="campus-email"]
-  :global([data-scene-node="campus-email"][data-status="exposed"] [data-scene-node-visual]) {
-  animation: account-local-takeover 420ms cubic-bezier(0.16, 1, 0.3, 1) both;
-}
-
-.network[data-attack-phase="hypothetical-intro"]
-  .attackAttempt[data-account-attack-attempt="exposed"] .attacker {
-  animation: account-attacker-capture 1.35s cubic-bezier(0.22, 1, 0.36, 1) both;
-}
-
-.network[data-attack-phase="hypothetical-intro"]
-  .attackAttempt[data-account-attack-attempt="exposed"] .attackConnection {
-  display: block;
-  animation: account-attack-connection-capture 1.35s ease-out both;
 }
 
 .network[data-attack-phase="incident-check"]
@@ -306,9 +282,10 @@
 .network[data-attack-phase="source-transition"]
   .attackAttempt[data-account-attacker-role="active"]
   .attackConnection {
+  display: block;
   top: calc(50% - 0.125rem);
   bottom: auto;
-  left: 94%;
+  left: 100%;
   width: 68%;
   height: 0.25rem;
   background: repeating-linear-gradient(
@@ -326,7 +303,7 @@
 .network[data-attack-phase="source-transition"][data-attack-source="campus-email"]
   .attackAttempt[data-account-attacker-role="active"]
   .attackConnection {
-  top: 94%;
+  top: 100%;
   bottom: auto;
   left: calc(50% - 0.125rem);
   width: 0.25rem;
@@ -350,7 +327,7 @@
   .attackConnection {
   top: calc(50% - 0.125rem);
   bottom: auto;
-  left: 94%;
+  left: 100%;
   width: 68%;
   height: 0.25rem;
   background: repeating-linear-gradient(
@@ -365,7 +342,7 @@
 .network[data-attack-phase="incident-check"]
   .attackAttempt[data-account-attack-source="campus-email"]
   .attackConnection {
-  top: 94%;
+  top: 100%;
   bottom: auto;
   left: calc(50% - 0.125rem);
   width: 0.25rem;
@@ -379,54 +356,148 @@
   transform-origin: top;
 }
 
-.network[data-attack-phase="hypothetical-intro"]
-  .attackAttempt:is(
-    [data-account-attack-source="master-campus"],
-    [data-account-attack-source="campus-email"]
-  )[data-account-attack-attempt="exposed"]
-  .attacker {
-  animation: account-attacker-capture-from-right 1.35s cubic-bezier(0.22, 1, 0.36, 1) both;
-}
-
-.network[data-attack-phase="incident-check"]
-  .attackAttempt[data-account-attack-source="master-campus"][data-account-attack-attempt="exposed"]
-  .attacker {
-  animation: account-attacker-capture-from-right 1.35s cubic-bezier(0.22, 1, 0.36, 1) both;
-}
-
-.network[data-attack-phase="incident-check"]
-  .attackAttempt[data-account-attack-source="campus-email"][data-account-attack-attempt="exposed"]
-  .attacker {
-  animation: account-attacker-capture-from-email-bottom 1.35s cubic-bezier(0.22, 1, 0.36, 1) both;
-}
-
-.network[data-attack-phase="hypothetical-intro"]
-  .attackAttempt:is(
-    [data-account-attack-source="master-campus"],
-    [data-account-attack-source="campus-email"]
-  )[data-account-attack-attempt="exposed"]
+.network:not([data-attack-phase="source-transition"])
+  .attackAttempt[data-account-attack-attempt="exposed"]
   .attackConnection {
-  animation: account-attack-connection-capture-from-right 1.35s ease-out both;
+  display: block;
+  background: #ff315e;
+  animation: none;
 }
 
-.network[data-attack-phase="incident-check"]
-  .attackAttempt[data-account-attack-source="master-campus"][data-account-attack-attempt="exposed"]
+.network:not([data-attack-phase="source-transition"])[data-attack-source="campusgram"]
+  .attackAttempt[data-account-attacker-role="active"]
+  .attacker {
+  top: -176%;
+  left: -22%;
+  animation: none;
+}
+
+.network:not([data-attack-phase="source-transition"])[data-attack-source="campusgram"]
+  .attackAttempt[data-account-attacker-role="active"]
   .attackConnection {
-  animation: account-attack-connection-capture-from-right 1.35s ease-out both;
+  display: block;
 }
 
-.network[data-attack-phase="incident-check"]
-  .attackAttempt[data-account-attack-source="campus-email"][data-account-attack-attempt="exposed"]
+.network:not([data-attack-phase="source-transition"])[data-attack-source="master-campus"]
+  .attackAttempt[data-account-attacker-role="active"]
+  .attacker {
+  top: 12%;
+  left: 112%;
+  animation: none;
+}
+
+.network:not([data-attack-phase="source-transition"])[data-attack-source="master-campus"]
+  .attackAttempt[data-account-attacker-role="active"]
   .attackConnection {
-  animation: account-attack-connection-capture 1.35s ease-out both;
+  display: block;
+  top: calc(50% - 0.125rem);
+  right: auto;
+  bottom: auto;
+  left: 100%;
+  width: 68%;
+  height: 0.25rem;
 }
 
-.network[data-attack-phase="incident-check"][data-attack-attempt="exposed"][data-attack-source="master-campus"]
-  :global([data-network-edge-risk-relation="true"][data-network-edge-source="master-campus"] .react-flow__edge-path),
-.network[data-attack-phase="incident-check"][data-attack-attempt="exposed"][data-attack-source="campus-email"]
-  :global([data-network-edge-risk-relation="true"][data-network-edge-source="campus-email"] .react-flow__edge-path) {
-  stroke-dasharray: 8 7;
-  animation: account-attack-edge-flow 720ms linear 900ms infinite;
+.network:not([data-attack-phase="source-transition"])[data-attack-source="campus-email"]
+  .attackAttempt[data-account-attacker-role="active"]
+  .attacker {
+  top: 144%;
+  left: -22%;
+  animation: none;
+}
+
+.network:not([data-attack-phase="source-transition"])[data-attack-source="campus-email"]
+  .attackAttempt[data-account-attacker-role="active"]
+  .attackConnection {
+  display: block;
+  top: 100%;
+  right: auto;
+  bottom: auto;
+  left: calc(50% - 0.125rem);
+  width: 0.25rem;
+  height: 68%;
+}
+
+.network[data-attack-phase="source-transition"]
+  .attackAttempt[data-account-attacker-role="departing"][data-account-attack-source="campusgram"]
+  .attacker {
+  top: -176%;
+  left: -22%;
+}
+
+.network[data-attack-phase="source-transition"]
+  .attackAttempt[data-account-attacker-role="departing"][data-account-attack-source="campusgram"]
+  .attackConnection {
+  display: block;
+}
+
+.network[data-attack-phase="source-transition"]
+  .attackAttempt[data-account-attacker-role="departing"][data-account-attack-source="master-campus"]
+  .attacker {
+  top: 12%;
+  left: 112%;
+}
+
+.network[data-attack-phase="source-transition"]
+  .attackAttempt[data-account-attacker-role="departing"][data-account-attack-source="master-campus"]
+  .attackConnection {
+  display: block;
+  top: calc(50% - 0.125rem);
+  bottom: auto;
+  left: 100%;
+  width: 68%;
+  height: 0.25rem;
+}
+
+.network[data-attack-phase="source-transition"]
+  .attackAttempt[data-account-attacker-role="departing"][data-account-attack-source="campus-email"]
+  .attacker {
+  top: 144%;
+  left: -22%;
+}
+
+.network[data-attack-phase="source-transition"]
+  .attackAttempt[data-account-attacker-role="departing"][data-account-attack-source="campus-email"]
+  .attackConnection {
+  display: block;
+  top: 100%;
+  bottom: auto;
+  left: calc(50% - 0.125rem);
+  width: 0.25rem;
+  height: 68%;
+}
+
+.network:is(
+  [data-attack-phase="incident-check"],
+  [data-attack-phase="hypothetical-intro"]
+)
+  .attackAttempt[data-account-attack-source="campusgram"]
+  .attacker {
+  top: -176%;
+  left: -22%;
+  animation: none;
+}
+
+.network:is(
+  [data-attack-phase="incident-check"],
+  [data-attack-phase="hypothetical-intro"]
+)
+  .attackAttempt[data-account-attack-source="master-campus"]
+  .attacker {
+  top: 12%;
+  left: 112%;
+  animation: none;
+}
+
+.network:is(
+  [data-attack-phase="incident-check"],
+  [data-attack-phase="hypothetical-intro"]
+)
+  .attackAttempt[data-account-attack-source="campus-email"]
+  .attacker {
+  top: 144%;
+  left: -22%;
+  animation: none;
 }
 
 .network :global([data-status="exposed"] [data-scene-node-visual]),
@@ -613,51 +684,6 @@
   }
 }
 
-@keyframes account-attack-edge-flow {
-  to {
-    stroke-dashoffset: -30;
-  }
-}
-
-@keyframes account-attacker-capture {
-  0%, 24% {
-    top: -176%;
-    left: -22%;
-    width: 144%;
-  }
-  100% {
-    top: -22%;
-    left: -22%;
-    width: 144%;
-  }
-}
-
-@keyframes account-attacker-capture-from-right {
-  0%, 24% {
-    top: 12%;
-    left: 112%;
-    width: 144%;
-  }
-  100% {
-    top: -22%;
-    left: -22%;
-    width: 144%;
-  }
-}
-
-@keyframes account-attacker-capture-from-email-bottom {
-  0%, 24% {
-    top: 144%;
-    left: -22%;
-    width: 144%;
-  }
-  100% {
-    top: -22%;
-    left: -22%;
-    width: 144%;
-  }
-}
-
 @keyframes account-attacker-source-departure {
   from {
     opacity: 1;
@@ -718,28 +744,6 @@
   }
 }
 
-@keyframes account-attack-connection-capture {
-  0%, 48% {
-    opacity: 1;
-    transform: scaleY(1);
-  }
-  100% {
-    opacity: 0;
-    transform: scaleY(0);
-  }
-}
-
-@keyframes account-attack-connection-capture-from-right {
-  0%, 48% {
-    opacity: 1;
-    transform: scaleX(1);
-  }
-  100% {
-    opacity: 0;
-    transform: scaleX(0);
-  }
-}
-
 @keyframes account-infection-node-arrival {
   0% {
     border-color: #ff315e;
@@ -750,32 +754,6 @@
   }
 
   62% {
-    transform: scale(1.12);
-  }
-
-  to {
-    border-color: #ff315e;
-    color: white;
-    background: #70031e;
-    box-shadow: 0 0 0 0.25rem rgb(255 49 94 / 22%), 0 0 1.4rem rgb(255 49 94 / 72%);
-    transform: scale(1);
-  }
-}
-
-@keyframes account-local-takeover {
-  from {
-    border-color: #ff315e;
-    color: var(--color-accent-strong);
-    background: var(--account-map-node-rest-background);
-    box-shadow: 0 0 0 0.2rem rgb(255 49 94 / 20%), 0 0 1rem rgb(255 49 94 / 58%);
-    transform: scale(1);
-  }
-
-  62% {
-    border-color: #ff315e;
-    color: white;
-    background: #70031e;
-    box-shadow: 0 0 0 0.25rem rgb(255 49 94 / 22%), 0 0 1.4rem rgb(255 49 94 / 72%);
     transform: scale(1.12);
   }
 
@@ -916,23 +894,6 @@
     :is(.attacker, .attackConnection) {
     opacity: 1;
     animation: none !important;
-  }
-
-  .attackAttempt[data-account-attack-attempt="exposed"] .attacker {
-    top: -22%;
-    left: -22%;
-    width: 144%;
-    animation: none !important;
-  }
-
-  .attackAttempt[data-account-attack-attempt="exposed"] .attackConnection {
-    display: none;
-  }
-
-  .network[data-attack-phase="incident-check"]
-    .attackAttempt[data-account-attack-attempt="exposed"]
-    .attackConnection {
-    display: block;
   }
 
   .network :global([data-status-cascade-active] [data-scene-node-visual]),

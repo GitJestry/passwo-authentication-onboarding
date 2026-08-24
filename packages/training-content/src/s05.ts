@@ -73,7 +73,7 @@ export interface S05DesignLabFixture {
   readonly startSection: 'intro' | 'components' | 'structure';
 }
 
-export const S05_CONTENT_VERSION = '2.131.0';
+export const S05_CONTENT_VERSION = '2.133.0';
 
 export const s05Content = {
   version: S05_CONTENT_VERSION,
@@ -83,9 +83,9 @@ export const s05Content = {
       12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34,
       35,
     ] as const,
-    revision: 'Userauftrag vom 2026-08-24 · Strukturhinweis gekürzt',
+    revision: 'Userauftrag vom 2026-08-24 · Passwortbeziehungen visuell gegenübergestellt',
     copyReference:
-      'docs/design/S00-S05-COPY-AUDIT.md#copydelta-s05-strukturhinweis-gekuerzt-24-august-2026',
+      'docs/design/S00-S05-COPY-AUDIT.md#copy-und-darstellungsdelta-s05-zwei-passwortbeziehungen-24-august-2026',
   },
   segment: {
     id: 'S05',
@@ -714,10 +714,20 @@ export const s05Content = {
         'Das Schild steht für den Schutz durch das Passwort als einen Faktor, nicht für absolute Kontosicherheit.',
       reuseTakeaway:
         'Oft wird dasselbe selbst gewählte Passwort für mehrere Konten verwendet oder nur leicht abgewandelt, weil man sich so weniger merken muss.',
-      reuseExample: {
-        sourcePassword: 'PasswortCampusgram',
-        targetPassword: 'PasswortMasterCampus',
-      },
+      reuseExamples: [
+        {
+          id: 'same',
+          label: 'dasselbe',
+          sourcePassword: 'Passw0rt123!',
+          targetPassword: 'Passw0rt123!',
+        },
+        {
+          id: 'similar',
+          label: 'leicht abgewandelt',
+          sourcePassword: 'PasswortCampusgram',
+          targetPassword: 'PasswortMasterCampus',
+        },
+      ],
       attackerTakeaway:
         'Wird eines davon herausgefunden, können Angreifer dasselbe Passwort und leichte Abwandlungen auch bei anderen Konten ausprobieren.',
       otherAccountsAction: 'Andere Konten prüfen',

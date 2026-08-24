@@ -76,6 +76,24 @@ function accountInputsForSource(source: S06ConsequenceSource): S06ConsequenceAcc
     : getS06ConsequenceFixture(source.fixtureId).accounts;
 }
 
+function localFindingIsVisible(
+  plan: PasswordConsequenceScenePlan,
+  snapshot: S06ConsequenceControllerSnapshot,
+  accountId: S06AccountId,
+): boolean {
+  if (accountId === 'campusgram') return true;
+  const localStepId =
+    accountId === 'master-campus'
+      ? 's06-step-master-campus-perspective'
+      : 's06-step-campus-email-local-check';
+  const localStepIndex = plan.steps.findIndex(({ id }) => id === localStepId);
+  return (
+    localStepIndex >= 0 &&
+    (snapshot.stepIndex > localStepIndex ||
+      (snapshot.stepIndex === localStepIndex && snapshot.stage === 'local-check-result'))
+  );
+}
+
 export function S06ConsequenceTraining({
   source,
   timingState = 'active',
@@ -201,12 +219,15 @@ export function S06ConsequenceTraining({
       ? ['Segmentabschluss wird bestätigt …']
       : [snapshot.participant.narration.body];
   const attackSourceAccountId = snapshot.attackSourceAccountId;
+  const localFindingPending =
+    snapshot.stage === 'data-leak-transition' || snapshot.stage === 'local-reflection';
   const attackerAttemptStatus =
-    snapshot.attackPhase === 'incident-check' && attackSourceAccountId !== null
-      ? snapshot.stage === 'local-check-result' && snapshot.phase === 'awaiting-decision'
-        ? (snapshot.step.network.nodes.find(({ id }) => id === attackSourceAccountId)?.status ??
-          'neutral')
-        : 'neutral'
+    attackSourceAccountId !== null
+      ? localFindingPending
+        ? 'neutral'
+        : snapshot.localFindingAccountIds.includes(attackSourceAccountId)
+          ? 'exposed'
+          : 'protected'
       : null;
   const showsIncidentCascade =
     snapshot.stage === 'local-check-result' && attackerAttemptStatus === 'exposed';
@@ -229,6 +250,9 @@ export function S06ConsequenceTraining({
               ({ accountId }) => accountId === snapshot.step.targetAccountId,
             )?.fictionalPassword ?? '',
         };
+  const easyToGuessAccountIds = snapshot.localFindingAccountIds.filter((accountId) =>
+    localFindingIsVisible(runtime.plan, snapshot, accountId),
+  );
 
   return (
     <section className={styles.training} aria-label="PassWo, Segment S06, Passwortfolgen">
@@ -251,6 +275,8 @@ export function S06ConsequenceTraining({
               snapshot.step.relation?.kind === 'no-derived-path-recognized'
             }
             statusCascadeStartDelayMs={showsIncidentCascade ? 1100 : 120}
+            easyToGuessAccountIds={easyToGuessAccountIds}
+            hideDetailSymbols
             showEdgeLabels
           />
         </div>

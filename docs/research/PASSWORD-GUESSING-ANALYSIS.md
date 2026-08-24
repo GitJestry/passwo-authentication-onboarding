@@ -456,7 +456,7 @@ Stärke-Score.
 
 ## S05-/S06-Integration
 
-S05 und S06 rufen dieselben Funktionen auf:
+S05 und die lokalen Einzelprüfungen in S06 rufen dieselben Funktionen auf:
 
 ```text
 analyzeFictionalPassword(...)
@@ -465,8 +465,8 @@ determinePasswordSimulationDisposition(...)
 
 S05 verwendet die Disposition für die Abschlussauswertung. S06 analysiert jedes der drei
 fiktiven Konten erneut mit demselben Paket, denselben lokalen Kontexten und derselben
-Konfigurationsversion. Die bestehende S06-Animation erhält nur das kategoriale Ergebnis; sie
-enthält keine eigene Passwortbewertung.
+Konfigurationsversion. React, Szenenprojektionen und Teilnehmertexte enthalten keine zweite
+Vollpasswort-Trefferlogik.
 
 Die bestehenden S05-Auswahlen werden nach ihrer Bestätigung in
 `TransientPasswordSemanticEvidence` projiziert und ausschließlich im Speicher des laufenden
@@ -475,36 +475,83 @@ Typ für alle drei Konten. Damit können Master Campus und Campus E-Mail später
 Reflexionsschritt erhalten, ohne die Disposition oder die Visualisierung neu zu implementieren.
 Aktuell wird die Evidenz nur in S05 erhoben.
 
-### Gerichtete S06-Variantenwege
+### Gerichtete S06-Abwandlungsrelation
 
-Die sechs S06-Paarvergleiche sind gerichtet. Nach einer exakten Wiederverwendung erzeugt der
-lokale Vergleich vollständige Kandidaten aus dem bekannten Quellpasswort. `derived-variant-match`
-gilt nur, wenn ein Kandidat den vollständigen Zielwert trifft und der Weg höchstens aus einer
-Hauptveränderung sowie drei kleinen typischen Veränderungen besteht.
+Die sechs S06-Paarvergleiche beantworten eine andere, gerichtete Frage: Kann aus einem bekannten
+fiktiven Quellpasswort innerhalb einer vorab festgelegten kleinen Änderungsgrenze genau der
+fiktive Zielwert entstehen? Diese Relation wird ausschließlich durch
+`compareFictionalPasswords(...)` bestimmt und kennt drei Ergebnisse:
 
-Als Hauptveränderung gelten ausschließlich:
+```text
+exact-match
+derived-variant-match
+no-derived-path-recognized
+```
 
-- der Austausch eines authored Konto- oder Dienstbegriffs;
-- der Austausch genau eines Buchstabenbausteins mit mindestens drei Zeichen in einem ansonsten
-  stabilen Muster; die Bausteingrenzen entstehen ausschließlich aus Trennzeichen, Ziffer-/Buchstabenwechseln und Camel Case;
-- der Wechsel des Zeichens bei einem vollständigen Wiederholungsmuster gleicher Länge;
-- das Entfernen eines durch Zeichenklasse, Trennzeichen oder Camel-Case-Grenze abgegrenzten
-  vorangestellten oder angehängten Bestandteils.
+Nach NFC-Normalisierung gilt zunächst eine vollständige Übereinstimmung als `exact-match`.
+Allgemeine leichte Zeichenabwandlungen verwenden danach die case-sensitive **restricted
+Damerau-Levenshtein-Distanz**, auch Optimal String Alignment genannt. Einfügen, Löschen und
+Ersetzen eines Graphemclusters kosten jeweils eine Operation; die Vertauschung zweier benachbarter
+Graphemcluster kostet ebenfalls eine Operation. Der allgemeine Pfad ist positiv, wenn
 
-Kleine typische Veränderungen sind eine auf zwei Jahre begrenzte Jahresänderung, ein kurzer
-Zahlenbestandteil, ein kurzer Zahlen- oder Symbolanhang, Groß-/Kleinschreibung, ein übliches
-Trennzeichen, eine eingefrorene typische Leetspeak-Ersetzung oder eine einzelne Einfügung,
-Entfernung, Ersetzung beziehungsweise benachbarte Vertauschung. Der Vergleich verwendet diese
-Operationen als endliche Kandidatenfamilien, nicht als allgemeinen Edit-Distance-Score.
+```text
+1 <= absolute Distanz <= 3
+und
+absolute Distanz / Länge des längeren Werts <= 0,25
+```
 
-Der Weg ist absichtlich nicht symmetrisch. `Passwort49u52u` kann durch Entfernen des bekannten
-Randbestandteils zu `Passwort` führen. Aus `Passwort` wird der unbekannte längere Rest dagegen
-nicht erfunden. Ebenso reichen gemeinsame Teilstrings oder der gleiche allgemeine Satzrahmen
-nicht aus. Ein einzelner strukturell abgegrenzter Buchstabenbaustein darf im stabilen Rahmen
-ausgetauscht werden; zwei freie Bausteinersetzungen werden weiterhin nicht kombiniert. Ein negatives
-Ergebnis lautet deshalb `Keine direkte Variante erkannt` und ist weder eine Aussage über fehlende
-Gemeinsamkeiten noch eine Sicherheitsgarantie. Alle Eingaben und Vergleichsbefunde bleiben lokal
-und flüchtig.
+beträgt. Die Längen beziehen sich auf Graphemcluster. Die Kombination aus absoluter und
+normalisierter Grenze verhindert, dass drei Änderungen bei einem kurzen Passwort automatisch als
+leicht gelten. Sie ist eine konservative, versionierte Trainingsoperationalisierung und kein
+universell validierter Grenzwert für reale Passwortangriffe.
+
+Für den verständlichen scenario-spezifischen Wechsel eines Kontobegriffs existiert genau ein
+zusätzlicher Makropfad. Er darf einen vollständigen Identifier des Quellkontos durch einen
+vollständigen Identifier des Zielkontos ersetzen. Dafür gelten gleichzeitig:
+
+- Quell- und Zielidentifier stammen aus kleinen, getrennten kontospezifischen Listen;
+- beide Identifier liegen an Anfang, Ende, einem sichtbaren Nicht-Buchstaben/Ziffer-Verbinder,
+  einer Buchstaben/Ziffer-, Camel-Case- oder Akronym-zu-Wort-Grenze;
+- höchstens ein Kontobegriff wird ersetzt;
+- außerhalb der Identifier beträgt die absolute Restdistanz höchstens zwei und die normalisierte
+  Restdistanz höchstens `0,25`;
+- außerhalb der Identifier bleibt ein zusammenhängender unveränderter Lauf von mindestens vier
+  Graphemclustern erhalten.
+
+Breite Kontextwörter wie `Profil`, `Hilfe`, `Link`, `Service`, `Campus` oder ein freies inneres
+Teilwort dürfen diesen Makropfad nicht begründen. Die umfangreicheren `accountTerms` bleiben für
+die S05-/Einzelanalyse verfügbar, werden aber nicht als S06-Ersetzungsinventar verwendet.
+
+Die frühere Kombination aus einer frei gewählten Hauptveränderung und bis zu drei
+Oberflächenheuristiken entfällt. Insbesondere erzeugen beliebige Zielbestandteile, das Entfernen
+eines unbekannten längeren Randteils oder eine bloß strukturell passende Wortersetzung keinen
+positiven Weg mehr. Regeln für Jahreszahlen, Zahlen, Endzeichen, Trennzeichen, Großschreibung und
+Leetspeak klassifizieren nur noch einen bereits durch die Distanzregel akzeptierten Edit-Pfad.
+Mehrdeutige und mehrzeichige zxcvbn-Leetspeak-Ersetzungen werden dabei ohne willkürliche
+Ein-Zeichen-Normalisierung geprüft.
+
+Jede positive Abwandlungsrelation enthält geordnete `PasswordTransformationStep`-Objekte. Jeder
+Schritt bindet Quell- und Zielspan direkt aneinander, benennt die Operation, trägt ihre Kosten,
+besitzt eine Teilnehmererklärung und enthält den nach diesem Schritt entstandenen vollständigen
+Zwischenkandidaten. Zusätzlich werden absolute beziehungsweise residuale Distanz, normalisierte
+Distanz, Pfadkosten und der vollständige erzeugte Kandidat ausgegeben. Vor der Rückgabe wird
+technisch verlangt:
+
+```text
+NFC(apply(sourcePassword, steps)) === NFC(targetPassword)
+```
+
+Die S06-Projektion berechnet deshalb keine zweite Differenz. Sie zeigt dieselben Domänenschritte
+nacheinander als `vorher -> nachher` und schreibt dabei den vom Domain-Layer gelieferten
+Zwischenkandidaten nach jedem Schritt sichtbar fort. Erst nach dem vollständigen Zielkandidaten
+blendet sie das Ergebnis sowie den Angriffspfad ein. Ergänzungen und Entfernungen behalten einen
+sichtbaren leeren Gegenwert. Bei reduzierter Bewegung erscheint dieselbe Information unmittelbar
+als statischer Endzustand.
+
+`no-derived-path-recognized` bedeutet ausschließlich, dass weder die allgemeine Distanzgrenze noch
+der begrenzte Kontobegriffspfad den Zielwert erzeugt. Es ist keine Aussage über fehlende
+Gemeinsamkeiten, Passwortstärke oder reale Angriffssicherheit. Eingaben, Distanzen, Schritte und
+Vergleichsbefunde bleiben lokal und flüchtig.
 
 ## Teststrategie
 

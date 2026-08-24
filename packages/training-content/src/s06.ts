@@ -1,5 +1,6 @@
 import type {
   PasswordTransformationId,
+  PasswordTransformationStepKind,
   S06AccountId,
   TrainingSectionId,
 } from '@passwo/contracts';
@@ -59,16 +60,16 @@ export interface S06NarrationContent {
   readonly body: string;
 }
 
-export const S06_CONSEQUENCE_CONTENT_VERSION = '2.43.0';
+export const S06_CONSEQUENCE_CONTENT_VERSION = '2.47.0';
 
 export const s06ConsequenceContent = {
   version: S06_CONSEQUENCE_CONTENT_VERSION,
   source: {
     document: 'research/private/training-script.pdf',
     internalPages: [36, 37, 38, 39, 40, 41, 42, 43, 44] as const,
-    revision: 'Userauftrag vom 2026-08-24 · freie persönliche S06-Markierung',
+    revision: 'Userauftrag vom 2026-08-24 · längere Vergleichsvorschau ohne Rollenlabel',
     copyReference:
-      'docs/design/S06-S07-COPY-AUDIT.md#copy-und-interaktionsdelta-s06-freie-persoenliche-markierung-24-august-2026',
+      'docs/design/S06-S07-COPY-AUDIT.md#copy-und-darstellungsdelta-s06-laengere-vergleichsvorschau-ohne-rollenlabel-24-august-2026',
   },
   segment: {
     id: 'S06',
@@ -133,6 +134,14 @@ export const s06ConsequenceContent = {
       roleSummary: 'Campus Workspace, Campus Services und Campus Cloud',
       details: ['Campus Workspace', 'Campus Services', 'Campus Cloud'],
       accountTerms: accountContextTerms['master-campus'],
+      comparisonIdentifiers: [
+        'MasterCampus',
+        'Master Campus',
+        'CampusWorkspace',
+        'Campus Workspace',
+        'CampusCloud',
+        'Campus Cloud',
+      ],
     },
     'campus-email': {
       label: 'Campus E-Mail',
@@ -145,20 +154,29 @@ export const s06ConsequenceContent = {
         'Kommunikation in deinem Namen',
       ],
       accountTerms: accountContextTerms['campus-email'],
+      comparisonIdentifiers: [
+        'CampusMail',
+        'Campus Mail',
+        'CampusEmail',
+        'Campus Email',
+        'Campus E-Mail',
+        'Postfach',
+      ],
     },
     campusgram: {
       label: 'Campusgram',
       roleSummary: 'Direktnachrichten, Gruppen und Kontakte sowie Beiträge und Reaktionen',
       details: ['Direktnachrichten', 'Gruppen und Kontakte', 'Beiträge und Reaktionen'],
       accountTerms: accountContextTerms.campusgram,
+      comparisonIdentifiers: ['Campusgram', 'Campus Gram', 'Instagram', 'Insta'],
     },
   } as const satisfies Readonly<Record<S06AccountId, unknown>>,
   relationLabels: {
     'exact-match': 'Exakte Wiederverwendung · Ziel in dieser Simulation erreicht',
     'derived-variant-match':
-      'Konkrete abgeleitete Variante · erzeugter Kandidat trifft das Zielpasswort',
+      'Geordneter Änderungsweg · erzeugter Kandidat trifft das Zielpasswort',
     'no-derived-path-recognized':
-      'Mit den begrenzten Transformationswegen wurde kein direkter Weg erkannt',
+      'Mit den festgelegten Distanz- und Kontobegriffsgrenzen wurde kein direkter Weg erkannt',
     blockedShield: 'Dieser Angriffsweg ist blockiert.',
   },
   comparisonResultLabels: {
@@ -183,14 +201,15 @@ export const s06ConsequenceContent = {
       'Ein vollständiger vorangestellter oder angehängter Bestandteil wurde entfernt.',
     'bounded-component-replaced':
       'Ein einzelner klar abgegrenzter Bestandteil wurde innerhalb desselben Musters ausgetauscht.',
-    'bounded-surface-changes': 'Bis zu drei kleine typische Veränderungen wurden kombiniert.',
+    'bounded-surface-changes':
+      'Der gezeigte Änderungsweg liegt innerhalb der festgelegten Distanzgrenze.',
     'account-term-and-year-changed': 'Konto- oder Dienstbegriff und Jahreszahl wurden verändert.',
     'account-term-and-suffix-changed': 'Konto- oder Dienstbegriff und Anhang wurden verändert.',
     'year-and-suffix-changed': 'Jahreszahl und typischer Anhang wurden verändert.',
     'account-term-year-and-suffix-changed':
       'Konto- oder Dienstbegriff, Jahreszahl und typischer Anhang wurden begrenzt verändert.',
     'account-term-with-small-surface-changes':
-      'Der Konto- oder Dienstbegriff und bis zu drei kleine typische Merkmale wurden verändert.',
+      'Ein vollständiger Kontobegriff und höchstens zwei weitere Zeichenänderungen bilden den gezeigten Weg.',
     'repeated-pattern-with-small-surface-changes':
       'Das Wiederholungsmuster und bis zu drei kleine typische Merkmale wurden verändert.',
     'component-removal-with-small-surface-changes':
@@ -198,6 +217,24 @@ export const s06ConsequenceContent = {
     'component-replacement-with-small-surface-changes':
       'Ein einzelner klar abgegrenzter Bestandteil und bis zu drei kleine typische Merkmale wurden verändert.',
   } as const satisfies Readonly<Record<PasswordTransformationId, string>>,
+  transformationStepLabels: {
+    'account-term-replacement': 'Kontobegriff ersetzt',
+    'year-change': 'Jahreszahl verändert',
+    'number-change': 'Zahlenbestandteil verändert',
+    'suffix-change': 'Endzeichen oder kurzer Anhang verändert',
+    'separator-change': 'Trennzeichen verändert',
+    'capitalization-change': 'Groß- und Kleinschreibung verändert',
+    'leet-substitution': 'Typische Zeichenersetzung',
+    'character-substitution': 'Zeichen ersetzt',
+    'character-insertion': 'Zeichen ergänzt',
+    'character-deletion': 'Zeichen entfernt',
+    'adjacent-transposition': 'Benachbarte Zeichen vertauscht',
+  } as const satisfies Readonly<Record<PasswordTransformationStepKind, string>>,
+  comparisonPathLabels: {
+    heading: 'Angreiferweg',
+    emptyValue: 'nichts',
+    exactValue: 'unverändert',
+  },
   dispositionLabels: {
     'whole-password-recognized':
       'Vollständiges Passwort in dieser begrenzten Simulation gefunden',
@@ -224,7 +261,7 @@ export const s06ConsequenceContent = {
     },
     's06.compare.derived-variant-match': {
       heading: 'Ein begrenzter Kandidatenweg trifft den Zielwert',
-      body: 'Die gezeigte Änderung führt zum vollständigen fiktiven Zielpasswort.',
+      body: 'Die gezeigten Änderungen führen zum vollständigen fiktiven Zielpasswort.',
     },
     's06.compare.no-derived-path-recognized': {
       heading: 'Kein direkter Weg erkannt',

@@ -243,6 +243,41 @@ export type PasswordTransformationId =
   | 'component-removal-with-small-surface-changes'
   | 'component-replacement-with-small-surface-changes';
 
+export type PasswordTransformationBasis =
+  | 'normalized-restricted-damerau-levenshtein'
+  | 'bounded-account-transformation';
+
+export type PasswordTransformationStepKind =
+  | 'account-term-replacement'
+  | 'year-change'
+  | 'number-change'
+  | 'suffix-change'
+  | 'separator-change'
+  | 'capitalization-change'
+  | 'leet-substitution'
+  | 'character-substitution'
+  | 'character-insertion'
+  | 'character-deletion'
+  | 'adjacent-transposition';
+
+export type PasswordTransformationOperation =
+  | 'replace'
+  | 'insert'
+  | 'remove'
+  | 'transpose';
+
+export interface PasswordTransformationStep {
+  readonly id: string;
+  readonly kind: PasswordTransformationStepKind;
+  readonly operation: PasswordTransformationOperation;
+  readonly sourceEvidence: PasswordEvidenceSpan;
+  readonly targetEvidence: PasswordEvidenceSpan;
+  readonly cost: number;
+  /** Candidate after this ordered step has been applied to the fictional source password. */
+  readonly resultingCandidate: string;
+  readonly explanationId: `s06.transformation.${PasswordTransformationStepKind}`;
+}
+
 export interface ExactPasswordRelation {
   readonly kind: 'exact-match';
   readonly relationId: string;
@@ -255,7 +290,18 @@ export interface DerivedVariantPasswordRelation {
   readonly kind: 'derived-variant-match';
   readonly relationId: string;
   readonly transformationId: PasswordTransformationId;
+  readonly basis: PasswordTransformationBasis;
+  /**
+   * Full edit distance for the general path and residual edit distance outside the two bounded
+   * account identifiers for the account-specific path.
+   */
+  readonly rawDistance: number;
+  readonly normalizedDistance: number;
+  readonly pathCost: number;
+  readonly steps: readonly PasswordTransformationStep[];
+  /** @deprecated Read the paired evidence from steps. */
   readonly sourceEvidence: readonly PasswordEvidenceSpan[];
+  /** @deprecated Read the paired evidence from steps. */
   readonly targetEvidence: readonly PasswordEvidenceSpan[];
   readonly candidate: string;
   readonly explanationId: `s06.relation.${PasswordTransformationId}`;

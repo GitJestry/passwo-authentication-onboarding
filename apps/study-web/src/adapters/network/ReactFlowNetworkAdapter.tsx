@@ -30,6 +30,8 @@ import {
   useSyncExternalStore,
 } from 'react';
 import '@xyflow/react/dist/style.css';
+import samePasswordAsset from '../../assets/password-relations/same.png';
+import similarPasswordAsset from '../../assets/password-relations/similar.png';
 import type { NetworkPresentationSnapshot } from './NetworkMotionAdapter.js';
 import {
   NetworkStatusMarker,
@@ -779,6 +781,7 @@ interface NodeEdgeData extends Record<string, unknown> {
   readonly drawn: boolean;
   readonly attackPath: boolean;
   readonly riskRelation: boolean;
+  readonly riskRelationKind: 'same' | 'similar' | null;
   readonly currentAttackPath: boolean;
   readonly dimmed: boolean;
   readonly statusCascadeTiming: StatusCascadeTiming | null;
@@ -840,6 +843,8 @@ function NodeEdge({
 }: EdgeProps<NodeFlowEdge>) {
   if (data === undefined) return null;
   const edge = createNodeEdgePath(data.sourceGeometry, data.targetGeometry);
+  const relationLabel =
+    data.riskRelationKind === null || typeof label !== 'string' ? null : label;
   const statusCascadeMaskStyle =
     data.statusCascadeTiming === null
       ? undefined
@@ -849,7 +854,7 @@ function NodeEdge({
         };
   const optionalEdgeProps = {
     ...(interactionWidth === undefined ? {} : { interactionWidth }),
-    ...(label === undefined ? {} : { label }),
+    ...(label === undefined || relationLabel !== null ? {} : { label }),
     ...(labelBgBorderRadius === undefined ? {} : { labelBgBorderRadius }),
     ...(labelBgPadding === undefined ? {} : { labelBgPadding }),
     ...(labelBgStyle === undefined ? {} : { labelBgStyle }),
@@ -891,6 +896,7 @@ function NodeEdge({
         data.attackPath && data.drawn ? true : undefined
       }
       data-network-edge-risk-relation={data.riskRelation || undefined}
+      data-network-edge-relation-kind={data.riskRelationKind ?? undefined}
       data-network-edge-dimmed={data.dimmed}
       data-network-edge-status-cascade-active={
         data.statusCascadeTiming !== null && !data.statusCascadeSettled ? true : undefined
@@ -907,6 +913,34 @@ function NodeEdge({
         labelY={edge.labelY}
         {...optionalEdgeProps}
       />
+      {relationLabel === null ? null : (
+        <g
+          className={styles.passwordRelationMarker}
+          data-password-relation-marker
+          data-password-relation-kind={data.riskRelationKind}
+          transform={`translate(${edge.labelX} ${edge.labelY})`}
+          aria-hidden="true"
+        >
+          <text
+            className={styles.passwordRelationMarkerLabel}
+            data-password-relation-label
+            x="0"
+            y="-30"
+            textAnchor="middle"
+          >
+            {relationLabel}
+          </text>
+          <image
+            className={styles.passwordRelationMarkerImage}
+            href={data.riskRelationKind === 'same' ? samePasswordAsset : similarPasswordAsset}
+            x="-22"
+            y="-22"
+            width="44"
+            height="44"
+            preserveAspectRatio="xMidYMid meet"
+          />
+        </g>
+      )}
       {data.riskRelation ? (
         <g
           data-network-edge-break-effect
@@ -1193,6 +1227,12 @@ function toReactFlowElements(
               edge.kind === 'blocked-path',
             riskRelation:
               edge.kind === 'identical-reuse' || edge.kind === 'similar-pattern',
+            riskRelationKind:
+              edge.kind === 'identical-reuse'
+                ? 'same'
+                : edge.kind === 'similar-pattern'
+                  ? 'similar'
+                  : null,
             currentAttackPath,
             dimmed: dimInactiveNodes && (choosingAccount || edge.sourceId !== activeNodeId),
             statusCascadeTiming: showsStatusCascadeThread

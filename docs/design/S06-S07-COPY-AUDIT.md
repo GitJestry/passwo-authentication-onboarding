@@ -1,5 +1,89 @@
 # S06--S07 Copy Audit
 
+## Copy- und Darstellungsdelta S06 lokale Fundmarkierung und direkte Vergleichspfeile, 24. August 2026
+
+Quelle ist der ausdrückliche Nutzerauftrag vom 24. August 2026. Ausschließlich ein Konto, dessen
+fiktives Passwort in der lokalen Einzelprüfung leicht zu erraten ist, trägt auf dem Hauptknoten
+das gelieferte Warnlogo `Leicht zu erraten`. Eine Übereinstimmung oder leichte Abwandlung zu einem
+anderen Passwort erzeugt dieses Logo nicht. Der tatsächlich simulierte Datenleckzustand bleibt
+davon getrennt: Die Angriffsquelle einschließlich ihrer Unterknoten und über eine bestimmte
+Passwortbeziehung erreichte Konten werden rot befallen dargestellt. Ein lokal starkes Passwort
+behält im entsprechenden What-if-Ausgangszweig seinen blauen Schutzstatus. Der Angreifer bleibt
+außerhalb des Kontos und ist über eine feste rote Linie mit ihm verbunden.
+
+In der Vergleichsvorschau wachsen Passwortbausteine und Kontologos. Die rechte Darstellung
+`Angreiferweg` entfällt; erkannte Änderungsschritte werden als direkte Pfeile vom jeweiligen
+Ausgangs- zum Zielbaustein gezeichnet. Bei `Keine leichte Abwandlung erkannt` verläuft die grüne
+Verbindung vollständig von Logo zu Logo. Der Käfer liegt oberhalb der Logos. Gleichheits- und
+Abwandlungssymbole erhalten ausschließlich eine weiche Schattenhervorhebung ohne zusätzliche
+Kreisfläche. Beim exakten Treffer umfasst die Hervorhebung auf beiden Seiten jeweils den ganzen
+Passwortrahmen; der Pfeil verbindet diese beiden Rahmen direkt. Das jeweilige gelieferte Symbol
+steht zusätzlich beim Ergebnislabel. Die Karte besitzt keine künstliche Mindesthöhe und verwendet
+relationsabhängig nur die für Logos, große Passwortbausteine und Ergebnis benötigte Breite.
+
+Die zugängliche What-if-Zusammenfassung beschreibt nun die Prüfung vorhandener
+Passwortverbindungen, statt den lokal starken Ausgangszweig pauschal als betroffen zu bezeichnen.
+Die Änderung ist als barrierefreie Anpassung an den sichtbaren Zustand ausdrücklich freigegeben.
+Persistenz, Export, Analyse und Timing bleiben unverändert.
+`S06_CONSEQUENCE_CONTENT_VERSION` steigt von `2.46.0` auf `2.47.0`.
+
+| Segment und Text-ID | Quelle | Aktueller Text | Geplanter Text | Primäre Rolle | Grund | Bedeutungsänderung | Interaktionsziel | Hervorhebung |
+|---|---|---|---|---|---|---|---|---|
+| `S06.networkSummary.hypotheticalCampusgram` | Nutzerauftrag vom 2026-08-24 | `Was wäre, wenn? Campusgram wird in dieser hypothetischen Simulation als betroffen dargestellt.` | `Was wäre, wenn? Von Campusgram aus werden bestehende Passwortverbindungen geprüft.` | Orientierung | gleicht die zugängliche Beschreibung an den geschützten lokalen Ausgangszweig und die tatsächliche Beziehungsprüfung an | ausdrücklich freigegeben | kein | keine |
+| `S06.networkSummary.hypotheticalIncident` | Nutzerauftrag vom 2026-08-24 | `Was wäre, wenn? [Konto] wird als hypothetisch betroffen dargestellt.` | `Was wäre, wenn? Von [Konto] aus werden bestehende Passwortverbindungen geprüft.` | Orientierung | vermeidet die falsche Vollbefallsaussage bei lokal starkem Passwort | ausdrücklich freigegeben | kein | keine |
+
+## Darstellungsdelta S06 Symbole auf Passwortbeziehungen, 24. August 2026
+
+Quelle ist der ausdrückliche Nutzerauftrag vom 24. August 2026. Bereits bestimmte rote
+Passwortbeziehungen tragen nun auf ihrem geometrischen Linienmittelpunkt das gelieferte
+Gleichheits- oder Abwandlungssymbol. Das vorhandene Beziehungslabel bleibt klein direkt oberhalb
+des Symbols sichtbar. Dadurch unterscheiden sich `Dasselbe Passwort` und `Leicht abgewandelt`
+durch Text, Symbol und weiterhin unterschiedliche Linienarten; Farbe bleibt ergänzend.
+
+Vergleichsergebnis, Kantenlogik, Zustände, Animation, Teilnehmerwortlaut, Analyse, Persistenz,
+Export und Timing bleiben unverändert. Da kein Trainingscontent geändert wird, bleibt
+`S06_CONSEQUENCE_CONTENT_VERSION 2.46.0` unverändert.
+
+## Copy- und Darstellungsdelta S06 längere Vergleichsvorschau ohne Rollenlabel, 24. August 2026
+
+Quelle ist der ausdrückliche Nutzerauftrag vom 24. August 2026. Die Vergleichskarte erhält mehr
+vertikale Höhe und einen größeren Abstand zwischen den beiden Logo-/Passwortzeilen. Auch der
+horizontale Abstand zwischen Logo und Passwortbausteinen wächst leicht. Dadurch lassen sich die
+beiden vollständigen Bausteinfolgen und ihre verbundenen Änderungen ruhiger vergleichen. Auf
+kleinen Ansichten bleibt die Höhe an den verfügbaren Darstellungsraum gebunden.
+
+Das zuletzt allein über dem Ausgangslogo gezeigte Rollenlabel `Bekannt` entfällt vollständig.
+Konten und Passwörter bleiben über ihre Logos, Positionen und zugänglichen Beschriftungen
+zugeordnet. Analyse, Relation, Animation, Persistenz, Export und Studien-Timing bleiben
+unverändert. `S06_CONSEQUENCE_CONTENT_VERSION` steigt von `2.45.0` auf `2.46.0`.
+
+| Segment und Text-ID | Quelle | Aktueller Text | Geplanter Text | Primäre Rolle | Grund | Bedeutungsänderung | Interaktionsziel | Hervorhebung |
+|---|---|---|---|---|---|---|---|---|
+| `S06.comparisonPathLabels.sourceValue` | Nutzerauftrag vom 2026-08-24 | `Bekannt` über dem Ausgangslogo | entfällt | Orientierung | entfernt das nicht mehr gewünschte Rollenlabel; Logo, Position und zugängliche Kontobeschriftung bleiben bestehen | nein | kein | keine |
+
+## Copy- und Darstellungsdelta S06 kompakter Angreiferweg, 24. August 2026
+
+Quelle ist der ausdrückliche Nutzerauftrag vom 24. August 2026. Die Vergleichsvorschau zeigt
+weiterhin den geordneten Änderungsweg zwischen dem bekannten Ausgangspasswort und dem fiktiven
+Zielpasswort, verzichtet aber auf die darunter wiederholte vollständige Kandidatenfolge. Die
+einzelnen Änderungspaare bleiben sichtbar und bestimmen weiterhin unverändert die Animation und
+das abschließende Ergebnis.
+
+Die äußere Box um die Passwortbausteine sowie die Rollenzeilen mit Kontonamen entfallen. Nur
+`Bekannt` steht zur Orientierung über dem ersten Kontologo. Die Angriffslinie liegt in derselben
+Spalte zwischen den beiden Logos; der gewonnene Platz vergrößert die Passwortbausteine und die
+Darstellung der erkannten Änderungen. Analyse, Relation, Persistenz, Export und Studien-Timing
+bleiben unverändert.
+`S06_CONSEQUENCE_CONTENT_VERSION` steigt von `2.44.0` auf `2.45.0`.
+
+| Segment und Text-ID | Quelle | Aktueller Text | Geplanter Text | Primäre Rolle | Grund | Bedeutungsänderung | Interaktionsziel | Hervorhebung |
+|---|---|---|---|---|---|---|---|---|
+| `S06.comparisonPathLabels.heading` | Nutzerauftrag vom 2026-08-24 | `So entsteht der Kandidat` | `Angreiferweg` | Orientierung | weniger abstrakte Bezeichnung des sichtbaren Wegs | begrenzt | kein | keine |
+| `S06.comparisonPathLabels.sourceValue` | Nutzerauftrag vom 2026-08-24 | `bekannt` mit Kontoname | `Bekannt` allein über dem Ausgangslogo | Orientierung | reduziert redundante Beschriftung und ordnet den Ausgangspunkt direkt zu | nein | kein | keine |
+| `S06.comparisonPathLabels.targetValue` | Nutzerauftrag vom 2026-08-24 | `Ziel` mit Kontoname | entfällt | Orientierung | Ziel ist durch zweites Logo und zweite Passwortzeile bereits sichtbar | nein | kein | keine |
+| `S06.comparisonPathLabels.candidateProgress` | Nutzerauftrag vom 2026-08-24 | `Kandidat nach jedem Schritt` | entfällt | Mechanismuserklärung | entfernt die wiederholte vollständige Kandidatenfolge unter den weiterhin sichtbaren Änderungsschritten | nein | kein | keine |
+| `S06.comparisonPathLabels.generatedCandidate` | Nutzerauftrag vom 2026-08-24 | `Vollständiger Kandidat` | entfällt | Ergebnisvorbereitung | das Zielpasswort steht bereits als vollständige zweite Passwortzeile fest | nein | kein | keine |
+
 ## Darstellungsdelta S06 roter Befallszustand im What-if-Pfad, 24. August 2026
 
 Quelle ist der ausdrückliche Nutzerauftrag vom 24. August 2026. Nach der hypothetischen
@@ -1836,3 +1920,45 @@ unverändert. `S07_PASSPHRASE_SEARCH_CONTENT_VERSION` steigt von `4.17.0` auf `4
 | Segment und Text-ID | Aktueller Text | Geplanter Text | Primäre Rolle | Interaktionsziel | Grund und Bedeutungsänderung | Hervorhebung |
 |---|---|---|---|---|---|---|
 | `S07.guide.campusgramSuccess` | `Campusgram ist jetzt geschützt. Das alte Passwort aus dem Datenleck kann dort nicht mehr verwendet werden.` | `Das Campusgram-Passwort ist jetzt ersetzt. Das alte Passwort aus dem Datenleck kann dort nicht mehr verwendet werden.` | Ergebnisfeedback | `Weiter` | ausdrücklich vorgegebene Präzisierung des sichtbaren Ergebnisses; begrenzt | unverändert positiv: `Das alte Passwort aus dem Datenleck kann dort nicht mehr verwendet werden.` |
+
+## Copy- und Interaktionsdelta S06 begrenzte Abwandlung und Edit-Pfad, 24. August 2026
+
+Quelle ist der ausdrückliche Nutzerauftrag vom 24. August 2026, die allgemeine Erkennung
+`leicht abgewandelt` über eine feste Edit-Distanz zu operationalisieren und die konkrete
+Verbindung zwischen Quell- und Zielpasswort nach außen sichtbar zu machen.
+`S06_CONSEQUENCE_CONTENT_VERSION` steigt von `2.43.0` auf `2.44.0`.
+Persistenz, Export, Forschungsinstrumente und die drei zentralen Ergebnislabels bleiben
+unverändert.
+
+Die allgemeine positive Relation verwendet intern die case-sensitive restricted
+Damerau-Levenshtein-Distanz mit absoluter Grenze drei und normalisierter Grenze `0,25`. Ein
+zusätzlicher begrenzter Pfad darf genau einen vollständigen kontospezifischen Identifier ersetzen
+und mit höchstens zwei weiteren Distanzoperationen kombinieren. Diese Parameter werden nicht als
+universeller Standard, Crack-Wahrscheinlichkeit oder Stärkeurteil an Teilnehmende ausgegeben.
+
+| Segment und Text-ID | Vorher | Nachher | Primäre Rolle | Interaktionsziel | Grund und Bedeutungsänderung | Hervorhebung |
+|---|---|---|---|---|---|---|
+| `S06.transformationStepLabels.account-term-replacement` | kein eigener sichtbarer Schritttext | `Kontobegriff ersetzt` | Mechanismuserklärung | kein | benennt das konkret verbundene Quell-/Zielpaar; begrenzt | neben `Quelle → Ziel` |
+| `S06.transformationStepLabels.year-change` | nur allgemeines Transformationslabel | `Jahreszahl verändert` | Mechanismuserklärung | kein | erklärt den tatsächlich belegten Edit-Span; begrenzt | neben `Quelle → Ziel` |
+| `S06.transformationStepLabels.number-change` | nur allgemeines Transformationslabel | `Zahlenbestandteil verändert` | Mechanismuserklärung | kein | erklärt den tatsächlich belegten Edit-Span; begrenzt | neben `Quelle → Ziel` |
+| `S06.transformationStepLabels.suffix-change` | nur allgemeines Transformationslabel | `Endzeichen oder kurzer Anhang verändert` | Mechanismuserklärung | kein | hält Ersetzung, Ergänzung und Entfernung eines terminalen Zeichenspans verständlich zusammen; begrenzt | neben `Quelle → Ziel` |
+| `S06.transformationStepLabels.separator-change` | nur allgemeines Transformationslabel | `Trennzeichen verändert` | Mechanismuserklärung | kein | erklärt den konkreten Edit statt einer bloßen Markierung; begrenzt | neben `Quelle → Ziel` |
+| `S06.transformationStepLabels.capitalization-change` | Groß-/Kleinschreibung konnte als gemeinsamer Teil erscheinen | `Groß- und Kleinschreibung verändert` | Mechanismuserklärung | kein | macht die Abweichung ausdrücklich sichtbar; begrenzt | neben `Quelle → Ziel` |
+| `S06.transformationStepLabels.leet-substitution` | nur allgemeines Transformationslabel | `Typische Zeichenersetzung` | Mechanismuserklärung | kein | verbindet ursprünglichen Buchstaben und Ersatzzeichen direkt; begrenzt | neben `Quelle → Ziel` |
+| `S06.transformationStepLabels.character-substitution` | kein eigener sichtbarer Schritttext | `Zeichen ersetzt` | Mechanismuserklärung | kein | benennt eine atomare Ersetzung; begrenzt | neben `Quelle → Ziel` |
+| `S06.transformationStepLabels.character-insertion` | Ergänzung erschien ohne sichtbaren Gegenwert | `Zeichen ergänzt` | Mechanismuserklärung | kein | zeigt `nichts → Zeichen`; begrenzt | neben `Quelle → Ziel` |
+| `S06.transformationStepLabels.character-deletion` | Entfernung erschien ohne sichtbaren Gegenwert | `Zeichen entfernt` | Mechanismuserklärung | kein | zeigt `Zeichen → nichts`; begrenzt | neben `Quelle → Ziel` |
+| `S06.transformationStepLabels.adjacent-transposition` | Vertauschung wurde nur als allgemeine Änderung bezeichnet | `Benachbarte Zeichen vertauscht` | Mechanismuserklärung | kein | benennt die Damerau-Operation verständlich; begrenzt | neben `Quelle → Ziel` |
+| `S06.comparisonPathLabels.heading` | keine Überschrift für den Ableitungsweg | `So entsteht der Kandidat` | Orientierung | kein | kündigt die schrittweise Kandidatenbildung an; begrenzt | oberhalb der Änderungsliste |
+| `S06.comparisonPathLabels.sourceValue` / `targetValue` | keine Rollenbezeichnung | `bekannt` / `Ziel` | Orientierung | kein | trennt den bekannten Ausgangswert vom noch zu treffenden Zielwert | oberhalb der beiden Passwortzeilen |
+| `S06.comparisonPathLabels.emptyValue` | leerer Span wurde ausgeblendet | `nichts` | Mechanismuserklärung | kein | hält Ergänzungen und Entfernungen paarweise lesbar | gestrichelter Gegenwert |
+| `S06.comparisonPathLabels.candidateProgress` | kein sichtbarer Zwischenstand | `Kandidat nach jedem Schritt` | Mechanismuserklärung | kein | zeigt nach jeder verbundenen Änderung den tatsächlich entstehenden vollständigen Zwischenwert | über dem fortgeschriebenen Kandidaten |
+| `S06.comparisonPathLabels.generatedCandidate` | vollständiger Kandidat wurde nicht in der Vergleichskarte gezeigt | `Vollständiger Kandidat` | Ergebnisvorbereitung | kein | zeigt vor dem Urteil den tatsächlich erzeugten Zielwert | unter den Änderungsschritten |
+| `S06.narrations.s06.compare.derived-variant-match.body` | `Die gezeigte Änderung führt zum vollständigen fiktiven Zielpasswort.` | `Die gezeigten Änderungen führen zum vollständigen fiktiven Zielpasswort.` | Ergebnisfeedback | `Weiter` | stimmt Singular/Plural mit dem geordneten Mehrschrittpfad ab; keine neue Sicherheitsbehauptung | keine |
+| S06-Vergleichsanimation | unveränderte Teile wurden verbunden; geänderte Teile blieben ohne paarweise Erklärung; Ergebnis und Angriff konnten vor der vollständigen Erklärung beginnen | Quell- und Zielspan jedes Domänenschritts werden nacheinander als `vorher → nachher` verbunden; nach jedem Schritt ersetzt der daraus entstehende Zwischenkandidat den vorherigen Wert; anschließend erscheinen Abschlusslabel, Ergebnis und erst danach die Angriffslinie | Mechanismuserklärung | `Animation wiederholen`, danach bestehendes `Weiter`/`Fertig` | Entscheidung, Erklärung, Zwischenkandidaten und Animation stammen aus demselben Domänenpfad; Bedeutung wird nachvollziehbar, nicht erweitert | geänderte Paare, Pfeil, Schritttext und fortgeschriebener Kandidat |
+| Reduced Motion | verkürzte Bewegung ohne vollständige explizite Edit-Zuordnung | statischer Endzustand mit allen Quell-/Zielpaaren, Schritttexten und vollständigem Kandidaten | Barrierefreiheit / Mechanismuserklärung | bestehende Navigation | erhält denselben Informationsgehalt ohne zeitliche Staffelung | alle Schritte unmittelbar sichtbar |
+
+Die umfangreichen `accountTerms` der Einzelanalyse bleiben unverändert. Für den neuen
+kontospezifischen S06-Makropfad werden getrennte, kleine `comparisonIdentifiers` verwendet.
+Allgemeine Kontextwörter wie `Profil`, `Hilfe`, `Link`, `Service`, `Campus` oder `Mail` allein
+begründen dadurch keine kontoübergreifende Ersetzung.

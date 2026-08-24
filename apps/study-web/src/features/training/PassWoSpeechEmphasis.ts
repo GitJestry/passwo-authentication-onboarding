@@ -2,6 +2,8 @@ import accountContextAsset from '../../assets/s05/category-logos/account-context
 import commonCoresAsset from '../../assets/s05/category-logos/common-cores.webp';
 import personalDetailsAsset from '../../assets/s05/category-logos/personal-details.webp';
 import typicalChangesAsset from '../../assets/s05/category-logos/typical-changes.webp';
+import samePasswordAsset from '../../assets/password-relations/same.png';
+import similarPasswordAsset from '../../assets/password-relations/similar.png';
 
 export type PassWoSpeechEmphasisTone =
   | 'accent'
@@ -167,8 +169,18 @@ const emphasisBySpeechId: Readonly<Record<string, readonly PassWoSpeechEmphasis[
   's05-final-result': [{ phrase: 'gesamte Zeichenfolge', tone: 'warning' }],
   's05-final-length': [{ phrase: 'mindestens 15 Zeichen', tone: 'accent' }],
   's05-final-spread': [
-    { phrase: 'dasselbe', tone: 'warning', contrastId: 'password-reuse-pattern' },
-    { phrase: 'leicht abgewandelt', tone: 'warning', contrastId: 'password-reuse-pattern' },
+    {
+      phrase: 'dasselbe',
+      tone: 'warning',
+      symbolSrc: samePasswordAsset,
+      contrastId: 'password-reuse-pattern',
+    },
+    {
+      phrase: 'leicht abgewandelt',
+      tone: 'warning',
+      symbolSrc: similarPasswordAsset,
+      contrastId: 'password-reuse-pattern',
+    },
   ],
   's06.transition.s07': [
     { phrase: 'zügig ersetzen und für jedes Konto ein eigenes Passwort verwenden', tone: 'accent' },

@@ -1,5 +1,32 @@
 # S08--S09 Copy Audit
 
+## Darstellungsdelta S08 lokale Warnung getrennt von Campusgram-Ausbreitung, 24. August 2026
+
+Quelle ist der ausdrückliche Nutzerauftrag vom 24. August 2026. Ein Konto wird nur dann mit
+seinen Unterknoten vollständig rot dargestellt, wenn eine aktive Passwortbeziehung von oder zu
+Campusgram besteht. Ein ausschließlich lokal leicht zu erratendes fiktives Passwort bleibt
+ansonsten mit allen Unterknoten neutral und trägt das gelieferte Warnlogo nur auf dem Hauptkonto.
+Starke Konten behalten den blauen Schutzstatus. Nach der Verwendung einer eigenen Passphrase
+verschwindet auch das Warnlogo zusammen mit dem lokalen Fund.
+
+Die Gleichheits- und Abwandlungssymbole auf Risikokanten erhalten ausschließlich eine weiche
+Schattenhervorhebung ohne zusätzliche Kreisfläche. Teilnehmerwortlaut, Interaktion, Persistenz,
+Export, Timing und
+`S08_NETWORK_REPLAY_CONTENT_VERSION 3.8.0` bleiben unverändert.
+
+## Darstellungsdelta S08 Symbole auf Passwortbeziehungen, 24. August 2026
+
+Quelle ist der ausdrückliche Nutzerauftrag vom 24. August 2026. Die roten gestrichelten
+Risikokanten zeigen auf ihrem geometrischen Linienmittelpunkt nun dasselbe Gleichheits- oder
+Abwandlungssymbol wie die S05-Beispiele und die bestimmten S06-Beziehungen. Das vorhandene kleine
+Label bleibt direkt oberhalb des Symbols erhalten, einschließlich des bisherigen Hinweises auf
+das alte Campusgram-Passwort. Beim Auflösen einer Beziehung verschwindet die gesamte Markierung
+zusammen mit Kante und Rauchmoment.
+
+Kantenlogik, Zustände, Interaktionen, Teilnehmerwortlaut, Persistenz, Export und Timing bleiben
+unverändert. Da kein Trainingscontent geändert wird, bleibt
+`S08_NETWORK_REPLAY_CONTENT_VERSION 3.8.0` unverändert.
+
 ## Darstellungsdelta S09 rote Skalierungsknoten nach Kantenaufbau, 24. August 2026
 
 Quelle ist der ausdrückliche Nutzerauftrag vom 24. August 2026. Im bestehenden PassWo-Schritt
