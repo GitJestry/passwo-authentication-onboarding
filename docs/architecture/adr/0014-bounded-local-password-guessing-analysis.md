@@ -36,7 +36,7 @@ NIST-Konformitätsimplementierung.
 ## Entscheidung
 
 `@passwo/password-analysis` bleibt vollständig lokal, deterministisch und frameworkfrei. Die
-Analysekonfiguration erhält die Version `passwo-bounded-whole-recognition-v18`.
+Analysekonfiguration erhält die Version `passwo-bounded-whole-recognition-v19`.
 
 Die interne Verarbeitung trennt drei Ebenen:
 
@@ -104,8 +104,15 @@ Erweiterung an einem Rand möglich, während ein Kollisionsfragment wie `tRot` �
 als eigener Passwortlistenbestandteil übernommen wird.
 Dieselbe Grenze gilt bereits bei der Bildung vollständiger Wörterbuchpartitionen: Ein Kandidat darf
 eine sichtbare Grenze nur überqueren, wenn sowohl sein Anfang als auch sein Ende selbst auf
-unterstützten Grenzen liegen. Dadurch bleibt ein vollständiger Anker wie `IchBin` möglich, während
-die Partition `Ist|Rot` nicht zu `Is|tRot` verschoben werden kann.
+unterstützten Grenzen liegen. Passwortlisten-Vollwerte werden zusätzlich von ihrer sichtbaren
+Segmentierungsautorität getrennt. Überspannt ein Vollwert sichtbare Wortgrenzen, ist selbst kein
+gewöhnliches deutsches oder englisches Wort und lassen sich sämtliche sichtbaren Teile in einer
+einzigen unterstützten Sprache als gewöhnliche Wörter belegen, bleibt er als Angriffskandidat
+erhalten, wird aber nicht als ein Baustein projiziert. Deshalb wird `IchBin` nach außen zu
+`Ich | Bin`. Ein vollständiges gewöhnliches Wort hat dagegen Vorrang; `Maiden` beziehungsweise
+`MaiDen` wird nicht aufgrund der deutschen Teiltreffer `Mai | den` zerlegt. Sichtbare
+Großschreibungsgrenzen allein lösen keine Zerlegung aus. Die bestehende Sperre verhindert weiterhin,
+dass `Ist|Rot` zu `Is|tRot` verschoben wird.
 
 Die vollständige Zerlegung wird je Lauf getrennt für Deutsch und Englisch berechnet. Wörter aus
 beiden Sprachen werden nicht frei zu einer künstlichen Mischpartition kombiniert. Die

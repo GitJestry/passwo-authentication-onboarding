@@ -69,7 +69,7 @@ noch als Forschungsvariable gespeichert.
 
 | Bestandteil | Wert |
 |---|---|
-| Analyse-ID | `passwo-bounded-whole-recognition-v18` |
+| Analyse-ID | `passwo-bounded-whole-recognition-v19` |
 | Engine | `zxcvbn-ts` als Musterquelle |
 | Core | `@zxcvbn-ts/core@4.1.2` |
 | Allgemeines Wörterbuch/Graphen | `@zxcvbn-ts/language-common@4.1.2` |
@@ -168,8 +168,15 @@ Erweiterung an einem Rand möglich, ein inneres Kollisionsfragment wie `tRot` ü
 Grenze `Ist|Rot` wird aber nicht als eigener Passwortlistenbestandteil übernommen.
 Die gleiche Einschränkung wird vor der dynamischen vollständigen Wörterbuchpartition angewandt.
 Kandidaten dürfen eine sichtbare Grenze nur dann überspannen, wenn beide Kandidatenenden selbst
-unterstützte Grenzen sind. Ein vollständiger Listeneintrag `IchBin` bleibt damit zulässig; die
-verschobene Zerlegung `Is|tRot` über `Ist|Rot` ist ausgeschlossen.
+unterstützte Grenzen sind. Vollständige Passwortlisteneinträge erhalten danach eine zusätzliche
+Segmentierungsprüfung: Überspannt ein Eintrag sichtbare Wortgrenzen, ist der vollständige Wert in
+keiner unterstützten Sprache selbst ein gewöhnliches Wort und bilden alle sichtbaren Teile in
+derselben Sprache gewöhnliche Wörter, bleibt der Vollwert nur als Angriffskandidat erhalten. Er
+definiert dann keine sichtbaren Bausteingrenzen. `IchBin` bleibt dadurch für die spätere
+Vollwerterkennung verfügbar, wird in der Bausteinansicht aber als `Ich | Bin` projiziert. Ein
+sprachlich eigenständiger Vollwert hat Vorrang: `Maiden` und selbst die Schreibvariante `MaiDen`
+werden nicht zu den zufällig passenden deutschen Teilwörtern `Mai | den` zerlegt. Die Regel ist
+damit keine pauschale CamelCase-Trennung.
 
 Ein Namensfund muss den vollständigen sichtbaren Abschnitt abdecken. Ein partieller Namensfund wie
 `ZumMo` in `ZumMond` oder `larissa` in `Klarissa` wird verworfen, sofern er nicht als flüchtiger

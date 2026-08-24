@@ -19,7 +19,7 @@ import {
   originalSpanForNormalizedRange,
 } from './case-insensitive-spans.js';
 
-export const PASSWORD_ANALYSIS_CONFIGURATION_VERSION = 'passwo-bounded-whole-recognition-v18';
+export const PASSWORD_ANALYSIS_CONFIGURATION_VERSION = 'passwo-bounded-whole-recognition-v19';
 
 export interface FictionalPasswordAnalysisInput {
   readonly fictionalPassword: string;
@@ -610,6 +610,7 @@ function componentBoundaryOffsets(
 ): ReadonlySet<number> {
   const boundaries = new Set(visibleComponentBoundaryOffsets(input));
   for (const item of trustedFindings) {
+    if (item.segmentationRole === 'candidate-only') continue;
     for (const evidence of item.evidence) {
       if (evidence.type !== 'span') continue;
       boundaries.add(evidence.start);
@@ -813,6 +814,15 @@ interface GuessPathDictionarySpan {
   readonly span: PasswordEvidenceSpan;
 }
 
+interface DictionaryPartitionProjection {
+  readonly findings: readonly PasswordSingleFinding[];
+  readonly candidateOnlyRanges: ReadonlySet<string>;
+}
+
+function evidenceRangeKey(start: number, end: number): string {
+  return `${start}:${end}`;
+}
+
 function compareDictionaryPartitions(
   left: readonly DictionaryPartitionPart[],
   right: readonly DictionaryPartitionPart[],
@@ -901,6 +911,82 @@ function partitionCandidatesForLanguage(
   return candidatesByStart;
 }
 
+/**
+ * A password-list value may be useful as one attack candidate without being a meaningful visible
+ * component. Split it only when the original spelling exposes at least one boundary, every visible
+ * part is an ordinary word in the same language, and the complete value is not itself an ordinary
+ * German or English word. The whole-word guard keeps values such as `Maiden` or `MaiDen` intact.
+ */
+function hasMonolingualVisibleWordPartition(
+  normalizedValue: string,
+  start: number,
+  end: number,
+  visibleLexicalBoundaries: ReadonlySet<number>,
+): boolean {
+  const internalBoundaries = [...visibleLexicalBoundaries]
+    .filter((boundary) => boundary > start && boundary < end)
+    .sort((left, right) => left - right);
+  if (internalBoundaries.length === 0) return false;
+
+  const completeToken = normalizedValue.slice(start, end);
+  if (approvedOrdinaryWordTokens.has(completeToken)) return false;
+
+  const boundaries = [start, ...internalBoundaries, end];
+  return (['de', 'en'] as const).some((language) =>
+    boundaries.slice(0, -1).every((partStart, index) => {
+      const partEnd = boundaries[index + 1];
+      return (
+        partEnd !== undefined &&
+        supplementalWordsByLanguage[language].has(normalizedValue.slice(partStart, partEnd))
+      );
+    }),
+  );
+}
+
+function collectCandidateOnlyPasswordRanges(
+  normalizedValue: string,
+  candidatesByLanguage: Readonly<
+    Record<SupplementalLanguage, ReadonlyMap<number, readonly DictionaryPartitionPart[]>>
+  >,
+  visibleLexicalBoundaries: ReadonlySet<number>,
+): ReadonlySet<string> {
+  const ranges = new Set<string>();
+  for (const language of ['de', 'en'] as const) {
+    for (const candidates of candidatesByLanguage[language].values()) {
+      for (const candidate of candidates) {
+        if (candidate.kind !== 'common-password-core') continue;
+        if (
+          hasMonolingualVisibleWordPartition(
+            normalizedValue,
+            candidate.start,
+            candidate.end,
+            visibleLexicalBoundaries,
+          )
+        ) {
+          ranges.add(evidenceRangeKey(candidate.start, candidate.end));
+        }
+      }
+    }
+  }
+  return ranges;
+}
+
+function omitCandidateOnlyPasswordRanges(
+  candidatesByStart: ReadonlyMap<number, readonly DictionaryPartitionPart[]>,
+  candidateOnlyRanges: ReadonlySet<string>,
+): ReadonlyMap<number, readonly DictionaryPartitionPart[]> {
+  const retained = new Map<number, readonly DictionaryPartitionPart[]>();
+  for (const [start, candidates] of candidatesByStart) {
+    const filtered = candidates.filter(
+      (candidate) =>
+        candidate.kind !== 'common-password-core' ||
+        !candidateOnlyRanges.has(evidenceRangeKey(candidate.start, candidate.end)),
+    );
+    if (filtered.length > 0) retained.set(start, filtered);
+  }
+  return retained;
+}
+
 function bestDictionaryPartition(
   candidatesByStart: ReadonlyMap<number, readonly DictionaryPartitionPart[]>,
   start: number,
@@ -947,8 +1033,9 @@ function collectDictionaryPartitionFindings(
   input: string,
   guessPathFindings: readonly PasswordSingleFinding[],
   structuralBoundaryFindings: readonly PasswordSingleFinding[] = [],
-): readonly PasswordSingleFinding[] {
+): DictionaryPartitionProjection {
   const findings: PasswordSingleFinding[] = [];
+  const candidateOnlyRanges = new Set<string>();
   const guessPathSpans: GuessPathDictionarySpan[] = [];
   for (const item of guessPathFindings) {
     if (
@@ -985,8 +1072,9 @@ function collectDictionaryPartitionFindings(
         }
       }
     }
+    const visibleLexicalOriginalBoundaries = letterRunBoundaries(run);
     const supportedOriginalBoundaries = new Set([
-      ...letterRunBoundaries(run),
+      ...visibleLexicalOriginalBoundaries,
       ...additionalOriginalBoundaries,
     ]);
     const normalizedStarts = new Set<number>([0]);
@@ -1015,7 +1103,16 @@ function collectDictionaryPartitionFindings(
       );
       if (normalizedBoundary !== null) protectedNormalizedBoundaries.add(normalizedBoundary);
     }
-    const candidatesByLanguage = {
+    const visibleLexicalNormalizedBoundaries = new Set<number>();
+    for (const boundary of visibleLexicalOriginalBoundaries) {
+      const normalizedBoundary = normalizedBoundaryForOriginalOffset(
+        normalizedRun,
+        boundary,
+        run.length,
+      );
+      if (normalizedBoundary !== null) visibleLexicalNormalizedBoundaries.add(normalizedBoundary);
+    }
+    const unfilteredCandidatesByLanguage = {
       de: partitionCandidatesForLanguage(
         normalizedRun.value,
         normalizedStarts,
@@ -1029,6 +1126,64 @@ function collectDictionaryPartitionFindings(
         normalizedEnds,
         'en',
         protectedNormalizedBoundaries,
+      ),
+    } as const;
+    const candidateOnlyNormalizedRanges = collectCandidateOnlyPasswordRanges(
+      normalizedRun.value,
+      unfilteredCandidatesByLanguage,
+      visibleLexicalNormalizedBoundaries,
+    );
+    const previouslySelectedCandidateOnlyRanges = new Set(
+      (
+        bestLanguagePartition(
+          unfilteredCandidatesByLanguage,
+          0,
+          normalizedRun.value.length,
+        ) ?? []
+      )
+        .filter(
+          (part) =>
+            part.kind === 'common-password-core' &&
+            candidateOnlyNormalizedRanges.has(evidenceRangeKey(part.start, part.end)),
+        )
+        .map((part) => evidenceRangeKey(part.start, part.end)),
+    );
+    for (const range of candidateOnlyNormalizedRanges) {
+      const [normalizedStartText, normalizedEndText] = range.split(':');
+      const normalizedStart = Number(normalizedStartText);
+      const normalizedEnd = Number(normalizedEndText);
+      if (!Number.isInteger(normalizedStart) || !Number.isInteger(normalizedEnd)) continue;
+      const originalSpan = originalSpanForNormalizedRange(
+        normalizedRun,
+        normalizedStart,
+        normalizedEnd,
+      );
+      if (originalSpan === null) continue;
+      const start = runStart + originalSpan[0];
+      const end = runStart + originalSpan[1];
+      candidateOnlyRanges.add(evidenceRangeKey(start, end));
+      if (previouslySelectedCandidateOnlyRanges.has(range)) {
+        findings.push({
+          ...finding(
+            input,
+            'common-password-core',
+            start,
+            end,
+            'bounded-heuristic',
+            findings.length,
+          ),
+          segmentationRole: 'candidate-only',
+        });
+      }
+    }
+    const candidatesByLanguage = {
+      de: omitCandidateOnlyPasswordRanges(
+        unfilteredCandidatesByLanguage.de,
+        candidateOnlyNormalizedRanges,
+      ),
+      en: omitCandidateOnlyPasswordRanges(
+        unfilteredCandidatesByLanguage.en,
+        candidateOnlyNormalizedRanges,
       ),
     } as const;
     const allPartitionCandidates = [
@@ -1107,6 +1262,11 @@ function collectDictionaryPartitionFindings(
           run.length,
         );
         if (normalizedStart === null || normalizedEnd === null || normalizedEnd <= normalizedStart) {
+          continue;
+        }
+        if (
+          candidateOnlyNormalizedRanges.has(evidenceRangeKey(normalizedStart, normalizedEnd))
+        ) {
           continue;
         }
         const supported = dictionarySpanHasSupportedBoundary(
@@ -1205,7 +1365,7 @@ function collectDictionaryPartitionFindings(
       }
     }
   }
-  return findings;
+  return { findings, candidateOnlyRanges };
 }
 
 function findingsFromGuessPath(
@@ -2127,9 +2287,11 @@ function suppressDictionaryFindingsCoveredByPreferredDictionaryFinding(
 
   const suppressedIds = new Set<string>();
   for (const entry of dictionaryEntries) {
+    if (entry.finding.segmentationRole === 'candidate-only') continue;
     const entryPriority = supplementalDictionaryPriority[entry.finding.kind];
     const covered = dictionaryEntries.some((candidate) => {
       if (candidate.finding.id === entry.finding.id) return false;
+      if (candidate.finding.segmentationRole === 'candidate-only') return false;
       const candidatePriority = supplementalDictionaryPriority[candidate.finding.kind];
       const candidateIsCuratedCompound = curatedGermanCompoundTokens.has(
         candidate.span.token.toLocaleLowerCase('de-DE'),
@@ -2144,6 +2306,26 @@ function suppressDictionaryFindingsCoveredByPreferredDictionaryFinding(
     if (covered) suppressedIds.add(entry.finding.id);
   }
   return findings.filter((item) => !suppressedIds.has(item.id));
+}
+
+function markCandidateOnlySegmentationFindings(
+  findings: readonly PasswordSingleFinding[],
+  candidateOnlyRanges: ReadonlySet<string>,
+): readonly PasswordSingleFinding[] {
+  if (candidateOnlyRanges.size === 0) return findings;
+  return findings.map((item) => {
+    if (item.kind !== 'common-password-core' && item.kind !== 'typical-transformation') {
+      return item;
+    }
+    const hasCandidateOnlyRange = item.evidence.some(
+      (evidence) =>
+        evidence.type === 'span' &&
+        candidateOnlyRanges.has(evidenceRangeKey(evidence.start, evidence.end)),
+    );
+    return hasCandidateOnlyRange
+      ? { ...item, segmentationRole: 'candidate-only' as const }
+      : item;
+  });
 }
 
 function removeOrphanedTypicalTransformations(
@@ -2224,11 +2406,11 @@ export function analyzeFictionalPassword({
     ),
   ].filter((term) => term.length >= 3);
   const result = zxcvbnFactory.check(fictionalPassword, trimmedAccountTerms);
-  const rawGuessPathFindings = filterUnsupportedGuessPathDictionaryFragments(
+  const unclassifiedGuessPathFindings = filterUnsupportedGuessPathDictionaryFragments(
     fictionalPassword,
     findingsFromGuessPath(fictionalPassword, result.sequence),
   );
-  const rawRepeatedBaseFindings = filterUnsupportedGuessPathDictionaryFragments(
+  const unclassifiedRepeatedBaseFindings = filterUnsupportedGuessPathDictionaryFragments(
     fictionalPassword,
     findingsFromRepeatedBases(
       fictionalPassword,
@@ -2237,13 +2419,21 @@ export function analyzeFictionalPassword({
     ),
   );
   const deterministicKeyboardFindings = collectDeterministicKeyboardFindings(fictionalPassword);
-  const dictionaryPartitionFindings = collectDictionaryPartitionFindings(
+  const dictionaryPartitionProjection = collectDictionaryPartitionFindings(
     fictionalPassword,
-    [...rawGuessPathFindings, ...rawRepeatedBaseFindings],
+    [...unclassifiedGuessPathFindings, ...unclassifiedRepeatedBaseFindings],
     deterministicKeyboardFindings,
   );
+  const rawGuessPathFindings = markCandidateOnlySegmentationFindings(
+    unclassifiedGuessPathFindings,
+    dictionaryPartitionProjection.candidateOnlyRanges,
+  );
+  const rawRepeatedBaseFindings = markCandidateOnlySegmentationFindings(
+    unclassifiedRepeatedBaseFindings,
+    dictionaryPartitionProjection.candidateOnlyRanges,
+  );
   const accountBoundaries = componentBoundaryOffsets(fictionalPassword, [
-    ...dictionaryPartitionFindings,
+    ...dictionaryPartitionProjection.findings,
     ...deterministicKeyboardFindings,
   ]);
   const guessPathFindings = filterUnsupportedAccountTermFindings(
@@ -2291,7 +2481,7 @@ export function analyzeFictionalPassword({
             ...guessPathFindings,
             ...repeatedBaseFindings,
             ...deterministicKeyboardFindings,
-            ...dictionaryPartitionFindings,
+            ...dictionaryPartitionProjection.findings,
             ...exactAccountTermFindings,
             ...fuzzyAccountTermFindings,
             ...yearFindings,
@@ -2426,6 +2616,7 @@ export function analyzeFictionalPasswordStructure({
 }: FictionalPasswordStructureAnalysisInput): PasswordStructureAnalysisResult {
   const findings: RuntimeStructureFinding[] = [];
   const concreteComponentFindings = componentAnalysis.findings.flatMap((item) => {
+    if (item.segmentationRole === 'candidate-only') return [];
     const evidence = getValidatedEvidenceSpans(fictionalPassword, item);
     return evidence === null ? [] : [{ ...item, evidence }];
   });

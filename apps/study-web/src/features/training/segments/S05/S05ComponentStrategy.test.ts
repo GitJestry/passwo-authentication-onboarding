@@ -102,6 +102,45 @@ describe('S05 component strategy presentation', () => {
     });
   });
 
+  it('shows IchBin as two understandable components without changing whole-candidate recognition', () => {
+    const password = 'IchBin';
+    const analysis = analyzeFictionalPassword({ fictionalPassword: password });
+    const view = createCanonicalPasswordView(password, analysis);
+    const disposition = determinePasswordSimulationDisposition({
+      fictionalPassword: password,
+      componentAnalysis: analysis,
+    });
+
+    expect(view.blocks.map(({ value }) => value)).toEqual(['Ich', 'Bin']);
+    expect(
+      view.automaticFindings['common-components'].map(({ start, end }) =>
+        password.slice(start, end),
+      ),
+    ).toEqual(expect.arrayContaining(['Ich', 'Bin']));
+    expect(
+      view.automaticFindings['common-components'].map(({ start, end }) =>
+        password.slice(start, end),
+      ),
+    ).not.toContain('IchBin');
+    expect(disposition).toMatchObject({ kind: 'whole-password-recognized' });
+  });
+
+  it.each(['Maiden', 'MaiDen'])(
+    'keeps the meaningful English word %s as one visible component',
+    (password) => {
+      const analysis = analyzeFictionalPassword({ fictionalPassword: password });
+      const view = createCanonicalPasswordView(password, analysis);
+      const visibleTokens = view.automaticFindings['common-components'].map(({ start, end }) =>
+        password.slice(start, end),
+      );
+
+      expect(view.blocks.map(({ value }) => value)).toEqual([password]);
+      expect(visibleTokens).toContain(password);
+      expect(visibleTokens).not.toContain('Mai');
+      expect(visibleTokens).not.toContain('Den');
+    },
+  );
+
   it('does not treat two candidates covering the password as a single-candidate match', () => {
     const password = 'Passw0rtSommer';
     const view = createCanonicalPasswordView(

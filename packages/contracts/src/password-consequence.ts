@@ -1,5 +1,7 @@
 export type PasswordFindingConfidence = 'authored-exact-match' | 'bounded-heuristic';
 
+export type PasswordFindingSegmentationRole = 'component' | 'candidate-only';
+
 export interface PasswordEvidenceSpan {
   readonly type: 'span';
   readonly start: number;
@@ -35,6 +37,11 @@ export interface PasswordSingleFinding {
   readonly evidence: readonly PasswordEvidence[];
   readonly explanationId: string;
   readonly confidence: PasswordFindingConfidence;
+  /**
+   * `candidate-only` findings remain available for whole-candidate recognition but must not
+   * define learner-facing component boundaries. Omission is equivalent to `component`.
+   */
+  readonly segmentationRole?: PasswordFindingSegmentationRole;
 }
 
 export type PasswordGuessPathPattern =

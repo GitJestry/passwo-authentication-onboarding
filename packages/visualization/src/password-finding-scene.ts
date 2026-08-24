@@ -14,14 +14,17 @@ export function createPasswordFindingScene(
   id: string,
   runtimeAnalysis: PasswordAnalysisResult,
 ): PasswordFindingSceneSnapshot {
-  const prioritizedFindings = runtimeAnalysis.findings.slice(0, MAX_VISIBLE_PASSWORD_FINDINGS);
+  const componentFindings = runtimeAnalysis.findings.filter(
+    ({ segmentationRole }) => segmentationRole !== 'candidate-only',
+  );
+  const prioritizedFindings = componentFindings.slice(0, MAX_VISIBLE_PASSWORD_FINDINGS);
   return {
     id,
     runtimeAnalysis,
     prioritizedFindings,
     omittedFindingCount: Math.max(
       0,
-      runtimeAnalysis.findings.length - prioritizedFindings.length,
+      componentFindings.length - prioritizedFindings.length,
     ),
     accessibleSummary:
       prioritizedFindings.length === 1 &&

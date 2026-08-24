@@ -622,7 +622,8 @@ describe('local fictional password analysis', () => {
   it('does not shift a complete partition across a visible CamelCase boundary', () => {
     const result = analyzeFictionalPassword({ fictionalPassword: 'IchBinEisSieIstRot' });
     const dictionaryTokens = result.findings.flatMap((finding) =>
-      finding.kind === 'common-password-core' || finding.kind === 'common-word'
+      finding.segmentationRole !== 'candidate-only' &&
+      (finding.kind === 'common-password-core' || finding.kind === 'common-word')
         ? finding.evidence.flatMap((evidence) =>
             evidence.type === 'span' ? [evidence.token.toLocaleLowerCase('de-DE')] : [],
           )
@@ -630,11 +631,89 @@ describe('local fictional password analysis', () => {
     );
 
     expect(dictionaryTokens).toEqual(
-      expect.arrayContaining(['ichbin', 'eis', 'sie', 'ist', 'rot']),
+      expect.arrayContaining(['ich', 'bin', 'eis', 'sie', 'ist', 'rot']),
     );
+    expect(dictionaryTokens).not.toContain('ichbin');
     expect(dictionaryTokens).not.toContain('is');
     expect(dictionaryTokens).not.toContain('trot');
+    expect(result.findings).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          kind: 'common-password-core',
+          segmentationRole: 'candidate-only',
+          evidence: [{ type: 'span', start: 0, end: 6, token: 'IchBin' }],
+        }),
+      ]),
+    );
   });
+
+  it('keeps an opaque password-list value for recognition but exposes its German words', () => {
+    const fictionalPassword = 'IchBin';
+    const result = analyzeFictionalPassword({ fictionalPassword });
+    const candidateOnlyFinding = result.findings.find(
+      (finding) =>
+        finding.kind === 'common-password-core' &&
+        finding.segmentationRole === 'candidate-only' &&
+        finding.evidence.some(
+          (evidence) =>
+            evidence.type === 'span' &&
+            evidence.start === 0 &&
+            evidence.end === fictionalPassword.length,
+        ),
+    );
+    const componentTokens = result.findings.flatMap((finding) =>
+      finding.segmentationRole !== 'candidate-only' && finding.kind === 'common-word'
+        ? finding.evidence.flatMap((evidence) =>
+            evidence.type === 'span' ? [evidence.token] : [],
+          )
+        : [],
+    );
+    const disposition = determinePasswordSimulationDisposition({
+      fictionalPassword,
+      componentAnalysis: result,
+    });
+
+    expect(candidateOnlyFinding).toBeDefined();
+    expect(componentTokens).toEqual(expect.arrayContaining(['Ich', 'Bin']));
+    expect(componentTokens).not.toContain('IchBin');
+    expect(disposition).toMatchObject({ kind: 'whole-password-recognized' });
+    if (disposition.kind === 'whole-password-recognized' && candidateOnlyFinding !== undefined) {
+      expect(disposition.findingIds).toContain(candidateOnlyFinding.id);
+    }
+  });
+
+  it.each(['Maiden', 'MaiDen'])(
+    'keeps the complete English word %s instead of inventing a German partition',
+    (fictionalPassword) => {
+      const result = analyzeFictionalPassword({ fictionalPassword });
+      const componentTokens = result.findings.flatMap((finding) =>
+        finding.segmentationRole !== 'candidate-only' &&
+        (finding.kind === 'common-password-core' || finding.kind === 'common-word')
+          ? finding.evidence.flatMap((evidence) =>
+              evidence.type === 'span'
+                ? [evidence.token.toLocaleLowerCase('en-US')]
+                : [],
+            )
+          : [],
+      );
+
+      expect(componentTokens).toContain('maiden');
+      expect(componentTokens).not.toContain('mai');
+      expect(componentTokens).not.toContain('den');
+      expect(
+        result.findings.some(
+          (finding) =>
+            finding.segmentationRole === 'candidate-only' &&
+            finding.evidence.some(
+              (evidence) =>
+                evidence.type === 'span' &&
+                evidence.start === 0 &&
+                evidence.end === fictionalPassword.length,
+            ),
+        ),
+      ).toBe(false);
+    },
+  );
 
   it('rejects a mixed or reversed word-sequence candidate before it can cut canonical words', () => {
     const fictionalPassword = 'IchBinMeinStarkesUniPassw0rt123!!!!';
@@ -656,9 +735,27 @@ describe('local fictional password analysis', () => {
     expect(tokensByKind.get('predictable-word-sequence') ?? []).not.toContain('einStar');
     expect(tokensByKind.get('account-or-service-term')).toEqual(['Uni']);
     expect(tokensByKind.get('common-word')).toEqual(
-      expect.arrayContaining(['Mein', 'Starkes']),
+      expect.arrayContaining(['Ich', 'Bin', 'Mein', 'Starkes']),
     );
-    expect(tokensByKind.get('typical-transformation')).toEqual(['Passw0rt']);
+    expect(result.findings).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          kind: 'common-password-core',
+          segmentationRole: 'candidate-only',
+          evidence: [{ type: 'span', start: 0, end: 6, token: 'IchBin' }],
+        }),
+      ]),
+    );
+    expect(
+      result.findings.flatMap((finding) =>
+        finding.kind === 'typical-transformation' &&
+        finding.segmentationRole !== 'candidate-only'
+          ? finding.evidence.flatMap((evidence) =>
+              evidence.type === 'span' ? [evidence.token] : [],
+            )
+          : [],
+      ),
+    ).toEqual(['Passw0rt']);
     expect(
       result.guessPath.matches.map((match) =>
         fictionalPassword.slice(match.start, match.end),
@@ -728,7 +825,8 @@ describe('local fictional password analysis', () => {
   it('keeps the CamelCase partition stable when an adjacent punctuation repeat follows it', () => {
     const result = analyzeFictionalPassword({ fictionalPassword: 'IchBinEisSieIstRot????' });
     const dictionaryTokens = result.findings.flatMap((finding) =>
-      finding.kind === 'common-password-core' || finding.kind === 'common-word'
+      finding.segmentationRole !== 'candidate-only' &&
+      (finding.kind === 'common-password-core' || finding.kind === 'common-word')
         ? finding.evidence.flatMap((evidence) =>
             evidence.type === 'span' ? [evidence.token.toLocaleLowerCase('de-DE')] : [],
           )
@@ -736,8 +834,9 @@ describe('local fictional password analysis', () => {
     );
 
     expect(dictionaryTokens).toEqual(
-      expect.arrayContaining(['ichbin', 'eis', 'sie', 'ist', 'rot']),
+      expect.arrayContaining(['ich', 'bin', 'eis', 'sie', 'ist', 'rot']),
     );
+    expect(dictionaryTokens).not.toContain('ichbin');
     expect(dictionaryTokens).not.toContain('is');
     expect(dictionaryTokens).not.toContain('trot');
   });
@@ -799,7 +898,7 @@ describe('local fictional password analysis', () => {
       expect(expectedKinds.some((expectedKind) => actualKinds.includes(expectedKind))).toBe(true);
       expect(result.guessPath).toMatchObject({
         engineId: 'zxcvbn-ts',
-        configurationVersion: 'passwo-bounded-whole-recognition-v18',
+        configurationVersion: 'passwo-bounded-whole-recognition-v19',
       });
       for (const finding of result.findings) {
         expect(finding.id).toMatch(/^single:/u);
@@ -825,7 +924,7 @@ describe('local fictional password analysis', () => {
     expect(disposition).toEqual({
       kind: 'no-whole-password-recognized',
       lengthOrientation: 'at-least-15',
-      analysisVersion: 'passwo-bounded-whole-recognition-v18',
+      analysisVersion: 'passwo-bounded-whole-recognition-v19',
       explanationId: 's05.disposition.no-whole-password-recognized',
     });
   });
@@ -870,7 +969,7 @@ describe('local fictional password analysis', () => {
 
       expect(disposition).toMatchObject({
         kind: 'whole-password-recognized',
-        analysisVersion: 'passwo-bounded-whole-recognition-v18',
+        analysisVersion: 'passwo-bounded-whole-recognition-v19',
       });
     },
   );

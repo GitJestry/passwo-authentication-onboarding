@@ -199,7 +199,7 @@ Seitenangaben beziehen sich auf die im Trainingsdokument ausgewiesene interne Pa
   entfallen; danach folgt direkt die bestehende lokale Campusgram-Auswertung. Die Demonstration
   analysiert oder persistiert keine Eingabe.
 - Die S05-Simulationsdisposition (`S05_CONTENT_VERSION 2.127.0`, Analysekonfiguration
-  `passwo-bounded-whole-recognition-v18`) bleibt auf den vollständigen fiktiven Wert begrenzt:
+  `passwo-bounded-whole-recognition-v19`) bleibt auf den vollständigen fiktiven Wert begrenzt:
   `whole-password-recognized` entsteht durch einen direkten Vollwert oder eine dokumentierte
   begrenzte Kandidatenfamilie aus kanonischen Ankern und positionsunabhängigen Restzeichen oder
   durch einen flüchtigen, von der teilnehmenden Person bestätigten semantischen Kandidatenweg.
@@ -209,8 +209,12 @@ Seitenangaben beziehen sich auf die im Trainingsdokument ausgewiesene interne Pa
   beziehungsweise Partitionen zulässig. Kuratierte Abkürzungen werden davon getrennt behandelt.
   Von zxcvbn vorgeschlagene Wortfolgen werden nur bei direkter Schreibweise benachbarter Einträge
   derselben Sequenzliste übernommen; authored Konto-/Diensttreffer müssen auf sichtbaren oder
-  lexikalisch belegten Komponentengrenzen liegen. Unterdrückte Basistreffer hinterlassen keine
-  verwaisten Transformationsgrenzen in der S05-Projektion.
+  lexikalisch belegten Komponentengrenzen liegen. Ein Passwortlisten-Vollwert, der selbst kein
+  gewöhnliches deutsches oder englisches Wort ist, darf keine sichtbaren Wortgrenzen überdecken,
+  wenn seine Teile gemeinsam eine vollständige einsprachige Wortzerlegung bilden: `IchBin` bleibt
+  Angriffskandidat, erscheint aber als `Ich | Bin`. Vollständige Wörter haben Vorrang, sodass
+  `Maiden` beziehungsweise `MaiDen` nicht künstlich als `Mai | den` projiziert wird. Unterdrückte
+  Basistreffer hinterlassen keine verwaisten Transformationsgrenzen in der S05-Projektion.
   Eigene maximale Tastaturspans erzeugen Grenzen für angrenzende Wörter; vollständige
   Kontobegriffe, Jahre und authored Komposita haben Vorrang vor inneren Wörterbuch- beziehungsweise
   Endungstreffern. Getrennte und einmal veränderte Wiederholungen werden über mehrere belegte Spans

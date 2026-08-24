@@ -547,10 +547,11 @@ export function createCanonicalPasswordView(
   analysis: PasswordAnalysisResult,
 ): S05CanonicalPasswordView {
   const findingsWithSpans = analysis.findings.flatMap((finding) =>
-    commonComponentKinds.has(finding.kind) ||
-    finding.kind === 'account-or-service-term' ||
-    finding.kind === 'typical-transformation' ||
-    finding.kind === 'typical-suffix'
+    finding.segmentationRole !== 'candidate-only' &&
+    (commonComponentKinds.has(finding.kind) ||
+      finding.kind === 'account-or-service-term' ||
+      finding.kind === 'typical-transformation' ||
+      finding.kind === 'typical-suffix')
       ? evidenceSpans(finding).map((span) => ({ finding, span }))
       : [],
   );
