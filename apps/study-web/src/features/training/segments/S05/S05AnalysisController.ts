@@ -865,6 +865,7 @@ export class S05AnalysisController {
       this.#disposed ||
       snapshot === null ||
       snapshot.step !== 'structure-theme-reflection' ||
+      structureReflectionBlockIds(snapshot).length < 2 ||
       !snapshot.structureReflection.contentGroups.some(({ id }) => id === groupId)
     ) {
       return;
@@ -888,7 +889,8 @@ export class S05AnalysisController {
     ) {
       return;
     }
-    if (!structureReflectionBlockIds(snapshot).includes(blockId)) return;
+    const blockIds = structureReflectionBlockIds(snapshot);
+    if (blockIds.length < 2 || !blockIds.includes(blockId)) return;
     const reflection = snapshot.structureReflection;
     const activeGroup = reflection.contentGroups.find(
       ({ id }) => id === reflection.activeContentGroupId,
@@ -920,7 +922,8 @@ export class S05AnalysisController {
     if (
       this.#disposed ||
       snapshot === null ||
-      snapshot.step !== 'structure-theme-reflection'
+      snapshot.step !== 'structure-theme-reflection' ||
+      structureReflectionBlockIds(snapshot).length < 2
     ) {
       return false;
     }
@@ -955,7 +958,8 @@ export class S05AnalysisController {
     if (
       this.#disposed ||
       snapshot === null ||
-      snapshot.step !== 'structure-theme-reflection'
+      snapshot.step !== 'structure-theme-reflection' ||
+      structureReflectionBlockIds(snapshot).length < 2
     ) {
       return;
     }
@@ -1028,6 +1032,7 @@ export class S05AnalysisController {
       return;
     }
     const blockIds = structureReflectionBlockIds(snapshot);
+    if (blockIds.length < 2) return;
     const fromIndex = blockIds.indexOf(fromBlockId);
     if (fromIndex < 0 || blockIds[fromIndex + 1] !== toBlockId) return;
     const reflection = snapshot.structureReflection;

@@ -73,7 +73,7 @@ export interface S05DesignLabFixture {
   readonly startSection: 'intro' | 'components' | 'structure';
 }
 
-export const S05_CONTENT_VERSION = '2.127.0';
+export const S05_CONTENT_VERSION = '2.131.0';
 
 export const s05Content = {
   version: S05_CONTENT_VERSION,
@@ -83,9 +83,9 @@ export const s05Content = {
       12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34,
       35,
     ] as const,
-    revision: 'Userauftrag vom 2026-08-24 · geläufiges Wort in Logo-Information',
+    revision: 'Userauftrag vom 2026-08-24 · Strukturhinweis gekürzt',
     copyReference:
-      'docs/design/S00-S05-COPY-AUDIT.md#copydelta-s05-geläufiges-wort-in-logo-information-24-august-2026',
+      'docs/design/S00-S05-COPY-AUDIT.md#copydelta-s05-strukturhinweis-gekuerzt-24-august-2026',
   },
   segment: {
     id: 'S05',
@@ -420,12 +420,14 @@ export const s05Content = {
       groupLabel: 'Zusammenhang',
       newGroup: 'Neuer Zusammenhang',
       maxGroupCount: 3,
-      maxGroups: 'Max. 3 Zusammenhänge',
       deleteGroup: 'Löschen',
+      structureMode: 'Struktur',
+      relationshipSinglePart:
+        'Hier wurde nur ein Teil erkannt. Vielleicht siehst du selbst noch Zusammenhänge, die nicht erkannt wurden.',
+      structureSinglePart:
+        'Vielleicht siehst du selbst noch eine Struktur, die nicht erkannt wurde.',
+      requiresMultipleComponents: 'Nur ein Teil erkannt.',
       finish: 'Fertig',
-      confirmTitle: 'Auswahl übernehmen?',
-      confirmBack: 'Zurück',
-      confirmContinue: 'Weiter',
     },
     application: {
       passwordLabel: 'Campusgram-Passwort',

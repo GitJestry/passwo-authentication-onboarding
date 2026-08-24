@@ -1,5 +1,78 @@
 # S06--S07 Copy Audit
 
+## Interaktionsdelta S06 Filzstift während des gesamten persönlichen Modus, 24. August 2026
+
+Quelle ist der ausdrückliche Nutzerauftrag vom 24. August 2026 und dessen anschließende
+Präzisierung. Solange der Modus `Persönliches` aktiv ist, bleibt der vorhandene lila-pinke
+Filzstiftcursor am Zeiger sichtbar. Das gilt für die gesamte Study-Oberfläche und nicht erst in
+der Nähe der Passwort-Markierungsfläche oder beim Hover über ein einzelnes Zeichen.
+Tastaturbedienung, Fokusdarstellung, Auswahlverhalten, Analyse, ausschließlich flüchtige
+semantische Evidenz, Persistenz, Export und Timing ändern sich nicht. Da kein Teilnehmertext oder
+Trainingscontent geändert wird, bleibt `S06_CONSEQUENCE_CONTENT_VERSION 2.43.0` unverändert.
+
+Während die linke Maustaste für eine einzelne Auswahl oder zum Aufziehen eines
+zusammenhängenden Bereichs gedrückt bleibt, erscheinen die noch nicht bestätigten Zeichen in
+einem etwas dunkleren Pink. Erst beim Loslassen wechselt der übernommene Bereich in den bestehenden
+helleren finalen Pinkton. Damit bleiben Vorschau und feststehende Markierung auch ohne Bewegung
+unterscheidbar; Farbe ist wegen des gedrückten Auswahlzustands und der bestehenden Bereichsgrenzen
+nicht der einzige Bedeutungsträger.
+
+## Copy- und Interaktionsdelta S06 freie persönliche Markierung, 24. August 2026
+
+Quelle ist der ausdrückliche Nutzerauftrag vom 24. August 2026. Die lokale Reflexion startet
+direkt im Modus `Persönliches`; `Zusammenhang` erhält keinen initialen aktiven Zustand. Innerhalb
+der gemeinsamen Bausteinansicht können weiterhin einzelne Zeichen oder frei gezogene
+zusammenhängende Zeichenbereiche markiert und wieder entfernt werden, auch über Bausteingrenzen
+hinweg. Vorhandene Zusammenhangsflächen, Strukturpfeile und Kategorienlogo-Hoverkarten bleiben
+dabei sichtbar. Der lila-pinke Filzstiftcursor aus S05 zeigt auf Zeigergeräten unmittelbar die
+Markierhandlung an; Tastaturauswahl, Fokusdarstellung und Live-Rückmeldungen bleiben erhalten.
+
+Der Ein-Teil-Hinweis der gesperrten Buttons `Zusammenhang` und `Struktur` wechselt von
+`Erst ab zwei Bausteinen verfügbar.` zu dem in S05 verwendeten Text `Nur ein Teil erkannt.`. Die
+Textrolle bleibt Navigation. Analyse, ausschließlich flüchtige semantische Evidenz, Persistenz,
+Export und Timing bleiben unverändert. `S06_CONSEQUENCE_CONTENT_VERSION` wird von `2.42.0` auf
+`2.43.0` erhöht.
+
+| Segment und Text-ID | Quelle | Aktueller Text | Geplanter Text | Primäre Rolle | Grund | Bedeutungsänderung | Interaktionsziel | Hervorhebung |
+|---|---|---|---|---|---|---|---|---|
+| `S06.page.localReflection.requiresMultipleComponents` | Nutzerauftrag vom 2026-08-24 | `Erst ab zwei Bausteinen verfügbar.` | `Nur ein Teil erkannt.` | Navigation | gleicht den Hover- und Fokushinweis an S05 an | nein | gesperrte Buttons `Zusammenhang` und `Struktur` | durchgestrichenes Kugelsymbol |
+
+## Interaktionsdelta S06 gemeinsame Bausteinansicht, 24. August 2026
+
+Quelle ist der ausdrückliche Nutzerauftrag vom 24. August 2026. Der Modus `Persönliches` öffnet
+keine separate Zeichenansicht mehr. Alle drei Modi verwenden dieselben sichtbaren Analysebausteine
+mit denselben Kategorienlogos und Hover-/Fokuskarten. Bereits markierte Zusammenhänge und
+Strukturpfeile bleiben auch im persönlichen Modus sichtbar. Ein Klick auf einen Baustein markiert
+oder entfernt dessen vollständigen Zeichenbereich als persönliche Angabe; die lila-pinke
+zeichenpräzise Rückmeldung und das persönliche Kategorienlogo bleiben erhalten.
+
+Die Änderung ersetzt für S06 die frühere Vorgabe einer separaten persönlichen Bereichsauswahl.
+Analyse und flüchtige semantische Evidenz bleiben in den vorhandenen Ports; Persistenz, Export und
+Timing ändern sich nicht. Teilnehmertexte bleiben unverändert.
+`S06_CONSEQUENCE_CONTENT_VERSION` wird von `2.41.0` auf `2.42.0` erhöht.
+
+## Copy- und Interaktionsdelta S06 Ein-Baustein-Sperre und Zusammenhangsvorschau, 24. August 2026
+
+Quelle ist der ausdrückliche Nutzerauftrag vom 24. August 2026. Wenn die lokale Projektion eines
+fiktiven Passworts nur einen Baustein enthält, sind die Modi `Zusammenhang` und `Struktur` nicht
+anwendbar. Beide Modusbuttons werden grau und zeigen das vorhandene durchgestrichene Kugelsymbol.
+Hover oder Tastaturfokus zeigt jeweils `Erst ab zwei Bausteinen verfügbar.`. Die Modi bleiben auch
+im Controller gesperrt; insbesondere kann der Zusammenhangsmodus keine erste Markierung anlegen.
+`Persönliches` und `Fertig` bleiben unabhängig davon verfügbar.
+
+Der bewegte gestrichelte Vorschaurahmen des ersten Zusammenhangsbausteins erhält die Gruppenfarbe
+am äußeren Bausteinrahmen, an dem auch die Pseudoelement-Animation liegt. Dadurch ist die bereits
+dokumentierte Vorschau in S06 wieder sichtbar. Die A-bis-C-Kugeln und ihre Verbindungslinien
+belegen zusätzlich explizite feste Rasterspalten, damit vorhandene und nächste Slots nicht
+verrutschen. Analyse, flüchtige Auswahlwerte, Persistenz, Export und Timing bleiben unverändert.
+`S06_CONSEQUENCE_CONTENT_VERSION` wird von `2.40.0` auf `2.41.0` erhöht.
+
+| Segment und Text-ID | Quelle | Aktueller Text | Geplanter Text | Primäre Rolle | Grund | Bedeutungsänderung | Interaktionsziel | Hervorhebung |
+|---|---|---|---|---|---|---|---|---|
+| `S06.page.localReflection.requiresMultipleComponents` | Nutzerauftrag vom 2026-08-24 | nicht vorhanden | `Erst ab zwei Bausteinen verfügbar.` | Navigation | erklärt die fachlich unmögliche Zusammenhangs- und Strukturmarkierung bei nur einem Baustein | nein | ausgegraute Modi `Zusammenhang` und `Struktur` | durchgestrichenes Kugelsymbol und Hover-/Fokushinweis |
+
+Geschützter Wortlaut und PassWo-Sprechschritte bleiben unverändert.
+
 ## Copy- und Darstellungsdelta S06 ausgelagerte Gruppenwahl, 24. August 2026
 
 Quelle ist der ausdrückliche Nutzerauftrag vom 24. August 2026. Die Farbkugeln liegen außerhalb

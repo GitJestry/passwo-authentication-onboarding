@@ -1146,7 +1146,7 @@ function createLocalReflection(
     accountId,
     accountLabel: s06ConsequenceContent.accounts[accountId].label,
     fictionalPassword: account.fictionalPassword,
-    mode: 'groups',
+    mode: 'personal',
     blocks,
     contentGroups: [{ id: 'content-group-1', blockIds: [] }],
     activeContentGroupId: 'content-group-1',
@@ -1445,7 +1445,7 @@ export class S06ConsequenceController {
   selectLocalReflectionMode(mode: S06LocalReflectionMode): void {
     const reflection = this.#snapshot.localReflection;
     if (this.#disposed || this.#snapshot.stage !== 'local-reflection' || reflection === null) return;
-    if (mode === 'structure' && reflection.blocks.length < 2) return;
+    if ((mode === 'groups' || mode === 'structure') && reflection.blocks.length < 2) return;
     const contentGroups =
       reflection.mode === 'groups' && mode !== 'groups'
         ? reflection.contentGroups.map((group) => ({
@@ -1525,6 +1525,7 @@ export class S06ConsequenceController {
       this.#disposed ||
       this.#snapshot.stage !== 'local-reflection' ||
       reflection === null ||
+      reflection.blocks.length < 2 ||
       !reflection.contentGroups.some(({ id }) => id === groupId)
     ) {
       return;
@@ -1542,7 +1543,14 @@ export class S06ConsequenceController {
 
   addLocalReflectionGroup(): void {
     const reflection = this.#snapshot.localReflection;
-    if (this.#disposed || this.#snapshot.stage !== 'local-reflection' || reflection === null) return;
+    if (
+      this.#disposed ||
+      this.#snapshot.stage !== 'local-reflection' ||
+      reflection === null ||
+      reflection.blocks.length < 2
+    ) {
+      return;
+    }
     const canAdd =
       reflection.contentGroups.length <
         s06ConsequenceContent.page.localReflection.maxGroupCount &&
@@ -1572,6 +1580,7 @@ export class S06ConsequenceController {
       this.#disposed ||
       this.#snapshot.stage !== 'local-reflection' ||
       reflection === null ||
+      reflection.blocks.length < 2 ||
       reflection.contentGroups.length <= 1 ||
       !reflection.contentGroups.some(({ id }) => id === groupId)
     ) {
@@ -1599,6 +1608,8 @@ export class S06ConsequenceController {
       this.#disposed ||
       this.#snapshot.stage !== 'local-reflection' ||
       reflection === null ||
+      ((reflection.mode === 'groups' || reflection.mode === 'structure') &&
+        reflection.blocks.length < 2) ||
       !reflection.blocks.some(({ id }) => id === blockId)
     ) {
       return;

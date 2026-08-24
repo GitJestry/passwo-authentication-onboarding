@@ -22,6 +22,13 @@ select {
   font: inherit;
 }
 
+#root:has([data-personal-marker-cursor-active="true"]),
+#root:has([data-personal-marker-cursor-active="true"]) * {
+  cursor:
+    url('../assets/s05/personal-marker-cursor.svg') 2 2,
+    crosshair !important;
+}
+
 /*
  * Every native button gets the same restrained physical response. Component styles may add a
  * stronger, context-specific treatment without having to recreate this interaction baseline.

@@ -1,4 +1,10 @@
-import { type CSSProperties, type ReactNode, useRef, useState } from 'react';
+import {
+  type CSSProperties,
+  type PointerEvent as ReactPointerEvent,
+  type ReactNode,
+  useRef,
+  useState,
+} from 'react';
 import type {
   S05DisplayFinding,
   S05PersonalCandidate,
@@ -76,21 +82,220 @@ export interface PasswordBuildingBlocksProps {
     readonly start: number;
     readonly end: number;
   }[];
-  readonly rangeSelection?: {
-    readonly candidates: readonly S05PersonalCandidate[];
-    readonly onCreate: (start: number, end: number) => boolean;
-    readonly onRemove: (candidateId: string) => void;
-    readonly status: {
-      readonly started: string;
-      readonly added: string;
-      readonly removed: string;
-      readonly invalid: string;
-      readonly cancelled: string;
-    };
-  };
+  readonly rangeSelection?: PasswordRangeSelection;
   readonly annotations?: {
     readonly relationship: string;
     readonly repetitionCount: number;
+  };
+}
+
+export interface PasswordRangeSelection {
+  readonly candidates: readonly S05PersonalCandidate[];
+  readonly onCreate: (start: number, end: number) => boolean;
+  readonly onRemove: (candidateId: string) => void;
+  readonly status: {
+    readonly started: string;
+    readonly added: string;
+    readonly removed: string;
+    readonly invalid: string;
+    readonly cancelled: string;
+  };
+}
+
+export function usePasswordRangeSelection(
+  value: string,
+  rangeSelection: PasswordRangeSelection | undefined,
+) {
+  let characterOffset = 0;
+  const characters = [...value].map((character) => {
+    const start = characterOffset;
+    characterOffset += character.length;
+    return { character, start, end: characterOffset };
+  });
+  const characterButtons = useRef<(HTMLButtonElement | null)[]>([]);
+  const [pointerSelection, setPointerSelection] = useState<{
+    readonly pointerId: number;
+    readonly anchorIndex: number;
+    readonly currentIndex: number;
+  } | null>(null);
+  const [keyboardAnchor, setKeyboardAnchor] = useState<number | null>(null);
+  const [activeCharacterIndex, setActiveCharacterIndex] = useState(0);
+  const [selectionStatus, setSelectionStatus] = useState('');
+
+  function candidateAtIndex(index: number): S05PersonalCandidate | undefined {
+    const offset = characters[index];
+    return offset === undefined
+      ? undefined
+      : rangeSelection?.candidates.find(
+          (candidate) => candidate.start <= offset.start && candidate.end >= offset.end,
+        );
+  }
+
+  function rangeForIndexes(firstIndex: number, secondIndex: number): {
+    readonly start: number;
+    readonly end: number;
+  } | null {
+    const first = characters[Math.min(firstIndex, secondIndex)];
+    const last = characters[Math.max(firstIndex, secondIndex)];
+    return first === undefined || last === undefined ? null : { start: first.start, end: last.end };
+  }
+
+  function characterIndexAtPointer(clientX: number, clientY: number): number | null {
+    const element = document
+      .elementFromPoint(clientX, clientY)
+      ?.closest<HTMLElement>('[data-character-index]');
+    const index = Number(element?.dataset.characterIndex);
+    return Number.isInteger(index) && characters[index] !== undefined ? index : null;
+  }
+
+  function finishPointerSelection(finalIndex: number): void {
+    if (pointerSelection === null || rangeSelection === undefined) return;
+    const range = rangeForIndexes(pointerSelection.anchorIndex, finalIndex);
+    const added = range !== null && rangeSelection.onCreate(range.start, range.end);
+    setPointerSelection(null);
+    setKeyboardAnchor(null);
+    setSelectionStatus(added ? rangeSelection.status.added : rangeSelection.status.invalid);
+  }
+
+  function focusCharacter(index: number): void {
+    const boundedIndex = Math.min(Math.max(index, 0), Math.max(characters.length - 1, 0));
+    setActiveCharacterIndex(boundedIndex);
+    characterButtons.current[boundedIndex]?.focus();
+  }
+
+  const previewRange =
+    pointerSelection === null
+      ? null
+      : rangeForIndexes(pointerSelection.anchorIndex, pointerSelection.currentIndex);
+
+  function renderCharacter(index: number): ReactNode {
+    const selectionCharacter = characters[index];
+    if (selectionCharacter === undefined || rangeSelection === undefined) return null;
+    const candidate = candidateAtIndex(index);
+    const previewed =
+      previewRange !== null &&
+      previewRange.start <= selectionCharacter.start &&
+      previewRange.end >= selectionCharacter.end;
+    return (
+      <button
+        className={styles.rangeCharacter}
+        data-character-index={index}
+        data-highlighted={candidate === undefined ? undefined : true}
+        data-preview={previewed && candidate === undefined ? true : undefined}
+        data-range-start={candidate?.start === selectionCharacter.start || undefined}
+        data-range-end={candidate?.end === selectionCharacter.end || undefined}
+        type="button"
+        tabIndex={activeCharacterIndex === index ? 0 : -1}
+        aria-label={`Zeichen ${index + 1} von ${characters.length}`}
+        aria-pressed={candidate !== undefined}
+        key={`character-${index}`}
+        ref={(element) => {
+          characterButtons.current[index] = element;
+        }}
+        onFocus={() => setActiveCharacterIndex(index)}
+        onPointerDown={(event) => {
+          if (event.button !== 0) return;
+          event.preventDefault();
+          if (candidate !== undefined) {
+            rangeSelection.onRemove(candidate.id);
+            setKeyboardAnchor(null);
+            setSelectionStatus(rangeSelection.status.removed);
+            return;
+          }
+          event.currentTarget
+            .closest<HTMLElement>('[data-range-selection-surface]')
+            ?.setPointerCapture(event.pointerId);
+          setPointerSelection({
+            pointerId: event.pointerId,
+            anchorIndex: index,
+            currentIndex: index,
+          });
+        }}
+        onKeyDown={(event) => {
+          if (event.key === 'ArrowLeft') {
+            event.preventDefault();
+            focusCharacter(index - 1);
+            return;
+          }
+          if (event.key === 'ArrowRight') {
+            event.preventDefault();
+            focusCharacter(index + 1);
+            return;
+          }
+          if (event.key === 'Home') {
+            event.preventDefault();
+            focusCharacter(0);
+            return;
+          }
+          if (event.key === 'End') {
+            event.preventDefault();
+            focusCharacter(characters.length - 1);
+            return;
+          }
+          if (event.key === 'Escape' && keyboardAnchor !== null) {
+            event.preventDefault();
+            setKeyboardAnchor(null);
+            setSelectionStatus(rangeSelection.status.cancelled);
+            return;
+          }
+          if (event.key !== ' ' && event.key !== 'Enter') return;
+          event.preventDefault();
+          if (candidate !== undefined) {
+            rangeSelection.onRemove(candidate.id);
+            setKeyboardAnchor(null);
+            setSelectionStatus(rangeSelection.status.removed);
+            return;
+          }
+          if (keyboardAnchor === null) {
+            setKeyboardAnchor(index);
+            setSelectionStatus(rangeSelection.status.started);
+            return;
+          }
+          const range = rangeForIndexes(keyboardAnchor, index);
+          const added = range !== null && rangeSelection.onCreate(range.start, range.end);
+          setKeyboardAnchor(null);
+          setSelectionStatus(added ? rangeSelection.status.added : rangeSelection.status.invalid);
+        }}
+      >
+        {selectionCharacter.character}
+      </button>
+    );
+  }
+
+  function handlePointerMove(event: ReactPointerEvent<HTMLElement>): void {
+    if (pointerSelection === null || event.pointerId !== pointerSelection.pointerId) return;
+    const index = characterIndexAtPointer(event.clientX, event.clientY);
+    if (index !== null && index !== pointerSelection.currentIndex) {
+      setPointerSelection({ ...pointerSelection, currentIndex: index });
+    }
+  }
+
+  function handlePointerEnd(event: ReactPointerEvent<HTMLElement>): void {
+    if (pointerSelection === null || event.pointerId !== pointerSelection.pointerId) return;
+    const index = characterIndexAtPointer(event.clientX, event.clientY);
+    if (event.currentTarget.hasPointerCapture(event.pointerId)) {
+      event.currentTarget.releasePointerCapture(event.pointerId);
+    }
+    finishPointerSelection(index ?? pointerSelection.currentIndex);
+  }
+
+  function handlePointerCancel(event: ReactPointerEvent<HTMLElement>): void {
+    if (pointerSelection === null || event.pointerId !== pointerSelection.pointerId) return;
+    if (event.currentTarget.hasPointerCapture(event.pointerId)) {
+      event.currentTarget.releasePointerCapture(event.pointerId);
+    }
+    setPointerSelection(null);
+    setSelectionStatus(rangeSelection?.status.cancelled ?? '');
+  }
+
+  return {
+    characters,
+    isSelecting: pointerSelection !== null,
+    selectionStatus,
+    renderCharacter,
+    handlePointerMove,
+    handlePointerEnd,
+    handlePointerCancel,
   };
 }
 
@@ -175,185 +380,8 @@ export function PasswordBuildingBlocks({
     },
     [],
   );
-  let characterOffset = 0;
-  const selectionCharacters = [...value].map((character) => {
-    const start = characterOffset;
-    characterOffset += character.length;
-    return { character, start, end: characterOffset };
-  });
-  const characterButtons = useRef<(HTMLButtonElement | null)[]>([]);
-  const [pointerSelection, setPointerSelection] = useState<{
-    readonly pointerId: number;
-    readonly anchorIndex: number;
-    readonly currentIndex: number;
-  } | null>(null);
-  const [keyboardAnchor, setKeyboardAnchor] = useState<number | null>(null);
-  const [activeCharacterIndex, setActiveCharacterIndex] = useState(0);
-  const [selectionStatus, setSelectionStatus] = useState('');
+  const rangeSelectionController = usePasswordRangeSelection(value, rangeSelection);
   const visualStyle = passwordVisualStyleFor(visualReferenceValue ?? value, visualScale);
-
-  function candidateAtIndex(index: number): S05PersonalCandidate | undefined {
-    const offset = selectionCharacters[index];
-    return offset === undefined
-      ? undefined
-      : rangeSelection?.candidates.find(
-          (candidate) => candidate.start <= offset.start && candidate.end >= offset.end,
-        );
-  }
-
-  function rangeForIndexes(firstIndex: number, secondIndex: number): {
-    readonly start: number;
-    readonly end: number;
-  } | null {
-    const first = selectionCharacters[Math.min(firstIndex, secondIndex)];
-    const last = selectionCharacters[Math.max(firstIndex, secondIndex)];
-    return first === undefined || last === undefined ? null : { start: first.start, end: last.end };
-  }
-
-  function characterIndexAtPointer(clientX: number, clientY: number): number | null {
-    const element = document
-      .elementFromPoint(clientX, clientY)
-      ?.closest<HTMLElement>('[data-character-index]');
-    const index = Number(element?.dataset.characterIndex);
-    return Number.isInteger(index) && selectionCharacters[index] !== undefined ? index : null;
-  }
-
-  function finishPointerSelection(finalIndex: number): void {
-    if (pointerSelection === null || rangeSelection === undefined) return;
-    const range = rangeForIndexes(pointerSelection.anchorIndex, finalIndex);
-    const added = range !== null && rangeSelection.onCreate(range.start, range.end);
-    setPointerSelection(null);
-    setKeyboardAnchor(null);
-    setSelectionStatus(added ? rangeSelection.status.added : rangeSelection.status.invalid);
-  }
-
-  function focusCharacter(index: number): void {
-    const boundedIndex = Math.min(
-      Math.max(index, 0),
-      Math.max(selectionCharacters.length - 1, 0),
-    );
-    setActiveCharacterIndex(boundedIndex);
-    characterButtons.current[boundedIndex]?.focus();
-  }
-
-  const previewRange =
-    pointerSelection === null
-      ? null
-      : rangeForIndexes(pointerSelection.anchorIndex, pointerSelection.currentIndex);
-
-  function renderRangeCharacter(index: number): ReactNode {
-    const selectionCharacter = selectionCharacters[index];
-    if (selectionCharacter === undefined || rangeSelection === undefined) return null;
-    const candidate = candidateAtIndex(index);
-    const previewed =
-      previewRange !== null &&
-      previewRange.start <= selectionCharacter.start &&
-      previewRange.end >= selectionCharacter.end;
-    return (
-      <button
-        className={styles.rangeCharacter}
-        data-character-index={index}
-        data-highlighted={candidate === undefined ? undefined : true}
-        data-preview={previewed && candidate === undefined ? true : undefined}
-        data-range-start={candidate?.start === selectionCharacter.start || undefined}
-        data-range-end={candidate?.end === selectionCharacter.end || undefined}
-        type="button"
-        tabIndex={activeCharacterIndex === index ? 0 : -1}
-        aria-label={`Zeichen ${index + 1} von ${selectionCharacters.length}`}
-        aria-pressed={candidate !== undefined}
-        key={`character-${index}`}
-        ref={(element) => {
-          characterButtons.current[index] = element;
-        }}
-        onFocus={() => setActiveCharacterIndex(index)}
-        onPointerDown={(event) => {
-          if (event.button !== 0) return;
-          event.preventDefault();
-          if (candidate !== undefined) {
-            rangeSelection.onRemove(candidate.id);
-            setKeyboardAnchor(null);
-            setSelectionStatus(rangeSelection.status.removed);
-            return;
-          }
-          event.currentTarget
-            .closest<HTMLElement>('[data-range-selection-surface]')
-            ?.setPointerCapture(event.pointerId);
-          setPointerSelection({
-            pointerId: event.pointerId,
-            anchorIndex: index,
-            currentIndex: index,
-          });
-        }}
-        onKeyDown={(event) => {
-          if (event.key === 'ArrowLeft') {
-            event.preventDefault();
-            focusCharacter(index - 1);
-            return;
-          }
-          if (event.key === 'ArrowRight') {
-            event.preventDefault();
-            focusCharacter(index + 1);
-            return;
-          }
-          if (event.key === 'Home') {
-            event.preventDefault();
-            focusCharacter(0);
-            return;
-          }
-          if (event.key === 'End') {
-            event.preventDefault();
-            focusCharacter(selectionCharacters.length - 1);
-            return;
-          }
-          if (event.key === 'Escape' && keyboardAnchor !== null) {
-            event.preventDefault();
-            setKeyboardAnchor(null);
-            setSelectionStatus(rangeSelection.status.cancelled);
-            return;
-          }
-          if (event.key !== ' ' && event.key !== 'Enter') return;
-          event.preventDefault();
-          if (candidate !== undefined) {
-            rangeSelection.onRemove(candidate.id);
-            setKeyboardAnchor(null);
-            setSelectionStatus(rangeSelection.status.removed);
-            return;
-          }
-          if (keyboardAnchor === null) {
-            setKeyboardAnchor(index);
-            setSelectionStatus(rangeSelection.status.started);
-            return;
-          }
-          const range = rangeForIndexes(keyboardAnchor, index);
-          const added = range !== null && rangeSelection.onCreate(range.start, range.end);
-          setKeyboardAnchor(null);
-          setSelectionStatus(added ? rangeSelection.status.added : rangeSelection.status.invalid);
-        }}
-      >
-        {selectionCharacter.character}
-      </button>
-    );
-  }
-
-  function handleSelectionPointerMove(clientX: number, clientY: number, pointerId: number): void {
-    if (pointerSelection === null || pointerId !== pointerSelection.pointerId) return;
-    const index = characterIndexAtPointer(clientX, clientY);
-    if (index !== null && index !== pointerSelection.currentIndex) {
-      setPointerSelection({ ...pointerSelection, currentIndex: index });
-    }
-  }
-
-  function handleSelectionPointerEnd(
-    surface: HTMLElement,
-    clientX: number,
-    clientY: number,
-    pointerId: number,
-  ): void {
-    if (pointerSelection === null || pointerId !== pointerSelection.pointerId) return;
-    const index = characterIndexAtPointer(clientX, clientY);
-    if (surface.hasPointerCapture(pointerId)) surface.releasePointerCapture(pointerId);
-    finishPointerSelection(index ?? pointerSelection.currentIndex);
-  }
 
   if (display === 'assembled') {
     return (
@@ -401,7 +429,9 @@ export function PasswordBuildingBlocks({
                 </span>
               );
             })
-          : selectionCharacters.map((_, index) => renderRangeCharacter(index));
+          : rangeSelectionController.characters.map((_, index) =>
+              rangeSelectionController.renderCharacter(index),
+            );
       return (
         <div
           className={styles.blocks}
@@ -415,32 +445,16 @@ export function PasswordBuildingBlocks({
             className={styles.continuousPassword}
             data-range-selection-surface
             data-range-selectable={rangeSelection === undefined ? undefined : true}
-            data-selecting={pointerSelection === null ? undefined : true}
-            onPointerMove={(event) => {
-              handleSelectionPointerMove(event.clientX, event.clientY, event.pointerId);
-            }}
-            onPointerUp={(event) => {
-              handleSelectionPointerEnd(
-                event.currentTarget,
-                event.clientX,
-                event.clientY,
-                event.pointerId,
-              );
-            }}
-            onPointerCancel={(event) => {
-              if (pointerSelection === null || event.pointerId !== pointerSelection.pointerId) return;
-              if (event.currentTarget.hasPointerCapture(event.pointerId)) {
-                event.currentTarget.releasePointerCapture(event.pointerId);
-              }
-              setPointerSelection(null);
-              setSelectionStatus(rangeSelection?.status.cancelled ?? '');
-            }}
+            data-selecting={rangeSelectionController.isSelecting || undefined}
+            onPointerMove={rangeSelectionController.handlePointerMove}
+            onPointerUp={rangeSelectionController.handlePointerEnd}
+            onPointerCancel={rangeSelectionController.handlePointerCancel}
           >
             {continuousParts}
           </code>
           {rangeSelection === undefined ? null : (
             <span className={styles.selectionStatus} aria-live="polite">
-              {selectionStatus}
+              {rangeSelectionController.selectionStatus}
             </span>
           )}
         </div>
@@ -465,26 +479,10 @@ export function PasswordBuildingBlocks({
           style={gridStyle}
           data-range-selectable={rangeSelection === undefined ? undefined : true}
           data-range-selection-surface={rangeSelection === undefined ? undefined : true}
-          data-selecting={pointerSelection === null ? undefined : true}
-          onPointerMove={(event) => {
-            handleSelectionPointerMove(event.clientX, event.clientY, event.pointerId);
-          }}
-          onPointerUp={(event) => {
-            handleSelectionPointerEnd(
-              event.currentTarget,
-              event.clientX,
-              event.clientY,
-              event.pointerId,
-            );
-          }}
-          onPointerCancel={(event) => {
-            if (pointerSelection === null || event.pointerId !== pointerSelection.pointerId) return;
-            if (event.currentTarget.hasPointerCapture(event.pointerId)) {
-              event.currentTarget.releasePointerCapture(event.pointerId);
-            }
-            setPointerSelection(null);
-            setSelectionStatus(rangeSelection?.status.cancelled ?? '');
-          }}
+          data-selecting={rangeSelectionController.isSelecting || undefined}
+          onPointerMove={rangeSelectionController.handlePointerMove}
+          onPointerUp={rangeSelectionController.handlePointerEnd}
+          onPointerCancel={rangeSelectionController.handlePointerCancel}
         >
           {parts.map((part, index) => {
             const partLabels = normalizeLabels(labels?.[index]);
@@ -500,12 +498,12 @@ export function PasswordBuildingBlocks({
                   data-obscured={'•'.repeat([...part].length)}
                 >
                   {rangeSelection !== undefined
-                    ? selectionCharacters.flatMap((character, characterIndex) => {
+                    ? rangeSelectionController.characters.flatMap((character, characterIndex) => {
                         const partOffset = partOffsets[index];
                         return partOffset !== undefined &&
                           character.start >= partOffset.start &&
                           character.end <= partOffset.end
-                          ? [renderRangeCharacter(characterIndex)]
+                          ? [rangeSelectionController.renderCharacter(characterIndex)]
                           : [];
                       })
                     : joiningSegments.length === 1
@@ -591,7 +589,7 @@ export function PasswordBuildingBlocks({
         </code>
         {rangeSelection === undefined ? null : (
           <span className={styles.selectionStatus} aria-live="polite">
-            {selectionStatus}
+            {rangeSelectionController.selectionStatus}
           </span>
         )}
       </div>

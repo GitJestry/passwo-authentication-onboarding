@@ -97,7 +97,11 @@ Seitenangaben beziehen sich auf die im Trainingsdokument ausgewiesene interne Pa
   ohne deren Fläche oder Grenzen zu verändern. Die Übernahme bleibt auch ohne Auswahl möglich und
   erzeugt dann keinen persönlichen Befund. Ein häufig verwendeter Bereich wird nicht zusätzlich
   als Konto-/Dienstbezug dupliziert; eine Farbhierarchie zwischen automatischen Kategorien
-  entfällt.
+  entfällt. Während des gesamten erwarteten Eingabeschritts bleibt der lila-pinke
+  Filzstiftcursor überall in der Study-Oberfläche am Zeiger sichtbar, nicht nur in der Nähe der
+  Passwort-Markierungsfläche oder direkt über einzelnen Zeichen. Solange die linke Maustaste für
+  eine neue Markierung gedrückt ist, zeigt ein etwas dunkleres Pink den noch nicht bestätigten
+  Zeichenbereich; beim Loslassen erhält die feststehende Markierung den bisherigen helleren Ton.
 - S05.0 bis S05.4 verwenden die internen Seiten 12 bis 35 als Inhaltsquelle und sind im Design Lab
   sowie im realen Supportive-Training zwischen S04 und S06 vollständig durchspielbar. Beide Pfade
   verwenden dieselbe Komponente und denselben lokalen Controller.
@@ -108,22 +112,29 @@ Seitenangaben beziehen sich auf die im Trainingsdokument ausgewiesene interne Pa
   erklärte Liste einschließlich Titel wird weiß pulsierend umrahmt. Bei der anschließenden lokalen
   Wiederholungsprüfung bleiben alle drei Listen sichtbar; das fiktive Campusgram-Passwort steht
   mittig darunter und markiert erkannte Wiederholungen mit denselben Bausteinen.
-- Die lokale Zusammenhangsreflexion beginnt mit Zusammenhang A. Der erste angeklickte Baustein
+- Zusammenhang und Struktur werden weiterhin in zwei aufeinanderfolgenden lokalen
+  Reflexionsschritten markiert. Im ersten Schritt ist ausschließlich der aktuelle
+  Zusammenhangsbutton sichtbar, im zweiten ausschließlich der aktuelle Strukturbutton; beide
+  stehen nie nebeneinander. Der erste angeklickte Baustein in Zusammenhang A
   bleibt transparent und erhält nur einen entlang aller vier Randseiten laufenden gestrichelten
-  Suchrahmen. Erst der zweite
-  Baustein bestätigt den Zusammenhang und färbt beide vollständig; ein Moduswechsel verwirft eine
-  einzelne unbestätigte Vorschau. Ein
+  Suchrahmen. Erst der zweite Baustein bestätigt den Zusammenhang und färbt beide vollständig. Ein
   weiterer Zusammenhang kann erst angelegt werden, wenn alle vorhandenen Gruppen mindestens zwei
   Bausteine enthalten. A, B und C belegen als größere Farbkugeln feste linke, mittlere und rechte
-  Positionen unter dem Zusammenhangsmodus außerhalb der Modusbox; der jeweils nächste freie Platz
+  Positionen unter dem Zusammenhangsbutton; der jeweils nächste freie Platz
   zeigt dort bereits die Plus-Steuerung. Sie wird erst nach zwei markierten Bausteinen in jedem
   vorhandenen Zusammenhang nutzbar, und vorhandene weitere Zusammenhänge lassen sich dort
   unmittelbar löschen. Jede Kugel ist durch eine Linie mit dem Zusammenhangsbutton verbunden; die
   aktive Linie übernimmt die Gruppenfarbe und läuft animiert. Der Zusammenhangsmodus übernimmt
-  ebenfalls die Farbe der fokussierten Gruppe. Die persönliche Bereichsauswahl verwendet dieselbe
-  Baustein- und Zeichenmarkierung wie S05. PassWo führt den ersten lokalen Markierungsschritt
-  einmalig ein; beim Campus-E-Mail-Schritt wird dieser Hinweis nicht wiederholt. Eine zusätzliche
-  Linienebene zwischen den Passwortbausteinen und eine Hover-Vorschau entfallen. Die
+  ebenfalls die Farbe der fokussierten Gruppe. In beiden Schritten schließt der weiße
+  `Fertig`-Button mit Häkchen direkt rechts neben der mittigen Modussteuerung als kompakte Gruppe
+  unmittelbar ab; der
+  zusätzliche Bestätigungsdialog und die Außenbox um den einzelnen Modus entfallen. Bei nur einem
+  projizierten Baustein ist der jeweilige Modus ausgegraut, mit einem durchgestrichenen
+  Kugelsymbol und dem Hover-/Fokushinweis `Nur ein Teil erkannt.` versehen und auch im Controller
+  gesperrt. PassWo weist im Zusammenhangsschritt darauf hin, dass nur ein Teil erkannt wurde;
+  in beiden Schritten bleibt die offene Frage bestehen, ob die teilnehmende Person selbst noch
+  Zusammenhänge beziehungsweise eine Struktur sehen kann. Eine
+  zusätzliche Linienebene zwischen den Passwortbausteinen und eine Hover-Vorschau entfallen. Die
   authored Einstiegsvorschau und statischen Zusammenhangsbeispiele verwenden wieder ihre
   ursprünglichen grünen Bausteinflächen und CSS-Verbindungslinien. Die beschrifteten Steuerungen A
   bis C bleiben neben der Gruppenfarbe als Bedeutungsträger erhalten.
@@ -198,7 +209,7 @@ Seitenangaben beziehen sich auf die im Trainingsdokument ausgewiesene interne Pa
   deutsche Wortlistenstapel sichtbar. Länderkarte, Wortlisten-Schätzfrage und Zeichenraum-Analogie
   entfallen; danach folgt direkt die bestehende lokale Campusgram-Auswertung. Die Demonstration
   analysiert oder persistiert keine Eingabe.
-- Die S05-Simulationsdisposition (`S05_CONTENT_VERSION 2.127.0`, Analysekonfiguration
+- Die S05-Simulationsdisposition (`S05_CONTENT_VERSION 2.131.0`, Analysekonfiguration
   `passwo-bounded-whole-recognition-v19`) bleibt auf den vollständigen fiktiven Wert begrenzt:
   `whole-password-recognized` entsteht durch einen direkten Vollwert oder eine dokumentierte
   begrenzte Kandidatenfamilie aus kanonischen Ankern und positionsunabhängigen Restzeichen oder
@@ -267,14 +278,29 @@ Seitenangaben beziehen sich auf die im Trainingsdokument ausgewiesene interne Pa
   deutlich größere Info-Logos. Mehrere Logos werden verkleinert und nebeneinander statt gestapelt
   angeordnet. Hover oder
   Tastaturfokus öffnet eine gläserne Karte mit Kategoriename und konkreter Einstufung.
-  Persönliche Bereiche leuchten zeichenpräzise lila-pink und können über mehrere Bausteine reichen,
-  deren persönliches Kategorienlogo die Zuordnung zusätzlich sichtbar macht. Der aktive
+  `Zusammenhang`, `Struktur` und `Persönliches` verwenden dieselbe Bausteinansicht; die Reflexion
+  startet direkt in `Persönliches`. Im persönlichen
+  Modus bleiben bestehende Zusammenhangsflächen, Strukturpfeile sowie dieselben Kategorienlogos
+  und Hover-/Fokuskarten sichtbar. Einzelne Zeichen oder frei gezogene zusammenhängende
+  Zeichenbereiche können auch über Bausteingrenzen hinweg markiert und wieder entfernt werden.
+  Ein lila-pinker Filzstiftcursor bleibt während des gesamten Modus `Persönliches` überall in der
+  Study-Oberfläche am Zeiger sichtbar. Während einer gedrückten oder gezogenen neuen Markierung
+  erscheint der noch nicht bestätigte Zeichenbereich etwas dunkler pink und wechselt erst beim
+  Loslassen in den bisherigen finalen Ton; die
+  betroffenen Zeichen leuchten lila-pink und das
+  persönliche Kategorienlogo macht die Zuordnung zusätzlich sichtbar. Der aktive
   Kontozweig einschließlich seiner Unterkonten bleibt dabei sichtbar; die Gruppensteuerung beginnt
   mit `Gruppe 1` und kann wie in S05 über den Plus-Button erweitert werden. Die Bausteine beginnen
   ohne Kategoriefläche transparent; erst eine
   Gruppenzuordnung färbt die gesamte Bausteinfläche in der Gruppenfarbe. Der Strukturmodus setzt
-  wie in S05 gerichtete Pfeile zwischen benachbarten Bausteinen. Wiederholungen erhalten nur am
-  ersten Wiederholungsbaustein den Multiplikator und kein zusätzliches Textlabel. Nach `Fertig`
+  wie in S05 gerichtete Pfeile zwischen benachbarten Bausteinen. Bei nur einem projizierten
+  Baustein sind Zusammenhang und Struktur mit durchgestrichenem Kugelsymbol sowie kurzem
+  Hover-/Fokushinweis `Nur ein Teil erkannt.` ausgegraut und auch controllerseitig gesperrt;
+  persönliche Markierungen und
+  der Abschluss bleiben verfügbar. Der gestrichelte Vorschaurahmen eines ersten
+  Zusammenhangsbausteins erhält seine Gruppenfarbe am äußeren Animationsrahmen. Wiederholungen
+  erhalten nur am ersten Wiederholungsbaustein den Multiplikator und kein zusätzliches Textlabel.
+  Nach `Fertig`
   verschwindet die Reflexionsfläche. Gleichzeitig mit PassWos Ergebnistext zeigt das Kontennetz
   den betroffenen roten Kontozweig oder den geschützten Kontozweig samt Schutzschild. Bei Master
   Campus startet `Angriff starten` anschließend nur noch den Vergleich mit Campus E-Mail; beim
@@ -291,7 +317,7 @@ Seitenangaben beziehen sich auf die im Trainingsdokument ausgewiesene interne Pa
   ausgeschlossen. Eine einzelne Zeichenoperation zählt nur als explizit begrenzter erzeugter
   Kandidatenweg. Ein nicht erkannter Weg bedeutet nur, dass diese Simulation keinen direkten Weg
   erkannt hat.
-- `S06_CONSEQUENCE_CONTENT_VERSION 2.40.0` übernimmt die S05-Vollpasswort-Disposition ohne eigene
+- `S06_CONSEQUENCE_CONTENT_VERSION 2.43.0` übernimmt die S05-Vollpasswort-Disposition ohne eigene
   Guess-Schwelle. Nur `whole-password-recognized` öffnet den tatsächlichen lokalen Vorfallspfad;
   `no-whole-password-recognized` bleibt eine begrenzte Nicht-Erkennung und kein Stärkeurteil.
 - Jeder der drei flüchtigen S06-Kontoeingänge akzeptiert optional dieselbe bestätigte semantische

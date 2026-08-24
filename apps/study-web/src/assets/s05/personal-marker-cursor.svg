@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32">
+  <defs>
+    <linearGradient id="marker" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#ffb1e8"/>
+      <stop offset="0.45" stop-color="#ef70cc"/>
+      <stop offset="1" stop-color="#9c337f"/>
+    </linearGradient>
+    <linearGradient id="skin" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#ffe0c2"/>
+      <stop offset="1" stop-color="#d79b73"/>
+    </linearGradient>
+    <filter id="shadow" x="-30%" y="-30%" width="170%" height="170%">
+      <feDropShadow dx="1" dy="1.4" stdDeviation="1" flood-color="#050509" flood-opacity=".65"/>
+    </filter>
+  </defs>
+  <g filter="url(#shadow)">
+    <path d="m1.4 1.2 7.8 2.5-5.5 5.5Z" fill="#3d2037" stroke="#fff" stroke-width=".65"/>
+    <path d="M6.5 6.4 10 3l15.7 15.7-3.5 3.5Z" fill="url(#marker)" stroke="#5c2750" stroke-width="1"/>
+    <path d="m10 3 2.3 2.3-3.5 3.5-2.3-2.4Z" fill="#f7d7ec"/>
+    <path d="m23.2 16.3 3.3 3.3-2.9 2.9-3.3-3.3Z" fill="#70255d"/>
+    <path d="M16.2 16.6c1.1-1.1 2.4-1 3.2-.2l1.1 1.1c.2-1 .7-1.7 1.5-1.8 1-.2 1.9.5 2.1 1.5l.3 1.5c.4-.7 1.1-1.1 1.8-.9 1 .2 1.5 1.2 1.3 2.1l-.2.9c.6-.4 1.3-.4 1.9 0 .8.6.9 1.7.3 2.5l-4.2 5.5c-1.4 1.8-4 2.2-5.9.8l-5-3.8a3.2 3.2 0 0 1-.6-4.5l2.4-4.7Z" fill="url(#skin)" stroke="#8d5b42" stroke-width=".9" stroke-linejoin="round"/>
+    <path d="m17.2 17.5 3.6 3.6M20.5 17.5l2.8 2.8M24.4 18.7l1.8 1.8" fill="none" stroke="#b87958" stroke-width=".75" stroke-linecap="round"/>
+    <path d="M15.4 22.1c1.4-.7 3.3-.3 4.3 1" fill="none" stroke="#fff0df" stroke-width=".75" stroke-linecap="round" opacity=".8"/>
+  </g>
+</svg>

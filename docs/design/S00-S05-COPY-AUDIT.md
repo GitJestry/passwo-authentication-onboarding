@@ -1,5 +1,109 @@
 # S00--S05 Copy and Interaction Audit
 
+## Interaktionsdelta S05 Filzstift während des gesamten Eingabeschritts, 24. August 2026
+
+Quelle ist der ausdrückliche Nutzerauftrag vom 24. August 2026 und dessen anschließende
+Präzisierung. Während des gesamten Schritts, in dem die persönliche Markierung erwartet wird,
+bleibt der vorhandene lila-pinke Filzstiftcursor am Zeiger sichtbar. Das gilt für die gesamte
+Study-Oberfläche und nicht erst in der Nähe der Passwort-Markierungsfläche oder beim Hover über
+ein einzelnes Zeichen. Tastaturbedienung, Fokusdarstellung, Auswahlverhalten, Analyse, flüchtige
+Auswahlwerte, Persistenz, Export und Timing ändern sich nicht. Da kein Teilnehmertext oder
+Trainingscontent geändert wird, bleibt `S05_CONTENT_VERSION 2.131.0` unverändert.
+
+Während die linke Maustaste für eine einzelne Auswahl oder zum Aufziehen eines
+zusammenhängenden Bereichs gedrückt bleibt, erscheinen die noch nicht bestätigten Zeichen in
+einem etwas dunkleren Pink. Erst beim Loslassen wechselt der übernommene Bereich in den bestehenden
+helleren finalen Pinkton. Damit bleiben Vorschau und feststehende Markierung auch ohne Bewegung
+unterscheidbar; Farbe ist wegen des gedrückten Auswahlzustands und der bestehenden Bereichsgrenzen
+nicht der einzige Bedeutungsträger.
+
+## Copydelta S05 Strukturhinweis gekürzt, 24. August 2026
+
+Quelle ist der ausdrückliche Nutzerauftrag vom 24. August 2026. Im Struktur-Schritt bei nur einem
+projizierten Baustein entfällt der bereits über den gesperrten Modus sichtbare Ergebnissatz
+`Hier wurde nur ein Teil erkannt.`. PassWo beschränkt sich auf die offene Orientierung
+`Vielleicht siehst du selbst noch eine Struktur, die nicht erkannt wurde.`. Interaktion, Analyse,
+flüchtige Auswahlwerte, Persistenz, Export und Timing bleiben unverändert.
+`S05_CONTENT_VERSION` wird von `2.130.0` auf `2.131.0` erhöht.
+
+| Segment und Text-ID | Quelle | Aktueller Text | Geplanter Text | Primäre Rolle | Grund | Bedeutungsänderung | Interaktionsziel | Hervorhebung |
+|---|---|---|---|---|---|---|---|---|
+| `S05.structure.reflection.structureSinglePart` | Nutzerauftrag vom 2026-08-24 | `Hier wurde nur ein Teil erkannt. Vielleicht siehst du selbst noch eine Struktur, die nicht erkannt wurde.` | `Vielleicht siehst du selbst noch eine Struktur, die nicht erkannt wurde.` | Ergebnisfeedback / Orientierung | Entfernung nachweisbarer Redundanz zum sichtbaren Sperrhinweis `Nur ein Teil erkannt.` | nein | gesperrter Struktur-Schritt und `Fertig` | keine |
+
+Geschützter Wortlaut und alle übrigen Sprechschritte bleiben unverändert.
+
+## Interaktionsdelta S05 persönliche Markierung mit Filzstiftcursor, 24. August 2026
+
+Quelle ist der ausdrückliche Nutzerauftrag vom 24. August 2026. Die bestehende freie Markierung
+persönlicher Angaben erhält auf Zeigergeräten einen kleinen lila-pinken Filzstiftcursor. Seine
+Spitze liegt am Auswahlpunkt; Hand, Stiftkörper und Schatten machen die Markierhandlung zusätzlich
+zur bereits vorhandenen Farbänderung sichtbar. Tastaturbedienung, Fokusdarstellung und
+Live-Rückmeldungen bleiben unverändert. Der Cursor ist rein lokal und ändert weder Analyse noch
+flüchtige Auswahlwerte, Persistenz, Export oder Timing. `S05_CONTENT_VERSION` wird von `2.129.0`
+auf `2.130.0` erhöht.
+
+## Copy- und Interaktionsdelta S05 Ein-Teil-Hinweise und kompakte Reflexionssteuerung, 24. August 2026
+
+Quelle ist der ausdrückliche Nutzerauftrag vom 24. August 2026. Besteht das projizierte fiktive
+Passwort nur aus einem erkannten Teil, ersetzt PassWo die jeweilige allgemeine Reflexionsfrage
+durch einen modusspezifischen Hinweis. Der Zusammenhangsschritt verwendet den vorgegebenen Text
+`Hier wurde nur ein Teil erkannt. Vielleicht siehst du selbst noch Zusammenhänge, die nicht erkannt wurden.`;
+der Struktur-Schritt verwendet `Hier wurde nur ein Teil erkannt. Vielleicht siehst du selbst noch eine Struktur, die nicht erkannt wurde.`
+Beide Texte sind Ergebnisfeedback und Orientierung innerhalb der unverändert lokalen Reflexion.
+Der Hover- und Fokushinweis des gesperrten Modus wird auf `Nur ein Teil erkannt.` gekürzt.
+
+Der Abschlussbutton bleibt rechts neben der jeweiligen Modussteuerung, wird aber nicht länger am
+rechten Rand des gesamten Aktionsbereichs ausgerichtet. Beide Elemente bilden stattdessen eine
+kompakte mittige Steuerungsgruppe. Analyse, flüchtige Auswahlwerte, Persistenz, Export und Timing
+bleiben unverändert. `S05_CONTENT_VERSION` wird von `2.128.0` auf `2.129.0` erhöht.
+
+| Segment und Text-ID | Quelle | Aktueller Text | Geplanter Text | Primäre Rolle | Grund | Bedeutungsänderung | Interaktionsziel | Hervorhebung |
+|---|---|---|---|---|---|---|---|---|
+| `S05.structure.reflection.relationshipSinglePart` | Nutzerauftrag vom 2026-08-24 | allgemeine Zusammenhangsfrage | `Hier wurde nur ein Teil erkannt. Vielleicht siehst du selbst noch Zusammenhänge, die nicht erkannt wurden.` | Ergebnisfeedback / Orientierung | erklärt die begrenzte Erkennung und lässt die eigene Einordnung offen | begrenzt | gesperrter Zusammenhangsschritt und `Fertig` | keine |
+| `S05.structure.reflection.structureSinglePart` | Nutzerauftrag vom 2026-08-24 | allgemeine Strukturfrage | `Hier wurde nur ein Teil erkannt. Vielleicht siehst du selbst noch eine Struktur, die nicht erkannt wurde.` | Ergebnisfeedback / Orientierung | erklärt die begrenzte Erkennung und lässt die eigene Einordnung offen | begrenzt | gesperrter Struktur-Schritt und `Fertig` | keine |
+| `S05.structure.reflection.requiresMultipleComponents` | Nutzerauftrag vom 2026-08-24 | `Erst ab zwei Bausteinen verfügbar.` | `Nur ein Teil erkannt.` | Navigation | kurzer Hover- und Fokushinweis passend zum sichtbaren Ein-Teil-Zustand | nein | ausgegrauter Modus | durchgestrichenes Kugelsymbol |
+
+## Copy- und Interaktionsdelta S05 getrennte Markierungssteuerungen mit Sperrhinweis, 24. August 2026
+
+Quelle ist der ausdrückliche Nutzerauftrag vom 24. August 2026. Die Zusammenhangs- und
+Strukturreflexion bleiben zwei aufeinanderfolgende Schritte. Im ersten Schritt steht ausschließlich
+der aktuelle S06-Modusbutton `Zusammenhang` mit den ausgelagerten Farbkugeln A bis C; im zweiten
+Schritt steht an derselben Stelle ausschließlich der aktuelle S06-Modusbutton `Struktur`. Die
+beiden Modusbuttons werden nicht nebeneinander dargestellt. Der erste Baustein eines Zusammenhangs
+bleibt eine gestrichelte Vorschau, bis ein zweiter Baustein die Gruppe bestätigt. Die nächste
+Zusammenhangskugel wird erst danach verfügbar. Die zusätzliche dunkle Außenbox um den jeweils
+einzelnen Modusbutton entfällt. Die Farbkugeln und ihre Verbindungslinien verwenden feste
+Slotpositionen, sodass A, B, C und der nächste Plus-Platz nicht gegeneinander verrutschen.
+
+Beide Schritte übernehmen den aktuellen weißen S06-Abschlussbutton `Fertig` mit Häkchensymbol und
+platzieren ihn rechts neben der mittigen Modussteuerung.
+`Fertig` schließt den jeweiligen Schritt direkt ab; der bisherige zusätzliche Dialog
+`Auswahl übernehmen?` mit `Zurück` und `Weiter` entfällt. Die Textrollen der unveränderten Labels
+`Zusammenhang` und `Fertig` sowie des ausdrücklich benannten neuen Buttonlabels `Struktur` sind
+Navigation. Bei drei Zusammenhängen entfällt wie in S06 der zusätzliche Grenzhinweis; A bis C
+belegen die drei vorhandenen Kugelplätze. `Löschen` bleibt als assistive Bezeichnung des kleinen
+Entfernen-Buttons erhalten, erscheint aber nicht mehr als eigener Hovertext. Analyse, flüchtige
+Auswahlwerte, Persistenz, Export und Timing bleiben unverändert.
+`S05_CONTENT_VERSION` wird von `2.127.0` auf `2.128.0` erhöht.
+
+Besteht das projizierte Passwort nur aus einem Baustein, können weder Zusammenhang noch Struktur
+gebildet werden. Der im jeweiligen Schritt sichtbare Modus wird dann grau mit dem vorhandenen
+durchgestrichenen Kugelsymbol dargestellt. Hover oder Tastaturfokus zeigt den kurzen Hinweis
+`Erst ab zwei Bausteinen verfügbar.`; die Bausteininteraktion und die zugehörige Controller-Aktion
+sind gesperrt. `Fertig` bleibt verfügbar, damit der Reflexionsschritt ohne Markierung abgeschlossen
+werden kann.
+
+| Segment und Text-ID | Quelle | Aktueller Text | Geplanter Text | Primäre Rolle | Grund | Bedeutungsänderung | Interaktionsziel | Hervorhebung |
+|---|---|---|---|---|---|---|---|---|
+| `S05.structure.reflection.groupLabel` | Nutzerauftrag vom 2026-08-24 | `Zusammenhang` in einer vertikalen Gruppenliste | wortgleich im einzelnen aktuellen Zusammenhangs-Modusbutton | Navigation | gleicht die getrennte S05-Reflexion an die aktuelle S06-Steuerung an | nein | Zusammenhangsmodus und Farbkugeln A–C | aktiver Gruppenfarbton und Verbindungslinie |
+| `S05.structure.reflection.structureMode` | Nutzerauftrag vom 2026-08-24 | kein eigener Modusbutton | `Struktur` | Navigation | benennt im zweiten getrennten Schritt die aktive Strukturmarkierung | nein | Strukturmodus | Häkchen-/Pfeilsymbolik der markierten Bausteine |
+| `S05.structure.reflection.finish` | Nutzerauftrag vom 2026-08-24 | `Fertig` mit nachgelagertem Bestätigungsdialog | wortgleich im weißen Häkchenbutton; direkter Abschluss | Navigation | übernimmt Aussehen und Abschlusslogik aus S06 ohne zusätzlichen Dialog | nein | Abschluss des jeweiligen Reflexionsschritts | weißer Primärbutton mit Häkchen |
+| `S05.structure.reflection.{confirmTitle,confirmBack,confirmContinue}` | Nutzerauftrag vom 2026-08-24 | `Auswahl übernehmen?`; `Zurück`; `Weiter` | entfällt | Navigation | der aktuelle `Fertig`-Button bestätigt den Schritt bereits eindeutig | nein | kein verbleibendes Dialogziel | keine |
+| `S05.structure.reflection.maxGroups` | Nutzerauftrag vom 2026-08-24 | `Max. 3 Zusammenhänge` anstelle des Plus-Buttons | entfällt in der Oberfläche | Orientierung | übernimmt die feste Dreierbelegung der aktuellen S06-Kugelsteuerung | nein | kein verbleibendes Ziel | vorhandene Kugeln A–C |
+| `S05.structure.reflection.requiresMultipleComponents` | Nutzerauftrag vom 2026-08-24 | nicht vorhanden | `Erst ab zwei Bausteinen verfügbar.` | Navigation | erklärt knapp, warum Zusammenhang und Struktur bei nur einem Baustein gesperrt sind | nein | ausgegrauter Modus | durchgestrichenes Kugelsymbol und Hover-/Fokushinweis |
+
+Geschützter Wortlaut und PassWo-Sprechschritte bleiben unverändert.
+
 ## Copydelta S05 geläufiges Wort in Logo-Information, 24. August 2026
 
 Quelle ist der ausdrückliche Nutzerauftrag vom 24. August 2026. Die nach außen sichtbare

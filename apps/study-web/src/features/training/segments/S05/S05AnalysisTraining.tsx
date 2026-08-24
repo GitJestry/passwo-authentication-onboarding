@@ -727,6 +727,9 @@ function ComponentStrategyScene({
     <div
       className={styles.componentReviewLayout}
       data-review-visible={reviewVisible || undefined}
+      data-personal-marker-cursor-active={
+        snapshot.step === 'personal-details-check' || undefined
+      }
     >
       <div className={styles.componentStrategyLayout} data-s05-target="component-strategy">
         <div
@@ -955,6 +958,7 @@ function repetitionSegmentsForBlock(
 function StructureReflectionToken({
   block,
   color,
+  groupPreview = false,
   repetitionGroup,
   interactive,
   sentence,
@@ -964,6 +968,7 @@ function StructureReflectionToken({
 }: {
   readonly block: ReturnType<typeof structureReflectionBlocks>[number];
   readonly color: string | null;
+  readonly groupPreview?: boolean;
   readonly repetitionGroup: StructureRepetitionGroup | undefined;
   readonly interactive: boolean;
   readonly sentence: boolean;
@@ -1042,12 +1047,13 @@ function StructureReflectionToken({
     return <span className={styles.structureReflectionTokenValue}>{parts}</span>;
   })();
   const token = (
-    <span className={styles.structureReflectionTokenFrame}>
+    <span className={styles.structureReflectionTokenFrame} style={style}>
       <button
         type="button"
         className={styles.structureReflectionToken}
         style={style}
-        data-grouped={color === null ? undefined : true}
+        data-grouped={color === null || groupPreview ? undefined : true}
+        data-group-preview={groupPreview || undefined}
         data-category={categoryId}
         data-repetition={repetitionSegments.length > 0 || undefined}
         data-repetition-full={fullRepetition || undefined}
@@ -1068,6 +1074,29 @@ function StructureReflectionToken({
     </span>
   );
   return token;
+}
+
+function StructureModeIcon() {
+  return (
+    <svg viewBox="0 0 44 28" aria-hidden="true">
+      <rect x="2" y="7" width="13" height="14" rx="3" />
+      <path d="M18 14h9" />
+      <path d="m24 10 4 4-4 4" />
+      <rect x="31" y="7" width="11" height="14" rx="3" />
+    </svg>
+  );
+}
+
+function StructureReflectionFinishButton({ onClick }: { readonly onClick: () => void }) {
+  return (
+    <button type="button" className={styles.structureReflectionFinish} onClick={onClick}>
+      <svg viewBox="0 0 24 24" aria-hidden="true">
+        <circle cx="12" cy="12" r="9" />
+        <path d="m8 12 2.5 2.5L16 9" />
+      </svg>
+      <span>{s05Content.structure.reflection.finish}</span>
+    </button>
+  );
 }
 
 function StructureLinkArrow({
@@ -1103,6 +1132,7 @@ function StructureSentenceRow({
 }) {
   const [hoveredBlockId, setHoveredBlockId] = useState<string | null>(null);
   const blocks = structureReflectionBlocks(snapshot);
+  const modesAvailable = blocks.length >= 2;
   const reflection = snapshot.structureReflection;
   const repetitionGroups = structureRepetitionGroups(snapshot, blocks);
   const rendered: ReactNode[] = [];
@@ -1219,36 +1249,6 @@ function StructureSentenceRow({
   );
 }
 
-function StructureReflectionConfirmation({
-  onCancel,
-  onConfirm,
-}: {
-  readonly onCancel: () => void;
-  readonly onConfirm: () => void;
-}) {
-  const content = s05Content.structure.reflection;
-  return (
-    <div className={styles.structureReflectionConfirmBackdrop}>
-      <section
-        className={styles.structureReflectionConfirm}
-        role="dialog"
-        aria-modal="true"
-        aria-label={content.confirmTitle}
-      >
-        <strong>{content.confirmTitle}</strong>
-        <div>
-          <button type="button" onClick={onCancel}>
-            {content.confirmBack}
-          </button>
-          <button type="button" data-primary onClick={onConfirm}>
-            {content.confirmContinue}
-          </button>
-        </div>
-      </section>
-    </div>
-  );
-}
-
 function StructureContentReflection({
   snapshot,
   controller,
@@ -1256,27 +1256,28 @@ function StructureContentReflection({
   readonly snapshot: S05AnalysisControllerSnapshot;
   readonly controller: S05AnalysisController;
 }) {
-  const [confirming, setConfirming] = useState(false);
   const blocks = structureReflectionBlocks(snapshot);
+  const modesAvailable = blocks.length >= 2;
   const reflection = snapshot.structureReflection;
   const activeGroup = reflection.contentGroups.find(
     ({ id }) => id === reflection.activeContentGroupId,
   );
-  const hasInput = reflection.contentGroups.some(({ blockIds }) => blockIds.length >= 2);
+  const activeGroupIndex = Math.max(
+    0,
+    reflection.contentGroups.findIndex(({ id }) => id === reflection.activeContentGroupId),
+  );
+  const activeGroupStyle: StructureReflectionColorStyle = {
+    '--s05-structure-reflection-color': structureGroupColor(activeGroupIndex),
+  };
+  const nextGroupStyle: StructureReflectionColorStyle = {
+    '--s05-structure-reflection-color': structureGroupColor(reflection.contentGroups.length),
+  };
   const groupLimitReached =
     reflection.contentGroups.length >= s05Content.structure.reflection.maxGroupCount;
   const canAddGroup =
     !groupLimitReached &&
     activeGroup !== undefined &&
     reflection.contentGroups.every(({ blockIds }) => blockIds.length >= 2);
-
-  function finish(): void {
-    if (hasInput) {
-      setConfirming(true);
-      return;
-    }
-    controller.completeStructureContentReflection();
-  }
 
   return (
     <section
@@ -1292,13 +1293,17 @@ function StructureContentReflection({
         >
           {blocks.map((block) => {
             const groupIndex = contentGroupIndexForBlock(reflection, block.id);
+            const group = groupIndex === null ? undefined : reflection.contentGroups[groupIndex];
             return (
               <StructureReflectionToken
                 key={block.id}
                 block={block}
-                color={groupIndex === null ? null : structureGroupColor(groupIndex)}
+                color={
+                  modesAvailable && groupIndex !== null ? structureGroupColor(groupIndex) : null
+                }
+                groupPreview={modesAvailable && group?.blockIds.length === 1}
                 repetitionGroup={undefined}
-                interactive
+                interactive={modesAvailable}
                 sentence={false}
                 onClick={() => controller.toggleStructureContentBlock(block.id)}
                 personalHighlightRanges={snapshot.componentStrategy.personalSelection.candidates}
@@ -1309,74 +1314,93 @@ function StructureContentReflection({
       </div>
       <div className={styles.structureReflectionActions}>
         <div
-          className={styles.structureReflectionGroups}
-          data-group-count={reflection.contentGroups.length}
+          className={styles.structureReflectionModeBox}
+          data-unavailable={!modesAvailable || undefined}
         >
-          {reflection.contentGroups.map((group, groupIndex) => {
-            const groupStyle: StructureReflectionColorStyle = {
-              '--s05-structure-reflection-color': structureGroupColor(groupIndex),
-            };
-            return (
-              <div className={styles.structureReflectionGroupEntry} key={group.id}>
-                <button
-                  type="button"
-                  className={styles.structureReflectionGroup}
-                  style={groupStyle}
-                  data-active={group.id === reflection.activeContentGroupId || undefined}
-                  onClick={() => controller.selectStructureContentGroup(group.id)}
+          <button
+            type="button"
+            className={styles.structureReflectionRelationshipMode}
+            style={activeGroupStyle}
+            data-unavailable={!modesAvailable || undefined}
+            aria-disabled="true"
+            aria-describedby={
+              modesAvailable ? undefined : 's05-relationship-mode-unavailable-hint'
+            }
+          >
+            {!modesAvailable ? <img src={scaleWarningAsset} alt="" /> : null}
+            <span>{s05Content.structure.reflection.groupLabel}</span>
+          </button>
+          {!modesAvailable ? (
+            <span
+              className={styles.structureReflectionUnavailableHint}
+              id="s05-relationship-mode-unavailable-hint"
+              role="tooltip"
+            >
+              {s05Content.structure.reflection.requiresMultipleComponents}
+            </span>
+          ) : null}
+          {!modesAvailable ? null : (
+            <div className={styles.structureReflectionGroups}>
+              {reflection.contentGroups.map((group, groupIndex) => {
+                const groupStyle: StructureReflectionColorStyle = {
+                  '--s05-structure-reflection-color': structureGroupColor(groupIndex),
+                };
+                const groupName =
+                  `${s05Content.structure.reflection.groupLabel} ${structureGroupLetter(groupIndex)}`;
+                return (
+                  <div
+                    className={styles.structureReflectionGroupEntry}
+                    style={groupStyle}
+                    data-slot={groupIndex}
+                    data-active={group.id === reflection.activeContentGroupId || undefined}
+                    key={group.id}
+                  >
+                    <button
+                      type="button"
+                      className={styles.structureReflectionGroup}
+                      aria-label={groupName}
+                      aria-pressed={group.id === reflection.activeContentGroupId}
+                      onClick={() => controller.selectStructureContentGroup(group.id)}
+                    >
+                      {structureGroupLetter(groupIndex)}
+                    </button>
+                    {groupIndex === 0 ? null : (
+                      <button
+                        type="button"
+                        className={styles.structureReflectionDelete}
+                        aria-label={`${s05Content.structure.reflection.deleteGroup} ${groupName}`}
+                        onClick={() => controller.removeStructureContentGroup(group.id)}
+                      >
+                        <span aria-hidden="true">×</span>
+                      </button>
+                    )}
+                  </div>
+                );
+              })}
+              {groupLimitReached ? null : (
+                <div
+                  className={styles.structureReflectionGroupEntry}
+                  style={nextGroupStyle}
+                  data-slot={reflection.contentGroups.length}
                 >
-                  {s05Content.structure.reflection.groupLabel} {structureGroupLetter(groupIndex)}
-                </button>
-                {groupIndex === 0 ? null : (
                   <button
                     type="button"
-                    className={styles.structureReflectionDelete}
-                    aria-label={
-                      `${s05Content.structure.reflection.deleteGroup} ` +
-                      `${s05Content.structure.reflection.groupLabel} ${structureGroupLetter(groupIndex)}`
-                    }
-                    onClick={() => controller.removeStructureContentGroup(group.id)}
+                    className={styles.structureReflectionAdd}
+                    aria-label={s05Content.structure.reflection.newGroup}
+                    disabled={!canAddGroup}
+                    onClick={() => controller.addStructureContentGroup()}
                   >
-                    <svg viewBox="0 0 24 24" aria-hidden="true">
-                      <path d="M4 7h16" />
-                      <path d="M9 7V4h6v3" />
-                      <path d="M7 7l1 13h8l1-13" />
-                      <path d="M10 11v5" />
-                      <path d="M14 11v5" />
-                    </svg>
-                    <small>{s05Content.structure.reflection.deleteGroup}</small>
+                    <span aria-hidden="true">+</span>
                   </button>
-                )}
-              </div>
-            );
-          })}
-          {groupLimitReached ? (
-            <span className={styles.structureReflectionLimit}>
-              {s05Content.structure.reflection.maxGroups}
-            </span>
-          ) : (
-            <button
-              type="button"
-              className={styles.structureReflectionAdd}
-              aria-label={s05Content.structure.reflection.newGroup}
-              disabled={!canAddGroup}
-              onClick={() => controller.addStructureContentGroup()}
-            >
-              <span aria-hidden="true">+</span>
-              <small>{s05Content.structure.reflection.newGroup}</small>
-            </button>
+                </div>
+              )}
+            </div>
           )}
         </div>
-        <button type="button" className={styles.structureReflectionFinish} onClick={finish}>
-          {s05Content.structure.reflection.finish}
-        </button>
-      </div>
-      {confirming ? (
-        <StructureReflectionConfirmation
-          onCancel={() => setConfirming(false)}
-          onConfirm={() => controller.completeStructureContentReflection()}
+        <StructureReflectionFinishButton
+          onClick={() => controller.completeStructureContentReflection()}
         />
-      ) : null}
+      </div>
     </section>
   );
 }
@@ -1388,17 +1412,7 @@ function StructureSentenceReflection({
   readonly snapshot: S05AnalysisControllerSnapshot;
   readonly controller: S05AnalysisController;
 }) {
-  const [confirming, setConfirming] = useState(false);
-  const hasInput = snapshot.structureReflection.sentenceLinks.length > 0;
-
-  function finish(): void {
-    if (hasInput) {
-      setConfirming(true);
-      return;
-    }
-    controller.completeStructureSentenceReflection();
-  }
-
+  const modesAvailable = structureReflectionBlocks(snapshot).length >= 2;
   return (
     <section
       className={styles.structureReflectionWorkspace}
@@ -1409,15 +1423,35 @@ function StructureSentenceReflection({
         <CampusgramPasswordHeading />
         <StructureSentenceRow snapshot={snapshot} controller={controller} />
       </div>
-      <button type="button" className={styles.structureReflectionFinish} onClick={finish}>
-        {s05Content.structure.reflection.finish}
-      </button>
-      {confirming ? (
-        <StructureReflectionConfirmation
-          onCancel={() => setConfirming(false)}
-          onConfirm={() => controller.completeStructureSentenceReflection()}
+      <div className={styles.structureReflectionActions}>
+        <div
+          className={styles.structureReflectionModeBox}
+          data-unavailable={!modesAvailable || undefined}
+        >
+          <button
+            type="button"
+            className={styles.structureReflectionStructureMode}
+            data-unavailable={!modesAvailable || undefined}
+            aria-disabled="true"
+            aria-describedby={modesAvailable ? undefined : 's05-structure-mode-unavailable-hint'}
+          >
+            {modesAvailable ? <StructureModeIcon /> : <img src={scaleWarningAsset} alt="" />}
+            <span>{s05Content.structure.reflection.structureMode}</span>
+          </button>
+          {!modesAvailable ? (
+            <span
+              className={styles.structureReflectionUnavailableHint}
+              id="s05-structure-mode-unavailable-hint"
+              role="tooltip"
+            >
+              {s05Content.structure.reflection.requiresMultipleComponents}
+            </span>
+          ) : null}
+        </div>
+        <StructureReflectionFinishButton
+          onClick={() => controller.completeStructureSentenceReflection()}
         />
-      ) : null}
+      </div>
     </section>
   );
 }
@@ -3679,13 +3713,21 @@ function speechFor(
     case 'structure-theme-guessing':
       return [s05Content.structure.narration.theme[1]];
     case 'structure-theme-reflection':
-      return [s05Content.structure.reflection.themeQuestion];
+      return [
+        structureReflectionBlocks(snapshot).length < 2
+          ? s05Content.structure.reflection.relationshipSinglePart
+          : s05Content.structure.reflection.themeQuestion,
+      ];
     case 'structure-sentence':
       return [s05Content.structure.narration.sentence[0]];
     case 'structure-sentence-guessing':
       return [s05Content.structure.narration.sentence[1]];
     case 'structure-sentence-reflection':
-      return [s05Content.structure.reflection.sentenceQuestion];
+      return [
+        structureReflectionBlocks(snapshot).length < 2
+          ? s05Content.structure.reflection.structureSinglePart
+          : s05Content.structure.reflection.sentenceQuestion,
+      ];
     case 'structure-repetition':
       return [s05Content.structure.narration.repetition[0]];
     case 'structure-repetition-guessing':

@@ -4,16 +4,16 @@ import { S05_CONTENT_VERSION, s05Content } from './s05.js';
 
 describe('S05 content traceability', () => {
   it('keeps the participant copy bounded and separate from internal terminology', () => {
-    expect(S05_CONTENT_VERSION).toBe('2.127.0');
+    expect(S05_CONTENT_VERSION).toBe('2.131.0');
     expect(s05Content.source).toMatchObject({
       document: 'research/private/training-script.pdf',
       internalPages: [
         12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34,
         35,
       ],
-      revision: 'Userauftrag vom 2026-08-24 · geläufiges Wort in Logo-Information',
+      revision: 'Userauftrag vom 2026-08-24 · Strukturhinweis gekürzt',
       copyReference:
-        'docs/design/S00-S05-COPY-AUDIT.md#copydelta-s05-geläufiges-wort-in-logo-information-24-august-2026',
+        'docs/design/S00-S05-COPY-AUDIT.md#copydelta-s05-strukturhinweis-gekuerzt-24-august-2026',
     });
     expect(s05Content.segment.id).toBe('S05');
     expect(s05Content.page.fixtureNotice).toBe(
@@ -256,7 +256,12 @@ describe('S05 content traceability', () => {
       groupLabel: 'Zusammenhang',
       newGroup: 'Neuer Zusammenhang',
       maxGroupCount: 3,
-      maxGroups: 'Max. 3 Zusammenhänge',
+      structureMode: 'Struktur',
+      relationshipSinglePart:
+        'Hier wurde nur ein Teil erkannt. Vielleicht siehst du selbst noch Zusammenhänge, die nicht erkannt wurden.',
+      structureSinglePart:
+        'Vielleicht siehst du selbst noch eine Struktur, die nicht erkannt wurde.',
+      requiresMultipleComponents: 'Nur ein Teil erkannt.',
       finish: 'Fertig',
     });
     expect(s05Content.animations.map(([id]) => id)).toEqual(

@@ -1728,6 +1728,48 @@
   border-color: color-mix(in srgb, var(--s05-structure-reflection-color) 82%, white);
 }
 
+.structureReflectionToken[data-group-preview="true"] {
+  border-color: #4b4b52;
+  background: transparent;
+  box-shadow: none;
+}
+
+.structureReflectionTokenFrame:has(
+    .structureReflectionToken[data-group-preview="true"]
+  )::before {
+  position: absolute;
+  z-index: 4;
+  inset: -0.28rem;
+  border-radius: 0.82rem;
+  background:
+    repeating-linear-gradient(
+      90deg,
+      color-mix(in srgb, var(--s05-structure-reflection-color) 86%, white) 0 0.48rem,
+      transparent 0.48rem 0.82rem
+    ) 0 0 / 1.64rem 0.16rem repeat-x,
+    repeating-linear-gradient(
+      180deg,
+      color-mix(in srgb, var(--s05-structure-reflection-color) 86%, white) 0 0.48rem,
+      transparent 0.48rem 0.82rem
+    ) 100% 0 / 0.16rem 1.64rem repeat-y,
+    repeating-linear-gradient(
+      90deg,
+      color-mix(in srgb, var(--s05-structure-reflection-color) 86%, white) 0 0.48rem,
+      transparent 0.48rem 0.82rem
+    ) 0 100% / 1.64rem 0.16rem repeat-x,
+    repeating-linear-gradient(
+      180deg,
+      color-mix(in srgb, var(--s05-structure-reflection-color) 86%, white) 0 0.48rem,
+      transparent 0.48rem 0.82rem
+    ) 0 0 / 0.16rem 1.64rem repeat-y;
+  filter: drop-shadow(
+    0 0 0.28rem color-mix(in srgb, var(--s05-structure-reflection-color) 58%, transparent)
+  );
+  content: '';
+  pointer-events: none;
+  animation: structure-relationship-preview 0.8s linear infinite;
+}
+
 .structureReflectionToken[data-repetition-full="true"] {
   margin-inline: 0.44rem;
   outline: 0.18rem solid #f7f7f8;
@@ -1837,231 +1879,411 @@
 }
 
 .structureReflectionActions {
+  display: grid;
+  width: 100%;
+  grid-template-columns: auto auto;
+  align-items: start;
+  justify-content: center;
+  gap: clamp(0.7rem, 1.5cqb, 1rem);
+}
+
+.structureReflectionModeBox {
+  position: relative;
+  display: grid;
+  width: min(100%, 15.5rem);
+  grid-column: 1;
+  font-size: clamp(0.78rem, 1.25cqi, 1.05rem);
+}
+
+.structureReflectionModeBox:has(.structureReflectionRelationshipMode) {
+  margin-bottom: clamp(3.2rem, 6cqb, 4rem);
+}
+
+.structureReflectionRelationshipMode,
+.structureReflectionStructureMode,
+.structureReflectionGroup,
+.structureReflectionAdd,
+.structureReflectionDelete {
+  border: var(--border-width-medium) solid #55555e;
+  color: #f4f4f6;
+  background: #171719;
+  font: inherit;
+  font-weight: var(--font-weight-heavy);
+}
+
+.structureReflectionRelationshipMode,
+.structureReflectionStructureMode {
+  display: grid;
+  width: 100%;
+  min-height: clamp(3.25rem, 6.5cqb, 4rem);
+  box-sizing: border-box;
+  grid-template-columns: 2rem minmax(0, 1fr) 2rem;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.45rem 0.6rem;
+  border-radius: 0.7rem;
+  white-space: nowrap;
+  cursor: default;
+}
+
+.structureReflectionRelationshipMode {
+  --s05-structure-reflection-color: var(--color-positive);
+
   display: flex;
-  align-items: flex-start;
-  gap: var(--space-5);
+  justify-content: center;
+  border-color: color-mix(in srgb, var(--s05-structure-reflection-color) 82%, white);
+  background: color-mix(in srgb, var(--s05-structure-reflection-color) 40%, #111113);
+  box-shadow:
+    inset 0 -0.18rem color-mix(in srgb, var(--s05-structure-reflection-color) 72%, white),
+    0 0.35rem 0.8rem rgb(0 0 0 / 18%);
+}
+
+.structureReflectionRelationshipMode > span {
+  text-align: center;
+}
+
+.structureReflectionStructureMode {
+  border-color: #8a8a94;
+  background: #2a2a2f;
+  box-shadow: inset 0 -0.18rem #d8d8de;
+}
+
+.structureReflectionStructureMode > svg {
+  width: 2rem;
+  height: 1.55rem;
+  grid-column: 1;
+  fill: none;
+  stroke: currentcolor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 2;
+}
+
+.structureReflectionRelationshipMode > img,
+.structureReflectionStructureMode > img {
+  width: 1.8rem;
+  height: 1.8rem;
+  grid-column: 1;
+  opacity: 0.78;
+}
+
+.structureReflectionStructureMode > span {
+  grid-column: 2;
+  text-align: center;
+}
+
+.structureReflectionRelationshipMode[data-unavailable="true"],
+.structureReflectionStructureMode[data-unavailable="true"] {
+  display: grid;
+  grid-template-columns: 2rem minmax(0, 1fr) 2rem;
+  border-color: rgb(167 176 189 / 24%);
+  color: rgb(245 248 255 / 42%);
+  background: rgb(255 255 255 / 4%);
+  box-shadow: none;
+}
+
+.structureReflectionRelationshipMode[data-unavailable="true"] > span {
+  grid-column: 2;
+}
+
+.structureReflectionUnavailableHint {
+  position: absolute;
+  z-index: 20;
+  right: 0;
+  bottom: calc(100% + var(--space-2));
+  width: max-content;
+  max-width: min(18rem, calc(100vw - 2 * var(--space-5)));
+  padding: var(--space-3);
+  border: var(--border-width-thin) solid rgb(255 255 255 / 18%);
+  border-radius: var(--radius-small);
+  color: #eaf1ff;
+  background: rgb(7 11 19 / 96%);
+  box-shadow: 0 1rem 3rem rgb(0 0 0 / 46%);
+  font-size: var(--font-size-small);
+  line-height: var(--line-height-body);
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(0.35rem);
+  transition: opacity 160ms ease, transform 160ms ease;
+}
+
+.structureReflectionModeBox[data-unavailable="true"]:has(
+    :is(.structureReflectionRelationshipMode, .structureReflectionStructureMode):hover
+  )
+  .structureReflectionUnavailableHint,
+.structureReflectionModeBox[data-unavailable="true"]:has(
+    :is(.structureReflectionRelationshipMode, .structureReflectionStructureMode):focus-visible
+  )
+  .structureReflectionUnavailableHint {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.structureReflectionRelationshipMode:focus-visible,
+.structureReflectionStructureMode:focus-visible {
+  outline: var(--border-width-focus) solid var(--color-focus);
+  outline-offset: var(--space-1);
 }
 
 .structureReflectionGroups {
-  display: flex;
-  min-width: 7.5rem;
-  flex: 0 0 7.5rem;
-  flex-direction: column;
+  position: absolute;
+  z-index: 6;
+  top: calc(100% + 0.9rem);
+  left: 50%;
+  display: grid;
+  width: 9rem;
+  min-height: 3rem;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   align-items: center;
-  gap: 0.7rem;
+  justify-items: center;
+  transform: translateX(-50%);
 }
 
 .structureReflectionGroupEntry {
   position: relative;
-  width: 7.5rem;
+  display: grid;
+  width: 3rem;
+  height: 3rem;
+  place-items: center;
+}
+
+.structureReflectionGroupEntry::before {
+  position: absolute;
+  z-index: 0;
+  bottom: 50%;
+  left: 50%;
+  width: 0.16rem;
+  height: 2.45rem;
+  border-radius: 999px;
+  background: #62626a;
+  box-shadow: 0 0 0.35rem rgb(0 0 0 / 38%);
+  content: '';
+  pointer-events: none;
+  transform: translateX(-50%);
+  transform-origin: bottom center;
+}
+
+.structureReflectionGroupEntry[data-slot="0"]::before {
+  height: 4.25rem;
+  transform: translateX(-50%) rotate(57deg);
+}
+
+.structureReflectionGroupEntry[data-slot="0"] {
+  grid-column: 1;
+}
+
+.structureReflectionGroupEntry[data-slot="1"] {
+  grid-column: 2;
+}
+
+.structureReflectionGroupEntry[data-slot="2"]::before {
+  height: 4.25rem;
+  transform: translateX(-50%) rotate(-57deg);
+}
+
+.structureReflectionGroupEntry[data-slot="2"] {
+  grid-column: 3;
+}
+
+.structureReflectionGroupEntry[data-active="true"]::before {
+  background: linear-gradient(
+    to top,
+    color-mix(in srgb, var(--s05-structure-reflection-color) 38%, #4e4e55) 0 34%,
+    color-mix(in srgb, var(--s05-structure-reflection-color) 88%, white) 45% 62%,
+    color-mix(in srgb, var(--s05-structure-reflection-color) 38%, #4e4e55) 73% 100%
+  );
+  background-size: 100% 240%;
+  box-shadow: 0 0 0.5rem
+    color-mix(in srgb, var(--s05-structure-reflection-color) 55%, transparent);
+  animation: active-structure-group-connection 1.1s linear infinite;
+}
+
+.structureReflectionGroup,
+.structureReflectionAdd {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  width: 3rem;
+  min-width: 3rem;
+  height: 3rem;
+  min-height: 3rem;
+  place-items: center;
+  padding: 0;
+  border-radius: 999px;
+  font-size: 0.8rem;
+  font-weight: var(--font-weight-heavy);
+  line-height: 1;
+  cursor: pointer;
 }
 
 .structureReflectionGroup {
-  --s05-structure-reflection-color: var(--color-positive);
-
-  width: 100%;
-  min-height: 2.75rem;
-  padding: 0.45rem 0.35rem;
-  border: var(--border-width-medium) solid
-    color-mix(in srgb, var(--s05-structure-reflection-color) 82%, white);
-  border-radius: 0.7rem;
-  color: white;
-  background: color-mix(in srgb, var(--s05-structure-reflection-color) 70%, #111113);
-  font-size: 0.72rem;
-  font-weight: var(--font-weight-heavy);
-  line-height: var(--line-height-tight);
-  white-space: nowrap;
-  cursor: pointer;
-  transition:
-    filter 120ms ease,
-    outline-color 120ms ease,
-    transform 120ms ease;
+  border-color: color-mix(in srgb, var(--s05-structure-reflection-color) 82%, white);
+  color: #09130e;
+  background: var(--s05-structure-reflection-color);
+  box-shadow:
+    inset 0 1px rgb(255 255 255 / 38%),
+    0 0.3rem 0.75rem rgb(0 0 0 / 24%);
 }
 
-.structureReflectionGroup:hover {
-  filter: brightness(1.08);
-  transform: translateY(-0.05rem);
-}
-
-.structureReflectionGroup[data-active="true"] {
-  outline: 0.16rem solid #f5f5f7;
-  outline-offset: 0.18rem;
+.structureReflectionGroup[aria-pressed="true"] {
+  border-color: white;
+  box-shadow:
+    inset 0 0 0 0.12rem rgb(9 19 14 / 38%),
+    0 0.3rem 0.75rem rgb(0 0 0 / 24%);
 }
 
 .structureReflectionDelete {
   position: absolute;
   z-index: 4;
-  top: -0.25rem;
-  right: -0.75rem;
+  top: -0.38rem;
+  right: -0.38rem;
   display: grid;
-  width: 2rem;
-  height: 2rem;
+  width: 1.1rem;
+  min-width: 1.1rem;
+  height: 1.1rem;
+  min-height: 1.1rem;
   place-items: center;
   padding: 0;
-  border: var(--border-width-thin) solid rgb(255 69 58 / 48%);
+  border: var(--border-width-thin) solid rgb(255 151 145 / 82%);
   border-radius: 999px;
-  color: #ff665d;
-  background: #1c0908;
-  cursor: pointer;
-}
-
-.structureReflectionDelete svg {
-  width: 1rem;
-  height: 1rem;
-  fill: none;
-  stroke: currentcolor;
-  stroke-linecap: round;
-  stroke-linejoin: round;
-  stroke-width: 1.9;
-}
-
-.structureReflectionDelete small,
-.structureReflectionAdd small {
-  position: absolute;
-  top: 50%;
-  left: calc(100% + 0.55rem);
-  z-index: 5;
-  padding: 0.35rem 0.5rem;
-  border: var(--border-width-thin) solid #3b3b42;
-  border-radius: 0.42rem;
-  color: #ececf0;
-  background: #202024;
-  font-size: 0.72rem;
-  font-weight: var(--font-weight-bold);
-  white-space: nowrap;
-  opacity: 0;
-  pointer-events: none;
-  transform: translate(-0.2rem, -50%);
-  transition:
-    opacity 120ms ease,
-    transform 120ms ease;
-}
-
-.structureReflectionDelete:hover small,
-.structureReflectionAdd:not(:disabled):hover small {
-  opacity: 1;
-  transform: translate(0, -50%);
-}
-
-.structureReflectionAdd {
-  position: relative;
-  display: grid;
-  width: 2.5rem;
-  height: 2.5rem;
-  flex: 0 0 auto;
-  place-items: center;
-  padding: 0;
-  border: var(--border-width-thin) solid #55555e;
-  border-radius: 999px;
-  color: #f3f3f5;
-  background: #171719;
-  font-size: 1.6rem;
-  font-weight: 400;
+  color: white;
+  background: #8f2823;
+  box-shadow: 0 0.18rem 0.4rem rgb(0 0 0 / 35%);
+  font-size: 0.9rem;
   line-height: 1;
   cursor: pointer;
 }
 
+.structureReflectionAdd {
+  border-style: dashed;
+  border-color: color-mix(in srgb, var(--s05-structure-reflection-color) 68%, white);
+  color: color-mix(in srgb, var(--s05-structure-reflection-color) 72%, white);
+  background: color-mix(in srgb, var(--s05-structure-reflection-color) 18%, #171719);
+  font-size: 1.45rem;
+  font-weight: 400;
+}
+
 .structureReflectionAdd:disabled {
-  border-color: #29292e;
-  color: #57575e;
-  background: #101012;
+  border-color: #38383e;
+  color: #64646c;
+  background: #121214;
   cursor: default;
 }
 
-.structureReflectionLimit {
-  display: block;
-  width: 7.5rem;
-  padding: 0.35rem 0;
-  color: color-mix(in srgb, var(--color-positive) 68%, white);
-  font-size: 0.72rem;
-  font-weight: var(--font-weight-bold);
-  line-height: var(--line-height-tight);
-  text-align: center;
-}
-
-.structureReflectionGroups[data-group-count="4"] {
-  min-width: 6.75rem;
-  flex-basis: 6.75rem;
-  gap: clamp(0.22rem, 0.55cqb, 0.4rem);
-}
-
-.structureReflectionGroups[data-group-count="4"] .structureReflectionGroupEntry {
-  width: 6.75rem;
-}
-
-.structureReflectionGroups[data-group-count="4"] .structureReflectionGroup {
-  min-height: 2.1rem;
-  padding: 0.25rem 0.55rem;
-  font-size: 0.78rem;
-}
-
-.structureReflectionGroups[data-group-count="4"] .structureReflectionAdd {
-  width: 2.1rem;
-  height: 2.1rem;
-}
-
 .structureReflectionFinish {
-  min-height: 2.75rem;
-  padding: 0.55rem 1.2rem;
-  border: var(--border-width-thin) solid #f2f2f4;
+  display: flex;
+  min-width: 7rem;
+  min-height: 3rem;
+  box-sizing: border-box;
+  align-items: center;
+  justify-content: center;
+  gap: 0.55rem;
+  padding: 0.65rem 1.4rem;
+  border: var(--border-width-medium) solid #f2f2f4;
   border-radius: 0.7rem;
   color: #09090a;
   background: #f2f2f4;
+  box-shadow: inset 0 0 0 1px #fff;
+  font: inherit;
+  font-size: clamp(0.85rem, 1.2cqi, 1.05rem);
   font-weight: var(--font-weight-heavy);
   cursor: pointer;
+  grid-column: 2;
 }
 
-.structureReflectionWorkspace > .structureReflectionFinish {
-  position: static;
+.structureReflectionFinish svg {
+  width: 1.35rem;
+  height: 1.35rem;
+  fill: none;
+  stroke: currentcolor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 1.8;
 }
 
-.structureReflectionConfirmBackdrop {
-  position: fixed;
-  z-index: 100;
-  inset: 0;
-  display: grid;
-  place-items: center;
-  background: rgb(0 0 0 / 72%);
-  backdrop-filter: blur(0.35rem);
+.structureReflectionGroup:focus-visible,
+.structureReflectionAdd:focus-visible,
+.structureReflectionDelete:focus-visible,
+.structureReflectionFinish:focus-visible,
+.structureReflectionToken:focus-visible {
+  outline: var(--border-width-focus) solid var(--color-focus);
+  outline-offset: var(--space-1);
 }
 
-.structureReflectionConfirm {
-  display: grid;
-  width: min(22.5rem, calc(100vw - 2.5rem));
-  gap: var(--space-5);
-  padding: var(--space-6);
-  border: var(--border-width-thin) solid #35353b;
-  border-radius: 1rem;
-  color: #f5f5f7;
-  background: #111113;
-  box-shadow: 0 1.5rem 5rem rgb(0 0 0 / 55%);
+@keyframes structure-relationship-preview {
+  to {
+    background-position:
+      1.64rem 0,
+      100% 1.64rem,
+      -1.64rem 100%,
+      0 -1.64rem;
+  }
 }
 
-.structureReflectionConfirm > strong {
-  font-size: 1.05rem;
+@keyframes active-structure-group-connection {
+  to {
+    background-position: 0 -240%;
+  }
 }
 
-.structureReflectionConfirm > div {
-  display: flex;
-  justify-content: flex-end;
-  gap: var(--space-3);
+@container artifact-stage (max-width: 520px) {
+  .structureReflectionModeBox {
+    width: min(100%, 13.5rem);
+    font-size: 0.72rem;
+  }
+
+  .structureReflectionRelationshipMode,
+  .structureReflectionStructureMode {
+    min-height: 2.75rem;
+    grid-template-columns: 1.5rem minmax(0, 1fr) 1.5rem;
+    padding: 0.35rem 0.45rem;
+  }
+
+  .structureReflectionStructureMode > svg {
+    width: 1.5rem;
+    height: 1.2rem;
+  }
+
+  .structureReflectionGroups {
+    top: calc(100% + 0.7rem);
+    width: 7.5rem;
+    min-height: 2.3rem;
+  }
+
+  .structureReflectionGroupEntry,
+  .structureReflectionGroup,
+  .structureReflectionAdd {
+    width: 2.3rem;
+    min-width: 2.3rem;
+    height: 2.3rem;
+    min-height: 2.3rem;
+  }
+
+  .structureReflectionGroupEntry::before {
+    height: 2rem;
+  }
+
+  .structureReflectionGroupEntry[data-slot="0"]::before,
+  .structureReflectionGroupEntry[data-slot="2"]::before {
+    height: 3.15rem;
+  }
+
+  .structureReflectionFinish {
+    min-width: 6.4rem;
+    min-height: 2.75rem;
+    padding: 0.5rem 1.1rem;
+    font-size: 0.82rem;
+  }
 }
 
-.structureReflectionConfirm button {
-  min-height: 2.5rem;
-  padding: 0.45rem 0.85rem;
-  border: var(--border-width-thin) solid #3b3b42;
-  border-radius: 0.65rem;
-  color: #ececf0;
-  background: #1a1a1d;
-  font-weight: var(--font-weight-bold);
-  cursor: pointer;
-}
+@container artifact-stage (max-width: 420px) {
+  .structureReflectionActions {
+    grid-template-columns: minmax(0, 13.5rem) auto;
+  }
 
-.structureReflectionConfirm button[data-primary] {
-  border-color: #f2f2f4;
-  color: #09090a;
-  background: #f2f2f4;
+  .structureReflectionModeBox {
+    width: 100%;
+  }
 }
 
 .structureReflectionSummary {
@@ -5549,6 +5771,13 @@
   .wordComparisonPackage > strong > span,
   .wordComparisonScene .wordPoolEffort > strong {
     transition: none;
+  }
+
+  .structureReflectionTokenFrame:has(
+      .structureReflectionToken[data-group-preview="true"]
+    )::before,
+  .structureReflectionGroupEntry[data-active="true"]::before {
+    animation: none;
   }
 
   .wordComparisonCase[data-visible="true"] .wordComparisonSphere {

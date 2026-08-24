@@ -1,11 +1,11 @@
 import { s05Content, s06ConsequenceContent } from '@passwo/training-content';
 import { type CSSProperties, type ReactNode, useState } from 'react';
+import scaleWarningAsset from '../../../../assets/s05/scale-warning.svg';
 import { NetworkSymbol } from '../../../../adapters/network/NetworkSymbolRegistry.js';
 import {
   PasswordBlockText,
-  PasswordBuildingBlocks,
   passwordSingleLineVisualStyleFor,
-  passwordVisualStyleFor,
+  usePasswordRangeSelection,
 } from '../S05/PasswordBuildingBlocks.js';
 import {
   PasswordCategoryIcon,
@@ -90,6 +90,10 @@ export function S06LocalPasswordReflection({
 }) {
   const [hoveredBlockId, setHoveredBlockId] = useState<string | null>(null);
   const content = s06ConsequenceContent.page.localReflection;
+  const modesAvailable = reflection.blocks.length >= 2;
+  const relationshipUnavailableHintId =
+    `s06-${reflection.accountId}-relationship-unavailable-hint`;
+  const structureUnavailableHintId = `s06-${reflection.accountId}-structure-unavailable-hint`;
   const groupLimitReached =
     reflection.contentGroups.length >= content.maxGroupCount;
   const canAddGroup =
@@ -105,23 +109,32 @@ export function S06LocalPasswordReflection({
   const nextGroupStyle: GroupColorStyle = {
     '--s06-reflection-group-color': structureGroupColor(reflection.contentGroups.length),
   };
+  const personalRangeSelection = usePasswordRangeSelection(
+    reflection.fictionalPassword,
+    reflection.mode === 'personal'
+      ? {
+          candidates: reflection.personalCandidates,
+          onCreate: onPersonalCreate,
+          onRemove: onPersonalRemove,
+          status: s05Content.componentStrategy.personalDetails.selectionStatus,
+        }
+      : undefined,
+  );
   const passwordTitle =
     reflection.accountId === 'campusgram'
       ? content.passwordLabel
       : content.passwordTitles[reflection.accountId];
-  const passwordScaleStyle =
-    reflection.mode === 'personal'
-      ? passwordVisualStyleFor(reflection.fictionalPassword)
-      : passwordSingleLineVisualStyleFor(
-          reflection.fictionalPassword,
-          reflection.blocks.length,
-        );
+  const passwordScaleStyle = passwordSingleLineVisualStyleFor(
+    reflection.fictionalPassword,
+    reflection.blocks.length,
+  );
   return (
     <section
       className={styles.reflection}
       aria-label={`${content.passwordLabel}: ${reflection.accountLabel}`}
       data-account-id={reflection.accountId}
       data-interactive={interactive || undefined}
+      data-personal-marker-cursor-active={reflection.mode === 'personal' || undefined}
     >
       <div className={styles.passwordVisualization}>
         <h2 className={styles.title}>
@@ -137,28 +150,20 @@ export function S06LocalPasswordReflection({
           data-has-category-icons={
             reflection.blocks.some(({ findings }) => findings.length > 0) || undefined
           }
-          aria-label={reflection.fictionalPassword}
+          data-range-selection-surface={reflection.mode === 'personal' || undefined}
+          data-range-selectable={reflection.mode === 'personal' || undefined}
+          data-selecting={personalRangeSelection.isSelecting || undefined}
+          aria-label={
+            reflection.mode === 'personal'
+              ? content.personalSelectionLabel
+              : reflection.fictionalPassword
+          }
           style={passwordScaleStyle}
+          onPointerMove={personalRangeSelection.handlePointerMove}
+          onPointerUp={personalRangeSelection.handlePointerEnd}
+          onPointerCancel={personalRangeSelection.handlePointerCancel}
         >
-          {reflection.mode === 'personal' ? (
-            <div className={styles.personalPassword}>
-              <PasswordBuildingBlocks
-                value={reflection.fictionalPassword}
-                parts={reflection.blocks.map(({ value }) => value)}
-                display="decomposed"
-                appearance="analysis"
-                animate={false}
-                personalHighlightRanges={reflection.personalCandidates}
-                rangeSelection={{
-                  candidates: reflection.personalCandidates,
-                  onCreate: onPersonalCreate,
-                  onRemove: onPersonalRemove,
-                  status: s05Content.componentStrategy.personalDetails.selectionStatus,
-                }}
-                ariaLabel={content.personalSelectionLabel}
-              />
-            </div>
-          ) : (() => {
+          {(() => {
             const rendered: ReactNode[] = [];
             const tokenFor = (index: number): ReactNode => {
               const block = reflection.blocks[index];
@@ -168,7 +173,7 @@ export function S06LocalPasswordReflection({
               const groupIndex = reflection.contentGroups.findIndex(({ blockIds }) =>
                 blockIds.includes(block.id),
               );
-              const groupSelected = groupIndex >= 0;
+              const groupSelected = modesAvailable && groupIndex >= 0;
               const groupComplete =
                 groupSelected &&
                 (reflection.contentGroups[groupIndex]?.blockIds.length ?? 0) >= 2;
@@ -178,7 +183,8 @@ export function S06LocalPasswordReflection({
                 structureLinkExists(reflection, previousBlock.id, block.id);
               const outgoingLinkActive =
                 nextBlock !== undefined && structureLinkExists(reflection, block.id, nextBlock.id);
-              const structureConnected = incomingLinkActive || outgoingLinkActive;
+              const structureConnected =
+                modesAvailable && (incomingLinkActive || outgoingLinkActive);
               const groupStyle: GroupColorStyle | undefined =
                 groupIndex < 0
                   ? undefined
@@ -187,7 +193,7 @@ export function S06LocalPasswordReflection({
                         structureGroupColor(groupIndex),
                     };
               return (
-                <span className={styles.blockFrame} key={block.id}>
+                <span className={styles.blockFrame} style={groupStyle} key={block.id}>
                   {block.repetitionCount === null ? null : (
                     <span
                       className={styles.repetitionCount}
@@ -196,36 +202,57 @@ export function S06LocalPasswordReflection({
                       ×{block.repetitionCount}
                     </span>
                   )}
-                  <button
-                    type="button"
-                    className={styles.block}
-                    style={groupStyle}
-                    data-repetition={block.repeated || undefined}
-                    data-group-selected={groupComplete || undefined}
-                    data-group-preview={groupPreview || undefined}
-                    data-structure-selected={structureConnected || undefined}
-                    aria-pressed={
-                      reflection.mode === 'groups' ? groupSelected : outgoingLinkActive
-                    }
-                    disabled={
-                      !interactive || (reflection.mode === 'structure' && nextBlock === undefined)
-                    }
-                    onClick={() => onBlockToggle(block.id)}
-                    onMouseEnter={() =>
-                      setHoveredBlockId(reflection.mode === 'structure' ? block.id : null)
-                    }
-                    onMouseLeave={() => setHoveredBlockId(null)}
-                    onFocus={() =>
-                      setHoveredBlockId(reflection.mode === 'structure' ? block.id : null)
-                    }
-                    onBlur={() => setHoveredBlockId(null)}
-                  >
-                    <PasswordBlockText
-                      value={block.value}
-                      start={block.start}
-                      personalHighlightRanges={reflection.personalCandidates}
-                    />
-                  </button>
+                  {reflection.mode === 'personal' ? (
+                    <span
+                      className={styles.block}
+                      style={groupStyle}
+                      data-repetition={block.repeated || undefined}
+                      data-group-selected={groupComplete || undefined}
+                      data-group-preview={groupPreview || undefined}
+                      data-structure-selected={structureConnected || undefined}
+                    >
+                      {personalRangeSelection.characters.flatMap(
+                        (character, characterIndex) =>
+                          character.start >= block.start && character.end <= block.end
+                            ? [personalRangeSelection.renderCharacter(characterIndex)]
+                            : [],
+                      )}
+                    </span>
+                  ) : (
+                    <button
+                      type="button"
+                      className={styles.block}
+                      style={groupStyle}
+                      data-repetition={block.repeated || undefined}
+                      data-group-selected={groupComplete || undefined}
+                      data-group-preview={groupPreview || undefined}
+                      data-structure-selected={structureConnected || undefined}
+                      aria-pressed={
+                        reflection.mode === 'groups' ? groupSelected : outgoingLinkActive
+                      }
+                      disabled={
+                        !interactive ||
+                        ((reflection.mode === 'groups' || reflection.mode === 'structure') &&
+                          !modesAvailable) ||
+                        (reflection.mode === 'structure' && nextBlock === undefined)
+                      }
+                      onClick={() => onBlockToggle(block.id)}
+                      onMouseEnter={() =>
+                        setHoveredBlockId(reflection.mode === 'structure' ? block.id : null)
+                      }
+                      onMouseLeave={() => setHoveredBlockId(null)}
+                      onFocus={() =>
+                        setHoveredBlockId(reflection.mode === 'structure' ? block.id : null)
+                      }
+                      onBlur={() => setHoveredBlockId(null)}
+                    >
+                      <PasswordBlockText
+                        value={block.value}
+                        start={block.start}
+                        personalHighlightRanges={reflection.personalCandidates}
+                      />
+                    </button>
+                  )}
                   <PasswordCategoryIconStack findings={block.findings} />
                 </span>
               );
@@ -297,6 +324,11 @@ export function S06LocalPasswordReflection({
             return rendered;
           })()}
         </div>
+        {reflection.mode === 'personal' ? (
+          <span className={styles.selectionStatus} aria-live="polite">
+            {personalRangeSelection.selectionStatus}
+          </span>
+        ) : null}
       </div>
       <footer className={styles.actions}>
         {interactive ? (
@@ -313,89 +345,115 @@ export function S06LocalPasswordReflection({
                   className={styles.relationshipMode}
                   style={activeGroupStyle}
                   data-active={reflection.mode === 'groups' || undefined}
+                  data-unavailable={!modesAvailable || undefined}
                   aria-pressed={reflection.mode === 'groups'}
+                  aria-disabled={!modesAvailable || undefined}
+                  aria-describedby={modesAvailable ? undefined : relationshipUnavailableHintId}
                   onClick={() => onModeChange('groups')}
                 >
+                  {!modesAvailable ? <img src={scaleWarningAsset} alt="" /> : null}
                   <span className={styles.modeLabel}>{content.groupLabel}</span>
+                  {!modesAvailable ? (
+                    <span
+                      className={styles.modeUnavailableHint}
+                      id={relationshipUnavailableHintId}
+                      role="tooltip"
+                    >
+                      {content.requiresMultipleComponents}
+                    </span>
+                  ) : null}
                 </button>
-                <div className={styles.groupPalette}>
-                  {reflection.contentGroups.map((group, groupIndex) => {
-                    const groupStyle: GroupColorStyle = {
-                      '--s06-reflection-group-color': structureGroupColor(groupIndex),
-                    };
-                    const groupName =
-                      `${content.groupLabel} ${structureGroupLetter(groupIndex)}`;
-                    return (
-                      <div
-                        className={styles.groupEntry}
-                        style={groupStyle}
-                        data-slot={groupIndex}
-                        data-active={
-                          (reflection.mode === 'groups' &&
-                            reflection.activeContentGroupId === group.id) || undefined
-                        }
-                        key={group.id}
-                      >
-                        <button
-                          type="button"
-                          className={styles.groupButton}
+                {!modesAvailable ? null : (
+                  <div className={styles.groupPalette}>
+                    {reflection.contentGroups.map((group, groupIndex) => {
+                      const groupStyle: GroupColorStyle = {
+                        '--s06-reflection-group-color': structureGroupColor(groupIndex),
+                      };
+                      const groupName =
+                        `${content.groupLabel} ${structureGroupLetter(groupIndex)}`;
+                      return (
+                        <div
+                          className={styles.groupEntry}
+                          style={groupStyle}
+                          data-slot={groupIndex}
                           data-active={
                             (reflection.mode === 'groups' &&
                               reflection.activeContentGroupId === group.id) || undefined
                           }
-                          aria-label={groupName}
-                          aria-pressed={
-                            reflection.mode === 'groups' &&
-                            reflection.activeContentGroupId === group.id
-                          }
-                          onClick={() => onGroupSelect(group.id)}
+                          key={group.id}
                         >
-                          {structureGroupLetter(groupIndex)}
-                        </button>
-                        {groupIndex === 0 ? null : (
                           <button
                             type="button"
-                            className={styles.deleteGroup}
-                            aria-label={
-                              `${s05Content.structure.reflection.deleteGroup} ${groupName}`
+                            className={styles.groupButton}
+                            data-active={
+                              (reflection.mode === 'groups' &&
+                                reflection.activeContentGroupId === group.id) || undefined
                             }
-                            onClick={() => onGroupRemove(group.id)}
+                            aria-label={groupName}
+                            aria-pressed={
+                              reflection.mode === 'groups' &&
+                              reflection.activeContentGroupId === group.id
+                            }
+                            onClick={() => onGroupSelect(group.id)}
                           >
-                            <span aria-hidden="true">×</span>
+                            {structureGroupLetter(groupIndex)}
                           </button>
-                        )}
-                      </div>
-                    );
-                  })}
-                  {groupLimitReached ? null : (
-                    <div
-                      className={styles.groupEntry}
-                      style={nextGroupStyle}
-                      data-slot={reflection.contentGroups.length}
-                    >
-                      <button
-                        type="button"
-                        className={styles.addGroup}
-                        aria-label={content.newGroup}
-                        disabled={!canAddGroup}
-                        onClick={onGroupAdd}
+                          {groupIndex === 0 ? null : (
+                            <button
+                              type="button"
+                              className={styles.deleteGroup}
+                              aria-label={
+                                `${s05Content.structure.reflection.deleteGroup} ${groupName}`
+                              }
+                              onClick={() => onGroupRemove(group.id)}
+                            >
+                              <span aria-hidden="true">×</span>
+                            </button>
+                          )}
+                        </div>
+                      );
+                    })}
+                    {groupLimitReached ? null : (
+                      <div
+                        className={styles.groupEntry}
+                        style={nextGroupStyle}
+                        data-slot={reflection.contentGroups.length}
                       >
-                        <span aria-hidden="true">+</span>
-                      </button>
-                    </div>
-                  )}
-                </div>
+                        <button
+                          type="button"
+                          className={styles.addGroup}
+                          aria-label={content.newGroup}
+                          disabled={!canAddGroup}
+                          onClick={onGroupAdd}
+                        >
+                          <span aria-hidden="true">+</span>
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                )}
               </div>
               <button
                 type="button"
                 className={styles.structureMode}
                 data-active={reflection.mode === 'structure' || undefined}
+                data-unavailable={!modesAvailable || undefined}
                 aria-pressed={reflection.mode === 'structure'}
-                disabled={reflection.blocks.length < 2}
+                aria-disabled={!modesAvailable || undefined}
+                aria-describedby={modesAvailable ? undefined : structureUnavailableHintId}
                 onClick={() => onModeChange('structure')}
               >
-                <StructureModeIcon />
+                {modesAvailable ? <StructureModeIcon /> : <img src={scaleWarningAsset} alt="" />}
                 <span className={styles.modeLabel}>{content.structureMode}</span>
+                {!modesAvailable ? (
+                  <span
+                    className={styles.modeUnavailableHint}
+                    id={structureUnavailableHintId}
+                    role="tooltip"
+                  >
+                    {content.requiresMultipleComponents}
+                  </span>
+                ) : null}
               </button>
               <button
                 type="button"
