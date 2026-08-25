@@ -1,7 +1,7 @@
 import type { TrainingSectionId } from '@passwo/contracts';
 import { s12PasswordManagerContent } from './s12.js';
 
-export const S13_PASSWORD_MANAGER_PRACTICE_CONTENT_VERSION = '1.4.0';
+export const S13_PASSWORD_MANAGER_PRACTICE_CONTENT_VERSION = '1.5.0';
 
 export const s13PasswordManagerPracticeContent = {
   version: S13_PASSWORD_MANAGER_PRACTICE_CONTENT_VERSION,
@@ -42,6 +42,7 @@ export const s13PasswordManagerPracticeContent = {
     registerAction: 'Registrieren',
     registeringLabel: 'Registrierung läuft …',
     loginAction: 'Anmelden',
+    incorrectPassword: 'Dieses Passwort passt nicht zum Konto.',
     signedInStatus: 'Angemeldet',
     shop: {
       searchPlaceholder: 'Suche nach Produkten, Marken und mehr ...',

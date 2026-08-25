@@ -37,6 +37,7 @@ describe('S13 integrated password-manager practice traceability', () => {
       emailPlaceholder: 'E-Mail-Adresse',
       passwordPlaceholder: 'Ihr Passwort',
       autofilledStatusLabel: 'automatisch ausgefüllt',
+      incorrectPassword: 'Dieses Passwort passt nicht zum Konto.',
     });
     expect(
       s13PasswordManagerPracticeContent.passwordManager.autofillAccounts.map(({ label }) => label),
@@ -48,7 +49,7 @@ describe('S13 integrated password-manager practice traceability', () => {
   });
 
   it('keeps the rebuilt My Shop landing-page copy in versioned content', () => {
-    expect(s13PasswordManagerPracticeContent.version).toBe('1.4.0');
+    expect(s13PasswordManagerPracticeContent.version).toBe('1.5.0');
     expect(s13PasswordManagerPracticeContent.website.shop.hero).toMatchObject({
       eyebrow: 'Sommer-Sale',
       title: 'Bis zu 40% sparen!',

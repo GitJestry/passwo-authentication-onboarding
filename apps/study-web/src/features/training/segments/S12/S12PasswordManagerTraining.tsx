@@ -38,11 +38,15 @@ function motionDurations(usernameLength: number) {
         generationDurationMs: 0,
         storageDurationMs: 0,
         autofillDurationMs: 0,
+        variantsTransitionDurationMs: 0,
+        variantsRevealDurationMs: 0,
       }
     : {
         vaultOpeningDurationMs: 3400,
         generationDurationMs: 1200,
         storageDurationMs: 3700,
+        variantsTransitionDurationMs: 1500,
+        variantsRevealDurationMs: 1550,
         autofillDurationMs:
           AUTOFILL_USERNAME_START_MS +
           Math.max(
@@ -71,6 +75,9 @@ function VaultVisual({
   readonly username: string;
 }) {
   const content = s12PasswordManagerContent.vault;
+  const storedCount = showEntry
+    ? content.storedCount.withGenerated
+    : content.storedCount.initial;
   return (
     <div
       className={styles.vault}
@@ -80,19 +87,26 @@ function VaultVisual({
       data-compact={compact || undefined}
       data-opening={opening || undefined}
       role="img"
-      aria-label={`${content.label}, ${open ? content.states.open : content.states.closed}${
-        !open && !compact ? `, ${content.storedCount} ${content.states.stored}` : ''
-      }`}
+      aria-label={`${content.label}, ${open ? content.states.open : content.states.closed}, ${storedCount} ${content.states.stored}`}
     >
       <div className={styles.vaultCabinet}>
         <div className={styles.vaultInterior} aria-hidden="true">
-          {showEntry ? (
-            <span className={styles.vaultStoredEntry}>
-              <strong>{content.entry.account}</strong>
-              <span>{username}</span>
-              <code>{content.entry.maskedPassword}</code>
-            </span>
-          ) : null}
+          <div className={styles.vaultEntryCollection}>
+            {content.initialEntries.map((entry) => (
+              <span className={styles.vaultExampleEntry} key={entry.account}>
+                <strong>{entry.account}</strong>
+                <span>{entry.identifier}</span>
+                <code>{content.entry.maskedPassword}</code>
+              </span>
+            ))}
+            {showEntry ? (
+              <span className={styles.vaultStoredEntry}>
+                <strong>{content.entry.account}</strong>
+                <span>{username}</span>
+                <code>{content.entry.maskedPassword}</code>
+              </span>
+            ) : null}
+          </div>
         </div>
         <span className={styles.vaultHinge} aria-hidden="true" />
         <span className={styles.vaultHinge} aria-hidden="true" />
@@ -109,7 +123,7 @@ function VaultVisual({
             <i />
           </span>
           {!open && !compact ? (
-            <span className={styles.vaultCount}>{content.storedCount}</span>
+            <span className={styles.vaultCount}>{storedCount}</span>
           ) : null}
         </div>
       </div>
@@ -120,16 +134,15 @@ function VaultVisual({
 
 function FlowStrip({
   activeId,
-  allComplete,
+  completedCount,
 }: {
   readonly activeId: S12FlowId | null;
-  readonly allComplete: boolean;
+  readonly completedCount: number;
 }) {
-  const activeIndex = s12PasswordManagerContent.flow.findIndex(({ id }) => id === activeId);
   return (
     <ol className={styles.flowStrip} aria-label={s12PasswordManagerContent.flowAriaLabel}>
       {s12PasswordManagerContent.flow.map((item, index) => {
-        const complete = allComplete || (activeIndex >= 0 && index < activeIndex);
+        const complete = index < completedCount;
         return (
           <li
             key={item.id}
@@ -181,13 +194,20 @@ function SearchInformationControl() {
   );
 }
 
-function GeneratorScene({ typing }: { readonly typing: boolean }) {
+function GeneratorScene({
+  generated,
+  typing,
+}: {
+  readonly generated: boolean;
+  readonly typing: boolean;
+}) {
   const content = s12PasswordManagerContent.generator;
   return (
     <div className={styles.generatorScene} data-s12-speech-obstacle>
       <div
         className={styles.generatedPasswordField}
         data-typing={typing || undefined}
+        data-generated={generated || undefined}
         aria-label={`${content.fieldLabel}: ${content.password}`}
       >
         <span className={styles.generatedPasswordLabel}>{content.fieldLabel}</span>
@@ -422,53 +442,59 @@ function VariantCard({
 function VariantScene({
   active,
   browserFocused,
+  phase,
   username,
 }: {
   readonly active: 'integrated' | 'separate' | null;
   readonly browserFocused: boolean;
+  readonly phase: 'transition' | 'reveal' | 'ready';
   readonly username: string;
 }) {
   const passphrase = s12PasswordManagerContent.variants.passphrasePreview;
   return (
-    <div className={styles.variantScene}>
+    <div className={styles.variantScene} data-reveal-phase={phase}>
       <div className={styles.variantVault} data-s12-speech-obstacle>
         <VaultVisual
-          open={false}
+          open={phase === 'transition'}
           lockHighlighted={active === 'separate'}
           compact
           username={username}
         />
       </div>
-      <div className={styles.variantConnector} aria-hidden="true">
-        <svg className={styles.variantArrows} viewBox="0 0 1000 88">
-          <path d="M500 3v18M500 21 250 75M500 21l250 54" />
-          <path d="m266 67-16 8 18 2M734 67l16 8-18 2" />
-        </svg>
-      </div>
-      <div className={styles.variantCards}>
-        <VariantCard
-          kind="integrated"
-          active={active === 'integrated'}
-          browserFocused={browserFocused}
-        />
-        <VariantCard kind="separate" active={active === 'separate'}>
-          {active === 'separate' ? (
-            <div
-              className={styles.passphrasePreview}
-              aria-label={s12PasswordManagerContent.variants.passphrasePreviewAriaLabel}
-            >
-              {passphrase.map((word, index) => (
-                <span className={styles.passphrasePart} key={`${word}-${index}`}>
-                  <strong>{word}</strong>
-                  {index < passphrase.length - 1 ? (
-                    <i aria-hidden="true">-</i>
-                  ) : null}
-                </span>
-              ))}
-            </div>
-          ) : null}
-        </VariantCard>
-      </div>
+      {phase === 'transition' ? null : (
+        <>
+          <div className={styles.variantConnector} aria-hidden="true">
+            <svg className={styles.variantArrows} viewBox="0 0 1000 88">
+              <path pathLength="1" d="M500 3v18M500 21 250 75M500 21l250 54" />
+              <path pathLength="1" d="m266 67-16 8 18 2M734 67l16 8-18 2" />
+            </svg>
+          </div>
+          <div className={styles.variantCards}>
+            <VariantCard
+              kind="integrated"
+              active={active === 'integrated'}
+              browserFocused={browserFocused}
+            />
+            <VariantCard kind="separate" active={active === 'separate'}>
+              {active === 'separate' ? (
+                <div
+                  className={styles.passphrasePreview}
+                  aria-label={s12PasswordManagerContent.variants.passphrasePreviewAriaLabel}
+                >
+                  {passphrase.map((word, index) => (
+                    <span className={styles.passphrasePart} key={`${word}-${index}`}>
+                      <strong>{word}</strong>
+                      {index < passphrase.length - 1 ? (
+                        <i aria-hidden="true">-</i>
+                      ) : null}
+                    </span>
+                  ))}
+                </div>
+              ) : null}
+            </VariantCard>
+          </div>
+        </>
+      )}
     </div>
   );
 }
@@ -498,11 +524,14 @@ export function S12PasswordManagerTraining({
   const filling = state.matches('filling');
   const filled = state.matches('filled');
   const access = state.matches('access');
+  const variantsTransition = state.matches('variantsTransition');
+  const variantsReveal = state.matches('variantsReveal');
   const variants = state.matches('variants');
   const separate = state.matches('separate');
   const integrated = state.matches('integrated');
   const practice = state.matches('practice');
-  const showingVariants = variants || separate || integrated || practice;
+  const showingVariants =
+    variantsTransition || variantsReveal || variants || separate || integrated || practice;
 
   useEffect(() => {
     onBrowserHighlightChange?.(practice);
@@ -512,14 +541,20 @@ export function S12PasswordManagerTraining({
   }, [onBrowserHighlightChange, practice]);
 
   const activeFlowId: S12FlowId | null =
-    generating || generated
+    vaultOpening || intro || generating || generated
       ? 'generate'
       : storing || stored
         ? 'store'
         : filling || filled || access
           ? 'fill'
           : null;
-  const allFunctionsComplete = filled || access;
+  const completedFunctionCount = filled || access
+    ? 3
+    : stored || filling
+      ? 2
+      : generated || storing
+        ? 1
+        : 0;
 
   const speech = intro
     ? {
@@ -579,14 +614,20 @@ export function S12PasswordManagerTraining({
           <VariantScene
             active={separate ? 'separate' : integrated || practice ? 'integrated' : null}
             browserFocused={practice}
+            phase={
+              variantsTransition ? 'transition' : variantsReveal ? 'reveal' : 'ready'
+            }
             username={accountUsername}
           />
         ) : (
           <div className={styles.functionScene}>
-            <FlowStrip activeId={activeFlowId} allComplete={allFunctionsComplete} />
+            <FlowStrip
+              activeId={activeFlowId}
+              completedCount={completedFunctionCount}
+            />
             <div className={styles.functionWorkbench}>
               {generating || generated ? (
-                <GeneratorScene typing={generating} />
+                <GeneratorScene generated={generated} typing={generating} />
               ) : storing || stored ? (
                 <StorageScene
                   storing={storing}

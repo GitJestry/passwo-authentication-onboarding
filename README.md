@@ -182,8 +182,8 @@ stehen in `docs/operations/WEB-DEPLOYMENT.md`.
 
 `/design-lab` ist ein interner lokaler QA-Pfad für deterministische, vom Studienablauf isolierte
 Szenen, Barrierefreiheitsprüfungen und visuelle Regression. Dazu gehören BrowserShell- und
-PassWo-Zustände sowie die S00-, S02-Master-Campus-, S03-Warnungs-, S04-, S05-, S06- und
-S07-Fixtures.
+PassWo-Zustände sowie die S00-, S02-Master-Campus-, S03-Warnungs-, S04-, S05-, S06-, S07- und
+S13-Fixtures.
 Das Design Lab ist kein Auslieferungspfad, speichert keine Forschungsdaten und ersetzt keine
 vollständige Segmentnavigation.
 
@@ -192,6 +192,8 @@ und `view=landing|auth|dashboard` direkt aufrufen. S00 verwendet denselben `acco
 die jeweilige Landingpage, zum Beispiel `/design-lab/s01?account=campus-email&view=dashboard`.
 Die Warnszene und die anschließende Campusgram-Erklärung sind unter `/design-lab/s03-warning`
 beziehungsweise `/design-lab/s04` direkt erreichbar.
+Die My-Shop-Registrierung beginnt unter `/design-lab/s2-2-my-shop-registration` unmittelbar mit
+dem leeren S13-Registrierungsformular.
 
 Für einen direkten, ausschließlich lokalen QA-Einstieg in ein Trainingssegment kann der
 Desktop-Entwicklungsstart mit `PASSWO_QA_SEGMENT` aufgerufen werden. Dabei werden weder eine
@@ -207,7 +209,11 @@ PASSWO_QA_SEGMENT=s06 pnpm dev
 PASSWO_QA_SEGMENT=s07 pnpm dev
 PASSWO_QA_SEGMENT=s08 pnpm dev
 PASSWO_QA_SEGMENT=s09 pnpm dev
+PASSWO_QA_SEGMENT=s13 pnpm dev
 ```
+
+`s13` öffnet direkt das leere My-Shop-Registrierungsformular. Dieser Einstieg ist ausschließlich
+lokale QA und verändert den serverseitigen S08-Resume-Checkpoint nicht.
 
 Die fiktiven QA-Passwörter können für denselben Start optional überschrieben werden. Nicht
 angegebene Werte behalten die jeweiligen Vorschau-Defaults (`preview-master-campus`,

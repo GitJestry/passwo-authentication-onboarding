@@ -20,6 +20,11 @@ describe('S12 password-manager content traceability', () => {
       attemptsPerSecond: '1 Billion',
       duration: '16,5 Milliarden Jahre',
     });
+    expect(s12PasswordManagerContent.vault.initialEntries).toHaveLength(8);
+    expect(s12PasswordManagerContent.vault.storedCount).toEqual({
+      initial: '8 Einträge',
+      withGenerated: '9 Einträge',
+    });
   });
 
   it('keeps the two variants concise and the browser exercise transition explicit', () => {

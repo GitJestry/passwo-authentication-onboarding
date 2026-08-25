@@ -8,6 +8,8 @@ export type S13AutofillEntryId =
 
 interface S13PasswordManagerPracticeContext {
   readonly autofillDurationMs: number;
+  readonly expectedPassword: string;
+  readonly failedLoginAttempts: number;
   readonly registrationDurationMs: number;
   readonly saveConfirmationDurationMs: number;
   readonly saveRestoreDurationMs: number;
@@ -16,7 +18,7 @@ interface S13PasswordManagerPracticeContext {
 
 type S13PasswordManagerPracticeInput = Omit<
   S13PasswordManagerPracticeContext,
-  'selectedAutofillEntryId'
+  'failedLoginAttempts' | 'selectedAutofillEntryId'
 >;
 
 type S13PasswordManagerPracticeEvent =
@@ -36,7 +38,7 @@ type S13PasswordManagerPracticeEvent =
       readonly type: 'STORED_ENTRY_SELECTED';
       readonly entryId: S13AutofillEntryId;
     }
-  | { readonly type: 'LOGIN' };
+  | { readonly type: 'LOGIN'; readonly password: string };
 
 export const s13PasswordManagerPracticeMachine = setup({
   types: {
@@ -50,7 +52,14 @@ export const s13PasswordManagerPracticeMachine = setup({
     saveConfirmationDuration: ({ context }) => context.saveConfirmationDurationMs,
     saveRestoreDuration: ({ context }) => context.saveRestoreDurationMs,
   },
+  guards: {
+    passwordMatchesMyShop: ({ context, event }) =>
+      event.type === 'LOGIN' && event.password === context.expectedPassword,
+  },
   actions: {
+    recordFailedLogin: assign({
+      failedLoginAttempts: ({ context }) => context.failedLoginAttempts + 1,
+    }),
     selectAutofillEntry: assign({
       selectedAutofillEntryId: ({ event }) =>
         event.type === 'STORED_ENTRY_SELECTED' ? event.entryId : null,
@@ -59,7 +68,11 @@ export const s13PasswordManagerPracticeMachine = setup({
 }).createMachine({
   id: 's13PasswordManagerPractice',
   initial: 'registration',
-  context: ({ input }) => ({ ...input, selectedAutofillEntryId: null }),
+  context: ({ input }) => ({
+    ...input,
+    failedLoginAttempts: 0,
+    selectedAutofillEntryId: null,
+  }),
   states: {
     registration: {
       on: { PASSWORD_FIELD_SELECTED: { target: 'passwordSuggestion' } },
@@ -99,15 +112,27 @@ export const s13PasswordManagerPracticeMachine = setup({
     },
     saveConfirmation: {
       after: { saveConfirmationDuration: { target: 'saveIconRestored' } },
+      on: { CONTINUE_TO_LOGIN: { target: 'loginIdle' } },
     },
     saveIconRestored: {
       after: { saveRestoreDuration: { target: 'passwordSaved' } },
+      on: { CONTINUE_TO_LOGIN: { target: 'loginIdle' } },
     },
     passwordSaved: {
       on: { CONTINUE_TO_LOGIN: { target: 'loginIdle' } },
     },
     loginIdle: {
-      on: { LOGIN_FIELD_SELECTED: { target: 'loginOffer' } },
+      on: {
+        LOGIN_FIELD_SELECTED: { target: 'loginOffer' },
+        STORED_ENTRY_SELECTED: {
+          target: 'autofilling',
+          actions: 'selectAutofillEntry',
+        },
+        LOGIN: [
+          { guard: 'passwordMatchesMyShop', target: 'signedIn' },
+          { target: 'loginInvalid', actions: 'recordFailedLogin' },
+        ],
+      },
     },
     loginOffer: {
       on: {
@@ -121,12 +146,34 @@ export const s13PasswordManagerPracticeMachine = setup({
     },
     autofilling: {
       after: { autofillDuration: { target: 'loginReady' } },
-      on: { LOGIN: { target: 'signedIn' } },
+      on: {
+        LOGIN: [
+          { guard: 'passwordMatchesMyShop', target: 'signedIn' },
+          { target: 'loginInvalid', actions: 'recordFailedLogin' },
+        ],
+      },
     },
     loginReady: {
       on: {
         LOGIN_FIELD_SELECTED: { target: 'loginOffer' },
-        LOGIN: { target: 'signedIn' },
+        LOGIN_FIELD_EDITED: { target: 'loginIdle' },
+        LOGIN: [
+          { guard: 'passwordMatchesMyShop', target: 'signedIn' },
+          { target: 'loginInvalid', actions: 'recordFailedLogin' },
+        ],
+      },
+    },
+    loginInvalid: {
+      on: {
+        LOGIN_FIELD_EDITED: { target: 'loginIdle' },
+        STORED_ENTRY_SELECTED: {
+          target: 'autofilling',
+          actions: 'selectAutofillEntry',
+        },
+        LOGIN: [
+          { guard: 'passwordMatchesMyShop', target: 'signedIn' },
+          { target: 'loginInvalid', reenter: true, actions: 'recordFailedLogin' },
+        ],
       },
     },
     signedIn: {},

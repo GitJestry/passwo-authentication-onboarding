@@ -1,7 +1,7 @@
 import type { TrainingSectionId } from '@passwo/contracts';
 import { s07PassphraseSearchContent } from './s07.js';
 
-export const S12_PASSWORD_MANAGER_CONTENT_VERSION = '1.5.0';
+export const S12_PASSWORD_MANAGER_CONTENT_VERSION = '1.8.0';
 
 const familiarPassphrase =
   s07PassphraseSearchContent.browser.generatorPage.passphrases[0]?.words ?? [];
@@ -10,9 +10,9 @@ export const s12PasswordManagerContent = {
   version: S12_PASSWORD_MANAGER_CONTENT_VERSION,
   source: {
     revision:
-      'Useraufträge vom 2026-08-25 · Passwortmanager-Visuals, Varianten und Browserüberleitung',
+      'Useraufträge vom 2026-08-25 · Passwortmanager-Visuals, lesbarer Tresor und Browserüberleitung',
     copyReference:
-      'docs/design/S12-COPY-AUDIT.md#folgeauftrag-präzisierung-der-variantenmerkmale-25-august-2026',
+      'docs/design/S12-COPY-AUDIT.md#folgeauftrag-lesbare-tresoreinträge-und-visuelle-präzisierung-25-august-2026',
   },
   segment: {
     id: 'S12',
@@ -52,12 +52,25 @@ export const s12PasswordManagerContent = {
   },
   vault: {
     label: 'Passwortmanager-Tresor',
-    storedCount: '1 Eintrag',
+    storedCount: {
+      initial: '8 Einträge',
+      withGenerated: '9 Einträge',
+    },
     states: {
       open: 'geöffnet',
       closed: 'geschlossen',
       stored: 'gespeichert',
     },
+    initialEntries: [
+      { account: 'Campus Cloud', identifier: 'konto@cloud.example' },
+      { account: 'Lernportal', identifier: 'konto@lernen.example' },
+      { account: 'Fotobox', identifier: 'konto@foto.example' },
+      { account: 'Musikstream', identifier: 'konto@musik.example' },
+      { account: 'Reiseplaner', identifier: 'konto@reise.example' },
+      { account: 'Ticketshop', identifier: 'konto@tickets.example' },
+      { account: 'Spielewelt', identifier: 'konto@spiele.example' },
+      { account: 'Marktplatz', identifier: 'konto@markt.example' },
+    ],
     entry: {
       account: 'Anmeldebeispiel',
       username: 'benutzername',

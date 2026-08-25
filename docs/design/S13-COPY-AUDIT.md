@@ -140,3 +140,35 @@ Der ausdrückliche Folgeauftrag ändert keinen geschützten Wortlaut. Die Conten
 - Nach Auswahl eines gespeicherten Eintrags ist `Anmelden` bereits während der sichtbaren
   Autofill-Bewegung bedienbar; der Klick schließt den vorgesehenen Wiederanmeldepfad zuverlässig
   ab.
+
+## Implementierungskorrektur: Fiktive Kennungen und Anmeldung, 25. August 2026
+
+Der ausdrückliche Nutzerauftrag verlangt die Behebung des blockierten Logins. Es ändert sich kein
+Teilnehmerwortlaut und keine Datenklasse. Die My-Shop-Simulation überlässt die Freigabe des
+Anmeldebuttons weiterhin dem lokalen S13-Ablauf, verwendet aber keine native E-Mail-Validierung:
+Die authored Campusgram-Kennung ist keine E-Mail-Adresse, und flüchtig abgeleitete fiktive
+Campus-Adressen können Leerzeichen enthalten. Diese Kennungen bleiben unverändert lokal und
+werden weder als reale Zugangsdaten validiert noch persistiert oder exportiert.
+
+## Folgeauftrag: Speicherbestätigung, Autofill und Loginfehler, 25. August 2026
+
+Der ausdrückliche Nutzerauftrag schärft den bestehenden My-Shop-Ablauf. Die Content-Version steigt
+von `1.4.0` auf `1.5.0`.
+
+| Text-ID | Bisher | Neu | Primäre Rolle | Grund | Bedeutungsänderung | Interaktionsziel | Hervorhebung |
+|---|---|---|---|---|---|---|---|
+| `S13.website.incorrectPassword` | nicht vorhanden | `Dieses Passwort passt nicht zum Konto.` | Ergebnisfeedback | falsche My-Shop-Anmeldungen wie in S03 sichtbar zurückmelden | ausdrücklich freigegeben; vorhandener S03-Wortlaut | Passwortfeld und Anmelden-Button | roter Rahmen, Ausrufezeichen und Text |
+
+Darstellungs- und Ablaufdelta:
+
+- Die Speicherbestätigung am Passwortmanager ist größer, kontrastreicher und zusätzlich durch ein
+  Häkchen gekennzeichnet. PassWo beginnt den bestehenden gespeicherten Hinweis unmittelbar nach
+  dem Klick auf `Speichern`; derselbe einzelne Sprechschritt enthält unmittelbar `Weiter` und kann
+  die noch laufende Bestätigungsanimation zuverlässig in den Login überführen.
+- Die Autofill-Liste erscheint, sobald E-Mail- oder Passwortfeld leer ist. Die Auswahl ersetzt
+  weiterhin beide Felder vollständig. Während der Autofill-Bewegung werden ausschließlich die
+  eingesetzten Zeichen eingeblendet; Feldkonturen, Hintergründe und Bedienelemente bleiben stabil.
+- Alle Autofill-Einträge verwenden ihre kanonischen Kontologos: My Shop das Shoplogo sowie
+  Campusgram, Master Campus und Campus E-Mail die bestehende lokale Symbolregistry.
+- Nur das für My Shop erzeugte authored Passwort führt zur Anmeldung. Jede andere Zeichenfolge
+  bleibt im Login und zeigt den roten, textlich und per Ausrufezeichen ausgezeichneten Fehler.

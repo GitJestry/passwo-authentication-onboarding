@@ -11,6 +11,7 @@ import {
 } from '@passwo/ui';
 import { useMachine } from '@xstate/react';
 import { useEffect, useMemo, useState } from 'react';
+import { NetworkSymbol } from '../../../../adapters/network/NetworkSymbolRegistry.js';
 import myShopSummerSaleAsset from '../../../../assets/s13/my-shop-summer-sale.png';
 import { AccountSuccessOverlay } from '../../AccountSuccessOverlay.js';
 import { PassWoGuide } from '../../PassWoGuide.js';
@@ -114,6 +115,8 @@ function PasswordField({
   assisted = false,
   autofilling = false,
   ariaLabel,
+  ariaDescribedBy,
+  invalid = false,
   revealed,
   onSelect,
   onChange,
@@ -125,6 +128,8 @@ function PasswordField({
   readonly assisted?: boolean;
   readonly autofilling?: boolean;
   readonly ariaLabel?: string | undefined;
+  readonly ariaDescribedBy?: string | undefined;
+  readonly invalid?: boolean;
   readonly revealed: boolean;
   readonly onSelect?: () => void;
   readonly onChange?: (value: string) => void;
@@ -147,6 +152,8 @@ function PasswordField({
         value={value}
         placeholder={placeholder}
         aria-label={ariaLabel}
+        aria-describedby={ariaDescribedBy}
+        aria-invalid={invalid || undefined}
         onChange={(event) => onChange?.(event.currentTarget.value)}
         onClick={onSelect}
         onFocus={onSelect}
@@ -194,14 +201,13 @@ function AutofillList({
           className={styles.storedEntry}
           role="option"
           aria-label={`${entry.label}, ${entry.identifier}`}
-          onPointerDown={(event) => event.preventDefault()}
           onClick={() => onSelect(entry)}
         >
           {entry.id === 'my-shop' ? (
             <MyShopAppIcon idSuffix="stored-entry" />
           ) : (
             <span className={styles.storedEntryMark} aria-hidden="true">
-              {entry.label.slice(0, 1)}
+              <NetworkSymbol symbolId={entry.id} />
             </span>
           )}
           <span>
@@ -231,7 +237,8 @@ function AuthBackdrop({
   emailAutofilled,
   passwordAutofilled,
   autofilling,
-  loginReady,
+  loginInvalid,
+  failedLoginAttempts,
   registering,
   passwordRevealed,
   onEmailFieldSelect,
@@ -252,12 +259,13 @@ function AuthBackdrop({
   readonly passwordGenerated: boolean;
   readonly suggestionVisible: boolean;
   readonly storedEntryVisible: boolean;
-  readonly autofillAnchor: 'email' | 'password';
+  readonly autofillAnchor: 'email' | 'password' | null;
   readonly autofillEntries: readonly S13AutofillEntry[];
   readonly emailAutofilled: boolean;
   readonly passwordAutofilled: boolean;
   readonly autofilling: boolean;
-  readonly loginReady: boolean;
+  readonly loginInvalid: boolean;
+  readonly failedLoginAttempts: number;
   readonly registering: boolean;
   readonly passwordRevealed: boolean;
   readonly onEmailFieldSelect: () => void;
@@ -270,12 +278,11 @@ function AuthBackdrop({
   readonly onRegister: () => void;
   readonly onStoredEntrySelect: (entry: S13AutofillEntry) => void;
   readonly onStoredEntryDismiss: () => void;
-  readonly onLogin: () => void;
+  readonly onLogin: (password: string) => void;
 }) {
   const content = s13PasswordManagerPracticeContent;
   const login = mode === 'login';
-  const canSubmitLogin =
-    (loginReady || autofilling) && emailValue.length > 0 && passwordValue.length > 0;
+  const canSubmitLogin = emailValue.length > 0 && passwordValue.length > 0;
   return (
     <main className={styles.authPage}>
       <div className={styles.authGlow} aria-hidden="true" />
@@ -283,10 +290,13 @@ function AuthBackdrop({
         <MyShopBrand idSuffix={`auth-${mode}`} />
         <form
           className={styles.authCard}
+          data-invalid={loginInvalid || undefined}
+          data-invalid-animation={loginInvalid ? failedLoginAttempts % 2 : undefined}
+          noValidate
           aria-label={login ? content.website.loginTitle : content.website.registrationTitle}
           onSubmit={(event) => {
             event.preventDefault();
-            if (login && canSubmitLogin) onLogin();
+            if (login && canSubmitLogin) onLogin(passwordValue);
             if (!login && passwordGenerated && !registering) onRegister();
           }}
         >
@@ -303,7 +313,8 @@ function AuthBackdrop({
             <input
               id={`s13-email-${mode}`}
               className={styles.emailField}
-              type="email"
+              type="text"
+              inputMode="email"
               autoComplete="off"
               readOnly={!login}
               value={emailValue}
@@ -343,16 +354,23 @@ function AuthBackdrop({
                   ? `${content.website.passwordLabel}, ${content.website.autofilledStatusLabel}`
                   : undefined
               }
+              ariaDescribedBy={loginInvalid ? 's13-login-error' : undefined}
+              invalid={loginInvalid}
               revealed={passwordRevealed}
               onToggleVisibility={onPasswordVisibilityToggle}
               onSelect={onPasswordFieldSelect}
               {...(login ? { onChange: onPasswordChange } : {})}
             />
+            {loginInvalid ? (
+              <p id="s13-login-error" className={styles.loginError} role="alert">
+                <span aria-hidden="true">!</span>
+                {content.website.incorrectPassword}
+              </p>
+            ) : null}
             {!login && suggestionVisible ? (
               <button
                 type="button"
                 className={styles.passwordSuggestion}
-                onPointerDown={(event) => event.preventDefault()}
                 onClick={onPasswordSuggestionSelect}
               >
                 <PasswordManagerKeyIcon />
@@ -608,12 +626,13 @@ export function S13PasswordManagerPractice({
   onBrowserClosed,
 }: S13PasswordManagerPracticeProps) {
   const content = s13PasswordManagerPracticeContent;
-  const identity = deriveCampusIdentity(displayName);
+  const identity = useMemo(() => deriveCampusIdentity(displayName), [displayName]);
   const email = identity.masterCampus;
   const username = email.split('@', 1)[0] ?? 'benutzername';
   const [state, send] = useMachine(s13PasswordManagerPracticeMachine, {
     input: {
       autofillDurationMs: autofillDuration(),
+      expectedPassword: content.passwordManager.generatedPassword,
       registrationDurationMs: registrationDuration(),
       saveConfirmationDurationMs: 2200,
       saveRestoreDurationMs: window.matchMedia('(prefers-reduced-motion: reduce)').matches
@@ -626,7 +645,7 @@ export function S13PasswordManagerPractice({
   const [savePromptPasswordRevealed, setSavePromptPasswordRevealed] = useState(false);
   const [guideHelpOpen, setGuideHelpOpen] = useState(false);
   const [successOverlayVisible, setSuccessOverlayVisible] = useState(false);
-  const [autofillAnchor, setAutofillAnchor] = useState<'email' | 'password'>('email');
+  const [autofillAnchor, setAutofillAnchor] = useState<'email' | 'password' | null>(null);
   const [loginEmailValue, setLoginEmailValue] = useState('');
   const [loginPasswordValue, setLoginPasswordValue] = useState('');
   const [emailAutofilled, setEmailAutofilled] = useState(false);
@@ -685,12 +704,56 @@ export function S13PasswordManagerPractice({
   const loginOffer = state.matches('loginOffer');
   const autofilling = state.matches('autofilling');
   const loginReady = state.matches('loginReady');
+  const loginInvalid = state.matches('loginInvalid');
   const signedIn = state.matches('signedIn');
+  const autofillOfferAvailable =
+    (loginIdle || loginOffer || loginReady || loginInvalid) &&
+    (loginEmailValue === '' || loginPasswordValue === '');
   const savePending =
     savePromptVisible || saveGuidanceFirst || saveGuidanceSecond || saveDeferred;
   const shopVisible =
     savePending || saveConfirmation || saveIconRestored || passwordSaved || signedIn;
   const passwordManagerReopenEnabled = saveGuidanceSecond || saveDeferred;
+
+  useEffect(() => {
+    if (!autofilling || state.context.selectedAutofillEntryId === null) return;
+
+    const entry = autofillEntries.find(
+      ({ id }) => id === state.context.selectedAutofillEntryId,
+    );
+    if (entry === undefined) return;
+
+    const durationMs = state.context.autofillDurationMs;
+    if (durationMs === 0) {
+      setLoginEmailValue(entry.identifier);
+      setLoginPasswordValue(entry.password);
+      return;
+    }
+
+    const startedAt = performance.now();
+    const characterAnimationDurationMs = durationMs * 0.85;
+    let frame = 0;
+
+    const enterNextCharacters = (now: number) => {
+      const progress = Math.min((now - startedAt) / characterAnimationDurationMs, 1);
+      setLoginEmailValue(
+        entry.identifier.slice(0, Math.floor(entry.identifier.length * progress)),
+      );
+      setLoginPasswordValue(
+        entry.password.slice(0, Math.floor(entry.password.length * progress)),
+      );
+
+      if (progress < 1) frame = requestAnimationFrame(enterNextCharacters);
+    };
+
+    frame = requestAnimationFrame(enterNextCharacters);
+    return () => cancelAnimationFrame(frame);
+  }, [
+    autofillEntries,
+    autofilling,
+    state.context.autofillDurationMs,
+    state.context.selectedAutofillEntryId,
+  ]);
 
   useEffect(() => {
     if (signedIn) setSuccessOverlayVisible(true);
@@ -700,7 +763,7 @@ export function S13PasswordManagerPractice({
     ? 3
     : loginReady
       ? 3
-      : passwordSaved || loginIdle || loginOffer || autofilling
+      : passwordSaved || loginIdle || loginOffer || autofilling || loginInvalid
       ? 2
       : passwordGenerated || registering || savePending || saveConfirmation
         ? 1
@@ -758,7 +821,7 @@ export function S13PasswordManagerPractice({
           id: 's13-save-declined-second',
           text: content.guide.saveDeclined.second,
         }
-      : passwordSaved
+      : saveConfirmation || saveIconRestored || passwordSaved
         ? {
             id: 's13-password-saved',
             text: content.guide.saved,
@@ -882,24 +945,19 @@ export function S13PasswordManagerPractice({
             passwordGenerated={passwordGenerated}
             suggestionVisible={suggestionVisible}
             storedEntryVisible={
-              loginOffer && loginEmailValue === '' && loginPasswordValue === ''
+              autofillOfferAvailable && autofillAnchor !== null
             }
             autofillAnchor={autofillAnchor}
             autofillEntries={autofillEntries}
             emailAutofilled={emailAutofilled}
             passwordAutofilled={passwordAutofilled}
             autofilling={autofilling}
-            loginReady={loginReady}
+            loginInvalid={loginInvalid}
+            failedLoginAttempts={state.context.failedLoginAttempts}
             registering={registering}
             passwordRevealed={passwordRevealed}
             onEmailFieldSelect={() => {
-              if (
-                (!loginIdle && !loginOffer && !loginReady) ||
-                loginEmailValue !== '' ||
-                loginPasswordValue !== ''
-              ) {
-                return;
-              }
+              if (!autofillOfferAvailable) return;
               setAutofillAnchor('email');
               send({ type: 'LOGIN_FIELD_SELECTED' });
             }}
@@ -909,22 +967,18 @@ export function S13PasswordManagerPractice({
                 send({ type: 'PASSWORD_FIELD_SELECTED' });
                 return;
               }
-              if (
-                (!loginIdle && !loginOffer && !loginReady) ||
-                loginEmailValue !== '' ||
-                loginPasswordValue !== ''
-              ) {
-                return;
-              }
+              if (!autofillOfferAvailable) return;
               setAutofillAnchor('password');
               send({ type: 'LOGIN_FIELD_SELECTED' });
             }}
             onEmailChange={(value) => {
+              setAutofillAnchor(null);
               setLoginEmailValue(value);
               setEmailAutofilled(false);
               send({ type: 'LOGIN_FIELD_EDITED' });
             }}
             onPasswordChange={(value) => {
+              setAutofillAnchor(null);
               setLoginPasswordValue(value);
               setPasswordAutofilled(false);
               send({ type: 'LOGIN_FIELD_EDITED' });
@@ -944,17 +998,22 @@ export function S13PasswordManagerPractice({
             }}
             onStoredEntrySelect={(entry) => {
               setGuideHelpOpen(false);
+              setAutofillAnchor(null);
               setPasswordRevealed(false);
-              setLoginEmailValue(entry.identifier);
-              setLoginPasswordValue(entry.password);
+              const reducedMotion = state.context.autofillDurationMs === 0;
+              setLoginEmailValue(reducedMotion ? entry.identifier : '');
+              setLoginPasswordValue(reducedMotion ? entry.password : '');
               setEmailAutofilled(true);
               setPasswordAutofilled(true);
               send({ type: 'STORED_ENTRY_SELECTED', entryId: entry.id });
             }}
-            onStoredEntryDismiss={() => send({ type: 'LOGIN_FIELD_DESELECTED' })}
-            onLogin={() => {
+            onStoredEntryDismiss={() => {
+              setAutofillAnchor(null);
+              send({ type: 'LOGIN_FIELD_DESELECTED' });
+            }}
+            onLogin={(password) => {
               setGuideHelpOpen(false);
-              send({ type: 'LOGIN' });
+              send({ type: 'LOGIN', password });
             }}
           />
         )}

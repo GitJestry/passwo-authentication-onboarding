@@ -5,6 +5,8 @@ interface S12PasswordManagerContext {
   readonly generationDurationMs: number;
   readonly storageDurationMs: number;
   readonly autofillDurationMs: number;
+  readonly variantsTransitionDurationMs: number;
+  readonly variantsRevealDurationMs: number;
 }
 
 type S12PasswordManagerEvent = { readonly type: 'NEXT' };
@@ -20,6 +22,8 @@ export const s12PasswordManagerMachine = setup({
     generationDuration: ({ context }) => context.generationDurationMs,
     storageDuration: ({ context }) => context.storageDurationMs,
     autofillDuration: ({ context }) => context.autofillDurationMs,
+    variantsTransitionDuration: ({ context }) => context.variantsTransitionDurationMs,
+    variantsRevealDuration: ({ context }) => context.variantsRevealDurationMs,
   },
 }).createMachine({
   id: 's12PasswordManager',
@@ -51,7 +55,13 @@ export const s12PasswordManagerMachine = setup({
       on: { NEXT: { target: 'access' } },
     },
     access: {
-      on: { NEXT: { target: 'variants' } },
+      on: { NEXT: { target: 'variantsTransition' } },
+    },
+    variantsTransition: {
+      after: { variantsTransitionDuration: { target: 'variantsReveal' } },
+    },
+    variantsReveal: {
+      after: { variantsRevealDuration: { target: 'variants' } },
     },
     variants: {
       on: { NEXT: { target: 'separate' } },

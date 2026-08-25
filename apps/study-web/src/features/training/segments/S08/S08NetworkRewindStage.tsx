@@ -54,7 +54,7 @@ import styles from './S08NetworkRewindStage.module.css';
 export type S08ChangeableAccountId = Exclude<S06AccountId, 'campusgram'>;
 
 interface S08Context {
-  readonly initialStage: 's08' | 's09' | 'manager';
+  readonly initialStage: 's08' | 's09' | 'manager' | 's13';
   readonly phaseDurationMs: number;
   readonly protectionResolutionDurationMs: number;
   readonly reductionDurationMs: number;
@@ -82,7 +82,7 @@ const s08Machine = setup({
     events: {} as S08Event,
     input: {} as {
       readonly recommendedAccountIds: readonly S08ChangeableAccountId[];
-      readonly initialStage: 's08' | 's09' | 'manager';
+      readonly initialStage: 's08' | 's09' | 'manager' | 's13';
       readonly phaseDurationMs: number;
       readonly protectionResolutionDurationMs: number;
       readonly reductionDurationMs: number;
@@ -109,6 +109,7 @@ const s08Machine = setup({
       ),
     startsAtS09: ({ context }) => context.initialStage === 's09',
     startsAtManager: ({ context }) => context.initialStage === 'manager',
+    startsAtS13: ({ context }) => context.initialStage === 's13',
   },
   actions: {
     startProtectionResolution: assign({
@@ -143,6 +144,7 @@ const s08Machine = setup({
   states: {
     entry: {
       always: [
+        { guard: 'startsAtS13', target: 'managerPractice' },
         { guard: 'startsAtManager', target: 'managerTransition' },
         { guard: 'startsAtS09', target: 's09Summary' },
         { target: 'protection' },
@@ -229,7 +231,7 @@ export interface S08NetworkRewindStageProps {
   readonly plan?: PasswordConsequenceScenePlan | null;
   readonly resumeState?: SupportiveS08ResumeState;
   readonly platform: DesktopPlatform;
-  readonly initialStage?: 's08' | 's09' | 'manager';
+  readonly initialStage?: 's08' | 's09' | 'manager' | 's13';
   readonly onComplete?: () => void;
 }
 

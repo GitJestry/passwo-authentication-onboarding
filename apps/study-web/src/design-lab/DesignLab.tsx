@@ -109,12 +109,12 @@ function S07ToS09QaPreview({
 }: {
   readonly accountFeedback: readonly S07AccountFeedback[];
   readonly campusgramPassword: string;
-  readonly initialStage?: 's07' | 's08' | 's09' | 'manager';
+  readonly initialStage?: 's07' | 's08' | 's09' | 'manager' | 's13';
   readonly network: NetworkSceneSnapshot | null;
   readonly plan: ReturnType<typeof createS06ConsequenceScenePlan>;
 }) {
   const [stage, setStage] = useState<
-    's07' | 's08' | 's09' | 'manager'
+    's07' | 's08' | 's09' | 'manager' | 's13'
   >(initialStage);
   const [completedRecommendedAccountIds, setCompletedRecommendedAccountIds] = useState<
     readonly S07RemainingAccountId[] | null
@@ -196,7 +196,7 @@ function S07DirectQaPreview({
   initialStage = 's07',
   passwordOverrides,
 }: {
-  readonly initialStage?: 's07' | 's08' | 's09' | 'manager';
+  readonly initialStage?: 's07' | 's08' | 's09' | 'manager' | 's13';
   readonly passwordOverrides: TrainingQaPasswordOverrides;
 }) {
   const accounts = useMemo<S06ConsequenceAccountInputs>(() => {
@@ -595,6 +595,13 @@ const scenarios: Record<DesignLabScenarioId, DesignLabScenario> = {
     dimmed: false,
     showPassWoOverlay: false,
   },
+  's2-2-my-shop-registration': {
+    label: 's2.2 · My Shop registrieren',
+    description:
+      'Direkter lokaler QA- und Resume-Einstieg in S13 beim leeren My-Shop-Registrierungsformular.',
+    dimmed: false,
+    showPassWoOverlay: false,
+  },
 };
 
 const scenarioGroups = [
@@ -650,7 +657,7 @@ const scenarioGroups = [
   },
   {
     label: 'Passwortmanager · s2.x',
-    scenarioIds: ['s2-1-password-manager-transition'],
+    scenarioIds: ['s2-1-password-manager-transition', 's2-2-my-shop-registration'],
   },
 ] as const satisfies readonly DesignLabScenarioGroup[];
 
@@ -1353,6 +1360,17 @@ export function DesignLab({ scenarioId }: { readonly scenarioId: DesignLabScenar
             initialStage="manager"
             passwordOverrides={passwordOverrides}
           />
+        </ArtifactPreview>
+      </main>
+    );
+  }
+
+  if (scenarioId === 's2-2-my-shop-registration') {
+    return (
+      <main className={styles.labPage}>
+        <DesignLabIntroduction scenarioId={scenarioId} scenario={scenario} />
+        <ArtifactPreview>
+          <S07DirectQaPreview initialStage="s13" passwordOverrides={passwordOverrides} />
         </ArtifactPreview>
       </main>
     );

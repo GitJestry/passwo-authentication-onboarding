@@ -186,3 +186,83 @@ Die Darstellungs- und Animationsentscheidungen bleiben unverändert.
 Der ausdrückliche Folgeauftrag präzisiert ausschließlich den Eintritt in S12: Das Kontonetzwerk
 ist beim Zustandswechsel sofort nicht mehr sichtbar oder bedienbar. Der bisherige sichtbare
 Ausblendvorgang entfällt; S12-Copy, weitere Animationen und fachlicher Ablauf bleiben unverändert.
+
+## Folgeauftrag: Lesbarkeit und gefüllter Tresor, 25. August 2026
+
+Quelle ist der ausdrückliche Nutzerauftrag vom 25. August 2026. Er verlangt besser lesbare
+Funktionszustände, einen bereits zu Beginn glaubwürdig gefüllten Tresor und den gelben
+Generator-Endzustand. `S12_PASSWORD_MANAGER_CONTENT_VERSION` steigt dafür auf `1.6.0`.
+
+### Copy-Delta
+
+| Segment und Text-ID | Quelle | Aktueller Text | Geplanter Text | Primäre Rolle | Grund | Bedeutungsänderung | Interaktionsziel | Hervorhebung |
+|---|---|---|---|---|---|---|---|---|
+| `S12.vault.initialEntries` | Nutzerauftrag 2026-08-25 | keine sichtbaren Einträge vor dem Speicherschritt | zwölf eindeutig fiktive Dienstnamen und `.example`-Kennungen mit maskierten Passwörtern | Orientierung | der Tresor soll bereits beim Öffnen als genutzter Passwortmanager erkennbar sein | ausdrücklich freigegeben | kein | Eintragskarten, Maskierung und Tresorform |
+| `S12.vault.storedCount` | Nutzerauftrag 2026-08-25 | `1 Eintrag` | zunächst `12 Einträge`, nach dem Speichern `13 Einträge` | Ergebnisfeedback | Zähler an die sichtbaren authored Beispiele und den neuen Eintrag angleichen | ausdrücklich freigegeben | kein | Zahl und sichtbarer neuer Eintrag |
+
+### Darstellungs- und Interaktionsgrenzen
+
+- Die bestehenden Bezeichnungen `Erzeugen`, `Speichern` und `Ausfüllen` bleiben unverändert.
+  Höherer Kontrast, größere Schrift und dauerhaft sichtbare Häkchen machen aktive und
+  abgeschlossene Zustände unterscheidbar, ohne Farbe als einzigen Bedeutungsträger zu verwenden.
+- Die zwölf Startwerte sind ausschließlich versionierter fiktiver Content. Alle Passwörter
+  bleiben maskiert; es werden keine Teilnehmerdaten abgeleitet, gespeichert oder exportiert.
+- Das erzeugte Passwortfeld wird erst nach vollständig abgeschlossener Zeichenanimation gelb.
+  Bei Reduced Motion erscheint unmittelbar derselbe fachliche Endzustand.
+
+## Folgeauftrag: Weniger Tresoreinträge, 25. August 2026
+
+Quelle ist der ausdrückliche Nutzerauftrag vom 25. August 2026. Die Anzahl der sichtbaren
+fiktiven Startwerte sinkt zugunsten ihrer Lesbarkeit von zwölf auf acht; nach dem Speichern zeigt
+der Tresor neun Einträge. `S12_PASSWORD_MANAGER_CONTENT_VERSION` steigt dafür auf `1.7.0`.
+
+### Copy-Delta
+
+| Segment und Text-ID | Quelle | Aktueller Text | Geplanter Text | Primäre Rolle | Grund | Bedeutungsänderung | Interaktionsziel | Hervorhebung |
+|---|---|---|---|---|---|---|---|---|
+| `S12.vault.initialEntries` | Nutzerauftrag 2026-08-25 | zwölf fiktive Einträge | acht fiktive Einträge | Orientierung | mehr Raum und bessere Lesbarkeit je Eintragskarte | begrenzt | kein | größere Schrift, Eintragskarten und Maskierung |
+| `S12.vault.storedCount` | Nutzerauftrag 2026-08-25 | `12 Einträge` / `13 Einträge` | `8 Einträge` / `9 Einträge` | Ergebnisfeedback | Zähler an die sichtbaren Einträge angleichen | begrenzt | kein | Zahl und sichtbarer neuer Eintrag |
+
+Die verbleibenden Werte sind weiterhin ausschließlich versionierter fiktiver Content mit
+`.example`-Kennungen und maskierten Passwörtern. Es werden keine Teilnehmerdaten gespeichert
+oder exportiert.
+
+## Folgeauftrag: Überleitung zu den Passwortmanager-Varianten, 25. August 2026
+
+Quelle ist der ausdrückliche Nutzerauftrag vom 25. August 2026. Teilnehmertexte und ihre
+Reihenfolge bleiben unverändert. Geändert wird ausschließlich die visuelle Überleitung nach der
+Anmelde-Demonstration.
+
+### Darstellungs- und Interaktionsgrenzen
+
+- Nach `Ausfüllen` verschwinden das Anmeldefenster und die dreistufige Funktionsanzeige.
+- Der noch geöffnete Tresor schließt sich zuerst. Anschließend schrumpft er und bewegt sich an
+  seine Position oberhalb der Variantenaufstellung.
+- Erst danach werden die Verbindungspfeile gezeichnet. Darauf folgen zeitlich gestaffelt die
+  beiden lokalen Logos, die Variantentitel und ihre Stichpunkte.
+- PassWo erscheint mit der bestehenden Variantenerklärung erst nach Abschluss dieser visuellen
+  Sequenz. Die beiden Folgeerklärungen zu eigenständigem und integriertem Passwortmanager bleiben
+  unverändert.
+- Die Überleitung wird durch eigene Statechart-Zustände gesteuert. Bei Reduced Motion werden
+  diese Wartezeiten übersprungen und derselbe fachliche Endzustand unmittelbar gezeigt.
+
+## Folgeauftrag: Lesbare Tresoreinträge und visuelle Präzisierung, 25. August 2026
+
+Quelle ist der ausdrückliche Nutzerauftrag vom 25. August 2026. Die acht fiktiven Konten und die
+fachliche Abfolge bleiben erhalten. Für kürzere, vollständig lesbare Kennungen steigt
+`S12_PASSWORD_MANAGER_CONTENT_VERSION` auf `1.8.0`.
+
+### Copy-Delta
+
+| Segment und Text-ID | Quelle | Aktueller Text | Geplanter Text | Primäre Rolle | Grund | Bedeutungsänderung | Interaktionsziel | Hervorhebung |
+|---|---|---|---|---|---|---|---|---|
+| `S12.vault.initialEntries.*.identifier` | Nutzerauftrag 2026-08-25 | längere dienstbezogene `.example`-Kennungen | kürzere `.example`-Kennungen derselben fiktiven Konten | Orientierung | vollständige Lesbarkeit in den Tresorkarten | nein | kein | sichtbare Kennung und Eintragskarte |
+
+### Darstellungs- und Interaktionsgrenzen
+
+- Konto und Kennung dürfen in der großen Tresoransicht umbrechen. Nur die kleine symbolische
+  Tresoransicht der Varianten darf weiterhin mit Auslassung kürzen.
+- Beim Ausfüllen fliegt eine grün gerahmte visuelle Kopie des gespeicherten
+  `Anmeldebeispiel`-Eintrags zum Formular. Der ursprüngliche Eintrag bleibt sichtbar im Tresor.
+- Die bestehenden Titel `Integrierter Passwortmanager` und `Eigenständiger Passwortmanager`
+  werden größer dargestellt; ihr Wortlaut bleibt unverändert.

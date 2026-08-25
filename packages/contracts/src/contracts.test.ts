@@ -13,6 +13,7 @@ import {
   confirmArtifactCheckpointRequestSchema,
   createSessionRequestSchema,
   deletionCodeSchema,
+  designLabPathForTrainingQaSegment,
   designLabScenarioForPath,
   hashDeletionCode,
   instrumentRuntimeManifest,
@@ -398,6 +399,12 @@ describe('research-safe contracts', () => {
     );
     expect(designLabScenarioForPath('/design-lab/s09-password-manager-transition')).toBe(
       's09-password-manager-transition',
+    );
+    expect(designLabScenarioForPath('/design-lab/s2-2-my-shop-registration')).toBe(
+      's2-2-my-shop-registration',
+    );
+    expect(designLabPathForTrainingQaSegment('s13')).toBe(
+      '/design-lab/s2-2-my-shop-registration',
     );
     expect(designLabScenarioForPath('/design-lab/s07-directly-reached')).toBeNull();
   });
