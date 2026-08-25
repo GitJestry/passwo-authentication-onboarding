@@ -931,10 +931,12 @@ export function createS13MyShopNetwork(
     position: bankPlaceholder?.position ?? { x: 0.28, y: 0.48 },
     selectable: false,
   };
-  const replacedNodes = source.nodes.map((node): SceneNode => {
-    if (node.id === bankPlaceholder?.id) return bankNode;
-    if (phase !== 'network' && node.id === myShopPlaceholder?.id) return myShopNode;
-    return node;
+  const replacedNodes = source.nodes.flatMap((node): SceneNode[] => {
+    if (node.id === bankPlaceholder?.id) return [bankNode];
+    if (node.id === myShopPlaceholder?.id) {
+      return phase === 'network' ? [] : [myShopNode];
+    }
+    return [node];
   });
   if (bankPlaceholder === undefined) replacedNodes.push(bankNode);
   if (phase !== 'network' && myShopPlaceholder === undefined) replacedNodes.push(myShopNode);
@@ -945,7 +947,7 @@ export function createS13MyShopNetwork(
     if (touchesBank && edge.id !== bankRelation?.id) return [];
     const touchesMyShopPlaceholder =
       edge.sourceId === myShopPlaceholder?.id || edge.targetId === myShopPlaceholder?.id;
-    if (phase !== 'network' && touchesMyShopPlaceholder) return [];
+    if (touchesMyShopPlaceholder) return [];
     const sourceId = edge.sourceId === bankPlaceholder?.id ? bankNode.id : edge.sourceId;
     const targetId = edge.targetId === bankPlaceholder?.id ? bankNode.id : edge.targetId;
     return [

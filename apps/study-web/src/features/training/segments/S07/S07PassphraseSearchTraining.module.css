@@ -298,11 +298,6 @@
 
 .searchSubmit:hover {
   background: var(--color-accent);
-  transform: translateY(-1px);
-}
-
-.searchSubmit:active {
-  transform: translateY(0);
 }
 
 .searchSubmit:focus-visible {

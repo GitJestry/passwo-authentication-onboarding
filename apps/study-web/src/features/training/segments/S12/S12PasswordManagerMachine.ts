@@ -5,6 +5,7 @@ interface S12PasswordManagerContext {
   readonly generationDurationMs: number;
   readonly storageDurationMs: number;
   readonly autofillDurationMs: number;
+  readonly variantsClosingDurationMs: number;
   readonly variantsTransitionDurationMs: number;
   readonly variantsRevealDurationMs: number;
 }
@@ -22,6 +23,7 @@ export const s12PasswordManagerMachine = setup({
     generationDuration: ({ context }) => context.generationDurationMs,
     storageDuration: ({ context }) => context.storageDurationMs,
     autofillDuration: ({ context }) => context.autofillDurationMs,
+    variantsClosingDuration: ({ context }) => context.variantsClosingDurationMs,
     variantsTransitionDuration: ({ context }) => context.variantsTransitionDurationMs,
     variantsRevealDuration: ({ context }) => context.variantsRevealDurationMs,
   },
@@ -55,7 +57,10 @@ export const s12PasswordManagerMachine = setup({
       on: { NEXT: { target: 'access' } },
     },
     access: {
-      on: { NEXT: { target: 'variantsTransition' } },
+      on: { NEXT: { target: 'variantsClosing' } },
+    },
+    variantsClosing: {
+      after: { variantsClosingDuration: { target: 'variantsTransition' } },
     },
     variantsTransition: {
       after: { variantsTransitionDuration: { target: 'variantsReveal' } },

@@ -599,7 +599,7 @@ function SignedInBackdrop({ username }: { readonly username: string }) {
 }
 
 function autofillDuration(): number {
-  return window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 0 : 900;
+  return window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 0 : 250;
 }
 
 function registrationDuration(): number {
@@ -759,15 +759,23 @@ export function S13PasswordManagerPractice({
     if (signedIn) setSuccessOverlayVisible(true);
   }, [signedIn]);
 
+  const saveProgressComplete =
+    saveConfirmation ||
+    saveIconRestored ||
+    passwordSaved ||
+    loginIdle ||
+    loginOffer ||
+    autofilling ||
+    loginInvalid;
   const completedCount = signedIn
     ? 3
     : loginReady
       ? 3
-      : passwordSaved || loginIdle || loginOffer || autofilling || loginInvalid
-      ? 2
-      : passwordGenerated || registering || savePending || saveConfirmation
-        ? 1
-        : 0;
+      : saveProgressComplete
+        ? 2
+        : passwordGenerated || registering || savePending
+          ? 1
+          : 0;
   const progressStep = content.flow[Math.min(completedCount, content.flow.length - 1)];
   const progressTaskLabel = progressStep?.label ?? content.flow[0].label;
   const address = shopVisible
@@ -798,7 +806,7 @@ export function S13PasswordManagerPractice({
         autofilling ||
         loginReady ||
         saveConfirmation,
-      highlighted: saveGuidanceFirst || saveGuidanceSecond || saveDeferred,
+      highlighted: saveGuidanceFirst || saveGuidanceSecond,
       interactionEnabled: passwordManagerReopenEnabled,
       allowInteractionWhenDimmed: passwordManagerReopenEnabled,
       icon: saveConfirmation ? 'saved' : 'key',

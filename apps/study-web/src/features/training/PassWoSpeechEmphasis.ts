@@ -226,7 +226,14 @@ const emphasisBySpeechId: Readonly<Record<string, readonly PassWoSpeechEmphasis[
   's12-manager-integrated': [
     { phrase: 'Geräte- oder Plattformzugang', tone: 'accent' },
   ],
-  's12-manager-practice': [{ phrase: 'direkt im Browser', tone: 'action' }],
+  's12-manager-practice': [
+    {
+      phrase: 'MyShop',
+      tone: 'action',
+      symbolId: 'my-shop',
+      symbolSize: 'large',
+    },
+  ],
   's13-network-new-account': [
     { phrase: 'eigenen starken Passwort', tone: 'positive' },
   ],

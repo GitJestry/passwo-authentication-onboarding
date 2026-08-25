@@ -1,3 +1,21 @@
+.stageStack {
+  position: relative;
+  display: flex;
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  flex: 1;
+}
+
+.stageOverlay {
+  position: absolute;
+  z-index: 30;
+  inset: 0;
+  display: flex;
+  min-width: 0;
+  min-height: 0;
+}
+
 .training {
   --s09-dialog-band: clamp(12.5rem, 28cqb, 16rem);
 
@@ -63,6 +81,13 @@
 
 .training[data-manager-active="true"] .network > div {
   height: 100%;
+}
+
+.training[data-s13-browser-active="true"] .network {
+  visibility: hidden;
+  opacity: 0;
+  pointer-events: none;
+  transition: none;
 }
 
 .training .network :global(.react-flow__node) {
@@ -134,7 +159,8 @@
 
 .training[data-s09-expanded="true"]
   .network
-  :global([data-network-edge-risk-relation="true"][data-network-edge-compact="true"] .react-flow__edge-path) {
+  :global([data-network-edge-risk-relation="true"] .react-flow__edge-path) {
+  stroke-width: 1.25px;
   stroke-dasharray: none;
 }
 
@@ -208,12 +234,12 @@
   --node-visual-height: 28px;
 }
 
-.training[data-s13-network-step^="existing-account"]
+.training[data-s13-network-step]
   .network
   :global([data-scene-node="muster-bank"] [data-scene-node-visual]) {
   border-color: #ff315e;
-  color: #8f2145;
-  background: #fff6f8;
+  color: #fff;
+  background: #70031e;
   box-shadow:
     0 0 0 0.22rem rgb(255 49 94 / 24%),
     0 0 1.55rem rgb(255 49 94 / 64%);
@@ -239,7 +265,7 @@
   animation: s13-account-focus-pulse 2.6s cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 
-.training[data-s13-focus]
+.training[data-s13-network-dimmed="true"]
   .network
   :global(.react-flow__node) {
   opacity: 0.48;
@@ -249,7 +275,7 @@
     filter 360ms var(--motion-ease-out);
 }
 
-.training[data-s13-focus]
+.training[data-s13-network-dimmed="true"]
   .network
   :global([data-network-edge-source]) {
   opacity: 0.32;
@@ -298,147 +324,28 @@
   filter: none;
 }
 
-.training[data-s13-vault-focus="true"] .network :global(.react-flow__node) {
-  opacity: 0.56;
-  filter: saturate(0.78) brightness(0.86);
-}
-
-.training[data-s13-vault-focus="true"]
-  .network
-  :global([data-network-edge-source]) {
-  opacity: 0.4;
-  filter: saturate(0.74) brightness(0.82);
-}
-
 .importedVault {
+  --s12-platinum: color-mix(in srgb, #dce9f2 72%, #7894a8);
+  --s12-platinum-dark: color-mix(in srgb, #7894a8 54%, #07192b);
+  --s12-violet: var(--color-hypothetical);
+
   position: absolute;
   z-index: 11;
   right: clamp(1rem, 3cqi, 2.5rem);
-  bottom: 5.8rem;
+  bottom: 5.2rem;
   display: grid;
-  width: min(27rem, 46%);
-  max-height: calc(100% - 8rem);
-  grid-template-columns: clamp(2.2rem, 5cqi, 3.4rem) minmax(0, 1fr);
-  align-items: stretch;
+  width: min(24rem, 42cqi, 50cqb);
+  place-items: end;
   color: #12304a;
   filter: drop-shadow(0 1rem 1.8rem rgb(0 14 36 / 42%));
-  animation: s13-imported-vault-focus 2.4s cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 
-.importedVaultDoor {
-  position: relative;
-  z-index: 1;
-  border: 0.18rem solid #76b9d9;
-  border-right: 0;
-  border-radius: 0.7rem 0 0 0.7rem;
-  background:
-    radial-gradient(circle at 54% 50%, #d9f1fb 0 9%, transparent 10%),
-    linear-gradient(135deg, #214a69, #0c263e);
-  box-shadow:
-    inset 0 0 0 0.2rem rgb(206 238 250 / 12%),
-    -0.3rem 0.35rem 0.8rem rgb(0 16 38 / 28%);
-  transform: perspective(12rem) rotateY(-22deg);
-  transform-origin: right;
+.importedVault .importedVaultSafe {
+  width: 100%;
 }
 
-.importedVaultDoor i {
-  position: absolute;
-  top: 50%;
-  left: 38%;
-  width: 0.68rem;
-  aspect-ratio: 1;
-  border: 0.12rem solid #bce8f8;
-  border-radius: 50%;
-  transform: translate(-50%, -50%);
-}
-
-.importedVaultCabinet {
-  min-width: 0;
-  overflow: hidden;
-  border: 0.18rem solid #76b9d9;
-  border-radius: 0 0.85rem 0.85rem 0;
-  background: rgb(235 248 253 / 98%);
-  box-shadow:
-    inset 0 0 0 0.18rem rgb(255 255 255 / 62%),
-    0 0 0 0.2rem rgb(91 199 244 / 18%);
-}
-
-.importedVaultCabinet header {
-  display: flex;
-  align-items: center;
-  gap: 0.48rem;
-  padding: 0.58rem 0.7rem;
-  color: #eefaff;
-  background: linear-gradient(135deg, #123c5c, #0a2843);
-  font-size: clamp(0.68rem, 1.05cqi, 0.86rem);
-}
-
-.importedVaultCabinet header span {
-  display: grid;
-  width: 1.25rem;
-  aspect-ratio: 1;
-  place-items: center;
-  border-radius: 50%;
-  color: #063528;
-  background: #55d6a1;
-  font-weight: var(--font-weight-heavy);
-}
-
-.importedVaultCabinet ol {
-  display: grid;
-  max-height: min(48cqb, 25rem);
-  margin: 0;
-  padding: 0.28rem 0.52rem;
-  overflow: hidden;
-  list-style: none;
-}
-
-.importedVaultCabinet li {
-  display: grid;
-  grid-template-columns: 1.55rem minmax(0, 1fr) auto;
-  align-items: center;
-  gap: 0.48rem;
-  min-height: 2.1rem;
-  border-bottom: var(--border-width-thin) solid rgb(51 109 143 / 14%);
-  font-size: clamp(0.62rem, 0.94cqi, 0.78rem);
-}
-
-.importedVaultCabinet li[data-suggested="true"] {
-  opacity: 0.58;
-}
-
-.importedVaultMark {
-  display: grid;
-  width: 1.45rem;
-  height: 1.45rem;
-  place-items: center;
-  border-radius: 0.4rem;
-  color: #287e9f;
-  background: #fff;
-  box-shadow: 0 0.12rem 0.32rem rgb(8 48 76 / 16%);
-}
-
-.importedVaultMark svg {
-  width: 1.12rem;
-  height: 1.12rem;
-}
-
-.importedVaultCabinet code {
-  overflow: hidden;
-  max-width: 5.4rem;
-  color: #587083;
-  font-size: 0.82em;
-  letter-spacing: 0.06em;
-  text-overflow: clip;
-  white-space: nowrap;
-}
-
-.importedVaultMore {
-  display: block;
-  padding: 0.4rem 0.7rem 0.52rem;
-  color: #48687d;
-  font-size: clamp(0.58rem, 0.88cqi, 0.72rem);
-  font-weight: var(--font-weight-semibold);
+.importedVault[data-highlighted="true"] {
+  animation: s13-imported-vault-focus 1.65s ease-in-out infinite;
 }
 
 .training[data-s09-reducing="true"]
@@ -695,7 +602,7 @@
   box-shadow:
     inset 0 1px 0 rgb(255 255 255 / 24%),
     0 1rem 2.3rem rgb(0 18 48 / 34%);
-  transform: translateX(-50%) translateY(-2px);
+  transform: translateX(-50%);
 }
 
 .replayAction:focus-visible {
@@ -845,7 +752,6 @@
 .summaryAction:hover {
   border-color: rgb(255 255 255 / 92%);
   background: rgb(255 255 255 / 15%);
-  transform: translateY(-2px);
 }
 
 .summaryAction:focus-visible {
@@ -919,7 +825,7 @@
     inset 0 1px 0 rgb(255 255 255 / 36%),
     0 1.7rem 4rem rgb(0 10 32 / 48%),
     0 0 3.2rem rgb(78 189 255 / 22%);
-  transform: translate(-50%, calc(-50% - 2px));
+  transform: translate(-50%, -50%);
 }
 
 .passwordManagerAction:focus-visible {
@@ -1112,31 +1018,17 @@
 }
 
 @keyframes s13-imported-vault-focus {
-  0% {
-    opacity: 0;
+  0%,
+  100% {
     filter: drop-shadow(0 1rem 1.8rem rgb(0 14 36 / 42%));
-    transform: translateY(1rem) scale(0.92);
+    transform: scale(1);
   }
 
-  32% {
-    opacity: 1;
+  50% {
     filter:
-      drop-shadow(0 0 0.7rem rgb(103 220 255 / 92%))
-      drop-shadow(0 0 1.8rem rgb(50 174 255 / 72%));
-    transform: translateY(0) scale(1.04);
-  }
-
-  58% {
-    filter:
-      drop-shadow(0 0 1.1rem rgb(130 231 255 / 100%))
-      drop-shadow(0 0 2.4rem rgb(50 174 255 / 82%));
-    transform: translateY(0) scale(1.04);
-  }
-
-  to {
-    opacity: 1;
-    filter: drop-shadow(0 1rem 1.8rem rgb(0 14 36 / 42%));
-    transform: translateY(0) scale(1);
+      drop-shadow(0 0 0.48rem rgb(103 220 255 / 72%))
+      drop-shadow(0 0 1.35rem rgb(50 174 255 / 54%));
+    transform: scale(1.018);
   }
 }
 
@@ -1305,20 +1197,10 @@
   .importedVault {
     right: 0.65rem;
     bottom: 5.4rem;
-    width: min(22rem, 52%);
-    grid-template-columns: 2rem minmax(0, 1fr);
+    width: min(20rem, 54cqi, 44cqb);
   }
 
-  .importedVaultCabinet ol {
-    max-height: min(43cqb, 20rem);
-  }
-
-  .importedVaultCabinet li {
-    grid-template-columns: 1.4rem minmax(0, 1fr);
-    min-height: 1.8rem;
-  }
-
-  .importedVaultCabinet code {
+  .importedVault :global([data-entry-layout="list"] code) {
     display: none;
   }
 }
@@ -1359,10 +1241,10 @@
     animation: none;
   }
 
-  .training[data-s13-focus]
+  .training[data-s13-network-dimmed="true"]
     .network
     :global(.react-flow__node),
-  .training[data-s13-focus]
+  .training[data-s13-network-dimmed="true"]
     .network
     :global([data-network-edge-source]) {
     transition: none;
@@ -1372,6 +1254,12 @@
     opacity: 1;
     filter: drop-shadow(0 1rem 1.8rem rgb(0 14 36 / 42%));
     transform: none;
+  }
+
+  .importedVault[data-highlighted="true"] {
+    filter:
+      drop-shadow(0 0 0.38rem rgb(103 220 255 / 58%))
+      drop-shadow(0 1rem 1.8rem rgb(0 14 36 / 42%));
   }
 
   .training .network :global([data-network-edge-break-effect]) {

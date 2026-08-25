@@ -259,3 +259,56 @@ Darstellungs- und Ablaufdelta:
   anschließenden Satz kennzeichnet ein großes Zahnrad das Wort `Einstellungen`.
 - Der allgemeine Fokus reduziert Deckkraft und Helligkeit der übrigen Knoten und Kanten weniger
   stark als zuvor. Reduced Motion zeigt dieselben Endzustände ohne Puls- oder Leuchtbewegung.
+
+## Folgeauftrag: Persistenter Tresor-, Netzwerk- und Speicherfokus, 25. August 2026
+
+Quelle ist der ausdrückliche Nutzerauftrag vom 25. August 2026. Teilnehmertexte in S13 bleiben
+wortgleich; deshalb ändert sich die Content-Version nicht.
+
+Darstellungs- und Ablaufdelta:
+
+- Der geöffnete Tresor rechts unten verwendet dieselbe Tresorform wie die S12-Beispiele. Die
+  authored Liste liegt vollständig im Tresor, wird größer dargestellt und bleibt ab der
+  Importerklärung über alle folgenden Muster-Bank-Schritte bis zur Browseröffnung sichtbar.
+- Das vollständige S09-Netz bleibt während der Browserübung gemountet. Reine Sprechschrittwechsel
+  berechnen weder seine 80 Kontoknoten noch seine Kanten neu; beim Schließen des Browsers wird nur
+  der fachlich geänderte Snapshot projiziert.
+- Ab der Rückkehr aus dem Browser bleibt das Netzwerk durchgehend transparent abgedunkelt. Der
+  Zustand beginnt vor der ersten Netzwerkbotschaft und endet nicht zwischen den folgenden
+  Sprechschritten. My Shop beziehungsweise Muster Bank bleiben als Form-, Logo- und
+  Helligkeitsfokus erkennbar; der Muster-Bank-Fokus bleibt bis zur Browseraufforderung bestehen.
+- Die unverändert aus S09 übernommenen Risikokanten behalten ihre Endpunkte, Strichstärke und den
+  durchgezogenen S09-Endstil. Nur der authored Risikoknoten für Muster Bank wird unter
+  Beibehaltung genau einer vorhandenen Beziehung umbenannt; die übrigen Beziehungen werden nicht
+  neu verbunden.
+- Nach dem ersten `Nicht jetzt` wiederholt das Passwortmanager-Symbol eine Sequenz aus Vergrößern,
+  Wackeln, Verkleinern und Pause. Sie endet beim erneuten Öffnen des Hinweises, beim Speichern oder
+  beim zweiten `Nicht jetzt`. Reduced Motion zeigt den Fokusrahmen ohne Bewegung.
+- Der Zeichen-Autofill dauert 0,5 Sekunden weniger; E-Mail und Passwort beginnen weiterhin
+  gleichzeitig und enden im selben fachlichen Zustand.
+
+## Korrektur: Getrennter Tresor- und Bankfokus, 25. August 2026
+
+Quelle ist der ausdrückliche Nutzerauftrag vom 25. August 2026. Teilnehmertexte in S13 bleiben
+wortgleich; deshalb ändert sich die Content-Version nicht.
+
+Darstellungs- und Ablaufdelta:
+
+- Während `Viele Passwortmanager können vorhandene Zugangsdaten auch importieren …` wird kein
+  Netzwerkknoten hervorgehoben. Stattdessen pulsiert ausschließlich der geöffnete Tresor subtil
+  und wiederholt bis zum nächsten Sprechschritt. Beim anschließenden Hinweis zur unveränderten
+  Dienstseite bleibt das Netzwerk ebenfalls ohne Einzelknotenfokus.
+- Muster Bank beginnt erst beim Satz `Muster Bank verwendet zum Beispiel noch dasselbe Passwort
+  wie ein anderes Konto.` mit dem vorhandenen Fokus-Puls. Danach bleibt der Bankfokus bis zur
+  Browseraufforderung bestehen.
+- Der Muster-Bank-Knoten behält in jedem S13-Netzwerkframe seine dunkelrote Befallsfläche; ein
+  weißer Zwischenzustand mit nur roter Umrandung entfällt.
+- Der persistente S13-Tresor ist kleiner, skaliert anhand von Breite und Höhe der Artifact Stage
+  und verwendet dieselbe proportional schmalere offene Tür wie die S12-Tresore.
+- Die Fortschrittsanzeige wechselt unmittelbar mit `Speichern` zum Ausfüllschritt, während die
+  sichtbare Speicherbestätigung weiterlaufen darf. Der Zeichen-Autofill wird auf 250 ms verkürzt.
+- Reduced Motion ersetzt die wiederholte Tresorbewegung durch einen statischen Leuchtrahmen und
+  zeigt weiterhin dieselben fachlichen Zustände.
+- Der für MyShop vorgesehene anonyme S09-Platzhalter und seine Kanten werden bereits im ersten
+  zurückgekehrten Netzwerkframe ausgeblendet. Erst der fachliche MyShop-Reveal setzt an dieser
+  Position den Logo-Knoten ein; ein kurz sichtbarer weißer Ersatzknoten entfällt.

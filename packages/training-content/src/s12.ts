@@ -1,7 +1,7 @@
 import type { TrainingSectionId } from '@passwo/contracts';
 import { s07PassphraseSearchContent } from './s07.js';
 
-export const S12_PASSWORD_MANAGER_CONTENT_VERSION = '1.8.0';
+export const S12_PASSWORD_MANAGER_CONTENT_VERSION = '1.10.0';
 
 const familiarPassphrase =
   s07PassphraseSearchContent.browser.generatorPage.passphrases[0]?.words ?? [];
@@ -10,9 +10,9 @@ export const s12PasswordManagerContent = {
   version: S12_PASSWORD_MANAGER_CONTENT_VERSION,
   source: {
     revision:
-      'Useraufträge vom 2026-08-25 · Passwortmanager-Visuals, lesbarer Tresor und Browserüberleitung',
+      'Useraufträge vom 2026-08-25 · S12-Kontenabgleich und präzisierte MyShop-Überleitung',
     copyReference:
-      'docs/design/S12-COPY-AUDIT.md#folgeauftrag-lesbare-tresoreinträge-und-visuelle-präzisierung-25-august-2026',
+      'docs/design/S12-COPY-AUDIT.md#folgeauftrag-s12-kontenabgleich-und-schrittstatus-25-august-2026',
   },
   segment: {
     id: 'S12',
@@ -62,14 +62,46 @@ export const s12PasswordManagerContent = {
       stored: 'gespeichert',
     },
     initialEntries: [
-      { account: 'Campus Cloud', identifier: 'konto@cloud.example' },
-      { account: 'Lernportal', identifier: 'konto@lernen.example' },
-      { account: 'Fotobox', identifier: 'konto@foto.example' },
-      { account: 'Musikstream', identifier: 'konto@musik.example' },
-      { account: 'Reiseplaner', identifier: 'konto@reise.example' },
-      { account: 'Ticketshop', identifier: 'konto@tickets.example' },
-      { account: 'Spielewelt', identifier: 'konto@spiele.example' },
-      { account: 'Marktplatz', identifier: 'konto@markt.example' },
+      {
+        account: 'Campusgram',
+        identifier: 'konto@campusgram.example',
+        symbolId: 'campusgram',
+      },
+      {
+        account: 'Master Campus',
+        identifier: 'konto@master-campus.example',
+        symbolId: 'master-campus',
+      },
+      {
+        account: 'Campus E-Mail',
+        identifier: 'konto@campus-mail.example',
+        symbolId: 'campus-email',
+      },
+      {
+        account: 'Muster Bank',
+        identifier: 'konto@muster-bank.example',
+        symbolId: 'muster-bank',
+      },
+      {
+        account: 'Campus Cloud',
+        identifier: 'konto@cloud.example',
+        symbolId: 'campus-cloud',
+      },
+      {
+        account: 'Lernportal',
+        identifier: 'konto@lernen.example',
+        symbolId: 'account',
+      },
+      {
+        account: 'Fotobox',
+        identifier: 'konto@foto.example',
+        symbolId: 'account',
+      },
+      {
+        account: 'Musikstream',
+        identifier: 'konto@musik.example',
+        symbolId: 'account',
+      },
     ],
     entry: {
       account: 'Anmeldebeispiel',
@@ -127,7 +159,7 @@ export const s12PasswordManagerContent = {
         'Bei integrierten Passwortmanagern übernimmt häufig dein geschützter Geräte- oder Plattformzugang diese Aufgabe.',
       practice: [
         'Für die Übung nutzen wir den Passwortmanager direkt im Browser.',
-        'Probier den Ablauf jetzt selbst aus, indem du mit dem Passwortmanager im Browser ein neues Konto anlegst.',
+        'Probier den Ablauf jetzt selbst aus, indem du mit dem Passwortmanager ein neues Konto bei MyShop anlegst.',
       ],
     },
   },

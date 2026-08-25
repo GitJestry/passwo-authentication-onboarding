@@ -266,3 +266,81 @@ fachliche Abfolge bleiben erhalten. Für kürzere, vollständig lesbare Kennunge
   `Anmeldebeispiel`-Eintrags zum Formular. Der ursprüngliche Eintrag bleibt sichtbar im Tresor.
 - Die bestehenden Titel `Integrierter Passwortmanager` und `Eigenständiger Passwortmanager`
   werden größer dargestellt; ihr Wortlaut bleibt unverändert.
+
+## Folgeauftrag: Gemeinsamer Tresorlook und MyShop-Überleitung, 25. August 2026
+
+Quelle ist der ausdrückliche Nutzerauftrag vom 25. August 2026. Die Navigation benennt das
+tatsächlich folgende MyShop-Übungskonto und erhält dessen lokales Logo. Dafür steigt
+`S12_PASSWORD_MANAGER_CONTENT_VERSION` auf `1.9.0`.
+
+### Copy-Delta
+
+| Segment und Text-ID | Quelle | Aktueller Text | Geplanter Text | Primäre Rolle | Grund | Bedeutungsänderung | Interaktionsziel | Hervorhebung |
+|---|---|---|---|---|---|---|---|---|
+| `S12.guide.steps.practice.2` | Nutzerauftrag 2026-08-25 | `Probier den Ablauf jetzt selbst aus, indem du mit dem Passwortmanager im Browser ein neues Konto anlegst.` | `Probier den Ablauf jetzt selbst aus, indem du mit dem Passwortmanager im Browser ein neues Konto bei MyShop anlegst.` | Navigation | ausdrücklich benanntes Zielkonto der unmittelbar folgenden Browserübung | begrenzt und ausdrücklich freigegeben | Browser im Desktop-Dock | `MyShop` · Aktion mit lokalem MyShop-Logo |
+
+### Darstellungs- und Interaktionsgrenzen
+
+- Der geöffnete Tresor in S13 und die S12-Speicher- und Autofill-Beispiele verwenden dieselbe
+  Tresorkomponente. Die S13-Liste liegt innerhalb des geöffneten Tresors; S12 behält seine acht
+  authored `.example`-Einträge und den neunten Demonstrationseintrag.
+- Der S13-Tresor zeigt ausschließlich authored Kontonamen, lokale Kontologos und maskierte
+  Passwörter. Er übernimmt keine Eingaben und persistiert keine Trainingsdaten.
+- Die größere S12-Autofill-Darstellung bleibt auf kompakten Stages vollständig nutzbar; bei
+  Reduced Motion ist derselbe geöffnete Endzustand ohne Türbewegung sichtbar.
+
+## Korrektur: Einheitliche Listen, Tresorskalierung und direkter Fortschritt, 25. August 2026
+
+Quelle ist der ausdrückliche Nutzerauftrag vom 25. August 2026. Die Teilnehmertexte bleiben
+wortgleich; deshalb ändert sich die Content-Version nicht.
+
+### Darstellungs- und Interaktionsgrenzen
+
+- Alle Tresorbeispiele in 12.1 verwenden die vorhandene Listenanordnung mit den authored
+  fiktiven Einträgen. MyShop erscheint dort nicht; es bleibt ausschließlich das Zielkonto der
+  anschließenden Browserübung.
+- Die Variantenüberleitung verwendet ohne kompakte Modellabweichung dieselbe gemeinsame
+  Tresorkomponente wie Erzeugen, Speichern und Ausfüllen. Die unterschiedlichen lokalen
+  Illustrationen zeigen weiterhin nur die integrierte beziehungsweise eigenständige Umgebung.
+- Die geöffnete Tür ist proportional schmaler. Der Tresor bildet einen eigenen
+  Container-Kontext, damit Rahmen, Tür, Schloss und Liste mit seiner tatsächlichen Größe
+  skalieren.
+- Beim Beginn des Speichervorgangs wird `Speichern` unmittelbar als abgeschlossen markiert; die
+  laufende Einlagerungsanimation verzögert den sichtbaren Fortschritt nicht mehr.
+- Die Zeichen des authored Autofill-Beispiels werden in kürzerer Folge eingesetzt. Reduced
+  Motion zeigt weiterhin unmittelbar denselben Endzustand.
+
+## Folgeauftrag: S12-Kontenabgleich und Schrittstatus, 25. August 2026
+
+Quelle ist der ausdrückliche Nutzerauftrag vom 25. August 2026. Die acht sichtbaren
+Tresorbeispiele übernehmen Konten, Reihenfolge und lokale Logos aus der späteren S13-Liste, lassen
+MyShop aber weiterhin aus und behalten vollständig fiktive `.example`-Kennungen. Die freigegebene
+Übungsüberleitung wird um die bereits im vorherigen Satz genannte Browserangabe gekürzt. Dafür
+steigt `S12_PASSWORD_MANAGER_CONTENT_VERSION` auf `1.10.0`.
+
+### Copy-Delta
+
+| Segment und Text-ID | Quelle | Aktueller Text | Geplanter Text | Primäre Rolle | Grund | Bedeutungsänderung | Interaktionsziel | Hervorhebung |
+|---|---|---|---|---|---|---|---|---|
+| `S12.vault.initialEntries` | Nutzerauftrag 2026-08-25 | Campus Cloud, Lernportal, Fotobox, Musikstream, Reiseplaner, Ticketshop, Spielewelt, Marktplatz ohne Kontologos | Campusgram, Master Campus, Campus E-Mail, Muster Bank, Campus Cloud, Lernportal, Fotobox, Musikstream in derselben Reihenfolge und mit denselben lokalen Logos wie die spätere S13-Liste; weiterhin ohne MyShop und mit sichtbaren fiktiven Kennungen | Orientierung | Beispiele über beide Segmente visuell und inhaltlich wiedererkennbar machen | begrenzt auf authored Beispielkonten | kein | lokales Kontologo, Kontoname und fiktive Kennung |
+| `S12.guide.steps.practice.2` | Nutzerauftrag 2026-08-25 | `Probier den Ablauf jetzt selbst aus, indem du mit dem Passwortmanager im Browser ein neues Konto bei MyShop anlegst.` | `Probier den Ablauf jetzt selbst aus, indem du mit dem Passwortmanager ein neues Konto bei MyShop anlegst.` | Navigation | `im Browser` ist bereits im unmittelbar vorherigen Satz genannt | nein | Browser im Desktop-Dock und anschließende MyShop-Übung | `MyShop` · Aktion mit lokalem MyShop-Logo |
+
+### Darstellungs- und Interaktionsgrenzen
+
+- Ein Funktionsschritt erhält den Glassy-Fokus erst mit seinem zugehörigen Erklärungssatz. Beim
+  Übergang zum nächsten Schritt bleibt er im selben Glassy-Stil grün und zeigt das vorhandene
+  Häkchen; noch nicht erklärte Schritte bleiben neutral.
+- Die Autofill-Sequenz des Anmeldebeispiels dauert doppelt so lang wie unmittelbar zuvor. Reduced
+  Motion zeigt weiterhin ohne Wartezeit denselben ausgefüllten Endzustand.
+- Beim Übergang zu den beiden Passwortmanager-Varianten schließt die Tür vollständig, bevor der
+  Tresor schrumpft. Der rein informative Zähler `8 Einträge` wird während dieser Transformation
+  nicht dargestellt.
+- Die Tür interpoliert beim Öffnen und Schließen neben ihrer Rotation auch zwischen der vollen
+  geschlossenen Abdeckung und der schmaleren perspektivischen Öffnungsbreite. Dadurch bleibt der
+  Innenraum in jedem geschlossenen Zustand vollständig bedeckt.
+- In der anschließenden Timing-Feinabstimmung werden die Formularzeichen gegenüber der direkt
+  vorherigen Fassung moderat schneller eingesetzt. Die visuelle Eintragskarte fliegt davon
+  unabhängig langsamer vom Tresor zum Anmeldeformular; Reduced Motion bleibt unverändert.
+- Türschließen und Verkleinern sind in der Variantenüberleitung getrennte Statechart-Zustände.
+  Die Tür erreicht zuerst ihre volle Abdeckung und bleibt kurz eingerastet; erst danach bewegt
+  sich der bereits geschlossene Tresor zu den Darstellungen `Integriert` und `Eigenständig`.

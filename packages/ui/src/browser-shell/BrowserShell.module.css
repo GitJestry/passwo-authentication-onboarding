@@ -592,7 +592,7 @@ button.activeTab[aria-disabled="true"] {
   border-color: var(--color-accent-strong);
   outline: var(--border-width-thin) solid var(--color-accent-strong);
   outline-offset: 0.12rem;
-  animation: browser-password-manager-highlight 820ms ease-in-out both;
+  animation: browser-password-manager-highlight 2s ease-in-out infinite;
 }
 
 .passwordManagerIndicator:focus-visible {
@@ -636,25 +636,39 @@ button.activeTab[aria-disabled="true"] {
 
 @keyframes browser-password-manager-highlight {
   0%,
+  64%,
   100% {
-    transform: translateY(0) rotate(0);
+    transform: scale(1) rotate(0);
+    box-shadow: none;
   }
 
-  28% {
-    transform: translateY(-0.24rem) rotate(-7deg);
+  12% {
+    transform: scale(1.18) rotate(0);
     box-shadow: 0 0 0.9rem color-mix(in srgb, var(--color-accent) 42%, transparent);
   }
 
-  48% {
-    transform: translateY(-0.18rem) rotate(7deg);
+  20% {
+    transform: scale(1.14) rotate(-8deg);
+    box-shadow: 0 0 0.9rem color-mix(in srgb, var(--color-accent) 42%, transparent);
   }
 
-  68% {
-    transform: translateY(-0.1rem) rotate(-4deg);
+  27% {
+    transform: scale(1.14) rotate(8deg);
+    box-shadow: 0 0 0.9rem color-mix(in srgb, var(--color-accent) 42%, transparent);
   }
 
-  84% {
-    transform: translateY(0) rotate(2deg);
+  34% {
+    transform: scale(1.1) rotate(-5deg);
+    box-shadow: 0 0 0.78rem color-mix(in srgb, var(--color-accent) 36%, transparent);
+  }
+
+  42% {
+    transform: scale(1.04) rotate(3deg);
+  }
+
+  52% {
+    transform: scale(0.94) rotate(0);
+    box-shadow: none;
   }
 }
 

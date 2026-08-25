@@ -133,6 +133,22 @@ oder separate Landingpage wird nicht eingeschoben. Netzwerk und neue Bühne teil
 tatsächliche Full-Bleed-Fläche; die S12-Arbeitszone reserviert zusätzlich die
 betriebssystemspezifischen Dock- und PassWo-Safe-Areas.
 
+Beim späteren Rückwechsel aus der MyShop-Browserübung in S13 wird derselbe S09-Endzustand nicht
+neu aufgebaut. Der Graph bleibt hinter Übergang und Browser gemountet; reine PassWo-Schrittwechsel
+ändern nur die umgebende Präsentation. Alle unveränderten S09-Risikokanten behalten ihre authored
+Endpunkte und den nach dem Reveal durchgezogenen Endstil. Der für Muster Bank verwendete
+Risikoknoten übernimmt Position und genau eine vorhandene Beziehung des ersetzten anonymen
+Knotens; die übrigen Beziehungen werden nicht neu verbunden. Vom ersten
+Netzwerkframe bis zur erneuten Browseröffnung bleiben alle Knoten und Kanten transparent
+abgedunkelt. Während Importhinweis und Hinweis auf das beim Dienst unveränderte Passwort wird kein
+einzelner Netzwerkknoten herausgehoben; stattdessen trägt beim Import ausschließlich der Tresor
+einen subtilen wiederholten Fokus. Muster Bank behält durchgehend seinen roten Befallszustand,
+wird aber erst beim Satz über das wiederverwendete Passwort mit dem vorhandenen Puls und voller
+Deckkraft fokussiert. Dieser Fokus bleibt in den folgenden Erklärungsschritten bestehen.
+Der für MyShop reservierte anonyme S09-Knoten und seine Kanten bleiben in diesem ersten
+Netzwerkframe ausgeblendet. Beim authored MyShop-Reveal erscheint direkt der Logo-Knoten an der
+vorgesehenen Position, ohne vorherigen weißen Platzhalter.
+
 ## S02-Kontenerkundung
 
 S02 „Konten kennenlernen“ bildet die erste vollständige Kontenerkundung:

@@ -29,40 +29,6 @@ select {
     crosshair !important;
 }
 
-/*
- * Every native button gets the same restrained physical response. Component styles may add a
- * stronger, context-specific treatment without having to recreate this interaction baseline.
- */
-button {
-  transition-duration: var(--motion-fast);
-  transition-property: translate, scale;
-  transition-timing-function: var(--motion-ease-out);
-}
-
-@media (hover: hover) {
-  :where(button:not(:disabled):not([aria-disabled="true"]):hover) {
-    translate: 0 -0.08rem;
-  }
-}
-
-:where(button:not(:disabled):not([aria-disabled="true"]):active) {
-  scale: 0.985;
-  translate: 0 0.06rem;
-  transition-duration: var(--motion-instant);
-}
-
-@media (prefers-reduced-motion: reduce) {
-  button {
-    transition-duration: var(--motion-instant);
-  }
-
-  :where(button:not(:disabled):not([aria-disabled="true"]):hover),
-  :where(button:not(:disabled):not([aria-disabled="true"]):active) {
-    scale: none;
-    translate: none;
-  }
-}
-
 code {
   font-family: ui-monospace, "SFMono-Regular", Consolas, monospace;
 }

@@ -208,6 +208,7 @@
   width: 100%;
   height: 100%;
   filter: drop-shadow(0 0.28rem 0.35rem rgb(35 77 133 / 22%));
+  transition: transform var(--motion-fast) var(--motion-ease-out);
 }
 
 .browserDockButton {
@@ -219,7 +220,11 @@
 }
 
 .browserDockButton:not(:disabled):hover {
-  transform: translateY(-0.22rem) scale(1.08);
+  background: rgb(255 255 255 / 10%);
+}
+
+.browserDockButton:not(:disabled):hover svg {
+  transform: scale(1.06);
 }
 
 .browserDockButton:disabled {
@@ -373,7 +378,6 @@
 
 .desktopScene[data-platform="windows"] .browserDockButton:not(:disabled):hover {
   background: rgb(255 255 255 / 58%);
-  transform: translateY(-0.08rem);
 }
 
 .desktopScene[data-platform="windows"] .browserDockButton i {
@@ -484,7 +488,6 @@
 
 .desktopScene[data-platform="linux"] .browserDockButton:not(:disabled):hover {
   background: rgb(255 255 255 / 12%);
-  transform: scale(1.06);
 }
 
 .desktopScene[data-platform="linux"] .browserDockButton i {

@@ -21,6 +21,20 @@ describe('S12 password-manager content traceability', () => {
       duration: '16,5 Milliarden Jahre',
     });
     expect(s12PasswordManagerContent.vault.initialEntries).toHaveLength(8);
+    expect(
+      s12PasswordManagerContent.vault.initialEntries.map(
+        ({ account, symbolId }) => ({ account, symbolId }),
+      ),
+    ).toEqual([
+      { account: 'Campusgram', symbolId: 'campusgram' },
+      { account: 'Master Campus', symbolId: 'master-campus' },
+      { account: 'Campus E-Mail', symbolId: 'campus-email' },
+      { account: 'Muster Bank', symbolId: 'muster-bank' },
+      { account: 'Campus Cloud', symbolId: 'campus-cloud' },
+      { account: 'Lernportal', symbolId: 'account' },
+      { account: 'Fotobox', symbolId: 'account' },
+      { account: 'Musikstream', symbolId: 'account' },
+    ]);
     expect(s12PasswordManagerContent.vault.storedCount).toEqual({
       initial: '8 Einträge',
       withGenerated: '9 Einträge',
@@ -46,7 +60,7 @@ describe('S12 password-manager content traceability', () => {
     ]);
     expect(s12PasswordManagerContent.guide.steps.practice).toEqual([
       'Für die Übung nutzen wir den Passwortmanager direkt im Browser.',
-      'Probier den Ablauf jetzt selbst aus, indem du mit dem Passwortmanager im Browser ein neues Konto anlegst.',
+      'Probier den Ablauf jetzt selbst aus, indem du mit dem Passwortmanager ein neues Konto bei MyShop anlegst.',
     ]);
   });
 });

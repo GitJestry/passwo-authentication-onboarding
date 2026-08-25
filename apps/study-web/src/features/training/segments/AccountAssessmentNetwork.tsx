@@ -1,7 +1,7 @@
 import type { PasswordRelation, S06AccountId } from '@passwo/contracts';
 import { s06ConsequenceContent } from '@passwo/training-content';
 import type { NetworkSceneSnapshot } from '@passwo/visualization';
-import { useCallback, useMemo, type CSSProperties } from 'react';
+import { memo, useCallback, useMemo, type CSSProperties } from 'react';
 import attackerAsset from '../../../assets/passwo/attacker.webp';
 import passwordFactorShieldAsset from '../../../assets/s05/password-factor-shield.webp';
 import comparisonPathShieldAsset from '../../../assets/s06/comparison-path-shield.webp';
@@ -170,7 +170,7 @@ function AccountStatusOverlay({
   );
 }
 
-export function AccountAssessmentNetwork({
+function AccountAssessmentNetworkView({
   adapter,
   presentation,
   ariaLabel,
@@ -314,3 +314,5 @@ export function AccountAssessmentNetwork({
     </div>
   );
 }
+
+export const AccountAssessmentNetwork = memo(AccountAssessmentNetworkView);

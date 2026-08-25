@@ -15,6 +15,7 @@ import type {
 } from '@passwo/visualization';
 import { useMachine } from '@xstate/react';
 import {
+  useCallback,
   useEffect,
   useLayoutEffect,
   useMemo,
@@ -23,7 +24,6 @@ import {
 } from 'react';
 import { assign, setup } from 'xstate';
 import { ReactFlowNetworkAdapter } from '../../../../adapters/network/ReactFlowNetworkAdapter.js';
-import { NetworkSymbol } from '../../../../adapters/network/NetworkSymbolRegistry.js';
 import blueShieldAsset from '../../../../assets/s05/password-factor-shield.webp';
 import greenShieldAsset from '../../../../assets/s06/comparison-path-shield.webp';
 import { CelebrationConfetti } from '../../CelebrationConfetti.js';
@@ -32,7 +32,11 @@ import { passWoSpeechEmphasisFor } from '../../PassWoSpeechEmphasis.js';
 import { SectionTransition } from '../../SectionTransition.js';
 import { AccountAssessmentNetwork } from '../AccountAssessmentNetwork.js';
 import { createS06BlockedReplayTriangle } from '../S06/S06ConsequenceController.js';
-import { S12PasswordManagerTraining } from '../S12/S12PasswordManagerTraining.js';
+import {
+  PasswordManagerVaultVisual,
+  S12PasswordManagerTraining,
+  type PasswordManagerVaultEntry,
+} from '../S12/S12PasswordManagerTraining.js';
 import { S13PasswordManagerPractice } from '../S13/S13PasswordManagerPractice.js';
 import {
   blockedS08ProtectionSteps,
@@ -302,35 +306,34 @@ function newAccountMotionDurations(): Readonly<{
     : { shieldDelayMs: 2600, connectionDelayMs: 650, networkReturnDelayMs: 700 };
 }
 
-function S13ImportedVault() {
+const s13ImportedVaultEntries: readonly PasswordManagerVaultEntry[] =
+  s13PasswordManagerPracticeContent.network.importedVault.entries.map(
+    (entry, index) => ({
+      id: entry.id,
+      account: entry.label,
+      maskedPassword:
+        s13PasswordManagerPracticeContent.network.importedVault.maskedPassword,
+      symbolId: entry.symbolId,
+      muted: index >= 5,
+    }),
+  );
+
+function S13ImportedVault({ highlighted }: { readonly highlighted: boolean }) {
   const vault = s13PasswordManagerPracticeContent.network.importedVault;
   return (
     <aside
       className={styles.importedVault}
       data-s13-import-vault
+      data-highlighted={highlighted || undefined}
       aria-label={vault.ariaLabel}
     >
-      <span className={styles.importedVaultDoor} aria-hidden="true">
-        <i />
-      </span>
-      <div className={styles.importedVaultCabinet}>
-        <header>
-          <span aria-hidden="true">✓</span>
-          <strong>{vault.title}</strong>
-        </header>
-        <ol>
-          {vault.entries.map((entry, index) => (
-            <li data-suggested={index >= 5 || undefined} key={entry.id}>
-              <span className={styles.importedVaultMark} aria-hidden="true">
-                <NetworkSymbol symbolId={entry.symbolId} />
-              </span>
-              <strong>{entry.label}</strong>
-              <code>{vault.maskedPassword}</code>
-            </li>
-          ))}
-        </ol>
-        <span className={styles.importedVaultMore}>{vault.moreLabel}</span>
-      </div>
+      <PasswordManagerVaultVisual
+        className={styles.importedVaultSafe}
+        open
+        entries={s13ImportedVaultEntries}
+        title={vault.title}
+        moreLabel={vault.moreLabel}
+      />
     </aside>
   );
 }
@@ -639,7 +642,8 @@ export function S08NetworkRewindStage({
         state.matches('passWoRisks') ||
         state.matches('passWoSolution') ||
         state.matches('managerTransition') ||
-        state.matches('managerLesson')
+        state.matches('managerLesson') ||
+        state.matches('managerPractice')
       ) {
         return scalingRiskNetwork.network;
       }
@@ -676,16 +680,24 @@ export function S08NetworkRewindStage({
   useLayoutEffect(() => {
     adapter.render(projectedNetwork);
   }, [adapter, projectedNetwork]);
+  const bankFocusVisible =
+    state.matches('managerPracticeExistingAccountRelation') ||
+    state.matches('managerPracticeExistingAccountReplace') ||
+    state.matches('managerPracticeBrowserPrompt') ||
+    state.matches('complete');
+  const presentationHighlightedNodeId = state.hasTag('s13-new-account')
+    ? 'my-shop'
+    : bankFocusVisible
+      ? 'muster-bank'
+      : null;
+  const presentationDrawsTriangle = state.matches('triangleAnimating');
   const presentation = useMemo(
     () => {
       const base = staticNetworkPresentation(projectedNetwork);
-      if (state.hasTag('s13-new-account')) {
-        return { ...base, highlightedNodeId: 'my-shop' };
+      if (presentationHighlightedNodeId !== null) {
+        return { ...base, highlightedNodeId: presentationHighlightedNodeId };
       }
-      if (state.hasTag('s13-existing-account')) {
-        return { ...base, highlightedNodeId: 'muster-bank' };
-      }
-      if (state.matches('triangleAnimating')) {
+      if (presentationDrawsTriangle) {
         return {
           ...base,
           drawingTargetNodeIds: [
@@ -697,20 +709,27 @@ export function S08NetworkRewindStage({
       }
       return base;
     },
-    [projectedNetwork, state],
+    [
+      presentationDrawsTriangle,
+      presentationHighlightedNodeId,
+      projectedNetwork,
+    ],
   );
-  const actionLabels = {
-    ...(projectedNetwork.nodes.some(
-      ({ id, selectable }) => id === 'master-campus' && selectable,
-    )
-      ? { 'master-campus': s08NetworkReplayContent.protectionAction }
-      : {}),
-    ...(projectedNetwork.nodes.some(
-      ({ id, selectable }) => id === 'campus-email' && selectable,
-    )
-      ? { 'campus-email': s08NetworkReplayContent.protectionAction }
-      : {}),
-  };
+  const actionLabels = useMemo(
+    () => ({
+      ...(projectedNetwork.nodes.some(
+        ({ id, selectable }) => id === 'master-campus' && selectable,
+      )
+        ? { 'master-campus': s08NetworkReplayContent.protectionAction }
+        : {}),
+      ...(projectedNetwork.nodes.some(
+        ({ id, selectable }) => id === 'campus-email' && selectable,
+      )
+        ? { 'campus-email': s08NetworkReplayContent.protectionAction }
+        : {}),
+    }),
+    [projectedNetwork],
+  );
   const incidentAttackRunning = state.matches('incidentAttack');
   const pathReplayRunning = state.matches('triangleAnimating');
   const replayRunning = incidentAttackRunning || pathReplayRunning;
@@ -751,10 +770,14 @@ export function S08NetworkRewindStage({
   const releasingLocalFindingAccountIds = releasingAccountIds.filter((accountId) =>
     state.context.riskModel.localFindingAccountIds.includes(accountId),
   );
-  const easyToGuessAccountIds = state.context.riskModel.localFindingAccountIds.filter(
-    (accountId) =>
-      accountId !== 'campusgram' &&
-      !state.context.protectedAccountIds.includes(accountId),
+  const easyToGuessAccountIds = useMemo(
+    () =>
+      state.context.riskModel.localFindingAccountIds.filter(
+        (accountId) =>
+          accountId !== 'campusgram' &&
+          !state.context.protectedAccountIds.includes(accountId),
+      ),
+    [state.context.protectedAccountIds, state.context.riskModel],
   );
   const passWoStep = state.matches('s09Intro')
     ? 0
@@ -823,12 +846,25 @@ export function S08NetworkRewindStage({
                   : undefined;
   const s13FocusTarget = state.hasTag('s13-new-account')
     ? 'my-shop'
-    : state.matches('managerPracticeExistingAccountRelation') ||
-        state.matches('managerPracticeExistingAccountReplace')
+    : bankFocusVisible
       ? 'muster-bank'
       : undefined;
-  const importedVaultVisible = state.matches('managerPracticeExistingAccount');
+  const importedVaultVisible =
+    state.hasTag('s13-existing-account') ||
+    state.matches('managerPracticeBrowserPrompt') ||
+    state.matches('complete');
   const browserReopenPrompt = state.matches('managerPracticeBrowserPrompt');
+
+  const handleNetworkNodeSelect = useCallback(
+    (nodeId: string) => {
+      if (!preparationVisible) return;
+      const accountId = changeableAccountId(nodeId);
+      if (accountId === null || actionLabels[accountId] === undefined) return;
+      setCelebratingNodeId(accountId);
+      send({ type: 'PROTECT_WITH_UNIQUE_PASSPHRASE', accountId });
+    },
+    [actionLabels, preparationVisible, send],
+  );
 
   useEffect(() => {
     if (
@@ -846,100 +882,82 @@ export function S08NetworkRewindStage({
     onComplete?.();
   }, [onComplete, state]);
 
-  if (state.matches('managerTransition')) {
-    return (
-      <SectionTransition
-        sectionLabel={s09PasswordSummaryContent.passwordManagerTransition.sectionLabel}
-        title={s09PasswordSummaryContent.passwordManagerTransition.title}
-        currentSection={2}
-        totalSections={3}
-        parts={s09PasswordSummaryContent.passwordManagerTransition.parts}
-        currentPart={1}
-        holdDurationMs={s09PasswordSummaryContent.passwordManagerTransition.holdDurationMs}
-        onComplete={() => send({ type: 'TRANSITION_COMPLETE' })}
-      />
-    );
-  }
-
-  if (state.matches('managerPractice')) {
-    return (
-      <S13PasswordManagerPractice
-        displayName={displayName}
-        {...(resumeState === undefined ? {} : { passphraseIds: resumeState.passphraseIds })}
-        platform={platform}
-        onBrowserClosed={() => send({ type: 'S13_BROWSER_CLOSED' })}
-      />
-    );
-  }
+  const managerTransitionVisible = state.matches('managerTransition');
+  const managerPracticeVisible = state.matches('managerPractice');
 
   return (
-    <section
-      className={styles.training}
-      aria-label={
-        state.hasTag('s13-network')
-          ? s13PasswordManagerPracticeContent.trainingAriaLabel
-          : state.hasTag('manager') || state.hasTag('manager-transition')
-            ? s12PasswordManagerContent.trainingAriaLabel
-          : state.hasTag('s09')
-            ? s09PasswordSummaryContent.trainingAriaLabel
-            : s08NetworkReplayContent.trainingAriaLabel
-      }
-      data-replay-phase={
-        preparationVisible
-          ? 'protection'
-          : state.matches('triangleAnimating')
-            ? 'triangle'
-            : replayPhase
-      }
-      data-s09-expanded={
-        state.hasTag('expanded') ||
-        state.matches('managerLesson') ||
-        undefined
-      }
-      data-s09-expanding={state.matches('s09Expansion') || undefined}
-      data-s09-reducing={state.hasTag('reducing') || undefined}
-      data-manager-active={state.matches('managerLesson') || undefined}
-      data-s13-network-step={s13NetworkStep}
-      data-s13-focus={s13FocusTarget}
-      data-s13-vault-focus={importedVaultVisible || undefined}
-      data-s08-resolving-account={state.context.resolvingAccountId ?? undefined}
-      data-s08-releasing-master-campus={
-        releasingAccountIds.includes('master-campus') || undefined
-      }
-      data-s08-releasing-campus-email={
-        releasingAccountIds.includes('campus-email') || undefined
-      }
-      data-s08-releasing-local-finding-master-campus={
-        releasingLocalFindingAccountIds.includes('master-campus') || undefined
-      }
-      data-s08-releasing-local-finding-campus-email={
-        releasingLocalFindingAccountIds.includes('campus-email') || undefined
-      }
-    >
-      <DesktopSurface
-        platform={platform}
-        browserDock={{
-          active: false,
-          enabled: browserHighlighted || browserReopenPrompt,
-          highlighted: browserHighlighted || browserReopenPrompt,
-          label:
-            browserHighlighted || browserReopenPrompt
-              ? 'Browser für die Übung öffnen'
-              : 'Browser geschlossen',
-          ...(browserHighlighted || browserReopenPrompt
-            ? {
-                onClick: () => {
-                  if (browserReopenPrompt) {
-                    send({ type: 'OPEN_BROWSER' });
-                    return;
-                  }
-                  setBrowserHighlighted(false);
-                  send({ type: 'OPEN_BROWSER' });
-                },
-              }
-            : {}),
-        }}
+    <div className={styles.stageStack}>
+      <section
+        className={styles.training}
+        aria-hidden={managerTransitionVisible || managerPracticeVisible || undefined}
+        aria-label={
+          state.hasTag('s13-network')
+            ? s13PasswordManagerPracticeContent.trainingAriaLabel
+            : state.hasTag('manager') || state.hasTag('manager-transition')
+              ? s12PasswordManagerContent.trainingAriaLabel
+              : state.hasTag('s09')
+                ? s09PasswordSummaryContent.trainingAriaLabel
+                : s08NetworkReplayContent.trainingAriaLabel
+        }
+        data-replay-phase={
+          preparationVisible
+            ? 'protection'
+            : state.matches('triangleAnimating')
+              ? 'triangle'
+              : replayPhase
+        }
+        data-s09-expanded={
+          state.hasTag('expanded') ||
+          state.matches('managerLesson') ||
+          undefined
+        }
+        data-s09-expanding={state.matches('s09Expansion') || undefined}
+        data-s09-reducing={state.hasTag('reducing') || undefined}
+        data-manager-active={state.matches('managerLesson') || undefined}
+        data-s13-browser-active={state.matches('managerPractice') || undefined}
+        data-s13-network-step={s13NetworkStep}
+        data-s13-focus={s13FocusTarget}
+        data-s13-network-dimmed={
+          state.matches('managerPractice') || state.hasTag('s13-network') || undefined
+        }
+        data-s08-resolving-account={state.context.resolvingAccountId ?? undefined}
+        data-s08-releasing-master-campus={
+          releasingAccountIds.includes('master-campus') || undefined
+        }
+        data-s08-releasing-campus-email={
+          releasingAccountIds.includes('campus-email') || undefined
+        }
+        data-s08-releasing-local-finding-master-campus={
+          releasingLocalFindingAccountIds.includes('master-campus') || undefined
+        }
+        data-s08-releasing-local-finding-campus-email={
+          releasingLocalFindingAccountIds.includes('campus-email') || undefined
+        }
       >
+        <DesktopSurface
+          platform={platform}
+          browserDock={{
+            active: false,
+            enabled: browserHighlighted || browserReopenPrompt,
+            highlighted: browserHighlighted || browserReopenPrompt,
+            label:
+              browserHighlighted || browserReopenPrompt
+                ? 'Browser für die Übung öffnen'
+                : 'Browser geschlossen',
+            ...(browserHighlighted || browserReopenPrompt
+              ? {
+                  onClick: () => {
+                    if (browserReopenPrompt) {
+                      send({ type: 'OPEN_BROWSER' });
+                      return;
+                    }
+                    setBrowserHighlighted(false);
+                    send({ type: 'OPEN_BROWSER' });
+                  },
+                }
+              : {}),
+          }}
+        >
         <div
           ref={networkHostRef}
           className={styles.network}
@@ -991,13 +1009,7 @@ export function S08NetworkRewindStage({
             interactionDisabled={!state.matches('protection')}
             nodeActionLabels={actionLabels}
             showEdgeLabels={preparationVisible}
-            onNodeSelect={(nodeId) => {
-              if (!preparationVisible) return;
-              const accountId = changeableAccountId(nodeId);
-              if (accountId === null || actionLabels[accountId] === undefined) return;
-              setCelebratingNodeId(accountId);
-              send({ type: 'PROTECT_WITH_UNIQUE_PASSPHRASE', accountId });
-            }}
+            onNodeSelect={handleNetworkNodeSelect}
           />
           {replayComplete ? (
             <div className={styles.completionMoment} role="status" aria-live="polite">
@@ -1006,7 +1018,11 @@ export function S08NetworkRewindStage({
             </div>
           ) : null}
         </div>
-        {importedVaultVisible ? <S13ImportedVault /> : null}
+        {importedVaultVisible ? (
+          <S13ImportedVault
+            highlighted={state.matches('managerPracticeExistingAccount')}
+          />
+        ) : null}
         {replayReady ? (
           <button
             type="button"
@@ -1188,7 +1204,34 @@ export function S08NetworkRewindStage({
             onBrowserHighlightChange={setBrowserHighlighted}
           />
         ) : null}
-      </DesktopSurface>
-    </section>
+        </DesktopSurface>
+      </section>
+      {managerTransitionVisible ? (
+        <div className={styles.stageOverlay}>
+          <SectionTransition
+            sectionLabel={s09PasswordSummaryContent.passwordManagerTransition.sectionLabel}
+            title={s09PasswordSummaryContent.passwordManagerTransition.title}
+            currentSection={2}
+            totalSections={3}
+            parts={s09PasswordSummaryContent.passwordManagerTransition.parts}
+            currentPart={1}
+            holdDurationMs={s09PasswordSummaryContent.passwordManagerTransition.holdDurationMs}
+            onComplete={() => send({ type: 'TRANSITION_COMPLETE' })}
+          />
+        </div>
+      ) : null}
+      {managerPracticeVisible ? (
+        <div className={styles.stageOverlay}>
+          <S13PasswordManagerPractice
+            displayName={displayName}
+            {...(resumeState === undefined
+              ? {}
+              : { passphraseIds: resumeState.passphraseIds })}
+            platform={platform}
+            onBrowserClosed={() => send({ type: 'S13_BROWSER_CLOSED' })}
+          />
+        </div>
+      ) : null}
+    </div>
   );
 }

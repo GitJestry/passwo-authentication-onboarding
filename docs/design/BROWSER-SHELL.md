@@ -91,6 +91,12 @@ fokussierbare Hinweis-Markierung erreicht werden.
 - Ein erfolgreicher Registrierungs- oder Anmelde-Check wird zwei Sekunden lang angezeigt und
   danach automatisch beendet. Tabwechsel und Trainingsübergänge dürfen ihn früher beenden; nach
   der Rückkehr zu einem bereits bestätigten Konto erscheint er nicht erneut.
+- Nach dem ersten Ablehnen des S13-Speicherhinweises darf der Passwortmanager-Indikator eine
+  wiederholte Fokusfolge aus Vergrößern, Wackeln, Verkleinern und Pause zeigen. Der zugehörige
+  Statechart-Zustand beendet sie beim erneuten Öffnen des Hinweises, beim Speichern oder beim
+  zweiten Ablehnen. Bei Reduced Motion bleibt nur der unbewegte Fokusrahmen sichtbar.
+- Native Interaktionsflächen behalten bei Hover und Drücken ihre tatsächliche Position. Eine
+  visuelle Rückmeldung darf die klickbare Fläche nicht unter einem Zeiger am Rand wegbewegen.
 - Der Browser kann abgedunkelt werden, ohne Fokus oder Lesbarkeit der aktiven PassWo-Schicht zu
   verlieren.
 - Dimming verringert den Kontrast der Bühne nur so weit, dass der Seitenkontext weiter lesbar
