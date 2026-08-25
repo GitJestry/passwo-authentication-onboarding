@@ -2,6 +2,7 @@ import type { S06AccountId } from '@passwo/contracts';
 import {
   s08NetworkReplayContent,
   s09PasswordSummaryContent,
+  s12PasswordManagerContent,
 } from '@passwo/training-content';
 import type { DesktopPlatform } from '@passwo/ui';
 import { DesktopSurface } from '@passwo/ui';
@@ -26,9 +27,9 @@ import greenShieldAsset from '../../../../assets/s06/comparison-path-shield.webp
 import { CelebrationConfetti } from '../../CelebrationConfetti.js';
 import { PassWoGuide } from '../../PassWoGuide.js';
 import { passWoSpeechEmphasisFor } from '../../PassWoSpeechEmphasis.js';
-import { SectionTransition } from '../../SectionTransition.js';
 import { AccountAssessmentNetwork } from '../AccountAssessmentNetwork.js';
 import { createS06BlockedReplayTriangle } from '../S06/S06ConsequenceController.js';
+import { S12PasswordManagerTraining } from '../S12/S12PasswordManagerTraining.js';
 import {
   blockedS08ProtectionSteps,
   createCompletedS02Network,
@@ -48,7 +49,7 @@ import styles from './S08NetworkRewindStage.module.css';
 export type S08ChangeableAccountId = Exclude<S06AccountId, 'campusgram'>;
 
 interface S08Context {
-  readonly initialStage: 's08' | 's09' | 'manager-transition';
+  readonly initialStage: 's08' | 's09' | 'manager';
   readonly phaseDurationMs: number;
   readonly protectionResolutionDurationMs: number;
   readonly reductionDurationMs: number;
@@ -64,7 +65,6 @@ type S08Event =
     }
   | { readonly type: 'TRIANGLE_ANIMATION_COMPLETE' }
   | { readonly type: 'ANSWER_SELECTED' }
-  | { readonly type: 'TRANSITION_COMPLETE' }
   | { readonly type: 'NEXT' };
 
 const s08Machine = setup({
@@ -73,7 +73,7 @@ const s08Machine = setup({
     events: {} as S08Event,
     input: {} as {
       readonly recommendedAccountIds: readonly S08ChangeableAccountId[];
-      readonly initialStage: 's08' | 's09' | 'manager-transition';
+      readonly initialStage: 's08' | 's09' | 'manager';
       readonly phaseDurationMs: number;
       readonly protectionResolutionDurationMs: number;
       readonly reductionDurationMs: number;
@@ -97,8 +97,7 @@ const s08Machine = setup({
         event.accountId,
       ),
     startsAtS09: ({ context }) => context.initialStage === 's09',
-    startsAtManagerTransition: ({ context }) =>
-      context.initialStage === 'manager-transition',
+    startsAtManager: ({ context }) => context.initialStage === 'manager',
   },
   actions: {
     startProtectionResolution: assign({
@@ -132,7 +131,7 @@ const s08Machine = setup({
   states: {
     entry: {
       always: [
-        { guard: 'startsAtManagerTransition', target: 'managerTransition' },
+        { guard: 'startsAtManager', target: 'managerLesson' },
         { guard: 'startsAtS09', target: 's09Summary' },
         { target: 'protection' },
       ],
@@ -189,21 +188,19 @@ const s08Machine = setup({
     },
     passWoSolution: {
       tags: ['s09', 'expanded'],
-      on: { NEXT: { target: 'managerTransition' } },
+      on: { NEXT: { target: 'managerLesson' } },
     },
-    managerTransition: {
-      on: { TRANSITION_COMPLETE: { target: 'managerLanding' } },
-    },
-    managerLanding: {},
+    managerLesson: { tags: ['manager'] },
   },
 });
 
 export interface S08NetworkRewindStageProps {
+  readonly displayName?: string;
   readonly recommendedAccountIds?: readonly S08ChangeableAccountId[];
   readonly network?: NetworkSceneSnapshot | null;
   readonly plan?: PasswordConsequenceScenePlan | null;
   readonly platform: DesktopPlatform;
-  readonly initialStage?: 's08' | 's09' | 'manager-transition';
+  readonly initialStage?: 's08' | 's09' | 'manager';
 }
 
 function replayDuration(): number {
@@ -231,6 +228,7 @@ function planStep(
 }
 
 export function S08NetworkRewindStage({
+  displayName = '',
   recommendedAccountIds = [],
   network,
   plan,
@@ -379,7 +377,8 @@ export function S08NetworkRewindStage({
         state.matches('passWoDifficulty') ||
         state.matches('passWoWorkarounds') ||
         state.matches('passWoRisks') ||
-        state.matches('passWoSolution')
+        state.matches('passWoSolution') ||
+        state.matches('managerLesson')
       ) {
         return scalingRiskNetwork.network;
       }
@@ -452,7 +451,8 @@ export function S08NetworkRewindStage({
     scalingFindingsRevealing ||
     state.matches('passWoWorkarounds') ||
     state.matches('passWoRisks') ||
-    state.matches('passWoSolution');
+    state.matches('passWoSolution') ||
+    state.matches('managerLesson');
   const releasingAccountIds = (
     ['master-campus', 'campus-email'] as const
   ).filter((accountId) => {
@@ -506,40 +506,15 @@ export function S08NetworkRewindStage({
     }
   }, [pathReplayRunning, send]);
 
-  if (state.matches('managerTransition')) {
-    const transition = s09PasswordSummaryContent.passwordManagerTransition;
-    return (
-      <SectionTransition
-        sectionLabel={transition.sectionLabel}
-        title={transition.title}
-        currentSection={2}
-        totalSections={3}
-        parts={transition.parts}
-        currentPart={1}
-        holdDurationMs={transition.holdDurationMs}
-        onComplete={() => send({ type: 'TRANSITION_COMPLETE' })}
-      />
-    );
-  }
-
-  if (state.matches('managerLanding')) {
-    const transition = s09PasswordSummaryContent.passwordManagerTransition;
-    return (
-      <section className={styles.managerLanding} aria-labelledby="password-manager-title">
-        <p>{transition.sectionLabel}</p>
-        <h1 id="password-manager-title">{transition.title}</h1>
-        <strong>{transition.parts[0]?.label}</strong>
-      </section>
-    );
-  }
-
   return (
     <section
       className={styles.training}
       aria-label={
-        state.hasTag('s09')
-          ? s09PasswordSummaryContent.trainingAriaLabel
-          : s08NetworkReplayContent.trainingAriaLabel
+        state.hasTag('manager')
+          ? s12PasswordManagerContent.trainingAriaLabel
+          : state.hasTag('s09')
+            ? s09PasswordSummaryContent.trainingAriaLabel
+            : s08NetworkReplayContent.trainingAriaLabel
       }
       data-replay-phase={
         preparationVisible
@@ -548,9 +523,12 @@ export function S08NetworkRewindStage({
             ? 'triangle'
             : replayPhase
       }
-      data-s09-expanded={state.hasTag('expanded') || undefined}
+      data-s09-expanded={
+        state.hasTag('expanded') || state.matches('managerLesson') || undefined
+      }
       data-s09-expanding={state.matches('s09Expansion') || undefined}
       data-s09-reducing={state.hasTag('reducing') || undefined}
+      data-manager-active={state.matches('managerLesson') || undefined}
       data-s08-resolving-account={state.context.resolvingAccountId ?? undefined}
       data-s08-releasing-master-campus={
         releasingAccountIds.includes('master-campus') || undefined
@@ -781,6 +759,9 @@ export function S08NetworkRewindStage({
               </button>
             ) : null}
           </>
+        ) : null}
+        {state.matches('managerLesson') ? (
+          <S12PasswordManagerTraining displayName={displayName} />
         ) : null}
       </DesktopSurface>
     </section>

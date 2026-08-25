@@ -126,6 +126,13 @@ tatsächliche Analyse der dargestellten Konten. Die Reveal-Animation ist ausschl
 erstmaligen Eintritt aktiv; `Weiter` übernimmt den bereits sichtbaren statischen Endzustand, ohne
 die Kanten erneut zu zeichnen.
 
+Beim anschließenden direkten Übergang in S12 bleibt genau dieser Netzwerk-Endzustand auf dem
+Desktop zunächst unverändert sichtbar und blendet dann langsam vollständig aus. Erst danach
+erscheint und öffnet sich der Passwortmanager-Tresor; eine zusätzliche Abdunklung, Sektionskarte
+oder separate Landingpage wird nicht eingeschoben. Netzwerk und neue Bühne teilen weiterhin die
+tatsächliche Full-Bleed-Fläche; die S12-Arbeitszone reserviert zusätzlich die
+betriebssystemspezifischen Dock- und PassWo-Safe-Areas.
+
 ## S02-Kontenerkundung
 
 S02 „Konten kennenlernen“ bildet die erste vollständige Kontenerkundung:

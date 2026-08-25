@@ -109,12 +109,12 @@ function S07ToS09QaPreview({
 }: {
   readonly accountFeedback: readonly S07AccountFeedback[];
   readonly campusgramPassword: string;
-  readonly initialStage?: 's07' | 's08' | 's09' | 'manager-transition';
+  readonly initialStage?: 's07' | 's08' | 's09' | 'manager';
   readonly network: NetworkSceneSnapshot | null;
   readonly plan: ReturnType<typeof createS06ConsequenceScenePlan>;
 }) {
   const [stage, setStage] = useState<
-    's07' | 's08' | 's09' | 'manager-transition'
+    's07' | 's08' | 's09' | 'manager'
   >(initialStage);
   const [completedRecommendedAccountIds, setCompletedRecommendedAccountIds] = useState<
     readonly S07RemainingAccountId[] | null
@@ -124,6 +124,7 @@ function S07ToS09QaPreview({
   if (stage !== 's07') {
     return (
       <S08NetworkRewindStage
+        displayName="Vorschau"
         recommendedAccountIds={
           completedRecommendedAccountIds ??
           s07RecommendedResolutionAccountIds(accountFeedback)
@@ -195,7 +196,7 @@ function S07DirectQaPreview({
   initialStage = 's07',
   passwordOverrides,
 }: {
-  readonly initialStage?: 's07' | 's08' | 's09' | 'manager-transition';
+  readonly initialStage?: 's07' | 's08' | 's09' | 'manager';
   readonly passwordOverrides: TrainingQaPasswordOverrides;
 }) {
   const accounts = useMemo<S06ConsequenceAccountInputs>(() => {
@@ -583,13 +584,14 @@ const scenarios: Record<DesignLabScenarioId, DesignLabScenario> = {
   's09-password-manager-transition': {
     label: 's1.27 · Übergang zum Passwortmanager',
     description:
-      'Direkter QA-Einstieg im geschützten S08-Netzwerk, das in S09 auf 80 Konten herauszoomt und zur Passwortmanager-Karte führt.',
+      'Direkter QA-Einstieg im geschützten S08-Netzwerk, das in S09 auf 80 Konten herauszoomt und unmittelbar in die Passwortmanager-Bühne führt.',
     dimmed: false,
     showPassWoOverlay: false,
   },
   's2-1-password-manager-transition': {
-    label: 's2.1 · Transitionkarte',
-    description: 'Direkter QA-Einstieg in die Transition zur Sektion Passwortmanager.',
+    label: 's2.1 · Funktionen und Varianten',
+    description:
+      'Direkter QA-Einstieg in den Passwortmanager-Auftakt mit Netzwerkübergang, Tresor und Systemvergleich.',
     dimmed: false,
     showPassWoOverlay: false,
   },
@@ -1348,7 +1350,7 @@ export function DesignLab({ scenarioId }: { readonly scenarioId: DesignLabScenar
         <DesignLabIntroduction scenarioId={scenarioId} scenario={scenario} />
         <ArtifactPreview>
           <S07DirectQaPreview
-            initialStage="manager-transition"
+            initialStage="manager"
             passwordOverrides={passwordOverrides}
           />
         </ArtifactPreview>

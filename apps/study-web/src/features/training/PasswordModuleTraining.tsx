@@ -717,6 +717,7 @@ function PasswordModuleTrainingContent({
     }
     return (
       <S08NetworkRewindStage
+        displayName={snapshot.context.displayName ?? ''}
         recommendedAccountIds={s08RecommendedAccountIds}
         platform={platform}
         network={s06SummaryNetwork}

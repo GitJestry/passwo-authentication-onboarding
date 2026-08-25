@@ -54,6 +54,20 @@
   animation: s09-network-depth-wave 1.15s cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 
+.training[data-manager-active="true"] .network {
+  opacity: 0;
+  pointer-events: none;
+  transform: scale(0.975);
+  transform-origin: center;
+  transition:
+    opacity 2.2s var(--motion-ease-out),
+    transform 2.2s var(--motion-ease-out);
+}
+
+.training[data-manager-active="true"] .network > div {
+  height: 100%;
+}
+
 .training .network :global(.react-flow__node) {
   transition:
     width 900ms cubic-bezier(0.16, 1, 0.3, 1),
@@ -638,40 +652,6 @@
   height: var(--s09-dialog-band);
 }
 
-.managerLanding {
-  display: grid;
-  width: 100%;
-  height: 100%;
-  place-content: center;
-  gap: var(--space-3);
-  padding: var(--space-8);
-  color: #eaf7ff;
-  background: radial-gradient(circle at 50% 35%, #153e68, #051326 68%);
-  text-align: center;
-}
-
-.managerLanding p,
-.managerLanding h1 {
-  margin: 0;
-}
-
-.managerLanding p {
-  color: #75caff;
-  font-weight: var(--font-weight-heavy);
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-}
-
-.managerLanding h1 {
-  color: #fff;
-  font-size: clamp(2rem, 6cqi, 5rem);
-  line-height: 1;
-}
-
-.managerLanding strong {
-  font-size: clamp(1.05rem, 2cqi, 1.55rem);
-}
-
 @keyframes protected-replay-enter {
   from {
     opacity: 0.55;
@@ -986,6 +966,7 @@
   .replayAction,
   .summaryAction,
   .passwordManagerAction,
+  .training[data-manager-active="true"] .network,
   .network > div,
   .training .network :global(.react-flow__node) {
     transition: none;

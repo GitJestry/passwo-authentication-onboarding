@@ -10,3 +10,4 @@ export * from './s06.js';
 export * from './s07.js';
 export * from './s08.js';
 export * from './s09.js';
+export * from './s12.js';

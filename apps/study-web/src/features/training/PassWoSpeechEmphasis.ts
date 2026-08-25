@@ -208,6 +208,25 @@ const emphasisBySpeechId: Readonly<Record<string, readonly PassWoSpeechEmphasis[
       tone: 'positive',
     },
   ],
+  's12-manager-intro': [
+    { phrase: 'erzeugen, speichern und beim Anmelden wieder ausfüllen', tone: 'accent' },
+  ],
+  's12-manager-generate': [
+    { phrase: 'langes, zufällig erzeugtes Passwort', tone: 'accent' },
+  ],
+  's12-manager-store': [
+    { phrase: 'welches Passwort zu welchem Konto gehört', tone: 'accent' },
+  ],
+  's12-manager-fill': [{ phrase: 'passenden Eintrag', tone: 'positive' }],
+  's12-manager-access': [
+    { phrase: 'Zugang zu deinem Passwortmanager', tone: 'accent' },
+  ],
+  's12-manager-variants': [{ phrase: 'bereits einen Passwortmanager', tone: 'accent' }],
+  's12-manager-separate': [{ phrase: 'Masterpasswort', tone: 'warning' }],
+  's12-manager-integrated': [
+    { phrase: 'Geräte- oder Plattformzugang', tone: 'accent' },
+  ],
+  's12-manager-practice': [{ phrase: 'direkt im Browser', tone: 'action' }],
 };
 
 export function passWoSpeechEmphasisFor(
