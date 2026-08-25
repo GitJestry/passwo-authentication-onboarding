@@ -1,10 +1,12 @@
 import {
+  predefinedPassphraseIdFor,
   s00Content,
   s01Content,
   s04Content,
   s07PassphraseSearchContent,
   type S01AccountId,
 } from '@passwo/training-content';
+import type { PredefinedPassphraseId } from '@passwo/contracts';
 import { useMachine } from '@xstate/react';
 import {
   BrowserShell,
@@ -453,6 +455,7 @@ export interface S07PassphraseSearchTrainingProps {
   readonly platform?: DesktopPlatform;
   readonly onComplete?: (
     recommendedAccountIds: readonly S07RemainingAccountId[],
+    campusgramPassphraseId: PredefinedPassphraseId,
   ) => void;
 }
 
@@ -522,6 +525,15 @@ export function S07PassphraseSearchTraining({
   const allowGeneratorControls =
     state.matches('generatorReady') || state.matches('mnemonic');
 
+  function completeTraining(): void {
+    const passphraseIndex = state.context.currentPassphraseIndex;
+    if (passphraseIndex === null) return;
+    onComplete(
+      s07RecommendedResolutionAccountIds(accountFeedback),
+      predefinedPassphraseIdFor(passphraseIndex, state.context.separator),
+    );
+  }
+
   function tabEnabled(tabId: S07TabId): boolean {
     if (state.matches('copiedCampusgram')) return tabId === 'campusgram';
     return false;
@@ -588,7 +600,7 @@ export function S07PassphraseSearchTraining({
       onAction: () => {
         send({ type: 'NEXT' });
         if (state.matches('remainingRisk') && !hasRemainingAccountRisk) {
-          onComplete(s07RecommendedResolutionAccountIds(accountFeedback));
+          completeTraining();
         }
       },
     };
@@ -599,7 +611,7 @@ export function S07PassphraseSearchTraining({
       label: guide.continueAttack,
       onAction: () => {
         send({ type: 'CONTINUE_ATTACK' });
-        onComplete(s07RecommendedResolutionAccountIds(accountFeedback));
+        completeTraining();
       },
     };
   }

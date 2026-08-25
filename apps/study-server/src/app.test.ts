@@ -308,7 +308,8 @@ describe('study server research core', () => {
           research_code AS researchCode,
           deletion_code_hash AS deletionCodeHash,
           guardrail_form_id AS guardrailFormId,
-          follow_up_consent AS followUpConsent
+          follow_up_consent AS followUpConsent,
+          supportive_s08_resume_state_json AS supportiveS08ResumeStateJson
          FROM study_sessions`,
       )
       .get();
@@ -338,6 +339,7 @@ describe('study server research core', () => {
       { version: 6 },
       { version: 7 },
       { version: 8 },
+      { version: 9 },
     ]);
     expect(responseColumns).toEqual(
       expect.arrayContaining([expect.objectContaining({ name: 'section_id', notnull: 1 })]),
@@ -347,6 +349,7 @@ describe('study server research core', () => {
       deletionCodeHash: createHash('sha256').update('PW-LEGACY01', 'utf8').digest('hex'),
       guardrailFormId: 'F1',
       followUpConsent: 0,
+      supportiveS08ResumeStateJson: null,
     });
     expect(guardrailSlot).toEqual({
       condition: 'supportive',

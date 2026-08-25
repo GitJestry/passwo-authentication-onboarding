@@ -1,8 +1,9 @@
-import type { S06AccountId } from '@passwo/contracts';
+import type { S06AccountId, SupportiveS08ResumeState } from '@passwo/contracts';
 import {
   s08NetworkReplayContent,
   s09PasswordSummaryContent,
   s12PasswordManagerContent,
+  s13PasswordManagerPracticeContent,
 } from '@passwo/training-content';
 import type { DesktopPlatform } from '@passwo/ui';
 import { DesktopSurface } from '@passwo/ui';
@@ -31,6 +32,7 @@ import { SectionTransition } from '../../SectionTransition.js';
 import { AccountAssessmentNetwork } from '../AccountAssessmentNetwork.js';
 import { createS06BlockedReplayTriangle } from '../S06/S06ConsequenceController.js';
 import { S12PasswordManagerTraining } from '../S12/S12PasswordManagerTraining.js';
+import { S13PasswordManagerPractice } from '../S13/S13PasswordManagerPractice.js';
 import {
   blockedS08ProtectionSteps,
   createCompletedS02Network,
@@ -38,8 +40,10 @@ import {
   createProtectedS08Network,
   createS08ProtectionNetwork,
   createS08ProtectionRiskModel,
+  createS08ProtectionRiskModelFromResumeState,
   createS09ScalingComparisonResults,
   createS09ScalingRiskNetwork,
+  createS13MyShopNetwork,
   s08AccountHasOpenActionNeed,
   s08HasOpenActionNeed,
   type S08ProtectionRiskModel,
@@ -54,6 +58,7 @@ interface S08Context {
   readonly phaseDurationMs: number;
   readonly protectionResolutionDurationMs: number;
   readonly reductionDurationMs: number;
+  readonly managerCompletionDurationMs: number;
   readonly protectedAccountIds: readonly S08ChangeableAccountId[];
   readonly resolvingAccountId: S08ChangeableAccountId | null;
   readonly riskModel: S08ProtectionRiskModel;
@@ -67,6 +72,8 @@ type S08Event =
   | { readonly type: 'TRIANGLE_ANIMATION_COMPLETE' }
   | { readonly type: 'ANSWER_SELECTED' }
   | { readonly type: 'TRANSITION_COMPLETE' }
+  | { readonly type: 'OPEN_BROWSER' }
+  | { readonly type: 'S13_BROWSER_CLOSED' }
   | { readonly type: 'NEXT' };
 
 const s08Machine = setup({
@@ -79,6 +86,7 @@ const s08Machine = setup({
       readonly phaseDurationMs: number;
       readonly protectionResolutionDurationMs: number;
       readonly reductionDurationMs: number;
+      readonly managerCompletionDurationMs: number;
       readonly riskModel: S08ProtectionRiskModel;
     },
   },
@@ -87,6 +95,7 @@ const s08Machine = setup({
     protectionResolutionDuration: ({ context }) =>
       context.protectionResolutionDurationMs,
     reductionDuration: ({ context }) => context.reductionDurationMs,
+    managerCompletionDuration: ({ context }) => context.managerCompletionDurationMs,
   },
   guards: {
     allResolved: ({ context }) =>
@@ -125,6 +134,7 @@ const s08Machine = setup({
     phaseDurationMs: input.phaseDurationMs,
     protectionResolutionDurationMs: input.protectionResolutionDurationMs,
     reductionDurationMs: input.reductionDurationMs,
+    managerCompletionDurationMs: input.managerCompletionDurationMs,
     protectedAccountIds:
       input.initialStage === 's08' ? [] : [...input.recommendedAccountIds],
     resolvingAccountId: null,
@@ -196,7 +206,19 @@ const s08Machine = setup({
       tags: ['manager-transition', 'expanded'],
       on: { TRANSITION_COMPLETE: { target: 'managerLesson' } },
     },
-    managerLesson: { tags: ['manager'] },
+    managerLesson: {
+      tags: ['manager'],
+      on: { OPEN_BROWSER: { target: 'managerPractice' } },
+    },
+    managerPractice: {
+      tags: ['manager', 'expanded'],
+      on: { S13_BROWSER_CLOSED: { target: 'managerPracticeComplete' } },
+    },
+    managerPracticeComplete: {
+      tags: ['manager', 'expanded'],
+      after: { managerCompletionDuration: { target: 'complete' } },
+    },
+    complete: { tags: ['manager', 'expanded'] },
   },
 });
 
@@ -205,8 +227,10 @@ export interface S08NetworkRewindStageProps {
   readonly recommendedAccountIds?: readonly S08ChangeableAccountId[];
   readonly network?: NetworkSceneSnapshot | null;
   readonly plan?: PasswordConsequenceScenePlan | null;
+  readonly resumeState?: SupportiveS08ResumeState;
   readonly platform: DesktopPlatform;
   readonly initialStage?: 's08' | 's09' | 'manager';
+  readonly onComplete?: () => void;
 }
 
 function replayDuration(): number {
@@ -233,13 +257,83 @@ function planStep(
   return plan?.steps.find(({ id }) => id === stepId) ?? null;
 }
 
+function authoredReplayStep(
+  network: NetworkSceneSnapshot,
+  id: Extract<
+    PasswordConsequenceStepId,
+    | 's06-step-campusgram-master-campus'
+    | 's06-step-campusgram-campus-email'
+    | 's06-step-master-campus-campus-email'
+  >,
+  sourceAccountId: S06AccountId,
+  targetAccountId: S06AccountId,
+): PasswordConsequencePlanStep {
+  return {
+    id,
+    mode: 'actual',
+    narrationId: `${id}-protected-replay`,
+    sourceAccountId,
+    targetAccountId,
+    relation: {
+      kind: 'no-derived-path-recognized',
+      relationId: `${id}-protected-replay`,
+      sourceEvidence: [],
+      targetEvidence: [],
+      explanationId: 's06.relation.no-derived-path-recognized',
+    },
+    network: {
+      ...network,
+      id: `${network.id}-${id}-protected-replay`,
+      edges: [
+        ...network.edges,
+        {
+          id: `${id}-path`,
+          sourceId: sourceAccountId,
+          targetId: targetAccountId,
+          kind: 'blocked-path',
+          status: 'blocked',
+          label: null,
+        },
+      ],
+    },
+    visibleChange: { targetId: targetAccountId, emphasis: 'positive' },
+  };
+}
+
+function authoredReplaySteps(
+  network: NetworkSceneSnapshot,
+): readonly PasswordConsequencePlanStep[] {
+  return [
+    authoredReplayStep(
+      network,
+      's06-step-campusgram-master-campus',
+      'campusgram',
+      'master-campus',
+    ),
+    authoredReplayStep(
+      network,
+      's06-step-campusgram-campus-email',
+      'campusgram',
+      'campus-email',
+    ),
+    authoredReplayStep(
+      network,
+      's06-step-master-campus-campus-email',
+      'master-campus',
+      'campus-email',
+    ),
+  ];
+}
+
 export function S08NetworkRewindStage({
   displayName = '',
   recommendedAccountIds = [],
   network,
   plan,
+  resumeState,
   platform,
   initialStage = 's08',
+  onComplete,
 }: S08NetworkRewindStageProps) {
   const networkHostRef = useRef<HTMLDivElement | null>(null);
   const [celebratingNodeId, setCelebratingNodeId] = useState<S08ChangeableAccountId | null>(null);
@@ -249,8 +343,11 @@ export function S08NetworkRewindStage({
     [network],
   );
   const protectionRiskModel = useMemo(
-    () => createS08ProtectionRiskModel(sourceNetwork, plan),
-    [plan, sourceNetwork],
+    () =>
+      resumeState === undefined
+        ? createS08ProtectionRiskModel(sourceNetwork, plan)
+        : createS08ProtectionRiskModelFromResumeState(resumeState),
+    [plan, resumeState, sourceNetwork],
   );
   const [state, send] = useMachine(s08Machine, {
     input: {
@@ -259,6 +356,7 @@ export function S08NetworkRewindStage({
       phaseDurationMs: replayDuration(),
       protectionResolutionDurationMs: protectionResolutionDuration(),
       reductionDurationMs: accountReductionDuration(),
+      managerCompletionDurationMs: 1800,
       riskModel: protectionRiskModel,
     },
   });
@@ -277,11 +375,13 @@ export function S08NetworkRewindStage({
     [plan],
   );
   const replaySteps = useMemo(
-    () =>
-      [firstPathStep, secondPathStep, thirdPathStep].filter(
+    () => {
+      const plannedSteps = [firstPathStep, secondPathStep, thirdPathStep].filter(
         (step): step is PasswordConsequencePlanStep => step !== null,
-      ),
-    [firstPathStep, secondPathStep, thirdPathStep],
+      );
+      return plannedSteps.length === 3 ? plannedSteps : authoredReplaySteps(sourceNetwork);
+    },
+    [firstPathStep, secondPathStep, sourceNetwork, thirdPathStep],
   );
   const replayPhase = state.matches('incidentAttack')
     ? 'attack'
@@ -361,6 +461,15 @@ export function S08NetworkRewindStage({
       ),
     [conservativeScaleNetwork, scalingComparisonResults],
   );
+  const managerPracticeCompleteNetwork = useMemo(
+    () =>
+      createS13MyShopNetwork(
+        scalingRiskNetwork.network,
+        s13PasswordManagerPracticeContent.network.accountLabel,
+        s13PasswordManagerPracticeContent.network.accountDescription,
+      ),
+    [scalingRiskNetwork.network],
+  );
   const scalingFindingNodeDelayMs = useMemo(
     () =>
       Object.values(scalingRiskNetwork.edgeRevealDelaysMs).reduce<number>(
@@ -373,6 +482,9 @@ export function S08NetworkRewindStage({
     () => {
       if (preparationVisible) {
         return preparationNetwork;
+      }
+      if (state.matches('managerPracticeComplete') || state.matches('complete')) {
+        return managerPracticeCompleteNetwork;
       }
       if (state.matches('s09Expansion')) {
         return studyScaleNetwork;
@@ -406,6 +518,7 @@ export function S08NetworkRewindStage({
     [
       preparationVisible,
       conservativeScaleNetwork,
+      managerPracticeCompleteNetwork,
       preparationNetwork,
       replayBaseNetwork,
       reducingNetwork,
@@ -422,6 +535,9 @@ export function S08NetworkRewindStage({
   const presentation = useMemo(
     () => {
       const base = staticNetworkPresentation(projectedNetwork);
+      if (state.matches('managerPracticeComplete') || state.matches('complete')) {
+        return { ...base, highlightedNodeId: 'my-shop' };
+      }
       if (state.matches('triangleAnimating')) {
         return {
           ...base,
@@ -461,7 +577,9 @@ export function S08NetworkRewindStage({
     state.matches('passWoRisks') ||
     state.matches('passWoSolution') ||
     state.matches('managerTransition') ||
-    state.matches('managerLesson');
+    state.matches('managerLesson') ||
+    state.matches('managerPracticeComplete') ||
+    state.matches('complete');
   const releasingAccountIds = (
     ['master-campus', 'campus-email'] as const
   ).filter((accountId) => {
@@ -515,6 +633,13 @@ export function S08NetworkRewindStage({
     }
   }, [pathReplayRunning, send]);
 
+  const completionNotifiedRef = useRef(false);
+  useEffect(() => {
+    if (!state.matches('complete') || completionNotifiedRef.current) return;
+    completionNotifiedRef.current = true;
+    onComplete?.();
+  }, [onComplete, state]);
+
   if (state.matches('managerTransition')) {
     return (
       <SectionTransition
@@ -530,12 +655,25 @@ export function S08NetworkRewindStage({
     );
   }
 
+  if (state.matches('managerPractice')) {
+    return (
+      <S13PasswordManagerPractice
+        displayName={displayName}
+        {...(resumeState === undefined ? {} : { passphraseIds: resumeState.passphraseIds })}
+        platform={platform}
+        onBrowserClosed={() => send({ type: 'S13_BROWSER_CLOSED' })}
+      />
+    );
+  }
+
   return (
     <section
       className={styles.training}
       aria-label={
-        state.hasTag('manager') || state.hasTag('manager-transition')
-          ? s12PasswordManagerContent.trainingAriaLabel
+        state.matches('managerPracticeComplete') || state.matches('complete')
+          ? s13PasswordManagerPracticeContent.trainingAriaLabel
+          : state.hasTag('manager') || state.hasTag('manager-transition')
+            ? s12PasswordManagerContent.trainingAriaLabel
           : state.hasTag('s09')
             ? s09PasswordSummaryContent.trainingAriaLabel
             : s08NetworkReplayContent.trainingAriaLabel
@@ -572,10 +710,18 @@ export function S08NetworkRewindStage({
       <DesktopSurface
         platform={platform}
         browserDock={{
-          active: browserHighlighted,
-          enabled: false,
+          active: false,
+          enabled: browserHighlighted,
           highlighted: browserHighlighted,
           label: browserHighlighted ? 'Browser für die Übung' : 'Browser geschlossen',
+          ...(browserHighlighted
+            ? {
+                onClick: () => {
+                  setBrowserHighlighted(false);
+                  send({ type: 'OPEN_BROWSER' });
+                },
+              }
+            : {}),
         }}
       >
         <div

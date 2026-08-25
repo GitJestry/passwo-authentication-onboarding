@@ -182,6 +182,22 @@ describe('password module privacy boundary', () => {
       segmentId: 'S07',
       sectionId: 'passwords',
     });
+    controller.completeS07();
+    await flushMicrotasks();
+    expect(controller.getSnapshot().matches('awaiting-s08')).toBe(true);
+    controller.enterS08();
+    expect(controller.getSnapshot().matches('s08')).toBe(true);
+    expect(controller.getSnapshot().context.displayName).toBeNull();
+    expect(controller.getSnapshot().context.passwordValues).toEqual({
+      'master-campus': '',
+      'campus-email': '',
+      campusgram: '',
+    });
+    expect(controller.getSnapshot().context.retrievalPasswordValues).toEqual({
+      'master-campus': '',
+      'campus-email': '',
+      campusgram: '',
+    });
     expect(controller.getSnapshot().context).not.toHaveProperty('s05Result');
     expect(controller.getSnapshot().context).not.toHaveProperty('s06Result');
     expect(controller.getSnapshot().context).not.toHaveProperty('s07Recommendations');

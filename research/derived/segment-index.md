@@ -17,7 +17,7 @@ Seitenangaben beziehen sich auf die im Trainingsdokument ausgewiesene interne Pa
 | S10 | Zusammenfassung Passwort | 55–57 | TF6 | stark, einzigartig, abrufbar |
 | S11 | Von drei zu vielen Konten | 57–60 | TF1, TF2, TF4, TF6 | Skalierungsproblem, Übergang Passwortmanager |
 | S12 | Passwortmanager | 60–65 | TF2, TF3, TF4, TF6 | Generator, Save, Autofill, Vault, Recovery, Systemwahl |
-| S13 | Passwort kann bekannt werden | 65–66 | TF4 | Brücke zu MFA |
+| S13 | Ein neues Konto | Nutzerauftrag 2026-08-25 | TF2, TF3 | My-Shop-Registrierung, browserintegriertes Erzeugen, Speichern und Ausfüllen |
 | S14 | Mehrere Faktoren | 66–67 | TF2, TF3, TF6 | Wissen/Besitz/Inhärenz, Aktivierungssimulation |
 | S15 | Recovery-Hinweis | 67–68 | TF6 | geschützter Wiederherstellungscode, Grenzen |
 | S16 | Priorisierung/Ausweitung | 68 | TF1, TF6 | wichtige Konten zuerst, MFA wo verfügbar |
@@ -381,12 +381,14 @@ Seitenangaben beziehen sich auf die im Trainingsdokument ausgewiesene interne Pa
   der betroffenen Konten im Netzwerk. Stark und einzigartig eingeordnete Konten bleiben ohne
   kontoweise Einzelmeldung; nur offene Konten erhalten in S08 eine Schutzaktion. Sind beide
   bereits stark und einzigartig, beginnt S08 danach unmittelbar mit dem Angriffsrücklauf.
-- `S07_PASSPHRASE_SEARCH_CONTENT_VERSION 4.16.0` beschreibt den zweistufigen
+- `S07_PASSPHRASE_SEARCH_CONTENT_VERSION 4.20.0` beschreibt den zweistufigen
   Passphraseneinstieg, Datenleckhinweis, lokalen Passwortwechsel, Suchseite, Werkstatt und
   die kompakte adaptive Kontenzusammenfassung;
-  `S08_NETWORK_REPLAY_CONTENT_VERSION 3.6.0` beschreibt die Netzabkürzung und den anschließenden
-  bedienbaren Angriffsrücklauf. Es werden
-  keine neuen Teilnehmer- oder Trainingswerte persistiert oder exportiert.
+  `S08_NETWORK_REPLAY_CONTENT_VERSION 3.8.0` beschreibt die Netzabkürzung und den anschließenden
+  bedienbaren Angriffsrücklauf. S01 bis S07 bleiben vollständig flüchtig. Am Eintritt in S08
+  werden Passwortwerte und semantische Detailbefunde verworfen; persistierbar ist danach nur der
+  in ADR 0016 eng typisierte Simulationsresume-Zustand aus vorgegebenen Passphrasen-IDs und
+  notwendigen kanonischen Schwäche-/Relationsflags. Er wird nicht exportiert.
 
 ## Implementierte S08--S09-Version
 

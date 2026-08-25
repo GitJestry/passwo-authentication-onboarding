@@ -83,6 +83,24 @@ function BrowserChromeIcon({ kind }: { readonly kind: 'add-tab' | 'bookmark' | '
   );
 }
 
+function PasswordManagerIcon() {
+  return (
+    <svg aria-hidden="true" viewBox="0 0 24 24" fill="none">
+      <circle cx="8.3" cy="11.4" r="4.1" />
+      <path d="m11.5 14.1 7.1 7.1M15.1 17.7l2.2-2.2M17.7 20.3l2.2-2.2" />
+    </svg>
+  );
+}
+
+function PasswordManagerSavedIcon() {
+  return (
+    <svg aria-hidden="true" viewBox="0 0 24 24" fill="none">
+      <path d="M12 2.8 20 6v5.8c0 4.8-3.2 7.8-8 9.4-4.8-1.6-8-4.6-8-9.4V6l8-3.2Z" />
+      <path d="m8.2 12 2.4 2.4 5.2-5.2" />
+    </svg>
+  );
+}
+
 function deriveAccountInitials(value: string | undefined): string {
   const username = value?.trim().split('@', 1)[0] ?? '';
   const initials = Array.from(username)
@@ -108,6 +126,15 @@ export interface BrowserShellSnapshot {
   readonly tabActivation?: 'automatic' | 'manual';
   readonly highlightedTabId?: string;
   readonly highlightNewTab?: boolean;
+  readonly passwordManager?: {
+    readonly label: string;
+    readonly active?: boolean;
+    readonly highlighted?: boolean;
+    readonly interactionEnabled?: boolean;
+    readonly allowInteractionWhenDimmed?: boolean;
+    readonly icon?: 'key' | 'saved';
+    readonly statusLabel?: string;
+  };
   readonly locked?: boolean;
 }
 
@@ -131,6 +158,8 @@ export interface BrowserShellProps {
   readonly onWindowClose?: () => void;
   readonly onWindowOpenChange?: (open: boolean) => void;
   readonly onWindowTransitionEnd?: (state: 'open' | 'closed') => void;
+  readonly windowCloseEnabled?: boolean;
+  readonly onPasswordManagerSelect?: () => void;
 }
 
 type BrowserWindowState = 'open' | 'opening' | 'closing' | 'closed';
@@ -148,6 +177,8 @@ export function BrowserShell({
   onWindowClose,
   onWindowOpenChange,
   onWindowTransitionEnd,
+  windowCloseEnabled = true,
+  onPasswordManagerSelect,
 }: BrowserShellProps) {
   const idPrefix = useId().replaceAll(':', '');
   const tabElements = useRef(new Map<string, HTMLButtonElement>());
@@ -163,7 +194,12 @@ export function BrowserShell({
   const tabsInert = locked || (dimmed && snapshot.allowTabInteractionWhenDimmed !== true);
   const windowControlsInert =
     locked || (dimmed && snapshot.allowWindowInteractionWhenDimmed !== true);
-  const chromeInert = dimmed || locked;
+  const passwordManagerInteractive =
+    snapshot.passwordManager?.interactionEnabled === true &&
+    onPasswordManagerSelect !== undefined;
+  const chromeInert =
+    locked ||
+    (dimmed && snapshot.passwordManager?.allowInteractionWhenDimmed !== true);
   const dimStrength = snapshot.dimStrength ?? 'standard';
   const accountInitials = deriveAccountInitials(snapshot.accountIdentifier);
   const scrollKey = snapshot.scrollKey ?? snapshot.activeTabId;
@@ -235,6 +271,7 @@ export function BrowserShell({
   }
 
   function closeWindow(): void {
+    if (!windowCloseEnabled) return;
     onWindowClose?.();
     setWindowOpen(false);
   }
@@ -368,7 +405,10 @@ export function BrowserShell({
       overlay={layers?.screen}
       browserDock={{
         active: windowState !== 'closed',
-        enabled: !locked && (!dimmed || snapshot.allowWindowInteractionWhenDimmed === true),
+        enabled:
+          !locked &&
+          (!dimmed || snapshot.allowWindowInteractionWhenDimmed === true) &&
+          (windowState === 'closed' || windowCloseEnabled),
         label:
           windowState === 'closed'
             ? 'Browserfenster vom Dock öffnen'
@@ -404,6 +444,7 @@ export function BrowserShell({
                 className={styles.closeControl}
                 aria-label="Browserfenster schließen"
                 title="Schließen"
+                disabled={!windowCloseEnabled}
                 onClick={closeWindow}
               >
                 <svg className={styles.closeIcon} viewBox="0 0 10 10" aria-hidden="true">
@@ -415,6 +456,7 @@ export function BrowserShell({
                 className={styles.minimizeControl}
                 aria-label="Browserfenster im Dock ablegen"
                 title="Im Dock ablegen"
+                disabled={!windowCloseEnabled}
                 onClick={closeWindow}
               >
                 <svg className={styles.minimizeIcon} viewBox="0 0 10 10" aria-hidden="true">
@@ -494,6 +536,31 @@ export function BrowserShell({
               </span>
             </output>
             <div className={styles.accountControls} aria-label="Fiktive Kontosteuerung">
+              {snapshot.passwordManager === undefined ? null : (
+                <span className={styles.passwordManagerControl}>
+                  {snapshot.passwordManager.statusLabel === undefined ? null : (
+                    <span className={styles.passwordManagerStatus} role="status">
+                      {snapshot.passwordManager.statusLabel}
+                    </span>
+                  )}
+                  <button
+                    type="button"
+                    className={styles.passwordManagerIndicator}
+                    data-active={snapshot.passwordManager.active || undefined}
+                    data-highlighted={snapshot.passwordManager.highlighted || undefined}
+                    aria-label={snapshot.passwordManager.label}
+                    title={snapshot.passwordManager.label}
+                    disabled={!passwordManagerInteractive}
+                    onClick={onPasswordManagerSelect}
+                  >
+                    {snapshot.passwordManager.icon === 'saved' ? (
+                      <PasswordManagerSavedIcon />
+                    ) : (
+                      <PasswordManagerIcon />
+                    )}
+                  </button>
+                </span>
+              )}
               <span
                 className={styles.accountInitial}
                 role="img"

@@ -30,12 +30,13 @@ Abgrenzung von Pseudonymisierung und Anonymisierung durch den Europäischen Date
 | Instrumentdaten | Pre, Post, Guardrail, Self-Efficacy, retrospektive SecAware-Frage | `study.sqlite` |
 | Präsentation | Form-ID und tatsächlich angezeigte Guardrail-Option-IDs | `study.sqlite` |
 | Timing | Artefakt-Sitzungsintervalle, Abschnitt/Segment, Dauer, Sichtbarkeit, technische Reason Codes | `study.sqlite`; keine passive Aktivitätsüberwachung |
-| Fortschritt | stabiler inhaltsfreier Checkpoint | `study.sqlite`; Wiederaufnahme ohne Trainingswerte |
+| Fortschritt | stabiler inhaltsfreier Checkpoint | `study.sqlite`; bis S07 Wiederaufnahme ohne Trainingswerte |
+| S08-Simulationsresume | Schema-Version, drei IDs vorgegebener Passphrasen, notwendige kanonische Schwäche- und Relationsflags | temporär in `study.sqlite`; nur für S08 bis Artefaktabschluss, nie im Forschungs- oder Analyseexport |
 | Rückkehrschlüssel | Hash und Ablaufzeit eines zufälligen Resume-Tokens | `study.sqlite`; nur operative Wiederaufnahme |
 | Follow-up-Verknüpfung | Einwilligung, Follow-up-Version, Token-Hash, Follow-up-Antworten | `study.sqlite`; pseudonyme Verbindung bis zur Anonymisierung |
 | Kontaktregister | E-Mail, Raw Token, Consent-Version, Versandzeitpunkte | ausschließlich getrennte `recontact.sqlite` |
 | Flüchtige Teilnehmerdaten | Anzeigename, roher Löschcode, Raw-Resume-Token | Löschcode nur im flüchtigen Study-State beziehungsweise in der aktuellen Antwort; Resume-Token nur im `HttpOnly`-Cookie |
-| Trainingsinput und lokale Analyse | fiktive Passwörter, Passwortteile, Findings, Ähnlichkeit | nie persistieren oder senden |
+| Trainingsinput und lokale Detailanalyse | fiktive Passwörter, Passwortteile, Spans, Gruppen, Strukturmarkierungen, Wiederholungen und semantische Evidenz | nie persistieren oder senden; in S01–S07 ausschließlich Browser-RAM |
 | Reale Sicherheitsdaten | reale Konten, Passwörter, Tokens, Wiederherstellungscodes, Vorfälle | nie erheben |
 | Passive Metadaten | IP, User-Agent, vollständige Request-Bodies | nicht persistieren oder in Anwendungslogs schreiben |
 
@@ -56,8 +57,20 @@ Forschungs- oder Analyseexport.
 
 Neue Sitzungen beginnen als `in-progress`. Browser-Schließen oder Reload ist eine Unterbrechung und
 kein regulärer Abschluss. Bei Rückkehr vor `resumeCloseAt` wird der letzte bestätigte Checkpoint
-geöffnet. SecAware setzt am bestätigten Seiteneinstieg fort; PassWo beginnt am Anfang der zuletzt
-erreichten Trainingssektion neu, ohne flüchtige Trainingswerte zu persistieren.
+geöffnet. SecAware setzt am bestätigten Seiteneinstieg fort. PassWo beginnt bis einschließlich S07
+am sicheren S00-/S01-Sektionseinstieg neu, ohne flüchtige Trainingswerte zu persistieren. Beim
+Übergang zu S08 werden frei eingegebene Passwortwerte, Teilstrings und semantische Detailbefunde
+lokal verworfen. Danach darf die Runtime unmittelbar ab S08 ausschließlich über den minimalen
+`supportive-s08-resume-v1`-Zustand fortsetzen.
+
+Dieser Zustand erlaubt genau drei IDs aus dem versionierten vordefinierten Passphrasen-Pool,
+höchstens die Konten-IDs `master-campus` und `campus-email` als verbleibende Schwächeflags sowie
+höchstens die drei kanonischen Paar-IDs zwischen Campusgram, Master Campus und Campus E-Mail mit
+`identical` oder `similar`. Die drei Passphrasen müssen unterschiedlichen vorgegebenen Wortsets
+entstammen. Strings, Teilstrings, Positionen, Spans, Kategorien, freie Bezeichner und sonstige
+semantische Evidenz sind verboten. Nach Resume werden Passphrase-Strings nur aus lokalem,
+versioniertem Training-Content anhand der IDs rekonstruiert. Der Zustand wird beim
+Artefaktabschluss gelöscht.
 
 Nur regulär `completed` Sitzungen gehen in die Hauptauswertung ein. Nicht abgeschlossene Sitzungen
 werden nicht als Nullantwort, Dropout-Outcome oder negatives Verhalten interpretiert. Sie bleiben
@@ -184,12 +197,15 @@ individuell gelöscht werden könnte.
   Zuordnungsmittel, vergröberte Hintergrunddaten und keine Arbeitskopien.
 
 Keines der beiden regulären Exportprofile ist allein durch seinen Dateinamen anonym.
+Der temporäre S08-Simulationsresume-Zustand gehört zu keinem Exportprofil.
 
 ## Verbotene Datenflüsse
 
 Unzulässig sind insbesondere:
 
-- Persistenz oder Übertragung realer oder fiktiver Passwortwerte, Passwortteile oder Findings;
+- Persistenz oder Übertragung realer oder fiktiver Passwortwerte, Passwortteile oder semantischer
+  Detailbefunde; die einzige Ausnahme sind die oben abschließend benannten, nicht rekonstruierenden
+  IDs und Flags des temporären S08-Simulationsresume-Zustands;
 - Logging von Request-Bodies, Eingabewerten, IP-Adressen, User-Agents oder Raw Tokens in
   projektkontrollierten Anwendungs- und Access-Logs;
 - E-Mail, Raw Follow-up-Token oder Raw-Resume-Token in Forschungsantworten oder Exporten;

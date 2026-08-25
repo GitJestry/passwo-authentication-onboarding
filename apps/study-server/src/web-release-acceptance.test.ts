@@ -8,6 +8,7 @@ import {
   mainInstrumentBlocks,
   SUPPORTIVE_ARTIFACT_SEGMENT_IDS,
   supportiveSectionResumeTargetFor,
+  supportiveS08ResumeStateSchema,
   webCreateSessionResponseSchema,
   webResumeResponseSchema,
 } from '@passwo/contracts';
@@ -24,6 +25,7 @@ import {
   deterministicTestRandomSource,
   openWebArtifactInterval,
   recordWebSupportiveSegments,
+  supportiveS08ResumeStateFixture,
   submitWebInstrumentBlocks,
   webPost,
   webStudyWriteHeaders,
@@ -240,6 +242,8 @@ for (const assignmentMode of ['forced-supportive', 'forced-reference'] as const)
     expect(exportedText).not.toContain(persisted.deletionCodeHash);
     expect(exportedText).not.toContain(resumeToken);
     expect(exportedText).not.toContain('web-participant-');
+    expect(exportedText).not.toContain('passphrase-01-hyphen');
+    expect(exportedText).not.toContain('campusgram--master-campus');
 
     const dryRun = runStudyDataDeletion({
       databasePath: paths.study,
@@ -389,6 +393,22 @@ describe('Web resume and concurrency acceptance', () => {
     await webPost(
       restartedServer,
       created.cookie,
+      `/api/study/sessions/${created.session.sessionId}/artifact-checkpoint`,
+      {
+        intervalId: secondInterval.intervalId,
+        checkpoint: 'supportive:S08',
+        resumeState: supportiveS08ResumeStateFixture,
+      },
+    );
+    await webPost(
+      restartedServer,
+      created.cookie,
+      `/api/study/sessions/${created.session.sessionId}/artifact-checkpoint`,
+      { intervalId: secondInterval.intervalId, checkpoint: 'supportive:complete' },
+    );
+    await webPost(
+      restartedServer,
+      created.cookie,
       `/api/study/sessions/${created.session.sessionId}/artifact-intervals/end`,
       { intervalId: secondInterval.intervalId, elapsedMs: 200 },
     );
@@ -431,6 +451,80 @@ describe('Web resume and concurrency acceptance', () => {
       { elapsedMs: 200, closeReason: 'completed' },
     ]);
     database.close();
+  });
+
+  it('resumes at S08 with only the minimal predefined simulation state', async () => {
+    const paths = temporaryDatabasePaths('passwo-s08-resume-');
+    const firstServer = createWebServer('forced-supportive', paths.study, paths.recontact);
+    const created = await createWebTestSession(firstServer, 202, false);
+    const preBlocks = mainInstrumentBlocks.filter((block) => block.instrumentId === 'pre-v1');
+    await submitWebInstrumentBlocks(
+      firstServer,
+      created.cookie,
+      created.session.sessionId,
+      preBlocks,
+    );
+    const interval = await openWebArtifactInterval(
+      firstServer,
+      created.cookie,
+      created.session.sessionId,
+      '82000000-0000-4000-8000-000000000203',
+    );
+    await recordWebSupportiveSegments(
+      firstServer,
+      created.cookie,
+      created.session.sessionId,
+      interval.intervalId,
+      SUPPORTIVE_ARTIFACT_SEGMENT_IDS,
+      1,
+    );
+    await webPost(
+      firstServer,
+      created.cookie,
+      `/api/study/sessions/${created.session.sessionId}/artifact-checkpoint`,
+      {
+        intervalId: interval.intervalId,
+        checkpoint: 'supportive:S08',
+        resumeState: supportiveS08ResumeStateFixture,
+      },
+    );
+    await closeTrackedServer(firstServer);
+
+    const database = new Database(paths.study, { readonly: true });
+    const persistedState = z
+      .object({ encoded: z.string() })
+      .parse(
+        database
+          .prepare(
+            `SELECT supportive_s08_resume_state_json AS encoded
+             FROM study_sessions WHERE session_id = ?`,
+          )
+          .get(created.session.sessionId),
+      );
+    const decodedState = supportiveS08ResumeStateSchema.parse(JSON.parse(persistedState.encoded));
+    expect(decodedState).toEqual(supportiveS08ResumeStateFixture);
+    expect(Object.keys(decodedState)).toEqual([
+      'schemaVersion',
+      'passphraseIds',
+      'weakAccountIds',
+      'relationships',
+    ]);
+    database.close();
+
+    const restartedServer = createWebServer('forced-supportive', paths.study, paths.recontact);
+    const resumedResponse = await webPost(
+      restartedServer,
+      created.cookie,
+      '/api/study/session/resume',
+      {},
+    );
+    const resumed = webResumeResponseSchema.parse(resumedResponse.json()).session;
+    expect(resumed).toMatchObject({
+      checkpoint: 'supportive:S08',
+      resumeTarget: 'artifact',
+      supportiveS08ResumeState: supportiveS08ResumeStateFixture,
+    });
+    await closeTrackedServer(restartedServer);
   });
 
   it('keeps condition and form blocks balanced under simultaneous Web session creation', async () => {

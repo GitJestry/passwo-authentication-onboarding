@@ -2,7 +2,7 @@ import { assign, setup } from 'xstate';
 import { isPermittedFictionalPassword } from './fictional-password-input.js';
 
 export type RetrievalResult = 'pending' | 'retrievable' | 'not-remembered' | 'assisted';
-export type PasswordModuleResumeSegmentId = 'S00' | 'S01';
+export type PasswordModuleResumeSegmentId = 'S00' | 'S01' | 'S08';
 
 export interface PasswordModuleContext {
   readonly accountIds: readonly string[];
@@ -95,6 +95,7 @@ export type PasswordModuleEvent =
   | { readonly type: 'S07_END_RECORDED' }
   | { readonly type: 'S07_END_FAILED'; readonly errorCode: string }
   | { readonly type: 'RETRY_S07_END' }
+  | { readonly type: 'ENTER_S08' }
   | { readonly type: 'DISCARD' };
 
 function emptyPasswordValues(accountIds: readonly string[]): Record<string, string> {
@@ -161,6 +162,7 @@ export const passwordModuleMachine = setup({
   guards: {
     resumesAtS00: ({ context }) => context.resumeSegmentId === 'S00',
     resumesAtS01: ({ context }) => context.resumeSegmentId === 'S01',
+    resumesAtS08: ({ context }) => context.resumeSegmentId === 'S08',
     isKnownAccount: ({ context, event }) =>
       event.type === 'SELECT_ACCOUNT' && isKnownAccount(context, event.accountId),
     canEditAccount: ({ context, event }) =>
@@ -325,6 +327,7 @@ export const passwordModuleMachine = setup({
   },
   states: {
     entry: {
+      always: [{ guard: 'resumesAtS08', target: 's08', actions: 'discardTransientTrainingData' }],
       on: {
         DISPLAY_NAME_ENTERED: [
           { target: 's00', guard: 'resumesAtS00', actions: 'storeDisplayName' },
@@ -674,7 +677,10 @@ export const passwordModuleMachine = setup({
         },
       },
     },
-    'awaiting-s08': {},
+    'awaiting-s08': {
+      on: { ENTER_S08: { target: 's08', actions: 'discardTransientTrainingData' } },
+    },
+    s08: {},
     discarded: { type: 'final' },
   },
 });

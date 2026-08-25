@@ -2,6 +2,9 @@ import { describe, expect, it } from 'vitest';
 import { accountContextTerms } from './account-context-terms.js';
 import { S06_CONSEQUENCE_CONTENT_VERSION, s06ConsequenceContent } from './s06.js';
 import {
+  deriveAdditionalPassphraseIds,
+  predefinedPassphraseIdFor,
+  resolvePredefinedPassphrase,
   S07_PASSPHRASE_SEARCH_CONTENT_VERSION,
   s07PassphraseSearchContent,
 } from './s07.js';
@@ -203,7 +206,7 @@ describe('S06 transition and S07 passphrase-search copy traceability', () => {
   });
 
   it('keeps S07 linked to the passphrase-search browser state', () => {
-    expect(S07_PASSPHRASE_SEARCH_CONTENT_VERSION).toBe('4.19.0');
+    expect(S07_PASSPHRASE_SEARCH_CONTENT_VERSION).toBe('4.20.0');
     expect(s07PassphraseSearchContent.source.copyReference).toBe(
       s07EntryCopyReference,
     );
@@ -304,7 +307,11 @@ describe('S06 transition and S07 passphrase-search copy traceability', () => {
     expect(s07PassphraseSearchContent.browser.generatorPage).not.toHaveProperty('eyebrow');
     expect(s07PassphraseSearchContent.browser.generatorPage).not.toHaveProperty('securityMessage');
     expect(s07PassphraseSearchContent.browser.generatorPage.paste).toBe('Einsetzen');
-    expect(s07PassphraseSearchContent.browser.generatorPage.passphrases).toEqual([
+    expect(
+      s07PassphraseSearchContent.browser.generatorPage.passphrases.map(
+        ({ words, passWoMnemonic }) => ({ words, passWoMnemonic }),
+      ),
+    ).toEqual([
       {
         words: ['Plexiglas', 'Dorffest', 'Knirps', 'Monieren', 'Eistee', 'Bergbahn'],
         passWoMnemonic:
@@ -337,6 +344,15 @@ describe('S06 transition and S07 passphrase-search copy traceability', () => {
         passWoMnemonic:
           'Im Nirgendwo versuche ich querzukommen, doch plötzlich wird es finster. Ich höre einen Appell, daraus wird ein Ersuchen, das ich mit einem Bleistift notiere.',
       },
+    ]);
+    const selectedCampusgramId = predefinedPassphraseIdFor(0, '.');
+    expect(selectedCampusgramId).toBe('passphrase-01-dot');
+    expect(resolvePredefinedPassphrase(selectedCampusgramId)).toBe(
+      'Plexiglas.Dorffest.Knirps.Monieren.Eistee.Bergbahn',
+    );
+    expect(deriveAdditionalPassphraseIds(selectedCampusgramId)).toEqual([
+      'passphrase-02-hyphen',
+      'passphrase-03-hyphen',
     ]);
   });
 

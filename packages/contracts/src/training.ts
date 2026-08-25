@@ -1,6 +1,6 @@
 import { z } from 'zod';
 
-export const SUPPORTIVE_ARTIFACT_VERSION = 'supportive-s00-s07-1.8.0';
+export const SUPPORTIVE_ARTIFACT_VERSION = 'supportive-s00-s13-1.10.0';
 export const REFERENCE_ARTIFACT_VERSION =
   'secaware-passwords-authentication-v9-study-adapted-2026-07-30-r16';
 export const REFERENCE_ARTIFACT_SNAPSHOT_ID = 'secaware-passwords-authentication-2026-07-26';
@@ -71,6 +71,31 @@ export const SUPPORTIVE_ARTIFACT_FINAL_SEGMENT_ID =
 export const trainingSectionIdSchema = z.enum(['passwords', 'password-manager', 'mfa']);
 export type TrainingSectionId = z.infer<typeof trainingSectionIdSchema>;
 
+export const PREDEFINED_PASSPHRASE_IDS = [
+  'passphrase-01-hyphen',
+  'passphrase-01-dot',
+  'passphrase-01-underscore',
+  'passphrase-01-space',
+  'passphrase-02-hyphen',
+  'passphrase-02-dot',
+  'passphrase-02-underscore',
+  'passphrase-02-space',
+  'passphrase-03-hyphen',
+  'passphrase-03-dot',
+  'passphrase-03-underscore',
+  'passphrase-03-space',
+  'passphrase-04-hyphen',
+  'passphrase-04-dot',
+  'passphrase-04-underscore',
+  'passphrase-04-space',
+  'passphrase-05-hyphen',
+  'passphrase-05-dot',
+  'passphrase-05-underscore',
+  'passphrase-05-space',
+] as const;
+export const predefinedPassphraseIdSchema = z.enum(PREDEFINED_PASSPHRASE_IDS);
+export type PredefinedPassphraseId = z.infer<typeof predefinedPassphraseIdSchema>;
+
 export interface SupportiveSectionResumeTarget {
   readonly sectionId: TrainingSectionId;
   readonly segmentId: SupportiveArtifactSegmentId;
@@ -98,9 +123,9 @@ export function supportiveSectionResumeTargetFor(
 }
 
 /**
- * Checkpoints contain no training input. S01 creates the fictional identity and passwords needed
- * by the rest of the current password section, so an interrupted later segment safely rebuilds
- * that section from S01.
+ * S00–S07 checkpoints contain no training input. S01 creates the fictional identity and passwords
+ * needed by the rest of that transient section, so an interrupted later segment safely rebuilds
+ * it from S01. The separately typed S08 checkpoint owns the later minimal resume boundary.
  */
 export function supportiveResumeSegmentFor(checkpoint: SupportiveArtifactSegmentId): 'S00' | 'S01' {
   return supportiveSectionResumeTargets[checkpoint].segmentId;

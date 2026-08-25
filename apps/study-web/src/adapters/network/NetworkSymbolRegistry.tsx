@@ -104,6 +104,18 @@ function SymbolPaths({ symbolId }: Pick<NetworkSymbolProps, 'symbolId'>) {
           />
         </>
       );
+    case 'my-shop':
+      return (
+        <>
+          <path
+            d="M3.1 4.5h2.1l1.7 10.2h10.6l2.2-7.4H6.2"
+            stroke="#f05b32"
+            strokeWidth="1.65"
+          />
+          <circle cx="9" cy="18.8" r="1.35" fill="#f42269" stroke="none" />
+          <circle cx="17" cy="18.8" r="1.35" fill="#ff9f0a" stroke="none" />
+        </>
+      );
     case 'campus-workspace':
       return (
         <>

@@ -2017,3 +2017,11 @@ Die umfangreichen `accountTerms` der Einzelanalyse bleiben unverändert. Für de
 kontospezifischen S06-Makropfad werden getrennte, kleine `comparisonIdentifiers` verwendet.
 Allgemeine Kontextwörter wie `Profil`, `Hilfe`, `Link`, `Service`, `Campus` oder `Mail` allein
 begründen dadurch keine kontoübergreifende Ersetzung.
+
+## Technisches Content-Delta S07 Passphrasen-IDs, 25. August 2026
+
+Der Folgeauftrag führt für jede bereits vorhandene vorgegebene Passphrase und jedes vorhandene
+Trennzeichen eine stabile Content-ID ein. Es ändert sich kein sichtbarer Teilnehmertext. Die in
+S07 ausgewählte Campusgram-Passphrase kann dadurch ab S08 ohne Stringpersistenz referenziert
+werden; Master Campus und Campus E-Mail erhalten deterministisch zwei unterschiedliche weitere
+IDs aus demselben Pool. `S07_PASSPHRASE_SEARCH_CONTENT_VERSION` steigt von `4.19.0` auf `4.20.0`.

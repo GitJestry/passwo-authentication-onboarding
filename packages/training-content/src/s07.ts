@@ -1,6 +1,9 @@
-import type { TrainingSectionId } from '@passwo/contracts';
+import type {
+  PredefinedPassphraseId,
+  TrainingSectionId,
+} from '@passwo/contracts';
 
-export const S07_PASSPHRASE_SEARCH_CONTENT_VERSION = '4.19.0';
+export const S07_PASSPHRASE_SEARCH_CONTENT_VERSION = '4.20.0';
 
 export type S07OpenConnectionKind = 'none' | 'similar' | 'identical';
 
@@ -103,21 +106,45 @@ export const s07PassphraseSearchContent = {
       generationDelayMs: 500,
       passphrases: [
         {
+          ids: {
+            '-': 'passphrase-01-hyphen',
+            '.': 'passphrase-01-dot',
+            _: 'passphrase-01-underscore',
+            ' ': 'passphrase-01-space',
+          },
           words: ['Plexiglas', 'Dorffest', 'Knirps', 'Monieren', 'Eistee', 'Bergbahn'],
           passWoMnemonic:
             'Am Plexiglas beim Dorffest steht ein Knirps und beginnt zu monieren, weil sein Eistee in der Bergbahn verschüttet wurde.',
         },
         {
+          ids: {
+            '-': 'passphrase-02-hyphen',
+            '.': 'passphrase-02-dot',
+            _: 'passphrase-02-underscore',
+            ' ': 'passphrase-02-space',
+          },
           words: ['Infekt', 'Festbesuch', 'Textstellen', 'Gehirn', 'Korrumpiert', 'Physik'],
           passWoMnemonic:
             'Es gab ein Infekt am Festbesuch. Ganz viele Textstellen im Gehirn wurden korrumpiert. Das ist alles Physik.',
         },
         {
+          ids: {
+            '-': 'passphrase-03-hyphen',
+            '.': 'passphrase-03-dot',
+            _: 'passphrase-03-underscore',
+            ' ': 'passphrase-03-space',
+          },
           words: ['Haartracht', 'Sommer', 'Seiltanz', 'Kennwort', 'Mythisch', 'Verfiel'],
           passWoMnemonic:
             'Eine riesige Haartracht schwankt im Sommer beim Seiltanz. Darin steht ein Kennwort, das mythisch leuchtet und plötzlich verfiel.',
         },
         {
+          ids: {
+            '-': 'passphrase-04-hyphen',
+            '.': 'passphrase-04-dot',
+            _: 'passphrase-04-underscore',
+            ' ': 'passphrase-04-space',
+          },
           words: [
             'Popkultur',
             'Wohnsiedlung',
@@ -130,6 +157,12 @@ export const s07PassphraseSearchContent = {
             'Für die Popkultur-Ausstellung in der Wohnsiedlung mache ich Holzarbeiten. Nach einer Drohung werde ich streng ermahnt, wegen meiner Knieprobleme aufzuhören.',
         },
         {
+          ids: {
+            '-': 'passphrase-05-hyphen',
+            '.': 'passphrase-05-dot',
+            _: 'passphrase-05-underscore',
+            ' ': 'passphrase-05-space',
+          },
           words: ['Nirgendwo', 'Querkommen', 'Finster', 'Appell', 'Ersuchen', 'Bleistift'],
           passWoMnemonic:
             'Im Nirgendwo versuche ich querzukommen, doch plötzlich wird es finster. Ich höre einen Appell, daraus wird ein Ersuchen, das ich mit einem Bleistift notiere.',
@@ -245,3 +278,44 @@ export const s07PassphraseSearchContent = {
     },
   },
 } as const;
+
+const predefinedPassphraseSeparators = ['-', '.', '_', ' '] as const;
+
+export function predefinedPassphraseIdFor(
+  passphraseIndex: number,
+  separator: string,
+): PredefinedPassphraseId {
+  const phrase = s07PassphraseSearchContent.browser.generatorPage.passphrases[passphraseIndex];
+  const supportedSeparator = predefinedPassphraseSeparators.find(
+    (candidate) => candidate === separator,
+  );
+  if (phrase === undefined || supportedSeparator === undefined) {
+    throw new Error('predefined-passphrase-selection-invalid');
+  }
+  return phrase.ids[supportedSeparator];
+}
+
+export function resolvePredefinedPassphrase(id: PredefinedPassphraseId): string {
+  for (const phrase of s07PassphraseSearchContent.browser.generatorPage.passphrases) {
+    for (const separator of predefinedPassphraseSeparators) {
+      if (phrase.ids[separator] === id) return phrase.words.join(separator);
+    }
+  }
+  throw new Error('predefined-passphrase-id-not-found');
+}
+
+export function deriveAdditionalPassphraseIds(
+  campusgramId: PredefinedPassphraseId,
+): readonly [masterCampus: PredefinedPassphraseId, campusEmail: PredefinedPassphraseId] {
+  const phrases = s07PassphraseSearchContent.browser.generatorPage.passphrases;
+  const campusgramIndex = phrases.findIndex((phrase) =>
+    predefinedPassphraseSeparators.some((separator) => phrase.ids[separator] === campusgramId),
+  );
+  if (campusgramIndex < 0) throw new Error('predefined-campusgram-passphrase-not-found');
+  const masterCampus = phrases[(campusgramIndex + 1) % phrases.length];
+  const campusEmail = phrases[(campusgramIndex + 2) % phrases.length];
+  if (masterCampus === undefined || campusEmail === undefined) {
+    throw new Error('predefined-additional-passphrases-not-found');
+  }
+  return [masterCampus.ids['-'], campusEmail.ids['-']];
+}

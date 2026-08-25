@@ -28,7 +28,7 @@ function autofillCharacterStyle(delayMs: number): AutofillCharacterStyle {
 }
 
 const AUTOFILL_CHARACTER_DURATION_MS = 52;
-const AUTOFILL_USERNAME_START_MS = 1260;
+const AUTOFILL_USERNAME_START_MS = 940;
 
 function motionDurations(usernameLength: number) {
   const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;

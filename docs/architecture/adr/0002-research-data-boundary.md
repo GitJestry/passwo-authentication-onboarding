@@ -2,7 +2,7 @@
 
 - **Status:** Accepted
 - **Datum:** 2026-07-23
-- **Revision:** 2026-08-17 gemäß ADR 0016
+- **Revision:** 2026-08-25 gemäß der S08-Ergänzung in ADR 0016
 
 ## Entscheidung
 
@@ -10,8 +10,12 @@ Persistiert werden nur die im kanonischen `DATA-CONTRACT.md` benannten Datenklas
 pseudonyme Session- und Forschungskennungen, Condition und Guardrail-Form, Versionen,
 Einwilligungsstatus, Instrumentantworten, Timingintervalle, Abschlussstatus, notwendige technische
 Fehlercodes sowie der Hash eines opaken Rückkehrschlüssels und ein stabiler inhaltsfreier
-Fortschritts-Checkpoint. Anzeigename, fiktive Passwörter, Passwortteile, lokale Analysebefunde und
-Trainingsentscheidungen verlassen den flüchtigen Rendererzustand nicht.
+Fortschritts-Checkpoint. Anzeigename, fiktive Passwörter, Passwortteile und semantische
+Detailbefunde verlassen den flüchtigen Rendererzustand nicht. Die einzige enge Ausnahme für eine
+operative Trainingswiederaufnahme ist der in ADR 0016 definierte Zustand
+`supportive-s08-resume-v1`: ausschließlich IDs vorgegebener Passphrasen sowie kanonische
+Konten-/Relationsflags, niemals frei eingegebene Strings oder Teilstrings. Dieser Zustand wird
+nach Artefaktabschluss entfernt und nicht exportiert.
 
 ## Konsequenzen
 

@@ -75,7 +75,9 @@ werden.
 ## Technische Datenschutzgrenzen
 
 - Nur neue, fiktive Passwörter; keine realen Varianten.
-- Keine dauerhafte oder serverseitige Speicherung von Trainingsinputs oder Diagnosen.
+- Keine dauerhafte oder serverseitige Speicherung von Trainingsinputs oder Detaildiagnosen. Der
+  eng typisierte S08-Resume-Zustand aus ADR 0016 enthält nur vorgegebene Content-IDs und kanonische
+  Simulationsflags, wird nach Artefaktabschluss gelöscht und nicht exportiert.
 - Keine Echtkonten, Tokens, Recovery-Codes oder institutionellen Einstellungen.
 - Passwortanalyse ist eine Lehrsimulation, keine Produktionsbewertung.
 - MFA bleibt eine zusätzliche Barriere und macht Wiederverwendung nicht sicher.

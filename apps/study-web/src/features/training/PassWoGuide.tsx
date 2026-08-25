@@ -46,6 +46,8 @@ export interface PassWoGuideProps {
   readonly guidedAccountId?: string | null;
   /** Shows the task status alongside a currently visible speech bubble. */
   readonly showTaskStatusWhenSpeaking?: boolean;
+  /** Allows a scene-specific progress display to replace the built-in task status. */
+  readonly showTaskStatus?: boolean;
   /** Marks the task status as complete and replaces its progress indicator. */
   readonly taskComplete?: boolean;
   readonly showHelpButton?: boolean;
@@ -86,6 +88,7 @@ export function PassWoGuide({
   pose = 'default',
   guidedAccountId = null,
   showTaskStatusWhenSpeaking = false,
+  showTaskStatus = true,
   taskComplete = false,
   showHelpButton = true,
   onToggleHelp,
@@ -111,7 +114,7 @@ export function PassWoGuide({
     progress === undefined || progress.total <= 0
       ? 0
       : Math.min(100, Math.max(0, (progress.current / progress.total) * 100));
-  const showTaskStatus = !helpOpen || showTaskStatusWhenSpeaking;
+  const taskStatusVisible = showTaskStatus && (!helpOpen || showTaskStatusWhenSpeaking);
   const characterAsset =
     pose === 'warning'
       ? { src: passWoWarningAsset, width: 360, height: 540 }
@@ -129,7 +132,7 @@ export function PassWoGuide({
       aria-label={`${guideName} Begleitung`}
     >
       <div className={styles.guideDock}>
-        {showTaskStatus ? (
+        {taskStatusVisible ? (
           <div className={styles.guideToolbar}>
             {!helpOpen && showHelpButton ? (
               <button

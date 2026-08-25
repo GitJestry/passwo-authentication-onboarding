@@ -252,7 +252,7 @@ describe('passwordModuleMachine', () => {
     expect(actor.getSnapshot().context).not.toHaveProperty('s06Result');
   });
 
-  it('preserves transient S03 data until discard', () => {
+  it('preserves transient S03 data through S07 and discards it at the S08 boundary', () => {
     const actor = createModuleActor();
     const values = {
       'master-campus': '  id Ä!?  ',
@@ -297,9 +297,16 @@ describe('passwordModuleMachine', () => {
       campusgram: 'assisted',
     });
 
-    actor.send({ type: 'DISCARD' });
+    actor.send({ type: 'S07_START_RECORDED' });
+    actor.send({ type: 'S07_COMPLETED' });
+    actor.send({ type: 'S07_END_RECORDED' });
+    expect(actor.getSnapshot().matches('awaiting-s08')).toBe(true);
+    actor.send({ type: 'ENTER_S08' });
 
-    expect(actor.getSnapshot().matches('discarded')).toBe(true);
+    expect(actor.getSnapshot().matches('s08')).toBe(true);
+    expect(actor.getSnapshot().context.displayName).toBeNull();
+    expect(actor.getSnapshot().context.activeAccountId).toBeNull();
+    expect(actor.getSnapshot().context.configuredAccountIds).toEqual([]);
     expect(actor.getSnapshot().context.passwordValues).toEqual({
       'master-campus': '',
       'campus-email': '',

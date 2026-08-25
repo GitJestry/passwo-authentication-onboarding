@@ -182,6 +182,11 @@ export class PasswordModuleController {
     void this.#writeSegmentBoundary('S07', 'segment-end');
   }
 
+  enterS08(): void {
+    if (!this.#actor.getSnapshot().matches('awaiting-s08')) return;
+    this.#actor.send({ type: 'ENTER_S08' });
+  }
+
   configureAccount(accountId: string): void {
     const snapshot = this.#actor.getSnapshot();
     if (!snapshot.matches({ s01: 'editing' })) return;

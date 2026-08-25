@@ -11,6 +11,7 @@ import {
   SUPPORTIVE_ARTIFACT_SEGMENT_IDS,
   SUPPORTIVE_CHECKPOINTS,
   supportiveCheckpointSchema,
+  supportiveS08ResumeStateSchema,
   WEB_STUDY_REQUEST_HEADER,
   WEB_STUDY_REQUEST_HEADER_VALUE,
   webCreateSessionRequestSchema,
@@ -106,9 +107,11 @@ async function skipSupportiveArtifact(
   checkpoint: (typeof SUPPORTIVE_CHECKPOINTS)[number],
 ): Promise<void> {
   const segmentIds =
-    checkpoint === 'supportive:S00' || checkpoint === 'supportive:entry'
-      ? SUPPORTIVE_ARTIFACT_SEGMENT_IDS
-      : SUPPORTIVE_ARTIFACT_SEGMENT_IDS.slice(1);
+    checkpoint === 'supportive:S08' || checkpoint === 'supportive:complete'
+      ? []
+      : checkpoint === 'supportive:S00' || checkpoint === 'supportive:entry'
+        ? SUPPORTIVE_ARTIFACT_SEGMENT_IDS
+        : SUPPORTIVE_ARTIFACT_SEGMENT_IDS.slice(1);
   let elapsedMs = 1;
   for (const segmentId of segmentIds) {
     webSegmentTimingResponseSchema.parse(
@@ -135,6 +138,40 @@ async function skipSupportiveArtifact(
           segmentId,
           eventType: 'segment-end',
           elapsedMs,
+        }),
+      ),
+    );
+  }
+  if (checkpoint !== 'supportive:S08' && checkpoint !== 'supportive:complete') {
+    confirmArtifactCheckpointResponseSchema.parse(
+      await postJson(
+        apiBasePath,
+        `/api/study/sessions/${sessionId}/artifact-checkpoint`,
+        confirmArtifactCheckpointRequestSchema.parse({
+          intervalId,
+          checkpoint: 'supportive:S08',
+          resumeState: supportiveS08ResumeStateSchema.parse({
+            schemaVersion: 'supportive-s08-resume-v1',
+            passphraseIds: {
+              campusgram: 'passphrase-01-hyphen',
+              masterCampus: 'passphrase-02-hyphen',
+              campusEmail: 'passphrase-03-hyphen',
+            },
+            weakAccountIds: [],
+            relationships: [],
+          }),
+        }),
+      ),
+    );
+  }
+  if (checkpoint !== 'supportive:complete') {
+    confirmArtifactCheckpointResponseSchema.parse(
+      await postJson(
+        apiBasePath,
+        `/api/study/sessions/${sessionId}/artifact-checkpoint`,
+        confirmArtifactCheckpointRequestSchema.parse({
+          intervalId,
+          checkpoint: 'supportive:complete',
         }),
       ),
     );

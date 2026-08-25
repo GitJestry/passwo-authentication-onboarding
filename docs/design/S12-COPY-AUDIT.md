@@ -180,3 +180,9 @@ Die Darstellungs- und Animationsentscheidungen bleiben unverändert.
 | `S12.variants.integrated.bullets` | Nutzerauftrag 2026-08-25 | `bereits vorhanden`; `an Browser/Gerät gekoppelt`; `Zugang meist über Gerät oder Plattform` | `bereits vorhanden`; `an Browser, Gerät oder Plattform gekoppelt`; `Zugang meist über Gerät/Plattform` | Orientierung | ausdrücklich vorgegebene Präzisierung der Kopplung und des Zugangs | begrenzt | kein | Listenpunkte und Illustration statt Farbe allein |
 | `S12.variants.separate.title` | Nutzerauftrag 2026-08-25 | `Eigenständig` | `Eigenständiger Passwortmanager` | Orientierung | ausdrücklich verlangte vollständige Variantenbenennung | begrenzt | kein | Illustration und Kartenposition |
 | `S12.variants.separate.bullets` | Nutzerauftrag 2026-08-25 | `separat eingerichtet`; `browser- und systemübergreifend nutzbar`; `meist mit Masterpasswort geschützt` | `separat eingerichtet`; `derselbe Tresor über verschiedene Browser und Systeme nutzbar`; `meist mit Masterpasswort geschützt` | Orientierung | ausdrücklich vorgegebene Präzisierung der gemeinsamen Tresornutzung | begrenzt | kein | Listenpunkte und Illustration statt Farbe allein |
+
+## Folgeauftrag: Sofortige S12-Netzwerkgrenze, 25. August 2026
+
+Der ausdrückliche Folgeauftrag präzisiert ausschließlich den Eintritt in S12: Das Kontonetzwerk
+ist beim Zustandswechsel sofort nicht mehr sichtbar oder bedienbar. Der bisherige sichtbare
+Ausblendvorgang entfällt; S12-Copy, weitere Animationen und fachlicher Ablauf bleiben unverändert.

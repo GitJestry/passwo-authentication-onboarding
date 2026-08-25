@@ -1,5 +1,14 @@
-import type { PasswordRelation, S06AccountId } from '@passwo/contracts';
-import { s02Content, s08NetworkReplayContent } from '@passwo/training-content';
+import type {
+  PasswordRelation,
+  PredefinedPassphraseId,
+  S06AccountId,
+  SupportiveS08ResumeState,
+} from '@passwo/contracts';
+import {
+  deriveAdditionalPassphraseIds,
+  s02Content,
+  s08NetworkReplayContent,
+} from '@passwo/training-content';
 import type {
   NetworkSceneSnapshot,
   PasswordConsequencePlanStep,
@@ -307,6 +316,88 @@ export function createS08ProtectionRiskModel(
     localFindingAccountIds: (plan?.accounts ?? [])
       .filter(({ disposition }) => disposition.kind === 'whole-password-recognized')
       .map(({ accountId }) => accountId),
+  };
+}
+
+function s08ResumeRelationshipId(
+  sourceId: S06AccountId,
+  targetId: S06AccountId,
+): SupportiveS08ResumeState['relationships'][number]['id'] {
+  const pair = new Set<S06AccountId>([sourceId, targetId]);
+  if (pair.has('campusgram') && pair.has('master-campus')) {
+    return 'campusgram--master-campus';
+  }
+  if (pair.has('campusgram') && pair.has('campus-email')) {
+    return 'campusgram--campus-email';
+  }
+  if (pair.has('master-campus') && pair.has('campus-email')) {
+    return 'master-campus--campus-email';
+  }
+  throw new Error('s08-resume-relationship-pair-invalid');
+}
+
+export function createSupportiveS08ResumeState(
+  plan: Pick<PasswordConsequenceScenePlan, 'accounts' | 'comparisons'>,
+  campusgramPassphraseId: PredefinedPassphraseId,
+): SupportiveS08ResumeState {
+  const riskModel = createS08ProtectionRiskModel(createCompletedS02Network(), plan);
+  const [masterCampusPassphraseId, campusEmailPassphraseId] =
+    deriveAdditionalPassphraseIds(campusgramPassphraseId);
+  return {
+    schemaVersion: 'supportive-s08-resume-v1',
+    passphraseIds: {
+      campusgram: campusgramPassphraseId,
+      masterCampus: masterCampusPassphraseId,
+      campusEmail: campusEmailPassphraseId,
+    },
+    weakAccountIds: riskModel.localFindingAccountIds.filter(
+      (accountId): accountId is 'master-campus' | 'campus-email' =>
+        accountId === 'master-campus' || accountId === 'campus-email',
+    ),
+    relationships: riskModel.relationships.flatMap((relationship) => {
+      if (
+        !isS08AccountId(relationship.sourceId) ||
+        !isS08AccountId(relationship.targetId)
+      ) {
+        return [];
+      }
+      return [
+        {
+          id: s08ResumeRelationshipId(relationship.sourceId, relationship.targetId),
+          kind: relationship.kind === 'identical-reuse' ? 'identical' : 'similar',
+        },
+      ];
+    }),
+  };
+}
+
+export function createS08ProtectionRiskModelFromResumeState(
+  resumeState: SupportiveS08ResumeState,
+): S08ProtectionRiskModel {
+  const accountPair = {
+    'campusgram--master-campus': ['campusgram', 'master-campus'],
+    'campusgram--campus-email': ['campusgram', 'campus-email'],
+    'master-campus--campus-email': ['master-campus', 'campus-email'],
+  } as const satisfies Readonly<
+    Record<
+      SupportiveS08ResumeState['relationships'][number]['id'],
+      readonly [S06AccountId, S06AccountId]
+    >
+  >;
+  return {
+    localFindingAccountIds: resumeState.weakAccountIds,
+    relationships: resumeState.relationships.map((relationship): SceneEdge => {
+      const [sourceId, targetId] = accountPair[relationship.id];
+      const exactReuse = relationship.kind === 'identical';
+      return {
+        id: `s08-resume-risk-${relationship.id}`,
+        sourceId,
+        targetId,
+        kind: exactReuse ? 'identical-reuse' : 'similar-pattern',
+        status: exactReuse ? 'direct' : 'similar',
+        label: null,
+      };
+    }),
   };
 }
 
@@ -762,6 +853,47 @@ export function createS09ScalingRiskNetwork(
     },
     edgeRevealDelaysMs,
     easyToGuessAccountIds,
+  };
+}
+
+/**
+ * Replaces one anonymous scale account with the just-created authored My-Shop account.
+ * The snapshot contains no participant input or generated password material.
+ */
+export function createS13MyShopNetwork(
+  source: NetworkSceneSnapshot,
+  accountLabel: string,
+  accountDescription: string,
+): NetworkSceneSnapshot {
+  const placeholder = [...source.nodes]
+    .reverse()
+    .find(
+      ({ id, kind, status }) =>
+        kind === 'account' &&
+        status === 'neutral' &&
+        id.startsWith('s09-additional-account-'),
+    );
+  const myShopNode: SceneNode = {
+    id: 'my-shop',
+    kind: 'account',
+    symbolId: 'my-shop',
+    label: accountLabel,
+    description: accountDescription,
+    status: 'neutral',
+    locked: false,
+    position: placeholder?.position ?? { x: 0.5, y: 0.58 },
+    selectable: false,
+  };
+  const nodes =
+    placeholder === undefined
+      ? [...source.nodes, myShopNode]
+      : source.nodes.map((node) => (node.id === placeholder.id ? myShopNode : node));
+
+  return {
+    ...source,
+    id: `${source.id}-s13-my-shop`,
+    nodes,
+    accessibleSummary: `${source.accessibleSummary} Das neu angelegte fiktive My-Shop-Konto ist nun als eigener hervorgehobener Kontoknoten sichtbar.`,
   };
 }
 

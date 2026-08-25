@@ -289,6 +289,17 @@ const webRuntimeSchema = `
   );
 `;
 
+const supportiveS08ResumeSchema = `
+  ALTER TABLE study_sessions ADD COLUMN supportive_s08_resume_state_json TEXT;
+
+  UPDATE study_sessions
+  SET progress_checkpoint = 'supportive:S07'
+  WHERE condition = 'supportive'
+    AND completion_status = 'in-progress'
+    AND artifact_completed_at_iso IS NULL
+    AND progress_checkpoint = 'supportive:complete';
+`;
+
 const recontactSchema = `
   CREATE TABLE IF NOT EXISTS recontact.registrations (
     session_id TEXT PRIMARY KEY,
@@ -476,6 +487,10 @@ const migrations: readonly Migration[] = [
   {
     version: 8,
     apply: (database) => database.exec(webRuntimeSchema),
+  },
+  {
+    version: 9,
+    apply: (database) => database.exec(supportiveS08ResumeSchema),
   },
 ];
 

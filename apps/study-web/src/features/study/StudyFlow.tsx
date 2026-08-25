@@ -11,6 +11,7 @@ import {
   supportiveResumeSegmentFor,
   supportiveCheckpointSchema,
   type ReferenceArtifactLessonCheckpointId,
+  type SupportiveS08ResumeState,
   type WebResumeSession,
 } from '@passwo/contracts';
 import { createStudyMachine } from '@passwo/study-engine';
@@ -467,12 +468,16 @@ function SupportiveArtifact({
   timingError,
   onRetryTiming,
   resumeSegmentId,
+  resumeState,
+  onS08Checkpoint,
   onComplete,
 }: {
   readonly timingPort: BrowserSegmentTimingAdapter;
   readonly timingError: string | null;
   readonly onRetryTiming: () => void;
-  readonly resumeSegmentId?: 'S00' | 'S01';
+  readonly resumeSegmentId?: 'S00' | 'S01' | 'S08';
+  readonly resumeState?: SupportiveS08ResumeState;
+  readonly onS08Checkpoint: (resumeState: SupportiveS08ResumeState) => Promise<void>;
   readonly onComplete: () => void;
 }) {
   return (
@@ -482,6 +487,8 @@ function SupportiveArtifact({
         externalTimingError={timingError}
         onRetryExternalTiming={onRetryTiming}
         {...(resumeSegmentId === undefined ? {} : { resumeSegmentId })}
+        {...(resumeState === undefined ? {} : { resumeState })}
+        onS08Checkpoint={onS08Checkpoint}
         onComplete={onComplete}
       />
     </TrainingClipboardBoundary>
@@ -563,6 +570,7 @@ function HydratedStudyFlow({
 }) {
   const machine = useMemo(() => createStudyMachine(api, resumeSession), [api, resumeSession]);
   const [snapshot, send] = useMachine(machine);
+  const [supportiveCompletionError, setSupportiveCompletionError] = useState<string | null>(null);
   const { context } = snapshot;
   const currentBlock = mainInstrumentBlocks[context.instrumentBlockCursor];
   const currentQuestionnaireBlock = mainInstrumentBlocks[context.questionnaireBlockCursor];
@@ -572,10 +580,34 @@ function HydratedStudyFlow({
     const parsed = supportiveCheckpointSchema.safeParse(context.artifactCheckpoint);
     if (!parsed.success || parsed.data === 'supportive:complete') return undefined;
     if (parsed.data === 'supportive:entry') return 'S00';
+    if (parsed.data === 'supportive:S08') return 'S08';
     return supportiveResumeSegmentFor(
       supportiveArtifactSegmentIdSchema.parse(parsed.data.slice('supportive:'.length)),
     );
   }, [context.artifactCheckpoint, context.interrupted]);
+  const supportiveResumeState =
+    supportiveResumeSegment === 'S08'
+      ? (resumeSession?.supportiveS08ResumeState ?? undefined)
+      : undefined;
+  const finishSupportiveArtifact = useCallback(() => {
+    if (context.sessionId === null) {
+      setSupportiveCompletionError('missing-session');
+      return;
+    }
+    void api
+      .confirmArtifactCheckpoint(context.sessionId, { checkpoint: 'supportive:complete' })
+      .then(
+        () => {
+          setSupportiveCompletionError(null);
+          completeArtifact();
+        },
+        (error: unknown) => {
+          setSupportiveCompletionError(
+            error instanceof Error ? error.message : 'supportive-completion-checkpoint-failed',
+          );
+        },
+      );
+  }, [api, completeArtifact, context.sessionId]);
   const referenceResumeCheckpoint = useMemo<ReferenceArtifactLessonCheckpointId | undefined>(() => {
     if (!context.interrupted || context.artifactCheckpoint === null) return undefined;
     const parsed = referenceLessonCheckpointSchema.safeParse(context.artifactCheckpoint);
@@ -703,7 +735,13 @@ function HydratedStudyFlow({
     );
   } else if (snapshot.matches({ artifactLifecycle: { artifact: 'supportive' } })) {
     content =
-      segmentTimingPort === null ? (
+      supportiveCompletionError !== null ? (
+        <ResearchDataError
+          titleId="supportive-completion-error-title"
+          errorCode={supportiveCompletionError}
+          onRetry={finishSupportiveArtifact}
+        />
+      ) : segmentTimingPort === null ? (
         <ConfigurationError errorCode="missing-segment-timing-port" />
       ) : (
         <Suspense fallback={<ArtifactRendererLoadingBoundary />}>
@@ -716,7 +754,15 @@ function HydratedStudyFlow({
             {...(supportiveResumeSegment === undefined
               ? {}
               : { resumeSegmentId: supportiveResumeSegment })}
-            onComplete={completeArtifact}
+            {...(supportiveResumeState === undefined ? {} : { resumeState: supportiveResumeState })}
+            onS08Checkpoint={async (resumeState) => {
+              if (context.sessionId === null) throw new Error('missing-session');
+              await api.confirmArtifactCheckpoint(context.sessionId, {
+                checkpoint: 'supportive:S08',
+                resumeState,
+              });
+            }}
+            onComplete={finishSupportiveArtifact}
           />
         </Suspense>
       );
@@ -732,7 +778,9 @@ function HydratedStudyFlow({
             if (context.sessionId === null) throw new Error('missing-session');
             await api.confirmArtifactCheckpoint(
               context.sessionId,
-              referenceLessonCheckpointSchema.parse(`reference:${checkpointId}`),
+              {
+                checkpoint: referenceLessonCheckpointSchema.parse(`reference:${checkpointId}`),
+              },
             );
           }}
         />

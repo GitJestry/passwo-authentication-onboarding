@@ -1,6 +1,8 @@
 import { s00Content, s01Content, s05Content } from '@passwo/training-content';
 import type {
+  PredefinedPassphraseId,
   S06AccountId,
+  SupportiveS08ResumeState,
   TransientPasswordSemanticEvidence,
 } from '@passwo/contracts';
 import {
@@ -12,7 +14,6 @@ import {
   type SegmentTimingPort,
 } from '@passwo/training-engine';
 import type { DesktopPlatform } from '@passwo/ui';
-import type { NetworkSceneSnapshot } from '@passwo/visualization';
 import {
   lazy,
   Suspense,
@@ -41,6 +42,7 @@ import type {
   S06ConsequenceSource,
   S06TimingState,
 } from './segments/S06/S06ConsequenceTraining.js';
+import { createSupportiveS08ResumeState } from './segments/account-network.js';
 import {
   preloadTrainingSegmentImages,
   type TrainingSegmentId,
@@ -95,9 +97,6 @@ interface LateTrainingTools {
   readonly deriveS07AccountFeedback: (typeof import(
     './segments/S07/S07PassphraseSearchMachine.js'
   ))['deriveS07AccountFeedback'];
-  readonly s07RecommendedResolutionAccountIds: (typeof import(
-    './segments/S07/S07PassphraseSearchMachine.js'
-  ))['s07RecommendedResolutionAccountIds'];
 }
 
 let lateTrainingToolsPromise: Promise<LateTrainingTools> | null = null;
@@ -109,7 +108,6 @@ function loadLateTrainingTools(): Promise<LateTrainingTools> {
   ]).then(([s06Module, s07Module]) => ({
     createS06ConsequenceScenePlan: s06Module.createS06ConsequenceScenePlan,
     deriveS07AccountFeedback: s07Module.deriveS07AccountFeedback,
-    s07RecommendedResolutionAccountIds: s07Module.s07RecommendedResolutionAccountIds,
   }));
   return lateTrainingToolsPromise;
 }
@@ -168,6 +166,8 @@ export interface PasswordModuleTrainingProps {
   readonly externalTimingError?: string | null;
   readonly onRetryExternalTiming?: () => void;
   readonly resumeSegmentId?: PasswordModuleResumeSegmentId;
+  readonly resumeState?: SupportiveS08ResumeState;
+  readonly onS08Checkpoint?: (resumeState: SupportiveS08ResumeState) => Promise<void>;
   readonly onComplete?: () => void;
 }
 
@@ -190,18 +190,29 @@ function PasswordModuleTrainingContent({
   externalTimingError = null,
   onRetryExternalTiming,
   resumeSegmentId,
+  resumeState,
+  onS08Checkpoint,
   onComplete,
 }: PasswordModuleTrainingProps) {
   const [snapshot, setSnapshot] = useState<PasswordModuleSnapshot | null>(null);
   const [platform, setPlatform] = useState<DesktopPlatform>('mac');
-  const [s06SummaryNetwork, setS06SummaryNetwork] = useState<NetworkSceneSnapshot | null>(null);
   const [lateTrainingTools, setLateTrainingTools] = useState<LateTrainingTools | null>(null);
+  const [campusgramPassphraseId, setCampusgramPassphraseId] =
+    useState<PredefinedPassphraseId | null>(null);
+  // Keeps uninterrupted account labels coherent without adding the display name to S08 resume.
+  const [postS08DisplayName, setPostS08DisplayName] = useState('');
+  const [s08ResumeState, setS08ResumeState] = useState<SupportiveS08ResumeState | null>(
+    resumeState ?? null,
+  );
+  const [s08CheckpointStatus, setS08CheckpointStatus] = useState<
+    'idle' | 'pending' | 'ready' | 'error'
+  >(resumeState === undefined ? 'idle' : 'ready');
   // Local intervention evidence only; never copied into machine context or research exports.
   const [semanticEvidenceByAccount, setSemanticEvidenceByAccount] = useState<
     Partial<Record<S06AccountId, TransientPasswordSemanticEvidence>>
   >({});
   const controllerRef = useRef<PasswordModuleController | null>(null);
-  const completionNotifiedRef = useRef(false);
+  const s08BoundaryStartedRef = useRef(resumeState !== undefined);
   const entrySceneRef = useRef<HTMLDivElement | null>(null);
   const entryCharacterRef = useRef<HTMLImageElement | null>(null);
   const entrySpeechRef = useRef<HTMLDivElement | null>(null);
@@ -299,10 +310,6 @@ function PasswordModuleTrainingContent({
     s06Plan === null || lateTrainingTools === null
       ? []
       : lateTrainingTools.deriveS07AccountFeedback(s06Plan);
-  const s08RecommendedAccountIds =
-    lateTrainingTools === null
-      ? []
-      : lateTrainingTools.s07RecommendedResolutionAccountIds(s07AccountFeedback);
   const completeS06 = useCallback(() => controllerRef.current?.completeS06(), []);
   const captureSemanticEvidenceForAccount = useCallback(
     (accountId: S06AccountId, evidence: TransientPasswordSemanticEvidence) => {
@@ -326,7 +333,10 @@ function PasswordModuleTrainingContent({
     });
     const unsubscribe = controller.subscribe(setSnapshot);
     controllerRef.current = controller;
-    completionNotifiedRef.current = false;
+    s08BoundaryStartedRef.current = resumeState !== undefined;
+    setPostS08DisplayName('');
+    setS08ResumeState(resumeState ?? null);
+    setS08CheckpointStatus(resumeState === undefined ? 'idle' : 'ready');
     setSnapshot(controller.getSnapshot());
 
     return () => {
@@ -334,14 +344,36 @@ function PasswordModuleTrainingContent({
       controller.dispose();
       controllerRef.current = null;
     };
-  }, [resumeSegmentId, timingPort]);
+  }, [resumeSegmentId, resumeState, timingPort]);
 
   useEffect(() => {
-    if (!snapshot?.matches('awaiting-s08') || onComplete === undefined) return;
-    if (completionNotifiedRef.current) return;
-    completionNotifiedRef.current = true;
-    onComplete();
-  }, [onComplete, snapshot]);
+    if (
+      !snapshot?.matches('awaiting-s08') ||
+      s08BoundaryStartedRef.current ||
+      campusgramPassphraseId === null ||
+      s06Plan === null
+    ) {
+      return;
+    }
+    s08BoundaryStartedRef.current = true;
+    const minimalResumeState = createSupportiveS08ResumeState(
+      s06Plan,
+      campusgramPassphraseId,
+    );
+    setPostS08DisplayName(snapshot.context.displayName ?? '');
+    setS08ResumeState(minimalResumeState);
+    setSemanticEvidenceByAccount({});
+    controllerRef.current?.enterS08();
+    if (onS08Checkpoint === undefined) {
+      setS08CheckpointStatus('ready');
+      return;
+    }
+    setS08CheckpointStatus('pending');
+    void onS08Checkpoint(minimalResumeState).then(
+      () => setS08CheckpointStatus('ready'),
+      () => setS08CheckpointStatus('error'),
+    );
+  }, [campusgramPassphraseId, onS08Checkpoint, s06Plan, snapshot]);
 
   useEffect(() => {
     let cancelled = false;
@@ -660,7 +692,6 @@ function PasswordModuleTrainingContent({
         externalTimingError={externalTimingError}
         onComplete={completeS06}
         onSemanticEvidenceChange={captureSemanticEvidenceForAccount}
-        onSummaryNetworkReady={setS06SummaryNetwork}
         onRetryTiming={() => {
           if (externalTimingError !== null) onRetryExternalTiming?.();
           else controller.retryTiming();
@@ -706,22 +737,50 @@ function PasswordModuleTrainingContent({
         campusgramPassword={campusgramPassword}
         displayName={snapshot.context.displayName ?? ''}
         platform={platform}
-        onComplete={() => controller.completeS07()}
+        onComplete={(_recommendedAccountIds, selectedPassphraseId) => {
+          setCampusgramPassphraseId(selectedPassphraseId);
+          controller.completeS07();
+        }}
       />
     );
   }
 
   if (snapshot.matches('awaiting-s08')) {
-    if (onComplete !== undefined) {
-      return <div className={styles.loading}>Training wird abgeschlossen …</div>;
+    return <TrainingSegmentLoadingBoundary />;
+  }
+
+  if (snapshot.matches('s08')) {
+    if (s08ResumeState === null || s08CheckpointStatus === 'pending') {
+      return <TrainingSegmentLoadingBoundary />;
+    }
+    if (s08CheckpointStatus === 'error') {
+      return (
+        <section className={styles.loading} role="alert">
+          <p>Die Segmentgrenze konnte nicht bestätigt werden.</p>
+          <p>Fehlercode: s08-resume-checkpoint-failed</p>
+          <button
+            type="button"
+            onClick={() => {
+              if (onS08Checkpoint === undefined) return;
+              setS08CheckpointStatus('pending');
+              void onS08Checkpoint(s08ResumeState).then(
+                () => setS08CheckpointStatus('ready'),
+                () => setS08CheckpointStatus('error'),
+              );
+            }}
+          >
+            Erneut versuchen
+          </button>
+        </section>
+      );
     }
     return (
       <S08NetworkRewindStage
-        displayName={snapshot.context.displayName ?? ''}
-        recommendedAccountIds={s08RecommendedAccountIds}
+        displayName={postS08DisplayName}
+        recommendedAccountIds={[]}
         platform={platform}
-        network={s06SummaryNetwork}
-        plan={s06Plan}
+        resumeState={s08ResumeState}
+        {...(onComplete === undefined ? {} : { onComplete })}
       />
     );
   }

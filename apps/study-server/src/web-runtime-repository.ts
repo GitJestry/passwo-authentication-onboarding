@@ -23,7 +23,9 @@ import {
   SUPPORTIVE_ARTIFACT_SEGMENT_IDS,
   SUPPORTIVE_CHECKPOINTS,
   supportiveCheckpointSchema,
+  supportiveS08ResumeStateSchema,
   type RegisterRecontactRequest,
+  type SupportiveS08ResumeState,
   type WebArtifactVisibilityRequest,
   type WebResumeSession,
   type WebResumeTokenHash,
@@ -43,6 +45,7 @@ const sessionSchema = z.object({
   progressCheckpoint: z.string(),
   artifactCompletedAtIso: z.string().nullable(),
   interruptionCount: z.number().int().nonnegative(),
+  supportiveS08ResumeStateJson: z.string().nullable(),
 });
 const checkpointSchema = z.object({
   condition: z.enum(['supportive', 'reference']),
@@ -371,6 +374,28 @@ export class WebRuntimeRepository {
         ).run(request.checkpoint, sessionId);
         return request.checkpoint;
       }
+      if (request.checkpoint === 'supportive:S08') {
+        if (session.condition !== 'supportive') {
+          throw new StudyRepositoryError('artifact-checkpoint-condition-conflict', 409);
+        }
+        this.#requireSupportiveSegmentsCompleted(sessionId);
+        this.#storeS08ResumeState(sessionId, request.resumeState);
+        return this.#advanceCheckpoint(sessionId, request.checkpoint);
+      }
+      if (request.checkpoint === 'supportive:complete') {
+        if (session.condition !== 'supportive') {
+          throw new StudyRepositoryError('artifact-checkpoint-condition-conflict', 409);
+        }
+        const state = z.object({ resumeStateJson: z.string().nullable() }).parse(
+          this.#database.prepare(
+            `SELECT supportive_s08_resume_state_json AS resumeStateJson
+             FROM study_sessions WHERE session_id = ?`,
+          ).get(sessionId),
+        );
+        if (state.resumeStateJson === null) {
+          throw new StudyRepositoryError('supportive-s08-resume-state-required', 409);
+        }
+      }
       return this.#advanceCheckpoint(sessionId, request.checkpoint);
     })();
   }
@@ -447,7 +472,8 @@ export class WebRuntimeRepository {
       ).run(now, now, request.intervalId, sessionId);
       this.#database.prepare(
         `UPDATE study_sessions
-         SET artifact_completed_at_iso = ?, progress_checkpoint = 'post-questionnaire'
+         SET artifact_completed_at_iso = ?, progress_checkpoint = 'post-questionnaire',
+             supportive_s08_resume_state_json = NULL
          WHERE session_id = ? AND completion_status = 'in-progress'`,
       ).run(now, sessionId);
       return this.#artifactElapsedMs(sessionId);
@@ -494,7 +520,8 @@ export class WebRuntimeRepository {
                 completion_status AS completionStatus,
                 progress_checkpoint AS progressCheckpoint,
                 artifact_completed_at_iso AS artifactCompletedAtIso,
-                web_interruption_count AS interruptionCount
+                web_interruption_count AS interruptionCount,
+                supportive_s08_resume_state_json AS supportiveS08ResumeStateJson
          FROM study_sessions WHERE session_id = ?`,
       ).get(sessionId),
     );
@@ -505,6 +532,13 @@ export class WebRuntimeRepository {
     const preCount = mainInstrumentBlocks.filter((block) => block.instrumentId === 'pre-v1').length;
     const nextBlock = mainInstrumentBlocks[next];
     const checkpoint = studyProgressCheckpointSchema.parse(session.progressCheckpoint);
+    const supportiveS08ResumeState =
+      session.condition === 'supportive' &&
+      (checkpoint === 'supportive:S08' || checkpoint === 'supportive:complete')
+        ? supportiveS08ResumeStateSchema.parse(
+            JSON.parse(session.supportiveS08ResumeStateJson ?? 'null'),
+          )
+        : null;
     const resumeTarget = next < preCount
       ? 'pre-questionnaire'
       : session.artifactCompletedAtIso === null
@@ -529,7 +563,26 @@ export class WebRuntimeRepository {
           : this.#artifactElapsedMs(sessionId),
       interrupted: session.interruptionCount > 0,
       deletionCode,
+      supportiveS08ResumeState,
     };
+  }
+
+  #storeS08ResumeState(sessionId: string, resumeState: SupportiveS08ResumeState): void {
+    const encoded = JSON.stringify(supportiveS08ResumeStateSchema.parse(resumeState));
+    const row = z.object({ resumeStateJson: z.string().nullable() }).parse(
+      this.#database.prepare(
+        `SELECT supportive_s08_resume_state_json AS resumeStateJson
+         FROM study_sessions WHERE session_id = ? AND completion_status = 'in-progress'`,
+      ).get(sessionId),
+    );
+    if (row.resumeStateJson !== null && row.resumeStateJson !== encoded) {
+      throw new StudyRepositoryError('supportive-s08-resume-state-conflict', 409);
+    }
+    this.#database.prepare(
+      `UPDATE study_sessions
+       SET supportive_s08_resume_state_json = ?
+       WHERE session_id = ? AND completion_status = 'in-progress'`,
+    ).run(encoded, sessionId);
   }
 
   #derivedPhaseCheckpoint(sessionId: string): StudyProgressCheckpoint {
@@ -641,7 +694,11 @@ export class WebRuntimeRepository {
       if (starts.length !== ends.length) throw new StudyRepositoryError('segment-already-active', 409);
       if (starts.length === 0) {
         const checkpoint = this.#artifactCheckpoint(this.#checkpointSession(sessionId));
-        if (!checkpoint.startsWith('supportive:') || checkpoint === 'supportive:complete') {
+        if (
+          !checkpoint.startsWith('supportive:') ||
+          checkpoint === 'supportive:S08' ||
+          checkpoint === 'supportive:complete'
+        ) {
           throw new StudyRepositoryError('segment-resume-checkpoint-invalid', 409);
         }
         const expected =
@@ -673,7 +730,7 @@ export class WebRuntimeRepository {
     const next = SUPPORTIVE_ARTIFACT_SEGMENT_IDS[
       SUPPORTIVE_ARTIFACT_SEGMENT_IDS.indexOf(segmentId) + 1
     ];
-    return next === undefined ? 'supportive:complete' : `supportive:${next}`;
+    return next === undefined ? 'supportive:S07' : `supportive:${next}`;
   }
 
   #requireArtifactCompletion(sessionId: string, condition: 'supportive' | 'reference'): void {
@@ -687,6 +744,10 @@ export class WebRuntimeRepository {
     if (checkpoint !== 'supportive:complete') {
       throw new StudyRepositoryError('supportive-artifact-incomplete', 409);
     }
+    this.#requireSupportiveSegmentsCompleted(sessionId);
+  }
+
+  #requireSupportiveSegmentsCompleted(sessionId: string): void {
     for (const segmentId of SUPPORTIVE_ARTIFACT_SEGMENT_IDS) {
       const count = countSchema.parse(
         this.#database.prepare(

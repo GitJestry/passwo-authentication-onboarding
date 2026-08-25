@@ -8,7 +8,10 @@ import {
   deletionCodeSchema,
   studyConditionSchema,
 } from './study.js';
-import { SUPPORTIVE_ARTIFACT_SEGMENT_IDS } from './training.js';
+import {
+  predefinedPassphraseIdSchema,
+  SUPPORTIVE_ARTIFACT_SEGMENT_IDS,
+} from './training.js';
 
 export const WEB_RESUME_COOKIE_MAX_AGE_SECONDS = 30 * 24 * 60 * 60;
 export const WEB_ARTIFACT_HEARTBEAT_INTERVAL_MS = 15_000;
@@ -39,6 +42,7 @@ export const SUPPORTIVE_CHECKPOINTS = [
   'supportive:S05',
   'supportive:S06',
   'supportive:S07',
+  'supportive:S08',
   'supportive:complete',
 ] as const;
 export const supportiveCheckpointSchema = z.enum(SUPPORTIVE_CHECKPOINTS);
@@ -70,6 +74,59 @@ export const studyResumeTargetSchema = z.enum([
   'session-closure',
 ]);
 export type StudyResumeTarget = z.infer<typeof studyResumeTargetSchema>;
+
+const supportiveS08AccountIdSchema = z.enum(['master-campus', 'campus-email']);
+const supportiveS08RelationshipIdSchema = z.enum([
+  'campusgram--master-campus',
+  'campusgram--campus-email',
+  'master-campus--campus-email',
+]);
+const supportiveS08RelationshipSchema = z
+  .object({
+    id: supportiveS08RelationshipIdSchema,
+    kind: z.enum(['identical', 'similar']),
+  })
+  .strict();
+
+export const supportiveS08ResumeStateSchema = z
+  .object({
+    schemaVersion: z.literal('supportive-s08-resume-v1'),
+    passphraseIds: z
+      .object({
+        campusgram: predefinedPassphraseIdSchema,
+        masterCampus: predefinedPassphraseIdSchema,
+        campusEmail: predefinedPassphraseIdSchema,
+      })
+      .strict(),
+    weakAccountIds: z.array(supportiveS08AccountIdSchema).max(2),
+    relationships: z.array(supportiveS08RelationshipSchema).max(3),
+  })
+  .strict()
+  .superRefine((state, context) => {
+    if (new Set(state.weakAccountIds).size !== state.weakAccountIds.length) {
+      context.addIssue({
+        code: 'custom',
+        path: ['weakAccountIds'],
+        message: 'Weak account IDs must be unique',
+      });
+    }
+    if (new Set(state.relationships.map(({ id }) => id)).size !== state.relationships.length) {
+      context.addIssue({
+        code: 'custom',
+        path: ['relationships'],
+        message: 'Relationship IDs must be unique',
+      });
+    }
+    const wordSetIds = Object.values(state.passphraseIds).map((id) => id.slice(0, 13));
+    if (new Set(wordSetIds).size !== wordSetIds.length) {
+      context.addIssue({
+        code: 'custom',
+        path: ['passphraseIds'],
+        message: 'Each account must use a different predefined word set',
+      });
+    }
+  });
+export type SupportiveS08ResumeState = z.infer<typeof supportiveS08ResumeStateSchema>;
 
 export const webCreateSessionRequestSchema = createSessionRequestSchema
   .omit({ deletionCodeHash: true })
@@ -104,8 +161,23 @@ export const webResumeSessionSchema = z
     artifactSessionElapsedMs: z.number().finite().nonnegative().nullable(),
     interrupted: z.boolean(),
     deletionCode: deletionCodeSchema.nullable(),
+    supportiveS08ResumeState: supportiveS08ResumeStateSchema.nullable(),
   })
-  .strict();
+  .strict()
+  .superRefine((session, context) => {
+    const requiresS08State =
+      session.condition === 'supportive' &&
+      (session.checkpoint === 'supportive:S08' || session.checkpoint === 'supportive:complete');
+    if (requiresS08State !== (session.supportiveS08ResumeState !== null)) {
+      context.addIssue({
+        code: 'custom',
+        path: ['supportiveS08ResumeState'],
+        message: requiresS08State
+          ? 'S08 and later supportive checkpoints require the minimal resume state'
+          : 'The S08 resume state is not allowed before the S08 boundary',
+      });
+    }
+  });
 export type WebResumeSession = z.infer<typeof webResumeSessionSchema>;
 export const webResumeResponseSchema = z.object({ session: webResumeSessionSchema.nullable() }).strict();
 
@@ -169,16 +241,26 @@ export const webSegmentTimingResponseSchema = z
   .object({ recorded: z.boolean(), checkpoint: supportiveCheckpointSchema })
   .strict();
 
-export const confirmArtifactCheckpointRequestSchema = z
-  .object({
-    intervalId: z.uuid(),
-    checkpoint: z.union([
-      z.literal('supportive:entry'),
-      z.literal('supportive:S00'),
-      referenceLessonCheckpointSchema,
-    ]),
-  })
-  .strict();
+export const confirmArtifactCheckpointRequestSchema = z.union([
+  z
+    .object({
+      intervalId: z.uuid(),
+      checkpoint: z.union([
+        z.literal('supportive:entry'),
+        z.literal('supportive:S00'),
+        z.literal('supportive:complete'),
+        referenceLessonCheckpointSchema,
+      ]),
+    })
+    .strict(),
+  z
+    .object({
+      intervalId: z.uuid(),
+      checkpoint: z.literal('supportive:S08'),
+      resumeState: supportiveS08ResumeStateSchema,
+    })
+    .strict(),
+]);
 export type ConfirmArtifactCheckpointRequest = z.infer<typeof confirmArtifactCheckpointRequestSchema>;
 export const confirmArtifactCheckpointResponseSchema = z
   .object({ checkpoint: artifactCheckpointSchema })

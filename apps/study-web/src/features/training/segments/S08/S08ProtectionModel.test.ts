@@ -13,8 +13,10 @@ import type {
 import { describe, expect, it } from 'vitest';
 import {
   activeS08PasswordRelationships,
+  createS08ProtectionRiskModelFromResumeState,
   createS08ProtectionNetwork,
   createS08ProtectionRiskModel,
+  createSupportiveS08ResumeState,
   s08AccountHasOpenActionNeed,
   s08HasOpenActionNeed,
   type S08ProtectionRiskModel,
@@ -255,6 +257,47 @@ describe('S08 open action needs', () => {
     const source = staleSourceNetwork();
 
     expect(createS08ProtectionRiskModel(source).relationships).toEqual(source.edges);
+  });
+
+  it('projects S06 findings into a non-reconstructive S08 resume state', () => {
+    const resumeState = createSupportiveS08ResumeState(
+      completePlan(),
+      'passphrase-01-dot',
+    );
+
+    expect(resumeState).toMatchObject({
+      schemaVersion: 'supportive-s08-resume-v1',
+      passphraseIds: {
+        campusgram: 'passphrase-01-dot',
+        masterCampus: 'passphrase-02-hyphen',
+        campusEmail: 'passphrase-03-hyphen',
+      },
+      weakAccountIds: ['master-campus', 'campus-email'],
+    });
+    expect(resumeState.relationships).toHaveLength(3);
+    expect(JSON.stringify(resumeState)).not.toMatch(
+      /fiktiv-|sourceEvidence|targetEvidence|candidate|password/iu,
+    );
+    expect(createS08ProtectionRiskModelFromResumeState(resumeState)).toMatchObject({
+      localFindingAccountIds: ['master-campus', 'campus-email'],
+      relationships: [
+        expect.objectContaining({
+          sourceId: 'campusgram',
+          targetId: 'master-campus',
+          kind: 'similar-pattern',
+        }),
+        expect.objectContaining({
+          sourceId: 'campusgram',
+          targetId: 'campus-email',
+          kind: 'identical-reuse',
+        }),
+        expect.objectContaining({
+          sourceId: 'master-campus',
+          targetId: 'campus-email',
+          kind: 'similar-pattern',
+        }),
+      ],
+    });
   });
 
   it('keeps a relationship-only account protected but actionable', () => {

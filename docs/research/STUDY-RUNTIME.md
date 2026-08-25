@@ -62,14 +62,19 @@ Die Runtime stellt den letzten bestätigten sicheren Checkpoint wieder her:
 - atomar gespeicherte Fragebogenblöcke bleiben abgeschlossen;
 - der nächste noch nicht abgeschlossene Fragebogenabschnitt wird geöffnet;
 - SecAware öffnet den letzten bestätigten Seiteneinstieg;
-- PassWo beginnt erneut am Anfang der zuletzt erreichten Trainingssektion, weil die dafür nötigen
-  flüchtigen fiktiven Werte und lokalen Befunde nicht persistiert werden;
+- PassWo beginnt bis einschließlich S07 erneut am sicheren S00-/S01-Einstieg, weil die dafür
+  nötigen flüchtigen fiktiven Werte und lokalen Detailbefunde nicht persistiert werden;
+- beim Eintritt in S08 verwirft der Client alle frei eingegebenen Passwortstrings, Teilstrings und
+  semantischen Detailbefunde und bestätigt atomar den minimalen S08-Resume-Zustand;
+- Resume ab S08 rekonstruiert ausschließlich vorgegebene Passphrasen über Content-IDs sowie die
+  noch erforderlichen kanonischen Schwäche-/Relationsflags;
 - Trainingsinputs werden für die Wiederaufnahme weder gesendet noch gespeichert.
 
-Im aktuell integrierten PassWo-Lauf gehören S00 bis S07 zu Sektion 1 `passwords`. Eine
-Unterbrechung im einmaligen S00-Einstieg beginnt wieder bei S00; nach diesem Einstieg beginnt die
-Sektion datenschutzkonform bei S01 neu. Sektion 2 `password-manager` und Sektion 3 `mfa` erhalten
-mit ihrer Runtime-Integration jeweils einen expliziten eigenen Wiederaufnahmestart.
+Im aktuell integrierten PassWo-Lauf gehören S00 bis S07 zur flüchtigen Sektion 1 `passwords`. Eine
+Unterbrechung im einmaligen S00-Einstieg beginnt wieder bei S00; danach beginnt diese Sektion
+datenschutzkonform bei S01 neu. Der bestätigte Checkpoint `supportive:S08` ist die harte
+Datengrenze und der direkte Wiederaufnahmestart für die nachfolgenden Segmente einschließlich der
+Passwortmanager-Simulation.
 
 Wenn die Person nicht vor `resumeCloseAt` zurückkehrt, bleibt die Sitzung unvollständig. Sie wird
 nicht ausgewertet und beim Datensatz-Freeze gelöscht. Eine vorzeitige individuelle Löschung bleibt
@@ -126,14 +131,16 @@ eine Löschung anfragen möchten.
 
 ## Zustands- und Datenschutzgrenzen
 
-- Anzeigename, fiktive Passwörter, Passwortteile, lokale Findings und Trainingsentscheidungen
-  bleiben flüchtig;
+- Anzeigename, fiktive Passwörter, Passwortteile, lokale Detailfindings und semantische Evidenz
+  bleiben flüchtig; Passwortdaten und Analysezustand werden spätestens beim Eintritt in S08
+  verworfen;
 - `localStorage`, `sessionStorage`, IndexedDB und Service Worker sind für Teilnehmer- und
   Trainingszustand unzulässig;
 - einzige Browserpersistenz ist der opake, JavaScript-unlesbare Rückkehrschlüssel im
   `HttpOnly`-Cookie;
 - Session, Zuweisung, Versionen, atomare Antworten, Timing, inhaltsfreier Checkpoint und
-  Abschlussstatus liegen serverseitig;
+  Abschlussstatus liegen serverseitig. Zwischen S08 und Artefaktabschluss kommt ausschließlich der
+  in ADR 0016 abschließend typisierte, nicht rekonstruierende Simulationsresume-Zustand hinzu;
 - E-Mail und Raw-Follow-up-Token liegen ausschließlich im getrennten Kontaktregister;
 - Request-Bodies, IP-Adressen, User-Agents, Trainingswerte und Raw Tokens werden nicht in
   projektkontrollierten Anwendungs- oder Access-Logs persistiert.

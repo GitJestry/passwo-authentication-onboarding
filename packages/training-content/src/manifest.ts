@@ -111,11 +111,12 @@ export const trainingSegments = [
   },
   {
     id: 'S13',
-    title: 'Passwort kann bekannt werden',
+    title: 'Ein neues Konto',
     section: 'password-manager',
     sourcePages: '65-66',
-    foci: ['TF4'],
-    learningObjective: 'Grenze starker und einzigartiger Passwörter verstehen.',
+    foci: ['TF2', 'TF3'],
+    learningObjective:
+      'Erzeugen, Speichern und Ausfüllen mit einem integrierten Passwortmanager anwenden.',
   },
   {
     id: 'S14',

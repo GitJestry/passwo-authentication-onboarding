@@ -34,12 +34,17 @@ import type { SegmentTimingEvent, SegmentTimingPort } from '@passwo/training-eng
 
 export const artifactHeartbeatIntervalMs = WEB_ARTIFACT_HEARTBEAT_INTERVAL_MS;
 
+type WithoutInterval<Request> = Request extends unknown
+  ? Omit<Request, 'intervalId'>
+  : never;
+type ConfirmArtifactCheckpointInput = WithoutInterval<ConfirmArtifactCheckpointRequest>;
+
 export interface StudyApi extends StudyRuntimePorts {
   restoreSession(): Promise<WebResumeSession | null>;
   createSegmentTimingPort(sessionId: string): SegmentTimingPort;
   confirmArtifactCheckpoint(
     sessionId: string,
-    checkpoint: ConfirmArtifactCheckpointRequest['checkpoint'],
+    request: ConfirmArtifactCheckpointInput,
   ): Promise<ArtifactCheckpoint>;
 }
 
@@ -181,11 +186,11 @@ export function createStudyApi(
       };
     },
 
-    confirmArtifactCheckpoint: async (sessionId, checkpoint) => {
+    confirmArtifactCheckpoint: async (sessionId, checkpointRequest) => {
       const interval = requireInterval(sessionId);
       const request = confirmArtifactCheckpointRequestSchema.parse({
         intervalId: interval.intervalId,
-        checkpoint,
+        ...checkpointRequest,
       });
       return confirmArtifactCheckpointResponseSchema.parse(
         await post(`/api/study/sessions/${sessionId}/artifact-checkpoint`, request),

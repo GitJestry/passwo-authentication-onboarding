@@ -10,6 +10,7 @@ import {
   type RuntimeStructureFinding,
   type TheoreticalSearchSpaceModel,
   type TransientPasswordSemanticEvidence,
+  confirmArtifactCheckpointRequestSchema,
   createSessionRequestSchema,
   deletionCodeSchema,
   designLabScenarioForPath,
@@ -30,6 +31,7 @@ import {
   SUPPORTIVE_ARTIFACT_SEGMENT_IDS,
   SUPPORTIVE_ARTIFACT_VERSION,
   supportiveSectionResumeTargetFor,
+  supportiveS08ResumeStateSchema,
   studyTimingEventSchema,
   studyDataDeletionReportSchema,
   webCreateSessionRequestSchema,
@@ -177,6 +179,7 @@ describe('research-safe contracts', () => {
         artifactSessionElapsedMs: null,
         interrupted: true,
         deletionCode,
+        supportiveS08ResumeState: null,
       }).success,
     ).toBe(true);
   });
@@ -210,7 +213,7 @@ describe('research-safe contracts', () => {
   });
 
   it('keeps canonical artifact versions and the S00–S07 segment order', () => {
-    expect(SUPPORTIVE_ARTIFACT_VERSION).toBe('supportive-s00-s07-1.8.0');
+    expect(SUPPORTIVE_ARTIFACT_VERSION).toBe('supportive-s00-s13-1.10.0');
     expect(SUPPORTIVE_ARTIFACT_VERSION).not.toBe(REFERENCE_ARTIFACT_VERSION);
     expect(SUPPORTIVE_ARTIFACT_SEGMENT_IDS).toEqual([
       'S00',
@@ -297,6 +300,80 @@ describe('research-safe contracts', () => {
         reasonCode: null,
       }).success,
     ).toBe(true);
+  });
+
+  it('allows only the minimal non-reconstructive S08 resume state', () => {
+    const resumeState = {
+      schemaVersion: 'supportive-s08-resume-v1',
+      passphraseIds: {
+        campusgram: 'passphrase-01-hyphen',
+        masterCampus: 'passphrase-02-hyphen',
+        campusEmail: 'passphrase-03-hyphen',
+      },
+      weakAccountIds: ['master-campus'],
+      relationships: [
+        { id: 'campusgram--master-campus', kind: 'identical' },
+        { id: 'master-campus--campus-email', kind: 'similar' },
+      ],
+    };
+    expect(supportiveS08ResumeStateSchema.safeParse(resumeState).success).toBe(true);
+    expect(
+      confirmArtifactCheckpointRequestSchema.safeParse({
+        intervalId: 'b185bbd8-2088-47d2-b45a-924c8d8778ea',
+        checkpoint: 'supportive:S08',
+        resumeState,
+      }).success,
+    ).toBe(true);
+    const resumeSession = {
+      sessionId: '6b51a541-5e36-4c24-88ea-2ec05e41e72d',
+      condition: 'supportive',
+      assignmentMode: 'forced-supportive',
+      guardrailFormId: 'F1',
+      followUpConsent: false,
+      checkpoint: 'supportive:S08',
+      resumeTarget: 'artifact',
+      nextInstrumentBlockIndex: 2,
+      artifactSessionElapsedMs: 125,
+      interrupted: true,
+      deletionCode: 'PW-AB12-CD34-EF56-7890',
+      supportiveS08ResumeState: resumeState,
+    };
+    expect(webResumeSessionSchema.safeParse(resumeSession).success).toBe(true);
+    expect(
+      webResumeSessionSchema.safeParse({
+        ...resumeSession,
+        checkpoint: 'supportive:S07',
+      }).success,
+    ).toBe(false);
+    expect(
+      webResumeSessionSchema.safeParse({
+        ...resumeSession,
+        supportiveS08ResumeState: null,
+      }).success,
+    ).toBe(false);
+    for (const forbiddenField of [
+      'password',
+      'passwordPart',
+      'spans',
+      'semanticEvidence',
+      'displayName',
+    ]) {
+      expect(
+        supportiveS08ResumeStateSchema.safeParse({
+          ...resumeState,
+          [forbiddenField]: 'participant-created-secret',
+        }).success,
+      ).toBe(false);
+    }
+    expect(
+      supportiveS08ResumeStateSchema.safeParse({
+        ...resumeState,
+        passphraseIds: {
+          ...resumeState.passphraseIds,
+          campusEmail: 'passphrase-02-dot',
+        },
+      }).success,
+    ).toBe(false);
   });
 
   it('uses only the four deterministic S06 Design Lab routes', () => {

@@ -7,6 +7,7 @@ import {
   type InstrumentSubmissionBlock,
   mainInstrumentBlocks,
   type SupportiveArtifactSegmentId,
+  type SupportiveS08ResumeState,
   SUPPORTIVE_ARTIFACT_SEGMENT_IDS,
   WEB_STUDY_REQUEST_HEADER,
   WEB_STUDY_REQUEST_HEADER_VALUE,
@@ -44,6 +45,20 @@ export function createSessionBody(identity: number, followUpConsent = true) {
     deletionCodeHash: identity.toString(16).padStart(64, '0'),
   };
 }
+
+export const supportiveS08ResumeStateFixture = {
+  schemaVersion: 'supportive-s08-resume-v1',
+  passphraseIds: {
+    campusgram: 'passphrase-01-hyphen',
+    masterCampus: 'passphrase-02-hyphen',
+    campusEmail: 'passphrase-03-hyphen',
+  },
+  weakAccountIds: ['master-campus'],
+  relationships: [
+    { id: 'campusgram--master-campus', kind: 'identical' },
+    { id: 'master-campus--campus-email', kind: 'similar' },
+  ],
+} as const satisfies SupportiveS08ResumeState;
 
 export function deterministicTestRandomSource(): StudyRandomSource {
   let uuidIdentity = 0;
@@ -364,6 +379,15 @@ export async function completeWebArtifact(
       SUPPORTIVE_ARTIFACT_SEGMENT_IDS,
       2,
     );
+    await webPost(server, cookie, `/api/study/sessions/${session.sessionId}/artifact-checkpoint`, {
+      intervalId: interval.intervalId,
+      checkpoint: 'supportive:S08',
+      resumeState: supportiveS08ResumeStateFixture,
+    });
+    await webPost(server, cookie, `/api/study/sessions/${session.sessionId}/artifact-checkpoint`, {
+      intervalId: interval.intervalId,
+      checkpoint: 'supportive:complete',
+    });
   } else {
     await webPost(server, cookie, `/api/study/sessions/${session.sessionId}/artifact-checkpoint`, {
       intervalId: interval.intervalId,
