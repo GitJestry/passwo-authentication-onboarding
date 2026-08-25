@@ -1,7 +1,6 @@
 import { setup } from 'xstate';
 
 interface S12PasswordManagerContext {
-  readonly handoffDurationMs: number;
   readonly vaultOpeningDurationMs: number;
   readonly generationDurationMs: number;
   readonly storageDurationMs: number;
@@ -17,7 +16,6 @@ export const s12PasswordManagerMachine = setup({
     input: {} as S12PasswordManagerContext,
   },
   delays: {
-    handoffDuration: ({ context }) => context.handoffDurationMs,
     vaultOpeningDuration: ({ context }) => context.vaultOpeningDurationMs,
     generationDuration: ({ context }) => context.generationDurationMs,
     storageDuration: ({ context }) => context.storageDurationMs,
@@ -25,12 +23,9 @@ export const s12PasswordManagerMachine = setup({
   },
 }).createMachine({
   id: 's12PasswordManager',
-  initial: 'handoff',
+  initial: 'vaultOpening',
   context: ({ input }) => input,
   states: {
-    handoff: {
-      after: { handoffDuration: { target: 'vaultOpening' } },
-    },
     vaultOpening: {
       after: { vaultOpeningDuration: { target: 'intro' } },
     },

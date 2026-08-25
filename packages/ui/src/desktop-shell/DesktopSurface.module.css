@@ -228,6 +228,27 @@
   opacity: 0.54;
 }
 
+.browserDockButton[data-highlighted="true"] {
+  filter:
+    saturate(1.22)
+    brightness(1.08)
+    drop-shadow(0 0 0.55rem rgb(56 137 255 / 82%));
+  opacity: 1;
+  animation: desktop-browser-highlight 1.35s var(--motion-ease-out) infinite;
+}
+
+.browserDockButton[data-highlighted="true"]::after {
+  position: absolute;
+  inset: -0.34rem;
+  border: var(--border-width-medium) solid rgb(255 255 255 / 92%);
+  border-radius: 1rem;
+  box-shadow:
+    0 0 0 0.16rem rgb(41 112 231 / 68%),
+    0 0 1.15rem rgb(56 137 255 / 76%);
+  content: '';
+  pointer-events: none;
+}
+
 .browserDockButton:focus-visible {
   outline: var(--border-width-focus) solid var(--color-focus);
   outline-offset: var(--space-1);
@@ -241,6 +262,12 @@
   height: 0.28rem;
   border-radius: var(--radius-round);
   background: #276ddb;
+}
+
+@keyframes desktop-browser-highlight {
+  50% {
+    transform: translateY(-0.16rem) scale(1.08);
+  }
 }
 
 .browserLaunchSurface {
@@ -576,7 +603,9 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .browserDockButton {
+  .browserDockButton,
+  .browserDockButton[data-highlighted="true"] {
+    animation: none;
     transition: none;
   }
 

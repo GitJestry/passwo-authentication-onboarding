@@ -1,7 +1,9 @@
 import { s12PasswordManagerContent } from '@passwo/training-content';
 import { deriveCampusIdentity } from '@passwo/training-engine';
 import { useMachine } from '@xstate/react';
-import type { CSSProperties, ReactNode } from 'react';
+import { type CSSProperties, type ReactNode, useEffect } from 'react';
+import integratedPasswordManagerAsset from '../../../../assets/s12/integrated-password-manager.png';
+import standalonePasswordManagerAsset from '../../../../assets/s12/standalone-password-manager.png';
 import { PassWoGuide } from '../../PassWoGuide.js';
 import { passWoSpeechEmphasisFor } from '../../PassWoSpeechEmphasis.js';
 import { s12PasswordManagerMachine } from './S12PasswordManagerMachine.js';
@@ -26,30 +28,27 @@ function autofillCharacterStyle(delayMs: number): AutofillCharacterStyle {
 }
 
 const AUTOFILL_CHARACTER_DURATION_MS = 52;
-const AUTOFILL_USERNAME_START_MS = 980;
-const AUTOFILL_PASSWORD_START_GAP_MS = 280;
+const AUTOFILL_USERNAME_START_MS = 1260;
 
 function motionDurations(usernameLength: number) {
   const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   return reducedMotion
     ? {
-        handoffDurationMs: 0,
         vaultOpeningDurationMs: 0,
         generationDurationMs: 0,
         storageDurationMs: 0,
         autofillDurationMs: 0,
       }
     : {
-        handoffDurationMs: 2200,
-        vaultOpeningDurationMs: 1200,
-        generationDurationMs: 1900,
-        storageDurationMs: 1700,
+        vaultOpeningDurationMs: 3400,
+        generationDurationMs: 1200,
+        storageDurationMs: 3700,
         autofillDurationMs:
           AUTOFILL_USERNAME_START_MS +
-          usernameLength * AUTOFILL_CHARACTER_DURATION_MS +
-          AUTOFILL_PASSWORD_START_GAP_MS +
-          s12PasswordManagerContent.vault.entry.maskedPassword.length *
-            AUTOFILL_CHARACTER_DURATION_MS +
+          Math.max(
+            usernameLength,
+            s12PasswordManagerContent.vault.entry.maskedPassword.length,
+          ) * AUTOFILL_CHARACTER_DURATION_MS +
           320,
       };
 }
@@ -87,7 +86,6 @@ function VaultVisual({
     >
       <div className={styles.vaultCabinet}>
         <div className={styles.vaultInterior} aria-hidden="true">
-          <span className={styles.vaultShelf} />
           {showEntry ? (
             <span className={styles.vaultStoredEntry}>
               <strong>{content.entry.account}</strong>
@@ -149,6 +147,40 @@ function FlowStrip({
   );
 }
 
+function SearchInformationControl() {
+  const content = s12PasswordManagerContent.generator;
+  const tooltipId = 's12-generator-information';
+  return (
+    <span className={styles.searchInformationControl}>
+      <button
+        type="button"
+        aria-label={content.informationLabel}
+        aria-describedby={tooltipId}
+      >
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M9.6 2.75h4.8l.54 2.15c.43.18.84.42 1.22.7l2.08-.64 2.4 4.16-1.56 1.51a7 7 0 0 1 0 1.74l1.56 1.51-2.4 4.16-2.08-.64c-.38.28-.79.52-1.22.7l-.54 2.15H9.6l-.54-2.15a7 7 0 0 1-1.22-.7l-2.08.64-2.4-4.16 1.56-1.51a7 7 0 0 1 0-1.74L3.36 9.12l2.4-4.16 2.08.64c.38-.28.79-.52 1.22-.7L9.6 2.75Z" />
+          <circle cx="12" cy="11.5" r="2.65" />
+        </svg>
+      </button>
+      <span className={styles.searchInformationTooltip} id={tooltipId} role="tooltip">
+        <span>
+          <strong>{content.information.passwordLength}:</strong> {content.passwordLength}
+        </span>
+        <span>
+          <strong>{content.information.alphabetSize}:</strong> {content.alphabetSize}
+        </span>
+        <span>
+          <strong>{content.information.combinations}:</strong> {content.combinations}
+        </span>
+        <span>
+          <strong>{content.information.attemptsPerSecond}:</strong>{' '}
+          {content.attemptsPerSecond}
+        </span>
+      </span>
+    </span>
+  );
+}
+
 function GeneratorScene({ typing }: { readonly typing: boolean }) {
   const content = s12PasswordManagerContent.generator;
   return (
@@ -158,36 +190,45 @@ function GeneratorScene({ typing }: { readonly typing: boolean }) {
         data-typing={typing || undefined}
         aria-label={`${content.fieldLabel}: ${content.password}`}
       >
-        <span>{content.fieldLabel}</span>
-        <output>
-          {Array.from(content.password).map((character, index) => (
-            <span
-              className={styles.generatedCharacter}
-              style={characterStyle(index)}
-              key={`${index}-${character}`}
-              aria-hidden="true"
-            >
-              {character}
-            </span>
-          ))}
-        </output>
-        <strong>{content.passwordLengthLabel}</strong>
+        <span className={styles.generatedPasswordLabel}>{content.fieldLabel}</span>
+        <div className={styles.generatedPasswordInput}>
+          <output>
+            {Array.from(content.password).map((character, index) => (
+              <span
+                className={styles.generatedCharacter}
+                style={characterStyle(index)}
+                key={`${index}-${character}`}
+                aria-hidden="true"
+              >
+                {character}
+              </span>
+            ))}
+          </output>
+        </div>
       </div>
 
-      <div
-        className={styles.searchSphere}
-        data-typing={typing || undefined}
-        role="img"
-        aria-label={`${content.duration}; ${content.alphabetSize}; ${content.attemptsPerSecond}; ${content.combinations}; ${content.durationExplanation}`}
-      >
-        <div className={styles.searchSphereCore}>
-          <strong>{content.duration}</strong>
-          <div className={styles.searchSphereFacts}>
-            <span>{content.alphabetSize}</span>
-            <span>{content.attemptsPerSecond}</span>
-            <span>{content.combinations}</span>
+      <div className={styles.searchScale}>
+        <strong className={styles.searchModelLabel}>{content.alphabetLabel}</strong>
+        <div
+          className={styles.searchSphere}
+          data-typing={typing || undefined}
+          role="group"
+          aria-label={`${content.duration}; ${content.durationExplanation}`}
+        >
+          <div className={styles.searchSphereCore}>
+            <strong>
+              <span>{content.durationLead}</span>
+              <span className={styles.searchDurationUnit}>
+                {content.durationUnit}
+                <SearchInformationControl />
+              </span>
+            </strong>
+            <small>{content.durationExplanation}</small>
           </div>
-          <small>{content.durationExplanation}</small>
+        </div>
+        <div className={styles.searchScaleAxis} aria-hidden="true">
+          <i />
+          <strong>{content.passwordLengthLabel}</strong>
         </div>
       </div>
     </div>
@@ -196,9 +237,11 @@ function GeneratorScene({ typing }: { readonly typing: boolean }) {
 
 function StorageScene({
   storing,
+  stored,
   username,
 }: {
   readonly storing: boolean;
+  readonly stored: boolean;
   readonly username: string;
 }) {
   const { generator, vault } = s12PasswordManagerContent;
@@ -207,13 +250,14 @@ function StorageScene({
       {storing ? (
         <div className={styles.storageFlight} aria-hidden="true">
           <span>{vault.entry.account}</span>
+          <span>{username}</span>
           <code>{generator.password}</code>
         </div>
       ) : null}
       <VaultVisual
         open={storing}
         storing={storing}
-        showEntry={storing}
+        showEntry={storing || stored}
         username={username}
       />
     </div>
@@ -238,6 +282,7 @@ function AutofillValue({
     <output
       className={styles.autofillValue}
       data-autofilling={filling || undefined}
+      data-filled={filled || undefined}
       data-password={password || undefined}
       aria-label={filling || filled ? value : 'Leer'}
     >
@@ -255,20 +300,11 @@ function AutofillValue({
               aria-hidden="true"
               key={`${index}-${character}`}
             >
-              {character}
+              {character === ' ' ? '\u00a0' : character}
             </span>
           ))
         : null}
     </output>
-  );
-}
-
-function ShopMark() {
-  return (
-    <svg className={styles.shopMark} viewBox="0 0 48 48" aria-hidden="true">
-      <path d="M10 18h28l-2.6 22H12.6L10 18Z" />
-      <path d="M17 20v-5a7 7 0 0 1 14 0v5" />
-    </svg>
   );
 }
 
@@ -282,18 +318,10 @@ function LoginPanel({
   readonly username: string;
 }) {
   const { login, vault } = s12PasswordManagerContent;
-  const passwordStartDelayMs =
-    AUTOFILL_USERNAME_START_MS +
-    username.length * AUTOFILL_CHARACTER_DURATION_MS +
-    AUTOFILL_PASSWORD_START_GAP_MS;
   return (
-    <section className={styles.loginPanel} data-filling={filling || undefined}>
-      <div className={styles.loginIdentity}>
-        <ShopMark />
-        <strong>{vault.entry.account}</strong>
-      </div>
+    <section className={styles.loginPanel}>
       <h2>{login.title}</h2>
-      <label>
+      <label data-field="username">
         <span>{login.usernameLabel}</span>
         <AutofillValue
           filling={filling}
@@ -302,13 +330,13 @@ function LoginPanel({
           value={username}
         />
       </label>
-      <label>
+      <label data-field="password">
         <span>{login.passwordLabel}</span>
         <AutofillValue
           filling={filling}
           filled={filled}
           password
-          startDelayMs={passwordStartDelayMs}
+          startDelayMs={AUTOFILL_USERNAME_START_MS}
           value={vault.entry.maskedPassword}
         />
       </label>
@@ -330,48 +358,19 @@ function AutofillScene({
 }) {
   const { vault } = s12PasswordManagerContent;
   return (
-    <div className={styles.autofillScene} data-filling={filling || undefined}>
+    <div className={styles.autofillScene}>
       <div className={styles.autofillVault}>
         <VaultVisual open opening={filling} showEntry compact username={username} />
       </div>
       {filling ? (
         <div className={styles.autofillToken} aria-hidden="true">
           <strong>{vault.entry.account}</strong>
-          <span>{vault.entry.maskedPassword}</span>
+          <span>{username}</span>
+          <code>{vault.entry.maskedPassword}</code>
         </div>
       ) : null}
       <LoginPanel filling={filling} filled={filled} username={username} />
     </div>
-  );
-}
-
-function BrowserAndDeviceIcon({ unlocked }: { readonly unlocked: boolean }) {
-  return (
-    <svg className={styles.variantArtwork} viewBox="0 0 180 104" aria-hidden="true">
-      <rect x="8" y="18" width="108" height="72" rx="10" />
-      <path d="M8 36h108M20 27h.1M29 27h.1M38 27h.1" />
-      <rect x="49" y="50" width="28" height="23" rx="6" />
-      <path d="M55 50v-4a8 8 0 0 1 16 0v4M63 59v6" />
-      <rect x="126" y="6" width="45" height="91" rx="11" />
-      <path d="M140 15h17M143 88h11" />
-      <rect x="139" y="43" width="19" height="17" rx="4" />
-      <path d={unlocked ? 'M143 43v-5a6 6 0 0 1 11-3' : 'M143 43v-5a6 6 0 0 1 11 0v5'} />
-    </svg>
-  );
-}
-
-function SeparateAppsIcon() {
-  return (
-    <svg className={styles.variantArtwork} viewBox="0 0 180 104" aria-hidden="true">
-      <rect x="7" y="14" width="115" height="74" rx="8" />
-      <path d="M3 93h124M53 88l3 5h19l3-5" />
-      <rect x="132" y="7" width="41" height="89" rx="10" />
-      <rect x="42" y="31" width="46" height="39" rx="10" />
-      <rect x="143" y="35" width="19" height="25" rx="5" />
-      <path d="M53 49h24M65 41v16M148 48h9M152.5 42v12" />
-      <circle cx="65" cy="49" r="11" />
-      <circle cx="152.5" cy="48" r="7" />
-    </svg>
   );
 }
 
@@ -396,11 +395,18 @@ function VariantCard({
       data-s12-speech-obstacle
     >
       <div className={styles.variantCardVisual}>
-        {kind === 'integrated' ? (
-          <BrowserAndDeviceIcon unlocked={active} />
-        ) : (
-          <SeparateAppsIcon />
-        )}
+        <img
+          className={styles.variantArtwork}
+          src={
+            kind === 'integrated'
+              ? integratedPasswordManagerAsset
+              : standalonePasswordManagerAsset
+          }
+          width={1254}
+          height={1254}
+          alt=""
+          aria-hidden="true"
+        />
       </div>
       <h2>{variant.title}</h2>
       <ul>
@@ -469,13 +475,17 @@ function VariantScene({
 
 export interface S12PasswordManagerTrainingProps {
   readonly displayName?: string;
+  readonly onBrowserHighlightChange?: (highlighted: boolean) => void;
 }
 
 export function S12PasswordManagerTraining({
   displayName = '',
+  onBrowserHighlightChange,
 }: S12PasswordManagerTrainingProps) {
-  const selectedUsername = deriveCampusIdentity(displayName).campusgram;
-  const accountUsername = `${selectedUsername}@${s12PasswordManagerContent.vault.entry.usernameDomain}`;
+  const accountUsername =
+    displayName.trim() === ''
+      ? s12PasswordManagerContent.vault.entry.username
+      : deriveCampusIdentity(displayName).campusgram;
   const [state, send] = useMachine(s12PasswordManagerMachine, {
     input: motionDurations(accountUsername.length),
   });
@@ -493,6 +503,14 @@ export function S12PasswordManagerTraining({
   const integrated = state.matches('integrated');
   const practice = state.matches('practice');
   const showingVariants = variants || separate || integrated || practice;
+
+  useEffect(() => {
+    onBrowserHighlightChange?.(practice);
+    return () => {
+      if (practice) onBrowserHighlightChange?.(false);
+    };
+  }, [onBrowserHighlightChange, practice]);
+
   const activeFlowId: S12FlowId | null =
     generating || generated
       ? 'generate'
@@ -570,7 +588,11 @@ export function S12PasswordManagerTraining({
               {generating || generated ? (
                 <GeneratorScene typing={generating} />
               ) : storing || stored ? (
-                <StorageScene storing={storing} username={accountUsername} />
+                <StorageScene
+                  storing={storing}
+                  stored={stored}
+                  username={accountUsername}
+                />
               ) : filling || filled || access ? (
                 <AutofillScene
                   filling={filling}

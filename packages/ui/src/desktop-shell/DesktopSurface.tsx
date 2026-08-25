@@ -4,6 +4,7 @@ import styles from './DesktopSurface.module.css';
 export interface DesktopBrowserDockModel {
   readonly active: boolean;
   readonly enabled: boolean;
+  readonly highlighted?: boolean;
   readonly label: string;
   readonly onClick?: () => void;
 }
@@ -357,6 +358,7 @@ export function DesktopSurface({
           type="button"
           className={styles.browserDockButton}
           disabled={!browserDock.enabled}
+          data-highlighted={browserDock.highlighted || undefined}
           aria-label={browserDock.label}
           title={browserDock.label}
           onClick={browserDock.onClick}

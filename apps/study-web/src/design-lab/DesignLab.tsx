@@ -584,14 +584,14 @@ const scenarios: Record<DesignLabScenarioId, DesignLabScenario> = {
   's09-password-manager-transition': {
     label: 's1.27 · Übergang zum Passwortmanager',
     description:
-      'Direkter QA-Einstieg im geschützten S08-Netzwerk, das in S09 auf 80 Konten herauszoomt und unmittelbar in die Passwortmanager-Bühne führt.',
+      'Direkter QA-Einstieg im geschützten S08-Netzwerk, das in S09 auf 80 Konten herauszoomt und über die Sektionskarte in die Passwortmanager-Bühne führt.',
     dimmed: false,
     showPassWoOverlay: false,
   },
   's2-1-password-manager-transition': {
     label: 's2.1 · Funktionen und Varianten',
     description:
-      'Direkter QA-Einstieg in den Passwortmanager-Auftakt mit Netzwerkübergang, Tresor und Systemvergleich.',
+      'Direkter QA-Einstieg in den Passwortmanager-Auftakt mit Sektionskarte, Tresor und Systemvergleich.',
     dimmed: false,
     showPassWoOverlay: false,
   },

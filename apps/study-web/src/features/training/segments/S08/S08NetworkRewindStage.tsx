@@ -27,6 +27,7 @@ import greenShieldAsset from '../../../../assets/s06/comparison-path-shield.webp
 import { CelebrationConfetti } from '../../CelebrationConfetti.js';
 import { PassWoGuide } from '../../PassWoGuide.js';
 import { passWoSpeechEmphasisFor } from '../../PassWoSpeechEmphasis.js';
+import { SectionTransition } from '../../SectionTransition.js';
 import { AccountAssessmentNetwork } from '../AccountAssessmentNetwork.js';
 import { createS06BlockedReplayTriangle } from '../S06/S06ConsequenceController.js';
 import { S12PasswordManagerTraining } from '../S12/S12PasswordManagerTraining.js';
@@ -65,6 +66,7 @@ type S08Event =
     }
   | { readonly type: 'TRIANGLE_ANIMATION_COMPLETE' }
   | { readonly type: 'ANSWER_SELECTED' }
+  | { readonly type: 'TRANSITION_COMPLETE' }
   | { readonly type: 'NEXT' };
 
 const s08Machine = setup({
@@ -131,7 +133,7 @@ const s08Machine = setup({
   states: {
     entry: {
       always: [
-        { guard: 'startsAtManager', target: 'managerLesson' },
+        { guard: 'startsAtManager', target: 'managerTransition' },
         { guard: 'startsAtS09', target: 's09Summary' },
         { target: 'protection' },
       ],
@@ -188,7 +190,11 @@ const s08Machine = setup({
     },
     passWoSolution: {
       tags: ['s09', 'expanded'],
-      on: { NEXT: { target: 'managerLesson' } },
+      on: { NEXT: { target: 'managerTransition' } },
+    },
+    managerTransition: {
+      tags: ['manager-transition', 'expanded'],
+      on: { TRANSITION_COMPLETE: { target: 'managerLesson' } },
     },
     managerLesson: { tags: ['manager'] },
   },
@@ -237,6 +243,7 @@ export function S08NetworkRewindStage({
 }: S08NetworkRewindStageProps) {
   const networkHostRef = useRef<HTMLDivElement | null>(null);
   const [celebratingNodeId, setCelebratingNodeId] = useState<S08ChangeableAccountId | null>(null);
+  const [browserHighlighted, setBrowserHighlighted] = useState(false);
   const sourceNetwork = useMemo(
     () => network ?? createCompletedS02Network(),
     [network],
@@ -378,6 +385,7 @@ export function S08NetworkRewindStage({
         state.matches('passWoWorkarounds') ||
         state.matches('passWoRisks') ||
         state.matches('passWoSolution') ||
+        state.matches('managerTransition') ||
         state.matches('managerLesson')
       ) {
         return scalingRiskNetwork.network;
@@ -452,6 +460,7 @@ export function S08NetworkRewindStage({
     state.matches('passWoWorkarounds') ||
     state.matches('passWoRisks') ||
     state.matches('passWoSolution') ||
+    state.matches('managerTransition') ||
     state.matches('managerLesson');
   const releasingAccountIds = (
     ['master-campus', 'campus-email'] as const
@@ -506,11 +515,26 @@ export function S08NetworkRewindStage({
     }
   }, [pathReplayRunning, send]);
 
+  if (state.matches('managerTransition')) {
+    return (
+      <SectionTransition
+        sectionLabel={s09PasswordSummaryContent.passwordManagerTransition.sectionLabel}
+        title={s09PasswordSummaryContent.passwordManagerTransition.title}
+        currentSection={2}
+        totalSections={3}
+        parts={s09PasswordSummaryContent.passwordManagerTransition.parts}
+        currentPart={1}
+        holdDurationMs={s09PasswordSummaryContent.passwordManagerTransition.holdDurationMs}
+        onComplete={() => send({ type: 'TRANSITION_COMPLETE' })}
+      />
+    );
+  }
+
   return (
     <section
       className={styles.training}
       aria-label={
-        state.hasTag('manager')
+        state.hasTag('manager') || state.hasTag('manager-transition')
           ? s12PasswordManagerContent.trainingAriaLabel
           : state.hasTag('s09')
             ? s09PasswordSummaryContent.trainingAriaLabel
@@ -524,7 +548,9 @@ export function S08NetworkRewindStage({
             : replayPhase
       }
       data-s09-expanded={
-        state.hasTag('expanded') || state.matches('managerLesson') || undefined
+        state.hasTag('expanded') ||
+        state.matches('managerLesson') ||
+        undefined
       }
       data-s09-expanding={state.matches('s09Expansion') || undefined}
       data-s09-reducing={state.hasTag('reducing') || undefined}
@@ -545,7 +571,12 @@ export function S08NetworkRewindStage({
     >
       <DesktopSurface
         platform={platform}
-        browserDock={{ active: false, enabled: false, label: 'Browser geschlossen' }}
+        browserDock={{
+          active: browserHighlighted,
+          enabled: false,
+          highlighted: browserHighlighted,
+          label: browserHighlighted ? 'Browser für die Übung' : 'Browser geschlossen',
+        }}
       >
         <div
           ref={networkHostRef}
@@ -761,7 +792,10 @@ export function S08NetworkRewindStage({
           </>
         ) : null}
         {state.matches('managerLesson') ? (
-          <S12PasswordManagerTraining displayName={displayName} />
+          <S12PasswordManagerTraining
+            displayName={displayName}
+            onBrowserHighlightChange={setBrowserHighlighted}
+          />
         ) : null}
       </DesktopSurface>
     </section>

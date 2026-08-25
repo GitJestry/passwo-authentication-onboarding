@@ -64,3 +64,119 @@ theoretische Modellvisualisierung, keine Bewertung eines echten Passworts.
   fachlichen Endzustände ohne Wartezeiten oder räumliche Flugbewegung.
 - Die My-Shop-Aufforderung bleibt eine Überleitung. Dieses Delta erfindet keine
   nicht beauftragte Passwortmanager-Übung und keinen funktionslosen Ersatzbutton.
+
+## Folgeauftrag: Visual- und Copy-Präzisierung, 25. August 2026
+
+### Quelle und Geltung
+
+Quelle ist der ausdrückliche Folgeauftrag vom 25. August 2026. Dieses Delta ersetzt die oben
+dokumentierten Entscheidungen zur fehlenden Sektionskarte, zum My-Shop-Beispiel, zum entfernten
+Zugangs-Stichpunkt und zur Benennung eigenständiger Passwortmanager. Die übrige narrative
+Reihenfolge und die fachlichen Grenzen bleiben bestehen.
+
+`S09_PASSWORD_SUMMARY_CONTENT_VERSION` steigt für die wiederhergestellte Übergangskarte auf
+`4.8.0`. `S12_PASSWORD_MANAGER_CONTENT_VERSION` steigt für die neue Beispieldarstellung und die
+präzisierten Varianten auf `1.2.0`. Benutzername und Kontobezeichnung sind nun feste authored
+Beispieldaten; der flüchtige Anzeigename wird in S12 nicht mehr dargestellt.
+
+### Copy-Delta
+
+| Segment und Text-ID | Quelle | Aktueller Text | Geplanter Text | Primäre Rolle | Grund | Bedeutungsänderung | Interaktionsziel | Hervorhebung |
+|---|---|---|---|---|---|---|---|---|
+| `S09.passwordManagerTransition` | Folgeauftrag 2026-08-25 | keine Karte | `Sektion 2 von 3` / `Passwortmanager` / `Ein Tresor für alle deine Passwörter` | Orientierung | Übergangskarte ausdrücklich wieder verlangt | ausdrücklich freigegeben | kein | aktive Sektion und Teilmarke |
+| `S12.generator.fieldLabel` | Folgeauftrag 2026-08-25 | `Zufällig erzeugtes Passwort` | `Passwort` | Orientierung | bekanntes Passwortfeld ohne redundanten Innenhinweis | begrenzt | kein | keine |
+| `S12.generator.model` | Folgeauftrag 2026-08-25 | `16 Zeichen`; Rechenannahmen als sichtbare Pills in der Kugel | `alle Zeichentypen` über der Kugel; `16 Stellen` unter der Skala; Rechenannahmen am Zahnrad | Ergebnisfeedback | an die bekannte S05-Skalenform angeglichen | ausdrücklich freigegeben | Zahnrad für optionalen Hinweis | Kugel, Skala und Text tragen Bedeutung gemeinsam |
+| `S12.vault.entry` | Folgeauftrag 2026-08-25 | `My Shop`; flüchtiger Benutzername mit Beispieldomain | Konto und Benutzername jeweils `Anmeldebeispiel` | Ergebnisfeedback | ausdrücklich verlangtes neutrales authored Beispiel | ausdrücklich freigegeben | kein | gelber Autofill-Zustand ergänzt die sichtbare Füllung |
+| `S12.login.title` | Folgeauftrag 2026-08-25 | `Bei My Shop anmelden` | `Anmeldebeispiel` | Orientierung | ausdrücklich verlangte neutrale Bezeichnung | ausdrücklich freigegeben | kein | keine |
+| `S12.variants.integrated.access` | Folgeauftrag 2026-08-25 | Stichpunkt entfallen | `Zugang meist über Gerät oder Plattformkonto` | Orientierung | Stichpunkt ausdrücklich wieder verlangt | ausdrücklich freigegeben | kein | Listenpunkt und Illustration statt Farbe allein |
+| `S12.variants.separate.title` | Folgeauftrag 2026-08-25 | `Separater Passwortmanager` | `Eigenständiger Passwortmanager` | Orientierung | ausdrücklich verlangte Benennung | ausdrücklich freigegeben | kein | eigene Illustration und Kartenrahmen |
+| `S12.guide.steps.variants` | Folgeauftrag 2026-08-25 | `Daneben gibt es separate Passwortmanager.` | `Daneben gibt es eigenständige Passwortmanager.` | Mechanismuserklärung | ausdrücklich verlangte Benennung | ausdrücklich freigegeben | `Weiter` | `bereits einen Passwortmanager` · Akzent |
+| `S12.guide.steps.separate` | Folgeauftrag 2026-08-25 | `Separate Passwortmanager …` | `Eigenständige Passwortmanager …` | Mechanismuserklärung | konsistent mit der ausdrücklich benannten Systemvariante | begrenzt | `Weiter` | `Masterpasswort` · Hinweis |
+| `S12.guide.steps.practice.2` | Folgeauftrag 2026-08-25 | My-Shop-/Password-Manager-Bezeichnung | `… mit dem Passwortmanager beim Anmeldebeispiel …` | Navigation | sichtbares Übungsziel an die neue authored Bezeichnung angepasst | begrenzt | nachfolgendes Anmeldebeispiel | keine |
+
+### Darstellungs- und Interaktionsgrenzen
+
+- Die Übergangskarte blendet über dem auslaufenden S09-Netzwerk ein. Erst nach ihrem Abschluss
+  beginnt die S12-Tresoröffnung; bei Reduced Motion entfallen die räumlichen Bewegungen.
+- Die Lernvisualisierung nutzt die Desktopfläche bis zu den systembedingten Dock-Grenzen. PassWo
+  liegt als transparente Überlagerung darüber und reserviert keinen undurchsichtigen unteren
+  Inhaltsbalken.
+- Benutzername und Passwort beginnen die Autofill-Animation gleichzeitig. Der gelbe Feldzustand
+  bleibt nach dem Füllen sichtbar und ist nicht der einzige Bedeutungsträger.
+- Der Generator zeigt links ein helles bekanntes Passwortfeld und rechts die S05-nahe Skala. Das
+  Zahnrad ist tastaturfokussierbar; Modelllabel, Kugeltext, Erklärung und `16 Stellen` bleiben
+  zusätzlich sichtbar.
+- Die Varianten verwenden die lokalen Nutzer-PNGs `integriert.png` und `eigenständig.png`. Die
+  äußere Passphrasen-Pill entfällt, während Wortbausteine und Bindestriche erhalten bleiben.
+
+## Folgeauftrag: Generator, Autofill und Browserüberleitung, 25. August 2026
+
+### Quelle und Geltung
+
+Quelle ist der ausdrückliche Folgeauftrag vom 25. August 2026. Er präzisiert die Darstellung
+des theoretischen Suchaufwands, stellt den flüchtigen gewählten Benutzernamen mit dem authored
+Fallback `benutzername` wieder her und richtet die abschließende Navigation auf den sichtbaren
+Browser im Dock. `S12_PASSWORD_MANAGER_CONTENT_VERSION` steigt dafür auf `1.3.0`.
+
+### Copy-Delta
+
+| Segment und Text-ID | Quelle | Aktueller Text | Geplanter Text | Primäre Rolle | Grund | Bedeutungsänderung | Interaktionsziel | Hervorhebung |
+|---|---|---|---|---|---|---|---|---|
+| `S12.generator.duration` | Folgeauftrag 2026-08-25 | `1,2-mal das Alter des Universums` | `16,5 Milliarden Jahre` | Ergebnisfeedback | ausdrücklich verlangte, zum gezeigten Modell passende Zeitangabe | begrenzt | Zahnrad für Berechnungsannahmen | große Zeitangabe in der Kugel |
+| `S12.vault.entry.username` | Folgeauftrag 2026-08-25 | `Anmeldebeispiel` | flüchtiger gewählter Benutzername, ersatzweise `benutzername` | Ergebnisfeedback | Autofill soll den lokalen Übungsnamen statt der Kontobezeichnung einsetzen | ausdrücklich freigegeben | kein | gelber gefüllter Feldzustand und sichtbarer Text |
+| `S12.guide.steps.practice.2` | Folgeauftrag 2026-08-25 | `Probier den Ablauf jetzt selbst aus, indem du mit dem Passwortmanager beim Anmeldebeispiel ein neues Konto anlegst.` | `Probier den Ablauf jetzt selbst aus, indem du mit dem Passwortmanager im Browser ein neues Konto anlegst.` | Navigation | Wortlaut auf das tatsächlich hervorgehobene sichtbare Ziel ausgerichtet | begrenzt | Browser im Desktop-Dock | `direkt im Browser` aus dem zugehörigen Sprechschritt · Aktion |
+
+### Darstellungs- und Interaktionsgrenzen
+
+- Die Zeitangabe bleibt theoretische Modellvisualisierung. Passwortlänge, Zeichenraum,
+  Kombinationen und Versuche pro Sekunde bleiben am tastaturfokussierbaren Zahnrad zugänglich.
+- Der Benutzername wird nur flüchtig aus dem bereits gewählten Trainingsnamen abgeleitet und
+  weder persistiert noch exportiert. Benutzername und Passwort beginnen gleichzeitig mit dem
+  Autofill und bleiben als gefüllte, gelb hinterlegte Felder sichtbar.
+- Die Passwortmanager-Übergangskarte ersetzt während ihrer Laufzeit den simulierten Desktop
+  vollständig, entsprechend den Sektionskarten aus Sektion 1.
+
+## Folgeauftrag: Variantenkarten und Logo-Reveal, 25. August 2026
+
+### Quelle und Geltung
+
+Quelle ist der ausdrückliche Nutzerauftrag vom 25. August 2026. Er verkürzt Titel und
+Orientierungspunkte der beiden Passwortmanager-Varianten und verlangt ein weicheres Erscheinen
+ohne Abschneiden der lokalen Logos. Die fachliche Gegenüberstellung und die Reihenfolge der
+Varianten bleiben bestehen. `S12_PASSWORD_MANAGER_CONTENT_VERSION` steigt dafür auf `1.4.0`.
+
+### Copy-Delta
+
+| Segment und Text-ID | Quelle | Aktueller Text | Geplanter Text | Primäre Rolle | Grund | Bedeutungsänderung | Interaktionsziel | Hervorhebung |
+|---|---|---|---|---|---|---|---|---|
+| `S12.variants.integrated.title` | Nutzerauftrag 2026-08-25 | `In Browser oder Gerät integriert` | `Integriert` | Orientierung | ausdrücklich verlangte kompakte Variantenbenennung | begrenzt | kein | Illustration und Kartenposition |
+| `S12.variants.integrated.bullets` | Nutzerauftrag 2026-08-25 | `bereits im Browser oder Gerät vorhanden`; `Zugang meist über Gerät oder Plattformkonto`; `teilweise zusätzlich mit Masterpasswort` | `bereits vorhanden`; `an Browser/Gerät gekoppelt`; `Zugang meist über Gerät oder Plattform` | Orientierung | ausdrücklich vorgegebene, entlastete Merkmalsliste | begrenzt | kein | Listenpunkte und Illustration statt Farbe allein |
+| `S12.variants.separate.title` | Nutzerauftrag 2026-08-25 | `Eigenständiger Passwortmanager` | `Eigenständig` | Orientierung | ausdrücklich verlangte kompakte Variantenbenennung | begrenzt | kein | Illustration und Kartenposition |
+| `S12.variants.separate.bullets` | Nutzerauftrag 2026-08-25 | `separat eingerichtet`; `häufig über verschiedene Browser und Betriebssysteme nutzbar`; `Tresor meist mit einem Masterpasswort geschützt` | `separat eingerichtet`; `browser- und systemübergreifend nutzbar`; `meist mit Masterpasswort geschützt` | Orientierung | ausdrücklich vorgegebene, entlastete Merkmalsliste | begrenzt | kein | Listenpunkte und Illustration statt Farbe allein |
+
+### Darstellungsgrenze
+
+- Beide Varianten erscheinen zeitlich leicht versetzt über Opazität und eine kleine räumliche
+  Bewegung. Die Animation setzt keine dauerhafte Schnittmaske; skalierte oder nach oben
+  verschobene Logos bleiben vollständig sichtbar.
+- Reduced Motion zeigt beide Varianten ohne räumliche Bewegung oder Verzögerung im fachlichen
+  Endzustand.
+
+## Folgeauftrag: Präzisierung der Variantenmerkmale, 25. August 2026
+
+### Quelle und Geltung
+
+Quelle ist der ausdrückliche Nutzerauftrag vom 25. August 2026. Er ersetzt die unmittelbar zuvor
+festgelegten Kurztitel und Merkmalslisten durch vollständige Variantenbezeichnungen und eine
+präzisere Beschreibung ihrer Kopplung beziehungsweise browser- und systemübergreifenden Nutzung.
+Die Darstellungs- und Animationsentscheidungen bleiben unverändert.
+`S12_PASSWORD_MANAGER_CONTENT_VERSION` steigt dafür auf `1.5.0`.
+
+### Copy-Delta
+
+| Segment und Text-ID | Quelle | Aktueller Text | Geplanter Text | Primäre Rolle | Grund | Bedeutungsänderung | Interaktionsziel | Hervorhebung |
+|---|---|---|---|---|---|---|---|---|
+| `S12.variants.integrated.title` | Nutzerauftrag 2026-08-25 | `Integriert` | `Integrierter Passwortmanager` | Orientierung | ausdrücklich verlangte vollständige Variantenbenennung | begrenzt | kein | Illustration und Kartenposition |
+| `S12.variants.integrated.bullets` | Nutzerauftrag 2026-08-25 | `bereits vorhanden`; `an Browser/Gerät gekoppelt`; `Zugang meist über Gerät oder Plattform` | `bereits vorhanden`; `an Browser, Gerät oder Plattform gekoppelt`; `Zugang meist über Gerät/Plattform` | Orientierung | ausdrücklich vorgegebene Präzisierung der Kopplung und des Zugangs | begrenzt | kein | Listenpunkte und Illustration statt Farbe allein |
+| `S12.variants.separate.title` | Nutzerauftrag 2026-08-25 | `Eigenständig` | `Eigenständiger Passwortmanager` | Orientierung | ausdrücklich verlangte vollständige Variantenbenennung | begrenzt | kein | Illustration und Kartenposition |
+| `S12.variants.separate.bullets` | Nutzerauftrag 2026-08-25 | `separat eingerichtet`; `browser- und systemübergreifend nutzbar`; `meist mit Masterpasswort geschützt` | `separat eingerichtet`; `derselbe Tresor über verschiedene Browser und Systeme nutzbar`; `meist mit Masterpasswort geschützt` | Orientierung | ausdrücklich vorgegebene Präzisierung der gemeinsamen Tresornutzung | begrenzt | kein | Listenpunkte und Illustration statt Farbe allein |

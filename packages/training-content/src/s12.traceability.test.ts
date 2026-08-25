@@ -14,23 +14,34 @@ describe('S12 password-manager content traceability', () => {
     ]);
     expect(s12PasswordManagerContent.generator).toMatchObject({
       passwordLength: 16,
-      alphabetSize: '72 mögliche Zeichen',
-      attemptsPerSecond: '1 Billion Versuche pro Sekunde',
-      duration: '1,2-mal das Alter des Universums',
+      passwordLengthLabel: '16 Stellen',
+      alphabetLabel: 'alle Zeichentypen',
+      alphabetSize: 72,
+      attemptsPerSecond: '1 Billion',
+      duration: '16,5 Milliarden Jahre',
     });
   });
 
   it('keeps the two variants concise and the browser exercise transition explicit', () => {
-    expect(s12PasswordManagerContent.variants.integrated.bullets).toEqual([
-      'bereits im Browser oder Gerät vorhanden',
-      'teilweise zusätzlich mit Masterpasswort',
-    ]);
-    expect(s12PasswordManagerContent.variants.separate.bullets).toContain(
-      'Tresor meist mit einem Masterpasswort geschützt',
+    expect(s12PasswordManagerContent.variants.integrated.title).toBe(
+      'Integrierter Passwortmanager',
     );
+    expect(s12PasswordManagerContent.variants.integrated.bullets).toEqual([
+      'bereits vorhanden',
+      'an Browser, Gerät oder Plattform gekoppelt',
+      'Zugang meist über Gerät/Plattform',
+    ]);
+    expect(s12PasswordManagerContent.variants.separate.title).toBe(
+      'Eigenständiger Passwortmanager',
+    );
+    expect(s12PasswordManagerContent.variants.separate.bullets).toEqual([
+      'separat eingerichtet',
+      'derselbe Tresor über verschiedene Browser und Systeme nutzbar',
+      'meist mit Masterpasswort geschützt',
+    ]);
     expect(s12PasswordManagerContent.guide.steps.practice).toEqual([
       'Für die Übung nutzen wir den Passwortmanager direkt im Browser.',
-      'Probier den Ablauf jetzt selbst aus indem du mit dem Password Manager bei My Shop ein neues Konto anlegst.',
+      'Probier den Ablauf jetzt selbst aus, indem du mit dem Passwortmanager im Browser ein neues Konto anlegst.',
     ]);
   });
 });

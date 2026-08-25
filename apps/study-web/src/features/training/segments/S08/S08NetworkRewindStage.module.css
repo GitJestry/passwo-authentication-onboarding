@@ -576,7 +576,10 @@
 .passWoScene {
   position: absolute;
   z-index: 10;
-  inset: 0;
+  right: 0;
+  bottom: 4.8rem;
+  left: 0;
+  height: var(--s09-dialog-band);
 }
 
 .passwordManagerAction {
@@ -642,14 +645,6 @@
 .passwordManagerAction:focus-visible {
   outline: var(--border-width-focus) solid var(--color-focus);
   outline-offset: var(--space-1);
-}
-
-.training[data-s09-expanded="true"] .passWoScene {
-  top: auto;
-  right: 0;
-  bottom: 4.8rem;
-  left: 0;
-  height: var(--s09-dialog-band);
 }
 
 @keyframes protected-replay-enter {

@@ -15,7 +15,7 @@ const s07EntryCopyReference =
 const s08CopyReference =
   'docs/design/S08-S09-COPY-AUDIT.md#copy-delta-s08-s09-eigene-passwoerter-23-august-2026';
 const s09CopyReference =
-  'docs/design/S12-COPY-AUDIT.md#copy-und-ablaufdelta-s12-passwortmanager-25-august-2026';
+  'docs/design/S12-COPY-AUDIT.md#folgeauftrag-visual-und-copy-präzisierung-25-august-2026';
 
 describe('S06 transition and S07 passphrase-search copy traceability', () => {
   it('keeps S06 consequence wording aligned with bounded whole-password recognition', () => {
@@ -371,7 +371,7 @@ describe('S06 transition and S07 passphrase-search copy traceability', () => {
   });
 
   it('keeps the S09 password summary linked to its password checklist', () => {
-    expect(S09_PASSWORD_SUMMARY_CONTENT_VERSION).toBe('4.7.0');
+    expect(S09_PASSWORD_SUMMARY_CONTENT_VERSION).toBe('4.8.0');
     expect(s09PasswordSummaryContent.source.copyReference).toBe(s09CopyReference);
     expect(s09PasswordSummaryContent.principles).toHaveLength(6);
     expect(
@@ -421,6 +421,12 @@ describe('S06 transition and S07 passphrase-search copy traceability', () => {
       title: 'Passwortmanager',
       detail: 'kennenlernen',
       ariaLabel: 'Passwortmanager kennenlernen',
+    });
+    expect(s09PasswordSummaryContent.passwordManagerTransition).toEqual({
+      sectionLabel: 'Sektion 2 von 3',
+      title: 'Passwortmanager',
+      parts: [{ id: 'password-vault', label: 'Ein Tresor für alle deine Passwörter' }],
+      holdDurationMs: 3500,
     });
   });
 });

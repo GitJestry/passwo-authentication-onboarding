@@ -1,7 +1,7 @@
 import type { TrainingSectionId } from '@passwo/contracts';
 import { s07PassphraseSearchContent } from './s07.js';
 
-export const S12_PASSWORD_MANAGER_CONTENT_VERSION = '1.1.0';
+export const S12_PASSWORD_MANAGER_CONTENT_VERSION = '1.5.0';
 
 const familiarPassphrase =
   s07PassphraseSearchContent.browser.generatorPage.passphrases[0]?.words ?? [];
@@ -10,9 +10,9 @@ export const s12PasswordManagerContent = {
   version: S12_PASSWORD_MANAGER_CONTENT_VERSION,
   source: {
     revision:
-      'Useraufträge vom 2026-08-25 · Passwortmanager-Funktionen, Systemvarianten und My-Shop-Überleitung',
+      'Useraufträge vom 2026-08-25 · Passwortmanager-Visuals, Varianten und Browserüberleitung',
     copyReference:
-      'docs/design/S12-COPY-AUDIT.md#copy-und-ablaufdelta-s12-passwortmanager-25-august-2026',
+      'docs/design/S12-COPY-AUDIT.md#folgeauftrag-präzisierung-der-variantenmerkmale-25-august-2026',
   },
   segment: {
     id: 'S12',
@@ -29,14 +29,24 @@ export const s12PasswordManagerContent = {
   flowAriaLabel: 'Funktionen eines Passwortmanagers',
   completedAriaLabel: 'abgeschlossen',
   generator: {
-    fieldLabel: 'Zufällig erzeugtes Passwort',
+    fieldLabel: 'Passwort',
     password: 'q7$Lm2!vP9#xR4@k',
     passwordLength: 16,
-    passwordLengthLabel: '16 Zeichen',
-    duration: '1,2-mal das Alter des Universums',
-    alphabetSize: '72 mögliche Zeichen',
-    attemptsPerSecond: '1 Billion Versuche pro Sekunde',
-    combinations: '5,2 × 10²⁹ mögliche Kombinationen',
+    passwordLengthLabel: '16 Stellen',
+    alphabetLabel: 'alle Zeichentypen',
+    duration: '16,5 Milliarden Jahre',
+    durationLead: '16,5 Milliarden',
+    durationUnit: 'Jahre',
+    informationLabel: 'Berechnungsannahmen anzeigen',
+    alphabetSize: 72,
+    attemptsPerSecond: '1 Billion',
+    combinations: '5,2 × 10²⁹',
+    information: {
+      passwordLength: 'Passwortlänge',
+      alphabetSize: 'Zeichenraumgröße',
+      combinations: 'Mögliche Kombinationen',
+      attemptsPerSecond: 'Berechnungen pro Sekunde',
+    },
     durationExplanation:
       'bis alle Zeichenfolgen der Länge 16 ausprobiert worden sind',
   },
@@ -49,13 +59,13 @@ export const s12PasswordManagerContent = {
       stored: 'gespeichert',
     },
     entry: {
-      account: 'My Shop',
-      usernameDomain: 'my-shop.example',
+      account: 'Anmeldebeispiel',
+      username: 'benutzername',
       maskedPassword: '••••••••••••••••',
     },
   },
   login: {
-    title: 'Bei My Shop anmelden',
+    title: 'Anmeldebeispiel',
     usernameLabel: 'Benutzername',
     passwordLabel: 'Passwort',
     submitLabel: 'Anmelden',
@@ -63,19 +73,20 @@ export const s12PasswordManagerContent = {
   variants: {
     integrated: {
       id: 'integrated',
-      title: 'In Browser oder Gerät integriert',
+      title: 'Integrierter Passwortmanager',
       bullets: [
-        'bereits im Browser oder Gerät vorhanden',
-        'teilweise zusätzlich mit Masterpasswort',
+        'bereits vorhanden',
+        'an Browser, Gerät oder Plattform gekoppelt',
+        'Zugang meist über Gerät/Plattform',
       ],
     },
     separate: {
       id: 'separate',
-      title: 'Separater Passwortmanager',
+      title: 'Eigenständiger Passwortmanager',
       bullets: [
         'separat eingerichtet',
-        'häufig über verschiedene Browser und Betriebssysteme nutzbar',
-        'Tresor meist mit einem Masterpasswort geschützt',
+        'derselbe Tresor über verschiedene Browser und Systeme nutzbar',
+        'meist mit Masterpasswort geschützt',
       ],
     },
     passphrasePreview: familiarPassphrase,
@@ -96,14 +107,14 @@ export const s12PasswordManagerContent = {
       access:
         'Die einzelnen Passwörter musst du dir damit nicht mehr merken. Dafür schützt du den Zugang zu deinem Passwortmanager.',
       variants:
-        'Viele Browser und Geräte enthalten bereits einen Passwortmanager. Daneben gibt es separate Passwortmanager.',
+        'Viele Browser und Geräte enthalten bereits einen Passwortmanager. Daneben gibt es eigenständige Passwortmanager.',
       separate:
-        'Separate Passwortmanager schützen ihren Tresor meist mit einem Masterpasswort. Dafür kannst du zum Beispiel die Passphrase aus Abschnitt 1 verwenden.',
+        'Eigenständige Passwortmanager schützen ihren Tresor meist mit einem Masterpasswort. Dafür kannst du zum Beispiel die Passphrase aus Abschnitt 1 verwenden.',
       integrated:
         'Bei integrierten Passwortmanagern übernimmt häufig dein geschützter Geräte- oder Plattformzugang diese Aufgabe.',
       practice: [
         'Für die Übung nutzen wir den Passwortmanager direkt im Browser.',
-        'Probier den Ablauf jetzt selbst aus indem du mit dem Password Manager bei My Shop ein neues Konto anlegst.',
+        'Probier den Ablauf jetzt selbst aus, indem du mit dem Passwortmanager im Browser ein neues Konto anlegst.',
       ],
     },
   },
