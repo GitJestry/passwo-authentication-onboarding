@@ -144,10 +144,21 @@ abgedunkelt. Während Importhinweis und Hinweis auf das beim Dienst unverändert
 einzelner Netzwerkknoten herausgehoben; stattdessen trägt beim Import ausschließlich der Tresor
 einen subtilen wiederholten Fokus. Muster Bank behält durchgehend seinen roten Befallszustand,
 wird aber erst beim Satz über das wiederverwendete Passwort mit dem vorhandenen Puls und voller
-Deckkraft fokussiert. Dieser Fokus bleibt in den folgenden Erklärungsschritten bestehen.
+Deckkraft fokussiert. Ihre eine rote Beziehung trägt dabei mittig die sichtbare Kennzeichnung
+`dasselbe`. Dieser Fokus und die Kennzeichnung bleiben in den folgenden Erklärungsschritten bis
+zur Browseröffnung bestehen.
 Der für MyShop reservierte anonyme S09-Knoten und seine Kanten bleiben in diesem ersten
 Netzwerkframe ausgeblendet. Beim authored MyShop-Reveal erscheint direkt der Logo-Knoten an der
 vorgesehenen Position, ohne vorherigen weißen Platzhalter.
+
+Nach der praktischen Passwortänderung bei Muster Bank bleibt derselbe Graph weiterhin gemountet.
+Muster Bank ist der einzige voll deckende Kontofokus. Zuerst pulsiert der Knoten wie beim
+MyShop-Reveal, während sich genau seine eine vorhandene rote Passwortbeziehung von beiden Enden
+löst. Danach wechselt der Muster-Bank-Knoten in den blauen Schutzstatus und zeigt seinen
+Kontoschild. Erst im dritten Zustand erscheinen an demselben Kontopaar zwei grüne Liniensegmente
+mit mittigem Schild. Alle übrigen Knoten und Kanten bleiben transparent abgedunkelt. Reduced
+Motion durchläuft dieselben fachlichen Zustände ohne Puls-, Auflösungs- oder
+Einblendanimation.
 
 ## S02-Kontenerkundung
 

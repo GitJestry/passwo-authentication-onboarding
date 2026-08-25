@@ -856,7 +856,11 @@ export function createS09ScalingRiskNetwork(
   };
 }
 
-export type S13AccountNetworkPhase = 'network' | 'revealed' | 'shielded' | 'connected';
+export type S13AccountNetworkPhase =
+  | 'network'
+  | 'revealed'
+  | 'shielded'
+  | 'connected';
 
 function distanceBetweenNodes(source: SceneNode, target: SceneNode): number {
   return Math.hypot(
@@ -959,7 +963,7 @@ export function createS13MyShopNetwork(
           ? {
               kind: 'identical-reuse' as const,
               status: 'direct' as const,
-              label: null,
+              label: 'dasselbe',
             }
           : {}),
       },
@@ -1042,6 +1046,116 @@ export function createS13MyShopNetwork(
     nodes: [...replacedNodes, ...protectionNodes],
     edges: [...replacedEdges, ...protectionEdges],
     accessibleSummary: `${source.accessibleSummary} My Shop besitzt ein eigenes Passwort, trägt einen blauen Schutzschild und ist durch ${protectionTargets.length} grüne Schildverbindungen von allen Konten in seinem Nahbereich getrennt. Muster Bank bleibt rot markiert und besitzt eine rote Verbindung für dasselbe Passwort.`,
+  };
+}
+
+/**
+ * Replaces Muster Bank's one authored risk relation without rebuilding the surrounding S13
+ * network. The result contains only authored account names and no password material.
+ */
+export function createS13BankProtectedNetwork(
+  source: NetworkSceneSnapshot,
+): NetworkSceneSnapshot {
+  const finalSummaryBase = source.accessibleSummary.replace(
+    ' Muster Bank bleibt rot markiert und besitzt eine rote Verbindung für dasselbe Passwort.',
+    '',
+  );
+  const bankNode = source.nodes.find(({ id }) => id === 'muster-bank');
+  const bankRelation = source.edges.find(
+    ({ sourceId, targetId, kind }) =>
+      (sourceId === 'muster-bank' || targetId === 'muster-bank') &&
+      (kind === 'identical-reuse' || kind === 'similar-pattern'),
+  );
+  const bankPeerId =
+    bankRelation?.sourceId === 'muster-bank'
+      ? bankRelation.targetId
+      : bankRelation?.sourceId;
+  const bankPeer = source.nodes.find(({ id }) => id === bankPeerId);
+  const nodesWithoutOldBank = source.nodes.map((node): SceneNode =>
+    node.id === 'muster-bank' ? { ...node, status: 'protected' } : node,
+  );
+  const edgesWithoutOldRelation = source.edges.filter(
+    ({ id }) => id !== bankRelation?.id,
+  );
+
+  if (bankNode === undefined || bankPeer === undefined) {
+    return {
+      ...source,
+      id: `${source.id}-bank-protected`,
+      nodes: nodesWithoutOldBank,
+      edges: edgesWithoutOldRelation,
+      accessibleSummary: `${finalSummaryBase} Muster Bank besitzt jetzt ein eigenes Passwort und trägt einen blauen Schutzschild. Die bisherige rote Passwortbeziehung ist entfernt.`,
+    };
+  }
+
+  const shieldId = 's13-muster-bank-protection-shield';
+  const bankProtectionShield: SceneNode = {
+    id: shieldId,
+    kind: 'shield',
+    symbolId: 'comparison-path-shield',
+    label: 'Eigenes Passwort',
+    description:
+      'Die frühere Passwortverbindung von Muster Bank ist in der Übung entfernt.',
+    status: 'protected',
+    position: {
+      x: (bankNode.position.x + bankPeer.position.x) / 2,
+      y: (bankNode.position.y + bankPeer.position.y) / 2,
+    },
+    selectable: false,
+  };
+  const bankProtectionEdges: SceneEdge[] = [
+    {
+      id: 's13-muster-bank-protection-source',
+      sourceId: bankNode.id,
+      targetId: shieldId,
+      kind: 'blocked-path',
+      status: 'blocked',
+      label: null,
+    },
+    {
+      id: 's13-muster-bank-protection-target',
+      sourceId: bankPeer.id,
+      targetId: shieldId,
+      kind: 'blocked-path',
+      status: 'blocked',
+      label: null,
+    },
+  ];
+
+  return {
+    ...source,
+    id: `${source.id}-bank-protected`,
+    nodes: [...nodesWithoutOldBank, bankProtectionShield],
+    edges: [...edgesWithoutOldRelation, ...bankProtectionEdges],
+    accessibleSummary: `${finalSummaryBase} Muster Bank besitzt jetzt ein eigenes Passwort, trägt einen blauen Schutzschild und ist durch eine grüne Schildverbindung vom früher verbundenen Konto getrennt. Die bisherige rote Passwortbeziehung ist entfernt.`,
+  };
+}
+
+/**
+ * Projects the intermediate bank state after the old relation has disappeared, but before the
+ * new green protection path is drawn. This keeps the shield and connection reveals separate.
+ */
+export function createS13BankShieldedNetwork(
+  source: NetworkSceneSnapshot,
+): NetworkSceneSnapshot {
+  const protectedNetwork = createS13BankProtectedNetwork(source);
+  const finalSummaryBase = source.accessibleSummary.replace(
+    ' Muster Bank bleibt rot markiert und besitzt eine rote Verbindung für dasselbe Passwort.',
+    '',
+  );
+
+  return {
+    ...protectedNetwork,
+    id: `${source.id}-bank-shielded`,
+    nodes: protectedNetwork.nodes.filter(
+      ({ id }) => id !== 's13-muster-bank-protection-shield',
+    ),
+    edges: protectedNetwork.edges.filter(
+      ({ sourceId, targetId }) =>
+        sourceId !== 's13-muster-bank-protection-shield' &&
+        targetId !== 's13-muster-bank-protection-shield',
+    ),
+    accessibleSummary: `${finalSummaryBase} Muster Bank besitzt jetzt ein eigenes Passwort und trägt einen blauen Schutzschild. Die bisherige rote Passwortbeziehung ist entfernt; eine grüne Schutzverbindung ist noch nicht dargestellt.`,
   };
 }
 

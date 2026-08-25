@@ -115,12 +115,13 @@ function S07ToS09QaPreview({
     | 's09'
     | 'manager'
     | 's13'
-    | 's13-network';
+    | 's13-network'
+    | 's13-bank';
   readonly network: NetworkSceneSnapshot | null;
   readonly plan: ReturnType<typeof createS06ConsequenceScenePlan>;
 }) {
   const [stage, setStage] = useState<
-    's07' | 's08' | 's09' | 'manager' | 's13' | 's13-network'
+    's07' | 's08' | 's09' | 'manager' | 's13' | 's13-network' | 's13-bank'
   >(initialStage);
   const [completedRecommendedAccountIds, setCompletedRecommendedAccountIds] = useState<
     readonly S07RemainingAccountId[] | null
@@ -208,7 +209,8 @@ function S07DirectQaPreview({
     | 's09'
     | 'manager'
     | 's13'
-    | 's13-network';
+    | 's13-network'
+    | 's13-bank';
   readonly passwordOverrides: TrainingQaPasswordOverrides;
 }) {
   const accounts = useMemo<S06ConsequenceAccountInputs>(() => {
@@ -621,6 +623,13 @@ const scenarios: Record<DesignLabScenarioId, DesignLabScenario> = {
     dimmed: false,
     showPassWoOverlay: false,
   },
+  's2-4-muster-bank-login': {
+    label: 's2.4 · Muster Bank anmelden',
+    description:
+      'Direkter lokaler QA- und Resume-Einstieg in S13 bei der Anmeldung am Muster-Bank-Konto.',
+    dimmed: false,
+    showPassWoOverlay: false,
+  },
 };
 
 const scenarioGroups = [
@@ -680,6 +689,7 @@ const scenarioGroups = [
       's2-1-password-manager-transition',
       's2-2-my-shop-registration',
       's2-3-password-manager-network',
+      's2-4-muster-bank-login',
     ],
   },
 ] as const satisfies readonly DesignLabScenarioGroup[];
@@ -1406,6 +1416,20 @@ export function DesignLab({ scenarioId }: { readonly scenarioId: DesignLabScenar
         <ArtifactPreview>
           <S07DirectQaPreview
             initialStage="s13-network"
+            passwordOverrides={passwordOverrides}
+          />
+        </ArtifactPreview>
+      </main>
+    );
+  }
+
+  if (scenarioId === 's2-4-muster-bank-login') {
+    return (
+      <main className={styles.labPage}>
+        <DesignLabIntroduction scenarioId={scenarioId} scenario={scenario} />
+        <ArtifactPreview>
+          <S07DirectQaPreview
+            initialStage="s13-bank"
             passwordOverrides={passwordOverrides}
           />
         </ArtifactPreview>

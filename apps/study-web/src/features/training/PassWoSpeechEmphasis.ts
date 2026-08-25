@@ -212,12 +212,14 @@ const emphasisBySpeechId: Readonly<Record<string, readonly PassWoSpeechEmphasis[
     { phrase: 'erzeugen, speichern und beim Anmelden wieder ausfüllen', tone: 'accent' },
   ],
   's12-manager-generate': [
-    { phrase: 'langes, zufällig erzeugtes Passwort', tone: 'accent' },
+    { phrase: 'langes, zufälliges Passwort', tone: 'accent' },
   ],
   's12-manager-store': [
     { phrase: 'welches Passwort zu welchem Konto gehört', tone: 'accent' },
   ],
-  's12-manager-fill': [{ phrase: 'passenden Eintrag', tone: 'positive' }],
+  's12-manager-fill': [
+    { phrase: 'passenden gespeicherten Eintrag', tone: 'positive' },
+  ],
   's12-manager-access': [
     { phrase: 'Zugang zu deinem Passwortmanager', tone: 'accent' },
   ],
@@ -264,7 +266,9 @@ const emphasisBySpeechId: Readonly<Record<string, readonly PassWoSpeechEmphasis[
       contrastId: 's13-bank-settings',
     },
   ],
-  's13-network-reopen-browser': [{ phrase: 'Browser', tone: 'action' }],
+  's13-network-bank-password-changed': [
+    { phrase: 'eigenes Passwort', tone: 'positive' },
+  ],
 };
 
 export function passWoSpeechEmphasisFor(

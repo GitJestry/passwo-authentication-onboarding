@@ -3,6 +3,7 @@ import { s12PasswordManagerContent } from './s12.js';
 
 describe('S12 password-manager content traceability', () => {
   it('keeps the authored function sequence and bounded theoretical model together', () => {
+    expect(s12PasswordManagerContent.version).toBe('1.11.0');
     expect(s12PasswordManagerContent.segment).toMatchObject({
       id: 'S12',
       sectionId: 'password-manager',
@@ -39,6 +40,13 @@ describe('S12 password-manager content traceability', () => {
       initial: '8 Einträge',
       withGenerated: '9 Einträge',
     });
+    expect(s12PasswordManagerContent.guide.steps).toMatchObject({
+      generate:
+        'Weil du es nicht selbst auswendig lernen musst, kann der Manager ein langes, zufälliges Passwort erzeugen.',
+      store: 'Im Tresor speichert er, welches Passwort zu welchem Konto gehört.',
+      fill:
+        'Beim nächsten Anmelden kann er den passenden gespeicherten Eintrag automatisch ausfüllen.',
+    });
   });
 
   it('keeps the two variants concise and the browser exercise transition explicit', () => {
@@ -59,8 +67,7 @@ describe('S12 password-manager content traceability', () => {
       'meist mit Masterpasswort geschützt',
     ]);
     expect(s12PasswordManagerContent.guide.steps.practice).toEqual([
-      'Für die Übung nutzen wir den Passwortmanager direkt im Browser.',
-      'Probier den Ablauf jetzt selbst aus, indem du mit dem Passwortmanager ein neues Konto bei MyShop anlegst.',
+      'Für die Übung nutzen wir den Passwortmanager integriert im Browser. Lege damit jetzt ein neues Konto bei MyShop an.',
     ]);
   });
 });

@@ -91,10 +91,18 @@ fokussierbare Hinweis-Markierung erreicht werden.
 - Ein erfolgreicher Registrierungs- oder Anmelde-Check wird zwei Sekunden lang angezeigt und
   danach automatisch beendet. Tabwechsel und Trainingsübergänge dürfen ihn früher beenden; nach
   der Rückkehr zu einem bereits bestätigten Konto erscheint er nicht erneut.
-- Nach dem ersten Ablehnen des S13-Speicherhinweises darf der Passwortmanager-Indikator eine
-  wiederholte Fokusfolge aus Vergrößern, Wackeln, Verkleinern und Pause zeigen. Der zugehörige
-  Statechart-Zustand beendet sie beim erneuten Öffnen des Hinweises, beim Speichern oder beim
-  zweiten Ablehnen. Bei Reduced Motion bleibt nur der unbewegte Fokusrahmen sichtbar.
+- Nach dem ersten Ablehnen eines S13-Speicher- oder Update-Hinweises darf der
+  Passwortmanager-Indikator eine wiederholte Fokusfolge aus Vergrößern, Wackeln, Verkleinern und
+  Pause zeigen. Der zugehörige Statechart-Zustand beendet sie beim erneuten Öffnen des Hinweises
+  beziehungsweise beim Speichern oder Aktualisieren. Bei Reduced Motion bleibt nur der
+  unbewegte Fokusrahmen sichtbar.
+- Die simulierten S13-Loginfelder bleiben nach einem Autofill editierbar. Ein Fokus auf
+  Benutzername oder Passwort darf die lokale Tresorliste unabhängig von der bereits vorhandenen
+  Zeichenzahl erneut öffnen; das bloße Verlassen eines vollständig gefüllten Feldes sperrt die
+  Anmeldung nicht.
+- Der Muster-Bank-Status `Passwort aktualisiert` ist ein zweisekündiger
+  Statechart-Zwischenstatus. Der aktualisierte lokale Tresoreintrag bleibt danach für den
+  weiteren Übungsablauf wirksam, ohne Eingabewerte zu persistieren.
 - Native Interaktionsflächen behalten bei Hover und Drücken ihre tatsächliche Position. Eine
   visuelle Rückmeldung darf die klickbare Fläche nicht unter einem Zeiger am Rand wegbewegen.
 - Der Browser kann abgedunkelt werden, ohne Fokus oder Lesbarkeit der aktiven PassWo-Schicht zu

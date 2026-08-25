@@ -1,7 +1,7 @@
 import type { TrainingSectionId } from '@passwo/contracts';
 import { s07PassphraseSearchContent } from './s07.js';
 
-export const S12_PASSWORD_MANAGER_CONTENT_VERSION = '1.10.0';
+export const S12_PASSWORD_MANAGER_CONTENT_VERSION = '1.11.0';
 
 const familiarPassphrase =
   s07PassphraseSearchContent.browser.generatorPage.passphrases[0]?.words ?? [];
@@ -10,9 +10,9 @@ export const s12PasswordManagerContent = {
   version: S12_PASSWORD_MANAGER_CONTENT_VERSION,
   source: {
     revision:
-      'Useraufträge vom 2026-08-25 · S12-Kontenabgleich und präzisierte MyShop-Überleitung',
+      'Useraufträge vom 2026-08-25 · präzisierte Passwortmanager-Erklärung und MyShop-Überleitung',
     copyReference:
-      'docs/design/S12-COPY-AUDIT.md#folgeauftrag-s12-kontenabgleich-und-schrittstatus-25-august-2026',
+      'docs/design/S12-COPY-AUDIT.md#folgeauftrag-präzisierte-funktionserklärungen-und-myshop-überleitung-25-august-2026',
   },
   segment: {
     id: 'S12',
@@ -144,11 +144,11 @@ export const s12PasswordManagerContent = {
       intro:
         'Ein Passwortmanager kann für jedes Konto ein eigenes Passwort erzeugen, speichern und beim Anmelden wieder ausfüllen.',
       generate:
-        'Weil du dieses Passwort nicht selbst auswendig lernen musst, kann der Manager ein langes, zufällig erzeugtes Passwort für dich verwenden.',
+        'Weil du es nicht selbst auswendig lernen musst, kann der Manager ein langes, zufälliges Passwort erzeugen.',
       store:
         'Im Tresor speichert er, welches Passwort zu welchem Konto gehört.',
       fill:
-        'Beim nächsten Anmelden kann der Passwortmanager den passenden Eintrag wieder für dich einsetzen.',
+        'Beim nächsten Anmelden kann er den passenden gespeicherten Eintrag automatisch ausfüllen.',
       access:
         'Die einzelnen Passwörter musst du dir damit nicht mehr merken. Dafür schützt du den Zugang zu deinem Passwortmanager.',
       variants:
@@ -158,8 +158,7 @@ export const s12PasswordManagerContent = {
       integrated:
         'Bei integrierten Passwortmanagern übernimmt häufig dein geschützter Geräte- oder Plattformzugang diese Aufgabe.',
       practice: [
-        'Für die Übung nutzen wir den Passwortmanager direkt im Browser.',
-        'Probier den Ablauf jetzt selbst aus, indem du mit dem Passwortmanager ein neues Konto bei MyShop anlegst.',
+        'Für die Übung nutzen wir den Passwortmanager integriert im Browser. Lege damit jetzt ein neues Konto bei MyShop an.',
       ],
     },
   },

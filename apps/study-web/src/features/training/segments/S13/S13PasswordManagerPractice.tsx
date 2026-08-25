@@ -21,9 +21,10 @@ import {
   type S13AutofillEntryId,
   s13PasswordManagerPracticeMachine,
 } from './S13PasswordManagerPracticeMachine.js';
+import { usePasswordManagerAutofill } from './usePasswordManagerAutofill.js';
 import styles from './S13PasswordManagerPractice.module.css';
 
-function PasswordManagerKeyIcon() {
+export function PasswordManagerKeyIcon() {
   return (
     <svg aria-hidden="true" viewBox="0 0 24 24" fill="none">
       <circle cx="8.2" cy="10.2" r="4.2" />
@@ -707,53 +708,24 @@ export function S13PasswordManagerPractice({
   const loginInvalid = state.matches('loginInvalid');
   const signedIn = state.matches('signedIn');
   const autofillOfferAvailable =
-    (loginIdle || loginOffer || loginReady || loginInvalid) &&
-    (loginEmailValue === '' || loginPasswordValue === '');
+    loginIdle || loginOffer || loginReady || loginInvalid;
   const savePending =
     savePromptVisible || saveGuidanceFirst || saveGuidanceSecond || saveDeferred;
   const shopVisible =
     savePending || saveConfirmation || saveIconRestored || passwordSaved || signedIn;
   const passwordManagerReopenEnabled = saveGuidanceSecond || saveDeferred;
 
-  useEffect(() => {
-    if (!autofilling || state.context.selectedAutofillEntryId === null) return;
-
-    const entry = autofillEntries.find(
-      ({ id }) => id === state.context.selectedAutofillEntryId,
-    );
-    if (entry === undefined) return;
-
-    const durationMs = state.context.autofillDurationMs;
-    if (durationMs === 0) {
-      setLoginEmailValue(entry.identifier);
-      setLoginPasswordValue(entry.password);
-      return;
-    }
-
-    const startedAt = performance.now();
-    const characterAnimationDurationMs = durationMs * 0.85;
-    let frame = 0;
-
-    const enterNextCharacters = (now: number) => {
-      const progress = Math.min((now - startedAt) / characterAnimationDurationMs, 1);
-      setLoginEmailValue(
-        entry.identifier.slice(0, Math.floor(entry.identifier.length * progress)),
-      );
-      setLoginPasswordValue(
-        entry.password.slice(0, Math.floor(entry.password.length * progress)),
-      );
-
-      if (progress < 1) frame = requestAnimationFrame(enterNextCharacters);
-    };
-
-    frame = requestAnimationFrame(enterNextCharacters);
-    return () => cancelAnimationFrame(frame);
-  }, [
-    autofillEntries,
-    autofilling,
-    state.context.autofillDurationMs,
-    state.context.selectedAutofillEntryId,
-  ]);
+  const selectedAutofillEntry = autofillEntries.find(
+    ({ id }) => id === state.context.selectedAutofillEntryId,
+  );
+  usePasswordManagerAutofill({
+    active: autofilling && selectedAutofillEntry !== undefined,
+    durationMs: state.context.autofillDurationMs,
+    identifier: selectedAutofillEntry?.identifier ?? '',
+    password: selectedAutofillEntry?.password ?? '',
+    onIdentifierChange: setLoginEmailValue,
+    onPasswordChange: setLoginPasswordValue,
+  });
 
   useEffect(() => {
     if (signedIn) setSuccessOverlayVisible(true);

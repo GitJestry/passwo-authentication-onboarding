@@ -344,3 +344,37 @@ steigt `S12_PASSWORD_MANAGER_CONTENT_VERSION` auf `1.10.0`.
 - Türschließen und Verkleinern sind in der Variantenüberleitung getrennte Statechart-Zustände.
   Die Tür erreicht zuerst ihre volle Abdeckung und bleibt kurz eingerastet; erst danach bewegt
   sich der bereits geschlossene Tresor zu den Darstellungen `Integriert` und `Eigenständig`.
+
+## Korrektur: Tresorverschluss und größere Variantentitel, 25. August 2026
+
+Quelle ist der ausdrückliche Nutzerauftrag vom 25. August 2026. Teilnehmertexte und
+Content-Version bleiben unverändert.
+
+- Im Speicherschritt schließt zuerst die Tresortür vollständig. Anschließend dreht sich das
+  mittige Tresorrad sichtbar in die Verriegelungsposition. Reduced Motion zeigt denselben
+  geschlossenen Endzustand ohne Drehbewegung.
+- Die vorhandenen Titel `Integrierter Passwortmanager` und `Eigenständiger Passwortmanager`
+  werden größer dargestellt; Wortlaut und Ablauf bleiben unverändert.
+
+## Folgeauftrag: Präzisierte Funktionserklärungen und MyShop-Überleitung, 25. August 2026
+
+Quelle ist der ausdrückliche Nutzerauftrag vom 25. August 2026. Die Content-Version steigt von
+`1.10.0` auf `1.11.0`. Der bestehende Speichern-Satz wird ausdrücklich bestätigt und bleibt
+wortgleich.
+
+### Copy-Delta
+
+| Segment und Text-ID | Quelle | Aktueller Text | Geplanter Text | Primäre Rolle | Grund | Bedeutungsänderung | Interaktionsziel | Hervorhebung |
+|---|---|---|---|---|---|---|---|---|
+| `S12.guide.steps.generate` | Nutzerauftrag 2026-08-25 | `Weil du dieses Passwort nicht selbst auswendig lernen musst, kann der Manager ein langes, zufällig erzeugtes Passwort für dich verwenden.` | `Weil du es nicht selbst auswendig lernen musst, kann der Manager ein langes, zufälliges Passwort erzeugen.` | Mechanismuserklärung | ausdrücklich verlangte Verkürzung ohne Änderung des Mechanismus | begrenzt | `Weiter` | `langes, zufälliges Passwort` · Akzent |
+| `S12.guide.steps.store` | Nutzerauftrag 2026-08-25 | `Im Tresor speichert er, welches Passwort zu welchem Konto gehört.` | unverändert | Mechanismuserklärung | ausdrücklich bestätigter Wortlaut | nein | `Weiter` | `welches Passwort zu welchem Konto gehört` · Akzent |
+| `S12.guide.steps.fill` | Nutzerauftrag 2026-08-25 | `Beim nächsten Anmelden kann der Passwortmanager den passenden Eintrag wieder für dich einsetzen.` | `Beim nächsten Anmelden kann er den passenden gespeicherten Eintrag automatisch ausfüllen.` | Mechanismuserklärung | ausdrücklich verlangte Autofill-Benennung | begrenzt | `Weiter` | `passenden gespeicherten Eintrag` · positiv |
+| `S12.guide.steps.practice` | Nutzerauftrag 2026-08-25 | `Für die Übung nutzen wir den Passwortmanager direkt im Browser.` / `Probier den Ablauf jetzt selbst aus, indem du mit dem Passwortmanager ein neues Konto bei MyShop anlegst.` | `Für die Übung nutzen wir den Passwortmanager integriert im Browser. Lege damit jetzt ein neues Konto bei MyShop an.` | Navigation | ausdrücklich verlangte, kompakte Überleitung zur sichtbaren Browserübung | begrenzt | Browser im Desktop-Dock und folgende MyShop-Übung | `MyShop` · Aktion mit lokalem Logo |
+
+### Darstellungs- und Interaktionsgrenzen
+
+- `Eigenständiger Passwortmanager` bleibt auch bei responsiver Skalierung in einer Zeile. Die
+  Schrift skaliert dafür innerhalb der vorhandenen Variantendarstellung, ohne den Titel zu
+  verkürzen.
+- Die bestehende MyShop-Symbolmarkierung wird durch den unveränderten Ausdruck `MyShop` im neuen
+  gemeinsamen Sprechschritt weiterverwendet.

@@ -1,13 +1,13 @@
 import type { TrainingSectionId } from '@passwo/contracts';
 import { s12PasswordManagerContent } from './s12.js';
 
-export const S13_PASSWORD_MANAGER_PRACTICE_CONTENT_VERSION = '1.8.0';
+export const S13_PASSWORD_MANAGER_PRACTICE_CONTENT_VERSION = '2.2.0';
 
 export const s13PasswordManagerPracticeContent = {
   version: S13_PASSWORD_MANAGER_PRACTICE_CONTENT_VERSION,
   source: {
     revision:
-      'Nutzerauftrag vom 2026-08-25 · 12.3 Ein neues Konto und 12.4 Ein bestehendes Konto',
+      'Nutzeraufträge vom 2026-08-25 · robuste Autofill-Auswahl und präzisierter Muster-Bank-Abschluss',
     copyReference: 'docs/design/S13-COPY-AUDIT.md',
   },
   segment: {
@@ -16,7 +16,7 @@ export const s13PasswordManagerPracticeContent = {
     slice: 'integrated-password-manager-practice',
   },
   trainingAriaLabel:
-    'Training, Segment S13, ein neues und ein bestehendes Konto mit dem Passwortmanager',
+    'Training, Segment S13, ein neues Konto und Passwortwechsel bei Muster Bank mit dem Passwortmanager',
   browser: {
     ariaLabel: 'Fiktiver Browser mit My Shop',
     tabId: 'my-shop',
@@ -107,7 +107,7 @@ export const s13PasswordManagerPracticeContent = {
   passwordManager: {
     generatedPassword: s12PasswordManagerContent.generator.password,
     maskedPassword: s12PasswordManagerContent.vault.entry.maskedPassword,
-    suggestAction: 'Starkes Passwort vorschlagen',
+    suggestAction: 'Sicher erzeugtes Passwort verwenden',
     saveTitle: 'Passwort für My Shop speichern?',
     usernameLabel: 'Benutzername',
     passwordLabel: 'Passwort',
@@ -187,7 +187,236 @@ export const s13PasswordManagerPracticeContent = {
         'Muster Bank verwendet zum Beispiel noch dasselbe Passwort wie ein anderes Konto.',
       replaceAtService:
         'Um das zu ändern, musst du das Passwort direkt bei Muster Bank in den Einstellungen ersetzen. Lass dir dafür vom Passwortmanager ein neues erzeugen.',
-      reopenBrowser: 'Öffne dazu wieder den Browser.',
+      passwordChanged:
+        'Muster Bank hat jetzt ein eigenes Passwort. Der bisherige Verbindungsweg ist weg.',
+    },
+  },
+  bank: {
+    trainingAriaLabel: 'Muster Bank, Passwort mit dem Passwortmanager ändern',
+    browser: {
+      ariaLabel: 'Fiktiver Browser mit Muster Bank',
+      tabId: 'muster-bank',
+      tabLabel: 'Muster Bank',
+      addresses: {
+        login: 'bank.musterbank.example/login',
+        overview: 'bank.musterbank.example/uebersicht',
+        accounts: 'bank.musterbank.example/konten',
+        transfers: 'bank.musterbank.example/ueberweisungen',
+        cards: 'bank.musterbank.example/karten',
+        settings: 'bank.musterbank.example/einstellungen',
+        security: 'bank.musterbank.example/einstellungen/sicherheit',
+        password: 'bank.musterbank.example/einstellungen/sicherheit/passwort',
+      },
+      passwordManagerLabel: 'Integrierter Passwortmanager',
+    },
+    website: {
+      name: 'Muster Bank',
+      loginTitle: 'Anmelden',
+      usernameLabel: 'Benutzername',
+      passwordLabel: 'Passwort',
+      loginAction: 'Weiter',
+      incorrectPassword: 'Dieser gespeicherte Eintrag passt nicht zu Muster Bank.',
+      signedInStatus: 'Angemeldet',
+      welcomeTitle: (username: string) => `Willkommen zurück, ${username}`,
+      welcomeDetail: 'Schön, dass Sie wieder da sind.',
+      navigationLabel: 'Muster-Bank-Navigation',
+      navigation: [
+        { id: 'overview', label: 'Übersicht' },
+        { id: 'accounts', label: 'Konten' },
+        { id: 'transfers', label: 'Überweisungen' },
+        { id: 'cards', label: 'Karten' },
+        { id: 'settings', label: 'Einstellungen' },
+      ],
+      logoutLabel: 'Abmelden',
+      logoutConfirmation: {
+        title: 'Von Muster Bank abmelden?',
+        detail: 'Sie gelangen zurück zur Anmeldung.',
+        cancelAction: 'Abbrechen',
+        confirmAction: 'Abmelden',
+      },
+      hiddenValue: 'Ausgeblendet',
+      maskedBalance: '••••,•• €',
+      maskedAccountNumber: 'DE•• •••• •••• •••• ••',
+      overview: {
+        balanceTitle: 'Gesamtsaldo',
+        allAccountsLabel: 'Alle Konten',
+        accountsTitle: 'Meine Konten',
+        accountCountLabel: 'Kontenübersicht',
+        privacyTitle: 'Geschützte Kontodarstellung',
+        privacyDetail:
+          'Salden, Kontonummern und Buchungsdetails bleiben in dieser Übung verdeckt.',
+        quickActionsTitle: 'Direkt erledigen',
+        quickActions: [
+          { title: 'Überweisen', detail: 'Neue Überweisung vorbereiten' },
+          { title: 'Daueraufträge', detail: 'Regelmäßige Aufträge verwalten' },
+          { title: 'Karten', detail: 'Karten und Funktionen aufrufen' },
+          { title: 'Dokumente', detail: 'Mitteilungen und Unterlagen ansehen' },
+        ],
+        activityTitle: 'Letzte Aktivitäten',
+        activityPlaceholder: 'Kontobewegungen sind in dieser Übung ausgeblendet.',
+        activityGroups: ['Kartenzahlungen', 'Überweisungen', 'Lastschriften'],
+      },
+      accounts: {
+        title: 'Konten',
+        detail: 'Hier sehen Sie Ihre Konten und deren Details.',
+        items: [
+          {
+            title: 'Girokonto',
+            detail: 'Zahlungsverkehr und regelmäßige Aufträge',
+            status: 'Hauptkonto',
+          },
+          {
+            title: 'Tagesgeldkonto',
+            detail: 'Flexible Rücklage mit separater Übersicht',
+            status: 'Rücklage',
+          },
+          {
+            title: 'Sparkonto',
+            detail: 'Langfristige Sparziele verwalten',
+            status: 'Sparen',
+          },
+        ],
+        availableLabel: 'Verfügbar',
+        accountNumberLabel: 'IBAN',
+      },
+      transfers: {
+        title: 'Überweisungen',
+        detail: 'Verwalten Sie Überweisungen und Vorlagen.',
+        sectionTitle: 'Neue Überweisung',
+        sourceAccountLabel: 'Von Konto',
+        recipientLabel: 'Empfänger',
+        maskedRecipient: '••••••••••',
+        ibanLabel: 'IBAN',
+        amountLabel: 'Betrag',
+        purposeLabel: 'Verwendungszweck',
+        reviewAction: 'Weiter zur Prüfung',
+        placeholder:
+          'Empfänger-, Konto- und Betragsdaten sind in dieser Übung ausgeblendet.',
+        templatesTitle: 'Vorlagen',
+        templatesDetail: 'Gespeicherte Empfänger und Angaben bleiben verdeckt.',
+        scheduledTitle: 'Geplante Aufträge',
+        scheduledDetail: 'Daueraufträge und Terminüberweisungen verwalten.',
+      },
+      cards: {
+        title: 'Karten',
+        detail: 'Ihre Karten auf einen Blick.',
+        items: [
+          { title: 'Debitkarte' },
+          { title: 'Kreditkarte' },
+        ],
+        cardNumber: '•••• •••• •••• ••••',
+        limitLabel: 'Verfügbares Limit',
+        neutralLogoLabel: 'Neutrales Kartenlogo',
+        hiddenDetails:
+          'Kontozahlen und Umsätze sind in dieser Übung ausgeblendet.',
+      },
+      settings: {
+        title: 'Einstellungen',
+        items: [
+          {
+            id: 'personal',
+            title: 'Persönliche Daten',
+            detail: 'Name, Adresse und Kontaktdaten',
+          },
+          {
+            id: 'security',
+            title: 'Sicherheit',
+            detail: 'Passwort, 2-Faktor-Authentifizierung und mehr',
+          },
+          {
+            id: 'notifications',
+            title: 'Benachrichtigungen',
+            detail: 'E-Mail und Push-Benachrichtigungen verwalten',
+          },
+          {
+            id: 'appearance',
+            title: 'Anzeige',
+            detail: 'Sprache, Design und Anzeigeoptionen',
+          },
+          {
+            id: 'access',
+            title: 'Zugriffsverwaltung',
+            detail: 'Verwaltung von Geräten und Sitzungen',
+          },
+        ],
+        securityTitle: 'Sicherheit',
+        securityItems: [
+          { id: 'password', title: 'Passwort', detail: 'Passwort bei Muster Bank ändern' },
+          {
+            id: 'two-factor',
+            title: '2-Faktor-Authentifizierung',
+            detail: 'Zusätzlichen Anmeldeschritt verwalten',
+          },
+          {
+            id: 'devices',
+            title: 'Anmeldung und Geräte',
+            detail: 'Aktive Sitzungen und Geräte verwalten',
+          },
+          {
+            id: 'security-questions',
+            title: 'Sicherheitsfragen',
+            detail: 'Hinterlegte Sicherheitsfragen verwalten',
+          },
+        ],
+        passwordTitle: 'Passwort ändern',
+        passwordAdvice:
+          'Wählen Sie ein starkes Passwort aus, das Sie nicht für andere Konten verwenden.',
+        passwordMoreInformationLabel: 'Weitere Informationen',
+        passwordMoreInformation:
+          'Ein eigenes Passwort trennt die Anmeldung bei Muster Bank von den Zugangsdaten anderer Konten.',
+        currentPasswordLabel: 'Altes Passwort',
+        newPasswordLabel: 'Neues Passwort',
+        confirmNewPasswordLabel: 'Neues Passwort bestätigen',
+        changePasswordAction: 'Passwort ändern',
+        changingPasswordLabel: 'Passwort wird geändert …',
+        passwordChangedStatus: 'Passwort geändert',
+      },
+    },
+    passwordManager: {
+      currentPassword: 'Passw0rtGeheim!?',
+      generatedPassword: 'M4!rK8#uZ2@pL7$x',
+      maskedPassword: s12PasswordManagerContent.vault.entry.maskedPassword,
+      suggestAction: 'Sicher erzeugtes Passwort verwenden',
+      autofillListLabel: 'Gespeicherte Einträge des Passwortmanagers',
+      autofillAccounts: [
+        { id: 'muster-bank', label: 'Muster Bank' },
+        { id: 'my-shop', label: 'My Shop' },
+        { id: 'campusgram', label: 'Campusgram' },
+        { id: 'master-campus', label: 'Master Campus' },
+        { id: 'campus-email', label: 'Campus E-Mail' },
+      ],
+      updateTitle: 'Gespeichertes Passwort für Muster Bank aktualisieren?',
+      updateAction: 'Aktualisieren',
+      dismissUpdateAction: 'Nicht jetzt',
+      updatedStatus: 'Passwort aktualisiert',
+      storedEntryLabel: 'Gespeicherter Muster-Bank-Eintrag',
+    },
+    progressLabel: (completed: number) =>
+      `Passwort ändern: ${completed}/3 Schritte abgeschlossen`,
+    guide: {
+      taskLabel: 'Passwort ändern',
+      helpLabel: 'PassWo-Hinweis öffnen',
+      hints: {
+        login:
+          'Öffne das Passwortfeld und wähle den gespeicherten Eintrag für Muster Bank.',
+        navigate:
+          'Öffne Einstellungen, dann Sicherheit und anschließend Passwort.',
+        password:
+          'Verwende für beide neuen Passwortfelder den Vorschlag des Passwortmanagers und bestätige mit „Passwort ändern“.',
+      },
+      updateDeclined: {
+        first: 'Im Passwortmanager ist damit noch das alte Passwort gespeichert.',
+        second:
+          'Damit er beim nächsten Anmelden das neue verwendet, öffne den Hinweis noch einmal und aktualisiere den Eintrag.',
+        reminder:
+          'Aktualisiere den Eintrag, damit der Passwortmanager das neue Passwort verwendet.',
+      },
+      updated:
+        'Jetzt ist auch im Passwortmanager das neue Passwort gespeichert. Melde dich ab und anschließend mit dem neuen Passwort wieder an.',
+      autofill:
+        'Vorhin hast du den gespeicherten Eintrag noch selbst ausgewählt. Diesmal hat ihn der Passwortmanager direkt ausgefüllt. Bei vielen Anmeldungen kann er das automatisch übernehmen.',
+      complete:
+        'Schließe den Browser wieder und schau, was die Änderung bei Muster Bank im Netzwerk bewirkt.',
     },
   },
 } as const;

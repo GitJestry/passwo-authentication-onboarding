@@ -47,7 +47,7 @@ function motionDurations(usernameLength: number) {
     : {
         vaultOpeningDurationMs: 3400,
         generationDurationMs: 1200,
-        storageDurationMs: 3700,
+        storageDurationMs: 4300,
         variantsClosingDurationMs: 1000,
         variantsTransitionDurationMs: 900,
         variantsRevealDurationMs: 1550,

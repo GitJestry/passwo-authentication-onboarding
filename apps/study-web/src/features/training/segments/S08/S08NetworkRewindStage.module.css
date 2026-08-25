@@ -234,7 +234,7 @@
   --node-visual-height: 28px;
 }
 
-.training[data-s13-network-step]
+.training[data-s13-network-step]:not([data-s13-network-step="bank-shield-reveal"]):not([data-s13-network-step="bank-protected"])
   .network
   :global([data-scene-node="muster-bank"] [data-scene-node-visual]) {
   border-color: #ff315e;
@@ -243,6 +243,56 @@
   box-shadow:
     0 0 0 0.22rem rgb(255 49 94 / 24%),
     0 0 1.55rem rgb(255 49 94 / 64%);
+}
+
+.training[data-s13-network-step="bank-shield-reveal"]
+  .network
+  :global([data-scene-node="muster-bank"] [data-scene-node-visual]),
+.training[data-s13-network-step="bank-protected"]
+  .network
+  :global([data-scene-node="muster-bank"] [data-scene-node-visual]) {
+  border-color: #2497ff;
+  color: #dff3ff;
+  background: #073f91;
+  box-shadow:
+    0 0 0 0.24rem rgb(36 151 255 / 24%),
+    0 0 1.55rem rgb(36 151 255 / 72%);
+}
+
+.training[data-s13-network-step="bank-relation-dissolving"]
+  .network
+  :global([data-scene-node="muster-bank"] [data-scene-node-visual]) {
+  transform-origin: center;
+  animation: s13-account-focus-pulse 2.6s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.training[data-s13-network-step="bank-relation-dissolving"]
+  .network
+  :global([data-network-edge-risk-relation="true"][data-network-edge-source="muster-bank"] .react-flow__edge-path),
+.training[data-s13-network-step="bank-relation-dissolving"]
+  .network
+  :global([data-network-edge-risk-relation="true"][data-network-edge-target="muster-bank"] .react-flow__edge-path) {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: s13-bank-risk-edge-dissolve 460ms ease-in both;
+}
+
+.training[data-s13-network-step="bank-shield-reveal"]
+  .network
+  :global([data-scene-node="muster-bank"] [data-account-shield]) {
+  animation: s13-bank-protection-arrival 520ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.training[data-s13-network-step="bank-protected"]
+  .network
+  :global([data-network-edge-source="muster-bank"] .react-flow__edge-path),
+.training[data-s13-network-step="bank-protected"]
+  .network
+  :global([data-network-edge-target="s13-muster-bank-protection-shield"] .react-flow__edge-path),
+.training[data-s13-network-step="bank-protected"]
+  .network
+  :global([data-scene-node="s13-muster-bank-protection-shield"]) {
+  animation: s13-bank-protection-arrival 520ms cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 
 .training[data-s13-network-step="new-account-reveal"]
@@ -308,7 +358,10 @@
 
 .training[data-s13-focus="muster-bank"]
   .network
-  :global(.react-flow__node:has([data-scene-node="muster-bank"])) {
+  :global(.react-flow__node:has([data-scene-node="muster-bank"])),
+.training[data-s13-focus="muster-bank"]
+  .network
+  :global(.react-flow__node:has([data-scene-node="s13-muster-bank-protection-shield"])) {
   z-index: 12;
   opacity: 1;
   filter: none;
@@ -319,9 +372,31 @@
   :global([data-network-edge-source="muster-bank"]),
 .training[data-s13-focus="muster-bank"]
   .network
-  :global([data-network-edge-target="muster-bank"]) {
+  :global([data-network-edge-target="muster-bank"]),
+.training[data-s13-focus="muster-bank"]
+  .network
+  :global([data-network-edge-target="s13-muster-bank-protection-shield"]) {
   opacity: 1;
   filter: none;
+}
+
+@keyframes s13-bank-risk-edge-dissolve {
+  0% {
+    clip-path: inset(0);
+    opacity: 1;
+  }
+
+  100% {
+    clip-path: inset(0 50%);
+    opacity: 0;
+  }
+}
+
+@keyframes s13-bank-protection-arrival {
+  from {
+    opacity: 0;
+    transform: scale(0.72);
+  }
 }
 
 .importedVault {
@@ -1238,6 +1313,30 @@
   .training[data-s13-network-step]
     .network
     :global([data-scene-node="muster-bank"] [data-scene-node-visual]) {
+    animation: none;
+  }
+
+  .training[data-s13-network-step="bank-relation-dissolving"]
+    .network
+    :global([data-scene-node="muster-bank"] [data-scene-node-visual]),
+  .training[data-s13-network-step="bank-relation-dissolving"]
+    .network
+    :global([data-network-edge-risk-relation="true"] .react-flow__edge-path),
+  .training[data-s13-network-step="bank-shield-reveal"]
+    .network
+    :global([data-scene-node="muster-bank"] [data-account-shield]),
+  .training[data-s13-network-step="bank-protected"]
+    .network
+    :global([data-network-edge-source="muster-bank"] .react-flow__edge-path),
+  .training[data-s13-network-step="bank-protected"]
+    .network
+    :global([data-network-edge-target="s13-muster-bank-protection-shield"] .react-flow__edge-path),
+  .training[data-s13-network-step="bank-protected"]
+    .network
+    :global([data-scene-node="s13-muster-bank-protection-shield"]),
+  .training[data-s13-network-step="bank-protected"]
+    .network
+    :global([data-scene-node="muster-bank"] [data-account-shield]) {
     animation: none;
   }
 

@@ -17,7 +17,7 @@ Seitenangaben beziehen sich auf die im Trainingsdokument ausgewiesene interne Pa
 | S10 | Zusammenfassung Passwort | 55–57 | TF6 | stark, einzigartig, abrufbar |
 | S11 | Von drei zu vielen Konten | 57–60 | TF1, TF2, TF4, TF6 | Skalierungsproblem, Übergang Passwortmanager |
 | S12 | Passwortmanager | 60–65 | TF2, TF3, TF4, TF6 | Generator, Save, Autofill, Vault, Recovery, Systemwahl |
-| S13 | Ein neues Konto | Nutzerauftrag 2026-08-25 | TF2, TF3 | My-Shop-Registrierung, browserintegriertes Erzeugen, Speichern und Ausfüllen |
+| S13 | Ein neues und ein bestehendes Konto | Nutzerauftrag 2026-08-25 | TF2, TF3 | My-Shop-Registrierung; Muster Bank: Passwort erzeugen, beim Dienst ändern, Tresoreintrag aktualisieren und erneut ausfüllen |
 | S14 | Mehrere Faktoren | 66–67 | TF2, TF3, TF6 | Wissen/Besitz/Inhärenz, Aktivierungssimulation |
 | S15 | Recovery-Hinweis | 67–68 | TF6 | geschützter Wiederherstellungscode, Grenzen |
 | S16 | Priorisierung/Ausweitung | 68 | TF1, TF6 | wichtige Konten zuerst, MFA wo verfügbar |

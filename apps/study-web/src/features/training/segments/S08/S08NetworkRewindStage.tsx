@@ -37,6 +37,7 @@ import {
   S12PasswordManagerTraining,
   type PasswordManagerVaultEntry,
 } from '../S12/S12PasswordManagerTraining.js';
+import { S13MusterBankPasswordChange } from '../S13/S13MusterBankPasswordChange.js';
 import { S13PasswordManagerPractice } from '../S13/S13PasswordManagerPractice.js';
 import {
   blockedS08ProtectionSteps,
@@ -48,6 +49,8 @@ import {
   createS08ProtectionRiskModelFromResumeState,
   createS09ScalingComparisonResults,
   createS09ScalingRiskNetwork,
+  createS13BankProtectedNetwork,
+  createS13BankShieldedNetwork,
   createS13MyShopNetwork,
   s08AccountHasOpenActionNeed,
   s08HasOpenActionNeed,
@@ -59,7 +62,13 @@ import styles from './S08NetworkRewindStage.module.css';
 export type S08ChangeableAccountId = Exclude<S06AccountId, 'campusgram'>;
 
 interface S08Context {
-  readonly initialStage: 's08' | 's09' | 'manager' | 's13' | 's13-network';
+  readonly initialStage:
+    | 's08'
+    | 's09'
+    | 'manager'
+    | 's13'
+    | 's13-network'
+    | 's13-bank';
   readonly phaseDurationMs: number;
   readonly protectionResolutionDurationMs: number;
   readonly reductionDurationMs: number;
@@ -81,6 +90,7 @@ type S08Event =
   | { readonly type: 'TRANSITION_COMPLETE' }
   | { readonly type: 'OPEN_BROWSER' }
   | { readonly type: 'S13_BROWSER_CLOSED' }
+  | { readonly type: 'S13_BANK_BROWSER_CLOSED' }
   | { readonly type: 'NEXT' };
 
 const s08Machine = setup({
@@ -89,7 +99,13 @@ const s08Machine = setup({
     events: {} as S08Event,
     input: {} as {
       readonly recommendedAccountIds: readonly S08ChangeableAccountId[];
-      readonly initialStage: 's08' | 's09' | 'manager' | 's13' | 's13-network';
+      readonly initialStage:
+        | 's08'
+        | 's09'
+        | 'manager'
+        | 's13'
+        | 's13-network'
+        | 's13-bank';
       readonly phaseDurationMs: number;
       readonly protectionResolutionDurationMs: number;
       readonly reductionDurationMs: number;
@@ -122,6 +138,7 @@ const s08Machine = setup({
     startsAtManager: ({ context }) => context.initialStage === 'manager',
     startsAtS13: ({ context }) => context.initialStage === 's13',
     startsAtS13Network: ({ context }) => context.initialStage === 's13-network',
+    startsAtS13Bank: ({ context }) => context.initialStage === 's13-bank',
   },
   actions: {
     startProtectionResolution: assign({
@@ -158,6 +175,7 @@ const s08Machine = setup({
   states: {
     entry: {
       always: [
+        { guard: 'startsAtS13Bank', target: 'managerPracticeBank' },
         { guard: 'startsAtS13Network', target: 'managerPracticeNetworkReturn' },
         { guard: 'startsAtS13', target: 'managerPractice' },
         { guard: 'startsAtManager', target: 'managerTransition' },
@@ -263,13 +281,39 @@ const s08Machine = setup({
     },
     managerPracticeExistingAccountReplace: {
       tags: ['manager', 'expanded', 's13-network', 's13-existing-account'],
-      on: { NEXT: { target: 'managerPracticeBrowserPrompt' } },
+      on: { OPEN_BROWSER: { target: 'managerPracticeBank' } },
     },
-    managerPracticeBrowserPrompt: {
-      tags: ['manager', 'expanded', 's13-network'],
-      on: { OPEN_BROWSER: { target: 'complete' } },
+    managerPracticeBank: {
+      tags: ['manager', 'expanded'],
+      on: {
+        S13_BANK_BROWSER_CLOSED: {
+          target: 'managerPracticeBankRelationDissolving',
+        },
+      },
     },
-    complete: { tags: ['manager', 'expanded', 's13-network'] },
+    managerPracticeBankRelationDissolving: {
+      tags: ['manager', 'expanded', 's13-network', 's13-bank-result'],
+      after: {
+        newAccountShieldDelay: {
+          target: 'managerPracticeBankProtectionReveal',
+        },
+      },
+    },
+    managerPracticeBankProtectionReveal: {
+      tags: ['manager', 'expanded', 's13-network', 's13-bank-result'],
+      after: {
+        newAccountConnectionDelay: {
+          target: 'managerPracticeBankProtected',
+        },
+      },
+    },
+    managerPracticeBankProtected: {
+      tags: ['manager', 'expanded', 's13-network', 's13-bank-result'],
+      on: { NEXT: { target: 'complete' } },
+    },
+    complete: {
+      tags: ['manager', 'expanded', 's13-network', 's13-bank-result'],
+    },
   },
 });
 
@@ -280,7 +324,13 @@ export interface S08NetworkRewindStageProps {
   readonly plan?: PasswordConsequenceScenePlan | null;
   readonly resumeState?: SupportiveS08ResumeState;
   readonly platform: DesktopPlatform;
-  readonly initialStage?: 's08' | 's09' | 'manager' | 's13' | 's13-network';
+  readonly initialStage?:
+    | 's08'
+    | 's09'
+    | 'manager'
+    | 's13'
+    | 's13-network'
+    | 's13-bank';
   readonly onComplete?: () => void;
 }
 
@@ -605,6 +655,14 @@ export function S08NetworkRewindStage({
       ),
     [scalingRiskNetwork.network],
   );
+  const bankProtectedNetwork = useMemo(
+    () => createS13BankProtectedNetwork(managerPracticeNetwork),
+    [managerPracticeNetwork],
+  );
+  const bankShieldedNetwork = useMemo(
+    () => createS13BankShieldedNetwork(managerPracticeNetwork),
+    [managerPracticeNetwork],
+  );
   const scalingFindingNodeDelayMs = useMemo(
     () =>
       Object.values(scalingRiskNetwork.edgeRevealDelaysMs).reduce<number>(
@@ -627,6 +685,12 @@ export function S08NetworkRewindStage({
       if (state.matches('managerPracticeNewAccountShield')) {
         return newAccountShieldedNetwork;
       }
+      if (state.matches('managerPracticeBankProtectionReveal')) {
+        return bankShieldedNetwork;
+      }
+      if (state.matches('managerPracticeBankProtected') || state.matches('complete')) {
+        return bankProtectedNetwork;
+      }
       if (state.hasTag('s13-network')) {
         return managerPracticeNetwork;
       }
@@ -643,7 +707,8 @@ export function S08NetworkRewindStage({
         state.matches('passWoSolution') ||
         state.matches('managerTransition') ||
         state.matches('managerLesson') ||
-        state.matches('managerPractice')
+        state.matches('managerPractice') ||
+        state.matches('managerPracticeBank')
       ) {
         return scalingRiskNetwork.network;
       }
@@ -662,6 +727,8 @@ export function S08NetworkRewindStage({
     },
     [
       preparationVisible,
+      bankProtectedNetwork,
+      bankShieldedNetwork,
       conservativeScaleNetwork,
       managerPracticeNetwork,
       newAccountRevealedNetwork,
@@ -683,7 +750,7 @@ export function S08NetworkRewindStage({
   const bankFocusVisible =
     state.matches('managerPracticeExistingAccountRelation') ||
     state.matches('managerPracticeExistingAccountReplace') ||
-    state.matches('managerPracticeBrowserPrompt') ||
+    state.hasTag('s13-bank-result') ||
     state.matches('complete');
   const presentationHighlightedNodeId = state.hasTag('s13-new-account')
     ? 'my-shop'
@@ -819,10 +886,10 @@ export function S08NetworkRewindStage({
                 id: 's13-network-replace-at-service',
                 text: s13PasswordManagerPracticeContent.network.guide.replaceAtService,
               }
-            : state.matches('managerPracticeBrowserPrompt')
+            : state.matches('managerPracticeBankProtected')
               ? {
-                  id: 's13-network-reopen-browser',
-                  text: s13PasswordManagerPracticeContent.network.guide.reopenBrowser,
+                  id: 's13-network-bank-password-changed',
+                  text: s13PasswordManagerPracticeContent.network.guide.passwordChanged,
                 }
               : null;
   const s13NetworkStep = state.matches('managerPracticeNewAccountReveal')
@@ -841,19 +908,21 @@ export function S08NetworkRewindStage({
               ? 'existing-account-relation'
               : state.matches('managerPracticeExistingAccountReplace')
                 ? 'existing-account-replace'
-                : state.matches('managerPracticeBrowserPrompt')
-                  ? 'browser-reopen'
-                  : undefined;
+                : state.matches('managerPracticeBankRelationDissolving')
+                  ? 'bank-relation-dissolving'
+                  : state.matches('managerPracticeBankProtectionReveal')
+                    ? 'bank-shield-reveal'
+                    : state.matches('managerPracticeBankProtected') ||
+                        state.matches('complete')
+                      ? 'bank-protected'
+                      : undefined;
   const s13FocusTarget = state.hasTag('s13-new-account')
     ? 'my-shop'
     : bankFocusVisible
       ? 'muster-bank'
       : undefined;
-  const importedVaultVisible =
-    state.hasTag('s13-existing-account') ||
-    state.matches('managerPracticeBrowserPrompt') ||
-    state.matches('complete');
-  const browserReopenPrompt = state.matches('managerPracticeBrowserPrompt');
+  const importedVaultVisible = state.hasTag('s13-existing-account');
+  const browserReopenPrompt = state.matches('managerPracticeExistingAccountReplace');
 
   const handleNetworkNodeSelect = useCallback(
     (nodeId: string) => {
@@ -884,12 +953,15 @@ export function S08NetworkRewindStage({
 
   const managerTransitionVisible = state.matches('managerTransition');
   const managerPracticeVisible = state.matches('managerPractice');
+  const bankPracticeVisible = state.matches('managerPracticeBank');
 
   return (
     <div className={styles.stageStack}>
       <section
         className={styles.training}
-        aria-hidden={managerTransitionVisible || managerPracticeVisible || undefined}
+        aria-hidden={
+          managerTransitionVisible || managerPracticeVisible || bankPracticeVisible || undefined
+        }
         aria-label={
           state.hasTag('s13-network')
             ? s13PasswordManagerPracticeContent.trainingAriaLabel
@@ -914,7 +986,9 @@ export function S08NetworkRewindStage({
         data-s09-expanding={state.matches('s09Expansion') || undefined}
         data-s09-reducing={state.hasTag('reducing') || undefined}
         data-manager-active={state.matches('managerLesson') || undefined}
-        data-s13-browser-active={state.matches('managerPractice') || undefined}
+        data-s13-browser-active={
+          state.matches('managerPractice') || state.matches('managerPracticeBank') || undefined
+        }
         data-s13-network-step={s13NetworkStep}
         data-s13-focus={s13FocusTarget}
         data-s13-network-dimmed={
@@ -1008,7 +1082,7 @@ export function S08NetworkRewindStage({
             celebratingNodeId={celebratingNodeId}
             interactionDisabled={!state.matches('protection')}
             nodeActionLabels={actionLabels}
-            showEdgeLabels={preparationVisible}
+            showEdgeLabels={preparationVisible || state.hasTag('s13-existing-account')}
             onNodeSelect={handleNetworkNodeSelect}
           />
           {replayComplete ? (
@@ -1229,6 +1303,15 @@ export function S08NetworkRewindStage({
               : { passphraseIds: resumeState.passphraseIds })}
             platform={platform}
             onBrowserClosed={() => send({ type: 'S13_BROWSER_CLOSED' })}
+          />
+        </div>
+      ) : null}
+      {bankPracticeVisible ? (
+        <div className={styles.stageOverlay}>
+          <S13MusterBankPasswordChange
+            displayName={displayName}
+            platform={platform}
+            onBrowserClosed={() => send({ type: 'S13_BANK_BROWSER_CLOSED' })}
           />
         </div>
       ) : null}

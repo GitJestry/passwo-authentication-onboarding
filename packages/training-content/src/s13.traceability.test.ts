@@ -17,7 +17,7 @@ describe('S13 integrated password-manager practice traceability', () => {
 
   it('keeps the generated-password, save and autofill actions explicit', () => {
     expect(s13PasswordManagerPracticeContent.passwordManager).toMatchObject({
-      suggestAction: 'Starkes Passwort vorschlagen',
+      suggestAction: 'Sicher erzeugtes Passwort verwenden',
       saveTitle: 'Passwort für My Shop speichern?',
       saveAction: 'Speichern',
       dismissSaveAction: 'Nicht jetzt',
@@ -49,13 +49,68 @@ describe('S13 integrated password-manager practice traceability', () => {
   });
 
   it('keeps the rebuilt My Shop landing-page copy in versioned content', () => {
-    expect(s13PasswordManagerPracticeContent.version).toBe('1.8.0');
+    expect(s13PasswordManagerPracticeContent.version).toBe('2.2.0');
     expect(s13PasswordManagerPracticeContent.website.shop.hero).toMatchObject({
       eyebrow: 'Sommer-Sale',
       title: 'Bis zu 40% sparen!',
     });
     expect(s13PasswordManagerPracticeContent.website.shop.popularCategories).toHaveLength(6);
     expect(s13PasswordManagerPracticeContent.website.shop.recommendedProducts).toHaveLength(6);
+  });
+
+  it('keeps the Muster Bank password-change and update sequence explicit', () => {
+    expect(
+      s13PasswordManagerPracticeContent.bank.website.navigation.map(({ label }) => label),
+    ).toEqual(['Übersicht', 'Konten', 'Überweisungen', 'Karten', 'Einstellungen']);
+    expect(s13PasswordManagerPracticeContent.bank.website).toMatchObject({
+      hiddenValue: 'Ausgeblendet',
+      maskedBalance: '••••,•• €',
+      maskedAccountNumber: 'DE•• •••• •••• •••• ••',
+      cards: { cardNumber: '•••• •••• •••• ••••' },
+    });
+    expect(s13PasswordManagerPracticeContent.bank.website.settings).toMatchObject({
+      currentPasswordLabel: 'Altes Passwort',
+      newPasswordLabel: 'Neues Passwort',
+      confirmNewPasswordLabel: 'Neues Passwort bestätigen',
+      changePasswordAction: 'Passwort ändern',
+      passwordChangedStatus: 'Passwort geändert',
+    });
+    expect(s13PasswordManagerPracticeContent.bank.passwordManager).toMatchObject({
+      currentPassword: 'Passw0rtGeheim!?',
+      suggestAction: 'Sicher erzeugtes Passwort verwenden',
+      updateTitle: 'Gespeichertes Passwort für Muster Bank aktualisieren?',
+      updateAction: 'Aktualisieren',
+      dismissUpdateAction: 'Nicht jetzt',
+      updatedStatus: 'Passwort aktualisiert',
+    });
+    expect(s13PasswordManagerPracticeContent.bank.guide).toMatchObject({
+      taskLabel: 'Passwort ändern',
+      updateDeclined: {
+        first: 'Im Passwortmanager ist damit noch das alte Passwort gespeichert.',
+        second:
+          'Damit er beim nächsten Anmelden das neue verwendet, öffne den Hinweis noch einmal und aktualisiere den Eintrag.',
+        reminder:
+          'Aktualisiere den Eintrag, damit der Passwortmanager das neue Passwort verwendet.',
+      },
+      updated:
+        'Jetzt ist auch im Passwortmanager das neue Passwort gespeichert. Melde dich ab und anschließend mit dem neuen Passwort wieder an.',
+      autofill:
+        'Vorhin hast du den gespeicherten Eintrag noch selbst ausgewählt. Diesmal hat ihn der Passwortmanager direkt ausgefüllt. Bei vielen Anmeldungen kann er das automatisch übernehmen.',
+      complete:
+        'Schließe den Browser wieder und schau, was die Änderung bei Muster Bank im Netzwerk bewirkt.',
+    });
+    expect(s13PasswordManagerPracticeContent.bank.passwordManager.generatedPassword).toMatch(
+      /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9]).{16}$/,
+    );
+    expect(
+      s13PasswordManagerPracticeContent.bank.passwordManager.autofillAccounts.map(
+        ({ label }) => label,
+      ),
+    ).toEqual(['Muster Bank', 'My Shop', 'Campusgram', 'Master Campus', 'Campus E-Mail']);
+    expect('username' in s13PasswordManagerPracticeContent.bank.website).toBe(false);
+    expect('forgotPasswordLabel' in s13PasswordManagerPracticeContent.bank.website).toBe(
+      false,
+    );
   });
 
   it('keeps the new-account and existing-account network explanation together', () => {
@@ -69,7 +124,8 @@ describe('S13 integrated password-manager practice traceability', () => {
           'Dadurch ändert sich das Passwort beim jeweiligen Dienst aber noch nicht.',
         reusedPassword:
           'Muster Bank verwendet zum Beispiel noch dasselbe Passwort wie ein anderes Konto.',
-        reopenBrowser: 'Öffne dazu wieder den Browser.',
+        passwordChanged:
+          'Muster Bank hat jetzt ein eigenes Passwort. Der bisherige Verbindungsweg ist weg.',
       },
     });
     expect(

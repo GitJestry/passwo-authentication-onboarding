@@ -312,3 +312,129 @@ Darstellungs- und Ablaufdelta:
 - Der für MyShop vorgesehene anonyme S09-Platzhalter und seine Kanten werden bereits im ersten
   zurückgekehrten Netzwerkframe ausgeblendet. Erst der fachliche MyShop-Reveal setzt an dieser
   Position den Logo-Knoten ein; ein kurz sichtbarer weißer Ersatzknoten entfällt.
+
+## Folgeauftrag: Passwort bei Muster Bank ändern, 25. August 2026
+
+Quelle ist der ausdrückliche Nutzerauftrag vom 25. August 2026. Er schließt die bisherige
+Browseraufforderung mit einer praktischen Passwortänderung bei Muster Bank ab. Die Content-Version
+steigt von `1.8.0` auf `2.0.0`, weil der S13-Ablauf um die vollständige Bankübung und ihren
+Netzwerkabschluss erweitert wird. Die lokalen Dateien `muster login.png`,
+`muster navigationen.png` und `muster einstellung navigationen.png` dienen ausschließlich als
+Gestaltungsreferenz. Der darin enthaltene My-Shop-Screenshot wird nicht übernommen.
+
+| Text-ID | Bisher | Neu | Primäre Rolle | Grund | Bedeutungsänderung | Interaktionsziel | Hervorhebung |
+|---|---|---|---|---|---|---|---|
+| `S13.bank.website.navigation.*` | nicht vorhanden | `Übersicht`; `Konten`; `Überweisungen`; `Karten`; `Einstellungen` | Navigation | alle fünf ausdrücklich verlangten Bankbereiche müssen erreichbar sein | ausdrücklich freigegeben | jeweiliger Seitenleistenbutton | aktiver Zustand zusätzlich zu Text und Icon |
+| `S13.bank.website.settings.password.*` | nicht vorhanden | `Passwort ändern`; `Aktuelles Passwort`; `Neues Passwort`; `Passwort ändern`; `Passwort geändert` | Navigation und Ergebnisfeedback | ausdrücklich vorgegebener Dienstablauf und sichtbare Bestätigung | ausdrücklich freigegeben | neues Passwortfeld und Formularbutton | Feldfokus sowie Häkchen mit Textstatus |
+| `S13.bank.passwordManager.suggestAction` | My-Shop-Wortlaut | `Starkes Passwort vorschlagen` | Navigation | Passwortmanager-Vorschlag soll wortgleich wiederverwendet werden | keine | Vorschlag am neuen Passwortfeld | Schlüssel-Icon und fokussierbarer Eintrag |
+| `S13.bank.passwordManager.updatePrompt` | nicht vorhanden | `Gespeichertes Passwort für Muster Bank aktualisieren?`; `Nicht jetzt`; `Aktualisieren` | Navigation | Browser-Tresor muss nach der Dienständerung separat aktualisiert werden | ausdrücklich freigegeben | Update-Pop-up und Passwortmanager-Symbol | Schlüssel-Icon, Pop-up-Position und Buttonform |
+| `S13.bank.guide.updateDeclined.first` | nicht vorhanden | `Im Passwortmanager ist damit noch das alte Passwort gespeichert.` | Ergebnisfeedback | ausdrücklich vorgegebene Folge von `Nicht jetzt` | ausdrücklich freigegeben | `Weiter` | keine |
+| `S13.bank.guide.updateDeclined.second` | nicht vorhanden | `Damit er beim nächsten Anmelden das neue verwendet, öffne den Hinweis noch einmal und aktualisiere den Eintrag.` | Mechanismuserklärung | trennt Dienstpasswort und Tresoreintrag fachlich | ausdrücklich freigegeben | `Weiter` zum freien, aber noch unvollständigen Zustand | keine |
+| `S13.bank.guide.updateDeclined.reminder` | nicht vorhanden | `Aktualisiere den Eintrag, damit der Passwortmanager das neue Passwort verwendet.` | Navigation | erneut aufrufbares Update-Ziel eindeutig benennen | ausdrücklich freigegeben | wackelndes Passwortmanager-Symbol | Passwortmanager-Fokus statt Texthervorhebung |
+| `S13.bank.guide.updated` | nicht vorhanden | `Jetzt ist auch im Passwortmanager das neue Passwort gespeichert. Melde dich noch einmal an.` | Ergebnisfeedback | Wirkung der bestätigten Aktualisierung und nächste Handlung benennen | ausdrücklich freigegeben | `Weiter` zur Loginseite | Browserstatus `Passwort aktualisiert ✓` |
+| `S13.bank.guide.autofill` | nicht vorhanden | `Der Passwortmanager erkennt, bei welchem Dienst du dich anmeldest, und kann den passenden gespeicherten Eintrag automatisch ausfüllen.` | Mechanismuserklärung | ausdrücklich vorgegebene Einordnung des automatischen Ausfüllens | ausdrücklich freigegeben | Anmelden-Button nach Autofill | sichtbares Autofill-Angebot und Feldstatus |
+| `S13.bank.guide.complete` | nicht vorhanden | `Schließe den Browser und schau, was die Änderung bei Muster Bank im Netzwerk bewirkt.` | Navigation | tatsächlich zu bedienende Fenstersteuerung benennen | ausdrücklich freigegeben | Browser-Schließen-Schaltfläche | keine |
+| `S13.network.guide.passwordChanged` | nicht vorhanden | `Muster Bank hat jetzt ein eigenes Passwort. Der bisherige Verbindungsweg ist weg.` | Ergebnisfeedback | sichtbaren Schutzstatus und entfernte Risikobeziehung einordnen | ausdrücklich freigegeben | `Weiter` zum Segmentabschluss | `eigenes Passwort` · positiv |
+
+Darstellungs- und Ablaufdelta:
+
+- Der Muster-Bank-Login übernimmt Aufbau und Passwortmanager-Verhalten der My-Shop-Anmeldung,
+  erhält aber die grün-gelbe Bankgestaltung aus den Referenzen. Beim ersten und beim erneuten
+  Login wird der passende lokale Übungseintrag automatisch angeboten und in 250 ms ausgefüllt.
+- Die fünf Navigationen wechseln echte responsive HTML-/CSS-Seiten. Salden, IBANs,
+  Kartennummern, Limits und Aktivitäten erscheinen ausschließlich maskiert oder als
+  `Ausgeblendet`. Neutrale `MB`-Kartenmarken ersetzen reale Kreditkartenlogos; es werden keine
+  Kontoauszüge oder scheinbar echten Finanzdaten erzeugt.
+- Der verpflichtende Weg führt über `Einstellungen` → `Sicherheit` → `Passwort`. Das aktuelle
+  fiktive Passwort ist initial maskiert und nur über den lokalen Auge-Button sichtbar. Der
+  Generator verwendet eine zweite deterministische lokale 16-Zeichen-Fixture, die weder
+  persistiert noch exportiert wird.
+- Nach der Dienständerung bleibt `Passwort geändert ✓` sichtbar, bevor der browsertypische
+  Update-Hinweis erscheint. Nach dem ersten `Nicht jetzt` folgen drei getrennte PassWo-Schritte.
+  Im anschließenden Zustand sind alle fünf Bankbereiche frei navigierbar; nur das erneut
+  hervorgehobene Passwortmanager-Symbol kann den erforderlichen Update-Hinweis öffnen.
+- `Aktualisieren` zeigt `Passwort aktualisiert ✓`, danach folgt der automatische Autofill mit dem
+  neuen Eintrag. Erst die erneute Anmeldung gibt die Browser-Schließen-Steuerung frei.
+- Nach dem Schließen bleibt Muster Bank voll hervorgehoben, während das übrige Netzwerk
+  transparent abgedunkelt bleibt. Genau die eine bisherige rote Beziehung löst sich von beiden
+  Enden; anschließend wird sie durch zwei grüne Liniensegmente mit mittigem Schild ersetzt und der
+  Muster-Bank-Knoten erhält den blauen Schutzstatus. Reduced Motion projiziert denselben
+  fachlichen Endzustand ohne Auflösungs- oder Einblendbewegung.
+
+## Folgeauftrag: Verfeinerte Bankoberfläche und Abmeldeablauf, 25. August 2026
+
+Quelle ist der ausdrückliche Nutzerauftrag vom 25. August 2026. Diese Entscheidung ersetzt für
+die Muster-Bank-Übung die im vorherigen Delta beschriebene automatische Erstanmeldung und den
+direkten Wechsel vom Update-Hinweis zur Anmeldung. Die Content-Version steigt von `2.0.0` auf
+`2.1.0`.
+
+| Text-ID | Bisher | Neu | Primäre Rolle | Grund | Bedeutungsänderung | Interaktionsziel | Hervorhebung |
+|---|---|---|---|---|---|---|---|
+| `S13.bank.website.username` | `AnneM` | flüchtig abgeleitete Benutzernamenvariable | Orientierung | ausdrücklich verlangte Übernahme der lokalen Übungsidentität | begrenzt | Loginfelder und Begrüßung | keine |
+| `S13.bank.website.forgotPasswordLabel` | `Passwort vergessen?` | entfällt | Orientierung | ausdrücklich verlangte Entfernung | nein | kein | keine |
+| `S13.bank.website.overview/accounts/transfers/cards.*` | wenige Überschriften und Platzhalter | zusätzliche Schnellzugriffe, Kontozwecke, verdeckte Aktivitätsgruppen, Überweisungsfelder, Auftragsbereiche, Kartenstatus und Funktionschips | Orientierung | ausdrücklich verlangte sinnvollere Seitendichte ohne scheinbar echte Finanzwerte | begrenzt | jeweilige Navigationsseite; Zusatzflächen lösen keinen Trainingsfortschritt aus | Icons, Gliederung und weiterhin maskierte Werte |
+| `S13.bank.website.settings.detail/securityDetail` | `Verwalten Sie Ihre Daten und Sicherheitseinstellungen.`; `Verwalten Sie Ihre Sicherheitseinstellungen.` | entfällt | Orientierung | ausdrücklich verlangte Entfernung redundanter Unterzeilen | nein | kein | keine |
+| `S13.bank.website.settings.currentPasswordLabel` | `Aktuelles Passwort` | `Altes Passwort` | Navigation | ausdrücklich verlangte Feldbezeichnung | nein | altes Passwortfeld | Feldlabel |
+| `S13.bank.website.settings.confirmNewPasswordLabel` | nicht vorhanden | `Neues Passwort bestätigen` | Navigation | beide neuen Passwortfelder sollen denselben Generatorvorschlag übernehmen | ausdrücklich freigegeben | Bestätigungsfeld | Feldfokus |
+| `S13.bank.website.settings.passwordAdvice` | `Verwenden Sie für Muster Bank ein eigenes Passwort.` | `Wählen Sie ein starkes Passwort aus, das Sie nicht für andere Konten verwenden.` mit `Weitere Informationen` | Orientierung | ausdrücklich verlangte, zur sichtbaren Aufgabe passende Einordnung | begrenzt | aufklappbarer Informationshinweis | blauer unterstrichener Text und Fragezeichen im Kreis |
+| `S13.bank.passwordManager.suggestAction` | `Starkes Passwort vorschlagen` | `Sicher erzeugtes Passwort verwenden` | Navigation | ausdrücklich verlangte Generatorbezeichnung | begrenzt | Vorschlag unter einem der beiden neuen Passwortfelder | Schlüssel-Icon |
+| `S13.bank.guide.hints.login` | automatische Erstanmeldung | `Öffne das Passwortfeld und wähle den gespeicherten Eintrag für Muster Bank.` | Navigation | tatsächliche Auswahlhandlung beim ersten Login benennen | ausdrücklich freigegeben | Passwortfeld und Muster-Bank-Eintrag | Passwortmanager-Angebot |
+| `S13.bank.website.incorrectPassword` | nicht vorhanden | `Dieser gespeicherte Eintrag passt nicht zu Muster Bank.` | Ergebnisfeedback | falschen gespeicherten Eintrag sachlich auflösen | ergänzend | erneute Auswahl aus der Passwortmanager-Liste | Fehlericon und Text |
+| `S13.bank.website.settings.changingPasswordLabel/passwordChangedStatus` | statischer Formularstatus | `Passwort wird geändert …`; anschließend Toast `Passwort geändert` | Ergebnisfeedback | ausdrücklich verlangte Ladephase mit kurzem Ergebnis-Toast | ausdrücklich freigegeben | Formularbutton, danach automatischer Rücksprung zu `Sicherheit` | Spinner sowie Häkchen mit Text |
+| `S13.bank.guide.updated` | `Jetzt ist auch im Passwortmanager das neue Passwort gespeichert. Melde dich noch einmal an.` | `Jetzt ist auch im Passwortmanager das neue Passwort gespeichert. Melde dich ab und anschließend mit dem neuen Passwort wieder an.` | Ergebnisfeedback | ausdrücklich verlangter Abmeldeweg | ausdrücklich freigegeben | `Weiter`, anschließend `Abmelden` | keine |
+| `S13.bank.guide.autofill` | `Der Passwortmanager erkennt, bei welchem Dienst du dich anmeldest, und kann den passenden gespeicherten Eintrag automatisch ausfüllen.` | `Der Passwortmanager erkennt den Dienst und füllt den passenden Eintrag automatisch aus.` | Mechanismuserklärung | ausdrücklich verlangte Kürzung | begrenzt | automatisch ausgefüllte erneute Anmeldung | keine |
+| `S13.bank.website.logoutConfirmation.*` | nicht vorhanden | `Von Muster Bank abmelden?`; `Sie gelangen zurück zur Anmeldung.`; `Abbrechen`; `Abmelden` | Navigation | Abmeldung vor dem Login nachvollziehbar bestätigen | ergänzend und ausdrücklich freigegeben | Bestätigungsdialog | Primärbutton und Text |
+
+Darstellungs- und Ablaufdelta:
+
+- Beim ersten Login bleiben beide Felder leer, bis die Person aus derselben Mehrfachliste wie bei
+  My Shop den richtigen Muster-Bank-Eintrag auswählt. Ein anderer Eintrag führt ausschließlich zu
+  lokalem Fehlerfeedback. Beim Login nach der bestätigten Abmeldung wird dagegen der aktualisierte
+  Muster-Bank-Eintrag automatisch angeboten und ausgefüllt.
+- Die feste obere Kontoleiste entfällt. In der Seitenleiste steht das große Muster-Bank-Logo ohne
+  Wortmarke mittig. Die fünf Seiten erhalten zusätzliche, weiterhin vollständig maskierte
+  Inhaltsgruppen; weder Salden noch Kontonummern oder Buchungsdaten werden ergänzt.
+- `Sicherheit` und anschließend `Passwort` erhalten neben Text und Icon einen hellblauen Hinweis-
+  zustand. Das Feld `Altes Passwort` bleibt neutral; nur die beiden generatorgestützten neuen
+  Passwortfelder verwenden die Assisted-Darstellung.
+- Nach `Passwort ändern` zeigt der Button einen Ladezustand. Danach springt die Bank automatisch
+  zu `Sicherheit`, zeigt unten kurz den Toast `Passwort geändert` und hält gleichzeitig den
+  browserseitigen Update-Hinweis oben rechts bereit.
+- Nach dem bestätigten Passwortmanager-Update verschwindet PassWo mit `Weiter`. Die Person meldet
+  sich über den Seitenleistenbutton und einen kurzen Bestätigungsdialog ab. Erst dann folgt die
+  automatische Anmeldung mit dem neuen Eintrag.
+- Der zusätzliche Design-Lab-Punkt `s2-4-muster-bank-login` ist ein lokaler QA- und
+  Resume-Einstieg in die Bankanmeldung. Er führt keine neue persistierte Datenklasse und keinen
+  serverseitigen Studiencheckpoint ein.
+
+## Folgeauftrag: Robuste Autofill-Auswahl und gestufter Bankschutz, 25. August 2026
+
+Quelle ist der ausdrückliche Nutzerauftrag vom 25. August 2026. Die Content-Version steigt von
+`2.1.0` auf `2.2.0`. Alle Zugangsdaten bleiben feste lokale Übungswerte; weder Feldinhalte noch
+die simulierten Tresoreinträge werden persistiert oder exportiert.
+
+| Text-ID | Bisher | Neu | Primäre Rolle | Grund | Bedeutungsänderung | Interaktionsziel | Hervorhebung |
+|---|---|---|---|---|---|---|---|
+| `S13.passwordManager.suggestAction` | `Starkes Passwort vorschlagen` | `Sicher erzeugtes Passwort verwenden` | Navigation | ausdrücklich verlangte einheitliche Generatorbezeichnung in My Shop und Muster Bank | begrenzt | Vorschlag am Passwortfeld | Schlüssel-Icon |
+| `S13.network.guide.reopenBrowser` | `Öffne dazu wieder den Browser.` | entfällt | Navigation | der unmittelbar vorherige Einstellungs-Hinweis markiert bereits den Browser als einziges externes Fortschrittsziel | ausdrücklich freigegeben | markierter Browser im Desktop-Dock | Browsermarkierung statt eigener Sprechblase |
+| `S13.bank.website.cards.detail` | `Verwalten Sie Ihre Bankkarten und Einstellungen.` mit Status-, Funktions- und Aktionszusätzen | `Ihre Karten auf einen Blick.` mit Kartentitel, maskierter Nummer, verdecktem Limit und Datenschutzhinweis | Orientierung | ausdrücklich verlangte Reduktion der überladenen Kartenseite | begrenzt | Kartenseite | Kartenform und neutrale `MB`-Marke |
+| `S13.bank.guide.autofill` | `Der Passwortmanager erkennt den Dienst und füllt den passenden Eintrag automatisch aus.` | `Vorhin hast du den gespeicherten Eintrag noch selbst ausgewählt. Diesmal hat ihn der Passwortmanager direkt ausgefüllt. Bei vielen Anmeldungen kann er das automatisch übernehmen.` | Mechanismuserklärung | ausdrücklich verlangter Vergleich zwischen manueller Auswahl und automatischem Ausfüllen | ausdrücklich freigegeben | automatisch ausgefüllte erneute Anmeldung | keine |
+| `S13.bank.guide.complete` | `Schließe den Browser und schau, was die Änderung bei Muster Bank im Netzwerk bewirkt.` | `Schließe den Browser wieder und schau, was die Änderung bei Muster Bank im Netzwerk bewirkt.` | Navigation | ausdrücklich verlangter Rückbezug auf die vorherige Browserhandlung | begrenzt | Browser-Schließen-Schaltfläche | keine |
+
+Darstellungs- und Ablaufdelta:
+
+- My Shop und Muster Bank öffnen ihre Autofill-Liste nach Fokus in Benutzername oder Passwort
+  unabhängig von der aktuellen Zeichenzahl. Beide Loginfelder bleiben editierbar; das Verlassen
+  eines Feldes sperrt den gefüllten Anmeldebutton nicht mehr.
+- Die Muster-Bank-Liste enthält zusätzlich den festen lokalen MyShop-Übungseintrag mit dem
+  bereits versionierten MyShop-Übungspasswort und dem lokalen MyShop-Logo. Beim ersten Banklogin
+  akzeptiert die Statechart ausschließlich den ausgewählten Muster-Bank-Eintrag. Das alte
+  Muster-Bank-Passwort ist die authored Fixture `Passw0rtGeheim!?`.
+- Der browserseitige Status `Passwort aktualisiert` endet statechart-gesteuert nach zwei Sekunden.
+  Im anschließenden Abmeldeschritt bleibt der beschriftete Abmelden-Button sichtbar hervorgehoben
+  und besitzt Fokus-, Hover- und Presszustände; dieselben Zustände gelten für alle fünf
+  Navigationsbuttons.
+- Die rote Muster-Bank-Beziehung trägt bis zum Browserwechsel mittig die sichtbare Kennzeichnung
+  `dasselbe`. Nach dem Schließen des Browsers pulsiert zuerst der Muster-Bank-Knoten, dann erscheint
+  sein blauer Kontoschild und zuletzt die grüne, durch einen mittigen Schild unterbrochene
+  Schutzverbindung. Reduced Motion zeigt dieselben drei fachlichen Endzustände ohne Bewegung.
