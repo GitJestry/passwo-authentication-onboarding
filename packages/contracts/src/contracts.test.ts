@@ -403,6 +403,9 @@ describe('research-safe contracts', () => {
     expect(designLabScenarioForPath('/design-lab/s2-2-my-shop-registration')).toBe(
       's2-2-my-shop-registration',
     );
+    expect(designLabScenarioForPath('/design-lab/s2-3-password-manager-network')).toBe(
+      's2-3-password-manager-network',
+    );
     expect(designLabPathForTrainingQaSegment('s13')).toBe(
       '/design-lab/s2-2-my-shop-registration',
     );

@@ -109,12 +109,18 @@ function S07ToS09QaPreview({
 }: {
   readonly accountFeedback: readonly S07AccountFeedback[];
   readonly campusgramPassword: string;
-  readonly initialStage?: 's07' | 's08' | 's09' | 'manager' | 's13';
+  readonly initialStage?:
+    | 's07'
+    | 's08'
+    | 's09'
+    | 'manager'
+    | 's13'
+    | 's13-network';
   readonly network: NetworkSceneSnapshot | null;
   readonly plan: ReturnType<typeof createS06ConsequenceScenePlan>;
 }) {
   const [stage, setStage] = useState<
-    's07' | 's08' | 's09' | 'manager' | 's13'
+    's07' | 's08' | 's09' | 'manager' | 's13' | 's13-network'
   >(initialStage);
   const [completedRecommendedAccountIds, setCompletedRecommendedAccountIds] = useState<
     readonly S07RemainingAccountId[] | null
@@ -196,7 +202,13 @@ function S07DirectQaPreview({
   initialStage = 's07',
   passwordOverrides,
 }: {
-  readonly initialStage?: 's07' | 's08' | 's09' | 'manager' | 's13';
+  readonly initialStage?:
+    | 's07'
+    | 's08'
+    | 's09'
+    | 'manager'
+    | 's13'
+    | 's13-network';
   readonly passwordOverrides: TrainingQaPasswordOverrides;
 }) {
   const accounts = useMemo<S06ConsequenceAccountInputs>(() => {
@@ -602,6 +614,13 @@ const scenarios: Record<DesignLabScenarioId, DesignLabScenario> = {
     dimmed: false,
     showPassWoOverlay: false,
   },
+  's2-3-password-manager-network': {
+    label: 's2.3 · Konto im Netzwerk',
+    description:
+      'Direkter QA-Einstieg in den Netzwerktransfer mit My-Shop-Reveal, Schutzverbindungen und Muster Bank.',
+    dimmed: false,
+    showPassWoOverlay: false,
+  },
 };
 
 const scenarioGroups = [
@@ -657,7 +676,11 @@ const scenarioGroups = [
   },
   {
     label: 'Passwortmanager · s2.x',
-    scenarioIds: ['s2-1-password-manager-transition', 's2-2-my-shop-registration'],
+    scenarioIds: [
+      's2-1-password-manager-transition',
+      's2-2-my-shop-registration',
+      's2-3-password-manager-network',
+    ],
   },
 ] as const satisfies readonly DesignLabScenarioGroup[];
 
@@ -1371,6 +1394,20 @@ export function DesignLab({ scenarioId }: { readonly scenarioId: DesignLabScenar
         <DesignLabIntroduction scenarioId={scenarioId} scenario={scenario} />
         <ArtifactPreview>
           <S07DirectQaPreview initialStage="s13" passwordOverrides={passwordOverrides} />
+        </ArtifactPreview>
+      </main>
+    );
+  }
+
+  if (scenarioId === 's2-3-password-manager-network') {
+    return (
+      <main className={styles.labPage}>
+        <DesignLabIntroduction scenarioId={scenarioId} scenario={scenario} />
+        <ArtifactPreview>
+          <S07DirectQaPreview
+            initialStage="s13-network"
+            passwordOverrides={passwordOverrides}
+          />
         </ArtifactPreview>
       </main>
     );

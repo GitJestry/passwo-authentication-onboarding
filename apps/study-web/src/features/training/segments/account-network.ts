@@ -856,44 +856,190 @@ export function createS09ScalingRiskNetwork(
   };
 }
 
+export type S13AccountNetworkPhase = 'network' | 'revealed' | 'shielded' | 'connected';
+
+function distanceBetweenNodes(source: SceneNode, target: SceneNode): number {
+  return Math.hypot(
+    source.position.x - target.position.x,
+    source.position.y - target.position.y,
+  );
+}
+
+function distanceToPosition(
+  node: SceneNode,
+  position: SceneNode['position'],
+): number {
+  return Math.hypot(node.position.x - position.x, node.position.y - position.y);
+}
+
 /**
- * Replaces one anonymous scale account with the just-created authored My-Shop account.
- * The snapshot contains no participant input or generated password material.
+ * Replaces anonymous scale accounts with the authored S13 examples. The snapshot contains no
+ * participant input or generated password material.
  */
 export function createS13MyShopNetwork(
   source: NetworkSceneSnapshot,
   accountLabel: string,
   accountDescription: string,
+  existingAccountLabel: string,
+  existingAccountDescription: string,
+  phase: S13AccountNetworkPhase,
 ): NetworkSceneSnapshot {
-  const placeholder = [...source.nodes]
-    .reverse()
-    .find(
+  const campusgramNode = source.nodes.find(({ id }) => id === 'campusgram');
+  const myShopPosition = {
+    x: campusgramNode?.position.x ?? 0.62,
+    y: Math.max(0.18, (campusgramNode?.position.y ?? 0.34) - 0.12),
+  };
+  const bankRelation = source.edges.find(
+    ({ kind, targetId }) =>
+      kind === 'identical-reuse' && targetId.startsWith('s09-additional-account-'),
+  );
+  const bankPlaceholder = source.nodes.find(
+    ({ id, kind }) => id === bankRelation?.targetId && kind === 'account',
+  );
+  const myShopPlaceholder = source.nodes
+    .filter(
       ({ id, kind, status }) =>
         kind === 'account' &&
         status === 'neutral' &&
-        id.startsWith('s09-additional-account-'),
-    );
+        id.startsWith('s09-additional-account-') &&
+        id !== bankPlaceholder?.id,
+    )
+    .sort(
+      (left, right) =>
+        distanceToPosition(left, myShopPosition) -
+        distanceToPosition(right, myShopPosition),
+    )[0];
   const myShopNode: SceneNode = {
     id: 'my-shop',
     kind: 'account',
     symbolId: 'my-shop',
     label: accountLabel,
     description: accountDescription,
-    status: 'neutral',
+    status: phase === 'revealed' ? 'neutral' : 'protected',
     locked: false,
-    position: placeholder?.position ?? { x: 0.5, y: 0.58 },
+    position: myShopPosition,
     selectable: false,
   };
-  const nodes =
-    placeholder === undefined
-      ? [...source.nodes, myShopNode]
-      : source.nodes.map((node) => (node.id === placeholder.id ? myShopNode : node));
+  const bankNode: SceneNode = {
+    id: 'muster-bank',
+    kind: 'account',
+    symbolId: 'muster-bank',
+    label: existingAccountLabel,
+    description: existingAccountDescription,
+    status: 'affected',
+    locked: false,
+    position: bankPlaceholder?.position ?? { x: 0.28, y: 0.48 },
+    selectable: false,
+  };
+  const replacedNodes = source.nodes.map((node): SceneNode => {
+    if (node.id === bankPlaceholder?.id) return bankNode;
+    if (phase !== 'network' && node.id === myShopPlaceholder?.id) return myShopNode;
+    return node;
+  });
+  if (bankPlaceholder === undefined) replacedNodes.push(bankNode);
+  if (phase !== 'network' && myShopPlaceholder === undefined) replacedNodes.push(myShopNode);
+
+  const replacedEdges = source.edges.flatMap((edge): SceneEdge[] => {
+    const touchesBank =
+      edge.sourceId === bankPlaceholder?.id || edge.targetId === bankPlaceholder?.id;
+    if (touchesBank && edge.id !== bankRelation?.id) return [];
+    const touchesMyShopPlaceholder =
+      edge.sourceId === myShopPlaceholder?.id || edge.targetId === myShopPlaceholder?.id;
+    if (phase !== 'network' && touchesMyShopPlaceholder) return [];
+    const sourceId = edge.sourceId === bankPlaceholder?.id ? bankNode.id : edge.sourceId;
+    const targetId = edge.targetId === bankPlaceholder?.id ? bankNode.id : edge.targetId;
+    return [
+      {
+        ...edge,
+        sourceId,
+        targetId,
+        ...(touchesBank
+          ? {
+              kind: 'identical-reuse' as const,
+              status: 'direct' as const,
+              label: null,
+            }
+          : {}),
+      },
+    ];
+  });
+
+  if (phase !== 'connected') {
+    return {
+      ...source,
+      id: `${source.id}-s13-${phase}`,
+      nodes: replacedNodes,
+      edges: replacedEdges,
+      accessibleSummary:
+        phase === 'network'
+          ? `${source.accessibleSummary} Das bestehende Kontonetzwerk ist zurückgekehrt; das neue My-Shop-Konto ist noch nicht eingeblendet.`
+          : phase === 'revealed'
+            ? `${source.accessibleSummary} Das neu angelegte fiktive My-Shop-Konto ist als eigener Kontoknoten hinzugekommen.`
+            : `${source.accessibleSummary} My Shop trägt einen blauen Schutzschild für sein eigenes Passwort.`,
+    };
+  }
+
+  const sortedProtectionTargets = replacedNodes
+    .filter(
+      (node) =>
+        node.kind === 'account' &&
+        node.id !== myShopNode.id,
+    )
+    .sort(
+      (left, right) =>
+        distanceBetweenNodes(myShopNode, left) - distanceBetweenNodes(myShopNode, right),
+    );
+  const nearbyProtectionTargets = sortedProtectionTargets.filter(
+    (target) => distanceBetweenNodes(myShopNode, target) <= 0.145,
+  );
+  const protectionTargets =
+    nearbyProtectionTargets.length >= 3
+      ? nearbyProtectionTargets
+      : sortedProtectionTargets.slice(0, 3);
+  const protectionNodes: SceneNode[] = [];
+  const protectionEdges: SceneEdge[] = [];
+  protectionTargets.forEach((target, index) => {
+    const shieldId = `s13-my-shop-protection-${index + 1}-shield`;
+    protectionNodes.push({
+      id: shieldId,
+      kind: 'shield',
+      symbolId: 'comparison-path-shield',
+      label: 'Eigene Passwörter',
+      description:
+        'Zwischen My Shop und diesem Konto besteht in der Übung keine problematische Passwortverbindung.',
+      status: 'protected',
+      position: {
+        x: (myShopNode.position.x + target.position.x) / 2,
+        y: (myShopNode.position.y + target.position.y) / 2,
+      },
+      selectable: false,
+    });
+    protectionEdges.push(
+      {
+        id: `s13-my-shop-protection-${index + 1}-source`,
+        sourceId: myShopNode.id,
+        targetId: shieldId,
+        kind: 'blocked-path',
+        status: 'blocked',
+        label: null,
+      },
+      {
+        id: `s13-my-shop-protection-${index + 1}-target`,
+        sourceId: target.id,
+        targetId: shieldId,
+        kind: 'blocked-path',
+        status: 'blocked',
+        label: null,
+      },
+    );
+  });
 
   return {
     ...source,
-    id: `${source.id}-s13-my-shop`,
-    nodes,
-    accessibleSummary: `${source.accessibleSummary} Das neu angelegte fiktive My-Shop-Konto ist nun als eigener hervorgehobener Kontoknoten sichtbar.`,
+    id: `${source.id}-s13-connected`,
+    nodes: [...replacedNodes, ...protectionNodes],
+    edges: [...replacedEdges, ...protectionEdges],
+    accessibleSummary: `${source.accessibleSummary} My Shop besitzt ein eigenes Passwort, trägt einen blauen Schutzschild und ist durch ${protectionTargets.length} grüne Schildverbindungen von allen Konten in seinem Nahbereich getrennt. Muster Bank bleibt rot markiert und besitzt eine rote Verbindung für dasselbe Passwort.`,
   };
 }
 

@@ -116,6 +116,32 @@ function SymbolPaths({ symbolId }: Pick<NetworkSymbolProps, 'symbolId'>) {
           <circle cx="17" cy="18.8" r="1.35" fill="#ff9f0a" stroke="none" />
         </>
       );
+    case 'muster-bank':
+      return (
+        <>
+          <path
+            d="m3.2 9.1 8.8-5 8.8 5H3.2Zm1.4 1.9h14.8M5.7 11v6.7M9.9 11v6.7M14.1 11v6.7M18.3 11v6.7M3.6 19.8h16.8"
+            stroke="#15966a"
+            strokeWidth="1.45"
+            strokeLinejoin="round"
+          />
+          <circle cx="12" cy="7.3" r="1.1" fill="#41c58f" stroke="none" />
+        </>
+      );
+    case 'settings':
+      return (
+        <>
+          <path
+            d="M9.5 3.2h5l.55 2.25c.55.23 1.07.53 1.55.9l2.22-.7 2.5 4.35-1.68 1.55a8.5 8.5 0 0 1 0 1.9L21.32 15l-2.5 4.35-2.22-.7c-.48.37-1 .67-1.55.9l-.55 2.25h-5l-.55-2.25a8.3 8.3 0 0 1-1.55-.9l-2.22.7L2.68 15l1.68-1.55a8.5 8.5 0 0 1 0-1.9L2.68 10l2.5-4.35 2.22.7c.48-.37 1-.67 1.55-.9L9.5 3.2Z"
+            fill="currentColor"
+            fillOpacity="0.14"
+            stroke="currentColor"
+            strokeWidth="1.35"
+            strokeLinejoin="round"
+          />
+          <circle cx="12" cy="12.5" r="3.15" stroke="currentColor" strokeWidth="1.55" />
+        </>
+      );
     case 'campus-workspace':
       return (
         <>

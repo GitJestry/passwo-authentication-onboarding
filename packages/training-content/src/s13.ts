@@ -1,13 +1,13 @@
 import type { TrainingSectionId } from '@passwo/contracts';
 import { s12PasswordManagerContent } from './s12.js';
 
-export const S13_PASSWORD_MANAGER_PRACTICE_CONTENT_VERSION = '1.5.0';
+export const S13_PASSWORD_MANAGER_PRACTICE_CONTENT_VERSION = '1.8.0';
 
 export const s13PasswordManagerPracticeContent = {
   version: S13_PASSWORD_MANAGER_PRACTICE_CONTENT_VERSION,
   source: {
     revision:
-      'Nutzerauftrag, Gestaltungs- und Interaktionspräzisierung vom 2026-08-25 · 12.3 Ein neues Konto',
+      'Nutzerauftrag vom 2026-08-25 · 12.3 Ein neues Konto und 12.4 Ein bestehendes Konto',
     copyReference: 'docs/design/S13-COPY-AUDIT.md',
   },
   segment: {
@@ -16,7 +16,7 @@ export const s13PasswordManagerPracticeContent = {
     slice: 'integrated-password-manager-practice',
   },
   trainingAriaLabel:
-    'Training, Segment S13, ein neues Konto mit dem integrierten Passwortmanager anlegen',
+    'Training, Segment S13, ein neues und ein bestehendes Konto mit dem Passwortmanager',
   browser: {
     ariaLabel: 'Fiktiver Browser mit My Shop',
     tabId: 'my-shop',
@@ -154,5 +154,40 @@ export const s13PasswordManagerPracticeContent = {
     accountLabel: 'My Shop',
     accountDescription:
       'Neu angelegtes fiktives Konto mit einem im Browser gespeicherten Passwort.',
+    existingAccount: {
+      label: 'Muster Bank',
+      description:
+        'Bestehendes fiktives Konto mit einer noch nicht geänderten Passwortbeziehung.',
+    },
+    importedVault: {
+      title: 'Gespeicherte Zugangsdaten',
+      ariaLabel: 'Geöffneter Passwortmanager-Tresor mit gespeicherten Zugangsdaten',
+      maskedPassword: '••••••••••••',
+      entries: [
+        { id: 'my-shop', label: 'My Shop', symbolId: 'my-shop' },
+        { id: 'campusgram', label: 'Campusgram', symbolId: 'campusgram' },
+        { id: 'master-campus', label: 'Master Campus', symbolId: 'master-campus' },
+        { id: 'campus-email', label: 'Campus E-Mail', symbolId: 'campus-email' },
+        { id: 'muster-bank', label: 'Muster Bank', symbolId: 'muster-bank' },
+        { id: 'campus-cloud', label: 'Campus Cloud', symbolId: 'campus-cloud' },
+        { id: 'lernportal', label: 'Lernportal', symbolId: 'account' },
+        { id: 'fotobox', label: 'Fotobox', symbolId: 'account' },
+        { id: 'musikstream', label: 'Musikstream', symbolId: 'account' },
+      ],
+      moreLabel: 'Weitere gespeicherte Zugangsdaten …',
+    },
+    guide: {
+      newAccount:
+        'Das neue Konto startet direkt mit einem eigenen starken Passwort.',
+      existingAccount:
+        'Viele Passwortmanager können vorhandene Zugangsdaten auch importieren. In unserer Übung sind sie bereits gespeichert.',
+      unchangedAtService:
+        'Dadurch ändert sich das Passwort beim jeweiligen Dienst aber noch nicht.',
+      reusedPassword:
+        'Muster Bank verwendet zum Beispiel noch dasselbe Passwort wie ein anderes Konto.',
+      replaceAtService:
+        'Um das zu ändern, musst du das Passwort direkt bei Muster Bank in den Einstellungen ersetzen. Lass dir dafür vom Passwortmanager ein neues erzeugen.',
+      reopenBrowser: 'Öffne dazu wieder den Browser.',
+    },
   },
 } as const;

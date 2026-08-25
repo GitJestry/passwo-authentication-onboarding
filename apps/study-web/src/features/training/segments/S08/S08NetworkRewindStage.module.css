@@ -161,8 +161,8 @@
 .training[data-s09-expanded="true"]
   .network
   :global([data-scene-node="my-shop"]) {
-  --node-visual-width: clamp(2.6rem, 5.2cqi, 3.4rem);
-  --node-visual-height: clamp(2.6rem, 5.2cqi, 3.4rem);
+  --node-visual-width: 42px;
+  --node-visual-height: 42px;
 
   z-index: 8;
 }
@@ -170,32 +170,275 @@
 .training[data-s09-expanded="true"]
   .network
   :global([data-scene-node="my-shop"] [data-scene-node-visual]) {
-  border-color: #f05b32;
-  color: #17334f;
+  border-color: #8bcfff;
+  color: #17669d;
   background: #fff;
   box-shadow:
-    0 0 0 0.2rem rgb(244 34 105 / 18%),
-    0 0 1.4rem rgb(240 91 50 / 52%);
+    0 0 0 0.2rem rgb(44 157 255 / 18%),
+    0 0 1.4rem rgb(44 157 255 / 48%);
+}
+
+.training[data-s13-network-step]:not([data-s13-network-step="new-account-reveal"])
+  .network
+  :global([data-scene-node="my-shop"] [data-scene-node-visual]) {
+  border-color: #2497ff;
+  color: #dff3ff;
+  background: #073f91;
+  box-shadow:
+    0 0 0 0.24rem rgb(36 151 255 / 24%),
+    0 0 1.55rem rgb(36 151 255 / 72%);
 }
 
 .training[data-s09-expanded="true"]
   .network
-  :global([data-scene-node="my-shop"] [data-scene-node-button])::after {
+  :global([data-scene-node="muster-bank"]) {
+  --node-visual-width: 42px;
+  --node-visual-height: 42px;
+
+  z-index: 8;
+}
+
+.training[data-s09-expanded="true"]
+  .network
+  :global([data-scene-node="my-shop"][data-compact="true"]),
+.training[data-s09-expanded="true"]
+  .network
+  :global([data-scene-node="muster-bank"][data-compact="true"]) {
+  --node-visual-width: 28px;
+  --node-visual-height: 28px;
+}
+
+.training[data-s13-network-step^="existing-account"]
+  .network
+  :global([data-scene-node="muster-bank"] [data-scene-node-visual]) {
+  border-color: #ff315e;
+  color: #8f2145;
+  background: #fff6f8;
+  box-shadow:
+    0 0 0 0.22rem rgb(255 49 94 / 24%),
+    0 0 1.55rem rgb(255 49 94 / 64%);
+}
+
+.training[data-s13-network-step="new-account-reveal"]
+  .network
+  :global([data-scene-node="my-shop"] [data-scene-node-visual]) {
+  transform-origin: center;
+  animation: s13-my-shop-node-arrival 2.6s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.training[data-s13-network-step="new-account-shield"]
+  .network
+  :global([data-scene-node="my-shop"] [data-account-shield]) {
+  animation: s13-my-shop-shield-arrival 520ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.training[data-s13-network-step="existing-account-relation"]
+  .network
+  :global([data-scene-node="muster-bank"] [data-scene-node-visual]) {
+  transform-origin: center;
+  animation: s13-account-focus-pulse 2.6s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.training[data-s13-focus]
+  .network
+  :global(.react-flow__node) {
+  opacity: 0.48;
+  filter: saturate(0.72) brightness(0.82);
+  transition:
+    opacity 360ms var(--motion-ease-out),
+    filter 360ms var(--motion-ease-out);
+}
+
+.training[data-s13-focus]
+  .network
+  :global([data-network-edge-source]) {
+  opacity: 0.32;
+  filter: saturate(0.68) brightness(0.78);
+  transition:
+    opacity 360ms var(--motion-ease-out),
+    filter 360ms var(--motion-ease-out);
+}
+
+.training[data-s13-focus="my-shop"]
+  .network
+  :global(.react-flow__node:has([data-scene-node="my-shop"])),
+.training[data-s13-focus="my-shop"]
+  .network
+  :global(.react-flow__node:has([data-scene-node^="s13-my-shop-protection-"])) {
+  z-index: 12;
+  opacity: 1;
+  filter: none;
+}
+
+.training[data-s13-focus="my-shop"]
+  .network
+  :global([data-network-edge-source="my-shop"]),
+.training[data-s13-focus="my-shop"]
+  .network
+  :global([data-network-edge-target^="s13-my-shop-protection-"]) {
+  opacity: 1;
+  filter: none;
+}
+
+.training[data-s13-focus="muster-bank"]
+  .network
+  :global(.react-flow__node:has([data-scene-node="muster-bank"])) {
+  z-index: 12;
+  opacity: 1;
+  filter: none;
+}
+
+.training[data-s13-focus="muster-bank"]
+  .network
+  :global([data-network-edge-source="muster-bank"]),
+.training[data-s13-focus="muster-bank"]
+  .network
+  :global([data-network-edge-target="muster-bank"]) {
+  opacity: 1;
+  filter: none;
+}
+
+.training[data-s13-vault-focus="true"] .network :global(.react-flow__node) {
+  opacity: 0.56;
+  filter: saturate(0.78) brightness(0.86);
+}
+
+.training[data-s13-vault-focus="true"]
+  .network
+  :global([data-network-edge-source]) {
+  opacity: 0.4;
+  filter: saturate(0.74) brightness(0.82);
+}
+
+.importedVault {
   position: absolute;
-  top: calc(100% + 0.28rem);
-  left: 50%;
-  padding: 0.18rem 0.42rem;
-  border: var(--border-width-thin) solid #f2a283;
-  border-radius: var(--radius-round);
-  color: #17334f;
-  background: rgb(255 255 255 / 94%);
-  box-shadow: 0 0.3rem 0.8rem rgb(58 35 34 / 16%);
-  content: 'My Shop';
-  font-size: clamp(0.5rem, 0.78cqi, 0.66rem);
+  z-index: 11;
+  right: clamp(1rem, 3cqi, 2.5rem);
+  bottom: 5.8rem;
+  display: grid;
+  width: min(27rem, 46%);
+  max-height: calc(100% - 8rem);
+  grid-template-columns: clamp(2.2rem, 5cqi, 3.4rem) minmax(0, 1fr);
+  align-items: stretch;
+  color: #12304a;
+  filter: drop-shadow(0 1rem 1.8rem rgb(0 14 36 / 42%));
+  animation: s13-imported-vault-focus 2.4s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.importedVaultDoor {
+  position: relative;
+  z-index: 1;
+  border: 0.18rem solid #76b9d9;
+  border-right: 0;
+  border-radius: 0.7rem 0 0 0.7rem;
+  background:
+    radial-gradient(circle at 54% 50%, #d9f1fb 0 9%, transparent 10%),
+    linear-gradient(135deg, #214a69, #0c263e);
+  box-shadow:
+    inset 0 0 0 0.2rem rgb(206 238 250 / 12%),
+    -0.3rem 0.35rem 0.8rem rgb(0 16 38 / 28%);
+  transform: perspective(12rem) rotateY(-22deg);
+  transform-origin: right;
+}
+
+.importedVaultDoor i {
+  position: absolute;
+  top: 50%;
+  left: 38%;
+  width: 0.68rem;
+  aspect-ratio: 1;
+  border: 0.12rem solid #bce8f8;
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+}
+
+.importedVaultCabinet {
+  min-width: 0;
+  overflow: hidden;
+  border: 0.18rem solid #76b9d9;
+  border-radius: 0 0.85rem 0.85rem 0;
+  background: rgb(235 248 253 / 98%);
+  box-shadow:
+    inset 0 0 0 0.18rem rgb(255 255 255 / 62%),
+    0 0 0 0.2rem rgb(91 199 244 / 18%);
+}
+
+.importedVaultCabinet header {
+  display: flex;
+  align-items: center;
+  gap: 0.48rem;
+  padding: 0.58rem 0.7rem;
+  color: #eefaff;
+  background: linear-gradient(135deg, #123c5c, #0a2843);
+  font-size: clamp(0.68rem, 1.05cqi, 0.86rem);
+}
+
+.importedVaultCabinet header span {
+  display: grid;
+  width: 1.25rem;
+  aspect-ratio: 1;
+  place-items: center;
+  border-radius: 50%;
+  color: #063528;
+  background: #55d6a1;
   font-weight: var(--font-weight-heavy);
-  line-height: 1;
-  transform: translateX(-50%);
+}
+
+.importedVaultCabinet ol {
+  display: grid;
+  max-height: min(48cqb, 25rem);
+  margin: 0;
+  padding: 0.28rem 0.52rem;
+  overflow: hidden;
+  list-style: none;
+}
+
+.importedVaultCabinet li {
+  display: grid;
+  grid-template-columns: 1.55rem minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 0.48rem;
+  min-height: 2.1rem;
+  border-bottom: var(--border-width-thin) solid rgb(51 109 143 / 14%);
+  font-size: clamp(0.62rem, 0.94cqi, 0.78rem);
+}
+
+.importedVaultCabinet li[data-suggested="true"] {
+  opacity: 0.58;
+}
+
+.importedVaultMark {
+  display: grid;
+  width: 1.45rem;
+  height: 1.45rem;
+  place-items: center;
+  border-radius: 0.4rem;
+  color: #287e9f;
+  background: #fff;
+  box-shadow: 0 0.12rem 0.32rem rgb(8 48 76 / 16%);
+}
+
+.importedVaultMark svg {
+  width: 1.12rem;
+  height: 1.12rem;
+}
+
+.importedVaultCabinet code {
+  overflow: hidden;
+  max-width: 5.4rem;
+  color: #587083;
+  font-size: 0.82em;
+  letter-spacing: 0.06em;
+  text-overflow: clip;
   white-space: nowrap;
+}
+
+.importedVaultMore {
+  display: block;
+  padding: 0.4rem 0.7rem 0.52rem;
+  color: #48687d;
+  font-size: clamp(0.58rem, 0.88cqi, 0.72rem);
+  font-weight: var(--font-weight-semibold);
 }
 
 .training[data-s09-reducing="true"]
@@ -793,6 +1036,110 @@
   }
 }
 
+@keyframes s13-my-shop-node-arrival {
+  0% {
+    opacity: 0;
+    filter: blur(0.18rem);
+    transform: scale(0.08);
+  }
+
+  22% {
+    opacity: 1;
+    filter: blur(0);
+    transform: scale(1);
+  }
+
+  45%,
+  62% {
+    opacity: 1;
+    filter: blur(0);
+    transform: scale(2.25);
+  }
+
+  78% {
+    transform: scale(0.86);
+  }
+
+  90% {
+    transform: scale(1.45);
+  }
+
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes s13-account-focus-pulse {
+  0%,
+  28% {
+    transform: scale(1);
+  }
+
+  48%,
+  65% {
+    transform: scale(2.2);
+  }
+
+  80% {
+    transform: scale(0.86);
+  }
+
+  92% {
+    transform: scale(1.45);
+  }
+
+  to {
+    transform: scale(1);
+  }
+}
+
+@keyframes s13-my-shop-shield-arrival {
+  from {
+    opacity: 0;
+    transform: translateY(0.35rem) scale(0.55);
+  }
+
+  68% {
+    opacity: 1;
+    transform: translateY(-0.08rem) scale(1.08);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes s13-imported-vault-focus {
+  0% {
+    opacity: 0;
+    filter: drop-shadow(0 1rem 1.8rem rgb(0 14 36 / 42%));
+    transform: translateY(1rem) scale(0.92);
+  }
+
+  32% {
+    opacity: 1;
+    filter:
+      drop-shadow(0 0 0.7rem rgb(103 220 255 / 92%))
+      drop-shadow(0 0 1.8rem rgb(50 174 255 / 72%));
+    transform: translateY(0) scale(1.04);
+  }
+
+  58% {
+    filter:
+      drop-shadow(0 0 1.1rem rgb(130 231 255 / 100%))
+      drop-shadow(0 0 2.4rem rgb(50 174 255 / 82%));
+    transform: translateY(0) scale(1.04);
+  }
+
+  to {
+    opacity: 1;
+    filter: drop-shadow(0 1rem 1.8rem rgb(0 14 36 / 42%));
+    transform: translateY(0) scale(1);
+  }
+}
+
 @keyframes s09-source-edge-settle {
   0%,
   48% {
@@ -954,6 +1301,26 @@
   .principles {
     padding-inline: var(--space-3);
   }
+
+  .importedVault {
+    right: 0.65rem;
+    bottom: 5.4rem;
+    width: min(22rem, 52%);
+    grid-template-columns: 2rem minmax(0, 1fr);
+  }
+
+  .importedVaultCabinet ol {
+    max-height: min(43cqb, 20rem);
+  }
+
+  .importedVaultCabinet li {
+    grid-template-columns: 1.4rem minmax(0, 1fr);
+    min-height: 1.8rem;
+  }
+
+  .importedVaultCabinet code {
+    display: none;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -963,6 +1330,7 @@
   .summary,
   .completionMoment strong,
   .passwordManagerAction,
+  .importedVault,
   .training[data-s09-expanded="true"] .network::after,
   .training[data-s09-expanded="true"]
     .network
@@ -977,6 +1345,33 @@
     .network
     :global(.edge-kind-similar-pattern .react-flow__edge-path) {
     animation: none;
+  }
+
+  .training[data-s13-network-step]
+    .network
+    :global([data-scene-node="my-shop"] [data-scene-node-visual]),
+  .training[data-s13-network-step]
+    .network
+    :global([data-scene-node="my-shop"] [data-account-shield]),
+  .training[data-s13-network-step]
+    .network
+    :global([data-scene-node="muster-bank"] [data-scene-node-visual]) {
+    animation: none;
+  }
+
+  .training[data-s13-focus]
+    .network
+    :global(.react-flow__node),
+  .training[data-s13-focus]
+    .network
+    :global([data-network-edge-source]) {
+    transition: none;
+  }
+
+  .importedVault {
+    opacity: 1;
+    filter: drop-shadow(0 1rem 1.8rem rgb(0 14 36 / 42%));
+    transform: none;
   }
 
   .training .network :global([data-network-edge-break-effect]) {

@@ -19,7 +19,7 @@ export interface PassWoSpeechEmphasis {
   readonly tone: PassWoSpeechEmphasisTone;
   readonly symbolId?: string;
   readonly symbolSrc?: string;
-  readonly symbolSize?: 'standard' | 'wide';
+  readonly symbolSize?: 'standard' | 'wide' | 'large';
   /** Additional phrases are rendered only when they share this explicit grouped emphasis. */
   readonly contrastId?: string;
 }
@@ -227,6 +227,37 @@ const emphasisBySpeechId: Readonly<Record<string, readonly PassWoSpeechEmphasis[
     { phrase: 'Geräte- oder Plattformzugang', tone: 'accent' },
   ],
   's12-manager-practice': [{ phrase: 'direkt im Browser', tone: 'action' }],
+  's13-network-new-account': [
+    { phrase: 'eigenen starken Passwort', tone: 'positive' },
+  ],
+  's13-network-existing-account': [
+    { phrase: 'vorhandene Zugangsdaten auch importieren', tone: 'accent' },
+  ],
+  's13-network-unchanged': [{ phrase: 'noch nicht', tone: 'warning' }],
+  's13-network-reused-password': [
+    {
+      phrase: 'Muster Bank',
+      tone: 'positive',
+      symbolId: 'muster-bank',
+      symbolSize: 'large',
+    },
+  ],
+  's13-network-replace-at-service': [
+    {
+      phrase: 'Muster Bank',
+      tone: 'positive',
+      symbolId: 'muster-bank',
+      contrastId: 's13-bank-settings',
+    },
+    {
+      phrase: 'Einstellungen',
+      tone: 'action',
+      symbolId: 'settings',
+      symbolSize: 'large',
+      contrastId: 's13-bank-settings',
+    },
+  ],
+  's13-network-reopen-browser': [{ phrase: 'Browser', tone: 'action' }],
 };
 
 export function passWoSpeechEmphasisFor(

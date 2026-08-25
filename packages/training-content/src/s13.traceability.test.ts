@@ -49,12 +49,33 @@ describe('S13 integrated password-manager practice traceability', () => {
   });
 
   it('keeps the rebuilt My Shop landing-page copy in versioned content', () => {
-    expect(s13PasswordManagerPracticeContent.version).toBe('1.5.0');
+    expect(s13PasswordManagerPracticeContent.version).toBe('1.8.0');
     expect(s13PasswordManagerPracticeContent.website.shop.hero).toMatchObject({
       eyebrow: 'Sommer-Sale',
       title: 'Bis zu 40% sparen!',
     });
     expect(s13PasswordManagerPracticeContent.website.shop.popularCategories).toHaveLength(6);
     expect(s13PasswordManagerPracticeContent.website.shop.recommendedProducts).toHaveLength(6);
+  });
+
+  it('keeps the new-account and existing-account network explanation together', () => {
+    expect(s13PasswordManagerPracticeContent.network).toMatchObject({
+      accountLabel: 'My Shop',
+      existingAccount: { label: 'Muster Bank' },
+      guide: {
+        newAccount:
+          'Das neue Konto startet direkt mit einem eigenen starken Passwort.',
+        unchangedAtService:
+          'Dadurch ändert sich das Passwort beim jeweiligen Dienst aber noch nicht.',
+        reusedPassword:
+          'Muster Bank verwendet zum Beispiel noch dasselbe Passwort wie ein anderes Konto.',
+        reopenBrowser: 'Öffne dazu wieder den Browser.',
+      },
+    });
+    expect(
+      s13PasswordManagerPracticeContent.network.importedVault.entries
+        .slice(0, 5)
+        .map(({ label }) => label),
+    ).toEqual(['My Shop', 'Campusgram', 'Master Campus', 'Campus E-Mail', 'Muster Bank']);
   });
 });

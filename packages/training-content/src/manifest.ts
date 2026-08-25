@@ -111,12 +111,12 @@ export const trainingSegments = [
   },
   {
     id: 'S13',
-    title: 'Ein neues Konto',
+    title: 'Ein neues und ein bestehendes Konto',
     section: 'password-manager',
     sourcePages: '65-66',
     foci: ['TF2', 'TF3'],
     learningObjective:
-      'Erzeugen, Speichern und Ausfüllen mit einem integrierten Passwortmanager anwenden.',
+      'Neue Zugangsdaten mit einem Passwortmanager anwenden und die Dienstgrenze bei importierten Zugangsdaten erkennen.',
   },
   {
     id: 'S14',

@@ -146,6 +146,13 @@
   width: 2.2em;
 }
 
+.inlineSymbol[data-size="large"] {
+  width: 1.55em;
+  height: 1.55em;
+  margin-right: 0.38em;
+  vertical-align: -0.35em;
+}
+
 .inlineSymbol svg,
 .inlineSymbol img {
   display: block;

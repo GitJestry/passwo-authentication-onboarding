@@ -172,3 +172,90 @@ Darstellungs- und Ablaufdelta:
   Campusgram, Master Campus und Campus E-Mail die bestehende lokale Symbolregistry.
 - Nur das für My Shop erzeugte authored Passwort führt zur Anmeldung. Jede andere Zeichenfolge
   bleibt im Login und zeigt den roten, textlich und per Ausrufezeichen ausgezeichneten Fehler.
+
+## Folgeauftrag: Netzwerktransfer und bestehendes Konto, 25. August 2026
+
+Quelle ist der ausdrückliche Nutzerauftrag vom 25. August 2026. Er erweitert den Ablauf nach dem
+Schließen des Browsers um den sichtbaren Transfer auf das Kontonetzwerk sowie Abschnitt 12.4 zum
+Umgang mit bereits vorhandenen Zugangsdaten. `S13_PASSWORD_MANAGER_PRACTICE_CONTENT_VERSION`
+steigt von `1.5.0` auf `1.6.0`.
+
+| Text-ID | Bisher | Neu | Primäre Rolle | Grund | Bedeutungsänderung | Interaktionsziel | Hervorhebung |
+|---|---|---|---|---|---|---|---|
+| `S13.network.guide.newAccount` | nicht vorhanden | `Das neue Konto startet direkt mit einem eigenen starken Passwort.` | Ergebnisfeedback | erklärt den sichtbaren blauen Schild- und grünen Verbindungszustand | ausdrücklich freigegeben | `Weiter` | `eigenen starken Passwort` · positiv |
+| `S13.network.guide.existingAccount` | nicht vorhanden | `Viele Passwortmanager können vorhandene Zugangsdaten auch importieren. In unserer Übung sind sie bereits gespeichert.` | Orientierung | leitet vom neuen zum bestehenden Konto über | ausdrücklich freigegeben | `Weiter` | `vorhandene Zugangsdaten auch importieren` · Akzent |
+| `S13.network.guide.unchangedAtService` | nicht vorhanden | `Dadurch ändert sich das Passwort beim jeweiligen Dienst aber noch nicht.` | Mechanismuserklärung | begrenzt die Wirkung eines Imports fachlich | ausdrücklich freigegeben | `Weiter` | `noch nicht` · Warnung |
+| `S13.network.guide.reusedPassword` | nicht vorhanden | `Muster Bank verwendet zum Beispiel noch dasselbe Passwort wie ein anderes Konto.` | Mechanismuserklärung | ordnet die hervorgehobene rote Beziehung ein | ausdrücklich freigegeben | `Weiter` | `dasselbe Passwort` · Warnung |
+| `S13.network.guide.replaceAtService` | nicht vorhanden | `Um das zu ändern, musst du das Passwort direkt bei Muster Bank in den Einstellungen ersetzen. Lass dir dafür vom Passwortmanager ein neues erzeugen.` | Navigation | benennt Dienst-Einstellung und Generator als getrennte notwendige Schritte | ausdrücklich freigegeben | `Weiter` zum Segmentabschluss | `direkt bei Muster Bank in den Einstellungen ersetzen` · Aktion |
+| `S13.trainingAriaLabel` | nur neues Konto benannt | `Training, Segment S13, ein neues und ein bestehendes Konto mit dem Passwortmanager` | Orientierung | zugängliche Segmentbenennung an Abschnitt 12.4 angepasst | begrenzt | kein | keine |
+
+Darstellungs- und Ablaufdelta:
+
+- Nach der freigegebenen Browser-Schließen-Handlung erscheint wieder der letzte Netzwerkstand
+  aus Sektion 1. Der neue My-Shop-Knoten pulsiert einmal auf seine reguläre Größe ein.
+- Nach ungefähr zwei Sekunden erhält My Shop den bestehenden blauen Kontoschild. Anschließend
+  erscheinen grüne, durch sichtbare Schilde unterbrochene Verbindungen zu anderen Konten.
+- Muster Bank ist ein authored bestehender Kontoknoten mit eigenem lokalen Symbol. Seine rote
+  Markierung und seine roten Beziehungen bleiben sichtbar; im Beziehungsschritt wird genau eine
+  Verbindung zusätzlich hervorgehoben.
+- Reduced Motion überspringt Puls, Wartezeit und Kantenzeichnung, zeigt aber jeweils denselben
+  fachlichen Endzustand. Farbe ist durch Konto- und Schildsymbole sowie zugängliche
+  Netzwerkzusammenfassungen ergänzt.
+- `/design-lab/s2-3-password-manager-network` startet deterministisch beim My-Shop-Reveal und
+  macht die vollständige Statechart-Sequenz ohne erneuten Browserdurchlauf prüfbar.
+
+## Folgeauftrag: Netzwerkfokus und Browser-Rückkehr, 25. August 2026
+
+Quelle ist der ausdrückliche Nutzerauftrag vom 25. August 2026. Die bestehenden Erklärungen
+bleiben wortgleich. `S13_PASSWORD_MANAGER_PRACTICE_CONTENT_VERSION` steigt von `1.6.0` auf
+`1.7.0`, weil ein neuer sichtbarer Navigationsschritt zum Browser hinzukommt.
+
+| Text-ID | Bisher | Neu | Primäre Rolle | Grund | Bedeutungsänderung | Interaktionsziel | Hervorhebung |
+|---|---|---|---|---|---|---|---|
+| `S13.network.guide.reopenBrowser` | nicht vorhanden | `Öffne jetzt wieder den Browser.` | Navigation | ausdrücklich verlangte Rückkehr zum erneut markierten Browser | ausdrücklich freigegeben | Browser im Desktop-Dock; kein Sprechblasenbutton | Browser-Markierung · Aktion |
+
+Darstellungs- und Ablaufdelta:
+
+- Die Befundtitel `Leicht abgewandelt` und `Dasselbe Passwort` werden im großen
+  S13-Netzwerk nicht mehr gerendert. Beziehungssymbole und rote Linien bleiben erhalten.
+- My Shop steht authored mittig oberhalb von Campusgram; Muster Bank steht auf derselben Achse
+  weiter oben. My Shop wechselt mit seinem Schild in einen eindeutig blauen Zustand und erzeugt
+  grüne Schildverbindungen zu allen Kontoknoten innerhalb des festgelegten Nahbereichs.
+- Beim Eintritt pulsiert My Shop deutlich über seine Endgröße. Beim Wechsel zu Abschnitt 12.4
+  erhält Muster Bank denselben starken Puls; sein Label liegt oberhalb des Knotens.
+- Während der My-Shop- beziehungsweise Muster-Bank-Erklärungen werden die übrigen Knoten und
+  Kanten abgedunkelt. Der Fokus endet mit der Aufforderung zur Browser-Rückkehr. Ab diesem
+  Schritt ist ausschließlich das markierte Browser-Dock-Icon das Fortschrittsziel.
+
+## Korrektur: Linien, Tresorfokus und Logos, 25. August 2026
+
+Der ausdrückliche Folgeauftrag ersetzt die im unmittelbar vorherigen Auftrag festgelegte
+Muster-Bank-Position und die beiden sichtbaren Knotentitel. Die Content-Version steigt von
+`1.7.0` auf `1.8.0`, weil der sichtbare Tresor versionierte Orientierungstexte erhält und sich
+der Browserhinweis ändert.
+
+| Text-ID | Bisher | Neu | Primäre Rolle | Grund | Bedeutungsänderung | Interaktionsziel | Hervorhebung |
+|---|---|---|---|---|---|---|---|
+| `S13.network.importedVault.title` | nicht vorhanden | `Gespeicherte Zugangsdaten` | Orientierung | den geöffneten Passwortmanager-Tresor während des Importhinweises benennen | ergänzend und ausdrücklich freigegeben | kein | Tresor leuchtet kurz auf |
+| `S13.network.importedVault.entries` | nicht vorhanden | `My Shop`; `Campusgram`; `Master Campus`; `Campus E-Mail`; `Muster Bank`; weitere fiktive Einträge | Orientierung | bereits gespeicherte Übungszugänge als große Liste sichtbar machen | ergänzend und ausdrücklich freigegeben | kein | feste Reihenfolge und Kontologos |
+| `S13.network.importedVault.moreLabel` | nicht vorhanden | `Weitere gespeicherte Zugangsdaten …` | Orientierung | die verlangten weiteren Namen ohne reale Zugangsdaten andeuten | ergänzend | kein | abgeschwächte Folgeeinträge |
+| `S13.network.guide.reopenBrowser` | `Öffne jetzt wieder den Browser.` | `Öffne dazu wieder den Browser.` | Navigation | ausdrücklich verlangter Wortlaut | begrenzt und ausdrücklich freigegeben | markierter Browser im Desktop-Dock | `Browser` · Aktion |
+
+Darstellungs- und Ablaufdelta:
+
+- Zuerst kehrt das bestehende Netzwerk zurück. Erst anschließend ersetzt My Shop einen anonymen
+  Kontoknoten oberhalb von Campusgram und pulsiert langsam und deutlich über seine Endgröße.
+- Muster Bank bleibt an der zuvor verwendeten authored Position des bestehenden anonymen
+  Risikoknotens. Sie besitzt genau eine rote Beziehung. Die vorhandenen Linienarten,
+  Strichmuster und Strichstärken werden nicht durch S13-spezifische Animationen überschrieben.
+- Die sichtbaren Zusatzlabels `My Shop` und `Muster Bank` entfallen. Die Konten bleiben durch ihre
+  Logos, zugänglichen Knotennamen und die PassWo-Erklärung identifizierbar.
+- Während der Importerklärung erscheint rechts unten ein geöffneter Tresor. Die feste Liste zeigt
+  ausschließlich fiktive authored Kontonamen und Maskenzeichen, keine Eingaben oder gespeicherten
+  Passwörter. Tresor und Liste erhalten kurz den Fokus; das Netzwerk bleibt dabei noch gut
+  erkennbar.
+- Muster Bank wird erst beim Satz über das wiederverwendete Passwort fokussiert und pulsiert dort
+  langsam. In der Sprechblase kennzeichnet das grüne Bankmonument-Logo den Kontonamen; im
+  anschließenden Satz kennzeichnet ein großes Zahnrad das Wort `Einstellungen`.
+- Der allgemeine Fokus reduziert Deckkraft und Helligkeit der übrigen Knoten und Kanten weniger
+  stark als zuvor. Reduced Motion zeigt dieselben Endzustände ohne Puls- oder Leuchtbewegung.

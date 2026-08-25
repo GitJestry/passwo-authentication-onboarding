@@ -36,6 +36,7 @@ export const designLabScenarioIdSchema = z.enum([
   's09-password-manager-transition',
   's2-1-password-manager-transition',
   's2-2-my-shop-registration',
+  's2-3-password-manager-network',
 ]);
 export type DesignLabScenarioId = z.infer<typeof designLabScenarioIdSchema>;
 

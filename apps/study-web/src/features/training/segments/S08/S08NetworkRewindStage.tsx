@@ -23,6 +23,7 @@ import {
 } from 'react';
 import { assign, setup } from 'xstate';
 import { ReactFlowNetworkAdapter } from '../../../../adapters/network/ReactFlowNetworkAdapter.js';
+import { NetworkSymbol } from '../../../../adapters/network/NetworkSymbolRegistry.js';
 import blueShieldAsset from '../../../../assets/s05/password-factor-shield.webp';
 import greenShieldAsset from '../../../../assets/s06/comparison-path-shield.webp';
 import { CelebrationConfetti } from '../../CelebrationConfetti.js';
@@ -54,11 +55,13 @@ import styles from './S08NetworkRewindStage.module.css';
 export type S08ChangeableAccountId = Exclude<S06AccountId, 'campusgram'>;
 
 interface S08Context {
-  readonly initialStage: 's08' | 's09' | 'manager' | 's13';
+  readonly initialStage: 's08' | 's09' | 'manager' | 's13' | 's13-network';
   readonly phaseDurationMs: number;
   readonly protectionResolutionDurationMs: number;
   readonly reductionDurationMs: number;
-  readonly managerCompletionDurationMs: number;
+  readonly newAccountShieldDelayMs: number;
+  readonly newAccountConnectionDelayMs: number;
+  readonly networkReturnDelayMs: number;
   readonly protectedAccountIds: readonly S08ChangeableAccountId[];
   readonly resolvingAccountId: S08ChangeableAccountId | null;
   readonly riskModel: S08ProtectionRiskModel;
@@ -82,11 +85,13 @@ const s08Machine = setup({
     events: {} as S08Event,
     input: {} as {
       readonly recommendedAccountIds: readonly S08ChangeableAccountId[];
-      readonly initialStage: 's08' | 's09' | 'manager' | 's13';
+      readonly initialStage: 's08' | 's09' | 'manager' | 's13' | 's13-network';
       readonly phaseDurationMs: number;
       readonly protectionResolutionDurationMs: number;
       readonly reductionDurationMs: number;
-      readonly managerCompletionDurationMs: number;
+      readonly newAccountShieldDelayMs: number;
+      readonly newAccountConnectionDelayMs: number;
+      readonly networkReturnDelayMs: number;
       readonly riskModel: S08ProtectionRiskModel;
     },
   },
@@ -95,7 +100,9 @@ const s08Machine = setup({
     protectionResolutionDuration: ({ context }) =>
       context.protectionResolutionDurationMs,
     reductionDuration: ({ context }) => context.reductionDurationMs,
-    managerCompletionDuration: ({ context }) => context.managerCompletionDurationMs,
+    newAccountShieldDelay: ({ context }) => context.newAccountShieldDelayMs,
+    newAccountConnectionDelay: ({ context }) => context.newAccountConnectionDelayMs,
+    networkReturnDelay: ({ context }) => context.networkReturnDelayMs,
   },
   guards: {
     allResolved: ({ context }) =>
@@ -110,6 +117,7 @@ const s08Machine = setup({
     startsAtS09: ({ context }) => context.initialStage === 's09',
     startsAtManager: ({ context }) => context.initialStage === 'manager',
     startsAtS13: ({ context }) => context.initialStage === 's13',
+    startsAtS13Network: ({ context }) => context.initialStage === 's13-network',
   },
   actions: {
     startProtectionResolution: assign({
@@ -135,7 +143,9 @@ const s08Machine = setup({
     phaseDurationMs: input.phaseDurationMs,
     protectionResolutionDurationMs: input.protectionResolutionDurationMs,
     reductionDurationMs: input.reductionDurationMs,
-    managerCompletionDurationMs: input.managerCompletionDurationMs,
+    newAccountShieldDelayMs: input.newAccountShieldDelayMs,
+    newAccountConnectionDelayMs: input.newAccountConnectionDelayMs,
+    networkReturnDelayMs: input.networkReturnDelayMs,
     protectedAccountIds:
       input.initialStage === 's08' ? [] : [...input.recommendedAccountIds],
     resolvingAccountId: null,
@@ -144,6 +154,7 @@ const s08Machine = setup({
   states: {
     entry: {
       always: [
+        { guard: 'startsAtS13Network', target: 'managerPracticeNetworkReturn' },
         { guard: 'startsAtS13', target: 'managerPractice' },
         { guard: 'startsAtManager', target: 'managerTransition' },
         { guard: 'startsAtS09', target: 's09Summary' },
@@ -214,13 +225,47 @@ const s08Machine = setup({
     },
     managerPractice: {
       tags: ['manager', 'expanded'],
-      on: { S13_BROWSER_CLOSED: { target: 'managerPracticeComplete' } },
+      on: { S13_BROWSER_CLOSED: { target: 'managerPracticeNetworkReturn' } },
     },
-    managerPracticeComplete: {
-      tags: ['manager', 'expanded'],
-      after: { managerCompletionDuration: { target: 'complete' } },
+    managerPracticeNetworkReturn: {
+      tags: ['manager', 'expanded', 's13-network'],
+      after: { networkReturnDelay: { target: 'managerPracticeNewAccountReveal' } },
     },
-    complete: { tags: ['manager', 'expanded'] },
+    managerPracticeNewAccountReveal: {
+      tags: ['manager', 'expanded', 's13-network', 's13-new-account'],
+      after: { newAccountShieldDelay: { target: 'managerPracticeNewAccountShield' } },
+    },
+    managerPracticeNewAccountShield: {
+      tags: ['manager', 'expanded', 's13-network', 's13-new-account'],
+      after: {
+        newAccountConnectionDelay: { target: 'managerPracticeNewAccountConnections' },
+      },
+    },
+    managerPracticeNewAccountConnections: {
+      tags: ['manager', 'expanded', 's13-network', 's13-new-account'],
+      on: { NEXT: { target: 'managerPracticeExistingAccount' } },
+    },
+    managerPracticeExistingAccount: {
+      tags: ['manager', 'expanded', 's13-network', 's13-existing-account'],
+      on: { NEXT: { target: 'managerPracticeExistingAccountUnchanged' } },
+    },
+    managerPracticeExistingAccountUnchanged: {
+      tags: ['manager', 'expanded', 's13-network', 's13-existing-account'],
+      on: { NEXT: { target: 'managerPracticeExistingAccountRelation' } },
+    },
+    managerPracticeExistingAccountRelation: {
+      tags: ['manager', 'expanded', 's13-network', 's13-existing-account'],
+      on: { NEXT: { target: 'managerPracticeExistingAccountReplace' } },
+    },
+    managerPracticeExistingAccountReplace: {
+      tags: ['manager', 'expanded', 's13-network', 's13-existing-account'],
+      on: { NEXT: { target: 'managerPracticeBrowserPrompt' } },
+    },
+    managerPracticeBrowserPrompt: {
+      tags: ['manager', 'expanded', 's13-network'],
+      on: { OPEN_BROWSER: { target: 'complete' } },
+    },
+    complete: { tags: ['manager', 'expanded', 's13-network'] },
   },
 });
 
@@ -231,7 +276,7 @@ export interface S08NetworkRewindStageProps {
   readonly plan?: PasswordConsequenceScenePlan | null;
   readonly resumeState?: SupportiveS08ResumeState;
   readonly platform: DesktopPlatform;
-  readonly initialStage?: 's08' | 's09' | 'manager' | 's13';
+  readonly initialStage?: 's08' | 's09' | 'manager' | 's13' | 's13-network';
   readonly onComplete?: () => void;
 }
 
@@ -245,6 +290,49 @@ function accountReductionDuration(): number {
 
 function protectionResolutionDuration(): number {
   return window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 0 : 460;
+}
+
+function newAccountMotionDurations(): Readonly<{
+  shieldDelayMs: number;
+  connectionDelayMs: number;
+  networkReturnDelayMs: number;
+}> {
+  return window.matchMedia('(prefers-reduced-motion: reduce)').matches
+    ? { shieldDelayMs: 0, connectionDelayMs: 0, networkReturnDelayMs: 0 }
+    : { shieldDelayMs: 2600, connectionDelayMs: 650, networkReturnDelayMs: 700 };
+}
+
+function S13ImportedVault() {
+  const vault = s13PasswordManagerPracticeContent.network.importedVault;
+  return (
+    <aside
+      className={styles.importedVault}
+      data-s13-import-vault
+      aria-label={vault.ariaLabel}
+    >
+      <span className={styles.importedVaultDoor} aria-hidden="true">
+        <i />
+      </span>
+      <div className={styles.importedVaultCabinet}>
+        <header>
+          <span aria-hidden="true">✓</span>
+          <strong>{vault.title}</strong>
+        </header>
+        <ol>
+          {vault.entries.map((entry, index) => (
+            <li data-suggested={index >= 5 || undefined} key={entry.id}>
+              <span className={styles.importedVaultMark} aria-hidden="true">
+                <NetworkSymbol symbolId={entry.symbolId} />
+              </span>
+              <strong>{entry.label}</strong>
+              <code>{vault.maskedPassword}</code>
+            </li>
+          ))}
+        </ol>
+        <span className={styles.importedVaultMore}>{vault.moreLabel}</span>
+      </div>
+    </aside>
+  );
 }
 
 function changeableAccountId(nodeId: string): S08ChangeableAccountId | null {
@@ -351,6 +439,7 @@ export function S08NetworkRewindStage({
         : createS08ProtectionRiskModelFromResumeState(resumeState),
     [plan, resumeState, sourceNetwork],
   );
+  const newAccountDurations = newAccountMotionDurations();
   const [state, send] = useMachine(s08Machine, {
     input: {
       recommendedAccountIds,
@@ -358,7 +447,9 @@ export function S08NetworkRewindStage({
       phaseDurationMs: replayDuration(),
       protectionResolutionDurationMs: protectionResolutionDuration(),
       reductionDurationMs: accountReductionDuration(),
-      managerCompletionDurationMs: 1800,
+      newAccountShieldDelayMs: newAccountDurations.shieldDelayMs,
+      newAccountConnectionDelayMs: newAccountDurations.connectionDelayMs,
+      networkReturnDelayMs: newAccountDurations.networkReturnDelayMs,
       riskModel: protectionRiskModel,
     },
   });
@@ -463,12 +554,51 @@ export function S08NetworkRewindStage({
       ),
     [conservativeScaleNetwork, scalingComparisonResults],
   );
-  const managerPracticeCompleteNetwork = useMemo(
+  const returnedManagerNetwork = useMemo(
     () =>
       createS13MyShopNetwork(
         scalingRiskNetwork.network,
         s13PasswordManagerPracticeContent.network.accountLabel,
         s13PasswordManagerPracticeContent.network.accountDescription,
+        s13PasswordManagerPracticeContent.network.existingAccount.label,
+        s13PasswordManagerPracticeContent.network.existingAccount.description,
+        'network',
+      ),
+    [scalingRiskNetwork.network],
+  );
+  const newAccountRevealedNetwork = useMemo(
+    () =>
+      createS13MyShopNetwork(
+        scalingRiskNetwork.network,
+        s13PasswordManagerPracticeContent.network.accountLabel,
+        s13PasswordManagerPracticeContent.network.accountDescription,
+        s13PasswordManagerPracticeContent.network.existingAccount.label,
+        s13PasswordManagerPracticeContent.network.existingAccount.description,
+        'revealed',
+      ),
+    [scalingRiskNetwork.network],
+  );
+  const newAccountShieldedNetwork = useMemo(
+    () =>
+      createS13MyShopNetwork(
+        scalingRiskNetwork.network,
+        s13PasswordManagerPracticeContent.network.accountLabel,
+        s13PasswordManagerPracticeContent.network.accountDescription,
+        s13PasswordManagerPracticeContent.network.existingAccount.label,
+        s13PasswordManagerPracticeContent.network.existingAccount.description,
+        'shielded',
+      ),
+    [scalingRiskNetwork.network],
+  );
+  const managerPracticeNetwork = useMemo(
+    () =>
+      createS13MyShopNetwork(
+        scalingRiskNetwork.network,
+        s13PasswordManagerPracticeContent.network.accountLabel,
+        s13PasswordManagerPracticeContent.network.accountDescription,
+        s13PasswordManagerPracticeContent.network.existingAccount.label,
+        s13PasswordManagerPracticeContent.network.existingAccount.description,
+        'connected',
       ),
     [scalingRiskNetwork.network],
   );
@@ -485,8 +615,17 @@ export function S08NetworkRewindStage({
       if (preparationVisible) {
         return preparationNetwork;
       }
-      if (state.matches('managerPracticeComplete') || state.matches('complete')) {
-        return managerPracticeCompleteNetwork;
+      if (state.matches('managerPracticeNetworkReturn')) {
+        return returnedManagerNetwork;
+      }
+      if (state.matches('managerPracticeNewAccountReveal')) {
+        return newAccountRevealedNetwork;
+      }
+      if (state.matches('managerPracticeNewAccountShield')) {
+        return newAccountShieldedNetwork;
+      }
+      if (state.hasTag('s13-network')) {
+        return managerPracticeNetwork;
       }
       if (state.matches('s09Expansion')) {
         return studyScaleNetwork;
@@ -520,7 +659,10 @@ export function S08NetworkRewindStage({
     [
       preparationVisible,
       conservativeScaleNetwork,
-      managerPracticeCompleteNetwork,
+      managerPracticeNetwork,
+      newAccountRevealedNetwork,
+      newAccountShieldedNetwork,
+      returnedManagerNetwork,
       preparationNetwork,
       replayBaseNetwork,
       reducingNetwork,
@@ -537,8 +679,11 @@ export function S08NetworkRewindStage({
   const presentation = useMemo(
     () => {
       const base = staticNetworkPresentation(projectedNetwork);
-      if (state.matches('managerPracticeComplete') || state.matches('complete')) {
+      if (state.hasTag('s13-new-account')) {
         return { ...base, highlightedNodeId: 'my-shop' };
+      }
+      if (state.hasTag('s13-existing-account')) {
+        return { ...base, highlightedNodeId: 'muster-bank' };
       }
       if (state.matches('triangleAnimating')) {
         return {
@@ -580,8 +725,9 @@ export function S08NetworkRewindStage({
     state.matches('passWoSolution') ||
     state.matches('managerTransition') ||
     state.matches('managerLesson') ||
-    state.matches('managerPracticeComplete') ||
-    state.matches('complete');
+    state.hasTag('s13-network');
+  const scalingFindingTagsVisible =
+    scalingFindingsVisible && !state.hasTag('s13-network');
   const releasingAccountIds = (
     ['master-campus', 'campus-email'] as const
   ).filter((accountId) => {
@@ -625,6 +771,64 @@ export function S08NetworkRewindStage({
               : state.matches('passWoSolution')
                 ? 6
                 : null;
+  const s13NetworkSpeech = state.matches('managerPracticeNewAccountConnections')
+    ? {
+        id: 's13-network-new-account',
+        text: s13PasswordManagerPracticeContent.network.guide.newAccount,
+      }
+    : state.matches('managerPracticeExistingAccount')
+      ? {
+          id: 's13-network-existing-account',
+          text: s13PasswordManagerPracticeContent.network.guide.existingAccount,
+        }
+      : state.matches('managerPracticeExistingAccountUnchanged')
+        ? {
+            id: 's13-network-unchanged',
+            text: s13PasswordManagerPracticeContent.network.guide.unchangedAtService,
+          }
+        : state.matches('managerPracticeExistingAccountRelation')
+          ? {
+              id: 's13-network-reused-password',
+              text: s13PasswordManagerPracticeContent.network.guide.reusedPassword,
+            }
+          : state.matches('managerPracticeExistingAccountReplace')
+            ? {
+                id: 's13-network-replace-at-service',
+                text: s13PasswordManagerPracticeContent.network.guide.replaceAtService,
+              }
+            : state.matches('managerPracticeBrowserPrompt')
+              ? {
+                  id: 's13-network-reopen-browser',
+                  text: s13PasswordManagerPracticeContent.network.guide.reopenBrowser,
+                }
+              : null;
+  const s13NetworkStep = state.matches('managerPracticeNewAccountReveal')
+    ? 'new-account-reveal'
+    : state.matches('managerPracticeNetworkReturn')
+      ? 'network-return'
+      : state.matches('managerPracticeNewAccountShield')
+      ? 'new-account-shield'
+      : state.matches('managerPracticeNewAccountConnections')
+        ? 'new-account-connections'
+        : state.matches('managerPracticeExistingAccount')
+          ? 'existing-account'
+          : state.matches('managerPracticeExistingAccountUnchanged')
+            ? 'existing-account-unchanged'
+            : state.matches('managerPracticeExistingAccountRelation')
+              ? 'existing-account-relation'
+              : state.matches('managerPracticeExistingAccountReplace')
+                ? 'existing-account-replace'
+                : state.matches('managerPracticeBrowserPrompt')
+                  ? 'browser-reopen'
+                  : undefined;
+  const s13FocusTarget = state.hasTag('s13-new-account')
+    ? 'my-shop'
+    : state.matches('managerPracticeExistingAccountRelation') ||
+        state.matches('managerPracticeExistingAccountReplace')
+      ? 'muster-bank'
+      : undefined;
+  const importedVaultVisible = state.matches('managerPracticeExistingAccount');
+  const browserReopenPrompt = state.matches('managerPracticeBrowserPrompt');
 
   useEffect(() => {
     if (
@@ -672,7 +876,7 @@ export function S08NetworkRewindStage({
     <section
       className={styles.training}
       aria-label={
-        state.matches('managerPracticeComplete') || state.matches('complete')
+        state.hasTag('s13-network')
           ? s13PasswordManagerPracticeContent.trainingAriaLabel
           : state.hasTag('manager') || state.hasTag('manager-transition')
             ? s12PasswordManagerContent.trainingAriaLabel
@@ -695,6 +899,9 @@ export function S08NetworkRewindStage({
       data-s09-expanding={state.matches('s09Expansion') || undefined}
       data-s09-reducing={state.hasTag('reducing') || undefined}
       data-manager-active={state.matches('managerLesson') || undefined}
+      data-s13-network-step={s13NetworkStep}
+      data-s13-focus={s13FocusTarget}
+      data-s13-vault-focus={importedVaultVisible || undefined}
       data-s08-resolving-account={state.context.resolvingAccountId ?? undefined}
       data-s08-releasing-master-campus={
         releasingAccountIds.includes('master-campus') || undefined
@@ -713,12 +920,19 @@ export function S08NetworkRewindStage({
         platform={platform}
         browserDock={{
           active: false,
-          enabled: browserHighlighted,
-          highlighted: browserHighlighted,
-          label: browserHighlighted ? 'Browser für die Übung' : 'Browser geschlossen',
-          ...(browserHighlighted
+          enabled: browserHighlighted || browserReopenPrompt,
+          highlighted: browserHighlighted || browserReopenPrompt,
+          label:
+            browserHighlighted || browserReopenPrompt
+              ? 'Browser für die Übung öffnen'
+              : 'Browser geschlossen',
+          ...(browserHighlighted || browserReopenPrompt
             ? {
                 onClick: () => {
+                  if (browserReopenPrompt) {
+                    send({ type: 'OPEN_BROWSER' });
+                    return;
+                  }
                   setBrowserHighlighted(false);
                   send({ type: 'OPEN_BROWSER' });
                 },
@@ -759,7 +973,7 @@ export function S08NetworkRewindStage({
                 : easyToGuessAccountIds
             }
             overview={state.hasTag('expanded')}
-            {...(scalingFindingsVisible
+            {...(scalingFindingTagsVisible
               ? {
                   comparisonResults: scalingComparisonResults,
                   comparisonResultsAriaHidden: true,
@@ -792,6 +1006,7 @@ export function S08NetworkRewindStage({
             </div>
           ) : null}
         </div>
+        {importedVaultVisible ? <S13ImportedVault /> : null}
         {replayReady ? (
           <button
             type="button"
@@ -877,6 +1092,34 @@ export function S08NetworkRewindStage({
               </button>
             </section>
           </>
+        ) : s13NetworkSpeech !== null ? (
+          <section
+            className={styles.passWoScene}
+            aria-label="PassWo erklärt neue und bestehende Konten im Passwortmanager"
+          >
+            <PassWoGuide
+              guideName={s13PasswordManagerPracticeContent.guide.name}
+              taskLabel="Passwortmanager"
+              helpOpen
+              helpId="s13-network-speech"
+              openHelpLabel="PassWo-Hinweis öffnen"
+              speech={[s13NetworkSpeech.text]}
+              speechEmphasis={passWoSpeechEmphasisFor(s13NetworkSpeech.id)}
+              speechKey={s13NetworkSpeech.id}
+              speechObstacleSelector="[data-s13-import-vault]"
+              {...(browserReopenPrompt
+                ? {}
+                : {
+                    speechAction: {
+                      kind: 'advance' as const,
+                      label: 'Weiter',
+                      onAction: () => send({ type: 'NEXT' }),
+                    },
+                  })}
+              placement="bottom-left"
+              showHelpButton={false}
+            />
+          </section>
         ) : passWoStep !== null ? (
           <>
             <div className={styles.s09Dim} aria-hidden="true" />
