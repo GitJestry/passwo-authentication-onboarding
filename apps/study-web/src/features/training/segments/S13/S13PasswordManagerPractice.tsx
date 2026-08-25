@@ -10,7 +10,7 @@ import {
   type DesktopPlatform,
 } from '@passwo/ui';
 import { useMachine } from '@xstate/react';
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { NetworkSymbol } from '../../../../adapters/network/NetworkSymbolRegistry.js';
 import myShopSummerSaleAsset from '../../../../assets/s13/my-shop-summer-sale.png';
 import { AccountSuccessOverlay } from '../../AccountSuccessOverlay.js';
@@ -50,7 +50,7 @@ function MyShopMark({ idSuffix }: { readonly idSuffix: string }) {
   );
 }
 
-function MyShopAppIcon({
+export function MyShopAppIcon({
   compact = false,
   idSuffix,
 }: {
@@ -283,7 +283,8 @@ function AuthBackdrop({
 }) {
   const content = s13PasswordManagerPracticeContent;
   const login = mode === 'login';
-  const canSubmitLogin = emailValue.length > 0 && passwordValue.length > 0;
+  const canSubmitLogin =
+    emailValue.length > 0 && passwordValue.length > 0 && !autofilling;
   return (
     <main className={styles.authPage}>
       <div className={styles.authGlow} aria-hidden="true" />
@@ -718,6 +719,10 @@ export function S13PasswordManagerPractice({
   const selectedAutofillEntry = autofillEntries.find(
     ({ id }) => id === state.context.selectedAutofillEntryId,
   );
+  const completeAutofill = useCallback(
+    () => send({ type: 'AUTOFILL_COMPLETE' }),
+    [send],
+  );
   usePasswordManagerAutofill({
     active: autofilling && selectedAutofillEntry !== undefined,
     durationMs: state.context.autofillDurationMs,
@@ -725,6 +730,7 @@ export function S13PasswordManagerPractice({
     password: selectedAutofillEntry?.password ?? '',
     onIdentifierChange: setLoginEmailValue,
     onPasswordChange: setLoginPasswordValue,
+    onComplete: completeAutofill,
   });
 
   useEffect(() => {

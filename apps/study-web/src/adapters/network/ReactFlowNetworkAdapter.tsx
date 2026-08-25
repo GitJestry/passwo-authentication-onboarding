@@ -10,6 +10,7 @@ import {
   Background,
   BackgroundVariant,
   BaseEdge,
+  EdgeLabelRenderer,
   type Edge,
   type EdgeProps,
   type EdgeTypes,
@@ -907,32 +908,31 @@ function NodeEdge({
         {...optionalEdgeProps}
       />
       {relationLabel === null ? null : (
-        <g
-          className={styles.passwordRelationMarker}
-          data-password-relation-marker
-          data-password-relation-kind={data.riskRelationKind}
-          transform={`translate(${edge.labelX} ${edge.labelY})`}
-          aria-hidden="true"
-        >
-          <text
-            className={styles.passwordRelationMarkerLabel}
-            data-password-relation-label
-            x="0"
-            y="-30"
-            textAnchor="middle"
+        <EdgeLabelRenderer>
+          <div
+            className={styles.passwordRelationMarker}
+            data-password-relation-marker
+            data-password-relation-kind={data.riskRelationKind}
+            style={{
+              transform: `translate(-50%, -50%) translate(${edge.labelX}px, ${edge.labelY}px)`,
+            }}
+            aria-hidden="true"
           >
-            {relationLabel}
-          </text>
-          <image
-            className={styles.passwordRelationMarkerImage}
-            href={data.riskRelationKind === 'same' ? samePasswordAsset : similarPasswordAsset}
-            x="-22"
-            y="-22"
-            width="44"
-            height="44"
-            preserveAspectRatio="xMidYMid meet"
-          />
-        </g>
+            <span
+              className={styles.passwordRelationMarkerLabel}
+              data-password-relation-label
+            >
+              {relationLabel}
+            </span>
+            <img
+              className={styles.passwordRelationMarkerImage}
+              src={data.riskRelationKind === 'same' ? samePasswordAsset : similarPasswordAsset}
+              width={22}
+              height={22}
+              alt=""
+            />
+          </div>
+        </EdgeLabelRenderer>
       )}
       {data.riskRelation ? (
         <g

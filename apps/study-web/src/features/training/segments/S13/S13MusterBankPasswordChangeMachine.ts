@@ -20,6 +20,7 @@ interface S13MusterBankPasswordChangeContext {
   readonly autofillDurationMs: number;
   readonly expectedCurrentPassword: string;
   readonly expectedNewPassword: string;
+  readonly expectedUsername: string;
   readonly failedLoginAttempts: number;
   readonly passwordChangeDurationMs: number;
   readonly passwordChangedToastDurationMs: number;
@@ -40,11 +41,12 @@ type S13MusterBankPasswordChangeEvent =
   | { readonly type: 'LOGIN_FIELD_SELECTED' }
   | { readonly type: 'LOGIN_FIELD_DESELECTED' }
   | { readonly type: 'LOGIN_FIELD_EDITED' }
+  | { readonly type: 'AUTOFILL_COMPLETE' }
   | {
       readonly type: 'STORED_ENTRY_SELECTED';
       readonly entryId: S13BankAutofillEntryId;
     }
-  | { readonly type: 'LOGIN'; readonly password: string }
+  | { readonly type: 'LOGIN'; readonly username: string; readonly password: string }
   | { readonly type: 'NEW_PASSWORD_FIELD_SELECTED' }
   | { readonly type: 'NEW_PASSWORD_FIELD_DESELECTED' }
   | { readonly type: 'PASSWORD_SUGGESTION_SELECTED' }
@@ -65,7 +67,6 @@ export const s13MusterBankPasswordChangeMachine = setup({
     input: {} as S13MusterBankPasswordChangeInput,
   },
   delays: {
-    autofillDuration: ({ context }) => context.autofillDurationMs,
     passwordChangeDuration: ({ context }) => context.passwordChangeDurationMs,
     passwordChangedToastDuration: ({ context }) =>
       context.passwordChangedToastDurationMs,
@@ -76,9 +77,12 @@ export const s13MusterBankPasswordChangeMachine = setup({
     passwordMatchesCurrent: ({ context, event }) =>
       event.type === 'LOGIN' &&
       context.selectedAutofillEntryId === 'muster-bank' &&
+      event.username === context.expectedUsername &&
       event.password === context.expectedCurrentPassword,
     passwordMatchesNew: ({ context, event }) =>
-      event.type === 'LOGIN' && event.password === context.expectedNewPassword,
+      event.type === 'LOGIN' &&
+      event.username === context.expectedUsername &&
+      event.password === context.expectedNewPassword,
   },
   actions: {
     recordFailedLogin: assign({
@@ -143,7 +147,7 @@ export const s13MusterBankPasswordChangeMachine = setup({
       },
     },
     initialLoginAutofilling: {
-      after: { autofillDuration: { target: 'initialLoginReady' } },
+      on: { AUTOFILL_COMPLETE: { target: 'initialLoginReady' } },
     },
     initialLoginReady: {
       on: {
@@ -197,12 +201,14 @@ export const s13MusterBankPasswordChangeMachine = setup({
     passwordPage: {
       on: {
         NAVIGATE: { target: 'banking', actions: 'showNavigationPage' },
+        OPEN_SECURITY: { target: 'banking', actions: 'showSecurity' },
         NEW_PASSWORD_FIELD_SELECTED: { target: 'passwordSuggestion' },
       },
     },
     passwordSuggestion: {
       on: {
         NAVIGATE: { target: 'banking', actions: 'showNavigationPage' },
+        OPEN_SECURITY: { target: 'banking', actions: 'showSecurity' },
         NEW_PASSWORD_FIELD_DESELECTED: { target: 'passwordPage' },
         PASSWORD_SUGGESTION_SELECTED: { target: 'passwordGenerated' },
       },
@@ -210,6 +216,7 @@ export const s13MusterBankPasswordChangeMachine = setup({
     passwordGenerated: {
       on: {
         NAVIGATE: { target: 'banking', actions: 'showNavigationPage' },
+        OPEN_SECURITY: { target: 'banking', actions: 'showSecurity' },
         CHANGE_PASSWORD: { target: 'passwordChanging' },
       },
     },
@@ -238,7 +245,7 @@ export const s13MusterBankPasswordChangeMachine = setup({
       on: { CONTINUE_UPDATE_GUIDANCE: { target: 'updateGuidanceSecond' } },
     },
     updateGuidanceSecond: {
-      on: { CONTINUE_UPDATE_GUIDANCE: { target: 'updateReminder' } },
+      on: { OPEN_UPDATE_PROMPT: { target: 'updatePromptRetry' } },
     },
     updateReminder: {
       on: {
@@ -280,17 +287,64 @@ export const s13MusterBankPasswordChangeMachine = setup({
       },
     },
     returnLoginAutofilling: {
-      after: { autofillDuration: { target: 'returnLoginReady' } },
+      on: { AUTOFILL_COMPLETE: { target: 'returnLoginReady' } },
     },
     returnLoginReady: {
       on: {
+        LOGIN_FIELD_SELECTED: { target: 'returnLoginOffer' },
+        LOGIN_FIELD_EDITED: { actions: 'clearAutofillEntry' },
         LOGIN: [
           {
             guard: 'passwordMatchesNew',
             target: 'signedIn',
             actions: 'showOverview',
           },
-          { target: 'returnLoginReady', reenter: true, actions: 'recordFailedLogin' },
+          { target: 'returnLoginInvalid', actions: 'recordFailedLogin' },
+        ],
+      },
+    },
+    returnLoginOffer: {
+      on: {
+        LOGIN_FIELD_DESELECTED: { target: 'returnLoginReady' },
+        LOGIN_FIELD_EDITED: {
+          target: 'returnLoginReady',
+          actions: 'clearAutofillEntry',
+        },
+        STORED_ENTRY_SELECTED: {
+          target: 'returnLoginManualAutofilling',
+          actions: 'selectAutofillEntry',
+        },
+        LOGIN: [
+          {
+            guard: 'passwordMatchesNew',
+            target: 'signedIn',
+            actions: 'showOverview',
+          },
+          { target: 'returnLoginInvalid', actions: 'recordFailedLogin' },
+        ],
+      },
+    },
+    returnLoginManualAutofilling: {
+      on: { AUTOFILL_COMPLETE: { target: 'returnLoginReady' } },
+    },
+    returnLoginInvalid: {
+      on: {
+        LOGIN_FIELD_SELECTED: { target: 'returnLoginOffer' },
+        LOGIN_FIELD_EDITED: {
+          target: 'returnLoginReady',
+          actions: 'clearAutofillEntry',
+        },
+        LOGIN: [
+          {
+            guard: 'passwordMatchesNew',
+            target: 'signedIn',
+            actions: 'showOverview',
+          },
+          {
+            target: 'returnLoginInvalid',
+            reenter: true,
+            actions: 'recordFailedLogin',
+          },
         ],
       },
     },

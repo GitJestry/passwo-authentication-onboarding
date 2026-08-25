@@ -269,6 +269,9 @@ const emphasisBySpeechId: Readonly<Record<string, readonly PassWoSpeechEmphasis[
   's13-network-bank-password-changed': [
     { phrase: 'eigenes Passwort', tone: 'positive' },
   ],
+  's13-bank-autofill-explanation': [
+    { phrase: 'direkt ausgefüllt', tone: 'positive' },
+  ],
 };
 
 export function passWoSpeechEmphasisFor(

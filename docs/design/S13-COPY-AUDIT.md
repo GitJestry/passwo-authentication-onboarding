@@ -438,3 +438,90 @@ Darstellungs- und Ablaufdelta:
   `dasselbe`. Nach dem Schließen des Browsers pulsiert zuerst der Muster-Bank-Knoten, dann erscheint
   sein blauer Kontoschild und zuletzt die grüne, durch einen mittigen Schild unterbrochene
   Schutzverbindung. Reduced Motion zeigt dieselben drei fachlichen Endzustände ohne Bewegung.
+
+## Folgeauftrag: Browserhinweise und Bankinteraktion, 26. August 2026
+
+Quelle ist der ausdrückliche Nutzerauftrag vom 26. August 2026. Die Content-Version steigt von
+`2.2.0` auf `2.3.0`, weil Buttonwortlaut, Reminder-Rolle und die authored Hervorhebung im sichtbaren
+S13-Content geändert werden.
+
+| Text-ID | Bisher | Neu | Primäre Rolle | Grund | Bedeutungsänderung | Interaktionsziel | Hervorhebung |
+|---|---|---|---|---|---|---|---|
+| `S13.bank.website.loginAction` | `Weiter` | `Anmelden` | Navigation | Button benennt die tatsächlich ausgelöste Anmeldung | begrenzt und ausdrücklich freigegeben | Anmeldebutton | Buttonform, Hover und Fokus |
+| `S13.bank.guide.updateDeclined.reminder` | Wortgleich als dauerhafter Pflichtsprechschritt | Wortgleich als optionaler Hinweis nach Klick auf `?` | Optionaler Hinweis | PassWo soll außerhalb geöffneter Hilfe in die Sitzpose zurückkehren | keine | PassWo-Hinweisbutton; anschließend Passwortmanager-Symbol | Passwortmanager-Fokus statt Texthervorhebung |
+| `S13.bank.guide.autofill` | keine Hervorhebung | `direkt ausgefüllt` · positiv | Mechanismuserklärung | ausdrücklich verlangte Markierung des Unterschieds zur vorherigen manuellen Auswahl | keine | automatisch ausgefüllte erneute Anmeldung | `direkt ausgefüllt` · positiv |
+
+Darstellungs- und Interaktionsdelta:
+
+- My Shop und Muster Bank verwenden jeweils ein eigenes weißes, gerundetes Browser-Pop-up oben
+  rechts mit klarer Primär- und Sekundäraktion. Die Hinweise bleiben bewusst stilisiert und bilden
+  keinen realen Browser pixelgenau nach.
+- `Einstellungen`, `Sicherheit` und `Passwort ändern` werden als bedienbare Breadcrumb-Ziele für
+  die Rücknavigation gerendert. Die hervorgehobenen Einträge `Sicherheit` und `Passwort` besitzen
+  sichtbare Hover-, Druck- und Fokuszustände.
+- Nach Ablauf des Status `Passwort aktualisiert` zeigt der Browser wieder das normale
+  Passwortmanager-Symbol. Die Schilddarstellung bleibt kein dauerhafter Zustand.
+- Die Kennzeichnung `dasselbe` und ihr Gleichheitssymbol werden in einer eigenen Ebene über allen
+  Netzwerkkanten gerendert. Beim Schutz von My Shop und Muster Bank wird das bereits vorhandene
+  S08-Konfetti am jeweiligen Kontoknoten wiederverwendet; Reduced Motion behält den fachlichen
+  Schutzendzustand ohne Konfettibewegung.
+
+## Folgeauftrag: Robuster Bank-Login und vollständiger Update-Hinweis, 26. August 2026
+
+Quelle ist der ausdrückliche Nutzerauftrag vom 26. August 2026. Die Content-Version steigt von
+`2.3.0` auf `2.4.0`, weil die Feldbezeichnungen des erweiterten Passwortmanager-Hinweises als
+versionierter Teilnehmertext ergänzt werden. Die lokalen Übungswerte bleiben flüchtig und werden
+weder persistiert noch exportiert.
+
+| Text-ID | Bisher | Neu | Primäre Rolle | Grund | Bedeutungsänderung | Interaktionsziel | Hervorhebung |
+|---|---|---|---|---|---|---|---|
+| `S13.bank.passwordManager.usernameLabel` | nicht vorhanden | `Benutzername` | Orientierung | der Aktualisierungshinweis zeigt den betroffenen lokalen Login vollständig | ergänzend | schreibgeschütztes Benutzernamefeld | Feldlabel |
+| `S13.bank.passwordManager.passwordLabel` | nicht vorhanden | `Passwort` | Orientierung | das neue Passwort wird zunächst verdeckt und kann über das Auge eingeblendet werden | ergänzend | schreibgeschütztes Passwortfeld und Sichtbarkeitsschalter | Feldlabel und Auge-Icon |
+
+Darstellungs- und Interaktionsdelta:
+
+- Der erste und der erneute Banklogin prüfen Benutzername und Passwort gemeinsam. Nach dem
+  automatischen Ausfüllen bleiben Änderungen möglich; ein veränderter Eintrag erzeugt sichtbares
+  Fehlerfeedback. Ein erneuter Feldfokus öffnet die Passwortmanager-Liste, deren Muster-Bank-
+  Eintrag nach dem Update bereits das neue lokale Übungspasswort enthält.
+- Nach beiden erfolgreichen Bankanmeldungen erscheint derselbe kurze Status `Angemeldet` wie bei
+  My Shop.
+- Nach `Nicht jetzt` steht der erste Hinweis unten rechts. Der zweite Pflichtsatz besitzt keinen
+  `Weiter`-Button und hält die Seite abgedunkelt, bis das hervorgehobene Passwortmanager-Symbol
+  erneut gewählt wird. Beim erneuten Popup sitzt PassWo in der Wartepose; ein weiteres
+  `Nicht jetzt` führt nur noch zum optionalen Hilfezustand.
+- Das Gleichheitssymbol mit `dasselbe` erscheint erst zusammen mit dem Satz über das bei Muster
+  Bank wiederverwendete Passwort. Das Bildsymbol ist gegenüber der vorherigen Fassung halbiert;
+  der Text bleibt lesbar und die gemeinsame Ebene bleibt über den Kanten.
+
+## Fehlerkorrektur: Vollständiger Autofill-Endwert, 26. August 2026
+
+Quelle ist der ausdrückliche Nutzerauftrag vom 26. August 2026. Teilnehmertexte und
+Content-Version bleiben unverändert. Die Autofill-Animation meldet ihren Abschluss erst, nachdem
+Benutzername beziehungsweise E-Mail-Adresse und Passwort ausdrücklich mit ihren vollständigen
+lokalen Übungswerten gesetzt wurden. Die My-Shop- und Muster-Bank-Statecharts wechseln nicht mehr
+über einen parallelen Zeitgeber in den anmeldebereiten Zustand. Dadurch können verzögerte oder
+ausgelassene Browser-Animationsframes keine abgeschnittenen Feldwerte mehr hinterlassen. Reduced
+Motion setzt dieselben vollständigen Werte unmittelbar vor dem Zustandswechsel. Der My-Shop-
+Anmeldebutton bleibt wie der Muster-Bank-Button bis zu diesem gemeldeten Abschluss gesperrt; ein
+vorzeitiges Absenden teilweise animierter Werte wird auch von der Statechart nicht akzeptiert.
+
+## Darstellungskorrektur: Tab-Reihenfolge bei Muster Bank, 26. August 2026
+
+Quelle ist der ausdrückliche Nutzerauftrag vom 26. August 2026. Teilnehmertexte und
+Content-Version bleiben unverändert. In der Muster-Bank-Browseransicht steht der bereits
+versionierte Tab `My Shop` an erster Stelle, gefolgt vom aktiven Tab `Muster Bank`. Muster Bank
+bleibt fokussiert und bestimmt Adresse sowie Seiteninhalt; My Shop ist in dieser Szene nur als
+vorheriger Kontext sichtbar und nicht auswählbar.
+
+## Folgeauftrag: Zusammengeschriebener MyShop-Tab, 26. August 2026
+
+Quelle ist der ausdrückliche Nutzerauftrag vom 26. August 2026. Die Content-Version steigt von
+`2.4.0` auf `2.5.0`, weil die gemeinsame sichtbare Tab-Beschriftung geändert wird.
+
+| Text-ID | Bisher | Neu | Primäre Rolle | Grund | Bedeutungsänderung | Interaktionsziel | Hervorhebung |
+|---|---|---|---|---|---|---|---|
+| `S13.browser.tabLabel` | `My Shop` | `MyShop` | Orientierung | ausdrücklich verlangte einheitliche Zusammenschreibung in beiden Browseransichten | nein | aktiver Tab der MyShop-Übung und inaktiver erster Tab bei Muster Bank | Tabmarke |
+
+Der Website-Name und die übrigen authored Vorkommen von `My Shop` bleiben unverändert; das Delta
+ist auf die beiden Darstellungen der gemeinsamen Tab-Beschriftung begrenzt.

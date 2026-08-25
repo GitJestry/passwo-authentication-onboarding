@@ -7,7 +7,7 @@ describe('S13 integrated password-manager practice traceability', () => {
       id: 'S13',
       sectionId: 'password-manager',
     });
-    expect(s13PasswordManagerPracticeContent.browser.tabLabel).toBe('My Shop');
+    expect(s13PasswordManagerPracticeContent.browser.tabLabel).toBe('MyShop');
     expect(s13PasswordManagerPracticeContent.flow.map(({ label }) => label)).toEqual([
       'Erzeugen',
       'Speichern',
@@ -49,7 +49,7 @@ describe('S13 integrated password-manager practice traceability', () => {
   });
 
   it('keeps the rebuilt My Shop landing-page copy in versioned content', () => {
-    expect(s13PasswordManagerPracticeContent.version).toBe('2.2.0');
+    expect(s13PasswordManagerPracticeContent.version).toBe('2.5.0');
     expect(s13PasswordManagerPracticeContent.website.shop.hero).toMatchObject({
       eyebrow: 'Sommer-Sale',
       title: 'Bis zu 40% sparen!',
@@ -63,6 +63,7 @@ describe('S13 integrated password-manager practice traceability', () => {
       s13PasswordManagerPracticeContent.bank.website.navigation.map(({ label }) => label),
     ).toEqual(['Übersicht', 'Konten', 'Überweisungen', 'Karten', 'Einstellungen']);
     expect(s13PasswordManagerPracticeContent.bank.website).toMatchObject({
+      loginAction: 'Anmelden',
       hiddenValue: 'Ausgeblendet',
       maskedBalance: '••••,•• €',
       maskedAccountNumber: 'DE•• •••• •••• •••• ••',
@@ -79,6 +80,8 @@ describe('S13 integrated password-manager practice traceability', () => {
       currentPassword: 'Passw0rtGeheim!?',
       suggestAction: 'Sicher erzeugtes Passwort verwenden',
       updateTitle: 'Gespeichertes Passwort für Muster Bank aktualisieren?',
+      usernameLabel: 'Benutzername',
+      passwordLabel: 'Passwort',
       updateAction: 'Aktualisieren',
       dismissUpdateAction: 'Nicht jetzt',
       updatedStatus: 'Passwort aktualisiert',

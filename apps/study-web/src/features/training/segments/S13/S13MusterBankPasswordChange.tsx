@@ -6,13 +6,24 @@ import {
 } from '@passwo/ui';
 import { deriveCampusIdentity } from '@passwo/training-engine';
 import { useMachine } from '@xstate/react';
-import { type ReactNode, useEffect, useMemo, useState } from 'react';
+import {
+  type ReactNode,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import { NetworkSymbol } from '../../../../adapters/network/NetworkSymbolRegistry.js';
 import { AccountSuccessOverlay } from '../../AccountSuccessOverlay.js';
 import { PassWoGuide } from '../../PassWoGuide.js';
+import { passWoSpeechEmphasisFor } from '../../PassWoSpeechEmphasis.js';
 import { PasswordVisibilityIcon } from '../../PasswordVisibilityIcon.js';
 import sharedStyles from './S13PasswordManagerPractice.module.css';
-import { PasswordManagerKeyIcon } from './S13PasswordManagerPractice.js';
+import {
+  MyShopAppIcon,
+  PasswordManagerKeyIcon,
+} from './S13PasswordManagerPractice.js';
 import {
   type S13BankAutofillEntryId,
   type S13BankNavigationPage,
@@ -566,13 +577,26 @@ function BankSettings({ onOpenSecurity }: { readonly onOpenSecurity: () => void 
   );
 }
 
-function BankSecurity({ onOpenPassword }: { readonly onOpenPassword: () => void }) {
+function BankSecurity({
+  onOpenSettings,
+  onOpenPassword,
+}: {
+  readonly onOpenSettings: () => void;
+  readonly onOpenPassword: () => void;
+}) {
   const content = s13PasswordManagerPracticeContent.bank.website.settings;
   return (
     <>
-      <div className={styles.breadcrumbs}>
-        {content.title} <span>›</span> {content.securityTitle}
-      </div>
+      <nav
+        className={styles.breadcrumbs}
+        aria-label={`${content.title}: ${content.securityTitle}`}
+      >
+        <button type="button" onClick={onOpenSettings}>
+          {content.title}
+        </button>
+        <span aria-hidden="true">›</span>
+        <span aria-current="page">{content.securityTitle}</span>
+      </nav>
       <PageHeading title={content.securityTitle} />
       <div className={styles.settingsList}>
         {content.securityItems.map((item) => (
@@ -603,6 +627,8 @@ function BankPasswordChange({
   onSuggestionDismiss,
   onSuggestionSelect,
   onNewPasswordSelect,
+  onOpenSettings,
+  onOpenSecurity,
   onSubmit,
 }: {
   readonly newPassword: string;
@@ -618,16 +644,27 @@ function BankPasswordChange({
   readonly onSuggestionDismiss: () => void;
   readonly onSuggestionSelect: () => void;
   readonly onNewPasswordSelect: (field: 'new' | 'confirmation') => void;
+  readonly onOpenSettings: () => void;
+  readonly onOpenSecurity: () => void;
   readonly onSubmit: () => void;
 }) {
   const content = s13PasswordManagerPracticeContent.bank;
   return (
     <>
-      <div className={styles.breadcrumbs}>
-        {content.website.settings.title} <span>›</span>{' '}
-        {content.website.settings.securityTitle} <span>›</span>{' '}
-        {content.website.settings.passwordTitle}
-      </div>
+      <nav
+        className={styles.breadcrumbs}
+        aria-label={`${content.website.settings.title}: ${content.website.settings.passwordTitle}`}
+      >
+        <button type="button" onClick={onOpenSettings}>
+          {content.website.settings.title}
+        </button>
+        <span aria-hidden="true">›</span>
+        <button type="button" onClick={onOpenSecurity}>
+          {content.website.settings.securityTitle}
+        </button>
+        <span aria-hidden="true">›</span>
+        <span aria-current="page">{content.website.settings.passwordTitle}</span>
+      </nav>
       <PageHeading title={content.website.settings.passwordTitle} />
       <div className={styles.passwordAdvice}>
         <p>{content.website.settings.passwordAdvice}</p>
@@ -800,7 +837,12 @@ function BankWorkspace({
           {page === 'transfers' ? <BankTransfers /> : null}
           {page === 'cards' ? <BankCards /> : null}
           {page === 'settings' ? <BankSettings onOpenSecurity={onOpenSecurity} /> : null}
-          {page === 'security' ? <BankSecurity onOpenPassword={onOpenPassword} /> : null}
+          {page === 'security' ? (
+            <BankSecurity
+              onOpenSettings={() => onNavigate('settings')}
+              onOpenPassword={onOpenPassword}
+            />
+          ) : null}
           {page === 'password' ? passwordView : null}
         </div>
       </section>
@@ -844,13 +886,19 @@ function PasswordChangedToast() {
 }
 
 function PasswordUpdatePrompt({
+  username,
+  password,
+  passwordRevealed,
+  onPasswordVisibilityToggle,
   onUpdate,
   onDismiss,
-  pending = false,
 }: {
+  readonly username: string;
+  readonly password: string;
+  readonly passwordRevealed: boolean;
+  readonly onPasswordVisibilityToggle: () => void;
   readonly onUpdate: () => void;
   readonly onDismiss: () => void;
-  readonly pending?: boolean;
 }) {
   const content = s13PasswordManagerPracticeContent.bank.passwordManager;
   return (
@@ -858,22 +906,57 @@ function PasswordUpdatePrompt({
       className={`${sharedStyles.savePrompt} ${styles.updatePrompt}`}
       role="dialog"
       aria-labelledby="s13-bank-update-title"
-      aria-busy={pending}
     >
       <div className={styles.updatePromptTitle}>
         <PasswordManagerKeyIcon />
         <h2 id="s13-bank-update-title">{content.updateTitle}</h2>
       </div>
+      <div className={sharedStyles.savePromptField}>
+        <label htmlFor="s13-bank-update-username">{content.usernameLabel}</label>
+        <input
+          id="s13-bank-update-username"
+          type="text"
+          autoComplete="off"
+          spellCheck={false}
+          readOnly
+          value={username}
+        />
+      </div>
+      <div className={sharedStyles.savePromptField}>
+        <label htmlFor="s13-bank-update-password">{content.passwordLabel}</label>
+        <span className={sharedStyles.savePromptPasswordInput}>
+          <input
+            id="s13-bank-update-password"
+            type={passwordRevealed ? 'text' : 'password'}
+            autoComplete="off"
+            spellCheck={false}
+            readOnly
+            value={password}
+          />
+          <button
+            type="button"
+            className={sharedStyles.savePromptVisibility}
+            aria-label={
+              passwordRevealed
+                ? s13PasswordManagerPracticeContent.website.hidePasswordLabel
+                : s13PasswordManagerPracticeContent.website.showPasswordLabel
+            }
+            aria-pressed={passwordRevealed}
+            onClick={onPasswordVisibilityToggle}
+          >
+            <PasswordVisibilityIcon revealed={passwordRevealed} />
+          </button>
+        </span>
+      </div>
       <div className={sharedStyles.savePromptActions}>
         <button
           type="button"
           className={sharedStyles.savePromptDismiss}
-          disabled={pending}
           onClick={onDismiss}
         >
           {content.dismissUpdateAction}
         </button>
-        <button type="button" autoFocus={!pending} disabled={pending} onClick={onUpdate}>
+        <button type="button" autoFocus onClick={onUpdate}>
           {content.updateAction}
         </button>
       </div>
@@ -908,6 +991,7 @@ export function S13MusterBankPasswordChange({
       autofillDurationMs: autofillDuration(),
       expectedCurrentPassword: content.passwordManager.currentPassword,
       expectedNewPassword: content.passwordManager.generatedPassword,
+      expectedUsername: username,
       passwordChangeDurationMs: passwordChangeDuration(),
       passwordChangedToastDurationMs: window.matchMedia(
         '(prefers-reduced-motion: reduce)',
@@ -926,8 +1010,11 @@ export function S13MusterBankPasswordChange({
   const [currentPasswordRevealed, setCurrentPasswordRevealed] = useState(false);
   const [newPasswordRevealed, setNewPasswordRevealed] = useState(true);
   const [confirmedPasswordRevealed, setConfirmedPasswordRevealed] = useState(true);
+  const [updatePromptPasswordRevealed, setUpdatePromptPasswordRevealed] =
+    useState(false);
   const [suggestionField, setSuggestionField] = useState<'new' | 'confirmation'>('new');
   const [successOverlayVisible, setSuccessOverlayVisible] = useState(false);
+  const initialSignInOverlayShownRef = useRef(false);
 
   useEffect(() => setBrowserOpen(true), []);
 
@@ -974,6 +1061,9 @@ export function S13MusterBankPasswordChange({
   const initialLoginInvalid = state.matches('initialLoginInvalid');
   const returnLoginAutofilling = state.matches('returnLoginAutofilling');
   const returnLoginReady = state.matches('returnLoginReady');
+  const returnLoginOffer = state.matches('returnLoginOffer');
+  const returnLoginManualAutofilling = state.matches('returnLoginManualAutofilling');
+  const returnLoginInvalid = state.matches('returnLoginInvalid');
   const loginVisible =
     initialLoginIdle ||
     initialLoginOffer ||
@@ -981,16 +1071,24 @@ export function S13MusterBankPasswordChange({
     initialLoginReady ||
     initialLoginInvalid ||
     returnLoginAutofilling ||
-    returnLoginReady;
-  const loginAutofilling = initialLoginAutofilling || returnLoginAutofilling;
-  const loginStateReady = initialLoginReady || initialLoginInvalid || returnLoginReady;
+    returnLoginReady ||
+    returnLoginOffer ||
+    returnLoginManualAutofilling ||
+    returnLoginInvalid;
+  const loginAutofilling =
+    initialLoginAutofilling ||
+    returnLoginAutofilling ||
+    returnLoginManualAutofilling;
   const loginReady =
     loginUsername.length > 0 && loginPassword.length > 0 && !loginAutofilling;
-  const initialAutofillOfferAvailable =
-    initialLoginIdle || initialLoginOffer || initialLoginReady || initialLoginInvalid;
-  const selectedAutofillEntry = autofillEntries.find(
-    ({ id }) => id === state.context.selectedAutofillEntryId,
-  );
+  const manualAutofillOfferAvailable =
+    initialLoginIdle ||
+    initialLoginOffer ||
+    initialLoginReady ||
+    initialLoginInvalid ||
+    returnLoginReady ||
+    returnLoginOffer ||
+    returnLoginInvalid;
   const returnLoginEntry = useMemo<BankAutofillEntry>(
     () => ({
       id: 'muster-bank',
@@ -1000,9 +1098,30 @@ export function S13MusterBankPasswordChange({
     }),
     [content.passwordManager.generatedPassword, content.website.name, username],
   );
+  const returnAutofillEntries = useMemo(
+    () =>
+      autofillEntries.map((entry) =>
+        entry.id === 'muster-bank' ? returnLoginEntry : entry,
+      ),
+    [autofillEntries, returnLoginEntry],
+  );
+  const loginAutofillEntries =
+    returnLoginReady ||
+    returnLoginOffer ||
+    returnLoginManualAutofilling ||
+    returnLoginInvalid
+      ? returnAutofillEntries
+      : autofillEntries;
+  const selectedAutofillEntry = loginAutofillEntries.find(
+    ({ id }) => id === state.context.selectedAutofillEntryId,
+  );
   const activeAutofillEntry = returnLoginAutofilling
     ? returnLoginEntry
     : selectedAutofillEntry;
+  const completeAutofill = useCallback(
+    () => send({ type: 'AUTOFILL_COMPLETE' }),
+    [send],
+  );
 
   usePasswordManagerAutofill({
     active: loginAutofilling && activeAutofillEntry !== undefined,
@@ -1011,15 +1130,8 @@ export function S13MusterBankPasswordChange({
     password: activeAutofillEntry?.password ?? '',
     onIdentifierChange: setLoginUsername,
     onPasswordChange: setLoginPassword,
+    onComplete: completeAutofill,
   });
-
-  useEffect(() => {
-    if (!loginStateReady) return;
-    const entry = returnLoginReady ? returnLoginEntry : selectedAutofillEntry;
-    if (entry === undefined) return;
-    setLoginUsername(entry.identifier);
-    setLoginPassword(entry.password);
-  }, [loginStateReady, returnLoginEntry, returnLoginReady, selectedAutofillEntry]);
 
   const suggestionVisible = state.matches('passwordSuggestion');
   const passwordChanging = state.matches('passwordChanging');
@@ -1040,12 +1152,15 @@ export function S13MusterBankPasswordChange({
     state.matches('logoutConfirmation') ||
     returnLoginAutofilling ||
     returnLoginReady ||
+    returnLoginOffer ||
+    returnLoginManualAutofilling ||
+    returnLoginInvalid ||
     state.matches('signedIn');
   const updatePromptInteractive =
     passwordChangedToastVisible ||
     state.matches('updatePrompt') ||
     state.matches('updatePromptRetry');
-  const updatePromptVisible = passwordChanging || updatePromptInteractive;
+  const updatePromptVisible = updatePromptInteractive;
   const updateGuidanceFirst = state.matches('updateGuidanceFirst');
   const updateGuidanceSecond = state.matches('updateGuidanceSecond');
   const updateReminder = state.matches('updateReminder');
@@ -1055,11 +1170,18 @@ export function S13MusterBankPasswordChange({
   const awaitingLogout = state.matches('awaitingLogout');
   const logoutConfirmation = state.matches('logoutConfirmation');
   const signedIn = state.matches('signedIn');
+  const initialBanking = state.matches('banking');
   const dimmed =
     updatePromptVisible ||
     updateGuidanceFirst ||
     updateGuidanceSecond ||
     logoutConfirmation;
+
+  useEffect(() => {
+    if (!initialBanking || initialSignInOverlayShownRef.current) return;
+    initialSignInOverlayShownRef.current = true;
+    setSuccessOverlayVisible(true);
+  }, [initialBanking]);
 
   useEffect(() => {
     if (signedIn) setSuccessOverlayVisible(true);
@@ -1071,7 +1193,10 @@ export function S13MusterBankPasswordChange({
         awaitingLogout ||
         logoutConfirmation ||
         returnLoginAutofilling ||
-        returnLoginReady
+        returnLoginReady ||
+        returnLoginOffer ||
+        returnLoginManualAutofilling ||
+        returnLoginInvalid
       ? 2
       : servicePasswordChanged
         ? 1
@@ -1090,46 +1215,42 @@ export function S13MusterBankPasswordChange({
       ? {
           id: 's13-bank-update-declined-second',
           text: content.guide.updateDeclined.second,
-          action: {
-            kind: 'advance' as const,
-            label: 'Weiter',
-            onAction: () => send({ type: 'CONTINUE_UPDATE_GUIDANCE' }),
-          },
         }
-      : updateReminder
+      : updateConfirmation
         ? {
-            id: 's13-bank-update-reminder',
-            text: content.guide.updateDeclined.reminder,
-          }
-        : updateConfirmation
-          ? {
-              id: 's13-bank-password-updated',
-              text: content.guide.updated,
-              action: {
-                kind: 'advance' as const,
-                label: 'Weiter',
-                onAction: () => {
-                  send({ type: 'CONTINUE_TO_LOGOUT' });
-                },
+            id: 's13-bank-password-updated',
+            text: content.guide.updated,
+            action: {
+              kind: 'advance' as const,
+              label: 'Weiter',
+              onAction: () => {
+                send({ type: 'CONTINUE_TO_LOGOUT' });
               },
+            },
+          }
+        : returnLoginAutofilling ||
+            returnLoginReady ||
+            returnLoginOffer ||
+            returnLoginManualAutofilling ||
+            returnLoginInvalid
+          ? {
+              id: 's13-bank-autofill-explanation',
+              text: content.guide.autofill,
             }
-          : returnLoginAutofilling || returnLoginReady
+          : signedIn
             ? {
-                id: 's13-bank-autofill-explanation',
-                text: content.guide.autofill,
+                id: 's13-bank-practice-complete',
+                text: content.guide.complete,
               }
-            : signedIn
-              ? {
-                  id: 's13-bank-practice-complete',
-                  text: content.guide.complete,
-                }
-              : null;
+            : null;
   const guideVisible = !awaitingLogout && !logoutConfirmation;
-  const guideHint = loginVisible
-    ? content.guide.hints.login
-    : state.context.page === 'password'
-      ? content.guide.hints.password
-      : content.guide.hints.navigate;
+  const guideHint = updateReminder
+    ? content.guide.updateDeclined.reminder
+    : loginVisible
+      ? content.guide.hints.login
+      : state.context.page === 'password'
+        ? content.guide.hints.password
+        : content.guide.hints.navigate;
   const guideOpen = guideVisible && (mandatoryGuideSpeech !== null || guideHelpOpen);
   const guideSpeechAction =
     mandatoryGuideSpeech !== null && 'action' in mandatoryGuideSpeech
@@ -1146,6 +1267,11 @@ export function S13MusterBankPasswordChange({
     : content.browser.addresses[state.context.page];
   const browserSnapshot: BrowserShellSnapshot = {
     tabs: [
+      {
+        id: s13PasswordManagerPracticeContent.browser.tabId,
+        label: s13PasswordManagerPracticeContent.browser.tabLabel,
+        icon: <MyShopAppIcon compact idSuffix="bank-browser-tab" />,
+      },
       {
         id: content.browser.tabId,
         label: content.browser.tabLabel,
@@ -1167,16 +1293,9 @@ export function S13MusterBankPasswordChange({
         updatePromptVisible ||
         updateConfirmation,
       highlighted: updateGuidanceFirst || updateGuidanceSecond || updateReminder,
-      interactionEnabled: updateReminder,
-      icon:
-        updateConfirmation ||
-        awaitingLogout ||
-        logoutConfirmation ||
-        returnLoginAutofilling ||
-        returnLoginReady ||
-        signedIn
-          ? 'saved'
-          : 'key',
+      interactionEnabled: updateGuidanceSecond || updateReminder,
+      allowInteractionWhenDimmed: updateGuidanceSecond,
+      icon: passwordUpdatedStatusVisible ? 'saved' : 'key',
       ...(passwordUpdatedStatusVisible
         ? { statusLabel: content.passwordManager.updatedStatus }
         : {}),
@@ -1213,6 +1332,14 @@ export function S13MusterBankPasswordChange({
         setSuggestionField(field);
         send({ type: 'NEW_PASSWORD_FIELD_SELECTED' });
       }}
+      onOpenSettings={() => {
+        setGuideHelpOpen(false);
+        send({ type: 'NAVIGATE', page: 'settings' });
+      }}
+      onOpenSecurity={() => {
+        setGuideHelpOpen(false);
+        send({ type: 'OPEN_SECURITY' });
+      }}
       onSubmit={() => {
         setGuideHelpOpen(false);
         send({ type: 'CHANGE_PASSWORD' });
@@ -1235,13 +1362,19 @@ export function S13MusterBankPasswordChange({
         onWindowTransitionEnd={(windowState) => {
           if (windowState === 'closed' && signedIn) onBrowserClosed();
         }}
-        {...(updateReminder
-          ? { onPasswordManagerSelect: () => send({ type: 'OPEN_UPDATE_PROMPT' }) }
+        {...(updateGuidanceSecond || updateReminder
+          ? {
+              onPasswordManagerSelect: () => {
+                setGuideHelpOpen(false);
+                setUpdatePromptPasswordRevealed(false);
+                send({ type: 'OPEN_UPDATE_PROMPT' });
+              },
+            }
           : {})}
         layers={{
           passWo: (
             <>
-              {signedIn && successOverlayVisible ? (
+              {successOverlayVisible ? (
                 <AccountSuccessOverlay
                   label={content.website.signedInStatus}
                   onComplete={() => setSuccessOverlayVisible(false)}
@@ -1265,10 +1398,14 @@ export function S13MusterBankPasswordChange({
                     mandatoryGuideSpeech?.id ??
                     `s13-bank-help-${String(state.value)}-${state.context.page}`
                   }
+                  speechEmphasis={passWoSpeechEmphasisFor(
+                    mandatoryGuideSpeech?.id ?? '',
+                  )}
                   {...(guideSpeechAction === undefined
                     ? {}
                     : { speechAction: guideSpeechAction })}
-                  placement="bottom-left"
+                  placement={updateGuidanceFirst ? 'bottom-right' : 'bottom-left'}
+                  speechPlacement={updateGuidanceFirst ? 'left' : 'right'}
                   showHelpButton={mandatoryGuideSpeech === null}
                   showTaskStatusWhenSpeaking
                   onToggleHelp={() => setGuideHelpOpen(true)}
@@ -1280,9 +1417,20 @@ export function S13MusterBankPasswordChange({
             <>
               {updatePromptVisible ? (
                 <PasswordUpdatePrompt
-                  pending={passwordChanging}
-                  onUpdate={() => send({ type: 'UPDATE_PASSWORD' })}
-                  onDismiss={() => send({ type: 'DISMISS_UPDATE_PROMPT' })}
+                  username={username}
+                  password={content.passwordManager.generatedPassword}
+                  passwordRevealed={updatePromptPasswordRevealed}
+                  onPasswordVisibilityToggle={() =>
+                    setUpdatePromptPasswordRevealed((revealed) => !revealed)
+                  }
+                  onUpdate={() => {
+                    setUpdatePromptPasswordRevealed(false);
+                    send({ type: 'UPDATE_PASSWORD' });
+                  }}
+                  onDismiss={() => {
+                    setUpdatePromptPasswordRevealed(false);
+                    send({ type: 'DISMISS_UPDATE_PROMPT' });
+                  }}
                 />
               ) : null}
               {passwordChangedToastVisible ? <PasswordChangedToast /> : null}
@@ -1307,18 +1455,18 @@ export function S13MusterBankPasswordChange({
             username={loginUsername}
             password={loginPassword}
             offerVisible={
-              initialAutofillOfferAvailable && autofillAnchor !== null
+              manualAutofillOfferAvailable && autofillAnchor !== null
             }
             autofillAnchor={autofillAnchor}
             automaticEntry={returnLoginAutofilling ? returnLoginEntry : null}
-            entries={autofillEntries}
+            entries={loginAutofillEntries}
             autofilling={loginAutofilling}
             ready={loginReady}
-            invalid={initialLoginInvalid}
+            invalid={initialLoginInvalid || returnLoginInvalid}
             failedLoginAttempts={state.context.failedLoginAttempts}
             passwordRevealed={loginPasswordRevealed}
             onLoginFieldSelect={(field) => {
-              if (!initialAutofillOfferAvailable) return;
+              if (!manualAutofillOfferAvailable) return;
               setAutofillAnchor(field);
               send({ type: 'LOGIN_FIELD_SELECTED' });
             }}
@@ -1349,7 +1497,11 @@ export function S13MusterBankPasswordChange({
             onLogin={() => {
               setGuideHelpOpen(false);
               setAutofillAnchor(null);
-              send({ type: 'LOGIN', password: loginPassword });
+              send({
+                type: 'LOGIN',
+                username: loginUsername,
+                password: loginPassword,
+              });
             }}
           />
         ) : (

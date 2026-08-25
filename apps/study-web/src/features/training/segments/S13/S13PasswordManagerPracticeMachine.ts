@@ -34,6 +34,7 @@ type S13PasswordManagerPracticeEvent =
   | { readonly type: 'LOGIN_FIELD_SELECTED' }
   | { readonly type: 'LOGIN_FIELD_DESELECTED' }
   | { readonly type: 'LOGIN_FIELD_EDITED' }
+  | { readonly type: 'AUTOFILL_COMPLETE' }
   | {
       readonly type: 'STORED_ENTRY_SELECTED';
       readonly entryId: S13AutofillEntryId;
@@ -47,7 +48,6 @@ export const s13PasswordManagerPracticeMachine = setup({
     input: {} as S13PasswordManagerPracticeInput,
   },
   delays: {
-    autofillDuration: ({ context }) => context.autofillDurationMs,
     registrationDuration: ({ context }) => context.registrationDurationMs,
     saveConfirmationDuration: ({ context }) => context.saveConfirmationDurationMs,
     saveRestoreDuration: ({ context }) => context.saveRestoreDurationMs,
@@ -145,12 +145,8 @@ export const s13PasswordManagerPracticeMachine = setup({
       },
     },
     autofilling: {
-      after: { autofillDuration: { target: 'loginReady' } },
       on: {
-        LOGIN: [
-          { guard: 'passwordMatchesMyShop', target: 'signedIn' },
-          { target: 'loginInvalid', actions: 'recordFailedLogin' },
-        ],
+        AUTOFILL_COMPLETE: { target: 'loginReady' },
       },
     },
     loginReady: {

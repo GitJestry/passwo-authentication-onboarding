@@ -1,13 +1,13 @@
 import type { TrainingSectionId } from '@passwo/contracts';
 import { s12PasswordManagerContent } from './s12.js';
 
-export const S13_PASSWORD_MANAGER_PRACTICE_CONTENT_VERSION = '2.2.0';
+export const S13_PASSWORD_MANAGER_PRACTICE_CONTENT_VERSION = '2.5.0';
 
 export const s13PasswordManagerPracticeContent = {
   version: S13_PASSWORD_MANAGER_PRACTICE_CONTENT_VERSION,
   source: {
     revision:
-      'Nutzeraufträge vom 2026-08-25 · robuste Autofill-Auswahl und präzisierter Muster-Bank-Abschluss',
+      'Nutzeraufträge vom 2026-08-26 · robuste Browserhinweise, Autofill- und Tab-Interaktion',
     copyReference: 'docs/design/S13-COPY-AUDIT.md',
   },
   segment: {
@@ -20,7 +20,7 @@ export const s13PasswordManagerPracticeContent = {
   browser: {
     ariaLabel: 'Fiktiver Browser mit My Shop',
     tabId: 'my-shop',
-    tabLabel: 'My Shop',
+    tabLabel: 'MyShop',
     addresses: {
       register: 'myshop.example.com/register',
       login: 'myshop.example.com/login',
@@ -214,7 +214,7 @@ export const s13PasswordManagerPracticeContent = {
       loginTitle: 'Anmelden',
       usernameLabel: 'Benutzername',
       passwordLabel: 'Passwort',
-      loginAction: 'Weiter',
+      loginAction: 'Anmelden',
       incorrectPassword: 'Dieser gespeicherte Eintrag passt nicht zu Muster Bank.',
       signedInStatus: 'Angemeldet',
       welcomeTitle: (username: string) => `Willkommen zurück, ${username}`,
@@ -386,6 +386,8 @@ export const s13PasswordManagerPracticeContent = {
         { id: 'campus-email', label: 'Campus E-Mail' },
       ],
       updateTitle: 'Gespeichertes Passwort für Muster Bank aktualisieren?',
+      usernameLabel: 'Benutzername',
+      passwordLabel: 'Passwort',
       updateAction: 'Aktualisieren',
       dismissUpdateAction: 'Nicht jetzt',
       updatedStatus: 'Passwort aktualisiert',

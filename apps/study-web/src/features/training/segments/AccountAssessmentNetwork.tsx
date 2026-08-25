@@ -226,7 +226,7 @@ function AccountAssessmentNetworkView({
   readonly animateEdgeReveals?: boolean;
   readonly statusCascadeStartDelayMs?: number;
   readonly nodeActionLabels?: Readonly<Partial<Record<S06AccountId, string>>>;
-  readonly celebratingNodeId?: S06AccountId | null;
+  readonly celebratingNodeId?: string | null;
   readonly onNodeSelect?: (nodeId: string) => void;
   readonly interactionDisabled?: boolean;
   readonly accountShieldAsset?: string;

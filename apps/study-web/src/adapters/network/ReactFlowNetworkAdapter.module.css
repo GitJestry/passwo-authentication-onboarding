@@ -533,22 +533,38 @@
 }
 
 .passwordRelationMarker {
+  position: absolute;
+  z-index: 3;
+  display: grid;
+  width: 4.4rem;
+  justify-items: center;
   pointer-events: none;
+  transform-origin: center;
 }
 
 .passwordRelationMarkerLabel {
-  fill: #ffe1e8;
-  stroke: #24050d;
-  stroke-width: 3px;
-  paint-order: stroke fill;
+  position: absolute;
+  bottom: calc(100% + 0.1rem);
+  color: #ffe1e8;
   font-family: var(--font-family-body);
   font-size: 11px;
   font-weight: var(--font-weight-heavy);
   letter-spacing: 0.01em;
-  filter: drop-shadow(0 1px 2px rgb(0 0 0 / 88%));
+  line-height: 1;
+  text-shadow:
+    -1px -1px 0 #24050d,
+    1px -1px 0 #24050d,
+    -1px 1px 0 #24050d,
+    1px 1px 0 #24050d,
+    0 1px 3px rgb(0 0 0 / 88%);
+  white-space: nowrap;
 }
 
 .passwordRelationMarkerImage {
+  display: block;
+  width: 22px;
+  height: 22px;
+  object-fit: contain;
   filter:
     drop-shadow(0 5px 6px rgb(0 0 0 / 88%))
     drop-shadow(0 0 8px rgb(0 0 0 / 82%))

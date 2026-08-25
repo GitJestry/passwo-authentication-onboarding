@@ -378,3 +378,20 @@ wortgleich.
   verkürzen.
 - Die bestehende MyShop-Symbolmarkierung wird durch den unveränderten Ausdruck `MyShop` im neuen
   gemeinsamen Sprechschritt weiterverwendet.
+
+## Korrektur: Schnellere Erzeugen- und Speichern-Sequenzen, 26. August 2026
+
+Quelle ist der ausdrückliche Nutzerauftrag vom 26. August 2026. Teilnehmertexte und
+Content-Version bleiben unverändert. Die Statechart-Dauern sowie sämtliche zugehörigen CSS-
+Animationen und Verzögerungen der Schritte `Erzeugen` und `Speichern` werden einheitlich auf
+80 Prozent ihrer bisherigen Dauer gesetzt; das entspricht einer um 25 Prozent erhöhten
+Abspielgeschwindigkeit. Reduced Motion zeigt weiterhin unmittelbar dieselben fachlichen
+Endzustände.
+
+## Folgekorrektur: Erzeugen- und Speichern-Sequenzen wieder verlangsamt, 26. August 2026
+
+Quelle ist der ausdrückliche Folgeauftrag vom 26. August 2026. Teilnehmertexte und
+Content-Version bleiben unverändert. Die unmittelbar zuvor um 25 Prozent beschleunigten
+Statechart-Dauern, CSS-Animationen und Verzögerungen der Schritte `Erzeugen` und `Speichern`
+werden wieder auf ihre vorherigen Originalwerte zurückgesetzt. Gegenüber dem beschleunigten
+Zwischenstand sind ihre Dauern damit wieder 25 Prozent länger. Reduced Motion bleibt unverändert.

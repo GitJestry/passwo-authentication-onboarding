@@ -922,7 +922,21 @@ export function S08NetworkRewindStage({
       ? 'muster-bank'
       : undefined;
   const importedVaultVisible = state.hasTag('s13-existing-account');
+  const s13ExistingAccountRelationVisible =
+    state.matches('managerPracticeExistingAccountRelation') ||
+    state.matches('managerPracticeExistingAccountReplace');
   const browserReopenPrompt = state.matches('managerPracticeExistingAccountReplace');
+  const celebratesMyShop =
+    state.matches('managerPracticeNewAccountShield') ||
+    state.matches('managerPracticeNewAccountConnections');
+  const celebratesMusterBank =
+    state.matches('managerPracticeBankProtectionReveal') ||
+    state.matches('managerPracticeBankProtected');
+  const s13CelebratingNodeId = celebratesMyShop
+    ? 'my-shop'
+    : celebratesMusterBank
+      ? 'muster-bank'
+      : null;
 
   const handleNetworkNodeSelect = useCallback(
     (nodeId: string) => {
@@ -1079,10 +1093,10 @@ export function S08NetworkRewindStage({
                     : {}),
                 }
               : {})}
-            celebratingNodeId={celebratingNodeId}
+            celebratingNodeId={s13CelebratingNodeId ?? celebratingNodeId}
             interactionDisabled={!state.matches('protection')}
             nodeActionLabels={actionLabels}
-            showEdgeLabels={preparationVisible || state.hasTag('s13-existing-account')}
+            showEdgeLabels={preparationVisible || s13ExistingAccountRelationVisible}
             onNodeSelect={handleNetworkNodeSelect}
           />
           {replayComplete ? (
