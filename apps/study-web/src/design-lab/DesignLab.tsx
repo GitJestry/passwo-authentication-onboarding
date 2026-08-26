@@ -633,6 +633,13 @@ const scenarios: Record<DesignLabScenarioId, DesignLabScenario> = {
     dimmed: false,
     showPassWoOverlay: false,
   },
+  's3-1-mfa-factors': {
+    label: 's3.1 · MFA und zweiter Faktor',
+    description:
+      'Direkter lokaler QA-Einstieg in S14.0 mit MFA-/2FA-Begriffen, drei Faktorarten, Kombinationen und gesperrtem Suchtab.',
+    dimmed: false,
+    showPassWoOverlay: false,
+  },
 };
 
 const scenarioGroups = [
@@ -696,6 +703,10 @@ const scenarioGroups = [
       's2-5-campusgram-manual-login',
       's2-6-password-manager-conclusion',
     ],
+  },
+  {
+    label: 'MFA · s3.x',
+    scenarioIds: ['s3-1-mfa-factors'],
   },
 ] as const satisfies readonly DesignLabScenarioGroup[];
 
@@ -1465,6 +1476,17 @@ export function DesignLab({ scenarioId }: { readonly scenarioId: DesignLabScenar
             initialStage="s13-conclusion"
             passwordOverrides={passwordOverrides}
           />
+        </ArtifactPreview>
+      </main>
+    );
+  }
+
+  if (scenarioId === 's3-1-mfa-factors') {
+    return (
+      <main className={styles.labPage}>
+        <DesignLabIntroduction scenarioId={scenarioId} scenario={scenario} />
+        <ArtifactPreview>
+          <S07DirectQaPreview initialStage="s14" passwordOverrides={passwordOverrides} />
         </ArtifactPreview>
       </main>
     );

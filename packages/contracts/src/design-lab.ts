@@ -40,6 +40,7 @@ export const designLabScenarioIdSchema = z.enum([
   's2-4-muster-bank-login',
   's2-5-campusgram-manual-login',
   's2-6-password-manager-conclusion',
+  's3-1-mfa-factors',
 ]);
 export type DesignLabScenarioId = z.infer<typeof designLabScenarioIdSchema>;
 
@@ -58,6 +59,7 @@ export const trainingQaSegmentSchema = z.enum([
   's13',
   's13-campusgram',
   's13-conclusion',
+  's14',
 ]);
 export type TrainingQaSegment = z.infer<typeof trainingQaSegmentSchema>;
 
@@ -84,6 +86,7 @@ const designLabScenarioByTrainingQaSegment = {
   s13: 's2-2-my-shop-registration',
   's13-campusgram': 's2-5-campusgram-manual-login',
   's13-conclusion': 's2-6-password-manager-conclusion',
+  s14: 's3-1-mfa-factors',
 } as const satisfies Readonly<Record<TrainingQaSegment, DesignLabScenarioId>>;
 
 export function designLabPathForScenario(scenarioId: DesignLabScenarioId): string {

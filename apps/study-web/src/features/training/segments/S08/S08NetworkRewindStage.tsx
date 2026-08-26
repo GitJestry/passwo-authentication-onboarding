@@ -45,6 +45,7 @@ import {
   type S13PasswordManagerVariant,
 } from '../S13/S13PasswordManagerConclusion.js';
 import { S13PasswordManagerPractice } from '../S13/S13PasswordManagerPractice.js';
+import { S14MfaIntroduction } from '../S14/S14MfaIntroduction.js';
 import {
   blockedS08ProtectionSteps,
   createCompletedS02Network,
@@ -78,7 +79,8 @@ export type S08NetworkRewindInitialStage =
   | 's13-network'
   | 's13-bank'
   | 's13-campusgram'
-  | 's13-conclusion';
+  | 's13-conclusion'
+  | 's14';
 
 interface S08Context {
   readonly initialStage: S08NetworkRewindInitialStage;
@@ -168,6 +170,7 @@ const s08Machine = setup({
     startsAtS13Campusgram: ({ context }) => context.initialStage === 's13-campusgram',
     startsAtS13Conclusion: ({ context }) =>
       context.initialStage === 's13-conclusion',
+    startsAtS14: ({ context }) => context.initialStage === 's14',
     selectedIntegrated: ({ event }) =>
       event.type === 'S13_VARIANT_SELECTED' && event.variant === 'integrated',
   },
@@ -210,6 +213,7 @@ const s08Machine = setup({
   states: {
     entry: {
       always: [
+        { guard: 'startsAtS14', target: 's14' },
         {
           guard: 'startsAtS13Conclusion',
           target: 'conclusionRemainingAccountsIntro',
@@ -451,7 +455,10 @@ const s08Machine = setup({
     },
     conclusionMfaSectionTransition: {
       tags: ['manager', 'expanded'],
-      on: { TRANSITION_COMPLETE: { target: 'complete' } },
+      on: { TRANSITION_COMPLETE: { target: 's14' } },
+    },
+    s14: {
+      tags: ['s14'],
     },
     complete: {
       tags: ['manager', 'expanded', 's13-network', 's13-mfa', 's13-mfa-preview'],
@@ -1305,6 +1312,7 @@ export function S08NetworkRewindStage({
   const mfaSectionTransitionVisible = state.matches(
     'conclusionMfaSectionTransition',
   );
+  const s14Visible = state.matches('s14');
 
   return (
     <div className={styles.stageStack}>
@@ -1317,6 +1325,7 @@ export function S08NetworkRewindStage({
           campusgramPracticeVisible ||
           conclusionOverlayPhase !== null ||
           mfaSectionTransitionVisible ||
+          s14Visible ||
           undefined
         }
         aria-label={
@@ -1745,6 +1754,11 @@ export function S08NetworkRewindStage({
             }
             onComplete={() => send({ type: 'TRANSITION_COMPLETE' })}
           />
+        </div>
+      ) : null}
+      {s14Visible ? (
+        <div className={styles.stageOverlay}>
+          <S14MfaIntroduction platform={platform} />
         </div>
       ) : null}
       {conclusionOverlayPhase === null ? null : (

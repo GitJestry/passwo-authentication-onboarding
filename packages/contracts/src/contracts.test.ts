@@ -214,7 +214,7 @@ describe('research-safe contracts', () => {
   });
 
   it('keeps canonical artifact versions and the S00–S07 segment order', () => {
-    expect(SUPPORTIVE_ARTIFACT_VERSION).toBe('supportive-s00-s13-1.10.0');
+    expect(SUPPORTIVE_ARTIFACT_VERSION).toBe('supportive-s00-s14-1.12.0');
     expect(SUPPORTIVE_ARTIFACT_VERSION).not.toBe(REFERENCE_ARTIFACT_VERSION);
     expect(SUPPORTIVE_ARTIFACT_SEGMENT_IDS).toEqual([
       'S00',
@@ -415,6 +415,9 @@ describe('research-safe contracts', () => {
     expect(designLabScenarioForPath('/design-lab/s2-6-password-manager-conclusion')).toBe(
       's2-6-password-manager-conclusion',
     );
+    expect(designLabScenarioForPath('/design-lab/s3-1-mfa-factors')).toBe(
+      's3-1-mfa-factors',
+    );
     expect(designLabPathForTrainingQaSegment('s13')).toBe(
       '/design-lab/s2-2-my-shop-registration',
     );
@@ -423,6 +426,9 @@ describe('research-safe contracts', () => {
     );
     expect(designLabPathForTrainingQaSegment('s13-conclusion')).toBe(
       '/design-lab/s2-6-password-manager-conclusion',
+    );
+    expect(designLabPathForTrainingQaSegment('s14')).toBe(
+      '/design-lab/s3-1-mfa-factors',
     );
     expect(designLabScenarioForPath('/design-lab/s07-directly-reached')).toBeNull();
   });

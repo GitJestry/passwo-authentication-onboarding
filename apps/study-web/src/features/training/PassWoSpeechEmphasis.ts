@@ -321,6 +321,16 @@ const emphasisBySpeechId: Readonly<Record<string, readonly PassWoSpeechEmphasis[
   's13-bank-autofill-explanation': [
     { phrase: 'direkt ausgefüllt', tone: 'positive' },
   ],
+  's14-mfa': [{ phrase: 'mehrere unterschiedliche Faktoren', tone: 'accent' }],
+  's14-two-factor': [
+    { phrase: 'genau zwei unterschiedliche Faktoren', tone: 'accent' },
+  ],
+  's14-factor-knowledge': [{ phrase: 'Wissen', tone: 'accent' }],
+  's14-factor-possession': [
+    { phrase: 'etwas, das du besitzt', tone: 'accent' },
+  ],
+  's14-factor-biometrics': [{ phrase: 'ein Körpermerkmal', tone: 'accent' }],
+  's14-distinct-factors': [{ phrase: 'unterschiedlich', tone: 'accent' }],
 };
 
 export function passWoSpeechEmphasisFor(
